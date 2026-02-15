@@ -1,4 +1,5 @@
 import { defaultYieldFormValues } from '@/shared/lib/snowball';
+import { PRESET_TICKERS } from '@/shared/constants';
 import type { PortfolioPersistedState } from '@/shared/types/snowball';
 import type { YearlySeriesKey } from '@/shared/constants';
 import type { PersistedAppStatePayload, PersistedInvestmentSettings } from '../types';
@@ -45,6 +46,45 @@ const DEFAULT_PERSISTED_INVESTMENT_SETTINGS: PersistedInvestmentSettings = {
   isYearlyAreaFillOn: false,
   showPortfolioDividendCenter: false,
   visibleYearlySeries: DEFAULT_VISIBLE_YEARLY_SERIES
+};
+
+const createSamplePortfolioState = (): PortfolioPersistedState => {
+  const sampleTickers = [
+    { preset: PRESET_TICKERS.JEPI, weight: 40 },
+    { preset: PRESET_TICKERS.SCHD, weight: 40 },
+    { preset: PRESET_TICKERS.DGRO, weight: 20 }
+  ];
+  const tickerProfiles = sampleTickers.map(({ preset }, index) => ({
+    id: `sample-${preset.ticker.toLowerCase()}-${index + 1}`,
+    ...preset
+  }));
+  const includedTickerIds = tickerProfiles.map((profile) => profile.id);
+  const weightByTickerId = tickerProfiles.reduce<Record<string, number>>((acc, profile, index) => {
+    acc[profile.id] = sampleTickers[index]?.weight ?? 0;
+    return acc;
+  }, {});
+  const fixedByTickerId = tickerProfiles.reduce<Record<string, boolean>>((acc, profile) => {
+    acc[profile.id] = false;
+    return acc;
+  }, {});
+
+  return {
+    tickerProfiles,
+    includedTickerIds,
+    weightByTickerId,
+    fixedByTickerId,
+    selectedTickerId: tickerProfiles[0]?.id ?? null
+  };
+};
+
+const DEFAULT_PERSISTED_PORTFOLIO_STATE = createSamplePortfolioState();
+const DEFAULT_SAMPLE_INVESTMENT_SETTINGS: PersistedInvestmentSettings = {
+  ...DEFAULT_PERSISTED_INVESTMENT_SETTINGS,
+  monthlyContribution: 200,
+  targetMonthlyDividend: 100,
+  durationYears: 10,
+  reinvestDividends: true,
+  showPortfolioDividendCenter: true
 };
 
 const sanitizePortfolioState = (input: unknown): PortfolioPersistedState => {
@@ -204,11 +244,18 @@ export const readPersistedAppState = async (): Promise<PersistedAppStatePayload>
       request.onerror = () => reject(request.error ?? new Error('Failed to read portfolio state'));
     });
     db.close();
-    return normalizePersistedAppState(result?.value);
+    if (!result?.value) {
+      return {
+        portfolio: DEFAULT_PERSISTED_PORTFOLIO_STATE,
+        investmentSettings: DEFAULT_SAMPLE_INVESTMENT_SETTINGS,
+        savedName: undefined
+      };
+    }
+    return normalizePersistedAppState(result.value);
   } catch {
     return {
-      portfolio: EMPTY_PORTFOLIO_STATE,
-      investmentSettings: DEFAULT_PERSISTED_INVESTMENT_SETTINGS,
+      portfolio: DEFAULT_PERSISTED_PORTFOLIO_STATE,
+      investmentSettings: DEFAULT_SAMPLE_INVESTMENT_SETTINGS,
       savedName: undefined
     };
   }
