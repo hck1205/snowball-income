@@ -2,14 +2,17 @@ import type { DataTableProps } from './DataTable.types';
 import { toRowKey } from './DataTable.utils';
 import { TD, TH, Table, TableWrap } from './DataTable.styled';
 
-export default function DataTable<T>({ columns, rows }: DataTableProps<T>) {
+export default function DataTable<T>({ caption, columns, rows }: DataTableProps<T>) {
   return (
     <TableWrap>
       <Table>
+        {caption ? <caption>{caption}</caption> : null}
         <thead>
           <tr>
             {columns.map((column) => (
-              <TH key={String(column.key)}>{column.header}</TH>
+              <TH key={String(column.key)} scope="col">
+                {column.header}
+              </TH>
             ))}
           </tr>
         </thead>

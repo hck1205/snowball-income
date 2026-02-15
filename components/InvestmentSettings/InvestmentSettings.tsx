@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Card, FormSection, InputField, ToggleField } from '@/components';
 import type { YieldFormValues } from '@/shared/types';
 import type { InvestmentSettingsProps } from './InvestmentSettings.types';
@@ -11,7 +12,7 @@ import {
   InlineSelect
 } from '@/pages/Main/Main.shared.styled';
 
-export default function InvestmentSettings({
+function InvestmentSettingsComponent({
   values,
   showQuickEstimate,
   showSplitGraphs,
@@ -127,3 +128,7 @@ export default function InvestmentSettings({
     </Card>
   );
 }
+
+const InvestmentSettings = memo(InvestmentSettingsComponent);
+
+export default InvestmentSettings;

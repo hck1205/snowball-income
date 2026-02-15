@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import type { MouseEvent } from 'react';
 import type { TickerDraft, TickerProfile } from '@/shared/types/snowball';
 import {
@@ -57,7 +58,7 @@ export const useTickerActions = () => {
   const setSelectedPreset = useSetSelectedPresetWrite();
   const setIsConfigDrawerOpen = useSetIsConfigDrawerOpenWrite();
 
-  const applyTickerProfile = (profile: TickerDraft) => {
+  const applyTickerProfile = useCallback((profile: TickerDraft) => {
     setYieldFormValues((prev) => ({
       ...prev,
       ticker: profile.ticker,
@@ -67,39 +68,39 @@ export const useTickerActions = () => {
       priceGrowth: profile.priceGrowth,
       frequency: profile.frequency
     }));
-  };
+  }, [setYieldFormValues]);
 
-  const openTickerModal = () => {
+  const openTickerModal = useCallback(() => {
     setTickerDraft(toTickerDraft(values));
     setSelectedPreset('custom');
     setTickerModalMode('create');
     setEditingTickerId(null);
     setIsTickerModalOpen(true);
-  };
+  }, [setEditingTickerId, setIsTickerModalOpen, setSelectedPreset, setTickerDraft, setTickerModalMode, values]);
 
-  const openTickerEditModal = (profile: TickerProfile) => {
+  const openTickerEditModal = useCallback((profile: TickerProfile) => {
     setTickerDraft(toTickerDraft(profile));
     setSelectedPreset('custom');
     setTickerModalMode('edit');
     setEditingTickerId(profile.id);
     setIsTickerModalOpen(true);
-  };
+  }, [setEditingTickerId, setIsTickerModalOpen, setSelectedPreset, setTickerDraft, setTickerModalMode]);
 
-  const closeTickerModal = () => {
+  const closeTickerModal = useCallback(() => {
     setIsTickerModalOpen(false);
     setTickerModalMode('create');
     setEditingTickerId(null);
-  };
+  }, [setEditingTickerId, setIsTickerModalOpen, setTickerModalMode]);
 
-  const closeHelp = () => setActiveHelp(null);
+  const closeHelp = useCallback(() => setActiveHelp(null), [setActiveHelp]);
 
-  const handleBackdropClick = (event: MouseEvent<HTMLDivElement>) => {
+  const handleBackdropClick = useCallback((event: MouseEvent<HTMLDivElement>) => {
     if (event.target !== event.currentTarget) return;
     if (currentHelp) closeHelp();
     if (isTickerModalOpen) closeTickerModal();
-  };
+  }, [closeHelp, closeTickerModal, currentHelp, isTickerModalOpen]);
 
-  const saveTicker = () => {
+  const saveTicker = useCallback(() => {
     const tickerName = tickerDraft.ticker.trim();
     if (!tickerName) return;
 
@@ -125,9 +126,22 @@ export const useTickerActions = () => {
 
     setIsConfigDrawerOpen(false);
     closeTickerModal();
-  };
+  }, [
+    applyTickerProfile,
+    closeTickerModal,
+    editingTickerId,
+    selectedTickerId,
+    setFixedByTickerId,
+    setIncludedTickerIds,
+    setIsConfigDrawerOpen,
+    setSelectedTickerId,
+    setTickerProfiles,
+    setWeightByTickerId,
+    tickerDraft,
+    tickerModalMode
+  ]);
 
-  const deleteTicker = () => {
+  const deleteTicker = useCallback(() => {
     if (tickerModalMode !== 'edit' || !editingTickerId) return;
 
     const deletingId = editingTickerId;
@@ -158,9 +172,23 @@ export const useTickerActions = () => {
 
     setIsConfigDrawerOpen(false);
     closeTickerModal();
-  };
+  }, [
+    applyTickerProfile,
+    closeTickerModal,
+    editingTickerId,
+    includedTickerIds,
+    selectedTickerId,
+    setFixedByTickerId,
+    setIncludedTickerIds,
+    setIsConfigDrawerOpen,
+    setSelectedTickerId,
+    setTickerProfiles,
+    setWeightByTickerId,
+    tickerModalMode,
+    tickerProfiles
+  ]);
 
-  const toggleIncludeTicker = (profile: TickerProfile) => {
+  const toggleIncludeTicker = useCallback((profile: TickerProfile) => {
     const isIncluded = includedTickerIds.includes(profile.id);
 
     if (isIncluded) {
@@ -176,9 +204,9 @@ export const useTickerActions = () => {
     setSelectedTickerId(profile.id);
     applyTickerProfile(profile);
     setIsConfigDrawerOpen(false);
-  };
+  }, [applyTickerProfile, includedTickerIds, setFixedByTickerId, setIncludedTickerIds, setIsConfigDrawerOpen, setSelectedTickerId, setWeightByTickerId]);
 
-  const removeIncludedTicker = (profileId: string) => {
+  const removeIncludedTicker = useCallback((profileId: string) => {
     const nextIncludedIds = includedTickerIds.filter((id) => id !== profileId);
     setIncludedTickerIds(nextIncludedIds);
     setFixedByTickerId((prev: Record<string, boolean>) => ({ ...prev, [profileId]: false }));
@@ -193,9 +221,9 @@ export const useTickerActions = () => {
         }
       }
     }
-  };
+  }, [applyTickerProfile, includedTickerIds, selectedTickerId, setFixedByTickerId, setIncludedTickerIds, setSelectedTickerId, tickerProfiles]);
 
-  const setTickerWeight = (profileId: string, value: number) => {
+  const setTickerWeight = useCallback((profileId: string, value: number) => {
     if (fixedByTickerId[profileId]) return;
 
     const nextTarget = Number.isFinite(value) ? Math.min(100, Math.max(0, value)) : 0;
@@ -232,29 +260,29 @@ export const useTickerActions = () => {
     }
 
     setWeightByTickerId((prev: Record<string, number>) => ({ ...prev, ...nextMap }));
-  };
+  }, [allocationPercentExactByTickerId, fixedByTickerId, includedProfiles, setWeightByTickerId]);
 
-  const toggleTickerFixed = (profileId: string) => {
+  const toggleTickerFixed = useCallback((profileId: string) => {
     setFixedByTickerId((prev: Record<string, boolean>) => ({ ...prev, [profileId]: !prev[profileId] }));
-  };
+  }, [setFixedByTickerId]);
 
   const { consumeTriggered, handlePressEnd, handlePressStart } = useLongPress<TickerProfile>({
     delayMs: 550,
     onLongPress: openTickerEditModal
   });
 
-  const handleTickerChipClick = (profile: TickerProfile) => {
+  const handleTickerChipClick = useCallback((profile: TickerProfile) => {
     if (consumeTriggered()) return;
     toggleIncludeTicker(profile);
-  };
+  }, [consumeTriggered, toggleIncludeTicker]);
 
-  const handleTickerPressStart = (profile: TickerProfile) => {
+  const handleTickerPressStart = useCallback((profile: TickerProfile) => {
     handlePressStart(profile);
-  };
+  }, [handlePressStart]);
 
-  const handleTickerPressEnd = () => {
+  const handleTickerPressEnd = useCallback(() => {
     handlePressEnd();
-  };
+  }, [handlePressEnd]);
 
   return {
     closeHelp,

@@ -24,6 +24,7 @@ export const buildAllocationPieOption = ({
   if (normalizedAllocation.length === 0) return null;
 
   return {
+    animation: false,
     graphic: showPortfolioDividendCenter
       ? [
           {
@@ -97,6 +98,7 @@ export const buildAllocationPieOption = ({
 };
 
 export const buildRecentCashflowBarOption = (recentCashflowByTicker: RecentCashflowByTicker): EChartsOption => ({
+  animation: false,
   grid: { left: 72, right: 16, top: 24, bottom: 42 },
   tooltip: {
     trigger: 'axis',
@@ -141,6 +143,7 @@ export const buildYearlyResultBarOption = ({
   const seriesKeys = YEARLY_SERIES_ORDER.filter((key) => visibleYearlySeries[key]);
 
   return {
+    animation: false,
     grid: { left: 72, right: 20, top: 24, bottom: 36 },
     tooltip: {
       trigger: 'axis',

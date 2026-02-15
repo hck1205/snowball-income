@@ -7,6 +7,7 @@ export type TableColumn<T> = {
 };
 
 export type DataTableProps<T> = {
+  caption?: string;
   columns: Array<TableColumn<T>>;
   rows: T[];
 };

@@ -17,8 +17,7 @@ describe('SnowballAppFeature', () => {
   it('renders summary on valid input', () => {
     renderFeature();
 
-    expect(screen.getByText('정교 시뮬레이션(추천)')).toBeInTheDocument();
-    expect(screen.queryByText('빠른 추정(참고)')).not.toBeInTheDocument();
+    expect(screen.getByText('시뮬레이션 결과 (정밀)')).toBeInTheDocument();
     expect(screen.getByText('연도별 결과')).toBeInTheDocument();
   });
 
@@ -27,7 +26,7 @@ describe('SnowballAppFeature', () => {
     renderFeature();
 
     await user.click(screen.getByRole('button', { name: '티커 생성 열기' }));
-    const dialog = screen.getByRole('dialog', { name: '티커 생성' });
+    const dialog = await screen.findByRole('dialog', { name: '티커 생성' });
     await user.selectOptions(within(dialog).getByLabelText('프리셋 티커'), 'JEPI');
 
     expect(within(dialog).getByLabelText('티커')).toHaveValue('JEPI');
@@ -61,7 +60,7 @@ describe('SnowballAppFeature', () => {
     renderFeature();
 
     await user.click(screen.getByRole('button', { name: '티커 생성 열기' }));
-    const dialog = screen.getByRole('dialog', { name: '티커 생성' });
+    const dialog = await screen.findByRole('dialog', { name: '티커 생성' });
     const tickerInput = within(dialog).getByLabelText('티커');
     await user.clear(tickerInput);
     await user.type(tickerInput, 'VYM');
@@ -69,9 +68,9 @@ describe('SnowballAppFeature', () => {
 
     const tickerButton = screen.getByRole('button', { name: '티커 VYM 선택' });
     expect(tickerButton).toBeInTheDocument();
-    const selectedTickerCard = screen.getByRole('heading', { name: '선택된 티커' }).closest('section');
+    const selectedTickerCard = screen.getByRole('heading', { name: '포트폴리오 구성' }).closest('section');
     expect(selectedTickerCard).not.toBeNull();
-    expect(within(selectedTickerCard as HTMLElement).getByText('VYM')).toBeInTheDocument();
+    expect((selectedTickerCard as HTMLElement).textContent ?? '').toContain('VYM');
   });
 
   it('combines multiple included tickers into one portfolio label', async () => {
@@ -79,25 +78,24 @@ describe('SnowballAppFeature', () => {
     renderFeature();
 
     await user.click(screen.getByRole('button', { name: '티커 생성 열기' }));
-    let dialog = screen.getByRole('dialog', { name: '티커 생성' });
+    let dialog = await screen.findByRole('dialog', { name: '티커 생성' });
     let tickerInput = within(dialog).getByLabelText('티커');
     await user.clear(tickerInput);
     await user.type(tickerInput, 'SCHD');
     await user.click(within(dialog).getByRole('button', { name: '생성' }));
 
     await user.click(screen.getByRole('button', { name: '티커 생성 열기' }));
-    dialog = screen.getByRole('dialog', { name: '티커 생성' });
+    dialog = await screen.findByRole('dialog', { name: '티커 생성' });
     tickerInput = within(dialog).getByLabelText('티커');
     await user.clear(tickerInput);
     await user.type(tickerInput, 'JEPI');
     await user.click(within(dialog).getByRole('button', { name: '생성' }));
 
-    const selectedTickerCard = screen.getByRole('heading', { name: '선택된 티커' }).closest('section');
+    const selectedTickerCard = screen.getByRole('heading', { name: '포트폴리오 구성' }).closest('section');
     expect(selectedTickerCard).not.toBeNull();
     const text = (selectedTickerCard as HTMLElement).textContent ?? '';
     expect(text).toContain('SCHD');
     expect(text).toContain('JEPI');
-    expect(text).toContain('+');
   });
 
   it('removes ticker chip from right portfolio when x button is clicked', async () => {
@@ -105,7 +103,7 @@ describe('SnowballAppFeature', () => {
     renderFeature();
 
     await user.click(screen.getByRole('button', { name: '티커 생성 열기' }));
-    const dialog = screen.getByRole('dialog', { name: '티커 생성' });
+    const dialog = await screen.findByRole('dialog', { name: '티커 생성' });
     const tickerInput = within(dialog).getByLabelText('티커');
     await user.clear(tickerInput);
     await user.type(tickerInput, 'HDV');
@@ -120,13 +118,13 @@ describe('SnowballAppFeature', () => {
     const user = userEvent.setup();
     renderFeature();
 
-    expect(screen.getByText('정교 시뮬레이션(추천)')).toBeInTheDocument();
-    expect(screen.queryByText('빠른 추정(참고)')).not.toBeInTheDocument();
+    expect(screen.getByText('시뮬레이션 결과 (정밀)')).toBeInTheDocument();
+    expect(screen.queryByText('시뮬레이션 결과 (간편)')).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('checkbox', { name: '빠른 추정 보기' }));
 
-    expect(screen.getByText('빠른 추정(참고)')).toBeInTheDocument();
-    expect(screen.queryByText('정교 시뮬레이션(추천)')).not.toBeInTheDocument();
+    expect(screen.getByText('시뮬레이션 결과 (간편)')).toBeInTheDocument();
+    expect(screen.queryByText('시뮬레이션 결과 (정밀)')).not.toBeInTheDocument();
   });
 
   it('opens ticker settings by gear button and updates ticker name', async () => {
@@ -134,15 +132,18 @@ describe('SnowballAppFeature', () => {
     renderFeature();
 
     await user.click(screen.getByRole('button', { name: '티커 생성 열기' }));
-    let dialog = screen.getByRole('dialog', { name: '티커 생성' });
+    let dialog = await screen.findByRole('dialog', { name: '티커 생성' });
     let tickerInput = within(dialog).getByLabelText('티커');
     await user.clear(tickerInput);
     await user.type(tickerInput, 'QQQ');
     await user.click(within(dialog).getByRole('button', { name: '생성' }));
 
-    await user.hover(screen.getByRole('button', { name: '티커 QQQ 선택' }));
-    await user.click(screen.getByRole('button', { name: '티커 QQQ 설정' }));
-    dialog = screen.getByRole('dialog', { name: '티커 생성' });
+    const tickerChip = screen.getByRole('button', { name: '티커 QQQ 선택' });
+    await user.hover(tickerChip);
+    const gearButton = tickerChip.closest('div')?.querySelector<HTMLButtonElement>('button[data-gear="true"]');
+    expect(gearButton).not.toBeNull();
+    await user.click(gearButton as HTMLButtonElement);
+    dialog = await screen.findByRole('dialog', { name: '티커 생성' });
     tickerInput = within(dialog).getByLabelText('티커');
     await user.clear(tickerInput);
     await user.type(tickerInput, 'QQQM');

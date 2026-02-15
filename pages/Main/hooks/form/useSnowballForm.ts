@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import type { YieldFormValues } from '@/shared/types';
 import { simulationAtom, useAtomValue, useSetYieldFormWrite, useYieldFormAtomValue, validationAtom } from '@/jotai';
 
@@ -7,9 +8,12 @@ export const useSnowballForm = () => {
   const validation = useAtomValue(validationAtom);
   const simulation = useAtomValue(simulationAtom);
 
-  const setField = <K extends keyof YieldFormValues>(field: K, value: YieldFormValues[K]) => {
-    setValues((prev) => ({ ...prev, [field]: value }));
-  };
+  const setField = useCallback(
+    <K extends keyof YieldFormValues>(field: K, value: YieldFormValues[K]) => {
+      setValues((prev) => ({ ...prev, [field]: value }));
+    },
+    [setValues]
+  );
 
   return {
     values,

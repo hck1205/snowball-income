@@ -1,4 +1,4 @@
-import { memo, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { memo, useEffect, useLayoutEffect, useRef } from 'react';
 import ResponsiveEChartView from './ResponsiveEChart.view';
 import type { ResponsiveEChartProps } from './ResponsiveEChart.types';
 
@@ -6,20 +6,29 @@ export const ResponsiveEChart = memo(function ResponsiveEChart({ option, replace
   const chartRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const rafRef = useRef<number | null>(null);
-  const [chartSize, setChartSize] = useState({ width: 0, height: 0 });
+  const lastSizeRef = useRef({ width: 0, height: 0 });
 
-  const measureContainer = () => {
+  const resizeChartToContainer = () => {
     if (!containerRef.current) return;
+    const chart = chartRef.current?.getEchartsInstance?.();
+    if (!chart) return;
+
     const rect = containerRef.current.getBoundingClientRect();
     const width = Math.max(0, Math.floor(rect.width));
     const height = Math.max(0, Math.floor(rect.height));
-    setChartSize((prev) => (prev.width === width && prev.height === height ? prev : { width, height }));
+    if (width <= 0 || height <= 0) return;
+
+    const prevSize = lastSizeRef.current;
+    if (prevSize.width === width && prevSize.height === height) return;
+
+    lastSizeRef.current = { width, height };
+    chart.resize({ width, height, animation: { duration: 0 } });
   };
 
   const queueMeasure = () => {
     if (rafRef.current !== null) window.cancelAnimationFrame(rafRef.current);
     rafRef.current = window.requestAnimationFrame(() => {
-      measureContainer();
+      resizeChartToContainer();
       rafRef.current = null;
     });
   };
@@ -57,21 +66,12 @@ export const ResponsiveEChart = memo(function ResponsiveEChart({ option, replace
     return () => window.cancelAnimationFrame(raf);
   }, [option]);
 
-  useEffect(() => {
-    const chart = chartRef.current?.getEchartsInstance?.();
-    if (!chart) return;
-    if (chartSize.width <= 0 || chartSize.height <= 0) return;
-    chart.resize({ width: chartSize.width, height: chartSize.height });
-  }, [chartSize.height, chartSize.width]);
-
   return (
     <ResponsiveEChartView
       chartRef={chartRef}
       containerRef={containerRef}
-      height={chartSize.height}
       option={option}
       replaceMerge={replaceMerge}
-      width={chartSize.width}
     />
   );
 });

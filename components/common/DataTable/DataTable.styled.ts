@@ -75,9 +75,7 @@ export const TD = styled.td`
     gap: 10px;
     text-align: right;
     padding: 8px 4px;
-  }
 
-  @container (max-width: 820px) {
     &::before {
       content: attr(data-label);
       text-align: left;
