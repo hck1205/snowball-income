@@ -13,12 +13,23 @@ const renderFeature = () => {
   );
 };
 
+const createTicker = async (name: string, user = userEvent.setup()) => {
+  await user.click(screen.getByRole('button', { name: '티커 생성 열기' }));
+  const dialog = await screen.findByRole('dialog', { name: '티커 생성' });
+  const tickerInput = within(dialog).getByLabelText('티커');
+  await user.clear(tickerInput);
+  await user.type(tickerInput, name);
+  await user.click(within(dialog).getByRole('button', { name: '생성' }));
+  return user;
+};
+
 describe('SnowballAppFeature', () => {
-  it('renders summary on valid input', () => {
+  it('resets simulation result when no ticker is selected', () => {
     renderFeature();
 
-    expect(screen.getByText('시뮬레이션 결과 (정밀)')).toBeInTheDocument();
-    expect(screen.getByText('연도별 결과')).toBeInTheDocument();
+    expect(screen.getByText('결과')).toBeInTheDocument();
+    expect(screen.getByText('좌측 티커 생성을 통해 포트폴리오를 구성해주세요.')).toBeInTheDocument();
+    expect(screen.queryByText('시뮬레이션 결과 (정밀)')).not.toBeInTheDocument();
   });
 
   it('applies preset values in ticker modal', async () => {
@@ -34,9 +45,10 @@ describe('SnowballAppFeature', () => {
   });
 
   it('changes summary value when reinvest toggle changes', async () => {
-    const user = userEvent.setup();
     renderFeature();
+    const user = await createTicker('SCHD');
 
+    expect(screen.getByText('시뮬레이션 결과 (정밀)')).toBeInTheDocument();
     const baseline = screen.getAllByText(/^₩/)[1]?.textContent;
     await user.click(screen.getByLabelText('배당 재투자'));
     const next = screen.getAllByText(/^₩/)[1]?.textContent;
@@ -117,6 +129,7 @@ describe('SnowballAppFeature', () => {
   it('shows only one result mode card and toggles to quick estimate', async () => {
     const user = userEvent.setup();
     renderFeature();
+    await createTicker('JEPI', user);
 
     expect(screen.getByText('시뮬레이션 결과 (정밀)')).toBeInTheDocument();
     expect(screen.queryByText('시뮬레이션 결과 (간편)')).not.toBeInTheDocument();

@@ -142,7 +142,7 @@ function MainRightPanelComponent() {
         </>
       ) : (
         <Card title="결과">
-          <p>입력값 오류를 수정하면 결과가 표시됩니다.</p>
+          <p>{includedProfiles.length === 0 ? '좌측 티커 생성을 통해 포트폴리오를 구성해주세요.' : '입력값 오류를 수정하면 결과가 표시됩니다.'}</p>
         </Card>
       )}
     </ResultsColumn>
