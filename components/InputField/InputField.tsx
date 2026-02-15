@@ -1,7 +1,7 @@
 import type { ChangeEvent } from 'react';
-import type { InputFieldProps, SelectFieldProps } from './component.types';
-import { formatNumericDisplay, normalizeNumericInput, toInputId } from './component.utils';
-import { BaseInput, BaseSelect, FieldLabel, HelpButton, LabelRow } from './component.styled';
+import type { InputFieldProps, SelectFieldProps } from './InputField.types';
+import { formatNumericDisplay, normalizeNumericInput, toInputId } from './InputField.utils';
+import { BaseInput, BaseSelect, FieldLabel, HelpButton, LabelRow } from './InputField.styled';
 
 const LabelWithHelp = ({ label, helpAriaLabel, onHelpClick }: { label: string; helpAriaLabel?: string; onHelpClick?: () => void }) => (
   <LabelRow>

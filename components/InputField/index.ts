@@ -1,3 +1,3 @@
-export { default } from './component';
-export { FrequencySelect } from './component';
-export type * from './component.types';
+export { default } from './InputField';
+export { FrequencySelect } from './InputField';
+export type * from './InputField.types';

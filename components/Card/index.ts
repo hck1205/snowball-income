@@ -1,2 +1,2 @@
-export { default } from './component';
-export type * from './component.types';
+export { default } from './Card';
+export type * from './Card.types';

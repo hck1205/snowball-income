@@ -1,6 +1,6 @@
 import { createElement } from 'react';
 import { render, screen } from '@testing-library/react';
-import DataTable from './component';
+import DataTable from './DataTable';
 
 type Row = { name: string; value: number };
 

@@ -1,6 +1,6 @@
 import { createElement } from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
-import ToggleField from './component';
+import ToggleField from './ToggleField';
 
 describe('ToggleField', () => {
   it('handles click event', () => {

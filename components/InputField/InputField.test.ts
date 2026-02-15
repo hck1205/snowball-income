@@ -1,6 +1,6 @@
 import { createElement } from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
-import InputField, { FrequencySelect } from './component';
+import InputField, { FrequencySelect } from './InputField';
 
 describe('InputField', () => {
   it('renders input and handles change', () => {

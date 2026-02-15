@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { TARGET_MONTHLY_DIVIDENDS } from '@/shared/constants';
 import type {
   Frequency,
   MonthlySnapshot,
@@ -22,6 +21,7 @@ const formSchema = z.object({
   priceGrowth: z.number().min(-100, '주가 성장률은 -100 이상이어야 합니다.').max(100, '주가 성장률은 100 이하여야 합니다.'),
   frequency: frequencySchema,
   monthlyContribution: z.number().min(0, '월 투자금은 0 이상이어야 합니다.'),
+  targetMonthlyDividend: z.number().min(0, '목표 월배당은 0 이상이어야 합니다.'),
   durationYears: z.number().int('투자 기간은 정수여야 합니다.').min(1, '투자 기간은 1년 이상이어야 합니다.').max(60, '투자 기간은 60년 이하여야 합니다.'),
   reinvestDividends: z.boolean(),
   taxRate: z.number().min(0, '세율은 0 이상이어야 합니다.').max(100, '세율은 100 이하여야 합니다.').optional(),
@@ -44,11 +44,12 @@ export const defaultYieldFormValues: YieldFormValues = {
   priceGrowth: 5,
   frequency: 'quarterly',
   monthlyContribution: 1000000,
+  targetMonthlyDividend: 2000000,
   durationYears: 20,
-  reinvestDividends: true,
+  reinvestDividends: false,
   taxRate: 15.4,
   reinvestTiming: 'sameMonth',
-  dpsGrowthMode: 'annualStep'
+  dpsGrowthMode: 'monthlySmooth'
 };
 
 export const validateFormValues = (values: YieldFormValues): YieldValidation => {
@@ -86,6 +87,7 @@ export const toSimulationInput = (values: YieldFormValues): SimulationInput => (
   },
   settings: {
     monthlyContribution: values.monthlyContribution,
+    targetMonthlyDividend: values.targetMonthlyDividend,
     durationYears: values.durationYears,
     reinvestDividends: values.reinvestDividends,
     taxRate: values.taxRate,
@@ -226,8 +228,7 @@ export const runSimulation = (input: SimulationInput): SimulationOutput => {
       totalContribution: finalYear?.totalContribution ?? 0,
       totalNetDividend: finalYear?.cumulativeDividend ?? 0,
       totalTaxPaid,
-      targetMonthDividend100ReachedYear: findTargetYear(yearly, TARGET_MONTHLY_DIVIDENDS.oneMillion),
-      targetMonthDividend200ReachedYear: findTargetYear(yearly, TARGET_MONTHLY_DIVIDENDS.twoMillion)
+      targetMonthDividendReachedYear: findTargetYear(yearly, input.settings.targetMonthlyDividend)
     },
     quickEstimate
   };

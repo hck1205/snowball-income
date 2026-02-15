@@ -1,6 +1,6 @@
-import type { DataTableProps } from './component.types';
-import { toRowKey } from './component.utils';
-import { TD, TH, Table, TableWrap } from './component.styled';
+import type { DataTableProps } from './DataTable.types';
+import { toRowKey } from './DataTable.utils';
+import { TD, TH, Table, TableWrap } from './DataTable.styled';
 
 export default function DataTable<T>({ columns, rows }: DataTableProps<T>) {
   return (

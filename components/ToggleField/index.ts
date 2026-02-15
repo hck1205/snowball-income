@@ -1,2 +1,2 @@
-export { default } from './component';
-export type * from './component.types';
+export { default } from './ToggleField';
+export type * from './ToggleField.types';
