@@ -1,14 +1,11 @@
-import type { TickerDraft, TickerProfile } from '@/shared/types/snowball';
+import type { TickerProfile } from '@/shared/types/snowball';
 import type { SimulationOutput, YieldFormValues } from '@/shared/types';
 import { ALLOCATION_COLORS } from '@/shared/constants';
 import { runSimulation } from '@/shared/lib/snowball';
-import { toTickerDraft } from './ticker';
 import type { NormalizedAllocationItem } from './portfolio';
 
-type SimulatableTicker = TickerDraft | TickerProfile;
-
 const runForProfile = (
-  profile: SimulatableTicker,
+  profile: TickerProfile,
   monthlyContribution: number,
   initialInvestment: number,
   values: YieldFormValues
@@ -43,7 +40,7 @@ type SimulationInputParams = {
 };
 
 type WeightedTargetProfile = {
-  profile: SimulatableTicker;
+  profile: TickerProfile;
   weight: number;
 };
 
@@ -54,17 +51,9 @@ type ProfileSimulationOutput = {
 
 const buildTargetProfiles = ({
   includedProfiles,
-  normalizedAllocation,
-  values
-}: Omit<SimulationInputParams, 'isValid'>): WeightedTargetProfile[] => {
-  if (includedProfiles.length === 0) {
-    return [
-      {
-        profile: toTickerDraft(values),
-        weight: 1
-      }
-    ];
-  }
+  normalizedAllocation
+}: Pick<SimulationInputParams, 'includedProfiles' | 'normalizedAllocation'>): WeightedTargetProfile[] => {
+  if (includedProfiles.length === 0) return [];
 
   if (includedProfiles.length === 1) {
     return [
@@ -168,7 +157,14 @@ export const buildSimulationBundle = ({
     };
   }
 
-  const targetProfiles = buildTargetProfiles({ includedProfiles, normalizedAllocation, values });
+  const targetProfiles = buildTargetProfiles({ includedProfiles, normalizedAllocation });
+  if (targetProfiles.length === 0) {
+    return {
+      simulation: null,
+      recentCashflowByTicker: { months: [], series: [] }
+    };
+  }
+
   const outputs: ProfileSimulationOutput[] = targetProfiles.map((item) => ({
     ticker: item.profile.ticker,
     output: runForProfile(item.profile, values.monthlyContribution * item.weight, values.initialInvestment * item.weight, values)
