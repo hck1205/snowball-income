@@ -12,8 +12,10 @@ export type TickerInput = {
 };
 
 export type InvestmentSettings = {
+  initialInvestment: number;
   monthlyContribution: number;
   targetMonthlyDividend: number;
+  investmentStartDate: string;
   durationYears: number;
   reinvestDividends: boolean;
   taxRate?: number;

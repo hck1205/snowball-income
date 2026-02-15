@@ -49,13 +49,12 @@ export const ContentLayout = styled.div`
 `;
 
 export const ConfigColumn = styled.aside`
-  position: sticky;
-  top: 16px;
+  position: static;
   display: grid;
   gap: 14px;
-  max-height: calc(100vh - 32px);
-  overflow-y: auto;
-  padding: 2px 4px 2px 0;
+  max-height: none;
+  overflow: visible;
+  padding: 0;
   contain: layout paint style;
 
   @media (max-width: 960px) {
@@ -77,6 +76,7 @@ export const ConfigColumn = styled.aside`
 
 export const ConfigDrawerColumn = styled(ConfigColumn)<{ open: boolean }>`
   @media (max-width: 960px) {
+    display: ${({ open }) => (open ? 'grid' : 'none')};
     will-change: transform;
     transform: ${({ open }) => (open ? 'translateX(0)' : 'translateX(-100%)')};
   }

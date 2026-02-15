@@ -576,8 +576,7 @@ function TickerCreationComponent({
                     {'\n'}
                     이름을 비워두면 현재 날짜/시간 이름으로 자동 저장됩니다.
                     {'\n'}
-                    {'\n'}
-                    <span style={{ fontSize: '12px' }}>
+                    <span style={{ display: 'block', marginTop: '4px', fontSize: '12px' }}>
                       가이드: 이 저장은 현재 PC의 현재 브라우저에만 보관됩니다. 다른 기기/브라우저에서는 보이지 않을 수 있습니다.
                     </span>
                   </ModalBody>

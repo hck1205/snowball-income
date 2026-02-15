@@ -12,6 +12,7 @@ import type { YieldValidation } from '@/shared/types/snowball';
 const frequencySchema = z.enum(['monthly', 'quarterly', 'semiannual', 'annual']);
 const reinvestTimingSchema = z.enum(['sameMonth', 'nextMonth']);
 const dpsGrowthModeSchema = z.enum(['annualStep', 'monthlySmooth']);
+const dateInputSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '투자 시작 날짜를 선택하세요.');
 
 const formSchema = z.object({
   ticker: z.string().trim().min(1, '티커를 입력하세요.'),
@@ -20,8 +21,10 @@ const formSchema = z.object({
   dividendGrowth: z.number().min(0, '배당 성장률은 0 이상이어야 합니다.').max(100, '배당 성장률은 100 이하여야 합니다.'),
   priceGrowth: z.number().min(-100, '주가 성장률은 -100 이상이어야 합니다.').max(100, '주가 성장률은 100 이하여야 합니다.'),
   frequency: frequencySchema,
+  initialInvestment: z.number().min(0, '초기 투자금은 0 이상이어야 합니다.'),
   monthlyContribution: z.number().min(0, '월 투자금은 0 이상이어야 합니다.'),
   targetMonthlyDividend: z.number().min(0, '목표 월배당은 0 이상이어야 합니다.'),
+  investmentStartDate: dateInputSchema,
   durationYears: z.number().int('투자 기간은 정수여야 합니다.').min(1, '투자 기간은 1년 이상이어야 합니다.').max(60, '투자 기간은 60년 이하여야 합니다.'),
   reinvestDividends: z.boolean(),
   taxRate: z.number().min(0, '세율은 0 이상이어야 합니다.').max(100, '세율은 100 이하여야 합니다.').optional(),
@@ -43,8 +46,10 @@ export const defaultYieldFormValues: YieldFormValues = {
   dividendGrowth: 6,
   priceGrowth: 5,
   frequency: 'quarterly',
+  initialInvestment: 0,
   monthlyContribution: 1000000,
   targetMonthlyDividend: 2000000,
+  investmentStartDate: new Date().toISOString().slice(0, 10),
   durationYears: 20,
   reinvestDividends: false,
   taxRate: 15.4,
@@ -86,8 +91,10 @@ export const toSimulationInput = (values: YieldFormValues): SimulationInput => (
     frequency: values.frequency
   },
   settings: {
+    initialInvestment: values.initialInvestment,
     monthlyContribution: values.monthlyContribution,
     targetMonthlyDividend: values.targetMonthlyDividend,
+    investmentStartDate: values.investmentStartDate,
     durationYears: values.durationYears,
     reinvestDividends: values.reinvestDividends,
     taxRate: values.taxRate,
@@ -97,6 +104,31 @@ export const toSimulationInput = (values: YieldFormValues): SimulationInput => (
 });
 
 const toMonthlyGrowthRate = (annualRate: number): number => Math.pow(1 + annualRate, 1 / 12) - 1;
+const toStartDate = (value: string): Date => {
+  const [yearText, monthText, dayText] = value.split('-');
+  const year = Number(yearText);
+  const monthIndex = Number(monthText) - 1;
+  const day = Number(dayText);
+  const date = new Date(year, monthIndex, day);
+
+  if (
+    !Number.isFinite(year) ||
+    !Number.isFinite(monthIndex) ||
+    !Number.isFinite(day) ||
+    date.getFullYear() !== year ||
+    date.getMonth() !== monthIndex ||
+    date.getDate() !== day
+  ) {
+    return new Date();
+  }
+
+  return date;
+};
+const addMonths = (baseDate: Date, monthsToAdd: number): Date => {
+  const nextDate = new Date(baseDate);
+  nextDate.setMonth(baseDate.getMonth() + monthsToAdd);
+  return nextDate;
+};
 
 const runQuickEstimate = (input: SimulationInput) => {
   const taxRate = (input.settings.taxRate ?? 0) / 100;
@@ -106,9 +138,11 @@ const runQuickEstimate = (input: SimulationInput) => {
   const monthlyReturn = toMonthlyGrowthRate(annualReturn);
   const totalMonths = input.settings.durationYears * 12;
 
-  const endValue = Math.abs(monthlyReturn) < 1e-12
+  const monthlyContributionGrowth = Math.abs(monthlyReturn) < 1e-12
     ? input.settings.monthlyContribution * totalMonths
     : input.settings.monthlyContribution * ((Math.pow(1 + monthlyReturn, totalMonths) - 1) / monthlyReturn);
+  const initialInvestmentGrowth = input.settings.initialInvestment * Math.pow(1 + monthlyReturn, totalMonths);
+  const endValue = monthlyContributionGrowth + initialInvestmentGrowth;
 
   const dividendGrowth = input.ticker.dividendGrowth / 100;
 
@@ -132,10 +166,11 @@ export const runSimulation = (input: SimulationInput): SimulationOutput => {
 
   const totalMonths = input.settings.durationYears * 12;
   const paymentsPerYear = paymentsPerYearMap[input.ticker.frequency];
+  const startDate = toStartDate(input.settings.investmentStartDate);
 
   const dps0 = input.ticker.initialPrice * dividendYield;
 
-  let shares = 0;
+  let shares = input.settings.initialInvestment / input.ticker.initialPrice;
   let cumulativeDividend = 0;
   let totalTaxPaid = 0;
   let pendingReinvestCash = 0;
@@ -144,9 +179,14 @@ export const runSimulation = (input: SimulationInput): SimulationOutput => {
   const yearly: SimulationResult[] = [];
 
   for (let m = 1; m <= totalMonths; m += 1) {
-    const year = Math.floor((m - 1) / 12) + 1;
-    const month = ((m - 1) % 12) + 1;
-    const y = Math.floor((m - 1) / 12);
+    const elapsedMonths = m - 1;
+    const elapsedYears = Math.floor(elapsedMonths / 12);
+    const simulationMonth = (elapsedMonths % 12) + 1;
+    const simulationYearLabel = startDate.getFullYear() + elapsedYears;
+    const calendarDate = addMonths(startDate, elapsedMonths);
+    const year = calendarDate.getFullYear();
+    const month = calendarDate.getMonth() + 1;
+    const y = elapsedYears;
 
     const price = input.ticker.initialPrice * Math.pow(1 + priceGrowth, y + (month - 1) / 12);
     const growthExponent = input.settings.dpsGrowthMode === 'monthlySmooth'
@@ -162,7 +202,7 @@ export const runSimulation = (input: SimulationInput): SimulationOutput => {
     let dividendPaid = 0;
     let taxPaid = 0;
 
-    if (isPayoutMonth(input.ticker.frequency, month)) {
+    if (isPayoutMonth(input.ticker.frequency, simulationMonth)) {
       const grossDividend = shares * (dps / paymentsPerYear);
       taxPaid = grossDividend * taxRate;
       dividendPaid = grossDividend - taxPaid;
@@ -197,13 +237,13 @@ export const runSimulation = (input: SimulationInput): SimulationOutput => {
       cumulativeDividend
     });
 
-    if (month === 12) {
+    if (simulationMonth === 12) {
       const last12 = monthly.slice(-12);
       const annualDividend = last12.reduce((sum, row) => sum + row.dividendPaid, 0);
 
       yearly.push({
-        year,
-        totalContribution: input.settings.monthlyContribution * m,
+        year: simulationYearLabel,
+        totalContribution: input.settings.initialInvestment + (input.settings.monthlyContribution * m),
         assetValue: portfolioValue,
         annualDividend,
         cumulativeDividend,

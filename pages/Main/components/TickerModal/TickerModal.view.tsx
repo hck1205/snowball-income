@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { FrequencySelect, InputField } from '@/components';
 import type { PresetTickerKey } from '@/shared/constants';
 import type { Frequency } from '@/shared/types';
@@ -30,6 +31,8 @@ export default function TickerModalView({
   onClose,
   onSave
 }: TickerModalViewProps) {
+  const modalRoot = typeof document !== 'undefined' ? document.body : null;
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -42,8 +45,9 @@ export default function TickerModalView({
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
+  if (!modalRoot) return null;
 
-  return (
+  return createPortal(
     <ModalBackdrop role="dialog" aria-modal="true" aria-label="티커 생성" onClick={onBackdropClick}>
       <ModalPanel>
         <ModalTitle>{mode === 'edit' ? '티커 설정 수정' : '티커 생성'}</ModalTitle>
@@ -131,6 +135,7 @@ export default function TickerModalView({
           </PrimaryButton>
         </ModalActions>
       </ModalPanel>
-    </ModalBackdrop>
+    </ModalBackdrop>,
+    modalRoot
   );
 }

@@ -7,7 +7,12 @@ import type { NormalizedAllocationItem } from './portfolio';
 
 type SimulatableTicker = TickerDraft | TickerProfile;
 
-const runForProfile = (profile: SimulatableTicker, monthlyContribution: number, values: YieldFormValues): SimulationOutput =>
+const runForProfile = (
+  profile: SimulatableTicker,
+  monthlyContribution: number,
+  initialInvestment: number,
+  values: YieldFormValues
+): SimulationOutput =>
   runSimulation({
     ticker: {
       ticker: profile.ticker,
@@ -18,8 +23,10 @@ const runForProfile = (profile: SimulatableTicker, monthlyContribution: number, 
       frequency: profile.frequency
     },
     settings: {
+      initialInvestment,
       monthlyContribution,
       targetMonthlyDividend: values.targetMonthlyDividend,
+      investmentStartDate: values.investmentStartDate,
       durationYears: values.durationYears,
       reinvestDividends: values.reinvestDividends,
       taxRate: values.taxRate,
@@ -28,30 +35,51 @@ const runForProfile = (profile: SimulatableTicker, monthlyContribution: number, 
     }
   });
 
-export const buildSimulation = ({
-  isValid,
-  includedProfiles,
-  normalizedAllocation,
-  values
-}: {
+type SimulationInputParams = {
   isValid: boolean;
   includedProfiles: TickerProfile[];
   normalizedAllocation: NormalizedAllocationItem[];
   values: YieldFormValues;
-}): SimulationOutput | null => {
-  if (!isValid) return null;
+};
 
+type WeightedTargetProfile = {
+  profile: SimulatableTicker;
+  weight: number;
+};
+
+type ProfileSimulationOutput = {
+  ticker: string;
+  output: SimulationOutput;
+};
+
+const buildTargetProfiles = ({
+  includedProfiles,
+  normalizedAllocation,
+  values
+}: Omit<SimulationInputParams, 'isValid'>): WeightedTargetProfile[] => {
   if (includedProfiles.length === 0) {
-    return runForProfile(toTickerDraft(values), values.monthlyContribution, values);
+    return [
+      {
+        profile: toTickerDraft(values),
+        weight: 1
+      }
+    ];
   }
 
   if (includedProfiles.length === 1) {
-    return runForProfile(includedProfiles[0], values.monthlyContribution, values);
+    return [
+      {
+        profile: includedProfiles[0],
+        weight: 1
+      }
+    ];
   }
 
-  const outputs = normalizedAllocation.map(({ profile, weight }) => runForProfile(profile, values.monthlyContribution * weight, values));
-  const base = outputs[0];
+  return normalizedAllocation.map(({ profile, weight }) => ({ profile, weight }));
+};
 
+const aggregatePortfolioSimulation = (outputs: SimulationOutput[], targetMonthlyDividend: number): SimulationOutput => {
+  const base = outputs[0];
   const monthly = base.monthly.map((row, index) => {
     const merged = outputs.map((output) => output.monthly[index]);
     return {
@@ -93,7 +121,7 @@ export const buildSimulation = ({
       totalContribution: finalYear?.totalContribution ?? 0,
       totalNetDividend: finalYear?.cumulativeDividend ?? 0,
       totalTaxPaid: outputs.reduce((sum, output) => sum + output.summary.totalTaxPaid, 0),
-      targetMonthDividendReachedYear: yearly.find((item) => item.monthlyDividend >= values.targetMonthlyDividend)?.year
+      targetMonthDividendReachedYear: yearly.find((item) => item.monthlyDividend >= targetMonthlyDividend)?.year
     },
     quickEstimate: {
       endValue: outputs.reduce((sum, output) => sum + output.quickEstimate.endValue, 0),
@@ -104,45 +132,50 @@ export const buildSimulation = ({
   };
 };
 
+export const buildSimulation = ({
+  isValid,
+  includedProfiles,
+  normalizedAllocation,
+  values
+}: SimulationInputParams): SimulationOutput | null => {
+  const bundle = buildSimulationBundle({
+    isValid,
+    includedProfiles,
+    normalizedAllocation,
+    values
+  });
+  return bundle.simulation;
+};
+
 export type RecentCashflowByTicker = {
   months: string[];
   series: Array<{ name: string; data: number[]; color: string }>;
 };
 
-export const buildRecentCashflowByTicker = ({
+export const buildSimulationBundle = ({
   isValid,
   includedProfiles,
   normalizedAllocation,
   values
-}: {
-  isValid: boolean;
-  includedProfiles: TickerProfile[];
-  normalizedAllocation: NormalizedAllocationItem[];
-  values: YieldFormValues;
-}): RecentCashflowByTicker => {
-  if (!isValid) return { months: [], series: [] };
+}: SimulationInputParams): {
+  simulation: SimulationOutput | null;
+  recentCashflowByTicker: RecentCashflowByTicker;
+} => {
+  if (!isValid) {
+    return {
+      simulation: null,
+      recentCashflowByTicker: { months: [], series: [] }
+    };
+  }
 
-  const targetProfiles =
-    includedProfiles.length === 0
-      ? [
-          {
-            profile: toTickerDraft(values),
-            weight: 1
-          }
-        ]
-      : includedProfiles.length === 1
-        ? [
-            {
-              profile: includedProfiles[0],
-              weight: 1
-            }
-          ]
-        : normalizedAllocation.map(({ profile, weight }) => ({ profile, weight }));
-
-  const outputs = targetProfiles.map((item) => ({
+  const targetProfiles = buildTargetProfiles({ includedProfiles, normalizedAllocation, values });
+  const outputs: ProfileSimulationOutput[] = targetProfiles.map((item) => ({
     ticker: item.profile.ticker,
-    output: runForProfile(item.profile, values.monthlyContribution * item.weight, values)
+    output: runForProfile(item.profile, values.monthlyContribution * item.weight, values.initialInvestment * item.weight, values)
   }));
+
+  const simulation =
+    outputs.length === 1 ? outputs[0].output : aggregatePortfolioSimulation(outputs.map((item) => item.output), values.targetMonthlyDividend);
 
   const baseMonthly = outputs[0]?.output.monthly ?? [];
   const months = baseMonthly.slice(-12).map((row) => `${row.year}-${String(row.month).padStart(2, '0')}`);
@@ -152,5 +185,8 @@ export const buildRecentCashflowByTicker = ({
     color: ALLOCATION_COLORS[index % ALLOCATION_COLORS.length]
   }));
 
-  return { months, series };
+  return {
+    simulation,
+    recentCashflowByTicker: { months, series }
+  };
 };

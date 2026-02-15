@@ -4,7 +4,7 @@ import type { Frequency } from '@/shared/types';
 export type InputFieldProps = {
   label: string;
   value: string | number;
-  type?: 'text' | 'number';
+  type?: 'text' | 'number' | 'date';
   helpAriaLabel?: string;
   onHelpClick?: () => void;
   disabled?: boolean;

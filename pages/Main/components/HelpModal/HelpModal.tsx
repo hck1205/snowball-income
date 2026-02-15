@@ -1,4 +1,5 @@
 import { useEffect, useId } from 'react';
+import { createPortal } from 'react-dom';
 import { ModalBackdrop, ModalBody, ModalClose, ModalPanel, ModalTitle } from '@/pages/Main/Main.shared.styled';
 import { useCurrentHelpAtomValue } from '@/jotai';
 import type { HelpModalProps } from './HelpModal.types';
@@ -6,6 +7,7 @@ import type { HelpModalProps } from './HelpModal.types';
 export default function HelpModal({ onBackdropClick, onClose }: HelpModalProps) {
   const help = useCurrentHelpAtomValue();
   const titleId = useId();
+  const modalRoot = typeof document !== 'undefined' ? document.body : null;
 
   useEffect(() => {
     if (!help) return;
@@ -19,8 +21,9 @@ export default function HelpModal({ onBackdropClick, onClose }: HelpModalProps) 
   }, [help, onClose]);
 
   if (!help) return null;
+  if (!modalRoot) return null;
 
-  return (
+  return createPortal(
     <ModalBackdrop role="dialog" aria-modal="true" aria-labelledby={titleId} onClick={onBackdropClick}>
       <ModalPanel>
         <ModalTitle id={titleId}>{help.title}</ModalTitle>
@@ -29,6 +32,7 @@ export default function HelpModal({ onBackdropClick, onClose }: HelpModalProps) 
           닫기
         </ModalClose>
       </ModalPanel>
-    </ModalBackdrop>
+    </ModalBackdrop>,
+    modalRoot
   );
 }

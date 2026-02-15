@@ -7,18 +7,26 @@ import {
   readPersistedAppState,
   useFixedByTickerIdAtomValue,
   useIncludedTickerIdsAtomValue,
+  useIsResultCompactAtomValue,
+  useIsYearlyAreaFillOnAtomValue,
   useSelectedTickerIdAtomValue,
+  useSetIsResultCompactWrite,
+  useSetIsYearlyAreaFillOnWrite,
   useSetFixedByTickerIdWrite,
   useSetIncludedTickerIdsWrite,
+  useSetShowPortfolioDividendCenterWrite,
   useSetSelectedTickerIdWrite,
   useSetShowQuickEstimateWrite,
   useSetShowSplitGraphsWrite,
   useSetTickerProfilesWrite,
+  useSetVisibleYearlySeriesWrite,
   useSetWeightByTickerIdWrite,
   useSetYieldFormWrite,
+  useShowPortfolioDividendCenterAtomValue,
   useShowQuickEstimateAtomValue,
   useShowSplitGraphsAtomValue,
   useTickerProfilesAtomValue,
+  useVisibleYearlySeriesAtomValue,
   useWeightByTickerIdAtomValue,
   useYieldFormAtomValue,
   writePersistedAppStateByName,
@@ -34,6 +42,10 @@ export const usePortfolioPersistence = () => {
   const values = useYieldFormAtomValue();
   const showQuickEstimate = useShowQuickEstimateAtomValue();
   const showSplitGraphs = useShowSplitGraphsAtomValue();
+  const isResultCompact = useIsResultCompactAtomValue();
+  const isYearlyAreaFillOn = useIsYearlyAreaFillOnAtomValue();
+  const showPortfolioDividendCenter = useShowPortfolioDividendCenterAtomValue();
+  const visibleYearlySeries = useVisibleYearlySeriesAtomValue();
 
   const setTickerProfiles = useSetTickerProfilesWrite();
   const setIncludedTickerIds = useSetIncludedTickerIdsWrite();
@@ -42,6 +54,10 @@ export const usePortfolioPersistence = () => {
   const setSelectedTickerId = useSetSelectedTickerIdWrite();
   const setShowQuickEstimate = useSetShowQuickEstimateWrite();
   const setShowSplitGraphs = useSetShowSplitGraphsWrite();
+  const setIsResultCompact = useSetIsResultCompactWrite();
+  const setIsYearlyAreaFillOn = useSetIsYearlyAreaFillOnWrite();
+  const setShowPortfolioDividendCenter = useSetShowPortfolioDividendCenterWrite();
+  const setVisibleYearlySeries = useSetVisibleYearlySeriesWrite();
   const setYieldFormValues = useSetYieldFormWrite();
 
   const [isPortfolioHydrated, setIsPortfolioHydrated] = useState(false);
@@ -66,15 +82,21 @@ export const usePortfolioPersistence = () => {
       selectedTickerId
     },
     investmentSettings: {
+      initialInvestment: values.initialInvestment,
       monthlyContribution: values.monthlyContribution,
       targetMonthlyDividend: values.targetMonthlyDividend,
+      investmentStartDate: values.investmentStartDate,
       durationYears: values.durationYears,
       reinvestDividends: values.reinvestDividends,
       taxRate: values.taxRate,
       reinvestTiming: values.reinvestTiming,
       dpsGrowthMode: values.dpsGrowthMode,
       showQuickEstimate,
-      showSplitGraphs
+      showSplitGraphs,
+      isResultCompact,
+      isYearlyAreaFillOn,
+      showPortfolioDividendCenter,
+      visibleYearlySeries
     }
   });
 
@@ -97,8 +119,10 @@ export const usePortfolioPersistence = () => {
         setSelectedTickerId(payload.portfolio.selectedTickerId);
         setYieldFormValues((prev) => ({
           ...prev,
+          initialInvestment: payload.investmentSettings.initialInvestment,
           monthlyContribution: payload.investmentSettings.monthlyContribution,
           targetMonthlyDividend: payload.investmentSettings.targetMonthlyDividend,
+          investmentStartDate: payload.investmentSettings.investmentStartDate,
           durationYears: payload.investmentSettings.durationYears,
           reinvestDividends: payload.investmentSettings.reinvestDividends,
           taxRate: payload.investmentSettings.taxRate,
@@ -107,6 +131,10 @@ export const usePortfolioPersistence = () => {
         }));
         setShowQuickEstimate(payload.investmentSettings.showQuickEstimate);
         setShowSplitGraphs(payload.investmentSettings.showSplitGraphs);
+        setIsResultCompact(payload.investmentSettings.isResultCompact);
+        setIsYearlyAreaFillOn(payload.investmentSettings.isYearlyAreaFillOn);
+        setShowPortfolioDividendCenter(payload.investmentSettings.showPortfolioDividendCenter);
+        setVisibleYearlySeries(payload.investmentSettings.visibleYearlySeries);
       } catch {
         // Keep current defaults/state when hydration fails.
       } finally {
@@ -125,6 +153,10 @@ export const usePortfolioPersistence = () => {
     setSelectedTickerId,
     setShowQuickEstimate,
     setShowSplitGraphs,
+    setIsResultCompact,
+    setIsYearlyAreaFillOn,
+    setShowPortfolioDividendCenter,
+    setVisibleYearlySeries,
     setTickerProfiles,
     setWeightByTickerId,
     setYieldFormValues
@@ -145,9 +177,15 @@ export const usePortfolioPersistence = () => {
     selectedTickerId,
     showQuickEstimate,
     showSplitGraphs,
+    isResultCompact,
+    isYearlyAreaFillOn,
+    showPortfolioDividendCenter,
+    visibleYearlySeries,
     tickerProfiles,
     values.dpsGrowthMode,
     values.durationYears,
+    values.initialInvestment,
+    values.investmentStartDate,
     values.monthlyContribution,
     values.reinvestDividends,
     values.reinvestTiming,
@@ -178,8 +216,10 @@ export const usePortfolioPersistence = () => {
     setSelectedTickerId(payload.portfolio.selectedTickerId);
     setYieldFormValues((prev) => ({
       ...prev,
+      initialInvestment: payload.investmentSettings.initialInvestment,
       monthlyContribution: payload.investmentSettings.monthlyContribution,
       targetMonthlyDividend: payload.investmentSettings.targetMonthlyDividend,
+      investmentStartDate: payload.investmentSettings.investmentStartDate,
       durationYears: payload.investmentSettings.durationYears,
       reinvestDividends: payload.investmentSettings.reinvestDividends,
       taxRate: payload.investmentSettings.taxRate,
@@ -188,6 +228,10 @@ export const usePortfolioPersistence = () => {
     }));
     setShowQuickEstimate(payload.investmentSettings.showQuickEstimate);
     setShowSplitGraphs(payload.investmentSettings.showSplitGraphs);
+    setIsResultCompact(payload.investmentSettings.isResultCompact);
+    setIsYearlyAreaFillOn(payload.investmentSettings.isYearlyAreaFillOn);
+    setShowPortfolioDividendCenter(payload.investmentSettings.showPortfolioDividendCenter);
+    setVisibleYearlySeries(payload.investmentSettings.visibleYearlySeries);
   };
 
   const loadNamedState = async (name: string) => {
