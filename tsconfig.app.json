@@ -21,7 +21,7 @@
   },
   "include": [
     "components",
-    "features",
+    "jotai",
     "pages",
     "shared",
     "main.tsx",

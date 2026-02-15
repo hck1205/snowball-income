@@ -123,32 +123,40 @@ SOME_COMPONENT.utils.ts:
 
 =============================================================================== 4) features (기능 단위 계층)
 ===============================================================================
-features는 하나의 기능 단위로 독립 동작 가능해야 한다.
+features는 기능 단위로 독립 동작 가능해야 한다.
+
+권장 구조:
 
 features/
-SOME_FEATURE/
-feature.tsx
-feature.styled.ts
-feature.types.ts
-feature.utils.ts
-index.ts
-state/
+SOME_APP.tsx
+SOME_APP.styled.ts
+SOME_APP.types.ts
+SOME_APP.utils.ts
+SOME_APPState/
 atoms.ts
 selectors.ts
 index.ts
-hooks/
+SOME_APPHooks/
 useSomething.ts
 index.ts
-**tests**/
-feature.test.tsx
+SUB_FEATURE_A/
+SUB_FEATURE_A.tsx
+SUB_FEATURE_A.types.ts
+index.ts
+SOME_APPTests/
+SOME_APP.test.tsx
+index.ts
 index.ts
 
 규칙:
 
 - features 내부에 components/ 폴더를 두지 않는다.
+- app 수준 feature는 `features` 루트에 직접 파일로 둔다. (예: `features/SOME_APP.tsx`)
+- features 내부의 기능 분리는 PascalCase 하위 feature 폴더(SUB_FEATURE_A)로 분리한다.
 - UI는 상위 components를 조합하여 구성한다.
 - feature는 로직 + 상태 + 조합 역할을 한다.
 - feature 내부 모든 하위 폴더에 index.ts 포함
+- 파일명 prefix는 폴더명과 동일한 PascalCase 사용
 
 state 규칙:
 
@@ -193,6 +201,8 @@ index.ts
 
 - 특정 feature 전용 코드 금지
 - truly shared 코드만 위치
+- 정적 상수(static const)는 `shared/constants` 하위 소분류 폴더로 분리
+  예: `shared/constants/snowball/presets.ts`, `shared/constants/snowball/help.ts`
 
 =============================================================================== 7) 테스트 규칙
 ===============================================================================
