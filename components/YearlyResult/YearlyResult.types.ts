@@ -14,5 +14,7 @@ export type YearlyResultProps = {
   isFillOn: boolean;
   onToggleFill: (checked: boolean) => void;
   chartOption: EChartsOption;
+  hasData?: boolean;
+  emptyMessage?: string;
   ResponsiveChart: ComponentType<{ option: EChartsOption; replaceMerge?: string[] }>;
 };

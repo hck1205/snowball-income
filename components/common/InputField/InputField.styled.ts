@@ -35,6 +35,21 @@ export const BaseInput = styled.input`
   border-radius: 8px;
   padding: 8px 10px;
   font-size: 14px;
+  font-family: inherit;
+  color: inherit;
+
+  &[type='date'] {
+    font-family: inherit;
+  }
+
+  &[type='date']::-webkit-datetime-edit,
+  &[type='date']::-webkit-datetime-edit-text,
+  &[type='date']::-webkit-datetime-edit-month-field,
+  &[type='date']::-webkit-datetime-edit-day-field,
+  &[type='date']::-webkit-datetime-edit-year-field {
+    font: inherit;
+    color: inherit;
+  }
 `;
 
 export const BaseSelect = styled.select`

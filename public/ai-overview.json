@@ -11,10 +11,14 @@
     "llms_full": "/llms-full.txt"
   },
   "core_inputs": [
+    "initialInvestment",
     "monthlyContribution",
     "targetMonthlyDividend",
+    "investmentStartDate",
     "durationYears",
     "reinvestDividends",
+    "reinvestTiming",
+    "dpsGrowthMode",
     "taxRate",
     "tickerProfiles",
     "allocationWeights"
@@ -22,6 +26,8 @@
   "core_outputs": [
     "finalAssetValue",
     "monthlyAverageDividend",
+    "quickEstimateEndValue",
+    "quickEstimateMonthlyDividendApprox",
     "recentMonthlyCashflow",
     "totalNetDividend",
     "totalTaxPaid",

@@ -2,7 +2,7 @@
 
 ## Product Definition
 Snowball Income is a web-based dividend strategy simulator focused on long-term portfolio income planning.
-It helps users model how monthly investments, dividend assumptions, and portfolio allocation choices affect
+It helps users model how initial capital, monthly investments, dividend assumptions, and portfolio allocation choices affect
 future asset value and dividend cashflow.
 
 ## Core Use Cases
@@ -19,8 +19,10 @@ future asset value and dividend cashflow.
   - weight map by ticker id
   - fixed weight flags by ticker id
 - Investment settings:
+  - initial investment (lump-sum)
   - monthly contribution
   - target monthly dividend
+  - investment start date (`YYYY-MM-DD`)
   - duration years
   - reinvest dividends (boolean)
   - tax rate (%)
@@ -35,6 +37,11 @@ future asset value and dividend cashflow.
   - total net dividend
   - total tax paid
   - target-reach year for monthly dividend
+- Quick estimate summary:
+  - end value
+  - annual dividend approximation
+  - monthly dividend approximation
+  - yield-on-price at end
 - Visual outputs:
   - allocation pie chart
   - recent 12-month cashflow stacked bar chart

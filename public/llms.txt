@@ -4,14 +4,18 @@
 
 ## Summary
 - Snowball Income simulates portfolio growth and dividend cashflow over time.
-- Users can model monthly contributions, reinvestment behavior, tax rate, and payout frequency.
+- Users can model initial capital, monthly contributions, reinvestment behavior, tax rate, and payout frequency.
 - The app outputs yearly trend charts, monthly cashflow snapshots, and target-income reach timing.
 
 ## Key Inputs
+- `initialInvestment`: lump-sum capital invested at simulation start (KRW)
 - `monthlyContribution`: monthly investment amount (KRW)
 - `targetMonthlyDividend`: target monthly dividend income (KRW)
+- `investmentStartDate`: simulation start date (`YYYY-MM-DD`)
 - `durationYears`: investment horizon in years
 - `reinvestDividends`: whether dividends are reinvested
+- `reinvestTiming`: dividend reinvest timing (`sameMonth` or `nextMonth`)
+- `dpsGrowthMode`: dividend growth application (`annualStep` or `monthlySmooth`)
 - `taxRate`: dividend tax rate (%)
 - `ticker profiles`: price/dividend assumptions per ticker
 - `allocation`: ticker weights and fixed-weight constraints
@@ -22,6 +26,7 @@
 - Recent payout-month dividend (12-month view)
 - Total net dividend and total tax paid
 - Year when target monthly dividend is reached
+- Quick estimate: end value, annual/monthly dividend approximation, yield-on-price at end
 
 ## Model Notes
 - Results are scenario-based projections, not investment advice.

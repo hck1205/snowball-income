@@ -49,7 +49,7 @@ function PortfolioCompositionComponent({
       }
     >
       {includedProfiles.length === 0 ? (
-        <HintText>좌측 티커 chip을 눌러 포트폴리오에 추가하세요.</HintText>
+        <HintText>좌측 티커 생성을 통해 포트폴리오를 구성해주세요.</HintText>
       ) : (
         <>
           {allocationPieOption ? (

@@ -47,6 +47,13 @@ function InvestmentSettingsComponent({
           />
           <ConfigSectionDivider aria-hidden="true" />
           <InputField
+            label="초기 투자금 (원)"
+            type="number"
+            min={0}
+            value={values.initialInvestment}
+            onChange={(event) => onSetField('initialInvestment', Number(event.target.value))}
+          />
+          <InputField
             label="월 투자금 (원)"
             type="number"
             min={0}
@@ -115,6 +122,13 @@ function InvestmentSettingsComponent({
               <option value="monthlySmooth">월 단위 스무딩</option>
             </InlineSelect>
           </InlineField>
+          <ConfigSectionDivider aria-hidden="true" />
+          <InputField
+            label="투자 시작 날짜"
+            type="date"
+            value={values.investmentStartDate}
+            onChange={(event) => onSetField('investmentStartDate', event.target.value)}
+          />
         </ConfigFormGrid>
       </FormSection>
 

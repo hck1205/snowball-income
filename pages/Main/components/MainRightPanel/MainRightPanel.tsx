@@ -1,5 +1,6 @@
 import { memo, useCallback } from 'react';
 import { Card } from '@/components';
+import type { SimulationResult as SimulationResultRow } from '@/shared/types';
 import { ResultsColumn } from '@/pages/Main/Main.shared.styled';
 import MonthlyCashflow from '@/components/MonthlyCashflow';
 import PortfolioComposition from '@/components/PortfolioComposition';
@@ -56,10 +57,12 @@ function MainRightPanelComponent() {
     isYearlyAreaFillOn
   });
   const { setTickerWeight, toggleTickerFixed, removeIncludedTicker } = useTickerActions();
-  const getYear = useCallback((row: any) => `${row.year}`, []);
-  const getMonthlyDividend = useCallback((row: any) => row.monthlyDividend, []);
-  const getAssetValue = useCallback((row: any) => row.assetValue, []);
-  const getCumulativeDividend = useCallback((row: any) => row.cumulativeDividend, []);
+  const hasGraphData = includedProfiles.length > 0;
+  const emptyGraphMessage = '좌측 티커 생성을 통해 포트폴리오를 구성해주세요.';
+  const getYear = useCallback((row: SimulationResultRow) => `${row.year}`, []);
+  const getMonthlyDividend = useCallback((row: SimulationResultRow) => row.monthlyDividend, []);
+  const getAssetValue = useCallback((row: SimulationResultRow) => row.assetValue, []);
+  const getCumulativeDividend = useCallback((row: SimulationResultRow) => row.cumulativeDividend, []);
 
   return (
     <ResultsColumn>
@@ -96,18 +99,24 @@ function MainRightPanelComponent() {
               <ChartPanel
                 title="월 평균 배당"
                 rows={tableRows}
+                hasData={hasGraphData}
+                emptyMessage={emptyGraphMessage}
                 getXValue={getYear}
                 getYValue={getMonthlyDividend}
               />
               <ChartPanel
                 title="자산 가치"
                 rows={tableRows}
+                hasData={hasGraphData}
+                emptyMessage={emptyGraphMessage}
                 getXValue={getYear}
                 getYValue={getAssetValue}
               />
               <ChartPanel
                 title="누적 배당"
                 rows={tableRows}
+                hasData={hasGraphData}
+                emptyMessage={emptyGraphMessage}
                 getXValue={getYear}
                 getYValue={getCumulativeDividend}
               />
@@ -119,10 +128,17 @@ function MainRightPanelComponent() {
             isFillOn={isYearlyAreaFillOn}
             onToggleFill={setIsYearlyAreaFillOn}
             chartOption={yearlyResultBarOption}
+            hasData={hasGraphData}
+            emptyMessage={emptyGraphMessage}
             ResponsiveChart={ResponsiveEChart}
           />
 
-          <MonthlyCashflow chartOption={recentCashflowBarOption} ResponsiveChart={ResponsiveEChart} />
+          <MonthlyCashflow
+            chartOption={recentCashflowBarOption}
+            hasData={hasGraphData}
+            emptyMessage={emptyGraphMessage}
+            ResponsiveChart={ResponsiveEChart}
+          />
         </>
       ) : (
         <Card title="결과">

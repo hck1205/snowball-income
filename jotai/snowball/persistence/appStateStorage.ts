@@ -1,5 +1,6 @@
 import { defaultYieldFormValues } from '@/shared/lib/snowball';
 import type { PortfolioPersistedState } from '@/shared/types/snowball';
+import type { YearlySeriesKey } from '@/shared/constants';
 import type { PersistedAppStatePayload, PersistedInvestmentSettings } from '../types';
 import { EMPTY_PORTFOLIO_STATE } from '../atoms';
 
@@ -8,6 +9,13 @@ const PORTFOLIO_DB_VERSION = 1;
 const PORTFOLIO_STORE_NAME = 'app_state';
 const PORTFOLIO_STATE_KEY = 'yield_architect_portfolio';
 const SNAPSHOT_KEY_PREFIX = 'snapshot:';
+const DEFAULT_VISIBLE_YEARLY_SERIES: Record<YearlySeriesKey, boolean> = {
+  totalContribution: false,
+  assetValue: false,
+  annualDividend: false,
+  monthlyDividend: true,
+  cumulativeDividend: false
+};
 
 type PersistedAppState = {
   portfolio: PortfolioPersistedState;
@@ -22,15 +30,21 @@ type PortfolioStoreRecord = {
 };
 
 const DEFAULT_PERSISTED_INVESTMENT_SETTINGS: PersistedInvestmentSettings = {
+  initialInvestment: defaultYieldFormValues.initialInvestment,
   monthlyContribution: defaultYieldFormValues.monthlyContribution,
   targetMonthlyDividend: defaultYieldFormValues.targetMonthlyDividend,
+  investmentStartDate: defaultYieldFormValues.investmentStartDate,
   durationYears: defaultYieldFormValues.durationYears,
   reinvestDividends: defaultYieldFormValues.reinvestDividends,
   taxRate: defaultYieldFormValues.taxRate,
   reinvestTiming: defaultYieldFormValues.reinvestTiming,
   dpsGrowthMode: defaultYieldFormValues.dpsGrowthMode,
   showQuickEstimate: false,
-  showSplitGraphs: false
+  showSplitGraphs: false,
+  isResultCompact: false,
+  isYearlyAreaFillOn: false,
+  showPortfolioDividendCenter: false,
+  visibleYearlySeries: DEFAULT_VISIBLE_YEARLY_SERIES
 };
 
 const sanitizePortfolioState = (input: unknown): PortfolioPersistedState => {
@@ -65,14 +79,43 @@ const sanitizePortfolioState = (input: unknown): PortfolioPersistedState => {
 const sanitizeInvestmentSettings = (input: unknown): PersistedInvestmentSettings => {
   if (!input || typeof input !== 'object') return DEFAULT_PERSISTED_INVESTMENT_SETTINGS;
   const parsed = input as Partial<PersistedInvestmentSettings>;
+  const initialInvestment = Number(parsed.initialInvestment);
   const monthlyContribution = Number(parsed.monthlyContribution);
   const targetMonthlyDividend = Number(parsed.targetMonthlyDividend);
   const durationYears = Number(parsed.durationYears);
   const taxRate = parsed.taxRate === undefined ? undefined : Number(parsed.taxRate);
+  const investmentStartDate = typeof parsed.investmentStartDate === 'string' ? parsed.investmentStartDate : '';
+  const rawVisibleYearlySeries = parsed.visibleYearlySeries as Record<string, unknown> | undefined;
+  const visibleYearlySeries: Record<YearlySeriesKey, boolean> = {
+    totalContribution:
+      typeof rawVisibleYearlySeries?.totalContribution === 'boolean'
+        ? rawVisibleYearlySeries.totalContribution
+        : DEFAULT_VISIBLE_YEARLY_SERIES.totalContribution,
+    assetValue:
+      typeof rawVisibleYearlySeries?.assetValue === 'boolean'
+        ? rawVisibleYearlySeries.assetValue
+        : DEFAULT_VISIBLE_YEARLY_SERIES.assetValue,
+    annualDividend:
+      typeof rawVisibleYearlySeries?.annualDividend === 'boolean'
+        ? rawVisibleYearlySeries.annualDividend
+        : DEFAULT_VISIBLE_YEARLY_SERIES.annualDividend,
+    monthlyDividend:
+      typeof rawVisibleYearlySeries?.monthlyDividend === 'boolean'
+        ? rawVisibleYearlySeries.monthlyDividend
+        : DEFAULT_VISIBLE_YEARLY_SERIES.monthlyDividend,
+    cumulativeDividend:
+      typeof rawVisibleYearlySeries?.cumulativeDividend === 'boolean'
+        ? rawVisibleYearlySeries.cumulativeDividend
+        : DEFAULT_VISIBLE_YEARLY_SERIES.cumulativeDividend
+  };
 
   return {
+    initialInvestment: Number.isFinite(initialInvestment) ? Math.max(0, initialInvestment) : DEFAULT_PERSISTED_INVESTMENT_SETTINGS.initialInvestment,
     monthlyContribution: Number.isFinite(monthlyContribution) ? Math.max(0, monthlyContribution) : DEFAULT_PERSISTED_INVESTMENT_SETTINGS.monthlyContribution,
     targetMonthlyDividend: Number.isFinite(targetMonthlyDividend) ? Math.max(0, targetMonthlyDividend) : DEFAULT_PERSISTED_INVESTMENT_SETTINGS.targetMonthlyDividend,
+    investmentStartDate: /^\d{4}-\d{2}-\d{2}$/.test(investmentStartDate)
+      ? investmentStartDate
+      : DEFAULT_PERSISTED_INVESTMENT_SETTINGS.investmentStartDate,
     durationYears: Number.isFinite(durationYears) ? Math.max(1, Math.trunc(durationYears)) : DEFAULT_PERSISTED_INVESTMENT_SETTINGS.durationYears,
     reinvestDividends:
       typeof parsed.reinvestDividends === 'boolean'
@@ -89,7 +132,16 @@ const sanitizeInvestmentSettings = (input: unknown): PersistedInvestmentSettings
         : DEFAULT_PERSISTED_INVESTMENT_SETTINGS.dpsGrowthMode,
     showQuickEstimate:
       typeof parsed.showQuickEstimate === 'boolean' ? parsed.showQuickEstimate : DEFAULT_PERSISTED_INVESTMENT_SETTINGS.showQuickEstimate,
-    showSplitGraphs: typeof parsed.showSplitGraphs === 'boolean' ? parsed.showSplitGraphs : DEFAULT_PERSISTED_INVESTMENT_SETTINGS.showSplitGraphs
+    showSplitGraphs: typeof parsed.showSplitGraphs === 'boolean' ? parsed.showSplitGraphs : DEFAULT_PERSISTED_INVESTMENT_SETTINGS.showSplitGraphs,
+    isResultCompact:
+      typeof parsed.isResultCompact === 'boolean' ? parsed.isResultCompact : DEFAULT_PERSISTED_INVESTMENT_SETTINGS.isResultCompact,
+    isYearlyAreaFillOn:
+      typeof parsed.isYearlyAreaFillOn === 'boolean' ? parsed.isYearlyAreaFillOn : DEFAULT_PERSISTED_INVESTMENT_SETTINGS.isYearlyAreaFillOn,
+    showPortfolioDividendCenter:
+      typeof parsed.showPortfolioDividendCenter === 'boolean'
+        ? parsed.showPortfolioDividendCenter
+        : DEFAULT_PERSISTED_INVESTMENT_SETTINGS.showPortfolioDividendCenter,
+    visibleYearlySeries
   };
 };
 

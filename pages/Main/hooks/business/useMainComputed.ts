@@ -5,8 +5,7 @@ import { useIncludedProfilesAtomValue, useNormalizedAllocationAtomValue, useSetA
 import {
   buildAllocationPieOption,
   buildRecentCashflowBarOption,
-  buildRecentCashflowByTicker,
-  buildSimulation,
+  buildSimulationBundle,
   buildYearlyResultBarOption
 } from '@/pages/Main/utils';
 
@@ -30,9 +29,9 @@ export const useMainComputed = ({
   const setVisibleYearlySeries = useSetVisibleYearlySeriesWrite();
   const setActiveHelp = useSetActiveHelpWrite();
 
-  const simulation = useMemo(
+  const { simulation, recentCashflowByTicker } = useMemo(
     () =>
-      buildSimulation({
+      buildSimulationBundle({
         isValid,
         includedProfiles,
         normalizedAllocation,
@@ -50,16 +49,6 @@ export const useMainComputed = ({
         finalMonthlyAverageDividend: simulation?.summary.finalMonthlyAverageDividend ?? 0
       }),
     [normalizedAllocation, showPortfolioDividendCenter, simulation?.summary.finalMonthlyAverageDividend]
-  );
-  const recentCashflowByTicker = useMemo(
-    () =>
-      buildRecentCashflowByTicker({
-        isValid,
-        includedProfiles,
-        normalizedAllocation,
-        values
-      }),
-    [includedProfiles, isValid, normalizedAllocation, values]
   );
   const recentCashflowBarOption = useMemo(() => buildRecentCashflowBarOption(recentCashflowByTicker), [recentCashflowByTicker]);
   const yearlyResultBarOption = useMemo(
