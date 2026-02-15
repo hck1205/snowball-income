@@ -1,0 +1,66 @@
+# Snowball Income - Full LLM Context
+
+## Product Definition
+Snowball Income is a web-based dividend strategy simulator focused on long-term portfolio income planning.
+It helps users model how initial capital, monthly investments, dividend assumptions, and portfolio allocation choices affect
+future asset value and dividend cashflow.
+
+## Core Use Cases
+1. Estimate how long it may take to reach a target monthly dividend.
+2. Compare scenarios with and without dividend reinvestment.
+3. Inspect yearly trends for assets, annual dividends, and cumulative dividends.
+4. Review recent 12-month payout composition by ticker.
+5. Tune ticker weights and lock/unlock fixed-weight positions.
+
+## Input Model
+- Portfolio:
+  - ticker profiles (ticker symbol, initial price, dividend yield, dividend growth, price growth, payout frequency)
+  - included ticker ids
+  - weight map by ticker id
+  - fixed weight flags by ticker id
+- Investment settings:
+  - initial investment (lump-sum)
+  - monthly contribution
+  - target monthly dividend
+  - investment start date (`YYYY-MM-DD`)
+  - duration years
+  - reinvest dividends (boolean)
+  - tax rate (%)
+  - reinvest timing (`sameMonth` or `nextMonth`)
+  - dividend growth mode (`annualStep` or `monthlySmooth`)
+
+## Output Model
+- Simulation summary:
+  - final asset value
+  - final monthly average dividend
+  - final payout-month dividend
+  - total net dividend
+  - total tax paid
+  - target-reach year for monthly dividend
+- Quick estimate summary:
+  - end value
+  - annual dividend approximation
+  - monthly dividend approximation
+  - yield-on-price at end
+- Visual outputs:
+  - allocation pie chart
+  - recent 12-month cashflow stacked bar chart
+  - yearly series line chart
+  - optional split charts for monthly dividend, asset value, cumulative dividend
+
+## Interpretation Guidance
+- The simulator is deterministic for a given input set.
+- It is designed for scenario exploration, not prediction certainty.
+- Growth/yield assumptions are user-provided and can materially change outcomes.
+- This is not financial, tax, or legal advice.
+
+## SEO / Machine-Readable Surfaces
+- `/llms.txt`: concise index for LLM crawlers
+- `/llms-full.txt`: expanded context for answer grounding
+- `/ai-overview.json`: structured machine-readable summary
+- JSON-LD in root HTML for WebApplication + FAQ semantics
+
+## Canonical Entry Points
+- `/`
+- `/sitemap.xml`
+- `/robots.txt`

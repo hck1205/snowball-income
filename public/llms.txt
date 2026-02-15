@@ -1,0 +1,46 @@
+# Snowball Income
+
+> Dividend-income strategy simulator for long-term planning.
+
+## Summary
+- Snowball Income simulates portfolio growth and dividend cashflow over time.
+- Users can model initial capital, monthly contributions, reinvestment behavior, tax rate, and payout frequency.
+- The app outputs yearly trend charts, monthly cashflow snapshots, and target-income reach timing.
+
+## Key Inputs
+- `initialInvestment`: lump-sum capital invested at simulation start (KRW)
+- `monthlyContribution`: monthly investment amount (KRW)
+- `targetMonthlyDividend`: target monthly dividend income (KRW)
+- `investmentStartDate`: simulation start date (`YYYY-MM-DD`)
+- `durationYears`: investment horizon in years
+- `reinvestDividends`: whether dividends are reinvested
+- `reinvestTiming`: dividend reinvest timing (`sameMonth` or `nextMonth`)
+- `dpsGrowthMode`: dividend growth application (`annualStep` or `monthlySmooth`)
+- `taxRate`: dividend tax rate (%)
+- `ticker profiles`: price/dividend assumptions per ticker
+- `allocation`: ticker weights and fixed-weight constraints
+
+## Key Outputs
+- Final asset value estimate
+- Final monthly average dividend
+- Recent payout-month dividend (12-month view)
+- Total net dividend and total tax paid
+- Year when target monthly dividend is reached
+- Quick estimate: end value, annual/monthly dividend approximation, yield-on-price at end
+
+## Model Notes
+- Results are scenario-based projections, not investment advice.
+- Output quality depends on user assumptions for growth/yield inputs.
+- Portfolio allocation can be adjusted per ticker and rebalanced in simulation.
+
+## Structured Data
+- JSON-LD WebApplication and FAQ metadata are provided in the HTML.
+- Machine-readable summary is available at `/ai-overview.json`.
+
+## URLs
+- App: `/`
+- Sitemap: `/sitemap.xml`
+- Robots: `/robots.txt`
+- LLM index: `/llms.txt`
+- LLM full context: `/llms-full.txt`
+- AI overview JSON: `/ai-overview.json`
