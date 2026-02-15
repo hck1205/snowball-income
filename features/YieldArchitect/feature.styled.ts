@@ -362,9 +362,15 @@ export const InlineSelect = styled.select`
   min-width: 0;
   border: 1px solid #bfd0de;
   border-radius: 8px;
-  padding: 8px 10px;
+  padding: 8px 28px 8px 10px;
   font-size: 14px;
-  background: #fff;
+  background-color: #fff;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #5e7688 50%), linear-gradient(135deg, #5e7688 50%, transparent 50%);
+  background-position: calc(100% - 14px) calc(50% - 1px), calc(100% - 10px) calc(50% - 1px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
 `;
 
 export const ModeToggleInput = styled.input`
@@ -383,6 +389,99 @@ export const SummaryValue = styled.p`
   margin: 8px 0 0;
   font-size: 18px;
   font-weight: 700;
+`;
+
+export const CompactSummaryGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 1fr));
+  gap: 8px;
+`;
+
+export const CompactSummaryItem = styled.div`
+  border: 1px solid #dfe9f1;
+  background: #f8fbfe;
+  border-radius: 8px;
+  padding: 8px 10px;
+  min-width: 0;
+`;
+
+export const CompactSummaryLabel = styled.p`
+  margin: 0;
+  font-size: 12px;
+  color: #557084;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+export const CompactSummaryValue = styled.p`
+  margin: 4px 0 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1f3341;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+export const SeriesFilterRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-bottom: 10px;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+export const SeriesFilterGroup = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+`;
+
+export const SeriesFilterItem = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+`;
+
+export const SeriesFilterLabel = styled.label`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #486073;
+  cursor: pointer;
+  user-select: none;
+`;
+
+export const SeriesFilterCheckbox = styled.input`
+  margin: 0;
+  width: 14px;
+  height: 14px;
+  accent-color: #2f6f93;
+`;
+
+export const SeriesBgToggleButton = styled.button<{ active: boolean }>`
+  border: 1px solid ${({ active }) => (active ? '#2f6f93' : '#bfd0de')};
+  background: ${({ active }) => (active ? '#2f6f93' : '#f4f8fb')};
+  color: ${({ active }) => (active ? '#fff' : '#486073')};
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+`;
+
+export const SeriesToggleRow = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+export const SeriesToggleLabel = styled.span`
+  font-size: 12px;
+  color: #486073;
 `;
 
 export const HintText = styled.p`

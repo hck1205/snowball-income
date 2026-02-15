@@ -1,6 +1,6 @@
 import { createElement } from 'react';
 import { render, screen } from '@testing-library/react';
-import Card from './component';
+import Card from './Card';
 
 describe('Card', () => {
   it('renders title and children', () => {

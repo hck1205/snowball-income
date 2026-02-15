@@ -1,5 +1,6 @@
 import type {
   MonthlySnapshot,
+  Frequency,
   SimulationInput,
   SimulationOutput,
   SimulationResult,
@@ -18,8 +19,31 @@ export type YieldFeatureState = {
   simulation: SimulationOutput | null;
 };
 
+export type TickerProfile = {
+  id: string;
+  ticker: string;
+  initialPrice: number;
+  dividendYield: number;
+  dividendGrowth: number;
+  priceGrowth: number;
+  frequency: Frequency;
+};
+
+export type TickerDraft = Omit<TickerProfile, 'id'>;
+
+export type TickerModalMode = 'create' | 'edit';
+
+export type PortfolioPersistedState = {
+  tickerProfiles: TickerProfile[];
+  includedTickerIds: string[];
+  weightByTickerId: Record<string, number>;
+  fixedByTickerId: Record<string, boolean>;
+  selectedTickerId: string | null;
+};
+
 export type {
   MonthlySnapshot,
+  Frequency,
   SimulationInput,
   SimulationOutput,
   SimulationResult,

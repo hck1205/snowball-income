@@ -58,10 +58,10 @@ import Button from '@/components/Button/component';
 index.ts 작성 규칙:
 
 - default export 재노출
-  export { default } from './component';
+  export { default } from './Card';
 
 - 타입 재노출
-  export type \* from './component.types';
+  export type * from './Card.types';
 
 - named export 재노출
   export \* from './atoms';
@@ -88,34 +88,35 @@ components는 너무 잘게 쪼갠 atomic 단위가 아니라,
 
 components/
 SOME_COMPONENT/
-component.tsx
-component.styled.ts
-component.types.ts
-component.utils.ts
-component.test.ts
+SOME_COMPONENT.tsx
+SOME_COMPONENT.styled.ts
+SOME_COMPONENT.types.ts
+SOME_COMPONENT.utils.ts
+SOME_COMPONENT.test.ts
 index.ts
 
 규칙:
 
 - 폴더명은 PascalCase
-- 테스트 파일명은 반드시 component.test.ts
+- 파일명 prefix는 폴더명과 동일한 PascalCase 사용
+- 테스트 파일명은 반드시 SOME_COMPONENT.test.ts 패턴 사용
 - index.ts는 default + type 재export
 
-component.tsx:
+SOME_COMPONENT.tsx:
 
 - 렌더링 + 동작 연결 담당
 - 과도한 상태 관리 금지
 
-component.styled.ts:
+SOME_COMPONENT.styled.ts:
 
 - Emotion styled 사용
 - 시맨틱 HTML 요소 사용
 
-component.types.ts:
+SOME_COMPONENT.types.ts:
 
 - Props 타입 정의
 
-component.utils.ts:
+SOME_COMPONENT.utils.ts:
 
 - 컴포넌트 전용 유틸
 - 공용이면 shared/utils로 이동
@@ -195,7 +196,7 @@ index.ts
 
 =============================================================================== 7) 테스트 규칙
 ===============================================================================
-모든 components는 반드시 component.test.ts 포함.
+모든 components는 반드시 SOME_COMPONENT.test.ts 포함.
 
 테스트는 다음을 검증:
 

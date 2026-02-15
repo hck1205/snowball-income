@@ -13,6 +13,7 @@ export type TickerInput = {
 
 export type InvestmentSettings = {
   monthlyContribution: number;
+  targetMonthlyDividend: number;
   durationYears: number;
   reinvestDividends: boolean;
   taxRate?: number;
@@ -57,8 +58,7 @@ export type SimulationSummary = {
   totalContribution: number;
   totalNetDividend: number;
   totalTaxPaid: number;
-  targetMonthDividend100ReachedYear?: number;
-  targetMonthDividend200ReachedYear?: number;
+  targetMonthDividendReachedYear?: number;
 };
 
 export type QuickEstimateOutput = {

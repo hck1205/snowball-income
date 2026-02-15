@@ -1,17 +1,36 @@
-import { type CSSProperties, type MouseEvent, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { memo, type CSSProperties, type MouseEvent, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { EChartsOption } from 'echarts';
 import ReactECharts from 'echarts-for-react';
+import { useAtom } from 'jotai';
 import {
   Card,
-  DataTable,
   FormSection,
   FrequencySelect,
   InputField,
   ToggleField
 } from '@/components';
-import type { Frequency, SimulationOutput, SimulationResult } from '@/shared/types';
+import type { Frequency, SimulationOutput } from '@/shared/types';
 import { formatKRW } from '@/shared/utils';
 import { useYieldArchitect } from '@/features/YieldArchitect/hooks';
+import type { TickerDraft, TickerProfile } from '@/features/YieldArchitect/feature.types';
+import {
+  activeHelpAtom,
+  editingTickerIdAtom,
+  fixedByTickerIdAtom,
+  includedTickerIdsAtom,
+  isConfigDrawerOpenAtom,
+  isTickerModalOpenAtom,
+  readPersistedAppState,
+  selectedPresetAtom,
+  selectedTickerIdAtom,
+  showQuickEstimateAtom,
+  tickerDraftAtom,
+  tickerModalModeAtom,
+  tickerProfilesAtom,
+  yieldFormAtom,
+  weightByTickerIdAtom,
+  writePersistedAppState
+} from '@/features/YieldArchitect/state';
 import { runSimulation } from './feature.utils';
 import {
   AllocationChartLayout,
@@ -23,6 +42,10 @@ import {
   AllocationLegendSlider,
   AllocationLegendValue,
   ChartWrap,
+  CompactSummaryGrid,
+  CompactSummaryItem,
+  CompactSummaryLabel,
+  CompactSummaryValue,
   ConfigDrawerColumn,
   ConfigFormGrid,
   ConfigSectionDivider,
@@ -50,11 +73,14 @@ import {
   PrimaryButton,
   ResultsColumn,
   SecondaryButton,
+  SeriesFilterGroup,
+  SeriesFilterItem,
   SelectedChip,
   SelectedChipLabel,
   SelectedChipWrap,
-  SummaryGrid,
-  SummaryValue,
+  SeriesFilterCheckbox,
+  SeriesFilterLabel,
+  SeriesFilterRow,
   ChipRemoveButton,
   TickerCreateButton,
   TickerGridWrap,
@@ -64,32 +90,13 @@ import {
   TickerList
 } from './feature.styled';
 
-type SummaryItemProps = {
-  title: string;
-  value: string;
-};
-
-type TickerProfile = {
-  id: string;
-  ticker: string;
-  initialPrice: number;
-  dividendYield: number;
-  dividendGrowth: number;
-  priceGrowth: number;
-  frequency: Frequency;
-};
-
-type TickerDraft = Omit<TickerProfile, 'id'>;
-
-function SummaryItem({ title, value }: SummaryItemProps) {
-  return (
-    <Card title={title}>
-      <SummaryValue>{value}</SummaryValue>
-    </Card>
-  );
-}
-
-function ResponsiveEChart({ option }: { option: EChartsOption }) {
+const ResponsiveEChart = memo(function ResponsiveEChart({
+  option,
+  replaceMerge
+}: {
+  option: EChartsOption;
+  replaceMerge?: string[];
+}) {
   const chartRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const rafRef = useRef<number | null>(null);
@@ -157,6 +164,7 @@ function ResponsiveEChart({ option }: { option: EChartsOption }) {
         ref={chartRef}
         option={option}
         autoResize={false}
+        replaceMerge={replaceMerge}
         opts={{
           width: chartSize.width > 0 ? chartSize.width : undefined,
           height: chartSize.height > 0 ? chartSize.height : undefined
@@ -165,9 +173,23 @@ function ResponsiveEChart({ option }: { option: EChartsOption }) {
       />
     </div>
   );
-}
+});
 
-function ChartPanel({ title, rows, keyName }: { title: string; rows: SimulationResult[]; keyName: keyof SimulationResult }) {
+function ChartPanel<T>({
+  title,
+  rows,
+  xAxisLabel,
+  yAxisLabelFormatter,
+  getXValue,
+  getYValue
+}: {
+  title: string;
+  rows: T[];
+  xAxisLabel?: string;
+  yAxisLabelFormatter?: (value: number) => string;
+  getXValue: (row: T) => string;
+  getYValue: (row: T) => number;
+}) {
   const chartOption = useMemo<EChartsOption>(
     () => ({
       grid: { left: 72, right: 20, top: 24, bottom: 36 },
@@ -178,12 +200,13 @@ function ChartPanel({ title, rows, keyName }: { title: string; rows: SimulationR
       xAxis: {
         type: 'category',
         boundaryGap: false,
-        data: rows.map((row) => `${row.year}`)
+        name: xAxisLabel,
+        data: rows.map((row) => getXValue(row))
       },
       yAxis: {
         type: 'value',
         axisLabel: {
-          formatter: (value: number) => formatKRW(Number(value))
+          formatter: (value: number) => (yAxisLabelFormatter ? yAxisLabelFormatter(value) : formatKRW(Number(value)))
         }
       },
       series: [
@@ -193,11 +216,11 @@ function ChartPanel({ title, rows, keyName }: { title: string; rows: SimulationR
           showSymbol: false,
           lineStyle: { color: '#0a7285', width: 2 },
           areaStyle: { color: 'rgba(10, 114, 133, 0.08)' },
-          data: rows.map((row) => Number(row[keyName]))
+          data: rows.map((row) => getYValue(row))
         }
       ]
     }),
-    [keyName, rows]
+    [getXValue, getYValue, rows, xAxisLabel, yAxisLabelFormatter]
   );
 
   return (
@@ -211,7 +234,42 @@ function ChartPanel({ title, rows, keyName }: { title: string; rows: SimulationR
 
 const targetYearLabel = (year: number | undefined): string => (year ? `${year}년` : '미도달');
 const formatPercent = (value: number): string => `${(value * 100).toFixed(2)}%`;
+const formatApproxKRW = (value: number): string => {
+  const sign = value < 0 ? '-' : '';
+  const absValue = Math.abs(value);
+
+  if (absValue >= 100_000_000) {
+    const inEok = Math.round((absValue / 100_000_000) * 10) / 10;
+    const label = Number.isInteger(inEok) ? `${inEok.toFixed(0)}억` : `${inEok.toFixed(1)}억`;
+    return `${sign}약 ${label}`;
+  }
+
+  if (absValue >= 10_000) {
+    const inMan = Math.round(absValue / 10_000);
+    return `${sign}약 ${inMan.toLocaleString()}만`;
+  }
+
+  return `${sign}약 ${Math.round(absValue).toLocaleString()}원`;
+};
+
+const formatResultAmount = (value: number, compact: boolean): string => (compact ? formatApproxKRW(value) : formatKRW(value));
 const ALLOCATION_COLORS = ['#4cc9f0', '#ff7f50', '#ffd166', '#06d6a0', '#b388ff', '#f472b6', '#70e000', '#00bbf9'];
+type YearlySeriesKey = 'totalContribution' | 'assetValue' | 'annualDividend' | 'monthlyDividend' | 'cumulativeDividend';
+const YEARLY_SERIES_ORDER: YearlySeriesKey[] = ['monthlyDividend', 'annualDividend', 'cumulativeDividend', 'assetValue', 'totalContribution'];
+const YEARLY_SERIES_LABEL: Record<YearlySeriesKey, string> = {
+  totalContribution: '누적 투자금',
+  assetValue: '자산 가치',
+  annualDividend: '연 배당',
+  monthlyDividend: '월 평균 배당',
+  cumulativeDividend: '누적 배당'
+};
+const YEARLY_SERIES_COLOR: Record<YearlySeriesKey, string> = {
+  totalContribution: '#0f4c81',
+  assetValue: '#c0392b',
+  annualDividend: '#1e8449',
+  monthlyDividend: '#f39c12',
+  cumulativeDividend: '#6c3483'
+};
 
 const HELP_CONTENT = {
   dividendYield: {
@@ -240,96 +298,127 @@ const HELP_CONTENT = {
   },
   resultMode: {
     title: '결과 표시 모드',
-    body: '정교 시뮬레이션은 월 단위 계산(지급주기/세금/재투자 타이밍)을 반영합니다. 빠른 추정은 단일 수익률 기반의 간단한 근사치입니다.'
+    body: '정밀 시뮬레이션은 월 단위 계산(지급주기/세금/재투자 타이밍)을 반영합니다. 간편 추정(빠른 추정)은 단일 수익률 기반으로 빠르게 확인하는 근사치입니다.'
   },
   allocationRatio: {
     title: '티커 비율',
     body: '여러 티커를 함께 선택하면 월 투자금을 입력한 비율대로 나눠서 투자합니다. 예: SCHD 6, JEPI 4이면 60:40 비율입니다.'
+  },
+  yearlyTotalContribution: {
+    title: '누적 투자금',
+    body: '지금까지 사용자가 실제로 투입한 원금의 누적 합계입니다.'
+  },
+  yearlyAssetValue: {
+    title: '자산 가치',
+    body: '해당 시점의 보유 자산 평가금액입니다. 원금과 평가손익이 반영됩니다.'
+  },
+  yearlyAnnualDividend: {
+    title: '연 배당',
+    body: '해당 연도에 실제 지급된 배당금 합계(세후)입니다.'
+  },
+  yearlyMonthlyDividend: {
+    title: '월 평균 배당',
+    body: '연 배당을 12로 나눈 값으로, 월 기준 평균치입니다.'
+  },
+  yearlyCumulativeDividend: {
+    title: '누적 배당',
+    body: '시작 시점부터 현재까지 누적된 세후 배당금 총합입니다.'
   }
 } as const;
 
 type HelpKey = keyof typeof HELP_CONTENT;
+const YEARLY_SERIES_HELP_KEY: Record<YearlySeriesKey, HelpKey> = {
+  totalContribution: 'yearlyTotalContribution',
+  assetValue: 'yearlyAssetValue',
+  annualDividend: 'yearlyAnnualDividend',
+  monthlyDividend: 'yearlyMonthlyDividend',
+  cumulativeDividend: 'yearlyCumulativeDividend'
+};
 
 const PRESET_TICKERS = {
   SCHD: {
     ticker: 'SCHD',
-    initialPrice: 100000,
-    dividendYield: 3.5,
-    dividendGrowth: 6,
-    priceGrowth: 5,
+    initialPrice: 31.61,
+    dividendYield: 3.34,
+    dividendGrowth: 9.08,
+    priceGrowth: 10.85,
     frequency: 'quarterly' as const
   },
   JEPI: {
     ticker: 'JEPI',
-    initialPrice: 70000,
-    dividendYield: 8.5,
-    dividendGrowth: 1.5,
-    priceGrowth: 2,
+    initialPrice: 59.31,
+    dividendYield: 7.99,
+    dividendGrowth: 7.88,
+    priceGrowth: 10.09,
     frequency: 'monthly' as const
   },
-  SPY: {
-    ticker: 'SPY',
-    initialPrice: 700000,
-    dividendYield: 1.4,
-    dividendGrowth: 5,
-    priceGrowth: 7,
+  VIG: {
+    ticker: 'VIG',
+    initialPrice: 227.26,
+    dividendYield: 1.57,
+    dividendGrowth: 9.13,
+    priceGrowth: 11.7,
+    frequency: 'quarterly' as const
+  },
+  DGRO: {
+    ticker: 'DGRO',
+    initialPrice: 73.62,
+    dividendYield: 1.97,
+    dividendGrowth: 7.08,
+    priceGrowth: 12.33,
+    frequency: 'quarterly' as const
+  },
+  VYM: {
+    ticker: 'VYM',
+    initialPrice: 155.37,
+    dividendYield: 2.25,
+    dividendGrowth: 3.76,
+    priceGrowth: 13.46,
+    frequency: 'quarterly' as const
+  },
+  HDV: {
+    ticker: 'HDV',
+    initialPrice: 138.76,
+    dividendYield: 2.82,
+    dividendGrowth: 1.84,
+    priceGrowth: 13.06,
+    frequency: 'quarterly' as const
+  },
+  DIVO: {
+    ticker: 'DIVO',
+    initialPrice: 46.59,
+    dividendYield: 6.18,
+    dividendGrowth: 9.42,
+    priceGrowth: 12.65,
+    frequency: 'monthly' as const
+  },
+  NOBL: {
+    ticker: 'NOBL',
+    initialPrice: 114.0,
+    dividendYield: 1.95,
+    dividendGrowth: 5.45,
+    priceGrowth: 9.1,
+    frequency: 'quarterly' as const
+  },
+  SDY: {
+    ticker: 'SDY',
+    initialPrice: 155.25,
+    dividendYield: 2.36,
+    dividendGrowth: 3.75,
+    priceGrowth: 9.63,
+    frequency: 'quarterly' as const
+  },
+  SPYD: {
+    ticker: 'SPYD',
+    initialPrice: 48.07,
+    dividendYield: 4.11,
+    dividendGrowth: 3.76,
+    priceGrowth: 10.61,
     frequency: 'quarterly' as const
   }
 };
 
 type PresetTickerKey = keyof typeof PRESET_TICKERS;
-type PersistedPortfolioState = {
-  tickerProfiles: TickerProfile[];
-  includedTickerIds: string[];
-  weightByTickerId: Record<string, number>;
-  fixedByTickerId: Record<string, boolean>;
-  selectedTickerId: string | null;
-};
-const PORTFOLIO_STORAGE_KEY = 'snowball-income:portfolio:v1';
-
-const EMPTY_PORTFOLIO_STATE: PersistedPortfolioState = {
-  tickerProfiles: [],
-  includedTickerIds: [],
-  weightByTickerId: {},
-  fixedByTickerId: {},
-  selectedTickerId: null
-};
-
-const readPersistedPortfolioState = (): PersistedPortfolioState => {
-  try {
-    const raw = window.localStorage.getItem(PORTFOLIO_STORAGE_KEY);
-    if (!raw) return EMPTY_PORTFOLIO_STATE;
-    const parsed = JSON.parse(raw) as PersistedPortfolioState;
-    if (!parsed || typeof parsed !== 'object') return EMPTY_PORTFOLIO_STATE;
-
-    const profiles = Array.isArray(parsed.tickerProfiles) ? parsed.tickerProfiles : [];
-    const idSet = new Set(profiles.map((profile) => profile.id));
-    const included = (Array.isArray(parsed.includedTickerIds) ? parsed.includedTickerIds : []).filter((id) => idSet.has(id));
-    const weights = Object.entries(parsed.weightByTickerId ?? {}).reduce<Record<string, number>>((acc, [id, value]) => {
-      if (!idSet.has(id)) return acc;
-      const next = Number(value);
-      if (!Number.isFinite(next) || next < 0) return acc;
-      acc[id] = next;
-      return acc;
-    }, {});
-    const fixed = Object.entries(parsed.fixedByTickerId ?? {}).reduce<Record<string, boolean>>((acc, [id, value]) => {
-      if (!idSet.has(id)) return acc;
-      acc[id] = Boolean(value);
-      return acc;
-    }, {});
-    const selected = parsed.selectedTickerId && idSet.has(parsed.selectedTickerId) ? parsed.selectedTickerId : null;
-
-    return {
-      tickerProfiles: profiles,
-      includedTickerIds: included,
-      weightByTickerId: weights,
-      fixedByTickerId: fixed,
-      selectedTickerId: selected
-    };
-  } catch {
-    return EMPTY_PORTFOLIO_STATE;
-  }
-};
 
 const toTickerDraft = (values: {
   ticker: string;
@@ -349,25 +438,41 @@ const toTickerDraft = (values: {
 
 export default function YieldArchitectFeature() {
   const LONG_PRESS_MS = 550;
-  const initialPortfolioRef = useRef<PersistedPortfolioState>(readPersistedPortfolioState());
   const { values, setField, validation } = useYieldArchitect();
-  const [activeHelp, setActiveHelp] = useState<HelpKey | null>(null);
-  const [isTickerModalOpen, setIsTickerModalOpen] = useState(false);
-  const [isConfigDrawerOpen, setIsConfigDrawerOpen] = useState(false);
-  const [tickerModalMode, setTickerModalMode] = useState<'create' | 'edit'>('create');
-  const [editingTickerId, setEditingTickerId] = useState<string | null>(null);
-  const [showQuickEstimate, setShowQuickEstimate] = useState(false);
-  const [tickerProfiles, setTickerProfiles] = useState<TickerProfile[]>(initialPortfolioRef.current.tickerProfiles);
-  const [selectedTickerId, setSelectedTickerId] = useState<string | null>(initialPortfolioRef.current.selectedTickerId);
-  const [includedTickerIds, setIncludedTickerIds] = useState<string[]>(initialPortfolioRef.current.includedTickerIds);
-  const [weightByTickerId, setWeightByTickerId] = useState<Record<string, number>>(initialPortfolioRef.current.weightByTickerId);
-  const [fixedByTickerId, setFixedByTickerId] = useState<Record<string, boolean>>(initialPortfolioRef.current.fixedByTickerId);
-  const [tickerDraft, setTickerDraft] = useState<TickerDraft>(toTickerDraft(values));
-  const [selectedPreset, setSelectedPreset] = useState<'custom' | PresetTickerKey>('custom');
+  const [activeHelp, setActiveHelp] = useAtom(activeHelpAtom);
+  const [isTickerModalOpen, setIsTickerModalOpen] = useAtom(isTickerModalOpenAtom);
+  const [isConfigDrawerOpen, setIsConfigDrawerOpen] = useAtom(isConfigDrawerOpenAtom);
+  const [tickerModalMode, setTickerModalMode] = useAtom(tickerModalModeAtom);
+  const [editingTickerId, setEditingTickerId] = useAtom(editingTickerIdAtom);
+  const [showQuickEstimate, setShowQuickEstimate] = useAtom(showQuickEstimateAtom);
+  const [tickerProfiles, setTickerProfiles] = useAtom(tickerProfilesAtom);
+  const [, setYieldFormValues] = useAtom(yieldFormAtom);
+  const [selectedTickerId, setSelectedTickerId] = useAtom(selectedTickerIdAtom);
+  const [includedTickerIds, setIncludedTickerIds] = useAtom(includedTickerIdsAtom);
+  const [weightByTickerId, setWeightByTickerId] = useAtom(weightByTickerIdAtom);
+  const [fixedByTickerId, setFixedByTickerId] = useAtom(fixedByTickerIdAtom);
+  const [tickerDraft, setTickerDraft] = useAtom(tickerDraftAtom);
+  const [selectedPreset, setSelectedPreset] = useAtom(selectedPresetAtom);
   const longPressTimerRef = useRef<number | null>(null);
   const longPressTriggeredRef = useRef(false);
+  const [visibleYearlySeries, setVisibleYearlySeries] = useState<Record<YearlySeriesKey, boolean>>({
+    totalContribution: false,
+    assetValue: false,
+    annualDividend: false,
+    monthlyDividend: true,
+    cumulativeDividend: false
+  });
+  const [isYearlyAreaFillOn, setIsYearlyAreaFillOn] = useState(false);
+  const [isResultCompact, setIsResultCompact] = useState(false);
+  const [showSplitGraphs, setShowSplitGraphs] = useState(false);
+  const [showPortfolioDividendCenter, setShowPortfolioDividendCenter] = useState(false);
+  const [isPortfolioHydrated, setIsPortfolioHydrated] = useState(false);
 
-  const currentHelp = useMemo(() => (activeHelp ? HELP_CONTENT[activeHelp] : null), [activeHelp]);
+  const currentHelp = useMemo(() => {
+    if (!activeHelp) return null;
+    if (!(activeHelp in HELP_CONTENT)) return null;
+    return HELP_CONTENT[activeHelp as HelpKey];
+  }, [activeHelp]);
   const includedProfiles = useMemo(
     () => tickerProfiles.filter((profile) => includedTickerIds.includes(profile.id)),
     [includedTickerIds, tickerProfiles]
@@ -384,33 +489,6 @@ export default function YieldArchitectFeature() {
     },
     [includedProfiles, weightByTickerId]
   );
-  const allocationPieOption = useMemo<EChartsOption | null>(() => {
-    if (normalizedAllocation.length === 0) return null;
-
-    return {
-      tooltip: {
-        trigger: 'item',
-        formatter: '{b}: {d}%'
-      },
-      series: [
-        {
-          type: 'pie',
-          selectedMode: false,
-          silent: true,
-          radius: ['46%', '70%'],
-          center: ['50%', '50%'],
-          avoidLabelOverlap: true,
-          itemStyle: { borderColor: '#fff', borderWidth: 2 },
-          label: { show: false },
-          data: normalizedAllocation.map(({ profile, weight }, index) => ({
-            name: profile.ticker,
-            value: Number((weight * 100).toFixed(4)),
-            itemStyle: { color: ALLOCATION_COLORS[index % ALLOCATION_COLORS.length] }
-          }))
-        }
-      ]
-    };
-  }, [normalizedAllocation]);
   const allocationPercentByTickerId = useMemo<Record<string, number>>(
     () =>
       normalizedAllocation.reduce<Record<string, number>>((acc, item) => {
@@ -433,15 +511,90 @@ export default function YieldArchitectFeature() {
   );
 
   useEffect(() => {
-    const payload: PersistedPortfolioState = {
-      tickerProfiles,
-      includedTickerIds,
-      weightByTickerId,
-      fixedByTickerId,
-      selectedTickerId
+    let cancelled = false;
+
+    const hydrate = async () => {
+      const payload = await readPersistedAppState();
+      if (cancelled) return;
+      setTickerProfiles(payload.portfolio.tickerProfiles);
+      setIncludedTickerIds(payload.portfolio.includedTickerIds);
+      setWeightByTickerId(payload.portfolio.weightByTickerId);
+      setFixedByTickerId(payload.portfolio.fixedByTickerId);
+      setSelectedTickerId(payload.portfolio.selectedTickerId);
+      setYieldFormValues((prev) => ({
+        ...prev,
+        monthlyContribution: payload.investmentSettings.monthlyContribution,
+        targetMonthlyDividend: payload.investmentSettings.targetMonthlyDividend,
+        durationYears: payload.investmentSettings.durationYears,
+        reinvestDividends: payload.investmentSettings.reinvestDividends,
+        taxRate: payload.investmentSettings.taxRate,
+        reinvestTiming: payload.investmentSettings.reinvestTiming,
+        dpsGrowthMode: payload.investmentSettings.dpsGrowthMode
+      }));
+      setShowQuickEstimate(payload.investmentSettings.showQuickEstimate);
+      setShowSplitGraphs(payload.investmentSettings.showSplitGraphs);
+      setIsPortfolioHydrated(true);
     };
-    window.localStorage.setItem(PORTFOLIO_STORAGE_KEY, JSON.stringify(payload));
-  }, [fixedByTickerId, includedTickerIds, selectedTickerId, tickerProfiles, weightByTickerId]);
+
+    void hydrate();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [setFixedByTickerId, setIncludedTickerIds, setSelectedTickerId, setShowQuickEstimate, setTickerProfiles, setWeightByTickerId, setYieldFormValues]);
+
+  useEffect(() => {
+    if (!isPortfolioHydrated) return;
+
+    const payload = {
+      portfolio: {
+        tickerProfiles,
+        includedTickerIds,
+        weightByTickerId,
+        fixedByTickerId,
+        selectedTickerId
+      },
+      investmentSettings: {
+        monthlyContribution: values.monthlyContribution,
+        targetMonthlyDividend: values.targetMonthlyDividend,
+        durationYears: values.durationYears,
+        reinvestDividends: values.reinvestDividends,
+        taxRate: values.taxRate,
+        reinvestTiming: values.reinvestTiming,
+        dpsGrowthMode: values.dpsGrowthMode,
+        showQuickEstimate,
+        showSplitGraphs
+      }
+    };
+
+    const timer = window.setTimeout(() => {
+      void writePersistedAppState(payload);
+    }, 120);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    fixedByTickerId,
+    includedTickerIds,
+    isPortfolioHydrated,
+    selectedTickerId,
+    showQuickEstimate,
+    showSplitGraphs,
+    tickerProfiles,
+    values.dpsGrowthMode,
+    values.durationYears,
+    values.monthlyContribution,
+    values.reinvestDividends,
+    values.reinvestTiming,
+    values.targetMonthlyDividend,
+    values.taxRate,
+    weightByTickerId
+  ]);
+
+  useEffect(() => {
+    if (selectedTickerId && !includedTickerIds.includes(selectedTickerId)) {
+      setSelectedTickerId(includedTickerIds[0] ?? null);
+    }
+  }, [includedTickerIds, selectedTickerId, setSelectedTickerId]);
 
   const applyTickerProfile = (profile: TickerDraft) => {
     setField('ticker', profile.ticker);
@@ -464,6 +617,7 @@ export default function YieldArchitectFeature() {
       },
       settings: {
         monthlyContribution,
+        targetMonthlyDividend: values.targetMonthlyDividend,
         durationYears: values.durationYears,
         reinvestDividends: values.reinvestDividends,
         taxRate: values.taxRate,
@@ -527,8 +681,7 @@ export default function YieldArchitectFeature() {
         totalContribution: finalYear?.totalContribution ?? 0,
         totalNetDividend: finalYear?.cumulativeDividend ?? 0,
         totalTaxPaid: outputs.reduce((sum, output) => sum + output.summary.totalTaxPaid, 0),
-        targetMonthDividend100ReachedYear: yearly.find((item) => item.monthlyDividend >= 1_000_000)?.year,
-        targetMonthDividend200ReachedYear: yearly.find((item) => item.monthlyDividend >= 2_000_000)?.year
+        targetMonthDividendReachedYear: yearly.find((item) => item.monthlyDividend >= values.targetMonthlyDividend)?.year
       },
       quickEstimate: {
         endValue: outputs.reduce((sum, output) => sum + output.quickEstimate.endValue, 0),
@@ -539,11 +692,174 @@ export default function YieldArchitectFeature() {
     };
   }, [includedProfiles, normalizedAllocation, validation.isValid, values]);
 
-  const tableRows = simulation?.yearly ?? [];
-  const recentCashflowRows = (simulation?.monthly ?? []).slice(-12).map((row) => ({
-    month: `${row.year}-${String(row.month).padStart(2, '0')}`,
-    payout: row.dividendPaid
-  }));
+  const tableRows = useMemo(() => simulation?.yearly ?? [], [simulation]);
+  const allocationPieOption = useMemo<EChartsOption | null>(() => {
+    if (normalizedAllocation.length === 0) return null;
+
+    return {
+      graphic: showPortfolioDividendCenter
+        ? [
+            {
+              type: 'group',
+              left: 'center',
+              top: 'center',
+              children: [
+                {
+                  type: 'text',
+                  left: 'center',
+                  top: -12,
+                  style: {
+                    text: '월배당',
+                    fill: '#567285',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    textAlign: 'center',
+                    textVerticalAlign: 'middle'
+                  }
+                },
+                {
+                  type: 'text',
+                  left: 'center',
+                  top: 8,
+                  style: {
+                    text: formatApproxKRW(simulation?.summary.finalMonthlyAverageDividend ?? 0),
+                    fill: '#1f3341',
+                    fontSize: 13,
+                    fontWeight: 700,
+                    textAlign: 'center',
+                    textVerticalAlign: 'middle'
+                  }
+                }
+              ]
+            }
+          ]
+        : undefined,
+      tooltip: {
+        trigger: 'item',
+        formatter: '{b}: {d}%'
+      },
+      series: [
+        {
+          type: 'pie',
+          selectedMode: false,
+          silent: true,
+          radius: ['46%', '70%'],
+          center: ['50%', '50%'],
+          avoidLabelOverlap: true,
+          itemStyle: { borderColor: '#fff', borderWidth: 2 },
+          label: { show: false },
+          data: normalizedAllocation.map(({ profile, weight }, index) => ({
+            name: profile.ticker,
+            value: Number((weight * 100).toFixed(4)),
+            itemStyle: { color: ALLOCATION_COLORS[index % ALLOCATION_COLORS.length] }
+          }))
+        }
+      ]
+    };
+  }, [normalizedAllocation, showPortfolioDividendCenter, simulation?.summary.finalMonthlyAverageDividend]);
+  const recentCashflowByTicker = useMemo(() => {
+    if (!validation.isValid) return { months: [] as string[], series: [] as Array<{ name: string; data: number[]; color: string }> };
+
+    const targetProfiles =
+      includedProfiles.length === 0
+        ? [
+            {
+              profile: toTickerDraft(values),
+              weight: 1
+            }
+          ]
+        : includedProfiles.length === 1
+          ? [
+              {
+                profile: includedProfiles[0],
+                weight: 1
+              }
+            ]
+          : normalizedAllocation.map(({ profile, weight }) => ({ profile, weight }));
+
+    const outputs = targetProfiles.map((item) => ({
+      ticker: item.profile.ticker,
+      output: runForProfile(item.profile, values.monthlyContribution * item.weight)
+    }));
+
+    const baseMonthly = outputs[0]?.output.monthly ?? [];
+    const months = baseMonthly.slice(-12).map((row) => `${row.year}-${String(row.month).padStart(2, '0')}`);
+    const series = outputs.map((item, index) => ({
+      name: item.ticker,
+      data: item.output.monthly.slice(-12).map((row) => row.dividendPaid),
+      color: ALLOCATION_COLORS[index % ALLOCATION_COLORS.length]
+    }));
+
+    return { months, series };
+  }, [includedProfiles, normalizedAllocation, runForProfile, validation.isValid, values]);
+
+  const recentCashflowBarOption = useMemo<EChartsOption>(
+    () => ({
+      grid: { left: 72, right: 16, top: 24, bottom: 42 },
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: { type: 'shadow' },
+        valueFormatter: (value: unknown) => formatKRW(Number(value))
+      },
+      legend: {
+        top: 0,
+        textStyle: { color: '#486073', fontSize: 12 }
+      },
+      xAxis: {
+        type: 'category',
+        data: recentCashflowByTicker.months
+      },
+      yAxis: {
+        type: 'value',
+        axisLabel: {
+          formatter: (value: number) => formatKRW(value)
+        }
+      },
+      series: recentCashflowByTicker.series.map((item) => ({
+        type: 'bar',
+        name: item.name,
+        stack: 'total',
+        data: item.data,
+        barMaxWidth: 24,
+        itemStyle: {
+          color: item.color
+        }
+      }))
+    }),
+    [recentCashflowByTicker]
+  );
+  const yearlyResultBarOption = useMemo<EChartsOption>(() => {
+    const seriesKeys = YEARLY_SERIES_ORDER.filter((key) => visibleYearlySeries[key]);
+    return {
+      grid: { left: 72, right: 20, top: 24, bottom: 36 },
+      tooltip: {
+        trigger: 'axis',
+        valueFormatter: (value: unknown) => formatKRW(Number(value))
+      },
+      legend: {
+        top: 0,
+        textStyle: { color: '#486073', fontSize: 12 }
+      },
+      xAxis: {
+        type: 'category',
+        data: tableRows.map((row) => `${row.year}`)
+      },
+      yAxis: {
+        type: 'value',
+        axisLabel: { formatter: (value: number) => formatKRW(value) }
+      },
+      series: seriesKeys.map((key) => ({
+        type: 'line',
+        name: YEARLY_SERIES_LABEL[key],
+        smooth: true,
+        showSymbol: false,
+        lineStyle: { width: 2, color: YEARLY_SERIES_COLOR[key] },
+        itemStyle: { color: YEARLY_SERIES_COLOR[key] },
+        areaStyle: isYearlyAreaFillOn ? { color: `${YEARLY_SERIES_COLOR[key]}22` } : undefined,
+        data: tableRows.map((row) => row[key])
+      }))
+    };
+  }, [isYearlyAreaFillOn, tableRows, visibleYearlySeries]);
 
   const openTickerModal = () => {
     setTickerDraft(toTickerDraft(values));
@@ -636,24 +952,49 @@ export default function YieldArchitectFeature() {
   };
 
   const toggleIncludeTicker = (profile: TickerProfile) => {
-    setIncludedTickerIds((prev) => {
-      const isIncluded = prev.includes(profile.id);
-      if (isIncluded) {
-        return prev.filter((id) => id !== profile.id);
-      }
+    const isIncluded = includedTickerIds.includes(profile.id);
 
-      setWeightByTickerId((weights) => ({ ...weights, [profile.id]: weights[profile.id] ?? 1 }));
-      setFixedByTickerId((fixed) => ({ ...fixed, [profile.id]: fixed[profile.id] ?? false }));
-      return [...prev, profile.id];
-    });
+    if (isIncluded) {
+      const nextIncludedIds = includedTickerIds.filter((id) => id !== profile.id);
+      setIncludedTickerIds(nextIncludedIds);
+      setFixedByTickerId((prev) => ({ ...prev, [profile.id]: false }));
+
+      if (selectedTickerId === profile.id) {
+        const nextSelectedId = nextIncludedIds[0] ?? null;
+        setSelectedTickerId(nextSelectedId);
+        if (nextSelectedId) {
+          const nextProfile = tickerProfiles.find((item) => item.id === nextSelectedId);
+          if (nextProfile) {
+            applyTickerProfile(nextProfile);
+          }
+        }
+      }
+      return;
+    }
+
+    setIncludedTickerIds((prev) => [...prev, profile.id]);
+    setWeightByTickerId((weights) => ({ ...weights, [profile.id]: weights[profile.id] ?? 1 }));
+    setFixedByTickerId((fixed) => ({ ...fixed, [profile.id]: fixed[profile.id] ?? false }));
     setSelectedTickerId(profile.id);
     applyTickerProfile(profile);
     setIsConfigDrawerOpen(false);
   };
 
   const removeIncludedTicker = (profileId: string) => {
-    setIncludedTickerIds((prev) => prev.filter((id) => id !== profileId));
+    const nextIncludedIds = includedTickerIds.filter((id) => id !== profileId);
+    setIncludedTickerIds(nextIncludedIds);
     setFixedByTickerId((prev) => ({ ...prev, [profileId]: false }));
+
+    if (selectedTickerId === profileId) {
+      const nextSelectedId = nextIncludedIds[0] ?? null;
+      setSelectedTickerId(nextSelectedId);
+      if (nextSelectedId) {
+        const nextProfile = tickerProfiles.find((item) => item.id === nextSelectedId);
+        if (nextProfile) {
+          applyTickerProfile(nextProfile);
+        }
+      }
+    }
   };
 
   const setTickerWeight = (profileId: string, value: number) => {
@@ -816,20 +1157,25 @@ export default function YieldArchitectFeature() {
                   onChange={(event) => setShowQuickEstimate(event.target.checked)}
                 />
                 <ToggleField
+                  label="그래프 나누어 보기"
+                  checked={showSplitGraphs}
+                  onChange={(event) => setShowSplitGraphs(event.target.checked)}
+                />
+                <ToggleField
                   label="배당 재투자"
                   checked={values.reinvestDividends}
                   onChange={(event) => setField('reinvestDividends', event.target.checked)}
                 />
                 <ConfigSectionDivider aria-hidden="true" />
                 <InputField
-                  label="월 투자금"
+                  label="월 투자금 (원)"
                   type="number"
                   min={0}
                   value={values.monthlyContribution}
                   onChange={(event) => setField('monthlyContribution', Number(event.target.value))}
                 />
                 <InputField
-                  label="투자 기간"
+                  label="투자 기간 (연단위)"
                   type="number"
                   min={1}
                   max={60}
@@ -837,7 +1183,7 @@ export default function YieldArchitectFeature() {
                   onChange={(event) => setField('durationYears', Number(event.target.value))}
                 />
                 <InputField
-                  label="세율"
+                  label="세율 (%)"
                   type="number"
                   min={0}
                   max={100}
@@ -847,6 +1193,13 @@ export default function YieldArchitectFeature() {
                     const next = event.target.value;
                     setField('taxRate', next === '' ? undefined : Number(next));
                   }}
+                />
+                <InputField
+                  label="목표 월배당 (원)"
+                  type="number"
+                  min={0}
+                  value={values.targetMonthlyDividend}
+                  onChange={(event) => setField('targetMonthlyDividend', Number(event.target.value))}
                 />
                 <InlineField htmlFor="reinvest-timing">
                   <InlineFieldHeader>
@@ -899,7 +1252,98 @@ export default function YieldArchitectFeature() {
         <ResultsColumn>
           {simulation ? (
             <>
-              <Card title="포트폴리오 구성">
+              {showQuickEstimate ? (
+                <Card
+                  title="시뮬레이션 결과 (간편)"
+                  titleRight={
+                    <ToggleField
+                      label="결과 상세도"
+                      checked={isResultCompact}
+                      hideLabel
+                      controlWidth="54px"
+                      onText="간략"
+                      offText="상세"
+                      onChange={(event) => setIsResultCompact(event.target.checked)}
+                    />
+                  }
+                >
+                  <CompactSummaryGrid>
+                    <CompactSummaryItem>
+                      <CompactSummaryLabel>최종 자산 추정</CompactSummaryLabel>
+                      <CompactSummaryValue>{formatResultAmount(simulation.quickEstimate.endValue, isResultCompact)}</CompactSummaryValue>
+                    </CompactSummaryItem>
+                    <CompactSummaryItem>
+                      <CompactSummaryLabel>연 배당 추정(세후)</CompactSummaryLabel>
+                      <CompactSummaryValue>{formatResultAmount(simulation.quickEstimate.annualDividendApprox, isResultCompact)}</CompactSummaryValue>
+                    </CompactSummaryItem>
+                    <CompactSummaryItem>
+                      <CompactSummaryLabel>월 배당 추정(세후)</CompactSummaryLabel>
+                      <CompactSummaryValue>{formatResultAmount(simulation.quickEstimate.monthlyDividendApprox, isResultCompact)}</CompactSummaryValue>
+                    </CompactSummaryItem>
+                    <CompactSummaryItem>
+                      <CompactSummaryLabel>종료 시점 배당률(가격 기준)</CompactSummaryLabel>
+                      <CompactSummaryValue>{formatPercent(simulation.quickEstimate.yieldOnPriceAtEnd)}</CompactSummaryValue>
+                    </CompactSummaryItem>
+                  </CompactSummaryGrid>
+                </Card>
+              ) : (
+                <Card
+                  title="시뮬레이션 결과 (정밀)"
+                  titleRight={
+                    <ToggleField
+                      label="결과 상세도"
+                      checked={isResultCompact}
+                      hideLabel
+                      controlWidth="54px"
+                      onText="간략"
+                      offText="상세"
+                      onChange={(event) => setIsResultCompact(event.target.checked)}
+                    />
+                  }
+                >
+                  <CompactSummaryGrid>
+                    <CompactSummaryItem>
+                      <CompactSummaryLabel>최종 자산 가치</CompactSummaryLabel>
+                      <CompactSummaryValue>{formatResultAmount(simulation.summary.finalAssetValue, isResultCompact)}</CompactSummaryValue>
+                    </CompactSummaryItem>
+                    <CompactSummaryItem>
+                      <CompactSummaryLabel>월배당(월평균: 연/12)</CompactSummaryLabel>
+                      <CompactSummaryValue>{formatResultAmount(simulation.summary.finalMonthlyAverageDividend, isResultCompact)}</CompactSummaryValue>
+                    </CompactSummaryItem>
+                    <CompactSummaryItem>
+                      <CompactSummaryLabel>최근 실지급 월배당</CompactSummaryLabel>
+                      <CompactSummaryValue>{formatResultAmount(simulation.summary.finalPayoutMonthDividend, isResultCompact)}</CompactSummaryValue>
+                    </CompactSummaryItem>
+                    <CompactSummaryItem>
+                      <CompactSummaryLabel>누적 순배당</CompactSummaryLabel>
+                      <CompactSummaryValue>{formatResultAmount(simulation.summary.totalNetDividend, isResultCompact)}</CompactSummaryValue>
+                    </CompactSummaryItem>
+                    <CompactSummaryItem>
+                      <CompactSummaryLabel>누적 세금</CompactSummaryLabel>
+                      <CompactSummaryValue>{formatResultAmount(simulation.summary.totalTaxPaid, isResultCompact)}</CompactSummaryValue>
+                    </CompactSummaryItem>
+                    <CompactSummaryItem>
+                      <CompactSummaryLabel>목표 월배당 도달 ({formatResultAmount(values.targetMonthlyDividend, isResultCompact)})</CompactSummaryLabel>
+                      <CompactSummaryValue>{targetYearLabel(simulation.summary.targetMonthDividendReachedYear)}</CompactSummaryValue>
+                    </CompactSummaryItem>
+                  </CompactSummaryGrid>
+                </Card>
+              )}
+
+              <Card
+                title="포트폴리오 구성"
+                titleRight={
+                  <ToggleField
+                    label="포트폴리오 중앙표시"
+                    checked={showPortfolioDividendCenter}
+                    hideLabel
+                    controlWidth="58px"
+                    onText="배당"
+                    offText="Blank"
+                    onChange={(event) => setShowPortfolioDividendCenter(event.target.checked)}
+                  />
+                }
+              >
                 {includedProfiles.length === 0 ? (
                   <HintText>좌측 티커 chip을 눌러 포트폴리오에 추가하세요.</HintText>
                 ) : (
@@ -907,7 +1351,7 @@ export default function YieldArchitectFeature() {
                     {allocationPieOption ? (
                       <AllocationChartLayout>
                         <ChartWrap>
-                          <ResponsiveEChart option={allocationPieOption} />
+                          <ResponsiveEChart option={allocationPieOption} replaceMerge={['graphic']} />
                         </ChartWrap>
                         <AllocationLegend>
                           {normalizedAllocation.map(({ profile, weight }, index) => (
@@ -960,56 +1404,72 @@ export default function YieldArchitectFeature() {
                 )}
               </Card>
 
-              {showQuickEstimate ? (
-                <Card title="빠른 추정(참고)">
-                  <SummaryGrid>
-                    <SummaryItem title="최종 자산 추정" value={formatKRW(simulation.quickEstimate.endValue)} />
-                    <SummaryItem title="연 배당 추정(세후)" value={formatKRW(simulation.quickEstimate.annualDividendApprox)} />
-                    <SummaryItem title="월 배당 추정(세후)" value={formatKRW(simulation.quickEstimate.monthlyDividendApprox)} />
-                    <SummaryItem title="종료 시점 배당률(가격 기준)" value={formatPercent(simulation.quickEstimate.yieldOnPriceAtEnd)} />
-                  </SummaryGrid>
-                  <HintText>빠른 추정은 지급빈도, 세금 타이밍, 재투자 시점을 단순화한 근사값입니다.</HintText>
-                </Card>
-              ) : (
-                <Card title="정교 시뮬레이션(추천)">
-                  <SummaryGrid>
-                    <SummaryItem title="최종 자산 가치" value={formatKRW(simulation.summary.finalAssetValue)} />
-                    <SummaryItem title="월배당(월평균: 연/12)" value={formatKRW(simulation.summary.finalMonthlyAverageDividend)} />
-                    <SummaryItem title="최근 실지급 월배당" value={formatKRW(simulation.summary.finalPayoutMonthDividend)} />
-                    <SummaryItem title="누적 순배당" value={formatKRW(simulation.summary.totalNetDividend)} />
-                    <SummaryItem title="누적 세금" value={formatKRW(simulation.summary.totalTaxPaid)} />
-                    <SummaryItem title="목표 월 배당 100만" value={targetYearLabel(simulation.summary.targetMonthDividend100ReachedYear)} />
-                    <SummaryItem title="목표 월 배당 200만" value={targetYearLabel(simulation.summary.targetMonthDividend200ReachedYear)} />
-                  </SummaryGrid>
-                </Card>
-              )}
-
-              <ChartPanel title="월 평균 배당" rows={tableRows} keyName="monthlyDividend" />
-              <ChartPanel title="자산 가치" rows={tableRows} keyName="assetValue" />
-              <ChartPanel title="누적 배당" rows={tableRows} keyName="cumulativeDividend" />
+              {showSplitGraphs ? (
+                <>
+                  <ChartPanel
+                    title="월 평균 배당"
+                    rows={tableRows}
+                    getXValue={(row) => `${row.year}`}
+                    getYValue={(row) => row.monthlyDividend}
+                  />
+                  <ChartPanel
+                    title="자산 가치"
+                    rows={tableRows}
+                    getXValue={(row) => `${row.year}`}
+                    getYValue={(row) => row.assetValue}
+                  />
+                  <ChartPanel
+                    title="누적 배당"
+                    rows={tableRows}
+                    getXValue={(row) => `${row.year}`}
+                    getYValue={(row) => row.cumulativeDividend}
+                  />
+                </>
+              ) : null}
 
               <Card title="연도별 결과">
-                <DataTable
-                  rows={tableRows}
-                  columns={[
-                    { key: 'year', header: '연도', render: (row) => row.year },
-                    { key: 'totalContribution', header: '누적 투자금', render: (row) => formatKRW(row.totalContribution) },
-                    { key: 'assetValue', header: '자산 가치', render: (row) => formatKRW(row.assetValue) },
-                    { key: 'annualDividend', header: '연 배당', render: (row) => formatKRW(row.annualDividend) },
-                    { key: 'monthlyDividend', header: '월 평균 배당', render: (row) => formatKRW(row.monthlyDividend) },
-                    { key: 'cumulativeDividend', header: '누적 배당', render: (row) => formatKRW(row.cumulativeDividend) }
-                  ]}
-                />
+                <SeriesFilterRow>
+                  <SeriesFilterGroup>
+                    {YEARLY_SERIES_ORDER.map((key) => (
+                      <SeriesFilterItem key={key}>
+                        <SeriesFilterLabel>
+                          <SeriesFilterCheckbox
+                            type="checkbox"
+                            checked={visibleYearlySeries[key]}
+                            onChange={(event) => setVisibleYearlySeries((prev) => ({ ...prev, [key]: event.target.checked }))}
+                          />
+                          {YEARLY_SERIES_LABEL[key]}
+                        </SeriesFilterLabel>
+                        <HelpMarkButton
+                          type="button"
+                          aria-label={`${YEARLY_SERIES_LABEL[key]} 설명 열기`}
+                          onClick={() => setActiveHelp(YEARLY_SERIES_HELP_KEY[key])}
+                        >
+                          ?
+                        </HelpMarkButton>
+                      </SeriesFilterItem>
+                    ))}
+                  </SeriesFilterGroup>
+                  <ToggleField
+                    label="Fill"
+                    checked={isYearlyAreaFillOn}
+                    hideLabel
+                    controlWidth="60px"
+                    stateTextColor="#111"
+                    onText="Color"
+                    offText="Blank"
+                    onChange={(event) => setIsYearlyAreaFillOn(event.target.checked)}
+                  />
+                </SeriesFilterRow>
+                <ChartWrap>
+                  <ResponsiveEChart option={yearlyResultBarOption} replaceMerge={['series']} />
+                </ChartWrap>
               </Card>
 
               <Card title="실지급 월별 배당 (최근 12개월)">
-                <DataTable
-                  rows={recentCashflowRows}
-                  columns={[
-                    { key: 'month', header: '월', render: (row) => row.month },
-                    { key: 'payout', header: '실지급 배당', render: (row) => formatKRW(row.payout) }
-                  ]}
-                />
+                <ChartWrap>
+                  <ResponsiveEChart option={recentCashflowBarOption} />
+                </ChartWrap>
               </Card>
             </>
           ) : (
@@ -1044,9 +1504,11 @@ export default function YieldArchitectFeature() {
                 }}
               >
                 <option value="custom">직접 입력</option>
-                <option value="SCHD">SCHD</option>
-                <option value="JEPI">JEPI</option>
-                <option value="SPY">SPY</option>
+                {Object.keys(PRESET_TICKERS).map((ticker) => (
+                  <option key={ticker} value={ticker}>
+                    {ticker}
+                  </option>
+                ))}
               </InlineSelect>
             </InlineField>
             <FormGrid>

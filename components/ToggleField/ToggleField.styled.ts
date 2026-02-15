@@ -30,8 +30,8 @@ export const HelpButton = styled.button`
   cursor: pointer;
 `;
 
-export const ToggleControl = styled.span<{ checked: boolean; disabled?: boolean }>`
-  width: 56px;
+export const ToggleControl = styled.span<{ checked: boolean; disabled?: boolean; controlWidth?: string }>`
+  width: ${({ controlWidth }) => controlWidth ?? '56px'};
   height: 24px;
   border-radius: 999px;
   border: 1px solid ${({ disabled }) => (disabled ? '#d4dde5' : '#2f6f93')};
@@ -40,14 +40,15 @@ export const ToggleControl = styled.span<{ checked: boolean; disabled?: boolean 
   transition: background-color 0.15s ease;
 `;
 
-export const ToggleStateText = styled.span<{ checked: boolean; disabled?: boolean }>`
+export const ToggleStateText = styled.span<{ checked: boolean; disabled?: boolean; stateTextColor?: string }>`
   position: absolute;
   top: 50%;
-  left: ${({ checked }) => (checked ? '10px' : '24px')};
+  left: ${({ checked }) => (checked ? '8px' : 'auto')};
+  right: ${({ checked }) => (checked ? 'auto' : '8px')};
   transform: translateY(-50%);
   font-size: 10px;
   font-weight: 700;
-  color: ${({ checked, disabled }) => (disabled ? '#9eb0be' : checked ? '#2f6f93' : '#5f7485')};
+  color: ${({ checked, disabled, stateTextColor }) => stateTextColor ?? (disabled ? '#9eb0be' : checked ? '#2f6f93' : '#5f7485')};
   letter-spacing: 0.2px;
   user-select: none;
 `;
@@ -55,7 +56,7 @@ export const ToggleStateText = styled.span<{ checked: boolean; disabled?: boolea
 export const ToggleThumb = styled.span<{ checked: boolean; disabled?: boolean }>`
   position: absolute;
   top: 1px;
-  left: ${({ checked }) => (checked ? '33px' : '1px')};
+  left: ${({ checked }) => (checked ? 'calc(100% - 21px)' : '1px')};
   width: 20px;
   height: 20px;
   border-radius: 999px;

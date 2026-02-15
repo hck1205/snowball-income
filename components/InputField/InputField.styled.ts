@@ -42,6 +42,13 @@ export const BaseSelect = styled.select`
   min-width: 0;
   border: 1px solid #bfd0de;
   border-radius: 8px;
-  padding: 8px 10px;
+  padding: 8px 28px 8px 10px;
   font-size: 14px;
+  background-color: #fff;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #5e7688 50%), linear-gradient(135deg, #5e7688 50%, transparent 50%);
+  background-position: calc(100% - 14px) calc(50% - 1px), calc(100% - 10px) calc(50% - 1px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
 `;

@@ -21,7 +21,7 @@ export const Table = styled.table`
       gap: 8px;
     }
 
-    tr {
+    tbody tr {
       display: block;
       border: 1px solid #e4edf4;
       border-radius: 8px;
@@ -39,7 +39,7 @@ export const Table = styled.table`
       gap: 8px;
     }
 
-    tr {
+    tbody tr {
       display: block;
       border: 1px solid #e4edf4;
       border-radius: 8px;
