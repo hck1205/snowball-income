@@ -1,3 +1,4 @@
+import { memo, useCallback } from 'react';
 import { Card } from '@/components';
 import { ResultsColumn } from '@/pages/Main/Main.shared.styled';
 import MonthlyCashflow from '@/components/MonthlyCashflow';
@@ -24,7 +25,7 @@ import { useMainComputed, useSnowballForm, useTickerActions } from '@/pages/Main
 import { ChartPanel, ResponsiveEChart } from '@/pages/Main/components';
 import { formatPercent, formatResultAmount, targetYearLabel } from '@/pages/Main/utils';
 
-export default function MainRightPanel() {
+function MainRightPanelComponent() {
   const showQuickEstimate = useShowQuickEstimateAtomValue();
   const isResultCompact = useIsResultCompactAtomValue();
   const setIsResultCompact = useSetIsResultCompactWrite();
@@ -55,6 +56,10 @@ export default function MainRightPanel() {
     isYearlyAreaFillOn
   });
   const { setTickerWeight, toggleTickerFixed, removeIncludedTicker } = useTickerActions();
+  const getYear = useCallback((row: any) => `${row.year}`, []);
+  const getMonthlyDividend = useCallback((row: any) => row.monthlyDividend, []);
+  const getAssetValue = useCallback((row: any) => row.assetValue, []);
+  const getCumulativeDividend = useCallback((row: any) => row.cumulativeDividend, []);
 
   return (
     <ResultsColumn>
@@ -91,20 +96,20 @@ export default function MainRightPanel() {
               <ChartPanel
                 title="월 평균 배당"
                 rows={tableRows}
-                getXValue={(row: any) => `${row.year}`}
-                getYValue={(row: any) => row.monthlyDividend}
+                getXValue={getYear}
+                getYValue={getMonthlyDividend}
               />
               <ChartPanel
                 title="자산 가치"
                 rows={tableRows}
-                getXValue={(row: any) => `${row.year}`}
-                getYValue={(row: any) => row.assetValue}
+                getXValue={getYear}
+                getYValue={getAssetValue}
               />
               <ChartPanel
                 title="누적 배당"
                 rows={tableRows}
-                getXValue={(row: any) => `${row.year}`}
-                getYValue={(row: any) => row.cumulativeDividend}
+                getXValue={getYear}
+                getYValue={getCumulativeDividend}
               />
             </>
           ) : null}
@@ -127,3 +132,7 @@ export default function MainRightPanel() {
     </ResultsColumn>
   );
 }
+
+const MainRightPanel = memo(MainRightPanelComponent);
+
+export default MainRightPanel;

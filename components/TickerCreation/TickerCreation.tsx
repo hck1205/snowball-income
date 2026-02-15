@@ -1,8 +1,7 @@
-import { type ChangeEvent, type MouseEvent, useRef, useState } from 'react';
+import { memo, type ChangeEvent, type MouseEvent, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import html2canvas from 'html2canvas';
-import { InputField } from '@/components';
-import { Card } from '@/components';
+import { Card, InputField } from '@/components';
 import type { TickerCreationProps } from './TickerCreation.types';
 import {
   HintText,
@@ -24,7 +23,7 @@ import {
   TickerList
 } from '@/pages/Main/Main.shared.styled';
 
-export default function TickerCreation({
+function TickerCreationComponent({
   tickerProfiles,
   includedTickerIds,
   onOpenCreate,
@@ -45,9 +44,9 @@ export default function TickerCreation({
   const [isFileModalOpen, setIsFileModalOpen] = useState(false);
   const [saveName, setSaveName] = useState('');
   const [savedItems, setSavedItems] = useState<Array<{ name: string; updatedAt: number }>>([]);
-  const [selectedLoadFile, setSelectedLoadFile] = useState<File | null>(null);
   const [loadError, setLoadError] = useState('');
   const [fileError, setFileError] = useState('');
+  const [saveError, setSaveError] = useState('');
   const [captureError, setCaptureError] = useState('');
   const [isLoadingList, setIsLoadingList] = useState(false);
   const [isLoadingState, setIsLoadingState] = useState(false);
@@ -59,125 +58,157 @@ export default function TickerCreation({
   const [isLoadDeleteMode, setIsLoadDeleteMode] = useState(false);
   const [loadFileRecognitionError, setLoadFileRecognitionError] = useState('');
   const loadFileInputRef = useRef<HTMLInputElement | null>(null);
+  const saveModalTitleId = useId();
+  const loadModalTitleId = useId();
+  const fileModalTitleId = useId();
 
-  const closeSaveModal = () => {
+  const closeSaveModal = useCallback(() => {
     if (isSaving) return;
     setIsSaveModalOpen(false);
-  };
+    setSaveError('');
+  }, [isSaving]);
 
-  const closeLoadModal = () => {
+  const closeLoadModal = useCallback(() => {
     if (isLoadingList || isLoadingState || isLoadingJsonFile || isDeletingState) return;
     setIsLoadModalOpen(false);
     setLoadError('');
     setLoadFileRecognitionError('');
     setIsLoadDeleteMode(false);
-    setSelectedLoadFile(null);
-  };
+    if (loadFileInputRef.current) {
+      loadFileInputRef.current.value = '';
+    }
+  }, [isDeletingState, isLoadingJsonFile, isLoadingList, isLoadingState]);
 
-  const closeFileModal = () => {
+  const closeFileModal = useCallback(() => {
     if (isLoadingList || isDownloadingFile) return;
     setIsFileModalOpen(false);
     setFileError('');
-  };
+  }, [isDownloadingFile, isLoadingList]);
 
-  const handleBackdropClick =
+  const handleBackdropClick = useCallback(
     (onClose: () => void) =>
     (event: MouseEvent<HTMLDivElement>) => {
       if (event.target !== event.currentTarget) return;
       onClose();
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (!isSaveModalOpen && !isLoadModalOpen && !isFileModalOpen) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      if (isSaveModalOpen) {
+        closeSaveModal();
+        return;
+      }
+      if (isLoadModalOpen) {
+        closeLoadModal();
+        return;
+      }
+      if (isFileModalOpen) {
+        closeFileModal();
+      }
     };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [closeFileModal, closeLoadModal, closeSaveModal, isFileModalOpen, isLoadModalOpen, isSaveModalOpen]);
 
   const openLoadModal = async () => {
     setIsLoadModalOpen(true);
     setLoadError('');
+    setLoadFileRecognitionError('');
     setIsLoadDeleteMode(false);
     setIsLoadingList(true);
-    let items = await onListSavedStateNames();
+    try {
+      let items = await onListSavedStateNames();
 
-    if (items.length === 0) {
-      const autoSaved = await onSaveNamedState('');
-      if (autoSaved.ok) {
-        items = await onListSavedStateNames();
+      if (items.length === 0) {
+        const autoSaved = await onSaveNamedState('');
+        if (autoSaved.ok) {
+          items = await onListSavedStateNames();
+        }
       }
-    }
 
-    setSavedItems(items);
-    setIsLoadingList(false);
+      setSavedItems(items);
+    } catch {
+      setLoadError('저장 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
+    } finally {
+      setIsLoadingList(false);
+    }
   };
 
   const openFileModal = async () => {
     setIsFileModalOpen(true);
     setFileError('');
     setIsLoadingList(true);
-    let items = await onListSavedStateNames();
+    try {
+      let items = await onListSavedStateNames();
 
-    if (items.length === 0) {
-      const autoSaved = await onSaveNamedState('');
-      if (autoSaved.ok) {
-        items = await onListSavedStateNames();
+      if (items.length === 0) {
+        const autoSaved = await onSaveNamedState('');
+        if (autoSaved.ok) {
+          items = await onListSavedStateNames();
+        }
       }
-    }
 
-    setSavedItems(items);
-    setIsLoadingList(false);
+      setSavedItems(items);
+    } catch {
+      setFileError('저장 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
+    } finally {
+      setIsLoadingList(false);
+    }
   };
 
   const handleSaveSubmit = async () => {
     setIsSaving(true);
-    await onSaveNamedState(saveName);
-    setIsSaving(false);
-
-    setIsSaveModalOpen(false);
-    setSaveName('');
+    setSaveError('');
+    try {
+      await onSaveNamedState(saveName);
+      setIsSaveModalOpen(false);
+      setSaveName('');
+    } catch {
+      setSaveError('저장에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleLoadState = async (name: string) => {
     if (isLoadDeleteMode) return;
     setLoadError('');
     setIsLoadingState(true);
-    const result = await onLoadNamedState(name);
-    setIsLoadingState(false);
-    if (!result.ok) {
-      setLoadError(result.message);
-      return;
-    }
-    setIsLoadModalOpen(false);
-  };
-
-  const handleDeleteNamedState = async (name: string) => {
-    setLoadError('');
-    setIsDeletingState(true);
-    const result = await onDeleteNamedState(name);
-    setIsDeletingState(false);
-    if (!result.ok) {
-      setLoadError(result.message);
-      return;
-    }
-
-    setSavedItems((prev) => prev.filter((item) => item.name !== name));
-  };
-
-  const handleLoadFromJsonFile = async () => {
-    if (!selectedLoadFile) {
-      setLoadError('불러올 JSON 파일을 선택해 주세요.');
-      return;
-    }
-
-    setLoadError('');
-    setIsLoadingJsonFile(true);
     try {
-      const jsonText = await selectedLoadFile.text();
-      const result = await onLoadStateFromJsonText(jsonText);
+      const result = await onLoadNamedState(name);
       if (!result.ok) {
         setLoadError(result.message);
         return;
       }
       setIsLoadModalOpen(false);
-      setSelectedLoadFile(null);
     } catch {
-      setLoadError('파일을 읽는 중 오류가 발생했습니다.');
+      setLoadError('불러오기에 실패했습니다. 잠시 후 다시 시도해 주세요.');
     } finally {
-      setIsLoadingJsonFile(false);
+      setIsLoadingState(false);
+    }
+  };
+
+  const handleDeleteNamedState = async (name: string) => {
+    setLoadError('');
+    setIsDeletingState(true);
+    try {
+      const result = await onDeleteNamedState(name);
+      if (!result.ok) {
+        setLoadError(result.message);
+        return;
+      }
+
+      setSavedItems((prev) => prev.filter((item) => item.name !== name));
+    } catch {
+      setLoadError('삭제에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+    } finally {
+      setIsDeletingState(false);
     }
   };
 
@@ -197,7 +228,6 @@ export default function TickerCreation({
   const handleLoadFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] ?? null;
     if (!file) {
-      setSelectedLoadFile(null);
       setLoadFileRecognitionError('');
       return;
     }
@@ -208,26 +238,24 @@ export default function TickerCreation({
       const jsonText = await file.text();
       const parsed = JSON.parse(jsonText) as unknown;
       if (!isRecognizableLoadFile(parsed)) {
-        setSelectedLoadFile(null);
         setLoadFileRecognitionError('인식에 실패했습니다.');
+        event.target.value = '';
         return;
       }
 
       const result = await onLoadStateFromJsonText(jsonText);
       if (!result.ok) {
-        setSelectedLoadFile(null);
         setLoadError(result.message);
+        event.target.value = '';
         return;
       }
 
-      setSelectedLoadFile(file);
       setLoadFileRecognitionError('');
       setIsLoadModalOpen(false);
-      setSelectedLoadFile(null);
       event.target.value = '';
     } catch {
-      setSelectedLoadFile(null);
       setLoadFileRecognitionError('인식에 실패했습니다.');
+      event.target.value = '';
     } finally {
       setIsLoadingJsonFile(false);
     }
@@ -240,10 +268,15 @@ export default function TickerCreation({
   const handleDownloadState = async (name: string) => {
     setFileError('');
     setIsDownloadingFile(true);
-    const result = await onDownloadNamedStateAsJson(name);
-    setIsDownloadingFile(false);
-    if (!result.ok) {
-      setFileError(result.message);
+    try {
+      const result = await onDownloadNamedStateAsJson(name);
+      if (!result.ok) {
+        setFileError(result.message);
+      }
+    } catch {
+      setFileError('다운로드에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+    } finally {
+      setIsDownloadingFile(false);
     }
   };
 
@@ -383,62 +416,87 @@ export default function TickerCreation({
     key: 'save' | 'load' | 'file' | 'capture' | 'coffee';
     label: string;
     icon: JSX.Element;
-  }> = [
-    {
-      key: 'save',
-      label: 'Save',
-      icon: (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M5 4h12l2 2v14H5z" />
-          <path d="M8 4v6h8V4" />
-          <path d="M9 18h6" />
-        </svg>
-      )
+  }> = useMemo(
+    () => [
+      {
+        key: 'save',
+        label: 'Save',
+        icon: (
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M5 4h12l2 2v14H5z" />
+            <path d="M8 4v6h8V4" />
+            <path d="M9 18h6" />
+          </svg>
+        )
+      },
+      {
+        key: 'load',
+        label: 'Load',
+        icon: (
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 4v11" />
+            <path d="M8 11l4 4 4-4" />
+            <path d="M5 20h14" />
+          </svg>
+        )
+      },
+      {
+        key: 'file',
+        label: 'File',
+        icon: (
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M7 3h7l4 4v14H7z" />
+            <path d="M14 3v4h4" />
+          </svg>
+        )
+      },
+      {
+        key: 'capture',
+        label: 'Capture',
+        icon: (
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M5 8h14v11H5z" />
+            <path d="M9 8l1.2-2h3.6L15 8" />
+            <circle cx="12" cy="13.5" r="3" />
+          </svg>
+        )
+      },
+      {
+        key: 'coffee',
+        label: 'Coffee',
+        icon: (
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M5 10h10v4a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4z" />
+            <path d="M15 11h2a2 2 0 1 1 0 4h-2" />
+            <path d="M8 6v2M11 6v2" />
+          </svg>
+        )
+      }
+    ],
+    []
+  );
+
+  const handleQuickAction = useCallback(
+    (key: 'save' | 'load' | 'file' | 'capture' | 'coffee') => {
+              if (key === 'save') {
+                setIsSaveModalOpen(true);
+                setSaveError('');
+                return;
+              }
+      if (key === 'load') {
+        void openLoadModal();
+        return;
+      }
+      if (key === 'file') {
+        void openFileModal();
+        return;
+      }
+      if (key === 'capture') {
+        void handleCapturePage();
+      }
     },
-    {
-      key: 'load',
-      label: 'Load',
-      icon: (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M12 4v11" />
-          <path d="M8 11l4 4 4-4" />
-          <path d="M5 20h14" />
-        </svg>
-      )
-    },
-    {
-      key: 'file',
-      label: 'File',
-      icon: (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M7 3h7l4 4v14H7z" />
-          <path d="M14 3v4h4" />
-        </svg>
-      )
-    },
-    {
-      key: 'capture',
-      label: 'Capture',
-      icon: (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M5 8h14v11H5z" />
-          <path d="M9 8l1.2-2h3.6L15 8" />
-          <circle cx="12" cy="13.5" r="3" />
-        </svg>
-      )
-    },
-    {
-      key: 'coffee',
-      label: 'Coffee',
-      icon: (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M5 10h10v4a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4z" />
-          <path d="M15 11h2a2 2 0 1 1 0 4h-2" />
-          <path d="M8 6v2M11 6v2" />
-        </svg>
-      )
-    }
-  ];
+    [openFileModal, openLoadModal, handleCapturePage]
+  );
 
   return (
     <Card>
@@ -449,25 +507,8 @@ export default function TickerCreation({
             type="button"
             aria-label={action.label}
             style={action.key === 'coffee' ? { display: 'none' } : undefined}
-            onClick={() => {
-              if (action.key === 'save') {
-                setIsSaveModalOpen(true);
-                return;
-              }
-              if (action.key === 'load') {
-                void openLoadModal();
-                return;
-              }
-              if (action.key === 'file') {
-                void openFileModal();
-                return;
-              }
-              if (action.key === 'capture') {
-                void handleCapturePage();
-                return;
-              }
-              if (action.key === 'coffee') return;
-            }}
+            disabled={action.key === 'capture' ? isCapturing : false}
+            onClick={() => handleQuickAction(action.key)}
           >
             <TickerQuickActionIcon>{action.icon}</TickerQuickActionIcon>
             <span>{action.label}</span>
@@ -489,8 +530,14 @@ export default function TickerCreation({
                     type="button"
                     data-chip="true"
                     selected={includedTickerIds.includes(profile.id)}
+                    aria-pressed={includedTickerIds.includes(profile.id)}
                     aria-label={`티커 ${profile.ticker} 선택`}
                     onClick={() => onTickerClick(profile)}
+                    onKeyDown={(event) => {
+                      if (event.key !== 'F2') return;
+                      event.preventDefault();
+                      onOpenEdit(profile);
+                    }}
                     onMouseDown={() => onTickerPressStart(profile)}
                     onMouseUp={onTickerPressEnd}
                     onMouseLeave={onTickerPressEnd}
@@ -521,9 +568,9 @@ export default function TickerCreation({
       {isSaveModalOpen ? (
         modalRoot
           ? createPortal(
-              <ModalBackdrop role="dialog" aria-modal="true" aria-label="로컬 저장" onClick={handleBackdropClick(closeSaveModal)}>
-                <ModalPanel>
-                  <ModalTitle>로컬 저장</ModalTitle>
+              <ModalBackdrop role="dialog" aria-modal="true" aria-labelledby={saveModalTitleId} onClick={handleBackdropClick(closeSaveModal)}>
+                <ModalPanel aria-busy={isSaving}>
+                  <ModalTitle id={saveModalTitleId}>로컬 저장</ModalTitle>
                   <ModalBody>
                     저장할 이름을 입력해 주세요.
                     {'\n'}
@@ -540,6 +587,7 @@ export default function TickerCreation({
                     value={saveName}
                     onChange={(event) => setSaveName(event.target.value)}
                   />
+                  {saveError ? <HintText>{saveError}</HintText> : null}
                   <ModalActions>
                     <SecondaryButton type="button" onClick={closeSaveModal}>
                       취소
@@ -560,11 +608,11 @@ export default function TickerCreation({
               <ModalBackdrop
                 role="dialog"
                 aria-modal="true"
-                aria-label="저장 목록 불러오기"
+                aria-labelledby={loadModalTitleId}
                 onClick={handleBackdropClick(closeLoadModal)}
               >
-                <ModalPanel>
-                  <ModalTitle>불러오기</ModalTitle>
+                <ModalPanel aria-busy={isLoadingList || isLoadingState || isLoadingJsonFile || isDeletingState}>
+                  <ModalTitle id={loadModalTitleId}>불러오기</ModalTitle>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '24px', marginBottom: '2px' }}>
                     <ModalBody style={{ margin: 0 }}>
                       저장된 목록에서 불러올 항목을 선택해 주세요.
@@ -618,20 +666,15 @@ export default function TickerCreation({
                   <ModalActions style={{ justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <SecondaryButton type="button" onClick={openLoadFilePicker}>
-                        {selectedLoadFile ? `파일 선택됨: ${selectedLoadFile.name}` : '파일 선택'}
+                        {isLoadingJsonFile ? '파일 확인 중...' : '파일 선택'}
                       </SecondaryButton>
                       {loadFileRecognitionError ? (
                         <span style={{ color: '#b42318', fontSize: '12px' }}>{loadFileRecognitionError}</span>
                       ) : null}
                     </div>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <SecondaryButton type="button" onClick={() => void handleLoadFromJsonFile()}>
-                        {isLoadingJsonFile ? '파일 로드 중...' : '선택 파일 불러오기'}
-                      </SecondaryButton>
-                      <SecondaryButton type="button" onClick={closeLoadModal}>
-                        닫기
-                      </SecondaryButton>
-                    </div>
+                    <SecondaryButton type="button" onClick={closeLoadModal}>
+                      닫기
+                    </SecondaryButton>
                   </ModalActions>
                   <input
                     ref={loadFileInputRef}
@@ -653,11 +696,11 @@ export default function TickerCreation({
               <ModalBackdrop
                 role="dialog"
                 aria-modal="true"
-                aria-label="저장 항목 파일 다운로드"
+                aria-labelledby={fileModalTitleId}
                 onClick={handleBackdropClick(closeFileModal)}
               >
-                <ModalPanel>
-                  <ModalTitle>파일 다운로드</ModalTitle>
+                <ModalPanel aria-busy={isLoadingList || isDownloadingFile}>
+                  <ModalTitle id={fileModalTitleId}>파일 다운로드</ModalTitle>
                   <ModalBody>
                     항목을 선택하면 Load가 가능한 파일로 다운로드 됩니다.
                     {'\n'}
@@ -701,3 +744,7 @@ export default function TickerCreation({
     </Card>
   );
 }
+
+const TickerCreation = memo(TickerCreationComponent);
+
+export default TickerCreation;

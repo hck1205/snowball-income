@@ -18,6 +18,17 @@ export default function TickerModal(props: TickerModalProps) {
   const tickerDraft = useTickerDraftAtomValue();
   const setTickerDraft = useSetTickerDraftWrite();
 
+  const handleSelectPreset = (preset: 'custom' | keyof typeof PRESET_TICKERS) => {
+    setSelectedPreset(preset);
+    if (preset === 'custom') return;
+    const presetDraft = PRESET_TICKERS[preset];
+    if (!presetDraft) return;
+    setTickerDraft((prev) => ({
+      ...prev,
+      ...presetDraft
+    }));
+  };
+
   return (
     <TickerModalView
       {...props}
@@ -26,7 +37,7 @@ export default function TickerModal(props: TickerModalProps) {
       selectedPreset={selectedPreset}
       presetTickers={PRESET_TICKERS}
       tickerDraft={tickerDraft}
-      onSelectPreset={setSelectedPreset}
+      onSelectPreset={handleSelectPreset}
       onChangeDraft={setTickerDraft}
     />
   );

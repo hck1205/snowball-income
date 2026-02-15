@@ -1,4 +1,6 @@
 import '@testing-library/jest-dom';
+import { createElement, forwardRef } from 'react';
+import { vi } from 'vitest';
 
 class ResizeObserver {
   observe() {}
@@ -32,3 +34,8 @@ Object.defineProperty(HTMLElement.prototype, 'getBoundingClientRect', {
     toJSON: () => ''
   })
 });
+
+vi.mock('echarts-for-react', () => ({
+  __esModule: true,
+  default: forwardRef<HTMLDivElement>((_props, ref) => createElement('div', { 'data-testid': 'echart', ref }))
+}));

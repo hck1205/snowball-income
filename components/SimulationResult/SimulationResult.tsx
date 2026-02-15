@@ -1,8 +1,9 @@
+import { memo } from 'react';
 import { Card, ToggleField } from '@/components';
 import type { SimulationResultProps } from './SimulationResult.types';
 import { CompactSummaryGrid, CompactSummaryItem, CompactSummaryLabel, CompactSummaryValue } from '@/pages/Main/Main.shared.styled';
 
-export default function SimulationResult({
+function SimulationResultComponent({
   simulation,
   showQuickEstimate,
   isResultCompact,
@@ -79,3 +80,7 @@ export default function SimulationResult({
     </Card>
   );
 }
+
+const SimulationResult = memo(SimulationResultComponent);
+
+export default SimulationResult;

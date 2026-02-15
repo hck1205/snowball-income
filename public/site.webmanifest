@@ -1,0 +1,12 @@
+{
+  "name": "Snowball Income",
+  "short_name": "Snowball",
+  "description": "배당 투자 전략 시뮬레이터",
+  "lang": "ko-KR",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ecf7fb",
+  "theme_color": "#ecf7fb",
+  "icons": []
+}

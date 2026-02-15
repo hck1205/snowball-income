@@ -1,10 +1,10 @@
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import type { EChartsOption } from 'echarts';
 import { formatKRW } from '@/shared/utils';
 import ChartPanelView from './ChartPanel.view';
 import type { ChartPanelProps } from './ChartPanel.types';
 
-export default function ChartPanel<T>({
+function ChartPanelComponent<T>({
   title,
   rows,
   xAxisLabel,
@@ -14,6 +14,7 @@ export default function ChartPanel<T>({
 }: ChartPanelProps<T>) {
   const chartOption = useMemo<EChartsOption>(
     () => ({
+      animation: false,
       grid: { left: 72, right: 20, top: 24, bottom: 40 },
       tooltip: {
         trigger: 'axis',
@@ -48,3 +49,7 @@ export default function ChartPanel<T>({
 
   return <ChartPanelView title={title} chartOption={chartOption} />;
 }
+
+const ChartPanel = memo(ChartPanelComponent) as typeof ChartPanelComponent;
+
+export default ChartPanel;

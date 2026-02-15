@@ -5,17 +5,13 @@ import type { ResponsiveEChartProps } from './ResponsiveEChart.types';
 type ResponsiveEChartViewProps = ResponsiveEChartProps & {
   chartRef: React.RefObject<any>;
   containerRef: React.RefObject<HTMLDivElement | null>;
-  width?: number;
-  height?: number;
 };
 
 export default function ResponsiveEChartView({
   chartRef,
   containerRef,
-  height,
   option,
-  replaceMerge,
-  width
+  replaceMerge
 }: ResponsiveEChartViewProps) {
   return (
     <div ref={containerRef as any} style={containerStyle}>
@@ -23,10 +19,10 @@ export default function ResponsiveEChartView({
         ref={chartRef}
         option={option}
         autoResize={false}
+        lazyUpdate
         replaceMerge={replaceMerge}
         opts={{
-          width: width && width > 0 ? width : undefined,
-          height: height && height > 0 ? height : undefined
+          renderer: 'canvas'
         }}
         style={chartStyle}
       />

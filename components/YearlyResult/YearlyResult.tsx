@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Card, ToggleField } from '@/components';
 import type { YearlyResultProps } from './YearlyResult.types';
 import {
@@ -10,7 +11,7 @@ import {
   SeriesFilterRow
 } from '@/pages/Main/Main.shared.styled';
 
-export default function YearlyResult({ items, isFillOn, onToggleFill, chartOption, ResponsiveChart }: YearlyResultProps) {
+function YearlyResultComponent({ items, isFillOn, onToggleFill, chartOption, ResponsiveChart }: YearlyResultProps) {
   return (
     <Card title="연도별 결과">
       <SeriesFilterRow>
@@ -38,9 +39,13 @@ export default function YearlyResult({ items, isFillOn, onToggleFill, chartOptio
           onChange={(event) => onToggleFill(event.target.checked)}
         />
       </SeriesFilterRow>
-      <ChartWrap>
+      <ChartWrap role="img" aria-label="연도별 자산 및 배당 추이 차트">
         <ResponsiveChart option={chartOption} replaceMerge={['series']} />
       </ChartWrap>
     </Card>
   );
 }
+
+const YearlyResult = memo(YearlyResultComponent);
+
+export default YearlyResult;

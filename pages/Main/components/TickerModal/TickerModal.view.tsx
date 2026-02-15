@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { FrequencySelect, InputField } from '@/components';
 import type { PresetTickerKey } from '@/shared/constants';
 import type { Frequency } from '@/shared/types';
@@ -29,6 +30,17 @@ export default function TickerModalView({
   onClose,
   onSave
 }: TickerModalViewProps) {
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (

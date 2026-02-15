@@ -1,0 +1,31 @@
+{
+  "name": "Snowball Income",
+  "category": "Dividend Strategy Simulator",
+  "language": "ko-KR",
+  "description": "장기 배당 투자 전략을 시뮬레이션하고 월별/연도별 현금흐름 및 자산 추이를 분석하는 웹 애플리케이션",
+  "entrypoints": {
+    "app": "/",
+    "sitemap": "/sitemap.xml",
+    "robots": "/robots.txt",
+    "llms": "/llms.txt",
+    "llms_full": "/llms-full.txt"
+  },
+  "core_inputs": [
+    "monthlyContribution",
+    "targetMonthlyDividend",
+    "durationYears",
+    "reinvestDividends",
+    "taxRate",
+    "tickerProfiles",
+    "allocationWeights"
+  ],
+  "core_outputs": [
+    "finalAssetValue",
+    "monthlyAverageDividend",
+    "recentMonthlyCashflow",
+    "totalNetDividend",
+    "totalTaxPaid",
+    "targetReachYear"
+  ],
+  "disclaimer": "본 서비스는 교육 및 시뮬레이션 목적 도구이며 투자 조언이 아닙니다."
+}

@@ -6,7 +6,7 @@ import type { ChartPanelViewProps } from './ChartPanel.types';
 export default function ChartPanelView({ chartOption, title }: ChartPanelViewProps) {
   return (
     <Card title={title}>
-      <ChartPanelWrap>
+      <ChartPanelWrap role="img" aria-label={`${title} 차트`}>
         <ResponsiveEChart option={chartOption} />
       </ChartPanelWrap>
     </Card>

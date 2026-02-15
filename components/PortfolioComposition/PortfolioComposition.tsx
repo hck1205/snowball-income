@@ -1,4 +1,4 @@
-import { type CSSProperties } from 'react';
+import { memo, type CSSProperties } from 'react';
 import { Card, ToggleField } from '@/components';
 import { ALLOCATION_COLORS } from '@/shared/constants';
 import type { PortfolioCompositionProps } from './PortfolioComposition.types';
@@ -19,7 +19,7 @@ import {
   SelectedChipWrap
 } from '@/pages/Main/Main.shared.styled';
 
-export default function PortfolioComposition({
+function PortfolioCompositionComponent({
   includedProfiles,
   normalizedAllocation,
   allocationPieOption,
@@ -54,7 +54,7 @@ export default function PortfolioComposition({
         <>
           {allocationPieOption ? (
             <AllocationChartLayout>
-              <ChartWrap>
+              <ChartWrap role="img" aria-label="포트폴리오 비중 원형 차트">
                 <ResponsiveChart option={allocationPieOption} replaceMerge={['graphic']} />
               </ChartWrap>
               <AllocationLegend>
@@ -78,6 +78,7 @@ export default function PortfolioComposition({
                     <AllocationFixButton
                       type="button"
                       active={Boolean(fixedByTickerId[profile.id])}
+                      aria-pressed={Boolean(fixedByTickerId[profile.id])}
                       aria-label={`티커 ${profile.ticker} 비율 고정`}
                       title={fixedByTickerId[profile.id] ? '고정 해제' : '비율 고정'}
                       onClick={() => onToggleTickerFixed(profile.id)}
@@ -105,3 +106,7 @@ export default function PortfolioComposition({
     </Card>
   );
 }
+
+const PortfolioComposition = memo(PortfolioCompositionComponent);
+
+export default PortfolioComposition;

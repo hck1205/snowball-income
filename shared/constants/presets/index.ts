@@ -10,7 +10,7 @@ export const PRESET_TICKERS = {
   JEPI: {
     ticker: 'JEPI',
     initialPrice: 59.31,
-    dividendYield: 7.99,
+    dividendYield: 8.5,
     dividendGrowth: 7.88,
     priceGrowth: 10.09,
     frequency: 'monthly' as const

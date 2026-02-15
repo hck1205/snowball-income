@@ -48,7 +48,14 @@ export default function ToggleField({
         <ToggleStateText checked={checked} disabled={disabled} stateTextColor={stateTextColor}>
           {checked ? (onText ?? 'ON') : (offText ?? 'OFF')}
         </ToggleStateText>
-        <HiddenCheckbox id={id} type="checkbox" aria-label={label} checked={checked} disabled={disabled} onChange={onChange} />
+        <HiddenCheckbox
+          id={id}
+          type="checkbox"
+          aria-label={label}
+          checked={checked}
+          disabled={disabled}
+          onChange={onChange}
+        />
         <ToggleThumb checked={checked} disabled={disabled} />
       </ToggleControl>
     </ToggleLabel>

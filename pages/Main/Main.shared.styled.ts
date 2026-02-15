@@ -1,5 +1,23 @@
 import styled from '@emotion/styled';
 
+export const SkipLink = styled.a`
+  position: absolute;
+  top: -40px;
+  left: 12px;
+  z-index: 2147483647;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #2f6f93;
+  background: #ffffff;
+  color: #1f3341;
+  font-size: 13px;
+  text-decoration: none;
+
+  &:focus-visible {
+    top: 10px;
+  }
+`;
+
 export const FeatureLayout = styled.div`
   max-width: 1200px;
   margin: 0 auto;
@@ -8,6 +26,11 @@ export const FeatureLayout = styled.div`
   gap: clamp(10px, 1.8vw, 16px);
   color: #1f3341;
   container-type: inline-size;
+  contain: layout style;
+`;
+
+export const MainContent = styled.main`
+  display: contents;
 `;
 
 export const ContentLayout = styled.div`
@@ -33,6 +56,7 @@ export const ConfigColumn = styled.aside`
   max-height: calc(100vh - 32px);
   overflow-y: auto;
   padding: 2px 4px 2px 0;
+  contain: layout paint style;
 
   @media (max-width: 960px) {
     position: fixed;
@@ -53,6 +77,7 @@ export const ConfigColumn = styled.aside`
 
 export const ConfigDrawerColumn = styled(ConfigColumn)<{ open: boolean }>`
   @media (max-width: 960px) {
+    will-change: transform;
     transform: ${({ open }) => (open ? 'translateX(0)' : 'translateX(-100%)')};
   }
 `;
@@ -84,6 +109,7 @@ export const DrawerToggleButton = styled.button`
     padding: 7px 10px;
     font-size: 13px;
     cursor: pointer;
+    touch-action: manipulation;
   }
 `;
 
@@ -107,6 +133,7 @@ export const DrawerCloseButton = styled.button`
     font-size: 16px;
     line-height: 1;
     cursor: pointer;
+    touch-action: manipulation;
   }
 `;
 
@@ -114,6 +141,7 @@ export const ResultsColumn = styled.section`
   display: grid;
   gap: clamp(10px, 1.8vw, 16px);
   min-width: 0;
+  contain: layout style;
 
   > * {
     min-width: 0;
@@ -149,6 +177,7 @@ export const TickerQuickActionButton = styled.button`
   gap: 4px;
   font-size: 10px;
   cursor: pointer;
+  touch-action: manipulation;
 
   &:hover {
     background: #edf6fb;
@@ -184,6 +213,7 @@ export const TickerCreateButton = styled.button`
   cursor: pointer;
   width: 100%;
   margin-bottom: 10px;
+  touch-action: manipulation;
 `;
 
 export const TickerGridWrap = styled.div`
@@ -254,7 +284,7 @@ export const TickerGearButton = styled.button`
   line-height: 1;
   cursor: pointer;
   opacity: 0;
-  pointer-events: none;
+  pointer-events: auto;
   transition: opacity 0.2s ease, transform 0.2s ease;
 `;
 
@@ -296,6 +326,7 @@ export const ChipRemoveButton = styled.button`
   padding: 0;
   line-height: 1;
   cursor: pointer;
+  touch-action: manipulation;
 
   &:hover {
     background: #dfeef8;
@@ -344,6 +375,7 @@ export const PrimaryButton = styled.button`
   padding: 7px 10px;
   font-size: 13px;
   cursor: pointer;
+  touch-action: manipulation;
 `;
 
 export const SecondaryButton = styled.button`
@@ -354,6 +386,7 @@ export const SecondaryButton = styled.button`
   padding: 7px 10px;
   font-size: 13px;
   cursor: pointer;
+  touch-action: manipulation;
 `;
 
 export const Header = styled.header`
@@ -549,6 +582,7 @@ export const HelpMarkButton = styled.button`
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
+  touch-action: manipulation;
 `;
 
 export const ErrorBox = styled.div`
@@ -564,6 +598,7 @@ export const ChartWrap = styled.div`
   height: clamp(200px, 30vw, 260px);
   min-width: 0;
   overflow: hidden;
+  contain: layout paint style;
 `;
 
 export const AllocationChartLayout = styled.div`
@@ -571,6 +606,7 @@ export const AllocationChartLayout = styled.div`
   grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr));
   gap: clamp(8px, 1.5vw, 12px);
   align-items: start;
+  contain: layout style;
 `;
 
 export const AllocationLegend = styled.ul`
@@ -690,6 +726,7 @@ export const AllocationFixButton = styled.button<{ active: boolean }>`
   font-weight: 600;
   line-height: 1;
   cursor: pointer;
+  touch-action: manipulation;
 
   @container (max-width: 560px) {
     justify-self: end;
@@ -715,16 +752,20 @@ export const ModalBackdrop = styled.div`
   place-items: center;
   padding: 16px;
   z-index: 2147483000;
+  contain: paint;
 `;
 
 export const ModalPanel = styled.section`
   width: min(520px, 100%);
+  max-height: min(88vh, 760px);
   background: #fff;
   border: 1px solid #d7e2eb;
   border-radius: 12px;
   padding: 16px;
   display: grid;
   gap: 12px;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
 `;
 
 export const ModalTitle = styled.h3`

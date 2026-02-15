@@ -1,3 +1,4 @@
+import { memo, useCallback } from "react";
 import InvestmentSettings from "@/components/InvestmentSettings";
 import TickerCreation from "@/components/TickerCreation";
 import {
@@ -15,7 +16,7 @@ import {
   usePortfolioPersistence,
 } from "@/pages/Main/hooks";
 
-export default function MainLeftPanel() {
+function MainLeftPanelComponent() {
   const tickerProfiles = useTickerProfilesAtomValue();
   const includedTickerIds = useIncludedTickerIdsAtomValue();
   const showQuickEstimate = useShowQuickEstimateAtomValue();
@@ -40,6 +41,9 @@ export default function MainLeftPanel() {
     downloadNamedStateAsJson,
     loadStateFromJsonText,
   } = usePortfolioPersistence();
+  const handleHelpResultMode = useCallback(() => setActiveHelp("resultMode"), [setActiveHelp]);
+  const handleHelpReinvestTiming = useCallback(() => setActiveHelp("reinvestTiming"), [setActiveHelp]);
+  const handleHelpDpsGrowthMode = useCallback(() => setActiveHelp("dpsGrowthMode"), [setActiveHelp]);
 
   return (
     <>
@@ -66,10 +70,14 @@ export default function MainLeftPanel() {
         onSetField={setField}
         onToggleQuickEstimate={setShowQuickEstimate}
         onToggleSplitGraphs={setShowSplitGraphs}
-        onHelpResultMode={() => setActiveHelp("resultMode")}
-        onHelpReinvestTiming={() => setActiveHelp("reinvestTiming")}
-        onHelpDpsGrowthMode={() => setActiveHelp("dpsGrowthMode")}
+        onHelpResultMode={handleHelpResultMode}
+        onHelpReinvestTiming={handleHelpReinvestTiming}
+        onHelpDpsGrowthMode={handleHelpDpsGrowthMode}
       />
     </>
   );
 }
+
+const MainLeftPanel = memo(MainLeftPanelComponent);
+
+export default MainLeftPanel;
