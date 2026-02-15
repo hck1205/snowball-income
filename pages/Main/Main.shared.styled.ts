@@ -27,6 +27,10 @@ export const FeatureLayout = styled.div`
   color: #1f3341;
   container-type: inline-size;
   contain: layout style;
+
+  @media (max-width: 960px) {
+    contain: none;
+  }
 `;
 
 export const MainContent = styled.main`
@@ -62,15 +66,17 @@ export const ConfigColumn = styled.aside`
     top: 0;
     left: 0;
     width: min(92vw, 360px);
-    height: 100vh;
+    height: 100dvh;
+    max-height: 100dvh;
     z-index: 60;
     background: #f7fbff;
     border-right: 1px solid #d7e2eb;
     padding: 44px 12px 20px;
-    max-height: none;
     transform: translateX(-100%);
     transition: transform 0.2s ease;
+    overflow-x: hidden;
     overflow-y: auto;
+    overscroll-behavior: contain;
   }
 `;
 

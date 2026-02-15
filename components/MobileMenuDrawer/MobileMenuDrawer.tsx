@@ -1,4 +1,4 @@
-import { memo, useId } from 'react';
+import { memo, useEffect, useId } from 'react';
 import type { MobileMenuDrawerProps } from './MobileMenuDrawer.types';
 import {
   ConfigDrawerColumn,
@@ -13,6 +13,17 @@ import {
 
 function MobileMenuDrawerComponent({ isOpen, onOpen, onClose, left, right }: MobileMenuDrawerProps) {
   const drawerId = useId();
+
+  useEffect(() => {
+    if (!isOpen || window.matchMedia('(min-width: 961px)').matches) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isOpen]);
 
   return (
     <>
