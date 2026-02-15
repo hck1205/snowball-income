@@ -1,4 +1,4 @@
-# Yield Architect
+# Snowball Income
 
 `.cursor/rules` 기준으로 구성된 배당 전략 시뮬레이터 MVP입니다.
 

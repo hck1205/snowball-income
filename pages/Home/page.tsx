@@ -14,6 +14,14 @@ const globalStyle = css`
   body {
     margin: 0;
   }
+
+  html,
+  body,
+  #root {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
 `;
 
 export default function HomePage() {

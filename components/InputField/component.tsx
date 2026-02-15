@@ -1,24 +1,72 @@
+import type { ChangeEvent } from 'react';
 import type { InputFieldProps, SelectFieldProps } from './component.types';
-import { toInputId } from './component.utils';
-import { BaseInput, BaseSelect, FieldLabel } from './component.styled';
+import { formatNumericDisplay, normalizeNumericInput, toInputId } from './component.utils';
+import { BaseInput, BaseSelect, FieldLabel, HelpButton, LabelRow } from './component.styled';
 
-function InputField({ label, type = 'text', ...rest }: InputFieldProps) {
+const LabelWithHelp = ({ label, helpAriaLabel, onHelpClick }: { label: string; helpAriaLabel?: string; onHelpClick?: () => void }) => (
+  <LabelRow>
+    {label}
+    {onHelpClick ? (
+      <HelpButton
+        type="button"
+        aria-label={helpAriaLabel ?? `${label} 도움말`}
+        onClick={(event) => {
+          event.preventDefault();
+          onHelpClick();
+        }}
+      >
+        ?
+      </HelpButton>
+    ) : null}
+  </LabelRow>
+);
+
+function InputField({ label, type = 'text', value, onChange, helpAriaLabel, onHelpClick, ...rest }: InputFieldProps) {
   const id = toInputId(label);
+
+  if (type === 'number') {
+    const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+      const normalizedValue = normalizeNumericInput(event.target.value);
+
+      const nextEvent = {
+        ...event,
+        target: { ...event.target, value: normalizedValue },
+        currentTarget: { ...event.currentTarget, value: normalizedValue }
+      } as ChangeEvent<HTMLInputElement>;
+
+      onChange(nextEvent);
+    };
+
+    return (
+      <FieldLabel htmlFor={id}>
+        <LabelWithHelp label={label} helpAriaLabel={helpAriaLabel} onHelpClick={onHelpClick} />
+        <BaseInput
+          id={id}
+          aria-label={label}
+          type="text"
+          inputMode="decimal"
+          value={formatNumericDisplay(value)}
+          onChange={handleChange}
+          {...rest}
+        />
+      </FieldLabel>
+    );
+  }
 
   return (
     <FieldLabel htmlFor={id}>
-      {label}
-      <BaseInput id={id} aria-label={label} type={type} {...rest} />
+      <LabelWithHelp label={label} helpAriaLabel={helpAriaLabel} onHelpClick={onHelpClick} />
+      <BaseInput id={id} aria-label={label} type={type} value={value} onChange={onChange} {...rest} />
     </FieldLabel>
   );
 }
 
-export function FrequencySelect({ label, value, disabled, onChange }: SelectFieldProps) {
+export function FrequencySelect({ label, value, helpAriaLabel, onHelpClick, disabled, onChange }: SelectFieldProps) {
   const id = toInputId(label);
 
   return (
     <FieldLabel htmlFor={id}>
-      {label}
+      <LabelWithHelp label={label} helpAriaLabel={helpAriaLabel} onHelpClick={onHelpClick} />
       <BaseSelect id={id} aria-label={label} value={value} disabled={disabled} onChange={onChange}>
         <option value="monthly">월</option>
         <option value="quarterly">분기</option>

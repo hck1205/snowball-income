@@ -11,6 +11,21 @@ describe('InputField', () => {
     expect(onChange).toHaveBeenCalled();
   });
 
+  it('formats numeric value with separators', () => {
+    render(createElement(InputField, { label: '월 투자금', value: 1000000, type: 'number', onChange: () => undefined }));
+    expect(screen.getByLabelText('월 투자금')).toHaveValue('1,000,000');
+  });
+
+  it('normalizes separators on numeric change', () => {
+    const onChange = vi.fn();
+    render(createElement(InputField, { label: '월 투자금', value: 1000000, type: 'number', onChange }));
+
+    fireEvent.change(screen.getByLabelText('월 투자금'), { target: { value: '1,234,567' } });
+
+    const firstEvent = onChange.mock.calls[0][0] as React.ChangeEvent<HTMLInputElement>;
+    expect(firstEvent.target.value).toBe('1234567');
+  });
+
   it('supports disabled state', () => {
     render(createElement(InputField, { label: '월 투자금', value: 0, disabled: true, onChange: () => undefined }));
     expect(screen.getByLabelText('월 투자금')).toBeDisabled();

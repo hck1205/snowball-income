@@ -17,7 +17,9 @@ export default function DataTable<T>({ columns, rows }: DataTableProps<T>) {
           {rows.map((row, rowIndex) => (
             <tr key={toRowKey(rowIndex)}>
               {columns.map((column) => (
-                <TD key={`${toRowKey(rowIndex)}-${String(column.key)}`}>{column.render(row)}</TD>
+                <TD key={`${toRowKey(rowIndex)}-${String(column.key)}`} data-label={column.header}>
+                  {column.render(row)}
+                </TD>
               ))}
             </tr>
           ))}
