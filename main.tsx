@@ -1,6 +1,15 @@
 import ReactDOM from "react-dom/client";
 import AppRouter from "@/router";
 
+const GA_MEASUREMENT_ID = "G-VY837P1WK2";
+
+declare global {
+  interface Window {
+    dataLayer: unknown[];
+    gtag?: (...args: unknown[]) => void;
+  }
+}
+
 const applySeoRuntimeMetadata = () => {
   const canonicalLink = document.getElementById("canonical-link") as HTMLLinkElement | null;
   const ogUrlMeta = document.getElementById("og-url") as HTMLMetaElement | null;
@@ -39,6 +48,62 @@ const applySeoRuntimeMetadata = () => {
   script.textContent = JSON.stringify(structuredData);
 };
 
+const initGoogleAnalytics = () => {
+  if (typeof window === "undefined") return;
+  if (window.gtag) return;
+
+  const script = document.createElement("script");
+  script.async = true;
+  script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
+  document.head.appendChild(script);
+
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = (...args: unknown[]) => {
+    window.dataLayer.push(args);
+  };
+
+  window.gtag("js", new Date());
+  window.gtag("config", GA_MEASUREMENT_ID, { send_page_view: false });
+};
+
+const sendPageView = () => {
+  if (!window.gtag) return;
+  const pagePath = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+  window.gtag("event", "page_view", {
+    page_title: document.title,
+    page_location: window.location.href,
+    page_path: pagePath
+  });
+};
+
+const bindNavigationTracking = () => {
+  const track = () => {
+    applySeoRuntimeMetadata();
+    sendPageView();
+  };
+
+  const { history } = window;
+  const originalPushState = history.pushState.bind(history);
+  const originalReplaceState = history.replaceState.bind(history);
+
+  history.pushState = (...args) => {
+    originalPushState(...args);
+    track();
+  };
+
+  history.replaceState = (...args) => {
+    originalReplaceState(...args);
+    track();
+  };
+
+  window.addEventListener("popstate", track);
+  window.addEventListener("hashchange", track);
+
+  track();
+};
+
 applySeoRuntimeMetadata();
+initGoogleAnalytics();
+bindNavigationTracking();
 
 ReactDOM.createRoot(document.getElementById("root")!).render(<AppRouter />);
