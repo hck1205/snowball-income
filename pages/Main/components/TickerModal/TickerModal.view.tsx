@@ -36,6 +36,7 @@ type SearchRow = { ticker: string; name: string; issuer: string; tickerUpper: st
 
 const SEARCH_DEBOUNCE_MS = 220;
 const SEARCH_MAX_RESULTS = 120;
+const SHOW_SEARCH_TAB = false;
 
 const nasdaqListed = nasdaqListedJson as ListedTickerMap;
 const otherListed = otherListedJson as ListedTickerMap;
@@ -168,15 +169,17 @@ export default function TickerModalView({
           >
             프리셋
           </ModalTabButton>
-          <ModalTabButton
-            type="button"
-            role="tab"
-            active={activeTab === 'search'}
-            aria-selected={activeTab === 'search'}
-            onClick={() => setActiveTab('search')}
-          >
-            검색
-          </ModalTabButton>
+          {SHOW_SEARCH_TAB ? (
+            <ModalTabButton
+              type="button"
+              role="tab"
+              active={activeTab === 'search'}
+              aria-selected={activeTab === 'search'}
+              onClick={() => setActiveTab('search')}
+            >
+              검색
+            </ModalTabButton>
+          ) : null}
         </ModalTabList>
 
         {activeTab === 'input' ? (
@@ -290,7 +293,7 @@ export default function TickerModalView({
           </InlineField>
         ) : null}
 
-        {activeTab === 'search' ? (
+        {SHOW_SEARCH_TAB && activeTab === 'search' ? (
           <>
             <ModalTickerSearchWrap>
               <ModalTickerSearchIcon aria-hidden="true">
