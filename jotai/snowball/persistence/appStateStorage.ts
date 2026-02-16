@@ -10,8 +10,6 @@ const PORTFOLIO_DB_VERSION = 1;
 const PORTFOLIO_STORE_NAME = 'app_state';
 const PORTFOLIO_STATE_KEY = 'yield_architect_portfolio';
 const SNAPSHOT_KEY_PREFIX = 'snapshot:';
-// 2026-02-16 11:30:00 KST (UTC+9) == 2026-02-16 02:30:00 UTC
-const LEGACY_DATA_DELETE_CUTOFF_AT = Date.parse('2026-02-16T02:30:00.000Z');
 const DEFAULT_VISIBLE_YEARLY_SERIES: Record<YearlySeriesKey, boolean> = {
   totalContribution: false,
   assetValue: false,
@@ -30,24 +28,6 @@ type PortfolioStoreRecord = {
   key: string;
   value: PersistedAppState;
   updatedAt: number;
-};
-
-export const shouldDeleteLegacyState = (updatedAt: unknown): boolean => {
-  const timestamp = Number(updatedAt);
-  if (!Number.isFinite(timestamp) || timestamp <= 0) return true;
-  return timestamp < LEGACY_DATA_DELETE_CUTOFF_AT;
-};
-
-const logLegacyDecision = (stateKey: string, updatedAt: unknown, shouldDelete: boolean) => {
-  const timestamp = Number(updatedAt);
-  const updatedAtIso = Number.isFinite(timestamp) && timestamp > 0 ? new Date(timestamp).toISOString() : 'unknown';
-  const cutoffIso = new Date(LEGACY_DATA_DELETE_CUTOFF_AT).toISOString();
-
-  if (shouldDelete) {
-    console.info('[cleanup] 삭제 대상', { stateKey, updatedAt: updatedAtIso, cutoffAt: cutoffIso });
-  } else {
-    console.info('[cleanup] 유지', { stateKey, updatedAt: updatedAtIso, cutoffAt: cutoffIso });
-  }
 };
 
 const DEFAULT_PERSISTED_INVESTMENT_SETTINGS: PersistedInvestmentSettings = {
@@ -118,7 +98,6 @@ const sanitizeTickerProfile = (input: unknown): TickerProfile | null => {
   const dividendYield = Number(parsed.dividendYield);
   const dividendGrowth = Number(parsed.dividendGrowth);
   const expectedTotalReturnRaw = Number(parsed.expectedTotalReturn);
-  const legacyPriceGrowth = Number(parsed.priceGrowth);
   const frequency = parsed.frequency;
 
   if (!id || !ticker) return null;
@@ -127,10 +106,7 @@ const sanitizeTickerProfile = (input: unknown): TickerProfile | null => {
   if (!Number.isFinite(dividendGrowth) || dividendGrowth < 0) return null;
   if (frequency !== 'monthly' && frequency !== 'quarterly' && frequency !== 'semiannual' && frequency !== 'annual') return null;
 
-  const expectedTotalReturn =
-    Number.isFinite(expectedTotalReturnRaw)
-      ? expectedTotalReturnRaw
-      : (Number.isFinite(legacyPriceGrowth) ? legacyPriceGrowth + dividendYield : dividendYield);
+  const expectedTotalReturn = Number.isFinite(expectedTotalReturnRaw) ? expectedTotalReturnRaw : dividendYield;
 
   return {
     id,
@@ -251,14 +227,6 @@ const sanitizeSavedName = (input: unknown): string | undefined => {
 };
 
 export const normalizePersistedAppState = (rawValue: unknown): PersistedAppStatePayload => {
-  if (rawValue && typeof rawValue === 'object' && !('portfolio' in (rawValue as PersistedAppState))) {
-    return {
-      portfolio: sanitizePortfolioState(rawValue),
-      investmentSettings: DEFAULT_PERSISTED_INVESTMENT_SETTINGS,
-      savedName: undefined
-    };
-  }
-
   const parsed = rawValue as PersistedAppState | undefined;
   return {
     portfolio: sanitizePortfolioState(parsed?.portfolio),
@@ -298,16 +266,15 @@ const openPortfolioDb = (): Promise<IDBDatabase> =>
     request.onerror = () => reject(request.error ?? new Error('Failed to open IndexedDB'));
   });
 
-const deleteStateByKey = async (key: string): Promise<void> => {
-  const db = await openPortfolioDb();
-  await new Promise<void>((resolve, reject) => {
-    const tx = db.transaction(PORTFOLIO_STORE_NAME, 'readwrite');
-    const store = tx.objectStore(PORTFOLIO_STORE_NAME);
-    const request = store.delete(key);
+const resetPortfolioDb = async (): Promise<void> => {
+  if (typeof window === 'undefined' || typeof window.indexedDB === 'undefined') return;
+
+  await new Promise<void>((resolve) => {
+    const request = window.indexedDB.deleteDatabase(PORTFOLIO_DB_NAME);
     request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error ?? new Error('Failed to delete portfolio state'));
+    request.onerror = () => resolve();
+    request.onblocked = () => resolve();
   });
-  db.close();
 };
 
 export const readPersistedAppState = async (): Promise<PersistedAppStatePayload> => {
@@ -324,15 +291,9 @@ export const readPersistedAppState = async (): Promise<PersistedAppStatePayload>
     if (!result?.value) {
       return buildDefaultPayload();
     }
-    const shouldDelete = shouldDeleteLegacyState(result.updatedAt);
-    logLegacyDecision(PORTFOLIO_STATE_KEY, result.updatedAt, shouldDelete);
-    if (shouldDelete) {
-      console.info('[cleanup] 삭제 시작', { stateKey: PORTFOLIO_STATE_KEY });
-      await deleteStateByKey(PORTFOLIO_STATE_KEY);
-      return buildDefaultPayload();
-    }
     return normalizePersistedAppState(result.value);
   } catch {
+    await resetPortfolioDb();
     return buildDefaultPayload();
   }
 };
@@ -351,7 +312,6 @@ export const listPersistedStateNames = async (): Promise<Array<{ name: string; u
 
     return records
       .filter((record) => record.key.startsWith(SNAPSHOT_KEY_PREFIX))
-      .filter((record) => !shouldDeleteLegacyState(record.updatedAt))
       .map((record) => ({
         name: sanitizeSavedName(record.value?.savedName) ?? record.key.slice(SNAPSHOT_KEY_PREFIX.length),
         updatedAt: Number.isFinite(record.updatedAt) ? record.updatedAt : 0
@@ -359,6 +319,7 @@ export const listPersistedStateNames = async (): Promise<Array<{ name: string; u
       .filter((item) => item.name.length > 0)
       .sort((a, b) => b.updatedAt - a.updatedAt);
   } catch {
+    await resetPortfolioDb();
     return [];
   }
 };
@@ -379,16 +340,9 @@ export const readPersistedAppStateByName = async (name: string): Promise<Persist
     db.close();
 
     if (!record) return null;
-    const stateKey = `${SNAPSHOT_KEY_PREFIX}${trimmedName}`;
-    const shouldDelete = shouldDeleteLegacyState(record.updatedAt);
-    logLegacyDecision(stateKey, record.updatedAt, shouldDelete);
-    if (shouldDelete) {
-      console.info('[cleanup] 삭제 시작', { stateKey });
-      await deleteStateByKey(stateKey);
-      return null;
-    }
     return normalizePersistedAppState(record.value);
   } catch {
+    await resetPortfolioDb();
     return null;
   }
 };
@@ -415,6 +369,7 @@ export const writePersistedAppStateByName = async (name: string, state: Persiste
     });
     db.close();
   } catch {
+    await resetPortfolioDb();
     // ignore persist failures to avoid blocking UI flow
   }
 };
@@ -435,6 +390,7 @@ export const deletePersistedAppStateByName = async (name: string): Promise<boole
     db.close();
     return true;
   } catch {
+    await resetPortfolioDb();
     return false;
   }
 };
@@ -466,6 +422,7 @@ export const writePersistedAppState = async (state: PersistedAppStatePayload): P
     });
     db.close();
   } catch {
+    await resetPortfolioDb();
     // ignore persist failures to avoid blocking UI flow
   }
 };
