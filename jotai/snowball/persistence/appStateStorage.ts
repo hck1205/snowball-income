@@ -100,8 +100,8 @@ const createSamplePortfolioState = (): PortfolioPersistedState => {
 const DEFAULT_PERSISTED_PORTFOLIO_STATE = createSamplePortfolioState();
 const DEFAULT_SAMPLE_INVESTMENT_SETTINGS: PersistedInvestmentSettings = {
   ...DEFAULT_PERSISTED_INVESTMENT_SETTINGS,
-  monthlyContribution: 200,
-  targetMonthlyDividend: 100,
+  monthlyContribution: 2_000_000,
+  targetMonthlyDividend: 1_000_000,
   durationYears: 10,
   reinvestDividends: true,
   showPortfolioDividendCenter: true
