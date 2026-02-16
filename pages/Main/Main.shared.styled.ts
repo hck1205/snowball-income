@@ -220,6 +220,10 @@ export const TickerCreateButton = styled.button`
   width: 100%;
   margin-bottom: 10px;
   touch-action: manipulation;
+
+  @media (max-width: 960px) {
+    margin-bottom: 21px;
+  }
 `;
 
 export const TickerGridWrap = styled.div`
@@ -298,6 +302,11 @@ export const SelectedChipWrap = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  margin-top: 8px;
+
+  @media (max-width: 960px) {
+    margin-top: 17px;
+  }
 `;
 
 export const SelectedChip = styled.div`
@@ -308,7 +317,7 @@ export const SelectedChip = styled.div`
   background: #edf6fb;
   color: #29465a;
   border-radius: 8px;
-  padding: 6px 8px;
+  padding: 4px 6px 4px 8px;
   font-size: 11px;
   max-width: 100%;
 `;
@@ -333,7 +342,6 @@ export const ChipRemoveButton = styled.button`
   line-height: 1;
   cursor: pointer;
   touch-action: manipulation;
-
   &:hover {
     background: #dfeef8;
   }
@@ -443,6 +451,91 @@ export const InlineFieldHeader = styled.span`
   gap: 6px;
 `;
 
+export const ModalTickerSearchWrap = styled.div`
+  position: relative;
+  margin-bottom: 10px;
+`;
+
+export const ModalTickerSearchIcon = styled.span`
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  color: #5e7688;
+  transform: translateY(-50%);
+  pointer-events: none;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    display: block;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+`;
+
+export const ModalTickerSearchInput = styled.input`
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #bfd0de;
+  border-radius: 8px;
+  padding: 8px 10px 8px 32px;
+  font-size: 14px;
+  color: #1f3341;
+  background-color: #fff;
+
+  &::placeholder {
+    color: #6d8597;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #8ab1cb;
+    outline-offset: 1px;
+  }
+`;
+
+export const SearchResultList = styled.ul`
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+  max-height: 260px;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+`;
+
+export const SearchResultButton = styled.button`
+  width: 100%;
+  border: 1px solid #d5e2ec;
+  background: #fff;
+  border-radius: 8px;
+  padding: 8px 10px;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    border-color: #bfcfdd;
+    background: #f7fbff;
+  }
+`;
+
+export const SearchResultTicker = styled.div`
+  color: #1f3341;
+  font-size: 13px;
+  font-weight: 700;
+`;
+
+export const SearchResultName = styled.div`
+  color: #486073;
+  font-size: 12px;
+  line-height: 1.4;
+`;
+
 export const InlineSelect = styled.select`
   width: 100%;
   min-width: 0;
@@ -523,6 +616,37 @@ export const PresetDropdownOption = styled.button<{ selected?: boolean }>`
 
   &:hover {
     background: ${({ selected }) => (selected ? '#e5f2fa' : '#f5f9fc')};
+  }
+`;
+
+export const PresetChipGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  max-height: 240px;
+  overflow-y: auto;
+  padding-right: 2px;
+  scrollbar-gutter: stable;
+`;
+
+export const PresetChipButton = styled.button<{ selected?: boolean }>`
+  border: 1px solid ${({ selected }) => (selected ? '#9fb9cc' : '#d5e2ec')};
+  background: ${({ selected }) => (selected ? '#edf6fb' : '#ffffff')};
+  color: ${({ selected }) => (selected ? '#1f3341' : '#355366')};
+  border-radius: 9px;
+  padding: 7px 8px;
+  font-size: 12px;
+  font-weight: ${({ selected }) => (selected ? 700 : 600)};
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  touch-action: manipulation;
+
+  &:hover {
+    border-color: ${({ selected }) => (selected ? '#8baec6' : '#c2d4e2')};
+    background: ${({ selected }) => (selected ? '#e4f1f9' : '#f5f9fc')};
   }
 `;
 
@@ -851,6 +975,32 @@ export const ModalBody = styled.p`
   color: #314d60;
   line-height: 1.5;
   white-space: pre-line;
+`;
+
+export const ModalTabList = styled.div`
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  margin-bottom: 4px;
+`;
+
+export const ModalTabButton = styled.button<{ active?: boolean }>`
+  position: relative;
+  border: 1px solid ${({ active }) => (active ? '#9fb9cc' : '#c9d8e4')};
+  border-bottom: 0;
+  background: ${({ active }) => (active ? '#ffffff' : '#edf4fa')};
+  color: ${({ active }) => (active ? '#1f3341' : '#486073')};
+  border-radius: 10px 10px 0 0;
+  padding: 8px 14px 9px;
+  font-size: 13px;
+  font-weight: ${({ active }) => (active ? 700 : 600)};
+  cursor: pointer;
+  touch-action: manipulation;
+  z-index: ${({ active }) => (active ? 2 : 1)};
+
+  &:hover {
+    background: ${({ active }) => (active ? '#ffffff' : '#e4eef7')};
+  }
 `;
 
 export const ModalClose = styled.button`

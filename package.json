@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "npm run ticker:parse && tsc -b && vite build",
     "preview": "vite preview",
+    "ticker:parse": "node utils/TickerParser/generate.mjs",
     "test": "vitest run",
     "test:watch": "vitest"
   },
