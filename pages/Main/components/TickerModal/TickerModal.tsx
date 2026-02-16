@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from 'react';
-import { PRESET_TICKERS } from '@/shared/constants';
+import { DIVIDEND_UNIVERSE } from '@/shared/constants';
 import {
   useIsTickerModalOpenAtomValue,
   useSelectedPresetAtomValue,
@@ -18,14 +18,14 @@ export default function TickerModal(props: TickerModalProps) {
   const setSelectedPreset = useSetSelectedPresetWrite();
   const tickerDraft = useTickerDraftAtomValue();
   const setTickerDraft = useSetTickerDraftWrite();
-  const presetKeys = Object.keys(PRESET_TICKERS) as Array<keyof typeof PRESET_TICKERS>;
-  const defaultPresetKey = (presetKeys.includes('SCHD') ? 'SCHD' : presetKeys[0]) as keyof typeof PRESET_TICKERS | undefined;
+  const presetKeys = Object.keys(DIVIDEND_UNIVERSE) as Array<keyof typeof DIVIDEND_UNIVERSE>;
+  const defaultPresetKey = (presetKeys.includes('SCHD') ? 'SCHD' : presetKeys[0]) as keyof typeof DIVIDEND_UNIVERSE | undefined;
 
   const handleSelectPreset = useCallback(
-    (preset: 'custom' | keyof typeof PRESET_TICKERS) => {
+    (preset: 'custom' | keyof typeof DIVIDEND_UNIVERSE) => {
       setSelectedPreset(preset);
       if (preset === 'custom') return;
-      const presetDraft = PRESET_TICKERS[preset];
+      const presetDraft = DIVIDEND_UNIVERSE[preset];
       if (!presetDraft) return;
       setTickerDraft((prev) => ({
         ...prev,
@@ -47,7 +47,7 @@ export default function TickerModal(props: TickerModalProps) {
       isOpen={isOpen}
       mode={mode}
       selectedPreset={selectedPreset}
-      presetTickers={PRESET_TICKERS}
+      presetTickers={DIVIDEND_UNIVERSE}
       tickerDraft={tickerDraft}
       onSelectPreset={handleSelectPreset}
       onChangeDraft={setTickerDraft}

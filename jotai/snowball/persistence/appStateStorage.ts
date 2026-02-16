@@ -1,5 +1,5 @@
 import { defaultYieldFormValues } from '@/shared/lib/snowball';
-import { PRESET_TICKERS } from '@/shared/constants';
+import { DIVIDEND_UNIVERSE } from '@/shared/constants';
 import type { PortfolioPersistedState, TickerProfile } from '@/shared/types/snowball';
 import type { YearlySeriesKey } from '@/shared/constants';
 import type { PersistedAppStatePayload, PersistedInvestmentSettings } from '../types';
@@ -70,9 +70,9 @@ const DEFAULT_PERSISTED_INVESTMENT_SETTINGS: PersistedInvestmentSettings = {
 
 const createSamplePortfolioState = (): PortfolioPersistedState => {
   const sampleTickers = [
-    { preset: PRESET_TICKERS.JEPI, weight: 40 },
-    { preset: PRESET_TICKERS.SCHD, weight: 40 },
-    { preset: PRESET_TICKERS.DGRO, weight: 20 }
+    { preset: DIVIDEND_UNIVERSE.JEPI, weight: 40 },
+    { preset: DIVIDEND_UNIVERSE.SCHD, weight: 40 },
+    { preset: DIVIDEND_UNIVERSE.DGRO, weight: 20 }
   ];
   const tickerProfiles = sampleTickers.map(({ preset }, index) => ({
     id: `sample-${preset.ticker.toLowerCase()}-${index + 1}`,

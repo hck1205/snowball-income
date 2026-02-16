@@ -25,6 +25,7 @@ import {
   ModalTitle,
   PresetChipButton,
   PresetChipGrid,
+  PresetChipScrollArea,
   PrimaryButton,
   SecondaryButton
 } from '@/pages/Main/Main.shared.styled';
@@ -76,6 +77,7 @@ export default function TickerModalView({
   const modalRoot = typeof document !== 'undefined' ? document.body : null;
   const [searchKeyword, setSearchKeyword] = useState('');
   const [debouncedSearchKeyword, setDebouncedSearchKeyword] = useState('');
+  const [presetSearchKeyword, setPresetSearchKeyword] = useState('');
   const [activeTab, setActiveTab] = useState<ModalTabKey>('input');
   const sortedPresetKeys = useMemo(
     () =>
@@ -103,6 +105,7 @@ export default function TickerModalView({
     setActiveTab('input');
     setSearchKeyword('');
     setDebouncedSearchKeyword('');
+    setPresetSearchKeyword('');
   }, [isOpen]);
 
   useEffect(() => {
@@ -137,6 +140,17 @@ export default function TickerModalView({
 
     return scored.slice(0, SEARCH_MAX_RESULTS);
   }, [debouncedSearchKeyword]);
+
+  const filteredPresetKeys = useMemo(() => {
+    const query = presetSearchKeyword.trim().toUpperCase();
+    if (!query) return sortedPresetKeys;
+
+    return sortedPresetKeys.filter((presetKey) => {
+      const ticker = presetTickers[presetKey].ticker.toUpperCase();
+      const displayName = getTickerDisplayName(presetTickers[presetKey].ticker, presetTickers[presetKey].name).toUpperCase();
+      return ticker.includes(query) || displayName.includes(query);
+    });
+  }, [presetSearchKeyword, presetTickers, sortedPresetKeys]);
 
   if (!isOpen) return null;
   if (!modalRoot) return null;
@@ -235,23 +249,51 @@ export default function TickerModalView({
 
         {activeTab === 'preset' ? (
           <InlineField>
-            <PresetChipGrid role="listbox" aria-label="프리셋 티커 목록">
-              {sortedPresetKeys.map((presetKey) => (
-                <PresetChipButton
-                  key={presetKey}
-                  type="button"
-                  role="option"
-                  selected={selectedPreset === presetKey}
-                  aria-selected={selectedPreset === presetKey}
-                  aria-label={`${getTickerDisplayName(presetTickers[presetKey].ticker, presetTickers[presetKey].name)} 선택`}
-                  onClick={() => onSelectPreset(presetKey)}
-                >
-                  {getTickerDisplayName(presetTickers[presetKey].ticker, presetTickers[presetKey].name)}
-                </PresetChipButton>
-              ))}
-            </PresetChipGrid>
+            <ModalTickerSearchWrap>
+              <ModalTickerSearchIcon aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <circle cx="11" cy="11" r="7" />
+                  <path d="m20 20-4-4" />
+                </svg>
+              </ModalTickerSearchIcon>
+              <ModalTickerSearchInput
+                type="text"
+                value={presetSearchKeyword}
+                aria-label="프리셋 티커 검색"
+                placeholder="프리셋 티커 검색"
+                onChange={(event) => setPresetSearchKeyword(event.target.value)}
+              />
+            </ModalTickerSearchWrap>
+            <ModalBody style={{ fontSize: '12px' }}>
+              주의: 실시간 데이터가 아니기 때문에 실제 데이터와 다를 수 있습니다. 참고용으로만 사용해 주세요.
+            </ModalBody>
+            <ModalBody style={{ fontSize: '12px' }}>
+              표시: {filteredPresetKeys.length} / 전체: {sortedPresetKeys.length}
+            </ModalBody>
+            {filteredPresetKeys.length > 0 ? (
+              <PresetChipScrollArea>
+                <PresetChipGrid role="listbox" aria-label="프리셋 티커 목록">
+                  {filteredPresetKeys.map((presetKey) => (
+                    <PresetChipButton
+                      key={presetKey}
+                      type="button"
+                      role="option"
+                      selected={selectedPreset === presetKey}
+                      aria-selected={selectedPreset === presetKey}
+                      aria-label={`${presetTickers[presetKey].ticker} 선택`}
+                      onClick={() => onSelectPreset(presetKey)}
+                    >
+                      {presetTickers[presetKey].ticker}
+                    </PresetChipButton>
+                  ))}
+                </PresetChipGrid>
+              </PresetChipScrollArea>
+            ) : (
+              <ModalBody>일치하는 프리셋 티커가 없습니다.</ModalBody>
+            )}
             <FormGrid>
               <InputField label="티커" value={tickerDraft.ticker} disabled onChange={() => undefined} />
+              <InputField label="이름" value={tickerDraft.name} disabled onChange={() => undefined} />
               <InputField label="현재 주가" type="number" min={0} value={tickerDraft.initialPrice} disabled onChange={() => undefined} />
               <InputField
                 label="배당률"

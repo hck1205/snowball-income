@@ -622,10 +622,15 @@ export const PresetDropdownOption = styled.button<{ selected?: boolean }>`
 export const PresetChipGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-content: start;
   gap: 8px;
-  max-height: 240px;
+`;
+
+export const PresetChipScrollArea = styled.div`
+  max-height: 100px;
   overflow-y: auto;
-  padding-right: 2px;
+  overflow-x: hidden;
+  padding-right: 4px;
   scrollbar-gutter: stable;
 `;
 
