@@ -627,10 +627,11 @@ export const PresetChipGrid = styled.div`
 `;
 
 export const PresetChipScrollArea = styled.div`
-  max-height: 100px;
+  max-height: 110px;
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 4px;
+  margin-bottom: 6px;
   scrollbar-gutter: stable;
 `;
 

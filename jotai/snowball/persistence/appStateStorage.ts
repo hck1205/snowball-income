@@ -56,7 +56,8 @@ const createSamplePortfolioState = (): PortfolioPersistedState => {
   ];
   const tickerProfiles = sampleTickers.map(({ preset }, index) => ({
     id: `sample-${preset.ticker.toLowerCase()}-${index + 1}`,
-    ...preset
+    ...preset,
+    name: ''
   }));
   const includedTickerIds = tickerProfiles.map((profile) => profile.id);
   const weightByTickerId = tickerProfiles.reduce<Record<string, number>>((acc, profile, index) => {

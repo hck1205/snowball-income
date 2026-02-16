@@ -16,6 +16,7 @@ import {
   useSetIncludedTickerIdsWrite,
   useSetIsConfigDrawerOpenWrite,
   useSetIsTickerModalOpenWrite,
+  useSelectedPresetAtomValue,
   useSetSelectedPresetWrite,
   useSetSelectedTickerIdWrite,
   useSetTickerDraftWrite,
@@ -55,6 +56,7 @@ export const useTickerActions = () => {
   const setActiveHelp = useSetActiveHelpWrite();
   const isTickerModalOpen = useIsTickerModalOpenAtomValue();
   const setIsTickerModalOpen = useSetIsTickerModalOpenWrite();
+  const selectedPreset = useSelectedPresetAtomValue();
   const setSelectedPreset = useSetSelectedPresetWrite();
   const setIsConfigDrawerOpen = useSetIsConfigDrawerOpenWrite();
 
@@ -104,12 +106,13 @@ export const useTickerActions = () => {
   const saveTicker = useCallback(() => {
     const tickerName = tickerDraft.ticker.trim();
     const displayName = tickerDraft.name.trim();
+    const normalizedName = tickerModalMode === 'create' && selectedPreset !== 'custom' ? '' : displayName;
     if (!tickerName) return;
 
     const profile: TickerProfile = {
       ...tickerDraft,
       ticker: tickerName,
-      name: displayName,
+      name: normalizedName,
       id: editingTickerId ?? `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
     };
 
@@ -141,7 +144,8 @@ export const useTickerActions = () => {
     setTickerProfiles,
     setWeightByTickerId,
     tickerDraft,
-    tickerModalMode
+    tickerModalMode,
+    selectedPreset
   ]);
 
   const deleteTicker = useCallback(() => {
