@@ -459,6 +459,73 @@ export const InlineSelect = styled.select`
   background-repeat: no-repeat;
 `;
 
+export const PresetDropdownWrap = styled.div`
+  position: relative;
+`;
+
+export const PresetDropdownButton = styled.button`
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #bfd0de;
+  border-radius: 8px;
+  padding: 8px 28px 8px 10px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #1f3341;
+  text-align: left;
+  background-color: #fff;
+  cursor: pointer;
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    right: 10px;
+    top: calc(50% - 2px);
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid #5e7688;
+    border-bottom: 2px solid #5e7688;
+    transform: rotate(45deg);
+    pointer-events: none;
+  }
+`;
+
+export const PresetDropdownMenu = styled.div`
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid #bfd0de;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(31, 51, 65, 0.14);
+  z-index: 20;
+`;
+
+export const PresetDropdownOption = styled.button<{ selected?: boolean }>`
+  display: block;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid #eef3f7;
+  padding: 8px 10px;
+  text-align: left;
+  font-size: 14px;
+  color: #1f3341;
+  background: ${({ selected }) => (selected ? '#edf6fb' : '#fff')};
+  cursor: pointer;
+
+  &:last-child {
+    border-bottom: 0;
+  }
+
+  &:hover {
+    background: ${({ selected }) => (selected ? '#e5f2fa' : '#f5f9fc')};
+  }
+`;
+
 export const ModeToggleInput = styled.input`
   width: 18px;
   height: 18px;

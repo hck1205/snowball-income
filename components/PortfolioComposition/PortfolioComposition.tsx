@@ -1,6 +1,7 @@
 import { memo, type CSSProperties } from 'react';
 import { Card, ToggleField } from '@/components';
 import { ALLOCATION_COLORS } from '@/shared/constants';
+import { getTickerDisplayName } from '@/shared/utils';
 import type { PortfolioCompositionProps } from './PortfolioComposition.types';
 import {
   AllocationChartLayout,
@@ -61,13 +62,13 @@ function PortfolioCompositionComponent({
                 {normalizedAllocation.map(({ profile, weight }, index) => (
                   <AllocationLegendItem key={profile.id}>
                     <AllocationColorDot color={ALLOCATION_COLORS[index % ALLOCATION_COLORS.length]} />
-                    <AllocationLegendName>{profile.ticker}</AllocationLegendName>
+                    <AllocationLegendName>{getTickerDisplayName(profile.ticker, profile.name)}</AllocationLegendName>
                     <AllocationLegendSlider
                       type="range"
                       min={0}
                       max={100}
                       step={1}
-                      aria-label={`${profile.ticker} 비율`}
+                      aria-label={`${getTickerDisplayName(profile.ticker, profile.name)} 비율`}
                       value={allocationPercentByTickerId[profile.id] ?? 0}
                       style={{ '--slider-progress': `${allocationPercentByTickerId[profile.id] ?? 0}%` } as CSSProperties}
                       disabled={
@@ -79,7 +80,7 @@ function PortfolioCompositionComponent({
                       type="button"
                       active={Boolean(fixedByTickerId[profile.id])}
                       aria-pressed={Boolean(fixedByTickerId[profile.id])}
-                      aria-label={`티커 ${profile.ticker} 비율 고정`}
+                      aria-label={`티커 ${getTickerDisplayName(profile.ticker, profile.name)} 비율 고정`}
                       title={fixedByTickerId[profile.id] ? '고정 해제' : '비율 고정'}
                       onClick={() => onToggleTickerFixed(profile.id)}
                     >
@@ -94,8 +95,12 @@ function PortfolioCompositionComponent({
           <SelectedChipWrap>
             {includedProfiles.map((profile) => (
               <SelectedChip key={profile.id}>
-                <SelectedChipLabel>{profile.ticker}</SelectedChipLabel>
-                <ChipRemoveButton type="button" aria-label={`티커 ${profile.ticker} 삭제`} onClick={() => onRemoveIncludedTicker(profile.id)}>
+                <SelectedChipLabel>{getTickerDisplayName(profile.ticker, profile.name)}</SelectedChipLabel>
+                <ChipRemoveButton
+                  type="button"
+                  aria-label={`티커 ${getTickerDisplayName(profile.ticker, profile.name)} 삭제`}
+                  onClick={() => onRemoveIncludedTicker(profile.id)}
+                >
                   x
                 </ChipRemoveButton>
               </SelectedChip>

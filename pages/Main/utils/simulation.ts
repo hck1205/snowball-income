@@ -1,6 +1,7 @@
 import type { TickerProfile } from '@/shared/types/snowball';
 import type { SimulationOutput, YieldFormValues } from '@/shared/types';
 import { ALLOCATION_COLORS } from '@/shared/constants';
+import { getTickerDisplayName } from '@/shared/utils';
 import { runSimulation } from '@/shared/lib/snowball';
 import type { NormalizedAllocationItem } from './portfolio';
 
@@ -46,6 +47,7 @@ type WeightedTargetProfile = {
 
 type ProfileSimulationOutput = {
   ticker: string;
+  name: string;
   output: SimulationOutput;
 };
 
@@ -167,6 +169,7 @@ export const buildSimulationBundle = ({
 
   const outputs: ProfileSimulationOutput[] = targetProfiles.map((item) => ({
     ticker: item.profile.ticker,
+    name: item.profile.name,
     output: runForProfile(item.profile, values.monthlyContribution * item.weight, values.initialInvestment * item.weight, values)
   }));
 
@@ -176,7 +179,7 @@ export const buildSimulationBundle = ({
   const baseMonthly = outputs[0]?.output.monthly ?? [];
   const months = baseMonthly.slice(-12).map((row) => `${row.year}-${String(row.month).padStart(2, '0')}`);
   const series = outputs.map((item, index) => ({
-    name: item.ticker,
+    name: getTickerDisplayName(item.ticker, item.name),
     data: item.output.monthly.slice(-12).map((row) => row.dividendPaid),
     color: ALLOCATION_COLORS[index % ALLOCATION_COLORS.length]
   }));

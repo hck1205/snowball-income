@@ -18,6 +18,7 @@ export type YieldFeatureState = {
 export type TickerProfile = {
   id: string;
   ticker: string;
+  name: string;
   initialPrice: number;
   dividendYield: number;
   dividendGrowth: number;

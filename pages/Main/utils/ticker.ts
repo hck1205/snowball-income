@@ -3,6 +3,7 @@ import type { TickerDraft } from '@/shared/types/snowball';
 
 export const toTickerDraft = (values: {
   ticker: string;
+  name?: string;
   initialPrice: number;
   dividendYield: number;
   dividendGrowth: number;
@@ -10,6 +11,7 @@ export const toTickerDraft = (values: {
   frequency: Frequency;
 }): TickerDraft => ({
   ticker: values.ticker,
+  name: values.name ?? '',
   initialPrice: values.initialPrice,
   dividendYield: values.dividendYield,
   dividendGrowth: values.dividendGrowth,

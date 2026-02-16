@@ -1,4 +1,4 @@
-import type { YearlySeriesKey } from '@/shared/constants';
+import type { PresetTickerKey, YearlySeriesKey } from '@/shared/constants';
 import type { TickerModalMode } from '@/shared/types/snowball';
 import { atomState, useAtomValue, useAtomWrite } from '@/jotai/atom';
 
@@ -19,9 +19,7 @@ export const isYearlyAreaFillOnAtom = atomState(false);
 export const isResultCompactAtom = atomState(false);
 export const showSplitGraphsAtom = atomState(false);
 export const showPortfolioDividendCenterAtom = atomState(false);
-export const selectedPresetAtom = atomState<
-  'custom' | 'SCHD' | 'JEPI' | 'VIG' | 'DGRO' | 'VYM' | 'HDV' | 'DIVO' | 'NOBL' | 'SDY' | 'SPYD'
->('custom');
+export const selectedPresetAtom = atomState<'custom' | PresetTickerKey>('custom');
 
 export const useActiveHelpAtomValue = () => useAtomValue(activeHelpAtom);
 export const useSetActiveHelpWrite = () => useAtomWrite(activeHelpAtom);

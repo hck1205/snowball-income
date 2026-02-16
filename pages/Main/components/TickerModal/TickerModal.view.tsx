@@ -1,18 +1,22 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { FrequencySelect, InputField } from '@/components';
 import type { PresetTickerKey } from '@/shared/constants';
+import { getTickerDisplayName } from '@/shared/utils';
 import type { Frequency } from '@/shared/types';
 import {
   FormGrid,
   InlineField,
   InlineFieldHeader,
-  InlineSelect,
   ModalActions,
   ModalBackdrop,
   ModalBody,
   ModalPanel,
   ModalTitle,
+  PresetDropdownButton,
+  PresetDropdownMenu,
+  PresetDropdownOption,
+  PresetDropdownWrap,
   PrimaryButton,
   SecondaryButton
 } from '@/pages/Main/Main.shared.styled';
@@ -33,6 +37,13 @@ export default function TickerModalView({
   onSave
 }: TickerModalViewProps) {
   const modalRoot = typeof document !== 'undefined' ? document.body : null;
+  const [isPresetOpen, setIsPresetOpen] = useState(false);
+  const presetDropdownRef = useRef<HTMLDivElement | null>(null);
+  const presetKeys = Object.keys(presetTickers) as PresetTickerKey[];
+  const selectedPresetLabel =
+    selectedPreset === 'custom'
+      ? '직접 입력'
+      : getTickerDisplayName(presetTickers[selectedPreset].ticker, presetTickers[selectedPreset].name);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -44,6 +55,19 @@ export default function TickerModalView({
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [isOpen, onClose]);
+
+  useEffect(() => {
+    if (!isPresetOpen) return;
+
+    const onPointerDown = (event: MouseEvent) => {
+      if (!presetDropdownRef.current) return;
+      if (presetDropdownRef.current.contains(event.target as Node)) return;
+      setIsPresetOpen(false);
+    };
+
+    window.addEventListener('mousedown', onPointerDown);
+    return () => window.removeEventListener('mousedown', onPointerDown);
+  }, [isPresetOpen]);
 
   if (!isOpen) return null;
   if (!modalRoot) return null;
@@ -57,30 +81,56 @@ export default function TickerModalView({
             ? '값을 수정하면 해당 티커 설정이 업데이트됩니다.'
             : '아래 값을 저장하면 좌측 목록에 티커가 추가됩니다.'}
         </ModalBody>
-        <InlineField htmlFor="ticker-preset">
+        <InlineField>
           <InlineFieldHeader>프리셋 티커</InlineFieldHeader>
-          <InlineSelect
-            id="ticker-preset"
-            aria-label="프리셋 티커"
-            value={selectedPreset}
-            onChange={(event) => {
-              const nextPreset = event.target.value as 'custom' | PresetTickerKey;
-              onSelectPreset(nextPreset);
-            }}
-          >
-            <option value="custom">직접 입력</option>
-            {Object.keys(presetTickers).map((ticker) => (
-              <option key={ticker} value={ticker}>
-                {ticker}
-              </option>
-            ))}
-          </InlineSelect>
+          <PresetDropdownWrap ref={presetDropdownRef}>
+            <PresetDropdownButton
+              type="button"
+              aria-label="프리셋 티커"
+              aria-haspopup="listbox"
+              aria-expanded={isPresetOpen}
+              onClick={() => setIsPresetOpen((prev) => !prev)}
+            >
+              {selectedPresetLabel}
+            </PresetDropdownButton>
+            {isPresetOpen ? (
+              <PresetDropdownMenu role="listbox" aria-label="프리셋 티커 목록">
+                <PresetDropdownOption
+                  type="button"
+                  role="option"
+                  selected={selectedPreset === 'custom'}
+                  aria-selected={selectedPreset === 'custom'}
+                  onClick={() => {
+                    onSelectPreset('custom');
+                    setIsPresetOpen(false);
+                  }}
+                >
+                  직접 입력
+                </PresetDropdownOption>
+                {presetKeys.map((presetKey) => (
+                  <PresetDropdownOption
+                    key={presetKey}
+                    type="button"
+                    role="option"
+                    selected={selectedPreset === presetKey}
+                    aria-selected={selectedPreset === presetKey}
+                    onClick={() => {
+                      onSelectPreset(presetKey);
+                      setIsPresetOpen(false);
+                    }}
+                  >
+                    {getTickerDisplayName(presetTickers[presetKey].ticker, presetTickers[presetKey].name)}
+                  </PresetDropdownOption>
+                ))}
+              </PresetDropdownMenu>
+            ) : null}
+          </PresetDropdownWrap>
         </InlineField>
         <FormGrid>
           <InputField
             label="티커"
             value={tickerDraft.ticker}
-            onChange={(event) => onChangeDraft((prev) => ({ ...prev, ticker: event.target.value }))}
+            onChange={(event) => onChangeDraft((prev) => ({ ...prev, ticker: event.target.value, name: '' }))}
           />
           <InputField
             label="현재 주가"

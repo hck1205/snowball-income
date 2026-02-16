@@ -103,11 +103,13 @@ export const useTickerActions = () => {
 
   const saveTicker = useCallback(() => {
     const tickerName = tickerDraft.ticker.trim();
+    const displayName = tickerDraft.name.trim();
     if (!tickerName) return;
 
     const profile: TickerProfile = {
       ...tickerDraft,
       ticker: tickerName,
+      name: displayName,
       id: editingTickerId ?? `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
     };
 

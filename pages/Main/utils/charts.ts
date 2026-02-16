@@ -1,6 +1,6 @@
 import type { EChartsOption } from 'echarts';
 import type { SimulationResult } from '@/shared/types';
-import { formatKRW } from '@/shared/utils';
+import { formatKRW, getTickerDisplayName } from '@/shared/utils';
 import {
   ALLOCATION_COLORS,
   YEARLY_SERIES_COLOR,
@@ -88,7 +88,7 @@ export const buildAllocationPieOption = ({
           length2: 8
         },
         data: normalizedAllocation.map(({ profile, weight }, index) => ({
-          name: profile.ticker,
+          name: getTickerDisplayName(profile.ticker, profile.name),
           value: Number((weight * 100).toFixed(4)),
           itemStyle: { color: ALLOCATION_COLORS[index % ALLOCATION_COLORS.length] }
         }))

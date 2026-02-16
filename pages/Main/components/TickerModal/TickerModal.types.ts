@@ -1,15 +1,6 @@
 import type { MouseEvent } from 'react';
-import type { Frequency } from '@/shared/types';
 import type { PresetTickerKey } from '@/shared/constants';
-
-export type TickerDraft = {
-  ticker: string;
-  initialPrice: number;
-  dividendYield: number;
-  dividendGrowth: number;
-  expectedTotalReturn: number;
-  frequency: Frequency;
-};
+import type { TickerDraft } from '@/shared/types/snowball';
 
 export type TickerModalProps = {
   onBackdropClick: (event: MouseEvent<HTMLDivElement>) => void;

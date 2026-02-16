@@ -107,6 +107,7 @@ describe('runSimulation calibration options', () => {
       {
         id: 'a',
         ticker: 'AAA',
+        name: '',
         initialPrice: 100_000,
         dividendYield: 0,
         dividendGrowth: 0,
@@ -116,6 +117,7 @@ describe('runSimulation calibration options', () => {
       {
         id: 'b',
         ticker: 'BBB',
+        name: '',
         initialPrice: 100_000,
         dividendYield: 0,
         dividendGrowth: 0,

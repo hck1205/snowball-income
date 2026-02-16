@@ -5,6 +5,7 @@ import { atomState, useAtomValue, useAtomWrite } from '@/jotai/atom';
 
 const toTickerDraft = (values: {
   ticker: string;
+  name?: string;
   initialPrice: number;
   dividendYield: number;
   dividendGrowth: number;
@@ -12,6 +13,7 @@ const toTickerDraft = (values: {
   frequency: YieldFormValues['frequency'];
 }): TickerDraft => ({
   ticker: values.ticker,
+  name: values.name ?? '',
   initialPrice: values.initialPrice,
   dividendYield: values.dividendYield,
   dividendGrowth: values.dividendGrowth,

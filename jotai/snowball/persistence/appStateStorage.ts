@@ -112,6 +112,7 @@ const sanitizeTickerProfile = (input: unknown): TickerProfile | null => {
 
   const parsed = input as Record<string, unknown>;
   const ticker = typeof parsed.ticker === 'string' ? parsed.ticker.trim() : '';
+  const name = typeof parsed.name === 'string' ? parsed.name.trim() : '';
   const id = typeof parsed.id === 'string' ? parsed.id.trim() : '';
   const initialPrice = Number(parsed.initialPrice);
   const dividendYield = Number(parsed.dividendYield);
@@ -134,6 +135,7 @@ const sanitizeTickerProfile = (input: unknown): TickerProfile | null => {
   return {
     id,
     ticker,
+    name,
     initialPrice,
     dividendYield,
     dividendGrowth,

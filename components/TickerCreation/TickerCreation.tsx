@@ -2,6 +2,7 @@ import { memo, type ChangeEvent, type MouseEvent, useCallback, useEffect, useId,
 import { createPortal } from 'react-dom';
 import html2canvas from 'html2canvas';
 import { Card, InputField } from '@/components';
+import { getTickerDisplayName } from '@/shared/utils';
 import type { TickerCreationProps } from './TickerCreation.types';
 import {
   HintText,
@@ -531,7 +532,7 @@ function TickerCreationComponent({
                     data-chip="true"
                     selected={includedTickerIds.includes(profile.id)}
                     aria-pressed={includedTickerIds.includes(profile.id)}
-                    aria-label={`티커 ${profile.ticker} 선택`}
+                    aria-label={`티커 ${getTickerDisplayName(profile.ticker, profile.name)} 선택`}
                     onClick={() => onTickerClick(profile)}
                     onKeyDown={(event) => {
                       if (event.key !== 'F2') return;
@@ -545,12 +546,12 @@ function TickerCreationComponent({
                     onTouchEnd={onTickerPressEnd}
                     onTouchCancel={onTickerPressEnd}
                   >
-                    {profile.ticker}
+                    {getTickerDisplayName(profile.ticker, profile.name)}
                   </TickerItemButton>
                   <TickerGearButton
                     type="button"
                     data-gear="true"
-                    aria-label={`티커 ${profile.ticker} 설정`}
+                    aria-label={`티커 ${getTickerDisplayName(profile.ticker, profile.name)} 설정`}
                     onClick={(event) => {
                       event.preventDefault();
                       event.stopPropagation();
