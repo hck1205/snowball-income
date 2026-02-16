@@ -67,6 +67,17 @@ describe('SnowballAppFeature', () => {
     expect(screen.queryByRole('dialog', { name: 'DPS 성장 반영' })).not.toBeInTheDocument();
   });
 
+  it('opens CAGR help from ticker modal question button', async () => {
+    const user = userEvent.setup();
+    renderFeature();
+
+    await user.click(screen.getByRole('button', { name: '티커 생성 열기' }));
+    await screen.findByRole('dialog', { name: '티커 생성' });
+
+    await user.click(screen.getByRole('button', { name: 'CAGR 설명 열기' }));
+    expect(screen.getByRole('dialog', { name: '기대 총수익율 (CAGR)' })).toBeInTheDocument();
+  });
+
   it('creates a ticker from modal and applies it when selected', async () => {
     const user = userEvent.setup();
     renderFeature();

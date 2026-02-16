@@ -16,7 +16,7 @@ describe('runSimulation calibration options', () => {
       durationYears: 1,
       dividendYield: 0,
       dividendGrowth: 0,
-      priceGrowth: 0,
+      expectedTotalReturn: 0,
       taxRate: 0
     });
 
@@ -33,7 +33,7 @@ describe('runSimulation calibration options', () => {
       durationYears: 10,
       dividendYield: 3.5,
       dividendGrowth: 5,
-      priceGrowth: 4
+      expectedTotalReturn: 7.5
     });
 
     const lowInitial = runSimulation(toSimulationInput({ ...base, initialInvestment: 0 }));
@@ -48,7 +48,7 @@ describe('runSimulation calibration options', () => {
     const base = {
       dividendYield: 3.5,
       dividendGrowth: 0,
-      priceGrowth: 0,
+      expectedTotalReturn: 3.5,
       taxRate: 0,
       monthlyContribution: 1_000_000,
       durationYears: 1,
@@ -81,7 +81,7 @@ describe('runSimulation calibration options', () => {
     const base = buildValues({
       durationYears: 20,
       dividendGrowth: 6,
-      priceGrowth: 5,
+      expectedTotalReturn: 8.5,
       reinvestDividends: true
     });
 
@@ -99,7 +99,7 @@ describe('runSimulation calibration options', () => {
       durationYears: 1,
       dividendYield: 0,
       dividendGrowth: 0,
-      priceGrowth: 0,
+      expectedTotalReturn: 0,
       taxRate: 0
     });
 
@@ -110,7 +110,7 @@ describe('runSimulation calibration options', () => {
         initialPrice: 100_000,
         dividendYield: 0,
         dividendGrowth: 0,
-        priceGrowth: 0,
+        expectedTotalReturn: 0,
         frequency: 'quarterly'
       },
       {
@@ -119,7 +119,7 @@ describe('runSimulation calibration options', () => {
         initialPrice: 100_000,
         dividendYield: 0,
         dividendGrowth: 0,
-        priceGrowth: 0,
+        expectedTotalReturn: 0,
         frequency: 'quarterly'
       }
     ];

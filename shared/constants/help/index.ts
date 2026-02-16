@@ -9,9 +9,9 @@ export const HELP_CONTENT = {
     title: '배당 성장률',
     body: '배당금(DPS)이 매년 얼마나 증가한다고 가정할지 입력합니다.'
   },
-  priceGrowth: {
-    title: '주가 성장률',
-    body: '주가가 연평균 얼마나 변한다고 가정할지 입력합니다. 음수도 입력 가능합니다.'
+  expectedTotalReturn: {
+    title: '기대 총수익율 (CAGR)',
+    body: '장기 총수익률(주가 + 배당)을 연평균 기준으로 입력합니다. 시뮬레이션은 내부적으로 주가 성장률을 파생 계산합니다.'
   },
   frequency: {
     title: '배당 지급 주기',

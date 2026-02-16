@@ -7,7 +7,7 @@ export type TickerInput = {
   initialPrice: number;
   dividendYield: number;
   dividendGrowth: number;
-  priceGrowth: number;
+  expectedTotalReturn: number;
   frequency: Frequency;
 };
 

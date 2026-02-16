@@ -6,13 +6,13 @@ export const toTickerDraft = (values: {
   initialPrice: number;
   dividendYield: number;
   dividendGrowth: number;
-  priceGrowth: number;
+  expectedTotalReturn: number;
   frequency: Frequency;
 }): TickerDraft => ({
   ticker: values.ticker,
   initialPrice: values.initialPrice,
   dividendYield: values.dividendYield,
   dividendGrowth: values.dividendGrowth,
-  priceGrowth: values.priceGrowth,
+  expectedTotalReturn: values.expectedTotalReturn,
   frequency: values.frequency
 });

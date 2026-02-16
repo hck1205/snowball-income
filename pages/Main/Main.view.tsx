@@ -23,6 +23,7 @@ function MainViewComponent({ viewModel }: MainViewProps) {
     closeTickerModal,
     deleteTicker,
     handleBackdropClick,
+    openHelpExpectedTotalReturn,
     saveTicker,
   } = viewModel;
 
@@ -45,6 +46,7 @@ function MainViewComponent({ viewModel }: MainViewProps) {
               onBackdropClick={handleBackdropClick}
               onDelete={deleteTicker}
               onClose={closeTickerModal}
+              onHelpExpectedTotalReturn={openHelpExpectedTotalReturn}
               onSave={saveTicker}
             />
 

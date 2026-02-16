@@ -7,7 +7,7 @@ export type TickerDraft = {
   initialPrice: number;
   dividendYield: number;
   dividendGrowth: number;
-  priceGrowth: number;
+  expectedTotalReturn: number;
   frequency: Frequency;
 };
 
@@ -16,6 +16,7 @@ export type TickerModalProps = {
   onDelete: () => void;
   onClose: () => void;
   onSave: () => void;
+  onHelpExpectedTotalReturn: () => void;
 };
 
 export type TickerModalViewProps = TickerModalProps & {

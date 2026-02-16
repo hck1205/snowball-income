@@ -65,7 +65,7 @@ export const useTickerActions = () => {
       initialPrice: profile.initialPrice,
       dividendYield: profile.dividendYield,
       dividendGrowth: profile.dividendGrowth,
-      priceGrowth: profile.priceGrowth,
+      expectedTotalReturn: profile.expectedTotalReturn,
       frequency: profile.frequency
     }));
   }, [setYieldFormValues]);
@@ -93,6 +93,7 @@ export const useTickerActions = () => {
   }, [setEditingTickerId, setIsTickerModalOpen, setTickerModalMode]);
 
   const closeHelp = useCallback(() => setActiveHelp(null), [setActiveHelp]);
+  const openHelpExpectedTotalReturn = useCallback(() => setActiveHelp('expectedTotalReturn'), [setActiveHelp]);
 
   const handleBackdropClick = useCallback((event: MouseEvent<HTMLDivElement>) => {
     if (event.target !== event.currentTarget) return;
@@ -293,6 +294,7 @@ export const useTickerActions = () => {
     handleTickerPressEnd,
     handleTickerPressStart,
     openTickerEditModal,
+    openHelpExpectedTotalReturn,
     openTickerModal,
     removeIncludedTicker,
     saveTicker,

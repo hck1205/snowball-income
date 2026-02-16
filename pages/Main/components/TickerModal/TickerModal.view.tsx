@@ -27,6 +27,7 @@ export default function TickerModalView({
   onBackdropClick,
   onSelectPreset,
   onChangeDraft,
+  onHelpExpectedTotalReturn,
   onDelete,
   onClose,
   onSave
@@ -107,13 +108,15 @@ export default function TickerModalView({
             onChange={(event) => onChangeDraft((prev) => ({ ...prev, dividendGrowth: Number(event.target.value) }))}
           />
           <InputField
-            label="주가 성장률"
+            label="기대 총수익율 (CAGR)"
+            helpAriaLabel="CAGR 설명 열기"
+            onHelpClick={onHelpExpectedTotalReturn}
             type="number"
             min={-100}
             max={100}
             step={0.1}
-            value={tickerDraft.priceGrowth}
-            onChange={(event) => onChangeDraft((prev) => ({ ...prev, priceGrowth: Number(event.target.value) }))}
+            value={tickerDraft.expectedTotalReturn}
+            onChange={(event) => onChangeDraft((prev) => ({ ...prev, expectedTotalReturn: Number(event.target.value) }))}
           />
           <FrequencySelect
             label="배당 지급 주기"

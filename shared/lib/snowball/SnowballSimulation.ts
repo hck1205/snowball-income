@@ -19,7 +19,7 @@ const formSchema = z.object({
   initialPrice: z.number().positive('현재 주가는 0보다 커야 합니다.'),
   dividendYield: z.number().min(0, '배당률은 0 이상이어야 합니다.').max(100, '배당률은 100 이하여야 합니다.'),
   dividendGrowth: z.number().min(0, '배당 성장률은 0 이상이어야 합니다.').max(100, '배당 성장률은 100 이하여야 합니다.'),
-  priceGrowth: z.number().min(-100, '주가 성장률은 -100 이상이어야 합니다.').max(100, '주가 성장률은 100 이하여야 합니다.'),
+  expectedTotalReturn: z.number().min(-100, '기대 총수익율 (CAGR)은 -100 이상이어야 합니다.').max(100, '기대 총수익율 (CAGR)은 100 이하여야 합니다.'),
   frequency: frequencySchema,
   initialInvestment: z.number().min(0, '초기 투자금은 0 이상이어야 합니다.'),
   monthlyContribution: z.number().min(0, '월 투자금은 0 이상이어야 합니다.'),
@@ -44,7 +44,7 @@ export const defaultYieldFormValues: YieldFormValues = {
   initialPrice: 100000,
   dividendYield: 3.5,
   dividendGrowth: 6,
-  priceGrowth: 5,
+  expectedTotalReturn: 8.5,
   frequency: 'quarterly',
   initialInvestment: 0,
   monthlyContribution: 1000000,
@@ -87,7 +87,7 @@ export const toSimulationInput = (values: YieldFormValues): SimulationInput => (
     initialPrice: values.initialPrice,
     dividendYield: values.dividendYield,
     dividendGrowth: values.dividendGrowth,
-    priceGrowth: values.priceGrowth,
+    expectedTotalReturn: values.expectedTotalReturn,
     frequency: values.frequency
   },
   settings: {
@@ -130,11 +130,18 @@ const addMonths = (baseDate: Date, monthsToAdd: number): Date => {
   return nextDate;
 };
 
+const toDerivedPriceGrowth = (input: SimulationInput): number => {
+  const expectedTotalReturn = input.ticker.expectedTotalReturn / 100;
+  const dividendYield = input.ticker.dividendYield / 100;
+  return Math.max(-0.99, expectedTotalReturn - dividendYield);
+};
+
 const runQuickEstimate = (input: SimulationInput) => {
   const taxRate = (input.settings.taxRate ?? 0) / 100;
   const dividendYield = input.ticker.dividendYield / 100;
-  const priceGrowth = input.ticker.priceGrowth / 100;
-  const annualReturn = Math.max(-0.99, priceGrowth + (dividendYield * (1 - taxRate)));
+  const expectedTotalReturn = input.ticker.expectedTotalReturn / 100;
+  const priceGrowth = toDerivedPriceGrowth(input);
+  const annualReturn = Math.max(-0.99, expectedTotalReturn - (dividendYield * taxRate));
   const monthlyReturn = toMonthlyGrowthRate(annualReturn);
   const totalMonths = input.settings.durationYears * 12;
 
@@ -162,7 +169,7 @@ export const runSimulation = (input: SimulationInput): SimulationOutput => {
   const taxRate = (input.settings.taxRate ?? 0) / 100;
   const dividendYield = input.ticker.dividendYield / 100;
   const dividendGrowth = input.ticker.dividendGrowth / 100;
-  const priceGrowth = input.ticker.priceGrowth / 100;
+  const priceGrowth = toDerivedPriceGrowth(input);
 
   const totalMonths = input.settings.durationYears * 12;
   const paymentsPerYear = paymentsPerYearMap[input.ticker.frequency];

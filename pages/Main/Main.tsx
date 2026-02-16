@@ -9,6 +9,7 @@ export default function MainPage() {
     closeTickerModal,
     deleteTicker,
     handleBackdropClick,
+    openHelpExpectedTotalReturn,
     saveTicker,
   } = useTickerActions();
 
@@ -19,6 +20,7 @@ export default function MainPage() {
         closeTickerModal,
         deleteTicker,
         handleBackdropClick,
+        openHelpExpectedTotalReturn,
         saveTicker,
       }}
     />

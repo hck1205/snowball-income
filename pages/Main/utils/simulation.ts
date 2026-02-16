@@ -16,7 +16,7 @@ const runForProfile = (
       initialPrice: profile.initialPrice,
       dividendYield: profile.dividendYield,
       dividendGrowth: profile.dividendGrowth,
-      priceGrowth: profile.priceGrowth,
+      expectedTotalReturn: profile.expectedTotalReturn,
       frequency: profile.frequency
     },
     settings: {
