@@ -210,8 +210,7 @@ export const useTickerActions = () => {
     setFixedByTickerId((fixed: Record<string, boolean>) => ({ ...fixed, [profile.id]: fixed[profile.id] ?? false }));
     setSelectedTickerId(profile.id);
     applyTickerProfile(profile);
-    setIsConfigDrawerOpen(false);
-  }, [applyTickerProfile, includedTickerIds, setFixedByTickerId, setIncludedTickerIds, setIsConfigDrawerOpen, setSelectedTickerId, setWeightByTickerId]);
+  }, [applyTickerProfile, includedTickerIds, setFixedByTickerId, setIncludedTickerIds, setSelectedTickerId, setWeightByTickerId]);
 
   const removeIncludedTicker = useCallback((profileId: string) => {
     const nextIncludedIds = includedTickerIds.filter((id) => id !== profileId);
