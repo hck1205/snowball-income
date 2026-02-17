@@ -107,6 +107,8 @@ export const DrawerToggleButton = styled.button`
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    position: static;
+    align-self: flex-start;
     width: fit-content;
     border: 1px solid #2f6f93;
     background: #2f6f93;
@@ -116,6 +118,18 @@ export const DrawerToggleButton = styled.button`
     font-size: 13px;
     cursor: pointer;
     touch-action: manipulation;
+
+    &[data-floating='true'] {
+      position: fixed;
+      left: max(12px, env(safe-area-inset-left));
+      top: max(12px, env(safe-area-inset-top));
+      z-index: 54;
+      box-shadow: 0 6px 18px rgba(14, 37, 54, 0.22);
+    }
+
+    &[aria-expanded='true'] {
+      display: none;
+    }
   }
 `;
 
