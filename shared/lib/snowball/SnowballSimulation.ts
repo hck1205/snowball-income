@@ -27,6 +27,7 @@ const formSchema = z.object({
   investmentStartDate: dateInputSchema,
   durationYears: z.number().int('투자 기간은 정수여야 합니다.').min(1, '투자 기간은 1년 이상이어야 합니다.').max(60, '투자 기간은 60년 이하여야 합니다.'),
   reinvestDividends: z.boolean(),
+  reinvestDividendPercent: z.number().min(0, '재투자 비율은 0 이상이어야 합니다.').max(100, '재투자 비율은 100 이하여야 합니다.'),
   taxRate: z.number().min(0, '세율은 0 이상이어야 합니다.').max(100, '세율은 100 이하여야 합니다.').optional(),
   reinvestTiming: reinvestTimingSchema,
   dpsGrowthMode: dpsGrowthModeSchema
@@ -52,6 +53,7 @@ export const defaultYieldFormValues: YieldFormValues = {
   investmentStartDate: new Date().toISOString().slice(0, 10),
   durationYears: 20,
   reinvestDividends: false,
+  reinvestDividendPercent: 100,
   taxRate: 15.4,
   reinvestTiming: 'sameMonth',
   dpsGrowthMode: 'monthlySmooth'
@@ -97,6 +99,7 @@ export const toSimulationInput = (values: YieldFormValues): SimulationInput => (
     investmentStartDate: values.investmentStartDate,
     durationYears: values.durationYears,
     reinvestDividends: values.reinvestDividends,
+    reinvestDividendPercent: values.reinvestDividendPercent,
     taxRate: values.taxRate,
     reinvestTiming: values.reinvestTiming,
     dpsGrowthMode: values.dpsGrowthMode
@@ -174,6 +177,7 @@ export const runSimulation = (input: SimulationInput): SimulationOutput => {
   const totalMonths = input.settings.durationYears * 12;
   const paymentsPerYear = paymentsPerYearMap[input.ticker.frequency];
   const startDate = toStartDate(input.settings.investmentStartDate);
+  const reinvestRatio = Math.max(0, Math.min(1, input.settings.reinvestDividendPercent / 100));
 
   const dps0 = input.ticker.initialPrice * dividendYield;
 
@@ -215,10 +219,11 @@ export const runSimulation = (input: SimulationInput): SimulationOutput => {
       dividendPaid = grossDividend - taxPaid;
 
       if (input.settings.reinvestDividends) {
+        const reinvestAmount = dividendPaid * reinvestRatio;
         if (input.settings.reinvestTiming === 'sameMonth') {
-          shares += dividendPaid / price;
+          shares += reinvestAmount / price;
         } else {
-          pendingReinvestCash += dividendPaid;
+          pendingReinvestCash += reinvestAmount;
         }
       }
 

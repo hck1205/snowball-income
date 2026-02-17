@@ -29,7 +29,7 @@ export const useMainComputed = ({
   const setVisibleYearlySeries = useSetVisibleYearlySeriesWrite();
   const setActiveHelp = useSetActiveHelpWrite();
 
-  const { simulation, recentCashflowByTicker } = useMemo(
+  const { simulation, yearlyCashflowByTicker } = useMemo(
     () =>
       buildSimulationBundle({
         isValid,
@@ -50,7 +50,10 @@ export const useMainComputed = ({
       }),
     [normalizedAllocation, showPortfolioDividendCenter, simulation?.summary.finalMonthlyAverageDividend]
   );
-  const recentCashflowBarOption = useMemo(() => buildRecentCashflowBarOption(recentCashflowByTicker), [recentCashflowByTicker]);
+  const defaultCashflowYear = yearlyCashflowByTicker.years[yearlyCashflowByTicker.years.length - 1] ?? null;
+  const defaultCashflowByYear =
+    defaultCashflowYear === null ? { months: [], series: [] } : yearlyCashflowByTicker.byYear[String(defaultCashflowYear)] ?? { months: [], series: [] };
+  const recentCashflowBarOption = useMemo(() => buildRecentCashflowBarOption(defaultCashflowByYear), [defaultCashflowByYear]);
   const yearlyResultBarOption = useMemo(
     () =>
       buildYearlyResultBarOption({
@@ -77,6 +80,7 @@ export const useMainComputed = ({
     tableRows,
     allocationPieOption,
     recentCashflowBarOption,
+    yearlyCashflowByTicker,
     yearlyResultBarOption,
     yearlySeriesItems
   };

@@ -9,6 +9,7 @@ export type PersistedInvestmentSettings = {
   investmentStartDate: string;
   durationYears: number;
   reinvestDividends: boolean;
+  reinvestDividendPercent: number;
   taxRate?: number;
   reinvestTiming: YieldFormValues['reinvestTiming'];
   dpsGrowthMode: YieldFormValues['dpsGrowthMode'];

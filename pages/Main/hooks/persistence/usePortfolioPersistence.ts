@@ -100,6 +100,7 @@ export const usePortfolioPersistence = () => {
     investmentStartDate: values.investmentStartDate,
     durationYears: values.durationYears,
     reinvestDividends: values.reinvestDividends,
+    reinvestDividendPercent: values.reinvestDividendPercent,
     taxRate: values.taxRate,
     reinvestTiming: values.reinvestTiming,
     dpsGrowthMode: values.dpsGrowthMode,
@@ -206,6 +207,7 @@ export const usePortfolioPersistence = () => {
         activeTab.investmentSettings.investmentStartDate === nextInvestmentSettings.investmentStartDate &&
         activeTab.investmentSettings.durationYears === nextInvestmentSettings.durationYears &&
         activeTab.investmentSettings.reinvestDividends === nextInvestmentSettings.reinvestDividends &&
+        activeTab.investmentSettings.reinvestDividendPercent === nextInvestmentSettings.reinvestDividendPercent &&
         activeTab.investmentSettings.taxRate === nextInvestmentSettings.taxRate &&
         activeTab.investmentSettings.reinvestTiming === nextInvestmentSettings.reinvestTiming &&
         activeTab.investmentSettings.dpsGrowthMode === nextInvestmentSettings.dpsGrowthMode &&
@@ -245,6 +247,7 @@ export const usePortfolioPersistence = () => {
     values.investmentStartDate,
     values.monthlyContribution,
     values.reinvestDividends,
+    values.reinvestDividendPercent,
     values.reinvestTiming,
     values.targetMonthlyDividend,
     values.taxRate,
@@ -278,6 +281,7 @@ export const usePortfolioPersistence = () => {
     values.investmentStartDate,
     values.monthlyContribution,
     values.reinvestDividends,
+    values.reinvestDividendPercent,
     values.reinvestTiming,
     values.targetMonthlyDividend,
     values.taxRate,
@@ -314,6 +318,7 @@ export const usePortfolioPersistence = () => {
       investmentStartDate: scenario.investmentSettings.investmentStartDate,
       durationYears: scenario.investmentSettings.durationYears,
       reinvestDividends: scenario.investmentSettings.reinvestDividends,
+      reinvestDividendPercent: scenario.investmentSettings.reinvestDividendPercent,
       taxRate: scenario.investmentSettings.taxRate,
       reinvestTiming: scenario.investmentSettings.reinvestTiming,
       dpsGrowthMode: scenario.investmentSettings.dpsGrowthMode

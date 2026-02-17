@@ -71,6 +71,7 @@ function MainRightPanelComponent() {
     tableRows,
     allocationPieOption,
     recentCashflowBarOption,
+    yearlyCashflowByTicker,
     yearlyResultBarOption,
     yearlySeriesItems
   } = useMainComputed({
@@ -314,6 +315,7 @@ function MainRightPanelComponent() {
 
           <MonthlyCashflow
             chartOption={recentCashflowBarOption}
+            yearlyCashflowByTicker={yearlyCashflowByTicker}
             hasData={hasGraphData}
             emptyMessage={emptyGraphMessage}
             ResponsiveChart={ResponsiveEChart}

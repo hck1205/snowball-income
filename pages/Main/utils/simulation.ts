@@ -27,6 +27,7 @@ const runForProfile = (
       investmentStartDate: values.investmentStartDate,
       durationYears: values.durationYears,
       reinvestDividends: values.reinvestDividends,
+      reinvestDividendPercent: values.reinvestDividendPercent,
       taxRate: values.taxRate,
       reinvestTiming: values.reinvestTiming,
       dpsGrowthMode: values.dpsGrowthMode
@@ -143,6 +144,11 @@ export type RecentCashflowByTicker = {
   series: Array<{ name: string; data: number[]; color: string }>;
 };
 
+export type YearlyCashflowByTicker = {
+  years: number[];
+  byYear: Record<string, RecentCashflowByTicker & { totalDividend: number }>;
+};
+
 export const buildSimulationBundle = ({
   isValid,
   includedProfiles,
@@ -150,12 +156,12 @@ export const buildSimulationBundle = ({
   values
 }: SimulationInputParams): {
   simulation: SimulationOutput | null;
-  recentCashflowByTicker: RecentCashflowByTicker;
+  yearlyCashflowByTicker: YearlyCashflowByTicker;
 } => {
   if (!isValid) {
     return {
       simulation: null,
-      recentCashflowByTicker: { months: [], series: [] }
+      yearlyCashflowByTicker: { years: [], byYear: {} }
     };
   }
 
@@ -163,7 +169,7 @@ export const buildSimulationBundle = ({
   if (targetProfiles.length === 0) {
     return {
       simulation: null,
-      recentCashflowByTicker: { months: [], series: [] }
+      yearlyCashflowByTicker: { years: [], byYear: {} }
     };
   }
 
@@ -177,15 +183,30 @@ export const buildSimulationBundle = ({
     outputs.length === 1 ? outputs[0].output : aggregatePortfolioSimulation(outputs.map((item) => item.output), values.targetMonthlyDividend);
 
   const baseMonthly = outputs[0]?.output.monthly ?? [];
-  const months = baseMonthly.slice(-12).map((row) => `${row.year}-${String(row.month).padStart(2, '0')}`);
-  const series = outputs.map((item, index) => ({
-    name: getTickerDisplayName(item.ticker, item.name),
-    data: item.output.monthly.slice(-12).map((row) => row.dividendPaid),
-    color: ALLOCATION_COLORS[index % ALLOCATION_COLORS.length]
-  }));
+  const years = Array.from(new Set(baseMonthly.map((row) => row.year))).sort((left, right) => left - right);
+  const byYear = years.reduce<YearlyCashflowByTicker['byYear']>((acc, year) => {
+    const months = Array.from({ length: 12 }, (_v, index) => `${index + 1}월`);
+    const series = outputs.map((item, index) => {
+      const monthlyMap = item.output.monthly.reduce<Record<number, number>>((map, row) => {
+        if (row.year !== year) return map;
+        map[row.month] = row.dividendPaid;
+        return map;
+      }, {});
+
+      return {
+        name: getTickerDisplayName(item.ticker, item.name),
+        data: Array.from({ length: 12 }, (_m, monthIndex) => monthlyMap[monthIndex + 1] ?? 0),
+        color: ALLOCATION_COLORS[index % ALLOCATION_COLORS.length]
+      };
+    });
+
+    const totalDividend = series.reduce((sum, item) => sum + item.data.reduce((innerSum, value) => innerSum + value, 0), 0);
+    acc[String(year)] = { months, series, totalDividend };
+    return acc;
+  }, {});
 
   return {
     simulation,
-    recentCashflowByTicker: { months, series }
+    yearlyCashflowByTicker: { years, byYear }
   };
 };

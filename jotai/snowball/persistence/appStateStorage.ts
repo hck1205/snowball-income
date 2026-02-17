@@ -44,6 +44,7 @@ const DEFAULT_PERSISTED_INVESTMENT_SETTINGS: PersistedInvestmentSettings = {
   investmentStartDate: defaultYieldFormValues.investmentStartDate,
   durationYears: defaultYieldFormValues.durationYears,
   reinvestDividends: defaultYieldFormValues.reinvestDividends,
+  reinvestDividendPercent: defaultYieldFormValues.reinvestDividendPercent,
   taxRate: defaultYieldFormValues.taxRate,
   reinvestTiming: defaultYieldFormValues.reinvestTiming,
   dpsGrowthMode: defaultYieldFormValues.dpsGrowthMode,
@@ -166,6 +167,7 @@ const sanitizeInvestmentSettings = (input: unknown): PersistedInvestmentSettings
   const monthlyContribution = Number(parsed.monthlyContribution);
   const targetMonthlyDividend = Number(parsed.targetMonthlyDividend);
   const durationYears = Number(parsed.durationYears);
+  const reinvestDividendPercent = Number(parsed.reinvestDividendPercent);
   const taxRate = parsed.taxRate === undefined ? undefined : Number(parsed.taxRate);
   const investmentStartDate = typeof parsed.investmentStartDate === 'string' ? parsed.investmentStartDate : '';
   const rawVisibleYearlySeries = parsed.visibleYearlySeries as Record<string, unknown> | undefined;
@@ -204,6 +206,10 @@ const sanitizeInvestmentSettings = (input: unknown): PersistedInvestmentSettings
       typeof parsed.reinvestDividends === 'boolean'
         ? parsed.reinvestDividends
         : DEFAULT_PERSISTED_INVESTMENT_SETTINGS.reinvestDividends,
+    reinvestDividendPercent:
+      Number.isFinite(reinvestDividendPercent)
+        ? Math.max(0, Math.min(100, reinvestDividendPercent))
+        : DEFAULT_PERSISTED_INVESTMENT_SETTINGS.reinvestDividendPercent,
     taxRate: taxRate !== undefined && Number.isFinite(taxRate) ? Math.max(0, Math.min(100, taxRate)) : DEFAULT_PERSISTED_INVESTMENT_SETTINGS.taxRate,
     reinvestTiming:
       parsed.reinvestTiming === 'sameMonth' || parsed.reinvestTiming === 'nextMonth'

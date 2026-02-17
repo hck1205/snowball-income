@@ -41,6 +41,7 @@ export const EMPTY_INVESTMENT_SETTINGS: PersistedInvestmentSettings = {
   investmentStartDate: defaultYieldFormValues.investmentStartDate,
   durationYears: defaultYieldFormValues.durationYears,
   reinvestDividends: defaultYieldFormValues.reinvestDividends,
+  reinvestDividendPercent: defaultYieldFormValues.reinvestDividendPercent,
   taxRate: defaultYieldFormValues.taxRate,
   reinvestTiming: defaultYieldFormValues.reinvestTiming,
   dpsGrowthMode: defaultYieldFormValues.dpsGrowthMode,

@@ -40,11 +40,45 @@ function InvestmentSettingsComponent({
             checked={showSplitGraphs}
             onChange={(event) => onToggleSplitGraphs(event.target.checked)}
           />
-          <ToggleField
-            label="배당 재투자"
-            checked={values.reinvestDividends}
-            onChange={(event) => onSetField('reinvestDividends', event.target.checked)}
-          />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+            <span style={{ color: '#314d60', fontSize: '14px' }}>배당 재투자</span>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+              {values.reinvestDividends ? (
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <input
+                    aria-label="배당 재투자 비율"
+                    type="number"
+                    min={0}
+                    max={100}
+                    step={1}
+                    value={values.reinvestDividendPercent}
+                    style={{
+                      width: '62px',
+                      height: '26px',
+                      border: '1px solid #bfd0de',
+                      borderRadius: '8px',
+                      padding: '0 8px',
+                      fontSize: '13px',
+                      color: '#1f3341',
+                      background: '#fff'
+                    }}
+                    onChange={(event) => {
+                      const raw = Number(event.target.value);
+                      const next = Number.isFinite(raw) ? Math.max(0, Math.min(100, raw)) : 0;
+                      onSetField('reinvestDividendPercent', next);
+                    }}
+                  />
+                  <span style={{ color: '#486073', fontSize: '12px', fontWeight: 600 }}>%</span>
+                </div>
+              ) : null}
+              <ToggleField
+                label="배당 재투자"
+                hideLabel
+                checked={values.reinvestDividends}
+                onChange={(event) => onSetField('reinvestDividends', event.target.checked)}
+              />
+            </div>
+          </div>
           <ConfigSectionDivider aria-hidden="true" />
           <InputField
             label="초기 투자금 (원)"

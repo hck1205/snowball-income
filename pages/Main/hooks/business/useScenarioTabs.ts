@@ -87,6 +87,7 @@ export const useScenarioTabs = () => {
       investmentStartDate: values.investmentStartDate,
       durationYears: values.durationYears,
       reinvestDividends: values.reinvestDividends,
+      reinvestDividendPercent: values.reinvestDividendPercent,
       taxRate: values.taxRate,
       reinvestTiming: values.reinvestTiming,
       dpsGrowthMode: values.dpsGrowthMode,
@@ -109,6 +110,7 @@ export const useScenarioTabs = () => {
       values.investmentStartDate,
       values.monthlyContribution,
       values.reinvestDividends,
+      values.reinvestDividendPercent,
       values.reinvestTiming,
       values.targetMonthlyDividend,
       values.taxRate,
@@ -132,6 +134,7 @@ export const useScenarioTabs = () => {
         investmentStartDate: scenario.investmentSettings.investmentStartDate,
         durationYears: scenario.investmentSettings.durationYears,
         reinvestDividends: scenario.investmentSettings.reinvestDividends,
+        reinvestDividendPercent: scenario.investmentSettings.reinvestDividendPercent,
         taxRate: scenario.investmentSettings.taxRate,
         reinvestTiming: scenario.investmentSettings.reinvestTiming,
         dpsGrowthMode: scenario.investmentSettings.dpsGrowthMode

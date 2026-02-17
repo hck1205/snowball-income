@@ -18,6 +18,7 @@ export type InvestmentSettings = {
   investmentStartDate: string;
   durationYears: number;
   reinvestDividends: boolean;
+  reinvestDividendPercent: number;
   taxRate?: number;
   reinvestTiming: ReinvestTiming;
   dpsGrowthMode: DpsGrowthMode;
