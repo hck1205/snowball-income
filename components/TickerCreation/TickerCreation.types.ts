@@ -1,6 +1,8 @@
+import type { ReactNode } from 'react';
 import type { TickerProfile } from '@/shared/types/snowball';
 
 export type TickerCreationProps = {
+  topContent?: ReactNode;
   tickerProfiles: TickerProfile[];
   includedTickerIds: string[];
   onOpenCreate: () => void;

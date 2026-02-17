@@ -1,6 +1,6 @@
 export type YearlySeriesKey = 'totalContribution' | 'assetValue' | 'annualDividend' | 'monthlyDividend' | 'cumulativeDividend';
 
-export const YEARLY_SERIES_ORDER: YearlySeriesKey[] = ['monthlyDividend', 'annualDividend', 'cumulativeDividend', 'assetValue', 'totalContribution'];
+export const YEARLY_SERIES_ORDER: YearlySeriesKey[] = ['assetValue', 'totalContribution', 'monthlyDividend', 'annualDividend', 'cumulativeDividend'];
 
 export const YEARLY_SERIES_LABEL: Record<YearlySeriesKey, string> = {
   totalContribution: '누적 투자금',

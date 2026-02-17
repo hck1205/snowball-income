@@ -9,13 +9,13 @@ export const tickerModalModeAtom = atomState<TickerModalMode>('create');
 export const editingTickerIdAtom = atomState<string | null>(null);
 export const showQuickEstimateAtom = atomState(false);
 export const visibleYearlySeriesAtom = atomState<Record<YearlySeriesKey, boolean>>({
-  totalContribution: false,
-  assetValue: false,
+  totalContribution: true,
+  assetValue: true,
   annualDividend: false,
-  monthlyDividend: true,
+  monthlyDividend: false,
   cumulativeDividend: false
 });
-export const isYearlyAreaFillOnAtom = atomState(false);
+export const isYearlyAreaFillOnAtom = atomState(true);
 export const isResultCompactAtom = atomState(false);
 export const showSplitGraphsAtom = atomState(false);
 export const showPortfolioDividendCenterAtom = atomState(false);

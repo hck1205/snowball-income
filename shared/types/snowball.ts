@@ -37,3 +37,9 @@ export type PortfolioPersistedState = {
   fixedByTickerId: Record<string, boolean>;
   selectedTickerId: string | null;
 };
+
+export type ScenarioTabState = {
+  id: string;
+  name: string;
+  portfolio: PortfolioPersistedState;
+};

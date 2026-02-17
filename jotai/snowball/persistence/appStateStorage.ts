@@ -2,8 +2,13 @@ import { defaultYieldFormValues } from '@/shared/lib/snowball';
 import { DIVIDEND_UNIVERSE } from '@/shared/constants';
 import type { PortfolioPersistedState, TickerProfile } from '@/shared/types/snowball';
 import type { YearlySeriesKey } from '@/shared/constants';
-import type { PersistedAppStatePayload, PersistedInvestmentSettings } from '../types';
-import { EMPTY_PORTFOLIO_STATE } from '../atoms';
+import type { PersistedAppStatePayload, PersistedInvestmentSettings, PersistedScenarioState } from '../types';
+import {
+  DEFAULT_SCENARIO_TAB_ID,
+  DEFAULT_SCENARIO_TAB_NAME,
+  EMPTY_PORTFOLIO_STATE,
+  MAX_SCENARIO_TABS
+} from '../atoms';
 
 const PORTFOLIO_DB_NAME = 'snowball-income-db';
 const PORTFOLIO_DB_VERSION = 1;
@@ -11,16 +16,18 @@ const PORTFOLIO_STORE_NAME = 'app_state';
 const PORTFOLIO_STATE_KEY = 'yield_architect_portfolio';
 const SNAPSHOT_KEY_PREFIX = 'snapshot:';
 const DEFAULT_VISIBLE_YEARLY_SERIES: Record<YearlySeriesKey, boolean> = {
-  totalContribution: false,
-  assetValue: false,
+  totalContribution: true,
+  assetValue: true,
   annualDividend: false,
-  monthlyDividend: true,
+  monthlyDividend: false,
   cumulativeDividend: false
 };
 
 type PersistedAppState = {
   portfolio: PortfolioPersistedState;
   investmentSettings: PersistedInvestmentSettings;
+  scenarios?: PersistedScenarioState[];
+  activeScenarioId?: string;
   savedName?: string;
 };
 
@@ -43,7 +50,7 @@ const DEFAULT_PERSISTED_INVESTMENT_SETTINGS: PersistedInvestmentSettings = {
   showQuickEstimate: false,
   showSplitGraphs: false,
   isResultCompact: false,
-  isYearlyAreaFillOn: false,
+  isYearlyAreaFillOn: true,
   showPortfolioDividendCenter: false,
   visibleYearlySeries: DEFAULT_VISIBLE_YEARLY_SERIES
 };
@@ -221,6 +228,43 @@ const sanitizeInvestmentSettings = (input: unknown): PersistedInvestmentSettings
   };
 };
 
+const sanitizeScenarioState = (input: unknown): PersistedScenarioState | null => {
+  if (!input || typeof input !== 'object') return null;
+  const parsed = input as PersistedScenarioState;
+  const id = typeof parsed.id === 'string' ? parsed.id.trim() : '';
+  const name = typeof parsed.name === 'string' ? parsed.name.trim() : '';
+  if (!id || !name) return null;
+
+  return {
+    id,
+    name,
+    portfolio: sanitizePortfolioState(parsed.portfolio),
+    investmentSettings: sanitizeInvestmentSettings(parsed.investmentSettings)
+  };
+};
+
+const sanitizeScenarios = (
+  rawScenarios: unknown,
+  fallbackPortfolio: PortfolioPersistedState,
+  fallbackInvestmentSettings: PersistedInvestmentSettings
+): PersistedScenarioState[] => {
+  const parsedScenarios = (Array.isArray(rawScenarios) ? rawScenarios : [])
+    .map((scenario) => sanitizeScenarioState(scenario))
+    .filter((scenario): scenario is PersistedScenarioState => scenario !== null)
+    .slice(0, MAX_SCENARIO_TABS);
+
+  if (parsedScenarios.length > 0) return parsedScenarios;
+
+  return [
+    {
+      id: DEFAULT_SCENARIO_TAB_ID,
+      name: DEFAULT_SCENARIO_TAB_NAME,
+      portfolio: fallbackPortfolio,
+      investmentSettings: fallbackInvestmentSettings
+    }
+  ];
+};
+
 const sanitizeSavedName = (input: unknown): string | undefined => {
   if (typeof input !== 'string') return undefined;
   const trimmed = input.trim();
@@ -229,9 +273,19 @@ const sanitizeSavedName = (input: unknown): string | undefined => {
 
 export const normalizePersistedAppState = (rawValue: unknown): PersistedAppStatePayload => {
   const parsed = rawValue as PersistedAppState | undefined;
+  const fallbackPortfolio = sanitizePortfolioState(parsed?.portfolio);
+  const fallbackInvestmentSettings = sanitizeInvestmentSettings(parsed?.investmentSettings);
+  const scenarios = sanitizeScenarios(parsed?.scenarios, fallbackPortfolio, fallbackInvestmentSettings);
+  const activeScenarioId =
+    typeof parsed?.activeScenarioId === 'string' && scenarios.some((scenario) => scenario.id === parsed.activeScenarioId)
+      ? parsed.activeScenarioId
+      : scenarios[0]?.id ?? DEFAULT_SCENARIO_TAB_ID;
+  const activeScenario = scenarios.find((scenario) => scenario.id === activeScenarioId) ?? scenarios[0];
   return {
-    portfolio: sanitizePortfolioState(parsed?.portfolio),
-    investmentSettings: sanitizeInvestmentSettings(parsed?.investmentSettings),
+    portfolio: activeScenario?.portfolio ?? fallbackPortfolio,
+    investmentSettings: activeScenario?.investmentSettings ?? fallbackInvestmentSettings,
+    scenarios,
+    activeScenarioId,
     savedName: sanitizeSavedName(parsed?.savedName)
   };
 };
@@ -244,6 +298,15 @@ export const parsePersistedAppStateJson = (jsonText: string): PersistedAppStateP
 const buildDefaultPayload = (): PersistedAppStatePayload => ({
   portfolio: DEFAULT_PERSISTED_PORTFOLIO_STATE,
   investmentSettings: DEFAULT_SAMPLE_INVESTMENT_SETTINGS,
+  scenarios: [
+    {
+      id: DEFAULT_SCENARIO_TAB_ID,
+      name: DEFAULT_SCENARIO_TAB_NAME,
+      portfolio: DEFAULT_PERSISTED_PORTFOLIO_STATE,
+      investmentSettings: DEFAULT_SAMPLE_INVESTMENT_SETTINGS
+    }
+  ],
+  activeScenarioId: DEFAULT_SCENARIO_TAB_ID,
   savedName: undefined
 });
 

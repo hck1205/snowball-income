@@ -25,6 +25,7 @@ import {
 } from '@/pages/Main/Main.shared.styled';
 
 function TickerCreationComponent({
+  topContent,
   tickerProfiles,
   includedTickerIds,
   onOpenCreate,
@@ -501,6 +502,7 @@ function TickerCreationComponent({
 
   return (
     <Card>
+      {topContent}
       <TickerQuickActionRow>
         {quickActions.map((action) => (
           <TickerQuickActionButton

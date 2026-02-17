@@ -32,7 +32,6 @@ function MainLeftPanelComponent() {
     handleTickerPressEnd,
     openTickerEditModal,
   } = useTickerActions();
-
   const {
     saveNamedState,
     listSavedStateNames,

@@ -168,6 +168,203 @@ export const ResultsColumn = styled.section`
   }
 `;
 
+export const ScenarioNameTag = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  height: 37px;
+  padding: 0 10px;
+  margin-bottom: 10px;
+  border: none;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #1f3341;
+  font-size: 13px;
+  font-weight: 700;
+
+  button[data-delete='true'] {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(2px);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+  }
+
+  &:hover button[data-delete='true'],
+  &:active button[data-delete='true'],
+  &:focus-within button[data-delete='true'] {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(0);
+  }
+`;
+
+export const ScenarioNameEditButton = styled.button`
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font-size: inherit;
+  font-weight: inherit;
+  cursor: text;
+  padding: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+export const ScenarioNameEditInput = styled.input`
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: none;
+  background: transparent;
+  color: #1f3341;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 0;
+  box-shadow: none;
+  appearance: none;
+
+  &:focus {
+    outline: none;
+    box-shadow: none;
+  }
+`;
+
+export const ScenarioDeleteButton = styled.button`
+  border: 1px solid #bfd0de;
+  background: #f4f8fb;
+  color: #29465a;
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+`;
+
+export const ScenarioTabsWrap = styled.div`
+  display: flex;
+  align-items: flex-end;
+  gap: 1px;
+  overflow-x: auto;
+  border-bottom: 1px solid #c9d8e4;
+  scrollbar-width: thin;
+`;
+
+export const ScenarioTabButton = styled.button<{ active?: boolean }>`
+  position: relative;
+  max-width: 130px;
+  border: 1px solid ${({ active }) => (active ? '#9fb9cc' : '#c9d8e4')};
+  border-bottom: 0;
+  background: ${({ active }) => (active ? '#ffffff' : '#edf4fa')};
+  color: ${({ active }) => (active ? '#1f3341' : '#486073')};
+  border-radius: 10px 10px 0 0;
+  padding: 8px 14px 9px;
+  min-height: 34px;
+  font-size: 13px;
+  font-weight: ${({ active }) => (active ? 700 : 600)};
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  touch-action: manipulation;
+  cursor: pointer;
+  z-index: ${({ active }) => (active ? 2 : 1)};
+
+  &:hover {
+    background: ${({ active }) => (active ? '#ffffff' : '#e4eef7')};
+  }
+
+  &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+`;
+
+export const ScenarioTabRenameInput = styled.input`
+  border: 0;
+  background: transparent;
+  color: #1f3341;
+  padding: 0 14px 0 0;
+  min-height: 20px;
+  min-width: 0;
+  width: 100%;
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: none;
+  appearance: none;
+
+  &:focus {
+    outline: none;
+    box-shadow: none;
+  }
+`;
+
+export const ScenarioTabEditWrap = styled.div`
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  max-width: 130px;
+  border: 1px solid #9fb9cc;
+  border-bottom: 0;
+  background: #ffffff;
+  color: #1f3341;
+  border-radius: 10px 10px 0 0;
+  padding: 8px 14px 9px;
+  min-height: 34px;
+  white-space: nowrap;
+`;
+
+export const ScenarioTabCloseButton = styled.button`
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  color: #486073;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  line-height: 1;
+  font-size: 14px;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+`;
+
+export const ScenarioTabTooltip = styled.div`
+  position: fixed;
+  z-index: 2000;
+  pointer-events: none;
+  max-width: 280px;
+  border: 1px solid #c9d8e4;
+  background: #ffffff;
+  color: #1f3341;
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+  box-shadow: 0 6px 16px rgba(21, 37, 50, 0.14);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
 export const TickerHeader = styled.div`
   display: flex;
   flex-direction: column;

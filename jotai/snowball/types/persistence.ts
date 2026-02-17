@@ -20,8 +20,17 @@ export type PersistedInvestmentSettings = {
   visibleYearlySeries: Record<YearlySeriesKey, boolean>;
 };
 
+export type PersistedScenarioState = {
+  id: string;
+  name: string;
+  portfolio: PortfolioPersistedState;
+  investmentSettings: PersistedInvestmentSettings;
+};
+
 export type PersistedAppStatePayload = {
   portfolio: PortfolioPersistedState;
   investmentSettings: PersistedInvestmentSettings;
+  scenarios: PersistedScenarioState[];
+  activeScenarioId: string;
   savedName?: string;
 };
