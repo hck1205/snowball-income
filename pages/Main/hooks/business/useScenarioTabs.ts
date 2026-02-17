@@ -2,6 +2,7 @@ import { useCallback, useMemo } from 'react';
 import type { PortfolioPersistedState } from '@/shared/types/snowball';
 import type { PersistedInvestmentSettings, PersistedScenarioState } from '@/jotai/snowball/types';
 import {
+  EMPTY_INVESTMENT_SETTINGS,
   MAX_SCENARIO_TABS,
   useActiveScenarioIdAtomValue,
   useFixedByTickerIdAtomValue,
@@ -45,6 +46,11 @@ const createEmptyScenarioPortfolio = (): PortfolioPersistedState => {
     selectedTickerId: null
   };
 };
+
+const createEmptyScenarioInvestmentSettings = (): PersistedInvestmentSettings => ({
+  ...EMPTY_INVESTMENT_SETTINGS,
+  visibleYearlySeries: { ...EMPTY_INVESTMENT_SETTINGS.visibleYearlySeries }
+});
 
 export const useScenarioTabs = () => {
   const tabs = useScenarioTabsAtomValue();
@@ -218,11 +224,12 @@ export const useScenarioTabs = () => {
     const nextTabs = prepareTabsWithActiveSnapshot();
     const newTabNumber = nextTabs.length + 1;
     const emptyPortfolio = createEmptyScenarioPortfolio();
+    const emptyInvestmentSettings = createEmptyScenarioInvestmentSettings();
     const newTab: PersistedScenarioState = {
       id: makeScenarioId(),
       name: `탭 ${newTabNumber}`,
       portfolio: emptyPortfolio,
-      investmentSettings: currentInvestmentSettings
+      investmentSettings: emptyInvestmentSettings
     };
 
     setScenarioTabs([...nextTabs, newTab]);
@@ -231,7 +238,6 @@ export const useScenarioTabs = () => {
     return true;
   }, [
     applyScenario,
-    currentInvestmentSettings,
     prepareTabsWithActiveSnapshot,
     setActiveScenarioId,
     setScenarioTabs,

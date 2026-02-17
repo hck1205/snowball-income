@@ -402,6 +402,94 @@ export const TickerQuickActionButton = styled.button`
   }
 `;
 
+export const PortfolioPresetGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+`;
+
+export const PortfolioPresetCardButton = styled.button`
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  text-align: left;
+  border: 1px solid #d4e0e9;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+  padding: 12px;
+  color: #1f3341;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+
+  &:hover {
+    border-color: #9fc0d7;
+    box-shadow: 0 6px 16px rgba(20, 52, 77, 0.12);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+`;
+
+export const PortfolioPresetContentRow = styled.div`
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+  gap: 14px;
+  align-items: start;
+
+  @media (max-width: 760px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+export const PortfolioPresetMain = styled.div`
+  display: grid;
+  gap: 6px;
+`;
+
+export const PortfolioPresetTitle = styled.span`
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.25;
+`;
+
+export const PortfolioPresetDesc = styled.span`
+  font-size: 12px;
+  color: #4a6375;
+  line-height: 1.35;
+`;
+
+export const PortfolioPresetCore = styled.span`
+  font-size: 12px;
+  color: #2f4f63;
+  line-height: 1.35;
+`;
+
+export const PortfolioPresetMeta = styled.span`
+  font-size: 11px;
+  color: #5d7382;
+  line-height: 1.3;
+`;
+
+export const PortfolioPresetPlan = styled.div`
+  display: grid;
+  gap: 4px;
+  border: 1px solid #d9e5ee;
+  border-radius: 10px;
+  background: #f3f8fc;
+  padding: 8px 10px;
+`;
+
+export const PortfolioPresetPlanItem = styled.span`
+  font-size: 11px;
+  color: #3f596b;
+  line-height: 1.3;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+`;
+
 export const TickerQuickActionIcon = styled.span`
   width: 16px;
   height: 16px;

@@ -1,11 +1,11 @@
 import { defaultYieldFormValues } from '@/shared/lib/snowball';
-import { DIVIDEND_UNIVERSE } from '@/shared/constants';
 import type { PortfolioPersistedState, TickerProfile } from '@/shared/types/snowball';
 import type { YearlySeriesKey } from '@/shared/constants';
 import type { PersistedAppStatePayload, PersistedInvestmentSettings, PersistedScenarioState } from '../types';
 import {
   DEFAULT_SCENARIO_TAB_ID,
   DEFAULT_SCENARIO_TAB_NAME,
+  EMPTY_INVESTMENT_SETTINGS,
   EMPTY_PORTFOLIO_STATE,
   MAX_SCENARIO_TABS
 } from '../atoms';
@@ -56,45 +56,8 @@ const DEFAULT_PERSISTED_INVESTMENT_SETTINGS: PersistedInvestmentSettings = {
   visibleYearlySeries: DEFAULT_VISIBLE_YEARLY_SERIES
 };
 
-const createSamplePortfolioState = (): PortfolioPersistedState => {
-  const sampleTickers = [
-    { preset: DIVIDEND_UNIVERSE.JEPI, weight: 40 },
-    { preset: DIVIDEND_UNIVERSE.SCHD, weight: 40 },
-    { preset: DIVIDEND_UNIVERSE.DGRO, weight: 20 }
-  ];
-  const tickerProfiles = sampleTickers.map(({ preset }, index) => ({
-    id: `sample-${preset.ticker.toLowerCase()}-${index + 1}`,
-    ...preset,
-    name: ''
-  }));
-  const includedTickerIds = tickerProfiles.map((profile) => profile.id);
-  const weightByTickerId = tickerProfiles.reduce<Record<string, number>>((acc, profile, index) => {
-    acc[profile.id] = sampleTickers[index]?.weight ?? 0;
-    return acc;
-  }, {});
-  const fixedByTickerId = tickerProfiles.reduce<Record<string, boolean>>((acc, profile) => {
-    acc[profile.id] = false;
-    return acc;
-  }, {});
-
-  return {
-    tickerProfiles,
-    includedTickerIds,
-    weightByTickerId,
-    fixedByTickerId,
-    selectedTickerId: tickerProfiles[0]?.id ?? null
-  };
-};
-
-const DEFAULT_PERSISTED_PORTFOLIO_STATE = createSamplePortfolioState();
-const DEFAULT_SAMPLE_INVESTMENT_SETTINGS: PersistedInvestmentSettings = {
-  ...DEFAULT_PERSISTED_INVESTMENT_SETTINGS,
-  monthlyContribution: 2_000_000,
-  targetMonthlyDividend: 1_000_000,
-  durationYears: 10,
-  reinvestDividends: true,
-  showPortfolioDividendCenter: true
-};
+const DEFAULT_PERSISTED_PORTFOLIO_STATE = EMPTY_PORTFOLIO_STATE;
+const DEFAULT_PERSISTED_INVESTMENT_SETTINGS_FOR_NEW_STATE = EMPTY_INVESTMENT_SETTINGS;
 
 const sanitizeTickerProfile = (input: unknown): TickerProfile | null => {
   if (!input || typeof input !== 'object') return null;
@@ -303,13 +266,13 @@ export const parsePersistedAppStateJson = (jsonText: string): PersistedAppStateP
 
 const buildDefaultPayload = (): PersistedAppStatePayload => ({
   portfolio: DEFAULT_PERSISTED_PORTFOLIO_STATE,
-  investmentSettings: DEFAULT_SAMPLE_INVESTMENT_SETTINGS,
+  investmentSettings: DEFAULT_PERSISTED_INVESTMENT_SETTINGS_FOR_NEW_STATE,
   scenarios: [
     {
       id: DEFAULT_SCENARIO_TAB_ID,
       name: DEFAULT_SCENARIO_TAB_NAME,
       portfolio: DEFAULT_PERSISTED_PORTFOLIO_STATE,
-      investmentSettings: DEFAULT_SAMPLE_INVESTMENT_SETTINGS
+      investmentSettings: DEFAULT_PERSISTED_INVESTMENT_SETTINGS_FOR_NEW_STATE
     }
   ],
   activeScenarioId: DEFAULT_SCENARIO_TAB_ID,
