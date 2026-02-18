@@ -64,6 +64,7 @@ function MobileMenuDrawerComponent({ isOpen, onOpen, onClose, left, right }: Mob
         <div ref={toggleAnchorRef} aria-hidden />
         <DrawerToggleButton
           type="button"
+          data-capture-role="drawer-toggle-open"
           data-floating={isFloating ? 'true' : 'false'}
           aria-label="설정 열기"
           aria-expanded={isOpen}
@@ -74,11 +75,11 @@ function MobileMenuDrawerComponent({ isOpen, onOpen, onClose, left, right }: Mob
         </DrawerToggleButton>
       </Header>
 
-      <DrawerBackdrop open={isOpen} onClick={onClose} />
+      <DrawerBackdrop data-capture-role="drawer-backdrop" open={isOpen} onClick={onClose} />
 
-      <ContentLayout>
-        <ConfigDrawerColumn id={drawerId} open={isOpen} aria-label="투자 설정 패널">
-          <DrawerCloseButton type="button" aria-label="설정 닫기" onClick={onClose}>
+      <ContentLayout data-capture-role="content-layout">
+        <ConfigDrawerColumn data-capture-role="drawer-panel" id={drawerId} open={isOpen} aria-label="투자 설정 패널">
+          <DrawerCloseButton data-capture-role="drawer-toggle-close" type="button" aria-label="설정 닫기" onClick={onClose}>
             ×
           </DrawerCloseButton>
           {left}

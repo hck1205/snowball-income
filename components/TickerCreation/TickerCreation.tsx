@@ -1,9 +1,9 @@
 import { memo, type ChangeEvent, type MouseEvent, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import html2canvas from 'html2canvas';
 import { Card, InputField } from '@/components';
 import { getTickerDisplayName } from '@/shared/utils';
 import type { TickerCreationProps } from './TickerCreation.types';
+import { capturePage } from './capturePage';
 import {
   HintText,
   ModalActions,
@@ -288,124 +288,7 @@ function TickerCreationComponent({
     setIsCapturing(true);
 
     try {
-      const docEl = document.documentElement;
-      const body = document.body;
-      const fullWidth = Math.max(docEl.scrollWidth, body.scrollWidth, docEl.clientWidth);
-      const fullHeight = Math.max(docEl.scrollHeight, body.scrollHeight, docEl.clientHeight);
-      const addCaptureSourceOnClone = (clonedDoc: Document) => {
-        const captureContainer =
-          (clonedDoc.getElementById('root') as HTMLElement | null) ??
-          (clonedDoc.body as HTMLElement);
-
-        const sourceTag = clonedDoc.createElement('div');
-        sourceTag.textContent = `source: ${window.location.origin}`;
-        sourceTag.style.position = 'absolute';
-        sourceTag.style.top = '8px';
-        sourceTag.style.right = '12px';
-        sourceTag.style.zIndex = '2147483647';
-        sourceTag.style.fontSize = '16px';
-        sourceTag.style.fontWeight = '600';
-        sourceTag.style.color = '#2b4a5f';
-        sourceTag.style.background = 'rgba(255, 255, 255, 0.8)';
-        sourceTag.style.padding = '2px 6px';
-        sourceTag.style.borderRadius = '6px';
-        sourceTag.style.pointerEvents = 'none';
-
-        const previousPosition = captureContainer.style.position;
-        if (!previousPosition || previousPosition === 'static') {
-          captureContainer.style.position = 'relative';
-        }
-
-        captureContainer.prepend(sourceTag);
-      };
-
-      const maxCanvasEdge = 16384;
-      const maxCanvasArea = 80_000_000;
-      const preferredScale = Math.min(2, window.devicePixelRatio || 1);
-      const edgeScale = Math.min(maxCanvasEdge / fullWidth, maxCanvasEdge / fullHeight);
-      const areaScale = Math.sqrt(maxCanvasArea / Math.max(1, fullWidth * fullHeight));
-      const safeScale = Math.max(0.5, Math.min(preferredScale, edgeScale, areaScale));
-
-      const captureTargets = [document.getElementById('root'), body, docEl].filter(Boolean) as HTMLElement[];
-      const captureOptions: Array<Parameters<typeof html2canvas>[1]> = [
-        {
-          backgroundColor: '#ffffff',
-          useCORS: true,
-          scale: safeScale,
-          width: fullWidth,
-          height: fullHeight,
-          windowWidth: fullWidth,
-          windowHeight: fullHeight,
-          scrollX: 0,
-          scrollY: 0,
-          imageTimeout: 0,
-          logging: false,
-          onclone: addCaptureSourceOnClone
-        },
-        {
-          backgroundColor: '#ffffff',
-          useCORS: true,
-          scale: Math.min(1.5, preferredScale),
-          scrollX: 0,
-          scrollY: -window.scrollY,
-          imageTimeout: 0,
-          logging: false,
-          onclone: addCaptureSourceOnClone
-        },
-        {
-          backgroundColor: '#ffffff',
-          useCORS: false,
-          allowTaint: true,
-          foreignObjectRendering: true,
-          scale: 1,
-          scrollX: 0,
-          scrollY: -window.scrollY,
-          imageTimeout: 0,
-          logging: false,
-          onclone: addCaptureSourceOnClone
-        }
-      ];
-
-      let canvas: HTMLCanvasElement | null = null;
-      let lastError: unknown = null;
-
-      for (const target of captureTargets) {
-        for (const options of captureOptions) {
-          try {
-            const nextCanvas = await html2canvas(target, options);
-            if (nextCanvas.width > 0 && nextCanvas.height > 0) {
-              canvas = nextCanvas;
-              break;
-            }
-          } catch (error) {
-            lastError = error;
-          }
-        }
-        if (canvas) break;
-      }
-
-      if (!canvas) {
-        throw (lastError instanceof Error ? lastError : new Error('캡처 캔버스 생성 실패'));
-      }
-
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const blob = await new Promise<Blob>((resolve, reject) => {
-        canvas.toBlob((nextBlob) => {
-          if (!nextBlob) {
-            reject(new Error('캡처 이미지 생성 실패'));
-            return;
-          }
-          resolve(nextBlob);
-        }, 'image/png');
-      });
-      const downloadUrl = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.download = `snowball-capture-${timestamp}.png`;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      URL.revokeObjectURL(downloadUrl);
+      await capturePage();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'unknown';
       setCaptureError(`캡처에 실패했습니다. 잠시 후 다시 시도해 주세요. (${message})`);

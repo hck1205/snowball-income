@@ -329,6 +329,17 @@ const PORTFOLIO_PRESET_PLACEHOLDERS = [
   }
 ] as const;
 
+const toPresetTargetMonthlyDividend = (expectedMonthlyDividend: string, fallback: number): number => {
+  const normalized = expectedMonthlyDividend.replace(/,/g, '');
+  const match = normalized.match(/(\d+(?:\.\d+)?)/);
+  if (!match) return fallback;
+
+  const lowerBoundInManwon = Number(match[1]);
+  if (!Number.isFinite(lowerBoundInManwon) || lowerBoundInManwon < 0) return fallback;
+
+  return Math.floor(lowerBoundInManwon * 10_000);
+};
+
 function MainRightPanelComponent() {
   const modalRoot = typeof document !== 'undefined' ? document.body : null;
   const [editingTabId, setEditingTabId] = useState<string | null>(null);
@@ -393,12 +404,14 @@ function MainRightPanelComponent() {
   useEffect(() => () => clearLongPressTimer(), [clearLongPressTimer]);
 
   const startRenameMode = useCallback((tabId: string, tabName: string, tabWidth?: number) => {
+    setHoverTooltip(null);
     setEditingTabId(tabId);
     setEditingTabName(tabName);
     setEditingTabWidth(typeof tabWidth === 'number' && tabWidth > 0 ? tabWidth + 20 : null);
   }, []);
 
   const cancelRenameMode = useCallback(() => {
+    setHoverTooltip(null);
     setEditingTabId(null);
     setEditingTabName('');
     setEditingTabWidth(null);
@@ -406,6 +419,7 @@ function MainRightPanelComponent() {
 
   const commitRenameMode = useCallback(() => {
     if (!editingTabId) return;
+    setHoverTooltip(null);
     const nextName = editingTabName.trim();
     if (!nextName) {
       // Empty input keeps previous tab name.
@@ -501,6 +515,7 @@ function MainRightPanelComponent() {
       setSelectedTickerId(selectedId);
       setWeightByTickerId(nextWeightByTickerId);
       setFixedByTickerId(nextFixedByTickerId);
+      setShowPortfolioDividendCenter(true);
       renameScenarioTab(activeScenarioId, preset.title);
       setYieldFormValues((prev) => ({
         ...prev,
@@ -512,7 +527,7 @@ function MainRightPanelComponent() {
         frequency: selectedProfile.frequency,
         initialInvestment: 0,
         monthlyContribution: preset.monthlyContributionValue,
-        targetMonthlyDividend: preset.targetMonthlyDividendValue,
+        targetMonthlyDividend: toPresetTargetMonthlyDividend(preset.expectedMonthlyDividend, preset.targetMonthlyDividendValue),
         durationYears: preset.durationYearsValue
       }));
     },
@@ -522,6 +537,7 @@ function MainRightPanelComponent() {
       activeScenarioId,
       renameScenarioTab,
       setSelectedTickerId,
+      setShowPortfolioDividendCenter,
       setTickerProfiles,
       setWeightByTickerId,
       setYieldFormValues
