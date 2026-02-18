@@ -6,8 +6,7 @@ import {
   DEFAULT_SCENARIO_TAB_ID,
   DEFAULT_SCENARIO_TAB_NAME,
   EMPTY_INVESTMENT_SETTINGS,
-  EMPTY_PORTFOLIO_STATE,
-  MAX_SCENARIO_TABS
+  EMPTY_PORTFOLIO_STATE
 } from '../atoms';
 
 const PORTFOLIO_DB_NAME = 'snowball-income-db';
@@ -219,8 +218,7 @@ const sanitizeScenarios = (
 ): PersistedScenarioState[] => {
   const parsedScenarios = (Array.isArray(rawScenarios) ? rawScenarios : [])
     .map((scenario) => sanitizeScenarioState(scenario))
-    .filter((scenario): scenario is PersistedScenarioState => scenario !== null)
-    .slice(0, MAX_SCENARIO_TABS);
+    .filter((scenario): scenario is PersistedScenarioState => scenario !== null);
 
   if (parsedScenarios.length > 0) return parsedScenarios;
 

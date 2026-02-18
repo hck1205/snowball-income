@@ -37,6 +37,7 @@ import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 
 const makeScenarioId = () => `scenario-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 const sanitizeScenarioName = (rawName: string) => rawName.trim();
+const SHARED_SCENARIO_ID = 'shared-tab';
 
 const createEmptyScenarioPortfolio = (): PortfolioPersistedState => {
   return {
@@ -282,16 +283,30 @@ export const useScenarioTabs = () => {
       const nextName = sanitizeScenarioName(rawName);
       if (!nextName) return false;
 
+      let promotedScenarioId: string | null = null;
       setScenarioTabs((prev) =>
-        prev.map((tab) => (tab.id === scenarioId ? { ...tab, name: nextName } : tab))
+        prev.map((tab) => {
+          if (tab.id !== scenarioId) return tab;
+          if (scenarioId !== SHARED_SCENARIO_ID) return { ...tab, name: nextName };
+
+          let nextId = makeScenarioId();
+          while (prev.some((item) => item.id === nextId)) {
+            nextId = makeScenarioId();
+          }
+          promotedScenarioId = nextId;
+          return { ...tab, id: nextId, name: nextName };
+        })
       );
+      if (promotedScenarioId && activeScenarioId === scenarioId) {
+        setActiveScenarioId(promotedScenarioId);
+      }
       trackEvent(ANALYTICS_EVENT.SCENARIO_TAB_ACTION, {
         action: 'rename',
-        scenario_id: scenarioId
+        scenario_id: promotedScenarioId ?? scenarioId
       });
       return true;
     },
-    [setScenarioTabs]
+    [activeScenarioId, setActiveScenarioId, setScenarioTabs]
   );
 
   return {

@@ -46,22 +46,11 @@ import {
   encodeSharedScenario,
   SHARE_LENGTH_LIMIT,
   SHARE_QUERY_PARAM,
-  SHARE_SCHEMA_VERSION,
   SHARE_VERSION_QUERY_PARAM
 } from './shareLink';
 
-const makeScenarioId = () => `scenario-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-
-const makeUniqueScenarioName = (existing: PersistedScenarioState[], baseName: string): string => {
-  const trimmedBase = baseName.trim() || '공유 탭';
-  if (!existing.some((scenario) => scenario.name === trimmedBase)) return trimmedBase;
-
-  let index = 2;
-  while (existing.some((scenario) => scenario.name === `${trimmedBase} (${index})`)) {
-    index += 1;
-  }
-  return `${trimmedBase} (${index})`;
-};
+const SHARED_SCENARIO_ID = 'shared-tab';
+const SHARED_SCENARIO_NAME = '공유된 탭';
 
 export const usePortfolioPersistence = () => {
   const tickerProfiles = useTickerProfilesAtomValue();
@@ -492,7 +481,6 @@ export const usePortfolioPersistence = () => {
 
     const url = new URL(window.location.href);
     url.searchParams.set(SHARE_QUERY_PARAM, encoded);
-    url.searchParams.set(SHARE_VERSION_QUERY_PARAM, String(SHARE_SCHEMA_VERSION));
     const shareUrl = url.toString();
 
     try {
@@ -533,11 +521,15 @@ export const usePortfolioPersistence = () => {
 
     const nextSharedScenario: PersistedScenarioState = {
       ...sharedScenario,
-      id: makeScenarioId(),
-      name: makeUniqueScenarioName(scenarios, '공유된 탭')
+      id: SHARED_SCENARIO_ID,
+      name: SHARED_SCENARIO_NAME
     };
 
-    const nextTabs = [...scenarios, nextSharedScenario];
+    const existingSharedIndex = scenarios.findIndex((scenario) => scenario.id === SHARED_SCENARIO_ID);
+    const nextTabs =
+      existingSharedIndex >= 0
+        ? scenarios.map((scenario, index) => (index === existingSharedIndex ? nextSharedScenario : scenario))
+        : [...scenarios, nextSharedScenario];
     setScenarioTabs(nextTabs);
     setActiveScenarioId(nextSharedScenario.id);
     applyScenario(nextSharedScenario);
