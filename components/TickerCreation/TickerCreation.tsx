@@ -36,6 +36,7 @@ function TickerCreationComponent({
   onDeleteNamedState,
   onDownloadNamedStateAsJson,
   onLoadStateFromJsonText,
+  onCreateShareLink,
   onTickerClick,
   onTickerPressStart,
   onTickerPressEnd,
@@ -58,6 +59,9 @@ function TickerCreationComponent({
   const [isDownloadingFile, setIsDownloadingFile] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
+  const [shareResultMessage, setShareResultMessage] = useState('');
+  const [shareToastMessage, setShareToastMessage] = useState('');
   const [isLoadDeleteMode, setIsLoadDeleteMode] = useState(false);
   const [loadFileRecognitionError, setLoadFileRecognitionError] = useState('');
   const loadFileInputRef = useRef<HTMLInputElement | null>(null);
@@ -139,6 +143,14 @@ function TickerCreationComponent({
       modal_type: 'file_modal'
     });
   }, [isFileModalOpen]);
+
+  useEffect(() => {
+    if (!shareToastMessage) return;
+    const timer = window.setTimeout(() => {
+      setShareToastMessage('');
+    }, 2200);
+    return () => window.clearTimeout(timer);
+  }, [shareToastMessage]);
 
   const openLoadModal = async () => {
     setIsLoadModalOpen(true);
@@ -354,7 +366,7 @@ function TickerCreationComponent({
   };
 
   const quickActions: Array<{
-    key: 'save' | 'load' | 'file' | 'capture' | 'coffee';
+    key: 'save' | 'load' | 'file' | 'share' | 'capture' | 'coffee';
     label: string;
     icon: JSX.Element;
   }> = useMemo(
@@ -403,6 +415,19 @@ function TickerCreationComponent({
         )
       },
       {
+        key: 'share',
+        label: 'Share',
+        icon: (
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="18" cy="5" r="2.5" />
+            <circle cx="6" cy="12" r="2.5" />
+            <circle cx="18" cy="19" r="2.5" />
+            <path d="M8.3 10.9 15.7 6.1" />
+            <path d="M8.3 13.1 15.7 17.9" />
+          </svg>
+        )
+      },
+      {
         key: 'coffee',
         label: 'Coffee',
         icon: (
@@ -417,17 +442,40 @@ function TickerCreationComponent({
     []
   );
 
+  const handleShareLink = useCallback(async () => {
+    if (isSharing) return;
+    setShareResultMessage('');
+    setIsSharing(true);
+    try {
+      const result = await onCreateShareLink();
+      if (!result.ok) {
+        setShareResultMessage(result.message);
+        return;
+      }
+      if (result.copied) {
+        setShareResultMessage('');
+        setShareToastMessage('공유 링크를 클립보드에 복사했습니다.');
+      } else {
+        setShareResultMessage(`공유 링크: ${result.url}`);
+      }
+    } catch {
+      setShareResultMessage('공유 링크 생성에 실패했습니다.');
+    } finally {
+      setIsSharing(false);
+    }
+  }, [isSharing, onCreateShareLink]);
+
   const handleQuickAction = useCallback(
-    (key: 'save' | 'load' | 'file' | 'capture' | 'coffee') => {
+    (key: 'save' | 'load' | 'file' | 'share' | 'capture' | 'coffee') => {
       trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
         cta_name: `quick_action_${key}`,
         placement: 'ticker_creation_quick_actions'
       });
-              if (key === 'save') {
-                setIsSaveModalOpen(true);
-                setSaveError('');
-                return;
-              }
+      if (key === 'save') {
+        setIsSaveModalOpen(true);
+        setSaveError('');
+        return;
+      }
       if (key === 'load') {
         void openLoadModal();
         return;
@@ -436,11 +484,15 @@ function TickerCreationComponent({
         void openFileModal();
         return;
       }
+      if (key === 'share') {
+        void handleShareLink();
+        return;
+      }
       if (key === 'capture') {
         void handleCapturePage();
       }
     },
-    [openFileModal, openLoadModal, handleCapturePage]
+    [openFileModal, openLoadModal, handleCapturePage, handleShareLink]
   );
 
   return (
@@ -453,7 +505,7 @@ function TickerCreationComponent({
             type="button"
             aria-label={action.label}
             style={action.key === 'coffee' ? { display: 'none' } : undefined}
-            disabled={action.key === 'capture' ? isCapturing : false}
+            disabled={action.key === 'capture' ? isCapturing : action.key === 'share' ? isSharing : false}
             onClick={() => handleQuickAction(action.key)}
           >
             <TickerQuickActionIcon>{action.icon}</TickerQuickActionIcon>
@@ -461,6 +513,32 @@ function TickerCreationComponent({
           </TickerQuickActionButton>
         ))}
       </TickerQuickActionRow>
+      {shareToastMessage && modalRoot
+        ? createPortal(
+            <div
+              role="status"
+              aria-live="polite"
+              style={{
+                position: 'fixed',
+                top: '14px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                zIndex: 1200,
+                background: '#1f3341',
+                color: '#fff',
+                borderRadius: '10px',
+                padding: '10px 14px',
+                fontSize: '13px',
+                fontWeight: 600,
+                boxShadow: '0 8px 18px rgba(10, 24, 36, 0.28)'
+              }}
+            >
+              {shareToastMessage}
+            </div>,
+            modalRoot
+          )
+        : null}
+      {shareResultMessage ? <HintText>{shareResultMessage}</HintText> : null}
       <TickerCreateButton type="button" aria-label="티커 생성 열기" onClick={onOpenCreate}>
         티커 생성
       </TickerCreateButton>

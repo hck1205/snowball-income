@@ -12,6 +12,7 @@ export type TickerCreationProps = {
   onDeleteNamedState: (name: string) => Promise<{ ok: true } | { ok: false; message: string }>;
   onDownloadNamedStateAsJson: (name: string) => Promise<{ ok: true } | { ok: false; message: string }>;
   onLoadStateFromJsonText: (jsonText: string) => Promise<{ ok: true } | { ok: false; message: string }>;
+  onCreateShareLink: () => Promise<{ ok: true; url: string; copied: boolean } | { ok: false; message: string }>;
   onTickerClick: (profile: TickerProfile) => void;
   onTickerPressStart: (profile: TickerProfile) => void;
   onTickerPressEnd: () => void;

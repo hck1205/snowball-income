@@ -40,6 +40,7 @@ function MainLeftPanelComponent() {
     deleteNamedState,
     downloadNamedStateAsJson,
     loadStateFromJsonText,
+    createShareLink,
   } = usePortfolioPersistence();
   const handleHelpResultMode = useCallback(() => {
     trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
@@ -75,6 +76,7 @@ function MainLeftPanelComponent() {
         onDeleteNamedState={deleteNamedState}
         onDownloadNamedStateAsJson={downloadNamedStateAsJson}
         onLoadStateFromJsonText={loadStateFromJsonText}
+        onCreateShareLink={createShareLink}
         onTickerClick={handleTickerChipClick}
         onTickerPressStart={handleTickerPressStart}
         onTickerPressEnd={handleTickerPressEnd}

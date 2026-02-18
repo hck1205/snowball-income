@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   DEFAULT_SCENARIO_TAB_ID,
   DEFAULT_SCENARIO_TAB_NAME,
+  MAX_SCENARIO_TABS,
   deletePersistedAppStateByName,
   listPersistedStateNames,
   parsePersistedAppStateJson,
@@ -41,6 +42,27 @@ import {
   writePersistedAppState
 } from '@/jotai';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
+import {
+  decodeSharedScenario,
+  encodeSharedScenario,
+  SHARE_LENGTH_LIMIT,
+  SHARE_QUERY_PARAM,
+  SHARE_SCHEMA_VERSION,
+  SHARE_VERSION_QUERY_PARAM
+} from './shareLink';
+
+const makeScenarioId = () => `scenario-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+const makeUniqueScenarioName = (existing: PersistedScenarioState[], baseName: string): string => {
+  const trimmedBase = baseName.trim() || '공유 탭';
+  if (!existing.some((scenario) => scenario.name === trimmedBase)) return trimmedBase;
+
+  let index = 2;
+  while (existing.some((scenario) => scenario.name === `${trimmedBase} (${index})`)) {
+    index += 1;
+  }
+  return `${trimmedBase} (${index})`;
+};
 
 export const usePortfolioPersistence = () => {
   const tickerProfiles = useTickerProfilesAtomValue();
@@ -74,6 +96,7 @@ export const usePortfolioPersistence = () => {
   const setActiveScenarioId = useSetActiveScenarioIdWrite();
 
   const [isPortfolioHydrated, setIsPortfolioHydrated] = useState(false);
+  const hasAppliedShareLinkRef = useRef(false);
 
   const makeDefaultSavedName = () => {
     const now = new Date();
@@ -450,6 +473,86 @@ export const usePortfolioPersistence = () => {
     }
   };
 
+  const createShareLink = async () => {
+    const { scenarios, activeScenarioId: currentActiveScenarioId } = buildScenariosSnapshot();
+    const activeScenario = scenarios.find((scenario) => scenario.id === currentActiveScenarioId) ?? null;
+    if (!activeScenario) {
+      return {
+        ok: false as const,
+        message: '공유할 탭을 찾을 수 없습니다.'
+      };
+    }
+
+    const encoded = encodeSharedScenario(activeScenario);
+    if (encoded.length > SHARE_LENGTH_LIMIT) {
+      return {
+        ok: false as const,
+        message: `공유 데이터가 너무 큽니다. (현재 ${encoded.length}자, 최대 ${SHARE_LENGTH_LIMIT}자)`
+      };
+    }
+
+    const url = new URL(window.location.href);
+    url.searchParams.set(SHARE_QUERY_PARAM, encoded);
+    url.searchParams.set(SHARE_VERSION_QUERY_PARAM, String(SHARE_SCHEMA_VERSION));
+    const shareUrl = url.toString();
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      return { ok: true as const, url: shareUrl, copied: true as const };
+    } catch {
+      return { ok: true as const, url: shareUrl, copied: false as const };
+    }
+  };
+
+  useEffect(() => {
+    if (!isPortfolioHydrated) return;
+    if (hasAppliedShareLinkRef.current) return;
+    hasAppliedShareLinkRef.current = true;
+
+    const url = new URL(window.location.href);
+    const shareCode = url.searchParams.get(SHARE_QUERY_PARAM);
+    const cleanupQuery = () => {
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete(SHARE_QUERY_PARAM);
+      cleanUrl.searchParams.delete(SHARE_VERSION_QUERY_PARAM);
+      window.history.replaceState({}, '', cleanUrl.toString());
+    };
+
+    if (!shareCode) return;
+
+    const sharedScenario = decodeSharedScenario(shareCode);
+    if (!sharedScenario) {
+      trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
+        operation: 'apply_share_link',
+        reason: 'decode_failed'
+      });
+      cleanupQuery();
+      return;
+    }
+
+    const { scenarios } = buildScenariosSnapshot();
+    if (scenarios.length >= MAX_SCENARIO_TABS) {
+      trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
+        operation: 'apply_share_link',
+        reason: 'max_tabs_reached'
+      });
+      cleanupQuery();
+      return;
+    }
+
+    const nextSharedScenario: PersistedScenarioState = {
+      ...sharedScenario,
+      id: makeScenarioId(),
+      name: makeUniqueScenarioName(scenarios, '공유된 탭')
+    };
+
+    const nextTabs = [...scenarios, nextSharedScenario];
+    setScenarioTabs(nextTabs);
+    setActiveScenarioId(nextSharedScenario.id);
+    applyScenario(nextSharedScenario);
+    cleanupQuery();
+  }, [isPortfolioHydrated]);
+
   return {
     isPortfolioHydrated,
     saveNamedState,
@@ -457,6 +560,7 @@ export const usePortfolioPersistence = () => {
     loadNamedState,
     deleteNamedState,
     downloadNamedStateAsJson,
-    loadStateFromJsonText
+    loadStateFromJsonText,
+    createShareLink
   };
 };
