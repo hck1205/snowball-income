@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseNasdaqLikeTxt } from './parser.mjs';
@@ -23,23 +23,49 @@ const writeJson = async (filePath, data) => {
   await writeFile(filePath, json, 'utf8');
 };
 
+const readJson = async (filePath) => {
+  const json = await readFile(filePath, 'utf8');
+  return JSON.parse(json);
+};
+
+const loadRemoteOrFallback = async ({ label, url, outputPath }) => {
+  try {
+    const raw = await downloadText(url);
+    const parsed = parseNasdaqLikeTxt(raw);
+    await writeJson(outputPath, parsed);
+    return parsed;
+  } catch (error) {
+    try {
+      const fallback = await readJson(outputPath);
+      console.warn(`[ticker:parse] ${label} download failed. Using cached file: ${outputPath}`);
+      console.warn(`[ticker:parse] Cause: ${error instanceof Error ? error.message : String(error)}`);
+      return fallback;
+    } catch {
+      throw new Error(
+        `[ticker:parse] ${label} download failed and cached file is not available: ${outputPath}`,
+        { cause: error }
+      );
+    }
+  }
+};
+
 export const generateTickerJsonFiles = async (outputDir = DEFAULT_OUTPUT_DIR) => {
   await mkdir(outputDir, { recursive: true });
-
-  const [nasdaqRaw, otherRaw] = await Promise.all([
-    downloadText(NASDAQ_LISTED_URL),
-    downloadText(OTHER_LISTED_URL)
-  ]);
-
-  const nasdaqObject = parseNasdaqLikeTxt(nasdaqRaw);
-  const otherObject = parseNasdaqLikeTxt(otherRaw);
 
   const nasdaqOutputPath = path.join(outputDir, 'nasdaq-listed.json');
   const otherOutputPath = path.join(outputDir, 'other-listed.json');
 
-  await Promise.all([
-    writeJson(nasdaqOutputPath, nasdaqObject),
-    writeJson(otherOutputPath, otherObject)
+  const [nasdaqObject, otherObject] = await Promise.all([
+    loadRemoteOrFallback({
+      label: 'nasdaq-listed',
+      url: NASDAQ_LISTED_URL,
+      outputPath: nasdaqOutputPath
+    }),
+    loadRemoteOrFallback({
+      label: 'other-listed',
+      url: OTHER_LISTED_URL,
+      outputPath: otherOutputPath
+    })
   ]);
 
   return {
