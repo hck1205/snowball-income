@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { Card, ToggleField } from '@/components';
 import type { SimulationResultProps } from './SimulationResult.types';
 import { CompactSummaryGrid, CompactSummaryItem, CompactSummaryLabel, CompactSummaryValue } from '@/pages/Main/Main.shared.styled';
+import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 
 function SimulationResultComponent({
   simulation,
@@ -26,7 +27,13 @@ function SimulationResultComponent({
           controlWidth="54px"
           onText="간략"
           offText="상세"
-          onChange={(event) => onToggleCompact(event.target.checked)}
+          onChange={(event) => {
+            trackEvent(ANALYTICS_EVENT.TOGGLE_CHANGED, {
+              field_name: 'isResultCompact',
+              value: event.target.checked
+            });
+            onToggleCompact(event.target.checked);
+          }}
         />
       }
     >

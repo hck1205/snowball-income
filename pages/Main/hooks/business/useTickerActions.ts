@@ -31,6 +31,7 @@ import {
 } from '@/jotai';
 import { useLongPress } from '@/pages/Main/hooks/interaction';
 import { toTickerDraft } from '@/pages/Main/utils';
+import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 
 export const useTickerActions = () => {
   const values = useYieldFormAtomValue();
@@ -73,6 +74,13 @@ export const useTickerActions = () => {
   }, [setYieldFormValues]);
 
   const openTickerModal = useCallback(() => {
+    trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
+      cta_name: 'ticker_create_open',
+      placement: 'ticker_creation_panel'
+    });
+    trackEvent(ANALYTICS_EVENT.TICKER_CREATE_STARTED, {
+      source: 'main_left_panel'
+    });
     setTickerDraft(toTickerDraft(values));
     setSelectedPreset('custom');
     setTickerModalMode('create');
@@ -81,6 +89,11 @@ export const useTickerActions = () => {
   }, [setEditingTickerId, setIsTickerModalOpen, setSelectedPreset, setTickerDraft, setTickerModalMode, values]);
 
   const openTickerEditModal = useCallback((profile: TickerProfile) => {
+    trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
+      cta_name: 'ticker_edit_open',
+      placement: 'ticker_chip',
+      ticker: profile.ticker
+    });
     setTickerDraft(toTickerDraft(profile));
     setSelectedPreset('custom');
     setTickerModalMode('edit');
@@ -95,7 +108,13 @@ export const useTickerActions = () => {
   }, [setEditingTickerId, setIsTickerModalOpen, setTickerModalMode]);
 
   const closeHelp = useCallback(() => setActiveHelp(null), [setActiveHelp]);
-  const openHelpExpectedTotalReturn = useCallback(() => setActiveHelp('expectedTotalReturn'), [setActiveHelp]);
+  const openHelpExpectedTotalReturn = useCallback(() => {
+    trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
+      cta_name: 'open_help_expected_total_return',
+      placement: 'ticker_modal'
+    });
+    setActiveHelp('expectedTotalReturn');
+  }, [setActiveHelp]);
 
   const handleBackdropClick = useCallback((event: MouseEvent<HTMLDivElement>) => {
     if (event.target !== event.currentTarget) return;
@@ -130,6 +149,18 @@ export const useTickerActions = () => {
       applyTickerProfile(profile);
     }
 
+    trackEvent(ANALYTICS_EVENT.TICKER_SAVED, {
+      mode: tickerModalMode,
+      ticker: profile.ticker,
+      source: selectedPreset === 'custom' ? 'custom' : 'preset'
+    });
+    if (tickerModalMode === 'create') {
+      trackEvent(ANALYTICS_EVENT.TICKER_INCLUDED, {
+        ticker: profile.ticker,
+        source: selectedPreset === 'custom' ? 'custom' : 'preset'
+      });
+    }
+
     setIsConfigDrawerOpen(false);
     closeTickerModal();
   }, [
@@ -152,6 +183,7 @@ export const useTickerActions = () => {
     if (tickerModalMode !== 'edit' || !editingTickerId) return;
 
     const deletingId = editingTickerId;
+    const deletingProfile = tickerProfiles.find((profile) => profile.id === deletingId);
     const nextProfiles = tickerProfiles.filter((profile) => profile.id !== deletingId);
     const nextIncludedIds = includedTickerIds.filter((id) => id !== deletingId);
     const fallbackSelectedId = nextIncludedIds[0] ?? null;
@@ -177,6 +209,11 @@ export const useTickerActions = () => {
       }
     }
 
+    trackEvent(ANALYTICS_EVENT.TICKER_DELETED, {
+      ticker: deletingProfile?.ticker ?? '',
+      mode: tickerModalMode
+    });
+
     setIsConfigDrawerOpen(false);
     closeTickerModal();
   }, [
@@ -200,11 +237,19 @@ export const useTickerActions = () => {
 
     if (isIncluded) {
       // Included ticker chips act as "select" only; removal is handled by right-side x button or modal delete.
+      trackEvent(ANALYTICS_EVENT.TICKER_SELECTED, {
+        ticker: profile.ticker,
+        source: 'ticker_chip'
+      });
       setSelectedTickerId(profile.id);
       applyTickerProfile(profile);
       return;
     }
 
+    trackEvent(ANALYTICS_EVENT.TICKER_INCLUDED, {
+      ticker: profile.ticker,
+      source: 'ticker_chip'
+    });
     setIncludedTickerIds((prev: string[]) => [...prev, profile.id]);
     setWeightByTickerId((weights: Record<string, number>) => ({ ...weights, [profile.id]: weights[profile.id] ?? 1 }));
     setFixedByTickerId((fixed: Record<string, boolean>) => ({ ...fixed, [profile.id]: fixed[profile.id] ?? false }));
@@ -214,6 +259,12 @@ export const useTickerActions = () => {
 
   const removeIncludedTicker = useCallback((profileId: string) => {
     const nextIncludedIds = includedTickerIds.filter((id) => id !== profileId);
+    const targetProfile = tickerProfiles.find((item) => item.id === profileId);
+    trackEvent(ANALYTICS_EVENT.ALLOCATION_CHANGED, {
+      action: 'remove_included_ticker',
+      ticker: targetProfile?.ticker ?? '',
+      ticker_id: profileId
+    });
     setIncludedTickerIds(nextIncludedIds);
     setFixedByTickerId((prev: Record<string, boolean>) => ({ ...prev, [profileId]: false }));
 
@@ -266,11 +317,26 @@ export const useTickerActions = () => {
     }
 
     setWeightByTickerId((prev: Record<string, number>) => ({ ...prev, ...nextMap }));
+    const targetProfile = includedProfiles.find((item) => item.id === profileId);
+    trackEvent(ANALYTICS_EVENT.ALLOCATION_CHANGED, {
+      action: 'set_weight',
+      ticker: targetProfile?.ticker ?? '',
+      ticker_id: profileId,
+      weight_percent: Math.round(targetValue * 10) / 10
+    });
   }, [allocationPercentExactByTickerId, fixedByTickerId, includedProfiles, setWeightByTickerId]);
 
   const toggleTickerFixed = useCallback((profileId: string) => {
+    const nextIsFixed = !fixedByTickerId[profileId];
+    const targetProfile = includedProfiles.find((item) => item.id === profileId);
+    trackEvent(ANALYTICS_EVENT.ALLOCATION_CHANGED, {
+      action: 'toggle_fixed',
+      ticker: targetProfile?.ticker ?? '',
+      ticker_id: profileId,
+      is_fixed: nextIsFixed
+    });
     setFixedByTickerId((prev: Record<string, boolean>) => ({ ...prev, [profileId]: !prev[profileId] }));
-  }, [setFixedByTickerId]);
+  }, [fixedByTickerId, includedProfiles, setFixedByTickerId]);
 
   const { consumeTriggered, handlePressEnd, handlePressStart } = useLongPress<TickerProfile>({
     delayMs: 550,

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { ModalBackdrop, ModalBody, ModalClose, ModalPanel, ModalTitle } from '@/pages/Main/Main.shared.styled';
 import { useCurrentHelpAtomValue } from '@/jotai';
 import type { HelpModalProps } from './HelpModal.types';
+import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 
 export default function HelpModal({ onBackdropClick, onClose }: HelpModalProps) {
   const help = useCurrentHelpAtomValue();
@@ -19,6 +20,14 @@ export default function HelpModal({ onBackdropClick, onClose }: HelpModalProps) 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [help, onClose]);
+
+  useEffect(() => {
+    if (!help) return;
+    trackEvent(ANALYTICS_EVENT.MODAL_VIEW, {
+      modal_type: 'help_modal',
+      help_title: help.title
+    });
+  }, [help]);
 
   if (!help) return null;
   if (!modalRoot) return null;

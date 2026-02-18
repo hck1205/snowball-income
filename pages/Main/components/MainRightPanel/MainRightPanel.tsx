@@ -59,6 +59,7 @@ import { ChartPanel, ResponsiveEChart } from '@/pages/Main/components';
 import { formatPercent, formatResultAmount, targetYearLabel } from '@/pages/Main/utils';
 import { SecondaryButton } from '@/pages/Main/Main.shared.styled';
 import type { TickerProfile } from '@/shared/types/snowball';
+import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 
 const PORTFOLIO_PRESET_PLACEHOLDERS = [
   {
@@ -349,6 +350,8 @@ function MainRightPanelComponent() {
   const [hoverTooltip, setHoverTooltip] = useState<{ text: string; x: number; y: number } | null>(null);
   const longPressTimerRef = useRef<number | null>(null);
   const longPressTriggeredRef = useRef(false);
+  const hasTrackedSimulationRef = useRef(false);
+  const hasTrackedPortfolioConfigRef = useRef(false);
   const showQuickEstimate = useShowQuickEstimateAtomValue();
   const isResultCompact = useIsResultCompactAtomValue();
   const setIsResultCompact = useSetIsResultCompactWrite();
@@ -452,6 +455,10 @@ function MainRightPanelComponent() {
   }, [clearLongPressTimer]);
 
   const openDeleteModal = useCallback((tabId: string) => {
+    trackEvent(ANALYTICS_EVENT.MODAL_VIEW, {
+      modal_type: 'delete_tab_modal',
+      scenario_id: tabId
+    });
     setDeleteTargetTabId(tabId);
   }, []);
 
@@ -495,6 +502,16 @@ function MainRightPanelComponent() {
         .filter((profile): profile is TickerProfile => profile !== null);
 
       if (profiles.length === 0) return;
+
+      trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
+        cta_name: 'apply_portfolio_preset',
+        placement: 'empty_result_preset_grid',
+        preset_id: preset.id
+      });
+      trackEvent(ANALYTICS_EVENT.PRESET_APPLIED, {
+        preset_id: preset.id,
+        ticker_count: profiles.length
+      });
 
       const includedIds = profiles.map((profile) => profile.id);
       const selectedId = includedIds[0] ?? null;
@@ -543,6 +560,47 @@ function MainRightPanelComponent() {
       setYieldFormValues
     ]
   );
+
+  useEffect(() => {
+    if (!simulation) {
+      hasTrackedSimulationRef.current = false;
+      hasTrackedPortfolioConfigRef.current = false;
+      return;
+    }
+
+    if (!hasTrackedSimulationRef.current) {
+      trackEvent(ANALYTICS_EVENT.SIMULATION_RESULT_VIEW, {
+        included_ticker_count: includedProfiles.length,
+        duration_years: values.durationYears,
+        show_quick_estimate: showQuickEstimate
+      });
+      hasTrackedSimulationRef.current = true;
+    }
+
+    if (!hasTrackedPortfolioConfigRef.current) {
+      trackEvent(ANALYTICS_EVENT.PORTFOLIO_CONFIG_COMPLETED, {
+        included_ticker_count: includedProfiles.length,
+        has_split_graphs: showSplitGraphs
+      });
+      hasTrackedPortfolioConfigRef.current = true;
+    }
+  }, [includedProfiles.length, showQuickEstimate, showSplitGraphs, simulation, values.durationYears]);
+
+  useEffect(() => {
+    if (!simulation) return;
+    trackEvent(ANALYTICS_EVENT.CHART_VIEW, {
+      chart_name: 'yearly_result',
+      mode: isYearlyAreaFillOn ? 'fill' : 'line'
+    });
+  }, [isYearlyAreaFillOn, simulation]);
+
+  useEffect(() => {
+    if (!simulation || !showSplitGraphs) return;
+    trackEvent(ANALYTICS_EVENT.CHART_VIEW, {
+      chart_name: 'split_graphs',
+      visible: true
+    });
+  }, [showSplitGraphs, simulation]);
 
   return (
     <ResultsColumn>

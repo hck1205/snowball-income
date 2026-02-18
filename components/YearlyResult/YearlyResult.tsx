@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { Card, ToggleField } from '@/components';
 import type { YearlyResultProps } from './YearlyResult.types';
+import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import {
   ChartWrap,
   HintText,
@@ -30,10 +31,30 @@ function YearlyResultComponent({
               {items.map((item) => (
                 <SeriesFilterItem key={item.key}>
                   <SeriesFilterLabel>
-                    <SeriesFilterCheckbox type="checkbox" checked={item.checked} onChange={(event) => item.onToggle(event.target.checked)} />
+                    <SeriesFilterCheckbox
+                      type="checkbox"
+                      checked={item.checked}
+                      onChange={(event) => {
+                        trackEvent(ANALYTICS_EVENT.TOGGLE_CHANGED, {
+                          field_name: `yearlySeries.${item.key}`,
+                          value: event.target.checked
+                        });
+                        item.onToggle(event.target.checked);
+                      }}
+                    />
                     {item.label}
                   </SeriesFilterLabel>
-                  <HelpMarkButton type="button" aria-label={`${item.label} 설명 열기`} onClick={item.onHelp}>
+                  <HelpMarkButton
+                    type="button"
+                    aria-label={`${item.label} 설명 열기`}
+                    onClick={() => {
+                      trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
+                        cta_name: 'open_help_yearly_series',
+                        series_key: item.key
+                      });
+                      item.onHelp();
+                    }}
+                  >
                     ?
                   </HelpMarkButton>
                 </SeriesFilterItem>
@@ -47,7 +68,13 @@ function YearlyResultComponent({
               stateTextColor="#111"
               onText="Color"
               offText="Blank"
-              onChange={(event) => onToggleFill(event.target.checked)}
+              onChange={(event) => {
+                trackEvent(ANALYTICS_EVENT.TOGGLE_CHANGED, {
+                  field_name: 'isYearlyAreaFillOn',
+                  value: event.target.checked
+                });
+                onToggleFill(event.target.checked);
+              }}
             />
           </SeriesFilterRow>
           <ChartWrap role="img" aria-label="연도별 자산 및 배당 추이 차트">

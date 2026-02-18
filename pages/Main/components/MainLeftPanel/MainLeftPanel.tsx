@@ -15,6 +15,7 @@ import {
   useTickerActions,
   usePortfolioPersistence,
 } from "@/pages/Main/hooks";
+import { ANALYTICS_EVENT, trackEvent } from "@/shared/lib/analytics";
 
 function MainLeftPanelComponent() {
   const tickerProfiles = useTickerProfilesAtomValue();
@@ -40,9 +41,27 @@ function MainLeftPanelComponent() {
     downloadNamedStateAsJson,
     loadStateFromJsonText,
   } = usePortfolioPersistence();
-  const handleHelpResultMode = useCallback(() => setActiveHelp("resultMode"), [setActiveHelp]);
-  const handleHelpReinvestTiming = useCallback(() => setActiveHelp("reinvestTiming"), [setActiveHelp]);
-  const handleHelpDpsGrowthMode = useCallback(() => setActiveHelp("dpsGrowthMode"), [setActiveHelp]);
+  const handleHelpResultMode = useCallback(() => {
+    trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
+      cta_name: "open_help_result_mode",
+      placement: "investment_settings",
+    });
+    setActiveHelp("resultMode");
+  }, [setActiveHelp]);
+  const handleHelpReinvestTiming = useCallback(() => {
+    trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
+      cta_name: "open_help_reinvest_timing",
+      placement: "investment_settings",
+    });
+    setActiveHelp("reinvestTiming");
+  }, [setActiveHelp]);
+  const handleHelpDpsGrowthMode = useCallback(() => {
+    trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
+      cta_name: "open_help_dps_growth_mode",
+      placement: "investment_settings",
+    });
+    setActiveHelp("dpsGrowthMode");
+  }, [setActiveHelp]);
 
   return (
     <>

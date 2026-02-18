@@ -2,6 +2,7 @@ import { memo, type ChangeEvent, type MouseEvent, useCallback, useEffect, useId,
 import { createPortal } from 'react-dom';
 import { Card, InputField } from '@/components';
 import { getTickerDisplayName } from '@/shared/utils';
+import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import type { TickerCreationProps } from './TickerCreation.types';
 import { capturePage } from './capturePage';
 import {
@@ -118,6 +119,27 @@ function TickerCreationComponent({
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [closeFileModal, closeLoadModal, closeSaveModal, isFileModalOpen, isLoadModalOpen, isSaveModalOpen]);
 
+  useEffect(() => {
+    if (!isSaveModalOpen) return;
+    trackEvent(ANALYTICS_EVENT.MODAL_VIEW, {
+      modal_type: 'save_modal'
+    });
+  }, [isSaveModalOpen]);
+
+  useEffect(() => {
+    if (!isLoadModalOpen) return;
+    trackEvent(ANALYTICS_EVENT.MODAL_VIEW, {
+      modal_type: 'load_modal'
+    });
+  }, [isLoadModalOpen]);
+
+  useEffect(() => {
+    if (!isFileModalOpen) return;
+    trackEvent(ANALYTICS_EVENT.MODAL_VIEW, {
+      modal_type: 'file_modal'
+    });
+  }, [isFileModalOpen]);
+
   const openLoadModal = async () => {
     setIsLoadModalOpen(true);
     setLoadError('');
@@ -136,6 +158,9 @@ function TickerCreationComponent({
 
       setSavedItems(items);
     } catch {
+      trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
+        operation: 'open_load_modal'
+      });
       setLoadError('저장 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
     } finally {
       setIsLoadingList(false);
@@ -158,6 +183,9 @@ function TickerCreationComponent({
 
       setSavedItems(items);
     } catch {
+      trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
+        operation: 'open_file_modal'
+      });
       setFileError('저장 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
     } finally {
       setIsLoadingList(false);
@@ -172,6 +200,9 @@ function TickerCreationComponent({
       setIsSaveModalOpen(false);
       setSaveName('');
     } catch {
+      trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
+        operation: 'save_named_state'
+      });
       setSaveError('저장에 실패했습니다. 잠시 후 다시 시도해 주세요.');
     } finally {
       setIsSaving(false);
@@ -190,6 +221,10 @@ function TickerCreationComponent({
       }
       setIsLoadModalOpen(false);
     } catch {
+      trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
+        operation: 'load_named_state',
+        source: 'saved_list'
+      });
       setLoadError('불러오기에 실패했습니다. 잠시 후 다시 시도해 주세요.');
     } finally {
       setIsLoadingState(false);
@@ -208,6 +243,9 @@ function TickerCreationComponent({
 
       setSavedItems((prev) => prev.filter((item) => item.name !== name));
     } catch {
+      trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
+        operation: 'delete_named_state'
+      });
       setLoadError('삭제에 실패했습니다. 잠시 후 다시 시도해 주세요.');
     } finally {
       setIsDeletingState(false);
@@ -240,6 +278,10 @@ function TickerCreationComponent({
       const jsonText = await file.text();
       const parsed = JSON.parse(jsonText) as unknown;
       if (!isRecognizableLoadFile(parsed)) {
+        trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
+          operation: 'load_state_from_json',
+          reason: 'unrecognized_schema'
+        });
         setLoadFileRecognitionError('인식에 실패했습니다.');
         event.target.value = '';
         return;
@@ -247,6 +289,10 @@ function TickerCreationComponent({
 
       const result = await onLoadStateFromJsonText(jsonText);
       if (!result.ok) {
+        trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
+          operation: 'load_state_from_json',
+          reason: 'invalid_payload'
+        });
         setLoadError(result.message);
         event.target.value = '';
         return;
@@ -256,6 +302,10 @@ function TickerCreationComponent({
       setIsLoadModalOpen(false);
       event.target.value = '';
     } catch {
+      trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
+        operation: 'load_state_from_json',
+        reason: 'parse_error'
+      });
       setLoadFileRecognitionError('인식에 실패했습니다.');
       event.target.value = '';
     } finally {
@@ -276,6 +326,9 @@ function TickerCreationComponent({
         setFileError(result.message);
       }
     } catch {
+      trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
+        operation: 'download_named_state_json'
+      });
       setFileError('다운로드에 실패했습니다. 잠시 후 다시 시도해 주세요.');
     } finally {
       setIsDownloadingFile(false);
@@ -291,6 +344,9 @@ function TickerCreationComponent({
       await capturePage();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'unknown';
+      trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
+        operation: 'capture_page'
+      });
       setCaptureError(`캡처에 실패했습니다. 잠시 후 다시 시도해 주세요. (${message})`);
     } finally {
       setIsCapturing(false);
@@ -363,6 +419,10 @@ function TickerCreationComponent({
 
   const handleQuickAction = useCallback(
     (key: 'save' | 'load' | 'file' | 'capture' | 'coffee') => {
+      trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
+        cta_name: `quick_action_${key}`,
+        placement: 'ticker_creation_quick_actions'
+      });
               if (key === 'save') {
                 setIsSaveModalOpen(true);
                 setSaveError('');

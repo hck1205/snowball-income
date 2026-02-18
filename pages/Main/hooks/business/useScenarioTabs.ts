@@ -33,6 +33,7 @@ import {
   useWeightByTickerIdAtomValue,
   useYieldFormAtomValue
 } from '@/jotai';
+import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 
 const makeScenarioId = () => `scenario-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 const sanitizeScenarioName = (rawName: string) => rawName.trim();
@@ -214,6 +215,10 @@ export const useScenarioTabs = () => {
       setScenarioTabs(nextTabs);
       setActiveScenarioId(nextScenarioId);
       applyScenario(target);
+      trackEvent(ANALYTICS_EVENT.SCENARIO_TAB_ACTION, {
+        action: 'select',
+        scenario_id: nextScenarioId
+      });
     },
     [activeScenarioId, applyScenario, prepareTabsWithActiveSnapshot, setActiveScenarioId, setScenarioTabs]
   );
@@ -235,6 +240,10 @@ export const useScenarioTabs = () => {
     setScenarioTabs([...nextTabs, newTab]);
     setActiveScenarioId(newTab.id);
     applyScenario(newTab);
+    trackEvent(ANALYTICS_EVENT.SCENARIO_TAB_ACTION, {
+      action: 'create',
+      scenario_id: newTab.id
+    });
     return true;
   }, [
     applyScenario,
@@ -261,6 +270,10 @@ export const useScenarioTabs = () => {
     setScenarioTabs(remainingTabs);
     setActiveScenarioId(nextActiveTab.id);
     applyScenario(nextActiveTab);
+    trackEvent(ANALYTICS_EVENT.SCENARIO_TAB_ACTION, {
+      action: 'delete',
+      scenario_id: scenarioId
+    });
     return true;
   }, [activeScenarioId, applyScenario, prepareTabsWithActiveSnapshot, setActiveScenarioId, setScenarioTabs, tabs.length]);
 
@@ -272,6 +285,10 @@ export const useScenarioTabs = () => {
       setScenarioTabs((prev) =>
         prev.map((tab) => (tab.id === scenarioId ? { ...tab, name: nextName } : tab))
       );
+      trackEvent(ANALYTICS_EVENT.SCENARIO_TAB_ACTION, {
+        action: 'rename',
+        scenario_id: scenarioId
+      });
       return true;
     },
     [setScenarioTabs]

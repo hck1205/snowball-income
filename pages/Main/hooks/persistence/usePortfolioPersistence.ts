@@ -40,6 +40,7 @@ import {
   writePersistedAppStateByName,
   writePersistedAppState
 } from '@/jotai';
+import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 
 export const usePortfolioPersistence = () => {
   const tickerProfiles = useTickerProfilesAtomValue();
@@ -170,8 +171,18 @@ export const usePortfolioPersistence = () => {
         const payload = await readPersistedAppState();
         if (cancelled) return;
         applyPersistedPayload(payload);
+        const hasPortfolio = payload.scenarios.some((scenario) => scenario.portfolio.tickerProfiles.length > 0);
+        if (hasPortfolio) {
+          trackEvent(ANALYTICS_EVENT.RETURN_VISIT, {
+            has_saved_portfolio: true,
+            scenario_count: payload.scenarios.length
+          });
+        }
       } catch {
         // Keep current defaults/state when hydration fails.
+        trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
+          operation: 'hydrate_persisted_state'
+        });
       } finally {
         if (!cancelled) setIsPortfolioHydrated(true);
       }
@@ -291,10 +302,16 @@ export const usePortfolioPersistence = () => {
   ]);
 
   const saveNamedState = async (rawName: string) => {
+    trackEvent(ANALYTICS_EVENT.STATE_SAVE_STARTED, {
+      source: 'quick_action_save'
+    });
     const savedName = rawName.trim() || makeDefaultSavedName();
     await writePersistedAppStateByName(savedName, {
       ...buildPayload(),
       savedName
+    });
+    trackEvent(ANALYTICS_EVENT.STATE_SAVE_COMPLETED, {
+      saved_name: savedName
     });
     return { ok: true as const, savedName };
   };
@@ -342,26 +359,47 @@ export const usePortfolioPersistence = () => {
   }
 
   const loadNamedState = async (name: string) => {
+    trackEvent(ANALYTICS_EVENT.STATE_LOAD_STARTED, {
+      source: 'saved_list',
+      saved_name: name
+    });
     const payload = await readPersistedAppStateByName(name);
     if (!payload) {
+      trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
+        operation: 'load_named_state',
+        source: 'saved_list'
+      });
       return { ok: false as const, message: '해당 저장 항목을 찾을 수 없습니다.' };
     }
 
     applyPersistedPayload(payload);
+    trackEvent(ANALYTICS_EVENT.STATE_LOAD_COMPLETED, {
+      source: 'saved_list',
+      saved_name: name
+    });
     return { ok: true as const };
   };
 
   const deleteNamedState = async (name: string) => {
     const deleted = await deletePersistedAppStateByName(name);
     if (!deleted) {
+      trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
+        operation: 'delete_named_state'
+      });
       return { ok: false as const, message: '해당 저장 항목을 삭제하지 못했습니다.' };
     }
+    trackEvent(ANALYTICS_EVENT.STATE_DELETE_COMPLETED, {
+      saved_name: name
+    });
     return { ok: true as const };
   };
 
   const downloadNamedStateAsJson = async (name: string) => {
     const payload = await readPersistedAppStateByName(name);
     if (!payload) {
+      trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
+        operation: 'download_named_state_json'
+      });
       return { ok: false as const, message: '해당 저장 항목을 찾을 수 없습니다.' };
     }
 
@@ -377,10 +415,17 @@ export const usePortfolioPersistence = () => {
     a.remove();
     window.URL.revokeObjectURL(url);
 
+    trackEvent(ANALYTICS_EVENT.STATE_DOWNLOAD_COMPLETED, {
+      saved_name: name
+    });
+
     return { ok: true as const };
   };
 
   const loadStateFromJsonText = async (jsonText: string) => {
+    trackEvent(ANALYTICS_EVENT.STATE_LOAD_STARTED, {
+      source: 'json_import'
+    });
     try {
       const payload = parsePersistedAppStateJson(jsonText);
       applyPersistedPayload(payload);
@@ -390,8 +435,17 @@ export const usePortfolioPersistence = () => {
           savedName: payload.savedName
         });
       }
+      trackEvent(ANALYTICS_EVENT.JSON_STATE_IMPORTED, {
+        has_saved_name: Boolean(payload.savedName)
+      });
+      trackEvent(ANALYTICS_EVENT.STATE_LOAD_COMPLETED, {
+        source: 'json_import'
+      });
       return { ok: true as const };
     } catch {
+      trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
+        operation: 'load_state_from_json'
+      });
       return { ok: false as const, message: 'JSON 파일 형식이 올바르지 않습니다.' };
     }
   };

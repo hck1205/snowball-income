@@ -30,6 +30,7 @@ import {
   SecondaryButton
 } from '@/pages/Main/Main.shared.styled';
 import type { TickerModalViewProps } from './TickerModal.types';
+import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 
 type ListedTickerMeta = { name: string; issuer?: string };
 type ListedTickerMap = Record<string, ListedTickerMeta>;
@@ -170,7 +171,13 @@ export default function TickerModalView({
             role="tab"
             active={activeTab === 'input'}
             aria-selected={activeTab === 'input'}
-            onClick={() => setActiveTab('input')}
+            onClick={() => {
+              trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
+                cta_name: 'ticker_modal_tab_input',
+                mode
+              });
+              setActiveTab('input');
+            }}
           >
             입력
           </ModalTabButton>
@@ -179,7 +186,13 @@ export default function TickerModalView({
             role="tab"
             active={activeTab === 'preset'}
             aria-selected={activeTab === 'preset'}
-            onClick={() => setActiveTab('preset')}
+            onClick={() => {
+              trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
+                cta_name: 'ticker_modal_tab_preset',
+                mode
+              });
+              setActiveTab('preset');
+            }}
           >
             프리셋
           </ModalTabButton>
@@ -281,7 +294,13 @@ export default function TickerModalView({
                       selected={selectedPreset === presetKey}
                       aria-selected={selectedPreset === presetKey}
                       aria-label={`${presetTickers[presetKey].ticker} 선택`}
-                      onClick={() => onSelectPreset(presetKey)}
+                      onClick={() => {
+                        trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
+                          cta_name: 'ticker_preset_select',
+                          ticker: presetTickers[presetKey].ticker
+                        });
+                        onSelectPreset(presetKey);
+                      }}
                     >
                       {presetTickers[presetKey].ticker}
                     </PresetChipButton>
@@ -384,14 +403,41 @@ export default function TickerModalView({
         ) : null}
         <ModalActions>
           {mode === 'edit' ? (
-            <SecondaryButton type="button" onClick={onDelete}>
+            <SecondaryButton
+              type="button"
+              onClick={() => {
+                trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
+                  cta_name: 'ticker_delete',
+                  mode
+                });
+                onDelete();
+              }}
+            >
               티커 삭제
             </SecondaryButton>
           ) : null}
-          <SecondaryButton type="button" onClick={onClose}>
+          <SecondaryButton
+            type="button"
+            onClick={() => {
+              trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
+                cta_name: 'ticker_modal_cancel',
+                mode
+              });
+              onClose();
+            }}
+          >
             취소
           </SecondaryButton>
-          <PrimaryButton type="button" onClick={onSave}>
+          <PrimaryButton
+            type="button"
+            onClick={() => {
+              trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
+                cta_name: mode === 'edit' ? 'ticker_save' : 'ticker_create',
+                mode
+              });
+              onSave();
+            }}
+          >
             {mode === 'edit' ? '저장' : '생성'}
           </PrimaryButton>
         </ModalActions>

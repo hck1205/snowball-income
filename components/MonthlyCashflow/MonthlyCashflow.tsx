@@ -4,6 +4,7 @@ import type { MonthlyCashflowProps } from './MonthlyCashflow.types';
 import { ChartWrap, HintText, InlineSelect, SeriesToggleLabel } from '@/pages/Main/Main.shared.styled';
 import { buildRecentCashflowBarOption } from '@/pages/Main/utils';
 import { formatKRW } from '@/shared/utils';
+import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 
 function MonthlyCashflowComponent({ yearlyCashflowByTicker, hasData = true, emptyMessage, ResponsiveChart }: MonthlyCashflowProps) {
   const years = yearlyCashflowByTicker.years;
@@ -32,7 +33,14 @@ function MonthlyCashflowComponent({ yearlyCashflowByTicker, hasData = true, empt
       <InlineSelect
         aria-label="실지급 배당 연도 선택"
         value={selectedYear ?? ''}
-        onChange={(event) => setSelectedYear(Number(event.target.value))}
+        onChange={(event) => {
+          const nextYear = Number(event.target.value);
+          trackEvent(ANALYTICS_EVENT.INVESTMENT_SETTING_CHANGED, {
+            field_name: 'monthly_cashflow_selected_year',
+            value: nextYear
+          });
+          setSelectedYear(nextYear);
+        }}
         style={{ maxWidth: '110px', minWidth: '110px', padding: '6px 24px 6px 8px', fontSize: '13px' }}
       >
         {years.map((year) => (

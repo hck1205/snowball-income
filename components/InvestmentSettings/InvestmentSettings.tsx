@@ -1,7 +1,8 @@
-import { memo } from 'react';
+import { memo, useEffect } from 'react';
 import { Card, FormSection, InputField, ToggleField } from '@/components';
 import type { YieldFormValues } from '@/shared/types';
 import type { InvestmentSettingsProps } from './InvestmentSettings.types';
+import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import {
   ConfigFormGrid,
   ConfigSectionDivider,
@@ -24,6 +25,13 @@ function InvestmentSettingsComponent({
   onHelpReinvestTiming,
   onHelpDpsGrowthMode
 }: InvestmentSettingsProps) {
+  useEffect(() => {
+    if (validationErrors.length === 0) return;
+    trackEvent(ANALYTICS_EVENT.VALIDATION_ERROR_VIEW, {
+      error_count: validationErrors.length
+    });
+  }, [validationErrors]);
+
   return (
     <Card>
       <FormSection title="투자 설정">
@@ -33,12 +41,24 @@ function InvestmentSettingsComponent({
             checked={showQuickEstimate}
             helpAriaLabel="결과 모드 설명 열기"
             onHelpClick={onHelpResultMode}
-            onChange={(event) => onToggleQuickEstimate(event.target.checked)}
+            onChange={(event) => {
+              trackEvent(ANALYTICS_EVENT.TOGGLE_CHANGED, {
+                field_name: 'showQuickEstimate',
+                value: event.target.checked
+              });
+              onToggleQuickEstimate(event.target.checked);
+            }}
           />
           <ToggleField
             label="그래프 나누어 보기"
             checked={showSplitGraphs}
-            onChange={(event) => onToggleSplitGraphs(event.target.checked)}
+            onChange={(event) => {
+              trackEvent(ANALYTICS_EVENT.TOGGLE_CHANGED, {
+                field_name: 'showSplitGraphs',
+                value: event.target.checked
+              });
+              onToggleSplitGraphs(event.target.checked);
+            }}
           />
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
             <span style={{ color: '#314d60', fontSize: '14px' }}>배당 재투자</span>

@@ -10,6 +10,7 @@ import {
 } from '@/jotai';
 import TickerModalView from './TickerModal.view';
 import type { TickerModalProps } from './TickerModal.types';
+import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 
 export default function TickerModal(props: TickerModalProps) {
   const isOpen = useIsTickerModalOpenAtomValue();
@@ -40,6 +41,14 @@ export default function TickerModal(props: TickerModalProps) {
     if (selectedPreset !== 'custom') return;
     handleSelectPreset(defaultPresetKey);
   }, [defaultPresetKey, handleSelectPreset, isOpen, mode, selectedPreset]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    trackEvent(ANALYTICS_EVENT.MODAL_VIEW, {
+      modal_type: 'ticker_modal',
+      mode
+    });
+  }, [isOpen, mode]);
 
   return (
     <TickerModalView

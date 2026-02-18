@@ -2,6 +2,7 @@ import { memo, type CSSProperties } from 'react';
 import { Card, ToggleField } from '@/components';
 import { ALLOCATION_COLORS } from '@/shared/constants';
 import { getTickerDisplayName } from '@/shared/utils';
+import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import type { PortfolioCompositionProps } from './PortfolioComposition.types';
 import {
   AllocationChartLayout,
@@ -45,7 +46,13 @@ function PortfolioCompositionComponent({
           controlWidth="58px"
           onText="배당"
           offText="Blank"
-          onChange={(event) => onToggleCenterDisplay(event.target.checked)}
+          onChange={(event) => {
+            trackEvent(ANALYTICS_EVENT.TOGGLE_CHANGED, {
+              field_name: 'showPortfolioDividendCenter',
+              value: event.target.checked
+            });
+            onToggleCenterDisplay(event.target.checked);
+          }}
         />
       }
     >
