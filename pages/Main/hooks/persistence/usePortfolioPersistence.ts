@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import {
   DEFAULT_SCENARIO_TAB_ID,
   DEFAULT_SCENARIO_TAB_NAME,
-  MAX_SCENARIO_TABS,
   deletePersistedAppStateByName,
   listPersistedStateNames,
   parsePersistedAppStateJson,
@@ -531,14 +530,6 @@ export const usePortfolioPersistence = () => {
     }
 
     const { scenarios } = buildScenariosSnapshot();
-    if (scenarios.length >= MAX_SCENARIO_TABS) {
-      trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
-        operation: 'apply_share_link',
-        reason: 'max_tabs_reached'
-      });
-      cleanupQuery();
-      return;
-    }
 
     const nextSharedScenario: PersistedScenarioState = {
       ...sharedScenario,
