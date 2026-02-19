@@ -400,6 +400,16 @@ function MainRightPanelComponent() {
   const getCumulativeDividend = useCallback((row: SimulationResultRow) => row.cumulativeDividend, []);
   const getProjectedYear = useCallback((row: { year: number }) => `${row.year}`, []);
   const getProjectedMonthlyDividend = useCallback((row: { monthlyDividend: number }) => row.monthlyDividend, []);
+  const projectedAnnualGrowthRate =
+    postInvestmentDividendProjectionRows.length >= 2 && postInvestmentDividendProjectionRows[0].annualDividend > 0
+      ? (postInvestmentDividendProjectionRows[1].annualDividend / postInvestmentDividendProjectionRows[0].annualDividend) - 1
+      : null;
+  const postInvestmentChartTitle =
+    projectedAnnualGrowthRate === null
+      ? '투자 종료 후 월배당 성장 추정 (추가 납입 없음)'
+      : `투자 종료 후 월배당 성장 추정 (추가 납입 없음, 연 ${projectedAnnualGrowthRate >= 0 ? '+' : ''}${(
+          projectedAnnualGrowthRate * 100
+        ).toFixed(2)}%)`;
 
   const clearLongPressTimer = useCallback(() => {
     if (longPressTimerRef.current === null) return;
@@ -764,7 +774,7 @@ function MainRightPanelComponent() {
           />
 
           <ChartPanel
-            title="투자 종료 후 월배당 성장 추정 (추가 납입 없음)"
+            title={postInvestmentChartTitle}
             rows={postInvestmentDividendProjectionRows}
             hasData={hasGraphData && postInvestmentDividendProjectionRows.length > 0}
             emptyMessage={emptyGraphMessage}
