@@ -257,13 +257,16 @@ export const ScenarioTabsWrap = styled.div`
   align-items: flex-end;
   gap: 1px;
   overflow-x: auto;
+  overflow-y: hidden;
   border-bottom: 1px solid #c9d8e4;
   scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
 `;
 
 export const ScenarioTabButton = styled.button<{ active?: boolean }>`
   position: relative;
-  max-width: 130px;
+  flex: 0 0 auto;
+  max-width: 160px;
   border: 1px solid ${({ active }) => (active ? '#9fb9cc' : '#c9d8e4')};
   border-bottom: 0;
   background: ${({ active }) => (active ? '#ffffff' : '#edf4fa')};
@@ -312,9 +315,10 @@ export const ScenarioTabRenameInput = styled.input`
 export const ScenarioTabEditWrap = styled.div`
   position: relative;
   display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
   gap: 0;
-  max-width: 130px;
+  max-width: 160px;
   border: 1px solid #9fb9cc;
   border-bottom: 0;
   background: #ffffff;

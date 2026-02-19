@@ -29,7 +29,7 @@ export const useMainComputed = ({
   const setVisibleYearlySeries = useSetVisibleYearlySeriesWrite();
   const setActiveHelp = useSetActiveHelpWrite();
 
-  const { simulation, yearlyCashflowByTicker } = useMemo(
+  const { simulation, yearlyCashflowByTicker, postInvestmentDividendProjectionRows } = useMemo(
     () =>
       buildSimulationBundle({
         isValid,
@@ -81,6 +81,7 @@ export const useMainComputed = ({
     allocationPieOption,
     recentCashflowBarOption,
     yearlyCashflowByTicker,
+    postInvestmentDividendProjectionRows,
     yearlyResultBarOption,
     yearlySeriesItems
   };

@@ -379,6 +379,7 @@ function MainRightPanelComponent() {
     allocationPieOption,
     recentCashflowBarOption,
     yearlyCashflowByTicker,
+    postInvestmentDividendProjectionRows,
     yearlyResultBarOption,
     yearlySeriesItems
   } = useMainComputed({
@@ -397,6 +398,8 @@ function MainRightPanelComponent() {
   const getMonthlyDividend = useCallback((row: SimulationResultRow) => row.monthlyDividend, []);
   const getAssetValue = useCallback((row: SimulationResultRow) => row.assetValue, []);
   const getCumulativeDividend = useCallback((row: SimulationResultRow) => row.cumulativeDividend, []);
+  const getProjectedYear = useCallback((row: { year: number }) => `${row.year}`, []);
+  const getProjectedMonthlyDividend = useCallback((row: { monthlyDividend: number }) => row.monthlyDividend, []);
 
   const clearLongPressTimer = useCallback(() => {
     if (longPressTimerRef.current === null) return;
@@ -602,6 +605,14 @@ function MainRightPanelComponent() {
     });
   }, [showSplitGraphs, simulation]);
 
+  useEffect(() => {
+    if (!simulation || postInvestmentDividendProjectionRows.length === 0) return;
+    trackEvent(ANALYTICS_EVENT.CHART_VIEW, {
+      chart_name: 'post_investment_monthly_dividend_projection',
+      visible: true
+    });
+  }, [postInvestmentDividendProjectionRows.length, simulation]);
+
   return (
     <ResultsColumn>
       <ScenarioTabsWrap aria-label="전략 탭 목록">
@@ -750,6 +761,15 @@ function MainRightPanelComponent() {
             hasData={hasGraphData}
             emptyMessage={emptyGraphMessage}
             ResponsiveChart={ResponsiveEChart}
+          />
+
+          <ChartPanel
+            title="투자 종료 후 월배당 성장 추정 (추가 납입 없음)"
+            rows={postInvestmentDividendProjectionRows}
+            hasData={hasGraphData && postInvestmentDividendProjectionRows.length > 0}
+            emptyMessage={emptyGraphMessage}
+            getXValue={getProjectedYear}
+            getYValue={getProjectedMonthlyDividend}
           />
         </>
       ) : (

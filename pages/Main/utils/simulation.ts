@@ -50,6 +50,7 @@ type ProfileSimulationOutput = {
   ticker: string;
   name: string;
   output: SimulationOutput;
+  dividendGrowthRate: number;
 };
 
 const buildTargetProfiles = ({
@@ -149,6 +150,14 @@ export type YearlyCashflowByTicker = {
   byYear: Record<string, RecentCashflowByTicker & { totalDividend: number }>;
 };
 
+export type PostInvestmentDividendProjectionRow = {
+  year: number;
+  monthlyDividend: number;
+  annualDividend: number;
+};
+
+const POST_INVESTMENT_PROJECTION_YEARS = 10;
+
 export const buildSimulationBundle = ({
   isValid,
   includedProfiles,
@@ -157,11 +166,13 @@ export const buildSimulationBundle = ({
 }: SimulationInputParams): {
   simulation: SimulationOutput | null;
   yearlyCashflowByTicker: YearlyCashflowByTicker;
+  postInvestmentDividendProjectionRows: PostInvestmentDividendProjectionRow[];
 } => {
   if (!isValid) {
     return {
       simulation: null,
-      yearlyCashflowByTicker: { years: [], byYear: {} }
+      yearlyCashflowByTicker: { years: [], byYear: {} },
+      postInvestmentDividendProjectionRows: []
     };
   }
 
@@ -169,14 +180,16 @@ export const buildSimulationBundle = ({
   if (targetProfiles.length === 0) {
     return {
       simulation: null,
-      yearlyCashflowByTicker: { years: [], byYear: {} }
+      yearlyCashflowByTicker: { years: [], byYear: {} },
+      postInvestmentDividendProjectionRows: []
     };
   }
 
   const outputs: ProfileSimulationOutput[] = targetProfiles.map((item) => ({
     ticker: item.profile.ticker,
     name: item.profile.name,
-    output: runForProfile(item.profile, values.monthlyContribution * item.weight, values.initialInvestment * item.weight, values)
+    output: runForProfile(item.profile, values.monthlyContribution * item.weight, values.initialInvestment * item.weight, values),
+    dividendGrowthRate: item.profile.dividendGrowth / 100
   }));
 
   const simulation =
@@ -205,8 +218,32 @@ export const buildSimulationBundle = ({
     return acc;
   }, {});
 
+  const finalYear = simulation.yearly[simulation.yearly.length - 1];
+  const baseAnnualDividend = finalYear?.annualDividend ?? 0;
+  const baseYear = finalYear?.year ?? null;
+  const annualDividendWeightSum = outputs.reduce((sum, item) => sum + item.output.summary.finalAnnualDividend, 0);
+  const effectiveDividendGrowthRate =
+    annualDividendWeightSum > 0
+      ? outputs.reduce(
+          (sum, item) => sum + item.dividendGrowthRate * item.output.summary.finalAnnualDividend,
+          0
+        ) / annualDividendWeightSum
+      : 0;
+  const postInvestmentDividendProjectionRows =
+    baseYear === null
+      ? []
+      : Array.from({ length: POST_INVESTMENT_PROJECTION_YEARS + 1 }, (_v, yearOffset) => {
+          const annualDividend = baseAnnualDividend * Math.pow(1 + effectiveDividendGrowthRate, yearOffset);
+          return {
+            year: baseYear + yearOffset,
+            annualDividend,
+            monthlyDividend: annualDividend / 12
+          };
+        });
+
   return {
     simulation,
-    yearlyCashflowByTicker: { years, byYear }
+    yearlyCashflowByTicker: { years, byYear },
+    postInvestmentDividendProjectionRows
   };
 };
