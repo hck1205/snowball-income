@@ -693,6 +693,11 @@ export const PrimaryButton = styled.button`
   font-size: 13px;
   cursor: pointer;
   touch-action: manipulation;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
 `;
 
 export const SecondaryButton = styled.button`

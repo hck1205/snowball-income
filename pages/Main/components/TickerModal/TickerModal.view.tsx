@@ -79,7 +79,7 @@ export default function TickerModalView({
   const [searchKeyword, setSearchKeyword] = useState('');
   const [debouncedSearchKeyword, setDebouncedSearchKeyword] = useState('');
   const [presetSearchKeyword, setPresetSearchKeyword] = useState('');
-  const [activeTab, setActiveTab] = useState<ModalTabKey>('input');
+  const [activeTab, setActiveTab] = useState<ModalTabKey>('preset');
   const sortedPresetKeys = useMemo(
     () =>
       (Object.keys(presetTickers) as PresetTickerKey[]).sort((leftKey, rightKey) => {
@@ -103,7 +103,7 @@ export default function TickerModalView({
 
   useEffect(() => {
     if (!isOpen) return;
-    setActiveTab('input');
+    setActiveTab('preset');
     setSearchKeyword('');
     setDebouncedSearchKeyword('');
     setPresetSearchKeyword('');
@@ -152,6 +152,14 @@ export default function TickerModalView({
       return ticker.includes(query) || displayName.includes(query);
     });
   }, [presetSearchKeyword, presetTickers, sortedPresetKeys]);
+  const isCreateCustomInput = mode === 'create' && selectedPreset === 'custom';
+  const isCreateDisabled =
+    isCreateCustomInput &&
+    (tickerDraft.ticker.trim() === '' ||
+      Number.isNaN(tickerDraft.initialPrice) ||
+      Number.isNaN(tickerDraft.dividendYield) ||
+      Number.isNaN(tickerDraft.dividendGrowth) ||
+      Number.isNaN(tickerDraft.expectedTotalReturn));
 
   if (!isOpen) return null;
   if (!modalRoot) return null;
@@ -169,21 +177,6 @@ export default function TickerModalView({
           <ModalTabButton
             type="button"
             role="tab"
-            active={activeTab === 'input'}
-            aria-selected={activeTab === 'input'}
-            onClick={() => {
-              trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
-                cta_name: 'ticker_modal_tab_input',
-                mode
-              });
-              setActiveTab('input');
-            }}
-          >
-            입력
-          </ModalTabButton>
-          <ModalTabButton
-            type="button"
-            role="tab"
             active={activeTab === 'preset'}
             aria-selected={activeTab === 'preset'}
             onClick={() => {
@@ -195,6 +188,21 @@ export default function TickerModalView({
             }}
           >
             프리셋
+          </ModalTabButton>
+          <ModalTabButton
+            type="button"
+            role="tab"
+            active={activeTab === 'input'}
+            aria-selected={activeTab === 'input'}
+            onClick={() => {
+              trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
+                cta_name: 'ticker_modal_tab_input',
+                mode
+              });
+              setActiveTab('input');
+            }}
+          >
+            입력
           </ModalTabButton>
           {SHOW_SEARCH_TAB ? (
             <ModalTabButton
@@ -214,14 +222,21 @@ export default function TickerModalView({
             <InputField
               label="티커"
               value={tickerDraft.ticker}
+              placeholder="예: SCHD"
               onChange={(event) => onChangeDraft((prev) => ({ ...prev, ticker: event.target.value, name: '' }))}
             />
             <InputField
               label="현재 주가"
               type="number"
               min={0}
-              value={tickerDraft.initialPrice}
-              onChange={(event) => onChangeDraft((prev) => ({ ...prev, initialPrice: Number(event.target.value) }))}
+              value={isCreateCustomInput && Number.isNaN(tickerDraft.initialPrice) ? '' : tickerDraft.initialPrice}
+              placeholder="예: 100"
+              onChange={(event) =>
+                onChangeDraft((prev) => ({
+                  ...prev,
+                  initialPrice: event.target.value === '' ? Number.NaN : Number(event.target.value)
+                }))
+              }
             />
             <InputField
               label="배당률"
@@ -229,8 +244,14 @@ export default function TickerModalView({
               min={0}
               max={100}
               step={0.1}
-              value={tickerDraft.dividendYield}
-              onChange={(event) => onChangeDraft((prev) => ({ ...prev, dividendYield: Number(event.target.value) }))}
+              value={isCreateCustomInput && Number.isNaN(tickerDraft.dividendYield) ? '' : tickerDraft.dividendYield}
+              placeholder="예: 3.5"
+              onChange={(event) =>
+                onChangeDraft((prev) => ({
+                  ...prev,
+                  dividendYield: event.target.value === '' ? Number.NaN : Number(event.target.value)
+                }))
+              }
             />
             <InputField
               label="배당 성장률"
@@ -238,8 +259,14 @@ export default function TickerModalView({
               min={0}
               max={100}
               step={0.1}
-              value={tickerDraft.dividendGrowth}
-              onChange={(event) => onChangeDraft((prev) => ({ ...prev, dividendGrowth: Number(event.target.value) }))}
+              value={isCreateCustomInput && Number.isNaN(tickerDraft.dividendGrowth) ? '' : tickerDraft.dividendGrowth}
+              placeholder="예: 7"
+              onChange={(event) =>
+                onChangeDraft((prev) => ({
+                  ...prev,
+                  dividendGrowth: event.target.value === '' ? Number.NaN : Number(event.target.value)
+                }))
+              }
             />
             <InputField
               label="기대 총수익율 (CAGR)"
@@ -249,8 +276,14 @@ export default function TickerModalView({
               min={-100}
               max={100}
               step={0.1}
-              value={tickerDraft.expectedTotalReturn}
-              onChange={(event) => onChangeDraft((prev) => ({ ...prev, expectedTotalReturn: Number(event.target.value) }))}
+              value={isCreateCustomInput && Number.isNaN(tickerDraft.expectedTotalReturn) ? '' : tickerDraft.expectedTotalReturn}
+              placeholder="예: 10"
+              onChange={(event) =>
+                onChangeDraft((prev) => ({
+                  ...prev,
+                  expectedTotalReturn: event.target.value === '' ? Number.NaN : Number(event.target.value)
+                }))
+              }
             />
             <FrequencySelect
               label="배당 지급 주기"
@@ -308,7 +341,7 @@ export default function TickerModalView({
                 </PresetChipGrid>
               </PresetChipScrollArea>
             ) : (
-              <ModalBody>일치하는 프리셋 티커가 없습니다.</ModalBody>
+              <ModalBody>일치하는 프리셋 티커가 없습니다. 입력 탭에서 직접 생성해주세요.</ModalBody>
             )}
             <FormGrid>
               <InputField label="티커" value={tickerDraft.ticker} disabled onChange={() => undefined} />
@@ -430,7 +463,9 @@ export default function TickerModalView({
           </SecondaryButton>
           <PrimaryButton
             type="button"
+            disabled={isCreateDisabled}
             onClick={() => {
+              if (isCreateDisabled) return;
               trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
                 cta_name: mode === 'edit' ? 'ticker_save' : 'ticker_create',
                 mode

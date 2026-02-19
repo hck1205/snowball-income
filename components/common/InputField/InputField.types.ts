@@ -8,6 +8,7 @@ export type InputFieldProps = {
   helpAriaLabel?: string;
   onHelpClick?: () => void;
   disabled?: boolean;
+  placeholder?: string;
   min?: number;
   max?: number;
   step?: number;

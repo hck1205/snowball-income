@@ -81,7 +81,15 @@ export const useTickerActions = () => {
     trackEvent(ANALYTICS_EVENT.TICKER_CREATE_STARTED, {
       source: 'main_left_panel'
     });
-    setTickerDraft(toTickerDraft(values));
+    setTickerDraft({
+      ticker: '',
+      name: '',
+      initialPrice: 0,
+      dividendYield: 0,
+      dividendGrowth: 0,
+      expectedTotalReturn: 0,
+      frequency: values.frequency
+    });
     setSelectedPreset('custom');
     setTickerModalMode('create');
     setEditingTickerId(null);
@@ -126,7 +134,13 @@ export const useTickerActions = () => {
     const tickerName = tickerDraft.ticker.trim();
     const displayName = tickerDraft.name.trim();
     const normalizedName = tickerModalMode === 'create' && selectedPreset !== 'custom' ? '' : displayName;
-    if (!tickerName) return;
+    const hasInvalidNumericValue = ![
+      tickerDraft.initialPrice,
+      tickerDraft.dividendYield,
+      tickerDraft.dividendGrowth,
+      tickerDraft.expectedTotalReturn
+    ].every((value) => Number.isFinite(value));
+    if (!tickerName || hasInvalidNumericValue) return;
 
     const profile: TickerProfile = {
       ...tickerDraft,

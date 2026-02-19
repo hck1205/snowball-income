@@ -19,8 +19,6 @@ export default function TickerModal(props: TickerModalProps) {
   const setSelectedPreset = useSetSelectedPresetWrite();
   const tickerDraft = useTickerDraftAtomValue();
   const setTickerDraft = useSetTickerDraftWrite();
-  const presetKeys = Object.keys(DIVIDEND_UNIVERSE) as Array<keyof typeof DIVIDEND_UNIVERSE>;
-  const defaultPresetKey = (presetKeys.includes('SCHD') ? 'SCHD' : presetKeys[0]) as keyof typeof DIVIDEND_UNIVERSE | undefined;
 
   const handleSelectPreset = useCallback(
     (preset: 'custom' | keyof typeof DIVIDEND_UNIVERSE) => {
@@ -35,12 +33,6 @@ export default function TickerModal(props: TickerModalProps) {
     },
     [setSelectedPreset, setTickerDraft]
   );
-
-  useEffect(() => {
-    if (!isOpen || mode !== 'create' || !defaultPresetKey) return;
-    if (selectedPreset !== 'custom') return;
-    handleSelectPreset(defaultPresetKey);
-  }, [defaultPresetKey, handleSelectPreset, isOpen, mode, selectedPreset]);
 
   useEffect(() => {
     if (!isOpen) return;
