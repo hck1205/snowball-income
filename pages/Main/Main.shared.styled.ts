@@ -1033,6 +1033,35 @@ export const CompactSummaryLabel = styled.p`
   text-overflow: ellipsis;
 `;
 
+export const CompactSummaryLabelRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  width: 100%;
+`;
+
+export const CompactSummaryLabelGrow = styled.div`
+  flex: 1 1 auto;
+  min-width: 0;
+`;
+
+export const CompactSummaryHelpButton = styled.button`
+  flex: 0 0 auto;
+  margin-left: auto;
+  border: 1px solid #bfd0de;
+  background: #f4f8fb;
+  color: #29465a;
+  border-radius: 999px;
+  width: 16px;
+  height: 16px;
+  line-height: 1;
+  padding: 0;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+`;
+
 export const CompactSummaryValue = styled.p`
   margin: 4px 0 0;
   font-size: 15px;

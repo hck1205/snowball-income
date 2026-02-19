@@ -1,7 +1,16 @@
-import { memo } from 'react';
+import { memo, useCallback } from 'react';
 import { Card, ToggleField } from '@/components';
 import type { SimulationResultProps } from './SimulationResult.types';
-import { CompactSummaryGrid, CompactSummaryItem, CompactSummaryLabel, CompactSummaryValue } from '@/pages/Main/Main.shared.styled';
+import {
+  CompactSummaryGrid,
+  CompactSummaryHelpButton,
+  CompactSummaryItem,
+  CompactSummaryLabel,
+  CompactSummaryLabelGrow,
+  CompactSummaryLabelRow,
+  CompactSummaryValue
+} from '@/pages/Main/Main.shared.styled';
+import { useSetActiveHelpWrite } from '@/jotai';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 
 function SimulationResultComponent({
@@ -15,6 +24,21 @@ function SimulationResultComponent({
   targetYearLabel
 }: SimulationResultProps) {
   const title = showQuickEstimate ? '시뮬레이션 결과 (간편)' : '시뮬레이션 결과 (정밀)';
+  const setActiveHelp = useSetActiveHelpWrite();
+  const openMonthlyAverageDividendHelp = useCallback(() => {
+    trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
+      cta_name: 'open_help_simulation_monthly_average_dividend',
+      placement: 'simulation_result'
+    });
+    setActiveHelp('simulationMonthlyAverageDividend');
+  }, [setActiveHelp]);
+  const openRecentPayoutMonthDividendHelp = useCallback(() => {
+    trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
+      cta_name: 'open_help_simulation_recent_payout_month_dividend',
+      placement: 'simulation_result'
+    });
+    setActiveHelp('simulationRecentPayoutMonthDividend');
+  }, [setActiveHelp]);
 
   return (
     <Card
@@ -63,11 +87,33 @@ function SimulationResultComponent({
             <CompactSummaryValue>{formatResultAmount(simulation.summary.finalAssetValue, isResultCompact)}</CompactSummaryValue>
           </CompactSummaryItem>
           <CompactSummaryItem>
-            <CompactSummaryLabel>월배당(월평균: 연/12)</CompactSummaryLabel>
+            <CompactSummaryLabelRow>
+              <CompactSummaryLabelGrow>
+                <CompactSummaryLabel>월배당(월평균: 연/12)</CompactSummaryLabel>
+              </CompactSummaryLabelGrow>
+              <CompactSummaryHelpButton
+                type="button"
+                aria-label="월배당 설명"
+                onClick={openMonthlyAverageDividendHelp}
+              >
+                ?
+              </CompactSummaryHelpButton>
+            </CompactSummaryLabelRow>
             <CompactSummaryValue>{formatResultAmount(simulation.summary.finalMonthlyAverageDividend, isResultCompact)}</CompactSummaryValue>
           </CompactSummaryItem>
           <CompactSummaryItem>
-            <CompactSummaryLabel>최근 실지급 월배당</CompactSummaryLabel>
+            <CompactSummaryLabelRow>
+              <CompactSummaryLabelGrow>
+                <CompactSummaryLabel>최근 실지급 배당</CompactSummaryLabel>
+              </CompactSummaryLabelGrow>
+              <CompactSummaryHelpButton
+                type="button"
+                aria-label="최근 실지급 배당 설명"
+                onClick={openRecentPayoutMonthDividendHelp}
+              >
+                ?
+              </CompactSummaryHelpButton>
+            </CompactSummaryLabelRow>
             <CompactSummaryValue>{formatResultAmount(simulation.summary.finalPayoutMonthDividend, isResultCompact)}</CompactSummaryValue>
           </CompactSummaryItem>
           <CompactSummaryItem>

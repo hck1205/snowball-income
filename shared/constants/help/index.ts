@@ -54,6 +54,14 @@ export const HELP_CONTENT = {
     title: '월 평균 배당',
     body: '연 배당을 12로 나눈 값으로, 월 기준 평균치입니다.'
   },
+  simulationMonthlyAverageDividend: {
+    title: '월배당(월평균)',
+    body: '연간 배당금 합계를 12로 나눈 월평균 배당입니다.'
+  },
+  simulationRecentPayoutMonthDividend: {
+    title: '최근 실지급 배당',
+    body: '가장 최근 지급월에 실제로 지급된 배당 금액입니다.'
+  },
   yearlyCumulativeDividend: {
     title: '누적 배당',
     body: '시작 시점부터 현재까지 누적된 세후 배당금 총합입니다.'
