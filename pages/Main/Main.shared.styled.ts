@@ -591,15 +591,15 @@ export const TickerItemButton = styled.button<{ selected?: boolean }>`
 export const TickerGearButton = styled.button`
   position: absolute;
   top: 50%;
-  right: 4px;
+  right: 0;
   transform: translateY(-50%) scale(0.88);
   border: 1px solid #bfd0de;
   background: #fff;
   color: #29465a;
   border-radius: 999px;
-  width: 24px;
-  height: 24px;
-  font-size: 12px;
+  width: 21px;
+  height: 21px;
+  font-size: 11px;
   line-height: 1;
   cursor: pointer;
   opacity: 0;
