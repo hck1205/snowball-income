@@ -1,7 +1,10 @@
 import type { EChartsOption } from 'echarts';
+import type { ReactNode } from 'react';
 
 export type ChartPanelProps<T> = {
   title: string;
+  titleRight?: ReactNode;
+  titleRightInline?: boolean;
   rows: T[];
   hasData?: boolean;
   emptyMessage?: string;
@@ -13,6 +16,8 @@ export type ChartPanelProps<T> = {
 
 export type ChartPanelViewProps = {
   title: string;
+  titleRight?: ReactNode;
+  titleRightInline?: boolean;
   chartOption: EChartsOption;
   hasData: boolean;
   emptyMessage?: string;

@@ -1,4 +1,4 @@
-import type { ChangeEventHandler } from 'react';
+import type { ChangeEventHandler, FocusEventHandler } from 'react';
 import type { Frequency } from '@/shared/types';
 
 export type InputFieldProps = {
@@ -12,6 +12,7 @@ export type InputFieldProps = {
   min?: number;
   max?: number;
   step?: number;
+  onBlur?: FocusEventHandler<HTMLInputElement>;
   onChange: ChangeEventHandler<HTMLInputElement>;
 };
 

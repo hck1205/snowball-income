@@ -39,6 +39,7 @@ type SimulationInputParams = {
   includedProfiles: TickerProfile[];
   normalizedAllocation: NormalizedAllocationItem[];
   values: YieldFormValues;
+  postInvestmentProjectionYears?: number;
 };
 
 type WeightedTargetProfile = {
@@ -51,6 +52,7 @@ type ProfileSimulationOutput = {
   name: string;
   output: SimulationOutput;
   dividendGrowthRate: number;
+  expectedTotalReturnRate: number;
 };
 
 const buildTargetProfiles = ({
@@ -154,15 +156,18 @@ export type PostInvestmentDividendProjectionRow = {
   year: number;
   monthlyDividend: number;
   annualDividend: number;
+  assetValue: number;
 };
 
-const POST_INVESTMENT_PROJECTION_YEARS = 10;
+const DEFAULT_POST_INVESTMENT_PROJECTION_YEARS = 10;
+export const MIN_POST_INVESTMENT_PROJECTION_YEARS = 5;
 
 export const buildSimulationBundle = ({
   isValid,
   includedProfiles,
   normalizedAllocation,
-  values
+  values,
+  postInvestmentProjectionYears = DEFAULT_POST_INVESTMENT_PROJECTION_YEARS
 }: SimulationInputParams): {
   simulation: SimulationOutput | null;
   yearlyCashflowByTicker: YearlyCashflowByTicker;
@@ -189,7 +194,8 @@ export const buildSimulationBundle = ({
     ticker: item.profile.ticker,
     name: item.profile.name,
     output: runForProfile(item.profile, values.monthlyContribution * item.weight, values.initialInvestment * item.weight, values),
-    dividendGrowthRate: item.profile.dividendGrowth / 100
+    dividendGrowthRate: item.profile.dividendGrowth / 100,
+    expectedTotalReturnRate: item.profile.expectedTotalReturn / 100
   }));
 
   const simulation =
@@ -220,6 +226,7 @@ export const buildSimulationBundle = ({
 
   const finalYear = simulation.yearly[simulation.yearly.length - 1];
   const baseAnnualDividend = finalYear?.annualDividend ?? 0;
+  const baseAssetValue = finalYear?.assetValue ?? 0;
   const baseYear = finalYear?.year ?? null;
   const annualDividendWeightSum = outputs.reduce((sum, item) => sum + item.output.summary.finalAnnualDividend, 0);
   const effectiveDividendGrowthRate =
@@ -229,15 +236,25 @@ export const buildSimulationBundle = ({
           0
         ) / annualDividendWeightSum
       : 0;
+  const assetValueWeightSum = outputs.reduce((sum, item) => sum + item.output.summary.finalAssetValue, 0);
+  const effectiveAssetGrowthRate =
+    assetValueWeightSum > 0
+      ? outputs.reduce(
+          (sum, item) => sum + item.expectedTotalReturnRate * item.output.summary.finalAssetValue,
+          0
+        ) / assetValueWeightSum
+      : 0;
   const postInvestmentDividendProjectionRows =
     baseYear === null
       ? []
-      : Array.from({ length: POST_INVESTMENT_PROJECTION_YEARS + 1 }, (_v, yearOffset) => {
+      : Array.from({ length: Math.max(MIN_POST_INVESTMENT_PROJECTION_YEARS, Math.floor(postInvestmentProjectionYears)) + 1 }, (_v, yearOffset) => {
           const annualDividend = baseAnnualDividend * Math.pow(1 + effectiveDividendGrowthRate, yearOffset);
+          const assetValue = baseAssetValue * Math.pow(1 + effectiveAssetGrowthRate, yearOffset);
           return {
             year: baseYear + yearOffset,
             annualDividend,
-            monthlyDividend: annualDividend / 12
+            monthlyDividend: annualDividend / 12,
+            assetValue
           };
         });
 

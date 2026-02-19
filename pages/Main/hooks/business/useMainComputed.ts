@@ -15,6 +15,7 @@ type UseMainComputedParams = {
   showPortfolioDividendCenter: boolean;
   visibleYearlySeries: Record<YearlySeriesKey, boolean>;
   isYearlyAreaFillOn: boolean;
+  postInvestmentProjectionYears: number;
 };
 
 export const useMainComputed = ({
@@ -22,7 +23,8 @@ export const useMainComputed = ({
   values,
   showPortfolioDividendCenter,
   visibleYearlySeries,
-  isYearlyAreaFillOn
+  isYearlyAreaFillOn,
+  postInvestmentProjectionYears
 }: UseMainComputedParams) => {
   const includedProfiles = useIncludedProfilesAtomValue();
   const normalizedAllocation = useNormalizedAllocationAtomValue();
@@ -35,9 +37,10 @@ export const useMainComputed = ({
         isValid,
         includedProfiles,
         normalizedAllocation,
-        values
+        values,
+        postInvestmentProjectionYears
       }),
-    [includedProfiles, isValid, normalizedAllocation, values]
+    [includedProfiles, isValid, normalizedAllocation, postInvestmentProjectionYears, values]
   );
 
   const tableRows = useMemo(() => simulation?.yearly ?? [], [simulation]);

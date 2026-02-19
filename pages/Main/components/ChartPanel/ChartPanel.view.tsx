@@ -4,9 +4,9 @@ import { ResponsiveEChart } from '../ResponsiveEChart';
 import { ChartPanelWrap } from './ChartPanel.styled';
 import type { ChartPanelViewProps } from './ChartPanel.types';
 
-export default function ChartPanelView({ chartOption, title, hasData, emptyMessage }: ChartPanelViewProps) {
+export default function ChartPanelView({ chartOption, title, titleRight, titleRightInline, hasData, emptyMessage }: ChartPanelViewProps) {
   return (
-    <Card title={title}>
+    <Card title={title} titleRight={titleRight} titleRightInline={titleRightInline}>
       {hasData ? (
         <ChartPanelWrap role="img" aria-label={`${title} 차트`}>
           <ResponsiveEChart option={chartOption} />

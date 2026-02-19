@@ -1,6 +1,6 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Card } from '@/components';
+import { Card, ToggleField } from '@/components';
 import type { SimulationResult as SimulationResultRow } from '@/shared/types';
 import { DIVIDEND_UNIVERSE } from '@/shared/constants';
 import {
@@ -352,6 +352,8 @@ function MainRightPanelComponent() {
   const [hoverTooltip, setHoverTooltip] = useState<{ text: string; x: number; y: number } | null>(null);
   const [draggingTabId, setDraggingTabId] = useState<string | null>(null);
   const [dragOverTabId, setDragOverTabId] = useState<string | null>(null);
+  const [postInvestmentProjectionYears, setPostInvestmentProjectionYears] = useState(10);
+  const [isPostInvestmentAssetView, setIsPostInvestmentAssetView] = useState(false);
   const dragJustFinishedRef = useRef(false);
   const hasTrackedSimulationRef = useRef(false);
   const hasTrackedPortfolioConfigRef = useRef(false);
@@ -391,7 +393,8 @@ function MainRightPanelComponent() {
     values,
     showPortfolioDividendCenter,
     visibleYearlySeries,
-    isYearlyAreaFillOn
+    isYearlyAreaFillOn,
+    postInvestmentProjectionYears
   });
   const { setTickerWeight, toggleTickerFixed, removeIncludedTicker } = useTickerActions();
   const {
@@ -413,16 +416,27 @@ function MainRightPanelComponent() {
   const getCumulativeDividend = useCallback((row: SimulationResultRow) => row.cumulativeDividend, []);
   const getProjectedYear = useCallback((row: { year: number }) => `${row.year}`, []);
   const getProjectedMonthlyDividend = useCallback((row: { monthlyDividend: number }) => row.monthlyDividend, []);
-  const projectedAnnualGrowthRate =
+  const getProjectedAssetValue = useCallback((row: { assetValue: number }) => row.assetValue, []);
+  const projectedAnnualDividendGrowthRate =
     postInvestmentDividendProjectionRows.length >= 2 && postInvestmentDividendProjectionRows[0].annualDividend > 0
       ? (postInvestmentDividendProjectionRows[1].annualDividend / postInvestmentDividendProjectionRows[0].annualDividend) - 1
       : null;
+  const projectedAnnualAssetGrowthRate =
+    postInvestmentDividendProjectionRows.length >= 2 && postInvestmentDividendProjectionRows[0].assetValue > 0
+      ? (postInvestmentDividendProjectionRows[1].assetValue / postInvestmentDividendProjectionRows[0].assetValue) - 1
+      : null;
   const postInvestmentChartTitle =
-    projectedAnnualGrowthRate === null
-      ? '투자 종료 후 월배당 성장 추정 (추가 납입 없음)'
-      : `투자 종료 후 월배당 성장 추정 (추가 납입 없음, 연 ${projectedAnnualGrowthRate >= 0 ? '+' : ''}${(
-          projectedAnnualGrowthRate * 100
-        ).toFixed(2)}%)`;
+    isPostInvestmentAssetView
+      ? projectedAnnualAssetGrowthRate === null
+        ? '투자 종료 후 자산가치 추정 (추가 납입 없음)'
+        : `투자 종료 후 자산가치 추정 (추가 납입 없음, 연 ${projectedAnnualAssetGrowthRate >= 0 ? '+' : ''}${(
+            projectedAnnualAssetGrowthRate * 100
+          ).toFixed(2)}%)`
+      : projectedAnnualDividendGrowthRate === null
+        ? '투자 종료 후 월배당 성장 추정 (추가 납입 없음)'
+        : `투자 종료 후 월배당 성장 추정 (추가 납입 없음, 연 ${projectedAnnualDividendGrowthRate >= 0 ? '+' : ''}${(
+            projectedAnnualDividendGrowthRate * 100
+          ).toFixed(2)}%)`;
 
   const startRenameMode = useCallback((tabId: string, tabName: string, tabWidth?: number) => {
     setHoverTooltip(null);
@@ -794,11 +808,55 @@ function MainRightPanelComponent() {
 
           <ChartPanel
             title={postInvestmentChartTitle}
+            titleRight={
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <select
+                    aria-label="향후 확인 기간 선택 (년)"
+                    value={postInvestmentProjectionYears}
+                    style={{
+                      width: '56px',
+                      height: '24px',
+                      border: '1px solid #bfd0de',
+                      borderRadius: '6px',
+                      padding: '0 6px',
+                      fontSize: '12px',
+                      color: '#1f3341',
+                      background: '#fff'
+                    }}
+                    onChange={(event) => setPostInvestmentProjectionYears(Number(event.target.value))}
+                  >
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={30}>30</option>
+                    <option value={40}>40</option>
+                    <option value={50}>50</option>
+                  </select>
+                  <span style={{ color: '#486073', fontSize: '12px', fontWeight: 600, whiteSpace: 'nowrap' }}>년</span>
+                </div>
+                <ToggleField
+                  label="추정 보기 전환"
+                  hideLabel
+                  controlWidth="60px"
+                  stateTextColor="#111"
+                  checked={isPostInvestmentAssetView}
+                  offText="배당"
+                  onText="자산"
+                  onChange={(event) => {
+                    trackEvent(ANALYTICS_EVENT.TOGGLE_CHANGED, {
+                      field_name: 'postInvestmentProjectionView',
+                      value: event.target.checked
+                    });
+                    setIsPostInvestmentAssetView(event.target.checked);
+                  }}
+                />
+              </div>
+            }
             rows={postInvestmentDividendProjectionRows}
             hasData={hasGraphData && postInvestmentDividendProjectionRows.length > 0}
             emptyMessage={emptyGraphMessage}
             getXValue={getProjectedYear}
-            getYValue={getProjectedMonthlyDividend}
+            getYValue={isPostInvestmentAssetView ? getProjectedAssetValue : getProjectedMonthlyDividend}
           />
         </>
       ) : (

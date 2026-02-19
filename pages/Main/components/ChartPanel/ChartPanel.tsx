@@ -6,6 +6,8 @@ import type { ChartPanelProps } from './ChartPanel.types';
 
 function ChartPanelComponent<T>({
   title,
+  titleRight,
+  titleRightInline,
   rows,
   hasData = true,
   emptyMessage,
@@ -49,7 +51,16 @@ function ChartPanelComponent<T>({
     [getXValue, getYValue, rows, xAxisLabel, yAxisLabelFormatter]
   );
 
-  return <ChartPanelView title={title} chartOption={chartOption} hasData={hasData} emptyMessage={emptyMessage} />;
+  return (
+    <ChartPanelView
+      title={title}
+      titleRight={titleRight}
+      titleRightInline={titleRightInline}
+      chartOption={chartOption}
+      hasData={hasData}
+      emptyMessage={emptyMessage}
+    />
+  );
 }
 
 const ChartPanel = memo(ChartPanelComponent) as typeof ChartPanelComponent;
