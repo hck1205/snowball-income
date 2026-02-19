@@ -593,18 +593,31 @@ export const TickerGearButton = styled.button`
   top: 50%;
   right: 0;
   transform: translateY(-50%) scale(0.88);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid #bfd0de;
   background: #fff;
   color: #29465a;
   border-radius: 999px;
   width: 21px;
   height: 21px;
-  font-size: 11px;
-  line-height: 1;
+  padding: 0;
+  line-height: 0;
   cursor: pointer;
   opacity: 0;
   pointer-events: auto;
   transition: opacity 0.2s ease, transform 0.2s ease;
+
+  svg {
+    width: 11px;
+    height: 11px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
 `;
 
 export const SelectedChipWrap = styled.div`

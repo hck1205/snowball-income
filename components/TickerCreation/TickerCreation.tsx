@@ -581,7 +581,10 @@ function TickerCreationComponent({
                       onOpenEdit(profile);
                     }}
                   >
-                    ⚙
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                      <path d="M9.6 3.4a1 1 0 0 1 1-.8h2.8a1 1 0 0 1 1 .8l.3 1.8a7.5 7.5 0 0 1 1.5.8l1.7-.7a1 1 0 0 1 1.2.4l1.4 2.4a1 1 0 0 1-.2 1.3l-1.4 1.2c.1.6.1 1.1 0 1.7l1.4 1.2a1 1 0 0 1 .2 1.3l-1.4 2.4a1 1 0 0 1-1.2.4l-1.7-.7c-.5.3-1 .6-1.5.8l-.3 1.8a1 1 0 0 1-1 .8h-2.8a1 1 0 0 1-1-.8l-.3-1.8c-.5-.2-1-.5-1.5-.8l-1.7.7a1 1 0 0 1-1.2-.4L2.8 16a1 1 0 0 1 .2-1.3l1.4-1.2a7 7 0 0 1 0-1.7L3 10.6a1 1 0 0 1-.2-1.3l1.4-2.4a1 1 0 0 1 1.2-.4l1.7.7c.5-.3 1-.6 1.5-.8l.3-1.8Z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
                   </TickerGearButton>
                 </TickerChipWrap>
               </li>
