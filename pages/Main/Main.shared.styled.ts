@@ -738,6 +738,17 @@ export const FormGrid = styled.div`
   gap: 12px;
 `;
 
+export const ModalCompactFormGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  gap: 12px;
+
+  @media (max-width: 960px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+`;
+
 export const ConfigFormGrid = styled.div`
   display: grid;
   grid-template-columns: 1fr;

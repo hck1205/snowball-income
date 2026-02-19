@@ -9,6 +9,7 @@ import otherListedJson from '@/utils/TickerParser/output/other-listed.json';
 import {
   FormGrid,
   InlineField,
+  ModalCompactFormGrid,
   ModalActions,
   ModalBackdrop,
   ModalBody,
@@ -218,79 +219,81 @@ export default function TickerModalView({
         </ModalTabList>
 
         {activeTab === 'input' ? (
-          <FormGrid>
+          <>
             <InputField
               label="티커"
               value={tickerDraft.ticker}
               placeholder="예: SCHD"
               onChange={(event) => onChangeDraft((prev) => ({ ...prev, ticker: event.target.value, name: '' }))}
             />
-            <InputField
-              label="현재 주가"
-              type="number"
-              min={0}
-              value={isCreateCustomInput && Number.isNaN(tickerDraft.initialPrice) ? '' : tickerDraft.initialPrice}
-              placeholder="예: 100"
-              onChange={(event) =>
-                onChangeDraft((prev) => ({
-                  ...prev,
-                  initialPrice: event.target.value === '' ? Number.NaN : Number(event.target.value)
-                }))
-              }
-            />
-            <InputField
-              label="배당률"
-              type="number"
-              min={0}
-              max={100}
-              step={0.1}
-              value={isCreateCustomInput && Number.isNaN(tickerDraft.dividendYield) ? '' : tickerDraft.dividendYield}
-              placeholder="예: 3.5"
-              onChange={(event) =>
-                onChangeDraft((prev) => ({
-                  ...prev,
-                  dividendYield: event.target.value === '' ? Number.NaN : Number(event.target.value)
-                }))
-              }
-            />
-            <InputField
-              label="배당 성장률"
-              type="number"
-              min={0}
-              max={100}
-              step={0.1}
-              value={isCreateCustomInput && Number.isNaN(tickerDraft.dividendGrowth) ? '' : tickerDraft.dividendGrowth}
-              placeholder="예: 7"
-              onChange={(event) =>
-                onChangeDraft((prev) => ({
-                  ...prev,
-                  dividendGrowth: event.target.value === '' ? Number.NaN : Number(event.target.value)
-                }))
-              }
-            />
-            <InputField
-              label="기대 총수익율 (CAGR)"
-              helpAriaLabel="CAGR 설명 열기"
-              onHelpClick={onHelpExpectedTotalReturn}
-              type="number"
-              min={-100}
-              max={100}
-              step={0.1}
-              value={isCreateCustomInput && Number.isNaN(tickerDraft.expectedTotalReturn) ? '' : tickerDraft.expectedTotalReturn}
-              placeholder="예: 10"
-              onChange={(event) =>
-                onChangeDraft((prev) => ({
-                  ...prev,
-                  expectedTotalReturn: event.target.value === '' ? Number.NaN : Number(event.target.value)
-                }))
-              }
-            />
-            <FrequencySelect
-              label="배당 지급 주기"
-              value={tickerDraft.frequency}
-              onChange={(event) => onChangeDraft((prev) => ({ ...prev, frequency: event.target.value as Frequency }))}
-            />
-          </FormGrid>
+            <ModalCompactFormGrid>
+              <InputField
+                label="현재 주가"
+                type="number"
+                min={0}
+                value={isCreateCustomInput && Number.isNaN(tickerDraft.initialPrice) ? '' : tickerDraft.initialPrice}
+                placeholder="예: 100"
+                onChange={(event) =>
+                  onChangeDraft((prev) => ({
+                    ...prev,
+                    initialPrice: event.target.value === '' ? Number.NaN : Number(event.target.value)
+                  }))
+                }
+              />
+              <InputField
+                label="배당률"
+                type="number"
+                min={0}
+                max={100}
+                step={0.1}
+                value={isCreateCustomInput && Number.isNaN(tickerDraft.dividendYield) ? '' : tickerDraft.dividendYield}
+                placeholder="예: 3.5"
+                onChange={(event) =>
+                  onChangeDraft((prev) => ({
+                    ...prev,
+                    dividendYield: event.target.value === '' ? Number.NaN : Number(event.target.value)
+                  }))
+                }
+              />
+              <InputField
+                label="배당 성장률"
+                type="number"
+                min={0}
+                max={100}
+                step={0.1}
+                value={isCreateCustomInput && Number.isNaN(tickerDraft.dividendGrowth) ? '' : tickerDraft.dividendGrowth}
+                placeholder="예: 7"
+                onChange={(event) =>
+                  onChangeDraft((prev) => ({
+                    ...prev,
+                    dividendGrowth: event.target.value === '' ? Number.NaN : Number(event.target.value)
+                  }))
+                }
+              />
+              <InputField
+                label="기대 총수익율 (CAGR)"
+                helpAriaLabel="CAGR 설명 열기"
+                onHelpClick={onHelpExpectedTotalReturn}
+                type="number"
+                min={-100}
+                max={100}
+                step={0.1}
+                value={isCreateCustomInput && Number.isNaN(tickerDraft.expectedTotalReturn) ? '' : tickerDraft.expectedTotalReturn}
+                placeholder="예: 10"
+                onChange={(event) =>
+                  onChangeDraft((prev) => ({
+                    ...prev,
+                    expectedTotalReturn: event.target.value === '' ? Number.NaN : Number(event.target.value)
+                  }))
+                }
+              />
+              <FrequencySelect
+                label="배당 지급 주기"
+                value={tickerDraft.frequency}
+                onChange={(event) => onChangeDraft((prev) => ({ ...prev, frequency: event.target.value as Frequency }))}
+              />
+            </ModalCompactFormGrid>
+          </>
         ) : null}
 
         {activeTab === 'preset' ? (
@@ -346,6 +349,8 @@ export default function TickerModalView({
             <FormGrid>
               <InputField label="티커" value={tickerDraft.ticker} disabled onChange={() => undefined} />
               <InputField label="이름" value={tickerDraft.name} disabled onChange={() => undefined} />
+            </FormGrid>
+            <ModalCompactFormGrid>
               <InputField label="현재 주가" type="number" min={0} value={tickerDraft.initialPrice} disabled onChange={() => undefined} />
               <InputField
                 label="배당률"
@@ -383,7 +388,7 @@ export default function TickerModalView({
                 disabled
                 onChange={() => undefined}
               />
-            </FormGrid>
+            </ModalCompactFormGrid>
           </InlineField>
         ) : null}
 

@@ -31,7 +31,6 @@ export const globalStyle = css`
     height: 100%;
     width: 100%;
     max-width: 100%;
-    overflow-x: hidden;
   }
 
   button,
