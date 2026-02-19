@@ -26,7 +26,7 @@ export default function ToggleField({
   const id = toToggleId(label);
 
   return (
-    <ToggleLabel htmlFor={id}>
+    <ToggleLabel>
       {hideLabel ? null : (
         <ToggleHeader>
           {label}

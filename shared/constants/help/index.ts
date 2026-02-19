@@ -33,6 +33,11 @@ export const HELP_CONTENT = {
     title: '티커 비율',
     body: '여러 티커를 함께 선택하면 월 투자금을 입력한 비율대로 나눠서 투자합니다. 예: SCHD 6, JEPI 4이면 60:40 비율입니다.'
   },
+  scenarioTabs: {
+    title: '포트폴리오 탭',
+    body:
+      '• + 버튼으로 포트폴리오 탭을 최대 10개까지 추가할 수 있습니다.\n• 탭을 더블클릭하면 이름 변경과 삭제를 할 수 있습니다.\n• 탭을 드래그하면 순서를 바꿀 수 있습니다.'
+  },
   yearlyTotalContribution: {
     title: '누적 투자금',
     body: '지금까지 사용자가 실제로 투입한 원금의 누적 합계입니다.'

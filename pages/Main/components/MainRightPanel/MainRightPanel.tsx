@@ -21,12 +21,14 @@ import {
   PortfolioPresetTitle,
   PrimaryButton,
   ResultsColumn,
+  ScenarioTabsHelpButton,
   ScenarioTabButton,
   ScenarioTabCloseButton,
   ScenarioTabEditWrap,
   ScenarioTabRenameInput,
   ScenarioTabTooltip,
-  ScenarioTabsWrap
+  ScenarioTabsWrap,
+  SecondaryButton
 } from '@/pages/Main/Main.shared.styled';
 import MonthlyCashflow from '@/components/MonthlyCashflow';
 import PortfolioComposition from '@/components/PortfolioComposition';
@@ -50,6 +52,7 @@ import {
   useShowSplitGraphsAtomValue,
   useSetTickerProfilesWrite,
   useSetFixedByTickerIdWrite,
+  useSetActiveHelpWrite,
   useSetWeightByTickerIdWrite,
   useSetYieldFormWrite,
   useVisibleYearlySeriesAtomValue
@@ -57,7 +60,6 @@ import {
 import { useMainComputed, useScenarioTabs, useSnowballForm, useTickerActions } from '@/pages/Main/hooks';
 import { ChartPanel, ResponsiveEChart } from '@/pages/Main/components';
 import { formatPercent, formatResultAmount, targetYearLabel } from '@/pages/Main/utils';
-import { SecondaryButton } from '@/pages/Main/Main.shared.styled';
 import type { TickerProfile } from '@/shared/types/snowball';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 
@@ -351,8 +353,6 @@ function MainRightPanelComponent() {
   const [draggingTabId, setDraggingTabId] = useState<string | null>(null);
   const [dragOverTabId, setDragOverTabId] = useState<string | null>(null);
   const dragJustFinishedRef = useRef(false);
-  const longPressTimerRef = useRef<number | null>(null);
-  const longPressTriggeredRef = useRef(false);
   const hasTrackedSimulationRef = useRef(false);
   const hasTrackedPortfolioConfigRef = useRef(false);
   const showQuickEstimate = useShowQuickEstimateAtomValue();
@@ -370,6 +370,7 @@ function MainRightPanelComponent() {
   const setSelectedTickerId = useSetSelectedTickerIdWrite();
   const setWeightByTickerId = useSetWeightByTickerIdWrite();
   const setFixedByTickerId = useSetFixedByTickerIdWrite();
+  const setActiveHelp = useSetActiveHelpWrite();
   const setYieldFormValues = useSetYieldFormWrite();
   const showSplitGraphs = useShowSplitGraphsAtomValue();
   const isYearlyAreaFillOn = useIsYearlyAreaFillOnAtomValue();
@@ -423,14 +424,6 @@ function MainRightPanelComponent() {
           projectedAnnualGrowthRate * 100
         ).toFixed(2)}%)`;
 
-  const clearLongPressTimer = useCallback(() => {
-    if (longPressTimerRef.current === null) return;
-    window.clearTimeout(longPressTimerRef.current);
-    longPressTimerRef.current = null;
-  }, []);
-
-  useEffect(() => () => clearLongPressTimer(), [clearLongPressTimer]);
-
   const startRenameMode = useCallback((tabId: string, tabName: string, tabWidth?: number) => {
     setHoverTooltip(null);
     setEditingTabId(tabId);
@@ -463,22 +456,6 @@ function MainRightPanelComponent() {
     setEditingTabWidth(null);
   }, [editingTabId, editingTabName, renameScenarioTab]);
 
-  const startLongPress = useCallback(
-    (tabId: string, tabName: string, tabWidth?: number) => {
-      clearLongPressTimer();
-      longPressTriggeredRef.current = false;
-      longPressTimerRef.current = window.setTimeout(() => {
-        longPressTriggeredRef.current = true;
-        startRenameMode(tabId, tabName, tabWidth);
-      }, 520);
-    },
-    [clearLongPressTimer, startRenameMode]
-  );
-
-  const finishLongPress = useCallback(() => {
-    clearLongPressTimer();
-  }, [clearLongPressTimer]);
-
   const openDeleteModal = useCallback((tabId: string) => {
     trackEvent(ANALYTICS_EVENT.MODAL_VIEW, {
       modal_type: 'delete_tab_modal',
@@ -486,6 +463,14 @@ function MainRightPanelComponent() {
     });
     setDeleteTargetTabId(tabId);
   }, []);
+
+  const openScenarioTabsHelp = useCallback(() => {
+    trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
+      cta_name: 'open_help_scenario_tabs',
+      placement: 'scenario_tabs'
+    });
+    setActiveHelp('scenarioTabs');
+  }, [setActiveHelp]);
 
   const closeDeleteModal = useCallback(() => {
     setDeleteTargetTabId(null);
@@ -637,7 +622,7 @@ function MainRightPanelComponent() {
 
   return (
     <ResultsColumn>
-      <ScenarioTabsWrap aria-label="전략 탭 목록">
+      <ScenarioTabsWrap aria-label="포트폴리오 탭 목록">
         {tabs.map((tab) =>
           editingTabId === tab.id ? (
             <ScenarioTabEditWrap key={tab.id} style={editingTabWidth ? { width: `${editingTabWidth}px` } : undefined}>
@@ -687,10 +672,6 @@ function MainRightPanelComponent() {
                   dragJustFinishedRef.current = false;
                   return;
                 }
-                if (longPressTriggeredRef.current) {
-                  longPressTriggeredRef.current = false;
-                  return;
-                }
                 selectScenarioTab(tab.id);
               }}
               onDragStart={(event) => {
@@ -720,25 +701,20 @@ function MainRightPanelComponent() {
               onMouseEnter={(event) => showHoverTooltip(tab.name, event.clientX, event.clientY)}
               onMouseMove={(event) => showHoverTooltip(tab.name, event.clientX, event.clientY)}
               onDoubleClick={(event) => startRenameMode(tab.id, tab.name, event.currentTarget.getBoundingClientRect().width)}
-              onMouseDown={(event) => startLongPress(tab.id, tab.name, event.currentTarget.getBoundingClientRect().width)}
-              onMouseUp={finishLongPress}
-              onMouseLeave={() => {
-                finishLongPress();
-                hideHoverTooltip();
-              }}
-              onTouchStart={(event) => startLongPress(tab.id, tab.name, event.currentTarget.getBoundingClientRect().width)}
-              onTouchEnd={finishLongPress}
-              onTouchCancel={finishLongPress}
+              onMouseLeave={hideHoverTooltip}
             >
               {tab.name}
             </ScenarioTabButton>
           )
         )}
         {canCreateTab ? (
-          <ScenarioTabButton type="button" aria-label="새 탭 추가" onClick={() => void createScenarioTab()}>
+          <ScenarioTabButton type="button" aria-label="새 포트폴리오 탭 추가" onClick={() => void createScenarioTab()}>
             +
           </ScenarioTabButton>
         ) : null}
+        <ScenarioTabsHelpButton type="button" aria-label="포트폴리오 탭 도움말 열기" onClick={openScenarioTabsHelp}>
+          ?
+        </ScenarioTabsHelpButton>
       </ScenarioTabsWrap>
 
       {simulation ? (

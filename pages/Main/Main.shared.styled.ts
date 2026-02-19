@@ -744,6 +744,17 @@ export const ConfigFormGrid = styled.div`
   gap: 10px;
 `;
 
+export const ConfigInputGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+
+  @container (min-width: 640px) and (max-width: 980px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 12px;
+  }
+`;
+
 export const ConfigSectionDivider = styled.hr`
   border: 0;
   border-top: 1px solid #e9eff5;
@@ -1100,6 +1111,12 @@ export const HelpMarkButton = styled.button`
   font-weight: 700;
   cursor: pointer;
   touch-action: manipulation;
+`;
+
+export const ScenarioTabsHelpButton = styled(HelpMarkButton)`
+  align-self: center;
+  flex: 0 0 auto;
+  margin-left: 6px;
 `;
 
 export const ErrorBox = styled.div`
