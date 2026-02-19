@@ -49,7 +49,7 @@ export const EMPTY_INVESTMENT_SETTINGS: PersistedInvestmentSettings = {
   showSplitGraphs: false,
   isResultCompact: false,
   isYearlyAreaFillOn: true,
-  showPortfolioDividendCenter: false,
+  showPortfolioDividendCenter: true,
   visibleYearlySeries: {
     totalContribution: true,
     assetValue: true,

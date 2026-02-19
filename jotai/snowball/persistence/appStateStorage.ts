@@ -51,7 +51,7 @@ const DEFAULT_PERSISTED_INVESTMENT_SETTINGS: PersistedInvestmentSettings = {
   showSplitGraphs: false,
   isResultCompact: false,
   isYearlyAreaFillOn: true,
-  showPortfolioDividendCenter: false,
+  showPortfolioDividendCenter: true,
   visibleYearlySeries: DEFAULT_VISIBLE_YEARLY_SERIES
 };
 

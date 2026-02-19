@@ -348,6 +348,9 @@ function MainRightPanelComponent() {
   const [editingTabWidth, setEditingTabWidth] = useState<number | null>(null);
   const [deleteTargetTabId, setDeleteTargetTabId] = useState<string | null>(null);
   const [hoverTooltip, setHoverTooltip] = useState<{ text: string; x: number; y: number } | null>(null);
+  const [draggingTabId, setDraggingTabId] = useState<string | null>(null);
+  const [dragOverTabId, setDragOverTabId] = useState<string | null>(null);
+  const dragJustFinishedRef = useRef(false);
   const longPressTimerRef = useRef<number | null>(null);
   const longPressTriggeredRef = useRef(false);
   const hasTrackedSimulationRef = useRef(false);
@@ -390,8 +393,17 @@ function MainRightPanelComponent() {
     isYearlyAreaFillOn
   });
   const { setTickerWeight, toggleTickerFixed, removeIncludedTicker } = useTickerActions();
-  const { tabs, activeScenarioId, canCreateTab, canDeleteTab, selectScenarioTab, createScenarioTab, renameScenarioTab, deleteScenarioTab } =
-    useScenarioTabs();
+  const {
+    tabs,
+    activeScenarioId,
+    canCreateTab,
+    canDeleteTab,
+    selectScenarioTab,
+    createScenarioTab,
+    renameScenarioTab,
+    deleteScenarioTab,
+    reorderScenarioTabs
+  } = useScenarioTabs();
   const hasGraphData = includedProfiles.length > 0;
   const emptyGraphMessage = '좌측 티커 생성을 통해 포트폴리오를 구성해주세요.';
   const getYear = useCallback((row: SimulationResultRow) => `${row.year}`, []);
@@ -667,12 +679,43 @@ function MainRightPanelComponent() {
               key={tab.id}
               type="button"
               active={tab.id === activeScenarioId}
+              dragOver={dragOverTabId === tab.id && draggingTabId !== tab.id}
+              isDragging={draggingTabId === tab.id}
+              draggable
               onClick={() => {
+                if (dragJustFinishedRef.current) {
+                  dragJustFinishedRef.current = false;
+                  return;
+                }
                 if (longPressTriggeredRef.current) {
                   longPressTriggeredRef.current = false;
                   return;
                 }
                 selectScenarioTab(tab.id);
+              }}
+              onDragStart={(event) => {
+                setDraggingTabId(tab.id);
+                setDragOverTabId(null);
+                event.dataTransfer.effectAllowed = 'move';
+                event.dataTransfer.setData('text/plain', tab.id);
+              }}
+              onDragOver={(event) => {
+                event.preventDefault();
+                if (draggingTabId && draggingTabId !== tab.id) {
+                  setDragOverTabId(tab.id);
+                }
+              }}
+              onDrop={(event) => {
+                event.preventDefault();
+                const fromTabId = draggingTabId || event.dataTransfer.getData('text/plain');
+                if (!fromTabId || fromTabId === tab.id) return;
+                reorderScenarioTabs(fromTabId, tab.id);
+                dragJustFinishedRef.current = true;
+                setDragOverTabId(null);
+              }}
+              onDragEnd={() => {
+                setDraggingTabId(null);
+                setDragOverTabId(null);
               }}
               onMouseEnter={(event) => showHoverTooltip(tab.name, event.clientX, event.clientY)}
               onMouseMove={(event) => showHoverTooltip(tab.name, event.clientX, event.clientY)}

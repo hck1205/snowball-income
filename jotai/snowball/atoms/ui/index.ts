@@ -18,7 +18,7 @@ export const visibleYearlySeriesAtom = atomState<Record<YearlySeriesKey, boolean
 export const isYearlyAreaFillOnAtom = atomState(true);
 export const isResultCompactAtom = atomState(false);
 export const showSplitGraphsAtom = atomState(false);
-export const showPortfolioDividendCenterAtom = atomState(false);
+export const showPortfolioDividendCenterAtom = atomState(true);
 export const selectedPresetAtom = atomState<'custom' | PresetTickerKey>('custom');
 
 export const useActiveHelpAtomValue = () => useAtomValue(activeHelpAtom);

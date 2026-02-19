@@ -263,7 +263,7 @@ export const ScenarioTabsWrap = styled.div`
   -webkit-overflow-scrolling: touch;
 `;
 
-export const ScenarioTabButton = styled.button<{ active?: boolean }>`
+export const ScenarioTabButton = styled.button<{ active?: boolean; dragOver?: boolean; isDragging?: boolean }>`
   position: relative;
   flex: 0 0 auto;
   max-width: 160px;
@@ -282,6 +282,12 @@ export const ScenarioTabButton = styled.button<{ active?: boolean }>`
   touch-action: manipulation;
   cursor: pointer;
   z-index: ${({ active }) => (active ? 2 : 1)};
+  opacity: ${({ isDragging }) => (isDragging ? 0.65 : 1)};
+  box-shadow: ${({ dragOver }) => (dragOver ? 'inset 0 0 0 2px #7da2bc' : 'none')};
+
+  &[draggable='true'] {
+    cursor: ${({ isDragging }) => (isDragging ? 'grabbing' : 'grab')};
+  }
 
   &:hover {
     background: ${({ active }) => (active ? '#ffffff' : '#e4eef7')};

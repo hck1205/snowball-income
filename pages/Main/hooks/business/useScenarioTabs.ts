@@ -309,6 +309,30 @@ export const useScenarioTabs = () => {
     [activeScenarioId, setActiveScenarioId, setScenarioTabs]
   );
 
+  const reorderScenarioTabs = useCallback(
+    (fromScenarioId: string, toScenarioId: string) => {
+      if (fromScenarioId === toScenarioId) return false;
+
+      const nextTabs = prepareTabsWithActiveSnapshot();
+      const fromIndex = nextTabs.findIndex((tab) => tab.id === fromScenarioId);
+      const toIndex = nextTabs.findIndex((tab) => tab.id === toScenarioId);
+      if (fromIndex < 0 || toIndex < 0) return false;
+
+      const reorderedTabs = [...nextTabs];
+      const [movingTab] = reorderedTabs.splice(fromIndex, 1);
+      if (!movingTab) return false;
+      reorderedTabs.splice(toIndex, 0, movingTab);
+
+      setScenarioTabs(reorderedTabs);
+      trackEvent(ANALYTICS_EVENT.SCENARIO_TAB_ACTION, {
+        action: 'reorder',
+        scenario_id: movingTab.id
+      });
+      return true;
+    },
+    [prepareTabsWithActiveSnapshot, setScenarioTabs]
+  );
+
   return {
     tabs,
     activeScenarioId,
@@ -318,6 +342,7 @@ export const useScenarioTabs = () => {
     selectScenarioTab,
     createScenarioTab,
     renameScenarioTab,
-    deleteScenarioTab
+    deleteScenarioTab,
+    reorderScenarioTabs
   };
 };
