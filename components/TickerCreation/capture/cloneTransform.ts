@@ -83,7 +83,7 @@ const normalizeLayoutPanels = (root: HTMLElement) => {
 
 const expandClippedElements = (root: HTMLElement, view: Window | null) => {
   if (!view) return;
-  root.querySelectorAll<HTMLElement>('*').forEach((element) => {
+  [root, ...Array.from(root.querySelectorAll<HTMLElement>('*'))].forEach((element) => {
     const computed = view.getComputedStyle(element);
     const isClippedY = computed.overflowY !== 'visible' && computed.overflowY !== 'clip';
     const isClippedX = computed.overflowX !== 'visible' && computed.overflowX !== 'clip';
@@ -99,6 +99,12 @@ const expandClippedElements = (root: HTMLElement, view: Window | null) => {
     }
     if (computed.contain !== 'none') {
       element.style.contain = 'none';
+    }
+    if (computed.contentVisibility && computed.contentVisibility !== 'visible') {
+      element.style.contentVisibility = 'visible';
+    }
+    if (computed.containIntrinsicSize && computed.containIntrinsicSize !== 'none') {
+      element.style.containIntrinsicSize = 'auto';
     }
   });
 };
@@ -130,4 +136,3 @@ export const buildCloneTransformer = (context: Pick<CaptureContext, 'captureWidt
   expandClippedElements(clonedRoot, clonedDoc.defaultView);
   eagerLoadImages(clonedRoot);
 };
-
