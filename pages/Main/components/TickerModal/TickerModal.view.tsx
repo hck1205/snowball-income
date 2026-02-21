@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { FrequencySelect, InputField } from '@/components';
-import type { PresetTickerKey } from '@/shared/constants';
+import { PRESET_TICKER_KOREAN_NAME_BY_TICKER, type PresetTickerKey } from '@/shared/constants';
 import { getTickerDisplayName } from '@/shared/utils';
 import type { Frequency } from '@/shared/types';
 import nasdaqListedJson from '@/utils/TickerParser/output/nasdaq-listed.json';
@@ -150,7 +150,8 @@ export default function TickerModalView({
     return sortedPresetKeys.filter((presetKey) => {
       const ticker = presetTickers[presetKey].ticker.toUpperCase();
       const displayName = getTickerDisplayName(presetTickers[presetKey].ticker, presetTickers[presetKey].name).toUpperCase();
-      return ticker.includes(query) || displayName.includes(query);
+      const koreanName = PRESET_TICKER_KOREAN_NAME_BY_TICKER[presetKey].toUpperCase();
+      return ticker.includes(query) || displayName.includes(query) || koreanName.includes(query);
     });
   }, [presetSearchKeyword, presetTickers, sortedPresetKeys]);
   const isCreateCustomInput = mode === 'create' && selectedPreset === 'custom';
