@@ -122,7 +122,15 @@ const aggregatePortfolioSimulation = (outputs: SimulationOutput[], targetMonthly
       endValue: outputs.reduce((sum, output) => sum + output.quickEstimate.endValue, 0),
       annualDividendApprox: outputs.reduce((sum, output) => sum + output.quickEstimate.annualDividendApprox, 0),
       monthlyDividendApprox: outputs.reduce((sum, output) => sum + output.quickEstimate.monthlyDividendApprox, 0),
-      yieldOnPriceAtEnd: outputs.reduce((sum, output) => sum + output.quickEstimate.yieldOnPriceAtEnd, 0) / outputs.length
+      yieldOnPriceAtEnd: (() => {
+        const totalEndValue = outputs.reduce((sum, output) => sum + output.quickEstimate.endValue, 0);
+        if (totalEndValue <= 0) return 0;
+
+        return outputs.reduce(
+          (sum, output) => sum + (output.quickEstimate.endValue * output.quickEstimate.yieldOnPriceAtEnd),
+          0
+        ) / totalEndValue;
+      })()
     }
   };
 };

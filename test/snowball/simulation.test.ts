@@ -27,6 +27,43 @@ describe('runSimulation calibration options', () => {
     expect(result.quickEstimate.endValue).toBeCloseTo(12_000_000, 2);
   });
 
+  it('applies the full investment duration to ending value growth', () => {
+    const values = buildValues({
+      initialPrice: 100,
+      dividendYield: 0,
+      dividendGrowth: 0,
+      expectedTotalReturn: 12,
+      initialInvestment: 1_200,
+      monthlyContribution: 0,
+      durationYears: 1,
+      taxRate: 0,
+      investmentStartDate: '2026-01-01'
+    });
+
+    const result = runSimulation(toSimulationInput(values));
+
+    expect(result.summary.finalAssetValue).toBeCloseTo(1_344, 6);
+    expect(result.summary.finalAssetValue).toBeCloseTo(result.quickEstimate.endValue, 6);
+  });
+
+  it('matches quick estimate for contribution-only growth when dividends are zero', () => {
+    const values = buildValues({
+      initialPrice: 100,
+      dividendYield: 0,
+      dividendGrowth: 0,
+      expectedTotalReturn: 12,
+      initialInvestment: 0,
+      monthlyContribution: 100,
+      durationYears: 1,
+      taxRate: 0,
+      investmentStartDate: '2026-01-01'
+    });
+
+    const result = runSimulation(toSimulationInput(values));
+
+    expect(result.summary.finalAssetValue).toBeCloseTo(result.quickEstimate.endValue, 6);
+  });
+
   it('increases projected results when initial investment is larger', () => {
     const base = buildValues({
       monthlyContribution: 1_000_000,
@@ -152,5 +189,113 @@ describe('runSimulation calibration options', () => {
 
     expect(result.yearly[0]?.year).toBe(2026);
     expect(result.yearly[1]?.year).toBe(2027);
+  });
+
+  it('keeps price growth continuous across calendar year boundaries', () => {
+    const values = buildValues({
+      initialPrice: 100,
+      dividendYield: 0,
+      dividendGrowth: 0,
+      expectedTotalReturn: 12,
+      monthlyContribution: 0,
+      initialInvestment: 1_200,
+      taxRate: 0,
+      investmentStartDate: '2026-02-19',
+      durationYears: 2
+    });
+
+    const result = runSimulation(toSimulationInput(values));
+    const december2026 = result.monthly.find((row) => row.year === 2026 && row.month === 12);
+    const january2027 = result.monthly.find((row) => row.year === 2027 && row.month === 1);
+
+    expect(december2026).toBeDefined();
+    expect(january2027).toBeDefined();
+    expect(january2027!.price).toBeGreaterThan(december2026!.price);
+    expect(result.summary.finalAssetValue).toBeGreaterThan(1_300);
+  });
+
+  it('keeps monthly calendar labels sequential for month-end start dates', () => {
+    const values = buildValues({
+      initialPrice: 100,
+      dividendYield: 0,
+      dividendGrowth: 0,
+      expectedTotalReturn: 0,
+      initialInvestment: 0,
+      monthlyContribution: 100,
+      durationYears: 1,
+      taxRate: 0,
+      investmentStartDate: '2026-01-31'
+    });
+
+    const result = runSimulation(toSimulationInput(values));
+
+    expect(result.monthly.slice(0, 4).map((row) => `${row.year}-${String(row.month).padStart(2, '0')}`)).toEqual([
+      '2026-01',
+      '2026-02',
+      '2026-03',
+      '2026-04'
+    ]);
+  });
+
+  it('weights portfolio quick-estimate yield by ending asset value', () => {
+    const values = buildValues({
+      initialInvestment: 1_000,
+      monthlyContribution: 0,
+      durationYears: 1,
+      dividendYield: 0,
+      dividendGrowth: 0,
+      expectedTotalReturn: 0,
+      taxRate: 0
+    });
+
+    const includedProfiles: TickerProfile[] = [
+      {
+        id: 'a',
+        ticker: 'AAA',
+        name: '',
+        initialPrice: 100,
+        dividendYield: 10,
+        dividendGrowth: 0,
+        expectedTotalReturn: 10,
+        frequency: 'quarterly'
+      },
+      {
+        id: 'b',
+        ticker: 'BBB',
+        name: '',
+        initialPrice: 100,
+        dividendYield: 0,
+        dividendGrowth: 0,
+        expectedTotalReturn: 0,
+        frequency: 'quarterly'
+      }
+    ];
+
+    const simulation = buildSimulation({
+      isValid: true,
+      includedProfiles,
+      normalizedAllocation: [
+        { profile: includedProfiles[0], weight: 0.75 },
+        { profile: includedProfiles[1], weight: 0.25 }
+      ],
+      values
+    });
+    const childOutputs = includedProfiles.map((profile, index) =>
+      runSimulation({
+        ticker: profile,
+        settings: {
+          ...toSimulationInput(values).settings,
+          initialInvestment: values.initialInvestment * [0.75, 0.25][index],
+          monthlyContribution: 0
+        }
+      })
+    );
+    const weightedYield =
+      childOutputs.reduce((sum, output) => sum + (output.quickEstimate.endValue * output.quickEstimate.yieldOnPriceAtEnd), 0) /
+      childOutputs.reduce((sum, output) => sum + output.quickEstimate.endValue, 0);
+
+    expect(simulation).not.toBeNull();
+    expect(simulation?.quickEstimate.yieldOnPriceAtEnd).toBeCloseTo(weightedYield, 6);
+    expect(simulation?.quickEstimate.yieldOnPriceAtEnd).not.toBeCloseTo(0.05, 6);
   });
 });

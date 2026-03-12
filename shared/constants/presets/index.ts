@@ -7,6 +7,7 @@ import { DIVIDEND_GROWTH_STOCKS } from './dividendGrowthStocks';
 import { HIGH_DIVIDEND_STOCKS } from './highDividendStocks';
 import { CORE_INDEX_ETFS } from './coreIndexEtfs';
 import { SEMICONDUCTOR_DIVIDEND_GROWTH_PORTFOLIO } from './semiconductorDividendGrowthPortfolio';
+import { AI_INFRA_ETFS_AND_STOCKS } from './aiInfraEtfsAndStocks';
 
 export { US_DIVIDEND_GROWTH_ETFS } from './usDividendGrowthEtfs';
 export { US_HIGH_DIVIDEND_ETFS } from './usHighDividendEtfs';
@@ -17,6 +18,7 @@ export { DIVIDEND_GROWTH_STOCKS } from './dividendGrowthStocks';
 export { HIGH_DIVIDEND_STOCKS } from './highDividendStocks';
 export { CORE_INDEX_ETFS } from './coreIndexEtfs';
 export { SEMICONDUCTOR_DIVIDEND_GROWTH_PORTFOLIO } from './semiconductorDividendGrowthPortfolio';
+export { AI_INFRA_ETFS_AND_STOCKS } from './aiInfraEtfsAndStocks';
 
 export const DIVIDEND_UNIVERSE = {
   ...CORE_INDEX_ETFS,
@@ -27,7 +29,8 @@ export const DIVIDEND_UNIVERSE = {
   ...REIT_ETFS,
   ...DIVIDEND_GROWTH_STOCKS,
   ...HIGH_DIVIDEND_STOCKS,
-  ...SEMICONDUCTOR_DIVIDEND_GROWTH_PORTFOLIO
+  ...SEMICONDUCTOR_DIVIDEND_GROWTH_PORTFOLIO,
+  ...AI_INFRA_ETFS_AND_STOCKS
 } as const;
 
 export const PRESET_TICKER_KOREAN_NAME_BY_TICKER = {
@@ -53,6 +56,7 @@ export const PRESET_TICKER_KOREAN_NAME_BY_TICKER = {
   DES: '위즈덤트리 미국 소형주 배당 펀드',
   VYM: '뱅가드 고배당 수익 ETF',
   HDV: '아이셰어즈 코어 고배당 ETF',
+  SMH: '반에크 반도체 ETF',
   SDY: 'SPDR S&P 배당 ETF',
   DVY: '아이셰어즈 셀렉트 배당 ETF',
   FDVV: '피델리티 고배당 ETF',
@@ -62,6 +66,7 @@ export const PRESET_TICKER_KOREAN_NAME_BY_TICKER = {
   JEPQ: 'JP모건 나스닥 에쿼티 프리미엄 인컴 ETF',
   DIVO: '앰플리파이 CWP 인핸스드 디비던드 인컴 ETF',
   IDVO: '앰플리파이 인터내셔널 인핸스드 디비던드 ETF',
+  AIQ: '글로벌 X AI 및 기술 ETF',
   QDVO: '크래프트 AI 인핸스드 미국 배당 ETF',
   QYLD: '글로벌 X 나스닥 100 커버드콜 ETF',
   XYLD: '글로벌 X S&P 500 커버드콜 ETF',
@@ -72,6 +77,7 @@ export const PRESET_TICKER_KOREAN_NAME_BY_TICKER = {
   DWX: 'SPDR S&P 인터내셔널 배당 ETF',
   SCHH: '슈왑 미국 리츠 ETF',
   VNQI: '뱅가드 글로벌(미국 제외) 부동산 ETF',
+  SRVR: '페이서 데이터 및 인프라 리츠 ETF',
   PG: '프록터 앤 갬블',
   KO: '코카콜라',
   JNJ: '존슨앤드존슨',
@@ -83,6 +89,8 @@ export const PRESET_TICKER_KOREAN_NAME_BY_TICKER = {
   UPS: '유나이티드 파슬 서비스',
   T: 'AT&T',
   AVGO: '브로드컴',
+  ANET: '아리스타 네트웍스',
+  NVDA: '엔비디아',
   TXN: '텍사스 인스트루먼트',
   ADI: '아날로그 디바이시스',
   LRCX: '램리서치',
@@ -91,7 +99,9 @@ export const PRESET_TICKER_KOREAN_NAME_BY_TICKER = {
   TSM: '대만 반도체 제조',
   ASML: 'ASML 홀딩',
   ETN: '이튼',
-  VRT: '버티브 홀딩스'
+  VRT: '버티브 홀딩스',
+  CEG: '컨스텔레이션 에너지',
+  NEE: '넥스트에라 에너지'
 } as const satisfies Record<keyof typeof DIVIDEND_UNIVERSE, string>;
 
 export type PresetTickerKey = keyof typeof DIVIDEND_UNIVERSE;
