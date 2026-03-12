@@ -127,10 +127,16 @@ const toStartDate = (value: string): Date => {
 
   return date;
 };
+
+const getDaysInMonth = (year: number, monthIndex: number): number => new Date(year, monthIndex + 1, 0).getDate();
+
 const addMonths = (baseDate: Date, monthsToAdd: number): Date => {
-  const nextDate = new Date(baseDate);
-  nextDate.setMonth(baseDate.getMonth() + monthsToAdd);
-  return nextDate;
+  const targetYear = baseDate.getFullYear();
+  const targetMonthIndex = baseDate.getMonth() + monthsToAdd;
+  const anchor = new Date(targetYear, targetMonthIndex, 1);
+  const nextDay = Math.min(baseDate.getDate(), getDaysInMonth(anchor.getFullYear(), anchor.getMonth()));
+
+  return new Date(anchor.getFullYear(), anchor.getMonth(), nextDay);
 };
 
 const toDerivedPriceGrowth = (input: SimulationInput): number => {
@@ -197,12 +203,14 @@ export const runSimulation = (input: SimulationInput): SimulationOutput => {
     const calendarDate = addMonths(startDate, elapsedMonths);
     const year = calendarDate.getFullYear();
     const month = calendarDate.getMonth() + 1;
-    const y = elapsedYears;
+    const completedMonths = m;
+    const completedYears = Math.floor(completedMonths / 12);
+    const elapsedYearFraction = completedMonths / 12;
 
-    const price = input.ticker.initialPrice * Math.pow(1 + priceGrowth, y + (month - 1) / 12);
+    const price = input.ticker.initialPrice * Math.pow(1 + priceGrowth, elapsedYearFraction);
     const growthExponent = input.settings.dpsGrowthMode === 'monthlySmooth'
-      ? y + (month - 1) / 12
-      : y;
+      ? elapsedYearFraction
+      : completedYears;
     const dps = dps0 * Math.pow(1 + dividendGrowth, growthExponent);
 
     if (pendingReinvestCash > 0) {
