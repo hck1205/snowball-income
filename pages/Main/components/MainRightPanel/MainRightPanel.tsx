@@ -329,6 +329,29 @@ const PORTFOLIO_PRESET_PLACEHOLDERS = [
     monthlyContributionValue: 1_500_000,
     durationYearsValue: 12,
     targetMonthlyDividendValue: 1_000_000
+  },
+  {
+    id: 'ai-infra-dividend-growth',
+    title: '🤖 AI 인프라 성장형',
+    hook: 'AI 반도체, 전력, 데이터센터 인프라 중심',
+    coreType: 'SMH, VRT, ETN, NVDA, AVGO, CEG',
+    style: '성장형',
+    target: 'AI 장기 구조 성장 선호 투자자',
+    allocations: [
+      { ticker: 'SMH', weight: 25 },
+      { ticker: 'VRT', weight: 15 },
+      { ticker: 'ETN', weight: 15 },
+      { ticker: 'NVDA', weight: 15 },
+      { ticker: 'AVGO', weight: 15 },
+      { ticker: 'CEG', weight: 15 }
+    ],
+    monthlyInvestment: '200만원',
+    targetInvestment: '3억',
+    investmentPeriod: '10~12년',
+    expectedMonthlyDividend: '약 55~75만원',
+    monthlyContributionValue: 2_000_000,
+    durationYearsValue: 11,
+    targetMonthlyDividendValue: 650_000
   }
 ] as const;
 
