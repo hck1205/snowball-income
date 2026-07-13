@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import {
-  DEFAULT_SCENARIO_TAB_ID,
-  DEFAULT_SCENARIO_TAB_NAME,
   deletePersistedAppStateByName,
   listPersistedStateNames,
   parsePersistedAppStateJson,
@@ -35,21 +33,19 @@ import {
   useVisibleYearlySeriesAtomValue,
   useWeightByTickerIdAtomValue,
   useYieldFormAtomValue,
+  type PersistedAppStatePayload,
   type PersistedInvestmentSettings,
   type PersistedScenarioState,
   writePersistedAppStateByName,
   writePersistedAppState
 } from '@/jotai';
+import type { PortfolioPersistedState } from '@/shared/types/snowball';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
-import {
-  decodeSharedScenario,
-  encodeSharedScenario,
-  SHARE_LENGTH_LIMIT,
-  SHARE_QUERY_PARAM,
-  SHARE_VERSION_QUERY_PARAM
-} from './shareLink';
+import { buildDownloadFileName, formatSavedNameTimestamp } from './savedName';
+import { buildScenariosSnapshot, isSameScenarioContent, mergeSharedScenarioIntoTabs } from './scenarioSnapshot';
+import { decodeSharedScenario, encodeSharedScenario, SHARED_SCENARIO_ID, SHARE_LENGTH_LIMIT } from './shareLink';
+import { buildShareUrl, readShareCodeFromHref, stripShareParams } from './shareUrl';
 
-const SHARED_SCENARIO_ID = 'shared-tab';
 const SHARED_SCENARIO_NAME = '공유된 탭';
 
 export const usePortfolioPersistence = () => {
@@ -86,18 +82,7 @@ export const usePortfolioPersistence = () => {
   const [isPortfolioHydrated, setIsPortfolioHydrated] = useState(false);
   const hasAppliedShareLinkRef = useRef(false);
 
-  const makeDefaultSavedName = () => {
-    const now = new Date();
-    const yyyy = now.getFullYear();
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
-    const hh = String(now.getHours()).padStart(2, '0');
-    const mi = String(now.getMinutes()).padStart(2, '0');
-    const ss = String(now.getSeconds()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd} ${hh}:${mi}:${ss}`;
-  };
-
-  const buildPortfolioState = () => ({
+  const buildPortfolioState = (): PortfolioPersistedState => ({
     tickerProfiles,
     includedTickerIds,
     weightByTickerId,
@@ -124,42 +109,16 @@ export const usePortfolioPersistence = () => {
     visibleYearlySeries
   });
 
-  const buildScenariosSnapshot = () => {
+  const buildCurrentScenariosSnapshot = () =>
+    buildScenariosSnapshot(scenarioTabs, activeScenarioId, {
+      portfolio: buildPortfolioState(),
+      investmentSettings: buildInvestmentSettings()
+    });
+
+  const buildPayload = (): PersistedAppStatePayload => {
     const currentPortfolio = buildPortfolioState();
     const currentInvestmentSettings = buildInvestmentSettings();
-
-    const hasActiveScenario = scenarioTabs.some((tab) => tab.id === activeScenarioId);
-    if (!hasActiveScenario) {
-      const fallbackScenario: PersistedScenarioState = {
-        id: DEFAULT_SCENARIO_TAB_ID,
-        name: DEFAULT_SCENARIO_TAB_NAME,
-        portfolio: currentPortfolio,
-        investmentSettings: currentInvestmentSettings
-      };
-      return {
-        scenarios: [fallbackScenario],
-        activeScenarioId: fallbackScenario.id
-      };
-    }
-
-    return {
-      scenarios: scenarioTabs.map((scenario) =>
-        scenario.id === activeScenarioId
-          ? {
-              ...scenario,
-              portfolio: currentPortfolio,
-              investmentSettings: currentInvestmentSettings
-            }
-          : scenario
-      ),
-      activeScenarioId
-    };
-  };
-
-  const buildPayload = () => {
-    const currentPortfolio = buildPortfolioState();
-    const currentInvestmentSettings = buildInvestmentSettings();
-    const { scenarios, activeScenarioId: persistedActiveScenarioId } = buildScenariosSnapshot();
+    const { scenarios, activeScenarioId: persistedActiveScenarioId } = buildCurrentScenariosSnapshot();
 
     return {
       portfolio: currentPortfolio,
@@ -214,39 +173,18 @@ export const usePortfolioPersistence = () => {
       if (activeIndex < 0) return prev;
 
       const activeTab = prev[activeIndex];
-      const nextPortfolio = buildPortfolioState();
-      const nextInvestmentSettings = buildInvestmentSettings();
-      const isSamePortfolio =
-        activeTab.portfolio.tickerProfiles === nextPortfolio.tickerProfiles &&
-        activeTab.portfolio.includedTickerIds === nextPortfolio.includedTickerIds &&
-        activeTab.portfolio.weightByTickerId === nextPortfolio.weightByTickerId &&
-        activeTab.portfolio.fixedByTickerId === nextPortfolio.fixedByTickerId &&
-        activeTab.portfolio.selectedTickerId === nextPortfolio.selectedTickerId;
-      const isSameInvestmentSettings =
-        activeTab.investmentSettings.initialInvestment === nextInvestmentSettings.initialInvestment &&
-        activeTab.investmentSettings.monthlyContribution === nextInvestmentSettings.monthlyContribution &&
-        activeTab.investmentSettings.targetMonthlyDividend === nextInvestmentSettings.targetMonthlyDividend &&
-        activeTab.investmentSettings.investmentStartDate === nextInvestmentSettings.investmentStartDate &&
-        activeTab.investmentSettings.durationYears === nextInvestmentSettings.durationYears &&
-        activeTab.investmentSettings.reinvestDividends === nextInvestmentSettings.reinvestDividends &&
-        activeTab.investmentSettings.reinvestDividendPercent === nextInvestmentSettings.reinvestDividendPercent &&
-        activeTab.investmentSettings.taxRate === nextInvestmentSettings.taxRate &&
-        activeTab.investmentSettings.reinvestTiming === nextInvestmentSettings.reinvestTiming &&
-        activeTab.investmentSettings.dpsGrowthMode === nextInvestmentSettings.dpsGrowthMode &&
-        activeTab.investmentSettings.showQuickEstimate === nextInvestmentSettings.showQuickEstimate &&
-        activeTab.investmentSettings.showSplitGraphs === nextInvestmentSettings.showSplitGraphs &&
-        activeTab.investmentSettings.isResultCompact === nextInvestmentSettings.isResultCompact &&
-        activeTab.investmentSettings.isYearlyAreaFillOn === nextInvestmentSettings.isYearlyAreaFillOn &&
-        activeTab.investmentSettings.showPortfolioDividendCenter === nextInvestmentSettings.showPortfolioDividendCenter &&
-        activeTab.investmentSettings.visibleYearlySeries === nextInvestmentSettings.visibleYearlySeries;
+      const nextContent = {
+        portfolio: buildPortfolioState(),
+        investmentSettings: buildInvestmentSettings()
+      };
 
-      if (isSamePortfolio && isSameInvestmentSettings) return prev;
+      if (isSameScenarioContent(activeTab, nextContent)) return prev;
 
       const next = [...prev];
       next[activeIndex] = {
         ...activeTab,
-        portfolio: nextPortfolio,
-        investmentSettings: nextInvestmentSettings
+        portfolio: nextContent.portfolio,
+        investmentSettings: nextContent.investmentSettings
       };
       return next;
     });
@@ -316,7 +254,7 @@ export const usePortfolioPersistence = () => {
     trackEvent(ANALYTICS_EVENT.STATE_SAVE_STARTED, {
       source: 'quick_action_save'
     });
-    const savedName = rawName.trim() || makeDefaultSavedName();
+    const savedName = rawName.trim() || formatSavedNameTimestamp(new Date());
     await writePersistedAppStateByName(savedName, {
       ...buildPayload(),
       savedName
@@ -359,7 +297,7 @@ export const usePortfolioPersistence = () => {
     setVisibleYearlySeries(scenario.investmentSettings.visibleYearlySeries);
   }
 
-  function applyPersistedPayload(payload: Awaited<ReturnType<typeof readPersistedAppState>>) {
+  function applyPersistedPayload(payload: PersistedAppStatePayload) {
     const activeScenario =
       payload.scenarios.find((scenario) => scenario.id === payload.activeScenarioId) ?? payload.scenarios[0] ?? null;
     if (!activeScenario) return;
@@ -418,9 +356,8 @@ export const usePortfolioPersistence = () => {
     const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
-    const safeName = name.trim().replace(/[\\/:*?"<>|]/g, '_');
     a.href = url;
-    a.download = `${safeName || 'portfolio'}.json`;
+    a.download = buildDownloadFileName(name);
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -462,7 +399,7 @@ export const usePortfolioPersistence = () => {
   };
 
   const createShareLink = async () => {
-    const { scenarios, activeScenarioId: currentActiveScenarioId } = buildScenariosSnapshot();
+    const { scenarios, activeScenarioId: currentActiveScenarioId } = buildCurrentScenariosSnapshot();
     const activeScenario = scenarios.find((scenario) => scenario.id === currentActiveScenarioId) ?? null;
     if (!activeScenario) {
       return {
@@ -479,9 +416,7 @@ export const usePortfolioPersistence = () => {
       };
     }
 
-    const url = new URL(window.location.href);
-    url.searchParams.set(SHARE_QUERY_PARAM, encoded);
-    const shareUrl = url.toString();
+    const shareUrl = buildShareUrl(window.location.href, encoded);
 
     try {
       await navigator.clipboard.writeText(shareUrl);
@@ -496,13 +431,9 @@ export const usePortfolioPersistence = () => {
     if (hasAppliedShareLinkRef.current) return;
     hasAppliedShareLinkRef.current = true;
 
-    const url = new URL(window.location.href);
-    const shareCode = url.searchParams.get(SHARE_QUERY_PARAM);
+    const shareCode = readShareCodeFromHref(window.location.href);
     const cleanupQuery = () => {
-      const cleanUrl = new URL(window.location.href);
-      cleanUrl.searchParams.delete(SHARE_QUERY_PARAM);
-      cleanUrl.searchParams.delete(SHARE_VERSION_QUERY_PARAM);
-      window.history.replaceState({}, '', cleanUrl.toString());
+      window.history.replaceState({}, '', stripShareParams(window.location.href));
     };
 
     if (!shareCode) return;
@@ -517,7 +448,7 @@ export const usePortfolioPersistence = () => {
       return;
     }
 
-    const { scenarios } = buildScenariosSnapshot();
+    const { scenarios } = buildCurrentScenariosSnapshot();
 
     const nextSharedScenario: PersistedScenarioState = {
       ...sharedScenario,
@@ -525,11 +456,7 @@ export const usePortfolioPersistence = () => {
       name: SHARED_SCENARIO_NAME
     };
 
-    const existingSharedIndex = scenarios.findIndex((scenario) => scenario.id === SHARED_SCENARIO_ID);
-    const nextTabs =
-      existingSharedIndex >= 0
-        ? scenarios.map((scenario, index) => (index === existingSharedIndex ? nextSharedScenario : scenario))
-        : [...scenarios, nextSharedScenario];
+    const nextTabs = mergeSharedScenarioIntoTabs(scenarios, nextSharedScenario);
     setScenarioTabs(nextTabs);
     setActiveScenarioId(nextSharedScenario.id);
     applyScenario(nextSharedScenario);
