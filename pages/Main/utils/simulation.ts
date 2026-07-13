@@ -170,6 +170,19 @@ export type PostInvestmentDividendProjectionRow = {
 const DEFAULT_POST_INVESTMENT_PROJECTION_YEARS = 10;
 export const MIN_POST_INVESTMENT_PROJECTION_YEARS = 5;
 
+/**
+ * Year-over-year growth rate between the first two projection rows.
+ * Returns null when there is nothing to compare or the base value is not positive.
+ */
+export const computeAnnualGrowthRate = <TRow>(rows: readonly TRow[], getValue: (row: TRow) => number): number | null => {
+  if (rows.length < 2) return null;
+
+  const baseValue = getValue(rows[0]);
+  if (!(baseValue > 0)) return null;
+
+  return getValue(rows[1]) / baseValue - 1;
+};
+
 export const buildSimulationBundle = ({
   isValid,
   includedProfiles,

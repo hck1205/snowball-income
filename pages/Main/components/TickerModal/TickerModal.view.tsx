@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { FrequencySelect, InputField } from '@/components';
-import { PRESET_TICKER_KOREAN_NAME_BY_TICKER, type PresetTickerKey } from '@/shared/constants';
-import { getTickerDisplayName } from '@/shared/utils';
+import { PRESET_TICKER_KOREAN_NAME_BY_TICKER } from '@/shared/constants';
 import type { Frequency } from '@/shared/types';
 import nasdaqListedJson from '@/utils/TickerParser/output/nasdaq-listed.json';
 import otherListedJson from '@/utils/TickerParser/output/other-listed.json';
@@ -31,35 +30,23 @@ import {
   SecondaryButton
 } from '@/pages/Main/Main.shared.styled';
 import type { TickerModalViewProps } from './TickerModal.types';
+import {
+  buildTickerSearchRows,
+  filterPresetKeys,
+  isCustomTickerInput,
+  isTickerCreateDisabled,
+  parseNumericInputOrNaN,
+  scoreTickerSearch,
+  sortPresetKeys,
+  type ListedTickerMap
+} from './TickerModal.utils';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
-
-type ListedTickerMeta = { name: string; issuer?: string };
-type ListedTickerMap = Record<string, ListedTickerMeta>;
-type SearchRow = { ticker: string; name: string; issuer: string; tickerUpper: string; nameUpper: string };
 
 const SEARCH_DEBOUNCE_MS = 220;
 const SEARCH_MAX_RESULTS = 120;
 const SHOW_SEARCH_TAB = false;
 
-const nasdaqListed = nasdaqListedJson as ListedTickerMap;
-const otherListed = otherListedJson as ListedTickerMap;
-
-const SEARCH_ROWS: SearchRow[] = (() => {
-  const merged = new Map<string, ListedTickerMeta>();
-  for (const [ticker, meta] of Object.entries(nasdaqListed)) merged.set(ticker.toUpperCase(), meta);
-  for (const [ticker, meta] of Object.entries(otherListed)) {
-    const normalizedTicker = ticker.toUpperCase();
-    if (!merged.has(normalizedTicker)) merged.set(normalizedTicker, meta);
-  }
-
-  return Array.from(merged.entries()).map(([ticker, meta]) => ({
-    ticker,
-    name: meta.name ?? '',
-    issuer: meta.issuer ?? '',
-    tickerUpper: ticker,
-    nameUpper: (meta.name ?? '').toUpperCase()
-  }));
-})();
+const SEARCH_ROWS = buildTickerSearchRows(nasdaqListedJson as ListedTickerMap, otherListedJson as ListedTickerMap);
 
 export default function TickerModalView({
   isOpen,
@@ -81,15 +68,7 @@ export default function TickerModalView({
   const [debouncedSearchKeyword, setDebouncedSearchKeyword] = useState('');
   const [presetSearchKeyword, setPresetSearchKeyword] = useState('');
   const [activeTab, setActiveTab] = useState<ModalTabKey>('preset');
-  const sortedPresetKeys = useMemo(
-    () =>
-      (Object.keys(presetTickers) as PresetTickerKey[]).sort((leftKey, rightKey) => {
-        const leftLabel = getTickerDisplayName(presetTickers[leftKey].ticker, presetTickers[leftKey].name);
-        const rightLabel = getTickerDisplayName(presetTickers[rightKey].ticker, presetTickers[rightKey].name);
-        return leftLabel.localeCompare(rightLabel, 'en', { sensitivity: 'base' });
-      }),
-    [presetTickers]
-  );
+  const sortedPresetKeys = useMemo(() => sortPresetKeys(presetTickers), [presetTickers]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -115,53 +94,23 @@ export default function TickerModalView({
     return () => window.clearTimeout(timer);
   }, [searchKeyword]);
 
-  const searchResults = useMemo(() => {
-    const query = debouncedSearchKeyword.toUpperCase();
-    if (!query) return [] as Array<SearchRow & { score: number }>;
+  const searchResults = useMemo(
+    () => scoreTickerSearch({ rows: SEARCH_ROWS, keyword: debouncedSearchKeyword, maxResults: SEARCH_MAX_RESULTS }),
+    [debouncedSearchKeyword]
+  );
 
-    const queryChars = Array.from(new Set(query.replace(/[^A-Z0-9]/g, '').split('').filter(Boolean)));
-
-    const scored = SEARCH_ROWS.map((row) => {
-      const searchableTicker = row.tickerUpper;
-      const includesQuery = searchableTicker.includes(query);
-      const charHitCount = queryChars.reduce((count, ch) => (searchableTicker.includes(ch) ? count + 1 : count), 0);
-      if (!includesQuery && charHitCount === 0) return null;
-
-      let score = charHitCount * 12;
-      if (row.tickerUpper === query) score += 1200;
-      else if (row.tickerUpper.startsWith(query)) score += 800;
-      else if (row.tickerUpper.includes(query)) score += 520;
-
-      return { ...row, score };
-    })
-      .filter((item): item is SearchRow & { score: number } => item !== null)
-      .sort((left, right) => {
-        if (right.score !== left.score) return right.score - left.score;
-        return left.ticker.localeCompare(right.ticker, 'en', { sensitivity: 'base' });
-      });
-
-    return scored.slice(0, SEARCH_MAX_RESULTS);
-  }, [debouncedSearchKeyword]);
-
-  const filteredPresetKeys = useMemo(() => {
-    const query = presetSearchKeyword.trim().toUpperCase();
-    if (!query) return sortedPresetKeys;
-
-    return sortedPresetKeys.filter((presetKey) => {
-      const ticker = presetTickers[presetKey].ticker.toUpperCase();
-      const displayName = getTickerDisplayName(presetTickers[presetKey].ticker, presetTickers[presetKey].name).toUpperCase();
-      const koreanName = PRESET_TICKER_KOREAN_NAME_BY_TICKER[presetKey].toUpperCase();
-      return ticker.includes(query) || displayName.includes(query) || koreanName.includes(query);
-    });
-  }, [presetSearchKeyword, presetTickers, sortedPresetKeys]);
-  const isCreateCustomInput = mode === 'create' && selectedPreset === 'custom';
-  const isCreateDisabled =
-    isCreateCustomInput &&
-    (tickerDraft.ticker.trim() === '' ||
-      Number.isNaN(tickerDraft.initialPrice) ||
-      Number.isNaN(tickerDraft.dividendYield) ||
-      Number.isNaN(tickerDraft.dividendGrowth) ||
-      Number.isNaN(tickerDraft.expectedTotalReturn));
+  const filteredPresetKeys = useMemo(
+    () =>
+      filterPresetKeys({
+        presetKeys: sortedPresetKeys,
+        presetTickers,
+        koreanNameByTicker: PRESET_TICKER_KOREAN_NAME_BY_TICKER,
+        keyword: presetSearchKeyword
+      }),
+    [presetSearchKeyword, presetTickers, sortedPresetKeys]
+  );
+  const isCreateCustomInput = isCustomTickerInput(mode, selectedPreset);
+  const isCreateDisabled = isTickerCreateDisabled({ mode, selectedPreset, tickerDraft });
 
   if (!isOpen) return null;
   if (!modalRoot) return null;
@@ -237,7 +186,7 @@ export default function TickerModalView({
                 onChange={(event) =>
                   onChangeDraft((prev) => ({
                     ...prev,
-                    initialPrice: event.target.value === '' ? Number.NaN : Number(event.target.value)
+                    initialPrice: parseNumericInputOrNaN(event.target.value)
                   }))
                 }
               />
@@ -252,7 +201,7 @@ export default function TickerModalView({
                 onChange={(event) =>
                   onChangeDraft((prev) => ({
                     ...prev,
-                    dividendYield: event.target.value === '' ? Number.NaN : Number(event.target.value)
+                    dividendYield: parseNumericInputOrNaN(event.target.value)
                   }))
                 }
               />
@@ -267,7 +216,7 @@ export default function TickerModalView({
                 onChange={(event) =>
                   onChangeDraft((prev) => ({
                     ...prev,
-                    dividendGrowth: event.target.value === '' ? Number.NaN : Number(event.target.value)
+                    dividendGrowth: parseNumericInputOrNaN(event.target.value)
                   }))
                 }
               />
@@ -284,7 +233,7 @@ export default function TickerModalView({
                 onChange={(event) =>
                   onChangeDraft((prev) => ({
                     ...prev,
-                    expectedTotalReturn: event.target.value === '' ? Number.NaN : Number(event.target.value)
+                    expectedTotalReturn: parseNumericInputOrNaN(event.target.value)
                   }))
                 }
               />

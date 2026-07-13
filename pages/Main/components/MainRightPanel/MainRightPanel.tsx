@@ -59,8 +59,7 @@ import {
 } from '@/jotai';
 import { useMainComputed, useScenarioTabs, useSnowballForm, useTickerActions } from '@/pages/Main/hooks';
 import { ChartPanel, ResponsiveEChart } from '@/pages/Main/components';
-import { formatPercent, formatResultAmount, targetYearLabel } from '@/pages/Main/utils';
-import type { TickerProfile } from '@/shared/types/snowball';
+import { buildPresetPortfolio, computeAnnualGrowthRate, formatPercent, formatResultAmount, targetYearLabel } from '@/pages/Main/utils';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 
 const PORTFOLIO_PRESET_PLACEHOLDERS = [
@@ -355,17 +354,6 @@ const PORTFOLIO_PRESET_PLACEHOLDERS = [
   }
 ] as const;
 
-const toPresetTargetMonthlyDividend = (expectedMonthlyDividend: string, fallback: number): number => {
-  const normalized = expectedMonthlyDividend.replace(/,/g, '');
-  const match = normalized.match(/(\d+(?:\.\d+)?)/);
-  if (!match) return fallback;
-
-  const lowerBoundInManwon = Number(match[1]);
-  if (!Number.isFinite(lowerBoundInManwon) || lowerBoundInManwon < 0) return fallback;
-
-  return Math.floor(lowerBoundInManwon * 10_000);
-};
-
 function MainRightPanelComponent() {
   const modalRoot = typeof document !== 'undefined' ? document.body : null;
   const [editingTabId, setEditingTabId] = useState<string | null>(null);
@@ -440,14 +428,8 @@ function MainRightPanelComponent() {
   const getProjectedYear = useCallback((row: { year: number }) => `${row.year}`, []);
   const getProjectedMonthlyDividend = useCallback((row: { monthlyDividend: number }) => row.monthlyDividend, []);
   const getProjectedAssetValue = useCallback((row: { assetValue: number }) => row.assetValue, []);
-  const projectedAnnualDividendGrowthRate =
-    postInvestmentDividendProjectionRows.length >= 2 && postInvestmentDividendProjectionRows[0].annualDividend > 0
-      ? (postInvestmentDividendProjectionRows[1].annualDividend / postInvestmentDividendProjectionRows[0].annualDividend) - 1
-      : null;
-  const projectedAnnualAssetGrowthRate =
-    postInvestmentDividendProjectionRows.length >= 2 && postInvestmentDividendProjectionRows[0].assetValue > 0
-      ? (postInvestmentDividendProjectionRows[1].assetValue / postInvestmentDividendProjectionRows[0].assetValue) - 1
-      : null;
+  const projectedAnnualDividendGrowthRate = computeAnnualGrowthRate(postInvestmentDividendProjectionRows, (row) => row.annualDividend);
+  const projectedAnnualAssetGrowthRate = computeAnnualGrowthRate(postInvestmentDividendProjectionRows, (row) => row.assetValue);
   const postInvestmentChartTitle =
     isPostInvestmentAssetView
       ? projectedAnnualAssetGrowthRate === null
@@ -534,21 +516,8 @@ function MainRightPanelComponent() {
 
   const applyPortfolioPreset = useCallback(
     (preset: (typeof PORTFOLIO_PRESET_PLACEHOLDERS)[number]) => {
-      const profiles = preset.allocations
-        .map(({ ticker }, index) => {
-          const universeItem = DIVIDEND_UNIVERSE[ticker];
-          if (!universeItem) return null;
-
-          const profile: TickerProfile = {
-            ...universeItem,
-            id: `preset-${preset.id}-${ticker.toLowerCase()}-${index + 1}`,
-            name: ''
-          };
-          return profile;
-        })
-        .filter((profile): profile is TickerProfile => profile !== null);
-
-      if (profiles.length === 0) return;
+      const nextPortfolio = buildPresetPortfolio({ preset, universe: DIVIDEND_UNIVERSE });
+      if (!nextPortfolio) return;
 
       trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
         cta_name: 'apply_portfolio_preset',
@@ -557,42 +526,19 @@ function MainRightPanelComponent() {
       });
       trackEvent(ANALYTICS_EVENT.PRESET_APPLIED, {
         preset_id: preset.id,
-        ticker_count: profiles.length
+        ticker_count: nextPortfolio.profiles.length
       });
 
-      const includedIds = profiles.map((profile) => profile.id);
-      const selectedId = includedIds[0] ?? null;
-      const selectedProfile = profiles[0];
-
-      const nextWeightByTickerId = profiles.reduce<Record<string, number>>((acc, profile, index) => {
-        const rawWeight = preset.allocations[index]?.weight ?? 0;
-        acc[profile.id] = Math.max(0, rawWeight);
-        return acc;
-      }, {});
-      const nextFixedByTickerId = profiles.reduce<Record<string, boolean>>((acc, profile) => {
-        acc[profile.id] = false;
-        return acc;
-      }, {});
-
-      setTickerProfiles(profiles);
-      setIncludedTickerIds(includedIds);
-      setSelectedTickerId(selectedId);
-      setWeightByTickerId(nextWeightByTickerId);
-      setFixedByTickerId(nextFixedByTickerId);
+      setTickerProfiles(nextPortfolio.profiles);
+      setIncludedTickerIds(nextPortfolio.includedIds);
+      setSelectedTickerId(nextPortfolio.selectedTickerId);
+      setWeightByTickerId(nextPortfolio.weightByTickerId);
+      setFixedByTickerId(nextPortfolio.fixedByTickerId);
       setShowPortfolioDividendCenter(true);
-      renameScenarioTab(activeScenarioId, preset.title);
+      renameScenarioTab(activeScenarioId, nextPortfolio.scenarioName);
       setYieldFormValues((prev) => ({
         ...prev,
-        ticker: selectedProfile.ticker,
-        initialPrice: selectedProfile.initialPrice,
-        dividendYield: selectedProfile.dividendYield,
-        dividendGrowth: selectedProfile.dividendGrowth,
-        expectedTotalReturn: selectedProfile.expectedTotalReturn,
-        frequency: selectedProfile.frequency,
-        initialInvestment: 0,
-        monthlyContribution: preset.monthlyContributionValue,
-        targetMonthlyDividend: toPresetTargetMonthlyDividend(preset.expectedMonthlyDividend, preset.targetMonthlyDividendValue),
-        durationYears: preset.durationYearsValue
+        ...nextPortfolio.formPatch
       }));
     },
     [

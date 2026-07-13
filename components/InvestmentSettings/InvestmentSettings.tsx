@@ -3,6 +3,7 @@ import { Card, FormSection, InputField, ToggleField } from '@/components';
 import type { YieldFormValues } from '@/shared/types';
 import type { InvestmentSettingsProps } from './InvestmentSettings.types';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
+import { clampPercent } from '@/pages/Main/utils';
 import {
   ConfigFormGrid,
   ConfigInputGrid,
@@ -84,9 +85,7 @@ function InvestmentSettingsComponent({
                       background: '#fff'
                     }}
                     onChange={(event) => {
-                      const raw = Number(event.target.value);
-                      const next = Number.isFinite(raw) ? Math.max(0, Math.min(100, raw)) : 0;
-                      onSetField('reinvestDividendPercent', next);
+                      onSetField('reinvestDividendPercent', clampPercent(Number(event.target.value)));
                     }}
                   />
                   <span style={{ color: '#486073', fontSize: '12px', fontWeight: 600 }}>%</span>

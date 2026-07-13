@@ -38,6 +38,55 @@ const tooltipPosition = (
   ];
 };
 
+const defaultAxisValueFormatter = (value: number) => formatKRW(value);
+
+export const buildLineChartOption = <TRow>({
+  rows,
+  getXValue,
+  getYValue,
+  xAxisLabel,
+  yAxisLabelFormatter
+}: {
+  rows: TRow[];
+  getXValue: (row: TRow) => string;
+  getYValue: (row: TRow) => number;
+  xAxisLabel?: string;
+  yAxisLabelFormatter?: (value: number) => string;
+}): EChartsOption => {
+  const formatValue = yAxisLabelFormatter ?? defaultAxisValueFormatter;
+
+  return {
+    animation: false,
+    grid: { left: 72, right: 20, top: 24, bottom: 40 },
+    tooltip: {
+      trigger: 'axis',
+      valueFormatter: (value: unknown) => formatValue(Number(value))
+    },
+    xAxis: {
+      type: 'category',
+      name: xAxisLabel,
+      data: rows.map((row) => getXValue(row))
+    },
+    yAxis: {
+      type: 'value',
+      axisLabel: {
+        formatter: (value: number) => formatValue(value)
+      }
+    },
+    series: [
+      {
+        type: 'line',
+        smooth: true,
+        showSymbol: false,
+        lineStyle: { width: 2, color: '#2f6f93' },
+        itemStyle: { color: '#2f6f93' },
+        areaStyle: { color: '#2f6f9320' },
+        data: rows.map((row) => getYValue(row))
+      }
+    ]
+  };
+};
+
 export const buildAllocationPieOption = ({
   normalizedAllocation,
   showPortfolioDividendCenter,

@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import type { MouseEvent } from 'react';
 import type { TickerDraft, TickerProfile } from '@/shared/types/snowball';
 import {
@@ -27,10 +27,20 @@ import {
   useTickerDraftAtomValue,
   useTickerModalModeAtomValue,
   useTickerProfilesAtomValue,
+  useWeightByTickerIdAtomValue,
   useYieldFormAtomValue
 } from '@/jotai';
 import { useLongPress } from '@/pages/Main/hooks/interaction';
-import { toTickerDraft } from '@/pages/Main/utils';
+import {
+  applyTickerRemoval,
+  buildTickerProfileFromDraft,
+  createTickerId,
+  isTickerDraftValid,
+  redistributeAllocationWeights,
+  toTickerDraft,
+  type TickerPortfolioState,
+  type TickerRemovalMode
+} from '@/pages/Main/utils';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 
 export const useTickerActions = () => {
@@ -51,6 +61,7 @@ export const useTickerActions = () => {
   const includedProfiles = useIncludedProfilesAtomValue();
   const fixedByTickerId = useFixedByTickerIdAtomValue();
   const setFixedByTickerId = useSetFixedByTickerIdWrite();
+  const weightByTickerId = useWeightByTickerIdAtomValue();
   const setWeightByTickerId = useSetWeightByTickerIdWrite();
   const allocationPercentExactByTickerId = useAllocationPercentExactByTickerIdAtomValue();
   const currentHelp = useCurrentHelpAtomValue();
@@ -131,23 +142,15 @@ export const useTickerActions = () => {
   }, [closeHelp, closeTickerModal, currentHelp, isTickerModalOpen]);
 
   const saveTicker = useCallback(() => {
-    const tickerName = tickerDraft.ticker.trim();
-    const displayName = tickerDraft.name.trim();
-    const normalizedName = tickerModalMode === 'create' && selectedPreset !== 'custom' ? '' : displayName;
-    const hasInvalidNumericValue = ![
-      tickerDraft.initialPrice,
-      tickerDraft.dividendYield,
-      tickerDraft.dividendGrowth,
-      tickerDraft.expectedTotalReturn
-    ].every((value) => Number.isFinite(value));
-    if (!tickerName || hasInvalidNumericValue) return;
+    if (!isTickerDraftValid(tickerDraft)) return;
 
-    const profile: TickerProfile = {
-      ...tickerDraft,
-      ticker: tickerName,
-      name: normalizedName,
-      id: editingTickerId ?? `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
-    };
+    const profile = buildTickerProfileFromDraft({
+      draft: tickerDraft,
+      mode: tickerModalMode,
+      isCustomPreset: selectedPreset === 'custom',
+      editingTickerId,
+      generateId: createTickerId
+    });
 
     if (tickerModalMode === 'edit') {
       setTickerProfiles((prev: TickerProfile[]) => prev.map((item) => (item.id === profile.id ? profile : item)));
@@ -193,58 +196,53 @@ export const useTickerActions = () => {
     selectedPreset
   ]);
 
+  const portfolioState = useMemo<TickerPortfolioState>(
+    () => ({
+      tickerProfiles,
+      includedTickerIds,
+      weightByTickerId,
+      fixedByTickerId,
+      selectedTickerId
+    }),
+    [fixedByTickerId, includedTickerIds, selectedTickerId, tickerProfiles, weightByTickerId]
+  );
+
+  const removeTicker = useCallback(
+    (removingTickerId: string, mode: TickerRemovalMode) => {
+      const next = applyTickerRemoval(portfolioState, removingTickerId, mode);
+
+      if (mode === 'delete') {
+        setTickerProfiles(next.tickerProfiles);
+        setWeightByTickerId(next.weightByTickerId);
+      }
+      setIncludedTickerIds(next.includedTickerIds);
+      setFixedByTickerId(next.fixedByTickerId);
+
+      if (next.didChangeSelection) {
+        setSelectedTickerId(next.selectedTickerId);
+        if (next.nextSelectedProfile) {
+          applyTickerProfile(next.nextSelectedProfile);
+        }
+      }
+
+      return next;
+    },
+    [applyTickerProfile, portfolioState, setFixedByTickerId, setIncludedTickerIds, setSelectedTickerId, setTickerProfiles, setWeightByTickerId]
+  );
+
   const deleteTicker = useCallback(() => {
     if (tickerModalMode !== 'edit' || !editingTickerId) return;
 
-    const deletingId = editingTickerId;
-    const deletingProfile = tickerProfiles.find((profile) => profile.id === deletingId);
-    const nextProfiles = tickerProfiles.filter((profile) => profile.id !== deletingId);
-    const nextIncludedIds = includedTickerIds.filter((id) => id !== deletingId);
-    const fallbackSelectedId = nextIncludedIds[0] ?? null;
-
-    setTickerProfiles(nextProfiles);
-    setIncludedTickerIds(nextIncludedIds);
-    setWeightByTickerId((prev: Record<string, number>) => {
-      const next = { ...prev };
-      delete next[deletingId];
-      return next;
-    });
-    setFixedByTickerId((prev: Record<string, boolean>) => {
-      const next = { ...prev };
-      delete next[deletingId];
-      return next;
-    });
-
-    if (selectedTickerId === deletingId) {
-      setSelectedTickerId(fallbackSelectedId);
-      const fallbackProfile = nextProfiles.find((profile) => profile.id === fallbackSelectedId);
-      if (fallbackProfile) {
-        applyTickerProfile(fallbackProfile);
-      }
-    }
+    const next = removeTicker(editingTickerId, 'delete');
 
     trackEvent(ANALYTICS_EVENT.TICKER_DELETED, {
-      ticker: deletingProfile?.ticker ?? '',
+      ticker: next.removedProfile?.ticker ?? '',
       mode: tickerModalMode
     });
 
     setIsConfigDrawerOpen(false);
     closeTickerModal();
-  }, [
-    applyTickerProfile,
-    closeTickerModal,
-    editingTickerId,
-    includedTickerIds,
-    selectedTickerId,
-    setFixedByTickerId,
-    setIncludedTickerIds,
-    setIsConfigDrawerOpen,
-    setSelectedTickerId,
-    setTickerProfiles,
-    setWeightByTickerId,
-    tickerModalMode,
-    tickerProfiles
-  ]);
+  }, [closeTickerModal, editingTickerId, removeTicker, setIsConfigDrawerOpen, tickerModalMode]);
 
   const toggleIncludeTicker = useCallback((profile: TickerProfile) => {
     const isIncluded = includedTickerIds.includes(profile.id);
@@ -272,63 +270,25 @@ export const useTickerActions = () => {
   }, [applyTickerProfile, includedTickerIds, setFixedByTickerId, setIncludedTickerIds, setSelectedTickerId, setWeightByTickerId]);
 
   const removeIncludedTicker = useCallback((profileId: string) => {
-    const nextIncludedIds = includedTickerIds.filter((id) => id !== profileId);
     const targetProfile = tickerProfiles.find((item) => item.id === profileId);
     trackEvent(ANALYTICS_EVENT.ALLOCATION_CHANGED, {
       action: 'remove_included_ticker',
       ticker: targetProfile?.ticker ?? '',
       ticker_id: profileId
     });
-    setIncludedTickerIds(nextIncludedIds);
-    setFixedByTickerId((prev: Record<string, boolean>) => ({ ...prev, [profileId]: false }));
-
-    if (selectedTickerId === profileId) {
-      const nextSelectedId = nextIncludedIds[0] ?? null;
-      setSelectedTickerId(nextSelectedId);
-      if (nextSelectedId) {
-        const nextProfile = tickerProfiles.find((item) => item.id === nextSelectedId);
-        if (nextProfile) {
-          applyTickerProfile(nextProfile);
-        }
-      }
-    }
-  }, [applyTickerProfile, includedTickerIds, selectedTickerId, setFixedByTickerId, setIncludedTickerIds, setSelectedTickerId, tickerProfiles]);
+    removeTicker(profileId, 'exclude');
+  }, [removeTicker, tickerProfiles]);
 
   const setTickerWeight = useCallback((profileId: string, value: number) => {
     if (fixedByTickerId[profileId]) return;
 
-    const nextTarget = Number.isFinite(value) ? Math.min(100, Math.max(0, value)) : 0;
-    const fixedIds = includedProfiles
-      .filter((profile) => fixedByTickerId[profile.id] && profile.id !== profileId)
-      .map((profile) => profile.id);
-    const otherMutableIds = includedProfiles
-      .filter((profile) => !fixedByTickerId[profile.id] && profile.id !== profileId)
-      .map((profile) => profile.id);
-
-    const fixedSum = fixedIds.reduce((sum, id) => sum + (allocationPercentExactByTickerId[id] ?? 0), 0);
-    const maxTarget = Math.max(0, 100 - fixedSum);
-    const targetValue = otherMutableIds.length === 0 ? maxTarget : Math.min(nextTarget, maxTarget);
-    const remaining = Math.max(0, maxTarget - targetValue);
-
-    const nextMap: Record<string, number> = {};
-    fixedIds.forEach((id) => {
-      nextMap[id] = allocationPercentExactByTickerId[id] ?? 0;
+    const nextMap = redistributeAllocationWeights({
+      targetId: profileId,
+      rawValue: value,
+      includedIds: includedProfiles.map((profile) => profile.id),
+      fixedById: fixedByTickerId,
+      percentExactById: allocationPercentExactByTickerId
     });
-    nextMap[profileId] = targetValue;
-
-    if (otherMutableIds.length > 0) {
-      const otherBase = otherMutableIds.reduce((sum, id) => sum + (allocationPercentExactByTickerId[id] ?? 0), 0);
-      if (otherBase === 0) {
-        const equalWeight = remaining / otherMutableIds.length;
-        otherMutableIds.forEach((id) => {
-          nextMap[id] = equalWeight;
-        });
-      } else {
-        otherMutableIds.forEach((id) => {
-          nextMap[id] = (remaining * (allocationPercentExactByTickerId[id] ?? 0)) / otherBase;
-        });
-      }
-    }
 
     setWeightByTickerId((prev: Record<string, number>) => ({ ...prev, ...nextMap }));
     const targetProfile = includedProfiles.find((item) => item.id === profileId);
@@ -336,7 +296,7 @@ export const useTickerActions = () => {
       action: 'set_weight',
       ticker: targetProfile?.ticker ?? '',
       ticker_id: profileId,
-      weight_percent: Math.round(targetValue * 10) / 10
+      weight_percent: Math.round((nextMap[profileId] ?? 0) * 10) / 10
     });
   }, [allocationPercentExactByTickerId, fixedByTickerId, includedProfiles, setWeightByTickerId]);
 

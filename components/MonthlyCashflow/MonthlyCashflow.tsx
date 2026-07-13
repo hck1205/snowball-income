@@ -1,6 +1,7 @@
 import { memo, useEffect, useMemo, useState } from 'react';
 import { Card } from '@/components';
 import type { MonthlyCashflowProps } from './MonthlyCashflow.types';
+import { resolveSelectedYear } from './MonthlyCashflow.utils';
 import { ChartWrap, HintText, InlineSelect, SeriesToggleLabel } from '@/pages/Main/Main.shared.styled';
 import { buildRecentCashflowBarOption } from '@/pages/Main/utils';
 import { formatKRW } from '@/shared/utils';
@@ -8,17 +9,10 @@ import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 
 function MonthlyCashflowComponent({ yearlyCashflowByTicker, hasData = true, emptyMessage, ResponsiveChart }: MonthlyCashflowProps) {
   const years = yearlyCashflowByTicker.years;
-  const [selectedYear, setSelectedYear] = useState<number | null>(years[years.length - 1] ?? null);
+  const [selectedYear, setSelectedYear] = useState<number | null>(() => resolveSelectedYear(years, null));
 
   useEffect(() => {
-    if (years.length === 0) {
-      setSelectedYear(null);
-      return;
-    }
-    setSelectedYear((prev) => {
-      if (prev !== null && years.includes(prev)) return prev;
-      return years[years.length - 1] ?? null;
-    });
+    setSelectedYear((prev) => resolveSelectedYear(years, prev));
   }, [years]);
 
   const selectedYearData =
