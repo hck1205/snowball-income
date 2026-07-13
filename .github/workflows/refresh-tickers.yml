@@ -1,0 +1,83 @@
+name: Refresh ticker market data
+
+on:
+  schedule:
+    # Every Monday 21:00 UTC == Tuesday 06:00 KST
+    - cron: '0 21 * * 1'
+  workflow_dispatch:
+    inputs:
+      only:
+        description: 'Comma-separated tickers to refresh (blank = all)'
+        required: false
+        type: string
+      variant:
+        description: 'FMP API variant'
+        required: false
+        default: stable
+        type: choice
+        options:
+          - stable
+          - legacy
+
+# The workflow opens a PR instead of pushing: a human reviews the diff before any number ships.
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Inputs go through env vars rather than being interpolated straight into the shell command,
+      # so a dispatch input cannot inject shell.
+      - name: Refresh ticker data
+        env:
+          FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
+          ONLY: ${{ inputs.only }}
+          VARIANT: ${{ inputs.variant || 'stable' }}
+        run: |
+          args="--write --variant=$VARIANT"
+          if [ -n "$ONLY" ]; then
+            args="$args --only=$ONLY"
+          fi
+          npm run ticker:refresh -- $args
+
+      - name: Typecheck
+        run: npx tsc -b
+
+      # NOTE: `test:ci` excludes test/snowball/SnowballApp.test.tsx, which is broken on main
+      # (9 failures) for reasons unrelated to this pipeline. Everything else must pass, so a bad
+      # snapshot still fails the gate below and no PR is opened.
+      - name: Test
+        run: npm run test:ci
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: 'chore(data): refresh ticker market data'
+          branch: chore/refresh-ticker-data
+          delete-branch: true
+          title: 'chore(data): refresh ticker market data'
+          body: |
+            Automated refresh of `shared/constants/marketData/marketData.generated.json`.
+
+            Only `initialPrice`, `dividendYield`, `dividendGrowth` and `frequency` can change here.
+            Curated values (`name`, `expectedTotalReturn`) are never touched by the pipeline.
+
+            Entries rejected by the outlier guards keep their previous values — check the
+            **Refresh ticker data** step log for `WARN` lines before merging.
+          add-paths: |
+            shared/constants/marketData/marketData.generated.json

@@ -1,3 +1,4 @@
+import { applyMarketData, MARKET_DATA } from '@/shared/constants/marketData';
 import { US_DIVIDEND_GROWTH_ETFS } from './usDividendGrowthEtfs';
 import { US_HIGH_DIVIDEND_ETFS } from './usHighDividendEtfs';
 import { OPTION_INCOME_ETFS } from './optionIncomeEtfs';
@@ -20,7 +21,11 @@ export { CORE_INDEX_ETFS } from './coreIndexEtfs';
 export { SEMICONDUCTOR_DIVIDEND_GROWTH_PORTFOLIO } from './semiconductorDividendGrowthPortfolio';
 export { AI_INFRA_ETFS_AND_STOCKS } from './aiInfraEtfsAndStocks';
 
-export const DIVIDEND_UNIVERSE = {
+/**
+ * Hand-curated preset values. This is the source of truth for `name` and `expectedTotalReturn`,
+ * which are human assumptions and are never touched by the refresh pipeline.
+ */
+export const CURATED_DIVIDEND_UNIVERSE = {
   ...CORE_INDEX_ETFS,
   ...US_DIVIDEND_GROWTH_ETFS,
   ...US_HIGH_DIVIDEND_ETFS,
@@ -32,6 +37,14 @@ export const DIVIDEND_UNIVERSE = {
   ...SEMICONDUCTOR_DIVIDEND_GROWTH_PORTFOLIO,
   ...AI_INFRA_ETFS_AND_STOCKS
 } as const;
+
+/**
+ * The universe the app actually uses: curated presets with the latest auto-refreshed market data
+ * (price / yield / dividend growth / frequency) overlaid on top.
+ *
+ * When `marketData.generated.json` is empty this is deep-equal to `CURATED_DIVIDEND_UNIVERSE`.
+ */
+export const DIVIDEND_UNIVERSE = applyMarketData(CURATED_DIVIDEND_UNIVERSE, MARKET_DATA);
 
 export const PRESET_TICKER_KOREAN_NAME_BY_TICKER = {
   VOO: '뱅가드 S&P 500 ETF',
