@@ -3,6 +3,30 @@
 배당 재투자(스노우볼) 시뮬레이터. 사용자가 포트폴리오와 투자 조건을 입력하면 장기 배당 현금흐름과
 목표 달성 시점을 계산해 보여주는 **프론트엔드 전용 웹앱**이다. (백엔드 없음 — 모든 계산은 브라우저에서)
 
+## 🔍 검색은 인덱스 먼저 (토큰 효율 필수 규칙)
+
+코드·문서를 찾을 때 **원문을 훑기 전에 인덱스를 1차 검색**한다. 레포 전체를 grep/Read로 스캔하지 말 것.
+
+```sh
+npm run search -- runSimulation            # 코드 + 문서 통합
+npm run search -- kind:code atom           # 코드 심볼만 (component|hook|atom|type|const|function|styled)
+npm run search -- kind:pure allocation     # 순수 함수만 — FP 리팩터링 결과물을 빠르게 찾는다
+npm run search -- kind:test reinvest       # 테스트 케이스 제목으로
+npm run search -- kind:docs 공유            # 문서(CLAUDE.md / .cursor/rules / .claude/agents)
+npm run search -- file:shared/lib/snowball/SnowballSimulation.ts   # 파일 카드
+```
+
+- 검색 결과는 **`path:line`** 을 준다 → **그 위치만 Read**한다.
+- `file:<경로>` 는 그 파일의 **export 심볼 / import / importedBy(이 파일을 쓰는 곳) / testedBy / documentedBy** 를
+  한 화면에 보여준다. 변경 영향 범위(blast radius)를 파악할 때 먼저 본다.
+- 인덱스가 없거나 오래됐으면 `npm run index`. 커밋 시 pre-commit 훅이 자동 재생성한다
+  (최초 1회 `npm run hooks:install`).
+- `.index/`는 **자동 생성물**이다(git 비추적). 직접 편집하지 말고 검색만 한다.
+
+> ⚠ 필터는 `kind:` / `limit:` / `file:` **콜론 형태**로 쓴다. Windows PowerShell에서 `npm run`은
+> `--kind` 같은 플래그를 npm 설정으로 삼켜 스크립트까지 전달하지 않는다(값만 검색어로 남아 결과가 오염된다).
+> 그런 경우 검색 CLI가 조용히 틀린 결과를 내지 않고 에러로 알려준다.
+
 ## 스택 / 명령
 
 Vite + React 18 + TypeScript(strict) + Emotion + Jotai + React Router + ECharts + zod + Vitest/RTL
@@ -13,6 +37,9 @@ npm run test           # Vitest 단발 실행
 npx tsc -b             # 타입체크 (noUnusedLocals/Params 켜져 있음)
 npm run build          # ticker:parse → tsc -b → vite build
 npm run ticker:parse   # utils/TickerParser로 상장 티커 JSON 재생성
+npm run index          # 코드/문서 인덱스 재생성 (.index/)
+npm run search -- <질의>  # 인덱스 검색 (위 "검색은 인덱스 먼저" 참고)
+npm run hooks:install  # pre-commit 훅 활성화 (커밋 시 자동 재인덱싱)
 ```
 
 ## 절대 규칙 — `.cursor/rules`
@@ -37,6 +64,7 @@ npm run ticker:parse   # utils/TickerParser로 상장 티커 JSON 재생성
 | 데이터 | `shared/constants/presets/`, `utils/TickerParser/` | 포트폴리오 프리셋, 상장 티커 목록(생성물) |
 | 공유/저장 | `jotai/snowball/persistence/`, `pages/Main/hooks/persistence/shareLink.ts` | lz-string 압축 URL, 이름별 저장 슬롯 |
 | 계측 | `shared/lib/analytics.ts` | GA4 이벤트 택소노미(`ANALYTICS_EVENT`) — 이벤트마다 용도 주석 |
+| 인덱서(도구) | `tools/indexer/` | 순수 Node(.mjs), 외부 의존성 0. `.index/`의 code.json·docs.json 생성 — 앱 코드가 아니라 `.cursor/rules`의 폴더 규칙 적용 대상이 아니다 |
 
 **주의 (구조 편차)**: `.cursor/rules`는 `features/`를 규정하지만 현재 코드에 `features/`는 없고,
 상태는 `jotai/`에, 비즈니스 훅은 `pages/Main/hooks/`에 있다. **기존 배치를 존중하고**, 대규모 재배치는

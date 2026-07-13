@@ -1,0 +1,15 @@
+#!/bin/sh
+# 커밋 전 인덱스를 항상 신선하게 재생성한다.
+# .index/ 는 gitignore 대상이므로 스테이징하지 않는다 (각자 로컬에서 생성).
+# 활성화(최초 1회): npm run hooks:install   → git config core.hooksPath .githooks
+
+if command -v node >/dev/null 2>&1; then
+  node tools/indexer/build-index.mjs || {
+    echo "[pre-commit] 인덱싱 실패 — 커밋 중단" >&2
+    exit 1
+  }
+else
+  echo "[pre-commit] node를 찾을 수 없어 인덱싱을 건너뜁니다." >&2
+fi
+
+exit 0
