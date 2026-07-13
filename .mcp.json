@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "analytics-mcp": {
+      "command": "analytics-mcp",
+      "args": [],
+      "env": {
+        "GOOGLE_APPLICATION_CREDENTIALS": "${USERPROFILE}/.config/gcloud/ga-mcp-key.json",
+        "GOOGLE_PROJECT_ID": "snowball-income-487806",
+        "GOOGLE_CLOUD_PROJECT": "snowball-income-487806"
+      }
+    }
+  }
+}

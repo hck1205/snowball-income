@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/route-to-orchestrator.mjs",
+            "timeout": 10,
+            "statusMessage": "Routing prompt to orchestrator..."
+          }
+        ]
+      }
+    ]
+  }
+}
