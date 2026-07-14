@@ -1,6 +1,7 @@
 import { useEffect, useId } from 'react';
 import { createPortal } from 'react-dom';
-import { ModalBackdrop, ModalBody, ModalClose, ModalPanel, ModalTitle } from '@/pages/Main/Main.shared.styled';
+import { Button } from '@/components';
+import { ModalActions, ModalBackdrop, ModalBody, ModalPanel, ModalTitle } from '@/pages/Main/Main.shared.styled';
 import { useCurrentHelpAtomValue } from '@/jotai';
 import type { HelpModalProps } from './HelpModal.types';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
@@ -86,9 +87,11 @@ export default function HelpModal({ onBackdropClick, onClose }: HelpModalProps) 
       <ModalPanel>
         <ModalTitle id={titleId}>{help.title}</ModalTitle>
         {help.title === '포트폴리오 탭' ? renderPortfolioTabsHelpBody(help.body) : <ModalBody>{help.body}</ModalBody>}
-        <ModalClose type="button" onClick={onClose}>
-          닫기
-        </ModalClose>
+        <ModalActions>
+          <Button variant="secondary" onClick={onClose}>
+            닫기
+          </Button>
+        </ModalActions>
       </ModalPanel>
     </ModalBackdrop>,
     modalRoot

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { FrequencySelect, InputField } from '@/components';
+import { Button, FrequencySelect, InputField } from '@/components';
 import { PRESET_TICKER_KOREAN_NAME_BY_TICKER } from '@/shared/constants';
 import type { Frequency } from '@/shared/types';
 import nasdaqListedJson from '@/utils/TickerParser/output/nasdaq-listed.json';
@@ -25,9 +25,7 @@ import {
   ModalTitle,
   PresetChipButton,
   PresetChipGrid,
-  PresetChipScrollArea,
-  PrimaryButton,
-  SecondaryButton
+  PresetChipScrollArea
 } from '@/pages/Main/Main.shared.styled';
 import { ModalCaption } from './TickerModal.styled';
 import type { TickerModalViewProps } from './TickerModal.types';
@@ -398,8 +396,11 @@ export default function TickerModalView({
         ) : null}
         <ModalActions>
           {mode === 'edit' ? (
-            <SecondaryButton
-              type="button"
+            // 되돌릴 수 없는 액션 → danger. 취소/저장과 시각적으로 구분되어야 오클릭이 준다.
+            <Button
+              variant="danger"
+              // 삭제는 왼쪽 끝으로 밀어서 '저장' 옆에 붙지 않게 한다.
+              style={{ marginRight: 'auto' }}
               onClick={() => {
                 trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
                   cta_name: 'ticker_delete',
@@ -409,9 +410,9 @@ export default function TickerModalView({
               }}
             >
               티커 삭제
-            </SecondaryButton>
+            </Button>
           ) : null}
-          <SecondaryButton
+          <Button variant="secondary"
             type="button"
             onClick={() => {
               trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
@@ -422,8 +423,8 @@ export default function TickerModalView({
             }}
           >
             취소
-          </SecondaryButton>
-          <PrimaryButton
+          </Button>
+          <Button variant="primary"
             type="button"
             disabled={isCreateDisabled}
             onClick={() => {
@@ -436,7 +437,7 @@ export default function TickerModalView({
             }}
           >
             {mode === 'edit' ? '저장' : '생성'}
-          </PrimaryButton>
+          </Button>
         </ModalActions>
       </ModalPanel>
     </ModalBackdrop>,

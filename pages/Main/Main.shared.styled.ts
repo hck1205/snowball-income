@@ -197,15 +197,43 @@ export const ResultsColumn = styled.section`
 export const Header = styled.header`
   display: grid;
   gap: ${space[2]};
+  padding-bottom: ${space[2]};
+`;
+
+/** 로고 마크 + 워드마크를 한 줄로 묶는다. */
+export const HeaderBrand = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${space[3]};
+  min-width: 0;
+`;
+
+/**
+ * 마크를 감싸는 타일. 브랜드 컬러를 **여기 한 군데만** 진하게 쓴다.
+ * 헤더 전체를 브랜드색으로 칠하면 데이터가 주인공 자리를 뺏긴다.
+ */
+export const HeaderLogo = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  border-radius: ${radius.md};
+  background: ${color.brandSubtle};
+  border: 1px solid ${color.brandBorder};
+  color: ${color.brand};
 `;
 
 export const HeaderTitle = styled.h1`
   margin: 0;
   color: ${color.text};
-  font-size: clamp(22px, 3vw, 28px);
+  font-size: clamp(20px, 2.6vw, 26px);
   font-weight: ${font.weight.bold};
   line-height: ${font.leading.tight};
-  letter-spacing: -0.02em;
+  /* 워드마크는 자간을 조여야 로고처럼 읽힌다. 본문 자간과 다른 이유가 이것이다. */
+  letter-spacing: -0.03em;
+  white-space: nowrap;
 `;
 
 export const HeaderDescription = styled.p`
@@ -215,64 +243,8 @@ export const HeaderDescription = styled.p`
   line-height: ${font.leading.snug};
 `;
 
-/* -------------------------------------------------------------------------- */
-/* 버튼 (공통 기반)                                                             */
-/* -------------------------------------------------------------------------- */
 
-const buttonBase = `
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: ${space[2]};
-  min-height: 40px;
-  border-radius: ${radius.sm};
-  padding: ${space[2]} ${space[4]};
-  font-size: ${font.size.sm};
-  font-weight: ${font.weight.semibold};
-  font-family: inherit;
-  cursor: pointer;
-  touch-action: manipulation;
-  transition: background-color ${motion.fast} ${motion.ease}, border-color ${motion.fast} ${motion.ease},
-    color ${motion.fast} ${motion.ease}, box-shadow ${motion.fast} ${motion.ease};
 
-  &:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
-  }
-`;
-
-export const PrimaryButton = styled.button`
-  ${buttonBase};
-  border: 1px solid ${color.brand};
-  background: ${color.brand};
-  color: ${color.onBrand};
-
-  &:hover:not(:disabled) {
-    background: ${color.brandHover};
-    border-color: ${color.brandHover};
-  }
-
-  &:active:not(:disabled) {
-    transform: translateY(1px);
-  }
-`;
-
-export const SecondaryButton = styled.button`
-  ${buttonBase};
-  border: 1px solid ${color.borderStrong};
-  background: ${color.surface};
-  color: ${color.textSecondary};
-
-  &:hover:not(:disabled) {
-    background: ${color.surfaceHover};
-    border-color: ${color.brandBorder};
-    color: ${color.text};
-  }
-
-  &:active:not(:disabled) {
-    transform: translateY(1px);
-  }
-`;
 
 /* -------------------------------------------------------------------------- */
 /* 시나리오 이름 / 탭                                                           */
@@ -667,6 +639,13 @@ export const TickerChipWrap = styled.div`
   }
 `;
 
+/**
+ * 티커 칩(좌측 패널 그리드).
+ *
+ * `Chip` 프리미티브와 같은 시각 언어(pill, 선택 시 브랜드 채움)를 쓰되, 여기서는
+ * 고정폭 그리드 셀이라 폭 100%가 필요해서 별도 스타일로 둔다.
+ * 선택 상태를 폰트 굵기만으로 말하던 걸 **pill 형태 + 브랜드 채움**으로 바꿨다.
+ */
 export const TickerItemButton = styled.button<{ selected?: boolean }>`
   width: 100%;
   min-height: 36px;
@@ -674,7 +653,7 @@ export const TickerItemButton = styled.button<{ selected?: boolean }>`
   border: 1px solid ${({ selected }) => (selected ? color.brandBorder : color.border)};
   background: ${({ selected }) => (selected ? color.brandSubtle : color.surface)};
   color: ${({ selected }) => (selected ? color.brandText : color.textSecondary)};
-  border-radius: ${radius.sm};
+  border-radius: ${radius.pill};
   padding: ${space[2]};
   font-size: ${font.size['2xs']};
   font-weight: ${({ selected }) => (selected ? font.weight.bold : font.weight.medium)};
@@ -746,50 +725,8 @@ export const SelectedChipWrap = styled.div`
   }
 `;
 
-export const SelectedChip = styled.div`
-  display: inline-flex;
-  align-items: center;
-  gap: ${space[2]};
-  border: 1px solid ${color.brandBorder};
-  background: ${color.brandSubtle};
-  color: ${color.brandText};
-  border-radius: ${radius.pill};
-  padding: ${space[1]} ${space[1]} ${space[1]} ${space[3]};
-  font-size: ${font.size.xs};
-  font-weight: ${font.weight.medium};
-  max-width: 100%;
-`;
 
-export const SelectedChipLabel = styled.span`
-  min-width: 0;
-  max-width: 120px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-`;
 
-export const ChipRemoveButton = styled.button`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 0;
-  background: transparent;
-  color: ${color.brandText};
-  font-size: ${font.size.xs};
-  font-family: inherit;
-  width: 20px;
-  height: 20px;
-  border-radius: ${radius.pill};
-  padding: 0;
-  line-height: 1;
-  cursor: pointer;
-  touch-action: manipulation;
-  transition: background-color ${motion.fast} ${motion.ease};
-
-  &:hover {
-    background: ${color.brandSubtleHover};
-  }
-`;
 
 /* -------------------------------------------------------------------------- */
 /* 비율 슬라이더                                                                */
@@ -1123,7 +1060,8 @@ export const PresetChipButton = styled.button<{ selected?: boolean }>`
   border: 1px solid ${({ selected }) => (selected ? color.brandBorder : color.border)};
   background: ${({ selected }) => (selected ? color.brandSubtle : color.surface)};
   color: ${({ selected }) => (selected ? color.brandText : color.textSecondary)};
-  border-radius: ${radius.sm};
+  /* 티커 칩과 같은 pill 형태 — 둘 다 "고르는 조각"이므로 형태가 같아야 한다. */
+  border-radius: ${radius.pill};
   padding: ${space[2]};
   min-height: 36px;
   font-size: ${font.size.xs};
@@ -1154,7 +1092,17 @@ export const PortfolioPresetGrid = styled.div`
   gap: ${space[3]};
 `;
 
+/**
+ * 프리셋 카드(빈 상태의 온보딩).
+ *
+ * 빈 상태는 이 앱의 **첫인상**이다. 예전엔 회색 테두리 상자가 세 개 있을 뿐이라
+ * "고를 수 있는 것"으로 보이지 않았다. 고친 것:
+ *  - 좌측 브랜드 액센트 바가 hover 시 나타난다 → 선택 가능한 카드임을 말한다
+ *  - hover 시 살짝 떠오른다(그림자 + 1px) → 누를 수 있는 물건
+ *  - 카드 전체가 버튼이므로 커서/포커스 링이 카드 전체에 걸린다
+ */
 export const PortfolioPresetCardButton = styled.button`
+  position: relative;
   display: grid;
   gap: ${space[2]};
   width: 100%;
@@ -1163,16 +1111,37 @@ export const PortfolioPresetCardButton = styled.button`
   border-radius: ${radius.md};
   background: ${color.surface};
   padding: ${space[4]};
+  padding-left: ${space[5]};
   color: ${color.text};
   font-family: inherit;
   cursor: pointer;
+  overflow: hidden;
   transition: border-color ${motion.fast} ${motion.ease}, box-shadow ${motion.fast} ${motion.ease},
-    transform ${motion.fast} ${motion.ease};
+    transform ${motion.fast} ${motion.ease}, background-color ${motion.fast} ${motion.ease};
 
-  &:hover {
+  /* 좌측 액센트 바 — 평소엔 투명, hover/focus 시 브랜드색. */
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: transparent;
+    transition: background-color ${motion.fast} ${motion.ease};
+  }
+
+  &:hover,
+  &:focus-visible {
     border-color: ${color.brandBorder};
+    background: ${color.surfaceHover};
     box-shadow: ${shadow.e2};
     transform: translateY(-1px);
+  }
+
+  &:hover::before,
+  &:focus-visible::before {
+    background: ${color.brand};
   }
 
   &:active {
@@ -1251,61 +1220,12 @@ export const PortfolioPresetPlanItem = styled.span`
 /* 요약 카드                                                                    */
 /* -------------------------------------------------------------------------- */
 
-export const SummaryGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
-  gap: clamp(8px, 1.5vw, 12px);
-`;
 
-export const SummaryValue = styled.p`
-  margin: ${space[2]} 0 0;
-  font-size: ${font.size.xl};
-  font-weight: ${font.weight.bold};
-  color: ${color.text};
-  ${font.numeric};
-`;
 
-export const CompactSummaryGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 1fr));
-  gap: ${space[2]};
-`;
 
-export const CompactSummaryItem = styled.div`
-  border: 1px solid ${color.border};
-  background: ${color.surfaceMuted};
-  border-radius: ${radius.md};
-  padding: ${space[3]};
-  min-width: 0;
-  transition: border-color ${motion.fast} ${motion.ease};
 
-  &:hover {
-    border-color: ${color.borderStrong};
-  }
-`;
 
-export const CompactSummaryLabel = styled.p`
-  margin: 0;
-  font-size: ${font.size.xs};
-  font-weight: ${font.weight.medium};
-  color: ${color.textMuted};
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-`;
 
-export const CompactSummaryLabelRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: ${space[2]};
-  min-width: 0;
-  width: 100%;
-`;
-
-export const CompactSummaryLabelGrow = styled.div`
-  flex: 1 1 auto;
-  min-width: 0;
-`;
 
 export const CompactSummaryHelpButton = styled.button`
   position: relative;
@@ -1347,17 +1267,6 @@ export const CompactSummaryHelpButton = styled.button`
   }
 `;
 
-export const CompactSummaryValue = styled.p`
-  margin: ${space[1]} 0 0;
-  font-size: ${font.size.lg};
-  font-weight: ${font.weight.bold};
-  color: ${color.text};
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  letter-spacing: -0.01em;
-  ${font.numeric};
-`;
 
 /* -------------------------------------------------------------------------- */
 /* 시리즈 필터 / 토글                                                           */
@@ -1693,121 +1602,11 @@ export const AllocationLegendValue = styled.span`
 /* 모달                                                                         */
 /* -------------------------------------------------------------------------- */
 
-export const ModalBackdrop = styled.div`
-  position: fixed;
-  inset: 0;
-  background: ${color.overlay};
-  backdrop-filter: blur(3px);
-  display: grid;
-  place-items: center;
-  padding: ${space[4]};
-  z-index: ${zIndex.modal};
-  contain: paint;
-`;
+/**
+ * 모달 스타일의 진짜 주인은 `components/common/Modal`이다. 여기서는 다시 내보내기만 한다.
+ * → TickerModal / MainRightPanel / HelpModal이 import 한 줄도 안 바꾸고 새 스킨을 받는다.
+ */
+export { ModalActions, ModalBackdrop, ModalBody, ModalPanel, ModalTitle } from '@/components/common/Modal';
 
-export const ModalPanel = styled.section`
-  width: min(520px, 100%);
-  max-height: min(88vh, 760px);
-  background: ${color.surface};
-  border: 1px solid ${color.border};
-  border-radius: ${radius.lg};
-  padding: ${space[5]};
-  display: grid;
-  gap: ${space[3]};
-  overflow-y: auto;
-  scrollbar-gutter: stable;
-  box-shadow: ${shadow.e3};
-  color: ${color.text};
-`;
-
-export const ModalTitle = styled.h3`
-  margin: 0;
-  color: ${color.text};
-  font-size: ${font.size['2xl']};
-  font-weight: ${font.weight.bold};
-  line-height: ${font.leading.tight};
-  letter-spacing: -0.01em;
-`;
-
-export const ModalBody = styled.p`
-  margin: 0;
-  color: ${color.textSecondary};
-  font-size: ${font.size.base};
-  line-height: ${font.leading.relaxed};
-  white-space: pre-line;
-
-  strong {
-    color: ${color.text};
-    font-weight: ${font.weight.semibold};
-  }
-`;
-
-export const ModalTabList = styled.div`
-  display: flex;
-  align-items: flex-end;
-  gap: ${space[1]};
-  margin-bottom: ${space[1]};
-  border-bottom: 1px solid ${color.border};
-`;
-
-export const ModalTabButton = styled.button<{ active?: boolean }>`
-  position: relative;
-  border: 1px solid ${({ active }) => (active ? color.border : 'transparent')};
-  border-bottom: 0;
-  background: ${({ active }) => (active ? color.surface : 'transparent')};
-  color: ${({ active }) => (active ? color.text : color.textMuted)};
-  border-radius: ${radius.md} ${radius.md} 0 0;
-  padding: ${space[2]} ${space[4]};
-  min-height: 40px;
-  font-size: ${font.size.sm};
-  font-family: inherit;
-  font-weight: ${({ active }) => (active ? font.weight.bold : font.weight.medium)};
-  cursor: pointer;
-  touch-action: manipulation;
-  z-index: ${({ active }) => (active ? 2 : 1)};
-  transition: background-color ${motion.fast} ${motion.ease}, color ${motion.fast} ${motion.ease};
-
-  &::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -1px;
-    height: 1px;
-    background: ${({ active }) => (active ? color.surface : 'transparent')};
-  }
-
-  &:hover {
-    background: ${({ active }) => (active ? color.surface : color.surfaceHover)};
-    color: ${color.text};
-  }
-`;
-
-export const ModalClose = styled.button`
-  justify-self: end;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 40px;
-  border: 1px solid ${color.borderStrong};
-  background: ${color.surface};
-  color: ${color.textSecondary};
-  border-radius: ${radius.sm};
-  padding: ${space[2]} ${space[4]};
-  font-size: ${font.size.sm};
-  font-weight: ${font.weight.semibold};
-  font-family: inherit;
-  cursor: pointer;
-  transition: background-color ${motion.fast} ${motion.ease}, color ${motion.fast} ${motion.ease};
-
-  &:hover {
-    background: ${color.surfaceHover};
-    color: ${color.text};
-  }
-`;
-
-export const ModalActions = styled.div`
-  display: flex;
-  justify-content: flex-end;
-  gap: ${space[2]};
-`;
+/** 모달 안의 탭. `Tabs` 프리미티브와 같은 시각 언어(브랜드 밑줄)를 쓴다. */
+export { TabButton as ModalTabButton, TabList as ModalTabList } from '@/components/common/Tabs/Tabs.styled';

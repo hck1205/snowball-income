@@ -1,5 +1,5 @@
 import { memo, type CSSProperties } from 'react';
-import { Card, ToggleField } from '@/components';
+import { Card, Chip, ToggleField } from '@/components';
 import { ALLOCATION_COLORS } from '@/shared/constants';
 import { getTickerDisplayName } from '@/shared/utils';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
@@ -14,10 +14,7 @@ import {
   AllocationLegendSlider,
   AllocationLegendValue,
   ChartWrap,
-  ChipRemoveButton,
   HintText,
-  SelectedChip,
-  SelectedChipLabel,
   SelectedChipWrap
 } from '@/pages/Main/Main.shared.styled';
 
@@ -100,18 +97,21 @@ function PortfolioCompositionComponent({
             </AllocationChartLayout>
           ) : null}
           <SelectedChipWrap>
-            {includedProfiles.map((profile) => (
-              <SelectedChip key={profile.id}>
-                <SelectedChipLabel>{getTickerDisplayName(profile.ticker, profile.name)}</SelectedChipLabel>
-                <ChipRemoveButton
-                  type="button"
-                  aria-label={`티커 ${getTickerDisplayName(profile.ticker, profile.name)} 삭제`}
-                  onClick={() => onRemoveIncludedTicker(profile.id)}
+            {includedProfiles.map((profile) => {
+              const displayName = getTickerDisplayName(profile.ticker, profile.name);
+
+              return (
+                <Chip
+                  key={profile.id}
+                  selected
+                  // 접근성 이름은 기존 그대로 유지한다(테스트가 이 문구로 칩의 삭제 버튼을 잡는다).
+                  removeAriaLabel={`티커 ${displayName} 삭제`}
+                  onRemove={() => onRemoveIncludedTicker(profile.id)}
                 >
-                  x
-                </ChipRemoveButton>
-              </SelectedChip>
-            ))}
+                  {displayName}
+                </Chip>
+              );
+            })}
           </SelectedChipWrap>
         </>
       )}

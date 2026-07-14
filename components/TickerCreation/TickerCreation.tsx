@@ -1,6 +1,6 @@
 import { memo, type ChangeEvent, type MouseEvent, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Card, InputField } from '@/components';
+import { Button, Card, InputField } from '@/components';
 import { getTickerDisplayName } from '@/shared/utils';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import type { TickerCreationProps } from './TickerCreation.types';
@@ -12,8 +12,6 @@ import {
   ModalBody,
   ModalPanel,
   ModalTitle,
-  PrimaryButton,
-  SecondaryButton,
   TickerChipWrap,
   TickerCreateButton,
   TickerGearButton,
@@ -614,12 +612,12 @@ function TickerCreationComponent({
                   />
                   {saveError ? <HintText>{saveError}</HintText> : null}
                   <ModalActions>
-                    <SecondaryButton type="button" onClick={closeSaveModal}>
+                    <Button variant="secondary" type="button" onClick={closeSaveModal}>
                       취소
-                    </SecondaryButton>
-                    <PrimaryButton type="button" disabled={isSaving} onClick={handleSaveSubmit}>
+                    </Button>
+                    <Button variant="primary" type="button" disabled={isSaving} onClick={handleSaveSubmit}>
                       {isSaving ? '저장 중...' : '저장'}
-                    </PrimaryButton>
+                    </Button>
                   </ModalActions>
                 </ModalPanel>
               </ModalBackdrop>,
@@ -645,13 +643,13 @@ function TickerCreationComponent({
                       JSON 파일을 선택해서 불러올 수도 있습니다.
                     </FlushModalBody>
                     {savedItems.length > 0 ? (
-                      <SecondaryButton
+                      <Button variant="secondary"
                         type="button"
                         onClick={() => setIsLoadDeleteMode((prev) => !prev)}
                         disabled={isLoadingState || isDeletingState}
                       >
                         {isLoadDeleteMode ? '삭제 모드 종료' : '삭제'}
-                      </SecondaryButton>
+                      </Button>
                     ) : null}
                   </SaveModalHeaderRow>
                   {isLoadingList ? (
@@ -672,13 +670,13 @@ function TickerCreationComponent({
                                 {item.name}
                               </SavedSlotButton>
                               {isLoadDeleteMode ? (
-                                <SecondaryButton
+                                <Button variant="secondary"
                                   type="button"
                                   aria-label={`${item.name} 삭제`}
                                   onClick={() => void handleDeleteNamedState(item.name)}
                                 >
                                   삭제
-                                </SecondaryButton>
+                                </Button>
                               ) : null}
                             </SavedSlotRow>
                           ))}
@@ -689,14 +687,14 @@ function TickerCreationComponent({
                   {loadError ? <HintText>{loadError}</HintText> : null}
                   <SpreadModalActions>
                     <ModalActionGroup>
-                      <SecondaryButton type="button" onClick={openLoadFilePicker}>
+                      <Button variant="secondary" type="button" onClick={openLoadFilePicker}>
                         {isLoadingJsonFile ? '파일 확인 중...' : '파일 선택'}
-                      </SecondaryButton>
+                      </Button>
                       {loadFileRecognitionError ? <FileErrorText>{loadFileRecognitionError}</FileErrorText> : null}
                     </ModalActionGroup>
-                    <SecondaryButton type="button" onClick={closeLoadModal}>
+                    <Button variant="secondary" type="button" onClick={closeLoadModal}>
                       닫기
-                    </SecondaryButton>
+                    </Button>
                   </SpreadModalActions>
                   <VisuallyHiddenFileInput
                     ref={loadFileInputRef}
@@ -750,9 +748,9 @@ function TickerCreationComponent({
                   )}
                   {fileError ? <HintText>{fileError}</HintText> : null}
                   <ModalActions>
-                    <SecondaryButton type="button" onClick={closeFileModal}>
+                    <Button variant="secondary" type="button" onClick={closeFileModal}>
                       닫기
-                    </SecondaryButton>
+                    </Button>
                   </ModalActions>
                 </ModalPanel>
               </ModalBackdrop>,

@@ -1,4 +1,5 @@
 import { memo, useEffect, useId, useRef, useState } from 'react';
+import BrandMark from '@/components/BrandMark';
 import type { MobileMenuDrawerProps } from './MobileMenuDrawer.types';
 import {
   ConfigDrawerColumn,
@@ -7,7 +8,9 @@ import {
   DrawerCloseButton,
   DrawerToggleButton,
   Header,
+  HeaderBrand,
   HeaderDescription,
+  HeaderLogo,
   HeaderTitle
 } from '@/pages/Main/Main.shared.styled';
 
@@ -59,7 +62,12 @@ function MobileMenuDrawerComponent({ isOpen, onOpen, onClose, left, right, notic
   return (
     <>
       <Header>
-        <HeaderTitle>Snowball Income</HeaderTitle>
+        <HeaderBrand>
+          <HeaderLogo>
+            <BrandMark size={24} />
+          </HeaderLogo>
+          <HeaderTitle>Snowball Income</HeaderTitle>
+        </HeaderBrand>
         <HeaderDescription>장기 배당 투자 전략을 설계하고 시뮬레이션 결과를 비교하세요.</HeaderDescription>
         <div ref={toggleAnchorRef} aria-hidden />
         <DrawerToggleButton

@@ -1,6 +1,6 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Card, ToggleField } from '@/components';
+import { Button, Card, ToggleField } from '@/components';
 import type { SimulationResult as SimulationResultRow } from '@/shared/types';
 import { DIVIDEND_UNIVERSE } from '@/shared/constants';
 import {
@@ -19,7 +19,6 @@ import {
   PortfolioPresetPlan,
   PortfolioPresetPlanItem,
   PortfolioPresetTitle,
-  PrimaryButton,
   ResultsColumn,
   ScenarioTabsHelpButton,
   ScenarioTabButton,
@@ -27,8 +26,7 @@ import {
   ScenarioTabEditWrap,
   ScenarioTabRenameInput,
   ScenarioTabTooltip,
-  ScenarioTabsWrap,
-  SecondaryButton
+  ScenarioTabsWrap
 } from '@/pages/Main/Main.shared.styled';
 import {
   ProjectionControls,
@@ -824,7 +822,14 @@ function MainRightPanelComponent() {
           />
         </>
       ) : (
-        <Card title={includedProfiles.length === 0 ? '추천 포트폴리오로 시작해보세요' : '결과'}>
+        <Card
+          title={includedProfiles.length === 0 ? '추천 포트폴리오로 시작해보세요' : '결과'}
+          subtitle={
+            includedProfiles.length === 0
+              ? '하나를 고르면 설정이 자동으로 채워집니다. 언제든 왼쪽에서 바꿀 수 있어요.'
+              : undefined
+          }
+        >
           {includedProfiles.length === 0 ? (
             <PortfolioPresetGrid aria-label="포트폴리오 프리셋 목록">
               {PORTFOLIO_PRESET_PLACEHOLDERS.map((preset) => (
@@ -876,12 +881,12 @@ function MainRightPanelComponent() {
                 <ModalTitle>탭 삭제</ModalTitle>
                 <ModalBody>정말 삭제하시겠습니까?</ModalBody>
                 <ModalActions>
-                  <SecondaryButton type="button" onClick={closeDeleteModal}>
+                  <Button variant="secondary" type="button" onClick={closeDeleteModal}>
                     취소
-                  </SecondaryButton>
-                  <PrimaryButton type="button" onClick={confirmDeleteTab}>
+                  </Button>
+                  <Button variant="primary" type="button" onClick={confirmDeleteTab}>
                     삭제
-                  </PrimaryButton>
+                  </Button>
                 </ModalActions>
               </ModalPanel>
             </ModalBackdrop>,

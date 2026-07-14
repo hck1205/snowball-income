@@ -1,12 +1,24 @@
 /**
- * 디자인 토큰.
+ * 토큰 파사드.
  *
- * 색은 CSS custom property(`--sb-*`)를 가리키는 `var()` 문자열로 노출한다.
- * - Emotion `ThemeProvider`를 쓰지 않는 이유: 기존 코드에 Provider가 전혀 없고,
- *   공용 컴포넌트 테스트가 Provider 없이 단독 렌더된다(`theme`이 비어 크래시).
- *   CSS 변수는 Provider가 필요 없고 `prefers-color-scheme` 다크 전환도 리렌더 없이 동작한다.
+ * 디자인 시스템은 2계층이다:
+ *   `primitives.ts` (원시 램프/스케일)  →  `semantic.ts` (역할)  →  화면
+ *
+ * 이 파일은 두 계층을 화면이 쓰기 편한 형태로 묶어 다시 내보내고,
+ * 색이 아닌 나머지 토큰(브레이크포인트·타이포·간격·모션·z-index)을 정의한다.
+ *
+ * 색이 `var(--sb-*)` 문자열인 이유:
+ * - Emotion `ThemeProvider`를 쓰지 않는다. 공용 컴포넌트 테스트가 Provider 없이 단독 렌더되기 때문에
+ *   `theme`이 비어 크래시한다. CSS 변수는 Provider가 필요 없고, `prefers-color-scheme` 다크 전환도
+ *   리렌더 없이 동작한다.
  * - 캔버스(ECharts)는 `var()`를 읽지 못하므로 실제 hex가 필요하다 → `CHART_SERIES` / `chartTheme.ts` 참고.
  */
+
+import { FONT_SIZE_SCALE, FONT_WEIGHT_SCALE, LEADING_SCALE, RADIUS_SCALE, SPACE_SCALE, palette } from './primitives';
+
+export { palette } from './primitives';
+export { color, elevation, DARK_THEME, LIGHT_THEME, toCssVars } from './semantic';
+export type { ThemeTokens } from './semantic';
 
 /* -------------------------------------------------------------------------- */
 /* 브레이크포인트 — 기존 코드에 흩어져 있던 값을 그대로 토큰화 (변경 금지)          */
@@ -42,76 +54,19 @@ export const container = {
 } as const;
 
 /* -------------------------------------------------------------------------- */
-/* 색 — var() 참조                                                             */
-/* -------------------------------------------------------------------------- */
-
-export const color = {
-  bg: 'var(--sb-bg)',
-  surface: 'var(--sb-surface)',
-  surfaceMuted: 'var(--sb-surface-muted)',
-  surfaceSunken: 'var(--sb-surface-sunken)',
-  surfaceHover: 'var(--sb-surface-hover)',
-
-  border: 'var(--sb-border)',
-  borderStrong: 'var(--sb-border-strong)',
-
-  text: 'var(--sb-text)',
-  textSecondary: 'var(--sb-text-secondary)',
-  textMuted: 'var(--sb-text-muted)',
-
-  brand: 'var(--sb-brand)',
-  brandHover: 'var(--sb-brand-hover)',
-  brandSubtle: 'var(--sb-brand-subtle)',
-  brandSubtleHover: 'var(--sb-brand-subtle-hover)',
-  brandBorder: 'var(--sb-brand-border)',
-  brandText: 'var(--sb-brand-text)',
-  onBrand: 'var(--sb-on-brand)',
-
-  success: 'var(--sb-success)',
-  warning: 'var(--sb-warning)',
-  danger: 'var(--sb-danger)',
-  dangerSurface: 'var(--sb-danger-surface)',
-  dangerBorder: 'var(--sb-danger-border)',
-
-  overlay: 'var(--sb-overlay)',
-  focusRing: 'var(--sb-focus-ring)',
-  focusShadow: 'var(--sb-focus-shadow)'
-} as const;
-
-/* -------------------------------------------------------------------------- */
 /* 타이포                                                                       */
 /* -------------------------------------------------------------------------- */
 
 export const font = {
   /**
-   * 외부 CDN 폰트를 쓰지 않는다(성능·프라이버시). Pretendard가 설치/셀프호스팅된 환경에서는
-   * 그대로 쓰고, 아니면 OS 한글 폰트로 우아하게 폴백한다.
-   * 기존 코드는 'Pretendard Variable'만 선언하고 실제로 로드하지 않아 무조건 폴백되고 있었다.
+   * Pretendard를 npm으로 셀프호스팅한다(`main.tsx`에서 동적 서브셋 CSS를 import).
+   * CDN을 쓰지 않는 이유: 서드파티 요청(프라이버시) + 렌더 블로킹 + 오프라인 실패.
+   * 폰트가 아직 안 왔을 때는 OS 한글 폰트로 우아하게 폴백한다(`font-display: swap`).
    */
   sans: "'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Segoe UI', Roboto, sans-serif",
-  size: {
-    '2xs': '11px',
-    xs: '12px',
-    sm: '13px',
-    base: '14px',
-    md: '15px',
-    lg: '16px',
-    xl: '18px',
-    '2xl': '20px',
-    '3xl': '24px'
-  },
-  weight: {
-    regular: 400,
-    medium: 500,
-    semibold: 600,
-    bold: 700
-  },
-  leading: {
-    tight: 1.25,
-    snug: 1.4,
-    normal: 1.5,
-    relaxed: 1.6
-  },
+  size: FONT_SIZE_SCALE,
+  weight: FONT_WEIGHT_SCALE,
+  leading: LEADING_SCALE,
   /** 금액/퍼센트가 표에서 자릿수 정렬되도록. 금융 앱의 핵심 디테일. */
   numeric: "font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1;"
 } as const;
@@ -120,29 +75,11 @@ export const font = {
 /* 간격 (4px 스케일) / 라운드 / 그림자 / 모션                                     */
 /* -------------------------------------------------------------------------- */
 
-export const space = {
-  0: '0',
-  1: '4px',
-  2: '8px',
-  3: '12px',
-  4: '16px',
-  5: '20px',
-  6: '24px',
-  7: '28px',
-  8: '32px',
-  10: '40px',
-  12: '48px'
-} as const;
+export const space = SPACE_SCALE;
 
-export const radius = {
-  xs: '4px',
-  sm: '8px',
-  md: '12px',
-  lg: '16px',
-  xl: '20px',
-  pill: '999px'
-} as const;
+export const radius = RADIUS_SCALE;
 
+/** `elevation`의 별칭. 기존 호출부가 `shadow.e1`로 쓰고 있어 유지한다. */
 export const shadow = {
   e1: 'var(--sb-shadow-1)',
   e2: 'var(--sb-shadow-2)',
@@ -173,20 +110,28 @@ export const zIndex = {
 /* -------------------------------------------------------------------------- */
 
 /**
- * 기존 팔레트는 네온톤(#4cc9f0, #70e000, #ffd166 …)과 flat-UI 2014 계열(#c0392b, #f39c12)이
- * 섞여 있어 가장 낡아 보이던 지점이었다. 채도를 낮추고 라이트/다크 양쪽에서 서로 구분되는
- * 8색 카테고리 팔레트로 교체한다. 개수·순서만 유지하면 되므로 로직 영향은 없다.
+ * 8색 카테고리 팔레트. 시리즈 0은 브랜드 램프에서 가져와 차트와 UI가 같은 시스템처럼 보이게 한다.
+ * 나머지는 채도를 낮춰(네온 금지) 데이터가 주인공이 되도록 절제한다.
  *
- * 모든 색은 라이트(#ffffff)·다크(#161d26) 서피스 양쪽에서 대비 3:1 이상이다
- * (WCAG 1.4.11 non-text contrast). 캔버스는 테마별로 색을 바꿀 수 없으므로 한 세트로 둘 다 만족시킨다.
+ * 두 개의 제약을 **동시에** 만족해야 한다 (`contrast.test.ts`가 강제):
+ *  1. 캔버스는 테마별로 색을 못 바꾼다 → 한 세트로 라이트(#ffffff)·다크(#161d26) 양쪽에서 대비 3:1 이상
+ *     (WCAG 1.4.11 non-text contrast).
+ *  2. 시리즈끼리 지각적으로 구분 → 모든 쌍 ΔE ≥ 20.
+ *
+ * 왜 ΔE 25가 아니라 20인가: 위 1번이 색을 **중간 명도 띠**에 가둔다. 그 좁은 공간 안에서
+ * 저채도 8색을 뽑으면 25는 물리적으로 불가능하고, 억지로 밀어내면 네온(#e024e0 류)이 된다.
+ * ΔE 20은 나란히 놓았을 때 확실히 다른 색으로 읽히는 거리다.
+ *
+ * 순서도 의미가 있다: 가장 가까운 쌍(azure↔slate, ΔE 22.9)을 인덱스상 가장 멀리 배치해서
+ * 실제로 인접 배치될 확률을 낮췄다.
  */
 export const CHART_SERIES = [
-  '#3b82c4',
-  '#c26d22',
-  '#48a06b',
-  '#d1607a',
-  '#8b6fc9',
-  '#2c8b9b',
-  '#9a7b14',
-  '#7a8a99'
+  palette.brand[500], // #1f7ba5 azure — 자산 가치(주인공)
+  '#c26d22', // orange
+  '#47955e', // green
+  '#cf5f7d', // rose
+  '#8b6fc9', // violet
+  '#9a7b14', // olive
+  '#9c4f92', // plum
+  '#6b7785' // slate — 기준선(누적 투자금)
 ] as const;
