@@ -30,6 +30,12 @@ import {
   ScenarioTabsWrap,
   SecondaryButton
 } from '@/pages/Main/Main.shared.styled';
+import {
+  ProjectionControls,
+  ProjectionYearField,
+  ProjectionYearSelect,
+  ProjectionYearSuffix
+} from './MainRightPanel.styled';
 import MonthlyCashflow from '@/components/MonthlyCashflow';
 import PortfolioComposition from '@/components/PortfolioComposition';
 import SimulationResult from '@/components/SimulationResult';
@@ -778,21 +784,11 @@ function MainRightPanelComponent() {
           <ChartPanel
             title={postInvestmentChartTitle}
             titleRight={
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                  <select
+              <ProjectionControls>
+                <ProjectionYearField>
+                  <ProjectionYearSelect
                     aria-label="향후 확인 기간 선택 (년)"
                     value={postInvestmentProjectionYears}
-                    style={{
-                      width: '56px',
-                      height: '24px',
-                      border: '1px solid #bfd0de',
-                      borderRadius: '6px',
-                      padding: '0 6px',
-                      fontSize: '12px',
-                      color: '#1f3341',
-                      background: '#fff'
-                    }}
                     onChange={(event) => setPostInvestmentProjectionYears(Number(event.target.value))}
                   >
                     <option value={10}>10</option>
@@ -800,14 +796,13 @@ function MainRightPanelComponent() {
                     <option value={30}>30</option>
                     <option value={40}>40</option>
                     <option value={50}>50</option>
-                  </select>
-                  <span style={{ color: '#486073', fontSize: '12px', fontWeight: 600, whiteSpace: 'nowrap' }}>년</span>
-                </div>
+                  </ProjectionYearSelect>
+                  <ProjectionYearSuffix>년</ProjectionYearSuffix>
+                </ProjectionYearField>
                 <ToggleField
                   label="추정 보기 전환"
                   hideLabel
                   controlWidth="60px"
-                  stateTextColor="#111"
                   checked={isPostInvestmentAssetView}
                   offText="배당"
                   onText="자산"
@@ -819,7 +814,7 @@ function MainRightPanelComponent() {
                     setIsPostInvestmentAssetView(event.target.checked);
                   }}
                 />
-              </div>
+              </ProjectionControls>
             }
             rows={postInvestmentDividendProjectionRows}
             hasData={hasGraphData && postInvestmentDividendProjectionRows.length > 0}

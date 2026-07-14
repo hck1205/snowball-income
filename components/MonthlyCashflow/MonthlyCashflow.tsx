@@ -2,7 +2,14 @@ import { memo, useEffect, useMemo, useState } from 'react';
 import { Card } from '@/components';
 import type { MonthlyCashflowProps } from './MonthlyCashflow.types';
 import { resolveSelectedYear } from './MonthlyCashflow.utils';
-import { ChartWrap, HintText, InlineSelect, SeriesToggleLabel } from '@/pages/Main/Main.shared.styled';
+import { ChartWrap, HintText } from '@/pages/Main/Main.shared.styled';
+import {
+  CashflowHeader,
+  CashflowHeaderControls,
+  CashflowTitle,
+  CashflowTotalLabel,
+  CashflowYearSelect
+} from './MonthlyCashflow.styled';
 import { buildRecentCashflowBarOption } from '@/pages/Main/utils';
 import { formatKRW } from '@/shared/utils';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
@@ -23,8 +30,8 @@ function MonthlyCashflowComponent({ yearlyCashflowByTicker, hasData = true, empt
   );
   const totalDividend = selectedYearData?.totalDividend ?? 0;
   const headerControls = (
-    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-      <InlineSelect
+    <CashflowHeaderControls>
+      <CashflowYearSelect
         aria-label="실지급 배당 연도 선택"
         value={selectedYear ?? ''}
         onChange={(event) => {
@@ -35,26 +42,25 @@ function MonthlyCashflowComponent({ yearlyCashflowByTicker, hasData = true, empt
           });
           setSelectedYear(nextYear);
         }}
-        style={{ maxWidth: '110px', minWidth: '110px', padding: '6px 24px 6px 8px', fontSize: '13px' }}
       >
         {years.map((year) => (
           <option key={year} value={year}>
             {year}년
           </option>
         ))}
-      </InlineSelect>
-      <SeriesToggleLabel style={{ whiteSpace: 'nowrap' }}>
+      </CashflowYearSelect>
+      <CashflowTotalLabel>
         {selectedYear ? `배당 합계: ${formatKRW(totalDividend)}` : '실지급 배당 데이터 없음'}
-      </SeriesToggleLabel>
-    </div>
+      </CashflowTotalLabel>
+    </CashflowHeaderControls>
   );
 
   return (
     <Card>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-        <h2 style={{ margin: 0, color: '#1f3341', fontSize: '18px' }}>실지급 월별 배당</h2>
+      <CashflowHeader>
+        <CashflowTitle>실지급 월별 배당</CashflowTitle>
         {headerControls}
-      </div>
+      </CashflowHeader>
       {hasData ? (
         <ChartWrap role="img" aria-label="선택 연도의 월별 실지급 배당 차트">
           <ResponsiveChart option={chartOption} replaceMerge={['series', 'legend', 'xAxis']} />

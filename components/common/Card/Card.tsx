@@ -9,7 +9,7 @@ export default function Card({ title, titleRight, titleRightInline, children }: 
   return (
     <CardContainer>
       {showHeader ? (
-        <CardHeader style={titleRightInline ? { justifyContent: 'flex-start' } : undefined}>
+        <CardHeader inlineTitleRight={titleRightInline}>
           {resolvedTitle ? <CardTitle>{resolvedTitle}</CardTitle> : <span />}
           {titleRight}
         </CardHeader>

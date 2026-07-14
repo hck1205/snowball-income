@@ -24,6 +24,22 @@ import {
   TickerItemButton,
   TickerList
 } from '@/pages/Main/Main.shared.styled';
+import {
+  CaptureErrorText,
+  FileErrorText,
+  FlushModalBody,
+  LoadSlotButton,
+  ModalActionGroup,
+  SaveModalGuide,
+  SaveModalHeaderRow,
+  SavedSlotButton,
+  SavedSlotRow,
+  ScrollableTickerGrid,
+  ShareToast,
+  SingleColumnTickerList,
+  SpreadModalActions,
+  VisuallyHiddenFileInput
+} from './TickerCreation.styled';
 
 function TickerCreationComponent({
   topContent,
@@ -515,26 +531,9 @@ function TickerCreationComponent({
       </TickerQuickActionRow>
       {shareToastMessage && modalRoot
         ? createPortal(
-            <div
-              role="status"
-              aria-live="polite"
-              style={{
-                position: 'fixed',
-                top: '14px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                zIndex: 1200,
-                background: '#1f3341',
-                color: '#fff',
-                borderRadius: '10px',
-                padding: '10px 14px',
-                fontSize: '13px',
-                fontWeight: 600,
-                boxShadow: '0 8px 18px rgba(10, 24, 36, 0.28)'
-              }}
-            >
+            <ShareToast role="status" aria-live="polite">
               {shareToastMessage}
-            </div>,
+            </ShareToast>,
             modalRoot
           )
         : null}
@@ -603,9 +602,9 @@ function TickerCreationComponent({
                     {'\n'}
                     이름을 비워두면 현재 날짜/시간 이름으로 자동 저장됩니다.
                     {'\n'}
-                    <span style={{ display: 'block', marginTop: '4px', fontSize: '12px' }}>
+                    <SaveModalGuide>
                       가이드: 이 저장은 현재 PC의 현재 브라우저에만 보관됩니다. 다른 기기/브라우저에서는 보이지 않을 수 있습니다.
-                    </span>
+                    </SaveModalGuide>
                   </ModalBody>
                   <InputField
                     label="저장 이름"
@@ -639,12 +638,12 @@ function TickerCreationComponent({
               >
                 <ModalPanel aria-busy={isLoadingList || isLoadingState || isLoadingJsonFile || isDeletingState}>
                   <ModalTitle id={loadModalTitleId}>불러오기</ModalTitle>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '24px', marginBottom: '2px' }}>
-                    <ModalBody style={{ margin: 0 }}>
+                  <SaveModalHeaderRow>
+                    <FlushModalBody>
                       저장된 목록에서 불러올 항목을 선택해 주세요.
                       {'\n'}
                       JSON 파일을 선택해서 불러올 수도 있습니다.
-                    </ModalBody>
+                    </FlushModalBody>
                     {savedItems.length > 0 ? (
                       <SecondaryButton
                         type="button"
@@ -654,25 +653,24 @@ function TickerCreationComponent({
                         {isLoadDeleteMode ? '삭제 모드 종료' : '삭제'}
                       </SecondaryButton>
                     ) : null}
-                  </div>
+                  </SaveModalHeaderRow>
                   {isLoadingList ? (
                     <HintText>저장 목록을 불러오는 중...</HintText>
                   ) : savedItems.length === 0 ? (
                     <HintText>저장된 항목이 없습니다.</HintText>
                   ) : (
                     <>
-                      <TickerGridWrap style={{ maxHeight: '220px', overflowY: 'auto' }}>
-                        <TickerList style={{ gridTemplateColumns: '1fr' }}>
+                      <ScrollableTickerGrid>
+                        <SingleColumnTickerList>
                           {savedItems.map((item) => (
-                            <li key={`${item.name}-${item.updatedAt}`} style={{ display: 'flex', gap: '8px' }}>
-                              <TickerItemButton
+                            <SavedSlotRow key={`${item.name}-${item.updatedAt}`}>
+                              <SavedSlotButton
                                 type="button"
                                 aria-label={`${item.name} 불러오기`}
-                                style={{ textAlign: 'left', flex: 1 }}
                                 onClick={() => void handleLoadState(item.name)}
                               >
                                 {item.name}
-                              </TickerItemButton>
+                              </SavedSlotButton>
                               {isLoadDeleteMode ? (
                                 <SecondaryButton
                                   type="button"
@@ -682,32 +680,29 @@ function TickerCreationComponent({
                                   삭제
                                 </SecondaryButton>
                               ) : null}
-                            </li>
+                            </SavedSlotRow>
                           ))}
-                        </TickerList>
-                      </TickerGridWrap>
+                        </SingleColumnTickerList>
+                      </ScrollableTickerGrid>
                     </>
                   )}
                   {loadError ? <HintText>{loadError}</HintText> : null}
-                  <ModalActions style={{ justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <SpreadModalActions>
+                    <ModalActionGroup>
                       <SecondaryButton type="button" onClick={openLoadFilePicker}>
                         {isLoadingJsonFile ? '파일 확인 중...' : '파일 선택'}
                       </SecondaryButton>
-                      {loadFileRecognitionError ? (
-                        <span style={{ color: '#b42318', fontSize: '12px' }}>{loadFileRecognitionError}</span>
-                      ) : null}
-                    </div>
+                      {loadFileRecognitionError ? <FileErrorText>{loadFileRecognitionError}</FileErrorText> : null}
+                    </ModalActionGroup>
                     <SecondaryButton type="button" onClick={closeLoadModal}>
                       닫기
                     </SecondaryButton>
-                  </ModalActions>
-                  <input
+                  </SpreadModalActions>
+                  <VisuallyHiddenFileInput
                     ref={loadFileInputRef}
                     type="file"
                     accept=".json,application/json"
                     aria-label="JSON 파일 선택"
-                    style={{ display: 'none' }}
                     onChange={(event) => void handleLoadFileChange(event)}
                   />
                 </ModalPanel>
@@ -737,22 +732,21 @@ function TickerCreationComponent({
                   ) : savedItems.length === 0 ? (
                     <HintText>저장된 항목이 없습니다.</HintText>
                   ) : (
-                    <TickerGridWrap style={{ maxHeight: '220px', overflowY: 'auto' }}>
-                      <TickerList style={{ gridTemplateColumns: '1fr' }}>
+                    <ScrollableTickerGrid>
+                      <SingleColumnTickerList>
                         {savedItems.map((item) => (
                           <li key={`file-${item.name}-${item.updatedAt}`}>
-                            <TickerItemButton
+                            <LoadSlotButton
                               type="button"
                               aria-label={`${item.name} JSON 다운로드`}
-                              style={{ textAlign: 'left' }}
                               onClick={() => void handleDownloadState(item.name)}
                             >
                               {item.name}
-                            </TickerItemButton>
+                            </LoadSlotButton>
                           </li>
                         ))}
-                      </TickerList>
-                    </TickerGridWrap>
+                      </SingleColumnTickerList>
+                    </ScrollableTickerGrid>
                   )}
                   {fileError ? <HintText>{fileError}</HintText> : null}
                   <ModalActions>
@@ -766,7 +760,7 @@ function TickerCreationComponent({
             )
           : null
       ) : null}
-      {captureError ? <HintText style={{ marginTop: '8px' }}>{captureError}</HintText> : null}
+      {captureError ? <CaptureErrorText>{captureError}</CaptureErrorText> : null}
     </Card>
   );
 }

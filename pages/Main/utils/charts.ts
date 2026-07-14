@@ -8,6 +8,7 @@ import {
   YEARLY_SERIES_ORDER,
   type YearlySeriesKey
 } from '@/shared/constants';
+import { buildAxisStyle, buildLegendStyle, buildTooltipStyle, getChartTheme } from '@/shared/styles';
 import { formatApproxKRW } from './formatters';
 import type { NormalizedAllocationItem } from './portfolio';
 import type { RecentCashflowByTicker } from './simulation';
@@ -54,22 +55,34 @@ export const buildLineChartOption = <TRow>({
   yAxisLabelFormatter?: (value: number) => string;
 }): EChartsOption => {
   const formatValue = yAxisLabelFormatter ?? defaultAxisValueFormatter;
+  const theme = getChartTheme();
+  const axis = buildAxisStyle(theme);
 
   return {
     animation: false,
     grid: { left: 72, right: 20, top: 24, bottom: 40 },
     tooltip: {
       trigger: 'axis',
+      ...buildTooltipStyle(theme),
       valueFormatter: (value: unknown) => formatValue(Number(value))
     },
     xAxis: {
       type: 'category',
       name: xAxisLabel,
-      data: rows.map((row) => getXValue(row))
+      nameTextStyle: { color: theme.label, fontFamily: theme.fontFamily },
+      boundaryGap: false,
+      data: rows.map((row) => getXValue(row)),
+      ...axis,
+      splitLine: { show: false }
     },
     yAxis: {
       type: 'value',
+      ...axis,
+      axisLine: { show: false },
       axisLabel: {
+        color: theme.label,
+        fontSize: theme.labelFontSize,
+        fontFamily: theme.fontFamily,
         formatter: (value: number) => formatValue(value)
       }
     },
@@ -78,9 +91,9 @@ export const buildLineChartOption = <TRow>({
         type: 'line',
         smooth: true,
         showSymbol: false,
-        lineStyle: { width: 2, color: '#2f6f93' },
-        itemStyle: { color: '#2f6f93' },
-        areaStyle: { color: '#2f6f9320' },
+        lineStyle: { width: 2, color: theme.brand },
+        itemStyle: { color: theme.brand },
+        areaStyle: { color: theme.brand, opacity: 0.14 },
         data: rows.map((row) => getYValue(row))
       }
     ]
@@ -98,6 +111,8 @@ export const buildAllocationPieOption = ({
 }): EChartsOption | null => {
   if (normalizedAllocation.length === 0) return null;
 
+  const theme = getChartTheme();
+
   return {
     animation: false,
     graphic: showPortfolioDividendCenter
@@ -113,9 +128,10 @@ export const buildAllocationPieOption = ({
                 top: -12,
                 style: {
                   text: '월배당',
-                  fill: '#567285',
+                  fill: theme.textMuted,
                   fontSize: 12,
                   fontWeight: 600,
+                  fontFamily: theme.fontFamily,
                   align: 'center',
                   verticalAlign: 'middle'
                 }
@@ -126,9 +142,10 @@ export const buildAllocationPieOption = ({
                 top: 8,
                 style: {
                   text: formatApproxKRW(finalMonthlyAverageDividend),
-                  fill: '#1f3341',
-                  fontSize: 13,
+                  fill: theme.text,
+                  fontSize: 14,
                   fontWeight: 700,
+                  fontFamily: theme.fontFamily,
                   align: 'center',
                   verticalAlign: 'middle'
                 }
@@ -141,6 +158,7 @@ export const buildAllocationPieOption = ({
       trigger: 'item',
       confine: true,
       position: tooltipPosition,
+      ...buildTooltipStyle(theme),
       formatter: '{b}: {d}%'
     },
     series: [
@@ -151,18 +169,20 @@ export const buildAllocationPieOption = ({
         radius: ['46%', '70%'],
         center: ['50%', '50%'],
         avoidLabelOverlap: true,
-        itemStyle: { borderColor: '#fff', borderWidth: 2 },
+        itemStyle: { borderColor: theme.sliceBorder, borderWidth: 2, borderRadius: 3 },
         label: {
           show: true,
           position: 'outside',
           formatter: '{b} {d}%',
-          color: '#334a5c',
-          fontSize: 11
+          color: theme.label,
+          fontSize: 11,
+          fontFamily: theme.fontFamily
         },
         labelLine: {
           show: true,
           length: 10,
-          length2: 8
+          length2: 8,
+          lineStyle: { color: theme.axisLine }
         },
         data: normalizedAllocation.map(({ profile, weight }, index) => ({
           name: getTickerDisplayName(profile.ticker, profile.name),
@@ -174,45 +194,58 @@ export const buildAllocationPieOption = ({
   };
 };
 
-export const buildRecentCashflowBarOption = (recentCashflowByTicker: RecentCashflowByTicker): EChartsOption => ({
-  animation: false,
-  grid: { left: 72, right: 16, top: 52, bottom: 42 },
-  tooltip: {
-    trigger: 'axis',
-    axisPointer: { type: 'shadow' },
-    confine: true,
-    position: tooltipPosition,
-    valueFormatter: (value: unknown) => formatKRW(Number(value))
-  },
-  legend: {
-    type: 'scroll',
-    orient: 'horizontal',
-    top: 0,
-    left: 72,
-    right: 16,
-    textStyle: { color: '#486073', fontSize: 12 }
-  },
-  xAxis: {
-    type: 'category',
-    data: recentCashflowByTicker.months
-  },
-  yAxis: {
-    type: 'value',
-    axisLabel: {
-      formatter: (value: number) => formatKRW(value)
-    }
-  },
-  series: recentCashflowByTicker.series.map((item) => ({
-    type: 'bar',
-    name: item.name,
-    stack: 'total',
-    data: item.data,
-    barMaxWidth: 24,
-    itemStyle: {
-      color: item.color
-    }
-  }))
-});
+export const buildRecentCashflowBarOption = (recentCashflowByTicker: RecentCashflowByTicker): EChartsOption => {
+  const theme = getChartTheme();
+  const axis = buildAxisStyle(theme);
+
+  return {
+    animation: false,
+    grid: { left: 72, right: 16, top: 52, bottom: 42 },
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: { type: 'shadow' },
+      confine: true,
+      position: tooltipPosition,
+      ...buildTooltipStyle(theme),
+      valueFormatter: (value: unknown) => formatKRW(Number(value))
+    },
+    legend: {
+      type: 'scroll',
+      orient: 'horizontal',
+      top: 0,
+      left: 72,
+      right: 16,
+      ...buildLegendStyle(theme)
+    },
+    xAxis: {
+      type: 'category',
+      data: recentCashflowByTicker.months,
+      ...axis,
+      splitLine: { show: false }
+    },
+    yAxis: {
+      type: 'value',
+      ...axis,
+      axisLine: { show: false },
+      axisLabel: {
+        color: theme.label,
+        fontSize: theme.labelFontSize,
+        fontFamily: theme.fontFamily,
+        formatter: (value: number) => formatKRW(value)
+      }
+    },
+    series: recentCashflowByTicker.series.map((item) => ({
+      type: 'bar',
+      name: item.name,
+      stack: 'total',
+      data: item.data,
+      barMaxWidth: 24,
+      itemStyle: {
+        color: item.color
+      }
+    }))
+  };
+};
 
 export const buildYearlyResultBarOption = ({
   tableRows,
@@ -224,6 +257,8 @@ export const buildYearlyResultBarOption = ({
   isYearlyAreaFillOn: boolean;
 }): EChartsOption => {
   const seriesKeys = YEARLY_SERIES_ORDER.filter((key) => visibleYearlySeries[key]);
+  const theme = getChartTheme();
+  const axis = buildAxisStyle(theme);
 
   return {
     animation: false,
@@ -232,6 +267,7 @@ export const buildYearlyResultBarOption = ({
       trigger: 'axis',
       confine: true,
       position: tooltipPosition,
+      ...buildTooltipStyle(theme),
       valueFormatter: (value: unknown) => formatKRW(Number(value))
     },
     legend: {
@@ -240,15 +276,25 @@ export const buildYearlyResultBarOption = ({
       top: 0,
       left: 72,
       right: 20,
-      textStyle: { color: '#486073', fontSize: 12 }
+      ...buildLegendStyle(theme)
     },
     xAxis: {
       type: 'category',
-      data: tableRows.map((row) => `${row.year}`)
+      data: tableRows.map((row) => `${row.year}`),
+      boundaryGap: false,
+      ...axis,
+      splitLine: { show: false }
     },
     yAxis: {
       type: 'value',
-      axisLabel: { formatter: (value: number) => formatKRW(value) }
+      ...axis,
+      axisLine: { show: false },
+      axisLabel: {
+        color: theme.label,
+        fontSize: theme.labelFontSize,
+        fontFamily: theme.fontFamily,
+        formatter: (value: number) => formatKRW(value)
+      }
     },
     series: seriesKeys.map((key) => ({
       type: 'line',
@@ -257,7 +303,7 @@ export const buildYearlyResultBarOption = ({
       showSymbol: false,
       lineStyle: { width: 2, color: YEARLY_SERIES_COLOR[key] },
       itemStyle: { color: YEARLY_SERIES_COLOR[key] },
-      areaStyle: isYearlyAreaFillOn ? { color: `${YEARLY_SERIES_COLOR[key]}22` } : undefined,
+      areaStyle: isYearlyAreaFillOn ? { color: YEARLY_SERIES_COLOR[key], opacity: 0.15 } : undefined,
       data: tableRows.map((row) => row[key])
     }))
   };

@@ -29,6 +29,7 @@ import {
   PrimaryButton,
   SecondaryButton
 } from '@/pages/Main/Main.shared.styled';
+import { ModalCaption } from './TickerModal.styled';
 import type { TickerModalViewProps } from './TickerModal.types';
 import {
   buildTickerSearchRows,
@@ -245,7 +246,7 @@ export default function TickerModalView({
               />
             </ModalCompactFormGrid>
             {totalReturnCaption ? (
-              <ModalBody style={{ fontSize: '12px' }}>{totalReturnCaption}</ModalBody>
+              <ModalCaption>{totalReturnCaption}</ModalCaption>
             ) : null}
           </>
         ) : null}
@@ -267,12 +268,12 @@ export default function TickerModalView({
                 onChange={(event) => setPresetSearchKeyword(event.target.value)}
               />
             </ModalTickerSearchWrap>
-            <ModalBody style={{ fontSize: '12px' }}>
+            <ModalCaption>
               주의: 실시간 데이터가 아니기 때문에 실제 데이터와 다를 수 있습니다. 참고용으로만 사용해 주세요.
-            </ModalBody>
-            <ModalBody style={{ fontSize: '12px' }}>
+            </ModalCaption>
+            <ModalCaption>
               표시: {filteredPresetKeys.length} / 전체: {sortedPresetKeys.length}
-            </ModalBody>
+            </ModalCaption>
             {filteredPresetKeys.length > 0 ? (
               <PresetChipScrollArea>
                 <PresetChipGrid role="listbox" aria-label="프리셋 티커 목록">
@@ -343,7 +344,7 @@ export default function TickerModalView({
               />
             </ModalCompactFormGrid>
             {totalReturnCaption ? (
-              <ModalBody style={{ fontSize: '12px' }}>{totalReturnCaption}</ModalBody>
+              <ModalCaption>{totalReturnCaption}</ModalCaption>
             ) : null}
           </InlineField>
         ) : null}

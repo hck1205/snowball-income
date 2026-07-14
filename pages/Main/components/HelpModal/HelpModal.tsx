@@ -4,6 +4,7 @@ import { ModalBackdrop, ModalBody, ModalClose, ModalPanel, ModalTitle } from '@/
 import { useCurrentHelpAtomValue } from '@/jotai';
 import type { HelpModalProps } from './HelpModal.types';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
+import { HelpBulletIcon, HelpBulletList } from './HelpModal.styled';
 
 const renderWithBoldTokens = (text: string, tokens: string[]) => {
   if (tokens.length === 0) return text;
@@ -29,7 +30,7 @@ const renderPortfolioTabsHelpBody = (body: string) => {
 
   return (
     <ModalBody as="div">
-      <ul style={{ margin: 0, paddingLeft: '18px', display: 'grid', gap: '4px' }}>
+      <HelpBulletList>
         {lines.map((line, index) => {
           const boldTokens = index === 0 ? ['10개'] : index === 1 ? ['이름 변경', '삭제'] : ['드래그', '순서'];
 
@@ -39,16 +40,16 @@ const renderPortfolioTabsHelpBody = (body: string) => {
 
           return (
             <li key={`${index}-${line}`}>
-              <span aria-hidden="true" style={{ display: 'inline-flex', verticalAlign: 'middle', marginRight: '4px' }}>
+              <HelpBulletIcon aria-hidden="true">
                 <svg width="12" height="12" viewBox="0 0 24 24" focusable="false">
                   <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                 </svg>
-              </span>
+              </HelpBulletIcon>
               {renderWithBoldTokens(normalizedLine, boldTokens)}
             </li>
           );
         })}
-      </ul>
+      </HelpBulletList>
     </ModalBody>
   );
 };

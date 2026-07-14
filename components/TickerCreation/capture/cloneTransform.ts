@@ -26,6 +26,13 @@ const makeCenterWrappers = (doc: Document): { outer: HTMLDivElement; inner: HTML
 };
 
 const normalizeCloneDocument = (doc: Document, captureWidth: number) => {
+  /*
+   * 캡처 결과물은 흰 배경 고정이다(아래 normalizeCloneRoot + capture/tiling.ts의 backgroundColor).
+   * OS가 다크 모드면 클론 문서도 prefers-color-scheme: dark를 물려받아 글자가 밝아지고
+   * 흰 배경 위에서 안 보이게 된다. 라이트 테마로 못박아 기존 캡처 동작을 그대로 유지한다.
+   */
+  doc.documentElement.setAttribute('data-theme', 'light');
+
   doc.documentElement.style.width = `${captureWidth}px`;
   doc.documentElement.style.height = 'auto';
   doc.documentElement.style.maxHeight = 'none';
