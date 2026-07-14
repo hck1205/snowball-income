@@ -1,19 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { validateEntry } from '@/scripts/tickerRefresh';
-import type { MarketDataEntry } from '@/shared/constants/marketData';
+import { checkDerivedDividendGrowth, validateEntry } from '@/scripts/tickerRefresh';
+import type { MarketDataEntry, MarketDataSnapshotEntry } from '@/shared/constants/marketData';
 
 const PREVIOUS: MarketDataEntry = {
   initialPrice: 31.61,
   dividendYield: 3.34,
-  dividendGrowth: 7,
   frequency: 'quarterly'
 };
 
-const valid: MarketDataEntry = {
+const valid: MarketDataSnapshotEntry = {
   initialPrice: 32.1,
   dividendYield: 3.41,
-  dividendGrowth: 7.2,
-  frequency: 'quarterly'
+  frequency: 'quarterly',
+  observedDividendCagr: 8.2
 };
 
 describe('validateEntry', () => {
@@ -24,6 +23,17 @@ describe('validateEntry', () => {
 
   it('accepts an entry with no previous value to compare against', () => {
     expect(validateEntry(valid, null).ok).toBe(true);
+  });
+
+  it('accepts an entry without the optional observedDividendCagr', () => {
+    const { observedDividendCagr: _omitted, ...withoutCagr } = valid;
+    expect(validateEntry(withoutCagr, PREVIOUS).ok).toBe(true);
+  });
+
+  it('strips a dividendGrowth smuggled into a candidate (the pipeline may not write it)', () => {
+    const result = validateEntry({ ...valid, dividendGrowth: 11 }, PREVIOUS);
+    expect(result.ok).toBe(true);
+    expect(result.ok === true && result.value).not.toHaveProperty('dividendGrowth');
   });
 
   describe('dividendYield bounds (0..30)', () => {
@@ -38,15 +48,19 @@ describe('validateEntry', () => {
     });
   });
 
-  describe('dividendGrowth bounds (-50..50)', () => {
-    it.each([-50, 0, 50])('accepts %s%%', (dividendGrowth) => {
-      expect(validateEntry({ ...valid, dividendGrowth }, PREVIOUS).ok).toBe(true);
+  describe('observedDividendCagr bounds (-50..50, reference only)', () => {
+    it.each([-50, 0, 50])('accepts %s%%', (observedDividendCagr) => {
+      expect(validateEntry({ ...valid, observedDividendCagr }, PREVIOUS).ok).toBe(true);
     });
 
-    it.each([-50.1, 50.1, 900])('rejects %s%%', (dividendGrowth) => {
-      const result = validateEntry({ ...valid, dividendGrowth }, PREVIOUS);
+    it.each([-50.1, 50.1, 900])('rejects %s%%', (observedDividendCagr) => {
+      const result = validateEntry({ ...valid, observedDividendCagr }, PREVIOUS);
       expect(result.ok).toBe(false);
-      expect(result.ok === false && result.reason).toContain('dividendGrowth');
+      expect(result.ok === false && result.reason).toContain('observedDividendCagr');
+    });
+
+    it('rejects a NaN observedDividendCagr', () => {
+      expect(validateEntry({ ...valid, observedDividendCagr: Number.NaN }, PREVIOUS).ok).toBe(false);
     });
   });
 
@@ -92,18 +106,15 @@ describe('validateEntry', () => {
   });
 
   describe('missing / NaN fields', () => {
-    it.each(['initialPrice', 'dividendYield', 'dividendGrowth', 'frequency'] as const)(
-      'rejects a missing %s',
-      (field) => {
-        const partial: Record<string, unknown> = { ...valid };
-        delete partial[field];
-        const result = validateEntry(partial, PREVIOUS);
-        expect(result.ok).toBe(false);
-        expect(result.ok === false && result.reason).toContain(field);
-      }
-    );
+    it.each(['initialPrice', 'dividendYield', 'frequency'] as const)('rejects a missing %s', (field) => {
+      const partial: Record<string, unknown> = { ...valid };
+      delete partial[field];
+      const result = validateEntry(partial, PREVIOUS);
+      expect(result.ok).toBe(false);
+      expect(result.ok === false && result.reason).toContain(field);
+    });
 
-    it.each(['initialPrice', 'dividendYield', 'dividendGrowth'] as const)('rejects a NaN %s', (field) => {
+    it.each(['initialPrice', 'dividendYield'] as const)('rejects a NaN %s', (field) => {
       const result = validateEntry({ ...valid, [field]: Number.NaN }, PREVIOUS);
       expect(result.ok).toBe(false);
       expect(result.ok === false && result.reason).toContain(field);
@@ -116,5 +127,35 @@ describe('validateEntry', () => {
     it.each([null, undefined, 'nope', 42])('rejects a non-object entry (%s)', (entry) => {
       expect(validateEntry(entry, PREVIOUS).ok).toBe(false);
     });
+  });
+});
+
+/**
+ * The soft guard that replaces the old `dividendGrowth` bounds check. The pipeline no longer produces
+ * a growth rate, so the thing worth checking is the *consequence* of the refreshed yield: growth is
+ * `expectedTotalReturn - dividendYield`, and a yield that overruns the curated total return turns the
+ * asset into a shrinking one.
+ */
+describe('checkDerivedDividendGrowth', () => {
+  it('is silent when the refreshed yield leaves room for positive growth', () => {
+    expect(checkDerivedDividendGrowth({ dividendYield: 3.41, expectedTotalReturn: 10 })).toBeNull();
+  });
+
+  it('is silent at exactly zero derived growth (an 8% yield on an 8% total-return assumption)', () => {
+    expect(checkDerivedDividendGrowth({ dividendYield: 8, expectedTotalReturn: 8 })).toBeNull();
+  });
+
+  it('warns when the refreshed yield exceeds the curated expectedTotalReturn', () => {
+    const warning = checkDerivedDividendGrowth({ dividendYield: 12, expectedTotalReturn: 7 });
+
+    expect(warning).not.toBeNull();
+    expect(warning).toContain('-5.00%');
+    expect(warning).toContain('expectedTotalReturn');
+  });
+
+  it('warns on the SCHD-style data error: a bad yield silently making a growth ETF shrink', () => {
+    // 14% TTM yield on SCHD would be a special dividend counted as recurring, not a real yield.
+    const warning = checkDerivedDividendGrowth({ dividendYield: 14, expectedTotalReturn: 10 });
+    expect(warning).toContain('-4.00%');
   });
 });

@@ -1,4 +1,9 @@
-import type { MarketDataEntry, MarketDataOverlaid, MarketDataSnapshot } from './marketData.types';
+import type {
+  MarketDataEntry,
+  MarketDataOverlaid,
+  MarketDataSnapshot,
+  MarketDataSnapshotEntry
+} from './marketData.types';
 
 /** A snapshot that overlays nothing. Using it leaves a universe byte-for-byte unchanged. */
 export const EMPTY_MARKET_DATA_SNAPSHOT: MarketDataSnapshot = {
@@ -8,11 +13,26 @@ export const EMPTY_MARKET_DATA_SNAPSHOT: MarketDataSnapshot = {
 };
 
 /**
+ * Narrows a snapshot entry to the fields that may reach the universe.
+ *
+ * Explicit, not a spread: reference-only observations (`observedDividendCagr`) exist to inform a
+ * human curator, and must never end up as an engine input.
+ */
+const toOverlay = (entry: MarketDataSnapshotEntry): MarketDataEntry => ({
+  initialPrice: entry.initialPrice,
+  dividendYield: entry.dividendYield,
+  frequency: entry.frequency
+});
+
+/**
  * Overlays refreshed market data on top of a curated universe. Pure.
  *
  * Guarantees:
- * - Only `initialPrice`, `dividendYield`, `dividendGrowth` and `frequency` are overwritten.
+ * - Only `initialPrice`, `dividendYield` and `frequency` are overwritten — the observable facts.
  * - Curated fields (`name`, `expectedTotalReturn`, ...) always survive.
+ * - `dividendGrowth` is NOT overlaid. It is an assumption, re-derived from the curated
+ *   `expectedTotalReturn` and the (possibly refreshed) `dividendYield` *after* this step — see
+ *   `shared/constants/presets/index.ts`.
  * - Tickers missing from `snapshot.entries` keep their preset values untouched.
  * - An empty snapshot yields a universe deep-equal to the input.
  */
@@ -26,8 +46,7 @@ export const applyMarketData = <T extends Record<string, MarketDataEntry>>(
     const preset = universe[ticker];
     const entry = snapshot.entries[String(ticker)];
 
-    // `entry` only carries the four refreshable fields, so curated fields cannot be overwritten.
-    overlaid[ticker] = (entry ? { ...preset, ...entry } : { ...preset }) as MarketDataOverlaid<T>[keyof T];
+    overlaid[ticker] = (entry ? { ...preset, ...toOverlay(entry) } : { ...preset }) as MarketDataOverlaid<T>[keyof T];
   }
 
   return overlaid;

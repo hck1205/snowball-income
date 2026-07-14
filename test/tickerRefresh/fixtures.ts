@@ -27,6 +27,27 @@ export const SCHD_DIVIDENDS: DividendPayment[] = [
   { date: '2026-06-20', amount: 0.28 }
 ];
 
+/**
+ * SCHD-like, but with the payout CAGR the real fund actually printed (~11%/yr).
+ *
+ * This is the case that motivated splitting observation from assumption: overlaying that CAGR onto
+ * `dividendGrowth` would push SCHD's total return to ~14.8% and betray the curated 10%.
+ */
+export const SCHD_FAST_GROWTH_DIVIDENDS: DividendPayment[] = [
+  ...quarterlyHistory({ 2020: 0.72, 2021: 0.82, 2022: 0.93, 2023: 1.05, 2024: 1.12, 2025: 1.21 }),
+  { date: '2026-03-20', amount: 0.31 },
+  { date: '2026-06-20', amount: 0.31 }
+];
+
+/** QYLD-like: a covered-call fund whose yield legitimately exceeds its total return. */
+export const QYLD_DIVIDENDS: DividendPayment[] = [
+  ...monthlyHistory({ 2021: 2.4, 2022: 2.3, 2023: 2.2, 2024: 2.1, 2025: 2.1 }),
+  ...[1, 2, 3, 4, 5, 6].map((month) => ({
+    date: `2026-${String(month).padStart(2, '0')}-15`,
+    amount: 0.175
+  }))
+];
+
 /** JEPI-like: monthly distributions. */
 export const JEPI_DIVIDENDS: DividendPayment[] = [
   ...monthlyHistory({ 2021: 4.2, 2022: 5.4, 2023: 5.0, 2024: 4.6, 2025: 4.4 }),

@@ -51,6 +51,12 @@ const main = async (): Promise<number> => {
     previousSnapshot
   );
 
+  // Read-only input to the pipeline: it decides what the refreshed yield *implies* for growth, and
+  // which tickers a curator should look at. It is never written back into the snapshot.
+  const expectedTotalReturnByTicker: Record<string, number> = Object.fromEntries(
+    Object.entries(CURATED_DIVIDEND_UNIVERSE).map(([ticker, preset]) => [ticker, preset.expectedTotalReturn])
+  );
+
   const knownTickers = Object.keys(previousByTicker);
   const unknown = options.only?.filter((ticker) => !knownTickers.includes(ticker)) ?? [];
   if (unknown.length > 0) {
@@ -69,6 +75,7 @@ const main = async (): Promise<number> => {
     tickers,
     previousByTicker,
     previousSnapshot,
+    expectedTotalReturnByTicker,
     provider,
     asOf,
     cagrYears: options.cagrYears,
