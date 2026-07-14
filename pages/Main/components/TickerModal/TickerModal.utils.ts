@@ -1,5 +1,5 @@
 import type { PresetTickerKey } from '@/shared/constants';
-import { toExpectedTotalReturnPercent } from '@/shared/lib/snowball';
+import { isValidTickerInput, toExpectedTotalReturnPercent } from '@/shared/lib/snowball';
 import type { TickerDraft, TickerModalMode } from '@/shared/types/snowball';
 import { getTickerDisplayName } from '@/shared/utils';
 
@@ -101,7 +101,12 @@ export const filterPresetKeys = ({
 export const isCustomTickerInput = (mode: TickerModalMode, selectedPreset: 'custom' | PresetTickerKey): boolean =>
   mode === 'create' && selectedPreset === 'custom';
 
-/** Blocks the create button while a hand-written draft is missing its ticker or has a blank number field. */
+/**
+ * Blocks the create button unless the engine would accept the hand-written draft.
+ *
+ * This used to only reject NaN, so a draft still holding the default price of 0 was
+ * creatable — the chip appeared and the whole result panel turned into a validation error.
+ */
 export const isTickerCreateDisabled = ({
   mode,
   selectedPreset,
@@ -110,13 +115,7 @@ export const isTickerCreateDisabled = ({
   mode: TickerModalMode;
   selectedPreset: 'custom' | PresetTickerKey;
   tickerDraft: TickerDraft;
-}): boolean =>
-  isCustomTickerInput(mode, selectedPreset) &&
-  (tickerDraft.ticker.trim() === '' ||
-    Number.isNaN(tickerDraft.initialPrice) ||
-    Number.isNaN(tickerDraft.dividendYield) ||
-    Number.isNaN(tickerDraft.dividendGrowth) ||
-    Number.isNaN(tickerDraft.expectedTotalReturn));
+}): boolean => isCustomTickerInput(mode, selectedPreset) && !isValidTickerInput(tickerDraft);
 
 /** Empty number inputs become NaN so the draft stays visibly blank instead of snapping to 0. */
 export const parseNumericInputOrNaN = (rawValue: string): number => (rawValue === '' ? Number.NaN : Number(rawValue));

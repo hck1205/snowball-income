@@ -47,6 +47,24 @@ describe('isTickerDraftValid', () => {
   it('rejects infinite values', () => {
     expect(isTickerDraftValid({ ...draft, initialPrice: Number.POSITIVE_INFINITY })).toBe(false);
   });
+
+  // 회귀: 새 드래프트의 기본 주가가 0 이라, 티커명만 채우고 "생성"을 누르면 티커는 만들어지는데
+  // 엔진의 zod(`initialPrice.positive()`)가 폼을 거부해 결과 화면이 통째로 오류로 바뀌었다.
+  // 사용자에겐 "티커를 만들었더니 결과가 사라짐"으로 보인다.
+  it('rejects a price of 0 or less, matching what the engine accepts', () => {
+    expect(isTickerDraftValid({ ...draft, initialPrice: 0 })).toBe(false);
+    expect(isTickerDraftValid({ ...draft, initialPrice: -10 })).toBe(false);
+  });
+
+  it('rejects percentages the engine would reject', () => {
+    expect(isTickerDraftValid({ ...draft, dividendYield: -1 })).toBe(false);
+    expect(isTickerDraftValid({ ...draft, dividendYield: 101 })).toBe(false);
+    expect(isTickerDraftValid({ ...draft, dividendGrowth: 101 })).toBe(false);
+  });
+
+  it('accepts a negative dividend growth (covered-call NAV erosion)', () => {
+    expect(isTickerDraftValid({ ...draft, dividendGrowth: -5 })).toBe(true);
+  });
 });
 
 describe('buildTickerProfileFromDraft', () => {

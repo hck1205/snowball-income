@@ -1,4 +1,4 @@
-import { toExpectedTotalReturnPercent } from '@/shared/lib/snowball';
+import { isValidTickerInput, toExpectedTotalReturnPercent } from '@/shared/lib/snowball';
 import type { Frequency } from '@/shared/types';
 import type { TickerDraft, TickerModalMode, TickerProfile } from '@/shared/types/snowball';
 
@@ -23,15 +23,11 @@ export const toTickerDraft = (values: {
 /** Effectful id generator; inject a deterministic one in tests. */
 export const createTickerId = (): string => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-/** A draft is saveable when it has a non-blank ticker and every numeric field is finite. */
-export const isTickerDraftValid = (draft: TickerDraft): boolean => {
-  const hasTickerName = draft.ticker.trim() !== '';
-  const hasFiniteNumbers = [draft.initialPrice, draft.dividendYield, draft.dividendGrowth, draft.expectedTotalReturn].every((value) =>
-    Number.isFinite(value)
-  );
-
-  return hasTickerName && hasFiniteNumbers;
-};
+/**
+ * A draft is saveable exactly when the engine would accept it — same schema, one contract.
+ * Checking `Number.isFinite` here let a price of 0 through and the result panel died on it.
+ */
+export const isTickerDraftValid = (draft: TickerDraft): boolean => isValidTickerInput(draft);
 
 /**
  * Normalizes a draft into a persistable profile.

@@ -200,7 +200,7 @@ describe('SnowballAppFeature', () => {
 
     await user.click(screen.getByRole('button', { name: '티커 QQQ 설정' }));
 
-    const dialog = await screen.findByRole('dialog', { name: '티커 생성' });
+    const dialog = await screen.findByRole('dialog', { name: '티커 설정 수정' });
     await user.click(within(dialog).getByRole('tab', { name: '입력' }));
     await fillField(user, dialog, '티커', 'QQQM');
     await user.click(within(dialog).getByRole('button', { name: '저장' }));
@@ -215,7 +215,7 @@ describe('SnowballAppFeature', () => {
 
     await user.click(screen.getByRole('button', { name: '티커 SCHD 설정' }));
 
-    const dialog = await screen.findByRole('dialog', { name: '티커 생성' });
+    const dialog = await screen.findByRole('dialog', { name: '티커 설정 수정' });
     await user.click(within(dialog).getByRole('button', { name: '티커 삭제' }));
 
     expect(screen.queryByRole('button', { name: '티커 SCHD 선택' })).not.toBeInTheDocument();

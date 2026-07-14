@@ -1,10 +1,18 @@
 import styled from '@emotion/styled';
 import { color, font, motion, radius, space } from '@/shared/styles';
 
-export const FieldLabel = styled.label`
+/**
+ * 필드 한 칸(라벨 줄 + 컨트롤). `<label>` 이 아니라 `<div>` 인 이유:
+ * 도움말 `?` 버튼이 `<label>` 안에 들어가면 라벨의 클릭 영역과 겹치고,
+ * 접근성 트리에서 라벨 이름이 input 과 버튼 양쪽에 붙는다.
+ */
+export const FieldWrapper = styled.div`
   display: grid;
   gap: ${space[2]};
   min-width: 0;
+`;
+
+export const FieldLabel = styled.label`
   font-size: ${font.size.base};
   font-weight: ${font.weight.medium};
   color: ${color.textSecondary};

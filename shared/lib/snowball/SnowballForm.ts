@@ -14,18 +14,28 @@ const dateInputSchema = z
   .regex(/^\d{4}-\d{2}-\d{2}$/, '투자 시작 날짜를 선택하세요.')
   .refine(isCalendarDateInput, '존재하지 않는 날짜입니다.');
 
+// z.number() 는 Infinity 를 통과시킨다(NaN 만 막는다). 무한대가 엔진에 들어가면
+// 주가·주식수가 전부 Infinity/NaN 으로 번지므로, 숫자 필드는 전부 .finite() 를 건다.
 const formSchema = z.object({
   ticker: z.string().trim().min(1, '티커를 입력하세요.'),
-  initialPrice: z.number().positive('현재 주가는 0보다 커야 합니다.'),
-  dividendYield: z.number().min(0, '배당률은 0 이상이어야 합니다.').max(100, '배당률은 100 이하여야 합니다.'),
+  initialPrice: z.number().finite('현재 주가를 입력하세요.').positive('현재 주가는 0보다 커야 합니다.'),
+  dividendYield: z.number().finite('배당률을 입력하세요.').min(0, '배당률은 0 이상이어야 합니다.').max(100, '배당률은 100 이하여야 합니다.'),
   // 음수 허용: 커버드콜 ETF의 NAV 침식/분배금 감소를 정직하게 표현하는 유일한 방법이다.
   // (정합 모델에서 dividendGrowth 는 주가 성장률이기도 하다.)
-  dividendGrowth: z.number().min(-100, '배당 성장률은 -100 이상이어야 합니다.').max(100, '배당 성장률은 100 이하여야 합니다.'),
-  expectedTotalReturn: z.number().min(-100, '기대 총수익율 (CAGR)은 -100 이상이어야 합니다.').max(100, '기대 총수익율 (CAGR)은 100 이하여야 합니다.'),
+  dividendGrowth: z
+    .number()
+    .finite('배당 성장률을 입력하세요.')
+    .min(-100, '배당 성장률은 -100 이상이어야 합니다.')
+    .max(100, '배당 성장률은 100 이하여야 합니다.'),
+  expectedTotalReturn: z
+    .number()
+    .finite('기대 총수익율 (CAGR)을 입력하세요.')
+    .min(-100, '기대 총수익율 (CAGR)은 -100 이상이어야 합니다.')
+    .max(100, '기대 총수익율 (CAGR)은 100 이하여야 합니다.'),
   frequency: frequencySchema,
-  initialInvestment: z.number().min(0, '초기 투자금은 0 이상이어야 합니다.'),
-  monthlyContribution: z.number().min(0, '월 투자금은 0 이상이어야 합니다.'),
-  targetMonthlyDividend: z.number().min(0, '목표 월배당은 0 이상이어야 합니다.'),
+  initialInvestment: z.number().finite('초기 투자금을 입력하세요.').min(0, '초기 투자금은 0 이상이어야 합니다.'),
+  monthlyContribution: z.number().finite('월 투자금을 입력하세요.').min(0, '월 투자금은 0 이상이어야 합니다.'),
+  targetMonthlyDividend: z.number().finite('목표 월배당을 입력하세요.').min(0, '목표 월배당은 0 이상이어야 합니다.'),
   investmentStartDate: dateInputSchema,
   durationYears: z.number().int('투자 기간은 정수여야 합니다.').min(1, '투자 기간은 1년 이상이어야 합니다.').max(60, '투자 기간은 60년 이하여야 합니다.'),
   reinvestDividends: z.boolean(),
@@ -34,6 +44,25 @@ const formSchema = z.object({
   reinvestTiming: reinvestTimingSchema,
   dpsGrowthMode: dpsGrowthModeSchema
 });
+
+/**
+ * 티커 한 종목의 입력 계약. 폼 스키마에서 티커 필드만 떼어낸 것이므로
+ * 엔진이 받아들이는 값과 UI 가 허용하는 값이 갈라질 수 없다.
+ *
+ * (갈라져 있었을 때: 모달은 `Number.isFinite` 만 봐서 주가 0 을 통과시켰고,
+ *  엔진은 `positive()` 를 요구해서, 티커는 만들어지는데 결과 화면이 통째로 죽었다.)
+ */
+export const tickerInputSchema = formSchema.pick({
+  ticker: true,
+  initialPrice: true,
+  dividendYield: true,
+  dividendGrowth: true,
+  expectedTotalReturn: true,
+  frequency: true
+});
+
+/** 이 티커 입력이 엔진에 넣어도 되는 값인가. */
+export const isValidTickerInput = (input: unknown): boolean => tickerInputSchema.safeParse(input).success;
 
 /**
  * `Date` 를 `YYYY-MM-DD` 로 포맷한다. **로컬 달력 기준**이다.

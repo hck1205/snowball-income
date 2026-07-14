@@ -122,9 +122,9 @@ export default function TickerModalView({
   if (!modalRoot) return null;
 
   return createPortal(
-    <ModalBackdrop role="dialog" aria-modal="true" aria-label="티커 생성" onClick={onBackdropClick}>
+    <ModalBackdrop role="dialog" aria-modal="true" aria-labelledby="ticker-modal-title" onClick={onBackdropClick}>
       <ModalPanel>
-        <ModalTitle>{mode === 'edit' ? '티커 설정 수정' : '티커 생성'}</ModalTitle>
+        <ModalTitle id="ticker-modal-title">{mode === 'edit' ? '티커 설정 수정' : '티커 생성'}</ModalTitle>
         <ModalBody>
           {mode === 'edit'
             ? '값을 수정하면 해당 티커 설정이 업데이트됩니다.'
