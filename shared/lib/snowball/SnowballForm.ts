@@ -1,12 +1,18 @@
 import { z } from 'zod';
 import type { SimulationInput, YieldFormValues } from '@/shared/types';
 import type { YieldValidation } from '@/shared/types/snowball';
+import { isCalendarDateInput } from './SnowballCalendar';
 import { toExpectedTotalReturnPercent } from './SnowballRates';
 
 const frequencySchema = z.enum(['monthly', 'quarterly', 'semiannual', 'annual']);
 const reinvestTimingSchema = z.enum(['sameMonth', 'nextMonth']);
 const dpsGrowthModeSchema = z.enum(['annualStep', 'monthlySmooth']);
-const dateInputSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '투자 시작 날짜를 선택하세요.');
+// 정규식만으로는 2026-02-31 / 2026-13-01 같은 "형식은 맞지만 실재하지 않는" 날짜가 통과한다.
+// 달력 유효성까지 봐야 엔진이 잘못된 날짜를 받지 않는다.
+const dateInputSchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, '투자 시작 날짜를 선택하세요.')
+  .refine(isCalendarDateInput, '존재하지 않는 날짜입니다.');
 
 const formSchema = z.object({
   ticker: z.string().trim().min(1, '티커를 입력하세요.'),
@@ -30,11 +36,27 @@ const formSchema = z.object({
 });
 
 /**
- * 알려진 이슈(의도적으로 유지): `investmentStartDate` 가 **모듈 로드 시각**을 캡처한다.
- * 자정을 넘겨 열려 있는 탭이나, 테스트에서 시스템 시간을 조작하는 경우 값이 어긋날 수 있다.
- * 수정은 별도 승인 후 진행한다.
+ * `Date` 를 `YYYY-MM-DD` 로 포맷한다. **로컬 달력 기준**이다.
+ *
+ * 예전에는 `toISOString().slice(0, 10)` 을 썼는데, 그건 UTC 기준이라
+ * KST(UTC+9)에서 오전 9시 이전에 열면 기본 시작일이 **어제**로 잡혔다.
  */
-export const defaultYieldFormValues: YieldFormValues = {
+export const toDateInputValue = (date: Date): string => {
+  const year = String(date.getFullYear()).padStart(4, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+};
+
+/**
+ * 기본 폼 값 팩토리. `today` 를 주입할 수 있어 순수하게 테스트된다.
+ *
+ * `defaultYieldFormValues` 는 여전히 **모듈 로드 시각**을 캡처한다 (하위호환 유지 — atom 초기값과
+ * 영속 계층 기본값이 안정적인 참조를 기대한다). 자정을 넘겨 열어 둔 탭에서 기본 시작일이 어제로
+ * 남는 한계는 그대로지만, UTC 로 인한 **하루 밀림은 사라졌다**.
+ */
+export const createDefaultYieldFormValues = (today: Date = new Date()): YieldFormValues => ({
   ticker: 'SCHD',
   initialPrice: 100000,
   dividendYield: 3.5,
@@ -46,14 +68,16 @@ export const defaultYieldFormValues: YieldFormValues = {
   initialInvestment: 0,
   monthlyContribution: 1000000,
   targetMonthlyDividend: 2000000,
-  investmentStartDate: new Date().toISOString().slice(0, 10),
+  investmentStartDate: toDateInputValue(today),
   durationYears: 20,
   reinvestDividends: false,
   reinvestDividendPercent: 100,
   taxRate: 15.4,
   reinvestTiming: 'sameMonth',
   dpsGrowthMode: 'monthlySmooth'
-};
+});
+
+export const defaultYieldFormValues: YieldFormValues = createDefaultYieldFormValues();
 
 export const validateFormValues = (values: YieldFormValues): YieldValidation => {
   const parsed = formSchema.safeParse(values);

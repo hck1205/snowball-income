@@ -6,12 +6,15 @@ import {
   buildYearlyRow,
   clamp01,
   computeMonthlyPayout,
+  createDefaultYieldFormValues,
   defaultYieldFormValues,
   dpsAtMonth,
   findLastPayoutMonth,
   findTargetYear,
   getDaysInMonth,
+  isCalendarDateInput,
   isPayoutMonth,
+  parseStartDate,
   paymentsPerYearMap,
   planReinvestment,
   priceAtMonth,
@@ -25,7 +28,8 @@ import {
   toReinvestRatio,
   toSimulationInput,
   toStartDate,
-  toTaxRate
+  toTaxRate,
+  validateFormValues
 } from '@/shared/lib/snowball';
 
 const buildValues = (overrides: Partial<YieldFormValues> = {}): YieldFormValues => ({
@@ -354,17 +358,111 @@ describe('calendar', () => {
     expect(date.getDate()).toBe(15);
   });
 
-  it('toStartDate falls back to the current date on invalid input (known issue)', () => {
-    // 문서화 목적: 파싱 실패 시 조용히 "오늘"로 폴백한다. 고치지 않고 현재 동작만 고정한다.
+  // 갱신됨: 예전에는 파싱 실패 시 조용히 "오늘"로 폴백했고, 그 동작을 vi.setSystemTime 으로 고정해
+  // 두었다. 그 폴백이 runSimulation 을 비순수 함수로 만들어(같은 입력이 실행 날짜에 따라 다른 결과)
+  // 버그였으므로, 이제 무음 폴백 대신 명시적으로 실패한다.
+  it('toStartDate throws on dates that do not exist on the calendar (no silent today fallback)', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(2030, 5, 7, 12, 0, 0));
 
     try {
-      expect(toStartDate('not-a-date')).toEqual(new Date(2030, 5, 7, 12, 0, 0));
-      expect(toStartDate('2026-02-31')).toEqual(new Date(2030, 5, 7, 12, 0, 0));
+      expect(() => toStartDate('not-a-date')).toThrow();
+      expect(() => toStartDate('2026-02-31')).toThrow();
+      expect(() => toStartDate('2026-13-01')).toThrow();
+      expect(() => toStartDate('')).toThrow();
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it('parseStartDate returns null instead of falling back to today', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2030, 5, 7, 12, 0, 0));
+
+    try {
+      expect(parseStartDate('2026-02-31')).toBeNull();
+      expect(parseStartDate('2026-13-01')).toBeNull();
+      expect(parseStartDate('abcd')).toBeNull();
+      expect(parseStartDate('2026-02-29')).toBeNull(); // 2026 은 윤년이 아니다
+      expect(parseStartDate('2024-02-29')).toEqual(new Date(2024, 1, 29)); // 2024 는 윤년
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('isCalendarDateInput accepts only real calendar dates', () => {
+    expect(isCalendarDateInput('2024-02-29')).toBe(true);
+    expect(isCalendarDateInput('2026-01-15')).toBe(true);
+
+    expect(isCalendarDateInput('2026-02-31')).toBe(false);
+    expect(isCalendarDateInput('2026-13-01')).toBe(false);
+    expect(isCalendarDateInput('2026-02-29')).toBe(false);
+    expect(isCalendarDateInput('abcd')).toBe(false);
+    expect(isCalendarDateInput('2026-1-5')).toBe(false);
+  });
+});
+
+describe('investmentStartDate validation', () => {
+  const errorsFor = (investmentStartDate: string): string[] =>
+    validateFormValues(buildValues({ investmentStartDate })).errors;
+
+  it('rejects dates that pass the regex but do not exist on the calendar', () => {
+    expect(errorsFor('2026-02-31')).toContain('존재하지 않는 날짜입니다.');
+    expect(errorsFor('2026-13-01')).toContain('존재하지 않는 날짜입니다.');
+    // 2026 은 윤년이 아니므로 2/29 는 존재하지 않는다.
+    expect(errorsFor('2026-02-29')).toContain('존재하지 않는 날짜입니다.');
+  });
+
+  it('rejects malformed dates with the existing message', () => {
+    expect(validateFormValues(buildValues({ investmentStartDate: 'abcd' })).isValid).toBe(false);
+    expect(errorsFor('abcd')).toContain('투자 시작 날짜를 선택하세요.');
+  });
+
+  it('accepts a real leap day', () => {
+    expect(validateFormValues(buildValues({ investmentStartDate: '2024-02-29' })).isValid).toBe(true);
+    expect(validateFormValues(buildValues({ investmentStartDate: '2026-01-15' })).isValid).toBe(true);
+  });
+});
+
+describe('runSimulation purity', () => {
+  it('returns the same result regardless of the system clock', () => {
+    const values = buildValues({ investmentStartDate: '2026-01-15', durationYears: 3 });
+
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(new Date(2027, 0, 1, 0, 0, 0));
+      const first = runSimulation(toSimulationInput(values));
+
+      vi.setSystemTime(new Date(2040, 11, 31, 23, 59, 59));
+      const second = runSimulation(toSimulationInput(values));
+
+      expect(second).toEqual(first);
+      // 시작일이 실제로 존중되는지 (오늘로 폴백하지 않는지) 확인한다.
+      expect(first.monthly[0].year).toBe(2026);
+      expect(first.monthly[0].month).toBe(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
+describe('createDefaultYieldFormValues', () => {
+  it('formats the start date from the local calendar day, not UTC', () => {
+    // KST(UTC+9) 오전 9시 이전: toISOString() 을 쓰면 UTC 로는 아직 전날이라 시작일이 어제가 됐다.
+    const localMorning = new Date(2026, 2, 15, 1, 30, 0);
+
+    expect(createDefaultYieldFormValues(localMorning).investmentStartDate).toBe('2026-03-15');
+  });
+
+  it('pads single digit months and days', () => {
+    expect(createDefaultYieldFormValues(new Date(2026, 0, 5)).investmentStartDate).toBe('2026-01-05');
+  });
+
+  it('produces a start date that passes form validation', () => {
+    const values = createDefaultYieldFormValues(new Date(2024, 1, 29));
+
+    expect(values.investmentStartDate).toBe('2024-02-29');
+    expect(validateFormValues(values).isValid).toBe(true);
   });
 });
 

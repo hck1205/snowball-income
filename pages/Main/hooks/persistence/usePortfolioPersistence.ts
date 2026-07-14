@@ -80,6 +80,12 @@ export const usePortfolioPersistence = () => {
   const setActiveScenarioId = useSetActiveScenarioIdWrite();
 
   const [isPortfolioHydrated, setIsPortfolioHydrated] = useState(false);
+  /**
+   * 저장된 상태를 읽지 못한 채로 자동 저장을 돌리면, 화면에 떠 있는 **기본값**이 디스크의 진짜
+   * 데이터를 덮어써 버린다 (읽기 실패 → 기본값 표시 → 120ms 뒤 자동 저장 → 원본 소실).
+   * 그래서 읽기에 실패하면 자동 저장을 막는다. 사용자가 직접 누르는 '저장'은 계속 허용한다.
+   */
+  const [hasHydrationFailed, setHasHydrationFailed] = useState(false);
   const hasAppliedShareLinkRef = useRef(false);
 
   const buildPortfolioState = (): PortfolioPersistedState => ({
@@ -138,18 +144,29 @@ export const usePortfolioPersistence = () => {
 
     const hydrate = async () => {
       try {
-        const payload = await readPersistedAppState();
+        const result = await readPersistedAppState();
         if (cancelled) return;
-        applyPersistedPayload(payload);
-        const hasPortfolio = payload.scenarios.some((scenario) => scenario.portfolio.tickerProfiles.length > 0);
+
+        if (!result.ok) {
+          // 읽기 실패. 저장소는 그대로 두고(삭제 금지) 자동 저장만 잠근다.
+          setHasHydrationFailed(true);
+          trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
+            operation: 'hydrate_persisted_state'
+          });
+          return;
+        }
+
+        applyPersistedPayload(result.payload);
+        const hasPortfolio = result.payload.scenarios.some((scenario) => scenario.portfolio.tickerProfiles.length > 0);
         if (hasPortfolio) {
           trackEvent(ANALYTICS_EVENT.RETURN_VISIT, {
             has_saved_portfolio: true,
-            scenario_count: payload.scenarios.length
+            scenario_count: result.payload.scenarios.length
           });
         }
       } catch {
         // Keep current defaults/state when hydration fails.
+        if (!cancelled) setHasHydrationFailed(true);
         trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
           operation: 'hydrate_persisted_state'
         });
@@ -217,14 +234,21 @@ export const usePortfolioPersistence = () => {
 
   useEffect(() => {
     if (!isPortfolioHydrated) return;
+    // 읽기에 실패했다면 화면의 기본값으로 디스크의 원본을 덮어쓰지 않는다.
+    if (hasHydrationFailed) return;
 
     const timer = window.setTimeout(() => {
-      void writePersistedAppState(buildPayload());
+      void writePersistedAppState(buildPayload()).catch(() => {
+        trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
+          operation: 'autosave_persisted_state'
+        });
+      });
     }, 120);
 
     return () => window.clearTimeout(timer);
   }, [
     fixedByTickerId,
+    hasHydrationFailed,
     includedTickerIds,
     isPortfolioHydrated,
     selectedTickerId,
@@ -374,28 +398,42 @@ export const usePortfolioPersistence = () => {
     trackEvent(ANALYTICS_EVENT.STATE_LOAD_STARTED, {
       source: 'json_import'
     });
+
+    let payload: PersistedAppStatePayload;
     try {
-      const payload = parsePersistedAppStateJson(jsonText);
-      applyPersistedPayload(payload);
-      if (payload.savedName) {
-        await writePersistedAppStateByName(payload.savedName, {
-          ...payload,
-          savedName: payload.savedName
-        });
-      }
-      trackEvent(ANALYTICS_EVENT.JSON_STATE_IMPORTED, {
-        has_saved_name: Boolean(payload.savedName)
-      });
-      trackEvent(ANALYTICS_EVENT.STATE_LOAD_COMPLETED, {
-        source: 'json_import'
-      });
-      return { ok: true as const };
+      payload = parsePersistedAppStateJson(jsonText);
     } catch {
       trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
         operation: 'load_state_from_json'
       });
       return { ok: false as const, message: 'JSON 파일 형식이 올바르지 않습니다.' };
     }
+
+    applyPersistedPayload(payload);
+    trackEvent(ANALYTICS_EVENT.JSON_STATE_IMPORTED, {
+      has_saved_name: Boolean(payload.savedName)
+    });
+    trackEvent(ANALYTICS_EVENT.STATE_LOAD_COMPLETED, {
+      source: 'json_import'
+    });
+
+    if (payload.savedName) {
+      try {
+        await writePersistedAppStateByName(payload.savedName, {
+          ...payload,
+          savedName: payload.savedName
+        });
+      } catch {
+        // 화면에는 이미 반영됐다. 저장만 실패했다는 사실을 정확히 알린다
+        // (예전에는 이 실패가 'JSON 형식이 올바르지 않습니다'로 잘못 보고됐다).
+        trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
+          operation: 'load_state_from_json_persist'
+        });
+        return { ok: false as const, message: '불러온 데이터를 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.' };
+      }
+    }
+
+    return { ok: true as const };
   };
 
   const createShareLink = async () => {

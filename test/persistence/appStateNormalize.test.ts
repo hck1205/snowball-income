@@ -190,6 +190,23 @@ describe('sanitizeInvestmentSettings', () => {
     expect(sanitizeInvestmentSettings({ investmentStartDate: '2024-01-01' }).investmentStartDate).toBe('2024-01-01');
   });
 
+  it('형식은 맞지만 달력에 없는 시작일도 기본값으로 되돌린다', () => {
+    // 저장된 상태/공유 링크에는 예전 정규식 검증을 통과한 이런 날짜가 남아 있을 수 있다.
+    // 엔진은 이제 무효 날짜에 던지므로, sanitize 계층에서 결정론적으로 걸러야 한다.
+    expect(sanitizeInvestmentSettings({ investmentStartDate: '2026-02-31' }).investmentStartDate).toBe(
+      EMPTY_INVESTMENT_SETTINGS.investmentStartDate
+    );
+    expect(sanitizeInvestmentSettings({ investmentStartDate: '2026-13-01' }).investmentStartDate).toBe(
+      EMPTY_INVESTMENT_SETTINGS.investmentStartDate
+    );
+    // 2026 은 윤년이 아니다.
+    expect(sanitizeInvestmentSettings({ investmentStartDate: '2026-02-29' }).investmentStartDate).toBe(
+      EMPTY_INVESTMENT_SETTINGS.investmentStartDate
+    );
+    // 진짜 윤년의 2/29 는 그대로 통과한다.
+    expect(sanitizeInvestmentSettings({ investmentStartDate: '2024-02-29' }).investmentStartDate).toBe('2024-02-29');
+  });
+
   it('알 수 없는 reinvestTiming/dpsGrowthMode는 기본값으로 되돌린다', () => {
     const result = sanitizeInvestmentSettings({ reinvestTiming: 'later', dpsGrowthMode: 'linear' });
     expect(result.reinvestTiming).toBe(EMPTY_INVESTMENT_SETTINGS.reinvestTiming);

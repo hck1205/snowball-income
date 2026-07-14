@@ -1,4 +1,4 @@
-import { defaultYieldFormValues, toDerivedDividendGrowthPercent } from '@/shared/lib/snowball';
+import { defaultYieldFormValues, isCalendarDateInput, toDerivedDividendGrowthPercent } from '@/shared/lib/snowball';
 import type { PortfolioPersistedState, TickerProfile } from '@/shared/types/snowball';
 import type { YearlySeriesKey } from '@/shared/constants';
 import type { PersistedAppStatePayload, PersistedInvestmentSettings, PersistedScenarioState } from '../types';
@@ -168,7 +168,9 @@ export const sanitizeInvestmentSettings = (input: unknown): PersistedInvestmentS
     initialInvestment: Number.isFinite(initialInvestment) ? Math.max(0, initialInvestment) : DEFAULT_PERSISTED_INVESTMENT_SETTINGS.initialInvestment,
     monthlyContribution: Number.isFinite(monthlyContribution) ? Math.max(0, monthlyContribution) : DEFAULT_PERSISTED_INVESTMENT_SETTINGS.monthlyContribution,
     targetMonthlyDividend: Number.isFinite(targetMonthlyDividend) ? Math.max(0, targetMonthlyDividend) : DEFAULT_PERSISTED_INVESTMENT_SETTINGS.targetMonthlyDividend,
-    investmentStartDate: /^\d{4}-\d{2}-\d{2}$/.test(investmentStartDate)
+    // 저장된 상태/공유 링크에는 2026-02-31 같은 "형식은 맞지만 실재하지 않는" 날짜가 들어 있을 수 있다
+    // (예전 폼 검증이 정규식만 봤기 때문). 엔진이 던지지 않도록 여기서 결정론적 기본값으로 대체한다.
+    investmentStartDate: isCalendarDateInput(investmentStartDate)
       ? investmentStartDate
       : DEFAULT_PERSISTED_INVESTMENT_SETTINGS.investmentStartDate,
     durationYears: Number.isFinite(durationYears) ? Math.max(1, Math.trunc(durationYears)) : DEFAULT_PERSISTED_INVESTMENT_SETTINGS.durationYears,

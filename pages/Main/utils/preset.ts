@@ -66,8 +66,11 @@ export const buildPresetPortfolio = ({
   preset: PortfolioPresetDefinition;
   universe: Readonly<Record<string, TickerDraft>>;
 }): PresetPortfolio | null => {
-  const profiles = preset.allocations
-    .map(({ ticker }, index) => {
+  // 비중은 **그 비중이 딸려 온 allocation 에서 그대로** 들고 온다.
+  // 예전에는 필터링된 배열의 인덱스로 `preset.allocations[index]` 를 읽어서, universe 에 없는 티커가
+  // 하나라도 섞이면 이후 티커들의 비중이 한 칸씩 당겨졌다 (NOPE 70 / JEPI 30 → JEPI 가 70 을 받음).
+  const entries = preset.allocations
+    .map(({ ticker, weight }, index) => {
       const universeItem = universe[ticker];
       if (!universeItem) return null;
 
@@ -76,20 +79,28 @@ export const buildPresetPortfolio = ({
         id: `preset-${preset.id}-${ticker.toLowerCase()}-${index + 1}`,
         name: ''
       };
-      return profile;
+      return { profile, weight: Math.max(0, weight) };
     })
-    .filter((profile): profile is TickerProfile => profile !== null);
+    .filter((entry): entry is { profile: TickerProfile; weight: number } => entry !== null);
 
-  if (profiles.length === 0) return null;
+  if (entries.length === 0) return null;
 
+  const profiles = entries.map((entry) => entry.profile);
   const includedIds = profiles.map((profile) => profile.id);
   const selectedProfile = profiles[0];
 
-  // NOTE: indexes into `allocations` by the *filtered* profile index, mirroring the original
-  // implementation. See report — weights shift when a preset ticker is missing from the universe.
-  const weightByTickerId = profiles.reduce<Record<string, number>>((acc, profile, index) => {
-    const rawWeight = preset.allocations[index]?.weight ?? 0;
-    acc[profile.id] = Math.max(0, rawWeight);
+  // universe 에 없는 티커를 건너뛰면 합이 100 미만으로 남는다 (JEPI 만 살아남으면 30%짜리 포트폴리오).
+  // 살아남은 비중끼리 비율을 유지한 채 100% 로 재정규화한다.
+  // 합이 이미 100 이면 부동소수점 잡음을 만들지 않도록 그대로 둔다.
+  const totalWeight = entries.reduce((sum, entry) => sum + entry.weight, 0);
+  const normalizeWeight = (weight: number): number => {
+    if (totalWeight <= 0) return 0; // 전부 0/음수면 나눌 수 없다 — 0 으로 두고 하위 배분 로직에 맡긴다.
+    if (totalWeight === 100) return weight;
+    return (weight * 100) / totalWeight;
+  };
+
+  const weightByTickerId = entries.reduce<Record<string, number>>((acc, entry) => {
+    acc[entry.profile.id] = normalizeWeight(entry.weight);
     return acc;
   }, {});
   const fixedByTickerId = profiles.reduce<Record<string, boolean>>((acc, profile) => {

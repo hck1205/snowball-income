@@ -19,31 +19,50 @@ export const addMonths = (baseDate: Date, monthsToAdd: number): Date => {
   return new Date(anchor.getFullYear(), anchor.getMonth(), nextDay);
 };
 
+const DATE_INPUT_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
 /**
  * `YYYY-MM-DD` 문자열을 로컬 타임존 기준 Date 로 변환한다.
+ * **달력상 실재하지 않는 날짜(`2026-02-31`, `2026-13-01`, 윤년 아닌 해의 `02-29`)면 `null`.**
  *
- * 알려진 이슈(의도적으로 유지): 파싱에 실패하면 `new Date()`(현재 시각)로 폴백하기 때문에
- * 이 함수는 잘못된 입력에 대해 순수하지 않다. 수정은 별도 승인 후 진행한다.
+ * 예전에는 파싱 실패 시 조용히 `new Date()`(오늘)로 폴백했다. 그 탓에 `runSimulation` 이
+ * 순수 함수가 아니게 되어 같은 입력이 **실행 날짜에 따라 다른 결과**를 냈다.
+ * 이제 폴백하지 않는다 — 호출부가 명시적으로 처리한다.
  */
-export const toStartDate = (value: string): Date => {
+export const parseStartDate = (value: string): Date | null => {
+  if (!DATE_INPUT_PATTERN.test(value)) return null;
+
   const [yearText, monthText, dayText] = value.split('-');
   const year = Number(yearText);
   const monthIndex = Number(monthText) - 1;
   const day = Number(dayText);
   const date = new Date(year, monthIndex, day);
 
-  if (
-    !Number.isFinite(year) ||
-    !Number.isFinite(monthIndex) ||
-    !Number.isFinite(day) ||
-    date.getFullYear() !== year ||
-    date.getMonth() !== monthIndex ||
-    date.getDate() !== day
-  ) {
-    return new Date();
+  // JS Date 는 넘치는 날짜를 다음 달로 굴린다 (2026-02-31 → 2026-03-03).
+  // 되돌려 읽어 값이 그대로인지 확인하면 실재하는 날짜인지 알 수 있다.
+  if (date.getFullYear() !== year || date.getMonth() !== monthIndex || date.getDate() !== day) {
+    return null;
   }
 
   return date;
+};
+
+/** 폼/영속 계층의 날짜 검증에 쓰는 술어. 형식 + 달력 유효성을 모두 본다. */
+export const isCalendarDateInput = (value: string): boolean => parseStartDate(value) !== null;
+
+/**
+ * 검증을 이미 통과한 날짜 문자열을 Date 로 바꾼다.
+ *
+ * 여기 도달했는데 무효하다면 상위 검증(zod / sanitize)이 뚫린 것이므로 던진다.
+ * 조용한 폴백으로 잘못된 결과를 그럴듯하게 보여주는 것보다 낫다.
+ */
+export const toStartDate = (value: string): Date => {
+  const parsed = parseStartDate(value);
+  if (!parsed) {
+    throw new Error(`유효하지 않은 투자 시작 날짜입니다: ${value}`);
+  }
+
+  return parsed;
 };
 
 export type MonthContext = {

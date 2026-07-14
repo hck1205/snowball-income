@@ -113,9 +113,51 @@ describe('buildPresetPortfolio', () => {
     expect(next?.profiles.map((profile) => profile.ticker)).toEqual(['JEPI']);
     // The id suffix keeps the *allocation* index, so the surviving ticker stays at position 2.
     expect(next?.includedIds).toEqual(['preset-sample-preset-jepi-2']);
-    // KNOWN DEFECT (characterized, not fixed): weights are read by the *filtered* index, so a missing
-    // universe ticker shifts every later weight left. JEPI should get 30 but inherits NOPE's 70.
-    expect(next?.weightByTickerId['preset-sample-preset-jepi-2']).toBe(70);
+    // UPDATED (was: 70). This test used to freeze the defect: weights were read by the *filtered*
+    // index, so dropping NOPE shifted its 70 onto JEPI. Weights are now carried with the allocation
+    // they came from, and the survivors are renormalized to 100% — JEPI is the only holding, so it
+    // gets the whole portfolio rather than inheriting a neighbour's number.
+    expect(next?.weightByTickerId['preset-sample-preset-jepi-2']).toBe(100);
+  });
+
+  it('renormalizes the surviving weights proportionally', () => {
+    const next = buildPresetPortfolio({
+      preset: {
+        ...preset,
+        allocations: [
+          { ticker: 'NOPE', weight: 50 },
+          { ticker: 'SCHD', weight: 30 },
+          { ticker: 'JEPI', weight: 20 }
+        ]
+      },
+      universe
+    });
+
+    // 30:20 of the surviving 50% becomes 60:40 of 100%.
+    expect(next?.weightByTickerId).toEqual({
+      'preset-sample-preset-schd-2': 60,
+      'preset-sample-preset-jepi-3': 40
+    });
+  });
+
+  it('keeps weights untouched when the preset already sums to 100', () => {
+    const next = buildPresetPortfolio({ preset, universe });
+
+    expect(next?.weightByTickerId).toEqual({
+      'preset-sample-preset-schd-1': 60,
+      'preset-sample-preset-jepi-2': 40
+    });
+  });
+
+  it('reads each weight from its own ticker, not from the filtered position', () => {
+    // The surviving ticker must never inherit a dropped ticker's weight.
+    const next = buildPresetPortfolio({
+      preset: { ...preset, allocations: [{ ticker: 'NOPE', weight: 90 }, { ticker: 'SCHD', weight: 5 }, { ticker: 'JEPI', weight: 5 }] },
+      universe
+    });
+
+    expect(next?.weightByTickerId['preset-sample-preset-schd-2']).toBe(50);
+    expect(next?.weightByTickerId['preset-sample-preset-jepi-3']).toBe(50);
   });
 
   it('returns null when no preset ticker exists in the universe', () => {
