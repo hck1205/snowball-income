@@ -80,6 +80,10 @@ export const ANALYTICS_EVENT = {
 
 export type AnalyticsEventName = (typeof ANALYTICS_EVENT)[keyof typeof ANALYTICS_EVENT];
 
+/** 빌드 시 주입되는 배포 도메인 (vite.config.ts의 단일 소스). */
+const SITE_URL = (import.meta.env.VITE_SITE_URL ?? "").replace(/\/+$/, "");
+
+/** GA용 — 쿼리/해시까지 포함한 실제 접속 URL. 유입 분석에는 파라미터가 필요하다. */
 const resolveAbsoluteUrl = (location?: PageLocation) => {
   if (typeof window === "undefined") return "";
 
@@ -90,44 +94,39 @@ const resolveAbsoluteUrl = (location?: PageLocation) => {
   return `${window.location.origin}${location.pathname}${location.search ?? ""}${location.hash ?? ""}`;
 };
 
+/**
+ * SEO용 canonical — 쿼리/해시를 의도적으로 버린다.
+ *
+ * 공유 링크는 `?s=<lz-string 압축 상태>` 형태라, 접속 URL을 그대로 canonical에 넣으면
+ * 공유될 때마다 새 canonical이 생겨 색인이 무한히 오염된다(중복 콘텐츠). 항상 클린 URL로 고정한다.
+ * origin이 아니라 빌드 도메인을 쓰는 이유: 프리뷰 배포가 자기 자신을 canonical로 선언해
+ * 본 도메인과 경쟁하는 것을 막는다.
+ */
+const resolveCanonicalUrl = (location?: PageLocation) => {
+  if (typeof window === "undefined") return "";
+
+  const pathname = location?.pathname ?? window.location.pathname;
+  const origin = SITE_URL || window.location.origin;
+
+  return `${origin}${pathname}`;
+};
+
+/**
+ * canonical / og:url을 현재 라우트에 맞춘다.
+ *
+ * JSON-LD는 건드리지 않는다 — index.html에 정적으로 박혀 있어야 JS를 실행하지 않는 크롤러
+ * (네이버 Yeti, 다음, 카카오/페이스북 스크래퍼)도 읽을 수 있기 때문이다.
+ * 런타임에 주입하면 그 크롤러들에게는 존재하지 않는 것과 같다.
+ */
 export const applySeoRuntimeMetadata = (location?: PageLocation) => {
   if (typeof window === "undefined") return;
 
   const canonicalLink = document.getElementById("canonical-link") as HTMLLinkElement | null;
   const ogUrlMeta = document.getElementById("og-url") as HTMLMetaElement | null;
-  const absoluteUrl = resolveAbsoluteUrl(location);
+  const canonicalUrl = resolveCanonicalUrl(location);
 
-  if (canonicalLink) canonicalLink.href = absoluteUrl;
-  if (ogUrlMeta) ogUrlMeta.content = absoluteUrl;
-
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    name: "Snowball Income",
-    applicationCategory: "FinanceApplication",
-    applicationSubCategory: "Dividend Strategy Simulator",
-    operatingSystem: "Web",
-    inLanguage: "ko-KR",
-    description: "배당 투자 전략을 설계하고 장기 현금흐름 및 자산 변화를 시뮬레이션하는 웹 애플리케이션",
-    keywords: "배당 투자, 포트폴리오 시뮬레이션, 월배당, 장기 투자",
-    featureList: [
-      "포트폴리오 비중 시뮬레이션",
-      "월별/연도별 배당 추이 분석",
-      "목표 월배당 도달 시점 계산",
-      "세율/재투자 설정 기반 결과 비교"
-    ],
-    isAccessibleForFree: true,
-    url: absoluteUrl
-  };
-
-  let script = document.getElementById("structured-data") as HTMLScriptElement | null;
-  if (!script) {
-    script = document.createElement("script");
-    script.id = "structured-data";
-    script.type = "application/ld+json";
-    document.head.appendChild(script);
-  }
-  script.textContent = JSON.stringify(structuredData);
+  if (canonicalLink) canonicalLink.href = canonicalUrl;
+  if (ogUrlMeta) ogUrlMeta.content = canonicalUrl;
 };
 
 export const initGoogleAnalytics = () => {

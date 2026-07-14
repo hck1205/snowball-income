@@ -1,41 +1,58 @@
 # Snowball Income
 
-> Dividend-income strategy simulator for long-term planning.
+> 배당 재투자(스노우볼) 시뮬레이터. 배당주·ETF 포트폴리오의 장기 자산과 배당 현금흐름을 계산한다.
+> A dividend-reinvestment simulator for long-term income planning. Korean-language web app, no backend.
 
 ## Summary
-- Snowball Income simulates portfolio growth and dividend cashflow over time.
-- Users can model initial capital, monthly contributions, reinvestment behavior, tax rate, and payout frequency.
-- The app outputs yearly trend charts, monthly cashflow snapshots, and target-income reach timing.
+- 사용자가 입력한 가정(배당률·배당 성장률·투자금·기간·세율)을 그대로 계산해 보여주는 결정론적 시뮬레이터다.
+- 모든 계산은 브라우저에서 수행된다. 서버·계정·수집되는 개인 데이터가 없다.
+- 예측이나 수익 보장이 아니며 투자 자문이 아니다. 가정이 바뀌면 결과는 크게 달라진다.
+
+## Model (중요 — 2024 정합 모델 전환)
+- **배당과 주가는 같은 속도로 함께 성장한다고 가정한다.** 따라서 배당률(yield)은 기간 내내 일정하게 유지된다.
+- **기대 총수익률(CAGR) = 배당률 + 배당 성장률.** 사용자가 직접 입력하지 않고 자동으로 파생된다.
+- 높은 배당률이 곧 높은 총수익률을 뜻하지 않는다. 총수익률을 고정한 채 배당률만 올리면 성장률이 그만큼 내려간다.
+- 커버드콜 ETF처럼 분배금이 크고 원금(NAV)이 깎이는 자산은 **배당 성장률을 음수**로 입력해 표현한다.
+- 이전 모델은 주가가 배당과 무관하게 성장해 고배당 자산(예: QYLD)의 결과를 과대 추정했다. 현재 모델은 이를 바로잡았다.
 
 ## Key Inputs
-- `initialInvestment`: lump-sum capital invested at simulation start (KRW)
-- `monthlyContribution`: monthly investment amount (KRW)
-- `targetMonthlyDividend`: target monthly dividend income (KRW)
-- `investmentStartDate`: simulation start date (`YYYY-MM-DD`)
-- `durationYears`: investment horizon in years
-- `reinvestDividends`: whether dividends are reinvested
-- `reinvestTiming`: dividend reinvest timing (`sameMonth` or `nextMonth`)
-- `dpsGrowthMode`: dividend growth application (`annualStep` or `monthlySmooth`)
-- `taxRate`: dividend tax rate (%)
-- `ticker profiles`: price/dividend assumptions per ticker
-- `allocation`: ticker weights and fixed-weight constraints
+- `initialInvestment` 초기 투자금 (KRW), `monthlyContribution` 월 투자금 (KRW)
+- `targetMonthlyDividend` 목표 월 배당 (KRW)
+- `investmentStartDate` (`YYYY-MM-DD`), `durationYears` 투자 기간
+- `reinvestDividends` 배당 재투자 여부 및 재투자 비율(%)
+- `reinvestTiming` 재투자 시점: `sameMonth`(당월) | `nextMonth`(익월, 보수적)
+- `dpsGrowthMode` 배당 성장 반영: `annualStep`(연 단위 점프) | `monthlySmooth`(월 단위 스무딩)
+- `taxRate` 배당소득세율 (%, 기본 15.4)
+- 티커별 프로필: 티커, 현재 주가, 배당률, 배당 성장률, 배당 지급 주기(월/분기/반기/연)
+- 포트폴리오 비중 및 비율 고정 플래그
 
 ## Key Outputs
-- Final asset value estimate
-- Final monthly average dividend
-- Recent payout-month dividend (12-month view)
-- Total net dividend and total tax paid
-- Year when target monthly dividend is reached
-- Quick estimate: end value, annual/monthly dividend approximation, yield-on-price at end
+- 최종 자산 가치, 월 배당(월평균 = 연/12), 최근 실지급 배당
+- 누적 순배당(세후), 누적 배당소득세
+- 목표 월 배당 도달 연도
+- 세금 블록(정밀 모드): 취득원가, 평가이익, 전량 매도 시 예상 양도세, 세후 실현 가능 자산
+- 간편 추정(빠른 추정): 재투자 비율과 세금을 단일 수익률로 근사한 값
 
-## Model Notes
-- Results are scenario-based projections, not investment advice.
-- Output quality depends on user assumptions for growth/yield inputs.
-- Portfolio allocation can be adjusted per ticker and rebalanced in simulation.
+## Tax Model
+- 배당소득세: 지급 시 원천징수 가정, 기본 15.4% (사용자 조정 가능).
+- 해외주식 양도소득세: 마지막 해에 전량 매도한다고 가정할 때 `(평가이익 − 기본공제 250만원) × 22%`.
+  22% = 양도소득세 20% + 지방소득세 2%. 평가이익이 음수면 0.
+  이 세금은 자산·누적 세금 숫자에는 **반영되어 있지 않다** — 계속 보유하면 내지 않는 세금이라 따로 보여준다.
+- 취득원가에는 세후 배당으로 재매수한 금액이 포함된다(이미 배당소득세를 낸 돈이므로 이중과세를 피한다).
+- 금융소득종합과세: 세전 연 배당이 2,000만원을 넘는 해가 있으면 경고만 표시한다.
+  다른 소득을 알 수 없으므로 세율을 자동으로 바꾸지 않는다.
 
-## Structured Data
-- JSON-LD WebApplication and FAQ metadata are provided in the HTML.
-- Machine-readable summary is available at `/ai-overview.json`.
+## Features
+- 추천 포트폴리오 프리셋(종목·비중·투자 설정 일괄 적용)
+- 티커 직접 생성, 포트폴리오 비중 조절 및 비율 고정(나머지끼리 자동 정규화)
+- 시나리오 탭(최대 10개)으로 전략 비교
+- 브라우저 로컬 저장, JSON 내보내기/가져오기, 압축 링크 공유, 화면 캡처
+- 온보딩 투어와 항목별 도움말
+
+## Caveats
+- 프리셋의 티커 값은 실시간 시세가 아니라 저장된 스냅샷이다(화면 하단에 기준일 표기).
+- 환율 변동에 따른 차익·차손은 반영하지 않는다.
+- 결과는 시나리오 탐색용이며 예측의 정확성을 보장하지 않는다.
 
 ## URLs
 - App: `/`

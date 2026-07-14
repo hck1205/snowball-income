@@ -1,64 +1,107 @@
-# Snowball Income - Full LLM Context
+# Snowball Income — Full LLM Context
 
 ## Product Definition
-Snowball Income is a web-based dividend strategy simulator focused on long-term portfolio income planning.
-It helps users model how initial capital, monthly investments, dividend assumptions, and portfolio allocation choices affect
-future asset value and dividend cashflow.
+Snowball Income is a Korean-language, browser-only dividend-reinvestment simulator ("스노우볼" = snowball).
+Users describe a dividend portfolio and investment plan; the app projects long-term asset value and dividend
+cashflow, and reports when a target monthly dividend would be reached. There is no backend, no account, and no
+personal data collection — every calculation runs client-side.
 
-## Core Use Cases
-1. Estimate how long it may take to reach a target monthly dividend.
-2. Compare scenarios with and without dividend reinvestment.
-3. Inspect yearly trends for assets, annual dividends, and cumulative dividends.
-4. Review recent 12-month payout composition by ticker.
-5. Tune ticker weights and lock/unlock fixed-weight positions.
+It is a deterministic calculator over user-supplied assumptions. It is not a forecast, not a guarantee of returns,
+and not investment, tax, or legal advice.
+
+## Growth Model (READ THIS FIRST — the model was corrected)
+The current model couples dividend and price growth:
+
+- Dividend per share (DPS) and share price grow at the **same rate**. Dividend yield therefore stays constant
+  over the whole horizon.
+- **Expected total return (CAGR) = dividend yield + dividend growth rate.** It is derived, never entered directly.
+  Example: 3.34% yield + 6.66% growth = 10% total return.
+- A high yield does not imply a high total return. Holding total return fixed, raising the yield lowers the
+  growth rate by the same amount.
+- Assets that pay a large distribution while eroding NAV (covered-call ETFs such as QYLD) are modeled with a
+  **negative dividend growth rate** (e.g. -3).
+
+Previously price growth was an independent input, so price could compound while the dividend also compounded.
+That double-counted return and materially **overestimated** high-yield covered-call ETFs. Results produced by the
+old model are not comparable to current ones; previously saved scenarios and share links can therefore show
+different numbers than when they were created. The app surfaces this to users in a dismissible in-app notice.
 
 ## Input Model
-- Portfolio:
-  - ticker profiles (ticker symbol, initial price, dividend yield, dividend growth, price growth, payout frequency)
-  - included ticker ids
-  - weight map by ticker id
-  - fixed weight flags by ticker id
-- Investment settings:
-  - initial investment (lump-sum)
-  - monthly contribution
-  - target monthly dividend
-  - investment start date (`YYYY-MM-DD`)
-  - duration years
-  - reinvest dividends (boolean)
-  - tax rate (%)
-  - reinvest timing (`sameMonth` or `nextMonth`)
-  - dividend growth mode (`annualStep` or `monthlySmooth`)
+Portfolio:
+- ticker profiles: symbol, current price, dividend yield (%), dividend growth (%, may be negative),
+  payout frequency (monthly | quarterly | semiannual | annual)
+- included ticker ids
+- weight map by ticker id; weights auto-normalize to 100%
+- fixed-weight flags: pinning a ticker's weight makes the remaining tickers share the rest
+
+Investment settings:
+- initial investment (lump sum, KRW)
+- monthly contribution (KRW)
+- target monthly dividend (KRW)
+- investment start date (`YYYY-MM-DD`)
+- duration in years
+- reinvest dividends (boolean) + reinvestment ratio (%)
+- dividend income tax rate (%, default 15.4)
+- reinvest timing: `sameMonth` | `nextMonth` (next-month is the conservative choice)
+- dividend growth mode: `annualStep` (steps at year boundary) | `monthlySmooth` (smoothed monthly)
 
 ## Output Model
-- Simulation summary:
-  - final asset value
-  - final monthly average dividend
-  - final payout-month dividend
-  - total net dividend
-  - total tax paid
-  - target-reach year for monthly dividend
-- Quick estimate summary:
-  - end value
-  - annual dividend approximation
-  - monthly dividend approximation
-  - yield-on-price at end
-- Visual outputs:
-  - allocation pie chart
-  - recent 12-month cashflow stacked bar chart
-  - yearly series line chart
-  - optional split charts for monthly dividend, asset value, cumulative dividend
+Precise simulation (month-by-month; honors payout frequency, tax, and reinvest timing):
+- final asset value
+- monthly dividend (annual total / 12)
+- most recent actual payout-month dividend
+- cumulative net dividend (after tax) and cumulative dividend tax paid
+- year the target monthly dividend is reached
+
+Quick estimate (approximation): end value, annual/monthly dividend approximation, yield-on-price at end.
+It collapses reinvestment ratio and tax into a single effective return — it is a fast approximation, not the
+month-level model.
+
+Capital-gains block (precise + detail mode only):
+- acquisition cost (취득원가), unrealized gain (평가이익), estimated capital-gains tax if fully sold,
+  after-tax realizable assets (세후 실현 가능 자산)
+
+Visual outputs: allocation pie, recent 12-month payout stacked bar, yearly series line chart, optional split
+charts (monthly dividend / asset value / cumulative dividend), and a post-investment projection chart
+(10/20/30/40/50 years, no further contributions).
+
+## Tax Model
+- **Dividend income tax**: withheld at payout, default 15.4%, user-adjustable. Reflected in every displayed
+  dividend figure (displayed dividends are after tax).
+- **Overseas capital-gains tax**: assumes the entire position is sold in the final year.
+  `tax = max(0, unrealized_gain − 2,500,000 KRW annual deduction) × 22%`, where 22% = 20% capital-gains
+  + 2% local income tax. This tax is **excluded** from the asset and cumulative-tax figures above, because an
+  investor who keeps holding never pays it; it is shown separately.
+  The 2.5M KRW deduction applies per year of sale, so selling across multiple years can reduce the real tax
+  below this estimate. FX gain/loss is not modeled.
+- **Acquisition cost** includes shares repurchased with after-tax dividends. Those were bought with money that
+  already paid dividend tax, so counting them as capital gains later would tax the same money twice.
+- **Financial income aggregate taxation (금융소득종합과세)**: if pre-tax annual dividends exceed 20,000,000 KRW
+  in any year, the app warns that the effective rate may exceed the entered rate. It does **not** change the rate
+  automatically, because the user's other income is unknown. The threshold test uses pre-tax dividends, while
+  displayed dividends are after tax — so the on-screen number can look smaller than the threshold.
 
 ## Interpretation Guidance
-- The simulator is deterministic for a given input set.
-- It is designed for scenario exploration, not prediction certainty.
-- Growth/yield assumptions are user-provided and can materially change outcomes.
-- This is not financial, tax, or legal advice.
+- Deterministic for a given input set: same inputs always produce the same output.
+- Built for scenario comparison, not predictive certainty.
+- Yield and growth assumptions are user-provided and dominate the outcome.
+- Preset ticker values are a stored snapshot, not live market data; the app shows the snapshot's as-of date.
+- Not financial, tax, or legal advice.
 
-## SEO / Machine-Readable Surfaces
+## Feature Surface
+- Portfolio presets that fill tickers, weights, and investment settings in one click
+- Manual ticker creation (yield/growth/frequency); total return is shown as a derived value
+- Weight editing with per-ticker pinning
+- Scenario tabs (up to 10) for side-by-side strategies; rename, delete, reorder
+- Local persistence in the browser, JSON export/import, lz-string-compressed share links, PNG screen capture
+- Onboarding tour and per-field help
+
+## Machine-Readable Surfaces
 - `/llms.txt`: concise index for LLM crawlers
 - `/llms-full.txt`: expanded context for answer grounding
 - `/ai-overview.json`: structured machine-readable summary
-- JSON-LD in root HTML for WebApplication + FAQ semantics
+- JSON-LD in the root HTML: `WebSite` + `WebApplication` (no FAQPage/HowTo — the app has no visible FAQ
+  section or fixed step list, and marking up absent content would be false)
 
 ## Canonical Entry Points
 - `/`

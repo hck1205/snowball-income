@@ -1,5 +1,20 @@
-import html2canvas from 'html2canvas';
 import type { CaptureContext } from './types';
+
+/**
+ * html2canvas(약 200KB)를 초기 번들에서 들어낸다.
+ * 캡처는 사용자가 "Capture" 버튼을 눌러야만 실행되는 기능이라, 첫 화면에는 필요 없다.
+ * 이미 async 흐름이므로 동적 import가 호출부에 아무 영향을 주지 않는다.
+ */
+type Html2Canvas = (typeof import('html2canvas'))['default'];
+type Html2CanvasOptions = Parameters<Html2Canvas>[1];
+
+let html2canvasPromise: Promise<Html2Canvas> | null = null;
+
+const loadHtml2Canvas = (): Promise<Html2Canvas> => {
+  // 모듈 프라미스를 캐시해 타일마다 재요청하지 않는다(브라우저 캐시와 별개로 왕복 자체를 없앤다).
+  html2canvasPromise ??= import('html2canvas').then((module) => module.default);
+  return html2canvasPromise;
+};
 
 const createCaptureAttempts = ({
   captureWidth,
@@ -11,7 +26,7 @@ const createCaptureAttempts = ({
   tileHeight: number;
   offsetY: number;
   onclone: (doc: Document) => void;
-}): Array<Parameters<typeof html2canvas>[1]> => [
+}): Array<Html2CanvasOptions> => [
   {
     backgroundColor: '#ffffff',
     useCORS: true,
@@ -64,8 +79,10 @@ const captureTile = async ({
   attempts
 }: {
   target: HTMLElement;
-  attempts: Array<Parameters<typeof html2canvas>[1]>;
+  attempts: Array<Html2CanvasOptions>;
 }): Promise<HTMLCanvasElement> => {
+  const html2canvas = await loadHtml2Canvas();
+
   let lastError: unknown = null;
   for (const options of attempts) {
     try {

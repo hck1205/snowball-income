@@ -1,14 +1,24 @@
 {
   "name": "Snowball Income",
-  "category": "Dividend Strategy Simulator",
+  "category": "Dividend Reinvestment Simulator",
   "language": "ko-KR",
-  "description": "장기 배당 투자 전략을 시뮬레이션하고 월별/연도별 현금흐름 및 자산 추이를 분석하는 웹 애플리케이션",
+  "description": "배당주·ETF 포트폴리오의 배당 재투자(스노우볼) 효과를 시뮬레이션하고, 목표 월 배당 도달 시점과 세후 현금흐름을 계산하는 브라우저 전용 웹 앱",
+  "is_free": true,
+  "requires_account": false,
+  "collects_personal_data": false,
+  "computation": "client-side only (no backend)",
   "entrypoints": {
     "app": "/",
     "sitemap": "/sitemap.xml",
     "robots": "/robots.txt",
     "llms": "/llms.txt",
     "llms_full": "/llms-full.txt"
+  },
+  "growth_model": {
+    "summary": "배당과 주가가 같은 속도로 함께 성장한다고 가정한다. 따라서 배당률은 기간 내내 일정하다.",
+    "total_return_formula": "기대 총수익률(CAGR) = 배당률 + 배당 성장률 (사용자가 직접 입력하지 않고 파생됨)",
+    "covered_call_note": "분배금이 크고 원금(NAV)이 깎이는 커버드콜 ETF는 배당 성장률을 음수로 입력해 표현한다.",
+    "correction_note": "이전 모델은 주가가 배당과 무관하게 성장해 고배당 자산을 과대 추정했다. 현재 모델은 이를 바로잡았으므로 예전에 저장한 시나리오와 결과가 다를 수 있다."
   },
   "core_inputs": [
     "initialInvestment",
@@ -17,21 +27,38 @@
     "investmentStartDate",
     "durationYears",
     "reinvestDividends",
+    "reinvestRatio",
     "reinvestTiming",
     "dpsGrowthMode",
     "taxRate",
     "tickerProfiles",
-    "allocationWeights"
+    "allocationWeights",
+    "fixedWeightFlags"
   ],
   "core_outputs": [
     "finalAssetValue",
     "monthlyAverageDividend",
-    "quickEstimateEndValue",
-    "quickEstimateMonthlyDividendApprox",
-    "recentMonthlyCashflow",
+    "recentActualPayout",
     "totalNetDividend",
-    "totalTaxPaid",
-    "targetReachYear"
+    "totalDividendTaxPaid",
+    "targetReachYear",
+    "acquisitionCost",
+    "unrealizedGain",
+    "estimatedCapitalGainsTaxIfFullySold",
+    "afterTaxRealizableAssets",
+    "quickEstimateEndValue",
+    "quickEstimateMonthlyDividendApprox"
   ],
-  "disclaimer": "본 서비스는 교육 및 시뮬레이션 목적 도구이며 투자 조언이 아닙니다."
+  "tax_model": {
+    "dividend_income_tax": "지급 시 원천징수 가정, 기본 15.4% (조정 가능). 화면의 배당 숫자는 모두 세후다.",
+    "overseas_capital_gains_tax": "마지막 해 전량 매도 가정 시 (평가이익 − 기본공제 250만원) × 22%. 자산·누적 세금에는 반영하지 않고 따로 표시한다.",
+    "financial_income_aggregate_taxation": "세전 연 배당이 2,000만원을 넘는 해가 있으면 경고만 표시하고, 세율은 입력값을 그대로 유지한다.",
+    "not_modeled": ["환율 변동에 따른 차익·차손", "여러 해에 나누어 매도하는 경우의 공제 반복"]
+  },
+  "limitations": [
+    "예측이 아니라 사용자가 입력한 가정에 대한 결정론적 계산이다.",
+    "프리셋 티커 값은 실시간 시세가 아니라 저장된 스냅샷이다.",
+    "결과는 가정에 매우 민감하다."
+  ],
+  "disclaimer": "본 서비스는 입력한 가정을 그대로 계산해 보여주는 시뮬레이터이며, 투자 자문이 아닙니다. 수익을 보장하지 않습니다."
 }
