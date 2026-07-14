@@ -1,6 +1,7 @@
 export * from './allocation';
 export * from './formatters';
 export * from './charts';
+export * from './ogCard';
 export * from './portfolio';
 export * from './preset';
 export * from './scenario';

@@ -15,6 +15,25 @@ describe('readCommunityEnv', () => {
     ).toEqual({ url: 'https://proj.supabase.co', anonKey: 'anon-key' });
   });
 
+  it('신형 publishable 키 이름도 받는다 (Supabase 대시보드가 키 발급 방식을 바꿨다)', () => {
+    expect(
+      readCommunityEnv({
+        VITE_SUPABASE_URL: 'https://proj.supabase.co',
+        VITE_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_abc'
+      })
+    ).toEqual({ url: 'https://proj.supabase.co', anonKey: 'sb_publishable_abc' });
+  });
+
+  it('둘 다 있으면 신형 publishable 키를 쓴다', () => {
+    expect(
+      readCommunityEnv({
+        VITE_SUPABASE_URL: 'https://proj.supabase.co',
+        VITE_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_abc',
+        VITE_SUPABASE_ANON_KEY: 'legacy-anon'
+      })
+    ).toEqual({ url: 'https://proj.supabase.co', anonKey: 'sb_publishable_abc' });
+  });
+
   it('둘 다 없으면 null', () => {
     expect(readCommunityEnv({})).toBeNull();
   });

@@ -1,4 +1,29 @@
 {
+  /*
+    솔루션 스타일 tsconfig — 실제 타입체크는 references 의 각 프로젝트가 한다(`files: []`).
+
+    아래 compilerOptions 는 tsc 를 위한 게 아니라 **Vercel 함수 빌더(esbuild)를 위한 것**이다.
+
+    Vercel 은 `/api/*` 와 `middleware.ts` 를 esbuild 로 번들한다. esbuild 는 각 소스 파일에서 가장 가까운
+    `tsconfig.json` 을 찾아 `paths` 를 읽는데, 이 레포에서 그건 **항상 이 루트 파일**이다.
+    (`tsconfig.app.json` 은 이름이 달라 esbuild 가 찾지 못하고, project references 도 따라가지 않는다.)
+    여기에 paths 가 없으면 `/api/og.tsx` 가 `@/...` 를 하나도 resolve 하지 못해 **배포 빌드가 깨진다.**
+    실측: paths 없이 esbuild 번들 → `ERROR: Could not resolve "@/shared/lib/snowball"`.
+
+    `jsx` 도 같은 이유다 — `/api/og.tsx` 는 Satori 용 JSX 를 쓰므로 esbuild 가 루트 tsconfig 에서
+    jsx 설정을 읽어야 .tsx 를 컴파일할 수 있다.
+
+    Vite/Vitest 는 자체 alias 설정을 쓰므로 이 블록에 영향받지 않는다. `tsc -b` 도 `files: []` 라 무시한다.
+  */
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": { "@/*": ["./*"] },
+    "jsx": "react-jsx"
+  },
   "files": [],
-  "references": [{ "path": "./tsconfig.app.json" }, { "path": "./tsconfig.scripts.json" }]
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.scripts.json" },
+    { "path": "./tsconfig.api.json" }
+  ]
 }

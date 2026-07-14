@@ -31,11 +31,17 @@ const readString = (source: Record<string, unknown>, key: string): string | unde
  * 순수 함수 — 환경변수 소스에서 커뮤니티 설정을 읽는다.
  * (import.meta.env를 직접 읽지 않고 주입받아서 테스트 가능하게 만든다)
  *
- * 둘 중 하나라도 없으면 null → 커뮤니티 비활성.
+ * 키 이름을 둘 다 받는다: Supabase가 발급 방식을 바꾸면서 대시보드에 두 탭이 생겼다.
+ *   - 신형 `sb_publishable_...` → VITE_SUPABASE_PUBLISHABLE_KEY
+ *   - 구형 `eyJ...`(anon JWT)   → VITE_SUPABASE_ANON_KEY
+ * 둘은 권한 모델이 같다(로그인 전 anon 역할, 로그인 후 사용자 JWT). 이름만 다르므로 어느 쪽을
+ * 써도 되게 한다. 둘 다 있으면 신형을 쓴다.
+ *
+ * URL 또는 키가 없으면 null → 커뮤니티 비활성.
  */
 export const readCommunityEnv = (source: Record<string, unknown>): CommunityEnv | null => {
   const url = readString(source, 'VITE_SUPABASE_URL');
-  const anonKey = readString(source, 'VITE_SUPABASE_ANON_KEY');
+  const anonKey = readString(source, 'VITE_SUPABASE_PUBLISHABLE_KEY') ?? readString(source, 'VITE_SUPABASE_ANON_KEY');
   if (!url || !anonKey) return null;
   return { url, anonKey };
 };
