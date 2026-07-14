@@ -243,6 +243,18 @@ export const HeaderDescription = styled.p`
   line-height: ${font.leading.snug};
 `;
 
+/**
+ * 워드마크 오른쪽에 붙는 헤더 액션(튜토리얼 시작 아이콘).
+ * `margin-left`가 아니라 워드마크 바로 옆에 두는 이유: 브랜드와 묶여야 "이 앱을 안내받는다"로 읽힌다.
+ * 우측 끝으로 밀면 드로어 토글과 뒤섞여 무슨 버튼인지 알 수 없게 된다.
+ */
+export const HeaderActions = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: ${space[1]};
+  flex: 0 0 auto;
+`;
+
 
 
 

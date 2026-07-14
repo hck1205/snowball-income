@@ -8,7 +8,8 @@ import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import {
   CAPITAL_GAINS_ANNUAL_DEDUCTION,
   FINANCIAL_INCOME_TAX_THRESHOLD,
-  OVERSEAS_CAPITAL_GAINS_TAX_RATE
+  OVERSEAS_CAPITAL_GAINS_TAX_RATE,
+  TOUR_TARGET
 } from '@/shared/constants';
 import {
   HeroSlot,
@@ -81,6 +82,7 @@ function SimulationResultComponent({
   return (
     <Card
       title={title}
+      dataTour={TOUR_TARGET.simulationResult}
       titleRight={
         <ToggleField
           label="결과 상세도"

@@ -16,5 +16,10 @@ export type CardProps = {
   /** 제목 아래 보조 설명 한 줄. */
   subtitle?: ReactNode;
   elevation?: CardElevation;
+  /**
+   * 가이드 투어가 이 카드를 가리킬 수 있게 하는 표식(`data-tour`).
+   * 카드 루트가 곧 하이라이트 대상이라, 래퍼 div를 덧대면 레이아웃 간격이 흔들린다 → 속성만 통과시킨다.
+   */
+  dataTour?: string;
   children: ReactNode;
 };

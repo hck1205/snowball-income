@@ -1,5 +1,6 @@
 import { memo, useEffect } from 'react';
 import { Card, FormSection, InputField, ToggleField } from '@/components';
+import { TOUR_TARGET } from '@/shared/constants';
 import type { YieldFormValues } from '@/shared/types';
 import type { InvestmentSettingsProps } from './InvestmentSettings.types';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
@@ -43,7 +44,7 @@ function InvestmentSettingsComponent({
   }, [validationErrors]);
 
   return (
-    <Card>
+    <Card dataTour={TOUR_TARGET.investmentSettings}>
       <FormSection title="투자 설정">
         <ConfigFormGrid>
           <ToggleField

@@ -1,6 +1,6 @@
 import { memo, type CSSProperties } from 'react';
 import { Card, Chip, ToggleField } from '@/components';
-import { ALLOCATION_COLORS } from '@/shared/constants';
+import { ALLOCATION_COLORS, TOUR_TARGET } from '@/shared/constants';
 import { getTickerDisplayName } from '@/shared/utils';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import type { PortfolioCompositionProps } from './PortfolioComposition.types';
@@ -35,6 +35,7 @@ function PortfolioCompositionComponent({
   return (
     <Card
       title="포트폴리오 구성"
+      dataTour={TOUR_TARGET.portfolioComposition}
       titleRight={
         <ToggleField
           label="포트폴리오 중앙표시"

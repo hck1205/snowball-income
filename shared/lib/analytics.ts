@@ -68,6 +68,14 @@ export const ANALYTICS_EVENT = {
   OPERATION_ERROR: "operation_error",
   // 복귀 방문 신호 이벤트. 용도: 리텐션 측정, 저장 기능이 재방문에 미치는 효과 분석.
   RETURN_VISIT: "return_visit",
+  // 튜토리얼 투어 시작 이벤트. 용도: 온보딩 퍼널 시작 모수, 첫 방문자 대비 투어 진입률 측정.
+  TUTORIAL_STARTED: "tutorial_started",
+  // 튜토리얼 단계 노출 이벤트. 용도: 단계별 이탈 지점(어디서 그만두는지) 파악 및 문구/순서 개선.
+  TUTORIAL_STEP_VIEW: "tutorial_step_view",
+  // 튜토리얼 완주 이벤트. 용도: 온보딩 완료율, 완주 유저의 시뮬레이션 전환율 비교.
+  TUTORIAL_COMPLETED: "tutorial_completed",
+  // 튜토리얼 중도 이탈 이벤트(건너뛰기/Esc/닫기). 용도: 이탈 단계와 이탈 방식 분석.
+  TUTORIAL_DISMISSED: "tutorial_dismissed",
 } as const;
 
 export type AnalyticsEventName = (typeof ANALYTICS_EVENT)[keyof typeof ANALYTICS_EVENT];

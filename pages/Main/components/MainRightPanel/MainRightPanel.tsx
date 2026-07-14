@@ -2,7 +2,7 @@ import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Button, Card, ToggleField } from '@/components';
 import type { SimulationResult as SimulationResultRow } from '@/shared/types';
-import { DIVIDEND_UNIVERSE } from '@/shared/constants';
+import { DIVIDEND_UNIVERSE, TOUR_TARGET } from '@/shared/constants';
 import {
   ModalActions,
   ModalBackdrop,
@@ -609,7 +609,7 @@ function MainRightPanelComponent() {
 
   return (
     <ResultsColumn>
-      <ScenarioTabsWrap aria-label="포트폴리오 탭 목록">
+      <ScenarioTabsWrap data-tour={TOUR_TARGET.scenarioTabs} aria-label="포트폴리오 탭 목록">
         {tabs.map((tab) =>
           editingTabId === tab.id ? (
             <ScenarioTabEditWrap key={tab.id} style={editingTabWidth ? { width: `${editingTabWidth}px` } : undefined}>
@@ -831,7 +831,7 @@ function MainRightPanelComponent() {
           }
         >
           {includedProfiles.length === 0 ? (
-            <PortfolioPresetGrid aria-label="포트폴리오 프리셋 목록">
+            <PortfolioPresetGrid data-tour={TOUR_TARGET.portfolioPresets} aria-label="포트폴리오 프리셋 목록">
               {PORTFOLIO_PRESET_PLACEHOLDERS.map((preset) => (
                 <PortfolioPresetCardButton key={preset.id} type="button" onClick={() => applyPortfolioPreset(preset)}>
                   <PortfolioPresetContentRow>

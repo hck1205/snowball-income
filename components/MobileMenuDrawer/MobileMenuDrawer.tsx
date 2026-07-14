@@ -1,5 +1,6 @@
 import { memo, useEffect, useId, useRef, useState } from 'react';
 import BrandMark from '@/components/BrandMark';
+import { TOUR_TARGET } from '@/shared/constants';
 import type { MobileMenuDrawerProps } from './MobileMenuDrawer.types';
 import {
   ConfigDrawerColumn,
@@ -8,13 +9,14 @@ import {
   DrawerCloseButton,
   DrawerToggleButton,
   Header,
+  HeaderActions,
   HeaderBrand,
   HeaderDescription,
   HeaderLogo,
   HeaderTitle
 } from '@/pages/Main/Main.shared.styled';
 
-function MobileMenuDrawerComponent({ isOpen, onOpen, onClose, left, right, notice }: MobileMenuDrawerProps) {
+function MobileMenuDrawerComponent({ isOpen, onOpen, onClose, left, right, notice, headerAction }: MobileMenuDrawerProps) {
   const drawerId = useId();
   const toggleAnchorRef = useRef<HTMLDivElement | null>(null);
   const [isFloating, setIsFloating] = useState(false);
@@ -67,11 +69,13 @@ function MobileMenuDrawerComponent({ isOpen, onOpen, onClose, left, right, notic
             <BrandMark size={24} />
           </HeaderLogo>
           <HeaderTitle>Snowball Income</HeaderTitle>
+          {headerAction ? <HeaderActions>{headerAction}</HeaderActions> : null}
         </HeaderBrand>
         <HeaderDescription>장기 배당 투자 전략을 설계하고 시뮬레이션 결과를 비교하세요.</HeaderDescription>
         <div ref={toggleAnchorRef} aria-hidden />
         <DrawerToggleButton
           type="button"
+          data-tour={TOUR_TARGET.openSettings}
           data-capture-role="drawer-toggle-open"
           data-floating={isFloating ? 'true' : 'false'}
           aria-label="설정 열기"

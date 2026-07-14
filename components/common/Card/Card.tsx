@@ -8,13 +8,14 @@ export default function Card({
   titleRightInline,
   subtitle,
   elevation = 1,
+  dataTour,
   children
 }: CardProps) {
   const resolvedTitle = resolveCardTitle(title);
   const showHeader = Boolean(resolvedTitle || titleRight);
 
   return (
-    <CardContainer elevation={elevation}>
+    <CardContainer elevation={elevation} data-tour={dataTour}>
       {showHeader ? (
         <CardHeader inlineTitleRight={titleRightInline}>
           {resolvedTitle ? (

@@ -1,6 +1,7 @@
 import { memo, type ChangeEvent, type MouseEvent, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Button, Card, InputField } from '@/components';
+import { TOUR_TARGET } from '@/shared/constants';
 import { getTickerDisplayName } from '@/shared/utils';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import type { TickerCreationProps } from './TickerCreation.types';
@@ -512,7 +513,7 @@ function TickerCreationComponent({
   return (
     <Card>
       {topContent}
-      <TickerQuickActionRow>
+      <TickerQuickActionRow data-tour={TOUR_TARGET.quickActions}>
         {quickActions.map((action) => (
           <TickerQuickActionButton
             key={action.key}
@@ -536,7 +537,12 @@ function TickerCreationComponent({
           )
         : null}
       {shareResultMessage ? <HintText>{shareResultMessage}</HintText> : null}
-      <TickerCreateButton type="button" aria-label="티커 생성 열기" onClick={onOpenCreate}>
+      <TickerCreateButton
+        type="button"
+        data-tour={TOUR_TARGET.tickerCreate}
+        aria-label="티커 생성 열기"
+        onClick={onOpenCreate}
+      >
         티커 생성
       </TickerCreateButton>
       {tickerProfiles.length === 0 ? (
