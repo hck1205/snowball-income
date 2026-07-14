@@ -18,8 +18,10 @@ import {
   runQuickEstimate,
   runSimulation,
   sumDividendPaid,
-  toDerivedPriceGrowth,
+  toDerivedDividendGrowthPercent,
+  toExpectedTotalReturnPercent,
   toMonthlyGrowthRate,
+  toPriceGrowth,
   toReinvestRatio,
   toSimulationInput,
   toStartDate,
@@ -130,12 +132,33 @@ describe('rate conversions', () => {
     expect(clamp01(2)).toBe(1);
   });
 
-  it('toDerivedPriceGrowth subtracts dividend yield from expected total return', () => {
-    expect(toDerivedPriceGrowth({ expectedTotalReturnPercent: 8.5, dividendYieldPercent: 3.5 })).toBeCloseTo(0.05, 12);
+  // 정합 모델: 주가는 배당과 같은 속도로 자란다. (구모델의 toDerivedPriceGrowth = etr - dy 는 삭제됐다.)
+  it('toPriceGrowth mirrors the dividend growth rate', () => {
+    expect(toPriceGrowth(6.66)).toBeCloseTo(0.0666, 12);
+    expect(toPriceGrowth(-3)).toBeCloseTo(-0.03, 12);
+    expect(toPriceGrowth(0)).toBe(0);
   });
 
-  it('toDerivedPriceGrowth floors at -99%', () => {
-    expect(toDerivedPriceGrowth({ expectedTotalReturnPercent: -100, dividendYieldPercent: 100 })).toBe(-0.99);
+  it('toPriceGrowth floors at -99%', () => {
+    expect(toPriceGrowth(-100)).toBe(-0.99);
+  });
+
+  it('toExpectedTotalReturnPercent is the Gordon sum (r = y + g)', () => {
+    expect(toExpectedTotalReturnPercent(3.34, 6.66)).toBe(10);
+    expect(toExpectedTotalReturnPercent(10, -3)).toBe(7);
+  });
+
+  it('toDerivedDividendGrowthPercent inverts it (g = r - y)', () => {
+    expect(toDerivedDividendGrowthPercent(10, 3.34)).toBe(6.66);
+    expect(toDerivedDividendGrowthPercent(7, 10)).toBe(-3);
+  });
+
+  it('the two are exact inverses, so a migrated profile is a fixed point', () => {
+    const dividendYield = 3.34;
+    const dividendGrowth = 6.66;
+    const totalReturn = toExpectedTotalReturnPercent(dividendYield, dividendGrowth);
+
+    expect(toDerivedDividendGrowthPercent(totalReturn, dividendYield)).toBe(dividendGrowth);
   });
 });
 
@@ -166,7 +189,7 @@ describe('dpsAtMonth', () => {
     expect(dpsAtMonth({ dps0, dividendGrowth, mode: 'monthlySmooth', elapsedYearFraction: 1, completedYears: 1 })).toBeCloseTo(1100, 9);
   });
 
-  it('annualStep stays flat for 11 months and steps up on the 12th', () => {
+  it('annualStep stays flat for a full 12 months and steps up on the 13th', () => {
     const dpsFor = (monthIndex: number) => {
       const context = buildMonthContext(new Date(2026, 0, 15), monthIndex);
       return dpsAtMonth({
@@ -178,14 +201,16 @@ describe('dpsAtMonth', () => {
       });
     };
 
-    for (let monthIndex = 1; monthIndex <= 11; monthIndex += 1) {
+    // off-by-one 수정: completedYears 는 floor(elapsedMonths / 12) 다. monthIndex 는 1-based 라
+    // 예전 floor(monthIndex / 12) 는 아직 1년차인 12개월째에 이미 1이 되어 배당이 한 해 일찍 올랐다.
+    for (let monthIndex = 1; monthIndex <= 12; monthIndex += 1) {
       expect(dpsFor(monthIndex)).toBe(dps0);
     }
 
-    // 12개월째부터 계단 상승, 그리고 다음 계단(24개월째)까지 유지된다.
-    expect(dpsFor(12)).toBeCloseTo(1100, 9);
-    expect(dpsFor(23)).toBeCloseTo(1100, 9);
-    expect(dpsFor(24)).toBeCloseTo(1210, 9);
+    // 13개월째(= 2년차 첫 달)부터 계단 상승, 다음 계단(25개월째)까지 유지된다.
+    expect(dpsFor(13)).toBeCloseTo(1100, 9);
+    expect(dpsFor(24)).toBeCloseTo(1100, 9);
+    expect(dpsFor(25)).toBeCloseTo(1210, 9);
   });
 
   it('annualStep and monthlySmooth agree exactly on whole-year boundaries', () => {
@@ -367,7 +392,8 @@ describe('buildMonthContext', () => {
     expect(twelfth.calendarMonth).toBe(2); // 시작 후 12개월째 = 달력상 다음 해 2월
     expect(twelfth.calendarYear).toBe(2027);
     expect(twelfth.simulationYearLabel).toBe(2026);
-    expect(twelfth.completedYears).toBe(1);
+    // 12개월째는 아직 1년차다 — 완료된 연 수는 0. (예전엔 floor(12/12) = 1 이었다.)
+    expect(twelfth.completedYears).toBe(0);
     expect(twelfth.elapsedYearFraction).toBe(1);
   });
 
@@ -469,10 +495,11 @@ describe('summary builders', () => {
       })
     ];
 
+    // finalMonthlyDividend 는 finalMonthlyAverageDividend 와 값이 완전히 같은 중복 필드였고
+    // 어떤 화면도 읽지 않아 제거했다.
     expect(buildSummary({ monthly, yearly, totalTaxPaid: 77, targetMonthlyDividend: 100 })).toEqual({
       finalAssetValue: 300,
       finalAnnualDividend: 1_800,
-      finalMonthlyDividend: 150,
       finalMonthlyAverageDividend: 150,
       finalPayoutMonthDividend: 40,
       totalContribution: 900,
@@ -486,7 +513,6 @@ describe('summary builders', () => {
     expect(buildSummary({ monthly: [], yearly: [], totalTaxPaid: 0, targetMonthlyDividend: 1 })).toEqual({
       finalAssetValue: 0,
       finalAnnualDividend: 0,
-      finalMonthlyDividend: 0,
       finalMonthlyAverageDividend: 0,
       finalPayoutMonthDividend: 0,
       totalContribution: 0,
@@ -498,23 +524,57 @@ describe('summary builders', () => {
 });
 
 describe('runQuickEstimate', () => {
-  it('ignores every reinvestment setting (known model gap)', () => {
-    // quickEstimate 는 재투자 설정을 전혀 반영하지 않는다. 월별 루프와 다른 모델이라는 사실을 고정한다.
+  it('reflects the reinvestment settings (구버전은 이걸 통째로 무시했다)', () => {
+    // 예전 quickEstimate 는 재투자 설정을 전혀 읽지 않아 재투자 OFF 를 크게 과대추정했다.
     const off = runQuickEstimate(
-      toSimulationInput(buildValues({ reinvestDividends: false, reinvestDividendPercent: 0, reinvestTiming: 'sameMonth' }))
+      toSimulationInput(buildValues({ reinvestDividends: false, reinvestDividendPercent: 0, dividendYield: 8, dividendGrowth: 0 }))
     );
-    const on = runQuickEstimate(
-      toSimulationInput(buildValues({ reinvestDividends: true, reinvestDividendPercent: 100, reinvestTiming: 'nextMonth' }))
+    const half = runQuickEstimate(
+      toSimulationInput(buildValues({ reinvestDividends: true, reinvestDividendPercent: 50, dividendYield: 8, dividendGrowth: 0 }))
+    );
+    const full = runQuickEstimate(
+      toSimulationInput(buildValues({ reinvestDividends: true, reinvestDividendPercent: 100, dividendYield: 8, dividendGrowth: 0 }))
     );
 
-    expect(on).toEqual(off);
+    expect(off.endValue).toBeLessThan(half.endValue);
+    expect(half.endValue).toBeLessThan(full.endValue);
   });
 
-  it('ignores payout frequency and DPS growth mode', () => {
-    const monthly = runQuickEstimate(toSimulationInput(buildValues({ frequency: 'monthly', dpsGrowthMode: 'monthlySmooth' })));
-    const annual = runQuickEstimate(toSimulationInput(buildValues({ frequency: 'annual', dpsGrowthMode: 'annualStep' })));
+  it('재투자 OFF 면 자산이 주가 성장률로만 자란다 (배당은 인출)', () => {
+    const estimate = runQuickEstimate(
+      toSimulationInput(
+        buildValues({
+          dividendYield: 8,
+          dividendGrowth: 3,
+          reinvestDividends: false,
+          taxRate: 0,
+          initialInvestment: 1_000_000,
+          monthlyContribution: 0,
+          durationYears: 10
+        })
+      )
+    );
 
-    expect(annual).toEqual(monthly);
+    expect(estimate.endValue).toBeCloseTo(1_000_000 * Math.pow(1.03, 10), 6);
+  });
+
+  it('reflects payout frequency but not DPS growth mode', () => {
+    // 지급이 잦을수록 재투자 복리가 더 자주 붙는다. DPS 성장 모드는 닫힌 형태에 들어가지 않는다.
+    const monthly = runQuickEstimate(toSimulationInput(buildValues({ frequency: 'monthly', reinvestDividends: true })));
+    const annual = runQuickEstimate(toSimulationInput(buildValues({ frequency: 'annual', reinvestDividends: true })));
+
+    expect(monthly.endValue).toBeGreaterThan(annual.endValue);
+
+    const smooth = runQuickEstimate(toSimulationInput(buildValues({ dpsGrowthMode: 'monthlySmooth' })));
+    const step = runQuickEstimate(toSimulationInput(buildValues({ dpsGrowthMode: 'annualStep' })));
+
+    expect(step).toEqual(smooth);
+  });
+
+  it('yieldOnPriceAtEnd 는 초기 배당률 그대로다 (정합 모델에서는 표류하지 않는다)', () => {
+    const estimate = runQuickEstimate(toSimulationInput(buildValues({ dividendYield: 3.34, dividendGrowth: 6.66, durationYears: 60 })));
+
+    expect(estimate.yieldOnPriceAtEnd).toBeCloseTo(0.0334, 12);
   });
 
   it('sums plain contributions when the net return is zero', () => {

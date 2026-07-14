@@ -1,12 +1,16 @@
 import type { MonthlySnapshot, SimulationInput, SimulationOutput, SimulationResult } from '@/shared/types';
 import { buildMonthContext, toStartDate } from './SnowballCalendar';
 import { computeMonthlyPayout, isPayoutMonth, paymentsPerYearMap, planReinvestment } from './SnowballPayout';
-import { dpsAtMonth, priceAtMonth, toDerivedPriceGrowth, toReinvestRatio, toTaxRate } from './SnowballRates';
+import { dpsAtMonth, priceAtMonth, toPriceGrowth, toReinvestRatio, toTaxRate } from './SnowballRates';
 import { runQuickEstimate } from './SnowballQuickEstimate';
 import { buildSummary, buildYearlyRow } from './SnowballSummary';
 
 /**
- * 월 단위 시뮬레이션 루프.
+ * 월 단위 시뮬레이션 루프 (정합 모델 / 고든 성장모형).
+ *
+ *   priceGrowth  = dividendGrowth            // 가격과 배당이 같은 속도로 성장
+ *   dps(t)       = price(t) * dividendYield  // 배당수익률(YoP)이 시간에 대해 불변
+ *   totalReturn  = dividendYield + dividendGrowth   // 파생 표시값 (엔진은 쓰지 않는다)
  *
  * 이 함수는 **오케스트레이션만** 담당한다. 모든 계산은 아래 순수 함수들이 수행한다:
  * SnowballCalendar / SnowballRates / SnowballPayout / SnowballSummary / SnowballQuickEstimate.
@@ -22,11 +26,12 @@ export const runSimulation = (input: SimulationInput): SimulationOutput => {
 
   const taxRate = toTaxRate(settings.taxRate);
   const dividendYield = ticker.dividendYield / 100;
-  const dividendGrowth = ticker.dividendGrowth / 100;
-  const priceGrowth = toDerivedPriceGrowth({
-    expectedTotalReturnPercent: ticker.expectedTotalReturn,
-    dividendYieldPercent: ticker.dividendYield
-  });
+  // 정합 모델: 가격과 배당이 같은 속도로 성장한다. 하나의 growth 를 양쪽에 쓰기 때문에
+  // dps(t) === price(t) * dividendYield 가 모든 t 에서 성립한다(= 배당수익률 불변).
+  // ticker.expectedTotalReturn 은 더 이상 계산에 쓰이지 않는다 (dividendYield + dividendGrowth 의 파생 표시값).
+  const growth = toPriceGrowth(ticker.dividendGrowth);
+  const priceGrowth = growth;
+  const dividendGrowth = growth;
 
   const totalMonths = settings.durationYears * 12;
   const paymentsPerYear = paymentsPerYearMap[ticker.frequency];
@@ -85,7 +90,8 @@ export const runSimulation = (input: SimulationInput): SimulationOutput => {
 
     shares += settings.monthlyContribution / price;
 
-    const portfolioValue = shares * price;
+    const rawPortfolioValue = shares * price;
+    const portfolioValue = Number.isFinite(rawPortfolioValue) ? rawPortfolioValue : 0;
 
     monthly.push({
       monthIndex: m,

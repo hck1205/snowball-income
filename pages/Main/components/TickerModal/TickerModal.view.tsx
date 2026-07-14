@@ -38,6 +38,8 @@ import {
   parseNumericInputOrNaN,
   scoreTickerSearch,
   sortPresetKeys,
+  toTotalReturnCaption,
+  withDerivedTotalReturn,
   type ListedTickerMap
 } from './TickerModal.utils';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
@@ -111,6 +113,9 @@ export default function TickerModalView({
   );
   const isCreateCustomInput = isCustomTickerInput(mode, selectedPreset);
   const isCreateDisabled = isTickerCreateDisabled({ mode, selectedPreset, tickerDraft });
+  // 정합 모델: 총수익률은 입력이 아니라 배당률 + 배당 성장률의 파생값이다.
+  const derivedTotalReturn = withDerivedTotalReturn(tickerDraft).expectedTotalReturn;
+  const totalReturnCaption = toTotalReturnCaption(tickerDraft);
 
   if (!isOpen) return null;
   if (!modalRoot) return null;
@@ -199,25 +204,29 @@ export default function TickerModalView({
                 value={isCreateCustomInput && Number.isNaN(tickerDraft.dividendYield) ? '' : tickerDraft.dividendYield}
                 placeholder="예: 3.5"
                 onChange={(event) =>
-                  onChangeDraft((prev) => ({
-                    ...prev,
-                    dividendYield: parseNumericInputOrNaN(event.target.value)
-                  }))
+                  onChangeDraft((prev) =>
+                    withDerivedTotalReturn({
+                      ...prev,
+                      dividendYield: parseNumericInputOrNaN(event.target.value)
+                    })
+                  )
                 }
               />
               <InputField
                 label="배당 성장률"
                 type="number"
-                min={0}
+                min={-100}
                 max={100}
                 step={0.1}
                 value={isCreateCustomInput && Number.isNaN(tickerDraft.dividendGrowth) ? '' : tickerDraft.dividendGrowth}
-                placeholder="예: 7"
+                placeholder="예: 7 (음수 가능)"
                 onChange={(event) =>
-                  onChangeDraft((prev) => ({
-                    ...prev,
-                    dividendGrowth: parseNumericInputOrNaN(event.target.value)
-                  }))
+                  onChangeDraft((prev) =>
+                    withDerivedTotalReturn({
+                      ...prev,
+                      dividendGrowth: parseNumericInputOrNaN(event.target.value)
+                    })
+                  )
                 }
               />
               <InputField
@@ -225,17 +234,9 @@ export default function TickerModalView({
                 helpAriaLabel="CAGR 설명 열기"
                 onHelpClick={onHelpExpectedTotalReturn}
                 type="number"
-                min={-100}
-                max={100}
-                step={0.1}
-                value={isCreateCustomInput && Number.isNaN(tickerDraft.expectedTotalReturn) ? '' : tickerDraft.expectedTotalReturn}
-                placeholder="예: 10"
-                onChange={(event) =>
-                  onChangeDraft((prev) => ({
-                    ...prev,
-                    expectedTotalReturn: parseNumericInputOrNaN(event.target.value)
-                  }))
-                }
+                value={Number.isNaN(derivedTotalReturn) ? '' : derivedTotalReturn}
+                disabled
+                onChange={() => undefined}
               />
               <FrequencySelect
                 label="배당 지급 주기"
@@ -243,6 +244,9 @@ export default function TickerModalView({
                 onChange={(event) => onChangeDraft((prev) => ({ ...prev, frequency: event.target.value as Frequency }))}
               />
             </ModalCompactFormGrid>
+            {totalReturnCaption ? (
+              <ModalBody style={{ fontSize: '12px' }}>{totalReturnCaption}</ModalBody>
+            ) : null}
           </>
         ) : null}
 
@@ -324,11 +328,10 @@ export default function TickerModalView({
               />
               <InputField
                 label="기대 총수익율 (CAGR)"
+                helpAriaLabel="CAGR 설명 열기"
+                onHelpClick={onHelpExpectedTotalReturn}
                 type="number"
-                min={-100}
-                max={100}
-                step={0.1}
-                value={tickerDraft.expectedTotalReturn}
+                value={Number.isNaN(derivedTotalReturn) ? '' : derivedTotalReturn}
                 disabled
                 onChange={() => undefined}
               />
@@ -339,6 +342,9 @@ export default function TickerModalView({
                 onChange={() => undefined}
               />
             </ModalCompactFormGrid>
+            {totalReturnCaption ? (
+              <ModalBody style={{ fontSize: '12px' }}>{totalReturnCaption}</ModalBody>
+            ) : null}
           </InlineField>
         ) : null}
 

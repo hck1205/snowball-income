@@ -61,7 +61,7 @@ export type MonthContext = {
   calendarYear: number;
   /** 달력 월 (1..12) */
   calendarMonth: number;
-  /** floor(monthIndex / 12) — annualStep 성장 지수 */
+  /** floor(elapsedMonths / 12) — annualStep 성장 지수. 첫 12개월은 0 (아직 한 해를 못 채웠다). */
   completedYears: number;
   /** monthIndex / 12 — monthlySmooth 성장 지수 */
   elapsedYearFraction: number;
@@ -82,7 +82,9 @@ export const buildMonthContext = (startDate: Date, monthIndex: number): MonthCon
     simulationYearLabel,
     calendarYear: calendarDate.getFullYear(),
     calendarMonth: calendarDate.getMonth() + 1,
-    completedYears: Math.floor(monthIndex / 12),
+    // monthIndex 는 1-based 다. floor(monthIndex / 12) 를 쓰면 12개월째(= 아직 1년차)에 이미 1이 되어
+    // DPS 가 한 해 일찍 계단 상승했다. 완료된 연 수는 elapsedYears 와 같은 정의여야 한다.
+    completedYears: elapsedYears,
     elapsedYearFraction: monthIndex / 12
   };
 };

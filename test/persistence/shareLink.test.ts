@@ -16,13 +16,14 @@ import {
 import type { Frequency } from '@/shared/types';
 import type { TickerProfile } from '@/shared/types/snowball';
 
+/** 정합 프로필: dividendYield + dividendGrowth === expectedTotalReturn. */
 const schd: TickerProfile = {
   id: 'ticker-1',
   ticker: 'SCHD',
   name: '슈드',
   initialPrice: 27.5,
   dividendYield: 3.5,
-  dividendGrowth: 6,
+  dividendGrowth: 5,
   expectedTotalReturn: 8.5,
   frequency: 'quarterly'
 };
@@ -176,6 +177,39 @@ describe('decodeCompactPortfolio', () => {
     expect(portfolio.tickerProfiles).toEqual([]);
     expect(portfolio.includedTickerIds).toEqual([]);
   });
+
+  describe('정합 모델 마이그레이션', () => {
+    it('구버전 공유 링크의 dividendGrowth 를 etr - dy 로 재계산한다', () => {
+      // 인코딩 포맷은 그대로다. 튜플은 여전히 [ticker, price, dy, dg, etr, freq, name] 이고
+      // 기존 링크가 그대로 열린다 — 다만 모순된 dg 대신 etr 에서 파생한 dg 를 쓴다.
+      const portfolio = decodeCompactPortfolio({
+        t: [
+          ['SCHD', 27.5, 3.34, 7, 10, 1, '슈드'],
+          ['QYLD', 18, 10, 0, 7, 0]
+        ]
+      });
+
+      expect(portfolio.tickerProfiles[0]).toMatchObject({
+        ticker: 'SCHD',
+        dividendYield: 3.34,
+        dividendGrowth: 6.66,
+        expectedTotalReturn: 10
+      });
+      expect(portfolio.tickerProfiles[1]).toMatchObject({
+        ticker: 'QYLD',
+        dividendYield: 10,
+        dividendGrowth: -3,
+        expectedTotalReturn: 7
+      });
+    });
+
+    it('음수 dividendGrowth 가 인코딩된 링크도 버리지 않는다', () => {
+      const portfolio = decodeCompactPortfolio({ t: [['QYLD', 18, 10, -3, 7, 0]] });
+
+      expect(portfolio.tickerProfiles).toHaveLength(1);
+      expect(portfolio.tickerProfiles[0].dividendGrowth).toBe(-3);
+    });
+  });
 });
 
 describe('decodeCompactInvestmentSettingsV2', () => {
@@ -281,6 +315,32 @@ describe('공유 링크 v3 왕복', () => {
   it('false인 fixed 항목은 인코딩되지 않아 왕복 후 사라진다 (현재 동작)', () => {
     const decoded = decodeSharedScenario(encodeSharedScenario(buildScenario()));
     expect(decoded?.portfolio.fixedByTickerId).toEqual({ 'shared-0': true });
+  });
+
+  it('음의 배당 성장률(커버드콜)이 왕복해도 보존된다', () => {
+    const qyld: TickerProfile = {
+      id: 'ticker-3',
+      ticker: 'QYLD',
+      name: '',
+      initialPrice: 18,
+      dividendYield: 10,
+      dividendGrowth: -3,
+      expectedTotalReturn: 7,
+      frequency: 'monthly'
+    };
+    const scenario = buildScenario({
+      portfolio: {
+        tickerProfiles: [qyld],
+        includedTickerIds: ['ticker-3'],
+        weightByTickerId: {},
+        fixedByTickerId: {},
+        selectedTickerId: 'ticker-3'
+      }
+    });
+
+    const decoded = decodeSharedScenario(encodeSharedScenario(scenario));
+
+    expect(decoded?.portfolio.tickerProfiles).toEqual([{ ...qyld, id: 'shared-0' }]);
   });
 
   it('포함 티커 순서/부분집합이 보존된다', () => {

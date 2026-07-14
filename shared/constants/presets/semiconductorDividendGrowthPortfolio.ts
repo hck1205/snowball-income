@@ -4,7 +4,7 @@ export const SEMICONDUCTOR_DIVIDEND_GROWTH_PORTFOLIO = {
     name: 'Broadcom Inc.',
     initialPrice: 1350,
     dividendYield: 1.5,
-    dividendGrowth: 15,
+    dividendGrowth: 12.5,
     expectedTotalReturn: 14,
     frequency: 'quarterly' as const
   },
@@ -13,7 +13,7 @@ export const SEMICONDUCTOR_DIVIDEND_GROWTH_PORTFOLIO = {
     name: 'Texas Instruments Incorporated',
     initialPrice: 190,
     dividendYield: 3.0,
-    dividendGrowth: 12,
+    dividendGrowth: 8,
     expectedTotalReturn: 11,
     frequency: 'quarterly' as const
   },
@@ -22,7 +22,7 @@ export const SEMICONDUCTOR_DIVIDEND_GROWTH_PORTFOLIO = {
     name: 'Analog Devices, Inc.',
     initialPrice: 210,
     dividendYield: 1.8,
-    dividendGrowth: 11,
+    dividendGrowth: 9.2,
     expectedTotalReturn: 11,
     frequency: 'quarterly' as const
   },
@@ -31,7 +31,7 @@ export const SEMICONDUCTOR_DIVIDEND_GROWTH_PORTFOLIO = {
     name: 'Lam Research Corporation',
     initialPrice: 900,
     dividendYield: 1.2,
-    dividendGrowth: 15,
+    dividendGrowth: 11.8,
     expectedTotalReturn: 13,
     frequency: 'quarterly' as const
   },
@@ -40,7 +40,7 @@ export const SEMICONDUCTOR_DIVIDEND_GROWTH_PORTFOLIO = {
     name: 'KLA Corporation',
     initialPrice: 800,
     dividendYield: 1.1,
-    dividendGrowth: 13,
+    dividendGrowth: 10.9,
     expectedTotalReturn: 12,
     frequency: 'quarterly' as const
   },
@@ -49,7 +49,7 @@ export const SEMICONDUCTOR_DIVIDEND_GROWTH_PORTFOLIO = {
     name: 'Applied Materials, Inc.',
     initialPrice: 220,
     dividendYield: 0.9,
-    dividendGrowth: 12,
+    dividendGrowth: 11.1,
     expectedTotalReturn: 12,
     frequency: 'quarterly' as const
   },
@@ -58,7 +58,7 @@ export const SEMICONDUCTOR_DIVIDEND_GROWTH_PORTFOLIO = {
     name: 'Taiwan Semiconductor Manufacturing Company',
     initialPrice: 170,
     dividendYield: 1.5,
-    dividendGrowth: 10,
+    dividendGrowth: 9.5,
     expectedTotalReturn: 11,
     frequency: 'quarterly' as const
   },
@@ -67,7 +67,7 @@ export const SEMICONDUCTOR_DIVIDEND_GROWTH_PORTFOLIO = {
     name: 'ASML Holding N.V.',
     initialPrice: 900,
     dividendYield: 0.8,
-    dividendGrowth: 10,
+    dividendGrowth: 10.2,
     expectedTotalReturn: 11,
     frequency: 'annual' as const
   },
@@ -76,7 +76,7 @@ export const SEMICONDUCTOR_DIVIDEND_GROWTH_PORTFOLIO = {
     name: 'Eaton Corporation plc',
     initialPrice: 320,
     dividendYield: 1.2,
-    dividendGrowth: 11,
+    dividendGrowth: 10.8,
     expectedTotalReturn: 12,
     frequency: 'quarterly' as const
   },
@@ -85,7 +85,7 @@ export const SEMICONDUCTOR_DIVIDEND_GROWTH_PORTFOLIO = {
     name: 'Vertiv Holdings Co',
     initialPrice: 80,
     dividendYield: 0.2,
-    dividendGrowth: 8,
+    dividendGrowth: 13.8,
     expectedTotalReturn: 14,
     frequency: 'quarterly' as const
   }

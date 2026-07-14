@@ -4,7 +4,7 @@ export const REIT_ETFS = {
     name: 'Schwab U.S. REIT ETF',
     initialPrice: 20,
     dividendYield: 3.8,
-    dividendGrowth: 3,
+    dividendGrowth: 4.2,
     expectedTotalReturn: 8,
     frequency: 'quarterly' as const
   },

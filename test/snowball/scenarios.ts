@@ -10,7 +10,9 @@ const BASE: YieldFormValues = {
   ticker: 'TEST',
   initialPrice: 100_000,
   dividendYield: 3.5,
-  dividendGrowth: 6,
+  // 정합 모델 마이그레이션: 기존 (dy 3.5 / dg 6 / etr 8.5) 는 자기모순이었다.
+  // dy 와 etr 을 보존하고 dg = 8.5 - 3.5 = 5 로 재계산한다.
+  dividendGrowth: 5,
   expectedTotalReturn: 8.5,
   frequency: 'quarterly',
   initialInvestment: 0,
@@ -104,13 +106,33 @@ export const SNOWBALL_SCENARIOS: SnowballScenario[] = [
     })
   },
   {
+    // 성장률 하한(-99%) 클램프. 정합 모델에서는 주가 성장률 = 배당 성장률이므로 dg 로 클램프를 친다.
+    // (dy 100 / dg -100 / etr 0 — 여전히 정합적이다: 100 + (-100) === 0)
     name: 'negative-price-growth-clamped',
     values: withBase({
       dividendYield: 100,
-      dividendGrowth: 0,
-      expectedTotalReturn: -100,
+      dividendGrowth: -100,
+      expectedTotalReturn: 0,
       durationYears: 2,
       reinvestDividends: true
+    })
+  },
+  {
+    // 커버드콜: 고배당 + NAV 침식(음의 성장률). 구모델에서는 배당수익률이 폭주하던 케이스다.
+    name: 'covered-call-negative-growth',
+    values: withBase({
+      ticker: 'QYLD',
+      initialPrice: 18_000,
+      dividendYield: 10,
+      dividendGrowth: -3,
+      expectedTotalReturn: 7,
+      frequency: 'monthly',
+      durationYears: 5,
+      reinvestDividends: true,
+      reinvestDividendPercent: 100,
+      taxRate: 15.4,
+      initialInvestment: 10_000_000,
+      investmentStartDate: '2026-01-15'
     })
   },
   {

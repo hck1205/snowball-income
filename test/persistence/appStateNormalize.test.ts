@@ -14,13 +14,14 @@ import {
 } from '@/jotai';
 import type { TickerProfile } from '@/shared/types/snowball';
 
+/** 정합 프로필: dividendYield + dividendGrowth === expectedTotalReturn. */
 const validProfile: TickerProfile = {
   id: 'ticker-1',
   ticker: 'SCHD',
   name: '슈드',
   initialPrice: 100,
   dividendYield: 3.5,
-  dividendGrowth: 6,
+  dividendGrowth: 5,
   expectedTotalReturn: 8.5,
   frequency: 'quarterly'
 };
@@ -41,9 +42,20 @@ describe('sanitizeTickerProfile', () => {
     expect(sanitizeTickerProfile({ ...validProfile, initialPrice: Number.NaN })).toBeNull();
   });
 
-  it('음수 배당률/배당성장률이면 null', () => {
+  it('음수 배당률이면 null', () => {
     expect(sanitizeTickerProfile({ ...validProfile, dividendYield: -1 })).toBeNull();
-    expect(sanitizeTickerProfile({ ...validProfile, dividendGrowth: -1 })).toBeNull();
+  });
+
+  it('음수 배당 성장률은 허용된다 (커버드콜 NAV 침식)', () => {
+    // 저장된 dividendGrowth 는 어차피 etr - dy 로 다시 계산되므로, 음수여도 프로필을 버리지 않는다.
+    const profile = sanitizeTickerProfile({ ...validProfile, dividendYield: 10, dividendGrowth: -3, expectedTotalReturn: 7 });
+
+    expect(profile?.dividendGrowth).toBe(-3);
+    expect(profile?.expectedTotalReturn).toBe(7);
+  });
+
+  it('유한하지 않은 배당 성장률이면 null', () => {
+    expect(sanitizeTickerProfile({ ...validProfile, dividendGrowth: Number.NaN })).toBeNull();
   });
 
   it('알 수 없는 frequency면 null', () => {
@@ -51,9 +63,46 @@ describe('sanitizeTickerProfile', () => {
     expect(sanitizeTickerProfile({ ...validProfile, frequency: undefined })).toBeNull();
   });
 
-  it('expectedTotalReturn이 없으면 dividendYield로 대체된다', () => {
+  it('expectedTotalReturn이 없으면 dividendYield로 대체된다 (그 결과 성장률 0)', () => {
     const profile = sanitizeTickerProfile({ ...validProfile, expectedTotalReturn: undefined });
+
     expect(profile?.expectedTotalReturn).toBe(validProfile.dividendYield);
+    expect(profile?.dividendGrowth).toBe(0);
+  });
+
+  describe('정합 모델 마이그레이션 (구버전 저장 데이터)', () => {
+    it('dividendYield 와 expectedTotalReturn 을 보존하고 dividendGrowth 를 재계산한다', () => {
+      // 구버전 SCHD: dy 3.34 / dg 7 / etr 10 → 셋이 서로 모순이었다 (3.34 + 7 !== 10).
+      const migrated = sanitizeTickerProfile({
+        ...validProfile,
+        dividendYield: 3.34,
+        dividendGrowth: 7,
+        expectedTotalReturn: 10
+      });
+
+      expect(migrated?.dividendYield).toBe(3.34);
+      expect(migrated?.expectedTotalReturn).toBe(10);
+      expect(migrated?.dividendGrowth).toBe(6.66);
+    });
+
+    it('고배당 커버드콜은 음의 성장률로 마이그레이션된다', () => {
+      // 구버전 QYLD: dy 10 / dg 0 / etr 7 → 새 dg = -3 (NAV 침식을 정직하게 표현).
+      const migrated = sanitizeTickerProfile({
+        ...validProfile,
+        dividendYield: 10,
+        dividendGrowth: 0,
+        expectedTotalReturn: 7
+      });
+
+      expect(migrated?.dividendGrowth).toBe(-3);
+    });
+
+    it('마이그레이션은 멱등이다 (신버전 데이터를 다시 넣어도 그대로다)', () => {
+      const once = sanitizeTickerProfile({ ...validProfile, dividendYield: 3.34, dividendGrowth: 7, expectedTotalReturn: 10 });
+      const twice = sanitizeTickerProfile(once);
+
+      expect(twice).toEqual(once);
+    });
   });
 
   it('객체가 아니면 null', () => {

@@ -4,7 +4,7 @@ export const CORE_INDEX_ETFS = {
     name: 'Vanguard S&P 500 ETF',
     initialPrice: 480,
     dividendYield: 1.3,
-    dividendGrowth: 6,
+    dividendGrowth: 8.2,
     expectedTotalReturn: 9.5,
     frequency: 'quarterly' as const
   },
@@ -13,7 +13,7 @@ export const CORE_INDEX_ETFS = {
     name: 'iShares Core S&P 500 ETF',
     initialPrice: 520,
     dividendYield: 1.3,
-    dividendGrowth: 6,
+    dividendGrowth: 8.2,
     expectedTotalReturn: 9.5,
     frequency: 'quarterly' as const
   },
@@ -22,7 +22,7 @@ export const CORE_INDEX_ETFS = {
     name: 'SPDR S&P 500 ETF Trust',
     initialPrice: 500,
     dividendYield: 1.3,
-    dividendGrowth: 6,
+    dividendGrowth: 8.2,
     expectedTotalReturn: 9.5,
     frequency: 'quarterly' as const
   },
@@ -31,7 +31,7 @@ export const CORE_INDEX_ETFS = {
     name: 'Vanguard Total Stock Market ETF',
     initialPrice: 250,
     dividendYield: 1.4,
-    dividendGrowth: 6,
+    dividendGrowth: 8.1,
     expectedTotalReturn: 9.5,
     frequency: 'quarterly' as const
   },
@@ -40,7 +40,7 @@ export const CORE_INDEX_ETFS = {
     name: 'Invesco QQQ Trust',
     initialPrice: 430,
     dividendYield: 0.6,
-    dividendGrowth: 7,
+    dividendGrowth: 10.4,
     expectedTotalReturn: 11,
     frequency: 'quarterly' as const
   },
@@ -49,7 +49,7 @@ export const CORE_INDEX_ETFS = {
     name: 'Vanguard Growth ETF',
     initialPrice: 360,
     dividendYield: 0.5,
-    dividendGrowth: 7,
+    dividendGrowth: 10,
     expectedTotalReturn: 10.5,
     frequency: 'quarterly' as const
   },
@@ -58,7 +58,7 @@ export const CORE_INDEX_ETFS = {
     name: 'Vanguard Total World Stock ETF',
     initialPrice: 110,
     dividendYield: 1.8,
-    dividendGrowth: 5,
+    dividendGrowth: 6.7,
     expectedTotalReturn: 8.5,
     frequency: 'quarterly' as const
   },
@@ -67,7 +67,7 @@ export const CORE_INDEX_ETFS = {
     name: 'Vanguard Total International Stock ETF',
     initialPrice: 60,
     dividendYield: 2.5,
-    dividendGrowth: 4,
+    dividendGrowth: 5.5,
     expectedTotalReturn: 8,
     frequency: 'quarterly' as const
   },
@@ -76,7 +76,7 @@ export const CORE_INDEX_ETFS = {
     name: 'SPDR Dow Jones Industrial Average ETF',
     initialPrice: 390,
     dividendYield: 1.8,
-    dividendGrowth: 5,
+    dividendGrowth: 6.7,
     expectedTotalReturn: 8.5,
     frequency: 'quarterly' as const
   }

@@ -1,4 +1,5 @@
-import { applyMarketData, MARKET_DATA } from '@/shared/constants/marketData';
+import { applyMarketData, MARKET_DATA, type MarketDataEntry } from '@/shared/constants/marketData';
+import { toDerivedDividendGrowthPercent } from '@/shared/lib/snowball';
 import { US_DIVIDEND_GROWTH_ETFS } from './usDividendGrowthEtfs';
 import { US_HIGH_DIVIDEND_ETFS } from './usHighDividendEtfs';
 import { OPTION_INCOME_ETFS } from './optionIncomeEtfs';
@@ -24,6 +25,9 @@ export { AI_INFRA_ETFS_AND_STOCKS } from './aiInfraEtfsAndStocks';
 /**
  * Hand-curated preset values. This is the source of truth for `name` and `expectedTotalReturn`,
  * which are human assumptions and are never touched by the refresh pipeline.
+ *
+ * 정합 모델 불변식: 모든 프리셋이 `dividendYield + dividendGrowth === expectedTotalReturn` 을 만족한다.
+ * (`expectedTotalReturn` 은 큐레이터의 가정이므로 보존하고, `dividendGrowth` 를 그로부터 파생시켰다.)
  */
 export const CURATED_DIVIDEND_UNIVERSE = {
   ...CORE_INDEX_ETFS,
@@ -39,12 +43,41 @@ export const CURATED_DIVIDEND_UNIVERSE = {
 } as const;
 
 /**
- * The universe the app actually uses: curated presets with the latest auto-refreshed market data
- * (price / yield / dividend growth / frequency) overlaid on top.
+ * Re-derives `dividendGrowth` from the curated `expectedTotalReturn` and the (possibly refreshed)
+ * `dividendYield`, so the coherent-model invariant `dividendYield + dividendGrowth === expectedTotalReturn`
+ * survives a market-data refresh.
  *
- * When `marketData.generated.json` is empty this is deep-equal to `CURATED_DIVIDEND_UNIVERSE`.
+ * Why: the refresh pipeline overwrites `dividendYield` with the live TTM yield and `dividendGrowth`
+ * with the historical dividend CAGR. Under the coherent model `dividendGrowth` is no longer "how fast
+ * the payout grew in the past" — it *is* the price growth rate — so a historical CAGR is the wrong
+ * input for it. The curator's `expectedTotalReturn` is the assumption we keep; growth is what falls
+ * out of it once the live yield is known.
  */
-export const DIVIDEND_UNIVERSE = applyMarketData(CURATED_DIVIDEND_UNIVERSE, MARKET_DATA);
+const withCoherentDividendGrowth = <T extends Record<string, MarketDataEntry & { expectedTotalReturn: number }>>(
+  universe: T
+): T => {
+  const coherent = {} as T;
+
+  for (const ticker of Object.keys(universe) as (keyof T)[]) {
+    const preset = universe[ticker];
+    coherent[ticker] = {
+      ...preset,
+      dividendGrowth: toDerivedDividendGrowthPercent(preset.expectedTotalReturn, preset.dividendYield)
+    };
+  }
+
+  return coherent;
+};
+
+/**
+ * The universe the app actually uses: curated presets with the latest auto-refreshed market data
+ * (price / yield / frequency) overlaid on top, with `dividendGrowth` re-derived so the total-return
+ * assumption is preserved.
+ *
+ * When `marketData.generated.json` is empty this is deep-equal to `CURATED_DIVIDEND_UNIVERSE`
+ * (the curated presets already satisfy the invariant).
+ */
+export const DIVIDEND_UNIVERSE = withCoherentDividendGrowth(applyMarketData(CURATED_DIVIDEND_UNIVERSE, MARKET_DATA));
 
 export const PRESET_TICKER_KOREAN_NAME_BY_TICKER = {
   VOO: '뱅가드 S&P 500 ETF',

@@ -1,6 +1,6 @@
 import type { YieldFormValues } from '@/shared/types';
 import { defaultYieldFormValues, runSimulation, toSimulationInput } from '@/shared/lib/snowball';
-import { buildSimulation } from '@/pages/Main/utils/simulation';
+import { buildSimulation, buildSimulationBundle } from '@/pages/Main/utils/simulation';
 import type { TickerProfile } from '@/shared/types/snowball';
 
 const buildValues = (overrides: Partial<YieldFormValues> = {}): YieldFormValues => ({
@@ -28,10 +28,12 @@ describe('runSimulation calibration options', () => {
   });
 
   it('applies the full investment duration to ending value growth', () => {
+    // 정합 모델: 성장은 dividendGrowth 가 만든다 (priceGrowth === dividendGrowth).
+    // 배당이 0인 종목이므로 총수익률 12% = 성장 12% 다.
     const values = buildValues({
       initialPrice: 100,
       dividendYield: 0,
-      dividendGrowth: 0,
+      dividendGrowth: 12,
       expectedTotalReturn: 12,
       initialInvestment: 1_200,
       monthlyContribution: 0,
@@ -50,7 +52,7 @@ describe('runSimulation calibration options', () => {
     const values = buildValues({
       initialPrice: 100,
       dividendYield: 0,
-      dividendGrowth: 0,
+      dividendGrowth: 12,
       expectedTotalReturn: 12,
       initialInvestment: 0,
       monthlyContribution: 100,
@@ -195,7 +197,7 @@ describe('runSimulation calibration options', () => {
     const values = buildValues({
       initialPrice: 100,
       dividendYield: 0,
-      dividendGrowth: 0,
+      dividendGrowth: 12,
       expectedTotalReturn: 12,
       monthlyContribution: 0,
       initialInvestment: 1_200,
@@ -235,6 +237,105 @@ describe('runSimulation calibration options', () => {
       '2026-03',
       '2026-04'
     ]);
+  });
+
+  it('투자 종료 후 projection 이 자산과 배당을 같은 비율로 굴린다 (배당 이중 계산 제거)', () => {
+    // 예전에는 자산을 expectedTotalReturn 으로, 배당을 dividendGrowth 로 따로 굴렸다.
+    // 배당을 인출하는 가정이므로 자산은 주가 성장률로만 자라야 하고, 정합 모델에서 그 값은 배당 성장률과 같다.
+    const values = buildValues({
+      initialInvestment: 10_000_000,
+      monthlyContribution: 0,
+      durationYears: 10,
+      dividendYield: 3.34,
+      dividendGrowth: 6.66,
+      expectedTotalReturn: 10,
+      frequency: 'quarterly',
+      taxRate: 15.4
+    });
+
+    const profile: TickerProfile = {
+      id: 'a',
+      ticker: 'SCHD',
+      name: '',
+      initialPrice: 31.61,
+      dividendYield: 3.34,
+      dividendGrowth: 6.66,
+      expectedTotalReturn: 10,
+      frequency: 'quarterly'
+    };
+
+    const { postInvestmentDividendProjectionRows: rows } = buildSimulationBundle({
+      isValid: true,
+      includedProfiles: [profile],
+      normalizedAllocation: [{ profile, weight: 1 }],
+      values
+    });
+
+    expect(rows.length).toBeGreaterThan(1);
+
+    for (let index = 1; index < rows.length; index += 1) {
+      // 두 계열 모두 정확히 (1 + dividendGrowth) 배로 자란다.
+      expect(rows[index].assetValue / rows[index - 1].assetValue).toBeCloseTo(1.0666, 9);
+      expect(rows[index].annualDividend / rows[index - 1].annualDividend).toBeCloseTo(1.0666, 9);
+      // 따라서 배당수익률(배당/자산)이 투자 종료 후에도 일정하게 유지된다.
+      expect(rows[index].annualDividend / rows[index].assetValue).toBeCloseTo(
+        rows[0].annualDividend / rows[0].assetValue,
+        9
+      );
+    }
+  });
+
+  it('포트폴리오 합산 행이 오염되지 않는다 (shares * price === portfolioValue)', () => {
+    // 예전에는 `...row` 스프레드 때문에 0번 티커의 price/dividendPerShare/shares 가 합산 행에 그대로
+    // 새어 들어와 shares * price !== portfolioValue 였다. 지금은 가치가중 평균가로 채운다.
+    const values = buildValues({
+      initialInvestment: 10_000_000,
+      monthlyContribution: 500_000,
+      durationYears: 5,
+      taxRate: 15.4,
+      reinvestDividends: true,
+      reinvestDividendPercent: 100
+    });
+
+    const includedProfiles: TickerProfile[] = [
+      {
+        id: 'a',
+        ticker: 'SCHD',
+        name: '',
+        initialPrice: 31.61,
+        dividendYield: 3.34,
+        dividendGrowth: 6.66,
+        expectedTotalReturn: 10,
+        frequency: 'quarterly'
+      },
+      {
+        id: 'b',
+        ticker: 'QYLD',
+        name: '',
+        initialPrice: 18,
+        dividendYield: 10,
+        dividendGrowth: -3,
+        expectedTotalReturn: 7,
+        frequency: 'monthly'
+      }
+    ];
+
+    const simulation = buildSimulation({
+      isValid: true,
+      includedProfiles,
+      normalizedAllocation: [
+        { profile: includedProfiles[0], weight: 0.6 },
+        { profile: includedProfiles[1], weight: 0.4 }
+      ],
+      values
+    });
+
+    expect(simulation).not.toBeNull();
+    for (const row of simulation!.monthly) {
+      expect(row.shares * row.price).toBeCloseTo(row.portfolioValue, 6);
+      expect(row.price).toBeGreaterThan(0);
+      expect(row.dividendPerShare).toBeGreaterThan(0);
+    }
   });
 
   it('weights portfolio quick-estimate yield by ending asset value', () => {

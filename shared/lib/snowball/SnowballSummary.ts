@@ -67,7 +67,8 @@ export const buildSummary = ({
   return {
     finalAssetValue: finalYear?.assetValue ?? 0,
     finalAnnualDividend: finalYear?.annualDividend ?? 0,
-    finalMonthlyDividend: finalYear?.monthlyDividend ?? 0,
+    // finalMonthlyAverageDividend = 마지막 해 연 배당 / 12. (예전에는 같은 값이 finalMonthlyDividend
+    // 라는 이름으로 한 번 더 들어 있었으나, 어떤 화면도 읽지 않는 중복 필드라 제거했다.)
     finalMonthlyAverageDividend: finalYear?.monthlyDividend ?? 0,
     finalPayoutMonthDividend: lastPayoutRow?.dividendPaid ?? 0,
     totalContribution: finalYear?.totalContribution ?? 0,

@@ -1,4 +1,4 @@
-import { defaultYieldFormValues } from '@/shared/lib/snowball';
+import { defaultYieldFormValues, toDerivedDividendGrowthPercent } from '@/shared/lib/snowball';
 import type { PortfolioPersistedState, TickerProfile } from '@/shared/types/snowball';
 import type { YearlySeriesKey } from '@/shared/constants';
 import type { PersistedAppStatePayload, PersistedInvestmentSettings, PersistedScenarioState } from '../types';
@@ -48,6 +48,22 @@ const DEFAULT_PERSISTED_INVESTMENT_SETTINGS: PersistedInvestmentSettings = {
 const DEFAULT_PERSISTED_PORTFOLIO_STATE = EMPTY_PORTFOLIO_STATE;
 const DEFAULT_PERSISTED_INVESTMENT_SETTINGS_FOR_NEW_STATE = EMPTY_INVESTMENT_SETTINGS;
 
+/**
+ * 정합 모델 마이그레이션.
+ *
+ * 구버전 저장 데이터/공유 링크는 `dividendYield` / `dividendGrowth` / `expectedTotalReturn` 3개를
+ * 모두 들고 있는데, 셋이 서로 모순이었다(엔진이 `priceGrowth = etr - dy` 로 가격을, `dividendGrowth` 로
+ * 배당을 따로 굴렸기 때문). 정합 모델은 자유도가 2뿐이라 하나를 버려야 한다.
+ *
+ * **사용자가 튜닝한 헤드라인 숫자인 `expectedTotalReturn` 과 `dividendYield` 를 보존하고
+ * `dividendGrowth := expectedTotalReturn - dividendYield` 로 재계산한다.** (프리셋과 같은 규칙)
+ *
+ * 신버전이 쓴 데이터는 `expectedTotalReturn === dividendYield + dividendGrowth` 라서 이 변환의
+ * 고정점(fixed point)이 된다 — 즉 재적용해도 값이 바뀌지 않는다.
+ */
+const migrateToCoherentGrowth = (dividendYield: number, expectedTotalReturn: number): number =>
+  Math.max(-100, Math.min(100, toDerivedDividendGrowthPercent(expectedTotalReturn, dividendYield)));
+
 export const sanitizeTickerProfile = (input: unknown): TickerProfile | null => {
   if (!input || typeof input !== 'object') return null;
 
@@ -57,17 +73,19 @@ export const sanitizeTickerProfile = (input: unknown): TickerProfile | null => {
   const id = typeof parsed.id === 'string' ? parsed.id.trim() : '';
   const initialPrice = Number(parsed.initialPrice);
   const dividendYield = Number(parsed.dividendYield);
-  const dividendGrowth = Number(parsed.dividendGrowth);
+  const dividendGrowthRaw = Number(parsed.dividendGrowth);
   const expectedTotalReturnRaw = Number(parsed.expectedTotalReturn);
   const frequency = parsed.frequency;
 
   if (!id || !ticker) return null;
   if (!Number.isFinite(initialPrice) || initialPrice <= 0) return null;
   if (!Number.isFinite(dividendYield) || dividendYield < 0) return null;
-  if (!Number.isFinite(dividendGrowth) || dividendGrowth < 0) return null;
+  // 배당 성장률은 이제 음수를 허용한다 (커버드콜의 NAV 침식). 유한하기만 하면 받는다.
+  if (!Number.isFinite(dividendGrowthRaw)) return null;
   if (frequency !== 'monthly' && frequency !== 'quarterly' && frequency !== 'semiannual' && frequency !== 'annual') return null;
 
   const expectedTotalReturn = Number.isFinite(expectedTotalReturnRaw) ? expectedTotalReturnRaw : dividendYield;
+  const dividendGrowth = migrateToCoherentGrowth(dividendYield, expectedTotalReturn);
 
   return {
     id,

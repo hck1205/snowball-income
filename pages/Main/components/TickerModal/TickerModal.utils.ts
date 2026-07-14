@@ -1,4 +1,5 @@
 import type { PresetTickerKey } from '@/shared/constants';
+import { toExpectedTotalReturnPercent } from '@/shared/lib/snowball';
 import type { TickerDraft, TickerModalMode } from '@/shared/types/snowball';
 import { getTickerDisplayName } from '@/shared/utils';
 
@@ -119,3 +120,21 @@ export const isTickerCreateDisabled = ({
 
 /** Empty number inputs become NaN so the draft stays visibly blank instead of snapping to 0. */
 export const parseNumericInputOrNaN = (rawValue: string): number => (rawValue === '' ? Number.NaN : Number(rawValue));
+
+/**
+ * 정합 모델: `expectedTotalReturn` 은 입력이 아니라 파생값이다 (r = y + g).
+ * 배당률/배당 성장률이 바뀔 때마다 드래프트의 총수익률을 다시 계산해 둔다.
+ */
+export const withDerivedTotalReturn = (draft: TickerDraft): TickerDraft => ({
+  ...draft,
+  expectedTotalReturn: toExpectedTotalReturnPercent(draft.dividendYield, draft.dividendGrowth)
+});
+
+/** 총수익률 분해 캡션. 값이 아직 비어 있으면 null 을 돌려 캡션을 감춘다. */
+export const toTotalReturnCaption = (draft: TickerDraft): string | null => {
+  if (!Number.isFinite(draft.dividendYield) || !Number.isFinite(draft.dividendGrowth)) return null;
+
+  const totalReturn = toExpectedTotalReturnPercent(draft.dividendYield, draft.dividendGrowth);
+
+  return `총수익률 ${totalReturn}% (배당 ${draft.dividendYield}% + 성장 ${draft.dividendGrowth}%)`;
+};

@@ -1,5 +1,6 @@
 import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from 'lz-string';
 import { EMPTY_INVESTMENT_SETTINGS, normalizePersistedAppState, type PersistedInvestmentSettings, type PersistedScenarioState } from '@/jotai';
+import { toDerivedDividendGrowthPercent } from '@/shared/lib/snowball';
 import type { PortfolioPersistedState, TickerProfile } from '@/shared/types/snowball';
 
 export const SHARE_SCHEMA_VERSION = 3;
@@ -202,7 +203,13 @@ export const encodeSharedScenario = (scenario: PersistedScenarioState): string =
   return compressToEncodedURIComponent(JSON.stringify(envelope));
 };
 
-/** v2/v3가 공유하는 압축 포트폴리오 디코더. 인덱스 참조를 `shared-N` id로 되돌린다. */
+/**
+ * v2/v3가 공유하는 압축 포트폴리오 디코더. 인덱스 참조를 `shared-N` id로 되돌린다.
+ *
+ * 정합 모델 마이그레이션: 기존 공유 URL 은 세 값(dy/dg/etr)이 서로 모순인 채로 인코딩돼 있다.
+ * `dividendYield` 와 `expectedTotalReturn` 을 보존하고 `dividendGrowth` 를 재계산한다
+ * (저장 데이터 sanitize 와 동일 규칙). **인코딩 포맷은 그대로라 기존 링크가 계속 열린다.**
+ */
 export const decodeCompactPortfolio = (compact: CompactPortfolio): PortfolioPersistedState => {
   const tickerProfiles = compact.t
     .map((tuple, index): TickerProfile | null => {
@@ -211,7 +218,8 @@ export const decodeCompactPortfolio = (compact: CompactPortfolio): PortfolioPers
       if (typeof ticker !== 'string' || !ticker.trim()) return null;
       if (!Number.isFinite(initialPrice) || initialPrice <= 0) return null;
       if (!Number.isFinite(dividendYield) || dividendYield < 0) return null;
-      if (!Number.isFinite(dividendGrowth) || dividendGrowth < 0) return null;
+      // 음수 배당 성장률(커버드콜 NAV 침식)을 허용한다. 유한하기만 하면 받는다.
+      if (!Number.isFinite(dividendGrowth)) return null;
       if (!Number.isFinite(expectedTotalReturn)) return null;
 
       return {
@@ -220,7 +228,7 @@ export const decodeCompactPortfolio = (compact: CompactPortfolio): PortfolioPers
         name: typeof name === 'string' ? name : '',
         initialPrice: Number(initialPrice),
         dividendYield: Number(dividendYield),
-        dividendGrowth: Number(dividendGrowth),
+        dividendGrowth: toDerivedDividendGrowthPercent(Number(expectedTotalReturn), Number(dividendYield)),
         expectedTotalReturn: Number(expectedTotalReturn),
         frequency: decodeFrequency(frequencyCode)
       };

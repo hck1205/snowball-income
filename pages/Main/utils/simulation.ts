@@ -1,8 +1,8 @@
 import type { TickerProfile } from '@/shared/types/snowball';
-import type { SimulationOutput, YieldFormValues } from '@/shared/types';
+import type { MonthlySnapshot, SimulationOutput, SimulationResult, YieldFormValues } from '@/shared/types';
 import { ALLOCATION_COLORS } from '@/shared/constants';
 import { getTickerDisplayName } from '@/shared/utils';
-import { runSimulation } from '@/shared/lib/snowball';
+import { runSimulation, toPriceGrowth } from '@/shared/lib/snowball';
 import type { NormalizedAllocationItem } from './portfolio';
 
 const runForProfile = (
@@ -51,8 +51,8 @@ type ProfileSimulationOutput = {
   ticker: string;
   name: string;
   output: SimulationOutput;
-  dividendGrowthRate: number;
-  expectedTotalReturnRate: number;
+  /** 정합 모델의 단일 성장률: 주가 성장률 === 배당 성장률. */
+  growthRate: number;
 };
 
 const buildTargetProfiles = ({
@@ -73,30 +73,52 @@ const buildTargetProfiles = ({
   return normalizedAllocation.map(({ profile, weight }) => ({ profile, weight }));
 };
 
+const sumBy = <T>(items: T[], getValue: (item: T) => number): number =>
+  items.reduce((sum, item) => sum + getValue(item), 0);
+
+/**
+ * 종목별 시뮬레이션을 포트폴리오 한 줄로 합산한다.
+ *
+ * `price` / `dividendPerShare` 는 종목마다 다르므로 그대로 합칠 수 없다. 예전에는 `...row` 스프레드로
+ * 0번 티커의 값이 그대로 새어 들어와 `shares * price !== portfolioValue` 였다.
+ * 지금은 **가치가중 평균가**(portfolioValue / shares)와 **주식수가중 평균 DPS**로 채워서
+ *   shares * price          === portfolioValue
+ *   shares * dividendPerShare === 포트폴리오 연간 배당 런레이트(세전)
+ * 두 항등식이 성립한다.
+ */
 const aggregatePortfolioSimulation = (outputs: SimulationOutput[], targetMonthlyDividend: number): SimulationOutput => {
   const base = outputs[0];
-  const monthly = base.monthly.map((row, index) => {
+  const monthly: MonthlySnapshot[] = base.monthly.map((row, index) => {
     const merged = outputs.map((output) => output.monthly[index]);
+    const shares = sumBy(merged, (item) => item.shares);
+    const portfolioValue = sumBy(merged, (item) => item.portfolioValue);
+    const annualDividendRunRate = sumBy(merged, (item) => item.shares * item.dividendPerShare);
+
     return {
-      ...row,
-      shares: merged.reduce((sum, item) => sum + item.shares, 0),
-      dividendPaid: merged.reduce((sum, item) => sum + item.dividendPaid, 0),
-      contributionPaid: merged.reduce((sum, item) => sum + item.contributionPaid, 0),
-      taxPaid: merged.reduce((sum, item) => sum + item.taxPaid, 0),
-      portfolioValue: merged.reduce((sum, item) => sum + item.portfolioValue, 0),
-      cumulativeDividend: merged.reduce((sum, item) => sum + item.cumulativeDividend, 0)
+      monthIndex: row.monthIndex,
+      year: row.year,
+      month: row.month,
+      shares,
+      price: shares > 0 ? portfolioValue / shares : 0,
+      dividendPerShare: shares > 0 ? annualDividendRunRate / shares : 0,
+      dividendPaid: sumBy(merged, (item) => item.dividendPaid),
+      contributionPaid: sumBy(merged, (item) => item.contributionPaid),
+      taxPaid: sumBy(merged, (item) => item.taxPaid),
+      portfolioValue,
+      cumulativeDividend: sumBy(merged, (item) => item.cumulativeDividend)
     };
   });
 
-  const yearly = base.yearly.map((row, index) => {
+  const yearly: SimulationResult[] = base.yearly.map((row, index) => {
     const merged = outputs.map((output) => output.yearly[index]);
-    const annualDividend = merged.reduce((sum, item) => sum + item.annualDividend, 0);
+    const annualDividend = sumBy(merged, (item) => item.annualDividend);
+
     return {
-      ...row,
-      totalContribution: merged.reduce((sum, item) => sum + item.totalContribution, 0),
-      assetValue: merged.reduce((sum, item) => sum + item.assetValue, 0),
+      year: row.year,
+      totalContribution: sumBy(merged, (item) => item.totalContribution),
+      assetValue: sumBy(merged, (item) => item.assetValue),
       annualDividend,
-      cumulativeDividend: merged.reduce((sum, item) => sum + item.cumulativeDividend, 0),
+      cumulativeDividend: sumBy(merged, (item) => item.cumulativeDividend),
       monthlyDividend: annualDividend / 12
     };
   });
@@ -110,12 +132,11 @@ const aggregatePortfolioSimulation = (outputs: SimulationOutput[], targetMonthly
     summary: {
       finalAssetValue: finalYear?.assetValue ?? 0,
       finalAnnualDividend: finalYear?.annualDividend ?? 0,
-      finalMonthlyDividend: finalYear?.monthlyDividend ?? 0,
       finalMonthlyAverageDividend: finalYear?.monthlyDividend ?? 0,
       finalPayoutMonthDividend: lastPayout?.dividendPaid ?? 0,
       totalContribution: finalYear?.totalContribution ?? 0,
       totalNetDividend: finalYear?.cumulativeDividend ?? 0,
-      totalTaxPaid: outputs.reduce((sum, output) => sum + output.summary.totalTaxPaid, 0),
+      totalTaxPaid: sumBy(outputs, (output) => output.summary.totalTaxPaid),
       targetMonthDividendReachedYear: yearly.find((item) => item.monthlyDividend >= targetMonthlyDividend)?.year
     },
     quickEstimate: {
@@ -215,8 +236,7 @@ export const buildSimulationBundle = ({
     ticker: item.profile.ticker,
     name: item.profile.name,
     output: runForProfile(item.profile, values.monthlyContribution * item.weight, values.initialInvestment * item.weight, values),
-    dividendGrowthRate: item.profile.dividendGrowth / 100,
-    expectedTotalReturnRate: item.profile.expectedTotalReturn / 100
+    growthRate: toPriceGrowth(item.profile.dividendGrowth)
   }));
 
   const simulation =
@@ -249,21 +269,24 @@ export const buildSimulationBundle = ({
   const baseAnnualDividend = finalYear?.annualDividend ?? 0;
   const baseAssetValue = finalYear?.assetValue ?? 0;
   const baseYear = finalYear?.year ?? null;
-  const annualDividendWeightSum = outputs.reduce((sum, item) => sum + item.output.summary.finalAnnualDividend, 0);
+
+  /**
+   * 투자 종료 후 구간: 적립도 재투자도 없이 배당을 **인출**하는 가정이다.
+   * 따라서 자산은 주가 성장률로만 자란다. 정합 모델에서는 `priceGrowth === dividendGrowth` 이므로
+   * 자산과 배당이 같은 비율로 성장한다 (배당수익률 불변).
+   *
+   * 예전에는 자산을 `expectedTotalReturn`, 배당을 `dividendGrowth` 로 따로 굴려서 배당을 두 번 셌다
+   * (인출한 배당이 자산 성장률에도 계속 포함됐다).
+   */
+  const annualDividendWeightSum = sumBy(outputs, (item) => item.output.summary.finalAnnualDividend);
   const effectiveDividendGrowthRate =
     annualDividendWeightSum > 0
-      ? outputs.reduce(
-          (sum, item) => sum + item.dividendGrowthRate * item.output.summary.finalAnnualDividend,
-          0
-        ) / annualDividendWeightSum
+      ? sumBy(outputs, (item) => item.growthRate * item.output.summary.finalAnnualDividend) / annualDividendWeightSum
       : 0;
-  const assetValueWeightSum = outputs.reduce((sum, item) => sum + item.output.summary.finalAssetValue, 0);
+  const assetValueWeightSum = sumBy(outputs, (item) => item.output.summary.finalAssetValue);
   const effectiveAssetGrowthRate =
     assetValueWeightSum > 0
-      ? outputs.reduce(
-          (sum, item) => sum + item.expectedTotalReturnRate * item.output.summary.finalAssetValue,
-          0
-        ) / assetValueWeightSum
+      ? sumBy(outputs, (item) => item.growthRate * item.output.summary.finalAssetValue) / assetValueWeightSum
       : 0;
   const postInvestmentDividendProjectionRows =
     baseYear === null

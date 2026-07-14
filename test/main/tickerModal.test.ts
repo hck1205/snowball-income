@@ -6,7 +6,9 @@ import {
   isTickerCreateDisabled,
   parseNumericInputOrNaN,
   scoreTickerSearch,
-  sortPresetKeys
+  sortPresetKeys,
+  toTotalReturnCaption,
+  withDerivedTotalReturn
 } from '@/pages/Main/components/TickerModal';
 import type { PresetTickerKey } from '@/shared/constants';
 import type { TickerDraft } from '@/shared/types/snowball';
@@ -157,5 +159,42 @@ describe('scoreTickerSearch', () => {
 
   it('respects the result cap', () => {
     expect(scoreTickerSearch({ rows, keyword: 'S', maxResults: 2 })).toHaveLength(2);
+  });
+});
+
+describe('withDerivedTotalReturn', () => {
+  it('총수익률을 배당률 + 배당 성장률로 다시 계산한다', () => {
+    expect(withDerivedTotalReturn({ ...draft, dividendYield: 3.34, dividendGrowth: 6.66 }).expectedTotalReturn).toBe(10);
+  });
+
+  it('음의 배당 성장률(커버드콜)도 반영한다', () => {
+    expect(withDerivedTotalReturn({ ...draft, dividendYield: 10, dividendGrowth: -3 }).expectedTotalReturn).toBe(7);
+  });
+
+  it('드래프트에 이미 들어 있던 총수익률 값을 신뢰하지 않고 덮어쓴다', () => {
+    // 총수익률은 입력이 아니라 파생값이다.
+    const stale = { ...draft, dividendYield: 3, dividendGrowth: 5, expectedTotalReturn: 999 };
+
+    expect(withDerivedTotalReturn(stale).expectedTotalReturn).toBe(8);
+  });
+
+  it('입력이 비어 있으면(NaN) 총수익률도 NaN 이다', () => {
+    expect(withDerivedTotalReturn({ ...draft, dividendYield: Number.NaN }).expectedTotalReturn).toBeNaN();
+  });
+});
+
+describe('toTotalReturnCaption', () => {
+  it('총수익률 분해를 문장으로 보여준다', () => {
+    expect(toTotalReturnCaption({ ...draft, dividendYield: 3.34, dividendGrowth: 6.66 })).toBe(
+      '총수익률 10% (배당 3.34% + 성장 6.66%)'
+    );
+  });
+
+  it('음의 성장률도 그대로 보여준다', () => {
+    expect(toTotalReturnCaption({ ...draft, dividendYield: 10, dividendGrowth: -3 })).toBe('총수익률 7% (배당 10% + 성장 -3%)');
+  });
+
+  it('값이 비어 있으면 캡션을 감춘다', () => {
+    expect(toTotalReturnCaption({ ...draft, dividendGrowth: Number.NaN })).toBeNull();
   });
 });

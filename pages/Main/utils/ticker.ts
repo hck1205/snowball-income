@@ -1,3 +1,4 @@
+import { toExpectedTotalReturnPercent } from '@/shared/lib/snowball';
 import type { Frequency } from '@/shared/types';
 import type { TickerDraft, TickerModalMode, TickerProfile } from '@/shared/types/snowball';
 
@@ -55,6 +56,8 @@ export const buildTickerProfileFromDraft = ({
     ...draft,
     ticker: draft.ticker.trim(),
     name: mode === 'create' && !isCustomPreset ? '' : displayName,
+    // 저장되는 프로필은 항상 정합적이다: expectedTotalReturn === dividendYield + dividendGrowth.
+    expectedTotalReturn: toExpectedTotalReturnPercent(draft.dividendYield, draft.dividendGrowth),
     id: editingTickerId ?? generateId()
   };
 };

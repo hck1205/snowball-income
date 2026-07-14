@@ -4,7 +4,7 @@ export const INTERNATIONAL_DIVIDEND_ETFS = {
     name: 'Vanguard International Dividend Appreciation ETF',
     initialPrice: 76,
     dividendYield: 1.9,
-    dividendGrowth: 8,
+    dividendGrowth: 7.1,
     expectedTotalReturn: 9,
     frequency: 'quarterly' as const
   },
@@ -13,7 +13,7 @@ export const INTERNATIONAL_DIVIDEND_ETFS = {
     name: 'Vanguard International High Dividend Yield ETF',
     initialPrice: 70,
     dividendYield: 4.0,
-    dividendGrowth: 3,
+    dividendGrowth: 4,
     expectedTotalReturn: 8,
     frequency: 'quarterly' as const
   },
@@ -22,7 +22,7 @@ export const INTERNATIONAL_DIVIDEND_ETFS = {
     name: 'Schwab International Dividend Equity ETF',
     initialPrice: 24,
     dividendYield: 4.2,
-    dividendGrowth: 4,
+    dividendGrowth: 4.3,
     expectedTotalReturn: 8.5,
     frequency: 'quarterly' as const
   },
@@ -31,7 +31,7 @@ export const INTERNATIONAL_DIVIDEND_ETFS = {
     name: 'iShares International Select Dividend ETF',
     initialPrice: 29,
     dividendYield: 6.0,
-    dividendGrowth: 2,
+    dividendGrowth: 1.5,
     expectedTotalReturn: 7.5,
     frequency: 'quarterly' as const
   },
