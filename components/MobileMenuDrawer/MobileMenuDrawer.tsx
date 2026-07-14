@@ -11,7 +11,7 @@ import {
   HeaderTitle
 } from '@/pages/Main/Main.shared.styled';
 
-function MobileMenuDrawerComponent({ isOpen, onOpen, onClose, left, right }: MobileMenuDrawerProps) {
+function MobileMenuDrawerComponent({ isOpen, onOpen, onClose, left, right, notice }: MobileMenuDrawerProps) {
   const drawerId = useId();
   const toggleAnchorRef = useRef<HTMLDivElement | null>(null);
   const [isFloating, setIsFloating] = useState(false);
@@ -74,6 +74,8 @@ function MobileMenuDrawerComponent({ isOpen, onOpen, onClose, left, right }: Mob
           설정 열기
         </DrawerToggleButton>
       </Header>
+
+      {notice}
 
       <DrawerBackdrop data-capture-role="drawer-backdrop" open={isOpen} onClick={onClose} />
 

@@ -5,7 +5,7 @@ import MobileMenuDrawer from "@/components/MobileMenuDrawer";
 import { useIsConfigDrawerOpenAtomValue, useSetIsConfigDrawerOpenWrite } from "@/jotai";
 import HelpModalComponent from "./components/HelpModal";
 import TickerModalComponent from "./components/TickerModal";
-import { MainLeftPanel, MainRightPanel } from "./components";
+import { MainLeftPanel, MainRightPanel, MarketDataAsOf, ModelChangeNotice } from "./components";
 import { globalStyle } from "./Main.styled";
 import type { MainViewProps } from "./Main.types";
 
@@ -37,6 +37,7 @@ function MainViewComponent({ viewModel }: MainViewProps) {
             isOpen={isConfigDrawerOpen}
             onOpen={openConfigDrawer}
             onClose={closeConfigDrawer}
+            notice={<ModelChangeNotice />}
             left={<MainLeftPanel />}
             right={<MainRightPanel />}
           />
@@ -53,6 +54,9 @@ function MainViewComponent({ viewModel }: MainViewProps) {
             <HelpModal onBackdropClick={handleBackdropClick} onClose={closeHelp} />
           </Suspense>
         </MainContent>
+
+        {/* `<main>` 밖에 둔다 — `<footer>`는 main/section/article의 자손이면 contentinfo 랜드마크가 되지 않는다. */}
+        <MarketDataAsOf />
       </FeatureLayout>
     </>
   );
