@@ -66,8 +66,22 @@ export type SimulationSummary = {
   finalPayoutMonthDividend: number;
   totalContribution: number;
   totalNetDividend: number;
+  /** 누적 **배당소득세**. 양도세는 여기 포함되지 않는다(아래 estimatedCapitalGainsTax 참고). */
   totalTaxPaid: number;
   targetMonthDividendReachedYear?: number;
+
+  /* --- 양도소득세 (전량 매도 가정) — 시뮬레이션 본체에는 반영되지 않는 별도 추정 --- */
+
+  /** 취득원가 = 초기 투자금 + 누적 월 적립금 + 재매수에 실제로 쓰인 배당금. */
+  totalCostBasis: number;
+  /** 평가이익 = finalAssetValue - totalCostBasis. 손실이면 음수. */
+  unrealizedGain: number;
+  /** 마지막 해에 전량 매도한다고 가정했을 때의 예상 양도세. 보유를 계속하면 내지 않는다. */
+  estimatedCapitalGainsTax: number;
+  /** finalAssetValue - estimatedCapitalGainsTax. */
+  afterCapitalGainsTaxValue: number;
+  /** 세전 연 배당이 금융소득종합과세 기준금액을 처음 넘는 해(N년차, 1-based). 안 넘으면 undefined. */
+  financialIncomeThresholdYear?: number;
 };
 
 export type QuickEstimateOutput = {

@@ -504,7 +504,11 @@
       "totalContribution": 48000000,
       "totalNetDividend": 2885935.396784761,
       "totalTaxPaid": 525335.7578071549,
-      "targetMonthDividendReachedYear": 2028
+      "targetMonthDividendReachedYear": 2028,
+      "totalCostBasis": 50885935.39678476,
+      "unrealizedGain": 4745673.860704809,
+      "estimatedCapitalGainsTax": 494048.24935505807,
+      "afterCapitalGainsTaxValue": 55137561.008134514
     },
     "quickEstimate": {
       "endValue": 55631609.25748968,
@@ -1017,7 +1021,11 @@
       "finalPayoutMonthDividend": 270981.15264694096,
       "totalContribution": 36000000,
       "totalNetDividend": 1697184.3591139282,
-      "totalTaxPaid": 308943.72494508856
+      "totalTaxPaid": 308943.72494508856,
+      "totalCostBasis": 36713101.603233494,
+      "unrealizedGain": 2723941.3254106194,
+      "estimatedCapitalGainsTax": 49267.09159033626,
+      "afterCapitalGainsTaxValue": 39387775.837053776
     },
     "quickEstimate": {
       "endValue": 39556725.33630878,
@@ -1366,7 +1374,11 @@
       "finalPayoutMonthDividend": 422778.7188743024,
       "totalContribution": 24000000,
       "totalNetDividend": 1017273.2661336465,
-      "totalTaxPaid": 0
+      "totalTaxPaid": 0,
+      "totalCostBasis": 24000000,
+      "unrealizedGain": 1158783.9356744215,
+      "estimatedCapitalGainsTax": 0,
+      "afterCapitalGainsTaxValue": 25158783.93567442
     },
     "quickEstimate": {
       "endValue": 25158783.935674444,
@@ -1879,7 +1891,11 @@
       "finalPayoutMonthDividend": 1583859.5031133657,
       "totalContribution": 50000000,
       "totalNetDividend": 4419222.7989521,
-      "totalTaxPaid": 1246447.456114695
+      "totalTaxPaid": 1246447.456114695,
+      "totalCostBasis": 52835363.295838736,
+      "unrealizedGain": 8082309.900829181,
+      "estimatedCapitalGainsTax": 1228108.1781824199,
+      "afterCapitalGainsTaxValue": 59689565.018485494
     },
     "quickEstimate": {
       "endValue": 62752317.00148639,
@@ -2064,7 +2080,11 @@
       "finalPayoutMonthDividend": 2.7815085054281297,
       "totalContribution": 1200,
       "totalNetDividend": 16.575962953259197,
-      "totalTaxPaid": 3.0173738709242506
+      "totalTaxPaid": 3.0173738709242506,
+      "totalCostBasis": 1200,
+      "unrealizedGain": 27.257752959728123,
+      "estimatedCapitalGainsTax": 0,
+      "afterCapitalGainsTaxValue": 1227.2577529597281
     },
     "quickEstimate": {
       "endValue": 1227.25775295973,
@@ -2413,7 +2433,11 @@
       "finalPayoutMonthDividend": 0,
       "totalContribution": 25000000,
       "totalNetDividend": 0,
-      "totalTaxPaid": 0
+      "totalTaxPaid": 0,
+      "totalCostBasis": 25000000,
+      "unrealizedGain": 0,
+      "estimatedCapitalGainsTax": 0,
+      "afterCapitalGainsTaxValue": 25000000
     },
     "quickEstimate": {
       "endValue": 25000000,
@@ -2762,7 +2786,11 @@
       "finalPayoutMonthDividend": 500821.1732709471,
       "totalContribution": 24000000,
       "totalNetDividend": 3589632.5593190966,
-      "totalTaxPaid": 653431.9316018213
+      "totalTaxPaid": 653431.9316018213,
+      "totalCostBasis": 27589632.559319098,
+      "unrealizedGain": -23720862.57625644,
+      "estimatedCapitalGainsTax": 0,
+      "afterCapitalGainsTaxValue": 3868769.983062659
     },
     "quickEstimate": {
       "endValue": 3651755.9964452935,
@@ -3603,7 +3631,11 @@
       "finalPayoutMonthDividend": 565568.0986735445,
       "totalContribution": 70000000,
       "totalNetDividend": 18433003.34470803,
-      "totalTaxPaid": 3355416.6844976777
+      "totalTaxPaid": 3355416.6844976777,
+      "totalCostBasis": 88433003.34470803,
+      "unrealizedGain": -6645009.902269319,
+      "estimatedCapitalGainsTax": 0,
+      "afterCapitalGainsTaxValue": 81787993.4424387
     },
     "quickEstimate": {
       "endValue": 81787993.44243889,
@@ -3952,7 +3984,11 @@
       "finalPayoutMonthDividend": 61285.112588826065,
       "totalContribution": 24000000,
       "totalNetDividend": 717818.7124906136,
-      "totalTaxPaid": 130666.76326661285
+      "totalTaxPaid": 130666.76326661285,
+      "totalCostBasis": 24717818.712490615,
+      "unrealizedGain": 1180391.461425893,
+      "estimatedCapitalGainsTax": 0,
+      "afterCapitalGainsTaxValue": 25898210.173916508
     },
     "quickEstimate": {
       "endValue": 25898210.173916526,
@@ -4301,7 +4337,11 @@
       "finalPayoutMonthDividend": 59611.799361276644,
       "totalContribution": 24000000,
       "totalNetDividend": 704678.761193189,
-      "totalTaxPaid": 128274.85723847647
+      "totalTaxPaid": 128274.85723847647,
+      "totalCostBasis": 24000000,
+      "unrealizedGain": 1158783.9356744215,
+      "estimatedCapitalGainsTax": 0,
+      "afterCapitalGainsTaxValue": 25158783.93567442
     },
     "quickEstimate": {
       "endValue": 25158783.935674444,

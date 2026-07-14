@@ -64,6 +64,15 @@ export type ReinvestmentPlan = {
   sharesToBuyNow: number;
   /** 다음 달로 이월되는 현금 */
   cashToCarry: number;
+  /**
+   * 이번 달에 **실제로 주식 매수에 투입된** 배당 현금(원). 취득원가 누적에 쓴다.
+   *
+   * 이월(nextMonth)분은 이번 달에 매수하지 않았으므로 0이다 — 다음 달에 실제로 매수될 때
+   * 그 시점의 `pendingReinvestCash` 로 취득원가에 더해진다. 매수 시점에만 세는 이유는,
+   * 시뮬레이션 마지막 달에 이월된 현금은 끝내 주식이 되지 못해 평가금액에도 안 잡히기 때문이다.
+   * (계획 시점에 세면 자산에 없는 돈이 원가에 들어가 평가이익이 과소계상된다.)
+   */
+  amountInvestedNow: number;
 };
 
 export const planReinvestment = ({
@@ -73,11 +82,11 @@ export const planReinvestment = ({
   ratio,
   timing
 }: ReinvestmentParams): ReinvestmentPlan => {
-  if (!enabled) return { sharesToBuyNow: 0, cashToCarry: 0 };
+  if (!enabled) return { sharesToBuyNow: 0, cashToCarry: 0, amountInvestedNow: 0 };
 
   const reinvestAmount = netDividend * clamp01(ratio);
 
   return timing === 'sameMonth'
-    ? { sharesToBuyNow: reinvestAmount / price, cashToCarry: 0 }
-    : { sharesToBuyNow: 0, cashToCarry: reinvestAmount };
+    ? { sharesToBuyNow: reinvestAmount / price, cashToCarry: 0, amountInvestedNow: reinvestAmount }
+    : { sharesToBuyNow: 0, cashToCarry: reinvestAmount, amountInvestedNow: 0 };
 };

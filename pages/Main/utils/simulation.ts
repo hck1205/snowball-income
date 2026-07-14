@@ -2,7 +2,7 @@ import type { TickerProfile } from '@/shared/types/snowball';
 import type { MonthlySnapshot, SimulationOutput, SimulationResult, YieldFormValues } from '@/shared/types';
 import { ALLOCATION_COLORS } from '@/shared/constants';
 import { getTickerDisplayName } from '@/shared/utils';
-import { runSimulation, toPriceGrowth } from '@/shared/lib/snowball';
+import { computeCapitalGains, findFinancialIncomeThresholdYear, runSimulation, toPriceGrowth } from '@/shared/lib/snowball';
 import type { NormalizedAllocationItem } from './portfolio';
 
 const runForProfile = (
@@ -126,18 +126,30 @@ const aggregatePortfolioSimulation = (outputs: SimulationOutput[], targetMonthly
   const finalYear = yearly[yearly.length - 1];
   const lastPayout = [...monthly].reverse().find((item) => item.dividendPaid > 0);
 
+  const finalAssetValue = finalYear?.assetValue ?? 0;
+  const totalCostBasis = sumBy(outputs, (output) => output.summary.totalCostBasis);
+
   return {
     monthly,
     yearly,
     summary: {
-      finalAssetValue: finalYear?.assetValue ?? 0,
+      finalAssetValue,
       finalAnnualDividend: finalYear?.annualDividend ?? 0,
       finalMonthlyAverageDividend: finalYear?.monthlyDividend ?? 0,
       finalPayoutMonthDividend: lastPayout?.dividendPaid ?? 0,
       totalContribution: finalYear?.totalContribution ?? 0,
       totalNetDividend: finalYear?.cumulativeDividend ?? 0,
       totalTaxPaid: sumBy(outputs, (output) => output.summary.totalTaxPaid),
-      targetMonthDividendReachedYear: yearly.find((item) => item.monthlyDividend >= targetMonthlyDividend)?.year
+      targetMonthDividendReachedYear: yearly.find((item) => item.monthlyDividend >= targetMonthlyDividend)?.year,
+      totalCostBasis,
+      /**
+       * 양도세는 **종목별 세금의 합이 아니다**. 기본공제 250만원은 인별로 1회만 적용되므로
+       * (종목마다 250만원씩 공제하면 세금이 과소계상된다) 합산된 평가금액/취득원가로 한 번만 계산한다.
+       * 종목 간 손익통산도 이렇게 해야 자연스럽게 반영된다.
+       */
+      ...computeCapitalGains({ finalAssetValue, totalCostBasis }),
+      // 금융소득종합과세도 인별 합산이므로, 합쳐진 월별 배당(세전)으로 판정한다.
+      financialIncomeThresholdYear: findFinancialIncomeThresholdYear(monthly)
     },
     quickEstimate: {
       endValue: outputs.reduce((sum, output) => sum + output.quickEstimate.endValue, 0),

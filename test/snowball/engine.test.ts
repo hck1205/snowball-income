@@ -264,39 +264,51 @@ describe('planReinvestment', () => {
   const base = { netDividend: 1000, price: 100, timing: 'sameMonth' as const, ratio: 1, enabled: true };
 
   it('does nothing when reinvestment is disabled', () => {
-    expect(planReinvestment({ ...base, enabled: false })).toEqual({ sharesToBuyNow: 0, cashToCarry: 0 });
+    expect(planReinvestment({ ...base, enabled: false })).toEqual({
+      sharesToBuyNow: 0,
+      cashToCarry: 0,
+      amountInvestedNow: 0
+    });
     expect(planReinvestment({ ...base, enabled: false, timing: 'nextMonth' })).toEqual({
       sharesToBuyNow: 0,
-      cashToCarry: 0
+      cashToCarry: 0,
+      amountInvestedNow: 0
     });
   });
 
   it('buys shares immediately with sameMonth timing', () => {
-    expect(planReinvestment(base)).toEqual({ sharesToBuyNow: 10, cashToCarry: 0 });
+    expect(planReinvestment(base)).toEqual({ sharesToBuyNow: 10, cashToCarry: 0, amountInvestedNow: 1000 });
   });
 
   it('carries cash forward with nextMonth timing', () => {
-    expect(planReinvestment({ ...base, timing: 'nextMonth' })).toEqual({ sharesToBuyNow: 0, cashToCarry: 1000 });
+    // 이월분은 아직 매수가 아니므로 amountInvestedNow 는 0이다 (취득원가는 실제 매수 시점에 센다).
+    expect(planReinvestment({ ...base, timing: 'nextMonth' })).toEqual({
+      sharesToBuyNow: 0,
+      cashToCarry: 1000,
+      amountInvestedNow: 0
+    });
   });
 
   it.each([
-    { ratio: 0, sharesToBuyNow: 0 },
-    { ratio: 0.5, sharesToBuyNow: 5 },
-    { ratio: 1, sharesToBuyNow: 10 },
-    { ratio: -0.5, sharesToBuyNow: 0 },
-    { ratio: 1.5, sharesToBuyNow: 10 }
-  ])('clamps ratio $ratio to buy $sharesToBuyNow shares', ({ ratio, sharesToBuyNow }) => {
-    expect(planReinvestment({ ...base, ratio })).toEqual({ sharesToBuyNow, cashToCarry: 0 });
+    { ratio: 0, sharesToBuyNow: 0, amountInvestedNow: 0 },
+    { ratio: 0.5, sharesToBuyNow: 5, amountInvestedNow: 500 },
+    { ratio: 1, sharesToBuyNow: 10, amountInvestedNow: 1000 },
+    { ratio: -0.5, sharesToBuyNow: 0, amountInvestedNow: 0 },
+    { ratio: 1.5, sharesToBuyNow: 10, amountInvestedNow: 1000 }
+  ])('clamps ratio $ratio to buy $sharesToBuyNow shares', ({ ratio, sharesToBuyNow, amountInvestedNow }) => {
+    expect(planReinvestment({ ...base, ratio })).toEqual({ sharesToBuyNow, cashToCarry: 0, amountInvestedNow });
   });
 
   it('clamps out-of-range ratios for carried cash too', () => {
     expect(planReinvestment({ ...base, timing: 'nextMonth', ratio: 1.5 })).toEqual({
       sharesToBuyNow: 0,
-      cashToCarry: 1000
+      cashToCarry: 1000,
+      amountInvestedNow: 0
     });
     expect(planReinvestment({ ...base, timing: 'nextMonth', ratio: -0.5 })).toEqual({
       sharesToBuyNow: 0,
-      cashToCarry: 0
+      cashToCarry: 0,
+      amountInvestedNow: 0
     });
   });
 });
@@ -595,7 +607,9 @@ describe('summary builders', () => {
 
     // finalMonthlyDividend 는 finalMonthlyAverageDividend 와 값이 완전히 같은 중복 필드였고
     // 어떤 화면도 읽지 않아 제거했다.
-    expect(buildSummary({ monthly, yearly, totalTaxPaid: 77, targetMonthlyDividend: 100 })).toEqual({
+    expect(
+      buildSummary({ monthly, yearly, totalTaxPaid: 77, targetMonthlyDividend: 100, totalReinvestedAmount: 50 })
+    ).toEqual({
       finalAssetValue: 300,
       finalAnnualDividend: 1_800,
       finalMonthlyAverageDividend: 150,
@@ -603,12 +617,20 @@ describe('summary builders', () => {
       totalContribution: 900,
       totalNetDividend: 2_400,
       totalTaxPaid: 77,
-      targetMonthDividendReachedYear: 2027
+      targetMonthDividendReachedYear: 2027,
+      // 취득원가 = 납입원금 900 + 재투자 50 = 950. 평가금액 300 이므로 평가손실(-650) → 양도세 0.
+      totalCostBasis: 950,
+      unrealizedGain: -650,
+      estimatedCapitalGainsTax: 0,
+      afterCapitalGainsTaxValue: 300,
+      financialIncomeThresholdYear: undefined
     });
   });
 
   it('buildSummary returns zeros for an empty simulation', () => {
-    expect(buildSummary({ monthly: [], yearly: [], totalTaxPaid: 0, targetMonthlyDividend: 1 })).toEqual({
+    expect(
+      buildSummary({ monthly: [], yearly: [], totalTaxPaid: 0, targetMonthlyDividend: 1, totalReinvestedAmount: 0 })
+    ).toEqual({
       finalAssetValue: 0,
       finalAnnualDividend: 0,
       finalMonthlyAverageDividend: 0,
@@ -616,7 +638,12 @@ describe('summary builders', () => {
       totalContribution: 0,
       totalNetDividend: 0,
       totalTaxPaid: 0,
-      targetMonthDividendReachedYear: undefined
+      targetMonthDividendReachedYear: undefined,
+      totalCostBasis: 0,
+      unrealizedGain: 0,
+      estimatedCapitalGainsTax: 0,
+      afterCapitalGainsTaxValue: 0,
+      financialIncomeThresholdYear: undefined
     });
   });
 });

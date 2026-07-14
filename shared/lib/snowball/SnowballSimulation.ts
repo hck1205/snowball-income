@@ -44,6 +44,9 @@ export const runSimulation = (input: SimulationInput): SimulationOutput => {
   let cumulativeDividend = 0;
   let totalTaxPaid = 0;
   let pendingReinvestCash = 0;
+  // 배당으로 실제 주식을 산 금액의 누적. 취득원가에 들어간다.
+  // **매수가 일어난 시점에만** 더한다 (planReinvestment.amountInvestedNow 주석 참고).
+  let totalReinvestedAmount = 0;
 
   const monthly: MonthlySnapshot[] = [];
   const yearly: SimulationResult[] = [];
@@ -62,6 +65,7 @@ export const runSimulation = (input: SimulationInput): SimulationOutput => {
 
     if (pendingReinvestCash > 0) {
       shares += pendingReinvestCash / price;
+      totalReinvestedAmount += pendingReinvestCash;
       pendingReinvestCash = 0;
     }
 
@@ -82,6 +86,7 @@ export const runSimulation = (input: SimulationInput): SimulationOutput => {
       dividendPaid = payout.net;
 
       shares += reinvestment.sharesToBuyNow;
+      totalReinvestedAmount += reinvestment.amountInvestedNow;
       pendingReinvestCash += reinvestment.cashToCarry;
 
       cumulativeDividend += dividendPaid;
@@ -129,7 +134,8 @@ export const runSimulation = (input: SimulationInput): SimulationOutput => {
       monthly,
       yearly,
       totalTaxPaid,
-      targetMonthlyDividend: settings.targetMonthlyDividend
+      targetMonthlyDividend: settings.targetMonthlyDividend,
+      totalReinvestedAmount
     }),
     quickEstimate: runQuickEstimate(input)
   };

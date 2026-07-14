@@ -1,4 +1,5 @@
 import type { MonthlySnapshot, SimulationResult, SimulationSummary } from '@/shared/types';
+import { computeCapitalGains, findFinancialIncomeThresholdYear } from './SnowballCapitalGains';
 
 export const findTargetYear = (rows: SimulationResult[], monthlyTarget: number): number | undefined => {
   return rows.find((row) => row.monthlyDividend >= monthlyTarget)?.year;
@@ -49,6 +50,11 @@ export type SummaryParams = {
   yearly: SimulationResult[];
   totalTaxPaid: number;
   targetMonthlyDividend: number;
+  /**
+   * 배당금 중 **실제로 주식 재매수에 투입된** 누적 금액. 세후 배당으로 주식을 산 것이므로
+   * 취득원가에 포함된다(이미 배당소득세를 낸 돈이라 양도세 계산에서 다시 이익으로 잡히면 안 된다).
+   */
+  totalReinvestedAmount: number;
 };
 
 /**
@@ -59,21 +65,30 @@ export const buildSummary = ({
   monthly,
   yearly,
   totalTaxPaid,
-  targetMonthlyDividend
+  targetMonthlyDividend,
+  totalReinvestedAmount
 }: SummaryParams): SimulationSummary => {
   const finalYear = yearly[yearly.length - 1];
   const lastPayoutRow = findLastPayoutMonth(monthly);
 
+  const finalAssetValue = finalYear?.assetValue ?? 0;
+  const totalContribution = finalYear?.totalContribution ?? 0;
+  // 취득원가 = 내 돈으로 넣은 원금(초기 + 월 적립 누적) + 배당으로 다시 산 금액.
+  const totalCostBasis = totalContribution + totalReinvestedAmount;
+
   return {
-    finalAssetValue: finalYear?.assetValue ?? 0,
+    finalAssetValue,
     finalAnnualDividend: finalYear?.annualDividend ?? 0,
     // finalMonthlyAverageDividend = 마지막 해 연 배당 / 12. (예전에는 같은 값이 finalMonthlyDividend
     // 라는 이름으로 한 번 더 들어 있었으나, 어떤 화면도 읽지 않는 중복 필드라 제거했다.)
     finalMonthlyAverageDividend: finalYear?.monthlyDividend ?? 0,
     finalPayoutMonthDividend: lastPayoutRow?.dividendPaid ?? 0,
-    totalContribution: finalYear?.totalContribution ?? 0,
+    totalContribution,
     totalNetDividend: finalYear?.cumulativeDividend ?? 0,
     totalTaxPaid,
-    targetMonthDividendReachedYear: findTargetYear(yearly, targetMonthlyDividend)
+    targetMonthDividendReachedYear: findTargetYear(yearly, targetMonthlyDividend),
+    totalCostBasis,
+    ...computeCapitalGains({ finalAssetValue, totalCostBasis }),
+    financialIncomeThresholdYear: findFinancialIncomeThresholdYear(monthly)
   };
 };
