@@ -33,12 +33,12 @@ const TONE: Record<BannerTone, { border: string; bg: string; accent: string; hov
   }
 };
 
-export const BannerRoot = styled.section<{ tone: BannerTone }>`
+export const BannerRoot = styled.section<{ tone: BannerTone; align: 'start' | 'center' }>`
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: ${space[3]};
-  align-items: start;
+  align-items: ${({ align }) => align};
   padding: ${space[4]};
   padding-left: ${space[5]};
   border: 1px solid ${({ tone }) => TONE[tone].border};
@@ -97,15 +97,18 @@ export const BannerBody = styled.div`
   }
 `;
 
-export const BannerDismiss = styled.button<{ tone: BannerTone }>`
+export const BannerDismiss = styled.button<{ tone: BannerTone; align: 'start' | 'center' }>`
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex: none;
   width: ${TOUCH_TARGET};
   height: ${TOUCH_TARGET};
-  /* 음수 마진으로 시각적 여백은 배너 패딩과 맞추면서 터치 타겟 44x44를 지킨다. */
-  margin: -${space[2]} -${space[2]} 0 0;
+  /*
+   * 음수 마진으로 시각적 여백은 배너 패딩과 맞추면서 터치 타겟 44x44를 지킨다.
+   * center 정렬일 때는 위쪽 음수 마진을 빼서(0) 중앙선이 어긋나지 않게 한다.
+   */
+  margin: ${({ align }) => (align === 'center' ? '0' : `-${space[2]}`)} -${space[2]} 0 0;
   border: 1px solid transparent;
   border-radius: ${radius.sm};
   background: transparent;

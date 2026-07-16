@@ -15,6 +15,7 @@ const item = (id: string, createdAt: string, likeCount = 0): ScenarioListItem =>
   title: `시나리오 ${id}`,
   description: null,
   is_public: true,
+  has_payload: true,
   like_count: likeCount,
   view_count: 0,
   comment_count: 0,

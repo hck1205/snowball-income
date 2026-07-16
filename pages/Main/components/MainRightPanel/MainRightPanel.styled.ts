@@ -40,3 +40,32 @@ export const ProjectionYearSuffix = styled.span`
   font-weight: ${font.weight.semibold};
   white-space: nowrap;
 `;
+
+/** 추천 포트폴리오 카드의 제목 행 — 브랜드 톤 아이콘 배지 + 제목을 가로로 정렬한다. */
+export const PortfolioPresetTitleRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${space[2]};
+`;
+
+/**
+ * 프리셋 아이콘 배지. 기존의 이모지 대신 lucide 아이콘을 브랜드 서브틀 배경 위에 얹어
+ * 완성도 있는 룩을 준다. 아이콘은 `currentColor`(=brand)로 그려진다.
+ */
+export const PortfolioPresetIcon = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border-radius: ${radius.sm};
+  background: ${color.brandSubtle};
+  color: ${color.brand};
+
+  svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+  }
+`;

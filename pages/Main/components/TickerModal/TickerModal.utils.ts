@@ -74,7 +74,15 @@ export const sortPresetKeys = (presetTickers: Record<PresetTickerKey, TickerDraf
     return leftLabel.localeCompare(rightLabel, 'en', { sensitivity: 'base' });
   });
 
-/** Keeps preset keys whose ticker, display name, or Korean name contains the keyword. */
+/** 공백을 없앤 형태 — "리얼티인컴" 으로도 "리얼티 인컴" 이 검색되게 하는 공백 무시 매칭용. */
+const stripSpaces = (value: string): string => value.replace(/\s+/g, '');
+
+/**
+ * Keeps preset keys whose ticker, display name, or Korean name contains the keyword.
+ *
+ * 매칭은 **공백 포함 + 공백 무시** 두 방식을 모두 제공한다:
+ * 예) "리얼티인컴"(공백 없음) 으로도 "리얼티 인컴"(공백 있음) 이 걸리고, 그 반대도 걸린다.
+ */
 export const filterPresetKeys = ({
   presetKeys,
   presetTickers,
@@ -89,11 +97,18 @@ export const filterPresetKeys = ({
   const query = keyword.trim().toUpperCase();
   if (!query) return presetKeys;
 
+  const queryNoSpace = stripSpaces(query);
+  // 공백 포함 매칭(그대로) 또는 공백 무시 매칭(양쪽 공백 제거) 중 하나라도 걸리면 통과.
+  const matches = (target: string): boolean => {
+    const upper = target.toUpperCase();
+    return upper.includes(query) || stripSpaces(upper).includes(queryNoSpace);
+  };
+
   return presetKeys.filter((presetKey) => {
-    const ticker = presetTickers[presetKey].ticker.toUpperCase();
-    const displayName = getTickerDisplayName(presetTickers[presetKey].ticker, presetTickers[presetKey].name).toUpperCase();
-    const koreanName = koreanNameByTicker[presetKey].toUpperCase();
-    return ticker.includes(query) || displayName.includes(query) || koreanName.includes(query);
+    const ticker = presetTickers[presetKey].ticker;
+    const displayName = getTickerDisplayName(presetTickers[presetKey].ticker, presetTickers[presetKey].name);
+    const koreanName = koreanNameByTicker[presetKey];
+    return matches(ticker) || matches(displayName) || matches(koreanName);
   });
 };
 

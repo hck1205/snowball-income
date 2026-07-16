@@ -1,5 +1,22 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+// per-icon named import(트리셰이킹) → 추천 포트폴리오 카드의 이모지를 lucide 아이콘으로 교체.
+import {
+  Armchair,
+  Brain,
+  Building2,
+  CalendarHeart,
+  Cpu,
+  Crown,
+  Globe,
+  Landmark,
+  Rocket,
+  Scale,
+  Shield,
+  Sprout,
+  Wallet,
+  type LucideIcon
+} from 'lucide-react';
 import { Button, Card, ToggleField } from '@/components';
 import type { SimulationResult as SimulationResultRow } from '@/shared/types';
 import { DIVIDEND_UNIVERSE, TOUR_TARGET } from '@/shared/constants';
@@ -29,6 +46,8 @@ import {
   ScenarioTabsWrap
 } from '@/pages/Main/Main.shared.styled';
 import {
+  PortfolioPresetIcon,
+  PortfolioPresetTitleRow,
   ProjectionControls,
   ProjectionYearField,
   ProjectionYearSelect,
@@ -69,7 +88,7 @@ import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 const PORTFOLIO_PRESET_PLACEHOLDERS = [
   {
     id: 'warren-buffett-style',
-    title: '🧓 워렌 버핏 스타일',
+    title: '워렌 버핏 스타일',
     hook: '우량 기업 중심의 장기 복리 전략',
     coreType: 'SCHD, VIG, PG, KO, JNJ, ABBV',
     style: '안정형',
@@ -92,7 +111,7 @@ const PORTFOLIO_PRESET_PLACEHOLDERS = [
   },
   {
     id: 'cashflow-now',
-    title: '💸 당장 현금흐름',
+    title: '당장 현금흐름',
     hook: '매달 배당 받는 월 인컴 전략',
     coreType: 'JEPI, JEPQ, QYLD, O, ENB',
     style: '인컴형',
@@ -114,7 +133,7 @@ const PORTFOLIO_PRESET_PLACEHOLDERS = [
   },
   {
     id: 'stable-dividend-growth',
-    title: '🌱 안정적 배당성장',
+    title: '안정적 배당성장',
     hook: '꾸준히 배당이 증가하는 ETF 중심',
     coreType: 'SCHD, DGRO, DGRW, NOBL',
     style: '성장+안정',
@@ -135,7 +154,7 @@ const PORTFOLIO_PRESET_PLACEHOLDERS = [
   },
   {
     id: 'global-dividend-diversified',
-    title: '🌎 글로벌 배당 분산',
+    title: '글로벌 배당 분산',
     hook: '미국 + 해외 배당 ETF 분산',
     coreType: 'SCHD, VIGI, SCHY, VNQI, VYMI',
     style: '분산형',
@@ -157,7 +176,7 @@ const PORTFOLIO_PRESET_PLACEHOLDERS = [
   },
   {
     id: 'reit-monthly-rent-strategy',
-    title: '🏢 월세 리츠 전략',
+    title: '월세 리츠 전략',
     hook: '부동산 중심 현금흐름 전략',
     coreType: 'O, VICI, SCHH, VNQI, JEPI',
     style: '인컴+리츠',
@@ -179,7 +198,7 @@ const PORTFOLIO_PRESET_PLACEHOLDERS = [
   },
   {
     id: 'growth-income-balance',
-    title: '📈 성장 + 인컴 밸런스',
+    title: '성장 + 인컴 밸런스',
     hook: '배당과 자본 성장을 동시에',
     coreType: 'SCHD, DGRW, DIVO, VYM, JEPI',
     style: '균형형',
@@ -201,7 +220,7 @@ const PORTFOLIO_PRESET_PLACEHOLDERS = [
   },
   {
     id: 'high-growth-dividend-challenger',
-    title: '🚀 고성장 배당 챌린저',
+    title: '고성장 배당 챌린저',
     hook: '배당 성장률 높은 종목 중심',
     coreType: 'RDVY, SDVY, LOW, ABBV, SCHD',
     style: '공격형',
@@ -223,7 +242,7 @@ const PORTFOLIO_PRESET_PLACEHOLDERS = [
   },
   {
     id: 'retirement-prep',
-    title: '🛌 은퇴 준비형',
+    title: '은퇴 준비형',
     hook: '은퇴 10년 전 리스크 완화 전략',
     coreType: 'SCHD, JEPI, DGRO, VYM, O',
     style: '점진적 안정',
@@ -245,7 +264,7 @@ const PORTFOLIO_PRESET_PLACEHOLDERS = [
   },
   {
     id: 'dividend-aristocrats-collection',
-    title: '💎 배당 귀족 컬렉션',
+    title: '배당 귀족 컬렉션',
     hook: '25년 이상 배당 증가 기업 중심',
     coreType: 'NOBL, PG, KO, JNJ, ABBV, LOW',
     style: '초안정형',
@@ -268,7 +287,7 @@ const PORTFOLIO_PRESET_PLACEHOLDERS = [
   },
   {
     id: 'defensive-dividend-etf',
-    title: '🧊 방어형 배당 ETF',
+    title: '방어형 배당 ETF',
     hook: '변동성 낮은 고배당 ETF 중심',
     coreType: 'HDV, VYM, SCHD, DGRO',
     style: '방어형',
@@ -289,7 +308,7 @@ const PORTFOLIO_PRESET_PLACEHOLDERS = [
   },
   {
     id: 'monthly-dividend-addict',
-    title: '🌊 월배당 중독자',
+    title: '월배당 중독자',
     hook: '올 월배당 ETF 구성',
     coreType: 'JEPI, JEPQ, DIVO, IDVO, QDVO, O',
     style: '월 인컴 극대화',
@@ -312,7 +331,7 @@ const PORTFOLIO_PRESET_PLACEHOLDERS = [
   },
   {
     id: 'smart-diversification-360',
-    title: '🧠 올인원 배당 전략',
+    title: '올인원 배당 전략',
     hook: '모든 자산군 혼합 입문형',
     coreType: 'SCHD, VYM, JEPI, VIGI, VNQI, DIVO',
     style: '올인원',
@@ -335,7 +354,7 @@ const PORTFOLIO_PRESET_PLACEHOLDERS = [
   },
   {
     id: 'ai-infra-dividend-growth',
-    title: '🤖 AI 인프라 성장형',
+    title: 'AI 인프라 성장형',
     hook: 'AI 반도체, 전력, 데이터센터 인프라 중심',
     coreType: 'SMH, VRT, ETN, NVDA, AVGO, CEG',
     style: '성장형',
@@ -357,6 +376,26 @@ const PORTFOLIO_PRESET_PLACEHOLDERS = [
     targetMonthlyDividendValue: 650_000
   }
 ] as const;
+
+/**
+ * 프리셋 카드 아이콘 — 예전의 이모지(🧓/💸/…)를 성향에 맞는 lucide 아이콘으로 대체한다.
+ * 제목 문자열에서 이모지는 제거했으므로(위 데이터), 카드·시나리오 탭 이름 모두 깔끔한 텍스트 + 이 아이콘으로 보인다.
+ */
+const PRESET_ICON_BY_ID: Record<string, LucideIcon> = {
+  'warren-buffett-style': Landmark,
+  'cashflow-now': Wallet,
+  'stable-dividend-growth': Sprout,
+  'global-dividend-diversified': Globe,
+  'reit-monthly-rent-strategy': Building2,
+  'growth-income-balance': Scale,
+  'high-growth-dividend-challenger': Rocket,
+  'retirement-prep': Armchair,
+  'dividend-aristocrats-collection': Crown,
+  'defensive-dividend-etf': Shield,
+  'monthly-dividend-addict': CalendarHeart,
+  'smart-diversification-360': Brain,
+  'ai-infra-dividend-growth': Cpu
+};
 
 function MainRightPanelComponent() {
   const modalRoot = typeof document !== 'undefined' ? document.body : null;
@@ -832,11 +871,18 @@ function MainRightPanelComponent() {
         >
           {includedProfiles.length === 0 ? (
             <PortfolioPresetGrid data-tour={TOUR_TARGET.portfolioPresets} aria-label="포트폴리오 프리셋 목록">
-              {PORTFOLIO_PRESET_PLACEHOLDERS.map((preset) => (
+              {PORTFOLIO_PRESET_PLACEHOLDERS.map((preset) => {
+                const PresetIcon = PRESET_ICON_BY_ID[preset.id] ?? Landmark;
+                return (
                 <PortfolioPresetCardButton key={preset.id} type="button" onClick={() => applyPortfolioPreset(preset)}>
                   <PortfolioPresetContentRow>
                     <PortfolioPresetMain>
-                      <PortfolioPresetTitle>{preset.title}</PortfolioPresetTitle>
+                      <PortfolioPresetTitleRow>
+                        <PortfolioPresetIcon>
+                          <PresetIcon size={18} aria-hidden focusable={false} />
+                        </PortfolioPresetIcon>
+                        <PortfolioPresetTitle>{preset.title}</PortfolioPresetTitle>
+                      </PortfolioPresetTitleRow>
                       <PortfolioPresetDesc>{preset.hook}</PortfolioPresetDesc>
                       <PortfolioPresetCore>핵심 구성: {preset.coreType}</PortfolioPresetCore>
                       <PortfolioPresetMeta>
@@ -859,7 +905,8 @@ function MainRightPanelComponent() {
                     </PortfolioPresetPlan>
                   </PortfolioPresetContentRow>
                 </PortfolioPresetCardButton>
-              ))}
+                );
+              })}
             </PortfolioPresetGrid>
           ) : (
             <p>입력값 오류를 수정하면 결과가 표시됩니다.</p>

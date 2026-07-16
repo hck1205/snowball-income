@@ -5,10 +5,10 @@ import BrandMark from './BrandMark';
 describe('BrandMark', () => {
   it('renders at the requested size', () => {
     const { container } = render(createElement(BrandMark, { size: 40 }));
-    const svg = container.querySelector('svg');
+    const img = container.querySelector('img');
 
-    expect(svg).toHaveAttribute('width', '40');
-    expect(svg).toHaveAttribute('height', '40');
+    expect(img).toHaveAttribute('width', '40');
+    expect(img).toHaveAttribute('height', '40');
   });
 
   /**
@@ -18,6 +18,6 @@ describe('BrandMark', () => {
   it('is decorative and hidden from the accessibility tree', () => {
     const { container } = render(createElement(BrandMark, {}));
 
-    expect(container.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
+    expect(container.querySelector('img')).toHaveAttribute('aria-hidden', 'true');
   });
 });

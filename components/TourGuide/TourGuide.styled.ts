@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, motion, radius, shadow, space, zIndex } from '@/shared/styles';
+import { color, font, media, motion, radius, shadow, space, zIndex } from '@/shared/styles';
 
 /* -------------------------------------------------------------------------- */
 /* 진입점 — 헤더의 나침반 아이콘                                                  */
@@ -19,6 +19,13 @@ export const LaunchSlot = styled.span`
  * `aria-hidden`: 시각적 힌트일 뿐이고, 버튼의 `aria-label`이 이미 무엇인지 말한다.
  * 점 하나를 스크린리더가 "점"이라고 읽어봐야 도움이 되지 않는다.
  */
+/** 튜토리얼 버튼 라벨. 모바일에서는 숨겨 아이콘만 남긴다(아이콘 버튼 형태). */
+export const LaunchLabel = styled.span`
+  ${media.down('mobileWide')} {
+    display: none;
+  }
+`;
+
 export const LaunchDot = styled.span`
   position: absolute;
   top: 6px;

@@ -42,8 +42,24 @@ export type ScenarioRow = {
   user_id: string;
   title: string;
   description: string | null;
-  payload: ScenarioPayload;
+  /**
+   * 자유 글 본문 (Tiptap 리치 HTML). Stage 2 하이브리드 글 모델에서 추가됐다.
+   * 기존 행/시나리오-only 글에는 없으므로 nullable. 서버 CHECK(scenarios_body_len)가 64KB 상한.
+   */
+  body: string | null;
+  /**
+   * 시나리오 첨부. Stage 2부터 **선택적**이다 — 본문만 있는 자유 글은 payload가 null이다.
+   * (마이그레이션 20260715000000에서 NOT NULL을 풀고 CHECK를 "NULL 허용"으로 완화했다.)
+   * 소비 측은 반드시 null 가드 후 fromScenarioPayload에 넘길 것.
+   */
+  payload: ScenarioPayload | null;
   is_public: boolean;
+  /**
+   * payload 첨부 여부. 서버 생성 컬럼(generated always as (payload is not null) stored)이다.
+   * 목록 카드가 무거운 payload 없이 "자유 글 vs 시뮬 첨부 글" 배지를 그릴 수 있게 한다.
+   * generated STORED라 클라이언트가 write할 수 없다 → Insert/Update에는 넣지 않는다.
+   */
+  has_payload: boolean;
   /** 트리거로만 갱신된다. 클라이언트는 UPDATE 권한이 없다. */
   like_count: number;
   view_count: number;
@@ -84,8 +100,8 @@ export type CommunityAuthor = Pick<ProfileRow, 'id' | 'display_name' | 'avatar_u
 export type ScenarioWithAuthor = ScenarioRow & { author: CommunityAuthor | null };
 export type CommentWithAuthor = CommentRow & { author: CommunityAuthor | null };
 
-/** 갤러리 카드에 필요한 최소 필드 (payload를 빼서 목록 응답을 가볍게 유지). */
-export type ScenarioListItem = Omit<ScenarioRow, 'payload'> & { author: CommunityAuthor | null };
+/** 갤러리 카드에 필요한 최소 필드 (payload/body를 빼서 목록 응답을 가볍게 유지 — 목록은 description 요약만). */
+export type ScenarioListItem = Omit<ScenarioRow, 'payload' | 'body'> & { author: CommunityAuthor | null };
 
 export type GallerySort = 'recent' | 'popular';
 
@@ -120,9 +136,10 @@ export type Database = {
       };
       scenarios: {
         Row: ScenarioRow;
-        Insert: Pick<ScenarioRow, 'title' | 'payload'> &
-          Partial<Pick<ScenarioRow, 'user_id' | 'description' | 'is_public'>>;
-        Update: Partial<Pick<ScenarioRow, 'title' | 'description' | 'payload' | 'is_public'>>;
+        // title만 필수. payload/body는 optional — 자유 글은 payload 없이, 시나리오-only 글은 body 없이 게시된다.
+        Insert: Pick<ScenarioRow, 'title'> &
+          Partial<Pick<ScenarioRow, 'user_id' | 'description' | 'payload' | 'body' | 'is_public'>>;
+        Update: Partial<Pick<ScenarioRow, 'title' | 'description' | 'payload' | 'body' | 'is_public'>>;
         Relationships: [
           {
             foreignKeyName: 'scenarios_user_id_fkey';

@@ -23,6 +23,7 @@ export default function Tabs({ items, activeId, onChange, ariaLabel }: TabsProps
           disabled={item.disabled}
           onClick={() => onChange(item.id)}
         >
+          {item.icon}
           {item.label}
         </TabButton>
       ))}

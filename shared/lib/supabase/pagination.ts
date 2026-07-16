@@ -90,6 +90,63 @@ export const buildKeysetFilter = (sort: GallerySort, cursor: GalleryCursor): str
   return `created_at.lt.${createdAt},and(created_at.eq.${createdAt},id.lt.${id})`;
 };
 
+// ── 검색 ──────────────────────────────────────────────────────────────────
+
+/**
+ * ILIKE 검색 대상 컬럼. body(HTML)는 트라이그램 노이즈가 커서 제외 — title/description(plain text)만.
+ * 마이그레이션의 scenarios_search_{title,description}_trgm GIN 인덱스와 대상이 일치한다.
+ */
+export const SEARCH_ILIKE_COLUMNS = ['title', 'description'] as const;
+
+/**
+ * 사용자 검색어를 PostgREST/SQL LIKE 메타문자로부터 안전하게 만든다.
+ *
+ * ⚠ 이 문자열은 supabase-js `.or(...)` 에 그대로 실린다. 위험 문자를 남겨두면:
+ *   - `,` `(` `)` → `.or` 필터 목록 문법을 쪼갠다 (필터 주입).
+ *   - `%` `_` `*` → SQL/PostgREST 와일드카드로 해석돼 매칭이 폭주한다.
+ *   - `"` `\`     → 값 인용/이스케이프를 깨뜨린다.
+ * 이들을 공백으로 중화하고 공백을 접는다. 우리가 의도한 `%term%`(contains) 와일드카드만 남긴다.
+ * (한글/영문/숫자/`.`/`-`/`&` 등은 값의 뒷부분이라 필터 문법에 안전하므로 보존한다.)
+ */
+const sanitizeSearchTerm = (raw: string): string =>
+  raw
+    .replace(/[\\"%_*(),]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+/**
+ * 검색 필터 문자열을 만든다 — **순수 함수**. IO 없음, 테스트 대상.
+ *
+ * 반환 형태: `title.ilike.%TERM%,description.ilike.%TERM%` (supabase-js `.or()` 인자).
+ * 빈/공백/전부-메타문자 검색어는 null → 호출부는 검색 없이 일반 목록으로 폴백한다.
+ *
+ * 이 필터는 fetchGalleryPage에서 키셋 `.or(...)` 와 **별개의 top-level `.or`** 로 추가된다.
+ * PostgREST는 top-level 조건(is_public eq, 키셋 or, 검색 or)을 전부 AND로 결합하므로
+ * 결과는 `is_public AND (키셋 튜플) AND (제목 OR 설명)` 이 된다.
+ */
+/**
+ * 검색 기준(qf)별 ILIKE 대상 컬럼.
+ * - title/description: pg_trgm GIN 인덱스가 있어 부분일치가 빠르다.
+ * - body: 리치 본문 HTML이라 인덱스가 없다 → 비인덱스 ILIKE(데이터가 적을 땐 문제없음).
+ * 미지정/알 수 없는 값은 하위호환을 위해 제목+요약(SEARCH_ILIKE_COLUMNS)으로 폴백한다.
+ */
+export const SEARCH_COLUMNS_BY_FILTER: Record<string, readonly string[]> = {
+  title: ['title'],
+  body: ['body'],
+  description: ['description']
+};
+
+export const buildSearchFilter = (
+  query: string | null | undefined,
+  filter?: string | null
+): string | null => {
+  if (!query) return null;
+  const term = sanitizeSearchTerm(query);
+  if (term.length === 0) return null;
+  const columns = (filter != null && SEARCH_COLUMNS_BY_FILTER[filter]) || SEARCH_ILIKE_COLUMNS;
+  return columns.map((column) => `${column}.ilike.%${term}%`).join(',');
+};
+
 /** 정렬 키 목록 (supabase-js `.order()` 체이닝에 그대로 쓴다). */
 export const getGalleryOrderKeys = (
   sort: GallerySort

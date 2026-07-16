@@ -159,14 +159,14 @@ export const DrawerCloseButton = styled.button`
     position: absolute;
     top: ${space[2]};
     right: ${space[2]};
-    width: 44px;
-    height: 44px;
+    width: 38px;
+    height: 38px;
     border: 1px solid ${color.border};
     background: ${color.surface};
     color: ${color.textSecondary};
     border-radius: ${radius.pill};
     padding: 0;
-    font-size: ${font.size.xl};
+    font-size: ${font.size.lg};
     line-height: 1;
     cursor: pointer;
     touch-action: manipulation;
@@ -208,10 +208,7 @@ export const HeaderBrand = styled.div`
   min-width: 0;
 `;
 
-/**
- * 마크를 감싸는 타일. 브랜드 컬러를 **여기 한 군데만** 진하게 쓴다.
- * 헤더 전체를 브랜드색으로 칠하면 데이터가 주인공 자리를 뺏긴다.
- */
+/** 앱 아이콘을 감싸는 원형 프레임. 아이콘 이미지를 원으로 잘라 파비콘/앱 아이콘과 형태를 맞춘다. */
 export const HeaderLogo = styled.span`
   display: inline-flex;
   align-items: center;
@@ -219,10 +216,16 @@ export const HeaderLogo = styled.span`
   flex: 0 0 auto;
   width: 40px;
   height: 40px;
-  border-radius: ${radius.md};
-  background: ${color.brandSubtle};
-  border: 1px solid ${color.brandBorder};
-  color: ${color.brand};
+  border-radius: 50%;
+  overflow: hidden;
+`;
+
+/** 헤더 좌측 앱 아이콘 이미지. 정사각 원본을 원형으로 커버 크롭한다. */
+export const HeaderLogoImage = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 `;
 
 export const HeaderTitle = styled.h1`
@@ -243,16 +246,13 @@ export const HeaderDescription = styled.p`
   line-height: ${font.leading.snug};
 `;
 
-/**
- * 워드마크 오른쪽에 붙는 헤더 액션(튜토리얼 시작 아이콘).
- * `margin-left`가 아니라 워드마크 바로 옆에 두는 이유: 브랜드와 묶여야 "이 앱을 안내받는다"로 읽힌다.
- * 우측 끝으로 밀면 드로어 토글과 뒤섞여 무슨 버튼인지 알 수 없게 된다.
- */
+/** 헤더 액션(튜토리얼 시작 아이콘). 브랜드 행의 맨 오른쪽으로 민다. */
 export const HeaderActions = styled.div`
   display: inline-flex;
   align-items: center;
   gap: ${space[1]};
   flex: 0 0 auto;
+  margin-left: auto;
 `;
 
 
@@ -640,7 +640,7 @@ export const TickerChipWrap = styled.div`
 
   &:hover button[data-chip='true'],
   &:focus-within button[data-chip='true'] {
-    padding-right: 34px;
+    padding-right: 32px;
   }
 
   &:hover button[data-gear='true'],
@@ -687,13 +687,15 @@ export const TickerItemButton = styled.button<{ selected?: boolean }>`
 export const TickerGearButton = styled.button`
   position: absolute;
   top: 50%;
-  right: 0;
+  /* 오른쪽 끝에서 살짝 안쪽으로 들여, 칩 텍스트와의 간격도 자연스럽게 좁아진다. */
+  right: 3px;
   transform: translateY(-50%) scale(0.88);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border: 1px solid ${color.borderStrong};
-  background: ${color.surface};
+  /* 칩(surface)과 살짝 다른 톤으로 떠 있는 작은 버튼임을 드러낸다. */
+  background: ${color.surfaceMuted};
   color: ${color.textSecondary};
   border-radius: ${radius.pill};
   width: 24px;
@@ -1059,10 +1061,15 @@ export const PresetChipGrid = styled.div`
   gap: ${space[2]};
 `;
 
+/**
+ * 프리셋 칩 영역. 티커가 많아도 편하게 훑도록 **자체 스크롤**을 준다.
+ * `overscroll-behavior: contain` 으로 이 영역 끝에서 모달 패널로 스크롤이 번지지 않게 해
+ * 중첩 스크롤이 부자연스럽던 예전 문제를 막는다.
+ */
 export const PresetChipScrollArea = styled.div`
-  max-height: 110px;
+  max-height: 260px;
   overflow-y: auto;
-  overflow-x: hidden;
+  overscroll-behavior: contain;
   padding-right: ${space[1]};
   margin-bottom: ${space[2]};
   scrollbar-gutter: stable;

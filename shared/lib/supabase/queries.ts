@@ -1,5 +1,12 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { buildKeysetFilter, decodeGalleryCursor, GALLERY_PAGE_SIZE, getGalleryOrderKeys, splitPage } from './pagination';
+import {
+  buildKeysetFilter,
+  buildSearchFilter,
+  decodeGalleryCursor,
+  GALLERY_PAGE_SIZE,
+  getGalleryOrderKeys,
+  splitPage
+} from './pagination';
 import type {
   CommentWithAuthor,
   Database,
@@ -22,10 +29,11 @@ import type {
 
 export type CommunityClient = SupabaseClient<Database>;
 
-/** 갤러리 카드에 필요한 컬럼만. payload는 목록에서 제외한다 (행당 수십 KB → 대역폭 낭비). */
-const LIST_COLUMNS = 'id,user_id,title,description,is_public,like_count,view_count,comment_count,created_at,updated_at,author:profiles(id,display_name,avatar_url)';
+/** 갤러리 카드에 필요한 컬럼만. payload/body는 목록에서 제외한다 (행당 수십 KB → 대역폭 낭비). */
+const LIST_COLUMNS = 'id,user_id,title,description,is_public,has_payload,like_count,view_count,comment_count,created_at,updated_at,author:profiles(id,display_name,avatar_url)';
 
-const DETAIL_COLUMNS = `${LIST_COLUMNS},payload`;
+/** 상세는 본문(body)과 시나리오 첨부(payload)까지 내려온다. */
+const DETAIL_COLUMNS = `${LIST_COLUMNS},payload,body`;
 
 const COMMENT_COLUMNS = 'id,scenario_id,user_id,parent_id,body,like_count,created_at,updated_at,deleted_at,author:profiles(id,display_name,avatar_url)';
 
@@ -38,19 +46,26 @@ const unwrap = <T>(result: { data: T | null; error: { message: string } | null }
 // ── 갤러리 ──────────────────────────────────────────────────────────────────
 
 /**
- * 공개 시나리오 목록 (keyset 페이지네이션).
+ * 공개 시나리오/글 목록 (keyset 페이지네이션 + 선택적 제목/설명 검색).
  * RLS가 비공개를 걸러주지만, 인덱스(partial index)를 타도록 is_public 조건을 명시한다.
+ *
+ * 검색(`query`)은 정렬/커서를 **그대로 재사용**한다 — WHERE 필터만 얹을 뿐 정렬 규칙은 그대로다.
+ * 검색 `.or(...)` 와 키셋 `.or(...)` 는 각각 별개의 top-level 조건이라 PostgREST가 AND로 묶는다:
+ *   is_public = true  AND  (제목 ILIKE OR 설명 ILIKE)  AND  (키셋 튜플 비교)
+ * 빈/무효 검색어는 buildSearchFilter가 null을 주므로 검색 없이 일반 목록으로 폴백한다.
  */
 export const fetchGalleryPage = async (
   client: CommunityClient,
-  options: { sort?: GallerySort; cursor?: string | null; pageSize?: number } = {}
+  options: { sort?: GallerySort; cursor?: string | null; pageSize?: number; query?: string; queryFilter?: string } = {}
 ): Promise<GalleryPage> => {
   const sort = options.sort ?? 'recent';
   const pageSize = options.pageSize ?? GALLERY_PAGE_SIZE;
   const cursor = decodeGalleryCursor(options.cursor);
+  const searchFilter = buildSearchFilter(options.query, options.queryFilter);
 
   let query = client.from('scenarios').select(LIST_COLUMNS).eq('is_public', true);
 
+  if (searchFilter) query = query.or(searchFilter);
   if (cursor) query = query.or(buildKeysetFilter(sort, cursor));
 
   for (const key of getGalleryOrderKeys(sort)) {
@@ -86,9 +101,22 @@ export const fetchMyScenarios = async (client: CommunityClient, userId: string):
       .returns<ScenarioListItem[]>()
   );
 
+/**
+ * 글 게시. 하이브리드 모델이라 payload/body 둘 다 선택적이다:
+ *   - 자유 글        : body만 (payload 없음)
+ *   - 시나리오 공유   : payload만 (body 없음)
+ *   - 둘 다          : body + payload
+ * 서버 CHECK(scenarios_payload_valid_or_null)가 payload NULL을 허용한다.
+ */
 export const publishScenario = async (
   client: CommunityClient,
-  input: { title: string; description?: string | null; payload: ScenarioPayload; isPublic?: boolean }
+  input: {
+    title: string;
+    description?: string | null;
+    body?: string | null;
+    payload?: ScenarioPayload | null;
+    isPublic?: boolean;
+  }
 ): Promise<ScenarioWithAuthor> =>
   unwrap(
     await client
@@ -96,7 +124,8 @@ export const publishScenario = async (
       .insert({
         title: input.title,
         description: input.description ?? null,
-        payload: input.payload,
+        body: input.body ?? null,
+        payload: input.payload ?? null,
         // 기본은 비공개. 공개는 사용자가 명시적으로 선택할 때만 (서버 기본값과 동일한 철학)
         is_public: input.isPublic ?? false
       })
@@ -108,7 +137,13 @@ export const publishScenario = async (
 export const updateScenario = async (
   client: CommunityClient,
   scenarioId: string,
-  patch: { title?: string; description?: string | null; payload?: ScenarioPayload; isPublic?: boolean }
+  patch: {
+    title?: string;
+    description?: string | null;
+    body?: string | null;
+    payload?: ScenarioPayload | null;
+    isPublic?: boolean;
+  }
 ): Promise<ScenarioWithAuthor> =>
   unwrap(
     await client
@@ -116,6 +151,7 @@ export const updateScenario = async (
       .update({
         ...(patch.title !== undefined ? { title: patch.title } : {}),
         ...(patch.description !== undefined ? { description: patch.description } : {}),
+        ...(patch.body !== undefined ? { body: patch.body } : {}),
         ...(patch.payload !== undefined ? { payload: patch.payload } : {}),
         ...(patch.isPublic !== undefined ? { is_public: patch.isPublic } : {})
       })

@@ -32,6 +32,23 @@ export const signInWithOAuth = async (
   if (error) throw new Error(error.message);
 };
 
+/**
+ * 개발/테스트용 이메일·비밀번호 로그인.
+ *
+ * OAuth(구글/카카오)를 아직 설정하지 않았어도 글쓰기 등 인증 기능을 실제로 테스트하려면
+ * **진짜 Supabase 세션**이 필요하다(RLS가 auth.uid()를 요구 → 클라이언트에서 로그인 상태만
+ * 흉내내면 INSERT가 DB에서 거부된다). Supabase 대시보드에서 테스트 사용자(이메일+비번, auto-confirm)를
+ * 만든 뒤 이걸로 로그인하면 진짜 세션이 생겨 글이 실제로 저장된다. (main.tsx의 dev `__devLogin` 헬퍼가 호출)
+ */
+export const signInWithPassword = async (
+  client: CommunityClient,
+  email: string,
+  password: string
+): Promise<void> => {
+  const { error } = await client.auth.signInWithPassword({ email, password });
+  if (error) throw new Error(error.message);
+};
+
 export const signOut = async (client: CommunityClient): Promise<void> => {
   const { error } = await client.auth.signOut();
   if (error) throw new Error(error.message);

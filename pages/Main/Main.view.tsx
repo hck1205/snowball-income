@@ -3,6 +3,7 @@ import { lazy, memo, Suspense, useCallback } from "react";
 import { FeatureLayout, MainContent, SkipLink } from "@/pages/Main/Main.shared.styled";
 import MobileMenuDrawer from "@/components/MobileMenuDrawer";
 import TourGuide from "@/components/TourGuide";
+import { CommunityNavLink } from "@/components/community/CommunityNavLink";
 import {
   useIsConfigDrawerOpenAtomValue,
   useIsTickerModalOpenAtomValue,
@@ -63,7 +64,12 @@ function MainViewComponent({ viewModel }: MainViewProps) {
             onOpen={openConfigDrawer}
             onClose={closeConfigDrawer}
             notice={<ModelChangeNotice />}
-            headerAction={<TourGuide />}
+            headerAction={
+              <>
+                <CommunityNavLink />
+                <TourGuide />
+              </>
+            }
             left={<MainLeftPanel />}
             right={<MainRightPanel />}
           />

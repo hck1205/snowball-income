@@ -20,5 +20,10 @@ export type BannerProps = {
    * - `alert`: 즉시 끼어든다. 사용자가 지금 조치해야 하는 에러에만.
    */
   role?: 'status' | 'alert' | 'note';
+  /**
+   * 세로 정렬. 기본 `start` — 첫 줄에 닫기 버튼을 맞춘다(여러 줄 배너에 적합).
+   * 한 줄짜리 배너는 `center`로 제목과 닫기 버튼을 같은 중앙선에 맞춘다.
+   */
+  align?: 'start' | 'center';
   'aria-label'?: string;
 };

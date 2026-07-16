@@ -103,6 +103,13 @@ describe('filterPresetKeys', () => {
     expect(filterPresetKeys({ presetKeys, presetTickers, koreanNameByTicker, keyword: '고배당' })).toEqual(['VYM']);
   });
 
+  it('공백을 무시하고도 매칭한다 ("리얼티인컴" 으로 "리얼티 인컴" 이 걸리듯)', () => {
+    // '뱅가드 고배당'(공백 포함) 이 '뱅가드고배당'(공백 없음) 검색어로도 걸려야 한다.
+    expect(filterPresetKeys({ presetKeys, presetTickers, koreanNameByTicker, keyword: '뱅가드고배당' })).toEqual(['VYM']);
+    // JP모건 프리미엄 인컴 → '프리미엄인컴' 으로도.
+    expect(filterPresetKeys({ presetKeys, presetTickers, koreanNameByTicker, keyword: '프리미엄인컴' })).toEqual(['JEPI']);
+  });
+
   it('returns nothing when no preset matches', () => {
     expect(filterPresetKeys({ presetKeys, presetTickers, koreanNameByTicker, keyword: 'zzz' })).toEqual([]);
   });

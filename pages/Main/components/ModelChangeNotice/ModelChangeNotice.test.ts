@@ -15,12 +15,30 @@ describe('ModelChangeNotice', () => {
     window.localStorage.clear();
   });
 
-  it('renders the notice on a first visit', () => {
+  it('renders the collapsed one-line notice on a first visit', () => {
     render(createElement(ModelChangeNotice));
 
     expect(screen.getByRole('status')).toBeInTheDocument();
     expect(screen.getByText('계산 방식이 업데이트되었습니다')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '공지 닫기' })).toBeInTheDocument();
+    // 기본은 접힌 상태 — 상세 설명은 아직 보이지 않는다.
+    expect(screen.queryByText(/투자 자문/)).not.toBeInTheDocument();
+  });
+
+  it('expands the explanation when the title is clicked, and collapses it again', async () => {
+    const user = userEvent.setup();
+    render(createElement(ModelChangeNotice));
+
+    const title = screen.getByRole('button', { name: '계산 방식이 업데이트되었습니다' });
+    expect(title).toHaveAttribute('aria-expanded', 'false');
+
+    await user.click(title);
+    expect(title).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByText(/투자 자문/)).toBeInTheDocument();
+
+    await user.click(title);
+    expect(title).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByText(/투자 자문/)).not.toBeInTheDocument();
   });
 
   it('hides the notice and records the dismissal when the close button is clicked', async () => {
@@ -37,6 +55,8 @@ describe('ModelChangeNotice', () => {
     const user = userEvent.setup();
     render(createElement(ModelChangeNotice));
 
+    // 탭 순서: 제목(펼치기) → 닫기 버튼.
+    await user.tab();
     await user.tab();
     expect(screen.getByRole('button', { name: '공지 닫기' })).toHaveFocus();
 

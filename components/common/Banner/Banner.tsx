@@ -14,16 +14,17 @@ export default function Banner({
   onDismiss,
   dismissAriaLabel,
   role = 'status',
+  align = 'start',
   'aria-label': ariaLabel
 }: BannerProps) {
   return (
-    <BannerRoot tone={tone} role={role} aria-label={ariaLabel}>
+    <BannerRoot tone={tone} align={align} role={role} aria-label={ariaLabel}>
       <BannerContent>
         {title ? <BannerTitle>{title}</BannerTitle> : null}
         <BannerBody>{children}</BannerBody>
       </BannerContent>
       {onDismiss ? (
-        <BannerDismiss tone={tone} type="button" aria-label={dismissAriaLabel ?? '닫기'} onClick={onDismiss}>
+        <BannerDismiss tone={tone} align={align} type="button" aria-label={dismissAriaLabel ?? '닫기'} onClick={onDismiss}>
           ×
         </BannerDismiss>
       ) : null}

@@ -1,5 +1,4 @@
 import { memo, useEffect, useId, useRef, useState } from 'react';
-import BrandMark from '@/components/BrandMark';
 import { TOUR_TARGET } from '@/shared/constants';
 import type { MobileMenuDrawerProps } from './MobileMenuDrawer.types';
 import {
@@ -13,6 +12,7 @@ import {
   HeaderBrand,
   HeaderDescription,
   HeaderLogo,
+  HeaderLogoImage,
   HeaderTitle
 } from '@/pages/Main/Main.shared.styled';
 
@@ -66,7 +66,7 @@ function MobileMenuDrawerComponent({ isOpen, onOpen, onClose, left, right, notic
       <Header>
         <HeaderBrand>
           <HeaderLogo>
-            <BrandMark size={24} />
+            <HeaderLogoImage src="/app_icon.png" alt="" width={40} height={40} />
           </HeaderLogo>
           <HeaderTitle>Snowball Income</HeaderTitle>
           {headerAction ? <HeaderActions>{headerAction}</HeaderActions> : null}

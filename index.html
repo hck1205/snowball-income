@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>배당 재투자 시뮬레이터 | 배당 계산기 - Snowball Income</title>
+    <title>배당 재투자 시뮬레이터 — 배당 계산기 - Snowball Income</title>
     <meta
       name="description"
       content="SCHD·JEPI 같은 배당주·ETF로 포트폴리오를 구성하고 배당 재투자(스노우볼) 효과를 시뮬레이션합니다. 목표 월 배당 도달 시점, 세후 현금흐름, 전량 매도 시 양도세까지 계산합니다. 가정을 그대로 계산해 보여주는 도구이며 투자 자문이 아닙니다."
@@ -13,12 +13,23 @@
       name="keywords"
       content="배당 계산기, 배당 재투자 시뮬레이터, 배당금 계산기, 월 배당 목표, SCHD 배당 계산, 커버드콜 배당, 배당 성장률, 배당 포트폴리오, 스노우볼 투자"
     />
-    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta
+      name="robots"
+      content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+    />
     <meta name="format-detection" content="telephone=no" />
     <meta name="color-scheme" content="light dark" />
     <!-- 디자인 시스템 토큰과 정렬: neutral[50] / neutral[950] (shared/styles/primitives.ts) -->
-    <meta name="theme-color" content="#f4f7f9" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#0f151c" media="(prefers-color-scheme: dark)" />
+    <meta
+      name="theme-color"
+      content="#f4f7f9"
+      media="(prefers-color-scheme: light)"
+    />
+    <meta
+      name="theme-color"
+      content="#0f151c"
+      media="(prefers-color-scheme: dark)"
+    />
     <meta name="application-name" content="Snowball Income" />
 
     <!-- canonical / hreflang: 절대 URL이어야 한다. 공유 링크(?s=…)가 각각 색인되지 않도록 항상 클린 URL로 고정. -->
@@ -30,7 +41,10 @@
     <meta property="og:locale" content="ko_KR" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Snowball Income" />
-    <meta property="og:title" content="배당 재투자 시뮬레이터 | Snowball Income" />
+    <meta
+      property="og:title"
+      content="배당 재투자 시뮬레이터 — Snowball Income"
+    />
     <meta
       property="og:description"
       content="배당주·ETF 포트폴리오를 짜고 배당 재투자 효과와 목표 월 배당 도달 시점을 시뮬레이션합니다. 세후 현금흐름과 양도세 추정까지."
@@ -40,21 +54,42 @@
     <meta property="og:image:type" content="image/png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Snowball Income — 배당 재투자 시뮬레이터" />
+    <meta
+      property="og:image:alt"
+      content="Snowball Income — 배당 재투자 시뮬레이터"
+    />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="배당 재투자 시뮬레이터 | Snowball Income" />
+    <meta
+      name="twitter:title"
+      content="배당 재투자 시뮬레이터 — Snowball Income"
+    />
     <meta
       name="twitter:description"
       content="배당주·ETF 포트폴리오를 짜고 배당 재투자 효과와 목표 월 배당 도달 시점을 시뮬레이션합니다."
     />
     <meta name="twitter:image" content="%VITE_SITE_URL%/og-image.png" />
-    <meta name="twitter:image:alt" content="Snowball Income — 배당 재투자 시뮬레이터" />
+    <meta
+      name="twitter:image:alt"
+      content="Snowball Income — 배당 재투자 시뮬레이터"
+    />
 
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" sizes="any" />
-    <link rel="alternate" type="text/plain" href="/llms.txt" title="LLMs Index" />
-    <link rel="alternate" type="application/json" href="/ai-overview.json" title="AI Overview" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link
+      rel="alternate"
+      type="text/plain"
+      href="/llms.txt"
+      title="LLMs Index"
+    />
+    <link
+      rel="alternate"
+      type="application/json"
+      href="/ai-overview.json"
+      title="AI Overview"
+    />
     <link rel="manifest" href="/site.webmanifest" />
 
     <!--
@@ -117,8 +152,14 @@
         max-width: 42rem;
         margin: 0 auto;
         padding: 3rem 1.25rem;
-        font-family: Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic',
-          'Segoe UI', sans-serif;
+        font-family:
+          Pretendard,
+          -apple-system,
+          BlinkMacSystemFont,
+          'Apple SD Gothic Neo',
+          'Malgun Gothic',
+          'Segoe UI',
+          sans-serif;
         line-height: 1.65;
         color: #2b3743;
       }
@@ -156,7 +197,30 @@
           color: #93a2b1;
         }
       }
+
+      /*
+        FOUC 방지 — React 마운트 전까지 프리렌더 폴백(프로즈)을 감춰, 스타일이 입혀지기 전에
+        텍스트가 번쩍이는 걸 없앤다. `.js`는 아래 인라인 스크립트가 JS 사용 환경에서만 붙인다.
+        → JS를 실행하지 않는 크롤러·no-JS 사용자는 폴백을 그대로 보고, HTML 소스에도 남아 SEO 영향이 없다.
+        배경도 테마에 맞춰 미리 칠해, 로딩 동안 흰 화면이 번쩍이지 않게 한다
+        (Emotion이 뜨면 `:root`가 더 높은 우선순위로 --sb-bg를 덮는다).
+      */
+      html {
+        background: #f4f7f9;
+      }
+      @media (prefers-color-scheme: dark) {
+        html:not([data-theme='light']) {
+          background: #0f151c;
+        }
+      }
+      .js .app-shell-fallback {
+        display: none;
+      }
     </style>
+    <script>
+      // JS 사용 환경 표시 → 위 CSS가 프리렌더 폴백을 감춰 텍스트 플래시를 없앤다.
+      document.documentElement.classList.add('js');
+    </script>
   </head>
   <body>
     <!--
@@ -168,14 +232,18 @@
       <div class="app-shell-fallback">
         <h1>Snowball Income — 배당 재투자 시뮬레이터</h1>
         <p>
-          배당주·ETF로 포트폴리오를 구성하고, 받은 배당을 다시 투자했을 때 자산과 월 배당이 어떻게 불어나는지
-          시뮬레이션하는 무료 웹 계산기입니다. 초기 투자금·월 투자금·배당률·배당 성장률·투자 기간·세율을 입력하면
-          연도별 자산 추이, 세후 배당 현금흐름, 목표 월 배당 도달 시점을 계산해 보여줍니다.
+          배당주·ETF로 포트폴리오를 구성하고, 받은 배당을 다시 투자했을 때
+          자산과 월 배당이 어떻게 불어나는지 시뮬레이션하는 무료 웹
+          계산기입니다. 초기 투자금·월 투자금·배당률·배당 성장률·투자
+          기간·세율을 입력하면 연도별 자산 추이, 세후 배당 현금흐름, 목표 월
+          배당 도달 시점을 계산해 보여줍니다.
         </p>
 
         <h2>주요 기능</h2>
         <ul>
-          <li>배당 재투자(스노우볼) 효과 시뮬레이션 — 당월/익월 재투자 시점 선택</li>
+          <li>
+            배당 재투자(스노우볼) 효과 시뮬레이션 — 당월/익월 재투자 시점 선택
+          </li>
           <li>여러 종목의 포트폴리오 비중 조절 및 특정 종목 비율 고정</li>
           <li>목표 월 배당 도달 시점 계산</li>
           <li>연도별 자산·배당 추이와 월별 실지급 배당 확인</li>
@@ -185,10 +253,16 @@
 
         <h2>사용 방법</h2>
         <ol>
-          <li>추천 포트폴리오를 고르거나 티커를 직접 만들어 종목을 추가합니다.</li>
+          <li>
+            추천 포트폴리오를 고르거나 티커를 직접 만들어 종목을 추가합니다.
+          </li>
           <li>포트폴리오 구성에서 종목별 비중을 조절합니다.</li>
-          <li>초기 투자금·월 투자금·투자 기간·세율 등 투자 설정을 입력합니다.</li>
-          <li>최종 자산, 월 배당, 목표 도달 시점 등 시뮬레이션 결과를 확인합니다.</li>
+          <li>
+            초기 투자금·월 투자금·투자 기간·세율 등 투자 설정을 입력합니다.
+          </li>
+          <li>
+            최종 자산, 월 배당, 목표 도달 시점 등 시뮬레이션 결과를 확인합니다.
+          </li>
         </ol>
 
         <!--
@@ -199,12 +273,14 @@
         <!--SNOWBALL_STATIC_EXAMPLE-->
 
         <p class="disclaimer">
-          이 앱은 입력한 가정을 그대로 계산해 보여주는 시뮬레이터입니다. 투자 자문이 아니며, 참고용으로만 사용해
-          주세요. 실제 수익률과 배당은 시장 상황에 따라 달라집니다.
+          이 앱은 입력한 가정을 그대로 계산해 보여주는 시뮬레이터입니다. 투자
+          자문이 아니며, 참고용으로만 사용해 주세요. 실제 수익률과 배당은 시장
+          상황에 따라 달라집니다.
         </p>
         <noscript>
           <p class="disclaimer">
-            시뮬레이터를 직접 사용하려면 브라우저에서 JavaScript를 활성화해 주세요.
+            시뮬레이터를 직접 사용하려면 브라우저에서 JavaScript를 활성화해
+            주세요.
           </p>
         </noscript>
       </div>

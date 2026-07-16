@@ -2,20 +2,21 @@ import styled from '@emotion/styled';
 import { color, font, motion, radius, space } from '@/shared/styles';
 
 /**
- * 탭.
+ * 탭 — 세그먼트(칩) 스타일.
  *
- * 예전엔 활성 탭이 "카드 모서리를 아래 패널에 이어붙이는" 방식이라 경계선을 덮는 ::after 트릭이
- * 필요했고, 결과적으로 지저분했다. 활성 표시를 **밑줄(브랜드 2px)** 로 바꿨다:
- *  - 마크업이 단순해지고(경계선 덮기 불필요)
- *  - 활성 탭이 어디인지 훨씬 빨리 읽힌다
- *  - 탭이 가로 스크롤될 때도 깨지지 않는다
+ * 활성 탭만 강조되고 비활성은 밋밋해 "누를 수 있는지" 읽기 어려웠다. 그래서 **모든 탭에** 은은한
+ * 배경 + 1px 테두리를 주는 칩 형태로 바꿨다:
+ *  - 비활성: `surfaceMuted` 배경 + `border` 테두리 + `textSecondary` (조각처럼 보이되 차분하게)
+ *  - 활성: 브랜드 틴트(`brandSubtle` 배경 + `brandBorder` + `brandText`)로 확실히 구분
+ *  - 아이콘은 `currentColor`라 활성 탭에선 브랜드 액센트 색을 자연스럽게 따른다
+ *  - 라이트/다크 모두 semantic 토큰으로 대비가 유지되고, 가로 스크롤에도 깨지지 않는다
  */
 
 export const TabList = styled.div`
   display: flex;
   align-items: stretch;
-  gap: ${space[1]};
-  border-bottom: 1px solid ${color.border};
+  gap: ${space[2]};
+  /* 밑줄 인디케이터/트랙 없음 — 활성/비활성은 칩(배경·테두리·텍스트)으로만 구분한다. */
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
@@ -29,12 +30,15 @@ export const TabList = styled.div`
 export const TabButton = styled.button<{ active?: boolean }>`
   position: relative;
   flex: 0 0 auto;
-  border: 0;
-  /* 밑줄 자리를 항상 확보해서 활성/비활성 전환 시 텍스트가 1px 튀지 않게 한다. */
-  border-bottom: 2px solid ${({ active }) => (active ? color.brand : 'transparent')};
-  background: transparent;
-  color: ${({ active }) => (active ? color.brandText : color.textMuted)};
-  border-radius: ${radius.xs} ${radius.xs} 0 0;
+  /* 아이콘(선택) + 라벨을 가로로 정렬한다. 라벨만 있을 땐 gap이 관여하지 않아 기존과 동일하다. */
+  display: inline-flex;
+  align-items: center;
+  gap: ${space[1]};
+  /* 비활성도 은은한 배경+테두리로 '조각'처럼. 활성은 브랜드 틴트로 확실히 구분. */
+  border: 1px solid ${({ active }) => (active ? color.brandBorder : color.border)};
+  background: ${({ active }) => (active ? color.brandSubtle : color.surfaceMuted)};
+  color: ${({ active }) => (active ? color.brandText : color.textSecondary)};
+  border-radius: ${radius.sm};
   padding: ${space[2]} ${space[4]};
   min-height: 40px;
   font-family: inherit;
@@ -47,12 +51,20 @@ export const TabButton = styled.button<{ active?: boolean }>`
     background-color ${motion.fast} ${motion.ease};
 
   &:hover:not(:disabled) {
-    color: ${color.text};
-    background: ${color.surfaceHover};
+    border-color: ${color.brandBorder};
+    background: ${({ active }) => (active ? color.brandSubtleHover : color.surfaceHover)};
+    color: ${({ active }) => (active ? color.brandText : color.text)};
   }
 
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+
+  /* 탭 아이콘은 라벨 크기에 맞춘다(라벨 없이 아이콘만 쓰는 탭이 없어 1em 기준으로 충분). */
+  svg {
+    width: 1.15em;
+    height: 1.15em;
+    flex: 0 0 auto;
   }
 `;

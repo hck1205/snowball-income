@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
+// per-icon named import → 이 아이콘들만 번들에 포함된다(트리셰이킹). 기본 SVG/탭 아이콘을 lucide로.
+import { LayoutGrid, Pencil, Search } from 'lucide-react';
 import { Button, FrequencySelect, InputField } from '@/components';
 import { PRESET_TICKER_KOREAN_NAME_BY_TICKER } from '@/shared/constants';
 import type { Frequency } from '@/shared/types';
@@ -142,6 +144,7 @@ export default function TickerModalView({
               setActiveTab('preset');
             }}
           >
+            <LayoutGrid size={15} aria-hidden focusable={false} />
             프리셋
           </ModalTabButton>
           <ModalTabButton
@@ -157,7 +160,8 @@ export default function TickerModalView({
               setActiveTab('input');
             }}
           >
-            입력
+            <Pencil size={15} aria-hidden focusable={false} />
+            직접 입력
           </ModalTabButton>
           {SHOW_SEARCH_TAB ? (
             <ModalTabButton
@@ -253,10 +257,7 @@ export default function TickerModalView({
           <InlineField>
             <ModalTickerSearchWrap>
               <ModalTickerSearchIcon aria-hidden="true">
-                <svg viewBox="0 0 24 24">
-                  <circle cx="11" cy="11" r="7" />
-                  <path d="m20 20-4-4" />
-                </svg>
+                <Search size={14} aria-hidden focusable={false} />
               </ModalTickerSearchIcon>
               <ModalTickerSearchInput
                 type="text"
@@ -351,10 +352,7 @@ export default function TickerModalView({
           <>
             <ModalTickerSearchWrap>
               <ModalTickerSearchIcon aria-hidden="true">
-                <svg viewBox="0 0 24 24">
-                  <circle cx="11" cy="11" r="7" />
-                  <path d="m20 20-4-4" />
-                </svg>
+                <Search size={14} aria-hidden focusable={false} />
               </ModalTickerSearchIcon>
               <ModalTickerSearchInput
                 type="text"

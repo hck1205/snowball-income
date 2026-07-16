@@ -17,6 +17,7 @@ import {
 } from './TourGuide.utils';
 import {
   LaunchDot,
+  LaunchLabel,
   LaunchSlot,
   TourActions,
   TourBody,
@@ -55,12 +56,12 @@ const prefersReducedMotion = (): boolean => {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 };
 
-/** 나침반 — 도움말 물음표(`?`)와 확실히 구분되는, "안내받으며 둘러보기"의 기호. */
-const CompassIcon = () => (
+/** 학사모 — 도움말 물음표(`?`)와 구분되는, "가이드 투어(둘러보며 배우기)"의 기호. */
+const TourLaunchIcon = () => (
   <svg
     viewBox="0 0 24 24"
-    width="18"
-    height="18"
+    width="16"
+    height="16"
     fill="none"
     stroke="currentColor"
     strokeWidth="1.6"
@@ -69,8 +70,10 @@ const CompassIcon = () => (
     aria-hidden="true"
     focusable="false"
   >
-    <circle cx="12" cy="12" r="9" />
-    <path d="M15.6 8.4 13.7 13.7 8.4 15.6l1.9-5.3z" />
+    <path d="M12 4 1.5 9 12 14l10.5-5L12 4Z" />
+    <path d="M6 11v4.2c0 1.5 2.7 2.8 6 2.8s6-1.3 6-2.8V11" />
+    <path d="M22.5 9v4.5" />
+    <circle cx="22.5" cy="15.2" r="0.9" fill="currentColor" stroke="none" />
   </svg>
 );
 
@@ -324,14 +327,14 @@ function TourGuideComponent({ steps = TOUR_STEPS, storageKey = TOUR_STORAGE_KEY 
       <LaunchSlot>
         <Button
           ref={launchRef}
-          variant="ghost"
+          variant="secondary"
           size="sm"
-          iconOnly
+          startIcon={<TourLaunchIcon />}
           aria-label="튜토리얼 시작"
           data-tour-launch="true"
           onClick={startTour}
         >
-          <CompassIcon />
+          <LaunchLabel>튜토리얼</LaunchLabel>
         </Button>
         {hasSeenTour ? null : <LaunchDot data-first-visit="true" aria-hidden="true" />}
       </LaunchSlot>
