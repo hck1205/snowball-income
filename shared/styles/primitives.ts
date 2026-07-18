@@ -19,50 +19,122 @@
  * - 순수 네이비(#1d4ed8 류)는 은행·보험 UI에서 너무 흔하고 차갑기만 하다.
  * - 청록으로 더 가면(teal) 핀테크보다 헬스케어처럼 읽힌다.
  * hue 200은 얼음/눈의 차가움을 가지면서도 파랑의 신뢰감을 잃지 않는다.
+ *
+ * "빙하 위의 오로라" 리스타일에서 채도를 한 단계 증폭했다(HSL 채도 ~68% → ~87%).
+ * 구 brand[500](#1f7ba5) 대비 ΔE 7.8 — 정체성은 이어지고 선명해진다.
  */
 const brand = {
-  50: '#eff7fb',
-  100: '#d9ecf6',
-  200: '#b6dbec',
-  /** 다크 포커스 링 / 다크 brand-text — 다크 서피스 대비 8.7:1 */
-  300: '#88c2de',
-  400: '#52a4cb',
-  /** 다크 brand solid + 라이트 포커스 링. 흰 라벨 대비 4.73:1 로 AA를 넘긴다. */
-  500: '#1f7ba5',
-  /** 라이트 brand solid. 흰 라벨 대비 5.73:1 */
-  600: '#136d97',
-  700: '#0f587a',
-  800: '#114961',
-  900: '#123d52'
+  50: '#eaf6fd',
+  100: '#d3ecf9',
+  200: '#aadcf2',
+  /** 다크 포커스 링 / 다크 brand-text — 다크 서피스 대비 8.60:1 */
+  300: '#79c5e6',
+  /** 다크 brand-hover, 다크 리본 stop-1 — 다크 서피스 대비 5.90:1 */
+  400: '#3ba5d3',
+  /**
+   * 다크 brand solid + 라이트 포커스 링 + 차트 시리즈 0.
+   * 흰 라벨 4.61:1, 라이트 surface 4.61:1, 다크 surface 3.57:1.
+   */
+  500: '#0c7cb3',
+  /** 라이트 brand solid, 리본/CTA stop-1. 흰 라벨 대비 5.63:1 */
+  600: '#0a6da3',
+  /** 라이트 brand-text·brand-hover. 흰 배경 7.42:1, brand-subtle 위 6.75:1 */
+  700: '#085a88',
+  800: '#0a4a6e',
+  900: '#0d3d5a'
 } as const;
 
 /**
- * 중립 — 파랑이 아주 살짝 섞인 쿨 슬레이트.
+ * 오로라 teal — 성장·복리·상승 "흐름"의 크롬 색. hue ~172. (신규)
+ *
+ * 데이터 상승색이 **아니다** — 상승/하락 숫자는 계속 up/down 램프(한국 관례 적색/청색).
+ * 이 램프는 오로라 리본·액센트 배지 같은 크롬(장식)에만 쓴다. 숫자 데이터에 금지.
+ */
+const auroraTeal = {
+  /** 라이트 accent-subtle — text 위 14.74:1, accent-text 위 5.72:1 */
+  50: '#e0f7f1',
+  /** 라이트 accent-border(장식) */
+  200: '#93ddcd',
+  /** 다크 accent(표시)·accent-text·다크 리본 stop-2 — 다크 surface 8.87:1 */
+  400: '#2dd4bf',
+  /** 라이트 accent(표시)·라이트 리본 stop-2 — 라이트 surface 3.74:1(비텍스트) */
+  600: '#0d9488',
+  /** CTA 그라데이션 중간 stop(양 테마 공용) — 흰 라벨 4.83:1. 1도 못 움직인다. */
+  650: '#0e8070',
+  /** 라이트 accent-text — 흰 배경 6.41:1 */
+  700: '#0b6b5d',
+  /** 다크 accent-border(장식) */
+  800: '#1f5a52',
+  /** 다크 accent-subtle — text 위 12.89:1 */
+  900: '#0e2b2a'
+} as const;
+
+/**
+ * 오로라 violet — 목표·하이라이트의 크롬 색. hue ~243. (신규)
+ *
+ * 차트 시리즈 4의 보라(#8b6fc9)와는 별개 — 시리즈 팔레트는 불변이다.
+ * auroraTeal과 마찬가지로 크롬 전용, 숫자 데이터에 금지.
+ */
+const auroraViolet = {
+  /** 라이트 accent-alt-subtle — text 위 14.47:1 */
+  50: '#eeeffd',
+  /** 라이트 accent-alt-border(장식) */
+  200: '#c8cdf8',
+  /** 다크 accent-alt-text — 다크 surface 8.05:1 */
+  300: '#a7b0fb',
+  /** 다크 accent-alt(표시)·다크 리본 stop-3 — 다크 surface 5.53:1 */
+  400: '#818cf8',
+  /** 라이트 accent-alt(표시)·라이트 리본 stop-3 — 라이트 surface 4.93:1 */
+  500: '#6d5ae6',
+  /** 다크 CTA stop-3 — 흰 라벨 5.18:1 */
+  550: '#6259e2',
+  /** 라이트 CTA stop-3 — 흰 라벨 5.69:1 */
+  600: '#5a51e0',
+  /** 라이트 accent-alt-text — 흰 배경 6.75:1 */
+  700: '#4f46cf',
+  /** 다크 accent-alt-border(장식) */
+  800: '#454e8f',
+  /** 다크 accent-alt-subtle — text 위 11.93:1 */
+  900: '#232a4d'
+} as const;
+
+/**
+ * 중립 — ice-white / polar-night. 파랑 틴트를 증폭한 쿨 슬레이트.
  * 완전 무채색 회색은 브랜드 블루 옆에서 누렇게(따뜻하게) 보인다.
+ * 950이 #0a1220으로 깊어지면서 850/900과 다크 서피스 사다리를 전부 재계산했다.
  */
 const neutral = {
   0: '#ffffff',
-  25: '#fafbfc',
-  50: '#f4f7f9',
-  100: '#eaeff4',
-  150: '#e2e8ee',
-  200: '#d7dfe7',
-  300: '#c2ccd7',
-  400: '#9aa7b4',
+  25: '#f9fbfd',
+  /** ice-white — 라이트 bg·surface-hover */
+  50: '#edf4fa',
+  100: '#e6eef7',
+  /** 라이트 border(장식) — surface 대비 1.26:1 (>1.05) */
+  150: '#dbe6f0',
+  200: '#cfdcea',
+  300: '#b7c7d9',
+  400: '#91a2b6',
   /**
-   * 컨트롤 경계선(input/select/버튼). 흰 배경 대비 3.30:1 로 WCAG 1.4.11(비텍스트 3:1)을 만족한다.
-   * 흔한 회색 경계선(#d1d5db 류, ~1.6:1)은 이 기준을 통과하지 못한다 — 의도적으로 더 진하게 잡았다.
+   * 컨트롤 경계선(input/select/버튼). 흰 배경 3.76:1, ice-white 3.39:1 로
+   * WCAG 1.4.11(비텍스트 3:1)을 만족한다. 구 값(#828f9c)은 새 ice-white 위에서
+   * 2.97:1로 탈락해 어둡게 조정했다.
    */
-  450: '#828f9c',
-  /** 보조 텍스트(캡션/힌트). 흰 배경 5.43:1 — 작은 글씨라 4.5:1을 넘겨야 한다. */
-  500: '#5f6b78',
-  /** 2차 텍스트(라벨). 흰 배경 7.49:1 */
-  600: '#4a5663',
-  700: '#3f4a56',
-  800: '#29323c',
-  850: '#1e262f',
-  900: '#161d26',
-  950: '#0f151c'
+  450: '#75859a',
+  /**
+   * 보조 텍스트(캡션/힌트). 흰 5.92:1, sunken 5.06:1,
+   * 배경 오로라 글로우 최악 지점(#dae7f2) 위 4.70:1 — 작은 글씨라 4.5:1을 넘겨야 한다.
+   */
+  500: '#536679',
+  /** 2차 텍스트(라벨). 흰 배경 7.63:1 */
+  600: '#43556b',
+  700: '#38495e',
+  800: '#253243',
+  /** 다크 surface-raised */
+  850: '#1b2a44',
+  /** 다크 surface = 라이트 text (이중 용도 유지) */
+  900: '#131f33',
+  /** polar-night — 다크 bg */
+  950: '#0a1220'
 } as const;
 
 /**
@@ -112,7 +184,7 @@ const danger = {
   dark: '#f0776a'
 } as const;
 
-export const palette = { brand, neutral, up, down, positive, warning, danger } as const;
+export const palette = { brand, auroraTeal, auroraViolet, neutral, up, down, positive, warning, danger } as const;
 
 /* -------------------------------------------------------------------------- */
 /* 스케일                                                                       */
@@ -159,14 +231,18 @@ export const FONT_SIZE_SCALE = {
   '2xl': '20px',
   '3xl': '24px',
   '4xl': '30px',
-  '5xl': '38px'
+  '5xl': '38px',
+  /** hero 지표 값 상한 (clamp 상한으로 쓴다) */
+  '6xl': '44px'
 } as const;
 
 export const FONT_WEIGHT_SCALE = {
   regular: 400,
   medium: 500,
   semibold: 600,
-  bold: 700
+  bold: 700,
+  /** hero 지표 값 전용. Pretendard Variable이 800을 지원한다. */
+  extrabold: 800
 } as const;
 
 export const LEADING_SCALE = {

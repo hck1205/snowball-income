@@ -1,7 +1,7 @@
 import type { TickerProfile } from '@/shared/types/snowball';
 import type { MonthlySnapshot, SimulationOutput, SimulationResult, YieldFormValues } from '@/shared/types';
-import { ALLOCATION_COLORS } from '@/shared/constants';
 import { getTickerDisplayName } from '@/shared/utils';
+import { getChartTheme } from '@/shared/styles';
 import { computeCapitalGains, findFinancialIncomeThresholdYear, runSimulation, toPriceGrowth } from '@/shared/lib/snowball';
 import type { NormalizedAllocationItem } from './portfolio';
 
@@ -256,6 +256,12 @@ export const buildSimulationBundle = ({
 
   const baseMonthly = outputs[0]?.output.monthly ?? [];
   const years = Array.from(new Set(baseMonthly.map((row) => row.year))).sort((left, right) => left - right);
+  /*
+   * 티커별 스택 색 = 현재 프리셋의 차트 시리즈 세트 (포트폴리오 파이·범례 점과 같은 인덱스 규칙 % 8).
+   * 캔버스라 var()를 못 쓰므로 빌드 시점에 해석한다 — 프리셋 전환 시 useMainComputed가
+   * palettePresetAtom 의존성으로 번들을 다시 빌드해 색을 갱신한다.
+   */
+  const seriesColors = getChartTheme().series;
   const byYear = years.reduce<YearlyCashflowByTicker['byYear']>((acc, year) => {
     const months = Array.from({ length: 12 }, (_v, index) => `${index + 1}월`);
     const series = outputs.map((item, index) => {
@@ -268,7 +274,7 @@ export const buildSimulationBundle = ({
       return {
         name: getTickerDisplayName(item.ticker, item.name),
         data: Array.from({ length: 12 }, (_m, monthIndex) => monthlyMap[monthIndex + 1] ?? 0),
-        color: ALLOCATION_COLORS[index % ALLOCATION_COLORS.length]
+        color: seriesColors[index % seriesColors.length]
       };
     });
 

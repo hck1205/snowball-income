@@ -1,6 +1,7 @@
 export {
   BREAKPOINT,
   CHART_SERIES,
+  CHART_SERIES_VARS,
   DARK_THEME,
   LIGHT_THEME,
   TOUCH_TARGET,
@@ -19,7 +20,10 @@ export {
 } from './tokens';
 export type { BreakpointKey, ThemeTokens } from './tokens';
 
+export { DEFAULT_THEME_PRESET, THEME_PRESETS } from './presets';
+export type { ThemePreset } from './presets';
+
 export { globalStyles } from './globalStyles';
 
-export { buildAxisStyle, buildLegendStyle, buildTooltipStyle, getChartTheme } from './chartTheme';
+export { buildAxisStyle, buildLegendStyle, buildTooltipStyle, getChartTheme, hexToRgba } from './chartTheme';
 export type { ChartTheme } from './chartTheme';

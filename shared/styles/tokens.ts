@@ -11,10 +11,10 @@
  * - Emotion `ThemeProvider`를 쓰지 않는다. 공용 컴포넌트 테스트가 Provider 없이 단독 렌더되기 때문에
  *   `theme`이 비어 크래시한다. CSS 변수는 Provider가 필요 없고, `prefers-color-scheme` 다크 전환도
  *   리렌더 없이 동작한다.
- * - 캔버스(ECharts)는 `var()`를 읽지 못하므로 실제 hex가 필요하다 → `CHART_SERIES` / `chartTheme.ts` 참고.
+ * - 캔버스(ECharts)는 `var()`를 읽지 못하므로 실제 hex가 필요하다 → `getChartTheme().series`(chartTheme.ts) 참고.
  */
 
-import { FONT_SIZE_SCALE, FONT_WEIGHT_SCALE, LEADING_SCALE, RADIUS_SCALE, SPACE_SCALE, palette } from './primitives';
+import { FONT_SIZE_SCALE, FONT_WEIGHT_SCALE, LEADING_SCALE, RADIUS_SCALE, SPACE_SCALE } from './primitives';
 
 export { palette } from './primitives';
 export { color, elevation, DARK_THEME, LIGHT_THEME, toCssVars } from './semantic';
@@ -89,6 +89,8 @@ export const shadow = {
 export const motion = {
   fast: '150ms',
   base: '200ms',
+  /** 오케스트레이션된 순간 전용(진행률 바 채움 등). 상태 피드백에는 fast/base를 쓴다. */
+  slow: '450ms',
   ease: 'cubic-bezier(0.2, 0, 0, 1)'
 } as const;
 
@@ -106,32 +108,35 @@ export const zIndex = {
 } as const;
 
 /* -------------------------------------------------------------------------- */
-/* 차트 시리즈 팔레트 (캔버스용 raw hex — var() 사용 불가)                        */
+/* 차트 시리즈 팔레트                                                            */
 /* -------------------------------------------------------------------------- */
 
 /**
- * 8색 카테고리 팔레트. 시리즈 0은 브랜드 램프에서 가져와 차트와 UI가 같은 시스템처럼 보이게 한다.
- * 나머지는 채도를 낮춰(네온 금지) 데이터가 주인공이 되도록 절제한다.
- *
- * 두 개의 제약을 **동시에** 만족해야 한다 (`contrast.test.ts`가 강제):
- *  1. 캔버스는 테마별로 색을 못 바꾼다 → 한 세트로 라이트(#ffffff)·다크(#161d26) 양쪽에서 대비 3:1 이상
+ * 8색 카테고리 팔레트. 두 개의 제약을 **동시에** 만족해야 한다 (`contrast.test.ts`가 강제):
+ *  1. 캔버스는 테마별로 색을 못 바꾼다 → 한 세트로 라이트·다크 surface 양쪽에서 대비 3:1 이상
  *     (WCAG 1.4.11 non-text contrast).
  *  2. 시리즈끼리 지각적으로 구분 → 모든 쌍 ΔE ≥ 20.
  *
  * 왜 ΔE 25가 아니라 20인가: 위 1번이 색을 **중간 명도 띠**에 가둔다. 그 좁은 공간 안에서
  * 저채도 8색을 뽑으면 25는 물리적으로 불가능하고, 억지로 밀어내면 네온(#e024e0 류)이 된다.
- * ΔE 20은 나란히 놓았을 때 확실히 다른 색으로 읽히는 거리다.
  *
- * 순서도 의미가 있다: 가장 가까운 쌍(azure↔slate, ΔE 22.9)을 인덱스상 가장 멀리 배치해서
- * 실제로 인접 배치될 확률을 낮췄다.
+ * 팔레트 프리셋 도입 후에는 프리셋마다 자기 세트를 갖는다(`--sb-chart-series-0..7`,
+ * `presets.ts`). 캔버스(옵션 빌드)는 **`getChartTheme().series`** 를, DOM(범례 점 등)은
+ * 아래 `CHART_SERIES_VARS`를 쓴다 — 그래야 프리셋 전환을 따라간다.
  */
-export const CHART_SERIES = [
-  palette.brand[500], // #1f7ba5 azure — 자산 가치(주인공)
-  '#c26d22', // orange
-  '#47955e', // green
-  '#cf5f7d', // rose
-  '#8b6fc9', // violet
-  '#9a7b14', // olive
-  '#9c4f92', // plum
-  '#6b7785' // slate — 기준선(누적 투자금)
-] as const;
+
+/**
+ * @deprecated aurora 프리셋 고정 세트 — 프리셋 전환을 따라가지 **않는다**.
+ * 캔버스는 `getChartTheme().series`, DOM은 `CHART_SERIES_VARS`를 쓴다.
+ * (기존 import·jsdom 결정성 하위 호환을 위해 값 그대로 유지)
+ */
+export { AURORA_CHART_SERIES as CHART_SERIES } from './presets';
+
+/**
+ * DOM 전용 차트 시리즈 참조 (`var(--sb-chart-series-N)`) — 범례 점 등 HTML 요소에서 쓴다.
+ * CSS 변수라 프리셋 전환·다크 전환을 리렌더 없이 따라간다. 캔버스(ECharts)에는 못 쓴다.
+ */
+export const CHART_SERIES_VARS: readonly string[] = Array.from(
+  { length: 8 },
+  (_, index) => `var(--sb-chart-series-${index})`
+);

@@ -15,6 +15,7 @@ import { ChipButton, ChipLabel, ChipRemove, ChipRoot } from './Chip.styled';
 export default function Chip({
   children,
   selected,
+  variant,
   disabled,
   onClick,
   onRemove,
@@ -38,10 +39,12 @@ export default function Chip({
   // 클릭 가능 + 제거 가능: 바깥을 span으로 두고 안에 버튼 두 개를 나란히 둔다.
   if (onClick && onRemove) {
     return (
-      <ChipRoot selected={selected} disabled={disabled} title={title}>
+      <ChipRoot selected={selected} variant={variant} disabled={disabled} title={title}>
         <ChipButton
           type="button"
           selected={selected}
+          // 라벨 색은 안쪽 버튼이 그린다 — variant를 빠뜨리면 accent 틴트 배경 위에서 색이 어긋난다.
+          variant={variant}
           disabled={disabled}
           onClick={onClick}
           // 바깥 ChipRoot가 이미 칩의 껍데기라 안쪽 버튼의 테두리는 지운다.
@@ -56,14 +59,14 @@ export default function Chip({
 
   if (onClick) {
     return (
-      <ChipButton type="button" selected={selected} disabled={disabled} onClick={onClick} title={title}>
+      <ChipButton type="button" selected={selected} variant={variant} disabled={disabled} onClick={onClick} title={title}>
         <ChipLabel>{children}</ChipLabel>
       </ChipButton>
     );
   }
 
   return (
-    <ChipRoot selected={selected} disabled={disabled} title={title}>
+    <ChipRoot selected={selected} variant={variant} disabled={disabled} title={title}>
       <ChipLabel>{children}</ChipLabel>
       {removeButton}
     </ChipRoot>

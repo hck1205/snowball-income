@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, motion, radius, space } from '@/shared/styles';
+import { color, font, motion, radius, shadow, space } from '@/shared/styles';
 import type { ButtonSize, ButtonVariant } from './Button.types';
 
 /**
@@ -16,14 +16,21 @@ const SIZE = {
 } as const;
 
 const VARIANT: Record<ButtonVariant, string> = {
+  /*
+   * primary만 오로라 CTA 리본을 쓴다(gradient-cta — 모든 stop이 흰 라벨 ≥ 4.5:1).
+   * hover는 색을 바꾸지 않고 background-position만 움직인다 → 라벨 대비가 어떤 순간에도 불변.
+   * 표시용 gradient-aurora를 여기 쓰면 안 된다(#2dd4bf 위 흰 라벨 1.9:1로 탈락).
+   */
   primary: `
-    border-color: ${color.brand};
-    background: ${color.brand};
+    border-color: transparent;
+    background-image: ${color.gradientCta};
+    background-size: 160% 160%;
+    background-position: 0% 0%;
     color: ${color.onBrand};
 
     &:hover:not(:disabled) {
-      background: ${color.brandHover};
-      border-color: ${color.brandHover};
+      background-position: 100% 100%;
+      box-shadow: ${shadow.e2};
     }
   `,
   secondary: `
@@ -85,7 +92,8 @@ export const StyledButton = styled.button<{
   cursor: pointer;
   touch-action: manipulation;
   transition: background-color ${motion.fast} ${motion.ease}, border-color ${motion.fast} ${motion.ease},
-    color ${motion.fast} ${motion.ease}, box-shadow ${motion.fast} ${motion.ease};
+    color ${motion.fast} ${motion.ease}, box-shadow ${motion.fast} ${motion.ease},
+    background-position ${motion.base} ${motion.ease};
 
   ${({ variant }) => VARIANT[variant]};
 

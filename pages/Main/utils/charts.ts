@@ -2,13 +2,13 @@ import type { EChartsOption } from 'echarts';
 import type { SimulationResult } from '@/shared/types';
 import { formatKRW, getTickerDisplayName } from '@/shared/utils';
 import {
-  ALLOCATION_COLORS,
-  YEARLY_SERIES_COLOR,
   YEARLY_SERIES_LABEL,
   YEARLY_SERIES_ORDER,
+  getYearlySeriesColor,
   type YearlySeriesKey
 } from '@/shared/constants';
-import { buildAxisStyle, buildLegendStyle, buildTooltipStyle, getChartTheme } from '@/shared/styles';
+import { buildAxisStyle, buildLegendStyle, buildTooltipStyle, getChartTheme, hexToRgba } from '@/shared/styles';
+import type { ChartTheme } from '@/shared/styles';
 import { formatApproxKRW } from './formatters';
 import type { NormalizedAllocationItem } from './portfolio';
 import type { RecentCashflowByTicker } from './simulation';
@@ -40,6 +40,28 @@ const tooltipPosition = (
 };
 
 const defaultAxisValueFormatter = (value: number) => formatKRW(value);
+
+/**
+ * 오로라 area 필 (§디자인 스펙 3.2) — hero 시리즈(라인 차트 주 시리즈, 연간 차트 assetValue)에만 쓴다.
+ *
+ * 위→아래 수직 그라데이션: 글레이셔 애저(brand 0.30) → 오로라 teal 기운(accent 0.10) → 투명.
+ * 캔버스라 `var()`를 못 쓰므로 `getChartTheme()`이 해석한 실제 색을 `hexToRgba`로 조립한다.
+ * teal은 장식(투명도 ≤0.30)일 뿐 데이터 방향(상승) 의미가 아니다 — 상승/하락은 계속 up/down 램프.
+ */
+const buildAuroraAreaStyle = (theme: ChartTheme) => ({
+  color: {
+    type: 'linear' as const,
+    x: 0,
+    y: 0,
+    x2: 0,
+    y2: 1,
+    colorStops: [
+      { offset: 0, color: hexToRgba(theme.brand, 0.3) },
+      { offset: 0.62, color: hexToRgba(theme.accent, 0.1) },
+      { offset: 1, color: hexToRgba(theme.accent, 0) }
+    ]
+  }
+});
 
 export const buildLineChartOption = <TRow>({
   rows,
@@ -93,7 +115,7 @@ export const buildLineChartOption = <TRow>({
         showSymbol: false,
         lineStyle: { width: 2, color: theme.brand },
         itemStyle: { color: theme.brand },
-        areaStyle: { color: theme.brand, opacity: 0.14 },
+        areaStyle: buildAuroraAreaStyle(theme),
         data: rows.map((row) => getYValue(row))
       }
     ]
@@ -187,7 +209,8 @@ export const buildAllocationPieOption = ({
         data: normalizedAllocation.map(({ profile, weight }, index) => ({
           name: getTickerDisplayName(profile.ticker, profile.name),
           value: Number((weight * 100).toFixed(4)),
-          itemStyle: { color: ALLOCATION_COLORS[index % ALLOCATION_COLORS.length] }
+          /* 현재 프리셋의 시리즈 세트 — DOM 범례 점(CHART_SERIES_VARS)과 같은 인덱스 규칙(% 8) */
+          itemStyle: { color: theme.series[index % theme.series.length] }
         }))
       }
     ]
@@ -301,9 +324,14 @@ export const buildYearlyResultBarOption = ({
       name: YEARLY_SERIES_LABEL[key],
       smooth: true,
       showSymbol: false,
-      lineStyle: { width: 2, color: YEARLY_SERIES_COLOR[key] },
-      itemStyle: { color: YEARLY_SERIES_COLOR[key] },
-      areaStyle: isYearlyAreaFillOn ? { color: YEARLY_SERIES_COLOR[key], opacity: 0.15 } : undefined,
+      lineStyle: { width: 2, color: getYearlySeriesColor(theme.series, key) },
+      itemStyle: { color: getYearlySeriesColor(theme.series, key) },
+      /* 오로라 필은 assetValue(hero 시리즈)만 — 모든 시리즈에 깔면 겹침 영역을 읽을 수 없다. */
+      areaStyle: isYearlyAreaFillOn
+        ? key === 'assetValue'
+          ? buildAuroraAreaStyle(theme)
+          : { color: getYearlySeriesColor(theme.series, key), opacity: 0.15 }
+        : undefined,
       data: tableRows.map((row) => row[key])
     }))
   };

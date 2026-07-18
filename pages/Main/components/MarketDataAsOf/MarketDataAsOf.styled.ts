@@ -2,8 +2,8 @@ import styled from '@emotion/styled';
 import { color, font, space } from '@/shared/styles';
 
 /**
- * 눈에 띄지 않게, 그러나 읽히게. `textMuted`(#64748b)는 앱 배경(#f2f5f8) 위에서 4.35:1 로
- * WCAG AA(4.5:1)에 못 미치므로 `textSecondary`를 쓴다(라이트 6.4:1, 다크 8.7:1).
+ * 눈에 띄지 않게, 그러나 읽히게. 당시의 `textMuted`는 앱 배경 위에서 WCAG AA(4.5:1)에
+ * 못 미쳐 `textSecondary`를 쓴다 — 토큰 값이 바뀌어도 더 진한 단계라 항상 안전 마진이 있다.
  */
 export const MarketDataFootnote = styled.footer`
   margin: 0;

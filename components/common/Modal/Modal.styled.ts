@@ -33,7 +33,11 @@ export const ModalBackdrop = styled.div`
 export const ModalPanel = styled.section`
   width: min(520px, 100%);
   max-height: min(88vh, 760px);
-  background: ${color.surfaceRaised};
+  /*
+   * 서리유리(§4.7) — 폴백 불투명색을 먼저 깔고, 지원 브라우저에서만 글래스로 승격한다.
+   * 다크 글래스 알파는 0.85 미만 금지(0.78에서는 밝은 teal 위 text-secondary 4.41:1로 탈락 실측).
+   */
+  background: ${color.surfaceGlassFallback};
   border: 1px solid ${color.border};
   border-radius: ${radius.lg};
   padding: ${space[5]};
@@ -44,6 +48,12 @@ export const ModalPanel = styled.section`
   scrollbar-gutter: stable;
   box-shadow: ${shadow.e3};
   color: ${color.text};
+
+  @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+    background: ${color.surfaceGlass};
+    -webkit-backdrop-filter: blur(14px) saturate(1.35);
+    backdrop-filter: blur(14px) saturate(1.35);
+  }
 
   @media (prefers-reduced-motion: no-preference) {
     animation: sb-modal-rise ${motion.base} ${motion.ease};

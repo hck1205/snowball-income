@@ -1,6 +1,7 @@
 import { memo, type CSSProperties } from 'react';
 import { Card, Chip, ToggleField } from '@/components';
-import { ALLOCATION_COLORS, TOUR_TARGET } from '@/shared/constants';
+import { TOUR_TARGET } from '@/shared/constants';
+import { CHART_SERIES_VARS } from '@/shared/styles';
 import { getTickerDisplayName } from '@/shared/utils';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import type { PortfolioCompositionProps } from './PortfolioComposition.types';
@@ -66,7 +67,8 @@ function PortfolioCompositionComponent({
               <AllocationLegend>
                 {normalizedAllocation.map(({ profile, weight }, index) => (
                   <AllocationLegendItem key={profile.id}>
-                    <AllocationColorDot color={ALLOCATION_COLORS[index % ALLOCATION_COLORS.length]} />
+                    {/* var(--sb-chart-series-N) — 파이 조각(theme.series)과 같은 인덱스 규칙(% 8), 프리셋 자동 추종 */}
+                    <AllocationColorDot color={CHART_SERIES_VARS[index % CHART_SERIES_VARS.length]} />
                     <AllocationLegendName>{getTickerDisplayName(profile.ticker, profile.name)}</AllocationLegendName>
                     <AllocationLegendSlider
                       type="range"

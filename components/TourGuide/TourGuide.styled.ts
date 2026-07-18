@@ -33,7 +33,8 @@ export const LaunchDot = styled.span`
   width: 8px;
   height: 8px;
   border-radius: ${radius.pill};
-  background: ${color.brand};
+  /* "새 것" 신호는 오로라 teal — 포커스/선택 의미의 brand와 어휘를 분리한다. */
+  background: ${color.accent};
   /* 아이콘 위에 겹쳐도 점으로 읽히도록 서피스 색 링을 두른다. */
   border: 2px solid ${color.surface};
   pointer-events: none;
@@ -93,6 +94,18 @@ export const TourPopover = styled.div`
   background: ${color.surfaceRaised};
   box-shadow: ${shadow.e3};
   color: ${color.text};
+
+  /* 상단 오로라 리본 — 온보딩은 오로라 시그니처를 소개하는 순간이다. */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    border-radius: ${radius.lg} ${radius.lg} 0 0;
+    background: ${color.gradientAurora};
+  }
 `;
 
 export const TourTitle = styled.h2`

@@ -13,10 +13,13 @@ import {
 import { buildRecentCashflowBarOption } from '@/pages/Main/utils';
 import { formatKRW } from '@/shared/utils';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
+import { usePalettePresetAtomValue } from '@/jotai';
 
 function MonthlyCashflowComponent({ yearlyCashflowByTicker, hasData = true, emptyMessage, ResponsiveChart }: MonthlyCashflowProps) {
   const years = yearlyCashflowByTicker.years;
   const [selectedYear, setSelectedYear] = useState<number | null>(() => resolveSelectedYear(years, null));
+  /* 캔버스는 CSS 변수를 다시 읽지 않는다 — 팔레트 프리셋 전환 시 옵션을 다시 빌드해야 한다. */
+  const palettePreset = usePalettePresetAtomValue();
 
   useEffect(() => {
     setSelectedYear((prev) => resolveSelectedYear(years, prev));
@@ -26,7 +29,7 @@ function MonthlyCashflowComponent({ yearlyCashflowByTicker, hasData = true, empt
     selectedYear === null ? null : yearlyCashflowByTicker.byYear[String(selectedYear)] ?? null;
   const chartOption = useMemo(
     () => buildRecentCashflowBarOption(selectedYearData ?? { months: [], series: [] }),
-    [selectedYearData]
+    [palettePreset, selectedYearData]
   );
   const totalDividend = selectedYearData?.totalDividend ?? 0;
   const headerControls = (

@@ -16,8 +16,6 @@ type PageLocation = {
 type AnalyticsEventParams = Record<string, string | number | boolean | null | undefined>;
 
 export const ANALYTICS_EVENT = {
-  // 페이지 진입/이동 노출 이벤트. 용도: 유입 경로별 랜딩 성과, 페이지 이탈 지점, 네비게이션 흐름 분석.
-  PAGE_VIEW: "page_view",
   // 모달 노출 이벤트. 용도: 어떤 모달(도움말/저장/불러오기)에 사용자가 시간을 쓰는지 파악.
   MODAL_VIEW: "modal_view",
   // 주요 CTA 클릭 이벤트. 용도: 버튼/영역별 클릭률 비교, CTA 문구/위치 A/B 테스트 근거.
@@ -38,24 +36,12 @@ export const ANALYTICS_EVENT = {
   INVESTMENT_SETTING_CHANGED: "investment_setting_changed",
   // 토글 상태 변경 이벤트. 용도: 간편/정밀, 그래프 모드 등 기능 선호도 분석.
   TOGGLE_CHANGED: "toggle_changed",
+  // 테마 프리셋 변경 이벤트(파라미터: preset_id). 용도: 프리셋별 선호도 분포, 기본 팔레트(velog) 유지율 분석.
+  THEME_PRESET_CHANGED: "theme_preset_changed",
   // 포트폴리오 비중 변경 이벤트. 용도: 평균 편입 비중, 고정 비율 사용 패턴, 리밸런싱 행동 분석.
   ALLOCATION_CHANGED: "allocation_changed",
   // 시나리오 탭 액션 이벤트(생성/선택/이름변경/삭제). 용도: 전략 실험 패턴과 다중 시나리오 사용성 분석.
   SCENARIO_TAB_ACTION: "scenario_tab_action",
-  // 저장 시작 이벤트. 용도: 저장 기능 진입률 파악 및 저장 퍼널 시작 지표.
-  STATE_SAVE_STARTED: "state_save_started",
-  // 저장 완료 이벤트. 용도: 저장 성공률, 리텐션 연계 지표(저장 유저 재방문율) 계산.
-  STATE_SAVE_COMPLETED: "state_save_completed",
-  // 불러오기 시작 이벤트. 용도: 불러오기 사용 빈도 및 진입 경로(목록/JSON) 분석.
-  STATE_LOAD_STARTED: "state_load_started",
-  // 불러오기 완료 이벤트. 용도: 저장 데이터 재활용률과 복귀 사용자 행동 분석.
-  STATE_LOAD_COMPLETED: "state_load_completed",
-  // 저장 항목 삭제 완료 이벤트. 용도: 저장 데이터 정리 패턴, 저장 네이밍 품질 이슈 탐지.
-  STATE_DELETE_COMPLETED: "state_delete_completed",
-  // JSON 다운로드 완료 이벤트. 용도: 외부 공유/백업 니즈 파악, 파워유저 행동 분석.
-  STATE_DOWNLOAD_COMPLETED: "state_download_completed",
-  // JSON 불러오기 완료 이벤트. 용도: 기기 간 이전/공유 활용도 및 협업성 지표 분석.
-  JSON_STATE_IMPORTED: "json_state_imported",
   // 시뮬레이션 결과 노출 이벤트. 용도: 핵심 퍼널 완료 지표(실질 전환) 및 조건별 완료율 비교.
   SIMULATION_RESULT_VIEW: "simulation_result_view",
   // 차트 노출 이벤트. 용도: 차트별 관심도, 보기 옵션 사용 패턴, 리포트 콘텐츠 소재 발굴.
@@ -64,7 +50,7 @@ export const ANALYTICS_EVENT = {
   PORTFOLIO_CONFIG_COMPLETED: "portfolio_config_completed",
   // 검증 에러 노출 이벤트. 용도: 이탈 유발 입력 항목 식별, UX 개선 우선순위 결정.
   VALIDATION_ERROR_VIEW: "validation_error_view",
-  // 공통 동작 에러 이벤트. 용도: 저장/불러오기/캡처 등 실패율 모니터링 및 장애 탐지.
+  // 공통 동작 에러 이벤트. 용도: 저장/불러오기 등 실패율 모니터링 및 장애 탐지.
   OPERATION_ERROR: "operation_error",
   // 복귀 방문 신호 이벤트. 용도: 리텐션 측정, 저장 기능이 재방문에 미치는 효과 분석.
   RETURN_VISIT: "return_visit",
@@ -76,6 +62,20 @@ export const ANALYTICS_EVENT = {
   TUTORIAL_COMPLETED: "tutorial_completed",
   // 튜토리얼 중도 이탈 이벤트(건너뛰기/Esc/닫기). 용도: 이탈 단계와 이탈 방식 분석.
   TUTORIAL_DISMISSED: "tutorial_dismissed",
+  // 프로필 저장 완료 이벤트(파라미터: field='nickname'). 용도: 닉네임 변경 빈도 분석. (아바타 기능 제거로 field는 현재 nickname만 발화)
+  PROFILE_UPDATED: "profile_updated",
+  // 회원 탈퇴 다이얼로그 열림 이벤트. 용도: 탈퇴 의향 모수와 실제 탈퇴 완료 대비 이탈(재고)률 측정.
+  ACCOUNT_DELETE_STARTED: "account_delete_started",
+  // 회원 탈퇴 완료 이벤트(서버 200 확정 후에만 발화). 용도: 실제 이탈률, 탈퇴 시작 대비 완료 전환율 분석.
+  ACCOUNT_DELETED: "account_deleted",
+  // 로그인 완료 이벤트(파라미터: source). 용도: 로그인 시작 대비 완료율, 저장 유도 로그인 전환율(§성공지표) 계산.
+  LOGIN_COMPLETED: "login_completed",
+  // 클라우드 자동 저장 완료 이벤트. 용도: 클라우드 저장 성공률(= completed / (completed + operation_error(cloud_save))) 모니터링.
+  CLOUD_SAVE_COMPLETED: "cloud_save_completed",
+  // 세션 시작 클라우드 latest-wins 동기화 완료 이벤트(파라미터: direction='cloud_to_local'|'local_to_cloud'|'noop').
+  // 용도: 양방향 자동 동기화의 방향 분포와 세션 시작 시 이미-동기 비율(noop) 모니터링, 실패는 operation_error(cloud_sync)로 분리.
+  // (구 CLOUD_MIGRATION_STARTED/LOCAL_MIGRATION_COMPLETED 2단계 마이그레이션 택소노미를 대체 — 클라우드는 이제 매 세션 양방향 동기화)
+  CLOUD_SYNC_RECONCILED: "cloud_sync_reconciled",
 } as const;
 
 export type AnalyticsEventName = (typeof ANALYTICS_EVENT)[keyof typeof ANALYTICS_EVENT];

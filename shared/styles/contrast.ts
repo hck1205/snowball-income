@@ -55,6 +55,26 @@ export const contrastRatio = (foreground: string, background: string): number =>
 /** 보고용 반올림(내림). 4.499 → 4.49 로 내려서 기준을 넉넉하게 잡지 않는다. */
 export const roundRatio = (ratio: number): number => Math.floor(ratio * 100) / 100;
 
+/**
+ * 반투명 전경(fgHex, alpha)을 불투명 배경(baseHex) 위에 알파 합성한 결과 색.
+ *
+ * `contrastRatio()`는 불투명 hex 두 개만 받는다. 서리유리(rgba 서피스)나 오버레이처럼
+ * 반투명 레이어 위 텍스트의 **실제 화면 대비**를 검증하려면, 먼저 이 함수로 사용자가
+ * 실제로 보게 되는 합성 색을 만든 뒤 그 hex를 contrastRatio에 넣는다.
+ * 채널별 `round(fg·α + base·(1−α))` — 검증 스크립트(aurora-verify.mjs)와 동일 공식.
+ */
+export const compositeOver = (fgHex: string, alpha: number, baseHex: string): string => {
+  const fg = hexToRgb(fgHex);
+  const base = hexToRgb(baseHex);
+
+  const blend = (f: number, b: number): string =>
+    Math.round(f * alpha + b * (1 - alpha))
+      .toString(16)
+      .padStart(2, '0');
+
+  return `#${blend(fg.r, base.r)}${blend(fg.g, base.g)}${blend(fg.b, base.b)}`;
+};
+
 /* -------------------------------------------------------------------------- */
 /* 지각적 색 거리 (카테고리 팔레트용)                                            */
 /* -------------------------------------------------------------------------- */

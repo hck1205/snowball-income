@@ -19,15 +19,15 @@
     />
     <meta name="format-detection" content="telephone=no" />
     <meta name="color-scheme" content="light dark" />
-    <!-- 디자인 시스템 토큰과 정렬: neutral[50] / neutral[950] (shared/styles/primitives.ts) -->
+    <!-- 기본 팔레트(velog)의 bg light/dark = #f8f9fa / #121212 와 동기 (shared/styles/presets.ts) -->
     <meta
       name="theme-color"
-      content="#f4f7f9"
+      content="#f8f9fa"
       media="(prefers-color-scheme: light)"
     />
     <meta
       name="theme-color"
-      content="#0f151c"
+      content="#121212"
       media="(prefers-color-scheme: dark)"
     />
     <meta name="application-name" content="Snowball Income" />
@@ -161,7 +161,7 @@
           'Segoe UI',
           sans-serif;
         line-height: 1.65;
-        color: #2b3743;
+        color: #334458;
       }
       .app-shell-fallback h1 {
         font-size: 1.5rem;
@@ -187,14 +187,14 @@
       .app-shell-fallback .disclaimer {
         margin-top: 1.75rem;
         font-size: 0.875rem;
-        color: #5b6b7b;
+        color: #5f6975; /* velog text-muted와 정렬 (shared/styles/presets.ts) */
       }
       @media (prefers-color-scheme: dark) {
         .app-shell-fallback {
-          color: #d6dee7;
+          color: #d9e2f2;
         }
         .app-shell-fallback .disclaimer {
-          color: #93a2b1;
+          color: #93a3ba;
         }
       }
 
@@ -205,12 +205,55 @@
         배경도 테마에 맞춰 미리 칠해, 로딩 동안 흰 화면이 번쩍이지 않게 한다
         (Emotion이 뜨면 `:root`가 더 높은 우선순위로 --sb-bg를 덮는다).
       */
+      /* 무스코프 기본 = 기본 팔레트(velog). 프리셋별 값은 shared/styles/presets.ts의 bg와 동기. */
       html {
-        background: #f4f7f9;
+        background: #f8f9fa;
+      }
+      html[data-palette='forest'] {
+        background: #eef3ec;
+      }
+      html[data-palette='aurora'] {
+        background: #e4f0fc;
+      }
+      html[data-palette='vivid'] {
+        background: #eef0ff;
+      }
+      html[data-palette='navy-gold'] {
+        background: #f5efdd;
+      }
+      html[data-palette='grape'] {
+        background: #f3effa;
+      }
+      html[data-palette='sunset'] {
+        background: #fbf1e8;
+      }
+      html[data-palette='ink'] {
+        background: #f1f1f1;
       }
       @media (prefers-color-scheme: dark) {
         html:not([data-theme='light']) {
-          background: #0f151c;
+          background: #121212;
+        }
+        html[data-palette='forest']:not([data-theme='light']) {
+          background: #0f1712;
+        }
+        html[data-palette='aurora']:not([data-theme='light']) {
+          background: #0a1220;
+        }
+        html[data-palette='vivid']:not([data-theme='light']) {
+          background: #101223;
+        }
+        html[data-palette='navy-gold']:not([data-theme='light']) {
+          background: #0a0f1e;
+        }
+        html[data-palette='grape']:not([data-theme='light']) {
+          background: #171126;
+        }
+        html[data-palette='sunset']:not([data-theme='light']) {
+          background: #1e1410;
+        }
+        html[data-palette='ink']:not([data-theme='light']) {
+          background: #0d0d0d;
         }
       }
       .js .app-shell-fallback {
@@ -220,6 +263,17 @@
     <script>
       // JS 사용 환경 표시 → 위 CSS가 프리렌더 폴백을 감춰 텍스트 플래시를 없앤다.
       document.documentElement.classList.add('js');
+      // 저장된 팔레트 프리셋(localStorage 'snowball:palette')을 첫 페인트 전에 적용해
+      // 기본 팔레트가 번쩍이는 걸(FOUC) 막는다. 잘못된 값은 기본(velog)으로 폴백.
+      // ⚠ 유효값 목록은 shared/constants/palette 와 동기 — 프리셋 추가 시 여기도 갱신.
+      (function () {
+        var palette = 'velog';
+        try {
+          var saved = localStorage.getItem('snowball:palette');
+          if (['velog', 'forest', 'aurora', 'vivid', 'navy-gold', 'grape', 'sunset', 'ink'].indexOf(saved) !== -1) palette = saved;
+        } catch (e) {}
+        document.documentElement.setAttribute('data-palette', palette);
+      })();
     </script>
   </head>
   <body>

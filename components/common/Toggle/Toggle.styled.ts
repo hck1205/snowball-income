@@ -50,7 +50,8 @@ export const ToggleThumb = styled.span<{ checked: boolean; disabled?: boolean }>
   width: ${THUMB}px;
   height: ${THUMB}px;
   border-radius: ${radius.pill};
-  /* 썸은 항상 흰색. 켜짐은 위치와 트랙 색이 말한다. */
+  /* 썸은 정적 흰색. onBrand는 프리셋별로 어두울 수 있어(velog 다크 #121212 → 트랙과 1.07:1로 소실)
+     비브랜드 트랙 위에 놓이는 썸에는 부적합하다. 켜짐은 위치와 트랙 색이 말한다. */
   background: ${({ disabled }) => (disabled ? color.surfaceMuted : '#ffffff')};
   box-shadow: 0 1px 2px rgba(15, 25, 35, 0.32);
   transform: translateY(-50%);

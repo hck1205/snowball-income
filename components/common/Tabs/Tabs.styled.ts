@@ -16,7 +16,7 @@ export const TabList = styled.div`
   display: flex;
   align-items: stretch;
   gap: ${space[2]};
-  /* 밑줄 인디케이터/트랙 없음 — 활성/비활성은 칩(배경·테두리·텍스트)으로만 구분한다. */
+  /* 공유 트랙 없음 — 활성/비활성은 칩(배경·테두리·텍스트)과 활성 탭 자체의 하단 리본으로 구분한다. */
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
@@ -49,6 +49,23 @@ export const TabButton = styled.button<{ active?: boolean }>`
   touch-action: manipulation;
   transition: color ${motion.fast} ${motion.ease}, border-color ${motion.fast} ${motion.ease},
     background-color ${motion.fast} ${motion.ease};
+
+  /* 활성 탭에만 하단 오로라 리본(표시용 gradient-aurora — brand-subtle 위 stop 최저 대비 3.40:1). */
+  ${({ active }) =>
+    active
+      ? `
+    &::after {
+      content: '';
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      bottom: 5px;
+      height: 2px;
+      border-radius: ${radius.pill};
+      background: ${color.gradientAurora};
+    }
+  `
+      : ''}
 
   &:hover:not(:disabled) {
     border-color: ${color.brandBorder};
