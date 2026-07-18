@@ -1,25 +1,13 @@
-import { formatKRW } from '@/shared/utils';
+import { formatApproxKRW, formatKRW } from '@/shared/utils';
+
+/**
+ * `formatApproxKRW`는 커뮤니티 시뮬 요약과 공유하기 위해 `shared/utils/format.ts`로 승격했다.
+ * 기존 호출부(charts.ts, vite.config의 OG 예시 번들)가 이 모듈을 바라보므로 re-export로 보존한다.
+ */
+export { formatApproxKRW } from '@/shared/utils';
 
 export const targetYearLabel = (year: number | undefined): string => (year ? `${year}년` : '미도달');
 
 export const formatPercent = (value: number): string => `${(value * 100).toFixed(2)}%`;
-
-export const formatApproxKRW = (value: number): string => {
-  const sign = value < 0 ? '-' : '';
-  const absValue = Math.abs(value);
-
-  if (absValue >= 100_000_000) {
-    const inEok = Math.round((absValue / 100_000_000) * 10) / 10;
-    const label = Number.isInteger(inEok) ? `${inEok.toFixed(0)}억` : `${inEok.toFixed(1)}억`;
-    return `${sign}약 ${label}`;
-  }
-
-  if (absValue >= 10_000) {
-    const inMan = Math.round(absValue / 10_000);
-    return `${sign}약 ${inMan.toLocaleString()}만`;
-  }
-
-  return `${sign}약 ${Math.round(absValue).toLocaleString()}원`;
-};
 
 export const formatResultAmount = (value: number, compact: boolean): string => (compact ? formatApproxKRW(value) : formatKRW(value));

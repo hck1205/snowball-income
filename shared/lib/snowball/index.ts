@@ -4,5 +4,6 @@ export * from './SnowballForm';
 export * from './SnowballPayout';
 export * from './SnowballQuickEstimate';
 export * from './SnowballRates';
+export * from './SnowballScenarioSummary';
 export * from './SnowballSimulation';
 export * from './SnowballSummary';
