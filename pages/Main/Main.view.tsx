@@ -8,7 +8,6 @@ import { CloudSyncIndicator } from "@/components/CloudSyncIndicator";
 import { CommunityNavLink } from "@/components/community/CommunityNavLink";
 import { AuthControl } from "@/components/community/AuthControl";
 import { isCommunityEnabled } from "@/shared/lib/supabase";
-import { useIsLoggedInAtomValue } from "@/jotai/community";
 import {
   useIsConfigDrawerOpenAtomValue,
   useIsTickerModalOpenAtomValue,
@@ -48,16 +47,6 @@ function MainViewComponent({ viewModel }: MainViewProps) {
   const isTickerModalOpen = useIsTickerModalOpenAtomValue();
   const openConfigDrawer = useCallback(() => setIsConfigDrawerOpen(true), [setIsConfigDrawerOpen]);
   const closeConfigDrawer = useCallback(() => setIsConfigDrawerOpen(false), [setIsConfigDrawerOpen]);
-
-  /**
-   * 헤더 테마 스위처 위치 분기(2026-07-18):
-   * 커뮤니티 활성 + 로그인 상태면 테마는 AuthControl 프로필 드롭다운으로 이동하므로 헤더 팝오버를 숨긴다.
-   * 그 외(커뮤니티 비활성 = AuthControl 없음 / 비로그인 = 드롭다운 없음)에는 헤더에 그대로 노출해야 접근이 유지된다.
-   * isLoggedIn atom은 로그인/로그아웃에만 바뀌므로(타건 무관) 이 구독이 헤더 크롬 memo를 매 입력마다 깨지 않는다.
-   * 드로어 인라인 스위처(left 슬롯)는 별개 컨트롤로 항상 유지 — 모바일 진입점.
-   */
-  const isLoggedIn = useIsLoggedInAtomValue();
-  const themeInProfileDropdown = isCommunityEnabled && isLoggedIn;
 
   /**
    * IndexedDB 하이드레이션 게이트. 좌패널(MainLeftPanel)이 하이드레이션 트리거를 소유하므로
@@ -110,13 +99,13 @@ function MainViewComponent({ viewModel }: MainViewProps) {
             }
             headerAction={
               <>
-                {/* 순서(테마 스펙 §7.1 + 클라우드 §8.2): [테마 스위처] → 로그인 → 커뮤니티 → 투어.
-                    로그인+커뮤니티 활성이면 테마는 AuthControl 드롭다운에 있으므로 헤더 팝오버는 숨긴다. */}
-                {themeInProfileDropdown ? null : <ThemePresetSwitcher />}
                 {/* AuthControl은 useNavigate + 세션에 의존한다 — 백엔드 없는 배포에선 렌더하지 않는다. */}
                 {isCommunityEnabled ? <AuthControl /> : null}
                 <CommunityNavLink />
                 <TourGuide />
+                {/* 테마 스위처는 로그인 여부와 무관하게 **항상 헤더 맨 우측**에 둔다 — 비로그인 시 프로필 드롭다운이
+                    없어 거기 넣으면 접근이 끊긴다. 형제 컨트롤과 같은 secondary 네모 아이콘 스타일(그 스타일은 컴포넌트가 소유). */}
+                <ThemePresetSwitcher />
               </>
             }
             left={

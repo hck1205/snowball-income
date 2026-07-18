@@ -155,8 +155,10 @@ function HeaderPopoverSwitcher() {
     <HeaderPopoverRoot ref={rootRef} onKeyDown={handleKeyDown} onBlur={handleBlur}>
       <Button
         ref={triggerRef}
-        variant="ghost"
-        size="md"
+        // 헤더 형제(커뮤니티·튜토리얼)와 같은 secondary 스타일의 네모 아이콘 버튼(iconOnly=정사각). 라벨이 없는
+        // 팔레트 트리거라 아이콘만 두고, 크기는 형제와 동일한 sm 으로 맞춘다(맨 우측 정렬).
+        variant="secondary"
+        size="sm"
         iconOnly
         aria-label={`테마 프리셋 선택 (현재: ${currentLabel})`}
         aria-haspopup="true"
@@ -165,7 +167,7 @@ function HeaderPopoverSwitcher() {
         onClick={() => setIsOpen((prev) => !prev)}
       >
         <TriggerIconWrap>
-          <Palette size={18} strokeWidth={1.8} aria-hidden focusable={false} />
+          <Palette size={16} strokeWidth={1.8} aria-hidden focusable={false} />
           {/* 현재 프리셋의 시그니처 색 점 — 상태 암시용 장식. 상태 자체는 aria-label이 말한다. */}
           <TriggerSwatchDot aria-hidden="true" style={{ backgroundColor: THEME_PRESETS[palette].swatch[1] }} />
         </TriggerIconWrap>
