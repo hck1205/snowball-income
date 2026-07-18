@@ -5,9 +5,40 @@ import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
 import ReactDOM from "react-dom/client";
 import AppRouter from "@/router";
 import { applySeoRuntimeMetadata, initGoogleAnalytics } from "@/shared/lib/analytics";
+import { hasOAuthCallbackParams, isNaverCallbackPath } from "@/shared/lib/supabase";
 
 applySeoRuntimeMetadata();
 initGoogleAnalytics();
+
+// OAuth 콜백 복귀를 **엔트리에서** 처리한다 — 어느 라우트로 돌아오든 세션이 확립되게 한다.
+// 커뮤니티(`/community`)는 `React.lazy` 라, `/community?code=...` 로 풀 리로드되면 lazy 청크와
+// supabase-js 동적 import 가 로드될 때까지 CommunityAuthProvider 가 마운트되지 않아
+// detectSessionInUrl(코드 교환)이 지연된다(메인은 provider 가 eager 라 즉시 교환 — 그래서 메인만 됐다).
+// 부팅 즉시 콜백 파라미터를 감지해, **콜백일 때만** supabase 를 당겨 코드 교환을 lazy 경계와
+// 무관하게 시작한다. getSupabaseClient() 는 커뮤니티 비활성(백엔드 없는 배포)이면 null → 안전한 no-op.
+// 콜백이 아닌 일반 방문은 이 블록을 건너뛰므로 SDK 를 내려받지 않는다(엔트리 번들 격리 유지).
+//
+// ⚠ 순서 중요: 네이버 콜백(`/community/auth/naver/callback?code=&state=`)도 쿼리에 `?code=` 를 실어
+//   오므로 hasOAuthCallbackParams 가 true 다. 하지만 네이버 `code` 는 **네이버 인가코드**이지 Supabase
+//   PKCE 코드가 아니다 — getSupabaseClient()의 detectSessionInUrl 이 이를 PKCE 코드로 오인해 삼키면
+//   교환이 실패한다. 그래서 네이버 콜백 경로를 **먼저** 걸러 `completeNaverCallback` 로 보낸다. 이 함수는
+//   supabase 클라이언트 생성 **전에** URL 에서 code/state 를 걷어내고, 서버(/api/naver-auth) 교환 →
+//   verifyOtp 로 세션을 확립한 뒤 returnTo 로 replace 한다(lazy 커뮤니티 마운트와 무관).
+if (isNaverCallbackPath(window.location.pathname)) {
+  void import("@/shared/lib/supabase").then(({ completeNaverCallback }) => {
+    void completeNaverCallback();
+  });
+} else if (hasOAuthCallbackParams(window.location.search, window.location.hash)) {
+  void import("@/shared/lib/supabase").then(async ({ getSupabaseClient }) => {
+    await getSupabaseClient(); // detectSessionInUrl 이 코드/토큰을 세션으로 교환한다
+    // 교환 뒤 남는 잔여 해시를 걷어낸다 — 다음 로그인 redirectTo 로 새어들면 콜백 URL 이 `…/#?code=…`
+    // 로 어긋나 재로그인이 조용히 실패하기 때문(BrowserRouter 라 해시는 라우팅에 안 쓰여 안전).
+    // 단, 콜백이 해시에 실린 implicit 흐름이면 supabase 가 먼저 소비해야 하므로 그땐 건드리지 않는다.
+    if (window.location.hash && !hasOAuthCallbackParams("", window.location.hash)) {
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+  });
+}
 
 // 개발 전용 테스트 로그인. 콘솔에서 `await __devLogin('email','password')` 로 실제 Supabase 세션을 만든다.
 // (OAuth 미설정 상태에서 글쓰기 등을 테스트하기 위함) supabase-js는 호출 시점에만 동적 로드되므로

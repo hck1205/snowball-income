@@ -1,4 +1,5 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
+import type { IncomingMessage, ServerResponse } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { build as esbuild } from 'esbuild';
 import { defineConfig, loadEnv } from 'vite';
@@ -284,13 +285,125 @@ const seoAssetsPlugin = (siteUrl: string): Plugin => {
   };
 };
 
-export default defineConfig(({ mode }) => {
+/* -------------------------------------------------------------------------- */
+/* dev 전용 — /api/* 서버리스 함수를 Vite 개발서버에서 직접 서빙                    */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * `yarn dev`(순수 Vite)에는 서버 런타임이 없어 `/api/*` 가 404 다(그래서 네이버 콜백이 실패했다).
+ * 이 플러그인이 Vercel Node 함수와 **같은 시그니처**(`handler(Request): Promise<Response>`)를 그대로
+ * 호출해, `vercel dev` 없이도 로그인(`/api/naver-auth`)·계정삭제(`/api/account-delete`)가 dev 에서 돈다.
+ *
+ * 두 가지 기존 관례를 재사용한다:
+ *   1) esbuild 로 핸들러를 한 번 번들 → `@/` alias 를 tsconfig paths 로 해석(loadEngine 과 동일 이유).
+ *   2) configureServer 미들웨어(ogFontsPlugin/seoAssetsPlugin 과 동일 형태).
+ *
+ * 서버 전용 시크릿(NAVER_CLIENT_SECRET / SUPABASE_SERVICE_ROLE_KEY)은 아래 factory 에서 **process.env 로만**
+ * 주입한다(핸들러는 process.env 를 읽는다). `define` 에는 절대 넣지 않으므로 클라이언트 번들엔 나가지 않는다.
+ * `apply: 'serve'` 라 프로덕션 빌드(=Vercel 실제 함수)에는 영향이 없다.
+ */
+type WebHandler = (request: Request) => Promise<Response> | Response;
+
+/** api/<name>.ts | .tsx 경로를 찾는다. 없으면 null(→ 미들웨어 pass-through). */
+const resolveApiFile = (name: string): string | null => {
+  for (const ext of ['ts', 'tsx'] as const) {
+    const url = new URL(`./api/${name}.${ext}`, import.meta.url);
+    if (existsSync(url)) return fileURLToPath(url);
+  }
+  return null;
+};
+
+/** 핸들러당 1회 esbuild 번들 → data URL import(메모리 평가). dev 편의로 캐시한다. */
+const apiHandlerCache = new Map<string, Promise<WebHandler>>();
+const loadApiHandler = (file: string): Promise<WebHandler> => {
+  let cached = apiHandlerCache.get(file);
+  if (!cached) {
+    cached = (async () => {
+      const { outputFiles } = await esbuild({
+        entryPoints: [file],
+        bundle: true,
+        write: false,
+        format: 'esm',
+        platform: 'node',
+        target: 'node20',
+        tsconfig: 'tsconfig.json',
+        logLevel: 'silent'
+      });
+      const source = Buffer.from(outputFiles[0].text).toString('base64');
+      const mod = (await import(`data:text/javascript;base64,${source}`)) as { default?: WebHandler };
+      if (typeof mod.default !== 'function') throw new Error(`${file}: default export 가 함수가 아니다`);
+      return mod.default;
+    })();
+    apiHandlerCache.set(file, cached);
+  }
+  return cached;
+};
+
+/** Node IncomingMessage → Web Request(Vercel Node 함수가 받는 형태). */
+const toWebRequest = async (req: IncomingMessage): Promise<Request> => {
+  const chunks: Buffer[] = [];
+  for await (const chunk of req) chunks.push(chunk as Buffer);
+  const host = req.headers.host ?? 'localhost';
+  const url = `http://${host}${req.url ?? '/'}`;
+  const headers = new Headers();
+  for (const [key, value] of Object.entries(req.headers)) {
+    if (typeof value === 'string') headers.set(key, value);
+    else if (Array.isArray(value)) headers.set(key, value.join(', '));
+  }
+  const method = req.method ?? 'GET';
+  const hasBody = method !== 'GET' && method !== 'HEAD' && chunks.length > 0;
+  return new Request(url, { method, headers, body: hasBody ? Buffer.concat(chunks) : undefined });
+};
+
+/** Web Response → Node ServerResponse. */
+const sendWebResponse = async (res: ServerResponse, webRes: Response): Promise<void> => {
+  res.statusCode = webRes.status;
+  webRes.headers.forEach((value, key) => res.setHeader(key, value));
+  res.end(Buffer.from(await webRes.arrayBuffer()));
+};
+
+const apiDevPlugin = (): Plugin => ({
+  name: 'snowball-api-dev',
+  apply: 'serve',
+  configureServer(server) {
+    server.middlewares.use((req, res, next) => {
+      const path = req.url?.split('?')[0] ?? '';
+      const match = /^\/api\/([\w-]+)$/.exec(path);
+      if (!match) return next();
+      const file = resolveApiFile(match[1]);
+      if (!file) return next();
+      void (async () => {
+        try {
+          const handler = await loadApiHandler(file);
+          await sendWebResponse(res, await handler(await toWebRequest(req)));
+        } catch (error) {
+          // 무음 실패 금지 — dev 콘솔 + 응답 본문에 사유를 드러낸다.
+          server.config.logger.error(`[api-dev] /api/${match[1]} 실패: ${String(error)}`);
+          res.statusCode = 500;
+          res.setHeader('content-type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ error: 'dev_api_error', detail: String(error) }));
+        }
+      })();
+    });
+  }
+});
+
+export default defineConfig(({ command, mode }) => {
   // loadEnv는 .env 파일 + process.env의 VITE_ 접두 변수를 함께 읽는다 → CI 주입도 그대로 동작.
   const env = loadEnv(mode, process.cwd(), 'VITE_');
   const siteUrl = stripTrailingSlash(env.VITE_SITE_URL || DEFAULT_SITE_URL);
 
+  // dev 전용: .env 의 **서버 전용 변수**(NAVER_CLIENT_SECRET 등)를 process.env 로 넣어 /api 미들웨어가
+  // 읽게 한다. 클라이언트 번들엔 절대 안 나간다(define 에 추가하지 않음). 빌드(command==='build')에선 skip.
+  if (command === 'serve') {
+    const allEnv = loadEnv(mode, process.cwd(), '');
+    for (const [key, value] of Object.entries(allEnv)) {
+      if (process.env[key] === undefined) process.env[key] = value;
+    }
+  }
+
   return {
-    plugins: [react(), seoAssetsPlugin(siteUrl), ogFontsPlugin()],
+    plugins: [react(), seoAssetsPlugin(siteUrl), ogFontsPlugin(), apiDevPlugin()],
     // index.html의 %VITE_SITE_URL% 토큰과 앱 코드의 import.meta.env.VITE_SITE_URL이
     // 항상 같은 값(정규화된 siteUrl)을 보도록 되돌려 넣는다.
     define: {

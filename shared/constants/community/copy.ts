@@ -11,7 +11,7 @@ export const COMMUNITY_COPY = {
     home: 'Snowball',
     login: '로그인',
     logout: '로그아웃',
-    myScenarios: '내 시나리오'
+    theme: '테마'
   },
   gallery: {
     mainLabel: '시나리오 목록',
@@ -37,16 +37,50 @@ export const COMMUNITY_COPY = {
     retry: '다시 시도',
     searchPlaceholder: '시나리오 검색',
     searchAriaLabel: '시나리오 검색',
-    searchFilterAriaLabel: '검색 필터'
+    searchFilterAriaLabel: '검색 필터',
+
+    // ── 정밀 검색(PrecisionSearch) — 트리거·패널·필드·빈결과 (단일 원천) ──
+    filterTitle: '정밀 검색',
+    filterTriggerAria: '정밀 검색',
+    filterActiveCountAria: (n: number) => `적용된 필터 ${n}개`,
+    filterClose: '닫기',
+
+    filterMonthlyLabel: '월 배당(세후)',
+    filterMonthlyMinAria: '월 배당 최소',
+    filterMonthlyMaxAria: '월 배당 최대',
+    filterMonthlyHint: '세후 월 배당 기준이에요.',
+
+    filterTargetLabel: '목표 월 배당',
+    filterTargetMinAria: '목표 월 배당 이상',
+    filterTargetSuffix: '이상',
+
+    filterDurationLabel: '투자 기간',
+    filterDurationMinAria: '투자 기간 최소',
+    filterDurationMaxAria: '투자 기간 최대',
+
+    // 티커(TICKER_FILTER_ENABLED=true 될 때만 사용 — 미리 정의)
+    filterTickerLabel: '종목(티커)',
+    filterTickerAria: '종목 티커',
+    filterTickerPlaceholder: '티커 검색 (예: SCHD)',
+
+    unitManwon: '만원',
+    unitYear: '년',
+
+    filterApply: '적용',
+    filterReset: '초기화',
+    filterRangeError: '최솟값이 최댓값보다 클 수 없어요.',
+
+    // filteredEmpty 빈상태
+    filterEmptyTitle: '조건에 맞는 시나리오가 없어요',
+    filterEmptySubtitle: '검색어나 필터를 바꿔보세요.',
+    filterEmptyCta: '필터 초기화'
   },
   write: {
     titleNew: '시나리오 공유',
     titleEdit: '시나리오 수정',
     fieldTitle: '제목',
     fieldBody: '내용',
-    fieldDescription: '요약(선택)',
-    fieldVisibility: '공개 범위',
-    fieldAttachment: '시뮬레이션 첨부',
+    fieldAttachment: '시뮬레이션',
     bodyAriaLabel: '내용',
     toolbarAriaLabel: '서식',
     bold: '굵게',
@@ -59,13 +93,20 @@ export const COMMUNITY_COPY = {
     linkUrlPlaceholder: 'https://',
     linkApply: '적용',
     linkRemove: '해제',
-    descriptionPlaceholder: '목록에 보일 한 줄 소개. 비우면 본문 앞부분을 자동으로 사용해요.',
     bodyPlaceholder: '어떤 전략인지, 왜 이렇게 구성했는지 적어보세요.',
     visibilityPublic: '공개 — 커뮤니티 갤러리에 노출돼요.',
     visibilityPrivate: '비공개 — 나만 볼 수 있어요.',
-    attachEmpty: '현재 시뮬레이터에 설정한 시나리오를 함께 첨부할 수 있어요.',
-    attachButton: '현재 시뮬레이션 첨부',
-    attachDetach: '해제',
+    sectionPublish: '게시 설정',
+    bodyOrAttachHint: '내용과 시뮬레이션 중 하나만 있어도 게시할 수 있어요.',
+    attachSectionHint: '첨부하면 읽는 사람이 내 포트폴리오와 투자 설정을 시뮬레이터에서 그대로 열어볼 수 있어요.',
+    attachToggleLabel: '첨부',
+    attachPickerHeading: '첨부할 시나리오를 고르세요. 고르는 즉시 붙어요.',
+    attachPickerGroupLabel: '첨부할 시나리오',
+    attachOptionUnavailable: '첨부할 수 없어요',
+    attachEmptyTitle: '아직 첨부할 시뮬레이션이 없어요',
+    attachEmptyBody: '메인 화면에서 포트폴리오와 투자 설정을 만들면 여기에서 바로 첨부할 수 있어요.',
+    attachEmptyCta: '시뮬레이터로 가기',
+    attachedHint: '첨부 시점의 설정이 저장돼요. 게시하면 읽는 사람이 시뮬레이터에서 그대로 열어볼 수 있어요.',
     attachTickerCount: (count: number) => `티커 ${count}개`,
     submitNew: '게시',
     submitEdit: '수정 완료',
@@ -85,14 +126,14 @@ export const COMMUNITY_COPY = {
     leaveConfirmTitle: '작성 중인 내용이 있어요',
     leaveConfirmBody: '나가면 사라져요.',
     leaveConfirmStay: '계속 작성',
-    leaveConfirmLeave: '나가기',
-    toastPublished: '게시했어요',
-    toastSaved: '저장했어요'
+    leaveConfirmLeave: '나가기'
   },
   detail: {
     mainLabel: '시나리오 상세',
     attachCtaTitle: '이 시나리오로 시뮬레이션 열기',
     attachCtaButton: '시뮬레이터에서 열어보기',
+    previewTitle: '시나리오 미리보기',
+    previewChartLabel: '포트폴리오 비중',
     edit: '수정',
     delete: '삭제',
     deleteConfirmTitle: '이 시나리오를 삭제할까요?',
@@ -105,8 +146,7 @@ export const COMMUNITY_COPY = {
     notFoundCta: '목록으로',
     errorTitle: '시나리오를 불러오지 못했어요',
     errorBody: '잠시 후 다시 시도해주세요.',
-    retry: '다시 시도',
-    toastDeleted: '삭제했어요'
+    retry: '다시 시도'
   },
   comments: {
     sectionLabel: '댓글',
@@ -123,14 +163,59 @@ export const COMMUNITY_COPY = {
     delete: '삭제',
     errorTitle: '댓글을 불러오지 못했어요',
     retry: '다시 시도',
-    like: '좋아요'
+    submitFailed: '댓글을 등록하지 못했어요. 잠시 후 다시 시도해 주세요.',
+    deleteFailed: '댓글을 삭제하지 못했어요. 잠시 후 다시 시도해 주세요.',
+    likeFailed: '좋아요 처리에 실패했어요. 잠시 후 다시 시도해 주세요.',
+    loadMore: '더 보기',
+    loadingMore: '더 불러오는 중…'
+  },
+  profile: {
+    menuItem: '프로필 설정',
+    title: '프로필 설정',
+    loading: '불러오는 중…',
+    loginGateTitle: '로그인하고 프로필을 관리하세요',
+    loginGateSubtitle: '커뮤니티에 표시될 닉네임을 바꾸고, 계정을 관리할 수 있어요.',
+    accountSectionLabel: '내 계정',
+    nicknameLabel: '닉네임',
+    nicknameHint: '2~20자. 커뮤니티 글과 댓글에 표시돼요.',
+    nicknameSave: '저장',
+    nicknameSaved: '닉네임을 바꿨어요. 이전에 쓴 글에도 새 닉네임이 보여요.',
+    errorNicknameLength: '닉네임은 2~20자로 입력해주세요.',
+    errorNicknameNetwork: '닉네임을 저장하지 못했어요. 잠시 후 다시 시도해주세요.',
+    errorSessionExpired: '로그인이 만료됐어요. 다시 로그인한 뒤 시도해주세요.',
+    dangerTitle: '회원 탈퇴',
+    dangerBody: '계정과 함께 작성한 글·댓글·좋아요가 모두 삭제돼요. 되돌릴 수 없어요.',
+    dangerCta: '회원 탈퇴',
+    deleteTitle: '정말 탈퇴할까요?',
+    deleteScopeIntro: '아래 데이터가 모두 삭제돼요:',
+    deleteScopeItems: [
+      '프로필과 계정 정보',
+      '작성한 글 전부 (첨부한 시뮬레이션 포함)',
+      '작성한 댓글 전부 — 내 댓글에 달린 다른 사람의 답글도 함께 삭제돼요',
+      '좋아요 기록'
+    ],
+    deleteIrreversible: '삭제한 데이터는 되돌릴 수 없어요.',
+    deleteConfirmInstruction: "계속하려면 '탈퇴'를 입력해주세요.",
+    deleteConfirmLabel: '탈퇴 확인 입력',
+    deleteConfirmWord: '탈퇴',
+    deleteCancel: '취소',
+    deleteExecute: '영구 삭제',
+    deleteFailed: '탈퇴를 완료하지 못했어요. 계정은 그대로 남아 있어요. 잠시 후 다시 시도해주세요.',
+    deleteDone: '탈퇴가 완료됐어요. 그동안 함께해주셔서 감사합니다.',
+    deleteDoneDismiss: '닫기'
   },
   login: {
     title: '로그인',
     subtitle: '로그인하면 시나리오를 공유하고 좋아요·댓글을 남길 수 있어요.',
-    google: 'Google로 계속하기',
+    // 구글 규정 "Continue with Google"의 한국어 표준 표기(공식체). 4개 진입점(로그인 모달·내 저장·글쓰기 게이트·프로필 게이트) 공통 정본.
+    google: 'Google 계정으로 계속하기',
     kakao: '카카오로 계속하기',
-    close: '닫기'
+    // 네이버: 컴포넌트 로컬 상수였던 것을 정본으로 승격.
+    naver: '네이버로 계속하기',
+    naverPending: '네이버 로그인은 준비 중이에요. 지금은 구글 또는 카카오로 로그인해 주세요.',
+    naverPendingBadge: '준비 중',
+    // 네이버 authorize 에서 되돌아온 콜백 경로가 세션 교환 중 잠깐 보이는 안내(main.tsx completeNaverCallback).
+    naverCallback: '네이버 로그인 처리 중…'
   },
   common: {
     close: '닫기',

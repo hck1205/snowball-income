@@ -5,13 +5,34 @@
  * 그쪽 것을 그대로 쓴다(SCENARIO_TITLE_MAX_LENGTH 등). 여기엔 UI 전용 값만 둔다.
  */
 
-/** URL 쿼리 파라미터 이름. 목록 상태를 링크로 공유/새로고침해도 복원되게 한다. */
+/**
+ * URL 쿼리 파라미터 이름. 목록 상태를 링크로 공유/새로고침해도 복원되게 한다.
+ *
+ * 정밀 검색 facet 파라미터(mdmin·mdmax·tgtmin·durmin·durmax)는 canonical **원(KRW)·년** 단위로
+ * 싣는다(sim_summary·엔진과 1:1 — UI만 만원/년으로 표기). 빈 값이면 param을 삭제한다(sort/q 관례와 동일).
+ */
 export const COMMUNITY_QUERY_PARAM = {
   sort: 'sort',
   query: 'q',
   /** 검색 기준(제목/내용/요약). `fetchGalleryPage`가 ILIKE 대상 컬럼 선택에 사용한다. */
-  queryFilter: 'qf'
+  queryFilter: 'qf',
+  /** 최종(마지막 해) 월 배당 ≥ (원) — final_monthly_dividend gte. */
+  mdMin: 'mdmin',
+  /** 최종(마지막 해) 월 배당 ≤ (원) — final_monthly_dividend lte. */
+  mdMax: 'mdmax',
+  /** 목표 월 배당 ≥ (원) — target_monthly_dividend gte. 이상(≥) 단일이라 상한 없음. */
+  tgtMin: 'tgtmin',
+  /** 투자 기간 ≥ (년) — duration_years gte. */
+  durMin: 'durmin',
+  /** 투자 기간 ≤ (년) — duration_years lte. */
+  durMax: 'durmax'
 } as const;
+
+/**
+ * 정밀 검색 "종목(티커)" 필터 게이트. 파생 컬럼·자동완성 소스가 준비되기 전(G2)까지 **false** —
+ * 필터 패널에서 티커 섹션 자체를 렌더하지 않는다(dead UI 회피). 준비되면 true로만 바꾼다.
+ */
+export const TICKER_FILTER_ENABLED = false;
 
 /**
  * 검색 기준 — 실제 검색에 반영된다(데이터 레이어 `buildSearchFilter`가 대상 컬럼을 고른다).

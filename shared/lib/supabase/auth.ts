@@ -1,15 +1,34 @@
 import type { Session, User } from '@supabase/supabase-js';
 import type { CommunityClient } from './queries';
 import type { CommunityAuthor } from './types';
+import { startNaverLogin } from './naver';
+import { sanitizeOAuthRedirectTo } from './oauthCallback';
 
 /**
- * 인증 — Supabase Auth OAuth (구글 / 카카오).
+ * 인증 — 소셜 로그인(구글 / 카카오 / 네이버).
  *
- * 네이버는 Supabase 기본 프로바이더가 아니라 이번 범위 밖이다.
- * 나중에 붙일 때 이 파일의 시그니처(`CommunityOAuthProvider`)만 넓히면 되도록
- * 프로바이더를 문자열 유니온으로 열어둔다. (docs/supabase/README.md 참고)
+ * 구글·카카오는 Supabase 기본 프로바이더라 `client.auth.signInWithOAuth` 로 바로 붙는다.
+ * **네이버는 Supabase 기본 프로바이더가 아니라 경로가 다르다** — Supabase 에 네이버를 흘리면
+ * 타입·런타임 모두에서 거부된다. 그래서 아래 `signInWithOAuth` 가 provider==='naver' 를 가로채
+ * `startNaverLogin`(우리 authorize 리다이렉트 + state)으로 라우팅한다. 이 분기 덕분에 호출부는
+ * provider 문자열 하나만 넘기면 되고(로그인 액션 통일), 'naver' 가 실수로 Supabase 로 새지 않는다.
+ * 세부 흐름은 shared/lib/supabase/naver.ts 참고.
  */
-export type CommunityOAuthProvider = 'google' | 'kakao';
+export type CommunityOAuthProvider = 'google' | 'kakao' | 'naver';
+
+/**
+ * 프로바이더별 요청 scope.
+ *
+ * 카카오: **닉네임만 요청한다.** 프로필 사진 기능을 앱에서 제거했으므로 profile_image 는 받지 않는다
+ * (표시는 전 소비처가 이니셜 아바타로 통일). 이메일도 요청하지 않는다 — 카카오계정(이메일)은 개인
+ * 개발자 앱에서 "필수 동의"로 못 쓰고(비즈니스 앱 검수 필요), 요청하면 KOE205로 로그인 자체가 막힌다.
+ * 카카오 콘솔의 동의항목에서 profile_nickname 이 켜져 있어야 한다.
+ *
+ * 구글: 기본 scope(이메일·프로필)로 충분해 별도 지정하지 않는다.
+ */
+const OAUTH_SCOPES: Partial<Record<CommunityOAuthProvider, string>> = {
+  kakao: 'profile_nickname'
+};
 
 /**
  * OAuth 로그인 시작 → 프로바이더 동의 화면으로 리다이렉트된다.
@@ -23,10 +42,20 @@ export const signInWithOAuth = async (
   provider: CommunityOAuthProvider,
   redirectTo?: string
 ): Promise<void> => {
+  // 네이버는 Supabase 콜백을 타지 않는다 → 우리 authorize 리다이렉트(+ /api/naver-auth) 경로로.
+  if (provider === 'naver') {
+    startNaverLogin(redirectTo);
+    return; // 이 시점 이후 브라우저는 네이버 authorize 로 떠난다.
+  }
+
   const { error } = await client.auth.signInWithOAuth({
-    provider,
+    provider, // 여기선 'google' | 'kakao' 로 좁혀진다(위 분기가 'naver' 를 걸러냄)
     options: {
-      redirectTo: redirectTo ?? (typeof window !== 'undefined' ? window.location.href : undefined)
+      // 현재 페이지로 복귀하되, 이전 로그인이 남긴 잔여 해시/OAuth 잔재를 제거한다
+      // (제거 안 하면 다음 콜백 URL 이 `…/#?code=…` 로 어긋나 재로그인이 조용히 실패한다).
+      redirectTo:
+        redirectTo ?? (typeof window !== 'undefined' ? sanitizeOAuthRedirectTo(window.location.href) : undefined),
+      scopes: OAUTH_SCOPES[provider]
     }
   });
   if (error) throw new Error(error.message);
@@ -97,14 +126,11 @@ export const fetchMyProfile = async (
 export const updateMyProfile = async (
   client: CommunityClient,
   userId: string,
-  patch: { displayName?: string; avatarUrl?: string | null }
+  patch: { displayName: string }
 ): Promise<void> => {
   const { error } = await client
     .from('profiles')
-    .update({
-      ...(patch.displayName !== undefined ? { display_name: patch.displayName } : {}),
-      ...(patch.avatarUrl !== undefined ? { avatar_url: patch.avatarUrl } : {})
-    })
+    .update({ display_name: patch.displayName })
     .eq('id', userId);
 
   if (error) throw new Error(error.message);

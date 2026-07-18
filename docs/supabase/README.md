@@ -7,7 +7,9 @@
 | 항목 | 위치 |
 |------|------|
 | 마이그레이션 SQL | [`supabase/migrations/20260714000000_community.sql`](../../supabase/migrations/20260714000000_community.sql) |
+| DB key 공유 링크(`?s=`) 마이그레이션 | [`supabase/migrations/20260720000000_shared_snapshots.sql`](../../supabase/migrations/20260720000000_shared_snapshots.sql) (설정 절차: §9) |
 | 클라이언트 데이터 레이어 | [`shared/lib/supabase/`](../../shared/lib/supabase) |
+| 네이버 로그인 서버 브릿지 | [`api/naver-auth.ts`](../../api/naver-auth.ts) (설정 절차: §7) |
 | 순수 함수 테스트 | [`test/community/`](../../test/community) |
 
 ---
@@ -200,29 +202,70 @@ select cron.schedule(
 
 ---
 
-## 7. 네이버 로그인은 왜 지금 안 되는가
+## 7. 네이버 로그인 설정
 
-**Supabase Auth의 기본 소셜 프로바이더 목록에 네이버가 없다.** 구글·카카오는 대시보드에서
-스위치만 켜면 되지만, 네이버는 Supabase가 OAuth 콜백을 처리해 주지 않는다.
+**Supabase Auth의 기본 소셜 프로바이더 목록에는 네이버가 없다.** 구글·카카오는 대시보드에서
+스위치만 켜면 되지만, 네이버는 이 앱이 자체 서버 브릿지(Vercel 함수)로 직접 구현했다 — 그래서
+설정 위치가 다르다: **Supabase 대시보드가 아니라 네이버 개발자센터 + Vercel 환경변수**.
 
-### 나중에 붙이는 방법 (Edge Function + Admin API)
+### 동작 방식 (설정 전에 알아두면 실패했을 때 어디를 볼지 알 수 있다)
 
-1. 클라이언트가 네이버 OAuth로 **네이버 access token**을 받는다.
-2. 그 토큰을 **Supabase Edge Function**에 보낸다.
-3. Edge Function이 (서버에서) 네이버 API로 토큰을 검증하고 사용자 식별자를 얻는다.
-4. Edge Function이 **service_role 키**로 Admin API를 호출해 해당 사용자를 찾거나 만들고
-   (`auth.admin.createUser` 등), 세션/매직링크를 발급해 클라이언트에 돌려준다.
-5. 클라이언트는 그 세션으로 로그인 상태가 된다.
+1. 브라우저 → 네이버 authorize 페이지로 풀 리다이렉트 (`client_id`, `redirect_uri`, `state`)
+2. 네이버 → `<origin>/community/auth/naver/callback?code=&state=` 로 되돌아옴
+3. 클라이언트가 `code`를 `POST /api/naver-auth`(Vercel 서버 함수)로 전달
+4. 서버가 `client_secret`으로 네이버 토큰 교환 → 프로필 조회 → Supabase Admin API로
+   사용자 find-or-create → magiclink `token_hash` 발급
+5. 클라이언트가 그 `token_hash`로 `verifyOtp` 호출 → Supabase 세션 확립
+   (이후는 구글·카카오와 완전히 같은 흐름에 합류한다)
 
-핵심 제약:
+이 흐름은 Supabase의 OAuth 리다이렉트(위 §3-3 Redirect URLs 허용목록)를 타지 않는다 — 그래서
+**Supabase 대시보드에는 네이버 관련 설정이 전혀 없다.**
+코드: [`shared/lib/supabase/naver.ts`](../../shared/lib/supabase/naver.ts)(클라이언트) ·
+[`api/naver-auth.ts`](../../api/naver-auth.ts)(서버).
 
-- **`service_role` 키는 Edge Function 안에만 존재해야 한다.** 브라우저로 내려보내는 순간
-  RLS가 전부 무력화된다. 그래서 이 방식은 "서버가 없으면 불가능"하고, 이번 단계(백엔드리스 유지)의
-  범위 밖이다.
-- 이번 설계는 이 확장을 염두에 두고 있다: 인증 진입점이
-  [`shared/lib/supabase/auth.ts`](../../shared/lib/supabase/auth.ts)의 `CommunityOAuthProvider`
-  유니온 하나로 모여 있어서, 네이버를 붙일 때 그 타입과 `signInWithOAuth` 분기만 넓히면 된다.
-  DB 스키마(`profiles`)는 프로바이더에 의존하지 않으므로 **스키마 변경 없이** 확장된다.
+### 7-1. 네이버 개발자센터 앱 등록
+
+1. [Naver Developers](https://developers.naver.com/apps/#/register) → **애플리케이션 등록**
+2. 사용 API에 **네이버 로그인** 추가
+3. 로그인 오픈 API 서비스 환경: **PC웹**(필요하면 모바일웹도) 체크 → 서비스 URL에 배포 도메인 입력
+4. **Callback URL**을 아래 표대로 정확히 등록 (경로가 틀리면 콜백이 조용히 실패한다)
+5. 등록 완료 후 **Client ID / Client Secret** 발급
+
+| 환경 | Callback URL |
+|------|--------------|
+| 로컬 | `http://localhost:5173/community/auth/naver/callback` |
+| 배포 | `<VITE_SITE_URL>/community/auth/naver/callback` |
+
+경로 `/community/auth/naver/callback`은 코드에 상수(`NAVER_CALLBACK_PATH`)로 고정돼 있다 —
+다른 경로를 등록하면 안 된다.
+
+### 7-2. 환경변수
+
+| 이름 | 값 | 어디에 | 비고 |
+|------|-----|--------|------|
+| `VITE_NAVER_CLIENT_ID` | 7-1에서 발급받은 Client ID | Vercel + 로컬 `.env`(`.env.local`) | 공개값 — 없으면 버튼이 "준비 중"으로 표시(사라지지 않는다) |
+| `NAVER_CLIENT_SECRET` | 7-1에서 발급받은 Client Secret | Vercel만(Production/Preview/Development) | 🚫 절대 `VITE_` 접두사 금지 |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase Project Settings → API의 service_role 키 | Vercel만 | 네이버 로그인·회원 탈퇴(`api/account-delete.ts`)가 공용으로 쓴다. 🚫 `VITE_` 접두사 금지 |
+| `NAVER_SYNTHETIC_EMAIL_DOMAIN` | (선택) 합성 이메일 도메인 | Vercel만 | 안 넣으면 기본값 사용 |
+
+각 변수의 자세한 설명·주의문은 [`.env.example`](../../.env.example)에도 있다.
+
+- 커뮤니티 자체가 꺼져 있으면(위 §4의 `VITE_SUPABASE_URL`/키 미설정) 네이버도 함께 꺼진다 —
+  네이버는 독립 기능이 아니라 커뮤니티 로그인의 한 방법이다
+  (`isNaverEnabled = isCommunityEnabled && VITE_NAVER_CLIENT_ID`).
+- `.env` 값을 바꾼 뒤에는 `npm run dev`(또는 `vercel dev`)를 **재시작**해야 반영된다.
+
+### 7-3. 로컬에서 실제로 로그인 테스트하기
+
+`npm run dev`(순수 Vite)에는 `/api` 라우트가 없다 — `api/naver-auth.ts`가 뜨지 않아 콜백이
+항상 실패한다. 로컬에서 실제 로그인을 확인하려면:
+
+```sh
+npx vercel dev
+```
+
+Vercel CLI가 `/api` 함수까지 함께 띄운다(최초 실행 시 프로젝트 연결을 묻는다). 또는 Vercel Preview
+배포에서 확인해도 된다.
 
 ---
 
@@ -246,3 +289,47 @@ const page = await fetchGalleryPage(client, { sort: 'popular' });
   갤러리를 열지 않는 사용자는 SDK를 내려받지 않는다 — 초기 번들 크기가 그대로 유지된다.
 - 이 폴더는 `shared/lib/index.ts`에서 재export하지 **않는다**. `@/shared/lib/supabase`로 직접 import할 것
   (`@/shared/lib`는 앱 전역에서 쓰여서, 거기 물리면 커뮤니티 코드가 초기 번들로 딸려 들어간다).
+
+---
+
+## 9. DB 공유 링크(`?s=`) — `shared_snapshots`
+
+시뮬레이터 툴바의 **Share 버튼**이 만드는 공유 링크 중 하나다. 커뮤니티(갤러리·좋아요·댓글)와는 별개
+기능이지만, **같은 Supabase 프로젝트·같은 환경변수**(`VITE_SUPABASE_URL` + `VITE_SUPABASE_PUBLISHABLE_KEY`/
+`VITE_SUPABASE_ANON_KEY`)를 쓴다 — 위 §4를 채우지 않으면(커뮤니티가 꺼져 있으면) 이 기능도 함께 꺼지고,
+Share 버튼은 기존 lz-string `?share=` 링크(서버 저장 없이 URL에 데이터를 압축해 싣는 방식)로 폴백한다.
+
+### 왜 이 테이블이 필요한가
+
+lz-string `?share=` 링크는 payload 전체를 URL 쿼리로 실어 보내기 때문에 시나리오가 크면 URL이 길어져
+브라우저·카카오톡 등의 링크 길이 한계에 부딪힐 수 있다. `shared_snapshots`는 payload를 서버에 저장하고
+짧은 랜덤 key(`?s=<key>`)만 URL에 남기는 대안이다. **구 `?share=` 링크는 그대로 계속 동작한다** — 완전
+병존이며, 어느 쪽도 폐기되지 않았다.
+
+### 스키마 요약 (`supabase/migrations/20260720000000_shared_snapshots.sql`)
+
+- `public.shared_snapshots(key text primary key, payload jsonb not null, created_at timestamptz, expires_at timestamptz null)`
+  - `payload`는 `{ v: 1, scenario: PersistedScenarioState }` 형태이고 **64KB 상한**(CHECK 제약).
+  - `key`는 서버가 `gen_random_uuid()`로 생성하는 ~22자 base64url 문자열(122bit 엔트로피) — 클라이언트가
+    직접 정하거나 열거할 수 없다.
+  - `expires_at`은 기본 `null`(무만료). 지금은 만료 정책을 쓰지 않지만, 조회 RPC가 이미 만료분을 걸러내도록
+    설계돼 있어 나중에 만료를 켜도 하위 호환이 깨지지 않는다.
+- 테이블 **직접 접근은 전부 차단**(RLS 활성 + 정책 0개). 오직 두 `SECURITY DEFINER` RPC로만 노출:
+  - `create_shared_snapshot(p_payload jsonb) → text` — payload를 저장하고 새 key를 반환.
+  - `get_shared_snapshot(p_key text) → jsonb` — key로 payload를 조회(부재·만료면 `null`, 예외 아님).
+- 두 RPC 모두 **`anon`(비로그인)에게 실행 권한이 있다** — 구 `?share=` 링크가 로그인 없이 익명 공유를
+  지원했으므로 동등한 UX를 유지하기 위해서다. `service_role`은 필요 없다.
+
+### 마이그레이션 적용
+
+§2와 같은 방법(SQL Editor에 전체 붙여넣고 Run, 또는 `npx supabase db push`)으로
+`supabase/migrations/20260720000000_shared_snapshots.sql`을 실행한다. **스키마만 생성한다 — 백필
+데이터는 없다.** 실행 전에는 Share 버튼이 DB key 생성에 실패해 조용히 lz-string 링크로 폴백한다(앱이
+죽지는 않지만, 실행 전까지는 짧은 링크 기능을 못 쓴다).
+
+### 서버 측 OG 미리보기와의 관계
+
+`api/og.tsx`와 `api/share-html.ts`(Vercel 서버 함수, 카카오톡/페이스북/X/네이버 크롤러가 `?s=<key>` 링크를
+펼칠 때 실제 시뮬레이션 요약을 채운 카드/HTML을 만든다)도 이 테이블을 `get_shared_snapshot` RPC로 조회한다.
+**anon/publishable 키만 쓰고 새 서버 전용 환경변수는 없다** — 자세한 흐름은
+[`docs/vercel/README.md` §3](../vercel/README.md#3-동적-og-미리보기가-동작하는-방식) 참고.
