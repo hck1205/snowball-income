@@ -33,7 +33,7 @@
 - **미결정**: 실측 라인아이템 = 요약 blob의 byTicker 배열로 시작, 커지면 자식 테이블 분리(지금 결정 안 함). 스냅샷 타이밍(월1회 방문 upsert)의 공백 UX.
 
 ## 토대 B — 티커 데이터 확장 모델 (#2·#4·#5 공유, **Phase 2~3 최대 병목**)
-- **선행 과제(P0)**: FMP 유료 티어 등 **데이터 소스 확보**(사용자 액션). 없으면 ETF·캘린더 3종 전부 막힘.
+- **선행 과제(P0, 일부 해소 2026-07-18)**: 기본 가격·배당률·주기 갱신은 Yahoo Finance(무료·무키)로 해소됨 — pitfalls.md "데이터 소스(티커 갱신)" 참고. **미해결로 남은 것**: 운용보수·섹터·최대낙폭·정식 지급스케줄(이 토대가 새로 요구하는 필드) — Yahoo `chart` API는 이걸 안 준다, FMP 무료도 402로 불가. 데이터 소스 확보(사용자 액션)가 여전히 필요.
 - **통찰**: 파이프라인은 **이미 배당 히스토리를 fetch**(`provider.types.ts:19 fetchDividends→DividendPayment[]`) 후 frequency/CAGR만 파생하고 버린다. 히스토리·CAGR는 **persist만 하면 됨**. 진짜 신규 = 운용보수·섹터·최대낙폭·지급스케줄.
 - **3분류 규율 유지(decisions.md)**: 엔진 유니버스는 **6필드 고정**. 새 필드는 전부 **reference-only, 엔진에 안 먹임** — `observedDividendCagr`(marketData.types.ts:24-31)가 이미 세운 규율의 확장.
 - **스키마 초안**: `TickerReferenceEntry` = `{observedDividendCagr?, dividendHistory?, expenseRatio?, sectorWeights?, maxDrawdown?, paymentSchedule?}`. **엔진 유니버스와 물리 분리** — 히스토리는 부피 커서 ETF 페이지 lazy/청크 로드(번들 517KB 규율). maxDrawdown은 파이프라인 파생 스칼라.
@@ -54,12 +54,12 @@
 - **커뮤니티 확장**: #7·#8은 커뮤니티 위. queries.ts RPC·sim_summary 파서 재사용. **로그인 게이트 4곳**(grep로 확인, "N개" 카운트 불신), 컴포넌트 폴더경로 import(배럴=Tiptap).
 
 ## Phase 착수 순서
-- **선행 P0**: ① FMP 데이터 소스 확보(#2·#4·#5 공통 병목, 사용자 액션) ② 미실행 마이그레이션 3개 실행(A 토대가 user_app_states 의존).
+- **선행 P0**: ① 확장 필드(운용보수·섹터·최대낙폭·지급스케줄) 데이터 소스 확보(#2·#4·#5 공통 병목, 사용자 액션 — 기본 가격/배당은 Yahoo로 해소됨, 위 토대 B 참고) ② 미실행 마이그레이션 3개 실행(A 토대가 user_app_states 의존).
 - **Phase 2**: (a) **FIRE #3 먼저** — 새 데이터·토대 불필요, 세후배당 재사용, 대기 없이 착수. (b) 토대 A → 목표 #1. (c) 토대 B(히스토리 persist부터) → ETF비교 #2. (d) 캘린더 #4(스케줄+SnowballCalendar).
 - **Phase 3**: ETF상세 #5(SEO 라우트+sitemap) · 실배당 #6(kind:actual) · Journey #8(타임라인+공유) · 배지 #9(순수 규칙).
 - **Phase 4**: 복사 #7(기존 seam 최소) · AI #10(서버리스+플래그).
 
 ## 리스크·미결정
 - **A**: 실측 라인아이템 위치(blob→자식테이블 분리 시점), 목표 저장 위치(payload vs goals), 스냅샷 타이밍 공백 UX(무음실패 금지), 실측=자기신고 신뢰모델.
-- **B**: FMP 유료 커버리지·비용 미검증(필드 optional 폴백 설계됨), 데이터 신선도·ToS 귀속, **번들 부피**(히스토리 반드시 lazy/청크 분리).
+- **B**: 확장 필드(운용보수·섹터·최대낙폭·지급스케줄) 소스 미확보 — FMP 무료 확인됨 불가(402), Yahoo `chart` API도 이 필드는 안 줌(다른 비공식 엔드포인트 미검증). 필드 optional 폴백은 설계됨. 데이터 신선도·ToS 귀속(Yahoo는 비공식 API — SLA 없음), **번들 부피**(히스토리 반드시 lazy/청크 분리).
 - **공통**: 코드 미변경 원칙(스키마는 초안, 착수 시 재검토+사용자 승인). 기본값·라우트·저장형식·스키마 변경은 독단 금지.

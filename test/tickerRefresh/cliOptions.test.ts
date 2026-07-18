@@ -35,9 +35,20 @@ describe('parseCliArgs', () => {
     });
   });
 
+  it('defaults to the yahoo provider, so an unset --provider still works without a key', () => {
+    const parsed = parseCliArgs([]);
+    expect(parsed.ok && parsed.value.provider).toBe('yahoo');
+  });
+
+  it('parses --provider=fmp', () => {
+    const parsed = parseCliArgs(['--provider=fmp']);
+    expect(parsed.ok && parsed.value.provider).toBe('fmp');
+  });
+
   it.each([
     ['--only='],
     ['--variant=yahoo'],
+    ['--provider=fmp-legacy'],
     ['--cagr-years=0'],
     ['--cagr-years=abc'],
     ['--delay=-1'],

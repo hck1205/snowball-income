@@ -10,8 +10,16 @@ on:
         description: 'Comma-separated tickers to refresh (blank = all)'
         required: false
         type: string
+      provider:
+        description: 'Data provider (yahoo needs no key; fmp needs a paid FMP_API_KEY secret)'
+        required: false
+        default: yahoo
+        type: choice
+        options:
+          - yahoo
+          - fmp
       variant:
-        description: 'FMP API variant'
+        description: 'FMP API variant (only used when provider=fmp)'
         required: false
         default: stable
         type: choice
@@ -43,13 +51,19 @@ jobs:
 
       # Inputs go through env vars rather than being interpolated straight into the shell command,
       # so a dispatch input cannot inject shell.
+      #
+      # Default provider is Yahoo Finance's free, keyless chart API (scripts/tickerRefresh/provider/
+      # yahooProvider.ts) - the scheduled run never depends on FMP_API_KEY. `provider=fmp` stays
+      # available for a manual dispatch by anyone holding a paid FMP key; FMP_API_KEY is only read
+      # when that branch runs.
       - name: Refresh ticker data
         env:
           FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
           ONLY: ${{ inputs.only }}
+          PROVIDER: ${{ inputs.provider || 'yahoo' }}
           VARIANT: ${{ inputs.variant || 'stable' }}
         run: |
-          args="--write --variant=$VARIANT"
+          args="--write --provider=$PROVIDER --variant=$VARIANT"
           if [ -n "$ONLY" ]; then
             args="$args --only=$ONLY"
           fi
@@ -72,7 +86,7 @@ jobs:
           delete-branch: true
           title: 'chore(data): refresh ticker market data'
           body: |
-            Automated refresh of `shared/constants/marketData/marketData.generated.json`.
+            Automated refresh of `shared/constants/marketData/marketData.generated.json` (provider: ${{ inputs.provider || 'yahoo' }}).
 
             Only `initialPrice`, `dividendYield`, `dividendGrowth` and `frequency` can change here.
             Curated values (`name`, `expectedTotalReturn`) are never touched by the pipeline.

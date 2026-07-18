@@ -1,10 +1,18 @@
 import type { FmpApiVariant } from './provider';
 
+/**
+ * `yahoo` (default) needs no API key and actually serves this app's tickers on the free tier;
+ * `fmp` is kept for anyone holding a paid FMP key (see `provider/fmpProvider.ts`).
+ */
+export type ProviderKind = 'yahoo' | 'fmp';
+
 export type CliOptions = {
   /** Default. Nothing is written to disk; the report still shows exactly what would change. */
   dryRun: boolean;
   /** Restrict the run to these tickers. `null` means "the whole universe". */
   only: string[] | null;
+  provider: ProviderKind;
+  /** Only consulted when `provider === 'fmp'`. */
   variant: FmpApiVariant;
   cagrYears: number;
   delayMs: number;
@@ -17,6 +25,7 @@ export type ParsedCliOptions = { ok: true; value: CliOptions } | { ok: false; er
 export const DEFAULT_CLI_OPTIONS: CliOptions = {
   dryRun: true,
   only: null,
+  provider: 'yahoo',
   variant: 'stable',
   cagrYears: 5,
   delayMs: 200,
@@ -56,6 +65,15 @@ export const parseCliArgs = (argv: readonly string[]): ParsedCliOptions => {
 
       if (tickers.length === 0) return { ok: false, error: '--only needs at least one ticker' };
       options.only = tickers;
+      continue;
+    }
+
+    if (arg.startsWith('--provider=')) {
+      const provider = arg.slice('--provider='.length);
+      if (provider !== 'yahoo' && provider !== 'fmp') {
+        return { ok: false, error: `--provider must be "yahoo" or "fmp" (got "${provider}")` };
+      }
+      options.provider = provider;
       continue;
     }
 

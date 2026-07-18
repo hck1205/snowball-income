@@ -49,4 +49,5 @@
 
 ## 도메인 (배당 시뮬레이터)
 - [2026-07-15][engine] 배당은 가격에 앵커: `priceGrowth = dividendGrowth`, `totalReturn = dy + dg`(파생값). 티커 3분류: 가격·배당률·주기=관측 사실(크론 갱신) / expectedTotalReturn=사람의 가정(자동화 금지) / dividendGrowth=파생(etr−dy, 과거 CAGR로 덮어쓰기 금지).
+- [2026-07-18][data] **티커 자동 갱신 기본 프로바이더 = Yahoo Finance**(무료·무키, `scripts/tickerRefresh/provider/yahooProvider.ts`), FMP는 `--provider=fmp` 옵션으로만 유지(유료 키 보유자용). 근거는 pitfalls.md "FMP 무료 티어 불가" 항목. 워크플로(`.github/workflows/refresh-tickers.yml`)도 기본 Yahoo로 전환돼 `FMP_API_KEY` 시크릿 없이 주간 크론이 돈다.
 - [2026-07-16][product] 아이콘은 lucide-react, strokeWidth 1.8 통일. 클리셰 글리프(🚀 로켓, 안락의자 등) 금지 — "올드함"의 원인은 라이브러리가 아니라 글리프 선택.

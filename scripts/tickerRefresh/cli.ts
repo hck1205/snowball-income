@@ -8,7 +8,8 @@ import type { MarketDataEntry, MarketDataSnapshot } from '@/shared/constants/mar
 import { CURATED_DIVIDEND_UNIVERSE } from '@/shared/constants/presets';
 
 import { parseCliArgs, serializeSnapshot } from './cliOptions';
-import { createFmpProvider } from './provider';
+import { createFmpProvider, createYahooProvider } from './provider';
+import type { TickerDataProvider } from './provider';
 import { refreshTickers } from './refresh';
 import { formatRefreshReport, verdictOf } from './report';
 
@@ -31,18 +32,27 @@ const main = async (): Promise<number> => {
   const parsed = parseCliArgs(process.argv.slice(2));
   if (!parsed.ok) {
     console.error(`[ticker:refresh] ${parsed.error}`);
-    console.error('Usage: npm run ticker:refresh -- [--write] [--only=SCHD,JEPI] [--variant=stable|legacy] [--cagr-years=5] [--delay=200] [--as-of=YYYY-MM-DD]');
+    console.error('Usage: npm run ticker:refresh -- [--write] [--only=SCHD,JEPI] [--provider=yahoo|fmp] [--variant=stable|legacy] [--cagr-years=5] [--delay=200] [--as-of=YYYY-MM-DD]');
     return 1;
   }
   const options = parsed.value;
 
-  const apiKey = process.env.FMP_API_KEY;
-  if (apiKey === undefined || apiKey.trim().length === 0) {
-    console.error('[ticker:refresh] FMP_API_KEY is not set.');
-    console.error('  - Get a key at https://site.financialmodelingprep.com/developer/docs');
-    console.error('  - Local:  set FMP_API_KEY=... (PowerShell: $env:FMP_API_KEY="...")');
-    console.error('  - CI:     add it as the repository secret FMP_API_KEY');
-    return 1;
+  // Yahoo's chart API is free and keyless, and (unlike FMP's free tier) actually serves this
+  // app's tickers - see provider/yahooProvider.ts. FMP stays available for anyone with a paid key.
+  let provider: TickerDataProvider;
+  if (options.provider === 'fmp') {
+    const apiKey = process.env.FMP_API_KEY;
+    if (apiKey === undefined || apiKey.trim().length === 0) {
+      console.error('[ticker:refresh] FMP_API_KEY is not set (required for --provider=fmp).');
+      console.error('  - Get a key at https://site.financialmodelingprep.com/developer/docs');
+      console.error('  - Local:  set FMP_API_KEY=... (PowerShell: $env:FMP_API_KEY="...")');
+      console.error('  - CI:     add it as the repository secret FMP_API_KEY');
+      console.error('  - Or drop --provider=fmp entirely to use the free, keyless Yahoo provider.');
+      return 1;
+    }
+    provider = createFmpProvider({ apiKey, variant: options.variant });
+  } else {
+    provider = createYahooProvider();
   }
 
   const previousSnapshot = await readSnapshot();
@@ -66,8 +76,6 @@ const main = async (): Promise<number> => {
 
   const tickers = options.only ?? knownTickers;
   const asOf = options.asOf ?? today();
-
-  const provider = createFmpProvider({ apiKey, variant: options.variant });
 
   console.log(`[ticker:refresh] Refreshing ${tickers.length} ticker(s) via ${provider.name}...`);
 
