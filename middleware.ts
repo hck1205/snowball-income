@@ -1,5 +1,11 @@
 import { next, rewrite } from '@vercel/functions';
-import { DB_SHARE_KEY_PATTERN, replaceMetaContent } from '@/shared/lib/og';
+// ⚠ Edge 런타임 번들러는 tsconfig `paths`(`@/`)를 해석하지 못한다 — @vercel/node(serverless)와 다른
+//   파이프라인이라, 못 푼 alias 를 "지원되지 않는 외부 모듈"로 취급해 배포가 깨진다. 그래서 여기서는 두 순수
+//   리프 모듈을 **상대경로로 직접** import 한다. 배럴 `@/shared/lib/og` 를 거치면 서버 전용 sharedSnapshotRest
+//   까지 Edge 번들에 딸려오고, metaHtml/shareKey 는 아무것도 import 하지 않는 순수 파일이라 캐스케이드가 없다.
+//   (api/* 는 @vercel/node 가 `@/` 를 resolve 하므로 배럴+alias 를 그대로 쓴다.)
+import { replaceMetaContent } from './shared/lib/og/metaHtml';
+import { DB_SHARE_KEY_PATTERN } from './shared/lib/og/shareKey';
 
 /**
  * 공유 링크(`/?share=<코드>` 구 lz-string · `/?s=<key>` 신규 DB key)에 붙는 라우팅 미들웨어.
