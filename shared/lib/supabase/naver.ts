@@ -50,6 +50,14 @@ const NAVER_CLIENT_ID = readNaverClientId(import.meta.env as unknown as Record<s
  */
 export const isNaverEnabled: boolean = isCommunityEnabled && NAVER_CLIENT_ID !== null;
 
+/**
+ * 네이버 앱이 **네이버 검수(심사) 통과 전**이라 로그인이 아직 동작하지 않는 기간에 켜 두는 게이트.
+ * env(client_id)는 이미 설정돼 `isNaverEnabled`=true 지만, authorize 가 승인 전이라 실패한다. 이 값이 true 면
+ * 네이버 버튼을 '검수중'으로 노출하고 클릭을 무동작으로 막아, 사용자가 실패하는 로그인을 시도하지 않게 한다.
+ * **네이버 검수를 통과하면 이 값을 `false` 로 내린다(그럼 구글·카카오와 동일 경로로 로그인된다).**
+ */
+export const NAVER_UNDER_REVIEW = true;
+
 /** 네이버 authorize URL(순수). response_type=code + state(CSRF). */
 export const buildNaverAuthorizeUrl = (clientId: string, redirectUri: string, state: string): string => {
   const url = new URL('https://nid.naver.com/oauth2.0/authorize');

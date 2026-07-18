@@ -214,6 +214,9 @@ export const COMMUNITY_COPY = {
     naver: '네이버로 계속하기',
     naverPending: '네이버 로그인은 준비 중이에요. 지금은 구글 또는 카카오로 로그인해 주세요.',
     naverPendingBadge: '준비 중',
+    // 네이버 앱 심사(검수) 통과 전 상태 — env 는 설정됐지만 authorize 가 아직 승인 전이라 실패한다.
+    naverReview: '네이버 로그인은 심사 중이에요. 승인되면 바로 열려요. 지금은 구글 또는 카카오로 로그인해 주세요.',
+    naverReviewBadge: '검수중',
     // 네이버 authorize 에서 되돌아온 콜백 경로가 세션 교환 중 잠깐 보이는 안내(main.tsx completeNaverCallback).
     naverCallback: '네이버 로그인 처리 중…'
   },

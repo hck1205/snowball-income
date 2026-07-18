@@ -20,4 +20,8 @@ export type SocialLoginButtonProps = {
   fullWidth?: boolean;
   /** 준비중 안내 문구 요소의 id — 접근성 연결(aria-describedby). */
   describedById?: string;
+  /** pending 배지 문구 override(기본 '준비 중'). 예: 네이버 검수중이면 '검수중'. */
+  pendingBadgeLabel?: string;
+  /** pending 클릭 시 뜨는 안내 문구 override(기본 naverPending). 예: 검수중 안내. */
+  pendingHintText?: string;
 };

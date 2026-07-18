@@ -1,5 +1,5 @@
 import { COMMUNITY_COPY } from '@/shared/constants/community';
-import { isNaverEnabled, type CommunityOAuthProvider } from '@/shared/lib/supabase';
+import { isNaverEnabled, NAVER_UNDER_REVIEW, type CommunityOAuthProvider } from '@/shared/lib/supabase';
 import { CommunityModal } from '@/components/community/CommunityModal';
 import { SocialLoginButton } from '@/components/community/SocialLoginButton';
 import { ProviderList, Subtitle } from './LoginModal.styled';
@@ -36,9 +36,15 @@ export default function LoginModal({ onClose, onSelectProvider, pending }: Login
         <SocialLoginButton
           provider="naver"
           disabled={pending}
-          pending={!isNaverEnabled}
+          // env 미설정 → '준비 중', env 있으나 네이버 앱 심사 통과 전(NAVER_UNDER_REVIEW) → '검수중'.
+          // 두 경우 모두 pending(딤+배지+안내) 이고 클릭은 무동작 — 실패하는 로그인을 사용자가 시도하지 않게 한다.
+          pending={!isNaverEnabled || NAVER_UNDER_REVIEW}
+          pendingBadgeLabel={
+            isNaverEnabled && NAVER_UNDER_REVIEW ? COMMUNITY_COPY.login.naverReviewBadge : undefined
+          }
+          pendingHintText={isNaverEnabled && NAVER_UNDER_REVIEW ? COMMUNITY_COPY.login.naverReview : undefined}
           onClick={() => {
-            if (isNaverEnabled) onSelectProvider('naver');
+            if (isNaverEnabled && !NAVER_UNDER_REVIEW) onSelectProvider('naver');
           }}
         />
         <SocialLoginButton

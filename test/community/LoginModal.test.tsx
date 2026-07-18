@@ -12,15 +12,19 @@ import { LoginModal } from '@/components/community/LoginModal';
  *
  * 규칙(사용자 리포트 "네이버 버튼이 사라졌어" 반영):
  * - 네이버 버튼은 **항상 렌더**된다(구글/카카오는 늘 보이는데 네이버만 사라지면 회귀로 인지).
- * - env 설정(isNaverEnabled) → 활성, 클릭이 onSelectProvider('naver').
+ * - env 설정(isNaverEnabled) + 검수 통과(NAVER_UNDER_REVIEW=false) → 활성, 클릭이 onSelectProvider('naver').
  * - env 미설정 → "준비 중"(pending, aria-disabled + 배지), 클릭은 에러 없이 무동작.
- * - 순서: **구글 → 네이버 → 카카오** (env 유무와 무관).
+ * - env 있으나 네이버 앱 심사 통과 전(NAVER_UNDER_REVIEW=true) → "검수중"(pending), 클릭 무동작.
+ * - 순서: **구글 → 네이버 → 카카오** (상태 무관).
  */
-const naverGate = vi.hoisted(() => ({ enabled: false }));
+const naverGate = vi.hoisted(() => ({ enabled: false, underReview: false }));
 
 vi.mock('@/shared/lib/supabase', () => ({
   get isNaverEnabled() {
     return naverGate.enabled;
+  },
+  get NAVER_UNDER_REVIEW() {
+    return naverGate.underReview;
   }
 }));
 
@@ -33,6 +37,7 @@ const follows = (before: Element, after: Element) =>
 
 beforeEach(() => {
   naverGate.enabled = false;
+  naverGate.underReview = false;
 });
 
 describe('LoginModal — 네이버 config gate', () => {
@@ -56,17 +61,33 @@ describe('LoginModal — 네이버 config gate', () => {
     expect(onSelectProvider).not.toHaveBeenCalled();
   });
 
-  it('네이버 활성이면 준비중이 아니고, 클릭이 onSelectProvider("naver")를 부른다 (구글·카카오와 같은 경로)', async () => {
+  it('네이버 활성 + 검수 통과(NAVER_UNDER_REVIEW=false)면 준비중이 아니고, 클릭이 onSelectProvider("naver")를 부른다', async () => {
     naverGate.enabled = true;
+    naverGate.underReview = false;
     const onSelectProvider = vi.fn();
     render(<LoginModal onClose={vi.fn()} onSelectProvider={onSelectProvider} />);
 
     const naver = naverButton();
     expect(naver).not.toHaveAttribute('aria-disabled');
     expect(screen.queryByText(login.naverPendingBadge)).toBeNull();
+    expect(screen.queryByText(login.naverReviewBadge)).toBeNull();
 
     await userEvent.click(naver);
     expect(onSelectProvider).toHaveBeenCalledWith('naver');
+  });
+
+  it('네이버 활성이어도 검수중(NAVER_UNDER_REVIEW=true)이면 "검수중"으로 노출하고 클릭은 무동작', async () => {
+    naverGate.enabled = true;
+    naverGate.underReview = true;
+    const onSelectProvider = vi.fn();
+    render(<LoginModal onClose={vi.fn()} onSelectProvider={onSelectProvider} />);
+
+    const naver = naverButton();
+    expect(naver).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByText(login.naverReviewBadge)).toBeInTheDocument();
+
+    await userEvent.click(naver);
+    expect(onSelectProvider).not.toHaveBeenCalled();
   });
 });
 

@@ -29,7 +29,9 @@ export default function SocialLoginButton({
   disabled = false,
   pending = false,
   fullWidth = true,
-  describedById
+  describedById,
+  pendingBadgeLabel,
+  pendingHintText
 }: SocialLoginButtonProps) {
   const Mark = PROVIDER_MARK[provider];
   const [pendingHintShown, setPendingHintShown] = useState(false);
@@ -60,7 +62,7 @@ export default function SocialLoginButton({
         <Mark />
       </Logo>
       {LABEL[provider]}
-      {pending ? <PendingBadge>{COMMUNITY_COPY.login.naverPendingBadge}</PendingBadge> : null}
+      {pending ? <PendingBadge>{pendingBadgeLabel ?? COMMUNITY_COPY.login.naverPendingBadge}</PendingBadge> : null}
     </Button>
   );
 
@@ -70,7 +72,7 @@ export default function SocialLoginButton({
     <PendingWrap fullWidth={fullWidth}>
       {button}
       <PendingHint id={generatedHintId} role="status">
-        {COMMUNITY_COPY.login.naverPending}
+        {pendingHintText ?? COMMUNITY_COPY.login.naverPending}
       </PendingHint>
     </PendingWrap>
   );
