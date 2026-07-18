@@ -23,4 +23,11 @@ export type StatTileProps = {
   tone?: StatTone;
   /** 라벨 오른쪽 슬롯 — 보통 도움말 `?` 버튼. */
   action?: ReactNode;
+  /**
+   * 목표 대비 달성률(0~1). 주면 값 아래에 오로라 진행률 바 + 병기 문구("목표의 N% 도달"/"목표 달성")가
+   * 붙는다. 범위 밖 값은 0~1로 클램프. **표시용 비율만** 넣어라 — 타일은 계산하지 않는다.
+   */
+  progress?: number;
+  /** 진행률 바의 접근성 이름(예: "목표 월배당 달성률"). `progress`를 줄 때 함께 준다. */
+  progressLabel?: string;
 };

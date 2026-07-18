@@ -32,7 +32,7 @@ export const TileRoot = styled.div<{ emphasis: StatEmphasis }>`
   padding: ${({ emphasis }) => (emphasis === 'hero' ? `${space[4]} ${space[4]} ${space[4]} ${space[5]}` : space[3])};
   transition: border-color ${motion.fast} ${motion.ease};
 
-  /* hero 타일의 좌측 액센트 바 — 브랜드를 아주 절제해서 한 군데만 쓴다. */
+  /* hero 타일의 좌측 오로라 리본 바 — 시그니처를 화면당 한 군데(주인공 지표)에만 쓴다. */
   ${({ emphasis }) =>
     emphasis === 'hero'
       ? `
@@ -42,9 +42,36 @@ export const TileRoot = styled.div<{ emphasis: StatEmphasis }>`
       left: 0;
       top: ${space[3]};
       bottom: ${space[3]};
-      width: 3px;
+      width: 4px;
       border-radius: 0 ${radius.pill} ${radius.pill} 0;
-      background: ${color.brand};
+      background: ${color.gradientAurora};
+    }
+
+    /*
+     * hero 로드 모션(§5.1) — CSS animation이라 마운트 시 1회만 돈다.
+     * 재계산으로 숫자가 바뀌어도 요소가 리마운트되지 않는 한 반복되지 않는다.
+     * keyframes까지 no-preference 미디어 안에 두어 reduced-motion에서는 아예 정의되지 않는다.
+     */
+    @media (prefers-reduced-motion: no-preference) {
+      animation: sb-stat-hero-enter 300ms ${motion.ease};
+
+      &::before {
+        transform-origin: top;
+        animation: sb-stat-hero-bar 320ms ${motion.ease} 80ms backwards;
+      }
+
+      @keyframes sb-stat-hero-enter {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+      }
+
+      @keyframes sb-stat-hero-bar {
+        from {
+          transform: scaleY(0);
+        }
+      }
     }
   `
       : `
@@ -84,17 +111,57 @@ export const TileLabel = styled.span<{ emphasis: StatEmphasis }>`
 
 export const TileValue = styled.p<{ emphasis: StatEmphasis; tone: StatTone }>`
   margin: 0;
+  /* hero도 값 색은 text 그대로 — 그라데이션 텍스트 금지(핵심 숫자의 가독이 시그니처보다 우선). */
   color: ${({ tone }) => TONE[tone]};
-  font-weight: ${font.weight.bold};
+  font-weight: ${({ emphasis }) => (emphasis === 'hero' ? font.weight.extrabold : font.weight.bold)};
   line-height: ${font.leading.tight};
-  letter-spacing: -0.02em;
+  letter-spacing: ${({ emphasis }) => (emphasis === 'hero' ? '-0.03em' : '-0.02em')};
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   ${font.numeric};
 
-  /* hero는 화면 폭에 따라 자란다. 좁은 화면에서 숫자가 잘리지 않도록 clamp. */
-  font-size: ${({ emphasis }) => (emphasis === 'hero' ? 'clamp(24px, 3.4vw, 30px)' : font.size.lg)};
+  /* hero는 화면 폭에 따라 자란다. 좁은 화면에서 숫자가 잘리지 않도록 clamp(상한 44px). */
+  font-size: ${({ emphasis }) => (emphasis === 'hero' ? `clamp(28px, 4vw, ${font.size['6xl']})` : font.size.lg)};
+`;
+
+/**
+ * 목표 달성 진행률 바(§4.4).
+ *
+ * `div`가 아니라 `span`인 이유: 타일의 가장 가까운 `div` 조상은 타일 루트여야 한다
+ * (TileLabelRow 주석 참고 — 앱 테스트가 `closest('div')`로 타일 전체를 읽는다).
+ * 색만으로 전달하지 않는다 — 호출부(StatTile.tsx)가 hint 문장을 반드시 병기한다.
+ */
+export const ProgressTrack = styled.span`
+  display: block;
+  width: 100%;
+  height: 6px;
+  border: 1px solid ${color.border};
+  border-radius: ${radius.pill};
+  background: ${color.progressTrack};
+`;
+
+export const ProgressFill = styled.span`
+  display: block;
+  height: 100%;
+  min-width: 6px;
+  border-radius: ${radius.pill};
+  /* 표시용 리본 — progress-track 위 stop 최저 대비 3.19:1(라이트)/6.01:1(다크). */
+  background: ${color.gradientAurora};
+  /* 재계산으로 달성률이 바뀔 때는 부드럽게 이동. reduced-motion 전역 규칙이 끈다. */
+  transition: width ${motion.slow} ${motion.ease};
+
+  /* 마운트 시 0 → 목표값으로 1회 차오른다(§5.2). to가 없으면 현재 폭이 종점이 된다. */
+  @media (prefers-reduced-motion: no-preference) {
+    animation: sb-stat-progress-fill ${motion.slow} ${motion.ease};
+
+    @keyframes sb-stat-progress-fill {
+      from {
+        width: 0;
+        min-width: 0;
+      }
+    }
+  }
 `;
 
 export const TileHint = styled.p`

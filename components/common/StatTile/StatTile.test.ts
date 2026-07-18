@@ -47,4 +47,79 @@ describe('StatTile', () => {
 
     expect(screen.getByText('-40만원')).toBeInTheDocument();
   });
+
+  /**
+   * 진행률(§4.4)은 색(오로라 바)만으로 전달하면 안 된다 — progressbar 롤/값과
+   * 병기 문구("목표의 N% 도달")가 함께 나와야 한다.
+   */
+  it('renders an accessible progress bar with a textual hint', () => {
+    render(
+      createElement(StatTile, {
+        label: '목표 월배당 도달 (300만원)',
+        value: '2038년',
+        progress: 0.72,
+        progressLabel: '목표 월배당 달성률'
+      })
+    );
+
+    const bar = screen.getByRole('progressbar', { name: '목표 월배당 달성률' });
+    expect(bar).toHaveAttribute('aria-valuemin', '0');
+    expect(bar).toHaveAttribute('aria-valuemax', '100');
+    expect(bar).toHaveAttribute('aria-valuenow', '72');
+    expect(screen.getByText('목표의 72% 도달')).toBeInTheDocument();
+  });
+
+  it('announces completion when the goal is reached', () => {
+    render(
+      createElement(StatTile, {
+        label: '목표 월배당 도달 (300만원)',
+        value: '2031년',
+        progress: 1,
+        progressLabel: '목표 월배당 달성률'
+      })
+    );
+
+    expect(screen.getByRole('progressbar', { name: '목표 월배당 달성률' })).toHaveAttribute('aria-valuenow', '100');
+    expect(screen.getByText('목표 달성')).toBeInTheDocument();
+  });
+
+  /**
+   * 반올림 경계: 0.995~0.999는 반올림하면 100이지만 아직 미달성이다.
+   * "목표의 100% 도달"이라는 모순 대신 99%로 캡한다 — 100%는 진짜 달성(≥1)에만.
+   */
+  it('caps unreached progress at 99% instead of rounding up to 100%', () => {
+    render(
+      createElement(StatTile, {
+        label: '목표 월배당 도달 (300만원)',
+        value: '미도달',
+        progress: 0.997,
+        progressLabel: '목표 월배당 달성률'
+      })
+    );
+
+    expect(screen.getByRole('progressbar', { name: '목표 월배당 달성률' })).toHaveAttribute('aria-valuenow', '99');
+    expect(screen.getByText('목표의 99% 도달')).toBeInTheDocument();
+    expect(screen.queryByText('목표 달성')).not.toBeInTheDocument();
+  });
+
+  /** 달성률이 목표를 넘어도(150%) 바와 문구는 100%에서 멈춘다 — 표시용 비율의 계약. */
+  it('clamps out-of-range progress to the 0-100 range', () => {
+    render(
+      createElement(StatTile, {
+        label: '목표 월배당 도달',
+        value: '2029년',
+        progress: 1.5,
+        progressLabel: '목표 월배당 달성률'
+      })
+    );
+
+    expect(screen.getByRole('progressbar', { name: '목표 월배당 달성률' })).toHaveAttribute('aria-valuenow', '100');
+    expect(screen.getByText('목표 달성')).toBeInTheDocument();
+  });
+
+  it('does not render a progress bar when progress is not given', () => {
+    render(createElement(StatTile, { label: '누적 순배당', value: '4,200만원' }));
+
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+  });
 });

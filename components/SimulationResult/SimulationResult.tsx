@@ -78,6 +78,19 @@ function SimulationResultComponent({
   const { financialIncomeThresholdYear } = summary;
   // 양도세 블록은 정밀 결과의 '상세' 모드에서만 보여준다 (간략 모드는 핵심 숫자만 남긴다).
   const showTaxSection = !showQuickEstimate && !isResultCompact;
+  /*
+   * 목표 월배당 달성률 — **표시용 비율**이라 이미 받은 결과값으로만 계산한다(엔진 재계산 없음).
+   * 목표가 0 이하면 비율이 의미가 없으므로 바를 아예 그리지 않는다.
+   * 도달 연도가 존재하면(타일 값에 "N년차"가 표기되면) 비율과 무관하게 달성으로 본다 —
+   * 엔진은 "기간 중 도달"을 판정하고 비율의 분자는 "마지막 해 월평균"이라, 도달 후 배당이
+   * 다시 내려간 시나리오에서 "2031년 도달"과 "97% 도달"이 동시에 보이는 모순을 막는다.
+   */
+  const targetProgress =
+    targetMonthlyDividend > 0
+      ? summary.targetMonthDividendReachedYear !== undefined
+        ? 1
+        : Math.min(1, Math.max(0, summary.finalMonthlyAverageDividend / targetMonthlyDividend))
+      : undefined;
 
   return (
     <Card
@@ -160,6 +173,8 @@ function SimulationResultComponent({
           <StatTile
             label={`목표 월배당 도달 (${formatResultAmount(targetMonthlyDividend, isResultCompact)})`}
             value={targetYearLabel(summary.targetMonthDividendReachedYear)}
+            progress={targetProgress}
+            progressLabel="목표 월배당 달성률"
           />
         </SummaryGrid>
       )}
