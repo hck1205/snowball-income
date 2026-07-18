@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useCloudSyncStateValue } from '@/jotai/snowball/cloud';
-import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
+import { ANALYTICS_EVENT, setUserProperties, trackEvent } from '@/shared/lib/analytics';
 
 /**
  * 클라우드 동기화 상태 전이를 GA4로 흘린다.
@@ -19,6 +19,8 @@ export const useCloudSyncAnalytics = (): void => {
 
     if (state.status === 'saved') {
       trackEvent(ANALYTICS_EVENT.CLOUD_SAVE_COMPLETED, {});
+      // 클라우드 저장에 도달한 사용자 코호트(User Property, 멱등).
+      setUserProperties({ has_saved: true });
     } else if (state.status === 'error') {
       trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, { operation: 'cloud_save' });
     }

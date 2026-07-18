@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { ANALYTICS_EVENT, track } from '@/shared/lib/analytics';
 import { useIsLoggedInAtomValue, useSessionAtomValue } from '@/jotai/community';
 import { useCommunityAuth } from '@/components/community';
 import CommunityDetailView from './CommunityDetailPage.view';
@@ -26,7 +27,10 @@ export default function CommunityDetailPage() {
   }, [id, navigate]);
 
   const onOpenInSimulator = useCallback(() => {
-    if (detail.openInSimulatorHref) navigate(detail.openInSimulatorHref);
+    if (!detail.openInSimulatorHref) return;
+    // "이 시나리오로 시뮬레이션 열기" — 커뮤니티→코어 제품 유입 계측(실제 이동 직전).
+    track(ANALYTICS_EVENT.COMMUNITY_TO_SIMULATOR);
+    navigate(detail.openInSimulatorHref);
   }, [detail.openInSimulatorHref, navigate]);
 
   return (

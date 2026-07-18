@@ -6,7 +6,7 @@ import { PALETTE_PRESET_IDS } from '@/shared/constants';
 import type { PalettePresetId } from '@/shared/constants';
 import { THEME_PRESETS } from '@/shared/styles';
 import { usePalettePresetAtomValue, useSetPalettePresetWrite } from '@/jotai';
-import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
+import { ANALYTICS_EVENT, setUserProperties, trackEvent } from '@/shared/lib/analytics';
 import { Button } from '@/components/common';
 import type { ThemePresetSwitcherProps } from './ThemePresetSwitcher.types';
 import {
@@ -53,6 +53,8 @@ function PresetRadioGroup({ columns = 1 }: { columns?: 1 | 2 }) {
       if (id === palette) return;
       setPalette(id);
       trackEvent(ANALYTICS_EVENT.THEME_PRESET_CHANGED, { preset_id: id });
+      // 선호 테마 코호트(User Property). preset_id 저카디널리티라 그대로 실어 마지막 선택을 유지.
+      setUserProperties({ preferred_theme: id });
     },
     [palette, setPalette]
   );

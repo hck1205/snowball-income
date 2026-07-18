@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { Card } from '@/components';
 import { TOUR_TARGET } from '@/shared/constants';
 import { getTickerDisplayName } from '@/shared/utils';
-import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
+import { ANALYTICS_EVENT, track, trackEvent } from '@/shared/lib/analytics';
 import type { TickerCreationProps } from './TickerCreation.types';
 import {
   HintText,
@@ -53,6 +53,8 @@ function TickerCreationComponent({
         setShareResultMessage(result.message);
         return;
       }
+      // 공유 링크 생성 성공 시에만 발화. copy_link=클립보드 복사, show_link=복사 실패로 URL 노출 폴백.
+      track(ANALYTICS_EVENT.SCENARIO_SHARED, { share_method: result.copied ? 'copy_link' : 'show_link' });
       if (result.copied) {
         setShareResultMessage('');
         setShareToastMessage('공유 링크를 클립보드에 복사했습니다.');
