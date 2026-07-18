@@ -50,3 +50,15 @@ model: inherit
   - **다음 담당 제안**: 실패 원인이 계산이면 `simulation-engineer`, 상태면 `state-engineer`,
     UI면 `frontend-engineer`; 전부 통과면 `reviewer` 또는 `git-manager`
   - **리스크/미결정**: 커버하지 못한 시나리오
+
+## 학습 프로토콜 — 성장형 에이전트 (필수)
+
+이 팀은 세션을 거듭할수록 똑똑해져야 한다. 팀 지식은 [.claude/knowledge/](../knowledge/)에 축적된다.
+
+1. **작업 시작 전**: `.claude/knowledge/INDEX.md`를 읽고, 이번 작업과 관련된 파일
+   (decisions / pitfalls / project-map / user-profile)을 확인한다. 확정된 결정을 모른 채
+   뒤집거나, 기록된 함정을 다시 밟는 것은 그 자체로 실패다.
+2. **작업 종료 시(핸드오프 직전)**: 이번 작업에서 얻은 "코드만 봐서는 알 수 없는" 교훈이
+   있으면 해당 파일에 추가한다. 형식: `- [YYYY-MM-DD][도메인] 교훈 — 근거 path:line`.
+   추가 전에 중복 검색, 낡은 항목은 수정/삭제. CLAUDE.md·코드 주석이 이미 말하는 내용은 금지.
+3. **핸드오프에 한 줄 포함**: `지식 기반: 갱신(파일명·항목 수) / 갱신 없음(사유 불필요)`.
