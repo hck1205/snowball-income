@@ -33,6 +33,7 @@ import {
   useWeightByTickerIdAtomValue,
   useYieldFormAtomValue
 } from '@/jotai';
+import { removeScenarioTab, reorderTabs } from '@/pages/Main/utils';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 
 const makeScenarioId = () => `scenario-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -257,16 +258,14 @@ export const useScenarioTabs = () => {
   const deleteScenarioTab = useCallback((scenarioId: string) => {
     if (tabs.length <= 1) return false;
 
-    const nextTabs = prepareTabsWithActiveSnapshot();
-    const deletingIndex = nextTabs.findIndex((tab) => tab.id === scenarioId);
-    if (deletingIndex < 0) return false;
+    const removal = removeScenarioTab({
+      tabs: prepareTabsWithActiveSnapshot(),
+      deletingId: scenarioId,
+      activeId: activeScenarioId
+    });
+    if (!removal) return false;
 
-    const remainingTabs = nextTabs.filter((tab) => tab.id !== scenarioId);
-    const nextActiveTab =
-      scenarioId === activeScenarioId
-        ? remainingTabs[Math.max(0, deletingIndex - 1)] ?? remainingTabs[0]
-        : nextTabs.find((tab) => tab.id === activeScenarioId) ?? remainingTabs[0];
-    if (!nextActiveTab) return false;
+    const { tabs: remainingTabs, nextActiveTab } = removal;
 
     setScenarioTabs(remainingTabs);
     setActiveScenarioId(nextActiveTab.id);
@@ -311,22 +310,13 @@ export const useScenarioTabs = () => {
 
   const reorderScenarioTabs = useCallback(
     (fromScenarioId: string, toScenarioId: string) => {
-      if (fromScenarioId === toScenarioId) return false;
-
-      const nextTabs = prepareTabsWithActiveSnapshot();
-      const fromIndex = nextTabs.findIndex((tab) => tab.id === fromScenarioId);
-      const toIndex = nextTabs.findIndex((tab) => tab.id === toScenarioId);
-      if (fromIndex < 0 || toIndex < 0) return false;
-
-      const reorderedTabs = [...nextTabs];
-      const [movingTab] = reorderedTabs.splice(fromIndex, 1);
-      if (!movingTab) return false;
-      reorderedTabs.splice(toIndex, 0, movingTab);
+      const reorderedTabs = reorderTabs(prepareTabsWithActiveSnapshot(), fromScenarioId, toScenarioId);
+      if (!reorderedTabs) return false;
 
       setScenarioTabs(reorderedTabs);
       trackEvent(ANALYTICS_EVENT.SCENARIO_TAB_ACTION, {
         action: 'reorder',
-        scenario_id: movingTab.id
+        scenario_id: fromScenarioId
       });
       return true;
     },

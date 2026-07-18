@@ -1,7 +1,13 @@
 import { useMemo } from 'react';
 import { YEARLY_SERIES_HELP_KEY, YEARLY_SERIES_LABEL, YEARLY_SERIES_ORDER, type YearlySeriesKey } from '@/shared/constants';
 import type { YieldFormValues } from '@/shared/types';
-import { useIncludedProfilesAtomValue, useNormalizedAllocationAtomValue, useSetActiveHelpWrite, useSetVisibleYearlySeriesWrite } from '@/jotai';
+import {
+  useIncludedProfilesAtomValue,
+  useNormalizedAllocationAtomValue,
+  usePalettePresetAtomValue,
+  useSetActiveHelpWrite,
+  useSetVisibleYearlySeriesWrite
+} from '@/jotai';
 import {
   buildAllocationPieOption,
   buildRecentCashflowBarOption,
@@ -30,6 +36,12 @@ export const useMainComputed = ({
   const normalizedAllocation = useNormalizedAllocationAtomValue();
   const setVisibleYearlySeries = useSetVisibleYearlySeriesWrite();
   const setActiveHelp = useSetActiveHelpWrite();
+  /*
+   * 캔버스(ECharts)는 CSS 변수를 다시 읽지 않는다 — 팔레트 프리셋이 바뀌면 차트 옵션을
+   * 다시 빌드해야 옛 색이 남지 않는다. 그래서 아래 차트 옵션 useMemo들의 의존성에
+   * palettePreset을 넣는다 (빌더 내부의 getChartTheme()이 새 프리셋 값을 읽는다).
+   */
+  const palettePreset = usePalettePresetAtomValue();
 
   const { simulation, yearlyCashflowByTicker, postInvestmentDividendProjectionRows } = useMemo(
     () =>
@@ -40,7 +52,8 @@ export const useMainComputed = ({
         values,
         postInvestmentProjectionYears
       }),
-    [includedProfiles, isValid, normalizedAllocation, postInvestmentProjectionYears, values]
+    // palettePreset: 실지급 배당 스택 색이 번들 데이터에 박히므로(simulation.ts) 프리셋 전환 시 재빌드
+    [includedProfiles, isValid, normalizedAllocation, palettePreset, postInvestmentProjectionYears, values]
   );
 
   const tableRows = useMemo(() => simulation?.yearly ?? [], [simulation]);
@@ -51,12 +64,15 @@ export const useMainComputed = ({
         showPortfolioDividendCenter,
         finalMonthlyAverageDividend: simulation?.summary.finalMonthlyAverageDividend ?? 0
       }),
-    [normalizedAllocation, showPortfolioDividendCenter, simulation?.summary.finalMonthlyAverageDividend]
+    [normalizedAllocation, palettePreset, showPortfolioDividendCenter, simulation?.summary.finalMonthlyAverageDividend]
   );
   const defaultCashflowYear = yearlyCashflowByTicker.years[yearlyCashflowByTicker.years.length - 1] ?? null;
   const defaultCashflowByYear =
     defaultCashflowYear === null ? { months: [], series: [] } : yearlyCashflowByTicker.byYear[String(defaultCashflowYear)] ?? { months: [], series: [] };
-  const recentCashflowBarOption = useMemo(() => buildRecentCashflowBarOption(defaultCashflowByYear), [defaultCashflowByYear]);
+  const recentCashflowBarOption = useMemo(
+    () => buildRecentCashflowBarOption(defaultCashflowByYear),
+    [defaultCashflowByYear, palettePreset]
+  );
   const yearlyResultBarOption = useMemo(
     () =>
       buildYearlyResultBarOption({
@@ -64,7 +80,7 @@ export const useMainComputed = ({
         visibleYearlySeries,
         isYearlyAreaFillOn
       }),
-    [isYearlyAreaFillOn, tableRows, visibleYearlySeries]
+    [isYearlyAreaFillOn, palettePreset, tableRows, visibleYearlySeries]
   );
   const yearlySeriesItems = useMemo(
     () =>

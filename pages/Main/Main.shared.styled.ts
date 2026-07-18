@@ -1,34 +1,41 @@
 import styled from '@emotion/styled';
+import { color, container, font, media, motion, radius, shadow, space, zIndex } from '@/shared/styles';
+
+/* -------------------------------------------------------------------------- */
+/* 레이아웃                                                                     */
+/* -------------------------------------------------------------------------- */
 
 export const SkipLink = styled.a`
   position: absolute;
-  top: -40px;
-  left: 12px;
-  z-index: 2147483647;
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid #2f6f93;
-  background: #ffffff;
-  color: #1f3341;
-  font-size: 13px;
+  top: -48px;
+  left: ${space[3]};
+  z-index: ${zIndex.skipLink};
+  padding: ${space[2]} ${space[3]};
+  border-radius: ${radius.sm};
+  border: 1px solid ${color.brand};
+  background: ${color.surface};
+  color: ${color.brandText};
+  font-size: ${font.size.sm};
+  font-weight: ${font.weight.semibold};
   text-decoration: none;
+  box-shadow: ${shadow.e2};
 
   &:focus-visible {
-    top: 10px;
+    top: ${space[3]};
   }
 `;
 
 export const FeatureLayout = styled.div`
   max-width: 1200px;
   margin: 0 auto;
-  padding: clamp(14px, 2.6vw, 24px) clamp(12px, 2vw, 16px) clamp(24px, 4vw, 40px);
+  padding: clamp(16px, 2.6vw, 28px) clamp(12px, 2vw, 20px) clamp(24px, 4vw, 48px);
   display: grid;
-  gap: clamp(10px, 1.8vw, 16px);
-  color: #1f3341;
+  gap: clamp(12px, 1.8vw, 20px);
+  color: ${color.text};
   container-type: inline-size;
   contain: layout style;
 
-  @media (max-width: 960px) {
+  ${media.down('drawer')} {
     contain: none;
   }
 `;
@@ -40,14 +47,14 @@ export const MainContent = styled.main`
 export const ContentLayout = styled.div`
   display: grid;
   grid-template-columns: minmax(250px, 320px) minmax(0, 1fr);
-  gap: clamp(10px, 2vw, 20px);
+  gap: clamp(12px, 2vw, 20px);
   align-items: start;
 
-  @container (max-width: 980px) {
+  ${container.down('layout')} {
     grid-template-columns: 1fr;
   }
 
-  @media (max-width: 980px) {
+  ${media.down('layout')} {
     grid-template-columns: 1fr;
   }
 `;
@@ -55,25 +62,28 @@ export const ContentLayout = styled.div`
 export const ConfigColumn = styled.aside`
   position: static;
   display: grid;
-  gap: 14px;
+  gap: ${space[4]};
   max-height: none;
   overflow: visible;
   padding: 0;
   contain: layout paint style;
 
-  @media (max-width: 960px) {
+  ${media.down('drawer')} {
     position: fixed;
     top: 0;
     left: 0;
     width: min(92vw, 360px);
     height: 100dvh;
     max-height: 100dvh;
-    z-index: 60;
-    background: #f7fbff;
-    border-right: 1px solid #d7e2eb;
-    padding: 44px 12px 20px;
+    z-index: ${zIndex.drawer};
+    /* 페이지와 같은 극야 + 오로라 글로우 위에 입력 폼 — 글로우 마지막 레이어가 bg 단색이라 폴백 안전. */
+    background: ${color.bgGlow} no-repeat;
+    background-color: ${color.bg};
+    border-right: 1px solid ${color.border};
+    box-shadow: ${shadow.e3};
+    padding: ${space[12]} ${space[3]} ${space[5]};
     transform: translateX(-100%);
-    transition: transform 0.2s ease;
+    transition: transform ${motion.base} ${motion.ease};
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -81,7 +91,7 @@ export const ConfigColumn = styled.aside`
 `;
 
 export const ConfigDrawerColumn = styled(ConfigColumn)<{ open: boolean }>`
-  @media (max-width: 960px) {
+  ${media.down('drawer')} {
     display: ${({ open }) => (open ? 'grid' : 'none')};
     will-change: transform;
     transform: ${({ open }) => (open ? 'translateX(0)' : 'translateX(-100%)')};
@@ -91,40 +101,48 @@ export const ConfigDrawerColumn = styled(ConfigColumn)<{ open: boolean }>`
 export const DrawerBackdrop = styled.div<{ open: boolean }>`
   display: none;
 
-  @media (max-width: 960px) {
+  ${media.down('drawer')} {
     display: ${({ open }) => (open ? 'block' : 'none')};
     position: fixed;
     inset: 0;
-    z-index: 55;
-    background: rgba(16, 29, 41, 0.35);
+    z-index: ${zIndex.drawerBackdrop};
+    background: ${color.overlay};
+    backdrop-filter: blur(2px);
   }
 `;
 
 export const DrawerToggleButton = styled.button`
   display: none;
 
-  @media (max-width: 960px) {
+  ${media.down('drawer')} {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     position: static;
     align-self: flex-start;
     width: fit-content;
-    border: 1px solid #2f6f93;
-    background: #2f6f93;
-    color: #fff;
-    border-radius: 8px;
-    padding: 7px 10px;
-    font-size: 13px;
+    min-height: 44px;
+    border: 1px solid ${color.brand};
+    background: ${color.brand};
+    color: ${color.onBrand};
+    border-radius: ${radius.sm};
+    padding: ${space[2]} ${space[4]};
+    font-size: ${font.size.sm};
+    font-weight: ${font.weight.semibold};
     cursor: pointer;
     touch-action: manipulation;
+    transition: background-color ${motion.fast} ${motion.ease}, box-shadow ${motion.fast} ${motion.ease};
+
+    &:hover {
+      background: ${color.brandHover};
+    }
 
     &[data-floating='true'] {
       position: fixed;
       left: max(12px, env(safe-area-inset-left));
       top: max(12px, env(safe-area-inset-top));
-      z-index: 54;
-      box-shadow: 0 6px 18px rgba(14, 37, 54, 0.22);
+      z-index: ${zIndex.drawerToggle};
+      box-shadow: ${shadow.e3};
     }
 
     &[aria-expanded='true'] {
@@ -136,30 +154,36 @@ export const DrawerToggleButton = styled.button`
 export const DrawerCloseButton = styled.button`
   display: none;
 
-  @media (max-width: 960px) {
+  ${media.down('drawer')} {
     display: flex;
     align-items: center;
     justify-content: center;
     position: absolute;
-    top: 10px;
-    right: 10px;
-    width: 28px;
-    height: 28px;
-    border: 1px solid #bfd0de;
-    background: #f4f8fb;
-    color: #29465a;
-    border-radius: 999px;
+    top: ${space[2]};
+    right: ${space[2]};
+    width: 38px;
+    height: 38px;
+    border: 1px solid ${color.border};
+    background: ${color.surface};
+    color: ${color.textSecondary};
+    border-radius: ${radius.pill};
     padding: 0;
-    font-size: 16px;
+    font-size: ${font.size.lg};
     line-height: 1;
     cursor: pointer;
     touch-action: manipulation;
+    transition: background-color ${motion.fast} ${motion.ease}, color ${motion.fast} ${motion.ease};
+
+    &:hover {
+      background: ${color.surfaceHover};
+      color: ${color.text};
+    }
   }
 `;
 
 export const ResultsColumn = styled.section`
   display: grid;
-  gap: clamp(10px, 1.8vw, 16px);
+  gap: clamp(12px, 1.8vw, 20px);
   min-width: 0;
   contain: layout style;
 
@@ -168,114 +192,116 @@ export const ResultsColumn = styled.section`
   }
 `;
 
-export const ScenarioNameTag = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  width: 100%;
-  height: 37px;
-  padding: 0 10px;
-  margin-bottom: 10px;
-  border: none;
-  border-radius: 10px;
-  background: #ffffff;
-  color: #1f3341;
-  font-size: 13px;
-  font-weight: 700;
+/* -------------------------------------------------------------------------- */
+/* 헤더                                                                         */
+/* -------------------------------------------------------------------------- */
 
-  button[data-delete='true'] {
-    opacity: 0;
-    pointer-events: none;
-    transform: translateX(2px);
-    transition: opacity 0.15s ease, transform 0.15s ease;
-  }
-
-  &:hover button[data-delete='true'],
-  &:active button[data-delete='true'],
-  &:focus-within button[data-delete='true'] {
-    opacity: 1;
-    pointer-events: auto;
-    transform: translateX(0);
-  }
+export const Header = styled.header`
+  display: grid;
+  gap: ${space[2]};
+  padding-bottom: ${space[2]};
 `;
 
-export const ScenarioNameEditButton = styled.button`
-  flex: 1;
+/** 로고 마크 + 워드마크를 한 줄로 묶는다. */
+export const HeaderBrand = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${space[3]};
   min-width: 0;
-  height: 100%;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  text-align: left;
-  font-size: inherit;
-  font-weight: inherit;
-  cursor: text;
-  padding: 0;
+`;
+
+/** 앱 아이콘을 감싸는 원형 프레임. 아이콘 이미지를 원으로 잘라 파비콘/앱 아이콘과 형태를 맞춘다. */
+export const HeaderLogo = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
   overflow: hidden;
-  text-overflow: ellipsis;
+`;
+
+/** 헤더 좌측 앱 아이콘 이미지. 정사각 원본을 원형으로 커버 크롭한다. */
+export const HeaderLogoImage = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+`;
+
+export const HeaderTitle = styled.h1`
+  margin: 0;
+  color: ${color.text};
+  font-size: clamp(20px, 2.6vw, 26px);
+  font-weight: ${font.weight.bold};
+  line-height: ${font.leading.tight};
+  /* 워드마크는 자간을 조여야 로고처럼 읽힌다. 본문 자간과 다른 이유가 이것이다. */
+  letter-spacing: -0.03em;
   white-space: nowrap;
 `;
 
-export const ScenarioNameEditInput = styled.input`
-  flex: 1;
-  min-width: 0;
-  height: 100%;
-  border: none;
-  background: transparent;
-  color: #1f3341;
-  font-size: 13px;
-  font-weight: 700;
-  padding: 0;
-  box-shadow: none;
-  appearance: none;
-
-  &:focus {
-    outline: none;
-    box-shadow: none;
-  }
+export const HeaderDescription = styled.p`
+  margin: 0;
+  color: ${color.textSecondary};
+  font-size: ${font.size.base};
+  line-height: ${font.leading.snug};
 `;
 
-export const ScenarioDeleteButton = styled.button`
-  border: 1px solid #bfd0de;
-  background: #f4f8fb;
-  color: #29465a;
-  border-radius: 8px;
-  padding: 5px 10px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
+/** 헤더 액션(튜토리얼 시작 아이콘). 브랜드 행의 맨 오른쪽으로 민다. */
+export const HeaderActions = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: ${space[1]};
+  flex: 0 0 auto;
+  margin-left: auto;
 `;
+
+
+
+
+/* -------------------------------------------------------------------------- */
+/* 시나리오 이름 / 탭                                                           */
+/* -------------------------------------------------------------------------- */
 
 export const ScenarioTabsWrap = styled.div`
   display: flex;
   align-items: flex-end;
-  gap: 1px;
+  gap: ${space[1]};
   overflow-x: auto;
   overflow-y: hidden;
-  border-bottom: 1px solid #c9d8e4;
+  border-bottom: 1px solid ${color.border};
   scrollbar-width: thin;
   -webkit-overflow-scrolling: touch;
+
+  /* 모바일에서 탭이 넘칠 때: 스냅 + 우측 페이드로 "더 있음"을 알린다 */
+  ${media.down('drawer')} {
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: ${space[2]};
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
 `;
 
 export const ScenarioTabButton = styled.button<{ active?: boolean; dragOver?: boolean; isDragging?: boolean }>`
   position: relative;
   flex: 0 0 auto;
   max-width: 160px;
-  border: 1px solid ${({ active }) => (active ? '#9fb9cc' : '#c9d8e4')};
+  scroll-snap-align: start;
+  border: 1px solid ${({ active }) => (active ? color.border : 'transparent')};
   border-bottom: 0;
-  background: ${({ active }) => (active ? '#ffffff' : '#edf4fa')};
-  color: ${({ active }) => (active ? '#1f3341' : '#486073')};
-  border-radius: 10px 10px 0 0;
-  padding: 8px 14px 9px;
-  min-height: 34px;
-  font-size: 13px;
-  font-weight: ${({ active }) => (active ? 700 : 600)};
+  background: ${({ active }) => (active ? color.surface : 'transparent')};
+  color: ${({ active }) => (active ? color.text : color.textMuted)};
+  border-radius: ${radius.md} ${radius.md} 0 0;
+  padding: ${space[2]} ${space[4]};
+  min-height: 40px;
+  font-size: ${font.size.sm};
+  font-family: inherit;
+  font-weight: ${({ active }) => (active ? font.weight.bold : font.weight.medium)};
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -283,14 +309,27 @@ export const ScenarioTabButton = styled.button<{ active?: boolean; dragOver?: bo
   cursor: pointer;
   z-index: ${({ active }) => (active ? 2 : 1)};
   opacity: ${({ isDragging }) => (isDragging ? 0.65 : 1)};
-  box-shadow: ${({ dragOver }) => (dragOver ? 'inset 0 0 0 2px #7da2bc' : 'none')};
+  box-shadow: ${({ dragOver }) => (dragOver ? `inset 0 0 0 2px ${color.brand}` : 'none')};
+  transition: background-color ${motion.fast} ${motion.ease}, color ${motion.fast} ${motion.ease};
+
+  /* 활성 탭이 아래 패널과 이어져 보이도록 경계선을 덮는다 */
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 1px;
+    background: ${({ active }) => (active ? color.surface : 'transparent')};
+  }
 
   &[draggable='true'] {
     cursor: ${({ isDragging }) => (isDragging ? 'grabbing' : 'grab')};
   }
 
-  &:hover {
-    background: ${({ active }) => (active ? '#ffffff' : '#e4eef7')};
+  &:hover:not(:disabled) {
+    background: ${({ active }) => (active ? color.surface : color.surfaceHover)};
+    color: ${color.text};
   }
 
   &:disabled {
@@ -302,13 +341,14 @@ export const ScenarioTabButton = styled.button<{ active?: boolean; dragOver?: bo
 export const ScenarioTabRenameInput = styled.input`
   border: 0;
   background: transparent;
-  color: #1f3341;
-  padding: 0 14px 0 0;
+  color: ${color.text};
+  padding: 0 ${space[4]} 0 0;
   min-height: 20px;
   min-width: 0;
   width: 100%;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: ${font.size.sm};
+  font-weight: ${font.weight.bold};
+  font-family: inherit;
   box-shadow: none;
   appearance: none;
 
@@ -325,30 +365,41 @@ export const ScenarioTabEditWrap = styled.div`
   align-items: center;
   gap: 0;
   max-width: 160px;
-  border: 1px solid #9fb9cc;
+  border: 1px solid ${color.border};
   border-bottom: 0;
-  background: #ffffff;
-  color: #1f3341;
-  border-radius: 10px 10px 0 0;
-  padding: 8px 14px 9px;
-  min-height: 34px;
+  background: ${color.surface};
+  color: ${color.text};
+  border-radius: ${radius.md} ${radius.md} 0 0;
+  padding: ${space[2]} ${space[4]};
+  min-height: 40px;
   white-space: nowrap;
 `;
 
 export const ScenarioTabCloseButton = styled.button`
   position: absolute;
   top: 50%;
-  right: 8px;
+  right: ${space[2]};
   transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 0;
   background: transparent;
-  color: #486073;
-  width: 16px;
-  height: 16px;
+  color: ${color.textMuted};
+  width: 20px;
+  height: 20px;
+  border-radius: ${radius.xs};
   padding: 0;
   line-height: 1;
-  font-size: 14px;
+  font-size: ${font.size.base};
+  font-family: inherit;
   cursor: pointer;
+  transition: background-color ${motion.fast} ${motion.ease}, color ${motion.fast} ${motion.ease};
+
+  &:hover:not(:disabled) {
+    background: ${color.surfaceHover};
+    color: ${color.text};
+  }
 
   &:disabled {
     opacity: 0.5;
@@ -358,146 +409,66 @@ export const ScenarioTabCloseButton = styled.button`
 
 export const ScenarioTabTooltip = styled.div`
   position: fixed;
-  z-index: 2000;
+  z-index: ${zIndex.tooltip};
   pointer-events: none;
   max-width: 280px;
-  border: 1px solid #c9d8e4;
-  background: #ffffff;
-  color: #1f3341;
-  border-radius: 8px;
-  padding: 6px 8px;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.3;
-  box-shadow: 0 6px 16px rgba(21, 37, 50, 0.14);
+  border: 1px solid ${color.border};
+  background: ${color.surface};
+  color: ${color.text};
+  border-radius: ${radius.sm};
+  padding: ${space[2]} ${space[3]};
+  font-size: ${font.size.xs};
+  font-weight: ${font.weight.medium};
+  line-height: ${font.leading.snug};
+  box-shadow: ${shadow.e3};
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 `;
 
-export const TickerHeader = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
-`;
+/* -------------------------------------------------------------------------- */
+/* 티커 생성 / 목록                                                             */
+/* -------------------------------------------------------------------------- */
 
+/**
+ * 퀵액션 툴바 — "데이터 저장"이 자동저장으로 대체돼 제거된 뒤 보이는 버튼은 [공유] 하나뿐이라 단일 열로
+ * 전폭을 채운다. (Coffee는 display:none 이라 그리드 셀을 차지하지 않는다 → 공유가 전폭.)
+ */
 export const TickerQuickActionRow = styled.div`
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 6px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: ${space[2]};
   width: 100%;
-  margin-bottom: 8px;
+  margin-bottom: ${space[2]};
 `;
 
 export const TickerQuickActionButton = styled.button`
-  border: 1px solid #c8d8e5;
-  background: #f7fbff;
-  color: #2f4f63;
-  border-radius: 8px;
-  min-height: 44px;
-  padding: 6px 4px;
+  border: 1px solid ${color.border};
+  background: ${color.surfaceMuted};
+  color: ${color.textSecondary};
+  border-radius: ${radius.sm};
+  /* 전폭 단일 버튼(공유) — 아이콘을 세로로 쌓지 않고 가로로 나란히 둬 높이를 낮춘다. */
+  min-height: 38px;
+  padding: ${space[2]} ${space[3]};
   display: inline-flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  font-size: 10px;
+  gap: ${space[2]};
+  font-size: ${font.size.sm};
+  font-weight: ${font.weight.medium};
+  font-family: inherit;
+  line-height: 1.1;
   cursor: pointer;
   touch-action: manipulation;
+  transition: background-color ${motion.fast} ${motion.ease}, border-color ${motion.fast} ${motion.ease},
+    color ${motion.fast} ${motion.ease};
 
   &:hover {
-    background: #edf6fb;
-    border-color: #b6ccdc;
+    background: ${color.brandSubtle};
+    border-color: ${color.brandBorder};
+    color: ${color.brandText};
   }
-`;
-
-export const PortfolioPresetGrid = styled.div`
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 10px;
-`;
-
-export const PortfolioPresetCardButton = styled.button`
-  display: grid;
-  gap: 6px;
-  width: 100%;
-  text-align: left;
-  border: 1px solid #d4e0e9;
-  border-radius: 12px;
-  background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
-  padding: 12px;
-  color: #1f3341;
-  cursor: pointer;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
-
-  &:hover {
-    border-color: #9fc0d7;
-    box-shadow: 0 6px 16px rgba(20, 52, 77, 0.12);
-    transform: translateY(-1px);
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
-`;
-
-export const PortfolioPresetContentRow = styled.div`
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
-  gap: 14px;
-  align-items: start;
-
-  @media (max-width: 760px) {
-    grid-template-columns: 1fr;
-  }
-`;
-
-export const PortfolioPresetMain = styled.div`
-  display: grid;
-  gap: 6px;
-`;
-
-export const PortfolioPresetTitle = styled.span`
-  font-size: 14px;
-  font-weight: 700;
-  line-height: 1.25;
-`;
-
-export const PortfolioPresetDesc = styled.span`
-  font-size: 12px;
-  color: #4a6375;
-  line-height: 1.35;
-`;
-
-export const PortfolioPresetCore = styled.span`
-  font-size: 12px;
-  color: #2f4f63;
-  line-height: 1.35;
-`;
-
-export const PortfolioPresetMeta = styled.span`
-  font-size: 11px;
-  color: #5d7382;
-  line-height: 1.3;
-`;
-
-export const PortfolioPresetPlan = styled.div`
-  display: grid;
-  gap: 4px;
-  border: 1px solid #d9e5ee;
-  border-radius: 10px;
-  background: #f3f8fc;
-  padding: 8px 10px;
-`;
-
-export const PortfolioPresetPlanItem = styled.span`
-  font-size: 11px;
-  color: #3f596b;
-  line-height: 1.3;
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
 `;
 
 export const TickerQuickActionIcon = styled.span`
@@ -518,28 +489,50 @@ export const TickerQuickActionIcon = styled.span`
   }
 `;
 
+/**
+ * 좌측 패널의 사실상 primary CTA — Button primary와 같은 오로라 CTA 리본 레시피를 쓴다.
+ * hover는 색을 바꾸지 않고 background-position만 움직여 라벨 대비(전 stop 흰 라벨 ≥4.5:1)가 불변이다.
+ */
 export const TickerCreateButton = styled.button`
-  border: 1px solid #2f6f93;
-  background: #2f6f93;
-  color: #fff;
-  border-radius: 8px;
-  padding: 7px 10px;
-  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  background-image: ${color.gradientCta};
+  background-size: 160% 160%;
+  background-position: 0% 0%;
+  color: ${color.onBrand};
+  border-radius: ${radius.sm};
+  min-height: 44px;
+  padding: ${space[2]} ${space[4]};
+  font-size: ${font.size.base};
+  font-weight: ${font.weight.semibold};
+  font-family: inherit;
   cursor: pointer;
   width: 100%;
-  margin-bottom: 10px;
+  margin-bottom: ${space[3]};
   touch-action: manipulation;
+  transition: background-position ${motion.base} ${motion.ease}, box-shadow ${motion.fast} ${motion.ease};
 
-  @media (max-width: 960px) {
-    margin-bottom: 21px;
+  &:hover {
+    background-position: 100% 100%;
+    box-shadow: ${shadow.e2};
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+
+  ${media.down('drawer')} {
+    margin-bottom: ${space[5]};
   }
 `;
 
 export const TickerGridWrap = styled.div`
-  border: 1px solid #e4edf4;
-  border-radius: 10px;
-  background: #f8fbfe;
-  padding: 8px;
+  border: 1px solid ${color.border};
+  border-radius: ${radius.md};
+  background: ${color.surfaceMuted};
+  padding: ${space[2]};
 `;
 
 export const TickerList = styled.ul`
@@ -548,7 +541,7 @@ export const TickerList = styled.ul`
   list-style: none;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
-  gap: 6px;
+  gap: ${space[2]};
 `;
 
 export const TickerChipWrap = styled.div`
@@ -556,7 +549,7 @@ export const TickerChipWrap = styled.div`
 
   &:hover button[data-chip='true'],
   &:focus-within button[data-chip='true'] {
-    padding-right: 34px;
+    padding-right: 32px;
   }
 
   &:hover button[data-gear='true'],
@@ -567,51 +560,71 @@ export const TickerChipWrap = styled.div`
   }
 `;
 
+/**
+ * 티커 칩(좌측 패널 그리드).
+ *
+ * `Chip` 프리미티브와 같은 시각 언어(pill, 선택 시 브랜드 채움)를 쓰되, 여기서는
+ * 고정폭 그리드 셀이라 폭 100%가 필요해서 별도 스타일로 둔다.
+ * 선택 상태를 폰트 굵기만으로 말하던 걸 **pill 형태 + 브랜드 채움**으로 바꿨다.
+ */
 export const TickerItemButton = styled.button<{ selected?: boolean }>`
   width: 100%;
+  min-height: 36px;
   text-align: center;
-  border: 1px solid ${({ selected }) => (selected ? '#b7cedd' : '#eaf1f6')};
-  background: ${({ selected }) => (selected ? '#edf6fb' : '#fff')};
-  color: #29465a;
-  border-radius: 8px;
-  padding: 6px 8px;
-  font-size: 11px;
+  border: 1px solid ${({ selected }) => (selected ? color.brandBorder : color.border)};
+  background: ${({ selected }) => (selected ? color.brandSubtle : color.surface)};
+  color: ${({ selected }) => (selected ? color.brandText : color.textSecondary)};
+  border-radius: ${radius.pill};
+  padding: ${space[2]};
+  font-size: ${font.size['2xs']};
+  font-weight: ${({ selected }) => (selected ? font.weight.bold : font.weight.medium)};
+  font-family: inherit;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   cursor: pointer;
-  transition: background-color 0.2s ease, border-color 0.2s ease, padding-right 0.2s ease;
+  touch-action: manipulation;
+  transition: background-color ${motion.fast} ${motion.ease}, border-color ${motion.fast} ${motion.ease},
+    color ${motion.fast} ${motion.ease}, padding-right ${motion.base} ${motion.ease};
 
   &:hover {
-    background: ${({ selected }) => (selected ? '#e3f1f9' : '#f3f8fc')};
-    border-color: ${({ selected }) => (selected ? '#a8c3d5' : '#dde9f2')};
+    background: ${({ selected }) => (selected ? color.brandSubtleHover : color.surfaceHover)};
+    border-color: ${color.brandBorder};
   }
 `;
 
 export const TickerGearButton = styled.button`
   position: absolute;
   top: 50%;
-  right: 0;
+  /* 오른쪽 끝에서 살짝 안쪽으로 들여, 칩 텍스트와의 간격도 자연스럽게 좁아진다. */
+  right: 3px;
   transform: translateY(-50%) scale(0.88);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid #bfd0de;
-  background: #fff;
-  color: #29465a;
-  border-radius: 999px;
-  width: 21px;
-  height: 21px;
+  border: 1px solid ${color.borderStrong};
+  /* 칩(surface)과 살짝 다른 톤으로 떠 있는 작은 버튼임을 드러낸다. */
+  background: ${color.surfaceMuted};
+  color: ${color.textSecondary};
+  border-radius: ${radius.pill};
+  width: 24px;
+  height: 24px;
   padding: 0;
   line-height: 0;
   cursor: pointer;
   opacity: 0;
   pointer-events: auto;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition: opacity ${motion.base} ${motion.ease}, transform ${motion.base} ${motion.ease},
+    background-color ${motion.fast} ${motion.ease};
+
+  &:hover {
+    background: ${color.brandSubtle};
+    color: ${color.brandText};
+  }
 
   svg {
-    width: 11px;
-    height: 11px;
+    width: 12px;
+    height: 12px;
     stroke: currentColor;
     fill: none;
     stroke-width: 1.8;
@@ -620,198 +633,132 @@ export const TickerGearButton = styled.button`
   }
 `;
 
+/* -------------------------------------------------------------------------- */
+/* 선택된 티커 칩                                                               */
+/* -------------------------------------------------------------------------- */
+
 export const SelectedChipWrap = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 8px;
+  gap: ${space[2]};
+  margin-top: ${space[2]};
 
-  @media (max-width: 960px) {
-    margin-top: 17px;
+  ${media.down('drawer')} {
+    margin-top: ${space[4]};
   }
 `;
 
-export const SelectedChip = styled.div`
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border: 1px solid #b7cedd;
-  background: #edf6fb;
-  color: #29465a;
-  border-radius: 8px;
-  padding: 4px 6px 4px 8px;
-  font-size: 11px;
-  max-width: 100%;
-`;
 
-export const SelectedChipLabel = styled.span`
-  min-width: 0;
-  max-width: 120px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-`;
 
-export const ChipRemoveButton = styled.button`
-  border: 0;
-  background: transparent;
-  color: #29465a;
-  font-size: 12px;
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
-  padding: 0;
-  line-height: 1;
-  cursor: pointer;
-  touch-action: manipulation;
-  &:hover {
-    background: #dfeef8;
-  }
-`;
 
-export const RatioGrid = styled.div`
-  display: grid;
-  gap: 8px;
-`;
-
-export const RatioRow = styled.label`
-  display: grid;
-  grid-template-columns: 64px minmax(0, 1fr) 52px;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: #314d60;
-`;
-
-export const RatioTickerLabel = styled.span`
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-`;
-
-export const RatioSlider = styled.input`
-  width: 100%;
-  height: 22px;
-  accent-color: #2f6f93;
-`;
-
-export const RatioValue = styled.span`
-  text-align: right;
-  font-size: 12px;
-  color: #486073;
-  font-variant-numeric: tabular-nums;
-`;
-
-export const PrimaryButton = styled.button`
-  border: 1px solid #2f6f93;
-  background: #2f6f93;
-  color: #fff;
-  border-radius: 8px;
-  padding: 7px 10px;
-  font-size: 13px;
-  cursor: pointer;
-  touch-action: manipulation;
-
-  &:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
-  }
-`;
-
-export const SecondaryButton = styled.button`
-  border: 1px solid #bfd0de;
-  background: #f4f8fb;
-  color: #29465a;
-  border-radius: 8px;
-  padding: 7px 10px;
-  font-size: 13px;
-  cursor: pointer;
-  touch-action: manipulation;
-`;
-
-export const Header = styled.header`
-  display: grid;
-  gap: 8px;
-`;
-
-export const HeaderTitle = styled.h1`
-  margin: 0;
-`;
-
-export const HeaderDescription = styled.p`
-  margin: 0;
-  color: #486073;
-  font-size: 13px;
-`;
+/* -------------------------------------------------------------------------- */
+/* 폼 그리드 / 필드                                                             */
+/* -------------------------------------------------------------------------- */
 
 export const FormGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
-  gap: 12px;
+  gap: ${space[3]};
 `;
 
 export const ModalCompactFormGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
-  gap: 12px;
+  gap: ${space[3]};
 
-  @media (max-width: 960px) {
+  ${media.down('drawer')} {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
+    gap: ${space[3]};
   }
 `;
 
 export const ConfigFormGrid = styled.div`
   display: grid;
   grid-template-columns: 1fr;
-  gap: 10px;
+  gap: ${space[3]};
 `;
 
 export const ConfigInputGrid = styled.div`
   display: grid;
   grid-template-columns: 1fr;
-  gap: 10px;
+  gap: ${space[3]};
 
-  @container (min-width: 640px) and (max-width: 980px) {
+  ${container.between('mobileWide', 'layout')} {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px 12px;
+    gap: ${space[3]} ${space[4]};
   }
 `;
 
 export const ConfigSectionDivider = styled.hr`
   border: 0;
-  border-top: 1px solid #e9eff5;
-  width: 86%;
-  margin: 4px auto 8px;
+  border-top: 1px solid ${color.border};
+  width: 100%;
+  margin: ${space[1]} auto ${space[2]};
 `;
 
 export const InlineField = styled.label`
   display: grid;
-  gap: 6px;
+  gap: ${space[2]};
   min-width: 0;
-  font-size: 14px;
-  color: #314d60;
+  font-size: ${font.size.base};
+  font-weight: ${font.weight.medium};
+  color: ${color.textSecondary};
 `;
 
 export const InlineFieldHeader = styled.span`
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: ${space[2]};
 `;
+
+export const InlineSelect = styled.select`
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  border: 1px solid ${color.borderStrong};
+  border-radius: ${radius.sm};
+  padding: ${space[2]} ${space[7]} ${space[2]} ${space[3]};
+  font-size: ${font.size.base};
+  font-family: inherit;
+  background-color: ${color.surface};
+  color: ${color.text};
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: calc(100% - 16px) calc(50% - 1px), calc(100% - 12px) calc(50% - 1px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  transition: border-color ${motion.fast} ${motion.ease};
+
+  &:hover:not(:disabled) {
+    border-color: ${color.brandBorder};
+  }
+
+  &:disabled {
+    background-color: ${color.surfaceSunken};
+    color: ${color.textMuted};
+    cursor: not-allowed;
+  }
+`;
+
+/* -------------------------------------------------------------------------- */
+/* 모달 내 티커 검색                                                            */
+/* -------------------------------------------------------------------------- */
 
 export const ModalTickerSearchWrap = styled.div`
   position: relative;
-  margin-bottom: 10px;
+  margin-bottom: ${space[3]};
 `;
 
 export const ModalTickerSearchIcon = styled.span`
   position: absolute;
-  left: 10px;
+  left: ${space[3]};
   top: 50%;
   width: 14px;
   height: 14px;
-  color: #5e7688;
+  color: ${color.textMuted};
   transform: translateY(-50%);
   pointer-events: none;
 
@@ -830,20 +777,46 @@ export const ModalTickerSearchIcon = styled.span`
 export const ModalTickerSearchInput = styled.input`
   width: 100%;
   min-width: 0;
-  border: 1px solid #bfd0de;
-  border-radius: 8px;
-  padding: 8px 10px 8px 32px;
-  font-size: 14px;
-  color: #1f3341;
-  background-color: #fff;
+  min-height: 40px;
+  border: 1px solid ${color.borderStrong};
+  border-radius: ${radius.sm};
+  padding: ${space[2]} ${space[3]} ${space[2]} ${space[8]};
+  font-size: ${font.size.base};
+  font-family: inherit;
+  color: ${color.text};
+  background-color: ${color.surface};
+  transition: border-color ${motion.fast} ${motion.ease};
 
   &::placeholder {
-    color: #6d8597;
+    color: ${color.textMuted};
   }
 
-  &:focus-visible {
-    outline: 2px solid #8ab1cb;
-    outline-offset: 1px;
+  &:hover {
+    border-color: ${color.brandBorder};
+  }
+`;
+
+/**
+ * 거의 보이지 않는 얇은 스크롤바 — 트랙 투명, 6px thumb는 은은한 border 색, hover 시에만 살짝 진해진다.
+ * 티커 모달의 프리셋 목록·검색 결과 등 내부 스크롤 영역에 써서 과한 기본 스크롤바를 절제한다(테마 토큰만 사용).
+ */
+const subtleScrollbar = `
+  scrollbar-width: thin;
+  scrollbar-color: ${color.border} transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: ${color.border};
+    border-radius: 999px;
+  }
+  &:hover::-webkit-scrollbar-thumb {
+    background: ${color.borderStrong};
   }
 `;
 
@@ -852,244 +825,292 @@ export const SearchResultList = styled.ul`
   padding: 0;
   list-style: none;
   display: grid;
-  gap: 8px;
+  gap: ${space[2]};
   max-height: 260px;
   overflow-y: auto;
   scrollbar-gutter: stable;
+  ${subtleScrollbar}
 `;
 
 export const SearchResultButton = styled.button`
   width: 100%;
-  border: 1px solid #d5e2ec;
-  background: #fff;
-  border-radius: 8px;
-  padding: 8px 10px;
+  min-height: 44px;
+  border: 1px solid ${color.border};
+  background: ${color.surface};
+  border-radius: ${radius.sm};
+  padding: ${space[2]} ${space[3]};
   text-align: left;
+  font-family: inherit;
   cursor: pointer;
+  transition: background-color ${motion.fast} ${motion.ease}, border-color ${motion.fast} ${motion.ease};
 
   &:hover {
-    border-color: #bfcfdd;
-    background: #f7fbff;
+    border-color: ${color.brandBorder};
+    background: ${color.brandSubtle};
   }
 `;
 
 export const SearchResultTicker = styled.div`
-  color: #1f3341;
-  font-size: 13px;
-  font-weight: 700;
+  color: ${color.text};
+  font-size: ${font.size.sm};
+  font-weight: ${font.weight.bold};
 `;
 
 export const SearchResultName = styled.div`
-  color: #486073;
-  font-size: 12px;
-  line-height: 1.4;
+  color: ${color.textMuted};
+  font-size: ${font.size.xs};
+  line-height: ${font.leading.snug};
 `;
 
-export const InlineSelect = styled.select`
-  width: 100%;
-  min-width: 0;
-  border: 1px solid #bfd0de;
-  border-radius: 8px;
-  padding: 8px 28px 8px 10px;
-  font-size: 14px;
-  background-color: #fff;
-  appearance: none;
-  -webkit-appearance: none;
-  background-image: linear-gradient(45deg, transparent 50%, #5e7688 50%), linear-gradient(135deg, #5e7688 50%, transparent 50%);
-  background-position: calc(100% - 14px) calc(50% - 1px), calc(100% - 10px) calc(50% - 1px);
-  background-size: 5px 5px, 5px 5px;
-  background-repeat: no-repeat;
-`;
-
-export const PresetDropdownWrap = styled.div`
-  position: relative;
-`;
-
-export const PresetDropdownButton = styled.button`
-  width: 100%;
-  min-width: 0;
-  border: 1px solid #bfd0de;
-  border-radius: 8px;
-  padding: 8px 28px 8px 10px;
-  font-size: 14px;
-  line-height: 1.4;
-  color: #1f3341;
-  text-align: left;
-  background-color: #fff;
-  cursor: pointer;
-  position: relative;
-
-  &::after {
-    content: '';
-    position: absolute;
-    right: 10px;
-    top: calc(50% - 2px);
-    width: 8px;
-    height: 8px;
-    border-right: 2px solid #5e7688;
-    border-bottom: 2px solid #5e7688;
-    transform: rotate(45deg);
-    pointer-events: none;
-  }
-`;
-
-export const PresetDropdownMenu = styled.div`
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  right: 0;
-  max-height: 220px;
-  overflow-y: auto;
-  border: 1px solid #bfd0de;
-  border-radius: 8px;
-  background: #fff;
-  box-shadow: 0 8px 24px rgba(31, 51, 65, 0.14);
-  z-index: 20;
-`;
-
-export const PresetDropdownOption = styled.button<{ selected?: boolean }>`
-  display: block;
-  width: 100%;
-  border: 0;
-  border-bottom: 1px solid #eef3f7;
-  padding: 8px 10px;
-  text-align: left;
-  font-size: 14px;
-  color: #1f3341;
-  background: ${({ selected }) => (selected ? '#edf6fb' : '#fff')};
-  cursor: pointer;
-
-  &:last-child {
-    border-bottom: 0;
-  }
-
-  &:hover {
-    background: ${({ selected }) => (selected ? '#e5f2fa' : '#f5f9fc')};
-  }
-`;
+/* -------------------------------------------------------------------------- */
+/* 프리셋 드롭다운 / 칩                                                          */
+/* -------------------------------------------------------------------------- */
 
 export const PresetChipGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   align-content: start;
-  gap: 8px;
+  gap: ${space[2]};
 `;
 
+/**
+ * 프리셋 칩 영역. 티커가 많아도 편하게 훑도록 **자체 스크롤**을 준다.
+ * `overscroll-behavior: contain` 으로 이 영역 끝에서 모달 패널로 스크롤이 번지지 않게 해
+ * 중첩 스크롤이 부자연스럽던 예전 문제를 막는다.
+ */
 export const PresetChipScrollArea = styled.div`
-  max-height: 110px;
+  max-height: 260px;
   overflow-y: auto;
-  overflow-x: hidden;
-  padding-right: 4px;
-  margin-bottom: 6px;
+  overscroll-behavior: contain;
+  padding-right: ${space[1]};
+  margin-bottom: ${space[2]};
   scrollbar-gutter: stable;
+  ${subtleScrollbar}
 `;
 
 export const PresetChipButton = styled.button<{ selected?: boolean }>`
-  border: 1px solid ${({ selected }) => (selected ? '#9fb9cc' : '#d5e2ec')};
-  background: ${({ selected }) => (selected ? '#edf6fb' : '#ffffff')};
-  color: ${({ selected }) => (selected ? '#1f3341' : '#355366')};
-  border-radius: 9px;
-  padding: 7px 8px;
-  font-size: 12px;
-  font-weight: ${({ selected }) => (selected ? 700 : 600)};
+  border: 1px solid ${({ selected }) => (selected ? color.brandBorder : color.border)};
+  background: ${({ selected }) => (selected ? color.brandSubtle : color.surface)};
+  color: ${({ selected }) => (selected ? color.brandText : color.textSecondary)};
+  /* 티커 칩과 같은 pill 형태 — 둘 다 "고르는 조각"이므로 형태가 같아야 한다. */
+  border-radius: ${radius.pill};
+  padding: ${space[2]};
+  min-height: 36px;
+  font-size: ${font.size.xs};
+  font-family: inherit;
+  font-weight: ${({ selected }) => (selected ? font.weight.bold : font.weight.medium)};
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   cursor: pointer;
   touch-action: manipulation;
+  transition: background-color ${motion.fast} ${motion.ease}, border-color ${motion.fast} ${motion.ease},
+    color ${motion.fast} ${motion.ease};
 
   &:hover {
-    border-color: ${({ selected }) => (selected ? '#8baec6' : '#c2d4e2')};
-    background: ${({ selected }) => (selected ? '#e4f1f9' : '#f5f9fc')};
+    border-color: ${color.brandBorder};
+    background: ${({ selected }) => (selected ? color.brandSubtleHover : color.surfaceHover)};
   }
 `;
 
-export const ModeToggleInput = styled.input`
-  width: 18px;
-  height: 18px;
-  margin: 0;
-`;
+/* -------------------------------------------------------------------------- */
+/* 포트폴리오 프리셋 카드                                                        */
+/* -------------------------------------------------------------------------- */
 
-export const SummaryGrid = styled.div`
+export const PortfolioPresetGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
-  gap: clamp(8px, 1.5vw, 10px);
+  grid-template-columns: 1fr;
+  gap: ${space[3]};
 `;
 
-export const SummaryValue = styled.p`
-  margin: 8px 0 0;
-  font-size: 18px;
-  font-weight: 700;
-`;
-
-export const CompactSummaryGrid = styled.div`
+/**
+ * 프리셋 카드(빈 상태의 온보딩).
+ *
+ * 빈 상태는 이 앱의 **첫인상**이다. 예전엔 회색 테두리 상자가 세 개 있을 뿐이라
+ * "고를 수 있는 것"으로 보이지 않았다. 고친 것:
+ *  - 좌측 브랜드 액센트 바가 hover 시 나타난다 → 선택 가능한 카드임을 말한다
+ *  - hover 시 살짝 떠오른다(그림자 + 1px) → 누를 수 있는 물건
+ *  - 카드 전체가 버튼이므로 커서/포커스 링이 카드 전체에 걸린다
+ */
+export const PortfolioPresetCardButton = styled.button`
+  position: relative;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 1fr));
-  gap: 8px;
-`;
-
-export const CompactSummaryItem = styled.div`
-  border: 1px solid #dfe9f1;
-  background: #f8fbfe;
-  border-radius: 8px;
-  padding: 8px 10px;
-  min-width: 0;
-`;
-
-export const CompactSummaryLabel = styled.p`
-  margin: 0;
-  font-size: 12px;
-  color: #557084;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-`;
-
-export const CompactSummaryLabelRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
+  gap: ${space[2]};
   width: 100%;
+  text-align: left;
+  border: 1px solid ${color.border};
+  border-radius: ${radius.md};
+  background: ${color.surface};
+  padding: ${space[4]};
+  padding-left: ${space[5]};
+  color: ${color.text};
+  font-family: inherit;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color ${motion.fast} ${motion.ease}, box-shadow ${motion.fast} ${motion.ease},
+    transform ${motion.fast} ${motion.ease}, background-color ${motion.fast} ${motion.ease};
+
+  /* 좌측 액센트 바 — 평소엔 투명, hover/focus 시 오로라 리본(표시용). */
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: transparent;
+    opacity: 0;
+    transition: opacity ${motion.fast} ${motion.ease};
+  }
+
+  &:hover,
+  &:focus-visible {
+    border-color: ${color.brandBorder};
+    background: ${color.surfaceHover};
+    box-shadow: ${shadow.e2};
+    transform: translateY(-1px);
+  }
+
+  &:hover::before,
+  &:focus-visible::before {
+    background: ${color.gradientAurora};
+    opacity: 1;
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
 `;
 
-export const CompactSummaryLabelGrow = styled.div`
-  flex: 1 1 auto;
-  min-width: 0;
+export const PortfolioPresetContentRow = styled.div`
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+  gap: ${space[4]};
+  align-items: start;
+
+  ${media.down('tabletSm')} {
+    grid-template-columns: 1fr;
+  }
 `;
+
+export const PortfolioPresetMain = styled.div`
+  display: grid;
+  gap: ${space[2]};
+`;
+
+export const PortfolioPresetTitle = styled.span`
+  font-size: ${font.size.lg};
+  font-weight: ${font.weight.bold};
+  line-height: ${font.leading.tight};
+  color: ${color.text};
+  letter-spacing: -0.01em;
+`;
+
+export const PortfolioPresetDesc = styled.span`
+  font-size: ${font.size.sm};
+  color: ${color.textSecondary};
+  line-height: ${font.leading.snug};
+`;
+
+export const PortfolioPresetCore = styled.span`
+  font-size: ${font.size.xs};
+  color: ${color.brandText};
+  font-weight: ${font.weight.medium};
+  line-height: ${font.leading.snug};
+`;
+
+export const PortfolioPresetMeta = styled.span`
+  font-size: ${font.size.xs};
+  color: ${color.textMuted};
+  line-height: ${font.leading.snug};
+`;
+
+export const PortfolioPresetPlan = styled.div`
+  display: grid;
+  gap: ${space[2]};
+  border: 1px solid ${color.border};
+  border-radius: ${radius.sm};
+  background: ${color.surfaceMuted};
+  padding: ${space[3]};
+`;
+
+export const PortfolioPresetPlanItem = styled.span`
+  font-size: ${font.size.xs};
+  color: ${color.textSecondary};
+  line-height: ${font.leading.snug};
+  display: flex;
+  justify-content: space-between;
+  gap: ${space[2]};
+
+  strong {
+    color: ${color.text};
+    font-weight: ${font.weight.semibold};
+    ${font.numeric};
+  }
+`;
+
+/* -------------------------------------------------------------------------- */
+/* 요약 카드                                                                    */
+/* -------------------------------------------------------------------------- */
+
+
+
+
+
+
+
 
 export const CompactSummaryHelpButton = styled.button`
+  position: relative;
   flex: 0 0 auto;
   margin-left: auto;
-  border: 1px solid #bfd0de;
-  background: #f4f8fb;
-  color: #29465a;
-  border-radius: 999px;
-  width: 16px;
-  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid ${color.borderStrong};
+  background: ${color.surface};
+  color: ${color.textSecondary};
+  border-radius: ${radius.pill};
+  width: 18px;
+  height: 18px;
   line-height: 1;
   padding: 0;
-  font-size: 11px;
-  font-weight: 700;
+  font-size: ${font.size['2xs']};
+  font-weight: ${font.weight.bold};
+  font-family: inherit;
   cursor: pointer;
+  touch-action: manipulation;
+  transition: background-color ${motion.fast} ${motion.ease}, color ${motion.fast} ${motion.ease};
+
+  /* 시각 크기는 유지하고 히트 영역만 44x44 */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+  }
+
+  &:hover {
+    background: ${color.brandSubtle};
+    border-color: ${color.brandBorder};
+    color: ${color.brandText};
+  }
 `;
 
-export const CompactSummaryValue = styled.p`
-  margin: 4px 0 0;
-  font-size: 15px;
-  font-weight: 700;
-  color: #1f3341;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-`;
+
+/* -------------------------------------------------------------------------- */
+/* 시리즈 필터 / 토글                                                           */
+/* -------------------------------------------------------------------------- */
 
 export const SeriesFilterRow = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 12px;
-  margin-bottom: 10px;
+  gap: ${space[2]} ${space[3]};
+  margin-bottom: ${space[3]};
   align-items: center;
   justify-content: space-between;
 `;
@@ -1097,92 +1118,117 @@ export const SeriesFilterRow = styled.div`
 export const SeriesFilterGroup = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 12px;
+  gap: ${space[2]} ${space[3]};
 `;
 
 export const SeriesFilterItem = styled.div`
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: ${space[2]};
 `;
 
 export const SeriesFilterLabel = styled.label`
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: #486073;
+  gap: ${space[2]};
+  min-height: 32px;
+  font-size: ${font.size.xs};
+  font-weight: ${font.weight.medium};
+  color: ${color.textSecondary};
   cursor: pointer;
   user-select: none;
 `;
 
 export const SeriesFilterCheckbox = styled.input`
   margin: 0;
-  width: 14px;
-  height: 14px;
-  accent-color: #2f6f93;
-`;
-
-export const SeriesBgToggleButton = styled.button<{ active: boolean }>`
-  border: 1px solid ${({ active }) => (active ? '#2f6f93' : '#bfd0de')};
-  background: ${({ active }) => (active ? '#2f6f93' : '#f4f8fb')};
-  color: ${({ active }) => (active ? '#fff' : '#486073')};
-  border-radius: 999px;
-  padding: 5px 10px;
-  font-size: 12px;
+  width: 16px;
+  height: 16px;
+  accent-color: ${color.brand};
   cursor: pointer;
-  white-space: nowrap;
 `;
 
-export const SeriesToggleRow = styled.div`
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-`;
-
-export const SeriesToggleLabel = styled.span`
-  font-size: 12px;
-  color: #486073;
-`;
+/* -------------------------------------------------------------------------- */
+/* 보조 텍스트 / 도움말 / 에러                                                   */
+/* -------------------------------------------------------------------------- */
 
 export const HintText = styled.p`
   margin: 0;
-  font-size: 13px;
-  color: #486073;
+  font-size: ${font.size.sm};
+  color: ${color.textMuted};
+  line-height: ${font.leading.normal};
 `;
 
 export const HelpMarkButton = styled.button`
-  border: 1px solid #bfd0de;
-  background: #f4f8fb;
-  color: #29465a;
-  border-radius: 999px;
+  position: relative;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid ${color.borderStrong};
+  background: ${color.surfaceMuted};
+  color: ${color.textSecondary};
+  border-radius: ${radius.pill};
   width: 18px;
   height: 18px;
   line-height: 1;
   padding: 0;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: ${font.size.xs};
+  font-weight: ${font.weight.bold};
+  font-family: inherit;
   cursor: pointer;
   touch-action: manipulation;
+  transition: background-color ${motion.fast} ${motion.ease}, border-color ${motion.fast} ${motion.ease},
+    color ${motion.fast} ${motion.ease};
+
+  /* 시각 크기는 유지하고 히트 영역만 44x44 */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+  }
+
+  &:hover {
+    background: ${color.brandSubtle};
+    border-color: ${color.brandBorder};
+    color: ${color.brandText};
+  }
 `;
 
 export const ScenarioTabsHelpButton = styled(HelpMarkButton)`
   align-self: center;
   flex: 0 0 auto;
-  margin-left: 6px;
+  margin-left: ${space[2]};
 `;
 
 export const ErrorBox = styled.div`
-  border: 1px solid #f0bcbc;
-  border-radius: 8px;
-  padding: 10px;
-  background: #fff2f2;
-  color: #8d2323;
+  display: grid;
+  gap: ${space[1]};
+  border: 1px solid ${color.dangerBorder};
+  border-left: 3px solid ${color.danger};
+  border-radius: ${radius.sm};
+  padding: ${space[3]};
+  margin-top: ${space[3]};
+  background: ${color.dangerSurface};
+  color: ${color.danger};
+  font-size: ${font.size.sm};
+  line-height: ${font.leading.snug};
+
+  p {
+    margin: 0;
+  }
 `;
+
+/* -------------------------------------------------------------------------- */
+/* 차트 / 알로케이션 범례                                                        */
+/* -------------------------------------------------------------------------- */
 
 export const ChartWrap = styled.div`
   width: 100%;
-  height: clamp(200px, 30vw, 260px);
+  height: clamp(220px, 30vw, 280px);
   min-width: 0;
   overflow: hidden;
   contain: layout paint style;
@@ -1191,7 +1237,7 @@ export const ChartWrap = styled.div`
 export const AllocationChartLayout = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr));
-  gap: clamp(8px, 1.5vw, 12px);
+  gap: clamp(8px, 1.5vw, 16px);
   align-items: start;
   contain: layout style;
 `;
@@ -1201,49 +1247,50 @@ export const AllocationLegend = styled.ul`
   padding: 0;
   list-style: none;
   display: grid;
-  gap: 8px;
+  gap: ${space[2]};
   container-type: inline-size;
+`;
+
+const stackedLegendItem = `
+  grid-template-columns: 16px 40px minmax(0, 1fr) 48px;
+  grid-template-areas:
+    'dot name name value'
+    'dot fix slider slider';
+  gap: ${space[2]};
 `;
 
 export const AllocationLegendItem = styled.li`
   display: grid;
-  grid-template-columns: 16px 72px minmax(120px, 1fr) 40px 52px;
-  grid-template-areas: 'dot name slider fix value';
-  gap: 8px;
+  grid-template-columns: 16px 72px 40px minmax(120px, 1fr) 52px;
+  grid-template-areas: 'dot name fix slider value';
+  gap: ${space[2]};
   align-items: center;
-  font-size: 12px;
-  color: #314d60;
+  font-size: ${font.size.xs};
+  color: ${color.textSecondary};
 
-  @container (max-width: 560px) {
-    grid-template-columns: 16px minmax(0, 1fr) 48px;
-    grid-template-areas:
-      'dot name value'
-      'dot slider fix';
-    gap: 6px 8px;
+  ${container.down('mobile')} {
+    ${stackedLegendItem};
   }
 
-  @media (max-width: 560px) {
-    grid-template-columns: 16px minmax(0, 1fr) 48px;
-    grid-template-areas:
-      'dot name value'
-      'dot slider fix';
-    gap: 6px 8px;
+  ${media.down('mobile')} {
+    ${stackedLegendItem};
   }
 `;
 
 export const AllocationColorDot = styled.span<{ color: string }>`
   grid-area: dot;
-  width: 16px;
+  width: 12px;
   height: 12px;
-  border-radius: 3px;
-  background: ${({ color }) => color};
+  border-radius: ${radius.xs};
+  background: ${({ color: dotColor }) => dotColor};
 `;
 
 export const AllocationLegendName = styled.span`
   grid-area: name;
   min-width: 0;
-  color: #314d60;
-  line-height: 1.2;
+  color: ${color.text};
+  font-weight: ${font.weight.medium};
+  line-height: ${font.leading.tight};
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1252,160 +1299,120 @@ export const AllocationLegendName = styled.span`
 export const AllocationLegendSlider = styled.input`
   grid-area: slider;
   width: 100%;
-  height: 12px;
+  height: 8px;
   appearance: none;
   -webkit-appearance: none;
-  background: linear-gradient(to right, #2f6f93 0%, #2f6f93 var(--slider-progress), #d8e7f1 var(--slider-progress), #d8e7f1 100%);
-  border: 1px solid #c7d8e4;
-  border-radius: 3px;
+  background: linear-gradient(
+    to right,
+    ${color.brand} 0%,
+    ${color.brand} var(--slider-progress),
+    ${color.surfaceSunken} var(--slider-progress),
+    ${color.surfaceSunken} 100%
+  );
+  border: 1px solid ${color.border};
+  border-radius: ${radius.pill};
   --slider-progress: 0%;
   margin: 0;
   padding: 0;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
 
   &::-webkit-slider-runnable-track {
-    height: 12px;
+    height: 8px;
     background: transparent;
-    border-radius: 3px;
+    border-radius: ${radius.pill};
   }
 
   &::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 14px;
-    height: 24px;
-    margin-top: -6px;
-    border-radius: 3px;
-    border: 1px solid #2f6f93;
-    background: #2f6f93;
+    width: 16px;
+    height: 16px;
+    margin-top: -5px;
+    border-radius: ${radius.pill};
+    border: 2px solid ${color.surface};
+    background: ${color.brand};
+    box-shadow: 0 1px 3px rgba(15, 25, 35, 0.3);
   }
 
   &::-moz-range-track {
-    height: 12px;
+    height: 8px;
     background: transparent;
-    border-radius: 3px;
+    border-radius: ${radius.pill};
   }
 
   &::-moz-range-progress {
-    height: 12px;
+    height: 8px;
     background: transparent;
-    border-radius: 3px;
+    border-radius: ${radius.pill};
   }
 
   &::-moz-range-thumb {
-    width: 14px;
-    height: 24px;
-    border-radius: 3px;
-    border: 1px solid #2f6f93;
-    background: #2f6f93;
+    width: 16px;
+    height: 16px;
+    border-radius: ${radius.pill};
+    border: 2px solid ${color.surface};
+    background: ${color.brand};
+    box-shadow: 0 1px 3px rgba(15, 25, 35, 0.3);
   }
+`;
+
+const stackedFixButton = `
+  justify-self: end;
 `;
 
 export const AllocationFixButton = styled.button<{ active: boolean }>`
   grid-area: fix;
-  width: 36px;
-  height: 24px;
-  border: 1px solid ${({ active }) => (active ? '#2f6f93' : '#bfd0de')};
-  background: ${({ active }) => (active ? '#2f6f93' : '#f4f8fb')};
-  color: ${({ active }) => (active ? '#fff' : '#486073')};
-  border-radius: 5px;
+  width: 40px;
+  height: 28px;
+  border: 1px solid ${({ active }) => (active ? color.brand : color.borderStrong)};
+  background: ${({ active }) => (active ? color.brand : color.surface)};
+  color: ${({ active }) => (active ? color.onBrand : color.textSecondary)};
+  border-radius: ${radius.xs};
   padding: 0;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: ${font.size['2xs']};
+  font-weight: ${font.weight.semibold};
+  font-family: inherit;
   line-height: 1;
   cursor: pointer;
   touch-action: manipulation;
+  transition: background-color ${motion.fast} ${motion.ease}, border-color ${motion.fast} ${motion.ease},
+    color ${motion.fast} ${motion.ease};
 
-  @container (max-width: 560px) {
-    justify-self: end;
+  &:hover {
+    border-color: ${color.brand};
   }
 
-  @media (max-width: 560px) {
-    justify-self: end;
+  ${container.down('mobile')} {
+    ${stackedFixButton};
+  }
+
+  ${media.down('mobile')} {
+    ${stackedFixButton};
   }
 `;
 
 export const AllocationLegendValue = styled.span`
   grid-area: value;
-  color: #486073;
-  font-variant-numeric: tabular-nums;
+  color: ${color.text};
+  font-weight: ${font.weight.semibold};
   justify-self: end;
+  ${font.numeric};
 `;
 
-export const ModalBackdrop = styled.div`
-  position: fixed;
-  inset: 0;
-  background: rgba(16, 29, 41, 0.45);
-  display: grid;
-  place-items: center;
-  padding: 16px;
-  z-index: 2147483000;
-  contain: paint;
-`;
+/* -------------------------------------------------------------------------- */
+/* 모달                                                                         */
+/* -------------------------------------------------------------------------- */
 
-export const ModalPanel = styled.section`
-  width: min(520px, 100%);
-  max-height: min(88vh, 760px);
-  background: #fff;
-  border: 1px solid #d7e2eb;
-  border-radius: 12px;
-  padding: 16px;
-  display: grid;
-  gap: 12px;
-  overflow-y: auto;
-  scrollbar-gutter: stable;
-`;
+/**
+ * 모달 스타일의 진짜 주인은 `components/common/Modal`이다. 여기서는 다시 내보내기만 한다.
+ * → TickerModal / MainRightPanel / HelpModal이 import 한 줄도 안 바꾸고 새 스킨을 받는다.
+ */
+export { ModalActions, ModalBackdrop, ModalBody, ModalPanel, ModalTitle } from '@/components/common/Modal';
 
-export const ModalTitle = styled.h3`
-  margin: 0;
-  color: #1f3341;
-`;
-
-export const ModalBody = styled.p`
-  margin: 0;
-  color: #314d60;
-  line-height: 1.5;
-  white-space: pre-line;
-`;
-
-export const ModalTabList = styled.div`
-  display: flex;
-  align-items: flex-end;
-  gap: 6px;
-  margin-bottom: 4px;
-`;
-
-export const ModalTabButton = styled.button<{ active?: boolean }>`
-  position: relative;
-  border: 1px solid ${({ active }) => (active ? '#9fb9cc' : '#c9d8e4')};
-  border-bottom: 0;
-  background: ${({ active }) => (active ? '#ffffff' : '#edf4fa')};
-  color: ${({ active }) => (active ? '#1f3341' : '#486073')};
-  border-radius: 10px 10px 0 0;
-  padding: 8px 14px 9px;
-  font-size: 13px;
-  font-weight: ${({ active }) => (active ? 700 : 600)};
-  cursor: pointer;
-  touch-action: manipulation;
-  z-index: ${({ active }) => (active ? 2 : 1)};
-
-  &:hover {
-    background: ${({ active }) => (active ? '#ffffff' : '#e4eef7')};
-  }
-`;
-
-export const ModalClose = styled.button`
-  justify-self: end;
-  border: 1px solid #bfd0de;
-  background: #f4f8fb;
-  color: #29465a;
-  border-radius: 8px;
-  padding: 6px 10px;
-  font-size: 13px;
-  cursor: pointer;
-`;
-
-export const ModalActions = styled.div`
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-`;
+/** 모달 안의 탭. `Tabs` 프리미티브와 같은 시각 언어(브랜드 밑줄)를 쓴다. */
+export { TabButton as ModalTabButton, TabList as ModalTabList } from '@/components/common/Tabs/Tabs.styled';

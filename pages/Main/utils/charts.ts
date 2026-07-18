@@ -2,12 +2,13 @@ import type { EChartsOption } from 'echarts';
 import type { SimulationResult } from '@/shared/types';
 import { formatKRW, getTickerDisplayName } from '@/shared/utils';
 import {
-  ALLOCATION_COLORS,
-  YEARLY_SERIES_COLOR,
   YEARLY_SERIES_LABEL,
   YEARLY_SERIES_ORDER,
+  getYearlySeriesColor,
   type YearlySeriesKey
 } from '@/shared/constants';
+import { buildAxisStyle, buildLegendStyle, buildTooltipStyle, getChartTheme, hexToRgba } from '@/shared/styles';
+import type { ChartTheme } from '@/shared/styles';
 import { formatApproxKRW } from './formatters';
 import type { NormalizedAllocationItem } from './portfolio';
 import type { RecentCashflowByTicker } from './simulation';
@@ -38,6 +39,89 @@ const tooltipPosition = (
   ];
 };
 
+const defaultAxisValueFormatter = (value: number) => formatKRW(value);
+
+/**
+ * 오로라 area 필 (§디자인 스펙 3.2) — hero 시리즈(라인 차트 주 시리즈, 연간 차트 assetValue)에만 쓴다.
+ *
+ * 위→아래 수직 그라데이션: 글레이셔 애저(brand 0.30) → 오로라 teal 기운(accent 0.10) → 투명.
+ * 캔버스라 `var()`를 못 쓰므로 `getChartTheme()`이 해석한 실제 색을 `hexToRgba`로 조립한다.
+ * teal은 장식(투명도 ≤0.30)일 뿐 데이터 방향(상승) 의미가 아니다 — 상승/하락은 계속 up/down 램프.
+ */
+const buildAuroraAreaStyle = (theme: ChartTheme) => ({
+  color: {
+    type: 'linear' as const,
+    x: 0,
+    y: 0,
+    x2: 0,
+    y2: 1,
+    colorStops: [
+      { offset: 0, color: hexToRgba(theme.brand, 0.3) },
+      { offset: 0.62, color: hexToRgba(theme.accent, 0.1) },
+      { offset: 1, color: hexToRgba(theme.accent, 0) }
+    ]
+  }
+});
+
+export const buildLineChartOption = <TRow>({
+  rows,
+  getXValue,
+  getYValue,
+  xAxisLabel,
+  yAxisLabelFormatter
+}: {
+  rows: TRow[];
+  getXValue: (row: TRow) => string;
+  getYValue: (row: TRow) => number;
+  xAxisLabel?: string;
+  yAxisLabelFormatter?: (value: number) => string;
+}): EChartsOption => {
+  const formatValue = yAxisLabelFormatter ?? defaultAxisValueFormatter;
+  const theme = getChartTheme();
+  const axis = buildAxisStyle(theme);
+
+  return {
+    animation: false,
+    grid: { left: 72, right: 20, top: 24, bottom: 40 },
+    tooltip: {
+      trigger: 'axis',
+      ...buildTooltipStyle(theme),
+      valueFormatter: (value: unknown) => formatValue(Number(value))
+    },
+    xAxis: {
+      type: 'category',
+      name: xAxisLabel,
+      nameTextStyle: { color: theme.label, fontFamily: theme.fontFamily },
+      boundaryGap: false,
+      data: rows.map((row) => getXValue(row)),
+      ...axis,
+      splitLine: { show: false }
+    },
+    yAxis: {
+      type: 'value',
+      ...axis,
+      axisLine: { show: false },
+      axisLabel: {
+        color: theme.label,
+        fontSize: theme.labelFontSize,
+        fontFamily: theme.fontFamily,
+        formatter: (value: number) => formatValue(value)
+      }
+    },
+    series: [
+      {
+        type: 'line',
+        smooth: true,
+        showSymbol: false,
+        lineStyle: { width: 2, color: theme.brand },
+        itemStyle: { color: theme.brand },
+        areaStyle: buildAuroraAreaStyle(theme),
+        data: rows.map((row) => getYValue(row))
+      }
+    ]
+  };
+};
+
 export const buildAllocationPieOption = ({
   normalizedAllocation,
   showPortfolioDividendCenter,
@@ -48,6 +132,8 @@ export const buildAllocationPieOption = ({
   finalMonthlyAverageDividend: number;
 }): EChartsOption | null => {
   if (normalizedAllocation.length === 0) return null;
+
+  const theme = getChartTheme();
 
   return {
     animation: false,
@@ -64,9 +150,10 @@ export const buildAllocationPieOption = ({
                 top: -12,
                 style: {
                   text: '월배당',
-                  fill: '#567285',
+                  fill: theme.textMuted,
                   fontSize: 12,
                   fontWeight: 600,
+                  fontFamily: theme.fontFamily,
                   align: 'center',
                   verticalAlign: 'middle'
                 }
@@ -77,9 +164,10 @@ export const buildAllocationPieOption = ({
                 top: 8,
                 style: {
                   text: formatApproxKRW(finalMonthlyAverageDividend),
-                  fill: '#1f3341',
-                  fontSize: 13,
+                  fill: theme.text,
+                  fontSize: 14,
                   fontWeight: 700,
+                  fontFamily: theme.fontFamily,
                   align: 'center',
                   verticalAlign: 'middle'
                 }
@@ -92,6 +180,7 @@ export const buildAllocationPieOption = ({
       trigger: 'item',
       confine: true,
       position: tooltipPosition,
+      ...buildTooltipStyle(theme),
       formatter: '{b}: {d}%'
     },
     series: [
@@ -102,68 +191,84 @@ export const buildAllocationPieOption = ({
         radius: ['46%', '70%'],
         center: ['50%', '50%'],
         avoidLabelOverlap: true,
-        itemStyle: { borderColor: '#fff', borderWidth: 2 },
+        itemStyle: { borderColor: theme.sliceBorder, borderWidth: 2, borderRadius: 3 },
         label: {
           show: true,
           position: 'outside',
           formatter: '{b} {d}%',
-          color: '#334a5c',
-          fontSize: 11
+          color: theme.label,
+          fontSize: 11,
+          fontFamily: theme.fontFamily
         },
         labelLine: {
           show: true,
           length: 10,
-          length2: 8
+          length2: 8,
+          lineStyle: { color: theme.axisLine }
         },
         data: normalizedAllocation.map(({ profile, weight }, index) => ({
           name: getTickerDisplayName(profile.ticker, profile.name),
           value: Number((weight * 100).toFixed(4)),
-          itemStyle: { color: ALLOCATION_COLORS[index % ALLOCATION_COLORS.length] }
+          /* 현재 프리셋의 시리즈 세트 — DOM 범례 점(CHART_SERIES_VARS)과 같은 인덱스 규칙(% 8) */
+          itemStyle: { color: theme.series[index % theme.series.length] }
         }))
       }
     ]
   };
 };
 
-export const buildRecentCashflowBarOption = (recentCashflowByTicker: RecentCashflowByTicker): EChartsOption => ({
-  animation: false,
-  grid: { left: 72, right: 16, top: 52, bottom: 42 },
-  tooltip: {
-    trigger: 'axis',
-    axisPointer: { type: 'shadow' },
-    confine: true,
-    position: tooltipPosition,
-    valueFormatter: (value: unknown) => formatKRW(Number(value))
-  },
-  legend: {
-    type: 'scroll',
-    orient: 'horizontal',
-    top: 0,
-    left: 72,
-    right: 16,
-    textStyle: { color: '#486073', fontSize: 12 }
-  },
-  xAxis: {
-    type: 'category',
-    data: recentCashflowByTicker.months
-  },
-  yAxis: {
-    type: 'value',
-    axisLabel: {
-      formatter: (value: number) => formatKRW(value)
-    }
-  },
-  series: recentCashflowByTicker.series.map((item) => ({
-    type: 'bar',
-    name: item.name,
-    stack: 'total',
-    data: item.data,
-    barMaxWidth: 24,
-    itemStyle: {
-      color: item.color
-    }
-  }))
-});
+export const buildRecentCashflowBarOption = (recentCashflowByTicker: RecentCashflowByTicker): EChartsOption => {
+  const theme = getChartTheme();
+  const axis = buildAxisStyle(theme);
+
+  return {
+    animation: false,
+    grid: { left: 72, right: 16, top: 52, bottom: 42 },
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: { type: 'shadow' },
+      confine: true,
+      position: tooltipPosition,
+      ...buildTooltipStyle(theme),
+      valueFormatter: (value: unknown) => formatKRW(Number(value))
+    },
+    legend: {
+      type: 'scroll',
+      orient: 'horizontal',
+      top: 0,
+      left: 72,
+      right: 16,
+      ...buildLegendStyle(theme)
+    },
+    xAxis: {
+      type: 'category',
+      data: recentCashflowByTicker.months,
+      ...axis,
+      splitLine: { show: false }
+    },
+    yAxis: {
+      type: 'value',
+      ...axis,
+      axisLine: { show: false },
+      axisLabel: {
+        color: theme.label,
+        fontSize: theme.labelFontSize,
+        fontFamily: theme.fontFamily,
+        formatter: (value: number) => formatKRW(value)
+      }
+    },
+    series: recentCashflowByTicker.series.map((item) => ({
+      type: 'bar',
+      name: item.name,
+      stack: 'total',
+      data: item.data,
+      barMaxWidth: 24,
+      itemStyle: {
+        color: item.color
+      }
+    }))
+  };
+};
 
 export const buildYearlyResultBarOption = ({
   tableRows,
@@ -175,6 +280,8 @@ export const buildYearlyResultBarOption = ({
   isYearlyAreaFillOn: boolean;
 }): EChartsOption => {
   const seriesKeys = YEARLY_SERIES_ORDER.filter((key) => visibleYearlySeries[key]);
+  const theme = getChartTheme();
+  const axis = buildAxisStyle(theme);
 
   return {
     animation: false,
@@ -183,6 +290,7 @@ export const buildYearlyResultBarOption = ({
       trigger: 'axis',
       confine: true,
       position: tooltipPosition,
+      ...buildTooltipStyle(theme),
       valueFormatter: (value: unknown) => formatKRW(Number(value))
     },
     legend: {
@@ -191,24 +299,39 @@ export const buildYearlyResultBarOption = ({
       top: 0,
       left: 72,
       right: 20,
-      textStyle: { color: '#486073', fontSize: 12 }
+      ...buildLegendStyle(theme)
     },
     xAxis: {
       type: 'category',
-      data: tableRows.map((row) => `${row.year}`)
+      data: tableRows.map((row) => `${row.year}`),
+      boundaryGap: false,
+      ...axis,
+      splitLine: { show: false }
     },
     yAxis: {
       type: 'value',
-      axisLabel: { formatter: (value: number) => formatKRW(value) }
+      ...axis,
+      axisLine: { show: false },
+      axisLabel: {
+        color: theme.label,
+        fontSize: theme.labelFontSize,
+        fontFamily: theme.fontFamily,
+        formatter: (value: number) => formatKRW(value)
+      }
     },
     series: seriesKeys.map((key) => ({
       type: 'line',
       name: YEARLY_SERIES_LABEL[key],
       smooth: true,
       showSymbol: false,
-      lineStyle: { width: 2, color: YEARLY_SERIES_COLOR[key] },
-      itemStyle: { color: YEARLY_SERIES_COLOR[key] },
-      areaStyle: isYearlyAreaFillOn ? { color: `${YEARLY_SERIES_COLOR[key]}22` } : undefined,
+      lineStyle: { width: 2, color: getYearlySeriesColor(theme.series, key) },
+      itemStyle: { color: getYearlySeriesColor(theme.series, key) },
+      /* 오로라 필은 assetValue(hero 시리즈)만 — 모든 시리즈에 깔면 겹침 영역을 읽을 수 없다. */
+      areaStyle: isYearlyAreaFillOn
+        ? key === 'assetValue'
+          ? buildAuroraAreaStyle(theme)
+          : { color: getYearlySeriesColor(theme.series, key), opacity: 0.15 }
+        : undefined,
       data: tableRows.map((row) => row[key])
     }))
   };

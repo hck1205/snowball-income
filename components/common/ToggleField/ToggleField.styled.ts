@@ -1,75 +1,67 @@
 import styled from '@emotion/styled';
+import { color, font, motion, radius, space } from '@/shared/styles';
+
+/**
+ * 라벨 줄만 책임진다.
+ * 스위치 트랙/썸/체크박스 스타일은 `Toggle` 프리미티브(`components/common/Toggle`)로 옮겼다.
+ */
 
 export const ToggleLabel = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  color: #314d60;
-  font-size: 14px;
+  gap: ${space[3]};
+  min-height: 32px;
+  color: ${color.textSecondary};
+  font-size: ${font.size.base};
+  font-weight: ${font.weight.medium};
 `;
 
 export const ToggleHeader = styled.span`
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: ${space[2]};
   min-width: 0;
 `;
 
+/**
+ * 도움말 버튼. 시각적으로는 18px 원이지만 ::before로 44x44 히트 영역을 깔아
+ * 레이아웃을 바꾸지 않으면서 터치 타겟(WCAG 2.5.5)을 확보한다.
+ */
 export const HelpButton = styled.button`
-  border: 1px solid #bfd0de;
-  background: #f4f8fb;
-  color: #29465a;
-  border-radius: 999px;
+  position: relative;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid ${color.borderStrong};
+  background: ${color.surfaceMuted};
+  color: ${color.textSecondary};
+  border-radius: ${radius.pill};
   width: 18px;
   height: 18px;
   line-height: 1;
   padding: 0;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: ${font.size.xs};
+  font-weight: ${font.weight.bold};
   cursor: pointer;
-`;
+  touch-action: manipulation;
+  transition: background-color ${motion.fast} ${motion.ease}, border-color ${motion.fast} ${motion.ease},
+    color ${motion.fast} ${motion.ease};
 
-export const ToggleControl = styled.span<{ checked: boolean; disabled?: boolean; controlWidth?: string }>`
-  width: ${({ controlWidth }) => controlWidth ?? '56px'};
-  height: 24px;
-  border-radius: 999px;
-  border: 1px solid ${({ disabled }) => (disabled ? '#d4dde5' : '#2f6f93')};
-  background: ${({ checked, disabled }) => (disabled ? '#eef3f7' : checked ? '#d7eaf6' : '#f2f6f9')};
-  position: relative;
-  transition: background-color 0.15s ease;
-`;
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+  }
 
-export const ToggleStateText = styled.span<{ checked: boolean; disabled?: boolean; stateTextColor?: string }>`
-  position: absolute;
-  top: 50%;
-  left: ${({ checked }) => (checked ? '8px' : 'auto')};
-  right: ${({ checked }) => (checked ? 'auto' : '8px')};
-  transform: translateY(-50%);
-  font-size: 10px;
-  font-weight: 700;
-  color: ${({ checked, disabled, stateTextColor }) => stateTextColor ?? (disabled ? '#9eb0be' : checked ? '#2f6f93' : '#5f7485')};
-  letter-spacing: 0.2px;
-  user-select: none;
-`;
-
-export const ToggleThumb = styled.span<{ checked: boolean; disabled?: boolean }>`
-  position: absolute;
-  top: 1px;
-  left: ${({ checked }) => (checked ? 'calc(100% - 21px)' : '1px')};
-  width: 20px;
-  height: 20px;
-  border-radius: 999px;
-  background: ${({ checked, disabled }) => (disabled ? '#c8d4de' : checked ? '#2f6f93' : '#8ca2b2')};
-  transition: left 0.15s ease, background-color 0.15s ease;
-`;
-
-export const HiddenCheckbox = styled.input`
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  opacity: 0;
-  cursor: pointer;
+  &:hover {
+    background: ${color.brandSubtle};
+    border-color: ${color.brandBorder};
+    color: ${color.brandText};
+  }
 `;

@@ -4,7 +4,7 @@ export const HIGH_DIVIDEND_STOCKS = {
     name: 'Realty Income',
     initialPrice: 57,
     dividendYield: 5.5,
-    dividendGrowth: 4,
+    dividendGrowth: 2.5,
     expectedTotalReturn: 8,
     frequency: 'monthly' as const
   },
@@ -13,7 +13,7 @@ export const HIGH_DIVIDEND_STOCKS = {
     name: 'Enbridge',
     initialPrice: 35,
     dividendYield: 7.0,
-    dividendGrowth: 4,
+    dividendGrowth: 2,
     expectedTotalReturn: 9,
     frequency: 'quarterly' as const
   },
@@ -22,7 +22,7 @@ export const HIGH_DIVIDEND_STOCKS = {
     name: 'VICI Properties',
     initialPrice: 32,
     dividendYield: 5.2,
-    dividendGrowth: 6,
+    dividendGrowth: 4.3,
     expectedTotalReturn: 9.5,
     frequency: 'quarterly' as const
   },
@@ -31,7 +31,7 @@ export const HIGH_DIVIDEND_STOCKS = {
     name: 'United Parcel Service',
     initialPrice: 145,
     dividendYield: 4.0,
-    dividendGrowth: 6,
+    dividendGrowth: 5,
     expectedTotalReturn: 9,
     frequency: 'quarterly' as const
   },
@@ -40,7 +40,7 @@ export const HIGH_DIVIDEND_STOCKS = {
     name: 'AT&T',
     initialPrice: 18,
     dividendYield: 6.5,
-    dividendGrowth: 2,
+    dividendGrowth: 1,
     expectedTotalReturn: 7.5,
     frequency: 'quarterly' as const
   }

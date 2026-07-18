@@ -1,4 +1,5 @@
 import { memo, useEffect, useId, useRef, useState } from 'react';
+import { TOUR_TARGET } from '@/shared/constants';
 import type { MobileMenuDrawerProps } from './MobileMenuDrawer.types';
 import {
   ConfigDrawerColumn,
@@ -7,11 +8,24 @@ import {
   DrawerCloseButton,
   DrawerToggleButton,
   Header,
+  HeaderActions,
+  HeaderBrand,
   HeaderDescription,
+  HeaderLogo,
+  HeaderLogoImage,
   HeaderTitle
 } from '@/pages/Main/Main.shared.styled';
 
-function MobileMenuDrawerComponent({ isOpen, onOpen, onClose, left, right }: MobileMenuDrawerProps) {
+function MobileMenuDrawerComponent({
+  isOpen,
+  onOpen,
+  onClose,
+  left,
+  right,
+  notice,
+  headerAction,
+  headerStatus
+}: MobileMenuDrawerProps) {
   const drawerId = useId();
   const toggleAnchorRef = useRef<HTMLDivElement | null>(null);
   const [isFloating, setIsFloating] = useState(false);
@@ -59,11 +73,20 @@ function MobileMenuDrawerComponent({ isOpen, onOpen, onClose, left, right }: Mob
   return (
     <>
       <Header>
-        <HeaderTitle>Snowball Income</HeaderTitle>
+        <HeaderBrand>
+          <HeaderLogo>
+            <HeaderLogoImage src="/app_icon.png" alt="" width={40} height={40} />
+          </HeaderLogo>
+          <HeaderTitle>Snowball Income</HeaderTitle>
+          {/* 헤더 맨 좌측(타이틀 옆) 상태 슬롯 — 클라우드 저장 상태(저장 중/실패)가 여기 붙는다. */}
+          {headerStatus}
+          {headerAction ? <HeaderActions>{headerAction}</HeaderActions> : null}
+        </HeaderBrand>
         <HeaderDescription>장기 배당 투자 전략을 설계하고 시뮬레이션 결과를 비교하세요.</HeaderDescription>
         <div ref={toggleAnchorRef} aria-hidden />
         <DrawerToggleButton
           type="button"
+          data-tour={TOUR_TARGET.openSettings}
           data-capture-role="drawer-toggle-open"
           data-floating={isFloating ? 'true' : 'false'}
           aria-label="설정 열기"
@@ -74,6 +97,8 @@ function MobileMenuDrawerComponent({ isOpen, onOpen, onClose, left, right }: Mob
           설정 열기
         </DrawerToggleButton>
       </Header>
+
+      {notice}
 
       <DrawerBackdrop data-capture-role="drawer-backdrop" open={isOpen} onClick={onClose} />
 

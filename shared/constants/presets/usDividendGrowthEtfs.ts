@@ -4,7 +4,7 @@ export const US_DIVIDEND_GROWTH_ETFS = {
     name: 'Schwab U.S. Dividend Equity ETF',
     initialPrice: 31.61,
     dividendYield: 3.34,
-    dividendGrowth: 7,
+    dividendGrowth: 6.66,
     expectedTotalReturn: 10,
     frequency: 'quarterly' as const
   },
@@ -13,7 +13,7 @@ export const US_DIVIDEND_GROWTH_ETFS = {
     name: 'Vanguard Dividend Appreciation ETF',
     initialPrice: 185,
     dividendYield: 1.9,
-    dividendGrowth: 8,
+    dividendGrowth: 7.6,
     expectedTotalReturn: 9.5,
     frequency: 'quarterly' as const
   },
@@ -22,7 +22,7 @@ export const US_DIVIDEND_GROWTH_ETFS = {
     name: 'iShares Core Dividend Growth ETF',
     initialPrice: 73,
     dividendYield: 2.2,
-    dividendGrowth: 8,
+    dividendGrowth: 7.3,
     expectedTotalReturn: 9.5,
     frequency: 'quarterly' as const
   },
@@ -40,7 +40,7 @@ export const US_DIVIDEND_GROWTH_ETFS = {
     name: 'ProShares S&P 500 Dividend Aristocrats ETF',
     initialPrice: 114,
     dividendYield: 2.1,
-    dividendGrowth: 6,
+    dividendGrowth: 6.9,
     expectedTotalReturn: 9,
     frequency: 'quarterly' as const
   },
@@ -49,7 +49,7 @@ export const US_DIVIDEND_GROWTH_ETFS = {
     name: 'First Trust Rising Dividend Achievers ETF',
     initialPrice: 55,
     dividendYield: 1.5,
-    dividendGrowth: 10,
+    dividendGrowth: 9.5,
     expectedTotalReturn: 11,
     frequency: 'quarterly' as const
   },
@@ -58,7 +58,7 @@ export const US_DIVIDEND_GROWTH_ETFS = {
     name: 'First Trust SMID Cap Rising Dividend Achievers ETF',
     initialPrice: 33,
     dividendYield: 1.7,
-    dividendGrowth: 11,
+    dividendGrowth: 9.8,
     expectedTotalReturn: 11.5,
     frequency: 'quarterly' as const
   },
@@ -67,7 +67,7 @@ export const US_DIVIDEND_GROWTH_ETFS = {
     name: 'Capital Group Dividend Value ETF',
     initialPrice: 31,
     dividendYield: 1.4,
-    dividendGrowth: 9,
+    dividendGrowth: 8.6,
     expectedTotalReturn: 10,
     frequency: 'quarterly' as const
   },
@@ -76,7 +76,7 @@ export const US_DIVIDEND_GROWTH_ETFS = {
     name: 'WisdomTree U.S. LargeCap Dividend Fund',
     initialPrice: 130,
     dividendYield: 2.1,
-    dividendGrowth: 6,
+    dividendGrowth: 6.9,
     expectedTotalReturn: 9,
     frequency: 'quarterly' as const
   },
@@ -85,7 +85,7 @@ export const US_DIVIDEND_GROWTH_ETFS = {
     name: 'WisdomTree U.S. MidCap Dividend Fund',
     initialPrice: 47,
     dividendYield: 2.3,
-    dividendGrowth: 6,
+    dividendGrowth: 6.7,
     expectedTotalReturn: 9,
     frequency: 'quarterly' as const
   },
@@ -94,7 +94,7 @@ export const US_DIVIDEND_GROWTH_ETFS = {
     name: 'WisdomTree U.S. SmallCap Dividend Fund',
     initialPrice: 32,
     dividendYield: 2.7,
-    dividendGrowth: 5,
+    dividendGrowth: 5.8,
     expectedTotalReturn: 8.5,
     frequency: 'quarterly' as const
   }

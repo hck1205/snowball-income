@@ -1,295 +1,142 @@
-import { z } from 'zod';
-import type {
-  Frequency,
-  MonthlySnapshot,
-  SimulationInput,
-  SimulationOutput,
-  SimulationResult,
-  YieldFormValues
-} from '@/shared/types';
-import type { YieldValidation } from '@/shared/types/snowball';
+import type { MonthlySnapshot, SimulationInput, SimulationOutput, SimulationResult } from '@/shared/types';
+import { buildMonthContext, toStartDate } from './SnowballCalendar';
+import { computeMonthlyPayout, isPayoutMonth, paymentsPerYearMap, planReinvestment } from './SnowballPayout';
+import { dpsAtMonth, priceAtMonth, toPriceGrowth, toReinvestRatio, toTaxRate } from './SnowballRates';
+import { runQuickEstimate } from './SnowballQuickEstimate';
+import { buildSummary, buildYearlyRow } from './SnowballSummary';
 
-const frequencySchema = z.enum(['monthly', 'quarterly', 'semiannual', 'annual']);
-const reinvestTimingSchema = z.enum(['sameMonth', 'nextMonth']);
-const dpsGrowthModeSchema = z.enum(['annualStep', 'monthlySmooth']);
-const dateInputSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '투자 시작 날짜를 선택하세요.');
-
-const formSchema = z.object({
-  ticker: z.string().trim().min(1, '티커를 입력하세요.'),
-  initialPrice: z.number().positive('현재 주가는 0보다 커야 합니다.'),
-  dividendYield: z.number().min(0, '배당률은 0 이상이어야 합니다.').max(100, '배당률은 100 이하여야 합니다.'),
-  dividendGrowth: z.number().min(0, '배당 성장률은 0 이상이어야 합니다.').max(100, '배당 성장률은 100 이하여야 합니다.'),
-  expectedTotalReturn: z.number().min(-100, '기대 총수익율 (CAGR)은 -100 이상이어야 합니다.').max(100, '기대 총수익율 (CAGR)은 100 이하여야 합니다.'),
-  frequency: frequencySchema,
-  initialInvestment: z.number().min(0, '초기 투자금은 0 이상이어야 합니다.'),
-  monthlyContribution: z.number().min(0, '월 투자금은 0 이상이어야 합니다.'),
-  targetMonthlyDividend: z.number().min(0, '목표 월배당은 0 이상이어야 합니다.'),
-  investmentStartDate: dateInputSchema,
-  durationYears: z.number().int('투자 기간은 정수여야 합니다.').min(1, '투자 기간은 1년 이상이어야 합니다.').max(60, '투자 기간은 60년 이하여야 합니다.'),
-  reinvestDividends: z.boolean(),
-  reinvestDividendPercent: z.number().min(0, '재투자 비율은 0 이상이어야 합니다.').max(100, '재투자 비율은 100 이하여야 합니다.'),
-  taxRate: z.number().min(0, '세율은 0 이상이어야 합니다.').max(100, '세율은 100 이하여야 합니다.').optional(),
-  reinvestTiming: reinvestTimingSchema,
-  dpsGrowthMode: dpsGrowthModeSchema
-});
-
-const paymentsPerYearMap: Record<Frequency, number> = {
-  monthly: 12,
-  quarterly: 4,
-  semiannual: 2,
-  annual: 1
-};
-
-export const defaultYieldFormValues: YieldFormValues = {
-  ticker: 'SCHD',
-  initialPrice: 100000,
-  dividendYield: 3.5,
-  dividendGrowth: 6,
-  expectedTotalReturn: 8.5,
-  frequency: 'quarterly',
-  initialInvestment: 0,
-  monthlyContribution: 1000000,
-  targetMonthlyDividend: 2000000,
-  investmentStartDate: new Date().toISOString().slice(0, 10),
-  durationYears: 20,
-  reinvestDividends: false,
-  reinvestDividendPercent: 100,
-  taxRate: 15.4,
-  reinvestTiming: 'sameMonth',
-  dpsGrowthMode: 'monthlySmooth'
-};
-
-export const validateFormValues = (values: YieldFormValues): YieldValidation => {
-  const parsed = formSchema.safeParse(values);
-
-  if (parsed.success) {
-    return { isValid: true, errors: [] };
-  }
-
-  return {
-    isValid: false,
-    errors: parsed.error.issues.map((issue) => issue.message)
-  };
-};
-
-const isPayoutMonth = (frequency: Frequency, month: number): boolean => {
-  if (frequency === 'monthly') return true;
-  if (frequency === 'quarterly') return month % 3 === 0;
-  if (frequency === 'semiannual') return month === 6 || month === 12;
-  return month === 12;
-};
-
-export const findTargetYear = (rows: SimulationResult[], monthlyTarget: number): number | undefined => {
-  return rows.find((row) => row.monthlyDividend >= monthlyTarget)?.year;
-};
-
-export const toSimulationInput = (values: YieldFormValues): SimulationInput => ({
-  ticker: {
-    ticker: values.ticker,
-    initialPrice: values.initialPrice,
-    dividendYield: values.dividendYield,
-    dividendGrowth: values.dividendGrowth,
-    expectedTotalReturn: values.expectedTotalReturn,
-    frequency: values.frequency
-  },
-  settings: {
-    initialInvestment: values.initialInvestment,
-    monthlyContribution: values.monthlyContribution,
-    targetMonthlyDividend: values.targetMonthlyDividend,
-    investmentStartDate: values.investmentStartDate,
-    durationYears: values.durationYears,
-    reinvestDividends: values.reinvestDividends,
-    reinvestDividendPercent: values.reinvestDividendPercent,
-    taxRate: values.taxRate,
-    reinvestTiming: values.reinvestTiming,
-    dpsGrowthMode: values.dpsGrowthMode
-  }
-});
-
-const toMonthlyGrowthRate = (annualRate: number): number => Math.pow(1 + annualRate, 1 / 12) - 1;
-const toStartDate = (value: string): Date => {
-  const [yearText, monthText, dayText] = value.split('-');
-  const year = Number(yearText);
-  const monthIndex = Number(monthText) - 1;
-  const day = Number(dayText);
-  const date = new Date(year, monthIndex, day);
-
-  if (
-    !Number.isFinite(year) ||
-    !Number.isFinite(monthIndex) ||
-    !Number.isFinite(day) ||
-    date.getFullYear() !== year ||
-    date.getMonth() !== monthIndex ||
-    date.getDate() !== day
-  ) {
-    return new Date();
-  }
-
-  return date;
-};
-
-const getDaysInMonth = (year: number, monthIndex: number): number => new Date(year, monthIndex + 1, 0).getDate();
-
-const addMonths = (baseDate: Date, monthsToAdd: number): Date => {
-  const targetYear = baseDate.getFullYear();
-  const targetMonthIndex = baseDate.getMonth() + monthsToAdd;
-  const anchor = new Date(targetYear, targetMonthIndex, 1);
-  const nextDay = Math.min(baseDate.getDate(), getDaysInMonth(anchor.getFullYear(), anchor.getMonth()));
-
-  return new Date(anchor.getFullYear(), anchor.getMonth(), nextDay);
-};
-
-const toDerivedPriceGrowth = (input: SimulationInput): number => {
-  const expectedTotalReturn = input.ticker.expectedTotalReturn / 100;
-  const dividendYield = input.ticker.dividendYield / 100;
-  return Math.max(-0.99, expectedTotalReturn - dividendYield);
-};
-
-const runQuickEstimate = (input: SimulationInput) => {
-  const taxRate = (input.settings.taxRate ?? 0) / 100;
-  const dividendYield = input.ticker.dividendYield / 100;
-  const expectedTotalReturn = input.ticker.expectedTotalReturn / 100;
-  const priceGrowth = toDerivedPriceGrowth(input);
-  const annualReturn = Math.max(-0.99, expectedTotalReturn - (dividendYield * taxRate));
-  const monthlyReturn = toMonthlyGrowthRate(annualReturn);
-  const totalMonths = input.settings.durationYears * 12;
-
-  const monthlyContributionGrowth = Math.abs(monthlyReturn) < 1e-12
-    ? input.settings.monthlyContribution * totalMonths
-    : input.settings.monthlyContribution * ((Math.pow(1 + monthlyReturn, totalMonths) - 1) / monthlyReturn);
-  const initialInvestmentGrowth = input.settings.initialInvestment * Math.pow(1 + monthlyReturn, totalMonths);
-  const endValue = monthlyContributionGrowth + initialInvestmentGrowth;
-
-  const dividendGrowth = input.ticker.dividendGrowth / 100;
-
-  const relativeYieldGrowth = (1 + priceGrowth) <= 0 ? 1 : (1 + dividendGrowth) / (1 + priceGrowth);
-  const yieldOnPriceAtEnd = Math.max(0, dividendYield * Math.pow(relativeYieldGrowth, input.settings.durationYears));
-  const annualDividendApprox = endValue * yieldOnPriceAtEnd * (1 - taxRate);
-
-  return {
-    endValue,
-    annualDividendApprox,
-    monthlyDividendApprox: annualDividendApprox / 12,
-    yieldOnPriceAtEnd
-  };
-};
-
+/**
+ * 월 단위 시뮬레이션 루프 (정합 모델 / 고든 성장모형).
+ *
+ *   priceGrowth  = dividendGrowth            // 가격과 배당이 같은 속도로 성장
+ *   dps(t)       = price(t) * dividendYield  // 배당수익률(YoP)이 시간에 대해 불변
+ *   totalReturn  = dividendYield + dividendGrowth   // 파생 표시값 (엔진은 쓰지 않는다)
+ *
+ * 이 함수는 **오케스트레이션만** 담당한다. 모든 계산은 아래 순수 함수들이 수행한다:
+ * SnowballCalendar / SnowballRates / SnowballPayout / SnowballSummary / SnowballQuickEstimate.
+ * 여기 남은 가변 상태(shares, cumulativeDividend, totalTaxPaid, pendingReinvestCash)는
+ * 월별로 이월되는 누적값뿐이다.
+ *
+ * 한 달의 처리 순서 (순서가 결과를 바꾸므로 유지할 것):
+ *   1. 가격/DPS 산출  2. 전월 이월 현금 재투자  3. 지급월이면 배당 지급·세금·재투자
+ *   4. 월 적립금 매수  5. 스냅샷 기록  6. 12개월째면 연간 행 확정
+ */
 export const runSimulation = (input: SimulationInput): SimulationOutput => {
-  const taxRate = (input.settings.taxRate ?? 0) / 100;
-  const dividendYield = input.ticker.dividendYield / 100;
-  const dividendGrowth = input.ticker.dividendGrowth / 100;
-  const priceGrowth = toDerivedPriceGrowth(input);
+  const { ticker, settings } = input;
 
-  const totalMonths = input.settings.durationYears * 12;
-  const paymentsPerYear = paymentsPerYearMap[input.ticker.frequency];
-  const startDate = toStartDate(input.settings.investmentStartDate);
-  const reinvestRatio = Math.max(0, Math.min(1, input.settings.reinvestDividendPercent / 100));
+  const taxRate = toTaxRate(settings.taxRate);
+  const dividendYield = ticker.dividendYield / 100;
+  // 정합 모델: 가격과 배당이 같은 속도로 성장한다. 하나의 growth 를 양쪽에 쓰기 때문에
+  // dps(t) === price(t) * dividendYield 가 모든 t 에서 성립한다(= 배당수익률 불변).
+  // ticker.expectedTotalReturn 은 더 이상 계산에 쓰이지 않는다 (dividendYield + dividendGrowth 의 파생 표시값).
+  const growth = toPriceGrowth(ticker.dividendGrowth);
+  const priceGrowth = growth;
+  const dividendGrowth = growth;
 
-  const dps0 = input.ticker.initialPrice * dividendYield;
+  const totalMonths = settings.durationYears * 12;
+  const paymentsPerYear = paymentsPerYearMap[ticker.frequency];
+  const startDate = toStartDate(settings.investmentStartDate);
+  const reinvestRatio = toReinvestRatio(settings.reinvestDividendPercent);
 
-  let shares = input.settings.initialInvestment / input.ticker.initialPrice;
+  const dps0 = ticker.initialPrice * dividendYield;
+
+  let shares = settings.initialInvestment / ticker.initialPrice;
   let cumulativeDividend = 0;
   let totalTaxPaid = 0;
   let pendingReinvestCash = 0;
+  // 배당으로 실제 주식을 산 금액의 누적. 취득원가에 들어간다.
+  // **매수가 일어난 시점에만** 더한다 (planReinvestment.amountInvestedNow 주석 참고).
+  let totalReinvestedAmount = 0;
 
   const monthly: MonthlySnapshot[] = [];
   const yearly: SimulationResult[] = [];
 
   for (let m = 1; m <= totalMonths; m += 1) {
-    const elapsedMonths = m - 1;
-    const elapsedYears = Math.floor(elapsedMonths / 12);
-    const simulationMonth = (elapsedMonths % 12) + 1;
-    const simulationYearLabel = startDate.getFullYear() + elapsedYears;
-    const calendarDate = addMonths(startDate, elapsedMonths);
-    const year = calendarDate.getFullYear();
-    const month = calendarDate.getMonth() + 1;
-    const completedMonths = m;
-    const completedYears = Math.floor(completedMonths / 12);
-    const elapsedYearFraction = completedMonths / 12;
+    const context = buildMonthContext(startDate, m);
 
-    const price = input.ticker.initialPrice * Math.pow(1 + priceGrowth, elapsedYearFraction);
-    const growthExponent = input.settings.dpsGrowthMode === 'monthlySmooth'
-      ? elapsedYearFraction
-      : completedYears;
-    const dps = dps0 * Math.pow(1 + dividendGrowth, growthExponent);
+    const price = priceAtMonth(ticker.initialPrice, priceGrowth, context.elapsedYearFraction);
+    const dps = dpsAtMonth({
+      dps0,
+      dividendGrowth,
+      mode: settings.dpsGrowthMode,
+      elapsedYearFraction: context.elapsedYearFraction,
+      completedYears: context.completedYears
+    });
 
     if (pendingReinvestCash > 0) {
       shares += pendingReinvestCash / price;
+      totalReinvestedAmount += pendingReinvestCash;
       pendingReinvestCash = 0;
     }
 
     let dividendPaid = 0;
     let taxPaid = 0;
 
-    if (isPayoutMonth(input.ticker.frequency, simulationMonth)) {
-      const grossDividend = shares * (dps / paymentsPerYear);
-      taxPaid = grossDividend * taxRate;
-      dividendPaid = grossDividend - taxPaid;
+    if (isPayoutMonth(ticker.frequency, context.simulationMonth)) {
+      const payout = computeMonthlyPayout({ shares, annualDps: dps, paymentsPerYear, taxRate });
+      const reinvestment = planReinvestment({
+        netDividend: payout.net,
+        price,
+        enabled: settings.reinvestDividends,
+        ratio: reinvestRatio,
+        timing: settings.reinvestTiming
+      });
 
-      if (input.settings.reinvestDividends) {
-        const reinvestAmount = dividendPaid * reinvestRatio;
-        if (input.settings.reinvestTiming === 'sameMonth') {
-          shares += reinvestAmount / price;
-        } else {
-          pendingReinvestCash += reinvestAmount;
-        }
-      }
+      taxPaid = payout.tax;
+      dividendPaid = payout.net;
+
+      shares += reinvestment.sharesToBuyNow;
+      totalReinvestedAmount += reinvestment.amountInvestedNow;
+      pendingReinvestCash += reinvestment.cashToCarry;
 
       cumulativeDividend += dividendPaid;
       totalTaxPaid += taxPaid;
     }
 
-    shares += input.settings.monthlyContribution / price;
+    shares += settings.monthlyContribution / price;
 
-    const portfolioValue = shares * price;
+    const rawPortfolioValue = shares * price;
+    const portfolioValue = Number.isFinite(rawPortfolioValue) ? rawPortfolioValue : 0;
 
     monthly.push({
       monthIndex: m,
-      year,
-      month,
+      year: context.calendarYear,
+      month: context.calendarMonth,
       shares,
       price,
       dividendPerShare: dps,
       dividendPaid,
-      contributionPaid: input.settings.monthlyContribution,
+      contributionPaid: settings.monthlyContribution,
       taxPaid,
       portfolioValue,
       cumulativeDividend
     });
 
-    if (simulationMonth === 12) {
-      const last12 = monthly.slice(-12);
-      const annualDividend = last12.reduce((sum, row) => sum + row.dividendPaid, 0);
-
-      yearly.push({
-        year: simulationYearLabel,
-        totalContribution: input.settings.initialInvestment + (input.settings.monthlyContribution * m),
-        assetValue: portfolioValue,
-        annualDividend,
-        cumulativeDividend,
-        monthlyDividend: annualDividend / 12
-      });
+    if (context.simulationMonth === 12) {
+      yearly.push(
+        buildYearlyRow({
+          year: context.simulationYearLabel,
+          monthIndex: m,
+          initialInvestment: settings.initialInvestment,
+          monthlyContribution: settings.monthlyContribution,
+          assetValue: portfolioValue,
+          cumulativeDividend,
+          recentMonths: monthly.slice(-12)
+        })
+      );
     }
   }
-
-  const finalYear = yearly[yearly.length - 1];
-  const lastPayoutRow = [...monthly].reverse().find((row) => row.dividendPaid > 0);
-  const quickEstimate = runQuickEstimate(input);
 
   return {
     monthly,
     yearly,
-    summary: {
-      finalAssetValue: finalYear?.assetValue ?? 0,
-      finalAnnualDividend: finalYear?.annualDividend ?? 0,
-      finalMonthlyDividend: finalYear?.monthlyDividend ?? 0,
-      finalMonthlyAverageDividend: finalYear?.monthlyDividend ?? 0,
-      finalPayoutMonthDividend: lastPayoutRow?.dividendPaid ?? 0,
-      totalContribution: finalYear?.totalContribution ?? 0,
-      totalNetDividend: finalYear?.cumulativeDividend ?? 0,
+    summary: buildSummary({
+      monthly,
+      yearly,
       totalTaxPaid,
-      targetMonthDividendReachedYear: findTargetYear(yearly, input.settings.targetMonthlyDividend)
-    },
-    quickEstimate
+      targetMonthlyDividend: settings.targetMonthlyDividend,
+      totalReinvestedAmount
+    }),
+    quickEstimate: runQuickEstimate(input)
   };
 };

@@ -1,8 +1,25 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Card, ToggleField } from '@/components';
+// per-icon named import(트리셰이킹) → 추천 포트폴리오 카드의 이모지를 lucide 아이콘으로 교체.
+import {
+  Banknote,
+  Building2,
+  CalendarDays,
+  Cpu,
+  Crown,
+  Globe,
+  Landmark,
+  Layers,
+  PiggyBank,
+  Scale,
+  Shield,
+  Sprout,
+  TrendingUp,
+  type LucideIcon
+} from 'lucide-react';
+import { Button, Card, ToggleField } from '@/components';
 import type { SimulationResult as SimulationResultRow } from '@/shared/types';
-import { DIVIDEND_UNIVERSE } from '@/shared/constants';
+import { DIVIDEND_UNIVERSE, TOUR_TARGET } from '@/shared/constants';
 import {
   ModalActions,
   ModalBackdrop,
@@ -19,7 +36,6 @@ import {
   PortfolioPresetPlan,
   PortfolioPresetPlanItem,
   PortfolioPresetTitle,
-  PrimaryButton,
   ResultsColumn,
   ScenarioTabsHelpButton,
   ScenarioTabButton,
@@ -27,9 +43,17 @@ import {
   ScenarioTabEditWrap,
   ScenarioTabRenameInput,
   ScenarioTabTooltip,
-  ScenarioTabsWrap,
-  SecondaryButton
+  ScenarioTabsWrap
 } from '@/pages/Main/Main.shared.styled';
+import {
+  PRESET_ICON_TONES,
+  PortfolioPresetIcon,
+  PortfolioPresetTitleRow,
+  ProjectionControls,
+  ProjectionYearField,
+  ProjectionYearSelect,
+  ProjectionYearSuffix
+} from './MainRightPanel.styled';
 import MonthlyCashflow from '@/components/MonthlyCashflow';
 import PortfolioComposition from '@/components/PortfolioComposition';
 import SimulationResult from '@/components/SimulationResult';
@@ -59,14 +83,13 @@ import {
 } from '@/jotai';
 import { useMainComputed, useScenarioTabs, useSnowballForm, useTickerActions } from '@/pages/Main/hooks';
 import { ChartPanel, ResponsiveEChart } from '@/pages/Main/components';
-import { formatPercent, formatResultAmount, targetYearLabel } from '@/pages/Main/utils';
-import type { TickerProfile } from '@/shared/types/snowball';
+import { buildPresetPortfolio, computeAnnualGrowthRate, formatPercent, formatResultAmount, targetYearLabel } from '@/pages/Main/utils';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 
 const PORTFOLIO_PRESET_PLACEHOLDERS = [
   {
     id: 'warren-buffett-style',
-    title: '🧓 워렌 버핏 스타일',
+    title: '워렌 버핏 스타일',
     hook: '우량 기업 중심의 장기 복리 전략',
     coreType: 'SCHD, VIG, PG, KO, JNJ, ABBV',
     style: '안정형',
@@ -89,7 +112,7 @@ const PORTFOLIO_PRESET_PLACEHOLDERS = [
   },
   {
     id: 'cashflow-now',
-    title: '💸 당장 현금흐름',
+    title: '당장 현금흐름',
     hook: '매달 배당 받는 월 인컴 전략',
     coreType: 'JEPI, JEPQ, QYLD, O, ENB',
     style: '인컴형',
@@ -111,7 +134,7 @@ const PORTFOLIO_PRESET_PLACEHOLDERS = [
   },
   {
     id: 'stable-dividend-growth',
-    title: '🌱 안정적 배당성장',
+    title: '안정적 배당성장',
     hook: '꾸준히 배당이 증가하는 ETF 중심',
     coreType: 'SCHD, DGRO, DGRW, NOBL',
     style: '성장+안정',
@@ -132,7 +155,7 @@ const PORTFOLIO_PRESET_PLACEHOLDERS = [
   },
   {
     id: 'global-dividend-diversified',
-    title: '🌎 글로벌 배당 분산',
+    title: '글로벌 배당 분산',
     hook: '미국 + 해외 배당 ETF 분산',
     coreType: 'SCHD, VIGI, SCHY, VNQI, VYMI',
     style: '분산형',
@@ -154,7 +177,7 @@ const PORTFOLIO_PRESET_PLACEHOLDERS = [
   },
   {
     id: 'reit-monthly-rent-strategy',
-    title: '🏢 월세 리츠 전략',
+    title: '월세 리츠 전략',
     hook: '부동산 중심 현금흐름 전략',
     coreType: 'O, VICI, SCHH, VNQI, JEPI',
     style: '인컴+리츠',
@@ -176,7 +199,7 @@ const PORTFOLIO_PRESET_PLACEHOLDERS = [
   },
   {
     id: 'growth-income-balance',
-    title: '📈 성장 + 인컴 밸런스',
+    title: '성장 + 인컴 밸런스',
     hook: '배당과 자본 성장을 동시에',
     coreType: 'SCHD, DGRW, DIVO, VYM, JEPI',
     style: '균형형',
@@ -198,7 +221,7 @@ const PORTFOLIO_PRESET_PLACEHOLDERS = [
   },
   {
     id: 'high-growth-dividend-challenger',
-    title: '🚀 고성장 배당 챌린저',
+    title: '고성장 배당 챌린저',
     hook: '배당 성장률 높은 종목 중심',
     coreType: 'RDVY, SDVY, LOW, ABBV, SCHD',
     style: '공격형',
@@ -220,7 +243,7 @@ const PORTFOLIO_PRESET_PLACEHOLDERS = [
   },
   {
     id: 'retirement-prep',
-    title: '🛌 은퇴 준비형',
+    title: '은퇴 준비형',
     hook: '은퇴 10년 전 리스크 완화 전략',
     coreType: 'SCHD, JEPI, DGRO, VYM, O',
     style: '점진적 안정',
@@ -242,7 +265,7 @@ const PORTFOLIO_PRESET_PLACEHOLDERS = [
   },
   {
     id: 'dividend-aristocrats-collection',
-    title: '💎 배당 귀족 컬렉션',
+    title: '배당 귀족 컬렉션',
     hook: '25년 이상 배당 증가 기업 중심',
     coreType: 'NOBL, PG, KO, JNJ, ABBV, LOW',
     style: '초안정형',
@@ -265,7 +288,7 @@ const PORTFOLIO_PRESET_PLACEHOLDERS = [
   },
   {
     id: 'defensive-dividend-etf',
-    title: '🧊 방어형 배당 ETF',
+    title: '방어형 배당 ETF',
     hook: '변동성 낮은 고배당 ETF 중심',
     coreType: 'HDV, VYM, SCHD, DGRO',
     style: '방어형',
@@ -286,7 +309,7 @@ const PORTFOLIO_PRESET_PLACEHOLDERS = [
   },
   {
     id: 'monthly-dividend-addict',
-    title: '🌊 월배당 중독자',
+    title: '월배당 중독자',
     hook: '올 월배당 ETF 구성',
     coreType: 'JEPI, JEPQ, DIVO, IDVO, QDVO, O',
     style: '월 인컴 극대화',
@@ -309,7 +332,7 @@ const PORTFOLIO_PRESET_PLACEHOLDERS = [
   },
   {
     id: 'smart-diversification-360',
-    title: '🧠 올인원 배당 전략',
+    title: '올인원 배당 전략',
     hook: '모든 자산군 혼합 입문형',
     coreType: 'SCHD, VYM, JEPI, VIGI, VNQI, DIVO',
     style: '올인원',
@@ -332,7 +355,7 @@ const PORTFOLIO_PRESET_PLACEHOLDERS = [
   },
   {
     id: 'ai-infra-dividend-growth',
-    title: '🤖 AI 인프라 성장형',
+    title: 'AI 인프라 성장형',
     hook: 'AI 반도체, 전력, 데이터센터 인프라 중심',
     coreType: 'SMH, VRT, ETN, NVDA, AVGO, CEG',
     style: '성장형',
@@ -355,16 +378,31 @@ const PORTFOLIO_PRESET_PLACEHOLDERS = [
   }
 ] as const;
 
-const toPresetTargetMonthlyDividend = (expectedMonthlyDividend: string, fallback: number): number => {
-  const normalized = expectedMonthlyDividend.replace(/,/g, '');
-  const match = normalized.match(/(\d+(?:\.\d+)?)/);
-  if (!match) return fallback;
-
-  const lowerBoundInManwon = Number(match[1]);
-  if (!Number.isFinite(lowerBoundInManwon) || lowerBoundInManwon < 0) return fallback;
-
-  return Math.floor(lowerBoundInManwon * 10_000);
+/**
+ * 프리셋 카드 아이콘 — 예전의 이모지(🧓/💸/…)를 성향에 맞는 lucide 아이콘으로 대체한다.
+ * 제목 문자열에서 이모지는 제거했으므로(위 데이터), 카드·시나리오 탭 이름 모두 깔끔한 텍스트 + 이 아이콘으로 보인다.
+ *
+ * 선택 기준: 프리셋의 **전략 성격**을 18px에서도 즉시 읽히는 한 글리프로 — 중복 없이 13개.
+ * 클리셰(🚀 로켓, 안락의자)나 작게 그리면 뭉개지는 복합 글리프(CalendarHeart)는 피한다.
+ */
+const PRESET_ICON_BY_ID: Record<string, LucideIcon> = {
+  'warren-buffett-style': Landmark, // 우량 기관·가치투자의 전당
+  'cashflow-now': Banknote, // 당장 손에 쥐는 현금
+  'stable-dividend-growth': Sprout, // 꾸준히 자라는 배당
+  'global-dividend-diversified': Globe, // 미국 + 해외 분산
+  'reit-monthly-rent-strategy': Building2, // 부동산(리츠)
+  'growth-income-balance': Scale, // 성장·인컴의 균형
+  'high-growth-dividend-challenger': TrendingUp, // 높은 배당 성장률 = 우상향
+  'retirement-prep': PiggyBank, // 은퇴 대비 적립
+  'dividend-aristocrats-collection': Crown, // 배당 귀족
+  'defensive-dividend-etf': Shield, // 방어형
+  'monthly-dividend-addict': CalendarDays, // 매달 들어오는 배당
+  'smart-diversification-360': Layers, // 모든 자산군을 한 층씩 — 올인원
+  'ai-infra-dividend-growth': Cpu // AI 반도체·인프라
 };
+
+/** 앱 공용 아이콘 언어와 동일한 라인 두께(CommunityIcons·좌측 패널 인라인 SVG와 같은 1.8). */
+const PRESET_ICON_STROKE = 1.8;
 
 function MainRightPanelComponent() {
   const modalRoot = typeof document !== 'undefined' ? document.body : null;
@@ -440,14 +478,8 @@ function MainRightPanelComponent() {
   const getProjectedYear = useCallback((row: { year: number }) => `${row.year}`, []);
   const getProjectedMonthlyDividend = useCallback((row: { monthlyDividend: number }) => row.monthlyDividend, []);
   const getProjectedAssetValue = useCallback((row: { assetValue: number }) => row.assetValue, []);
-  const projectedAnnualDividendGrowthRate =
-    postInvestmentDividendProjectionRows.length >= 2 && postInvestmentDividendProjectionRows[0].annualDividend > 0
-      ? (postInvestmentDividendProjectionRows[1].annualDividend / postInvestmentDividendProjectionRows[0].annualDividend) - 1
-      : null;
-  const projectedAnnualAssetGrowthRate =
-    postInvestmentDividendProjectionRows.length >= 2 && postInvestmentDividendProjectionRows[0].assetValue > 0
-      ? (postInvestmentDividendProjectionRows[1].assetValue / postInvestmentDividendProjectionRows[0].assetValue) - 1
-      : null;
+  const projectedAnnualDividendGrowthRate = computeAnnualGrowthRate(postInvestmentDividendProjectionRows, (row) => row.annualDividend);
+  const projectedAnnualAssetGrowthRate = computeAnnualGrowthRate(postInvestmentDividendProjectionRows, (row) => row.assetValue);
   const postInvestmentChartTitle =
     isPostInvestmentAssetView
       ? projectedAnnualAssetGrowthRate === null
@@ -534,21 +566,8 @@ function MainRightPanelComponent() {
 
   const applyPortfolioPreset = useCallback(
     (preset: (typeof PORTFOLIO_PRESET_PLACEHOLDERS)[number]) => {
-      const profiles = preset.allocations
-        .map(({ ticker }, index) => {
-          const universeItem = DIVIDEND_UNIVERSE[ticker];
-          if (!universeItem) return null;
-
-          const profile: TickerProfile = {
-            ...universeItem,
-            id: `preset-${preset.id}-${ticker.toLowerCase()}-${index + 1}`,
-            name: ''
-          };
-          return profile;
-        })
-        .filter((profile): profile is TickerProfile => profile !== null);
-
-      if (profiles.length === 0) return;
+      const nextPortfolio = buildPresetPortfolio({ preset, universe: DIVIDEND_UNIVERSE });
+      if (!nextPortfolio) return;
 
       trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
         cta_name: 'apply_portfolio_preset',
@@ -557,42 +576,19 @@ function MainRightPanelComponent() {
       });
       trackEvent(ANALYTICS_EVENT.PRESET_APPLIED, {
         preset_id: preset.id,
-        ticker_count: profiles.length
+        ticker_count: nextPortfolio.profiles.length
       });
 
-      const includedIds = profiles.map((profile) => profile.id);
-      const selectedId = includedIds[0] ?? null;
-      const selectedProfile = profiles[0];
-
-      const nextWeightByTickerId = profiles.reduce<Record<string, number>>((acc, profile, index) => {
-        const rawWeight = preset.allocations[index]?.weight ?? 0;
-        acc[profile.id] = Math.max(0, rawWeight);
-        return acc;
-      }, {});
-      const nextFixedByTickerId = profiles.reduce<Record<string, boolean>>((acc, profile) => {
-        acc[profile.id] = false;
-        return acc;
-      }, {});
-
-      setTickerProfiles(profiles);
-      setIncludedTickerIds(includedIds);
-      setSelectedTickerId(selectedId);
-      setWeightByTickerId(nextWeightByTickerId);
-      setFixedByTickerId(nextFixedByTickerId);
+      setTickerProfiles(nextPortfolio.profiles);
+      setIncludedTickerIds(nextPortfolio.includedIds);
+      setSelectedTickerId(nextPortfolio.selectedTickerId);
+      setWeightByTickerId(nextPortfolio.weightByTickerId);
+      setFixedByTickerId(nextPortfolio.fixedByTickerId);
       setShowPortfolioDividendCenter(true);
-      renameScenarioTab(activeScenarioId, preset.title);
+      renameScenarioTab(activeScenarioId, nextPortfolio.scenarioName);
       setYieldFormValues((prev) => ({
         ...prev,
-        ticker: selectedProfile.ticker,
-        initialPrice: selectedProfile.initialPrice,
-        dividendYield: selectedProfile.dividendYield,
-        dividendGrowth: selectedProfile.dividendGrowth,
-        expectedTotalReturn: selectedProfile.expectedTotalReturn,
-        frequency: selectedProfile.frequency,
-        initialInvestment: 0,
-        monthlyContribution: preset.monthlyContributionValue,
-        targetMonthlyDividend: toPresetTargetMonthlyDividend(preset.expectedMonthlyDividend, preset.targetMonthlyDividendValue),
-        durationYears: preset.durationYearsValue
+        ...nextPortfolio.formPatch
       }));
     },
     [
@@ -659,7 +655,7 @@ function MainRightPanelComponent() {
 
   return (
     <ResultsColumn>
-      <ScenarioTabsWrap aria-label="포트폴리오 탭 목록">
+      <ScenarioTabsWrap data-tour={TOUR_TARGET.scenarioTabs} aria-label="포트폴리오 탭 목록">
         {tabs.map((tab) =>
           editingTabId === tab.id ? (
             <ScenarioTabEditWrap key={tab.id} style={editingTabWidth ? { width: `${editingTabWidth}px` } : undefined}>
@@ -832,21 +828,11 @@ function MainRightPanelComponent() {
           <ChartPanel
             title={postInvestmentChartTitle}
             titleRight={
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                  <select
+              <ProjectionControls>
+                <ProjectionYearField>
+                  <ProjectionYearSelect
                     aria-label="향후 확인 기간 선택 (년)"
                     value={postInvestmentProjectionYears}
-                    style={{
-                      width: '56px',
-                      height: '24px',
-                      border: '1px solid #bfd0de',
-                      borderRadius: '6px',
-                      padding: '0 6px',
-                      fontSize: '12px',
-                      color: '#1f3341',
-                      background: '#fff'
-                    }}
                     onChange={(event) => setPostInvestmentProjectionYears(Number(event.target.value))}
                   >
                     <option value={10}>10</option>
@@ -854,14 +840,13 @@ function MainRightPanelComponent() {
                     <option value={30}>30</option>
                     <option value={40}>40</option>
                     <option value={50}>50</option>
-                  </select>
-                  <span style={{ color: '#486073', fontSize: '12px', fontWeight: 600, whiteSpace: 'nowrap' }}>년</span>
-                </div>
+                  </ProjectionYearSelect>
+                  <ProjectionYearSuffix>년</ProjectionYearSuffix>
+                </ProjectionYearField>
                 <ToggleField
                   label="추정 보기 전환"
                   hideLabel
                   controlWidth="60px"
-                  stateTextColor="#111"
                   checked={isPostInvestmentAssetView}
                   offText="배당"
                   onText="자산"
@@ -873,7 +858,7 @@ function MainRightPanelComponent() {
                     setIsPostInvestmentAssetView(event.target.checked);
                   }}
                 />
-              </div>
+              </ProjectionControls>
             }
             rows={postInvestmentDividendProjectionRows}
             hasData={hasGraphData && postInvestmentDividendProjectionRows.length > 0}
@@ -883,14 +868,28 @@ function MainRightPanelComponent() {
           />
         </>
       ) : (
-        <Card title={includedProfiles.length === 0 ? '추천 포트폴리오로 시작해보세요' : '결과'}>
+        <Card
+          title={includedProfiles.length === 0 ? '추천 포트폴리오로 시작해보세요' : '결과'}
+          subtitle={
+            includedProfiles.length === 0
+              ? '하나를 고르면 설정이 자동으로 채워집니다. 언제든 왼쪽에서 바꿀 수 있어요.'
+              : undefined
+          }
+        >
           {includedProfiles.length === 0 ? (
-            <PortfolioPresetGrid aria-label="포트폴리오 프리셋 목록">
-              {PORTFOLIO_PRESET_PLACEHOLDERS.map((preset) => (
+            <PortfolioPresetGrid data-tour={TOUR_TARGET.portfolioPresets} aria-label="포트폴리오 프리셋 목록">
+              {PORTFOLIO_PRESET_PLACEHOLDERS.map((preset, presetIndex) => {
+                const PresetIcon = PRESET_ICON_BY_ID[preset.id] ?? Landmark;
+                return (
                 <PortfolioPresetCardButton key={preset.id} type="button" onClick={() => applyPortfolioPreset(preset)}>
                   <PortfolioPresetContentRow>
                     <PortfolioPresetMain>
-                      <PortfolioPresetTitle>{preset.title}</PortfolioPresetTitle>
+                      <PortfolioPresetTitleRow>
+                        <PortfolioPresetIcon tone={PRESET_ICON_TONES[presetIndex % PRESET_ICON_TONES.length]}>
+                          <PresetIcon size={18} strokeWidth={PRESET_ICON_STROKE} aria-hidden focusable={false} />
+                        </PortfolioPresetIcon>
+                        <PortfolioPresetTitle>{preset.title}</PortfolioPresetTitle>
+                      </PortfolioPresetTitleRow>
                       <PortfolioPresetDesc>{preset.hook}</PortfolioPresetDesc>
                       <PortfolioPresetCore>핵심 구성: {preset.coreType}</PortfolioPresetCore>
                       <PortfolioPresetMeta>
@@ -913,7 +912,8 @@ function MainRightPanelComponent() {
                     </PortfolioPresetPlan>
                   </PortfolioPresetContentRow>
                 </PortfolioPresetCardButton>
-              ))}
+                );
+              })}
             </PortfolioPresetGrid>
           ) : (
             <p>입력값 오류를 수정하면 결과가 표시됩니다.</p>
@@ -935,12 +935,26 @@ function MainRightPanelComponent() {
                 <ModalTitle>탭 삭제</ModalTitle>
                 <ModalBody>정말 삭제하시겠습니까?</ModalBody>
                 <ModalActions>
-                  <SecondaryButton type="button" onClick={closeDeleteModal}>
+                  {/* onMouseDown preventDefault: 탭 이름변경 입력(onBlur=commitRenameMode)이 아직 포커스를
+                      쥔 채로 이 버튼을 누르면 blur가 rename을 커밋한다. 공유 탭('shared-tab')은 rename 커밋 시
+                      새 id로 승격되어(useScenarioTabs.renameScenarioTab) deleteTargetTabId가 옛 id로 어긋난다.
+                      X 닫기 버튼과 같은 방식으로 포커스 이동을 막아 blur 커밋을 차단한다. */}
+                  <Button
+                    variant="secondary"
+                    type="button"
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={closeDeleteModal}
+                  >
                     취소
-                  </SecondaryButton>
-                  <PrimaryButton type="button" onClick={confirmDeleteTab}>
+                  </Button>
+                  <Button
+                    variant="primary"
+                    type="button"
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={confirmDeleteTab}
+                  >
                     삭제
-                  </PrimaryButton>
+                  </Button>
                 </ModalActions>
               </ModalPanel>
             </ModalBackdrop>,

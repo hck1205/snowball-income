@@ -1,6 +1,7 @@
 import { memo, type CSSProperties } from 'react';
-import { Card, ToggleField } from '@/components';
-import { ALLOCATION_COLORS } from '@/shared/constants';
+import { Card, Chip, ToggleField } from '@/components';
+import { TOUR_TARGET } from '@/shared/constants';
+import { CHART_SERIES_VARS } from '@/shared/styles';
 import { getTickerDisplayName } from '@/shared/utils';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import type { PortfolioCompositionProps } from './PortfolioComposition.types';
@@ -14,10 +15,7 @@ import {
   AllocationLegendSlider,
   AllocationLegendValue,
   ChartWrap,
-  ChipRemoveButton,
   HintText,
-  SelectedChip,
-  SelectedChipLabel,
   SelectedChipWrap
 } from '@/pages/Main/Main.shared.styled';
 
@@ -38,6 +36,7 @@ function PortfolioCompositionComponent({
   return (
     <Card
       title="포트폴리오 구성"
+      dataTour={TOUR_TARGET.portfolioComposition}
       titleRight={
         <ToggleField
           label="포트폴리오 중앙표시"
@@ -68,7 +67,8 @@ function PortfolioCompositionComponent({
               <AllocationLegend>
                 {normalizedAllocation.map(({ profile, weight }, index) => (
                   <AllocationLegendItem key={profile.id}>
-                    <AllocationColorDot color={ALLOCATION_COLORS[index % ALLOCATION_COLORS.length]} />
+                    {/* var(--sb-chart-series-N) — 파이 조각(theme.series)과 같은 인덱스 규칙(% 8), 프리셋 자동 추종 */}
+                    <AllocationColorDot color={CHART_SERIES_VARS[index % CHART_SERIES_VARS.length]} />
                     <AllocationLegendName>{getTickerDisplayName(profile.ticker, profile.name)}</AllocationLegendName>
                     <AllocationLegendSlider
                       type="range"
@@ -100,18 +100,21 @@ function PortfolioCompositionComponent({
             </AllocationChartLayout>
           ) : null}
           <SelectedChipWrap>
-            {includedProfiles.map((profile) => (
-              <SelectedChip key={profile.id}>
-                <SelectedChipLabel>{getTickerDisplayName(profile.ticker, profile.name)}</SelectedChipLabel>
-                <ChipRemoveButton
-                  type="button"
-                  aria-label={`티커 ${getTickerDisplayName(profile.ticker, profile.name)} 삭제`}
-                  onClick={() => onRemoveIncludedTicker(profile.id)}
+            {includedProfiles.map((profile) => {
+              const displayName = getTickerDisplayName(profile.ticker, profile.name);
+
+              return (
+                <Chip
+                  key={profile.id}
+                  selected
+                  // 접근성 이름은 기존 그대로 유지한다(테스트가 이 문구로 칩의 삭제 버튼을 잡는다).
+                  removeAriaLabel={`티커 ${displayName} 삭제`}
+                  onRemove={() => onRemoveIncludedTicker(profile.id)}
                 >
-                  x
-                </ChipRemoveButton>
-              </SelectedChip>
-            ))}
+                  {displayName}
+                </Chip>
+              );
+            })}
           </SelectedChipWrap>
         </>
       )}

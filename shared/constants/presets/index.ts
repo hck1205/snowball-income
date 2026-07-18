@@ -1,3 +1,11 @@
+import {
+  applyMarketData,
+  MARKET_DATA,
+  type MarketDataEntry,
+  type MarketDataOverlaid,
+  type MarketDataSnapshot
+} from '@/shared/constants/marketData';
+import { toDerivedDividendGrowthPercent } from '@/shared/lib/snowball';
 import { US_DIVIDEND_GROWTH_ETFS } from './usDividendGrowthEtfs';
 import { US_HIGH_DIVIDEND_ETFS } from './usHighDividendEtfs';
 import { OPTION_INCOME_ETFS } from './optionIncomeEtfs';
@@ -20,7 +28,14 @@ export { CORE_INDEX_ETFS } from './coreIndexEtfs';
 export { SEMICONDUCTOR_DIVIDEND_GROWTH_PORTFOLIO } from './semiconductorDividendGrowthPortfolio';
 export { AI_INFRA_ETFS_AND_STOCKS } from './aiInfraEtfsAndStocks';
 
-export const DIVIDEND_UNIVERSE = {
+/**
+ * Hand-curated preset values. This is the source of truth for `name` and `expectedTotalReturn`,
+ * which are human assumptions and are never touched by the refresh pipeline.
+ *
+ * 정합 모델 불변식: 모든 프리셋이 `dividendYield + dividendGrowth === expectedTotalReturn` 을 만족한다.
+ * (`expectedTotalReturn` 은 큐레이터의 가정이므로 보존하고, `dividendGrowth` 를 그로부터 파생시켰다.)
+ */
+export const CURATED_DIVIDEND_UNIVERSE = {
   ...CORE_INDEX_ETFS,
   ...US_DIVIDEND_GROWTH_ETFS,
   ...US_HIGH_DIVIDEND_ETFS,
@@ -32,6 +47,70 @@ export const DIVIDEND_UNIVERSE = {
   ...SEMICONDUCTOR_DIVIDEND_GROWTH_PORTFOLIO,
   ...AI_INFRA_ETFS_AND_STOCKS
 } as const;
+
+/** `dividendGrowth` is a derived number, so it widens away from the preset's literal type. */
+type WithDerivedDividendGrowth<T> = {
+  [K in keyof T]: Omit<T[K], 'dividendGrowth'> & { dividendGrowth: number };
+};
+
+/**
+ * Re-derives `dividendGrowth` from the curated `expectedTotalReturn` and the (possibly refreshed)
+ * `dividendYield`, so the coherent-model invariant `dividendYield + dividendGrowth === expectedTotalReturn`
+ * survives a market-data refresh.
+ *
+ * Why: the refresh pipeline overwrites `dividendYield` with the live TTM yield. Under the coherent
+ * model `dividendGrowth` is no longer "how fast the payout grew in the past" — it *is* the price
+ * growth rate — so it is an assumption, not an observation, and the pipeline is forbidden from
+ * writing it (see `MarketDataEntry`). The curator's `expectedTotalReturn` is the assumption we keep;
+ * growth is what falls out of it once the live yield is known: yield up => growth down, total return
+ * unchanged.
+ */
+const withCoherentDividendGrowth = <
+  T extends Record<string, MarketDataEntry & { dividendGrowth: number; expectedTotalReturn: number }>
+>(
+  universe: T
+): WithDerivedDividendGrowth<T> => {
+  const coherent = {} as WithDerivedDividendGrowth<T>;
+
+  for (const ticker of Object.keys(universe) as (keyof T)[]) {
+    const preset = universe[ticker];
+    coherent[ticker] = {
+      ...preset,
+      dividendGrowth: toDerivedDividendGrowthPercent(preset.expectedTotalReturn, preset.dividendYield)
+    } as WithDerivedDividendGrowth<T>[keyof T];
+  }
+
+  return coherent;
+};
+
+/**
+ * Composes the universe the app runs on: **overlay first, derive second.**
+ *
+ * 1. `applyMarketData` overwrites the observable facts (price / yield / frequency).
+ * 2. `withCoherentDividendGrowth` then re-derives `dividendGrowth` from the *refreshed* yield.
+ *
+ * Doing it the other way round would leave `dividendGrowth` derived from the stale preset yield, so a
+ * refresh that moved `dividendYield` would silently break `dy + dg === etr` — the whole point of the
+ * coherent model. Exported (rather than inlined) so that order is pinned by a test against a real,
+ * non-empty snapshot instead of only against the empty one that ships.
+ */
+export const buildDividendUniverse = <
+  T extends Record<string, MarketDataEntry & { dividendGrowth: number; expectedTotalReturn: number }>
+>(
+  curated: T,
+  snapshot: MarketDataSnapshot
+): WithDerivedDividendGrowth<MarketDataOverlaid<T>> =>
+  withCoherentDividendGrowth(applyMarketData(curated, snapshot));
+
+/**
+ * The universe the app actually uses: curated presets with the latest auto-refreshed market data
+ * overlaid on top, and `dividendGrowth` re-derived afterwards so the curated total-return assumption
+ * is preserved.
+ *
+ * When `marketData.generated.json` is empty this is deep-equal to `CURATED_DIVIDEND_UNIVERSE`
+ * (the curated presets already satisfy the invariant).
+ */
+export const DIVIDEND_UNIVERSE = buildDividendUniverse(CURATED_DIVIDEND_UNIVERSE, MARKET_DATA);
 
 export const PRESET_TICKER_KOREAN_NAME_BY_TICKER = {
   VOO: '뱅가드 S&P 500 ETF',

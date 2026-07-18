@@ -6,7 +6,12 @@ export type TickerInput = {
   ticker: string;
   initialPrice: number;
   dividendYield: number;
+  /** 배당 성장률(%). 정합 모델에서 주가 성장률과 같은 값이다. 음수 허용(커버드콜의 NAV 침식). */
   dividendGrowth: number;
+  /**
+   * 기대 총수익률(%). **파생 표시값** — 엔진은 이 값을 계산에 쓰지 않는다.
+   * 진실은 `dividendYield + dividendGrowth` 이며, 저장/공유 데이터 호환을 위해 필드만 남아 있다.
+   */
   expectedTotalReturn: number;
   frequency: Frequency;
 };
@@ -55,13 +60,28 @@ export type MonthlySnapshot = {
 export type SimulationSummary = {
   finalAssetValue: number;
   finalAnnualDividend: number;
-  finalMonthlyDividend: number;
+  /** 마지막 해의 연 배당 / 12. */
   finalMonthlyAverageDividend: number;
+  /** 마지막 실제 지급월에 지급된 금액. */
   finalPayoutMonthDividend: number;
   totalContribution: number;
   totalNetDividend: number;
+  /** 누적 **배당소득세**. 양도세는 여기 포함되지 않는다(아래 estimatedCapitalGainsTax 참고). */
   totalTaxPaid: number;
   targetMonthDividendReachedYear?: number;
+
+  /* --- 양도소득세 (전량 매도 가정) — 시뮬레이션 본체에는 반영되지 않는 별도 추정 --- */
+
+  /** 취득원가 = 초기 투자금 + 누적 월 적립금 + 재매수에 실제로 쓰인 배당금. */
+  totalCostBasis: number;
+  /** 평가이익 = finalAssetValue - totalCostBasis. 손실이면 음수. */
+  unrealizedGain: number;
+  /** 마지막 해에 전량 매도한다고 가정했을 때의 예상 양도세. 보유를 계속하면 내지 않는다. */
+  estimatedCapitalGainsTax: number;
+  /** finalAssetValue - estimatedCapitalGainsTax. */
+  afterCapitalGainsTaxValue: number;
+  /** 세전 연 배당이 금융소득종합과세 기준금액을 처음 넘는 해(N년차, 1-based). 안 넘으면 undefined. */
+  financialIncomeThresholdYear?: number;
 };
 
 export type QuickEstimateOutput = {

@@ -1,8 +1,10 @@
 import { memo, useEffect } from 'react';
 import { Card, FormSection, InputField, ToggleField } from '@/components';
+import { TOUR_TARGET } from '@/shared/constants';
 import type { YieldFormValues } from '@/shared/types';
 import type { InvestmentSettingsProps } from './InvestmentSettings.types';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
+import { clampPercent } from '@/pages/Main/utils';
 import {
   ConfigFormGrid,
   ConfigInputGrid,
@@ -13,6 +15,14 @@ import {
   InlineFieldHeader,
   InlineSelect
 } from '@/pages/Main/Main.shared.styled';
+import {
+  ReinvestControls,
+  ReinvestLabel,
+  ReinvestPercentField,
+  ReinvestPercentInput,
+  ReinvestPercentSuffix,
+  ReinvestRow
+} from './InvestmentSettings.styled';
 
 function InvestmentSettingsComponent({
   values,
@@ -34,7 +44,7 @@ function InvestmentSettingsComponent({
   }, [validationErrors]);
 
   return (
-    <Card>
+    <Card dataTour={TOUR_TARGET.investmentSettings}>
       <FormSection title="투자 설정">
         <ConfigFormGrid>
           <ToggleField
@@ -61,36 +71,24 @@ function InvestmentSettingsComponent({
               onToggleSplitGraphs(event.target.checked);
             }}
           />
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
-            <span style={{ color: '#314d60', fontSize: '14px' }}>배당 재투자</span>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+          <ReinvestRow>
+            <ReinvestLabel>배당 재투자</ReinvestLabel>
+            <ReinvestControls>
               {values.reinvestDividends ? (
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                  <input
+                <ReinvestPercentField>
+                  <ReinvestPercentInput
                     aria-label="배당 재투자 비율"
                     type="number"
                     min={0}
                     max={100}
                     step={1}
                     value={values.reinvestDividendPercent}
-                    style={{
-                      width: '62px',
-                      height: '26px',
-                      border: '1px solid #bfd0de',
-                      borderRadius: '8px',
-                      padding: '0 8px',
-                      fontSize: '13px',
-                      color: '#1f3341',
-                      background: '#fff'
-                    }}
                     onChange={(event) => {
-                      const raw = Number(event.target.value);
-                      const next = Number.isFinite(raw) ? Math.max(0, Math.min(100, raw)) : 0;
-                      onSetField('reinvestDividendPercent', next);
+                      onSetField('reinvestDividendPercent', clampPercent(Number(event.target.value)));
                     }}
                   />
-                  <span style={{ color: '#486073', fontSize: '12px', fontWeight: 600 }}>%</span>
-                </div>
+                  <ReinvestPercentSuffix>%</ReinvestPercentSuffix>
+                </ReinvestPercentField>
               ) : null}
               <ToggleField
                 label="배당 재투자"
@@ -98,8 +96,8 @@ function InvestmentSettingsComponent({
                 checked={values.reinvestDividends}
                 onChange={(event) => onSetField('reinvestDividends', event.target.checked)}
               />
-            </div>
-          </div>
+            </ReinvestControls>
+          </ReinvestRow>
           <ConfigSectionDivider aria-hidden="true" />
           <ConfigInputGrid>
             <InputField

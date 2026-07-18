@@ -1,6 +1,7 @@
 import { memo, useMemo } from 'react';
 import type { EChartsOption } from 'echarts';
-import { formatKRW } from '@/shared/utils';
+import { usePalettePresetAtomValue } from '@/jotai';
+import { buildLineChartOption } from '@/pages/Main/utils';
 import ChartPanelView from './ChartPanel.view';
 import type { ChartPanelProps } from './ChartPanel.types';
 
@@ -16,39 +17,11 @@ function ChartPanelComponent<T>({
   getXValue,
   getYValue
 }: ChartPanelProps<T>) {
+  /* 캔버스는 CSS 변수를 다시 읽지 않는다 — 팔레트 프리셋 전환 시 옵션을 다시 빌드해야 한다. */
+  const palettePreset = usePalettePresetAtomValue();
   const chartOption = useMemo<EChartsOption>(
-    () => ({
-      animation: false,
-      grid: { left: 72, right: 20, top: 24, bottom: 40 },
-      tooltip: {
-        trigger: 'axis',
-        valueFormatter: (value: unknown) =>
-          (yAxisLabelFormatter ?? ((numberValue: number) => formatKRW(numberValue)))(Number(value))
-      },
-      xAxis: {
-        type: 'category',
-        name: xAxisLabel,
-        data: rows.map((row) => getXValue(row))
-      },
-      yAxis: {
-        type: 'value',
-        axisLabel: {
-          formatter: (value: number) => (yAxisLabelFormatter ?? ((numberValue: number) => formatKRW(numberValue)))(value)
-        }
-      },
-      series: [
-        {
-          type: 'line',
-          smooth: true,
-          showSymbol: false,
-          lineStyle: { width: 2, color: '#2f6f93' },
-          itemStyle: { color: '#2f6f93' },
-          areaStyle: { color: '#2f6f9320' },
-          data: rows.map((row) => getYValue(row))
-        }
-      ]
-    }),
-    [getXValue, getYValue, rows, xAxisLabel, yAxisLabelFormatter]
+    () => buildLineChartOption({ rows, getXValue, getYValue, xAxisLabel, yAxisLabelFormatter }),
+    [getXValue, getYValue, palettePreset, rows, xAxisLabel, yAxisLabelFormatter]
   );
 
   return (

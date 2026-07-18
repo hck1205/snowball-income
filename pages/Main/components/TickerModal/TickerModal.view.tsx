@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { FrequencySelect, InputField } from '@/components';
-import { PRESET_TICKER_KOREAN_NAME_BY_TICKER, type PresetTickerKey } from '@/shared/constants';
-import { getTickerDisplayName } from '@/shared/utils';
+// per-icon named import → 이 아이콘들만 번들에 포함된다(트리셰이킹). 기본 SVG/탭 아이콘을 lucide로.
+import { LayoutGrid, Pencil, Search } from 'lucide-react';
+import { Button, FrequencySelect, InputField } from '@/components';
+import { PRESET_TICKER_KOREAN_NAME_BY_TICKER } from '@/shared/constants';
 import type { Frequency } from '@/shared/types';
 import nasdaqListedJson from '@/utils/TickerParser/output/nasdaq-listed.json';
 import otherListedJson from '@/utils/TickerParser/output/other-listed.json';
@@ -26,40 +27,29 @@ import {
   ModalTitle,
   PresetChipButton,
   PresetChipGrid,
-  PresetChipScrollArea,
-  PrimaryButton,
-  SecondaryButton
+  PresetChipScrollArea
 } from '@/pages/Main/Main.shared.styled';
+import { ModalCaption } from './TickerModal.styled';
 import type { TickerModalViewProps } from './TickerModal.types';
+import {
+  buildTickerSearchRows,
+  filterPresetKeys,
+  isCustomTickerInput,
+  isTickerCreateDisabled,
+  parseNumericInputOrNaN,
+  scoreTickerSearch,
+  sortPresetKeys,
+  toTotalReturnCaption,
+  withDerivedTotalReturn,
+  type ListedTickerMap
+} from './TickerModal.utils';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
-
-type ListedTickerMeta = { name: string; issuer?: string };
-type ListedTickerMap = Record<string, ListedTickerMeta>;
-type SearchRow = { ticker: string; name: string; issuer: string; tickerUpper: string; nameUpper: string };
 
 const SEARCH_DEBOUNCE_MS = 220;
 const SEARCH_MAX_RESULTS = 120;
 const SHOW_SEARCH_TAB = false;
 
-const nasdaqListed = nasdaqListedJson as ListedTickerMap;
-const otherListed = otherListedJson as ListedTickerMap;
-
-const SEARCH_ROWS: SearchRow[] = (() => {
-  const merged = new Map<string, ListedTickerMeta>();
-  for (const [ticker, meta] of Object.entries(nasdaqListed)) merged.set(ticker.toUpperCase(), meta);
-  for (const [ticker, meta] of Object.entries(otherListed)) {
-    const normalizedTicker = ticker.toUpperCase();
-    if (!merged.has(normalizedTicker)) merged.set(normalizedTicker, meta);
-  }
-
-  return Array.from(merged.entries()).map(([ticker, meta]) => ({
-    ticker,
-    name: meta.name ?? '',
-    issuer: meta.issuer ?? '',
-    tickerUpper: ticker,
-    nameUpper: (meta.name ?? '').toUpperCase()
-  }));
-})();
+const SEARCH_ROWS = buildTickerSearchRows(nasdaqListedJson as ListedTickerMap, otherListedJson as ListedTickerMap);
 
 export default function TickerModalView({
   isOpen,
@@ -81,15 +71,7 @@ export default function TickerModalView({
   const [debouncedSearchKeyword, setDebouncedSearchKeyword] = useState('');
   const [presetSearchKeyword, setPresetSearchKeyword] = useState('');
   const [activeTab, setActiveTab] = useState<ModalTabKey>('preset');
-  const sortedPresetKeys = useMemo(
-    () =>
-      (Object.keys(presetTickers) as PresetTickerKey[]).sort((leftKey, rightKey) => {
-        const leftLabel = getTickerDisplayName(presetTickers[leftKey].ticker, presetTickers[leftKey].name);
-        const rightLabel = getTickerDisplayName(presetTickers[rightKey].ticker, presetTickers[rightKey].name);
-        return leftLabel.localeCompare(rightLabel, 'en', { sensitivity: 'base' });
-      }),
-    [presetTickers]
-  );
+  const sortedPresetKeys = useMemo(() => sortPresetKeys(presetTickers), [presetTickers]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -115,61 +97,34 @@ export default function TickerModalView({
     return () => window.clearTimeout(timer);
   }, [searchKeyword]);
 
-  const searchResults = useMemo(() => {
-    const query = debouncedSearchKeyword.toUpperCase();
-    if (!query) return [] as Array<SearchRow & { score: number }>;
+  const searchResults = useMemo(
+    () => scoreTickerSearch({ rows: SEARCH_ROWS, keyword: debouncedSearchKeyword, maxResults: SEARCH_MAX_RESULTS }),
+    [debouncedSearchKeyword]
+  );
 
-    const queryChars = Array.from(new Set(query.replace(/[^A-Z0-9]/g, '').split('').filter(Boolean)));
-
-    const scored = SEARCH_ROWS.map((row) => {
-      const searchableTicker = row.tickerUpper;
-      const includesQuery = searchableTicker.includes(query);
-      const charHitCount = queryChars.reduce((count, ch) => (searchableTicker.includes(ch) ? count + 1 : count), 0);
-      if (!includesQuery && charHitCount === 0) return null;
-
-      let score = charHitCount * 12;
-      if (row.tickerUpper === query) score += 1200;
-      else if (row.tickerUpper.startsWith(query)) score += 800;
-      else if (row.tickerUpper.includes(query)) score += 520;
-
-      return { ...row, score };
-    })
-      .filter((item): item is SearchRow & { score: number } => item !== null)
-      .sort((left, right) => {
-        if (right.score !== left.score) return right.score - left.score;
-        return left.ticker.localeCompare(right.ticker, 'en', { sensitivity: 'base' });
-      });
-
-    return scored.slice(0, SEARCH_MAX_RESULTS);
-  }, [debouncedSearchKeyword]);
-
-  const filteredPresetKeys = useMemo(() => {
-    const query = presetSearchKeyword.trim().toUpperCase();
-    if (!query) return sortedPresetKeys;
-
-    return sortedPresetKeys.filter((presetKey) => {
-      const ticker = presetTickers[presetKey].ticker.toUpperCase();
-      const displayName = getTickerDisplayName(presetTickers[presetKey].ticker, presetTickers[presetKey].name).toUpperCase();
-      const koreanName = PRESET_TICKER_KOREAN_NAME_BY_TICKER[presetKey].toUpperCase();
-      return ticker.includes(query) || displayName.includes(query) || koreanName.includes(query);
-    });
-  }, [presetSearchKeyword, presetTickers, sortedPresetKeys]);
-  const isCreateCustomInput = mode === 'create' && selectedPreset === 'custom';
-  const isCreateDisabled =
-    isCreateCustomInput &&
-    (tickerDraft.ticker.trim() === '' ||
-      Number.isNaN(tickerDraft.initialPrice) ||
-      Number.isNaN(tickerDraft.dividendYield) ||
-      Number.isNaN(tickerDraft.dividendGrowth) ||
-      Number.isNaN(tickerDraft.expectedTotalReturn));
+  const filteredPresetKeys = useMemo(
+    () =>
+      filterPresetKeys({
+        presetKeys: sortedPresetKeys,
+        presetTickers,
+        koreanNameByTicker: PRESET_TICKER_KOREAN_NAME_BY_TICKER,
+        keyword: presetSearchKeyword
+      }),
+    [presetSearchKeyword, presetTickers, sortedPresetKeys]
+  );
+  const isCreateCustomInput = isCustomTickerInput(mode, selectedPreset);
+  const isCreateDisabled = isTickerCreateDisabled({ mode, selectedPreset, tickerDraft });
+  // 정합 모델: 총수익률은 입력이 아니라 배당률 + 배당 성장률의 파생값이다.
+  const derivedTotalReturn = withDerivedTotalReturn(tickerDraft).expectedTotalReturn;
+  const totalReturnCaption = toTotalReturnCaption(tickerDraft);
 
   if (!isOpen) return null;
   if (!modalRoot) return null;
 
   return createPortal(
-    <ModalBackdrop role="dialog" aria-modal="true" aria-label="티커 생성" onClick={onBackdropClick}>
+    <ModalBackdrop role="dialog" aria-modal="true" aria-labelledby="ticker-modal-title" onClick={onBackdropClick}>
       <ModalPanel>
-        <ModalTitle>{mode === 'edit' ? '티커 설정 수정' : '티커 생성'}</ModalTitle>
+        <ModalTitle id="ticker-modal-title">{mode === 'edit' ? '티커 설정 수정' : '티커 생성'}</ModalTitle>
         <ModalBody>
           {mode === 'edit'
             ? '값을 수정하면 해당 티커 설정이 업데이트됩니다.'
@@ -189,6 +144,7 @@ export default function TickerModalView({
               setActiveTab('preset');
             }}
           >
+            <LayoutGrid size={15} aria-hidden focusable={false} />
             프리셋
           </ModalTabButton>
           <ModalTabButton
@@ -204,7 +160,8 @@ export default function TickerModalView({
               setActiveTab('input');
             }}
           >
-            입력
+            <Pencil size={15} aria-hidden focusable={false} />
+            직접 입력
           </ModalTabButton>
           {SHOW_SEARCH_TAB ? (
             <ModalTabButton
@@ -237,7 +194,7 @@ export default function TickerModalView({
                 onChange={(event) =>
                   onChangeDraft((prev) => ({
                     ...prev,
-                    initialPrice: event.target.value === '' ? Number.NaN : Number(event.target.value)
+                    initialPrice: parseNumericInputOrNaN(event.target.value)
                   }))
                 }
               />
@@ -250,25 +207,29 @@ export default function TickerModalView({
                 value={isCreateCustomInput && Number.isNaN(tickerDraft.dividendYield) ? '' : tickerDraft.dividendYield}
                 placeholder="예: 3.5"
                 onChange={(event) =>
-                  onChangeDraft((prev) => ({
-                    ...prev,
-                    dividendYield: event.target.value === '' ? Number.NaN : Number(event.target.value)
-                  }))
+                  onChangeDraft((prev) =>
+                    withDerivedTotalReturn({
+                      ...prev,
+                      dividendYield: parseNumericInputOrNaN(event.target.value)
+                    })
+                  )
                 }
               />
               <InputField
                 label="배당 성장률"
                 type="number"
-                min={0}
+                min={-100}
                 max={100}
                 step={0.1}
                 value={isCreateCustomInput && Number.isNaN(tickerDraft.dividendGrowth) ? '' : tickerDraft.dividendGrowth}
-                placeholder="예: 7"
+                placeholder="예: 7 (음수 가능)"
                 onChange={(event) =>
-                  onChangeDraft((prev) => ({
-                    ...prev,
-                    dividendGrowth: event.target.value === '' ? Number.NaN : Number(event.target.value)
-                  }))
+                  onChangeDraft((prev) =>
+                    withDerivedTotalReturn({
+                      ...prev,
+                      dividendGrowth: parseNumericInputOrNaN(event.target.value)
+                    })
+                  )
                 }
               />
               <InputField
@@ -276,17 +237,9 @@ export default function TickerModalView({
                 helpAriaLabel="CAGR 설명 열기"
                 onHelpClick={onHelpExpectedTotalReturn}
                 type="number"
-                min={-100}
-                max={100}
-                step={0.1}
-                value={isCreateCustomInput && Number.isNaN(tickerDraft.expectedTotalReturn) ? '' : tickerDraft.expectedTotalReturn}
-                placeholder="예: 10"
-                onChange={(event) =>
-                  onChangeDraft((prev) => ({
-                    ...prev,
-                    expectedTotalReturn: event.target.value === '' ? Number.NaN : Number(event.target.value)
-                  }))
-                }
+                value={Number.isNaN(derivedTotalReturn) ? '' : derivedTotalReturn}
+                disabled
+                onChange={() => undefined}
               />
               <FrequencySelect
                 label="배당 지급 주기"
@@ -294,6 +247,9 @@ export default function TickerModalView({
                 onChange={(event) => onChangeDraft((prev) => ({ ...prev, frequency: event.target.value as Frequency }))}
               />
             </ModalCompactFormGrid>
+            {totalReturnCaption ? (
+              <ModalCaption>{totalReturnCaption}</ModalCaption>
+            ) : null}
           </>
         ) : null}
 
@@ -301,10 +257,7 @@ export default function TickerModalView({
           <InlineField>
             <ModalTickerSearchWrap>
               <ModalTickerSearchIcon aria-hidden="true">
-                <svg viewBox="0 0 24 24">
-                  <circle cx="11" cy="11" r="7" />
-                  <path d="m20 20-4-4" />
-                </svg>
+                <Search size={14} aria-hidden focusable={false} />
               </ModalTickerSearchIcon>
               <ModalTickerSearchInput
                 type="text"
@@ -314,12 +267,12 @@ export default function TickerModalView({
                 onChange={(event) => setPresetSearchKeyword(event.target.value)}
               />
             </ModalTickerSearchWrap>
-            <ModalBody style={{ fontSize: '12px' }}>
+            <ModalCaption>
               주의: 실시간 데이터가 아니기 때문에 실제 데이터와 다를 수 있습니다. 참고용으로만 사용해 주세요.
-            </ModalBody>
-            <ModalBody style={{ fontSize: '12px' }}>
+            </ModalCaption>
+            <ModalCaption>
               표시: {filteredPresetKeys.length} / 전체: {sortedPresetKeys.length}
-            </ModalBody>
+            </ModalCaption>
             {filteredPresetKeys.length > 0 ? (
               <PresetChipScrollArea>
                 <PresetChipGrid role="listbox" aria-label="프리셋 티커 목록">
@@ -375,11 +328,10 @@ export default function TickerModalView({
               />
               <InputField
                 label="기대 총수익율 (CAGR)"
+                helpAriaLabel="CAGR 설명 열기"
+                onHelpClick={onHelpExpectedTotalReturn}
                 type="number"
-                min={-100}
-                max={100}
-                step={0.1}
-                value={tickerDraft.expectedTotalReturn}
+                value={Number.isNaN(derivedTotalReturn) ? '' : derivedTotalReturn}
                 disabled
                 onChange={() => undefined}
               />
@@ -390,6 +342,9 @@ export default function TickerModalView({
                 onChange={() => undefined}
               />
             </ModalCompactFormGrid>
+            {totalReturnCaption ? (
+              <ModalCaption>{totalReturnCaption}</ModalCaption>
+            ) : null}
           </InlineField>
         ) : null}
 
@@ -397,10 +352,7 @@ export default function TickerModalView({
           <>
             <ModalTickerSearchWrap>
               <ModalTickerSearchIcon aria-hidden="true">
-                <svg viewBox="0 0 24 24">
-                  <circle cx="11" cy="11" r="7" />
-                  <path d="m20 20-4-4" />
-                </svg>
+                <Search size={14} aria-hidden focusable={false} />
               </ModalTickerSearchIcon>
               <ModalTickerSearchInput
                 type="text"
@@ -442,8 +394,11 @@ export default function TickerModalView({
         ) : null}
         <ModalActions>
           {mode === 'edit' ? (
-            <SecondaryButton
-              type="button"
+            // 되돌릴 수 없는 액션 → danger. 취소/저장과 시각적으로 구분되어야 오클릭이 준다.
+            <Button
+              variant="danger"
+              // 삭제는 왼쪽 끝으로 밀어서 '저장' 옆에 붙지 않게 한다.
+              style={{ marginRight: 'auto' }}
               onClick={() => {
                 trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
                   cta_name: 'ticker_delete',
@@ -453,9 +408,9 @@ export default function TickerModalView({
               }}
             >
               티커 삭제
-            </SecondaryButton>
+            </Button>
           ) : null}
-          <SecondaryButton
+          <Button variant="secondary"
             type="button"
             onClick={() => {
               trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
@@ -466,8 +421,8 @@ export default function TickerModalView({
             }}
           >
             취소
-          </SecondaryButton>
-          <PrimaryButton
+          </Button>
+          <Button variant="primary"
             type="button"
             disabled={isCreateDisabled}
             onClick={() => {
@@ -480,7 +435,7 @@ export default function TickerModalView({
             }}
           >
             {mode === 'edit' ? '저장' : '생성'}
-          </PrimaryButton>
+          </Button>
         </ModalActions>
       </ModalPanel>
     </ModalBackdrop>,

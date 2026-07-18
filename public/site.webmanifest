@@ -1,12 +1,33 @@
 {
-  "name": "Snowball Income",
+  "name": "Snowball Income — 배당 재투자 시뮬레이터",
   "short_name": "Snowball",
-  "description": "배당 투자 전략 시뮬레이터",
+  "description": "배당주·ETF 포트폴리오의 배당 재투자 결과와 목표 월 배당 도달 시점을 계산하는 시뮬레이터",
   "lang": "ko-KR",
+  "dir": "ltr",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#ecf7fb",
-  "theme_color": "#ecf7fb",
-  "icons": []
+  "categories": ["finance", "productivity", "utilities"],
+  "background_color": "#f8f9fa",
+  "theme_color": "#f8f9fa",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "type": "image/png",
+      "sizes": "180x180",
+      "purpose": "any"
+    }
+  ]
 }

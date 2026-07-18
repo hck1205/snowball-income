@@ -1,0 +1,21 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
+
+  "headers": [
+    {
+      "source": "/fonts/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    }
+  ],
+
+  "functions": {
+    "api/og.tsx": {
+      "maxDuration": 30
+    },
+    "api/account-delete.ts": {
+      "maxDuration": 30
+    }
+  }
+}

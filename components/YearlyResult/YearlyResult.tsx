@@ -65,7 +65,6 @@ function YearlyResultComponent({
               checked={isFillOn}
               hideLabel
               controlWidth="60px"
-              stateTextColor="#111"
               onText="Color"
               offText="Blank"
               onChange={(event) => {

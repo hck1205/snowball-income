@@ -4,7 +4,7 @@ export const US_HIGH_DIVIDEND_ETFS = {
     name: 'Vanguard High Dividend Yield ETF',
     initialPrice: 155,
     dividendYield: 2.8,
-    dividendGrowth: 5,
+    dividendGrowth: 6.2,
     expectedTotalReturn: 9,
     frequency: 'quarterly' as const
   },
@@ -13,7 +13,7 @@ export const US_HIGH_DIVIDEND_ETFS = {
     name: 'iShares Core High Dividend ETF',
     initialPrice: 139,
     dividendYield: 3.4,
-    dividendGrowth: 3,
+    dividendGrowth: 5.1,
     expectedTotalReturn: 8.5,
     frequency: 'quarterly' as const
   },
@@ -22,7 +22,7 @@ export const US_HIGH_DIVIDEND_ETFS = {
     name: 'SPDR S&P Dividend ETF',
     initialPrice: 155,
     dividendYield: 2.5,
-    dividendGrowth: 4,
+    dividendGrowth: 6,
     expectedTotalReturn: 8.5,
     frequency: 'quarterly' as const
   },
@@ -31,7 +31,7 @@ export const US_HIGH_DIVIDEND_ETFS = {
     name: 'iShares Select Dividend ETF',
     initialPrice: 120,
     dividendYield: 3.3,
-    dividendGrowth: 4,
+    dividendGrowth: 5.2,
     expectedTotalReturn: 8.5,
     frequency: 'quarterly' as const
   },
@@ -40,7 +40,7 @@ export const US_HIGH_DIVIDEND_ETFS = {
     name: 'Fidelity High Dividend ETF',
     initialPrice: 44,
     dividendYield: 2.9,
-    dividendGrowth: 5,
+    dividendGrowth: 6.1,
     expectedTotalReturn: 9,
     frequency: 'quarterly' as const
   },
@@ -49,7 +49,7 @@ export const US_HIGH_DIVIDEND_ETFS = {
     name: 'SPDR Portfolio S&P 500 High Dividend ETF',
     initialPrice: 48,
     dividendYield: 4.2,
-    dividendGrowth: 3,
+    dividendGrowth: 3.8,
     expectedTotalReturn: 8,
     frequency: 'quarterly' as const
   },
@@ -58,7 +58,7 @@ export const US_HIGH_DIVIDEND_ETFS = {
     name: 'WisdomTree U.S. High Dividend ETF',
     initialPrice: 95,
     dividendYield: 3.8,
-    dividendGrowth: 3,
+    dividendGrowth: 4.2,
     expectedTotalReturn: 8,
     frequency: 'quarterly' as const
   }

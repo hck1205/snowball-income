@@ -4,7 +4,7 @@ export const OPTION_INCOME_ETFS = {
     name: 'JPMorgan Equity Premium Income ETF',
     initialPrice: 59,
     dividendYield: 8.0,
-    dividendGrowth: 2,
+    dividendGrowth: 0,
     expectedTotalReturn: 8,
     frequency: 'monthly' as const
   },
@@ -13,7 +13,7 @@ export const OPTION_INCOME_ETFS = {
     name: 'JPMorgan Nasdaq Equity Premium Income ETF',
     initialPrice: 51,
     dividendYield: 8.2,
-    dividendGrowth: 3,
+    dividendGrowth: 0.8,
     expectedTotalReturn: 9,
     frequency: 'monthly' as const
   },
@@ -22,7 +22,7 @@ export const OPTION_INCOME_ETFS = {
     name: 'Amplify CWP Enhanced Dividend Income ETF',
     initialPrice: 47,
     dividendYield: 5.5,
-    dividendGrowth: 6,
+    dividendGrowth: 4,
     expectedTotalReturn: 9.5,
     frequency: 'monthly' as const
   },
@@ -31,7 +31,7 @@ export const OPTION_INCOME_ETFS = {
     name: 'Amplify International Enhanced Dividend ETF',
     initialPrice: 29,
     dividendYield: 7.0,
-    dividendGrowth: 2,
+    dividendGrowth: 1,
     expectedTotalReturn: 8,
     frequency: 'monthly' as const
   },
@@ -40,7 +40,7 @@ export const OPTION_INCOME_ETFS = {
     name: 'QRAFT AI-Enhanced U.S. Dividend ETF',
     initialPrice: 27,
     dividendYield: 6.5,
-    dividendGrowth: 5,
+    dividendGrowth: 2.5,
     expectedTotalReturn: 9,
     frequency: 'monthly' as const
   },
@@ -49,7 +49,7 @@ export const OPTION_INCOME_ETFS = {
     name: 'Global X Nasdaq 100 Covered Call ETF',
     initialPrice: 18,
     dividendYield: 10,
-    dividendGrowth: 0,
+    dividendGrowth: -3,
     expectedTotalReturn: 7,
     frequency: 'monthly' as const
   },
@@ -58,7 +58,7 @@ export const OPTION_INCOME_ETFS = {
     name: 'Global X S&P 500 Covered Call ETF',
     initialPrice: 40,
     dividendYield: 9,
-    dividendGrowth: 0,
+    dividendGrowth: -1.5,
     expectedTotalReturn: 7.5,
     frequency: 'monthly' as const
   }

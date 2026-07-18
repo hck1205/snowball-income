@@ -1,12 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  DEFAULT_SCENARIO_TAB_ID,
-  DEFAULT_SCENARIO_TAB_NAME,
-  deletePersistedAppStateByName,
-  listPersistedStateNames,
-  parsePersistedAppStateJson,
-  readPersistedAppStateByName,
+  normalizePersistedAppState,
   readPersistedAppState,
+  serializeMeaningfulPayload,
   useActiveScenarioIdAtomValue,
   useFixedByTickerIdAtomValue,
   useIncludedTickerIdsAtomValue,
@@ -35,21 +31,44 @@ import {
   useVisibleYearlySeriesAtomValue,
   useWeightByTickerIdAtomValue,
   useYieldFormAtomValue,
+  type PersistedAppStatePayload,
   type PersistedInvestmentSettings,
   type PersistedScenarioState,
-  writePersistedAppStateByName,
   writePersistedAppState
 } from '@/jotai';
-import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
+import type { PortfolioPersistedState } from '@/shared/types/snowball';
+import { createSessionLocalAutosaveCache, useCloudSync } from '@/jotai/snowball/cloud';
 import {
-  decodeSharedScenario,
-  encodeSharedScenario,
-  SHARE_LENGTH_LIMIT,
-  SHARE_QUERY_PARAM,
-  SHARE_VERSION_QUERY_PARAM
-} from './shareLink';
+  buildSharedSnapshotEnvelope,
+  createSharedSnapshot,
+  fetchSharedSnapshot,
+  getSupabaseClient
+} from '@/shared/lib/supabase';
+import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
+import { buildScenariosSnapshot, isSameScenarioContent, mergeSharedScenarioIntoTabs } from './scenarioSnapshot';
+import { decodeSharedScenario, encodeSharedScenario, SHARED_SCENARIO_ID, SHARE_LENGTH_LIMIT } from './shareLink';
+import {
+  buildDbShareUrl,
+  buildShareUrl,
+  readDbShareKeyFromHref,
+  readShareCodeFromHref,
+  stripShareParams
+} from './shareUrl';
 
-const SHARED_SCENARIO_ID = 'shared-tab';
+/**
+ * DB 공유 스냅샷의 scenario(다른 클라이언트가 쓴 값 — 신뢰 불가)를 저장 정규화 규칙으로 되돌린다.
+ * lz-string 공유 경로(decodeSharedScenario)가 normalizePersistedAppState를 태우는 것과 동일 규율.
+ */
+const normalizeSharedSnapshotScenario = (rawScenario: PersistedScenarioState): PersistedScenarioState | null => {
+  const normalized = normalizePersistedAppState({
+    portfolio: rawScenario.portfolio,
+    investmentSettings: rawScenario.investmentSettings,
+    scenarios: [rawScenario],
+    activeScenarioId: rawScenario.id
+  });
+  return normalized.scenarios[0] ?? null;
+};
+
 const SHARED_SCENARIO_NAME = '공유된 탭';
 
 export const usePortfolioPersistence = () => {
@@ -83,21 +102,33 @@ export const usePortfolioPersistence = () => {
   const setScenarioTabs = useSetScenarioTabsWrite();
   const setActiveScenarioId = useSetActiveScenarioIdWrite();
 
+  // 클라우드 자동 저장 스케줄러(§D5, 4초 디바운스). 비로그인/오프라인 게이팅은 스케줄러가 처리하고,
+  // 로컬 저장은 이 경로와 무관하게 항상 돈다 — 클라우드 skip/실패해도 로컬 데이터는 안전하다.
+  const { scheduleCloudSave, flushCloudSave } = useCloudSync();
+
   const [isPortfolioHydrated, setIsPortfolioHydrated] = useState(false);
+  /**
+   * 저장된 상태를 읽지 못한 채로 자동 저장을 돌리면, 화면에 떠 있는 **기본값**이 디스크의 진짜
+   * 데이터를 덮어써 버린다 (읽기 실패 → 기본값 표시 → 120ms 뒤 자동 저장 → 원본 소실).
+   * 그래서 읽기에 실패하면 자동 저장을 막는다. 사용자가 직접 누르는 '저장'은 계속 허용한다.
+   */
+  const [hasHydrationFailed, setHasHydrationFailed] = useState(false);
   const hasAppliedShareLinkRef = useRef(false);
+  /**
+   * 직전에 **클라우드로 예약한** payload의 "의미있는 부분집합" 직렬화. 새 payload의 의미있는 부분이
+   * 이것과 같으면(탭 전환·뷰 토글·티커 선택 등) 클라우드 스케줄을 스킵한다(무료 티어·쓰기 증폭 보호).
+   * 로컬 write는 이 게이트와 무관하게 매번 전체 payload를 저장한다(뷰 상태 복원 유지).
+   */
+  const lastCloudMeaningfulRef = useRef<string | null>(null);
 
-  const makeDefaultSavedName = () => {
-    const now = new Date();
-    const yyyy = now.getFullYear();
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
-    const hh = String(now.getHours()).padStart(2, '0');
-    const mi = String(now.getMinutes()).padStart(2, '0');
-    const ss = String(now.getSeconds()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd} ${hh}:${mi}:${ss}`;
-  };
+  /**
+   * 세션 시작 로컬 autosave를 **1회만** 읽어 하이드레이션과 세션시작 클라우드 sync가 공유하는 캐시.
+   * 두 소비처가 각각 독립 read하던 구조는, 두 read가 불일치할 때(하이드레이션 성공+sync read 실패) 엔진이
+   * 더 오래된 클라우드를 apply → app autosave가 로컬 최신본을 덮어쓰는 **유실 경로**가 있었다(캐시로 제거).
+   */
+  const localAutosaveCache = useMemo(() => createSessionLocalAutosaveCache(readPersistedAppState), []);
 
-  const buildPortfolioState = () => ({
+  const buildPortfolioState = (): PortfolioPersistedState => ({
     tickerProfiles,
     includedTickerIds,
     weightByTickerId,
@@ -124,42 +155,16 @@ export const usePortfolioPersistence = () => {
     visibleYearlySeries
   });
 
-  const buildScenariosSnapshot = () => {
+  const buildCurrentScenariosSnapshot = () =>
+    buildScenariosSnapshot(scenarioTabs, activeScenarioId, {
+      portfolio: buildPortfolioState(),
+      investmentSettings: buildInvestmentSettings()
+    });
+
+  const buildPayload = (): PersistedAppStatePayload => {
     const currentPortfolio = buildPortfolioState();
     const currentInvestmentSettings = buildInvestmentSettings();
-
-    const hasActiveScenario = scenarioTabs.some((tab) => tab.id === activeScenarioId);
-    if (!hasActiveScenario) {
-      const fallbackScenario: PersistedScenarioState = {
-        id: DEFAULT_SCENARIO_TAB_ID,
-        name: DEFAULT_SCENARIO_TAB_NAME,
-        portfolio: currentPortfolio,
-        investmentSettings: currentInvestmentSettings
-      };
-      return {
-        scenarios: [fallbackScenario],
-        activeScenarioId: fallbackScenario.id
-      };
-    }
-
-    return {
-      scenarios: scenarioTabs.map((scenario) =>
-        scenario.id === activeScenarioId
-          ? {
-              ...scenario,
-              portfolio: currentPortfolio,
-              investmentSettings: currentInvestmentSettings
-            }
-          : scenario
-      ),
-      activeScenarioId
-    };
-  };
-
-  const buildPayload = () => {
-    const currentPortfolio = buildPortfolioState();
-    const currentInvestmentSettings = buildInvestmentSettings();
-    const { scenarios, activeScenarioId: persistedActiveScenarioId } = buildScenariosSnapshot();
+    const { scenarios, activeScenarioId: persistedActiveScenarioId } = buildCurrentScenariosSnapshot();
 
     return {
       portfolio: currentPortfolio,
@@ -179,18 +184,30 @@ export const usePortfolioPersistence = () => {
 
     const hydrate = async () => {
       try {
-        const payload = await readPersistedAppState();
+        // 세션시작 클라우드 sync가 재사용할 수 있도록 캐시를 경유해 읽는다(로컬 read 1회 공유).
+        const result = await localAutosaveCache.read();
         if (cancelled) return;
-        applyPersistedPayload(payload);
-        const hasPortfolio = payload.scenarios.some((scenario) => scenario.portfolio.tickerProfiles.length > 0);
+
+        if (!result.ok) {
+          // 읽기 실패. 저장소는 그대로 두고(삭제 금지) 자동 저장만 잠근다.
+          setHasHydrationFailed(true);
+          trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
+            operation: 'hydrate_persisted_state'
+          });
+          return;
+        }
+
+        applyPersistedPayload(result.payload);
+        const hasPortfolio = result.payload.scenarios.some((scenario) => scenario.portfolio.tickerProfiles.length > 0);
         if (hasPortfolio) {
           trackEvent(ANALYTICS_EVENT.RETURN_VISIT, {
             has_saved_portfolio: true,
-            scenario_count: payload.scenarios.length
+            scenario_count: result.payload.scenarios.length
           });
         }
       } catch {
         // Keep current defaults/state when hydration fails.
+        if (!cancelled) setHasHydrationFailed(true);
         trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
           operation: 'hydrate_persisted_state'
         });
@@ -214,39 +231,18 @@ export const usePortfolioPersistence = () => {
       if (activeIndex < 0) return prev;
 
       const activeTab = prev[activeIndex];
-      const nextPortfolio = buildPortfolioState();
-      const nextInvestmentSettings = buildInvestmentSettings();
-      const isSamePortfolio =
-        activeTab.portfolio.tickerProfiles === nextPortfolio.tickerProfiles &&
-        activeTab.portfolio.includedTickerIds === nextPortfolio.includedTickerIds &&
-        activeTab.portfolio.weightByTickerId === nextPortfolio.weightByTickerId &&
-        activeTab.portfolio.fixedByTickerId === nextPortfolio.fixedByTickerId &&
-        activeTab.portfolio.selectedTickerId === nextPortfolio.selectedTickerId;
-      const isSameInvestmentSettings =
-        activeTab.investmentSettings.initialInvestment === nextInvestmentSettings.initialInvestment &&
-        activeTab.investmentSettings.monthlyContribution === nextInvestmentSettings.monthlyContribution &&
-        activeTab.investmentSettings.targetMonthlyDividend === nextInvestmentSettings.targetMonthlyDividend &&
-        activeTab.investmentSettings.investmentStartDate === nextInvestmentSettings.investmentStartDate &&
-        activeTab.investmentSettings.durationYears === nextInvestmentSettings.durationYears &&
-        activeTab.investmentSettings.reinvestDividends === nextInvestmentSettings.reinvestDividends &&
-        activeTab.investmentSettings.reinvestDividendPercent === nextInvestmentSettings.reinvestDividendPercent &&
-        activeTab.investmentSettings.taxRate === nextInvestmentSettings.taxRate &&
-        activeTab.investmentSettings.reinvestTiming === nextInvestmentSettings.reinvestTiming &&
-        activeTab.investmentSettings.dpsGrowthMode === nextInvestmentSettings.dpsGrowthMode &&
-        activeTab.investmentSettings.showQuickEstimate === nextInvestmentSettings.showQuickEstimate &&
-        activeTab.investmentSettings.showSplitGraphs === nextInvestmentSettings.showSplitGraphs &&
-        activeTab.investmentSettings.isResultCompact === nextInvestmentSettings.isResultCompact &&
-        activeTab.investmentSettings.isYearlyAreaFillOn === nextInvestmentSettings.isYearlyAreaFillOn &&
-        activeTab.investmentSettings.showPortfolioDividendCenter === nextInvestmentSettings.showPortfolioDividendCenter &&
-        activeTab.investmentSettings.visibleYearlySeries === nextInvestmentSettings.visibleYearlySeries;
+      const nextContent = {
+        portfolio: buildPortfolioState(),
+        investmentSettings: buildInvestmentSettings()
+      };
 
-      if (isSamePortfolio && isSameInvestmentSettings) return prev;
+      if (isSameScenarioContent(activeTab, nextContent)) return prev;
 
       const next = [...prev];
       next[activeIndex] = {
         ...activeTab,
-        portfolio: nextPortfolio,
-        investmentSettings: nextInvestmentSettings
+        portfolio: nextContent.portfolio,
+        investmentSettings: nextContent.investmentSettings
       };
       return next;
     });
@@ -279,14 +275,30 @@ export const usePortfolioPersistence = () => {
 
   useEffect(() => {
     if (!isPortfolioHydrated) return;
+    // 읽기에 실패했다면 화면의 기본값으로 디스크의 원본을 덮어쓰지 않는다.
+    if (hasHydrationFailed) return;
 
     const timer = window.setTimeout(() => {
-      void writePersistedAppState(buildPayload());
+      const payload = buildPayload();
+      void writePersistedAppState(payload).catch(() => {
+        trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
+          operation: 'autosave_persisted_state'
+        });
+      });
+      // 클라우드는 "의미있는" 변화가 있을 때만 예약(디바운스 4초, 로그인 상태에서만 실제 업로드).
+      // 탭 전환·뷰 토글·티커 선택처럼 의미없는 변화는 직전 예약과 동일해 스킵된다(no-op 게이트).
+      const meaningful = serializeMeaningfulPayload(payload);
+      if (lastCloudMeaningfulRef.current !== meaningful) {
+        lastCloudMeaningfulRef.current = meaningful;
+        scheduleCloudSave(payload);
+      }
     }, 120);
 
     return () => window.clearTimeout(timer);
   }, [
+    scheduleCloudSave,
     fixedByTickerId,
+    hasHydrationFailed,
     includedTickerIds,
     isPortfolioHydrated,
     selectedTickerId,
@@ -311,26 +323,6 @@ export const usePortfolioPersistence = () => {
     activeScenarioId,
     weightByTickerId
   ]);
-
-  const saveNamedState = async (rawName: string) => {
-    trackEvent(ANALYTICS_EVENT.STATE_SAVE_STARTED, {
-      source: 'quick_action_save'
-    });
-    const savedName = rawName.trim() || makeDefaultSavedName();
-    await writePersistedAppStateByName(savedName, {
-      ...buildPayload(),
-      savedName
-    });
-    trackEvent(ANALYTICS_EVENT.STATE_SAVE_COMPLETED, {
-      saved_name: savedName
-    });
-    return { ok: true as const, savedName };
-  };
-
-  const listSavedStateNames = async () => {
-    const names = await listPersistedStateNames();
-    return names;
-  };
 
   function applyScenario(scenario: PersistedScenarioState) {
     setTickerProfiles(scenario.portfolio.tickerProfiles);
@@ -359,7 +351,7 @@ export const usePortfolioPersistence = () => {
     setVisibleYearlySeries(scenario.investmentSettings.visibleYearlySeries);
   }
 
-  function applyPersistedPayload(payload: Awaited<ReturnType<typeof readPersistedAppState>>) {
+  function applyPersistedPayload(payload: PersistedAppStatePayload) {
     const activeScenario =
       payload.scenarios.find((scenario) => scenario.id === payload.activeScenarioId) ?? payload.scenarios[0] ?? null;
     if (!activeScenario) return;
@@ -369,100 +361,29 @@ export const usePortfolioPersistence = () => {
     applyScenario(activeScenario);
   }
 
-  const loadNamedState = async (name: string) => {
-    trackEvent(ANALYTICS_EVENT.STATE_LOAD_STARTED, {
-      source: 'saved_list',
-      saved_name: name
-    });
-    const payload = await readPersistedAppStateByName(name);
-    if (!payload) {
-      trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
-        operation: 'load_named_state',
-        source: 'saved_list'
-      });
-      return { ok: false as const, message: '해당 저장 항목을 찾을 수 없습니다.' };
-    }
-
-    applyPersistedPayload(payload);
-    trackEvent(ANALYTICS_EVENT.STATE_LOAD_COMPLETED, {
-      source: 'saved_list',
-      saved_name: name
-    });
-    return { ok: true as const };
-  };
-
-  const deleteNamedState = async (name: string) => {
-    const deleted = await deletePersistedAppStateByName(name);
-    if (!deleted) {
-      trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
-        operation: 'delete_named_state'
-      });
-      return { ok: false as const, message: '해당 저장 항목을 삭제하지 못했습니다.' };
-    }
-    trackEvent(ANALYTICS_EVENT.STATE_DELETE_COMPLETED, {
-      saved_name: name
-    });
-    return { ok: true as const };
-  };
-
-  const downloadNamedStateAsJson = async (name: string) => {
-    const payload = await readPersistedAppStateByName(name);
-    if (!payload) {
-      trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
-        operation: 'download_named_state_json'
-      });
-      return { ok: false as const, message: '해당 저장 항목을 찾을 수 없습니다.' };
-    }
-
-    const json = JSON.stringify(payload, null, 2);
-    const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    const safeName = name.trim().replace(/[\\/:*?"<>|]/g, '_');
-    a.href = url;
-    a.download = `${safeName || 'portfolio'}.json`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    window.URL.revokeObjectURL(url);
-
-    trackEvent(ANALYTICS_EVENT.STATE_DOWNLOAD_COMPLETED, {
-      saved_name: name
-    });
-
-    return { ok: true as const };
-  };
-
-  const loadStateFromJsonText = async (jsonText: string) => {
-    trackEvent(ANALYTICS_EVENT.STATE_LOAD_STARTED, {
-      source: 'json_import'
-    });
+  const copyShareUrl = async (url: string) => {
     try {
-      const payload = parsePersistedAppStateJson(jsonText);
-      applyPersistedPayload(payload);
-      if (payload.savedName) {
-        await writePersistedAppStateByName(payload.savedName, {
-          ...payload,
-          savedName: payload.savedName
-        });
-      }
-      trackEvent(ANALYTICS_EVENT.JSON_STATE_IMPORTED, {
-        has_saved_name: Boolean(payload.savedName)
-      });
-      trackEvent(ANALYTICS_EVENT.STATE_LOAD_COMPLETED, {
-        source: 'json_import'
-      });
-      return { ok: true as const };
+      await navigator.clipboard.writeText(url);
+      return { ok: true as const, url, copied: true as const };
     } catch {
-      trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
-        operation: 'load_state_from_json'
-      });
-      return { ok: false as const, message: 'JSON 파일 형식이 올바르지 않습니다.' };
+      return { ok: true as const, url, copied: false as const };
     }
+  };
+
+  /** 구 lz-string `?share=` 폴백 — client 미설정/미배포 또는 DB 저장 실패 시에도 공유는 성립한다. */
+  const createLegacyShareLink = async (activeScenario: PersistedScenarioState) => {
+    const encoded = encodeSharedScenario(activeScenario);
+    if (encoded.length > SHARE_LENGTH_LIMIT) {
+      return {
+        ok: false as const,
+        message: `공유 데이터가 너무 큽니다. (현재 ${encoded.length}자, 최대 ${SHARE_LENGTH_LIMIT}자)`
+      };
+    }
+    return copyShareUrl(buildShareUrl(window.location.href, encoded));
   };
 
   const createShareLink = async () => {
-    const { scenarios, activeScenarioId: currentActiveScenarioId } = buildScenariosSnapshot();
+    const { scenarios, activeScenarioId: currentActiveScenarioId } = buildCurrentScenariosSnapshot();
     const activeScenario = scenarios.find((scenario) => scenario.id === currentActiveScenarioId) ?? null;
     if (!activeScenario) {
       return {
@@ -471,79 +392,129 @@ export const usePortfolioPersistence = () => {
       };
     }
 
-    const encoded = encodeSharedScenario(activeScenario);
-    if (encoded.length > SHARE_LENGTH_LIMIT) {
-      return {
-        ok: false as const,
-        message: `공유 데이터가 너무 큽니다. (현재 ${encoded.length}자, 최대 ${SHARE_LENGTH_LIMIT}자)`
-      };
-    }
-
-    const url = new URL(window.location.href);
-    url.searchParams.set(SHARE_QUERY_PARAM, encoded);
-    const shareUrl = url.toString();
-
+    // 1) DB key 경로: 활성 시나리오를 shared_snapshots에 저장 → 짧은 `?s=<key>` URL.
+    //    client가 있으면(설정+배포) 우선 시도한다. 실패는 아래 lz-string 폴백이 흡수한다.
     try {
-      await navigator.clipboard.writeText(shareUrl);
-      return { ok: true as const, url: shareUrl, copied: true as const };
+      const client = await getSupabaseClient();
+      if (client) {
+        const key = await createSharedSnapshot(client, buildSharedSnapshotEnvelope(activeScenario));
+        return await copyShareUrl(buildDbShareUrl(window.location.href, key));
+      }
     } catch {
-      return { ok: true as const, url: shareUrl, copied: false as const };
+      // 무음 실패 금지 — 계측 후 구 lz-string으로 폴백해 공유를 성립시킨다.
+      trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
+        operation: 'create_share_link',
+        reason: 'db_snapshot_failed'
+      });
     }
+
+    // 2) 폴백(client null=미설정/테스트, 또는 DB 저장 throw): 구 lz-string `?share=`.
+    return createLegacyShareLink(activeScenario);
   };
+
+  /** 공유로 들어온 시나리오를 "공유된 탭"으로 병합·활성화·적용한다(DB key/구 lz-string 공통 경로). */
+  function applySharedScenario(sharedScenario: PersistedScenarioState) {
+    const { scenarios } = buildCurrentScenariosSnapshot();
+    const nextSharedScenario: PersistedScenarioState = {
+      ...sharedScenario,
+      id: SHARED_SCENARIO_ID,
+      name: SHARED_SCENARIO_NAME
+    };
+    const nextTabs = mergeSharedScenarioIntoTabs(scenarios, nextSharedScenario);
+    setScenarioTabs(nextTabs);
+    setActiveScenarioId(nextSharedScenario.id);
+    applyScenario(nextSharedScenario);
+  }
 
   useEffect(() => {
     if (!isPortfolioHydrated) return;
     if (hasAppliedShareLinkRef.current) return;
     hasAppliedShareLinkRef.current = true;
 
-    const url = new URL(window.location.href);
-    const shareCode = url.searchParams.get(SHARE_QUERY_PARAM);
+    let cancelled = false;
     const cleanupQuery = () => {
-      const cleanUrl = new URL(window.location.href);
-      cleanUrl.searchParams.delete(SHARE_QUERY_PARAM);
-      cleanUrl.searchParams.delete(SHARE_VERSION_QUERY_PARAM);
-      window.history.replaceState({}, '', cleanUrl.toString());
+      if (cancelled) return;
+      window.history.replaceState({}, '', stripShareParams(window.location.href));
     };
 
-    if (!shareCode) return;
+    // 포맷 감지는 파라미터 이름으로: `?s=`(신규 DB key) vs `?share=`(구 lz-string). 신규가 우선.
+    const dbShareKey = readDbShareKeyFromHref(window.location.href);
+    const shareCode = readShareCodeFromHref(window.location.href);
 
-    const sharedScenario = decodeSharedScenario(shareCode);
-    if (!sharedScenario) {
-      trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
-        operation: 'apply_share_link',
-        reason: 'decode_failed'
-      });
-      cleanupQuery();
-      return;
+    // 1) DB key 경로(?s=) — 네트워크 조회라 비동기. cancelled 가드로 언마운트 후 상태쓰기를 막는다.
+    if (dbShareKey) {
+      const applyDbShare = async () => {
+        try {
+          const client = await getSupabaseClient();
+          if (!client) throw new Error('supabase client unavailable');
+          // fetchSharedSnapshot이 envelope 형태(v===1, scenario 객체)를 검증한다 → non-null이면 scenario 존재.
+          // null = 부재/만료/**결손·비-envelope payload**(anon이 임의 객체 저장 가능) — 정규화 시도 없이 폴백.
+          const envelope = await fetchSharedSnapshot(client, dbShareKey);
+          if (cancelled) return;
+
+          const scenario = envelope ? normalizeSharedSnapshotScenario(envelope.scenario) : null;
+          if (!scenario) {
+            // 유효한 스냅샷 부재(못 찾음/만료/형태 불일치) — 전송 실패(db_fetch_failed)와 구분되는 라벨.
+            trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
+              operation: 'apply_share_link',
+              reason: 'db_snapshot_missing'
+            });
+            cleanupQuery();
+            return;
+          }
+
+          applySharedScenario(scenario);
+          cleanupQuery();
+        } catch {
+          if (cancelled) return;
+          trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
+            operation: 'apply_share_link',
+            reason: 'db_fetch_failed'
+          });
+          cleanupQuery();
+        }
+      };
+
+      void applyDbShare();
+      return () => {
+        cancelled = true;
+      };
     }
 
-    const { scenarios } = buildScenariosSnapshot();
+    // 2) 구 lz-string 경로(?share=) — 동기 디코드. 신규 포맷이 없을 때만 탄다.
+    if (shareCode) {
+      const sharedScenario = decodeSharedScenario(shareCode);
+      if (!sharedScenario) {
+        trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
+          operation: 'apply_share_link',
+          reason: 'decode_failed'
+        });
+        cleanupQuery();
+        return;
+      }
+      applySharedScenario(sharedScenario);
+      cleanupQuery();
+    }
 
-    const nextSharedScenario: PersistedScenarioState = {
-      ...sharedScenario,
-      id: SHARED_SCENARIO_ID,
-      name: SHARED_SCENARIO_NAME
+    return () => {
+      cancelled = true;
     };
-
-    const existingSharedIndex = scenarios.findIndex((scenario) => scenario.id === SHARED_SCENARIO_ID);
-    const nextTabs =
-      existingSharedIndex >= 0
-        ? scenarios.map((scenario, index) => (index === existingSharedIndex ? nextSharedScenario : scenario))
-        : [...scenarios, nextSharedScenario];
-    setScenarioTabs(nextTabs);
-    setActiveScenarioId(nextSharedScenario.id);
-    applyScenario(nextSharedScenario);
-    cleanupQuery();
   }, [isPortfolioHydrated]);
+
+  /** 저장 실패 인디케이터의 "다시 시도" — 현재 payload를 같은 스케줄러로 재예약 후 즉시 flush. */
+  const retryCloudSave = async (): Promise<void> => {
+    scheduleCloudSave(buildPayload());
+    await flushCloudSave();
+  };
 
   return {
     isPortfolioHydrated,
-    saveNamedState,
-    listSavedStateNames,
-    loadNamedState,
-    deleteNamedState,
-    downloadNamedStateAsJson,
-    loadStateFromJsonText,
-    createShareLink
+    createShareLink,
+    // 클라우드/충돌 계층이 소비 — 현재 워크스페이스 payload 조립 / 전체 payload 적용 / 재시도.
+    buildPayload,
+    applyPersistedPayload,
+    retryCloudSave,
+    // 세션시작 sync가 하이드레이션과 **같은** 로컬 read를 재사용하게 하는 리더(로컬 read 1회 공유).
+    readLocalAutosaveForSync: localAutosaveCache.readForSync
   };
 };
