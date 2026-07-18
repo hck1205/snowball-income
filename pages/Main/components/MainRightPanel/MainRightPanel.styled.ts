@@ -48,11 +48,23 @@ export const PortfolioPresetTitleRow = styled.div`
   gap: ${space[2]};
 `;
 
+/** 프리셋 아이콘 배지의 오로라 틴트 로테이션 순서 — 카드 인덱스 % 3 으로 고른다. */
+export const PRESET_ICON_TONES = ['brand', 'accent', 'accentAlt'] as const;
+
+export type PresetIconTone = (typeof PRESET_ICON_TONES)[number];
+
+const PRESET_ICON_TONE_STYLE: Record<PresetIconTone, { bg: string; fg: string }> = {
+  brand: { bg: color.brandSubtle, fg: color.brand },
+  accent: { bg: color.accentSubtle, fg: color.accentText },
+  accentAlt: { bg: color.accentAltSubtle, fg: color.accentAltText }
+};
+
 /**
- * 프리셋 아이콘 배지. 기존의 이모지 대신 lucide 아이콘을 브랜드 서브틀 배경 위에 얹어
- * 완성도 있는 룩을 준다. 아이콘은 `currentColor`(=brand)로 그려진다.
+ * 프리셋 아이콘 배지. 기존의 이모지 대신 lucide 아이콘을 서브틀 틴트 배경 위에 얹어
+ * 완성도 있는 룩을 준다. 아이콘은 `currentColor`로 그려진다.
+ * 틴트는 오로라 로테이션(brand → teal → violet) — 카드마다 다른 결을 줘 훑어보기 쉽게 한다.
  */
-export const PortfolioPresetIcon = styled.span`
+export const PortfolioPresetIcon = styled.span<{ tone?: PresetIconTone }>`
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -60,8 +72,8 @@ export const PortfolioPresetIcon = styled.span`
   width: 30px;
   height: 30px;
   border-radius: ${radius.sm};
-  background: ${color.brandSubtle};
-  color: ${color.brand};
+  background: ${({ tone = 'brand' }) => PRESET_ICON_TONE_STYLE[tone].bg};
+  color: ${({ tone = 'brand' }) => PRESET_ICON_TONE_STYLE[tone].fg};
 
   svg {
     width: 18px;

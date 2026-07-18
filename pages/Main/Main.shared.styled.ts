@@ -76,7 +76,9 @@ export const ConfigColumn = styled.aside`
     height: 100dvh;
     max-height: 100dvh;
     z-index: ${zIndex.drawer};
-    background: ${color.bg};
+    /* 페이지와 같은 극야 + 오로라 글로우 위에 입력 폼 — 글로우 마지막 레이어가 bg 단색이라 폴백 안전. */
+    background: ${color.bgGlow} no-repeat;
+    background-color: ${color.bg};
     border-right: 1px solid ${color.border};
     box-shadow: ${shadow.e3};
     padding: ${space[12]} ${space[3]} ${space[5]};
@@ -262,103 +264,6 @@ export const HeaderActions = styled.div`
 /* 시나리오 이름 / 탭                                                           */
 /* -------------------------------------------------------------------------- */
 
-export const ScenarioNameTag = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: ${space[2]};
-  width: 100%;
-  height: 40px;
-  padding: 0 ${space[3]};
-  margin-bottom: ${space[3]};
-  border: 1px solid ${color.border};
-  border-radius: ${radius.md};
-  background: ${color.surface};
-  color: ${color.text};
-  font-size: ${font.size.sm};
-  font-weight: ${font.weight.bold};
-
-  button[data-delete='true'] {
-    opacity: 0;
-    pointer-events: none;
-    transform: translateX(2px);
-    transition: opacity ${motion.fast} ${motion.ease}, transform ${motion.fast} ${motion.ease};
-  }
-
-  &:hover button[data-delete='true'],
-  &:active button[data-delete='true'],
-  &:focus-within button[data-delete='true'] {
-    opacity: 1;
-    pointer-events: auto;
-    transform: translateX(0);
-  }
-`;
-
-export const ScenarioNameEditButton = styled.button`
-  flex: 1;
-  min-width: 0;
-  height: 100%;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  text-align: left;
-  font-size: inherit;
-  font-weight: inherit;
-  font-family: inherit;
-  cursor: text;
-  padding: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-`;
-
-export const ScenarioNameEditInput = styled.input`
-  flex: 1;
-  min-width: 0;
-  height: 100%;
-  border: none;
-  background: transparent;
-  color: ${color.text};
-  font-size: ${font.size.sm};
-  font-weight: ${font.weight.bold};
-  font-family: inherit;
-  padding: 0;
-  box-shadow: none;
-  appearance: none;
-
-  &:focus {
-    outline: none;
-    box-shadow: none;
-  }
-`;
-
-export const ScenarioDeleteButton = styled.button`
-  flex: 0 0 auto;
-  border: 1px solid ${color.borderStrong};
-  background: ${color.surfaceMuted};
-  color: ${color.textSecondary};
-  border-radius: ${radius.sm};
-  padding: ${space[1]} ${space[3]};
-  min-height: 30px;
-  font-size: ${font.size.xs};
-  font-weight: ${font.weight.semibold};
-  font-family: inherit;
-  cursor: pointer;
-  transition: background-color ${motion.fast} ${motion.ease}, color ${motion.fast} ${motion.ease},
-    border-color ${motion.fast} ${motion.ease};
-
-  &:hover:not(:disabled) {
-    background: ${color.dangerSurface};
-    border-color: ${color.dangerBorder};
-    color: ${color.danger};
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-`;
-
 export const ScenarioTabsWrap = styled.div`
   display: flex;
   align-items: flex-end;
@@ -525,16 +430,13 @@ export const ScenarioTabTooltip = styled.div`
 /* 티커 생성 / 목록                                                             */
 /* -------------------------------------------------------------------------- */
 
-export const TickerHeader = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: ${space[3]};
-`;
-
+/**
+ * 퀵액션 툴바 — "데이터 저장"이 자동저장으로 대체돼 제거된 뒤 보이는 버튼은 [공유] 하나뿐이라 단일 열로
+ * 전폭을 채운다. (Coffee는 display:none 이라 그리드 셀을 차지하지 않는다 → 공유가 전폭.)
+ */
 export const TickerQuickActionRow = styled.div`
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: ${space[2]};
   width: 100%;
   margin-bottom: ${space[2]};
@@ -545,14 +447,15 @@ export const TickerQuickActionButton = styled.button`
   background: ${color.surfaceMuted};
   color: ${color.textSecondary};
   border-radius: ${radius.sm};
-  min-height: 44px;
-  padding: ${space[2]} ${space[1]};
+  /* 전폭 단일 버튼(공유) — 아이콘을 세로로 쌓지 않고 가로로 나란히 둬 높이를 낮춘다. */
+  min-height: 38px;
+  padding: ${space[2]} ${space[3]};
   display: inline-flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: ${space[1]};
-  font-size: ${font.size['2xs']};
+  gap: ${space[2]};
+  font-size: ${font.size.sm};
   font-weight: ${font.weight.medium};
   font-family: inherit;
   line-height: 1.1;
@@ -586,12 +489,18 @@ export const TickerQuickActionIcon = styled.span`
   }
 `;
 
+/**
+ * 좌측 패널의 사실상 primary CTA — Button primary와 같은 오로라 CTA 리본 레시피를 쓴다.
+ * hover는 색을 바꾸지 않고 background-position만 움직여 라벨 대비(전 stop 흰 라벨 ≥4.5:1)가 불변이다.
+ */
 export const TickerCreateButton = styled.button`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid ${color.brand};
-  background: ${color.brand};
+  border: 1px solid transparent;
+  background-image: ${color.gradientCta};
+  background-size: 160% 160%;
+  background-position: 0% 0%;
   color: ${color.onBrand};
   border-radius: ${radius.sm};
   min-height: 44px;
@@ -603,10 +512,10 @@ export const TickerCreateButton = styled.button`
   width: 100%;
   margin-bottom: ${space[3]};
   touch-action: manipulation;
-  transition: background-color ${motion.fast} ${motion.ease}, box-shadow ${motion.fast} ${motion.ease};
+  transition: background-position ${motion.base} ${motion.ease}, box-shadow ${motion.fast} ${motion.ease};
 
   &:hover {
-    background: ${color.brandHover};
+    background-position: 100% 100%;
     box-shadow: ${shadow.e2};
   }
 
@@ -743,46 +652,6 @@ export const SelectedChipWrap = styled.div`
 
 
 /* -------------------------------------------------------------------------- */
-/* 비율 슬라이더                                                                */
-/* -------------------------------------------------------------------------- */
-
-export const RatioGrid = styled.div`
-  display: grid;
-  gap: ${space[2]};
-`;
-
-export const RatioRow = styled.label`
-  display: grid;
-  grid-template-columns: 64px minmax(0, 1fr) 52px;
-  align-items: center;
-  gap: ${space[2]};
-  font-size: ${font.size.sm};
-  color: ${color.textSecondary};
-`;
-
-export const RatioTickerLabel = styled.span`
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-`;
-
-export const RatioSlider = styled.input`
-  width: 100%;
-  height: 24px;
-  accent-color: ${color.brand};
-  cursor: pointer;
-`;
-
-export const RatioValue = styled.span`
-  text-align: right;
-  font-size: ${font.size.xs};
-  color: ${color.text};
-  font-weight: ${font.weight.semibold};
-  ${font.numeric};
-`;
-
-/* -------------------------------------------------------------------------- */
 /* 폼 그리드 / 필드                                                             */
 /* -------------------------------------------------------------------------- */
 
@@ -874,13 +743,6 @@ export const InlineSelect = styled.select`
   }
 `;
 
-export const ModeToggleInput = styled.input`
-  width: 18px;
-  height: 18px;
-  margin: 0;
-  accent-color: ${color.brand};
-`;
-
 /* -------------------------------------------------------------------------- */
 /* 모달 내 티커 검색                                                            */
 /* -------------------------------------------------------------------------- */
@@ -934,6 +796,30 @@ export const ModalTickerSearchInput = styled.input`
   }
 `;
 
+/**
+ * 거의 보이지 않는 얇은 스크롤바 — 트랙 투명, 6px thumb는 은은한 border 색, hover 시에만 살짝 진해진다.
+ * 티커 모달의 프리셋 목록·검색 결과 등 내부 스크롤 영역에 써서 과한 기본 스크롤바를 절제한다(테마 토큰만 사용).
+ */
+const subtleScrollbar = `
+  scrollbar-width: thin;
+  scrollbar-color: ${color.border} transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: ${color.border};
+    border-radius: 999px;
+  }
+  &:hover::-webkit-scrollbar-thumb {
+    background: ${color.borderStrong};
+  }
+`;
+
 export const SearchResultList = styled.ul`
   margin: 0;
   padding: 0;
@@ -943,6 +829,7 @@ export const SearchResultList = styled.ul`
   max-height: 260px;
   overflow-y: auto;
   scrollbar-gutter: stable;
+  ${subtleScrollbar}
 `;
 
 export const SearchResultButton = styled.button`
@@ -979,81 +866,6 @@ export const SearchResultName = styled.div`
 /* 프리셋 드롭다운 / 칩                                                          */
 /* -------------------------------------------------------------------------- */
 
-export const PresetDropdownWrap = styled.div`
-  position: relative;
-`;
-
-export const PresetDropdownButton = styled.button`
-  position: relative;
-  width: 100%;
-  min-width: 0;
-  min-height: 40px;
-  border: 1px solid ${color.borderStrong};
-  border-radius: ${radius.sm};
-  padding: ${space[2]} ${space[7]} ${space[2]} ${space[3]};
-  font-size: ${font.size.base};
-  font-family: inherit;
-  line-height: ${font.leading.snug};
-  color: ${color.text};
-  text-align: left;
-  background-color: ${color.surface};
-  cursor: pointer;
-  transition: border-color ${motion.fast} ${motion.ease};
-
-  &:hover {
-    border-color: ${color.brandBorder};
-  }
-
-  &::after {
-    content: '';
-    position: absolute;
-    right: ${space[3]};
-    top: calc(50% - 3px);
-    width: 7px;
-    height: 7px;
-    border-right: 2px solid ${color.textMuted};
-    border-bottom: 2px solid ${color.textMuted};
-    transform: rotate(45deg);
-    pointer-events: none;
-  }
-`;
-
-export const PresetDropdownMenu = styled.div`
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  right: 0;
-  max-height: 260px;
-  overflow-y: auto;
-  border: 1px solid ${color.border};
-  border-radius: ${radius.md};
-  background: ${color.surface};
-  box-shadow: ${shadow.e3};
-  z-index: ${zIndex.dropdown};
-  padding: ${space[1]};
-`;
-
-export const PresetDropdownOption = styled.button<{ selected?: boolean }>`
-  display: block;
-  width: 100%;
-  min-height: 40px;
-  border: 0;
-  border-radius: ${radius.xs};
-  padding: ${space[2]} ${space[3]};
-  text-align: left;
-  font-size: ${font.size.base};
-  font-family: inherit;
-  font-weight: ${({ selected }) => (selected ? font.weight.semibold : font.weight.regular)};
-  color: ${({ selected }) => (selected ? color.brandText : color.text)};
-  background: ${({ selected }) => (selected ? color.brandSubtle : 'transparent')};
-  cursor: pointer;
-  transition: background-color ${motion.fast} ${motion.ease};
-
-  &:hover {
-    background: ${({ selected }) => (selected ? color.brandSubtleHover : color.surfaceHover)};
-  }
-`;
-
 export const PresetChipGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -1073,6 +885,7 @@ export const PresetChipScrollArea = styled.div`
   padding-right: ${space[1]};
   margin-bottom: ${space[2]};
   scrollbar-gutter: stable;
+  ${subtleScrollbar}
 `;
 
 export const PresetChipButton = styled.button<{ selected?: boolean }>`
@@ -1138,7 +951,7 @@ export const PortfolioPresetCardButton = styled.button`
   transition: border-color ${motion.fast} ${motion.ease}, box-shadow ${motion.fast} ${motion.ease},
     transform ${motion.fast} ${motion.ease}, background-color ${motion.fast} ${motion.ease};
 
-  /* 좌측 액센트 바 — 평소엔 투명, hover/focus 시 브랜드색. */
+  /* 좌측 액센트 바 — 평소엔 투명, hover/focus 시 오로라 리본(표시용). */
   &::before {
     content: '';
     position: absolute;
@@ -1147,7 +960,8 @@ export const PortfolioPresetCardButton = styled.button`
     bottom: 0;
     width: 3px;
     background: transparent;
-    transition: background-color ${motion.fast} ${motion.ease};
+    opacity: 0;
+    transition: opacity ${motion.fast} ${motion.ease};
   }
 
   &:hover,
@@ -1160,7 +974,8 @@ export const PortfolioPresetCardButton = styled.button`
 
   &:hover::before,
   &:focus-visible::before {
-    background: ${color.brand};
+    background: ${color.gradientAurora};
+    opacity: 1;
   }
 
   &:active {
@@ -1332,34 +1147,6 @@ export const SeriesFilterCheckbox = styled.input`
   cursor: pointer;
 `;
 
-export const SeriesBgToggleButton = styled.button<{ active: boolean }>`
-  border: 1px solid ${({ active }) => (active ? color.brand : color.borderStrong)};
-  background: ${({ active }) => (active ? color.brand : color.surface)};
-  color: ${({ active }) => (active ? color.onBrand : color.textSecondary)};
-  border-radius: ${radius.pill};
-  padding: ${space[1]} ${space[3]};
-  min-height: 32px;
-  font-size: ${font.size.xs};
-  font-weight: ${font.weight.semibold};
-  font-family: inherit;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background-color ${motion.fast} ${motion.ease}, border-color ${motion.fast} ${motion.ease};
-`;
-
-export const SeriesToggleRow = styled.div`
-  display: inline-flex;
-  align-items: center;
-  gap: ${space[2]};
-`;
-
-export const SeriesToggleLabel = styled.span`
-  font-size: ${font.size.xs};
-  font-weight: ${font.weight.medium};
-  color: ${color.textSecondary};
-  ${font.numeric};
-`;
-
 /* -------------------------------------------------------------------------- */
 /* 보조 텍스트 / 도움말 / 에러                                                   */
 /* -------------------------------------------------------------------------- */
@@ -1465,17 +1252,17 @@ export const AllocationLegend = styled.ul`
 `;
 
 const stackedLegendItem = `
-  grid-template-columns: 16px minmax(0, 1fr) 48px;
+  grid-template-columns: 16px 40px minmax(0, 1fr) 48px;
   grid-template-areas:
-    'dot name value'
-    'dot slider fix';
+    'dot name name value'
+    'dot fix slider slider';
   gap: ${space[2]};
 `;
 
 export const AllocationLegendItem = styled.li`
   display: grid;
-  grid-template-columns: 16px 72px minmax(120px, 1fr) 40px 52px;
-  grid-template-areas: 'dot name slider fix value';
+  grid-template-columns: 16px 72px 40px minmax(120px, 1fr) 52px;
+  grid-template-areas: 'dot name fix slider value';
   gap: ${space[2]};
   align-items: center;
   font-size: ${font.size.xs};

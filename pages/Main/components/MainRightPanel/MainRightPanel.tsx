@@ -2,19 +2,19 @@ import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 // per-icon named import(트리셰이킹) → 추천 포트폴리오 카드의 이모지를 lucide 아이콘으로 교체.
 import {
-  Armchair,
-  Brain,
+  Banknote,
   Building2,
-  CalendarHeart,
+  CalendarDays,
   Cpu,
   Crown,
   Globe,
   Landmark,
-  Rocket,
+  Layers,
+  PiggyBank,
   Scale,
   Shield,
   Sprout,
-  Wallet,
+  TrendingUp,
   type LucideIcon
 } from 'lucide-react';
 import { Button, Card, ToggleField } from '@/components';
@@ -46,6 +46,7 @@ import {
   ScenarioTabsWrap
 } from '@/pages/Main/Main.shared.styled';
 import {
+  PRESET_ICON_TONES,
   PortfolioPresetIcon,
   PortfolioPresetTitleRow,
   ProjectionControls,
@@ -380,22 +381,28 @@ const PORTFOLIO_PRESET_PLACEHOLDERS = [
 /**
  * 프리셋 카드 아이콘 — 예전의 이모지(🧓/💸/…)를 성향에 맞는 lucide 아이콘으로 대체한다.
  * 제목 문자열에서 이모지는 제거했으므로(위 데이터), 카드·시나리오 탭 이름 모두 깔끔한 텍스트 + 이 아이콘으로 보인다.
+ *
+ * 선택 기준: 프리셋의 **전략 성격**을 18px에서도 즉시 읽히는 한 글리프로 — 중복 없이 13개.
+ * 클리셰(🚀 로켓, 안락의자)나 작게 그리면 뭉개지는 복합 글리프(CalendarHeart)는 피한다.
  */
 const PRESET_ICON_BY_ID: Record<string, LucideIcon> = {
-  'warren-buffett-style': Landmark,
-  'cashflow-now': Wallet,
-  'stable-dividend-growth': Sprout,
-  'global-dividend-diversified': Globe,
-  'reit-monthly-rent-strategy': Building2,
-  'growth-income-balance': Scale,
-  'high-growth-dividend-challenger': Rocket,
-  'retirement-prep': Armchair,
-  'dividend-aristocrats-collection': Crown,
-  'defensive-dividend-etf': Shield,
-  'monthly-dividend-addict': CalendarHeart,
-  'smart-diversification-360': Brain,
-  'ai-infra-dividend-growth': Cpu
+  'warren-buffett-style': Landmark, // 우량 기관·가치투자의 전당
+  'cashflow-now': Banknote, // 당장 손에 쥐는 현금
+  'stable-dividend-growth': Sprout, // 꾸준히 자라는 배당
+  'global-dividend-diversified': Globe, // 미국 + 해외 분산
+  'reit-monthly-rent-strategy': Building2, // 부동산(리츠)
+  'growth-income-balance': Scale, // 성장·인컴의 균형
+  'high-growth-dividend-challenger': TrendingUp, // 높은 배당 성장률 = 우상향
+  'retirement-prep': PiggyBank, // 은퇴 대비 적립
+  'dividend-aristocrats-collection': Crown, // 배당 귀족
+  'defensive-dividend-etf': Shield, // 방어형
+  'monthly-dividend-addict': CalendarDays, // 매달 들어오는 배당
+  'smart-diversification-360': Layers, // 모든 자산군을 한 층씩 — 올인원
+  'ai-infra-dividend-growth': Cpu // AI 반도체·인프라
 };
+
+/** 앱 공용 아이콘 언어와 동일한 라인 두께(CommunityIcons·좌측 패널 인라인 SVG와 같은 1.8). */
+const PRESET_ICON_STROKE = 1.8;
 
 function MainRightPanelComponent() {
   const modalRoot = typeof document !== 'undefined' ? document.body : null;
@@ -871,15 +878,15 @@ function MainRightPanelComponent() {
         >
           {includedProfiles.length === 0 ? (
             <PortfolioPresetGrid data-tour={TOUR_TARGET.portfolioPresets} aria-label="포트폴리오 프리셋 목록">
-              {PORTFOLIO_PRESET_PLACEHOLDERS.map((preset) => {
+              {PORTFOLIO_PRESET_PLACEHOLDERS.map((preset, presetIndex) => {
                 const PresetIcon = PRESET_ICON_BY_ID[preset.id] ?? Landmark;
                 return (
                 <PortfolioPresetCardButton key={preset.id} type="button" onClick={() => applyPortfolioPreset(preset)}>
                   <PortfolioPresetContentRow>
                     <PortfolioPresetMain>
                       <PortfolioPresetTitleRow>
-                        <PortfolioPresetIcon>
-                          <PresetIcon size={18} aria-hidden focusable={false} />
+                        <PortfolioPresetIcon tone={PRESET_ICON_TONES[presetIndex % PRESET_ICON_TONES.length]}>
+                          <PresetIcon size={18} strokeWidth={PRESET_ICON_STROKE} aria-hidden focusable={false} />
                         </PortfolioPresetIcon>
                         <PortfolioPresetTitle>{preset.title}</PortfolioPresetTitle>
                       </PortfolioPresetTitleRow>
@@ -928,10 +935,24 @@ function MainRightPanelComponent() {
                 <ModalTitle>탭 삭제</ModalTitle>
                 <ModalBody>정말 삭제하시겠습니까?</ModalBody>
                 <ModalActions>
-                  <Button variant="secondary" type="button" onClick={closeDeleteModal}>
+                  {/* onMouseDown preventDefault: 탭 이름변경 입력(onBlur=commitRenameMode)이 아직 포커스를
+                      쥔 채로 이 버튼을 누르면 blur가 rename을 커밋한다. 공유 탭('shared-tab')은 rename 커밋 시
+                      새 id로 승격되어(useScenarioTabs.renameScenarioTab) deleteTargetTabId가 옛 id로 어긋난다.
+                      X 닫기 버튼과 같은 방식으로 포커스 이동을 막아 blur 커밋을 차단한다. */}
+                  <Button
+                    variant="secondary"
+                    type="button"
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={closeDeleteModal}
+                  >
                     취소
                   </Button>
-                  <Button variant="primary" type="button" onClick={confirmDeleteTab}>
+                  <Button
+                    variant="primary"
+                    type="button"
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={confirmDeleteTab}
+                  >
                     삭제
                   </Button>
                 </ModalActions>
