@@ -5,13 +5,15 @@ import type { AvatarSize } from './Avatar.types';
 const DIMENSION: Record<AvatarSize, string> = {
   sm: '24px',
   md: '32px',
-  lg: '44px'
+  lg: '44px',
+  xl: '72px'
 };
 
 const FONT: Record<AvatarSize, string> = {
   sm: font.size['2xs'],
   md: font.size.sm,
-  lg: font.size.lg
+  lg: font.size.lg,
+  xl: font.size['3xl']
 };
 
 export const AvatarRoot = styled.span<{ size: AvatarSize }>`
@@ -30,11 +32,4 @@ export const AvatarRoot = styled.span<{ size: AvatarSize }>`
   font-weight: ${font.weight.bold};
   line-height: 1;
   user-select: none;
-`;
-
-export const AvatarImage = styled.img`
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
 `;

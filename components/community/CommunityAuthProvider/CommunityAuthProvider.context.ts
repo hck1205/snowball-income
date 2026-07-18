@@ -8,8 +8,14 @@ export type CommunityAuthContextValue = {
   openLoginPrompt: () => void;
   /** OAuth 로그인 시작(프로바이더 동의 화면으로 리다이렉트). */
   login: (provider: CommunityOAuthProvider) => Promise<void>;
-  /** 로그아웃 후 세션/프로필 atom을 비운다. */
+  /** 로그아웃 후 세션/프로필 atom을 비운다. 탈퇴 성공 후에도 이걸로 로컬 세션을 정리한다. */
   logout: () => Promise<void>;
+  /**
+   * 현재 세션의 프로필을 다시 읽어 profileAtom 을 갱신한다.
+   * 닉네임 변경을 저장한 뒤 헤더·화면 표기를 DB 진실로 맞출 때 호출한다
+   * (clientRef 가 Provider 내부에 있어 UI 가 직접 fetchMyProfile 을 부를 수 없으므로 노출한다).
+   */
+  refreshProfile: () => Promise<void>;
 };
 
 export const CommunityAuthContext = createContext<CommunityAuthContextValue | null>(null);

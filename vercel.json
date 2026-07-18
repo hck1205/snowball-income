@@ -13,6 +13,9 @@
   "functions": {
     "api/og.tsx": {
       "maxDuration": 30
+    },
+    "api/account-delete.ts": {
+      "maxDuration": 30
     }
   }
 }

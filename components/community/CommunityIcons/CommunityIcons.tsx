@@ -1,9 +1,12 @@
 import type { SVGProps } from 'react';
 // per-icon named import → 번들러가 사용한 아이콘만 포함한다(트리셰이킹). 전체 세트를 끌어오지 않는다.
 import {
+  AlertCircle,
   ArrowLeft,
   BarChart3,
   Bold,
+  CheckCircle2,
+  ChevronDown,
   Clock,
   Eye,
   Flame,
@@ -17,8 +20,10 @@ import {
   ListOrdered,
   MessageCircle,
   Search,
+  SlidersHorizontal,
   SquarePen,
   Trash2,
+  UserRound,
   Users,
   X
 } from 'lucide-react';
@@ -41,6 +46,16 @@ export const UsersIcon = ({ size = 18, ...rest }: IconProps) => (
 
 export const SearchIcon = ({ size = 18, ...rest }: IconProps) => (
   <Search size={size} strokeWidth={LUCIDE_STROKE} aria-hidden focusable={false} {...rest} />
+);
+
+/** 정밀 검색 트리거 — lucide `SlidersHorizontal`. 활성 상태·개수는 배지 숫자+aria가 전달한다. */
+export const FilterIcon = ({ size = 18, ...rest }: IconProps) => (
+  <SlidersHorizontal size={size} strokeWidth={LUCIDE_STROKE} aria-hidden focusable={false} {...rest} />
+);
+
+/** 검증 오류 표시(정밀 검색 range 등) — lucide `AlertCircle`. 색만으로 말하지 않게 텍스트+role="alert" 옆에 병기. */
+export const AlertIcon = ({ size = 18, ...rest }: IconProps) => (
+  <AlertCircle size={size} strokeWidth={LUCIDE_STROKE} aria-hidden focusable={false} {...rest} />
 );
 
 /** 좋아요 하트 — lucide `Heart`. 안 눌림=외곽선(fill:none), 눌림=채움(fill:currentColor).
@@ -103,6 +118,21 @@ export const TrashIcon = ({ size = 18, ...rest }: IconProps) => (
 
 export const CloseIcon = ({ size = 18, ...rest }: IconProps) => (
   <X size={size} strokeWidth={LUCIDE_STROKE} aria-hidden focusable={false} {...rest} />
+);
+
+/** 프로필 설정 진입(AuthControl 메뉴) — lucide `UserRound`. */
+export const UserRoundIcon = ({ size = 18, ...rest }: IconProps) => (
+  <UserRound size={size} strokeWidth={LUCIDE_STROKE} aria-hidden focusable={false} {...rest} />
+);
+
+/** 저장 성공 피드백 — lucide `CheckCircle2`. 색만으로 말하지 않기 위해 문장 옆에 병기한다. */
+export const CheckCircleIcon = ({ size = 18, ...rest }: IconProps) => (
+  <CheckCircle2 size={size} strokeWidth={LUCIDE_STROKE} aria-hidden focusable={false} {...rest} />
+);
+
+/** 아코디언 디스클로저 표시(순수 장식) — lucide `ChevronDown`. 열림/닫힘 방향은 `aria-expanded`가 전달한다. */
+export const ChevronDownIcon = ({ size = 18, ...rest }: IconProps) => (
+  <ChevronDown size={size} strokeWidth={LUCIDE_STROKE} aria-hidden focusable={false} {...rest} />
 );
 
 /* 리치텍스트 에디터 툴바 아이콘 — 전부 lucide로 통일한다. */

@@ -112,11 +112,36 @@ export default function CommunityAuthProvider({ children }: { children: ReactNod
     }
   }, [setProfile, setSession]);
 
-  const openLoginPrompt = useCallback(() => setPromptOpen(true), []);
+  // 프롬프트를 여닫을 때 항상 pending(진행 중 → 전 버튼 disabled)을 리셋한다.
+  // OAuth 는 보통 풀 리다이렉트라 pending 이 살아있을 일이 없지만, 리다이렉트가 뜨기 전 닫거나
+  // (네이버 오설정 에러 등으로) 리다이렉트 없이 돌아오면 pending 이 true 로 굳어, 재오픈 시 버튼이
+  // 계속 비활성으로 남았다(사용자 리포트). 열림/닫힘 전이는 stale pending 을 항상 털어낸다.
+  const openLoginPrompt = useCallback(() => {
+    setPending(false);
+    setPromptOpen(true);
+  }, []);
+
+  const closeLoginPrompt = useCallback(() => {
+    setPending(false);
+    setPromptOpen(false);
+  }, []);
+
+  // 프로필 저장 후 재조회. getSession 은 로컬 세션을 읽으므로 가볍다(네트워크 왕복 없음).
+  const refreshProfile = useCallback(async () => {
+    const client = clientRef.current ?? (await getSupabaseClient());
+    if (!client) return;
+    clientRef.current = client;
+    try {
+      const session = await getSession(client);
+      await syncProfile(session);
+    } catch {
+      // 조회 실패 시 기존 profileAtom 을 유지한다(낙관적 갱신 금지 원칙과 정합).
+    }
+  }, [syncProfile]);
 
   const value = useMemo<CommunityAuthContextValue>(
-    () => ({ authReady, openLoginPrompt, login, logout }),
-    [authReady, login, logout, openLoginPrompt]
+    () => ({ authReady, openLoginPrompt, login, logout, refreshProfile }),
+    [authReady, login, logout, openLoginPrompt, refreshProfile]
   );
 
   return (
@@ -125,7 +150,7 @@ export default function CommunityAuthProvider({ children }: { children: ReactNod
       {promptOpen ? (
         <LoginModal
           pending={pending}
-          onClose={() => setPromptOpen(false)}
+          onClose={closeLoginPrompt}
           onSelectProvider={(provider) => void login(provider)}
         />
       ) : null}
