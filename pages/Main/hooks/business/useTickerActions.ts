@@ -41,7 +41,7 @@ import {
   type TickerPortfolioState,
   type TickerRemovalMode
 } from '@/pages/Main/utils';
-import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
+import { ANALYTICS_EVENT, setUserProperties, trackEvent } from '@/shared/lib/analytics';
 
 export const useTickerActions = () => {
   const values = useYieldFormAtomValue();
@@ -171,6 +171,8 @@ export const useTickerActions = () => {
       ticker: profile.ticker,
       source: selectedPreset === 'custom' ? 'custom' : 'preset'
     });
+    // 저장한 사용자 코호트(User Property). 매번 set해도 GA4는 마지막 값(true)을 쓴다 — 멱등.
+    setUserProperties({ has_saved: true });
     if (tickerModalMode === 'create') {
       trackEvent(ANALYTICS_EVENT.TICKER_INCLUDED, {
         ticker: profile.ticker,

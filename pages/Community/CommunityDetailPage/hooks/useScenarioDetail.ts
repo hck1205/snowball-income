@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { sanitizeScenarioState } from '@/jotai';
+import { ANALYTICS_EVENT, setUserProperties, track } from '@/shared/lib/analytics';
 import { encodeSharedScenario, SHARE_QUERY_PARAM, SHARED_SCENARIO_ID } from '@/pages/Main/hooks/persistence';
 import {
   deleteScenario,
@@ -83,6 +84,8 @@ export const useScenarioDetail = (id: string | undefined, onRequireLogin: () => 
         // 조회수 등록(마운트당 1회, 서버가 1시간 dedupe).
         if (!viewRegisteredRef.current) {
           viewRegisteredRef.current = true;
+          // 상세 진입 계측(마운트당 1회). has_sim = 시뮬 시나리오 첨부 여부 — 첨부 글의 조회 성과 비교.
+          track(ANALYTICS_EVENT.COMMUNITY_POST_VIEW, { has_sim: Boolean(detail.payload) });
           registerScenarioView(client, id)
             .then((count) => {
               if (!cancelled) setViewCount(count);
@@ -138,6 +141,9 @@ export const useScenarioDetail = (id: string | undefined, onRequireLogin: () => 
           setLiked(serverLiked);
           setLikeCount((count) => count + (serverLiked ? 1 : -1) - (nextLiked ? 1 : -1));
         }
+        // 서버 확정 후에만 발화(낙관적 실패 시 미발화). like_action = 서버의 최종 상태.
+        track(ANALYTICS_EVENT.COMMUNITY_LIKE, { like_action: serverLiked ? 'like' : 'unlike' });
+        setUserProperties({ community_active: true });
       } catch {
         setLiked(!nextLiked);
         setLikeCount((count) => count + (nextLiked ? -1 : 1));

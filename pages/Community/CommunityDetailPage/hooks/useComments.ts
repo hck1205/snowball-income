@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
+import { ANALYTICS_EVENT, setUserProperties, track } from '@/shared/lib/analytics';
 import {
   buildCommentTree,
   createComment,
@@ -198,6 +199,9 @@ export const useComments = (scenarioId: string | undefined): UseComments => {
         const saved = await createComment(client, { scenarioId, body: trimmed, parentId: parentId ?? null });
         setRows((prev) => prev.map((row) => (row.id === tempId ? saved : row)));
         setTotalCount((count) => count + 1);
+        // 댓글 작성 성공 후에만 계측(낙관적 실패 시 미발화). 본문·PII는 보내지 않는다.
+        track(ANALYTICS_EVENT.COMMUNITY_COMMENT);
+        setUserProperties({ community_active: true });
         return true;
       } catch (error) {
         // 낙관적 댓글은 되돌리되, 이유는 삼키지 않는다 — 뷰가 입력을 보존하므로 재시도 가능.

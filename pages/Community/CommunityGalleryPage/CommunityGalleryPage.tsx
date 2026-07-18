@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
+import { ANALYTICS_EVENT, track } from '@/shared/lib/analytics';
 import { useIsLoggedInAtomValue, useSetViewTypeWrite, useViewTypeAtomValue } from '@/jotai/community';
 import { Banner } from '@/components/common';
 import { useCommunityAuth } from '@/components/community';
@@ -24,6 +25,11 @@ export default function CommunityGalleryPage() {
   const [showDeleted, setShowDeleted] = useState(
     Boolean((location.state as { accountDeleted?: boolean } | null)?.accountDeleted)
   );
+
+  // 갤러리(목록) 진입 계측 — 마운트당 1회. 커뮤니티 유입 퍼널의 시작점.
+  useEffect(() => {
+    track(ANALYTICS_EVENT.COMMUNITY_GALLERY_VIEW);
+  }, []);
 
   // 새로고침/뒤로가기로 배너가 되살아나지 않게 history state 를 한 번 비운다.
   useEffect(() => {

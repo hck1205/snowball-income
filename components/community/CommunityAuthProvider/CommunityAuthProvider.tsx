@@ -12,8 +12,17 @@ import {
   type CommunityOAuthProvider
 } from '@/shared/lib/supabase';
 import { useSetProfileWrite, useSetSessionWrite } from '@/jotai/community';
+import { setUserProperties } from '@/shared/lib/analytics';
 import { LoginModal } from '@/components/community/LoginModal';
 import { CommunityAuthContext, type CommunityAuthContextValue } from './CommunityAuthProvider.context';
+
+/**
+ * 로그인 세션이 잡히면 `has_account` 코호트를 태깅한다(GA4 User Property, 멱등 — 매번 set해도 마지막 값 사용).
+ * 세션 복원(재방문 로그인 유지)에도 걸려 로그인 사용자를 빠짐없이 태깅한다. PII 없이 boolean만 보낸다.
+ */
+const markAccountUserProperty = (session: Session | null) => {
+  if (session) setUserProperties({ has_account: true });
+};
 
 /**
  * 커뮤니티 세션 배선 + 인증 액션의 단일 지점.
@@ -67,6 +76,7 @@ export default function CommunityAuthProvider({ children }: { children: ReactNod
         const session = await getSession(client);
         if (cancelled) return;
         setSession(session);
+        markAccountUserProperty(session);
         void syncProfile(session);
       } catch {
         // 세션 조회 실패 시 로그아웃 상태로 둔다.
@@ -76,6 +86,7 @@ export default function CommunityAuthProvider({ children }: { children: ReactNod
 
       unsubscribe = onAuthStateChange(client, (session) => {
         setSession(session);
+        markAccountUserProperty(session);
         void syncProfile(session);
       });
     };

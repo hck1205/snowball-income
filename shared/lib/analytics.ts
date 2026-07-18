@@ -76,6 +76,24 @@ export const ANALYTICS_EVENT = {
   // 용도: 양방향 자동 동기화의 방향 분포와 세션 시작 시 이미-동기 비율(noop) 모니터링, 실패는 operation_error(cloud_sync)로 분리.
   // (구 CLOUD_MIGRATION_STARTED/LOCAL_MIGRATION_COMPLETED 2단계 마이그레이션 택소노미를 대체 — 클라우드는 이제 매 세션 양방향 동기화)
   CLOUD_SYNC_RECONCILED: "cloud_sync_reconciled",
+
+  // ── 시나리오 공유 (Phase 1 신규) ────────────────────────────────────────────
+  // 공유 링크 생성/복사(파라미터: share_method). 용도: 바이럴 계수, 공유 채널 분포.
+  SCENARIO_SHARED: "scenario_shared",
+
+  // ── 커뮤니티 참여 (Phase 1 신규 — 계측 최대 갭) ──────────────────────────────
+  // 갤러리 진입. 용도: 커뮤니티 유입 모수, 갤러리→상세→시뮬 퍼널 시작.
+  COMMUNITY_GALLERY_VIEW: "community_gallery_view",
+  // 게시물 상세 진입(파라미터: has_sim). 용도: 시뮬 첨부 글의 조회 성과 비교.
+  COMMUNITY_POST_VIEW: "community_post_view",
+  // 게시물 발행(파라미터: has_sim). 용도: 창작 전환(Key Event), 시뮬 첨부율.
+  COMMUNITY_POST_PUBLISHED: "community_post_published",
+  // 좋아요/취소(파라미터: like_action). 용도: 참여도, 콘텐츠 반응 분석.
+  COMMUNITY_LIKE: "community_like",
+  // 댓글 작성. 용도: 심화 참여, 활성 커뮤니티 여부 판단.
+  COMMUNITY_COMMENT: "community_comment",
+  // 상세→시뮬레이터 유입("이 시나리오로 열기"). 용도: 커뮤니티→코어 제품 유입 측정.
+  COMMUNITY_TO_SIMULATOR: "community_to_simulator",
 } as const;
 
 export type AnalyticsEventName = (typeof ANALYTICS_EVENT)[keyof typeof ANALYTICS_EVENT];
@@ -175,4 +193,71 @@ export const trackEvent = (eventName: AnalyticsEventName, params?: AnalyticsEven
   if (!window.gtag) return;
 
   window.gtag("event", eventName, params ?? {});
+};
+
+/**
+ * 이벤트별 파라미터 **타입 계약**. 여기 매핑된 이벤트는 `track()`이 파라미터를 강제한다
+ * (오타·누락 = 컴파일 에러). 매핑 안 된 이벤트는 느슨한 파라미터를 받는다(기존 배선과의 점진 이행).
+ *
+ * ⚠ PII·연속 원값 금지(docs/analytics/ga4-plan.md) — 금액/기간 같은 연속값은 `bucketValue`로 버킷 라벨을 넣는다.
+ */
+export type AnalyticsEventParamMap = {
+  [ANALYTICS_EVENT.PRESET_APPLIED]: { preset_id: string };
+  [ANALYTICS_EVENT.SIMULATION_RESULT_VIEW]: { reinvest_mode?: string; target_met?: boolean };
+  [ANALYTICS_EVENT.LOGIN_COMPLETED]: { source: string; entry_point?: string };
+  [ANALYTICS_EVENT.SCENARIO_SHARED]: { share_method: string };
+  [ANALYTICS_EVENT.COMMUNITY_POST_VIEW]: { has_sim: boolean };
+  [ANALYTICS_EVENT.COMMUNITY_POST_PUBLISHED]: { has_sim: boolean };
+  [ANALYTICS_EVENT.COMMUNITY_LIKE]: { like_action: "like" | "unlike" };
+};
+
+/**
+ * 타입 안전 이벤트 전송. 신규 배선은 이걸 쓴다(계약된 이벤트는 파라미터가 강제됨).
+ * 내부적으로 `trackEvent`에 위임하므로 발화 동작·GA 게이트는 완전히 동일하다.
+ */
+export function track<K extends keyof AnalyticsEventParamMap>(event: K, params: AnalyticsEventParamMap[K]): void;
+export function track(event: AnalyticsEventName, params?: AnalyticsEventParams): void;
+export function track(event: AnalyticsEventName, params?: AnalyticsEventParams): void {
+  trackEvent(event, params);
+}
+
+/** GA4 User Properties — 유저 코호트 분석용. PII 금지(불리언·저카디널리티 라벨만). */
+export type AnalyticsUserProperties = {
+  /** 최초 로그인 완료 시 true. */
+  has_account?: boolean;
+  /** 최초 저장(로컬/클라우드) 시 true. */
+  has_saved?: boolean;
+  /** 2회차+ 방문 시 true. */
+  is_returning?: boolean;
+  /** 현재 테마 프리셋 id. */
+  preferred_theme?: string;
+  /** 최초 커뮤니티 참여(글/좋아요/댓글) 시 true. */
+  community_active?: boolean;
+};
+
+/**
+ * GA4 User Properties 설정. `gtag('set','user_properties',…)`는 이후 **모든 이벤트**에 이 속성을 부착해
+ * "저장한 유저 vs 아닌 유저"처럼 코호트로 쪼개 보게 한다. GA4 콘솔에 User Properties로도 등록해야 리포트에 뜬다.
+ */
+export const setUserProperties = (props: AnalyticsUserProperties) => {
+  if (typeof window === "undefined") return;
+  if (!GA_MEASUREMENT_ID) return;
+  if (!window.gtag) return;
+
+  window.gtag("set", "user_properties", props);
+};
+
+/**
+ * 연속값(금액·기간·세율)을 **저카디널리티 버킷 라벨**로 바꾼다. GA로는 원값이 아니라 버킷을 보낸다
+ * (PII화·카디널리티 폭발 방지 + 분포 분석 용이). `edges`는 경계값 목록(오름차순 정렬됨).
+ * 예: `bucketValue(75, [50, 100, 300])` → `"50–100"`, `bucketValue(500, [50,100,300])` → `"≥300"`.
+ */
+export const bucketValue = (value: number, edges: readonly number[]): string => {
+  const sorted = [...edges].sort((a, b) => a - b);
+  if (sorted.length === 0) return String(value);
+  if (value < sorted[0]) return `<${sorted[0]}`;
+  for (let i = 0; i < sorted.length - 1; i += 1) {
+    if (value < sorted[i + 1]) return `${sorted[i]}–${sorted[i + 1]}`;
+  }
+  return `≥${sorted[sorted.length - 1]}`;
 };

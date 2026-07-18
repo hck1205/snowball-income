@@ -6,6 +6,7 @@ import {
   COMMUNITY_COPY,
   COMMUNITY_DESCRIPTION_EXCERPT_LENGTH
 } from '@/shared/constants/community';
+import { ANALYTICS_EVENT, setUserProperties, track } from '@/shared/lib/analytics';
 import { deriveExcerpt, htmlToPlainText, isRichTextEmpty, sanitizeRichHtml } from '@/shared/lib/richtext';
 import {
   fetchScenarioDetail,
@@ -228,6 +229,11 @@ export const useScenarioComposer = (scenarioId?: string): UseScenarioComposer =>
               payload: attachedPayload,
               isPublic
             });
+      // 새 글 발행 성공 시에만 계측(수정은 발행이 아님). has_sim = 시뮬 첨부 여부(Key Event, 창작 전환).
+      if (mode !== 'edit') {
+        track(ANALYTICS_EVENT.COMMUNITY_POST_PUBLISHED, { has_sim: attachedPayload !== null });
+        setUserProperties({ community_active: true });
+      }
       setDirty(false);
       navigate(`/community/${saved.id}`, { replace: mode === 'edit' });
     } catch {

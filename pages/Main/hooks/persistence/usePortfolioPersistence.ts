@@ -44,7 +44,7 @@ import {
   fetchSharedSnapshot,
   getSupabaseClient
 } from '@/shared/lib/supabase';
-import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
+import { ANALYTICS_EVENT, setUserProperties, trackEvent } from '@/shared/lib/analytics';
 import { buildScenariosSnapshot, isSameScenarioContent, mergeSharedScenarioIntoTabs } from './scenarioSnapshot';
 import { decodeSharedScenario, encodeSharedScenario, SHARED_SCENARIO_ID, SHARE_LENGTH_LIMIT } from './shareLink';
 import {
@@ -204,6 +204,8 @@ export const usePortfolioPersistence = () => {
             has_saved_portfolio: true,
             scenario_count: result.payload.scenarios.length
           });
+          // 재방문 코호트(User Property). 저장된 포트폴리오가 있는 재방문자를 리텐션 분석용으로 태깅(멱등).
+          setUserProperties({ is_returning: true, has_saved: true });
         }
       } catch {
         // Keep current defaults/state when hydration fails.
