@@ -1,15 +1,22 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { buildScenarioSimSummary } from '@/shared/lib/snowball';
 import {
+  buildCommentKeysetFilter,
+  buildGalleryFacetFilters,
   buildKeysetFilter,
   buildSearchFilter,
+  COMMENTS_PAGE_SIZE,
   decodeGalleryCursor,
   GALLERY_PAGE_SIZE,
   getGalleryOrderKeys,
-  splitPage
+  splitCommentRootsPage,
+  splitPage,
+  type CommentCursor
 } from './pagination';
 import type {
   CommentWithAuthor,
   Database,
+  GalleryFacetFilters,
   GalleryPage,
   GallerySort,
   ScenarioListItem,
@@ -29,8 +36,12 @@ import type {
 
 export type CommunityClient = SupabaseClient<Database>;
 
-/** 갤러리 카드에 필요한 컬럼만. payload/body는 목록에서 제외한다 (행당 수십 KB → 대역폭 낭비). */
-const LIST_COLUMNS = 'id,user_id,title,description,is_public,has_payload,like_count,view_count,comment_count,created_at,updated_at,author:profiles(id,display_name,avatar_url)';
+/**
+ * 갤러리 카드에 필요한 컬럼만. payload/body는 목록에서 제외한다 (행당 수십 KB → 대역폭 낭비).
+ * sim_summary는 포함한다 — 카드 프리뷰용 10필드 요약(~300B)이라 목록에 실어도 가볍고,
+ * payload 없이 시뮬 숫자를 그리는 것이 이 컬럼의 존재 이유다.
+ */
+const LIST_COLUMNS = 'id,user_id,title,description,is_public,has_payload,sim_summary,like_count,view_count,comment_count,created_at,updated_at,author:profiles(id,display_name,avatar_url)';
 
 /** 상세는 본문(body)과 시나리오 첨부(payload)까지 내려온다. */
 const DETAIL_COLUMNS = `${LIST_COLUMNS},payload,body`;
@@ -53,10 +64,22 @@ const unwrap = <T>(result: { data: T | null; error: { message: string } | null }
  * 검색 `.or(...)` 와 키셋 `.or(...)` 는 각각 별개의 top-level 조건이라 PostgREST가 AND로 묶는다:
  *   is_public = true  AND  (제목 ILIKE OR 설명 ILIKE)  AND  (키셋 튜플 비교)
  * 빈/무효 검색어는 buildSearchFilter가 null을 주므로 검색 없이 일반 목록으로 폴백한다.
+ *
+ * 정밀 검색(`facets`)은 sim_summary 파생 컬럼(final_monthly_dividend/target_monthly_dividend/
+ * duration_years)에 `.gte()/.lte()` 범위 경계를 얹는다 — 이 역시 별개의 top-level 조건이라
+ * 위 AND 사슬에 그대로 합류한다(정렬·키셋·검색과 공존). facet이 NULL인 글(자유 글 등)은
+ * range 비교에서 자동 제외된다. 필터가 하나도 없으면 경계 목록이 비어 기존 동작 그대로다.
  */
 export const fetchGalleryPage = async (
   client: CommunityClient,
-  options: { sort?: GallerySort; cursor?: string | null; pageSize?: number; query?: string; queryFilter?: string } = {}
+  options: {
+    sort?: GallerySort;
+    cursor?: string | null;
+    pageSize?: number;
+    query?: string;
+    queryFilter?: string;
+    facets?: GalleryFacetFilters;
+  } = {}
 ): Promise<GalleryPage> => {
   const sort = options.sort ?? 'recent';
   const pageSize = options.pageSize ?? GALLERY_PAGE_SIZE;
@@ -67,6 +90,10 @@ export const fetchGalleryPage = async (
 
   if (searchFilter) query = query.or(searchFilter);
   if (cursor) query = query.or(buildKeysetFilter(sort, cursor));
+
+  for (const bound of buildGalleryFacetFilters(options.facets)) {
+    query = bound.op === 'gte' ? query.gte(bound.column, bound.value) : query.lte(bound.column, bound.value);
+  }
 
   for (const key of getGalleryOrderKeys(sort)) {
     query = query.order(key.column, { ascending: key.ascending });
@@ -102,11 +129,19 @@ export const fetchMyScenarios = async (client: CommunityClient, userId: string):
   );
 
 /**
+ * payload → 게시 시점 시뮬 요약. **게시·수정 뮤테이션에서만 부른다** — 읽기 경로는
+ * 절대 재계산하지 않는다(게시 시점 숫자 고정: 엔진이 바뀌어도 카드·상세 표기 일치).
+ * payload가 없거나 계산 불가(미완성 payload)면 null → UI는 텍스트 카드로 폴백한다.
+ */
+const toSimSummary = (payload: ScenarioPayload | null) => (payload ? buildScenarioSimSummary(payload) : null);
+
+/**
  * 글 게시. 하이브리드 모델이라 payload/body 둘 다 선택적이다:
  *   - 자유 글        : body만 (payload 없음)
  *   - 시나리오 공유   : payload만 (body 없음)
  *   - 둘 다          : body + payload
  * 서버 CHECK(scenarios_payload_valid_or_null)가 payload NULL을 허용한다.
+ * payload가 있으면 시뮬 요약(sim_summary)을 여기서 1회 계산해 함께 저장한다.
  */
 export const publishScenario = async (
   client: CommunityClient,
@@ -117,15 +152,18 @@ export const publishScenario = async (
     payload?: ScenarioPayload | null;
     isPublic?: boolean;
   }
-): Promise<ScenarioWithAuthor> =>
-  unwrap(
+): Promise<ScenarioWithAuthor> => {
+  const payload = input.payload ?? null;
+
+  return unwrap(
     await client
       .from('scenarios')
       .insert({
         title: input.title,
         description: input.description ?? null,
         body: input.body ?? null,
-        payload: input.payload ?? null,
+        payload,
+        sim_summary: toSimSummary(payload),
         // 기본은 비공개. 공개는 사용자가 명시적으로 선택할 때만 (서버 기본값과 동일한 철학)
         is_public: input.isPublic ?? false
       })
@@ -133,6 +171,7 @@ export const publishScenario = async (
       .single()
       .returns<ScenarioWithAuthor>()
   );
+};
 
 export const updateScenario = async (
   client: CommunityClient,
@@ -152,7 +191,10 @@ export const updateScenario = async (
         ...(patch.title !== undefined ? { title: patch.title } : {}),
         ...(patch.description !== undefined ? { description: patch.description } : {}),
         ...(patch.body !== undefined ? { body: patch.body } : {}),
-        ...(patch.payload !== undefined ? { payload: patch.payload } : {}),
+        // payload를 바꿀 때만 요약도 함께 갱신한다(재첨부=새 숫자, 해제=null).
+        // payload를 안 건드리는 수정(제목/본문만)은 sim_summary 키 자체를 보내지 않아
+        // 게시 시점 숫자가 보존된다 — 읽기·수정 경로의 임의 재계산 금지 원칙.
+        ...(patch.payload !== undefined ? { payload: patch.payload, sim_summary: toSimSummary(patch.payload) } : {}),
         ...(patch.isPublic !== undefined ? { is_public: patch.isPublic } : {})
       })
       .eq('id', scenarioId)
@@ -253,23 +295,72 @@ export const registerScenarioView = async (client: CommunityClient, scenarioId: 
 
 // ── 댓글 ────────────────────────────────────────────────────────────────────
 
+export type CommentsPage = {
+  /** 이번 페이지의 루트 + 그 루트들의 대댓글(플랫). 트리 구성은 buildCommentTree로. */
+  comments: CommentWithAuthor[];
+  nextCursor: CommentCursor | null;
+};
+
 /**
- * 시나리오의 모든 댓글(플랫). 트리 구성은 buildCommentTree(순수 함수)로 한다.
+ * 댓글 페이지 — 루트 댓글 keyset(created_at asc, id asc) 20개 + 로드된 루트의 대댓글 전부.
  * 삭제된 댓글도 내려온다 — 대댓글이 매달려 있으면 자리표시자로 보여줘야 하기 때문
- * (본문은 서버가 이미 ''로 파기했다).
+ * (본문은 서버가 이미 ''로 파기했다). 트리 구성은 buildCommentTree(순수 함수)로 한다.
  */
-export const fetchComments = async (
+export const fetchCommentsPage = async (
   client: CommunityClient,
-  scenarioId: string
-): Promise<CommentWithAuthor[]> =>
-  unwrap(
+  scenarioId: string,
+  options: { cursor?: CommentCursor | null; pageSize?: number } = {}
+): Promise<CommentsPage> => {
+  const pageSize = options.pageSize ?? COMMENTS_PAGE_SIZE;
+
+  let rootsQuery = client
+    .from('comments')
+    .select(COMMENT_COLUMNS)
+    .eq('scenario_id', scenarioId)
+    .is('parent_id', null);
+  if (options.cursor) rootsQuery = rootsQuery.or(buildCommentKeysetFilter(options.cursor));
+
+  // 다음 페이지 존재 여부를 알기 위해 1개 더 받는다 (갤러리와 동일)
+  const rows = unwrap(
+    await rootsQuery
+      .order('created_at', { ascending: true })
+      .order('id', { ascending: true })
+      .limit(pageSize + 1)
+      .returns<CommentWithAuthor[]>()
+  );
+
+  const { roots, nextCursor } = splitCommentRootsPage(rows, pageSize);
+  if (roots.length === 0) return { comments: [], nextCursor: null };
+
+  const replies = unwrap(
     await client
       .from('comments')
       .select(COMMENT_COLUMNS)
-      .eq('scenario_id', scenarioId)
+      .in('parent_id', roots.map((row) => row.id))
       .order('created_at', { ascending: true })
       .returns<CommentWithAuthor[]>()
   );
+
+  return { comments: [...roots, ...replies], nextCursor };
+};
+
+/**
+ * 보이는 댓글 총계(삭제 제외) — "댓글 N" 헤딩용. 서버 트리거가 유지하는
+ * scenarios.comment_count와 같은 정의지만, 댓글 훅이 시나리오 행에 결합하지 않도록
+ * comments 테이블에서 직접 센다(head:true — 행은 내려받지 않는다).
+ */
+export const fetchVisibleCommentCount = async (
+  client: CommunityClient,
+  scenarioId: string
+): Promise<number> => {
+  const { count, error } = await client
+    .from('comments')
+    .select('id', { count: 'exact', head: true })
+    .eq('scenario_id', scenarioId)
+    .is('deleted_at', null);
+  if (error) throw new Error(error.message);
+  return count ?? 0;
+};
 
 /** parentId를 주면 대댓글. 대댓글의 대댓글은 서버 트리거가 거부한다. */
 export const createComment = async (

@@ -1,11 +1,13 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   createComment,
+  fetchCommentsPage,
   fetchGalleryPage,
   fetchMyScenarioLikes,
+  fetchVisibleCommentCount,
   publishScenario
 } from '@/shared/lib/supabase';
-import type { CommunityClient, ScenarioListItem } from '@/shared/lib/supabase';
+import type { CommentWithAuthor, CommunityClient, ScenarioListItem } from '@/shared/lib/supabase';
 
 /**
  * queries는 client를 **인자로** 받으므로 가짜 query-builder를 주입해 조립 로직을 검증한다.
@@ -15,8 +17,12 @@ import type { CommunityClient, ScenarioListItem } from '@/shared/lib/supabase';
 type Calls = {
   from: string[];
   select: string[];
+  selectOpts: unknown[];
   eq: [string, unknown][];
+  is: [string, unknown][];
   or: string[];
+  gte: [string, unknown][];
+  lte: [string, unknown][];
   order: [string, { ascending: boolean }][];
   limit: number[];
   insert: unknown[];
@@ -24,12 +30,20 @@ type Calls = {
   single: number;
 };
 
-const makeBuilder = (result: { data: unknown; error: { message: string } | null }) => {
+type BuilderResult = { data: unknown; error: { message: string } | null; count?: number };
+
+/** 결과 배열을 주면 await 순서대로 하나씩 소비한다 (한 함수가 여러 쿼리를 날리는 경우). */
+const makeBuilder = (result: BuilderResult | BuilderResult[]) => {
+  const queue = Array.isArray(result) ? [...result] : null;
   const calls: Calls = {
     from: [],
     select: [],
+    selectOpts: [],
     eq: [],
+    is: [],
     or: [],
+    gte: [],
+    lte: [],
     order: [],
     limit: [],
     insert: [],
@@ -42,16 +56,29 @@ const makeBuilder = (result: { data: unknown; error: { message: string } | null 
       calls.from.push(table);
       return builder;
     },
-    select(cols: string) {
+    select(cols: string, opts?: unknown) {
       calls.select.push(cols);
+      if (opts !== undefined) calls.selectOpts.push(opts);
       return builder;
     },
     eq(col: string, val: unknown) {
       calls.eq.push([col, val]);
       return builder;
     },
+    is(col: string, val: unknown) {
+      calls.is.push([col, val]);
+      return builder;
+    },
     or(filter: string) {
       calls.or.push(filter);
+      return builder;
+    },
+    gte(col: string, val: unknown) {
+      calls.gte.push([col, val]);
+      return builder;
+    },
+    lte(col: string, val: unknown) {
+      calls.lte.push([col, val]);
       return builder;
     },
     order(col: string, opt: { ascending: boolean }) {
@@ -78,7 +105,8 @@ const makeBuilder = (result: { data: unknown; error: { message: string } | null 
       return builder;
     },
     then(resolve: (v: unknown) => unknown, reject?: (e: unknown) => unknown) {
-      return Promise.resolve(result).then(resolve, reject);
+      const next = queue ? (queue.shift() ?? { data: null, error: null }) : (result as BuilderResult);
+      return Promise.resolve(next).then(resolve, reject);
     }
   };
 
@@ -92,6 +120,7 @@ const listRow = (id: string, createdAt: string): ScenarioListItem => ({
   description: null,
   is_public: true,
   has_payload: false,
+  sim_summary: null,
   like_count: 0,
   view_count: 0,
   comment_count: 0,
@@ -141,6 +170,56 @@ describe('fetchGalleryPage', () => {
 
     await expect(fetchGalleryPage(client, {})).rejects.toThrow('boom');
   });
+
+  it('facet 미지정이면 gte/lte를 하나도 걸지 않는다 (기존 동작 그대로)', async () => {
+    const { client, calls } = makeBuilder({ data: [], error: null });
+
+    await fetchGalleryPage(client, { sort: 'recent' });
+
+    expect(calls.gte).toEqual([]);
+    expect(calls.lte).toEqual([]);
+  });
+
+  it('정밀 검색 facet을 파생 컬럼 gte/lte로 얹는다 (월배당 range·목표 이상·기간 range)', async () => {
+    const { client, calls } = makeBuilder({ data: [], error: null });
+
+    await fetchGalleryPage(client, {
+      sort: 'recent',
+      facets: { monthlyMin: 3_000_000, monthlyMax: 5_000_000, targetMin: 2_000_000, durationMin: 10, durationMax: 20 }
+    });
+
+    // 월배당 range → final_monthly_dividend, 목표는 이상(gte)만, 기간 range → duration_years
+    expect(calls.gte).toEqual([
+      ['final_monthly_dividend', 3_000_000],
+      ['target_monthly_dividend', 2_000_000],
+      ['duration_years', 10]
+    ]);
+    expect(calls.lte).toEqual([
+      ['final_monthly_dividend', 5_000_000],
+      ['duration_years', 20]
+    ]);
+    // 정렬·is_public 규칙은 필터와 공존한다
+    expect(calls.eq).toContainEqual(['is_public', true]);
+    expect(calls.order.map(([col]) => col)).toEqual(['created_at', 'id']);
+  });
+
+  it('일부 facet만 주면 그 경계만 얹는다 (목표만 지정)', async () => {
+    const { client, calls } = makeBuilder({ data: [], error: null });
+
+    await fetchGalleryPage(client, { facets: { targetMin: 1_500_000 } });
+
+    expect(calls.gte).toEqual([['target_monthly_dividend', 1_500_000]]);
+    expect(calls.lte).toEqual([]);
+  });
+
+  it('facet과 검색어·커서가 함께 오면 모두 공존한다 (or 필터 + gte/lte)', async () => {
+    const { client, calls } = makeBuilder({ data: [], error: null });
+
+    await fetchGalleryPage(client, { sort: 'recent', query: '배당', facets: { monthlyMin: 1_000_000 } });
+
+    expect(calls.or).toContain('title.ilike.%배당%,description.ilike.%배당%');
+    expect(calls.gte).toEqual([['final_monthly_dividend', 1_000_000]]);
+  });
 });
 
 describe('publishScenario — 하이브리드 모델 기본값', () => {
@@ -185,6 +264,93 @@ describe('createComment — 대댓글 parent_id', () => {
     await createComment(client, { scenarioId: 's1', body: '답글', parentId: 'r1' });
 
     expect((calls.insert[0] as Record<string, unknown>).parent_id).toBe('r1');
+  });
+});
+
+describe('fetchCommentsPage — 루트 keyset + 대댓글 동반 로드', () => {
+  const commentRow = (id: string, parentId: string | null, createdAt: string): CommentWithAuthor => ({
+    id,
+    scenario_id: 's1',
+    user_id: 'u1',
+    parent_id: parentId,
+    body: `본문 ${id}`,
+    like_count: 0,
+    created_at: createdAt,
+    updated_at: createdAt,
+    deleted_at: null,
+    author: null
+  });
+
+  it('루트를 (created_at,id) 오름차순으로 pageSize+1개 요청하고, 로드된 루트의 대댓글을 in 조회로 붙인다', async () => {
+    const roots = [
+      commentRow('a', null, '2026-07-01T00:00:00Z'),
+      commentRow('b', null, '2026-07-02T00:00:00Z'),
+      commentRow('c', null, '2026-07-03T00:00:00Z') // limit+1번째 → 다음 페이지 존재 신호
+    ];
+    const replies = [commentRow('a-1', 'a', '2026-07-01T01:00:00Z')];
+    const { client, calls } = makeBuilder([
+      { data: roots, error: null },
+      { data: replies, error: null }
+    ]);
+
+    const page = await fetchCommentsPage(client, 's1', { pageSize: 2 });
+
+    expect(calls.from).toEqual(['comments', 'comments']);
+    expect(calls.eq).toContainEqual(['scenario_id', 's1']);
+    expect(calls.is).toContainEqual(['parent_id', null]);
+    expect(calls.or).toEqual([]); // 첫 페이지엔 keyset 필터 없음
+    expect(calls.order.map(([col, opt]) => [col, opt.ascending])).toEqual([
+      ['created_at', true],
+      ['id', true],
+      ['created_at', true] // 대댓글 조회의 정렬
+    ]);
+    expect(calls.limit).toEqual([3]);
+    expect(calls.in).toContainEqual(['parent_id', ['a', 'b']]);
+
+    expect(page.comments.map((row) => row.id)).toEqual(['a', 'b', 'a-1']);
+    expect(page.nextCursor).toEqual({ createdAt: '2026-07-02T00:00:00Z', id: 'b' });
+  });
+
+  it('커서를 주면 keyset or 필터를 얹는다', async () => {
+    const { client, calls } = makeBuilder([{ data: [], error: null }]);
+
+    await fetchCommentsPage(client, 's1', {
+      cursor: { createdAt: '2026-07-02T00:00:00Z', id: 'b' },
+      pageSize: 2
+    });
+
+    expect(calls.or).toEqual([
+      'created_at.gt."2026-07-02T00:00:00Z",and(created_at.eq."2026-07-02T00:00:00Z",id.gt."b")'
+    ]);
+  });
+
+  it('루트가 없으면 대댓글 조회를 생략한다 (빈 마지막 페이지)', async () => {
+    const { client, calls } = makeBuilder([{ data: [], error: null }]);
+
+    const page = await fetchCommentsPage(client, 's1', { pageSize: 2 });
+
+    expect(calls.from).toEqual(['comments']); // 두 번째 쿼리 없음
+    expect(page.comments).toEqual([]);
+    expect(page.nextCursor).toBeNull();
+  });
+});
+
+describe('fetchVisibleCommentCount', () => {
+  it('삭제 제외 head 카운트를 요청한다', async () => {
+    const { client, calls } = makeBuilder({ data: null, error: null, count: 7 });
+
+    const total = await fetchVisibleCommentCount(client, 's1');
+
+    expect(total).toBe(7);
+    expect(calls.eq).toContainEqual(['scenario_id', 's1']);
+    expect(calls.is).toContainEqual(['deleted_at', null]);
+    expect(calls.selectOpts).toContainEqual({ count: 'exact', head: true });
+  });
+
+  it('error가 오면 던진다', async () => {
+    const { client } = makeBuilder({ data: null, error: { message: 'boom' } });
+
+    await expect(fetchVisibleCommentCount(client, 's1')).rejects.toThrow('boom');
   });
 });
 

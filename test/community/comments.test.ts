@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { buildCommentTree, countVisibleComments, pruneDeletedThreads } from '@/shared/lib/supabase';
+import {
+  buildCommentTree,
+  countVisibleComments,
+  mergeCommentRows,
+  pruneDeletedThreads
+} from '@/shared/lib/supabase';
 import type { CommentTreeInput } from '@/shared/lib/supabase';
 
 const comment = (
@@ -115,6 +120,25 @@ describe('pruneDeletedThreads', () => {
     const pruned = pruneDeletedThreads(threads);
 
     expect(pruned.map((thread) => thread.comment.id)).toEqual(['r2']);
+  });
+});
+
+describe('mergeCommentRows — 페이지 병합', () => {
+  it('id 기준으로 중복 없이 뒤에 이어붙인다', () => {
+    const prev = [comment('a', null, '2026-01-01T00:00:00Z'), comment('b', null, '2026-01-02T00:00:00Z')];
+    const incoming = [comment('b', null, '2026-01-02T00:00:00Z'), comment('c', null, '2026-01-03T00:00:00Z')];
+
+    expect(mergeCommentRows(prev, incoming).map((row) => row.id)).toEqual(['a', 'b', 'c']);
+  });
+
+  it('입력 배열을 변형하지 않는다 (순수 함수)', () => {
+    const prev = [comment('a', null, '2026-01-01T00:00:00Z')];
+    const incoming = [comment('a', null, '2026-01-01T00:00:00Z')];
+
+    mergeCommentRows(prev, incoming);
+
+    expect(prev).toHaveLength(1);
+    expect(incoming).toHaveLength(1);
   });
 });
 

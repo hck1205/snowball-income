@@ -1,4 +1,4 @@
-import type { GalleryCursor, GallerySort, ScenarioListItem } from './types';
+import type { GalleryCursor, GalleryFacetFilters, GallerySort, ScenarioListItem } from './types';
 
 /**
  * Keyset(커서) 페이지네이션 — **순수 함수**. IO 없음, 테스트 대상.
@@ -90,6 +90,41 @@ export const buildKeysetFilter = (sort: GallerySort, cursor: GalleryCursor): str
   return `created_at.lt.${createdAt},and(created_at.eq.${createdAt},id.lt.${id})`;
 };
 
+// ── 댓글 keyset ─────────────────────────────────────────────────────────────
+
+/**
+ * 댓글 무한 스크롤 — **루트 댓글만** keyset으로 페이지네이션한다(대댓글은 로드된 루트에
+ * parent_id in 조회로 딸려온다). 갤러리와 같은 이유로 OFFSET이 아니라 keyset이다.
+ * 댓글은 **오름차순**(오래된 것부터)이므로 비교 방향이 갤러리(gt ↔ lt)와 반대다.
+ *   정렬: (created_at asc, id asc) — buildCommentTree의 정렬 규칙과 동일한 키.
+ */
+export const COMMENTS_PAGE_SIZE = 20;
+
+/** 커서는 URL에 실리지 않으므로 인코딩 없이 값 그대로 들고 다닌다. */
+export type CommentCursor = { createdAt: string; id: string };
+
+/** (created_at, id) > (T, I) 튜플 비교를 PostgREST `.or(...)`로 펼친다. */
+export const buildCommentKeysetFilter = (cursor: CommentCursor): string => {
+  const createdAt = `"${cursor.createdAt}"`;
+  const id = `"${cursor.id}"`;
+  return `created_at.gt.${createdAt},and(created_at.eq.${createdAt},id.gt.${id})`;
+};
+
+/** limit+1개를 받아 다음 페이지 유무를 판별하고, 마지막 루트로 다음 커서를 만든다. */
+export const splitCommentRootsPage = <T extends { created_at: string; id: string }>(
+  rows: readonly T[],
+  pageSize: number
+): { roots: T[]; nextCursor: CommentCursor | null } => {
+  const hasMore = rows.length > pageSize;
+  const roots = hasMore ? rows.slice(0, pageSize) : rows.slice();
+  const last = roots[roots.length - 1];
+
+  return {
+    roots,
+    nextCursor: hasMore && last ? { createdAt: last.created_at, id: last.id } : null
+  };
+};
+
 // ── 검색 ──────────────────────────────────────────────────────────────────
 
 /**
@@ -145,6 +180,41 @@ export const buildSearchFilter = (
   if (term.length === 0) return null;
   const columns = (filter != null && SEARCH_COLUMNS_BY_FILTER[filter]) || SEARCH_ILIKE_COLUMNS;
   return columns.map((column) => `${column}.ilike.%${term}%`).join(',');
+};
+
+// ── 정밀 검색 facet 필터 ─────────────────────────────────────────────────────
+
+/** 필터가 걸리는 파생 숫자 컬럼 (마이그레이션 20260717000001의 generated 컬럼). */
+export type FacetColumn = 'final_monthly_dividend' | 'target_monthly_dividend' | 'duration_years';
+
+/** supabase-js `.gte()/.lte()` 체이닝에 그대로 쓰는 범위 경계 1개. */
+export type FacetRangeBound = { column: FacetColumn; op: 'gte' | 'lte'; value: number };
+
+/**
+ * 정밀 검색 facet 필터를 PostgREST 범위 경계 목록으로 만든다 — **순수 함수**. IO 없음, 테스트 대상.
+ *
+ * 각 경계는 fetchGalleryPage에서 별개의 top-level `.gte()/.lte()`로 얹힌다 →
+ * PostgREST가 is_public·검색·키셋 조건과 전부 **AND**로 묶는다(검색/키셋 `.or`와 공존).
+ * 미지정(undefined)·비유한(NaN/Infinity) 값은 무필터로 떨군다. 빈 필터/undefined면 빈 배열 →
+ * 아무 조건도 얹지 않아 **기존 목록 동작 그대로**(하위 호환). 단위: 금액=원, 기간=년.
+ *
+ * 목표(target)는 스펙상 "이상(≥) 단일"이라 gte만 만든다(상한 없음).
+ */
+export const buildGalleryFacetFilters = (filters?: GalleryFacetFilters | null): FacetRangeBound[] => {
+  if (!filters) return [];
+
+  const bounds: FacetRangeBound[] = [];
+  const push = (column: FacetColumn, op: 'gte' | 'lte', value: number | undefined): void => {
+    if (typeof value === 'number' && Number.isFinite(value)) bounds.push({ column, op, value });
+  };
+
+  push('final_monthly_dividend', 'gte', filters.monthlyMin);
+  push('final_monthly_dividend', 'lte', filters.monthlyMax);
+  push('target_monthly_dividend', 'gte', filters.targetMin);
+  push('duration_years', 'gte', filters.durationMin);
+  push('duration_years', 'lte', filters.durationMax);
+
+  return bounds;
 };
 
 /** 정렬 키 목록 (supabase-js `.order()` 체이닝에 그대로 쓴다). */

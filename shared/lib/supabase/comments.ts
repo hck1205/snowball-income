@@ -82,3 +82,15 @@ export const countVisibleComments = <T extends CommentTreeInput>(
     (total, thread) => total + (thread.comment.deleted_at === null ? 1 : 0) + thread.replies.length,
     0
   );
+
+/**
+ * 페이지 병합 — **순수 함수**. 이미 로드된 행과 새 페이지를 id 기준으로 중복 없이 합친다.
+ * 낙관적으로 추가된 새 댓글이 이후 페이지에 다시 내려와도(가장 최신 = 마지막 페이지) 한 번만 남는다.
+ */
+export const mergeCommentRows = <T extends { id: string }>(
+  prev: readonly T[],
+  incoming: readonly T[]
+): T[] => {
+  const seen = new Set(prev.map((row) => row.id));
+  return [...prev, ...incoming.filter((row) => !seen.has(row.id))];
+};

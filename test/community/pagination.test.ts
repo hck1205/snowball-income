@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildCommentKeysetFilter,
+  buildGalleryFacetFilters,
   buildKeysetFilter,
   decodeGalleryCursor,
   encodeGalleryCursor,
   getGalleryOrderKeys,
+  splitCommentRootsPage,
   splitPage,
   toGalleryCursor
 } from '@/shared/lib/supabase';
@@ -16,6 +19,7 @@ const item = (id: string, createdAt: string, likeCount = 0): ScenarioListItem =>
   description: null,
   is_public: true,
   has_payload: true,
+  sim_summary: null,
   like_count: likeCount,
   view_count: 0,
   comment_count: 0,
@@ -122,6 +126,64 @@ describe('buildKeysetFilter', () => {
   });
 });
 
+describe('buildGalleryFacetFilters (정밀 검색)', () => {
+  it('필터가 없거나 빈 객체면 경계를 만들지 않는다 (기존 목록 동작)', () => {
+    expect(buildGalleryFacetFilters(undefined)).toEqual([]);
+    expect(buildGalleryFacetFilters(null)).toEqual([]);
+    expect(buildGalleryFacetFilters({})).toEqual([]);
+  });
+
+  it('월배당 range는 final_monthly_dividend gte/lte로 펼친다', () => {
+    expect(buildGalleryFacetFilters({ monthlyMin: 3_000_000, monthlyMax: 5_000_000 })).toEqual([
+      { column: 'final_monthly_dividend', op: 'gte', value: 3_000_000 },
+      { column: 'final_monthly_dividend', op: 'lte', value: 5_000_000 }
+    ]);
+  });
+
+  it('목표는 이상(gte) 단일 경계만 만든다 (상한 없음)', () => {
+    expect(buildGalleryFacetFilters({ targetMin: 2_000_000 })).toEqual([
+      { column: 'target_monthly_dividend', op: 'gte', value: 2_000_000 }
+    ]);
+  });
+
+  it('투자기간 range는 duration_years gte/lte로 펼친다', () => {
+    expect(buildGalleryFacetFilters({ durationMin: 10, durationMax: 25 })).toEqual([
+      { column: 'duration_years', op: 'gte', value: 10 },
+      { column: 'duration_years', op: 'lte', value: 25 }
+    ]);
+  });
+
+  it('세 facet을 모두 주면 컬럼별 경계를 순서대로 모은다', () => {
+    expect(
+      buildGalleryFacetFilters({
+        monthlyMin: 1_000_000,
+        monthlyMax: 9_000_000,
+        targetMin: 3_000_000,
+        durationMin: 5,
+        durationMax: 30
+      })
+    ).toEqual([
+      { column: 'final_monthly_dividend', op: 'gte', value: 1_000_000 },
+      { column: 'final_monthly_dividend', op: 'lte', value: 9_000_000 },
+      { column: 'target_monthly_dividend', op: 'gte', value: 3_000_000 },
+      { column: 'duration_years', op: 'gte', value: 5 },
+      { column: 'duration_years', op: 'lte', value: 30 }
+    ]);
+  });
+
+  it('0은 유효한 경계로 유지한다 (미지정과 구분)', () => {
+    expect(buildGalleryFacetFilters({ monthlyMin: 0 })).toEqual([
+      { column: 'final_monthly_dividend', op: 'gte', value: 0 }
+    ]);
+  });
+
+  it('NaN·Infinity 같은 비유한 값은 무필터로 떨군다', () => {
+    expect(
+      buildGalleryFacetFilters({ monthlyMin: Number.NaN, monthlyMax: Number.POSITIVE_INFINITY, durationMin: 12 })
+    ).toEqual([{ column: 'duration_years', op: 'gte', value: 12 }]);
+  });
+});
+
 describe('getGalleryOrderKeys', () => {
   it('recent는 (created_at, id) 내림차순', () => {
     expect(getGalleryOrderKeys('recent')).toEqual([
@@ -179,5 +241,54 @@ describe('splitPage', () => {
       id: 'b',
       likeCount: 3
     });
+  });
+});
+
+describe('댓글 keyset (루트 20개 단위, 오름차순)', () => {
+  const root = (id: string, createdAt: string) => ({ id, created_at: createdAt });
+
+  it('buildCommentKeysetFilter — (created_at, id) > (T, I) 튜플 비교를 or로 펼친다', () => {
+    expect(buildCommentKeysetFilter({ createdAt: '2026-07-14T00:00:00Z', id: 'c20' })).toBe(
+      'created_at.gt."2026-07-14T00:00:00Z",and(created_at.eq."2026-07-14T00:00:00Z",id.gt."c20")'
+    );
+  });
+
+  it('splitCommentRootsPage — limit+1개가 오면 pageSize로 자르고 마지막 루트로 커서를 만든다', () => {
+    const rows = [
+      root('a', '2026-07-01T00:00:00Z'),
+      root('b', '2026-07-02T00:00:00Z'),
+      root('c', '2026-07-03T00:00:00Z')
+    ];
+
+    const page = splitCommentRootsPage(rows, 2);
+
+    expect(page.roots.map((row) => row.id)).toEqual(['a', 'b']);
+    expect(page.nextCursor).toEqual({ createdAt: '2026-07-02T00:00:00Z', id: 'b' });
+  });
+
+  it('splitCommentRootsPage — pageSize 이하면 전부 반환하고 커서는 null (마지막 페이지)', () => {
+    const rows = [root('a', '2026-07-01T00:00:00Z'), root('b', '2026-07-02T00:00:00Z')];
+
+    const page = splitCommentRootsPage(rows, 2);
+
+    expect(page.roots.map((row) => row.id)).toEqual(['a', 'b']);
+    expect(page.nextCursor).toBeNull();
+  });
+
+  it('splitCommentRootsPage — 커서 경계에서 페이지가 이어져도 중복이 없다', () => {
+    const all = Array.from({ length: 5 }, (_, i) => root(`c${i}`, `2026-07-0${i + 1}T00:00:00Z`));
+
+    const first = splitCommentRootsPage(all.slice(0, 3), 2);
+    // 다음 페이지 = 커서 이후 행(gt 비교라 커서 행 자신은 제외)
+    const rest = all.filter(
+      (row) =>
+        row.created_at > first.nextCursor!.createdAt ||
+        (row.created_at === first.nextCursor!.createdAt && row.id > first.nextCursor!.id)
+    );
+    const second = splitCommentRootsPage(rest, 2);
+
+    const merged = [...first.roots, ...second.roots].map((row) => row.id);
+    expect(merged).toEqual(['c0', 'c1', 'c2', 'c3']);
+    expect(new Set(merged).size).toBe(merged.length);
   });
 });
