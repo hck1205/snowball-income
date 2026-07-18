@@ -1,5 +1,12 @@
 {
-  "asOf": null,
-  "source": "none",
-  "entries": {}
+  "asOf": "2026-07-18",
+  "source": "yahoo",
+  "entries": {
+    "SCHD": {
+      "initialPrice": 32.91,
+      "dividendYield": 3.18,
+      "frequency": "quarterly",
+      "observedDividendCagr": 9.13
+    }
+  }
 }
