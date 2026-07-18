@@ -1,4 +1,5 @@
 import type { FmpApiVariant } from './provider';
+import { BUCKET_COUNT } from './partition';
 
 /**
  * `yahoo` (default) needs no API key and actually serves this app's tickers on the free tier;
@@ -9,8 +10,14 @@ export type ProviderKind = 'yahoo' | 'fmp';
 export type CliOptions = {
   /** Default. Nothing is written to disk; the report still shows exactly what would change. */
   dryRun: boolean;
-  /** Restrict the run to these tickers. `null` means "the whole universe". */
+  /** Restrict the run to these tickers. `null` means "the whole universe". Wins over `bucket`. */
   only: string[] | null;
+  /**
+   * Restrict the run to one weekday bucket (`partitionTickers`, 0..BUCKET_COUNT-1) of the
+   * universe - a defensive measure against an unofficial API rate-limiting the runner's IP.
+   * `null` means "no bucket restriction". Ignored when `only` is set.
+   */
+  bucket: number | null;
   provider: ProviderKind;
   /** Only consulted when `provider === 'fmp'`. */
   variant: FmpApiVariant;
@@ -25,6 +32,7 @@ export type ParsedCliOptions = { ok: true; value: CliOptions } | { ok: false; er
 export const DEFAULT_CLI_OPTIONS: CliOptions = {
   dryRun: true,
   only: null,
+  bucket: null,
   provider: 'yahoo',
   variant: 'stable',
   cagrYears: 5,
@@ -65,6 +73,16 @@ export const parseCliArgs = (argv: readonly string[]): ParsedCliOptions => {
 
       if (tickers.length === 0) return { ok: false, error: '--only needs at least one ticker' };
       options.only = tickers;
+      continue;
+    }
+
+    if (arg.startsWith('--bucket=')) {
+      const raw = arg.slice('--bucket='.length);
+      const bucket = Number(raw);
+      if (!Number.isInteger(bucket) || bucket < 0 || bucket >= BUCKET_COUNT) {
+        return { ok: false, error: `--bucket must be an integer from 0 to ${BUCKET_COUNT - 1} (got "${raw}")` };
+      }
+      options.bucket = bucket;
       continue;
     }
 

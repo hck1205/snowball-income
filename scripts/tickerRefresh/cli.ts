@@ -8,6 +8,7 @@ import type { MarketDataEntry, MarketDataSnapshot } from '@/shared/constants/mar
 import { CURATED_DIVIDEND_UNIVERSE } from '@/shared/constants/presets';
 
 import { parseCliArgs, serializeSnapshot } from './cliOptions';
+import { BUCKET_COUNT, tickersInBucket } from './partition';
 import { createFmpProvider, createYahooProvider } from './provider';
 import type { TickerDataProvider } from './provider';
 import { refreshTickers } from './refresh';
@@ -32,7 +33,9 @@ const main = async (): Promise<number> => {
   const parsed = parseCliArgs(process.argv.slice(2));
   if (!parsed.ok) {
     console.error(`[ticker:refresh] ${parsed.error}`);
-    console.error('Usage: npm run ticker:refresh -- [--write] [--only=SCHD,JEPI] [--provider=yahoo|fmp] [--variant=stable|legacy] [--cagr-years=5] [--delay=200] [--as-of=YYYY-MM-DD]');
+    console.error(
+      `Usage: npm run ticker:refresh -- [--write] [--only=SCHD,JEPI] [--bucket=0..${BUCKET_COUNT - 1}] [--provider=yahoo|fmp] [--variant=stable|legacy] [--cagr-years=5] [--delay=200] [--as-of=YYYY-MM-DD]`
+    );
     return 1;
   }
   const options = parsed.value;
@@ -74,10 +77,15 @@ const main = async (): Promise<number> => {
     return 1;
   }
 
-  const tickers = options.only ?? knownTickers;
+  // `--only` is an explicit, manual ticker list, so it wins outright over `--bucket` (the
+  // automatic weekday partition) rather than intersecting with it.
+  const tickers =
+    options.only ?? (options.bucket === null ? knownTickers : tickersInBucket(knownTickers, options.bucket));
   const asOf = options.asOf ?? today();
 
-  console.log(`[ticker:refresh] Refreshing ${tickers.length} ticker(s) via ${provider.name}...`);
+  const bucketSuffix =
+    options.only === null && options.bucket !== null ? ` (bucket ${options.bucket}/${BUCKET_COUNT})` : '';
+  console.log(`[ticker:refresh] Refreshing ${tickers.length} ticker(s) via ${provider.name}${bucketSuffix}...`);
 
   const result = await refreshTickers({
     tickers,

@@ -48,7 +48,7 @@ totalReturn = dividendYield + dividendGrowth  → 입력이 아니라 파생값
 - **SEO**: canonical 도메인이 `snowball-income.example`(존재하지 않는 예약 TLD)이었고, FAQPage 구조화 데이터가 **앱에 없는 Q&A를 마크업**하고 있었다(구글 정책 위반). 전부 정리. **초기 JS 2.83MB → 523KB** (죽어 있던 `lazy()`를 정적 import가 무력화하고 있었다)
 - **동적 OG 이미지** (`/api/og`): 공유 링크마다 그 시나리오의 실제 숫자로 카드 생성 → 카톡 공유 시 표시. `middleware.ts`가 `?share=` 요청의 og:image를 치환
 - **프리렌더**: `#root`에 1,500자 한글 콘텐츠(빌드 시 실제 엔진으로 계산한 예시 포함) → 네이버 Yeti·다음이 읽을 수 있게
-- **티커 자동 갱신** (`scripts/tickerRefresh/`): 주간 크론 → **Yahoo Finance(무료·무키, 기본 프로바이더)**에서 가격·배당률·지급주기 → 이상치 가드 → **PR 생성**(직접 push 안 함). FMP는 유료 키 보유자용 옵션(`--provider=fmp`)으로 유지 — 이유는 아래 "알아둬야 할 결정과 함정" 참고
+- **티커 자동 갱신** (`scripts/tickerRefresh/`): **월~금 요일 분할 크론**(`cron: 0 21 * * 1-5`) → **Yahoo Finance(무료·무키, 기본 프로바이더)**에서 가격·배당률·지급주기 → 이상치 가드 → **주간 누적 PR**(직접 push 안 함, 하루치가 아니라 5거래일치를 한 PR로). FMP는 유료 키 보유자용 옵션(`--provider=fmp`)으로 유지 — 이유는 아래 "알아둬야 할 결정과 함정" 참고. **요일 분할 이유**: Yahoo가 비공식 API라 러너 IP 레이트리밋 리스크가 있어, 유니버스(68종)를 5등분(`scripts/tickerRefresh/partition.ts`)해 하루 ~14종만 건드리는 방어적 설계 — 처음부터 이렇게 시작했다(트래픽 문제를 실제로 겪은 뒤 고친 게 아님)
 - **인덱서** (`tools/indexer/`): `npm run search -- <질의>`로 코드 검색. `kind:pure`, `file:<경로>` 필터
 - **에이전트 팀** (`.claude/agents/`): orchestrator + pm-po + 11 specialist
 - **Supabase 커뮤니티 (Stage 1)**: 스키마 + RLS + 데이터 레이어. **UI는 아직 없음**
@@ -106,7 +106,8 @@ DB·RLS·데이터 레이어는 **완성됐고 실제 Supabase에 연결·검증
   - `expectedTotalReturn` = **사람의 가정** → 자동화 금지. 새 티커 추가 시 실질적으로 이것만 정하면 된다
   - `dividendGrowth` = **파생값** (`etr − dy`) → 정합 모델에서는 주가 성장률이기도 하다. 과거 배당 CAGR로 덮어쓰면 안 된다(파이프라인이 이걸 막고 있다)
 - **에이전트에게 `git stash`/`reset`을 절대 시키지 말 것.** 이번 세션에서 한 에이전트가 stash로 다른 에이전트의 작업을 날린 사고가 있었다(복구함).
-- **티커 갱신 프로바이더 = Yahoo Finance 기본(2026-07-18 변경)**. FMP 무료 티어는 이 앱의 유니버스(SCHD·JEPI·O 등 73종)에 못 쓴다 — per-symbol 시세가 AAPL 같은 허용 심볼로만 열리고 우리 심볼은 실측 HTTP 402("This value set for 'symbol' is not available under your current subscription"). FMP 레거시(`/api/v3/`)도 신규 키에 403으로 폐지됨. 대안으로 채택한 Yahoo `chart` API(`https://query1.finance.yahoo.com/v8/finance/chart/<ticker>?interval=1d&range=10y&events=div`, `User-Agent` 헤더 필요)는 무료·무키로 우리 티커 전체가 열린다(`scripts/tickerRefresh/provider/yahooProvider.ts`) — **단 비공식 API라 SLA 없음, 응답 형태가 예고 없이 바뀔 수 있다.** 스키마 불일치는 전부 `ProviderError('malformed'|'empty'|...)`로 떨어져 이상치 가드를 거쳐 "이전 값 유지"로 안전하게 감쇠한다(자세한 계약은 `provider.types.ts`). FMP 프로바이더는 유료 키 보유자용으로 `--provider=fmp` 옵션에 남겨뒀다.
+- **티커 갱신 프로바이더 = Yahoo Finance 기본(2026-07-18 변경)**. FMP 무료 티어는 이 앱의 유니버스(SCHD·JEPI·O 등 실측 68종 — `CURATED_DIVIDEND_UNIVERSE` 기준)에 못 쓴다 — per-symbol 시세가 AAPL 같은 허용 심볼로만 열리고 우리 심볼은 실측 HTTP 402("This value set for 'symbol' is not available under your current subscription"). FMP 레거시(`/api/v3/`)도 신규 키에 403으로 폐지됨. 대안으로 채택한 Yahoo `chart` API(`https://query1.finance.yahoo.com/v8/finance/chart/<ticker>?interval=1d&range=10y&events=div`, `User-Agent` 헤더 필요)는 무료·무키로 우리 티커 전체가 열린다(`scripts/tickerRefresh/provider/yahooProvider.ts`) — **단 비공식 API라 SLA 없음, 응답 형태가 예고 없이 바뀔 수 있다.** 스키마 불일치는 전부 `ProviderError('malformed'|'empty'|...)`로 떨어져 이상치 가드를 거쳐 "이전 값 유지"로 안전하게 감쇠한다(자세한 계약은 `provider.types.ts`). FMP 프로바이더는 유료 키 보유자용으로 `--provider=fmp` 옵션에 남겨뒀다.
+- **티커 갱신 = 월~금 요일 분할 + 주간 누적 PR(2026-07-18, 처음부터 이렇게 설계)**. `scripts/tickerRefresh/partition.ts`의 순수 함수 `partitionTickers`가 티커를 정렬 후 `index % 5`로 5버킷에 나눈다(68종 → 14/14/14/13/13, 중복·누락 없음). 워크플로가 UTC 요일(월=0…금=4)을 계산해 `--bucket=N`으로 CLI에 넘긴다. **PR은 하루 1개가 아니라 주 1개**: `chore/refresh-ticker-data` 브랜치를 매일 재사용(없으면 main에서 새로 생성, 있으면 그 브랜치에 커밋 추가) + `gh pr create`는 그 주 첫 커밋에서만(이후엔 이미 열려 있으면 skip) → 머지되면 브랜치가 사라져 다음 주 월요일에 자동으로 새로 시작. `--only`(수동 지정)는 `--bucket`을 완전히 대체한다(교집합 아님) — cli.ts 주석 참고. 변경 없는 날은 커밋 자체를 skip(빈 커밋 방지).
 
 ## 자주 쓰는 명령
 
@@ -119,6 +120,7 @@ npm run search -- runSimulation        # 코드 검색 (인덱서)
 npm run search -- kind:pure allocation # 순수 함수만
 npm run index                  # 인덱스 재생성 (커밋 시 자동)
 npm run ticker:refresh -- --only=SCHD  # 티커 갱신 (dry-run 기본, provider 기본 yahoo, --write로 반영)
+npm run ticker:refresh -- --bucket=0   # 요일 버킷 하나만 (0~4, 월~금 자동 배선은 워크플로가 계산)
 ```
 
 ## 문서 지도

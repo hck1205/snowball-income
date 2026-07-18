@@ -45,10 +45,26 @@ describe('parseCliArgs', () => {
     expect(parsed.ok && parsed.value.provider).toBe('fmp');
   });
 
+  it('defaults --bucket to null, so an unset bucket means the whole universe', () => {
+    const parsed = parseCliArgs([]);
+    expect(parsed.ok && parsed.value.bucket).toBeNull();
+  });
+
+  it.each([
+    ['--bucket=0', 0],
+    ['--bucket=4', 4]
+  ])('parses %s', (arg, expected) => {
+    const parsed = parseCliArgs([arg]);
+    expect(parsed.ok && parsed.value.bucket).toBe(expected);
+  });
+
   it.each([
     ['--only='],
     ['--variant=yahoo'],
     ['--provider=fmp-legacy'],
+    ['--bucket=5'],
+    ['--bucket=-1'],
+    ['--bucket=abc'],
     ['--cagr-years=0'],
     ['--cagr-years=abc'],
     ['--delay=-1'],

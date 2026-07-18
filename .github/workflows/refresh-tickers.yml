@@ -1,13 +1,21 @@
 name: Refresh ticker market data
 
+# Defensive against an unofficial API (Yahoo Finance's chart endpoint has no documented rate
+# limit) rate-limiting the runner's IP: each weekday refreshes only ~1/5 of the universe
+# (scripts/tickerRefresh/partition.ts) instead of all of it in one burst, and the five daily
+# commits accumulate onto a single branch/PR for the week instead of opening five separate PRs.
 on:
   schedule:
-    # Every Monday 21:00 UTC == Tuesday 06:00 KST
-    - cron: '0 21 * * 1'
+    # Monday-Friday 21:00 UTC == Tuesday-Saturday 06:00 KST. No weekend runs.
+    - cron: '0 21 * * 1-5'
   workflow_dispatch:
     inputs:
       only:
-        description: 'Comma-separated tickers to refresh (blank = all)'
+        description: 'Comma-separated tickers to refresh (overrides bucket entirely)'
+        required: false
+        type: string
+      bucket:
+        description: "Bucket to refresh (0-4). Blank = today's weekday bucket (UTC, Mon=0..Fri=4)"
         required: false
         type: string
       provider:
@@ -27,10 +35,14 @@ on:
           - stable
           - legacy
 
-# The workflow opens a PR instead of pushing: a human reviews the diff before any number ships.
+# The workflow pushes to its own accumulating branch and opens/reuses one PR: a human reviews the
+# full week's diff before any number ships. Nothing is ever pushed straight to main.
 permissions:
   contents: write
   pull-requests: write
+
+env:
+  ACCUMULATOR_BRANCH: chore/refresh-ticker-data
 
 jobs:
   refresh:
@@ -39,6 +51,40 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve today's bucket
+        id: bucket
+        env:
+          BUCKET_INPUT: ${{ inputs.bucket }}
+        run: |
+          if [ -n "$BUCKET_INPUT" ]; then
+            bucket="$BUCKET_INPUT"
+          else
+            # ISO weekday in UTC: 1=Mon..7=Sun, mapped to bucket 0..4 via mod 5. The schedule
+            # only fires Mon-Fri, so this is naturally 0..4 there; a manual dispatch on a weekend
+            # with no explicit --bucket wraps back into Monday/Tuesday's bucket instead of
+            # producing an out-of-range value the CLI would reject.
+            weekday=$(date -u +%u)
+            bucket=$(( (weekday - 1) % 5 ))
+          fi
+          echo "bucket=$bucket" >> "$GITHUB_OUTPUT"
+
+      # Switches the working tree to the week's accumulating branch *before* `npm ci`, so
+      # dependencies install against whatever package.json/lockfile that branch actually has
+      # (it may be a few days stale relative to main if main moved during the week).
+      - name: Checkout or start the accumulating branch
+        run: |
+          if git ls-remote --exit-code --heads origin "$ACCUMULATOR_BRANCH" >/dev/null 2>&1; then
+            # Explicit destination refspec: actions/checkout doesn't configure the usual
+            # `refs/remotes/origin/*` wildcard, so a bare `git fetch origin <branch>` would only
+            # populate FETCH_HEAD and leave `origin/<branch>` missing.
+            git fetch origin "refs/heads/$ACCUMULATOR_BRANCH:refs/remotes/origin/$ACCUMULATOR_BRANCH"
+            git checkout -B "$ACCUMULATOR_BRANCH" "origin/$ACCUMULATOR_BRANCH"
+          else
+            git checkout -B "$ACCUMULATOR_BRANCH" origin/main
+          fi
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -55,17 +101,21 @@ jobs:
       # Default provider is Yahoo Finance's free, keyless chart API (scripts/tickerRefresh/provider/
       # yahooProvider.ts) - the scheduled run never depends on FMP_API_KEY. `provider=fmp` stays
       # available for a manual dispatch by anyone holding a paid FMP key; FMP_API_KEY is only read
-      # when that branch runs.
-      - name: Refresh ticker data
+      # when that branch runs. `--only` (manual override) takes the ticker list instead of the
+      # bucket entirely - see cli.ts's own precedence comment.
+      - name: Refresh today's ticker bucket
         env:
           FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
           ONLY: ${{ inputs.only }}
+          BUCKET: ${{ steps.bucket.outputs.bucket }}
           PROVIDER: ${{ inputs.provider || 'yahoo' }}
           VARIANT: ${{ inputs.variant || 'stable' }}
         run: |
           args="--write --provider=$PROVIDER --variant=$VARIANT"
           if [ -n "$ONLY" ]; then
             args="$args --only=$ONLY"
+          else
+            args="$args --bucket=$BUCKET"
           fi
           npm run ticker:refresh -- $args
 
@@ -74,24 +124,54 @@ jobs:
 
       # NOTE: `test:ci` excludes test/snowball/SnowballApp.test.tsx, which is broken on main
       # (9 failures) for reasons unrelated to this pipeline. Everything else must pass, so a bad
-      # snapshot still fails the gate below and no PR is opened.
+      # snapshot still fails the gate below and nothing is committed.
       - name: Test
         run: npm run test:ci
 
-      - name: Create pull request
-        uses: peter-evans/create-pull-request@v6
-        with:
-          commit-message: 'chore(data): refresh ticker market data'
-          branch: chore/refresh-ticker-data
-          delete-branch: true
-          title: 'chore(data): refresh ticker market data'
-          body: |
-            Automated refresh of `shared/constants/marketData/marketData.generated.json` (provider: ${{ inputs.provider || 'yahoo' }}).
+      # A day whose bucket produced no field changes (e.g. every guard rejected, or the market
+      # truly didn't move) must not create an empty commit.
+      - name: Commit and push today's bucket
+        id: commit
+        env:
+          BUCKET: ${{ steps.bucket.outputs.bucket }}
+        run: |
+          git add shared/constants/marketData/marketData.generated.json
+          if git diff --cached --quiet; then
+            echo "No change for bucket $BUCKET - nothing to commit."
+            echo "committed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          weekday_name=$(date -u +%A)
+          git -c user.name="github-actions[bot]" -c user.email="github-actions[bot]@users.noreply.github.com" \
+            commit -m "chore(data): refresh ticker bucket $BUCKET ($weekday_name)"
+          git push origin "$ACCUMULATOR_BRANCH"
+          echo "committed=true" >> "$GITHUB_OUTPUT"
 
-            Only `initialPrice`, `dividendYield`, `dividendGrowth` and `frequency` can change here.
-            Curated values (`name`, `expectedTotalReturn`) are never touched by the pipeline.
-
-            Entries rejected by the outlier guards keep their previous values — check the
-            **Refresh ticker data** step log for `WARN` lines before merging.
-          add-paths: |
-            shared/constants/marketData/marketData.generated.json
+      # Opens the weekly PR once (first bucket of the week); later buckets just add commits to it.
+      # Once merged, `chore/refresh-ticker-data` no longer exists, so the next weekday recreates it
+      # from main - a fresh week starts automatically.
+      #
+      # The body is built with `echo` into a file rather than a shell heredoc, because a heredoc's
+      # unindented body would fall below this step's YAML block-scalar indentation and truncate the
+      # `run:` block right there.
+      - name: Open the weekly PR if it doesn't exist yet
+        if: steps.commit.outputs.committed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh pr view "$ACCUMULATOR_BRANCH" --json state --jq .state 2>/dev/null | grep -q OPEN; then
+            echo "PR already open for $ACCUMULATOR_BRANCH - skipping."
+            exit 0
+          fi
+          {
+            echo 'Automated weekly refresh of `shared/constants/marketData/marketData.generated.json` via Yahoo Finance (unofficial, no API key).'
+            echo
+            echo 'Accumulates one weekday bucket (~1/5 of the universe, `scripts/tickerRefresh/partition.ts`) per commit to stay defensive against rate limits on an unofficial API - this PR grows through the week and should be reviewed/merged once, not per-commit.'
+            echo
+            echo 'Only `initialPrice`, `dividendYield` and `frequency` can change here (`dividendGrowth` is derived, never written). Curated values (`name`, `expectedTotalReturn`) are never touched by the pipeline.'
+            echo
+            echo 'Entries rejected by the outlier guards keep their previous values - check the daily ticker refresh step logs for `WARN` lines before merging.'
+          } > pr-body.md
+          gh pr create --base main --head "$ACCUMULATOR_BRANCH" \
+            --title "chore(data): refresh ticker market data" \
+            --body-file pr-body.md
