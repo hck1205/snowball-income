@@ -16,9 +16,23 @@ describe('applyMarketData', () => {
     );
   });
 
-  it('keeps DIVIDEND_UNIVERSE identical to the curated presets while no data is generated', () => {
-    // Guards the shipped default: an empty marketData.generated.json must not change the app.
-    expect(DIVIDEND_UNIVERSE).toEqual(CURATED_DIVIDEND_UNIVERSE);
+  it('overlays the shipped marketData.generated.json without moving tickers or curated assumptions', () => {
+    // The live universe MAY carry refreshed market data (initialPrice / dividendYield / frequency)
+    // once a refresh PR lands, so it must NOT be asserted equal to the raw curated presets — that
+    // would break both in the refresh workflow's post-write test gate and, permanently, in the repo
+    // the moment the first refresh merges. What the overlay guarantees regardless of the snapshot:
+    //   - it never adds or removes a ticker,
+    //   - it never touches curated fields (ticker / name / expectedTotalReturn),
+    //   - the coherent-model invariant survives (dividendYield + dividendGrowth === expectedTotalReturn).
+    expect(Object.keys(DIVIDEND_UNIVERSE).sort()).toEqual(Object.keys(CURATED_DIVIDEND_UNIVERSE).sort());
+
+    for (const [ticker, curated] of Object.entries(CURATED_DIVIDEND_UNIVERSE)) {
+      const live = DIVIDEND_UNIVERSE[ticker as keyof typeof DIVIDEND_UNIVERSE];
+      expect(live.ticker).toBe(curated.ticker);
+      expect(live.name).toBe(curated.name);
+      expect(live.expectedTotalReturn).toBe(curated.expectedTotalReturn);
+      expect(live.dividendYield + live.dividendGrowth).toBeCloseTo(live.expectedTotalReturn, 9);
+    }
   });
 
   it('overlays only the three observable market fields', () => {
