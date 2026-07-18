@@ -1,11 +1,26 @@
 import styled from '@emotion/styled';
 import { color, font, motion, radius, space } from '@/shared/styles';
 
+/**
+ * 검색 폼 + 정밀 검색 트리거를 한 세트로 묶는 래퍼. 정밀 필터의 숫자 입력은 검색 `<form>` **바깥**에
+ * 둔다(Enter가 텍스트-검색 submit을 트리거하지 않게). 반응형은 @media 대신 variant prop 분기:
+ * 데스크톱(row)은 폼 옆 아이콘 트리거, 모바일(column)은 검색 input 아래 전체폭 버튼.
+ */
+export const SearchCluster = styled.div<{ mobile: boolean }>`
+  display: flex;
+  min-width: 0;
+  ${({ mobile }) =>
+    mobile
+      ? 'flex-direction: column; align-items: stretch; gap: ' + space[2] + '; width: 100%;'
+      : 'flex-direction: row; align-items: center; gap: ' + space[2] + ';'}
+`;
+
 export const SearchForm = styled.form`
   display: inline-flex;
   align-items: center;
   gap: ${space[2]};
   min-width: 0;
+  flex: 1 1 auto;
 `;
 
 /** 셀렉트를 감싸 커스텀 화살표(lucide ChevronDown)를 겹쳐 놓는 필드. */

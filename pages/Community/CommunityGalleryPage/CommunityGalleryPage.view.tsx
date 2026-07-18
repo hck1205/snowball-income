@@ -1,5 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
+import { parseScenarioSimSummary } from '@/shared/lib/snowball';
 import { Banner, Button, Tabs } from '@/components/common';
 import {
   ClockIcon,
@@ -72,10 +73,18 @@ export default function CommunityGalleryView({ viewModel }: CommunityGalleryView
     loadMore,
     retry,
     clearSearch,
+    clearFilters,
     onWrite
   } = viewModel;
 
   const sentinelRef = useRef<HTMLDivElement>(null);
+
+  // sim_summary는 서버 jsonb라 신뢰하지 않는다 — 검증 파서를 통과한 값만 프리뷰로 쓴다(오염 값은
+  // null → 텍스트 카드/행 폴백, §E·§I). items가 바뀔 때만 1회 파싱한다(렌더마다 재파싱 방지).
+  const parsedItems = useMemo(
+    () => items.map((item) => ({ item, simSummary: parseScenarioSimSummary(item.sim_summary) })),
+    [items]
+  );
 
   useEffect(() => {
     if (status !== 'ready' || reachedEnd) return;
@@ -168,21 +177,33 @@ export default function CommunityGalleryView({ viewModel }: CommunityGalleryView
         />
       ) : null}
 
+      {status === 'filteredEmpty' ? (
+        <EmptyState
+          title={g.filterEmptyTitle}
+          subtitle={g.filterEmptySubtitle}
+          action={
+            <Button variant="secondary" onClick={clearFilters}>
+              {g.filterEmptyCta}
+            </Button>
+          }
+        />
+      ) : null}
+
       {status === 'ready' ? (
         <>
           {viewType === 'card' ? (
             <CardGrid>
-              {items.map((item) => (
+              {parsedItems.map(({ item, simSummary }) => (
                 <li key={item.id}>
-                  <ScenarioCard item={item} />
+                  <ScenarioCard item={item} simSummary={simSummary} />
                 </li>
               ))}
             </CardGrid>
           ) : (
             <InlineList>
-              {items.map((item) => (
+              {parsedItems.map(({ item, simSummary }) => (
                 <li key={item.id}>
-                  <ScenarioRow item={item} />
+                  <ScenarioRow item={item} simSummary={simSummary} />
                 </li>
               ))}
             </InlineList>

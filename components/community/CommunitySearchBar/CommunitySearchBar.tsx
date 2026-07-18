@@ -9,10 +9,12 @@ import {
 } from '@/shared/constants/community';
 import { ChevronDown } from 'lucide-react';
 import { SearchIcon } from '@/components/community/CommunityIcons';
+import PrecisionSearch from '@/components/community/PrecisionSearch';
 import {
   FilterChevron,
   FilterField,
   FilterSelect,
+  SearchCluster,
   SearchForm,
   SearchInput,
   SearchInputWrap
@@ -21,6 +23,11 @@ import {
 export type CommunitySearchBarProps = {
   /** 모바일 오토포커스(펼침 시). */
   autoFocus?: boolean;
+  /**
+   * 배치 컨텍스트. desktop(기본)=헤더 인라인(정밀 필터=앵커 팝오버),
+   * mobile=헤더 아래 펼침 바(정밀 필터=in-flow 인라인 패널·전체폭). 반응형은 이 prop으로 상호배타.
+   */
+  variant?: 'desktop' | 'mobile';
 };
 
 /**
@@ -29,7 +36,8 @@ export type CommunitySearchBarProps = {
  *
  * IME 조합 중에는 URL을 갱신하지 않는다(한글 조합이 깨지지 않게).
  */
-export default function CommunitySearchBar({ autoFocus }: CommunitySearchBarProps) {
+export default function CommunitySearchBar({ autoFocus, variant = 'desktop' }: CommunitySearchBarProps) {
+  const isMobile = variant === 'mobile';
   const [searchParams, setSearchParams] = useSearchParams();
   const urlQuery = searchParams.get(COMMUNITY_QUERY_PARAM.query) ?? '';
   const urlFilter = searchParams.get(COMMUNITY_QUERY_PARAM.queryFilter) ?? DEFAULT_COMMUNITY_SEARCH_FILTER;
@@ -76,14 +84,15 @@ export default function CommunitySearchBar({ autoFocus }: CommunitySearchBarProp
   }, [value, filter]);
 
   return (
-    <SearchForm
-      role="search"
-      onSubmit={(event) => {
-        event.preventDefault();
-        commit(value, filter);
-      }}
-    >
-      <FilterField>
+    <SearchCluster mobile={isMobile}>
+      <SearchForm
+        role="search"
+        onSubmit={(event) => {
+          event.preventDefault();
+          commit(value, filter);
+        }}
+      >
+        <FilterField>
         <FilterSelect
           aria-label={COMMUNITY_COPY.gallery.searchFilterAriaLabel}
           value={filter}
@@ -123,6 +132,8 @@ export default function CommunitySearchBar({ autoFocus }: CommunitySearchBarProp
           }}
         />
       </SearchInputWrap>
-    </SearchForm>
+      </SearchForm>
+      <PrecisionSearch layout={isMobile ? 'inline' : 'popover'} />
+    </SearchCluster>
   );
 }

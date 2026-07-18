@@ -164,3 +164,31 @@ export const StateText = styled.p`
 export const BannerAction = styled.div`
   margin-top: ${space[3]};
 `;
+
+/** 등록/삭제/좋아요 실패 안내 — 컴포저·목록 근처에서 role="alert"로 노출한다. */
+export const InlineAlert = styled.p`
+  margin: 0;
+  color: ${color.danger};
+  font-size: ${font.size.sm};
+`;
+
+/* ── 무한 스크롤 (루트 댓글 20개 단위) ─────────────────────────────────────── */
+
+export const LoadMoreWrap = styled.div`
+  display: grid;
+  gap: ${space[2]};
+  justify-items: center;
+  margin-top: ${space[5]};
+`;
+
+/** IntersectionObserver 관찰 지점 — 시각 요소가 아니다. */
+export const CommentsSentinel = styled.div`
+  width: 100%;
+  min-height: 1px;
+`;
+
+export const LoadStatusText = styled.p`
+  margin: 0;
+  color: ${color.textMuted};
+  font-size: ${font.size.sm};
+`;

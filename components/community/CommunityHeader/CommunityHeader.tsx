@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMatch, useNavigate } from 'react-router-dom';
-import BrandMark from '@/components/BrandMark';
+import ThemePresetSwitcher from '@/components/ThemePresetSwitcher';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
 import { useIsLoggedInAtomValue } from '@/jotai/community';
 import { Button } from '@/components/common';
@@ -12,6 +12,7 @@ import {
   Actions,
   Brand,
   BrandLogo,
+  BrandLogoImage,
   BrandWordmark,
   DesktopOnly,
   HeaderInner,
@@ -19,7 +20,8 @@ import {
   MobileSearchBar,
   MobileSearchToggle,
   SearchSlot,
-  Spacer
+  Spacer,
+  ThemeSlot
 } from './CommunityHeader.styled';
 
 /**
@@ -29,7 +31,7 @@ import {
 export default function CommunityHeader() {
   const isListRoute = Boolean(useMatch({ path: '/community', end: true }));
   // 글쓰기 라우트에선 헤더의 '글쓰기' 버튼이 페이지와 중복이라 숨긴다.
-  const isWriteRoute = Boolean(useMatch({ path: '/community/new' }));
+  const isWriteRoute = Boolean(useMatch({ path: '/community/write' }));
   const isLoggedIn = useIsLoggedInAtomValue();
   const { openLoginPrompt } = useCommunityAuth();
   const navigate = useNavigate();
@@ -40,7 +42,7 @@ export default function CommunityHeader() {
       openLoginPrompt();
       return;
     }
-    navigate('/community/new');
+    navigate('/community/write');
   };
 
   return (
@@ -48,8 +50,9 @@ export default function CommunityHeader() {
       <HeaderInner>
         <Brand>
           <BrandLogo>
-            {/* 메인 헤더와 동일한 40px 원형 앱아이콘 톤 — 여기선 32px 프레임을 꽉 채운다. */}
-            <BrandMark size={32} />
+            {/* 메인 헤더(HeaderLogoImage)·파비콘/PWA와 동일한 원형 앱 아이콘 — 32px 프레임을 꽉 채운다.
+                워드마크(BrandWordmark)가 브랜드명을 읽어주므로 로고 이미지는 장식(alt="") — MobileMenuDrawer 선례와 동일. */}
+            <BrandLogoImage src="/app_icon.png" alt="" width={32} height={32} />
           </BrandLogo>
           <BrandWordmark>{COMMUNITY_COPY.nav.home}</BrandWordmark>
         </Brand>
@@ -97,13 +100,25 @@ export default function CommunityHeader() {
             </Button>
           )}
 
+          {/*
+           * 테마 스위처 위치 분기(2026-07-18):
+           * - 로그인: 테마는 AuthControl 프로필 드롭다운 안 "테마" 항목으로 이동 → 헤더 슬롯을 숨긴다.
+           * - 비로그인: AuthControl은 로그인 버튼만이라 드롭다운이 없다 → 헤더에 그대로 노출해야 테마 접근이 유지된다.
+           * 커뮤니티는 드로어가 없어 슬롯이 모바일에서도 팝오버를 재노출한다(ThemeSlot).
+           */}
+          {!isLoggedIn ? (
+            <ThemeSlot>
+              <ThemePresetSwitcher />
+            </ThemeSlot>
+          ) : null}
+
           <AuthControl />
         </Actions>
       </HeaderInner>
 
       {isListRoute && mobileSearchOpen ? (
         <MobileSearchBar>
-          <CommunitySearchBar autoFocus />
+          <CommunitySearchBar autoFocus variant="mobile" />
         </MobileSearchBar>
       ) : null}
     </HeaderRoot>

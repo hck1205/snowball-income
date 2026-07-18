@@ -1,13 +1,23 @@
 import styled from '@emotion/styled';
 import { color, font, media, radius, shadow, space, zIndex } from '@/shared/styles';
 
+/**
+ * sticky 오버레이 서피스 → 서리유리 레시피(§4.7).
+ * 폴백(불투명)을 먼저 깔고, backdrop-filter 지원 브라우저에서만 글래스로 승격한다.
+ */
 export const HeaderRoot = styled.header`
   position: sticky;
   top: 0;
   z-index: ${zIndex.dropdown - 1};
-  background: ${color.surface};
+  background: ${color.surfaceGlassFallback};
   border-bottom: 1px solid ${color.border};
   box-shadow: ${shadow.e1};
+
+  @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+    background: ${color.surfaceGlass};
+    -webkit-backdrop-filter: blur(14px) saturate(1.35);
+    backdrop-filter: blur(14px) saturate(1.35);
+  }
 `;
 
 export const HeaderInner = styled.div`
@@ -43,6 +53,14 @@ export const BrandLogo = styled.span`
   height: 32px;
   border-radius: 50%;
   overflow: hidden;
+`;
+
+/** 앱 아이콘 이미지 — 메인 HeaderLogoImage와 동일하게 정사각 원본을 원형으로 커버 크롭한다. */
+export const BrandLogoImage = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 `;
 
 export const BrandWordmark = styled.span`
@@ -93,6 +111,23 @@ export const Actions = styled.div`
 export const DesktopOnly = styled.span`
   ${media.down('drawer')} {
     display: none;
+  }
+`;
+
+/**
+ * 테마 스위처 슬롯. `ThemePresetSwitcher`의 팝오버 루트는 **메인 레이아웃 기준**으로 drawer↓에서
+ * 스스로 숨는다(메인은 모바일에서 드로어 인라인 스위처가 진입점이라 중복을 피함). 커뮤니티에는
+ * 드로어가 없어 그 대체 진입점이 없으므로, 이 슬롯이 팝오버(직계 div = 팝오버 루트)를 **모든 폭에서
+ * 다시 노출**시킨다. `& > div`(0,1,1)가 자식의 `@media` display:none(0,1,0)을 특이도로 이긴다 —
+ * Emotion 컴포넌트 셀렉터가 아닌 순수 자식 셀렉터라 테스트 런타임에서 안전하다.
+ */
+export const ThemeSlot = styled.div`
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+
+  & > div {
+    display: inline-flex;
   }
 `;
 

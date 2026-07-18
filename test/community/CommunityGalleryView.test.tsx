@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import CommunityGalleryView from '@/pages/Community/CommunityGalleryPage/CommunityGalleryPage.view';
 import type { CommunityGalleryViewModel } from '@/pages/Community/CommunityGalleryPage/CommunityGalleryPage.types';
+import { COMMUNITY_COPY } from '@/shared/constants/community';
 import type { ScenarioListItem } from '@/shared/lib/supabase';
 
 const listItem = (id: string, title: string, has_payload = false): ScenarioListItem => ({
@@ -13,6 +14,7 @@ const listItem = (id: string, title: string, has_payload = false): ScenarioListI
   description: null,
   is_public: true,
   has_payload,
+  sim_summary: null,
   like_count: 0,
   view_count: 0,
   comment_count: 0,
@@ -35,6 +37,7 @@ const baseVM = (overrides: Partial<CommunityGalleryViewModel> = {}): CommunityGa
   loadMore: vi.fn(),
   retry: vi.fn(),
   clearSearch: vi.fn(),
+  clearFilters: vi.fn(),
   onToggleView: vi.fn(),
   onWrite: vi.fn(),
   ...overrides
@@ -78,6 +81,15 @@ describe('CommunityGalleryView — 상태별 표시', () => {
     expect(screen.getByText(/없는검색어/)).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: '검색 초기화' }));
     expect(clearSearch).toHaveBeenCalledTimes(1);
+  });
+
+  it('filteredEmpty(정밀 필터 무결과): "필터 초기화" 버튼이 clearFilters를 부른다', async () => {
+    const clearFilters = vi.fn();
+    renderView(baseVM({ status: 'filteredEmpty', clearFilters }));
+
+    expect(screen.getByText(COMMUNITY_COPY.gallery.filterEmptyTitle)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: COMMUNITY_COPY.gallery.filterEmptyCta }));
+    expect(clearFilters).toHaveBeenCalledTimes(1);
   });
 });
 

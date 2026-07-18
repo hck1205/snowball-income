@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { COMMUNITY_QUERY_PARAM } from '@/shared/constants/community';
+import {
+  COMMUNITY_QUERY_PARAM,
+  hasAnyFilter,
+  parseGalleryFilters,
+  serializeGalleryFilters,
+  toFacetFilters
+} from '@/shared/constants/community';
 import {
   fetchGalleryPage,
   getSupabaseClient,
@@ -9,7 +15,7 @@ import {
   type ScenarioListItem
 } from '@/shared/lib/supabase';
 
-export type GalleryStatus = 'loading' | 'error' | 'empty' | 'searchEmpty' | 'ready';
+export type GalleryStatus = 'loading' | 'error' | 'empty' | 'searchEmpty' | 'filteredEmpty' | 'ready';
 
 const toSort = (raw: string | null): GallerySort => (raw === 'popular' ? 'popular' : 'recent');
 
@@ -26,6 +32,8 @@ export type UseGalleryResult = {
   loadMore: () => void;
   retry: () => void;
   clearSearch: () => void;
+  /** 정밀 검색 필터 파라미터만 지운다(정렬·텍스트검색 보존) — filteredEmpty CTA용. */
+  clearFilters: () => void;
 };
 
 /**
@@ -38,6 +46,11 @@ export const useGallery = (): UseGalleryResult => {
   const query = (searchParams.get(COMMUNITY_QUERY_PARAM.query) ?? '').trim();
   // 검색 기준(제목/전체). 검색어와 함께만 URL에 실린다. 데이터 레이어가 컬럼 선택에 사용.
   const queryFilter = searchParams.get(COMMUNITY_QUERY_PARAM.queryFilter) ?? undefined;
+  // 정밀 검색 facet 필터(원/년). URL이 유일한 진실 — PrecisionSearch가 쓰고 여기가 읽어 조회에 얹는다.
+  const filters = parseGalleryFilters(searchParams);
+  const hasFilters = hasAnyFilter(filters);
+  // useCallback 의존성은 원시값으로 — filters 객체는 매 렌더 새로 생겨 참조 비교가 흔들린다.
+  const { mdMin, mdMax, tgtMin, durMin, durMax } = filters;
 
   const [items, setItems] = useState<ScenarioListItem[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -73,7 +86,8 @@ export const useGallery = (): UseGalleryResult => {
     }
 
     try {
-      const page = await fetchGalleryPage(client, { sort, query, queryFilter, cursor: null });
+      const facets = toFacetFilters({ mdMin, mdMax, tgtMin, durMin, durMax });
+      const page = await fetchGalleryPage(client, { sort, query, queryFilter, facets, cursor: null });
       if (requestId !== requestIdRef.current) return;
       setItems(page.items);
       setCursor(page.nextCursor);
@@ -84,7 +98,7 @@ export const useGallery = (): UseGalleryResult => {
     } finally {
       if (requestId === requestIdRef.current) setInitialLoading(false);
     }
-  }, [ensureClient, query, queryFilter, sort]);
+  }, [ensureClient, query, queryFilter, sort, mdMin, mdMax, tgtMin, durMin, durMax]);
 
   // 정렬/검색 변화 → 처음부터 다시.
   useEffect(() => {
@@ -107,7 +121,8 @@ export const useGallery = (): UseGalleryResult => {
     }
 
     try {
-      const page = await fetchGalleryPage(client, { sort, query, queryFilter, cursor });
+      const facets = toFacetFilters({ mdMin, mdMax, tgtMin, durMin, durMax });
+      const page = await fetchGalleryPage(client, { sort, query, queryFilter, facets, cursor });
       if (requestId !== requestIdRef.current) return;
       setItems((prev) => [...prev, ...page.items]);
       setCursor(page.nextCursor);
@@ -118,7 +133,7 @@ export const useGallery = (): UseGalleryResult => {
       if (requestId === requestIdRef.current) setIsLoadingMore(false);
       fetchingRef.current = false;
     }
-  }, [cursor, ensureClient, initialLoading, query, queryFilter, reachedEnd, sort]);
+  }, [cursor, ensureClient, initialLoading, query, queryFilter, reachedEnd, sort, mdMin, mdMax, tgtMin, durMin, durMax]);
 
   const setSort = useCallback(
     (nextSort: GallerySort) => {
@@ -147,6 +162,11 @@ export const useGallery = (): UseGalleryResult => {
     );
   }, [setSearchParams]);
 
+  // 필터 파라미터만 비운다(빈 필터 직렬화) — 정렬·텍스트검색(sort/q/qf)은 prev 그대로 보존.
+  const clearFilters = useCallback(() => {
+    setSearchParams((prev) => serializeGalleryFilters(prev, {}), { replace: true });
+  }, [setSearchParams]);
+
   const retry = useCallback(() => {
     if (error === 'more') void loadMore();
     else void loadFirstPage();
@@ -156,7 +176,12 @@ export const useGallery = (): UseGalleryResult => {
   let status: GalleryStatus = 'ready';
   if (initialLoading) status = 'loading';
   else if (error === 'initial') status = 'error';
-  else if (items.length === 0) status = isSearching ? 'searchEmpty' : 'empty';
+  else if (items.length === 0) {
+    // 필터가 걸린 빈결과는 filteredEmpty(정렬·q 보존 CTA)로 분기 — 텍스트검색 유무보다 우선한다.
+    if (hasFilters) status = 'filteredEmpty';
+    else if (isSearching) status = 'searchEmpty';
+    else status = 'empty';
+  }
 
   return {
     items,
@@ -170,6 +195,7 @@ export const useGallery = (): UseGalleryResult => {
     setSort,
     loadMore,
     retry,
-    clearSearch
+    clearSearch,
+    clearFilters
   };
 };

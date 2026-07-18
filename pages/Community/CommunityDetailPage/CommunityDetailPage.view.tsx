@@ -13,19 +13,22 @@ import {
   TrashIcon
 } from '@/components/community';
 import { RichTextContent } from '@/components/community/RichTextContent';
-import { CommentSection } from './components';
+import { CommentSection, ScenarioPreview } from './components';
 import type { CommunityDetailViewProps } from './CommunityDetailPage.types';
 import {
   Article,
   AttachCta,
   AttachCtaInfo,
+  AttachUnit,
   BannerAction,
+  CommentsCard,
   DetailHeader,
   Dot,
   HeaderTopRow,
   LikeRow,
   MetaRow,
   OwnerActions,
+  PostCard,
   StateWrap,
   Title
 } from './CommunityDetailPage.styled';
@@ -79,68 +82,81 @@ export default function CommunityDetailView({ viewModel }: CommunityDetailViewPr
 
   return (
     <Article aria-label={d.mainLabel}>
-      <DetailHeader>
-        <HeaderTopRow>
-          <Title>{scenario.title}</Title>
-          {detail.isOwner ? (
-            <OwnerActions>
-              <Button variant="ghost" size="sm" startIcon={<PencilIcon size={16} />} onClick={onEdit} aria-label={d.edit}>
-                {d.edit}
+      <PostCard>
+        <DetailHeader>
+          <HeaderTopRow>
+            <Title>{scenario.title}</Title>
+            {detail.isOwner ? (
+              <OwnerActions>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  startIcon={<PencilIcon size={16} />}
+                  onClick={onEdit}
+                  aria-label={d.edit}
+                >
+                  {d.edit}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  startIcon={<TrashIcon size={16} />}
+                  onClick={() => setDeleteOpen(true)}
+                  aria-label={d.delete}
+                >
+                  {d.delete}
+                </Button>
+              </OwnerActions>
+            ) : null}
+          </HeaderTopRow>
+          <MetaRow>
+            <Avatar displayName={authorName} avatarUrl={scenario.author?.avatar_url} size="sm" />
+            <b>{authorName}</b>
+            <Dot aria-hidden="true">·</Dot>
+            <RelativeTime iso={scenario.created_at} />
+            <Dot aria-hidden="true">·</Dot>
+            <span className="views">
+              {COMMUNITY_COPY.gallery.metaViews} {detail.viewCount}
+            </span>
+          </MetaRow>
+        </DetailHeader>
+
+        {scenario.body ? <RichTextContent html={scenario.body} /> : null}
+
+        {scenario.payload && detail.openInSimulatorHref ? (
+          <AttachUnit>
+            <AttachCta>
+              <AttachCtaInfo>
+                <strong>{d.attachCtaTitle}</strong>
+                <span>{`티커 ${ticker}개 · 초기 ${formatKRW(initial)} · 월 ${formatKRW(monthly)}`}</span>
+              </AttachCtaInfo>
+              <Button variant="primary" onClick={onOpenInSimulator}>
+                {d.attachCtaButton}
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                startIcon={<TrashIcon size={16} />}
-                onClick={() => setDeleteOpen(true)}
-                aria-label={d.delete}
-              >
-                {d.delete}
-              </Button>
-            </OwnerActions>
-          ) : null}
-        </HeaderTopRow>
-        <MetaRow>
-          <Avatar displayName={authorName} avatarUrl={scenario.author?.avatar_url} size="sm" />
-          <b>{authorName}</b>
-          <Dot aria-hidden="true">·</Dot>
-          <RelativeTime iso={scenario.created_at} />
-          <Dot aria-hidden="true">·</Dot>
-          <span className="views">
-            {COMMUNITY_COPY.gallery.metaViews} {detail.viewCount}
-          </span>
-        </MetaRow>
-      </DetailHeader>
+            </AttachCta>
+            <ScenarioPreview payload={scenario.payload} />
+          </AttachUnit>
+        ) : null}
 
-      {scenario.body ? <RichTextContent html={scenario.body} /> : null}
+        <LikeRow>
+          <LikeButton
+            size="md"
+            liked={detail.liked}
+            count={detail.likeCount}
+            disabled={detail.likePending}
+            onToggle={detail.toggleLike}
+          />
+        </LikeRow>
+      </PostCard>
 
-      {scenario.payload && detail.openInSimulatorHref ? (
-        <AttachCta>
-          <AttachCtaInfo>
-            <strong>{d.attachCtaTitle}</strong>
-            <span>{`티커 ${ticker}개 · 초기 ${formatKRW(initial)} · 월 ${formatKRW(monthly)}`}</span>
-          </AttachCtaInfo>
-          <Button variant="primary" onClick={onOpenInSimulator}>
-            {d.attachCtaButton}
-          </Button>
-        </AttachCta>
-      ) : null}
-
-      <LikeRow>
-        <LikeButton
-          size="md"
-          liked={detail.liked}
-          count={detail.likeCount}
-          disabled={detail.likePending}
-          onToggle={detail.toggleLike}
+      <CommentsCard>
+        <CommentSection
+          comments={comments}
+          isLoggedIn={isLoggedIn}
+          currentUserId={currentUserId}
+          onRequireLogin={onRequireLogin}
         />
-      </LikeRow>
-
-      <CommentSection
-        comments={comments}
-        isLoggedIn={isLoggedIn}
-        currentUserId={currentUserId}
-        onRequireLogin={onRequireLogin}
-      />
+      </CommentsCard>
 
       {deleteOpen ? (
         <ConfirmDialog

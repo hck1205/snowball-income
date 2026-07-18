@@ -103,13 +103,15 @@ describe('useScenarioComposer — 게시 가능 규칙', () => {
     expect(result.current.canSubmit).toBe(true);
   });
 
-  it('제목 + 시나리오 첨부(본문 없음)면 게시 가능', async () => {
+  it('제목 + 시나리오 첨부(본문 없음)면 게시 가능', () => {
     const { result } = renderHook(() => useScenarioComposer(), { wrapper });
+    const payload = {
+      portfolio: validScenario.portfolio,
+      investmentSettings: validScenario.investmentSettings
+    };
 
     act(() => result.current.setTitle('첨부만 있는 글'));
-    await act(async () => {
-      await result.current.attachCurrentScenario();
-    });
+    act(() => result.current.attachScenario(payload));
 
     expect(result.current.attachedPayload).not.toBeNull();
     expect(result.current.canSubmit).toBe(true);
@@ -151,7 +153,7 @@ describe('useScenarioComposer — 저장 경로', () => {
     expect(input.payload).toBeNull();
   });
 
-  it('요약을 비우면 본문 앞부분을 자동 발췌해 넣는다', async () => {
+  it('본문이 있으면 카드 요약(description)을 본문 앞부분에서 자동 발췌해 넣는다', async () => {
     const { result } = renderHook(() => useScenarioComposer(), { wrapper });
 
     act(() => result.current.setTitle('제목'));

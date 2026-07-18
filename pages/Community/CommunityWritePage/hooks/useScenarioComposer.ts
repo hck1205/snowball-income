@@ -6,16 +6,13 @@ import {
   COMMUNITY_COPY,
   COMMUNITY_DESCRIPTION_EXCERPT_LENGTH
 } from '@/shared/constants/community';
-import { readPersistedAppState } from '@/jotai';
 import { deriveExcerpt, htmlToPlainText, isRichTextEmpty, sanitizeRichHtml } from '@/shared/lib/richtext';
 import {
   fetchScenarioDetail,
   getSupabaseClient,
   publishScenario,
-  toScenarioPayload,
   updateScenario,
   validateScenarioPayload,
-  SCENARIO_DESCRIPTION_MAX_LENGTH,
   SCENARIO_TITLE_MAX_LENGTH,
   type CommunityClient,
   type ScenarioPayload,
@@ -49,7 +46,6 @@ export type UseScenarioComposer = {
   loadState: ComposerLoadState;
   title: string;
   initialBodyHtml: string;
-  description: string;
   isPublic: boolean;
   attachedPayload: ScenarioPayload | null;
   errors: ComposerErrors;
@@ -59,9 +55,9 @@ export type UseScenarioComposer = {
   canSubmit: boolean;
   setTitle: (value: string) => void;
   handleBodyChange: (html: string) => void;
-  setDescription: (value: string) => void;
   setIsPublic: (value: boolean) => void;
-  attachCurrentScenario: () => Promise<void>;
+  /** 택1 피커가 고른 시나리오 payload를 첨부한다 — 방어적으로 재검증 후 커밋. */
+  attachScenario: (payload: ScenarioPayload) => void;
   detachScenario: () => void;
   submit: () => Promise<void>;
 };
@@ -80,7 +76,6 @@ export const useScenarioComposer = (scenarioId?: string): UseScenarioComposer =>
   const [title, setTitleState] = useState('');
   const [initialBodyHtml, setInitialBodyHtml] = useState('');
   const [bodyHtml, setBodyHtml] = useState('');
-  const [description, setDescriptionState] = useState('');
   // 새 글 기본값 = 공개. (글쓰기 화면의 토글은 "비공개" 스위치라, off=공개가 기본이다.)
   // 수정 모드에서는 아래에서 detail.is_public 실제 값으로 덮어쓴다.
   const [isPublic, setIsPublicState] = useState(true);
@@ -118,7 +113,6 @@ export const useScenarioComposer = (scenarioId?: string): UseScenarioComposer =>
         setTitleState(detail.title);
         setInitialBodyHtml(detail.body ?? '');
         setBodyHtml(detail.body ?? '');
-        setDescriptionState(detail.description ?? '');
         setIsPublicState(detail.is_public);
         setAttachedPayload(detail.payload);
         setLoadState('ready');
@@ -146,28 +140,15 @@ export const useScenarioComposer = (scenarioId?: string): UseScenarioComposer =>
     setErrors((prev) => ({ ...prev, body: undefined }));
   }, []);
 
-  const setDescription = useCallback((value: string) => {
-    setDescriptionState(value.slice(0, SCENARIO_DESCRIPTION_MAX_LENGTH));
-    setDirty(true);
-  }, []);
-
   const setIsPublic = useCallback((value: boolean) => {
     setIsPublicState(value);
     setDirty(true);
   }, []);
 
-  const attachCurrentScenario = useCallback(async () => {
+  const attachScenario = useCallback((payload: ScenarioPayload) => {
     setErrors((prev) => ({ ...prev, attach: undefined }));
-    const result = await readPersistedAppState();
-    const active =
-      result.payload.scenarios.find((scenario) => scenario.id === result.payload.activeScenarioId) ??
-      result.payload.scenarios[0] ??
-      null;
-    if (!active) {
-      setErrors((prev) => ({ ...prev, attach: w.issueMissingSettings }));
-      return;
-    }
-    const payload = toScenarioPayload(active);
+    // 뷰가 이미 selectable 후보만 넘기지만, 커밋 직전 한 번 더 검증한다(신뢰 경계는 서버지만
+    // 여기서 막으면 사용자에게 즉시 사유를 말할 수 있다). 실패 매핑은 피커 카드와 동일.
     const issues = validateScenarioPayload(payload);
     if (issues.length > 0) {
       setErrors((prev) => ({ ...prev, attach: issueMessage(issues[0]) }));
@@ -220,13 +201,9 @@ export const useScenarioComposer = (scenarioId?: string): UseScenarioComposer =>
     setSubmitError(false);
     setSubmitting(true);
 
-    const trimmedDescription = description.trim();
-    const finalDescription =
-      trimmedDescription.length > 0
-        ? trimmedDescription.slice(0, SCENARIO_DESCRIPTION_MAX_LENGTH)
-        : safeBody
-          ? deriveExcerpt(safeBody, COMMUNITY_DESCRIPTION_EXCERPT_LENGTH)
-          : null;
+    // 카드 미리보기(description)는 **항상 본문에서 자동 발췌**한다(수동 요약 입력칸 폐지).
+    // 본문 없이 첨부만 있는 글은 description=null → 카드는 텍스트 발췌 대신 시뮬 요약을 보여준다.
+    const finalDescription = safeBody ? deriveExcerpt(safeBody, COMMUNITY_DESCRIPTION_EXCERPT_LENGTH) : null;
 
     try {
       const client = await ensureClient();
@@ -257,14 +234,13 @@ export const useScenarioComposer = (scenarioId?: string): UseScenarioComposer =>
       setSubmitError(true);
       setSubmitting(false);
     }
-  }, [attachedPayload, bodyHtml, description, ensureClient, isPublic, mode, navigate, scenarioId, title]);
+  }, [attachedPayload, bodyHtml, ensureClient, isPublic, mode, navigate, scenarioId, title]);
 
   return {
     mode,
     loadState,
     title,
     initialBodyHtml,
-    description,
     isPublic,
     attachedPayload,
     errors,
@@ -274,9 +250,8 @@ export const useScenarioComposer = (scenarioId?: string): UseScenarioComposer =>
     canSubmit,
     setTitle,
     handleBodyChange,
-    setDescription,
     setIsPublic,
-    attachCurrentScenario,
+    attachScenario,
     detachScenario,
     submit
   };

@@ -1,45 +1,73 @@
+import { COMMUNITY_COPY } from '@/shared/constants/community';
+import { formatCompactCount } from '@/shared/lib/community';
+import type { ScenarioSimSummary } from '@/shared/lib/snowball';
 import type { ScenarioListItem } from '@/shared/lib/supabase';
-import { Avatar } from '@/components/community/Avatar';
+import { HeartIcon } from '@/components/community/CommunityIcons';
 import { RelativeTime } from '@/components/community/RelativeTime';
-import { ScenarioMeta } from '@/components/community/ScenarioMeta';
+import { VisuallyHidden } from '@/components/community/ScenarioMeta';
 import { SimBadge } from '@/components/community/SimBadge';
+import { SimSummaryStats } from '@/components/community/SimSummaryStats';
 import {
-  AuthorLine,
-  CardBottom,
   CardLink,
   CardSummary,
   CardTitle,
-  CardTop
+  FooterAuthor,
+  FooterRow,
+  LikeStat,
+  PreviewBlock,
+  SubInfoRow,
+  SubInfoText
 } from './ScenarioCard.styled';
 
 export type ScenarioCardProps = {
   item: ScenarioListItem;
+  /**
+   * 게시 시점 시뮬 요약(스펙 §H, `scenarios.sim_summary`를 `parseScenarioSimSummary`로 검증한 값).
+   * 목록 쿼리가 sim_summary를 실으면 데이터 레이어가 주입한다(후속 트랙) — 없으면(구버전 글 포함)
+   * 현행 텍스트 카드 그대로. **`has_payload`만으로 프리뷰를 그리지 않는다**(§E).
+   */
+  simSummary?: ScenarioSimSummary | null;
 };
 
+const { metaViews, metaLikes, metaComments } = COMMUNITY_COPY.gallery;
+
 /**
- * 카드 뷰 아이템. 카드 전체가 상세로 가는 링크다.
- * 썸네일이 없으므로 작성자 아바타 + 제목이 시각 앵커. 첨부(payload)가 있을 때만 시뮬 배지.
+ * velog 글 카드 포맷 — 첨부 글(sim_summary 있음)만 상단에 시뮬 숫자 프리뷰 블록을 얹고(§E),
+ * 없으면 제목부터 시작한다(높이 차이는 velog식 의도된 변주). 카드 전체가 상세로 가는 링크.
+ * 구조: (프리뷰) → 제목 → 요약 → 서브 정보(시간·댓글·조회 | 시뮬 배지) → 구분선 → 푸터(닉네임 | ♥).
  */
-export default function ScenarioCard({ item }: ScenarioCardProps) {
+export default function ScenarioCard({ item, simSummary }: ScenarioCardProps) {
   const authorName = item.author?.display_name ?? '익명';
 
   return (
     <CardLink to={`/community/${item.id}`}>
-      <CardTop>
-        <AuthorLine>
-          <Avatar displayName={authorName} avatarUrl={item.author?.avatar_url} size="sm" />
-          <b>{authorName}</b>
-        </AuthorLine>
-        {item.has_payload ? <SimBadge /> : null}
-      </CardTop>
-
+      {simSummary ? (
+        <PreviewBlock>
+          <SimSummaryStats variant="card" summary={simSummary} />
+        </PreviewBlock>
+      ) : null}
       <CardTitle>{item.title}</CardTitle>
       {item.description ? <CardSummary>{item.description}</CardSummary> : null}
 
-      <CardBottom>
-        <ScenarioMeta viewCount={item.view_count} likeCount={item.like_count} commentCount={item.comment_count} />
-        <RelativeTime iso={item.created_at} />
-      </CardBottom>
+      <SubInfoRow>
+        <SubInfoText>
+          <RelativeTime iso={item.created_at} />
+          {` · ${metaComments} ${formatCompactCount(item.comment_count)} · ${metaViews} ${formatCompactCount(item.view_count)}`}
+        </SubInfoText>
+        {item.has_payload ? <SimBadge /> : null}
+      </SubInfoRow>
+
+      <FooterRow>
+        <FooterAuthor>
+          <b>{authorName}</b>
+        </FooterAuthor>
+        {/* 아이콘만으로 의미 전달 금지 — 숨김 라벨을 병기해 "좋아요 12"로 읽히게 한다. */}
+        <LikeStat>
+          <HeartIcon size={14} />
+          <VisuallyHidden>{metaLikes}</VisuallyHidden>
+          {formatCompactCount(item.like_count)}
+        </LikeStat>
+      </FooterRow>
     </CardLink>
   );
 }

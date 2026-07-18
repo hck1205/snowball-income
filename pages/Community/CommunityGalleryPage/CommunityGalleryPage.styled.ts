@@ -1,6 +1,11 @@
 import styled from '@emotion/styled';
 import { color, font, media, radius, space } from '@/shared/styles';
 
+/** 회원 탈퇴 완료 등 목록 상단 1회성 안내 배너 자리. */
+export const GalleryNotice = styled.div`
+  margin-bottom: ${space[4]};
+`;
+
 export const ControlBar = styled.div`
   display: flex;
   align-items: center;
@@ -47,10 +52,11 @@ export const ViewToggleButton = styled.button<{ active: boolean }>`
 export const CardGrid = styled.ul`
   list-style: none;
   margin: 0;
-  padding: 0;
+  /* padding-top: 카드 hover translateY(-8px)가 위 컨트롤 바와 겹치지 않게 하는 여유. */
+  padding: ${space[2]} 0 0;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
-  gap: clamp(${space[3]}, 1.8vw, ${space[5]});
+  gap: clamp(${space[4]}, 2vw, ${space[6]});
 
   > li {
     display: flex;
@@ -62,11 +68,17 @@ export const CardGrid = styled.ul`
   }
 `;
 
+/**
+ * 소프트 카드 피드(velog풍) — 각 행이 surface 카드로 뜨므로 구분선 대신 세로 간격으로 리듬을 만든다.
+ * padding-top: 행 hover translateY(-2px)가 위 컨트롤 바에 닿지 않게 하는 소량 여유(CardGrid와 같은 관례).
+ */
 export const InlineList = styled.ul`
   list-style: none;
   margin: 0;
-  padding: 0;
-  border-top: 1px solid ${color.border};
+  padding: ${space[1]} 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: ${space[3]};
 `;
 
 /** 무한스크롤 센티널 + 상태 라이브 리전. */
