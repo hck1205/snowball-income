@@ -7,7 +7,14 @@ import { ImageResponse } from '@vercel/og';
   실제로 번들해서 Node 로 돌려 보고 잡은 문제다. `/api` 는 Vercel 규약상 앱의 배럴 규칙 예외로 다룬다.
 */
 import { decodeSharedScenario } from '@/pages/Main/hooks/persistence/shareLink';
-import { summarizeShareCodeForOg, formatOgAmount, formatOgHoldingsLine, type OgCardModel } from '@/pages/Main/utils/ogCard';
+import {
+  summarizeShareCodeForOg,
+  summarizeSharedScenarioForOg,
+  formatOgAmount,
+  formatOgHoldingsLine,
+  type OgCardModel
+} from '@/pages/Main/utils/ogCard';
+import { DB_SHARE_KEY_PATTERN, fetchSharedSnapshotByKey } from '@/shared/lib/og';
 
 /**
  * 동적 OG 이미지 — `/api/og?share=<공유 코드>` → 1200×630 PNG.
@@ -30,13 +37,13 @@ const HEIGHT = 630;
 
 /** 브랜드 팔레트 (shared/styles/primitives.ts 의 brand 램프와 동일 값). */
 const COLOR = {
-  brand800: '#114961',
-  brand600: '#136d97',
-  brand500: '#1f7ba5',
-  brand100: '#d9ecf6',
+  brand800: '#0a4a6e',
+  brand600: '#0a6da3',
+  brand500: '#0c7cb3',
+  brand100: '#d3ecf9',
   surface: '#ffffff',
-  textPrimary: '#2b3743',
-  textSecondary: '#5f6b78'
+  textPrimary: '#334458',
+  textSecondary: '#536679'
 } as const;
 
 type LoadedFont = {
@@ -152,8 +159,15 @@ const ScenarioCard = ({ model }: { model: OgCardModel }) => {
   const holdingsLine = formatOgHoldingsLine(model.holdings, model.hiddenHoldingCount);
   const contributionLine = `월 ${formatOgAmount(model.monthlyContribution)} 적립 · ${model.durationYears}년 투자`;
   // `targetReachedYear` 는 **달력 연도**다(연차가 아니다). 앱의 `targetYearLabel` 과 같은 표기를 쓴다.
+  // ⚠ 목표 미설정(targetMonthlyDividend<=0)이면 도달/미도달 문구를 붙이지 않는다 — findTargetYear(rows,0)이
+  //   1년차를 즉시 "달성"으로 잡아 오해를 부른다(ogCard targetMonthlyDividend 주석·pitfalls). 텍스트(og:title)와
+  //   동일 가드라 카드 이미지와 미리보기 문구가 어긋나지 않는다.
   const targetLine =
-    model.targetReachedYear !== null ? `목표 월 배당 ${model.targetReachedYear}년 도달` : '기간 내 목표 미도달';
+    model.targetMonthlyDividend <= 0
+      ? `${model.durationYears}년 후 기준`
+      : model.targetReachedYear !== null
+        ? `목표 월 배당 ${model.targetReachedYear}년 도달`
+        : '기간 내 목표 미도달';
 
   return (
     <Shell>
@@ -201,11 +215,20 @@ const DefaultCard = () => (
 );
 
 /**
- * 요청 → 카드 모델. share 코드가 없거나 못 읽으면 null → 기본 카드.
- * (확장 지점) Supabase 시나리오 id 지원 시 여기서 `searchParams.get('id')` 를 처리하면 된다.
+ * 요청 → 카드 모델. 못 읽으면 null → 기본 카드(절대 throw 하지 않는다 → 5xx 금지 계약).
+ *
+ * 우선순위: `?s=`(DB key, 더 풍부한 payload) → `?share=`(구 lz-string). 둘 다 있으면 s 우선이고,
+ * s 조회가 부재/만료/미설정으로 null 이면 share 로 폴백한다(둘 다 실패면 null → 기본 카드).
  */
-const resolveCardModel = (searchParams: URLSearchParams): OgCardModel | null =>
-  summarizeShareCodeForOg(searchParams.get('share'), decodeSharedScenario);
+const resolveCardModel = async (searchParams: URLSearchParams): Promise<OgCardModel | null> => {
+  const dbKey = searchParams.get('s');
+  if (dbKey && DB_SHARE_KEY_PATTERN.test(dbKey)) {
+    const envelope = await fetchSharedSnapshotByKey(dbKey);
+    const model = summarizeSharedScenarioForOg(envelope?.scenario);
+    if (model) return model;
+  }
+  return summarizeShareCodeForOg(searchParams.get('share'), decodeSharedScenario);
+};
 
 /** 같은 share 코드 → 항상 같은 이미지. 1년 immutable 로 박아서 함수 호출 자체를 없앤다. */
 const CACHE_SCENARIO = 'public, immutable, no-transform, max-age=31536000';
@@ -216,8 +239,8 @@ export default async function handler(request: Request): Promise<Response> {
   const { searchParams, origin } = new URL(request.url);
 
   try {
-    const fonts = await loadFonts(origin);
-    const model = resolveCardModel(searchParams);
+    // 폰트 로드와 카드 모델 조회(?s= 는 네트워크)는 서로 독립 → 병렬로 지연을 줄인다.
+    const [fonts, model] = await Promise.all([loadFonts(origin), resolveCardModel(searchParams)]);
 
     const image = new ImageResponse(model ? <ScenarioCard model={model} /> : <DefaultCard />, {
       width: WIDTH,

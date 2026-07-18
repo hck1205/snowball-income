@@ -26,11 +26,18 @@ export type OgCardModel = {
   durationYears: number;
   initialInvestment: number;
   monthlyContribution: number;
+  /**
+   * 목표 월 배당(사용자 입력). **0 이하 = 목표 미설정**.
+   * ⚠ `targetReachedYear` 만으로는 목표 유무를 못 가린다 — `findTargetYear(rows, 0)` 은 monthlyDividend>=0 인
+   *   첫 행을 즉시 "달성"으로 잡아, 목표 미설정 카드에도 `targetReachedYear` 가 (오해를 부르는) 값으로 채워진다
+   *   (커뮤니티 SimSummaryStats 함정과 동일). 그래서 문구 분기는 반드시 이 값(>0)으로 가드한다.
+   */
+  targetMonthlyDividend: number;
   /** 마지막 해의 월평균 배당(세후) — 앱의 `finalMonthlyAverageDividend` 와 같은 값. */
   finalMonthlyDividend: number;
   /** 마지막 해의 자산 평가액 — 앱의 `finalAssetValue` 와 같은 값. */
   finalAssetValue: number;
-  /** 목표 월 배당 도달 연차. 미도달이면 null. */
+  /** 목표 월 배당 도달 연차. 미도달이면 null. (목표 미설정 시엔 무의미 — targetMonthlyDividend 로 먼저 가드) */
   targetReachedYear: number | null;
 };
 
@@ -127,10 +134,50 @@ export const buildOgCardModel = (scenario: PersistedScenarioState): OgCardModel 
     durationYears: values.durationYears,
     initialInvestment: values.initialInvestment,
     monthlyContribution: values.monthlyContribution,
+    targetMonthlyDividend: values.targetMonthlyDividend,
     finalMonthlyDividend: simulation.summary.finalMonthlyAverageDividend,
     finalAssetValue: simulation.summary.finalAssetValue,
     targetReachedYear: simulation.summary.targetMonthDividendReachedYear ?? null
   };
+};
+
+/** 카드에 "목표 달성/미도달" 문구를 붙일지. 목표 미설정(<=0)이면 붙이지 않는다(위 targetMonthlyDividend 주석). */
+export const hasDividendTarget = (model: OgCardModel): boolean => model.targetMonthlyDividend > 0;
+
+/** OG/트위터 메타 텍스트(제목·설명·이미지 alt). */
+export type OgShareText = {
+  title: string;
+  description: string;
+  imageAlt: string;
+};
+
+/**
+ * 카드 모델 → OG 메타 텍스트. api/share-html 이 이 텍스트를 `og:title`/`og:description`/`*:image:alt` 에 넣고,
+ * api/og 는 같은 모델·포맷터로 이미지를 그린다 → **텍스트와 카드 이미지가 어긋나지 않는다**.
+ *
+ * og:title 3분기(목표 달성 / 목표 미도달 / 목표 없음)는 반드시 `hasDividendTarget` 로 가드한다
+ * (목표 0 인데 "목표 달성" 이 붙는 오해 방지 — targetMonthlyDividend 주석 참고).
+ */
+export const buildOgShareText = (model: OgCardModel): OgShareText => {
+  const monthly = formatOgAmount(model.finalMonthlyDividend);
+  const holdingsLine = formatOgHoldingsLine(model.holdings, model.hiddenHoldingCount);
+
+  let title: string;
+  if (!hasDividendTarget(model)) {
+    title = `${model.durationYears}년 후 월 배당 ${monthly} 시뮬레이션 — Snowball Income`;
+  } else if (model.targetReachedYear !== null) {
+    title = `${model.durationYears}년 후 월 배당 ${monthly} · ${model.targetReachedYear}년 목표 달성 — Snowball Income`;
+  } else {
+    title = `${model.durationYears}년 후 월 배당 ${monthly} · 목표 미도달 — Snowball Income`;
+  }
+
+  const description =
+    `${holdingsLine} 포트폴리오, ${model.durationYears}년 후 예상 최종 자산 ${formatOgAmount(model.finalAssetValue)}. ` +
+    '입력한 가정을 그대로 계산한 시뮬레이션이며 투자 자문이 아닙니다.';
+
+  const imageAlt = `${holdingsLine} · ${model.durationYears}년 후 월 배당 ${monthly} — Snowball Income 시뮬레이션 카드`;
+
+  return { title, description, imageAlt };
 };
 
 /** `decodeSharedScenario` 의 시그니처. 아래 주석 참고 — 여기서 직접 import 하지 않고 주입받는다. */
@@ -156,6 +203,23 @@ export const summarizeShareCodeForOg = (
   try {
     const scenario = decode(shareCode);
     if (!scenario) return null;
+    return buildOgCardModel(scenario);
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * DB 공유 스냅샷(트랙 E) 경로: `get_shared_snapshot` 이 돌려준 envelope.scenario → 카드 모델.
+ * lz-string `?share=` 는 디코더 주입이 필요하지만, DB payload 는 이미 `PersistedScenarioState` 라
+ * 디코드 없이 `buildOgCardModel` 을 바로 태운다. scenario 는 다른 클라이언트가 쓴 신뢰불가 값이라
+ * 계산 불가/깨진 payload 는 **예외 대신 null**(api/og·api/share-html 이 절대 5xx 를 내지 않도록).
+ */
+export const summarizeSharedScenarioForOg = (
+  scenario: PersistedScenarioState | null | undefined
+): OgCardModel | null => {
+  if (!scenario) return null;
+  try {
     return buildOgCardModel(scenario);
   } catch {
     return null;

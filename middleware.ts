@@ -1,8 +1,15 @@
-import { next } from '@vercel/functions';
+import { next, rewrite } from '@vercel/functions';
+import { DB_SHARE_KEY_PATTERN, replaceMetaContent } from '@/shared/lib/og';
 
 /**
- * 공유 링크(`/?share=<코드>`)에만 붙는 라우팅 미들웨어.
- * 요청한 share 코드를 가리키는 `og:image` 를 **HTML 에 미리 박아서** 내려준다.
+ * 공유 링크(`/?share=<코드>` 구 lz-string · `/?s=<key>` 신규 DB key)에 붙는 라우팅 미들웨어.
+ * 요청한 시나리오를 가리키는 OG 메타를 **HTML 에 미리 박아서** 내려준다.
+ *
+ * ## 두 공유 포맷 분기 (파라미터 이름으로 구분)
+ * - `?s=<key>`(트랙 F): key 형식만 확인하고 **api/share-html 로 rewrite** 한다. 조회(get_shared_snapshot)·
+ *   시뮬레이션 요약·메타 치환은 전부 그 Node 함수로 격리한다 → middleware 는 "숫자 계산 안 함, 일반 방문자
+ *   비용 0" 원칙을 유지한다(정규식 매칭 1개만 추가). rewrite 라 브라우저 URL 은 `/?s=<key>` 그대로.
+ * - `?share=<코드>`(구): 아래 기존 inline fetch+치환 경로 **그대로**(무변경). lz-string 은 서버에 없어 여기서 직접 처리.
  *
  * ## 왜 미들웨어여야 하는가 (rewrite 로는 불가능하다)
  * 크롤러/스크래퍼는 JS 를 실행하지 않는다. React 가 런타임에 메타태그를 바꿔도 카카오톡·페이스북·네이버는
@@ -35,21 +42,19 @@ export const config = {
 /** lz-string 의 compressToEncodedURIComponent 출력 문자셋. 이걸 벗어나면 우리 공유 코드가 아니다. */
 const SHARE_CODE_PATTERN = /^[A-Za-z0-9+\-$._~*'()!]{1,4000}$/;
 
-/** HTML 속성값 이스케이프. share 코드는 URL 에서 온 신뢰할 수 없는 입력이다. */
-const escapeHtmlAttribute = (value: string): string =>
-  value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
-/**
- * `content="..."` 값만 바꾼다. 태그를 새로 삽입하지 않고 **기존 태그를 치환**하므로 중복 메타가 생기지 않는다
- * (스크래퍼는 보통 첫 번째 태그를 읽기 때문에, 뒤에 덧붙이는 방식은 조용히 무시당한다).
- */
-const replaceMetaContent = (html: string, attribute: 'property' | 'name', key: string, value: string): string => {
-  const pattern = new RegExp(`(<meta[^>]*\\s${attribute}="${key}"[^>]*\\scontent=")[^"]*(")`, 'i');
-  return html.replace(pattern, `$1${escapeHtmlAttribute(value)}$2`);
-};
-
 export default async function middleware(request: Request): Promise<Response> {
   const url = new URL(request.url);
+
+  // ── 신규 `?s=<key>`(DB key) — 형식만 확인하고 api/share-html 로 rewrite. 조회·계산은 그 Node 함수 몫. ──
+  const dbShareKey = url.searchParams.get('s');
+  if (dbShareKey && DB_SHARE_KEY_PATTERN.test(dbShareKey)) {
+    // 경로가 `/api/share-html`(≠ '/') 이라 matcher 에 안 걸려 middleware 가 재진입하지 않는다(508 회피).
+    const target = new URL('/api/share-html', url.origin);
+    target.searchParams.set('s', dbShareKey);
+    return rewrite(target.toString());
+  }
+
+  // ── 구 `?share=<코드>`(lz-string) — 아래는 전부 기존 로직 그대로(무변경). ──
   const shareCode = url.searchParams.get('share');
 
   // 공유 링크가 아니면 손대지 않는다 → 정적 index.html 이 그대로 나간다(일반 방문자 비용 0).

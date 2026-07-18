@@ -93,7 +93,10 @@ charts (monthly dividend / asset value / cumulative dividend), and a post-invest
 - Manual ticker creation (yield/growth/frequency); total return is shown as a derived value
 - Weight editing with per-ticker pinning
 - Scenario tabs (up to 10) for side-by-side strategies; rename, delete, reorder
-- Local persistence in the browser, JSON export/import, lz-string-compressed share links, PNG screen capture
+- Local persistence in the browser, JSON export/import
+- Share links, two formats: client-encoded `?share=` (lz-string, no server) and, when the optional Supabase
+  backend is configured, server-backed `?s=<key>` (a short random key that resolves a saved payload). Both
+  formats stay live at all times; `?s=` exists to keep link length bounded for large scenarios.
 - Onboarding tour and per-field help
 
 ## Machine-Readable Surfaces
