@@ -109,14 +109,10 @@ function MainViewComponent({ viewModel }: MainViewProps) {
               </>
             }
             left={
-              <>
-                {/* 모바일 드로어 상단 인라인 radiogroup — 데스크톱(드로어 초과)에선 스스로 숨는다. */}
-                <ThemePresetSwitcher variant="inline" />
-                <MainLeftPanel
-                  onHydratedChange={setIsPortfolioHydrated}
-                  onRegisterRetryCloudSave={registerRetryCloudSave}
-                />
-              </>
+              <MainLeftPanel
+                onHydratedChange={setIsPortfolioHydrated}
+                onRegisterRetryCloudSave={registerRetryCloudSave}
+              />
             }
             right={
               isPortfolioHydrated ? (

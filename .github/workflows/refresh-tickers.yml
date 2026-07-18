@@ -1,23 +1,27 @@
 name: Refresh ticker market data
 
-# Defensive against an unofficial API (Yahoo Finance's chart endpoint has no documented rate
-# limit) rate-limiting the runner's IP: each weekday refreshes only ~1/5 of the universe
-# (scripts/tickerRefresh/partition.ts) instead of all of it in one burst, and the five daily
-# commits accumulate onto a single branch/PR for the week instead of opening five separate PRs.
+# Once a month, refresh the WHOLE ticker universe from Yahoo Finance (unofficial, keyless) and
+# auto-merge the result to main (= production deploy via Vercel).
+#
+# Rate-limit note: Yahoo's chart endpoint has no documented limit, so refreshing ~68 tickers in one
+# monthly run could burst the runner's IP. Instead of splitting the work across weekdays (the old
+# design), we keep a single monthly run but space the requests out with `--delay` so the fetches
+# trickle over a few minutes rather than firing back-to-back.
 on:
   schedule:
-    # Monday-Friday 21:00 UTC == Tuesday-Saturday 06:00 KST. No weekend runs.
-    - cron: '0 21 * * 1-5'
+    # 1st of each month, 21:00 UTC == 2nd 06:00 KST.
+    - cron: '0 21 1 * *'
   workflow_dispatch:
     inputs:
       only:
-        description: 'Comma-separated tickers to refresh (overrides bucket entirely)'
+        description: 'Comma-separated tickers to refresh (blank = whole universe)'
         required: false
         type: string
-      bucket:
-        description: "Bucket to refresh (0-4). Blank = today's weekday bucket (UTC, Mon=0..Fri=4)"
+      auto_merge:
+        description: 'Auto-merge the PR to main (= deploy). Uncheck to open the PR and stop for review.'
         required: false
-        type: string
+        default: true
+        type: boolean
       provider:
         description: 'Data provider (yahoo needs no key; fmp needs a paid FMP_API_KEY secret)'
         required: false
@@ -35,14 +39,14 @@ on:
           - stable
           - legacy
 
-# The workflow pushes to its own accumulating branch and opens/reuses one PR: a human reviews the
-# full week's diff before any number ships. Nothing is ever pushed straight to main.
+# The job pushes a refresh branch, opens a PR, and (by default) merges it. A scheduled run always
+# auto-merges; a manual dispatch can turn that off to review the diff first.
 permissions:
   contents: write
   pull-requests: write
 
 env:
-  ACCUMULATOR_BRANCH: chore/refresh-ticker-data
+  REFRESH_BRANCH: chore/refresh-ticker-data
 
 jobs:
   refresh:
@@ -54,38 +58,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Resolve today's bucket
-        id: bucket
-        env:
-          BUCKET_INPUT: ${{ inputs.bucket }}
-        run: |
-          if [ -n "$BUCKET_INPUT" ]; then
-            bucket="$BUCKET_INPUT"
-          else
-            # ISO weekday in UTC: 1=Mon..7=Sun, mapped to bucket 0..4 via mod 5. The schedule
-            # only fires Mon-Fri, so this is naturally 0..4 there; a manual dispatch on a weekend
-            # with no explicit --bucket wraps back into Monday/Tuesday's bucket instead of
-            # producing an out-of-range value the CLI would reject.
-            weekday=$(date -u +%u)
-            bucket=$(( (weekday - 1) % 5 ))
-          fi
-          echo "bucket=$bucket" >> "$GITHUB_OUTPUT"
-
-      # Switches the working tree to the week's accumulating branch *before* `npm ci`, so
-      # dependencies install against whatever package.json/lockfile that branch actually has
-      # (it may be a few days stale relative to main if main moved during the week).
-      - name: Checkout or start the accumulating branch
-        run: |
-          if git ls-remote --exit-code --heads origin "$ACCUMULATOR_BRANCH" >/dev/null 2>&1; then
-            # Explicit destination refspec: actions/checkout doesn't configure the usual
-            # `refs/remotes/origin/*` wildcard, so a bare `git fetch origin <branch>` would only
-            # populate FETCH_HEAD and leave `origin/<branch>` missing.
-            git fetch origin "refs/heads/$ACCUMULATOR_BRANCH:refs/remotes/origin/$ACCUMULATOR_BRANCH"
-            git checkout -B "$ACCUMULATOR_BRANCH" "origin/$ACCUMULATOR_BRANCH"
-          else
-            git checkout -B "$ACCUMULATOR_BRANCH" origin/main
-          fi
-
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
@@ -95,85 +67,76 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Inputs go through env vars rather than being interpolated straight into the shell command,
-      # so a dispatch input cannot inject shell.
-      #
-      # Default provider is Yahoo Finance's free, keyless chart API (scripts/tickerRefresh/provider/
-      # yahooProvider.ts) - the scheduled run never depends on FMP_API_KEY. `provider=fmp` stays
-      # available for a manual dispatch by anyone holding a paid FMP key; FMP_API_KEY is only read
-      # when that branch runs. `--only` (manual override) takes the ticker list instead of the
-      # bucket entirely - see cli.ts's own precedence comment.
-      - name: Refresh today's ticker bucket
+      # Inputs go through env vars rather than being interpolated into the shell, so a dispatch input
+      # cannot inject shell. Default provider is Yahoo's free, keyless chart API - the scheduled run
+      # never depends on FMP_API_KEY. `--delay=2000` spaces the ~68 sequential fetches ~2s apart
+      # (~2-3 min total) so the run stays gentle on the unofficial endpoint. `--only` (manual) narrows
+      # the ticker set; blank = whole universe.
+      - name: Refresh the ticker universe
         env:
           FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
           ONLY: ${{ inputs.only }}
-          BUCKET: ${{ steps.bucket.outputs.bucket }}
           PROVIDER: ${{ inputs.provider || 'yahoo' }}
           VARIANT: ${{ inputs.variant || 'stable' }}
         run: |
-          args="--write --provider=$PROVIDER --variant=$VARIANT"
+          args="--write --provider=$PROVIDER --variant=$VARIANT --delay=2000"
           if [ -n "$ONLY" ]; then
             args="$args --only=$ONLY"
-          else
-            args="$args --bucket=$BUCKET"
           fi
           npm run ticker:refresh -- $args
 
       - name: Typecheck
-        # Full project (app + scripts + api). Bare `tsc -b` now only covers the root tsconfig
-        # (api + middleware); the solution entrypoint that builds every reference is build.json.
+        # Full project (app + scripts + api). Bare `tsc -b` only covers the root (api + middleware).
         run: npx tsc -b tsconfig.build.json
 
-      # NOTE: `test:ci` excludes test/snowball/SnowballApp.test.tsx, which is broken on main
-      # (9 failures) for reasons unrelated to this pipeline. Everything else must pass, so a bad
-      # snapshot still fails the gate below and nothing is committed.
+      # NOTE: `test:ci` excludes test/snowball/SnowballApp.test.tsx (broken on main for unrelated
+      # reasons). Everything else must pass, so a bad snapshot still fails this gate and nothing ships.
       - name: Test
         run: npm run test:ci
 
-      # A day whose bucket produced no field changes (e.g. every guard rejected, or the market
-      # truly didn't move) must not create an empty commit.
-      - name: Commit and push today's bucket
+      # A run where nothing changed (or every ticker hit the outlier guard) must not create an empty
+      # commit/PR. The refresh branch is recreated fresh each month: drop any stale remote branch first
+      # so the push never needs --force.
+      - name: Commit the refresh to a fresh branch
         id: commit
-        env:
-          BUCKET: ${{ steps.bucket.outputs.bucket }}
         run: |
           git add shared/constants/marketData/marketData.generated.json
           if git diff --cached --quiet; then
-            echo "No change for bucket $BUCKET - nothing to commit."
+            echo "No field changed - market data already current (or all tickers guard-rejected)."
             echo "committed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          weekday_name=$(date -u +%A)
+          git push origin --delete "$REFRESH_BRANCH" 2>/dev/null || true
+          git checkout -B "$REFRESH_BRANCH"
           git -c user.name="github-actions[bot]" -c user.email="github-actions[bot]@users.noreply.github.com" \
-            commit -m "chore(data): refresh ticker bucket $BUCKET ($weekday_name)"
-          git push origin "$ACCUMULATOR_BRANCH"
+            commit -m "chore(data): monthly ticker market data refresh"
+          git push origin "$REFRESH_BRANCH"
           echo "committed=true" >> "$GITHUB_OUTPUT"
 
-      # Opens the weekly PR once (first bucket of the week); later buckets just add commits to it.
-      # Once merged, `chore/refresh-ticker-data` no longer exists, so the next weekday recreates it
-      # from main - a fresh week starts automatically.
-      #
-      # The body is built with `echo` into a file rather than a shell heredoc, because a heredoc's
-      # unindented body would fall below this step's YAML block-scalar indentation and truncate the
-      # `run:` block right there.
-      - name: Open the weekly PR if it doesn't exist yet
+      # Open the PR, then merge it unless a manual dispatch turned auto-merge off. A scheduled run
+      # always auto-merges (that is the point of the monthly cadence). The body is built with `echo`
+      # into a file rather than a heredoc, whose unindented body would fall below this block scalar's
+      # indentation and truncate the run script.
+      - name: Open and auto-merge the refresh PR
         if: steps.commit.outputs.committed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
+          AUTO_MERGE: ${{ github.event_name == 'schedule' || inputs.auto_merge }}
         run: |
-          if gh pr view "$ACCUMULATOR_BRANCH" --json state --jq .state 2>/dev/null | grep -q OPEN; then
-            echo "PR already open for $ACCUMULATOR_BRANCH - skipping."
-            exit 0
+          if ! gh pr view "$REFRESH_BRANCH" --json state --jq .state 2>/dev/null | grep -q OPEN; then
+            {
+              echo 'Automated monthly refresh of `shared/constants/marketData/marketData.generated.json` via Yahoo Finance (unofficial, no API key).'
+              echo
+              echo 'Only `initialPrice`, `dividendYield` and `frequency` can change here (`dividendGrowth` is derived, never written). Curated values (`name`, `expectedTotalReturn`) are never touched.'
+              echo
+              echo 'Entries rejected by the outlier guards keep their previous values - check the refresh step logs for `WARN` lines.'
+            } > pr-body.md
+            gh pr create --base main --head "$REFRESH_BRANCH" \
+              --title "chore(data): monthly ticker market data refresh" \
+              --body-file pr-body.md
           fi
-          {
-            echo 'Automated weekly refresh of `shared/constants/marketData/marketData.generated.json` via Yahoo Finance (unofficial, no API key).'
-            echo
-            echo 'Accumulates one weekday bucket (~1/5 of the universe, `scripts/tickerRefresh/partition.ts`) per commit to stay defensive against rate limits on an unofficial API - this PR grows through the week and should be reviewed/merged once, not per-commit.'
-            echo
-            echo 'Only `initialPrice`, `dividendYield` and `frequency` can change here (`dividendGrowth` is derived, never written). Curated values (`name`, `expectedTotalReturn`) are never touched by the pipeline.'
-            echo
-            echo 'Entries rejected by the outlier guards keep their previous values - check the daily ticker refresh step logs for `WARN` lines before merging.'
-          } > pr-body.md
-          gh pr create --base main --head "$ACCUMULATOR_BRANCH" \
-            --title "chore(data): refresh ticker market data" \
-            --body-file pr-body.md
+          if [ "$AUTO_MERGE" = "true" ]; then
+            gh pr merge "$REFRESH_BRANCH" --merge --delete-branch
+          else
+            echo "auto_merge=false - PR left open for manual review."
+          fi
