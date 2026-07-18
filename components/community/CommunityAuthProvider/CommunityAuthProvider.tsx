@@ -12,7 +12,13 @@ import {
   type CommunityOAuthProvider
 } from '@/shared/lib/supabase';
 import { useSetProfileWrite, useSetSessionWrite } from '@/jotai/community';
-import { setUserProperties } from '@/shared/lib/analytics';
+import {
+  ANALYTICS_EVENT,
+  readAndClearLoginSource,
+  setUserProperties,
+  trackEvent,
+  writeLoginSource
+} from '@/shared/lib/analytics';
 import { LoginModal } from '@/components/community/LoginModal';
 import { CommunityAuthContext, type CommunityAuthContextValue } from './CommunityAuthProvider.context';
 
@@ -22,6 +28,17 @@ import { CommunityAuthContext, type CommunityAuthContextValue } from './Communit
  */
 const markAccountUserProperty = (session: Session | null) => {
   if (session) setUserProperties({ has_account: true });
+};
+
+/**
+ * 로그인 완료(login_completed) 발화 — 커뮤니티 랜딩용. `login()` 이 리다이렉트 직전에 심은 source 마커가
+ * 있을 때만(=이번 로드가 방금 로그인) 1회 발화하고 마커를 지운다. 세션 복원(마커 없음)엔 발화하지 않는다.
+ * 메인 랜딩은 useCloudWorkspaceSync가 같은 마커로 발화 — read+clear 게이팅이라 로그인당 정확히 1회.
+ */
+const markLoginCompleted = (session: Session | null) => {
+  if (!session) return;
+  const source = readAndClearLoginSource();
+  if (source) trackEvent(ANALYTICS_EVENT.LOGIN_COMPLETED, { source });
 };
 
 /**
@@ -77,6 +94,7 @@ export default function CommunityAuthProvider({ children }: { children: ReactNod
         if (cancelled) return;
         setSession(session);
         markAccountUserProperty(session);
+        markLoginCompleted(session);
         void syncProfile(session);
       } catch {
         // 세션 조회 실패 시 로그아웃 상태로 둔다.
@@ -87,6 +105,7 @@ export default function CommunityAuthProvider({ children }: { children: ReactNod
       unsubscribe = onAuthStateChange(client, (session) => {
         setSession(session);
         markAccountUserProperty(session);
+        markLoginCompleted(session);
         void syncProfile(session);
       });
     };
@@ -105,6 +124,9 @@ export default function CommunityAuthProvider({ children }: { children: ReactNod
     clientRef.current = client;
     setPending(true);
     try {
+      // 전환 귀속 마커 — 리다이렉트 직전에 제공자(source)를 심는다. 복귀 랜딩(메인/커뮤니티)이
+      // read+clear 로 login_completed 를 1회 발화한다. OAuth 는 풀 리다이렉트라 이 sessionStorage 로 건넌다.
+      writeLoginSource(provider);
       await signInWithOAuth(client, provider);
       // 성공 시 브라우저가 OAuth 화면으로 리다이렉트된다(이 시점 이후 코드는 보통 실행되지 않는다).
     } catch {
