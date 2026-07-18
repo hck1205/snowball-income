@@ -28,10 +28,11 @@
 ### 2-1. Key Events (전환) — GA4 "주요 이벤트"로 지정
 `simulation_result_view` · `ticker_saved` · `cloud_save_completed` · `community_post_published` · `scenario_shared`
 
-> ⚠ **`login_completed`는 현재 미발화(dead event)** — 발화를 게이트하던 sessionStorage 마커(`snowball:cloud-login-source`)를
-> 쓰는 코드가 삭제됐고, 유일 발화점(`useCloudWorkspaceSync`)이 메인 페이지 훅이라 커뮤니티 로그인엔 실행조차 안 된다.
-> 그래서 **로그인 사용자 규모는 `has_account` User Property로 측정**하고(코호트 O), 로그인 *전환/퍼널*은
-> **Phase 1.5 후속**으로 되살린다(login() 리다이렉트 직전 마커 기록 + 메인·커뮤니티 양쪽 랜딩에서 read+발화 단일화).
+> ✅ **`login_completed` 부활 완료(Phase 1.5, 2026-07-19)** — `login()`이 OAuth 리다이렉트 직전 sessionStorage
+> 마커(`snowball:cloud-login-source`)에 `source`(=제공자 google/naver/kakao)를 심고, 복귀 랜딩이 read+clear로
+> 1회 발화한다. **메인 랜딩=`useCloudWorkspaceSync`, 커뮤니티 랜딩=`CommunityAuthProvider`** 둘 다 같은 마커를
+> 게이팅해 **로그인당 정확히 1회**(이중 계측 없음). 파라미터는 `source`(등록됨). `entry_point`(어느 게이트에서
+> 로그인했나)는 openLoginPrompt 호출부 스레딩이 필요해 아직 미배선 — 원하면 추가.
 
 ### 2-2. Custom Dimensions (event-scoped)
 | 파라미터(=차원) | 붙는 이벤트 | 용도 |
@@ -178,11 +179,12 @@
 `has_account` · `has_saved` · `is_returning` · `preferred_theme` · `community_active`
 
 ### 8-4. Key Events 지정 (관리 → **주요 이벤트**, 또는 이벤트 목록에서 토글)
-`simulation_result_view` · `ticker_saved` · `cloud_save_completed` · `community_post_published` · `scenario_shared`
-> `login_completed`은 지금 미발화(§2-1) — 나중에 살린 뒤 지정.
+`simulation_result_view` · `ticker_saved` · `cloud_save_completed` · `community_post_published` · `scenario_shared` · **`login_completed`**
+> `login_completed`은 이제 발화된다(§2-1 부활 완료) — **주요 이벤트로 토글**만 하면 전환으로 집계된다. 파라미터 `source`는 §8-2에 이미 등록.
 
 ### 8-5. Explore 퍼널/리포트 구축 (§4)
 활성화 퍼널 · 저장→계정 · 온보딩 · 커뮤니티 · 인기 preset/ticker · value_bucket 분포 · error/operation 랭킹.
 
-### 8-6. (후속) login_completed 되살리기 — Phase 1.5
-로그인 전환 퍼널을 원하면 코드 후속(§2-1 주석) 필요 — 말씀 주시면 진행.
+### 8-6. (완료) login_completed 부활 — Phase 1.5 ✅
+`source`(제공자)로 되살림. 남은 선택 확장: `entry_point`(저장/글쓰기 등 어느 게이트에서 로그인 유도됐나)를
+넣으면 게이트별 전환율 퍼널이 가능 — 그때 `entry_point` 커스텀 측정기준 1개 추가 등록.

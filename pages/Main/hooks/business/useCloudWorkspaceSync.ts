@@ -7,24 +7,7 @@ import {
   type LocalAutosaveRead
 } from '@/jotai/snowball/cloud';
 import { useIsLoggedInAtomValue, useSessionAtomValue } from '@/jotai/community';
-import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
-
-/**
- * 로그인 유도 출처 마커(sessionStorage 키). "내 저장" 게이트가 로그인 시작 시 심고, OAuth 리다이렉트
- * 뒤 세션이 잡히면 이 훅이 읽어 `login_completed(source=cloud_save)`를 발화하고 지운다.
- * (source는 리다이렉트로 유실되므로 세션스토리지로 건너서 전환 퍼널을 이어붙인다.)
- */
-export const CLOUD_LOGIN_SOURCE_KEY = 'snowball:cloud-login-source';
-
-const readAndClearLoginSource = (): string | null => {
-  try {
-    const value = sessionStorage.getItem(CLOUD_LOGIN_SOURCE_KEY);
-    if (value) sessionStorage.removeItem(CLOUD_LOGIN_SOURCE_KEY);
-    return value;
-  } catch {
-    return null;
-  }
-};
+import { ANALYTICS_EVENT, readAndClearLoginSource, trackEvent } from '@/shared/lib/analytics';
 
 /** latest-wins 동기화 신호를 GA4로 매핑한다(엔진은 순수 → 발화는 이 경계에서). 무음 실패 금지. */
 const trackSyncEvent = (event: CloudWorkspaceSyncEvent): void => {
@@ -88,7 +71,9 @@ export const useCloudWorkspaceSync = (deps: {
     if (!isPortfolioHydrated || !userId || syncedForSessionRef.current) return;
     syncedForSessionRef.current = true;
 
-    // OAuth 리다이렉트로 돌아와 세션이 잡힌 첫 시점 — "내 저장" 게이트에서 시작한 로그인이면 완료 발화.
+    // OAuth 리다이렉트로 돌아와 세션이 잡힌 첫 시점(메인 랜딩). CommunityAuthProvider.login이 리다이렉트
+    // 직전에 심은 source(=제공자)가 있으면 로그인 완료를 발화하고 마커를 지운다. 커뮤니티 랜딩은
+    // CommunityAuthProvider가 같은 read+clear로 발화하므로(마커 게이팅) 로그인당 정확히 1회만 집계된다.
     const loginSource = readAndClearLoginSource();
     if (loginSource) {
       trackEvent(ANALYTICS_EVENT.LOGIN_COMPLETED, { source: loginSource });

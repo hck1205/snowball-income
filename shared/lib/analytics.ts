@@ -261,3 +261,38 @@ export const bucketValue = (value: number, edges: readonly number[]): string => 
   }
   return `≥${sorted[sorted.length - 1]}`;
 };
+
+/**
+ * 로그인 전환 귀속(login_completed) 마커 — sessionStorage.
+ *
+ * OAuth는 풀 리다이렉트라 "로그인을 시작했다"는 맥락이 리다이렉트를 넘어가며 유실된다. 그래서
+ * 로그인 시작 시(`login()` 이 signInWithOAuth 리다이렉트 **직전**) 이 마커에 source를 심고, 복귀 후
+ * 세션이 잡힌 랜딩에서 **read+clear** 하여 `login_completed(source)` 를 딱 1회 발화한다.
+ *
+ * ⚠ 이중 계측 방지(project-map §GA4): 랜딩이 메인이면 `useCloudWorkspaceSync`, 커뮤니티면
+ * `CommunityAuthProvider` 가 읽는다. **양쪽 다 이 read+clear 로 게이팅**하므로 — 랜딩 페이지는 하나뿐이고
+ * 마커는 한 번 읽히면 지워지므로 — 로그인당 정확히 1회만 발화한다(SIGNED_IN 무조건 발화 금지).
+ */
+export const LOGIN_SOURCE_KEY = "snowball:cloud-login-source";
+
+/** 로그인 리다이렉트 직전에 source를 심는다(예: 'google'|'naver'|'kakao'). */
+export const writeLoginSource = (source: string) => {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(LOGIN_SOURCE_KEY, source);
+  } catch {
+    // sessionStorage 불가(프라이빗 모드 등) — 로그인 자체엔 영향 없다. 전환 귀속만 생략된다.
+  }
+};
+
+/** 복귀 랜딩에서 마커를 읽고 즉시 지운다(1회성). 없으면 null. */
+export const readAndClearLoginSource = (): string | null => {
+  if (typeof window === "undefined") return null;
+  try {
+    const value = window.sessionStorage.getItem(LOGIN_SOURCE_KEY);
+    if (value) window.sessionStorage.removeItem(LOGIN_SOURCE_KEY);
+    return value;
+  } catch {
+    return null;
+  }
+};
