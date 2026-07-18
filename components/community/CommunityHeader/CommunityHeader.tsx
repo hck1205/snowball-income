@@ -100,19 +100,13 @@ export default function CommunityHeader() {
             </Button>
           )}
 
-          {/*
-           * 테마 스위처 위치 분기(2026-07-18):
-           * - 로그인: 테마는 AuthControl 프로필 드롭다운 안 "테마" 항목으로 이동 → 헤더 슬롯을 숨긴다.
-           * - 비로그인: AuthControl은 로그인 버튼만이라 드롭다운이 없다 → 헤더에 그대로 노출해야 테마 접근이 유지된다.
-           * 커뮤니티는 드로어가 없어 슬롯이 모바일에서도 팝오버를 재노출한다(ThemeSlot).
-           */}
-          {!isLoggedIn ? (
-            <ThemeSlot>
-              <ThemePresetSwitcher />
-            </ThemeSlot>
-          ) : null}
-
           <AuthControl />
+
+          {/* 테마 스위처는 로그인 여부와 무관하게 로그인/프로필 **오른쪽**에 항상 둔다
+              (테마는 이제 프로필 드롭다운이 아니라 헤더에만 있으므로 — 로그인·비로그인 모두 접근 유지). */}
+          <ThemeSlot>
+            <ThemePresetSwitcher />
+          </ThemeSlot>
         </Actions>
       </HeaderInner>
 

@@ -7,13 +7,17 @@ import { color, font, media, motion, radius, shadow, space, zIndex } from '@/sha
  * 따라가면 안 되기 때문에 토큰(var(--sb-*))을 쓰지 않는 것이 맞다.
  */
 
-/** 데스크톱 헤더 슬롯. 모바일(드로어 이하)에서는 드로어 인라인 스위처가 진입점이므로 숨긴다. */
+/**
+ * 헤더 테마 트리거 슬롯 — 데스크톱·모바일 **모든 폭에서 노출**한다(메인·커뮤니티 공통).
+ * (이전엔 모바일에서 드로어 인라인 스위처가 진입점이라 숨겼지만, 이제 테마는 항상 헤더 맨 우측에 둔다.)
+ */
 export const HeaderPopoverRoot = styled.div`
   position: relative;
   display: inline-flex;
 
-  ${media.down('drawer')} {
-    display: none;
+  /* iconOnly sm 버튼은 기본 28×32(세로가 더 김) — 32×32 정사각으로 맞춰 형제 sm 버튼 높이와도 정렬한다. */
+  & > button {
+    width: 32px;
   }
 `;
 

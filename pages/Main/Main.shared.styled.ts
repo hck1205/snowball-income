@@ -208,6 +208,9 @@ export const HeaderBrand = styled.div`
   align-items: center;
   gap: ${space[3]};
   min-width: 0;
+  /* 좁아지면 액션 묶음(로그인·커뮤니티·튜토리얼·테마)이 브랜드 아래 줄로 내려간다. */
+  flex-wrap: wrap;
+  row-gap: ${space[2]};
 `;
 
 /** 앱 아이콘을 감싸는 원형 프레임. 아이콘 이미지를 원으로 잘라 파비콘/앱 아이콘과 형태를 맞춘다. */
@@ -255,6 +258,10 @@ export const HeaderActions = styled.div`
   gap: ${space[1]};
   flex: 0 0 auto;
   margin-left: auto;
+  /* 좁아지면 로그인·커뮤니티·튜토리얼·테마 버튼이 다음 줄로 내려간다(넘쳐서 잘리지 않도록). 우측 정렬 유지. */
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  row-gap: ${space[1]};
 `;
 
 

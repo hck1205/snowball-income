@@ -114,21 +114,11 @@ export const DesktopOnly = styled.span`
   }
 `;
 
-/**
- * 테마 스위처 슬롯. `ThemePresetSwitcher`의 팝오버 루트는 **메인 레이아웃 기준**으로 drawer↓에서
- * 스스로 숨는다(메인은 모바일에서 드로어 인라인 스위처가 진입점이라 중복을 피함). 커뮤니티에는
- * 드로어가 없어 그 대체 진입점이 없으므로, 이 슬롯이 팝오버(직계 div = 팝오버 루트)를 **모든 폭에서
- * 다시 노출**시킨다. `& > div`(0,1,1)가 자식의 `@media` display:none(0,1,0)을 특이도로 이긴다 —
- * Emotion 컴포넌트 셀렉터가 아닌 순수 자식 셀렉터라 테스트 런타임에서 안전하다.
- */
+/** 테마 스위처 슬롯(로그인/프로필 오른쪽). 팝오버 루트는 이제 모든 폭에서 노출되므로 별도 override는 없다. */
 export const ThemeSlot = styled.div`
   display: inline-flex;
   align-items: center;
   flex: 0 0 auto;
-
-  & > div {
-    display: inline-flex;
-  }
 `;
 
 /** 모바일에서만 노출되는 검색 토글 아이콘 버튼. */
