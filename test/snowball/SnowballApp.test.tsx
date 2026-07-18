@@ -18,9 +18,15 @@ const renderFeature = (): User => {
   return userEvent.setup();
 };
 
+/**
+ * 모달류는 React.lazy로 갈라져 있어 이 파일을 단독 실행하면(콜드 캐시) 첫 로드가
+ * 기본 타임아웃(1000ms)을 넘길 수 있다. 동작 계약이 아니라 로딩 시간 문제이므로 여유를 준다.
+ */
+const LAZY_MODAL_TIMEOUT = { timeout: 3000 };
+
 const openTickerModal = async (user: User): Promise<HTMLElement> => {
   await user.click(screen.getByRole('button', { name: '티커 생성 열기' }));
-  return screen.findByRole('dialog', { name: '티커 생성' });
+  return screen.findByRole('dialog', { name: '티커 생성' }, LAZY_MODAL_TIMEOUT);
 };
 
 /**
@@ -58,7 +64,7 @@ const createCustomTicker = async (
   draft: { ticker: string; initialPrice: string; dividendYield: string; dividendGrowth: string }
 ): Promise<void> => {
   const dialog = await openTickerModal(user);
-  await user.click(within(dialog).getByRole('tab', { name: '입력' }));
+  await user.click(within(dialog).getByRole('tab', { name: '직접 입력' }));
 
   await fillField(user, dialog, '티커', draft.ticker);
   await fillField(user, dialog, '현재 주가', draft.initialPrice);
@@ -200,8 +206,8 @@ describe('SnowballAppFeature', () => {
 
     await user.click(screen.getByRole('button', { name: '티커 QQQ 설정' }));
 
-    const dialog = await screen.findByRole('dialog', { name: '티커 설정 수정' });
-    await user.click(within(dialog).getByRole('tab', { name: '입력' }));
+    const dialog = await screen.findByRole('dialog', { name: '티커 설정 수정' }, LAZY_MODAL_TIMEOUT);
+    await user.click(within(dialog).getByRole('tab', { name: '직접 입력' }));
     await fillField(user, dialog, '티커', 'QQQM');
     await user.click(within(dialog).getByRole('button', { name: '저장' }));
 
@@ -215,7 +221,7 @@ describe('SnowballAppFeature', () => {
 
     await user.click(screen.getByRole('button', { name: '티커 SCHD 설정' }));
 
-    const dialog = await screen.findByRole('dialog', { name: '티커 설정 수정' });
+    const dialog = await screen.findByRole('dialog', { name: '티커 설정 수정' }, LAZY_MODAL_TIMEOUT);
     await user.click(within(dialog).getByRole('button', { name: '티커 삭제' }));
 
     expect(screen.queryByRole('button', { name: '티커 SCHD 선택' })).not.toBeInTheDocument();

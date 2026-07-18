@@ -372,6 +372,57 @@ describe('normalizePersistedAppState', () => {
   });
 });
 
+describe('DB 공유 스냅샷 정규화 계약 (normalizeSharedSnapshotScenario 조립, 트랙 E)', () => {
+  // usePortfolioPersistence.normalizeSharedSnapshotScenario는 export되지 않으므로,
+  // 그 조립(scenarios:[raw], activeScenarioId: raw.id → scenarios[0] ?? null)을 그대로 재현해
+  // DB(?s=)에서 온 신뢰불가 scenario가 저장 정규화 규칙으로 안전화되는지 계약으로 고정한다.
+  // (fetchSharedSnapshot은 서버 payload를 그대로 돌려주므로 이 정규화가 신뢰 경계다.)
+  const normalizeSharedLike = (rawScenario: Record<string, unknown>) =>
+    normalizePersistedAppState({
+      portfolio: rawScenario.portfolio,
+      investmentSettings: rawScenario.investmentSettings,
+      scenarios: [rawScenario],
+      activeScenarioId: rawScenario.id
+    }).scenarios[0] ?? null;
+
+  it('악성/결손 payload(유령 티커·음수 가격·과도한 세율)를 안전값으로 정규화한다', () => {
+    const scenario = normalizeSharedLike({
+      id: 'tab-x',
+      name: '공유',
+      portfolio: {
+        tickerProfiles: [validProfile, { ...validProfile, id: 'bad', initialPrice: -5 }],
+        includedTickerIds: ['ticker-1', 'ghost'],
+        weightByTickerId: { 'ticker-1': 100, ghost: 999 },
+        fixedByTickerId: { ghost: true },
+        selectedTickerId: 'ghost'
+      },
+      investmentSettings: { ...EMPTY_INVESTMENT_SETTINGS, taxRate: 500 }
+    });
+
+    expect(scenario).not.toBeNull();
+    expect(scenario?.portfolio.tickerProfiles.map((profile) => profile.id)).toEqual(['ticker-1']);
+    expect(scenario?.portfolio.includedTickerIds).toEqual(['ticker-1']);
+    expect(scenario?.portfolio.weightByTickerId).toEqual({ 'ticker-1': 100 });
+    expect(scenario?.portfolio.fixedByTickerId).toEqual({});
+    expect(scenario?.portfolio.selectedTickerId).toBeNull();
+    expect(scenario?.investmentSettings.taxRate).toBe(100); // 상한 클램프
+  });
+
+  it('완전히 깨진 scenario여도 null이 아니라 안전한 기본 탭으로 되살아난다 (?? null 가지는 실질 도달 불가)', () => {
+    // name이 공백이라 시나리오 엔트리는 버려지지만, sanitizeScenarios가 최상위(=raw) portfolio/settings로
+    // 기본 탭을 재합성한다 → wrapper의 `?? null`은 실질적으로 도달하지 않는다.
+    const scenario = normalizeSharedLike({
+      id: '',
+      name: '   ',
+      portfolio: 'not-an-object',
+      investmentSettings: null
+    });
+
+    expect(scenario).not.toBeNull();
+    expect(scenario?.portfolio.tickerProfiles).toEqual([]);
+  });
+});
+
 describe('parsePersistedAppStateJson', () => {
   it('정상 JSON은 정규화된 payload로 만든다', () => {
     const json = JSON.stringify({

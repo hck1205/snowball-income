@@ -16,7 +16,16 @@ import {
   HeaderTitle
 } from '@/pages/Main/Main.shared.styled';
 
-function MobileMenuDrawerComponent({ isOpen, onOpen, onClose, left, right, notice, headerAction }: MobileMenuDrawerProps) {
+function MobileMenuDrawerComponent({
+  isOpen,
+  onOpen,
+  onClose,
+  left,
+  right,
+  notice,
+  headerAction,
+  headerStatus
+}: MobileMenuDrawerProps) {
   const drawerId = useId();
   const toggleAnchorRef = useRef<HTMLDivElement | null>(null);
   const [isFloating, setIsFloating] = useState(false);
@@ -69,6 +78,8 @@ function MobileMenuDrawerComponent({ isOpen, onOpen, onClose, left, right, notic
             <HeaderLogoImage src="/app_icon.png" alt="" width={40} height={40} />
           </HeaderLogo>
           <HeaderTitle>Snowball Income</HeaderTitle>
+          {/* 헤더 맨 좌측(타이틀 옆) 상태 슬롯 — 클라우드 저장 상태(저장 중/실패)가 여기 붙는다. */}
+          {headerStatus}
           {headerAction ? <HeaderActions>{headerAction}</HeaderActions> : null}
         </HeaderBrand>
         <HeaderDescription>장기 배당 투자 전략을 설계하고 시뮬레이션 결과를 비교하세요.</HeaderDescription>

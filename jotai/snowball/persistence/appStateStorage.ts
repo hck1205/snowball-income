@@ -3,11 +3,8 @@ import { buildDefaultPayload, normalizePersistedAppState } from './appStateNorma
 import {
   buildStoreRecord,
   resolveNextSavedName,
-  toSavedStateSummaries,
-  toSnapshotKey,
   PORTFOLIO_STATE_KEY,
-  type PortfolioStoreRecord,
-  type SavedStateSummary
+  type PortfolioStoreRecord
 } from './appStateRecords';
 
 const PORTFOLIO_DB_NAME = 'snowball-income-db';
@@ -18,9 +15,13 @@ const PORTFOLIO_STORE_NAME = 'app_state';
  * 읽기 결과. 실패해도 앱이 계속 돌아가도록 기본 페이로드를 함께 넘기되,
  * **실패했다는 사실 자체를 호출자가 알 수 있어야** 한다 (`ok: false`).
  * 호출자는 이 신호를 보고 자동 저장으로 기존 데이터를 덮어쓰지 않도록 막는다.
+ *
+ * `updatedAt`(성공 시, 가법적 optional): autosave 레코드에 심긴 **클라이언트 저장시각**(Date.now()).
+ * 세션 시작 latest-wins 동기화가 로컬 vs 클라우드 최신성을 비교하는 기준이다. 저장된 레코드가 없거나
+ * (기본 페이로드) 구버전이라 시각이 없으면 undefined. 기존 `{ok, payload}` 계약은 그대로 유지된다.
  */
 export type PersistedAppStateReadResult =
-  | { ok: true; payload: PersistedAppStatePayload }
+  | { ok: true; payload: PersistedAppStatePayload; updatedAt?: number }
   | { ok: false; payload: PersistedAppStatePayload; error: unknown };
 
 /** 명시적 복구 결과. `backupJson` 은 삭제 직전 스냅샷 (읽기조차 실패하면 null). */
@@ -95,85 +96,11 @@ export const readPersistedAppState = async (): Promise<PersistedAppStateReadResu
     if (!record?.value) {
       return { ok: true, payload: buildDefaultPayload() };
     }
-    return { ok: true, payload: normalizePersistedAppState(record.value) };
+    const updatedAt = Number.isFinite(record.updatedAt) ? record.updatedAt : undefined;
+    return { ok: true, payload: normalizePersistedAppState(record.value), updatedAt };
   } catch (error) {
     warnPersistenceFailure('read', error);
     return { ok: false, payload: buildDefaultPayload(), error };
-  }
-};
-
-/** 실패를 빈 목록으로 위장하지 않는다 (빈 목록은 "저장한 게 없다"는 뜻이어야 한다). */
-export const listPersistedStateNames = async (): Promise<SavedStateSummary[]> => {
-  try {
-    const records = await withPortfolioDb((db) =>
-      requestToPromise(
-        db.transaction(PORTFOLIO_STORE_NAME, 'readonly').objectStore(PORTFOLIO_STORE_NAME).getAll() as IDBRequest<
-          PortfolioStoreRecord[]
-        >,
-        'Failed to list portfolio states'
-      )
-    );
-
-    return toSavedStateSummaries(records ?? []);
-  } catch (error) {
-    warnPersistenceFailure('list', error);
-    throw error;
-  }
-};
-
-/** `null` 은 "그 이름의 저장 항목이 없다"는 뜻이다. IO 실패는 던진다 (구분되어야 한다). */
-export const readPersistedAppStateByName = async (name: string): Promise<PersistedAppStatePayload | null> => {
-  const snapshotKey = toSnapshotKey(name);
-  if (!snapshotKey) return null;
-
-  try {
-    const record = await withPortfolioDb((db) => getRecord(db, snapshotKey));
-    if (!record) return null;
-    return normalizePersistedAppState(record.value);
-  } catch (error) {
-    warnPersistenceFailure('read-named', error);
-    throw error;
-  }
-};
-
-export const writePersistedAppStateByName = async (name: string, state: PersistedAppStatePayload): Promise<void> => {
-  const trimmedName = name.trim();
-  const snapshotKey = toSnapshotKey(trimmedName);
-  if (!snapshotKey) return;
-
-  try {
-    await withPortfolioDb((db) =>
-      requestToPromise(
-        db
-          .transaction(PORTFOLIO_STORE_NAME, 'readwrite')
-          .objectStore(PORTFOLIO_STORE_NAME)
-          .put(buildStoreRecord(snapshotKey, state, trimmedName, Date.now())),
-        'Failed to write named portfolio state'
-      )
-    );
-  } catch (error) {
-    // 조용히 삼키면 사용자는 저장된 줄 안다. 호출부(TickerCreation)가 '저장에 실패했습니다'를 띄운다.
-    warnPersistenceFailure('write-named', error);
-    throw error;
-  }
-};
-
-/** `false` 는 "이름이 비어 삭제할 대상이 없다"는 뜻이다. IO 실패는 던진다. */
-export const deletePersistedAppStateByName = async (name: string): Promise<boolean> => {
-  const snapshotKey = toSnapshotKey(name);
-  if (!snapshotKey) return false;
-
-  try {
-    await withPortfolioDb((db) =>
-      requestToPromise(
-        db.transaction(PORTFOLIO_STORE_NAME, 'readwrite').objectStore(PORTFOLIO_STORE_NAME).delete(snapshotKey),
-        'Failed to delete named portfolio state'
-      )
-    );
-    return true;
-  } catch (error) {
-    warnPersistenceFailure('delete-named', error);
-    throw error;
   }
 };
 

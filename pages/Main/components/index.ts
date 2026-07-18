@@ -9,6 +9,7 @@
  * 두 모달은 각자의 폴더 경로로 직접 import한다(`./components/TickerModal`) — 폴더 단위 import 규칙은 그대로 지킨다.
  */
 export * from './ChartPanel';
+export { default as MainContentLoader } from './MainContentLoader';
 export { default as MainLeftPanel } from './MainLeftPanel';
 export { default as MainRightPanel } from './MainRightPanel';
 export { default as MarketDataAsOf } from './MarketDataAsOf';

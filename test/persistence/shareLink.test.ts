@@ -1,6 +1,7 @@
 import { compressToEncodedURIComponent } from 'lz-string';
 import { EMPTY_INVESTMENT_SETTINGS, type PersistedInvestmentSettings, type PersistedScenarioState } from '@/jotai';
 import {
+  buildShareUrl,
   decodeCompactInvestmentSettingsV2,
   decodeCompactInvestmentSettingsV3,
   decodeCompactPortfolio,
@@ -10,6 +11,8 @@ import {
   encodeFrequency,
   encodeSharedScenario,
   encodeVisibleYearlySeriesMask,
+  readShareCodeFromHref,
+  SHARE_QUERY_PARAM,
   SHARED_SCENARIO_DECODED_NAME,
   SHARED_SCENARIO_ID
 } from '@/pages/Main/hooks/persistence';
@@ -534,6 +537,54 @@ describe('공유 링크 하위호환 디코딩', () => {
     expect(decoded?.investmentSettings.taxRate).toBe(22);
     expect(decoded?.investmentSettings.reinvestTiming).toBe('nextMonth');
     expect(decoded?.investmentSettings.dpsGrowthMode).toBe('annualStep');
+  });
+});
+
+describe('DB key 폴백 왕복 (client null → ?share= lz-string, 트랙 E)', () => {
+  // createShareLink는 supabase client가 null(미설정/테스트)이거나 DB 저장이 throw하면
+  // createLegacyShareLink로 폴백한다: encodeSharedScenario → buildShareUrl(?share=).
+  // 복원 effect는 ?s=(DB key)가 없을 때 readShareCodeFromHref → decodeSharedScenario로 되돌린다.
+  // 이 폴백 체인 전체(시나리오 → URL → 시나리오)가 조립 단위로 성립하는지 확인한다.
+  it('scenario → encode → ?share= URL → read → decode 가 내용을 보존한다', () => {
+    const scenario = buildScenario();
+    const shareUrl = buildShareUrl('https://snowball.app/?utm=x', encodeSharedScenario(scenario));
+
+    // createLegacyShareLink가 만든 URL: ?share= 이고 기존 파라미터를 보존한다.
+    expect(shareUrl).toContain(`${SHARE_QUERY_PARAM}=`);
+    expect(shareUrl).toContain('utm=x');
+
+    // 복원 effect(?s= 부재 → ?share=)가 되돌리는 경로.
+    const shareCode = readShareCodeFromHref(shareUrl);
+    expect(shareCode).not.toBeNull();
+    const decoded = decodeSharedScenario(shareCode as string);
+
+    expect(decoded).not.toBeNull();
+    expect(decoded?.id).toBe(SHARED_SCENARIO_ID);
+    expect(decoded?.name).toBe(SHARED_SCENARIO_DECODED_NAME);
+    expect(decoded?.portfolio.tickerProfiles).toEqual([
+      { ...schd, id: 'shared-0' },
+      { ...jepi, id: 'shared-1' }
+    ]);
+    expect(decoded?.portfolio.weightByTickerId).toEqual({ 'shared-0': 60, 'shared-1': 40 });
+    expect(decoded?.portfolio.selectedTickerId).toBe('shared-1');
+    expect(decoded?.investmentSettings).toEqual(buildSettings());
+  });
+
+  it('빈 포트폴리오 시나리오도 폴백 URL로 왕복한다', () => {
+    const scenario = buildScenario({
+      portfolio: {
+        tickerProfiles: [],
+        includedTickerIds: [],
+        weightByTickerId: {},
+        fixedByTickerId: {},
+        selectedTickerId: null
+      }
+    });
+    const shareUrl = buildShareUrl('https://snowball.app/', encodeSharedScenario(scenario));
+    const decoded = decodeSharedScenario(readShareCodeFromHref(shareUrl) as string);
+
+    expect(decoded?.portfolio.tickerProfiles).toEqual([]);
+    expect(decoded?.investmentSettings).toEqual(buildSettings());
   });
 });
 
