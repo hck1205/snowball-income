@@ -36,7 +36,7 @@ UI가 예뻐도 숫자가 틀리면 제품은 실패한다.
   - DPS 성장 모드(`annualStep` vs `monthlySmooth`)의 적용 시점
   - 세금·수수료가 반영되는 지점(총수익률 vs 배당수익률 이중 계산 주의)
   - 0/음수/극단값 입력, 부동소수점 누적 오차
-- 검증: `npm run test` 실행. 타입은 `npx tsc -b`. 숫자가 바뀌었다면 **왜 바뀌었는지 근거를 남긴다.**
+- 검증: `npm run test` 실행. 타입은 `npx tsc -b tsconfig.build.json`. 숫자가 바뀌었다면 **왜 바뀌었는지 근거를 남긴다.**
 - 코드 참조는 `path:line`으로.
 
 ## 구조 규칙 (`.cursor/rules`)

@@ -39,7 +39,8 @@ model: inherit
 
 - 새 의존성 추가 전에 기존 스택(Emotion, Jotai, ECharts, zod, lz-string)으로 되는지 먼저 확인한다.
 - 타입 안전(strict), 반응형(모바일 드로어 존재), 접근성(키보드/ARIA), 불필요한 리렌더 방지.
-- 변경 후 **`npx tsc -b`와 `npm run test`를 실행해 통과를 확인**한다. `noUnusedLocals`가 켜져 있다.
+- 변경 후 **`npx tsc -b tsconfig.build.json`와 `npm run test`를 실행해 통과를 확인**한다. `noUnusedLocals`가 켜져 있다.
+  (bare `tsc -b`는 루트=api+middleware만 체크한다 — 앱 코드 타입체크는 반드시 tsconfig.build.json 을 붙인다.)
 - 코드 참조는 `path:line`으로.
 
 ## 협업 프로토콜

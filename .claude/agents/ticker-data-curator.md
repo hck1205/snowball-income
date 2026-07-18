@@ -31,7 +31,7 @@ model: sonnet
 - 프리셋 추가/삭제 시 이를 참조하는 곳(플레이스홀더 상수, 초기 상태)이 있는지 grep으로 확인한다.
 - `output/*.json`은 **생성물**이다. 손으로 고치지 말고 파서 규칙을 고친 뒤 `npm run ticker:parse`로 재생성한다.
 - 데이터 크기가 번들에 들어가는지 확인한다 — 목록이 커지면 `perf-optimizer`에 알린다.
-- 변경 후 `npx tsc -b`, `npm run test` 통과 확인.
+- 변경 후 `npx tsc -b tsconfig.build.json`, `npm run test` 통과 확인.
 
 ## 구조 규칙 (`.cursor/rules`)
 

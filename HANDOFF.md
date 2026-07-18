@@ -114,7 +114,7 @@ DB·RLS·데이터 레이어는 **완성됐고 실제 Supabase에 연결·검증
 ```sh
 npm run dev                    # 개발 서버
 npx vitest run                 # 전체 테스트 (797개)
-npx tsc -b                     # 타입체크
+npx tsc -b tsconfig.build.json # 전체 타입체크 (bare `tsc -b`는 api+middleware만)
 npm run build                  # 빌드 (ticker:parse → tsc → vite)
 npm run search -- runSimulation        # 코드 검색 (인덱서)
 npm run search -- kind:pure allocation # 순수 함수만

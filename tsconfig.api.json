@@ -5,7 +5,8 @@
     앱(tsconfig.app.json)과 분리한 이유:
       - 런타임이 다르다. 브라우저 DOM 이 아니라 Node/Edge 의 Web Fetch API 위에서 돈다.
       - `types: ["node"]` 가 필요하지만, 앱 코드에 node 타입이 새어 들어가면 안 된다.
-    `tsc -b` 가 이 프로젝트도 함께 타입체크한다(루트 tsconfig 의 references).
+    `tsc -b tsconfig.build.json` 이 이 프로젝트도 함께 타입체크한다(build.json 의 references).
+    (루트 tsconfig.json 은 Vercel 이 읽는 정상 config 로 분리됐다 — 거기 references 는 없다.)
   */
   "compilerOptions": {
     "target": "ES2022",

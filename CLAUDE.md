@@ -34,8 +34,11 @@ Vite + React 18 + TypeScript(strict) + Emotion + Jotai + React Router + ECharts 
 ```sh
 npm run dev            # 개발 서버
 npm run test           # Vitest 단발 실행
-npx tsc -b             # 타입체크 (noUnusedLocals/Params 켜져 있음)
-npm run build          # ticker:parse → tsc -b → vite build
+npx tsc -b tsconfig.build.json   # 전체 타입체크 (noUnusedLocals/Params 켜져 있음)
+                                 # ⚠ bare `tsc -b`는 루트(api+middleware)만 체크한다.
+                                 #   루트 tsconfig.json은 Vercel이 읽는 정상 config이고,
+                                 #   `tsc -b` 솔루션 진입점은 tsconfig.build.json 이다.
+npm run build          # ticker:parse → tsc -b tsconfig.build.json → vite build
 npm run ticker:parse   # utils/TickerParser로 상장 티커 JSON 재생성
 npm run index          # 코드/문서 인덱스 재생성 (.index/)
 npm run search -- <질의>  # 인덱스 검색 (위 "검색은 인덱스 먼저" 참고)

@@ -54,7 +54,7 @@ model: inherit
    - **브리핑에는 반드시 포함한다:**
      - 목표 / 이전 단계 산출물(파일 경로) / 완료 기준
      - **구조 규칙 준수**: `.cursor/rules` — 모든 폴더에 `index.ts`, 폴더 단위 import(`@/components/common`)만, 파일명은 폴더명 PascalCase prefix
-     - **검증 명령**: `npm run test`, 타입은 `npx tsc -b`
+     - **검증 명령**: `npm run test`, 타입은 `npx tsc -b tsconfig.build.json` (bare `tsc -b`는 api+middleware만 체크)
      - 핸드오프 형식(요약 / 산출물 `path:line` / 다음 담당 제안 / 리스크)으로 반환하라는 요구
 
 3. **검증 (Verify)**

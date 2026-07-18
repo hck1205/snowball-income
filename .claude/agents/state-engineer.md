@@ -34,7 +34,7 @@ model: inherit
 - 새 폼 필드를 추가할 때의 체크리스트:
   1. 엔진 zod 스키마/타입 (`simulation-engineer` 협의) → 2. form atom 기본값 →
   3. 영속 페이로드 + 정규화 → 4. 공유 링크 직렬화 → 5. UI 바인딩(`frontend-engineer`)
-- 검증: `npm run test`, `npx tsc -b`. 저장/복원/공유는 실제로 왕복(round-trip) 테스트한다.
+- 검증: `npm run test`, `npx tsc -b tsconfig.build.json`. 저장/복원/공유는 실제로 왕복(round-trip) 테스트한다.
 
 ## 구조 규칙 (`.cursor/rules`)
 

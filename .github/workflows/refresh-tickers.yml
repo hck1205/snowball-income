@@ -120,7 +120,9 @@ jobs:
           npm run ticker:refresh -- $args
 
       - name: Typecheck
-        run: npx tsc -b
+        # Full project (app + scripts + api). Bare `tsc -b` now only covers the root tsconfig
+        # (api + middleware); the solution entrypoint that builds every reference is build.json.
+        run: npx tsc -b tsconfig.build.json
 
       # NOTE: `test:ci` excludes test/snowball/SnowballApp.test.tsx, which is broken on main
       # (9 failures) for reasons unrelated to this pipeline. Everything else must pass, so a bad
