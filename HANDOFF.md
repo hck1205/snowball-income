@@ -1,133 +1,47 @@
-# HANDOFF — 2026-07-15
+# HANDOFF — 2026-07-20 (커뮤니티 확장 · 클라우드 싱크 화해 · 헤더/UI 개편)
 
-> 다음 세션에서 이 문서부터 읽으세요. 어디까지 했고, 왜 그렇게 했고, 무엇이 남았는지가 전부 여기 있습니다.
+> 다음 세션은 이 문서부터. 이번 세션 산출물은 전부 **main에 머지·배포됨**(PR [#14](https://github.com/hck1205/snowball-income/pull/14), merge `43c26a1`). tsc 0 · 전체 테스트 2249 통과.
 
-## 지금 상태 한 줄
+## 배포/DB 상태 (먼저 확인)
+- **main = 배포 최신.** 이번 브랜치(`feat/simulator-ui-improvements`, 12커밋)가 머지됨 → Vercel 배포됨.
+- **DB 마이그레이션 실행 완료(사용자가 SQL 에디터로 직접 실행):**
+  - `20260722000000_drop_seed_tracking.sql` — 시드 추적장치 제거
+  - `20260723000000_rename_scenarios_to_posts.sql` — `scenarios`→`posts` 물리 rename
+  - `20260724000000_add_post_kind.sql` — `posts.kind`(portfolio/board)
+  - ⚠ 클라이언트가 `posts`/`kind`를 호출하므로 이 순서로 선행 실행돼 있어야 정상(완료됨).
 
-브랜치 **`refactor/pure-functions`** (커밋 21개, PR [#9](https://github.com/hck1205/snowball-income/pull/9) OPEN, `+30,814 / -4,916`) — **테스트 797개 전부 통과**, `npx tsc -b` / `npm run build` 통과, 워킹트리 clean. **아직 main에 머지 안 됨 = 배포 안 됨.**
+## 이번 세션에 반영된 것
+### 헤더 · 시뮬레이터 UI
+- 워드마크 **"Snowball / Income" 2줄**(로고 높이 정합).
+- **⋯ 더보기 메뉴**로 튜토리얼·앱설치·테마 통합(커뮤니티는 튜토리얼 제외). 앱설치는 호환 분기(네이티브 프롬프트 / 수동 가이드 / 설치됨).
+- **헤더 2줄 레이아웃**(1줄=로고+메뉴 / 2줄=우측 컨트롤·검색) + **상단 brand 틴트**(테마 토큰).
+- 티커 **비율 조절 잠금 토글**(모바일 오조작 방지, ≤960px 기본 잠금), 프리셋 **적용 확인 모달**, 파이 중앙 **월배당 상시 표시**.
 
----
+### 클라우드 ↔ 디바이스 싱크
+- 무음 last-write-wins → **세션시작 충돌 감지 + 3-way 화해 모달**(디바이스 / 클라우드 / **블렌드=합집합·비파괴**) + 헤더 "동기화 보류" 재개봉.
+- **비로그인 1탭 제한 + 로그인 유도**(블렌드 증식 억제·로그인 유인). 커뮤니티 비활성 배포엔 게이트 없음.
+- 저장/공유 스키마 무변경(런타임 `conflict` 상태만 추가). GA4 `cloud_sync_conflict`.
 
-## 이번 세션에서 무엇이 바뀌었나
+### 커뮤니티 확장
+- **`scenarios` → `posts` 물리 rename**(게시글 엔티티). 시뮬 what-if 개념(`PersistedScenarioState`·`sim_summary`·`buildScenarioSimSummary`·`shared_snapshots`·`?s=`/`?share=`)은 **의도적으로 유지**.
+- **자유게시판**(`posts.kind`='board', `/community/board` 목록·글쓰기·상세). 갤러리는 `kind='portfolio'`만 노출.
+- **글로벌 `PrimaryNav`**(로고→홈 + 시뮬레이터·포트폴리오 갤러리·게시판, `aria-current`) 두 헤더 주입, `CommunityNavLink` 제거.
+- 갤러리 라우트 **`/community/portfolio`**(게시판과 대칭, `/community`→리다이렉트). 글 상세 링크 **kind-aware**로 수정(게시판 글이 갤러리 상세로 잘못 연결되던 버그 해소).
 
-### 🔴 가장 중요: 코어 계산 모델이 틀려 있었고, 고쳤다
+## 남은 것 / 백로그
+1. **커뮤니티 콜드스타트 시딩(운영자 직접·투명)** — 세션 초반 만든 5건 posts SQL은 **rename 이전(`scenarios`) 기준이라 폐기**. 지금 스키마(`posts` + `kind='portfolio'`)로 **재생성 필요**(앱 시뮬레이터에서 만들어 "게시" 하는 방법이 가장 안전). 운영자 계정으로 직접 작성이 확정 방향(합성 페르소나 시딩은 폐기됨).
+2. **실브라우저 확인** — 헤더 2줄 레이아웃·검색 2번째 줄 가운데·상단 색·워드마크 2줄은 **jsdom @media 미평가**라 유닛으로 못 잡는다. 좁은 뷰포트(모바일)·팔레트 전환·다크에서 육안 확인 권장.
+3. **상단 색 트리트먼트는 1안(brand 틴트 그라데이션)** — 사용자는 컬러풀·velog풍을 선호하고 여러 버전 비교를 원함. 필요 시 대안(오로라 그라데이션 액센트 / 활성 라우트 강조 변형) 제시·비교.
+4. 네이버 심사 통과 시 `NAVER_UNDER_REVIEW=false`(승인 후 배포).
+5. GA4 주요 이벤트 토글(발화 후 관리 → 이벤트): `cloud_sync_conflict`·`community_post_published`·`login_completed` 등.
 
-시뮬레이션이 배당(DPS)을 주가와 **독립적으로** 성장시켰다.
-- 기존: `priceGrowth = expectedTotalReturn − dividendYield`, `dps(t) = P0 × y0 × (1+dividendGrowth)^t` ← 가격과 무관
-- 그 결과 실효 총수익률이 입력값과 일치하는 건 `dy + dg == etr`일 때뿐인데(고든 성장모형), **프리셋 68개 중 48개가 이를 어겼다.**
+## ⚠ SEO — ISR 전략을 어떻게 할지 고민해야 한다 (다음 세션 최우선 검토)
+자유게시판·포트폴리오 갤러리가 **공개 콘텐츠**가 되면서 검색 유입 가치가 생겼는데, 이 앱은 **Vite SPA(클라이언트 렌더)**다 → 크롤러가 글 본문·목록을 못 읽는다. 공유 링크용 동적 OG(`/api/og`·`middleware.ts`)와 `#root` 프리렌더는 있지만, **게시글/게시판 상세의 본문 자체를 SEO에 태우는 전략은 없다.**
 
-**증상**: 30년 시뮬(초기 1,000만 / 월 50만 / 재투자 100% / 세율 15.4%)에서 **총수익률 7%로 입력한 QYLD(19.87억)가 10%인 SCHD(11.80억)를 압도**. 배당률 50% 이상 입력 시 `NaN`이 화면에 렌더.
+**결정할 것**: 동적 커뮤니티/게시판 페이지의 렌더링 전략 —
+- Vite는 Next의 ISR을 네이티브로 안 준다 → **(a) SSR/프리렌더 서버(예: Vercel 함수로 게시글 HTML을 캐시·재검증)**, **(b) 빌드타임 SSG는 동적 글엔 부적합**, **(c) `/api`에서 게시글별 프리렌더 HTML을 ISR처럼 stale-while-revalidate로 서빙** 등 중 무엇으로 갈지.
+- 고려: 캐시 무효화(글 수정/삭제 시), 크롤러 전용 스텁 금지(기존 원칙), 엔트리 번들 격리(supabase/Tiptap), `posts.is_public`만 노출.
+- 요약: **"공개 게시글/게시판을 어떤 ISR(또는 SSR/프리렌더) 방식으로 SEO에 태울지"를 먼저 설계**한 뒤 착수한다.
 
-**수정**: 배당을 가격에 앵커했다.
-```
-priceGrowth = dividendGrowth
-dps(t)      = price(t) × dividendYield     → 배당수익률이 일정하게 유지
-totalReturn = dividendYield + dividendGrowth  → 입력이 아니라 파생값
-```
-- 프리셋은 큐레이션된 `expectedTotalReturn`을 보존하고 `dividendGrowth = etr − dy`로 재계산. 커버드콜은 자연히 **음수 성장률**(QYLD −3%)이 된다 — NAV 침식이 실제로 그렇다.
-- **결과: SCHD 11.38억 > QYLD 4.98억**으로 역전 해소. 60년 후 yield-on-price 표류 9e-16%p.
-- 기존 저장 데이터·공유 URL은 **같은 규칙으로 마이그레이션**(dy·etr 보존, dg 재계산). **lz-string 인코딩 포맷은 안 바꿨으므로 기존 공유 링크는 그대로 열린다.**
-- ⚠️ **사용자가 보던 숫자가 바뀐다** → 이를 알리는 [ModelChangeNotice](pages/Main/components/ModelChangeNotice/) 배너를 넣어뒀다(닫으면 다시 안 뜸).
-
-### 그 외 고친 버그 (전부 실사용자에게 영향 있던 것들)
-
-| 버그 | 무엇이 문제였나 |
-|---|---|
-| **IndexedDB 통째 삭제** | 모든 read/write/delete의 `catch`가 `resetPortfolioDb()`를 호출 → 다른 탭의 version 잠금·quota 초과·프라이빗 모드만으로도 **저장 슬롯 전체가 사라졌고**, 그러고도 성공한 것처럼 resolve됐다. 자동 삭제 제거 + 읽기 실패 후 자동 저장이 원본을 덮어쓰던 2차 경로도 차단 |
-| **주가 0원 티커 생성** | 모달은 `Number.isFinite`만 검사(0 통과), 엔진 zod는 `positive()` 요구 → 티커명만 넣고 생성하면 칩은 생기고 **결과 화면이 통째로 오류**로 바뀜. 이제 모달과 엔진이 같은 zod 스키마 공유 |
-| **존재하지 않는 날짜** | `2026-02-31`이 정규식을 통과 → `toStartDate`가 조용히 "오늘"로 폴백 → 같은 입력이 실행일마다 다른 결과. 달력 유효성 검증 추가, `runSimulation`이 진짜 순수 함수가 됨 |
-| **프리셋 비중 밀림** | 필터링된 배열 인덱스로 `allocations[i]`를 읽어서, universe에 없는 티커가 섞이면 이후 비중이 한 칸씩 당겨짐 |
-| **간편 추정이 재투자 무시** | 재투자 OFF일 때 75% 과대(QYLD는 4배). 이제 재투자 비율·타이밍 반영, 오차 0.2% 이내 |
-| **양도세 미표시** | 배당소득세만 계산 → 표시 세금이 실제 세부담의 27%. "전량 매도한다면" 섹션 추가(취득원가·평가이익·양도세 22%·세후 자산). 금융소득종합과세 2,000만원 초과 시 경고 |
-
-### 구조·인프라
-
-- **FP 리팩터링**: 계산·상태·UI 로직을 순수 함수로 추출. **테스트 23개 → 797개** (착수 시 9개가 깨진 채였다)
-- **디자인 시스템** (`shared/styles/`): primitives → semantic 토큰, 다크모드, 프리미티브 컴포넌트(Button/Toggle/Chip/StatTile/Card/Banner/Tabs/Modal/BrandMark). **Pretendard를 npm으로 self-host** — 선언만 하고 로드가 안 되던 게 "올드함"의 주범이었다
-- **튜토리얼**: 헤더 나침반 아이콘 → 스포트라이트 코치마크 투어. 외부 라이브러리 없이 구현. GA4 이벤트(`tutorial_*`)로 온보딩 퍼널 측정 가능
-- **SEO**: canonical 도메인이 `snowball-income.example`(존재하지 않는 예약 TLD)이었고, FAQPage 구조화 데이터가 **앱에 없는 Q&A를 마크업**하고 있었다(구글 정책 위반). 전부 정리. **초기 JS 2.83MB → 523KB** (죽어 있던 `lazy()`를 정적 import가 무력화하고 있었다)
-- **동적 OG 이미지** (`/api/og`): 공유 링크마다 그 시나리오의 실제 숫자로 카드 생성 → 카톡 공유 시 표시. `middleware.ts`가 `?share=` 요청의 og:image를 치환
-- **프리렌더**: `#root`에 1,500자 한글 콘텐츠(빌드 시 실제 엔진으로 계산한 예시 포함) → 네이버 Yeti·다음이 읽을 수 있게
-- **티커 자동 갱신** (`scripts/tickerRefresh/`): **월~금 요일 분할 크론**(`cron: 0 21 * * 1-5`) → **Yahoo Finance(무료·무키, 기본 프로바이더)**에서 가격·배당률·지급주기 → 이상치 가드 → **주간 누적 PR**(직접 push 안 함, 하루치가 아니라 5거래일치를 한 PR로). FMP는 유료 키 보유자용 옵션(`--provider=fmp`)으로 유지 — 이유는 아래 "알아둬야 할 결정과 함정" 참고. **요일 분할 이유**: Yahoo가 비공식 API라 러너 IP 레이트리밋 리스크가 있어, 유니버스(68종)를 5등분(`scripts/tickerRefresh/partition.ts`)해 하루 ~14종만 건드리는 방어적 설계 — 처음부터 이렇게 시작했다(트래픽 문제를 실제로 겪은 뒤 고친 게 아님)
-- **인덱서** (`tools/indexer/`): `npm run search -- <질의>`로 코드 검색. `kind:pure`, `file:<경로>` 필터
-- **에이전트 팀** (`.claude/agents/`): orchestrator + pm-po + 11 specialist
-- **Supabase 커뮤니티 (Stage 1)**: 스키마 + RLS + 데이터 레이어. **UI는 아직 없음**
-
----
-
-## 내일 이어서 할 일
-
-### 1순위 — 커뮤니티 UI (Stage 2)
-
-DB·RLS·데이터 레이어는 **완성됐고 실제 Supabase에 연결·검증까지 끝났다**. 남은 건 화면이다.
-
-- 시나리오 갤러리 (최신순/인기순, 카드에 조회수·좋아요·댓글 수)
-- 시나리오 공개/저장 (제목·설명, 기본 비공개)
-- 좋아요 / 조회수 (낙관적 업데이트, 중복은 DB가 막음)
-- 댓글 + 대댓글(1단계) + 좋아요, 본인 소프트 삭제
-- 로그인 버튼 (구글/카카오), 비로그인은 읽기만
-
-데이터 레이어: `shared/lib/supabase/`(`queries.ts`, `comments.ts`, `auth.ts`, `pagination.ts`). `isCommunityEnabled`가 false면 커뮤니티 진입점을 아예 렌더하지 않으면 된다.
-
-**동적 OG와 붙으면 루프가 완성된다**: 갤러리에서 발견 → 카톡 공유(그 시나리오의 숫자가 카드로) → 유입 → 좋아요.
-
-### 그 다음
-
-- **네이버 로그인** — Supabase 기본 프로바이더가 아니라 Edge Function으로 토큰 교환 필요. 확장 지점은 `CommunityOAuthProvider` 한 곳에 모아뒀다
-- **댓글 모더레이션** — 현재 RLS로는 시나리오 주인도 악성 댓글을 못 지운다(본인 것만 소프트 삭제). Vercel `/api`에 Supabase secret 키를 두고 관리자 삭제 경로를 만들어야 한다
-- **아이콘 제작** — 프롬프트는 [docs/brand/icon-prompts.md](docs/brand/icon-prompts.md)에 준비됨. PWA 설치를 위해 192/512 PNG 필요
-
----
-
-## 사용자님이 직접 해야 하는 것 (제가 못 하는 것)
-
-| # | 할 일 | 어디서 | 왜 필요한가 |
-|---|---|---|---|
-| 1 | **`VITE_SITE_URL`에 실제 도메인 설정** | Vercel → Settings → Environment Variables → **Redeploy** | 기본값이 존재하지 않는 예약 TLD라 **canonical·sitemap·OG가 전부 무효**. SEO 작업 전체가 이것 하나에 걸려 있다 |
-| 2 | **GA4 속성에 서비스 계정 뷰어 추가**<br>`ga-mcp@snowball-income-487806.iam.gserviceaccount.com` | GA4 → 관리 → 속성 액세스 관리 | GA MCP가 붙는다. 실사용자 퍼널을 데이터로 분석해 다음 우선순위를 정할 수 있다. 지금은 인증은 되지만 접근 가능한 속성이 0개 |
-| 3 | **구글/카카오 OAuth 등록** | Supabase → Authentication → Providers | 커뮤니티 로그인. 콜백 `https://nbgwafropjbxypqxncfm.supabase.co/auth/v1/callback`. ⚠️ **카카오는 REST API 키**를 Client ID에 (JavaScript 키를 넣으면 조용히 실패) |
-| 4 | Redirect URLs 등록 | Supabase → Authentication → URL Configuration | `http://localhost:5175/**` + 배포 도메인 |
-| 5 | `VITE_SUPABASE_URL` / `VITE_SUPABASE_PUBLISHABLE_KEY` | Vercel Environment Variables | 프로덕션에서 커뮤니티 활성화 |
-| 6 | ~~`FMP_API_KEY`~~ (선택) | GitHub → Settings → Secrets → Actions | **더 이상 필수 아님** — 티커 자동 갱신 크론은 기본이 Yahoo Finance(무료·무키)라 이 시크릿 없이도 돈다. 유료 FMP 키가 있고 `--provider=fmp`로 수동 실행하고 싶을 때만 설정. 첫 실행 확인은 `npm run ticker:refresh -- --only=SCHD,JEPI` (provider 생략 시 yahoo 기본, dry-run이 기본) |
-| 7 | **PR #9 리뷰 후 머지** | GitHub | = 배포. 머지 전에 [ModelChangeNotice](pages/Main/components/ModelChangeNotice/ModelChangeNotice.tsx) 문구를 읽어보길 권함 |
-
-**⚠️ 이전에 `.env`에 넣었던 `sb_secret_...` 키는 Revoke 하셨는지 확인하세요.** (깃에는 올라가지 않았지만 노출된 적이 있음)
-
----
-
-## 알아둬야 할 결정과 함정
-
-- **`.env`는 gitignore 대상**이고, `VITE_` 접두사 변수는 **빌드 시 번들에 인라인되어 공개**된다. Supabase `service_role`/`secret` 키를 여기 넣으면 전 세계에 공개된다. 서버(Edge Function/`/api`)에서만 쓴다.
-- **테스트는 로컬 `.env`에 영향받지 않는다** — `vitest.config.ts`에서 커뮤니티 변수를 명시적으로 비워 "백엔드 없는 기본 배포" 상태를 고정했다.
-- **Vercel Hobby는 비상업적 용도 전용**이다. 숨겨진 커피 후원 버튼([TickerCreation.tsx:446](components/TickerCreation/TickerCreation.tsx#L446), `display:none`)을 살리거나 광고를 붙이면 Pro($20/월)가 필요하다.
-- **`vercel.json`에 `cleanUrls: true`를 넣지 마라** — 무한 루프(508). legacy `routes`도 금지(`/api/*`를 삼킨다).
-- **티커 데이터의 3분류**를 기억할 것:
-  - 가격·배당률·지급주기 = **관측되는 사실** → 크론이 자동 갱신
-  - `expectedTotalReturn` = **사람의 가정** → 자동화 금지. 새 티커 추가 시 실질적으로 이것만 정하면 된다
-  - `dividendGrowth` = **파생값** (`etr − dy`) → 정합 모델에서는 주가 성장률이기도 하다. 과거 배당 CAGR로 덮어쓰면 안 된다(파이프라인이 이걸 막고 있다)
-- **에이전트에게 `git stash`/`reset`을 절대 시키지 말 것.** 이번 세션에서 한 에이전트가 stash로 다른 에이전트의 작업을 날린 사고가 있었다(복구함).
-- **티커 갱신 프로바이더 = Yahoo Finance 기본(2026-07-18 변경)**. FMP 무료 티어는 이 앱의 유니버스(SCHD·JEPI·O 등 실측 68종 — `CURATED_DIVIDEND_UNIVERSE` 기준)에 못 쓴다 — per-symbol 시세가 AAPL 같은 허용 심볼로만 열리고 우리 심볼은 실측 HTTP 402("This value set for 'symbol' is not available under your current subscription"). FMP 레거시(`/api/v3/`)도 신규 키에 403으로 폐지됨. 대안으로 채택한 Yahoo `chart` API(`https://query1.finance.yahoo.com/v8/finance/chart/<ticker>?interval=1d&range=10y&events=div`, `User-Agent` 헤더 필요)는 무료·무키로 우리 티커 전체가 열린다(`scripts/tickerRefresh/provider/yahooProvider.ts`) — **단 비공식 API라 SLA 없음, 응답 형태가 예고 없이 바뀔 수 있다.** 스키마 불일치는 전부 `ProviderError('malformed'|'empty'|...)`로 떨어져 이상치 가드를 거쳐 "이전 값 유지"로 안전하게 감쇠한다(자세한 계약은 `provider.types.ts`). FMP 프로바이더는 유료 키 보유자용으로 `--provider=fmp` 옵션에 남겨뒀다.
-- **티커 갱신 = 월~금 요일 분할 + 주간 누적 PR(2026-07-18, 처음부터 이렇게 설계)**. `scripts/tickerRefresh/partition.ts`의 순수 함수 `partitionTickers`가 티커를 정렬 후 `index % 5`로 5버킷에 나눈다(68종 → 14/14/14/13/13, 중복·누락 없음). 워크플로가 UTC 요일(월=0…금=4)을 계산해 `--bucket=N`으로 CLI에 넘긴다. **PR은 하루 1개가 아니라 주 1개**: `chore/refresh-ticker-data` 브랜치를 매일 재사용(없으면 main에서 새로 생성, 있으면 그 브랜치에 커밋 추가) + `gh pr create`는 그 주 첫 커밋에서만(이후엔 이미 열려 있으면 skip) → 머지되면 브랜치가 사라져 다음 주 월요일에 자동으로 새로 시작. `--only`(수동 지정)는 `--bucket`을 완전히 대체한다(교집합 아님) — cli.ts 주석 참고. 변경 없는 날은 커밋 자체를 skip(빈 커밋 방지).
-
-## 자주 쓰는 명령
-
-```sh
-npm run dev                    # 개발 서버
-npx vitest run                 # 전체 테스트 (797개)
-npx tsc -b tsconfig.build.json # 전체 타입체크 (bare `tsc -b`는 api+middleware만)
-npm run build                  # 빌드 (ticker:parse → tsc → vite)
-npm run search -- runSimulation        # 코드 검색 (인덱서)
-npm run search -- kind:pure allocation # 순수 함수만
-npm run index                  # 인덱스 재생성 (커밋 시 자동)
-npm run ticker:refresh -- --only=SCHD  # 티커 갱신 (dry-run 기본, provider 기본 yahoo, --write로 반영)
-npm run ticker:refresh -- --bucket=0   # 요일 버킷 하나만 (0~4, 월~금 자동 배선은 워크플로가 계산)
-```
-
-## 문서 지도
-
-- [CLAUDE.md](CLAUDE.md) — 코드 지도, `.cursor/rules` 요약, 에이전트 팀
-- [shared/styles/README.md](shared/styles/README.md) — 디자인 시스템(토큰·프리미티브)
-- [docs/supabase/README.md](docs/supabase/README.md) — 스키마·RLS·OAuth 설정
-- [docs/vercel/README.md](docs/vercel/README.md) — 환경변수·OG·미들웨어
-- [docs/brand/icon-prompts.md](docs/brand/icon-prompts.md) — 아이콘 생성 프롬프트
-- [supabase/migrations/](supabase/migrations/) — DB 스키마 (실행 완료됨)
+## 배포 규칙 (기억)
+- **main push = Vercel 프로덕션 배포.** 수정·검증까지 하고 **배포는 매번 사용자 승인 후.** 이번 머지는 사용자가 사전 승인함.
