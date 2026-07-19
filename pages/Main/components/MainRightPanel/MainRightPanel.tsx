@@ -18,6 +18,7 @@ import {
   type LucideIcon
 } from 'lucide-react';
 import { Button, Card, ToggleField } from '@/components';
+import { useOptionalCommunityAuth } from '@/components/community/CommunityAuthProvider';
 import type { SimulationResult as SimulationResultRow } from '@/shared/types';
 import { DIVIDEND_UNIVERSE, TOUR_TARGET } from '@/shared/constants';
 import {
@@ -417,6 +418,10 @@ function MainRightPanelComponent() {
   const [dragOverTabId, setDragOverTabId] = useState<string | null>(null);
   const [postInvestmentProjectionYears, setPostInvestmentProjectionYears] = useState(10);
   const [isPostInvestmentAssetView, setIsPostInvestmentAssetView] = useState(false);
+  // 비로그인 2번째 탭 생성 시도 시 뜨는 로그인 유도 프롬프트. 커뮤니티 비활성 배포에선 게이트가 없어 안 뜬다.
+  const [isLoginNudgeOpen, setIsLoginNudgeOpen] = useState(false);
+  // Provider 없이(커뮤니티 비활성/격리 렌더) 안전한 optional 접근 — 게이트는 커뮤니티 활성일 때만 발동한다.
+  const communityAuth = useOptionalCommunityAuth();
   const dragJustFinishedRef = useRef(false);
   const hasTrackedSimulationRef = useRef(false);
   const hasTrackedPortfolioConfigRef = useRef(false);
@@ -463,6 +468,7 @@ function MainRightPanelComponent() {
     activeScenarioId,
     canCreateTab,
     canDeleteTab,
+    requiresLoginToCreateTab,
     selectScenarioTab,
     createScenarioTab,
     renameScenarioTab,
@@ -610,6 +616,23 @@ function MainRightPanelComponent() {
     setPendingPreset(null);
   }, [pendingPreset, applyPortfolioPreset]);
 
+  // 탭 추가("+"). 로그인 게이트에 걸리면(비로그인 2번째 탭) 생성하지 않고 로그인 유도 프롬프트를 띄운다.
+  const handleCreateTab = useCallback(() => {
+    const outcome = createScenarioTab();
+    if (outcome === 'login-required') {
+      trackEvent(ANALYTICS_EVENT.MODAL_VIEW, { modal_type: 'scenario_login_nudge' });
+      setIsLoginNudgeOpen(true);
+    }
+  }, [createScenarioTab]);
+
+  const closeLoginNudge = useCallback(() => setIsLoginNudgeOpen(false), []);
+  // [로그인] → 프롬프트를 닫고 기존 로그인 모달을 연다(소셜 로그인 선택). 로그인 성공 후 탭1 클라우드 push는
+  // 코어의 "클라우드 empty + 로컬 내용 → 무음 push"가 처리하므로 여기선 유도만 한다.
+  const handleLoginFromNudge = useCallback(() => {
+    setIsLoginNudgeOpen(false);
+    communityAuth?.openLoginPrompt();
+  }, [communityAuth]);
+
   useEffect(() => {
     if (!simulation) {
       hasTrackedSimulationRef.current = false;
@@ -747,7 +770,12 @@ function MainRightPanelComponent() {
           )
         )}
         {canCreateTab ? (
-          <ScenarioTabButton type="button" aria-label="새 포트폴리오 탭 추가" onClick={() => void createScenarioTab()}>
+          <ScenarioTabButton
+            type="button"
+            aria-label="새 포트폴리오 탭 추가"
+            title={requiresLoginToCreateTab ? '로그인하면 탭을 더 만들 수 있어요' : undefined}
+            onClick={handleCreateTab}
+          >
             +
           </ScenarioTabButton>
         ) : null}
@@ -985,6 +1013,36 @@ function MainRightPanelComponent() {
                     onClick={confirmDeleteTab}
                   >
                     삭제
+                  </Button>
+                </ModalActions>
+              </ModalPanel>
+            </ModalBackdrop>,
+            modalRoot
+          )
+        : null}
+      {isLoginNudgeOpen && modalRoot
+        ? createPortal(
+            <ModalBackdrop
+              role="dialog"
+              aria-modal="true"
+              aria-label="로그인 유도"
+              onClick={(event) => {
+                if (event.target !== event.currentTarget) return;
+                closeLoginNudge();
+              }}
+            >
+              <ModalPanel>
+                <ModalTitle>탭을 더 만들려면 로그인하세요</ModalTitle>
+                <ModalBody>
+                  로그인하면 <strong>클라우드에 저장돼 데이터가 사라지지 않아요.</strong>
+                  {'\n'}지금(로그인 전) 만든 탭도 로그인하면 <strong>그대로 함께 동기화</strong>됩니다.
+                </ModalBody>
+                <ModalActions>
+                  <Button variant="secondary" type="button" onClick={closeLoginNudge}>
+                    나중에
+                  </Button>
+                  <Button variant="primary" type="button" onClick={handleLoginFromNudge}>
+                    로그인
                   </Button>
                 </ModalActions>
               </ModalPanel>
