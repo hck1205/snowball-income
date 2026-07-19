@@ -38,9 +38,11 @@ const { metaViews, metaLikes, metaComments } = COMMUNITY_COPY.gallery;
  */
 export default function PostCard({ item, simSummary }: PostCardProps) {
   const authorName = item.author?.display_name ?? '익명';
+  // 상세 링크는 글의 섹션(kind)을 따른다 — 포트폴리오=/community/portfolio/:id, 게시판=/community/board/:id.
+  const detailPath = item.kind === 'board' ? `/community/board/${item.id}` : `/community/portfolio/${item.id}`;
 
   return (
-    <CardLink to={`/community/${item.id}`}>
+    <CardLink to={detailPath}>
       {simSummary ? (
         <PreviewBlock>
           <SimSummaryStats variant="card" summary={simSummary} />

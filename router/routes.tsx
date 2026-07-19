@@ -76,17 +76,19 @@ const communityRoutes: RouteObject[] = isCommunityEnabled
           </Suspense>
         ),
         children: [
-          { index: true, element: <CommunityGalleryPage /> },
-          { path: 'write', element: <CommunityWritePage /> },
+          // 포트폴리오 갤러리(/community/portfolio)와 게시판(/community/board)을 대칭 섹션으로 둔다.
+          // 예전 진입점 /community 는 포트폴리오 갤러리로 리다이렉트(기존 링크·북마크 보존).
+          { index: true, element: <Navigate to="/community/portfolio" replace /> },
+          { path: 'portfolio', element: <CommunityGalleryPage /> },
+          { path: 'portfolio/write', element: <CommunityWritePage /> },
+          { path: 'portfolio/:id', element: <CommunityDetailPage /> },
+          { path: 'portfolio/:id/edit', element: <CommunityWritePage /> },
           { path: 'profile', element: <CommunityProfilePage /> },
-          // 자유게시판 — 정적 세그먼트 'board'라 React Router가 ':id'보다 먼저 매칭한다.
-          // 페이지 컴포넌트는 갤러리와 공유하되 kind='board'로 게시/이동 경로를 게시판 섹션에 고정한다.
+          // 자유게시판 — 정적 세그먼트 'board'.
           { path: 'board', element: <CommunityBoardPage /> },
           { path: 'board/write', element: <CommunityWritePage kind="board" /> },
           { path: 'board/:id', element: <CommunityDetailPage kind="board" /> },
-          { path: 'board/:id/edit', element: <CommunityWritePage kind="board" /> },
-          { path: ':id', element: <CommunityDetailPage /> },
-          { path: ':id/edit', element: <CommunityWritePage /> }
+          { path: 'board/:id/edit', element: <CommunityWritePage kind="board" /> }
         ]
       }
     ]

@@ -74,7 +74,7 @@ export type UsePostComposer = {
 export const usePostComposer = (postId?: string, kind: PostKind = 'portfolio'): UsePostComposer => {
   const mode: 'new' | 'edit' = postId ? 'edit' : 'new';
   // 섹션 기준 경로 — 목록=sectionBase, 상세=`${sectionBase}/:id`, 글쓰기=`${sectionBase}/write`.
-  const sectionBase = kind === 'board' ? '/community/board' : '/community';
+  const sectionBase = kind === 'board' ? '/community/board' : '/community/portfolio';
   const session = useSessionAtomValue();
   const navigate = useNavigate();
   const clientRef = useRef<CommunityClient | null>(null);

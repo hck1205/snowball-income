@@ -50,7 +50,7 @@ describe('PostRow — velog 피드식 세로 스택 (§I)', () => {
 
     expect(screen.getByRole('heading', { name: '월 500 배당 포트폴리오 만들기' })).toBeInTheDocument();
     expect(screen.getByText('SCHD 60% + JEPI 40%로 15년 굴리면 어디까지 가는지')).toBeInTheDocument();
-    expect(screen.getByRole('link')).toHaveAttribute('href', '/community/s1');
+    expect(screen.getByRole('link')).toHaveAttribute('href', '/community/portfolio/s1');
   });
 
   it('요약이 없으면 요약 줄을 렌더하지 않는다', () => {

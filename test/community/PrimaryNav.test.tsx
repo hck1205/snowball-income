@@ -42,15 +42,15 @@ describe('PrimaryNav', () => {
     renderAt('/');
 
     expect(screen.getByRole('link', { name: '시뮬레이터' })).toHaveAttribute('aria-current', 'page');
-    expect(screen.getByRole('link', { name: '갤러리' })).not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('link', { name: '포트폴리오 갤러리' })).not.toHaveAttribute('aria-current');
     expect(screen.getByRole('link', { name: '게시판' })).not.toHaveAttribute('aria-current');
   });
 
-  it('갤러리(/community)에선 갤러리 링크만 활성 (시뮬레이터·게시판은 비활성)', () => {
+  it('갤러리(/community/portfolio)에선 갤러리 링크만 활성 (시뮬레이터·게시판은 비활성)', () => {
     communityEnabled = true;
-    renderAt('/community');
+    renderAt('/community/portfolio');
 
-    expect(screen.getByRole('link', { name: '갤러리' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: '포트폴리오 갤러리' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: '시뮬레이터' })).not.toHaveAttribute('aria-current');
     expect(screen.getByRole('link', { name: '게시판' })).not.toHaveAttribute('aria-current');
   });
@@ -60,8 +60,8 @@ describe('PrimaryNav', () => {
     renderAt('/community/board/write');
 
     expect(screen.getByRole('link', { name: '게시판' })).toHaveAttribute('aria-current', 'page');
-    // 갤러리(/community)는 exact(end)라 게시판 하위에서 활성이 되지 않는다.
-    expect(screen.getByRole('link', { name: '갤러리' })).not.toHaveAttribute('aria-current');
+    // 갤러리(/community/portfolio)는 exact(end)라 게시판 하위에서 활성이 되지 않는다.
+    expect(screen.getByRole('link', { name: '포트폴리오 갤러리' })).not.toHaveAttribute('aria-current');
   });
 
   it('커뮤니티 비활성 배포에선 갤러리·게시판 링크를 렌더하지 않는다 (앱은 그대로 동작)', () => {
@@ -71,7 +71,7 @@ describe('PrimaryNav', () => {
     // 브랜드(홈)와 시뮬레이터 링크는 그대로. 커뮤니티 링크만 사라진다.
     expect(screen.getByRole('link', { name: 'Snowball Income' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: '시뮬레이터' })).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: '갤러리' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: '포트폴리오 갤러리' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: '게시판' })).not.toBeInTheDocument();
   });
 });

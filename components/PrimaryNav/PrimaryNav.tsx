@@ -12,7 +12,8 @@ import {
   Nav,
   NavItem,
   NavItems,
-  NavLabel
+  NavLabel,
+  NavLabelStacked
 } from './PrimaryNav.styled';
 import type { PrimaryNavProps } from './PrimaryNav.types';
 
@@ -33,6 +34,8 @@ const n = COMMUNITY_COPY.nav;
  */
 export default function PrimaryNav({ brandAs = 'span' }: PrimaryNavProps) {
   const inRouter = useInRouterContext();
+  // 워드마크를 두 줄로 스택("Snowball" / "Income"). 사이의 공백 텍스트로 접근명 "Snowball Income"을 유지한다.
+  const [brandFirst, ...brandRestWords] = n.brand.split(' ');
 
   const brandInner = (
     <>
@@ -40,7 +43,12 @@ export default function PrimaryNav({ brandAs = 'span' }: PrimaryNavProps) {
         {/* 워드마크가 브랜드명을 읽어주므로 로고 이미지는 장식(alt="") — 메인/커뮤니티 헤더 선례와 동일. */}
         <BrandLogoImage src="/app_icon.png" alt="" width={28} height={28} />
       </BrandLogo>
-      <BrandWordmark as={brandAs}>{n.brand}</BrandWordmark>
+      <BrandWordmark as={brandAs}>
+        {brandFirst}
+        {' '}
+        <br />
+        {brandRestWords.join(' ')}
+      </BrandWordmark>
     </>
   );
 
@@ -66,9 +74,14 @@ export default function PrimaryNav({ brandAs = 'span' }: PrimaryNavProps) {
         </NavItem>
         {isCommunityEnabled ? (
           <>
-            <NavItem to="/community" end aria-label={n.gallery}>
+            <NavItem to="/community/portfolio" end aria-label={n.gallery}>
               <LayoutGrid size={16} strokeWidth={1.8} aria-hidden focusable={false} />
-              <NavLabel>{n.gallery}</NavLabel>
+              {/* "포트폴리오 갤러리"는 길어 2줄+축소로 접어 게시판 항목과 높이를 맞춘다(aria-label이 접근명 제공). */}
+              <NavLabelStacked aria-hidden="true">
+                {n.gallery.split(' ').map((word) => (
+                  <span key={word}>{word}</span>
+                ))}
+              </NavLabelStacked>
             </NavItem>
             <NavItem to="/community/board" aria-label={n.board}>
               <MessageSquare size={16} strokeWidth={1.8} aria-hidden focusable={false} />

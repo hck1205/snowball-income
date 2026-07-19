@@ -43,7 +43,7 @@ export type UsePostDetail = {
 export const usePostDetail = (
   id: string | undefined,
   onRequireLogin: () => void,
-  listPath = '/community'
+  listPath = '/community/portfolio'
 ): UsePostDetail => {
   const session = useSessionAtomValue();
   const navigate = useNavigate();

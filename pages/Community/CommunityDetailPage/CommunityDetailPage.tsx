@@ -23,7 +23,7 @@ export default function CommunityDetailPage({ kind = 'portfolio' }: CommunityDet
   const isLoggedIn = useIsLoggedInAtomValue();
   const session = useSessionAtomValue();
   const { openLoginPrompt } = useCommunityAuth();
-  const sectionBase = kind === 'board' ? '/community/board' : '/community';
+  const sectionBase = kind === 'board' ? '/community/board' : '/community/portfolio';
 
   const onRequireLogin = useCallback(() => openLoginPrompt(), [openLoginPrompt]);
 

@@ -31,15 +31,15 @@ import {
  * 숨기고 nav 링크가 이동을 담당한다. 상세/글쓰기 등 하위 경로에서만 "← 목록"으로 자기 섹션 목록에 돌아간다.
  */
 export default function CommunityHeader() {
-  const isGalleryIndex = Boolean(useMatch({ path: '/community', end: true }));
+  const isGalleryIndex = Boolean(useMatch({ path: '/community/portfolio', end: true }));
   const isBoardIndex = Boolean(useMatch({ path: '/community/board', end: true }));
   // 글쓰기 라우트에선 헤더의 '글쓰기' 버튼이 페이지와 중복이라 숨긴다(갤러리/게시판 양쪽).
   const isWriteRoute =
-    Boolean(useMatch({ path: '/community/write' })) || Boolean(useMatch({ path: '/community/board/write' }));
+    Boolean(useMatch({ path: '/community/portfolio/write' })) || Boolean(useMatch({ path: '/community/board/write' }));
 
   const { pathname } = useLocation();
   const inBoard = pathname === '/community/board' || pathname.startsWith('/community/board/');
-  const listPath = inBoard ? '/community/board' : '/community';
+  const listPath = inBoard ? '/community/board' : '/community/portfolio';
   const isIndex = isGalleryIndex || isBoardIndex;
 
   const isLoggedIn = useIsLoggedInAtomValue();
@@ -52,7 +52,7 @@ export default function CommunityHeader() {
       openLoginPrompt();
       return;
     }
-    navigate(inBoard ? '/community/board/write' : '/community/write');
+    navigate(inBoard ? '/community/board/write' : '/community/portfolio/write');
   };
 
   return (

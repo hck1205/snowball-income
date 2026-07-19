@@ -18,7 +18,7 @@ export const COMMUNITY_COPY = {
     /** 브랜드 워드마크(로고+앱이름 링크). "Snowball Income" 워드마크 유지. */
     brand: 'Snowball Income',
     /** 커뮤니티 갤러리 링크(/community). */
-    gallery: '갤러리',
+    gallery: '포트폴리오 갤러리',
     /** 자유게시판 링크(/community/board). */
     board: '게시판',
     /** 상세/글쓰기 하위에서 목록으로 복귀하는 뒤로가기 라벨. */
@@ -46,8 +46,8 @@ export const COMMUNITY_COPY = {
     errorTitle: '목록을 불러오지 못했어요',
     errorBody: '잠시 후 다시 시도해주세요.',
     retry: '다시 시도',
-    searchPlaceholder: '시나리오 검색',
-    searchAriaLabel: '시나리오 검색',
+    searchPlaceholder: '포트폴리오 검색',
+    searchAriaLabel: '포트폴리오 검색',
     searchFilterAriaLabel: '검색 필터',
 
     // ── 정밀 검색(PrecisionSearch) — 트리거·패널·필드·빈결과 (단일 원천) ──

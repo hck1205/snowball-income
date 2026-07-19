@@ -64,18 +64,38 @@ export const BrandLogoImage = styled.img`
 export const BrandWordmark = styled.span`
   margin: 0;
   color: ${color.text};
-  font-size: ${font.size.lg};
+  /* "Snowball / Income" 두 줄 — 28px 로고 높이에 맞춰 축소(2줄 × ~13px × 1.05 ≈ 28px). */
+  font-size: 13px;
   font-weight: ${font.weight.bold};
-  letter-spacing: -0.03em;
-  line-height: 1.1;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
   white-space: nowrap;
+  text-align: left;
 `;
 
 export const NavItems = styled.div`
   display: inline-flex;
   align-items: center;
-  gap: ${space[1]};
+  /* 라우트 링크 사이를 넉넉히 벌린다(요구사항 — 너무 붙어있지 않게). */
+  gap: ${space[3]};
   min-width: 0;
+`;
+
+/**
+ * 긴 라벨("포트폴리오 갤러리")을 2줄로 접되 font-size를 줄여, 1줄 항목("게시판")과 같은 항목 높이를 유지한다.
+ * 접근명은 NavItem의 aria-label이 담당한다(여기 span 2개는 시각 표시용).
+ */
+export const NavLabelStacked = styled.span`
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  font-size: 0.72em;
+  line-height: 1.05;
+  white-space: nowrap;
+
+  ${media.down('mobileWide')} {
+    display: none;
+  }
 `;
 
 /**

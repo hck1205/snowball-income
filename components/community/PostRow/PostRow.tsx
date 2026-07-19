@@ -28,9 +28,11 @@ const { metaViews, metaLikes, metaComments } = COMMUNITY_COPY.gallery;
  */
 export default function PostRow({ item, simSummary }: PostRowProps) {
   const authorName = item.author?.display_name ?? '익명';
+  // 상세 링크는 글의 섹션(kind)을 따른다 — 포트폴리오=/community/portfolio/:id, 게시판=/community/board/:id.
+  const detailPath = item.kind === 'board' ? `/community/board/${item.id}` : `/community/portfolio/${item.id}`;
 
   return (
-    <RowLink to={`/community/${item.id}`}>
+    <RowLink to={detailPath}>
       <RowBody>
         <RowTitle>{item.title}</RowTitle>
         {item.description ? <RowSummary>{item.description}</RowSummary> : null}

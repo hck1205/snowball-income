@@ -63,7 +63,7 @@ describe('PostCard — 표시', () => {
     expect(screen.getByText('월배당 포트폴리오')).toBeInTheDocument();
     expect(screen.getByText('매달 현금흐름을 노린 구성')).toBeInTheDocument();
     expect(screen.getByText('눈덩이')).toBeInTheDocument();
-    expect(screen.getByRole('link')).toHaveAttribute('href', '/community/s1');
+    expect(screen.getByRole('link')).toHaveAttribute('href', '/community/portfolio/s1');
   });
 
   it('작성자가 없으면 "익명"으로 폴백한다', () => {

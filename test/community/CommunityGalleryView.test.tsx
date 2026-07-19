@@ -127,7 +127,7 @@ describe('CommunityGalleryView — 목록 렌더', () => {
     expect(screen.getByText('둘째 시나리오')).toBeInTheDocument();
     const links = screen.getAllByRole('link');
     expect(links.map((a) => a.getAttribute('href'))).toEqual(
-      expect.arrayContaining(['/community/s1', '/community/s2'])
+      expect.arrayContaining(['/community/portfolio/s1', '/community/portfolio/s2'])
     );
   });
 

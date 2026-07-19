@@ -41,7 +41,7 @@ export default function CommunityGalleryPage() {
   }, []);
 
   const onWrite = () => {
-    if (isLoggedIn) navigate('/community/write');
+    if (isLoggedIn) navigate('/community/portfolio/write');
     else openLoginPrompt();
   };
 
