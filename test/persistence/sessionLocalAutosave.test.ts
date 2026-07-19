@@ -98,7 +98,7 @@ describe('createSessionLocalAutosaveCache: 세션당 로컬 read 1회 공유', (
 });
 
 describe('M1 불변식: 하이드레이션 성공 + 이후 storage 실패에도 로컬 최신본 보존', () => {
-  it('sync가 하이드레이션 read를 재사용해, 2차 read가 실패해도 클라우드를 apply/덮어쓰지 않고 로컬을 push한다', async () => {
+  it('sync가 하이드레이션 read를 재사용해, 2차 read가 실패해도 더 오래된 클라우드를 apply하지 않고(둘 다 내용 있음) 충돌로 위임한다', async () => {
     // 밑단 read: 1회차(하이드레이션)=성공(L), 2회차 이후=실패(cross-tab blocked 등 일시).
     let calls = 0;
     const flakyRead = vi.fn(async (): Promise<PersistedAppStateReadResult> => {
@@ -130,11 +130,12 @@ describe('M1 불변식: 하이드레이션 성공 + 이후 storage 실패에도 
       onEvent: (e) => events.push(e)
     });
 
-    // 로컬(L)이 정본 → 클라우드를 apply하지도, 로컬을 덮어쓰지도 않는다. L을 원본 시각(2000)으로 push.
+    // 캐시된 read로 로컬(L, 내용 있음)이 보이고 클라우드(C)도 내용 있음 → 엔진은 conflict만 방출한다.
+    // 더 오래된 클라우드를 apply하거나 로컬을 덮어쓰지 않는다(M1 유실 경로 차단 — 정본 결정은 화해 모달 몫).
     expect(apply).toEqual([]);
     expect(mirror).toEqual([]);
-    expect(push).toEqual([{ payload: LOCAL_NEWER, savedAt: 2000 }]);
-    expect(events.map((e) => e.type)).toEqual(['pushed-local']);
+    expect(push).toEqual([]);
+    expect(events.map((e) => e.type)).toEqual(['conflict']);
 
     // 핵심: 밑단 read는 하이드레이션 1회뿐 — 실패했을 2차 read 자체가 발생하지 않는다.
     expect(flakyRead).toHaveBeenCalledTimes(1);

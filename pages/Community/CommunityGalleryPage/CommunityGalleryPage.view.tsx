@@ -8,8 +8,8 @@ import {
   FlameIcon,
   GridIcon,
   ListIcon,
-  ScenarioCard,
-  ScenarioRow,
+  PostCard,
+  PostRow,
   UsersIcon
 } from '@/components/community';
 import type { CommunityGalleryViewProps } from './CommunityGalleryPage.types';
@@ -195,7 +195,7 @@ export default function CommunityGalleryView({ viewModel }: CommunityGalleryView
             <CardGrid>
               {parsedItems.map(({ item, simSummary }) => (
                 <li key={item.id}>
-                  <ScenarioCard item={item} simSummary={simSummary} />
+                  <PostCard item={item} simSummary={simSummary} />
                 </li>
               ))}
             </CardGrid>
@@ -203,7 +203,7 @@ export default function CommunityGalleryView({ viewModel }: CommunityGalleryView
             <InlineList>
               {parsedItems.map(({ item, simSummary }) => (
                 <li key={item.id}>
-                  <ScenarioRow item={item} simSummary={simSummary} />
+                  <PostRow item={item} simSummary={simSummary} />
                 </li>
               ))}
             </InlineList>

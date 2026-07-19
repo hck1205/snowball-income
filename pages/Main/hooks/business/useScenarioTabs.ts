@@ -33,12 +33,45 @@ import {
   useWeightByTickerIdAtomValue,
   useYieldFormAtomValue
 } from '@/jotai';
+import { useIsLoggedInAtomValue } from '@/jotai/community';
+import { isCommunityEnabled } from '@/shared/lib/supabase';
 import { removeScenarioTab, reorderTabs } from '@/pages/Main/utils';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 
 const makeScenarioId = () => `scenario-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 const sanitizeScenarioName = (rawName: string) => rawName.trim();
 const SHARED_SCENARIO_ID = 'shared-tab';
+
+/**
+ * 비로그인 사용자가 만들 수 있는 시나리오 탭 상한 — 로그인 유도 + 블렌드 과다 증식 억제.
+ * 로그인하면 상한이 `MAX_SCENARIO_TABS`(10)로 풀린다.
+ */
+export const FREE_SCENARIO_TAB_LIMIT = 1;
+
+/** 탭 생성 시도의 결과. `login-required`면 생성하지 말고 로그인 유도 프롬프트를 띄운다. */
+export type ScenarioTabCreateOutcome = 'created' | 'limit-reached' | 'login-required';
+
+/**
+ * 탭 생성 게이트 판정 — **순수 함수**(React·atom 비의존, 결정론 테스트).
+ *
+ * - 하드 상한(maxTabs=10)에 도달 → `limit-reached`(로그인 여부 무관, "+" 버튼 자체가 사라진다).
+ * - **로그인 가능 배포(isCommunityEnabled)** 에서 **비로그인** + 무료 상한(1개)에 도달 → `login-required`
+ *   (2번째 탭부터 로그인 유도). 로그인하면 이 가지를 안 타 하드 상한까지 자유롭게 만든다.
+ * - **로그인 불가 배포(isCommunityEnabled=false)** → 게이트 없이 하드 상한까지 허용(안 그러면 2번째 탭을
+ *   영영 못 만든다).
+ */
+export const evaluateScenarioTabCreation = (params: {
+  tabCount: number;
+  maxTabs: number;
+  isCommunityEnabled: boolean;
+  isLoggedIn: boolean;
+}): 'allowed' | 'limit-reached' | 'login-required' => {
+  if (params.tabCount >= params.maxTabs) return 'limit-reached';
+  if (params.isCommunityEnabled && !params.isLoggedIn && params.tabCount >= FREE_SCENARIO_TAB_LIMIT) {
+    return 'login-required';
+  }
+  return 'allowed';
+};
 
 const createEmptyScenarioPortfolio = (): PortfolioPersistedState => {
   return {
@@ -58,6 +91,7 @@ const createEmptyScenarioInvestmentSettings = (): PersistedInvestmentSettings =>
 export const useScenarioTabs = () => {
   const tabs = useScenarioTabsAtomValue();
   const activeScenarioId = useActiveScenarioIdAtomValue();
+  const isLoggedIn = useIsLoggedInAtomValue();
 
   const tickerProfiles = useTickerProfilesAtomValue();
   const includedTickerIds = useIncludedTickerIdsAtomValue();
@@ -225,8 +259,16 @@ export const useScenarioTabs = () => {
     [activeScenarioId, applyScenario, prepareTabsWithActiveSnapshot, setActiveScenarioId, setScenarioTabs]
   );
 
-  const createScenarioTab = useCallback(() => {
-    if (tabs.length >= MAX_SCENARIO_TABS) return false;
+  const createScenarioTab = useCallback((): ScenarioTabCreateOutcome => {
+    const gate = evaluateScenarioTabCreation({
+      tabCount: tabs.length,
+      maxTabs: MAX_SCENARIO_TABS,
+      isCommunityEnabled,
+      isLoggedIn,
+    });
+    // 하드 상한이면 조용히 막고(버튼도 숨겨져 있음), 로그인 게이트면 생성하지 말고 신호만 반환한다
+    // (호출부가 로그인 유도 프롬프트를 띄운다 — 무음으로 막지 않는다).
+    if (gate !== 'allowed') return gate;
 
     const nextTabs = prepareTabsWithActiveSnapshot();
     const newTabNumber = nextTabs.length + 1;
@@ -246,9 +288,10 @@ export const useScenarioTabs = () => {
       action: 'create',
       scenario_id: newTab.id
     });
-    return true;
+    return 'created';
   }, [
     applyScenario,
+    isLoggedIn,
     prepareTabsWithActiveSnapshot,
     setActiveScenarioId,
     setScenarioTabs,
@@ -327,7 +370,12 @@ export const useScenarioTabs = () => {
     tabs,
     activeScenarioId,
     activeScenarioName: activeTab?.name ?? '',
+    // 하드 상한 미만이면 "+"를 보인다. 로그인 게이트(비로그인 2번째 탭)여도 "+"는 보이되, 누르면
+    // createScenarioTab이 'login-required'를 반환해 호출부가 프롬프트를 띄운다(막지 않고 유도).
     canCreateTab: tabs.length < MAX_SCENARIO_TABS,
+    /** 비로그인+로그인 가능 배포에서 이미 무료 상한(1개)에 도달 → 다음 생성은 로그인 유도로 이어진다. */
+    requiresLoginToCreateTab:
+      isCommunityEnabled && !isLoggedIn && tabs.length >= FREE_SCENARIO_TAB_LIMIT,
     canDeleteTab: tabs.length > 1,
     selectScenarioTab,
     createScenarioTab,

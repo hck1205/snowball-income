@@ -1,6 +1,7 @@
-import { createElement, type ReactNode } from 'react';
+import { createElement, type MouseEvent, type ReactNode } from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import type { TourStep } from '@/shared/constants';
+import { useSetTourLaunchRequestWrite } from '@/jotai';
 import TourGuide from './TourGuide';
 import {
   centerPopoverPosition,
@@ -258,11 +259,32 @@ const mockRects = (visibleTargets: readonly string[]) => {
   });
 };
 
-/** 투어 대상들을 실제 DOM에 깔고 그 옆에 TourGuide를 띄운다. */
+/**
+ * 실행 트리거 대역 — 실제로는 헤더 "더보기" 메뉴의 "튜토리얼 보기"가 `tourLaunchRequestAtom`을 bump 한다.
+ * 여기서는 그 역할을 하는 버튼을 둔다: 클릭 시 자기 자신에 포커스를 준 뒤(투어 종료 후 포커스 복원 대상)
+ * atom을 올려 TourGuide가 투어를 열게 한다. 접근명은 기존 계약("튜토리얼 시작")을 유지한다.
+ */
+const TourLauncher = () => {
+  const bump = useSetTourLaunchRequestWrite();
+  return createElement(
+    'button',
+    {
+      type: 'button',
+      onClick: (event: MouseEvent<HTMLButtonElement>) => {
+        event.currentTarget.focus();
+        bump((count) => count + 1);
+      }
+    },
+    '튜토리얼 시작'
+  );
+};
+
+/** 투어 대상들을 실제 DOM에 깔고, 그 옆에 실행 트리거와 TourGuide를 띄운다. */
 const renderTour = (targets: readonly string[]): ReactNode[] => [
   ...targets.map((target) =>
     createElement('button', { key: target, type: 'button', 'data-tour': target }, `대상 ${target}`)
   ),
+  createElement(TourLauncher, { key: 'launcher' }),
   createElement(TourGuide, { key: 'tour', steps: TEST_STEPS, storageKey: STORAGE_KEY })
 ];
 
@@ -277,33 +299,18 @@ describe('TourGuide', () => {
     vi.restoreAllMocks();
   });
 
-  it('헤더에 튜토리얼 시작 아이콘을 둔다', () => {
+  it('자동 실행하지 않는다 — 트리거가 있어도 저절로 열리지 않는다', () => {
+    // 실행 트리거(유도 점 포함)는 이제 헤더 "더보기" 메뉴(HeaderOverflowMenu)가 소유한다.
+    // 여기서는 TourGuide가 신호 없이는 오버레이를 열지 않는다는 계약만 지킨다.
     mockRects(['ticker-create']);
     render(createElement('div', null, renderTour(['ticker-create'])));
 
-    expect(screen.getByRole('button', { name: '튜토리얼 시작' })).toBeInTheDocument();
-    // 자동 실행 금지 — 아무것도 안 눌렀는데 투어가 떠 있으면 안 된다.
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-  });
 
-  it('처음 방문한 사용자에게는 유도 점을 보여주고, 투어를 시작하면 지운다', () => {
-    mockRects(['ticker-create']);
-    const { container } = render(createElement('div', null, renderTour(['ticker-create'])));
-
-    expect(container.querySelector('[data-first-visit="true"]')).not.toBeNull();
-
+    // 신호를 받으면(트리거 클릭 → atom bump) 비로소 열린다.
     startTour();
-
-    expect(container.querySelector('[data-first-visit="true"]')).toBeNull();
+    expect(screen.getByRole('dialog', { name: '먼저 종목을 추가하세요' })).toBeInTheDocument();
     expect(isTourSeen(STORAGE_KEY)).toBe(true);
-  });
-
-  it('이미 본 사용자에게는 유도 점을 보여주지 않는다', () => {
-    markTourSeen(STORAGE_KEY);
-    mockRects(['ticker-create']);
-    const { container } = render(createElement('div', null, renderTour(['ticker-create'])));
-
-    expect(container.querySelector('[data-first-visit="true"]')).toBeNull();
   });
 
   it('아이콘을 누르면 첫 단계가 다이얼로그로 열린다', () => {

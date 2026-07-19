@@ -7,7 +7,7 @@ import type { CommentThread, CommentWithAuthor } from '@/shared/lib/supabase';
 
 const comment = (over: Partial<CommentWithAuthor> = {}): CommentWithAuthor => ({
   id: 'c1',
-  scenario_id: 's1',
+  post_id: 's1',
   user_id: 'author-1',
   parent_id: null,
   body: '루트 댓글',

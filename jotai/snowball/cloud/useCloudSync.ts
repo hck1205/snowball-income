@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   fetchCloudAutosave,
   getSession,
@@ -11,7 +11,7 @@ import type { PersistedAppStatePayload } from '../types';
 import { readCloudSavedAt, stampCloudAutosave } from './cloudAutosaveTimestamp';
 import { createAutosavePush, createCloudSyncScheduler } from './cloudSyncEngine';
 import type { CloudAutosaveRead } from './cloudWorkspaceSyncEngine';
-import { useSetCloudSyncStateWrite } from './cloudSyncState';
+import { useCloudSyncStateValue, useSetCloudSyncStateWrite } from './cloudSyncState';
 
 /**
  * ⚠ 이 모듈은 `@/shared/lib/supabase`를 정적 import하므로 `jotai/snowball` 배럴에 연결하지 않는다
@@ -37,12 +37,20 @@ const withCloudClient = async <T>(run: (client: CommunityClient) => Promise<T>):
 export const useCloudSync = () => {
   const setSyncState = useSetCloudSyncStateWrite();
 
+  // 미해결 충돌 이연 중이면 클라우드 push만 정지한다(로컬 autosave는 usePortfolioPersistence에서 계속 돈다).
+  // status를 라이브로 읽어야 하므로 ref로 최신값을 들고, push 팩토리에는 그 ref를 읽는 함수만 넘긴다
+  // (스케줄러 useMemo를 status 변화마다 재생성하지 않게 — 재생성하면 진행 중 디바운스가 유실된다).
+  const syncStatus = useCloudSyncStateValue().status;
+  const isSuspendedRef = useRef(syncStatus === 'conflict');
+  isSuspendedRef.current = syncStatus === 'conflict';
+
   const scheduler = useMemo(
     () =>
       createCloudSyncScheduler({
         push: createAutosavePush({
           getClient: getSupabaseClient,
           getSession,
+          isSuspended: () => isSuspendedRef.current,
           // 평상시 디바운스 자동저장도 매번 클라이언트 저장시각을 심어야 세션 사이에도 기기 간 latest-wins가
           // 성립한다(세션 시작 엔진만이 아니라 여기도 stamped). savedAt은 정규화가 버리므로 no-op 게이트 무영향.
           push: (client, payload) => pushCloudAutosave(client, stampCloudAutosave(payload, Date.now()))

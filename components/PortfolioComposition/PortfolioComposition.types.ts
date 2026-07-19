@@ -9,8 +9,6 @@ export type PortfolioCompositionProps = {
   allocationPercentByTickerId: Record<string, number>;
   fixedByTickerId: Record<string, boolean>;
   adjustableTickerCount: number;
-  showPortfolioDividendCenter: boolean;
-  onToggleCenterDisplay: (checked: boolean) => void;
   onSetTickerWeight: (profileId: string, value: number) => void;
   onToggleTickerFixed: (profileId: string) => void;
   onRemoveIncludedTicker: (profileId: string) => void;

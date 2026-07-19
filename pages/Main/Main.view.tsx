@@ -2,10 +2,9 @@ import { Global } from "@emotion/react";
 import { lazy, memo, Suspense, useCallback, useRef, useState } from "react";
 import { FeatureLayout, MainContent, SkipLink } from "@/pages/Main/Main.shared.styled";
 import MobileMenuDrawer from "@/components/MobileMenuDrawer";
-import ThemePresetSwitcher from "@/components/ThemePresetSwitcher";
+import HeaderOverflowMenu from "@/components/HeaderOverflowMenu";
 import TourGuide from "@/components/TourGuide";
 import { CloudSyncIndicator } from "@/components/CloudSyncIndicator";
-import { CommunityNavLink } from "@/components/community/CommunityNavLink";
 import { AuthControl } from "@/components/community/AuthControl";
 import { isCommunityEnabled } from "@/shared/lib/supabase";
 import {
@@ -73,6 +72,20 @@ function MainViewComponent({ viewModel }: MainViewProps) {
     retryCloudSaveRef.current?.();
   }, []);
 
+  /**
+   * 클라우드 동기화 '충돌(동기화 보류)' 인디케이터(헤더)의 "다시 열기" 배선.
+   *
+   * 충돌 모달과 이연 상태는 MainLeftPanel(useCloudWorkspaceSync 배선처)이 소유하므로, retryCloudSave와
+   * 똑같이 좌패널이 재개봉 함수를 ref에 등록만 하고, 헤더는 안정적인 래퍼로 그것을 호출한다(memo 유지).
+   */
+  const resumeConflictRef = useRef<(() => void) | null>(null);
+  const registerResumeConflict = useCallback((fn: (() => void) | null) => {
+    resumeConflictRef.current = fn;
+  }, []);
+  const handleResumeConflict = useCallback(() => {
+    resumeConflictRef.current?.();
+  }, []);
+
   const {
     closeHelp,
     closeTickerModal,
@@ -95,23 +108,34 @@ function MainViewComponent({ viewModel }: MainViewProps) {
             notice={<ModelChangeNotice />}
             // 클라우드 저장 상태를 헤더 맨 좌측(타이틀 옆)에 둔다. 저장 중/실패만 노출(평상시 숨김), 실패는 무음 금지.
             headerStatus={
-              isCommunityEnabled ? <CloudSyncIndicator variant="header" onRetry={handleRetryCloudSave} /> : null
+              isCommunityEnabled ? (
+                <CloudSyncIndicator
+                  variant="header"
+                  onRetry={handleRetryCloudSave}
+                  onResume={handleResumeConflict}
+                />
+              ) : null
             }
             headerAction={
               <>
+                {/* 커뮤니티 진입점은 이제 헤더 브랜드 옆 전역 nav(PrimaryNav)의 갤러리·게시판 링크가 담당한다
+                    (기존 CommunityNavLink '커뮤니티' 버튼은 nav 링크로 대체·제거). */}
                 {/* AuthControl은 useNavigate + 세션에 의존한다 — 백엔드 없는 배포에선 렌더하지 않는다. */}
                 {isCommunityEnabled ? <AuthControl /> : null}
-                <CommunityNavLink />
+                {/* 튜토리얼 보기 + 앱 설치 + 테마를 모은 아이콘 전용 "더보기(⋯)" 메뉴. 로그인/커뮤니티 여부와
+                    무관하게 항상 노출된다 — 테마 접근점을 여기로 단일화했다(기존 standalone 테마 스위처 제거).
+                    "테마는 어떤 상태에서도 사라지면 안 됨" 제약은 이 메뉴가 항상 있으므로 충족. */}
+                <HeaderOverflowMenu />
+                {/* TourGuide는 코치마크 오버레이 전용으로 계속 마운트한다 — 헤더엔 아무것도 안 그리고,
+                    실행 트리거는 HeaderOverflowMenu가 소유한다(tourLaunchRequestAtom bump). */}
                 <TourGuide />
-                {/* 테마 스위처는 로그인 여부와 무관하게 **항상 헤더 맨 우측**에 둔다 — 비로그인 시 프로필 드롭다운이
-                    없어 거기 넣으면 접근이 끊긴다. 형제 컨트롤과 같은 secondary 네모 아이콘 스타일(그 스타일은 컴포넌트가 소유). */}
-                <ThemePresetSwitcher />
               </>
             }
             left={
               <MainLeftPanel
                 onHydratedChange={setIsPortfolioHydrated}
                 onRegisterRetryCloudSave={registerRetryCloudSave}
+                onRegisterResumeConflict={registerResumeConflict}
               />
             }
             right={

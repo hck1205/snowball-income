@@ -18,7 +18,6 @@ import {
 type UseMainComputedParams = {
   isValid: boolean;
   values: YieldFormValues;
-  showPortfolioDividendCenter: boolean;
   visibleYearlySeries: Record<YearlySeriesKey, boolean>;
   isYearlyAreaFillOn: boolean;
   postInvestmentProjectionYears: number;
@@ -27,7 +26,6 @@ type UseMainComputedParams = {
 export const useMainComputed = ({
   isValid,
   values,
-  showPortfolioDividendCenter,
   visibleYearlySeries,
   isYearlyAreaFillOn,
   postInvestmentProjectionYears
@@ -61,10 +59,11 @@ export const useMainComputed = ({
     () =>
       buildAllocationPieOption({
         normalizedAllocation,
-        showPortfolioDividendCenter,
+        // 배당 중앙표시 토글을 없애고 파이 중앙에 월배당을 항상 노출한다(사용자 요청).
+        showPortfolioDividendCenter: true,
         finalMonthlyAverageDividend: simulation?.summary.finalMonthlyAverageDividend ?? 0
       }),
-    [normalizedAllocation, palettePreset, showPortfolioDividendCenter, simulation?.summary.finalMonthlyAverageDividend]
+    [normalizedAllocation, palettePreset, simulation?.summary.finalMonthlyAverageDividend]
   );
   const defaultCashflowYear = yearlyCashflowByTicker.years[yearlyCashflowByTicker.years.length - 1] ?? null;
   const defaultCashflowByYear =

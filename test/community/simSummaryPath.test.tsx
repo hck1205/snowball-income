@@ -5,8 +5,8 @@ import CommunityGalleryView from '@/pages/Community/CommunityGalleryPage/Communi
 import type { CommunityGalleryViewModel } from '@/pages/Community/CommunityGalleryPage/CommunityGalleryPage.types';
 import { EMPTY_INVESTMENT_SETTINGS } from '@/jotai';
 import { buildScenarioSimSummary } from '@/shared/lib/snowball';
-import { fetchGalleryPage, fetchScenarioDetail, publishScenario, updateScenario } from '@/shared/lib/supabase';
-import type { CommunityClient, ScenarioListItem, ScenarioPayload } from '@/shared/lib/supabase';
+import { fetchGalleryPage, fetchPostDetail, publishPost, updatePost } from '@/shared/lib/supabase';
+import type { CommunityClient, PostListItem, PostPayload } from '@/shared/lib/supabase';
 import type { TickerProfile } from '@/shared/types/snowball';
 
 /**
@@ -31,7 +31,7 @@ const tickerProfile = (id: string, ticker: string, dividendYield: number, divide
 });
 
 /** 게시 가능한 완성 payload — buildScenarioSimSummary가 요약을 계산할 수 있다. */
-const validPayload: ScenarioPayload = {
+const validPayload: PostPayload = {
   portfolio: {
     tickerProfiles: [tickerProfile('t1', 'SCHD', 3.5, 5), tickerProfile('t2', 'JEPI', 7.2, 0)],
     includedTickerIds: ['t1', 't2'],
@@ -53,7 +53,7 @@ const validPayload: ScenarioPayload = {
 };
 
 /** 포함 티커 0개 — 구조는 payload지만 요약 계산이 불가한 미완성 상태. */
-const uncomputablePayload: ScenarioPayload = {
+const uncomputablePayload: PostPayload = {
   portfolio: { tickerProfiles: [], includedTickerIds: [], weightByTickerId: {}, fixedByTickerId: {}, selectedTickerId: null },
   investmentSettings: validPayload.investmentSettings
 };
@@ -89,11 +89,11 @@ const makeBuilder = (result: { data: unknown; error: { message: string } | null 
 
 // ── 게시·수정 경로 ────────────────────────────────────────────────────────────
 
-describe('publishScenario — sim_summary 게시 시점 계산', () => {
+describe('publishPost — sim_summary 게시 시점 계산', () => {
   it('payload가 있으면 순수 함수와 같은 요약을 함께 insert한다', async () => {
     const { client, calls } = makeBuilder({ data: { id: 'new' }, error: null });
 
-    await publishScenario(client, { title: '월배당 시나리오', payload: validPayload });
+    await publishPost(client, { title: '월배당 시나리오', payload: validPayload });
 
     const inserted = calls.insert[0] as Record<string, unknown>;
     const expected = buildScenarioSimSummary(validPayload);
@@ -104,7 +104,7 @@ describe('publishScenario — sim_summary 게시 시점 계산', () => {
   it('payload가 없으면(자유 글) sim_summary도 null', async () => {
     const { client, calls } = makeBuilder({ data: { id: 'new' }, error: null });
 
-    await publishScenario(client, { title: '자유 글', body: '<p>hi</p>' });
+    await publishPost(client, { title: '자유 글', body: '<p>hi</p>' });
 
     expect((calls.insert[0] as Record<string, unknown>).sim_summary).toBeNull();
   });
@@ -112,7 +112,7 @@ describe('publishScenario — sim_summary 게시 시점 계산', () => {
   it('계산 불가한 payload면 null을 저장하고 게시는 막지 않는다 (폴백 = 텍스트 카드)', async () => {
     const { client, calls } = makeBuilder({ data: { id: 'new' }, error: null });
 
-    await publishScenario(client, { title: '미완성 첨부', payload: uncomputablePayload });
+    await publishPost(client, { title: '미완성 첨부', payload: uncomputablePayload });
 
     const inserted = calls.insert[0] as Record<string, unknown>;
     expect(inserted.payload).toEqual(uncomputablePayload); // 첨부 자체는 그대로 저장
@@ -120,11 +120,11 @@ describe('publishScenario — sim_summary 게시 시점 계산', () => {
   });
 });
 
-describe('updateScenario — payload를 바꿀 때만 요약 갱신', () => {
+describe('updatePost — payload를 바꿀 때만 요약 갱신', () => {
   it('payload 패치 시 요약을 재계산해 함께 update한다', async () => {
     const { client, calls } = makeBuilder({ data: { id: 's1' }, error: null });
 
-    await updateScenario(client, 's1', { payload: validPayload });
+    await updatePost(client, 's1', { payload: validPayload });
 
     const updated = calls.update[0] as Record<string, unknown>;
     expect(updated.sim_summary).toEqual(buildScenarioSimSummary(validPayload));
@@ -133,7 +133,7 @@ describe('updateScenario — payload를 바꿀 때만 요약 갱신', () => {
   it('payload 해제(null)면 요약도 null로 지운다', async () => {
     const { client, calls } = makeBuilder({ data: { id: 's1' }, error: null });
 
-    await updateScenario(client, 's1', { payload: null });
+    await updatePost(client, 's1', { payload: null });
 
     const updated = calls.update[0] as Record<string, unknown>;
     expect(updated.payload).toBeNull();
@@ -143,7 +143,7 @@ describe('updateScenario — payload를 바꿀 때만 요약 갱신', () => {
   it('payload를 안 건드리는 수정(제목만)은 sim_summary 키를 보내지 않는다 — 게시 시점 숫자 보존', async () => {
     const { client, calls } = makeBuilder({ data: { id: 's1' }, error: null });
 
-    await updateScenario(client, 's1', { title: '제목만 수정' });
+    await updatePost(client, 's1', { title: '제목만 수정' });
 
     expect(Object.keys(calls.update[0] as Record<string, unknown>)).not.toContain('sim_summary');
   });
@@ -163,7 +163,7 @@ describe('목록·상세 쿼리 — sim_summary 컬럼 포함', () => {
   it('상세는 sim_summary와 payload를 모두 싣는다', async () => {
     const { client, calls } = makeBuilder({ data: { id: 's1' }, error: null });
 
-    await fetchScenarioDetail(client, 's1');
+    await fetchPostDetail(client, 's1');
 
     const columns = calls.select[0].split(',');
     expect(columns).toContain('sim_summary');
@@ -173,9 +173,10 @@ describe('목록·상세 쿼리 — sim_summary 컬럼 포함', () => {
 
 // ── 갤러리 주입 (검증 파서 경유 폴백) ─────────────────────────────────────────
 
-const listItem = (id: string, title: string, sim_summary: unknown): ScenarioListItem => ({
+const listItem = (id: string, title: string, sim_summary: unknown): PostListItem => ({
   id,
   user_id: 'u1',
+  kind: 'portfolio',
   title,
   description: null,
   is_public: true,

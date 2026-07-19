@@ -5,10 +5,10 @@ import type { PersistedScenarioState } from '@/jotai/snowball/types';
 import { buildScenarioSimSummary } from '@/shared/lib/snowball';
 import type { ScenarioSimSummary } from '@/shared/lib/snowball';
 import {
-  toScenarioPayload,
-  validateScenarioPayload,
-  type ScenarioPayload,
-  type ScenarioPayloadIssue
+  toPostPayload,
+  validatePostPayload,
+  type PostPayload,
+  type PostPayloadIssue
 } from '@/shared/lib/supabase';
 const w = COMMUNITY_COPY.write;
 
@@ -17,7 +17,7 @@ const w = COMMUNITY_COPY.write;
  * 전체 `tickerProfiles.length`로 세면 저장 요약과 화면 표기가 어긋난다.
  * summary가 있으면 `summary.tickerCount`를 직접 쓰고, 계산 불가(summary null)일 때만 이 폴백을 쓴다.
  */
-export const countIncludedTickers = (payload: ScenarioPayload | null | undefined): number => {
+export const countIncludedTickers = (payload: PostPayload | null | undefined): number => {
   const portfolio = payload?.portfolio;
   if (!portfolio) return 0;
   const included = new Set(portfolio.includedTickerIds ?? []);
@@ -25,7 +25,7 @@ export const countIncludedTickers = (payload: ScenarioPayload | null | undefined
 };
 
 /** 무효 payload의 사유 문구 — 컴포저(첨부 시 방어 검증)와 동일한 issue→카피 매핑을 공유한다. */
-export const issueMessage = (issue: ScenarioPayloadIssue): string => {
+export const issueMessage = (issue: PostPayloadIssue): string => {
   switch (issue) {
     case 'too-many-tickers':
       return w.issueTooManyTickers;
@@ -44,8 +44,8 @@ export const issueMessage = (issue: ScenarioPayloadIssue): string => {
 export type ScenarioCandidate = {
   id: string;
   name: string;
-  payload: ScenarioPayload;
-  /** validateScenarioPayload 통과 = 라디오 선택 가능. */
+  payload: PostPayload;
+  /** validatePostPayload 통과 = 라디오 선택 가능. */
   selectable: boolean;
   /** !selectable일 때 비활성 사유(issueMessage). */
   disabledReason?: string;
@@ -62,8 +62,8 @@ export type ScenarioCandidates =
   | { status: 'ready'; candidates: ScenarioCandidate[] };
 
 const toCandidate = (scenario: PersistedScenarioState): ScenarioCandidate => {
-  const payload = toScenarioPayload(scenario);
-  const issues = validateScenarioPayload(payload);
+  const payload = toPostPayload(scenario);
+  const issues = validatePostPayload(payload);
   const selectable = issues.length === 0;
   const summary = selectable ? buildScenarioSimSummary(payload) : null;
 

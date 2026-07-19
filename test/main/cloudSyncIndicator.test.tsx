@@ -51,6 +51,17 @@ describe('describeCloudSyncState', () => {
     expect(d.shortLabel).toContain('이 기기');
     expect(d.glyph).toBe('device');
   });
+
+  it('충돌(동기화 보류)은 실패와 구분되는 warning 톤·전용 형태로 확인을 요청한다', () => {
+    const d = describeCloudSyncState(at('conflict'));
+    expect(d.status).toBe('conflict');
+    expect(d.shortLabel).toContain('동기화 보류');
+    expect(d.sentence).toContain('확인이 필요');
+    expect(d.tone).toBe('warning');
+    expect(d.glyph).toBe('conflict');
+    // 충돌은 재시도가 아니라 화해(모달)로 푼다 — canRetry는 false.
+    expect(d.canRetry).toBe(false);
+  });
 });
 
 const renderInline = (state: CloudSyncState, onRetry = vi.fn()) => {
@@ -98,15 +109,15 @@ describe('CloudSyncIndicator (badge)', () => {
   });
 });
 
-const renderHeader = (state: CloudSyncState, onRetry = vi.fn()) => {
+const renderHeader = (state: CloudSyncState, onRetry = vi.fn(), onResume = vi.fn()) => {
   const store = createStore();
   store.set(cloudSyncStateAtom, state);
   const view = render(
     <Provider store={store}>
-      <CloudSyncIndicator variant="header" onRetry={onRetry} />
+      <CloudSyncIndicator variant="header" onRetry={onRetry} onResume={onResume} />
     </Provider>
   );
-  return { onRetry, ...view };
+  return { onRetry, onResume, ...view };
 };
 
 describe('CloudSyncIndicator (header)', () => {
@@ -135,5 +146,14 @@ describe('CloudSyncIndicator (header)', () => {
     expect(screen.getByRole('status')).toHaveTextContent('저장 실패');
     await userEvent.click(screen.getByRole('button', { name: '다시 시도' }));
     expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it('충돌(동기화 보류)은 클릭 가능한 표시를 띄우고 onResume으로 화해 모달을 다시 연다', async () => {
+    const { onResume, onRetry } = renderHeader({ status: 'conflict', lastSavedAt: null });
+    const trigger = screen.getByRole('button', { name: /동기화 보류/ });
+    expect(trigger).toHaveTextContent('동기화 보류');
+    await userEvent.click(trigger);
+    expect(onResume).toHaveBeenCalledTimes(1);
+    expect(onRetry).not.toHaveBeenCalled();
   });
 });

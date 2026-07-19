@@ -1,44 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, media, motion, radius, shadow, space, zIndex } from '@/shared/styles';
-
-/* -------------------------------------------------------------------------- */
-/* 진입점 — 헤더의 나침반 아이콘                                                  */
-/* -------------------------------------------------------------------------- */
-
-/** 뱃지를 버튼 모서리에 걸기 위한 기준점. 버튼 자체는 `Button` 프리미티브가 그린다. */
-export const LaunchSlot = styled.span`
-  position: relative;
-  display: inline-flex;
-  flex: 0 0 auto;
-`;
-
-/**
- * 첫 방문 유도 점. **자동 실행 팝업 대신 이것만 쓴다** — 작업을 가로막지 않고 아이콘의 존재만 알린다.
- * 투어를 한 번 시작하면 사라진다(`localStorage`).
- *
- * `aria-hidden`: 시각적 힌트일 뿐이고, 버튼의 `aria-label`이 이미 무엇인지 말한다.
- * 점 하나를 스크린리더가 "점"이라고 읽어봐야 도움이 되지 않는다.
- */
-/** 튜토리얼 버튼 라벨. 모바일에서는 숨겨 아이콘만 남긴다(아이콘 버튼 형태). */
-export const LaunchLabel = styled.span`
-  ${media.down('mobileWide')} {
-    display: none;
-  }
-`;
-
-export const LaunchDot = styled.span`
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 8px;
-  height: 8px;
-  border-radius: ${radius.pill};
-  /* "새 것" 신호는 오로라 teal — 포커스/선택 의미의 brand와 어휘를 분리한다. */
-  background: ${color.accent};
-  /* 아이콘 위에 겹쳐도 점으로 읽히도록 서피스 색 링을 두른다. */
-  border: 2px solid ${color.surface};
-  pointer-events: none;
-`;
+import { color, font, motion, radius, shadow, space, zIndex } from '@/shared/styles';
 
 /* -------------------------------------------------------------------------- */
 /* 오버레이                                                                     */

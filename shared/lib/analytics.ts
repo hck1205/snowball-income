@@ -76,6 +76,10 @@ export const ANALYTICS_EVENT = {
   // 용도: 양방향 자동 동기화의 방향 분포와 세션 시작 시 이미-동기 비율(noop) 모니터링, 실패는 operation_error(cloud_sync)로 분리.
   // (구 CLOUD_MIGRATION_STARTED/LOCAL_MIGRATION_COMPLETED 2단계 마이그레이션 택소노미를 대체 — 클라우드는 이제 매 세션 양방향 동기화)
   CLOUD_SYNC_RECONCILED: "cloud_sync_reconciled",
+  // 세션 시작 디바이스↔클라우드 워크스페이스 충돌 화해 이벤트(화해/이연 시 발화).
+  // 파라미터: shown(모달 노출 여부)·resolution(device|cloud|blend|deferred)·device_tabs·cloud_tabs·result_tabs.
+  // 용도: 무음 last-write-wins를 대체한 화해 UI에서 사용자가 어느 쪽을 택하는지(디바이스/클라우드/블렌드/이연) 분포와 병합 결과 탭 수 모니터링.
+  CLOUD_SYNC_CONFLICT: "cloud_sync_conflict",
 
   // ── 시나리오 공유 (Phase 1 신규) ────────────────────────────────────────────
   // 공유 링크 생성/복사(파라미터: share_method). 용도: 바이럴 계수, 공유 채널 분포.
@@ -206,6 +210,13 @@ export type AnalyticsEventParamMap = {
   [ANALYTICS_EVENT.SIMULATION_RESULT_VIEW]: { reinvest_mode?: string; target_met?: boolean };
   [ANALYTICS_EVENT.LOGIN_COMPLETED]: { source: string; entry_point?: string };
   [ANALYTICS_EVENT.SCENARIO_SHARED]: { share_method: string };
+  [ANALYTICS_EVENT.CLOUD_SYNC_CONFLICT]: {
+    shown: boolean;
+    resolution: "device" | "cloud" | "blend" | "deferred";
+    device_tabs: number;
+    cloud_tabs: number;
+    result_tabs: number;
+  };
   [ANALYTICS_EVENT.COMMUNITY_POST_VIEW]: { has_sim: boolean };
   [ANALYTICS_EVENT.COMMUNITY_POST_PUBLISHED]: { has_sim: boolean };
   [ANALYTICS_EVENT.COMMUNITY_LIKE]: { like_action: "like" | "unlike" };

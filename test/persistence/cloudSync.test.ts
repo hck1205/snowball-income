@@ -79,6 +79,16 @@ describe('createCloudSyncScheduler — 디바운스 + 상태 전이', () => {
     expect(states.map((s) => s.status)).not.toContain('saving');
   });
 
+  it('suspended(충돌 이연)는 onStatus를 부르지 않아 conflict 상태를 유지한다 (헤더 표면화 보존)', async () => {
+    const states: CloudSyncState[] = [];
+    const scheduler = createCloudSyncScheduler({ push: async () => 'suspended', onStatus: (s) => states.push(s) });
+
+    scheduler.schedule(payloadA());
+    await vi.advanceTimersByTimeAsync(CLOUD_SYNC_DEBOUNCE_MS);
+
+    expect(states).toEqual([]); // 상태 전이 없음 — 경계가 세운 'conflict'가 덮이지 않는다
+  });
+
   it('쓰기 진입 후 실패하면 saving → error (로컬은 안전하므로 유실 아님)', async () => {
     const states: CloudSyncState[] = [];
     const scheduler = createCloudSyncScheduler({
@@ -151,6 +161,22 @@ describe('createAutosavePush — 로그인/설정/네트워크 게이팅', () =>
 
     expect(outcome).toBe('skipped');
     expect(push).not.toHaveBeenCalled();
+    expect(ctx.onSaving).not.toHaveBeenCalled();
+  });
+
+  it('충돌 이연 중(isSuspended)이면 로그인·온라인이어도 클라우드 push를 하지 않고 suspended (onSaving 미호출)', async () => {
+    const push = vi.fn(async () => undefined);
+    const ctx = makeCtx();
+    const outcome = await createAutosavePush({
+      getClient: async () => ({}),
+      getSession: async () => session,
+      push,
+      isOnline: () => true,
+      isSuspended: () => true
+    })(payloadA(), ctx);
+
+    expect(outcome).toBe('suspended');
+    expect(push).not.toHaveBeenCalled(); // 반대쪽 기기 탭을 덮지 않는다(로컬 저장은 이 경로 밖에서 계속됨)
     expect(ctx.onSaving).not.toHaveBeenCalled();
   });
 

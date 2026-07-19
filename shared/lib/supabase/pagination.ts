@@ -1,4 +1,4 @@
-import type { GalleryCursor, GalleryFacetFilters, GallerySort, ScenarioListItem } from './types';
+import type { GalleryCursor, GalleryFacetFilters, GallerySort, PostListItem } from './types';
 
 /**
  * Keyset(커서) 페이지네이션 — **순수 함수**. IO 없음, 테스트 대상.
@@ -6,7 +6,7 @@ import type { GalleryCursor, GalleryFacetFilters, GallerySort, ScenarioListItem 
  * 왜 OFFSET이 아니라 keyset인가:
  *   - OFFSET은 페이지가 깊어질수록 앞의 행을 전부 스캔한다 (무료 티어에서 그대로 비용).
  *   - 목록이 갱신되면 페이지 경계에서 항목이 중복/누락된다.
- * keyset은 인덱스를 그대로 타고(scenarios_public_recent_idx / _popular_idx) 안정적이다.
+ * keyset은 인덱스를 그대로 타고(posts_public_recent_idx / _popular_idx) 안정적이다.
  *
  * 정렬 키는 반드시 **유일**해야 한다. created_at만 쓰면 동률에서 행이 새거나 반복되므로
  * 항상 id를 타이브레이커로 붙인다.
@@ -53,7 +53,7 @@ export const decodeGalleryCursor = (encoded: string | null | undefined): Gallery
 };
 
 /** 페이지의 마지막 항목에서 다음 커서를 만든다. */
-export const toGalleryCursor = (item: ScenarioListItem, sort: GallerySort): GalleryCursor => ({
+export const toGalleryCursor = (item: PostListItem, sort: GallerySort): GalleryCursor => ({
   createdAt: item.created_at,
   id: item.id,
   ...(sort === 'popular' ? { likeCount: item.like_count } : {})
@@ -129,7 +129,7 @@ export const splitCommentRootsPage = <T extends { created_at: string; id: string
 
 /**
  * ILIKE 검색 대상 컬럼. body(HTML)는 트라이그램 노이즈가 커서 제외 — title/description(plain text)만.
- * 마이그레이션의 scenarios_search_{title,description}_trgm GIN 인덱스와 대상이 일치한다.
+ * 마이그레이션의 posts_search_{title,description}_trgm GIN 인덱스와 대상이 일치한다.
  */
 export const SEARCH_ILIKE_COLUMNS = ['title', 'description'] as const;
 
@@ -237,10 +237,10 @@ export const getGalleryOrderKeys = (
  * (COUNT 쿼리를 따로 날리지 않으려는 것 — 무료 티어에서 왕복 1회를 아낀다)
  */
 export const splitPage = (
-  rows: readonly ScenarioListItem[],
+  rows: readonly PostListItem[],
   pageSize: number,
   sort: GallerySort
-): { items: ScenarioListItem[]; nextCursor: string | null } => {
+): { items: PostListItem[]; nextCursor: string | null } => {
   const hasMore = rows.length > pageSize;
   const items = hasMore ? rows.slice(0, pageSize) : rows.slice();
   const last = items[items.length - 1];

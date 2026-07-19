@@ -154,7 +154,7 @@ export function useProfileEditor(): ProfileEditor {
           // 200 확정 후에만 실행된다(runAccountDelete 계약).
           trackEvent(ANALYTICS_EVENT.ACCOUNT_DELETED);
           await logout();
-          navigate('/community', { state: { accountDeleted: true } });
+          navigate('/community/portfolio', { state: { accountDeleted: true } });
         }
       });
       if (!outcome.ok) {

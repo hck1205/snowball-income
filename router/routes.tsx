@@ -39,6 +39,7 @@ function AnalyticsLayout() {
  */
 const CommunityLayout = lazy(() => import('@/pages/Community/CommunityLayout'));
 const CommunityGalleryPage = lazy(() => import('@/pages/Community/CommunityGalleryPage'));
+const CommunityBoardPage = lazy(() => import('@/pages/Community/CommunityBoardPage'));
 const CommunityWritePage = lazy(() => import('@/pages/Community/CommunityWritePage'));
 const CommunityDetailPage = lazy(() => import('@/pages/Community/CommunityDetailPage'));
 const CommunityProfilePage = lazy(() => import('@/pages/Community/CommunityProfilePage'));
@@ -75,11 +76,19 @@ const communityRoutes: RouteObject[] = isCommunityEnabled
           </Suspense>
         ),
         children: [
-          { index: true, element: <CommunityGalleryPage /> },
-          { path: 'write', element: <CommunityWritePage /> },
+          // 포트폴리오 갤러리(/community/portfolio)와 게시판(/community/board)을 대칭 섹션으로 둔다.
+          // 예전 진입점 /community 는 포트폴리오 갤러리로 리다이렉트(기존 링크·북마크 보존).
+          { index: true, element: <Navigate to="/community/portfolio" replace /> },
+          { path: 'portfolio', element: <CommunityGalleryPage /> },
+          { path: 'portfolio/write', element: <CommunityWritePage /> },
+          { path: 'portfolio/:id', element: <CommunityDetailPage /> },
+          { path: 'portfolio/:id/edit', element: <CommunityWritePage /> },
           { path: 'profile', element: <CommunityProfilePage /> },
-          { path: ':id', element: <CommunityDetailPage /> },
-          { path: ':id/edit', element: <CommunityWritePage /> }
+          // 자유게시판 — 정적 세그먼트 'board'.
+          { path: 'board', element: <CommunityBoardPage /> },
+          { path: 'board/write', element: <CommunityWritePage kind="board" /> },
+          { path: 'board/:id', element: <CommunityDetailPage kind="board" /> },
+          { path: 'board/:id/edit', element: <CommunityWritePage kind="board" /> }
         ]
       }
     ]

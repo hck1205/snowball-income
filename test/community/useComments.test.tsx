@@ -38,7 +38,7 @@ const supabase = await import('@/shared/lib/supabase');
 
 const row = (id: string, parentId: string | null, createdAt: string): CommentWithAuthor => ({
   id,
-  scenario_id: 's1',
+  post_id: 's1',
   user_id: 'u1',
   parent_id: parentId,
   body: `본문 ${id}`,

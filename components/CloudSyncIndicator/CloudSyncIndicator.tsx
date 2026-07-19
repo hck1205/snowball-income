@@ -1,9 +1,10 @@
-import { AlertCircle, Check, CloudOff, HardDrive, RefreshCw } from 'lucide-react';
+import { AlertCircle, Check, CloudOff, GitMerge, HardDrive, RefreshCw } from 'lucide-react';
 import { useCloudSyncStateValue } from '@/jotai/snowball/cloud';
 import type { CloudSyncIndicatorProps } from './CloudSyncIndicator.types';
 import { describeCloudSyncState, type CloudSyncGlyph } from './CloudSyncIndicator.utils';
 import {
   BadgeRoot,
+  HeaderConflictButton,
   HeaderRoot,
   HeaderText,
   InlineRoot,
@@ -31,6 +32,8 @@ function GlyphIcon({ glyph }: { glyph: CloudSyncGlyph }) {
       return <CloudOff {...common} />;
     case 'alert':
       return <AlertCircle {...common} />;
+    case 'conflict':
+      return <GitMerge {...common} />;
     case 'device':
     default:
       return <HardDrive {...common} />;
@@ -42,7 +45,7 @@ function GlyphIcon({ glyph }: { glyph: CloudSyncGlyph }) {
  * 색만으로 구분하지 않는다. 상태는 `cloudSyncStateAtom` 단일 소스에서 읽어 버튼 배지와 패널 문장이
  * 항상 같은 상태를 말한다.
  */
-export default function CloudSyncIndicator({ variant, onRetry }: CloudSyncIndicatorProps) {
+export default function CloudSyncIndicator({ variant, onRetry, onResume }: CloudSyncIndicatorProps) {
   const state = useCloudSyncStateValue();
   const desc = describeCloudSyncState(state);
 
@@ -57,6 +60,22 @@ export default function CloudSyncIndicator({ variant, onRetry }: CloudSyncIndica
   }
 
   if (variant === 'header') {
+    // 충돌(동기화 보류)은 **클릭 가능한 표시**로 띄운다 — 눌러 화해 모달을 다시 연다(이연 후 재개봉).
+    // 저장 중/실패의 정적 표시와 달리 사용자의 결정을 이어가야 하므로 버튼이다(무음 화해 금지).
+    if (desc.status === 'conflict') {
+      return (
+        <HeaderConflictButton
+          type="button"
+          tone={desc.tone}
+          onClick={onResume}
+          title={desc.sentence}
+          aria-label={`${desc.shortLabel} — 눌러서 확인하기`}
+        >
+          <GlyphIcon glyph={desc.glyph} />
+          <HeaderText>{desc.shortLabel}</HeaderText>
+        </HeaderConflictButton>
+      );
+    }
     // 앱 헤더용 컴팩트 표시. **저장 중·저장 실패만** 노출한다 — 평상시(idle/저장됨/오프라인)는
     // 렌더하지 않는다. "저장됨" 체크가 상시 떠 있으면 의미가 모호하다는 사용자 피드백을 반영했다.
     // 실패는 무음 실패 금지 원칙상 반드시 보이며(라벨+재시도), 저장 중은 스피너로 잠깐 스친다.

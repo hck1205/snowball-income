@@ -1,5 +1,5 @@
 import type { PortfolioPersistedState } from '@/shared/types/snowball';
-import type { PersistedAppStatePayload, PersistedInvestmentSettings } from '../types';
+import type { PersistedAppStatePayload, PersistedInvestmentSettings, PersistedScenarioState } from '../types';
 
 /**
  * 영속 payload 구조 비교 — 로컬/클라우드/JSON이 **하나의 스키마**라는 전제 위에서, 두 payload가
@@ -67,6 +67,17 @@ const pickMeaningfulPortfolio = (portfolio: PortfolioPersistedState): Record<str
 });
 
 /**
+ * 한 시나리오의 "의미있는" 내용(id·이름·포트폴리오·의미있는 투자설정 — 뷰 토글 제외)을 뽑는다.
+ * 페이로드 단위 비교(extractMeaningfulPayload)와 시나리오 단위 비교(블렌드 병합)의 공통 부품.
+ */
+const extractMeaningfulScenario = (scenario: PersistedScenarioState): Record<string, unknown> => ({
+  id: scenario.id,
+  name: scenario.name,
+  portfolio: pickMeaningfulPortfolio(scenario.portfolio),
+  investmentSettings: pickMeaningfulInvestmentSettings(scenario.investmentSettings)
+});
+
+/**
  * payload에서 "의미있는 액션"만 남긴 부분집합을 뽑는다. 클라우드 no-op 비교의 기준.
  *
  * 제외: activeScenarioId(탭 전환은 뷰 상태) · 최상위 portfolio/investmentSettings(활성 탭의 미러라
@@ -74,13 +85,16 @@ const pickMeaningfulPortfolio = (portfolio: PortfolioPersistedState): Record<str
  * 포함: 시나리오 목록(추가/삭제/이름) · 각 시나리오의 포트폴리오 데이터 · 의미있는 투자 설정.
  */
 export const extractMeaningfulPayload = (payload: PersistedAppStatePayload): { scenarios: unknown[] } => ({
-  scenarios: payload.scenarios.map((scenario) => ({
-    id: scenario.id,
-    name: scenario.name,
-    portfolio: pickMeaningfulPortfolio(scenario.portfolio),
-    investmentSettings: pickMeaningfulInvestmentSettings(scenario.investmentSettings)
-  }))
+  scenarios: payload.scenarios.map(extractMeaningfulScenario)
 });
+
+/**
+ * 두 시나리오가 "의미있는" 관점에서 같은 내용인지(뷰 토글은 무시, 이름·포트폴리오·의미있는 설정은 반영).
+ * 블렌드 병합이 **같은 id 쌍**의 발산 여부를 판정할 때 쓴다 — 같으면 하나로, 다르면 둘 다 보존한다.
+ * 이름을 포함하는 이유: 발산한 이름을 조용히 버리지 않기 위함(비파괴 병합 원칙).
+ */
+export const isSameMeaningfulScenario = (a: PersistedScenarioState, b: PersistedScenarioState): boolean =>
+  stableStringify(extractMeaningfulScenario(a)) === stableStringify(extractMeaningfulScenario(b));
 
 /** 의미있는 부분집합의 안정 직렬화 — no-op 게이트가 ref에 담아 직전 저장과 비교한다. */
 export const serializeMeaningfulPayload = (payload: PersistedAppStatePayload): string =>

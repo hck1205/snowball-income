@@ -10,6 +10,8 @@ const toneColor = (tone: CloudSyncTone): string => {
       return color.brandText;
     case 'danger':
       return color.danger;
+    case 'warning':
+      return color.warning;
     case 'muted':
       return color.textMuted;
     case 'neutral':
@@ -139,4 +141,42 @@ export const HeaderRoot = styled.div<{ tone: CloudSyncTone }>`
 export const HeaderText = styled.span`
   font-weight: ${font.weight.medium};
   white-space: nowrap;
+`;
+
+/**
+ * 충돌(동기화 보류) 상태의 헤더 표시 — **클릭 가능한 버튼**이라 화해 모달을 다시 연다(이연 후 재개봉 경로).
+ * 저장 중/실패의 정적 표시와 달리 이건 사용자가 눌러 결정을 이어가야 하므로 버튼으로 만든다.
+ */
+export const HeaderConflictButton = styled.button<{ tone: CloudSyncTone }>`
+  display: inline-flex;
+  align-items: center;
+  gap: ${space[1]};
+  min-height: 32px;
+  padding: 0 ${space[2]};
+  margin: 0;
+  border: 1px solid ${color.warningSurface};
+  border-radius: ${radius.sm};
+  background: ${color.warningSurface};
+  color: ${({ tone }) => toneColor(tone)};
+  font-family: inherit;
+  font-size: ${font.size.xs};
+  font-weight: ${font.weight.medium};
+  white-space: nowrap;
+  cursor: pointer;
+  transition: filter ${motion.fast} ${motion.ease};
+
+  &:hover {
+    filter: brightness(0.97);
+  }
+
+  svg {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
 `;

@@ -12,7 +12,7 @@ import {
   getSupabaseClient,
   type CommunityClient,
   type GallerySort,
-  type ScenarioListItem
+  type PostListItem
 } from '@/shared/lib/supabase';
 
 export type GalleryStatus = 'loading' | 'error' | 'empty' | 'searchEmpty' | 'filteredEmpty' | 'ready';
@@ -20,7 +20,7 @@ export type GalleryStatus = 'loading' | 'error' | 'empty' | 'searchEmpty' | 'fil
 const toSort = (raw: string | null): GallerySort => (raw === 'popular' ? 'popular' : 'recent');
 
 export type UseGalleryResult = {
-  items: ScenarioListItem[];
+  items: PostListItem[];
   status: GalleryStatus;
   sort: GallerySort;
   query: string;
@@ -52,7 +52,7 @@ export const useGallery = (): UseGalleryResult => {
   // useCallback 의존성은 원시값으로 — filters 객체는 매 렌더 새로 생겨 참조 비교가 흔들린다.
   const { mdMin, mdMax, tgtMin, durMin, durMax } = filters;
 
-  const [items, setItems] = useState<ScenarioListItem[]>([]);
+  const [items, setItems] = useState<PostListItem[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [reachedEnd, setReachedEnd] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);

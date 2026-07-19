@@ -28,3 +28,10 @@ export const useCommunityAuth = (): CommunityAuthContextValue => {
   }
   return value;
 };
+
+/**
+ * Provider가 없어도 **throw하지 않는** 버전 — 없으면 null을 돌려준다.
+ * 커뮤니티 비활성 배포/격리 렌더(Provider 없이 단독 테스트)에서도 안전하게 쓰려는 소비처용이다.
+ * 로그인 유도는 커뮤니티 활성일 때만 의미가 있고, 그때는 항상 Provider가 감싸므로 non-null이 보장된다.
+ */
+export const useOptionalCommunityAuth = (): CommunityAuthContextValue | null => useContext(CommunityAuthContext);

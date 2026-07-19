@@ -1,13 +1,14 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   createComment,
+  fetchBoardPage,
   fetchCommentsPage,
   fetchGalleryPage,
-  fetchMyScenarioLikes,
+  fetchMyPostLikes,
   fetchVisibleCommentCount,
-  publishScenario
+  publishPost
 } from '@/shared/lib/supabase';
-import type { CommentWithAuthor, CommunityClient, ScenarioListItem } from '@/shared/lib/supabase';
+import type { CommentWithAuthor, CommunityClient, PostListItem } from '@/shared/lib/supabase';
 
 /**
  * queries는 client를 **인자로** 받으므로 가짜 query-builder를 주입해 조립 로직을 검증한다.
@@ -113,9 +114,10 @@ const makeBuilder = (result: BuilderResult | BuilderResult[]) => {
   return { client: builder as unknown as CommunityClient, calls };
 };
 
-const listRow = (id: string, createdAt: string): ScenarioListItem => ({
+const listRow = (id: string, createdAt: string): PostListItem => ({
   id,
   user_id: 'u1',
+  kind: 'portfolio',
   title: `글 ${id}`,
   description: null,
   is_public: true,
@@ -138,7 +140,7 @@ describe('fetchGalleryPage', () => {
 
     const page = await fetchGalleryPage(client, { sort: 'recent' });
 
-    expect(calls.from).toEqual(['scenarios']);
+    expect(calls.from).toEqual(['posts']);
     expect(calls.eq).toContainEqual(['is_public', true]);
     expect(calls.order.map(([col]) => col)).toEqual(['created_at', 'id']);
     // 검색어/커서가 없으면 or 필터를 걸지 않는다
@@ -222,13 +224,13 @@ describe('fetchGalleryPage', () => {
   });
 });
 
-describe('publishScenario — 하이브리드 모델 기본값', () => {
+describe('publishPost — 하이브리드 모델 기본값', () => {
   const saved = { id: 'new-id' };
 
   it('자유 글(payload 없음)을 그대로 insert하고 공개 기본값은 비공개(false)', async () => {
     const { client, calls } = makeBuilder({ data: saved, error: null });
 
-    await publishScenario(client, { title: '제목만/본문', body: '<p>hi</p>' });
+    await publishPost(client, { title: '제목만/본문', body: '<p>hi</p>' });
 
     const inserted = calls.insert[0] as Record<string, unknown>;
     expect(inserted.title).toBe('제목만/본문');
@@ -241,9 +243,57 @@ describe('publishScenario — 하이브리드 모델 기본값', () => {
   it('isPublic=true를 명시하면 공개로 insert한다', async () => {
     const { client, calls } = makeBuilder({ data: saved, error: null });
 
-    await publishScenario(client, { title: 't', body: 'b', isPublic: true });
+    await publishPost(client, { title: 't', body: 'b', isPublic: true });
 
     expect((calls.insert[0] as Record<string, unknown>).is_public).toBe(true);
+  });
+
+  it('kind 미지정이면 kind 키를 보내지 않는다 (서버 default portfolio → 갤러리 하위호환)', async () => {
+    const { client, calls } = makeBuilder({ data: saved, error: null });
+
+    await publishPost(client, { title: 't', body: 'b' });
+
+    expect('kind' in (calls.insert[0] as Record<string, unknown>)).toBe(false);
+  });
+
+  it('kind=board를 주면 게시판 글로 insert한다', async () => {
+    const { client, calls } = makeBuilder({ data: saved, error: null });
+
+    await publishPost(client, { title: '자유글', body: '<p>안녕</p>', kind: 'board' });
+
+    expect((calls.insert[0] as Record<string, unknown>).kind).toBe('board');
+  });
+});
+
+describe('글 종류 격리 — 갤러리(portfolio) vs 자유게시판(board)', () => {
+  it('fetchGalleryPage는 kind=portfolio로 고정한다 (자유게시판 글이 갤러리로 새지 않게)', async () => {
+    const { client, calls } = makeBuilder({ data: [], error: null });
+
+    await fetchGalleryPage(client, {});
+
+    expect(calls.eq).toContainEqual(['kind', 'portfolio']);
+    expect(calls.eq).toContainEqual(['is_public', true]);
+  });
+
+  it('fetchBoardPage는 kind=board를 최신순으로 조회한다 (게시판 목록)', async () => {
+    const { client, calls } = makeBuilder({ data: [listRow('a', '2026-01-02T00:00:00Z')], error: null });
+
+    const page = await fetchBoardPage(client, {});
+
+    expect(calls.from).toEqual(['posts']);
+    expect(calls.eq).toContainEqual(['kind', 'board']);
+    expect(calls.eq).toContainEqual(['is_public', true]);
+    expect(calls.order.map(([col]) => col)).toEqual(['created_at', 'id']);
+    expect(page.items.map((i) => i.id)).toEqual(['a']);
+  });
+
+  it('명시적 kind가 default를 덮어쓴다', async () => {
+    const { client, calls } = makeBuilder({ data: [], error: null });
+
+    await fetchGalleryPage(client, { kind: 'board' });
+
+    expect(calls.eq).toContainEqual(['kind', 'board']);
+    expect(calls.eq).not.toContainEqual(['kind', 'portfolio']);
   });
 });
 
@@ -251,17 +301,17 @@ describe('createComment — 대댓글 parent_id', () => {
   it('parentId를 안 주면 최상위 댓글(parent_id null)', async () => {
     const { client, calls } = makeBuilder({ data: { id: 'c1' }, error: null });
 
-    await createComment(client, { scenarioId: 's1', body: '댓글' });
+    await createComment(client, { postId: 's1', body: '댓글' });
 
     const inserted = calls.insert[0] as Record<string, unknown>;
     expect(inserted.parent_id).toBeNull();
-    expect(inserted.scenario_id).toBe('s1');
+    expect(inserted.post_id).toBe('s1');
   });
 
   it('parentId를 주면 대댓글', async () => {
     const { client, calls } = makeBuilder({ data: { id: 'c2' }, error: null });
 
-    await createComment(client, { scenarioId: 's1', body: '답글', parentId: 'r1' });
+    await createComment(client, { postId: 's1', body: '답글', parentId: 'r1' });
 
     expect((calls.insert[0] as Record<string, unknown>).parent_id).toBe('r1');
   });
@@ -270,7 +320,7 @@ describe('createComment — 대댓글 parent_id', () => {
 describe('fetchCommentsPage — 루트 keyset + 대댓글 동반 로드', () => {
   const commentRow = (id: string, parentId: string | null, createdAt: string): CommentWithAuthor => ({
     id,
-    scenario_id: 's1',
+    post_id: 's1',
     user_id: 'u1',
     parent_id: parentId,
     body: `본문 ${id}`,
@@ -296,7 +346,7 @@ describe('fetchCommentsPage — 루트 keyset + 대댓글 동반 로드', () => 
     const page = await fetchCommentsPage(client, 's1', { pageSize: 2 });
 
     expect(calls.from).toEqual(['comments', 'comments']);
-    expect(calls.eq).toContainEqual(['scenario_id', 's1']);
+    expect(calls.eq).toContainEqual(['post_id', 's1']);
     expect(calls.is).toContainEqual(['parent_id', null]);
     expect(calls.or).toEqual([]); // 첫 페이지엔 keyset 필터 없음
     expect(calls.order.map(([col, opt]) => [col, opt.ascending])).toEqual([
@@ -342,7 +392,7 @@ describe('fetchVisibleCommentCount', () => {
     const total = await fetchVisibleCommentCount(client, 's1');
 
     expect(total).toBe(7);
-    expect(calls.eq).toContainEqual(['scenario_id', 's1']);
+    expect(calls.eq).toContainEqual(['post_id', 's1']);
     expect(calls.is).toContainEqual(['deleted_at', null]);
     expect(calls.selectOpts).toContainEqual({ count: 'exact', head: true });
   });
@@ -354,14 +404,14 @@ describe('fetchVisibleCommentCount', () => {
   });
 });
 
-describe('fetchMyScenarioLikes', () => {
+describe('fetchMyPostLikes', () => {
   it('빈 id 목록이면 client를 건드리지 않고 빈 Set을 준다', async () => {
     const from = vi.fn(() => {
       throw new Error('client should not be called');
     });
     const client = { from } as unknown as CommunityClient;
 
-    const result = await fetchMyScenarioLikes(client, 'u1', []);
+    const result = await fetchMyPostLikes(client, 'u1', []);
 
     expect(result.size).toBe(0);
     expect(from).not.toHaveBeenCalled();
@@ -369,11 +419,11 @@ describe('fetchMyScenarioLikes', () => {
 
   it('행을 Set으로 모은다', async () => {
     const { client } = makeBuilder({
-      data: [{ scenario_id: 'a' }, { scenario_id: 'b' }],
+      data: [{ post_id: 'a' }, { post_id: 'b' }],
       error: null
     });
 
-    const result = await fetchMyScenarioLikes(client, 'u1', ['a', 'b', 'c']);
+    const result = await fetchMyPostLikes(client, 'u1', ['a', 'b', 'c']);
 
     expect(result.has('a')).toBe(true);
     expect(result.has('b')).toBe(true);

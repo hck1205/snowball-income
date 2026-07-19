@@ -8,7 +8,9 @@ import type { PersistedAppStatePayload } from '../types';
  * (queries.ts가 "IO는 로직을 두지 않는다"면, 여기는 "로직은 IO를 두지 않는다"의 짝이다.)
  */
 
-export type CloudSyncStatus = 'idle' | 'saving' | 'saved' | 'error' | 'offline';
+// 'conflict' = 세션 시작 디바이스↔클라우드 충돌이 화해되지 않은 상태. 이 동안 클라우드 push는 정지되고
+// (로컬 autosave는 정상), 헤더 인디케이터가 표면화한다. 화해되면 다른 상태로 빠져나온다.
+export type CloudSyncStatus = 'idle' | 'saving' | 'saved' | 'error' | 'offline' | 'conflict';
 
 /** 저장 상태 + 마지막으로 클라우드에 올라간 시각(없으면 null). UI 인디케이터(§8.3)가 읽는다. */
 export type CloudSyncState = {
@@ -23,12 +25,14 @@ export const CLOUD_SYNC_DEBOUNCE_MS = 4000;
 
 /**
  * push 결과.
- *  - saved  : 클라우드에 반영됨
- *  - skipped: 비로그인/커뮤니티 미설정 → 클라우드는 건드리지 않음(로컬 저장은 별도로 이미 됨)
- *  - offline: 네트워크 없음 → 연결되면 다음 변경에서 다시 시도
+ *  - saved     : 클라우드에 반영됨
+ *  - skipped   : 비로그인/커뮤니티 미설정 → 클라우드는 건드리지 않음(로컬 저장은 별도로 이미 됨)
+ *  - offline   : 네트워크 없음 → 연결되면 다음 변경에서 다시 시도
+ *  - suspended : 미해결 충돌 이연 중 → 클라우드 push만 정지(로컬은 별도로 계속 저장). 상태를 **바꾸지 않는다**
+ *                (스케줄러가 'conflict' 상태를 유지해야 헤더가 표면화하고 다음 변경에도 계속 정지된다).
  * throw는 실패(error)로 취급한다.
  */
-export type CloudPushOutcome = 'saved' | 'skipped' | 'offline';
+export type CloudPushOutcome = 'saved' | 'skipped' | 'offline' | 'suspended';
 
 /**
  * push 실행 컨텍스트. `onSaving`은 push가 **실제로 클라우드에 쓰기 시작할 때만**(로그인·온라인 확인
@@ -93,6 +97,9 @@ export const createCloudSyncScheduler = (opts: {
         opts.onStatus({ status: 'saved', lastSavedAt });
       } else if (outcome === 'offline') {
         opts.onStatus({ status: 'offline', lastSavedAt });
+      } else if (outcome === 'suspended') {
+        // 충돌 이연 중 — 클라우드 push만 걸렀다. 상태는 **건드리지 않는다**(경계가 세운 'conflict'를
+        // 'idle'/'saved'로 덮으면 헤더 표면화가 사라진다). 로컬 write는 이 경로 밖에서 이미 됐다.
       } else {
         // skipped(비로그인) — 클라우드 상태는 idle. 실패가 아니므로 error로 보이지 않는다.
         opts.onStatus({ status: 'idle', lastSavedAt });
@@ -128,22 +135,28 @@ export const createCloudSyncScheduler = (opts: {
 };
 
 /**
- * 자동 저장 push 팩토리 — 비로그인/미설정/오프라인 게이팅을 IO 주입으로 결정론화한다.
+ * 자동 저장 push 팩토리 — 비로그인/미설정/오프라인/충돌이연 게이팅을 IO 주입으로 결정론화한다.
  *
- * 게이트 순서: 오프라인 → 미설정(client 없음) → 비로그인(session 없음) → ctx.onSaving() → 실제 저장.
- * `onSaving`을 모든 게이트를 통과한 뒤에만 부르므로, 스케줄러의 'saving'은 로그인·온라인일 때만 뜬다
- * (비로그인 "저장 중" 플래시 제거 — 발견 2). 로컬 자동 저장은 이 경로와 무관하게 항상 돈다.
+ * 게이트 순서: 오프라인 → **충돌 이연(suspended)** → 미설정(client 없음) → 비로그인(session 없음) →
+ * ctx.onSaving() → 실제 저장. `isSuspended`는 미해결 충돌 이연 중(=`cloudSyncStateAtom.status==='conflict'`)이면
+ * true를 주입받아, 클라우드 push만 걸러 반대쪽 기기 탭을 덮지 않게 한다. `onSaving`을 모든 게이트를 통과한
+ * 뒤에만 부르므로 'saving'은 로그인·온라인·비이연일 때만 뜬다(발견 2). 로컬 자동 저장은 이 경로와 무관하게 돈다.
  */
 export const createAutosavePush = <TClient, TSession>(deps: {
   getClient: () => Promise<TClient | null>;
   getSession: (client: TClient) => Promise<TSession | null>;
   push: (client: TClient, payload: PersistedAppStatePayload) => Promise<unknown>;
   isOnline?: () => boolean;
+  /** 미해결 충돌 이연 여부(라이브 읽기). true면 클라우드 push만 정지한다(suspended). 기본 false. */
+  isSuspended?: () => boolean;
 }): CloudPushFn => {
   const isOnline = deps.isOnline ?? (() => typeof navigator === 'undefined' || navigator.onLine !== false);
+  const isSuspended = deps.isSuspended ?? (() => false);
 
   return async (payload, ctx) => {
     if (!isOnline()) return 'offline';
+    // 오프라인 다음, 로그인 확인보다 먼저 판정한다 — 이연 중엔 세션이 있어도 클라우드를 건드리지 않는다.
+    if (isSuspended()) return 'suspended';
     const client = await deps.getClient();
     if (!client) return 'skipped';
     const session = await deps.getSession(client);

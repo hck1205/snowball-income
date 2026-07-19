@@ -36,7 +36,8 @@ import {
 const d = COMMUNITY_COPY.detail;
 
 export default function CommunityDetailView({ viewModel }: CommunityDetailViewProps) {
-  const { detail, comments, isLoggedIn, currentUserId, onRequireLogin, onEdit, onOpenInSimulator } = viewModel;
+  const { detail, comments, isLoggedIn, currentUserId, listPath, onRequireLogin, onEdit, onOpenInSimulator } =
+    viewModel;
   const navigate = useNavigate();
   const [deleteOpen, setDeleteOpen] = useState(false);
 
@@ -50,7 +51,7 @@ export default function CommunityDetailView({ viewModel }: CommunityDetailViewPr
         <EmptyState
           title={d.notFoundTitle}
           action={
-            <Button variant="secondary" onClick={() => navigate('/community')}>
+            <Button variant="secondary" onClick={() => navigate(listPath)}>
               {d.notFoundCta}
             </Button>
           }
@@ -59,7 +60,7 @@ export default function CommunityDetailView({ viewModel }: CommunityDetailViewPr
     );
   }
 
-  if (detail.status === 'error' || !detail.scenario) {
+  if (detail.status === 'error' || !detail.post) {
     return (
       <StateWrap>
         <Banner tone="danger" role="alert" title={d.errorTitle}>
@@ -74,18 +75,18 @@ export default function CommunityDetailView({ viewModel }: CommunityDetailViewPr
     );
   }
 
-  const scenario = detail.scenario;
-  const authorName = scenario.author?.display_name ?? '익명';
-  const ticker = scenario.payload?.portfolio?.tickerProfiles?.length ?? 0;
-  const initial = scenario.payload?.investmentSettings?.initialInvestment ?? 0;
-  const monthly = scenario.payload?.investmentSettings?.monthlyContribution ?? 0;
+  const post = detail.post;
+  const authorName = post.author?.display_name ?? '익명';
+  const ticker = post.payload?.portfolio?.tickerProfiles?.length ?? 0;
+  const initial = post.payload?.investmentSettings?.initialInvestment ?? 0;
+  const monthly = post.payload?.investmentSettings?.monthlyContribution ?? 0;
 
   return (
     <Article aria-label={d.mainLabel}>
       <PostCard>
         <DetailHeader>
           <HeaderTopRow>
-            <Title>{scenario.title}</Title>
+            <Title>{post.title}</Title>
             {detail.isOwner ? (
               <OwnerActions>
                 <Button
@@ -110,10 +111,10 @@ export default function CommunityDetailView({ viewModel }: CommunityDetailViewPr
             ) : null}
           </HeaderTopRow>
           <MetaRow>
-            <Avatar displayName={authorName} avatarUrl={scenario.author?.avatar_url} size="sm" />
+            <Avatar displayName={authorName} avatarUrl={post.author?.avatar_url} size="sm" />
             <b>{authorName}</b>
             <Dot aria-hidden="true">·</Dot>
-            <RelativeTime iso={scenario.created_at} />
+            <RelativeTime iso={post.created_at} />
             <Dot aria-hidden="true">·</Dot>
             <span className="views">
               {COMMUNITY_COPY.gallery.metaViews} {detail.viewCount}
@@ -121,9 +122,9 @@ export default function CommunityDetailView({ viewModel }: CommunityDetailViewPr
           </MetaRow>
         </DetailHeader>
 
-        {scenario.body ? <RichTextContent html={scenario.body} /> : null}
+        {post.body ? <RichTextContent html={post.body} /> : null}
 
-        {scenario.payload && detail.openInSimulatorHref ? (
+        {post.payload && detail.openInSimulatorHref ? (
           <AttachUnit>
             <AttachCta>
               <AttachCtaInfo>
@@ -134,7 +135,7 @@ export default function CommunityDetailView({ viewModel }: CommunityDetailViewPr
                 {d.attachCtaButton}
               </Button>
             </AttachCta>
-            <ScenarioPreview payload={scenario.payload} />
+            <ScenarioPreview payload={post.payload} />
           </AttachUnit>
         ) : null}
 

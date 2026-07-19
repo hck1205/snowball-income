@@ -1,24 +1,21 @@
 import { memo, useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Button } from '@/components/common';
 import { TOUR_STEPS, TOUR_STORAGE_KEY, type TourStep } from '@/shared/constants';
+import { useTourLaunchRequestAtomValue } from '@/jotai';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
+import { Button } from '@/components/common';
 import type { TourGuideProps, TourPopoverPosition, TourRect } from './TourGuide.types';
 import {
   centerPopoverPosition,
   clampSpotlight,
   formatStepProgress,
   isRectFullyVisible,
-  isTourSeen,
   isVisibleRect,
   markTourSeen,
   resolvePopoverPosition,
   resolveVisibleSteps
 } from './TourGuide.utils';
 import {
-  LaunchDot,
-  LaunchLabel,
-  LaunchSlot,
   TourActions,
   TourBody,
   TourDim,
@@ -56,29 +53,8 @@ const prefersReducedMotion = (): boolean => {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 };
 
-/** 학사모 — 도움말 물음표(`?`)와 구분되는, "가이드 투어(둘러보며 배우기)"의 기호. */
-const TourLaunchIcon = () => (
-  <svg
-    viewBox="0 0 24 24"
-    width="16"
-    height="16"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.6"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    aria-hidden="true"
-    focusable="false"
-  >
-    <path d="M12 4 1.5 9 12 14l10.5-5L12 4Z" />
-    <path d="M6 11v4.2c0 1.5 2.7 2.8 6 2.8s6-1.3 6-2.8V11" />
-    <path d="M22.5 9v4.5" />
-    <circle cx="22.5" cy="15.2" r="0.9" fill="currentColor" stroke="none" />
-  </svg>
-);
-
 /**
- * 가이드 투어 — 진입 아이콘 + 스포트라이트 코치마크.
+ * 가이드 투어 — 스포트라이트 코치마크 오버레이.
  *
  * 설계 원칙 두 가지가 나머지를 전부 결정한다:
  *
@@ -89,17 +65,19 @@ const TourLaunchIcon = () => (
  *    (`resolveVisibleSteps`). 빈 상태에서 없는 결과 카드, 모바일에서 드로어 뒤에 숨은 좌측 패널이
  *    전부 같은 규칙 하나로 조용히 빠진다. 특수 분기가 필요 없다.
  *
- * 자동 실행하지 않는다. 첫 방문자에게는 아이콘의 점 뱃지로만 알린다.
+ * **실행 트리거는 이 컴포넌트 밖에 있다.** 헤더 "더보기(⋯)" 메뉴의 "튜토리얼 보기"가
+ * `tourLaunchRequestAtom`을 bump 하면, 이 컴포넌트가 그 변화를 감지해 투어를 연다(자동 실행 없음).
+ * 첫 방문 유도 점도 그 트리거(HeaderOverflowMenu) 쪽에 있다 — 여기서는 오버레이만 소유한다.
  */
 function TourGuideComponent({ steps = TOUR_STEPS, storageKey = TOUR_STORAGE_KEY }: TourGuideProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeSteps, setActiveSteps] = useState<TourStep[]>([]);
   const [stepIndex, setStepIndex] = useState(0);
-  const [hasSeenTour, setHasSeenTour] = useState(true);
   const [spotlight, setSpotlight] = useState<TourRect | null>(null);
   const [position, setPosition] = useState<TourPopoverPosition | null>(null);
 
-  const launchRef = useRef<HTMLButtonElement | null>(null);
+  // 투어를 연 외부 요소(헤더 "더보기" 트리거)를 기억해 두었다가, 종료 시 그리로 포커스를 되돌린다.
+  const restoreFocusRef = useRef<HTMLElement | null>(null);
   const popoverRef = useRef<HTMLDivElement | null>(null);
   const frameRef = useRef<number | null>(null);
 
@@ -109,17 +87,12 @@ function TourGuideComponent({ steps = TOUR_STEPS, storageKey = TOUR_STORAGE_KEY 
   const currentStep = activeSteps[stepIndex] ?? null;
   const stepCount = activeSteps.length;
 
-  // 첫 페인트 이후에 읽는다 — localStorage를 초기 state로 읽으면 SSR/하이드레이션에서 불일치가 난다.
-  useEffect(() => {
-    setHasSeenTour(isTourSeen(storageKey));
-  }, [storageKey]);
-
   const closeTour = useCallback(() => {
     setIsOpen(false);
     setSpotlight(null);
     setPosition(null);
-    // 투어를 연 버튼으로 포커스를 돌려준다 — 키보드 사용자가 맥락을 잃지 않는다.
-    launchRef.current?.focus();
+    // 투어를 연 요소로 포커스를 돌려준다 — 키보드 사용자가 맥락을 잃지 않는다.
+    restoreFocusRef.current?.focus();
   }, []);
 
   const startTour = useCallback(() => {
@@ -132,8 +105,10 @@ function TourGuideComponent({ steps = TOUR_STEPS, storageKey = TOUR_STORAGE_KEY 
     // 가리킬 대상이 하나도 없으면 열지 않는다. 빈 오버레이로 화면을 덮는 것보다 아무 일도 안 하는 게 낫다.
     if (visibleSteps.length === 0) return;
 
+    // 실행 순간 포커스를 잡고 있던 요소(트리거)를 기억 → 종료 시 복원.
+    restoreFocusRef.current = (typeof document === 'undefined' ? null : (document.activeElement as HTMLElement)) ?? null;
+
     markTourSeen(storageKey);
-    setHasSeenTour(true);
     setActiveSteps(visibleSteps);
     setStepIndex(0);
     setIsOpen(true);
@@ -143,6 +118,16 @@ function TourGuideComponent({ steps = TOUR_STEPS, storageKey = TOUR_STORAGE_KEY 
       first_step: visibleSteps[0]?.id ?? ''
     });
   }, [steps, storageKey]);
+
+  // 외부 실행 신호. 헤더 "더보기 → 튜토리얼 보기"가 이 카운터를 bump 하면 투어를 연다.
+  // 초기 마운트값은 기준선으로만 잡고 skip → 이후 변화(증가)에만 반응한다(값 자체는 무의미).
+  const launchRequest = useTourLaunchRequestAtomValue();
+  const lastLaunchRef = useRef(launchRequest);
+  useEffect(() => {
+    if (launchRequest === lastLaunchRef.current) return;
+    lastLaunchRef.current = launchRequest;
+    startTour();
+  }, [launchRequest, startTour]);
 
   const dismissTour = useCallback(
     (reason: 'skip' | 'escape' | 'backdrop') => {
@@ -324,21 +309,6 @@ function TourGuideComponent({ steps = TOUR_STEPS, storageKey = TOUR_STORAGE_KEY 
 
   return (
     <>
-      <LaunchSlot>
-        <Button
-          ref={launchRef}
-          variant="secondary"
-          size="sm"
-          startIcon={<TourLaunchIcon />}
-          aria-label="튜토리얼 시작"
-          data-tour-launch="true"
-          onClick={startTour}
-        >
-          <LaunchLabel>튜토리얼</LaunchLabel>
-        </Button>
-        {hasSeenTour ? null : <LaunchDot data-first-visit="true" aria-hidden="true" />}
-      </LaunchSlot>
-
       {isOpen && currentStep && overlayRoot
         ? createPortal(
             <TourOverlay onClick={() => dismissTour('backdrop')}>
