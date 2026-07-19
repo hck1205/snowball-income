@@ -100,11 +100,20 @@ function InstallGuideSteps({ platform }: { platform: InstallPlatform }) {
   );
 }
 
+export type HeaderOverflowMenuProps = {
+  /**
+   * 튜토리얼(코치마크 투어) 항목을 메뉴에 넣을지. 기본 true.
+   * false면 튜토리얼 메뉴 항목·첫 방문 유도 점·투어 트리거를 전부 스킵한다 — 코치마크 투어가 없는
+   * 표면(커뮤니티 헤더 등)에서 "앱 설치 + 테마"만 담기 위함. 시뮬레이터 헤더는 기본(true)이라 불변.
+   */
+  showTutorial?: boolean;
+};
+
 /**
  * 헤더 "더보기(⋯)" 메뉴 — 아이콘 전용 트리거로 헤더 공간을 아끼고, 부가 액션을 드롭다운에 모은다.
  *
  * 담는 항목:
- *   - **튜토리얼 보기**: `tourLaunchRequestAtom`을 bump → `TourGuide`가 감지해 코치마크 투어를 연다.
+ *   - **튜토리얼 보기**(showTutorial일 때만): `tourLaunchRequestAtom`을 bump → `TourGuide`가 감지해 코치마크 투어를 연다.
  *   - **앱 설치**: 브라우저 지원에 따라 분기한다.
  *       · `beforeinstallprompt`가 잡혀 있으면(Chrome/Edge) 네이티브 설치 프롬프트를 띄운다.
  *       · 아니면(iOS Safari·Firefox·미지원 데스크톱) 플랫폼별 **수동 설치 가이드 모달**을 연다.
@@ -113,10 +122,10 @@ function InstallGuideSteps({ platform }: { platform: InstallPlatform }) {
  *       radiogroup을 메뉴 안에서 인라인으로 편다. 선택해도 메뉴가 닫히지 않아 프리셋을 비교/전환할 수 있다.
  *       (테마 접근점은 로그인·커뮤니티 여부와 무관하게 항상 노출되는 이 메뉴에만 둔다.)
  *
- * 첫 방문 유도 점은 `!hasSeenTour`일 때 트리거 모서리에 걸어, 신규 사용자가 튜토리얼을 발견하게 한다.
+ * 첫 방문 유도 점은 `showTutorial && !hasSeenTour`일 때 트리거 모서리에 걸어, 신규 사용자가 튜토리얼을 발견하게 한다.
  * 드롭다운 개폐/포커스 관리는 AuthControl 드롭다운과 같은 메커니즘(바깥 pointerdown·Esc, role=menu)을 따른다.
  */
-export default function HeaderOverflowMenu() {
+export default function HeaderOverflowMenu({ showTutorial = true }: HeaderOverflowMenuProps) {
   const bumpTourLaunch = useSetTourLaunchRequestWrite();
 
   const [open, setOpen] = useState(false);
@@ -139,9 +148,11 @@ export default function HeaderOverflowMenu() {
   }, [open]);
 
   // 첫 페인트 이후에 읽는다 — 초기 state로 localStorage/matchMedia를 읽으면 하이드레이션 불일치 위험이 있다.
+  // 튜토리얼을 숨긴 표면(showTutorial=false)에선 유도 점 자체가 없으므로 seen 여부를 읽지 않는다.
   useEffect(() => {
+    if (!showTutorial) return;
     setHasSeenTour(isTourSeen(TOUR_STORAGE_KEY));
-  }, []);
+  }, [showTutorial]);
 
   useEffect(() => {
     if (isRunningStandalone()) {
@@ -243,14 +254,16 @@ export default function HeaderOverflowMenu() {
       >
         <MoreHorizontal size={18} strokeWidth={1.8} aria-hidden focusable={false} />
       </Button>
-      {hasSeenTour ? null : <NewDot data-first-visit="true" aria-hidden="true" />}
+      {showTutorial && !hasSeenTour ? <NewDot data-first-visit="true" aria-hidden="true" /> : null}
 
       {open ? (
         <Menu id={menuId} role="menu">
-          <MenuItem type="button" role="menuitem" onClick={handleTutorial}>
-            <GraduationCap size={16} strokeWidth={1.8} aria-hidden focusable={false} />
-            튜토리얼 보기
-          </MenuItem>
+          {showTutorial ? (
+            <MenuItem type="button" role="menuitem" onClick={handleTutorial}>
+              <GraduationCap size={16} strokeWidth={1.8} aria-hidden focusable={false} />
+              튜토리얼 보기
+            </MenuItem>
+          ) : null}
           {isStandalone ? (
             <MenuItem type="button" role="menuitem" disabled aria-disabled="true">
               <Check size={16} strokeWidth={1.8} aria-hidden focusable={false} />

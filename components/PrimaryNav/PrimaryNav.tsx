@@ -1,0 +1,82 @@
+import { useInRouterContext } from 'react-router-dom';
+// per-icon named import(트리셰이킹) → 엔트리에는 이 세 아이콘만 실린다(CommunityNavLink·ThemePresetSwitcher와 동일 패턴).
+import { LayoutGrid, LineChart, MessageSquare } from 'lucide-react';
+import { COMMUNITY_COPY } from '@/shared/constants/community';
+import { isCommunityEnabled } from '@/shared/lib/supabase';
+import {
+  Brand,
+  BrandFallback,
+  BrandLogo,
+  BrandLogoImage,
+  BrandWordmark,
+  Nav,
+  NavItem,
+  NavItems,
+  NavLabel
+} from './PrimaryNav.styled';
+import type { PrimaryNavProps } from './PrimaryNav.types';
+
+const n = COMMUNITY_COPY.nav;
+
+/**
+ * 전역 주요 nav — 모든 페이지 상단(시뮬레이터·커뮤니티 헤더)에 주입되는 공유 컴포넌트.
+ *
+ *   [로고 + 앱이름] → 하나의 `<Link to="/">`(홈)  +  라우트 링크: 시뮬레이터(/)·갤러리(/community)·게시판(/community/board)
+ *
+ * ⚠ 엔트리 번들 격리: 이 컴포넌트는 시뮬레이터 헤더를 통해 **엔트리 번들에 들어간다.** 그래서
+ *   `@/components/community` 배럴·CommunityIcons·supabase-js·Tiptap을 끌어오는 모듈을 import하지 않는다.
+ *   아이콘은 lucide-react에서 per-icon으로 직접 가져오고, `isCommunityEnabled`(env 상수)만 데이터 레이어에서 읽는다.
+ *   커뮤니티 비활성 배포(isCommunityEnabled=false)에선 갤러리/게시판 링크를 렌더하지 않는다(앱은 그대로 동작).
+ *
+ * 활성 표시는 react-router `NavLink`가 담당한다(`aria-current="page"` + `.active`). `end`로 경로 포함 관계를
+ * 끊는다: '/'와 '/community'는 exact(자식 경로에서 비활성), '/community/board'는 게시판 하위까지 활성.
+ */
+export default function PrimaryNav({ brandAs = 'span' }: PrimaryNavProps) {
+  const inRouter = useInRouterContext();
+
+  const brandInner = (
+    <>
+      <BrandLogo>
+        {/* 워드마크가 브랜드명을 읽어주므로 로고 이미지는 장식(alt="") — 메인/커뮤니티 헤더 선례와 동일. */}
+        <BrandLogoImage src="/app_icon.png" alt="" width={28} height={28} />
+      </BrandLogo>
+      <BrandWordmark as={brandAs}>{n.brand}</BrandWordmark>
+    </>
+  );
+
+  // Router 컨텍스트가 없는 렌더(일부 단위 테스트/비라우터 임베드)에선 Link/NavLink가 컨텍스트를 요구해
+  // 죽는다(구 CommunityNavLink의 방어와 동일 취지). 브랜드만 비링크로 폴백해 앱을 죽이지 않는다.
+  // 프로덕션은 루트가 RouterProvider라 항상 아래 전체 nav를 렌더한다.
+  if (!inRouter) {
+    return (
+      <Nav aria-label={n.primaryLabel}>
+        <BrandFallback>{brandInner}</BrandFallback>
+      </Nav>
+    );
+  }
+
+  return (
+    <Nav aria-label={n.primaryLabel}>
+      <Brand to="/">{brandInner}</Brand>
+
+      <NavItems>
+        <NavItem to="/" end aria-label={n.simulator}>
+          <LineChart size={16} strokeWidth={1.8} aria-hidden focusable={false} />
+          <NavLabel>{n.simulator}</NavLabel>
+        </NavItem>
+        {isCommunityEnabled ? (
+          <>
+            <NavItem to="/community" end aria-label={n.gallery}>
+              <LayoutGrid size={16} strokeWidth={1.8} aria-hidden focusable={false} />
+              <NavLabel>{n.gallery}</NavLabel>
+            </NavItem>
+            <NavItem to="/community/board" aria-label={n.board}>
+              <MessageSquare size={16} strokeWidth={1.8} aria-hidden focusable={false} />
+              <NavLabel>{n.board}</NavLabel>
+            </NavItem>
+          </>
+        ) : null}
+      </NavItems>
+    </Nav>
+  );
+}

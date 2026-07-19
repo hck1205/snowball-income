@@ -19,6 +19,7 @@ import type {
   GalleryFacetFilters,
   GalleryPage,
   GallerySort,
+  PostKind,
   PostListItem,
   PostPayload,
   PostWithAuthor
@@ -41,7 +42,7 @@ export type CommunityClient = SupabaseClient<Database>;
  * sim_summary는 포함한다 — 카드 프리뷰용 10필드 요약(~300B)이라 목록에 실어도 가볍고,
  * payload 없이 시뮬 숫자를 그리는 것이 이 컬럼의 존재 이유다.
  */
-const LIST_COLUMNS = 'id,user_id,title,description,is_public,has_payload,sim_summary,like_count,view_count,comment_count,created_at,updated_at,author:profiles(id,display_name,avatar_url)';
+const LIST_COLUMNS = 'id,user_id,kind,title,description,is_public,has_payload,sim_summary,like_count,view_count,comment_count,created_at,updated_at,author:profiles(id,display_name,avatar_url)';
 
 /** 상세는 본문(body)과 시나리오 첨부(payload)까지 내려온다. */
 const DETAIL_COLUMNS = `${LIST_COLUMNS},payload,body`;
@@ -69,6 +70,10 @@ const unwrap = <T>(result: { data: T | null; error: { message: string } | null }
  * duration_years)에 `.gte()/.lte()` 범위 경계를 얹는다 — 이 역시 별개의 top-level 조건이라
  * 위 AND 사슬에 그대로 합류한다(정렬·키셋·검색과 공존). facet이 NULL인 글(자유 글 등)은
  * range 비교에서 자동 제외된다. 필터가 하나도 없으면 경계 목록이 비어 기존 동작 그대로다.
+ *
+ * ⚠ 글 종류 격리: `kind`(기본 'portfolio')를 별개 top-level `.eq`로 얹어 갤러리와 게시판을 섞지
+ *   않는다. 기본값이 'portfolio'라 기존 호출부(갤러리)는 그대로 포트폴리오 글만 본다(자유게시판
+ *   글이 갤러리로 새지 않는다). 게시판은 fetchBoardPage(=kind:'board')로 조회한다.
  */
 export const fetchGalleryPage = async (
   client: CommunityClient,
@@ -79,14 +84,17 @@ export const fetchGalleryPage = async (
     query?: string;
     queryFilter?: string;
     facets?: GalleryFacetFilters;
+    /** 글 종류 필터. 기본 'portfolio'(갤러리). 게시판은 'board'. */
+    kind?: PostKind;
   } = {}
 ): Promise<GalleryPage> => {
   const sort = options.sort ?? 'recent';
   const pageSize = options.pageSize ?? GALLERY_PAGE_SIZE;
+  const kind = options.kind ?? 'portfolio';
   const cursor = decodeGalleryCursor(options.cursor);
   const searchFilter = buildSearchFilter(options.query, options.queryFilter);
 
-  let query = client.from('posts').select(LIST_COLUMNS).eq('is_public', true);
+  let query = client.from('posts').select(LIST_COLUMNS).eq('is_public', true).eq('kind', kind);
 
   if (searchFilter) query = query.or(searchFilter);
   if (cursor) query = query.or(buildKeysetFilter(sort, cursor));
@@ -104,6 +112,23 @@ export const fetchGalleryPage = async (
 
   return splitPage(rows, pageSize, sort);
 };
+
+/**
+ * 자유게시판 목록 — fetchGalleryPage에 kind:'board'만 얹은 얇은 래퍼.
+ * 페이지네이션·정렬·검색·격리 규칙은 갤러리와 완전히 동일하다(단일 원천). 기본 정렬은 최신순.
+ * 게시판 글은 대개 sim_summary가 없어 facet range 필터엔 자동 제외되지만, 계약은 그대로 열어둔다.
+ */
+export const fetchBoardPage = async (
+  client: CommunityClient,
+  options: {
+    sort?: GallerySort;
+    cursor?: string | null;
+    pageSize?: number;
+    query?: string;
+    queryFilter?: string;
+    facets?: GalleryFacetFilters;
+  } = {}
+): Promise<GalleryPage> => fetchGalleryPage(client, { ...options, kind: 'board' });
 
 export const fetchPostDetail = async (
   client: CommunityClient,
@@ -142,6 +167,10 @@ const toSimSummary = (payload: PostPayload | null) => (payload ? buildScenarioSi
  *   - 둘 다          : body + payload
  * 서버 CHECK(posts_payload_valid_or_null)가 payload NULL을 허용한다.
  * payload가 있으면 시뮬 요약(sim_summary)을 여기서 1회 계산해 함께 저장한다.
+ *
+ * `kind`는 글이 어느 표면에 속하는지 정한다('portfolio'=갤러리, 'board'=자유게시판).
+ * 지정하지 않으면 컬럼 자체를 보내지 않아 서버 default('portfolio')가 적용된다(하위호환).
+ * 게시판 글쓰기만 'board'를 명시한다.
  */
 export const publishPost = async (
   client: CommunityClient,
@@ -151,6 +180,7 @@ export const publishPost = async (
     body?: string | null;
     payload?: PostPayload | null;
     isPublic?: boolean;
+    kind?: PostKind;
   }
 ): Promise<PostWithAuthor> => {
   const payload = input.payload ?? null;
@@ -165,7 +195,9 @@ export const publishPost = async (
         payload,
         sim_summary: toSimSummary(payload),
         // 기본은 비공개. 공개는 사용자가 명시적으로 선택할 때만 (서버 기본값과 동일한 철학)
-        is_public: input.isPublic ?? false
+        is_public: input.isPublic ?? false,
+        // kind 미지정이면 키 자체를 생략 → 서버 default 'portfolio'. 게시판만 'board' 명시.
+        ...(input.kind ? { kind: input.kind } : {})
       })
       .select(DETAIL_COLUMNS)
       .single()

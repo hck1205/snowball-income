@@ -5,7 +5,6 @@ import MobileMenuDrawer from "@/components/MobileMenuDrawer";
 import HeaderOverflowMenu from "@/components/HeaderOverflowMenu";
 import TourGuide from "@/components/TourGuide";
 import { CloudSyncIndicator } from "@/components/CloudSyncIndicator";
-import { CommunityNavLink } from "@/components/community/CommunityNavLink";
 import { AuthControl } from "@/components/community/AuthControl";
 import { isCommunityEnabled } from "@/shared/lib/supabase";
 import {
@@ -119,9 +118,10 @@ function MainViewComponent({ viewModel }: MainViewProps) {
             }
             headerAction={
               <>
+                {/* 커뮤니티 진입점은 이제 헤더 브랜드 옆 전역 nav(PrimaryNav)의 갤러리·게시판 링크가 담당한다
+                    (기존 CommunityNavLink '커뮤니티' 버튼은 nav 링크로 대체·제거). */}
                 {/* AuthControl은 useNavigate + 세션에 의존한다 — 백엔드 없는 배포에선 렌더하지 않는다. */}
                 {isCommunityEnabled ? <AuthControl /> : null}
-                <CommunityNavLink />
                 {/* 튜토리얼 보기 + 앱 설치 + 테마를 모은 아이콘 전용 "더보기(⋯)" 메뉴. 로그인/커뮤니티 여부와
                     무관하게 항상 노출된다 — 테마 접근점을 여기로 단일화했다(기존 standalone 테마 스위처 제거).
                     "테마는 어떤 상태에서도 사라지면 안 됨" 제약은 이 메뉴가 항상 있으므로 충족. */}

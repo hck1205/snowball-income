@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   createComment,
+  fetchBoardPage,
   fetchCommentsPage,
   fetchGalleryPage,
   fetchMyPostLikes,
@@ -116,6 +117,7 @@ const makeBuilder = (result: BuilderResult | BuilderResult[]) => {
 const listRow = (id: string, createdAt: string): PostListItem => ({
   id,
   user_id: 'u1',
+  kind: 'portfolio',
   title: `글 ${id}`,
   description: null,
   is_public: true,
@@ -244,6 +246,54 @@ describe('publishPost — 하이브리드 모델 기본값', () => {
     await publishPost(client, { title: 't', body: 'b', isPublic: true });
 
     expect((calls.insert[0] as Record<string, unknown>).is_public).toBe(true);
+  });
+
+  it('kind 미지정이면 kind 키를 보내지 않는다 (서버 default portfolio → 갤러리 하위호환)', async () => {
+    const { client, calls } = makeBuilder({ data: saved, error: null });
+
+    await publishPost(client, { title: 't', body: 'b' });
+
+    expect('kind' in (calls.insert[0] as Record<string, unknown>)).toBe(false);
+  });
+
+  it('kind=board를 주면 게시판 글로 insert한다', async () => {
+    const { client, calls } = makeBuilder({ data: saved, error: null });
+
+    await publishPost(client, { title: '자유글', body: '<p>안녕</p>', kind: 'board' });
+
+    expect((calls.insert[0] as Record<string, unknown>).kind).toBe('board');
+  });
+});
+
+describe('글 종류 격리 — 갤러리(portfolio) vs 자유게시판(board)', () => {
+  it('fetchGalleryPage는 kind=portfolio로 고정한다 (자유게시판 글이 갤러리로 새지 않게)', async () => {
+    const { client, calls } = makeBuilder({ data: [], error: null });
+
+    await fetchGalleryPage(client, {});
+
+    expect(calls.eq).toContainEqual(['kind', 'portfolio']);
+    expect(calls.eq).toContainEqual(['is_public', true]);
+  });
+
+  it('fetchBoardPage는 kind=board를 최신순으로 조회한다 (게시판 목록)', async () => {
+    const { client, calls } = makeBuilder({ data: [listRow('a', '2026-01-02T00:00:00Z')], error: null });
+
+    const page = await fetchBoardPage(client, {});
+
+    expect(calls.from).toEqual(['posts']);
+    expect(calls.eq).toContainEqual(['kind', 'board']);
+    expect(calls.eq).toContainEqual(['is_public', true]);
+    expect(calls.order.map(([col]) => col)).toEqual(['created_at', 'id']);
+    expect(page.items.map((i) => i.id)).toEqual(['a']);
+  });
+
+  it('명시적 kind가 default를 덮어쓴다', async () => {
+    const { client, calls } = makeBuilder({ data: [], error: null });
+
+    await fetchGalleryPage(client, { kind: 'board' });
+
+    expect(calls.eq).toContainEqual(['kind', 'board']);
+    expect(calls.eq).not.toContainEqual(['kind', 'portfolio']);
   });
 });
 

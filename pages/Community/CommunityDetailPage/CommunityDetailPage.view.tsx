@@ -36,7 +36,8 @@ import {
 const d = COMMUNITY_COPY.detail;
 
 export default function CommunityDetailView({ viewModel }: CommunityDetailViewProps) {
-  const { detail, comments, isLoggedIn, currentUserId, onRequireLogin, onEdit, onOpenInSimulator } = viewModel;
+  const { detail, comments, isLoggedIn, currentUserId, listPath, onRequireLogin, onEdit, onOpenInSimulator } =
+    viewModel;
   const navigate = useNavigate();
   const [deleteOpen, setDeleteOpen] = useState(false);
 
@@ -50,7 +51,7 @@ export default function CommunityDetailView({ viewModel }: CommunityDetailViewPr
         <EmptyState
           title={d.notFoundTitle}
           action={
-            <Button variant="secondary" onClick={() => navigate('/community')}>
+            <Button variant="secondary" onClick={() => navigate(listPath)}>
               {d.notFoundCta}
             </Button>
           }

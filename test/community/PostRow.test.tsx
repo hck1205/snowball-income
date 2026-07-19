@@ -8,6 +8,7 @@ import type { PostListItem } from '@/shared/lib/supabase';
 const item = (overrides: Partial<PostListItem> = {}): PostListItem => ({
   id: 's1',
   user_id: 'u1',
+  kind: 'portfolio',
   title: '월 500 배당 포트폴리오 만들기',
   description: 'SCHD 60% + JEPI 40%로 15년 굴리면 어디까지 가는지',
   is_public: true,

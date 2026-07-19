@@ -8,6 +8,7 @@ import type { PostListItem } from '@/shared/lib/supabase';
 const item = (overrides: Partial<PostListItem> = {}): PostListItem => ({
   id: 's1',
   user_id: 'u1',
+  kind: 'portfolio',
   title: '월배당 포트폴리오',
   description: '매달 현금흐름을 노린 구성',
   is_public: true,

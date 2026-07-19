@@ -8,7 +8,8 @@ import type { PortfolioPersistedState } from '@/shared/types/snowball';
  * 지금은 손으로 썼지만 `supabase gen types typescript` 출력과 같은 형태를 유지한다
  * (Database → public → Tables/Functions). 나중에 CLI 생성물로 바꿔치기할 수 있도록.
  *
- * ⚠ supabase/migrations/20260714000000_community.sql 과 반드시 동기화되어야 한다.
+ * ⚠ supabase/migrations/20260714000000_community.sql (및 이후 append 마이그레이션,
+ *   특히 20260723…_rename_scenarios_to_posts / 20260724…_add_post_kind) 과 동기화되어야 한다.
  */
 
 /**
@@ -30,6 +31,14 @@ export type PostPayload = {
 
 export type { PersistedScenarioState };
 
+/**
+ * 글 종류 (마이그레이션 20260724000000).
+ *   - 'portfolio' : 갤러리(포트폴리오/시나리오 공유글). 기존 글 전부가 여기 속한다(default).
+ *   - 'board'     : 자유게시판 글(질문·잡담·건의 등, 본문 위주 + 선택적 시나리오 첨부).
+ * 갤러리/게시판 조회는 이 값으로 서로를 격리한다(fetchGalleryPage=portfolio, fetchBoardPage=board).
+ */
+export type PostKind = 'portfolio' | 'board';
+
 export type ProfileRow = {
   id: string;
   display_name: string;
@@ -41,6 +50,11 @@ export type ProfileRow = {
 export type PostRow = {
   id: string;
   user_id: string;
+  /**
+   * 글 종류 (마이그레이션 20260724000000). NOT NULL DEFAULT 'portfolio' 라 기존 행은 전부
+   * 'portfolio'. insert 시에만 지정 가능(update GRANT 없음 → 게시 후 종류 고정).
+   */
+  kind: PostKind;
   title: string;
   description: string | null;
   /**
@@ -243,9 +257,10 @@ export type Database = {
         // 앱 프로젝션(PostListItem/PostWithAuthor)은 여전히 PostRow 기반이라 무영향.
         Row: PostDbRow;
         // title만 필수. payload/body는 optional — 자유 글은 payload 없이, 시나리오-only 글은 body 없이 게시된다.
+        // kind는 optional(서버 default 'portfolio') — 게시판 글만 명시적으로 'board'로 넣는다. Update엔 없다(종류 고정).
         // sim_summary는 읽기(unknown)와 달리 쓰기 쪽 타입을 조인다 — 데이터 레이어가 만든 검증된 요약만 저장.
         Insert: Pick<PostRow, 'title'> &
-          Partial<Pick<PostRow, 'user_id' | 'description' | 'payload' | 'body' | 'is_public'>> &
+          Partial<Pick<PostRow, 'user_id' | 'kind' | 'description' | 'payload' | 'body' | 'is_public'>> &
           Partial<{ sim_summary: ScenarioSimSummary | null }>;
         Update: Partial<Pick<PostRow, 'title' | 'description' | 'payload' | 'body' | 'is_public'>> &
           Partial<{ sim_summary: ScenarioSimSummary | null }>;

@@ -1,37 +1,47 @@
 import { useState } from 'react';
-import { useMatch, useNavigate } from 'react-router-dom';
-import ThemePresetSwitcher from '@/components/ThemePresetSwitcher';
+import { useLocation, useMatch, useNavigate } from 'react-router-dom';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
 import { useIsLoggedInAtomValue } from '@/jotai/community';
 import { Button } from '@/components/common';
+import HeaderOverflowMenu from '@/components/HeaderOverflowMenu';
+import { PrimaryNav } from '@/components/PrimaryNav';
 import { AuthControl } from '@/components/community/AuthControl';
 import { useCommunityAuth } from '@/components/community/CommunityAuthProvider';
 import { CommunitySearchBar } from '@/components/community/CommunitySearchBar';
 import { BackIcon, PencilIcon, SearchIcon } from '@/components/community/CommunityIcons';
 import {
   Actions,
-  Brand,
-  BrandLogo,
-  BrandLogoImage,
-  BrandWordmark,
   DesktopOnly,
   HeaderInner,
   HeaderRoot,
   MobileSearchBar,
   MobileSearchToggle,
   SearchSlot,
-  Spacer,
-  ThemeSlot
+  Spacer
 } from './CommunityHeader.styled';
 
 /**
  * 커뮤니티 전용 sticky 경량 헤더.
- * 브랜드/홈 · ← 시뮬레이터 · (목록에서만) 인라인 검색 · 글쓰기 · 인증 컨트롤.
+ *
+ * 브랜드/홈 + 라우트 링크(시뮬레이터·갤러리·게시판)는 전역 nav(PrimaryNav)가 담당한다.
+ * 나머지: (하위 경로에서만) ← 목록 복귀 · (갤러리에서만) 인라인 검색 · 글쓰기 · 인증 컨트롤 ·
+ * 더보기(⋯: 앱 설치 + 테마, 튜토리얼 제외).
+ *
+ * 갤러리(`/community`)와 게시판(`/community/board`)이 각자 목록 화면이라, 두 목록에선 뒤로가기를
+ * 숨기고 nav 링크가 이동을 담당한다. 상세/글쓰기 등 하위 경로에서만 "← 목록"으로 자기 섹션 목록에 돌아간다.
  */
 export default function CommunityHeader() {
-  const isListRoute = Boolean(useMatch({ path: '/community', end: true }));
-  // 글쓰기 라우트에선 헤더의 '글쓰기' 버튼이 페이지와 중복이라 숨긴다.
-  const isWriteRoute = Boolean(useMatch({ path: '/community/write' }));
+  const isGalleryIndex = Boolean(useMatch({ path: '/community', end: true }));
+  const isBoardIndex = Boolean(useMatch({ path: '/community/board', end: true }));
+  // 글쓰기 라우트에선 헤더의 '글쓰기' 버튼이 페이지와 중복이라 숨긴다(갤러리/게시판 양쪽).
+  const isWriteRoute =
+    Boolean(useMatch({ path: '/community/write' })) || Boolean(useMatch({ path: '/community/board/write' }));
+
+  const { pathname } = useLocation();
+  const inBoard = pathname === '/community/board' || pathname.startsWith('/community/board/');
+  const listPath = inBoard ? '/community/board' : '/community';
+  const isIndex = isGalleryIndex || isBoardIndex;
+
   const isLoggedIn = useIsLoggedInAtomValue();
   const { openLoginPrompt } = useCommunityAuth();
   const navigate = useNavigate();
@@ -42,33 +52,29 @@ export default function CommunityHeader() {
       openLoginPrompt();
       return;
     }
-    navigate('/community/write');
+    navigate(inBoard ? '/community/board/write' : '/community/write');
   };
 
   return (
     <HeaderRoot>
       <HeaderInner>
-        <Brand>
-          <BrandLogo>
-            {/* 메인 헤더(HeaderLogoImage)·파비콘/PWA와 동일한 원형 앱 아이콘 — 32px 프레임을 꽉 채운다.
-                워드마크(BrandWordmark)가 브랜드명을 읽어주므로 로고 이미지는 장식(alt="") — MobileMenuDrawer 선례와 동일. */}
-            <BrandLogoImage src="/app_icon.png" alt="" width={32} height={32} />
-          </BrandLogo>
-          <BrandWordmark>{COMMUNITY_COPY.nav.home}</BrandWordmark>
-        </Brand>
+        <PrimaryNav />
 
-        {/* 뒤로가기: 목록(/community)에선 시뮬레이터(/)로, 하위 경로(글쓰기/상세)에선 게시판(=커뮤니티 목록)으로 복귀. */}
-        <Button
-          variant="ghost"
-          size="sm"
-          startIcon={<BackIcon size={16} />}
-          onClick={() => navigate(isListRoute ? '/' : '/community')}
-          aria-label={isListRoute ? COMMUNITY_COPY.nav.simulator : COMMUNITY_COPY.nav.community}
-        >
-          <DesktopOnly>{isListRoute ? COMMUNITY_COPY.nav.simulator : COMMUNITY_COPY.nav.community}</DesktopOnly>
-        </Button>
+        {/* 뒤로가기: 목록 화면(갤러리/게시판 인덱스)에선 nav 링크가 이동을 담당하므로 숨기고,
+            상세/글쓰기 등 하위 경로에서만 "← 목록"으로 자기 섹션 목록에 복귀한다. */}
+        {isIndex ? null : (
+          <Button
+            variant="ghost"
+            size="sm"
+            startIcon={<BackIcon size={16} />}
+            onClick={() => navigate(listPath)}
+            aria-label={COMMUNITY_COPY.nav.list}
+          >
+            <DesktopOnly>{COMMUNITY_COPY.nav.list}</DesktopOnly>
+          </Button>
+        )}
 
-        {isListRoute ? (
+        {isGalleryIndex ? (
           <SearchSlot>
             <CommunitySearchBar />
           </SearchSlot>
@@ -77,7 +83,7 @@ export default function CommunityHeader() {
         )}
 
         <Actions>
-          {isListRoute ? (
+          {isGalleryIndex ? (
             <MobileSearchToggle
               type="button"
               aria-label={COMMUNITY_COPY.gallery.searchAriaLabel}
@@ -102,15 +108,13 @@ export default function CommunityHeader() {
 
           <AuthControl />
 
-          {/* 테마 스위처는 로그인 여부와 무관하게 로그인/프로필 **오른쪽**에 항상 둔다
-              (테마는 이제 프로필 드롭다운이 아니라 헤더에만 있으므로 — 로그인·비로그인 모두 접근 유지). */}
-          <ThemeSlot>
-            <ThemePresetSwitcher />
-          </ThemeSlot>
+          {/* 더보기(⋯) — 앱 설치 + 테마만. 커뮤니티엔 코치마크 투어가 없으므로 튜토리얼 항목을 뺀다(showTutorial={false}).
+              기존 standalone 테마 스위처는 이 메뉴로 흡수했다(시뮬레이터 헤더와 동일 패턴 — 테마 접근점 단일화). */}
+          <HeaderOverflowMenu showTutorial={false} />
         </Actions>
       </HeaderInner>
 
-      {isListRoute && mobileSearchOpen ? (
+      {isGalleryIndex && mobileSearchOpen ? (
         <MobileSearchBar>
           <CommunitySearchBar autoFocus variant="mobile" />
         </MobileSearchBar>

@@ -36,8 +36,15 @@ export type UsePostDetail = {
 /**
  * 상세 데이터 훅: 시나리오 조회 + 조회수 등록(마운트 1회) + 좋아요(낙관적) + 삭제.
  * 좋아요는 비로그인 시 `onRequireLogin`으로 로그인 유도만 하고 낙관적 토글은 하지 않는다.
+ *
+ * `listPath`는 삭제 성공 후 돌아갈 목록 경로다(갤러리='/community', 게시판='/community/board').
+ * 상세는 갤러리(`/community/:id`)와 게시판(`/community/board/:id`)이 공유하므로 섹션별로 다르다.
  */
-export const usePostDetail = (id: string | undefined, onRequireLogin: () => void): UsePostDetail => {
+export const usePostDetail = (
+  id: string | undefined,
+  onRequireLogin: () => void,
+  listPath = '/community'
+): UsePostDetail => {
   const session = useSessionAtomValue();
   const navigate = useNavigate();
   const clientRef = useRef<CommunityClient | null>(null);
@@ -163,11 +170,11 @@ export const usePostDetail = (id: string | undefined, onRequireLogin: () => void
         return;
       }
       await deletePost(client, id);
-      navigate('/community', { replace: true });
+      navigate(listPath, { replace: true });
     } catch {
       setDeleting(false);
     }
-  }, [ensureClient, id, navigate]);
+  }, [ensureClient, id, listPath, navigate]);
 
   const retry = useCallback(() => setReloadKey((key) => key + 1), []);
 

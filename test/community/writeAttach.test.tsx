@@ -148,6 +148,8 @@ const baseVM = (composer: UsePostComposer, candidates: ScenarioCandidates): Comm
   candidates,
   authReady: true,
   isLoggedIn: true,
+  kind: 'portfolio',
+  listPath: '/community',
   onLogin: vi.fn()
 });
 

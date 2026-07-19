@@ -39,6 +39,7 @@ function AnalyticsLayout() {
  */
 const CommunityLayout = lazy(() => import('@/pages/Community/CommunityLayout'));
 const CommunityGalleryPage = lazy(() => import('@/pages/Community/CommunityGalleryPage'));
+const CommunityBoardPage = lazy(() => import('@/pages/Community/CommunityBoardPage'));
 const CommunityWritePage = lazy(() => import('@/pages/Community/CommunityWritePage'));
 const CommunityDetailPage = lazy(() => import('@/pages/Community/CommunityDetailPage'));
 const CommunityProfilePage = lazy(() => import('@/pages/Community/CommunityProfilePage'));
@@ -78,6 +79,12 @@ const communityRoutes: RouteObject[] = isCommunityEnabled
           { index: true, element: <CommunityGalleryPage /> },
           { path: 'write', element: <CommunityWritePage /> },
           { path: 'profile', element: <CommunityProfilePage /> },
+          // 자유게시판 — 정적 세그먼트 'board'라 React Router가 ':id'보다 먼저 매칭한다.
+          // 페이지 컴포넌트는 갤러리와 공유하되 kind='board'로 게시/이동 경로를 게시판 섹션에 고정한다.
+          { path: 'board', element: <CommunityBoardPage /> },
+          { path: 'board/write', element: <CommunityWritePage kind="board" /> },
+          { path: 'board/:id', element: <CommunityDetailPage kind="board" /> },
+          { path: 'board/:id/edit', element: <CommunityWritePage kind="board" /> },
           { path: ':id', element: <CommunityDetailPage /> },
           { path: ':id/edit', element: <CommunityWritePage /> }
         ]

@@ -11,7 +11,18 @@ export const COMMUNITY_COPY = {
     home: 'Snowball',
     login: '로그인',
     logout: '로그아웃',
-    theme: '테마'
+    theme: '테마',
+    // ── 전역 nav(PrimaryNav) — 브랜드 링크 + 라우트 링크(시뮬레이터·갤러리·게시판) ──
+    /** nav 랜드마크 이름(<nav aria-label>). */
+    primaryLabel: '주요 메뉴',
+    /** 브랜드 워드마크(로고+앱이름 링크). "Snowball Income" 워드마크 유지. */
+    brand: 'Snowball Income',
+    /** 커뮤니티 갤러리 링크(/community). */
+    gallery: '갤러리',
+    /** 자유게시판 링크(/community/board). */
+    board: '게시판',
+    /** 상세/글쓰기 하위에서 목록으로 복귀하는 뒤로가기 라벨. */
+    list: '목록'
   },
   gallery: {
     mainLabel: '시나리오 목록',
@@ -75,9 +86,29 @@ export const COMMUNITY_COPY = {
     filterEmptySubtitle: '검색어나 필터를 바꿔보세요.',
     filterEmptyCta: '필터 초기화'
   },
+  board: {
+    // 자유게시판(질문·고민·잡담·건의·뉴스·의견 자유글) — 평면 게시판(카테고리 탭 없음), 최신순.
+    mainLabel: '자유게시판',
+    title: '자유게시판',
+    subtitle: '질문·고민·잡담·건의·뉴스, 무엇이든 자유롭게 이야기해요.',
+    write: '글쓰기',
+    loadingMore: '더 불러오는 중…',
+    reachedEnd: '마지막 글이에요',
+    emptyTitle: '아직 글이 없어요',
+    emptySubtitle: '첫 글을 남겨보세요.',
+    emptyCta: '글쓰기',
+    errorTitle: '게시판을 불러오지 못했어요',
+    errorBody: '잠시 후 다시 시도해주세요.',
+    retry: '다시 시도'
+  },
   write: {
     titleNew: '시나리오 공유',
     titleEdit: '시나리오 수정',
+    // 자유게시판 글쓰기/수정(같은 폼 재사용, kind='board') — 시나리오 공유가 아니라 자유글이다.
+    titleNewBoard: '새 글 쓰기',
+    titleEditBoard: '글 수정',
+    /** 게시판 본문 플레이스홀더 — 전략 설명이 아니라 자유 주제. */
+    bodyPlaceholderBoard: '자유롭게 이야기를 남겨보세요.',
     fieldTitle: '제목',
     fieldBody: '내용',
     fieldAttachment: '시뮬레이션',

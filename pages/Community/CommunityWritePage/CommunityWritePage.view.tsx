@@ -147,7 +147,8 @@ function ScenarioPicker({
 }
 
 export default function CommunityWriteView({ viewModel }: CommunityWriteViewProps) {
-  const { composer, candidates, authReady, isLoggedIn, onLogin } = viewModel;
+  const { composer, candidates, authReady, isLoggedIn, kind, listPath, onLogin } = viewModel;
+  const isBoard = kind === 'board';
   const navigate = useNavigate();
   const [leaveOpen, setLeaveOpen] = useState(false);
   // 첨부된 후보 id(피커 선택). 첨부=후보 id, 미첨부=null. 첨부 시점의 이름/요약은 후보가 직접 들고 있다.
@@ -187,7 +188,7 @@ export default function CommunityWriteView({ viewModel }: CommunityWriteViewProp
     return () => window.removeEventListener('beforeunload', onBeforeUnload);
   }, [composer.dirty]);
 
-  const leaveToList = () => navigate('/community');
+  const leaveToList = () => navigate(listPath);
 
   const handleCancel = () => {
     if (composer.dirty) setLeaveOpen(true);
@@ -263,9 +264,17 @@ export default function CommunityWriteView({ viewModel }: CommunityWriteViewProp
   const initial = composer.attachedPayload?.investmentSettings?.initialInvestment ?? 0;
   const monthly = composer.attachedPayload?.investmentSettings?.monthlyContribution ?? 0;
 
+  const pageTitle = isBoard
+    ? composer.mode === 'edit'
+      ? w.titleEditBoard
+      : w.titleNewBoard
+    : composer.mode === 'edit'
+      ? w.titleEdit
+      : w.titleNew;
+
   return (
     <>
-      <PageTitle>{composer.mode === 'edit' ? w.titleEdit : w.titleNew}</PageTitle>
+      <PageTitle>{pageTitle}</PageTitle>
 
       <WriteForm
         onSubmit={(event) => {
@@ -304,7 +313,7 @@ export default function CommunityWriteView({ viewModel }: CommunityWriteViewProp
           <RichTextEditor
             initialHtml={composer.initialBodyHtml}
             ariaLabel={w.bodyAriaLabel}
-            placeholder={w.bodyPlaceholder}
+            placeholder={isBoard ? w.bodyPlaceholderBoard : w.bodyPlaceholder}
             onChange={composer.handleBodyChange}
           />
           <EditorHint>{w.bodyOrAttachHint}</EditorHint>

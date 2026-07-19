@@ -176,6 +176,7 @@ describe('목록·상세 쿼리 — sim_summary 컬럼 포함', () => {
 const listItem = (id: string, title: string, sim_summary: unknown): PostListItem => ({
   id,
   user_id: 'u1',
+  kind: 'portfolio',
   title,
   description: null,
   is_public: true,

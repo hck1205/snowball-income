@@ -15,6 +15,7 @@ import type { GalleryCursor, PostListItem } from '@/shared/lib/supabase';
 const item = (id: string, createdAt: string, likeCount = 0): PostListItem => ({
   id,
   user_id: 'u1',
+  kind: 'portfolio',
   title: `시나리오 ${id}`,
   description: null,
   is_public: true,

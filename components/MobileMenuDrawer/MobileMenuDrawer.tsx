@@ -1,5 +1,6 @@
 import { memo, useEffect, useId, useRef, useState } from 'react';
 import { TOUR_TARGET } from '@/shared/constants';
+import { PrimaryNav } from '@/components/PrimaryNav';
 import type { MobileMenuDrawerProps } from './MobileMenuDrawer.types';
 import {
   ConfigDrawerColumn,
@@ -10,10 +11,7 @@ import {
   Header,
   HeaderActions,
   HeaderBrand,
-  HeaderDescription,
-  HeaderLogo,
-  HeaderLogoImage,
-  HeaderTitle
+  HeaderDescription
 } from '@/pages/Main/Main.shared.styled';
 
 function MobileMenuDrawerComponent({
@@ -74,15 +72,9 @@ function MobileMenuDrawerComponent({
     <>
       <Header>
         <HeaderBrand>
-          <HeaderLogo>
-            <HeaderLogoImage src="/app_icon.png" alt="" width={40} height={40} />
-          </HeaderLogo>
-          {/* 워드마크를 두 줄로 스택 — 가로 폭을 좁혀 우측 액션 공간을 넓힌다. h1 접근명은 "Snowball Income" 유지. */}
-          <HeaderTitle>
-            Snowball
-            <br />
-            Income
-          </HeaderTitle>
+          {/* 전역 nav — 로고+앱이름(홈 링크) + 라우트 링크(시뮬레이터·갤러리·게시판).
+              brandAs="h1"로 워드마크가 이 페이지의 랜드마크 제목("Snowball Income")을 겸한다. */}
+          <PrimaryNav brandAs="h1" />
           {/* 헤더 맨 좌측(타이틀 옆) 상태 슬롯 — 클라우드 저장 상태(저장 중/실패)가 여기 붙는다. */}
           {headerStatus}
           {headerAction ? <HeaderActions>{headerAction}</HeaderActions> : null}

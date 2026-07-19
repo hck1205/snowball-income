@@ -101,6 +101,21 @@ describe('HeaderOverflowMenu', () => {
     expect(container.querySelector('[data-first-visit="true"]')).toBeNull();
   });
 
+  it('showTutorial={false}면 튜토리얼 항목·첫 방문 유도 점을 렌더하지 않는다 (앱 설치·테마만)', () => {
+    // localStorage는 beforeEach가 비워 tour-seen=false다 — 그럼에도 유도 점이 없어야 한다(튜토리얼 자체 스킵).
+    const { container } = render(<HeaderOverflowMenu showTutorial={false} />);
+
+    expect(container.querySelector('[data-first-visit="true"]')).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: '더보기' }));
+
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+    // 튜토리얼 항목은 없고, 앱 설치·테마는 그대로 있다(커뮤니티 헤더 = 튜토리얼 제외 ⋯ 메뉴).
+    expect(screen.queryByRole('menuitem', { name: '튜토리얼 보기' })).not.toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: '앱 설치' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: '테마' })).toBeInTheDocument();
+  });
+
   it('설치 프롬프트가 없으면 앱 설치가 수동 설치 가이드 모달을 연다', () => {
     render(<HeaderOverflowMenu />);
     fireEvent.click(screen.getByRole('button', { name: '더보기' }));

@@ -10,6 +10,7 @@ import type { PostListItem } from '@/shared/lib/supabase';
 const listItem = (id: string, title: string, has_payload = false): PostListItem => ({
   id,
   user_id: 'u1',
+  kind: 'portfolio',
   title,
   description: null,
   is_public: true,

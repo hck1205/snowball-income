@@ -16,6 +16,7 @@ import {
   validatePostPayload,
   POST_TITLE_MAX_LENGTH,
   type CommunityClient,
+  type PostKind,
   type PostPayload,
   type PostPayloadIssue
 } from '@/shared/lib/supabase';
@@ -66,9 +67,14 @@ export type UsePostComposer = {
 /**
  * 글쓰기/수정 폼 상태 + 제출. 게시 규칙: 제목(1–80) 필수 + (본문 비어있지 않거나 시나리오 첨부).
  * 본문은 비제어 에디터가 관리하고, 여기선 최신 HTML만 받아 검증/저장에 쓴다.
+ *
+ * `kind`(라우트가 결정: 갤러리='portfolio', 게시판='board')는 게시 시 posts.kind로 저장되고,
+ * 성공/취소 후 이동할 섹션 목록(sectionBase)을 정한다. 수정 모드는 kind를 바꾸지 않는다(종류 고정).
  */
-export const usePostComposer = (postId?: string): UsePostComposer => {
+export const usePostComposer = (postId?: string, kind: PostKind = 'portfolio'): UsePostComposer => {
   const mode: 'new' | 'edit' = postId ? 'edit' : 'new';
+  // 섹션 기준 경로 — 목록=sectionBase, 상세=`${sectionBase}/:id`, 글쓰기=`${sectionBase}/write`.
+  const sectionBase = kind === 'board' ? '/community/board' : '/community';
   const session = useSessionAtomValue();
   const navigate = useNavigate();
   const clientRef = useRef<CommunityClient | null>(null);
@@ -227,7 +233,8 @@ export const usePostComposer = (postId?: string): UsePostComposer => {
               description: finalDescription,
               body: safeBody,
               payload: attachedPayload,
-              isPublic
+              isPublic,
+              kind
             });
       // 새 글 발행 성공 시에만 계측(수정은 발행이 아님). has_sim = 시뮬 첨부 여부(Key Event, 창작 전환).
       if (mode !== 'edit') {
@@ -235,12 +242,12 @@ export const usePostComposer = (postId?: string): UsePostComposer => {
         setUserProperties({ community_active: true });
       }
       setDirty(false);
-      navigate(`/community/${saved.id}`, { replace: mode === 'edit' });
+      navigate(`${sectionBase}/${saved.id}`, { replace: mode === 'edit' });
     } catch {
       setSubmitError(true);
       setSubmitting(false);
     }
-  }, [attachedPayload, bodyHtml, ensureClient, isPublic, mode, navigate, postId, title]);
+  }, [attachedPayload, bodyHtml, ensureClient, isPublic, kind, mode, navigate, postId, sectionBase, title]);
 
   return {
     mode,
