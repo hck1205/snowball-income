@@ -25,6 +25,16 @@ export const showSplitGraphsAtom = atomState(false);
 export const showPortfolioDividendCenterAtom = atomState(true);
 export const selectedPresetAtom = atomState<'custom' | PresetTickerKey>('custom');
 
+/**
+ * 가이드 투어 실행 요청 신호 — **단조 증가 카운터**.
+ *
+ * 투어 오버레이(`TourGuide`)와 그 실행 트리거(헤더 "더보기" 메뉴의 "튜토리얼 보기")가 서로 다른
+ * 컴포넌트라, 트리거가 이 값을 1 올리면(`(n) => n + 1`) `TourGuide`가 변화를 감지해 투어를 연다.
+ * 값 자체에는 의미가 없다 — "직전에 처리한 값과 달라졌다"만 본다(초기 마운트값은 skip).
+ * 영속/공유 페이로드와 무관한 순수 세션 신호다.
+ */
+export const tourLaunchRequestAtom = atomState(0);
+
 // ── 팔레트 프리셋 (localStorage 유지 — 개인 설정) ──────────────────────────────
 // ⚠ 시뮬레이션 영속 페이로드/공유 링크 스키마에 넣지 않는다. 팔레트는 기기별 취향이고,
 //   공유 URL·저장 슬롯의 하위 호환에 영향을 주면 안 된다.
@@ -150,5 +160,7 @@ export const useShowPortfolioDividendCenterAtomValue = () => useAtomValue(showPo
 export const useSetShowPortfolioDividendCenterWrite = () => useAtomWrite(showPortfolioDividendCenterAtom);
 export const useSelectedPresetAtomValue = () => useAtomValue(selectedPresetAtom);
 export const useSetSelectedPresetWrite = () => useAtomWrite(selectedPresetAtom);
+export const useTourLaunchRequestAtomValue = () => useAtomValue(tourLaunchRequestAtom);
+export const useSetTourLaunchRequestWrite = () => useAtomWrite(tourLaunchRequestAtom);
 export const usePalettePresetAtomValue = () => useAtomValue(palettePresetAtom);
 export const useSetPalettePresetWrite = () => useAtomWrite(palettePresetAtom);

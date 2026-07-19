@@ -2,7 +2,7 @@ import { Global } from "@emotion/react";
 import { lazy, memo, Suspense, useCallback, useRef, useState } from "react";
 import { FeatureLayout, MainContent, SkipLink } from "@/pages/Main/Main.shared.styled";
 import MobileMenuDrawer from "@/components/MobileMenuDrawer";
-import ThemePresetSwitcher from "@/components/ThemePresetSwitcher";
+import HeaderOverflowMenu from "@/components/HeaderOverflowMenu";
 import TourGuide from "@/components/TourGuide";
 import { CloudSyncIndicator } from "@/components/CloudSyncIndicator";
 import { CommunityNavLink } from "@/components/community/CommunityNavLink";
@@ -102,10 +102,13 @@ function MainViewComponent({ viewModel }: MainViewProps) {
                 {/* AuthControl은 useNavigate + 세션에 의존한다 — 백엔드 없는 배포에선 렌더하지 않는다. */}
                 {isCommunityEnabled ? <AuthControl /> : null}
                 <CommunityNavLink />
+                {/* 튜토리얼 보기 + 앱 설치 + 테마를 모은 아이콘 전용 "더보기(⋯)" 메뉴. 로그인/커뮤니티 여부와
+                    무관하게 항상 노출된다 — 테마 접근점을 여기로 단일화했다(기존 standalone 테마 스위처 제거).
+                    "테마는 어떤 상태에서도 사라지면 안 됨" 제약은 이 메뉴가 항상 있으므로 충족. */}
+                <HeaderOverflowMenu />
+                {/* TourGuide는 코치마크 오버레이 전용으로 계속 마운트한다 — 헤더엔 아무것도 안 그리고,
+                    실행 트리거는 HeaderOverflowMenu가 소유한다(tourLaunchRequestAtom bump). */}
                 <TourGuide />
-                {/* 테마 스위처는 로그인 여부와 무관하게 **항상 헤더 맨 우측**에 둔다 — 비로그인 시 프로필 드롭다운이
-                    없어 거기 넣으면 접근이 끊긴다. 형제 컨트롤과 같은 secondary 네모 아이콘 스타일(그 스타일은 컴포넌트가 소유). */}
-                <ThemePresetSwitcher />
               </>
             }
             left={
