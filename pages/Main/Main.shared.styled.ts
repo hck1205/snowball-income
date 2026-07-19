@@ -236,9 +236,10 @@ export const HeaderLogoImage = styled.img`
 export const HeaderTitle = styled.h1`
   margin: 0;
   color: ${color.text};
-  font-size: clamp(20px, 2.6vw, 26px);
+  /* Snowball/Income 두 줄 스택이 좌측 40px 앱 로고 높이에 맞도록 축소 — 2줄 × ~18px × 1.1 ≈ 40px. */
+  font-size: clamp(15px, 1.9vw, 18px);
   font-weight: ${font.weight.bold};
-  line-height: ${font.leading.tight};
+  line-height: 1.1;
   /* 워드마크는 자간을 조여야 로고처럼 읽힌다. 본문 자간과 다른 이유가 이것이다. */
   letter-spacing: -0.03em;
   white-space: nowrap;
