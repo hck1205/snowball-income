@@ -73,6 +73,20 @@ function MainViewComponent({ viewModel }: MainViewProps) {
     retryCloudSaveRef.current?.();
   }, []);
 
+  /**
+   * 클라우드 동기화 '충돌(동기화 보류)' 인디케이터(헤더)의 "다시 열기" 배선.
+   *
+   * 충돌 모달과 이연 상태는 MainLeftPanel(useCloudWorkspaceSync 배선처)이 소유하므로, retryCloudSave와
+   * 똑같이 좌패널이 재개봉 함수를 ref에 등록만 하고, 헤더는 안정적인 래퍼로 그것을 호출한다(memo 유지).
+   */
+  const resumeConflictRef = useRef<(() => void) | null>(null);
+  const registerResumeConflict = useCallback((fn: (() => void) | null) => {
+    resumeConflictRef.current = fn;
+  }, []);
+  const handleResumeConflict = useCallback(() => {
+    resumeConflictRef.current?.();
+  }, []);
+
   const {
     closeHelp,
     closeTickerModal,
@@ -95,7 +109,13 @@ function MainViewComponent({ viewModel }: MainViewProps) {
             notice={<ModelChangeNotice />}
             // 클라우드 저장 상태를 헤더 맨 좌측(타이틀 옆)에 둔다. 저장 중/실패만 노출(평상시 숨김), 실패는 무음 금지.
             headerStatus={
-              isCommunityEnabled ? <CloudSyncIndicator variant="header" onRetry={handleRetryCloudSave} /> : null
+              isCommunityEnabled ? (
+                <CloudSyncIndicator
+                  variant="header"
+                  onRetry={handleRetryCloudSave}
+                  onResume={handleResumeConflict}
+                />
+              ) : null
             }
             headerAction={
               <>
@@ -115,6 +135,7 @@ function MainViewComponent({ viewModel }: MainViewProps) {
               <MainLeftPanel
                 onHydratedChange={setIsPortfolioHydrated}
                 onRegisterRetryCloudSave={registerRetryCloudSave}
+                onRegisterResumeConflict={registerResumeConflict}
               />
             }
             right={

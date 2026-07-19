@@ -14,4 +14,10 @@ export type MainLeftPanelProps = {
    * 훅을 hoist하는 대신 안정적인 register 콜백으로 함수 참조만 위로 넘긴다(ref 대입, setState 아님).
    */
   onRegisterRetryCloudSave: (retry: (() => void) | null) => void;
+  /**
+   * 이연했던 **충돌 화해 모달을 다시 여는** 함수를 상위(Main.view)에 등록한다 — 헤더의 CloudSyncIndicator가
+   * '동기화 보류' 상태를 클릭하면 호출한다. 모달과 이연 상태는 이 컴포넌트가 소유하므로(useCloudWorkspaceSync
+   * 배선처), retryCloudSave와 같은 ref 등록 패턴으로 재개봉 트리거만 위로 넘긴다.
+   */
+  onRegisterResumeConflict: (resume: (() => void) | null) => void;
 };

@@ -9,15 +9,19 @@ import type { PersistedAppStatePayload } from '../types';
  * 반영한다. 로컬·클라우드 둘 다 autosave 미러를 **유지**한다(구 "마이그레이션 후 로컬 정리"는 폐기 — 로컬을
  * 지우지 않는다).
  *
- * 5분기(+IO 실패 보류):
+ * 분기(+IO 실패 보류):
  *  1. **내용 동일** → no-op. 타임스탬프 비교보다 **먼저** 판정해 clock skew로 인한 불필요한 덮어쓰기를 막는다.
- *  2. **클라우드가 더 최신** → 앱에 적용 + **로컬 IndexedDB에도 미러**(cloud→IndexedDB).
+ *  1.5 **충돌**(로컬·클라우드 둘 다 내용 있고 의미있게 다름) → 자동 화해 금지. `conflict` 이벤트만 방출하고
+ *     **어느 쪽도 apply/mirror/push하지 않는다**(순수·비파괴). 정본 결정은 경계(모달)가 사용자에게 위임한다 —
+ *     무음 last-write-wins가 반대쪽 기기의 탭을 조용히 덮던 유실을 막는다.
+ *  2. **클라우드가 더 최신**(한쪽만 존재 등 충돌 아님) → 앱에 적용 + **로컬 IndexedDB에도 미러**(cloud→IndexedDB).
  *  3. **로컬이 더 최신** → 클라우드에 push(IndexedDB→cloud).
  *  4. **한쪽만 존재** → 그쪽 채택 후 반대쪽에 반영(클라우드만=적용+로컬미러 / 로컬만=push).
  *  5. **로컬 읽기 실패** → 읽지 못한 쪽을 **절대 덮어쓰지 않는다**. 클라우드가 있으면 조용한 로드(apply)만
  *     하고 로컬 미러·push는 하지 않는다. operation_error(local-read) 계측 후 보류.
  *  + **pull 자체 실패**(throw) → 부작용 없이 안전 종료(local-first, unhandled rejection 없음).
- *  + **동률**(타임스탬프 같음): 내용 동일이면 1번(no-op), 내용 다르면 **클라우드 우선**(공유 정본으로 안정 수렴).
+ *  + **한쪽만 존재/빈 클라우드 슬롯 등 비충돌 동률**(타임스탬프 같음): 내용 동일이면 1번(no-op),
+ *     내용 다르면 **클라우드 우선**(공유 정본으로 안정 수렴). 둘 다 내용 있고 다르면 1.5 충돌이 먼저 가로챈다.
  *
  * 타임스탬프는 로컬=IndexedDB 레코드의 updatedAt, 클라우드=payload에 실린 savedAt(cloudAutosaveTimestamp).
  * 둘 다 클라이언트 Date.now() 기준이라 기기 간 비교가 일관된다. 구버전 데이터(시각 없음)는 undefined→가장
@@ -42,7 +46,25 @@ export type CloudWorkspaceSyncEvent =
   | { type: 'applied-cloud' } // cloud→local: 클라우드가 최신 → 적용 + 로컬 미러
   | { type: 'pushed-local' } // local→cloud: 로컬이 최신 → 클라우드에 push
   | { type: 'noop' } // 이미 동기(내용 동일) 또는 양쪽 비어 있음
+  // 충돌: 로컬·클라우드 **둘 다 내용 있고** 의미있게 다름 → 자동 화해 대신 경계(모달)로 위임한다.
+  // 엔진은 이 이벤트만 방출하고 **어느 쪽도 apply/mirror/push하지 않는다**(순수·비파괴). local/cloud는 후보
+  // payload, 타임스탬프는 요약(마지막 편집시각) 표시용이다(정본 결정은 사용자 몫이라 여기선 비교하지 않는다).
+  | {
+      type: 'conflict';
+      local: PersistedAppStatePayload;
+      cloud: PersistedAppStatePayload;
+      localUpdatedAt: number | undefined;
+      cloudSavedAt: number | undefined;
+    }
   | { type: 'failed'; reason: 'local-read' | 'push-error' | 'mirror-error' };
+
+/**
+ * "내용 있음" 판정 — 어느 시나리오든 티커 프로필이 하나라도 있으면 정본 후보다.
+ * 세션 시작 로컬 read(sessionLocalAutosave의 toLocalAutosaveRead)와 **같은 규칙**을 클라우드에도 적용해
+ * 충돌 감지의 "둘 다 내용 있고"를 대칭으로 판정한다.
+ */
+const hasContent = (payload: PersistedAppStatePayload): boolean =>
+  payload.scenarios.some((scenario) => scenario.portfolio.tickerProfiles.length > 0);
 
 export type CloudWorkspaceSyncDeps = {
   /** 클라우드 autosave 슬롯 pull(정규화 payload + savedAt). 없으면 null. */
@@ -117,6 +139,21 @@ export const syncCloudWorkspaceAtSessionStart = async (deps: CloudWorkspaceSyncD
   // 1) 내용 동일(의미있는 관점) → no-op. 타임스탬프 비교보다 먼저(clock skew 방지).
   if (cloud && localPayload && isSameMeaningfulPayload(cloud.payload, localPayload)) {
     deps.onEvent?.({ type: 'noop' });
+    return;
+  }
+
+  // 1.5) 충돌: 로컬·클라우드 둘 다 내용 있고(각자 티커 존재) 의미있게 다름 → 자동 화해 금지, 경계로 위임.
+  //   여기까지 왔다면 1)에서 걸러지지 않았으므로 (둘 다 존재 시) 이미 의미있게 다르다. 무음 last-write-wins가
+  //   반대쪽 탭을 조용히 덮던 다기기 유실을 막기 위해, **어느 쪽도 건드리지 않고** conflict만 방출한다.
+  //   한쪽만 내용 있음(빈 클라우드 슬롯 등)은 여기서 걸러 아래 latest-wins 무음 처리로 남긴다(결정 §1).
+  if (cloud && localPayload && hasContent(localPayload) && hasContent(cloud.payload)) {
+    deps.onEvent?.({
+      type: 'conflict',
+      local: localPayload,
+      cloud: cloud.payload,
+      localUpdatedAt: local.updatedAt,
+      cloudSavedAt: cloud.savedAt
+    });
     return;
   }
 

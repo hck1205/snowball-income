@@ -5,10 +5,10 @@ import type { CloudSyncState } from '@/jotai/snowball/cloud';
  * 저장 상태의 색이 아닌 **의미**를 나른다 — 아이콘 형태(icon)와 문장(sentence)이 상태를 병기하고,
  * tone은 보조 강조일 뿐이다(색만으로 구분 금지, §8.3 접근성 원칙).
  */
-export type CloudSyncTone = 'neutral' | 'success' | 'progress' | 'muted' | 'danger';
+export type CloudSyncTone = 'neutral' | 'success' | 'progress' | 'muted' | 'danger' | 'warning';
 
 /** 아이콘 형태 키(색과 독립). 소비 컴포넌트가 lucide 아이콘으로 매핑한다. */
-export type CloudSyncGlyph = 'device' | 'check' | 'spinner' | 'offline' | 'alert';
+export type CloudSyncGlyph = 'device' | 'check' | 'spinner' | 'offline' | 'alert' | 'conflict';
 
 export type CloudSyncDescription = {
   status: CloudSyncState['status'];
@@ -72,6 +72,17 @@ export const describeCloudSyncState = (
         shortLabel: '저장 실패',
         sentence: '클라우드 저장에 실패했어요 — 이 기기에는 저장돼 있어요.',
         canRetry: true
+      };
+    case 'conflict':
+      // 세션 시작 시 이 기기↔클라우드 내용이 달라 화해 대기 중(클라우드 push 정지). 실패(danger)와 구분되는
+      // warning 톤 — "손상"이 아니라 "결정 필요"다. 헤더에서 이 상태를 클릭하면 화해 모달을 다시 연다.
+      return {
+        status: 'conflict',
+        tone: 'warning',
+        glyph: 'conflict',
+        shortLabel: '동기화 보류 — 확인 필요',
+        sentence: '이 기기와 클라우드 내용이 달라요 — 어느 쪽으로 맞출지 확인이 필요해요.',
+        canRetry: false
       };
     case 'idle':
     default:

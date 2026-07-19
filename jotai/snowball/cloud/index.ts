@@ -6,8 +6,10 @@
  *   `@/jotai/snowball/cloud` 폴더 경로로 직접 import한다.
  */
 export * from './cloudAutosaveTimestamp';
+export * from './cloudConflictState';
 export * from './cloudSyncEngine';
 export * from './cloudSyncState';
+export * from './cloudWorkspaceReconcile';
 export * from './cloudWorkspaceSyncEngine';
 export * from './sessionLocalAutosave';
 export * from './useCloudSync';
