@@ -32,7 +32,10 @@
 - 하위 호환: 로컬 IndexedDB 자동저장·이름 슬롯·?share= URL·JSON 가져오기 **전부 무변경**. 클라우드는 추가 계층. 비로그인은 클라우드 skip(로컬만).
 - **Stage 1 UI**: `components/CloudSyncIndicator`(저장 상태 아이콘+문장, describeCloudSyncState 순수 매퍼). 자동저장 배선·buildPayload/applyPersistedPayload/retryCloudSave 노출은 usePortfolioPersistence에 추가.
 - ⚠ **2026-07-18 MySavePanel(데이터 저장 패널) 완전 제거** — 자동저장이 대체(decisions.md). `components/MySavePanel/` 폴더·툴바 "데이터 저장" 버튼·`onOpenMySave`·usePortfolioPersistence의 이름슬롯/JSON 함수·`savedName.ts`·`appStateStorage.ts` 이름슬롯 IO(list/read/write/delete-ByName) 삭제. **CloudSyncIndicator는 헤더로 이전**(`header` variant: idle 미렌더, 실패에서만 라벨+재시도). 재시도는 MainLeftPanel이 소유+`onRegisterRetryCloudSave`로 Main.view ref에 등록(훅 hoist 금지). 구 정보(클라우드/이 기기 탭·데이터관리·body 포털·LOGIN_NUDGE_TEXT·MySavePanel 로그인 게이트)는 전부 소멸.
-- ⚠ **2026-07-17 클라우드 중심 전환**: 충돌 모달 폐기 → `components/CloudConflictPrompt` **삭제**, `useCloudWorkspaceSync`는 이제 `conflict` 반환 없이 **조용한 로드+안전 마이그레이션**만 배선(반환 void, MainLeftPanel에서 렌더 제거).
+- ⚠ **2026-07-17 클라우드 중심 전환 → 2026-07-19 충돌 화해 재도입으로 부분 무효**: 구 `components/CloudConflictPrompt`는 여전히 삭제됐지만, `useCloudWorkspaceSync`는 **다시 `{conflict,summary,resolve*,defer}` 화해 API를 반환**한다(무음 last-write-wins → 3-way 화해, decisions.md 2026-07-19). UI 배선(2026-07-19 landing):
+  - **`components/CloudReconcileModal`**(신설, 순수 뷰) — 좌 이 기기/우 클라우드 요약(탭 개수·이름칩·상대 편집시각·"최근 편집" 태그) + 3택(둘 다 합치기[비파괴·기본포커스·"합치면 N개 탭"=previewBlend] / 이 기기 / 클라우드). Esc·바깥클릭=이연(deferConflict). Modal 프리미티브(`@/components/common/Modal`) 재사용.
+  - **MainLeftPanel**이 API를 캡처해 모달을 body에 createPortal. 열림=`conflict!==null && !dismissed`(이연은 conflict atom을 남기고 로컬 dismissed만 true — 헤더 재개봉용). 재개봉 트리거는 `onRegisterResumeConflict` ref로 Main.view에 등록(retryCloudSave 패턴).
+  - **CloudSyncIndicator**에 `'conflict'` case + `warning` 톤 + `conflict` glyph(GitMerge) 추가, header variant는 충돌을 **클릭 가능한 버튼**('동기화 보류 — 확인 필요')으로 띄워 `onResume`으로 모달 재개(저장중/실패의 정적 role=status와 구분). 기존 5-상태 렌더 불변.
 - 세션 배선: MainPage를 **CommunityAuthProvider로 감싸 재사용**(Provider 파일 수정 없이 consume-only) → 헤더 AuthControl(§8.2, isCommunityEnabled 게이트)이 세션 atom을 읽는다. 툴바 퀵액션 = **[Share] 하나**(Coffee 숨김) — 데이터 저장은 자동저장으로 대체 제거, **Capture는 2026-07-18 전면 삭제**(capture/*·capturePage.ts·html2canvas 제거), 로컬 이름 슬롯은 IO 코드까지 제거.
 
 ## 소셜 로그인 (2026-07-17 표준화 / social-login-spec.md)
