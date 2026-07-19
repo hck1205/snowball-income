@@ -4,7 +4,7 @@ import { ANALYTICS_EVENT, track } from '@/shared/lib/analytics';
 import { useIsLoggedInAtomValue, useSessionAtomValue } from '@/jotai/community';
 import { useCommunityAuth } from '@/components/community';
 import CommunityDetailView from './CommunityDetailPage.view';
-import { useComments, useScenarioDetail } from './hooks';
+import { useComments, usePostDetail } from './hooks';
 
 /**
  * 상세 `/community/:id` 컨테이너. 시나리오/댓글 훅 + 인증을 배선하고,
@@ -19,7 +19,7 @@ export default function CommunityDetailPage() {
 
   const onRequireLogin = useCallback(() => openLoginPrompt(), [openLoginPrompt]);
 
-  const detail = useScenarioDetail(id, onRequireLogin);
+  const detail = usePostDetail(id, onRequireLogin);
   const comments = useComments(id);
 
   const onEdit = useCallback(() => {

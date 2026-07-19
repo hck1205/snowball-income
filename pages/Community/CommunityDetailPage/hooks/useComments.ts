@@ -67,7 +67,7 @@ const toUserMessage = (error: unknown, fallback: string): string => {
  * 작성/좋아요/삭제는 낙관적으로 rows를 갱신하고 실패 시 되돌린다 — 실패는 무음이 아니라
  * submitError/actionError로 표면화한다(입력은 뷰가 보존).
  */
-export const useComments = (scenarioId: string | undefined): UseComments => {
+export const useComments = (postId: string | undefined): UseComments => {
   const session = useSessionAtomValue();
   const profile = useProfileAtomValue();
   const clientRef = useRef<CommunityClient | null>(null);
@@ -98,7 +98,7 @@ export const useComments = (scenarioId: string | undefined): UseComments => {
   }, []);
 
   useEffect(() => {
-    if (!scenarioId) return;
+    if (!postId) return;
     let cancelled = false;
     setStatus('loading');
     setLoadMoreError(false);
@@ -111,8 +111,8 @@ export const useComments = (scenarioId: string | undefined): UseComments => {
       }
       try {
         const [page, total] = await Promise.all([
-          fetchCommentsPage(client, scenarioId),
-          fetchVisibleCommentCount(client, scenarioId)
+          fetchCommentsPage(client, postId),
+          fetchVisibleCommentCount(client, postId)
         ]);
         if (cancelled) return;
         setRows(page.comments);
@@ -135,14 +135,14 @@ export const useComments = (scenarioId: string | undefined): UseComments => {
     return () => {
       cancelled = true;
     };
-  }, [ensureClient, reloadKey, scenarioId, session]);
+  }, [ensureClient, reloadKey, postId, session]);
 
   const threads = useMemo(() => pruneDeletedThreads(buildCommentTree(rows)), [rows]);
 
   const loadMore = useCallback(() => {
     if (loadMoreInFlightRef.current) return;
     const cursor = nextCursor;
-    if (!scenarioId || !cursor) return;
+    if (!postId || !cursor) return;
 
     loadMoreInFlightRef.current = true;
     setIsLoadingMore(true);
@@ -152,7 +152,7 @@ export const useComments = (scenarioId: string | undefined): UseComments => {
       try {
         const client = await ensureClient();
         if (!client) throw new Error('no client');
-        const page = await fetchCommentsPage(client, scenarioId, { cursor });
+        const page = await fetchCommentsPage(client, postId, { cursor });
         setRows((prev) => mergeCommentRows(prev, page.comments));
         setNextCursor(page.nextCursor);
 
@@ -168,18 +168,18 @@ export const useComments = (scenarioId: string | undefined): UseComments => {
         setIsLoadingMore(false);
       }
     })();
-  }, [ensureClient, nextCursor, scenarioId, session]);
+  }, [ensureClient, nextCursor, postId, session]);
 
   const addComment = useCallback(
     async (body: string, parentId?: string | null): Promise<boolean> => {
       const trimmed = body.trim();
-      if (!trimmed || !scenarioId || !session) return false;
+      if (!trimmed || !postId || !session) return false;
 
       const tempId = makeTempId();
       const nowIso = new Date().toISOString();
       const optimistic: CommentWithAuthor = {
         id: tempId,
-        scenario_id: scenarioId,
+        post_id: postId,
         user_id: session.user.id,
         parent_id: parentId ?? null,
         body: trimmed,
@@ -196,7 +196,7 @@ export const useComments = (scenarioId: string | undefined): UseComments => {
       try {
         const client = await ensureClient();
         if (!client) throw new Error('no client');
-        const saved = await createComment(client, { scenarioId, body: trimmed, parentId: parentId ?? null });
+        const saved = await createComment(client, { postId, body: trimmed, parentId: parentId ?? null });
         setRows((prev) => prev.map((row) => (row.id === tempId ? saved : row)));
         setTotalCount((count) => count + 1);
         // 댓글 작성 성공 후에만 계측(낙관적 실패 시 미발화). 본문·PII는 보내지 않는다.
@@ -212,7 +212,7 @@ export const useComments = (scenarioId: string | undefined): UseComments => {
         setSubmitting(false);
       }
     },
-    [ensureClient, profile, scenarioId, session]
+    [ensureClient, profile, postId, session]
   );
 
   const toggleLike = useCallback(

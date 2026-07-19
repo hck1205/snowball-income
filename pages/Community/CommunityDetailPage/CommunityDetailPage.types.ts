@@ -1,7 +1,7 @@
-import type { UseComments, UseScenarioDetail } from './hooks';
+import type { UseComments, UsePostDetail } from './hooks';
 
 export type CommunityDetailViewModel = {
-  detail: UseScenarioDetail;
+  detail: UsePostDetail;
   comments: UseComments;
   isLoggedIn: boolean;
   currentUserId: string | null;

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
 import { formatKRW } from '@/shared/utils/format';
 import { buildScenarioSimSummary } from '@/shared/lib/snowball';
-import { isNaverEnabled, SCENARIO_TITLE_MAX_LENGTH } from '@/shared/lib/supabase';
+import { isNaverEnabled, POST_TITLE_MAX_LENGTH } from '@/shared/lib/supabase';
 import { Banner, Button, FormSection, ToggleField } from '@/components/common';
 import { ConfirmDialog, EmptyState, SimSummaryStats } from '@/components/community';
 import { RichTextEditor } from '@/components/community/RichTextEditor';
@@ -283,12 +283,12 @@ export default function CommunityWriteView({ viewModel }: CommunityWriteViewProp
         <FieldBlock>
           <LabelRow>
             <FieldLabel htmlFor="community-title">{w.fieldTitle}</FieldLabel>
-            <Counter>{w.counter(composer.title.length, SCENARIO_TITLE_MAX_LENGTH)}</Counter>
+            <Counter>{w.counter(composer.title.length, POST_TITLE_MAX_LENGTH)}</Counter>
           </LabelRow>
           <TitleInput
             id="community-title"
             value={composer.title}
-            maxLength={SCENARIO_TITLE_MAX_LENGTH}
+            maxLength={POST_TITLE_MAX_LENGTH}
             placeholder={w.fieldTitle}
             invalid={Boolean(composer.errors.title)}
             aria-invalid={Boolean(composer.errors.title)}

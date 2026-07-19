@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { EMPTY_INVESTMENT_SETTINGS, type PersistedInvestmentSettings } from '@/jotai';
-import type { ScenarioPayload } from '@/shared/lib/supabase';
+import type { PostPayload } from '@/shared/lib/supabase';
 import type { TickerProfile } from '@/shared/types/snowball';
 import { getChartTheme } from '@/shared/styles';
 import { ScenarioPreview } from '@/pages/Community/CommunityDetailPage/components/ScenarioPreview';
@@ -53,7 +53,7 @@ const buildPayload = (
   profiles: TickerProfile[],
   weightByTickerId: Record<string, number> = {},
   includedTickerIds: string[] = profiles.map((item) => item.id)
-): ScenarioPayload => ({
+): PostPayload => ({
   portfolio: {
     tickerProfiles: profiles,
     includedTickerIds,

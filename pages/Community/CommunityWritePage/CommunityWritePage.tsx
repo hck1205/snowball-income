@@ -2,7 +2,7 @@ import { useParams } from 'react-router-dom';
 import { useIsLoggedInAtomValue } from '@/jotai/community';
 import { useCommunityAuth } from '@/components/community';
 import CommunityWriteView from './CommunityWritePage.view';
-import { useScenarioCandidates, useScenarioComposer } from './hooks';
+import { useScenarioCandidates, usePostComposer } from './hooks';
 
 /**
  * 글쓰기 `/community/write` + 수정 `/community/:id/edit` 컨테이너.
@@ -10,7 +10,7 @@ import { useScenarioCandidates, useScenarioComposer } from './hooks';
  */
 export default function CommunityWritePage() {
   const { id } = useParams<{ id?: string }>();
-  const composer = useScenarioComposer(id);
+  const composer = usePostComposer(id);
   const candidates = useScenarioCandidates();
   const isLoggedIn = useIsLoggedInAtomValue();
   const { authReady, login } = useCommunityAuth();

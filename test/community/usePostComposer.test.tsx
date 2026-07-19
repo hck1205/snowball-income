@@ -58,11 +58,11 @@ vi.mock('@/shared/lib/supabase', async (importOriginal) => {
   return {
     ...actual,
     getSupabaseClient: vi.fn(async () => ({}) as unknown),
-    publishScenario: vi.fn(async (_client: unknown, input: Record<string, unknown>) => ({
+    publishPost: vi.fn(async (_client: unknown, input: Record<string, unknown>) => ({
       id: 'new-id',
       ...input
     })),
-    updateScenario: vi.fn(async (_client: unknown, id: string, patch: Record<string, unknown>) => ({
+    updatePost: vi.fn(async (_client: unknown, id: string, patch: Record<string, unknown>) => ({
       id,
       ...patch
     }))
@@ -70,24 +70,24 @@ vi.mock('@/shared/lib/supabase', async (importOriginal) => {
 });
 
 // 목킹 이후에 import 해야 목이 적용된 심볼을 받는다.
-const { useScenarioComposer } = await import(
-  '@/pages/Community/CommunityWritePage/hooks/useScenarioComposer'
+const { usePostComposer } = await import(
+  '@/pages/Community/CommunityWritePage/hooks/usePostComposer'
 );
-const { publishScenario } = await import('@/shared/lib/supabase');
+const { publishPost } = await import('@/shared/lib/supabase');
 
 const wrapper = ({ children }: { children: ReactNode }) => <MemoryRouter>{children}</MemoryRouter>;
 
 beforeEach(() => {
-  vi.mocked(publishScenario).mockClear();
+  vi.mocked(publishPost).mockClear();
 });
 
 afterEach(() => {
   vi.clearAllMocks();
 });
 
-describe('useScenarioComposer — 게시 가능 규칙', () => {
+describe('usePostComposer — 게시 가능 규칙', () => {
   it('제목만 있고 본문/첨부가 없으면 게시 불가', () => {
-    const { result } = renderHook(() => useScenarioComposer(), { wrapper });
+    const { result } = renderHook(() => usePostComposer(), { wrapper });
 
     act(() => result.current.setTitle('제목만 있는 빈 글'));
 
@@ -95,7 +95,7 @@ describe('useScenarioComposer — 게시 가능 규칙', () => {
   });
 
   it('제목 + 본문이면 게시 가능', () => {
-    const { result } = renderHook(() => useScenarioComposer(), { wrapper });
+    const { result } = renderHook(() => usePostComposer(), { wrapper });
 
     act(() => result.current.setTitle('제목'));
     act(() => result.current.handleBodyChange('<p>본문 내용</p>'));
@@ -104,7 +104,7 @@ describe('useScenarioComposer — 게시 가능 규칙', () => {
   });
 
   it('제목 + 시나리오 첨부(본문 없음)면 게시 가능', () => {
-    const { result } = renderHook(() => useScenarioComposer(), { wrapper });
+    const { result } = renderHook(() => usePostComposer(), { wrapper });
     const payload = {
       portfolio: validScenario.portfolio,
       investmentSettings: validScenario.investmentSettings
@@ -118,7 +118,7 @@ describe('useScenarioComposer — 게시 가능 규칙', () => {
   });
 
   it('제목이 공백뿐이면 게시 불가', () => {
-    const { result } = renderHook(() => useScenarioComposer(), { wrapper });
+    const { result } = renderHook(() => usePostComposer(), { wrapper });
 
     act(() => result.current.setTitle('   '));
     act(() => result.current.handleBodyChange('<p>본문</p>'));
@@ -127,9 +127,9 @@ describe('useScenarioComposer — 게시 가능 규칙', () => {
   });
 });
 
-describe('useScenarioComposer — 저장 경로', () => {
-  it('제목은 trim, 본문은 sanitize해서 publishScenario에 넘긴다 (기본 공개)', async () => {
-    const { result } = renderHook(() => useScenarioComposer(), { wrapper });
+describe('usePostComposer — 저장 경로', () => {
+  it('제목은 trim, 본문은 sanitize해서 publishPost에 넘긴다 (기본 공개)', async () => {
+    const { result } = renderHook(() => usePostComposer(), { wrapper });
 
     act(() => result.current.setTitle('  좋은 제목  '));
     act(() =>
@@ -140,21 +140,21 @@ describe('useScenarioComposer — 저장 경로', () => {
       await result.current.submit();
     });
 
-    await waitFor(() => expect(publishScenario).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(publishPost).toHaveBeenCalledTimes(1));
 
-    const input = vi.mocked(publishScenario).mock.calls[0][1] as Record<string, unknown>;
+    const input = vi.mocked(publishPost).mock.calls[0][1] as Record<string, unknown>;
     expect(input.title).toBe('좋은 제목');
     expect(input.body).toContain('<strong>굵게</strong>');
     expect(String(input.body).toLowerCase()).not.toContain('<script');
     expect(input.body).not.toContain('steal');
-    // 훅은 isPublic(camelCase)로 넘기고, queries.publishScenario가 is_public으로 매핑한다.
+    // 훅은 isPublic(camelCase)로 넘기고, queries.publishPost가 is_public으로 매핑한다.
     // 새 글 기본값은 공개("비공개" 스위치 off) → true.
     expect(input.isPublic).toBe(true);
     expect(input.payload).toBeNull();
   });
 
   it('본문이 있으면 카드 요약(description)을 본문 앞부분에서 자동 발췌해 넣는다', async () => {
-    const { result } = renderHook(() => useScenarioComposer(), { wrapper });
+    const { result } = renderHook(() => usePostComposer(), { wrapper });
 
     act(() => result.current.setTitle('제목'));
     act(() => result.current.handleBodyChange('<p>자동 발췌될 본문입니다</p>'));
@@ -163,14 +163,14 @@ describe('useScenarioComposer — 저장 경로', () => {
       await result.current.submit();
     });
 
-    await waitFor(() => expect(publishScenario).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(publishPost).toHaveBeenCalledTimes(1));
 
-    const input = vi.mocked(publishScenario).mock.calls[0][1] as Record<string, unknown>;
+    const input = vi.mocked(publishPost).mock.calls[0][1] as Record<string, unknown>;
     expect(input.description).toBe('자동 발췌될 본문입니다');
   });
 
   it('비공개로 전환하면 is_public=false로 넘긴다', async () => {
-    const { result } = renderHook(() => useScenarioComposer(), { wrapper });
+    const { result } = renderHook(() => usePostComposer(), { wrapper });
 
     act(() => result.current.setTitle('제목'));
     act(() => result.current.handleBodyChange('<p>본문</p>'));
@@ -180,9 +180,9 @@ describe('useScenarioComposer — 저장 경로', () => {
       await result.current.submit();
     });
 
-    await waitFor(() => expect(publishScenario).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(publishPost).toHaveBeenCalledTimes(1));
 
-    const input = vi.mocked(publishScenario).mock.calls[0][1] as Record<string, unknown>;
+    const input = vi.mocked(publishPost).mock.calls[0][1] as Record<string, unknown>;
     expect(input.isPublic).toBe(false);
   });
 });

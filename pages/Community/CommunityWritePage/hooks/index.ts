@@ -1,2 +1,2 @@
 export * from './useScenarioCandidates';
-export * from './useScenarioComposer';
+export * from './usePostComposer';

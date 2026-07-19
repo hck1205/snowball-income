@@ -10,9 +10,9 @@ import {
   splitPage,
   toGalleryCursor
 } from '@/shared/lib/supabase';
-import type { GalleryCursor, ScenarioListItem } from '@/shared/lib/supabase';
+import type { GalleryCursor, PostListItem } from '@/shared/lib/supabase';
 
-const item = (id: string, createdAt: string, likeCount = 0): ScenarioListItem => ({
+const item = (id: string, createdAt: string, likeCount = 0): PostListItem => ({
   id,
   user_id: 'u1',
   title: `시나리오 ${id}`,

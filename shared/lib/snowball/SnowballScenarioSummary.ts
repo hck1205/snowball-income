@@ -150,7 +150,7 @@ const aggregateYearly = (outputs: SimulationOutput[]): SimulationResult[] =>
  * 투자 설정이 폼 검증 실패(무효 날짜·비유한 숫자·범위 밖) / 계산 결과가 비유한(극단 입력 방어).
  *
  * 입력을 `unknown`으로 받는 이유: 서버 jsonb는 신뢰할 수 없고, 클라이언트의
- * `ScenarioPayload`/`PersistedScenarioState`는 구조적으로 모두 이 파서를 통과한다
+ * `PostPayload`/`PersistedScenarioState`는 구조적으로 모두 이 파서를 통과한다
  * (여분 필드는 무시된다). 엔진 계층이 supabase 타입에 의존하지 않게 되는 부수 효과도 있다.
  */
 export const buildScenarioSimSummary = (payload: unknown): ScenarioSimSummary | null => {

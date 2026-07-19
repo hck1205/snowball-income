@@ -5,9 +5,9 @@ import { MemoryRouter } from 'react-router-dom';
 import CommunityGalleryView from '@/pages/Community/CommunityGalleryPage/CommunityGalleryPage.view';
 import type { CommunityGalleryViewModel } from '@/pages/Community/CommunityGalleryPage/CommunityGalleryPage.types';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
-import type { ScenarioListItem } from '@/shared/lib/supabase';
+import type { PostListItem } from '@/shared/lib/supabase';
 
-const listItem = (id: string, title: string, has_payload = false): ScenarioListItem => ({
+const listItem = (id: string, title: string, has_payload = false): PostListItem => ({
   id,
   user_id: 'u1',
   title,

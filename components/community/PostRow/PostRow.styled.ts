@@ -4,7 +4,7 @@ import { color, font, media, motion, radius, shadow, space } from '@/shared/styl
 
 /**
  * 소프트 카드 피드 행(velog풍) — 각 행이 surface 면색 + 라운드 + 그림자로 배경에서 뜬다.
- * ScenarioCard 와 같은 카드 언어를 쓴다(border 없이 shadow.e1→e3 사다리, radius.xs 콘텐츠 카드).
+ * PostCard 와 같은 카드 언어를 쓴다(border 없이 shadow.e1→e3 사다리, radius.xs 콘텐츠 카드).
  * 좌 텍스트 열(RowBody)과 우 숫자 칩(RowStats)의 2열이며, 모바일(≤640)에서 숫자 칩이 아래로
  * 떨어져 1열로 리플로우한다. 행 사이 간격은 리스트 컨테이너(InlineList)의 gap 이 준다.
  * focus-visible은 전역 a:focus-visible(globalStyles) 상속 — 자체 override 없음(카드와 톤 일치).

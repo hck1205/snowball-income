@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import {
   COMMUNITY_VIEW_STORAGE_KEY,
   isLoggedInAtom,
-  likedScenarioIdsAtom,
+  likedPostIdsAtom,
   profileAtom,
   sessionAtom,
   viewTypeAtom
@@ -22,7 +22,7 @@ describe('jotai/community 상태', () => {
     expect(store.get(sessionAtom)).toBeNull();
     expect(store.get(profileAtom)).toBeNull();
     expect(store.get(isLoggedInAtom)).toBe(false);
-    expect(store.get(likedScenarioIdsAtom).size).toBe(0);
+    expect(store.get(likedPostIdsAtom).size).toBe(0);
     expect(store.get(viewTypeAtom)).toBe('card');
   });
 

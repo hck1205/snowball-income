@@ -19,9 +19,9 @@ import type {
   GalleryFacetFilters,
   GalleryPage,
   GallerySort,
-  ScenarioListItem,
-  ScenarioPayload,
-  ScenarioWithAuthor
+  PostListItem,
+  PostPayload,
+  PostWithAuthor
 } from './types';
 
 /**
@@ -46,7 +46,7 @@ const LIST_COLUMNS = 'id,user_id,title,description,is_public,has_payload,sim_sum
 /** 상세는 본문(body)과 시나리오 첨부(payload)까지 내려온다. */
 const DETAIL_COLUMNS = `${LIST_COLUMNS},payload,body`;
 
-const COMMENT_COLUMNS = 'id,scenario_id,user_id,parent_id,body,like_count,created_at,updated_at,deleted_at,author:profiles(id,display_name,avatar_url)';
+const COMMENT_COLUMNS = 'id,post_id,user_id,parent_id,body,like_count,created_at,updated_at,deleted_at,author:profiles(id,display_name,avatar_url)';
 
 const unwrap = <T>(result: { data: T | null; error: { message: string } | null }): T => {
   if (result.error) throw new Error(result.error.message);
@@ -86,7 +86,7 @@ export const fetchGalleryPage = async (
   const cursor = decodeGalleryCursor(options.cursor);
   const searchFilter = buildSearchFilter(options.query, options.queryFilter);
 
-  let query = client.from('scenarios').select(LIST_COLUMNS).eq('is_public', true);
+  let query = client.from('posts').select(LIST_COLUMNS).eq('is_public', true);
 
   if (searchFilter) query = query.or(searchFilter);
   if (cursor) query = query.or(buildKeysetFilter(sort, cursor));
@@ -100,32 +100,32 @@ export const fetchGalleryPage = async (
   }
 
   // 다음 페이지 존재 여부를 알기 위해 1개 더 받는다
-  const rows = unwrap(await query.limit(pageSize + 1).returns<ScenarioListItem[]>());
+  const rows = unwrap(await query.limit(pageSize + 1).returns<PostListItem[]>());
 
   return splitPage(rows, pageSize, sort);
 };
 
-export const fetchScenarioDetail = async (
+export const fetchPostDetail = async (
   client: CommunityClient,
-  scenarioId: string
-): Promise<ScenarioWithAuthor> =>
+  postId: string
+): Promise<PostWithAuthor> =>
   unwrap(
     await client
-      .from('scenarios')
+      .from('posts')
       .select(DETAIL_COLUMNS)
-      .eq('id', scenarioId)
+      .eq('id', postId)
       .single()
-      .returns<ScenarioWithAuthor>()
+      .returns<PostWithAuthor>()
   );
 
-export const fetchMyScenarios = async (client: CommunityClient, userId: string): Promise<ScenarioListItem[]> =>
+export const fetchMyPosts = async (client: CommunityClient, userId: string): Promise<PostListItem[]> =>
   unwrap(
     await client
-      .from('scenarios')
+      .from('posts')
       .select(LIST_COLUMNS)
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
-      .returns<ScenarioListItem[]>()
+      .returns<PostListItem[]>()
   );
 
 /**
@@ -133,31 +133,31 @@ export const fetchMyScenarios = async (client: CommunityClient, userId: string):
  * 절대 재계산하지 않는다(게시 시점 숫자 고정: 엔진이 바뀌어도 카드·상세 표기 일치).
  * payload가 없거나 계산 불가(미완성 payload)면 null → UI는 텍스트 카드로 폴백한다.
  */
-const toSimSummary = (payload: ScenarioPayload | null) => (payload ? buildScenarioSimSummary(payload) : null);
+const toSimSummary = (payload: PostPayload | null) => (payload ? buildScenarioSimSummary(payload) : null);
 
 /**
  * 글 게시. 하이브리드 모델이라 payload/body 둘 다 선택적이다:
  *   - 자유 글        : body만 (payload 없음)
  *   - 시나리오 공유   : payload만 (body 없음)
  *   - 둘 다          : body + payload
- * 서버 CHECK(scenarios_payload_valid_or_null)가 payload NULL을 허용한다.
+ * 서버 CHECK(posts_payload_valid_or_null)가 payload NULL을 허용한다.
  * payload가 있으면 시뮬 요약(sim_summary)을 여기서 1회 계산해 함께 저장한다.
  */
-export const publishScenario = async (
+export const publishPost = async (
   client: CommunityClient,
   input: {
     title: string;
     description?: string | null;
     body?: string | null;
-    payload?: ScenarioPayload | null;
+    payload?: PostPayload | null;
     isPublic?: boolean;
   }
-): Promise<ScenarioWithAuthor> => {
+): Promise<PostWithAuthor> => {
   const payload = input.payload ?? null;
 
   return unwrap(
     await client
-      .from('scenarios')
+      .from('posts')
       .insert({
         title: input.title,
         description: input.description ?? null,
@@ -169,24 +169,24 @@ export const publishScenario = async (
       })
       .select(DETAIL_COLUMNS)
       .single()
-      .returns<ScenarioWithAuthor>()
+      .returns<PostWithAuthor>()
   );
 };
 
-export const updateScenario = async (
+export const updatePost = async (
   client: CommunityClient,
-  scenarioId: string,
+  postId: string,
   patch: {
     title?: string;
     description?: string | null;
     body?: string | null;
-    payload?: ScenarioPayload | null;
+    payload?: PostPayload | null;
     isPublic?: boolean;
   }
-): Promise<ScenarioWithAuthor> =>
+): Promise<PostWithAuthor> =>
   unwrap(
     await client
-      .from('scenarios')
+      .from('posts')
       .update({
         ...(patch.title !== undefined ? { title: patch.title } : {}),
         ...(patch.description !== undefined ? { description: patch.description } : {}),
@@ -197,43 +197,43 @@ export const updateScenario = async (
         ...(patch.payload !== undefined ? { payload: patch.payload, sim_summary: toSimSummary(patch.payload) } : {}),
         ...(patch.isPublic !== undefined ? { is_public: patch.isPublic } : {})
       })
-      .eq('id', scenarioId)
+      .eq('id', postId)
       .select(DETAIL_COLUMNS)
       .single()
-      .returns<ScenarioWithAuthor>()
+      .returns<PostWithAuthor>()
   );
 
 /** RLS가 본인 것만 지우게 한다 — 남의 id를 넣으면 0건 삭제(에러 아님). */
-export const deleteScenario = async (client: CommunityClient, scenarioId: string): Promise<void> => {
-  const { error } = await client.from('scenarios').delete().eq('id', scenarioId);
+export const deletePost = async (client: CommunityClient, postId: string): Promise<void> => {
+  const { error } = await client.from('posts').delete().eq('id', postId);
   if (error) throw new Error(error.message);
 };
 
 // ── 좋아요 ──────────────────────────────────────────────────────────────────
 
 /** 반환값: true = 좋아요 켜짐. 중복 좋아요는 서버 복합 PK가 막는다. */
-export const toggleScenarioLike = async (client: CommunityClient, scenarioId: string): Promise<boolean> =>
-  unwrap(await client.rpc('toggle_scenario_like', { p_scenario_id: scenarioId }));
+export const togglePostLike = async (client: CommunityClient, postId: string): Promise<boolean> =>
+  unwrap(await client.rpc('toggle_post_like', { p_post_id: postId }));
 
 export const toggleCommentLike = async (client: CommunityClient, commentId: string): Promise<boolean> =>
   unwrap(await client.rpc('toggle_comment_like', { p_comment_id: commentId }));
 
 /** 목록에 하트를 채우기 위해 "내가 좋아요한 시나리오 id"를 한 번에 조회한다. */
-export const fetchMyScenarioLikes = async (
+export const fetchMyPostLikes = async (
   client: CommunityClient,
   userId: string,
-  scenarioIds: readonly string[]
+  postIds: readonly string[]
 ): Promise<Set<string>> => {
-  if (scenarioIds.length === 0) return new Set();
+  if (postIds.length === 0) return new Set();
   const rows = unwrap(
     await client
-      .from('scenario_likes')
-      .select('scenario_id')
+      .from('post_likes')
+      .select('post_id')
       .eq('user_id', userId)
-      .in('scenario_id', scenarioIds as string[])
-      .returns<{ scenario_id: string }[]>()
+      .in('post_id', postIds as string[])
+      .returns<{ post_id: string }[]>()
   );
-  return new Set(rows.map((row) => row.scenario_id));
+  return new Set(rows.map((row) => row.post_id));
 };
 
 export const fetchMyCommentLikes = async (
@@ -285,10 +285,10 @@ export const getViewerToken = (): string | null => {
  * 조회수 등록. 반환값은 갱신된 view_count.
  * 같은 뷰어가 1시간 내 다시 불러도 숫자는 그대로다 (서버 dedupe).
  */
-export const registerScenarioView = async (client: CommunityClient, scenarioId: string): Promise<number> =>
+export const registerPostView = async (client: CommunityClient, postId: string): Promise<number> =>
   unwrap(
-    await client.rpc('register_scenario_view', {
-      p_scenario_id: scenarioId,
+    await client.rpc('register_post_view', {
+      p_post_id: postId,
       p_client_token: getViewerToken()
     })
   );
@@ -308,7 +308,7 @@ export type CommentsPage = {
  */
 export const fetchCommentsPage = async (
   client: CommunityClient,
-  scenarioId: string,
+  postId: string,
   options: { cursor?: CommentCursor | null; pageSize?: number } = {}
 ): Promise<CommentsPage> => {
   const pageSize = options.pageSize ?? COMMENTS_PAGE_SIZE;
@@ -316,7 +316,7 @@ export const fetchCommentsPage = async (
   let rootsQuery = client
     .from('comments')
     .select(COMMENT_COLUMNS)
-    .eq('scenario_id', scenarioId)
+    .eq('post_id', postId)
     .is('parent_id', null);
   if (options.cursor) rootsQuery = rootsQuery.or(buildCommentKeysetFilter(options.cursor));
 
@@ -346,17 +346,17 @@ export const fetchCommentsPage = async (
 
 /**
  * 보이는 댓글 총계(삭제 제외) — "댓글 N" 헤딩용. 서버 트리거가 유지하는
- * scenarios.comment_count와 같은 정의지만, 댓글 훅이 시나리오 행에 결합하지 않도록
+ * posts.comment_count와 같은 정의지만, 댓글 훅이 시나리오 행에 결합하지 않도록
  * comments 테이블에서 직접 센다(head:true — 행은 내려받지 않는다).
  */
 export const fetchVisibleCommentCount = async (
   client: CommunityClient,
-  scenarioId: string
+  postId: string
 ): Promise<number> => {
   const { count, error } = await client
     .from('comments')
     .select('id', { count: 'exact', head: true })
-    .eq('scenario_id', scenarioId)
+    .eq('post_id', postId)
     .is('deleted_at', null);
   if (error) throw new Error(error.message);
   return count ?? 0;
@@ -365,13 +365,13 @@ export const fetchVisibleCommentCount = async (
 /** parentId를 주면 대댓글. 대댓글의 대댓글은 서버 트리거가 거부한다. */
 export const createComment = async (
   client: CommunityClient,
-  input: { scenarioId: string; body: string; parentId?: string | null }
+  input: { postId: string; body: string; parentId?: string | null }
 ): Promise<CommentWithAuthor> =>
   unwrap(
     await client
       .from('comments')
       .insert({
-        scenario_id: input.scenarioId,
+        post_id: input.postId,
         body: input.body,
         parent_id: input.parentId ?? null
       })

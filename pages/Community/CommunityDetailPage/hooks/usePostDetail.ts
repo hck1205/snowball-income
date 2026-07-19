@@ -4,23 +4,23 @@ import { sanitizeScenarioState } from '@/jotai';
 import { ANALYTICS_EVENT, setUserProperties, track } from '@/shared/lib/analytics';
 import { encodeSharedScenario, SHARE_QUERY_PARAM, SHARED_SCENARIO_ID } from '@/pages/Main/hooks/persistence';
 import {
-  deleteScenario,
-  fetchMyScenarioLikes,
-  fetchScenarioDetail,
-  fromScenarioPayload,
+  deletePost,
+  fetchMyPostLikes,
+  fetchPostDetail,
+  fromPostPayload,
   getSupabaseClient,
-  registerScenarioView,
-  toggleScenarioLike,
+  registerPostView,
+  togglePostLike,
   type CommunityClient,
-  type ScenarioWithAuthor
+  type PostWithAuthor
 } from '@/shared/lib/supabase';
 import { useSessionAtomValue } from '@/jotai/community';
 
 export type DetailStatus = 'loading' | 'ready' | 'notfound' | 'error';
 
-export type UseScenarioDetail = {
+export type UsePostDetail = {
   status: DetailStatus;
-  scenario: ScenarioWithAuthor | null;
+  post: PostWithAuthor | null;
   viewCount: number;
   likeCount: number;
   liked: boolean;
@@ -37,14 +37,14 @@ export type UseScenarioDetail = {
  * 상세 데이터 훅: 시나리오 조회 + 조회수 등록(마운트 1회) + 좋아요(낙관적) + 삭제.
  * 좋아요는 비로그인 시 `onRequireLogin`으로 로그인 유도만 하고 낙관적 토글은 하지 않는다.
  */
-export const useScenarioDetail = (id: string | undefined, onRequireLogin: () => void): UseScenarioDetail => {
+export const usePostDetail = (id: string | undefined, onRequireLogin: () => void): UsePostDetail => {
   const session = useSessionAtomValue();
   const navigate = useNavigate();
   const clientRef = useRef<CommunityClient | null>(null);
   const viewRegisteredRef = useRef(false);
 
   const [status, setStatus] = useState<DetailStatus>('loading');
-  const [scenario, setScenario] = useState<ScenarioWithAuthor | null>(null);
+  const [post, setPost] = useState<PostWithAuthor | null>(null);
   const [viewCount, setViewCount] = useState(0);
   const [likeCount, setLikeCount] = useState(0);
   const [liked, setLiked] = useState(false);
@@ -74,9 +74,9 @@ export const useScenarioDetail = (id: string | undefined, onRequireLogin: () => 
         return;
       }
       try {
-        const detail = await fetchScenarioDetail(client, id);
+        const detail = await fetchPostDetail(client, id);
         if (cancelled) return;
-        setScenario(detail);
+        setPost(detail);
         setLikeCount(detail.like_count);
         setViewCount(detail.view_count);
         setStatus('ready');
@@ -86,7 +86,7 @@ export const useScenarioDetail = (id: string | undefined, onRequireLogin: () => 
           viewRegisteredRef.current = true;
           // 상세 진입 계측(마운트당 1회). has_sim = 시뮬 시나리오 첨부 여부 — 첨부 글의 조회 성과 비교.
           track(ANALYTICS_EVENT.COMMUNITY_POST_VIEW, { has_sim: Boolean(detail.payload) });
-          registerScenarioView(client, id)
+          registerPostView(client, id)
             .then((count) => {
               if (!cancelled) setViewCount(count);
             })
@@ -95,7 +95,7 @@ export const useScenarioDetail = (id: string | undefined, onRequireLogin: () => 
 
         // 로그인 상태면 내가 좋아요했는지 조회.
         if (session) {
-          fetchMyScenarioLikes(client, session.user.id, [id])
+          fetchMyPostLikes(client, session.user.id, [id])
             .then((set) => {
               if (!cancelled) setLiked(set.has(id));
             })
@@ -136,7 +136,7 @@ export const useScenarioDetail = (id: string | undefined, onRequireLogin: () => 
         return;
       }
       try {
-        const serverLiked = await toggleScenarioLike(client, id);
+        const serverLiked = await togglePostLike(client, id);
         if (serverLiked !== nextLiked) {
           setLiked(serverLiked);
           setLikeCount((count) => count + (serverLiked ? 1 : -1) - (nextLiked ? 1 : -1));
@@ -162,7 +162,7 @@ export const useScenarioDetail = (id: string | undefined, onRequireLogin: () => 
         setDeleting(false);
         return;
       }
-      await deleteScenario(client, id);
+      await deletePost(client, id);
       navigate('/community', { replace: true });
     } catch {
       setDeleting(false);
@@ -171,25 +171,25 @@ export const useScenarioDetail = (id: string | undefined, onRequireLogin: () => 
 
   const retry = useCallback(() => setReloadKey((key) => key + 1), []);
 
-  const isOwner = Boolean(session && scenario && session.user.id === scenario.user_id);
+  const isOwner = Boolean(session && post && session.user.id === post.user_id);
 
   // 첨부(payload)가 있으면 기존 공유 링크 경로(`?share=`)를 재사용해 대시보드에 새 탭으로 적재한다.
-  // 좋아요/조회수/다이얼로그 리렌더마다 lz-string 재압축하지 않도록 scenario 기준으로 memoize.
+  // 좋아요/조회수/다이얼로그 리렌더마다 lz-string 재압축하지 않도록 post 기준으로 memoize.
   const openInSimulatorHref = useMemo<string | null>(() => {
-    if (!scenario?.payload) return null;
+    if (!post?.payload) return null;
     const restored = sanitizeScenarioState(
-      fromScenarioPayload(scenario.payload, {
+      fromPostPayload(post.payload, {
         id: SHARED_SCENARIO_ID,
-        name: scenario.title || '공유 시나리오'
+        name: post.title || '공유 시나리오'
       })
     );
     if (!restored) return null;
     return `/?${SHARE_QUERY_PARAM}=${encodeSharedScenario(restored)}`;
-  }, [scenario]);
+  }, [post]);
 
   return {
     status,
-    scenario,
+    post,
     viewCount,
     likeCount,
     liked,

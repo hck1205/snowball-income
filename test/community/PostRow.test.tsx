@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { ScenarioRow } from '@/components/community';
+import { PostRow } from '@/components/community';
 import type { ScenarioSimSummary } from '@/shared/lib/snowball';
-import type { ScenarioListItem } from '@/shared/lib/supabase';
+import type { PostListItem } from '@/shared/lib/supabase';
 
-const item = (overrides: Partial<ScenarioListItem> = {}): ScenarioListItem => ({
+const item = (overrides: Partial<PostListItem> = {}): PostListItem => ({
   id: 's1',
   user_id: 'u1',
   title: '월 500 배당 포트폴리오 만들기',
@@ -36,14 +36,14 @@ const simSummary = (overrides: Partial<ScenarioSimSummary> = {}): ScenarioSimSum
   ...overrides
 });
 
-const renderRow = (data: ScenarioListItem, summary?: ScenarioSimSummary | null) =>
+const renderRow = (data: PostListItem, summary?: ScenarioSimSummary | null) =>
   render(
     <MemoryRouter>
-      <ScenarioRow item={data} simSummary={summary} />
+      <PostRow item={data} simSummary={summary} />
     </MemoryRouter>
   );
 
-describe('ScenarioRow — velog 피드식 세로 스택 (§I)', () => {
+describe('PostRow — velog 피드식 세로 스택 (§I)', () => {
   it('제목(heading)·요약·상세 링크를 만든다', () => {
     renderRow(item());
 
@@ -80,7 +80,7 @@ describe('ScenarioRow — velog 피드식 세로 스택 (§I)', () => {
   });
 });
 
-describe('ScenarioRow — 시뮬 숫자 클러스터 (§B안, §I I4)', () => {
+describe('PostRow — 시뮬 숫자 클러스터 (§B안, §I I4)', () => {
   it('simSummary가 있으면 hero(월 배당 세후)·보조(최종 자산·투입 대비)·목표 배지를 보여준다', () => {
     renderRow(item({ has_payload: true }), simSummary());
 
@@ -101,7 +101,7 @@ describe('ScenarioRow — 시뮬 숫자 클러스터 (§B안, §I I4)', () => {
   });
 });
 
-describe('ScenarioRow — 하이브리드 모델 배지', () => {
+describe('PostRow — 하이브리드 모델 배지', () => {
   it('요약이 없는 시나리오 첨부 글(has_payload=true)은 "시뮬 결과" 배지를 단다', () => {
     renderRow(item({ has_payload: true }));
 

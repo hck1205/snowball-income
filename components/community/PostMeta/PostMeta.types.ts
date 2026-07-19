@@ -1,4 +1,4 @@
-export type ScenarioMetaProps = {
+export type PostMetaProps = {
   viewCount: number;
   likeCount: number;
   commentCount: number;

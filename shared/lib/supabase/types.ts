@@ -16,12 +16,12 @@ import type { PortfolioPersistedState } from '@/shared/types/snowball';
  *
  * 앱의 PersistedScenarioState와 같은 형태지만 id/name은 선택적이다:
  *   - id: 클라이언트 로컬 탭 id라 서버에선 의미가 없다
- *   - name: 서버에선 scenarios.title이 정본이다
- * 서버 CHECK 제약(is_valid_scenario_payload)이 portfolio/investmentSettings 존재를 강제한다.
+ *   - name: 서버에선 posts.title이 정본이다
+ * 서버 CHECK 제약(is_valid_post_payload)이 portfolio/investmentSettings 존재를 강제한다.
  *
  * 타입 전용 import라 런타임 의존성은 없다 (jotai 모듈이 번들에 끌려오지 않는다).
  */
-export type ScenarioPayload = {
+export type PostPayload = {
   id?: string;
   name?: string;
   portfolio: PortfolioPersistedState;
@@ -38,22 +38,22 @@ export type ProfileRow = {
   updated_at: string;
 };
 
-export type ScenarioRow = {
+export type PostRow = {
   id: string;
   user_id: string;
   title: string;
   description: string | null;
   /**
    * 자유 글 본문 (Tiptap 리치 HTML). Stage 2 하이브리드 글 모델에서 추가됐다.
-   * 기존 행/시나리오-only 글에는 없으므로 nullable. 서버 CHECK(scenarios_body_len)가 64KB 상한.
+   * 기존 행/시나리오-only 글에는 없으므로 nullable. 서버 CHECK(posts_body_len)가 64KB 상한.
    */
   body: string | null;
   /**
    * 시나리오 첨부. Stage 2부터 **선택적**이다 — 본문만 있는 자유 글은 payload가 null이다.
    * (마이그레이션 20260715000000에서 NOT NULL을 풀고 CHECK를 "NULL 허용"으로 완화했다.)
-   * 소비 측은 반드시 null 가드 후 fromScenarioPayload에 넘길 것.
+   * 소비 측은 반드시 null 가드 후 fromPostPayload에 넘길 것.
    */
-  payload: ScenarioPayload | null;
+  payload: PostPayload | null;
   is_public: boolean;
   /**
    * payload 첨부 여부. 서버 생성 컬럼(generated always as (payload is not null) stored)이다.
@@ -84,12 +84,12 @@ export type ScenarioRow = {
  *
  * generated always as (…) stored — **읽기 전용**이라 Insert/Update에 넣지 않는다
  * (Postgres가 쓰기를 거부한다). 카드/상세는 sim_summary jsonb를 표시에 쓰므로 이 컬럼들은
- * **표시용이 아니라 갤러리 정밀 검색 필터(.gte/.lte) 전용**이다 → 앱 도메인 타입(ScenarioRow,
- * ScenarioListItem, ScenarioWithAuthor)에는 넣지 않고, PostgREST 필터의 컬럼 타입 근거로만
- * Database 제네릭 Row(ScenarioDbRow)에 둔다. NULL = sim_summary 없음/키 없음/비숫자(graceful).
+ * **표시용이 아니라 갤러리 정밀 검색 필터(.gte/.lte) 전용**이다 → 앱 도메인 타입(PostRow,
+ * PostListItem, PostWithAuthor)에는 넣지 않고, PostgREST 필터의 컬럼 타입 근거로만
+ * Database 제네릭 Row(PostDbRow)에 둔다. NULL = sim_summary 없음/키 없음/비숫자(graceful).
  * 값 정의는 shared/lib/snowball/SnowballScenarioSummary.ts scenarioSimSummarySchema와 1:1.
  */
-export type ScenarioSearchFacets = {
+export type PostSearchFacets = {
   /** sim_summary.finalMonthlyDividend 파생 (마지막 해 세후 월평균 배당, KRW). */
   final_monthly_dividend: number | null;
   /** sim_summary.targetMonthlyDividend 파생 (목표 월배당, KRW). */
@@ -99,15 +99,15 @@ export type ScenarioSearchFacets = {
 };
 
 /**
- * DB scenarios 테이블의 **실제** Row (generated facet 컬럼 포함) — `supabase gen types`의 Row에 해당.
- * 앱은 표시에 쓰는 컬럼만 ScenarioRow로 큐레이션한다. 이 타입은 Database 제네릭에만 쓰여
+ * DB posts 테이블의 **실제** Row (generated facet 컬럼 포함) — `supabase gen types`의 Row에 해당.
+ * 앱은 표시에 쓰는 컬럼만 PostRow로 큐레이션한다. 이 타입은 Database 제네릭에만 쓰여
  * `.gte('final_monthly_dividend', …)` 같은 필터가 타입 체크되게 하는 게 유일한 목적이다.
  */
-export type ScenarioDbRow = ScenarioRow & ScenarioSearchFacets;
+export type PostDbRow = PostRow & PostSearchFacets;
 
 export type CommentRow = {
   id: string;
-  scenario_id: string;
+  post_id: string;
   user_id: string;
   /** null이면 최상위 댓글. 대댓글은 1단계까지만 (서버 트리거가 강제). */
   parent_id: string | null;
@@ -121,11 +121,11 @@ export type CommentRow = {
 
 /**
  * 개인 클라우드 저장 행 (마이그레이션 20260718000000, cloud-save-proposal §5).
- * 커뮤니티 scenarios와 분리 — 공개 개념 없이 owner-only.
+ * 커뮤니티 posts와 분리 — 공개 개념 없이 owner-only.
  *
  * `payload`는 로컬과 **같은 스키마**(PersistedAppStatePayload)지만, 다른 클라이언트가 쓴 값일 수
  * 있어 신뢰하지 않는다. 읽기 소비 측은 **반드시 normalizePersistedAppState로 정규화**한 뒤 쓴다
- * (scenarios.payload와 같은 규율 — 서버 CHECK는 구조·크기만 본다).
+ * (posts.payload와 같은 규율 — 서버 CHECK는 구조·크기만 본다).
  *
  * `name`: null = 자동 동기화 슬롯(1인 1개), not null = 이름 붙인 체크포인트.
  */
@@ -138,7 +138,7 @@ export type UserAppStateRow = {
   updated_at: string;
 };
 
-/** "내 저장" 목록용 — 무거운 payload를 뺀 메타데이터만(scenarios 목록이 payload를 빼는 것과 같은 이유). */
+/** "내 저장" 목록용 — 무거운 payload를 뺀 메타데이터만(posts 목록이 payload를 빼는 것과 같은 이유). */
 export type UserAppStateSummary = Omit<UserAppStateRow, 'payload'>;
 
 /**
@@ -150,7 +150,7 @@ export type UserAppStateSummary = Omit<UserAppStateRow, 'payload'>;
  *   - scenario : 공유된 활성 시나리오 한 개(id/name/portfolio/investmentSettings).
  *
  * ⚠ 서버는 payload 내용을 신뢰하지 않는다(다른 클라이언트가 임의 값 주입 가능) — 읽기 소비 측은
- *   scenario를 normalizePersistedAppState로 정규화한 뒤 쓴다(scenarios.payload와 같은 규율).
+ *   scenario를 normalizePersistedAppState로 정규화한 뒤 쓴다(posts.payload와 같은 규율).
  */
 export type SharedSnapshotEnvelope = {
   v: 1;
@@ -169,8 +169,8 @@ export type SharedSnapshotRow = {
   expires_at: string | null;
 };
 
-export type ScenarioLikeRow = {
-  scenario_id: string;
+export type PostLikeRow = {
+  post_id: string;
   user_id: string;
   created_at: string;
 };
@@ -184,11 +184,11 @@ export type CommentLikeRow = {
 /** 작성자 프로필이 임베드된 형태 (PostgREST `select=*,author:profiles(...)`). */
 export type CommunityAuthor = Pick<ProfileRow, 'id' | 'display_name' | 'avatar_url'>;
 
-export type ScenarioWithAuthor = ScenarioRow & { author: CommunityAuthor | null };
+export type PostWithAuthor = PostRow & { author: CommunityAuthor | null };
 export type CommentWithAuthor = CommentRow & { author: CommunityAuthor | null };
 
 /** 갤러리 카드에 필요한 최소 필드 (payload/body를 빼서 목록 응답을 가볍게 유지 — 목록은 description 요약만). */
-export type ScenarioListItem = Omit<ScenarioRow, 'payload' | 'body'> & { author: CommunityAuthor | null };
+export type PostListItem = Omit<PostRow, 'payload' | 'body'> & { author: CommunityAuthor | null };
 
 export type GallerySort = 'recent' | 'popular';
 
@@ -217,7 +217,7 @@ export type GalleryCursor = {
 };
 
 export type GalleryPage = {
-  items: ScenarioListItem[];
+  items: PostListItem[];
   /** null이면 마지막 페이지. */
   nextCursor: string | null;
 };
@@ -226,7 +226,7 @@ export type GalleryPage = {
  * supabase-js 제네릭용. `supabase gen types` 출력과 호환되는 형태.
  *
  * `Relationships`는 장식이 아니다 — PostgREST 임베드(`author:profiles(...)`)의 **타입 추론 근거**다.
- * FK 이름/참조 대상은 실제 DB에서 확인한 값이다 (scenarios_user_id_fkey → profiles.id).
+ * FK 이름/참조 대상은 실제 DB에서 확인한 값이다 (posts_user_id_fkey → profiles.id).
  * auth 스키마를 가리키는 FK(profiles.id → auth.users)는 public 밖이라 목록에 넣지 않는다.
  */
 export type Database = {
@@ -238,20 +238,20 @@ export type Database = {
         Update: Partial<Pick<ProfileRow, 'display_name' | 'avatar_url'>>;
         Relationships: [];
       };
-      scenarios: {
-        // Row는 generated facet 컬럼까지 포함한 실제 DB Row(ScenarioDbRow) — .gte/.lte 필터 타입 근거.
-        // 앱 프로젝션(ScenarioListItem/ScenarioWithAuthor)은 여전히 ScenarioRow 기반이라 무영향.
-        Row: ScenarioDbRow;
+      posts: {
+        // Row는 generated facet 컬럼까지 포함한 실제 DB Row(PostDbRow) — .gte/.lte 필터 타입 근거.
+        // 앱 프로젝션(PostListItem/PostWithAuthor)은 여전히 PostRow 기반이라 무영향.
+        Row: PostDbRow;
         // title만 필수. payload/body는 optional — 자유 글은 payload 없이, 시나리오-only 글은 body 없이 게시된다.
         // sim_summary는 읽기(unknown)와 달리 쓰기 쪽 타입을 조인다 — 데이터 레이어가 만든 검증된 요약만 저장.
-        Insert: Pick<ScenarioRow, 'title'> &
-          Partial<Pick<ScenarioRow, 'user_id' | 'description' | 'payload' | 'body' | 'is_public'>> &
+        Insert: Pick<PostRow, 'title'> &
+          Partial<Pick<PostRow, 'user_id' | 'description' | 'payload' | 'body' | 'is_public'>> &
           Partial<{ sim_summary: ScenarioSimSummary | null }>;
-        Update: Partial<Pick<ScenarioRow, 'title' | 'description' | 'payload' | 'body' | 'is_public'>> &
+        Update: Partial<Pick<PostRow, 'title' | 'description' | 'payload' | 'body' | 'is_public'>> &
           Partial<{ sim_summary: ScenarioSimSummary | null }>;
         Relationships: [
           {
-            foreignKeyName: 'scenarios_user_id_fkey';
+            foreignKeyName: 'posts_user_id_fkey';
             columns: ['user_id'];
             isOneToOne: false;
             referencedRelation: 'profiles';
@@ -261,7 +261,7 @@ export type Database = {
       };
       comments: {
         Row: CommentRow;
-        Insert: Pick<CommentRow, 'scenario_id' | 'body'> & Partial<Pick<CommentRow, 'user_id' | 'parent_id'>>;
+        Insert: Pick<CommentRow, 'post_id' | 'body'> & Partial<Pick<CommentRow, 'user_id' | 'parent_id'>>;
         /** 수정 가능한 컬럼은 body/deleted_at뿐 (서버 컬럼 GRANT와 일치). */
         Update: Partial<Pick<CommentRow, 'body' | 'deleted_at'>>;
         Relationships: [
@@ -273,10 +273,10 @@ export type Database = {
             referencedColumns: ['id'];
           },
           {
-            foreignKeyName: 'comments_scenario_id_fkey';
-            columns: ['scenario_id'];
+            foreignKeyName: 'comments_post_id_fkey';
+            columns: ['post_id'];
             isOneToOne: false;
-            referencedRelation: 'scenarios';
+            referencedRelation: 'posts';
             referencedColumns: ['id'];
           },
           {
@@ -288,17 +288,17 @@ export type Database = {
           }
         ];
       };
-      scenario_likes: {
-        Row: ScenarioLikeRow;
-        Insert: Pick<ScenarioLikeRow, 'scenario_id'> & Partial<Pick<ScenarioLikeRow, 'user_id'>>;
+      post_likes: {
+        Row: PostLikeRow;
+        Insert: Pick<PostLikeRow, 'post_id'> & Partial<Pick<PostLikeRow, 'user_id'>>;
         /** 좋아요 행은 수정할 수 없다 (서버에 UPDATE 정책/권한이 없다). */
         Update: Record<string, never>;
         Relationships: [
           {
-            foreignKeyName: 'scenario_likes_scenario_id_fkey';
-            columns: ['scenario_id'];
+            foreignKeyName: 'post_likes_post_id_fkey';
+            columns: ['post_id'];
             isOneToOne: false;
-            referencedRelation: 'scenarios';
+            referencedRelation: 'posts';
             referencedColumns: ['id'];
           }
         ];
@@ -344,8 +344,8 @@ export type Database = {
     };
     Views: Record<never, never>;
     Functions: {
-      toggle_scenario_like: {
-        Args: { p_scenario_id: string };
+      toggle_post_like: {
+        Args: { p_post_id: string };
         /** true = 좋아요 켜짐, false = 꺼짐 */
         Returns: boolean;
       };
@@ -353,8 +353,8 @@ export type Database = {
         Args: { p_comment_id: string };
         Returns: boolean;
       };
-      register_scenario_view: {
-        Args: { p_scenario_id: string; p_client_token?: string | null };
+      register_post_view: {
+        Args: { p_post_id: string; p_client_token?: string | null };
         /** 갱신된 view_count */
         Returns: number;
       };

@@ -37,7 +37,7 @@ const buildSettings = (overrides: Partial<PersistedInvestmentSettings> = {}): Pe
   ...overrides
 });
 
-/** 게시 payload와 같은 형태 (`toScenarioPayload` 결과 — portfolio + investmentSettings). */
+/** 게시 payload와 같은 형태 (`toPostPayload` 결과 — portfolio + investmentSettings). */
 const buildPayload = (
   profiles: TickerProfile[],
   weightByTickerId: Record<string, number> = {},

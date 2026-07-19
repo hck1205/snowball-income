@@ -6,13 +6,13 @@ import type { PersistedScenarioState } from '@/jotai/snowball/types';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
 import { buildScenarioSimSummary } from '@/shared/lib/snowball';
 import { formatSummaryKRW } from '@/shared/utils';
-import type { ScenarioPayload } from '@/shared/lib/supabase';
+import type { PostPayload } from '@/shared/lib/supabase';
 import CommunityWriteView from '@/pages/Community/CommunityWritePage/CommunityWritePage.view';
 import type { CommunityWriteViewModel } from '@/pages/Community/CommunityWritePage/CommunityWritePage.types';
 import type {
   ScenarioCandidate,
   ScenarioCandidates,
-  UseScenarioComposer
+  UsePostComposer
 } from '@/pages/Community/CommunityWritePage/hooks';
 import { useScenarioCandidates } from '@/pages/Community/CommunityWritePage/hooks';
 
@@ -86,7 +86,7 @@ const attachPayload = {
     selectedTickerId: null
   },
   investmentSettings: { initialInvestment: 10_000_000, monthlyContribution: 1_000_000 }
-} as unknown as ScenarioPayload;
+} as unknown as PostPayload;
 
 /** 시뮬 요약 계산이 가능한 유효 payload(1개 included). */
 const validAttachPayload = {
@@ -108,7 +108,7 @@ const validAttachPayload = {
     selectedTickerId: 't1'
   },
   investmentSettings: settings()
-} as unknown as ScenarioPayload;
+} as unknown as PostPayload;
 
 const candidate = (over: Partial<ScenarioCandidate> = {}): ScenarioCandidate => ({
   id: 'c1',
@@ -122,7 +122,7 @@ const candidate = (over: Partial<ScenarioCandidate> = {}): ScenarioCandidate => 
   ...over
 });
 
-const baseComposer = (overrides: Partial<UseScenarioComposer> = {}): UseScenarioComposer => ({
+const baseComposer = (overrides: Partial<UsePostComposer> = {}): UsePostComposer => ({
   mode: 'new',
   loadState: 'ready',
   title: '',
@@ -143,7 +143,7 @@ const baseComposer = (overrides: Partial<UseScenarioComposer> = {}): UseScenario
   ...overrides
 });
 
-const baseVM = (composer: UseScenarioComposer, candidates: ScenarioCandidates): CommunityWriteViewModel => ({
+const baseVM = (composer: UsePostComposer, candidates: ScenarioCandidates): CommunityWriteViewModel => ({
   composer,
   candidates,
   authReady: true,

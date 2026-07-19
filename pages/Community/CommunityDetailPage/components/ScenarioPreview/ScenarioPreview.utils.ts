@@ -1,5 +1,5 @@
 import type { EChartsOption } from 'echarts';
-import type { ScenarioPayload } from '@/shared/lib/supabase';
+import type { PostPayload } from '@/shared/lib/supabase';
 import { getTickerDisplayName } from '@/shared/utils';
 import {
   buildAllocationPieOption,
@@ -13,7 +13,7 @@ import {
  * (`getIncludedProfiles` + `buildNormalizedAllocation`, pages/Main/utils): 포함 티커만·원래 순서·
  * 음수 0클램프·합 0이면 균등. 상세 미리보기가 시뮬레이터와 다른 비중을 그리면 그건 버그다.
  */
-export const buildPreviewNormalizedAllocation = (payload: ScenarioPayload): NormalizedAllocationItem[] => {
+export const buildPreviewNormalizedAllocation = (payload: PostPayload): NormalizedAllocationItem[] => {
   const { portfolio } = payload;
   const included = getIncludedProfiles(portfolio.tickerProfiles, portfolio.includedTickerIds);
   return buildNormalizedAllocation(included, portfolio.weightByTickerId);

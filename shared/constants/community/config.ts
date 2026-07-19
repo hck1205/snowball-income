@@ -2,7 +2,7 @@
  * 커뮤니티 화면 설정 상수 — 순수 값만. IO/컴포넌트 없음.
  *
  * 데이터 레이어(`shared/lib/supabase`)의 상수와 겹치는 값은 여기서 다시 정의하지 않고
- * 그쪽 것을 그대로 쓴다(SCENARIO_TITLE_MAX_LENGTH 등). 여기엔 UI 전용 값만 둔다.
+ * 그쪽 것을 그대로 쓴다(POST_TITLE_MAX_LENGTH 등). 여기엔 UI 전용 값만 둔다.
  */
 
 /**
@@ -57,7 +57,7 @@ export const COMMUNITY_SEARCH_DEBOUNCE_MS = 300;
 export const COMMUNITY_BODY_MAX_LENGTH = 20_000;
 
 /**
- * 실제 게시 차단 기준 — 서버 마이그레이션 `scenarios_body_len`의 `octet_length(body) <= 65536`과
+ * 실제 게시 차단 기준 — 서버 마이그레이션 `posts_body_len`의 `octet_length(body) <= 65536`과
  * **동일 기준**(sanitize된 HTML의 UTF-8 바이트). 한글은 코드포인트당 3바이트라 plain 글자수만으로는
  * 서버 거절을 예측할 수 없다 → 저장되는 HTML 바이트로 검증한다.
  */

@@ -44,11 +44,11 @@ export const viewTypeAtom = atomWithStorage<CommunityViewType>(COMMUNITY_VIEW_ST
 // ── 좋아요 캐시 ───────────────────────────────────────────────────────────────
 
 /**
- * "내가 좋아요한 시나리오 id" 집합. 목록/상세에서 하트를 즉시 채우고 낙관적 토글에 쓴다.
- * 프론트가 fetchMyScenarioLikes 결과로 채우고, 토글 시 이 집합을 갱신한다.
+ * "내가 좋아요한 게시글 id" 집합. 목록/상세에서 하트를 즉시 채우고 낙관적 토글에 쓴다.
+ * 프론트가 fetchMyPostLikes 결과로 채우고, 토글 시 이 집합을 갱신한다.
  * (서버가 정본 — 이건 UI 반응성을 위한 클라이언트 캐시일 뿐이다.)
  */
-export const likedScenarioIdsAtom = atom<Set<string>>(new Set<string>());
+export const likedPostIdsAtom = atom<Set<string>>(new Set<string>());
 
 // ── 소비 훅 (프로젝트 컨벤션: useXAtomValue / useSetXWrite) ─────────────────────
 
@@ -59,5 +59,5 @@ export const useSetProfileWrite = () => useAtomWrite(profileAtom);
 export const useIsLoggedInAtomValue = () => useAtomValue(isLoggedInAtom);
 export const useViewTypeAtomValue = () => useAtomValue(viewTypeAtom);
 export const useSetViewTypeWrite = () => useAtomWrite(viewTypeAtom);
-export const useLikedScenarioIdsAtomValue = () => useAtomValue(likedScenarioIdsAtom);
-export const useSetLikedScenarioIdsWrite = () => useAtomWrite(likedScenarioIdsAtom);
+export const useLikedPostIdsAtomValue = () => useAtomValue(likedPostIdsAtom);
+export const useSetLikedPostIdsWrite = () => useAtomWrite(likedPostIdsAtom);

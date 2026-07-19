@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { ScenarioCard } from '@/components/community';
+import { PostCard } from '@/components/community';
 import type { ScenarioSimSummary } from '@/shared/lib/snowball';
-import type { ScenarioListItem } from '@/shared/lib/supabase';
+import type { PostListItem } from '@/shared/lib/supabase';
 
-const item = (overrides: Partial<ScenarioListItem> = {}): ScenarioListItem => ({
+const item = (overrides: Partial<PostListItem> = {}): PostListItem => ({
   id: 's1',
   user_id: 'u1',
   title: '월배당 포트폴리오',
@@ -36,14 +36,14 @@ const simSummary = (overrides: Partial<ScenarioSimSummary> = {}): ScenarioSimSum
   ...overrides
 });
 
-const renderCard = (data: ScenarioListItem, summary?: ScenarioSimSummary | null) =>
+const renderCard = (data: PostListItem, summary?: ScenarioSimSummary | null) =>
   render(
     <MemoryRouter>
-      <ScenarioCard item={data} simSummary={summary} />
+      <PostCard item={data} simSummary={summary} />
     </MemoryRouter>
   );
 
-describe('ScenarioCard — 하이브리드 모델 배지', () => {
+describe('PostCard — 하이브리드 모델 배지', () => {
   it('시나리오 첨부 글(has_payload=true)은 "시뮬 결과" 배지를 단다', () => {
     renderCard(item({ has_payload: true }));
     expect(screen.getByText('시뮬 결과')).toBeInTheDocument();
@@ -55,7 +55,7 @@ describe('ScenarioCard — 하이브리드 모델 배지', () => {
   });
 });
 
-describe('ScenarioCard — 표시', () => {
+describe('PostCard — 표시', () => {
   it('제목/요약/작성자를 보여주고 상세로 가는 링크를 만든다', () => {
     renderCard(item());
 
@@ -77,7 +77,7 @@ describe('ScenarioCard — 표시', () => {
   });
 });
 
-describe('ScenarioCard — 시뮬 프리뷰 (§E)', () => {
+describe('PostCard — 시뮬 프리뷰 (§E)', () => {
   it('simSummary가 주입되면 프리뷰 블록(hero 월 배당·보조·달성 배지)을 보여준다', () => {
     renderCard(item({ has_payload: true }), simSummary());
 
@@ -106,7 +106,7 @@ describe('ScenarioCard — 시뮬 프리뷰 (§E)', () => {
   });
 });
 
-describe('ScenarioCard — velog 카드 정보', () => {
+describe('PostCard — velog 카드 정보', () => {
   it('서브 정보 줄에 댓글·조회 수를 보여준다', () => {
     renderCard(item());
 

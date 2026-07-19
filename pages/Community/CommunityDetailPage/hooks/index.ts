@@ -1,2 +1,2 @@
-export * from './useScenarioDetail';
+export * from './usePostDetail';
 export * from './useComments';

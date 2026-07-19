@@ -1,16 +1,16 @@
 import { COMMUNITY_COPY } from '@/shared/constants/community';
 import { formatCompactCount } from '@/shared/lib/community';
 import type { ScenarioSimSummary } from '@/shared/lib/snowball';
-import type { ScenarioListItem } from '@/shared/lib/supabase';
+import type { PostListItem } from '@/shared/lib/supabase';
 import { HeartIcon } from '@/components/community/CommunityIcons';
 import { RelativeTime } from '@/components/community/RelativeTime';
-import { VisuallyHidden } from '@/components/community/ScenarioMeta';
+import { VisuallyHidden } from '@/components/community/PostMeta';
 import { SimBadge } from '@/components/community/SimBadge';
 import { SimSummaryStats } from '@/components/community/SimSummaryStats';
-import { LikeInline, RowBody, RowLink, RowStats, RowSubInfo, RowSubText, RowSummary, RowTitle } from './ScenarioRow.styled';
+import { LikeInline, RowBody, RowLink, RowStats, RowSubInfo, RowSubText, RowSummary, RowTitle } from './PostRow.styled';
 
-export type ScenarioRowProps = {
-  item: ScenarioListItem;
+export type PostRowProps = {
+  item: PostListItem;
   /**
    * 게시 시점 시뮬 요약(스펙 §H) — 카드와 동일하게 옵셔널 주입(데이터 레이어 후속 트랙).
    * 없으면 숫자 줄 없이 텍스트 행으로 폴백한다(§I I4 — `has_payload`만으로 렌더하지 않는다).
@@ -26,7 +26,7 @@ const { metaViews, metaLikes, metaComments } = COMMUNITY_COPY.gallery;
  * 없으면 칩을 렌더하지 않고 `has_payload`일 때만 SimBadge로 "시뮬 첨부"를 폴백 표시한다(§I I4).
  * 배지·hero 라벨은 텍스트를 포함하고(색 의존 없음), ♥는 숨김 라벨 "좋아요"와 함께 읽힌다.
  */
-export default function ScenarioRow({ item, simSummary }: ScenarioRowProps) {
+export default function PostRow({ item, simSummary }: PostRowProps) {
   const authorName = item.author?.display_name ?? '익명';
 
   return (
