@@ -71,7 +71,6 @@ import {
   useSetIncludedTickerIdsWrite,
   useSetSelectedTickerIdWrite,
   useSetShowPortfolioDividendCenterWrite,
-  useShowPortfolioDividendCenterAtomValue,
   useShowQuickEstimateAtomValue,
   useShowSplitGraphsAtomValue,
   useSetTickerProfilesWrite,
@@ -410,6 +409,9 @@ function MainRightPanelComponent() {
   const [editingTabName, setEditingTabName] = useState('');
   const [editingTabWidth, setEditingTabWidth] = useState<number | null>(null);
   const [deleteTargetTabId, setDeleteTargetTabId] = useState<string | null>(null);
+  // 프리셋 적용 확인 모달 대상 — 모바일에서 스크롤 중 실수 탭으로 프리셋이 즉시 적용되는 걸 막는다.
+  const [pendingPreset, setPendingPreset] =
+    useState<(typeof PORTFOLIO_PRESET_PLACEHOLDERS)[number] | null>(null);
   const [hoverTooltip, setHoverTooltip] = useState<{ text: string; x: number; y: number } | null>(null);
   const [draggingTabId, setDraggingTabId] = useState<string | null>(null);
   const [dragOverTabId, setDragOverTabId] = useState<string | null>(null);
@@ -426,7 +428,6 @@ function MainRightPanelComponent() {
   const allocationPercentByTickerId = useAllocationPercentByTickerIdAtomValue();
   const adjustableTickerCount = useAdjustableTickerCountAtomValue();
   const fixedByTickerId = useFixedByTickerIdAtomValue();
-  const showPortfolioDividendCenter = useShowPortfolioDividendCenterAtomValue();
   const setShowPortfolioDividendCenter = useSetShowPortfolioDividendCenterWrite();
   const setTickerProfiles = useSetTickerProfilesWrite();
   const setIncludedTickerIds = useSetIncludedTickerIdsWrite();
@@ -452,7 +453,6 @@ function MainRightPanelComponent() {
   } = useMainComputed({
     isValid: validation.isValid,
     values,
-    showPortfolioDividendCenter,
     visibleYearlySeries,
     isYearlyAreaFillOn,
     postInvestmentProjectionYears
@@ -603,6 +603,12 @@ function MainRightPanelComponent() {
       setYieldFormValues
     ]
   );
+
+  const cancelApplyPreset = useCallback(() => setPendingPreset(null), []);
+  const confirmApplyPreset = useCallback(() => {
+    if (pendingPreset) applyPortfolioPreset(pendingPreset);
+    setPendingPreset(null);
+  }, [pendingPreset, applyPortfolioPreset]);
 
   useEffect(() => {
     if (!simulation) {
@@ -770,8 +776,6 @@ function MainRightPanelComponent() {
             allocationPercentByTickerId={allocationPercentByTickerId}
             fixedByTickerId={fixedByTickerId}
             adjustableTickerCount={adjustableTickerCount}
-            showPortfolioDividendCenter={showPortfolioDividendCenter}
-            onToggleCenterDisplay={setShowPortfolioDividendCenter}
             onSetTickerWeight={setTickerWeight}
             onToggleTickerFixed={toggleTickerFixed}
             onRemoveIncludedTicker={removeIncludedTicker}
@@ -881,7 +885,7 @@ function MainRightPanelComponent() {
               {PORTFOLIO_PRESET_PLACEHOLDERS.map((preset, presetIndex) => {
                 const PresetIcon = PRESET_ICON_BY_ID[preset.id] ?? Landmark;
                 return (
-                <PortfolioPresetCardButton key={preset.id} type="button" onClick={() => applyPortfolioPreset(preset)}>
+                <PortfolioPresetCardButton key={preset.id} type="button" onClick={() => setPendingPreset(preset)}>
                   <PortfolioPresetContentRow>
                     <PortfolioPresetMain>
                       <PortfolioPresetTitleRow>
@@ -920,6 +924,33 @@ function MainRightPanelComponent() {
           )}
         </Card>
       )}
+      {pendingPreset && modalRoot
+        ? createPortal(
+            <ModalBackdrop
+              role="dialog"
+              aria-modal="true"
+              aria-label="프리셋 적용 확인"
+              onClick={(event) => {
+                if (event.target !== event.currentTarget) return;
+                cancelApplyPreset();
+              }}
+            >
+              <ModalPanel>
+                <ModalTitle>프리셋 적용</ModalTitle>
+                <ModalBody>“{pendingPreset.title}” 프리셋으로 포트폴리오를 구성할까요?</ModalBody>
+                <ModalActions>
+                  <Button variant="secondary" type="button" onClick={cancelApplyPreset}>
+                    취소
+                  </Button>
+                  <Button variant="primary" type="button" onClick={confirmApplyPreset}>
+                    적용
+                  </Button>
+                </ModalActions>
+              </ModalPanel>
+            </ModalBackdrop>,
+            modalRoot
+          )
+        : null}
       {deleteTargetTabId && modalRoot
         ? createPortal(
             <ModalBackdrop

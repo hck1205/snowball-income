@@ -126,7 +126,6 @@ describe('프리셋 전환 → 차트 옵션 리빌드', () => {
         useMainComputed({
           isValid: false, // 시뮬레이션 본체는 이 계약과 무관 — 파이는 normalizedAllocation만으로 그려진다.
           values,
-          showPortfolioDividendCenter: false,
           visibleYearlySeries,
           isYearlyAreaFillOn: false,
           postInvestmentProjectionYears: 10

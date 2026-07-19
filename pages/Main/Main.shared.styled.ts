@@ -1372,6 +1372,13 @@ const stackedFixButton = `
   justify-self: end;
 `;
 
+/** 카드 헤더 우측 토글 묶음 — "배당 중앙표시"와 "비율 조절 잠금"을 나란히 둔다. */
+export const CardHeaderToggles = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: ${space[3]};
+`;
+
 export const AllocationFixButton = styled.button<{ active: boolean }>`
   grid-area: fix;
   width: 40px;

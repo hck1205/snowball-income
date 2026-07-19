@@ -1,4 +1,4 @@
-import { memo, type CSSProperties } from 'react';
+import { memo, useState, type CSSProperties } from 'react';
 import { Card, Chip, ToggleField } from '@/components';
 import { TOUR_TARGET } from '@/shared/constants';
 import { CHART_SERIES_VARS } from '@/shared/styles';
@@ -14,6 +14,7 @@ import {
   AllocationLegendName,
   AllocationLegendSlider,
   AllocationLegendValue,
+  CardHeaderToggles,
   ChartWrap,
   HintText,
   SelectedChipWrap
@@ -26,33 +27,43 @@ function PortfolioCompositionComponent({
   allocationPercentByTickerId,
   fixedByTickerId,
   adjustableTickerCount,
-  showPortfolioDividendCenter,
-  onToggleCenterDisplay,
   onSetTickerWeight,
   onToggleTickerFixed,
   onRemoveIncludedTicker,
   ResponsiveChart
 }: PortfolioCompositionProps) {
+  // 모바일(≤960px, drawer 레이아웃)에서만 기본 잠금 — 세로 스크롤 중 슬라이더 오조작 방지. 데스크톱은 기본 조절.
+  // matchMedia 미지원(jsdom/test)이면 false(조절)로 떨어뜨려 기존 슬라이더 상호작용 테스트를 보존한다.
+  const [isLocked, setIsLocked] = useState<boolean>(
+    () =>
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(max-width: 960px)').matches
+  );
+
   return (
     <Card
       title="포트폴리오 구성"
       dataTour={TOUR_TARGET.portfolioComposition}
       titleRight={
-        <ToggleField
-          label="포트폴리오 중앙표시"
-          checked={showPortfolioDividendCenter}
-          hideLabel
-          controlWidth="58px"
-          onText="배당"
-          offText="Blank"
-          onChange={(event) => {
-            trackEvent(ANALYTICS_EVENT.TOGGLE_CHANGED, {
-              field_name: 'showPortfolioDividendCenter',
-              value: event.target.checked
-            });
-            onToggleCenterDisplay(event.target.checked);
-          }}
-        />
+        <CardHeaderToggles>
+          {/* 비율 조절 잠금 — 기본 ON(잠금). 모바일 세로 스크롤 중 슬라이더 오조작을 막고, 풀 때만 조절 가능. */}
+          <ToggleField
+            label="비율 조절 잠금"
+            checked={isLocked}
+            hideLabel
+            controlWidth="58px"
+            onText="잠금"
+            offText="조절"
+            onChange={(event) => {
+              trackEvent(ANALYTICS_EVENT.TOGGLE_CHANGED, {
+                field_name: 'allocationLocked',
+                value: event.target.checked
+              });
+              setIsLocked(event.target.checked);
+            }}
+          />
+        </CardHeaderToggles>
       }
     >
       {includedProfiles.length === 0 ? (
@@ -79,7 +90,10 @@ function PortfolioCompositionComponent({
                       value={allocationPercentByTickerId[profile.id] ?? 0}
                       style={{ '--slider-progress': `${allocationPercentByTickerId[profile.id] ?? 0}%` } as CSSProperties}
                       disabled={
-                        includedProfiles.length <= 1 || fixedByTickerId[profile.id] || (!fixedByTickerId[profile.id] && adjustableTickerCount <= 1)
+                        isLocked ||
+                        includedProfiles.length <= 1 ||
+                        fixedByTickerId[profile.id] ||
+                        (!fixedByTickerId[profile.id] && adjustableTickerCount <= 1)
                       }
                       onChange={(event) => onSetTickerWeight(profile.id, Number(event.target.value))}
                     />
