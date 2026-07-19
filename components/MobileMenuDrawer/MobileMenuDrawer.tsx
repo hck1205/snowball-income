@@ -77,7 +77,12 @@ function MobileMenuDrawerComponent({
           <HeaderLogo>
             <HeaderLogoImage src="/app_icon.png" alt="" width={40} height={40} />
           </HeaderLogo>
-          <HeaderTitle>Snowball Income</HeaderTitle>
+          {/* 워드마크를 두 줄로 스택 — 가로 폭을 좁혀 우측 액션 공간을 넓힌다. h1 접근명은 "Snowball Income" 유지. */}
+          <HeaderTitle>
+            Snowball
+            <br />
+            Income
+          </HeaderTitle>
           {/* 헤더 맨 좌측(타이틀 옆) 상태 슬롯 — 클라우드 저장 상태(저장 중/실패)가 여기 붙는다. */}
           {headerStatus}
           {headerAction ? <HeaderActions>{headerAction}</HeaderActions> : null}
