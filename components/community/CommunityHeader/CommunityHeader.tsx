@@ -11,6 +11,7 @@ import { CommunitySearchBar } from '@/components/community/CommunitySearchBar';
 import { BackIcon, PencilIcon, SearchIcon } from '@/components/community/CommunityIcons';
 import {
   Actions,
+  ControlsRow,
   DesktopOnly,
   HeaderInner,
   HeaderRoot,
@@ -60,6 +61,8 @@ export default function CommunityHeader() {
       <HeaderInner>
         <PrimaryNav />
 
+        {/* 2번째 줄 — 뒤로가기 · 가운데 검색 · 우측 액션(글쓰기·인증·더보기). */}
+        <ControlsRow>
         {/* 뒤로가기: 목록 화면(갤러리/게시판 인덱스)에선 nav 링크가 이동을 담당하므로 숨기고,
             상세/글쓰기 등 하위 경로에서만 "← 목록"으로 자기 섹션 목록에 복귀한다. */}
         {isIndex ? null : (
@@ -112,6 +115,7 @@ export default function CommunityHeader() {
               기존 standalone 테마 스위처는 이 메뉴로 흡수했다(시뮬레이터 헤더와 동일 패턴 — 테마 접근점 단일화). */}
           <HeaderOverflowMenu showTutorial={false} />
         </Actions>
+        </ControlsRow>
       </HeaderInner>
 
       {isGalleryIndex && mobileSearchOpen ? (

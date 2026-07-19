@@ -9,24 +9,35 @@ export const HeaderRoot = styled.header`
   position: sticky;
   top: 0;
   z-index: ${zIndex.dropdown - 1};
-  background: ${color.surfaceGlassFallback};
-  border-bottom: 1px solid ${color.border};
+  /* 상단 브랜드 틴트 — 무채색 대신 은은한 brand 색조를 위→아래로(테마 토큰이라 팔레트/다크 정합). */
+  background: linear-gradient(180deg, ${color.brandSubtle}, ${color.surfaceGlassFallback} 68%);
+  border-bottom: 1px solid ${color.borderStrong};
   box-shadow: ${shadow.e1};
 
   @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
-    background: ${color.surfaceGlass};
+    background: linear-gradient(180deg, ${color.brandSubtle}, ${color.surfaceGlass} 68%);
     -webkit-backdrop-filter: blur(14px) saturate(1.35);
     backdrop-filter: blur(14px) saturate(1.35);
   }
 `;
 
+/** 헤더 안쪽 — 2줄 스택: 1줄 = 전역 nav(로고+메뉴), 2줄 = 컨트롤(뒤로·검색·액션). */
 export const HeaderInner = styled.div`
   display: flex;
-  align-items: center;
-  gap: ${space[3]};
+  flex-direction: column;
+  align-items: stretch;
+  gap: ${space[2]};
   max-width: 1200px;
   margin: 0 auto;
   padding: ${space[2]} clamp(${space[3]}, 4vw, ${space[5]});
+`;
+
+/** 헤더 2번째 줄 — 뒤로가기 · 가운데 검색 · 우측 액션(글쓰기·인증·더보기). */
+export const ControlsRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${space[3]};
+  min-width: 0;
 `;
 
 /** 데스크톱 인라인 검색 영역 — 가운데를 채운다. */

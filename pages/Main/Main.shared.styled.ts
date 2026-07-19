@@ -199,18 +199,27 @@ export const ResultsColumn = styled.section`
 export const Header = styled.header`
   display: grid;
   gap: ${space[2]};
-  padding-bottom: ${space[2]};
+  padding: ${space[3]} clamp(${space[2]}, 3vw, ${space[4]}) ${space[3]};
+  /* 상단 브랜드 틴트 — 무채색 대신 은은한 brand 색조를 위→아래로(테마 토큰이라 팔레트/다크 정합). */
+  background: linear-gradient(180deg, ${color.brandSubtle}, transparent 82%);
+  border-radius: ${radius.lg};
 `;
 
-/** 로고 마크 + 워드마크를 한 줄로 묶는다. */
+/** 2줄 스택: 1줄 = 전역 nav(로고+메뉴), 2줄 = 우측 컨트롤(클라우드 상태·로그인·커뮤니티·더보기·테마). */
 export const HeaderBrand = styled.div`
   display: flex;
-  align-items: center;
-  gap: ${space[3]};
+  flex-direction: column;
+  align-items: stretch;
+  gap: ${space[2]};
   min-width: 0;
-  /* 좁아지면 액션 묶음(로그인·커뮤니티·튜토리얼·테마)이 브랜드 아래 줄로 내려간다. */
-  flex-wrap: wrap;
-  row-gap: ${space[2]};
+`;
+
+/** 시뮬레이터 헤더 2번째 줄 — 우측 컨트롤 묶음. */
+export const HeaderControlsRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${space[2]};
+  min-width: 0;
 `;
 
 /** 앱 아이콘을 감싸는 원형 프레임. 아이콘 이미지를 원으로 잘라 파비콘/앱 아이콘과 형태를 맞춘다. */
