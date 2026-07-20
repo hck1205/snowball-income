@@ -4,7 +4,7 @@
 import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
 import ReactDOM from "react-dom/client";
 import AppRouter from "@/router";
-import { applySeoRuntimeMetadata, initGoogleAnalytics } from "@/shared/lib/analytics";
+import { ANALYTICS_EVENT, applySeoRuntimeMetadata, initGoogleAnalytics, peekLoginSource, track } from "@/shared/lib/analytics";
 import { hasOAuthCallbackParams, isNaverCallbackPath } from "@/shared/lib/supabase";
 
 applySeoRuntimeMetadata();
@@ -29,13 +29,24 @@ if (isNaverCallbackPath(window.location.pathname)) {
     void completeNaverCallback();
   });
 } else if (hasOAuthCallbackParams(window.location.search, window.location.hash)) {
-  void import("@/shared/lib/supabase").then(async ({ getSupabaseClient }) => {
-    await getSupabaseClient(); // detectSessionInUrl 이 코드/토큰을 세션으로 교환한다
-    // 교환 뒤 남는 잔여 해시를 걷어낸다 — 다음 로그인 redirectTo 로 새어들면 콜백 URL 이 `…/#?code=…`
-    // 로 어긋나 재로그인이 조용히 실패하기 때문(BrowserRouter 라 해시는 라우팅에 안 쓰여 안전).
-    // 단, 콜백이 해시에 실린 implicit 흐름이면 supabase 가 먼저 소비해야 하므로 그땐 건드리지 않는다.
-    if (window.location.hash && !hasOAuthCallbackParams("", window.location.hash)) {
-      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+  // OAuth 콜백 착지. supabase 가 URL 의 코드/토큰을 세션으로 교환하는데, **실패는 어디로도 전달되지 않고**
+  // (생성자 초기화라 호출부에 error 가 안 온다) **실패 시 콜백 파라미터가 URL 에 남아** 새로고침마다 같은
+  // 콜백을 다시 처리·재실패한다(사용자가 겪은 무한 루프의 정체). finalizeOAuthCallback 이 세션 생성까지
+  // 확인하고, 성공/실패 어느 쪽이든 **콜백 파라미터를 URL 에서 걷어낸다**(루프 차단). 실패는 login_failed 로
+  // 계측해 무음 실패를 없앤다 — 안내(로그인 모달)는 CommunityAuthProvider 가 저장된 실패 기록을 읽어 띄운다.
+  const startedProvider = peekLoginSource(); // 지우지 않는다 — 성공 랜딩이 login_completed 발화에 쓴다.
+  void import("@/shared/lib/supabase").then(async ({ finalizeOAuthCallback }) => {
+    const outcome = await finalizeOAuthCallback(startedProvider);
+    if (outcome.status === "failed") {
+      const f = outcome.failure;
+      track(ANALYTICS_EVENT.LOGIN_FAILED, {
+        provider: f.provider,
+        reason: f.reason,
+        in_app_browser: f.inAppBrowser,
+        context_switched: f.contextSwitched,
+        attempts: f.attempts,
+        ...(f.errorCode ? { error_code: f.errorCode } : {})
+      });
     }
   });
 }

@@ -1,14 +1,39 @@
 import { COMMUNITY_COPY } from '@/shared/constants/community';
-import { isNaverEnabled, NAVER_UNDER_REVIEW, type CommunityOAuthProvider } from '@/shared/lib/supabase';
+import {
+  isNaverEnabled,
+  NAVER_UNDER_REVIEW,
+  selectOAuthFailureGuidance,
+  type CommunityOAuthProvider,
+  type OAuthLoginFailure
+} from '@/shared/lib/supabase';
 import { CommunityModal } from '@/components/community/CommunityModal';
 import { SocialLoginButton } from '@/components/community/SocialLoginButton';
-import { ProviderList, Subtitle } from './LoginModal.styled';
+import { FailureNotice, FailureTitle, ProviderList, Subtitle } from './LoginModal.styled';
 
 export type LoginModalProps = {
   onClose: () => void;
   onSelectProvider: (provider: CommunityOAuthProvider) => void;
   pending?: boolean;
+  /** 직전 OAuth 콜백 실패 기록. 있으면 상단에 안내 배너(role=alert)를 띄운다. */
+  failure?: OAuthLoginFailure | null;
 };
+
+/**
+ * OAuth 콜백 실패 안내 카피 — **컴포넌트 로컬 상수**(copy.ts 로 승격하지 않음).
+ * `NaverLoginErrorBanner` 의 `LOGIN_NUDGE_TEXT` 와 같은 선례다. copy.ts 에 자리가 생기면 이 상수를 교체.
+ */
+export const LOGIN_FAILURE_COPY = {
+  /** 실패 배너 제목(role=alert). */
+  title: '로그인이 완료되지 않았어요',
+  /** 일반 실패(프로바이더 오류·취소 등) — 재시도로 풀릴 수 있는 경우. */
+  generic: '로그인 도중 문제가 생겼어요. 잠시 후 다시 시도해 주세요.',
+  /**
+   * 인앱 브라우저(카카오톡 등) 컨텍스트 분리로 세션이 만들어지지 않은 경우. 앱 안의 브라우저는
+   * Safari·Chrome 과 저장소가 분리돼, 거기서 로그인이 완료돼도 사용자의 원래 브라우저엔 세션이 안 남는다.
+   */
+  inAppBrowser:
+    '카카오톡 같은 앱 안의 화면에서는 로그인이 끝까지 완료되지 않을 수 있어요. 오른쪽 위 메뉴에서 “다른 브라우저로 열기”(Safari·Chrome)를 누른 뒤 다시 로그인해 주세요.'
+} as const;
 
 /**
  * 경량 로그인 유도 모달. 순서: **구글 → 네이버 → 카카오**.
@@ -23,9 +48,22 @@ export type LoginModalProps = {
  *   네이버만 사라지면 사용자가 회귀로 인지한다. pending 은 aria-disabled + "준비 중" 배지이고, 클릭은
  *   에러 없이 무동작(가드). `pending` prop(로그인 진행 중)과는 별개다 — 그건 `disabled` 로 전 버튼을 잠근다.
  */
-export default function LoginModal({ onClose, onSelectProvider, pending }: LoginModalProps) {
+export default function LoginModal({ onClose, onSelectProvider, pending, failure }: LoginModalProps) {
+  // 인앱 브라우저 컨텍스트 분리가 의심되면 "다른 브라우저로 열기"를, 아니면 일반 재시도 안내를 보인다.
+  const failureMessage = failure
+    ? selectOAuthFailureGuidance(failure) === 'in-app-browser'
+      ? LOGIN_FAILURE_COPY.inAppBrowser
+      : LOGIN_FAILURE_COPY.generic
+    : null;
+
   return (
     <CommunityModal title={COMMUNITY_COPY.login.title} onClose={onClose} align="center">
+      {failureMessage ? (
+        <FailureNotice role="alert">
+          <FailureTitle>{LOGIN_FAILURE_COPY.title}</FailureTitle>
+          {failureMessage}
+        </FailureNotice>
+      ) : null}
       <Subtitle>{COMMUNITY_COPY.login.subtitle}</Subtitle>
       <ProviderList>
         <SocialLoginButton

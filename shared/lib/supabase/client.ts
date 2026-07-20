@@ -81,7 +81,22 @@ export const getSupabaseClient = async (): Promise<SupabaseClient<Database> | nu
           // OAuth 리다이렉트로 돌아왔을 때 URL의 토큰을 세션으로 흡수한다.
           detectSessionInUrl: true,
           persistSession: true,
-          autoRefreshToken: true
+          autoRefreshToken: true,
+          // **flowType 을 implicit 으로 명시 고정한다.** @supabase/supabase-js 브라우저 클라이언트의
+          // 현재 기본값이 이미 'implicit' 이지만(2.110.x DEFAULT_AUTH_OPTIONS), 이 값을 코드에 박아
+          // 향후 SDK 기본값이 'pkce' 로 바뀌어도 흐름이 조용히 갈리지 않게 한다.
+          //
+          // 왜 implicit 이어야 하나: PKCE 는 로그인 시작 시 code_verifier 를 **그 브라우징 컨텍스트의
+          // localStorage** 에 저장하고 콜백에서 꺼내 교환한다. 카카오톡 등은 인증 후 콜백을 **자체 인앱
+          // 브라우저(WKWebView)** 로 여는데, 그 저장소는 Safari/Chrome 과 분리돼 verifier 가 없어 교환이
+          // 실패한다. implicit 은 토큰을 URL 해시로 직접 받아 verifier 가 필요 없으므로 이 컨텍스트 분리에
+          // 더 견고하다. 트레이드오프(토큰이 URL 에 실림)는 콜백 직후 해시를 즉시 제거해 완화한다
+          // (성공 시 supabase 가 hash='' + finalizeOAuthCallback 이 잔여 파라미터까지 정리 → oauthFailure.ts).
+          //
+          // ⚠ 한계: implicit 이어도 세션은 여전히 **인앱 브라우저 쪽 저장소**에 생긴다 — 사용자가 원래
+          //   Safari 로 돌아가면 거기엔 세션이 없을 수 있다. 이건 flowType 으로 못 고치는 근본 한계이고,
+          //   그래서 LoginModal 이 인앱 브라우저 감지 시 "다른 브라우저로 열기"를 안내한다.
+          flowType: 'implicit'
         }
       })
     );

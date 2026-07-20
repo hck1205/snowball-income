@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
-import { LoginModal } from '@/components/community/LoginModal';
+import { LoginModal, LOGIN_FAILURE_COPY } from '@/components/community/LoginModal';
 
 /**
  * LoginModal 은 네이버를 **config-gated**로 노출한다(`isNaverEnabled`). 실 배포값은 env 이므로,
@@ -25,7 +25,10 @@ vi.mock('@/shared/lib/supabase', () => ({
   },
   get NAVER_UNDER_REVIEW() {
     return naverGate.underReview;
-  }
+  },
+  // 실 로직은 oauthFailure.test.ts 가 커버한다. 여기선 배너 렌더 두 분기를 결정적으로 몰기 위한 최소 목.
+  selectOAuthFailureGuidance: (f: { inAppBrowser: string }) =>
+    f.inAppBrowser !== 'none' ? 'in-app-browser' : 'generic'
 }));
 
 const { login } = COMMUNITY_COPY;
@@ -113,6 +116,44 @@ describe('LoginModal — 버튼 순서 구글 → 네이버 → 카카오', () =
 
     expect(follows(google, naver)).toBe(true);
     expect(follows(naver, kakao)).toBe(true);
+  });
+});
+
+describe('LoginModal — 직전 로그인 실패 안내(무음 실패 금지)', () => {
+  const failure = (overrides: Record<string, unknown> = {}) => ({
+    provider: 'kakao',
+    reason: 'no_session' as const,
+    attempts: 1,
+    inAppBrowser: 'none' as const,
+    contextSwitched: false,
+    ...overrides
+  });
+
+  it('failure 가 없으면 실패 배너를 렌더하지 않는다', () => {
+    render(<LoginModal onClose={vi.fn()} onSelectProvider={vi.fn()} />);
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(screen.queryByText(LOGIN_FAILURE_COPY.title)).toBeNull();
+  });
+
+  it('인앱 브라우저 실패면 "다른 브라우저로 열기" 안내를 role=alert 로 띄운다', () => {
+    render(<LoginModal onClose={vi.fn()} onSelectProvider={vi.fn()} failure={failure({ inAppBrowser: 'kakaotalk' })} />);
+    const alert = screen.getByRole('alert');
+    expect(alert).toHaveTextContent(LOGIN_FAILURE_COPY.title);
+    expect(alert).toHaveTextContent(LOGIN_FAILURE_COPY.inAppBrowser);
+  });
+
+  it('일반 실패면 재시도 안내를 띄운다', () => {
+    render(<LoginModal onClose={vi.fn()} onSelectProvider={vi.fn()} failure={failure()} />);
+    expect(screen.getByRole('alert')).toHaveTextContent(LOGIN_FAILURE_COPY.generic);
+  });
+
+  it('실패 안내가 있어도 프로바이더 버튼은 그대로 눌러 재시도할 수 있다', async () => {
+    const onSelectProvider = vi.fn();
+    render(
+      <LoginModal onClose={vi.fn()} onSelectProvider={onSelectProvider} failure={failure({ inAppBrowser: 'kakaotalk' })} />
+    );
+    await userEvent.click(screen.getByRole('button', { name: login.kakao }));
+    expect(onSelectProvider).toHaveBeenCalledWith('kakao');
   });
 });
 

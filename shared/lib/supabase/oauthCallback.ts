@@ -63,3 +63,34 @@ export const sanitizeOAuthRedirectTo = (href: string): string => {
     return href; // 파싱 불가(비정상 입력) → 원본 그대로(안전 실패)
   }
 };
+
+/**
+ * 프로바이더/GoTrue 가 URL 에 실어보낸 **오류**를 읽는다(순수).
+ *
+ * 왜 필요한가: supabase-js 는 콜백에서 오류를 만나면 `_initialize()` 안에서 조용히 삼킨다
+ * (`_getSessionFromURL` 이 throw → `_initialize` 가 error 를 반환하지만 **아무도 그 반환값을 읽지 않는다** —
+ * 클라이언트는 생성자에서 초기화되므로 호출부에 error 가 전달되는 경로 자체가 없다). 그 결과 사용자는
+ * "그냥 로그인이 안 되네"만 본다. 우리가 URL 을 직접 읽어야 실패를 표면화할 수 있다.
+ *
+ * 암묵적(implicit) 흐름은 오류도 **해시**에 실린다(`#error=access_denied&error_code=...`).
+ * 프로바이더가 쿼리로 붙이는 경우도 있어 둘 다 본다(쿼리 우선).
+ */
+export const readOAuthCallbackError = (
+  search: string,
+  hash: string
+): { code: string; description: string } | null => {
+  const fromQuery = new URLSearchParams(stripLeading(search ?? '', '?'));
+  const fromHash = new URLSearchParams(stripLeading(hash ?? '', '#'));
+  const pick = (key: string): string | null => fromQuery.get(key) ?? fromHash.get(key);
+
+  const error = pick('error');
+  const code = pick('error_code');
+  const description = pick('error_description');
+  if (!error && !code && !description) return null;
+
+  return {
+    // GA 카디널리티를 위해 error_code(저카디널리티) 를 우선 쓴다. 둘 다 없으면 'unspecified'.
+    code: code ?? error ?? 'unspecified',
+    description: description ?? error ?? ''
+  };
+};

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { hasOAuthCallbackParams, sanitizeOAuthRedirectTo } from '@/shared/lib/supabase';
+import { hasOAuthCallbackParams, readOAuthCallbackError, sanitizeOAuthRedirectTo } from '@/shared/lib/supabase';
 
 /**
  * OAuth 콜백 감지 순수 함수.
@@ -105,5 +105,43 @@ describe('sanitizeOAuthRedirectTo', () => {
 
   it('파싱 불가한 입력은 원본을 그대로 반환한다(안전 실패)', () => {
     expect(sanitizeOAuthRedirectTo('not a url')).toBe('not a url');
+  });
+});
+
+/**
+ * 콜백 오류 판독 — supabase-js 가 조용히 삼키는 실패를 우리가 직접 읽어 표면화하기 위한 순수 함수.
+ */
+describe('readOAuthCallbackError', () => {
+  it('쿼리의 error/error_code/error_description 를 읽는다', () => {
+    expect(readOAuthCallbackError('?error=access_denied&error_code=user_cancelled&error_description=denied', '')).toEqual(
+      { code: 'user_cancelled', description: 'denied' }
+    );
+  });
+
+  it('해시(implicit)의 오류도 읽는다', () => {
+    expect(readOAuthCallbackError('', '#error=server_error&error_description=boom')).toEqual({
+      code: 'server_error',
+      description: 'boom'
+    });
+  });
+
+  it('error_code 가 없으면 error 를 code 로 쓴다', () => {
+    expect(readOAuthCallbackError('?error=temporarily_unavailable', '')).toEqual({
+      code: 'temporarily_unavailable',
+      description: 'temporarily_unavailable'
+    });
+  });
+
+  it('쿼리를 해시보다 우선한다', () => {
+    expect(readOAuthCallbackError('?error_code=from_query', '#error_code=from_hash')).toEqual({
+      code: 'from_query',
+      description: ''
+    });
+  });
+
+  it('오류 파라미터가 없으면 null(성공/일반 콜백)', () => {
+    expect(readOAuthCallbackError('?code=abc', '')).toBeNull();
+    expect(readOAuthCallbackError('', '#access_token=xyz')).toBeNull();
+    expect(readOAuthCallbackError('', '')).toBeNull();
   });
 });
