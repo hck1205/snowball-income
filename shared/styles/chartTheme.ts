@@ -1,4 +1,6 @@
-import { DEFAULT_THEME_PRESET } from './presets';
+import { DEFAULT_THEME_PRESET, THEME_PRESETS } from './presets';
+import type { PalettePresetId } from '@/shared/constants/palette';
+import type { ThemeTokens } from './semantic';
 import { hexToRgb } from './contrast';
 import { font } from './tokens';
 
@@ -71,6 +73,42 @@ export const getChartTheme = (): ChartTheme => ({
   fontFamily: font.sans,
   labelFontSize: 12
 });
+
+/**
+ * 토큰 객체 → ChartTheme. `getChartTheme`과 **동일한 형태**를 만들되 DOM을 전혀 읽지 않는다.
+ */
+const toChartTheme = (tokens: ThemeTokens): ChartTheme => ({
+  axisLine: tokens['chart-axis-line'],
+  splitLine: tokens['chart-split-line'],
+  label: tokens['chart-label'],
+  sliceBorder: tokens['chart-slice-border'],
+  text: tokens.text,
+  textMuted: tokens['text-muted'],
+  brand: tokens.brand,
+  accent: tokens.accent,
+  series: Array.from({ length: 8 }, (_unused, index) => tokens[`chart-series-${index}`]),
+  fontFamily: font.sans,
+  labelFontSize: 12
+});
+
+/**
+ * **인쇄(PDF 리포트) 전용** 차트 테마 — 현재 프리셋의 **라이트** 토큰을 고정으로 쓴다.
+ *
+ * 다크 모드 사용자도 종이/PDF에서는 라이트로 나가야 잉크와 가독성이 맞는다. 이때
+ * `document.documentElement.dataset.theme = 'light'` 로 강제하면 두 가지가 깨진다:
+ *  1. `:root` 스코프라 화면 전체가 번쩍인다(서브트리만 라이트로 못 만든다).
+ *  2. 화면 차트 옵션의 useMemo는 `palettePresetAtom`에만 의존하므로 재빌드되지 않는다
+ *     → 캔버스가 다크 색 그대로 남는다(팔레트 stale-by-one 사고와 같은 구조).
+ *
+ * 그래서 DOM을 건드리지 않고 레지스트리에서 토큰을 **직접 읽는 순수 함수**로 만든다.
+ * 알 수 없는 프리셋 id는 기본 프리셋 라이트로 폴백한다.
+ */
+export const getPrintChartTheme = (presetId: PalettePresetId | string): ChartTheme =>
+  toChartTheme((THEME_PRESETS[presetId as PalettePresetId] ?? DEFAULT_THEME_PRESET).light);
+
+/** 인쇄용 CSS 변수 소스가 되는 라이트 토큰 묶음. 리포트 루트에 인라인으로 주입한다. */
+export const getPrintThemeTokens = (presetId: PalettePresetId | string): ThemeTokens =>
+  (THEME_PRESETS[presetId as PalettePresetId] ?? DEFAULT_THEME_PRESET).light;
 
 /**
  * `#rrggbb`(축약형 #rgb 포함) → `rgba(r, g, b, a)` 문자열.

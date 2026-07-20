@@ -25,5 +25,13 @@ export type { ThemePreset } from './presets';
 
 export { globalStyles } from './globalStyles';
 
-export { buildAxisStyle, buildLegendStyle, buildTooltipStyle, getChartTheme, hexToRgba } from './chartTheme';
+export {
+  buildAxisStyle,
+  buildLegendStyle,
+  buildTooltipStyle,
+  getChartTheme,
+  getPrintChartTheme,
+  getPrintThemeTokens,
+  hexToRgba
+} from './chartTheme';
 export type { ChartTheme } from './chartTheme';

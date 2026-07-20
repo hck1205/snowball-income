@@ -2,7 +2,6 @@ import { Global } from "@emotion/react";
 import { lazy, memo, Suspense, useCallback, useRef, useState } from "react";
 import { FeatureLayout, MainContent, SkipLink } from "@/pages/Main/Main.shared.styled";
 import MobileMenuDrawer from "@/components/MobileMenuDrawer";
-import HeaderOverflowMenu from "@/components/HeaderOverflowMenu";
 import TourGuide from "@/components/TourGuide";
 import { CloudSyncIndicator } from "@/components/CloudSyncIndicator";
 import { AuthControl } from "@/components/community/AuthControl";
@@ -13,7 +12,14 @@ import {
   useSetIsConfigDrawerOpenWrite,
 } from "@/jotai";
 import HelpModal from "./components/HelpModal";
-import { MainContentLoader, MainLeftPanel, MainRightPanel, MarketDataAsOf, ModelChangeNotice } from "./components";
+import {
+  MainContentLoader,
+  MainLeftPanel,
+  MainOverflowMenu,
+  MainRightPanel,
+  MarketDataAsOf,
+  ModelChangeNotice,
+} from "./components";
 import { globalStyle } from "./Main.styled";
 import type { MainViewProps } from "./Main.types";
 
@@ -124,8 +130,11 @@ function MainViewComponent({ viewModel }: MainViewProps) {
                 {isCommunityEnabled ? <AuthControl /> : null}
                 {/* 튜토리얼 보기 + 앱 설치 + 테마를 모은 아이콘 전용 "더보기(⋯)" 메뉴. 로그인/커뮤니티 여부와
                     무관하게 항상 노출된다 — 테마 접근점을 여기로 단일화했다(기존 standalone 테마 스위처 제거).
-                    "테마는 어떤 상태에서도 사라지면 안 됨" 제약은 이 메뉴가 항상 있으므로 충족. */}
-                <HeaderOverflowMenu />
+                    "테마는 어떤 상태에서도 사라지면 안 됨" 제약은 이 메뉴가 항상 있으므로 충족.
+                    시뮬레이터에서만 "PDF 리포트 저장"이 하나 더 붙는다 — 그 상태·동작은 MainOverflowMenu가
+                    소유하고(HeaderOverflowMenu는 커뮤니티와 공유라 시뮬레이터 데이터에 결합시키지 않는다),
+                    구독은 불리언 2개로 좁혀져 있어 타건 리렌더가 헤더로 번지지 않는다. */}
+                <MainOverflowMenu />
                 {/* TourGuide는 코치마크 오버레이 전용으로 계속 마운트한다 — 헤더엔 아무것도 안 그리고,
                     실행 트리거는 HeaderOverflowMenu가 소유한다(tourLaunchRequestAtom bump). */}
                 <TourGuide />

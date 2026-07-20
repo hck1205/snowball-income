@@ -11,6 +11,7 @@
 export * from './ChartPanel';
 export { default as MainContentLoader } from './MainContentLoader';
 export { default as MainLeftPanel } from './MainLeftPanel';
+export { default as MainOverflowMenu } from './MainOverflowMenu';
 export { default as MainRightPanel } from './MainRightPanel';
 export { default as MarketDataAsOf } from './MarketDataAsOf';
 export { default as ModelChangeNotice } from './ModelChangeNotice';
