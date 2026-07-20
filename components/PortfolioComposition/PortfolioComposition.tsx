@@ -97,6 +97,8 @@ function PortfolioCompositionComponent({
                       }
                       onChange={(event) => onSetTickerWeight(profile.id, Number(event.target.value))}
                     />
+                    <AllocationLegendValue>{`${(weight * 100).toFixed(1)}%`}</AllocationLegendValue>
+                    {/* 시각 순서(슬라이더 → % → 고정)와 DOM 순서를 일치시켜 탭 이동·낭독 순서가 어긋나지 않게 한다. */}
                     <AllocationFixButton
                       type="button"
                       active={Boolean(fixedByTickerId[profile.id])}
@@ -107,7 +109,6 @@ function PortfolioCompositionComponent({
                     >
                       고정
                     </AllocationFixButton>
-                    <AllocationLegendValue>{`${(weight * 100).toFixed(1)}%`}</AllocationLegendValue>
                   </AllocationLegendItem>
                 ))}
               </AllocationLegend>
