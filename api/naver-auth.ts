@@ -15,11 +15,17 @@ import {
   type NaverAuthDeps,
   type NaverProfile
 } from '@/shared/lib/community';
+import { toNodeHandler } from '@/shared/lib/server';
 
 /**
  * 네이버 로그인 세션 발급 — `POST /api/naver-auth`, body { code, state } (application/json).
  *
- * ## 런타임: Node.js (account-delete.ts / og.tsx 와 동일 — `export const config` 없음)
+ * ## 런타임: Node.js — **`toNodeHandler` 어댑터 필수**
+ * `export const config` 가 없으므로 Vercel 은 Node 런타임으로 배포하고 `(req, res)` 로 호출한다. 아래 웹 표준
+ * `handler` 를 그대로 default export 하면 `res.end()` 가 없어 **무응답 타임아웃**이 된다(2026-07-20 실제 장애).
+ * Edge 로 옮기는 것은 선택지가 아니다(Edge 번들러가 `@/` alias 미해석). 근거: `@/shared/lib/server` nodeHandler.ts.
+ * 이 함수는 **POST 본문**(JSON `{ code, state }`)을 읽는다 — 어댑터가 `req.body`(Vercel 선파싱) 또는 요청
+ * 스트림에서 본문을 복원해 `Request` 에 실어 준다.
  *
  * ## 왜 서버인가
  * 네이버는 Supabase 기본 OAuth 프로바이더가 아니라, 네이버 신원에 Supabase 세션을 **우리가** 발급해야
@@ -87,7 +93,8 @@ const isAlreadyRegistered = (error: { status?: number; code?: string; message?: 
   return typeof error.message === 'string' && /already\s+been\s+registered|already\s+registered/i.test(error.message);
 };
 
-export default async function handler(request: Request): Promise<Response> {
+/** 웹 표준 핸들러 — 계약 테스트는 순수 분기(`handleNaverAuth`) 쪽에 있다(test/community/naver.test.ts). */
+export async function handler(request: Request): Promise<Response> {
   const config = readConfig();
   if (!config) {
     console.error(
@@ -152,3 +159,6 @@ export default async function handler(request: Request): Promise<Response> {
 
   return handleNaverAuth(request, deps);
 }
+
+/** ⚠ Vercel 이 실제로 호출하는 진입점. 어댑터를 벗기면 무응답으로 되돌아간다(위 "런타임" 주석). */
+export default toNodeHandler(handler);

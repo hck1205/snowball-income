@@ -14,11 +14,16 @@ import {
   resolveSiteUrl
 } from '@/shared/lib/og';
 import type { PublicPostKind, PublicPostMeta } from '@/shared/lib/og';
+import { toNodeHandler } from '@/shared/lib/server';
 
 /**
  * `/api/post-html?kind=<board|portfolio>&id=<uuid>` — 커뮤니티 **글 상세의 진입 HTML**.
  *
- * ## 런타임: Node.js (`export const config` 없음 = 기본 Node — og.tsx / share-html.ts 와 동일)
+ * ## 런타임: Node.js — **`toNodeHandler` 어댑터 필수**
+ * `export const config` 가 없으므로 Vercel 은 Node 런타임으로 배포하고 `(req, res)` 로 호출한다. 아래 웹 표준
+ * `handler` 를 그대로 default export 하면 `res.end()` 가 없어 **무응답 타임아웃**이 된다(2026-07-20 실제 장애 —
+ * `api/*` 6개 전멸). Edge 로 옮기는 것은 선택지가 아니다(Edge 번들러가 `@/` alias 미해석).
+ * 근거: `@/shared/lib/server` nodeHandler.ts.
  *
  * ## 라우팅: middleware 가 아니라 vercel.json rewrite 다 (판단 근거)
  * 브리핑의 초안은 middleware 에서 형식만 보고 이리로 rewrite 하는 것이었다. 실제로는 **middleware 가
@@ -115,7 +120,8 @@ const applyPostMeta = (shell: string, post: PublicPostMeta, siteUrl: string): st
   return html;
 };
 
-export default async function handler(request: Request): Promise<Response> {
+/** 웹 표준 핸들러 — `test/api/postHtml.test.ts` 가 `handler(new Request(...))` 로 직접 호출한다. */
+export async function handler(request: Request): Promise<Response> {
   const { origin, searchParams } = new URL(request.url);
   const kindParam = searchParams.get('kind');
   const id = searchParams.get('id') ?? '';
@@ -150,3 +156,6 @@ export default async function handler(request: Request): Promise<Response> {
 
   return htmlResponse(applyPostMeta(shell, result.post, resolveSiteUrl(request.url)), 200, CACHE_POST);
 }
+
+/** ⚠ Vercel 이 실제로 호출하는 진입점. 어댑터를 벗기면 무응답으로 되돌아간다(위 "런타임" 주석). */
+export default toNodeHandler(handler);

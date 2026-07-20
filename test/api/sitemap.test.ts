@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import handler from '@/api/sitemap';
+import { handler } from '@/api/sitemap';
 
 /**
  * `/api/sitemap` — 공개 글 동적 사이트맵.

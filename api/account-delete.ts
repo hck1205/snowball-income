@@ -11,11 +11,18 @@ import {
   AVATAR_BUCKET,
   type AccountDeleteDeps
 } from '@/shared/lib/community';
+import { toNodeHandler } from '@/shared/lib/server';
 
 /**
  * 회원 탈퇴 — `POST /api/account-delete`, Authorization: Bearer <액세스 토큰>.
  *
- * ## 런타임: Node.js (og.tsx 와 동일 규약 — `export const config` 없음 = 기본 Node)
+ * ## 런타임: Node.js — **`toNodeHandler` 어댑터 필수**
+ * `export const config` 가 없으므로 Vercel 은 Node 런타임으로 배포하고 `(req, res)` 로 호출한다. 아래 웹 표준
+ * `handler` 를 그대로 default export 하면 `res.end()` 가 없어 **무응답 타임아웃**이 된다(2026-07-20 실제 장애).
+ * Edge 로 옮기는 것은 선택지가 아니다(Edge 번들러가 `@/` alias 미해석). 근거: `@/shared/lib/server` nodeHandler.ts.
+ * 이 함수는 **POST 본문**과 `Authorization` 헤더를 읽는다 — 어댑터가 둘 다 `Request` 로 옮겨 준다.
+ *
+ * ## 왜 서버인가
  * service_role 키로 admin 삭제를 해야 하는데, **service_role 은 브라우저에 절대 노출하지 않는다**
  * (`.env.example` 경고). 그래서 클라이언트가 직접 auth.users 를 지우는 건 불가능하고, 이 서버 경로가 필요하다.
  *
@@ -52,7 +59,8 @@ const jsonError = (status: number, code: string): Response =>
     headers: { 'content-type': 'application/json; charset=utf-8' }
   });
 
-export default async function handler(request: Request): Promise<Response> {
+/** 웹 표준 핸들러 — 계약 테스트는 순수 분기(`handleAccountDelete`) 쪽에 있다(test/community/accountDelete.test.ts). */
+export async function handler(request: Request): Promise<Response> {
   const admin = createAdminClient();
   if (!admin) {
     console.error('[account-delete] SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY 가 설정되지 않았습니다');
@@ -79,3 +87,6 @@ export default async function handler(request: Request): Promise<Response> {
 
   return handleAccountDelete(request, deps);
 }
+
+/** ⚠ Vercel 이 실제로 호출하는 진입점. 어댑터를 벗기면 무응답으로 되돌아간다(위 "런타임" 주석). */
+export default toNodeHandler(handler);

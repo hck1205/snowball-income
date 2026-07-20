@@ -7,11 +7,18 @@
 */
 import { DB_SHARE_KEY_PATTERN, fetchSharedSnapshotByKey, replaceMetaContent } from '@/shared/lib/og';
 import { buildOgShareText, summarizeSharedScenarioForOg, type OgCardModel } from '@/pages/Main/utils/ogCard';
+import { toNodeHandler } from '@/shared/lib/server';
 
 /**
  * `/api/share-html?s=<key>` — DB key 공유 링크(`/?s=<key>`)의 진입 HTML.
  *
- * ## 런타임: Node.js (og.tsx 와 동일 규약 — `export const config` 없음 = 기본 Node)
+ * ## 런타임: Node.js — **`toNodeHandler` 어댑터 필수**
+ * `export const config` 가 없으므로 Vercel 은 이 함수를 Node 런타임으로 배포하고 `(req, res)` 로 호출한다.
+ * 아래 웹 표준 `handler` 를 그대로 `export default` 하면 `res.end()` 가 불리지 않아 **무응답 타임아웃**이 된다
+ * (2026-07-20 실제 장애 — 6개 함수 전멸). 그래서 default 는 어댑터로 감싼 Node 핸들러다.
+ * Edge 로 옮기는 것은 선택지가 아니다: Edge 번들러가 `@/` alias(tsconfig paths)를 해석하지 못한다.
+ * 자세한 경위는 `@/shared/lib/server` 의 nodeHandler.ts 주석.
+ *
  * middleware(Edge) 가 `?s=<key>` 요청을 여기로 **rewrite** 한다(브라우저 URL 은 `/?s=<key>` 그대로).
  * 무거운 조회·시뮬레이션 요약은 전부 이 Node 함수로 격리하고, middleware 는 rewrite(문자열 매칭 1개)만 한다.
  *
@@ -71,7 +78,8 @@ const applyShareMeta = (shell: string, key: string, origin: string, model: OgCar
   return html;
 };
 
-export default async function handler(request: Request): Promise<Response> {
+/** 웹 표준 핸들러 — `test/api/shareHtml.test.ts` 가 `handler(new Request(...))` 로 직접 호출한다. */
+export async function handler(request: Request): Promise<Response> {
   const { origin, searchParams } = new URL(request.url);
   const key = searchParams.get('s');
 
@@ -98,3 +106,6 @@ export default async function handler(request: Request): Promise<Response> {
     return htmlResponse(shell, CACHE_FALLBACK);
   }
 }
+
+/** ⚠ Vercel 이 실제로 호출하는 진입점. 어댑터를 벗기면 무응답으로 되돌아간다(위 "런타임" 주석). */
+export default toNodeHandler(handler);
