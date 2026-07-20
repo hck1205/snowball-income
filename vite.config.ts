@@ -28,20 +28,58 @@ const DEFAULT_SITE_URL = 'https://snowball-income.example';
 
 const stripTrailingSlash = (url: string) => url.replace(/\/+$/, '');
 
-/** 사이트맵에 넣을 라우트. router/routes.tsx의 실제 라우트와 일치해야 한다(현재 `/` 단일). */
-const ROUTES = ['/'] as const;
+/**
+ * 사이트맵에 넣을 **정적 라우트**. router/routes.tsx의 실제 공개 라우트와 일치해야 한다.
+ * 글 상세(`/community/:kind/:id`)는 DB에서 오므로 여기가 아니라 `/api/sitemap`(동적)이 담당한다.
+ * 글쓰기/수정/프로필은 로그인 전용 화면이라 색인 대상이 아니다.
+ */
+const ROUTES = [
+  { path: '/', priority: '1.0', changefreq: 'weekly' },
+  { path: '/community/portfolio', priority: '0.8', changefreq: 'daily' },
+  { path: '/community/board', priority: '0.8', changefreq: 'daily' }
+] as const;
 
-const buildSitemap = (siteUrl: string, lastmod: string) =>
+/**
+ * ## 사이트맵을 3파일로 쪼갠 이유 (파일시스템 우선순위 회피)
+ *
+ * Vercel의 `rewrites`는 **파일시스템 조회 다음**에 평가된다(middleware.ts:24-26에 같은 함정 기록).
+ * 이 플러그인이 `dist/sitemap.xml`을 실제 파일로 emit하므로, `/sitemap.xml → /api/sitemap` rewrite는
+ * **영원히 발동하지 않는다** — 정적 파일이 먼저 히트한다. 그렇다고 emit을 없애면 이미 서치콘솔에
+ * 제출된 URL이 깨진다.
+ *
+ * 그래서 충돌하지 않는 구조로 나눈다:
+ *   - `/sitemap.xml`       (여기서 emit) = **sitemapindex**. 아래 둘을 가리킨다. robots.txt가 참조하는 정본.
+ *   - `/sitemap-pages.xml` (여기서 emit) = 위 ROUTES의 정적 라우트.
+ *   - `/sitemap-posts.xml` (파일 없음)   = vercel.json rewrite → `/api/sitemap`(공개 글, 동적·ISR).
+ *     dist에 그 이름의 파일이 **없어야** rewrite가 발동한다 — 여기서 절대 emit하지 말 것.
+ *
+ * 글이 50,000 URL을 넘으면 `/api/sitemap`을 페이지 분할하고 이 index에 자식을 늘린다(구조를 index로
+ * 잡아둔 이유). 지금 규모에선 자식 2개로 충분하다.
+ */
+const buildSitemapIndex = (siteUrl: string, lastmod: string) =>
+  `<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap>
+    <loc>${siteUrl}/sitemap-pages.xml</loc>
+    <lastmod>${lastmod}</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>${siteUrl}/sitemap-posts.xml</loc>
+  </sitemap>
+</sitemapindex>
+`;
+
+const buildPagesSitemap = (siteUrl: string, lastmod: string) =>
   `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
 ${ROUTES.map(
-  (route) => `  <url>
-    <loc>${siteUrl}${route}</loc>
-    <xhtml:link rel="alternate" hreflang="ko" href="${siteUrl}${route}" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="${siteUrl}${route}" />
+  ({ path, priority, changefreq }) => `  <url>
+    <loc>${siteUrl}${path}</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="${siteUrl}${path}" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="${siteUrl}${path}" />
     <lastmod>${lastmod}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
+    <changefreq>${changefreq}</changefreq>
+    <priority>${priority}</priority>
   </url>`
 ).join('\n')}
 </urlset>
@@ -49,6 +87,11 @@ ${ROUTES.map(
 
 // Yeti(네이버)/Daum은 JS를 실행하지 않는다. 별도 블록을 두는 건 차단이 아니라 명시적 허용 신호다.
 // (가장 구체적인 User-agent 블록만 적용되므로, 두 블록의 내용이 같아야 의도대로 동작한다.)
+//
+// ⚠ `Sitemap:` 지시자를 **세 줄 다** 둔다. sitemapindex 하나만 두어도 크롤러는 자식을 따라가지만,
+//   sitemaps.org의 크로스-경로 규칙상 사이트맵은 자기 디렉터리 이하의 URL만 담을 수 있고 **robots.txt에
+//   직접 등재된 사이트맵은 그 제약에서 면제**된다. `/sitemap-posts.xml`은 rewrite로 `/api/` 함수가
+//   서빙하므로, 등재해 두면 경로 해석 차이로 조용히 거부당하는 경우를 원천 차단한다.
 const buildRobots = (siteUrl: string) =>
   `User-agent: *
 Allow: /
@@ -60,6 +103,8 @@ User-agent: Daumoa
 Allow: /
 
 Sitemap: ${siteUrl}/sitemap.xml
+Sitemap: ${siteUrl}/sitemap-pages.xml
+Sitemap: ${siteUrl}/sitemap-posts.xml
 `;
 
 /* -------------------------------------------------------------------------- */
@@ -251,8 +296,11 @@ const ogFontsPlugin = (): Plugin => ({
  */
 const seoAssetsPlugin = (siteUrl: string): Plugin => {
   const lastmod = new Date().toISOString().slice(0, 10);
+  // ⚠ `/sitemap-posts.xml`은 여기에 **넣지 않는다** — dist에 파일이 생기면 vercel.json의
+  //   `/sitemap-posts.xml → /api/sitemap` rewrite가 파일시스템 히트에 막혀 죽는다(위 buildSitemapIndex 주석).
   const files: Record<string, () => string> = {
-    '/sitemap.xml': () => buildSitemap(siteUrl, lastmod),
+    '/sitemap.xml': () => buildSitemapIndex(siteUrl, lastmod),
+    '/sitemap-pages.xml': () => buildPagesSitemap(siteUrl, lastmod),
     '/robots.txt': () => buildRobots(siteUrl)
   };
 
@@ -271,6 +319,15 @@ const seoAssetsPlugin = (siteUrl: string): Plugin => {
     // dev 서버에서도 동일하게 서빙해 빌드와 어긋나지 않게 한다.
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
+        // dev에는 vercel.json rewrite가 없으므로 `/sitemap-posts.xml`을 `/api/sitemap`으로 직접 돌려준다
+        // (apiDevPlugin이 뒤이어 받는다 — 이 플러그인이 plugins 배열에서 먼저라 미들웨어도 먼저 돈다).
+        // ⚠ 상세 메타(`/community/:kind/:id` → /api/post-html)는 **일부러 dev에 배선하지 않는다**:
+        //   post-html은 `dist/index.html` 원본 셸을 fetch하는데, dev의 index.html은 Vite 변환(@vite/client
+        //   주입) 전이라 그 셸로는 앱이 부팅하지 않는다. dev에서는 `/api/post-html?...`을 직접 열어 확인한다.
+        if (req.url?.split('?')[0] === '/sitemap-posts.xml') {
+          req.url = '/api/sitemap';
+          return next();
+        }
         const create = req.url ? files[req.url.split('?')[0]] : undefined;
         if (!create) return next();
         res.setHeader('Content-Type', req.url?.startsWith('/sitemap') ? 'application/xml' : 'text/plain');
