@@ -219,3 +219,83 @@ describe('api/post-html — 실패 종류 구분', () => {
     expect(res.headers.get('location')).toBe('https://snowball.test/');
   });
 });
+
+describe('api/post-html — 본문 주입 (PR-B)', () => {
+  /** `<div id="root">` 여는 태그 직후에 삽입된 article 을 뽑는다. */
+  const rootInner = (html: string): string => {
+    const open = html.match(/<div\s+id="root"[^>]*>/i);
+    return open ? html.slice((open.index ?? 0) + open[0].length) : '';
+  };
+
+  it('ok 경로에서 #root 안에 제목 h1 + 정화된 본문을 주입한다', async () => {
+    stubFetch({
+      rows: [publicRow({ title: '내 포트폴리오', body: '<h2>전략</h2><p>월 배당 <strong>300만원</strong></p>' })]
+    });
+    const html = await (await call(`kind=board&id=${POST_ID}`)).text();
+    const inner = rootInner(html);
+
+    // 여는 태그 직후에 article 이 온다(셸 구조를 깨지 않고).
+    expect(inner.startsWith('<article>')).toBe(true);
+    expect(inner).toContain('<h1>내 포트폴리오</h1>');
+    expect(inner).toContain('<h2>전략</h2>');
+    expect(inner).toContain('<strong>300만원</strong>');
+  });
+
+  it('본문의 XSS(script·onerror·javascript:)를 제거한 채 주입한다', async () => {
+    stubFetch({
+      rows: [
+        publicRow({
+          body: '<p>정상</p><script>alert(1)</script><img src=x onerror=alert(1)><a href="javascript:alert(1)">x</a>'
+        })
+      ]
+    });
+    const html = await (await call(`kind=board&id=${POST_ID}`)).text();
+
+    expect(html).toContain('<p>정상</p>');
+    expect(html).not.toContain('<script>alert(1)</script>');
+    expect(html).not.toContain('onerror');
+    expect(html).not.toContain('javascript:');
+    // 셸의 앱 부트 스크립트는 그대로 살아 있어야 한다(본문 정화가 셸 script 를 건드리지 않는다).
+    expect(html).toContain('<script type="module" src="/main.tsx"></script>');
+  });
+
+  it('제목의 특수문자는 텍스트 이스케이프해 h1 에 넣는다(마크업 주입 불가)', async () => {
+    stubFetch({ rows: [publicRow({ title: '<b>굵게</b> & "따옴표"', body: '<p>x</p>' })] });
+    const html = await (await call(`kind=board&id=${POST_ID}`)).text();
+
+    expect(html).toContain('<h1>&lt;b&gt;굵게&lt;/b&gt; &amp; "따옴표"</h1>');
+  });
+
+  it('빈 본문(첨부만 있는 포트폴리오 글)도 제목 h1 만 주입하고 죽지 않는다', async () => {
+    stubFetch({ rows: [publicRow({ kind: 'portfolio', body: null })] });
+    const res = await call(`kind=portfolio&id=${POST_ID}`);
+    const html = await res.text();
+
+    expect(res.status).toBe(200);
+    expect(rootInner(html).startsWith('<article><h1>')).toBe(true);
+    // 빈 본문이면 h1 뒤에 바로 </article> 가 온다.
+    expect(html).toContain('</h1></article>');
+  });
+
+  it('없는 글/비공개(404)는 본문을 주입하지 않는다', async () => {
+    stubFetch({ rows: [] });
+    const html = await (await call(`kind=board&id=${POST_ID}`)).text();
+
+    expect(html).toContain('<div id="root"></div>');
+    expect(html).not.toContain('<article>');
+  });
+
+  it('일시적 실패(무치환 셸 200)도 본문을 주입하지 않는다', async () => {
+    stubFetch({ rows: null, ok: false });
+    const html = await (await call(`kind=board&id=${POST_ID}`)).text();
+
+    expect(html).not.toContain('<article>');
+  });
+
+  it('예약 세그먼트(write)는 본문을 주입하지 않는다', async () => {
+    stubFetch({ rows: [] });
+    const html = await (await call('kind=portfolio&id=write')).text();
+
+    expect(html).not.toContain('<article>');
+  });
+});

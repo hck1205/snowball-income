@@ -12,6 +12,7 @@ export const API_BUNDLES = [
   { entry: 'server/handlers/NaverAuth/NaverAuth.ts', out: 'api/naver-auth.js' },
   { entry: 'server/handlers/Og/Og.tsx', out: 'api/og.js' },
   { entry: 'server/handlers/PostHtml/PostHtml.ts', out: 'api/post-html.js' },
+  { entry: 'server/handlers/PostList/PostList.ts', out: 'api/post-list.js' },
   { entry: 'server/handlers/ShareHtml/ShareHtml.ts', out: 'api/share-html.js' },
   { entry: 'server/handlers/Sitemap/Sitemap.ts', out: 'api/sitemap.js' }
 ];
@@ -23,5 +24,9 @@ export const API_BUNDLES = [
  * `@vercel/og` 는 **반드시** external 이어야 한다: satori 가 `Geist-Regular.ttf` 를 산출물 옆의
  * 실제 파일로 읽으므로 번들에 넣으면 런타임에 ENOENT 로 죽는다(실측).
  * `@supabase/supabase-js` 는 번들해도 동작하지만, 무겁고 자체 조건부 require 가 있어 external 로 둔다.
+ *
+ * `jsdom`(api/post-html.js 의 서버 본문 정화 전용)도 external 이다: 무겁고 동적 require(내부 리소스
+ * 로딩)가 있어 번들 인라인이 취약하다. bare import 로 남기면 Vercel Node 빌더가 node_modules 를 함수에
+ * 싣는다 — 그러려면 jsdom 이 **dependencies**(프로덕션 설치 포함)여야 한다(런타임 필요, package.json 참고).
  */
-export const API_EXTERNALS = ['@vercel/og', '@supabase/supabase-js', '@vercel/functions'];
+export const API_EXTERNALS = ['@vercel/og', '@supabase/supabase-js', '@vercel/functions', 'jsdom'];

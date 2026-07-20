@@ -3,6 +3,8 @@
 
   "rewrites": [
     { "source": "/sitemap-posts.xml", "destination": "/api/sitemap" },
+    { "source": "/community/portfolio", "destination": "/api/post-list?kind=portfolio" },
+    { "source": "/community/board", "destination": "/api/post-list?kind=board" },
     {
       "source": "/community/portfolio/:id",
       "destination": "/api/post-html?kind=portfolio&id=:id"

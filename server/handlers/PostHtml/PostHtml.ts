@@ -6,6 +6,7 @@
   supabase-js 도 끌어오지 않는다 — anon 키 plain REST 직접 호출(postsRest.ts).
 */
 import {
+  escapeHtmlText,
   fetchPublicPostMeta,
   isPublicPostKind,
   POST_ID_PATTERN,
@@ -16,6 +17,7 @@ import {
 } from '@/shared/lib/og';
 import type { PublicPostKind, PublicPostMeta } from '@/shared/lib/og';
 import { toNodeHandler } from '@/shared/lib/server';
+import { sanitizePostBody } from './serverSanitize';
 
 /**
  * `/api/post-html?kind=<board|portfolio>&id=<uuid>` — 커뮤니티 **글 상세의 진입 HTML**.
@@ -43,7 +45,9 @@ import { toNodeHandler } from '@/shared/lib/server';
  * script/link 태그는 하나도 건드리지 않는다.
  *
  * ## 범위
- * **메타만** 치환한다. 본문 HTML 주입(JS 없이도 글 내용이 보이게)은 PR-B 다.
+ * 메타 치환(PR-A) + **본문 HTML 주입**(PR-B): 정화된 글 제목·본문을 `#root` 안에 서버 주입해 JS 없이도
+ * 크롤러가 글 내용을 읽는다. React 가 마운트하며 `#root` 를 통째로 교체하므로(Vite SPA, 하이드레이션 아님)
+ * 사람 방문자 경험은 불변이다.
  *
  * ## og:image 는 왜 기본 이미지인가
  * 기존 `/api/og` 는 `?share=`(lz-string) 또는 `?s=`(shared_snapshots key)로만 카드를 그린다. 게시글은
@@ -121,6 +125,33 @@ const applyPostMeta = (shell: string, post: PublicPostMeta, siteUrl: string): st
   return html;
 };
 
+/**
+ * `#root` 안에 글 제목(h1) + 정화된 본문을 서버 주입한다.
+ *
+ * ## 삽입 지점 — `<div id="root">` 여는 태그 **직후**
+ * 기존 `app-shell-fallback` 을 감싼 `</div>` 를 매칭하는 방식은 `#root` 안에 중첩 div 가 있어 정규식이
+ * 취약하다. **여는 태그 직후 삽입**은 빈 `<div id="root"></div>`(테스트 픽스처)와 실제 셸(fallback 포함)
+ * **양쪽에서 결정적**이고, 크롤러가 글 제목·본문을 셸 잡동사니보다 먼저 읽는다. 여는 태그가 없으면(방어)
+ * 원문 그대로 반환한다.
+ *
+ * ## HTML 컨텍스트 안전 (XSS 경계)
+ * 본문은 **엘리먼트 content 위치**(article 안)에 들어간다. `sanitizePostBody` 는 DOMPurify 가 파싱·정화한
+ * **균형 잡힌 안전 HTML** 을 돌려주므로(스크립트·이벤트 핸들러·`javascript:`·style 전부 제거) `</script>`·
+ * `</div>` 같은 조기 종료로 셸 구조를 깨지 않는다 — script 태그나 속성값 컨텍스트가 아니기 때문이다.
+ * ⚠ 본문을 **절대** `<script>` 태그 안이나 속성값 안에 넣지 마라(그 컨텍스트에선 이 보장이 성립하지 않는다).
+ * 제목은 마크업이 아닌 텍스트라 `escapeHtmlText` 로만 이스케이프한다(h1 의 content 위치).
+ */
+const injectPostBody = (shell: string, post: PublicPostMeta): string => {
+  const rootOpenTag = shell.match(/<div\s+id="root"[^>]*>/i);
+  if (!rootOpenTag || rootOpenTag.index === undefined) return shell;
+
+  const safeBody = sanitizePostBody(post.body ?? '');
+  const article = `<article><h1>${escapeHtmlText(post.title)}</h1>${safeBody}</article>`;
+
+  const insertAt = rootOpenTag.index + rootOpenTag[0].length;
+  return shell.slice(0, insertAt) + article + shell.slice(insertAt);
+};
+
 /** 웹 표준 핸들러 — `test/api/postHtml.test.ts` 가 `handler(new Request(...))` 로 직접 호출한다. */
 export async function handler(request: Request): Promise<Response> {
   const { origin, searchParams } = new URL(request.url);
@@ -155,7 +186,9 @@ export async function handler(request: Request): Promise<Response> {
   if (result.status === 'unavailable') return htmlResponse(shell, 200, CACHE_NO_STORE);
   if (result.status === 'not-found') return htmlResponse(shell, 404, CACHE_NO_STORE);
 
-  return htmlResponse(applyPostMeta(shell, result.post, resolveSiteUrl(request.url)), 200, CACHE_POST);
+  // 메타 치환 후, ok 경로에서만 본문을 주입한다(not-found/unavailable/예약 세그먼트는 셸 그대로).
+  const withMeta = applyPostMeta(shell, result.post, resolveSiteUrl(request.url));
+  return htmlResponse(injectPostBody(withMeta, result.post), 200, CACHE_POST);
 }
 
 /** ⚠ Vercel 이 실제로 호출하는 진입점. 어댑터를 벗기면 무응답으로 되돌아간다(위 "런타임" 주석). */
