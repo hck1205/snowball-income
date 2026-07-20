@@ -77,6 +77,14 @@
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+    <!--
+      구글 검색결과 파비콘은 **48px의 배수(최소 48×48)** 를 요구한다. 16/32px만 선언하면 요건
+      미달로 기본 지구본 아이콘으로 폴백된다. 192·512px PNG를 명시해 구글이 고를 수 있게 한다.
+      (구글은 자체 크롤 주기로 갱신하므로 반영까지 며칠~몇 주 걸릴 수 있고, Search Console에서
+       재색인 요청으로 재촉만 가능하다.)
+    -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link
       rel="alternate"

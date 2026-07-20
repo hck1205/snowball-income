@@ -8,6 +8,11 @@
         "GOOGLE_PROJECT_ID": "snowball-income-487806",
         "GOOGLE_CLOUD_PROJECT": "snowball-income-487806"
       }
+    },
+    "codegraph": {
+      "type": "stdio",
+      "command": "codegraph",
+      "args": ["serve", "--mcp"]
     }
   }
 }
