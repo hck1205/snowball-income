@@ -12,9 +12,9 @@ import {
   replaceMetaContent,
   replaceTitleTag,
   resolveSiteUrl
-} from '@/shared/lib/og';
-import type { PublicPostKind, PublicPostMeta } from '@/shared/lib/og';
-import { toNodeHandler } from '@/shared/lib/server';
+} from '../shared/lib/og';
+import type { PublicPostKind, PublicPostMeta } from '../shared/lib/og';
+import { toNodeHandler } from '../shared/lib/server';
 
 /**
  * `/api/post-html?kind=<board|portfolio>&id=<uuid>` — 커뮤니티 **글 상세의 진입 HTML**.

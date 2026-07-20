@@ -14,8 +14,8 @@ import {
   NAVER_TOKEN_ENDPOINT,
   type NaverAuthDeps,
   type NaverProfile
-} from '@/shared/lib/community';
-import { toNodeHandler } from '@/shared/lib/server';
+} from '../shared/lib/community';
+import { toNodeHandler } from '../shared/lib/server';
 
 /**
  * 네이버 로그인 세션 발급 — `POST /api/naver-auth`, body { code, state } (application/json).
