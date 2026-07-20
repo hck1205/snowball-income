@@ -110,7 +110,6 @@ export const TOUCH_TARGET = '44px';
  */
 export const zIndex = {
   drawerBackdrop: 55,
-  drawerToggle: 54,
   drawer: 60,
   dropdown: 20,
   /**
@@ -119,7 +118,8 @@ export const zIndex = {
    * 반드시 `dropdown`보다 **높아야** 한다. 헤더가 스태킹 컨텍스트(sticky+z-index, backdrop-filter…)를
    * 만들면 그 안의 드롭다운(`dropdown`=20)은 헤더 층위 밖으로 못 나가므로, 헤더를 드롭다운보다
    * 낮게 두면 "헤더는 드롭다운 아래"라는 의도가 오히려 **드롭다운을 콘텐츠 아래로 끌어내린다**.
-   * 드로어 계열(54~60)보다는 낮게 유지해 모바일 드로어가 헤더를 덮는 순서를 지킨다.
+   * 드로어 계열(55~60)보다는 낮게 유지해 모바일 드로어가 헤더를 덮는 순서를 지킨다.
+   * (구 `drawerToggle`(54)은 드로어 토글이 헤더 안 정적 버튼이 되면서 삭제됐다 — fixed 승격 없음.)
    */
   headerSurface: 30,
   tooltip: 2000,
