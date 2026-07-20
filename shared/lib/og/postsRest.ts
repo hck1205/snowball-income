@@ -46,6 +46,11 @@ export type PublicPostRef = {
 export type PublicPostMeta = PublicPostRef & {
   title: string;
   description: string | null;
+  /**
+   * 본문 리치 HTML(Tiptap). **정화되지 않은 원본**이므로 서버 주입 전 반드시 `sanitizePostBody` 를
+   * 통과시킨다(PR-B 본문 ISR). 첨부만 있는 포트폴리오 글은 빈 문자열일 수 있어 `null` 을 허용한다.
+   */
+  body: string | null;
 };
 
 /**
@@ -72,6 +77,7 @@ type PostRestRow = {
   kind?: unknown;
   title?: unknown;
   description?: unknown;
+  body?: unknown;
   updated_at?: unknown;
 };
 
@@ -131,7 +137,7 @@ export const fetchPublicPostMeta = async (kind: PublicPostKind, id: string): Pro
   if (!config) return { status: 'unavailable' };
 
   const query = new URLSearchParams({
-    select: 'id,kind,title,description,updated_at',
+    select: 'id,kind,title,description,body,updated_at',
     id: `eq.${id}`,
     kind: `eq.${kind}`,
     is_public: 'eq.true',
@@ -159,7 +165,9 @@ export const fetchPublicPostMeta = async (kind: PublicPostKind, id: string): Pro
       post: {
         ...ref,
         title: row.title,
-        description: typeof row.description === 'string' && row.description.length > 0 ? row.description : null
+        description: typeof row.description === 'string' && row.description.length > 0 ? row.description : null,
+        // 문자열이 아니면(누락·null·비문자) null — 빈 body 도 정상(첨부만 있는 포트폴리오 글).
+        body: typeof row.body === 'string' ? row.body : null
       }
     };
   } catch {

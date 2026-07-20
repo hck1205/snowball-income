@@ -21,8 +21,9 @@ import DOMPurify from 'dompurify';
  * dompurify는 `window`가 없으면 `createDOMPurify`가 **`sanitize`·`addHook`을 정의하기 전에 조기
  * return** 한다(실측: Node에서 `isSupported=false`, `sanitize=undefined`). 즉 "정화가 느슨해지는"
  * 정도가 아니라 TypeError로 죽고, 그걸 try/catch로 삼키면 **raw HTML 패스스루(XSS)** 가 된다.
- * 서버에서 재사용하려면 `createDOMPurify(jsdomWindow)` 주입형 팩토리로 먼저 리팩터링할 것.
- * 재사용해도 안전한 것은 아래 **데이터(ALLOWED_TAGS/ALLOWED_ATTR)뿐**이다.
+ * 서버에서 재사용하려면 `configureRichHtmlSanitizer(createDOMPurify(jsdomWindow))` 로 별도 인스턴스를
+ * 구성한다(서버 전용 모듈에서만 — jsdom import 를 이 파일에 넣지 마라). 이 파일에서 서버가 재사용해도
+ * 안전한 것은 **데이터(ALLOWED_TAGS/ALLOWED_ATTR)와 순수 설정 팩토리(configureRichHtmlSanitizer)뿐**이다.
  *
  * 의도적으로 **속성을 만드는 서식은 넣지 않는다**(정렬/하이라이트/글자색 = style·class 속성 필요).
  * 속성 화이트리스트가 넓어질수록 XSS 표면과 서버 측 동기화 비용이 함께 커진다.
@@ -30,7 +31,7 @@ import DOMPurify from 'dompurify';
  * ⚠ 표(table)는 위 원칙의 유일한 예외로 `colspan`/`rowspan` 두 속성을 연다. 값은 정수만
  * 허용하도록 아래 훅이 한 번 더 거른다(DOMPurify는 속성 **값**을 검증하지 않는다).
  */
-const ALLOWED_TAGS = [
+export const ALLOWED_TAGS = [
   'p',
   'br',
   'strong',
@@ -77,7 +78,7 @@ const ALLOWED_TAGS = [
   'td'
 ];
 
-const ALLOWED_ATTR = ['href', 'target', 'rel', 'colspan', 'rowspan'];
+export const ALLOWED_ATTR = ['href', 'target', 'rel', 'colspan', 'rowspan'];
 
 /** `colspan`/`rowspan`을 다는 표 셀 태그. */
 const TABLE_CELL_TAGS = new Set(['th', 'td']);
@@ -85,22 +86,32 @@ const TABLE_CELL_TAGS = new Set(['th', 'td']);
 /** 표 셀 span 속성의 상한 — 정상 편집으로는 닿지 않는 값이며, 거대 span으로 인한 렌더 폭주를 막는다. */
 const MAX_CELL_SPAN = 1000;
 
-let hookInstalled = false;
+/** 이미 훅을 설치한 DOMPurify 인스턴스. 인스턴스별 1회 설치를 보장한다(브라우저 기본 ↔ 서버 jsdom 별개). */
+const configuredInstances = new WeakSet<object>();
 
 /**
- * `afterSanitizeAttributes` 훅을 **한 번만** 설치한다(DOMPurify 훅은 전역 누적이라 중복 설치하면
- * 같은 로직이 노드마다 여러 번 돈다).
+ * 주어진 DOMPurify 인스턴스에 `afterSanitizeAttributes` 훅을 설치한다 — **DOM 비의존 순수 설정**.
+ *
+ * 브라우저 기본 인스턴스(`sanitizeRichHtml`)와 서버 jsdom 인스턴스(ISR 본문 주입)가 **정확히 같은
+ * 훅 로직**을 공유하게 하는 단일 출처다. 허용목록(`ALLOWED_TAGS`/`ALLOWED_ATTR`)도 한 상수를 공유하므로
+ * 두 표면의 정화 결과가 "같은 코드"라서 자동으로 일치한다.
+ *
+ * 훅은 **인스턴스별 한 번만** 설치한다(DOMPurify 훅은 인스턴스에 누적이라, 중복 설치하면 같은 로직이
+ * 노드마다 여러 번 돈다). `WeakSet` 가드로 같은 인스턴스에 대한 반복 호출을 무시한다.
  *
  * - 링크: 안전한 rel/target 강제, http(s)/mailto가 아닌 href 제거.
  * - 표 셀: `colspan`/`rowspan`이 양의 정수가 아니면 제거. DOMPurify는 속성 **이름**만 화이트리스트로
  *   거르고 **값은 그대로 통과**시키므로, 값 검증은 이 훅이 유일한 방어선이다.
  */
-const ensureSanitizeHooks = (): void => {
-  if (hookInstalled) return;
-  hookInstalled = true;
+export const configureRichHtmlSanitizer = (purify: typeof DOMPurify): void => {
+  if (configuredInstances.has(purify)) return;
+  configuredInstances.add(purify);
 
-  DOMPurify.addHook('afterSanitizeAttributes', (node) => {
-    if (!(node instanceof Element)) return;
+  purify.addHook('afterSanitizeAttributes', (node) => {
+    // 전역 `Element` 는 Node 런타임에 없어 `instanceof Element` 는 서버 jsdom 인스턴스에서 던진다
+    // (jsdom 노드는 window.Element 인스턴스지 전역 Element 가 아니다). nodeType(=ELEMENT_NODE 1)로
+    // 판정해야 브라우저·서버 양쪽에서 안전하다.
+    if (node.nodeType !== 1) return;
 
     const tag = node.tagName.toLowerCase();
 
@@ -148,7 +159,7 @@ export const sanitizeRichHtml = (html: string): string => {
         '서버에서 쓰려면 createDOMPurify(jsdomWindow) 주입형 팩토리가 필요하다.'
     );
   }
-  ensureSanitizeHooks();
+  configureRichHtmlSanitizer(DOMPurify);
   return DOMPurify.sanitize(html, {
     ALLOWED_TAGS,
     ALLOWED_ATTR,
