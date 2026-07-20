@@ -6,16 +6,16 @@ import { ImageResponse } from '@vercel/og';
   **import 되는 순간 TypeError 로 함수 전체가 죽는다** (아래 try/catch 로도 못 잡는다 — 모듈 평가 단계다).
   실제로 번들해서 Node 로 돌려 보고 잡은 문제다. `/api` 는 Vercel 규약상 앱의 배럴 규칙 예외로 다룬다.
 */
-import { decodeSharedScenario } from '@/pages/Main/hooks/persistence/shareLink';
+import { decodeSharedScenario } from '../pages/Main/hooks/persistence/shareLink';
 import {
   summarizeShareCodeForOg,
   summarizeSharedScenarioForOg,
   formatOgAmount,
   formatOgHoldingsLine,
   type OgCardModel
-} from '@/pages/Main/utils/ogCard';
-import { DB_SHARE_KEY_PATTERN, fetchSharedSnapshotByKey } from '@/shared/lib/og';
-import { toNodeHandler } from '@/shared/lib/server';
+} from '../pages/Main/utils/ogCard';
+import { DB_SHARE_KEY_PATTERN, fetchSharedSnapshotByKey } from '../shared/lib/og';
+import { toNodeHandler } from '../shared/lib/server';
 
 /**
  * 동적 OG 이미지 — `/api/og?share=<공유 코드>` → 1200×630 PNG.

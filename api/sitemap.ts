@@ -3,9 +3,9 @@
   Vercel Node 런타임에서 함수가 즉사한다(try/catch 로도 못 잡는 모듈 평가 단계). `@/shared/lib/og` 는
   순수 문자열 + process.env 조회만 담고 있어 안전하다. `/api` 는 Vercel 규약상 배럴 규칙 예외.
 */
-import { fetchPublicPostRefs, resolveSiteUrl, SITEMAP_POST_LIMIT } from '@/shared/lib/og';
-import type { PublicPostRef } from '@/shared/lib/og';
-import { toNodeHandler } from '@/shared/lib/server';
+import { fetchPublicPostRefs, resolveSiteUrl, SITEMAP_POST_LIMIT } from '../shared/lib/og';
+import type { PublicPostRef } from '../shared/lib/og';
+import { toNodeHandler } from '../shared/lib/server';
 
 /**
  * `/api/sitemap` — **공개 게시글**의 동적 사이트맵(`<urlset>`).

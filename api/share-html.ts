@@ -5,9 +5,9 @@
   - `@/pages/Main/utils/ogCard` 는 **배럴이 아니라 파일을 직접** 가져온다(배럴은 analytics 를 끌어옴).
   둘 다 og.tsx 가 이미 쓰는 안전한 경로다. `/api` 는 Vercel 규약상 배럴 규칙 예외.
 */
-import { DB_SHARE_KEY_PATTERN, fetchSharedSnapshotByKey, replaceMetaContent } from '@/shared/lib/og';
-import { buildOgShareText, summarizeSharedScenarioForOg, type OgCardModel } from '@/pages/Main/utils/ogCard';
-import { toNodeHandler } from '@/shared/lib/server';
+import { DB_SHARE_KEY_PATTERN, fetchSharedSnapshotByKey, replaceMetaContent } from '../shared/lib/og';
+import { buildOgShareText, summarizeSharedScenarioForOg, type OgCardModel } from '../pages/Main/utils/ogCard';
+import { toNodeHandler } from '../shared/lib/server';
 
 /**
  * `/api/share-html?s=<key>` — DB key 공유 링크(`/?s=<key>`)의 진입 HTML.
