@@ -49,6 +49,12 @@ export type UsePostComposer = {
   title: string;
   initialBodyHtml: string;
   isPublic: boolean;
+  /**
+   * 시뮬 첨부를 이 글에 허용하는가 — `kind==='portfolio'`에서만 true.
+   * 뷰는 이 값으로 첨부 섹션 렌더를 결정한다(kind를 각자 해석하지 않도록 단일 출처).
+   */
+  attachAllowed: boolean;
+  /** 첨부된 payload. `attachAllowed=false`(게시판)면 **항상 null**이다. */
   attachedPayload: PostPayload | null;
   errors: ComposerErrors;
   submitError: boolean;
@@ -91,6 +97,22 @@ export const usePostComposer = (postId?: string, kind: PostKind = 'portfolio'): 
   const [submitError, setSubmitError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [dirty, setDirty] = useState(false);
+
+  // 시뮬 첨부는 **갤러리(portfolio) 전용**이다. 자유게시판은 순수 텍스트.
+  const attachAllowed = kind !== 'board';
+  // 게시판에서는 첨부를 "없는 것"으로 취급한다 — 뷰(미리보기/canSubmit)와 제출 검증이 모두 이 값을 본다.
+  // ⚠ 내부 state(attachedPayload)는 지우지 않는다: 수정 모드에서 서버가 준 기존 첨부를
+  //    보관만 하고 화면/저장에서 배제하기 위함(아래 submit이 payload 키 자체를 안 보낸다 → 서버 값 보존).
+  const effectiveAttachedPayload = attachAllowed ? attachedPayload : null;
+  /**
+   * "본문 대체"로 인정되는 첨부 — **게시 가능 판정에만** 쓰고 저장 인자에는 절대 싣지 않는다.
+   *
+   * 과거에는 `kind='board' + body=null + payload≠null` 글을 만들 수 있었다. 수정 모드에서
+   * effectiveAttachedPayload(=null)만 보면 그런 글이 "내용 없음"으로 판정돼 **제목 오타조차 고칠 수
+   * 없게 잠긴다**(첨부는 화면에 안 보이니 원인도 알 수 없다). 그래서 수정 모드에 한해 서버가 준
+   * 기존 첨부를 본문 대체로 인정한다. 신규 게시판 글은 여전히 본문 필수(effective=null).
+   */
+  const bodyAlternativePayload = mode === 'edit' ? attachedPayload : effectiveAttachedPayload;
 
   const ensureClient = useCallback(async () => {
     if (clientRef.current) return clientRef.current;
@@ -152,18 +174,24 @@ export const usePostComposer = (postId?: string, kind: PostKind = 'portfolio'): 
     setDirty(true);
   }, []);
 
-  const attachScenario = useCallback((payload: PostPayload) => {
-    setErrors((prev) => ({ ...prev, attach: undefined }));
-    // 뷰가 이미 selectable 후보만 넘기지만, 커밋 직전 한 번 더 검증한다(신뢰 경계는 서버지만
-    // 여기서 막으면 사용자에게 즉시 사유를 말할 수 있다). 실패 매핑은 피커 카드와 동일.
-    const issues = validatePostPayload(payload);
-    if (issues.length > 0) {
-      setErrors((prev) => ({ ...prev, attach: issueMessage(issues[0]) }));
-      return;
-    }
-    setAttachedPayload(payload);
-    setDirty(true);
-  }, []);
+  const attachScenario = useCallback(
+    (payload: PostPayload) => {
+      // 자유게시판(board)은 순수 텍스트 글이다 — 뷰가 첨부 UI를 아예 안 그리지만,
+      // 뷰가 실수해도 첨부가 새지 않도록 훅에서 한 번 더 막는다(무음 no-op).
+      if (!attachAllowed) return;
+      setErrors((prev) => ({ ...prev, attach: undefined }));
+      // 뷰가 이미 selectable 후보만 넘기지만, 커밋 직전 한 번 더 검증한다(신뢰 경계는 서버지만
+      // 여기서 막으면 사용자에게 즉시 사유를 말할 수 있다). 실패 매핑은 피커 카드와 동일.
+      const issues = validatePostPayload(payload);
+      if (issues.length > 0) {
+        setErrors((prev) => ({ ...prev, attach: issueMessage(issues[0]) }));
+        return;
+      }
+      setAttachedPayload(payload);
+      setDirty(true);
+    },
+    [attachAllowed]
+  );
 
   const detachScenario = useCallback(() => {
     setAttachedPayload(null);
@@ -171,7 +199,7 @@ export const usePostComposer = (postId?: string, kind: PostKind = 'portfolio'): 
   }, []);
 
   const bodyIsEmpty = isRichTextEmpty(bodyHtml);
-  const canSubmit = title.trim().length > 0 && (!bodyIsEmpty || attachedPayload !== null);
+  const canSubmit = title.trim().length > 0 && (!bodyIsEmpty || bodyAlternativePayload !== null);
 
   const submit = useCallback(async () => {
     const trimmedTitle = title.trim();
@@ -184,7 +212,7 @@ export const usePostComposer = (postId?: string, kind: PostKind = 'portfolio'): 
     // 실제로 저장되는 HTML을 기준으로 검증한다(서버가 sanitize된 body의 octet_length를 본다).
     const safeBody = emptyBody ? null : sanitizeRichHtml(bodyHtml);
 
-    if (emptyBody && attachedPayload === null) {
+    if (emptyBody && bodyAlternativePayload === null) {
       nextErrors.body = w.errorBodyRequired;
     } else if (!emptyBody && htmlToPlainText(bodyHtml).length > COMMUNITY_BODY_MAX_LENGTH) {
       // UX 보조: plain-text 글자수 상한.
@@ -194,8 +222,8 @@ export const usePostComposer = (postId?: string, kind: PostKind = 'portfolio'): 
       nextErrors.body = w.errorBodyTooLarge;
     }
 
-    if (attachedPayload) {
-      const issues = validatePostPayload(attachedPayload);
+    if (effectiveAttachedPayload) {
+      const issues = validatePostPayload(effectiveAttachedPayload);
       if (issues.length > 0) nextErrors.attach = issueMessage(issues[0]);
     }
 
@@ -219,26 +247,31 @@ export const usePostComposer = (postId?: string, kind: PostKind = 'portfolio'): 
         setSubmitting(false);
         return;
       }
+      // 첨부 필드는 갤러리에서만 전송한다. 게시판이면 `payload` 키 자체를 뺀다 →
+      //   · 신규: 서버 컬럼 기본값(NULL) → sim_summary도 저장 안 됨
+      //   · 수정: updatePost가 payload/sim_summary 키를 아예 안 보내 **기존 첨부가 보존**된다
+      //          (구 게시판 글에 붙어 있던 첨부를 조용히 지우지 않는다 — 사용자 데이터 보호)
+      const attachFields = attachAllowed ? { payload: effectiveAttachedPayload } : {};
       const saved =
         mode === 'edit' && postId
           ? await updatePost(client, postId, {
               title: trimmedTitle,
               description: finalDescription,
               body: safeBody,
-              payload: attachedPayload,
+              ...attachFields,
               isPublic
             })
           : await publishPost(client, {
               title: trimmedTitle,
               description: finalDescription,
               body: safeBody,
-              payload: attachedPayload,
+              ...attachFields,
               isPublic,
               kind
             });
       // 새 글 발행 성공 시에만 계측(수정은 발행이 아님). has_sim = 시뮬 첨부 여부(Key Event, 창작 전환).
       if (mode !== 'edit') {
-        track(ANALYTICS_EVENT.COMMUNITY_POST_PUBLISHED, { has_sim: attachedPayload !== null });
+        track(ANALYTICS_EVENT.COMMUNITY_POST_PUBLISHED, { has_sim: effectiveAttachedPayload !== null });
         setUserProperties({ community_active: true });
       }
       setDirty(false);
@@ -247,7 +280,20 @@ export const usePostComposer = (postId?: string, kind: PostKind = 'portfolio'): 
       setSubmitError(true);
       setSubmitting(false);
     }
-  }, [attachedPayload, bodyHtml, ensureClient, isPublic, kind, mode, navigate, postId, sectionBase, title]);
+  }, [
+    attachAllowed,
+    bodyAlternativePayload,
+    effectiveAttachedPayload,
+    bodyHtml,
+    ensureClient,
+    isPublic,
+    kind,
+    mode,
+    navigate,
+    postId,
+    sectionBase,
+    title
+  ]);
 
   return {
     mode,
@@ -255,7 +301,8 @@ export const usePostComposer = (postId?: string, kind: PostKind = 'portfolio'): 
     title,
     initialBodyHtml,
     isPublic,
-    attachedPayload,
+    attachAllowed,
+    attachedPayload: effectiveAttachedPayload,
     errors,
     submitError,
     submitting,

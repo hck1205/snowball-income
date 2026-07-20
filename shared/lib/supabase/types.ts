@@ -43,6 +43,15 @@ export type ProfileRow = {
   id: string;
   display_name: string;
   avatar_url: string | null;
+  /**
+   * 운영자 여부 (마이그레이션 20260725000000). NOT NULL DEFAULT false.
+   *
+   * ⚠ **표시 힌트일 뿐 권한이 아니다** — 이 값에 걸린 RLS 정책은 없다(사용자 결정: 이번 차단은
+   *   UI 수준만). 서버가 막아야 하는 동작을 이 불리언만으로 게이팅하지 말 것.
+   * ⚠ 마이그레이션 실행 전에는 컬럼이 아예 없다. 그래서 `fetchMyProfile` 은 이 이름을 select
+   *   목록에 넣지 않고(`select *`) 응답에서 `?? false` 로만 읽는다 — 컬럼 부재 = 일반 사용자.
+   */
+  is_admin: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -197,6 +206,16 @@ export type CommentLikeRow = {
 
 /** 작성자 프로필이 임베드된 형태 (PostgREST `select=*,author:profiles(...)`). */
 export type CommunityAuthor = Pick<ProfileRow, 'id' | 'display_name' | 'avatar_url'>;
+
+/**
+ * **내** 프로필 — 작성자 임베드(CommunityAuthor)보다 한 필드 넓다.
+ *
+ * `is_admin` 을 CommunityAuthor 에 넣지 않은 이유: 목록/상세의 작성자 임베드
+ * (`author:profiles(id,display_name,avatar_url)`)는 컬럼을 **명시 나열**하므로 그 타입에
+ * is_admin 이 생기면 임베드 select 도 전부 고쳐야 하고, 그 순간 마이그레이션 미실행 환경에서
+ * 갤러리/상세가 42703 으로 통째로 죽는다. 관리자 여부는 "내 프로필"에서만 필요하므로 분리한다.
+ */
+export type MyProfile = CommunityAuthor & Pick<ProfileRow, 'is_admin'>;
 
 export type PostWithAuthor = PostRow & { author: CommunityAuthor | null };
 export type CommentWithAuthor = CommentRow & { author: CommunityAuthor | null };
