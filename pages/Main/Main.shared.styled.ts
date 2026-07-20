@@ -1315,14 +1315,19 @@ const stackedLegendItem = `
   grid-template-columns: 16px 40px minmax(0, 1fr) 48px;
   grid-template-areas:
     'dot name name value'
-    'dot fix slider slider';
+    'dot slider slider fix';
   gap: ${space[2]};
 `;
 
 export const AllocationLegendItem = styled.li`
   display: grid;
-  grid-template-columns: 16px 72px 40px minmax(120px, 1fr) 52px;
-  grid-template-areas: 'dot name fix slider value';
+  /*
+   * 고정 버튼은 행의 **맨 우측**이다. 한때 슬라이더 앞(name 다음)으로 옮겼던 이유는
+   * 모바일에서 슬라이더를 쓸다가 오른쪽 끝의 고정을 잘못 누르는 사고였는데,
+   * 카드 헤더의 "비율 조절 잠금" 토글이 그 오조작을 원천 차단하면서 근거가 사라졌다.
+   */
+  grid-template-columns: 16px 72px minmax(120px, 1fr) 52px 40px;
+  grid-template-areas: 'dot name slider value fix';
   gap: ${space[2]};
   align-items: center;
   font-size: ${font.size.xs};
