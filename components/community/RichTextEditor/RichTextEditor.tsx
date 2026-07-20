@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
-import { EditorContent, useEditor, useEditorState } from '@tiptap/react';
+import { EditorContent, useEditor, useEditorState, type Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -85,9 +85,6 @@ const ToolButton = ({ label, shortcut, active, disabled, onClick, children }: To
  * `value`를 되먹이지 않는 비제어 방식이라 조합 중 상태를 덮어쓰지 않는다.
  */
 export default function RichTextEditor({ initialHtml, onChange, ariaLabel, placeholder }: RichTextEditorProps) {
-  const [linkOpen, setLinkOpen] = useState(false);
-  const [linkValue, setLinkValue] = useState('');
-
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
@@ -117,29 +114,49 @@ export default function RichTextEditor({ initialHtml, onChange, ariaLabel, place
     }
   });
 
-  const state = useEditorState({
-    editor,
-    selector: ({ editor: current }) => ({
-      bold: current?.isActive('bold') ?? false,
-      italic: current?.isActive('italic') ?? false,
-      underline: current?.isActive('underline') ?? false,
-      strike: current?.isActive('strike') ?? false,
-      code: current?.isActive('code') ?? false,
-      h2: current?.isActive('heading', { level: 2 }) ?? false,
-      h3: current?.isActive('heading', { level: 3 }) ?? false,
-      blockquote: current?.isActive('blockquote') ?? false,
-      codeBlock: current?.isActive('codeBlock') ?? false,
-      bullet: current?.isActive('bulletList') ?? false,
-      ordered: current?.isActive('orderedList') ?? false,
-      link: current?.isActive('link') ?? false,
-      canUndo: current?.can().undo() ?? false,
-      canRedo: current?.can().redo() ?? false
-    })
-  });
-
+  /*
+   * ⚠ **훅 개수 고정** — 여기서 `useEditorState`를 부르면 안 된다.
+   *
+   * `immediatelyRender: false`라 첫 렌더에는 `editor`가 null이고 다음 렌더에 인스턴스가 생긴다.
+   * `useEditorState`는 editor 유무에 따라 내부 훅 경로가 갈려서, 같은 컴포넌트가 렌더마다 다른
+   * 개수의 훅을 부르게 된다 → 프로덕션 빌드에서 **React #311**("Rendered fewer hooks than
+   * expected")로 글쓰기 화면 전체가 죽는다. 개발 빌드·jsdom에서는 드러나지 않아 테스트 83개가
+   * 전부 통과한 채로 배포됐다.
+   *
+   * 그래서 editor가 **확정된 뒤에만 마운트되는 자식**으로 나눈다. 자식은 `editor`를 non-null로
+   * 받으므로 훅 개수가 항상 같다.
+   */
   if (!editor) {
     return <EditorShell aria-busy="true" />;
   }
+
+  return <RichTextEditorBody editor={editor} />;
+}
+
+/** 툴바 + 본문. `editor`가 준비된 뒤에만 마운트되므로 훅 개수가 렌더마다 동일하다(위 ⚠ 참고). */
+function RichTextEditorBody({ editor }: { editor: Editor }) {
+  const [linkOpen, setLinkOpen] = useState(false);
+  const [linkValue, setLinkValue] = useState('');
+
+  const state = useEditorState({
+    editor,
+    selector: ({ editor: current }) => ({
+      bold: current.isActive('bold'),
+      italic: current.isActive('italic'),
+      underline: current.isActive('underline'),
+      strike: current.isActive('strike'),
+      code: current.isActive('code'),
+      h2: current.isActive('heading', { level: 2 }),
+      h3: current.isActive('heading', { level: 3 }),
+      blockquote: current.isActive('blockquote'),
+      codeBlock: current.isActive('codeBlock'),
+      bullet: current.isActive('bulletList'),
+      ordered: current.isActive('orderedList'),
+      link: current.isActive('link'),
+      canUndo: current.can().undo(),
+      canRedo: current.can().redo()
+    })
+  });
 
   const openLinkEditor = () => {
     const existing = (editor.getAttributes('link').href as string | undefined) ?? '';
