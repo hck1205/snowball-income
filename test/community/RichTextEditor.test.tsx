@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { RichTextEditor } from '@/components/community/RichTextEditor';
 import { sanitizeRichHtml } from '@/shared/lib/richtext';
@@ -78,17 +78,19 @@ const body = () => screen.getByRole('textbox', { name: c.bodyAriaLabel });
 
 describe('RichTextEditor — 툴바 구성', () => {
   /**
-   * 실측 15개다 (서식 5 + 문단 4 + 목록 2 + 삽입 2 + 이력 2).
+   * 실측 16개다 (서식 5 + 문단 4 + 목록 2 + 삽입 3 + 이력 2).
    * "7→14 확장"이라는 서술과 어긋나지만 구현/카피가 일관되므로 실제 값으로 고정한다.
+   *
+   * 표 조작 5개는 커서가 표 안일 때만 나타나는 **컨텍스트 행**이라 기본 상태의 이 수에 안 들어간다.
    */
-  it('툴바에 15개 버튼이 5개 그룹으로 노출된다', async () => {
+  it('툴바에 16개 버튼이 5개 그룹으로 노출된다', async () => {
     const harness = await renderEditor();
 
-    expect(within(harness.toolbar).getAllByRole('button')).toHaveLength(15);
+    expect(within(harness.toolbar).getAllByRole('button')).toHaveLength(16);
     expect(within(harness.toolbar).getAllByRole('group')).toHaveLength(5);
   });
 
-  it('그룹별 버튼 수가 설계(5/4/2/2/2)와 일치한다', async () => {
+  it('그룹별 버튼 수가 설계(5/4/2/3/2)와 일치한다', async () => {
     const harness = await renderEditor();
     const countIn = (name: string) =>
       within(within(harness.toolbar).getByRole('group', { name })).getAllByRole('button').length;
@@ -96,7 +98,7 @@ describe('RichTextEditor — 툴바 구성', () => {
     expect(countIn(c.toolbarGroupInline)).toBe(5);
     expect(countIn(c.toolbarGroupBlock)).toBe(4);
     expect(countIn(c.toolbarGroupList)).toBe(2);
-    expect(countIn(c.toolbarGroupInsert)).toBe(2);
+    expect(countIn(c.toolbarGroupInsert)).toBe(3);
     expect(countIn(c.toolbarGroupHistory)).toBe(2);
   });
 
@@ -330,6 +332,237 @@ describe('RichTextEditor → sanitize 왕복 (툴바에서 만든 서식이 저�
     expect(saved).toContain('<strong');
     expect(saved).toContain('<u');
     expect(saved).toContain('<s');
+  });
+});
+
+/**
+ * 표(table) — **이 트랙의 핵심 스위트**.
+ *
+ * 표는 sanitize 허용 목록과 짝이 어긋나기 가장 쉬운 서식이다(Tiptap이 style·colgroup을 함께 뱉고,
+ * 그 둘은 일부러 허용하지 않는다). 그래서 "픽스처가 통과한다"가 아니라 **버튼을 실제로 눌러 나온
+ * HTML이 sanitize를 통과하는지**를 못 박는다 — 이게 초록이면 "편집기엔 보이는데 저장하면 사라지는 표"
+ * 사고가 원천 차단된다.
+ */
+describe('RichTextEditor → sanitize 왕복 (표)', () => {
+  it('표 삽입 버튼이 만든 표가 sanitize 후에도 살아남는다', async () => {
+    const harness = await renderEditor('<p>본문</p>');
+
+    await clickTool(harness, c.insertTable);
+
+    const produced = harness.latestHtml().toLowerCase();
+    expect(produced, `에디터가 <table>을 만들지 않음: ${produced}`).toContain('<table');
+
+    const saved = sanitizeRichHtml(harness.latestHtml()).toLowerCase();
+    for (const tag of ['table', 'tbody', 'tr', 'th', 'td']) {
+      expect(saved, `sanitize가 <${tag}>를 삼킴: ${saved}`).toContain(`<${tag}`);
+    }
+  });
+
+  it('저장된 표는 3행(헤더 1 + 본문 2) × 3열 구조를 유지한다', async () => {
+    const harness = await renderEditor('<p>본문</p>');
+
+    await clickTool(harness, c.insertTable);
+    const saved = sanitizeRichHtml(harness.latestHtml());
+
+    // 문자열이 아니라 파싱된 DOM으로 구조를 센다(직렬화 형태에 의존하지 않기 위해).
+    const holder = document.createElement('div');
+    holder.innerHTML = saved;
+
+    expect(holder.querySelectorAll('table')).toHaveLength(1);
+    expect(holder.querySelectorAll('tr')).toHaveLength(3);
+    expect(holder.querySelectorAll('th')).toHaveLength(3);
+    expect(holder.querySelectorAll('td')).toHaveLength(6);
+  });
+
+  it('에디터가 뱉는 style·colgroup은 sanitize에서 떨어진다 (표 자체는 유지)', async () => {
+    const harness = await renderEditor('<p>본문</p>');
+
+    await clickTool(harness, c.insertTable);
+
+    // 실측 전제: Tiptap은 resizable:false 인데도 style/colgroup을 뱉는다. 이 전제가 깨지면 알아채야 한다.
+    const produced = harness.latestHtml().toLowerCase();
+    expect(produced, `Tiptap이 더는 colgroup을 뱉지 않는다면 sanitize 주석을 갱신할 것: ${produced}`).toContain(
+      '<colgroup'
+    );
+
+    const saved = sanitizeRichHtml(harness.latestHtml()).toLowerCase();
+    expect(saved).not.toContain('style=');
+    expect(saved).not.toContain('<colgroup');
+    expect(saved).not.toContain('<col');
+    expect(saved).toContain('<table');
+  });
+
+  it('표와 기존 본문이 함께 있어도 둘 다 저장 후 남는다', async () => {
+    const harness = await renderEditor('<h2>제목</h2><p><strong>굵게</strong></p>');
+
+    await clickTool(harness, c.insertTable);
+
+    const saved = sanitizeRichHtml(harness.latestHtml());
+    expect(saved.toLowerCase()).toContain('<table');
+    expect(saved.toLowerCase()).toContain('<h2');
+    expect(saved.toLowerCase()).toContain('<strong');
+    expect(saved).toContain('제목');
+    expect(saved).toContain('굵게');
+  });
+
+  it('열을 추가한 표도 sanitize 후 열 수가 유지된다', async () => {
+    const harness = await renderEditor('<p>본문</p>');
+
+    await clickTool(harness, c.insertTable);
+    await clickTool(harness, c.tableAddColumn);
+
+    const holder = document.createElement('div');
+    holder.innerHTML = sanitizeRichHtml(harness.latestHtml());
+
+    expect(holder.querySelectorAll('th')).toHaveLength(4);
+  });
+
+  it('표 삭제 후 저장하면 표가 남지 않는다', async () => {
+    const harness = await renderEditor('<p>본문</p>');
+
+    await clickTool(harness, c.insertTable);
+    await clickTool(harness, c.tableDelete);
+
+    const saved = sanitizeRichHtml(harness.latestHtml()).toLowerCase();
+    expect(saved).not.toContain('<table');
+    expect(saved).toContain('본문');
+  });
+});
+
+describe('RichTextEditor — 표 편집 컨텍스트 그룹', () => {
+  const tableGroup = () => screen.queryByRole('group', { name: c.toolbarGroupTable });
+
+  it('커서가 표 밖이면 표 편집 그룹이 렌더되지 않는다', async () => {
+    await renderEditor('<p>본문</p>');
+
+    expect(tableGroup()).toBeNull();
+  });
+
+  it('표 삽입 버튼은 표 밖에서도 항상 보인다', async () => {
+    const harness = await renderEditor('<p>본문</p>');
+
+    expect(within(harness.toolbar).getByRole('button', { name: c.insertTable })).toBeInTheDocument();
+  });
+
+  it('표를 삽입하면 표 편집 그룹과 3행 3열 표가 나타난다', async () => {
+    const harness = await renderEditor('<p>본문</p>');
+
+    await clickTool(harness, c.insertTable);
+
+    expect(tableGroup()).not.toBeNull();
+    expect(within(body()).getAllByRole('row')).toHaveLength(3);
+    expect(within(body()).getAllByRole('columnheader')).toHaveLength(3);
+  });
+
+  it('표 편집 그룹에 조작 버튼 5개가 접근명으로 노출된다', async () => {
+    const harness = await renderEditor('<p>본문</p>');
+
+    await clickTool(harness, c.insertTable);
+    const group = screen.getByRole('group', { name: c.toolbarGroupTable });
+
+    for (const label of [c.tableAddRow, c.tableDeleteRow, c.tableAddColumn, c.tableDeleteColumn, c.tableDelete]) {
+      expect(within(group).getByRole('button', { name: label })).toBeInTheDocument();
+    }
+    expect(within(group).getAllByRole('button')).toHaveLength(5);
+  });
+
+  it('표 조작 버튼에는 aria-pressed가 없다 (토글이 아니라 명령이다)', async () => {
+    const harness = await renderEditor('<p>본문</p>');
+
+    await clickTool(harness, c.insertTable);
+    const group = screen.getByRole('group', { name: c.toolbarGroupTable });
+
+    for (const label of [c.tableAddRow, c.tableDeleteRow, c.tableAddColumn, c.tableDeleteColumn, c.tableDelete]) {
+      expect(within(group).getByRole('button', { name: label })).not.toHaveAttribute('aria-pressed');
+    }
+    expect(within(harness.toolbar).getByRole('button', { name: c.insertTable })).not.toHaveAttribute('aria-pressed');
+  });
+
+  it('행 추가를 누르면 행이 하나 늘어난다', async () => {
+    const harness = await renderEditor('<p>본문</p>');
+
+    await clickTool(harness, c.insertTable);
+    await clickTool(harness, c.tableAddRow);
+
+    expect(within(body()).getAllByRole('row')).toHaveLength(4);
+  });
+
+  it('행 삭제를 누르면 행이 하나 줄어든다', async () => {
+    const harness = await renderEditor('<p>본문</p>');
+
+    await clickTool(harness, c.insertTable);
+    await clickTool(harness, c.tableAddRow);
+    await clickTool(harness, c.tableDeleteRow);
+
+    expect(within(body()).getAllByRole('row')).toHaveLength(3);
+  });
+
+  it('열 추가를 누르면 열이 하나 늘어난다', async () => {
+    const harness = await renderEditor('<p>본문</p>');
+
+    await clickTool(harness, c.insertTable);
+    await clickTool(harness, c.tableAddColumn);
+
+    expect(within(body()).getAllByRole('columnheader')).toHaveLength(4);
+  });
+
+  it('열 삭제를 누르면 열이 하나 줄어든다', async () => {
+    const harness = await renderEditor('<p>본문</p>');
+
+    await clickTool(harness, c.insertTable);
+    await clickTool(harness, c.tableAddColumn);
+    await clickTool(harness, c.tableDeleteColumn);
+
+    expect(within(body()).getAllByRole('columnheader')).toHaveLength(3);
+  });
+
+  it('표 삭제를 누르면 표와 표 편집 그룹이 함께 사라진다', async () => {
+    const harness = await renderEditor('<p>본문</p>');
+
+    await clickTool(harness, c.insertTable);
+    expect(screen.queryByRole('table')).not.toBeNull();
+
+    await clickTool(harness, c.tableDelete);
+
+    expect(screen.queryByRole('table')).toBeNull();
+    expect(tableGroup()).toBeNull();
+  });
+
+  /**
+   * 표 편집 그룹은 **자기 자신을 없애는** 버튼(표 삭제)을 품는다. 체인에 `.focus()`가 빠지면
+   * 포커스가 사라진 버튼과 함께 `<body>`로 떨어져 키보드 사용자가 길을 잃는다.
+   *
+   * ⚠ Tiptap의 `focus()` 커맨드는 **rAF로 한 프레임 미룬다**(`requestAnimationFrame(() => view.focus())`).
+   * 그래서 클릭 직후 동기 단정은 아직 버튼을 가리켜 반드시 실패한다 — `waitFor`로 한 프레임을
+   * 넘겨야 실제 계약이 보인다. 이 지연 자체는 구현 버그가 아니라 Tiptap의 정상 동작이다.
+   */
+  it('표 삭제 후 포커스가 본문으로 돌아온다 (그룹이 사라져도 body로 떨어지지 않는다)', async () => {
+    const harness = await renderEditor('<p>본문</p>');
+
+    await clickTool(harness, c.insertTable);
+    await clickTool(harness, c.tableDelete);
+
+    await waitFor(() => expect(document.activeElement).toBe(body()));
+  });
+
+  it('행/열 조작 후에도 포커스가 본문으로 돌아온다', async () => {
+    const harness = await renderEditor('<p>본문</p>');
+
+    await clickTool(harness, c.insertTable);
+    await clickTool(harness, c.tableAddRow);
+
+    await waitFor(() => expect(document.activeElement).toBe(body()));
+  });
+
+  it('표를 지웠다가 다시 삽입하면 그룹이 다시 나타난다', async () => {
+    const harness = await renderEditor('<p>본문</p>');
+
+    await clickTool(harness, c.insertTable);
+    await clickTool(harness, c.tableDelete);
+    expect(tableGroup()).toBeNull();
+
+    await clickTool(harness, c.insertTable);
+    expect(tableGroup()).not.toBeNull();
   });
 });
 

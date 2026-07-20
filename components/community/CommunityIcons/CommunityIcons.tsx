@@ -27,6 +27,7 @@ import {
   SquareCode,
   SquarePen,
   Strikethrough,
+  Table,
   TextQuote,
   Trash2,
   Underline,
@@ -192,6 +193,11 @@ export const QuoteIcon = ({ size = 18, ...rest }: IconProps) => (
 
 export const HorizontalRuleIcon = ({ size = 18, ...rest }: IconProps) => (
   <Minus size={size} strokeWidth={LUCIDE_STROKE} aria-hidden focusable={false} {...rest} />
+);
+
+/** 표 삽입 — lucide `Table`. 삽입 버튼만 아이콘이고, 표 조작 5개는 텍스트 라벨을 쓴다. */
+export const TableIcon = ({ size = 18, ...rest }: IconProps) => (
+  <Table size={size} strokeWidth={LUCIDE_STROKE} aria-hidden focusable={false} {...rest} />
 );
 
 export const UndoIcon = ({ size = 18, ...rest }: IconProps) => (

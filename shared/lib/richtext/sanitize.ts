@@ -26,6 +26,9 @@ import DOMPurify from 'dompurify';
  *
  * 의도적으로 **속성을 만드는 서식은 넣지 않는다**(정렬/하이라이트/글자색 = style·class 속성 필요).
  * 속성 화이트리스트가 넓어질수록 XSS 표면과 서버 측 동기화 비용이 함께 커진다.
+ *
+ * ⚠ 표(table)는 위 원칙의 유일한 예외로 `colspan`/`rowspan` 두 속성을 연다. 값은 정수만
+ * 허용하도록 아래 훅이 한 번 더 거른다(DOMPurify는 속성 **값**을 검증하지 않는다).
  */
 const ALLOWED_TAGS = [
   'p',
@@ -46,31 +49,89 @@ const ALLOWED_TAGS = [
   'code',
   'pre',
   // 수평선(구분선) — 속성 없는 void 태그라 추가 비용이 없다.
-  'hr'
+  'hr',
+  /*
+   * 표. Tiptap이 실제로 뱉는 태그만 담는다(실측: `editor.getHTML()`).
+   *
+   *   <table style="min-width: 75px;">
+   *     <colgroup><col style="min-width: 25px;">…</colgroup>
+   *     <tbody><tr><th colspan="1" rowspan="1"><p></p></th>…</tr>…</tbody>
+   *   </table>
+   *
+   * 여기서 읽을 것 3가지.
+   * ① **`<thead>`는 나오지 않는다** — 헤더 행도 `<tbody>` 안의 `<tr><th>`다. 그래서 목록에 없다.
+   * ② **`colgroup`/`col`은 나오지만 일부러 허용하지 않는다** — 이 둘이 나르는 정보는 `style`의
+   *    min-width뿐인데 `style`은 절대 열지 않으므로(아래 참고) 허용해 봐야 **속성 없는 빈
+   *    `<col>`**만 남아 렌더에 아무 영향이 없다. 태그만 늘고 얻는 게 없어 제외했다.
+   *    DOMPurify는 비허용 태그의 자식을 보존하는데 `<col>`은 void라 흔적 없이 사라진다.
+   * ③ **`style`은 열지 않는다** — `Table.configure({ resizable: false })`로도 `style`은 계속
+   *    나온다(실측). 리사이즈 핸들만 꺼질 뿐 renderHTML이 항상 colgroup+min-width를 조립한다.
+   *    이 min-width는 우리 렌더 CSS(width: max-content)가 어차피 덮으므로 정화 단계에서
+   *    떨어져 나가도 표시가 달라지지 않는다. style 허용은 XSS 표면(예: `behavior`, 배경
+   *    이미지 경유 트래킹)을 통째로 여는 것이라 기능을 포기하는 편이 언제나 낫다.
+   */
+  'table',
+  'tbody',
+  'tr',
+  'th',
+  'td'
 ];
 
-const ALLOWED_ATTR = ['href', 'target', 'rel'];
+const ALLOWED_ATTR = ['href', 'target', 'rel', 'colspan', 'rowspan'];
+
+/** `colspan`/`rowspan`을 다는 표 셀 태그. */
+const TABLE_CELL_TAGS = new Set(['th', 'td']);
+
+/** 표 셀 span 속성의 상한 — 정상 편집으로는 닿지 않는 값이며, 거대 span으로 인한 렌더 폭주를 막는다. */
+const MAX_CELL_SPAN = 1000;
 
 let hookInstalled = false;
 
-/** 링크에 안전한 rel/target을 강제하고, http(s)/mailto가 아닌 href는 제거한다. */
-const ensureLinkHardening = (): void => {
+/**
+ * `afterSanitizeAttributes` 훅을 **한 번만** 설치한다(DOMPurify 훅은 전역 누적이라 중복 설치하면
+ * 같은 로직이 노드마다 여러 번 돈다).
+ *
+ * - 링크: 안전한 rel/target 강제, http(s)/mailto가 아닌 href 제거.
+ * - 표 셀: `colspan`/`rowspan`이 양의 정수가 아니면 제거. DOMPurify는 속성 **이름**만 화이트리스트로
+ *   거르고 **값은 그대로 통과**시키므로, 값 검증은 이 훅이 유일한 방어선이다.
+ */
+const ensureSanitizeHooks = (): void => {
   if (hookInstalled) return;
   hookInstalled = true;
 
   DOMPurify.addHook('afterSanitizeAttributes', (node) => {
-    if (!(node instanceof Element) || node.tagName.toLowerCase() !== 'a') return;
+    if (!(node instanceof Element)) return;
 
-    const href = node.getAttribute('href') ?? '';
-    const isSafe = /^(https?:|mailto:)/i.test(href.trim());
-    if (!isSafe) {
-      node.removeAttribute('href');
+    const tag = node.tagName.toLowerCase();
+
+    if (tag === 'a') {
+      const href = node.getAttribute('href') ?? '';
+      const isSafe = /^(https?:|mailto:)/i.test(href.trim());
+      if (!isSafe) {
+        node.removeAttribute('href');
+        return;
+      }
+
+      node.setAttribute('target', '_blank');
+      node.setAttribute('rel', 'noopener noreferrer nofollow');
       return;
     }
 
-    node.setAttribute('target', '_blank');
-    node.setAttribute('rel', 'noopener noreferrer nofollow');
+    if (TABLE_CELL_TAGS.has(tag)) {
+      for (const attribute of ['colspan', 'rowspan']) {
+        const raw = node.getAttribute(attribute);
+        if (raw === null) continue;
+        if (!isPositiveInteger(raw)) node.removeAttribute(attribute);
+      }
+    }
   });
+};
+
+/** 앞뒤 공백·부호·소수점·지수 표기를 모두 거부하는 엄격한 양의 정수 판정. */
+const isPositiveInteger = (raw: string): boolean => {
+  if (!/^\d+$/.test(raw)) return false;
+  const value = Number(raw);
+  return value >= 1 && value <= MAX_CELL_SPAN;
 };
 
 /**
@@ -87,7 +148,7 @@ export const sanitizeRichHtml = (html: string): string => {
         '서버에서 쓰려면 createDOMPurify(jsdomWindow) 주입형 팩토리가 필요하다.'
     );
   }
-  ensureLinkHardening();
+  ensureSanitizeHooks();
   return DOMPurify.sanitize(html, {
     ALLOWED_TAGS,
     ALLOWED_ATTR,
