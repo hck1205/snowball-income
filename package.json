@@ -2,7 +2,6 @@
   "name": "snowball-income",
   "version": "0.2.0",
   "private": true,
-  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "npm run ticker:parse && tsc -b tsconfig.build.json && vite build",
