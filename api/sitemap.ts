@@ -5,9 +5,15 @@
 */
 import { fetchPublicPostRefs, resolveSiteUrl, SITEMAP_POST_LIMIT } from '@/shared/lib/og';
 import type { PublicPostRef } from '@/shared/lib/og';
+import { toNodeHandler } from '@/shared/lib/server';
 
 /**
  * `/api/sitemap` — **공개 게시글**의 동적 사이트맵(`<urlset>`).
+ *
+ * ## 런타임: Node.js — **`toNodeHandler` 어댑터 필수**
+ * `export const config` 가 없으므로 Vercel 은 Node 런타임으로 배포하고 `(req, res)` 로 호출한다. 아래 웹 표준
+ * `handler` 를 그대로 default export 하면 `res.end()` 가 없어 **무응답 타임아웃**이 된다(2026-07-20 실제 장애).
+ * Edge 로 옮기는 것은 선택지가 아니다(Edge 번들러가 `@/` alias 미해석). 근거: `@/shared/lib/server` nodeHandler.ts.
  *
  * ## 라우팅: 왜 `/sitemap.xml` 이 아니라 별도 경로인가
  * `vite.config.ts` 의 `seoAssetsPlugin` 이 빌드 때 `dist/sitemap.xml` 을 **실제 파일로 emit** 한다.
@@ -83,7 +89,8 @@ ${refs.map((ref) => buildUrlEntry(siteUrl, ref)).join('\n')}
 </urlset>
 `;
 
-export default async function handler(request: Request): Promise<Response> {
+/** 웹 표준 핸들러 — `test/api/sitemap.test.ts` 가 `handler(new Request(...))` 로 직접 호출한다. */
+export async function handler(request: Request): Promise<Response> {
   const siteUrl = resolveSiteUrl(request.url);
 
   // 조회 실패(env 미설정/네트워크/스키마 드리프트)는 null → **빈 urlset 을 200 으로** 반환한다.
@@ -99,3 +106,6 @@ export default async function handler(request: Request): Promise<Response> {
     }
   });
 }
+
+/** ⚠ Vercel 이 실제로 호출하는 진입점. 어댑터를 벗기면 무응답으로 되돌아간다(위 "런타임" 주석). */
+export default toNodeHandler(handler);

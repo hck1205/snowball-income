@@ -15,14 +15,20 @@ import {
   type OgCardModel
 } from '@/pages/Main/utils/ogCard';
 import { DB_SHARE_KEY_PATTERN, fetchSharedSnapshotByKey } from '@/shared/lib/og';
+import { toNodeHandler } from '@/shared/lib/server';
 
 /**
  * 동적 OG 이미지 — `/api/og?share=<공유 코드>` → 1200×630 PNG.
  *
- * ## 런타임: Node.js (Edge 아님)
- * `@vercel/og` 는 resvg.wasm(1.4MB) + yoga.wasm(72KB) 를 함께 싣는다. Edge 런타임의 코드 크기 한도는
- * **Hobby 1MB(gzip 후)** 라 폰트/앱 로직까지 얹으면 배포가 실패한다. Node 런타임은 250MB 라 여유가 있고,
- * 현재 Vercel 문서도 OG 생성은 Node 런타임을 권장한다. 그래서 `export const config` 를 두지 않는다(= 기본 Node).
+ * ## 런타임: Node.js (Edge 아님) — **`toNodeHandler` 어댑터 필수**
+ * Node 를 고른 이유: `@vercel/og` 는 resvg.wasm(1.4MB) + yoga.wasm(72KB) 를 함께 싣는다. Edge 의 코드 크기
+ * 한도는 **Hobby 1MB(gzip 후)** 라 폰트/앱 로직까지 얹으면 배포가 실패한다(Node 는 250MB). 더해 Edge 번들러는
+ * `@/` alias(tsconfig paths)를 해석하지 못한다.
+ *
+ * 다만 "Node = `export const config` 를 안 쓰면 끝"이 **아니다**. Node 런타임은 `(req, res)` 로 호출하므로
+ * 웹 표준 `handler` 를 그대로 default export 하면 `res.end()` 가 없어 **무응답 타임아웃**이 된다
+ * (2026-07-20 실제 장애). 그래서 default 는 `toNodeHandler(handler)` 다 — 벗지 말 것.
+ * 바이너리(PNG) 본문은 어댑터의 `arrayBuffer()` 경로로 온전히 전달된다.
  *
  * ## 절대 5xx 를 내지 않는다
  * 크롤러/스크래퍼(카카오톡·페이스북·트위터)는 미리보기 요청이 실패하면 **카드를 아예 포기**한다.
@@ -235,7 +241,8 @@ const CACHE_SCENARIO = 'public, immutable, no-transform, max-age=31536000';
 /** 기본 카드는 코드 배포로 바뀔 수 있으니 하루만. */
 const CACHE_DEFAULT = 'public, no-transform, max-age=86400';
 
-export default async function handler(request: Request): Promise<Response> {
+/** 웹 표준 핸들러 — `test/api/og.test.tsx` 가 `handler(new Request(...))` 로 직접 호출한다. */
+export async function handler(request: Request): Promise<Response> {
   const { searchParams, origin } = new URL(request.url);
 
   try {
@@ -273,3 +280,6 @@ export default async function handler(request: Request): Promise<Response> {
     });
   }
 }
+
+/** ⚠ Vercel 이 실제로 호출하는 진입점. 어댑터를 벗기면 무응답으로 되돌아간다(위 "런타임" 주석). */
+export default toNodeHandler(handler);

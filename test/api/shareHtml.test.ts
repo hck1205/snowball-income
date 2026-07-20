@@ -1,4 +1,4 @@
-import handler from '@/api/share-html';
+import { handler } from '@/api/share-html';
 import { EMPTY_INVESTMENT_SETTINGS, type PersistedInvestmentSettings, type PersistedScenarioState } from '@/jotai';
 import { buildOgShareText } from '@/pages/Main/utils/ogCard';
 import { buildOgCardModel } from '@/pages/Main/utils';
