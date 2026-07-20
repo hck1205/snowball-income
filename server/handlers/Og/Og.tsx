@@ -4,18 +4,19 @@ import { ImageResponse } from '@vercel/og';
   배럴은 `usePortfolioPersistence` → `@/shared/lib/analytics` 를 끌고 오는데, analytics 는 모듈 스코프에서
   `import.meta.env.VITE_GA_MEASUREMENT_ID` 를 읽는다. Vercel Node 런타임에는 `import.meta.env` 가 없으므로
   **import 되는 순간 TypeError 로 함수 전체가 죽는다** (아래 try/catch 로도 못 잡는다 — 모듈 평가 단계다).
-  실제로 번들해서 Node 로 돌려 보고 잡은 문제다. `/api` 는 Vercel 규약상 앱의 배럴 규칙 예외로 다룬다.
+  실제로 번들해서 Node 로 돌려 보고 잡은 문제다. 앱 배럴을 우회하는 이 규칙은 폴더가 `server/handlers/` 로
+  옮겨져도 그대로 유효하다 — 근거가 Vercel 디렉터리 규약이 아니라 **런타임 제약**이기 때문이다.
 */
-import { decodeSharedScenario } from '../pages/Main/hooks/persistence/shareLink';
+import { decodeSharedScenario } from '@/pages/Main/hooks/persistence/shareLink';
 import {
   summarizeShareCodeForOg,
   summarizeSharedScenarioForOg,
   formatOgAmount,
   formatOgHoldingsLine,
   type OgCardModel
-} from '../pages/Main/utils/ogCard';
-import { DB_SHARE_KEY_PATTERN, fetchSharedSnapshotByKey } from '../shared/lib/og';
-import { toNodeHandler } from '../shared/lib/server';
+} from '@/pages/Main/utils/ogCard';
+import { DB_SHARE_KEY_PATTERN, fetchSharedSnapshotByKey } from '@/shared/lib/og';
+import { toNodeHandler } from '@/shared/lib/server';
 
 /**
  * 동적 OG 이미지 — `/api/og?share=<공유 코드>` → 1200×630 PNG.

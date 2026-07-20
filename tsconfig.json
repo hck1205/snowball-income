@@ -9,9 +9,14 @@
       깨진다**(로컬 `tsc -b` 는 tsconfig.api.json 으로 체크해 통과하므로 이 갭이 첫 배포에서야 드러났다).
       그래서 이 파일을 정상 config 로 두고, `tsc -b` 솔루션 진입점은 tsconfig.build.json 으로 분리했다.
 
-    옵션은 tsconfig.api.json 과 동일 계열이다(api/middleware 가 앱 코드를 재사용하므로 node + vite/client
-    타입, Bundler resolution, resolveJsonModule 이 모두 필요하다). include 를 api/middleware 로 한정해
+    옵션은 tsconfig.api.json 과 동일 계열이다(서버 코드가 앱 코드를 재사용하므로 node + vite/client
+    타입, Bundler resolution, resolveJsonModule 이 모두 필요하다). include 를 server/middleware 로 한정해
     Vercel 이 실제로 빌드하는 대상만 이 config 로 체크한다(앱/스크립트/테스트는 각자의 tsconfig 가 담당).
+
+    ⚠ 2026-07-20: `api/*` 는 이제 **TypeScript 소스가 아니라 커밋된 번들 산출물**(`api/*.js`)이다.
+      소스는 `server/handlers/` 에 있고 `tools/apiBundle` 이 번들한다. 그래서 include 가 api → server 로
+      바뀌었다. 이 파일이 계속 정상(non-solution) config 여야 하는 이유는 그대로다 — Vercel 이
+      `middleware.ts` 를 빌드할 때 이 파일을 읽고, 솔루션 스타일이면 paths 를 무시한다.
 
     `tsc -b` 로 전체를 타입체크하려면: `tsc -b tsconfig.build.json` (npm run build 가 이렇게 부른다).
   */
@@ -32,5 +37,5 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["api", "middleware.ts"]
+  "include": ["server", "middleware.ts"]
 }

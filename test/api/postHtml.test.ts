@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { handler } from '@/api/post-html';
+import { handler } from '@/server/handlers/PostHtml';
 
 /**
  * `/api/post-html` — 글 상세의 메타태그 ISR.

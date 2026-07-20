@@ -1,4 +1,4 @@
-import { handler } from '@/api/og';
+import { handler } from '@/server/handlers/Og';
 import {
   apiRequest,
   restoreApiTestEnvironment,

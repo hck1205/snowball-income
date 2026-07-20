@@ -1,7 +1,8 @@
 /*
   ⚠ og.tsx / share-html.ts 와 동일 규약: 모듈 스코프에서 `import.meta.env` 를 읽는 코드를 끌고 오면
   Vercel Node 런타임에서 함수가 즉사한다(try/catch 로도 못 잡는 모듈 평가 단계). `@/shared/lib/og` 는
-  순수 문자열 + process.env 조회만 담고 있어 안전하다. `/api` 는 Vercel 규약상 배럴 규칙 예외.
+  순수 문자열 + process.env 조회만 담고 있어 안전하다. 앱 배럴을 우회하는 이 규칙은 폴더가 `server/handlers/`
+  로 옮겨져도 그대로 유효하다 — 근거가 Vercel 디렉터리 규약이 아니라 **런타임 제약**이기 때문이다.
   supabase-js 도 끌어오지 않는다 — anon 키 plain REST 직접 호출(postsRest.ts).
 */
 import {
@@ -12,9 +13,9 @@ import {
   replaceMetaContent,
   replaceTitleTag,
   resolveSiteUrl
-} from '../shared/lib/og';
-import type { PublicPostKind, PublicPostMeta } from '../shared/lib/og';
-import { toNodeHandler } from '../shared/lib/server';
+} from '@/shared/lib/og';
+import type { PublicPostKind, PublicPostMeta } from '@/shared/lib/og';
+import { toNodeHandler } from '@/shared/lib/server';
 
 /**
  * `/api/post-html?kind=<board|portfolio>&id=<uuid>` — 커뮤니티 **글 상세의 진입 HTML**.

@@ -19,10 +19,10 @@
   ],
 
   "functions": {
-    "api/og.tsx": {
+    "api/og.js": {
       "maxDuration": 30
     },
-    "api/account-delete.ts": {
+    "api/account-delete.js": {
       "maxDuration": 30
     }
   }
