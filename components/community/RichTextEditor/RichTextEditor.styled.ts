@@ -23,6 +23,17 @@ export const Toolbar = styled.div`
   background: ${color.surfaceMuted};
 `;
 
+/**
+ * 툴바 버튼 묶음(서식 / 문단 / 목록 / 삽입 / 이력). 버튼이 늘어 좁은 화면에서 줄바꿈될 때
+ * 그룹 단위로 함께 넘어가도록(가로 스크롤 대신 wrap) 자체도 `flex-wrap` 을 갖는다.
+ */
+export const ToolbarGroup = styled.div`
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: ${space[1]};
+`;
+
 export const ToolbarButton = styled.button<{ active?: boolean }>`
   display: inline-flex;
   align-items: center;
@@ -96,6 +107,45 @@ export const EditorArea = styled.div`
     a {
       color: ${color.brandText};
       text-decoration: underline;
+    }
+
+    /* 저장 후 렌더(RichTextContent.styled)와 같은 톤으로 맞춘다 — 편집 중 미리보기 괴리를 줄인다. */
+    blockquote {
+      margin: 0 0 ${space[3]};
+      padding: ${space[2]} ${space[4]};
+      border-left: 3px solid ${color.brandBorder};
+      color: ${color.textSecondary};
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: ${font.size.sm};
+      background: ${color.surfaceSunken};
+      padding: 1px ${space[1]};
+      border-radius: ${radius.xs};
+    }
+
+    pre {
+      margin: 0 0 ${space[3]};
+      padding: ${space[3]};
+      background: ${color.surfaceSunken};
+      border-radius: ${radius.sm};
+      overflow-x: auto;
+
+      code {
+        background: none;
+        padding: 0;
+      }
+    }
+
+    hr {
+      margin: ${space[4]} 0;
+      border: 0;
+      border-top: 1px solid ${color.border};
+
+      &.ProseMirror-selectednode {
+        border-top-color: ${color.brand};
+      }
     }
 
     &.is-editor-empty:first-of-type::before,

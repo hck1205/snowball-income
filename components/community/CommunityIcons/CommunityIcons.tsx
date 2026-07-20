@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   ChevronDown,
   Clock,
+  Code,
   Eye,
   Flame,
   Heading,
@@ -19,10 +20,17 @@ import {
   List,
   ListOrdered,
   MessageCircle,
+  Minus,
+  Redo2,
   Search,
   SlidersHorizontal,
+  SquareCode,
   SquarePen,
+  Strikethrough,
+  TextQuote,
   Trash2,
+  Underline,
+  Undo2,
   UserRound,
   Users,
   X
@@ -159,4 +167,37 @@ export const OrderedListIcon = ({ size = 18, ...rest }: IconProps) => (
 
 export const HeadingIcon = ({ size = 18, ...rest }: IconProps) => (
   <Heading size={size} strokeWidth={LUCIDE_STROKE} aria-hidden focusable={false} {...rest} />
+);
+
+export const UnderlineIcon = ({ size = 18, ...rest }: IconProps) => (
+  <Underline size={size} strokeWidth={LUCIDE_STROKE} aria-hidden focusable={false} {...rest} />
+);
+
+export const StrikethroughIcon = ({ size = 18, ...rest }: IconProps) => (
+  <Strikethrough size={size} strokeWidth={LUCIDE_STROKE} aria-hidden focusable={false} {...rest} />
+);
+
+/** 인라인 코드(`code`) — 꺾쇠 글리프. 코드 블록은 아래 CodeBlockIcon으로 구분한다. */
+export const InlineCodeIcon = ({ size = 18, ...rest }: IconProps) => (
+  <Code size={size} strokeWidth={LUCIDE_STROKE} aria-hidden focusable={false} {...rest} />
+);
+
+export const CodeBlockIcon = ({ size = 18, ...rest }: IconProps) => (
+  <SquareCode size={size} strokeWidth={LUCIDE_STROKE} aria-hidden focusable={false} {...rest} />
+);
+
+export const QuoteIcon = ({ size = 18, ...rest }: IconProps) => (
+  <TextQuote size={size} strokeWidth={LUCIDE_STROKE} aria-hidden focusable={false} {...rest} />
+);
+
+export const HorizontalRuleIcon = ({ size = 18, ...rest }: IconProps) => (
+  <Minus size={size} strokeWidth={LUCIDE_STROKE} aria-hidden focusable={false} {...rest} />
+);
+
+export const UndoIcon = ({ size = 18, ...rest }: IconProps) => (
+  <Undo2 size={size} strokeWidth={LUCIDE_STROKE} aria-hidden focusable={false} {...rest} />
+);
+
+export const RedoIcon = ({ size = 18, ...rest }: IconProps) => (
+  <Redo2 size={size} strokeWidth={LUCIDE_STROKE} aria-hidden focusable={false} {...rest} />
 );

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { ReactNode } from 'react';
 import { EditorContent, useEditor, useEditorState } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
@@ -7,9 +8,17 @@ import { COMMUNITY_COPY } from '@/shared/constants/community';
 import {
   BoldIcon,
   BulletListIcon,
+  CodeBlockIcon,
+  HorizontalRuleIcon,
+  InlineCodeIcon,
   ItalicIcon,
   LinkIcon,
-  OrderedListIcon
+  OrderedListIcon,
+  QuoteIcon,
+  RedoIcon,
+  StrikethroughIcon,
+  UnderlineIcon,
+  UndoIcon
 } from '@/components/community/CommunityIcons';
 import {
   EditorArea,
@@ -19,7 +28,8 @@ import {
   LinkPopover,
   Toolbar,
   ToolbarButton,
-  ToolbarDivider
+  ToolbarDivider,
+  ToolbarGroup
 } from './RichTextEditor.styled';
 
 export type RichTextEditorProps = {
@@ -33,8 +43,42 @@ export type RichTextEditorProps = {
 const c = COMMUNITY_COPY.write;
 const isSafeUrl = (url: string) => /^https?:\/\//i.test(url.trim());
 
+/** 접근명은 라벨 그대로 두고 툴팁(title)에만 단축키를 덧붙인다. */
+const withShortcut = (label: string, shortcut?: string) => (shortcut ? `${label} (${shortcut})` : label);
+
+type ToolButtonProps = {
+  label: string;
+  shortcut?: string;
+  /** 토글형 버튼만 넘긴다. 삽입/이력처럼 상태가 없는 버튼은 생략해 aria-pressed를 붙이지 않는다. */
+  active?: boolean;
+  disabled?: boolean;
+  onClick: () => void;
+  children: ReactNode;
+};
+
+const ToolButton = ({ label, shortcut, active, disabled, onClick, children }: ToolButtonProps) => (
+  <ToolbarButton
+    type="button"
+    aria-label={label}
+    title={withShortcut(label, shortcut)}
+    {...(active === undefined ? {} : { 'aria-pressed': active, active })}
+    disabled={disabled}
+    onClick={onClick}
+  >
+    {children}
+  </ToolbarButton>
+);
+
 /**
- * 본문 리치 에디터(Tiptap). 툴바: 굵게/기울임/제목(H2·H3)/글머리·번호 목록/링크.
+ * 본문 리치 에디터(Tiptap).
+ *
+ * 툴바 구성(그룹 단위): 글자 서식(굵게/기울임/밑줄/취소선/인라인 코드) · 문단(H2·H3/인용/코드 블록) ·
+ * 목록(글머리/번호) · 삽입(링크/구분선) · 이력(실행 취소/다시 실행).
+ *
+ * ⚠ 툴바에 노출하는 서식은 **`shared/lib/richtext/sanitize.ts` 허용 목록과 반드시 짝이 맞아야 한다** —
+ * 허용되지 않은 태그를 만들면 편집기에선 보이다가 저장 후 렌더에서 조용히 사라진다.
+ * 밑줄·취소선·인용·코드·코드 블록·구분선은 모두 StarterKit(v3) 내장이라 추가 패키지가 없다.
+ * 정렬/하이라이트/글자색은 `style`·`class` 속성을 요구해 XSS 표면을 넓히므로 의도적으로 제외했다.
  *
  * ⚠ Tiptap에 정적으로 의존 → 글쓰기 청크에서만 import 한다(barrel 미포함).
  * 한글 IME: Tiptap이 조합 입력을 내부적으로 처리하므로 onUpdate의 getHTML을 그대로 전달해도 안전하다.
@@ -78,11 +122,18 @@ export default function RichTextEditor({ initialHtml, onChange, ariaLabel, place
     selector: ({ editor: current }) => ({
       bold: current?.isActive('bold') ?? false,
       italic: current?.isActive('italic') ?? false,
+      underline: current?.isActive('underline') ?? false,
+      strike: current?.isActive('strike') ?? false,
+      code: current?.isActive('code') ?? false,
       h2: current?.isActive('heading', { level: 2 }) ?? false,
       h3: current?.isActive('heading', { level: 3 }) ?? false,
+      blockquote: current?.isActive('blockquote') ?? false,
+      codeBlock: current?.isActive('codeBlock') ?? false,
       bullet: current?.isActive('bulletList') ?? false,
       ordered: current?.isActive('orderedList') ?? false,
-      link: current?.isActive('link') ?? false
+      link: current?.isActive('link') ?? false,
+      canUndo: current?.can().undo() ?? false,
+      canRedo: current?.can().redo() ?? false
     })
   });
 
@@ -114,107 +165,167 @@ export default function RichTextEditor({ initialHtml, onChange, ariaLabel, place
   return (
     <EditorShell>
       <Toolbar role="toolbar" aria-label={c.toolbarAriaLabel}>
-        <ToolbarButton
-          type="button"
-          aria-label={c.bold}
-          aria-pressed={state?.bold ?? false}
-          active={state?.bold}
-          onClick={() => editor.chain().focus().toggleBold().run()}
-        >
-          <BoldIcon size={16} />
-        </ToolbarButton>
-        <ToolbarButton
-          type="button"
-          aria-label={c.italic}
-          aria-pressed={state?.italic ?? false}
-          active={state?.italic}
-          onClick={() => editor.chain().focus().toggleItalic().run()}
-        >
-          <ItalicIcon size={16} />
-        </ToolbarButton>
-
-        <ToolbarDivider aria-hidden="true" />
-
-        <ToolbarButton
-          type="button"
-          aria-label={c.heading2}
-          aria-pressed={state?.h2 ?? false}
-          active={state?.h2}
-          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-        >
-          H2
-        </ToolbarButton>
-        <ToolbarButton
-          type="button"
-          aria-label={c.heading3}
-          aria-pressed={state?.h3 ?? false}
-          active={state?.h3}
-          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-        >
-          H3
-        </ToolbarButton>
-
-        <ToolbarDivider aria-hidden="true" />
-
-        <ToolbarButton
-          type="button"
-          aria-label={c.bulletList}
-          aria-pressed={state?.bullet ?? false}
-          active={state?.bullet}
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
-        >
-          <BulletListIcon size={16} />
-        </ToolbarButton>
-        <ToolbarButton
-          type="button"
-          aria-label={c.orderedList}
-          aria-pressed={state?.ordered ?? false}
-          active={state?.ordered}
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
-        >
-          <OrderedListIcon size={16} />
-        </ToolbarButton>
-
-        <ToolbarDivider aria-hidden="true" />
-
-        <LinkPopover>
-          <ToolbarButton
-            type="button"
-            aria-label={c.link}
-            aria-pressed={state?.link ?? false}
-            active={state?.link}
-            onClick={openLinkEditor}
+        <ToolbarGroup role="group" aria-label={c.toolbarGroupInline}>
+          <ToolButton
+            label={c.bold}
+            shortcut={c.shortcutBold}
+            active={state?.bold ?? false}
+            onClick={() => editor.chain().focus().toggleBold().run()}
           >
-            <LinkIcon size={16} />
-          </ToolbarButton>
-          {linkOpen ? (
-            <LinkForm
-              onSubmit={(event) => {
-                event.preventDefault();
-                applyLink();
-              }}
-            >
-              <LinkInput
-                type="url"
-                inputMode="url"
-                autoFocus
-                aria-label={c.link}
-                placeholder={c.linkUrlPlaceholder}
-                value={linkValue}
-                onChange={(event) => setLinkValue(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Escape') setLinkOpen(false);
+            <BoldIcon size={16} />
+          </ToolButton>
+          <ToolButton
+            label={c.italic}
+            shortcut={c.shortcutItalic}
+            active={state?.italic ?? false}
+            onClick={() => editor.chain().focus().toggleItalic().run()}
+          >
+            <ItalicIcon size={16} />
+          </ToolButton>
+          <ToolButton
+            label={c.underline}
+            shortcut={c.shortcutUnderline}
+            active={state?.underline ?? false}
+            onClick={() => editor.chain().focus().toggleUnderline().run()}
+          >
+            <UnderlineIcon size={16} />
+          </ToolButton>
+          <ToolButton
+            label={c.strike}
+            shortcut={c.shortcutStrike}
+            active={state?.strike ?? false}
+            onClick={() => editor.chain().focus().toggleStrike().run()}
+          >
+            <StrikethroughIcon size={16} />
+          </ToolButton>
+          <ToolButton
+            label={c.inlineCode}
+            shortcut={c.shortcutInlineCode}
+            active={state?.code ?? false}
+            onClick={() => editor.chain().focus().toggleCode().run()}
+          >
+            <InlineCodeIcon size={16} />
+          </ToolButton>
+        </ToolbarGroup>
+
+        <ToolbarDivider aria-hidden="true" />
+
+        <ToolbarGroup role="group" aria-label={c.toolbarGroupBlock}>
+          <ToolButton
+            label={c.heading2}
+            shortcut={c.shortcutHeading2}
+            active={state?.h2 ?? false}
+            onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+          >
+            H2
+          </ToolButton>
+          <ToolButton
+            label={c.heading3}
+            shortcut={c.shortcutHeading3}
+            active={state?.h3 ?? false}
+            onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+          >
+            H3
+          </ToolButton>
+          <ToolButton
+            label={c.blockquote}
+            shortcut={c.shortcutBlockquote}
+            active={state?.blockquote ?? false}
+            onClick={() => editor.chain().focus().toggleBlockquote().run()}
+          >
+            <QuoteIcon size={16} />
+          </ToolButton>
+          <ToolButton
+            label={c.codeBlock}
+            shortcut={c.shortcutCodeBlock}
+            active={state?.codeBlock ?? false}
+            onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+          >
+            <CodeBlockIcon size={16} />
+          </ToolButton>
+        </ToolbarGroup>
+
+        <ToolbarDivider aria-hidden="true" />
+
+        <ToolbarGroup role="group" aria-label={c.toolbarGroupList}>
+          <ToolButton
+            label={c.bulletList}
+            shortcut={c.shortcutBulletList}
+            active={state?.bullet ?? false}
+            onClick={() => editor.chain().focus().toggleBulletList().run()}
+          >
+            <BulletListIcon size={16} />
+          </ToolButton>
+          <ToolButton
+            label={c.orderedList}
+            shortcut={c.shortcutOrderedList}
+            active={state?.ordered ?? false}
+            onClick={() => editor.chain().focus().toggleOrderedList().run()}
+          >
+            <OrderedListIcon size={16} />
+          </ToolButton>
+        </ToolbarGroup>
+
+        <ToolbarDivider aria-hidden="true" />
+
+        <ToolbarGroup role="group" aria-label={c.toolbarGroupInsert}>
+          <LinkPopover>
+            <ToolButton label={c.link} active={state?.link ?? false} onClick={openLinkEditor}>
+              <LinkIcon size={16} />
+            </ToolButton>
+            {linkOpen ? (
+              <LinkForm
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  applyLink();
                 }}
-              />
-              <ToolbarButton type="submit" aria-label={c.linkApply}>
-                {c.linkApply}
-              </ToolbarButton>
-              <ToolbarButton type="button" aria-label={c.linkRemove} onClick={removeLink}>
-                {c.linkRemove}
-              </ToolbarButton>
-            </LinkForm>
-          ) : null}
-        </LinkPopover>
+              >
+                <LinkInput
+                  type="url"
+                  inputMode="url"
+                  autoFocus
+                  aria-label={c.link}
+                  placeholder={c.linkUrlPlaceholder}
+                  value={linkValue}
+                  onChange={(event) => setLinkValue(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Escape') setLinkOpen(false);
+                  }}
+                />
+                <ToolbarButton type="submit" aria-label={c.linkApply}>
+                  {c.linkApply}
+                </ToolbarButton>
+                <ToolbarButton type="button" aria-label={c.linkRemove} onClick={removeLink}>
+                  {c.linkRemove}
+                </ToolbarButton>
+              </LinkForm>
+            ) : null}
+          </LinkPopover>
+          <ToolButton label={c.horizontalRule} onClick={() => editor.chain().focus().setHorizontalRule().run()}>
+            <HorizontalRuleIcon size={16} />
+          </ToolButton>
+        </ToolbarGroup>
+
+        <ToolbarDivider aria-hidden="true" />
+
+        <ToolbarGroup role="group" aria-label={c.toolbarGroupHistory}>
+          <ToolButton
+            label={c.undo}
+            shortcut={c.shortcutUndo}
+            disabled={!(state?.canUndo ?? false)}
+            onClick={() => editor.chain().focus().undo().run()}
+          >
+            <UndoIcon size={16} />
+          </ToolButton>
+          <ToolButton
+            label={c.redo}
+            shortcut={c.shortcutRedo}
+            disabled={!(state?.canRedo ?? false)}
+            onClick={() => editor.chain().focus().redo().run()}
+          >
+            <RedoIcon size={16} />
+          </ToolButton>
+        </ToolbarGroup>
       </Toolbar>
 
       <EditorArea>

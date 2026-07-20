@@ -1,15 +1,15 @@
 import type { ReactNode } from 'react';
 
 export type MobileMenuDrawerProps = {
+  /**
+   * 드로어 패널의 DOM id. **여는 버튼이 이 컴포넌트 밖(`SimulatorHeader`)에 살기 때문에**
+   * id를 여기서 만들지 않고 두 곳의 공통 조상(`Main.view`)에서 받아 `aria-controls`와 짝을 맞춘다.
+   */
+  drawerId: string;
   isOpen: boolean;
-  onOpen: () => void;
   onClose: () => void;
   left: ReactNode;
   right: ReactNode;
-  /** 헤더 바로 아래, 본문 위에 놓이는 공지 슬롯. 이 컴포넌트가 헤더를 소유하고 있어 여기서만 그 자리를 만들 수 있다. */
+  /** 페이지 설명 아래, 본문 위에 놓이는 공지 슬롯. */
   notice?: ReactNode;
-  /** 브랜드 워드마크 오른쪽에 놓이는 헤더 액션 슬롯(예: 튜토리얼 시작 아이콘). */
-  headerAction?: ReactNode;
-  /** 브랜드 워드마크 바로 오른쪽(헤더 맨 좌측 클러스터)에 놓이는 상태 슬롯(예: 클라우드 저장 상태). */
-  headerStatus?: ReactNode;
 };
