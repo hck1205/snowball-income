@@ -1,4 +1,4 @@
-import { color, media, shadow } from './tokens';
+import { color, media, shadow, space } from './tokens';
 
 /**
  * ── 헤더 공통 레시피 ────────────────────────────────────────────────────────────
@@ -43,6 +43,24 @@ export const headerGlassSurface = `
     background: linear-gradient(180deg, ${color.brandSubtle}, ${color.surfaceGlass} 68%);
     -webkit-backdrop-filter: blur(14px) saturate(1.35);
     backdrop-filter: blur(14px) saturate(1.35);
+  }
+`;
+
+/**
+ * 헤더 두 줄(1줄=전역 nav, 2줄=컨트롤/검색) 사이의 **세로 간격**.
+ *
+ * 두 헤더가 같은 값을 써야 "메뉴 ↔ 필터" 사이 리듬이 화면 간에 일치한다(시각 통일이 목표).
+ * 소비처는 `HeaderInner`(세로 스택)의 gap으로만 쓴다 — 줄 안쪽 가로 gap은 각자 소유.
+ *
+ * 모바일(drawer↓)은 **항상 데스크톱보다 한 단계 좁게** 유지한다. 헤더는 `position: sticky`라 상시
+ * 뷰포트를 차지하고, 좁은 화면에서는 아래로 모바일 검색 바가 한 줄 더 붙는 경우도 있어서다.
+ * (space 스케일이 4px 단위라 "증가폭 절반"은 표현할 수 없다 — 대신 한 스텝 차이를 불변식으로 둔다.)
+ */
+export const headerRowGap = `
+  gap: ${space[5]};
+
+  ${media.down('drawer')} {
+    gap: ${space[4]};
   }
 `;
 

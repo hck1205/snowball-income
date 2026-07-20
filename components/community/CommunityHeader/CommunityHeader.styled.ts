@@ -1,5 +1,14 @@
 import styled from '@emotion/styled';
-import { color, headerControlsGrid, headerGlassSurface, media, radius, space, zIndex } from '@/shared/styles';
+import {
+  color,
+  headerControlsGrid,
+  headerGlassSurface,
+  headerRowGap,
+  media,
+  radius,
+  space,
+  zIndex
+} from '@/shared/styles';
 
 /**
  * sticky 오버레이 서피스 → 서리유리 레시피(§4.7, `headerGlassSurface` 공유).
@@ -19,12 +28,15 @@ export const HeaderRoot = styled.header`
   border-bottom: 1px solid ${color.borderStrong};
 `;
 
-/** 헤더 안쪽 — 2줄 스택: 1줄 = 전역 nav(로고+메뉴), 2줄 = 컨트롤(뒤로·검색·액션). */
+/**
+ * 헤더 안쪽 — 2줄 스택: 1줄 = 전역 nav(로고+메뉴), 2줄 = 컨트롤(뒤로·검색·액션).
+ * 두 줄 사이 세로 간격은 시뮬레이터 헤더와 **같은 값**(`headerRowGap`)을 쓴다.
+ */
 export const HeaderInner = styled.div`
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: ${space[2]};
+  ${headerRowGap}
   max-width: 1200px;
   margin: 0 auto;
   padding: ${space[2]} clamp(${space[3]}, 4vw, ${space[5]});

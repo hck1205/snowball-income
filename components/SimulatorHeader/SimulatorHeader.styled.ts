@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, headerControlsGrid, headerGlassSurface, space, zIndex } from '@/shared/styles';
+import { color, headerControlsGrid, headerGlassSurface, headerRowGap, space, zIndex } from '@/shared/styles';
 
 /**
  * 시뮬레이터 헤더 — 커뮤니티 헤더(`components/community/CommunityHeader` HeaderRoot)와 **형태까지 동일**한
@@ -34,12 +34,13 @@ export const HeaderRoot = styled.header`
  * `FeatureLayout`의 인라인 패딩과 같은 값**을 쓴다. 두 컨테이너의 max-width가 같으므로(1200)
  * 이 값이 같아야 헤더 콘텐츠와 아래 패널들의 **좌우 끝선이 정확히 맞는다**. 커뮤니티는 자기 본문
  * 컨테이너에 맞춘 값이라 헤더끼리 숫자를 통일하면 오히려 각자의 본문과 어긋난다.
+ * (반대로 **두 줄 사이 세로 간격은 통일 대상**이라 공용 `headerRowGap`을 쓴다.)
  */
 export const HeaderInner = styled.div`
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: ${space[2]};
+  ${headerRowGap}
   max-width: 1200px;
   margin: 0 auto;
   padding: ${space[2]} clamp(12px, 2vw, 20px);
