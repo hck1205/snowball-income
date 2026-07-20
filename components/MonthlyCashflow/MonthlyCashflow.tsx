@@ -3,13 +3,8 @@ import { Card } from '@/components';
 import type { MonthlyCashflowProps } from './MonthlyCashflow.types';
 import { resolveSelectedYear } from './MonthlyCashflow.utils';
 import { ChartWrap, HintText } from '@/pages/Main/Main.shared.styled';
-import {
-  CashflowHeader,
-  CashflowHeaderControls,
-  CashflowTitle,
-  CashflowTotalLabel,
-  CashflowYearSelect
-} from './MonthlyCashflow.styled';
+import { CashflowHeader, CashflowHeaderControls, CashflowTitle, CashflowTotalLabel } from './MonthlyCashflow.styled';
+import { Select } from '@/components/common';
 import { buildRecentCashflowBarOption } from '@/pages/Main/utils';
 import { formatKRW } from '@/shared/utils';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
@@ -34,7 +29,9 @@ function MonthlyCashflowComponent({ yearlyCashflowByTicker, hasData = true, empt
   const totalDividend = selectedYearData?.totalDividend ?? 0;
   const headerControls = (
     <CashflowHeaderControls>
-      <CashflowYearSelect
+      <Select
+        size="md"
+        width="116px"
         aria-label="실지급 배당 연도 선택"
         value={selectedYear ?? ''}
         onChange={(event) => {
@@ -51,7 +48,7 @@ function MonthlyCashflowComponent({ yearlyCashflowByTicker, hasData = true, empt
             {year}년
           </option>
         ))}
-      </CashflowYearSelect>
+      </Select>
       <CashflowTotalLabel>
         {selectedYear ? `배당 합계: ${formatKRW(totalDividend)}` : '실지급 배당 데이터 없음'}
       </CashflowTotalLabel>

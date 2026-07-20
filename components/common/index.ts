@@ -20,6 +20,9 @@ export { FrequencySelect } from './InputField';
 export { default as Modal } from './Modal';
 export type { ModalProps } from './Modal';
 
+export { default as Select } from './Select';
+export type { SelectProps, SelectSize, SelectWidth } from './Select';
+
 export { default as StatTile } from './StatTile';
 export type { StatEmphasis, StatTileProps, StatTone } from './StatTile';
 

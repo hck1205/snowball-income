@@ -114,15 +114,4 @@ export const BaseInput = styled.input`
   }
 `;
 
-export const BaseSelect = styled.select`
-  ${controlBase};
-  padding: ${space[2]} ${space[7]} ${space[2]} ${space[3]};
-  appearance: none;
-  -webkit-appearance: none;
-  cursor: pointer;
-  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
-    linear-gradient(135deg, currentColor 50%, transparent 50%);
-  background-position: calc(100% - 16px) calc(50% - 1px), calc(100% - 12px) calc(50% - 1px);
-  background-size: 5px 5px, 5px 5px;
-  background-repeat: no-repeat;
-`;
+/* 셀렉트는 공용 프리미티브 `@/components/common/Select`가 그린다(구 BaseSelect 제거). */

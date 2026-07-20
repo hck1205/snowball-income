@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, motion, radius, space } from '@/shared/styles';
+import { color, font, radius, space } from '@/shared/styles';
 
 /** 기존 인라인 style 속성을 그대로 옮겨온 것 (마크업/동작 변화 없음). */
 
@@ -15,24 +15,7 @@ export const ProjectionYearField = styled.div`
   gap: ${space[1]};
 `;
 
-export const ProjectionYearSelect = styled.select`
-  width: 64px;
-  height: 32px;
-  border: 1px solid ${color.borderStrong};
-  border-radius: ${radius.sm};
-  padding: 0 ${space[2]};
-  font-size: ${font.size.xs};
-  font-family: inherit;
-  font-weight: ${font.weight.semibold};
-  color: ${color.text};
-  background: ${color.surface};
-  cursor: pointer;
-  transition: border-color ${motion.fast} ${motion.ease};
-
-  &:hover {
-    border-color: ${color.brandBorder};
-  }
-`;
+/* 기간 셀렉트는 공용 프리미티브(`@/components/common` Select, size='sm', width='64px')가 그린다. */
 
 export const ProjectionYearSuffix = styled.span`
   color: ${color.textMuted};

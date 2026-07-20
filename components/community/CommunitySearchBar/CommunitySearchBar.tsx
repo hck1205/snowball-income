@@ -7,13 +7,11 @@ import {
   COMMUNITY_SEARCH_FILTERS,
   DEFAULT_COMMUNITY_SEARCH_FILTER
 } from '@/shared/constants/community';
-import { ChevronDown } from 'lucide-react';
+import Select from '@/components/common/Select';
 import { SearchIcon } from '@/components/community/CommunityIcons';
 import PrecisionSearch from '@/components/community/PrecisionSearch';
 import {
-  FilterChevron,
   FilterField,
-  FilterSelect,
   SearchCluster,
   SearchForm,
   SearchInput,
@@ -92,46 +90,46 @@ export default function CommunitySearchBar({ autoFocus, variant = 'desktop' }: C
           commit(value, filter);
         }}
       >
+        {/* 같은 줄의 검색 입력(36px)과 높이를 맞추려 size='md'. 폭은 옵션 길이에 맞춘다. */}
         <FilterField>
-        <FilterSelect
-          aria-label={COMMUNITY_COPY.gallery.searchFilterAriaLabel}
-          value={filter}
-          onChange={(event) => {
-            const nextFilter = event.target.value;
-            setFilter(nextFilter);
-            // 검색어가 있을 때만 URL(검색)에 반영 — 빈 검색어면 선택만 기억했다가 입력 시 적용한다.
-            if (value.trim()) commit(value, nextFilter);
-          }}
-        >
-          {COMMUNITY_SEARCH_FILTERS.map((filter) => (
-            <option key={filter.id} value={filter.id}>
-              {filter.label}
-            </option>
-          ))}
-        </FilterSelect>
-        <FilterChevron aria-hidden="true">
-          <ChevronDown size={16} />
-        </FilterChevron>
-      </FilterField>
-      <SearchInputWrap>
-        <SearchIcon size={16} />
-        <SearchInput
-          type="search"
-          role="searchbox"
-          aria-label={COMMUNITY_COPY.gallery.searchAriaLabel}
-          placeholder={COMMUNITY_COPY.gallery.searchPlaceholder}
-          value={value}
-          autoFocus={autoFocus}
-          onChange={(event) => setValue(event.target.value)}
-          onCompositionStart={() => {
-            composingRef.current = true;
-          }}
-          onCompositionEnd={(event) => {
-            composingRef.current = false;
-            setValue(event.currentTarget.value);
-          }}
-        />
-      </SearchInputWrap>
+          <Select
+            size="md"
+            width="auto"
+            aria-label={COMMUNITY_COPY.gallery.searchFilterAriaLabel}
+            value={filter}
+            onChange={(event) => {
+              const nextFilter = event.target.value;
+              setFilter(nextFilter);
+              // 검색어가 있을 때만 URL(검색)에 반영 — 빈 검색어면 선택만 기억했다가 입력 시 적용한다.
+              if (value.trim()) commit(value, nextFilter);
+            }}
+          >
+            {COMMUNITY_SEARCH_FILTERS.map((filter) => (
+              <option key={filter.id} value={filter.id}>
+                {filter.label}
+              </option>
+            ))}
+          </Select>
+        </FilterField>
+        <SearchInputWrap>
+          <SearchIcon size={16} />
+          <SearchInput
+            type="search"
+            role="searchbox"
+            aria-label={COMMUNITY_COPY.gallery.searchAriaLabel}
+            placeholder={COMMUNITY_COPY.gallery.searchPlaceholder}
+            value={value}
+            autoFocus={autoFocus}
+            onChange={(event) => setValue(event.target.value)}
+            onCompositionStart={() => {
+              composingRef.current = true;
+            }}
+            onCompositionEnd={(event) => {
+              composingRef.current = false;
+              setValue(event.currentTarget.value);
+            }}
+          />
+        </SearchInputWrap>
       </SearchForm>
       <PrecisionSearch layout={isMobile ? 'inline' : 'popover'} />
     </SearchCluster>
