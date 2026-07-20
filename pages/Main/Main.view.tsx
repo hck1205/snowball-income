@@ -1,13 +1,7 @@
 import { Global } from "@emotion/react";
-import { lazy, memo, Suspense, useCallback, useId, useRef, useState } from "react";
-import {
-  DrawerToggleButton,
-  FeatureLayout,
-  MainContent,
-  SkipLink,
-} from "@/pages/Main/Main.shared.styled";
+import { lazy, memo, Suspense, useCallback, useRef, useState } from "react";
+import { FeatureLayout, MainContent, SkipLink } from "@/pages/Main/Main.shared.styled";
 import MobileMenuDrawer from "@/components/MobileMenuDrawer";
-import SimulatorHeader from "@/components/SimulatorHeader";
 import TourGuide from "@/components/TourGuide";
 import { CloudSyncIndicator } from "@/components/CloudSyncIndicator";
 import { AuthControl } from "@/components/community/AuthControl";
@@ -27,7 +21,6 @@ import {
   ModelChangeNotice,
 } from "./components";
 import { globalStyle } from "./Main.styled";
-import { TOUR_TARGET } from "@/shared/constants";
 import type { MainViewProps } from "./Main.types";
 
 /**
@@ -59,12 +52,6 @@ function MainViewComponent({ viewModel }: MainViewProps) {
   const isTickerModalOpen = useIsTickerModalOpenAtomValue();
   const openConfigDrawer = useCallback(() => setIsConfigDrawerOpen(true), [setIsConfigDrawerOpen]);
   const closeConfigDrawer = useCallback(() => setIsConfigDrawerOpen(false), [setIsConfigDrawerOpen]);
-
-  /**
-   * 설정 드로어의 id. 여는 버튼(sticky 헤더 안)과 열리는 패널(`MobileMenuDrawer` 안)이 서로 다른
-   * 서브트리에 살기 때문에 두 곳의 공통 조상인 여기서 만들어 `aria-controls` ↔ `id`를 맺어 준다.
-   */
-  const configDrawerId = useId();
 
   /**
    * IndexedDB 하이드레이션 게이트. 좌패널(MainLeftPanel)이 하이드레이션 트리거를 소유하므로
@@ -118,63 +105,41 @@ function MainViewComponent({ viewModel }: MainViewProps) {
     <>
       <Global styles={globalStyle} />
       <SkipLink href="#main-content">본문으로 건너뛰기</SkipLink>
-      {/* 커뮤니티 헤더와 같은 형태의 전폭 sticky 바라 `FeatureLayout`(max-width 1200) **밖**에 둔다.
-          좌우 끝선은 SimulatorHeader의 HeaderInner가 같은 max-width/패딩을 써서 맞춘다. */}
-      <SimulatorHeader
-        /* 모바일 설정 드로어 토글 — 헤더가 항상 화면에 있으므로 여기 **정적으로** 둔다.
-           예전엔 본문 흐름에 두고 sentinel이 스크롤 아웃되면 fixed로 띄웠는데, sticky 헤더가
-           화면 상단을 영구 점유하게 되면서 그 플로팅 버튼이 헤더 위에 겹쳐 그려졌다.
-           헤더 안 정적 배치로 바꿔 IntersectionObserver·sentinel·isFloating을 전부 없앴다.
-           데스크톱에선 스타일이 `display:none`이라(드로어 자체가 없음) 자리를 차지하지 않는다. */
-        leading={
-          <DrawerToggleButton
-            type="button"
-            data-tour={TOUR_TARGET.openSettings}
-            data-capture-role="drawer-toggle-open"
-            aria-label="설정 열기"
-            aria-expanded={isConfigDrawerOpen}
-            aria-controls={configDrawerId}
-            onClick={openConfigDrawer}
-          >
-            설정 열기
-          </DrawerToggleButton>
-        }
-        // 클라우드 저장 상태를 컨트롤 줄 좌측에 둔다. 저장 중/실패만 노출(평상시 숨김), 실패는 무음 금지.
-        status={
-          isCommunityEnabled ? (
-            <CloudSyncIndicator
-              variant="header"
-              onRetry={handleRetryCloudSave}
-              onResume={handleResumeConflict}
-            />
-          ) : null
-        }
-        actions={
-          <>
-            {/* 커뮤니티 진입점은 이제 헤더 브랜드 옆 전역 nav(PrimaryNav)의 갤러리·게시판 링크가 담당한다
-                (기존 CommunityNavLink '커뮤니티' 버튼은 nav 링크로 대체·제거). */}
-            {/* AuthControl은 useNavigate + 세션에 의존한다 — 백엔드 없는 배포에선 렌더하지 않는다. */}
-            {isCommunityEnabled ? <AuthControl /> : null}
-            {/* 튜토리얼 보기 + 앱 설치 + 테마를 모은 아이콘 전용 "더보기(⋯)" 메뉴. 로그인/커뮤니티 여부와
-                무관하게 항상 노출된다 — 테마 접근점을 여기로 단일화했다(기존 standalone 테마 스위처 제거).
-                "테마는 어떤 상태에서도 사라지면 안 됨" 제약은 이 메뉴가 항상 있으므로 충족.
-                시뮬레이터에서만 "PDF 리포트 저장"이 하나 더 붙는다 — 그 상태·동작은 MainOverflowMenu가
-                소유하고(HeaderOverflowMenu는 커뮤니티와 공유라 시뮬레이터 데이터에 결합시키지 않는다),
-                구독은 불리언 2개로 좁혀져 있어 타건 리렌더가 헤더로 번지지 않는다. */}
-            <MainOverflowMenu />
-            {/* TourGuide는 코치마크 오버레이 전용으로 계속 마운트한다 — 헤더엔 아무것도 안 그리고,
-                실행 트리거는 HeaderOverflowMenu가 소유한다(tourLaunchRequestAtom bump). */}
-            <TourGuide />
-          </>
-        }
-      />
       <FeatureLayout>
         <MainContent id="main-content">
           <MobileMenuDrawer
-            drawerId={configDrawerId}
             isOpen={isConfigDrawerOpen}
+            onOpen={openConfigDrawer}
             onClose={closeConfigDrawer}
             notice={<ModelChangeNotice />}
+            // 클라우드 저장 상태를 헤더 맨 좌측(타이틀 옆)에 둔다. 저장 중/실패만 노출(평상시 숨김), 실패는 무음 금지.
+            headerStatus={
+              isCommunityEnabled ? (
+                <CloudSyncIndicator
+                  variant="header"
+                  onRetry={handleRetryCloudSave}
+                  onResume={handleResumeConflict}
+                />
+              ) : null
+            }
+            headerAction={
+              <>
+                {/* 커뮤니티 진입점은 이제 헤더 브랜드 옆 전역 nav(PrimaryNav)의 갤러리·게시판 링크가 담당한다
+                    (기존 CommunityNavLink '커뮤니티' 버튼은 nav 링크로 대체·제거). */}
+                {/* AuthControl은 useNavigate + 세션에 의존한다 — 백엔드 없는 배포에선 렌더하지 않는다. */}
+                {isCommunityEnabled ? <AuthControl /> : null}
+                {/* 튜토리얼 보기 + 앱 설치 + 테마를 모은 아이콘 전용 "더보기(⋯)" 메뉴. 로그인/커뮤니티 여부와
+                    무관하게 항상 노출된다 — 테마 접근점을 여기로 단일화했다(기존 standalone 테마 스위처 제거).
+                    "테마는 어떤 상태에서도 사라지면 안 됨" 제약은 이 메뉴가 항상 있으므로 충족.
+                    시뮬레이터에서만 "PDF 리포트 저장"이 하나 더 붙는다 — 그 상태·동작은 MainOverflowMenu가
+                    소유하고(HeaderOverflowMenu는 커뮤니티와 공유라 시뮬레이터 데이터에 결합시키지 않는다),
+                    구독은 불리언 2개로 좁혀져 있어 타건 리렌더가 헤더로 번지지 않는다. */}
+                <MainOverflowMenu />
+                {/* TourGuide는 코치마크 오버레이 전용으로 계속 마운트한다 — 헤더엔 아무것도 안 그리고,
+                    실행 트리거는 HeaderOverflowMenu가 소유한다(tourLaunchRequestAtom bump). */}
+                <TourGuide />
+              </>
+            }
             left={
               <MainLeftPanel
                 onHydratedChange={setIsPortfolioHydrated}

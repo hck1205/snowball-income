@@ -99,21 +99,9 @@ export const globalStyles = css`
   }
 
   html,
-  body {
-    height: 100%;
-    width: 100%;
-    max-width: 100%;
-  }
-
-  /*
-   * ⚠ height 가 아니라 **min-height** 여야 한다. (이 파일은 css 템플릿 리터럴이라 주석에 백틱 금지)
-   * position: sticky 는 **부모 박스 안에서만** 달라붙는다. #root 를 뷰포트 높이로 고정하면
-   * 그 박스는 100vh 에서 끝나므로, 스크롤이 그 지점을 넘는 순간 sticky 헤더가 부모와 함께
-   * 밀려 올라가 화면에서 사라진다(= 모바일에서 헤더 안 "설정 열기" 진입 불가).
-   * min-height 면 #root 가 콘텐츠만큼 자라 sticky 범위가 문서 전체가 된다.
-   */
+  body,
   #root {
-    min-height: 100%;
+    height: 100%;
     width: 100%;
     max-width: 100%;
   }

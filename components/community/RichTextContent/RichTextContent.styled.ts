@@ -1,11 +1,7 @@
 import styled from '@emotion/styled';
 import { color, font, radius, space } from '@/shared/styles';
 
-/**
- * 본문 프로즈 스타일. sanitize 허용 태그(p/br/h2/h3/ul/ol/li/a/strong/b/em/i/s/u/blockquote/code/pre/hr)만 다룬다.
- * 허용 목록(shared/lib/richtext/sanitize.ts)에 태그를 추가하면 여기 렌더 스타일도 함께 채워야 한다 —
- * 안 그러면 브라우저 기본 스타일로 떨어져 본문 톤이 깨진다.
- */
+/** 본문 프로즈 스타일. 허용 태그(p/h2/h3/ul/ol/li/a/strong/em/blockquote/code/pre)만 다룬다. */
 export const Prose = styled.article`
   color: ${color.text};
   font-size: ${font.size.md};
@@ -51,25 +47,8 @@ export const Prose = styled.article`
     }
   }
 
-  strong,
-  b {
+  strong {
     font-weight: ${font.weight.bold};
-  }
-
-  u {
-    text-decoration: underline;
-    text-underline-offset: 2px;
-  }
-
-  s {
-    text-decoration: line-through;
-    color: ${color.textSecondary};
-  }
-
-  hr {
-    margin: ${space[6]} 0;
-    border: 0;
-    border-top: 1px solid ${color.border};
   }
 
   blockquote {

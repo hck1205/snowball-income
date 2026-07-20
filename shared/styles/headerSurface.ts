@@ -4,21 +4,28 @@ import { color, media, shadow } from './tokens';
  * ── 헤더 공통 레시피 ────────────────────────────────────────────────────────────
  *
  * 커뮤니티 헤더(`components/community/CommunityHeader`)와 시뮬레이터 헤더
- * (`components/SimulatorHeader`)가 **같은 시각 언어**를 갖도록 실제로 중복되던 것만 뽑았다.
- * 두 헤더는 이제 형태까지 같다(화면 최상단 전폭 sticky 글래스 바 + 아래 hairline).
- * 안쪽 컨테이너의 max-width/패딩만 각 페이지 본문 컨테이너에 맞춰 소비처가 소유한다.
+ * (`pages/Main/Main.shared.styled` Header)가 **같은 시각 언어**를 갖도록 실제로 중복되던 것만 뽑았다.
+ * 테두리 형태·모서리·sticky 여부는 배치 맥락이 달라(전폭 바 ↔ max-width 컨테이너 안 카드)
+ * 각 헤더가 계속 소유한다.
  */
 
 /**
- * 상단 브랜드 틴트 서피스(불투명) — 글래스의 **폴백/기반 레이어**.
+ * 상단 브랜드 틴트 서피스(불투명) — 두 헤더가 공유하는 **기본형**.
  *
  * 무채색 대신 은은한 brand 색조를 위→아래로 흘린다. 전부 테마 토큰이라 팔레트/다크 정합이 유지된다.
  *
- * ⚠ **여기에 `backdrop-filter`를 넣지 말 것** — 이 변형의 존재 이유가 "블러 없는 안전판"이다.
- * `backdrop-filter`가 `none`이 아닌 요소는 `filter`/`transform`과 마찬가지로
- * **absolute/fixed 자손의 컨테이닝 블록**이 되고(Filter Effects L2) **새 스태킹 컨텍스트**도 만든다.
- * 그래서 `position: fixed` 자손(예: 드로어 토글)을 품는 컨테이너에는 아래 글래스 변형을 쓰면 안 된다.
- * 층위 규칙은 `tokens.ts`의 `zIndex` 주석 참고.
+ * ⚠ **여기에 `backdrop-filter`를 넣지 말 것.** `backdrop-filter`가 `none`이 아닌 요소는
+ * `filter`/`transform`과 마찬가지로 **absolute/fixed 자손의 컨테이닝 블록**이 된다(Filter Effects L2).
+ * 시뮬레이터 헤더는 모바일 floating 드로어 토글(`DrawerToggleButton[data-floating='true']`,
+ * `position: fixed`)을 자손으로 품고 있어, 헤더에 블러가 걸리면 그 토글의 `top/left`가 뷰포트가 아니라
+ * **스크롤 아웃된 헤더 박스** 기준이 되어 화면 밖에 그려진다(= 모바일 설정 진입 불가).
+ *
+ * 같은 속성이 **새 스태킹 컨텍스트**도 만든다 — 그러면 헤더 안 더보기(⋯) 드롭다운의
+ * `z-index: dropdown(20)`이 헤더 안에 갇혀, 헤더보다 뒤에 오는 형제인 시나리오 탭
+ * (`ScenarioTabButton` z-index 1~2)에게 **가려진다**. 층위 규칙은 `tokens.ts`의 `zIndex` 주석 참고.
+ *
+ * 그래서 글래스 승격은 아래 `headerGlassSurface`로 분리해, 팝오버를 품지 않는 조건이 아니라
+ * **자체 z-index로 층위를 이미 확정한 커뮤니티 헤더에서만** 쓴다(HeaderRoot가 sticky + z-index 보유).
  */
 export const headerSolidSurface = `
   background: linear-gradient(180deg, ${color.brandSubtle}, ${color.surfaceGlassFallback} 68%);
@@ -26,15 +33,11 @@ export const headerSolidSurface = `
 `;
 
 /**
- * 위 기본형 + 서리유리 승격(§4.7) — **sticky 오버레이 전용**(소비처: 커뮤니티 헤더 · 시뮬레이터 헤더).
+ * 위 기본형 + 서리유리 승격(§4.7) — **sticky 오버레이 전용**(현재 소비처: 커뮤니티 헤더).
  *
  * 불투명 폴백을 먼저 깔고 `backdrop-filter` 지원 브라우저에서만 반투명 글래스로 올린다.
- *
- * 쓸 수 있는 조건 2가지 — 둘 다 만족해야 한다.
- * 1. **`position: fixed` 자손이 없을 것.** 블러 요소가 그 자손의 컨테이닝 블록이 되어 화면 밖으로
- *    밀려난다. 시뮬레이터 헤더는 드로어 토글을 헤더 밖 본문 흐름으로 옮겨 이 조건을 만들었다.
- * 2. **자체 `z-index`로 층위를 확정할 것**(`zIndex.headerSurface`). 블러가 만드는 스태킹 컨텍스트에
- *    헤더 안 팝오버(`z-index: dropdown`)가 갇히므로, 헤더 자신이 dropdown보다 높은 층에 서야 한다.
+ * 블러의 시각 효과는 "뒤로 콘텐츠가 지나갈 때"만 생기므로, 함께 스크롤되는 헤더(시뮬레이터)에는
+ * 효과가 사실상 0이면서 위 컨테이닝 블록 부작용만 남는다 — 그런 헤더는 `headerSolidSurface`를 쓴다.
  */
 export const headerGlassSurface = `
   ${headerSolidSurface}

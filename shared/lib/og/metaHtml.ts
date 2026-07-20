@@ -29,28 +29,3 @@ export const replaceMetaContent = (
   const pattern = new RegExp(`(<meta[^>]*\\s${attribute}="${key}"[^>]*\\scontent=")[^"]*(")`, 'i');
   return html.replace(pattern, `$1${escapeHtmlAttribute(value)}$2`);
 };
-
-/**
- * HTML **텍스트 노드** 이스케이프(`<title>` 본문용). 속성값과 규칙이 다르다 — 따옴표는 텍스트에서 무해하고,
- * `&`/`<`/`>` 만 막으면 된다. 속성에는 반드시 `escapeHtmlAttribute` 를 쓸 것.
- */
-export const escapeHtmlText = (value: string): string =>
-  value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
-/**
- * `<title>...</title>` 본문만 바꾼다. 네이버(Yeti)·다음(Daumoa)은 JS 를 렌더하지 않아 **정적 `<title>` 이
- * 곧 검색결과 제목**이다 — og:title 만 바꾸면 SNS 카드는 맞아도 검색결과는 전부 같은 제목이 된다.
- * 태그가 없으면(방어) 원문 그대로 반환한다.
- */
-export const replaceTitleTag = (html: string, value: string): string =>
-  html.replace(/(<title>)[^<]*(<\/title>)/i, `$1${escapeHtmlText(value)}$2`);
-
-/**
- * `<link rel="<rel>" ... href="...">` 의 href 만 바꾼다(canonical/hreflang 용).
- * `rel` 뒤의 닫는 따옴표를 패턴에 포함하므로 `canonical` 이 다른 rel 값을 부분매치하지 않는다.
- * ⚠ 같은 rel 이 여러 개면 **첫 번째만** 바뀐다(hreflang 처럼 중복되는 rel 은 호출부가 의식해야 한다).
- */
-export const replaceLinkHref = (html: string, rel: string, value: string): string => {
-  const pattern = new RegExp(`(<link[^>]*\\srel="${rel}"[^>]*\\shref=")[^"]*(")`, 'i');
-  return html.replace(pattern, `$1${escapeHtmlAttribute(value)}$2`);
-};
