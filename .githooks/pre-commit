@@ -19,4 +19,11 @@ if command -v codegraph >/dev/null 2>&1; then
   codegraph sync >/dev/null 2>&1 || echo "[pre-commit] codegraph sync 실패(무시) — codegraph status로 확인" >&2
 fi
 
+# graphify 지식 그래프 갱신 — 설치돼 있을 때만. AST 재추출만 하므로 LLM/네트워크 비용 0.
+# 클러스터링·리포트(GRAPH_REPORT.md)까지 매 커밋 돌리면 느리니 여기선 그래프만 증분 갱신하고,
+# 리포트 재생성은 필요할 때 수동으로(`graphify cluster-only . --no-label`). 실패해도 커밋 안 막음.
+if command -v graphify >/dev/null 2>&1; then
+  graphify update . >/dev/null 2>&1 || echo "[pre-commit] graphify update 실패(무시) — graphify update . 로 확인" >&2
+fi
+
 exit 0

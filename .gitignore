@@ -39,6 +39,9 @@ playwright-report/
 # ---- codegraph 지식 그래프 (codegraph init 로 각자 로컬에서 생성, 파일 와처 자동 갱신) ----
 .codegraph/
 
+# ---- graphify 지식 그래프 (graphify update . 로 각자 로컬 생성) ----
+graphify-out/
+
 # ---- 로그 / 런타임 ----
 *.log
 npm-debug.log*
