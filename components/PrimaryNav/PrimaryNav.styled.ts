@@ -1,13 +1,29 @@
 import styled from '@emotion/styled';
 import { Link, NavLink } from 'react-router-dom';
-import { color, font, media, radius, space } from '@/shared/styles';
+import { color, font, media, radius, shadow, space } from '@/shared/styles';
 
-/** 전역 nav 랜드마크 — 브랜드 링크 + 라우트 링크를 한 줄로. 좁아지면 라벨이 접혀 아이콘만 남는다. */
+/**
+ * 전역 nav 랜드마크 — 브랜드 링크 + 라우트 링크를 한 줄로. 좁아지면 라벨이 접혀 아이콘만 남는다.
+ *
+ * 레이아웃 = **3컬럼 그리드 `1fr auto 1fr`**: 브랜드가 1열(좌측 고정), 라우트 링크가 2열(가운데),
+ * 3열은 빈 채로 남겨 브랜드/우측 컨트롤의 폭 변화와 무관하게 메뉴가 **헤더 가로폭의 시각적 중앙**에
+ * 고정된다(flex + margin auto 방식은 브랜드 폭에 따라 중앙이 흔들린다).
+ * 두 헤더 모두 이 nav를 세로 스택(column, align-items:stretch)의 자식으로 두므로 nav가 헤더 폭을
+ * 그대로 차지한다 — 그래서 grid 중앙이 곧 헤더 중앙이다.
+ *
+ * 좁은 화면(drawer↓)에선 가운데 정렬이 브랜드를 밀어 압박하므로 **기존 flex 흐름으로 폴백**한다.
+ */
 export const Nav = styled.nav`
-  display: inline-flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: ${space[3]};
   min-width: 0;
+
+  ${media.down('drawer')} {
+    display: flex;
+    align-items: center;
+  }
 `;
 
 /** 브랜드(로고+워드마크) 공통 레이아웃 — 링크(Brand)와 비링크 폴백(BrandFallback)이 공유한다. */
@@ -16,6 +32,8 @@ const brandLayout = `
   align-items: center;
   gap: ${space[2]};
   flex: 0 0 auto;
+  /* 그리드 1열에서 좌측 고정 — stretch되면 클릭 영역이 빈 공간까지 넓어진다. */
+  justify-self: start;
 `;
 
 /** [로고 + 앱이름]을 감싸는 홈(`/`) 링크. 링크 하나로 로고와 워드마크를 함께 클릭 대상으로. */
@@ -76,26 +94,31 @@ export const BrandWordmark = styled.span`
 export const NavItems = styled.div`
   display: inline-flex;
   align-items: center;
+  /* 그리드 2열의 정중앙에 놓는다(Nav 주석 참고). drawer↓ flex 폴백에선 무시된다. */
+  justify-self: center;
   /* 라우트 링크 사이를 넉넉히 벌린다(요구사항 — 너무 붙어있지 않게). */
-  gap: ${space[3]};
+  gap: ${space[4]};
   min-width: 0;
+
+  /* 좁은 화면에선 넓은 간격이 브랜드/컨트롤을 밀어내므로 원래 간격으로 되돌린다. */
+  ${media.down('drawer')} {
+    gap: ${space[3]};
+  }
 `;
 
 /**
- * 긴 라벨("포트폴리오 갤러리")을 2줄로 접되 font-size를 줄여, 1줄 항목("게시판")과 같은 항목 높이를 유지한다.
- * 접근명은 NavItem의 aria-label이 담당한다(여기 span 2개는 시각 표시용).
+ * ── 활성 표기 스타일(현재 페이지) — **A안: 브랜드 채움 pill** ────────────────────────────────
+ *
+ * 활성 표기를 한 블록에 모아 둔다(다른 안으로 갈아끼울 때 여기만 바꾸면 된다 — 대안 B/C는 핸드오프 참고).
+ * A안 = 브랜드 색으로 꽉 채운 pill + 살짝 뜬 그림자. 라벨/아이콘은 반드시 `color.onBrand`
+ * (브랜드 채움 위 라벨 규칙 — velog·sunset·ink 다크에서 흰색 하드코딩은 대비가 깨진다).
+ * 아이콘은 `currentColor`(lucide 기본)라 색이 자동으로 따라온다.
  */
-export const NavLabelStacked = styled.span`
-  display: inline-flex;
-  flex-direction: column;
-  align-items: flex-start;
-  font-size: 0.72em;
-  line-height: 1.05;
-  white-space: nowrap;
-
-  ${media.down('mobileWide')} {
-    display: none;
-  }
+const navItemActiveStyle = `
+  background: ${color.brand};
+  color: ${color.onBrand};
+  font-weight: ${font.weight.bold};
+  box-shadow: ${shadow.e1};
 `;
 
 /**
@@ -103,10 +126,12 @@ export const NavLabelStacked = styled.span`
  * 좁은 화면(mobileWide↓)에선 라벨을 접어 아이콘 버튼이 된다 — 이름은 NavItem의 `aria-label`이 준다.
  */
 export const NavItem = styled(NavLink)`
+  /* 활성 인디케이터(::after)를 쓰는 대안 안(B/C)을 위해 좌표계를 미리 잡아 둔다. */
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: ${space[1]};
-  padding: ${space[1]} ${space[2]};
+  padding: ${space[1]} ${space[3]};
   min-height: 32px;
   border-radius: ${radius.sm};
   color: ${color.textSecondary};
@@ -114,18 +139,24 @@ export const NavItem = styled(NavLink)`
   font-weight: ${font.weight.medium};
   text-decoration: none;
   white-space: nowrap;
-  transition: background-color 120ms ease, color 120ms ease;
+  transition: background-color 120ms ease, color 120ms ease, box-shadow 120ms ease;
 
   &:hover {
     background: ${color.surfaceHover};
     color: ${color.text};
   }
 
+  /* 활성(현재 페이지) — 위 navItemActiveStyle 한 블록이 정본. */
   &.active,
   &[aria-current='page'] {
-    background: ${color.brandSubtle};
-    color: ${color.brandText};
-    font-weight: ${font.weight.semibold};
+    ${navItemActiveStyle}
+  }
+
+  /* 활성 항목 위 hover가 비활성 hover 규칙에 덮이지 않도록(동일 특이도 → 뒤에 선언). */
+  &.active:hover,
+  &[aria-current='page']:hover {
+    background: ${color.brandHover};
+    color: ${color.onBrand};
   }
 
   &:focus-visible {

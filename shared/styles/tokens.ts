@@ -97,11 +97,31 @@ export const motion = {
 /** 터치 타겟 최소 44x44 (WCAG 2.5.5 / iOS HIG). */
 export const TOUCH_TARGET = '44px';
 
+/**
+ * 층위 스케일 — 낮은 층부터: 콘텐츠 지역 층(시나리오 탭 1~2) < `dropdown`(헤더 팝오버) <
+ * `headerSurface`(팝오버를 품는 헤더 자신) < 드로어 계열 < `tooltip` < `modal` < `skipLink`.
+ *
+ * ⚠ **숫자만으로는 층위가 결정되지 않는다.** `z-index`는 같은 스태킹 컨텍스트 안에서만 비교된다 —
+ * 팝오버의 조상(예: 헤더)이 스태킹 컨텍스트를 만들면 그 안의 `dropdown`(20)은 **조상의 층위로 눌려**
+ * 조상보다 뒤에 오는 형제(예: `ScenarioTabButton`의 z-index 1~2)에게 가려진다.
+ * 스태킹 컨텍스트를 만드는 것: `position`+`z-index`(auto 아님), `transform`, `filter`,
+ * **`backdrop-filter`**, `will-change`, `contain: layout|paint`, `isolation: isolate`, `opacity < 1`.
+ * 그래서 팝오버를 품는 헤더에는 이런 속성을 함부로 얹지 않는다(`shared/styles/headerSurface.ts` 참고).
+ */
 export const zIndex = {
   drawerBackdrop: 55,
   drawerToggle: 54,
   drawer: 60,
   dropdown: 20,
+  /**
+   * 헤더 서피스 층 — **팝오버를 품는 헤더 자신**의 층위.
+   *
+   * 반드시 `dropdown`보다 **높아야** 한다. 헤더가 스태킹 컨텍스트(sticky+z-index, backdrop-filter…)를
+   * 만들면 그 안의 드롭다운(`dropdown`=20)은 헤더 층위 밖으로 못 나가므로, 헤더를 드롭다운보다
+   * 낮게 두면 "헤더는 드롭다운 아래"라는 의도가 오히려 **드롭다운을 콘텐츠 아래로 끌어내린다**.
+   * 드로어 계열(54~60)보다는 낮게 유지해 모바일 드로어가 헤더를 덮는 순서를 지킨다.
+   */
+  headerSurface: 30,
   tooltip: 2000,
   modal: 2147483000,
   skipLink: 2147483647

@@ -1,5 +1,17 @@
 import styled from '@emotion/styled';
-import { color, container, font, media, motion, radius, shadow, space, zIndex } from '@/shared/styles';
+import {
+  color,
+  container,
+  font,
+  headerControlsGrid,
+  headerSolidSurface,
+  media,
+  motion,
+  radius,
+  shadow,
+  space,
+  zIndex
+} from '@/shared/styles';
 
 /* -------------------------------------------------------------------------- */
 /* 레이아웃                                                                     */
@@ -196,12 +208,28 @@ export const ResultsColumn = styled.section`
 /* 헤더                                                                         */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * 시뮬레이터 헤더 — 커뮤니티 헤더와 **같은 서피스 레시피**(브랜드 틴트 + e1 그림자)를 쓰되,
+ * 글래스가 아닌 불투명 변형(`headerSolidSurface`)이다. 세 가지 차이는 전부 배치 맥락 때문이다.
+ *
+ * 1. **`backdrop-filter` 없음(글래스 아님)** — 이 헤더는 모바일 floating 드로어 토글
+ *    (`DrawerToggleButton[data-floating='true']`, `position: fixed`)을 **자손으로** 품는다.
+ *    `backdrop-filter`가 걸린 요소는 fixed 자손의 컨테이닝 블록이 되므로(Filter Effects L2),
+ *    블러를 넣으면 토글이 뷰포트가 아니라 스크롤 아웃된 이 헤더 박스 기준으로 배치돼
+ *    **화면 밖에 그려진다**(= 모바일 설정 진입 불가). 함께 스크롤되는 헤더라 블러의 시각 효과도 없다.
+ * 2. **sticky 아님** — 같은 토글의 IntersectionObserver 앵커를 품고 있어(MobileMenuDrawer),
+ *    sticky로 고정하면 앵커가 뷰포트를 벗어나지 않아 floating 토글이 영영 뜨지 않는다.
+ *    게다가 nav+컨트롤+설명+토글까지 든 큰 블록이라 고정 시 모바일 뷰포트를 크게 잠식한다.
+ * 3. **전폭 바가 아니라 카드(radius.lg + 4변 테두리)** — 커뮤니티 헤더는 화면 최상단 전폭 바지만
+ *    이 헤더는 max-width 1200 컨테이너(FeatureLayout) 안의 첫 블록이라, 아래 패널들과 같은
+ *    카드 언어로 두는 편이 자연스럽다(전폭화하려면 컨테이너 breakout이 필요).
+ */
 export const Header = styled.header`
   display: grid;
   gap: ${space[2]};
-  padding: ${space[3]} clamp(${space[2]}, 3vw, ${space[4]}) ${space[3]};
-  /* 상단 브랜드 틴트 — 무채색 대신 은은한 brand 색조를 위→아래로(테마 토큰이라 팔레트/다크 정합). */
-  background: linear-gradient(180deg, ${color.brandSubtle}, transparent 82%);
+  padding: ${space[3]} clamp(${space[2]}, 3vw, ${space[4]});
+  ${headerSolidSurface}
+  border: 1px solid ${color.borderStrong};
   border-radius: ${radius.lg};
 `;
 
@@ -214,9 +242,21 @@ export const HeaderBrand = styled.div`
   min-width: 0;
 `;
 
-/** 시뮬레이터 헤더 2번째 줄 — 우측 컨트롤 묶음. */
+/**
+ * 시뮬레이터 헤더 2번째 줄 — 1줄째 `PrimaryNav`와 **같은 3컬럼 그리드**.
+ * 1열 = 클라우드 동기화 상태, 2열은 비워 두고(커뮤니티는 여기에 검색이 온다), 3열 = 우측 컨트롤.
+ * 두 줄이 같은 트랙을 쓰므로 메뉴·컨트롤의 좌우 끝선이 정확히 맞는다.
+ */
 export const HeaderControlsRow = styled.div`
-  display: flex;
+  ${headerControlsGrid}
+  gap: ${space[2]};
+`;
+
+/** 헤더 컨트롤 줄 1열 — 클라우드 동기화 상태. 내용이 없어도 트랙 자리는 그리드가 잡는다. */
+export const HeaderStatusSlot = styled.div`
+  grid-column: 1;
+  justify-self: start;
+  display: inline-flex;
   align-items: center;
   gap: ${space[2]};
   min-width: 0;
@@ -261,12 +301,15 @@ export const HeaderDescription = styled.p`
   line-height: ${font.leading.snug};
 `;
 
-/** 헤더 액션(튜토리얼 시작 아이콘). 브랜드 행의 맨 오른쪽으로 민다. */
+/** 헤더 액션(로그인·더보기 등). 컨트롤 줄 3열 — 맨 오른쪽으로 민다. */
 export const HeaderActions = styled.div`
+  grid-column: 3;
+  justify-self: end;
   display: inline-flex;
   align-items: center;
   gap: ${space[1]};
   flex: 0 0 auto;
+  /* drawer↓ flex 폴백에서 우측 정렬을 유지한다(그리드에선 justify-self:end 가 담당). */
   margin-left: auto;
   /* 좁아지면 로그인·커뮤니티·튜토리얼·테마 버튼이 다음 줄로 내려간다(넘쳐서 잘리지 않도록). 우측 정렬 유지. */
   flex-wrap: wrap;

@@ -1,0 +1,362 @@
+[
+  {
+    "name": "단일 종목 · 분기 · 기본",
+    "summary": {
+      "version": 1,
+      "durationYears": 20,
+      "tickerCount": 1,
+      "initialInvestment": 10000000,
+      "monthlyContribution": 1000000,
+      "totalContribution": 250000000,
+      "finalAssetValue": 627792111,
+      "finalMonthlyDividend": 1480347,
+      "targetMonthlyDividend": 2000000,
+      "targetReachedInYears": null
+    }
+  },
+  {
+    "name": "단일 종목 · 월배당",
+    "summary": {
+      "version": 1,
+      "durationYears": 20,
+      "tickerCount": 1,
+      "initialInvestment": 10000000,
+      "monthlyContribution": 1000000,
+      "totalContribution": 250000000,
+      "finalAssetValue": 500774557,
+      "finalMonthlyDividend": 2427786,
+      "targetMonthlyDividend": 2000000,
+      "targetReachedInYears": 18
+    }
+  },
+  {
+    "name": "단일 종목 · 연배당 · 12월 시작(1년차 무배당)",
+    "summary": {
+      "version": 1,
+      "durationYears": 20,
+      "tickerCount": 1,
+      "initialInvestment": 10000000,
+      "monthlyContribution": 1000000,
+      "totalContribution": 250000000,
+      "finalAssetValue": 728270886,
+      "finalMonthlyDividend": 958768,
+      "targetMonthlyDividend": 2000000,
+      "targetReachedInYears": null
+    }
+  },
+  {
+    "name": "4종목 · 주기 혼합 · 가중",
+    "summary": {
+      "version": 1,
+      "durationYears": 20,
+      "tickerCount": 4,
+      "initialInvestment": 10000000,
+      "monthlyContribution": 1000000,
+      "totalContribution": 250000000,
+      "finalAssetValue": 596132004,
+      "finalMonthlyDividend": 1658469,
+      "targetMonthlyDividend": 2000000,
+      "targetReachedInYears": null
+    }
+  },
+  {
+    "name": "가중치 미지정(전 종목 기본 1 → 균등)",
+    "summary": {
+      "version": 1,
+      "durationYears": 20,
+      "tickerCount": 3,
+      "initialInvestment": 10000000,
+      "monthlyContribution": 1000000,
+      "totalContribution": 250000000,
+      "finalAssetValue": 618945851,
+      "finalMonthlyDividend": 1622300,
+      "targetMonthlyDividend": 2000000,
+      "targetReachedInYears": null
+    }
+  },
+  {
+    "name": "가중치 합 0 → 균등 분배",
+    "summary": {
+      "version": 1,
+      "durationYears": 20,
+      "tickerCount": 2,
+      "initialInvestment": 10000000,
+      "monthlyContribution": 1000000,
+      "totalContribution": 250000000,
+      "finalAssetValue": 564283334,
+      "finalMonthlyDividend": 1954066,
+      "targetMonthlyDividend": 2000000,
+      "targetReachedInYears": null
+    }
+  },
+  {
+    "name": "가중치 음수 → 0으로 클램프",
+    "summary": {
+      "version": 1,
+      "durationYears": 20,
+      "tickerCount": 2,
+      "initialInvestment": 10000000,
+      "monthlyContribution": 1000000,
+      "totalContribution": 250000000,
+      "finalAssetValue": 500774557,
+      "finalMonthlyDividend": 2427786,
+      "targetMonthlyDividend": 2000000,
+      "targetReachedInYears": 18
+    }
+  },
+  {
+    "name": "재투자 OFF",
+    "summary": {
+      "version": 1,
+      "durationYears": 20,
+      "tickerCount": 2,
+      "initialInvestment": 10000000,
+      "monthlyContribution": 1000000,
+      "totalContribution": 250000000,
+      "finalAssetValue": 359402477,
+      "finalMonthlyDividend": 1114896,
+      "targetMonthlyDividend": 2000000,
+      "targetReachedInYears": null
+    }
+  },
+  {
+    "name": "재투자 부분(40%) · nextMonth",
+    "summary": {
+      "version": 1,
+      "durationYears": 20,
+      "tickerCount": 2,
+      "initialInvestment": 10000000,
+      "monthlyContribution": 1000000,
+      "totalContribution": 250000000,
+      "finalAssetValue": 428939897,
+      "finalMonthlyDividend": 1352122,
+      "targetMonthlyDividend": 2000000,
+      "targetReachedInYears": null
+    }
+  },
+  {
+    "name": "DPS 성장 monthlySmooth",
+    "summary": {
+      "version": 1,
+      "durationYears": 20,
+      "tickerCount": 1,
+      "initialInvestment": 10000000,
+      "monthlyContribution": 1000000,
+      "totalContribution": 250000000,
+      "finalAssetValue": 627792111,
+      "finalMonthlyDividend": 1480347,
+      "targetMonthlyDividend": 2000000,
+      "targetReachedInYears": null
+    }
+  },
+  {
+    "name": "목표 0 (미설정)",
+    "summary": {
+      "version": 1,
+      "durationYears": 20,
+      "tickerCount": 2,
+      "initialInvestment": 10000000,
+      "monthlyContribution": 1000000,
+      "totalContribution": 250000000,
+      "finalAssetValue": 564283334,
+      "finalMonthlyDividend": 1954066,
+      "targetMonthlyDividend": 0,
+      "targetReachedInYears": 1
+    }
+  },
+  {
+    "name": "목표 미달성(초대형 목표 · 5년)",
+    "summary": {
+      "version": 1,
+      "durationYears": 5,
+      "tickerCount": 1,
+      "initialInvestment": 10000000,
+      "monthlyContribution": 1000000,
+      "totalContribution": 70000000,
+      "finalAssetValue": 88171286,
+      "finalMonthlyDividend": 196550,
+      "targetMonthlyDividend": 999999999,
+      "targetReachedInYears": null
+    }
+  },
+  {
+    "name": "기간 1년",
+    "summary": {
+      "version": 1,
+      "durationYears": 1,
+      "tickerCount": 2,
+      "initialInvestment": 10000000,
+      "monthlyContribution": 1000000,
+      "totalContribution": 22000000,
+      "finalAssetValue": 23126916,
+      "finalMonthlyDividend": 61391,
+      "targetMonthlyDividend": 2000000,
+      "targetReachedInYears": null
+    }
+  },
+  {
+    "name": "기간 40년(장기)",
+    "summary": {
+      "version": 1,
+      "durationYears": 40,
+      "tickerCount": 2,
+      "initialInvestment": 10000000,
+      "monthlyContribution": 1000000,
+      "totalContribution": 490000000,
+      "finalAssetValue": 2870006282,
+      "finalMonthlyDividend": 9535024,
+      "targetMonthlyDividend": 2000000,
+      "targetReachedInYears": 21
+    }
+  },
+  {
+    "name": "세율 0%",
+    "summary": {
+      "version": 1,
+      "durationYears": 20,
+      "tickerCount": 2,
+      "initialInvestment": 10000000,
+      "monthlyContribution": 1000000,
+      "totalContribution": 250000000,
+      "finalAssetValue": 624748376,
+      "finalMonthlyDividend": 2579238,
+      "targetMonthlyDividend": 2000000,
+      "targetReachedInYears": 18
+    }
+  },
+  {
+    "name": "세율 미입력(undefined)",
+    "summary": {
+      "version": 1,
+      "durationYears": 20,
+      "tickerCount": 1,
+      "initialInvestment": 10000000,
+      "monthlyContribution": 1000000,
+      "totalContribution": 250000000,
+      "finalAssetValue": 673708672,
+      "finalMonthlyDividend": 1872724,
+      "targetMonthlyDividend": 2000000,
+      "targetReachedInYears": null
+    }
+  },
+  {
+    "name": "세율 상한 100%",
+    "summary": {
+      "version": 1,
+      "durationYears": 20,
+      "tickerCount": 2,
+      "initialInvestment": 10000000,
+      "monthlyContribution": 1000000,
+      "totalContribution": 250000000,
+      "finalAssetValue": 341168731,
+      "finalMonthlyDividend": 0,
+      "targetMonthlyDividend": 2000000,
+      "targetReachedInYears": null
+    }
+  },
+  {
+    "name": "초기 투자금 0 · 월 적립만",
+    "summary": {
+      "version": 1,
+      "durationYears": 20,
+      "tickerCount": 1,
+      "initialInvestment": 0,
+      "monthlyContribution": 1000000,
+      "totalContribution": 240000000,
+      "finalAssetValue": 579926025,
+      "finalMonthlyDividend": 1366470,
+      "targetMonthlyDividend": 2000000,
+      "targetReachedInYears": null
+    }
+  },
+  {
+    "name": "월 적립 0 · 초기금만",
+    "summary": {
+      "version": 1,
+      "durationYears": 20,
+      "tickerCount": 1,
+      "initialInvestment": 10000000,
+      "monthlyContribution": 0,
+      "totalContribution": 10000000,
+      "finalAssetValue": 47866087,
+      "finalMonthlyDividend": 113877,
+      "targetMonthlyDividend": 2000000,
+      "targetReachedInYears": null
+    }
+  },
+  {
+    "name": "투입금 전부 0",
+    "summary": {
+      "version": 1,
+      "durationYears": 20,
+      "tickerCount": 1,
+      "initialInvestment": 0,
+      "monthlyContribution": 0,
+      "totalContribution": 0,
+      "finalAssetValue": 0,
+      "finalMonthlyDividend": 0,
+      "targetMonthlyDividend": 2000000,
+      "targetReachedInYears": null
+    }
+  },
+  {
+    "name": "7월 시작(비-1월) · 주기 혼합",
+    "summary": {
+      "version": 1,
+      "durationYears": 10,
+      "tickerCount": 3,
+      "initialInvestment": 10000000,
+      "monthlyContribution": 1000000,
+      "totalContribution": 130000000,
+      "finalAssetValue": 203947281,
+      "finalMonthlyDividend": 428808,
+      "targetMonthlyDividend": 2000000,
+      "targetReachedInYears": null
+    }
+  },
+  {
+    "name": "일부만 포함(includedTickerIds 부분집합)",
+    "summary": {
+      "version": 1,
+      "durationYears": 20,
+      "tickerCount": 2,
+      "initialInvestment": 10000000,
+      "monthlyContribution": 1000000,
+      "totalContribution": 250000000,
+      "finalAssetValue": 591773088,
+      "finalMonthlyDividend": 1840179,
+      "targetMonthlyDividend": 2000000,
+      "targetReachedInYears": null
+    }
+  },
+  {
+    "name": "배당 0% 종목 포함",
+    "summary": {
+      "version": 1,
+      "durationYears": 20,
+      "tickerCount": 2,
+      "initialInvestment": 10000000,
+      "monthlyContribution": 1000000,
+      "totalContribution": 250000000,
+      "finalAssetValue": 558191599,
+      "finalMonthlyDividend": 1213893,
+      "targetMonthlyDividend": 2000000,
+      "targetReachedInYears": null
+    }
+  },
+  {
+    "name": "배당 성장 음수(감액)",
+    "summary": {
+      "version": 1,
+      "durationYears": 20,
+      "tickerCount": 1,
+      "initialInvestment": 10000000,
+      "monthlyContribution": 1000000,
+      "totalContribution": 250000000,
+      "finalAssetValue": 310947646,
+      "finalMonthlyDividend": 1266223,
+      "targetMonthlyDividend": 2000000,
+      "targetReachedInYears": null
+    }
+  }
+]

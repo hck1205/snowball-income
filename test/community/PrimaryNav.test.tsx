@@ -60,8 +60,32 @@ describe('PrimaryNav', () => {
     renderAt('/community/board/write');
 
     expect(screen.getByRole('link', { name: '게시판' })).toHaveAttribute('aria-current', 'page');
-    // 갤러리(/community/portfolio)는 exact(end)라 게시판 하위에서 활성이 되지 않는다.
+    // 형제 세그먼트라 갤러리는 게시판 하위에서 활성이 되지 않는다.
     expect(screen.getByRole('link', { name: '포트폴리오 갤러리' })).not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('link', { name: '시뮬레이터' })).not.toHaveAttribute('aria-current');
+  });
+
+  // 갤러리 하위 경로(상세·글쓰기·수정)에서도 섹션 탭이 유지돼야 한다 — routes.tsx의 portfolio 자식 라우트.
+  it.each(['/community/portfolio/abc123', '/community/portfolio/abc123/edit', '/community/portfolio/write'])(
+    '갤러리 하위 경로(%s)에서도 갤러리 링크가 활성이다 (섹션 유지)',
+    (path) => {
+      communityEnabled = true;
+      renderAt(path);
+
+      expect(screen.getByRole('link', { name: '포트폴리오 갤러리' })).toHaveAttribute('aria-current', 'page');
+      expect(screen.getByRole('link', { name: '게시판' })).not.toHaveAttribute('aria-current');
+      // '/'는 exact(end)라 어떤 하위 경로에서도 활성이 되지 않는다.
+      expect(screen.getByRole('link', { name: '시뮬레이터' })).not.toHaveAttribute('aria-current');
+    }
+  );
+
+  it('활성 링크는 어느 라우트에서든 정확히 하나다', () => {
+    communityEnabled = true;
+    renderAt('/community/board/42');
+
+    const current = screen.getAllByRole('link').filter((link) => link.getAttribute('aria-current') === 'page');
+    expect(current).toHaveLength(1);
+    expect(current[0]).toHaveAccessibleName('게시판');
   });
 
   it('커뮤니티 비활성 배포에선 갤러리·게시판 링크를 렌더하지 않는다 (앱은 그대로 동작)', () => {

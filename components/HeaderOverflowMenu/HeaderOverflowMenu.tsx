@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Check, ChevronDown, Download, GraduationCap, MoreHorizontal, Palette } from 'lucide-react';
+import { Check, ChevronDown, Download, FileText, GraduationCap, Loader2, MoreHorizontal, Palette } from 'lucide-react';
 import { Button } from '@/components/common';
 import { ModalActions, ModalBackdrop, ModalPanel, ModalTitle } from '@/components/common/Modal';
 import { isTourSeen } from '@/components/TourGuide';
@@ -11,8 +11,13 @@ import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import {
   GuideList,
   Menu,
+  MenuAlert,
+  MenuCaption,
   MenuItem,
+  MenuItemLabel,
+  MenuLiveStatus,
   MenuRoot,
+  MenuSpinner,
   NewDot,
   ThemeCaret,
   ThemeMenuLabel,
@@ -100,6 +105,27 @@ function InstallGuideSteps({ platform }: { platform: InstallPlatform }) {
   );
 }
 
+/** PDF 리포트 저장 항목의 상태·동작. 시뮬레이터(pages/Main)만 주입한다. */
+export type HeaderOverflowMenuPdfReport = {
+  /**
+   * 리포트를 만들고 저장한다. **성공하면 true**를 돌려준다(메뉴를 닫고 트리거로 포커스를 되돌리는 신호).
+   * 실패는 예외가 아니라 false + `hasFailed`로 표현한다 — 메뉴를 유지한 채 인라인 알림을 띄우기 위함이다.
+   */
+  onDownload: () => Promise<boolean>;
+  /** 생성 중 — 항목을 비활성화하되 **메뉴는 닫지 않는다**. */
+  isGenerating: boolean;
+  /**
+   * 직전 시도 실패(없으면 null) — 인라인 `role="alert"` 알림을 편다.
+   *
+   * 메뉴는 **사유 어휘를 모른다**: 완성된 문구와 "재시도가 의미 있나"만 받는다. 그래야 커뮤니티와
+   * 공유하는 이 컴포넌트가 시뮬레이터의 실패 분류에 결합되지 않는다. `canRetry=false`면
+   * [다시 시도] 버튼을 아예 렌더하지 않는다 — 눌러도 같은 결과인 실패에 재시도를 권하지 않기 위해서다.
+   */
+  failure: { message: string; canRetry: boolean } | null;
+  /** 비활성 사유(없으면 null). 사유가 있으면 항목은 disabled + 캡션이 붙는다. */
+  blockedReason: string | null;
+};
+
 export type HeaderOverflowMenuProps = {
   /**
    * 튜토리얼(코치마크 투어) 항목을 메뉴에 넣을지. 기본 true.
@@ -107,6 +133,13 @@ export type HeaderOverflowMenuProps = {
    * 표면(커뮤니티 헤더 등)에서 "앱 설치 + 테마"만 담기 위함. 시뮬레이터 헤더는 기본(true)이라 불변.
    */
   showTutorial?: boolean;
+  /**
+   * "PDF 리포트 저장" 항목을 넣을지. **기본 false** — 커뮤니티 헤더는 무변경이다.
+   * 이 메뉴는 커뮤니티와 공유되므로 시뮬레이터 데이터에 결합시키지 않는다: 메뉴는 트리거와 상태 표현만
+   * 하고, 실제 생성은 `pages/Main`이 `pdfReport` 콜백으로 주입한다.
+   */
+  showPdfReport?: boolean;
+  pdfReport?: HeaderOverflowMenuPdfReport;
 };
 
 /**
@@ -125,7 +158,11 @@ export type HeaderOverflowMenuProps = {
  * 첫 방문 유도 점은 `showTutorial && !hasSeenTour`일 때 트리거 모서리에 걸어, 신규 사용자가 튜토리얼을 발견하게 한다.
  * 드롭다운 개폐/포커스 관리는 AuthControl 드롭다운과 같은 메커니즘(바깥 pointerdown·Esc, role=menu)을 따른다.
  */
-export default function HeaderOverflowMenu({ showTutorial = true }: HeaderOverflowMenuProps) {
+export default function HeaderOverflowMenu({
+  showTutorial = true,
+  showPdfReport = false,
+  pdfReport
+}: HeaderOverflowMenuProps) {
   const bumpTourLaunch = useSetTourLaunchRequestWrite();
 
   const [open, setOpen] = useState(false);
@@ -134,6 +171,8 @@ export default function HeaderOverflowMenu({ showTutorial = true }: HeaderOverfl
   const [isStandalone, setIsStandalone] = useState(false);
   const [hasSeenTour, setHasSeenTour] = useState(true);
   const [guidePlatform, setGuidePlatform] = useState<InstallPlatform | null>(null);
+  /** 마지막 PDF 시도가 성공했나 — 메뉴가 닫힌 뒤에도 라이브 리전이 완료를 알리기 위한 로컬 신호. */
+  const [hasPdfReportSucceeded, setHasPdfReportSucceeded] = useState(false);
 
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -141,6 +180,7 @@ export default function HeaderOverflowMenu({ showTutorial = true }: HeaderOverfl
   const menuId = useId();
   const themePanelId = useId();
   const guideTitleId = useId();
+  const pdfCaptionId = useId();
 
   // 메뉴가 닫히면 테마 펼침도 접는다 — 다시 열 때 항상 접힌 상태로 시작한다.
   useEffect(() => {
@@ -222,6 +262,20 @@ export default function HeaderOverflowMenu({ showTutorial = true }: HeaderOverfl
     bumpTourLaunch((count) => count + 1);
   }, [bumpTourLaunch]);
 
+  /**
+   * PDF 리포트 저장. 생성이 끝날 때까지 **메뉴를 열어 둔다** — 진행 상태(스피너 + role=status)와
+   * 실패 알림이 보일 곳이 필요하기 때문이다. 성공했을 때만 닫고 트리거로 포커스를 되돌린다.
+   */
+  const handleDownloadPdfReport = useCallback(async () => {
+    if (!pdfReport) return;
+    setHasPdfReportSucceeded(false);
+    const succeeded = await pdfReport.onDownload();
+    if (!succeeded) return;
+    setHasPdfReportSucceeded(true);
+    setOpen(false);
+    triggerRef.current?.focus();
+  }, [pdfReport]);
+
   const handleInstall = useCallback(async () => {
     setOpen(false);
     if (deferredPrompt) {
@@ -264,6 +318,43 @@ export default function HeaderOverflowMenu({ showTutorial = true }: HeaderOverfl
               튜토리얼 보기
             </MenuItem>
           ) : null}
+          {/* 튜토리얼·PDF는 "지금 보고 있는 화면"에 대한 액션, 아래 설치·테마는 환경 설정이다. */}
+          {showPdfReport && pdfReport ? (
+            <>
+              <MenuItem
+                type="button"
+                role="menuitem"
+                disabled={pdfReport.isGenerating || pdfReport.blockedReason !== null}
+                aria-disabled={pdfReport.isGenerating || pdfReport.blockedReason !== null}
+                aria-busy={pdfReport.isGenerating}
+                aria-describedby={pdfReport.blockedReason ? pdfCaptionId : undefined}
+                onClick={handleDownloadPdfReport}
+              >
+                <FileText size={16} strokeWidth={1.8} aria-hidden focusable={false} />
+                <MenuItemLabel>{pdfReport.isGenerating ? '리포트 만드는 중…' : 'PDF 리포트 저장'}</MenuItemLabel>
+                {pdfReport.isGenerating ? (
+                  <MenuSpinner aria-hidden="true">
+                    <Loader2 size={16} strokeWidth={1.8} focusable={false} />
+                  </MenuSpinner>
+                ) : null}
+              </MenuItem>
+              {/* disabled 요소는 title 툴팁이 안 뜬다 → 사유를 본문 캡션으로 두고 aria-describedby로 연결. */}
+              {pdfReport.blockedReason ? (
+                <MenuCaption id={pdfCaptionId}>{pdfReport.blockedReason}</MenuCaption>
+              ) : null}
+              {pdfReport.failure && !pdfReport.isGenerating ? (
+                <MenuAlert role="alert">
+                  <span>{pdfReport.failure.message}</span>
+                  {/* 재시도가 의미 없는 실패에는 버튼을 만들지 않는다(같은 결과를 반복시키지 않는다). */}
+                  {pdfReport.failure.canRetry ? (
+                    <Button variant="secondary" size="sm" onClick={handleDownloadPdfReport}>
+                      다시 시도
+                    </Button>
+                  ) : null}
+                </MenuAlert>
+              ) : null}
+            </>
+          ) : null}
           {isStandalone ? (
             <MenuItem type="button" role="menuitem" disabled aria-disabled="true">
               <Check size={16} strokeWidth={1.8} aria-hidden focusable={false} />
@@ -296,6 +387,22 @@ export default function HeaderOverflowMenu({ showTutorial = true }: HeaderOverfl
             </ThemePanel>
           ) : null}
         </Menu>
+      ) : null}
+
+      {/*
+        진행/완료/실패를 스피너 회전이 아니라 문장으로 알린다. **메뉴 밖**에 두는 이유:
+        성공하면 메뉴가 닫히므로, 메뉴 안에 있으면 "준비됐습니다"가 언마운트되어 낭독되지 않는다.
+      */}
+      {showPdfReport && pdfReport ? (
+        <MenuLiveStatus role="status" aria-live="polite">
+          {pdfReport.isGenerating
+            ? '리포트를 만들고 있습니다.'
+            : pdfReport.failure
+              ? '리포트를 만들지 못했습니다.'
+              : hasPdfReportSucceeded
+                ? '리포트가 준비됐습니다.'
+                : ''}
+        </MenuLiveStatus>
       ) : null}
 
       {guidePlatform && modalRoot

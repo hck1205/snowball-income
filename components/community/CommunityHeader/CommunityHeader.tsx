@@ -11,14 +11,14 @@ import { CommunitySearchBar } from '@/components/community/CommunitySearchBar';
 import { BackIcon, PencilIcon, SearchIcon } from '@/components/community/CommunityIcons';
 import {
   Actions,
+  BackSlot,
   ControlsRow,
   DesktopOnly,
   HeaderInner,
   HeaderRoot,
   MobileSearchBar,
   MobileSearchToggle,
-  SearchSlot,
-  Spacer
+  SearchSlot
 } from './CommunityHeader.styled';
 
 /**
@@ -61,60 +61,62 @@ export default function CommunityHeader() {
       <HeaderInner>
         <PrimaryNav />
 
-        {/* 2번째 줄 — 뒤로가기 · 가운데 검색 · 우측 액션(글쓰기·인증·더보기). */}
+        {/* 2번째 줄 — 뒤로가기(1열) · 가운데 검색(2열) · 우측 액션(3열).
+            1줄째 PrimaryNav와 동일한 3컬럼 그리드라 두 줄의 가운데 중심선이 일치한다. */}
         <ControlsRow>
-        {/* 뒤로가기: 목록 화면(갤러리/게시판 인덱스)에선 nav 링크가 이동을 담당하므로 숨기고,
-            상세/글쓰기 등 하위 경로에서만 "← 목록"으로 자기 섹션 목록에 복귀한다. */}
-        {isIndex ? null : (
-          <Button
-            variant="ghost"
-            size="sm"
-            startIcon={<BackIcon size={16} />}
-            onClick={() => navigate(listPath)}
-            aria-label={COMMUNITY_COPY.nav.list}
-          >
-            <DesktopOnly>{COMMUNITY_COPY.nav.list}</DesktopOnly>
-          </Button>
-        )}
-
-        {isGalleryIndex ? (
-          <SearchSlot>
-            <CommunitySearchBar />
-          </SearchSlot>
-        ) : (
-          <Spacer />
-        )}
-
-        <Actions>
-          {isGalleryIndex ? (
-            <MobileSearchToggle
-              type="button"
-              aria-label={COMMUNITY_COPY.gallery.searchAriaLabel}
-              aria-expanded={mobileSearchOpen}
-              onClick={() => setMobileSearchOpen((prev) => !prev)}
-            >
-              <SearchIcon size={18} />
-            </MobileSearchToggle>
-          ) : null}
-
-          {isWriteRoute ? null : (
-            <Button
-              variant="primary"
-              size="sm"
-              startIcon={<PencilIcon size={16} />}
-              onClick={handleWrite}
-              aria-label={COMMUNITY_COPY.nav.write}
-            >
-              <DesktopOnly>{COMMUNITY_COPY.nav.write}</DesktopOnly>
-            </Button>
+          {/* 뒤로가기: 목록 화면(갤러리/게시판 인덱스)에선 nav 링크가 이동을 담당하므로 숨기고,
+              상세/글쓰기 등 하위 경로에서만 "← 목록"으로 자기 섹션 목록에 복귀한다.
+              숨겨도 1열 트랙은 그대로 남아 가운데 검색 위치는 변하지 않는다. */}
+          {isIndex ? null : (
+            <BackSlot>
+              <Button
+                variant="ghost"
+                size="sm"
+                startIcon={<BackIcon size={16} />}
+                onClick={() => navigate(listPath)}
+                aria-label={COMMUNITY_COPY.nav.list}
+              >
+                <DesktopOnly>{COMMUNITY_COPY.nav.list}</DesktopOnly>
+              </Button>
+            </BackSlot>
           )}
 
-          <AuthControl />
+          {isGalleryIndex ? (
+            <SearchSlot>
+              <CommunitySearchBar />
+            </SearchSlot>
+          ) : null}
 
-          {/* 더보기(⋯) — 앱 설치 + 테마만. 커뮤니티엔 코치마크 투어가 없으므로 튜토리얼 항목을 뺀다(showTutorial={false}).
-              기존 standalone 테마 스위처는 이 메뉴로 흡수했다(시뮬레이터 헤더와 동일 패턴 — 테마 접근점 단일화). */}
-          <HeaderOverflowMenu showTutorial={false} />
-        </Actions>
+          <Actions>
+            {isGalleryIndex ? (
+              <MobileSearchToggle
+                type="button"
+                aria-label={COMMUNITY_COPY.gallery.searchAriaLabel}
+                aria-expanded={mobileSearchOpen}
+                onClick={() => setMobileSearchOpen((prev) => !prev)}
+              >
+                <SearchIcon size={18} />
+              </MobileSearchToggle>
+            ) : null}
+
+            {isWriteRoute ? null : (
+              <Button
+                variant="primary"
+                size="sm"
+                startIcon={<PencilIcon size={16} />}
+                onClick={handleWrite}
+                aria-label={COMMUNITY_COPY.nav.write}
+              >
+                <DesktopOnly>{COMMUNITY_COPY.nav.write}</DesktopOnly>
+              </Button>
+            )}
+
+            <AuthControl />
+
+            {/* 더보기(⋯) — 앱 설치 + 테마만. 커뮤니티엔 코치마크 투어가 없으므로 튜토리얼 항목을 뺀다(showTutorial={false}).
+                기존 standalone 테마 스위처는 이 메뉴로 흡수했다(시뮬레이터 헤더와 동일 패턴 — 테마 접근점 단일화). */}
+            <HeaderOverflowMenu showTutorial={false} />
+          </Actions>
         </ControlsRow>
       </HeaderInner>
 

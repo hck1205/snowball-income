@@ -122,18 +122,22 @@ export const buildLineChartOption = <TRow>({
   };
 };
 
+/**
+ * `theme`를 넘기면 그 테마로 옵션을 만든다(미지정 = 현재 화면 테마).
+ * PDF 리포트가 **화면과 같은 빌더**로 인쇄용(라이트 고정) 차트를 뽑기 위한 유일한 확장점이다.
+ */
 export const buildAllocationPieOption = ({
   normalizedAllocation,
   showPortfolioDividendCenter,
-  finalMonthlyAverageDividend
+  finalMonthlyAverageDividend,
+  theme = getChartTheme()
 }: {
   normalizedAllocation: NormalizedAllocationItem[];
   showPortfolioDividendCenter: boolean;
   finalMonthlyAverageDividend: number;
+  theme?: ChartTheme;
 }): EChartsOption | null => {
   if (normalizedAllocation.length === 0) return null;
-
-  const theme = getChartTheme();
 
   return {
     animation: false,
@@ -217,8 +221,10 @@ export const buildAllocationPieOption = ({
   };
 };
 
-export const buildRecentCashflowBarOption = (recentCashflowByTicker: RecentCashflowByTicker): EChartsOption => {
-  const theme = getChartTheme();
+export const buildRecentCashflowBarOption = (
+  recentCashflowByTicker: RecentCashflowByTicker,
+  theme: ChartTheme = getChartTheme()
+): EChartsOption => {
   const axis = buildAxisStyle(theme);
 
   return {
@@ -273,14 +279,15 @@ export const buildRecentCashflowBarOption = (recentCashflowByTicker: RecentCashf
 export const buildYearlyResultBarOption = ({
   tableRows,
   visibleYearlySeries,
-  isYearlyAreaFillOn
+  isYearlyAreaFillOn,
+  theme = getChartTheme()
 }: {
   tableRows: SimulationResult[];
   visibleYearlySeries: Record<YearlySeriesKey, boolean>;
   isYearlyAreaFillOn: boolean;
+  theme?: ChartTheme;
 }): EChartsOption => {
   const seriesKeys = YEARLY_SERIES_ORDER.filter((key) => visibleYearlySeries[key]);
-  const theme = getChartTheme();
   const axis = buildAxisStyle(theme);
 
   return {
