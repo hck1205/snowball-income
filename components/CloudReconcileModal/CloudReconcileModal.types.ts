@@ -13,6 +13,10 @@ export type CloudReconcileModalProps = {
   blendTabCount: number;
   /** now 주입(결정적 상대시간 테스트). 기본 new Date(). */
   now?: Date;
+  /** 화해 IO 진행 중 — 선택지를 잠가 중복 실행을 막는다. */
+  isResolving?: boolean;
+  /** 직전 화해가 실패했는지 — 오류를 보여주고 같은 버튼을 재시도 경로로 안내한다(무음 실패 금지). */
+  hasResolveFailed?: boolean;
   /** 이 기기 데이터로 맞추기(로컬 채택 → 클라우드 덮어씀, 파괴적). */
   onUseDevice: () => void;
   /** 클라우드 데이터로 맞추기(클라우드 채택 → 앱 적용+로컬 미러, 파괴적). */

@@ -17,6 +17,7 @@ import {
   CompareRow,
   RecentTag,
   RecommendBadge,
+  ResolveError,
   TabChip,
   TabChipList
 } from './CloudReconcileModal.styled';
@@ -82,6 +83,8 @@ export default function CloudReconcileModal({
   summary,
   blendTabCount,
   now = new Date(),
+  isResolving = false,
+  hasResolveFailed = false,
   onUseDevice,
   onUseCloud,
   onBlend,
@@ -97,24 +100,26 @@ export default function CloudReconcileModal({
   }, []);
 
   // Esc = 이연(모달 닫기). 문서 레벨로 잡아 어느 자식에 포커스가 있어도 동작한다.
+  // 화해 IO가 도는 중에는 닫지 않는다 — 진행 중 결과(성공/실패)를 못 보고 사라지는 걸 막는다.
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.preventDefault();
-        onDefer();
+        if (!isResolving) onDefer();
       }
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onDefer]);
+  }, [isResolving, onDefer]);
 
   const handleBackdropClick = useCallback(
     (event: MouseEvent<HTMLDivElement>) => {
       // 패널 내부 클릭은 무시하고, 백드롭 자체를 눌렀을 때만 이연으로 닫는다.
       if (event.target !== event.currentTarget) return;
+      if (isResolving) return;
       onDefer();
     },
-    [onDefer]
+    [isResolving, onDefer]
   );
 
   // 두 측 모두 편집 시각을 알고 서로 다를 때만 "최근 편집"을 판정한다(한쪽만 알면 비교 불가 → 태그 없음).
@@ -143,8 +148,15 @@ export default function CloudReconcileModal({
           <CompareColumn label="클라우드" summary={summary.cloud} isRecent={cloudIsRecent} now={now} />
         </CompareRow>
 
+        {hasResolveFailed ? (
+          <ResolveError role="alert">
+            클라우드에 반영하지 못했습니다. 이 기기의 데이터는 그대로 있어요 — 연결을 확인한 뒤 다시 선택해
+            주세요.
+          </ResolveError>
+        ) : null}
+
         <ChoiceList>
-          <ChoiceButton ref={blendButtonRef} type="button" recommended onClick={onBlend}>
+          <ChoiceButton ref={blendButtonRef} type="button" recommended disabled={isResolving} onClick={onBlend}>
             <ChoiceTitleRow>
               둘 다 합치기
               <RecommendBadge>추천</RecommendBadge>
@@ -154,12 +166,12 @@ export default function CloudReconcileModal({
             </ChoiceHint>
           </ChoiceButton>
 
-          <ChoiceButton type="button" onClick={onUseDevice}>
+          <ChoiceButton type="button" disabled={isResolving} onClick={onUseDevice}>
             <ChoiceTitleRow>이 기기 데이터로 맞추기</ChoiceTitleRow>
             <ChoiceHint destructive>클라우드의 다른 탭은 사라집니다</ChoiceHint>
           </ChoiceButton>
 
-          <ChoiceButton type="button" onClick={onUseCloud}>
+          <ChoiceButton type="button" disabled={isResolving} onClick={onUseCloud}>
             <ChoiceTitleRow>클라우드 데이터로 맞추기</ChoiceTitleRow>
             <ChoiceHint destructive>이 기기의 다른 탭은 사라집니다</ChoiceHint>
           </ChoiceButton>

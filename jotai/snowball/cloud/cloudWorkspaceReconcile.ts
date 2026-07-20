@@ -1,4 +1,4 @@
-import { isSameMeaningfulScenario } from '../persistence';
+import { isSameMeaningfulScenario, serializeMeaningfulScenario } from '../persistence';
 import type { PersistedAppStatePayload, PersistedScenarioState } from '../types';
 
 /**
@@ -19,6 +19,24 @@ export type CloudWorkspaceConflict = {
   deviceUpdatedAt: number | undefined;
   /** 클라우드 payload에 실린 savedAt(클라이언트 시각). 구버전=undefined. 요약의 "마지막 편집시각". */
   cloudSavedAt: number | undefined;
+};
+
+// ── 포함관계(거짓 충돌 제거) ──────────────────────────────────────────────────
+
+/**
+ * `subset`의 **모든** 시나리오가 `superset`에 (의미있는 관점에서) 그대로 있는지.
+ *
+ * 참이면 superset을 정본으로 삼아도 **잃는 시나리오가 없다** — 블렌드해도 superset과 같은 결과다
+ * (`mergeWorkspaces(superset, subset)`의 의미있는 내용 == superset). 세션 시작 엔진이 이 판정으로
+ * **거짓 충돌**(로컬이 클라우드를 이미 다 품고 있는데도 모달을 띄우던 경우)을 걸러낸다.
+ *
+ * ⚠ 방향이 중요하다. "클라우드 ⊆ 로컬"은 로컬 채택이 무손실이라 자동화해도 안전하지만, 반대 방향
+ *   ("로컬 ⊆ 클라우드")은 **다른 기기가 탭을 추가한 것**인지 **이 기기에서 탭을 지운 것**인지 구분할 수
+ *   없다 — 자동 적용하면 사용자가 지운 탭이 되살아난다. 그래서 그쪽은 항상 사용자에게 묻는다.
+ */
+export const isWorkspaceSubsumedBy = (subset: PersistedAppStatePayload, superset: PersistedAppStatePayload): boolean => {
+  const supersetKeys = new Set(superset.scenarios.map(serializeMeaningfulScenario));
+  return subset.scenarios.every((scenario) => supersetKeys.has(serializeMeaningfulScenario(scenario)));
 };
 
 // ── 블렌드 병합(합집합·비파괴) ────────────────────────────────────────────────
@@ -147,14 +165,19 @@ export type WorkspaceReconcileDeps = {
 };
 
 /**
- * **디바이스 기준**: 로컬을 채택한다. 앱·로컬 슬롯은 이미 로컬 정본(하이드레이션 결과)이므로 클라우드에만
- * push해 덮어써 양쪽을 로컬 내용으로 수렴시킨다. 반환=반영된 payload(계측 result_tabs 집계용).
+ * **디바이스 기준**: 이 기기 상태를 채택한다. 클라우드에 push하고 **로컬 슬롯에도 같은 payload를 미러**한다.
+ *
+ * 로컬 미러가 필수인 이유: 호출자가 넘기는 device는 세션 시작 스냅샷이 아니라 **지금 화면의 상태**이고,
+ * 로컬 autosave 슬롯은 디바운스만큼 뒤처져 있을 수 있다. 한쪽만 쓰면 두 미러가 미세하게 어긋난 채 남아
+ * 다음 세션에 **같은 충돌이 다시** 감지된다(반복 모달의 원인이었다). 양쪽에 같은 payload를 쓰면 수렴이 보장된다.
+ * 반환=반영된 payload(계측 result_tabs 집계용).
  */
 export const resolveWithDevice = async (
   device: PersistedAppStatePayload,
   deps: WorkspaceReconcileDeps
 ): Promise<PersistedAppStatePayload> => {
   const now = deps.now ?? Date.now;
+  await deps.writeLocalAutosave(device);
   await deps.pushCloudAutosave(device, now());
   return device;
 };

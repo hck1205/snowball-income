@@ -288,3 +288,53 @@ describe('IO 실패 보류', () => {
     expect(h.events).toEqual([]);
   });
 });
+
+/**
+ * 거짓 충돌 제거 — "클라우드 ⊆ 로컬"이면 로컬 채택이 무손실이므로 묻지 않고 push한다.
+ * 반대 방향(로컬 ⊂ 클라우드)은 **이 기기에서 탭을 지운 것**과 구분할 수 없으므로 반드시 사용자에게 묻는다
+ * (자동 적용하면 지운 탭이 되살아난다).
+ */
+describe('포함관계: 클라우드 ⊆ 로컬 → 충돌 아님(무손실 push)', () => {
+  /** 시나리오 목록을 하나의 payload로 합친다(첫 탭이 활성·최상위 미러). */
+  const withScenarios = (tickers: string[]): PersistedAppStatePayload => {
+    const scenarios = tickers.map((ticker, index) => {
+      const one = withTicker(ticker).scenarios[0];
+      return { ...one, id: `tab-${index}`, name: `탭${index}` };
+    });
+    return {
+      portfolio: scenarios[0].portfolio,
+      investmentSettings: scenarios[0].investmentSettings,
+      scenarios,
+      activeScenarioId: scenarios[0].id
+    };
+  };
+
+  it('로컬이 클라우드 탭을 모두 품고 더 있으면 모달 없이 로컬을 push한다', async () => {
+    const localSuperset = withScenarios(['AAA', 'BBB']);
+    const cloudSubset = withScenarios(['AAA']);
+    const h = makeHarness({
+      pullCloudAutosave: vi.fn(async () => cloud(cloudSubset, 9000)), // 클라우드가 더 "최신"이어도
+      readLocalAutosave: vi.fn(async () => localOk(localSuperset, 1000))
+    });
+
+    await syncCloudWorkspaceAtSessionStart(h.deps);
+
+    expect(types(h.events)).toEqual(['pushed-local']);
+    expect(h.calls.push).toEqual([{ payload: localSuperset, savedAt: 1000 }]);
+    expect(h.calls.apply).toEqual([]); // 클라우드를 적용하지 않는다(로컬 탭 유실 금지)
+  });
+
+  it('반대 방향(로컬 ⊂ 클라우드 — 이 기기에서 탭을 지운 경우)은 자동 적용하지 않고 conflict', async () => {
+    const localSubset = withScenarios(['AAA']);
+    const cloudSuperset = withScenarios(['AAA', 'BBB']);
+    const h = makeHarness({
+      pullCloudAutosave: vi.fn(async () => cloud(cloudSuperset, 1000)),
+      readLocalAutosave: vi.fn(async () => localOk(localSubset, 9000))
+    });
+
+    await syncCloudWorkspaceAtSessionStart(h.deps);
+
+    noSideEffects(h.calls);
+    expect(types(h.events)).toEqual(['conflict']);
+  });
+});
