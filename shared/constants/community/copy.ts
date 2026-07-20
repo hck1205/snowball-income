@@ -160,6 +160,8 @@ export const COMMUNITY_COPY = {
     visibilityPrivate: '비공개 — 나만 볼 수 있어요.',
     sectionPublish: '게시 설정',
     bodyOrAttachHint: '내용과 시뮬레이션 중 하나만 있어도 게시할 수 있어요.',
+    /** 게시판(kind='board')은 시뮬 첨부가 없어 본문이 필수다 — 위 힌트(첨부 대체 가능)를 쓰면 거짓말이 된다. */
+    bodyRequiredHintBoard: '제목과 내용을 입력하면 게시할 수 있어요.',
     attachSectionHint: '첨부하면 읽는 사람이 내 포트폴리오와 투자 설정을 시뮬레이터에서 그대로 열어볼 수 있어요.',
     attachToggleLabel: '첨부',
     attachPickerHeading: '첨부할 시나리오를 고르세요. 고르는 즉시 붙어요.',

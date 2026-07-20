@@ -128,6 +128,7 @@ const baseComposer = (overrides: Partial<UsePostComposer> = {}): UsePostComposer
   title: '',
   initialBodyHtml: '',
   isPublic: true,
+  attachAllowed: true,
   attachedPayload: null,
   errors: {},
   submitError: false,
@@ -143,14 +144,21 @@ const baseComposer = (overrides: Partial<UsePostComposer> = {}): UsePostComposer
   ...overrides
 });
 
-const baseVM = (composer: UsePostComposer, candidates: ScenarioCandidates): CommunityWriteViewModel => ({
+const baseVM = (
+  composer: UsePostComposer,
+  candidates: ScenarioCandidates,
+  overrides: Partial<CommunityWriteViewModel> = {}
+): CommunityWriteViewModel => ({
   composer,
   candidates,
   authReady: true,
   isLoggedIn: true,
+  // 공개/비공개 선택 UI는 운영자 전용 — 이 스위트의 기존 케이스는 그 UI를 보는 게 목적이라 true.
+  isAdmin: true,
   kind: 'portfolio',
   listPath: '/community',
-  onLogin: vi.fn()
+  onLogin: vi.fn(),
+  ...overrides
 });
 
 const renderView = (vm: CommunityWriteViewModel) =>

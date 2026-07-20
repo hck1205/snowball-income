@@ -147,8 +147,10 @@ function ScenarioPicker({
 }
 
 export default function CommunityWriteView({ viewModel }: CommunityWriteViewProps) {
-  const { composer, candidates, authReady, isLoggedIn, kind, listPath, onLogin } = viewModel;
+  const { composer, candidates, authReady, isLoggedIn, isAdmin, kind, listPath, onLogin } = viewModel;
   const isBoard = kind === 'board';
+  // 첨부 섹션 렌더 여부의 단일 출처는 composer다(훅이 저장 경로도 같은 값으로 게이트한다).
+  const showAttachSection = composer.attachAllowed;
   const navigate = useNavigate();
   const [leaveOpen, setLeaveOpen] = useState(false);
   // 첨부된 후보 id(피커 선택). 첨부=후보 id, 미첨부=null. 첨부 시점의 이름/요약은 후보가 직접 들고 있다.
@@ -160,6 +162,7 @@ export default function CommunityWriteView({ viewModel }: CommunityWriteViewProp
 
   // 수정 모드: 서버 payload가 로드돼 첨부가 생기면 토글을 ON으로 켠다(요약 카드 노출).
   // detach(토글 OFF)로 payload가 null이 되면 조건이 거짓이라 다시 켜지지 않는다(토글과 안 싸움).
+  // 게시판(attachAllowed=false)은 composer.attachedPayload가 항상 null이라 이 effect가 무동작이다.
   useEffect(() => {
     if (composer.attachedPayload) setAttachEnabled(true);
   }, [composer.attachedPayload]);
@@ -316,74 +319,84 @@ export default function CommunityWriteView({ viewModel }: CommunityWriteViewProp
             placeholder={isBoard ? w.bodyPlaceholderBoard : w.bodyPlaceholder}
             onChange={composer.handleBodyChange}
           />
-          <EditorHint>{w.bodyOrAttachHint}</EditorHint>
+          <EditorHint>{isBoard ? w.bodyRequiredHintBoard : w.bodyOrAttachHint}</EditorHint>
           {composer.errors.body ? <FieldError id={bodyErrorId}>{composer.errors.body}</FieldError> : null}
         </FieldBlock>
 
-        {/* 시뮬레이션 — 헤더 "첨부" 토글로 활성/해제, 활성 시 1단계 택1 피커. */}
-        <AttachSection>
-          <AttachSectionHeader>
-            <AttachSectionTitle>{w.fieldAttachment}</AttachSectionTitle>
-            <ToggleField
-              label={w.attachToggleLabel}
-              checked={attachEnabled}
-              onChange={(event) => handleToggleAttach(event.target.checked)}
-            />
-          </AttachSectionHeader>
-          <EditorHint>{w.attachSectionHint}</EditorHint>
-
-          {attachEnabled ? (
-            /* aria-live가 동작하도록 상태가 같은 부모(AttachStates) 안에서 교체된다. */
-            <AttachStates aria-live="polite">
-              {composer.attachedPayload && !attachedCandidate ? (
-                /* 외부 첨부(수정 모드) — 피커 후보와 매칭 안 되는 첨부. 요약만 노출(해제는 헤더 토글). */
-                <AttachCard>
-                  <AttachInfo>
-                    {attachedSimSummary ? <SimSummaryStats variant="attach" summary={attachedSimSummary} /> : null}
-                    <span>{attachSummary(ticker, initial, monthly)}</span>
-                    <AttachedHint>{w.attachedHint}</AttachedHint>
-                  </AttachInfo>
-                </AttachCard>
-              ) : candidates.status === 'ready' ? (
-                /* 택1 피커 — 카드 선택 즉시 첨부(1단계). */
-                <>
-                  <EditorHint>{w.attachPickerHeading}</EditorHint>
-                  <ScenarioPicker
-                    candidates={candidates.candidates}
-                    attachedCandidateId={attachedCandidate?.id ?? null}
-                    onSelectScenario={handleAttachScenario}
-                  />
-                  {attachedCandidate ? <AttachedHint>{w.attachedHint}</AttachedHint> : null}
-                </>
-              ) : candidates.status === 'empty' ? (
-                /* 첨부할 시나리오 없음: 실패할 버튼 대신 길을 보여준다 */
-                <AttachEmpty>
-                  <AttachPreviewInfo>
-                    <strong>{w.attachEmptyTitle}</strong>
-                    <span>{w.attachEmptyBody}</span>
-                  </AttachPreviewInfo>
-                  <AttachEmptyCtaLink to="/">{w.attachEmptyCta}</AttachEmptyCtaLink>
-                </AttachEmpty>
-              ) : null /* loading — 빈 상태 깜빡임 방지로 렌더 없음 */}
-            </AttachStates>
-          ) : null}
-          {composer.errors.attach ? <FieldError>{composer.errors.attach}</FieldError> : null}
-        </AttachSection>
-
-        {/* 게시 설정 — 공개 범위만(§A4). 카드 요약(description)은 본문에서 자동 발췌한다(수동 입력칸 폐지). */}
-        <FormSection title={w.sectionPublish}>
-          {/* 공개 범위 — "비공개" 스위치 + 상태 안내를 **한 행에 나란히**. 기본 off=공개, on=비공개. */}
-          <FieldBlock>
-            <VisibilityRow>
+        {/* 시뮬레이션 — 헤더 "첨부" 토글로 활성/해제, 활성 시 1단계 택1 피커.
+            자유게시판(kind='board')은 순수 텍스트 글이라 이 섹션 자체를 렌더하지 않는다. */}
+        {showAttachSection ? (
+          <AttachSection>
+            <AttachSectionHeader>
+              <AttachSectionTitle>{w.fieldAttachment}</AttachSectionTitle>
               <ToggleField
-                label="비공개"
-                checked={!composer.isPublic}
-                onChange={(event) => composer.setIsPublic(!event.target.checked)}
+                label={w.attachToggleLabel}
+                checked={attachEnabled}
+                onChange={(event) => handleToggleAttach(event.target.checked)}
               />
-              <VisibilityText>{composer.isPublic ? w.visibilityPublic : w.visibilityPrivate}</VisibilityText>
-            </VisibilityRow>
-          </FieldBlock>
-        </FormSection>
+            </AttachSectionHeader>
+            <EditorHint>{w.attachSectionHint}</EditorHint>
+
+            {attachEnabled ? (
+              /* aria-live가 동작하도록 상태가 같은 부모(AttachStates) 안에서 교체된다. */
+              <AttachStates aria-live="polite">
+                {
+                  composer.attachedPayload && !attachedCandidate ? (
+                    /* 외부 첨부(수정 모드) — 피커 후보와 매칭 안 되는 첨부. 요약만 노출(해제는 헤더 토글). */
+                    <AttachCard>
+                      <AttachInfo>
+                        {attachedSimSummary ? (
+                          <SimSummaryStats variant="attach" summary={attachedSimSummary} />
+                        ) : null}
+                        <span>{attachSummary(ticker, initial, monthly)}</span>
+                        <AttachedHint>{w.attachedHint}</AttachedHint>
+                      </AttachInfo>
+                    </AttachCard>
+                  ) : candidates.status === 'ready' ? (
+                    /* 택1 피커 — 카드 선택 즉시 첨부(1단계). */
+                    <>
+                      <EditorHint>{w.attachPickerHeading}</EditorHint>
+                      <ScenarioPicker
+                        candidates={candidates.candidates}
+                        attachedCandidateId={attachedCandidate?.id ?? null}
+                        onSelectScenario={handleAttachScenario}
+                      />
+                      {attachedCandidate ? <AttachedHint>{w.attachedHint}</AttachedHint> : null}
+                    </>
+                  ) : candidates.status === 'empty' ? (
+                    /* 첨부할 시나리오 없음: 실패할 버튼 대신 길을 보여준다 */
+                    <AttachEmpty>
+                      <AttachPreviewInfo>
+                        <strong>{w.attachEmptyTitle}</strong>
+                        <span>{w.attachEmptyBody}</span>
+                      </AttachPreviewInfo>
+                      <AttachEmptyCtaLink to="/">{w.attachEmptyCta}</AttachEmptyCtaLink>
+                    </AttachEmpty>
+                  ) : null /* loading — 빈 상태 깜빡임 방지로 렌더 없음 */}
+              </AttachStates>
+            ) : null}
+            {composer.errors.attach ? <FieldError>{composer.errors.attach}</FieldError> : null}
+          </AttachSection>
+        ) : null}
+
+        {/* 게시 설정 — 공개 범위만 남은 섹션이라, 그 유일한 필드가 숨겨지는 비운영자에게는
+            섹션(제목·테두리)을 통째로 렌더하지 않는다(빈 껍데기 금지).
+            비운영자의 신규 글은 공개 고정, 수정 글은 서버에서 온 기존 값이 그대로 보존된다. */}
+        {isAdmin ? (
+          <FormSection title={w.sectionPublish}>
+            {/* 공개 범위 — "비공개" 스위치 + 상태 안내를 **한 행에 나란히**. 기본 off=공개, on=비공개. */}
+            <FieldBlock>
+              <VisibilityRow>
+                <ToggleField
+                  label="비공개"
+                  checked={!composer.isPublic}
+                  onChange={(event) => composer.setIsPublic(!event.target.checked)}
+                />
+                <VisibilityText>{composer.isPublic ? w.visibilityPublic : w.visibilityPrivate}</VisibilityText>
+              </VisibilityRow>
+            </FieldBlock>
+          </FormSection>
+        ) : null}
 
         <ActionBar>
           <Button variant="ghost" onClick={handleCancel} disabled={composer.submitting}>

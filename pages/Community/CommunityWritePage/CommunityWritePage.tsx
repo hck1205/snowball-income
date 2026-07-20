@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 import type { PostKind } from '@/shared/lib/supabase';
-import { useIsLoggedInAtomValue } from '@/jotai/community';
+import { useIsCommunityAdmin, useIsLoggedInAtomValue } from '@/jotai/community';
 import { useCommunityAuth } from '@/components/community';
 import CommunityWriteView from './CommunityWritePage.view';
 import { useScenarioCandidates, usePostComposer } from './hooks';
@@ -21,6 +21,8 @@ export default function CommunityWritePage({ kind = 'portfolio' }: CommunityWrit
   const composer = usePostComposer(id, kind);
   const candidates = useScenarioCandidates();
   const isLoggedIn = useIsLoggedInAtomValue();
+  // 공개/비공개 선택은 운영자 전용 UI다. 마이그레이션 전/비로그인/컬럼 부재 → 전부 false.
+  const isAdmin = useIsCommunityAdmin();
   const { authReady, login } = useCommunityAuth();
   const listPath = kind === 'board' ? '/community/board' : '/community';
 
@@ -31,6 +33,7 @@ export default function CommunityWritePage({ kind = 'portfolio' }: CommunityWrit
         candidates,
         authReady,
         isLoggedIn,
+        isAdmin,
         kind,
         listPath,
         onLogin: (provider) => void login(provider)

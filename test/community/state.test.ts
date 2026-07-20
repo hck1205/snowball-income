@@ -2,6 +2,7 @@ import { createStore } from 'jotai/vanilla';
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
   COMMUNITY_VIEW_STORAGE_KEY,
+  isCommunityAdminAtom,
   isLoggedInAtom,
   likedPostIdsAtom,
   profileAtom,
@@ -33,6 +34,26 @@ describe('jotai/community 상태', () => {
 
     store.set(sessionAtom, null);
     expect(store.get(isLoggedInAtom)).toBe(false);
+  });
+
+  it('관리자 파생: 프로필이 없으면 false (비로그인·조회실패·컬럼부재 모두 여기로 떨어진다)', () => {
+    const store = createStore();
+    expect(store.get(isCommunityAdminAtom)).toBe(false);
+  });
+
+  it('관리자 파생: is_admin 이 true 일 때만 true', () => {
+    const store = createStore();
+    const base = { id: 'u1', display_name: '일반', avatar_url: null };
+
+    store.set(profileAtom, { ...base, is_admin: false });
+    expect(store.get(isCommunityAdminAtom)).toBe(false);
+
+    store.set(profileAtom, { ...base, is_admin: true });
+    expect(store.get(isCommunityAdminAtom)).toBe(true);
+
+    // 로그아웃(프로필 비움)하면 즉시 일반 사용자로 돌아온다.
+    store.set(profileAtom, null);
+    expect(store.get(isCommunityAdminAtom)).toBe(false);
   });
 
   it('viewType 변경은 localStorage에 유지된다', () => {
