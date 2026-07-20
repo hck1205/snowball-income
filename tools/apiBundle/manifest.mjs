@@ -12,6 +12,7 @@ export const API_BUNDLES = [
   { entry: 'server/handlers/NaverAuth/NaverAuth.ts', out: 'api/naver-auth.js' },
   { entry: 'server/handlers/Og/Og.tsx', out: 'api/og.js' },
   { entry: 'server/handlers/PostHtml/PostHtml.ts', out: 'api/post-html.js' },
+  { entry: 'server/handlers/PostList/PostList.ts', out: 'api/post-list.js' },
   { entry: 'server/handlers/ShareHtml/ShareHtml.ts', out: 'api/share-html.js' },
   { entry: 'server/handlers/Sitemap/Sitemap.ts', out: 'api/sitemap.js' }
 ];

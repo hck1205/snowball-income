@@ -42,6 +42,13 @@ export type PublicPostRef = {
   updatedAt: string;
 };
 
+/** 목록 페이지 ISR 한 줄(제목·링크). 본문·요약은 필요 없다 — 크롤러가 상세 URL 을 발견하게만 한다. */
+export type PublicPostListItem = {
+  id: string;
+  kind: PublicPostKind;
+  title: string;
+};
+
 /** 상세 메타 치환에 필요한 필드. description 은 본문 자동 발췌(글쓰기 트랙 결정)라 없을 수 있다. */
 export type PublicPostMeta = PublicPostRef & {
   title: string;
@@ -87,6 +94,15 @@ const toRef = (row: PostRestRow): PublicPostRef | null => {
   if (typeof kind !== 'string' || !isPublicPostKind(kind)) return null;
   if (typeof updatedAt !== 'string' || updatedAt.length === 0) return null;
   return { id, kind, updatedAt };
+};
+
+/** 목록 한 줄: id/kind 형식 + 비어 있지 않은 제목만 통과(updatedAt 은 목록에 불필요해 검증 안 함). */
+const toListItem = (row: PostRestRow): PublicPostListItem | null => {
+  const { id, kind, title } = row;
+  if (typeof id !== 'string' || !POST_ID_PATTERN.test(id)) return null;
+  if (typeof kind !== 'string' || !isPublicPostKind(kind)) return null;
+  if (typeof title !== 'string' || title.length === 0) return null;
+  return { id, kind, title };
 };
 
 /**
@@ -172,5 +188,45 @@ export const fetchPublicPostMeta = async (kind: PublicPostKind, id: string): Pro
     };
   } catch {
     return { status: 'unavailable' };
+  }
+};
+
+/** 목록 ISR 기본 상한. 크롤러가 발견할 상세 URL 을 늘리되, 셸 크기와 조회 비용을 함께 억제한다. */
+export const POST_LIST_LIMIT = 50;
+
+/**
+ * 목록 페이지 ISR 용 공개 글 목록. `fetchPublicPostRefs`(사이트맵)와 달리 **제목**을 포함한다.
+ *
+ * 사이트맵과 동일하게 **어떤 실패도 throw 하지 않고 null** 로 흡수한다 — 조회가 실패해도 호출부가 무치환
+ * 셸 200 으로 내보낼 수 있어야 한다(목록 페이지가 5xx 로 죽으면 안 된다). RLS 에 더해 `is_public=eq.true`
+ * 를 명시한다(두 겹 방어, postsRest 서두 참고).
+ */
+export const fetchPublicPostList = async (
+  kind: PublicPostKind,
+  limit: number = POST_LIST_LIMIT
+): Promise<PublicPostListItem[] | null> => {
+  const config = readSupabaseRestConfig();
+  if (!config) return null;
+
+  const query = new URLSearchParams({
+    select: 'id,kind,title',
+    kind: `eq.${kind}`,
+    is_public: 'eq.true',
+    order: 'updated_at.desc',
+    limit: String(limit)
+  });
+
+  try {
+    const response = await fetch(`${config.url}/rest/v1/posts?${query.toString()}`, {
+      headers: restHeaders(config.anonKey)
+    });
+    if (!response.ok) return null;
+
+    const rows = (await response.json().catch(() => null)) as PostRestRow[] | null;
+    if (!Array.isArray(rows)) return null;
+
+    return rows.map(toListItem).filter((item): item is PublicPostListItem => item !== null);
+  } catch {
+    return null;
   }
 };
