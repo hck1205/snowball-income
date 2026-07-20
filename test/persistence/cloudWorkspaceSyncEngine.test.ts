@@ -290,11 +290,13 @@ describe('IO 실패 보류', () => {
 });
 
 /**
- * 거짓 충돌 제거 — "클라우드 ⊆ 로컬"이면 로컬 채택이 무손실이므로 묻지 않고 push한다.
- * 반대 방향(로컬 ⊂ 클라우드)은 **이 기기에서 탭을 지운 것**과 구분할 수 없으므로 반드시 사용자에게 묻는다
- * (자동 적용하면 지운 탭이 되살아난다).
+ * 거짓 충돌 제거 — 두 갈래.
+ * ① "클라우드 ⊆ 로컬"이면 로컬 채택이 무손실이므로 방향·시각 무관하게 묻지 않고 push한다.
+ * ② "로컬 ⊂ 클라우드 + 로컬이 엄격히 더 최근 편집"이면 = 이 기기가 방금 탭을 지우고 새로고침한 레이스라
+ *    삭제를 정본으로 push한다(같은 클럭이라 신뢰). 그 외(클라우드가 더 최근=다른 기기 추가 / 타임스탬프
+ *    모호 / 진짜 발산)는 데이터 유실 방지를 위해 **conflict로 남겨 사용자에게 묻는다**.
  */
-describe('포함관계: 클라우드 ⊆ 로컬 → 충돌 아님(무손실 push)', () => {
+describe('포함관계·타임스탬프: 거짓 충돌 제거 vs 유실 방지', () => {
   /** 시나리오 목록을 하나의 payload로 합친다(첫 탭이 활성·최상위 미러). */
   const withScenarios = (tickers: string[]): PersistedAppStatePayload => {
     const scenarios = tickers.map((ticker, index) => {
@@ -309,7 +311,7 @@ describe('포함관계: 클라우드 ⊆ 로컬 → 충돌 아님(무손실 push
     };
   };
 
-  it('로컬이 클라우드 탭을 모두 품고 더 있으면 모달 없이 로컬을 push한다', async () => {
+  it('① 로컬이 클라우드 탭을 모두 품고 더 있으면(클라우드 ⊆ 로컬) 모달 없이 로컬을 push한다', async () => {
     const localSuperset = withScenarios(['AAA', 'BBB']);
     const cloudSubset = withScenarios(['AAA']);
     const h = makeHarness({
@@ -324,17 +326,74 @@ describe('포함관계: 클라우드 ⊆ 로컬 → 충돌 아님(무손실 push
     expect(h.calls.apply).toEqual([]); // 클라우드를 적용하지 않는다(로컬 탭 유실 금지)
   });
 
-  it('반대 방향(로컬 ⊂ 클라우드 — 이 기기에서 탭을 지운 경우)은 자동 적용하지 않고 conflict', async () => {
+  it('② 로컬 ⊂ 클라우드 + 로컬이 더 최근(삭제→새로고침 레이스) → conflict 아니라 로컬 push(삭제가 이김)', async () => {
+    const localSubset = withScenarios(['AAA']); // 이 기기가 BBB 탭을 방금 지웠다
+    const cloudSuperset = withScenarios(['AAA', 'BBB']); // 클라우드는 아직 삭제 전(디바운스가 못 따라감)
+    const h = makeHarness({
+      pullCloudAutosave: vi.fn(async () => cloud(cloudSuperset, 1000)), // 삭제 이전 push 시각
+      readLocalAutosave: vi.fn(async () => localOk(localSubset, 9000)) // 그 뒤 삭제 시각(더 최근)
+    });
+
+    await syncCloudWorkspaceAtSessionStart(h.deps);
+
+    expect(types(h.events)).toEqual(['pushed-local']);
+    expect(h.calls.push).toEqual([{ payload: localSubset, savedAt: 9000 }]); // 삭제된 상태가 클라우드로
+    expect(h.calls.apply).toEqual([]); // 클라우드(3탭)를 적용해 지운 탭을 되살리지 않는다
+  });
+
+  it('② 반대: 로컬 ⊂ 클라우드지만 클라우드가 더 최근(다른 기기가 탭 추가) → 자동 적용 금지, conflict', async () => {
+    const localSubset = withScenarios(['AAA']);
+    const cloudSuperset = withScenarios(['AAA', 'BBB']); // 다른 기기가 BBB를 나중에 추가
+    const h = makeHarness({
+      pullCloudAutosave: vi.fn(async () => cloud(cloudSuperset, 9000)), // 클라우드가 더 최근
+      readLocalAutosave: vi.fn(async () => localOk(localSubset, 1000))
+    });
+
+    await syncCloudWorkspaceAtSessionStart(h.deps);
+
+    noSideEffects(h.calls); // 다른 기기의 추가분(BBB)을 삭제로 오인해 날리지 않는다
+    expect(types(h.events)).toEqual(['conflict']);
+  });
+
+  it('② 동률(타임스탬프 같음)이면 삭제로 단정할 수 없어 conflict', async () => {
     const localSubset = withScenarios(['AAA']);
     const cloudSuperset = withScenarios(['AAA', 'BBB']);
     const h = makeHarness({
-      pullCloudAutosave: vi.fn(async () => cloud(cloudSuperset, 1000)),
+      pullCloudAutosave: vi.fn(async () => cloud(cloudSuperset, 5000)),
+      readLocalAutosave: vi.fn(async () => localOk(localSubset, 5000))
+    });
+
+    await syncCloudWorkspaceAtSessionStart(h.deps);
+
+    noSideEffects(h.calls);
+    expect(types(h.events)).toEqual(['conflict']);
+  });
+
+  it('② 타임스탬프가 하나라도 undefined(레거시·모호)면 자동 해소 금지, conflict', async () => {
+    const localSubset = withScenarios(['AAA']);
+    const cloudSuperset = withScenarios(['AAA', 'BBB']);
+    const h = makeHarness({
+      pullCloudAutosave: vi.fn(async () => cloud(cloudSuperset, undefined)), // 클라우드 시각 없음
       readLocalAutosave: vi.fn(async () => localOk(localSubset, 9000))
     });
 
     await syncCloudWorkspaceAtSessionStart(h.deps);
 
     noSideEffects(h.calls);
+    expect(types(h.events)).toEqual(['conflict']);
+  });
+
+  it('진짜 발산(부분 겹침, 포함관계 아님)은 로컬이 더 최근이어도 순수 삭제가 아니므로 conflict', async () => {
+    const local = withScenarios(['AAA', 'BBB']); // 공통 AAA + 로컬 고유 BBB
+    const cloudDivergent = withScenarios(['AAA', 'CCC']); // 공통 AAA + 클라우드 고유 CCC
+    const h = makeHarness({
+      pullCloudAutosave: vi.fn(async () => cloud(cloudDivergent, 1000)),
+      readLocalAutosave: vi.fn(async () => localOk(local, 9000)) // 로컬이 더 최근이어도
+    });
+
+    await syncCloudWorkspaceAtSessionStart(h.deps);
+
+    noSideEffects(h.calls); // 클라우드 고유 CCC를 날릴 수 없다 → 사용자에게 묻는다
     expect(types(h.events)).toEqual(['conflict']);
   });
 });

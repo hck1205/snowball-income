@@ -503,6 +503,33 @@ export const usePortfolioPersistence = () => {
     };
   }, [isPortfolioHydrated]);
 
+  /**
+   * 페이지 이탈(새로고침·탭 닫기·백그라운드 전환) 직전, 대기 중인 클라우드 저장을 **즉시 flush**한다.
+   *
+   * 로컬 autosave(IndexedDB)는 120ms라 이탈 시점에 이미 최신이지만, 클라우드 push는 4초 디바운스라
+   * 이탈이 디바운스를 앞지르면 마지막 편집(예: 탭 삭제)이 클라우드에 도달하지 못한다 → 다음 세션 시작에
+   * 로컬{a,b} vs 클라우드{a,b,c}로 거짓 충돌 모달이 뜬다(레이스 창). 이탈 시 flush로 그 창을 닫는다.
+   *
+   * ⚠ 이탈 시점의 비동기 네트워크 완료는 보장되지 않는다(best-effort). 진짜 안전망은 세션시작 엔진의
+   *   타임스탬프 판정(로컬 ⊂ 클라우드 + 로컬이 더 최근 → 삭제가 이김)이다. 여기선 레이스 창을 좁힐 뿐이다.
+   * ⚠ 리스너는 가볍게(동기 무거운 작업·alert 금지) 유지하고, cleanup에서 반드시 제거한다.
+   * pagehide(새로고침·닫기·bfcache 진입) + visibilitychange→hidden(모바일 백그라운드·앱 전환 보강) 둘 다 건다.
+   */
+  useEffect(() => {
+    const flushPending = () => {
+      void flushCloudSave();
+    };
+    const handleVisibilityChange = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') flushPending();
+    };
+    window.addEventListener('pagehide', flushPending);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      window.removeEventListener('pagehide', flushPending);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [flushCloudSave]);
+
   /** 저장 실패 인디케이터의 "다시 시도" — 현재 payload를 같은 스케줄러로 재예약 후 즉시 flush. */
   const retryCloudSave = async (): Promise<void> => {
     scheduleCloudSave(buildPayload());

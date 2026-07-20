@@ -13,10 +13,13 @@ import { isWorkspaceSubsumedBy } from './cloudWorkspaceReconcile';
  * 분기(+IO 실패 보류):
  *  1. **내용 동일** → no-op. 타임스탬프 비교보다 **먼저** 판정해 clock skew로 인한 불필요한 덮어쓰기를 막는다.
  *  1.4 **클라우드 ⊆ 로컬**(모든 클라우드 탭이 로컬에 그대로 있음) → 충돌이 아니라 "로컬이 앞서 있음".
- *     묻지 않고 로컬을 push한다(무손실 — 블렌드해도 로컬과 같은 결과). 반대 방향은 자동화하지 않는다.
- *  1.5 **충돌**(로컬·클라우드 둘 다 내용 있고 의미있게 다름) → 자동 화해 금지. `conflict` 이벤트만 방출하고
- *     **어느 쪽도 apply/mirror/push하지 않는다**(순수·비파괴). 정본 결정은 경계(모달)가 사용자에게 위임한다 —
- *     무음 last-write-wins가 반대쪽 기기의 탭을 조용히 덮던 유실을 막는다.
+ *     묻지 않고 로컬을 push한다(무손실 — 블렌드해도 로컬과 같은 결과).
+ *  1.45 **로컬 ⊂ 클라우드 + 로컬이 엄격히 더 최근 편집**(양쪽 시각 정의 + localUpdatedAt > cloudSavedAt)
+ *     → 이 기기가 방금 탭을 지우고 새로고침한 레이스(같은 클럭이라 신뢰됨). 삭제가 이겨 로컬을 push한다.
+ *     반대(클라우드가 더 최근=다른 기기가 추가)나 타임스탬프 모호(하나라도 undefined)는 1.5 충돌로.
+ *  1.5 **충돌**(로컬·클라우드 둘 다 내용 있고 의미있게 다르며 위 1.4/1.45에 해당 안 함) → 자동 화해 금지.
+ *     `conflict` 이벤트만 방출하고 **어느 쪽도 apply/mirror/push하지 않는다**(순수·비파괴). 정본 결정은
+ *     경계(모달)가 사용자에게 위임한다 — 무음 last-write-wins가 반대쪽 기기의 탭을 조용히 덮던 유실을 막는다.
  *  2. **클라우드가 더 최신**(한쪽만 존재 등 충돌 아님) → 앱에 적용 + **로컬 IndexedDB에도 미러**(cloud→IndexedDB).
  *  3. **로컬이 더 최신** → 클라우드에 push(IndexedDB→cloud).
  *  4. **한쪽만 존재** → 그쪽 채택 후 반대쪽에 반영(클라우드만=적용+로컬미러 / 로컬만=push).
@@ -164,25 +167,46 @@ export const syncCloudWorkspaceAtSessionStart = async (deps: CloudWorkspaceSyncD
 
   // 1.5) 충돌: 로컬·클라우드 둘 다 내용 있고(각자 티커 존재) 의미있게 다름 → 자동 화해 금지, 경계로 위임.
   //   여기까지 왔다면 1)에서 걸러지지 않았으므로 (둘 다 존재 시) 이미 의미있게 다르다. 무음 last-write-wins가
-  //   반대쪽 탭을 조용히 덮던 다기기 유실을 막기 위해, **어느 쪽도 건드리지 않고** conflict만 방출한다.
-  //   한쪽만 내용 있음(빈 클라우드 슬롯 등)은 여기서 걸러 아래 latest-wins 무음 처리로 남긴다(결정 §1).
+  //   반대쪽 탭을 조용히 덮던 다기기 유실을 막기 위해, 아래 두 거짓충돌 케이스를 제외하면 **어느 쪽도 건드리지
+  //   않고** conflict만 방출한다. 한쪽만 내용 있음(빈 클라우드 슬롯 등)은 여기서 걸러 아래 latest-wins 무음
+  //   처리로 남긴다(결정 §1).
   //
-  //   단, **클라우드가 로컬에 완전히 포함**되면(모든 클라우드 탭이 로컬에 그대로 있음) 로컬을 정본으로 삼아도
-  //   잃을 시나리오가 없다 — 블렌드해도 로컬과 같은 결과라 물어볼 게 없다. 이건 충돌이 아니라 "로컬이 앞서 있음"
-  //   이므로 묻지 않고 push한다(거짓 충돌 제거). 반대 방향(로컬 ⊂ 클라우드)은 "이 기기에서 탭을 지웠다"와
-  //   구분할 수 없으므로 **절대** 자동 적용하지 않고 아래 conflict로 남긴다.
+  //   거짓 충돌 제거 두 갈래:
+  //   ① **클라우드 ⊆ 로컬**(모든 클라우드 탭이 로컬에 그대로 있음) → 로컬을 정본으로 삼아도 잃을 시나리오가
+  //      없다(블렌드해도 로컬과 같은 결과). "로컬이 앞서 있음"이므로 방향·타임스탬프 무관하게 묻지 않고 push.
+  //   ② **로컬 ⊂ 클라우드 + 로컬이 더 최근 편집**(localUpdatedAt·cloudSavedAt 둘 다 정의 + 엄격 부등호로
+  //      localUpdatedAt > cloudSavedAt) → 이 기기가 방금 탭을 지우고 새로고침한 레이스다(같은 클럭이라
+  //      신뢰됨: cloud.savedAt은 삭제 이전 {…}를 마지막 push한 시각, local.updatedAt은 그 뒤 삭제 시각).
+  //      삭제가 이겨 로컬을 정본으로 push(conflict 안 냄). ⚠ 반대(cloudSavedAt ≥ localUpdatedAt)는 **다른
+  //      기기가 탭을 추가**한 것이라 그 추가분을 날리면 안 되고, 타임스탬프가 하나라도 undefined(레거시·모호)면
+  //      판정 불가라, 둘 다 **conflict로 남겨 사용자에게 묻는다**(데이터 유실 방지). 포함관계(로컬 ⊂ 클라우드)가
+  //      아닌 진짜 발산(부분 겹침)은 로컬이 더 최근이어도 순수 삭제가 아니므로 여전히 conflict.
   if (cloud && localPayload && hasContent(localPayload) && hasContent(cloud.payload)) {
-    if (!isWorkspaceSubsumedBy(cloud.payload, localPayload)) {
-      deps.onEvent?.({
-        type: 'conflict',
-        local: localPayload,
-        cloud: cloud.payload,
-        localUpdatedAt: local.updatedAt,
-        cloudSavedAt: cloud.savedAt
-      });
+    // ① 클라우드 ⊆ 로컬 → 무손실, 묻지 않고 로컬 push.
+    if (isWorkspaceSubsumedBy(cloud.payload, localPayload)) {
+      await pushLocal(deps, localPayload, local.updatedAt);
       return;
     }
-    await pushLocal(deps, localPayload, local.updatedAt);
+    // ② 로컬 ⊂ 클라우드 + 로컬이 엄격히 더 최근 → 이 기기의 삭제→새로고침 레이스. 삭제가 이긴다.
+    const localUpdatedAt = local.updatedAt;
+    const cloudSavedAt = cloud.savedAt;
+    if (
+      isWorkspaceSubsumedBy(localPayload, cloud.payload) &&
+      localUpdatedAt !== undefined &&
+      cloudSavedAt !== undefined &&
+      localUpdatedAt > cloudSavedAt
+    ) {
+      await pushLocal(deps, localPayload, localUpdatedAt);
+      return;
+    }
+    // 그 외(진짜 발산 / 다른 기기가 추가 / 타임스탬프 모호) → 사용자에게 묻는다(유실 방지).
+    deps.onEvent?.({
+      type: 'conflict',
+      local: localPayload,
+      cloud: cloud.payload,
+      localUpdatedAt: local.updatedAt,
+      cloudSavedAt: cloud.savedAt
+    });
     return;
   }
 
