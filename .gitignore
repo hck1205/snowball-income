@@ -36,6 +36,9 @@ playwright-report/
 # ---- 자동 생성 인덱스 (npm run index 로 각자 로컬에서 생성) ----
 .index/
 
+# ---- codegraph 지식 그래프 (codegraph init 로 각자 로컬에서 생성, 파일 와처 자동 갱신) ----
+.codegraph/
+
 # ---- 로그 / 런타임 ----
 *.log
 npm-debug.log*
