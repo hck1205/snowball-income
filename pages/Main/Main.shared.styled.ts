@@ -812,7 +812,9 @@ export const PresetChipGrid = styled.div`
  * 중첩 스크롤이 부자연스럽던 예전 문제를 막는다.
  */
 export const PresetChipScrollArea = styled.div`
-  max-height: 260px;
+  /* 모달 안에서 이 영역만 260px를 먹으면 아래 입력 필드가 밀려 스크롤이 이중으로 생겼다.
+     칩이 여러 줄로 흐르는 영역이라 200px면 3~4줄이 보여 훑기에 충분하다. */
+  max-height: 200px;
   overflow-y: auto;
   overscroll-behavior: contain;
   padding-right: ${space[1]};
