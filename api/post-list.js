@@ -240,7 +240,7 @@ var injectPostList = (shell, kind, items) => {
   if (!rootOpenTag || rootOpenTag.index === void 0) return shell;
   const label = LIST_META[kind].title;
   const listItems = items.map((item) => `<li><a href="/community/${item.kind}/${item.id}">${escapeHtmlText(item.title)}</a></li>`).join("");
-  const nav = `<nav aria-label="${escapeHtmlText(label)}"><ul>${listItems}</ul></nav>`;
+  const nav = `<nav aria-label="${escapeHtmlAttribute(label)}"><ul>${listItems}</ul></nav>`;
   const insertAt = rootOpenTag.index + rootOpenTag[0].length;
   return shell.slice(0, insertAt) + nav + shell.slice(insertAt);
 };

@@ -7,6 +7,7 @@
   이스케이프한다. serverSanitize 를 import 하지 않아 이 함수 번들에 jsdom 이 실리지 않는다.
 */
 import {
+  escapeHtmlAttribute,
   escapeHtmlText,
   fetchPublicPostList,
   isPublicPostKind,
@@ -111,7 +112,10 @@ const injectPostList = (shell: string, kind: PublicPostKind, items: PublicPostLi
   const listItems = items
     .map((item) => `<li><a href="/community/${item.kind}/${item.id}">${escapeHtmlText(item.title)}</a></li>`)
     .join('');
-  const nav = `<nav aria-label="${escapeHtmlText(label)}"><ul>${listItems}</ul></nav>`;
+  // aria-label 은 **속성 컨텍스트**라 큰따옴표까지 이스케이프하는 escapeHtmlAttribute 를 쓴다
+  // (escapeHtmlText 는 &<> 만 처리해 " 로 속성 이탈이 가능하다 — metaHtml.ts 규약). label 이 지금은
+  // 정적 상수라 악용 불가지만, 규약 일치 + 미래에 label 이 동적화될 때의 속성 주입을 원천 차단한다.
+  const nav = `<nav aria-label="${escapeHtmlAttribute(label)}"><ul>${listItems}</ul></nav>`;
 
   const insertAt = rootOpenTag.index + rootOpenTag[0].length;
   return shell.slice(0, insertAt) + nav + shell.slice(insertAt);
