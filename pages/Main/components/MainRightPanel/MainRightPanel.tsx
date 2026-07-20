@@ -52,9 +52,9 @@ import {
   PortfolioPresetTitleRow,
   ProjectionControls,
   ProjectionYearField,
-  ProjectionYearSelect,
   ProjectionYearSuffix
 } from './MainRightPanel.styled';
+import { Select } from '@/components/common';
 import MonthlyCashflow from '@/components/MonthlyCashflow';
 import PortfolioComposition from '@/components/PortfolioComposition';
 import SimulationResult from '@/components/SimulationResult';
@@ -862,7 +862,9 @@ function MainRightPanelComponent() {
             titleRight={
               <ProjectionControls>
                 <ProjectionYearField>
-                  <ProjectionYearSelect
+                  <Select
+                    size="sm"
+                    width="64px"
                     aria-label="향후 확인 기간 선택 (년)"
                     value={postInvestmentProjectionYears}
                     onChange={(event) => setPostInvestmentProjectionYears(Number(event.target.value))}
@@ -872,7 +874,7 @@ function MainRightPanelComponent() {
                     <option value={30}>30</option>
                     <option value={40}>40</option>
                     <option value={50}>50</option>
-                  </ProjectionYearSelect>
+                  </Select>
                   <ProjectionYearSuffix>년</ProjectionYearSuffix>
                 </ProjectionYearField>
                 <ToggleField

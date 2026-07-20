@@ -1,5 +1,4 @@
 import styled from '@emotion/styled';
-import { InlineSelect } from '@/pages/Main/Main.shared.styled';
 import { color, font, space } from '@/shared/styles';
 
 /** 기존 인라인 style 속성을 그대로 옮겨온 것 (마크업/동작 변화 없음). */
@@ -28,13 +27,7 @@ export const CashflowHeaderControls = styled.div`
   gap: ${space[2]};
 `;
 
-export const CashflowYearSelect = styled(InlineSelect)`
-  max-width: 116px;
-  min-width: 116px;
-  min-height: 34px;
-  padding: ${space[1]} ${space[6]} ${space[1]} ${space[2]};
-  font-size: ${font.size.sm};
-`;
+/* 연도 셀렉트는 공용 프리미티브(`@/components/common` Select, size='md', width='116px')가 그린다. */
 
 export const CashflowTotalLabel = styled.span`
   font-size: ${font.size.xs};

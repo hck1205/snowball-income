@@ -57,7 +57,8 @@ const setup = (over: { auth?: CommunityAuthContextValue } = {}) => {
   store.set(profileAtom, {
     id: 'user-1',
     display_name: '스노우볼러',
-    avatar_url: null
+    avatar_url: null,
+    is_admin: false
   });
   const auth = over.auth ?? makeAuth();
   const wrapper = ({ children }: { children: ReactNode }) => (

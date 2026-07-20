@@ -1,6 +1,6 @@
 import type { Session, User } from '@supabase/supabase-js';
 import type { CommunityClient } from './queries';
-import type { CommunityAuthor } from './types';
+import type { CommunityAuthor, MyProfile } from './types';
 import { startNaverLogin } from './naver';
 import { sanitizeOAuthRedirectTo } from './oauthCallback';
 
@@ -108,19 +108,30 @@ export const onAuthStateChange = (
 /**
  * 내 공개 프로필. 가입 시 서버 트리거가 만들어 두므로 보통 존재한다.
  * (없으면 null — UI는 닉네임 설정을 유도하면 된다)
+ *
+ * ⚠ **select 목록에 컬럼을 나열하지 않고 `*` 를 쓰는 것은 의도적이다.** `is_admin`
+ * (마이그레이션 20260725000000)은 마이그레이션 실행 전 DB 에 존재하지 않는데, 없는 컬럼을
+ * select 목록에 넣으면 PostgREST 가 42703 으로 **쿼리 전체를 실패**시켜 프로필 조회가
+ * 통째로 죽는다(= 로그인/프로필 화면 붕괴). `*` 는 "있는 컬럼만" 돌려주므로 컬럼 유무와
+ * 무관하게 성공하고, 아래에서 `is_admin ?? false` 로 읽어 **컬럼 없음 = 일반 사용자**가 된다.
+ * 별도 조회로 is_admin 만 따로 읽는 방법도 있으나 왕복이 2배가 되고 실패 처리 분기가 늘어
+ * 채택하지 않았다. profiles 는 anon 도 전체 SELECT 가능한 공개 테이블이라(community.sql:706,
+ * profiles_select_all) `*` 로 새로 새는 정보도 없다.
  */
-export const fetchMyProfile = async (
-  client: CommunityClient,
-  userId: string
-): Promise<CommunityAuthor | null> => {
-  const { data, error } = await client
-    .from('profiles')
-    .select('id,display_name,avatar_url')
-    .eq('id', userId)
-    .maybeSingle();
+export const fetchMyProfile = async (client: CommunityClient, userId: string): Promise<MyProfile | null> => {
+  const { data, error } = await client.from('profiles').select('*').eq('id', userId).maybeSingle();
 
   if (error) throw new Error(error.message);
-  return (data as CommunityAuthor | null) ?? null;
+  if (!data) return null;
+
+  const row = data as CommunityAuthor & { is_admin?: boolean | null };
+  return {
+    id: row.id,
+    display_name: row.display_name,
+    avatar_url: row.avatar_url,
+    // 컬럼 부재(마이그레이션 전) · null · 비불리언 → 전부 일반 사용자로 떨어진다.
+    is_admin: row.is_admin === true
+  };
 };
 
 export const updateMyProfile = async (

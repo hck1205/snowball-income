@@ -65,9 +65,37 @@ export const RowStats = styled.div`
   }
 `;
 
+/** 분류 배지 + 제목을 한 줄에. 배지가 없으면 제목만 있는 것과 시각적으로 동일하다. */
+export const RowTitleRow = styled.div`
+  display: flex;
+  align-items: baseline;
+  gap: ${space[2]};
+  min-width: 0;
+`;
+
+/**
+ * 게시판 글 분류 배지(건의사항/공지). 색만으로 구분하지 않도록 **라벨 텍스트를 반드시 동반**한다.
+ * 공지(emphasis)는 브랜드 틴트로 한 단계 강조하고, 그 외는 오로라 violet 계열 정보 배지(§4.6).
+ * 컴포넌트 셀렉터 대신 prop 분기 — 이 레포 테스트 변환은 컴포넌트 셀렉터에서 런타임 throw한다.
+ */
+export const CategoryBadge = styled.span<{ emphasis?: boolean }>`
+  display: inline-flex;
+  align-items: center;
+  padding: 2px ${space[2]};
+  border-radius: ${radius.pill};
+  background: ${({ emphasis }) => (emphasis ? color.brandSubtle : color.accentAltSubtle)};
+  border: 1px solid ${({ emphasis }) => (emphasis ? color.brandBorder : color.accentAltBorder)};
+  color: ${({ emphasis }) => (emphasis ? color.brandText : color.accentAltText)};
+  font-size: ${font.size['2xs']};
+  font-weight: ${font.weight.semibold};
+  white-space: nowrap;
+  flex: 0 0 auto;
+`;
+
 /** 카드 제목(CardTitle)과 동일 위계 — lg/bold, 2줄 clamp. */
 export const RowTitle = styled.h3`
   margin: 0;
+  flex: 1 1 auto;
   min-width: 0;
   color: ${color.text};
   font-size: ${font.size.lg};

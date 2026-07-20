@@ -1,17 +1,5 @@
 import styled from '@emotion/styled';
-import {
-  color,
-  container,
-  font,
-  headerControlsGrid,
-  headerSolidSurface,
-  media,
-  motion,
-  radius,
-  shadow,
-  space,
-  zIndex
-} from '@/shared/styles';
+import { color, container, font, media, motion, radius, shadow, space, zIndex } from '@/shared/styles';
 
 /* -------------------------------------------------------------------------- */
 /* 레이아웃                                                                     */
@@ -123,6 +111,21 @@ export const DrawerBackdrop = styled.div<{ open: boolean }>`
   }
 `;
 
+/**
+ * 모바일 설정 드로어를 여는 버튼. **`SimulatorHeader`의 컨트롤 줄 안에 정적으로** 산다.
+ *
+ * 예전에는 본문 흐름에 있다가 sentinel(IntersectionObserver)이 뷰포트를 벗어나면
+ * `position: fixed`로 승격해 화면 좌상단에 떠 있었다. 헤더가 전폭 sticky 바가 되면서 그 전제가
+ * 깨졌다 — 헤더가 `top: 0`을 영구 점유하므로 `top: 12px` 플로팅 토글이 헤더(브랜드 로고) 위에
+ * 겹쳐 그려졌고, 데스크톱→모바일 리사이즈 시 sentinel이 뷰포트 밖이면 승격이 영영 안 걸려
+ * 설정 진입이 막히는 경로도 있었다.
+ *
+ * **헤더가 항상 화면에 있으므로 플로팅 승격 자체가 불필요하다.** 버튼을 헤더에 정적으로 두면
+ * 항상 보이고 누를 수 있으며, `position: fixed`가 사라져 컨테이닝 블록/스태킹 문제도 없다
+ * (그 덕에 sentinel·IntersectionObserver·`isFloating` 상태를 전부 삭제했다 — 되살리지 말 것).
+ *
+ * 데스크톱에는 드로어 자체가 없으므로 `display: none`이고, 드로어가 열려 있는 동안에도 숨긴다.
+ */
 export const DrawerToggleButton = styled.button`
   display: none;
 
@@ -130,31 +133,23 @@ export const DrawerToggleButton = styled.button`
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    position: static;
-    align-self: flex-start;
     width: fit-content;
-    min-height: 44px;
+    /* 터치 타깃 하한. 헤더 컨트롤 줄에서 가장 높은 요소가 되어 줄 높이를 정한다. */
+    min-height: 40px;
     border: 1px solid ${color.brand};
     background: ${color.brand};
     color: ${color.onBrand};
     border-radius: ${radius.sm};
-    padding: ${space[2]} ${space[4]};
+    padding: ${space[2]} ${space[3]};
     font-size: ${font.size.sm};
     font-weight: ${font.weight.semibold};
+    white-space: nowrap;
     cursor: pointer;
     touch-action: manipulation;
-    transition: background-color ${motion.fast} ${motion.ease}, box-shadow ${motion.fast} ${motion.ease};
+    transition: background-color ${motion.fast} ${motion.ease};
 
     &:hover {
       background: ${color.brandHover};
-    }
-
-    &[data-floating='true'] {
-      position: fixed;
-      left: max(12px, env(safe-area-inset-left));
-      top: max(12px, env(safe-area-inset-top));
-      z-index: ${zIndex.drawerToggle};
-      box-shadow: ${shadow.e3};
     }
 
     &[aria-expanded='true'] {
@@ -208,113 +203,21 @@ export const ResultsColumn = styled.section`
 /* 헤더                                                                         */
 /* -------------------------------------------------------------------------- */
 
-/**
- * 시뮬레이터 헤더 — 커뮤니티 헤더와 **같은 서피스 레시피**(브랜드 틴트 + e1 그림자)를 쓰되,
- * 글래스가 아닌 불투명 변형(`headerSolidSurface`)이다. 세 가지 차이는 전부 배치 맥락 때문이다.
- *
- * 1. **`backdrop-filter` 없음(글래스 아님)** — 이 헤더는 모바일 floating 드로어 토글
- *    (`DrawerToggleButton[data-floating='true']`, `position: fixed`)을 **자손으로** 품는다.
- *    `backdrop-filter`가 걸린 요소는 fixed 자손의 컨테이닝 블록이 되므로(Filter Effects L2),
- *    블러를 넣으면 토글이 뷰포트가 아니라 스크롤 아웃된 이 헤더 박스 기준으로 배치돼
- *    **화면 밖에 그려진다**(= 모바일 설정 진입 불가). 함께 스크롤되는 헤더라 블러의 시각 효과도 없다.
- * 2. **sticky 아님** — 같은 토글의 IntersectionObserver 앵커를 품고 있어(MobileMenuDrawer),
- *    sticky로 고정하면 앵커가 뷰포트를 벗어나지 않아 floating 토글이 영영 뜨지 않는다.
- *    게다가 nav+컨트롤+설명+토글까지 든 큰 블록이라 고정 시 모바일 뷰포트를 크게 잠식한다.
- * 3. **전폭 바가 아니라 카드(radius.lg + 4변 테두리)** — 커뮤니티 헤더는 화면 최상단 전폭 바지만
- *    이 헤더는 max-width 1200 컨테이너(FeatureLayout) 안의 첫 블록이라, 아래 패널들과 같은
- *    카드 언어로 두는 편이 자연스럽다(전폭화하려면 컨테이너 breakout이 필요).
+/*
+ * 시뮬레이터 헤더 자체는 이제 `components/SimulatorHeader`가 소유한다(전폭 sticky 글래스 바).
+ * 여기 남은 것은 헤더 **밖** 본문 흐름으로 내려온 페이지 설명뿐이다.
  */
-export const Header = styled.header`
-  display: grid;
-  gap: ${space[2]};
-  padding: ${space[3]} clamp(${space[2]}, 3vw, ${space[4]});
-  ${headerSolidSurface}
-  border: 1px solid ${color.borderStrong};
-  border-radius: ${radius.lg};
-`;
-
-/** 2줄 스택: 1줄 = 전역 nav(로고+메뉴), 2줄 = 우측 컨트롤(클라우드 상태·로그인·커뮤니티·더보기·테마). */
-export const HeaderBrand = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: ${space[2]};
-  min-width: 0;
-`;
 
 /**
- * 시뮬레이터 헤더 2번째 줄 — 1줄째 `PrimaryNav`와 **같은 3컬럼 그리드**.
- * 1열 = 클라우드 동기화 상태, 2열은 비워 두고(커뮤니티는 여기에 검색이 온다), 3열 = 우측 컨트롤.
- * 두 줄이 같은 트랙을 쓰므로 메뉴·컨트롤의 좌우 끝선이 정확히 맞는다.
+ * 페이지 설명 한 줄. 헤더가 전폭 sticky 바가 되면서 **헤더 밖 본문 흐름 최상단**으로 내려왔다
+ * (커뮤니티 헤더에도 설명이 없다 — 통일 관점에서도 헤더 밖이 맞다). sticky가 아니므로
+ * 모바일에서 스크롤과 함께 사라져 뷰포트를 계속 잠식하지 않는다.
  */
-export const HeaderControlsRow = styled.div`
-  ${headerControlsGrid}
-  gap: ${space[2]};
-`;
-
-/** 헤더 컨트롤 줄 1열 — 클라우드 동기화 상태. 내용이 없어도 트랙 자리는 그리드가 잡는다. */
-export const HeaderStatusSlot = styled.div`
-  grid-column: 1;
-  justify-self: start;
-  display: inline-flex;
-  align-items: center;
-  gap: ${space[2]};
-  min-width: 0;
-`;
-
-/** 앱 아이콘을 감싸는 원형 프레임. 아이콘 이미지를 원으로 잘라 파비콘/앱 아이콘과 형태를 맞춘다. */
-export const HeaderLogo = styled.span`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  overflow: hidden;
-`;
-
-/** 헤더 좌측 앱 아이콘 이미지. 정사각 원본을 원형으로 커버 크롭한다. */
-export const HeaderLogoImage = styled.img`
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-`;
-
-export const HeaderTitle = styled.h1`
-  margin: 0;
-  color: ${color.text};
-  /* Snowball/Income 두 줄 스택이 좌측 40px 앱 로고 높이에 맞도록 축소 — 2줄 × ~18px × 1.1 ≈ 40px. */
-  font-size: clamp(15px, 1.9vw, 18px);
-  font-weight: ${font.weight.bold};
-  line-height: 1.1;
-  /* 워드마크는 자간을 조여야 로고처럼 읽힌다. 본문 자간과 다른 이유가 이것이다. */
-  letter-spacing: -0.03em;
-  white-space: nowrap;
-`;
-
 export const HeaderDescription = styled.p`
   margin: 0;
   color: ${color.textSecondary};
   font-size: ${font.size.base};
   line-height: ${font.leading.snug};
-`;
-
-/** 헤더 액션(로그인·더보기 등). 컨트롤 줄 3열 — 맨 오른쪽으로 민다. */
-export const HeaderActions = styled.div`
-  grid-column: 3;
-  justify-self: end;
-  display: inline-flex;
-  align-items: center;
-  gap: ${space[1]};
-  flex: 0 0 auto;
-  /* drawer↓ flex 폴백에서 우측 정렬을 유지한다(그리드에선 justify-self:end 가 담당). */
-  margin-left: auto;
-  /* 좁아지면 로그인·커뮤니티·튜토리얼·테마 버튼이 다음 줄로 내려간다(넘쳐서 잘리지 않도록). 우측 정렬 유지. */
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  row-gap: ${space[1]};
 `;
 
 
@@ -771,37 +674,7 @@ export const InlineFieldHeader = styled.span`
   gap: ${space[2]};
 `;
 
-export const InlineSelect = styled.select`
-  width: 100%;
-  min-width: 0;
-  min-height: 40px;
-  border: 1px solid ${color.borderStrong};
-  border-radius: ${radius.sm};
-  padding: ${space[2]} ${space[7]} ${space[2]} ${space[3]};
-  font-size: ${font.size.base};
-  font-family: inherit;
-  background-color: ${color.surface};
-  color: ${color.text};
-  appearance: none;
-  -webkit-appearance: none;
-  cursor: pointer;
-  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
-    linear-gradient(135deg, currentColor 50%, transparent 50%);
-  background-position: calc(100% - 16px) calc(50% - 1px), calc(100% - 12px) calc(50% - 1px);
-  background-size: 5px 5px, 5px 5px;
-  background-repeat: no-repeat;
-  transition: border-color ${motion.fast} ${motion.ease};
-
-  &:hover:not(:disabled) {
-    border-color: ${color.brandBorder};
-  }
-
-  &:disabled {
-    background-color: ${color.surfaceSunken};
-    color: ${color.textMuted};
-    cursor: not-allowed;
-  }
-`;
+/* InlineField 안의 셀렉트는 공용 프리미티브(`@/components/common` Select, 기본 size='lg')가 그린다. */
 
 /* -------------------------------------------------------------------------- */
 /* 모달 내 티커 검색                                                            */
@@ -939,7 +812,9 @@ export const PresetChipGrid = styled.div`
  * 중첩 스크롤이 부자연스럽던 예전 문제를 막는다.
  */
 export const PresetChipScrollArea = styled.div`
-  max-height: 260px;
+  /* 모달 안에서 이 영역만 260px를 먹으면 아래 입력 필드가 밀려 스크롤이 이중으로 생겼다.
+     칩이 여러 줄로 흐르는 영역이라 200px면 3~4줄이 보여 훑기에 충분하다. */
+  max-height: 200px;
   overflow-y: auto;
   overscroll-behavior: contain;
   padding-right: ${space[1]};

@@ -1,7 +1,8 @@
 import type { ChangeEvent } from 'react';
 import type { InputFieldProps, SelectFieldProps } from './InputField.types';
 import { formatNumericDisplay, normalizeNumericInput, toInputId } from './InputField.utils';
-import { BaseInput, BaseSelect, FieldLabel, FieldWrapper, HelpButton, LabelRow } from './InputField.styled';
+import Select from '@/components/common/Select';
+import { BaseInput, FieldLabel, FieldWrapper, HelpButton, LabelRow } from './InputField.styled';
 
 const LabelWithHelp = ({
   id,
@@ -77,12 +78,12 @@ export function FrequencySelect({ label, value, helpAriaLabel, onHelpClick, disa
   return (
     <FieldWrapper>
       <LabelWithHelp id={id} label={label} helpAriaLabel={helpAriaLabel} onHelpClick={onHelpClick} />
-      <BaseSelect id={id} aria-label={label} value={value} disabled={disabled} onChange={onChange}>
+      <Select id={id} aria-label={label} value={value} disabled={disabled} onChange={onChange}>
         <option value="monthly">월</option>
         <option value="quarterly">분기</option>
         <option value="semiannual">반기</option>
         <option value="annual">연</option>
-      </BaseSelect>
+      </Select>
     </FieldWrapper>
   );
 }

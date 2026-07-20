@@ -35,8 +35,14 @@ export default function CommunityHeader() {
   const isGalleryIndex = Boolean(useMatch({ path: '/community/portfolio', end: true }));
   const isBoardIndex = Boolean(useMatch({ path: '/community/board', end: true }));
   // 글쓰기 라우트에선 헤더의 '글쓰기' 버튼이 페이지와 중복이라 숨긴다(갤러리/게시판 양쪽).
-  const isWriteRoute =
-    Boolean(useMatch({ path: '/community/portfolio/write' })) || Boolean(useMatch({ path: '/community/board/write' }));
+  //
+  // ⚠ 두 `useMatch`를 `||`로 **한 식에 묶지 말 것** — `||`는 단축 평가라 앞이 참이면 뒤의 훅이
+  //   아예 호출되지 않는다(= 조건부 훅). 글쓰기 경로에서만 훅 개수가 하나 모자라져 바로 다음
+  //   훅(useAtomValue)이 큐를 못 찾고 "Should have a queue" / 프로덕션 React #311로 화면이 죽는다.
+  //   훅 호출을 각 줄에 고정하고 boolean 연산은 그 뒤에 한다.
+  const isPortfolioWriteRoute = Boolean(useMatch({ path: '/community/portfolio/write' }));
+  const isBoardWriteRoute = Boolean(useMatch({ path: '/community/board/write' }));
+  const isWriteRoute = isPortfolioWriteRoute || isBoardWriteRoute;
 
   const { pathname } = useLocation();
   const inBoard = pathname === '/community/board' || pathname.startsWith('/community/board/');

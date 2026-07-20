@@ -16,6 +16,7 @@ const item = (id: string, createdAt: string, likeCount = 0): PostListItem => ({
   id,
   user_id: 'u1',
   kind: 'portfolio',
+  category: 'free',
   title: `시나리오 ${id}`,
   description: null,
   is_public: true,

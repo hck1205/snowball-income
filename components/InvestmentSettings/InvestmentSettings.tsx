@@ -12,9 +12,9 @@ import {
   ErrorBox,
   HelpMarkButton,
   InlineField,
-  InlineFieldHeader,
-  InlineSelect
+  InlineFieldHeader
 } from '@/pages/Main/Main.shared.styled';
+import { Select } from '@/components/common';
 import {
   ReinvestControls,
   ReinvestLabel,
@@ -148,7 +148,7 @@ function InvestmentSettingsComponent({
                   ?
                 </HelpMarkButton>
               </InlineFieldHeader>
-              <InlineSelect
+              <Select
                 id="reinvest-timing"
                 aria-label="재투자 시점"
                 value={values.reinvestTiming}
@@ -157,7 +157,7 @@ function InvestmentSettingsComponent({
               >
                 <option value="sameMonth">당월 재투자</option>
                 <option value="nextMonth">익월 재투자(보수적)</option>
-              </InlineSelect>
+              </Select>
             </InlineField>
             <InlineField htmlFor="dps-growth-mode">
               <InlineFieldHeader>
@@ -166,7 +166,7 @@ function InvestmentSettingsComponent({
                   ?
                 </HelpMarkButton>
               </InlineFieldHeader>
-              <InlineSelect
+              <Select
                 id="dps-growth-mode"
                 aria-label="DPS 성장 반영"
                 value={values.dpsGrowthMode}
@@ -174,7 +174,7 @@ function InvestmentSettingsComponent({
               >
                 <option value="annualStep">연 단위 점프</option>
                 <option value="monthlySmooth">월 단위 스무딩</option>
-              </InlineSelect>
+              </Select>
             </InlineField>
             <InputField
               label="투자 시작 날짜"

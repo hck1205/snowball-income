@@ -128,6 +128,10 @@ const baseComposer = (overrides: Partial<UsePostComposer> = {}): UsePostComposer
   title: '',
   initialBodyHtml: '',
   isPublic: true,
+  attachAllowed: true,
+  categoryAllowed: false,
+  category: 'free',
+  initialCategory: 'free',
   attachedPayload: null,
   errors: {},
   submitError: false,
@@ -137,20 +141,29 @@ const baseComposer = (overrides: Partial<UsePostComposer> = {}): UsePostComposer
   setTitle: vi.fn(),
   handleBodyChange: vi.fn(),
   setIsPublic: vi.fn(),
+  setCategory: vi.fn(),
   attachScenario: vi.fn(),
   detachScenario: vi.fn(),
   submit: vi.fn(async () => {}),
   ...overrides
 });
 
-const baseVM = (composer: UsePostComposer, candidates: ScenarioCandidates): CommunityWriteViewModel => ({
+const baseVM = (
+  composer: UsePostComposer,
+  candidates: ScenarioCandidates,
+  overrides: Partial<CommunityWriteViewModel> = {}
+): CommunityWriteViewModel => ({
   composer,
   candidates,
   authReady: true,
   isLoggedIn: true,
+  // 이 스위트는 갤러리(portfolio) 기준 — 공개/비공개 선택 UI가 모두에게 노출된다.
+  canChooseVisibility: true,
+  categoryOptions: ['free', 'suggestion'],
   kind: 'portfolio',
   listPath: '/community',
-  onLogin: vi.fn()
+  onLogin: vi.fn(),
+  ...overrides
 });
 
 const renderView = (vm: CommunityWriteViewModel) =>
