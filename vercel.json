@@ -1,7 +1,15 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
 
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
+  "rewrites": [
+    { "source": "/sitemap-posts.xml", "destination": "/api/sitemap" },
+    {
+      "source": "/community/portfolio/:id",
+      "destination": "/api/post-html?kind=portfolio&id=:id"
+    },
+    { "source": "/community/board/:id", "destination": "/api/post-html?kind=board&id=:id" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
 
   "headers": [
     {
