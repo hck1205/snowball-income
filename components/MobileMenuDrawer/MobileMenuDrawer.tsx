@@ -12,7 +12,8 @@ import {
   HeaderActions,
   HeaderBrand,
   HeaderControlsRow,
-  HeaderDescription
+  HeaderDescription,
+  HeaderStatusSlot
 } from '@/pages/Main/Main.shared.styled';
 
 function MobileMenuDrawerComponent({
@@ -76,9 +77,12 @@ function MobileMenuDrawerComponent({
           {/* 전역 nav — 로고+앱이름(홈 링크) + 라우트 링크(시뮬레이터·갤러리·게시판).
               brandAs="h1"로 워드마크가 이 페이지의 랜드마크 제목("Snowball Income")을 겸한다. */}
           <PrimaryNav brandAs="h1" />
-          {/* 2줄 — 우측 컨트롤(클라우드 저장 상태 + 로그인·커뮤니티·더보기·테마). */}
+          {/* 2줄 — 좌: 클라우드 저장 상태 / 우: 로그인·커뮤니티·더보기·테마.
+              PrimaryNav와 같은 3컬럼 그리드(1fr auto 1fr)라 두 줄의 **좌우 끝선**이 맞는다.
+              시뮬레이터는 2열(가운데)에 놓을 것이 없어 비어 있다 — 가운데 정렬 보장은 커뮤니티
+              헤더(검색)에만 해당한다. 상태 슬롯은 내용이 없어도 렌더해 1열 자리를 지킨다. */}
           <HeaderControlsRow>
-            {headerStatus}
+            <HeaderStatusSlot>{headerStatus}</HeaderStatusSlot>
             {headerAction ? <HeaderActions>{headerAction}</HeaderActions> : null}
           </HeaderControlsRow>
         </HeaderBrand>

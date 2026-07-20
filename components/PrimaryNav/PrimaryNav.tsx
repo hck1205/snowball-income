@@ -12,8 +12,7 @@ import {
   Nav,
   NavItem,
   NavItems,
-  NavLabel,
-  NavLabelStacked
+  NavLabel
 } from './PrimaryNav.styled';
 import type { PrimaryNavProps } from './PrimaryNav.types';
 
@@ -29,8 +28,11 @@ const n = COMMUNITY_COPY.nav;
  *   아이콘은 lucide-react에서 per-icon으로 직접 가져오고, `isCommunityEnabled`(env 상수)만 데이터 레이어에서 읽는다.
  *   커뮤니티 비활성 배포(isCommunityEnabled=false)에선 갤러리/게시판 링크를 렌더하지 않는다(앱은 그대로 동작).
  *
- * 활성 표시는 react-router `NavLink`가 담당한다(`aria-current="page"` + `.active`). `end`로 경로 포함 관계를
- * 끊는다: '/'와 '/community'는 exact(자식 경로에서 비활성), '/community/board'는 게시판 하위까지 활성.
+ * 활성 표시는 react-router `NavLink`가 담당한다(`aria-current="page"` + `.active`).
+ * `/`만 `end`(exact) — 안 그러면 모든 경로에서 시뮬레이터가 활성이 된다.
+ * 갤러리(`/community/portfolio`)·게시판(`/community/board`)은 **`end` 없음**: 상세(`/portfolio/:id`)·
+ * 글쓰기(`/portfolio/write`)·수정(`/portfolio/:id/edit`) 같은 하위 경로에서도 자기 섹션 탭이 활성으로 남는다
+ * (routes.tsx의 자식 라우트 참고). 두 섹션은 형제 세그먼트라 서로를 활성화하지 않는다.
  */
 export default function PrimaryNav({ brandAs = 'span' }: PrimaryNavProps) {
   const inRouter = useInRouterContext();
@@ -74,14 +76,10 @@ export default function PrimaryNav({ brandAs = 'span' }: PrimaryNavProps) {
         </NavItem>
         {isCommunityEnabled ? (
           <>
-            <NavItem to="/community/portfolio" end aria-label={n.gallery}>
+            <NavItem to="/community/portfolio" aria-label={n.gallery}>
               <LayoutGrid size={16} strokeWidth={1.8} aria-hidden focusable={false} />
-              {/* "포트폴리오 갤러리"는 길어 2줄+축소로 접어 게시판 항목과 높이를 맞춘다(aria-label이 접근명 제공). */}
-              <NavLabelStacked aria-hidden="true">
-                {n.gallery.split(' ').map((word) => (
-                  <span key={word}>{word}</span>
-                ))}
-              </NavLabelStacked>
+              {/* 다른 항목과 동일하게 한 줄 라벨(사용자 요청 — 구 2줄 스택 NavLabelStacked 폐기). */}
+              <NavLabel>{n.gallery}</NavLabel>
             </NavItem>
             <NavItem to="/community/board" aria-label={n.board}>
               <MessageSquare size={16} strokeWidth={1.8} aria-hidden focusable={false} />

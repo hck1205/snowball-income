@@ -25,6 +25,8 @@ export type { ThemePreset } from './presets';
 
 export { globalStyles } from './globalStyles';
 
+export { headerControlsGrid, headerGlassSurface, headerSolidSurface } from './headerSurface';
+
 export {
   buildAxisStyle,
   buildLegendStyle,
