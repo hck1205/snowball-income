@@ -36,7 +36,8 @@
 | 데이터 파이프라인 | `scripts/tickerRefresh/` — FMP 프로바이더 + 순수 `derive` | 크론성 갱신. 프로바이더 1개 교체로 전 파이프라인 오프라인 테스트. |
 | Supabase 데이터 레이어 | `shared/lib/supabase/` (배럴 격리, SDK 동적 import) | 커뮤니티·클라우드 저장 IO. `isCommunityEnabled` 플래그로 전면 게이트. |
 | 커뮤니티 순수 로직 | `shared/lib/community/` | 닉네임 검증·표시·탈퇴 분기 등 순수. IO 없는 부분. |
-| 서버리스 | `api/` — `og.tsx`(동적 OG), `account-delete.ts`(SERVICE_ROLE), `naver-auth.ts` | anon 키로 못 하는 것(auth.users 조작·비밀키·SSR 이미지). Vercel 규약상 배럴 예외. |
+| 서버리스 (소스) | `server/handlers/` — `Og`(동적 OG), `AccountDelete`(SERVICE_ROLE), `NaverAuth`, `PostHtml`, `ShareHtml`, `Sitemap` | anon 키로 못 하는 것(auth.users 조작·비밀키·SSR 이미지). 앱 배럴 우회는 규약이 아니라 **런타임 제약**(모듈 스코프 `import.meta.env` 금지). |
+| 서버리스 (배포 산출물) | `api/*.js` — **커밋되는 생성물**, 직접 편집 금지 | `tools/apiBundle` 이 esbuild 로 번들. Vercel 은 `api/*` 를 번들하지 않고 네이티브 ESM 으로 실행하므로 배럴·확장자 생략이 전부 불법이다. `npm run build` 가 재생성해 **바이트 대조**한다(`npm run api:bundle` 로 갱신). |
 | DB 스키마 | `supabase/migrations/*.sql` | 멱등 마이그레이션. RLS·컬럼 GRANT·트리거가 유일한 방어선. |
 | 라우팅 | `router/routes.tsx` | `AnalyticsLayout` → 라우트. 커뮤니티 라우트는 `isCommunityEnabled` 게이트 + 전부 lazy. |
 

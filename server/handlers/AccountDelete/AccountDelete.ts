@@ -10,8 +10,8 @@ import {
   avatarStorageFolder,
   AVATAR_BUCKET,
   type AccountDeleteDeps
-} from '../shared/lib/community';
-import { toNodeHandler } from '../shared/lib/server';
+} from '@/shared/lib/community';
+import { toNodeHandler } from '@/shared/lib/server';
 
 /**
  * 회원 탈퇴 — `POST /api/account-delete`, Authorization: Bearer <액세스 토큰>.

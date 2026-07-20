@@ -5,8 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run ticker:parse && tsc -b tsconfig.build.json && vite build",
+    "build": "npm run ticker:parse && tsc -b tsconfig.build.json && npm run api:check && vite build",
     "preview": "vite preview",
+    "api:bundle": "node tools/apiBundle/build.mjs",
+    "api:check": "node tools/apiBundle/build.mjs --check",
     "ticker:parse": "node utils/TickerParser/generate.mjs",
     "ticker:refresh": "vite-node scripts/tickerRefresh/cli.ts --",
     "test": "vitest run",

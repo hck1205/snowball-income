@@ -1,6 +1,7 @@
 {
   /*
-    Vercel 서버 코드(`/api/*`, `middleware.ts`) 전용 프로젝트.
+    Vercel 서버 코드(`server/handlers/*`, `middleware.ts`) 전용 프로젝트.
+    (`api/*.js` 는 이 소스에서 번들된 **생성물**이라 타입체크 대상이 아니다 — tools/apiBundle.)
 
     앱(tsconfig.app.json)과 분리한 이유:
       - 런타임이 다르다. 브라우저 DOM 이 아니라 Node/Edge 의 Web Fetch API 위에서 돈다.
@@ -32,5 +33,5 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["api", "middleware.ts"]
+  "include": ["server", "middleware.ts"]
 }

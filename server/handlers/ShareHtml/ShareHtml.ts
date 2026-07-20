@@ -3,11 +3,12 @@
   코드를 끌고 오면 Vercel Node 런타임에서 함수가 즉사한다(try/catch 로도 못 잡는 모듈 평가 단계). 그래서
   - `@/shared/lib/og` 는 순수 문자열/서버 세이프 조회(process.env)만,
   - `@/pages/Main/utils/ogCard` 는 **배럴이 아니라 파일을 직접** 가져온다(배럴은 analytics 를 끌어옴).
-  둘 다 og.tsx 가 이미 쓰는 안전한 경로다. `/api` 는 Vercel 규약상 배럴 규칙 예외.
+  둘 다 Og.tsx 가 이미 쓰는 안전한 경로다. 앱 배럴을 우회하는 이 규칙은 폴더가 `server/handlers/` 로
+  옮겨져도 그대로 유효하다 — 근거가 Vercel 디렉터리 규약이 아니라 **런타임 제약**이기 때문이다.
 */
-import { DB_SHARE_KEY_PATTERN, fetchSharedSnapshotByKey, replaceMetaContent } from '../shared/lib/og';
-import { buildOgShareText, summarizeSharedScenarioForOg, type OgCardModel } from '../pages/Main/utils/ogCard';
-import { toNodeHandler } from '../shared/lib/server';
+import { DB_SHARE_KEY_PATTERN, fetchSharedSnapshotByKey, replaceMetaContent } from '@/shared/lib/og';
+import { buildOgShareText, summarizeSharedScenarioForOg, type OgCardModel } from '@/pages/Main/utils/ogCard';
+import { toNodeHandler } from '@/shared/lib/server';
 
 /**
  * `/api/share-html?s=<key>` — DB key 공유 링크(`/?s=<key>`)의 진입 HTML.

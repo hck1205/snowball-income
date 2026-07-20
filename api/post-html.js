@@ -1,0 +1,266 @@
+// ⚠ 자동 생성물 — 직접 편집하지 마라. 편집해도 다음 빌드가 덮어쓰고, 그 전에 빌드가 실패한다.
+// 소스: server/handlers/PostHtml/PostHtml.ts
+// 재생성: npm run api:bundle
+
+
+// shared/lib/og/metaHtml.ts
+var escapeHtmlAttribute = (value) => value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+var replaceMetaContent = (html, attribute, key, value) => {
+  const pattern = new RegExp(`(<meta[^>]*\\s${attribute}="${key}"[^>]*\\scontent=")[^"]*(")`, "i");
+  return html.replace(pattern, `$1${escapeHtmlAttribute(value)}$2`);
+};
+var escapeHtmlText = (value) => value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+var replaceTitleTag = (html, value) => html.replace(/(<title>)[^<]*(<\/title>)/i, `$1${escapeHtmlText(value)}$2`);
+var replaceLinkHref = (html, rel, value) => {
+  const pattern = new RegExp(`(<link[^>]*\\srel="${rel}"[^>]*\\shref=")[^"]*(")`, "i");
+  return html.replace(pattern, `$1${escapeHtmlAttribute(value)}$2`);
+};
+
+// shared/lib/og/sharedSnapshotRest.ts
+var readServerEnv = (name) => {
+  const value = process.env[name];
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : void 0;
+};
+var readSupabaseRestConfig = () => {
+  const url = readServerEnv("SUPABASE_URL") ?? readServerEnv("VITE_SUPABASE_URL");
+  const anonKey = readServerEnv("SUPABASE_ANON_KEY") ?? readServerEnv("VITE_SUPABASE_PUBLISHABLE_KEY") ?? readServerEnv("VITE_SUPABASE_ANON_KEY");
+  if (!url || !anonKey) return null;
+  return { url, anonKey };
+};
+
+// shared/lib/og/postsRest.ts
+var PUBLIC_POST_KINDS = ["portfolio", "board"];
+var isPublicPostKind = (value) => value !== null && PUBLIC_POST_KINDS.includes(value);
+var POST_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+var restHeaders = (anonKey) => ({
+  apikey: anonKey,
+  authorization: `Bearer ${anonKey}`,
+  accept: "application/json"
+});
+var toRef = (row) => {
+  const { id, kind, updated_at: updatedAt } = row;
+  if (typeof id !== "string" || !POST_ID_PATTERN.test(id)) return null;
+  if (typeof kind !== "string" || !isPublicPostKind(kind)) return null;
+  if (typeof updatedAt !== "string" || updatedAt.length === 0) return null;
+  return { id, kind, updatedAt };
+};
+var fetchPublicPostMeta = async (kind, id) => {
+  if (!POST_ID_PATTERN.test(id)) return { status: "not-found" };
+  const config = readSupabaseRestConfig();
+  if (!config) return { status: "unavailable" };
+  const query = new URLSearchParams({
+    select: "id,kind,title,description,updated_at",
+    id: `eq.${id}`,
+    kind: `eq.${kind}`,
+    is_public: "eq.true",
+    limit: "1"
+  });
+  try {
+    const response = await fetch(`${config.url}/rest/v1/posts?${query.toString()}`, {
+      headers: restHeaders(config.anonKey)
+    });
+    if (!response.ok) return { status: "unavailable" };
+    const rows = await response.json().catch(() => null);
+    if (!Array.isArray(rows)) return { status: "unavailable" };
+    if (rows.length === 0) return { status: "not-found" };
+    const row = rows[0];
+    const ref = toRef(row);
+    if (!ref || typeof row.title !== "string" || row.title.length === 0) return { status: "unavailable" };
+    return {
+      status: "ok",
+      post: {
+        ...ref,
+        title: row.title,
+        description: typeof row.description === "string" && row.description.length > 0 ? row.description : null
+      }
+    };
+  } catch {
+    return { status: "unavailable" };
+  }
+};
+
+// shared/lib/og/siteUrl.ts
+var readServerEnv2 = (name) => {
+  const value = process.env[name];
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : void 0;
+};
+var stripTrailingSlash = (url) => url.replace(/\/+$/, "");
+var resolveSiteUrl = (requestUrl) => {
+  const configured = readServerEnv2("SITE_URL") ?? readServerEnv2("VITE_SITE_URL");
+  if (configured) return stripTrailingSlash(configured);
+  return stripTrailingSlash(new URL(requestUrl).origin);
+};
+
+// shared/lib/server/nodeHandler.ts
+var firstHeaderValue = (headers, name) => {
+  const raw = headers[name];
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  if (typeof value !== "string") return void 0;
+  const first = value.split(",")[0]?.trim();
+  return first && first.length > 0 ? first : void 0;
+};
+var resolveRequestUrl = (req) => {
+  const raw = req.url && req.url.length > 0 ? req.url : "/";
+  if (/^https?:\/\//i.test(raw)) return raw;
+  const host = firstHeaderValue(req.headers, "x-forwarded-host") ?? firstHeaderValue(req.headers, "host") ?? "localhost";
+  const proto = firstHeaderValue(req.headers, "x-forwarded-proto") ?? (req.socket?.encrypted === true ? "https" : "http");
+  return new URL(raw, `${proto}://${host}`).toString();
+};
+var toWebHeaders = (headers) => {
+  const web = new Headers();
+  for (const [name, value] of Object.entries(headers)) {
+    if (value === void 0) continue;
+    if (Array.isArray(value)) {
+      for (const entry of value) web.append(name, entry);
+      continue;
+    }
+    web.append(name, value);
+  }
+  return web;
+};
+var concatChunks = (chunks) => {
+  const total = chunks.reduce((sum, chunk) => sum + chunk.byteLength, 0);
+  const merged = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    merged.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return merged.buffer;
+};
+var toChunk = (raw) => {
+  if (raw instanceof Uint8Array) return raw;
+  if (typeof raw === "string") return new TextEncoder().encode(raw);
+  return void 0;
+};
+var serializeParsedBody = (body) => {
+  if (body === void 0 || body === null) return void 0;
+  if (body instanceof Uint8Array) return body.byteLength > 0 ? new Uint8Array(body).buffer : void 0;
+  if (typeof body === "string") return body.length > 0 ? body : void 0;
+  if (typeof body === "object") return JSON.stringify(body);
+  return String(body);
+};
+var readNodeRequestBody = async (req) => {
+  const parsed = serializeParsedBody(req.body);
+  if (parsed !== void 0) return parsed;
+  if (req.readableEnded === true || req.complete === true) return void 0;
+  if (typeof req.on !== "function") return void 0;
+  const chunks = await new Promise((resolve, reject) => {
+    const collected = [];
+    req.on?.("data", (chunk) => {
+      const encoded = toChunk(chunk);
+      if (encoded) collected.push(encoded);
+    });
+    req.on?.("end", () => resolve(collected));
+    req.on?.("error", (error) => reject(error instanceof Error ? error : new Error(String(error))));
+  });
+  const merged = concatChunks(chunks);
+  return merged.byteLength > 0 ? merged : void 0;
+};
+var readResponseBytes = async (response) => {
+  return new Uint8Array(await response.arrayBuffer());
+};
+var toWebRequest = async (req) => {
+  const method = (req.method ?? "GET").toUpperCase();
+  const hasBody = method !== "GET" && method !== "HEAD";
+  const body = hasBody ? await readNodeRequestBody(req) : void 0;
+  return new Request(resolveRequestUrl(req), {
+    method,
+    headers: toWebHeaders(req.headers),
+    ...body === void 0 ? {} : { body }
+  });
+};
+var readSetCookies = (headers) => {
+  const withGetter = headers;
+  if (typeof withGetter.getSetCookie === "function") return withGetter.getSetCookie();
+  const single = headers.get("set-cookie");
+  return single === null ? [] : [single];
+};
+var BODYLESS_STATUS = /* @__PURE__ */ new Set([204, 304]);
+var writeWebResponse = async (res, response) => {
+  res.statusCode = response.status;
+  const setCookies = readSetCookies(response.headers);
+  response.headers.forEach((value, name) => {
+    if (name.toLowerCase() === "set-cookie") return;
+    res.setHeader(name, value);
+  });
+  if (setCookies.length > 0) res.setHeader("set-cookie", setCookies);
+  const payload = await readResponseBytes(response);
+  if (!BODYLESS_STATUS.has(response.status)) res.setHeader("content-length", String(payload.byteLength));
+  res.end(payload);
+};
+var toNodeHandler = (webHandler) => {
+  return async (req, res) => {
+    try {
+      const request = await toWebRequest(req);
+      const response = await webHandler(request);
+      await writeWebResponse(res, response);
+    } catch (error) {
+      console.error("[node-adapter] handler failed", error);
+      try {
+        res.statusCode = 500;
+        res.setHeader("content-type", "application/json; charset=utf-8");
+        res.setHeader("cache-control", "no-store");
+        res.end(JSON.stringify({ error: "internal_error" }));
+      } catch {
+        res.end();
+      }
+    }
+  };
+};
+
+// server/handlers/PostHtml/PostHtml.ts
+var CACHE_POST = "public, max-age=0, s-maxage=300, stale-while-revalidate=604800";
+var CACHE_NO_STORE = "no-store";
+var SITE_SUFFIX = "Snowball Income";
+var FALLBACK_DESCRIPTION = {
+  portfolio: "\uC2A4\uB178\uC6B0\uBCFC \uC778\uCEF4 \uCEE4\uBBA4\uB2C8\uD2F0\uC5D0 \uACF5\uC720\uB41C \uBC30\uB2F9 \uD3EC\uD2B8\uD3F4\uB9AC\uC624 \uC2DC\uB098\uB9AC\uC624\uC785\uB2C8\uB2E4. \uC6D4 \uBC30\uB2F9\xB7\uBAA9\uD45C \uB2EC\uC131 \uC2DC\uC810\uC744 \uD655\uC778\uD574 \uBCF4\uC138\uC694.",
+  board: "\uC2A4\uB178\uC6B0\uBCFC \uC778\uCEF4 \uC790\uC720\uAC8C\uC2DC\uD310\uC5D0 \uC62C\uB77C\uC628 \uAE00\uC785\uB2C8\uB2E4."
+};
+var htmlResponse = (html, status, cache) => new Response(html, {
+  status,
+  headers: { "content-type": "text/html; charset=utf-8", "cache-control": cache }
+});
+var redirectToRoot = (origin) => new Response(null, {
+  status: 302,
+  headers: { Location: new URL("/", origin).toString(), "cache-control": CACHE_NO_STORE }
+});
+var applyPostMeta = (shell, post, siteUrl) => {
+  const title = `${post.title} - ${SITE_SUFFIX}`;
+  const description = post.description ?? FALLBACK_DESCRIPTION[post.kind];
+  const canonical = `${siteUrl}/community/${post.kind}/${post.id}`;
+  let html = shell;
+  html = replaceTitleTag(html, title);
+  html = replaceMetaContent(html, "name", "description", description);
+  html = replaceLinkHref(html, "canonical", canonical);
+  html = replaceMetaContent(html, "property", "og:title", title);
+  html = replaceMetaContent(html, "property", "og:description", description);
+  html = replaceMetaContent(html, "property", "og:url", canonical);
+  html = replaceMetaContent(html, "name", "twitter:title", title);
+  html = replaceMetaContent(html, "name", "twitter:description", description);
+  return html;
+};
+async function handler(request) {
+  const { origin, searchParams } = new URL(request.url);
+  const kindParam = searchParams.get("kind");
+  const id = searchParams.get("id") ?? "";
+  let shell;
+  try {
+    const response = await fetch(new URL("/index.html", origin));
+    if (!response.ok) return redirectToRoot(origin);
+    shell = await response.text();
+  } catch {
+    return redirectToRoot(origin);
+  }
+  if (!isPublicPostKind(kindParam)) return htmlResponse(shell, 200, CACHE_NO_STORE);
+  if (!POST_ID_PATTERN.test(id)) return htmlResponse(shell, 200, CACHE_NO_STORE);
+  const result = await fetchPublicPostMeta(kindParam, id);
+  if (result.status === "unavailable") return htmlResponse(shell, 200, CACHE_NO_STORE);
+  if (result.status === "not-found") return htmlResponse(shell, 404, CACHE_NO_STORE);
+  return htmlResponse(applyPostMeta(shell, result.post, resolveSiteUrl(request.url)), 200, CACHE_POST);
+}
+var PostHtml_default = toNodeHandler(handler);
+export {
+  PostHtml_default as default,
+  handler
+};

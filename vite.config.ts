@@ -6,6 +6,7 @@ import { defineConfig, loadEnv } from 'vite';
 import type { Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import type { SimulationOutput } from './shared/types';
+import { API_BUNDLES } from './tools/apiBundle/manifest.mjs';
 
 /**
  * 배포 도메인의 단일 진실 공급원(single source of truth).
@@ -361,13 +362,19 @@ const seoAssetsPlugin = (siteUrl: string): Plugin => {
  */
 type WebHandler = (request: Request) => Promise<Response> | Response;
 
-/** api/<name>.ts | .tsx 경로를 찾는다. 없으면 null(→ 미들웨어 pass-through). */
+/**
+ * `/api/<name>` → 그 핸들러의 **소스** 경로를 찾는다. 없으면 null(→ 미들웨어 pass-through).
+ *
+ * ⚠ dev 는 `api/*.js`(커밋된 번들 산출물)를 **읽지 않는다** — 소스를 직접 번들해야 저장하자마자 반영된다
+ *   (산출물을 읽으면 `npm run api:bundle` 을 돌리기 전까지 옛 코드가 뜬다). 배포 경로명 ↔ 소스 위치의
+ *   대응은 번들러와 **같은 매니페스트**를 공유해 한쪽만 바뀌는 drift 를 막는다.
+ */
 const resolveApiFile = (name: string): string | null => {
-  for (const ext of ['ts', 'tsx'] as const) {
-    const url = new URL(`./api/${name}.${ext}`, import.meta.url);
-    if (existsSync(url)) return fileURLToPath(url);
-  }
-  return null;
+  const target = `api/${name}.js`;
+  const entry = API_BUNDLES.find((bundle) => bundle.out === target)?.entry;
+  if (!entry) return null;
+  const url = new URL(`./${entry}`, import.meta.url);
+  return existsSync(url) ? fileURLToPath(url) : null;
 };
 
 /** 핸들러당 1회 esbuild 번들 → data URL import(메모리 평가). dev 편의로 캐시한다. */
