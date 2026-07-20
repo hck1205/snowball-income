@@ -92,7 +92,7 @@ export const COMMUNITY_COPY = {
     // 목록에서 미리 감이 오도록. '자유'는 마지막 "무엇이든"이 대신 가리킨다.
     mainLabel: '자유게시판',
     title: '자유게시판',
-    subtitle: '질문·고민·인사이트·컬럼·건의까지, 무엇이든 자유롭게 이야기해요.',
+    subtitle: '질문·고민·인사이트·건의, 무엇이든 자유롭게 이야기해요.',
     write: '글쓰기',
     loadingMore: '더 불러오는 중…',
     reachedEnd: '마지막 글이에요',
@@ -152,6 +152,16 @@ export const COMMUNITY_COPY = {
     bulletList: '글머리 목록',
     orderedList: '번호 목록',
     horizontalRule: '구분선',
+    /**
+     * 표. 삽입은 항상 보이는 버튼(아이콘) 하나, 나머지 조작 5개는 커서가 표 안일 때만 나타나는
+     * 컨텍스트 행이라 아이콘 대신 **텍스트 라벨**을 쓴다(행/열 × 추가/삭제는 아이콘으로 구분이 안 된다).
+     */
+    insertTable: '표 삽입',
+    tableAddRow: '행 추가',
+    tableDeleteRow: '행 삭제',
+    tableAddColumn: '열 추가',
+    tableDeleteColumn: '열 삭제',
+    tableDelete: '표 삭제',
     undo: '실행 취소',
     redo: '다시 실행',
     link: '링크',
@@ -181,6 +191,8 @@ export const COMMUNITY_COPY = {
     toolbarGroupList: '목록',
     toolbarGroupInsert: '삽입',
     toolbarGroupHistory: '실행 이력',
+    /** 커서가 표 안일 때만 나타나는 조작 행(조건부 렌더)의 접근명. */
+    toolbarGroupTable: '표 편집',
     bodyPlaceholder: '어떤 전략인지, 왜 이렇게 구성했는지 적어보세요.',
     visibilityPublic: '공개 — 커뮤니티 갤러리에 노출돼요.',
     visibilityPrivate: '비공개 — 나만 볼 수 있어요.',

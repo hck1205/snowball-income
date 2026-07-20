@@ -4,6 +4,7 @@ import { EditorContent, useEditor, useEditorState, type Editor } from '@tiptap/r
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
+import { TableKit } from '@tiptap/extension-table';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
 import {
   BoldIcon,
@@ -17,6 +18,7 @@ import {
   QuoteIcon,
   RedoIcon,
   StrikethroughIcon,
+  TableIcon,
   UnderlineIcon,
   UndoIcon
 } from '@/components/community/CommunityIcons';
@@ -26,6 +28,7 @@ import {
   LinkForm,
   LinkInput,
   LinkPopover,
+  TableContextGroup,
   Toolbar,
   ToolbarButton,
   ToolbarDivider,
@@ -73,12 +76,14 @@ const ToolButton = ({ label, shortcut, active, disabled, onClick, children }: To
  * 본문 리치 에디터(Tiptap).
  *
  * 툴바 구성(그룹 단위): 글자 서식(굵게/기울임/밑줄/취소선/인라인 코드) · 문단(H2·H3/인용/코드 블록) ·
- * 목록(글머리/번호) · 삽입(링크/구분선) · 이력(실행 취소/다시 실행).
+ * 목록(글머리/번호) · 삽입(링크/표) · 이력(실행 취소/다시 실행).
+ * 표 조작(행·열 추가/삭제, 표 삭제)은 **커서가 표 안일 때만** 나타나는 컨텍스트 행이다.
  *
  * ⚠ 툴바에 노출하는 서식은 **`shared/lib/richtext/sanitize.ts` 허용 목록과 반드시 짝이 맞아야 한다** —
  * 허용되지 않은 태그를 만들면 편집기에선 보이다가 저장 후 렌더에서 조용히 사라진다.
  * 밑줄·취소선·인용·코드·코드 블록·구분선은 모두 StarterKit(v3) 내장이라 추가 패키지가 없다.
  * 정렬/하이라이트/글자색은 `style`·`class` 속성을 요구해 XSS 표면을 넓히므로 의도적으로 제외했다.
+ * 표만 `@tiptap/extension-table`이 필요하고, `colspan`/`rowspan` 두 속성을 허용 목록에 더한다.
  *
  * ⚠ Tiptap에 정적으로 의존 → 글쓰기 청크에서만 import 한다(barrel 미포함).
  * 한글 IME: Tiptap이 조합 입력을 내부적으로 처리하므로 onUpdate의 getHTML을 그대로 전달해도 안전하다.
@@ -99,6 +104,15 @@ export default function RichTextEditor({ initialHtml, onChange, ariaLabel, place
         protocols: ['http', 'https', 'mailto'],
         HTMLAttributes: { rel: 'noopener noreferrer nofollow', target: '_blank' }
       }),
+      /*
+       * 표. 컬럼 리사이즈는 끈다 — 켜면 셀에 `colwidth`가 박혀 sanitize가 다뤄야 할 속성이 늘고,
+       * 좁은 화면에서 사용자가 열 폭을 잘못 잡아 본문이 깨질 여지가 생긴다.
+       *
+       * ⚠ `resizable: false`로도 `getHTML()`에는 `<colgroup>`과 `style="min-width: …"`가 계속
+       * 나온다(실측). 이건 renderHTML이 항상 조립하는 것이라 옵션으로 못 끈다 — 대신 sanitize가
+       * 통째로 걷어내고(허용 목록에 colgroup/col/style 없음) 렌더 CSS가 폭을 소유한다.
+       */
+      TableKit.configure({ table: { resizable: false } }),
       Placeholder.configure({ placeholder: placeholder ?? c.bodyPlaceholder })
     ],
     content: initialHtml,
@@ -153,6 +167,8 @@ function RichTextEditorBody({ editor }: { editor: Editor }) {
       bullet: current.isActive('bulletList'),
       ordered: current.isActive('orderedList'),
       link: current.isActive('link'),
+      /** 표 조작 행을 렌더할지 — 커서가 표 안일 때만 true. */
+      inTable: current.isActive('table'),
       canUndo: current.can().undo(),
       canRedo: current.can().redo()
     })
@@ -321,6 +337,12 @@ function RichTextEditorBody({ editor }: { editor: Editor }) {
           <ToolButton label={c.horizontalRule} onClick={() => editor.chain().focus().setHorizontalRule().run()}>
             <HorizontalRuleIcon size={16} />
           </ToolButton>
+          <ToolButton
+            label={c.insertTable}
+            onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
+          >
+            <TableIcon size={16} />
+          </ToolButton>
         </ToolbarGroup>
 
         <ToolbarDivider aria-hidden="true" />
@@ -343,6 +365,36 @@ function RichTextEditorBody({ editor }: { editor: Editor }) {
             <RedoIcon size={16} />
           </ToolButton>
         </ToolbarGroup>
+
+        {/*
+         * 표 조작 행 — 커서가 표 안일 때만 렌더한다(`aria-hidden`/`inert`로 감추지 않는다:
+         * 안 보이는 버튼이 탭 순서에 남거나 스크린리더에 유령으로 잡히는 편이 더 나쁘다).
+         *
+         * ⚠ 6개 전부 `.focus()`를 체인에 넣는다. 특히 **표 삭제**는 자기가 속한 이 그룹을 DOM에서
+         * 없애므로, `.focus()`가 없으면 포커스가 <body>로 떨어져 키보드 사용자가 길을 잃는다.
+         * 별도 live region은 두지 않는다 — 캐럿이 표를 드나들 때마다 낭독되어 소음이 되고,
+         * 브라우저가 <table> 시맨틱을 이미 노출한다.
+         */}
+        {state?.inTable ? (
+          <TableContextGroup role="group" aria-label={c.toolbarGroupTable}>
+            <ToolButton label={c.tableAddRow} onClick={() => editor.chain().focus().addRowAfter().run()}>
+              {c.tableAddRow}
+            </ToolButton>
+            <ToolButton label={c.tableDeleteRow} onClick={() => editor.chain().focus().deleteRow().run()}>
+              {c.tableDeleteRow}
+            </ToolButton>
+            <ToolButton label={c.tableAddColumn} onClick={() => editor.chain().focus().addColumnAfter().run()}>
+              {c.tableAddColumn}
+            </ToolButton>
+            <ToolButton label={c.tableDeleteColumn} onClick={() => editor.chain().focus().deleteColumn().run()}>
+              {c.tableDeleteColumn}
+            </ToolButton>
+            <ToolbarDivider aria-hidden="true" />
+            <ToolButton label={c.tableDelete} onClick={() => editor.chain().focus().deleteTable().run()}>
+              {c.tableDelete}
+            </ToolButton>
+          </TableContextGroup>
+        ) : null}
       </Toolbar>
 
       <EditorArea>

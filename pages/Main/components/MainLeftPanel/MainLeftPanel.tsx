@@ -59,6 +59,8 @@ function MainLeftPanelComponent({
   const {
     conflict,
     summary,
+    isResolving,
+    hasResolveFailed,
     resolveWithDevice,
     resolveWithCloud,
     resolveWithBlend,
@@ -169,6 +171,8 @@ function MainLeftPanelComponent({
             <CloudReconcileModal
               summary={summary}
               blendTabCount={blendTabCount}
+              isResolving={isResolving}
+              hasResolveFailed={hasResolveFailed}
               onUseDevice={resolveWithDevice}
               onUseCloud={resolveWithCloud}
               onBlend={resolveWithBlend}

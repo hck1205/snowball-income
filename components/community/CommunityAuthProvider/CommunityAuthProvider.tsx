@@ -2,14 +2,17 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import {
+  clearOAuthLoginFailure,
   fetchMyProfile,
   getSession,
   getSupabaseClient,
   onAuthStateChange,
+  readOAuthLoginFailure,
   signInWithOAuth,
   signOut,
   type CommunityClient,
-  type CommunityOAuthProvider
+  type CommunityOAuthProvider,
+  type OAuthLoginFailure
 } from '@/shared/lib/supabase';
 import { useSetProfileWrite, useSetSessionWrite } from '@/jotai/community';
 import {
@@ -58,6 +61,14 @@ export default function CommunityAuthProvider({ children }: { children: ReactNod
   const [promptOpen, setPromptOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const [authReady, setAuthReady] = useState(false);
+  // 직전 OAuth 콜백이 실패했으면(main.tsx finalizeOAuthCallback 이 localStorage 에 기록) 그 기록을 읽어
+  // 로그인 모달 상단에 안내 배너로 띄운다(무음 실패 금지). 마운트 시 1회 읽고, 이후 로그인 성공/재시도/닫기에서 정리.
+  const [loginFailure, setLoginFailure] = useState<OAuthLoginFailure | null>(() => readOAuthLoginFailure());
+
+  const dismissLoginFailure = useCallback(() => {
+    setLoginFailure(null);
+    clearOAuthLoginFailure();
+  }, []);
 
   // 세션 변화 → 프로필 동기화. 최신 세션의 user id로 프로필을 다시 읽는다.
   const syncProfile = useCallback(
@@ -96,6 +107,14 @@ export default function CommunityAuthProvider({ children }: { children: ReactNod
         markAccountUserProperty(session);
         markLoginCompleted(session);
         void syncProfile(session);
+        if (session) {
+          // 이미 로그인돼 있으면 남아 있던 실패 기록은 유효하지 않다(다른 프로바이더로 성공했거나 세션 복원).
+          dismissLoginFailure();
+        } else if (readOAuthLoginFailure()) {
+          // 콜백에서 실패해 돌아왔다 — 사용자가 클릭하기 전에 즉시 보이게 로그인 모달을 자동으로 연다.
+          // 자동으로 여는 것은 안내 표면화까지이고 **재로그인은 자동 실행하지 않는다**(루프 차단).
+          setPromptOpen(true);
+        }
       } catch {
         // 세션 조회 실패 시 로그아웃 상태로 둔다.
       } finally {
@@ -107,6 +126,7 @@ export default function CommunityAuthProvider({ children }: { children: ReactNod
         markAccountUserProperty(session);
         markLoginCompleted(session);
         void syncProfile(session);
+        if (session) dismissLoginFailure(); // 로그인이 실제로 성립하면 실패 안내를 즉시 거둔다.
       });
     };
 
@@ -116,12 +136,14 @@ export default function CommunityAuthProvider({ children }: { children: ReactNod
       cancelled = true;
       unsubscribe?.();
     };
-  }, [setSession, syncProfile]);
+  }, [setSession, syncProfile, dismissLoginFailure]);
 
   const login = useCallback(async (provider: CommunityOAuthProvider) => {
     const client = clientRef.current ?? (await getSupabaseClient());
     if (!client) return;
     clientRef.current = client;
+    // 사용자가 재시도를 명시적으로 시작했다 — 직전 실패 안내는 거둔다(실패하면 콜백이 새로 기록한다).
+    dismissLoginFailure();
     setPending(true);
     try {
       // 전환 귀속 마커 — 리다이렉트 직전에 제공자(source)를 심는다. 복귀 랜딩(메인/커뮤니티)이
@@ -132,7 +154,7 @@ export default function CommunityAuthProvider({ children }: { children: ReactNod
     } catch {
       setPending(false);
     }
-  }, []);
+  }, [dismissLoginFailure]);
 
   const logout = useCallback(async () => {
     const client = clientRef.current ?? (await getSupabaseClient());
@@ -183,6 +205,7 @@ export default function CommunityAuthProvider({ children }: { children: ReactNod
       {promptOpen ? (
         <LoginModal
           pending={pending}
+          failure={loginFailure}
           onClose={closeLoginPrompt}
           onSelectProvider={(provider) => void login(provider)}
         />

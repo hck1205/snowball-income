@@ -70,6 +70,10 @@ export const ANALYTICS_EVENT = {
   ACCOUNT_DELETED: "account_deleted",
   // 로그인 완료 이벤트(파라미터: source). 용도: 로그인 시작 대비 완료율, 저장 유도 로그인 전환율(§성공지표) 계산.
   LOGIN_COMPLETED: "login_completed",
+  // 로그인 실패 이벤트(콜백으로 돌아왔으나 세션 미생성). 파라미터: provider·reason·in_app_browser·context_switched·attempts·error_code.
+  // 용도: 무음이던 OAuth 콜백 실패(특히 iOS 카카오 인앱브라우저 컨텍스트 분리)의 실제 발생 빈도·환경·프로바이더 분포를
+  // 데이터로 관측. login_completed 대비 실패율로 "돌아왔는데 로그인 안 됨" 규모를 잡는다.
+  LOGIN_FAILED: "login_failed",
   // 클라우드 자동 저장 완료 이벤트. 용도: 클라우드 저장 성공률(= completed / (completed + operation_error(cloud_save))) 모니터링.
   CLOUD_SAVE_COMPLETED: "cloud_save_completed",
   // 세션 시작 클라우드 latest-wins 동기화 완료 이벤트(파라미터: direction='cloud_to_local'|'local_to_cloud'|'noop').
@@ -209,6 +213,14 @@ export type AnalyticsEventParamMap = {
   [ANALYTICS_EVENT.PRESET_APPLIED]: { preset_id: string };
   [ANALYTICS_EVENT.SIMULATION_RESULT_VIEW]: { reinvest_mode?: string; target_met?: boolean };
   [ANALYTICS_EVENT.LOGIN_COMPLETED]: { source: string; entry_point?: string };
+  [ANALYTICS_EVENT.LOGIN_FAILED]: {
+    provider: string;
+    reason: "provider_error" | "no_session" | "client_unavailable";
+    in_app_browser: string;
+    context_switched: boolean;
+    attempts: number;
+    error_code?: string;
+  };
   [ANALYTICS_EVENT.SCENARIO_SHARED]: { share_method: string };
   [ANALYTICS_EVENT.CLOUD_SYNC_CONFLICT]: {
     shown: boolean;
@@ -293,6 +305,19 @@ export const writeLoginSource = (source: string) => {
     window.sessionStorage.setItem(LOGIN_SOURCE_KEY, source);
   } catch {
     // sessionStorage 불가(프라이빗 모드 등) — 로그인 자체엔 영향 없다. 전환 귀속만 생략된다.
+  }
+};
+
+/**
+ * 마커를 **지우지 않고** 읽는다. 콜백 실패 판정(main.tsx)이 프로바이더를 알아야 하지만,
+ * 성공 시 랜딩(`readAndClearLoginSource`)이 `login_completed` 를 발화하도록 마커를 **남겨야** 한다.
+ */
+export const peekLoginSource = (): string | null => {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.sessionStorage.getItem(LOGIN_SOURCE_KEY);
+  } catch {
+    return null;
   }
 };
 

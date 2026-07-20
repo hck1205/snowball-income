@@ -94,7 +94,14 @@ export const extractMeaningfulPayload = (payload: PersistedAppStatePayload): { s
  * 이름을 포함하는 이유: 발산한 이름을 조용히 버리지 않기 위함(비파괴 병합 원칙).
  */
 export const isSameMeaningfulScenario = (a: PersistedScenarioState, b: PersistedScenarioState): boolean =>
-  stableStringify(extractMeaningfulScenario(a)) === stableStringify(extractMeaningfulScenario(b));
+  serializeMeaningfulScenario(a) === serializeMeaningfulScenario(b);
+
+/**
+ * 한 시나리오의 "의미있는" 내용을 안정 직렬화한다 — 시나리오 **집합 비교**(포함관계 판정)의 키.
+ * 워크스페이스 포함관계(`isWorkspaceSubsumedBy`)가 Set 멤버십으로 O(n) 판정할 때 쓴다.
+ */
+export const serializeMeaningfulScenario = (scenario: PersistedScenarioState): string =>
+  stableStringify(extractMeaningfulScenario(scenario));
 
 /** 의미있는 부분집합의 안정 직렬화 — no-op 게이트가 ref에 담아 직전 저장과 비교한다. */
 export const serializeMeaningfulPayload = (payload: PersistedAppStatePayload): string =>

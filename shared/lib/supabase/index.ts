@@ -16,6 +16,7 @@
 
 export * from './client';
 export * from './oauthCallback';
+export * from './oauthFailure';
 export * from './comments';
 export * from './pagination';
 export * from './payload';

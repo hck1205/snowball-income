@@ -66,6 +66,22 @@ export const ToolbarButton = styled.button<{ active?: boolean }>`
   }
 `;
 
+/**
+ * 표 조작 버튼 묶음. 커서가 표 안일 때만 렌더되는 **컨텍스트 행**이라, 나타나고 사라질 때 위쪽
+ * 툴바 버튼들의 줄바꿈을 흔들지 않도록 `flex: 1 0 100%`로 항상 자기 줄을 차지한다.
+ * 위 구분선은 `ToolbarDivider`(세로선)가 아니라 자기 `border-top`으로 긋는다.
+ */
+export const TableContextGroup = styled.div`
+  display: flex;
+  flex: 1 0 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: ${space[1]};
+  margin-top: ${space[1]};
+  padding-top: ${space[1]};
+  border-top: 1px solid ${color.border};
+`;
+
 export const ToolbarDivider = styled.span`
   width: 1px;
   height: 20px;
@@ -136,6 +152,44 @@ export const EditorArea = styled.div`
         background: none;
         padding: 0;
       }
+    }
+
+    /*
+     * 편집 중 표. 저장 후 렌더(RichTextContent.styled)와 테두리·여백·헤더 톤을 맞추되 **레이아웃은
+     * 다르다**: 저장본은 display:block 으로 가로 스크롤을 만들지만, 편집기 표를 block으로 바꾸면
+     * ProseMirror의 셀 선택·표 조작이 어긋난다. 대신 table-layout:fixed 로 타이핑 중 열 폭이
+     * 흔들리지 않게 고정한다.
+     */
+    table {
+      width: 100%;
+      table-layout: fixed;
+      border-collapse: collapse;
+      margin: 0 0 ${space[3]};
+      font-size: ${font.size.sm};
+    }
+
+    th,
+    td {
+      border: 1px solid ${color.border};
+      padding: ${space[2]} ${space[3]};
+      text-align: left;
+      vertical-align: top;
+
+      /* 셀 내용은 Tiptap이 p 로 감싼다 — 문단 기본 여백이 셀 안에서 겹치지 않게 지운다. */
+      & > p {
+        margin: 0;
+      }
+    }
+
+    th {
+      background: ${color.surfaceSunken};
+      color: ${color.text};
+      font-weight: ${font.weight.semibold};
+    }
+
+    /* 표 조작 커맨드가 잡은 셀 범위 표시(ProseMirror table 플러그인이 붙이는 클래스). */
+    .selectedCell {
+      background: ${color.brandSubtle};
     }
 
     hr {

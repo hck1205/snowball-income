@@ -124,6 +124,12 @@ export const ChoiceButton = styled.button<{ recommended?: boolean }>`
     filter: brightness(0.98);
     border-color: ${({ recommended }) => (recommended ? color.brandBorder : color.borderStrong)};
   }
+
+  /* 화해 IO 진행 중 — 중복 실행 방지. */
+  &:disabled {
+    opacity: 0.6;
+    cursor: progress;
+  }
 `;
 
 export const ChoiceTitleRow = styled.span`
@@ -145,6 +151,20 @@ export const RecommendBadge = styled.span`
   color: ${color.onBrand};
   font-size: ${font.size['2xs']};
   font-weight: ${font.weight.bold};
+`;
+
+/**
+ * 화해 IO 실패 알림 — 조용히 삼키지 않고 모달 안에서 그대로 보여준다(다시 누르면 재시도).
+ * `role="alert"`은 호출부에서 준다.
+ */
+export const ResolveError = styled.p`
+  margin: 0;
+  padding: ${space[2]} ${space[3]};
+  background: ${color.dangerSurface};
+  border: 1px solid ${color.dangerBorder};
+  border-radius: ${radius.md};
+  color: ${color.danger};
+  font-size: ${font.size.sm};
 `;
 
 /** 선택지 보조 설명. `destructive`(…사라집니다)는 danger 톤으로 파괴성을 미리 경고한다. */

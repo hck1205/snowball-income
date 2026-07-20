@@ -1,5 +1,6 @@
 import { isSameMeaningfulPayload, isSamePersistedPayload } from '../persistence';
 import type { PersistedAppStatePayload } from '../types';
+import { isWorkspaceSubsumedBy } from './cloudWorkspaceReconcile';
 
 /**
  * 세션 시작 클라우드 워크스페이스 동기화 — **순수 로직(React·Supabase 비의존)**.
@@ -11,6 +12,8 @@ import type { PersistedAppStatePayload } from '../types';
  *
  * 분기(+IO 실패 보류):
  *  1. **내용 동일** → no-op. 타임스탬프 비교보다 **먼저** 판정해 clock skew로 인한 불필요한 덮어쓰기를 막는다.
+ *  1.4 **클라우드 ⊆ 로컬**(모든 클라우드 탭이 로컬에 그대로 있음) → 충돌이 아니라 "로컬이 앞서 있음".
+ *     묻지 않고 로컬을 push한다(무손실 — 블렌드해도 로컬과 같은 결과). 반대 방향은 자동화하지 않는다.
  *  1.5 **충돌**(로컬·클라우드 둘 다 내용 있고 의미있게 다름) → 자동 화해 금지. `conflict` 이벤트만 방출하고
  *     **어느 쪽도 apply/mirror/push하지 않는다**(순수·비파괴). 정본 결정은 경계(모달)가 사용자에게 위임한다 —
  *     무음 last-write-wins가 반대쪽 기기의 탭을 조용히 덮던 유실을 막는다.
@@ -109,6 +112,23 @@ const cloudIsCanonical = (
   return true; // 동률 → 클라우드 우선
 };
 
+/** 로컬 정본 → 클라우드 push(원본 편집시각을 savedAt으로 심는다). 실패는 무음이 아니라 이벤트로 알린다. */
+const pushLocal = async (
+  deps: CloudWorkspaceSyncDeps,
+  localPayload: PersistedAppStatePayload,
+  localUpdatedAt: number | undefined
+): Promise<void> => {
+  const now = deps.now ?? Date.now;
+  try {
+    await deps.pushCloudAutosave(localPayload, localUpdatedAt ?? now());
+  } catch {
+    // push 실패 → 로컬 보존(로컬을 정본으로 이미 갖고 있음). 무음 실패 금지.
+    deps.onEvent?.({ type: 'failed', reason: 'push-error' });
+    return;
+  }
+  deps.onEvent?.({ type: 'pushed-local' });
+};
+
 export const syncCloudWorkspaceAtSessionStart = async (deps: CloudWorkspaceSyncDeps): Promise<void> => {
   let cloud: CloudAutosaveRead;
   try {
@@ -146,14 +166,23 @@ export const syncCloudWorkspaceAtSessionStart = async (deps: CloudWorkspaceSyncD
   //   여기까지 왔다면 1)에서 걸러지지 않았으므로 (둘 다 존재 시) 이미 의미있게 다르다. 무음 last-write-wins가
   //   반대쪽 탭을 조용히 덮던 다기기 유실을 막기 위해, **어느 쪽도 건드리지 않고** conflict만 방출한다.
   //   한쪽만 내용 있음(빈 클라우드 슬롯 등)은 여기서 걸러 아래 latest-wins 무음 처리로 남긴다(결정 §1).
+  //
+  //   단, **클라우드가 로컬에 완전히 포함**되면(모든 클라우드 탭이 로컬에 그대로 있음) 로컬을 정본으로 삼아도
+  //   잃을 시나리오가 없다 — 블렌드해도 로컬과 같은 결과라 물어볼 게 없다. 이건 충돌이 아니라 "로컬이 앞서 있음"
+  //   이므로 묻지 않고 push한다(거짓 충돌 제거). 반대 방향(로컬 ⊂ 클라우드)은 "이 기기에서 탭을 지웠다"와
+  //   구분할 수 없으므로 **절대** 자동 적용하지 않고 아래 conflict로 남긴다.
   if (cloud && localPayload && hasContent(localPayload) && hasContent(cloud.payload)) {
-    deps.onEvent?.({
-      type: 'conflict',
-      local: localPayload,
-      cloud: cloud.payload,
-      localUpdatedAt: local.updatedAt,
-      cloudSavedAt: cloud.savedAt
-    });
+    if (!isWorkspaceSubsumedBy(cloud.payload, localPayload)) {
+      deps.onEvent?.({
+        type: 'conflict',
+        local: localPayload,
+        cloud: cloud.payload,
+        localUpdatedAt: local.updatedAt,
+        cloudSavedAt: cloud.savedAt
+      });
+      return;
+    }
+    await pushLocal(deps, localPayload, local.updatedAt);
     return;
   }
 
@@ -172,15 +201,5 @@ export const syncCloudWorkspaceAtSessionStart = async (deps: CloudWorkspaceSyncD
   }
 
   // 3·4) 로컬이 정본 → 클라우드에 push(원본 편집시각을 savedAt으로 심는다).
-  if (localPayload) {
-    const now = deps.now ?? Date.now;
-    try {
-      await deps.pushCloudAutosave(localPayload, local.updatedAt ?? now());
-    } catch {
-      // push 실패 → 로컬 보존(로컬을 정본으로 이미 갖고 있음). 무음 실패 금지.
-      deps.onEvent?.({ type: 'failed', reason: 'push-error' });
-      return;
-    }
-    deps.onEvent?.({ type: 'pushed-local' });
-  }
+  if (localPayload) await pushLocal(deps, localPayload, local.updatedAt);
 };

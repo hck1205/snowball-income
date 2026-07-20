@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
+  isWorkspaceSubsumedBy,
   mergeWorkspaces,
   previewBlend,
   resolveWithBlend,
@@ -190,15 +191,17 @@ describe('3-way 화해 부작용(IO 주입)', () => {
   const device = makePayload([makeScenario('a', 'A', 'AAA')]);
   const cloud = makePayload([makeScenario('b', 'B', 'BBB')]);
 
-  it('resolveWithDevice: 로컬을 클라우드에 push만(앱·로컬은 이미 정본)', async () => {
+  it('resolveWithDevice: 클라우드 push + **로컬 미러**로 양쪽을 같은 payload에 수렴시킨다', async () => {
     const { calls, deps } = makeDeps();
 
     const resolved = await resolveWithDevice(device, deps);
 
     expect(resolved).toBe(device);
     expect(calls.push).toEqual([{ payload: device, savedAt: 42_000 }]);
+    // 로컬 슬롯도 같은 payload로 덮는다 — 한쪽만 쓰면 두 미러가 어긋난 채 남아 다음 세션에 같은 충돌이
+    // 재감지된다(모달 반복의 원인이었다). 앱은 이미 이 상태이므로 재적용(리렌더)은 하지 않는다.
+    expect(calls.mirror).toEqual([device]);
     expect(calls.apply).toEqual([]);
-    expect(calls.mirror).toEqual([]);
   });
 
   it('resolveWithCloud: 앱 적용 + 로컬 미러(클라우드는 이미 정본, push 없음)', async () => {
@@ -250,5 +253,30 @@ describe('충돌 요약', () => {
 
     expect(preview.tabCount).toBe(3); // A(디바이스) + E(고유) + A 발산본
     expect(preview.tabNames).toEqual(['A', 'E', 'A (클라우드)']);
+  });
+});
+
+describe('isWorkspaceSubsumedBy — 포함관계(거짓 충돌 제거)', () => {
+  it('클라우드의 모든 탭이 로컬에 그대로 있으면 true(로컬 채택이 무손실)', () => {
+    const cloud = makePayload([makeScenario('a', 'A', 'AAA')]);
+    const device = makePayload([makeScenario('a', 'A', 'AAA'), makeScenario('b', 'B', 'BBB')]);
+
+    expect(isWorkspaceSubsumedBy(cloud, device)).toBe(true);
+    expect(isWorkspaceSubsumedBy(device, cloud)).toBe(false); // 방향 비대칭
+  });
+
+  it('같은 id라도 내용·이름이 다르면 포함이 아니다(발산은 충돌로 남긴다)', () => {
+    const cloud = makePayload([makeScenario('a', 'A', 'ZZZ')]);
+    const device = makePayload([makeScenario('a', 'A', 'AAA')]);
+
+    expect(isWorkspaceSubsumedBy(cloud, device)).toBe(false);
+  });
+
+  it('포함이면 블렌드해도 상위집합과 같다 — 물어볼 게 없다는 근거', () => {
+    const cloud = makePayload([makeScenario('a', 'A', 'AAA')]);
+    const device = makePayload([makeScenario('a', 'A', 'AAA'), makeScenario('b', 'B', 'BBB')]);
+
+    expect(isWorkspaceSubsumedBy(cloud, device)).toBe(true);
+    expect(mergeWorkspaces(device, cloud, seqIds()).scenarios).toEqual(device.scenarios);
   });
 });
