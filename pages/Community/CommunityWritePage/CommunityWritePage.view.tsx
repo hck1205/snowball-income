@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
 import { formatKRW } from '@/shared/utils/format';
 import { buildScenarioSimSummary } from '@/shared/lib/snowball';
-import { isNaverEnabled, POST_TITLE_MAX_LENGTH } from '@/shared/lib/supabase';
-import { Banner, Button, FormSection, ToggleField } from '@/components/common';
+import { isNaverEnabled, POST_TITLE_MAX_LENGTH, type PostCategory } from '@/shared/lib/supabase';
+import { Banner, Button, FormSection, Select, ToggleField } from '@/components/common';
 import { ConfirmDialog, EmptyState, SimSummaryStats } from '@/components/community';
 import { RichTextEditor } from '@/components/community/RichTextEditor';
 import { SocialLoginButton } from '@/components/community/SocialLoginButton';
@@ -147,7 +147,8 @@ function ScenarioPicker({
 }
 
 export default function CommunityWriteView({ viewModel }: CommunityWriteViewProps) {
-  const { composer, candidates, authReady, isLoggedIn, isAdmin, kind, listPath, onLogin } = viewModel;
+  const { composer, candidates, authReady, isLoggedIn, canChooseVisibility, categoryOptions, kind, listPath, onLogin } =
+    viewModel;
   const isBoard = kind === 'board';
   // 첨부 섹션 렌더 여부의 단일 출처는 composer다(훅이 저장 경로도 같은 값으로 게이트한다).
   const showAttachSection = composer.attachAllowed;
@@ -291,6 +292,29 @@ export default function CommunityWriteView({ viewModel }: CommunityWriteViewProp
           </Banner>
         ) : null}
 
+        {/* 글 종류 — 자유게시판 전용(갤러리는 분류 개념이 없어 미렌더). 선택지 구성(공지=운영자 전용)은
+            컨테이너가 categoryOptions로 접어 내려준다. 렌더 게이트의 단일 출처는 composer다.
+            제목보다 **위**에 둔다 — 글의 성격을 먼저 정하고 그에 맞는 제목을 쓰는 순서가 자연스럽고,
+            제목은 폼에서 가장 큰 타이포라 그 아래 작은 셀렉트가 오면 위계가 역행해 보인다. */}
+        {composer.categoryAllowed ? (
+          <FieldBlock>
+            <FieldLabel htmlFor="community-category">{w.fieldCategory}</FieldLabel>
+            <Select
+              id="community-category"
+              width="auto"
+              minWidth="140px"
+              value={composer.category}
+              onChange={(event) => composer.setCategory(event.target.value as PostCategory)}
+            >
+              {categoryOptions.map((option) => (
+                <option key={option} value={option}>
+                  {w.categoryLabels[option]}
+                </option>
+              ))}
+            </Select>
+          </FieldBlock>
+        ) : null}
+
         {/* 제목 */}
         <FieldBlock>
           <LabelRow>
@@ -301,7 +325,7 @@ export default function CommunityWriteView({ viewModel }: CommunityWriteViewProp
             id="community-title"
             value={composer.title}
             maxLength={POST_TITLE_MAX_LENGTH}
-            placeholder={w.fieldTitle}
+            placeholder={isBoard ? w.titlePlaceholderBoard : w.titlePlaceholder}
             invalid={Boolean(composer.errors.title)}
             aria-invalid={Boolean(composer.errors.title)}
             aria-describedby={composer.errors.title ? titleErrorId : undefined}
@@ -379,10 +403,10 @@ export default function CommunityWriteView({ viewModel }: CommunityWriteViewProp
           </AttachSection>
         ) : null}
 
-        {/* 게시 설정 — 공개 범위만 남은 섹션이라, 그 유일한 필드가 숨겨지는 비운영자에게는
-            섹션(제목·테두리)을 통째로 렌더하지 않는다(빈 껍데기 금지).
-            비운영자의 신규 글은 공개 고정, 수정 글은 서버에서 온 기존 값이 그대로 보존된다. */}
-        {isAdmin ? (
+        {/* 게시 설정 — 공개 범위만 남은 섹션이라, 그 유일한 필드가 숨겨질 때는 섹션(제목·테두리)을
+            통째로 렌더하지 않는다(빈 껍데기 금지). 갤러리는 항상 노출, 게시판은 운영자만.
+            숨겨진 경우 신규 글은 공개 고정, 수정 글은 서버에서 온 기존 값이 그대로 보존된다. */}
+        {canChooseVisibility ? (
           <FormSection title={w.sectionPublish}>
             {/* 공개 범위 — "비공개" 스위치 + 상태 안내를 **한 행에 나란히**. 기본 off=공개, on=비공개. */}
             <FieldBlock>

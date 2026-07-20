@@ -87,10 +87,12 @@ export const COMMUNITY_COPY = {
     filterEmptyCta: '필터 초기화'
   },
   board: {
-    // 자유게시판(질문·고민·잡담·건의·뉴스·의견 자유글) — 평면 게시판(카테고리 탭 없음), 최신순.
+    // 자유게시판(질문·고민·인사이트·컬럼·건의·잡담 자유글) — 평면 게시판(카테고리 탭 없음), 최신순.
+    // subtitle 의 나열은 글 종류 드롭다운(POST_CATEGORY_IDS)과 어휘를 맞춘다 — 무엇을 골라야 할지
+    // 목록에서 미리 감이 오도록. '자유'는 마지막 "무엇이든"이 대신 가리킨다.
     mainLabel: '자유게시판',
     title: '자유게시판',
-    subtitle: '질문·고민·잡담·건의·뉴스, 무엇이든 자유롭게 이야기해요.',
+    subtitle: '질문·고민·인사이트·컬럼·건의까지, 무엇이든 자유롭게 이야기해요.',
     write: '글쓰기',
     loadingMore: '더 불러오는 중…',
     reachedEnd: '마지막 글이에요',
@@ -110,8 +112,32 @@ export const COMMUNITY_COPY = {
     /** 게시판 본문 플레이스홀더 — 전략 설명이 아니라 자유 주제. */
     bodyPlaceholderBoard: '자유롭게 이야기를 남겨보세요.',
     fieldTitle: '제목',
+    /**
+     * 제목 플레이스홀더 — 라벨('제목')을 그대로 되풀이하지 않고 "무엇을 쓰면 되는지"를 알려준다.
+     * 본문 플레이스홀더(bodyPlaceholder/bodyPlaceholderBoard)와 같은 방식으로 kind별로 나뉜다.
+     */
+    titlePlaceholder: '어떤 포트폴리오인지 한 줄로 적어주세요',
+    /** 게시판 제목 플레이스홀더 — 포트폴리오 공유가 아니라 자유 주제. */
+    titlePlaceholderBoard: '어떤 이야기인지 한 줄로 적어주세요',
     fieldBody: '내용',
     fieldAttachment: '시뮬레이션',
+    /**
+     * 자유게시판(kind='board') 전용 분류 드롭다운. 갤러리에는 없다.
+     * DB 는 영어 슬러그(free · question · insight · suggestion · notice)로 저장하고
+     * 라벨만 한국어다.
+     */
+    fieldCategory: '글 종류',
+    /**
+     * 슬러그 → 화면 라벨. 목록 배지(PostRow)도 **같은 맵**을 써야 표기가 어긋나지 않는다.
+     * 표시 순서는 여기가 아니라 `POST_CATEGORY_IDS`(config.ts)가 정한다.
+     */
+    categoryLabels: {
+      free: '자유',
+      question: '질문&고민',
+      insight: '인사이트',
+      suggestion: '건의사항',
+      notice: '공지'
+    },
     bodyAriaLabel: '내용',
     toolbarAriaLabel: '서식',
     bold: '굵게',

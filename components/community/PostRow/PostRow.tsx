@@ -1,4 +1,4 @@
-import { COMMUNITY_COPY } from '@/shared/constants/community';
+import { COMMUNITY_COPY, DEFAULT_POST_CATEGORY, toPostCategory } from '@/shared/constants/community';
 import { formatCompactCount } from '@/shared/lib/community';
 import type { ScenarioSimSummary } from '@/shared/lib/snowball';
 import type { PostListItem } from '@/shared/lib/supabase';
@@ -7,7 +7,18 @@ import { RelativeTime } from '@/components/community/RelativeTime';
 import { VisuallyHidden } from '@/components/community/PostMeta';
 import { SimBadge } from '@/components/community/SimBadge';
 import { SimSummaryStats } from '@/components/community/SimSummaryStats';
-import { LikeInline, RowBody, RowLink, RowStats, RowSubInfo, RowSubText, RowSummary, RowTitle } from './PostRow.styled';
+import {
+  CategoryBadge,
+  LikeInline,
+  RowBody,
+  RowLink,
+  RowStats,
+  RowSubInfo,
+  RowSubText,
+  RowSummary,
+  RowTitle,
+  RowTitleRow
+} from './PostRow.styled';
 
 export type PostRowProps = {
   item: PostListItem;
@@ -31,10 +42,25 @@ export default function PostRow({ item, simSummary }: PostRowProps) {
   // 상세 링크는 글의 섹션(kind)을 따른다 — 포트폴리오=/community/portfolio/:id, 게시판=/community/board/:id.
   const detailPath = item.kind === 'board' ? `/community/board/${item.id}` : `/community/portfolio/${item.id}`;
 
+  /**
+   * 분류 배지 — 게시판 글에만, 그리고 **기본값('자유')이 아닐 때만** 붙인다.
+   * 모든 행에 "자유"를 달면 피드가 배지로 뒤덮여 정작 공지/건의사항이 눈에 안 띈다.
+   * 마이그레이션 전(컬럼 부재)에는 값이 undefined → 'free'로 정규화돼 배지가 없다(무해한 폴백).
+   */
+  const category = toPostCategory(item.category);
+  const showCategoryBadge = item.kind === 'board' && category !== DEFAULT_POST_CATEGORY;
+
   return (
     <RowLink to={detailPath}>
       <RowBody>
-        <RowTitle>{item.title}</RowTitle>
+        <RowTitleRow>
+          {showCategoryBadge ? (
+            <CategoryBadge emphasis={category === 'notice'}>
+              {COMMUNITY_COPY.write.categoryLabels[category]}
+            </CategoryBadge>
+          ) : null}
+          <RowTitle>{item.title}</RowTitle>
+        </RowTitleRow>
         {item.description ? <RowSummary>{item.description}</RowSummary> : null}
         <RowSubInfo>
           <RowSubText>

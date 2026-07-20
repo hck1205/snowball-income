@@ -177,6 +177,7 @@ const listItem = (id: string, title: string, sim_summary: unknown): PostListItem
   id,
   user_id: 'u1',
   kind: 'portfolio',
+  category: 'free',
   title,
   description: null,
   is_public: true,

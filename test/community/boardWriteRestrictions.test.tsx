@@ -13,8 +13,12 @@ import type { ScenarioCandidates, UsePostComposer } from '@/pages/Community/Comm
 /**
  * 두 가지 제약을 **UI와 저장 로직 양쪽에서** 못박는다.
  *   1) 자유게시판(kind='board')은 시뮬 첨부가 없다 — 섹션 미렌더 + payload 키 미전송.
- *   2) 공개/비공개 선택은 운영자 전용 — 비운영자는 UI 없음, 신규는 공개 고정,
+ *   2) 공개/비공개 선택은 **게시판에서만** 운영자 전용이다. 갤러리(kind='portfolio')는 예외로
+ *      모두에게 노출된다. 게시판 비운영자는 UI 없음 → 신규는 공개 고정,
  *      **기존 비공개 글 수정 시 그 값이 보존**된다(UI가 없다고 공개로 뒤집히면 안 된다).
+ *
+ * 노출 판정은 컨테이너가 `kind × isAdmin`으로 계산해 `canChooseVisibility`로 내려준다 —
+ * 뷰는 그 불리언만 본다. 아래 UI 케이스는 컨테이너가 계산할 값을 그대로 대입해 검증한다.
  */
 
 const validScenario: PersistedScenarioState = {
@@ -103,10 +107,23 @@ vi.mock('@/shared/lib/supabase', async (importOriginal) => {
   };
 });
 
+// 컨테이너를 통째로 렌더하려면 인증 컨텍스트가 필요하다 — Provider 대신 훅만 갈아끼운다.
+vi.mock('@/components/community', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/components/community')>();
+  return {
+    ...actual,
+    useCommunityAuth: (() => ({
+      authReady: true,
+      login: vi.fn()
+    })) as unknown as typeof actual.useCommunityAuth
+  };
+});
+
 // 목킹 이후에 import 해야 목이 적용된 심볼을 받는다.
 const { usePostComposer } = await import('@/pages/Community/CommunityWritePage/hooks/usePostComposer');
 const { default: CommunityWriteView } =
   await import('@/pages/Community/CommunityWritePage/CommunityWritePage.view');
+const { default: CommunityWritePage } = await import('@/pages/Community/CommunityWritePage');
 const { publishPost, updatePost } = await import('@/shared/lib/supabase');
 
 // ── 훅 하네스 ──────────────────────────────────────────────────────────────
@@ -127,6 +144,9 @@ const baseComposer = (overrides: Partial<UsePostComposer> = {}): UsePostComposer
   initialBodyHtml: '',
   isPublic: true,
   attachAllowed: true,
+  categoryAllowed: false,
+  category: 'free',
+  initialCategory: 'free',
   attachedPayload: null,
   errors: {},
   submitError: false,
@@ -136,6 +156,7 @@ const baseComposer = (overrides: Partial<UsePostComposer> = {}): UsePostComposer
   setTitle: vi.fn(),
   handleBodyChange: vi.fn(),
   setIsPublic: vi.fn(),
+  setCategory: vi.fn(),
   attachScenario: vi.fn(),
   detachScenario: vi.fn(),
   submit: vi.fn(async () => {}),
@@ -151,7 +172,8 @@ const renderView = (overrides: Partial<CommunityWriteViewModel> = {}) =>
           candidates: { status: 'empty' } as ScenarioCandidates,
           authReady: true,
           isLoggedIn: true,
-          isAdmin: true,
+          canChooseVisibility: true,
+          categoryOptions: ['free', 'suggestion'],
           kind: 'portfolio',
           listPath: '/community',
           onLogin: vi.fn(),
@@ -190,18 +212,58 @@ describe('자유게시판 글쓰기 — 시뮬 첨부 없음 (UI)', () => {
   });
 });
 
-describe('공개/비공개 선택 — 운영자 전용 (UI)', () => {
-  it('운영자에게는 비공개 스위치가 보인다', () => {
-    renderView({ isAdmin: true });
+describe('공개/비공개 선택 (UI)', () => {
+  it('노출이 허용되면 비공개 스위치가 보인다', () => {
+    renderView({ canChooseVisibility: true });
 
     expect(screen.getByRole('checkbox', { name: '비공개' })).toBeInTheDocument();
   });
 
-  it('비운영자에게는 비공개 스위치도, 빈 껍데기 "게시 설정" 섹션도 없다', () => {
-    renderView({ isAdmin: false });
+  it('노출이 막히면 비공개 스위치도, 빈 껍데기 "게시 설정" 섹션도 없다', () => {
+    renderView({ canChooseVisibility: false });
 
     expect(screen.queryByRole('checkbox', { name: '비공개' })).not.toBeInTheDocument();
     expect(screen.queryByText(COMMUNITY_COPY.write.sectionPublish)).not.toBeInTheDocument();
+  });
+});
+
+/**
+ * 표면별 게이트 — 컨테이너가 `kind × isAdmin`을 어떻게 접는지가 이번 사양의 본체다.
+ * 갤러리는 예외(모두 노출), 게시판만 운영자 전용.
+ */
+describe('공개/비공개 게이트 — 갤러리 예외 (컨테이너 배선)', () => {
+  const renderPage = (kind: 'board' | 'portfolio', admin: boolean) => {
+    const s = createStore();
+    s.set(sessionAtom, { user: { id: 'user-1' } } as never);
+    s.set(profileAtom, { id: 'user-1', display_name: 'n', avatar_url: null, is_admin: admin });
+
+    return render(
+      <Provider store={s}>
+        <MemoryRouter>
+          <CommunityWritePage kind={kind} />
+        </MemoryRouter>
+      </Provider>
+    );
+  };
+
+  it('⭐ 갤러리 글쓰기는 **비운영자에게도** 비공개 스위치를 보여준다', async () => {
+    renderPage('portfolio', false);
+
+    expect(await screen.findByRole('checkbox', { name: '비공개' })).toBeInTheDocument();
+  });
+
+  it('게시판 글쓰기는 비운영자에게 비공개 스위치를 숨긴다', async () => {
+    renderPage('board', false);
+
+    // 폼이 떠 있는지 먼저 확인해야 "아직 안 그려짐"을 통과로 오인하지 않는다.
+    expect(await screen.findByLabelText(COMMUNITY_COPY.write.bodyAriaLabel)).toBeInTheDocument();
+    expect(screen.queryByRole('checkbox', { name: '비공개' })).not.toBeInTheDocument();
+  });
+
+  it('게시판 글쓰기도 운영자에게는 비공개 스위치를 보여준다', async () => {
+    renderPage('board', true);
+
+    expect(await screen.findByRole('checkbox', { name: '비공개' })).toBeInTheDocument();
   });
 });
 

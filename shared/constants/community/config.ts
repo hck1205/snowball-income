@@ -5,6 +5,8 @@
  * 그쪽 것을 그대로 쓴다(POST_TITLE_MAX_LENGTH 등). 여기엔 UI 전용 값만 둔다.
  */
 
+import type { PostCategory } from '@/shared/lib/supabase';
+
 /**
  * URL 쿼리 파라미터 이름. 목록 상태를 링크로 공유/새로고침해도 복원되게 한다.
  *
@@ -65,3 +67,51 @@ export const COMMUNITY_BODY_MAX_BYTES = 65_536;
 
 /** 요약 자동 발췌 길이(본문 plain-text 앞부분). */
 export const COMMUNITY_DESCRIPTION_EXCERPT_LENGTH = 120;
+
+// ── 자유게시판 글 분류(posts.category) ────────────────────────────────────────
+
+/**
+ * 분류 기본값. 서버 컬럼 default 와 **같은 값**이어야 한다(마이그레이션 20260726000000).
+ * 저장 경로는 "기본값이면 키 자체를 안 보낸다"로 동작하므로 이 값이 어긋나면 조용히 틀어진다.
+ */
+export const DEFAULT_POST_CATEGORY: PostCategory = 'free';
+
+/**
+ * 드롭다운 표시 순서 — 자유 · 질문과 고민 · 인사이트 · 건의사항 · 공지.
+ * 글쓴이가 가장 자주 고르는 순서로 두고, 운영자 전용 항목을 마지막에 둔다.
+ * ⚠ 여기에 값을 추가하면 `COMMUNITY_COPY.write.categoryLabels` 에도 같은 키가 있어야 하고
+ *   (TS 가 강제한다), 서버 CHECK 제약(마이그레이션 20260727000000)도 함께 넓혀야 한다.
+ */
+export const POST_CATEGORY_IDS: readonly PostCategory[] = [
+  'free',
+  'question',
+  'insight',
+  'suggestion',
+  'notice'
+];
+
+/** 운영자에게만 **선택지로** 노출되는 분류. ⚠ UI 제한일 뿐 서버가 막지 않는다(RLS 없음). */
+export const ADMIN_ONLY_POST_CATEGORIES: readonly PostCategory[] = ['notice'];
+
+/**
+ * 서버가 준 값을 신뢰하지 않고 정규화한다.
+ * - 마이그레이션 전 → 컬럼 자체가 없어 `undefined` → 'free'
+ * - 다른 클라이언트가 넣은 미지의 값 → 'free'
+ */
+export const toPostCategory = (value: unknown): PostCategory =>
+  POST_CATEGORY_IDS.includes(value as PostCategory) ? (value as PostCategory) : DEFAULT_POST_CATEGORY;
+
+/**
+ * 이 사용자가 고를 수 있는 분류 목록. 비운영자는 '공지'가 빠져 4개다.
+ * `current`(수정 중인 글의 현재 값)가 목록에 없으면 **뒤에 덧붙인다** — 운영자가 쓴 공지를
+ * 작성자 본인(비운영자)이 수정할 때 선택지가 없어 값이 조용히 '자유'로 리셋되는 것을 막는다.
+ */
+export const getSelectablePostCategories = (
+  isAdmin: boolean,
+  current?: PostCategory
+): readonly PostCategory[] => {
+  const allowed = isAdmin
+    ? POST_CATEGORY_IDS
+    : POST_CATEGORY_IDS.filter((id) => !ADMIN_ONLY_POST_CATEGORIES.includes(id));
+  return current && !allowed.includes(current) ? [...allowed, current] : allowed;
+};

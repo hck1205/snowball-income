@@ -19,6 +19,7 @@ import type {
   GalleryFacetFilters,
   GalleryPage,
   GallerySort,
+  PostCategory,
   PostKind,
   PostListItem,
   PostPayload,
@@ -46,6 +47,78 @@ const LIST_COLUMNS = 'id,user_id,kind,title,description,is_public,has_payload,si
 
 /** 상세는 본문(body)과 시나리오 첨부(payload)까지 내려온다. */
 const DETAIL_COLUMNS = `${LIST_COLUMNS},payload,body`;
+
+/**
+ * **아직 배포되지 않았을 수 있는** posts 컬럼들.
+ *
+ * PostgREST 는 없는 컬럼을 select 목록에서 만나면 42703(undefined_column)으로 **조회 전체**를
+ * 실패시킨다 — 즉 컬럼을 그냥 추가하면 "마이그레이션 먼저, 배포 나중" 순서에 종속되고, 순서가
+ * 뒤집히면 목록/상세가 통째로 죽는다. profiles 는 좁은 테이블이라 `select('*')` 로 피했지만
+ * posts 는 payload/body 가 수십 KB 라 `*` 를 쓸 수 없다(목록 대역폭).
+ *
+ * 그래서 **낙관적 요청 + 42703 1회 폴백**을 쓴다. 아래 `selectPosts` 참고.
+ */
+const OPTIONAL_POST_COLUMNS = 'category';
+
+/**
+ * 이 세션에서 낙관적 컬럼(OPTIONAL_POST_COLUMNS)이 실재하는가.
+ * 폴백이 **실제로 성공**하면 false 로 굳어 이후 요청은 폴백 컬럼셋으로 바로 나간다(왕복 낭비 방지).
+ * 마이그레이션 후 새로고침하면 다시 true 로 시작한다.
+ */
+let optionalPostColumnsAvailable = true;
+
+/**
+ * PostgREST 의 "그런 컬럼 없음"(42703) **중 특정 컬럼에 대한 것인가**.
+ *
+ * ⚠ 컬럼명 대조가 핵심이다. posts 에는 category 말고도 **부분 배포 가능한 컬럼**이 또 있다 —
+ *   정밀 검색 facet generated column(20260717000001, `buildGalleryFacetFilters` 가 .gte/.lte 로
+ *   건다). facet 마이그레이션만 빠진 DB 에서 정밀 검색을 걸면 42703 이 나는데, 코드만 보고
+ *   "category 탓"으로 오인하면 폴백 플래그가 굳어 **그 세션 내내 게시판 배지가 조용히 사라진다**
+ *   (원인이 전혀 다른 화면이라 추적 불가). 그래서 코드 + 컬럼명을 함께 본다.
+ *
+ * 코드가 비어 있는 응답도 있으므로 메시지의 "column … does not exist" 형태를 보조로 인정한다.
+ */
+export const isUndefinedColumnError = (
+  error: { code?: string | null; message?: string | null } | null | undefined,
+  column?: string
+): boolean => {
+  if (!error) return false;
+  const message = error.message ?? '';
+  const isUndefinedColumn = error.code === '42703' || /column .* does not exist/i.test(message);
+  if (!isUndefinedColumn) return false;
+  // 컬럼을 지정하지 않으면 "42703 인가"만 답한다(범용 판정).
+  if (!column) return true;
+  return new RegExp(`\\b${column}\\b`, 'i').test(message);
+};
+
+/**
+ * posts **조회** 실행기 — 낙관적으로 `OPTIONAL_POST_COLUMNS` 를 붙여 보내고,
+ * **그 컬럼 때문에** 42703 이 나면 컬럼을 뺀 컬럼셋으로 1회 재시도한다.
+ *
+ * `build`는 컬럼 문자열만 받아 쿼리를 새로 조립한다(재시도는 새 쿼리여야 한다 — PostgREST 빌더는
+ * 재사용할 수 없다). 다른 원인의 42703(위 facet 컬럼 등)이나 그 밖의 에러는 **폴백하지 않고 그대로
+ * 던진다** — 진짜 장애를 숨기지 않고, 플래그도 오염되지 않는다.
+ *
+ * 플래그는 **폴백이 성공한 뒤에만** 굳힌다. 재시도까지 실패하는 상황(원인이 category 가 아니었던
+ * 경우)에서 "컬럼이 없다"고 잘못 학습하지 않기 위한 2차 방어다.
+ *
+ * ⚠ 쓰기(insert/update)의 representation select 에는 이 함수를 쓰지 않는다 — 아래 주석 참고.
+ */
+const selectPosts = async <T>(
+  build: (columns: string) => PromiseLike<{ data: T | null; error: { code?: string | null; message: string } | null }>,
+  baseColumns: string
+): Promise<T> => {
+  if (optionalPostColumnsAvailable) {
+    const result = await build(`${baseColumns},${OPTIONAL_POST_COLUMNS}`);
+    if (!isUndefinedColumnError(result.error, OPTIONAL_POST_COLUMNS)) return unwrap(result);
+
+    const fallback = unwrap(await build(baseColumns));
+    // 여기 도달 = 폴백이 실제로 성공했다 → 이제서야 "컬럼 없음"을 확정한다.
+    optionalPostColumnsAvailable = false;
+    return fallback;
+  }
+  return unwrap(await build(baseColumns));
+};
 
 const COMMENT_COLUMNS = 'id,post_id,user_id,parent_id,body,like_count,created_at,updated_at,deleted_at,author:profiles(id,display_name,avatar_url)';
 
@@ -94,21 +167,23 @@ export const fetchGalleryPage = async (
   const cursor = decodeGalleryCursor(options.cursor);
   const searchFilter = buildSearchFilter(options.query, options.queryFilter);
 
-  let query = client.from('posts').select(LIST_COLUMNS).eq('is_public', true).eq('kind', kind);
+  const rows = await selectPosts<PostListItem[]>((columns) => {
+    let query = client.from('posts').select(columns).eq('is_public', true).eq('kind', kind);
 
-  if (searchFilter) query = query.or(searchFilter);
-  if (cursor) query = query.or(buildKeysetFilter(sort, cursor));
+    if (searchFilter) query = query.or(searchFilter);
+    if (cursor) query = query.or(buildKeysetFilter(sort, cursor));
 
-  for (const bound of buildGalleryFacetFilters(options.facets)) {
-    query = bound.op === 'gte' ? query.gte(bound.column, bound.value) : query.lte(bound.column, bound.value);
-  }
+    for (const bound of buildGalleryFacetFilters(options.facets)) {
+      query = bound.op === 'gte' ? query.gte(bound.column, bound.value) : query.lte(bound.column, bound.value);
+    }
 
-  for (const key of getGalleryOrderKeys(sort)) {
-    query = query.order(key.column, { ascending: key.ascending });
-  }
+    for (const key of getGalleryOrderKeys(sort)) {
+      query = query.order(key.column, { ascending: key.ascending });
+    }
 
-  // 다음 페이지 존재 여부를 알기 위해 1개 더 받는다
-  const rows = unwrap(await query.limit(pageSize + 1).returns<PostListItem[]>());
+    // 다음 페이지 존재 여부를 알기 위해 1개 더 받는다
+    return query.limit(pageSize + 1).returns<PostListItem[]>();
+  }, LIST_COLUMNS);
 
   return splitPage(rows, pageSize, sort);
 };
@@ -134,23 +209,21 @@ export const fetchPostDetail = async (
   client: CommunityClient,
   postId: string
 ): Promise<PostWithAuthor> =>
-  unwrap(
-    await client
-      .from('posts')
-      .select(DETAIL_COLUMNS)
-      .eq('id', postId)
-      .single()
-      .returns<PostWithAuthor>()
+  selectPosts<PostWithAuthor>(
+    (columns) => client.from('posts').select(columns).eq('id', postId).single().returns<PostWithAuthor>(),
+    DETAIL_COLUMNS
   );
 
 export const fetchMyPosts = async (client: CommunityClient, userId: string): Promise<PostListItem[]> =>
-  unwrap(
-    await client
-      .from('posts')
-      .select(LIST_COLUMNS)
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .returns<PostListItem[]>()
+  selectPosts<PostListItem[]>(
+    (columns) =>
+      client
+        .from('posts')
+        .select(columns)
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .returns<PostListItem[]>(),
+    LIST_COLUMNS
   );
 
 /**
@@ -171,6 +244,10 @@ const toSimSummary = (payload: PostPayload | null) => (payload ? buildScenarioSi
  * `kind`는 글이 어느 표면에 속하는지 정한다('portfolio'=갤러리, 'board'=자유게시판).
  * 지정하지 않으면 컬럼 자체를 보내지 않아 서버 default('portfolio')가 적용된다(하위호환).
  * 게시판 글쓰기만 'board'를 명시한다.
+ *
+ * `category`(게시판 분류)도 같은 규율이다 — 미지정이면 키를 생략해 서버 default('free')가 붙는다.
+ * 호출부(usePostComposer)는 **기본값이 아닐 때만** 넘기므로, category 마이그레이션 전에도
+ * '자유' 글 게시는 42703 없이 성공한다.
  */
 export const publishPost = async (
   client: CommunityClient,
@@ -181,6 +258,7 @@ export const publishPost = async (
     payload?: PostPayload | null;
     isPublic?: boolean;
     kind?: PostKind;
+    category?: PostCategory;
   }
 ): Promise<PostWithAuthor> => {
   const payload = input.payload ?? null;
@@ -197,8 +275,15 @@ export const publishPost = async (
         // 기본은 비공개. 공개는 사용자가 명시적으로 선택할 때만 (서버 기본값과 동일한 철학)
         is_public: input.isPublic ?? false,
         // kind 미지정이면 키 자체를 생략 → 서버 default 'portfolio'. 게시판만 'board' 명시.
-        ...(input.kind ? { kind: input.kind } : {})
+        ...(input.kind ? { kind: input.kind } : {}),
+        // category 미지정이면 키 자체를 생략 → 서버 default 'free'.
+        ...(input.category ? { category: input.category } : {})
       })
+      // ⚠ 쓰기의 RETURNING 에는 **낙관적 컬럼을 싣지 않는다**(DETAIL_COLUMNS 고정, selectPosts 미사용).
+      //   호출부가 쓰는 건 `saved.id` 뿐이라 category 를 되받을 이유가 없고, 컬럼을 안 실으면
+      //   쓰기 경로에서 42703 폴백이 아예 발동하지 않는다 — "쓰기+RETURNING 재시도가 행을 두 번
+      //   만들지 않는다"는 (실 DB 로 재현하지 않은) 논증에 기댈 필요 자체가 사라진다.
+      //   덤으로 마이그레이션 전 '자유' 글 게시가 불필요한 재시도 왕복을 안 탄다.
       .select(DETAIL_COLUMNS)
       .single()
       .returns<PostWithAuthor>()
@@ -214,6 +299,8 @@ export const updatePost = async (
     body?: string | null;
     payload?: PostPayload | null;
     isPublic?: boolean;
+    /** 분류 변경. **바뀌었을 때만** 넘긴다(무변경 수정은 키를 생략해 컬럼 부재 환경에서도 안전). */
+    category?: PostCategory;
   }
 ): Promise<PostWithAuthor> =>
   unwrap(
@@ -227,9 +314,11 @@ export const updatePost = async (
         // payload를 안 건드리는 수정(제목/본문만)은 sim_summary 키 자체를 보내지 않아
         // 게시 시점 숫자가 보존된다 — 읽기·수정 경로의 임의 재계산 금지 원칙.
         ...(patch.payload !== undefined ? { payload: patch.payload, sim_summary: toSimSummary(patch.payload) } : {}),
-        ...(patch.isPublic !== undefined ? { is_public: patch.isPublic } : {})
+        ...(patch.isPublic !== undefined ? { is_public: patch.isPublic } : {}),
+        ...(patch.category !== undefined ? { category: patch.category } : {})
       })
       .eq('id', postId)
+      // 쓰기 RETURNING 은 낙관적 컬럼 없이 고정 — publishPost 의 주석과 같은 이유.
       .select(DETAIL_COLUMNS)
       .single()
       .returns<PostWithAuthor>()

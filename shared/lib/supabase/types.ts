@@ -39,6 +39,20 @@ export type { PersistedScenarioState };
  */
 export type PostKind = 'portfolio' | 'board';
 
+/**
+ * 자유게시판 글 분류 (마이그레이션 20260726000000 → 20260727000000 에서 5종으로 확장).
+ * DB 에는 **영어 슬러그**로 저장하고 화면 라벨(한국어)은
+ * `COMMUNITY_COPY.write.categoryLabels` 가 소유한다.
+ *   - 'free'       : 자유(기본값). 기존 글 전부가 여기 속한다.
+ *   - 'question'   : 질문과 고민 — 답을 구하는 글.
+ *   - 'insight'    : 인사이트 — 분석·컬럼처럼 알게 된 것을 나누는 글.
+ *   - 'suggestion' : 건의사항.
+ *   - 'notice'     : 공지 — **운영자에게만 선택지로 노출된다(UI 수준 제한, RLS 강제 아님)**.
+ *
+ * `kind`(표면)와 직교한다: 갤러리 글(kind='portfolio')은 이 값을 쓰지 않고 기본값으로 남는다.
+ */
+export type PostCategory = 'free' | 'question' | 'insight' | 'suggestion' | 'notice';
+
 export type ProfileRow = {
   id: string;
   display_name: string;
@@ -64,6 +78,18 @@ export type PostRow = {
    * 'portfolio'. insert 시에만 지정 가능(update GRANT 없음 → 게시 후 종류 고정).
    */
   kind: PostKind;
+  /**
+   * 게시판 글 분류 (마이그레이션 20260726000000). NOT NULL DEFAULT 'free' 라 기존 행은 전부 'free'.
+   *
+   * ⚠ 마이그레이션 실행 전에는 컬럼이 아예 없다. 그래서 조회 경로(queries.ts)는 이 컬럼을 뺀
+   *   컬럼셋으로 **재시도**하고, 소비 측은 값이 없으면 'free' 로 본다(`toPostCategory`).
+   *
+   * 그래서 타입도 **optional 이다** — 다른 NOT NULL 컬럼과 달리 런타임 부재가 정상 상태이기
+   * 때문이다. optional 로 둬야 `post.category === 'notice'` 같은 직접 비교를 TS 가 막고
+   * (마이그레이션 전 DB 에서 조용히 false 가 되는 버그), 소비처가 `toPostCategory` 경유를
+   * 강제받는다. Insert/Update 는 이미 `Partial<Pick<…>>` 이라 영향 없다.
+   */
+  category?: PostCategory;
   title: string;
   description: string | null;
   /**
@@ -278,10 +304,13 @@ export type Database = {
         // title만 필수. payload/body는 optional — 자유 글은 payload 없이, 시나리오-only 글은 body 없이 게시된다.
         // kind는 optional(서버 default 'portfolio') — 게시판 글만 명시적으로 'board'로 넣는다. Update엔 없다(종류 고정).
         // sim_summary는 읽기(unknown)와 달리 쓰기 쪽 타입을 조인다 — 데이터 레이어가 만든 검증된 요약만 저장.
+        // category는 Insert/Update 양쪽에 있다(kind와 다른 점) — 분류는 사후 수정이 허용된다.
         Insert: Pick<PostRow, 'title'> &
-          Partial<Pick<PostRow, 'user_id' | 'kind' | 'description' | 'payload' | 'body' | 'is_public'>> &
+          Partial<
+            Pick<PostRow, 'user_id' | 'kind' | 'category' | 'description' | 'payload' | 'body' | 'is_public'>
+          > &
           Partial<{ sim_summary: ScenarioSimSummary | null }>;
-        Update: Partial<Pick<PostRow, 'title' | 'description' | 'payload' | 'body' | 'is_public'>> &
+        Update: Partial<Pick<PostRow, 'title' | 'category' | 'description' | 'payload' | 'body' | 'is_public'>> &
           Partial<{ sim_summary: ScenarioSimSummary | null }>;
         Relationships: [
           {

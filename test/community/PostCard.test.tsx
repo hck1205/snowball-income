@@ -9,6 +9,7 @@ const item = (overrides: Partial<PostListItem> = {}): PostListItem => ({
   id: 's1',
   user_id: 'u1',
   kind: 'portfolio',
+  category: 'free',
   title: '월배당 포트폴리오',
   description: '매달 현금흐름을 노린 구성',
   is_public: true,

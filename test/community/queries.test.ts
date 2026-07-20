@@ -118,6 +118,7 @@ const listRow = (id: string, createdAt: string): PostListItem => ({
   id,
   user_id: 'u1',
   kind: 'portfolio',
+  category: 'free',
   title: `글 ${id}`,
   description: null,
   is_public: true,

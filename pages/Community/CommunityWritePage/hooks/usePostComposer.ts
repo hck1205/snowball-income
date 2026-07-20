@@ -4,7 +4,9 @@ import {
   COMMUNITY_BODY_MAX_BYTES,
   COMMUNITY_BODY_MAX_LENGTH,
   COMMUNITY_COPY,
-  COMMUNITY_DESCRIPTION_EXCERPT_LENGTH
+  COMMUNITY_DESCRIPTION_EXCERPT_LENGTH,
+  DEFAULT_POST_CATEGORY,
+  toPostCategory
 } from '@/shared/constants/community';
 import { ANALYTICS_EVENT, setUserProperties, track } from '@/shared/lib/analytics';
 import { deriveExcerpt, htmlToPlainText, isRichTextEmpty, sanitizeRichHtml } from '@/shared/lib/richtext';
@@ -16,6 +18,7 @@ import {
   validatePostPayload,
   POST_TITLE_MAX_LENGTH,
   type CommunityClient,
+  type PostCategory,
   type PostKind,
   type PostPayload,
   type PostPayloadIssue
@@ -54,6 +57,21 @@ export type UsePostComposer = {
    * 뷰는 이 값으로 첨부 섹션 렌더를 결정한다(kind를 각자 해석하지 않도록 단일 출처).
    */
   attachAllowed: boolean;
+  /**
+   * 글 분류(드롭다운)를 이 글에 허용하는가 — `kind==='board'`에서만 true.
+   * 뷰는 이 값으로 드롭다운 렌더를 결정한다(kind를 각자 해석하지 않도록 단일 출처).
+   */
+  categoryAllowed: boolean;
+  /** 현재 선택된 분류. 게시판이 아니면 기본값('free')에서 움직이지 않는다. */
+  category: PostCategory;
+  /**
+   * 저장 기준선 — 신규=기본값, 수정=서버에서 로드한 값. 사용자의 선택과 무관하게 **불변**이다.
+   *
+   * 드롭다운 선택지 계산에 반드시 이 값을 쓴다(`category`가 아니라). 라이브 값으로 계산하면
+   * 비운영자가 자기 공지 글을 수정할 때 한 번이라도 '자유'를 고르는 순간 '공지' 선택지가
+   * 사라져 **되돌릴 수 없게** 된다.
+   */
+  initialCategory: PostCategory;
   /** 첨부된 payload. `attachAllowed=false`(게시판)면 **항상 null**이다. */
   attachedPayload: PostPayload | null;
   errors: ComposerErrors;
@@ -64,6 +82,8 @@ export type UsePostComposer = {
   setTitle: (value: string) => void;
   handleBodyChange: (html: string) => void;
   setIsPublic: (value: boolean) => void;
+  /** 분류 선택. `categoryAllowed=false`(갤러리)면 무동작 — 뷰가 실수해도 값이 안 샌다. */
+  setCategory: (value: PostCategory) => void;
   /** 택1 피커가 고른 시나리오 payload를 첨부한다 — 방어적으로 재검증 후 커밋. */
   attachScenario: (payload: PostPayload) => void;
   detachScenario: () => void;
@@ -92,6 +112,15 @@ export const usePostComposer = (postId?: string, kind: PostKind = 'portfolio'): 
   // 새 글 기본값 = 공개. (글쓰기 화면의 토글은 "비공개" 스위치라, off=공개가 기본이다.)
   // 수정 모드에서는 아래에서 detail.is_public 실제 값으로 덮어쓴다.
   const [isPublic, setIsPublicState] = useState(true);
+  // 분류(게시판 전용). 신규는 기본값 '자유'. 수정 모드는 아래에서 서버 값으로 덮어쓴다.
+  const [category, setCategoryState] = useState<PostCategory>(DEFAULT_POST_CATEGORY);
+  /**
+   * 저장 시 "바뀌었는가"의 기준선. 신규=기본값, 수정=서버가 준 값.
+   *
+   * 무변경이면 category 키를 **아예 안 보낸다** — (a) 마이그레이션 전 DB 에서도 제목/본문 수정이
+   * 42703 없이 성공하고, (b) 값이 조용히 기본값으로 리셋될 여지가 구조적으로 사라진다.
+   */
+  const [initialCategory, setInitialCategory] = useState<PostCategory>(DEFAULT_POST_CATEGORY);
   const [attachedPayload, setAttachedPayload] = useState<PostPayload | null>(null);
   const [errors, setErrors] = useState<ComposerErrors>({});
   const [submitError, setSubmitError] = useState(false);
@@ -100,6 +129,8 @@ export const usePostComposer = (postId?: string, kind: PostKind = 'portfolio'): 
 
   // 시뮬 첨부는 **갤러리(portfolio) 전용**이다. 자유게시판은 순수 텍스트.
   const attachAllowed = kind !== 'board';
+  // 분류는 반대로 **게시판 전용**이다(갤러리는 분류 개념이 없다).
+  const categoryAllowed = kind === 'board';
   // 게시판에서는 첨부를 "없는 것"으로 취급한다 — 뷰(미리보기/canSubmit)와 제출 검증이 모두 이 값을 본다.
   // ⚠ 내부 state(attachedPayload)는 지우지 않는다: 수정 모드에서 서버가 준 기존 첨부를
   //    보관만 하고 화면/저장에서 배제하기 위함(아래 submit이 payload 키 자체를 안 보낸다 → 서버 값 보존).
@@ -143,6 +174,10 @@ export const usePostComposer = (postId?: string, kind: PostKind = 'portfolio'): 
         setInitialBodyHtml(detail.body ?? '');
         setBodyHtml(detail.body ?? '');
         setIsPublicState(detail.is_public);
+        // 마이그레이션 전이면 응답에 category 키 자체가 없다 → 'free'로 정규화(무해).
+        const loadedCategory = toPostCategory(detail.category);
+        setCategoryState(loadedCategory);
+        setInitialCategory(loadedCategory);
         setAttachedPayload(detail.payload);
         setLoadState('ready');
       } catch (error) {
@@ -173,6 +208,16 @@ export const usePostComposer = (postId?: string, kind: PostKind = 'portfolio'): 
     setIsPublicState(value);
     setDirty(true);
   }, []);
+
+  const setCategory = useCallback(
+    (value: PostCategory) => {
+      // 갤러리는 분류 UI가 없다 — 뷰가 실수해도 값이 바뀌지 않게 훅에서 한 번 더 막는다(무음 no-op).
+      if (!categoryAllowed) return;
+      setCategoryState(value);
+      setDirty(true);
+    },
+    [categoryAllowed]
+  );
 
   const attachScenario = useCallback(
     (payload: PostPayload) => {
@@ -252,6 +297,9 @@ export const usePostComposer = (postId?: string, kind: PostKind = 'portfolio'): 
       //   · 수정: updatePost가 payload/sim_summary 키를 아예 안 보내 **기존 첨부가 보존**된다
       //          (구 게시판 글에 붙어 있던 첨부를 조용히 지우지 않는다 — 사용자 데이터 보호)
       const attachFields = attachAllowed ? { payload: effectiveAttachedPayload } : {};
+      // 분류는 **게시판이면서 기준선에서 실제로 바뀐 경우에만** 전송한다. 무변경/갤러리면 키 자체를
+      // 안 보내 (a) 서버 기존 값이 그대로 보존되고 (b) category 컬럼이 없는 DB 에서도 저장이 성공한다.
+      const categoryFields = categoryAllowed && category !== initialCategory ? { category } : {};
       const saved =
         mode === 'edit' && postId
           ? await updatePost(client, postId, {
@@ -259,6 +307,7 @@ export const usePostComposer = (postId?: string, kind: PostKind = 'portfolio'): 
               description: finalDescription,
               body: safeBody,
               ...attachFields,
+              ...categoryFields,
               isPublic
             })
           : await publishPost(client, {
@@ -266,6 +315,7 @@ export const usePostComposer = (postId?: string, kind: PostKind = 'portfolio'): 
               description: finalDescription,
               body: safeBody,
               ...attachFields,
+              ...categoryFields,
               isPublic,
               kind
             });
@@ -282,6 +332,9 @@ export const usePostComposer = (postId?: string, kind: PostKind = 'portfolio'): 
     }
   }, [
     attachAllowed,
+    category,
+    categoryAllowed,
+    initialCategory,
     bodyAlternativePayload,
     effectiveAttachedPayload,
     bodyHtml,
@@ -302,6 +355,9 @@ export const usePostComposer = (postId?: string, kind: PostKind = 'portfolio'): 
     initialBodyHtml,
     isPublic,
     attachAllowed,
+    categoryAllowed,
+    category,
+    initialCategory,
     attachedPayload: effectiveAttachedPayload,
     errors,
     submitError,
@@ -311,6 +367,7 @@ export const usePostComposer = (postId?: string, kind: PostKind = 'portfolio'): 
     setTitle,
     handleBodyChange,
     setIsPublic,
+    setCategory,
     attachScenario,
     detachScenario,
     submit

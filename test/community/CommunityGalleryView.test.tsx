@@ -11,6 +11,7 @@ const listItem = (id: string, title: string, has_payload = false): PostListItem 
   id,
   user_id: 'u1',
   kind: 'portfolio',
+  category: 'free',
   title,
   description: null,
   is_public: true,
