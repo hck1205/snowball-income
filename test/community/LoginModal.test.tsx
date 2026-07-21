@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
@@ -28,7 +28,9 @@ vi.mock('@/shared/lib/supabase', () => ({
   },
   // 실 로직은 oauthFailure.test.ts 가 커버한다. 여기선 배너 렌더 두 분기를 결정적으로 몰기 위한 최소 목.
   selectOAuthFailureGuidance: (f: { inAppBrowser: string }) =>
-    f.inAppBrowser !== 'none' ? 'in-app-browser' : 'generic'
+    f.inAppBrowser !== 'none' ? 'in-app-browser' : 'generic',
+  // 선제 안내 판정용 — 실 detectInAppBrowser 와 동일하게 UA 에 kakaotalk 이 있으면 인앱으로 본다.
+  detectInAppBrowser: (ua: string) => (ua.toLowerCase().includes('kakaotalk') ? 'kakaotalk' : 'none')
 }));
 
 const { login } = COMMUNITY_COPY;
@@ -154,6 +156,95 @@ describe('LoginModal — 직전 로그인 실패 안내(무음 실패 금지)', 
     );
     await userEvent.click(screen.getByRole('button', { name: login.kakao }));
     expect(onSelectProvider).toHaveBeenCalledWith('kakao');
+  });
+});
+
+describe('LoginModal — 인앱 브라우저 선제 안내(무한 루프 차단)', () => {
+  const KAKAO_UA =
+    'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 KAKAOTALK 10.5.0';
+
+  // navigator.userAgent·clipboard 는 jsdom 에서 그대로 못 덮으므로 defineProperty 로 심고 정리한다.
+  const setUserAgent = (value: string) =>
+    Object.defineProperty(navigator, 'userAgent', { value, configurable: true });
+
+  afterEach(() => {
+    delete (navigator as unknown as Record<string, unknown>).userAgent;
+    delete (navigator as unknown as Record<string, unknown>).clipboard;
+  });
+
+  const inAppBanner = () => screen.getByRole('status', { name: '인앱 브라우저 로그인 안내' });
+  const copyButton = () => screen.getByRole('button', { name: LOGIN_FAILURE_COPY.copyLink });
+
+  it('카카오톡 인앱 UA 면 모달 열자마자(실패 기록 없이) 안내 배너 + 링크 복사 버튼을 띄운다', () => {
+    setUserAgent(KAKAO_UA);
+    render(<LoginModal onClose={vi.fn()} onSelectProvider={vi.fn()} />);
+
+    const banner = inAppBanner();
+    expect(banner).toHaveTextContent(LOGIN_FAILURE_COPY.inAppPreemptiveTitle);
+    expect(banner).toHaveTextContent(LOGIN_FAILURE_COPY.inAppBrowser);
+    expect(copyButton()).toBeInTheDocument();
+    // 선제 안내는 alert 가 아니라 status(polite) — 자동 낭독으로 방해하지 않는다.
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('일반 브라우저(인앱 아님) UA 면 선제 안내가 뜨지 않고 기존 동작 그대로다', () => {
+    setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15) AppleWebKit/605.1.15 Safari/605.1.15');
+    render(<LoginModal onClose={vi.fn()} onSelectProvider={vi.fn()} />);
+
+    expect(screen.queryByRole('status', { name: '인앱 브라우저 로그인 안내' })).toBeNull();
+    expect(screen.queryByRole('button', { name: LOGIN_FAILURE_COPY.copyLink })).toBeNull();
+    // 로그인 버튼은 정상 노출.
+    expect(screen.getByRole('button', { name: login.google })).toBeInTheDocument();
+  });
+
+  it('링크 복사 버튼을 누르면 clipboard.writeText(현재 URL) 호출 + 복사 완료 피드백을 보인다', async () => {
+    setUserAgent(KAKAO_UA);
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+
+    render(<LoginModal onClose={vi.fn()} onSelectProvider={vi.fn()} />);
+    await userEvent.click(copyButton());
+
+    expect(writeText).toHaveBeenCalledWith(window.location.href);
+    expect(await screen.findByText(LOGIN_FAILURE_COPY.copyLinkDone)).toBeInTheDocument();
+  });
+
+  it('clipboard 가 없으면(미지원) 복사 실패 폴백 안내를 보인다', async () => {
+    setUserAgent(KAKAO_UA);
+    render(<LoginModal onClose={vi.fn()} onSelectProvider={vi.fn()} />);
+
+    await userEvent.click(copyButton());
+    expect(await screen.findByText(LOGIN_FAILURE_COPY.copyLinkFailed)).toBeInTheDocument();
+  });
+
+  it('인앱 UA 에서도 로그인 버튼은 그대로 눌러 시도할 수 있다', async () => {
+    setUserAgent(KAKAO_UA);
+    const onSelectProvider = vi.fn();
+    render(<LoginModal onClose={vi.fn()} onSelectProvider={onSelectProvider} />);
+
+    await userEvent.click(screen.getByRole('button', { name: login.kakao }));
+    expect(onSelectProvider).toHaveBeenCalledWith('kakao');
+  });
+
+  it('인앱 UA + 인앱 실패 기록이 함께 있으면 선제 안내만 남기고 중복 실패 배너는 접는다', () => {
+    setUserAgent(KAKAO_UA);
+    render(
+      <LoginModal
+        onClose={vi.fn()}
+        onSelectProvider={vi.fn()}
+        failure={{
+          provider: 'kakao',
+          reason: 'no_session',
+          attempts: 1,
+          inAppBrowser: 'kakaotalk',
+          contextSwitched: true
+        }}
+      />
+    );
+
+    expect(inAppBanner()).toBeInTheDocument();
+    // 같은 인앱 안내가 두 번 뜨지 않도록 실패 배너(role=alert)는 접힌다.
+    expect(screen.queryByRole('alert')).toBeNull();
   });
 });
 
