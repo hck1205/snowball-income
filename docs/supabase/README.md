@@ -8,6 +8,7 @@
 |------|------|
 | 마이그레이션 SQL | [`supabase/migrations/20260714000000_community.sql`](../../supabase/migrations/20260714000000_community.sql) |
 | DB key 공유 링크(`?s=`) 마이그레이션 | [`supabase/migrations/20260720000000_shared_snapshots.sql`](../../supabase/migrations/20260720000000_shared_snapshots.sql) (설정 절차: §9) |
+| 카카오 로그인 500 수정 마이그레이션 | [`supabase/migrations/20260728000000_fix_kakao_profile_avatar.sql`](../../supabase/migrations/20260728000000_fix_kakao_profile_avatar.sql) — 가입 트리거가 `avatar_url`을 null로 저장(카카오 http URL의 CHECK 제약 위반 회피). 문제 상황: §3-2-1 |
 | 클라이언트 데이터 레이어 | [`shared/lib/supabase/`](../../shared/lib/supabase) |
 | 네이버 로그인 서버 브릿지 | [`api/naver-auth.ts`](../../api/naver-auth.ts) (설정 절차: §7) |
 | 순수 함수 테스트 | [`test/community/`](../../test/community) |
@@ -100,6 +101,29 @@ https://<프로젝트-ref>.supabase.co/auth/v1/callback
    - **이메일은 받지 않아도 된다.** 이 앱은 이메일을 쓰지 않고, 공개 `profiles` 테이블에도 저장하지 않는다
      (수집하지 않는 게 가장 안전한 개인정보 처리다)
 7. Supabase 대시보드 → **Authentication → Sign In / Providers → Kakao** → 활성화 후 REST API 키 / Client Secret 입력 → Save
+
+### 3-2-1. 트러블슈팅 — 카카오 로그인만 콜백 500으로 실패한다
+
+**증상**: 카카오로 로그인하면 Auth 콜백에서 `GET /callback 500`이 나며 로그인이 안 된다(구글은 정상 동작).
+Supabase 로그에는 다음이 찍힌다:
+
+```
+new row for relation "profiles" violates check constraint "profiles_avatar_url_check" (SQLSTATE 23514)
+current transaction is aborted (SQLSTATE 25P02)
+```
+
+**원인**: `profiles.avatar_url`에는 `check (avatar_url is null or avatar_url ~ '^https://')` 제약이 있다
+(`supabase/migrations/20260714000000_community.sql:109`). 가입 트리거 `handle_new_user()`는 OAuth 메타데이터의
+avatar_url/picture를 그대로 저장하는데, **카카오가 내려주는 프로필 이미지 URL은 `http://k.kakaocdn.net/...`
+(비-https)**라 이 제약을 위반한다 → `profiles` INSERT 실패 → 트랜잭션 abort → 콜백 500 → 세션 미생성 → 로그인
+실패. 구글은 https URL이라 통과하므로 "카카오만 안 되는" 증상으로 나타난다.
+
+**해결**: [`supabase/migrations/20260728000000_fix_kakao_profile_avatar.sql`](../../supabase/migrations/20260728000000_fix_kakao_profile_avatar.sql)을
+적용하면 `handle_new_user()`가 `avatar_url`을 **항상 null로 저장**하도록 바뀐다. 프로필 이미지 기능은 v2에서
+제거돼 화면에서는 이니셜 아바타만 쓰므로(avatar_url 미사용) null이 맞는 값이다. `profiles_avatar_url_check`
+제약 자체는 방어선으로 그대로 남긴다(이후 누가 http URL을 넣으려 해도 여전히 막는다). `create or replace`라
+멱등하고 기존 profiles 행은 건드리지 않는다 — §2와 같은 방법(SQL Editor에 붙여넣고 Run, 또는
+`npx supabase db push`)으로 적용하면 된다.
 
 ### 3-3. 리다이렉트 URL 허용목록 (필수)
 
