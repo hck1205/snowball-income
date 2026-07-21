@@ -85,6 +85,14 @@ export const detectInAppBrowser = (userAgent: string): InAppBrowser => {
 };
 
 /**
+ * 카카오톡 인앱 브라우저를 기기 기본 브라우저로 탈출시키는 딥링크를 만든다(순수).
+ * 카카오 공식 스킴 `kakaotalk://web/openExternal?url=<encoded>` 는 현재 페이지를 Safari·Chrome 에서
+ * 다시 연다. ⚠ 반드시 **사용자 클릭**으로만 발동할 것 — iOS 는 프로그램적 자동 탈출을 막아 두었다.
+ */
+export const buildKakaoOpenExternalUrl = (currentHref: string): string =>
+  `kakaotalk://web/openExternal?url=${encodeURIComponent(currentHref)}`;
+
+/**
  * 사용자에게 어떤 안내를 보일지 고른다(순수 — copy 를 import 하지 않고 **분류만** 돌려준다).
  *
  * 'in-app-browser': 인앱 브라우저 저장소 분리가 원인으로 강하게 의심되는 경우. UA 가 카카오톡 등으로
