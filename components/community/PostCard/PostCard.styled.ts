@@ -122,6 +122,14 @@ export const FooterAuthor = styled.span`
   }
 `;
 
+/** 푸터 우측 액션 묶음 — 좋아요 스탯(표시) + 공유 버튼(상호작용)을 한 그룹으로 오른쪽에 둔다. */
+export const FooterActions = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: ${space[1]};
+  flex: 0 0 auto;
+`;
+
 /** ♥ + 좋아요 수 — 중립 텍스트 색 유지(데이터 방향색·danger 아님). */
 export const LikeStat = styled.span`
   display: inline-flex;

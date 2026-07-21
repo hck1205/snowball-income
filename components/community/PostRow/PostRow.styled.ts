@@ -149,6 +149,14 @@ export const RowSubText = styled.span`
   }
 `;
 
+/** 서브 정보 우측 액션 묶음 — 시뮬 배지(폴백)와 공유 버튼을 오른쪽 끝에 모은다. */
+export const RowActions = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: ${space[2]};
+  flex: 0 0 auto;
+`;
+
 /** ♥ + 좋아요 수 — 카드 푸터와 같은 중립 표기(데이터 방향색 아님). 아이콘 정렬용 inline-flex. */
 export const LikeInline = styled.span`
   display: inline-flex;

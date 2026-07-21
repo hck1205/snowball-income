@@ -102,7 +102,7 @@ export const ANALYTICS_EVENT = {
   COMMUNITY_COMMENT: "community_comment",
   // 상세→시뮬레이터 유입("이 시나리오로 열기"). 용도: 커뮤니티→코어 제품 유입 측정.
   COMMUNITY_TO_SIMULATOR: "community_to_simulator",
-  // 갤러리 글 자체(공개 상세 URL)를 외부로 공유(파라미터: method='web_share'|'copy_link', post_id, kind).
+  // 글 자체(공개 상세 URL)를 외부로 공유(파라미터: method='web_share'|'copy_link', post_id, kind, placement='feed'|'detail').
   // 시뮬 상태 공유(scenario_shared)와 구분 — 이건 공개 SEO 페이지로의 유입을 노린 글 공유. 용도: 바이럴 계수(어떤 글이 퍼지나) 측정.
   COMMUNITY_POST_SHARED: "community_post_shared",
 } as const;
@@ -239,6 +239,8 @@ export type AnalyticsEventParamMap = {
     method: "web_share" | "copy_link";
     post_id: string;
     kind: string;
+    /** 공유가 일어난 표면 — 피드 카드='feed', 상세 페이지='detail'. */
+    placement: "feed" | "detail";
   };
 };
 

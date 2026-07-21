@@ -52,6 +52,16 @@ export const getAvatarInitial = (displayName: string | null | undefined): string
   return [...trimmed][0]?.toUpperCase() ?? '?';
 };
 
+/**
+ * 상세 경로(`/community/board/:id`)를 공유용 **절대 공개 URL**로 만든다.
+ * origin을 주입받아 결정적으로 테스트할 수 있게 하고, 미지정 시 현재 문서 origin을 읽는다.
+ * origin을 못 구하면(SSR 등) 경로를 그대로 돌려준다 — 훅이 다시 window.location.href로 폴백한다.
+ */
+export const buildPostShareUrl = (
+  detailPath: string,
+  origin: string | undefined = typeof window !== 'undefined' ? window.location.origin : undefined
+): string => (origin ? `${origin}${detailPath}` : detailPath);
+
 /** 큰 수를 1.2천 / 3.4만 식으로 축약(메타 배지). 1000 미만은 그대로. */
 export const formatCompactCount = (value: number): string => {
   if (!Number.isFinite(value) || value < 0) return '0';

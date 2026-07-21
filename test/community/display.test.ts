@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { formatCompactCount, formatRelativeTime, getAvatarInitial } from '@/shared/lib/community';
+import {
+  buildPostShareUrl,
+  formatCompactCount,
+  formatRelativeTime,
+  getAvatarInitial
+} from '@/shared/lib/community';
 
 /** now를 주입해 결정적으로 검증한다. */
 describe('formatRelativeTime', () => {
@@ -67,5 +72,17 @@ describe('formatCompactCount', () => {
   it('음수/NaN은 "0"으로 방어', () => {
     expect(formatCompactCount(-5)).toBe('0');
     expect(formatCompactCount(Number.NaN)).toBe('0');
+  });
+});
+
+describe('buildPostShareUrl', () => {
+  it('origin을 붙여 절대 공개 URL을 만든다', () => {
+    expect(buildPostShareUrl('/community/board/s1', 'https://snowball.example')).toBe(
+      'https://snowball.example/community/board/s1'
+    );
+  });
+
+  it('origin이 빈 문자열이면(못 구함) 경로를 그대로 돌려준다(훅이 window.location으로 폴백)', () => {
+    expect(buildPostShareUrl('/community/portfolio/s1', '')).toBe('/community/portfolio/s1');
   });
 });

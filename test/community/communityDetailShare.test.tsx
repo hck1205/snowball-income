@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
 import CommunityDetailView from '@/pages/Community/CommunityDetailPage/CommunityDetailPage.view';
 import type { CommunityDetailViewModel } from '@/pages/Community/CommunityDetailPage/CommunityDetailPage.types';
-import { usePostShare } from '@/pages/Community/CommunityDetailPage/hooks';
+import { usePostShare } from '@/components/community/hooks';
 
 // 댓글/미리보기는 이 스펙과 무관 — 상세 뷰의 공유 버튼 게이트만 보게 스텁으로 갈아 끼운다.
 vi.mock('@/pages/Community/CommunityDetailPage/components', () => ({
@@ -87,7 +87,7 @@ describe('CommunityDetailView 공유 버튼 게이트', () => {
 });
 
 describe('usePostShare', () => {
-  const shareInput = { postId: 'p1', kind: 'portfolio', title: '내 포폴', text: '설명' };
+  const shareInput = { postId: 'p1', kind: 'portfolio', title: '내 포폴', placement: 'detail' as const };
 
   beforeEach(() => {
     Object.defineProperty(window, 'location', {
