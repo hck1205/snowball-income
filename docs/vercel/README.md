@@ -67,8 +67,10 @@
 | `NAVER_CLIENT_SECRET` | 네이버 개발자센터에서 발급받은 Client Secret | 네이버 로그인 전용 |
 | `NAVER_SYNTHETIC_EMAIL_DOMAIN` | (선택) 합성 이메일 도메인 | 안 넣으면 기본값 사용 |
 
-이 값들은 브라우저로 내려가지 않으므로 **로컬 `npm run dev`(순수 Vite)로는 동작을 확인할 수 없다.**
-`npx vercel dev` 또는 Vercel Preview 배포에서 확인한다.
+이 값들은 브라우저로 내려가지 않지만, **로컬 `npm run dev`로도 동작을 확인할 수 있다** — `vite.config.ts`의
+`apiDevPlugin`이 `/api/*`를 dev 서버에서 서빙하며 `.env`의 이 값들을 `process.env`로 주입한다.
+`.env`에 위 값을 채우고 `npm run dev`를 쓰면 된다(`vercel dev`는 SPA rewrite 충돌로 실패하니 쓰지 말 것 —
+자세한 건 [docs/supabase/README.md §7-3](../supabase/README.md)).
 
 ### 선택
 
