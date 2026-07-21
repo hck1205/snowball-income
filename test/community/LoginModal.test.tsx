@@ -209,7 +209,8 @@ describe('LoginModal — 인앱 브라우저 선제 안내(무한 루프 차단)
 
     const banner = inAppBanner();
     expect(banner).toHaveTextContent(LOGIN_FAILURE_COPY.inAppPreemptiveTitle);
-    expect(banner).toHaveTextContent(LOGIN_FAILURE_COPY.inAppBrowser);
+    // 카카오톡 인앱은 2FA(기기 인증) 케이스를 명시하는 전용 카피를 보인다(generic 인앱 문구가 아님).
+    expect(banner).toHaveTextContent(LOGIN_FAILURE_COPY.inAppKakao2fa);
     expect(copyButton()).toBeInTheDocument();
     // 선제 안내는 alert 가 아니라 status(polite) — 자동 낭독으로 방해하지 않는다.
     expect(screen.queryByRole('alert')).toBeNull();
@@ -307,8 +308,12 @@ describe('LoginModal — 인앱 브라우저 선제 안내(무한 루프 차단)
     render(<LoginModal onClose={vi.fn()} onSelectProvider={vi.fn()} />);
 
     // 인앱이므로 선제 배너와 링크 복사는 노출된다.
-    expect(inAppBanner()).toBeInTheDocument();
+    const banner = inAppBanner();
+    expect(banner).toBeInTheDocument();
     expect(copyButton()).toBeInTheDocument();
+    // 네이버 등 비카카오 인앱은 generic 인앱 문구를 쓴다 — 카카오 2FA(기기 인증) 전용 문구는 안 쓴다.
+    expect(banner).toHaveTextContent(LOGIN_FAILURE_COPY.inAppBrowser);
+    expect(banner).not.toHaveTextContent(LOGIN_FAILURE_COPY.inAppKakao2fa);
     // 카카오 공식 스킴은 카카오톡 전용이라 다른 인앱엔 외부열기 버튼이 없다.
     expect(openExternalButton()).toBeNull();
   });

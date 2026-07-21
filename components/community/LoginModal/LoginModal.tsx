@@ -49,6 +49,15 @@ export const LOGIN_FAILURE_COPY = {
   inAppBrowser:
     '카카오톡 같은 앱 안의 화면에서는 로그인이 끝까지 완료되지 않을 수 있어요. 오른쪽 위 메뉴에서 “다른 브라우저로 열기”(Safari·Chrome)를 누른 뒤 다시 로그인해 주세요.',
   /**
+   * **카카오톡 인앱 전용 — 2단계(기기) 인증 케이스 명시.** 카카오 로그인에서 카카오톡 앱으로 넘어가
+   * 기기 인증(푸시)까지 승인하면 사용자는 "로그인을 다 했다"고 느끼는데, 콜백이 인앱 웹뷰(저장소 격리)로
+   * 돌아와 세션이 안 남는다 → "승인까지 했는데 왜 또 로그인?"으로 안내를 무시하게 된다. 그 승인 경험을
+   * 정면으로 인정하고 "그래도 이 화면에선 안 끝난다 → 외부 브라우저로 열라"를 명확히 한다. 이 문구는
+   * 기기 인증을 언급하므로 **카카오톡 인앱일 때만** 쓴다(다른 인앱은 위 generic `inAppBrowser`).
+   */
+  inAppKakao2fa:
+    '카카오톡 앱에서 기기 인증까지 승인해도, 지금 이 화면에서는 로그인이 끝나지 않아요. 카카오톡 안의 브라우저는 Safari·Chrome 과 로그인 정보가 분리돼 있기 때문이에요. 아래 “외부 브라우저로 열기”를 눌러 그 브라우저에서 로그인해 주세요.',
+  /**
    * **선제 안내 제목**(role=status). 모달이 열리자마자(실패를 겪기 전에) 인앱 브라우저면 띄운다 —
    * 인앱에서는 로그인 버튼을 눌러봐야 실패하므로 "먼저 외부 브라우저로 여세요"가 먼저 보여야 한다.
    */
@@ -144,7 +153,8 @@ export default function LoginModal({ onClose, onSelectProvider, pending, failure
       {isInAppBrowser ? (
         <InAppNotice role="status" aria-label="인앱 브라우저 로그인 안내">
           <InAppTitle>{LOGIN_FAILURE_COPY.inAppPreemptiveTitle}</InAppTitle>
-          {LOGIN_FAILURE_COPY.inAppBrowser}
+          {/* 카카오톡 인앱은 2FA(기기 인증) 승인 경험까지 인정하는 전용 카피, 그 외 인앱은 generic. */}
+          {isKakaoInApp ? LOGIN_FAILURE_COPY.inAppKakao2fa : LOGIN_FAILURE_COPY.inAppBrowser}
           <InAppActions>
             {isKakaoInApp ? (
               <OpenExternalButton type="button" onClick={handleOpenExternal}>
