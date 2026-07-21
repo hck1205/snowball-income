@@ -51,7 +51,7 @@ Vercel은 `api/*`를 **번들하지 않고** 네이티브 ESM으로 실행 → `
 ## 남은 것 / 사용자 액션
 1. **운석 관리자 지정** (SQL): `update public.profiles set is_admin=true where display_name='운석';` (id `a83d3328-9537-4de9-88db-d213594b35f4`)
 2. **비공개 글 시딩**: 관리자 된 뒤 앱에서 갤러리·게시판 각 1건 비공개 작성.
-3. **네이버 검수 재제출**: 소명 자료 완료(`<scratchpad>/naver-소명자료.md`). 로그인 화면 캡처는 사용자 몫.
+3. **네이버 검수 재제출**: 소명 자료 완료(`docs/naver-login-review.md`). 로그인 화면 캡처는 사용자 몫.
 4. **유입 전략**: 별도 문서 `docs/GROWTH.md` 참고(이번 세션 작성).
 5. **iOS 카카오** — GA4 `login_failed` 분석.
 6. **파비콘** — 배포됨, 구글 반영은 크롤 주기.
