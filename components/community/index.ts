@@ -20,6 +20,8 @@ export { EmptyState } from './EmptyState';
 export type { EmptyStateProps } from './EmptyState';
 export { PostCard } from './PostCard';
 export { PostRow } from './PostRow';
+export { PostShareButton } from './PostShareButton';
+export type { PostShareButtonProps } from './PostShareButton';
 export { CommunityModal } from './CommunityModal';
 export { ConfirmDialog } from './ConfirmDialog';
 export type { ConfirmDialogProps } from './ConfirmDialog';

@@ -4,8 +4,9 @@ import type { PostKind } from '@/shared/lib/supabase';
 import { ANALYTICS_EVENT, track } from '@/shared/lib/analytics';
 import { useIsLoggedInAtomValue, useSessionAtomValue } from '@/jotai/community';
 import { useCommunityAuth } from '@/components/community';
+import { usePostShare } from '@/components/community/hooks';
 import CommunityDetailView from './CommunityDetailPage.view';
-import { useComments, usePostDetail, usePostShare } from './hooks';
+import { useComments, usePostDetail } from './hooks';
 
 export type CommunityDetailPageProps = {
   /** 상세가 속한 표면. 라우트가 결정한다: 갤러리='portfolio'(기본), 자유게시판='board'. */
@@ -31,13 +32,14 @@ export default function CommunityDetailPage({ kind = 'portfolio' }: CommunityDet
   const comments = useComments(id);
   const { shareToastMessage, sharePost } = usePostShare();
 
-  // 공유는 갤러리(공개 SEO 상세) 전용 — 게시판(board)에는 노출하지 않는다(사용자 결정).
-  const canShare = kind === 'portfolio';
+  // 공유는 공개 SEO 상세 전체에 노출한다 — 갤러리·게시판 둘 다(피드 카드가 둘 다 공유하므로 일관, 사용자 결정).
+  const canShare = true;
 
   const onShare = useCallback(() => {
     const post = detail.post;
     if (!id || !post) return;
-    void sharePost({ postId: id, kind, title: post.title });
+    // url 미지정 → 훅이 현재 상세 페이지(window.location.href)를 공유한다.
+    void sharePost({ postId: id, kind, title: post.title, placement: 'detail' });
   }, [detail.post, id, kind, sharePost]);
 
   const onEdit = useCallback(() => {

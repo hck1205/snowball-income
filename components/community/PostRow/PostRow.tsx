@@ -7,9 +7,12 @@ import { RelativeTime } from '@/components/community/RelativeTime';
 import { VisuallyHidden } from '@/components/community/PostMeta';
 import { SimBadge } from '@/components/community/SimBadge';
 import { SimSummaryStats } from '@/components/community/SimSummaryStats';
+import { PostShareButton } from '@/components/community/PostShareButton';
+import { buildPostShareUrl } from '@/shared/lib/community';
 import {
   CategoryBadge,
   LikeInline,
+  RowActions,
   RowBody,
   RowLink,
   RowStats,
@@ -74,8 +77,18 @@ export default function PostRow({ item, simSummary }: PostRowProps) {
               {formatCompactCount(item.like_count)}
             </LikeInline>
           </RowSubText>
-          {/* 숫자 칩(=simSummary)이 있으면 숫자가 곧 시뮬 신호 + 목표 배지가 색을 담당 → SimBadge는 요약이 없을 때만. */}
-          {!simSummary && item.has_payload ? <SimBadge /> : null}
+          <RowActions>
+            {/* 숫자 칩(=simSummary)이 있으면 숫자가 곧 시뮬 신호 + 목표 배지가 색을 담당 → SimBadge는 요약이 없을 때만. */}
+            {!simSummary && item.has_payload ? <SimBadge /> : null}
+            {/* 행 전체가 상세 링크라, 공유 버튼은 클릭 시 네비게이션을 막고 그 글의 공개 URL을 공유한다. */}
+            <PostShareButton
+              postId={item.id}
+              kind={item.kind}
+              title={item.title}
+              url={buildPostShareUrl(detailPath)}
+              placement="feed"
+            />
+          </RowActions>
         </RowSubInfo>
       </RowBody>
       {simSummary ? (

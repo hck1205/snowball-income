@@ -7,10 +7,13 @@ import { RelativeTime } from '@/components/community/RelativeTime';
 import { VisuallyHidden } from '@/components/community/PostMeta';
 import { SimBadge } from '@/components/community/SimBadge';
 import { SimSummaryStats } from '@/components/community/SimSummaryStats';
+import { PostShareButton } from '@/components/community/PostShareButton';
+import { buildPostShareUrl } from '@/shared/lib/community';
 import {
   CardLink,
   CardSummary,
   CardTitle,
+  FooterActions,
   FooterAuthor,
   FooterRow,
   LikeStat,
@@ -63,12 +66,22 @@ export default function PostCard({ item, simSummary }: PostCardProps) {
         <FooterAuthor>
           <b>{authorName}</b>
         </FooterAuthor>
-        {/* 아이콘만으로 의미 전달 금지 — 숨김 라벨을 병기해 "좋아요 12"로 읽히게 한다. */}
-        <LikeStat>
-          <HeartIcon size={14} />
-          <VisuallyHidden>{metaLikes}</VisuallyHidden>
-          {formatCompactCount(item.like_count)}
-        </LikeStat>
+        <FooterActions>
+          {/* 아이콘만으로 의미 전달 금지 — 숨김 라벨을 병기해 "좋아요 12"로 읽히게 한다. */}
+          <LikeStat>
+            <HeartIcon size={14} />
+            <VisuallyHidden>{metaLikes}</VisuallyHidden>
+            {formatCompactCount(item.like_count)}
+          </LikeStat>
+          {/* 카드 전체가 상세 링크라, 공유 버튼은 클릭 시 네비게이션을 막고 그 글의 공개 URL을 공유한다. */}
+          <PostShareButton
+            postId={item.id}
+            kind={item.kind}
+            title={item.title}
+            url={buildPostShareUrl(detailPath)}
+            placement="feed"
+          />
+        </FooterActions>
       </FooterRow>
     </CardLink>
   );
