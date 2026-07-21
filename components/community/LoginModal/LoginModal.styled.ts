@@ -53,12 +53,22 @@ export const InAppTitle = styled.strong`
   font-weight: ${font.weight.semibold};
 `;
 
-/** 현재 URL을 클립보드로 복사하는 버튼 — 외부 브라우저에 붙여넣어 열도록 유도한다. */
-export const CopyLinkButton = styled.button`
+/** 외부 브라우저 열기·링크 복사 버튼을 나란히 감싸는 행 — 좁은 폭에서는 줄바꿈된다. */
+export const InAppActions = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: ${space[2]};
+  margin-top: ${space[3]};
+`;
+
+/**
+ * 카카오톡 인앱을 기기 기본 브라우저로 탈출시키는 **주 경로** 버튼(brand 채움).
+ * 링크 복사보다 시각 위계가 높아야 하므로 채움 톤, 링크 복사는 외곽선 톤으로 낮춘다.
+ */
+export const OpenExternalButton = styled.button`
   display: inline-flex;
   align-items: center;
   gap: ${space[1]};
-  margin-top: ${space[3]};
   padding: ${space[2]} ${space[3]};
   border: 1px solid ${color.brand};
   border-radius: ${radius.md};
@@ -70,6 +80,33 @@ export const CopyLinkButton = styled.button`
 
   &:hover {
     background: ${color.brandHover};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${color.focusRing};
+    outline-offset: 2px;
+  }
+`;
+
+/**
+ * 현재 URL을 클립보드로 복사하는 버튼 — 외부 브라우저에 붙여넣어 열도록 유도한다.
+ * 외부 열기가 주 경로라 이쪽은 외곽선(secondary) 톤으로 낮춘다.
+ */
+export const CopyLinkButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: ${space[1]};
+  padding: ${space[2]} ${space[3]};
+  border: 1px solid ${color.brandBorder};
+  border-radius: ${radius.md};
+  background: transparent;
+  color: ${color.brandText};
+  font-size: ${font.size.sm};
+  font-weight: ${font.weight.semibold};
+  cursor: pointer;
+
+  &:hover {
+    background: ${color.brandSubtle};
   }
 
   &:focus-visible {

@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
+import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import {
+  buildKakaoOpenExternalUrl,
   detectInAppBrowser,
   isNaverEnabled,
   NAVER_UNDER_REVIEW,
@@ -15,8 +17,10 @@ import {
   CopyLinkButton,
   FailureNotice,
   FailureTitle,
+  InAppActions,
   InAppNotice,
   InAppTitle,
+  OpenExternalButton,
   ProviderList,
   Subtitle
 } from './LoginModal.styled';
@@ -49,6 +53,11 @@ export const LOGIN_FAILURE_COPY = {
    * 인앱에서는 로그인 버튼을 눌러봐야 실패하므로 "먼저 외부 브라우저로 여세요"가 먼저 보여야 한다.
    */
   inAppPreemptiveTitle: '카카오톡 인앱 브라우저에서는 로그인이 막혀요',
+  /**
+   * 카카오톡 인앱을 기기 기본 브라우저로 탈출시키는 버튼(카카오 공식 스킴). **주 경로**라 링크 복사보다
+   * 앞에 둔다. 카카오톡 인앱일 때만 노출한다(다른 인앱은 이 스킴이 없어 링크 복사만 안내).
+   */
+  openExternal: '외부 브라우저로 열기',
   /** 현재 URL을 복사하는 버튼. 복사한 링크를 Safari·Chrome 에 붙여넣어 열도록 유도한다. */
   copyLink: '링크 복사하기',
   /** 복사 성공 피드백(aria-live). */
@@ -85,6 +94,8 @@ export default function LoginModal({ onClose, onSelectProvider, pending, failure
     []
   );
   const isInAppBrowser = inAppBrowser !== 'none';
+  // 카카오 공식 스킴은 카카오톡 인앱에서만 유효하다 — 다른 인앱은 링크 복사만 안내한다.
+  const isKakaoInApp = inAppBrowser === 'kakaotalk';
 
   // 링크 복사 결과 피드백. 잠깐 뒤 자동 소멸(usePostShare 토스트와 동일 타이밍 정신).
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle');
@@ -109,6 +120,14 @@ export default function LoginModal({ onClose, onSelectProvider, pending, failure
     }
   }, []);
 
+  // 카카오 공식 스킴으로 현재 페이지를 기기 기본 브라우저에서 다시 연다(사용자 클릭으로만 — 자동 탈출 금지).
+  // window.location.assign 은 jsdom 에서 spy 가능한 seam 이다(href 직접 대입은 spy 가 어렵다).
+  const handleOpenExternal = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    trackEvent(ANALYTICS_EVENT.CTA_CLICK, { cta_name: 'open_external_browser' });
+    window.location.assign(buildKakaoOpenExternalUrl(window.location.href));
+  }, []);
+
   // 인앱 브라우저 컨텍스트 분리가 의심되면 "다른 브라우저로 열기"를, 아니면 일반 재시도 안내를 보인다.
   const failureGuidance = failure ? selectOAuthFailureGuidance(failure) : null;
   // 인앱이면 위 선제 배너가 이미 같은 안내를 하므로, 실패 배너의 인앱 안내는 중복이라 접는다.
@@ -126,11 +145,16 @@ export default function LoginModal({ onClose, onSelectProvider, pending, failure
         <InAppNotice role="status" aria-label="인앱 브라우저 로그인 안내">
           <InAppTitle>{LOGIN_FAILURE_COPY.inAppPreemptiveTitle}</InAppTitle>
           {LOGIN_FAILURE_COPY.inAppBrowser}
-          <div>
+          <InAppActions>
+            {isKakaoInApp ? (
+              <OpenExternalButton type="button" onClick={handleOpenExternal}>
+                {LOGIN_FAILURE_COPY.openExternal}
+              </OpenExternalButton>
+            ) : null}
             <CopyLinkButton type="button" onClick={handleCopyLink}>
               {LOGIN_FAILURE_COPY.copyLink}
             </CopyLinkButton>
-          </div>
+          </InAppActions>
           {copyState !== 'idle' ? (
             <CopyFeedback aria-live="polite">
               {copyState === 'copied' ? LOGIN_FAILURE_COPY.copyLinkDone : LOGIN_FAILURE_COPY.copyLinkFailed}

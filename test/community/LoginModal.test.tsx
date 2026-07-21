@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
+import { ANALYTICS_EVENT } from '@/shared/lib/analytics';
 import { LoginModal, LOGIN_FAILURE_COPY } from '@/components/community/LoginModal';
 
 /**
@@ -18,6 +19,13 @@ import { LoginModal, LOGIN_FAILURE_COPY } from '@/components/community/LoginModa
  * - 순서: **구글 → 네이버 → 카카오** (상태 무관).
  */
 const naverGate = vi.hoisted(() => ({ enabled: false, underReview: false }));
+// 외부열기 버튼의 계측(CTA_CLICK) 발화를 관측하려는 spy. ANALYTICS_EVENT 상수는 실값을 유지해야
+// 컴포넌트가 참조하는 CTA_CLICK 키가 살아 있으므로 importActual 로 나머지는 그대로 둔다.
+const trackEventSpy = vi.hoisted(() => vi.fn());
+vi.mock('@/shared/lib/analytics', async (importActual) => ({
+  ...(await importActual<typeof import('@/shared/lib/analytics')>()),
+  trackEvent: trackEventSpy
+}));
 
 vi.mock('@/shared/lib/supabase', () => ({
   get isNaverEnabled() {
@@ -29,8 +37,20 @@ vi.mock('@/shared/lib/supabase', () => ({
   // 실 로직은 oauthFailure.test.ts 가 커버한다. 여기선 배너 렌더 두 분기를 결정적으로 몰기 위한 최소 목.
   selectOAuthFailureGuidance: (f: { inAppBrowser: string }) =>
     f.inAppBrowser !== 'none' ? 'in-app-browser' : 'generic',
-  // 선제 안내 판정용 — 실 detectInAppBrowser 와 동일하게 UA 에 kakaotalk 이 있으면 인앱으로 본다.
-  detectInAppBrowser: (ua: string) => (ua.toLowerCase().includes('kakaotalk') ? 'kakaotalk' : 'none')
+  // 선제 안내 판정용 — 실 detectInAppBrowser 와 동일 로직으로 재현한다(카카오톡만이 아니라 네이버/인스타
+  // 등 다른 인앱도 잡아야 "kakaotalk → 외부열기 버튼 있음 / 다른 인앱 → 배너만" 을 검증할 수 있다).
+  detectInAppBrowser: (ua: string) => {
+    const s = (ua ?? '').toLowerCase();
+    if (s.includes('kakaotalk')) return 'kakaotalk';
+    if (s.includes('naver(inapp')) return 'naver';
+    if (s.includes('line/') || s.includes('line(')) return 'line';
+    if (s.includes('instagram')) return 'instagram';
+    if (s.includes('fban/') || s.includes('fbav/')) return 'facebook';
+    return 'none';
+  },
+  // 클릭 핸들러 안에서만 호출돼 렌더 시엔 안 죽지만, 외부열기 버튼을 클릭하는 테스트에서 목에 없으면
+  // `undefined is not a function` 으로 크래시한다(전체치환 목이라 importActual 폴백이 없음).
+  buildKakaoOpenExternalUrl: (href: string) => `kakaotalk://web/openExternal?url=${encodeURIComponent(href)}`
 }));
 
 const { login } = COMMUNITY_COPY;
@@ -43,6 +63,7 @@ const follows = (before: Element, after: Element) =>
 beforeEach(() => {
   naverGate.enabled = false;
   naverGate.underReview = false;
+  trackEventSpy.mockClear();
 });
 
 describe('LoginModal — 네이버 config gate', () => {
@@ -172,8 +193,15 @@ describe('LoginModal — 인앱 브라우저 선제 안내(무한 루프 차단)
     delete (navigator as unknown as Record<string, unknown>).clipboard;
   });
 
+  const NAVER_UA =
+    'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 NAVER(inapp; search; 1234; 12.0.0)';
+  const INSTAGRAM_UA =
+    'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Instagram 300.0.0';
+
   const inAppBanner = () => screen.getByRole('status', { name: '인앱 브라우저 로그인 안내' });
   const copyButton = () => screen.getByRole('button', { name: LOGIN_FAILURE_COPY.copyLink });
+  const openExternalButton = () =>
+    screen.queryByRole('button', { name: LOGIN_FAILURE_COPY.openExternal });
 
   it('카카오톡 인앱 UA 면 모달 열자마자(실패 기록 없이) 안내 배너 + 링크 복사 버튼을 띄운다', () => {
     setUserAgent(KAKAO_UA);
@@ -245,6 +273,59 @@ describe('LoginModal — 인앱 브라우저 선제 안내(무한 루프 차단)
     expect(inAppBanner()).toBeInTheDocument();
     // 같은 인앱 안내가 두 번 뜨지 않도록 실패 배너(role=alert)는 접힌다.
     expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('카카오톡 인앱 UA 면 "외부 브라우저로 열기" 버튼을 띄우고, 클릭 시 카카오 공식 스킴으로 이동한다', async () => {
+    setUserAgent(KAKAO_UA);
+    // 네비 seam = window.location.assign. jsdom 에선 assign 이 non-configurable 이라 vi.spyOn 이
+    // "Cannot redefine property" 로 실패한다(실측). location 자체를 configurable 한 스텁으로 통째 교체하고
+    // afterEach 에서 원복한다. href 는 원본 값을 유지해 스킴 인코딩 단정이 실제 URL 을 반영하게 한다.
+    const realLocation = window.location;
+    const href = realLocation.href;
+    const assign = vi.fn();
+    Object.defineProperty(window, 'location', {
+      value: { ...realLocation, href, assign },
+      configurable: true,
+      writable: true
+    });
+
+    render(<LoginModal onClose={vi.fn()} onSelectProvider={vi.fn()} />);
+
+    const openExternal = openExternalButton();
+    expect(openExternal).toBeInTheDocument();
+
+    await userEvent.click(openExternal as HTMLElement);
+    expect(assign).toHaveBeenCalledWith('kakaotalk://web/openExternal?url=' + encodeURIComponent(href));
+    // 클릭 시 CTA 계측이 발화한다(cta_name: 'open_external_browser').
+    expect(trackEventSpy).toHaveBeenCalledWith(ANALYTICS_EVENT.CTA_CLICK, { cta_name: 'open_external_browser' });
+
+    Object.defineProperty(window, 'location', { value: realLocation, configurable: true, writable: true });
+  });
+
+  it('카카오톡이 아닌 인앱(네이버)에서는 배너·링크복사는 있되 "외부 브라우저로 열기" 버튼은 없다', () => {
+    setUserAgent(NAVER_UA);
+    render(<LoginModal onClose={vi.fn()} onSelectProvider={vi.fn()} />);
+
+    // 인앱이므로 선제 배너와 링크 복사는 노출된다.
+    expect(inAppBanner()).toBeInTheDocument();
+    expect(copyButton()).toBeInTheDocument();
+    // 카카오 공식 스킴은 카카오톡 전용이라 다른 인앱엔 외부열기 버튼이 없다.
+    expect(openExternalButton()).toBeNull();
+  });
+
+  it('인스타그램 인앱에서도 외부열기 버튼은 없다(카카오톡 한정)', () => {
+    setUserAgent(INSTAGRAM_UA);
+    render(<LoginModal onClose={vi.fn()} onSelectProvider={vi.fn()} />);
+
+    expect(inAppBanner()).toBeInTheDocument();
+    expect(openExternalButton()).toBeNull();
+  });
+
+  it('일반 브라우저(인앱 아님)에는 외부열기 버튼이 없다', () => {
+    setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15) AppleWebKit/605.1.15 Safari/605.1.15');
+    render(<LoginModal onClose={vi.fn()} onSelectProvider={vi.fn()} />);
+
+    expect(openExternalButton()).toBeNull();
   });
 });
 
