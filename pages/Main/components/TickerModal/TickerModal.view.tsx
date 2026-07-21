@@ -29,7 +29,7 @@ import {
   PresetChipGrid,
   PresetChipScrollArea
 } from '@/pages/Main/Main.shared.styled';
-import { ModalCaption } from './TickerModal.styled';
+import { FieldWithCaption, ModalCaption } from './TickerModal.styled';
 import type { TickerModalViewProps } from './TickerModal.types';
 import {
   buildTickerSearchRows,
@@ -187,6 +187,7 @@ export default function TickerModalView({
             <ModalCompactFormGrid>
               <InputField
                 label="현재 주가"
+                prefix="$"
                 type="number"
                 min={0}
                 value={isCreateCustomInput && Number.isNaN(tickerDraft.initialPrice) ? '' : tickerDraft.initialPrice}
@@ -200,6 +201,7 @@ export default function TickerModalView({
               />
               <InputField
                 label="배당률"
+                suffix="%"
                 type="number"
                 min={0}
                 max={100}
@@ -217,6 +219,7 @@ export default function TickerModalView({
               />
               <InputField
                 label="배당 성장률"
+                suffix="%"
                 type="number"
                 min={-100}
                 max={100}
@@ -232,24 +235,25 @@ export default function TickerModalView({
                   )
                 }
               />
-              <InputField
-                label="기대 총수익율 (CAGR)"
-                helpAriaLabel="CAGR 설명 열기"
-                onHelpClick={onHelpExpectedTotalReturn}
-                type="number"
-                value={Number.isNaN(derivedTotalReturn) ? '' : derivedTotalReturn}
-                disabled
-                onChange={() => undefined}
-              />
+              <FieldWithCaption>
+                <InputField
+                  label="기대 총수익율 (CAGR)"
+                  suffix="%"
+                  helpAriaLabel="CAGR 설명 열기"
+                  onHelpClick={onHelpExpectedTotalReturn}
+                  type="number"
+                  value={Number.isNaN(derivedTotalReturn) ? '' : derivedTotalReturn}
+                  disabled
+                  onChange={() => undefined}
+                />
+                {totalReturnCaption ? <ModalCaption>{totalReturnCaption}</ModalCaption> : null}
+              </FieldWithCaption>
               <FrequencySelect
                 label="배당 지급 주기"
                 value={tickerDraft.frequency}
                 onChange={(event) => onChangeDraft((prev) => ({ ...prev, frequency: event.target.value as Frequency }))}
               />
             </ModalCompactFormGrid>
-            {totalReturnCaption ? (
-              <ModalCaption>{totalReturnCaption}</ModalCaption>
-            ) : null}
           </>
         ) : null}
 
@@ -305,9 +309,10 @@ export default function TickerModalView({
               <InputField label="이름" value={tickerDraft.name} disabled onChange={() => undefined} />
             </FormGrid>
             <ModalCompactFormGrid>
-              <InputField label="현재 주가" type="number" min={0} value={tickerDraft.initialPrice} disabled onChange={() => undefined} />
+              <InputField label="현재 주가" prefix="$" type="number" min={0} value={tickerDraft.initialPrice} disabled onChange={() => undefined} />
               <InputField
                 label="배당률"
+                suffix="%"
                 type="number"
                 min={0}
                 max={100}
@@ -318,6 +323,7 @@ export default function TickerModalView({
               />
               <InputField
                 label="배당 성장률"
+                suffix="%"
                 type="number"
                 min={0}
                 max={100}
@@ -326,15 +332,19 @@ export default function TickerModalView({
                 disabled
                 onChange={() => undefined}
               />
-              <InputField
-                label="기대 총수익율 (CAGR)"
-                helpAriaLabel="CAGR 설명 열기"
-                onHelpClick={onHelpExpectedTotalReturn}
-                type="number"
-                value={Number.isNaN(derivedTotalReturn) ? '' : derivedTotalReturn}
-                disabled
-                onChange={() => undefined}
-              />
+              <FieldWithCaption>
+                <InputField
+                  label="기대 총수익율 (CAGR)"
+                  suffix="%"
+                  helpAriaLabel="CAGR 설명 열기"
+                  onHelpClick={onHelpExpectedTotalReturn}
+                  type="number"
+                  value={Number.isNaN(derivedTotalReturn) ? '' : derivedTotalReturn}
+                  disabled
+                  onChange={() => undefined}
+                />
+                {totalReturnCaption ? <ModalCaption>{totalReturnCaption}</ModalCaption> : null}
+              </FieldWithCaption>
               <FrequencySelect
                 label="배당 지급 주기"
                 value={tickerDraft.frequency}
@@ -342,9 +352,6 @@ export default function TickerModalView({
                 onChange={() => undefined}
               />
             </ModalCompactFormGrid>
-            {totalReturnCaption ? (
-              <ModalCaption>{totalReturnCaption}</ModalCaption>
-            ) : null}
           </InlineField>
         ) : null}
 

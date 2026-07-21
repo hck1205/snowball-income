@@ -94,6 +94,14 @@ export const BaseInput = styled.input`
   padding: ${space[2]} ${space[3]};
   color: ${color.text};
 
+  /* 단위 기호(prefix/suffix)가 있으면 그 기호를 피해 입력 텍스트 여백을 넓힌다(겹침 방지). */
+  &[data-adorn~='prefix'] {
+    padding-left: calc(${space[3]} + 1em);
+  }
+  &[data-adorn~='suffix'] {
+    padding-right: calc(${space[3]} + 1.2em);
+  }
+
   &[type='date'] {
     font-family: inherit;
   }
@@ -112,6 +120,23 @@ export const BaseInput = styled.input`
     cursor: pointer;
     filter: var(--sb-picker-filter, none);
   }
+`;
+
+/** 입력 + 단위 기호를 겹쳐 배치하는 래퍼. 기호는 입력 위에 절대배치(입력 여백으로 자리 확보). */
+export const InputAdornmentWrap = styled.div`
+  position: relative;
+  display: flex;
+  align-items: center;
+`;
+
+/** 입력값 앞/뒤의 단위 기호. 클릭이 입력으로 통과하도록 pointer-events 를 끈다. */
+export const Adornment = styled.span<{ side: 'prefix' | 'suffix' }>`
+  position: absolute;
+  ${({ side }) => (side === 'prefix' ? 'left' : 'right')}: ${space[3]};
+  color: ${color.textMuted};
+  font-size: ${font.size.base};
+  line-height: 1;
+  pointer-events: none;
 `;
 
 /* 셀렉트는 공용 프리미티브 `@/components/common/Select`가 그린다(구 BaseSelect 제거). */

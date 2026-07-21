@@ -620,18 +620,39 @@ export const SelectedChipWrap = styled.div`
 
 export const FormGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  /* 티커 + 이름 2개를 한 줄에 나란히 둔다(좁은 모달에서도 auto-fit 로 무너지지 않게 2열 고정). */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: ${space[3]};
 `;
 
 export const ModalCompactFormGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  /* 6열 격자로 5개 필드를 2줄로 채운다:
+       1행 = 현재주가·배당률·배당성장률 (각 2칸 → 3개)
+       2행 = 기대총수익률·지급주기 (각 3칸 → 2개, 각 절반 폭으로 줄을 꽉 채움) */
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  /* 기대총수익률 셀은 아래에 근거 캡션이 붙어 더 높아질 수 있다 — 같은 행의 지급주기가
+     늘어나 보이지 않게 셀을 위로 정렬한다. */
+  align-items: start;
   gap: ${space[3]};
 
+  > * {
+    grid-column: span 2;
+  }
+  > *:nth-child(4),
+  > *:nth-child(5) {
+    grid-column: span 3;
+  }
+
+  /* 모바일/드로어에선 숫자 입력이 좁아지지 않게 2열로 단순화(span 해제). */
   ${media.down('drawer')} {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: ${space[3]};
+
+    > *,
+    > *:nth-child(4),
+    > *:nth-child(5) {
+      grid-column: auto;
+    }
   }
 `;
 
@@ -812,9 +833,9 @@ export const PresetChipGrid = styled.div`
  * 중첩 스크롤이 부자연스럽던 예전 문제를 막는다.
  */
 export const PresetChipScrollArea = styled.div`
-  /* 모달 안에서 이 영역만 260px를 먹으면 아래 입력 필드가 밀려 스크롤이 이중으로 생겼다.
-     칩이 여러 줄로 흐르는 영역이라 200px면 3~4줄이 보여 훑기에 충분하다. */
-  max-height: 200px;
+  /* 모달 안에서 이 영역이 너무 높으면 아래 입력 필드가 밀려 스크롤이 이중으로 생긴다.
+     칩이 여러 줄로 흐르는 영역이라 160px면 2~3줄이 보이고, 나머지는 자체 스크롤로 훑는다. */
+  max-height: 160px;
   overflow-y: auto;
   overscroll-behavior: contain;
   padding-right: ${space[1]};
