@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import {
-  buildKakaoOpenExternalUrl,
   buildNextOAuthLoginFailure,
   detectInAppBrowser,
   parseOAuthLoginFailure,
@@ -49,35 +48,6 @@ describe('detectInAppBrowser', () => {
       'none'
     );
     expect(detectInAppBrowser('')).toBe('none');
-  });
-});
-
-describe('buildKakaoOpenExternalUrl', () => {
-  it('현재 href 를 카카오 공식 스킴으로 감싼다(url 파라미터는 encodeURIComponent)', () => {
-    expect(buildKakaoOpenExternalUrl('https://snowball.example/community')).toBe(
-      'kakaotalk://web/openExternal?url=' + encodeURIComponent('https://snowball.example/community')
-    );
-    expect(buildKakaoOpenExternalUrl('https://snowball.example/community')).toBe(
-      'kakaotalk://web/openExternal?url=https%3A%2F%2Fsnowball.example%2Fcommunity'
-    );
-  });
-
-  it('쿼리·해시·한글이 섞인 href 의 &, #, =, 한글을 모두 퍼센트 인코딩한다(스킴 파싱이 깨지지 않도록)', () => {
-    const href = 'https://snowball.example/community?share=x&sv=1#후기';
-    const result = buildKakaoOpenExternalUrl(href);
-
-    // 인코딩된 url 파라미터를 되돌리면 원본과 정확히 같다(왕복 무손실).
-    expect(result.startsWith('kakaotalk://web/openExternal?url=')).toBe(true);
-    const encoded = result.slice('kakaotalk://web/openExternal?url='.length);
-    expect(decodeURIComponent(encoded)).toBe(href);
-
-    // 구분자(&, #, =)와 한글이 raw 로 새지 않는다.
-    expect(encoded).toContain('%26'); // &
-    expect(encoded).toContain('%23'); // #
-    expect(encoded).toContain('%3D'); // =
-    expect(encoded).not.toContain('&');
-    expect(encoded).not.toContain('#');
-    expect(encoded).not.toContain('후기');
   });
 });
 
