@@ -51,12 +51,15 @@ const NAVER_CLIENT_ID = readNaverClientId(import.meta.env as unknown as Record<s
 export const isNaverEnabled: boolean = isCommunityEnabled && NAVER_CLIENT_ID !== null;
 
 /**
- * 네이버 앱이 **네이버 검수(심사) 통과 전**이라 로그인이 아직 동작하지 않는 기간에 켜 두는 게이트.
- * env(client_id)는 이미 설정돼 `isNaverEnabled`=true 지만, authorize 가 승인 전이라 실패한다. 이 값이 true 면
- * 네이버 버튼을 '검수중'으로 노출하고 클릭을 무동작으로 막아, 사용자가 실패하는 로그인을 시도하지 않게 한다.
- * **네이버 검수를 통과하면 이 값을 `false` 로 내린다(그럼 구글·카카오와 동일 경로로 로그인된다).**
+ * 네이버 로그인 UI 게이트. true 면 네이버 버튼을 '검수중'으로 노출하고 클릭을 무동작으로 막아,
+ * 아직 authorize 가 승인되지 않은 기간에 사용자가 실패하는 로그인을 시도하지 않게 한다.
+ *
+ * **현재 값 `false`(2026-07-21)**: 네이버 재검수(사전검수) 제출을 위해 게이트를 내렸다. 리뷰어가
+ * 실제로 네이버 로그인을 눌러 authorize→콜백 흐름을 캡처·시연할 수 있어야 하므로, 버튼이 '검수중'
+ * pending 이 아니라 실제 `onSelectProvider('naver')` 로 동작해야 한다(구글·카카오와 동일 경로).
+ * 상수는 향후 다시 검수 대기 상태로 되돌릴 수 있게 남겨 둔다 — 그때 이 값을 `true` 로 올린다.
  */
-export const NAVER_UNDER_REVIEW = true;
+export const NAVER_UNDER_REVIEW = false;
 
 /** 네이버 authorize URL(순수). response_type=code + state(CSRF). */
 export const buildNaverAuthorizeUrl = (clientId: string, redirectUri: string, state: string): string => {

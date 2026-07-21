@@ -268,8 +268,8 @@ select cron.schedule(
 | 이름 | 값 | 어디에 | 비고 |
 |------|-----|--------|------|
 | `VITE_NAVER_CLIENT_ID` | 7-1에서 발급받은 Client ID | Vercel + 로컬 `.env`(`.env.local`) | 공개값 — 없으면 버튼이 "준비 중"으로 표시(사라지지 않는다) |
-| `NAVER_CLIENT_SECRET` | 7-1에서 발급받은 Client Secret | Vercel만(Production/Preview/Development) | 🚫 절대 `VITE_` 접두사 금지 |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase Project Settings → API의 service_role 키 | Vercel만 | 네이버 로그인·회원 탈퇴(`api/account-delete.ts`)가 공용으로 쓴다. 🚫 `VITE_` 접두사 금지 |
+| `NAVER_CLIENT_SECRET` | 7-1에서 발급받은 Client Secret | Vercel + 로컬 `.env`(dev 서버가 `process.env`로 주입) | 🚫 절대 `VITE_` 접두사 금지. 공개값 아님 — `.env`는 `.gitignore` 대상이라 커밋 안 된다 |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase Project Settings → API의 service_role 키 | Vercel + 로컬 `.env` | 네이버 로그인·회원 탈퇴(`api/account-delete.ts`)가 공용으로 쓴다. 🚫 `VITE_` 접두사 금지 |
 | `NAVER_SYNTHETIC_EMAIL_DOMAIN` | (선택) 합성 이메일 도메인 | Vercel만 | 안 넣으면 기본값 사용 |
 
 각 변수의 자세한 설명·주의문은 [`.env.example`](../../.env.example)에도 있다.
@@ -281,15 +281,23 @@ select cron.schedule(
 
 ### 7-3. 로컬에서 실제로 로그인 테스트하기
 
-`npm run dev`(순수 Vite)에는 `/api` 라우트가 없다 — `api/naver-auth.ts`가 뜨지 않아 콜백이
-항상 실패한다. 로컬에서 실제 로그인을 확인하려면:
+**`npm run dev` 그대로 테스트한다.** `vite.config.ts`의 `apiDevPlugin`이 `/api/*`를 개발 서버에서
+직접 서빙하고(네이버 로그인 핸들러를 esbuild로 그때그때 번들), `.env`의 **서버 전용 시크릿**
+(`NAVER_CLIENT_SECRET`·`SUPABASE_SERVICE_ROLE_KEY` 등)을 `process.env`로 주입한다. 즉 로컬 `.env`에
+7-2의 값이 채워져 있으면 `/api/naver-auth`가 로컬에서 동작한다 — 별도 서버 런타임이 필요 없다.
 
 ```sh
-npx vercel dev
+npm run dev   # http://localhost:5173 — /api/naver-auth 까지 함께 동작
 ```
 
-Vercel CLI가 `/api` 함수까지 함께 띄운다(최초 실행 시 프로젝트 연결을 묻는다). 또는 Vercel Preview
-배포에서 확인해도 된다.
+로컬에서 되려면: ① 네이버 콘솔 Callback URL에 `http://localhost:5173/community/auth/naver/callback`
+등록(위 7-1), ② 검수 전이면 멤버관리에 등록한 **테스터 계정**으로 로그인.
+
+> ⚠ **`vercel dev`는 쓰지 마라.** `vercel.json`의 SPA 폴백 rewrite(`/(.*) → /index.html`)가
+> `vercel dev`에선 Vite의 dev 모듈 요청까지 삼켜 index.html을 JS로 파싱하다 터진다
+> (`Failed to parse source for import analysis … index.html`). 이 rewrite는 프로덕션 SPA/SEO
+> 라우팅에 필수라 지울 수 없다 — 그래서 로컬은 `apiDevPlugin`을 얹은 `npm run dev`가 정답이다.
+> 배포 환경 확인이 필요하면 Vercel Preview 배포에서 본다.
 
 ---
 

@@ -349,8 +349,11 @@ const seoAssetsPlugin = (siteUrl: string): Plugin => {
 
 /**
  * `yarn dev`(순수 Vite)에는 서버 런타임이 없어 `/api/*` 가 404 다(그래서 네이버 콜백이 실패했다).
- * 이 플러그인이 Vercel Node 함수와 **같은 시그니처**(`handler(Request): Promise<Response>`)를 그대로
- * 호출해, `vercel dev` 없이도 로그인(`/api/naver-auth`)·계정삭제(`/api/account-delete`)가 dev 에서 돈다.
+ * 이 플러그인이 Vercel Node 함수의 **default export(= `toNodeHandler(handler)`, Node `(req,res)` 시그니처)** 를
+ * 프로덕션과 똑같이 `(req, res)` 로 호출해, `vercel dev` 없이도 로그인(`/api/naver-auth`)·계정삭제
+ * (`/api/account-delete`)가 dev 에서 돈다. (핸들러가 내부에서 req 본문 파싱·res 쓰기를 다 한다 —
+ * 이 플러그인은 Node req/res 를 그대로 넘길 뿐, Web Request 로 바꾸지 않는다. 바꿔서 넘기면 res 가
+ * undefined 가 돼 `res.end` 에서 터진다 — 과거 회귀 이력.)
  *
  * 두 가지 기존 관례를 재사용한다:
  *   1) esbuild 로 핸들러를 한 번 번들 → `@/` alias 를 tsconfig paths 로 해석(loadEngine 과 동일 이유).
@@ -360,7 +363,7 @@ const seoAssetsPlugin = (siteUrl: string): Plugin => {
  * 주입한다(핸들러는 process.env 를 읽는다). `define` 에는 절대 넣지 않으므로 클라이언트 번들엔 나가지 않는다.
  * `apply: 'serve'` 라 프로덕션 빌드(=Vercel 실제 함수)에는 영향이 없다.
  */
-type WebHandler = (request: Request) => Promise<Response> | Response;
+type NodeApiHandler = (req: IncomingMessage, res: ServerResponse) => void | Promise<void>;
 
 /**
  * `/api/<name>` → 그 핸들러의 **소스** 경로를 찾는다. 없으면 null(→ 미들웨어 pass-through).
@@ -378,8 +381,8 @@ const resolveApiFile = (name: string): string | null => {
 };
 
 /** 핸들러당 1회 esbuild 번들 → data URL import(메모리 평가). dev 편의로 캐시한다. */
-const apiHandlerCache = new Map<string, Promise<WebHandler>>();
-const loadApiHandler = (file: string): Promise<WebHandler> => {
+const apiHandlerCache = new Map<string, Promise<NodeApiHandler>>();
+const loadApiHandler = (file: string): Promise<NodeApiHandler> => {
   let cached = apiHandlerCache.get(file);
   if (!cached) {
     cached = (async () => {
@@ -394,36 +397,13 @@ const loadApiHandler = (file: string): Promise<WebHandler> => {
         logLevel: 'silent'
       });
       const source = Buffer.from(outputFiles[0].text).toString('base64');
-      const mod = (await import(`data:text/javascript;base64,${source}`)) as { default?: WebHandler };
+      const mod = (await import(`data:text/javascript;base64,${source}`)) as { default?: NodeApiHandler };
       if (typeof mod.default !== 'function') throw new Error(`${file}: default export 가 함수가 아니다`);
       return mod.default;
     })();
     apiHandlerCache.set(file, cached);
   }
   return cached;
-};
-
-/** Node IncomingMessage → Web Request(Vercel Node 함수가 받는 형태). */
-const toWebRequest = async (req: IncomingMessage): Promise<Request> => {
-  const chunks: Buffer[] = [];
-  for await (const chunk of req) chunks.push(chunk as Buffer);
-  const host = req.headers.host ?? 'localhost';
-  const url = `http://${host}${req.url ?? '/'}`;
-  const headers = new Headers();
-  for (const [key, value] of Object.entries(req.headers)) {
-    if (typeof value === 'string') headers.set(key, value);
-    else if (Array.isArray(value)) headers.set(key, value.join(', '));
-  }
-  const method = req.method ?? 'GET';
-  const hasBody = method !== 'GET' && method !== 'HEAD' && chunks.length > 0;
-  return new Request(url, { method, headers, body: hasBody ? Buffer.concat(chunks) : undefined });
-};
-
-/** Web Response → Node ServerResponse. */
-const sendWebResponse = async (res: ServerResponse, webRes: Response): Promise<void> => {
-  res.statusCode = webRes.status;
-  webRes.headers.forEach((value, key) => res.setHeader(key, value));
-  res.end(Buffer.from(await webRes.arrayBuffer()));
 };
 
 const apiDevPlugin = (): Plugin => ({
@@ -439,13 +419,16 @@ const apiDevPlugin = (): Plugin => ({
       void (async () => {
         try {
           const handler = await loadApiHandler(file);
-          await sendWebResponse(res, await handler(await toWebRequest(req)));
+          // default export 는 프로덕션과 동일한 Node 핸들러 — req/res 를 그대로 넘긴다(내부에서 응답을 쓴다).
+          await handler(req, res);
         } catch (error) {
           // 무음 실패 금지 — dev 콘솔 + 응답 본문에 사유를 드러낸다.
           server.config.logger.error(`[api-dev] /api/${match[1]} 실패: ${String(error)}`);
-          res.statusCode = 500;
-          res.setHeader('content-type', 'application/json; charset=utf-8');
-          res.end(JSON.stringify({ error: 'dev_api_error', detail: String(error) }));
+          if (!res.headersSent) {
+            res.statusCode = 500;
+            res.setHeader('content-type', 'application/json; charset=utf-8');
+            res.end(JSON.stringify({ error: 'dev_api_error', detail: String(error) }));
+          }
         }
       })();
     });

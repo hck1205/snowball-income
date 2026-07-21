@@ -19,6 +19,7 @@ import {
 } from "@/jotai";
 import HelpModal from "./components/HelpModal";
 import {
+  LandingDisclaimer,
   MainContentLoader,
   MainLeftPanel,
   MainOverflowMenu,
@@ -208,6 +209,10 @@ function MainViewComponent({ viewModel }: MainViewProps) {
 
         {/* `<main>` 밖에 둔다 — `<footer>`는 main/section/article의 자손이면 contentinfo 랜드마크가 되지 않는다. */}
         <MarketDataAsOf />
+
+        {/* 리뷰어·사용자가 URL만 방문해도 콘텐츠 유형·비영리·비자문을 바로 알도록 상시 노출하는 고지.
+            ModelChangeNotice(임시·접힘·닫힘)와 달리 상호작용 없이 항상 보인다. */}
+        <LandingDisclaimer />
       </FeatureLayout>
     </>
   );
