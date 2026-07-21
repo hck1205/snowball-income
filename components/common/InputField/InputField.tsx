@@ -2,7 +2,7 @@ import type { ChangeEvent } from 'react';
 import type { InputFieldProps, SelectFieldProps } from './InputField.types';
 import { formatNumericDisplay, normalizeNumericInput, toInputId } from './InputField.utils';
 import Select from '@/components/common/Select';
-import { BaseInput, FieldLabel, FieldWrapper, HelpButton, LabelRow } from './InputField.styled';
+import { Adornment, BaseInput, FieldLabel, FieldWrapper, HelpButton, InputAdornmentWrap, LabelRow } from './InputField.styled';
 
 const LabelWithHelp = ({
   id,
@@ -32,42 +32,49 @@ const LabelWithHelp = ({
   </LabelRow>
 );
 
-function InputField({ label, type = 'text', value, onChange, helpAriaLabel, onHelpClick, ...rest }: InputFieldProps) {
+function InputField({ label, type = 'text', value, onChange, helpAriaLabel, onHelpClick, prefix, suffix, ...rest }: InputFieldProps) {
   const id = toInputId(label);
+  const isNumber = type === 'number';
 
-  if (type === 'number') {
-    const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-      const normalizedValue = normalizeNumericInput(event.target.value);
+  // 숫자 입력은 표시값을 포맷하고 입력을 정규화한다(기존 동작 보존). type은 text로 두어 브라우저 스피너를 없앤다.
+  const handleChange = isNumber
+    ? (event: ChangeEvent<HTMLInputElement>) => {
+        const normalizedValue = normalizeNumericInput(event.target.value);
+        onChange({
+          ...event,
+          target: { ...event.target, value: normalizedValue },
+          currentTarget: { ...event.currentTarget, value: normalizedValue }
+        } as ChangeEvent<HTMLInputElement>);
+      }
+    : onChange;
 
-      const nextEvent = {
-        ...event,
-        target: { ...event.target, value: normalizedValue },
-        currentTarget: { ...event.currentTarget, value: normalizedValue }
-      } as ChangeEvent<HTMLInputElement>;
+  const adorn = [prefix ? 'prefix' : '', suffix ? 'suffix' : ''].filter(Boolean).join(' ');
 
-      onChange(nextEvent);
-    };
-
-    return (
-      <FieldWrapper>
-        <LabelWithHelp id={id} label={label} helpAriaLabel={helpAriaLabel} onHelpClick={onHelpClick} />
-        <BaseInput
-          id={id}
-          aria-label={label}
-          type="text"
-          inputMode="decimal"
-          value={formatNumericDisplay(value)}
-          onChange={handleChange}
-          {...rest}
-        />
-      </FieldWrapper>
-    );
-  }
+  const input = (
+    <BaseInput
+      id={id}
+      aria-label={label}
+      type={isNumber ? 'text' : type}
+      value={isNumber ? formatNumericDisplay(value) : value}
+      onChange={handleChange}
+      data-adorn={adorn || undefined}
+      {...(isNumber ? { inputMode: 'decimal' as const } : {})}
+      {...rest}
+    />
+  );
 
   return (
     <FieldWrapper>
       <LabelWithHelp id={id} label={label} helpAriaLabel={helpAriaLabel} onHelpClick={onHelpClick} />
-      <BaseInput id={id} aria-label={label} type={type} value={value} onChange={onChange} {...rest} />
+      {prefix || suffix ? (
+        <InputAdornmentWrap>
+          {prefix ? <Adornment side="prefix">{prefix}</Adornment> : null}
+          {input}
+          {suffix ? <Adornment side="suffix">{suffix}</Adornment> : null}
+        </InputAdornmentWrap>
+      ) : (
+        input
+      )}
     </FieldWrapper>
   );
 }

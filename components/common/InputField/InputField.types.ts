@@ -9,6 +9,10 @@ export type InputFieldProps = {
   onHelpClick?: () => void;
   disabled?: boolean;
   placeholder?: string;
+  /** 입력값 앞에 붙는 단위 기호(예: 달러 '$'). 순수 표시용 — 값에는 포함되지 않는다. */
+  prefix?: string;
+  /** 입력값 뒤에 붙는 단위 기호(예: 퍼센트 '%'). 순수 표시용 — 값에는 포함되지 않는다. */
+  suffix?: string;
   min?: number;
   max?: number;
   step?: number;
