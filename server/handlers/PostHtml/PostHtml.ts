@@ -49,12 +49,12 @@ import { sanitizePostBody } from './serverSanitize';
  * 크롤러가 글 내용을 읽는다. React 가 마운트하며 `#root` 를 통째로 교체하므로(Vite SPA, 하이드레이션 아님)
  * 사람 방문자 경험은 불변이다.
  *
- * ## og:image 는 왜 기본 이미지인가
- * 기존 `/api/og` 는 `?share=`(lz-string) 또는 `?s=`(shared_snapshots key)로만 카드를 그린다. 게시글은
- * 그 어느 쪽도 아니고(`posts.payload` 는 별개 테이블·별개 형식), 이미지를 만들려면 og.tsx 의
- * `resolveCardModel` 에 posts 조회 분기를 새로 열어야 한다 — 브리핑이 금지한 "기존 동작 변경"이다.
- * 그래서 이 PR 은 **og:image 를 건드리지 않고** 정적 기본 카드를 그대로 쓴다. 포트폴리오 글은
- * `sim_summary` 가 있어 의미 있는 카드가 가능하므로 **후속 트랙 후보**로 남긴다.
+ * ## og:image (포폴 글은 전용 카드, 그 외는 기본 이미지)
+ * `/api/og` 는 `?share=`(lz-string)·`?s=`(shared_snapshots key)에 더해 `?post=<id>` 분기를 갖는다 — 그 글의
+ * 게시 시점 `sim_summary` 로 시뮬 숫자 카드를 그린다(바이럴 엔진 트랙). 그래서 **포트폴리오 글 + sim_summary
+ * 존재** 시에만 og:image/twitter:image 를 `?post=` 로 돌리고, board 글·sim_summary 없는 포폴 글은 기본
+ * 이미지를 그대로 쓴다(applyPostMeta 의 분기). 판정은 presence(비-null object)만 — 파싱은 og 엔드포인트가
+ * 한다(이 번들에 계산 엔진 미유입).
  */
 
 /**
@@ -122,6 +122,18 @@ const applyPostMeta = (shell: string, post: PublicPostMeta, siteUrl: string): st
   html = replaceMetaContent(html, 'property', 'og:url', canonical);
   html = replaceMetaContent(html, 'name', 'twitter:title', title);
   html = replaceMetaContent(html, 'name', 'twitter:description', description);
+
+  // 포트폴리오 글 + sim_summary 존재 시 og:image 를 `/api/og?post=<id>`(그 글의 시뮬 숫자 카드)로 돌린다.
+  // board 글·sim_summary 없는 포폴 글은 이 분기를 건너뛰어 **기본 이미지 유지**. presence(비-null object)만
+  // 확인하고 파싱하지 않는다 — 여기서 파싱하면 post-html 번들에 계산 엔진이 딸려온다(postsRest 서두 규약).
+  // malformed sim_summary 면 og 엔드포인트가 파싱 실패로 `/og-image.png` 에 폴백하므로 안전하다.
+  // og:image:width/height(1200×630)는 우리 카드 규격과 일치해 불변, og:image:alt 는 이번 범위 아님(기본 유지).
+  if (post.kind === 'portfolio' && post.simSummary != null && typeof post.simSummary === 'object') {
+    const ogImage = `${siteUrl}/api/og?post=${post.id}`;
+    html = replaceMetaContent(html, 'property', 'og:image', ogImage);
+    html = replaceMetaContent(html, 'name', 'twitter:image', ogImage);
+  }
+
   return html;
 };
 

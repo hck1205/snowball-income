@@ -49,7 +49,7 @@ var fetchPublicPostMeta = async (kind, id) => {
   const config = readSupabaseRestConfig();
   if (!config) return { status: "unavailable" };
   const query = new URLSearchParams({
-    select: "id,kind,title,description,body,updated_at",
+    select: "id,kind,title,description,body,sim_summary,updated_at",
     id: `eq.${id}`,
     kind: `eq.${kind}`,
     is_public: "eq.true",
@@ -73,7 +73,9 @@ var fetchPublicPostMeta = async (kind, id) => {
         title: row.title,
         description: typeof row.description === "string" && row.description.length > 0 ? row.description : null,
         // 문자열이 아니면(누락·null·비문자) null — 빈 body 도 정상(첨부만 있는 포트폴리오 글).
-        body: typeof row.body === "string" ? row.body : null
+        body: typeof row.body === "string" ? row.body : null,
+        // raw jsonb 그대로(포트폴리오만 유의미). 파싱은 여기서 하지 않는다 — postsRest 서두의 엔진 미유입 규약.
+        simSummary: row.sim_summary ?? null
       }
     };
   } catch {
@@ -1847,6 +1849,11 @@ var applyPostMeta = (shell, post, siteUrl) => {
   html2 = replaceMetaContent(html2, "property", "og:url", canonical);
   html2 = replaceMetaContent(html2, "name", "twitter:title", title);
   html2 = replaceMetaContent(html2, "name", "twitter:description", description);
+  if (post.kind === "portfolio" && post.simSummary != null && typeof post.simSummary === "object") {
+    const ogImage = `${siteUrl}/api/og?post=${post.id}`;
+    html2 = replaceMetaContent(html2, "property", "og:image", ogImage);
+    html2 = replaceMetaContent(html2, "name", "twitter:image", ogImage);
+  }
   return html2;
 };
 var injectPostBody = (shell, post) => {

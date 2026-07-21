@@ -23,6 +23,7 @@ import {
   Minus,
   Redo2,
   Search,
+  Share2,
   SlidersHorizontal,
   SquareCode,
   SquarePen,
@@ -88,6 +89,11 @@ export const CommentIcon = ({ size = 18, ...rest }: IconProps) => (
 /** 조회 수 — lucide `Eye`. */
 export const EyeIcon = ({ size = 18, ...rest }: IconProps) => (
   <Eye size={size} strokeWidth={LUCIDE_STROKE} aria-hidden focusable={false} {...rest} />
+);
+
+/** 공유 — lucide `Share2`. 갤러리 글 공유 버튼용. 의미는 옆 텍스트 라벨/버튼 aria-label이 전달. */
+export const ShareIcon = ({ size = 18, ...rest }: IconProps) => (
+  <Share2 size={size} strokeWidth={LUCIDE_STROKE} aria-hidden focusable={false} {...rest} />
 );
 
 export const GridIcon = ({ size = 18, ...rest }: IconProps) => (

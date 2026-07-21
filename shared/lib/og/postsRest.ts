@@ -58,6 +58,14 @@ export type PublicPostMeta = PublicPostRef & {
    * 통과시킨다(PR-B 본문 ISR). 첨부만 있는 포트폴리오 글은 빈 문자열일 수 있어 `null` 을 허용한다.
    */
   body: string | null;
+  /**
+   * 게시 시점에 굳은 시뮬 요약(`posts.sim_summary` jsonb) — **포트폴리오 글만 의미가 있고**, 그 외/부재는
+   * null 이다. **raw unknown 으로만** 실어 나른다: 이 파일(및 이 파일이 들어가는 sitemap/post-html 번들)은
+   * `@/shared/lib/snowball`(계산 엔진)을 절대 import 하지 않는다 — 파싱·매핑은 엔진을 이미 import 하는 og
+   * 카드 레이어(pages/Main/utils/ogCard)에서 한다. post-html 은 presence(비-null object)만 보고 og:image 를
+   * 켠다(malformed 면 og 엔드포인트가 파싱 실패로 기본 이미지에 폴백).
+   */
+  simSummary: unknown;
 };
 
 /**
@@ -85,6 +93,7 @@ type PostRestRow = {
   title?: unknown;
   description?: unknown;
   body?: unknown;
+  sim_summary?: unknown;
   updated_at?: unknown;
 };
 
@@ -153,7 +162,7 @@ export const fetchPublicPostMeta = async (kind: PublicPostKind, id: string): Pro
   if (!config) return { status: 'unavailable' };
 
   const query = new URLSearchParams({
-    select: 'id,kind,title,description,body,updated_at',
+    select: 'id,kind,title,description,body,sim_summary,updated_at',
     id: `eq.${id}`,
     kind: `eq.${kind}`,
     is_public: 'eq.true',
@@ -183,11 +192,54 @@ export const fetchPublicPostMeta = async (kind: PublicPostKind, id: string): Pro
         title: row.title,
         description: typeof row.description === 'string' && row.description.length > 0 ? row.description : null,
         // 문자열이 아니면(누락·null·비문자) null — 빈 body 도 정상(첨부만 있는 포트폴리오 글).
-        body: typeof row.body === 'string' ? row.body : null
+        body: typeof row.body === 'string' ? row.body : null,
+        // raw jsonb 그대로(포트폴리오만 유의미). 파싱은 여기서 하지 않는다 — postsRest 서두의 엔진 미유입 규약.
+        simSummary: row.sim_summary ?? null
       }
     };
   } catch {
     return { status: 'unavailable' };
+  }
+};
+
+/**
+ * `/api/og?post=<id>` 전용 — 공개 **포트폴리오** 글의 `sim_summary` raw jsonb 단건 조회.
+ *
+ * fetchPublicPostMeta 와 별도인 이유: og 카드는 메타(제목·본문)가 필요 없고 sim_summary 하나만 읽는다.
+ * 게이트는 두 겹 + 종류 고정이다:
+ *   - `is_public=eq.true` : RLS 와 별개로 코드에서도 공개 글만(비공개 포폴이 엣지 카드에 박제되지 않게).
+ *   - `kind=eq.portfolio` : board 글엔 sim_summary 가 없다(portfolio 전용, 결정 2026-07-20).
+ *   - `POST_ID_PATTERN`   : uuid 아닌 값을 PostgREST 에 던지지 않는다(400 회피).
+ *
+ * 실패/부재/env 미설정은 **전부 null**(throw 금지) — og 엔드포인트는 절대 5xx 를 내지 않는다.
+ * 반환은 row 의 raw `sim_summary`(jsonb 그대로). 파싱·매핑은 호출자(ogCard 레이어)가 한다.
+ */
+export const fetchPublicPostSimSummary = async (id: string): Promise<unknown | null> => {
+  if (!POST_ID_PATTERN.test(id)) return null;
+
+  const config = readSupabaseRestConfig();
+  if (!config) return null;
+
+  const query = new URLSearchParams({
+    select: 'sim_summary',
+    id: `eq.${id}`,
+    kind: 'eq.portfolio',
+    is_public: 'eq.true',
+    limit: '1'
+  });
+
+  try {
+    const response = await fetch(`${config.url}/rest/v1/posts?${query.toString()}`, {
+      headers: restHeaders(config.anonKey)
+    });
+    if (!response.ok) return null;
+
+    const rows = (await response.json().catch(() => null)) as PostRestRow[] | null;
+    if (!Array.isArray(rows) || rows.length === 0) return null;
+
+    return rows[0].sim_summary ?? null;
+  } catch {
+    return null;
   }
 };
 

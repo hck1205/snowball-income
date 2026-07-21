@@ -11,11 +11,17 @@ import { decodeSharedScenario } from '@/pages/Main/hooks/persistence/shareLink';
 import {
   summarizeShareCodeForOg,
   summarizeSharedScenarioForOg,
+  summarizePostSimSummaryForOg,
   formatOgAmount,
   formatOgHoldingsLine,
   type OgCardModel
 } from '@/pages/Main/utils/ogCard';
-import { DB_SHARE_KEY_PATTERN, fetchSharedSnapshotByKey } from '@/shared/lib/og';
+import {
+  DB_SHARE_KEY_PATTERN,
+  fetchPublicPostSimSummary,
+  fetchSharedSnapshotByKey,
+  POST_ID_PATTERN
+} from '@/shared/lib/og';
 import { toNodeHandler } from '@/shared/lib/server';
 
 /**
@@ -169,12 +175,16 @@ const ScenarioCard = ({ model }: { model: OgCardModel }) => {
   // ⚠ 목표 미설정(targetMonthlyDividend<=0)이면 도달/미도달 문구를 붙이지 않는다 — findTargetYear(rows,0)이
   //   1년차를 즉시 "달성"으로 잡아 오해를 부른다(ogCard targetMonthlyDividend 주석·pitfalls). 텍스트(og:title)와
   //   동일 가드라 카드 이미지와 미리보기 문구가 어긋나지 않는다.
+  // ⚠ `targetReachedInYears`(post 경로 전용, sim_summary 는 시작일이 없어 달력연도 복원 불가)가 있으면 "N년차
+  //   달성"을 **최우선**으로 쓴다. `?s=`/`?share=` 는 이 값이 undefined 라 이 분기를 건너뛰어 출력 바이트 불변.
   const targetLine =
     model.targetMonthlyDividend <= 0
       ? `${model.durationYears}년 후 기준`
-      : model.targetReachedYear !== null
-        ? `목표 월 배당 ${model.targetReachedYear}년 도달`
-        : '기간 내 목표 미도달';
+      : model.targetReachedInYears != null
+        ? `목표 월 배당 ${model.targetReachedInYears}년차 달성`
+        : model.targetReachedYear !== null
+          ? `목표 월 배당 ${model.targetReachedYear}년 도달`
+          : '기간 내 목표 미도달';
 
   return (
     <Shell>
@@ -228,6 +238,14 @@ const DefaultCard = () => (
  * s 조회가 부재/만료/미설정으로 null 이면 share 로 폴백한다(둘 다 실패면 null → 기본 카드).
  */
 const resolveCardModel = async (searchParams: URLSearchParams): Promise<OgCardModel | null> => {
+  // `?post=<id>`(포폴 갤러리 글) — 게시 시점에 굳은 sim_summary 를 그대로 읽어 카드를 그린다(재계산 없음).
+  // 모델이 null(부재/비공개/board/malformed/env 미설정)이면 아래 s/share 폴백으로 자연 낙하 → 결국 기본 카드.
+  const postId = searchParams.get('post');
+  if (postId && POST_ID_PATTERN.test(postId)) {
+    const model = summarizePostSimSummaryForOg(await fetchPublicPostSimSummary(postId));
+    if (model) return model;
+  }
+
   const dbKey = searchParams.get('s');
   if (dbKey && DB_SHARE_KEY_PATTERN.test(dbKey)) {
     const envelope = await fetchSharedSnapshotByKey(dbKey);
@@ -239,6 +257,12 @@ const resolveCardModel = async (searchParams: URLSearchParams): Promise<OgCardMo
 
 /** 같은 share 코드 → 항상 같은 이미지. 1년 immutable 로 박아서 함수 호출 자체를 없앤다. */
 const CACHE_SCENARIO = 'public, immutable, no-transform, max-age=31536000';
+/**
+ * `?post=` 카드는 immutable 이면 안 된다 — 글을 수정하면 sim_summary 가 바뀌므로 1년 immutable 로 박으면
+ * 옛 카드가 엣지에 박제된다. post-html 의 CACHE_POST 와 동일 정책(5분 신선도 / 7일 stale)으로 맞춰 수정이
+ * 5분 내 미리보기에 반영되게 한다.
+ */
+const CACHE_POST_SCENARIO = 'public, max-age=0, s-maxage=300, stale-while-revalidate=604800';
 /** 기본 카드는 코드 배포로 바뀔 수 있으니 하루만. */
 const CACHE_DEFAULT = 'public, no-transform, max-age=86400';
 
@@ -249,6 +273,9 @@ export async function handler(request: Request): Promise<Response> {
   try {
     // 폰트 로드와 카드 모델 조회(?s= 는 네트워크)는 서로 독립 → 병렬로 지연을 줄인다.
     const [fonts, model] = await Promise.all([loadFonts(origin), resolveCardModel(searchParams)]);
+
+    // post 카드(수정으로 sim_summary 가 바뀜)는 immutable 캐시를 쓰면 안 된다 → 소스를 판별해 정책을 가른다.
+    const isPostCard = Boolean(searchParams.get('post'));
 
     const image = new ImageResponse(model ? <ScenarioCard model={model} /> : <DefaultCard />, {
       width: WIDTH,
@@ -265,7 +292,7 @@ export async function handler(request: Request): Promise<Response> {
       status: 200,
       headers: {
         'content-type': 'image/png',
-        'cache-control': model ? CACHE_SCENARIO : CACHE_DEFAULT
+        'cache-control': model ? (isPostCard ? CACHE_POST_SCENARIO : CACHE_SCENARIO) : CACHE_DEFAULT
       }
     });
   } catch (error) {

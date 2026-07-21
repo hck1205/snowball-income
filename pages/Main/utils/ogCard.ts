@@ -1,4 +1,9 @@
-import { defaultYieldFormValues, validateFormValues } from '@/shared/lib/snowball';
+import {
+  defaultYieldFormValues,
+  parseScenarioSimSummary,
+  validateFormValues,
+  type ScenarioSimSummary
+} from '@/shared/lib/snowball';
 import type { YieldFormValues } from '@/shared/types';
 import type { PersistedInvestmentSettings, PersistedScenarioState } from '@/jotai';
 import { buildNormalizedAllocation, getIncludedProfiles, type NormalizedAllocationItem } from './portfolio';
@@ -39,6 +44,12 @@ export type OgCardModel = {
   finalAssetValue: number;
   /** 목표 월 배당 도달 연차. 미도달이면 null. (목표 미설정 시엔 무의미 — targetMonthlyDividend 로 먼저 가드) */
   targetReachedYear: number | null;
+  /**
+   * **post 경로 전용**(`?post=<id>`) — sim_summary 는 투자 시작일이 없어 달력연도(`targetReachedYear`)를
+   * 복원할 수 없다. 이 필드가 있으면(=number|null) 카드가 "N년차 달성"으로 그린다(달력연도 대신 연차).
+   * ⚠ `?s=`/`?share=` 경로는 이 필드를 **설정하지 않는다**(undefined → 기존 달력연도 분기 유지, 출력 불변).
+   */
+  targetReachedInYears?: number | null;
 };
 
 /** 1200px 카드 한 줄에 안정적으로 들어가는 최대 종목 수. 넘으면 "외 M개"로 접는다. */
@@ -221,6 +232,43 @@ export const summarizeSharedScenarioForOg = (
   if (!scenario) return null;
   try {
     return buildOgCardModel(scenario);
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * 게시 시점에 굳은 `sim_summary` → 카드 모델. **재계산하지 않는다**(결정 2026-07-17: 게시 시점 고정).
+ * `buildOgCardModel`(payload → runSimulation)과 달리 엔진을 다시 돌리지 않고 저장값을 1:1 로 매핑만 한다.
+ *
+ * 매핑 근거:
+ *   - holdings 는 빈 배열, hiddenHoldingCount = tickerCount → `formatOgHoldingsLine([], n)` 이 "N개 종목"을
+ *     낸다. sim_summary 엔 티커명·비중이 없고 개수만 있으므로 이게 표현할 수 있는 전부다.
+ *   - targetReachedYear = null(달력연도 없음), targetReachedInYears = 저장된 연차 → 카드가 "N년차 달성"으로.
+ *   - totalContribution 은 카드가 쓰지 않아 매핑하지 않는다.
+ */
+export const buildOgCardModelFromSimSummary = (summary: ScenarioSimSummary): OgCardModel => ({
+  holdings: [],
+  hiddenHoldingCount: summary.tickerCount,
+  durationYears: summary.durationYears,
+  initialInvestment: summary.initialInvestment,
+  monthlyContribution: summary.monthlyContribution,
+  targetMonthlyDividend: summary.targetMonthlyDividend,
+  finalMonthlyDividend: summary.finalMonthlyDividend,
+  finalAssetValue: summary.finalAssetValue,
+  targetReachedYear: null,
+  targetReachedInYears: summary.targetReachedInYears
+});
+
+/**
+ * 포폴 글 raw jsonb(`posts.sim_summary`) → 카드 모델. `summarizeSharedScenarioForOg` 미러:
+ * 파싱 실패(형태 불일치/모르는 버전) → null, 아니면 매핑. 예외는 삼켜 null(og 는 5xx 금지).
+ */
+export const summarizePostSimSummaryForOg = (raw: unknown): OgCardModel | null => {
+  try {
+    const summary = parseScenarioSimSummary(raw);
+    if (!summary) return null;
+    return buildOgCardModelFromSimSummary(summary);
   } catch {
     return null;
   }
