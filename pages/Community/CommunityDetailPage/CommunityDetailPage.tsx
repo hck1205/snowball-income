@@ -1,11 +1,12 @@
 import { useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import type { PostKind } from '@/shared/lib/supabase';
+import { COMMUNITY_COPY } from '@/shared/constants/community';
 import { ANALYTICS_EVENT, track } from '@/shared/lib/analytics';
 import { useIsLoggedInAtomValue, useSessionAtomValue } from '@/jotai/community';
 import { useCommunityAuth } from '@/components/community';
 import CommunityDetailView from './CommunityDetailPage.view';
-import { useComments, usePostDetail } from './hooks';
+import { buildSharePreviewText, useComments, usePostDetail, usePostShare } from './hooks';
 
 export type CommunityDetailPageProps = {
   /** 상세가 속한 표면. 라우트가 결정한다: 갤러리='portfolio'(기본), 자유게시판='board'. */
@@ -29,6 +30,17 @@ export default function CommunityDetailPage({ kind = 'portfolio' }: CommunityDet
 
   const detail = usePostDetail(id, onRequireLogin, sectionBase);
   const comments = useComments(id);
+  const { shareToastMessage, sharePost } = usePostShare();
+
+  // 공유는 갤러리(공개 SEO 상세) 전용 — 게시판(board)에는 노출하지 않는다(사용자 결정).
+  const canShare = kind === 'portfolio';
+
+  const onShare = useCallback(() => {
+    const post = detail.post;
+    if (!id || !post) return;
+    const text = buildSharePreviewText(post.body) ?? COMMUNITY_COPY.detail.shareText;
+    void sharePost({ postId: id, kind, title: post.title, text });
+  }, [detail.post, id, kind, sharePost]);
 
   const onEdit = useCallback(() => {
     if (id) navigate(`${sectionBase}/${id}/edit`);
@@ -51,7 +63,10 @@ export default function CommunityDetailPage({ kind = 'portfolio' }: CommunityDet
         listPath: sectionBase,
         onRequireLogin,
         onEdit,
-        onOpenInSimulator
+        onOpenInSimulator,
+        canShare,
+        onShare,
+        shareToastMessage
       }}
     />
   );

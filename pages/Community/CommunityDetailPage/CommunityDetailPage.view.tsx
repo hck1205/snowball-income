@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
 import { formatKRW } from '@/shared/utils/format';
@@ -10,6 +11,7 @@ import {
   LikeButton,
   PencilIcon,
   RelativeTime,
+  ShareIcon,
   TrashIcon
 } from '@/components/community';
 import { RichTextContent } from '@/components/community/RichTextContent';
@@ -29,6 +31,8 @@ import {
   MetaRow,
   OwnerActions,
   PostCard,
+  ShareButton,
+  ShareToast,
   StateWrap,
   Title
 } from './CommunityDetailPage.styled';
@@ -36,10 +40,22 @@ import {
 const d = COMMUNITY_COPY.detail;
 
 export default function CommunityDetailView({ viewModel }: CommunityDetailViewProps) {
-  const { detail, comments, isLoggedIn, currentUserId, listPath, onRequireLogin, onEdit, onOpenInSimulator } =
-    viewModel;
+  const {
+    detail,
+    comments,
+    isLoggedIn,
+    currentUserId,
+    listPath,
+    onRequireLogin,
+    onEdit,
+    onOpenInSimulator,
+    canShare,
+    onShare,
+    shareToastMessage
+  } = viewModel;
   const navigate = useNavigate();
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const toastRoot = typeof document !== 'undefined' ? document.body : null;
 
   if (detail.status === 'loading') {
     return <EmptyState title="불러오는 중…" />;
@@ -147,6 +163,12 @@ export default function CommunityDetailView({ viewModel }: CommunityDetailViewPr
             disabled={detail.likePending}
             onToggle={detail.toggleLike}
           />
+          {canShare ? (
+            <ShareButton type="button" aria-label={d.shareAria} onClick={onShare}>
+              <ShareIcon size={16} />
+              {d.share}
+            </ShareButton>
+          ) : null}
         </LikeRow>
       </PostCard>
 
@@ -171,6 +193,15 @@ export default function CommunityDetailView({ viewModel }: CommunityDetailViewPr
           onCancel={() => setDeleteOpen(false)}
         />
       ) : null}
+
+      {shareToastMessage && toastRoot
+        ? createPortal(
+            <ShareToast role="status" aria-live="polite">
+              {shareToastMessage}
+            </ShareToast>,
+            toastRoot
+          )
+        : null}
     </Article>
   );
 }

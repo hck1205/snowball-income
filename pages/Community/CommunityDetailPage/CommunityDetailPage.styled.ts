@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, radius, shadow, space } from '@/shared/styles';
+import { color, font, motion, radius, shadow, space, zIndex } from '@/shared/styles';
 
 export const Article = styled.article`
   max-width: 760px;
@@ -143,6 +143,59 @@ export const LikeRow = styled.div`
   display: flex;
   align-items: center;
   gap: ${space[3]};
+`;
+
+/**
+ * 공유 버튼 — 좋아요(LikeButton)와 같은 pill 시각 언어(중립 테두리 + surface 면색).
+ * hover/focus만 brand 강조로 상호작용을 알린다.
+ */
+export const ShareButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: ${space[1]};
+  height: 36px;
+  padding: 0 ${space[3]};
+  border-radius: ${radius.pill};
+  border: 1px solid ${color.borderStrong};
+  background: ${color.surface};
+  color: ${color.textSecondary};
+  font-size: ${font.size.sm};
+  font-weight: ${font.weight.semibold};
+  cursor: pointer;
+  transition: background ${motion.fast} ${motion.ease}, color ${motion.fast} ${motion.ease},
+    border-color ${motion.fast} ${motion.ease};
+
+  &:hover {
+    border-color: ${color.brand};
+    color: ${color.brand};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${color.focusRing};
+    outline-offset: 2px;
+  }
+
+  svg {
+    flex: 0 0 auto;
+  }
+`;
+
+/** 복사 폴백 토스트 — 배경/글자색은 토큰(다크에서도 대비 안전). TickerCreation 토스트와 동일 언어. */
+export const ShareToast = styled.div`
+  position: fixed;
+  top: ${space[4]};
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: ${zIndex.tooltip};
+  max-width: min(92vw, 420px);
+  background: ${color.text};
+  color: ${color.surface};
+  border-radius: ${radius.sm};
+  padding: ${space[3]} ${space[4]};
+  font-size: ${font.size.sm};
+  font-weight: ${font.weight.semibold};
+  box-shadow: ${shadow.e3};
+  word-break: break-all;
 `;
 
 export const StateWrap = styled.div`
