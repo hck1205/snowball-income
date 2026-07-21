@@ -14,8 +14,6 @@ export type SharePostInput = {
   kind: string;
   /** 네이티브 공유 시트 제목. */
   title: string;
-  /** 네이티브 공유 시트 발췌/설명. */
-  text: string;
 };
 
 export type UsePostShare = {
@@ -23,17 +21,6 @@ export type UsePostShare = {
   shareToastMessage: string;
   /** 이 글의 공개 상세 URL(window.location.href)을 공유한다. */
   sharePost: (input: SharePostInput) => Promise<void>;
-};
-
-/** 본문 HTML에서 공유 발췌 텍스트를 만든다(태그 제거 + 공백 정규화 + 80자 컷). 비면 null. */
-export const buildSharePreviewText = (html: string | null | undefined, max = 80): string | null => {
-  if (!html) return null;
-  const plain = html
-    .replace(/<[^>]*>/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-  if (!plain) return null;
-  return plain.length > max ? `${plain.slice(0, max)}…` : plain;
 };
 
 const copyToClipboard = async (value: string): Promise<void> => {
@@ -66,7 +53,7 @@ export const usePostShare = (): UsePostShare => {
     return () => window.clearTimeout(timer);
   }, [shareToastMessage]);
 
-  const sharePost = useCallback(async ({ postId, kind, title, text }: SharePostInput) => {
+  const sharePost = useCallback(async ({ postId, kind, title }: SharePostInput) => {
     if (typeof window === 'undefined') return;
     if (sharingRef.current) return;
     sharingRef.current = true;
@@ -76,7 +63,7 @@ export const usePostShare = (): UsePostShare => {
       const nav = window.navigator;
       if (nav && typeof nav.share === 'function') {
         try {
-          await nav.share({ title, text, url });
+          await nav.share({ title, url });
           track(ANALYTICS_EVENT.COMMUNITY_POST_SHARED, { method: 'web_share', post_id: postId, kind });
           return;
         } catch (error) {

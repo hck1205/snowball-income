@@ -8830,6 +8830,10 @@ var scenarioSimSummarySchema = external_exports.object({
   /** 목표 월배당을 처음 달성한 n년차(1-based). 기간 내 미달성이면 null. */
   targetReachedInYears: external_exports.number().int().min(1).nullable()
 });
+var parseScenarioSimSummary = (value) => {
+  const parsed = scenarioSimSummarySchema.safeParse(value);
+  return parsed.success ? parsed.data : null;
+};
 
 // shared/constants/presets/usDividendGrowthEtfs.ts
 var US_DIVIDEND_GROWTH_ETFS = {
@@ -10480,6 +10484,27 @@ var summarizeSharedScenarioForOg = (scenario) => {
     return null;
   }
 };
+var buildOgCardModelFromSimSummary = (summary) => ({
+  holdings: [],
+  hiddenHoldingCount: summary.tickerCount,
+  durationYears: summary.durationYears,
+  initialInvestment: summary.initialInvestment,
+  monthlyContribution: summary.monthlyContribution,
+  targetMonthlyDividend: summary.targetMonthlyDividend,
+  finalMonthlyDividend: summary.finalMonthlyDividend,
+  finalAssetValue: summary.finalAssetValue,
+  targetReachedYear: null,
+  targetReachedInYears: summary.targetReachedInYears
+});
+var summarizePostSimSummaryForOg = (raw) => {
+  try {
+    const summary = parseScenarioSimSummary(raw);
+    if (!summary) return null;
+    return buildOgCardModelFromSimSummary(summary);
+  } catch {
+    return null;
+  }
+};
 
 // shared/lib/og/shareKey.ts
 var DB_SHARE_KEY_PATTERN = /^[A-Za-z0-9_-]{16,64}$/;
@@ -10511,6 +10536,37 @@ var fetchSharedSnapshotByKey = async (key) => {
     if (!response.ok) return null;
     const data = await response.json().catch(() => null);
     return data ?? null;
+  } catch {
+    return null;
+  }
+};
+
+// shared/lib/og/postsRest.ts
+var POST_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+var restHeaders = (anonKey) => ({
+  apikey: anonKey,
+  authorization: `Bearer ${anonKey}`,
+  accept: "application/json"
+});
+var fetchPublicPostSimSummary = async (id) => {
+  if (!POST_ID_PATTERN.test(id)) return null;
+  const config = readSupabaseRestConfig();
+  if (!config) return null;
+  const query = new URLSearchParams({
+    select: "sim_summary",
+    id: `eq.${id}`,
+    kind: "eq.portfolio",
+    is_public: "eq.true",
+    limit: "1"
+  });
+  try {
+    const response = await fetch(`${config.url}/rest/v1/posts?${query.toString()}`, {
+      headers: restHeaders(config.anonKey)
+    });
+    if (!response.ok) return null;
+    const rows = await response.json().catch(() => null);
+    if (!Array.isArray(rows) || rows.length === 0) return null;
+    return rows[0].sim_summary ?? null;
   } catch {
     return null;
   }
@@ -10729,7 +10785,7 @@ var Shell = ({ children }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
 var ScenarioCard = ({ model }) => {
   const holdingsLine = formatOgHoldingsLine(model.holdings, model.hiddenHoldingCount);
   const contributionLine = `\uC6D4 ${formatOgAmount(model.monthlyContribution)} \uC801\uB9BD \xB7 ${model.durationYears}\uB144 \uD22C\uC790`;
-  const targetLine = model.targetMonthlyDividend <= 0 ? `${model.durationYears}\uB144 \uD6C4 \uAE30\uC900` : model.targetReachedYear !== null ? `\uBAA9\uD45C \uC6D4 \uBC30\uB2F9 ${model.targetReachedYear}\uB144 \uB3C4\uB2EC` : "\uAE30\uAC04 \uB0B4 \uBAA9\uD45C \uBBF8\uB3C4\uB2EC";
+  const targetLine = model.targetMonthlyDividend <= 0 ? `${model.durationYears}\uB144 \uD6C4 \uAE30\uC900` : model.targetReachedInYears != null ? `\uBAA9\uD45C \uC6D4 \uBC30\uB2F9 ${model.targetReachedInYears}\uB144\uCC28 \uB2EC\uC131` : model.targetReachedYear !== null ? `\uBAA9\uD45C \uC6D4 \uBC30\uB2F9 ${model.targetReachedYear}\uB144 \uB3C4\uB2EC` : "\uAE30\uAC04 \uB0B4 \uBAA9\uD45C \uBBF8\uB3C4\uB2EC";
   return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Shell, { children: [
     /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { display: "flex", flexDirection: "column" }, children: [
       /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { display: "flex", fontSize: 44, color: COLOR.surface, fontWeight: 700 }, children: holdingsLine }),
@@ -10763,6 +10819,11 @@ var DefaultCard = () => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Shell, { ch
   /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { display: "flex", fontSize: 22, color: COLOR.brand100, fontWeight: 400 }, children: "\uC785\uB825\uD55C \uAC00\uC815\uC744 \uADF8\uB300\uB85C \uACC4\uC0B0\uD55C \uC2DC\uBBAC\uB808\uC774\uC158 \uACB0\uACFC\uC785\uB2C8\uB2E4. \uD22C\uC790 \uC790\uBB38\uC774 \uC544\uB2D9\uB2C8\uB2E4." })
 ] });
 var resolveCardModel = async (searchParams) => {
+  const postId = searchParams.get("post");
+  if (postId && POST_ID_PATTERN.test(postId)) {
+    const model = summarizePostSimSummaryForOg(await fetchPublicPostSimSummary(postId));
+    if (model) return model;
+  }
   const dbKey = searchParams.get("s");
   if (dbKey && DB_SHARE_KEY_PATTERN.test(dbKey)) {
     const envelope = await fetchSharedSnapshotByKey(dbKey);
@@ -10772,11 +10833,13 @@ var resolveCardModel = async (searchParams) => {
   return summarizeShareCodeForOg(searchParams.get("share"), decodeSharedScenario);
 };
 var CACHE_SCENARIO = "public, immutable, no-transform, max-age=31536000";
+var CACHE_POST_SCENARIO = "public, max-age=0, s-maxage=300, stale-while-revalidate=604800";
 var CACHE_DEFAULT = "public, no-transform, max-age=86400";
 async function handler(request) {
   const { searchParams, origin } = new URL(request.url);
   try {
     const [fonts, model] = await Promise.all([loadFonts(origin), resolveCardModel(searchParams)]);
+    const isPostCard = Boolean(searchParams.get("post"));
     const image = new ImageResponse(model ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ScenarioCard, { model }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DefaultCard, {}), {
       width: WIDTH,
       height: HEIGHT,
@@ -10786,7 +10849,7 @@ async function handler(request) {
       status: 200,
       headers: {
         "content-type": "image/png",
-        "cache-control": model ? CACHE_SCENARIO : CACHE_DEFAULT
+        "cache-control": model ? isPostCard ? CACHE_POST_SCENARIO : CACHE_SCENARIO : CACHE_DEFAULT
       }
     });
   } catch (error) {
