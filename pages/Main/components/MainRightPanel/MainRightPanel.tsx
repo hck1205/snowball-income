@@ -462,7 +462,7 @@ function MainRightPanelComponent() {
     isYearlyAreaFillOn,
     postInvestmentProjectionYears
   });
-  const { setTickerWeight, toggleTickerFixed, removeIncludedTicker } = useTickerActions();
+  const { setTickerWeight, toggleTickerFixed, clearAllFixed, removeIncludedTicker } = useTickerActions();
   const {
     tabs,
     activeScenarioId,
@@ -806,6 +806,7 @@ function MainRightPanelComponent() {
             adjustableTickerCount={adjustableTickerCount}
             onSetTickerWeight={setTickerWeight}
             onToggleTickerFixed={toggleTickerFixed}
+            onClearAllFixed={clearAllFixed}
             onRemoveIncludedTicker={removeIncludedTicker}
             ResponsiveChart={ResponsiveEChart}
           />

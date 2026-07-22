@@ -314,6 +314,16 @@ export const useTickerActions = () => {
     setFixedByTickerId((prev: Record<string, boolean>) => ({ ...prev, [profileId]: !prev[profileId] }));
   }, [fixedByTickerId, includedProfiles, setFixedByTickerId]);
 
+  const clearAllFixed = useCallback(() => {
+    trackEvent(ANALYTICS_EVENT.ALLOCATION_CHANGED, { action: 'clear_all_fixed' });
+    // 저장 스키마 불변 — 기존 키를 모두 false로 되돌린다(고정 해제 = 전 종목 재조절 가능).
+    setFixedByTickerId((prev: Record<string, boolean>) => {
+      const next: Record<string, boolean> = {};
+      for (const key of Object.keys(prev)) next[key] = false;
+      return next;
+    });
+  }, [setFixedByTickerId]);
+
   const { consumeTriggered, handlePressEnd, handlePressStart } = useLongPress<TickerProfile>({
     delayMs: 550,
     onLongPress: openTickerEditModal
@@ -346,6 +356,7 @@ export const useTickerActions = () => {
     removeIncludedTicker,
     saveTicker,
     setTickerWeight,
-    toggleTickerFixed
+    toggleTickerFixed,
+    clearAllFixed
   };
 };
