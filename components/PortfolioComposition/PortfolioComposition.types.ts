@@ -11,6 +11,7 @@ export type PortfolioCompositionProps = {
   adjustableTickerCount: number;
   onSetTickerWeight: (profileId: string, value: number) => void;
   onToggleTickerFixed: (profileId: string) => void;
+  onClearAllFixed: () => void;
   onRemoveIncludedTicker: (profileId: string) => void;
   ResponsiveChart: ComponentType<{ option: EChartsOption; replaceMerge?: string[] }>;
 };

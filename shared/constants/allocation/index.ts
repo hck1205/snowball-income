@@ -1,5 +1,7 @@
 import { CHART_SERIES } from '@/shared/styles';
 
+export * from './copy';
+
 /**
  * 포트폴리오 비중 차트/범례 색.
  *
