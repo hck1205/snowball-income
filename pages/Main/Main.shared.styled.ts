@@ -734,7 +734,7 @@ export const ModalTickerSearchInput = styled.input`
   min-height: 40px;
   border: 1px solid ${color.borderStrong};
   border-radius: ${radius.sm};
-  padding: ${space[2]} ${space[3]} ${space[2]} ${space[8]};
+  padding: ${space[2]} ${space[10]} ${space[2]} ${space[8]};
   font-size: ${font.size.base};
   font-family: inherit;
   color: ${color.text};
@@ -834,8 +834,10 @@ export const PresetChipGrid = styled.div`
  */
 export const PresetChipScrollArea = styled.div`
   /* 모달 안에서 이 영역이 너무 높으면 아래 입력 필드가 밀려 스크롤이 이중으로 생긴다.
-     칩이 여러 줄로 흐르는 영역이라 160px면 2~3줄이 보이고, 나머지는 자체 스크롤로 훑는다. */
-  max-height: 160px;
+     칩이 여러 줄로 흐르는 영역이라 130px면 3줄가량 보이며 스크롤 신호(peek)를 주고,
+     프리셋 탭 콘텐츠 총 높이를 TickerModal 패널 안에 눌러 모달 자체 스크롤이 불필요해진다
+     (TickerModalPanel 이 overflow:hidden 로 스크롤을 끈다). 나머지는 이 영역 자체 스크롤로 훑는다. */
+  max-height: 130px;
   overflow-y: auto;
   overscroll-behavior: contain;
   padding-right: ${space[1]};
