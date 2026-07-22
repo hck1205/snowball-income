@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 // per-icon named import → 이 아이콘들만 번들에 포함된다(트리셰이킹). 기본 SVG/탭 아이콘을 lucide로.
 import { LayoutGrid, Pencil, Search } from 'lucide-react';
@@ -14,7 +14,6 @@ import {
   ModalActions,
   ModalBackdrop,
   ModalBody,
-  ModalPanel,
   SearchResultButton,
   SearchResultList,
   SearchResultName,
@@ -29,7 +28,17 @@ import {
   PresetChipGrid,
   PresetChipScrollArea
 } from '@/pages/Main/Main.shared.styled';
-import { FieldWithCaption, ModalCaption } from './TickerModal.styled';
+import {
+  PresetFilterDrawer,
+  PresetFilterStatus,
+  PresetFilterTrigger,
+  applyPresetFilters,
+  countActiveFilters,
+  createInitialFilterState,
+  derivePresetRanges,
+  type PresetFilterState
+} from '@/pages/Main/components/PresetFilterPanel';
+import { FieldWithCaption, ModalCaption, ModalShell, TickerModalPanel } from './TickerModal.styled';
 import type { TickerModalViewProps } from './TickerModal.types';
 import {
   buildTickerSearchRows,
@@ -71,7 +80,18 @@ export default function TickerModalView({
   const [debouncedSearchKeyword, setDebouncedSearchKeyword] = useState('');
   const [presetSearchKeyword, setPresetSearchKeyword] = useState('');
   const [activeTab, setActiveTab] = useState<ModalTabKey>('preset');
+  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
+  const drawerId = useId();
+  const filterTriggerRef = useRef<HTMLButtonElement>(null);
   const sortedPresetKeys = useMemo(() => sortPresetKeys(presetTickers), [presetTickers]);
+  const presetRanges = useMemo(() => derivePresetRanges(presetTickers), [presetTickers]);
+  const [presetFilter, setPresetFilter] = useState<PresetFilterState>(() => createInitialFilterState(presetRanges));
+
+  // 드로어가 언마운트되므로 포커스 복귀는 뷰가 소유한다 — 닫을 때 트리거로 되돌린다.
+  const closeFilterDrawer = useCallback(() => {
+    setIsFilterDrawerOpen(false);
+    filterTriggerRef.current?.focus();
+  }, []);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -90,28 +110,39 @@ export default function TickerModalView({
     setSearchKeyword('');
     setDebouncedSearchKeyword('');
     setPresetSearchKeyword('');
-  }, [isOpen]);
+    setIsFilterDrawerOpen(false);
+    setPresetFilter(createInitialFilterState(presetRanges));
+    // presetRanges 는 presetTickers 파생 memo 다. presetTickers 는 안정 참조여야 한다 —
+    // 매 렌더 새 객체를 넘기면 presetRanges 가 재계산돼 이 이펙트가 필터를 매 렌더 초기화한다.
+    // (현재는 DIVIDEND_UNIVERSE 상수 기반이라 안전.)
+  }, [isOpen, presetRanges]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => setDebouncedSearchKeyword(searchKeyword.trim()), SEARCH_DEBOUNCE_MS);
     return () => window.clearTimeout(timer);
   }, [searchKeyword]);
 
+  // 탭을 떠나면 필터 드로어도 닫는다 — 드로어를 연 채 input 탭에 갔다 preset 으로 돌아와도
+  // 다시 열린 채 재마운트되지 않게. 탭 버튼이 포커스를 가져가므로 트리거 포커스 복귀는 불필요(상태만 false).
+  useEffect(() => {
+    setIsFilterDrawerOpen(false);
+  }, [activeTab]);
+
   const searchResults = useMemo(
     () => scoreTickerSearch({ rows: SEARCH_ROWS, keyword: debouncedSearchKeyword, maxResults: SEARCH_MAX_RESULTS }),
     [debouncedSearchKeyword]
   );
 
-  const filteredPresetKeys = useMemo(
-    () =>
-      filterPresetKeys({
-        presetKeys: sortedPresetKeys,
-        presetTickers,
-        koreanNameByTicker: PRESET_TICKER_KOREAN_NAME_BY_TICKER,
-        keyword: presetSearchKeyword
-      }),
-    [presetSearchKeyword, presetTickers, sortedPresetKeys]
-  );
+  const filteredPresetKeys = useMemo(() => {
+    // 텍스트 검색 결과에 수치 필터를 AND 로 이어 최종 목록을 만든다.
+    const textFiltered = filterPresetKeys({
+      presetKeys: sortedPresetKeys,
+      presetTickers,
+      koreanNameByTicker: PRESET_TICKER_KOREAN_NAME_BY_TICKER,
+      keyword: presetSearchKeyword
+    });
+    return applyPresetFilters(textFiltered, presetTickers, presetFilter);
+  }, [presetSearchKeyword, presetTickers, sortedPresetKeys, presetFilter]);
   const isCreateCustomInput = isCustomTickerInput(mode, selectedPreset);
   const isCreateDisabled = isTickerCreateDisabled({ mode, selectedPreset, tickerDraft });
   // 정합 모델: 총수익률은 입력이 아니라 배당률 + 배당 성장률의 파생값이다.
@@ -123,7 +154,8 @@ export default function TickerModalView({
 
   return createPortal(
     <ModalBackdrop role="dialog" aria-modal="true" aria-labelledby="ticker-modal-title" onClick={onBackdropClick}>
-      <ModalPanel>
+      <ModalShell>
+      <TickerModalPanel>
         <ModalTitle id="ticker-modal-title">{mode === 'edit' ? '티커 설정 수정' : '티커 생성'}</ModalTitle>
         <ModalBody>
           {mode === 'edit'
@@ -270,7 +302,15 @@ export default function TickerModalView({
                 placeholder="프리셋 티커 검색"
                 onChange={(event) => setPresetSearchKeyword(event.target.value)}
               />
+              <PresetFilterTrigger
+                ref={filterTriggerRef}
+                isOpen={isFilterDrawerOpen}
+                activeCount={countActiveFilters(presetFilter, presetRanges)}
+                drawerId={drawerId}
+                onToggle={() => setIsFilterDrawerOpen((prev) => !prev)}
+              />
             </ModalTickerSearchWrap>
+            <PresetFilterStatus filter={presetFilter} ranges={presetRanges} onChange={setPresetFilter} />
             <ModalCaption>
               주의: 실시간 데이터가 아니기 때문에 실제 데이터와 다를 수 있습니다. 참고용으로만 사용해 주세요.
             </ModalCaption>
@@ -444,7 +484,19 @@ export default function TickerModalView({
             {mode === 'edit' ? '저장' : '생성'}
           </Button>
         </ModalActions>
-      </ModalPanel>
+      </TickerModalPanel>
+      {activeTab === 'preset' && isFilterDrawerOpen ? (
+        <PresetFilterDrawer
+          open={isFilterDrawerOpen}
+          drawerId={drawerId}
+          filter={presetFilter}
+          ranges={presetRanges}
+          onChange={setPresetFilter}
+          resultCount={filteredPresetKeys.length}
+          onClose={closeFilterDrawer}
+        />
+      ) : null}
+      </ModalShell>
     </ModalBackdrop>,
     modalRoot
   );
