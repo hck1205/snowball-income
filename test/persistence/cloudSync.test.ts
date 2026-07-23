@@ -115,6 +115,62 @@ describe('createCloudSyncScheduler — 디바운스 + 상태 전이', () => {
 
     expect(push).not.toHaveBeenCalled();
   });
+
+  // ── onSaved(merge-base 갱신 훅) — §4 레이스 가드 ────────────────────────────────
+  it("onSaved는 push 진행 중 새 편집이 들어와도 **그때 push된** payload를 준다 (현재값 아님)", async () => {
+    const saved: PersistedAppStatePayload[] = [];
+    // 속성 홀더로 둔다(지역 let은 클로저 대입을 CFA가 못 추적해 null로 좁혀 호출 불가가 된다).
+    const inFlight: { release: () => void } = { release: () => undefined };
+    const scheduler = createCloudSyncScheduler({
+      push: async (_p, ctx) => {
+        ctx.onSaving();
+        await new Promise<void>((resolve) => {
+          inFlight.release = resolve; // push를 붙잡아 in-flight 상태를 유지
+        });
+        return 'saved';
+      },
+      onStatus: () => undefined,
+      onSaved: (p) => saved.push(p),
+      now: () => 1
+    });
+
+    scheduler.schedule(payloadA());
+    await vi.advanceTimersByTimeAsync(CLOUD_SYNC_DEBOUNCE_MS); // push(A) 진입 후 붙잡힘
+    scheduler.schedule(payloadB()); // push 진행 중 사용자가 더 편집(pending=B, 아직 클라우드엔 없음)
+    inFlight.release(); // push(A) 완료 → onSaved(A)
+    await vi.advanceTimersByTimeAsync(0); // 마이크로태스크 flush
+
+    // base는 방금 클라우드에 올라간 A로 잡아야 한다 — 현재값 B로 잡으면 다음 세션이 클라우드(A)를 되돌린다.
+    expect(saved).toHaveLength(1);
+    expect(saved[0].savedName).toBe('A');
+  });
+
+  it('onSaved는 skipped/offline/suspended/error에는 호출되지 않는다 (base 오염 방지)', async () => {
+    for (const outcome of ['skipped', 'offline', 'suspended'] as const) {
+      const saved: PersistedAppStatePayload[] = [];
+      const scheduler = createCloudSyncScheduler({
+        push: async () => outcome,
+        onStatus: () => undefined,
+        onSaved: (p) => saved.push(p)
+      });
+      scheduler.schedule(payloadA());
+      await vi.advanceTimersByTimeAsync(CLOUD_SYNC_DEBOUNCE_MS);
+      expect(saved).toEqual([]);
+    }
+
+    const savedOnError: PersistedAppStatePayload[] = [];
+    const scheduler = createCloudSyncScheduler({
+      push: async (_p, ctx) => {
+        ctx.onSaving();
+        throw new Error('network');
+      },
+      onStatus: () => undefined,
+      onSaved: (p) => savedOnError.push(p)
+    });
+    scheduler.schedule(payloadA());
+    await vi.advanceTimersByTimeAsync(CLOUD_SYNC_DEBOUNCE_MS);
+    expect(savedOnError).toEqual([]);
+  });
 });
 
 describe('createAutosavePush — 로그인/설정/네트워크 게이팅', () => {
