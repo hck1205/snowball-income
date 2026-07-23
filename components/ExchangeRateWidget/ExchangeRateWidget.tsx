@@ -1,22 +1,27 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { ArrowLeftRight } from 'lucide-react';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import type { ExchangeRateView, FxRate } from './ExchangeRateWidget.types';
 import { formatAsOfDate, formatKrwRate, parseFxRate } from './ExchangeRateWidget.utils';
 import {
   AsOf,
   Disclaimer,
+  Header,
+  IconBadge,
   Message,
   Rate,
   RateLine,
   RateValue,
   Root,
   SkeletonBar,
-  StaleMark
+  StaleMark,
+  Title
 } from './ExchangeRateWidget.styled';
 
 /** 서버 프록시 경로. 엣지 공유 캐시(6h/24h)라 클라이언트는 매 조회를 그냥 때려도 된다. */
 const FX_ENDPOINT = '/api/fx';
 const WIDGET_LABEL = '오늘의 원 달러 환율';
+const WIDGET_TITLE = '원↔달러 환율';
 const DISCLAIMER = '참고용 · 시뮬레이션 계산에는 반영되지 않아요';
 const FAILURE_MESSAGE = '환율을 불러오지 못했어요';
 
@@ -88,8 +93,9 @@ const useExchangeRate = (): ExchangeRateView => {
 /**
  * 금일 원↔달러 환율 위젯 (표시 전용, Option A).
  *
- * 좌패널에 얹는 참고용 스트립 — 서버 프록시 `/api/fx` 의 값을 그대로 그린다. 계산 엔진과 완전히 분리돼 있어
- * (엔진에 아무것도 넘기지 않는다) 저장·공유·시뮬레이션 결과에 영향이 없다.
+ * 좌패널에 얹는 참고용 카드 — 아이콘 배지 + 타이틀로 "환율 위젯"임을 드러내고, 서버 프록시 `/api/fx` 의 값을
+ * 그대로 그린다. 계산 엔진과 완전히 분리돼 있어(엔진에 아무것도 넘기지 않는다) 저장·공유·시뮬레이션 결과에
+ * 영향이 없다.
  */
 function ExchangeRateWidgetComponent() {
   const view = useExchangeRate();
@@ -97,6 +103,13 @@ function ExchangeRateWidgetComponent() {
 
   return (
     <Root aria-label={WIDGET_LABEL} aria-busy={view.status === 'loading'}>
+      <Header>
+        <IconBadge aria-hidden="true">
+          <ArrowLeftRight size={15} strokeWidth={1.8} focusable={false} />
+        </IconBadge>
+        <Title>{WIDGET_TITLE}</Title>
+      </Header>
+
       {view.status === 'loading' ? (
         <>
           <RateLine>

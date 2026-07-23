@@ -11,6 +11,7 @@ vi.mock('@/shared/lib/analytics', async (importOriginal) => {
 });
 
 const WIDGET_LABEL = '오늘의 원 달러 환율';
+const WIDGET_TITLE = '원↔달러 환율';
 const DISCLAIMER = '참고용 · 시뮬레이션 계산에는 반영되지 않아요';
 const FAILURE_MESSAGE = '환율을 불러오지 못했어요';
 
@@ -36,6 +37,9 @@ describe('ExchangeRateWidget — 표시 전용 환율 (Option A)', () => {
 
     render(<ExchangeRateWidget />);
 
+    // 위젯 정체성: 아이콘 배지 + 타이틀 heading 은 로딩부터 항상 보인다("환율 위젯"임을 한눈에).
+    expect(screen.getByRole('heading', { name: WIDGET_TITLE })).toBeInTheDocument();
+
     // 첫 페인트 = 로딩(스켈레톤). 안내는 로딩 중에도 상시 노출.
     expect(region()).toHaveAttribute('aria-busy', 'true');
     expect(region()).toHaveTextContent(DISCLAIMER);
@@ -54,6 +58,8 @@ describe('ExchangeRateWidget — 표시 전용 환율 (Option A)', () => {
     render(<ExchangeRateWidget />);
 
     expect(await screen.findByText(FAILURE_MESSAGE)).toBeInTheDocument();
+    // 값이 없어도 위젯 정체성(타이틀)은 유지된다.
+    expect(screen.getByRole('heading', { name: WIDGET_TITLE })).toBeInTheDocument();
     // 값이 없으니 가짜 환율·참고용 문구를 그리지 않는다.
     expect(region()).not.toHaveTextContent('≈');
     expect(region()).not.toHaveTextContent(DISCLAIMER);
