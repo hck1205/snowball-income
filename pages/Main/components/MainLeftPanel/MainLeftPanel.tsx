@@ -54,8 +54,9 @@ function MainLeftPanelComponent({
     readLocalAutosaveForSync,
   } = usePortfolioPersistence();
 
-  // 세션 시작 시 클라우드 워크스페이스 동기화. 내용 충돌이 감지되면 화해 API(conflict/summary/resolve*/defer)를
-  // 반환한다 — 그걸 캡처해 충돌 모달에 연결한다. 로컬 read는 하이드레이션과 공유한다(readLocalAutosaveForSync).
+  // 세션 시작 시 클라우드 워크스페이스 동기화. **진짜 동시편집(양쪽 다 base에서 변함)** 만 충돌로 감지되고
+  // 화해 API(conflict/summary/resolve*/defer)를 반환한다 — 그걸 캡처해 화해 모달에 연결한다. 단방향 변경은
+  // 엔진이 조용히 fast-forward한다(모달 없음). 로컬 read는 하이드레이션과 공유한다(readLocalAutosaveForSync).
   const {
     conflict,
     summary,
@@ -165,7 +166,8 @@ function MainLeftPanelComponent({
         onHelpReinvestTiming={handleHelpReinvestTiming}
         onHelpDpsGrowthMode={handleHelpDpsGrowthMode}
       />
-      {/* 충돌 화해 모달 — 전역 오버레이로 body에 포털. 닫기(Esc/바깥클릭)는 이연이다(무음 화해 금지). */}
+      {/* 충돌 화해 모달 — 전역 오버레이로 body에 포털. 닫기(Esc/바깥클릭)는 이연이다(무음 화해 금지).
+          merge-base 덕분에 진짜 동시편집일 때만 세션당 1회 열린다(단방향 변경은 조용히 fast-forward). */}
       {isConflictModalOpen && summary && modalRoot
         ? createPortal(
             <CloudReconcileModal
