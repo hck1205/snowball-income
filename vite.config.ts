@@ -33,12 +33,61 @@ const stripTrailingSlash = (url: string) => url.replace(/\/+$/, '');
  * 사이트맵에 넣을 **정적 라우트**. router/routes.tsx의 실제 공개 라우트와 일치해야 한다.
  * 글 상세(`/community/:kind/:id`)는 DB에서 오므로 여기가 아니라 `/api/sitemap`(동적)이 담당한다.
  * 글쓰기/수정/프로필은 로그인 전용 화면이라 색인 대상이 아니다.
+ *
+ * 티커 SEO 랜딩(`/ticker/:name`, `/ticker/all` 허브)은 **여기 하드코딩하지 않는다** — 아래
+ * `loadTickerRoutes()`가 `shared/constants/tickers`의 `TICKER_CONTENT_LIST`에서 파생해
+ * `buildPagesSitemap`에 합류시킨다. 티커 하나 추가(registry.ts 한 줄)만으로 이 사이트맵도 자동
+ * 갱신되며, 이 파일을 다시 손댈 필요가 없다.
  */
 const ROUTES = [
   { path: '/', priority: '1.0', changefreq: 'weekly' },
   { path: '/community/portfolio', priority: '0.8', changefreq: 'daily' },
   { path: '/community/board', priority: '0.8', changefreq: 'daily' }
 ] as const;
+
+type SitemapRoute = { path: string; priority: string; changefreq: string };
+
+/** `/ticker/all` 선택 허브 — `server/handlers/TickerHtml/TickerHtml.ts`의 `HUB_PATH`와 리터럴을 맞춘다. */
+const TICKER_HUB_PATH = '/ticker/all';
+
+/**
+ * `shared/constants/tickers`를 config 파일에서 그냥 import할 수는 없다(위 `loadEngine`과 같은 이유 —
+ * Vite config 로더가 `@/...` 스펙파이어를 external로 빼버린다). esbuild로 한 번 번들해 메모리에서
+ * 평가한다. 여기서 필요한 건 `slug`뿐이라 최소 타입만 선언한다.
+ */
+type TickerRouteEntry = { slug: string };
+
+let tickerRoutesPromise: Promise<TickerRouteEntry[]> | null = null;
+
+const loadTickerRoutes = (): Promise<TickerRouteEntry[]> => {
+  tickerRoutesPromise ??= (async () => {
+    const rootDir = fileURLToPath(new URL('.', import.meta.url));
+    const { outputFiles } = await esbuild({
+      stdin: {
+        contents: `export { TICKER_CONTENT_LIST } from './shared/constants/tickers';`,
+        resolveDir: rootDir,
+        loader: 'ts'
+      },
+      bundle: true,
+      write: false,
+      format: 'esm',
+      platform: 'node',
+      target: 'node20',
+      tsconfig: 'tsconfig.json',
+      logLevel: 'silent'
+    });
+    const source = Buffer.from(outputFiles[0].text).toString('base64');
+    const mod = (await import(`data:text/javascript;base64,${source}`)) as { TICKER_CONTENT_LIST: TickerRouteEntry[] };
+    return mod.TICKER_CONTENT_LIST;
+  })();
+  return tickerRoutesPromise;
+};
+
+/** 허브(주 1회 갱신 성격) + 개별 티커(콘텐츠 변경이 드묾, 월 1회 성격)를 사이트맵 라우트로 변환한다. */
+const buildTickerSitemapRoutes = (tickers: readonly TickerRouteEntry[]): SitemapRoute[] => [
+  { path: TICKER_HUB_PATH, priority: '0.6', changefreq: 'weekly' },
+  ...tickers.map((ticker) => ({ path: `/ticker/${ticker.slug}`, priority: '0.6', changefreq: 'monthly' }))
+];
 
 /**
  * ## 사이트맵을 3파일로 쪼갠 이유 (파일시스템 우선순위 회피)
@@ -70,11 +119,12 @@ const buildSitemapIndex = (siteUrl: string, lastmod: string) =>
 </sitemapindex>
 `;
 
-const buildPagesSitemap = (siteUrl: string, lastmod: string) =>
+const buildPagesSitemap = (siteUrl: string, lastmod: string, extraRoutes: readonly SitemapRoute[] = []) =>
   `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
-${ROUTES.map(
-  ({ path, priority, changefreq }) => `  <url>
+${[...ROUTES, ...extraRoutes]
+  .map(
+    ({ path, priority, changefreq }) => `  <url>
     <loc>${siteUrl}${path}</loc>
     <xhtml:link rel="alternate" hreflang="ko" href="${siteUrl}${path}" />
     <xhtml:link rel="alternate" hreflang="x-default" href="${siteUrl}${path}" />
@@ -82,7 +132,8 @@ ${ROUTES.map(
     <changefreq>${changefreq}</changefreq>
     <priority>${priority}</priority>
   </url>`
-).join('\n')}
+  )
+  .join('\n')}
 </urlset>
 `;
 
@@ -299,9 +350,11 @@ const seoAssetsPlugin = (siteUrl: string): Plugin => {
   const lastmod = new Date().toISOString().slice(0, 10);
   // ⚠ `/sitemap-posts.xml`은 여기에 **넣지 않는다** — dist에 파일이 생기면 vercel.json의
   //   `/sitemap-posts.xml → /api/sitemap` rewrite가 파일시스템 히트에 막혀 죽는다(위 buildSitemapIndex 주석).
-  const files: Record<string, () => string> = {
+  // `/sitemap-pages.xml`만 비동기다 — 티커 라우트를 `loadTickerRoutes()`(esbuild 메모리 평가)로
+  // 파생해야 하기 때문(위 `buildStaticExampleHtml`/`loadEngine`과 같은 이유·같은 기법).
+  const files: Record<string, () => string | Promise<string>> = {
     '/sitemap.xml': () => buildSitemapIndex(siteUrl, lastmod),
-    '/sitemap-pages.xml': () => buildPagesSitemap(siteUrl, lastmod),
+    '/sitemap-pages.xml': async () => buildPagesSitemap(siteUrl, lastmod, buildTickerSitemapRoutes(await loadTickerRoutes())),
     '/robots.txt': () => buildRobots(siteUrl)
   };
 
@@ -332,12 +385,15 @@ const seoAssetsPlugin = (siteUrl: string): Plugin => {
         const create = req.url ? files[req.url.split('?')[0]] : undefined;
         if (!create) return next();
         res.setHeader('Content-Type', req.url?.startsWith('/sitemap') ? 'application/xml' : 'text/plain');
-        res.end(create());
+        // create()가 비동기(`/sitemap-pages.xml`)일 수 있어 apiDevPlugin과 같은 async IIFE로 감싼다.
+        void (async () => {
+          res.end(await create());
+        })();
       });
     },
-    generateBundle() {
+    async generateBundle() {
       for (const [route, create] of Object.entries(files)) {
-        this.emitFile({ type: 'asset', fileName: route.slice(1), source: create() });
+        this.emitFile({ type: 'asset', fileName: route.slice(1), source: await create() });
       }
     }
   };

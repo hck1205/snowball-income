@@ -31,6 +31,7 @@ model: inherit
 | GA4 사용자 데이터 분석 (MCP) | `shared/lib/analytics.ts` 이벤트 | `analytics-analyst` |
 | 커밋·브랜치·PR | git | `git-manager` |
 | README·llms.txt·sitemap·PR 설명 | `public/`, 루트 md | `docs-seo-writer` |
+| ETF·티커 SEO 소개 랜딩 페이지 (콘텐츠 모델·크롤러 HTML·JSON-LD·사이트맵) | 티커 페이지 vertical | `etf-seo-page-builder` |
 
 넓은 조사/검색 → `Explore` 또는 `general-purpose`. 구현 전략 설계 → `Plan`.
 

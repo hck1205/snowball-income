@@ -1,6 +1,6 @@
 import { useInRouterContext } from 'react-router-dom';
-// per-icon named import(트리셰이킹) → 엔트리에는 이 세 아이콘만 실린다(CommunityNavLink·ThemePresetSwitcher와 동일 패턴).
-import { LayoutGrid, LineChart, MessageSquare } from 'lucide-react';
+// per-icon named import(트리셰이킹) → 엔트리에는 이 아이콘들만 실린다(CommunityNavLink·ThemePresetSwitcher와 동일 패턴).
+import { BookOpen, LayoutGrid, LineChart, MessageSquare } from 'lucide-react';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
 import { isCommunityEnabled } from '@/shared/lib/supabase';
 import {
@@ -73,6 +73,12 @@ export default function PrimaryNav({ brandAs = 'span' }: PrimaryNavProps) {
         <NavItem to="/" end aria-label={n.simulator}>
           <LineChart size={16} strokeWidth={1.8} aria-hidden focusable={false} />
           <NavLabel>{n.simulator}</NavLabel>
+        </NavItem>
+        {/* 티커 SEO 소개 허브 — 커뮤니티 활성 여부와 무관하게 항상 노출(콘텐츠 페이지 자체는 lazy 청크에만 있고
+            여기 링크는 경로 문자열일 뿐이라 엔트리 번들이 커지지 않는다). */}
+        <NavItem to="/ticker/all" aria-label={n.tickers}>
+          <BookOpen size={16} strokeWidth={1.8} aria-hidden focusable={false} />
+          <NavLabel>{n.tickers}</NavLabel>
         </NavItem>
         {isCommunityEnabled ? (
           <>
