@@ -9,6 +9,7 @@
  */
 export const API_BUNDLES = [
   { entry: 'server/handlers/AccountDelete/AccountDelete.ts', out: 'api/account-delete.js' },
+  { entry: 'server/handlers/Fx/Fx.ts', out: 'api/fx.js' },
   { entry: 'server/handlers/NaverAuth/NaverAuth.ts', out: 'api/naver-auth.js' },
   { entry: 'server/handlers/Og/Og.tsx', out: 'api/og.js' },
   { entry: 'server/handlers/PostHtml/PostHtml.ts', out: 'api/post-html.js' },

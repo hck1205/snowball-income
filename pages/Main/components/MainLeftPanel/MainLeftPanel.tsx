@@ -2,6 +2,7 @@ import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import InvestmentSettings from "@/components/InvestmentSettings";
 import TickerCreation from "@/components/TickerCreation";
+import ExchangeRateWidget from "@/components/ExchangeRateWidget";
 import { CloudReconcileModal } from "@/components/CloudReconcileModal";
 import { previewBlend } from "@/jotai/snowball/cloud";
 import MainContentLoader from "@/pages/Main/components/MainContentLoader";
@@ -154,6 +155,9 @@ function MainLeftPanelComponent({
         onTickerPressEnd={handleTickerPressEnd}
         onOpenEdit={openTickerEditModal}
       />
+      {/* 표시 전용 금일 원↔달러 환율(참고용). 계산 엔진과 분리 — 엔진에 아무것도 넘기지 않아
+          저장/공유/시뮬레이션 결과에 영향이 없다. 하이드레이션 게이트 이후에만 마운트된다. */}
+      <ExchangeRateWidget />
       <InvestmentSettings
         values={values}
         showQuickEstimate={showQuickEstimate}

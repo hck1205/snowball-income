@@ -25,7 +25,6 @@ import {
   MainOverflowMenu,
   MainRightPanel,
   MarketDataAsOf,
-  ModelChangeNotice,
 } from "./components";
 import { globalStyle } from "./Main.styled";
 import { TOUR_TARGET } from "@/shared/constants";
@@ -175,7 +174,6 @@ function MainViewComponent({ viewModel }: MainViewProps) {
             drawerId={configDrawerId}
             isOpen={isConfigDrawerOpen}
             onClose={closeConfigDrawer}
-            notice={<ModelChangeNotice />}
             left={
               <MainLeftPanel
                 onHydratedChange={setIsPortfolioHydrated}
