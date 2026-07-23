@@ -1,4 +1,4 @@
-import { isSameMeaningfulPayload, isSamePersistedPayload } from '../persistence';
+import { isSameMeaningfulPayload, isSamePersistedPayload, serializeMeaningfulPayload } from '../persistence';
 import type { PersistedAppStatePayload } from '../types';
 import { isWorkspaceSubsumedBy } from './cloudWorkspaceReconcile';
 
@@ -12,6 +12,14 @@ import { isWorkspaceSubsumedBy } from './cloudWorkspaceReconcile';
  *
  * 분기(+IO 실패 보류):
  *  1. **내용 동일** → no-op. 타임스탬프 비교보다 **먼저** 판정해 clock skew로 인한 불필요한 덮어쓰기를 막는다.
+ *  1.3 **merge-base 3-way**(base 주입 시 우선): per-user 마지막 동기화 기준 해시(base=`serializeMeaningfulPayload`)로
+ *     "로컬/클라우드가 **각각 base에서 바뀌었나**"를 판정한다. 타임스탬프 휴리스틱의 구조적 사각(진짜 발산·모호
+ *     타임스탬프를 전부 conflict로 남겨 다기기 핑퐁을 유발)을 없앤다.
+ *      · **로컬만** 변함(cloud==base) → 로컬을 FF push(무손실). 삭제·추가 모두 포함(1.45 삭제레이스를 시각 없이 흡수).
+ *      · **클라우드만** 변함(local==base) → 이 기기 미편집 → 클라우드 FF apply+미러(무손실).
+ *      · **양쪽 다** 변함 → 진짜 동시편집 → conflict(모달 1회). 해결 시 base 갱신 → 재발 없음.
+ *     base가 없으면(레거시·신규 기기·localStorage 불가) 이 블록을 건너뛰고 아래 1.4/1.45/1.5 휴리스틱으로 **폴백**한다.
+ *     게이트는 1.5와 같다(둘 다 내용 있음). 어느 종단 수렴(noop/applied-cloud/pushed-local)에서든 합의 해시로 base를 확립한다.
  *  1.4 **클라우드 ⊆ 로컬**(모든 클라우드 탭이 로컬에 그대로 있음) → 충돌이 아니라 "로컬이 앞서 있음".
  *     묻지 않고 로컬을 push한다(무손실 — 블렌드해도 로컬과 같은 결과).
  *  1.45 **로컬 ⊂ 클라우드 + 로컬이 엄격히 더 최근 편집**(양쪽 시각 정의 + localUpdatedAt > cloudSavedAt)
@@ -85,6 +93,16 @@ export type CloudWorkspaceSyncDeps = {
   writeLocalAutosave: (payload: PersistedAppStatePayload) => Promise<void>;
   /** 로컬 payload를 클라우드 autosave로 push(savedAt은 원본 편집시각을 심는다). */
   pushCloudAutosave: (payload: PersistedAppStatePayload, savedAt: number) => Promise<void>;
+  /**
+   * 마지막 동기화 기준 해시(merge-base) 읽기. `undefined`면 base 없음 → 종전 휴리스틱 폴백(하위호환).
+   * 순수·결정론 유지를 위해 주입한다(엔진이 localStorage를 직접 만지지 않는다). 미주입=폴백.
+   */
+  readBase?: () => string | undefined;
+  /**
+   * 수렴(noop/applied-cloud/pushed-local) 시 합의된 payload의 해시를 기록한다 — 다음 세션의 3-way 기준.
+   * 충돌(conflict)·실패에는 부르지 않는다(합의가 없으므로). 미주입=no-op(폴백 모드).
+   */
+  writeBase?: (hash: string) => void;
   /** savedAt 폴백용 시각(로컬 updatedAt이 없을 때). 결정론 테스트를 위해 주입. */
   now?: () => number;
   /** 계측 신호(선택). */
@@ -94,6 +112,11 @@ export type CloudWorkspaceSyncDeps = {
 /** 클라우드 payload가 현재 앱과 다를 때만 적용(불필요한 리렌더·재저장 회피). */
 const applyIfChanged = (deps: CloudWorkspaceSyncDeps, payload: PersistedAppStatePayload): void => {
   if (!isSamePersistedPayload(payload, deps.getCurrentPayload())) deps.applyPayload(payload);
+};
+
+/** 수렴 시 합의 payload의 의미있는 해시를 base로 확립(다음 세션 3-way 기준). writeBase 미주입=no-op(폴백). */
+const recordBase = (deps: CloudWorkspaceSyncDeps, payload: PersistedAppStatePayload): void => {
+  deps.writeBase?.(serializeMeaningfulPayload(payload));
 };
 
 /**
@@ -125,11 +148,28 @@ const pushLocal = async (
   try {
     await deps.pushCloudAutosave(localPayload, localUpdatedAt ?? now());
   } catch {
-    // push 실패 → 로컬 보존(로컬을 정본으로 이미 갖고 있음). 무음 실패 금지.
+    // push 실패 → 로컬 보존(로컬을 정본으로 이미 갖고 있음). 무음 실패 금지. base는 갱신하지 않는다(수렴 실패).
     deps.onEvent?.({ type: 'failed', reason: 'push-error' });
     return;
   }
+  // 로컬 = 양쪽 정본으로 수렴 → base 확립.
+  recordBase(deps, localPayload);
   deps.onEvent?.({ type: 'pushed-local' });
+};
+
+/** 클라우드 정본 → 앱 적용 + 로컬 미러 + base 확립. 미러 실패는 이벤트로 알린다(무음 금지, base 갱신 안 함). */
+const applyCloud = async (deps: CloudWorkspaceSyncDeps, cloudPayload: PersistedAppStatePayload): Promise<void> => {
+  applyIfChanged(deps, cloudPayload);
+  try {
+    await deps.writeLocalAutosave(cloudPayload);
+  } catch {
+    // 미러 실패 → 앱에는 적용됨, 로컬은 다음 자동저장이 따라잡는다. 무음 실패 금지. base는 갱신하지 않는다.
+    deps.onEvent?.({ type: 'failed', reason: 'mirror-error' });
+    return;
+  }
+  // 클라우드 = 양쪽 정본으로 수렴 → base 확립.
+  recordBase(deps, cloudPayload);
+  deps.onEvent?.({ type: 'applied-cloud' });
 };
 
 export const syncCloudWorkspaceAtSessionStart = async (deps: CloudWorkspaceSyncDeps): Promise<void> => {
@@ -161,7 +201,40 @@ export const syncCloudWorkspaceAtSessionStart = async (deps: CloudWorkspaceSyncD
 
   // 1) 내용 동일(의미있는 관점) → no-op. 타임스탬프 비교보다 먼저(clock skew 방지).
   if (cloud && localPayload && isSameMeaningfulPayload(cloud.payload, localPayload)) {
+    // 이미 양쪽이 합의 상태 → 그 내용을 base로 확립(base가 비었던 기기도 여기서 자동 확립).
+    recordBase(deps, localPayload);
     deps.onEvent?.({ type: 'noop' });
+    return;
+  }
+
+  // 1.3) merge-base 3-way(base 주입 시 우선). "로컬/클라우드가 각각 base에서 바뀌었나"로 판정한다.
+  //   base가 있으면 타임스탬프 휴리스틱(1.4/1.45/1.5)보다 정확하다 — 진짜 발산·모호 타임스탬프를 전부
+  //   conflict로 남겨 다기기 핑퐁을 유발하던 구조적 사각을 없앤다. 게이트는 1.5와 같다(둘 다 내용 있음).
+  //   base가 없으면(레거시·신규 기기·localStorage 불가) 이 블록을 건너뛰어 아래 휴리스틱으로 폴백한다(하위호환).
+  const base = deps.readBase?.();
+  if (base !== undefined && cloud && localPayload && hasContent(localPayload) && hasContent(cloud.payload)) {
+    // 여기 도달 = 1)에서 안 걸림 → 로컬·클라우드가 의미있게 다름 → 최소 한쪽은 base와도 다르다.
+    const localChanged = serializeMeaningfulPayload(localPayload) !== base;
+    const cloudChanged = serializeMeaningfulPayload(cloud.payload) !== base;
+    if (localChanged && !cloudChanged) {
+      // 로컬만 base에서 전진(클라우드는 아직 base) → 무손실 FF push. 삭제·추가 모두 흡수(1.45를 시각 없이 대체).
+      await pushLocal(deps, localPayload, local.updatedAt);
+      return;
+    }
+    if (cloudChanged && !localChanged) {
+      // 클라우드만 base에서 전진(이 기기는 미편집, local==base) → 무손실 FF apply+미러.
+      await applyCloud(deps, cloud.payload);
+      return;
+    }
+    // 양쪽 다 base에서 변함 → 진짜 동시편집 → 자동 병합 금지(유실 위험), 경계(모달)로 위임. base는 갱신 안 함
+    // (합의 없음 — 해결 시 resolveWith가 갱신해 재발을 끊는다).
+    deps.onEvent?.({
+      type: 'conflict',
+      local: localPayload,
+      cloud: cloud.payload,
+      localUpdatedAt: local.updatedAt,
+      cloudSavedAt: cloud.savedAt
+    });
     return;
   }
 
@@ -210,20 +283,12 @@ export const syncCloudWorkspaceAtSessionStart = async (deps: CloudWorkspaceSyncD
     return;
   }
 
-  // 2·4) 클라우드가 정본 → 적용 + 로컬 미러.
+  // 2·4) 클라우드가 정본 → 적용 + 로컬 미러(+ base 확립).
   if (cloudIsCanonical(cloud, localPayload, local.updatedAt) && cloud) {
-    applyIfChanged(deps, cloud.payload);
-    try {
-      await deps.writeLocalAutosave(cloud.payload);
-    } catch {
-      // 미러 실패 → 앱에는 적용됨, 로컬은 다음 자동저장이 따라잡는다. 무음 실패 금지.
-      deps.onEvent?.({ type: 'failed', reason: 'mirror-error' });
-      return;
-    }
-    deps.onEvent?.({ type: 'applied-cloud' });
+    await applyCloud(deps, cloud.payload);
     return;
   }
 
-  // 3·4) 로컬이 정본 → 클라우드에 push(원본 편집시각을 savedAt으로 심는다).
+  // 3·4) 로컬이 정본 → 클라우드에 push(원본 편집시각을 savedAt으로 심는다, + base 확립).
   if (localPayload) await pushLocal(deps, localPayload, local.updatedAt);
 };

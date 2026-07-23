@@ -7,6 +7,7 @@
  */
 export * from './cloudAutosaveTimestamp';
 export * from './cloudConflictState';
+export * from './cloudSyncBase';
 export * from './cloudSyncEngine';
 export * from './cloudSyncState';
 export * from './cloudWorkspaceReconcile';
