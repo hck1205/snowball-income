@@ -10,6 +10,7 @@
       "destination": "/api/post-html?kind=portfolio&id=:id"
     },
     { "source": "/community/board/:id", "destination": "/api/post-html?kind=board&id=:id" },
+    { "source": "/ticker/:name", "destination": "/api/ticker-html?name=:name" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
 

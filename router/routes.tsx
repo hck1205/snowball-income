@@ -37,6 +37,16 @@ function AnalyticsLayout() {
  * 레이아웃(`CommunityLayout`)이 자식 Outlet을 Suspense로 감싸므로 자식 페이지는 별도 Suspense가 필요 없다.
  * `isCommunityEnabled`가 false면 배열이 비어 라우트가 존재하지 않고, 아래 `*` 리다이렉트가 처리한다.
  */
+/**
+ * 티커 SEO 랜딩 — `React.lazy`로 격리한다.
+ *
+ * 티커 콘텐츠(`shared/constants/tickers`의 한국어 서사·FAQ)는 이 lazy 청크 안에서만 import되어야
+ * 엔트리 번들에 실리지 않는다(decisions.md "티커 SEO 콘텐츠" 격리 관례). `/ticker/all`을
+ * `:name`보다 먼저 등록해 정적 세그먼트가 파라미터보다 우선 매칭되게 한다.
+ */
+const TickerHubPage = lazy(() => import('@/pages/Ticker/TickerHubPage'));
+const TickerDetailPage = lazy(() => import('@/pages/Ticker/TickerDetailPage'));
+
 const CommunityLayout = lazy(() => import('@/pages/Community/CommunityLayout'));
 const CommunityGalleryPage = lazy(() => import('@/pages/Community/CommunityGalleryPage'));
 const CommunityBoardPage = lazy(() => import('@/pages/Community/CommunityBoardPage'));
@@ -101,6 +111,22 @@ export const routes: RouteObject[] = [
       {
         path: '/',
         element: <MainPage />
+      },
+      {
+        path: '/ticker/all',
+        element: (
+          <Suspense fallback={null}>
+            <TickerHubPage />
+          </Suspense>
+        )
+      },
+      {
+        path: '/ticker/:name',
+        element: (
+          <Suspense fallback={null}>
+            <TickerDetailPage />
+          </Suspense>
+        )
       },
       ...naverCallbackRoute,
       ...communityRoutes,
