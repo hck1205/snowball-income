@@ -16,6 +16,7 @@
     "test:ci": "vitest run --exclude \"**/SnowballApp.test.tsx\"",
     "index": "node tools/indexer/build-index.mjs",
     "search": "node tools/indexer/search.mjs",
+    "verify": "node tools/dev/verify.mjs",
     "hooks:install": "git config core.hooksPath .githooks"
   },
   "dependencies": {
