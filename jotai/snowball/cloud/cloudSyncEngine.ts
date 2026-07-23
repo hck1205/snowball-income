@@ -61,6 +61,13 @@ export type CloudSyncScheduler = {
 export const createCloudSyncScheduler = (opts: {
   push: CloudPushFn;
   onStatus: (state: CloudSyncState) => void;
+  /**
+   * 클라우드에 **실제 반영된**('saved') 직후, **그때 push된 payload**로 호출된다(현재값 아님).
+   * merge-base 갱신 훅 — 경계(useCloudSync)가 이 payload 해시를 base로 기록한다. skipped/offline/
+   * suspended/error에는 부르지 않는다. ⚠ 반드시 인자로 받은 payload를 쓸 것: run() 진입 시 캡처된
+   * 그 payload라, push 완료를 기다리는 사이 사용자가 더 편집했어도(현재값 전진) base가 클라우드보다 앞서지 않는다.
+   */
+  onSaved?: (payload: PersistedAppStatePayload) => void;
   debounceMs?: number;
   now?: () => number;
 }): CloudSyncScheduler => {
@@ -94,6 +101,8 @@ export const createCloudSyncScheduler = (opts: {
       const outcome = await opts.push(payload, { onSaving: markSaving });
       if (outcome === 'saved') {
         lastSavedAt = now();
+        // base는 **방금 push된 이 payload**로 갱신한다(현재값이 아니라 run() 진입 시 캡처된 payload).
+        opts.onSaved?.(payload);
         opts.onStatus({ status: 'saved', lastSavedAt });
       } else if (outcome === 'offline') {
         opts.onStatus({ status: 'offline', lastSavedAt });

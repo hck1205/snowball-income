@@ -6,9 +6,11 @@ import {
   pushCloudAutosave,
   type CommunityClient
 } from '@/shared/lib/supabase';
-import { normalizePersistedAppState } from '../persistence';
+import { useSessionAtomValue } from '@/jotai/community';
+import { normalizePersistedAppState, serializeMeaningfulPayload } from '../persistence';
 import type { PersistedAppStatePayload } from '../types';
 import { readCloudSavedAt, stampCloudAutosave } from './cloudAutosaveTimestamp';
+import { writeSyncBase } from './cloudSyncBase';
 import { createAutosavePush, createCloudSyncScheduler } from './cloudSyncEngine';
 import type { CloudAutosaveRead } from './cloudWorkspaceSyncEngine';
 import { useCloudSyncStateValue, useSetCloudSyncStateWrite } from './cloudSyncState';
@@ -44,6 +46,13 @@ export const useCloudSync = () => {
   const isSuspendedRef = useRef(syncStatus === 'conflict');
   isSuspendedRef.current = syncStatus === 'conflict';
 
+  // 로그인 사용자 id — merge-base(cloudSyncBase)의 per-user 키. 'saved'일 때만 base를 갱신한다.
+  // ref로 최신값을 들고 스케줄러 useMemo 밖에서 참조한다(로그인 전이마다 스케줄러를 재생성해 진행 중
+  // 디바운스를 날리지 않게). push는 로그인 상태에서만 'saved'가 되므로 그 시점 userId는 항상 채워져 있다.
+  const userId = useSessionAtomValue()?.user?.id ?? '';
+  const userIdRef = useRef(userId);
+  userIdRef.current = userId;
+
   const scheduler = useMemo(
     () =>
       createCloudSyncScheduler({
@@ -55,7 +64,13 @@ export const useCloudSync = () => {
           // 성립한다(세션 시작 엔진만이 아니라 여기도 stamped). savedAt은 정규화가 버리므로 no-op 게이트 무영향.
           push: (client, payload) => pushCloudAutosave(client, stampCloudAutosave(payload, Date.now()))
         }),
-        onStatus: setSyncState
+        onStatus: setSyncState,
+        // 클라우드에 실제 반영된('saved') payload로만 base를 갱신한다 — 이 payload가 곧 클라우드 정본이라,
+        // 다음 세션 시작 3-way에서 로컬(더 편집됐을 수 있음)만 base에서 전진한 것으로 정확히 판정된다.
+        onSaved: (pushedPayload) => {
+          const uid = userIdRef.current;
+          if (uid) writeSyncBase(uid, serializeMeaningfulPayload(pushedPayload));
+        }
       }),
     [setSyncState]
   );

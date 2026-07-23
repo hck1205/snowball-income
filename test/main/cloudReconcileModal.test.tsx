@@ -6,20 +6,21 @@ import type { CloudReconciliationSummary } from '@/jotai/snowball/cloud';
 
 /**
  * 충돌 화해 모달 — **사용자 행동**으로 검증한다(3버튼 각 부작용은 콜백 mock으로).
- * 색/Emotion 내부가 아니라 텍스트·역할·포커스로 단정한다.
+ * 색/Emotion 내부가 아니라 텍스트·역할·포커스로 단정한다. merge-base 덕분에 이 모달은 진짜 동시편집일
+ * 때만 세션당 1회 뜨므로 카피는 차분하다(경보가 아니라 "어떻게 이어갈지" 선택).
  */
-const NOW = new Date('2026-07-19T00:11:00Z');
+const NOW = new Date('2026-07-23T00:11:00Z');
 
 const makeSummary = (over: Partial<CloudReconciliationSummary> = {}): CloudReconciliationSummary => ({
   device: {
     tabCount: 2,
     tabNames: ['성장형', '배당형'],
-    lastEditedAt: Date.parse('2026-07-19T00:10:00Z')
+    lastEditedAt: Date.parse('2026-07-23T00:10:00Z')
   },
   cloud: {
     tabCount: 1,
     tabNames: ['은퇴 준비'],
-    lastEditedAt: Date.parse('2026-07-19T00:00:00Z')
+    lastEditedAt: Date.parse('2026-07-23T00:00:00Z')
   },
   ...over
 });
@@ -45,8 +46,8 @@ const renderModal = (over: { summary?: CloudReconciliationSummary; blendTabCount
 describe('CloudReconcileModal', () => {
   it('제목·본문과 양측 요약(탭 개수·이름·상대 편집시각)을 보여준다', () => {
     renderModal();
-    expect(screen.getByRole('dialog', { name: /이 기기와 클라우드에 저장된 내용이 다릅니다/ })).toBeInTheDocument();
-    expect(screen.getByText(/어느 쪽을 기준으로 맞출지 골라 주세요/)).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: /다른 기기에서도 편집했어요/ })).toBeInTheDocument();
+    expect(screen.getByText(/어떻게 이어갈지 골라 주세요/)).toBeInTheDocument();
 
     // 각 측 탭 이름이 칩으로 보인다.
     expect(screen.getByText('성장형')).toBeInTheDocument();

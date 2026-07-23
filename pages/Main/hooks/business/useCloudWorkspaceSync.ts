@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { writePersistedAppState, type PersistedAppStatePayload } from '@/jotai';
+import { serializeMeaningfulPayload, writePersistedAppState, type PersistedAppStatePayload } from '@/jotai';
 import {
+  readLocalOwner,
+  readSyncBase,
   resolveWithBlend,
   resolveWithCloud,
   resolveWithDevice,
@@ -10,6 +12,8 @@ import {
   useCloudConflictValue,
   useSetCloudConflictWrite,
   useSetCloudSyncStateWrite,
+  writeLocalOwner,
+  writeSyncBase,
   type CloudReconciliationSummary,
   type CloudWorkspaceConflict,
   type CloudWorkspaceSyncEvent,
@@ -65,12 +69,14 @@ export type CloudReconciliationApi = {
 };
 
 /**
- * 세션 시작 시 클라우드 워크스페이스를 동기화하고, **내용 충돌 시 화해 API를 노출**한다.
+ * 세션 시작 시 클라우드 워크스페이스를 동기화하고, **진짜 충돌 시에만 화해 API를 노출**한다(Policy A).
  *
  * - 무음 동기화 유지 케이스(한쪽만 존재·동일·로컬읽기실패·pull실패)는 순수 엔진이 종전대로 처리한다.
- * - **로컬·클라우드 둘 다 내용 있고 의미있게 다르면** 엔진이 `conflict`만 방출한다(어느 쪽도 안 덮음).
+ * - **merge-base 3-way**: base가 있으면 "한쪽만 base에서 변함"은 **조용한 fast-forward**(모달 없음)이고,
+ *   **양쪽 다 base에서 변함**(진짜 동시편집)일 때만 엔진이 `conflict`를 방출한다(base 없으면 휴리스틱 폴백).
  *   이 훅은 그때 충돌 스냅샷을 `cloudConflictAtom`에 담고 `cloudSyncStateAtom`을 **'conflict'**로 바꾼다
  *   (→ 클라우드 push 정지 + 헤더 표면화). 정본 결정은 모달이 부르는 resolve/defer 액션으로 사용자가 한다.
+ * - 화해 성공 시 **base를 갱신**해 다음 세션 재발을 끊는다(다기기 핑퐁 종식). defer(미해결)는 base를 안 바꾼다.
  * - **세션당 1회** 실행(로그아웃 시 리셋 + 미해결 충돌 정리). 로컬 read는 하이드레이션과 공유한다.
  */
 export const useCloudWorkspaceSync = (deps: {
@@ -85,6 +91,10 @@ export const useCloudWorkspaceSync = (deps: {
   const isLoggedIn = useIsLoggedInAtomValue();
   const session = useSessionAtomValue();
   const userId = session?.user?.id ?? '';
+  // 화해 콜백(resolveWith)이 stale userId를 닫지 않게 ref로 최신값을 참조한다(콜백 deps에 userId를 넣으면
+  // 로그인 전이마다 콜백이 재생성돼 불필요한 재바인딩이 생긴다).
+  const userIdRef = useRef(userId);
+  userIdRef.current = userId;
 
   const setCloudConflict = useSetCloudConflictWrite();
   const setSyncState = useSetCloudSyncStateWrite();
@@ -120,6 +130,13 @@ export const useCloudWorkspaceSync = (deps: {
     if (!isPortfolioHydrated || !userId || syncedForSessionRef.current) return;
     syncedForSessionRef.current = true;
 
+    // M1 계정전환 보호: **전역** 로컬 autosave(IndexedDB)의 직전 소유자(로그인 사용자)를 읽는다. 현재 사용자와
+    // 다른 특정 계정이면(A→B→A) 전역 로컬이 남의 것 → 무음 FF-push로 내 클라우드를 덮지 않게 conflict로 위임한다.
+    // foreign 판정은 claim **전** 값으로 고정한 뒤, 이 세션부터 소유권을 현재 사용자로 넘긴다(다음 전환 감지 기준).
+    const priorLocalOwner = readLocalOwner();
+    const isForeignLocal = priorLocalOwner !== undefined && priorLocalOwner !== '' && priorLocalOwner !== userId;
+    writeLocalOwner(userId);
+
     // OAuth 리다이렉트로 돌아와 세션이 잡힌 첫 시점(메인 랜딩). 로그인 완료 귀속(마커 read+clear).
     const loginSource = readAndClearLoginSource();
     if (loginSource) {
@@ -138,10 +155,17 @@ export const useCloudWorkspaceSync = (deps: {
       },
       writeLocalAutosave: writePersistedAppState,
       pushCloudAutosave: pushAutosave,
+      // merge-base 3-way: per-user 마지막 동기화 기준 해시를 읽고, 수렴(noop/FF)마다 갱신한다.
+      // base 없으면(신규 기기·localStorage 불가) 엔진이 종전 휴리스틱으로 폴백한다(하위호환).
+      readBase: () => readSyncBase(userId),
+      writeBase: (hash) => writeSyncBase(userId, hash),
+      // M1: 전역 로컬이 다른 계정 것이면 무음 FF 금지 → conflict(보호 모달). 세션시작에 고정한 값을 준다.
+      isForeignLocalWorkspace: () => isForeignLocal,
       onEvent: (event) => {
         if (cancelled) return;
         if (event.type === 'conflict') {
-          // 충돌 감지: 스냅샷을 담고 status를 'conflict'로 → 클라우드 push 정지 + 헤더 표면화. 무음 화해 금지.
+          // 진짜 동시편집(양쪽 다 base에서 변함) → 스냅샷을 담고 status를 'conflict'로 → 클라우드 push 정지 +
+          // 헤더 표면화. 무음 화해 금지. 단방향 변경은 여기 안 오고 엔진이 조용히 FF한다(모달 없음).
           setCloudConflict({
             device: event.local,
             cloud: event.cloud,
@@ -191,6 +215,9 @@ export const useCloudWorkspaceSync = (deps: {
             : mode === 'cloud'
               ? await resolveWithCloud(current.cloud, reconcileDeps)
               : await resolveWithBlend(device, current.cloud, reconcileDeps);
+        // 화해로 로컬·클라우드가 `resolved`로 수렴했다 → 그 해시를 base로 확립해 **핑퐁을 끊는다**
+        // (다음 세션은 local==base==cloud → noop, 또는 한쪽만 편집 시 조용한 FF). defer(미해결)는 갱신 안 함.
+        writeSyncBase(userIdRef.current, serializeMeaningfulPayload(resolved));
         track(ANALYTICS_EVENT.CLOUD_SYNC_CONFLICT, {
           shown: true,
           resolution: mode,

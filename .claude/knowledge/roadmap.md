@@ -47,3 +47,7 @@
 - **티커 데이터 확장이 Phase 2~3의 병목**: ETF 비교(#2)·상세(#5)·캘린더(#4)가 전부 배당 히스토리·운용보수·섹터·지급 스케줄을 요구한다. 기본 가격/배당률/주기는 2026-07-18부로 Yahoo Finance(무료)로 갱신 중이지만, 운용보수·섹터·최대낙폭·정식 지급스케줄은 여전히 소스 미확보(FMP 무료 402 확인됨)가 선행 과제. ticker-data-curator + 크론 파이프라인(scripts/tickerRefresh) 확장 지점.
 - **시계열 스냅샷**: 목표 달성 "이번 달 증가/지난달 대비"(#1), 실제 배당 기록(#6), Journey(#8)는 전부 시점별 저장이 필요 — 현재는 단일 시점 시뮬. 공통 시계열 저장 모델을 한 번 설계하면 셋이 공유.
 - **SNS 공유 카드**(#1)는 동적 OG(`api/og.tsx`) 확장으로 대부분 커버 가능.
+
+## #11 실시간 환율 — 스코핑 결론 (2026-07-23, pm-po)
+- [2026-07-23][product] **#11 첫 발판 = 표시전용(A) 위젯(계산 반영 X)** — MainLeftPanel의 TickerCreation↔InvestmentSettings 사이(`MainLeftPanel.tsx:156↔157`)에 "금일 원↔달러 환율" 정보칩. 최대 리스크는 앱의 **"환율 미반영" 스탠스와의 혼동**(입력 흐름 한복판에 환율을 두면 계산에 반영되는 것으로 오해) → 수용기준 핵심 3개: ①"참고용·시뮬레이션 미반영" 상시 문구 ②as-of 날짜는 API 실값(클라이언트 now 위장 금지) ③환율 값은 payload·`?share=`/`?s=`에 **절대 미포함**(비영속 로컬 atom).
+- [2026-07-23][data] **`tickerRefresh`(월간 크론)는 "금일 환율" 소스로 부적합** — 최대 1달 stale라 "금일" 라벨과 모순(`.github/workflows/refresh-tickers.yml:13` `cron: 0 21 1 * *`). 일 단위면 충분하므로 **키없는 CORS FX API 직접 fetch**(후보 open.er-api.com — `time_last_update_utc` as-of 제공)가 MVP, **`api/fx.js` 프록시 + `s-maxage` 캐시**(og.js 패턴)가 #11 지향 shape(공유 캐시·폴백 단일화). ⚠ exchangerate.host는 키 필요로 바뀐 정황 → 착수 시 실호출 재확인(Yahoo를 458730.KS로 검증한 규율과 동일). 성공지표는 conversion이 아니라 **health(fetch 성공률·as-of 신선도) + guardrail(핵심 퍼널 무회귀)**로 잡는다(표시전용 위젯은 전환 동인이 아님, 솔직히 명시).
