@@ -3,6 +3,7 @@
 ## 데이터·색 규율
 - [2026-07-16][design] 상승=빨강/하락=파랑 (한국 증권 관례) — **전 테마 프리셋 공통 불변**. 데이터색은 크롬(버튼·에러)에 쓰지 않는다.
 - [2026-07-16][design] 숫자(데이터)에 accent 색 금지 — accent는 배지·아이콘·장식 전용.
+- [2026-07-24][design] **환율 위젯(ExchangeRateWidget)은 pm-po AC11의 "값에 중립 토큰만"을 사용자 피드백("너무 밋밋")으로 완화** — 위젯 **크롬(아이콘 배지·타이틀·테두리)** 엔 accent 서브틀 색 허용(`accentSubtle`/`accentText`/`accentBorder`, Chip accent 변형과 동일 토큰·contrast.test 검증됨 line 85). ⚠ **단 환율 값 숫자엔 손익색(빨강=손실/파랑=이익)·accent 여전히 금지 + 등락 화살표·증감색 금지** — 환율은 P&L 이 아니다. 위 "숫자에 accent 금지"의 연장선(값은 `color.text` 중립만). 근거 components/ExchangeRateWidget/ExchangeRateWidget.styled.ts.
 - [2026-07-16][design] 그라데이션 이원화: `gradient-cta`(버튼 채움 전용) vs `gradient-aurora`(리본·장식 전용) — 교차 사용 금지.
 - [2026-07-17][design] CTA/브랜드 채움 위 라벨은 **반드시 `color.onBrand`** — 흰색 하드코딩 금지. velog·sunset·ink 다크는 라벨이 어두운색으로 반전된다 (README §1 교정 완료).
 - [2026-07-17][design] Toggle 썸은 정적 `#ffffff` — onBrand를 비브랜드 표면에 쓰면 velog 다크에서 소실(1.07:1 사고 이력).
