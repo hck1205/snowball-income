@@ -583,4 +583,44 @@ describe('merge-base 3-way: base 주입 시 FF vs 진짜 충돌(다기기 핑퐁
     expect(types(h2.events)).toEqual(['noop']);
     noSideEffects(h2.calls);
   });
+
+  // ── M1: 계정전환 무음손실 보호(전역 로컬 autosave가 다른 계정 것) ─────────────────
+  it('M1: 전역 로컬이 다른 계정 것(isForeignLocalWorkspace=true)이면 FF-push 대신 conflict — 클라우드(=base) 무음 덮어쓰기 방지', async () => {
+    const cloudAtBase = withScenarios(['AAA', 'BBB']); // cloud == base (이 사용자 A의 데이터)
+    const foreignLocal = withScenarios(['XXX', 'YYY']); // local = 다른 계정 B(base와 다름, changed)
+    const base = serializeMeaningfulPayload(cloudAtBase);
+    const h = makeHarness(
+      {
+        pullCloudAutosave: vi.fn(async () => cloud(cloudAtBase, 2000)),
+        readLocalAutosave: vi.fn(async () => localOk(foreignLocal, 9000)), // 로컬이 시각상 더 최신이어도
+        isForeignLocalWorkspace: () => true // 전역 로컬이 다른 계정 것
+      },
+      base
+    );
+
+    await syncCloudWorkspaceAtSessionStart(h.deps);
+
+    noSideEffects(h.calls); // A의 클라우드를 B로 안 덮는다(push 없음)
+    expect(types(h.events)).toEqual(['conflict']);
+    expect(h.baseStore.writes).toEqual([]); // 합의 없음 → base 불변
+  });
+
+  it('같은 계정 오프라인 확장편집(isForeignLocalWorkspace=false)은 여전히 조용한 FF-push(모달 없음)', async () => {
+    const cloudAtBase = withScenarios(['AAA', 'BBB']);
+    const localAdvanced = withScenarios(['AAA', 'BBB', 'CCC']); // 같은 계정이 확장
+    const base = serializeMeaningfulPayload(cloudAtBase);
+    const h = makeHarness(
+      {
+        pullCloudAutosave: vi.fn(async () => cloud(cloudAtBase, 2000)),
+        readLocalAutosave: vi.fn(async () => localOk(localAdvanced, 1000)),
+        isForeignLocalWorkspace: () => false // 현재 사용자 소유 → 종전대로 조용한 FF
+      },
+      base
+    );
+
+    await syncCloudWorkspaceAtSessionStart(h.deps);
+
+    expect(types(h.events)).toEqual(['pushed-local']);
+    expect(h.calls.push).toEqual([{ payload: localAdvanced, savedAt: 1000 }]);
+  });
 });

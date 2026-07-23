@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { serializeMeaningfulPayload, writePersistedAppState, type PersistedAppStatePayload } from '@/jotai';
 import {
+  readLocalOwner,
   readSyncBase,
   resolveWithBlend,
   resolveWithCloud,
@@ -11,6 +12,7 @@ import {
   useCloudConflictValue,
   useSetCloudConflictWrite,
   useSetCloudSyncStateWrite,
+  writeLocalOwner,
   writeSyncBase,
   type CloudReconciliationSummary,
   type CloudWorkspaceConflict,
@@ -128,6 +130,13 @@ export const useCloudWorkspaceSync = (deps: {
     if (!isPortfolioHydrated || !userId || syncedForSessionRef.current) return;
     syncedForSessionRef.current = true;
 
+    // M1 계정전환 보호: **전역** 로컬 autosave(IndexedDB)의 직전 소유자(로그인 사용자)를 읽는다. 현재 사용자와
+    // 다른 특정 계정이면(A→B→A) 전역 로컬이 남의 것 → 무음 FF-push로 내 클라우드를 덮지 않게 conflict로 위임한다.
+    // foreign 판정은 claim **전** 값으로 고정한 뒤, 이 세션부터 소유권을 현재 사용자로 넘긴다(다음 전환 감지 기준).
+    const priorLocalOwner = readLocalOwner();
+    const isForeignLocal = priorLocalOwner !== undefined && priorLocalOwner !== '' && priorLocalOwner !== userId;
+    writeLocalOwner(userId);
+
     // OAuth 리다이렉트로 돌아와 세션이 잡힌 첫 시점(메인 랜딩). 로그인 완료 귀속(마커 read+clear).
     const loginSource = readAndClearLoginSource();
     if (loginSource) {
@@ -150,6 +159,8 @@ export const useCloudWorkspaceSync = (deps: {
       // base 없으면(신규 기기·localStorage 불가) 엔진이 종전 휴리스틱으로 폴백한다(하위호환).
       readBase: () => readSyncBase(userId),
       writeBase: (hash) => writeSyncBase(userId, hash),
+      // M1: 전역 로컬이 다른 계정 것이면 무음 FF 금지 → conflict(보호 모달). 세션시작에 고정한 값을 준다.
+      isForeignLocalWorkspace: () => isForeignLocal,
       onEvent: (event) => {
         if (cancelled) return;
         if (event.type === 'conflict') {

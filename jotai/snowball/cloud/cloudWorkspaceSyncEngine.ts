@@ -103,6 +103,13 @@ export type CloudWorkspaceSyncDeps = {
    * 충돌(conflict)·실패에는 부르지 않는다(합의가 없으므로). 미주입=no-op(폴백 모드).
    */
   writeBase?: (hash: string) => void;
+  /**
+   * **전역 로컬 autosave가 현재 사용자가 아닌 다른 계정 것인지**(M1 계정전환 감지). true면 로컬을 정본으로
+   * 삼는 어떤 무음 화해(FF-push/1.4/1.45)도 금지하고 **conflict(보호 모달)** 로 위임한다 — per-user base와 달리
+   * 로컬 IndexedDB는 전역이라, A→B→A 전환 시 B의 로컬로 A의 클라우드를 조용히 덮는 손실을 막는다.
+   * 미주입/false = 소유 정보 없음/현재 사용자 소유 → 종전대로(하위호환, 기존 테스트 무변경).
+   */
+  isForeignLocalWorkspace?: () => boolean;
   /** savedAt 폴백용 시각(로컬 updatedAt이 없을 때). 결정론 테스트를 위해 주입. */
   now?: () => number;
   /** 계측 신호(선택). */
@@ -204,6 +211,21 @@ export const syncCloudWorkspaceAtSessionStart = async (deps: CloudWorkspaceSyncD
     // 이미 양쪽이 합의 상태 → 그 내용을 base로 확립(base가 비었던 기기도 여기서 자동 확립).
     recordBase(deps, localPayload);
     deps.onEvent?.({ type: 'noop' });
+    return;
+  }
+
+  // 1.25) **M1 계정전환 보호**: 둘 다 내용 있는데(진짜 화해 영역) 전역 로컬 autosave가 **다른 계정 것**이면,
+  //   로컬을 정본으로 삼는 어떤 무음 화해(FF-push/1.4/1.45)도 이 사용자의 클라우드를 남의 데이터로 덮을 수 있다
+  //   (per-user base ↔ 전역 로컬의 불일치). base 도입 전엔 이 상황이 conflict 모달이었다 → 그 **보호 모달을
+  //   복원**한다. 정상 오프라인 편집(같은 계정)은 owner==현재라 여기 안 걸리고 아래 조용한 FF로 간다.
+  if (cloud && localPayload && hasContent(localPayload) && hasContent(cloud.payload) && deps.isForeignLocalWorkspace?.()) {
+    deps.onEvent?.({
+      type: 'conflict',
+      local: localPayload,
+      cloud: cloud.payload,
+      localUpdatedAt: local.updatedAt,
+      cloudSavedAt: cloud.savedAt
+    });
     return;
   }
 

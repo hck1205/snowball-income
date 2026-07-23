@@ -57,3 +57,38 @@ export const clearSyncBase = (userId: string): void => {
     // no-op
   }
 };
+
+// ── 로컬 autosave 소유자(M1 계정전환 무음손실 방지) ──────────────────────────────
+/**
+ * ⚠ base는 **per-user**로 격리되지만 로컬 autosave(IndexedDB)는 **전역**(userId 무관)이고 로그아웃이 지우지
+ *   않는다. 그래서 계정전환(A→B→A) 후 A 세션시작 3-way가 `local=B(≠base_A), cloud=A(==base_A)`를
+ *   "로컬만 base에서 전진"으로 오판해 **A의 클라우드를 B로 조용히 FF-push**할 수 있다(M1 데이터 손실).
+ *
+ * 이를 막기 위해 **직전에 로컬을 소유한 로그인 사용자 id**를 전역 1키로 기록한다. 세션시작에 owner≠현재
+ * 사용자면 "전역 로컬이 다른 계정 것" → 무음 화해 금지, conflict(보호 모달)로 사용자에게 위임한다.
+ *
+ * - **per-user가 아니라 전역 1키**다(로컬 autosave가 전역이므로 "누가 마지막으로 로컬을 소유했나"는 하나뿐).
+ * - **로그아웃에 지우지 않는다**(지우면 다음 로그인이 owner=undefined→비-foreign→다시 M1). 다음 로그인이
+ *   세션시작에 자기 id로 갱신(claim)해 소유권을 넘긴다.
+ * - 값이 빈 문자열('')이거나 없으면(undefined) "미상/익명" → foreign으로 보지 않는다(로그인 전 작업·레거시를
+ *   보호 모달로 겁주지 않기 위함). **특정 다른 userId일 때만** foreign이다.
+ */
+const LOCAL_OWNER_KEY = 'snowball:cloud-local-owner';
+
+/** 직전에 로컬 autosave를 소유한 로그인 사용자 id. 없거나 실패하면 undefined(=미상 → foreign 아님). */
+export const readLocalOwner = (): string | undefined => {
+  try {
+    return window.localStorage.getItem(LOCAL_OWNER_KEY) ?? undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+/** 현재 사용자가 로컬 소유권을 claim(세션시작마다). 실패는 무해(그 경우 foreign 판정 불가 → 보수적으로 비-foreign). */
+export const writeLocalOwner = (userId: string): void => {
+  try {
+    window.localStorage.setItem(LOCAL_OWNER_KEY, userId);
+  } catch {
+    // localStorage 불가 → owner 추적 불가. 이 환경에선 base도 없어 폴백(휴리스틱)이 M1을 conflict로 잡는다.
+  }
+};
