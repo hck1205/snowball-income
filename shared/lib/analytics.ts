@@ -1,5 +1,26 @@
 const GA_MEASUREMENT_ID = import.meta.env.VITE_GA_MEASUREMENT_ID;
 
+/**
+ * 로컬 개발/미리보기에서는 GA4로 데이터를 보내지 않는다 — 실측 지표가 로컬 테스트(페이지뷰·클릭)로
+ * 오염되는 걸 막는다. dev 서버(`import.meta.env.DEV`: `npm run dev`는 localhost든 LAN IP(모바일 테스트)든
+ * 전부 DEV=true)와 localhost 계열 호스트(`vite preview`로 프로덕션 빌드를 로컬에서 돌리는 경우)를 모두 배제해
+ * **프로덕션 도메인(Vercel)에서만** 활성화된다. GA_MEASUREMENT_ID 미설정 시에도 물론 비활성.
+ */
+const isLocalHost = (): boolean => {
+  if (typeof window === "undefined") return false;
+  const host = window.location.hostname;
+  return (
+    host === "localhost" ||
+    host === "127.0.0.1" ||
+    host === "0.0.0.0" ||
+    host === "[::1]" ||
+    host.endsWith(".local")
+  );
+};
+
+const isAnalyticsEnabled = (): boolean =>
+  Boolean(GA_MEASUREMENT_ID) && !import.meta.env.DEV && !isLocalHost();
+
 declare global {
   interface Window {
     dataLayer: unknown[];
@@ -160,7 +181,7 @@ export const applySeoRuntimeMetadata = (location?: PageLocation) => {
 
 export const initGoogleAnalytics = () => {
   if (typeof window === "undefined") return;
-  if (!GA_MEASUREMENT_ID) return;
+  if (!isAnalyticsEnabled()) return;
 
   window.dataLayer = window.dataLayer || [];
 
@@ -183,7 +204,7 @@ export const initGoogleAnalytics = () => {
 
 export const sendPageView = (location?: PageLocation) => {
   if (typeof window === "undefined") return;
-  if (!GA_MEASUREMENT_ID) return;
+  if (!isAnalyticsEnabled()) return;
   if (!window.gtag) return;
 
   const pathname = location?.pathname ?? window.location.pathname;
@@ -200,7 +221,7 @@ export const sendPageView = (location?: PageLocation) => {
 
 export const trackEvent = (eventName: AnalyticsEventName, params?: AnalyticsEventParams) => {
   if (typeof window === "undefined") return;
-  if (!GA_MEASUREMENT_ID) return;
+  if (!isAnalyticsEnabled()) return;
   if (!window.gtag) return;
 
   window.gtag("event", eventName, params ?? {});
@@ -274,7 +295,7 @@ export type AnalyticsUserProperties = {
  */
 export const setUserProperties = (props: AnalyticsUserProperties) => {
   if (typeof window === "undefined") return;
-  if (!GA_MEASUREMENT_ID) return;
+  if (!isAnalyticsEnabled()) return;
   if (!window.gtag) return;
 
   window.gtag("set", "user_properties", props);
