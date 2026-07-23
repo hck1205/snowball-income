@@ -21,6 +21,8 @@ export const COMMUNITY_COPY = {
     gallery: '포트폴리오 갤러리',
     /** 자유게시판 링크(/community/board). */
     board: '게시판',
+    /** 티커 SEO 소개 허브 링크(/ticker/all). 커뮤니티와 무관하게 항상 노출된다. */
+    tickers: 'ETF 소개',
     /** 상세/글쓰기 하위에서 목록으로 복귀하는 뒤로가기 라벨. */
     list: '목록'
   },

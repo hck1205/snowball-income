@@ -104,6 +104,11 @@ export const NavItems = styled.div`
   ${media.down('drawer')} {
     gap: ${space[3]};
   }
+
+  /* 라벨이 접혀 아이콘만 남는 좁은 폭(≤mobileWide)에선 간격을 더 좁혀 브랜드+아이콘이 한 줄에 여유 있게 들어가게 한다. */
+  ${media.down('mobileWide')} {
+    gap: ${space[1]};
+  }
 `;
 
 /**
@@ -162,6 +167,12 @@ export const NavItem = styled(NavLink)`
   &:focus-visible {
     outline: 2px solid ${color.focusRing};
     outline-offset: 2px;
+  }
+
+  /* 라벨이 접히는 좁은 폭에선 아이콘 버튼의 가로 패딩을 줄여(구 12px→8px) 모든 항목이 잘림 없이 한 줄에 들어가게 한다. */
+  ${media.down('mobileWide')} {
+    padding: ${space[1]} ${space[2]};
+    gap: 0;
   }
 `;
 
