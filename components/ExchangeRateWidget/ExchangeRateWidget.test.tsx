@@ -1,8 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
+import { Provider } from 'jotai/react';
+import { createStore } from 'jotai/vanilla';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
+import { parseFxRate } from '@/shared/lib/fx';
+import { useFxRateSync } from '@/jotai';
 import ExchangeRateWidget from './ExchangeRateWidget';
-import { formatAsOfDate, formatKrwRate, parseFxRate } from './ExchangeRateWidget.utils';
+import { formatAsOfDate, formatKrwRate } from './ExchangeRateWidget.utils';
 
 // AC10: 실패가 무음이면 안 된다 — trackEvent 발화를 검증하려고 목으로 잡는다(ANALYTICS_EVENT 는 실물 유지).
 vi.mock('@/shared/lib/analytics', async (importOriginal) => {
@@ -12,7 +16,7 @@ vi.mock('@/shared/lib/analytics', async (importOriginal) => {
 
 const WIDGET_LABEL = '오늘의 원 달러 환율';
 const WIDGET_TITLE = '원↔달러 환율';
-const DISCLAIMER = '참고용 · 시뮬레이션 계산에는 반영되지 않아요';
+const DISCLAIMER = '계산은 원화 기준이에요 · 결과 표시만 달러로 바꿀 수 있어요';
 const FAILURE_MESSAGE = '환율을 불러오지 못했어요';
 
 const SUCCESS_BODY = { rate: 1478.49, base: 'USD', quote: 'KRW', asOf: '2026-07-23T00:02:31.000Z' };
@@ -21,6 +25,23 @@ const okResponse = () =>
   new Response(JSON.stringify(SUCCESS_BODY), { status: 200, headers: { 'content-type': 'application/json' } });
 
 const region = () => screen.getByLabelText(WIDGET_LABEL);
+
+/**
+ * 조회는 위젯이 아니라 상태 계층 드라이버(`useFxRateSync`, 프로덕션에선 `pages/Main`에서 1회)가 한다.
+ * 테스트는 그 배선을 그대로 재현하고, **매 테스트 새 store**로 atom 값이 파일 내에서 새지 않게 격리한다.
+ */
+const FxRateDriver = () => {
+  useFxRateSync();
+  return null;
+};
+
+const renderWidget = () =>
+  render(
+    <Provider store={createStore()}>
+      <FxRateDriver />
+      <ExchangeRateWidget />
+    </Provider>
+  );
 
 beforeEach(() => {
   vi.mocked(trackEvent).mockClear();
@@ -35,7 +56,7 @@ describe('ExchangeRateWidget — 표시 전용 환율 (Option A)', () => {
   it('로딩 중엔 aria-busy 로 스켈레톤을 보이고, 성공하면 값·as-of·참고용 안내를 그린다', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => okResponse()));
 
-    render(<ExchangeRateWidget />);
+    renderWidget();
 
     // 위젯 정체성: 아이콘 배지 + 타이틀 heading 은 로딩부터 항상 보인다("환율 위젯"임을 한눈에).
     expect(screen.getByRole('heading', { name: WIDGET_TITLE })).toBeInTheDocument();
@@ -55,7 +76,7 @@ describe('ExchangeRateWidget — 표시 전용 환율 (Option A)', () => {
   it('네트워크 실패면 중립 안내를 보이고 OPERATION_ERROR 를 계측한다 (무음 실패 금지, AC10)', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => Promise.reject(new TypeError('network down'))));
 
-    render(<ExchangeRateWidget />);
+    renderWidget();
 
     expect(await screen.findByText(FAILURE_MESSAGE)).toBeInTheDocument();
     // 값이 없어도 위젯 정체성(타이틀)은 유지된다.
@@ -75,7 +96,7 @@ describe('ExchangeRateWidget — 표시 전용 환율 (Option A)', () => {
       vi.fn(async () => new Response(JSON.stringify({ error: 'fx_unavailable' }), { status: 502 }))
     );
 
-    render(<ExchangeRateWidget />);
+    renderWidget();
 
     expect(await screen.findByText(FAILURE_MESSAGE)).toBeInTheDocument();
     expect(trackEvent).toHaveBeenCalledWith(
@@ -87,7 +108,7 @@ describe('ExchangeRateWidget — 표시 전용 환율 (Option A)', () => {
   it('형식이 깨진 200 응답(환율 없음)도 가짜 값 없이 실패로 처리한다', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ base: 'USD' }), { status: 200 })));
 
-    render(<ExchangeRateWidget />);
+    renderWidget();
 
     expect(await screen.findByText(FAILURE_MESSAGE)).toBeInTheDocument();
     expect(region()).not.toHaveTextContent('≈');
@@ -106,7 +127,7 @@ describe('ExchangeRateWidget — 표시 전용 환율 (Option A)', () => {
       .mockImplementationOnce(async () => Promise.reject(new TypeError('down'))); // 탭 복귀 갱신 실패
     vi.stubGlobal('fetch', fetchMock);
 
-    render(<ExchangeRateWidget />);
+    renderWidget();
     await waitFor(() => expect(region()).toHaveTextContent('$1 ≈ 1,478원'));
 
     // throttle(10분) 창을 넘긴 뒤 탭 복귀 → 조용한 갱신 시도(실패)

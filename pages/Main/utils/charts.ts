@@ -125,17 +125,23 @@ export const buildLineChartOption = <TRow>({
 /**
  * `theme`를 넘기면 그 테마로 옵션을 만든다(미지정 = 현재 화면 테마).
  * PDF 리포트가 **화면과 같은 빌더**로 인쇄용(라이트 고정) 차트를 뽑기 위한 유일한 확장점이다.
+ *
+ * `formatCompact`도 같은 관례다 — 미지정이면 현행 원화 축약 표기(`formatApproxKRW`)라
+ * 기존 호출부(PDF 파이프라인 포함)는 무변경으로 산다. 표시 통화 토글이 켜지면 대시보드만
+ * 달러 포맷터를 주입한다(리포트는 원화 고정).
  */
 export const buildAllocationPieOption = ({
   normalizedAllocation,
   showPortfolioDividendCenter,
   finalMonthlyAverageDividend,
-  theme = getChartTheme()
+  theme = getChartTheme(),
+  formatCompact = formatApproxKRW
 }: {
   normalizedAllocation: NormalizedAllocationItem[];
   showPortfolioDividendCenter: boolean;
   finalMonthlyAverageDividend: number;
   theme?: ChartTheme;
+  formatCompact?: (value: number) => string;
 }): EChartsOption | null => {
   if (normalizedAllocation.length === 0) return null;
 
@@ -167,7 +173,7 @@ export const buildAllocationPieOption = ({
                 left: 'center',
                 top: 8,
                 style: {
-                  text: formatApproxKRW(finalMonthlyAverageDividend),
+                  text: formatCompact(finalMonthlyAverageDividend),
                   fill: theme.text,
                   fontSize: 14,
                   fontWeight: 700,
@@ -223,7 +229,9 @@ export const buildAllocationPieOption = ({
 
 export const buildRecentCashflowBarOption = (
   recentCashflowByTicker: RecentCashflowByTicker,
-  theme: ChartTheme = getChartTheme()
+  theme: ChartTheme = getChartTheme(),
+  /* 미지정 = 현행 원화(기존 호출부·PDF 파이프라인 무변경). 표시 통화 토글만 달러 포맷터를 주입한다. */
+  formatValue: (value: number) => string = formatKRW
 ): EChartsOption => {
   const axis = buildAxisStyle(theme);
 
@@ -236,7 +244,7 @@ export const buildRecentCashflowBarOption = (
       confine: true,
       position: tooltipPosition,
       ...buildTooltipStyle(theme),
-      valueFormatter: (value: unknown) => formatKRW(Number(value))
+      valueFormatter: (value: unknown) => formatValue(Number(value))
     },
     legend: {
       type: 'scroll',
@@ -260,7 +268,7 @@ export const buildRecentCashflowBarOption = (
         color: theme.label,
         fontSize: theme.labelFontSize,
         fontFamily: theme.fontFamily,
-        formatter: (value: number) => formatKRW(value)
+        formatter: (value: number) => formatValue(value)
       }
     },
     series: recentCashflowByTicker.series.map((item) => ({
@@ -280,12 +288,15 @@ export const buildYearlyResultBarOption = ({
   tableRows,
   visibleYearlySeries,
   isYearlyAreaFillOn,
-  theme = getChartTheme()
+  theme = getChartTheme(),
+  /* 미지정 = 현행 원화(기존 호출부·PDF 파이프라인 무변경). */
+  formatValue = formatKRW
 }: {
   tableRows: SimulationResult[];
   visibleYearlySeries: Record<YearlySeriesKey, boolean>;
   isYearlyAreaFillOn: boolean;
   theme?: ChartTheme;
+  formatValue?: (value: number) => string;
 }): EChartsOption => {
   const seriesKeys = YEARLY_SERIES_ORDER.filter((key) => visibleYearlySeries[key]);
   const axis = buildAxisStyle(theme);
@@ -298,7 +309,7 @@ export const buildYearlyResultBarOption = ({
       confine: true,
       position: tooltipPosition,
       ...buildTooltipStyle(theme),
-      valueFormatter: (value: unknown) => formatKRW(Number(value))
+      valueFormatter: (value: unknown) => formatValue(Number(value))
     },
     legend: {
       type: 'scroll',
@@ -323,7 +334,7 @@ export const buildYearlyResultBarOption = ({
         color: theme.label,
         fontSize: theme.labelFontSize,
         fontFamily: theme.fontFamily,
-        formatter: (value: number) => formatKRW(value)
+        formatter: (value: number) => formatValue(value)
       }
     },
     series: seriesKeys.map((key) => ({

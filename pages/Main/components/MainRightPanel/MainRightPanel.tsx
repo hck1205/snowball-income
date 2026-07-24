@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 // per-icon named import(트리셰이킹) → 추천 포트폴리오 카드의 이모지를 lucide 아이콘으로 교체.
 import {
@@ -20,7 +20,7 @@ import {
 import { Button, Card, ToggleField } from '@/components';
 import { useOptionalCommunityAuth } from '@/components/community/CommunityAuthProvider';
 import type { SimulationResult as SimulationResultRow } from '@/shared/types';
-import { DIVIDEND_UNIVERSE, TOUR_TARGET } from '@/shared/constants';
+import { DISPLAY_CURRENCY_COPY, DIVIDEND_UNIVERSE, TOUR_TARGET } from '@/shared/constants';
 import {
   ModalActions,
   ModalBackdrop,
@@ -62,6 +62,7 @@ import YearlyResult from '@/components/YearlyResult';
 import {
   useAdjustableTickerCountAtomValue,
   useAllocationPercentByTickerIdAtomValue,
+  useDisplayCurrencyViewAtomValue,
   useFixedByTickerIdAtomValue,
   useIncludedProfilesAtomValue,
   useIsResultCompactAtomValue,
@@ -83,7 +84,13 @@ import {
 } from '@/jotai';
 import { useMainComputed, useScenarioTabs, useSnowballForm, useTickerActions } from '@/pages/Main/hooks';
 import { ChartPanel, ResponsiveEChart } from '@/pages/Main/components';
-import { buildPresetPortfolio, computeAnnualGrowthRate, formatPercent, formatResultAmount, targetYearLabel } from '@/pages/Main/utils';
+import {
+  buildPresetPortfolio,
+  computeAnnualGrowthRate,
+  createResultAmountFormatter,
+  formatPercent,
+  targetYearLabel
+} from '@/pages/Main/utils';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 
 const PORTFOLIO_PRESET_PLACEHOLDERS = [
@@ -446,6 +453,16 @@ function MainRightPanelComponent() {
   const setIsYearlyAreaFillOn = useSetIsYearlyAreaFillOnWrite();
   const visibleYearlySeries = useVisibleYearlySeriesAtomValue();
   const { values, validation } = useSnowballForm();
+  /*
+   * 결과 **표시** 통화. 계산은 언제나 원화이고, 여기서 만든 포맷터가 표시 직전에 한 번만 환산한다.
+   * `display.currency` 는 환율이 없으면 원화로 떨어지는 **적용** 통화라, 이 경로로는 `$NaN` 이 나올 수 없다.
+   */
+  const display = useDisplayCurrencyViewAtomValue();
+  const formatResultAmount = useMemo(
+    () => createResultAmountFormatter(display.currency, display.rate),
+    [display.currency, display.rate]
+  );
+  const chartLabelSuffix = display.currency === 'USD' ? DISPLAY_CURRENCY_COPY.chartSuffixUsd : '';
   const {
     simulation,
     tableRows,
@@ -454,13 +471,16 @@ function MainRightPanelComponent() {
     yearlyCashflowByTicker,
     postInvestmentDividendProjectionRows,
     yearlyResultBarOption,
-    yearlySeriesItems
+    yearlySeriesItems,
+    formatChartValue
   } = useMainComputed({
     isValid: validation.isValid,
     values,
     visibleYearlySeries,
     isYearlyAreaFillOn,
-    postInvestmentProjectionYears
+    postInvestmentProjectionYears,
+    displayCurrency: display.currency,
+    fxRate: display.rate
   });
   const { setTickerWeight, toggleTickerFixed, clearAllFixed, removeIncludedTicker } = useTickerActions();
   const {
@@ -808,6 +828,7 @@ function MainRightPanelComponent() {
             onToggleTickerFixed={toggleTickerFixed}
             onClearAllFixed={clearAllFixed}
             onRemoveIncludedTicker={removeIncludedTicker}
+            chartLabelSuffix={chartLabelSuffix}
             ResponsiveChart={ResponsiveEChart}
           />
 
@@ -820,6 +841,8 @@ function MainRightPanelComponent() {
                 emptyMessage={emptyGraphMessage}
                 getXValue={getYear}
                 getYValue={getMonthlyDividend}
+                yAxisLabelFormatter={formatChartValue}
+                chartLabelSuffix={chartLabelSuffix}
               />
               <ChartPanel
                 title="자산 가치"
@@ -828,6 +851,8 @@ function MainRightPanelComponent() {
                 emptyMessage={emptyGraphMessage}
                 getXValue={getYear}
                 getYValue={getAssetValue}
+                yAxisLabelFormatter={formatChartValue}
+                chartLabelSuffix={chartLabelSuffix}
               />
               <ChartPanel
                 title="누적 배당"
@@ -836,6 +861,8 @@ function MainRightPanelComponent() {
                 emptyMessage={emptyGraphMessage}
                 getXValue={getYear}
                 getYValue={getCumulativeDividend}
+                yAxisLabelFormatter={formatChartValue}
+                chartLabelSuffix={chartLabelSuffix}
               />
             </>
           ) : null}
@@ -847,6 +874,7 @@ function MainRightPanelComponent() {
             chartOption={yearlyResultBarOption}
             hasData={hasGraphData}
             emptyMessage={emptyGraphMessage}
+            chartLabelSuffix={chartLabelSuffix}
             ResponsiveChart={ResponsiveEChart}
           />
 
@@ -855,6 +883,8 @@ function MainRightPanelComponent() {
             yearlyCashflowByTicker={yearlyCashflowByTicker}
             hasData={hasGraphData}
             emptyMessage={emptyGraphMessage}
+            formatAmount={formatChartValue}
+            chartLabelSuffix={chartLabelSuffix}
             ResponsiveChart={ResponsiveEChart}
           />
 
@@ -900,6 +930,8 @@ function MainRightPanelComponent() {
             emptyMessage={emptyGraphMessage}
             getXValue={getProjectedYear}
             getYValue={isPostInvestmentAssetView ? getProjectedAssetValue : getProjectedMonthlyDividend}
+            yAxisLabelFormatter={formatChartValue}
+            chartLabelSuffix={chartLabelSuffix}
           />
         </>
       ) : (

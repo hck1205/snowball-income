@@ -7,5 +7,12 @@ export type MonthlyCashflowProps = {
   yearlyCashflowByTicker: YearlyCashflowByTicker;
   hasData?: boolean;
   emptyMessage?: string;
+  /**
+   * 금액 표기(축·툴팁·배당 합계). 미지정 = 원화.
+   * ⚠ 합계는 **원화에서 합산한 값**을 받아 마지막에 한 번 환산한다 — 달러로 바꾼 뒤 더하면 오차가 쌓인다.
+   */
+  formatAmount?: (value: number) => string;
+  /** 달러 표시 중일 때 차트 `aria-label` 에 붙는 접미(시각적으로만 바뀌는 통화를 스크린리더에도 알린다). */
+  chartLabelSuffix?: string;
   ResponsiveChart: ComponentType<{ option: EChartsOption; replaceMerge?: string[] }>;
 };

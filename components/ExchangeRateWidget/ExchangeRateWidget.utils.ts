@@ -1,5 +1,3 @@
-import type { FxRate } from './ExchangeRateWidget.types';
-
 /** 원 단위 정수 + ko-KR 콤마. 예: `1478.49` → `"1,478"`. */
 export const formatKrwRate = (rate: number): string => Math.round(rate).toLocaleString('ko-KR');
 
@@ -17,18 +15,5 @@ export const formatAsOfDate = (asOf: string): string => {
   return Number.isNaN(parsed.getTime()) ? '' : parsed.toISOString().slice(0, 10);
 };
 
-/**
- * 신뢰할 수 없는 `/api/fx` 응답을 `FxRate` 로 정규화한다. 형태가 어긋나면 `null`(가짜 값을 지어내지 않는다).
- * `rate` 는 유한한 양수여야 하고 `asOf` 는 비어 있지 않은 문자열이어야 한다.
- */
-export const parseFxRate = (data: unknown): FxRate | null => {
-  if (!data || typeof data !== 'object') return null;
-  const record = data as Record<string, unknown>;
-
-  const rate = record.rate;
-  const asOf = record.asOf;
-  if (typeof rate !== 'number' || !Number.isFinite(rate) || rate <= 0) return null;
-  if (typeof asOf !== 'string' || asOf.length === 0) return null;
-
-  return { rate, base: 'USD', quote: 'KRW', asOf };
-};
+// 응답 파싱(`parseFxRate`)은 조회를 소유하는 상태 계층과 공유하므로 `@/shared/lib/fx` 에 있다.
+// 여기에는 **표시 포맷**만 둔다.
