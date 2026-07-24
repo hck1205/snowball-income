@@ -5091,6 +5091,17 @@ var krw = new Intl.NumberFormat("ko-KR", {
   currency: "KRW",
   maximumFractionDigits: 0
 });
+var usd = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  maximumFractionDigits: 0
+});
+var usdCents = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2
+});
 
 // shared/utils/tickerDisplay.ts
 var getTickerDisplayName = (ticker, name) => {
