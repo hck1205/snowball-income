@@ -291,6 +291,14 @@ export const COMMUNITY_COPY = {
     nicknameSaved: '닉네임을 바꿨어요. 이전에 쓴 글에도 새 닉네임이 보여요.',
     errorNicknameLength: '닉네임은 2~20자로 입력해주세요.',
     errorNicknameNetwork: '닉네임을 저장하지 못했어요. 잠시 후 다시 시도해주세요.',
+    /** 중복 검사 진행 중 — 저장 버튼이 잠긴 이유를 설명한다(무음 비활성 금지). */
+    nicknameChecking: '사용할 수 있는 닉네임인지 확인하고 있어요…',
+    /** 검사 통과 — 저장을 눌러도 된다는 신호. */
+    nicknameAvailable: '사용할 수 있는 닉네임이에요.',
+    /** 검사 실패 — 이미 누가 쓰고 있다. 대소문자만 다른 경우도 여기로 온다. */
+    errorNicknameTaken: '이미 사용 중인 닉네임이에요. 다른 닉네임을 입력해주세요.',
+    /** 검사 자체가 실패(네트워크 등) — 통과로 위장하지 않고 사실대로 알린다. */
+    errorNicknameCheckFailed: '닉네임 중복을 확인하지 못했어요. 잠시 후 다시 시도해주세요.',
     errorSessionExpired: '로그인이 만료됐어요. 다시 로그인한 뒤 시도해주세요.',
     dangerTitle: '회원 탈퇴',
     dangerBody: '계정과 함께 작성한 글·댓글·좋아요가 모두 삭제돼요. 되돌릴 수 없어요.',
@@ -313,6 +321,35 @@ export const COMMUNITY_COPY = {
     deleteDone: '탈퇴가 완료됐어요. 그동안 함께해주셔서 감사합니다.',
     deleteDoneDismiss: '닫기'
   },
+  /**
+   * "내가 쓴 글" 화면(`/community/my-posts`) — 프로필 드롭다운의 두 번째 항목.
+   *
+   * 갤러리/게시판 목록 쿼리는 `is_public = true` 를 걸어 **비공개 글이 어디에도 안 보인다**.
+   * 이 화면이 비공개 글을 볼 수 있는 유일한 곳이라, 공개/비공개를 **배지 텍스트로** 명시한다
+   * (색만으로 구분 금지). 공개 전환 버튼은 두지 않는다(되돌리기 어려운 동작) — 상세/수정 화면의
+   * 공개 토글로 안내한다.
+   */
+  myPosts: {
+    /** 프로필 드롭다운 메뉴 라벨 — "프로필 설정" 바로 아래. */
+    menuItem: '내가 쓴 글',
+    title: '내가 쓴 글',
+    loading: '불러오는 중…',
+    loginGateTitle: '로그인하고 내가 쓴 글을 확인하세요',
+    loginGateSubtitle: '공개 글은 물론 나만 볼 수 있는 비공개 글까지 한곳에서 볼 수 있어요.',
+    sectionLabel: '내 글',
+    hint: '비공개 글은 나만 볼 수 있어요. 공개로 바꾸려면 글을 열어 수정해주세요.',
+    count: (n: number) => `${n}개`,
+    visibilityPublic: '공개',
+    visibilityPrivate: '비공개',
+    kindPortfolio: '갤러리',
+    kindBoard: '게시판',
+    listLoading: '내 글을 불러오는 중…',
+    emptyTitle: '아직 쓴 글이 없어요',
+    emptySubtitle: '갤러리나 게시판에 첫 글을 남겨보세요.',
+    errorTitle: '내 글을 불러오지 못했어요',
+    errorBody: '잠시 후 다시 시도해주세요.',
+    retry: '다시 시도'
+  },
   login: {
     title: '로그인',
     subtitle: '로그인하면 시나리오를 공유하고 좋아요·댓글을 남길 수 있어요.',
@@ -327,7 +364,10 @@ export const COMMUNITY_COPY = {
     naverReview: '네이버 로그인은 심사 중이에요. 승인되면 바로 열려요. 지금은 구글 또는 카카오로 로그인해 주세요.',
     naverReviewBadge: '검수중',
     // 네이버 authorize 에서 되돌아온 콜백 경로가 세션 교환 중 잠깐 보이는 안내(main.tsx completeNaverCallback).
-    naverCallback: '네이버 로그인 처리 중…'
+    naverCallback: '네이버 로그인 처리 중…',
+    // 카카오 authorize 에서 되돌아온 콜백 경로가 세션 교환 중 잠깐 보이는 안내(main.tsx completeKakaoCallback).
+    // 카카오도 계정 병합 회피를 위해 네이버와 같은 커스텀 콜백 경로를 탄다(shared/lib/supabase/kakao.ts).
+    kakaoCallback: '카카오 로그인 처리 중…'
   },
   common: {
     close: '닫기',

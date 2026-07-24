@@ -13,6 +13,7 @@ import { HelpButton, ToggleHeader, ToggleLabel } from './ToggleField.styled';
  */
 export default function ToggleField({
   label,
+  accessibleName,
   checked,
   disabled,
   hideLabel,
@@ -47,7 +48,8 @@ export default function ToggleField({
       )}
       <Toggle
         id={id}
-        label={label}
+        /* 시각 라벨과 접근명이 다를 수 있다 — 다르게 줬을 때만 갈라지고, 기본은 라벨 그대로다. */
+        label={accessibleName ?? label}
         checked={checked}
         disabled={disabled}
         onText={onText}

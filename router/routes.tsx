@@ -2,7 +2,13 @@ import { lazy, Suspense, useEffect } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import type { RouteObject } from 'react-router-dom';
 import { MainPage } from '@/pages';
-import { isCommunityEnabled, isNaverEnabled, NAVER_CALLBACK_PATH } from '@/shared/lib/supabase';
+import {
+  isCommunityEnabled,
+  isKakaoCustomAuthEnabled,
+  isNaverEnabled,
+  KAKAO_CALLBACK_PATH,
+  NAVER_CALLBACK_PATH
+} from '@/shared/lib/supabase';
 import { applySeoRuntimeMetadata, sendPageView } from '@/shared/lib/analytics';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
 
@@ -53,6 +59,7 @@ const CommunityBoardPage = lazy(() => import('@/pages/Community/CommunityBoardPa
 const CommunityWritePage = lazy(() => import('@/pages/Community/CommunityWritePage'));
 const CommunityDetailPage = lazy(() => import('@/pages/Community/CommunityDetailPage'));
 const CommunityProfilePage = lazy(() => import('@/pages/Community/CommunityProfilePage'));
+const CommunityMyPostsPage = lazy(() => import('@/pages/Community/CommunityMyPostsPage'));
 
 /**
  * 네이버 OAuth 콜백 착지점(`/community/auth/naver/callback`).
@@ -76,6 +83,27 @@ const naverCallbackRoute: RouteObject[] = isNaverEnabled
   ? [{ path: NAVER_CALLBACK_PATH, element: <NaverAuthCallback /> }]
   : [];
 
+/**
+ * 카카오 OAuth 콜백 착지점(`/community/auth/kakao/callback`) — 위 네이버 착지 라우트와 같은 역할·같은 이유.
+ *
+ * 카카오는 Supabase 기본 프로바이더지만, 이메일로 인한 **구글 계정 병합**을 피하려고 네이버와 동일한
+ * 커스텀 플로우를 탄다(shared/lib/supabase/kakao.ts). 실제 세션 교환은 **엔트리(main.tsx)**의
+ * `completeKakaoCallback` 이 담당하고, 이 라우트는 그동안 잠깐 뜨는 **경량 착지 표시**다(lazy·supabase-js
+ * 미로드). `isKakaoCustomAuthEnabled`(=커뮤니티 활성 && VITE_KAKAO_CLIENT_ID)일 때만 존재한다 — env 가
+ * 없으면 기존 Supabase 카카오 플로우라 이 경로로 착지할 일이 없다.
+ */
+function KakaoAuthCallback() {
+  return (
+    <p role="status" aria-live="polite">
+      {COMMUNITY_COPY.login.kakaoCallback}
+    </p>
+  );
+}
+
+const kakaoCallbackRoute: RouteObject[] = isKakaoCustomAuthEnabled
+  ? [{ path: KAKAO_CALLBACK_PATH, element: <KakaoAuthCallback /> }]
+  : [];
+
 const communityRoutes: RouteObject[] = isCommunityEnabled
   ? [
       {
@@ -94,6 +122,9 @@ const communityRoutes: RouteObject[] = isCommunityEnabled
           { path: 'portfolio/:id', element: <CommunityDetailPage /> },
           { path: 'portfolio/:id/edit', element: <CommunityWritePage /> },
           { path: 'profile', element: <CommunityProfilePage /> },
+          // 내가 쓴 글 — 프로필 설정과 형제 화면(둘 다 프로필 드롭다운 진입점, 자체 로그인 게이트).
+          // 목록 쿼리가 is_public=true 를 걸어 비공개 글은 이 경로에서만 보인다.
+          { path: 'my-posts', element: <CommunityMyPostsPage /> },
           // 자유게시판 — 정적 세그먼트 'board'.
           { path: 'board', element: <CommunityBoardPage /> },
           { path: 'board/write', element: <CommunityWritePage kind="board" /> },
@@ -129,6 +160,7 @@ export const routes: RouteObject[] = [
         )
       },
       ...naverCallbackRoute,
+      ...kakaoCallbackRoute,
       ...communityRoutes,
       {
         path: '*',

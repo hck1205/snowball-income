@@ -10,7 +10,14 @@ import { formatKRW } from '@/shared/utils';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import { usePalettePresetAtomValue } from '@/jotai';
 
-function MonthlyCashflowComponent({ yearlyCashflowByTicker, hasData = true, emptyMessage, ResponsiveChart }: MonthlyCashflowProps) {
+function MonthlyCashflowComponent({
+  yearlyCashflowByTicker,
+  hasData = true,
+  emptyMessage,
+  formatAmount = formatKRW,
+  chartLabelSuffix = '',
+  ResponsiveChart
+}: MonthlyCashflowProps) {
   const years = yearlyCashflowByTicker.years;
   const [selectedYear, setSelectedYear] = useState<number | null>(() => resolveSelectedYear(years, null));
   /* 캔버스는 CSS 변수를 다시 읽지 않는다 — 팔레트 프리셋 전환 시 옵션을 다시 빌드해야 한다. */
@@ -22,9 +29,10 @@ function MonthlyCashflowComponent({ yearlyCashflowByTicker, hasData = true, empt
 
   const selectedYearData =
     selectedYear === null ? null : yearlyCashflowByTicker.byYear[String(selectedYear)] ?? null;
+  /* 표시 통화도 팔레트와 같은 재빌드 트리거다 — 빠지면 이 차트만 옛 통화 라벨로 남는다. */
   const chartOption = useMemo(
-    () => buildRecentCashflowBarOption(selectedYearData ?? { months: [], series: [] }),
-    [palettePreset, selectedYearData]
+    () => buildRecentCashflowBarOption(selectedYearData ?? { months: [], series: [] }, undefined, formatAmount),
+    [formatAmount, palettePreset, selectedYearData]
   );
   const totalDividend = selectedYearData?.totalDividend ?? 0;
   const headerControls = (
@@ -50,7 +58,8 @@ function MonthlyCashflowComponent({ yearlyCashflowByTicker, hasData = true, empt
         ))}
       </Select>
       <CashflowTotalLabel>
-        {selectedYear ? `배당 합계: ${formatKRW(totalDividend)}` : '실지급 배당 데이터 없음'}
+        {/* 합계는 원화에서 이미 합산된 값이다 — 여기서 표시 직전에 한 번만 환산한다. */}
+        {selectedYear ? `배당 합계: ${formatAmount(totalDividend)}` : '실지급 배당 데이터 없음'}
       </CashflowTotalLabel>
     </CashflowHeaderControls>
   );
@@ -62,7 +71,7 @@ function MonthlyCashflowComponent({ yearlyCashflowByTicker, hasData = true, empt
         {headerControls}
       </CashflowHeader>
       {hasData ? (
-        <ChartWrap role="img" aria-label="선택 연도의 월별 실지급 배당 차트">
+        <ChartWrap role="img" aria-label={`선택 연도의 월별 실지급 배당 차트${chartLabelSuffix}`}>
           <ResponsiveChart option={chartOption} replaceMerge={['series', 'legend', 'xAxis']} />
         </ChartWrap>
       ) : (

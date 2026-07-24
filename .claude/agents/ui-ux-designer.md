@@ -5,7 +5,7 @@ description: >-
   폼 사용성, 접근성, 카피(한국어)를 설계해 구현 스펙으로 넘긴다. 새 화면·모달·패널을 만들거나
   기존 UX가 혼란스러울 때 사용. 대규모 코드 구현은 frontend-engineer가 맡는다.
 tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "WebSearch"]
-model: inherit
+model: claude-opus-4-8
 ---
 
 # UI/UX Designer

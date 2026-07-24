@@ -6,7 +6,7 @@ description: >-
   걸친 기능 구현, 버그 추적, 리팩터링처럼 "계획 → 분배 → 검증 → 종합"이 필요한
   요청에 사용하세요. 단일 파일 수정이나 단순 질문에는 사용하지 마세요.
 tools: ["*"]
-model: inherit
+model: fable
 ---
 
 # Orchestrator — snowball-income

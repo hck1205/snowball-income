@@ -20,6 +20,7 @@ function YearlyResultComponent({
   chartOption,
   hasData = true,
   emptyMessage,
+  chartLabelSuffix = '',
   ResponsiveChart
 }: YearlyResultProps) {
   return (
@@ -76,7 +77,7 @@ function YearlyResultComponent({
               }}
             />
           </SeriesFilterRow>
-          <ChartWrap role="img" aria-label="연도별 자산 및 배당 추이 차트">
+          <ChartWrap role="img" aria-label={`연도별 자산 및 배당 추이 차트${chartLabelSuffix}`}>
             <ResponsiveChart option={chartOption} replaceMerge={['series']} />
           </ChartWrap>
         </>

@@ -1,8 +1,13 @@
 import { useLayoutEffect } from 'react';
 import { atom } from 'jotai/vanilla';
 import { atomWithStorage, RESET } from 'jotai/utils';
-import { normalizePalettePresetId, DEFAULT_PALETTE_PRESET_ID } from '@/shared/constants';
-import type { PalettePresetId, PresetTickerKey, YearlySeriesKey } from '@/shared/constants';
+import {
+  normalizePalettePresetId,
+  DEFAULT_PALETTE_PRESET_ID,
+  normalizeDisplayCurrency,
+  DEFAULT_DISPLAY_CURRENCY
+} from '@/shared/constants';
+import type { DisplayCurrency, PalettePresetId, PresetTickerKey, YearlySeriesKey } from '@/shared/constants';
 import type { TickerModalMode } from '@/shared/types/snowball';
 import { atomState, useAtomValue, useAtomWrite } from '@/jotai/atom';
 
@@ -136,6 +141,67 @@ export const useApplyPalettePreset = (): void => {
   }, [palette]);
 };
 
+// ── 표시 통화 (localStorage 유지 — 기기별 표시 취향, 팔레트와 같은 성격) ──────────────
+// ⚠ 시뮬레이션 영속 페이로드/공유 링크 스키마에 넣지 않는다. 계산은 언제나 원화 기준이고
+//   이 값은 결과 **표시**만 바꾼다 — 토글이 클라우드 저장을 유발해서도 안 된다
+//   (의미있는 액션 배제 목록: 탭 전환·뷰 토글·테마 옆).
+
+/** 표시 통화 저장 키. */
+export const DISPLAY_CURRENCY_STORAGE_KEY = 'snowball:display-currency';
+
+/**
+ * 팔레트와 동일한 원시 문자열 storage — JSON 직렬화 없이 `"KRW"`/`"USD"` 그대로 저장한다.
+ * 잘못된 저장값(구버전·오타)과 localStorage 접근 실패는 모두 기본값(원화)으로 폴백한다.
+ */
+const displayCurrencyStorage = {
+  getItem: (key: string, initialValue: DisplayCurrency): DisplayCurrency => {
+    try {
+      const raw = window.localStorage.getItem(key);
+      return raw === null ? initialValue : normalizeDisplayCurrency(raw);
+    } catch {
+      return initialValue;
+    }
+  },
+  setItem: (key: string, value: DisplayCurrency): void => {
+    try {
+      window.localStorage.setItem(key, value);
+    } catch {
+      // 저장 실패해도 런타임 전환(현재 세션)은 계속 동작한다.
+    }
+  },
+  removeItem: (key: string): void => {
+    try {
+      window.localStorage.removeItem(key);
+    } catch {
+      // noop
+    }
+  },
+  /** 다른 탭에서 표시 통화를 바꾸면 이 탭도 따라간다. */
+  subscribe: (key: string, callback: (value: DisplayCurrency) => void) => {
+    const handler = (event: StorageEvent) => {
+      if (event.key !== key) return;
+      if (event.storageArea !== null && event.storageArea !== window.localStorage) return;
+      callback(normalizeDisplayCurrency(event.newValue));
+    };
+    window.addEventListener('storage', handler);
+    return () => window.removeEventListener('storage', handler);
+  }
+};
+
+/**
+ * 표시 통화 **선호**(preference). 기본 `KRW`.
+ *
+ * ⚠ 화면 포맷에 쓰는 값은 이게 아니라 `effectiveDisplayCurrencyAtom`이다 — 환율이 없을 때
+ *   달러 포맷터가 불려 `$NaN`이 나오는 경로를 구조적으로 막는다. 환율 조회가 실패해도 이
+ *   선호는 지우지 않는다(다음 세션에 환율이 복구되면 자동으로 달러 표시로 돌아온다).
+ */
+export const displayCurrencyAtom = atomWithStorage<DisplayCurrency>(
+  DISPLAY_CURRENCY_STORAGE_KEY,
+  DEFAULT_DISPLAY_CURRENCY,
+  displayCurrencyStorage,
+  { getOnInit: true }
+);
+
 export const useActiveHelpAtomValue = () => useAtomValue(activeHelpAtom);
 export const useSetActiveHelpWrite = () => useAtomWrite(activeHelpAtom);
 export const useIsTickerModalOpenAtomValue = () => useAtomValue(isTickerModalOpenAtom);
@@ -164,3 +230,5 @@ export const useTourLaunchRequestAtomValue = () => useAtomValue(tourLaunchReques
 export const useSetTourLaunchRequestWrite = () => useAtomWrite(tourLaunchRequestAtom);
 export const usePalettePresetAtomValue = () => useAtomValue(palettePresetAtom);
 export const useSetPalettePresetWrite = () => useAtomWrite(palettePresetAtom);
+export const useDisplayCurrencyAtomValue = () => useAtomValue(displayCurrencyAtom);
+export const useSetDisplayCurrencyWrite = () => useAtomWrite(displayCurrencyAtom);

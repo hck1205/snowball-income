@@ -4,7 +4,7 @@ import { color, font, motion, radius, space } from '@/shared/styles';
 
 /**
  * 위젯 컨테이너 — 주변 도구 카드(Card)와 같은 시각 언어(surface + border + radius.lg)를 쓰되,
- * 상단 아이콘 배지 + 타이틀로 **독립된 "환율 위젯"** 으로 읽히게 한다.
+ * 상단 타이틀로 **독립된 "환율 위젯"** 으로 읽히게 한다.
  * `width:100% + min-width:0` 로 좁은 좌패널에서도 가로 오버플로가 없다(AC12).
  */
 export const Root = styled.section`
@@ -19,29 +19,12 @@ export const Root = styled.section`
   color: ${color.text};
 `;
 
-/** 위젯 정체성 헤더 — 통화 교환 아이콘 배지 + 타이틀. 어떤 상태에서도(실패 포함) 항상 보인다. */
+/** 위젯 정체성 헤더 — 타이틀. 어떤 상태에서도(실패 포함) 항상 보인다. */
 export const Header = styled.div`
   display: flex;
   align-items: center;
   gap: ${space[2]};
   min-width: 0;
-`;
-
-/**
- * 통화 교환 아이콘 배지 — accent(오로라) 틴트. accent 는 **크롬(배지·아이콘) 전용**이고
- * 데이터 상승/하락색이 아니라서(presets 주석) 손익 오해를 만들지 않는다. Chip accent 변형과 동일 토큰 3종.
- */
-export const IconBadge = styled.span`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  flex-shrink: 0;
-  border-radius: ${radius.sm};
-  background: ${color.accentSubtle};
-  border: 1px solid ${color.accentBorder};
-  color: ${color.accentText};
 `;
 
 /** "원↔달러 환율" 라벨 — 시맨틱 heading(주변 카드 h2 와 동렬), 시각적으론 값보다 작은 라벨. */

@@ -7,8 +7,10 @@ import { CloudReconcileModal } from "@/components/CloudReconcileModal";
 import { previewBlend } from "@/jotai/snowball/cloud";
 import MainContentLoader from "@/pages/Main/components/MainContentLoader";
 import {
+  useDisplayCurrencyViewAtomValue,
   useIncludedTickerIdsAtomValue,
   useSetActiveHelpWrite,
+  useSetDisplayCurrencyWrite,
   useSetShowQuickEstimateWrite,
   useSetShowSplitGraphsWrite,
   useShowQuickEstimateAtomValue,
@@ -37,6 +39,10 @@ function MainLeftPanelComponent({
   const setShowQuickEstimate = useSetShowQuickEstimateWrite();
   const showSplitGraphs = useShowSplitGraphsAtomValue();
   const setShowSplitGraphs = useSetShowSplitGraphsWrite();
+  // 표시 통화 토글(투자 설정 카드 안)에 내려줄 상태. 환율 조회/선호 통화에만 반응하는 파생 atom이라
+  // 폼 타건으로는 값이 바뀌지 않는다 — 이 구독이 타건 리렌더를 늘리지 않는다.
+  const display = useDisplayCurrencyViewAtomValue();
+  const setDisplayCurrency = useSetDisplayCurrencyWrite();
   const setActiveHelp = useSetActiveHelpWrite();
   const { values, validation, setField } = useSnowballForm();
   const {
@@ -162,10 +168,12 @@ function MainLeftPanelComponent({
         values={values}
         showQuickEstimate={showQuickEstimate}
         showSplitGraphs={showSplitGraphs}
+        display={display}
         validationErrors={validation.errors}
         onSetField={setField}
         onToggleQuickEstimate={setShowQuickEstimate}
         onToggleSplitGraphs={setShowSplitGraphs}
+        onChangeCurrency={setDisplayCurrency}
         onHelpResultMode={handleHelpResultMode}
         onHelpReinvestTiming={handleHelpReinvestTiming}
         onHelpDpsGrowthMode={handleHelpDpsGrowthMode}

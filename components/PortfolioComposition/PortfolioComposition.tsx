@@ -40,6 +40,7 @@ function PortfolioCompositionComponent({
   onToggleTickerFixed,
   onClearAllFixed,
   onRemoveIncludedTicker,
+  chartLabelSuffix = '',
   ResponsiveChart
 }: PortfolioCompositionProps) {
   // 모바일(≤960px, drawer 레이아웃)에서만 기본 잠금 — 세로 스크롤 중 슬라이더 오조작 방지. 데스크톱은 기본 조절.
@@ -102,7 +103,7 @@ function PortfolioCompositionComponent({
         <>
           {allocationPieOption ? (
             <AllocationChartLayout>
-              <ChartWrap role="img" aria-label="포트폴리오 비중 원형 차트">
+              <ChartWrap role="img" aria-label={`포트폴리오 비중 원형 차트${chartLabelSuffix}`}>
                 <ResponsiveChart option={allocationPieOption} replaceMerge={['graphic']} />
               </ChartWrap>
               <AllocationLegend>

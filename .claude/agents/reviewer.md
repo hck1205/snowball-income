@@ -5,7 +5,7 @@ description: >-
   재사용·단순화, 효율성 관점에서 검토하고 심각도순으로 보고한다. 구현이 끝난 뒤 머지 전
   품질 검증에 사용. 직접 수정은 하지 않는다.
 tools: ["Read", "Grep", "Glob", "Bash", "PowerShell"]
-model: inherit
+model: fable
 ---
 
 # Reviewer

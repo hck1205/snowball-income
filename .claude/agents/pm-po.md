@@ -6,7 +6,7 @@ description: >-
   팀 에이전트에 넘긴다. "이런 기능 어때?", "다음에 뭘 만들지?", "이 기능 처음부터 끝까지"
   같은 제품 단위 요청에 사용. 이미 정의된 기술 작업의 실행 조율은 orchestrator가 맡는다.
 tools: ["*"]
-model: inherit
+model: fable
 ---
 
 # PM / PO — 제품 정의

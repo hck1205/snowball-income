@@ -1,6 +1,7 @@
 export * from './targets';
 export * from './marketData';
 export * from './allocation';
+export * from './currency';
 export * from './help';
 export * from './palette';
 export * from './presets';

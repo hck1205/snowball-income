@@ -8564,6 +8564,12 @@ var getChartTheme = () => ({
 // shared/constants/allocation/index.ts
 var ALLOCATION_COLORS = [...AURORA_CHART_SERIES];
 
+// shared/constants/currency/index.ts
+var DISPLAY_CURRENCIES = ["KRW", "USD"];
+var DEFAULT_DISPLAY_CURRENCY = "KRW";
+var isDisplayCurrency = (value) => typeof value === "string" && DISPLAY_CURRENCIES.includes(value);
+var normalizeDisplayCurrency = (value) => isDisplayCurrency(value) ? value : DEFAULT_DISPLAY_CURRENCY;
+
 // shared/constants/help/index.ts
 var HELP_CONTENT = {
   dividendYield: {
@@ -10004,6 +10010,59 @@ var palettePresetAtom = atom(
     applyPaletteToDocument(get(palettePresetStorageAtom));
   }
 );
+var DISPLAY_CURRENCY_STORAGE_KEY = "snowball:display-currency";
+var displayCurrencyStorage = {
+  getItem: (key, initialValue) => {
+    try {
+      const raw = window.localStorage.getItem(key);
+      return raw === null ? initialValue : normalizeDisplayCurrency(raw);
+    } catch {
+      return initialValue;
+    }
+  },
+  setItem: (key, value) => {
+    try {
+      window.localStorage.setItem(key, value);
+    } catch {
+    }
+  },
+  removeItem: (key) => {
+    try {
+      window.localStorage.removeItem(key);
+    } catch {
+    }
+  },
+  /** 다른 탭에서 표시 통화를 바꾸면 이 탭도 따라간다. */
+  subscribe: (key, callback) => {
+    const handler2 = (event) => {
+      if (event.key !== key) return;
+      if (event.storageArea !== null && event.storageArea !== window.localStorage) return;
+      callback(normalizeDisplayCurrency(event.newValue));
+    };
+    window.addEventListener("storage", handler2);
+    return () => window.removeEventListener("storage", handler2);
+  }
+};
+var displayCurrencyAtom = atomWithStorage(
+  DISPLAY_CURRENCY_STORAGE_KEY,
+  DEFAULT_DISPLAY_CURRENCY,
+  displayCurrencyStorage,
+  { getOnInit: true }
+);
+
+// jotai/snowball/atoms/fx/index.ts
+var import_react4 = __toESM(require_react(), 1);
+var fxViewAtom = atom({ status: "loading" });
+var applyFxFetchResultAtom = atom(null, (get, set, rate) => {
+  if (rate !== null) {
+    set(fxViewAtom, { status: "success", rate });
+    return;
+  }
+  const current = get(fxViewAtom);
+  const lastGood = current.status === "success" || current.status === "stale" ? current.rate : null;
+  set(fxViewAtom, lastGood === null ? { status: "error" } : { status: "stale", rate: lastGood });
+});
+var REFRESH_MIN_INTERVAL_MS = 10 * 60 * 1e3;
 
 // jotai/snowball/atoms/portfolio/index.ts
 var toTickerDraft = (values) => ({
@@ -10101,6 +10160,26 @@ var allocationPercentExactByTickerIdAtom = atom(
 var adjustableTickerCountAtom = atom((get) => {
   const fixedByTickerId = get(fixedByTickerIdAtom);
   return get(includedProfilesAtom).filter((profile) => !fixedByTickerId[profile.id]).length;
+});
+var fxRateValueAtom = atom((get) => {
+  const view = get(fxViewAtom);
+  return view.status === "success" || view.status === "stale" ? view.rate.rate : null;
+});
+var canUseUsdAtom = atom((get) => get(fxRateValueAtom) !== null);
+var effectiveDisplayCurrencyAtom = atom(
+  (get) => get(displayCurrencyAtom) === "USD" && get(canUseUsdAtom) ? "USD" : DEFAULT_DISPLAY_CURRENCY
+);
+var displayCurrencyViewAtom = atom((get) => {
+  const view = get(fxViewAtom);
+  const hasRate = view.status === "success" || view.status === "stale";
+  return {
+    currency: get(effectiveDisplayCurrencyAtom),
+    preferred: get(displayCurrencyAtom),
+    canUseUsd: hasRate,
+    rate: hasRate ? view.rate.rate : null,
+    asOf: hasRate ? view.rate.asOf : null,
+    status: view.status
+  };
 });
 
 // jotai/snowball/atoms/form/index.ts
@@ -10487,6 +10566,17 @@ var krw = new Intl.NumberFormat("ko-KR", {
   style: "currency",
   currency: "KRW",
   maximumFractionDigits: 0
+});
+var usd = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  maximumFractionDigits: 0
+});
+var usdCents = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2
 });
 
 // shared/utils/tickerDisplay.ts

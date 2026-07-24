@@ -17,6 +17,8 @@ const nickname = (over: Partial<CommunityProfileViewModel['nickname']> = {}) => 
   value: '스노우볼러',
   onChange: vi.fn(),
   status: 'idle' as const,
+  // 중복 검사 기본값 — 아직 검사할 게 없는 상태(값이 원래 닉네임 그대로).
+  availability: 'idle' as const,
   error: null,
   saved: false,
   canSave: false,
@@ -71,6 +73,27 @@ describe('CommunityProfileView — 닉네임 카드 / 이메일 미노출', () =
   it('현재 닉네임을 프리필한다', () => {
     renderView(makeVM());
     expect(screen.getByRole('textbox', { name: p.nicknameLabel })).toHaveValue('스노우볼러');
+  });
+
+  it('중복 검사 상태를 화면에 알린다 — 확인 중 / 사용 가능', () => {
+    const { rerender } = render(
+      <CommunityProfileView viewModel={makeVM({ nickname: nickname({ availability: 'checking' }) })} />
+    );
+    expect(screen.getByText(p.nicknameChecking)).toBeInTheDocument();
+
+    rerender(<CommunityProfileView viewModel={makeVM({ nickname: nickname({ availability: 'available' }) })} />);
+    expect(screen.getByText(p.nicknameAvailable)).toBeInTheDocument();
+  });
+
+  it('이미 쓰이는 닉네임이면 사유를 알리고 저장 버튼이 잠긴다', () => {
+    renderView(
+      makeVM({
+        nickname: nickname({ availability: 'taken', error: p.errorNicknameTaken, canSave: false })
+      })
+    );
+
+    expect(screen.getByRole('alert')).toHaveTextContent(p.errorNicknameTaken);
+    expect(screen.getByRole('button', { name: p.nicknameSave })).toBeDisabled();
   });
 
   it('OAuth 이메일 주소를 화면에 렌더하지 않는다', () => {

@@ -26,7 +26,7 @@
  */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { build } from 'esbuild';
 import { API_BUNDLES, API_EXTERNALS } from './manifest.mjs';
 
@@ -94,6 +94,42 @@ const STALE_HELP = [
   ''
 ].join('\n');
 
+const LOAD_HELP = [
+  '',
+  '  ┌─ api/ 산출물이 Node 에서 로드되지 않는다 ──────────────────────────────────',
+  '  │',
+  '  │  핸들러가 **호출되기도 전에** 모듈 평가 단계에서 죽는다 = Vercel 함수 전면 500.',
+  '  │',
+  '  │  가장 흔한 원인: 번들에 딸려 들어온 모듈이 최상단에서 `import.meta.env.*` 를',
+  '  │  읽는다. Vite 가 정적 치환해 주는 클라이언트와 달리 **Node ESM 에서는',
+  '  │  `import.meta.env` 가 undefined** 다. 브라우저 전용 모듈(analytics 등)은',
+  '  │  정적 import 하지 말고 사용 지점에서 `await import(...)` 로 미뤄라.',
+  '  │',
+  '  │  왜 이 검사가 있나: 바이트 일치 검사도 Vitest 도 이걸 못 잡는다 — 전자는',
+  '  │  실행하지 않고, 후자는 Vite 환경이라 `import.meta.env` 가 늘 정의돼 있다.',
+  '  └────────────────────────────────────────────────────────────────────────────',
+  ''
+].join('\n');
+
+/**
+ * 커밋된 산출물을 **실제로 import 해 본다**. 바이트 일치(위)는 "소스와 같은가"만 보고,
+ * Vitest 는 Vite 환경이라 `import.meta.env` 가 정의돼 있어 둘 다 이 실패를 통과시킨다.
+ * 실제로 이 검사 없이 `api/og.js` 가 모듈 평가 단계에서 죽은 채 게이트를 통과한 적이 있다.
+ */
+const runLoadSmoke = async () => {
+  const broken = [];
+
+  for (const { out } of API_BUNDLES) {
+    try {
+      await import(pathToFileURL(join(ROOT, out)).href);
+    } catch (error) {
+      broken.push(`${out} — ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  return broken;
+};
+
 const runCheck = async () => {
   const bundles = await bundleAll();
   const stale = [];
@@ -111,7 +147,18 @@ const runCheck = async () => {
     process.exit(1);
   }
 
-  console.log(`[api:check] OK — api/*.js ${bundles.length}개가 server/handlers/ 와 일치한다.`);
+  const broken = await runLoadSmoke();
+
+  if (broken.length > 0) {
+    console.error('[api:check] 실패 — 아래 산출물이 Node 에서 로드되지 않는다:');
+    for (const line of broken) console.error(`  ✗ ${line}`);
+    console.error(LOAD_HELP);
+    process.exit(1);
+  }
+
+  console.log(
+    `[api:check] OK — api/*.js ${bundles.length}개가 server/handlers/ 와 일치하고, 전부 Node 에서 로드된다.`
+  );
 };
 
 const runWrite = async () => {

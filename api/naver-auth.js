@@ -210,6 +210,14 @@ var toNodeHandler = (webHandler) => {
   };
 };
 
+// shared/lib/server/authLog.ts
+var logAuthFailure = async (tag, response) => {
+  if (response.ok) return response;
+  const detail = await response.clone().text().catch(() => "");
+  console.error(`[${tag}] \uB85C\uADF8\uC778 \uC2E4\uD328 status=${response.status} ${detail}`.trimEnd());
+  return response;
+};
+
 // server/handlers/NaverAuth/NaverAuth.ts
 var readEnv = (name) => {
   const value = process.env[name];
@@ -288,7 +296,7 @@ async function handler(request) {
       return tokenHash;
     }
   };
-  return handleNaverAuth(request, deps);
+  return logAuthFailure("naver-auth", await handleNaverAuth(request, deps));
 }
 var NaverAuth_default = toNodeHandler(handler);
 export {

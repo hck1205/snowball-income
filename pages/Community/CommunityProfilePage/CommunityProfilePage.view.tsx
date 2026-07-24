@@ -103,6 +103,15 @@ export default function CommunityProfileView({ viewModel }: CommunityProfileView
           />
           <Hint>{p.nicknameHint}</Hint>
           <Feedback aria-live="polite">
+            {/* 검사 중·통과는 상태(status)로, 중복·실패는 아래 error(alert)로 나간다.
+                저장 버튼이 잠긴 이유를 화면에 항상 남기기 위한 것 — 무음 비활성을 만들지 않는다. */}
+            {nickname.availability === 'checking' ? <Hint role="status">{p.nicknameChecking}</Hint> : null}
+            {nickname.availability === 'available' ? (
+              <SuccessText role="status">
+                <CheckCircleIcon size={16} />
+                {p.nicknameAvailable}
+              </SuccessText>
+            ) : null}
             {nickname.saved ? (
               <SuccessText role="status">
                 <CheckCircleIcon size={16} />
@@ -128,7 +137,9 @@ export default function CommunityProfileView({ viewModel }: CommunityProfileView
         </FieldBlock>
       </Section>
 
-      {/* ② 회원 탈퇴 아코디언 — 기본 접힘. 펼치면 탈퇴 버튼이 탭 순서/화면에 들어온다. */}
+      {/* ② 회원 탈퇴 아코디언 — 기본 접힘. 펼치면 탈퇴 버튼이 탭 순서/화면에 들어온다.
+          "내 글"은 이 페이지가 아니라 독립 화면(/community/my-posts)에 있다 — 프로필 드롭다운의
+          "내가 쓴 글" 메뉴로 들어간다. */}
       <DangerAccordion>
         <DangerHeader
           type="button"

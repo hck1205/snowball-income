@@ -14,6 +14,7 @@ function ChartPanelComponent<T>({
   emptyMessage,
   xAxisLabel,
   yAxisLabelFormatter,
+  chartLabelSuffix,
   getXValue,
   getYValue
 }: ChartPanelProps<T>) {
@@ -32,6 +33,7 @@ function ChartPanelComponent<T>({
       chartOption={chartOption}
       hasData={hasData}
       emptyMessage={emptyMessage}
+      chartLabelSuffix={chartLabelSuffix}
     />
   );
 }

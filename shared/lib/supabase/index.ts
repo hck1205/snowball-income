@@ -25,4 +25,5 @@ export * from './userAppStates';
 export * from './sharedSnapshots';
 export * from './auth';
 export * from './naver';
+export * from './kakao';
 export type * from './types';

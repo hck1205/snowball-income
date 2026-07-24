@@ -1,19 +1,6 @@
-import { keyframes } from '@emotion/react';
 import styled from '@emotion/styled';
 import { Link } from 'react-router-dom';
 import { color, font, media, motion, radius, space } from '@/shared/styles';
-
-/** 상세 페이지(TickerDetailPage.styled)와 결을 맞춘 등장 키프레임 — 은은한 상승(blur는 사용자 요청으로 제거). */
-const revealIn = keyframes`
-  from {
-    opacity: 0;
-    transform: translate3d(0, 40px, 0) scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-`;
 
 export const HubHero = styled.section`
   display: grid;
@@ -77,28 +64,19 @@ export const CategoryNavLink = styled.a`
   }
 `;
 
+/**
+ * 카테고리 블록.
+ *
+ * ⚠ scroll-driven 리빌(`animation-timeline: view()`)을 **의도적으로 두지 않는다.** 진입 진행도에
+ * opacity 를 매면 아직 화면 아래쪽에 있는 카테고리들이 **흐릿하게 비쳐** 사용자가 "덜 그려진 화면"
+ * 으로 읽는다(2026-07-25 사용자 요청으로 제거). 같은 이유로 상세 페이지의 blur 도 앞서 걷어냈다
+ * (2026-07-22). 되살리지 마라 — 되살린다면 리빌 대상이 뷰포트 밖에서 완전히 불투명해야 한다.
+ */
 export const CategorySection = styled.section`
   scroll-margin-top: 80px;
   margin-top: clamp(28px, 4vw, 44px);
   display: grid;
   gap: ${space[4]};
-
-  /*
-   * scroll-driven 리빌 — 카테고리 블록이 스크롤 진입 진행도에 매여 안착한다(상세 페이지와 결 맞춤).
-   * 블록 단위라 안쪽 카드의 hover translateY 와 충돌하지 않는다. 미지원 브라우저는 정적 표시(우아한 폴백 —
-   * 허브는 원래 리빌이 없었으므로 퇴화가 아니다). JS 트리거가 없어 fallback 도 없다.
-   */
-  @supports (animation-timeline: view()) {
-    animation-name: ${revealIn};
-    animation-fill-mode: both;
-    animation-timing-function: ease-out;
-    animation-timeline: view();
-    animation-range: entry 0% cover 38%;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
-  }
 `;
 
 export const CategoryHeading = styled.h2`

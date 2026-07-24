@@ -5,7 +5,7 @@ description: >-
   번들 크기(티커 목록·차트 라이브러리)를 측정하고 개선한다. "느리다/버벅인다/번들이 크다"
   같은 요청에 사용. 추측이 아니라 측정 후 개선한다.
 tools: ["Read", "Edit", "Grep", "Glob", "Bash", "PowerShell"]
-model: inherit
+model: claude-opus-4-8
 ---
 
 # Performance Optimizer

@@ -6,7 +6,7 @@ description: >-
   숫자가 틀렸다, 계산식을 바꾼다, 새 파라미터를 추가한다 같은 요청에 사용.
   UI나 상태 배선은 담당하지 않는다.
 tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "PowerShell"]
-model: inherit
+model: claude-opus-4-8
 ---
 
 # Simulation Engineer — 계산 엔진

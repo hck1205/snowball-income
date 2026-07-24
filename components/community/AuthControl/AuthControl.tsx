@@ -5,7 +5,7 @@ import { useIsLoggedInAtomValue, useProfileAtomValue } from '@/jotai/community';
 import { Button } from '@/components/common';
 import { Avatar } from '@/components/community/Avatar';
 import { useCommunityAuth } from '@/components/community/CommunityAuthProvider';
-import { ChartIcon, UserRoundIcon } from '@/components/community/CommunityIcons';
+import { ChartIcon, ListIcon, UserRoundIcon } from '@/components/community/CommunityIcons';
 import { AuthRoot, Menu, MenuHeader, MenuItem, SessionTrigger, TriggerName } from './AuthControl.styled';
 
 /**
@@ -77,6 +77,19 @@ export default function AuthControl() {
           >
             <UserRoundIcon size={16} />
             {COMMUNITY_COPY.profile.menuItem}
+          </MenuItem>
+          {/* 내가 쓴 글 — 프로필 설정 바로 아래. 비공개 글을 볼 수 있는 유일한 화면이라
+              계정 관리(프로필 설정)와 붙여 두되 별도 라우트로 분리했다. */}
+          <MenuItem
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              setOpen(false);
+              navigate('/community/my-posts');
+            }}
+          >
+            <ListIcon size={16} />
+            {COMMUNITY_COPY.myPosts.menuItem}
           </MenuItem>
           <MenuItem
             type="button"

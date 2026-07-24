@@ -35,3 +35,12 @@ export const validateNickname = (raw: string): NicknameValidation => {
  */
 export const isNicknameChanged = (raw: string, current: string | null | undefined): boolean =>
   normalizeNickname(raw) !== normalizeNickname(current ?? '');
+
+/**
+ * `ilike` 패턴에 들어갈 사용자 입력을 이스케이프한다.
+ *
+ * 중복 검사는 대소문자 구분 없이 봐야 해서(`Foo` 와 `foo` 가 공존하면 사칭처럼 보인다) `eq` 가 아니라
+ * `ilike` 를 쓴다. 그런데 `%`·`_` 는 ilike 의 **와일드카드**라 그대로 넘기면 `%` 한 글자가 "아무 닉네임이나"가
+ * 되어 **모든 닉네임이 중복으로 판정**된다. 백슬래시(기본 escape 문자)까지 함께 막는다.
+ */
+export const escapeLikePattern = (value: string): string => value.replace(/[\\%_]/g, (char) => `\\${char}`);

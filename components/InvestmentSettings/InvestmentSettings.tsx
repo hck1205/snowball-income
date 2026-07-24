@@ -1,5 +1,6 @@
 import { memo, useEffect } from 'react';
 import { Card, FormSection, InputField, ToggleField } from '@/components';
+import CurrencyToggleField from '@/components/CurrencyToggleField';
 import { TOUR_TARGET } from '@/shared/constants';
 import type { YieldFormValues } from '@/shared/types';
 import type { InvestmentSettingsProps } from './InvestmentSettings.types';
@@ -28,10 +29,12 @@ function InvestmentSettingsComponent({
   values,
   showQuickEstimate,
   showSplitGraphs,
+  display,
   validationErrors,
   onSetField,
   onToggleQuickEstimate,
   onToggleSplitGraphs,
+  onChangeCurrency,
   onHelpResultMode,
   onHelpReinvestTiming,
   onHelpDpsGrowthMode
@@ -98,6 +101,9 @@ function InvestmentSettingsComponent({
               />
             </ReinvestControls>
           </ReinvestRow>
+          {/* 배당 재투자 바로 아래(구분선 위) — 사용자 지정 자리. 위 토글들과 같은 `ToggleField` 라
+              라벨 줄·스위치 정렬이 그대로 이어지고, 구분선 아래 원화 고정 입력들과는 분리된다. */}
+          <CurrencyToggleField display={display} onChangeCurrency={onChangeCurrency} />
           <ConfigSectionDivider aria-hidden="true" />
           <ConfigInputGrid>
             <InputField

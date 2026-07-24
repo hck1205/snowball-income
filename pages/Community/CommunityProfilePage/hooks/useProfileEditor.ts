@@ -2,13 +2,16 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
-import { getSupabaseClient, updateMyProfile, type CommunityClient } from '@/shared/lib/supabase';
+import { getSupabaseClient, isNicknameTaken, updateMyProfile, type CommunityClient } from '@/shared/lib/supabase';
 import { isNicknameChanged, validateNickname } from '@/shared/lib/community';
 import { useProfileAtomValue, useSessionAtomValue } from '@/jotai/community';
 import { useCommunityAuth } from '@/components/community';
 import { runAccountDelete } from './accountDeletion';
 
 const p = COMMUNITY_COPY.profile;
+
+/** 입력이 멎었다고 보는 시간. 짧으면 타이핑 중 요청이 쏟아지고, 길면 저장 버튼이 늦게 풀린다. */
+const NICKNAME_CHECK_DEBOUNCE_MS = 400;
 
 /** supabase 에러가 인증(세션 만료/JWT) 계열인지 대략 판별 — 세션 만료 카피 분기용. */
 const isAuthError = (error: unknown): boolean => {
@@ -23,11 +26,15 @@ const isAuthError = (error: unknown): boolean => {
   );
 };
 
+/** 닉네임 중복 검사 상태. `available` 이라야 저장할 수 있다(무검사 저장 금지). */
+export type NicknameAvailability = 'idle' | 'checking' | 'available' | 'taken' | 'failed';
+
 export type ProfileEditor = {
   nickname: {
     value: string;
     onChange: (value: string) => void;
     status: 'idle' | 'saving';
+    availability: NicknameAvailability;
     error: string | null;
     saved: boolean;
     canSave: boolean;
@@ -82,12 +89,60 @@ export function useProfileEditor(): ProfileEditor {
     }
   }, [displayName]);
 
+  const [availability, setAvailability] = useState<NicknameAvailability>('idle');
+
   const onNicknameChange = useCallback((value: string) => {
     setNicknameInput(value);
     // 다음 입력 변경 시 이전 성공/실패 피드백을 소거한다(토스트 부재 전제).
     setNicknameSaved(false);
     setNicknameError(null);
+    // 입력이 바뀌면 직전 검사 결과는 **다른 값에 대한 것**이라 무효다. 여기서 지우지 않으면
+    // "available" 이 남아 새 값이 미검사 상태로 저장돼 버린다.
+    setAvailability('idle');
   }, []);
+
+  /**
+   * 입력이 멎으면 중복을 조회한다(디바운스).
+   *
+   * 타이핑마다 쏘지 않는 이유는 요청 수도 있지만, **응답 역전** 때문이다 — 늦게 출발한 요청이 먼저
+   * 오면 옛 값의 결과가 화면에 남는다. 그래서 매 실행에 `cancelled` 플래그를 두고, 정리 함수가
+   * 이전 실행의 결과 반영을 막는다(= 항상 마지막 입력의 결과만 쓴다).
+   */
+  useEffect(() => {
+    const validation = validateNickname(nicknameInput);
+    // 길이 미달/초과이거나 원래 값 그대로면 검사할 게 없다(저장 버튼도 어차피 잠긴다).
+    if (!validation.ok || !isNicknameChanged(nicknameInput, displayName) || !userId) {
+      setAvailability('idle');
+      return;
+    }
+
+    let cancelled = false;
+    setAvailability('checking');
+
+    const timer = setTimeout(() => {
+      void (async () => {
+        try {
+          const client = await ensureClient();
+          if (!client) throw new Error('no client');
+          const taken = await isNicknameTaken(client, validation.value, userId);
+          if (cancelled) return;
+          setAvailability(taken ? 'taken' : 'available');
+          // 사유는 저장 버튼 옆이 아니라 인라인으로 즉시 보여준다(저장을 눌러야 알게 하지 않는다).
+          setNicknameError(taken ? p.errorNicknameTaken : null);
+        } catch {
+          if (cancelled) return;
+          // 검사 실패를 "사용 가능"으로 위장하지 않는다 — 저장은 잠긴 채로 사유를 알린다.
+          setAvailability('failed');
+          setNicknameError(p.errorNicknameCheckFailed);
+        }
+      })();
+    }, NICKNAME_CHECK_DEBOUNCE_MS);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [nicknameInput, displayName, userId, ensureClient]);
 
   const onSaveNickname = useCallback(() => {
     void (async () => {
@@ -108,6 +163,14 @@ export function useProfileEditor(): ProfileEditor {
       try {
         const client = await ensureClient();
         if (!client) throw new Error('no client');
+        // 저장 직전 **다시 확인한다.** 디바운스 검사 이후 다른 사람이 그 닉네임을 가져갔을 수 있고,
+        // 버튼 활성 상태만 믿으면 그 창(window)을 그대로 통과한다. UNIQUE 제약이 없어 DB 가
+        // 막아주지 않으므로 여기가 마지막 방어선이다.
+        if (await isNicknameTaken(client, validation.value, userId)) {
+          setAvailability('taken');
+          setNicknameError(p.errorNicknameTaken);
+          return;
+        }
         await updateMyProfile(client, userId, { displayName: validation.value });
         await refreshProfile();
         setNicknameSaved(true);
@@ -125,7 +188,12 @@ export function useProfileEditor(): ProfileEditor {
     })();
   }, [nicknameInput, userId, ensureClient, refreshProfile, openLoginPrompt]);
 
-  const canSaveNickname = isNicknameChanged(nicknameInput, displayName) && nicknameStatus === 'idle';
+  /**
+   * 저장 가능 = 값이 바뀌었고 · 저장 중이 아니고 · **중복 검사를 통과했을 때**.
+   * `checking`/`taken`/`failed`/`idle` 은 전부 잠긴다 — 검사 없이 저장되는 경로를 남기지 않는다.
+   */
+  const canSaveNickname =
+    isNicknameChanged(nicknameInput, displayName) && nicknameStatus === 'idle' && availability === 'available';
 
   // ── 회원 탈퇴 ──────────────────────────────────────────────────────────────
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -171,6 +239,7 @@ export function useProfileEditor(): ProfileEditor {
       value: nicknameInput,
       onChange: onNicknameChange,
       status: nicknameStatus,
+      availability,
       error: nicknameError,
       saved: nicknameSaved,
       canSave: canSaveNickname,
