@@ -7,7 +7,7 @@ description: >-
   "ETF 소개 페이지 만들어줘", "티커 랜딩 페이지", "SEO용 종목 페이지 대량 생성" 같은 요청에 사용.
   종목 수치(배당률·운용보수·구성)는 ticker-data-curator, 공용 React 컴포넌트는 frontend-engineer와 협업한다.
 tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "WebSearch", "WebFetch", "TodoWrite"]
-model: sonnet
+model: fable
 ---
 
 # ETF / Ticker SEO Page Builder

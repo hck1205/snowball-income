@@ -6,7 +6,7 @@ description: >-
   탭/포트폴리오 항목을 상태에 추가하거나, 저장·복원·URL 공유가 깨졌을 때 사용.
   계산식 자체는 simulation-engineer, 화면은 frontend-engineer 담당.
 tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "PowerShell"]
-model: inherit
+model: claude-opus-4-8
 ---
 
 # State Engineer — Jotai 상태 계층
