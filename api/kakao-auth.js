@@ -1,9 +1,9 @@
 // ⚠ 자동 생성물 — 직접 편집하지 마라. 편집해도 다음 빌드가 덮어쓰고, 그 전에 빌드가 실패한다.
-// 소스: server/handlers/NaverAuth/NaverAuth.ts
+// 소스: server/handlers/KakaoAuth/KakaoAuth.ts
 // 재생성: npm run api:bundle
 
 
-// server/handlers/NaverAuth/NaverAuth.ts
+// server/handlers/KakaoAuth/KakaoAuth.ts
 import { createClient } from "@supabase/supabase-js";
 
 // shared/lib/community/display.ts
@@ -14,28 +14,34 @@ var WEEK = DAY * 7;
 var MONTH = DAY * 30;
 var YEAR = DAY * 365;
 
-// shared/lib/community/naverAuth.ts
-var NAVER_TOKEN_ENDPOINT = "https://nid.naver.com/oauth2.0/token";
-var NAVER_PROFILE_ENDPOINT = "https://openapi.naver.com/v1/nid/me";
-var buildNaverSyntheticEmail = (naverId, domain) => `naver_${naverId}@${domain}`;
-var parseNaverTokenResponse = (raw) => {
+// shared/lib/community/kakaoAuth.ts
+var KAKAO_TOKEN_ENDPOINT = "https://kauth.kakao.com/oauth/token";
+var KAKAO_PROFILE_ENDPOINT = "https://kapi.kakao.com/v2/user/me";
+var buildKakaoSyntheticEmail = (kakaoId, domain) => `kakao_${kakaoId}@${domain}`;
+var parseKakaoTokenResponse = (raw) => {
   if (!raw || typeof raw !== "object") return null;
   const token = raw.access_token;
   if (typeof token !== "string") return null;
   const trimmed = token.trim();
   return trimmed.length > 0 ? trimmed : null;
 };
-var parseNaverProfileResponse = (raw) => {
+var readNickname = (value) => {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+};
+var parseKakaoProfileResponse = (raw) => {
   if (!raw || typeof raw !== "object") return null;
   const obj = raw;
-  if (obj.resultcode !== "00") return null;
-  const response = obj.response;
-  if (!response || typeof response !== "object") return null;
-  const r = response;
-  const id = typeof r.id === "string" ? r.id.trim() : "";
+  const rawId = obj.id;
+  const id = typeof rawId === "number" && Number.isFinite(rawId) ? String(rawId) : typeof rawId === "string" ? rawId.trim() : "";
   if (!id) return null;
-  const nickname = typeof r.nickname === "string" && r.nickname.trim().length > 0 ? r.nickname.trim() : null;
-  return { id, nickname };
+  const account = obj.kakao_account;
+  const accountProfile = account && typeof account === "object" ? account.profile : void 0;
+  const accountNickname = accountProfile && typeof accountProfile === "object" ? readNickname(accountProfile.nickname) : null;
+  const properties = obj.properties;
+  const propertyNickname = properties && typeof properties === "object" ? readNickname(properties.nickname) : null;
+  return { id, nickname: accountNickname ?? propertyNickname };
 };
 var readCodeState = (body) => {
   if (!body || typeof body !== "object") return { code: "", state: "" };
@@ -48,7 +54,7 @@ var json = (status, body) => new Response(JSON.stringify(body), {
   status,
   headers: { "content-type": "application/json; charset=utf-8" }
 });
-var handleNaverAuth = async (request, deps) => {
+var handleKakaoAuth = async (request, deps) => {
   if (request.method !== "POST") {
     return json(405, { error: "method_not_allowed" });
   }
@@ -64,21 +70,21 @@ var handleNaverAuth = async (request, deps) => {
   }
   let accessToken;
   try {
-    accessToken = await deps.exchangeCodeForToken(code, state);
+    accessToken = await deps.exchangeCodeForToken(code);
   } catch {
     accessToken = null;
   }
   if (!accessToken) {
-    return json(502, { error: "naver_exchange_failed" });
+    return json(502, { error: "kakao_exchange_failed" });
   }
   let profile;
   try {
-    profile = await deps.fetchNaverProfile(accessToken);
+    profile = await deps.fetchKakaoProfile(accessToken);
   } catch {
     profile = null;
   }
   if (!profile) {
-    return json(502, { error: "naver_profile_failed" });
+    return json(502, { error: "kakao_profile_failed" });
   }
   let tokenHash;
   try {
@@ -218,20 +224,32 @@ var logAuthFailure = async (tag, response) => {
   return response;
 };
 
-// server/handlers/NaverAuth/NaverAuth.ts
+// server/handlers/KakaoAuth/KakaoAuth.ts
 var readEnv = (name) => {
   const value = process.env[name];
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : void 0;
 };
-var DEFAULT_SYNTHETIC_EMAIL_DOMAIN = "naver-oauth.snowball.invalid";
+var DEFAULT_SYNTHETIC_EMAIL_DOMAIN = "kakao-oauth.snowball.invalid";
+var KAKAO_CALLBACK_PATH = "/community/auth/kakao/callback";
 var readConfig = () => {
-  const clientId = readEnv("VITE_NAVER_CLIENT_ID") ?? readEnv("NAVER_CLIENT_ID");
-  const clientSecret = readEnv("NAVER_CLIENT_SECRET");
+  const clientId = readEnv("VITE_KAKAO_CLIENT_ID") ?? readEnv("KAKAO_CLIENT_ID");
+  const clientSecret = readEnv("KAKAO_CLIENT_SECRET");
   const supabaseUrl = readEnv("SUPABASE_URL") ?? readEnv("VITE_SUPABASE_URL");
   const serviceKey = readEnv("SUPABASE_SERVICE_ROLE_KEY");
-  const emailDomain = readEnv("NAVER_SYNTHETIC_EMAIL_DOMAIN") ?? DEFAULT_SYNTHETIC_EMAIL_DOMAIN;
-  if (!clientId || !clientSecret || !supabaseUrl || !serviceKey) return null;
-  return { clientId, clientSecret, supabaseUrl, serviceKey, emailDomain };
+  const emailDomain = readEnv("KAKAO_SYNTHETIC_EMAIL_DOMAIN") ?? DEFAULT_SYNTHETIC_EMAIL_DOMAIN;
+  const fallbackRedirectUri = readEnv("KAKAO_REDIRECT_URI");
+  if (!clientId || !supabaseUrl || !serviceKey) return null;
+  return { clientId, clientSecret, supabaseUrl, serviceKey, emailDomain, fallbackRedirectUri };
+};
+var resolveRedirectUri = (request, config) => {
+  const origin = request.headers.get("origin")?.trim();
+  if (origin) return `${origin}${KAKAO_CALLBACK_PATH}`;
+  try {
+    const requestOrigin = new URL(request.url).origin;
+    if (requestOrigin && requestOrigin !== "null") return `${requestOrigin}${KAKAO_CALLBACK_PATH}`;
+  } catch {
+  }
+  return config.fallbackRedirectUri ?? null;
 };
 var jsonError = (status, code) => new Response(JSON.stringify({ error: code }), {
   status,
@@ -247,45 +265,70 @@ async function handler(request) {
   const config = readConfig();
   if (!config) {
     console.error(
-      "[naver-auth] \uD658\uACBD\uBCC0\uC218 \uBBF8\uC124\uC815 (VITE_NAVER_CLIENT_ID / NAVER_CLIENT_SECRET / SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY)"
+      "[kakao-auth] \uD658\uACBD\uBCC0\uC218 \uBBF8\uC124\uC815 (VITE_KAKAO_CLIENT_ID / SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY)"
     );
     return jsonError(500, "internal_error");
   }
   const admin = createClient(config.supabaseUrl, config.serviceKey, {
     auth: { persistSession: false, autoRefreshToken: false }
   });
+  let kakaoExchangeError = null;
   const deps = {
-    exchangeCodeForToken: async (code, state) => {
+    exchangeCodeForToken: async (code) => {
+      const redirectUri = resolveRedirectUri(request, config);
+      if (!redirectUri) {
+        kakaoExchangeError = "no_redirect_uri";
+        return null;
+      }
       const body = new URLSearchParams({
         grant_type: "authorization_code",
         client_id: config.clientId,
-        client_secret: config.clientSecret,
-        code,
-        state
+        redirect_uri: redirectUri,
+        code
       });
-      const res = await fetch(NAVER_TOKEN_ENDPOINT, {
+      if (config.clientSecret) body.set("client_secret", config.clientSecret);
+      const res = await fetch(KAKAO_TOKEN_ENDPOINT, {
         method: "POST",
-        headers: { "content-type": "application/x-www-form-urlencoded" },
+        headers: { "content-type": "application/x-www-form-urlencoded;charset=utf-8" },
         body: body.toString()
       });
-      if (!res.ok) return null;
-      return parseNaverTokenResponse(await res.json().catch(() => null));
+      if (!res.ok) {
+        const detail = await res.json().catch(() => null);
+        const code2 = typeof detail?.error_code === "string" ? detail.error_code : `http_${res.status}`;
+        const kind = typeof detail?.error === "string" ? detail.error : "unknown";
+        kakaoExchangeError = `${code2}/${kind}`;
+        console.error(
+          "[kakao-auth] \uD1A0\uD070 \uAD50\uD658 \uC2E4\uD328",
+          kakaoExchangeError,
+          "redirect_uri=",
+          redirectUri,
+          "client_secret_\uC0AC\uC6A9=",
+          Boolean(config.clientSecret)
+        );
+        return null;
+      }
+      const parsed = parseKakaoTokenResponse(await res.json().catch(() => null));
+      if (!parsed) {
+        kakaoExchangeError = "ok_but_no_access_token";
+        console.error("[kakao-auth] \uD1A0\uD070 \uC751\uB2F5\uC5D0 access_token \uC774 \uC5C6\uB2E4", "redirect_uri=", redirectUri);
+      }
+      return parsed;
     },
-    fetchNaverProfile: async (accessToken) => {
-      const res = await fetch(NAVER_PROFILE_ENDPOINT, {
+    fetchKakaoProfile: async (accessToken) => {
+      const res = await fetch(KAKAO_PROFILE_ENDPOINT, {
         headers: { authorization: `Bearer ${accessToken}` }
       });
       if (!res.ok) return null;
-      return parseNaverProfileResponse(await res.json().catch(() => null));
+      return parseKakaoProfileResponse(await res.json().catch(() => null));
     },
     issueMagicLink: async (profile) => {
-      const email = buildNaverSyntheticEmail(profile.id, config.emailDomain);
+      const email = buildKakaoSyntheticEmail(profile.id, config.emailDomain);
       const created = await admin.auth.admin.createUser({
         email,
         email_confirm: true,
         // 합성 이메일 — 확인메일 발송 안 함
         user_metadata: profile.nickname ? { name: profile.nickname } : {},
-        app_metadata: { provider: "naver", naver_id: profile.id }
+        app_metadata: { provider: "kakao", kakao_id: profile.id }
       });
       if (created.error && !isAlreadyRegistered(created.error)) {
         return null;
@@ -296,10 +339,14 @@ async function handler(request) {
       return tokenHash;
     }
   };
-  return logAuthFailure("naver-auth", await handleNaverAuth(request, deps));
+  const response = await handleKakaoAuth(request, deps);
+  if (kakaoExchangeError && response.status === 502) {
+    return logAuthFailure("kakao-auth", jsonError(502, `kakao_exchange_failed:${kakaoExchangeError}`));
+  }
+  return logAuthFailure("kakao-auth", response);
 }
-var NaverAuth_default = toNodeHandler(handler);
+var KakaoAuth_default = toNodeHandler(handler);
 export {
-  NaverAuth_default as default,
+  KakaoAuth_default as default,
   handler
 };

@@ -15,7 +15,7 @@ import {
   type NaverAuthDeps,
   type NaverProfile
 } from '@/shared/lib/community';
-import { toNodeHandler } from '@/shared/lib/server';
+import { logAuthFailure, toNodeHandler } from '@/shared/lib/server';
 
 /**
  * 네이버 로그인 세션 발급 — `POST /api/naver-auth`, body { code, state } (application/json).
@@ -157,7 +157,8 @@ export async function handler(request: Request): Promise<Response> {
     }
   };
 
-  return handleNaverAuth(request, deps);
+  // 실패(400/405/502/500)는 서버 로그에 남긴다 — 콜백 리다이렉트로 클라 콘솔이 지워져도 원인이 남는다.
+  return logAuthFailure('naver-auth', await handleNaverAuth(request, deps));
 }
 
 /** ⚠ Vercel 이 실제로 호출하는 진입점. 어댑터를 벗기면 무응답으로 되돌아간다(위 "런타임" 주석). */

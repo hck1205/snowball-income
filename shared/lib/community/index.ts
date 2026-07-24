@@ -9,3 +9,4 @@ export * from './profile';
 export * from './avatar';
 export * from './accountDelete';
 export * from './naverAuth';
+export * from './kakaoAuth';

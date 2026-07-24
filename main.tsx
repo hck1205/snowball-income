@@ -5,7 +5,7 @@ import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
 import ReactDOM from "react-dom/client";
 import AppRouter from "@/router";
 import { ANALYTICS_EVENT, applySeoRuntimeMetadata, initGoogleAnalytics, peekLoginSource, track } from "@/shared/lib/analytics";
-import { hasOAuthCallbackParams, isNaverCallbackPath } from "@/shared/lib/supabase";
+import { hasOAuthCallbackParams, isKakaoCallbackPath, isNaverCallbackPath } from "@/shared/lib/supabase";
 
 applySeoRuntimeMetadata();
 initGoogleAnalytics();
@@ -24,9 +24,19 @@ initGoogleAnalytics();
 //   교환이 실패한다. 그래서 네이버 콜백 경로를 **먼저** 걸러 `completeNaverCallback` 로 보낸다. 이 함수는
 //   supabase 클라이언트 생성 **전에** URL 에서 code/state 를 걷어내고, 서버(/api/naver-auth) 교환 →
 //   verifyOtp 로 세션을 확립한 뒤 returnTo 로 replace 한다(lazy 커뮤니티 마운트와 무관).
+//
+// ⚠ 카카오도 2026-07-24 부터 **같은 커스텀 경로**를 탄다(계정 병합 회피 — shared/lib/supabase/kakao.ts).
+//   `/community/auth/kakao/callback?code=&state=` 역시 `?code=` 를 실어 오므로 hasOAuthCallbackParams 가
+//   true 다. 그 code 는 **카카오 인가코드**이지 Supabase 콜백 코드가 아니라서, 아래 일반 분기보다
+//   **먼저** 걸러 `completeKakaoCallback` 로 보내야 한다(순서를 바꾸면 detectSessionInUrl 이 삼킨다).
+//   env(VITE_KAKAO_CLIENT_ID) 미설정 배포에서는 애초에 이 경로로 착지하지 않는다(기존 Supabase 플로우 폴백).
 if (isNaverCallbackPath(window.location.pathname)) {
   void import("@/shared/lib/supabase").then(({ completeNaverCallback }) => {
     void completeNaverCallback();
+  });
+} else if (isKakaoCallbackPath(window.location.pathname)) {
+  void import("@/shared/lib/supabase").then(({ completeKakaoCallback }) => {
+    void completeKakaoCallback();
   });
 } else if (hasOAuthCallbackParams(window.location.search, window.location.hash)) {
   // OAuth 콜백 착지. supabase 가 URL 의 코드/토큰을 세션으로 교환하는데, **실패는 어디로도 전달되지 않고**

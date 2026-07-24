@@ -11,6 +11,7 @@
 | 카카오 로그인 500 수정 마이그레이션 | [`supabase/migrations/20260728000000_fix_kakao_profile_avatar.sql`](../../supabase/migrations/20260728000000_fix_kakao_profile_avatar.sql) — 가입 트리거가 `avatar_url`을 null로 저장(카카오 http URL의 CHECK 제약 위반 회피). 문제 상황: §3-2-1 |
 | 클라이언트 데이터 레이어 | [`shared/lib/supabase/`](../../shared/lib/supabase) |
 | 네이버 로그인 서버 브릿지 | [`api/naver-auth.ts`](../../api/naver-auth.ts) (설정 절차: §7) |
+| 카카오 로그인 서버 브릿지(커스텀 플로우 — 구글 계정 병합 회피) | [`server/handlers/KakaoAuth/KakaoAuth.ts`](../../server/handlers/KakaoAuth/KakaoAuth.ts) → `api/kakao-auth.js` (설정 절차: §7-4) |
 | 순수 함수 테스트 | [`test/community/`](../../test/community) |
 
 ---
@@ -298,6 +299,69 @@ npm run dev   # http://localhost:5173 — /api/naver-auth 까지 함께 동작
 > (`Failed to parse source for import analysis … index.html`). 이 rewrite는 프로덕션 SPA/SEO
 > 라우팅에 필수라 지울 수 없다 — 그래서 로컬은 `apiDevPlugin`을 얹은 `npm run dev`가 정답이다.
 > 배포 환경 확인이 필요하면 Vercel Preview 배포에서 본다.
+
+### 7-4. 카카오 로그인 — **커스텀 플로우**(계정 병합 회피)
+
+카카오는 Supabase 기본 프로바이더라 원래는 §3의 대시보드 스위치만 켜면 됐다. 그런데 그 기본 경로에서
+**같은 이메일을 쓰는 구글 계정과 한 계정으로 병합**되는 문제가 실측됐다(2026-07-24: user_id 하나에
+email·google·kakao identity 3개). GoTrue는 새 identity를 **이메일로** 기존 계정에 붙이는데, 카카오 콘솔의
+"카카오계정(이메일)" 선택 동의가 켜져 있으면 앱이 scope에서 요청하지 않아도 이메일이 넘어오기 때문이다.
+**코드로는 막을 수 없다.**
+
+그래서 카카오도 **네이버와 동일한 구조로 분리**했다(사용자 결정): 카카오 회원번호(`id`)로 만든 결정론적
+합성 이메일(`kakao_<id>@<도메인>`)로 사용자를 find-or-create 하므로 구글 계정과 구조적으로 절대 겹치지
+않는다. ⚠ **트레이드오프**: 같은 사람이 구글과 카카오로 각각 로그인하면 **별개 계정**이 된다(닉네임·글·
+좋아요가 공유되지 않는다). 이미 병합돼 있던 기존 계정은 그대로 남고, 다음 카카오 로그인부터 새 계정이 된다.
+
+동작(네이버 §7과 동형):
+
+1. 브라우저 → 카카오 authorize (`client_id`=REST API 키, `redirect_uri`, `state`, `scope=profile_nickname`)
+2. 카카오 → `<origin>/community/auth/kakao/callback?code=&state=`
+3. 클라이언트가 `code`를 `POST /api/kakao-auth`로 전달(state는 클라이언트가 sessionStorage 값과 대조)
+4. 서버가 토큰 교환 → `GET /v2/user/me`로 **id·닉네임만** 조회(이메일·프로필 사진은 읽지 않는다) →
+   합성 이메일로 find-or-create → magiclink `token_hash` 발급
+5. 클라이언트가 `verifyOtp`로 세션 확립
+
+코드: [`shared/lib/supabase/kakao.ts`](../../shared/lib/supabase/kakao.ts)(클라이언트) ·
+[`server/handlers/KakaoAuth/KakaoAuth.ts`](../../server/handlers/KakaoAuth/KakaoAuth.ts)(서버, 산출물 `api/kakao-auth.js`).
+
+> **폴백**: `VITE_KAKAO_CLIENT_ID`가 없으면 가로채지 않고 **기존 Supabase 카카오 로그인**으로 그대로
+> 동작한다. 즉 이 변수를 넣는 순간부터 계정 분리가 켜진다.
+
+### 7-5. 카카오 개발자 콘솔 설정
+
+1. [카카오 개발자 콘솔](https://developers.kakao.com/console/app) → 해당 앱 선택
+2. **앱 키** → **REST API 키** 복사 (JavaScript 키가 아니다)
+3. **카카오 로그인** → 활성화 ON → **Redirect URI**를 아래 표대로 정확히 등록
+
+   | 환경 | Redirect URI |
+   |------|--------------|
+   | 로컬 | `http://localhost:5173/community/auth/kakao/callback` |
+   | 배포 | `<VITE_SITE_URL>/community/auth/kakao/callback` |
+
+   경로 `/community/auth/kakao/callback`은 코드에 상수(`KAKAO_CALLBACK_PATH`)로 고정돼 있다 —
+   다른 경로를 등록하면 `KOE006`으로 실패한다. **기존에 등록해 둔 Supabase 콜백
+   (`https://<project>.supabase.co/auth/v1/callback`)은 지우지 말고 그대로 둔다** — 폴백 경로가 살아 있어야
+   env 미설정 환경에서 로그인이 계속 된다.
+4. **동의항목** → **닉네임**만 필수/선택 동의로 켠다. 프로필 사진·카카오계정(이메일)은 **끈다**
+   (앱은 어차피 읽지 않지만, 꺼 두면 불필요한 동의 화면이 줄고 과거 병합 원인도 사라진다).
+5. (선택) **보안** → Client Secret을 "사용함"으로 켰다면 그 값을 `KAKAO_CLIENT_SECRET`으로 넣는다.
+   꺼져 있으면 **넣지 않는다**(빈 값을 보내면 오히려 교환이 거절된다).
+
+### 7-6. 카카오 환경변수
+
+| 이름 | 값 | 어디에 | 비고 |
+|------|-----|--------|------|
+| `VITE_KAKAO_CLIENT_ID` | 7-5의 **REST API 키** | Vercel + 로컬 `.env` | 공개값(authorize URL에 실려 나간다). 없으면 기존 Supabase 카카오 플로우로 폴백 |
+| `KAKAO_CLIENT_SECRET` | (선택) 카카오 콘솔 → 보안 → Client Secret | Vercel + 로컬 `.env` | 🚫 `VITE_` 접두사 금지. 콘솔에서 켠 앱만 넣는다 |
+| `SUPABASE_SERVICE_ROLE_KEY` | §7-2와 **같은 값**(네이버·탈퇴와 공용) | Vercel + 로컬 `.env` | 🚫 `VITE_` 접두사 금지 |
+| `KAKAO_SYNTHETIC_EMAIL_DOMAIN` | (선택) 합성 이메일 도메인 | Vercel만 | 안 넣으면 기본값 `kakao-oauth.snowball.invalid` |
+| `KAKAO_REDIRECT_URI` | (선택) 토큰 교환에 쓸 redirect_uri 전체 URL | Vercel만 | 보통 불필요 — 서버가 요청의 `Origin`/호스트에서 자동 복원한다. 특수 프록시 구성에서만 사용 |
+
+- 로컬 테스트는 §7-3과 동일하다(`npm run dev`가 `/api/kakao-auth`까지 서빙한다).
+- **Supabase 대시보드의 Kakao 프로바이더**: 커스텀 플로우는 이 스위치를 타지 않는다. 폴백을 남겨두려면
+  켠 채로 둬도 되고, 기본 경로로 새로 병합되는 계정을 원천 차단하려면 **꺼도 된다**(끄면 폴백도 함께
+  죽으므로 `VITE_KAKAO_CLIENT_ID`가 확실히 설정된 뒤에 끈다).
 
 ---
 

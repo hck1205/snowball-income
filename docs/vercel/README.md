@@ -56,9 +56,23 @@
 - 없다고 버튼이 사라지지는 않는다 — "준비 중"으로 표시되고 클릭이 무시된다.
 - 자세한 절차(네이버 개발자센터 앱 등록 · Callback URL): [`docs/supabase/README.md`](../supabase/README.md) §7
 
-### 서버 전용 — 회원 탈퇴 · 네이버 로그인 함수가 쓰는 값
+### 선택 — 카카오 로그인을 **커스텀 플로우**로 켤 때만
 
-`api/account-delete.ts`, `api/naver-auth.ts`가 Node 런타임에서 `process.env`로 직접 읽는다.
+| 이름 | 값 |
+| --- | --- |
+| `VITE_KAKAO_CLIENT_ID` | 카카오 개발자 콘솔의 **REST API 키**(앱 키 4종 중 REST API 키) |
+
+- 카카오는 Supabase 기본 프로바이더지만, 그 기본 경로는 **같은 이메일의 구글 계정과 한 계정으로 병합**된다
+  (GoTrue 자동 identity 링크 + 카카오 콘솔의 이메일 선택동의). 계정을 분리하려고 네이버와 같은 커스텀
+  플로우(`/api/kakao-auth` + 카카오 id 기반 합성 이메일)를 쓴다.
+- **이 값이 없으면 커스텀 플로우를 타지 않고 기존 Supabase 카카오 로그인으로 폴백한다**(로그인이 죽지 않는다).
+  즉 이 변수를 넣는 순간부터 계정 분리가 적용된다.
+- 위 커뮤니티(Supabase) 변수가 없으면 함께 꺼진다(`isKakaoCustomAuthEnabled = isCommunityEnabled && VITE_KAKAO_CLIENT_ID`).
+- 자세한 절차(카카오 콘솔 Redirect URI 등록): [`docs/supabase/README.md`](../supabase/README.md) §7-4
+
+### 서버 전용 — 회원 탈퇴 · 네이버/카카오 로그인 함수가 쓰는 값
+
+`api/account-delete.ts`, `api/naver-auth.ts`, `api/kakao-auth.js`가 Node 런타임에서 `process.env`로 직접 읽는다.
 **아래 값에는 `VITE_` 접두사를 붙이면 안 된다** — 붙는 순간 클라이언트 번들에 노출된다.
 
 | 이름 | 값 | 비고 |
@@ -66,6 +80,8 @@
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase Project Settings → API의 service_role 키 | RLS를 통째로 우회하는 키 — 절대 커밋 금지, Vercel 대시보드에만 |
 | `NAVER_CLIENT_SECRET` | 네이버 개발자센터에서 발급받은 Client Secret | 네이버 로그인 전용 |
 | `NAVER_SYNTHETIC_EMAIL_DOMAIN` | (선택) 합성 이메일 도메인 | 안 넣으면 기본값 사용 |
+| `KAKAO_CLIENT_SECRET` | 카카오 콘솔 → 보안 → Client Secret | **선택** — 콘솔에서 "사용함"으로 켠 앱만 필요. 꺼져 있으면 넣지 않는다 |
+| `KAKAO_SYNTHETIC_EMAIL_DOMAIN` | (선택) 카카오 합성 이메일 도메인 | 안 넣으면 기본값(`kakao-oauth.snowball.invalid`) 사용 |
 
 이 값들은 브라우저로 내려가지 않지만, **로컬 `npm run dev`로도 동작을 확인할 수 있다** — `vite.config.ts`의
 `apiDevPlugin`이 `/api/*`를 dev 서버에서 서빙하며 `.env`의 이 값들을 `process.env`로 주입한다.

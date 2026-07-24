@@ -19,7 +19,9 @@ vi.mock('@/shared/lib/supabase', async (importOriginal) => {
   return {
     ...actual,
     getSupabaseClient: vi.fn(async () => ({}) as unknown),
-    updateMyProfile: vi.fn(async () => {})
+    updateMyProfile: vi.fn(async () => {}),
+    // 기본은 "사용 가능" — 중복 시나리오는 각 테스트가 개별로 덮어쓴다.
+    isNicknameTaken: vi.fn(async () => false)
   };
 });
 
@@ -103,6 +105,8 @@ describe('useProfileEditor — 닉네임 검증 경계', () => {
     await act(async () => {
       result.current.nickname.onChange('  새이름  ');
     });
+    // 중복 검사(디바운스)를 통과해야 저장 버튼이 열린다.
+    await waitFor(() => expect(result.current.nickname.canSave).toBe(true), { timeout: 3000 });
     await act(async () => {
       result.current.nickname.onSave();
     });
@@ -112,6 +116,84 @@ describe('useProfileEditor — 닉네임 검증 경계', () => {
       displayName: '새이름'
     });
     expect(auth.refreshProfile).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('useProfileEditor — 닉네임 중복 확인', () => {
+  it('이미 쓰이는 닉네임이면 저장이 잠기고 사유를 알린다 (요청 미발생)', async () => {
+    vi.mocked(supa.isNicknameTaken).mockResolvedValue(true);
+    const { result } = setup();
+
+    await act(async () => {
+      result.current.nickname.onChange('중복이름');
+    });
+
+    await waitFor(() => expect(result.current.nickname.availability).toBe('taken'), { timeout: 3000 });
+    expect(result.current.nickname.canSave).toBe(false);
+    expect(result.current.nickname.error).toBe(p.errorNicknameTaken);
+
+    // 잠긴 상태에서 굳이 저장을 눌러도 갱신 요청은 나가지 않는다.
+    await act(async () => {
+      result.current.nickname.onSave();
+    });
+    expect(supa.updateMyProfile).not.toHaveBeenCalled();
+  });
+
+  it('본인 id 는 검사에서 제외해 자기 닉네임과 충돌하지 않는다', async () => {
+    const { result } = setup();
+
+    await act(async () => {
+      result.current.nickname.onChange('새이름');
+    });
+
+    await waitFor(() => expect(result.current.nickname.availability).toBe('available'), { timeout: 3000 });
+    expect(supa.isNicknameTaken).toHaveBeenCalledWith(expect.anything(), '새이름', 'user-1');
+  });
+
+  it('검사가 실패하면 사용 가능으로 위장하지 않고 저장을 막는다', async () => {
+    vi.mocked(supa.isNicknameTaken).mockRejectedValue(new Error('network'));
+    const { result } = setup();
+
+    await act(async () => {
+      result.current.nickname.onChange('새이름');
+    });
+
+    await waitFor(() => expect(result.current.nickname.availability).toBe('failed'), { timeout: 3000 });
+    expect(result.current.nickname.canSave).toBe(false);
+    expect(result.current.nickname.error).toBe(p.errorNicknameCheckFailed);
+  });
+
+  it('검사 통과 뒤라도 저장 직전 재확인에서 선점되면 저장하지 않는다', async () => {
+    // 디바운스 검사는 통과(false) → 저장 직전 재확인에서 선점(true).
+    vi.mocked(supa.isNicknameTaken).mockResolvedValueOnce(false).mockResolvedValueOnce(true);
+    const { result } = setup();
+
+    await act(async () => {
+      result.current.nickname.onChange('새이름');
+    });
+    await waitFor(() => expect(result.current.nickname.canSave).toBe(true), { timeout: 3000 });
+
+    await act(async () => {
+      result.current.nickname.onSave();
+    });
+
+    await waitFor(() => expect(result.current.nickname.error).toBe(p.errorNicknameTaken));
+    expect(supa.updateMyProfile).not.toHaveBeenCalled();
+    expect(result.current.nickname.saved).toBe(false);
+  });
+
+  it('입력이 다시 바뀌면 직전 검사 결과를 버린다 (미검사 값이 저장되지 않게)', async () => {
+    const { result } = setup();
+
+    await act(async () => {
+      result.current.nickname.onChange('새이름');
+    });
+    await waitFor(() => expect(result.current.nickname.availability).toBe('available'), { timeout: 3000 });
+
+    await act(async () => {
+      result.current.nickname.onChange('또다른이름');
+    });
+    expect(result.current.nickname.canSave).toBe(false);
   });
 });
 
@@ -132,6 +214,7 @@ describe('useProfileEditor — analytics 발화 (성공 경로에서만)', () =>
     await act(async () => {
       result.current.nickname.onChange('새이름');
     });
+    await waitFor(() => expect(result.current.nickname.canSave).toBe(true), { timeout: 3000 });
     await act(async () => {
       result.current.nickname.onSave();
     });
