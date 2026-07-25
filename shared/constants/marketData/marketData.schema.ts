@@ -43,7 +43,17 @@ export const marketDataSnapshotEntrySchema = z.object({
     .optional(),
   /** ex-date → 지급일 간격(일). 음수는 데이터 오류, 120일 초과는 정상 배당 스케줄이 아니다. */
   exToPayLagDays: z.number().int().min(0).max(120).optional(),
-  payoutMonthsSource: z.enum(['ex', 'pay']).optional()
+  payoutMonthsSource: z.enum(['ex', 'pay']).optional(),
+  /**
+   * 예상 지급일 — 키는 **지급월** 문자열('1'~'12'), 값은 그 달의 일(1~31).
+   *
+   * 키·값 경계를 여기서 못 박는 이유는 `payoutMonths` 와 같다: 캘린더가 "13월"이나 "2월 30일"을
+   * 그리는 사고는 렌더 시점이 아니라 데이터가 들어올 때 막아야 한다. 값이 실제 그 달에 존재하는
+   * 날인지(2월 30일 등)는 파생 단계에서 월 길이로 클램프한다 — 여기서는 형태만 본다.
+   */
+  estimatedPayDayByMonth: z
+    .record(z.string().regex(/^([1-9]|1[0-2])$/, '지급월 키는 1~12여야 한다'), z.number().int().min(1).max(31))
+    .optional()
 });
 
 export const marketDataSnapshotSchema = z.object({

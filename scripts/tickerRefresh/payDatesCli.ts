@@ -86,7 +86,11 @@ const describe = (outcome: PayDateOutcome): string => {
         ? `${JSON.stringify(before.payoutMonths ?? null)} -> ${JSON.stringify(patch.payoutMonths)}`
         : JSON.stringify(patch.payoutMonths);
       const lag = patch.exToPayLagDays === undefined ? '' : ` · ex→pay ${patch.exToPayLagDays}d`;
-      return `${outcome.ticker}: ${months}${lag}${monthsChanged && before.payoutMonthsSource === 'ex' ? '  (ex 추정 -> 실제 지급일)' : ''}`;
+      const days =
+        patch.estimatedPayDayByMonth === undefined
+          ? ''
+          : ` · 예상 지급일 ${Object.keys(patch.estimatedPayDayByMonth).length}개월`;
+      return `${outcome.ticker}: ${months}${lag}${days}${monthsChanged && before.payoutMonthsSource === 'ex' ? '  (ex 추정 -> 실제 지급일)' : ''}`;
     }
     case 'unchanged':
       return `${outcome.ticker}: 변화 없음`;

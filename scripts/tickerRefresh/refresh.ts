@@ -1,6 +1,13 @@
 import type { MarketDataEntry, MarketDataSnapshot, MarketDataSnapshotEntry } from '@/shared/constants/marketData';
 import { toDerivedDividendGrowthPercent } from '@/shared/lib/snowball';
-import { computeDividendCagr, computeTtmYield, inferFrequency, inferPayoutMonths, roundTo } from './derive';
+import {
+  computeDividendCagr,
+  computeTtmYield,
+  deriveEstimatedPayDays,
+  inferFrequency,
+  inferPayoutMonths,
+  roundTo
+} from './derive';
 import { checkDerivedDividendGrowth, validateEntry } from './guards';
 import type { TickerDataProvider } from './provider';
 
@@ -190,6 +197,7 @@ export const refreshTickers = async ({
     const previousPayoutMonths = previousSnapshot.entries[ticker]?.payoutMonths;
     const previousPayoutMonthsSource = previousSnapshot.entries[ticker]?.payoutMonthsSource;
     const previousExToPayLagDays = previousSnapshot.entries[ticker]?.exToPayLagDays;
+    const previousEstimatedPayDays = previousSnapshot.entries[ticker]?.estimatedPayDayByMonth;
 
     try {
       const price = await provider.fetchQuote(ticker);
@@ -221,6 +229,34 @@ export const refreshTickers = async ({
           ? undefined
           : ('ex' as const);
 
+      // The day of month cash lands. Needs both a measured ex→pay lag and *pay*-sourced months —
+      // ex-sourced months are a different basis and mixing the two would put a day on the wrong
+      // month. Either gap means no estimate rather than a guess.
+      //
+      // ⚠ `ticker:paydates` now derives this field **directly from the observed payment dates**
+      // (`derivePayDaysByMonth`) and writes it alongside the pay-sourced months. A direct reading
+      // beats the estimate below, which shifts ex-dates by a *median* lag and therefore misses by a
+      // few days whenever the real lag moved — and by a whole month near a month edge, which is why
+      // it needs a boundary-repair rule at all. So when the entry already carries a value and its
+      // months are still pay-sourced (i.e. the two describe the same months), it is carried over
+      // untouched rather than recomputed. Without this the daily price refresh would overwrite the
+      // better data every morning, exactly as it would have done to `payoutMonths` above.
+      //
+      // The estimate is still the fallback for pay-sourced entries that have no day yet (upgraded by
+      // a paydates run from before that function existed) — a rough day beats "date unknown".
+      // It is deliberately **not** carried over when the months are no longer pay-sourced: a stale
+      // day that disagrees with today's `payoutMonths` is worse than no day.
+      const estimatedPayDayByMonth =
+        keepsPaySourced && previousEstimatedPayDays !== undefined
+          ? previousEstimatedPayDays
+          : previousExToPayLagDays === undefined || payoutMonthsSource !== 'pay' || payoutMonths === undefined
+            ? undefined
+            : (deriveEstimatedPayDays({
+                dividends,
+                exToPayLagDays: previousExToPayLagDays,
+                payMonths: payoutMonths
+              }) ?? undefined);
+
       // A field we cannot derive is left at its previous value rather than guessed, so a ticker
       // with a thin dividend history still gets its price refreshed.
       const candidate = {
@@ -232,7 +268,8 @@ export const refreshTickers = async ({
         ...(payoutMonths === undefined ? {} : { payoutMonths }),
         ...(payoutMonthsSource === undefined ? {} : { payoutMonthsSource }),
         // Owned by `ticker:paydates`; carried through untouched so a price refresh never drops it.
-        ...(previousExToPayLagDays === undefined ? {} : { exToPayLagDays: previousExToPayLagDays })
+        ...(previousExToPayLagDays === undefined ? {} : { exToPayLagDays: previousExToPayLagDays }),
+        ...(estimatedPayDayByMonth === undefined ? {} : { estimatedPayDayByMonth })
       };
 
       const validation = validateEntry(candidate, previous);

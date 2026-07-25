@@ -1,0 +1,151 @@
+name: Refresh dividend pay dates
+
+# Every day, spend the Alpha Vantage free quota (25 requests per key per day) on the tickers whose
+# pay dates we still do not know, and auto-merge the result to main (= production deploy via Vercel).
+#
+# Why daily, and why a separate workflow from `refresh-tickers.yml`:
+#   - the free tier is a **daily cap**, not a rate limit, so the only way to cover a ~68-ticker
+#     universe is to come back tomorrow. A monthly run would need three years to finish;
+#   - prices move every day and are unmetered (Yahoo); pay dates barely move and are metered. Merging
+#     the two would either throttle the price refresh to 25 tickers/day or burn quota on data that
+#     did not change.
+#
+# ⚠ This workflow does NOT touch prices — `ticker:refresh` is never run here. `initialPrice`,
+# `dividendYield` and `frequency` are left exactly as the monthly price refresh left them. Only the
+# pay-date fields (`payoutMonths`, `payoutMonthsSource`, `exToPayLagDays`, `estimatedPayDayByMonth`)
+# can change.
+on:
+  schedule:
+    # Daily at 21:30 UTC == 06:30 KST. Half an hour after the monthly price refresh (21:00 UTC) so
+    # the two never race for the same file on the 1st of the month.
+    - cron: '30 21 * * *'
+  workflow_dispatch:
+    inputs:
+      only:
+        description: 'Comma-separated tickers (blank = automatic queue, least-covered first)'
+        required: false
+        type: string
+      limit:
+        description: 'Max tickers to fetch (blank = the 25/day free-tier cap)'
+        required: false
+        type: string
+      auto_merge:
+        description: 'Auto-merge the PR to main (= deploy). Uncheck to open the PR and stop for review.'
+        required: false
+        default: true
+        type: boolean
+
+# The job pushes a refresh branch, opens a PR, and (by default) merges it. A scheduled run always
+# auto-merges; a manual dispatch can turn that off to review the diff first.
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  REFRESH_BRANCH: chore/refresh-paydates
+
+jobs:
+  paydates:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Inputs go through env vars rather than being interpolated into the shell, so a dispatch input
+      # cannot inject shell. With no `--only`/`--limit` the CLI queues tickers **least covered first**
+      # (entries without `payoutMonthsSource: 'pay'` come before those that already have it) and stops
+      # at the 25/day budget, so each daily run grows coverage by up to 25 tickers and the whole
+      # universe is covered in about three runs.
+      #
+      # The CLI never lets a bad response delete good data: a ticker that errors or returns nothing
+      # keeps what it had, and the first quota error stops the run instead of burning the rest.
+      - name: Refresh pay dates
+        env:
+          ALPHAVANTAGE_API_KEY: ${{ secrets.ALPHAVANTAGE_API_KEY }}
+          ONLY: ${{ inputs.only }}
+          LIMIT: ${{ inputs.limit }}
+        run: |
+          args="--write"
+          if [ -n "$ONLY" ]; then
+            args="$args --only=$ONLY"
+          fi
+          if [ -n "$LIMIT" ]; then
+            args="$args --limit=$LIMIT"
+          fi
+          npm run ticker:paydates -- $args
+
+      - name: Typecheck
+        # Full project (app + scripts + api). Bare `tsc -b` only covers the root (api + middleware).
+        run: npx tsc -b tsconfig.build.json
+
+      # NOTE: `test:ci` excludes test/snowball/SnowballApp.test.tsx (broken on main for unrelated
+      # reasons). Everything else must pass, so a bad snapshot still fails this gate and nothing ships.
+      - name: Test
+        run: npm run test:ci
+
+      # A run where nothing changed (already-covered tickers, or the quota was exhausted before any
+      # new one) must not create an empty commit/PR. The branch is recreated fresh each run: drop any
+      # stale remote branch first so the push never needs --force.
+      - name: Commit the refresh to a fresh branch
+        id: commit
+        run: |
+          git add shared/constants/marketData/marketData.generated.json
+          if git diff --cached --quiet; then
+            echo "No pay-date field changed - nothing new to merge today."
+            echo "committed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git push origin --delete "$REFRESH_BRANCH" 2>/dev/null || true
+          git checkout -B "$REFRESH_BRANCH"
+          git -c user.name="github-actions[bot]" -c user.email="github-actions[bot]@users.noreply.github.com" \
+            commit -m "chore(data): daily dividend pay-date refresh"
+          git push origin "$REFRESH_BRANCH"
+          echo "committed=true" >> "$GITHUB_OUTPUT"
+
+      # Open the PR, then merge it unless a manual dispatch turned auto-merge off. A scheduled run
+      # always auto-merges (that is the point of the daily cadence). The body is built with `echo`
+      # into a file rather than a heredoc, whose unindented body would fall below this block scalar's
+      # indentation and truncate the run script.
+      - name: Open and auto-merge the pay-date PR
+        if: steps.commit.outputs.committed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          AUTO_MERGE: ${{ github.event_name == 'schedule' || inputs.auto_merge }}
+        run: |
+          if ! gh pr view "$REFRESH_BRANCH" --json state --jq .state 2>/dev/null | grep -q OPEN; then
+            {
+              echo 'Automated daily pay-date refresh of `shared/constants/marketData/marketData.generated.json` via Alpha Vantage.'
+              echo
+              echo '### What this run does'
+              echo '- Alpha Vantage free tier allows **25 requests per key per day**, so one run cannot cover the whole universe. The CLI queues tickers **least covered first** (entries whose `payoutMonthsSource` is not yet `pay`), takes the first 25, and stops at the first quota error - the leftovers are picked up by tomorrow'"'"'s run. Coverage therefore grows by up to 25 tickers a day until every ticker is pay-sourced, after which each run just re-verifies the oldest entries.'
+              echo '- Fields that can change: `payoutMonths`, `payoutMonthsSource`, `exToPayLagDays`, `estimatedPayDayByMonth`.'
+              echo
+              echo '### Prices are NOT touched'
+              echo '`ticker:refresh` is not run here, so `initialPrice`, `dividendYield` and `frequency` keep whatever the monthly price refresh left. Curated values (`name`, `expectedTotalReturn`) are never touched by either pipeline.'
+              echo
+              echo '### Why the estimated pay day is now in this diff'
+              echo '`estimatedPayDayByMonth` used to be produced only by the daily price refresh, which can see **ex-dates** only: it shifted each ex-date forward by the median ex-to-pay lag, which misses by a few days whenever the real lag moved and by a whole month near a month edge. This pipeline reads the day off the **actual payment dates** (median day per pay month, 3-year window), so it needs no lag arithmetic and no month-boundary repair. The price refresh now carries that value over untouched instead of recomputing it, so pay-date runs alone keep the dividend calendar current.'
+              echo
+              echo 'A ticker that errored or returned nothing keeps its previous values - check the refresh step logs for skipped/failed lines.'
+            } > pr-body.md
+            gh pr create --base main --head "$REFRESH_BRANCH" \
+              --title "chore(data): daily dividend pay-date refresh" \
+              --body-file pr-body.md
+          fi
+          if [ "$AUTO_MERGE" = "true" ]; then
+            gh pr merge "$REFRESH_BRANCH" --merge --delete-branch
+          else
+            echo "auto_merge=false - PR left open for manual review."
+          fi

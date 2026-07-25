@@ -178,8 +178,14 @@ var marketData_generated_default = {
         8,
         11
       ],
+      exToPayLagDays: 30,
       payoutMonthsSource: "pay",
-      exToPayLagDays: 30
+      estimatedPayDayByMonth: {
+        "2": 14,
+        "5": 15,
+        "8": 14,
+        "11": 14
+      }
     },
     ANET: {
       initialPrice: 173.99,
@@ -196,8 +202,14 @@ var marketData_generated_default = {
         9,
         12
       ],
+      exToPayLagDays: 20,
       payoutMonthsSource: "pay",
-      exToPayLagDays: 20
+      estimatedPayDayByMonth: {
+        "3": 27,
+        "6": 5,
+        "9": 4,
+        "12": 6
+      }
     },
     DES: {
       initialPrice: 40.78,
@@ -218,8 +230,22 @@ var marketData_generated_default = {
         11,
         12
       ],
+      exToPayLagDays: 2,
       payoutMonthsSource: "pay",
-      exToPayLagDays: 2
+      estimatedPayDayByMonth: {
+        "1": 28,
+        "2": 26,
+        "3": 28,
+        "4": 27,
+        "5": 28,
+        "6": 27,
+        "7": 28,
+        "8": 28,
+        "9": 27,
+        "10": 30,
+        "11": 26,
+        "12": 28
+      }
     },
     DGRO: {
       initialPrice: 77.84,
@@ -232,8 +258,14 @@ var marketData_generated_default = {
         9,
         12
       ],
+      exToPayLagDays: 3,
       payoutMonthsSource: "pay",
-      exToPayLagDays: 3
+      estimatedPayDayByMonth: {
+        "3": 21,
+        "6": 18,
+        "9": 28,
+        "12": 20
+      }
     },
     DGRW: {
       initialPrice: 95.44,
@@ -254,8 +286,22 @@ var marketData_generated_default = {
         11,
         12
       ],
+      exToPayLagDays: 2,
       payoutMonthsSource: "pay",
-      exToPayLagDays: 2
+      estimatedPayDayByMonth: {
+        "1": 28,
+        "2": 26,
+        "3": 28,
+        "4": 27,
+        "5": 28,
+        "6": 27,
+        "7": 28,
+        "8": 28,
+        "9": 27,
+        "10": 30,
+        "11": 26,
+        "12": 28
+      }
     },
     DHS: {
       initialPrice: 117.55,
@@ -276,8 +322,22 @@ var marketData_generated_default = {
         11,
         12
       ],
+      exToPayLagDays: 2,
       payoutMonthsSource: "pay",
-      exToPayLagDays: 2
+      estimatedPayDayByMonth: {
+        "1": 28,
+        "2": 26,
+        "3": 28,
+        "4": 27,
+        "5": 28,
+        "6": 27,
+        "7": 28,
+        "8": 28,
+        "9": 27,
+        "10": 30,
+        "11": 26,
+        "12": 28
+      }
     },
     DIA: {
       initialPrice: 518.76,
@@ -298,8 +358,22 @@ var marketData_generated_default = {
         11,
         12
       ],
+      exToPayLagDays: 25,
       payoutMonthsSource: "pay",
-      exToPayLagDays: 25
+      estimatedPayDayByMonth: {
+        "1": 13,
+        "2": 11,
+        "3": 17,
+        "4": 14,
+        "5": 12,
+        "6": 10,
+        "7": 15,
+        "8": 13,
+        "9": 10,
+        "10": 14,
+        "11": 12,
+        "12": 12
+      }
     },
     DIVO: {
       initialPrice: 46.67,
@@ -320,8 +394,22 @@ var marketData_generated_default = {
         11,
         12
       ],
+      exToPayLagDays: 1,
       payoutMonthsSource: "pay",
-      exToPayLagDays: 1
+      estimatedPayDayByMonth: {
+        "1": 30,
+        "2": 28,
+        "3": 29,
+        "4": 30,
+        "5": 30,
+        "6": 28,
+        "7": 31,
+        "8": 30,
+        "9": 28,
+        "10": 31,
+        "11": 28,
+        "12": 31
+      }
     },
     DLN: {
       initialPrice: 98.35,
@@ -342,8 +430,22 @@ var marketData_generated_default = {
         11,
         12
       ],
+      exToPayLagDays: 2,
       payoutMonthsSource: "pay",
-      exToPayLagDays: 2
+      estimatedPayDayByMonth: {
+        "1": 28,
+        "2": 26,
+        "3": 28,
+        "4": 27,
+        "5": 28,
+        "6": 27,
+        "7": 28,
+        "8": 28,
+        "9": 27,
+        "10": 30,
+        "11": 26,
+        "12": 28
+      }
     },
     DON: {
       initialPrice: 57.55,
@@ -364,8 +466,22 @@ var marketData_generated_default = {
         11,
         12
       ],
+      exToPayLagDays: 3,
       payoutMonthsSource: "pay",
-      exToPayLagDays: 3
+      estimatedPayDayByMonth: {
+        "1": 28,
+        "2": 27,
+        "3": 29,
+        "4": 28,
+        "5": 29,
+        "6": 28,
+        "7": 29,
+        "8": 29,
+        "9": 28,
+        "10": 31,
+        "11": 27,
+        "12": 29
+      }
     },
     DVY: {
       initialPrice: 162.99,
@@ -378,8 +494,14 @@ var marketData_generated_default = {
         9,
         12
       ],
+      exToPayLagDays: 3,
       payoutMonthsSource: "pay",
-      exToPayLagDays: 3
+      estimatedPayDayByMonth: {
+        "3": 21,
+        "6": 18,
+        "9": 28,
+        "12": 20
+      }
     },
     DWX: {
       initialPrice: 47.11,
@@ -392,8 +514,14 @@ var marketData_generated_default = {
         9,
         12
       ],
+      exToPayLagDays: 2,
       payoutMonthsSource: "pay",
-      exToPayLagDays: 2
+      estimatedPayDayByMonth: {
+        "3": 25,
+        "6": 25,
+        "9": 24,
+        "12": 24
+      }
     },
     ETN: {
       initialPrice: 404.07,
@@ -406,8 +534,14 @@ var marketData_generated_default = {
         8,
         11
       ],
+      exToPayLagDays: 18,
       payoutMonthsSource: "pay",
-      exToPayLagDays: 18
+      estimatedPayDayByMonth: {
+        "3": 28,
+        "5": 23,
+        "8": 23,
+        "11": 22
+      }
     },
     FDVV: {
       initialPrice: 62.4,
@@ -420,8 +554,14 @@ var marketData_generated_default = {
         9,
         12
       ],
+      exToPayLagDays: 4,
       payoutMonthsSource: "pay",
-      exToPayLagDays: 4
+      estimatedPayDayByMonth: {
+        "3": 24,
+        "6": 24,
+        "9": 23,
+        "12": 23
+      }
     },
     IDV: {
       initialPrice: 43.18,
@@ -434,8 +574,14 @@ var marketData_generated_default = {
         9,
         12
       ],
+      exToPayLagDays: 3,
       payoutMonthsSource: "pay",
-      exToPayLagDays: 3
+      estimatedPayDayByMonth: {
+        "3": 21,
+        "6": 18,
+        "9": 28,
+        "12": 20
+      }
     },
     IDVO: {
       initialPrice: 42.26,
@@ -455,8 +601,22 @@ var marketData_generated_default = {
         11,
         12
       ],
+      exToPayLagDays: 1,
       payoutMonthsSource: "pay",
-      exToPayLagDays: 1
+      estimatedPayDayByMonth: {
+        "1": 30,
+        "2": 28,
+        "3": 29,
+        "4": 30,
+        "5": 30,
+        "6": 28,
+        "7": 31,
+        "8": 30,
+        "9": 28,
+        "10": 31,
+        "11": 28,
+        "12": 31
+      }
     },
     IVV: {
       initialPrice: 742.36,
@@ -469,8 +629,14 @@ var marketData_generated_default = {
         9,
         12
       ],
+      exToPayLagDays: 3,
       payoutMonthsSource: "pay",
-      exToPayLagDays: 3
+      estimatedPayDayByMonth: {
+        "3": 21,
+        "6": 18,
+        "9": 28,
+        "12": 20
+      }
     },
     JEPI: {
       initialPrice: 56.8,
@@ -490,8 +656,22 @@ var marketData_generated_default = {
         11,
         12
       ],
+      exToPayLagDays: 3,
       payoutMonthsSource: "pay",
-      exToPayLagDays: 3
+      estimatedPayDayByMonth: {
+        "1": 3,
+        "2": 5,
+        "3": 5,
+        "4": 4,
+        "5": 4,
+        "6": 5,
+        "7": 4,
+        "8": 4,
+        "9": 5,
+        "10": 4,
+        "11": 4,
+        "12": 5
+      }
     },
     JEPQ: {
       initialPrice: 57.96,
@@ -511,8 +691,22 @@ var marketData_generated_default = {
         11,
         12
       ],
+      exToPayLagDays: 3,
       payoutMonthsSource: "pay",
-      exToPayLagDays: 3
+      estimatedPayDayByMonth: {
+        "1": 3,
+        "2": 5,
+        "3": 5,
+        "4": 4,
+        "5": 4,
+        "6": 5,
+        "7": 4,
+        "8": 4,
+        "9": 5,
+        "10": 4,
+        "11": 4,
+        "12": 5
+      }
     },
     KO: {
       initialPrice: 82.25,
@@ -525,8 +719,14 @@ var marketData_generated_default = {
         10,
         12
       ],
+      exToPayLagDays: 17,
       payoutMonthsSource: "pay",
-      exToPayLagDays: 17
+      estimatedPayDayByMonth: {
+        "4": 1,
+        "7": 2,
+        "10": 2,
+        "12": 17
+      }
     },
     LOW: {
       initialPrice: 207.64,
@@ -538,7 +738,8 @@ var marketData_generated_default = {
         4,
         7,
         10
-      ]
+      ],
+      payoutMonthsSource: "ex"
     },
     NEE: {
       initialPrice: 89.78,
@@ -550,7 +751,8 @@ var marketData_generated_default = {
         6,
         8,
         11
-      ]
+      ],
+      payoutMonthsSource: "ex"
     },
     O: {
       initialPrice: 65.6,
@@ -570,7 +772,8 @@ var marketData_generated_default = {
         10,
         11,
         12
-      ]
+      ],
+      payoutMonthsSource: "ex"
     },
     PG: {
       initialPrice: 147.41,
@@ -582,7 +785,8 @@ var marketData_generated_default = {
         4,
         7,
         10
-      ]
+      ],
+      payoutMonthsSource: "ex"
     },
     QDVO: {
       initialPrice: 29.11,
@@ -601,7 +805,8 @@ var marketData_generated_default = {
         10,
         11,
         12
-      ]
+      ],
+      payoutMonthsSource: "ex"
     },
     QYLD: {
       initialPrice: 17.56,
@@ -621,7 +826,8 @@ var marketData_generated_default = {
         10,
         11,
         12
-      ]
+      ],
+      payoutMonthsSource: "ex"
     },
     RDVY: {
       initialPrice: 79.98,
@@ -633,7 +839,8 @@ var marketData_generated_default = {
         6,
         9,
         12
-      ]
+      ],
+      payoutMonthsSource: "ex"
     },
     SCHD: {
       initialPrice: 33.29,
@@ -645,7 +852,8 @@ var marketData_generated_default = {
         6,
         9,
         12
-      ]
+      ],
+      payoutMonthsSource: "ex"
     },
     SCHH: {
       initialPrice: 24.86,
@@ -657,7 +865,8 @@ var marketData_generated_default = {
         6,
         9,
         12
-      ]
+      ],
+      payoutMonthsSource: "ex"
     },
     SCHY: {
       initialPrice: 32.41,
@@ -668,7 +877,8 @@ var marketData_generated_default = {
         6,
         9,
         12
-      ]
+      ],
+      payoutMonthsSource: "ex"
     },
     SDVY: {
       initialPrice: 43.28,
@@ -680,7 +890,8 @@ var marketData_generated_default = {
         6,
         9,
         12
-      ]
+      ],
+      payoutMonthsSource: "ex"
     },
     SDY: {
       initialPrice: 155.73,
@@ -692,7 +903,8 @@ var marketData_generated_default = {
         6,
         9,
         12
-      ]
+      ],
+      payoutMonthsSource: "ex"
     },
     SPY: {
       initialPrice: 738.93,
@@ -704,7 +916,8 @@ var marketData_generated_default = {
         6,
         9,
         12
-      ]
+      ],
+      payoutMonthsSource: "ex"
     },
     SPYD: {
       initialPrice: 49.75,
@@ -716,7 +929,8 @@ var marketData_generated_default = {
         6,
         9,
         12
-      ]
+      ],
+      payoutMonthsSource: "ex"
     },
     SRVR: {
       initialPrice: 31.47,
@@ -728,7 +942,8 @@ var marketData_generated_default = {
         6,
         9,
         12
-      ]
+      ],
+      payoutMonthsSource: "ex"
     },
     T: {
       initialPrice: 24.13,
@@ -740,7 +955,8 @@ var marketData_generated_default = {
         4,
         7,
         10
-      ]
+      ],
+      payoutMonthsSource: "ex"
     },
     TXN: {
       initialPrice: 279.58,
@@ -752,7 +968,8 @@ var marketData_generated_default = {
         5,
         7,
         10
-      ]
+      ],
+      payoutMonthsSource: "ex"
     },
     UPS: {
       initialPrice: 114.79,
@@ -764,7 +981,8 @@ var marketData_generated_default = {
         5,
         8,
         11
-      ]
+      ],
+      payoutMonthsSource: "ex"
     },
     VICI: {
       initialPrice: 26.73,
@@ -776,7 +994,8 @@ var marketData_generated_default = {
         6,
         9,
         12
-      ]
+      ],
+      payoutMonthsSource: "ex"
     },
     VIG: {
       initialPrice: 238.65,
@@ -788,7 +1007,8 @@ var marketData_generated_default = {
         6,
         9,
         12
-      ]
+      ],
+      payoutMonthsSource: "ex"
     },
     VIGI: {
       initialPrice: 95.16,
@@ -800,7 +1020,8 @@ var marketData_generated_default = {
         6,
         9,
         12
-      ]
+      ],
+      payoutMonthsSource: "ex"
     },
     VNQI: {
       initialPrice: 45.3,
@@ -809,7 +1030,8 @@ var marketData_generated_default = {
       observedDividendCagr: -14.54,
       payoutMonths: [
         12
-      ]
+      ],
+      payoutMonthsSource: "ex"
     },
     VOO: {
       initialPrice: 679.14,
@@ -821,7 +1043,8 @@ var marketData_generated_default = {
         6,
         9,
         12
-      ]
+      ],
+      payoutMonthsSource: "ex"
     },
     VT: {
       initialPrice: 154.2,
@@ -833,7 +1056,8 @@ var marketData_generated_default = {
         6,
         9,
         12
-      ]
+      ],
+      payoutMonthsSource: "ex"
     },
     VTI: {
       initialPrice: 364.8,
@@ -845,7 +1069,8 @@ var marketData_generated_default = {
         6,
         9,
         12
-      ]
+      ],
+      payoutMonthsSource: "ex"
     },
     VXUS: {
       initialPrice: 83.4,
@@ -857,7 +1082,8 @@ var marketData_generated_default = {
         6,
         9,
         12
-      ]
+      ],
+      payoutMonthsSource: "ex"
     },
     VYM: {
       initialPrice: 162.23,
@@ -869,7 +1095,8 @@ var marketData_generated_default = {
         6,
         9,
         12
-      ]
+      ],
+      payoutMonthsSource: "ex"
     },
     VYMI: {
       initialPrice: 101.64,
@@ -881,7 +1108,8 @@ var marketData_generated_default = {
         6,
         9,
         12
-      ]
+      ],
+      payoutMonthsSource: "ex"
     },
     XYLD: {
       initialPrice: 40.76,
@@ -901,7 +1129,8 @@ var marketData_generated_default = {
         10,
         11,
         12
-      ]
+      ],
+      payoutMonthsSource: "ex"
     }
   }
 };
@@ -4971,7 +5200,15 @@ var marketDataSnapshotEntrySchema = external_exports.object({
   ).optional(),
   /** ex-date → 지급일 간격(일). 음수는 데이터 오류, 120일 초과는 정상 배당 스케줄이 아니다. */
   exToPayLagDays: external_exports.number().int().min(0).max(120).optional(),
-  payoutMonthsSource: external_exports.enum(["ex", "pay"]).optional()
+  payoutMonthsSource: external_exports.enum(["ex", "pay"]).optional(),
+  /**
+   * 예상 지급일 — 키는 **지급월** 문자열('1'~'12'), 값은 그 달의 일(1~31).
+   *
+   * 키·값 경계를 여기서 못 박는 이유는 `payoutMonths` 와 같다: 캘린더가 "13월"이나 "2월 30일"을
+   * 그리는 사고는 렌더 시점이 아니라 데이터가 들어올 때 막아야 한다. 값이 실제 그 달에 존재하는
+   * 날인지(2월 30일 등)는 파생 단계에서 월 길이로 클램프한다 — 여기서는 형태만 본다.
+   */
+  estimatedPayDayByMonth: external_exports.record(external_exports.string().regex(/^([1-9]|1[0-2])$/, "\uC9C0\uAE09\uC6D4 \uD0A4\uB294 1~12\uC5EC\uC57C \uD55C\uB2E4"), external_exports.number().int().min(1).max(31)).optional()
 });
 var marketDataSnapshotSchema = external_exports.object({
   asOf: external_exports.string().regex(/^\d{4}-\d{2}-\d{2}$/, "asOf must be an ISO date (YYYY-MM-DD)").nullable(),

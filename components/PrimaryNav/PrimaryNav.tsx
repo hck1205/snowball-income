@@ -1,6 +1,6 @@
 import { useInRouterContext } from 'react-router-dom';
 // per-icon named import(트리셰이킹) → 엔트리에는 이 아이콘들만 실린다(CommunityNavLink·ThemePresetSwitcher와 동일 패턴).
-import { BookOpen, LayoutGrid, LineChart, MessageSquare } from 'lucide-react';
+import { BookOpen, CalendarDays, LayoutGrid, LineChart, MessageSquare } from 'lucide-react';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
 import { isCommunityEnabled } from '@/shared/lib/supabase';
 import {
@@ -42,9 +42,14 @@ const NavLinkItems = () => (
       <LineChart size={16} strokeWidth={1.8} aria-hidden focusable={false} />
       <NavLabel>{n.simulator}</NavLabel>
     </NavItem>
-    <NavItem to="/ticker/all" aria-label={n.tickers}>
-      <BookOpen size={16} strokeWidth={1.8} aria-hidden focusable={false} />
-      <NavLabel>{n.tickers}</NavLabel>
+    {/* ── 순서 = 예상 관심도·클릭률(사용자 결정 2026-07-25) ──────────────────
+        시뮬레이터(핵심 도구) → 배당 캘린더(매일 볼 유틸리티) → 갤러리(구경 콘텐츠) →
+        게시판 → ETF 소개(검색 유입이 주라 nav 클릭률은 가장 낮다). GA4 로 실측되면 재조정. */}
+    {/* 배당 캘린더 — 커뮤니티 여부와 무관(marketData 기반 정적 페이지). 페이지는 lazy 청크라
+        이 링크(경로 문자열)로 엔트리 번들이 커지지 않는다(티커 허브와 동일 논리). */}
+    <NavItem to="/dividend/calendar" aria-label={n.dividendCalendar}>
+      <CalendarDays size={16} strokeWidth={1.8} aria-hidden focusable={false} />
+      <NavLabel>{n.dividendCalendar}</NavLabel>
     </NavItem>
     {isCommunityEnabled ? (
       <>
@@ -58,6 +63,10 @@ const NavLinkItems = () => (
         </NavItem>
       </>
     ) : null}
+    <NavItem to="/ticker/all" aria-label={n.tickers}>
+      <BookOpen size={16} strokeWidth={1.8} aria-hidden focusable={false} />
+      <NavLabel>{n.tickers}</NavLabel>
+    </NavItem>
   </>
 );
 
