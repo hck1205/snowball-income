@@ -1,60 +1,38 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-// per-icon named import → 이 아이콘들만 번들에 포함된다(트리셰이킹). 기본 SVG/탭 아이콘을 lucide로.
-import { LayoutGrid, Pencil, Search } from 'lucide-react';
-import { Button, FrequencySelect, InputField } from '@/components';
 import { PRESET_TICKER_KOREAN_NAME_BY_TICKER } from '@/shared/constants';
-import type { Frequency } from '@/shared/types';
 import nasdaqListedJson from '@/utils/TickerParser/output/nasdaq-listed.json';
 import otherListedJson from '@/utils/TickerParser/output/other-listed.json';
-import {
-  InlineField,
-  ModalActions,
-  ModalBackdrop,
-  ModalBody,
-  ModalTitle,
-  TabButton as ModalTabButton,
-  TabList as ModalTabList
-} from '@/components/common';
-import {
-  FormGrid,
-  ModalCompactFormGrid,
-  SearchResultButton,
-  SearchResultList,
-  SearchResultName,
-  SearchResultTicker,
-  ModalTickerSearchIcon,
-  ModalTickerSearchInput,
-  ModalTickerSearchWrap,
-  PresetChipButton,
-  PresetChipGrid,
-  PresetChipScrollArea
-} from '@/pages/Main/Main.shared.styled';
+import { InlineField, ModalBackdrop, ModalBody, ModalTitle } from '@/components/common';
 import {
   PresetFilterDrawer,
-  PresetFilterStatus,
-  PresetFilterTrigger,
   applyPresetFilters,
-  countActiveFilters,
   createInitialFilterState,
   derivePresetRanges,
   type PresetFilterState
 } from '@/pages/Main/components/PresetFilterPanel';
-import { FieldWithCaption, ModalCaption, ModalShell, TickerModalPanel } from './TickerModal.styled';
+import { ModalShell, TickerModalPanel } from './TickerModal.styled';
 import type { TickerModalViewProps } from './TickerModal.types';
 import {
   buildTickerSearchRows,
   filterPresetKeys,
   isCustomTickerInput,
   isTickerCreateDisabled,
-  parseNumericInputOrNaN,
   scoreTickerSearch,
   sortPresetKeys,
   toTotalReturnCaption,
   withDerivedTotalReturn,
   type ListedTickerMap
 } from './TickerModal.utils';
-import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
+import {
+  PresetTickerPicker,
+  PresetTickerPreview,
+  TickerDraftForm,
+  TickerModalActions,
+  TickerModalTabs,
+  TickerSearchPanel,
+  type ModalTabKey
+} from './components';
 
 const SEARCH_DEBOUNCE_MS = 220;
 const SEARCH_MAX_RESULTS = 120;
@@ -76,7 +54,6 @@ export default function TickerModalView({
   onClose,
   onSave
 }: TickerModalViewProps) {
-  type ModalTabKey = 'input' | 'preset' | 'search';
   const modalRoot = typeof document !== 'undefined' ? document.body : null;
   const [searchKeyword, setSearchKeyword] = useState('');
   const [debouncedSearchKeyword, setDebouncedSearchKeyword] = useState('');
@@ -164,328 +141,63 @@ export default function TickerModalView({
             ? '값을 수정하면 해당 티커 설정이 업데이트됩니다.'
             : '아래 값을 저장하면 좌측 목록에 티커가 추가됩니다.'}
         </ModalBody>
-        <ModalTabList role="tablist" aria-label="티커 생성 탭">
-          <ModalTabButton
-            type="button"
-            role="tab"
-            active={activeTab === 'preset'}
-            aria-selected={activeTab === 'preset'}
-            onClick={() => {
-              trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
-                cta_name: 'ticker_modal_tab_preset',
-                mode
-              });
-              setActiveTab('preset');
-            }}
-          >
-            <LayoutGrid size={15} aria-hidden focusable={false} />
-            프리셋
-          </ModalTabButton>
-          <ModalTabButton
-            type="button"
-            role="tab"
-            active={activeTab === 'input'}
-            aria-selected={activeTab === 'input'}
-            onClick={() => {
-              trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
-                cta_name: 'ticker_modal_tab_input',
-                mode
-              });
-              setActiveTab('input');
-            }}
-          >
-            <Pencil size={15} aria-hidden focusable={false} />
-            직접 입력
-          </ModalTabButton>
-          {SHOW_SEARCH_TAB ? (
-            <ModalTabButton
-              type="button"
-              role="tab"
-              active={activeTab === 'search'}
-              aria-selected={activeTab === 'search'}
-              onClick={() => setActiveTab('search')}
-            >
-              검색
-            </ModalTabButton>
-          ) : null}
-        </ModalTabList>
+        <TickerModalTabs activeTab={activeTab} mode={mode} showSearchTab={SHOW_SEARCH_TAB} onSelectTab={setActiveTab} />
 
         {activeTab === 'input' ? (
-          <>
-            <InputField
-              label="티커"
-              value={tickerDraft.ticker}
-              placeholder="예: SCHD"
-              onChange={(event) => onChangeDraft((prev) => ({ ...prev, ticker: event.target.value, name: '' }))}
-            />
-            <ModalCompactFormGrid>
-              <InputField
-                label="현재 주가"
-                prefix="$"
-                type="number"
-                min={0}
-                value={isCreateCustomInput && Number.isNaN(tickerDraft.initialPrice) ? '' : tickerDraft.initialPrice}
-                placeholder="예: 100"
-                onChange={(event) =>
-                  onChangeDraft((prev) => ({
-                    ...prev,
-                    initialPrice: parseNumericInputOrNaN(event.target.value)
-                  }))
-                }
-              />
-              <InputField
-                label="배당률"
-                suffix="%"
-                type="number"
-                min={0}
-                max={100}
-                step={0.1}
-                value={isCreateCustomInput && Number.isNaN(tickerDraft.dividendYield) ? '' : tickerDraft.dividendYield}
-                placeholder="예: 3.5"
-                onChange={(event) =>
-                  onChangeDraft((prev) =>
-                    withDerivedTotalReturn({
-                      ...prev,
-                      dividendYield: parseNumericInputOrNaN(event.target.value)
-                    })
-                  )
-                }
-              />
-              <InputField
-                label="배당 성장률"
-                suffix="%"
-                type="number"
-                min={-100}
-                max={100}
-                step={0.1}
-                value={isCreateCustomInput && Number.isNaN(tickerDraft.dividendGrowth) ? '' : tickerDraft.dividendGrowth}
-                placeholder="예: 7 (음수 가능)"
-                onChange={(event) =>
-                  onChangeDraft((prev) =>
-                    withDerivedTotalReturn({
-                      ...prev,
-                      dividendGrowth: parseNumericInputOrNaN(event.target.value)
-                    })
-                  )
-                }
-              />
-              <FieldWithCaption>
-                <InputField
-                  label="기대 총수익율 (CAGR)"
-                  suffix="%"
-                  helpAriaLabel="CAGR 설명 열기"
-                  onHelpClick={onHelpExpectedTotalReturn}
-                  type="number"
-                  value={Number.isNaN(derivedTotalReturn) ? '' : derivedTotalReturn}
-                  disabled
-                  onChange={() => undefined}
-                />
-                {totalReturnCaption ? <ModalCaption>{totalReturnCaption}</ModalCaption> : null}
-              </FieldWithCaption>
-              <FrequencySelect
-                label="배당 지급 주기"
-                value={tickerDraft.frequency}
-                onChange={(event) => onChangeDraft((prev) => ({ ...prev, frequency: event.target.value as Frequency }))}
-              />
-            </ModalCompactFormGrid>
-          </>
+          <TickerDraftForm
+            tickerDraft={tickerDraft}
+            isCreateCustomInput={isCreateCustomInput}
+            derivedTotalReturn={derivedTotalReturn}
+            totalReturnCaption={totalReturnCaption}
+            onChangeDraft={onChangeDraft}
+            onHelpExpectedTotalReturn={onHelpExpectedTotalReturn}
+          />
         ) : null}
 
         {activeTab === 'preset' ? (
           <InlineField>
-            <ModalTickerSearchWrap>
-              <ModalTickerSearchIcon aria-hidden="true">
-                <Search size={14} aria-hidden focusable={false} />
-              </ModalTickerSearchIcon>
-              <ModalTickerSearchInput
-                type="text"
-                value={presetSearchKeyword}
-                aria-label="프리셋 티커 검색"
-                placeholder="프리셋 티커 검색"
-                onChange={(event) => setPresetSearchKeyword(event.target.value)}
-              />
-              <PresetFilterTrigger
-                ref={filterTriggerRef}
-                isOpen={isFilterDrawerOpen}
-                activeCount={countActiveFilters(presetFilter, presetRanges)}
-                drawerId={drawerId}
-                onToggle={() => setIsFilterDrawerOpen((prev) => !prev)}
-              />
-            </ModalTickerSearchWrap>
-            <PresetFilterStatus filter={presetFilter} ranges={presetRanges} onChange={setPresetFilter} />
-            <ModalCaption>
-              주의: 실시간 데이터가 아니기 때문에 실제 데이터와 다를 수 있습니다. 참고용으로만 사용해 주세요.
-            </ModalCaption>
-            <ModalCaption>
-              표시: {filteredPresetKeys.length} / 전체: {sortedPresetKeys.length}
-            </ModalCaption>
-            {filteredPresetKeys.length > 0 ? (
-              <PresetChipScrollArea>
-                <PresetChipGrid role="listbox" aria-label="프리셋 티커 목록">
-                  {filteredPresetKeys.map((presetKey) => (
-                    <PresetChipButton
-                      key={presetKey}
-                      type="button"
-                      role="option"
-                      selected={selectedPreset === presetKey}
-                      aria-selected={selectedPreset === presetKey}
-                      aria-label={`${presetTickers[presetKey].ticker} 선택`}
-                      onClick={() => {
-                        trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
-                          cta_name: 'ticker_preset_select',
-                          ticker: presetTickers[presetKey].ticker
-                        });
-                        onSelectPreset(presetKey);
-                      }}
-                    >
-                      {presetTickers[presetKey].ticker}
-                    </PresetChipButton>
-                  ))}
-                </PresetChipGrid>
-              </PresetChipScrollArea>
-            ) : (
-              <ModalBody>일치하는 프리셋 티커가 없습니다. 입력 탭에서 직접 생성해주세요.</ModalBody>
-            )}
-            <FormGrid>
-              <InputField label="티커" value={tickerDraft.ticker} disabled onChange={() => undefined} />
-              <InputField label="이름" value={tickerDraft.name} disabled onChange={() => undefined} />
-            </FormGrid>
-            <ModalCompactFormGrid>
-              <InputField label="현재 주가" prefix="$" type="number" min={0} value={tickerDraft.initialPrice} disabled onChange={() => undefined} />
-              <InputField
-                label="배당률"
-                suffix="%"
-                type="number"
-                min={0}
-                max={100}
-                step={0.1}
-                value={tickerDraft.dividendYield}
-                disabled
-                onChange={() => undefined}
-              />
-              <InputField
-                label="배당 성장률"
-                suffix="%"
-                type="number"
-                min={0}
-                max={100}
-                step={0.1}
-                value={tickerDraft.dividendGrowth}
-                disabled
-                onChange={() => undefined}
-              />
-              <FieldWithCaption>
-                <InputField
-                  label="기대 총수익율 (CAGR)"
-                  suffix="%"
-                  helpAriaLabel="CAGR 설명 열기"
-                  onHelpClick={onHelpExpectedTotalReturn}
-                  type="number"
-                  value={Number.isNaN(derivedTotalReturn) ? '' : derivedTotalReturn}
-                  disabled
-                  onChange={() => undefined}
-                />
-                {totalReturnCaption ? <ModalCaption>{totalReturnCaption}</ModalCaption> : null}
-              </FieldWithCaption>
-              <FrequencySelect
-                label="배당 지급 주기"
-                value={tickerDraft.frequency}
-                disabled
-                onChange={() => undefined}
-              />
-            </ModalCompactFormGrid>
+            <PresetTickerPicker
+              presetTickers={presetTickers}
+              selectedPreset={selectedPreset}
+              presetSearchKeyword={presetSearchKeyword}
+              onChangeSearchKeyword={setPresetSearchKeyword}
+              filterTriggerRef={filterTriggerRef}
+              isFilterDrawerOpen={isFilterDrawerOpen}
+              drawerId={drawerId}
+              onToggleFilterDrawer={() => setIsFilterDrawerOpen((prev) => !prev)}
+              presetFilter={presetFilter}
+              presetRanges={presetRanges}
+              onChangeFilter={setPresetFilter}
+              filteredPresetKeys={filteredPresetKeys}
+              totalPresetCount={sortedPresetKeys.length}
+              onSelectPreset={onSelectPreset}
+            />
+            <PresetTickerPreview
+              tickerDraft={tickerDraft}
+              derivedTotalReturn={derivedTotalReturn}
+              totalReturnCaption={totalReturnCaption}
+              onHelpExpectedTotalReturn={onHelpExpectedTotalReturn}
+            />
           </InlineField>
         ) : null}
 
         {SHOW_SEARCH_TAB && activeTab === 'search' ? (
-          <>
-            <ModalTickerSearchWrap>
-              <ModalTickerSearchIcon aria-hidden="true">
-                <Search size={14} aria-hidden focusable={false} />
-              </ModalTickerSearchIcon>
-              <ModalTickerSearchInput
-                type="text"
-                value={searchKeyword}
-                aria-label="티커 검색"
-                placeholder="티커 검색"
-                onChange={(event) => setSearchKeyword(event.target.value)}
-              />
-            </ModalTickerSearchWrap>
-            {debouncedSearchKeyword ? (
-              searchResults.length > 0 ? (
-                <SearchResultList>
-                  {searchResults.map((item) => (
-                    <li key={item.ticker}>
-                      <SearchResultButton
-                        type="button"
-                        onClick={() => {
-                          onSelectPreset('custom');
-                          onChangeDraft((prev) => ({
-                            ...prev,
-                            ticker: item.ticker,
-                            name: item.name
-                          }));
-                        }}
-                      >
-                        <SearchResultTicker>{item.ticker}</SearchResultTicker>
-                        <SearchResultName>{item.name}</SearchResultName>
-                      </SearchResultButton>
-                    </li>
-                  ))}
-                </SearchResultList>
-              ) : (
-                <ModalBody>검색 결과가 없습니다.</ModalBody>
-              )
-            ) : (
-              <ModalBody>티커 또는 종목명을 입력해 주세요.</ModalBody>
-            )}
-          </>
+          <TickerSearchPanel
+            searchKeyword={searchKeyword}
+            debouncedSearchKeyword={debouncedSearchKeyword}
+            searchResults={searchResults}
+            onChangeSearchKeyword={setSearchKeyword}
+            onSelectPreset={onSelectPreset}
+            onChangeDraft={onChangeDraft}
+          />
         ) : null}
-        <ModalActions>
-          {mode === 'edit' ? (
-            // 되돌릴 수 없는 액션 → danger. 취소/저장과 시각적으로 구분되어야 오클릭이 준다.
-            <Button
-              variant="danger"
-              // 삭제는 왼쪽 끝으로 밀어서 '저장' 옆에 붙지 않게 한다.
-              style={{ marginRight: 'auto' }}
-              onClick={() => {
-                trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
-                  cta_name: 'ticker_delete',
-                  mode
-                });
-                onDelete();
-              }}
-            >
-              티커 삭제
-            </Button>
-          ) : null}
-          <Button variant="secondary"
-            type="button"
-            onClick={() => {
-              trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
-                cta_name: 'ticker_modal_cancel',
-                mode
-              });
-              onClose();
-            }}
-          >
-            취소
-          </Button>
-          <Button variant="primary"
-            type="button"
-            disabled={isCreateDisabled}
-            onClick={() => {
-              if (isCreateDisabled) return;
-              trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
-                cta_name: mode === 'edit' ? 'ticker_save' : 'ticker_create',
-                mode
-              });
-              onSave();
-            }}
-          >
-            {mode === 'edit' ? '저장' : '생성'}
-          </Button>
-        </ModalActions>
+        <TickerModalActions
+          mode={mode}
+          isCreateDisabled={isCreateDisabled}
+          onDelete={onDelete}
+          onClose={onClose}
+          onSave={onSave}
+        />
       </TickerModalPanel>
       {activeTab === 'preset' && isFilterDrawerOpen ? (
         <PresetFilterDrawer
