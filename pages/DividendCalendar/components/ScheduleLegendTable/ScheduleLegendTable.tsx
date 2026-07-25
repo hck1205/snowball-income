@@ -1,5 +1,6 @@
 import { ChevronRight } from 'lucide-react';
 import { DIVIDEND_CALENDAR_COPY } from '../../copy';
+import { tickerSeriesVar } from '../../utils';
 import { ScheduleSourceBadge } from '../ScheduleSourceBadge';
 import type { ScheduleLegendTableProps } from './ScheduleLegendTable.types';
 import {
@@ -9,6 +10,7 @@ import {
   LegendTable,
   LegendTickerCell,
   LegendTickerLabel,
+  LegendTickerText,
   ScheduleDot
 } from './ScheduleLegendTable.styled';
 
@@ -46,7 +48,7 @@ export default function ScheduleLegendTable({ rows }: ScheduleLegendTableProps) 
               <tr key={row.ticker}>
                 <LegendTickerCell scope="row">
                   <LegendTickerLabel>
-                    {row.ticker}
+                    <LegendTickerText>{row.ticker}</LegendTickerText>
                     <ScheduleSourceBadge source={row.source} />
                   </LegendTickerLabel>
                 </LegendTickerCell>
@@ -55,7 +57,12 @@ export default function ScheduleLegendTable({ rows }: ScheduleLegendTableProps) 
 
                   return (
                     <td key={month} aria-label={paying ? copy.legend.payingCell(month) : undefined}>
-                      <ScheduleDot $paying={paying} aria-hidden={paying ? undefined : true} />
+                      {/* 지급 달 점은 달력 칩·아젠다와 같은 티커 색이다 — 세 화면이 한 색으로 이어진다. */}
+                      <ScheduleDot
+                        $paying={paying}
+                        aria-hidden={paying ? undefined : true}
+                        style={paying ? { background: tickerSeriesVar(row.ticker) } : undefined}
+                      />
                     </td>
                   );
                 })}

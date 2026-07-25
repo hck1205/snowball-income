@@ -32,12 +32,21 @@ export const CalendarCaption = styled.caption`
   white-space: nowrap;
 `;
 
-/** 일·토를 색으로 구분하지 않는다 — 주말 강조는 이 화면에서 정보가 아니다. */
-export const WeekdayHead = styled.th`
-  padding-bottom: ${space[1]};
-  font-size: ${font.size['2xs']};
-  font-weight: ${font.weight.medium};
-  color: ${color.textMuted};
+/**
+ * 요일 머리. 일요일/토요일만 색을 달리한다(달력의 보편 관례라 학습 비용이 0이고, 주 경계를 눈으로 잡아 준다).
+ * 색이 정보를 독점하지 않는다 — 요일 이름 자체가 텍스트로 있고, `abbr title`이 전체 이름을 준다.
+ * 쓰는 색은 대비 검증 쌍(danger/surface, accent-text/surface)뿐이다.
+ */
+export const WeekdayHead = styled.th<{ $weekday: number }>`
+  padding-bottom: ${space[2]};
+  font-size: ${font.size.xs};
+  font-weight: ${font.weight.semibold};
+  letter-spacing: 0.02em;
+  color: ${({ $weekday }) => {
+    if ($weekday === 0) return color.danger;
+    if ($weekday === 6) return color.accentText;
+    return color.textSecondary;
+  }};
 
   abbr {
     text-decoration: none;
@@ -56,19 +65,30 @@ export const DayCellRoot = styled.td<{
 }>`
   vertical-align: top;
   padding: ${space[2]};
+  /* 격자선을 그리는 대신 칸을 카드처럼 띄운다(간격은 표의 border-spacing이 만든다). */
   border: 1px ${({ $inMonth }) => ($inMonth ? 'solid' : 'dashed')} ${color.border};
-  border-color: ${({ $hasPayout, $inMonth }) => ($hasPayout && $inMonth ? color.brandBorder : color.border)};
-  border-radius: ${radius.sm};
+  border-color: ${({ $hasPayout, $inMonth, $today }) => {
+    if ($today) return color.brand;
+    if ($hasPayout && $inMonth) return color.accentBorder;
+    return color.border;
+  }};
+  border-radius: ${radius.md};
   min-height: 104px;
   height: 104px;
-  background: ${({ $inMonth, $past, $today }) => {
+  /* 지급이 있는 날은 액센트 틴트로 "여기 뭔가 있다"가 한눈에 스캔되게 한다(칩 텍스트가 내용을 말한다). */
+  background: ${({ $inMonth, $past, $hasPayout, $today }) => {
     if ($today) return color.brandSubtle;
-    if (!$inMonth) return color.surfaceMuted;
+    if (!$inMonth) return 'transparent';
+    if ($hasPayout) return color.accentSubtle;
     if ($past) return color.surfaceSunken;
     return color.surface;
   }};
   box-shadow: ${({ $today }) => ($today ? `inset 0 0 0 2px ${color.brand}` : 'none')};
-  transition: background ${motion.fast} ${motion.ease};
+  /* 이월 칸만 살짝 물러나게 한다 — 이 달의 실제 정보(숫자·칩)는 절대 흐리지 않는다. */
+  opacity: ${({ $inMonth }) => ($inMonth ? 1 : 0.75)};
+  transition:
+    background ${motion.fast} ${motion.ease},
+    border-color ${motion.fast} ${motion.ease};
 
   ${media.down('tabletSm')} {
     min-height: 88px;
@@ -101,14 +121,15 @@ export const DayNumber = styled.span<{ $muted: boolean }>`
   }
 `;
 
+/** 솔리드 브랜드 배지 — 오늘 칸의 링·틴트와 같은 색 언어로 "오늘"을 못 놓치게 한다. */
 export const TodayBadge = styled.span`
-  padding: 0 ${space[1]};
+  padding: 0 ${space[2]};
   border-radius: ${radius.pill};
   font-size: ${font.size['2xs']};
-  font-weight: ${font.weight.medium};
+  font-weight: ${font.weight.semibold};
   white-space: nowrap;
-  color: ${color.brandText};
-  background: ${color.surface};
+  color: ${color.onBrand};
+  background: ${color.brand};
 `;
 
 /**
@@ -133,18 +154,33 @@ export const DayChipItem = styled.li`
   min-width: 0;
 `;
 
+/** 틴트된 칸 위에서도 뜨는 흰 카드 칩. 색 점이 종목을, 텍스트가 티커를 말한다. */
 export const DayChip = styled.span`
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   max-width: 100%;
-  padding: 1px ${space[1]};
-  border-radius: ${radius.xs};
+  padding: 1px ${space[2]} 1px ${space[1]};
+  border: 1px solid ${color.border};
+  border-radius: ${radius.pill};
   font-size: ${font.size['2xs']};
-  color: ${color.textSecondary};
-  background: ${color.surfaceHover};
+  font-weight: ${font.weight.semibold};
+  color: ${color.text};
+  background: ${color.surface};
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   ${font.numeric}
+`;
+
+/** 티커 왼쪽 색 점 — tickerSeriesVar가 준 CSS 변수를 인라인 background로 받는다(장식, aria-hidden). */
+export const ChipDot = styled.span`
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-right: 4px;
+  vertical-align: middle;
 `;
 
 export const MoreCount = styled.span`
@@ -166,9 +202,10 @@ export const CountBadge = styled.span`
   justify-content: center;
   min-width: 18px;
   padding: 0 ${space[1]};
+  border: 1px solid ${color.brandBorder};
   border-radius: ${radius.pill};
   font-size: ${font.size['2xs']};
-  font-weight: ${font.weight.medium};
+  font-weight: ${font.weight.semibold};
   color: ${color.brandText};
   background: ${color.brandSubtle};
   ${font.numeric}

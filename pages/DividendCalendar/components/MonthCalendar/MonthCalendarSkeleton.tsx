@@ -26,8 +26,8 @@ export default function MonthCalendarSkeleton({ monthLabel }: MonthCalendarSkele
       <CalendarCaption>{copy.board.caption(monthLabel)}</CalendarCaption>
       <thead>
         <tr>
-          {copy.board.weekdays.map((weekday) => (
-            <WeekdayHead key={weekday} scope="col">
+          {copy.board.weekdays.map((weekday, index) => (
+            <WeekdayHead key={weekday} scope="col" $weekday={index}>
               {weekday}
             </WeekdayHead>
           ))}

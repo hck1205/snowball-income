@@ -1,15 +1,19 @@
 import { useId } from 'react';
 import { DIVIDEND_CALENDAR_COPY } from '../../copy';
+import { tickerSeriesVar } from '../../utils';
 import { ScheduleSourceBadge } from '../ScheduleSourceBadge';
 import type { AgendaListProps } from './AgendaList.types';
 import {
+  AgendaDateBadge,
   AgendaDayItem,
   AgendaDayLabel,
   AgendaDayList,
+  AgendaDot,
   AgendaEmpty,
   AgendaHeading,
   AgendaItem,
   AgendaItemList,
+  AgendaName,
   AgendaRoot,
   AgendaTicker
 } from './AgendaList.styled';
@@ -37,16 +41,20 @@ export default function AgendaList({ days, hasUndated }: AgendaListProps) {
           {days.map((day) => (
             <AgendaDayItem key={day.date}>
               <AgendaDayLabel>
-                <time dateTime={day.date}>
-                  {copy.agenda.dayLabel(day.month, day.day, copy.board.weekdays[day.weekday])}
-                </time>
+                {/* 날짜 문자열은 한 텍스트 노드로 유지한다 — 배지는 그것을 감싸기만 한다. */}
+                <AgendaDateBadge>
+                  <time dateTime={day.date}>
+                    {copy.agenda.dayLabel(day.month, day.day, copy.board.weekdays[day.weekday])}
+                  </time>
+                </AgendaDateBadge>
               </AgendaDayLabel>
               <AgendaItemList>
                 {day.items.map((item) => (
                   <AgendaItem key={item.ticker}>
+                    <AgendaDot aria-hidden style={{ background: tickerSeriesVar(item.ticker) }} />
                     <AgendaTicker>{item.ticker}</AgendaTicker>
                     <ScheduleSourceBadge source={item.source} />
-                    {item.koreanName}
+                    <AgendaName>{item.koreanName}</AgendaName>
                   </AgendaItem>
                 ))}
               </AgendaItemList>

@@ -1,9 +1,11 @@
 import { DIVIDEND_CALENDAR_COPY } from '../../copy';
+import { tickerSeriesVar } from '../../utils';
 import type { MonthCalendarProps } from './MonthCalendar.types';
 import { splitDayChips } from './MonthCalendar.utils';
 import {
   CalendarCaption,
   CalendarTable,
+  ChipDot,
   CountBadge,
   DayCellRoot,
   DayChip,
@@ -36,7 +38,7 @@ export default function MonthCalendar({ weeks, monthLabel, labelledById }: Month
       <thead>
         <tr>
           {copy.board.weekdays.map((weekday, index) => (
-            <WeekdayHead key={weekday} scope="col">
+            <WeekdayHead key={weekday} scope="col" $weekday={index}>
               <abbr title={copy.board.weekdayFull[index]}>{weekday}</abbr>
             </WeekdayHead>
           ))}
@@ -86,6 +88,7 @@ export default function MonthCalendar({ weeks, monthLabel, labelledById }: Month
                                 : copy.agenda.chipTitle(item.ticker, outOfMonthMonth, item.day)
                             }
                           >
+                            <ChipDot aria-hidden style={{ background: tickerSeriesVar(item.ticker) }} />
                             {item.ticker}
                           </DayChip>
                         </DayChipItem>

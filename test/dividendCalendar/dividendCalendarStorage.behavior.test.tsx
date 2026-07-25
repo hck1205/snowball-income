@@ -45,6 +45,14 @@ const renderCalendar = (entry = '/dividend/calendar') => {
 const optionButton = (ticker: string) =>
   screen.getByRole('button', { name: new RegExp(`^${ticker} .*(실측|추정|데이터 준비 중)$`) });
 
+/**
+ * 종목 선택은 **우측 드로어** 안에 있다(2026-07-25 개편). 닫혀 있으면 `visibility: hidden` 이라
+ * 접근성 트리에서 빠지므로, 목록·선택 칩을 만지려면 먼저 연다.
+ */
+const openPicker = async (user: ReturnType<typeof userEvent.setup>) => {
+  await user.click(screen.getByRole('button', { name: /종목 선택 열기/ }));
+};
+
 beforeEach(() => {
   vi.clearAllMocks();
   mockedRead.mockResolvedValue(null);
@@ -54,9 +62,11 @@ beforeEach(() => {
 describe('초기 선택 우선순위 — 저장값', () => {
   it('주소에 티커가 없으면 저장된 선택을 복원한다', async () => {
     mockedRead.mockResolvedValue(['JEPI', 'KO']);
-    renderCalendar();
+    const { user } = renderCalendar();
 
-    expect(await screen.findByText('선택 2종')).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /현재 2종 선택됨/ })).toBeInTheDocument();
+
+    await openPicker(user);
     expect(screen.getByRole('button', { name: 'JEPI 선택 해제' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'KO 선택 해제' })).toBeInTheDocument();
     // 복원은 사용자의 조작이 아니다 — 되쓰기를 하면 updatedAt 만 흔들린다.
@@ -65,9 +75,11 @@ describe('초기 선택 우선순위 — 저장값', () => {
 
   it('저장값에 목록에서 사라진 티커가 있으면 조용히 걸러 낸다', async () => {
     mockedRead.mockResolvedValue(['SCHD', 'GHOSTTICKER']);
-    renderCalendar();
+    const { user } = renderCalendar();
 
-    expect(await screen.findByText('선택 1종')).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /현재 1종 선택됨/ })).toBeInTheDocument();
+
+    await openPicker(user);
     expect(screen.getByRole('button', { name: 'SCHD 선택 해제' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /GHOSTTICKER/ })).not.toBeInTheDocument();
   });
@@ -102,7 +114,7 @@ describe('초기 선택 우선순위 — 저장값', () => {
       resolveRead(['KO']);
     });
 
-    expect(await screen.findByText('선택 1종')).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /현재 1종 선택됨/ })).toBeInTheDocument();
     // 로딩이 끝나면 진짜 달력 표가 접근성 트리에 등장한다.
     expect(screen.getByRole('table', { name: '2026년 7월' })).toBeInTheDocument();
   });
@@ -127,6 +139,7 @@ describe('초기 선택 우선순위 — 저장값', () => {
     const { user } = renderCalendar();
     await screen.findByRole('status');
 
+    await openPicker(user);
     await user.click(optionButton('SCHD'));
     expect(screen.getByRole('button', { name: 'SCHD 선택 해제' })).toBeInTheDocument();
 
@@ -146,9 +159,11 @@ describe('초기 선택 우선순위 — 저장값', () => {
 describe('초기 선택 우선순위 — 주소가 저장값을 이긴다', () => {
   it('주소의 선택을 그대로 보여주면서 방문자의 저장값을 덮어쓰지 않는다', async () => {
     mockedRead.mockResolvedValue(['JEPI']);
-    renderCalendar('/dividend/calendar?tickers=SCHD');
+    const { user } = renderCalendar('/dividend/calendar?tickers=SCHD');
 
-    expect(await screen.findByText('선택 1종')).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /현재 1종 선택됨/ })).toBeInTheDocument();
+
+    await openPicker(user);
     expect(screen.getByRole('button', { name: 'SCHD 선택 해제' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'JEPI 선택 해제' })).not.toBeInTheDocument();
 
@@ -161,8 +176,9 @@ describe('초기 선택 우선순위 — 주소가 저장값을 이긴다', () =
   it('주소로 들어온 뒤 사용자가 직접 고치면 그때 저장한다', async () => {
     mockedRead.mockResolvedValue(['JEPI']);
     const { user } = renderCalendar('/dividend/calendar?tickers=SCHD');
-    await screen.findByText('선택 1종');
+    await screen.findByRole('button', { name: /현재 1종 선택됨/ });
 
+    await openPicker(user);
     await user.click(optionButton('KO'));
 
     // 부분이 아니라 "지금 화면의 선택 전체"가 기록된다.
@@ -171,10 +187,10 @@ describe('초기 선택 우선순위 — 주소가 저장값을 이긴다', () =
   });
 
   it('선택 비우기는 빈 배열을 저장한다(다음 방문에 유령 선택이 되살아나지 않는다)', async () => {
-    renderCalendar('/dividend/calendar?tickers=SCHD,JEPI');
-    await screen.findByText('선택 2종');
+    const { user } = renderCalendar('/dividend/calendar?tickers=SCHD,JEPI');
+    await screen.findByRole('button', { name: /현재 2종 선택됨/ });
 
-    const user = userEvent.setup();
+    await openPicker(user);
     await user.click(screen.getByRole('button', { name: '선택 비우기' }));
 
     expect(mockedWrite).toHaveBeenCalledTimes(1);
@@ -183,10 +199,12 @@ describe('초기 선택 우선순위 — 주소가 저장값을 이긴다', () =
 
   it('주소에 쓸 수 있는 티커가 하나도 없으면 저장값으로 돌아가고 제외 사실을 알린다', async () => {
     mockedRead.mockResolvedValue(['KO']);
-    renderCalendar('/dividend/calendar?tickers=GHOSTTICKER');
+    const { user } = renderCalendar('/dividend/calendar?tickers=GHOSTTICKER');
 
     expect(await screen.findByText(/목록에 없어 제외했습니다: GHOSTTICKER/)).toBeInTheDocument();
-    expect(screen.getByText('선택 1종')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /현재 1종 선택됨/ })).toBeInTheDocument();
+
+    await openPicker(user);
     expect(screen.getByRole('button', { name: 'KO 선택 해제' })).toBeInTheDocument();
     expect(mockedWrite).not.toHaveBeenCalled();
   });

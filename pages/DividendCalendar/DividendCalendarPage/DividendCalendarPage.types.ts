@@ -6,6 +6,9 @@ export type CalendarLoadStatus = 'loading' | 'ready';
 /** 라이브 리전이 무엇을 읽어야 하는지 가르는 마지막 조작. */
 export type CalendarLastAction = 'none' | 'cleared' | 'month';
 
+/** 달력 아래 상세 영역에서 지금 보고 있는 것. 기본은 날짜순 목록('agenda'). */
+export type CalendarDetailTab = 'agenda' | 'undated';
+
 /**
  * 검색 목록의 한 줄. **지급월 데이터가 없는 종목도 목록에 남긴다** — 조용히 빼면 "왜 없지?"가 된다.
  * `source: null` 이 곧 "데이터 준비 중"(선택 불가)이다.
@@ -55,17 +58,23 @@ export type DividendCalendarViewProps = {
   /** 표시 중인 달이 '오늘의 달'인가 — "이번 달" 버튼 비활성 판정. */
   isCurrentMonth: boolean;
   keyword: string;
+  /** 상세 영역에서 선택된 탭. 미정 0건이면 뷰가 'agenda'로 접어 읽는다. */
+  detailTab: CalendarDetailTab;
+  /** 종목 선택 드로어가 열려 있는가. */
+  isPickerOpen: boolean;
   /** 라이브 리전 텍스트. 빈 문자열이어도 노드는 항상 마운트된다. */
   liveMessage: string;
   /** 공유 주소에 있었지만 유니버스에 없어 제외한 심볼들. */
   unknownTickers: string[];
   onKeywordChange: (keyword: string) => void;
+  onDetailTabChange: (tab: CalendarDetailTab) => void;
+  onOpenPicker: () => void;
+  onClosePicker: () => void;
   onToggleTicker: (ticker: string) => void;
   onClearSelection: () => void;
   onPrevMonth: () => void;
   onNextMonth: () => void;
   onToday: () => void;
-  onSimulatorLinkClick: () => void;
 };
 
 export type DividendCalendarPageProps = {

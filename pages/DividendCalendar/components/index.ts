@@ -7,6 +7,9 @@ export type { CalendarToolbarProps } from './CalendarToolbar';
 export { MonthCalendar, MonthCalendarSkeleton, MAX_DAY_CHIPS, splitDayChips } from './MonthCalendar';
 export type { MonthCalendarProps, MonthCalendarSkeletonProps } from './MonthCalendar';
 
+export { PickerDrawer } from './PickerDrawer';
+export type { PickerDrawerProps } from './PickerDrawer';
+
 export { ScheduleLegendTable } from './ScheduleLegendTable';
 export type { ScheduleLegendTableProps } from './ScheduleLegendTable';
 

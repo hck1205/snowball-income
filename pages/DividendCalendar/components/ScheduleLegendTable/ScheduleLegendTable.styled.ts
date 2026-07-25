@@ -1,9 +1,12 @@
 import styled from '@emotion/styled';
 import { color, font, motion, radius, space } from '@/shared/styles';
 
+/** 브랜드 틴트 래퍼(DetailCard) 위에 놓이는 밝은 패널 — 아젠다·미정과 같은 표면 규칙. */
 export const LegendDetails = styled.details`
-  border-top: 1px solid ${color.border};
-  padding-top: ${space[4]};
+  padding: ${space[3]} ${space[4]};
+  border: 1px solid ${color.border};
+  border-radius: ${radius.md};
+  background: ${color.surfaceRaised};
 
   &[open] > summary svg {
     transform: rotate(90deg);
@@ -84,6 +87,15 @@ export const LegendTickerLabel = styled.span`
   display: inline-flex;
   align-items: center;
   gap: ${space[2]};
+`;
+
+/**
+ * 티커 열 고정폭(아젠다·미정과 같은 6ch 규격) — 글자 수가 달라도 실측/추정 배지가 같은 선에서
+ * 시작한다. 표를 세로로 훑을 때 배지가 좌우로 흔들리면 비교가 안 된다.
+ */
+export const LegendTickerText = styled.span`
+  flex: 0 0 6ch;
+  ${font.numeric}
 `;
 
 /** 지급 달 점. 미지급도 자리를 지켜 줄마다 12칸이 유지된다(세로 스캔이 가능해진다). */

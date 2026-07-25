@@ -93,6 +93,20 @@ const renderCalendar = async ({
 const optionButton = (ticker: string) =>
   screen.getByRole('button', { name: new RegExp(`^${ticker} .*(실측|추정|데이터 준비 중)$`) });
 
+/**
+ * 종목 선택은 **우측 드로어** 안에 산다(2026-07-25 개편) — 닫혀 있으면 `visibility: hidden` 이라
+ * 접근성 트리에서 빠진다(화면 밖으로 밀기만 하면 탭이 들어가는 유령 패널이 된다).
+ * 검색·목록·선택 칩을 만지는 시나리오는 사용자와 똑같이 먼저 문을 연다.
+ */
+const openPicker = async (user: ReturnType<typeof userEvent.setup>) => {
+  await user.click(screen.getByRole('button', { name: /종목 선택 열기/ }));
+};
+
+/** 달력 아래 상세는 탭이라 한 번에 하나만 그려진다. 기본 탭은 "지급 일정 목록". */
+const openUndatedTab = async (user: ReturnType<typeof userEvent.setup>) => {
+  await user.click(screen.getByRole('button', { name: /^날짜 미정/ }));
+};
+
 const calendarTable = (monthLabel: string) => screen.getByRole('table', { name: monthLabel });
 
 /**
@@ -148,6 +162,7 @@ describe('배당 지급 캘린더 — 기본 루프', () => {
   it('검색해서 고르면 달력·요약·아젠다·라이브 리전이 함께 갱신되고, 고른 항목은 목록에 남는다', async () => {
     const { user } = await renderCalendar();
 
+    await openPicker(user);
     // 소문자로 쳐도 찾아진다(대소문자 무시 계약).
     await user.type(screen.getByLabelText('종목 검색'), 'jepi');
     expect(screen.getByText('1종목')).toBeInTheDocument();
@@ -165,6 +180,7 @@ describe('배당 지급 캘린더 — 기본 루프', () => {
 
   it('검색 결과가 없으면 이유를 말하고, Escape 로 검색어만 지운다(선택·포커스는 그대로)', async () => {
     const { user } = await renderCalendar();
+    await openPicker(user);
     const search = screen.getByLabelText('종목 검색');
 
     await user.type(search, 'ZZZZ');
@@ -266,7 +282,7 @@ describe('배당 지급 캘린더 — 월 이동', () => {
 
 describe('배당 지급 캘린더 — 날짜 미정 분리', () => {
   it('예상일이 있는 종목만 날짜 칸에 놓고, 없는 종목은 미정 섹션에만 둔다', async () => {
-    await renderCalendar({ entries: ['/dividend/calendar?tickers=JEPI,KO,O,SCHD'] });
+    const { user } = await renderCalendar({ entries: ['/dividend/calendar?tickers=JEPI,KO,O,SCHD'] });
 
     const july = calendarTable('2026년 7월');
 
@@ -278,6 +294,8 @@ describe('배당 지급 캘린더 — 날짜 미정 분리', () => {
 
     // O 는 7월에 주지만 날짜를 모른다 → 어느 칸에도 놓지 않는다(임의 날짜로 채우지 않는다).
     expect(within(july).queryByText('O')).not.toBeInTheDocument();
+
+    await openUndatedTab(user);
     expect(within(undatedRegion()).getByText('O')).toBeInTheDocument();
 
     // SCHD 는 3·6·9·12월 종목이라 7월엔 아예 등장하지 않는다 — "미정"은 날짜를 모르는 것이지
@@ -311,17 +329,21 @@ describe('배당 지급 캘린더 — 날짜 미정 분리', () => {
     // 9월: DGRO 는 28일에, SCHD 는 날짜를 몰라 미정으로.
     expect(within(dayCell(calendarTable('2026년 9월'), '2026-09-28')).getByText('DGRO')).toBeInTheDocument();
     expect(within(agenda()).getByText('9월 28일 (월)')).toBeInTheDocument();
+
+    await openUndatedTab(user);
     expect(within(undatedRegion()).getByText('SCHD')).toBeInTheDocument();
     expect(screen.getByText('2026년 9월 지급 예정 1건 · 날짜 미정 1종')).toBeInTheDocument();
   });
 
   it('날짜 있는 지급이 0건이고 미정만 있으면 "지급이 없다"고 말하지 않는다', async () => {
-    await renderCalendar({ entries: ['/dividend/calendar?tickers=O'] });
+    const { user } = await renderCalendar({ entries: ['/dividend/calendar?tickers=O'] });
 
-    expect(within(undatedRegion()).getByText('O')).toBeInTheDocument();
     expect(
-      within(agenda()).getByText('날짜를 추정할 수 있는 지급이 없습니다. 위 "날짜 미정" 목록을 확인하세요.')
+      within(agenda()).getByText('날짜를 추정할 수 있는 지급이 없습니다. "날짜 미정" 탭을 확인하세요.')
     ).toBeInTheDocument();
+
+    await openUndatedTab(user);
+    expect(within(undatedRegion()).getByText('O')).toBeInTheDocument();
     expect(screen.getByText('2026년 7월 지급 예정 0건 · 날짜 미정 1종')).toBeInTheDocument();
     expect(screen.queryByText('2026년 7월에는 선택한 종목의 지급 예정이 없습니다.')).not.toBeInTheDocument();
   });
@@ -349,6 +371,7 @@ describe('배당 지급 캘린더 — 주소 동기화(공유 링크)', () => {
   it('선택을 바꿔도 다른 쿼리 파라미터를 보존하고 히스토리를 쌓지 않는다(replace)', async () => {
     const { user } = await renderCalendar({ entries: ['/dividend/calendar?tickers=SCHD&foo=bar'] });
 
+    await openPicker(user);
     await user.click(optionButton('KO'));
 
     await waitFor(() => {
@@ -362,6 +385,7 @@ describe('배당 지급 캘린더 — 주소 동기화(공유 링크)', () => {
   it('선택 후 뒤로 가면 캘린더의 이전 상태가 아니라 직전 화면으로 돌아간다', async () => {
     const { user } = await renderCalendar({ entries: ['/before', '/dividend/calendar'], initialIndex: 1 });
 
+    await openPicker(user);
     await user.click(optionButton('SCHD'));
     await waitFor(() => {
       expect(searchParamsOf().get('tickers')).toBe('SCHD');
@@ -380,7 +404,7 @@ describe('배당 지급 캘린더 — 주소 동기화(공유 링크)', () => {
   it('주소의 티커를 대문자·중복 제거한 표준형으로 되돌려 쓴다', async () => {
     await renderCalendar({ entries: ['/dividend/calendar?tickers=schd,jepi,SCHD'] });
 
-    expect(screen.getByText('선택 2종')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /현재 2종 선택됨/ })).toBeInTheDocument();
     await waitFor(() => {
       expect(searchParamsOf().get('tickers')).toBe('SCHD,JEPI');
     });
@@ -389,6 +413,7 @@ describe('배당 지급 캘린더 — 주소 동기화(공유 링크)', () => {
   it('선택을 비우면 주소에서 tickers 파라미터가 사라진다', async () => {
     const { user } = await renderCalendar({ entries: ['/dividend/calendar?tickers=SCHD&foo=bar'] });
 
+    await openPicker(user);
     await user.click(screen.getByRole('button', { name: '선택 비우기' }));
 
     await waitFor(() => {
@@ -403,6 +428,7 @@ describe('배당 지급 캘린더 — 포커스 계약', () => {
   it('선택 칩의 ×로 해제하면 포커스가 검색 입력으로 돌아온다', async () => {
     const { user } = await renderCalendar();
 
+    await openPicker(user);
     await user.click(optionButton('SCHD'));
     await user.click(screen.getByRole('button', { name: 'SCHD 선택 해제' }));
 
@@ -413,25 +439,26 @@ describe('배당 지급 캘린더 — 포커스 계약', () => {
 });
 
 describe('배당 지급 캘린더 — 지급월 데이터가 없는 종목', () => {
-  it('클릭도 Enter 도 선택으로 이어지지 않고 이유를 텍스트로 남긴다', async () => {
+  it('클릭도 Enter 도 선택으로 이어지지 않고 이유를 배지로 남긴다', async () => {
     const { user } = await renderCalendar();
 
+    await openPicker(user);
     const unavailable = optionButton('QQQ');
     expect(unavailable).toHaveAttribute('aria-disabled', 'true');
+    // 사유는 항목 안 "데이터 준비 중" 배지가 말한다(별도 안내문은 삭제 — 사용자 결정 2026-07-25).
     expect(unavailable).toHaveTextContent('데이터 준비 중');
-    expect(screen.getAllByText('지급 이력 데이터가 아직 없어 캘린더에 넣을 수 없습니다.').length).toBeGreaterThan(0);
 
     await user.click(unavailable);
     unavailable.focus();
     await user.keyboard('{Enter}');
 
     expect(optionButton('QQQ')).toHaveAttribute('aria-pressed', 'false');
-    expect(screen.getByText('선택 0종')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '종목 선택 열기' })).toBeInTheDocument();
     expect(screen.getByText('아직 선택한 종목이 없습니다')).toBeInTheDocument();
     expect(searchParamsOf().has('tickers')).toBe(false);
   });
 
-  it('데이터 없는 종목만 선택되면 빈 달력 대신 경고를 보여준다', async () => {
+  it('데이터 없는 종목만 선택되면 빈 달력과 함께 경고를 보여준다', async () => {
     await renderCalendar({ entries: ['/dividend/calendar?tickers=QQQ,ANET'] });
 
     expect(
@@ -439,10 +466,13 @@ describe('배당 지급 캘린더 — 지급월 데이터가 없는 종목', () 
         '선택한 종목은 아직 지급월 데이터가 없습니다. 데이터가 있는 종목을 추가하면 캘린더가 채워집니다.'
       )
     ).toBeInTheDocument();
-    // 빈 달력을 그려 놓으면 "이 종목들은 이 달에 안 준다"는 거짓 주장이 된다.
-    expect(screen.queryByRole('table', { name: '2026년 7월' })).not.toBeInTheDocument();
+    // 달력 표는 화면의 뼈대라 항상 남는다(사용자 결정 2026-07-25). 다만 표는 아무 주장도 하지 않는다 —
+    // "이 종목들은 이 달에 안 준다"가 아니라 "데이터가 없다"를 경고가 말하고, 요약·상세 목록은 붙지 않는다.
+    const july = screen.getByRole('table', { name: '2026년 7월' });
+    expect(july).toBeInTheDocument();
+    expect(within(july).queryByText('QQQ')).not.toBeInTheDocument();
     expect(screen.queryByRole('region', { name: '지급 일정 목록' })).not.toBeInTheDocument();
-    expect(screen.getByText('선택 2종')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /현재 2종 선택됨/ })).toBeInTheDocument();
   });
 });
 
@@ -454,6 +484,7 @@ describe('배당 지급 캘린더 — 라이브 리전', () => {
     expect(live).toBeInTheDocument();
     expect(live).toHaveTextContent('');
 
+    await openPicker(user);
     await user.click(optionButton('JEPI'));
     expect(screen.getByRole('status')).toHaveTextContent('선택 1종, 이 달 지급 예정 1건.');
 
@@ -498,7 +529,7 @@ describe('배당 지급 캘린더 — 데이터 사실성', () => {
   });
 
   it('입금 이력이 있는 종목만 "실측"이고 배당락 기반은 "추정"으로 남는다', async () => {
-    await renderCalendar({ entries: ['/dividend/calendar?tickers=JEPI,O'] });
+    const { user } = await renderCalendar({ entries: ['/dividend/calendar?tickers=JEPI,O'] });
 
     // 데이터의 '형태'가 아니라 화면의 '어법'을 고정한다 — 스냅샷 재갱신으로 필드 표기가 바뀌어도
     // 배당락 기반(non-'pay')이 "실측"으로 승격되지만 않으면 계약은 지켜진 것이다.
@@ -508,6 +539,8 @@ describe('배당 지급 캘린더 — 데이터 사실성', () => {
     const jepiDay = agendaDay('2026-07-04');
     expect(jepiDay).not.toBeNull();
     expect(within(jepiDay as HTMLElement).getByText('실측')).toBeInTheDocument();
+
+    await openUndatedTab(user);
     expect(within(undatedRegion()).getByText('추정')).toBeInTheDocument();
   });
 });

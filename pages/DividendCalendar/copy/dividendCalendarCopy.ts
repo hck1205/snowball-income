@@ -37,14 +37,19 @@ export const DIVIDEND_CALENDAR_COPY = {
   },
   picker: {
     heading: '종목 선택',
+    /** 우측 드로어를 여는 버튼 — 몇 종을 골라 둔 상태인지 접근명에도 담는다(배지 숫자만으론 안 읽힌다). */
+    open: (n: number) => (n > 0 ? `종목 선택 열기, 현재 ${n}종 선택됨` : '종목 선택 열기'),
+    openShort: '종목 선택',
+    close: '종목 선택 닫기',
     searchLabel: '종목 검색',
     searchPlaceholder: '티커 또는 한글 이름 (예: SCHD, 리얼티)',
     resultCount: (n: number) => `${n}종목`,
-    selectedCount: (n: number) => `선택 ${n}종`,
+    /* 달력 위 "선택 N종" 텍스트는 삭제했다(사용자 결정 2026-07-25 — 필터 버튼 배지와 중복).
+       개수는 `picker.open` 접근명과 라이브 리전(`status.selectionSummary`)이 계속 말한다. */
     clear: '선택 비우기',
     noResult: '검색어와 일치하는 종목이 없습니다. 티커(SCHD)나 한글 이름(슈왑)으로 검색해 보세요.',
     noResultLive: '검색 결과가 없습니다.',
-    unavailableHint: '지급 이력 데이터가 아직 없어 캘린더에 넣을 수 없습니다.',
+    /* 선택 불가 사유 안내문은 삭제했다(사용자 결정 2026-07-25) — "데이터 준비 중" 배지가 이미 말한다. */
     removeChip: (ticker: string) => `${ticker} 선택 해제`
   },
   nav: {
@@ -71,6 +76,15 @@ export const DIVIDEND_CALENDAR_COPY = {
       `${label} 지급 예정 ${dated}건 · 날짜 미정 ${undated}종`,
     summaryNone: (label: string) => `${label}에는 선택한 종목의 지급 예정이 없습니다.`
   },
+  /**
+   * 달력 아래 상세 두 가지(날짜순 목록 / 날짜 미정)를 한 줄로 가르는 전환 버튼.
+   * 미정이 0건이면 그 버튼 자체를 렌더하지 않는다 — 누를 게 없는 탭은 만들지 않는다.
+   */
+  detailTabs: {
+    groupLabel: '지급 일정 보기 방식',
+    agenda: '지급 일정 목록',
+    undated: (n: number) => `날짜 미정 ${n}종`
+  },
   undated: {
     heading: '이 달 지급 예정 · 날짜 미정',
     count: (n: number) => `${n}종`,
@@ -79,15 +93,16 @@ export const DIVIDEND_CALENDAR_COPY = {
   agenda: {
     heading: '지급 일정 목록',
     dayLabel: (month: number, day: number, weekday: string) => `${month}월 ${day}일 (${weekday})`,
+    /* 날짜별 종목 수 배지는 삭제했다(사용자 결정 2026-07-25) — 티커가 바로 아래 나열돼 중복이다. */
     chipTitle: (ticker: string, month: number, day: number) => `${ticker} 예상 지급일 ${month}월 ${day}일`,
     chipTitleUndated: (ticker: string) => `${ticker} 이 달 지급 예정, 날짜 미정`,
     empty: '이 달에는 지급 예정이 없습니다. 다른 달로 이동하거나 종목을 추가해 보세요.',
     /** 날짜 있는 건 0 + 미정만 있을 때 — "지급이 없다"로 읽히면 거짓말이 된다. */
-    undatedOnly: '날짜를 추정할 수 있는 지급이 없습니다. 위 "날짜 미정" 목록을 확인하세요.'
+    undatedOnly: '날짜를 추정할 수 있는 지급이 없습니다. "날짜 미정" 탭을 확인하세요.'
   },
   empty: {
     title: '아직 선택한 종목이 없습니다',
-    body: '위(데스크톱은 왼쪽) 검색에서 종목을 추가하면 예상 지급일이 달력에 표시됩니다.',
+    body: '위 "종목 선택"을 눌러 관심 종목을 추가하면 예상 지급일이 달력에 표시됩니다. 아래 추천 종목을 바로 눌러도 됩니다.',
     quickPickLabel: '이런 종목으로 시작해 보세요',
     allUnavailable:
       '선택한 종목은 아직 지급월 데이터가 없습니다. 데이터가 있는 종목을 추가하면 캘린더가 채워집니다.'
@@ -113,6 +128,5 @@ export const DIVIDEND_CALENDAR_COPY = {
       `주소에 있던 종목 중 ${tickers.length}개는 목록에 없어 제외했습니다: ${tickers.join(', ')}`
   },
   cta: {
-    toSimulator: '시뮬레이터에서 내 조건으로 계산하기'
   }
 } as const;

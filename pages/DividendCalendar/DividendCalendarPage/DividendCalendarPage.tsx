@@ -8,7 +8,11 @@ import type { CalendarYearMonth } from '../utils';
 import { useCalendarSelection } from '../hooks';
 import { DIVIDEND_CALENDAR_COPY } from '../copy';
 import DividendCalendarView from './DividendCalendarPage.view';
-import type { CalendarLastAction, DividendCalendarPageProps } from './DividendCalendarPage.types';
+import type {
+  CalendarDetailTab,
+  CalendarLastAction,
+  DividendCalendarPageProps
+} from './DividendCalendarPage.types';
 import { buildCalendarLiveMessage, buildDividendCalendarViewModel } from './DividendCalendarPage.utils';
 
 const copy = DIVIDEND_CALENDAR_COPY;
@@ -29,6 +33,13 @@ export default function DividendCalendarPage({ today }: DividendCalendarPageProp
     getCalendarMonthOf(resolvedToday)
   );
   const [monthAction, setMonthAction] = useState<CalendarLastAction>('none');
+  // 달을 옮겨도 보고 있던 탭은 유지한다 — 미정만 훑는 사람이 매달 다시 누르게 하지 않는다.
+  const [detailTab, setDetailTab] = useState<CalendarDetailTab>('agenda');
+  /**
+   * 종목 선택 드로어. 고른 뒤 자동으로 닫지 않는다 — 대개 여러 종목을 연달아 고르고,
+   * 첫 선택마다 닫히면 매번 다시 열어야 한다(결과는 뒤에서 실시간으로 갱신된다).
+   */
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
 
   const { selected, status, lastAction, unknownTickers, toggleTicker, clearSelection } =
     useCalendarSelection(universe);
@@ -112,12 +123,16 @@ export default function DividendCalendarPage({ today }: DividendCalendarPageProp
     clearSelection();
   }, [clearSelection]);
 
-  const handleSimulatorLinkClick = useCallback(() => {
+  const handleOpenPicker = useCallback(() => {
     trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
-      cta_name: 'dividend_calendar_to_simulator',
+      cta_name: 'dividend_calendar_picker_open',
       placement: 'dividend_calendar'
     });
+    setIsPickerOpen(true);
   }, []);
+
+  const handleClosePicker = useCallback(() => setIsPickerOpen(false), []);
+
 
   return (
     <TickerPageShell>
@@ -127,15 +142,19 @@ export default function DividendCalendarPage({ today }: DividendCalendarPageProp
         today={resolvedToday}
         isCurrentMonth={isSameCalendarMonth(visibleMonth, getCalendarMonthOf(resolvedToday))}
         keyword={keyword}
+        detailTab={detailTab}
+        isPickerOpen={isPickerOpen}
         liveMessage={liveMessage}
         unknownTickers={unknownTickers}
         onKeywordChange={setKeyword}
+        onDetailTabChange={setDetailTab}
+        onOpenPicker={handleOpenPicker}
+        onClosePicker={handleClosePicker}
         onToggleTicker={handleToggleTicker}
         onClearSelection={handleClearSelection}
         onPrevMonth={handlePrevMonth}
         onNextMonth={handleNextMonth}
         onToday={handleToday}
-        onSimulatorLinkClick={handleSimulatorLinkClick}
       />
     </TickerPageShell>
   );

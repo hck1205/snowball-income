@@ -1,13 +1,17 @@
 import { useId } from 'react';
+import { CalendarClock } from 'lucide-react';
 import { DIVIDEND_CALENDAR_COPY } from '../../copy';
+import { tickerSeriesVar } from '../../utils';
 import { ScheduleSourceBadge } from '../ScheduleSourceBadge';
 import type { UndatedSectionProps } from './UndatedSection.types';
 import {
   UndatedCount,
+  UndatedDot,
   UndatedHeading,
   UndatedHint,
   UndatedItem,
   UndatedList,
+  UndatedName,
   UndatedRoot,
   UndatedTicker
 } from './UndatedSection.styled';
@@ -29,6 +33,7 @@ export default function UndatedSection({ items }: UndatedSectionProps) {
   return (
     <UndatedRoot aria-labelledby={headingId}>
       <UndatedHeading id={headingId}>
+        <CalendarClock size={16} strokeWidth={1.8} aria-hidden focusable={false} />
         {copy.undated.heading}
         <UndatedCount>{copy.undated.count(items.length)}</UndatedCount>
       </UndatedHeading>
@@ -36,9 +41,10 @@ export default function UndatedSection({ items }: UndatedSectionProps) {
       <UndatedList>
         {items.map((item) => (
           <UndatedItem key={item.ticker}>
+            <UndatedDot aria-hidden style={{ background: tickerSeriesVar(item.ticker) }} />
             <UndatedTicker>{item.ticker}</UndatedTicker>
             <ScheduleSourceBadge source={item.source} />
-            {item.koreanName}
+            <UndatedName>{item.koreanName}</UndatedName>
           </UndatedItem>
         ))}
       </UndatedList>

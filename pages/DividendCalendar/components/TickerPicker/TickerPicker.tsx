@@ -18,11 +18,9 @@ import {
   ResultTicker,
   SearchIconSlot,
   SearchInput,
-  SearchLabel,
   SearchRow,
   SelectedChipItem,
-  SelectedChipList,
-  UnavailableHint
+  SelectedChipList
 } from './TickerPicker.styled';
 
 const copy = DIVIDEND_CALENDAR_COPY;
@@ -32,6 +30,7 @@ const copy = DIVIDEND_CALENDAR_COPY;
  *
  * 콤보박스/listbox 패턴을 쓰지 않는다 — 목록이 항상 보이므로 `button` + `aria-pressed`가 더 정확하고
  * 깨질 여지가 적다. 선택해도 **항목이 목록에서 사라지지 않는다**(사라지면 실수 해제가 어렵다).
+ * 목록을 접는 아코디언도 한 번 시도했다가 되돌렸다(사용자 결정 2026-07-25 — 항상 펼쳐진 쪽이 낫다).
  */
 export default function TickerPicker({
   options,
@@ -67,7 +66,7 @@ export default function TickerPicker({
 
   return (
     <PickerRoot>
-      <SearchLabel htmlFor={searchId}>{copy.picker.searchLabel}</SearchLabel>
+      {/* 시각 라벨 없이 아이콘 + placeholder 로 읽히게 하고, 접근성 이름은 aria-label 이 책임진다. */}
       <SearchRow>
         <SearchIconSlot>
           <Search size={16} strokeWidth={1.8} aria-hidden focusable={false} />
@@ -78,6 +77,7 @@ export default function TickerPicker({
           autoComplete="off"
           value={keyword}
           placeholder={copy.picker.searchPlaceholder}
+          aria-label={copy.picker.searchLabel}
           aria-describedby={resultCountId}
           ref={searchRef}
           onChange={(event) => onKeywordChange(event.target.value)}
@@ -135,7 +135,6 @@ export default function TickerPicker({
                   <ResultName>{option.koreanName}</ResultName>
                   <ScheduleSourceBadge source={option.source} />
                 </ResultButton>
-                {isUnavailable ? <UnavailableHint>{copy.picker.unavailableHint}</UnavailableHint> : null}
               </ResultItem>
             );
           })}
