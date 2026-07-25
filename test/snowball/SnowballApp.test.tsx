@@ -24,6 +24,14 @@ const renderFeature = (): User => {
  */
 const LAZY_MODAL_TIMEOUT = { timeout: 3000 };
 
+beforeAll(async () => {
+  /*
+   * 전체 스위트(워커 병렬)에서는 위 여유(3초)로도 첫 lazy 변환(대형 티커 JSON 포함)이 넘칠 수
+   * 있다 — displayCurrencyPropagation 플레이크 실측. 클릭 대기 창 밖에서 미리 데워 둔다.
+   */
+  await import('@/pages/Main/components/TickerModal');
+});
+
 const openTickerModal = async (user: User): Promise<HTMLElement> => {
   await user.click(screen.getByRole('button', { name: '티커 생성 열기' }));
   return screen.findByRole('dialog', { name: '티커 생성' }, LAZY_MODAL_TIMEOUT);
