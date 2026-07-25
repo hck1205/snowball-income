@@ -1,7 +1,7 @@
 import { memo, useEffect, useMemo, useState } from 'react';
 import { Card } from '@/components';
 import type { MonthlyCashflowProps } from './MonthlyCashflow.types';
-import { buildPayoutScheduleRows, resolveSelectedYear } from './MonthlyCashflow.utils';
+import { buildCalendarMonths, buildPayoutScheduleRows, resolveSelectedYear } from './MonthlyCashflow.utils';
 import { ChartWrap, HintText } from '@/pages/Main/Main.shared.styled';
 import {
   CashflowHeader,
@@ -14,7 +14,14 @@ import {
   ScheduleSection,
   ScheduleSourceBadge,
   ScheduleTable,
-  ScheduleTickerCell
+  ScheduleTickerCell,
+  CalendarCell,
+  CalendarGrid,
+  CalendarItemRow,
+  CalendarMonthLabel,
+  CalendarTotal,
+  ViewToggleButton,
+  ViewToggleGroup
 } from './MonthlyCashflow.styled';
 
 const MONTH_HEADERS = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
@@ -44,6 +51,11 @@ function MonthlyCashflowComponent({
   ResponsiveChart
 }: MonthlyCashflowProps) {
   const scheduleRows = useMemo(() => buildPayoutScheduleRows(scheduleTickers), [scheduleTickers]);
+  /*
+   * 차트(엔진의 월 분배) ↔ 캘린더(관측 지급월로 재배분)는 **다른 월 배치**를 보여준다.
+   * 나란히 두면 "왜 숫자가 다르냐"가 되므로 한 번에 하나만 — 토글 전환이 이 화면의 UX 답이다.
+   */
+  const [viewMode, setViewMode] = useState<'chart' | 'calendar'>('chart');
   const years = yearlyCashflowByTicker.years;
   const [selectedYear, setSelectedYear] = useState<number | null>(() => resolveSelectedYear(years, null));
   /* 캔버스는 CSS 변수를 다시 읽지 않는다 — 팔레트 프리셋 전환 시 옵션을 다시 빌드해야 한다. */
@@ -61,8 +73,37 @@ function MonthlyCashflowComponent({
     [formatAmount, palettePreset, selectedYearData]
   );
   const totalDividend = selectedYearData?.totalDividend ?? 0;
+  const calendarMonths = useMemo(
+    () => (viewMode === 'calendar' ? buildCalendarMonths(selectedYearData?.series ?? [], scheduleRows) : []),
+    [scheduleRows, selectedYearData, viewMode]
+  );
   const headerControls = (
     <CashflowHeaderControls>
+      <ViewToggleGroup role="group" aria-label="월별 배당 보기 방식">
+        {(
+          [
+            ['chart', '차트'],
+            ['calendar', '캘린더']
+          ] as const
+        ).map(([mode, label]) => (
+          <ViewToggleButton
+            key={mode}
+            type="button"
+            $active={viewMode === mode}
+            aria-pressed={viewMode === mode}
+            onClick={() => {
+              if (viewMode === mode) return;
+              trackEvent(ANALYTICS_EVENT.INVESTMENT_SETTING_CHANGED, {
+                field_name: 'monthly_cashflow_view_mode',
+                value: mode
+              });
+              setViewMode(mode);
+            }}
+          >
+            {label}
+          </ViewToggleButton>
+        ))}
+      </ViewToggleGroup>
       <Select
         size="md"
         width="116px"
@@ -96,12 +137,27 @@ function MonthlyCashflowComponent({
         <CashflowTitle>실지급 월별 배당</CashflowTitle>
         {headerControls}
       </CashflowHeader>
-      {hasData ? (
+      {!hasData ? (
+        <HintText>{emptyMessage ?? '좌측 티커 생성을 통해 포트폴리오를 구성해주세요.'}</HintText>
+      ) : viewMode === 'chart' ? (
         <ChartWrap role="img" aria-label={`선택 연도의 월별 실지급 배당 차트${chartLabelSuffix}`}>
           <ResponsiveChart option={chartOption} replaceMerge={['series', 'legend', 'xAxis']} />
         </ChartWrap>
       ) : (
-        <HintText>{emptyMessage ?? '좌측 티커 생성을 통해 포트폴리오를 구성해주세요.'}</HintText>
+        <CalendarGrid aria-label={`선택 연도의 배당 캘린더 (관측 지급월 기준)${chartLabelSuffix}`}>
+          {calendarMonths.map((cell) => (
+            <CalendarCell key={cell.month} $paying={cell.total > 0}>
+              <CalendarMonthLabel>{cell.month}월</CalendarMonthLabel>
+              <CalendarTotal>{cell.total > 0 ? formatAmount(cell.total) : '—'}</CalendarTotal>
+              {cell.items.map((item) => (
+                <CalendarItemRow key={item.name} $estimated={item.source !== 'pay'} title={item.name}>
+                  {item.name} {formatAmount(item.amount)}
+                  {item.source === 'ex' ? ' (추정)' : item.source === 'sim' ? ' (시뮬)' : ''}
+                </CalendarItemRow>
+              ))}
+            </CalendarCell>
+          ))}
+        </CalendarGrid>
       )}
       {hasData && scheduleRows.length > 0 ? (
         <ScheduleSection>

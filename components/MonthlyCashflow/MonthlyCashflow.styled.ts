@@ -109,3 +109,72 @@ export const ScheduleSourceBadge = styled.span<{ $estimated: boolean }>`
   color: ${({ $estimated }) => ($estimated ? color.textMuted : color.brandText)};
   background: ${({ $estimated }) => ($estimated ? color.surfaceHover : color.brandSubtle)};
 `;
+
+/* ── 캘린더 뷰 (차트와 토글 전환) ──────────────────────────────────────── */
+
+export const ViewToggleGroup = styled.div`
+  display: inline-flex;
+  border: 1px solid ${color.border};
+  border-radius: ${space[2]};
+  overflow: hidden;
+`;
+
+export const ViewToggleButton = styled.button<{ $active: boolean }>`
+  border: 0;
+  padding: ${space[1]} ${space[3]};
+  font-size: ${font.size.xs};
+  font-weight: ${font.weight.medium};
+  cursor: pointer;
+  color: ${({ $active }) => ($active ? color.brandText : color.textSecondary)};
+  background: ${({ $active }) => ($active ? color.brandSubtle : 'transparent')};
+
+  &:focus-visible {
+    outline: 2px solid ${color.focusRing};
+    outline-offset: -2px;
+  }
+`;
+
+export const CalendarGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: ${space[2]};
+
+  @media (max-width: 960px) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  @media (max-width: 560px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+`;
+
+/** $paying=false 는 지급 없는 달 — 흐리게 두되 칸은 유지한다(12칸 리듬이 곧 캘린더다). */
+export const CalendarCell = styled.div<{ $paying: boolean }>`
+  border: 1px solid ${color.border};
+  border-radius: ${space[2]};
+  padding: ${space[2]} ${space[3]};
+  min-height: 76px;
+  display: grid;
+  align-content: start;
+  gap: ${space[1]};
+  opacity: ${({ $paying }) => ($paying ? 1 : 0.55)};
+`;
+
+export const CalendarMonthLabel = styled.span`
+  font-size: ${font.size.xs};
+  color: ${color.textMuted};
+`;
+
+export const CalendarTotal = styled.span`
+  font-size: ${font.size.sm};
+  font-weight: ${font.weight.bold};
+  color: ${color.text};
+  font-variant-numeric: tabular-nums;
+`;
+
+export const CalendarItemRow = styled.span<{ $estimated: boolean }>`
+  font-size: 11px;
+  color: ${({ $estimated }) => ($estimated ? color.textMuted : color.textSecondary)};
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
