@@ -1,4 +1,5 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { getTickerDisplayName } from '@/shared/utils';
 import { createPortal } from 'react-dom';
 // per-icon named import(트리셰이킹) → 추천 포트폴리오 카드의 이모지를 lucide 아이콘으로 교체.
 import {
@@ -497,6 +498,15 @@ function MainRightPanelComponent() {
   } = useScenarioTabs();
   const hasGraphData = includedProfiles.length > 0;
   const emptyGraphMessage = '좌측 티커 생성을 통해 포트폴리오를 구성해주세요.';
+  /* 지급 일정 스트립(실지급 월별 배당 카드)용 — 이름 규칙은 차트 시리즈와 동일하게 맞춘다. */
+  const scheduleTickers = useMemo(
+    () =>
+      includedProfiles.map((profile) => ({
+        ticker: profile.ticker,
+        displayName: getTickerDisplayName(profile.ticker, profile.name)
+      })),
+    [includedProfiles]
+  );
   const getYear = useCallback((row: SimulationResultRow) => `${row.year}`, []);
   const getMonthlyDividend = useCallback((row: SimulationResultRow) => row.monthlyDividend, []);
   const getAssetValue = useCallback((row: SimulationResultRow) => row.assetValue, []);
@@ -885,6 +895,7 @@ function MainRightPanelComponent() {
             emptyMessage={emptyGraphMessage}
             formatAmount={formatChartValue}
             chartLabelSuffix={chartLabelSuffix}
+            scheduleTickers={scheduleTickers}
             ResponsiveChart={ResponsiveEChart}
           />
 
