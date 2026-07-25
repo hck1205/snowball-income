@@ -1,31 +1,16 @@
-import { readFile, writeFile } from 'node:fs/promises';
-import path from 'node:path';
 import process from 'node:process';
-import { fileURLToPath } from 'node:url';
 
-import { applyMarketData, EMPTY_MARKET_DATA_SNAPSHOT, parseMarketDataSnapshot } from '@/shared/constants/marketData';
-import type { MarketDataEntry, MarketDataSnapshot } from '@/shared/constants/marketData';
+import { applyMarketData } from '@/shared/constants/marketData';
+import type { MarketDataEntry } from '@/shared/constants/marketData';
 import { CURATED_DIVIDEND_UNIVERSE } from '@/shared/constants/presets';
 
-import { parseCliArgs, serializeSnapshot } from './cliOptions';
+import { parseCliArgs } from './cliOptions';
 import { BUCKET_COUNT, tickersInBucket } from './partition';
 import { createFmpProvider, createYahooProvider } from './provider';
 import type { TickerDataProvider } from './provider';
 import { refreshTickers } from './refresh';
 import { formatRefreshReport, verdictOf } from './report';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const SNAPSHOT_PATH = path.resolve(__dirname, '../../shared/constants/marketData/marketData.generated.json');
-
-const readSnapshot = async (): Promise<MarketDataSnapshot> => {
-  try {
-    const raw = await readFile(SNAPSHOT_PATH, 'utf8');
-    return parseMarketDataSnapshot(JSON.parse(raw));
-  } catch {
-    console.warn(`[ticker:refresh] No readable snapshot at ${SNAPSHOT_PATH}; starting from presets.`);
-    return EMPTY_MARKET_DATA_SNAPSHOT;
-  }
-};
+import { readSnapshotFile, SNAPSHOT_PATH, writeSnapshotFile } from './snapshotIo';
 
 const today = (): string => new Date().toISOString().slice(0, 10);
 
@@ -58,7 +43,7 @@ const main = async (): Promise<number> => {
     provider = createYahooProvider();
   }
 
-  const previousSnapshot = await readSnapshot();
+  const previousSnapshot = await readSnapshotFile('[ticker:refresh]');
   const previousByTicker: Record<string, MarketDataEntry> = applyMarketData(
     CURATED_DIVIDEND_UNIVERSE,
     previousSnapshot
@@ -108,7 +93,7 @@ const main = async (): Promise<number> => {
     return 0;
   }
 
-  await writeFile(SNAPSHOT_PATH, serializeSnapshot(result.snapshot), 'utf8');
+  await writeSnapshotFile(result.snapshot);
   console.log(`\n[ticker:refresh] Wrote ${SNAPSHOT_PATH}`);
   return 0;
 };
