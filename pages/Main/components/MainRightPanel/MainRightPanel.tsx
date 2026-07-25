@@ -52,25 +52,16 @@ import {
   targetYearLabel
 } from '@/pages/Main/utils';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
+import { useScenarioTabInteractions } from './hooks';
 
 function MainRightPanelComponent() {
   const modalRoot = typeof document !== 'undefined' ? document.body : null;
-  const [editingTabId, setEditingTabId] = useState<string | null>(null);
-  const [editingTabName, setEditingTabName] = useState('');
-  const [editingTabWidth, setEditingTabWidth] = useState<number | null>(null);
-  const [deleteTargetTabId, setDeleteTargetTabId] = useState<string | null>(null);
   // 프리셋 적용 확인 모달 대상 — 모바일에서 스크롤 중 실수 탭으로 프리셋이 즉시 적용되는 걸 막는다.
   const [pendingPreset, setPendingPreset] = useState<PortfolioPresetPlaceholder | null>(null);
-  const [hoverTooltip, setHoverTooltip] = useState<{ text: string; x: number; y: number } | null>(null);
-  const [draggingTabId, setDraggingTabId] = useState<string | null>(null);
-  const [dragOverTabId, setDragOverTabId] = useState<string | null>(null);
   const [postInvestmentProjectionYears, setPostInvestmentProjectionYears] = useState(10);
   const [isPostInvestmentAssetView, setIsPostInvestmentAssetView] = useState(false);
-  // 비로그인 2번째 탭 생성 시도 시 뜨는 로그인 유도 프롬프트. 커뮤니티 비활성 배포에선 게이트가 없어 안 뜬다.
-  const [isLoginNudgeOpen, setIsLoginNudgeOpen] = useState(false);
   // Provider 없이(커뮤니티 비활성/격리 렌더) 안전한 optional 접근 — 게이트는 커뮤니티 활성일 때만 발동한다.
   const communityAuth = useOptionalCommunityAuth();
-  const dragJustFinishedRef = useRef(false);
   const hasTrackedSimulationRef = useRef(false);
   const hasTrackedPortfolioConfigRef = useRef(false);
   const showQuickEstimate = useShowQuickEstimateAtomValue();
@@ -136,6 +127,38 @@ function MainRightPanelComponent() {
     deleteScenarioTab,
     reorderScenarioTabs
   } = useScenarioTabs();
+  const {
+    editingTabId,
+    editingTabName,
+    editingTabWidth,
+    deleteTargetTabId,
+    hoverTooltip,
+    draggingTabId,
+    dragOverTabId,
+    dragJustFinishedRef,
+    isLoginNudgeOpen,
+    setEditingTabName,
+    setDraggingTabId,
+    setDragOverTabId,
+    startRenameMode,
+    cancelRenameMode,
+    commitRenameMode,
+    openDeleteModal,
+    closeDeleteModal,
+    confirmDeleteTab,
+    showHoverTooltip,
+    hideHoverTooltip,
+    handleCreateTab,
+    closeLoginNudge,
+    handleLoginFromNudge,
+    openScenarioTabsHelp
+  } = useScenarioTabInteractions({
+    renameScenarioTab,
+    deleteScenarioTab,
+    createScenarioTab,
+    setActiveHelp,
+    communityAuth
+  });
   const hasGraphData = includedProfiles.length > 0;
   const emptyGraphMessage = '좌측 티커 생성을 통해 포트폴리오를 구성해주세요.';
   /* 지급 일정 스트립(실지급 월별 배당 카드)용 — 이름 규칙은 차트 시리즈와 동일하게 맞춘다. */
@@ -165,77 +188,6 @@ function MainRightPanelComponent() {
         : `투자 종료 후 월배당 성장 추정 (추가 납입 없음, 연 ${projectedAnnualDividendGrowthRate >= 0 ? '+' : ''}${(
             projectedAnnualDividendGrowthRate * 100
           ).toFixed(2)}%)`;
-
-  const startRenameMode = useCallback((tabId: string, tabName: string, tabWidth?: number) => {
-    setHoverTooltip(null);
-    setEditingTabId(tabId);
-    setEditingTabName(tabName);
-    setEditingTabWidth(typeof tabWidth === 'number' && tabWidth > 0 ? tabWidth + 20 : null);
-  }, []);
-
-  const cancelRenameMode = useCallback(() => {
-    setHoverTooltip(null);
-    setEditingTabId(null);
-    setEditingTabName('');
-    setEditingTabWidth(null);
-  }, []);
-
-  const commitRenameMode = useCallback(() => {
-    if (!editingTabId) return;
-    setHoverTooltip(null);
-    const nextName = editingTabName.trim();
-    if (!nextName) {
-      // Empty input keeps previous tab name.
-      setEditingTabId(null);
-      setEditingTabName('');
-      setEditingTabWidth(null);
-      return;
-    }
-    const success = renameScenarioTab(editingTabId, editingTabName);
-    if (!success) return;
-    setEditingTabId(null);
-    setEditingTabName('');
-    setEditingTabWidth(null);
-  }, [editingTabId, editingTabName, renameScenarioTab]);
-
-  const openDeleteModal = useCallback((tabId: string) => {
-    trackEvent(ANALYTICS_EVENT.MODAL_VIEW, {
-      modal_type: 'delete_tab_modal',
-      scenario_id: tabId
-    });
-    setDeleteTargetTabId(tabId);
-  }, []);
-
-  const openScenarioTabsHelp = useCallback(() => {
-    trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
-      cta_name: 'open_help_scenario_tabs',
-      placement: 'scenario_tabs'
-    });
-    setActiveHelp('scenarioTabs');
-  }, [setActiveHelp]);
-
-  const closeDeleteModal = useCallback(() => {
-    setDeleteTargetTabId(null);
-  }, []);
-
-  const confirmDeleteTab = useCallback(() => {
-    if (!deleteTargetTabId) return;
-    deleteScenarioTab(deleteTargetTabId);
-    setDeleteTargetTabId(null);
-    if (editingTabId === deleteTargetTabId) {
-      setEditingTabId(null);
-      setEditingTabName('');
-      setEditingTabWidth(null);
-    }
-  }, [deleteScenarioTab, deleteTargetTabId, editingTabId]);
-
-  const showHoverTooltip = useCallback((text: string, x: number, y: number) => {
-    setHoverTooltip({ text, x, y });
-  }, []);
-
-  const hideHoverTooltip = useCallback(() => {
-    setHoverTooltip(null);
-  }, []);
 
   const applyPortfolioPreset = useCallback(
     (preset: PortfolioPresetPlaceholder) => {
@@ -282,23 +234,6 @@ function MainRightPanelComponent() {
     if (pendingPreset) applyPortfolioPreset(pendingPreset);
     setPendingPreset(null);
   }, [pendingPreset, applyPortfolioPreset]);
-
-  // 탭 추가("+"). 로그인 게이트에 걸리면(비로그인 2번째 탭) 생성하지 않고 로그인 유도 프롬프트를 띄운다.
-  const handleCreateTab = useCallback(() => {
-    const outcome = createScenarioTab();
-    if (outcome === 'login-required') {
-      trackEvent(ANALYTICS_EVENT.MODAL_VIEW, { modal_type: 'scenario_login_nudge' });
-      setIsLoginNudgeOpen(true);
-    }
-  }, [createScenarioTab]);
-
-  const closeLoginNudge = useCallback(() => setIsLoginNudgeOpen(false), []);
-  // [로그인] → 프롬프트를 닫고 기존 로그인 모달을 연다(소셜 로그인 선택). 로그인 성공 후 탭1 클라우드 push는
-  // 코어의 "클라우드 empty + 로컬 내용 → 무음 push"가 처리하므로 여기선 유도만 한다.
-  const handleLoginFromNudge = useCallback(() => {
-    setIsLoginNudgeOpen(false);
-    communityAuth?.openLoginPrompt();
-  }, [communityAuth]);
 
   useEffect(() => {
     if (!simulation) {
