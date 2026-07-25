@@ -103,7 +103,13 @@ function MonthlyCashflowComponent({
       </Select>
       <CashflowTotalLabel>
         {/* 합계는 원화에서 이미 합산된 값이다 — 여기서 표시 직전에 한 번만 환산한다. */}
-        {selectedYear ? `배당 합계: ${formatAmount(totalDividend)}` : '실지급 배당 데이터 없음'}
+        {selectedYear ? (
+          <>
+            배당 합계: <strong>{formatAmount(totalDividend)}</strong>
+          </>
+        ) : (
+          '실지급 배당 데이터 없음'
+        )}
       </CashflowTotalLabel>
       {/* 보기 전환은 맨 우측(사용자 지정 위치). */}
       <ViewToggleGroup role="group" aria-label="월별 배당 보기 방식">
