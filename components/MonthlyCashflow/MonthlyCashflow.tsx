@@ -1,9 +1,33 @@
 import { memo, useEffect, useMemo, useState } from 'react';
 import { Card } from '@/components';
 import type { MonthlyCashflowProps } from './MonthlyCashflow.types';
-import { resolveSelectedYear } from './MonthlyCashflow.utils';
+import { buildPayoutScheduleRows, resolveSelectedYear } from './MonthlyCashflow.utils';
 import { ChartWrap, HintText } from '@/pages/Main/Main.shared.styled';
-import { CashflowHeader, CashflowHeaderControls, CashflowTitle, CashflowTotalLabel } from './MonthlyCashflow.styled';
+import {
+  CashflowHeader,
+  CashflowHeaderControls,
+  CashflowTitle,
+  CashflowTotalLabel,
+  ScheduleDot,
+  ScheduleHeading,
+  ScheduleScroll,
+  ScheduleSection,
+  ScheduleSourceBadge,
+  ScheduleTable,
+  ScheduleTickerCell
+} from './MonthlyCashflow.styled';
+
+const MONTH_HEADERS = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+
+/**
+ * 스트립 하단 고지. 두 사실을 정직하게 말한다:
+ * 1) "추정" 종목은 배당락일 기반이라 실제 입금 달이 다를 수 있다(월말 배당락 → 다음 달 입금).
+ * 2) "실측"도 과거 이력이다 — 운용사가 일정을 바꾸면 달라질 수 있다.
+ * 위 차트(시뮬레이션 분배)와 이 표(관측 이력)가 다를 수 있는 이유도 여기서 설명된다.
+ */
+const SCHEDULE_DISCLAIMER =
+  '지급 월은 과거 지급 이력에서 관측한 값입니다. "추정" 표시는 배당락일 기준이라 실제 입금 달과 다를 수 있고, ' +
+  '"실측"이라도 운용사 사정에 따라 일정이 바뀔 수 있습니다. 위 차트는 시뮬레이션의 분배 가정이라 이 표와 다를 수 있습니다.';
 import { Select } from '@/components/common';
 import { buildRecentCashflowBarOption } from '@/pages/Main/utils';
 import { formatKRW } from '@/shared/utils';
@@ -16,8 +40,10 @@ function MonthlyCashflowComponent({
   emptyMessage,
   formatAmount = formatKRW,
   chartLabelSuffix = '',
+  scheduleTickers = [],
   ResponsiveChart
 }: MonthlyCashflowProps) {
+  const scheduleRows = useMemo(() => buildPayoutScheduleRows(scheduleTickers), [scheduleTickers]);
   const years = yearlyCashflowByTicker.years;
   const [selectedYear, setSelectedYear] = useState<number | null>(() => resolveSelectedYear(years, null));
   /* 캔버스는 CSS 변수를 다시 읽지 않는다 — 팔레트 프리셋 전환 시 옵션을 다시 빌드해야 한다. */
@@ -77,6 +103,46 @@ function MonthlyCashflowComponent({
       ) : (
         <HintText>{emptyMessage ?? '좌측 티커 생성을 통해 포트폴리오를 구성해주세요.'}</HintText>
       )}
+      {hasData && scheduleRows.length > 0 ? (
+        <ScheduleSection>
+          <ScheduleHeading>종목별 실제 지급 월 (지급 이력 기준)</ScheduleHeading>
+          <ScheduleScroll>
+            <ScheduleTable>
+              <thead>
+                <tr>
+                  <ScheduleTickerCell scope="col">종목</ScheduleTickerCell>
+                  {MONTH_HEADERS.map((label) => (
+                    <th key={label} scope="col">
+                      {label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {scheduleRows.map((row) => (
+                  <tr key={row.ticker}>
+                    <ScheduleTickerCell scope="row">
+                      {row.displayName}
+                      <ScheduleSourceBadge $estimated={row.source === 'ex'}>
+                        {row.source === 'pay' ? '실측' : '추정'}
+                      </ScheduleSourceBadge>
+                    </ScheduleTickerCell>
+                    {MONTH_HEADERS.map((label, monthIndex) => {
+                      const paying = row.months.includes(monthIndex + 1);
+                      return (
+                        <td key={label} aria-label={paying ? `${label} 지급` : undefined}>
+                          <ScheduleDot $paying={paying} aria-hidden={paying ? undefined : true} />
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </ScheduleTable>
+          </ScheduleScroll>
+          <HintText>{SCHEDULE_DISCLAIMER}</HintText>
+        </ScheduleSection>
+      ) : null}
     </Card>
   );
 }

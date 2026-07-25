@@ -14,5 +14,11 @@ export type MonthlyCashflowProps = {
   formatAmount?: (value: number) => string;
   /** 달러 표시 중일 때 차트 `aria-label` 에 붙는 접미(시각적으로만 바뀌는 통화를 스크린리더에도 알린다). */
   chartLabelSuffix?: string;
+  /**
+   * 지급 일정 스트립에 보여줄 종목들(포함된 종목). 비우면 스트립 자체를 렌더하지 않는다.
+   * 차트(시뮬레이션 분배)와 달리 이 스트립은 **관측된 실제 지급월**을 보여준다 — 데이터가 없는
+   * 종목은 utils 가 걸러낸다(지어내지 않는다).
+   */
+  scheduleTickers?: readonly { ticker: string; displayName: string }[];
   ResponsiveChart: ComponentType<{ option: EChartsOption; replaceMerge?: string[] }>;
 };
