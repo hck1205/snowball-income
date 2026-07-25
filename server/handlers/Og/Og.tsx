@@ -18,7 +18,7 @@ import {
 } from '@/pages/Main/utils/ogCard';
 import {
   DB_SHARE_KEY_PATTERN,
-  fetchPublicPostSimSummary,
+  fetchPublicPostOgSource,
   fetchSharedSnapshotByKey,
   POST_ID_PATTERN
 } from '@/shared/lib/og';
@@ -169,7 +169,13 @@ const Shell = ({ children }: { children: React.ReactNode }) => (
 );
 
 const ScenarioCard = ({ model }: { model: OgCardModel }) => {
-  const holdingsLine = formatOgHoldingsLine(model.holdings, model.hiddenHoldingCount);
+  /*
+   * 헤드라인 우선순위: 글 제목(post 경로) → 구성 요약.
+   * post 카드는 sim_summary 만 읽어 종목별 비중이 없다 — 그대로 두면 "5개 종목" 처럼 정보가 없는
+   * 문구가 헤드라인이 된다. 갤러리 글은 제목이 그 글의 정체성이라 미리보기에는 제목이 맞다.
+   * ⚠ `?s=`/`?share=` 는 headline 이 undefined 라 이 분기를 건너뛴다 → 출력 바이트 불변.
+   */
+  const holdingsLine = model.headline || formatOgHoldingsLine(model.holdings, model.hiddenHoldingCount);
   const contributionLine = `월 ${formatOgAmount(model.monthlyContribution)} 적립 · ${model.durationYears}년 투자`;
   // `targetReachedYear` 는 **달력 연도**다(연차가 아니다). 앱의 `targetYearLabel` 과 같은 표기를 쓴다.
   // ⚠ 목표 미설정(targetMonthlyDividend<=0)이면 도달/미도달 문구를 붙이지 않는다 — findTargetYear(rows,0)이
@@ -242,7 +248,8 @@ const resolveCardModel = async (searchParams: URLSearchParams): Promise<OgCardMo
   // 모델이 null(부재/비공개/board/malformed/env 미설정)이면 아래 s/share 폴백으로 자연 낙하 → 결국 기본 카드.
   const postId = searchParams.get('post');
   if (postId && POST_ID_PATTERN.test(postId)) {
-    const model = summarizePostSimSummaryForOg(await fetchPublicPostSimSummary(postId));
+    const source = await fetchPublicPostOgSource(postId);
+    const model = summarizePostSimSummaryForOg(source?.simSummary, source?.title);
     if (model) return model;
   }
 

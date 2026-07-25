@@ -202,26 +202,33 @@ export const fetchPublicPostMeta = async (kind: PublicPostKind, id: string): Pro
   }
 };
 
+/** `/api/og?post=` 카드가 쓰는 원재료 — 글 제목(헤드라인) + sim_summary(숫자). */
+export type PostOgSource = {
+  /** 카드 헤드라인. 비어 있으면 호출자가 구성 요약으로 폴백한다. */
+  title: string | null;
+  /** raw jsonb 그대로. 파싱은 호출자(ogCard 레이어)가 한다. */
+  simSummary: unknown | null;
+};
+
 /**
- * `/api/og?post=<id>` 전용 — 공개 **포트폴리오** 글의 `sim_summary` raw jsonb 단건 조회.
+ * `/api/og?post=<id>` 전용 — 공개 **포트폴리오** 글의 카드 원재료 단건 조회.
  *
- * fetchPublicPostMeta 와 별도인 이유: og 카드는 메타(제목·본문)가 필요 없고 sim_summary 하나만 읽는다.
+ * fetchPublicPostMeta 와 별도인 이유: og 카드는 본문·작성자가 필요 없고 제목과 sim_summary 만 읽는다.
  * 게이트는 두 겹 + 종류 고정이다:
  *   - `is_public=eq.true` : RLS 와 별개로 코드에서도 공개 글만(비공개 포폴이 엣지 카드에 박제되지 않게).
  *   - `kind=eq.portfolio` : board 글엔 sim_summary 가 없다(portfolio 전용, 결정 2026-07-20).
  *   - `POST_ID_PATTERN`   : uuid 아닌 값을 PostgREST 에 던지지 않는다(400 회피).
  *
  * 실패/부재/env 미설정은 **전부 null**(throw 금지) — og 엔드포인트는 절대 5xx 를 내지 않는다.
- * 반환은 row 의 raw `sim_summary`(jsonb 그대로). 파싱·매핑은 호출자(ogCard 레이어)가 한다.
  */
-export const fetchPublicPostSimSummary = async (id: string): Promise<unknown | null> => {
+export const fetchPublicPostOgSource = async (id: string): Promise<PostOgSource | null> => {
   if (!POST_ID_PATTERN.test(id)) return null;
 
   const config = readSupabaseRestConfig();
   if (!config) return null;
 
   const query = new URLSearchParams({
-    select: 'sim_summary',
+    select: 'title,sim_summary',
     id: `eq.${id}`,
     kind: 'eq.portfolio',
     is_public: 'eq.true',
@@ -237,7 +244,11 @@ export const fetchPublicPostSimSummary = async (id: string): Promise<unknown | n
     const rows = (await response.json().catch(() => null)) as PostRestRow[] | null;
     if (!Array.isArray(rows) || rows.length === 0) return null;
 
-    return rows[0].sim_summary ?? null;
+    const row = rows[0];
+    return {
+      title: typeof row.title === 'string' && row.title.trim() ? row.title : null,
+      simSummary: row.sim_summary ?? null
+    };
   } catch {
     return null;
   }
