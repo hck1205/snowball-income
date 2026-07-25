@@ -66,5 +66,10 @@
 - 로그인 계측 이원화 주의: login_completed 정본 발화점은 CommunityAuthProvider SIGNED_IN(프로필 트랙 소유)인데, 클라우드 트랙은 sessionStorage 마커로 OAuth 리다이렉트 넘어 귀속(useCloudSyncAnalytics). **auth 트랙이 SIGNED_IN에 직접 login_completed를 넣으면 이중 계측** — 단일화 필요(백로그).
 - Phase 1 배선 랜딩(2026-07-19): 커뮤니티 6이벤트 + User Properties 5종 + scenario_shared + value_bucket. **커뮤니티 이벤트는 데이터 훅에**(useScenarioDetail=post_view[view등록 1회 게이트 안]·like, useComments=comment[createComment 성공], useScenarioComposer=post_published[mode!=='edit'만], CommunityGalleryPage 컨테이너=gallery_view[마운트], CommunityDetailPage 컨테이너=to_simulator). **User Properties**: has_account=CommunityAuthProvider 세션 감지(메인+커뮤니티 공통 choke, 세션복원에도 태깅), has_saved=useTickerActions TICKER_SAVED·useCloudSyncAnalytics saved 전이·usePortfolioPersistence RETURN_VISIT, is_returning=RETURN_VISIT, preferred_theme=ThemePresetSwitcher, community_active=발행/좋아요/댓글 성공 지점. 전부 멱등(매번 set). value_bucket=useSnowballForm VALUE_BUCKET_EDGES 맵(연속 금액/기간/세율만, 원값 value는 유지). scenario_shared=TickerCreation.handleShareLink 성공 분기(copy_link/show_link). 신규는 타입 `track()`, 배럴 아닌 파일 `@/shared/lib/analytics` 직접 import.
 
+## 배당 캘린더 (2026-07-25, feat/dividend-calendar 브랜치 — 미푸시)
+- `pages/DividendCalendar/` — 라우트 `/dividend/calendar`(routes.tsx lazy). `utils/`(calendarSchedule 조인/필터/월 이벤트 · calendarShareUrl `?tickers=` · calendarStorage IndexedDB 전용 DB · calendarDayGrid 월간 그리드) / `DividendCalendarPage/`(컨테이너↔뷰, TickerPicker·AgendaList·날짜미정 섹션) / `copy/`(형제 폴더 — 배럴 순환 회피). 테스트 test/dividendCalendar/(106케이스).
+- 데이터: `scripts/tickerRefresh/derive.ts`가 `estimatedPayDayByMonth`(pay 20종, 지급월 키) 파생 — marketData 타입·zod·스냅샷 반영, api/og.js·ticker-html.js 전이 재생성. 계약 상세는 decisions.md §배당 캘린더.
+- 커밋 v1 a8b2915(연간 보드, 폐기됨)·v2(월간 달력) — 헤더는 TickerPageShell 재사용, PrimaryNav 링크는 메인 세션 별도 트랙.
+
 ## 진행 중 (완료 시 이 파일 갱신할 것)
 - 없음 (이번 세션 기능 트랙 전부 랜딩). 남은 것은 전부 사용자 배포 액션(마이그레이션 3개 실행·Storage 버킷·Vercel 환경변수)과 Stage 2(공유/OG 통합 — Capture는 폐기 완료), 백로그 항목.
