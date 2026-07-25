@@ -55,3 +55,74 @@ export const buildPayoutScheduleRows = (
       }
     ];
   });
+
+/** 캘린더 셀 안의 종목 한 줄. `source` 는 금액을 어느 근거로 그 달에 놓았는지다. */
+export type CalendarItem = {
+  name: string;
+  amount: number;
+  /**
+   * - `pay`: 실측 지급월(입금일 이력)에 연간 배당을 균등 분배
+   * - `ex` : 추정 지급월(배당락일)에 균등 분배
+   * - `sim`: 관측 데이터가 없어 엔진의 월 분배를 그대로 사용
+   */
+  source: 'pay' | 'ex' | 'sim';
+};
+
+export type CalendarMonth = {
+  /** 1-12 */
+  month: number;
+  total: number;
+  items: CalendarItem[];
+};
+
+type CashflowSeries = { name: string; data: number[] };
+
+/**
+ * 캘린더 뷰의 월별 분배 — **표시 전용 재배분**이다.
+ *
+ * 엔진은 투자 시작월 기준 frequency 로 배당을 놓는다(계약: 저장·공유 결과의 원천, 불변).
+ * 캘린더는 "실제로 몇 월에 들어오나"를 묻는 화면이라, 종목의 **연간 합**(엔진 값 그대로)을
+ * 관측된 지급월에 균등 분배해 다시 놓는다. 연간 합이 보존되므로 어느 뷰로 보든 1년 총액은 같다 —
+ * 달라지는 건 월 배치뿐이고, 그 차이가 바로 이 뷰의 존재 이유다.
+ *
+ * 관측 데이터가 없는 종목(직접 만든 티커 등)은 엔진 분배를 그대로 둔다(`source: 'sim'`) —
+ * 빼면 월 합계가 차트와 어긋나고, 지어내면 거짓이다. 그대로 두는 게 유일하게 정직하다.
+ */
+export const buildCalendarMonths = (
+  series: readonly CashflowSeries[],
+  scheduleRows: readonly PayoutScheduleRow[]
+): CalendarMonth[] => {
+  const scheduleByName = new Map(scheduleRows.map((row) => [row.displayName, row]));
+
+  const months: CalendarMonth[] = Array.from({ length: 12 }, (_v, index) => ({
+    month: index + 1,
+    total: 0,
+    items: []
+  }));
+
+  for (const item of series) {
+    const schedule = scheduleByName.get(item.name);
+    const annual = item.data.reduce((sum, value) => sum + value, 0);
+
+    if (schedule && annual > 0) {
+      const perPayment = annual / schedule.months.length;
+      for (const month of schedule.months) {
+        months[month - 1].items.push({ name: item.name, amount: perPayment, source: schedule.source });
+        months[month - 1].total += perPayment;
+      }
+      continue;
+    }
+
+    item.data.forEach((amount, index) => {
+      if (amount <= 0) return;
+      months[index].items.push({ name: item.name, amount, source: 'sim' });
+      months[index].total += amount;
+    });
+  }
+
+  for (const cell of months) {
+    cell.items.sort((left, right) => right.amount - left.amount);
+  }
+
+  return months;
+};
