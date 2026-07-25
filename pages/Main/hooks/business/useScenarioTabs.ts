@@ -35,7 +35,7 @@ import {
 } from '@/jotai';
 import { useIsLoggedInAtomValue } from '@/jotai/community';
 import { isCommunityEnabled } from '@/shared/lib/supabase';
-import { removeScenarioTab, reorderTabs } from '@/pages/Main/utils';
+import { removeScenarioTab, renameScenarioTabs, reorderTabs } from '@/pages/Main/utils';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 
 const makeScenarioId = () => `scenario-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -326,19 +326,17 @@ export const useScenarioTabs = () => {
       if (!nextName) return false;
 
       let promotedScenarioId: string | null = null;
-      setScenarioTabs((prev) =>
-        prev.map((tab) => {
-          if (tab.id !== scenarioId) return tab;
-          if (scenarioId !== SHARED_SCENARIO_ID) return { ...tab, name: nextName };
-
-          let nextId = makeScenarioId();
-          while (prev.some((item) => item.id === nextId)) {
-            nextId = makeScenarioId();
-          }
-          promotedScenarioId = nextId;
-          return { ...tab, id: nextId, name: nextName };
-        })
-      );
+      setScenarioTabs((prev) => {
+        const renamed = renameScenarioTabs({
+          tabs: prev,
+          scenarioId,
+          nextName,
+          sharedScenarioId: SHARED_SCENARIO_ID,
+          generateId: makeScenarioId
+        });
+        promotedScenarioId = renamed.promotedScenarioId;
+        return renamed.tabs;
+      });
       if (promotedScenarioId && activeScenarioId === scenarioId) {
         setActiveScenarioId(promotedScenarioId);
       }

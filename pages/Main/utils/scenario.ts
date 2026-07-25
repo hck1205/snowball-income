@@ -1,4 +1,5 @@
 type ScenarioLike = { id: string };
+type NamedScenarioLike = ScenarioLike & { name: string };
 
 export type ScenarioRemoval<TTab extends ScenarioLike> = {
   tabs: TTab[];
@@ -49,4 +50,47 @@ export const removeScenarioTab = <TTab extends ScenarioLike>({
   if (!nextActiveTab) return null;
 
   return { tabs: remainingTabs, nextActiveTab };
+};
+
+export type ScenarioRename<TTab extends NamedScenarioLike> = {
+  tabs: TTab[];
+  /** 공유탭(sharedScenarioId)을 rename한 경우에만 채워지는 새 id. 일반 탭 rename이면 null. */
+  promotedScenarioId: string | null;
+};
+
+/**
+ * Renames a tab. If the renamed tab is the shared-link tab (`sharedScenarioId`), it is
+ * "promoted" to a freshly generated id (retried until it doesn't collide with an existing tab)
+ * so it stops behaving like the shared-tab special case. Unknown `scenarioId` is a no-op map
+ * (returned tabs are unchanged, `promotedScenarioId` stays null) — this mirrors the caller's
+ * existing behaviour and is intentionally not validated here.
+ */
+export const renameScenarioTabs = <TTab extends NamedScenarioLike>({
+  tabs,
+  scenarioId,
+  nextName,
+  sharedScenarioId,
+  generateId
+}: {
+  tabs: TTab[];
+  scenarioId: string;
+  nextName: string;
+  sharedScenarioId: string;
+  generateId: () => string;
+}): ScenarioRename<TTab> => {
+  let promotedScenarioId: string | null = null;
+
+  const nextTabs = tabs.map((tab) => {
+    if (tab.id !== scenarioId) return tab;
+    if (scenarioId !== sharedScenarioId) return { ...tab, name: nextName };
+
+    let nextId = generateId();
+    while (tabs.some((item) => item.id === nextId)) {
+      nextId = generateId();
+    }
+    promotedScenarioId = nextId;
+    return { ...tab, id: nextId, name: nextName };
+  });
+
+  return { tabs: nextTabs, promotedScenarioId };
 };
