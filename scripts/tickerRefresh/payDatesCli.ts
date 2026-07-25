@@ -1,16 +1,11 @@
-import { readFileSync } from 'node:fs';
-import { readFile, writeFile } from 'node:fs/promises';
-import path from 'node:path';
 import process from 'node:process';
-import { fileURLToPath } from 'node:url';
 
-import { EMPTY_MARKET_DATA_SNAPSHOT, parseMarketDataSnapshot } from '@/shared/constants/marketData';
-import type { MarketDataSnapshot, MarketDataSnapshotEntry } from '@/shared/constants/marketData';
+import type { MarketDataSnapshotEntry } from '@/shared/constants/marketData';
 
-import { serializeSnapshot } from './cliOptions';
 import { buildPayDatePatch } from './payDates';
 import type { PayDateOutcome } from './payDates';
 import { ALPHA_VANTAGE_FREE_DAILY_LIMIT, createAlphaVantageProvider, ProviderError } from './provider';
+import { readCliEnv, readSnapshotFile, SNAPSHOT_PATH, writeSnapshotFile } from './snapshotIo';
 
 /**
  * `ticker:paydates` — fills in **payment dates**, which the daily price refresh cannot see.
@@ -25,24 +20,12 @@ import { ALPHA_VANTAGE_FREE_DAILY_LIMIT, createAlphaVantageProvider, ProviderErr
  *   - the run stops at the first quota error instead of burning through the remaining tickers,
  *     and reports what was left undone so the next run can pick it up.
  */
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const SNAPSHOT_PATH = path.resolve(__dirname, '../../shared/constants/marketData/marketData.generated.json');
-
 const LOG_PREFIX = '[ticker:paydates]';
 
 /** Politeness gap between calls. The daily cap, not rate, is the real constraint. */
 const DELAY_MS = 400;
 
 const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
-
-const readSnapshot = async (): Promise<MarketDataSnapshot> => {
-  try {
-    return parseMarketDataSnapshot(JSON.parse(await readFile(SNAPSHOT_PATH, 'utf8')));
-  } catch {
-    console.warn(`${LOG_PREFIX} No readable snapshot at ${SNAPSHOT_PATH}.`);
-    return EMPTY_MARKET_DATA_SNAPSHOT;
-  }
-};
 
 type Options = {
   write: boolean;
@@ -81,42 +64,6 @@ const parseOptions = (argv: readonly string[]): { ok: true; options: Options } |
   return { ok: true, options };
 };
 
-/**
- * `.env` fallback. `vite-node` does not put non-`VITE_` variables on `process.env`, and this key
- * must never carry a `VITE_` prefix (that would ship it to the browser bundle). Parsed here rather
- * than pulling in `dotenv` — the same zero-dependency rule the other tooling follows.
- */
-const readEnvFile = (): Record<string, string> => {
-  const values: Record<string, string> = {};
-  try {
-    const raw = readFileSync(path.resolve(__dirname, '../../.env'), 'utf8');
-    for (const line of raw.split(/\r?\n/)) {
-      const trimmed = line.trim();
-      if (trimmed.length === 0 || trimmed.startsWith('#')) continue;
-      const separator = trimmed.indexOf('=');
-      if (separator <= 0) continue;
-      const key = trimmed.slice(0, separator).trim();
-      let value = trimmed.slice(separator + 1).trim();
-      if (value.length >= 2 && value[0] === value[value.length - 1] && (value[0] === '"' || value[0] === "'")) {
-        value = value.slice(1, -1);
-      }
-      if (key.length > 0) values[key] = value;
-    }
-  } catch {
-    // No .env is fine — CI injects real environment variables instead.
-  }
-  return values;
-};
-
-/**
- * One key. Adding keys was tried and does not raise the ceiling — Alpha Vantage caps the free tier
- * by IP as well, so two keys from one machine still stop at 25 requests for the day.
- */
-const readApiKey = (): string | null => {
-  const fromFile = readEnvFile();
-  // A real environment variable wins over the file, so CI can override without editing anything.
-  return process.env.ALPHAVANTAGE_API_KEY || fromFile.ALPHAVANTAGE_API_KEY || null;
-};
 
 /**
  * Tickers worth spending quota on, **least recently upgraded first**: entries with no pay-sourced
@@ -159,13 +106,14 @@ const main = async (): Promise<number> => {
   }
   const { write, only, limit } = parsed.options;
 
-  const apiKey = readApiKey();
+  // One key on purpose — the free-tier cap is per IP as well (measured; see provider constant).
+  const apiKey = readCliEnv('ALPHAVANTAGE_API_KEY');
   if (apiKey === null) {
     console.error(`${LOG_PREFIX} No API key. Set ALPHAVANTAGE_API_KEY in .env.`);
     return 1;
   }
 
-  const snapshot = await readSnapshot();
+  const snapshot = await readSnapshotFile(LOG_PREFIX);
   const provider = createAlphaVantageProvider({ apiKey });
 
   // Never plan more calls than the daily quota allows — going over just collects errors.
@@ -230,7 +178,7 @@ const main = async (): Promise<number> => {
     return 0;
   }
 
-  await writeFile(SNAPSHOT_PATH, serializeSnapshot({ ...snapshot, entries }), 'utf8');
+  await writeSnapshotFile({ ...snapshot, entries });
   console.log(`${LOG_PREFIX} Wrote ${SNAPSHOT_PATH}`);
   return 0;
 };
