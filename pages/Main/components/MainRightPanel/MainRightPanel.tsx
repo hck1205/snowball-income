@@ -877,17 +877,8 @@ function MainRightPanelComponent() {
             </>
           ) : null}
 
-          <YearlyResult
-            items={yearlySeriesItems}
-            isFillOn={isYearlyAreaFillOn}
-            onToggleFill={setIsYearlyAreaFillOn}
-            chartOption={yearlyResultBarOption}
-            hasData={hasGraphData}
-            emptyMessage={emptyGraphMessage}
-            chartLabelSuffix={chartLabelSuffix}
-            ResponsiveChart={ResponsiveEChart}
-          />
-
+          {/* 실지급 월별 배당(캘린더 포함)을 연도별 결과보다 위로 — 배당 캘린더 추가(2026-07-25) 후
+              "이번 달/올해 얼마"가 장기 연도별 추이보다 먼저 읽혀야 한다는 사용자 결정. */}
           <MonthlyCashflow
             chartOption={recentCashflowBarOption}
             yearlyCashflowByTicker={yearlyCashflowByTicker}
@@ -896,6 +887,17 @@ function MainRightPanelComponent() {
             formatAmount={formatChartValue}
             chartLabelSuffix={chartLabelSuffix}
             scheduleTickers={scheduleTickers}
+            ResponsiveChart={ResponsiveEChart}
+          />
+
+          <YearlyResult
+            items={yearlySeriesItems}
+            isFillOn={isYearlyAreaFillOn}
+            onToggleFill={setIsYearlyAreaFillOn}
+            chartOption={yearlyResultBarOption}
+            hasData={hasGraphData}
+            emptyMessage={emptyGraphMessage}
+            chartLabelSuffix={chartLabelSuffix}
             ResponsiveChart={ResponsiveEChart}
           />
 

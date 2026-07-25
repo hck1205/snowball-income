@@ -99,8 +99,9 @@ export const NavScroller = styled.nav`
   width: 100%;
   display: flex;
   overflow-x: auto;
-  /* 포커스 링이 스크롤 클리핑에 잘리지 않게 상하 여백을 링 두께만큼 확보한다. */
-  padding: 2px;
+  /* 상하 여백 — 윗줄 컨트롤·헤더 하단 경계와 메뉴 줄 사이 숨통(사용자 요청 2026-07-25).
+     좌우 2px 는 포커스 링이 스크롤 클리핑에 잘리지 않게 하는 최소값 그대로 둔다. */
+  padding: ${space[2]} 2px;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
 `;

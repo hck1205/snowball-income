@@ -1,4 +1,5 @@
 import { memo, useEffect, useMemo, useState } from 'react';
+import { ChevronRight } from 'lucide-react';
 import { Card } from '@/components';
 import type { MonthlyCashflowProps } from './MonthlyCashflow.types';
 import { buildCalendarMonths, buildPayoutScheduleRows, resolveSelectedYear } from './MonthlyCashflow.utils';
@@ -9,9 +10,10 @@ import {
   CashflowTitle,
   CashflowTotalLabel,
   ScheduleDot,
-  ScheduleHeading,
+  ScheduleBody,
+  ScheduleDetails,
   ScheduleScroll,
-  ScheduleSection,
+  ScheduleSummary,
   ScheduleSourceBadge,
   ScheduleTable,
   ScheduleTickerCell,
@@ -79,6 +81,31 @@ function MonthlyCashflowComponent({
   );
   const headerControls = (
     <CashflowHeaderControls>
+      <Select
+        size="md"
+        width="116px"
+        aria-label="실지급 배당 연도 선택"
+        value={selectedYear ?? ''}
+        onChange={(event) => {
+          const nextYear = Number(event.target.value);
+          trackEvent(ANALYTICS_EVENT.INVESTMENT_SETTING_CHANGED, {
+            field_name: 'monthly_cashflow_selected_year',
+            value: nextYear
+          });
+          setSelectedYear(nextYear);
+        }}
+      >
+        {years.map((year) => (
+          <option key={year} value={year}>
+            {year}년
+          </option>
+        ))}
+      </Select>
+      <CashflowTotalLabel>
+        {/* 합계는 원화에서 이미 합산된 값이다 — 여기서 표시 직전에 한 번만 환산한다. */}
+        {selectedYear ? `배당 합계: ${formatAmount(totalDividend)}` : '실지급 배당 데이터 없음'}
+      </CashflowTotalLabel>
+      {/* 보기 전환은 맨 우측(사용자 지정 위치). */}
       <ViewToggleGroup role="group" aria-label="월별 배당 보기 방식">
         {(
           [
@@ -104,30 +131,6 @@ function MonthlyCashflowComponent({
           </ViewToggleButton>
         ))}
       </ViewToggleGroup>
-      <Select
-        size="md"
-        width="116px"
-        aria-label="실지급 배당 연도 선택"
-        value={selectedYear ?? ''}
-        onChange={(event) => {
-          const nextYear = Number(event.target.value);
-          trackEvent(ANALYTICS_EVENT.INVESTMENT_SETTING_CHANGED, {
-            field_name: 'monthly_cashflow_selected_year',
-            value: nextYear
-          });
-          setSelectedYear(nextYear);
-        }}
-      >
-        {years.map((year) => (
-          <option key={year} value={year}>
-            {year}년
-          </option>
-        ))}
-      </Select>
-      <CashflowTotalLabel>
-        {/* 합계는 원화에서 이미 합산된 값이다 — 여기서 표시 직전에 한 번만 환산한다. */}
-        {selectedYear ? `배당 합계: ${formatAmount(totalDividend)}` : '실지급 배당 데이터 없음'}
-      </CashflowTotalLabel>
     </CashflowHeaderControls>
   );
 
@@ -160,8 +163,12 @@ function MonthlyCashflowComponent({
         </CalendarGrid>
       )}
       {hasData && scheduleRows.length > 0 ? (
-        <ScheduleSection>
-          <ScheduleHeading>종목별 실제 지급 월 (지급 이력 기준)</ScheduleHeading>
+        <ScheduleDetails>
+          <ScheduleSummary>
+            <ChevronRight size={14} aria-hidden focusable={false} />
+            종목별 실제 지급 월 (지급 이력 기준)
+          </ScheduleSummary>
+          <ScheduleBody>
           <ScheduleScroll>
             <ScheduleTable>
               <thead>
@@ -197,7 +204,8 @@ function MonthlyCashflowComponent({
             </ScheduleTable>
           </ScheduleScroll>
           <HintText>{SCHEDULE_DISCLAIMER}</HintText>
-        </ScheduleSection>
+          </ScheduleBody>
+        </ScheduleDetails>
       ) : null}
     </Card>
   );

@@ -1,4 +1,4 @@
-import { PrimaryNav } from '@/components/PrimaryNav';
+import { PrimaryNav, PrimaryNavLinks } from '@/components/PrimaryNav';
 import type { TickerPageShellProps } from './TickerPageShell.types';
 import { ShellHeader, ShellHeaderInner, ShellMain, ShellRoot } from './TickerPageShell.styled';
 
@@ -14,7 +14,10 @@ export default function TickerPageShell({ children }: TickerPageShellProps) {
     <ShellRoot>
       <ShellHeader>
         <ShellHeaderInner>
-          <PrimaryNav />
+          {/* 헤더 2줄 개편(2026-07-25)과 동일 조립 — 브랜드 윗줄 + 메뉴 아랫줄(가운데·스크롤).
+              세 헤더(시뮬레이터·커뮤니티·티커 셸)가 같은 조각을 같은 순서로 조립해야 한 화면처럼 보인다. */}
+          <PrimaryNav withLinks={false} />
+          <PrimaryNavLinks />
         </ShellHeaderInner>
       </ShellHeader>
       <ShellMain>{children}</ShellMain>
