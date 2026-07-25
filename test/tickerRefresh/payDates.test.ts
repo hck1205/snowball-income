@@ -3,6 +3,7 @@ import {
   buildPayDatePatch,
   createAlphaVantageProvider,
   deriveExToPayLagDays,
+  derivePayDaysByMonth,
   ProviderError,
   redactKey,
   toPaymentDatePayments
@@ -43,6 +44,64 @@ describe('deriveExToPayLagDays', () => {
   });
 });
 
+/**
+ * 여기서 나오는 일자는 **추정이 아니라 관측값**이다. 배당락일 + 중앙값 lag 로 미는 refresh 쪽 추정과
+ * 달리 실제 입금일을 그대로 읽으므로, lag 이 흔들린 회차·월 경계에서 어긋날 여지가 없다.
+ */
+describe('derivePayDaysByMonth', () => {
+  it('실제 지급일에서 지급월별 일자 중앙값을 직접 낸다 (동률은 늦은 쪽으로 올림)', () => {
+    // 3월 [30, 31] -> 30.5 -> 31, 6월 [29, 30] -> 30, 9월 [29, 30] -> 30, 12월 [15, 16] -> 16.
+    expect(derivePayDaysByMonth(SCHD_SCHEDULE, [3, 6, 9, 12])).toEqual({
+      '3': 31,
+      '6': 30,
+      '9': 30,
+      '12': 16
+    });
+  });
+
+  it('2월은 28일로 클램프한다 (연도 무관 필드라 29를 쓰면 4년 중 3년은 없는 날짜)', () => {
+    const leapish: DividendScheduleRecord[] = [
+      { exDate: '2026-02-20', payDate: '2026-02-28', amount: 1 },
+      { exDate: '2024-02-20', payDate: '2024-02-29', amount: 1 }
+    ];
+    // 중앙값 28.5 -> 올림 29 -> 2월 클램프 28.
+    expect(derivePayDaysByMonth(leapish, [2])).toEqual({ '2': 28 });
+  });
+
+  it('키는 항상 지급월의 부분집합 — 지급월 밖의 특별배당은 달을 만들지 않는다', () => {
+    const withSpecial = [{ exDate: '2026-01-05', payDate: '2026-01-20', amount: 3 }, ...SCHD_SCHEDULE];
+
+    const days = derivePayDaysByMonth(withSpecial, [3, 6, 9, 12]);
+
+    expect(Object.keys(days ?? {})).toEqual(['3', '6', '9', '12']);
+  });
+
+  it('지급월 안의 특별배당이 엉뚱한 날에 들어와도 중앙값이 흡수한다', () => {
+    const withSpecial = [{ exDate: '2026-03-01', payDate: '2026-03-02', amount: 3 }, ...SCHD_SCHEDULE];
+
+    // 3월 [2, 30, 31] -> 중앙값 30. 평균이었다면 21일로 무너진다.
+    expect(derivePayDaysByMonth(withSpecial, [3])).toEqual({ '3': 30 });
+  });
+
+  it('최근 3년 창 밖의 오래된 이력은 무시한다 (은퇴한 지급 일정에 끌려가지 않게)', () => {
+    const movedSchedule: DividendScheduleRecord[] = [
+      { exDate: '2026-03-25', payDate: '2026-03-30', amount: 1 },
+      { exDate: '2025-03-26', payDate: '2025-03-30', amount: 1 },
+      { exDate: '2020-03-02', payDate: '2020-03-05', amount: 1 },
+      { exDate: '2019-03-02', payDate: '2019-03-05', amount: 1 }
+    ];
+
+    expect(derivePayDaysByMonth(movedSchedule, [3])).toEqual({ '3': 30 });
+  });
+
+  it('쓸 수 있는 게 없으면 null — 없는 날짜를 지어내지 않는다', () => {
+    expect(derivePayDaysByMonth([], [3, 6, 9, 12])).toBeNull();
+    expect(derivePayDaysByMonth(SCHD_SCHEDULE, [])).toBeNull();
+    // 지급월과 겹치는 실지급 이력이 하나도 없는 경우.
+    expect(derivePayDaysByMonth(SCHD_SCHEDULE, [1, 4, 7, 10])).toBeNull();
+  });
+});
+
 describe('buildPayDatePatch', () => {
   it('지급일 기준 월을 세우고 출처를 pay 로 표시한다', () => {
     const outcome = buildPayDatePatch('SCHD', SCHD_SCHEDULE, {
@@ -55,6 +114,36 @@ describe('buildPayDatePatch', () => {
     expect(outcome.patch.payoutMonths).toEqual([3, 6, 9, 12]);
     expect(outcome.patch.payoutMonthsSource).toBe('pay');
     expect(outcome.patch.exToPayLagDays).toBe(5);
+  });
+
+  it('예상 지급일도 같은 실지급 이력에서 직접 계산해 patch 에 싣는다', () => {
+    const outcome = buildPayDatePatch('SCHD', SCHD_SCHEDULE, {
+      payoutMonths: [3, 6, 9, 12],
+      payoutMonthsSource: 'ex'
+    });
+
+    expect(outcome.status).toBe('updated');
+    if (outcome.status !== 'updated') return;
+    expect(outcome.patch.estimatedPayDayByMonth).toEqual({ '3': 31, '6': 30, '9': 30, '12': 16 });
+    // 계약: 일자 키는 같은 patch 의 지급월 부분집합이어야 한다.
+    expect(Object.keys(outcome.patch.estimatedPayDayByMonth ?? {}).map(Number)).toEqual(
+      expect.arrayContaining(outcome.patch.payoutMonths)
+    );
+  });
+
+  it('월·lag 이 그대로여도 일자가 달라졌으면 갱신한다 (unchanged 판정에 새 필드 포함)', () => {
+    const outcome = buildPayDatePatch('SCHD', SCHD_SCHEDULE, {
+      payoutMonths: [3, 6, 9, 12],
+      payoutMonthsSource: 'pay',
+      exToPayLagDays: 5,
+      // refresh 가 ex + lag 로 추정해 두었던 값 — 실제 입금일과 며칠 어긋나 있다.
+      estimatedPayDayByMonth: { '3': 30, '6': 29, '9': 29, '12': 15 }
+    });
+
+    expect(outcome.status).toBe('updated');
+    if (outcome.status !== 'updated') return;
+    expect(outcome.before.estimatedPayDayByMonth).toEqual({ '3': 30, '6': 29, '9': 29, '12': 15 });
+    expect(outcome.patch.estimatedPayDayByMonth).toEqual({ '3': 31, '6': 30, '9': 30, '12': 16 });
   });
 
   it('ex 기준 추정이 틀렸던 달을 실제 지급월로 바로잡는다', () => {
@@ -81,7 +170,8 @@ describe('buildPayDatePatch', () => {
     const outcome = buildPayDatePatch('SCHD', SCHD_SCHEDULE, {
       payoutMonths: [3, 6, 9, 12],
       payoutMonthsSource: 'pay',
-      exToPayLagDays: 5
+      exToPayLagDays: 5,
+      estimatedPayDayByMonth: { '3': 31, '6': 30, '9': 30, '12': 16 }
     });
     expect(outcome.status).toBe('unchanged');
   });

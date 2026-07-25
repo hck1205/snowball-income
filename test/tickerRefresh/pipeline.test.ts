@@ -387,6 +387,36 @@ describe('estimatedPayDayByMonth (스냅샷 배선)', () => {
     });
   });
 
+  /**
+   * `ticker:paydates` 가 실지급일에서 **직접** 계산해 넣은 값은 여기서 다시 추정하지 않는다.
+   * 매일 도는 가격 갱신이 ex + 중앙값 lag 추정으로 더 정확한 관측값을 덮으면, paydates 가 하루 25건씩
+   * 쌓아 올린 커버리지가 다음 날 아침마다 되감긴다.
+   */
+  it('실지급일에서 직접 계산된 일자가 이미 있으면 그대로 이월한다 (추정으로 덮지 않는다)', async () => {
+    const observed = { '3': 31, '6': 30, '9': 30, '12': 16 };
+    const result = await run(
+      ['SCHD'],
+      provider(),
+      snapshotWith({ ...paySourced, estimatedPayDayByMonth: observed })
+    );
+
+    expect(result.snapshot.entries.SCHD.estimatedPayDayByMonth).toEqual(observed);
+  });
+
+  it('지급월이 ex 기준으로 되돌아가면 이월하지 않는다 (월 키 기준이 어긋난 낡은 일자는 없느니만 못하다)', async () => {
+    const result = await run(
+      ['SCHD'],
+      provider(),
+      snapshotWith({
+        ...paySourced,
+        payoutMonthsSource: 'ex',
+        estimatedPayDayByMonth: { '3': 31, '6': 30, '9': 30, '12': 16 }
+      })
+    );
+
+    expect(result.snapshot.entries.SCHD).not.toHaveProperty('estimatedPayDayByMonth');
+  });
+
   it('lag 가 없으면 만들지 않는다 (추정 근거 부족 — 캘린더가 "날짜 미정"으로 처리)', async () => {
     const result = await run(['SCHD'], provider(), snapshotWith({ ...paySourced, exToPayLagDays: undefined }));
 

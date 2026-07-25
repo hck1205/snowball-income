@@ -438,3 +438,62 @@ export const deriveEstimatedPayDays = ({
       .map(([month, day]) => [String(month), day])
   );
 };
+
+/**
+ * Estimated **day of month** the cash lands, read straight off the **observed payment dates**.
+ *
+ * Same field, same contract as `deriveEstimatedPayDays` (keys `'1'`..`'12'`, a subset of
+ * `payMonths`; values `1`..`31`, February clamped to 28) — but a different, strictly better basis.
+ * `deriveEstimatedPayDays` exists because the daily refresh only ever sees ex-dates: it shifts each
+ * ex-date by the *median* lag and reads the result. That estimate carries two errors this one does
+ * not have:
+ *   - the lag is a median, so every payment whose real lag differed lands a few days off;
+ *   - near a month edge the shifted date crosses into the wrong month, which is why that function
+ *     needs a whole boundary-shift rule to repair (KO's March 14 ex-date → "March 31" for cash that
+ *     actually arrives April 1).
+ * Here the payment date **is** the answer, so there is nothing to shift and no boundary rule: a
+ * payment dated `2026-04-01` is April 1. That is why this pipeline's value outranks the other one.
+ *
+ * Median (not the latest payment) over `PAYOUT_MONTH_YEARS` years, for the same reason as
+ * everywhere else: payments move a few days for weekends and holidays, and a special dividend lands
+ * on an unrelated day. Ties (an even number of samples) round **up** — a calendar that promises
+ * money a day late is kinder than one that promises it a day early.
+ *
+ * Months outside `payMonths` are dropped rather than added: `payMonths` is the authoritative set,
+ * and a special dividend in an off month must not invent a payment month. Returns `null` when
+ * nothing usable comes out; callers omit the field rather than invent a date.
+ */
+export const derivePayDaysByMonth = (
+  records: readonly DividendScheduleRecord[],
+  payMonths: readonly number[]
+): EstimatedPayDayByMonth | null => {
+  const allowed = new Set(payMonths.filter((month) => Number.isInteger(month) && month >= 1 && month <= 12));
+  if (allowed.size === 0) return null;
+
+  const payments = sanitize(toPaymentDatePayments(records));
+  if (payments.length === 0) return null;
+
+  const latest = payments[payments.length - 1].time;
+  const windowStart = minusYears(latest, PAYOUT_MONTH_YEARS);
+
+  const daysByMonth = new Map<number, number[]>();
+  for (const payment of payments) {
+    if (payment.time < windowStart) continue;
+    const paid = new Date(payment.time);
+    const month = paid.getUTCMonth() + 1;
+    if (!allowed.has(month)) continue;
+    const days = daysByMonth.get(month);
+    if (days === undefined) daysByMonth.set(month, [paid.getUTCDate()]);
+    else days.push(paid.getUTCDate());
+  }
+
+  if (daysByMonth.size === 0) return null;
+
+  return Object.fromEntries(
+    [...daysByMonth.entries()]
+      .sort(([leftMonth], [rightMonth]) => leftMonth - rightMonth)
+      // `Math.ceil`, not `Math.round`: a median of integers is either whole or `.5`, so the two agree
+      // numerically — spelling it as a ceiling states the "tie goes to the later day" rule outright.
+      .map(([month, days]) => [String(month), clampDay(month, Math.ceil(median(days) ?? 0))])
+  );
+};
