@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { computeAnnualGrowthRate, removeScenarioTab, reorderTabs } from '@/pages/Main/utils';
+import { describe, expect, it, vi } from 'vitest';
+import { computeAnnualGrowthRate, removeScenarioTab, renameScenarioTabs, reorderTabs } from '@/pages/Main/utils';
 import { resolveSelectedYear } from '@/components/MonthlyCashflow';
 
 const tabs = [{ id: 'one' }, { id: 'two' }, { id: 'three' }];
@@ -62,6 +62,78 @@ describe('removeScenarioTab', () => {
     removeScenarioTab({ tabs, deletingId: 'two', activeId: 'two' });
 
     expect(tabs.map((tab) => tab.id)).toEqual(['one', 'two', 'three']);
+  });
+});
+
+describe('renameScenarioTabs', () => {
+  const namedTabs = [
+    { id: 'one', name: 'Tab One' },
+    { id: 'shared-tab', name: '공유된 탭' },
+    { id: 'three', name: 'Tab Three' }
+  ];
+
+  it('renames a regular tab in place without promoting its id', () => {
+    const result = renameScenarioTabs({
+      tabs: namedTabs,
+      scenarioId: 'one',
+      nextName: 'Renamed One',
+      sharedScenarioId: 'shared-tab',
+      generateId: () => 'unused-id'
+    });
+
+    expect(result.promotedScenarioId).toBeNull();
+    expect(result.tabs).toEqual([
+      { id: 'one', name: 'Renamed One' },
+      { id: 'shared-tab', name: '공유된 탭' },
+      { id: 'three', name: 'Tab Three' }
+    ]);
+  });
+
+  it('promotes the shared tab to a freshly generated id and returns it', () => {
+    const result = renameScenarioTabs({
+      tabs: namedTabs,
+      scenarioId: 'shared-tab',
+      nextName: '내 탭',
+      sharedScenarioId: 'shared-tab',
+      generateId: () => 'generated-id'
+    });
+
+    expect(result.promotedScenarioId).toBe('generated-id');
+    expect(result.tabs).toEqual([
+      { id: 'one', name: 'Tab One' },
+      { id: 'generated-id', name: '내 탭' },
+      { id: 'three', name: 'Tab Three' }
+    ]);
+    // the input array's own tab objects must stay untouched (functional-update safety)
+    expect(namedTabs[1]).toEqual({ id: 'shared-tab', name: '공유된 탭' });
+  });
+
+  it('retries id generation until it finds one that does not collide with an existing tab', () => {
+    const generateId = vi.fn().mockReturnValueOnce('one').mockReturnValueOnce('three').mockReturnValueOnce('fresh-id');
+
+    const result = renameScenarioTabs({
+      tabs: namedTabs,
+      scenarioId: 'shared-tab',
+      nextName: '내 탭',
+      sharedScenarioId: 'shared-tab',
+      generateId
+    });
+
+    expect(result.promotedScenarioId).toBe('fresh-id');
+    expect(result.tabs.find((tab) => tab.name === '내 탭')?.id).toBe('fresh-id');
+  });
+
+  it('is a no-op map for an unknown scenarioId (current behaviour, not validated)', () => {
+    const result = renameScenarioTabs({
+      tabs: namedTabs,
+      scenarioId: 'does-not-exist',
+      nextName: 'New Name',
+      sharedScenarioId: 'shared-tab',
+      generateId: () => 'unused-id'
+    });
+
+    expect(result.promotedScenarioId).toBeNull();
+    expect(result.tabs).toEqual(namedTabs);
   });
 });
 

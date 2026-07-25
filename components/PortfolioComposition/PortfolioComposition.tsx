@@ -22,7 +22,7 @@ import {
   ChartWrap,
   HintText,
   SelectedChipWrap
-} from '@/pages/Main/Main.shared.styled';
+} from '@/components/common';
 
 // 힌트 줄은 하나만 노출되므로 안정적인 단일 id로 슬라이더 aria-describedby와 연결한다.
 const ADJUST_HINT_ID = 'allocation-adjust-hint';

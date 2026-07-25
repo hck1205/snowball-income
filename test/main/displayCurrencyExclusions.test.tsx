@@ -10,10 +10,10 @@ import {
   effectiveDisplayCurrencyAtom,
   fxViewAtom
 } from '@/jotai';
+import { buildRecentCashflowBarOption } from '@/shared/lib/charts';
 import {
   buildAllocationPieOption,
   buildOgShareText,
-  buildRecentCashflowBarOption,
   buildYearlyResultBarOption,
   type OgCardModel
 } from '@/pages/Main/utils';

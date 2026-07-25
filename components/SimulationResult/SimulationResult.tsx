@@ -2,7 +2,7 @@ import { memo, useCallback } from 'react';
 import { Banner, Card, StatTile, ToggleField } from '@/components';
 import type { StatTone } from '@/components';
 import type { SimulationResultProps } from './SimulationResult.types';
-import { CompactSummaryHelpButton } from '@/pages/Main/Main.shared.styled';
+import { CompactSummaryHelpButton } from '@/components/common';
 import { useSetActiveHelpWrite } from '@/jotai';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import {

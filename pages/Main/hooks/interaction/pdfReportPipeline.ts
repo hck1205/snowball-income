@@ -12,11 +12,8 @@ import { formatApproxKRW } from '@/shared/utils';
 import { PdfReportError } from './pdfReportError';
 import PdfReportDocument, { buildPdfReportFileName } from '@/pages/Main/components/PdfReportDocument';
 import type { PdfReportCharts } from '@/pages/Main/components/PdfReportDocument';
-import {
-  buildAllocationPieOption,
-  buildRecentCashflowBarOption,
-  buildYearlyResultBarOption
-} from '@/pages/Main/utils';
+import { buildRecentCashflowBarOption } from '@/shared/lib/charts';
+import { buildAllocationPieOption, buildYearlyResultBarOption } from '@/pages/Main/utils';
 import type { NormalizedAllocationItem } from '@/pages/Main/utils';
 
 /**

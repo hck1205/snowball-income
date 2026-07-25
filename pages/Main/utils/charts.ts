@@ -9,35 +9,9 @@ import {
 } from '@/shared/constants';
 import { buildAxisStyle, buildLegendStyle, buildTooltipStyle, getChartTheme, hexToRgba } from '@/shared/styles';
 import type { ChartTheme } from '@/shared/styles';
+import { tooltipPosition } from '@/shared/lib/charts';
 import { formatApproxKRW } from './formatters';
 import type { NormalizedAllocationItem } from './portfolio';
-import type { RecentCashflowByTicker } from './simulation';
-
-const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
-
-const tooltipPosition = (
-  point: number[],
-  _params: unknown,
-  _dom: unknown,
-  _rect: unknown,
-  size: { contentSize: number[]; viewSize: number[] }
-): [number, number] => {
-  const [x, y] = point;
-  const [contentWidth, contentHeight] = size.contentSize;
-  const [viewWidth, viewHeight] = size.viewSize;
-  const xPadding = 10;
-  const yPadding = 10;
-
-  const centeredX = x - contentWidth / 2;
-  const preferUpperY = y - contentHeight - 14;
-  const fallbackLowerY = y + 14;
-  const nextY = preferUpperY >= yPadding ? preferUpperY : fallbackLowerY;
-
-  return [
-    clamp(centeredX, xPadding, viewWidth - contentWidth - xPadding),
-    clamp(nextY, yPadding, viewHeight - contentHeight - yPadding)
-  ];
-};
 
 const defaultAxisValueFormatter = (value: number) => formatKRW(value);
 
@@ -224,63 +198,6 @@ export const buildAllocationPieOption = ({
         }))
       }
     ]
-  };
-};
-
-export const buildRecentCashflowBarOption = (
-  recentCashflowByTicker: RecentCashflowByTicker,
-  theme: ChartTheme = getChartTheme(),
-  /* 미지정 = 현행 원화(기존 호출부·PDF 파이프라인 무변경). 표시 통화 토글만 달러 포맷터를 주입한다. */
-  formatValue: (value: number) => string = formatKRW
-): EChartsOption => {
-  const axis = buildAxisStyle(theme);
-
-  return {
-    animation: false,
-    grid: { left: 72, right: 16, top: 52, bottom: 42 },
-    tooltip: {
-      trigger: 'axis',
-      axisPointer: { type: 'shadow' },
-      confine: true,
-      position: tooltipPosition,
-      ...buildTooltipStyle(theme),
-      valueFormatter: (value: unknown) => formatValue(Number(value))
-    },
-    legend: {
-      type: 'scroll',
-      orient: 'horizontal',
-      top: 0,
-      left: 72,
-      right: 16,
-      ...buildLegendStyle(theme)
-    },
-    xAxis: {
-      type: 'category',
-      data: recentCashflowByTicker.months,
-      ...axis,
-      splitLine: { show: false }
-    },
-    yAxis: {
-      type: 'value',
-      ...axis,
-      axisLine: { show: false },
-      axisLabel: {
-        color: theme.label,
-        fontSize: theme.labelFontSize,
-        fontFamily: theme.fontFamily,
-        formatter: (value: number) => formatValue(value)
-      }
-    },
-    series: recentCashflowByTicker.series.map((item) => ({
-      type: 'bar',
-      name: item.name,
-      stack: 'total',
-      data: item.data,
-      barMaxWidth: 24,
-      itemStyle: {
-        color: item.color
-      }
-    }))
   };
 };
 

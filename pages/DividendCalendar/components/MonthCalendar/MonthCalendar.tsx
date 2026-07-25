@@ -49,7 +49,7 @@ export default function MonthCalendar({ weeks, monthLabel, labelledById }: Month
           <tr key={week[0].date}>
             {week.map((cell) => {
               const { visible, hiddenCount } = splitDayChips(cell.items);
-              const outOfMonthMonth = Number(cell.date.slice(5, 7));
+              const cellMonth = Number(cell.date.slice(5, 7));
 
               return (
                 <DayCellRoot
@@ -64,7 +64,7 @@ export default function MonthCalendar({ weeks, monthLabel, labelledById }: Month
                     <DayNumber $muted={!cell.inMonth || cell.isPast}>
                       <time dateTime={cell.date}>
                         {cell.inMonth ? null : (
-                          <VisuallyHidden>{copy.board.outOfMonthPrefix(outOfMonthMonth)}</VisuallyHidden>
+                          <VisuallyHidden>{copy.board.outOfMonthPrefix(cellMonth)}</VisuallyHidden>
                         )}
                         {cell.day}
                       </time>
@@ -85,7 +85,7 @@ export default function MonthCalendar({ weeks, monthLabel, labelledById }: Month
                             title={
                               item.day === null
                                 ? copy.agenda.chipTitleUndated(item.ticker)
-                                : copy.agenda.chipTitle(item.ticker, outOfMonthMonth, item.day)
+                                : copy.agenda.chipTitle(item.ticker, cellMonth, item.day)
                             }
                           >
                             <ChipDot aria-hidden style={{ background: tickerSeriesVar(item.ticker) }} />

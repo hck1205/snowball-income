@@ -1,3 +1,3 @@
-import { ChartWrap } from '@/pages/Main/Main.shared.styled';
+import { ChartWrap } from '@/components/common';
 
 export { ChartWrap as ChartPanelWrap };

@@ -64,8 +64,14 @@ export default function DividendCalendarPage({ today }: DividendCalendarPageProp
     [keyword, resolvedToday, selected, universe, visibleMonth.month, visibleMonth.year]
   );
 
-  // 선택을 바꾸면 월 이동 안내는 낡은다 — 마지막 조작이 무엇이었는지로 라이브 리전 문구를 가른다.
-  const effectiveAction: CalendarLastAction = lastAction === 'none' ? monthAction : lastAction;
+  /**
+   * 라이브 리전 문구는 **마지막 조작**을 따른다. 판정을 여기서 하는 이유: 선택 훅은 달 이동을 모르므로
+   * `lastAction`('cleared')이 월 이동으로 저절로 낡지 않는다. 반대로 `monthAction`은 선택 조작 핸들러가
+   * 즉시 비운다 — 그래서 "월 이동이 우선, 비어 있으면 선택 조작"이 시간 순서와 일치한다.
+   * (예전처럼 `lastAction`을 먼저 보면 선택을 비운 뒤엔 '선택을 모두 해제했습니다'가 눌러앉아
+   * 그 뒤의 월 이동이 영영 낭독되지 않는다.)
+   */
+  const effectiveAction: CalendarLastAction = monthAction === 'none' ? lastAction : monthAction;
 
   const liveMessage = useMemo(
     () =>
