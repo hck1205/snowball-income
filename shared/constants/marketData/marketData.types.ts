@@ -38,6 +38,26 @@ export type MarketDataSnapshotEntry = MarketDataEntry & {
    * months, not the count.
    */
   payoutMonths?: number[];
+  /**
+   * Median days from ex-dividend date to the day cash is actually paid. **Reference only.**
+   *
+   * Observed from Alpha Vantage, which unlike the daily price source reports both dates. It is
+   * stable per fund (SCHD has paid exactly 5 days after the ex-date for years), which is why one
+   * number is enough — storing the full pay-date history would buy nothing.
+   *
+   * With this, `payoutMonths` (derived from ex-dates by the daily refresh) can be turned into
+   * actual payment days without another API call.
+   */
+  exToPayLagDays?: number;
+  /**
+   * Where `payoutMonths` came from. `pay` means it was derived from real payment dates and is
+   * authoritative; `ex` means it was inferred from ex-dates and can be off by a month when a payout
+   * sits near a month boundary (TXN/NEE/KO are the observed cases).
+   *
+   * Kept explicit so a calendar can tell the user "estimated" instead of silently presenting a
+   * guess as fact — and so a later refresh knows which entries still need upgrading.
+   */
+  payoutMonthsSource?: 'ex' | 'pay';
 };
 
 /** A dated snapshot of market data, produced by `scripts/tickerRefresh`. */

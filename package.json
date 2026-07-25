@@ -20,7 +20,8 @@
     "devstatus": "node tools/dev/devstatus.mjs",
     "predeploy": "node tools/dev/predeploy.mjs",
     "verify": "node tools/dev/verify.mjs",
-    "hooks:install": "git config core.hooksPath .githooks"
+    "hooks:install": "git config core.hooksPath .githooks",
+    "ticker:paydates": "vite-node scripts/tickerRefresh/payDatesCli.ts --"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

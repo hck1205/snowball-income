@@ -188,6 +188,8 @@ export const refreshTickers = async ({
     const previous = previousByTicker[ticker] ?? null;
     const previousObservedCagr = previousSnapshot.entries[ticker]?.observedDividendCagr;
     const previousPayoutMonths = previousSnapshot.entries[ticker]?.payoutMonths;
+    const previousPayoutMonthsSource = previousSnapshot.entries[ticker]?.payoutMonthsSource;
+    const previousExToPayLagDays = previousSnapshot.entries[ticker]?.exToPayLagDays;
 
     try {
       const price = await provider.fetchQuote(ticker);
@@ -203,10 +205,21 @@ export const refreshTickers = async ({
       // the *effective* frequency (freshly inferred, or the previous one when inference failed).
       // Like every other derived field: unknown → keep the previous value rather than guess.
       const effectiveFrequency = frequency ?? previous?.frequency;
-      const payoutMonths =
+      const inferredMonths =
         effectiveFrequency === undefined
           ? previousPayoutMonths
           : (inferPayoutMonths(dividends, effectiveFrequency) ?? previousPayoutMonths);
+
+      // ⚠ Months already derived from real **payment dates** (`ticker:paydates`) outrank anything
+      // inferred here from ex-dates — this source cannot see the pay date at all. Without this
+      // guard the daily price refresh would quietly downgrade the better data every morning.
+      const keepsPaySourced = previousPayoutMonthsSource === 'pay' && previousPayoutMonths !== undefined;
+      const payoutMonths = keepsPaySourced ? previousPayoutMonths : inferredMonths;
+      const payoutMonthsSource = keepsPaySourced
+        ? previousPayoutMonthsSource
+        : payoutMonths === undefined
+          ? undefined
+          : ('ex' as const);
 
       // A field we cannot derive is left at its previous value rather than guessed, so a ticker
       // with a thin dividend history still gets its price refreshed.
@@ -216,7 +229,10 @@ export const refreshTickers = async ({
         frequency: frequency ?? previous?.frequency,
         // Omitted (not `undefined`) when unknown, so the generated JSON stays clean.
         ...(observedDividendCagr === undefined ? {} : { observedDividendCagr }),
-        ...(payoutMonths === undefined ? {} : { payoutMonths })
+        ...(payoutMonths === undefined ? {} : { payoutMonths }),
+        ...(payoutMonthsSource === undefined ? {} : { payoutMonthsSource }),
+        // Owned by `ticker:paydates`; carried through untouched so a price refresh never drops it.
+        ...(previousExToPayLagDays === undefined ? {} : { exToPayLagDays: previousExToPayLagDays })
       };
 
       const validation = validateEntry(candidate, previous);

@@ -262,3 +262,51 @@ export const inferPayoutMonths = (
     .map(([month]) => month)
     .sort((left, right) => left - right);
 };
+
+/**
+ * A dividend record that carries **both** dates.
+ *
+ * Yahoo's chart endpoint only gives the ex-date, which is what `DividendPayment` models. Alpha
+ * Vantage also gives the payment date — the day cash actually lands — which is the one a calendar
+ * has to show. They differ by days to weeks, and around a month boundary they differ by a *month*.
+ */
+export type DividendScheduleRecord = {
+  /** ISO date (YYYY-MM-DD) the share went ex-dividend. */
+  exDate: string;
+  /** ISO date (YYYY-MM-DD) the cash was paid. */
+  payDate: string;
+  amount: number;
+};
+
+/** How many recent records the ex→pay lag is measured over. Older ones can reflect a retired policy. */
+const LAG_SAMPLE_SIZE = 8;
+
+/**
+ * Median days between ex-date and payment date.
+ *
+ * Median, not mean: a single restated or mis-keyed record would drag an average by weeks, while the
+ * median ignores it. Measured over the most recent records only, because a fund that changed its
+ * payout calendar years ago should be described by what it does now.
+ *
+ * Negative or absurd gaps are dropped rather than clamped — a pay date *before* the ex-date is bad
+ * data, and silently turning it into `0` would hide that.
+ */
+export const deriveExToPayLagDays = (records: readonly DividendScheduleRecord[]): number | null => {
+  const gaps = records
+    .map((record) => {
+      const ex = toTime(record.exDate);
+      const pay = toTime(record.payDate);
+      if (ex === null || pay === null) return null;
+      const days = Math.round((pay - ex) / MS_PER_DAY);
+      return days >= 0 && days <= 120 ? days : null;
+    })
+    .filter((days): days is number => days !== null)
+    .slice(0, LAG_SAMPLE_SIZE);
+
+  const value = median(gaps);
+  return value === null ? null : Math.round(value);
+};
+
+/** Payment dates as `DividendPayment[]`, so the existing month/frequency inference can run on them. */
+export const toPaymentDatePayments = (records: readonly DividendScheduleRecord[]): DividendPayment[] =>
+  records.map((record) => ({ date: record.payDate, amount: record.amount }));

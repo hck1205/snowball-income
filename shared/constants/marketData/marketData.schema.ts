@@ -40,7 +40,10 @@ export const marketDataSnapshotEntrySchema = z.object({
       (months) => months.every((month, index) => index === 0 || months[index - 1] < month),
       '지급월은 중복 없이 오름차순이어야 한다'
     )
-    .optional()
+    .optional(),
+  /** ex-date → 지급일 간격(일). 음수는 데이터 오류, 120일 초과는 정상 배당 스케줄이 아니다. */
+  exToPayLagDays: z.number().int().min(0).max(120).optional(),
+  payoutMonthsSource: z.enum(['ex', 'pay']).optional()
 });
 
 export const marketDataSnapshotSchema = z.object({
