@@ -196,5 +196,8 @@ export const updateMyProfile = async (
     .update({ display_name: patch.displayName })
     .eq('id', userId);
 
-  if (error) throw new Error(error.message);
+  // ⚠ `code` 를 살려서 던진다. 닉네임 UNIQUE 인덱스(profiles_display_name_lower_key)에 걸린
+  //   동시 저장은 23505 로 오는데, 메시지만 남기면 호출부가 그것을 네트워크 오류와 구분하지 못해
+  //   "이미 사용 중" 대신 엉뚱한 안내를 띄우게 된다.
+  if (error) throw Object.assign(new Error(error.message), { code: error.code });
 };
