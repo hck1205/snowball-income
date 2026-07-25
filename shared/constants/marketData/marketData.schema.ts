@@ -28,6 +28,18 @@ export const marketDataSnapshotEntrySchema = z.object({
     .finite()
     .min(MARKET_DATA_BOUNDS.observedDividendCagr.min)
     .max(MARKET_DATA_BOUNDS.observedDividendCagr.max)
+    .optional(),
+  /**
+   * 관측된 지급월(1-12). 오름차순·중복 없음·최대 12개까지만 통과시킨다 — 손으로 고친 스냅샷이나
+   * 공급자 이상치가 캘린더에 "13월"이나 중복 월을 흘리지 못하게 형태를 여기서 못 박는다.
+   */
+  payoutMonths: z
+    .array(z.number().int().min(1).max(12))
+    .max(12)
+    .refine(
+      (months) => months.every((month, index) => index === 0 || months[index - 1] < month),
+      '지급월은 중복 없이 오름차순이어야 한다'
+    )
     .optional()
 });
 

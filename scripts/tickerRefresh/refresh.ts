@@ -1,6 +1,6 @@
 import type { MarketDataEntry, MarketDataSnapshot, MarketDataSnapshotEntry } from '@/shared/constants/marketData';
 import { toDerivedDividendGrowthPercent } from '@/shared/lib/snowball';
-import { computeDividendCagr, computeTtmYield, inferFrequency, roundTo } from './derive';
+import { computeDividendCagr, computeTtmYield, inferFrequency, inferPayoutMonths, roundTo } from './derive';
 import { checkDerivedDividendGrowth, validateEntry } from './guards';
 import type { TickerDataProvider } from './provider';
 
@@ -187,6 +187,7 @@ export const refreshTickers = async ({
 
     const previous = previousByTicker[ticker] ?? null;
     const previousObservedCagr = previousSnapshot.entries[ticker]?.observedDividendCagr;
+    const previousPayoutMonths = previousSnapshot.entries[ticker]?.payoutMonths;
 
     try {
       const price = await provider.fetchQuote(ticker);
@@ -198,6 +199,15 @@ export const refreshTickers = async ({
 
       const observedDividendCagr = cagr === null ? previousObservedCagr : roundTo(cagr, 2);
 
+      // Payout months need a frequency to know how many months to keep, so they are derived from
+      // the *effective* frequency (freshly inferred, or the previous one when inference failed).
+      // Like every other derived field: unknown → keep the previous value rather than guess.
+      const effectiveFrequency = frequency ?? previous?.frequency;
+      const payoutMonths =
+        effectiveFrequency === undefined
+          ? previousPayoutMonths
+          : (inferPayoutMonths(dividends, effectiveFrequency) ?? previousPayoutMonths);
+
       // A field we cannot derive is left at its previous value rather than guessed, so a ticker
       // with a thin dividend history still gets its price refreshed.
       const candidate = {
@@ -205,7 +215,8 @@ export const refreshTickers = async ({
         dividendYield: ttmYield === null ? previous?.dividendYield : roundTo(ttmYield, 2),
         frequency: frequency ?? previous?.frequency,
         // Omitted (not `undefined`) when unknown, so the generated JSON stays clean.
-        ...(observedDividendCagr === undefined ? {} : { observedDividendCagr })
+        ...(observedDividendCagr === undefined ? {} : { observedDividendCagr }),
+        ...(payoutMonths === undefined ? {} : { payoutMonths })
       };
 
       const validation = validateEntry(candidate, previous);
