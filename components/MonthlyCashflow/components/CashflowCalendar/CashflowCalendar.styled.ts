@@ -40,10 +40,33 @@ export const CalendarTotal = styled.span`
   font-variant-numeric: tabular-nums;
 `;
 
+/**
+ * 한 줄 = 티커 열 + 금액 열. 티커를 **고정폭**으로 잡아야 금액 시작선이 셀마다·행마다 일직선이
+ * 된다(글자 수대로 흐르면 세로로 훑을 수 없다). 배당 캘린더 페이지의 아젠다·범례와 같은 6ch 규격.
+ */
 export const CalendarItemRow = styled.span<{ $estimated: boolean }>`
+  display: flex;
+  align-items: baseline;
+  gap: ${space[1]};
+  min-width: 0;
   font-size: 11px;
   color: ${({ $estimated }) => ($estimated ? color.textMuted : color.textSecondary)};
+`;
+
+export const CalendarItemTicker = styled.span`
+  flex: 0 0 6ch;
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  ${font.numeric}
+`;
+
+export const CalendarItemAmount = styled.span`
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  ${font.numeric}
 `;

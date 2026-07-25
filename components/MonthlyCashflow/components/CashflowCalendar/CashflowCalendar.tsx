@@ -2,7 +2,9 @@ import type { CashflowCalendarProps } from './CashflowCalendar.types';
 import {
   CalendarCell,
   CalendarGrid,
+  CalendarItemAmount,
   CalendarItemRow,
+  CalendarItemTicker,
   CalendarMonthLabel,
   CalendarTotal
 } from './CashflowCalendar.styled';
@@ -20,8 +22,11 @@ function CashflowCalendar({ months, formatAmount, labelSuffix }: CashflowCalenda
           <CalendarTotal>{cell.total > 0 ? formatAmount(cell.total) : '—'}</CalendarTotal>
           {cell.items.map((item) => (
             <CalendarItemRow key={item.name} $estimated={item.source !== 'pay'} title={item.name}>
-              {item.name} {formatAmount(item.amount)}
-              {item.source === 'ex' ? ' (추정)' : item.source === 'sim' ? ' (시뮬)' : ''}
+              <CalendarItemTicker>{item.name}</CalendarItemTicker>
+              <CalendarItemAmount>
+                {formatAmount(item.amount)}
+                {item.source === 'ex' ? ' (추정)' : item.source === 'sim' ? ' (시뮬)' : ''}
+              </CalendarItemAmount>
             </CalendarItemRow>
           ))}
         </CalendarCell>
