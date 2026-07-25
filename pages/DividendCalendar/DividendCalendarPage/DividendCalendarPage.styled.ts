@@ -147,11 +147,11 @@ export const CoverageSummary = styled.p`
   ${font.numeric}
 `;
 
-export const CoverageNote = styled.p`
+/** 툴바와 달력 사이의 한 줄 요약 — "이 달에 몇 건이 잡혀 있나". */
+export const MonthSummaryLine = styled.p`
   margin: 0;
   font-size: ${font.size.xs};
-  color: ${color.textMuted};
-  line-height: ${font.leading.snug};
+  color: ${color.textSecondary};
   ${font.numeric}
 `;
 

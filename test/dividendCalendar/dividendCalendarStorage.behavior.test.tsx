@@ -25,13 +25,16 @@ vi.mock('@/pages/DividendCalendar/utils', async (importOriginal) => {
 const mockedRead = vi.mocked(readCalendarSelection);
 const mockedWrite = vi.mocked(writeCalendarSelection);
 
+/** 2026-07-25(토). '오늘'을 주입하지 않으면 달력 단정이 실제 날짜에 매여 매일 다른 결과를 낸다. */
+const TODAY = new Date(2026, 6, 25);
+
 const renderCalendar = (entry = '/dividend/calendar') => {
   const user = userEvent.setup();
 
   render(
     <MemoryRouter initialEntries={[entry]}>
       <Routes>
-        <Route path="/dividend/calendar" element={<DividendCalendarPage currentMonth={7} />} />
+        <Route path="/dividend/calendar" element={<DividendCalendarPage today={TODAY} />} />
       </Routes>
     </MemoryRouter>
   );
@@ -89,15 +92,19 @@ describe('초기 선택 우선순위 — 저장값', () => {
 
     expect(await screen.findByRole('status')).toHaveTextContent('저장된 종목 선택을 불러오는 중입니다.');
     expect(screen.queryByText('아직 선택한 종목이 없습니다')).not.toBeInTheDocument();
-    // 골격의 월 라벨은 DOM 에는 있지만 aria-hidden 이라 스크린리더가 12번 "1월"을 읽지 않는다.
-    expect(screen.getAllByText('1월').length).toBeGreaterThan(0);
-    expect(screen.queryByRole('heading', { level: 3, name: '1월' })).not.toBeInTheDocument();
+    // 툴바는 로딩 중에도 진짜 값이라 월 제목이 보인다.
+    expect(screen.getByRole('heading', { level: 2, name: '2026년 7월' })).toBeInTheDocument();
+    // 골격 표는 aria-hidden 이라 스크린리더가 빈 42칸을 훑지 않는다(DOM 에는 있다).
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
+    expect(screen.getAllByText('일').length).toBeGreaterThan(0);
 
     await act(async () => {
       resolveRead(['KO']);
     });
 
     expect(await screen.findByText('선택 1종')).toBeInTheDocument();
+    // 로딩이 끝나면 진짜 달력 표가 접근성 트리에 등장한다.
+    expect(screen.getByRole('table', { name: '2026년 7월' })).toBeInTheDocument();
   });
 
   /**

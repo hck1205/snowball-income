@@ -1,6 +1,13 @@
 import type { MarketDataEntry, MarketDataSnapshot, MarketDataSnapshotEntry } from '@/shared/constants/marketData';
 import { toDerivedDividendGrowthPercent } from '@/shared/lib/snowball';
-import { computeDividendCagr, computeTtmYield, inferFrequency, inferPayoutMonths, roundTo } from './derive';
+import {
+  computeDividendCagr,
+  computeTtmYield,
+  deriveEstimatedPayDays,
+  inferFrequency,
+  inferPayoutMonths,
+  roundTo
+} from './derive';
 import { checkDerivedDividendGrowth, validateEntry } from './guards';
 import type { TickerDataProvider } from './provider';
 
@@ -221,6 +228,22 @@ export const refreshTickers = async ({
           ? undefined
           : ('ex' as const);
 
+      // The day of month cash lands. Needs both a measured ex→pay lag and *pay*-sourced months —
+      // ex-sourced months are a different basis and mixing the two would put a day on the wrong
+      // month. Either gap means no estimate rather than a guess.
+      //
+      // Unlike the other derived fields this one is **not** carried over when it cannot be derived:
+      // a stale day that disagrees with today's `payoutMonths` is worse than no day, and both of
+      // its inputs *are* carried over, so the next run reproduces it anyway.
+      const estimatedPayDayByMonth =
+        previousExToPayLagDays === undefined || payoutMonthsSource !== 'pay' || payoutMonths === undefined
+          ? undefined
+          : (deriveEstimatedPayDays({
+              dividends,
+              exToPayLagDays: previousExToPayLagDays,
+              payMonths: payoutMonths
+            }) ?? undefined);
+
       // A field we cannot derive is left at its previous value rather than guessed, so a ticker
       // with a thin dividend history still gets its price refreshed.
       const candidate = {
@@ -232,7 +255,8 @@ export const refreshTickers = async ({
         ...(payoutMonths === undefined ? {} : { payoutMonths }),
         ...(payoutMonthsSource === undefined ? {} : { payoutMonthsSource }),
         // Owned by `ticker:paydates`; carried through untouched so a price refresh never drops it.
-        ...(previousExToPayLagDays === undefined ? {} : { exToPayLagDays: previousExToPayLagDays })
+        ...(previousExToPayLagDays === undefined ? {} : { exToPayLagDays: previousExToPayLagDays }),
+        ...(estimatedPayDayByMonth === undefined ? {} : { estimatedPayDayByMonth })
       };
 
       const validation = validateEntry(candidate, previous);

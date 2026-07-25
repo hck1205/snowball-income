@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { computeDividendCagr, computeTtmYield, inferFrequency, inferPayoutMonths, roundTo } from '@/scripts/tickerRefresh';
+import {
+  computeDividendCagr,
+  computeTtmYield,
+  deriveEstimatedPayDays,
+  inferFrequency,
+  inferPayoutMonths,
+  roundTo
+} from '@/scripts/tickerRefresh';
+import type { DividendPayment } from '@/scripts/tickerRefresh';
 import { JEPI_DIVIDENDS, monthlyHistory, quarterlyHistory, SCHD_DIVIDENDS } from './fixtures';
 
 const AS_OF = '2026-07-14';
@@ -237,5 +245,186 @@ describe('inferPayoutMonths — 월 지급 경계', () => {
 
   it('이력이 아예 없으면 월 지급이라도 null 이다 (없는 사실을 지어내지 않는다)', () => {
     expect(inferPayoutMonths([], 'monthly')).toBeNull();
+  });
+});
+
+/** 배당락 이력 생성기 — `years × months` 전부 같은 일자에 지급한다. */
+const exHistory = (
+  years: readonly number[],
+  months: readonly number[],
+  day: number
+): DividendPayment[] =>
+  years.flatMap((year) =>
+    months.map((month) => ({
+      date: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+      amount: 0.5
+    }))
+  );
+
+const RECENT_YEARS = [2024, 2025, 2026];
+
+/**
+ * 예상 지급일 — 캘린더가 "며칠"을 그리는 근거.
+ *
+ * 일일 갱신은 **배당락일**만 본다. 실제 입금일은 거기에 `exToPayLagDays` 를 더해야 나오고,
+ * 그 덧셈이 달을 넘기는 순간(ABBV 30일, KO 17일) 월 키가 통째로 틀린다 — 이 블록이 지키는 게
+ * 그 지점이다.
+ */
+describe('deriveEstimatedPayDays', () => {
+  it('배당락 중앙값 + lag 를 지급월 키에 붙인다 (월 넘김 포함)', () => {
+    // ABBV 형: 1·4·7·10월 15일 배당락, lag 30일 → 실제 지급은 2·5·8·11월.
+    const result = deriveEstimatedPayDays({
+      dividends: exHistory(RECENT_YEARS, [1, 4, 7, 10], 15),
+      exToPayLagDays: 30,
+      payMonths: [2, 5, 8, 11]
+    });
+
+    // 1/15+30=2/14, 4/15+30=5/15(30일 달), 7/15+30=8/14, 10/15+30=11/14.
+    expect(result).toEqual({ '2': 14, '5': 15, '8': 14, '11': 14 });
+  });
+
+  it('배당락월을 그대로 쓰지 않는다 — lag 가 0이면 그때만 두 기준이 같다', () => {
+    const dividends = exHistory(RECENT_YEARS, [1, 4, 7, 10], 15);
+    expect(deriveEstimatedPayDays({ dividends, exToPayLagDays: 0, payMonths: [1, 4, 7, 10] })).toEqual({
+      '1': 15,
+      '4': 15,
+      '7': 15,
+      '10': 15
+    });
+  });
+
+  it('한 해만 며칠 밀려도 중앙값은 흔들리지 않는다', () => {
+    const dividends = [
+      ...exHistory([2024, 2025], [3, 6, 9, 12], 20),
+      ...exHistory([2026], [3], 27), // 그 해만 일주일 밀린 3월
+      ...exHistory([2026], [6, 9, 12], 20)
+    ];
+
+    const result = deriveEstimatedPayDays({ dividends, exToPayLagDays: 3, payMonths: [3, 6, 9, 12] });
+
+    // 3월 표본은 [23, 23, 30] — 평균이면 25일이지만 중앙값은 23일 그대로다.
+    expect(result?.['3']).toBe(23);
+  });
+
+  it('특별배당은 지급월을 새로 만들지도, 기존 일자를 밀지도 못한다', () => {
+    const dividends = [
+      ...exHistory(RECENT_YEARS, [3, 6, 9, 12], 20),
+      { date: '2026-02-10', amount: 1.5 }, // 지급월 밖 1회성
+      { date: '2026-03-01', amount: 1.5 } // 정규 지급월 안 1회성
+    ];
+
+    const result = deriveEstimatedPayDays({ dividends, exToPayLagDays: 3, payMonths: [3, 6, 9, 12] });
+
+    expect(result).toEqual({ '3': 23, '6': 23, '9': 23, '12': 23 });
+  });
+
+  it('KO 형: lag 중앙값이 월말을 아슬아슬하게 못 넘겨도 지급월 키로 옮긴다', () => {
+    // 실제 KO — 배당락 3/14·6/13·9/12·11/28, 관측 lag 17일, 실제 지급 4/1·7/1·10/1·12/15.
+    // 3/14+17 = 3/31 로 "3월"이 나오지만 권위 있는 payoutMonths 는 4월이다.
+    const dividends = [
+      ...exHistory(RECENT_YEARS, [3], 14),
+      ...exHistory(RECENT_YEARS, [6], 13),
+      ...exHistory(RECENT_YEARS, [9], 12),
+      ...exHistory(RECENT_YEARS, [11], 28)
+    ];
+
+    const result = deriveEstimatedPayDays({ dividends, exToPayLagDays: 17, payMonths: [4, 7, 10, 12] });
+
+    // 경계로 밀린 셋은 다음 달 1일, 월 안에서 끝난 12월만 실제 중앙값(15일).
+    expect(result).toEqual({ '4': 1, '7': 1, '10': 1, '12': 15 });
+  });
+
+  it('추정이 다음 달 초로 넘쳤고 지급월이 전월이면 전월 말일로 되돌린다', () => {
+    // 3월 말 지급 펀드인데 lag 를 이틀 더 잡아 4/1 로 계산된 경우.
+    const result = deriveEstimatedPayDays({
+      dividends: exHistory(RECENT_YEARS, [3], 30),
+      exToPayLagDays: 2,
+      payMonths: [3]
+    });
+
+    expect(result).toEqual({ '3': 31 });
+  });
+
+  it('윤년 2월 29일은 28일로 클램프한다 (연도 없는 필드라 29일은 4년 중 3년은 없는 날)', () => {
+    const result = deriveEstimatedPayDays({
+      dividends: [{ date: '2024-02-27', amount: 0.5 }],
+      exToPayLagDays: 2,
+      payMonths: [2]
+    });
+
+    expect(result).toEqual({ '2': 28 });
+  });
+
+  it('지급월과 한 달 넘게 어긋나는 달은 만들지 않고 버린다', () => {
+    // 5월 중순 추정 — 경계 문제가 아니라 데이터 불일치다. 없는 지급을 그리느니 비운다.
+    const result = deriveEstimatedPayDays({
+      dividends: exHistory(RECENT_YEARS, [5], 15),
+      exToPayLagDays: 3,
+      payMonths: [3, 6, 9, 12]
+    });
+
+    expect(result).toBeNull();
+  });
+
+  it('근거 없는 달은 비워 둔다 — 부분 결과는 정상이다 (UI 가 "날짜 미정"으로 받는다)', () => {
+    const result = deriveEstimatedPayDays({
+      dividends: exHistory(RECENT_YEARS, [3, 6], 20),
+      exToPayLagDays: 3,
+      payMonths: [3, 6, 9, 12]
+    });
+
+    expect(result).toEqual({ '3': 23, '6': 23 });
+  });
+
+  it('lag·지급월·이력 중 하나라도 없으면 null 이다 (추정 근거 부족)', () => {
+    const dividends = exHistory(RECENT_YEARS, [3, 6, 9, 12], 20);
+
+    expect(deriveEstimatedPayDays({ dividends, exToPayLagDays: -1, payMonths: [3] })).toBeNull();
+    expect(deriveEstimatedPayDays({ dividends, exToPayLagDays: Number.NaN, payMonths: [3] })).toBeNull();
+    expect(deriveEstimatedPayDays({ dividends, exToPayLagDays: 3, payMonths: [] })).toBeNull();
+    expect(deriveEstimatedPayDays({ dividends: [], exToPayLagDays: 3, payMonths: [3] })).toBeNull();
+    expect(
+      deriveEstimatedPayDays({ dividends: [{ date: 'nope', amount: 1 }], exToPayLagDays: 3, payMonths: [3] })
+    ).toBeNull();
+  });
+
+  it('월 지급도 12개월 전부에 일자를 채운다 (경계로 밀린 달 포함)', () => {
+    const result = deriveEstimatedPayDays({
+      dividends: monthlyHistory({ 2024: 12, 2025: 12, 2026: 12 }),
+      exToPayLagDays: 3,
+      payMonths: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    });
+
+    // 매월 15일 배당락 + 3일.
+    expect(result).toEqual(
+      Object.fromEntries(Array.from({ length: 12 }, (_, index) => [String(index + 1), 18]))
+    );
+  });
+
+  it('같은 이력이면 항상 같은 결과다 (입력 순서 무관)', () => {
+    const dividends = exHistory(RECENT_YEARS, [1, 4, 7, 10], 15);
+    const forward = deriveEstimatedPayDays({ dividends, exToPayLagDays: 30, payMonths: [2, 5, 8, 11] });
+    const reversed = deriveEstimatedPayDays({
+      dividends: [...dividends].reverse(),
+      exToPayLagDays: 30,
+      payMonths: [2, 5, 8, 11]
+    });
+
+    expect(reversed).toEqual(forward);
+  });
+
+  it('키는 월 오름차순, 값은 1~31 정수다 (스키마가 요구하는 형태)', () => {
+    const result = deriveEstimatedPayDays({
+      dividends: exHistory(RECENT_YEARS, [1, 4, 7, 10], 15),
+      exToPayLagDays: 30,
+      payMonths: [2, 5, 8, 11]
+    });
+
+    expect(Object.keys(result ?? {})).toEqual(['2', '5', '8', '11']);
+    for (const day of Object.values(result ?? {})) {
+      expect(Number.isInteger(day)).toBe(true);
+      expect(day).toBeGreaterThanOrEqual(1);
+      expect(day).toBeLessThanOrEqual(31);
+    }
   });
 });

@@ -1,10 +1,9 @@
-import { filterCalendarUniverse, getMonthEvents } from '../utils';
-import type { CalendarTickerEntry } from '../utils';
+import { buildAgendaDays, buildMonthViewModel, filterCalendarUniverse } from '../utils';
+import type { CalendarTickerEntry, ExpectedPayoutDayResolver } from '../utils';
 import { DIVIDEND_CALENDAR_COPY } from '../copy';
 import type {
   CalendarLastAction,
   CalendarLoadStatus,
-  CalendarMonthCell,
   CalendarTickerOption,
   DividendCalendarViewModel,
   ScheduleLegendRow
@@ -12,13 +11,11 @@ import type {
 
 const copy = DIVIDEND_CALENDAR_COPY;
 
-export const CALENDAR_MONTHS: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-
 /**
  * 빈 상태에서 제안하는 시작 종목. 하드코딩하되 **데이터가 없으면 그 칩만 렌더에서 빠진다**
  * (`selectQuickPickOptions`) — 스냅샷이 바뀌어도 "선택은 되는데 달력엔 안 뜨는" 칩이 생기지 않는다.
  */
-export const CALENDAR_QUICK_PICK_TICKERS: string[] = ['SCHD', 'JEPI', 'O', 'VICI', 'ABBV', 'KO'];
+export const CALENDAR_QUICK_PICK_TICKERS: string[] = ['JEPI', 'KO', 'ABBV', 'SCHD', 'O', 'DGRO'];
 
 /**
  * 로직 레이어(`../utils`)의 엔트리를 뷰 옵션으로 옮기는 **어댑터**.
@@ -42,25 +39,36 @@ export type CalendarViewModelInput = {
   keyword: string;
   selected: string[];
   asOf: string | null;
+  /** 표시 중인 달. */
+  year: number;
+  month: number;
+  /** 컨테이너가 만든 '오늘'. 유틸이 스스로 `new Date()` 를 부르면 테스트가 실제 날짜에 매인다. */
+  today: Date;
+  /** 테스트 주입용 예상일 해석기. 미지정이면 스냅샷 기반 실물. */
+  resolveDay?: ExpectedPayoutDayResolver;
 };
 
 export const buildDividendCalendarViewModel = ({
   universe,
   keyword,
   selected,
-  asOf
+  asOf,
+  year,
+  month,
+  today,
+  resolveDay
 }: CalendarViewModelInput): DividendCalendarViewModel => {
   const options = universe.map(toCalendarTickerOption);
   const filtered = filterCalendarUniverse(universe, keyword).map(toCalendarTickerOption);
 
-  const months: CalendarMonthCell[] = CALENDAR_MONTHS.map((month) => ({
+  const monthViewModel = buildMonthViewModel({
+    year,
     month,
-    items: getMonthEvents(universe, selected, month).map((event) => ({
-      ticker: event.ticker,
-      koreanName: event.name,
-      source: event.source
-    }))
-  }));
+    today,
+    selected,
+    entries: universe,
+    resolveDay
+  });
 
   const optionByTicker = new Map(options.map((option) => [option.ticker, option]));
   const selectedOptions = selected
@@ -76,13 +84,13 @@ export const buildDividendCalendarViewModel = ({
     options,
     filtered,
     selected,
-    months,
-    legendRows,
     selectedWithData: legendRows.length,
-    payingMonthCount: months.filter((cell) => cell.items.length > 0).length,
-    emptyMonths: months.filter((cell) => cell.items.length === 0).map((cell) => cell.month),
     unavailable: options.filter((option) => option.source === null),
-    asOf
+    legendRows,
+    asOf,
+    month: monthViewModel,
+    agendaDays: buildAgendaDays(monthViewModel),
+    monthLabel: copy.nav.monthLabel(year, month)
   };
 };
 
@@ -100,25 +108,31 @@ export type CalendarLiveMessageInput = {
   keyword: string;
   filteredCount: number;
   selectedCount: number;
-  payingMonthCount: number;
+  monthLabel: string;
+  datedCount: number;
+  undatedCount: number;
   lastAction: CalendarLastAction;
 };
 
 /**
  * 라이브 리전 텍스트. 노드는 항상 마운트돼 있고 **텍스트만** 바뀐다(빈 문자열도 유효한 상태).
  * 검색 결과 없음이 선택 요약보다 우선한다 — 지금 사용자가 기다리는 답이 그쪽이다.
+ * 월을 막 옮겼다면 그 달의 결과를 먼저 알린다(화면이 통째로 바뀐 직후라 방향을 잡아줘야 한다).
  */
 export const buildCalendarLiveMessage = ({
   status,
   keyword,
   filteredCount,
   selectedCount,
-  payingMonthCount,
+  monthLabel,
+  datedCount,
+  undatedCount,
   lastAction
 }: CalendarLiveMessageInput): string => {
   if (status === 'loading') return copy.status.loading;
   if (keyword.trim().length > 0 && filteredCount === 0) return copy.picker.noResultLive;
+  if (lastAction === 'month') return copy.status.monthChanged(monthLabel, datedCount, undatedCount);
   if (selectedCount === 0) return lastAction === 'cleared' ? copy.status.cleared : '';
 
-  return copy.status.selectionSummary(selectedCount, payingMonthCount);
+  return copy.status.selectionSummary(selectedCount, datedCount);
 };

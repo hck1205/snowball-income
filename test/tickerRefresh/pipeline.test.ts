@@ -352,6 +352,61 @@ describe('refreshTickers (end-to-end, no network)', () => {
   });
 });
 
+/**
+ * 예상 지급일이 스냅샷까지 실제로 실리는지 — 파생 함수 단위 테스트만으로는 배선 실수를 못 잡는다.
+ * 전제(실제 지급일 기준 월 + 실측 lag)가 하나라도 빠지면 필드를 **만들지 않는 것**이 정답이다.
+ */
+describe('estimatedPayDayByMonth (스냅샷 배선)', () => {
+  const snapshotWith = (entry: MarketDataSnapshotEntry) => ({
+    asOf: '2026-07-01',
+    source: 'fixture',
+    entries: { SCHD: entry }
+  });
+
+  const paySourced: MarketDataSnapshotEntry = {
+    initialPrice: 32,
+    dividendYield: 3.4,
+    frequency: 'quarterly',
+    payoutMonths: [3, 6, 9, 12],
+    payoutMonthsSource: 'pay',
+    exToPayLagDays: 5
+  };
+
+  const provider = () =>
+    createFixtureProvider({ quotes: { SCHD: 32.1 }, dividends: { SCHD: SCHD_DIVIDENDS } });
+
+  it('실제 지급일 기준 월 + 실측 lag 가 있으면 일자를 채운다', async () => {
+    const result = await run(['SCHD'], provider(), snapshotWith(paySourced));
+
+    // SCHD_DIVIDENDS 는 3·6·9·12월 20일 배당락 → +5일.
+    expect(result.snapshot.entries.SCHD.estimatedPayDayByMonth).toEqual({
+      '3': 25,
+      '6': 25,
+      '9': 25,
+      '12': 25
+    });
+  });
+
+  it('lag 가 없으면 만들지 않는다 (추정 근거 부족 — 캘린더가 "날짜 미정"으로 처리)', async () => {
+    const result = await run(['SCHD'], provider(), snapshotWith({ ...paySourced, exToPayLagDays: undefined }));
+
+    expect(result.snapshot.entries.SCHD).not.toHaveProperty('estimatedPayDayByMonth');
+  });
+
+  it('지급월이 배당락 기준(ex)이면 만들지 않는다 — 월 키 기준이 어긋난다', async () => {
+    const result = await run(['SCHD'], provider(), snapshotWith({ ...paySourced, payoutMonthsSource: 'ex' }));
+
+    expect(result.snapshot.entries.SCHD).not.toHaveProperty('estimatedPayDayByMonth');
+  });
+
+  it('엔진에 넘어가는 값에는 섞이지 않는다 (관측 전용)', async () => {
+    const result = await run(['SCHD'], provider(), snapshotWith(paySourced));
+    const universe = applyMarketData(CURATED_DIVIDEND_UNIVERSE, result.snapshot);
+
+    expect(universe.SCHD).not.toHaveProperty('estimatedPayDayByMonth');
+  });
+});
+
 describe('derived-growth warning (soft guard)', () => {
   it('warns when a refreshed yield overruns the curated expectedTotalReturn', async () => {
     // QYLD: curated etr 7%. An 11%+ TTM yield forces the derived growth negative.

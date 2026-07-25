@@ -2,15 +2,22 @@ import { useId } from 'react';
 import { CalendarDays, ChevronRight } from 'lucide-react';
 import { Banner, Card, Chip } from '@/components/common';
 import { DIVIDEND_CALENDAR_COPY } from '../copy';
-import { MonthBoard, MonthBoardSkeleton, ScheduleLegendTable, TickerPicker } from '../components';
+import {
+  AgendaList,
+  CalendarToolbar,
+  MonthCalendar,
+  MonthCalendarSkeleton,
+  ScheduleLegendTable,
+  TickerPicker,
+  UndatedSection
+} from '../components';
+import { getCalendarMonthOf, shiftCalendarMonth } from '../utils';
 import type { DividendCalendarViewProps } from './DividendCalendarPage.types';
 import { selectQuickPickOptions } from './DividendCalendarPage.utils';
 import {
   AsOfLine,
   BoardColumn,
   CardStack,
-  CoverageNote,
-  CoverageSummary,
   EmptyBody,
   EmptyStateCard,
   EmptyTitle,
@@ -19,6 +26,7 @@ import {
   HeroLede,
   HeroTitle,
   LiveRegion,
+  MonthSummaryLine,
   PageGrid,
   PageHero,
   PageStack,
@@ -43,30 +51,41 @@ const copy = DIVIDEND_CALENDAR_COPY;
  * 순수 뷰 — 상태를 갖지 않고 props만 그린다.
  *
  * 로딩 / 빈 선택 / 정상 세 상태는 **JS 분기로 상호배타**다(미디어쿼리로 감추지 않는다).
- * 선택했지만 전원 데이터가 없는 경우엔 12칸 그리드를 아예 그리지 않는다 — 빈 12칸은
- * "지급이 없다"는 거짓말로 읽힌다.
+ * 선택했지만 지급월 데이터가 전혀 없으면 달력 표를 그리지 않는다 — 빈 달력은 "지급이 없다"는
+ * 거짓 주장이 된다. 반대로 **선택은 있는데 이 달만 비어 있는 경우엔 표를 그대로 그린다**(달력의
+ * 모양이 곧 답이고, 요약 문구가 "이 달엔 없다"를 말한다).
  */
 export default function DividendCalendarView({
   viewModel,
   status,
-  currentMonth,
+  today,
+  isCurrentMonth,
   keyword,
   liveMessage,
   unknownTickers,
   onKeywordChange,
   onToggleTicker,
   onClearSelection,
+  onPrevMonth,
+  onNextMonth,
+  onToday,
   onSimulatorLinkClick
 }: DividendCalendarViewProps) {
   const pickerHeadingId = useId();
-  const boardHeadingId = useId();
+  const monthTitleId = useId();
 
-  const { selected, selectedWithData, payingMonthCount, emptyMonths, unavailable } = viewModel;
+  const { selected, selectedWithData, unavailable, month, monthLabel } = viewModel;
   const isReady = status === 'ready';
   const showEmptyState = isReady && selected.length === 0;
   const showAllUnavailable = isReady && selected.length > 0 && selectedWithData === 0;
-  const showBoard = isReady && selectedWithData > 0;
+  const showCalendar = isReady && selectedWithData > 0;
   const quickPicks = selectQuickPickOptions(viewModel.options);
+
+  const current = { year: month.year, month: month.month };
+  const prev = shiftCalendarMonth(current, -1);
+  const next = shiftCalendarMonth(current, 1);
+  const todayMonth = getCalendarMonthOf(today);
+  const undatedCount = month.undated.length;
 
   return (
     <PageStack>
@@ -128,13 +147,29 @@ export default function DividendCalendarView({
           ) : null}
         </PickerColumn>
 
-        <BoardColumn aria-labelledby={boardHeadingId}>
-          <SectionHead>
-            <SectionHeading id={boardHeadingId}>{copy.board.heading}</SectionHeading>
-            <CoverageSummary>{copy.board.coverage(selected.length, payingMonthCount)}</CoverageSummary>
-          </SectionHead>
+        <BoardColumn aria-labelledby={monthTitleId}>
+          {/* 툴바는 표 바깥에 둔다 — 월을 넘겨도 버튼이 리마운트되지 않아 포커스가 유지된다(연타 가능). */}
+          <CalendarToolbar
+            monthLabel={monthLabel}
+            prevLabel={copy.nav.monthLabel(prev.year, prev.month)}
+            nextLabel={copy.nav.monthLabel(next.year, next.month)}
+            todayLabel={copy.nav.monthLabel(todayMonth.year, todayMonth.month)}
+            isCurrentMonth={isCurrentMonth}
+            titleId={monthTitleId}
+            onPrev={onPrevMonth}
+            onNext={onNextMonth}
+            onToday={onToday}
+          />
 
-          {status === 'loading' ? <MonthBoardSkeleton /> : null}
+          {showCalendar ? (
+            <MonthSummaryLine>
+              {month.datedCount === 0 && undatedCount === 0
+                ? copy.board.summaryNone(monthLabel)
+                : copy.board.summary(monthLabel, month.datedCount, undatedCount)}
+            </MonthSummaryLine>
+          ) : null}
+
+          {status === 'loading' ? <MonthCalendarSkeleton monthLabel={monthLabel} /> : null}
 
           {showEmptyState ? (
             <EmptyStateCard>
@@ -163,17 +198,17 @@ export default function DividendCalendarView({
             </Banner>
           ) : null}
 
-          {showBoard ? (
+          {showCalendar ? (
             <>
-              <MonthBoard months={viewModel.months} currentMonth={currentMonth} />
-              <CoverageNote>
-                {emptyMonths.length === 0 ? copy.board.coverageFull : copy.board.coverageGap(emptyMonths)}
-              </CoverageNote>
+              <MonthCalendar weeks={month.weeks} monthLabel={monthLabel} labelledById={monthTitleId} />
+              <UndatedSection items={month.undated} />
+              <AgendaList days={viewModel.agendaDays} hasUndated={undatedCount > 0} />
               <ScheduleLegendTable rows={viewModel.legendRows} />
             </>
           ) : null}
 
-          <FootNote>{copy.disclaimer.monthOnly}</FootNote>
+          <FootNote>{copy.disclaimer.monthSource}</FootNote>
+          <FootNote>{copy.disclaimer.undatedNote}</FootNote>
           <SimulatorLink to="/" onClick={onSimulatorLinkClick}>
             {copy.cta.toSimulator}
           </SimulatorLink>

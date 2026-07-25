@@ -18,6 +18,16 @@ export type MarketDataEntry = {
 };
 
 /**
+ * Estimated **day of month** the cash lands, keyed by the **pay month** as a string (`'1'`..`'12'`).
+ *
+ * Deliberately year-agnostic: a calendar screen needs "ABBV pays around the 14th of February", not a
+ * list of concrete past dates. Keys are the months cash arrives in, which is the same basis as
+ * `payoutMonths` when `payoutMonthsSource === 'pay'` — and that source is *required* for this field
+ * to be produced at all, so the two can never disagree about which month a payment belongs to.
+ */
+export type EstimatedPayDayByMonth = Record<string, number>;
+
+/**
  * What actually lives in the generated snapshot: the overlaid facts, plus observations the engine
  * must never read.
  */
@@ -58,6 +68,25 @@ export type MarketDataSnapshotEntry = MarketDataEntry & {
    * guess as fact — and so a later refresh knows which entries still need upgrading.
    */
   payoutMonthsSource?: 'ex' | 'pay';
+  /**
+   * Estimated day of month the dividend is **paid**, keyed by pay month (`'1'`..`'12'`).
+   * **Reference only** — the engine never reads it (the simulation resolves payouts by `frequency`
+   * alone; a day-of-month has no meaning in a monthly loop). It exists for the dividend calendar,
+   * which needs a day cell to put the payment in.
+   *
+   * ## Limits of the estimate (a calendar must present it as an estimate, never as a fact)
+   * - Derived as `median(ex-date day per pay month) + exToPayLagDays`, so it needs
+   *   `exToPayLagDays`; tickers without it carry **no** entry here and the calendar has to say
+   *   "day unknown" rather than guess.
+   * - Only months present in `payoutMonths` appear, and only when `payoutMonthsSource === 'pay'`
+   *   (months are authoritative pay months). A month may still be missing — a partial record is
+   *   normal, not a bug.
+   * - Days are clamped to a **non-leap** month length, so February never exceeds 28. A consumer
+   *   rendering a leap year gets a valid day either way; it must not assume 29 will ever appear.
+   * - It is a typical day, not a schedule: real payments move by a few days for weekends and
+   *   holidays.
+   */
+  estimatedPayDayByMonth?: EstimatedPayDayByMonth;
 };
 
 /** A dated snapshot of market data, produced by `scripts/tickerRefresh`. */

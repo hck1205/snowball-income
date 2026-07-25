@@ -30,18 +30,24 @@ function LocationProbe() {
 }
 
 /**
- * jsdom에는 indexedDB가 없어 `readCalendarSelection()`이 곧바로 null(=저장 이력 없음)로 수렴한다 —
- * 그래서 목 없이도 "저장 이력 없는 첫 방문"이 정상 경로다. 로딩이 끝난 시점은 빈 상태 카드로 잡는다.
+ * 2026-07-25(토). **오늘을 주입**하지 않으면 "오늘" 배지·과거 표시 단정이 실제 날짜에 매여
+ * 이 스위트가 매일 다른 결과를 낸다. 2026년 7월 실데이터: JEPI 4일, KO 2일, O·SCHD 일자 미정.
  */
-const renderCalendar = async (initialEntry = '/dividend/calendar', currentMonth?: number) => {
+const TODAY = new Date(2026, 6, 25);
+
+/**
+ * jsdom에는 indexedDB가 없어 `readCalendarSelection()`이 곧바로 null(=저장 이력 없음)로 수렴한다 —
+ * 목 없이도 "저장 이력 없는 첫 방문"이 정상 경로다.
+ */
+const renderCalendar = async (initialEntry = '/dividend/calendar', today: Date = TODAY) => {
   const view = render(
     <MemoryRouter initialEntries={[initialEntry]}>
-      <DividendCalendarPage currentMonth={currentMonth} />
+      <DividendCalendarPage today={today} />
       <LocationProbe />
     </MemoryRouter>
   );
 
-  await screen.findByRole('heading', { name: '연간 지급 월' });
+  await screen.findByRole('heading', { level: 2, name: /년 \d+월$/ });
   return view;
 };
 
@@ -52,14 +58,34 @@ const renderCalendar = async (initialEntry = '/dividend/calendar', currentMonth?
 const findOptionButton = (ticker: string) =>
   screen.getByRole('button', { name: new RegExp(`^${ticker} .*(실측|추정|데이터 준비 중)$`) });
 
-describe('DividendCalendarPage', () => {
+/** 달력 표. 종목별 12개월 표(범례)도 `<table>`이라 월 제목으로 이름을 앵커링한다. */
+const getCalendarTable = (label: string) => screen.getByRole('table', { name: label });
+
+const getAgenda = () => screen.getByRole('region', { name: '지급 일정 목록' });
+
+/**
+ * 날짜 칸을 `<time datetime>` 으로 집는다 — 숫자 텍스트("4")는 이월 칸(8월 4일)과 겹쳐 두 개가 잡힌다.
+ * datetime 은 스펙이 요구한 마크업 계약이라 구현 세부가 아니다.
+ */
+const getDayCell = (table: HTMLElement, isoDate: string): HTMLElement => {
+  const time = within(table).getByText(
+    (_, element) => element?.tagName === 'TIME' && element.getAttribute('datetime') === isoDate
+  );
+  const cell = time.closest('td');
+  if (!cell) throw new Error(`${isoDate} 칸을 찾지 못했습니다.`);
+  return cell;
+};
+
+describe('DividendCalendarPage — v2 월간 달력', () => {
   it('첫 방문에는 빈 선택 안내와 라이브 리전을 함께 렌더한다', async () => {
     await renderCalendar();
 
     expect(await screen.findByText('아직 선택한 종목이 없습니다')).toBeInTheDocument();
     // 라이브 리전은 빈 선택 상태에서도 접근성 트리에 남아 있어야 이후 변경이 낭독된다.
     expect(screen.getByRole('status')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 1, name: '배당 지급 월 캘린더' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: '배당 지급 캘린더' })).toBeInTheDocument();
+    // 빈 달력은 "지급이 없다"는 거짓 주장이라 표 자체를 그리지 않는다.
+    expect(screen.queryByRole('table', { name: '2026년 7월' })).not.toBeInTheDocument();
   });
 
   it('검색어로 결과 목록을 좁힌다', async () => {
@@ -73,21 +99,73 @@ describe('DividendCalendarPage', () => {
     expect(screen.queryByRole('button', { name: /^JEPI\s/ })).not.toBeInTheDocument();
   });
 
-  it('종목을 고르면 달력에 지급 월이 채워지고 다시 누르면 해제된다', async () => {
+  it('예상 지급일이 있는 종목은 날짜 칸에, 없는 종목은 "날짜 미정"에 놓인다', async () => {
+    // JEPI = 2026-07-04 예상, O = 7월 지급이지만 일자 데이터 없음.
+    await renderCalendar('/dividend/calendar?tickers=JEPI,O');
+
+    const table = getCalendarTable('2026년 7월');
+    expect(within(getDayCell(table, '2026-07-04')).getByText('JEPI')).toBeInTheDocument();
+
+    // 날짜를 모르는 종목은 어느 칸에도 놓이지 않는다(임의 날짜로 채우지 않는다).
+    expect(within(table).queryByText('O')).not.toBeInTheDocument();
+    const undated = screen.getByRole('region', { name: /날짜 미정/ });
+    expect(within(undated).getByText('O')).toBeInTheDocument();
+
+    // 잘린 정보의 원본은 항상 아젠다 목록에 있다.
+    expect(within(getAgenda()).getByText(/7월 4일/)).toBeInTheDocument();
+  });
+
+  it('오늘 칸은 aria-current="date" 와 "오늘" 배지를 정확히 하나씩만 갖는다', async () => {
+    await renderCalendar('/dividend/calendar?tickers=JEPI');
+
+    const table = getCalendarTable('2026년 7월');
+    const todayCells = within(table)
+      .getAllByRole('cell')
+      .filter((cell) => cell.getAttribute('aria-current') === 'date');
+
+    expect(todayCells).toHaveLength(1);
+    expect(within(todayCells[0]).getByText('25')).toBeInTheDocument();
+    expect(screen.getAllByText('오늘')).toHaveLength(1);
+  });
+
+  it('달력은 table 이고 role="grid" 를 선언하지 않는다', async () => {
+    await renderCalendar('/dividend/calendar?tickers=JEPI');
+
+    expect(getCalendarTable('2026년 7월')).toBeInTheDocument();
+    // grid 롤은 화살표 키 이동 계약을 동반한다 — 구현하지 않을 계약은 선언하지 않는다.
+    expect(screen.queryAllByRole('grid')).toHaveLength(0);
+  });
+
+  it('이전/다음으로 달을 옮기고 "이번 달"로 돌아온다', async () => {
     const user = userEvent.setup();
-    await renderCalendar();
-    await screen.findByText('아직 선택한 종목이 없습니다');
+    await renderCalendar('/dividend/calendar?tickers=ABBV');
 
-    await user.click(findOptionButton('SCHD'));
+    const todayButton = screen.getByRole('button', { name: /이번 달로 돌아가기/ });
+    expect(todayButton).toBeDisabled();
 
-    expect(findOptionButton('SCHD')).toHaveAttribute('aria-pressed', 'true');
-    // SCHD는 3·6·9·12월 지급 — 12칸 중 4칸에 칩이 놓인다.
-    const cells = screen.getAllByRole('listitem').filter((item) => item.textContent?.includes('종목 지급'));
-    expect(cells).toHaveLength(4);
-    expect(within(cells[0]).getByText('3월')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: '다음 달로 이동, 2026년 8월' }));
 
-    await user.click(findOptionButton('SCHD'));
-    expect(await screen.findByText('아직 선택한 종목이 없습니다')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: '2026년 8월', level: 2 })).toBeInTheDocument();
+    expect(todayButton).toBeEnabled();
+    // ABBV = 8월 14일 예상.
+    expect(within(getAgenda()).getByText(/8월 14일/)).toBeInTheDocument();
+    // 다른 달을 보고 있으면 "오늘" 배지는 사라진다.
+    expect(screen.queryByText('오늘')).not.toBeInTheDocument();
+
+    await user.click(todayButton);
+    expect(await screen.findByRole('heading', { name: '2026년 7월', level: 2 })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /이번 달로 돌아가기/ })).toBeDisabled();
+  });
+
+  it('12월에서 다음 달을 누르면 연도를 넘긴다', async () => {
+    const user = userEvent.setup();
+    await renderCalendar('/dividend/calendar?tickers=JEPI', new Date(2026, 11, 15));
+
+    await screen.findByRole('heading', { name: '2026년 12월', level: 2 });
+    await user.click(screen.getByRole('button', { name: '다음 달로 이동, 2027년 1월' }));
+
+    expect(await screen.findByRole('heading', { name: '2027년 1월', level: 2 })).toBeInTheDocument();
+    expect(within(getAgenda()).getByText(/1월 3일/)).toBeInTheDocument();
   });
 
   it('지급월 데이터가 없는 종목은 선택되지 않고 "데이터 준비 중"으로 남는다', async () => {
@@ -103,15 +181,6 @@ describe('DividendCalendarPage', () => {
 
     expect(screen.getByText('선택 0종')).toBeInTheDocument();
     expect(screen.getByText('아직 선택한 종목이 없습니다')).toBeInTheDocument();
-  });
-
-  it('주소의 ?tickers= 를 초기 선택으로 쓰고, 이번 달 배지는 정확히 하나만 붙는다', async () => {
-    await renderCalendar('/dividend/calendar?tickers=SCHD,JEPI', 5);
-
-    expect(await screen.findByText('선택 2종')).toBeInTheDocument();
-    expect(screen.getAllByText('이번 달')).toHaveLength(1);
-    // JEPI가 매달 지급이라 12개월 전부 커버된다.
-    expect(screen.getByText('12개월 모두 지급되는 조합입니다.')).toBeInTheDocument();
   });
 
   it('선택이 바뀌면 주소의 ?tickers= 가 따라 바뀐다 (주소 복사 = 공유)', async () => {
@@ -150,12 +219,11 @@ describe('DividendCalendarPage', () => {
     expect(await screen.findByText('선택 1종')).toBeInTheDocument();
     expect(findOptionButton('SCHD')).toHaveAttribute('aria-pressed', 'true');
     expect(findOptionButton('JEPI')).toHaveAttribute('aria-pressed', 'false');
-    // 로딩 해제 자체는 정상 진행돼 빈 상태 카드로 되돌아가지 않는다.
     expect(screen.queryByText('아직 선택한 종목이 없습니다')).not.toBeInTheDocument();
   });
 
   it('주소에 모르는 심볼이 있으면 제외 사실을 화면에 알린다', async () => {
-    await renderCalendar('/dividend/calendar?tickers=SCHD,NOTREAL');
+    await renderCalendar('/dividend/calendar?tickers=JEPI,NOTREAL');
 
     expect(await screen.findByText(/목록에 없어 제외했습니다: NOTREAL/)).toBeInTheDocument();
     expect(screen.getByText('선택 1종')).toBeInTheDocument();
