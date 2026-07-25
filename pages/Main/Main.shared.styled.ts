@@ -134,6 +134,8 @@ export const DrawerToggleButton = styled.button`
     align-items: center;
     justify-content: center;
     width: fit-content;
+    /* 브랜드(좌측 이웃)와의 최소 간격 — 헤더 2줄 개편 후 같은 줄에 서게 되어 살짝 띄운다(사용자 요청). */
+    margin-left: ${space[1]};
     /* 터치 타깃 하한. 헤더 컨트롤 줄에서 가장 높은 요소가 되어 줄 높이를 정한다. */
     min-height: 40px;
     border: 1px solid ${color.brand};

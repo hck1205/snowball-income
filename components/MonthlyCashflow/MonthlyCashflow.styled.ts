@@ -178,3 +178,50 @@ export const CalendarItemRow = styled.span<{ $estimated: boolean }>`
   overflow: hidden;
   text-overflow: ellipsis;
 `;
+
+/* ── 지급 일정 아코디언 (네이티브 details — JS 상태 없이 접근성 확보) ────── */
+
+export const ScheduleDetails = styled.details`
+  margin-top: ${space[5]};
+  padding-top: ${space[4]};
+  border-top: 1px solid ${color.border};
+
+  &[open] > summary svg {
+    transform: rotate(90deg);
+  }
+`;
+
+export const ScheduleSummary = styled.summary`
+  display: inline-flex;
+  align-items: center;
+  gap: ${space[1]};
+  cursor: pointer;
+  list-style: none;
+  font-size: ${font.size.sm};
+  font-weight: ${font.weight.semibold};
+  color: ${color.textSecondary};
+  border-radius: ${space[1]};
+
+  &::-webkit-details-marker {
+    display: none;
+  }
+
+  svg {
+    transition: transform 120ms ease;
+  }
+
+  &:hover {
+    color: ${color.text};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${color.focusRing};
+    outline-offset: 2px;
+  }
+`;
+
+export const ScheduleBody = styled.div`
+  display: grid;
+  gap: ${space[3]};
+  margin-top: ${space[3]};
+`;

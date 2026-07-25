@@ -7,14 +7,16 @@ export const ShellRoot = styled.div`
    * 이 변수를 sticky top 으로 그대로 써서, 헤더와 목차 사이에 빈 띠가 생기던 문제를 없앤다.
    * (티커 헤더는 PrimaryNav 한 줄이라 시뮬레이터의 2줄 헤더보다 짧다 — 그래서 57/84px 하드코딩이 안 맞았다.)
    */
-  --tk-header-h: 56px;
+  /* 헤더 2줄 개편(2026-07-25) 반영: 브랜드 줄(~32px) + 메뉴 줄(항목 32px + 상하 패딩 16px).
+     한 줄 시절의 56/48px 그대로 두면 두 번째 줄이 확정 높이를 넘쳐 잘린다. */
+  --tk-header-h: 88px;
   min-height: 100%;
   display: flex;
   flex-direction: column;
   color: ${color.text};
 
   ${media.down('mobileWide')} {
-    --tk-header-h: 48px;
+    --tk-header-h: 80px;
   }
 `;
 
