@@ -20,7 +20,7 @@ tools:
     "mcp__analytics-mcp__run_funnel_report",
     "mcp__analytics-mcp__run_conversions_report",
   ]
-model: claude-opus-4-8
+model: claude-opus-5
 ---
 
 # Analytics Analyst — GA4 데이터 분석

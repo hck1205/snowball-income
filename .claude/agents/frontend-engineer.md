@@ -5,7 +5,7 @@ description: >-
   ECharts 차트 패널, 이미지 캡처(html2canvas) UI를 구현한다. 화면/컴포넌트 추가·수정,
   프론트엔드 버그 수정에 사용. 계산식은 simulation-engineer, 전역 상태 설계는 state-engineer 담당.
 tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "PowerShell", "WebSearch", "WebFetch", "TodoWrite"]
-model: claude-opus-4-8
+model: claude-opus-5
 ---
 
 # Frontend Engineer

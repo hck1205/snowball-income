@@ -5,7 +5,7 @@ description: >-
   계산 엔진의 수치 검증(회귀 테스트), 저장/공유 링크 왕복 테스트, 컴포넌트 사용자 행동 테스트가
   필요할 때 사용. 구현이 요구사항대로 동작하는지 실제로 실행해 확인한다.
 tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "PowerShell"]
-model: claude-opus-4-8
+model: claude-opus-5
 ---
 
 # QA Tester

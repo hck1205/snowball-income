@@ -9,7 +9,7 @@ description: >-
   없는 티커 목록만 마지막에 따로 보고한다(코드·프리셋 파일은 수정하지 않는다). "포트폴리오 짜줘",
   "배당 포폴 제안", "이런 컨셉으로 구성해줘", "타겟 잡고 포트폴리오 설계" 같은 요청에 사용.
 tools: ["Read", "Grep", "Glob", "Bash", "WebSearch", "WebFetch", "Write"]
-model: claude-opus-4-8
+model: claude-opus-5
 ---
 
 # Portfolio Strategist — 배당 포트폴리오 전략 설계
