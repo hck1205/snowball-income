@@ -6,7 +6,7 @@ import type { YieldFormValues } from '@/shared/types';
 import type { InvestmentSettingsProps } from './InvestmentSettings.types';
 import { buildAmountHint } from './InvestmentSettings.utils';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
-import { clampPercent } from '@/pages/Main/utils';
+import { clampPercent } from '@/shared/utils';
 import {
   ConfigFormGrid,
   ConfigInputGrid,

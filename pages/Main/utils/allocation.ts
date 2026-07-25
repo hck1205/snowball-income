@@ -1,3 +1,5 @@
+import { clampPercent } from '@/shared/utils';
+
 export type RedistributeAllocationWeightsParams = {
   /** Ticker whose slider was moved. */
   targetId: string;
@@ -9,9 +11,6 @@ export type RedistributeAllocationWeightsParams = {
   /** Current (unrounded) allocation percent per ticker. */
   percentExactById: Record<string, number>;
 };
-
-/** Clamps a percent input to 0~100; non-finite input falls back to 0. */
-export const clampPercent = (value: number): number => (Number.isFinite(value) ? Math.min(100, Math.max(0, value)) : 0);
 
 /**
  * Rebuilds the allocation percent map after one slider moves.

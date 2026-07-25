@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { clampPercent, redistributeAllocationWeights } from '@/pages/Main/utils';
+import { clampPercent } from '@/shared/utils';
+import { redistributeAllocationWeights } from '@/pages/Main/utils';
 
 const sumOf = (map: Record<string, number>): number => Object.values(map).reduce((sum, value) => sum + value, 0);
 

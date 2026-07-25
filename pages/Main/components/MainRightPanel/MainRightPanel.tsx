@@ -1,57 +1,20 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getTickerDisplayName } from '@/shared/utils';
 import { createPortal } from 'react-dom';
-// per-icon named import(트리셰이킹) → 추천 포트폴리오 카드의 이모지를 lucide 아이콘으로 교체.
-import {
-  Banknote,
-  Building2,
-  CalendarDays,
-  Cpu,
-  Crown,
-  Globe,
-  Landmark,
-  Layers,
-  PiggyBank,
-  Scale,
-  Shield,
-  Sprout,
-  TrendingUp,
-  type LucideIcon
-} from 'lucide-react';
-import { Button, Card, ToggleField } from '@/components';
 import { useOptionalCommunityAuth } from '@/components/community/CommunityAuthProvider';
 import type { SimulationResult as SimulationResultRow } from '@/shared/types';
-import { DISPLAY_CURRENCY_COPY, DIVIDEND_UNIVERSE, TOUR_TARGET } from '@/shared/constants';
-import { ModalActions, ModalBackdrop, ModalBody, ModalPanel, ModalTitle } from '@/components/common';
+import { DISPLAY_CURRENCY_COPY, DIVIDEND_UNIVERSE } from '@/shared/constants';
+import { ResultsColumn } from './MainRightPanel.styled';
 import {
-  PortfolioPresetCardButton,
-  PortfolioPresetContentRow,
-  PortfolioPresetCore,
-  PortfolioPresetDesc,
-  PortfolioPresetGrid,
-  PortfolioPresetMain,
-  PortfolioPresetMeta,
-  PortfolioPresetPlan,
-  PortfolioPresetPlanItem,
-  PortfolioPresetTitle,
-  ResultsColumn,
-  ScenarioTabsHelpButton,
-  ScenarioTabButton,
-  ScenarioTabCloseButton,
-  ScenarioTabEditWrap,
-  ScenarioTabRenameInput,
+  LoginNudgeModal,
+  PortfolioPresetBoard,
+  PostInvestmentProjectionPanel,
+  PresetApplyModal,
+  ScenarioTabs,
   ScenarioTabTooltip,
-  ScenarioTabsWrap
-} from '@/pages/Main/Main.shared.styled';
-import {
-  PRESET_ICON_TONES,
-  PortfolioPresetIcon,
-  PortfolioPresetTitleRow,
-  ProjectionControls,
-  ProjectionYearField,
-  ProjectionYearSuffix
-} from './MainRightPanel.styled';
-import { Select } from '@/components/common';
+  TabDeleteModal,
+  type PortfolioPresetPlaceholder
+} from './components';
 import MonthlyCashflow from '@/components/MonthlyCashflow';
 import PortfolioComposition from '@/components/PortfolioComposition';
 import SimulationResult from '@/components/SimulationResult';
@@ -90,324 +53,6 @@ import {
 } from '@/pages/Main/utils';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 
-const PORTFOLIO_PRESET_PLACEHOLDERS = [
-  {
-    id: 'warren-buffett-style',
-    title: '워렌 버핏 스타일',
-    hook: '우량 기업 중심의 장기 복리 전략',
-    coreType: 'SCHD, VIG, PG, KO, JNJ, ABBV',
-    style: '안정형',
-    target: '장기 보유 투자자',
-    allocations: [
-      { ticker: 'SCHD', weight: 30 },
-      { ticker: 'VIG', weight: 20 },
-      { ticker: 'PG', weight: 15 },
-      { ticker: 'KO', weight: 15 },
-      { ticker: 'JNJ', weight: 10 },
-      { ticker: 'ABBV', weight: 10 }
-    ],
-    monthlyInvestment: '100만원',
-    targetInvestment: '2억',
-    investmentPeriod: '12~15년',
-    expectedMonthlyDividend: '약 40~50만원',
-    monthlyContributionValue: 1_000_000,
-    durationYearsValue: 13,
-    targetMonthlyDividendValue: 450_000
-  },
-  {
-    id: 'cashflow-now',
-    title: '당장 현금흐름',
-    hook: '매달 배당 받는 월 인컴 전략',
-    coreType: 'JEPI, JEPQ, QYLD, O, ENB',
-    style: '인컴형',
-    target: '은퇴자 / 세컨드 인컴',
-    allocations: [
-      { ticker: 'JEPI', weight: 30 },
-      { ticker: 'JEPQ', weight: 20 },
-      { ticker: 'QYLD', weight: 15 },
-      { ticker: 'O', weight: 20 },
-      { ticker: 'ENB', weight: 15 }
-    ],
-    monthlyInvestment: '200만원',
-    targetInvestment: '2억',
-    investmentPeriod: '6~8년',
-    expectedMonthlyDividend: '약 110~130만원',
-    monthlyContributionValue: 2_000_000,
-    durationYearsValue: 7,
-    targetMonthlyDividendValue: 1_200_000
-  },
-  {
-    id: 'stable-dividend-growth',
-    title: '안정적 배당성장',
-    hook: '꾸준히 배당이 증가하는 ETF 중심',
-    coreType: 'SCHD, DGRO, DGRW, NOBL',
-    style: '성장+안정',
-    target: '초중급 투자자',
-    allocations: [
-      { ticker: 'SCHD', weight: 40 },
-      { ticker: 'DGRO', weight: 25 },
-      { ticker: 'DGRW', weight: 20 },
-      { ticker: 'NOBL', weight: 15 }
-    ],
-    monthlyInvestment: '150만원',
-    targetInvestment: '3억',
-    investmentPeriod: '12년',
-    expectedMonthlyDividend: '약 70~90만원',
-    monthlyContributionValue: 1_500_000,
-    durationYearsValue: 12,
-    targetMonthlyDividendValue: 800_000
-  },
-  {
-    id: 'global-dividend-diversified',
-    title: '글로벌 배당 분산',
-    hook: '미국 + 해외 배당 ETF 분산',
-    coreType: 'SCHD, VIGI, SCHY, VNQI, VYMI',
-    style: '분산형',
-    target: '환율 리스크 분산 원하는 투자자',
-    allocations: [
-      { ticker: 'SCHD', weight: 35 },
-      { ticker: 'VIGI', weight: 20 },
-      { ticker: 'SCHY', weight: 20 },
-      { ticker: 'VNQI', weight: 15 },
-      { ticker: 'VYMI', weight: 10 }
-    ],
-    monthlyInvestment: '120만원',
-    targetInvestment: '2.5억',
-    investmentPeriod: '12년',
-    expectedMonthlyDividend: '약 60~75만원',
-    monthlyContributionValue: 1_200_000,
-    durationYearsValue: 12,
-    targetMonthlyDividendValue: 675_000
-  },
-  {
-    id: 'reit-monthly-rent-strategy',
-    title: '월세 리츠 전략',
-    hook: '부동산 중심 현금흐름 전략',
-    coreType: 'O, VICI, SCHH, VNQI, JEPI',
-    style: '인컴+리츠',
-    target: '부동산 선호 투자자',
-    allocations: [
-      { ticker: 'O', weight: 35 },
-      { ticker: 'VICI', weight: 20 },
-      { ticker: 'SCHH', weight: 20 },
-      { ticker: 'VNQI', weight: 15 },
-      { ticker: 'JEPI', weight: 10 }
-    ],
-    monthlyInvestment: '180만원',
-    targetInvestment: '2억',
-    investmentPeriod: '8~10년',
-    expectedMonthlyDividend: '약 90~110만원',
-    monthlyContributionValue: 1_800_000,
-    durationYearsValue: 9,
-    targetMonthlyDividendValue: 1_000_000
-  },
-  {
-    id: 'growth-income-balance',
-    title: '성장 + 인컴 밸런스',
-    hook: '배당과 자본 성장을 동시에',
-    coreType: 'SCHD, DGRW, DIVO, VYM, JEPI',
-    style: '균형형',
-    target: '장기 복리 추구',
-    allocations: [
-      { ticker: 'SCHD', weight: 35 },
-      { ticker: 'DGRW', weight: 20 },
-      { ticker: 'DIVO', weight: 20 },
-      { ticker: 'VYM', weight: 15 },
-      { ticker: 'JEPI', weight: 10 }
-    ],
-    monthlyInvestment: '150만원',
-    targetInvestment: '3억',
-    investmentPeriod: '10~12년',
-    expectedMonthlyDividend: '약 100만원',
-    monthlyContributionValue: 1_500_000,
-    durationYearsValue: 11,
-    targetMonthlyDividendValue: 1_000_000
-  },
-  {
-    id: 'high-growth-dividend-challenger',
-    title: '고성장 배당 챌린저',
-    hook: '배당 성장률 높은 종목 중심',
-    coreType: 'RDVY, SDVY, LOW, ABBV, SCHD',
-    style: '공격형',
-    target: '수익 극대화 지향',
-    allocations: [
-      { ticker: 'RDVY', weight: 30 },
-      { ticker: 'SDVY', weight: 25 },
-      { ticker: 'LOW', weight: 15 },
-      { ticker: 'ABBV', weight: 15 },
-      { ticker: 'SCHD', weight: 15 }
-    ],
-    monthlyInvestment: '130만원',
-    targetInvestment: '4억',
-    investmentPeriod: '15년',
-    expectedMonthlyDividend: '약 120만원',
-    monthlyContributionValue: 1_300_000,
-    durationYearsValue: 15,
-    targetMonthlyDividendValue: 1_200_000
-  },
-  {
-    id: 'retirement-prep',
-    title: '은퇴 준비형',
-    hook: '은퇴 10년 전 리스크 완화 전략',
-    coreType: 'SCHD, JEPI, DGRO, VYM, O',
-    style: '점진적 안정',
-    target: '은퇴 준비자',
-    allocations: [
-      { ticker: 'SCHD', weight: 30 },
-      { ticker: 'JEPI', weight: 25 },
-      { ticker: 'DGRO', weight: 20 },
-      { ticker: 'VYM', weight: 15 },
-      { ticker: 'O', weight: 10 }
-    ],
-    monthlyInvestment: '200만원',
-    targetInvestment: '3억',
-    investmentPeriod: '8~10년',
-    expectedMonthlyDividend: '약 110만원',
-    monthlyContributionValue: 2_000_000,
-    durationYearsValue: 9,
-    targetMonthlyDividendValue: 1_100_000
-  },
-  {
-    id: 'dividend-aristocrats-collection',
-    title: '배당 귀족 컬렉션',
-    hook: '25년 이상 배당 증가 기업 중심',
-    coreType: 'NOBL, PG, KO, JNJ, ABBV, LOW',
-    style: '초안정형',
-    target: '변동성 싫어하는 투자자',
-    allocations: [
-      { ticker: 'NOBL', weight: 35 },
-      { ticker: 'PG', weight: 15 },
-      { ticker: 'KO', weight: 15 },
-      { ticker: 'JNJ', weight: 15 },
-      { ticker: 'ABBV', weight: 10 },
-      { ticker: 'LOW', weight: 10 }
-    ],
-    monthlyInvestment: '100만원',
-    targetInvestment: '2억',
-    investmentPeriod: '15년',
-    expectedMonthlyDividend: '약 45만원',
-    monthlyContributionValue: 1_000_000,
-    durationYearsValue: 15,
-    targetMonthlyDividendValue: 450_000
-  },
-  {
-    id: 'defensive-dividend-etf',
-    title: '방어형 배당 ETF',
-    hook: '변동성 낮은 고배당 ETF 중심',
-    coreType: 'HDV, VYM, SCHD, DGRO',
-    style: '방어형',
-    target: '보수적 투자자',
-    allocations: [
-      { ticker: 'HDV', weight: 30 },
-      { ticker: 'VYM', weight: 25 },
-      { ticker: 'SCHD', weight: 25 },
-      { ticker: 'DGRO', weight: 20 }
-    ],
-    monthlyInvestment: '120만원',
-    targetInvestment: '2.5억',
-    investmentPeriod: '12년',
-    expectedMonthlyDividend: '약 70만원',
-    monthlyContributionValue: 1_200_000,
-    durationYearsValue: 12,
-    targetMonthlyDividendValue: 700_000
-  },
-  {
-    id: 'monthly-dividend-addict',
-    title: '월배당 중독자',
-    hook: '올 월배당 ETF 구성',
-    coreType: 'JEPI, JEPQ, DIVO, IDVO, QDVO, O',
-    style: '월 인컴 극대화',
-    target: '심리적 현금흐름 선호',
-    allocations: [
-      { ticker: 'JEPI', weight: 25 },
-      { ticker: 'JEPQ', weight: 20 },
-      { ticker: 'DIVO', weight: 15 },
-      { ticker: 'IDVO', weight: 15 },
-      { ticker: 'QDVO', weight: 10 },
-      { ticker: 'O', weight: 15 }
-    ],
-    monthlyInvestment: '250만원',
-    targetInvestment: '2억',
-    investmentPeriod: '5~7년',
-    expectedMonthlyDividend: '약 130~150만원',
-    monthlyContributionValue: 2_500_000,
-    durationYearsValue: 6,
-    targetMonthlyDividendValue: 1_400_000
-  },
-  {
-    id: 'smart-diversification-360',
-    title: '올인원 배당 전략',
-    hook: '모든 자산군 혼합 입문형',
-    coreType: 'SCHD, VYM, JEPI, VIGI, VNQI, DIVO',
-    style: '올인원',
-    target: '입문자',
-    allocations: [
-      { ticker: 'SCHD', weight: 30 },
-      { ticker: 'VYM', weight: 15 },
-      { ticker: 'JEPI', weight: 15 },
-      { ticker: 'VIGI', weight: 15 },
-      { ticker: 'VNQI', weight: 10 },
-      { ticker: 'DIVO', weight: 15 }
-    ],
-    monthlyInvestment: '150만원',
-    targetInvestment: '3억',
-    investmentPeriod: '12년',
-    expectedMonthlyDividend: '약 90~110만원',
-    monthlyContributionValue: 1_500_000,
-    durationYearsValue: 12,
-    targetMonthlyDividendValue: 1_000_000
-  },
-  {
-    id: 'ai-infra-dividend-growth',
-    title: 'AI 인프라 성장형',
-    hook: 'AI 반도체, 전력, 데이터센터 인프라 중심',
-    coreType: 'SMH, VRT, ETN, NVDA, AVGO, CEG',
-    style: '성장형',
-    target: 'AI 장기 구조 성장 선호 투자자',
-    allocations: [
-      { ticker: 'SMH', weight: 25 },
-      { ticker: 'VRT', weight: 15 },
-      { ticker: 'ETN', weight: 15 },
-      { ticker: 'NVDA', weight: 15 },
-      { ticker: 'AVGO', weight: 15 },
-      { ticker: 'CEG', weight: 15 }
-    ],
-    monthlyInvestment: '200만원',
-    targetInvestment: '3억',
-    investmentPeriod: '10~12년',
-    expectedMonthlyDividend: '약 55~75만원',
-    monthlyContributionValue: 2_000_000,
-    durationYearsValue: 11,
-    targetMonthlyDividendValue: 650_000
-  }
-] as const;
-
-/**
- * 프리셋 카드 아이콘 — 예전의 이모지(🧓/💸/…)를 성향에 맞는 lucide 아이콘으로 대체한다.
- * 제목 문자열에서 이모지는 제거했으므로(위 데이터), 카드·시나리오 탭 이름 모두 깔끔한 텍스트 + 이 아이콘으로 보인다.
- *
- * 선택 기준: 프리셋의 **전략 성격**을 18px에서도 즉시 읽히는 한 글리프로 — 중복 없이 13개.
- * 클리셰(🚀 로켓, 안락의자)나 작게 그리면 뭉개지는 복합 글리프(CalendarHeart)는 피한다.
- */
-const PRESET_ICON_BY_ID: Record<string, LucideIcon> = {
-  'warren-buffett-style': Landmark, // 우량 기관·가치투자의 전당
-  'cashflow-now': Banknote, // 당장 손에 쥐는 현금
-  'stable-dividend-growth': Sprout, // 꾸준히 자라는 배당
-  'global-dividend-diversified': Globe, // 미국 + 해외 분산
-  'reit-monthly-rent-strategy': Building2, // 부동산(리츠)
-  'growth-income-balance': Scale, // 성장·인컴의 균형
-  'high-growth-dividend-challenger': TrendingUp, // 높은 배당 성장률 = 우상향
-  'retirement-prep': PiggyBank, // 은퇴 대비 적립
-  'dividend-aristocrats-collection': Crown, // 배당 귀족
-  'defensive-dividend-etf': Shield, // 방어형
-  'monthly-dividend-addict': CalendarDays, // 매달 들어오는 배당
-  'smart-diversification-360': Layers, // 모든 자산군을 한 층씩 — 올인원
-  'ai-infra-dividend-growth': Cpu // AI 반도체·인프라
-};
-
-/** 앱 공용 아이콘 언어와 동일한 라인 두께(CommunityIcons·좌측 패널 인라인 SVG와 같은 1.8). */
-const PRESET_ICON_STROKE = 1.8;
-
 function MainRightPanelComponent() {
   const modalRoot = typeof document !== 'undefined' ? document.body : null;
   const [editingTabId, setEditingTabId] = useState<string | null>(null);
@@ -415,8 +60,7 @@ function MainRightPanelComponent() {
   const [editingTabWidth, setEditingTabWidth] = useState<number | null>(null);
   const [deleteTargetTabId, setDeleteTargetTabId] = useState<string | null>(null);
   // 프리셋 적용 확인 모달 대상 — 모바일에서 스크롤 중 실수 탭으로 프리셋이 즉시 적용되는 걸 막는다.
-  const [pendingPreset, setPendingPreset] =
-    useState<(typeof PORTFOLIO_PRESET_PLACEHOLDERS)[number] | null>(null);
+  const [pendingPreset, setPendingPreset] = useState<PortfolioPresetPlaceholder | null>(null);
   const [hoverTooltip, setHoverTooltip] = useState<{ text: string; x: number; y: number } | null>(null);
   const [draggingTabId, setDraggingTabId] = useState<string | null>(null);
   const [dragOverTabId, setDragOverTabId] = useState<string | null>(null);
@@ -507,9 +151,6 @@ function MainRightPanelComponent() {
   const getMonthlyDividend = useCallback((row: SimulationResultRow) => row.monthlyDividend, []);
   const getAssetValue = useCallback((row: SimulationResultRow) => row.assetValue, []);
   const getCumulativeDividend = useCallback((row: SimulationResultRow) => row.cumulativeDividend, []);
-  const getProjectedYear = useCallback((row: { year: number }) => `${row.year}`, []);
-  const getProjectedMonthlyDividend = useCallback((row: { monthlyDividend: number }) => row.monthlyDividend, []);
-  const getProjectedAssetValue = useCallback((row: { assetValue: number }) => row.assetValue, []);
   const projectedAnnualDividendGrowthRate = computeAnnualGrowthRate(postInvestmentDividendProjectionRows, (row) => row.annualDividend);
   const projectedAnnualAssetGrowthRate = computeAnnualGrowthRate(postInvestmentDividendProjectionRows, (row) => row.assetValue);
   const postInvestmentChartTitle =
@@ -597,7 +238,7 @@ function MainRightPanelComponent() {
   }, []);
 
   const applyPortfolioPreset = useCallback(
-    (preset: (typeof PORTFOLIO_PRESET_PLACEHOLDERS)[number]) => {
+    (preset: PortfolioPresetPlaceholder) => {
       const nextPortfolio = buildPresetPortfolio({ preset, universe: DIVIDEND_UNIVERSE });
       if (!nextPortfolio) return;
 
@@ -710,105 +351,32 @@ function MainRightPanelComponent() {
 
   return (
     <ResultsColumn>
-      <ScenarioTabsWrap data-tour={TOUR_TARGET.scenarioTabs} aria-label="포트폴리오 탭 목록">
-        {tabs.map((tab) =>
-          editingTabId === tab.id ? (
-            <ScenarioTabEditWrap key={tab.id} style={editingTabWidth ? { width: `${editingTabWidth}px` } : undefined}>
-              <ScenarioTabRenameInput
-                autoFocus
-                aria-label={`${tab.name} 이름 변경`}
-                value={editingTabName}
-                onChange={(event) => setEditingTabName(event.target.value)}
-                onBlur={commitRenameMode}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') {
-                    event.preventDefault();
-                    commitRenameMode();
-                  } else if (event.key === 'Escape') {
-                    event.preventDefault();
-                    cancelRenameMode();
-                  }
-                }}
-              />
-              <ScenarioTabCloseButton
-                type="button"
-                aria-label={`${tab.name} 삭제`}
-                disabled={!canDeleteTab}
-                onMouseDown={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
-                }}
-                onClick={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  openDeleteModal(tab.id);
-                }}
-              >
-                ×
-              </ScenarioTabCloseButton>
-            </ScenarioTabEditWrap>
-          ) : (
-            <ScenarioTabButton
-              key={tab.id}
-              type="button"
-              active={tab.id === activeScenarioId}
-              dragOver={dragOverTabId === tab.id && draggingTabId !== tab.id}
-              isDragging={draggingTabId === tab.id}
-              draggable
-              onClick={() => {
-                if (dragJustFinishedRef.current) {
-                  dragJustFinishedRef.current = false;
-                  return;
-                }
-                selectScenarioTab(tab.id);
-              }}
-              onDragStart={(event) => {
-                setDraggingTabId(tab.id);
-                setDragOverTabId(null);
-                event.dataTransfer.effectAllowed = 'move';
-                event.dataTransfer.setData('text/plain', tab.id);
-              }}
-              onDragOver={(event) => {
-                event.preventDefault();
-                if (draggingTabId && draggingTabId !== tab.id) {
-                  setDragOverTabId(tab.id);
-                }
-              }}
-              onDrop={(event) => {
-                event.preventDefault();
-                const fromTabId = draggingTabId || event.dataTransfer.getData('text/plain');
-                if (!fromTabId || fromTabId === tab.id) return;
-                reorderScenarioTabs(fromTabId, tab.id);
-                dragJustFinishedRef.current = true;
-                setDragOverTabId(null);
-              }}
-              onDragEnd={() => {
-                setDraggingTabId(null);
-                setDragOverTabId(null);
-              }}
-              onMouseEnter={(event) => showHoverTooltip(tab.name, event.clientX, event.clientY)}
-              onMouseMove={(event) => showHoverTooltip(tab.name, event.clientX, event.clientY)}
-              onDoubleClick={(event) => startRenameMode(tab.id, tab.name, event.currentTarget.getBoundingClientRect().width)}
-              onMouseLeave={hideHoverTooltip}
-            >
-              {tab.name}
-            </ScenarioTabButton>
-          )
-        )}
-        {canCreateTab ? (
-          <ScenarioTabButton
-            type="button"
-            aria-label="새 포트폴리오 탭 추가"
-            title={requiresLoginToCreateTab ? '로그인하면 탭을 더 만들 수 있어요' : undefined}
-            onClick={handleCreateTab}
-          >
-            +
-          </ScenarioTabButton>
-        ) : null}
-        <ScenarioTabsHelpButton type="button" aria-label="포트폴리오 탭 도움말 열기" onClick={openScenarioTabsHelp}>
-          ?
-        </ScenarioTabsHelpButton>
-      </ScenarioTabsWrap>
+      <ScenarioTabs
+        tabs={tabs}
+        activeScenarioId={activeScenarioId}
+        editingTabId={editingTabId}
+        editingTabName={editingTabName}
+        editingTabWidth={editingTabWidth}
+        draggingTabId={draggingTabId}
+        dragOverTabId={dragOverTabId}
+        dragJustFinishedRef={dragJustFinishedRef}
+        canCreateTab={canCreateTab}
+        canDeleteTab={canDeleteTab}
+        requiresLoginToCreateTab={requiresLoginToCreateTab}
+        setEditingTabName={setEditingTabName}
+        setDraggingTabId={setDraggingTabId}
+        setDragOverTabId={setDragOverTabId}
+        commitRenameMode={commitRenameMode}
+        cancelRenameMode={cancelRenameMode}
+        startRenameMode={startRenameMode}
+        openDeleteModal={openDeleteModal}
+        selectScenarioTab={selectScenarioTab}
+        reorderScenarioTabs={reorderScenarioTabs}
+        showHoverTooltip={showHoverTooltip}
+        hideHoverTooltip={hideHoverTooltip}
+        onCreateTab={handleCreateTab}
+        openScenarioTabsHelp={openScenarioTabsHelp}
+      />
 
       {simulation ? (
         <>
@@ -897,203 +465,36 @@ function MainRightPanelComponent() {
             ResponsiveChart={ResponsiveEChart}
           />
 
-          <ChartPanel
+          <PostInvestmentProjectionPanel
             title={postInvestmentChartTitle}
-            titleRight={
-              <ProjectionControls>
-                <ProjectionYearField>
-                  <Select
-                    size="sm"
-                    width="64px"
-                    aria-label="향후 확인 기간 선택 (년)"
-                    value={postInvestmentProjectionYears}
-                    onChange={(event) => setPostInvestmentProjectionYears(Number(event.target.value))}
-                  >
-                    <option value={10}>10</option>
-                    <option value={20}>20</option>
-                    <option value={30}>30</option>
-                    <option value={40}>40</option>
-                    <option value={50}>50</option>
-                  </Select>
-                  <ProjectionYearSuffix>년</ProjectionYearSuffix>
-                </ProjectionYearField>
-                <ToggleField
-                  label="추정 보기 전환"
-                  hideLabel
-                  controlWidth="60px"
-                  checked={isPostInvestmentAssetView}
-                  offText="배당"
-                  onText="자산"
-                  onChange={(event) => {
-                    trackEvent(ANALYTICS_EVENT.TOGGLE_CHANGED, {
-                      field_name: 'postInvestmentProjectionView',
-                      value: event.target.checked
-                    });
-                    setIsPostInvestmentAssetView(event.target.checked);
-                  }}
-                />
-              </ProjectionControls>
-            }
             rows={postInvestmentDividendProjectionRows}
             hasData={hasGraphData && postInvestmentDividendProjectionRows.length > 0}
             emptyMessage={emptyGraphMessage}
-            getXValue={getProjectedYear}
-            getYValue={isPostInvestmentAssetView ? getProjectedAssetValue : getProjectedMonthlyDividend}
+            projectionYears={postInvestmentProjectionYears}
+            onProjectionYearsChange={setPostInvestmentProjectionYears}
+            isAssetView={isPostInvestmentAssetView}
+            onAssetViewChange={setIsPostInvestmentAssetView}
             yAxisLabelFormatter={formatChartValue}
             chartLabelSuffix={chartLabelSuffix}
           />
         </>
       ) : (
-        <Card
-          title={includedProfiles.length === 0 ? '추천 포트폴리오로 시작해보세요' : '결과'}
-          subtitle={
-            includedProfiles.length === 0
-              ? '하나를 고르면 설정이 자동으로 채워집니다. 언제든 왼쪽에서 바꿀 수 있어요.'
-              : undefined
-          }
-        >
-          {includedProfiles.length === 0 ? (
-            <PortfolioPresetGrid data-tour={TOUR_TARGET.portfolioPresets} aria-label="포트폴리오 프리셋 목록">
-              {PORTFOLIO_PRESET_PLACEHOLDERS.map((preset, presetIndex) => {
-                const PresetIcon = PRESET_ICON_BY_ID[preset.id] ?? Landmark;
-                return (
-                <PortfolioPresetCardButton key={preset.id} type="button" onClick={() => setPendingPreset(preset)}>
-                  <PortfolioPresetContentRow>
-                    <PortfolioPresetMain>
-                      <PortfolioPresetTitleRow>
-                        <PortfolioPresetIcon tone={PRESET_ICON_TONES[presetIndex % PRESET_ICON_TONES.length]}>
-                          <PresetIcon size={18} strokeWidth={PRESET_ICON_STROKE} aria-hidden focusable={false} />
-                        </PortfolioPresetIcon>
-                        <PortfolioPresetTitle>{preset.title}</PortfolioPresetTitle>
-                      </PortfolioPresetTitleRow>
-                      <PortfolioPresetDesc>{preset.hook}</PortfolioPresetDesc>
-                      <PortfolioPresetCore>핵심 구성: {preset.coreType}</PortfolioPresetCore>
-                      <PortfolioPresetMeta>
-                        성향: {preset.style} | 추천 대상: {preset.target}
-                      </PortfolioPresetMeta>
-                    </PortfolioPresetMain>
-                    <PortfolioPresetPlan>
-                      <PortfolioPresetPlanItem>
-                        월 투자금 제안 <strong>{preset.monthlyInvestment}</strong>
-                      </PortfolioPresetPlanItem>
-                      <PortfolioPresetPlanItem>
-                        목표 투자금 <strong>{preset.targetInvestment}</strong>
-                      </PortfolioPresetPlanItem>
-                      <PortfolioPresetPlanItem>
-                        투자 기간 <strong>{preset.investmentPeriod}</strong>
-                      </PortfolioPresetPlanItem>
-                      <PortfolioPresetPlanItem>
-                        목표 월배당(예상) <strong>{preset.expectedMonthlyDividend}</strong>
-                      </PortfolioPresetPlanItem>
-                    </PortfolioPresetPlan>
-                  </PortfolioPresetContentRow>
-                </PortfolioPresetCardButton>
-                );
-              })}
-            </PortfolioPresetGrid>
-          ) : (
-            <p>입력값 오류를 수정하면 결과가 표시됩니다.</p>
-          )}
-        </Card>
+        <PortfolioPresetBoard isPortfolioEmpty={includedProfiles.length === 0} onPresetSelect={setPendingPreset} />
       )}
-      {pendingPreset && modalRoot
-        ? createPortal(
-            <ModalBackdrop
-              role="dialog"
-              aria-modal="true"
-              aria-label="프리셋 적용 확인"
-              onClick={(event) => {
-                if (event.target !== event.currentTarget) return;
-                cancelApplyPreset();
-              }}
-            >
-              <ModalPanel>
-                <ModalTitle>프리셋 적용</ModalTitle>
-                <ModalBody>“{pendingPreset.title}” 프리셋으로 포트폴리오를 구성할까요?</ModalBody>
-                <ModalActions>
-                  <Button variant="secondary" type="button" onClick={cancelApplyPreset}>
-                    취소
-                  </Button>
-                  <Button variant="primary" type="button" onClick={confirmApplyPreset}>
-                    적용
-                  </Button>
-                </ModalActions>
-              </ModalPanel>
-            </ModalBackdrop>,
-            modalRoot
-          )
-        : null}
-      {deleteTargetTabId && modalRoot
-        ? createPortal(
-            <ModalBackdrop
-              role="dialog"
-              aria-modal="true"
-              aria-label="탭 삭제 확인"
-              onClick={(event) => {
-                if (event.target !== event.currentTarget) return;
-                closeDeleteModal();
-              }}
-            >
-              <ModalPanel>
-                <ModalTitle>탭 삭제</ModalTitle>
-                <ModalBody>정말 삭제하시겠습니까?</ModalBody>
-                <ModalActions>
-                  {/* onMouseDown preventDefault: 탭 이름변경 입력(onBlur=commitRenameMode)이 아직 포커스를
-                      쥔 채로 이 버튼을 누르면 blur가 rename을 커밋한다. 공유 탭('shared-tab')은 rename 커밋 시
-                      새 id로 승격되어(useScenarioTabs.renameScenarioTab) deleteTargetTabId가 옛 id로 어긋난다.
-                      X 닫기 버튼과 같은 방식으로 포커스 이동을 막아 blur 커밋을 차단한다. */}
-                  <Button
-                    variant="secondary"
-                    type="button"
-                    onMouseDown={(event) => event.preventDefault()}
-                    onClick={closeDeleteModal}
-                  >
-                    취소
-                  </Button>
-                  <Button
-                    variant="primary"
-                    type="button"
-                    onMouseDown={(event) => event.preventDefault()}
-                    onClick={confirmDeleteTab}
-                  >
-                    삭제
-                  </Button>
-                </ModalActions>
-              </ModalPanel>
-            </ModalBackdrop>,
-            modalRoot
-          )
-        : null}
-      {isLoginNudgeOpen && modalRoot
-        ? createPortal(
-            <ModalBackdrop
-              role="dialog"
-              aria-modal="true"
-              aria-label="로그인 유도"
-              onClick={(event) => {
-                if (event.target !== event.currentTarget) return;
-                closeLoginNudge();
-              }}
-            >
-              <ModalPanel>
-                <ModalTitle>탭을 더 만들려면 로그인하세요</ModalTitle>
-                <ModalBody>
-                  로그인하면 <strong>클라우드에 저장돼 데이터가 사라지지 않아요.</strong>
-                  {'\n'}지금(로그인 전) 만든 탭도 로그인하면 <strong>그대로 함께 동기화</strong>됩니다.
-                </ModalBody>
-                <ModalActions>
-                  <Button variant="secondary" type="button" onClick={closeLoginNudge}>
-                    나중에
-                  </Button>
-                  <Button variant="primary" type="button" onClick={handleLoginFromNudge}>
-                    로그인
-                  </Button>
-                </ModalActions>
-              </ModalPanel>
-            </ModalBackdrop>,
-            modalRoot
-          )
-        : null}
+      {pendingPreset && modalRoot ? (
+        <PresetApplyModal
+          modalRoot={modalRoot}
+          presetTitle={pendingPreset.title}
+          onCancel={cancelApplyPreset}
+          onConfirm={confirmApplyPreset}
+        />
+      ) : null}
+      {deleteTargetTabId && modalRoot ? (
+        <TabDeleteModal modalRoot={modalRoot} onCancel={closeDeleteModal} onConfirm={confirmDeleteTab} />
+      ) : null}
+      {isLoginNudgeOpen && modalRoot ? (
+        <LoginNudgeModal modalRoot={modalRoot} onClose={closeLoginNudge} onLogin={handleLoginFromNudge} />
+      ) : null}
       {hoverTooltip && modalRoot
         ? createPortal(
             <ScenarioTabTooltip style={{ left: `${hoverTooltip.x + 10}px`, top: `${hoverTooltip.y + 14}px` }}>
