@@ -12,13 +12,13 @@ import type { FetchLike } from './provider.types';
  * (SCHD, VYM, VIG, JEPI, O, SPY all return "not available"). Both were probed before choosing.
  *
  * ## Quota is the design constraint
- * The free tier is **25 requests per day, per key** — a hard daily total, not a rate. So this lives
- * behind its own CLI command instead of the daily price refresh: pay dates barely move (SCHD has
- * paid exactly 5 days after the ex-date for years), while prices need refreshing every day.
+ * The free tier is **25 requests per day** — a hard daily total, not a rate, and enforced per IP as
+ * well as per key (measured; see `ALPHA_VANTAGE_FREE_DAILY_LIMIT`). So this lives behind its own CLI
+ * command instead of the daily price refresh: pay dates barely move (SCHD has paid exactly 5 days
+ * after the ex-date for years), while prices need refreshing every day.
  */
 export type AlphaVantageProviderOptions = {
-  /** One or more keys, used round-robin. Each carries its own daily quota. */
-  apiKeys: readonly string[];
+  apiKey: string;
   baseUrl?: string;
   fetchImpl?: FetchLike;
 };
@@ -27,13 +27,17 @@ export type DividendScheduleProvider = {
   readonly name: string;
   /** Full history with both dates, newest first (as the vendor returns it). */
   fetchDividendSchedule: (ticker: string) => Promise<DividendScheduleRecord[]>;
-  /** Keys configured — the CLI uses this to cap how many tickers one run may attempt. */
-  readonly keyCount: number;
 };
 
 const DEFAULT_BASE_URL = 'https://www.alphavantage.co';
 
-/** Daily request allowance of a single free key, per Alpha Vantage's support page. */
+/**
+ * Free-tier daily request allowance, per Alpha Vantage's support page.
+ *
+ * ⚠ **Measured**: this cap is enforced per *IP*, not only per key. Two keys were tried from one
+ * machine and both stopped at a combined 25 requests — so adding keys buys nothing. Anything that
+ * looks like "just use more keys" has already been tested and does not work.
+ */
 export const ALPHA_VANTAGE_FREE_DAILY_LIMIT = 25;
 
 const recordSchema = z.object({
@@ -73,8 +77,8 @@ const advisoryOf = (body: unknown): string | null => {
  * the key in terminal scrollback, CI logs, and any transcript — so redaction happens at the point
  * the message enters our code, not at each call site that might forget.
  */
-export const redactKeys = (message: string, keys: readonly string[]): string =>
-  keys.reduce((text, key) => (key.length >= 8 ? text.split(key).join('***') : text), message);
+export const redactKey = (message: string, key: string): string =>
+  key.length >= 8 ? message.split(key).join('***') : message;
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -90,31 +94,22 @@ const toRecord = (raw: z.infer<typeof recordSchema>): DividendScheduleRecord | n
 };
 
 export const createAlphaVantageProvider = ({
-  apiKeys,
+  apiKey,
   baseUrl = DEFAULT_BASE_URL,
   fetchImpl
 }: AlphaVantageProviderOptions): DividendScheduleProvider => {
-  const keys = apiKeys.map((key) => key.trim()).filter((key) => key.length > 0);
-  if (keys.length === 0) {
-    throw new Error('createAlphaVantageProvider needs at least one API key');
+  const key = apiKey.trim();
+  if (key.length === 0) {
+    throw new Error('createAlphaVantageProvider needs an API key');
   }
 
   const doFetch: FetchLike = fetchImpl ?? ((url) => fetch(url));
-  let cursor = 0;
-
-  /** Round-robin so a multi-key run spreads evenly instead of draining key 1 then key 2. */
-  const nextKey = (): string => {
-    const key = keys[cursor % keys.length];
-    cursor += 1;
-    return key;
-  };
 
   return {
     name: 'alphavantage',
-    keyCount: keys.length,
 
     fetchDividendSchedule: async (ticker: string): Promise<DividendScheduleRecord[]> => {
-      const url = `${baseUrl}/query?function=DIVIDENDS&symbol=${encodeURIComponent(ticker)}&apikey=${nextKey()}`;
+      const url = `${baseUrl}/query?function=DIVIDENDS&symbol=${encodeURIComponent(ticker)}&apikey=${key}`;
 
       let response: Awaited<ReturnType<FetchLike>>;
       try {
@@ -139,7 +134,7 @@ export const createAlphaVantageProvider = ({
       if (advisory !== null) {
         // "rate limit" / "25 requests per day" phrasing varies; anything advisory means no data.
         const code = /limit|frequency|premium/i.test(advisory) ? 'rate_limit' : 'auth';
-        throw new ProviderError(code, redactKeys(advisory, keys).slice(0, 200), ticker);
+        throw new ProviderError(code, redactKey(advisory, key).slice(0, 200), ticker);
       }
 
       const parsed = responseSchema.safeParse(body);
