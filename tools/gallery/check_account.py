@@ -13,7 +13,7 @@ from __future__ import annotations
 import sys
 from urllib.parse import quote
 
-from _supabase import SupabaseError, admin_get, find_user_by_email, rest_get
+from _supabase import SupabaseError, admin_get, find_user_by_email, rest_get, rest_get_public
 
 # posts 테이블의 1인당 상한 (마이그레이션 20260714000000 의 enforce_scenario_quota 트리거).
 POST_QUOTA = 30
@@ -56,7 +56,11 @@ def check(email: str) -> int:
 
     print("[2/3] profiles 행 조회")
     # posts.user_id 의 FK 대상은 auth.users 가 아니라 profiles 다 — 여기가 비면 insert 가 깨진다.
-    profiles = rest_get("profiles", f"id=eq.{quote(str(user_id))}&select=id,display_name,created_at")
+    #
+    # ⚠ 여기는 **공개키(anon)** 로 읽는다. service_role 로 읽으면 42501 로 막힌다 —
+    #   이 프로젝트는 service_role 에 테이블 GRANT 를 주지 않고, profiles 는 anon 에게
+    #   select 가 열린 공개 테이블이기 때문이다(20260714000000_community.sql).
+    profiles = rest_get_public("profiles", f"id=eq.{quote(str(user_id))}&select=id,display_name,created_at")
 
     if not profiles:
         print("  ✗ profiles 행이 없다 — posts.user_id 의 FK 대상이라 이 상태로는 insert 가 실패한다.")
@@ -67,7 +71,22 @@ def check(email: str) -> int:
     print(f"  ✓ display_name = {profile.get('display_name')}")
 
     print("[3/3] 글 쿼터 확인")
-    posts = rest_get("posts", f"user_id=eq.{quote(str(user_id))}&select=id,kind,is_public")
+    # 정확한 쿼터는 **비공개 글까지** 세야 한다. service_role 은 GRANT 가 없어 42501 로 막히고,
+    # 공개키는 RLS 상 공개 글만 본다 — 즉 어느 경로로도 소유자 시점의 정확한 수를 얻을 수 없다.
+    # 그래서 세어지는 만큼만 세고, **하한선임을 분명히 밝힌다**(모르면서 아는 척하지 않는다).
+    try:
+        posts = rest_get("posts", f"user_id=eq.{quote(str(user_id))}&select=id,kind,is_public")
+    except SupabaseError as error:
+        if "42501" not in str(error) and "permission denied" not in str(error):
+            raise
+        posts = rest_get_public("posts", f"user_id=eq.{quote(str(user_id))}&select=id,kind,is_public")
+        total = len(posts or [])
+        print(f"  · 공개 글 {total}개 확인 (비공개는 anon 권한으로 보이지 않는다 — RLS)")
+        print(f"    → 쿼터({POST_QUOTA}개) 정확 판정 불가. 넘었다면 insert 시 트리거가 거부한다.")
+        print()
+        print(f"USER_ID={user_id}")
+        return 0
+
     total = len(posts or [])
     private_count = sum(1 for post in (posts or []) if not post.get("is_public"))
     print(f"  ✓ 보유 글 {total}/{POST_QUOTA}개 (비공개 {private_count}개)")
