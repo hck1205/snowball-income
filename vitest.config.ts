@@ -17,6 +17,9 @@ export default defineConfig({
      * 테스트 수집에서만 제외한다.
      */
     exclude: [...configDefaults.exclude, '.claude/worktrees/**'],
+    // RTL asyncUtilTimeout 을 4초로 올렸으므로(test/setup.ts), 대기 2번이면 기본 5초를 넘는다.
+    // 부하 시 테스트 자체가 타임아웃으로 오인되지 않게 여유를 둔다.
+    testTimeout: 15000,
     // 테스트는 개발자의 로컬 .env 에 좌우되면 안 된다.
     // Vite 가 .env 를 읽어오므로, 커뮤니티 변수는 명시적으로 비워서 "백엔드 없는 기본 배포"
     // 상태를 고정한다. 커뮤니티가 켜진 경로는 readCommunityEnv 에 값을 주입해 테스트한다.

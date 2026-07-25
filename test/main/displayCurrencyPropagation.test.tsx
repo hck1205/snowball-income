@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'jotai/react';
@@ -108,6 +108,15 @@ const chartProbeText = async (name: string | RegExp): Promise<string> => {
 
 const resultCardText = (title: string): string =>
   screen.getByRole('heading', { name: title }).closest('section')?.textContent ?? '';
+
+beforeAll(async () => {
+  /*
+   * TickerModal 은 번들 분리 때문에 lazy(() => import(...)) 다(Main.view.tsx). 전체 스위트의
+   * 워커 경합에서는 "티커 생성 열기" 클릭 시점의 첫 모듈 변환(대형 티커 JSON 2종 포함)이
+   * 다이얼로그 대기 한도를 넘겨 이 파일만 플레이크가 됐다 — 테스트 밖에서 미리 데워 둔다.
+   */
+  await import('@/pages/Main/components/TickerModal');
+});
 
 beforeEach(() => {
   window.localStorage.clear();

@@ -1,6 +1,15 @@
 import '@testing-library/jest-dom';
+import { configure } from '@testing-library/react';
 import { createElement, forwardRef } from 'react';
 import { vi } from 'vitest';
+
+/*
+ * findBy·waitFor 기본 1초는 전체 스위트(워커 병렬)에서 이벤트 루프가 밀리면 모자란다 —
+ * 단독 실행은 통과하고 전체 실행에서만 다이얼로그/라이브리전 대기가 번갈아 타임아웃되는
+ * 플레이크가 반복됐다(displayCurrencyPropagation·dividendCalendarPage.behavior 실측).
+ * 진짜 실패는 어차피 실패한다 — 늦게 보고될 뿐이라 상향이 안전하다.
+ */
+configure({ asyncUtilTimeout: 4000 });
 
 class ResizeObserver {
   observe() {}
