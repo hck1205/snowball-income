@@ -23,6 +23,8 @@ export const COMMUNITY_COPY = {
     board: '게시판',
     /** 티커 SEO 소개 허브 링크(/ticker/all). 커뮤니티와 무관하게 항상 노출된다. */
     tickers: 'ETF 소개',
+    /** 배당 지급 월 캘린더(/dividend/calendar). 시뮬 결과가 아니라 관측 지급월 기반 페이지다. */
+    dividendCalendar: '배당 캘린더',
     /** 상세/글쓰기 하위에서 목록으로 복귀하는 뒤로가기 라벨. */
     list: '목록'
   },
