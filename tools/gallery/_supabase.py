@@ -71,7 +71,13 @@ def load_env(path: Path = ENV_FILE) -> dict[str, str]:
             if key:
                 values[key] = value
 
-    for key in ("VITE_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "VITE_SUPABASE_ANON_KEY"):
+    for key in (
+        "VITE_SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_ANON_KEY",
+        "VITE_SUPABASE_PUBLISHABLE_KEY",
+        "VITE_SUPABASE_ANON_KEY",
+    ):
         if os.environ.get(key):
             values[key] = os.environ[key]
 
@@ -213,8 +219,50 @@ def rest_get_as_user(path: str, query: str, access_token: str) -> Any:
     )
 
 
+def require_public_credentials() -> tuple[str, str]:
+    """(base_url, 공개키) 를 돌려준다. 공개키는 `anon` 롤로 붙는 키다.
+
+    키 이름은 Supabase 세대에 따라 다르다 — 신형은 `sb_publishable_…`(PUBLISHABLE), 구형은 anon 키.
+    api/*.js 가 쓰는 것과 **같은 폴백 순서**를 따른다(한쪽만 채운 환경에서도 도구가 돌아야 한다).
+    """
+    env = load_env()
+    url = (env.get("VITE_SUPABASE_URL") or "").rstrip("/")
+    key = (
+        env.get("SUPABASE_ANON_KEY")
+        or env.get("VITE_SUPABASE_PUBLISHABLE_KEY")
+        or env.get("VITE_SUPABASE_ANON_KEY")
+        or ""
+    )
+
+    if not url or not key:
+        raise SupabaseError(
+            "공개키 자격증명이 없다: VITE_SUPABASE_URL 과 "
+            "SUPABASE_ANON_KEY / VITE_SUPABASE_PUBLISHABLE_KEY / VITE_SUPABASE_ANON_KEY 중 하나가 필요하다."
+        )
+
+    return url, key
+
+
+def rest_get_public(path: str, query: str = "") -> Any:
+    """**anon 롤**로 PostgREST 읽기.
+
+    왜 service_role 이 아니라 이쪽인가: 이 프로젝트는 service_role 에 테이블 GRANT 를 주지 않는다
+    (`20260714000000_community.sql`). service_role 은 RLS 는 우회해도 **GRANT 는 우회하지 못해서**
+    `profiles` 같은 공개 테이블조차 42501 로 막힌다. `profiles` 는 애초에 `anon` 에게 select 가
+    열린 완전 공개 테이블이므로(같은 마이그레이션) 공개키로 읽는 게 정답이다.
+
+    ⚠ RLS 는 그대로 적용된다 — 비공개 행은 이 경로로 보이지 않는다.
+    """
+    url, key = require_public_credentials()
+    suffix = f"?{query}" if query else ""
+    return _request("GET", f"{url}/rest/v1/{path}{suffix}", key)
+
+
 def rest_get(path: str, query: str = "") -> Any:
-    """PostgREST 읽기. `path` 는 테이블명(예: `posts`)."""
+    """PostgREST 읽기. `path` 는 테이블명(예: `posts`).
+
+    ⚠ service_role 키로 붙는다 — 공개 테이블 읽기에는 **`rest_get_public` 을 써라**(위 설명 참고).
+    """
     url, key = require_credentials()
     suffix = f"?{query}" if query else ""
     return _request("GET", f"{url}/rest/v1/{path}{suffix}", key)

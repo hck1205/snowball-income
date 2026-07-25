@@ -139,6 +139,29 @@ describe('useProfileEditor — 닉네임 중복 확인', () => {
     expect(supa.updateMyProfile).not.toHaveBeenCalled();
   });
 
+  it('저장 직전 검사를 통과해도 DB 가 23505 로 거절하면 "이미 사용 중"으로 알린다', async () => {
+    // 경합의 패자 시나리오 — 재확인과 update 사이에 다른 사람이 같은 닉네임을 확정했다.
+    // UNIQUE 인덱스(profiles_display_name_lower_key)가 마지막에 막는다.
+    vi.mocked(supa.isNicknameTaken).mockResolvedValue(false);
+    vi.mocked(supa.updateMyProfile).mockRejectedValueOnce(
+      Object.assign(new Error('duplicate key value violates unique constraint'), { code: '23505' })
+    );
+    const { result } = setup();
+
+    await act(async () => {
+      result.current.nickname.onChange('선점당한이름');
+    });
+    await waitFor(() => expect(result.current.nickname.canSave).toBe(true), { timeout: 3000 });
+    await act(async () => {
+      result.current.nickname.onSave();
+    });
+
+    // 네트워크 오류 카피로 뭉뚱그리지 않는다 — 사용자는 재시도가 아니라 다른 이름을 골라야 한다.
+    await waitFor(() => expect(result.current.nickname.error).toBe(p.errorNicknameTaken));
+    expect(result.current.nickname.availability).toBe('taken');
+    expect(result.current.nickname.saved).toBe(false);
+  });
+
   it('본인 id 는 검사에서 제외해 자기 닉네임과 충돌하지 않는다', async () => {
     const { result } = setup();
 

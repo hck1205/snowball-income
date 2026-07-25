@@ -26,6 +26,8 @@ build/
 .vite/
 .eslintcache
 .cache/
+__pycache__/
+*.py[cod]
 
 # ---- 테스트 / 커버리지 ----
 coverage/
@@ -41,6 +43,9 @@ playwright-report/
 
 # ---- graphify 지식 그래프 (graphify update . 로 각자 로컬 생성) ----
 graphify-out/
+
+# ---- 세션 핸드오프 (로컬 전용 — 계정 id·이메일 등 운영 메모가 들어간다. 공개 레포에 올리지 않는다) ----
+HANDOFF.md
 
 # ---- 로그 / 런타임 ----
 *.log

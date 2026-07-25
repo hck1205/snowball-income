@@ -26,6 +26,16 @@ const isAuthError = (error: unknown): boolean => {
   );
 };
 
+/**
+ * 닉네임 UNIQUE 인덱스(`profiles_display_name_lower_key`) 위반인지 판별한다.
+ *
+ * Postgres 의 unique_violation = `23505`. 저장 직전 재확인을 통과하고도 여기 걸렸다면
+ * 그 사이에 다른 사람이 같은 닉네임을 확정한 것 — 즉 경합의 패자다.
+ * (`code` 는 `updateMyProfile` 이 PostgREST 에러에서 보존해 던진다.)
+ */
+const isNicknameConflict = (error: unknown): boolean =>
+  typeof error === 'object' && error !== null && (error as { code?: unknown }).code === '23505';
+
 /** 닉네임 중복 검사 상태. `available` 이라야 저장할 수 있다(무검사 저장 금지). */
 export type NicknameAvailability = 'idle' | 'checking' | 'available' | 'taken' | 'failed';
 
@@ -179,6 +189,11 @@ export function useProfileEditor(): ProfileEditor {
         if (isAuthError(error)) {
           setNicknameError(p.errorSessionExpired);
           openLoginPrompt();
+        } else if (isNicknameConflict(error)) {
+          // 위 재확인을 통과했는데도 DB 가 거절한 경우 = 진짜 동시 저장의 패자.
+          // 네트워크 오류로 뭉뚱그리면 사용자는 재시도만 반복하게 된다 — 사실대로 말한다.
+          setAvailability('taken');
+          setNicknameError(p.errorNicknameTaken);
         } else {
           setNicknameError(p.errorNicknameNetwork);
         }
