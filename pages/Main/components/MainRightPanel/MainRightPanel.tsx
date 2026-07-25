@@ -1,6 +1,7 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getTickerDisplayName } from '@/shared/utils';
 import { createPortal } from 'react-dom';
+import { ResponsiveEChart } from '@/components/common';
 import { useOptionalCommunityAuth } from '@/components/community/CommunityAuthProvider';
 import type { SimulationResult as SimulationResultRow } from '@/shared/types';
 import { DISPLAY_CURRENCY_COPY, DIVIDEND_UNIVERSE } from '@/shared/constants';
@@ -45,7 +46,6 @@ import {
 import { useMainComputed, useScenarioTabs, useSnowballForm, useTickerActions } from '@/pages/Main/hooks';
 // 형제 폴더 직접 참조 — 상위 배럴(@/pages/Main/components)은 이 파일 자신도 재수출해 import 순환이 된다.
 import { ChartPanel } from '../ChartPanel';
-import { ResponsiveEChart } from '../ResponsiveEChart';
 import {
   buildPresetPortfolio,
   computeAnnualGrowthRate,

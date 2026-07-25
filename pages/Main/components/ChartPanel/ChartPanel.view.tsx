@@ -1,6 +1,5 @@
 import { Card } from '@/components';
-import { HintText } from '@/components/common';
-import { ResponsiveEChart } from '../ResponsiveEChart';
+import { HintText, ResponsiveEChart } from '@/components/common';
 import { ChartPanelWrap } from './ChartPanel.styled';
 import type { ChartPanelViewProps } from './ChartPanel.types';
 

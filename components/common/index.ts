@@ -60,6 +60,9 @@ export {
 export { default as RangeSlider } from './RangeSlider';
 export type { RangeSliderProps } from './RangeSlider';
 
+export { ResponsiveEChart } from './ResponsiveEChart';
+export type { ResponsiveEChartProps } from './ResponsiveEChart';
+
 export { default as Select } from './Select';
 export type { SelectProps, SelectSize, SelectWidth } from './Select';
 

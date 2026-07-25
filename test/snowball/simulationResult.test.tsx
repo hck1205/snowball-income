@@ -14,7 +14,7 @@ import type { SimulationOutput, SimulationSummary } from '@/shared/types';
  * ResponsiveEChart를 스텁으로 갈아 끼워 게이지 래퍼의 role/aria 계약만 검증한다.
  * 기본(바) 뷰는 이 컴포넌트를 렌더하지 않으므로 기존 테스트에는 영향이 없다.
  */
-vi.mock('@/pages/Main/components/ResponsiveEChart', () => ({
+vi.mock('@/components/common/ResponsiveEChart', () => ({
   ResponsiveEChart: () => <div data-testid="gauge-canvas" />
 }));
 

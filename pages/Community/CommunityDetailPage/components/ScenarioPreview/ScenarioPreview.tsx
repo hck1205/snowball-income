@@ -3,7 +3,7 @@ import { buildScenarioSimSummary } from '@/shared/lib/snowball';
 import { ChevronDownIcon, SimSummaryStats } from '@/components/community';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
 import { usePalettePresetAtomValue } from '@/jotai';
-import { ResponsiveEChart } from '@/pages/Main/components/ResponsiveEChart';
+import { ResponsiveEChart } from '@/components/common';
 import type { ScenarioPreviewProps } from './ScenarioPreview.types';
 import { buildAllocationSummaryText, buildPreviewNormalizedAllocation, buildPreviewPieOption } from './ScenarioPreview.utils';
 import {
