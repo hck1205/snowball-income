@@ -53,6 +53,14 @@ function AnalyticsLayout() {
 const TickerHubPage = lazy(() => import('@/pages/Ticker/TickerHubPage'));
 const TickerDetailPage = lazy(() => import('@/pages/Ticker/TickerDetailPage'));
 
+/**
+ * 배당 지급 월 캘린더 — 티커 랜딩과 같은 `lazy` 격리.
+ *
+ * 시뮬레이터를 거치지 않는 독립 도구라 엔트리에 실을 이유가 없다. `PrimaryNav` 링크와 사이트맵
+ * 등록은 노출 결정 전까지 하지 않는다(주소를 아는 사람만 들어오는 상태).
+ */
+const DividendCalendarPage = lazy(() => import('@/pages/DividendCalendar/DividendCalendarPage'));
+
 const CommunityLayout = lazy(() => import('@/pages/Community/CommunityLayout'));
 const CommunityGalleryPage = lazy(() => import('@/pages/Community/CommunityGalleryPage'));
 const CommunityBoardPage = lazy(() => import('@/pages/Community/CommunityBoardPage'));
@@ -156,6 +164,14 @@ export const routes: RouteObject[] = [
         element: (
           <Suspense fallback={null}>
             <TickerDetailPage />
+          </Suspense>
+        )
+      },
+      {
+        path: '/dividend/calendar',
+        element: (
+          <Suspense fallback={null}>
+            <DividendCalendarPage />
           </Suspense>
         )
       },
