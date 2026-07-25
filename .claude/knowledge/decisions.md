@@ -8,6 +8,11 @@
 - [2026-07-17][design] CTA/브랜드 채움 위 라벨은 **반드시 `color.onBrand`** — 흰색 하드코딩 금지. velog·sunset·ink 다크는 라벨이 어두운색으로 반전된다 (README §1 교정 완료).
 - [2026-07-17][design] Toggle 썸은 정적 `#ffffff` — onBrand를 비브랜드 표면에 쓰면 velog 다크에서 소실(1.07:1 사고 이력).
 
+## 목표 달성 시각화 (feat/target-dividend-viz-v2)
+- [2026-07-26][design] **"월 평균 배당" 차트는 목표 설정 시(target>0) 분할 토글과 무관하게 기본 노출**(`showSplitGraphs || hasTarget`) — 목표선·도달 마커가 숨은 토글 뒤에 갇히던 G1 해소. 자산 가치·누적 배당은 분할 전용 유지, `showSplitGraphsAtom` 기본값 불변. 배치는 현행 자리(B안) — **A안(SimulationResult 바로 아래 이동)은 사용자 확인 대기**, 독단 이동 금지. 근거 pages/Main/components/MainRightPanel/MainRightPanel.tsx.
+- [2026-07-26][design] **목표 미설정 CTA 확정**: 서사 "목표 월배당을 정하면 도달 시점과 진행률을 함께 보여줘요."(구 "왼쪽 투자 설정…" 위치 안내는 ≤960px에서 거짓이라 삭제) + Chip accentAlt 3개(월 100/300/500만원 — GA value_bucket 경계 정렬) + "직접 입력"(ghost, ≤960px 드로어 오픈+목표 입력 rAF 포커스). 칩 클릭 → setField 경유(신규 atom 없음), 포커스는 rAF 뒤 서사로(aria-live 의도적 미사용). 콜백 미배선 시 액션 행 미렌더(격리 렌더 안전). 근거 components/SimulationResult/SimulationResult.tsx, test/snowball/simulationResultTargetCta.test.tsx.
+- [2026-07-26][design] **도달 markPoint 라벨 = 핀 밖 success×successSurface 상태 칩, 전 뷰포트 상시 표시**(onBrand 라벨·모바일 숨김 분기 폐기 — 다크 2.36:1 실측 실패였음). 목표선 라벨·서사 금액은 표시 통화 인식(formatChartCompact/formatResultAmount — 원화 고정 formatApproxKRW는 이 표면에서 제거). 근거 pages/Main/utils/charts.ts, shared/styles/chartTheme.ts successSurface.
+
 ## 테마 프리셋 시스템
 - [2026-07-17][design] 프리셋 8종, 기본 = `velog`(표시 라벨 "미니멀 그린" — 타사명 노출 회피, 사용자 고지됨). 순서: velog/forest/aurora/vivid/navy-gold/grape/sunset/ink.
 - [2026-07-17][design] velog 프리셋 라이트 bg는 **의도적 무틴트**(#f8f9fa, open-color 충실성이 정체성). 나머지 프리셋은 색상군 틴트 bg.
