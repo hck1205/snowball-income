@@ -3,6 +3,7 @@ import type { MonthlySnapshot, SimulationOutput, SimulationResult, YieldFormValu
 import { getTickerDisplayName } from '@/shared/utils';
 import { getChartTheme } from '@/shared/styles';
 import { computeCapitalGains, findFinancialIncomeThresholdYear, runSimulation, toPriceGrowth } from '@/shared/lib/snowball';
+import type { YearlyCashflowByTicker } from '@/shared/lib/charts';
 import type { NormalizedAllocationItem } from './portfolio';
 
 const runForProfile = (
@@ -181,16 +182,6 @@ export const buildSimulation = ({
     values
   });
   return bundle.simulation;
-};
-
-export type RecentCashflowByTicker = {
-  months: string[];
-  series: Array<{ name: string; data: number[]; color: string }>;
-};
-
-export type YearlyCashflowByTicker = {
-  years: number[];
-  byYear: Record<string, RecentCashflowByTicker & { totalDividend: number }>;
 };
 
 export type PostInvestmentDividendProjectionRow = {

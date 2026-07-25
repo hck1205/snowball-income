@@ -15,9 +15,9 @@ import {
   useSetActiveHelpWrite,
   useSetVisibleYearlySeriesWrite
 } from '@/jotai';
+import { buildRecentCashflowBarOption } from '@/shared/lib/charts';
 import {
   buildAllocationPieOption,
-  buildRecentCashflowBarOption,
   buildSimulationBundle,
   buildYearlyResultBarOption,
   createChartCompactFormatter,

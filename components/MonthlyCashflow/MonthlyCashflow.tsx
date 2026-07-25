@@ -1,7 +1,7 @@
 import { memo, useEffect, useMemo, useState } from 'react';
 import { Card } from '@/components';
 import { ChartWrap, HintText } from '@/components/common';
-import { buildRecentCashflowBarOption } from '@/pages/Main/utils';
+import { buildRecentCashflowBarOption } from '@/shared/lib/charts';
 import { formatKRW } from '@/shared/utils';
 import { usePalettePresetAtomValue } from '@/jotai';
 import type { MonthlyCashflowProps } from './MonthlyCashflow.types';

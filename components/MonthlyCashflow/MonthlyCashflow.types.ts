@@ -1,6 +1,6 @@
 import type { EChartsOption } from 'echarts';
 import type { ComponentType } from 'react';
-import type { YearlyCashflowByTicker } from '@/pages/Main/utils';
+import type { YearlyCashflowByTicker } from '@/shared/lib/charts';
 
 export type MonthlyCashflowProps = {
   chartOption?: EChartsOption;
