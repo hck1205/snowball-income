@@ -5,6 +5,7 @@ import { COMMUNITY_COPY } from '@/shared/constants/community';
 import { isCommunityEnabled } from '@/shared/lib/supabase';
 import {
   Brand,
+  NavScroller,
   BrandFallback,
   BrandLogo,
   BrandLogoImage,
@@ -34,7 +35,52 @@ const n = COMMUNITY_COPY.nav;
  * 글쓰기(`/portfolio/write`)·수정(`/portfolio/:id/edit`) 같은 하위 경로에서도 자기 섹션 탭이 활성으로 남는다
  * (routes.tsx의 자식 라우트 참고). 두 섹션은 형제 세그먼트라 서로를 활성화하지 않는다.
  */
-export default function PrimaryNav({ brandAs = 'span' }: PrimaryNavProps) {
+/** 라우트 링크 목록 — 윗줄(브랜드 옆)과 아랫줄(전용 스크롤 줄)이 공유하는 단일 정본. */
+const NavLinkItems = () => (
+  <>
+    <NavItem to="/" end aria-label={n.simulator}>
+      <LineChart size={16} strokeWidth={1.8} aria-hidden focusable={false} />
+      <NavLabel>{n.simulator}</NavLabel>
+    </NavItem>
+    <NavItem to="/ticker/all" aria-label={n.tickers}>
+      <BookOpen size={16} strokeWidth={1.8} aria-hidden focusable={false} />
+      <NavLabel>{n.tickers}</NavLabel>
+    </NavItem>
+    {isCommunityEnabled ? (
+      <>
+        <NavItem to="/community/portfolio" aria-label={n.gallery}>
+          <LayoutGrid size={16} strokeWidth={1.8} aria-hidden focusable={false} />
+          <NavLabel>{n.gallery}</NavLabel>
+        </NavItem>
+        <NavItem to="/community/board" aria-label={n.board}>
+          <MessageSquare size={16} strokeWidth={1.8} aria-hidden focusable={false} />
+          <NavLabel>{n.board}</NavLabel>
+        </NavItem>
+      </>
+    ) : null}
+  </>
+);
+
+/**
+ * 헤더 2줄째 전용 — 가운데 정렬 + 가로 스크롤 메뉴 줄.
+ *
+ * 가운데 정렬과 overflow 스크롤은 충돌한다(justify-content:center 는 넘친 왼쪽을 잘라 스크롤로도
+ * 못 닿게 만든다). 그래서 스크롤 컨테이너 안에서 **margin-inline:auto** 로 중앙을 잡는다 —
+ * 공간이 남으면 정중앙, 넘치면 자연스럽게 좌측부터 스크롤된다.
+ */
+export function PrimaryNavLinks() {
+  const inRouter = useInRouterContext();
+  if (!inRouter) return null;
+  return (
+    <NavScroller aria-label={n.primaryLabel}>
+      <NavItems $scrollRow>
+        <NavLinkItems />
+      </NavItems>
+    </NavScroller>
+  );
+}
+
+export default function PrimaryNav({ brandAs = 'span', withLinks = true }: PrimaryNavProps) {
   const inRouter = useInRouterContext();
   // 워드마크를 두 줄로 스택("Snowball" / "Income"). 사이의 공백 텍스트로 접근명 "Snowball Income"을 유지한다.
   const [brandFirst, ...brandRestWords] = n.brand.split(' ');
@@ -69,31 +115,11 @@ export default function PrimaryNav({ brandAs = 'span' }: PrimaryNavProps) {
     <Nav aria-label={n.primaryLabel}>
       <Brand to="/">{brandInner}</Brand>
 
-      <NavItems>
-        <NavItem to="/" end aria-label={n.simulator}>
-          <LineChart size={16} strokeWidth={1.8} aria-hidden focusable={false} />
-          <NavLabel>{n.simulator}</NavLabel>
-        </NavItem>
-        {/* 티커 SEO 소개 허브 — 커뮤니티 활성 여부와 무관하게 항상 노출(콘텐츠 페이지 자체는 lazy 청크에만 있고
-            여기 링크는 경로 문자열일 뿐이라 엔트리 번들이 커지지 않는다). */}
-        <NavItem to="/ticker/all" aria-label={n.tickers}>
-          <BookOpen size={16} strokeWidth={1.8} aria-hidden focusable={false} />
-          <NavLabel>{n.tickers}</NavLabel>
-        </NavItem>
-        {isCommunityEnabled ? (
-          <>
-            <NavItem to="/community/portfolio" aria-label={n.gallery}>
-              <LayoutGrid size={16} strokeWidth={1.8} aria-hidden focusable={false} />
-              {/* 다른 항목과 동일하게 한 줄 라벨(사용자 요청 — 구 2줄 스택 NavLabelStacked 폐기). */}
-              <NavLabel>{n.gallery}</NavLabel>
-            </NavItem>
-            <NavItem to="/community/board" aria-label={n.board}>
-              <MessageSquare size={16} strokeWidth={1.8} aria-hidden focusable={false} />
-              <NavLabel>{n.board}</NavLabel>
-            </NavItem>
-          </>
-        ) : null}
-      </NavItems>
+      {withLinks ? (
+        <NavItems>
+          <NavLinkItems />
+        </NavItems>
+      ) : null}
     </Nav>
   );
 }

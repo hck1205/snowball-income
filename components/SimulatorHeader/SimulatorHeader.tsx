@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { PrimaryNav } from '@/components/PrimaryNav';
+import { PrimaryNav, PrimaryNavLinks } from '@/components/PrimaryNav';
 import { Actions, ControlsRow, HeaderInner, HeaderRoot, LeadingSlot } from './SimulatorHeader.styled';
 import type { SimulatorHeaderProps } from './SimulatorHeader.types';
 
@@ -14,19 +14,19 @@ function SimulatorHeaderComponent({ leading, status, actions }: SimulatorHeaderP
   return (
     <HeaderRoot>
       <HeaderInner>
-        {/* 전역 nav — 로고+앱이름(홈 링크) + 라우트 링크(시뮬레이터·갤러리·게시판).
-            brandAs="h1"로 워드마크가 이 페이지의 랜드마크 제목("Snowball Income")을 겸한다. */}
-        <PrimaryNav brandAs="h1" />
-        {/* 2줄 — 좌: 모바일 설정 토글 + 클라우드 저장 상태 / 우: 로그인·더보기·테마.
-            PrimaryNav와 같은 3컬럼 그리드(1fr auto 1fr)라 두 줄의 좌우 끝선이 맞는다.
-            1열 슬롯은 내용이 없어도 렌더해 트랙 자리를 지킨다. */}
+        {/* 1줄(2026-07-25 개편) — 좌: 브랜드(홈 링크, h1 랜드마크 제목) + 설정 토글·저장 상태 /
+            우: 로그인·더보기·테마. 액션이 윗줄로 올라온 건 사용자 결정 — 메뉴보다 먼저 닿아야 하는
+            컨트롤이라서다. 라우트 링크는 아랫줄 전용(PrimaryNavLinks). */}
         <ControlsRow>
           <LeadingSlot>
+            <PrimaryNav brandAs="h1" withLinks={false} />
             {leading}
             {status}
           </LeadingSlot>
           {actions ? <Actions>{actions}</Actions> : null}
         </ControlsRow>
+        {/* 2줄 — 라우트 메뉴. 가운데 정렬 + 넘치면 가로 스크롤, 라벨은 어떤 폭에서도 유지. */}
+        <PrimaryNavLinks />
       </HeaderInner>
     </HeaderRoot>
   );

@@ -4,7 +4,7 @@ import { COMMUNITY_COPY } from '@/shared/constants/community';
 import { useIsLoggedInAtomValue } from '@/jotai/community';
 import { Button } from '@/components/common';
 import HeaderOverflowMenu from '@/components/HeaderOverflowMenu';
-import { PrimaryNav } from '@/components/PrimaryNav';
+import { PrimaryNav, PrimaryNavLinks } from '@/components/PrimaryNav';
 import { AuthControl } from '@/components/community/AuthControl';
 import { useCommunityAuth } from '@/components/community/CommunityAuthProvider';
 import { CommunitySearchBar } from '@/components/community/CommunitySearchBar';
@@ -65,16 +65,16 @@ export default function CommunityHeader() {
   return (
     <HeaderRoot>
       <HeaderInner>
-        <PrimaryNav />
-
+        {/* 1줄(2026-07-25 개편) — 브랜드는 컨트롤 줄 1열로, 라우트 메뉴는 아랫줄로. */}
         {/* 2번째 줄 — 뒤로가기(1열) · 가운데 검색(2열) · 우측 액션(3열).
             1줄째 PrimaryNav와 동일한 3컬럼 그리드라 두 줄의 가운데 중심선이 일치한다. */}
         <ControlsRow>
           {/* 뒤로가기: 목록 화면(갤러리/게시판 인덱스)에선 nav 링크가 이동을 담당하므로 숨기고,
               상세/글쓰기 등 하위 경로에서만 "← 목록"으로 자기 섹션 목록에 복귀한다.
               숨겨도 1열 트랙은 그대로 남아 가운데 검색 위치는 변하지 않는다. */}
-          {isIndex ? null : (
-            <BackSlot>
+          <BackSlot>
+            <PrimaryNav withLinks={false} />
+            {isIndex ? null : (
               <Button
                 variant="ghost"
                 size="sm"
@@ -84,8 +84,8 @@ export default function CommunityHeader() {
               >
                 <DesktopOnly>{COMMUNITY_COPY.nav.list}</DesktopOnly>
               </Button>
-            </BackSlot>
-          )}
+            )}
+          </BackSlot>
 
           {isGalleryIndex ? (
             <SearchSlot>
@@ -124,6 +124,7 @@ export default function CommunityHeader() {
             <HeaderOverflowMenu showTutorial={false} />
           </Actions>
         </ControlsRow>
+        <PrimaryNavLinks />
       </HeaderInner>
 
       {isGalleryIndex && mobileSearchOpen ? (
