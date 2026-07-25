@@ -43,7 +43,9 @@ import {
   useVisibleYearlySeriesAtomValue
 } from '@/jotai';
 import { useMainComputed, useScenarioTabs, useSnowballForm, useTickerActions } from '@/pages/Main/hooks';
-import { ChartPanel, ResponsiveEChart } from '@/pages/Main/components';
+// 형제 폴더 직접 참조 — 상위 배럴(@/pages/Main/components)은 이 파일 자신도 재수출해 import 순환이 된다.
+import { ChartPanel } from '../ChartPanel';
+import { ResponsiveEChart } from '../ResponsiveEChart';
 import {
   buildPresetPortfolio,
   computeAnnualGrowthRate,

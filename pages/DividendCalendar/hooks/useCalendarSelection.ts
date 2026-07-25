@@ -9,7 +9,8 @@ import {
   writeCalendarSelection
 } from '../utils';
 import type { CalendarTickerEntry } from '../utils';
-import type { CalendarLastAction, CalendarLoadStatus } from '../DividendCalendarPage';
+// types leaf 직접 참조 — 페이지 배럴은 페이지 컴포넌트(이 훅의 소비자)를 재수출해 import 순환이 된다.
+import type { CalendarLastAction, CalendarLoadStatus } from '../DividendCalendarPage/DividendCalendarPage.types';
 
 /** 계측 파라미터의 표면 이름(기존 택소노미 재사용 — 새 이벤트를 만들지 않는다). */
 const CALENDAR_ANALYTICS_SOURCE = 'dividend_calendar';
