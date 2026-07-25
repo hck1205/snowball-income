@@ -140,3 +140,13 @@ export const Adornment = styled.span<{ side: 'prefix' | 'suffix' }>`
 `;
 
 /* 셀렉트는 공용 프리미티브 `@/components/common/Select`가 그린다(구 BaseSelect 제거). */
+
+/**
+ * 입력 아래 보조 표기(달러 환산 등). 라벨보다 한 단계 작고 흐리게 — **입력값과 경쟁하지 않아야 한다.**
+ * 값이 없으면 컴포넌트가 아예 렌더하지 않으므로 여기서 빈 줄 높이를 예약하지 않는다.
+ */
+export const FieldHint = styled.span`
+  font-size: ${font.size.sm};
+  color: ${color.textMuted};
+  font-variant-numeric: tabular-nums;
+`;

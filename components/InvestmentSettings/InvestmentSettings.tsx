@@ -4,6 +4,7 @@ import CurrencyToggleField from '@/components/CurrencyToggleField';
 import { TOUR_TARGET } from '@/shared/constants';
 import type { YieldFormValues } from '@/shared/types';
 import type { InvestmentSettingsProps } from './InvestmentSettings.types';
+import { buildAmountHint } from './InvestmentSettings.utils';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import { clampPercent } from '@/pages/Main/utils';
 import {
@@ -106,11 +107,14 @@ function InvestmentSettingsComponent({
           <CurrencyToggleField display={display} onChangeCurrency={onChangeCurrency} />
           <ConfigSectionDivider aria-hidden="true" />
           <ConfigInputGrid>
+            {/* 금액 필드는 **원화로 입력·저장**하고 달러는 아래 줄에 참고로만 병기한다
+                (이유는 InvestmentSettings.utils 의 buildAmountHint 주석). */}
             <InputField
               label="초기 투자금 (원)"
               type="number"
               min={0}
               value={values.initialInvestment}
+              hint={buildAmountHint(values.initialInvestment, display)}
               onChange={(event) => onSetField('initialInvestment', Number(event.target.value))}
             />
             <InputField
@@ -118,6 +122,7 @@ function InvestmentSettingsComponent({
               type="number"
               min={0}
               value={values.monthlyContribution}
+              hint={buildAmountHint(values.monthlyContribution, display)}
               onChange={(event) => onSetField('monthlyContribution', Number(event.target.value))}
             />
             <InputField
@@ -145,6 +150,7 @@ function InvestmentSettingsComponent({
               type="number"
               min={0}
               value={values.targetMonthlyDividend}
+              hint={buildAmountHint(values.targetMonthlyDividend, display)}
               onChange={(event) => onSetField('targetMonthlyDividend', Number(event.target.value))}
             />
             <InlineField htmlFor="reinvest-timing">
