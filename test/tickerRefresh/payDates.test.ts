@@ -4,7 +4,7 @@ import {
   createAlphaVantageProvider,
   deriveExToPayLagDays,
   ProviderError,
-  redactKeys,
+  redactKey,
   toPaymentDatePayments
 } from '@/scripts/tickerRefresh';
 import type { DividendScheduleRecord } from '@/scripts/tickerRefresh';
@@ -100,29 +100,10 @@ describe('createAlphaVantageProvider', () => {
   };
 
   it('응답을 스케줄 레코드로 정규화한다', async () => {
-    const provider = createAlphaVantageProvider({ apiKeys: ['k1'], fetchImpl: async () => okResponse(body) });
+    const provider = createAlphaVantageProvider({ apiKey: 'k1', fetchImpl: async () => okResponse(body) });
     await expect(provider.fetchDividendSchedule('SCHD')).resolves.toEqual([
       { exDate: '2026-06-24', payDate: '2026-06-29', amount: 0.2525 }
     ]);
-  });
-
-  it('키를 번갈아 쓴다 (한 키만 소진되지 않게)', async () => {
-    const urls: string[] = [];
-    const provider = createAlphaVantageProvider({
-      apiKeys: ['k1', 'k2'],
-      fetchImpl: async (url) => {
-        urls.push(url);
-        return okResponse(body);
-      }
-    });
-
-    await provider.fetchDividendSchedule('A');
-    await provider.fetchDividendSchedule('B');
-    await provider.fetchDividendSchedule('C');
-
-    expect(urls[0]).toContain('apikey=k1');
-    expect(urls[1]).toContain('apikey=k2');
-    expect(urls[2]).toContain('apikey=k1');
   });
 
   /**
@@ -133,7 +114,7 @@ describe('createAlphaVantageProvider', () => {
     const limitBody = {
       Information: 'We have detected your API key ... 25 requests per day. Please subscribe to a premium plan.'
     };
-    const provider = createAlphaVantageProvider({ apiKeys: ['k1'], fetchImpl: async () => okResponse(limitBody) });
+    const provider = createAlphaVantageProvider({ apiKey: 'k1', fetchImpl: async () => okResponse(limitBody) });
 
     await expect(provider.fetchDividendSchedule('SCHD')).rejects.toMatchObject({
       name: 'ProviderError',
@@ -143,7 +124,7 @@ describe('createAlphaVantageProvider', () => {
 
   it('잘못된 키 안내는 auth 오류로 구분한다', async () => {
     const provider = createAlphaVantageProvider({
-      apiKeys: ['bad'],
+      apiKey: 'bad',
       fetchImpl: async () => okResponse({ 'Error Message': 'Invalid API KEY.' })
     });
 
@@ -157,14 +138,14 @@ describe('createAlphaVantageProvider', () => {
         { ex_dividend_date: '2026-06-24', payment_date: '2026-06-29', amount: '0.2525' }
       ]
     };
-    const provider = createAlphaVantageProvider({ apiKeys: ['k1'], fetchImpl: async () => okResponse(mixed) });
+    const provider = createAlphaVantageProvider({ apiKey: 'k1', fetchImpl: async () => okResponse(mixed) });
 
     await expect(provider.fetchDividendSchedule('SCHD')).resolves.toHaveLength(1);
   });
 
   it('HTTP 실패는 ProviderError 로 정규화한다', async () => {
     const provider = createAlphaVantageProvider({
-      apiKeys: ['k1'],
+      apiKey: 'k1',
       fetchImpl: async () => ({ ok: false, status: 503, json: async () => ({}) })
     });
 
@@ -172,7 +153,7 @@ describe('createAlphaVantageProvider', () => {
   });
 
   it('키가 하나도 없으면 만들 때 바로 실패한다', () => {
-    expect(() => createAlphaVantageProvider({ apiKeys: ['  '], fetchImpl: vi.fn() })).toThrow();
+    expect(() => createAlphaVantageProvider({ apiKey: '  ', fetchImpl: vi.fn() })).toThrow();
   });
 });
 
@@ -183,21 +164,17 @@ describe('createAlphaVantageProvider', () => {
 describe('redactKeys — 벤더 메시지의 키 마스킹', () => {
   it('메시지에 박힌 키를 지운다', () => {
     const message = 'We have detected your API key as EGWACOUKU10F20YX and our standard API rate limit is 25/day';
-    expect(redactKeys(message, ['EGWACOUKU10F20YX'])).not.toContain('EGWACOUKU10F20YX');
-    expect(redactKeys(message, ['EGWACOUKU10F20YX'])).toContain('***');
-  });
-
-  it('여러 키를 모두 지운다', () => {
-    expect(redactKeys('a=KEYAAAAAAAA b=KEYBBBBBBBB', ['KEYAAAAAAAA', 'KEYBBBBBBBB'])).toBe('a=*** b=***');
+    expect(redactKey(message, 'EGWACOUKU10F20YX')).not.toContain('EGWACOUKU10F20YX');
+    expect(redactKey(message, 'EGWACOUKU10F20YX')).toContain('***');
   });
 
   it('짧은 문자열은 건드리지 않는다 (평문을 우연히 지우지 않게)', () => {
-    expect(redactKeys('rate limit of 25 per day', ['25'])).toBe('rate limit of 25 per day');
+    expect(redactKey('rate limit of 25 per day', '25')).toBe('rate limit of 25 per day');
   });
 
   it('provider 가 던지는 한도 오류에 키가 남지 않는다', async () => {
     const provider = createAlphaVantageProvider({
-      apiKeys: ['SECRETKEY123456'],
+      apiKey: 'SECRETKEY123456',
       fetchImpl: async () => ({
         ok: true,
         status: 200,

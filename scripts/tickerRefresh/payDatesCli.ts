@@ -108,20 +108,14 @@ const readEnvFile = (): Record<string, string> => {
   return values;
 };
 
-/** Keys are numbered (`ALPHAVANTAGE_API_KEY_1`, `_2`, ...) so quota can be pooled across them. */
-const readApiKeys = (): string[] => {
+/**
+ * One key. Adding keys was tried and does not raise the ceiling — Alpha Vantage caps the free tier
+ * by IP as well, so two keys from one machine still stop at 25 requests for the day.
+ */
+const readApiKey = (): string | null => {
   const fromFile = readEnvFile();
   // A real environment variable wins over the file, so CI can override without editing anything.
-  const lookup = (name: string): string | undefined => process.env[name] || fromFile[name];
-
-  const keys: string[] = [];
-  const single = lookup('ALPHAVANTAGE_API_KEY');
-  if (single) keys.push(single);
-  for (let index = 1; index <= 10; index += 1) {
-    const key = lookup(`ALPHAVANTAGE_API_KEY_${index}`);
-    if (key) keys.push(key);
-  }
-  return keys;
+  return process.env.ALPHAVANTAGE_API_KEY || fromFile.ALPHAVANTAGE_API_KEY || null;
 };
 
 /**
@@ -165,24 +159,20 @@ const main = async (): Promise<number> => {
   }
   const { write, only, limit } = parsed.options;
 
-  const apiKeys = readApiKeys();
-  if (apiKeys.length === 0) {
-    console.error(
-      `${LOG_PREFIX} No API key. Set ALPHAVANTAGE_API_KEY (or ALPHAVANTAGE_API_KEY_1, _2, ...) in .env.`
-    );
+  const apiKey = readApiKey();
+  if (apiKey === null) {
+    console.error(`${LOG_PREFIX} No API key. Set ALPHAVANTAGE_API_KEY in .env.`);
     return 1;
   }
 
   const snapshot = await readSnapshot();
-  const provider = createAlphaVantageProvider({ apiKeys });
+  const provider = createAlphaVantageProvider({ apiKey });
 
-  // Never plan more calls than the pooled daily quota allows — going over just collects errors.
-  const budget = limit ?? apiKeys.length * ALPHA_VANTAGE_FREE_DAILY_LIMIT;
+  // Never plan more calls than the daily quota allows — going over just collects errors.
+  const budget = limit ?? ALPHA_VANTAGE_FREE_DAILY_LIMIT;
   const queue = prioritize(snapshot.entries, only).slice(0, budget);
 
-  console.log(
-    `${LOG_PREFIX} ${queue.length}종목 조회 (키 ${apiKeys.length}개 · 일일 예산 ${budget}건)${write ? '' : ' — DRY RUN'}`
-  );
+  console.log(`${LOG_PREFIX} ${queue.length}종목 조회 (일일 예산 ${budget}건)${write ? '' : ' — DRY RUN'}`);
 
   const entries: Record<string, MarketDataSnapshotEntry> = { ...snapshot.entries };
   const outcomes: PayDateOutcome[] = [];
