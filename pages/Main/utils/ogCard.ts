@@ -50,6 +50,33 @@ export type OgCardModel = {
    * ⚠ `?s=`/`?share=` 경로는 이 필드를 **설정하지 않는다**(undefined → 기존 달력연도 분기 유지, 출력 불변).
    */
   targetReachedInYears?: number | null;
+  /**
+   * **post 경로 전용**(`?post=<id>`) — 카드 헤드라인으로 쓸 글 제목.
+   *
+   * 왜 필요한가: 헤드라인 자리는 원래 구성 요약(`SCHD 30% · VIG 20% …`)인데, post 는 sim_summary 만
+   * 읽어서 종목별 비중이 없다. 그래서 `formatOgHoldingsLine` 이 "5개 종목" 같은 무정보 문구로 떨어졌다.
+   * 갤러리 글은 제목이 곧 그 글의 정체성이라 링크 미리보기에는 제목이 맞다.
+   * ⚠ `?s=`/`?share=` 는 이 필드를 **설정하지 않는다**(undefined → 구성 요약 유지, 출력 바이트 불변).
+   */
+  headline?: string | null;
+};
+
+/**
+ * 헤드라인 최대 길이(글자). 카드 폭 1200px · fontSize 44 에서 넘치지 않는 선.
+ * 한글 기준으로 잡았다 — 라틴 문자는 더 좁아 여유가 남는 쪽이라 안전하다.
+ */
+export const OG_CARD_HEADLINE_MAX = 24;
+
+/**
+ * 카드 헤드라인 정규화 — 줄바꿈·연속 공백을 한 칸으로 접고, 넘치면 말줄임한다.
+ *
+ * 제목은 사용자 입력이라 개행이나 과도한 공백이 들어올 수 있다. `@vercel/og` 의 flex 한 줄
+ * 레이아웃에서는 그런 문자가 줄을 밀어내거나 카드 밖으로 넘친다 — 그리기 전에 한 줄로 만든다.
+ */
+export const formatOgHeadline = (title: string): string => {
+  const collapsed = title.replace(/\s+/g, ' ').trim();
+  if (collapsed.length <= OG_CARD_HEADLINE_MAX) return collapsed;
+  return `${collapsed.slice(0, OG_CARD_HEADLINE_MAX - 1).trimEnd()}…`;
 };
 
 /** 1200px 카드 한 줄에 안정적으로 들어가는 최대 종목 수. 넘으면 "외 M개"로 접는다. */
@@ -263,12 +290,17 @@ export const buildOgCardModelFromSimSummary = (summary: ScenarioSimSummary): OgC
 /**
  * 포폴 글 raw jsonb(`posts.sim_summary`) → 카드 모델. `summarizeSharedScenarioForOg` 미러:
  * 파싱 실패(형태 불일치/모르는 버전) → null, 아니면 매핑. 예외는 삼켜 null(og 는 5xx 금지).
+ *
+ * `title` 을 주면 카드 헤드라인이 된다(비거나 공백뿐이면 무시하고 구성 요약으로 폴백).
+ * 제목이 없다고 카드를 포기하지는 않는다 — 숫자만으로도 미리보기의 값은 남는다.
  */
-export const summarizePostSimSummaryForOg = (raw: unknown): OgCardModel | null => {
+export const summarizePostSimSummaryForOg = (raw: unknown, title?: string | null): OgCardModel | null => {
   try {
     const summary = parseScenarioSimSummary(raw);
     if (!summary) return null;
-    return buildOgCardModelFromSimSummary(summary);
+    const model = buildOgCardModelFromSimSummary(summary);
+    const headline = typeof title === 'string' ? formatOgHeadline(title) : '';
+    return headline ? { ...model, headline } : model;
   } catch {
     return null;
   }

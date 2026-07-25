@@ -10776,6 +10776,12 @@ var buildSimulationBundle = ({
 };
 
 // pages/Main/utils/ogCard.ts
+var OG_CARD_HEADLINE_MAX = 24;
+var formatOgHeadline = (title) => {
+  const collapsed = title.replace(/\s+/g, " ").trim();
+  if (collapsed.length <= OG_CARD_HEADLINE_MAX) return collapsed;
+  return `${collapsed.slice(0, OG_CARD_HEADLINE_MAX - 1).trimEnd()}\u2026`;
+};
 var OG_CARD_MAX_HOLDINGS = 4;
 var toOgCardHoldings = (normalizedAllocation, maxItems = OG_CARD_MAX_HOLDINGS) => {
   const limit = Math.max(0, Math.floor(maxItems));
@@ -10874,11 +10880,13 @@ var buildOgCardModelFromSimSummary = (summary) => ({
   targetReachedYear: null,
   targetReachedInYears: summary.targetReachedInYears
 });
-var summarizePostSimSummaryForOg = (raw) => {
+var summarizePostSimSummaryForOg = (raw, title) => {
   try {
     const summary = parseScenarioSimSummary(raw);
     if (!summary) return null;
-    return buildOgCardModelFromSimSummary(summary);
+    const model = buildOgCardModelFromSimSummary(summary);
+    const headline = typeof title === "string" ? formatOgHeadline(title) : "";
+    return headline ? { ...model, headline } : model;
   } catch {
     return null;
   }
@@ -10926,12 +10934,12 @@ var restHeaders = (anonKey) => ({
   authorization: `Bearer ${anonKey}`,
   accept: "application/json"
 });
-var fetchPublicPostSimSummary = async (id) => {
+var fetchPublicPostOgSource = async (id) => {
   if (!POST_ID_PATTERN.test(id)) return null;
   const config = readSupabaseRestConfig();
   if (!config) return null;
   const query = new URLSearchParams({
-    select: "sim_summary",
+    select: "title,sim_summary",
     id: `eq.${id}`,
     kind: "eq.portfolio",
     is_public: "eq.true",
@@ -10944,7 +10952,11 @@ var fetchPublicPostSimSummary = async (id) => {
     if (!response.ok) return null;
     const rows = await response.json().catch(() => null);
     if (!Array.isArray(rows) || rows.length === 0) return null;
-    return rows[0].sim_summary ?? null;
+    const row = rows[0];
+    return {
+      title: typeof row.title === "string" && row.title.trim() ? row.title : null,
+      simSummary: row.sim_summary ?? null
+    };
   } catch {
     return null;
   }
@@ -11161,7 +11173,7 @@ var Shell = ({ children }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
   }
 );
 var ScenarioCard = ({ model }) => {
-  const holdingsLine = formatOgHoldingsLine(model.holdings, model.hiddenHoldingCount);
+  const holdingsLine = model.headline || formatOgHoldingsLine(model.holdings, model.hiddenHoldingCount);
   const contributionLine = `\uC6D4 ${formatOgAmount(model.monthlyContribution)} \uC801\uB9BD \xB7 ${model.durationYears}\uB144 \uD22C\uC790`;
   const targetLine = model.targetMonthlyDividend <= 0 ? `${model.durationYears}\uB144 \uD6C4 \uAE30\uC900` : model.targetReachedInYears != null ? `\uBAA9\uD45C \uC6D4 \uBC30\uB2F9 ${model.targetReachedInYears}\uB144\uCC28 \uB2EC\uC131` : model.targetReachedYear !== null ? `\uBAA9\uD45C \uC6D4 \uBC30\uB2F9 ${model.targetReachedYear}\uB144 \uB3C4\uB2EC` : "\uAE30\uAC04 \uB0B4 \uBAA9\uD45C \uBBF8\uB3C4\uB2EC";
   return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Shell, { children: [
@@ -11199,7 +11211,8 @@ var DefaultCard = () => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Shell, { ch
 var resolveCardModel = async (searchParams) => {
   const postId = searchParams.get("post");
   if (postId && POST_ID_PATTERN.test(postId)) {
-    const model = summarizePostSimSummaryForOg(await fetchPublicPostSimSummary(postId));
+    const source = await fetchPublicPostOgSource(postId);
+    const model = summarizePostSimSummaryForOg(source?.simSummary, source?.title);
     if (model) return model;
   }
   const dbKey = searchParams.get("s");

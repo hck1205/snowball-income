@@ -5,9 +5,12 @@ import {
   buildNormalizedAllocation,
   buildSimulationBundle,
   formatOgAmount,
+  formatOgHeadline,
   formatOgHoldingsLine,
   getIncludedProfiles,
+  OG_CARD_HEADLINE_MAX,
   OG_CARD_MAX_HOLDINGS,
+  summarizePostSimSummaryForOg,
   summarizeShareCodeForOg,
   toOgCardHoldings
 } from '@/pages/Main/utils';
@@ -223,5 +226,66 @@ describe('summarizeShareCodeForOg', () => {
     };
 
     expect(summarizeShareCodeForOg('anything', throwingDecoder)).toBeNull();
+  });
+});
+
+/**
+ * post 카드(`/api/og?post=<id>`)는 sim_summary 만 읽어 **종목별 비중이 없다**.
+ * 그대로 두면 헤드라인이 "5개 종목" 같은 무정보 문구가 되므로 글 제목을 헤드라인으로 쓴다.
+ */
+describe('summarizePostSimSummaryForOg — post 카드 헤드라인', () => {
+  const summary = {
+    version: 1,
+    durationYears: 20,
+    tickerCount: 5,
+    initialInvestment: 10_000_000,
+    monthlyContribution: 1_500_000,
+    totalContribution: 370_000_000,
+    finalAssetValue: 990_000_000,
+    finalMonthlyDividend: 3_670_000,
+    targetMonthlyDividend: 2_000_000,
+    targetReachedInYears: 15
+  };
+
+  it('제목을 주면 헤드라인이 된다', () => {
+    expect(summarizePostSimSummaryForOg(summary, '인컴×성장 바벨 포트폴리오')?.headline).toBe(
+      '인컴×성장 바벨 포트폴리오'
+    );
+  });
+
+  it('제목이 없거나 공백뿐이면 헤드라인을 세우지 않는다 (구성 요약으로 폴백)', () => {
+    expect(summarizePostSimSummaryForOg(summary)?.headline).toBeUndefined();
+    expect(summarizePostSimSummaryForOg(summary, '   ')?.headline).toBeUndefined();
+    expect(summarizePostSimSummaryForOg(summary, null)?.headline).toBeUndefined();
+  });
+
+  it('제목이 없어도 카드 자체는 그린다 — 숫자만으로도 미리보기 값은 남는다', () => {
+    const model = summarizePostSimSummaryForOg(summary);
+    expect(model).not.toBeNull();
+    expect(model?.finalMonthlyDividend).toBe(3_670_000);
+  });
+
+  it('깨진 sim_summary 에는 예외 대신 null (og 는 5xx 금지)', () => {
+    expect(summarizePostSimSummaryForOg(null, '제목')).toBeNull();
+    expect(summarizePostSimSummaryForOg({ version: 999 }, '제목')).toBeNull();
+  });
+});
+
+describe('formatOgHeadline — 한 줄 정규화', () => {
+  it('줄바꿈·연속 공백을 한 칸으로 접는다 (flex 한 줄 레이아웃이 깨지지 않게)', () => {
+    expect(formatOgHeadline('배당  포트폴리오\n공개')).toBe('배당 포트폴리오 공개');
+    expect(formatOgHeadline('  앞뒤 공백  ')).toBe('앞뒤 공백');
+  });
+
+  it('길면 말줄임한다 — 카드 밖으로 넘치는 쪽이 더 나쁘다', () => {
+    const long = '가'.repeat(40);
+    const result = formatOgHeadline(long);
+    expect(result).toHaveLength(OG_CARD_HEADLINE_MAX);
+    expect(result.endsWith('…')).toBe(true);
+  });
+
+  it('경계 길이는 자르지 않는다', () => {
+    const exact = '나'.repeat(OG_CARD_HEADLINE_MAX);
+    expect(formatOgHeadline(exact)).toBe(exact);
   });
 });
