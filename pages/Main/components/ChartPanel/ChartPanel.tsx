@@ -16,13 +16,15 @@ function ChartPanelComponent<T>({
   yAxisLabelFormatter,
   chartLabelSuffix,
   getXValue,
-  getYValue
+  getYValue,
+  referenceLine,
+  reachMarker
 }: ChartPanelProps<T>) {
   /* 캔버스는 CSS 변수를 다시 읽지 않는다 — 팔레트 프리셋 전환 시 옵션을 다시 빌드해야 한다. */
   const palettePreset = usePalettePresetAtomValue();
   const chartOption = useMemo<EChartsOption>(
-    () => buildLineChartOption({ rows, getXValue, getYValue, xAxisLabel, yAxisLabelFormatter }),
-    [getXValue, getYValue, palettePreset, rows, xAxisLabel, yAxisLabelFormatter]
+    () => buildLineChartOption({ rows, getXValue, getYValue, xAxisLabel, yAxisLabelFormatter, referenceLine, reachMarker }),
+    [getXValue, getYValue, palettePreset, rows, xAxisLabel, yAxisLabelFormatter, referenceLine, reachMarker]
   );
 
   return (

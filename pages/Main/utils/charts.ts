@@ -42,17 +42,73 @@ export const buildLineChartOption = <TRow>({
   getXValue,
   getYValue,
   xAxisLabel,
-  yAxisLabelFormatter
+  yAxisLabelFormatter,
+  referenceLine,
+  reachMarker
 }: {
   rows: TRow[];
   getXValue: (row: TRow) => string;
   getYValue: (row: TRow) => number;
   xAxisLabel?: string;
   yAxisLabelFormatter?: (value: number) => string;
+  /** 목표선(markLine). `value>0`일 때만 그린다. `reached`로 도달(success)/미도달(warning) 색을 가른다. */
+  referenceLine?: { value: number; label: string; reached: boolean };
+  /** 도달 마커(markPoint). 도달 연도가 있을 때만 전달한다. */
+  reachMarker?: { xCategory: string; value: number; label: string };
 }): EChartsOption => {
   const formatValue = yAxisLabelFormatter ?? defaultAxisValueFormatter;
   const theme = getChartTheme();
   const axis = buildAxisStyle(theme);
+
+  /* 목표선/도달마커/y축 max 가드는 모두 target>0(목표 설정됨)일 때만. target≤0이면 전부 생략. */
+  const hasTarget = referenceLine !== undefined && referenceLine.value > 0;
+  const dataMax = rows.reduce((max, row) => Math.max(max, getYValue(row)), 0);
+  const yAxisMax = hasTarget ? Math.max(dataMax, referenceLine!.value) * 1.1 : undefined;
+
+  /* 모바일(≤480px)에서는 도달 markPoint 라벨을 숨기고 심볼만 남긴다(공간 절약). jsdom엔 matchMedia가
+   * 없어 라벨이 보이는 쪽으로 폴백한다 — 이 분기는 실브라우저 확인 항목. */
+  const isNarrowViewport =
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(max-width: 480px)').matches;
+
+  const markLine =
+    hasTarget && referenceLine
+      ? {
+          silent: true,
+          symbol: 'none' as const,
+          lineStyle: {
+            type: 'dashed' as const,
+            width: 2,
+            color: referenceLine.reached ? theme.success : theme.warning
+          },
+          label: {
+            formatter: referenceLine.label,
+            position: 'insideEndTop' as const,
+            color: referenceLine.reached ? theme.success : theme.warning,
+            fontFamily: theme.fontFamily,
+            fontSize: 11
+          },
+          data: [{ yAxis: referenceLine.value }]
+        }
+      : undefined;
+
+  const markPoint =
+    hasTarget && reachMarker
+      ? {
+          symbol: 'pin' as const,
+          symbolSize: 44,
+          itemStyle: { color: theme.success },
+          label: {
+            show: !isNarrowViewport,
+            formatter: reachMarker.label,
+            color: theme.onBrand,
+            fontSize: 10,
+            fontFamily: theme.fontFamily
+          },
+          data: [{ name: reachMarker.label, xAxis: reachMarker.xCategory, yAxis: reachMarker.value }]
+        }
+      : undefined;
 
   return {
     animation: false,
@@ -74,6 +130,7 @@ export const buildLineChartOption = <TRow>({
     yAxis: {
       type: 'value',
       ...axis,
+      max: yAxisMax,
       axisLine: { show: false },
       axisLabel: {
         color: theme.label,
@@ -90,7 +147,9 @@ export const buildLineChartOption = <TRow>({
         lineStyle: { width: 2, color: theme.brand },
         itemStyle: { color: theme.brand },
         areaStyle: buildAuroraAreaStyle(theme),
-        data: rows.map((row) => getYValue(row))
+        data: rows.map((row) => getYValue(row)),
+        markLine,
+        markPoint
       }
     ]
   };

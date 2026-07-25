@@ -71,7 +71,7 @@ export {
   SeriesFilterRow
 } from './SeriesFilter';
 
-export { default as StatTile } from './StatTile';
+export { default as StatTile, toProgressPercent } from './StatTile';
 export type { StatEmphasis, StatTileProps, StatTone } from './StatTile';
 
 export { default as Tabs } from './Tabs';

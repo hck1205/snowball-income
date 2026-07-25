@@ -50,6 +50,7 @@ import {
   buildPresetPortfolio,
   computeAnnualGrowthRate,
   createResultAmountFormatter,
+  formatApproxKRW,
   formatPercent,
   targetYearLabel
 } from '@/pages/Main/utils';
@@ -176,6 +177,34 @@ function MainRightPanelComponent() {
   const getMonthlyDividend = useCallback((row: SimulationResultRow) => row.monthlyDividend, []);
   const getAssetValue = useCallback((row: SimulationResultRow) => row.assetValue, []);
   const getCumulativeDividend = useCallback((row: SimulationResultRow) => row.cumulativeDividend, []);
+  /*
+   * "월 평균 배당" 차트의 목표선/도달 마커. target≤0(미설정)이면 둘 다 undefined → charts.ts가 markLine/
+   * markPoint/y축 max 가드를 모두 생략한다. ChartPanel이 memo라 객체를 memo로 안정화해 리렌더를 막는다.
+   */
+  const targetMonthlyDividend = values.targetMonthlyDividend;
+  const targetReachedYear = simulation?.summary.targetMonthDividendReachedYear;
+  const monthlyDividendReferenceLine = useMemo(
+    () =>
+      targetMonthlyDividend > 0
+        ? {
+            value: targetMonthlyDividend,
+            label: `목표 ${formatApproxKRW(targetMonthlyDividend)}`,
+            reached: targetReachedYear !== undefined
+          }
+        : undefined,
+    [targetMonthlyDividend, targetReachedYear]
+  );
+  const monthlyDividendReachMarker = useMemo(
+    () =>
+      targetMonthlyDividend > 0 && targetReachedYear !== undefined
+        ? {
+            xCategory: String(targetReachedYear),
+            value: targetMonthlyDividend,
+            label: `${targetReachedYear}년 도달`
+          }
+        : undefined,
+    [targetMonthlyDividend, targetReachedYear]
+  );
   const projectedAnnualDividendGrowthRate = computeAnnualGrowthRate(postInvestmentDividendProjectionRows, (row) => row.annualDividend);
   const projectedAnnualAssetGrowthRate = computeAnnualGrowthRate(postInvestmentDividendProjectionRows, (row) => row.assetValue);
   const postInvestmentChartTitle =
@@ -352,6 +381,8 @@ function MainRightPanelComponent() {
                 emptyMessage={emptyGraphMessage}
                 getXValue={getYear}
                 getYValue={getMonthlyDividend}
+                referenceLine={monthlyDividendReferenceLine}
+                reachMarker={monthlyDividendReachMarker}
                 yAxisLabelFormatter={formatChartValue}
                 chartLabelSuffix={chartLabelSuffix}
               />

@@ -14,6 +14,10 @@ export type ChartPanelProps<T> = {
   chartLabelSuffix?: string;
   getXValue: (row: T) => string;
   getYValue: (row: T) => number;
+  /** 목표선(markLine) — "월 평균 배당" 인스턴스에서만 전달. `value>0`일 때만 렌더된다. */
+  referenceLine?: { value: number; label: string; reached: boolean };
+  /** 도달 마커(markPoint) — 도달 연도가 있을 때만 전달. */
+  reachMarker?: { xCategory: string; value: number; label: string };
 };
 
 export type ChartPanelViewProps = {

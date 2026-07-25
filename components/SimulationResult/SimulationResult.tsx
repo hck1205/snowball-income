@@ -1,10 +1,16 @@
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
+import type { EChartsOption } from 'echarts';
+import { CircleCheck, CircleDashed, Target, type LucideIcon } from 'lucide-react';
 import { Banner, Card, StatTile, ToggleField } from '@/components';
 import type { StatTone } from '@/components';
+import { toProgressPercent } from '@/components/common';
+import { ResponsiveEChart } from '@/pages/Main/components';
 import type { SimulationResultProps } from './SimulationResult.types';
 import { CompactSummaryHelpButton } from '@/components/common';
-import { useSetActiveHelpWrite } from '@/jotai';
+import { usePalettePresetAtomValue, useSetActiveHelpWrite } from '@/jotai';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
+import { formatApproxKRW } from '@/shared/utils';
+import { getChartTheme } from '@/shared/styles';
 import {
   CAPITAL_GAINS_ANNUAL_DEDUCTION,
   FINANCIAL_INCOME_TAX_THRESHOLD,
@@ -12,7 +18,13 @@ import {
   TOUR_TARGET
 } from '@/shared/constants';
 import {
+  GaugeWrapper,
   HeroSlot,
+  NarrativeBlock,
+  NarrativeBody,
+  NarrativeIcon,
+  NarrativeText,
+  NarrativeToggleSlot,
   SummaryGrid,
   TaxAssumptionNote,
   TaxSection,
@@ -20,6 +32,7 @@ import {
   TaxSectionTitle,
   WarningSlot
 } from './SimulationResult.styled';
+import type { NarrativeTone } from './SimulationResult.styled';
 
 const toManWon = (won: number): string => `${(won / 10_000).toLocaleString()}만원`;
 
@@ -92,6 +105,91 @@ function SimulationResultComponent({
         : Math.min(1, Math.max(0, summary.finalMonthlyAverageDividend / targetMonthlyDividend))
       : undefined;
 
+  const hasTarget = targetMonthlyDividend > 0;
+  const reached = summary.targetMonthDividendReachedYear !== undefined;
+  const reachedYear = summary.targetMonthDividendReachedYear;
+  const durationYears = simulation.yearly.length;
+
+  /* 진행률 뷰(수평바 ↔ 원형 게이지). 로컬 상태(영속 안 함), 기본은 수평바(false). */
+  const [isGaugeView, setIsGaugeView] = useState(false);
+  /* 좁은 화면(≤360px)에선 게이지 대신 바를 강제한다. matchMedia 미지원(jsdom)이면 false → 게이지 허용. */
+  const [isNarrowScreen] = useState<boolean>(
+    () =>
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(max-width: 360px)').matches
+  );
+  const showGauge = hasTarget && isGaugeView && !isNarrowScreen;
+  /* 바와 게이지가 반드시 같은 숫자를 쓰도록 단일 출처(toProgressPercent)에서 퍼센트를 뽑는다. */
+  const targetProgressPercent = targetProgress !== undefined ? toProgressPercent(targetProgress) : 0;
+
+  /* 캔버스는 CSS 변수를 다시 읽지 않는다 — 팔레트 프리셋 전환 시 게이지 옵션을 다시 빌드한다. */
+  const palettePreset = usePalettePresetAtomValue();
+  const gaugeOption = useMemo<EChartsOption>(() => {
+    const theme = getChartTheme();
+    const gaugeColor = reached ? theme.success : theme.warning;
+    return {
+      series: [
+        {
+          type: 'gauge',
+          min: 0,
+          max: 100,
+          startAngle: 220,
+          endAngle: -40,
+          radius: '100%',
+          center: ['50%', '58%'],
+          progress: { show: true, width: 12, roundCap: true, itemStyle: { color: gaugeColor } },
+          axisLine: { lineStyle: { width: 12, color: [[1, theme.progressTrack]] as [number, string][] } },
+          pointer: { show: false },
+          axisTick: { show: false },
+          splitLine: { show: false },
+          axisLabel: { show: false },
+          anchor: { show: false },
+          title: {
+            show: true,
+            offsetCenter: [0, '26%'],
+            fontSize: 11,
+            color: theme.textMuted,
+            fontFamily: theme.fontFamily
+          },
+          detail: {
+            valueAnimation: true,
+            offsetCenter: [0, '-6%'],
+            fontSize: 28,
+            fontWeight: 'bolder',
+            color: gaugeColor,
+            fontFamily: theme.fontFamily,
+            formatter: '{value}%'
+          },
+          data: [{ value: targetProgressPercent, name: '목표 달성률' }]
+        }
+      ]
+    };
+  }, [palettePreset, reached, targetProgressPercent]);
+
+  /* 서사 하이라이트 — 상태별 톤/아이콘/문장. 금액은 항상 formatApproxKRW(compact 토글 무관). */
+  const narrative: { tone: NarrativeTone; Icon: LucideIcon; text: string } = !hasTarget
+    ? {
+        tone: 'muted',
+        Icon: CircleDashed,
+        text: "목표 월배당을 정하면 달성 시점을 계산해 드려요. 왼쪽 투자 설정의 '목표 월배당'에 금액을 입력해 보세요."
+      }
+    : !reached
+      ? {
+          tone: 'warning',
+          Icon: Target,
+          text: `지금 조건으로는 ${durationYears}년 안에 목표 월배당 ${formatApproxKRW(targetMonthlyDividend)}에 닿지 못해요. 마지막 해 월배당은 ${formatApproxKRW(summary.finalMonthlyAverageDividend)}입니다. 월 적립이나 투자 기간을 늘리면 도달 시점이 앞당겨져요.`
+        }
+      : (() => {
+          const yearsToReach = simulation.yearly.findIndex((row) => row.year === reachedYear) + 1;
+          const reachSuffix = yearsToReach > 0 ? ` (투자 ${yearsToReach}년차)` : '';
+          return {
+            tone: 'success' as NarrativeTone,
+            Icon: CircleCheck,
+            text: `목표 월배당 ${formatApproxKRW(targetMonthlyDividend)}을 ${targetYearLabel(reachedYear)}에 달성해요.${reachSuffix}`
+          };
+        })();
+
   return (
     <Card
       title={title}
@@ -146,6 +244,42 @@ function SimulationResultComponent({
               value={formatResultAmount(summary.finalAssetValue, isResultCompact)}
             />
           </HeroSlot>
+          {/* 목표 도달 서사 — hero 바로 아래, 그리드 한 줄 전체. 우측 상단에 진행률 뷰 토글. */}
+          <NarrativeBlock tone={narrative.tone}>
+            <NarrativeIcon tone={narrative.tone} aria-hidden="true">
+              <narrative.Icon size={20} strokeWidth={1.8} />
+            </NarrativeIcon>
+            <NarrativeBody>
+              <NarrativeText tone={narrative.tone}>{narrative.text}</NarrativeText>
+              {showGauge ? (
+                <GaugeWrapper
+                  role="img"
+                  aria-label={reached ? '목표 달성' : `목표의 ${targetProgressPercent}% 도달`}
+                >
+                  <ResponsiveEChart option={gaugeOption} />
+                </GaugeWrapper>
+              ) : null}
+            </NarrativeBody>
+            {hasTarget ? (
+              <NarrativeToggleSlot>
+                <ToggleField
+                  label="진행률 표시 방식"
+                  hideLabel
+                  checked={isGaugeView}
+                  controlWidth="60px"
+                  offText="바"
+                  onText="게이지"
+                  onChange={(event) => {
+                    trackEvent(ANALYTICS_EVENT.TOGGLE_CHANGED, {
+                      field_name: 'targetProgressView',
+                      value: event.target.checked
+                    });
+                    setIsGaugeView(event.target.checked);
+                  }}
+                />
+              </NarrativeToggleSlot>
+            ) : null}
+          </NarrativeBlock>
           <StatTile
             label="월배당(월평균: 연/12)"
             value={formatResultAmount(summary.finalMonthlyAverageDividend, isResultCompact)}
@@ -171,9 +305,13 @@ function SimulationResultComponent({
           <StatTile label="누적 순배당" value={formatResultAmount(summary.totalNetDividend, isResultCompact)} />
           <StatTile label="누적 세금" value={formatResultAmount(summary.totalTaxPaid, isResultCompact)} />
           <StatTile
-            label={`목표 월배당 도달 (${formatResultAmount(targetMonthlyDividend, isResultCompact)})`}
-            value={targetYearLabel(summary.targetMonthDividendReachedYear)}
-            progress={targetProgress}
+            label={
+              hasTarget
+                ? `목표 월배당 도달 (${formatResultAmount(targetMonthlyDividend, isResultCompact)})`
+                : '목표 월배당'
+            }
+            value={hasTarget ? targetYearLabel(summary.targetMonthDividendReachedYear) : '미설정'}
+            progress={showGauge ? undefined : targetProgress}
             progressLabel="목표 월배당 달성률"
           />
         </SummaryGrid>

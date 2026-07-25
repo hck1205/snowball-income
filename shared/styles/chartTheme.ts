@@ -31,6 +31,10 @@ const FALLBACK = {
   textMuted: FALLBACK_TOKENS['text-muted'],
   brand: FALLBACK_TOKENS.brand,
   accent: FALLBACK_TOKENS.accent,
+  onBrand: FALLBACK_TOKENS['on-brand'],
+  progressTrack: FALLBACK_TOKENS['progress-track'],
+  success: FALLBACK_TOKENS.success,
+  warning: FALLBACK_TOKENS.warning,
   series: Array.from({ length: 8 }, (_, index) => FALLBACK_TOKENS[`chart-series-${index}`])
 } as const;
 
@@ -51,6 +55,14 @@ export type ChartTheme = {
   brand: string;
   /** 액센트 — area gradient의 꼬리 색(장식). 데이터 방향 의미 아님. */
   accent: string;
+  /** brand/success 필 위에 얹는 대비 텍스트 색(`--sb-on-brand`). 도달 markPoint 핀 라벨용. */
+  onBrand: string;
+  /** 진행률 트랙 배경색(`--sb-progress-track`). 원형 게이지 axisLine 트랙용. */
+  progressTrack: string;
+  /** 의미색 — 목표 도달/달성(초록, `--sb-success`). markLine/markPoint. */
+  success: string;
+  /** 의미색 — 미도달/목표선(앰버, `--sb-warning`). markLine. */
+  warning: string;
   /**
    * 카테고리 시리즈 8색 (`--sb-chart-series-0..7`) — 현재 프리셋의 세트.
    * 파이 조각·시리즈 라인 등 캔버스 색은 전부 여기서 가져간다(구 `CHART_SERIES` 대체).
@@ -69,6 +81,10 @@ export const getChartTheme = (): ChartTheme => ({
   textMuted: readVar('--sb-text-muted', FALLBACK.textMuted),
   brand: readVar('--sb-brand', FALLBACK.brand),
   accent: readVar('--sb-accent', FALLBACK.accent),
+  onBrand: readVar('--sb-on-brand', FALLBACK.onBrand),
+  progressTrack: readVar('--sb-progress-track', FALLBACK.progressTrack),
+  success: readVar('--sb-success', FALLBACK.success),
+  warning: readVar('--sb-warning', FALLBACK.warning),
   series: FALLBACK.series.map((fallback, index) => readVar(`--sb-chart-series-${index}`, fallback)),
   fontFamily: font.sans,
   labelFontSize: 12
@@ -86,6 +102,10 @@ const toChartTheme = (tokens: ThemeTokens): ChartTheme => ({
   textMuted: tokens['text-muted'],
   brand: tokens.brand,
   accent: tokens.accent,
+  onBrand: tokens['on-brand'],
+  progressTrack: tokens['progress-track'],
+  success: tokens.success,
+  warning: tokens.warning,
   series: Array.from({ length: 8 }, (_unused, index) => tokens[`chart-series-${index}`]),
   fontFamily: font.sans,
   labelFontSize: 12
