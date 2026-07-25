@@ -194,3 +194,71 @@ export const computeDividendCagr = (
 
   return ((endTotal / startTotal) ** (1 / years) - 1) * 100;
 };
+
+/** How many years of history the payout-month inference looks at. */
+const PAYOUT_MONTH_YEARS = 3;
+
+/** Payments expected per year for each frequency — the number of distinct months to keep. */
+const PAYMENTS_PER_YEAR: Record<Frequency, number> = {
+  monthly: 12,
+  quarterly: 4,
+  semiannual: 2,
+  annual: 1
+};
+
+/**
+ * Infers **which calendar months** a ticker actually pays in (1-12, ascending).
+ *
+ * `inferFrequency` answers "how often", which is all the engine needs. A dividend calendar needs
+ * "when": SCHD and JEPI are both "quarterly-ish" to the engine, but one pays in Mar/Jun/Sep/Dec and
+ * the other every month. Without this, a calendar can only say "four times a year" — which is not
+ * worth a screen.
+ *
+ * ## Why counting, not just "the last N payments"
+ * Special dividends and the occasional shifted payment (a payout that slips from late March into
+ * early April) would each add a phantom month. So this counts occurrences per month across
+ * `PAYOUT_MONTH_YEARS` years and keeps the **most frequent** months, capped at the number the
+ * frequency implies. A month that shows up every year outranks one that appeared once.
+ *
+ * Ties break toward the **earlier calendar month**, so the result is deterministic — the same
+ * history must never produce two different calendars.
+ *
+ * Returns `null` when there is nothing usable to infer from; callers keep the previous value rather
+ * than guessing (same rule as the other derived fields).
+ */
+export const inferPayoutMonths = (
+  dividends: readonly DividendPayment[],
+  frequency: Frequency
+): number[] | null => {
+  const payments = sanitize(dividends);
+  if (payments.length === 0) return null;
+
+  /*
+   * Monthly is every month **by definition** — counting would only introduce error.
+   *
+   * Real case that forced this: JEPI's ex-dividend date is the first business day of the month, so
+   * the January 2026 distribution is dated `2025-12-31`. Counting months gives December twice and
+   * January zero, and the calendar would claim JEPI skips January. Any monthly fund whose payout
+   * sits near a month boundary hits this, and the fix is not a smarter heuristic — it is refusing
+   * to infer something the frequency already states.
+   */
+  if (frequency === 'monthly') return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
+  const latest = payments[payments.length - 1].time;
+  const windowStart = minusYears(latest, PAYOUT_MONTH_YEARS);
+  const recent = payments.filter((payment) => payment.time >= windowStart);
+  if (recent.length === 0) return null;
+
+  const countByMonth = new Map<number, number>();
+  for (const payment of recent) {
+    const month = new Date(payment.time).getUTCMonth() + 1;
+    countByMonth.set(month, (countByMonth.get(month) ?? 0) + 1);
+  }
+
+  const limit = PAYMENTS_PER_YEAR[frequency];
+  return [...countByMonth.entries()]
+    .sort(([leftMonth, leftCount], [rightMonth, rightCount]) => rightCount - leftCount || leftMonth - rightMonth)
+    .slice(0, limit)
+    .map(([month]) => month)
+    .sort((left, right) => left - right);
+};

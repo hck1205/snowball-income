@@ -28,6 +28,16 @@ export type MarketDataSnapshotEntry = MarketDataEntry & {
    * curator can see when the market has drifted away from the curated `expectedTotalReturn`.
    */
   observedDividendCagr?: number;
+  /**
+   * Calendar months (1-12, ascending) the ticker actually paid in, observed from the payment
+   * history. **Reference only** — the engine never reads it, because the simulation spreads payouts
+   * by `frequency` alone and changing that would move every existing result.
+   *
+   * It exists because `frequency` cannot answer "when": SCHD and JEPI are both quarterly-ish to the
+   * engine, but one pays Mar/Jun/Sep/Dec and the other every month. A dividend calendar needs the
+   * months, not the count.
+   */
+  payoutMonths?: number[];
 };
 
 /** A dated snapshot of market data, produced by `scripts/tickerRefresh`. */
