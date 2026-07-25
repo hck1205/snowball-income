@@ -2,7 +2,16 @@ import type { ChangeEvent } from 'react';
 import type { InputFieldProps, SelectFieldProps } from './InputField.types';
 import { formatNumericDisplay, normalizeNumericInput, toInputId } from './InputField.utils';
 import Select from '@/components/common/Select';
-import { Adornment, BaseInput, FieldLabel, FieldWrapper, HelpButton, InputAdornmentWrap, LabelRow } from './InputField.styled';
+import {
+  Adornment,
+  BaseInput,
+  FieldHint,
+  FieldLabel,
+  FieldWrapper,
+  HelpButton,
+  InputAdornmentWrap,
+  LabelRow
+} from './InputField.styled';
 
 const LabelWithHelp = ({
   id,
@@ -32,9 +41,10 @@ const LabelWithHelp = ({
   </LabelRow>
 );
 
-function InputField({ label, type = 'text', value, onChange, helpAriaLabel, onHelpClick, prefix, suffix, ...rest }: InputFieldProps) {
+function InputField({ label, type = 'text', value, onChange, helpAriaLabel, onHelpClick, prefix, suffix, hint, ...rest }: InputFieldProps) {
   const id = toInputId(label);
   const isNumber = type === 'number';
+  const hintId = hint ? `${id}-hint` : undefined;
 
   // 숫자 입력은 표시값을 포맷하고 입력을 정규화한다(기존 동작 보존). type은 text로 두어 브라우저 스피너를 없앤다.
   const handleChange = isNumber
@@ -57,6 +67,7 @@ function InputField({ label, type = 'text', value, onChange, helpAriaLabel, onHe
       type={isNumber ? 'text' : type}
       value={isNumber ? formatNumericDisplay(value) : value}
       onChange={handleChange}
+      aria-describedby={hintId}
       data-adorn={adorn || undefined}
       {...(isNumber ? { inputMode: 'decimal' as const } : {})}
       {...rest}
@@ -75,6 +86,7 @@ function InputField({ label, type = 'text', value, onChange, helpAriaLabel, onHe
       ) : (
         input
       )}
+      {hint ? <FieldHint id={hintId}>{hint}</FieldHint> : null}
     </FieldWrapper>
   );
 }
