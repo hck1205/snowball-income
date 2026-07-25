@@ -34,6 +34,7 @@ const FALLBACK = {
   onBrand: FALLBACK_TOKENS['on-brand'],
   progressTrack: FALLBACK_TOKENS['progress-track'],
   success: FALLBACK_TOKENS.success,
+  successSurface: FALLBACK_TOKENS['success-surface'],
   warning: FALLBACK_TOKENS.warning,
   series: Array.from({ length: 8 }, (_, index) => FALLBACK_TOKENS[`chart-series-${index}`])
 } as const;
@@ -61,6 +62,12 @@ export type ChartTheme = {
   progressTrack: string;
   /** 의미색 — 목표 도달/달성(초록, `--sb-success`). markLine/markPoint. */
   success: string;
+  /**
+   * success 틴트 면색(`--sb-success-surface`). 도달 markPoint 라벨을 핀 밖 **상태 칩**으로 그릴 때의
+   * 배경이다 — 핀(success 채움) 위에 글자를 얹으면 대비가 무보장이라(onBrand×success 미검증 조합)
+   * 라벨을 칩으로 떼어낸다. `success × success-surface`는 contrast.test가 전 프리셋에서 강제한다.
+   */
+  successSurface: string;
   /** 의미색 — 미도달/목표선(앰버, `--sb-warning`). markLine. */
   warning: string;
   /**
@@ -84,6 +91,7 @@ export const getChartTheme = (): ChartTheme => ({
   onBrand: readVar('--sb-on-brand', FALLBACK.onBrand),
   progressTrack: readVar('--sb-progress-track', FALLBACK.progressTrack),
   success: readVar('--sb-success', FALLBACK.success),
+  successSurface: readVar('--sb-success-surface', FALLBACK.successSurface),
   warning: readVar('--sb-warning', FALLBACK.warning),
   series: FALLBACK.series.map((fallback, index) => readVar(`--sb-chart-series-${index}`, fallback)),
   fontFamily: font.sans,
@@ -105,6 +113,7 @@ const toChartTheme = (tokens: ThemeTokens): ChartTheme => ({
   onBrand: tokens['on-brand'],
   progressTrack: tokens['progress-track'],
   success: tokens.success,
+  successSurface: tokens['success-surface'],
   warning: tokens.warning,
   series: Array.from({ length: 8 }, (_unused, index) => tokens[`chart-series-${index}`]),
   fontFamily: font.sans,

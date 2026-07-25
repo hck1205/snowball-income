@@ -1,7 +1,7 @@
 import { memo, useEffect } from 'react';
 import { Card, FormSection, InputField, ToggleField } from '@/components';
 import CurrencyToggleField from '@/components/CurrencyToggleField';
-import { TOUR_TARGET } from '@/shared/constants';
+import { TARGET_MONTHLY_DIVIDEND_INPUT_ID, TOUR_TARGET } from '@/shared/constants';
 import type { YieldFormValues } from '@/shared/types';
 import type { InvestmentSettingsProps } from './InvestmentSettings.types';
 import { buildAmountHint } from './InvestmentSettings.utils';
@@ -146,6 +146,8 @@ function InvestmentSettingsComponent({
               }}
             />
             <InputField
+              /* 결과 카드의 "직접 입력" CTA가 이 필드를 지목한다 — 라벨 파생 id는 카피에 묶여 취약하다. */
+              id={TARGET_MONTHLY_DIVIDEND_INPUT_ID}
               label="목표 월배당 (원)"
               type="number"
               min={0}

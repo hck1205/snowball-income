@@ -6,6 +6,7 @@ import { useOptionalCommunityAuth } from '@/components/community/CommunityAuthPr
 import type { SimulationResult as SimulationResultRow } from '@/shared/types';
 import { DISPLAY_CURRENCY_COPY, DIVIDEND_UNIVERSE } from '@/shared/constants';
 import { ResultsColumn } from './MainRightPanel.styled';
+import { focusTargetMonthlyDividendInput, isConfigDrawerLayout } from './MainRightPanel.utils';
 import {
   LoginNudgeModal,
   PortfolioPresetBoard,
@@ -29,6 +30,7 @@ import {
   useIsResultCompactAtomValue,
   useIsYearlyAreaFillOnAtomValue,
   useNormalizedAllocationAtomValue,
+  useSetIsConfigDrawerOpenWrite,
   useSetIsResultCompactWrite,
   useSetIsYearlyAreaFillOnWrite,
   useSetIncludedTickerIdsWrite,
@@ -50,7 +52,6 @@ import {
   buildPresetPortfolio,
   computeAnnualGrowthRate,
   createResultAmountFormatter,
-  formatApproxKRW,
   formatPercent,
   targetYearLabel
 } from '@/pages/Main/utils';
@@ -87,7 +88,8 @@ function MainRightPanelComponent() {
   const isYearlyAreaFillOn = useIsYearlyAreaFillOnAtomValue();
   const setIsYearlyAreaFillOn = useSetIsYearlyAreaFillOnWrite();
   const visibleYearlySeries = useVisibleYearlySeriesAtomValue();
-  const { values, validation } = useSnowballForm();
+  const setIsConfigDrawerOpen = useSetIsConfigDrawerOpenWrite();
+  const { values, validation, setField } = useSnowballForm();
   /*
    * 결과 **표시** 통화. 계산은 언제나 원화이고, 여기서 만든 포맷터가 표시 직전에 한 번만 환산한다.
    * `display.currency` 는 환율이 없으면 원화로 떨어지는 **적용** 통화라, 이 경로로는 `$NaN` 이 나올 수 없다.
@@ -107,7 +109,8 @@ function MainRightPanelComponent() {
     postInvestmentDividendProjectionRows,
     yearlyResultBarOption,
     yearlySeriesItems,
-    formatChartValue
+    formatChartValue,
+    formatChartCompact
   } = useMainComputed({
     isValid: validation.isValid,
     values,
@@ -183,28 +186,52 @@ function MainRightPanelComponent() {
    */
   const targetMonthlyDividend = values.targetMonthlyDividend;
   const targetReachedYear = simulation?.summary.targetMonthDividendReachedYear;
+  const hasTarget = targetMonthlyDividend > 0;
   const monthlyDividendReferenceLine = useMemo(
     () =>
-      targetMonthlyDividend > 0
+      hasTarget
         ? {
             value: targetMonthlyDividend,
-            label: `목표 ${formatApproxKRW(targetMonthlyDividend)}`,
+            /* 축과 같은 포맷터를 쓴다 — 원화 고정이면 달러 표시 모드에서 목표선만 단위가 어긋난다. */
+            label: `목표 ${formatChartCompact(targetMonthlyDividend)}`,
             reached: targetReachedYear !== undefined
           }
         : undefined,
-    [targetMonthlyDividend, targetReachedYear]
+    [formatChartCompact, hasTarget, targetMonthlyDividend, targetReachedYear]
   );
   const monthlyDividendReachMarker = useMemo(
     () =>
-      targetMonthlyDividend > 0 && targetReachedYear !== undefined
+      hasTarget && targetReachedYear !== undefined
         ? {
             xCategory: String(targetReachedYear),
             value: targetMonthlyDividend,
             label: `${targetReachedYear}년 도달`
           }
         : undefined,
-    [targetMonthlyDividend, targetReachedYear]
+    [hasTarget, targetMonthlyDividend, targetReachedYear]
   );
+
+  /*
+   * 목표 미설정 결과 카드의 CTA — 서사가 막다른 길이 되지 않게 여기서 폼까지 닫는다.
+   * 값 쓰기는 기존 `setField`를 그대로 탄다(계측·클라우드 저장이 이미 붙어 있다).
+   */
+  const quickSetTargetMonthlyDividend = useCallback(
+    (won: number) => {
+      setField('targetMonthlyDividend', won);
+    },
+    [setField]
+  );
+  const openTargetMonthlyDividendField = useCallback(() => {
+    trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
+      cta_name: 'set_target_monthly_dividend',
+      placement: 'simulation_result'
+    });
+    // ≤960px에서는 설정 패널이 드로어라 먼저 열어야 입력이 DOM에 나타난다.
+    if (isConfigDrawerLayout()) setIsConfigDrawerOpen(true);
+    // 드로어 마운트/레이아웃 뒤에 좌표를 잡도록 한 프레임 미룬다.
+    if (typeof requestAnimationFrame === 'function') requestAnimationFrame(focusTargetMonthlyDividendInput);
+    else focusTargetMonthlyDividendInput();
+  }, [setIsConfigDrawerOpen]);
   const projectedAnnualDividendGrowthRate = computeAnnualGrowthRate(postInvestmentDividendProjectionRows, (row) => row.annualDividend);
   const projectedAnnualAssetGrowthRate = computeAnnualGrowthRate(postInvestmentDividendProjectionRows, (row) => row.assetValue);
   const postInvestmentChartTitle =
@@ -355,6 +382,8 @@ function MainRightPanelComponent() {
             formatResultAmount={formatResultAmount}
             formatPercent={formatPercent}
             targetYearLabel={targetYearLabel}
+            onQuickSetTarget={quickSetTargetMonthlyDividend}
+            onOpenTargetField={openTargetMonthlyDividendField}
           />
 
           <PortfolioComposition
@@ -372,20 +401,28 @@ function MainRightPanelComponent() {
             ResponsiveChart={ResponsiveEChart}
           />
 
+          {/*
+            목표를 정했으면 "그래프 나누어 보기"와 무관하게 목표선이 붙은 이 차트를 보여준다 —
+            목표선·도달 마커가 기본 화면에서 안 보이면 목표 시각화가 사실상 없는 것과 같다.
+            자산 가치/누적 배당은 그대로 분할 보기 전용이다(기본 화면 길이 유지).
+          */}
+          {showSplitGraphs || hasTarget ? (
+            <ChartPanel
+              title="월 평균 배당"
+              rows={tableRows}
+              hasData={hasGraphData}
+              emptyMessage={emptyGraphMessage}
+              getXValue={getYear}
+              getYValue={getMonthlyDividend}
+              referenceLine={monthlyDividendReferenceLine}
+              reachMarker={monthlyDividendReachMarker}
+              yAxisLabelFormatter={formatChartValue}
+              chartLabelSuffix={chartLabelSuffix}
+            />
+          ) : null}
+
           {showSplitGraphs ? (
             <>
-              <ChartPanel
-                title="월 평균 배당"
-                rows={tableRows}
-                hasData={hasGraphData}
-                emptyMessage={emptyGraphMessage}
-                getXValue={getYear}
-                getYValue={getMonthlyDividend}
-                referenceLine={monthlyDividendReferenceLine}
-                reachMarker={monthlyDividendReachMarker}
-                yAxisLabelFormatter={formatChartValue}
-                chartLabelSuffix={chartLabelSuffix}
-              />
               <ChartPanel
                 title="자산 가치"
                 rows={tableRows}

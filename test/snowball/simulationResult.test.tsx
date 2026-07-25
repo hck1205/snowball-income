@@ -201,8 +201,8 @@ describe('SimulationResult financial income tax warning', () => {
   });
 });
 
-const UNSET_NARRATIVE =
-  "목표 월배당을 정하면 달성 시점을 계산해 드려요. 왼쪽 투자 설정의 '목표 월배당'에 금액을 입력해 보세요.";
+/* ≤960px에서는 좌패널이 드로어라 "왼쪽 투자 설정" 위치 안내가 거짓이 된다 — 위치 대신 결과를 말한다. */
+const UNSET_NARRATIVE = '목표 월배당을 정하면 도달 시점과 진행률을 함께 보여줘요.';
 
 describe('SimulationResult target narrative block — 미설정(target<=0)', () => {
   it('목표 미설정 안내 문구를 그대로 노출한다', () => {

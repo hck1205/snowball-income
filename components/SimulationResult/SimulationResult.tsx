@@ -1,14 +1,14 @@
-import { memo, useCallback, useMemo, useState } from 'react';
+import { memo, useCallback, useMemo, useRef, useState } from 'react';
 import type { EChartsOption } from 'echarts';
 import { CircleCheck, CircleDashed, Target, type LucideIcon } from 'lucide-react';
-import { Banner, Card, StatTile, ToggleField } from '@/components';
+import { Banner, Button, Card, Chip, StatTile, ToggleField } from '@/components';
 import type { StatTone } from '@/components';
 import { ResponsiveEChart, toProgressPercent } from '@/components/common';
 import type { SimulationResultProps } from './SimulationResult.types';
+import { findTargetReachYearIndex } from './SimulationResult.utils';
 import { CompactSummaryHelpButton } from '@/components/common';
 import { usePalettePresetAtomValue, useSetActiveHelpWrite } from '@/jotai';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
-import { formatApproxKRW } from '@/shared/utils';
 import { getChartTheme } from '@/shared/styles';
 import {
   CAPITAL_GAINS_ANNUAL_DEDUCTION,
@@ -19,6 +19,7 @@ import {
 import {
   GaugeWrapper,
   HeroSlot,
+  NarrativeActions,
   NarrativeBlock,
   NarrativeBody,
   NarrativeIcon,
@@ -35,6 +36,16 @@ import type { NarrativeTone } from './SimulationResult.styled';
 
 const toManWon = (won: number): string => `${(won / 10_000).toLocaleString()}만원`;
 
+/**
+ * 목표 미설정 상태의 빠른 설정 값(원). GA `value_bucket` 경계(useSnowballForm)와 같은 자리에
+ * 맞춰 두어, 칩으로 정한 목표가 분포 분석에서 경계에 걸치지 않게 한다.
+ */
+const QUICK_TARGETS: { label: string; value: number }[] = [
+  { label: '월 100만원', value: 1_000_000 },
+  { label: '월 300만원', value: 3_000_000 },
+  { label: '월 500만원', value: 5_000_000 }
+];
+
 /** 부호 있는 값의 방향성(한국 증권 관례: 상승 적색 / 하락 청색). 0은 중립. */
 const toneOf = (value: number): StatTone => (value > 0 ? 'positive' : value < 0 ? 'negative' : 'neutral');
 
@@ -46,7 +57,9 @@ function SimulationResultComponent({
   onToggleCompact,
   formatResultAmount,
   formatPercent,
-  targetYearLabel
+  targetYearLabel,
+  onQuickSetTarget,
+  onOpenTargetField
 }: SimulationResultProps) {
   const title = showQuickEstimate ? '시뮬레이션 결과 (간편)' : '시뮬레이션 결과 (정밀)';
   const setActiveHelp = useSetActiveHelpWrite();
@@ -166,28 +179,49 @@ function SimulationResultComponent({
     };
   }, [palettePreset, reached, targetProgressPercent]);
 
-  /* 서사 하이라이트 — 상태별 톤/아이콘/문장. 금액은 항상 formatApproxKRW(compact 토글 무관). */
+  /* 도달 연도가 투자 몇 년차인지 — 서사 문장과 목표 타일 hint가 같은 숫자를 말하도록 단일 출처. */
+  const yearsToReach = findTargetReachYearIndex(simulation.yearly, reachedYear);
+
+  /*
+   * 서사 하이라이트 — 상태별 톤/아이콘/문장. 금액은 표시 통화를 따르되 **항상 간략 표기**다
+   * (compact 토글은 지표 타일용이고, 문장 안 금액이 자릿수로 길어지면 문장이 읽히지 않는다).
+   */
   const narrative: { tone: NarrativeTone; Icon: LucideIcon; text: string } = !hasTarget
     ? {
         tone: 'muted',
         Icon: CircleDashed,
-        text: "목표 월배당을 정하면 달성 시점을 계산해 드려요. 왼쪽 투자 설정의 '목표 월배당'에 금액을 입력해 보세요."
+        text: '목표 월배당을 정하면 도달 시점과 진행률을 함께 보여줘요.'
       }
     : !reached
       ? {
           tone: 'warning',
           Icon: Target,
-          text: `지금 조건으로는 ${durationYears}년 안에 목표 월배당 ${formatApproxKRW(targetMonthlyDividend)}에 닿지 못해요. 마지막 해 월배당은 ${formatApproxKRW(summary.finalMonthlyAverageDividend)}입니다. 월 적립이나 투자 기간을 늘리면 도달 시점이 앞당겨져요.`
+          text: `지금 조건으로는 ${durationYears}년 안에 목표 월배당 ${formatResultAmount(targetMonthlyDividend, true)}에 닿지 못해요. 마지막 해 월배당은 ${formatResultAmount(summary.finalMonthlyAverageDividend, true)}입니다. 월 적립이나 투자 기간을 늘리면 도달 시점이 앞당겨져요.`
         }
-      : (() => {
-          const yearsToReach = simulation.yearly.findIndex((row) => row.year === reachedYear) + 1;
-          const reachSuffix = yearsToReach > 0 ? ` (투자 ${yearsToReach}년차)` : '';
-          return {
-            tone: 'success' as NarrativeTone,
-            Icon: CircleCheck,
-            text: `목표 월배당 ${formatApproxKRW(targetMonthlyDividend)}을 ${targetYearLabel(reachedYear)}에 달성해요.${reachSuffix}`
-          };
-        })();
+      : {
+          tone: 'success' as NarrativeTone,
+          Icon: CircleCheck,
+          text: `목표 월배당 ${formatResultAmount(targetMonthlyDividend, true)}을 ${targetYearLabel(reachedYear)}에 달성해요.${yearsToReach === undefined ? '' : ` (투자 ${yearsToReach}년차)`}`
+        };
+
+  /*
+   * 빠른 설정 칩을 누르면 목표가 생겨 칩 자체가 사라진다 — 포커스가 body로 떨어지지 않도록
+   * 바뀐 문장으로 옮긴다. aria-live는 쓰지 않는다(슬라이더 재계산마다 낭독돼 시끄럽다).
+   *
+   * ⚠ 포커스는 **한 프레임 뒤**에 준다. 리렌더는 이 핸들러가 끝난 뒤에 flush되므로 동기로 부르면
+   * 스크린리더가 아직 옛 문장(미설정 안내)을 읽고, 문장이 바뀌어도 aria-live가 없어 다시 읽지
+   * 않는다. NarrativeText는 상태와 무관하게 항상 마운트라 지연해도 대상이 사라지지 않는다.
+   */
+  const narrativeTextRef = useRef<HTMLParagraphElement | null>(null);
+  const handleQuickSetTarget = useCallback(
+    (won: number) => {
+      onQuickSetTarget?.(won);
+      const focusNarrative = () => narrativeTextRef.current?.focus?.();
+      if (typeof requestAnimationFrame === 'function') requestAnimationFrame(focusNarrative);
+      else focusNarrative();
+    },
+    [onQuickSetTarget]
+  );
 
   return (
     <Card
@@ -249,7 +283,30 @@ function SimulationResultComponent({
               <narrative.Icon size={20} strokeWidth={1.8} />
             </NarrativeIcon>
             <NarrativeBody>
-              <NarrativeText tone={narrative.tone}>{narrative.text}</NarrativeText>
+              {/* tabIndex=-1: 프로그램 포커스만 받는다(탭 순서에는 안 들어간다). */}
+              <NarrativeText ref={narrativeTextRef} tone={narrative.tone} hasToggle={hasTarget} tabIndex={-1}>
+                {narrative.text}
+              </NarrativeText>
+              {!hasTarget && (onQuickSetTarget || onOpenTargetField) ? (
+                <NarrativeActions role="group" aria-label="목표 월배당 빠른 설정">
+                  {onQuickSetTarget
+                    ? QUICK_TARGETS.map((quick) => (
+                        <Chip
+                          key={quick.value}
+                          variant="accentAlt"
+                          onClick={() => handleQuickSetTarget(quick.value)}
+                        >
+                          {quick.label}
+                        </Chip>
+                      ))
+                    : null}
+                  {onOpenTargetField ? (
+                    <Button type="button" variant="ghost" size="sm" onClick={onOpenTargetField}>
+                      직접 입력
+                    </Button>
+                  ) : null}
+                </NarrativeActions>
+              ) : null}
               {showGauge ? (
                 <GaugeWrapper
                   role="img"
@@ -310,6 +367,11 @@ function SimulationResultComponent({
                 : '목표 월배당'
             }
             value={hasTarget ? targetYearLabel(summary.targetMonthDividendReachedYear) : '미설정'}
+            /*
+             * "몇 년 뒤"는 값이 아니라 hint로 붙인다 — 값(TileValue)은 nowrap+ellipsis라
+             * "2028년 (투자 3년차)"를 넣으면 잘린다. 서사 문장과 같은 숫자(단일 출처).
+             */
+            hint={hasTarget && yearsToReach !== undefined ? `투자 ${yearsToReach}년차` : undefined}
             progress={showGauge ? undefined : targetProgress}
             progressLabel="목표 월배당 달성률"
           />

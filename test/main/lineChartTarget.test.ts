@@ -126,7 +126,7 @@ describe('buildLineChartOption — 도달마커(reachMarker)', () => {
     expect(series.markPoint).toBeUndefined();
   });
 
-  it('jsdom(matchMedia matches:false)에선 markPoint 라벨을 보인다(모바일 숨김은 실브라우저 항목)', () => {
+  it('도달 라벨은 뷰포트와 무관하게 항상 보인다(모바일 숨김 분기 제거)', () => {
     const series = firstSeries(
       build({
         referenceLine: { value: 250, label: '목표', reached: true },
@@ -135,5 +135,21 @@ describe('buildLineChartOption — 도달마커(reachMarker)', () => {
     );
     const markPoint = series.markPoint as { label: { show: boolean } };
     expect(markPoint.label.show).toBe(true);
+  });
+
+  it('도달 라벨은 핀 밖 상태 칩이다 — success 글자 × successSurface 배경(핀 위 저대비 조합 회피)', () => {
+    const theme = getChartTheme();
+    const series = firstSeries(
+      build({
+        referenceLine: { value: 250, label: '목표', reached: true },
+        reachMarker: { xCategory: '2028', value: 300, label: '달성' }
+      })
+    );
+    const label = (series.markPoint as { label: Record<string, unknown> }).label;
+    expect(label.position).toBe('top');
+    expect(label.color).toBe(theme.success);
+    expect(label.backgroundColor).toBe(theme.successSurface);
+    // 핀 채움색 위에 글자를 얹지 않는다(대비 무보장 조합).
+    expect(label.color).not.toBe(theme.onBrand);
   });
 });

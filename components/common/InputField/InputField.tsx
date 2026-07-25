@@ -41,8 +41,20 @@ const LabelWithHelp = ({
   </LabelRow>
 );
 
-function InputField({ label, type = 'text', value, onChange, helpAriaLabel, onHelpClick, prefix, suffix, hint, ...rest }: InputFieldProps) {
-  const id = toInputId(label);
+function InputField({
+  label,
+  id: idProp,
+  type = 'text',
+  value,
+  onChange,
+  helpAriaLabel,
+  onHelpClick,
+  prefix,
+  suffix,
+  hint,
+  ...rest
+}: InputFieldProps) {
+  const id = idProp ?? toInputId(label);
   const isNumber = type === 'number';
   const hintId = hint ? `${id}-hint` : undefined;
 

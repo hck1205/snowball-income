@@ -106,13 +106,29 @@ export const NarrativeBody = styled.div`
   gap: ${space[3]};
 `;
 
-/** 서사 문장. 우측 상단 뷰 토글과 겹치지 않도록 오른쪽 여백을 둔다. */
-export const NarrativeText = styled.p<{ tone: NarrativeTone }>`
+/**
+ * 서사 문장. 우측 상단 뷰 토글이 **있을 때만** 그만큼 오른쪽을 비운다 —
+ * 토글이 없는 미설정 상태에서 같은 여백을 두면 문장 오른쪽에 죽은 공간만 남는다.
+ */
+export const NarrativeText = styled.p<{ tone: NarrativeTone; hasToggle: boolean }>`
   margin: 0;
-  padding-right: 78px;
+  padding-right: ${({ hasToggle }) => (hasToggle ? '78px' : '0')};
   font-size: ${font.size.sm};
   line-height: ${font.leading.normal};
   color: ${({ tone }) => NARRATIVE_TONE[tone].fg};
+`;
+
+/**
+ * 목표 미설정 상태의 액션 행 — "빠른 설정 칩 3개 + 직접 입력".
+ *
+ * 서사가 막다른 길이 되지 않게 문장 바로 아래에서 폐루프를 만든다. 좁은 화면에서 줄바꿈되므로
+ * `flex-wrap`을 둔다(≤960px에서는 좌패널이 드로어라 "왼쪽 설정" 안내가 성립하지 않는다).
+ */
+export const NarrativeActions = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: ${space[2]};
 `;
 
 /** 뷰 스위치(바 ↔ 게이지)의 우측 상단 고정 슬롯. */
