@@ -3,7 +3,7 @@ import { ChevronRight } from 'lucide-react';
 import { Card } from '@/components';
 import type { MonthlyCashflowProps } from './MonthlyCashflow.types';
 import { buildCalendarMonths, buildPayoutScheduleRows, resolveSelectedYear } from './MonthlyCashflow.utils';
-import { ChartWrap, HintText } from '@/pages/Main/Main.shared.styled';
+import { ChartWrap, HintText } from '@/components/common';
 import {
   CashflowHeader,
   CashflowHeaderControls,

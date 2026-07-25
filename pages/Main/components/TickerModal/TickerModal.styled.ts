@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { ModalBody, ModalPanel } from '@/pages/Main/Main.shared.styled';
+import { ModalBody, ModalPanel } from '@/components/common';
 import { color, font, space } from '@/shared/styles';
 
 /**

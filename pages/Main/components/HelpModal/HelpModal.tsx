@@ -1,7 +1,7 @@
 import { useEffect, useId } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '@/components';
-import { ModalActions, ModalBackdrop, ModalBody, ModalPanel, ModalTitle } from '@/pages/Main/Main.shared.styled';
+import { ModalActions, ModalBackdrop, ModalBody, ModalPanel, ModalTitle } from '@/components/common';
 import { useCurrentHelpAtomValue } from '@/jotai';
 import type { HelpModalProps } from './HelpModal.types';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';

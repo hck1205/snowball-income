@@ -8,22 +8,24 @@ import type { Frequency } from '@/shared/types';
 import nasdaqListedJson from '@/utils/TickerParser/output/nasdaq-listed.json';
 import otherListedJson from '@/utils/TickerParser/output/other-listed.json';
 import {
-  FormGrid,
   InlineField,
-  ModalCompactFormGrid,
   ModalActions,
   ModalBackdrop,
   ModalBody,
+  ModalTitle,
+  TabButton as ModalTabButton,
+  TabList as ModalTabList
+} from '@/components/common';
+import {
+  FormGrid,
+  ModalCompactFormGrid,
   SearchResultButton,
   SearchResultList,
   SearchResultName,
   SearchResultTicker,
-  ModalTabButton,
-  ModalTabList,
   ModalTickerSearchIcon,
   ModalTickerSearchInput,
   ModalTickerSearchWrap,
-  ModalTitle,
   PresetChipButton,
   PresetChipGrid,
   PresetChipScrollArea

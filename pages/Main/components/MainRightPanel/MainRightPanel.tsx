@@ -22,12 +22,8 @@ import { Button, Card, ToggleField } from '@/components';
 import { useOptionalCommunityAuth } from '@/components/community/CommunityAuthProvider';
 import type { SimulationResult as SimulationResultRow } from '@/shared/types';
 import { DISPLAY_CURRENCY_COPY, DIVIDEND_UNIVERSE, TOUR_TARGET } from '@/shared/constants';
+import { ModalActions, ModalBackdrop, ModalBody, ModalPanel, ModalTitle } from '@/components/common';
 import {
-  ModalActions,
-  ModalBackdrop,
-  ModalBody,
-  ModalPanel,
-  ModalTitle,
   PortfolioPresetCardButton,
   PortfolioPresetContentRow,
   PortfolioPresetCore,

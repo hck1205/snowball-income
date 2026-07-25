@@ -6,7 +6,7 @@ import {
   DrawerBackdrop,
   DrawerCloseButton,
   HeaderDescription
-} from '@/pages/Main/Main.shared.styled';
+} from '@/components/common';
 
 function MobileMenuDrawerComponent({ drawerId, isOpen, onClose, left, right, notice }: MobileMenuDrawerProps) {
   useEffect(() => {

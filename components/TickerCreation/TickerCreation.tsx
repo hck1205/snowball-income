@@ -16,7 +16,7 @@ import {
   TickerQuickActionRow,
   TickerItemButton,
   TickerList
-} from '@/pages/Main/Main.shared.styled';
+} from '@/components/common';
 import { ShareToast } from './TickerCreation.styled';
 
 type SecondaryActionKey = 'share' | 'coffee';

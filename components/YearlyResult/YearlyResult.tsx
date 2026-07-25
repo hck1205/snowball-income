@@ -11,7 +11,7 @@ import {
   SeriesFilterItem,
   SeriesFilterLabel,
   SeriesFilterRow
-} from '@/pages/Main/Main.shared.styled';
+} from '@/components/common';
 
 function YearlyResultComponent({
   items,

@@ -15,7 +15,7 @@ import {
   HelpMarkButton,
   InlineField,
   InlineFieldHeader
-} from '@/pages/Main/Main.shared.styled';
+} from '@/components/common';
 import { Select } from '@/components/common';
 import {
   ReinvestControls,
