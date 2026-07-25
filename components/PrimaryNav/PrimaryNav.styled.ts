@@ -91,7 +91,21 @@ export const BrandWordmark = styled.span`
   text-align: left;
 `;
 
-export const NavItems = styled.div`
+/**
+ * 2줄째 메뉴 스크롤 컨테이너(nav 랜드마크). 스크롤바는 얇게 두되 없애지 않는다 —
+ * 넘칠 수 있다는 사실 자체가 UI 정보다.
+ */
+export const NavScroller = styled.nav`
+  width: 100%;
+  display: flex;
+  overflow-x: auto;
+  /* 포커스 링이 스크롤 클리핑에 잘리지 않게 상하 여백을 링 두께만큼 확보한다. */
+  padding: 2px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+`;
+
+export const NavItems = styled.div<{ $scrollRow?: boolean }>`
   display: inline-flex;
   align-items: center;
   /* 그리드 2열의 정중앙에 놓는다(Nav 주석 참고). drawer↓ flex 폴백에선 무시된다. */
@@ -105,10 +119,18 @@ export const NavItems = styled.div`
     gap: ${space[3]};
   }
 
-  /* 라벨이 접혀 아이콘만 남는 좁은 폭(≤mobileWide)에선 간격을 더 좁혀 브랜드+아이콘이 한 줄에 여유 있게 들어가게 한다. */
   ${media.down('mobileWide')} {
     gap: ${space[1]};
   }
+
+  /* 스크롤 줄 모드: 남으면 정중앙(margin auto), 넘치면 좌측부터 스크롤(NavScroller 주석 참고). */
+  ${({ $scrollRow }) =>
+    $scrollRow
+      ? `
+    margin-inline: auto;
+    flex-wrap: nowrap;
+  `
+      : ''}
 `;
 
 /**
@@ -169,16 +191,18 @@ export const NavItem = styled(NavLink)`
     outline-offset: 2px;
   }
 
-  /* 라벨이 접히는 좁은 폭에선 아이콘 버튼의 가로 패딩을 줄여(구 12px→8px) 모든 항목이 잘림 없이 한 줄에 들어가게 한다. */
+  /* 좁은 폭: 라벨은 유지한 채(표시 결정) 패딩만 줄인다. 넘치면 스크롤 줄이 받는다. */
   ${media.down('mobileWide')} {
     padding: ${space[1]} ${space[2]};
-    gap: 0;
   }
 `;
 
-/** 라우트 링크 라벨 — 좁은 화면에선 숨겨 아이콘만 남긴다(aria-label이 이름을 유지). */
+/**
+ * 라우트 링크 라벨 — **어떤 폭에서도 숨기지 않는다**(사용자 결정 2026-07-25: 아이콘만 남기지 말 것).
+ * 좁은 화면에선 글자를 줄이고, 넘치는 만큼은 NavScroller 의 가로 스크롤이 받는다.
+ */
 export const NavLabel = styled.span`
   ${media.down('mobileWide')} {
-    display: none;
+    font-size: 12px;
   }
 `;
