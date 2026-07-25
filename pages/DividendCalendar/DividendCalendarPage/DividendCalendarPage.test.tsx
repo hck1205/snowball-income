@@ -245,6 +245,21 @@ describe('DividendCalendarPage — v2 월간 달력', () => {
     expect(screen.queryByText('아직 선택한 종목이 없습니다')).not.toBeInTheDocument();
   });
 
+  it('선택을 모두 비운 뒤에도 월 이동이 라이브 리전에 낭독된다', async () => {
+    const user = userEvent.setup();
+    await renderCalendar('/dividend/calendar?tickers=JEPI');
+
+    await openPicker(user);
+    await user.click(screen.getByRole('button', { name: '선택 비우기' }));
+    expect(screen.getByRole('status')).toHaveTextContent('선택을 모두 해제했습니다.');
+
+    await user.click(screen.getByRole('button', { name: '종목 선택 닫기' }));
+    await user.click(screen.getByRole('button', { name: '다음 달로 이동, 2026년 8월' }));
+
+    // 비우기 안내가 눌러앉으면 그 뒤의 월 이동이 영영 낭독되지 않는다 — 화면은 바뀌었는데 소리는 안 바뀐다.
+    expect(screen.getByRole('status')).toHaveTextContent('2026년 8월. 지급 예정 0건, 날짜 미정 0종.');
+  });
+
   it('주소에 모르는 심볼이 있으면 제외 사실을 화면에 알린다', async () => {
     await renderCalendar('/dividend/calendar?tickers=JEPI,NOTREAL');
 
