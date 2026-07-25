@@ -1233,11 +1233,13 @@ var marketData_generated_default = {
       frequency: "quarterly",
       observedDividendCagr: 6.81,
       payoutMonths: [
-        1,
-        4,
-        7,
-        10
-      ]
+        2,
+        5,
+        8,
+        11
+      ],
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 30
     },
     ANET: {
       initialPrice: 173.99,
@@ -1250,10 +1252,12 @@ var marketData_generated_default = {
       frequency: "quarterly",
       payoutMonths: [
         3,
-        5,
-        8,
-        11
-      ]
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 20
     },
     DES: {
       initialPrice: 40.78,
@@ -1273,7 +1277,9 @@ var marketData_generated_default = {
         10,
         11,
         12
-      ]
+      ],
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 2
     },
     DGRO: {
       initialPrice: 77.84,
@@ -1285,7 +1291,9 @@ var marketData_generated_default = {
         6,
         9,
         12
-      ]
+      ],
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 3
     },
     DGRW: {
       initialPrice: 95.44,
@@ -1305,7 +1313,9 @@ var marketData_generated_default = {
         10,
         11,
         12
-      ]
+      ],
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 2
     },
     DHS: {
       initialPrice: 117.55,
@@ -1325,7 +1335,9 @@ var marketData_generated_default = {
         10,
         11,
         12
-      ]
+      ],
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 2
     },
     DIA: {
       initialPrice: 518.76,
@@ -1345,7 +1357,9 @@ var marketData_generated_default = {
         10,
         11,
         12
-      ]
+      ],
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 25
     },
     DIVO: {
       initialPrice: 46.67,
@@ -1365,7 +1379,9 @@ var marketData_generated_default = {
         10,
         11,
         12
-      ]
+      ],
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 1
     },
     DLN: {
       initialPrice: 98.35,
@@ -1385,7 +1401,9 @@ var marketData_generated_default = {
         10,
         11,
         12
-      ]
+      ],
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 2
     },
     DON: {
       initialPrice: 57.55,
@@ -1405,7 +1423,9 @@ var marketData_generated_default = {
         10,
         11,
         12
-      ]
+      ],
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 3
     },
     DVY: {
       initialPrice: 162.99,
@@ -1417,7 +1437,9 @@ var marketData_generated_default = {
         6,
         9,
         12
-      ]
+      ],
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 3
     },
     DWX: {
       initialPrice: 47.11,
@@ -1429,7 +1451,9 @@ var marketData_generated_default = {
         6,
         9,
         12
-      ]
+      ],
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 2
     },
     ETN: {
       initialPrice: 404.07,
@@ -1441,7 +1465,9 @@ var marketData_generated_default = {
         5,
         8,
         11
-      ]
+      ],
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 18
     },
     FDVV: {
       initialPrice: 62.4,
@@ -1453,7 +1479,9 @@ var marketData_generated_default = {
         6,
         9,
         12
-      ]
+      ],
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 4
     },
     IDV: {
       initialPrice: 43.18,
@@ -1465,7 +1493,9 @@ var marketData_generated_default = {
         6,
         9,
         12
-      ]
+      ],
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 3
     },
     IDVO: {
       initialPrice: 42.26,
@@ -1484,7 +1514,9 @@ var marketData_generated_default = {
         10,
         11,
         12
-      ]
+      ],
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 1
     },
     IVV: {
       initialPrice: 742.36,
@@ -1496,7 +1528,9 @@ var marketData_generated_default = {
         6,
         9,
         12
-      ]
+      ],
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 3
     },
     JEPI: {
       initialPrice: 56.8,
@@ -1515,7 +1549,9 @@ var marketData_generated_default = {
         10,
         11,
         12
-      ]
+      ],
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 3
     },
     JEPQ: {
       initialPrice: 57.96,
@@ -1534,7 +1570,9 @@ var marketData_generated_default = {
         10,
         11,
         12
-      ]
+      ],
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 3
     },
     KO: {
       initialPrice: 82.25,
@@ -1542,11 +1580,13 @@ var marketData_generated_default = {
       frequency: "quarterly",
       observedDividendCagr: 4.46,
       payoutMonths: [
-        3,
-        6,
-        9,
-        11
-      ]
+        4,
+        7,
+        10,
+        12
+      ],
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 17
     },
     LOW: {
       initialPrice: 207.64,
@@ -5988,7 +6028,10 @@ var marketDataSnapshotEntrySchema = external_exports.object({
   payoutMonths: external_exports.array(external_exports.number().int().min(1).max(12)).max(12).refine(
     (months) => months.every((month, index) => index === 0 || months[index - 1] < month),
     "\uC9C0\uAE09\uC6D4\uC740 \uC911\uBCF5 \uC5C6\uC774 \uC624\uB984\uCC28\uC21C\uC774\uC5B4\uC57C \uD55C\uB2E4"
-  ).optional()
+  ).optional(),
+  /** ex-date → 지급일 간격(일). 음수는 데이터 오류, 120일 초과는 정상 배당 스케줄이 아니다. */
+  exToPayLagDays: external_exports.number().int().min(0).max(120).optional(),
+  payoutMonthsSource: external_exports.enum(["ex", "pay"]).optional()
 });
 var marketDataSnapshotSchema = external_exports.object({
   asOf: external_exports.string().regex(/^\d{4}-\d{2}-\d{2}$/, "asOf must be an ISO date (YYYY-MM-DD)").nullable(),

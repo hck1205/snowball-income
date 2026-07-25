@@ -5,6 +5,7 @@ export * from './cliOptions';
 export * from './derive';
 export * from './guards';
 export * from './partition';
+export * from './payDates';
 export * from './refresh';
 export * from './report';
 export * from './provider';
