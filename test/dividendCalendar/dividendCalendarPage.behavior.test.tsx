@@ -33,7 +33,18 @@ import { DIVIDEND_UNIVERSE } from '@/shared/constants/presets';
  * 저장 우선순위·저장 호출 여부는 `dividendCalendarStorage.behavior.test.tsx` 가 목으로 다룬다.
  */
 
-/** 2026-07-25(토). 실데이터: JEPI 7월 4일, KO 7월 2일, O·SCHD 는 일자 미정. */
+/**
+ * 2026-07-25(토).
+ *
+ * ⚠ **지급'일'을 리터럴로 적지 않는다.** 예상일은 paydates 크론이 스냅샷을 갱신할 때마다 움직이는
+ * 관측치라, `2026-07-04` 같은 값을 테스트에 박으면 데이터가 갱신되는 날 아침에 화면 버그가 아닌
+ * 이유로 빨개진다. 대신 아래 파생 헬퍼들이 **스냅샷(`MARKET_DATA.entries[*].estimatedPayDayByMonth`)
+ * 에서 기대값을 읽어** ISO 날짜·요일 라벨·건수를 만든다 — 단정의 의도("그 지급이 올바른 칸/달/목록에
+ * 놓이는가")는 그대로 두고 값만 데이터를 따라가게 하는 것이다.
+ *
+ * 기대값을 프로덕션 해석기(`getExpectedPayoutDay`)가 아니라 **원본 스냅샷 필드**에서 뽑는 이유:
+ * 해석기를 쓰면 "화면이 계산기와 같다"만 증명돼 배치 오류(off-by-one, 이월 칸 오배치)를 못 잡는다.
+ */
 const TODAY = new Date(2026, 6, 25);
 
 /** 주소·히스토리 관찰용 프로브. 화면 밖 계약(주소가 곧 공유 링크)을 눈에 보이게 만든다. */
@@ -110,8 +121,8 @@ const openUndatedTab = async (user: ReturnType<typeof userEvent.setup>) => {
 const calendarTable = (monthLabel: string) => screen.getByRole('table', { name: monthLabel });
 
 /**
- * 날짜 칸. 숫자 텍스트("4")는 이월 칸(8월 4일)과 겹치므로 `<time datetime>` 으로 집는다 —
- * datetime 은 스펙이 요구한 마크업 계약이라 구현 세부가 아니다.
+ * 날짜 칸. 숫자 텍스트("4")는 같은 숫자의 이월 칸(다음 달 4일)과 겹치므로 `<time datetime>` 으로
+ * 집는다 — datetime 은 스펙이 요구한 마크업 계약이라 구현 세부가 아니다.
  */
 const dayCell = (table: HTMLElement, isoDate: string): HTMLElement => {
   const time = within(table).getByText(
@@ -158,6 +169,125 @@ const payoutDayOf = (ticker: string, month: number): number | null =>
 const paysIn = (ticker: string, month: number): boolean =>
   MARKET_DATA.entries[ticker]?.payoutMonths?.includes(month) ?? false;
 
+/* ---------------------------------------------------------------------------
+ * 스냅샷 파생 헬퍼 — 기대값의 유일한 출처
+ * ------------------------------------------------------------------------- */
+
+/** 이 파일의 모든 시나리오가 보는 해(TODAY 와 같은 해). 연 경계 시나리오만 따로 넘긴다. */
+const YEAR = 2026;
+
+/** 요일 라벨. 카피 모듈이 아니라 여기 두는 이유: 화면이 읽는 어휘를 테스트가 독립적으로 고정한다. */
+const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'] as const;
+
+const pad2 = (value: number): string => String(value).padStart(2, '0');
+
+const isoOf = (year: number, month: number, day: number): string => `${year}-${pad2(month)}-${pad2(day)}`;
+
+const daysInMonth = (year: number, month: number): number => new Date(year, month, 0).getDate();
+
+/**
+ * 스냅샷이 기록한 "그 종목의 그 달 예상 지급일". 그 달에 지급하지 않거나 일자 이력이 없으면 null.
+ * 말일 클램프(2월 30일 같은 값)까지 포함해 화면과 같은 의미를 갖되, 계산은 스냅샷 원본에서만 한다.
+ */
+const snapshotPayDay = (ticker: string, month: number, year: number = YEAR): number | null => {
+  if (!paysIn(ticker, month)) return null;
+
+  const raw = payoutDayOf(ticker, month);
+  if (raw === null || !Number.isFinite(raw) || raw < 1) return null;
+
+  return Math.min(Math.trunc(raw), daysInMonth(year, month));
+};
+
+type SnapshotPayDate = {
+  day: number;
+  /** `<time datetime>` 과 같은 형식 — 날짜 칸·아젠다 조회의 앵커. */
+  iso: string;
+  /** 아젠다의 날짜 머리("7월 4일 (토)"). 요일은 달력 산술로 계산한다. */
+  agendaLabel: string;
+};
+
+/**
+ * 시나리오의 **전제**를 명시적으로 세운다: "이 종목은 그 달에 지급하고, 스냅샷에 예상일이 있다."
+ *
+ * 크론이 날짜를 옮기면 iso·요일 라벨이 함께 움직여 단정은 그대로 통과한다. 전제 자체가 사라지면
+ * (그 종목이 그 달 지급을 멈추거나 일자 이력이 빠지면) "요소를 찾지 못했습니다" 같은 애매한 실패가
+ * 아니라 이 메시지로 죽는다 — 화면 회귀와 데이터 변화를 실패 로그만 보고 구분하기 위해서다.
+ */
+const requirePayDate = (ticker: string, month: number, year: number = YEAR): SnapshotPayDate => {
+  const day = snapshotPayDay(ticker, month, year);
+  if (day === null) {
+    throw new Error(
+      `시나리오 전제 불성립: 스냅샷(${MARKET_DATA.asOf})에 ${ticker} 의 ${year}년 ${month}월 예상 지급일이 없습니다.`
+    );
+  }
+
+  const weekday = WEEKDAY_LABELS[new Date(year, month - 1, day).getDay()];
+
+  return { day, iso: isoOf(year, month, day), agendaLabel: `${month}월 ${day}일 (${weekday})` };
+};
+
+/** 선택 종목 중 그 날짜에 놓여야 하는 것들(티커순) — 아젠다 한 날 블록의 정확한 기대값. */
+const tickersOnDay = (tickers: string[], month: number, day: number, year: number = YEAR): string[] =>
+  tickers.filter((ticker) => snapshotPayDay(ticker, month, year) === day).sort();
+
+/** 선택 종목들의 그 달 집계 — 요약 줄·라이브 리전의 숫자 기대값. */
+const monthTotals = (tickers: string[], month: number, year: number = YEAR) =>
+  tickers.reduce(
+    (totals, ticker) => {
+      if (!paysIn(ticker, month)) return totals;
+
+      return snapshotPayDay(ticker, month, year) === null
+        ? { ...totals, undated: totals.undated + 1 }
+        : { ...totals, dated: totals.dated + 1 };
+    },
+    { dated: 0, undated: 0 }
+  );
+
+/** 요약 문구는 **문장 자체를 리터럴로** 고정하고 숫자만 스냅샷에서 파생한다. */
+const monthSummaryText = (label: string, tickers: string[], month: number, year: number = YEAR): string => {
+  const { dated, undated } = monthTotals(tickers, month, year);
+  return `${label} 지급 예정 ${dated}건 · 날짜 미정 ${undated}종`;
+};
+
+/**
+ * 6주 고정 그리드가 **다음 달에서 빌려오는 이월 날짜들**(주 시작 = 일요일). 스냅샷이 아니라 순수
+ * 달력 산술이라 데이터 갱신과 무관하다.
+ */
+const carriedOverDaysOf = (year: number, month: number): number[] => {
+  const leading = new Date(year, month - 1, 1).getDay();
+  const trailing = 6 * 7 - leading - daysInMonth(year, month);
+
+  return Array.from({ length: Math.max(trailing, 0) }, (_, index) => index + 1);
+};
+
+/**
+ * 그 달 예상 지급일이 **가장 많이 겹치는 날**과 그 종목들(티커순).
+ *
+ * 셀 오버플로는 특정 종목("DES·DGRW·DHS·DLN 은 7월 28일")의 계약이 아니라 "한 칸에 상한을 넘게
+ * 몰렸을 때 접는가"의 계약이다. 그래서 밀집 자체를 스냅샷에서 찾아 쓴다 — 크론이 날짜를 옮겨도
+ * 몰리는 날이 따라 옮겨갈 뿐 시나리오는 성립한다.
+ */
+const busiestDayOf = (month: number, year: number = YEAR): { day: number; tickers: string[] } => {
+  const byDay = new Map<number, string[]>();
+
+  for (const ticker of Object.keys(DIVIDEND_UNIVERSE)) {
+    const day = snapshotPayDay(ticker, month, year);
+    if (day === null) continue;
+    byDay.set(day, [...(byDay.get(day) ?? []), ticker]);
+  }
+
+  const busiest = [...byDay.entries()].sort(
+    ([leftDay, leftTickers], [rightDay, rightTickers]) =>
+      rightTickers.length - leftTickers.length || leftDay - rightDay
+  )[0];
+
+  if (busiest === undefined) {
+    throw new Error(`시나리오 전제 불성립: 스냅샷(${MARKET_DATA.asOf})에 ${month}월 예상 지급일이 하나도 없습니다.`);
+  }
+
+  return { day: busiest[0], tickers: [...busiest[1]].sort() };
+};
+
 describe('배당 지급 캘린더 — 기본 루프', () => {
   it('검색해서 고르면 달력·요약·아젠다·라이브 리전이 함께 갱신되고, 고른 항목은 목록에 남는다', async () => {
     const { user } = await renderCalendar();
@@ -171,11 +301,16 @@ describe('배당 지급 캘린더 — 기본 루프', () => {
 
     // 선택해도 결과 목록에서 사라지지 않는다 — 사라지면 실수한 선택을 되돌릴 수 없다.
     expect(optionButton('JEPI')).toHaveAttribute('aria-pressed', 'true');
-    expect(within(dayCell(calendarTable('2026년 7월'), '2026-07-04')).getByText('JEPI')).toBeInTheDocument();
-    expect(agendaDayTickers('2026-07-04')).toEqual(['JEPI']);
-    expect(within(agenda()).getByText('7월 4일 (토)')).toBeInTheDocument();
-    expect(screen.getByText('2026년 7월 지급 예정 1건 · 날짜 미정 0종')).toBeInTheDocument();
-    expect(screen.getByRole('status')).toHaveTextContent('선택 1종, 이 달 지급 예정 1건.');
+
+    // 날짜는 스냅샷에서 파생한다: "JEPI 의 7월 예상일 칸"에 놓였는가를 묻는 것이지 4일을 묻는 게 아니다.
+    const jepiJuly = requirePayDate('JEPI', 7);
+    expect(within(dayCell(calendarTable('2026년 7월'), jepiJuly.iso)).getByText('JEPI')).toBeInTheDocument();
+    expect(agendaDayTickers(jepiJuly.iso)).toEqual(['JEPI']);
+    expect(within(agenda()).getByText(jepiJuly.agendaLabel)).toBeInTheDocument();
+    expect(screen.getByText(monthSummaryText('2026년 7월', ['JEPI'], 7))).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent(
+      `선택 1종, 이 달 지급 예정 ${monthTotals(['JEPI'], 7).dated}건.`
+    );
   });
 
   it('검색 결과가 없으면 이유를 말하고, Escape 로 검색어만 지운다(선택·포커스는 그대로)', async () => {
@@ -254,9 +389,15 @@ describe('배당 지급 캘린더 — 월 이동', () => {
     expect(await screen.findByRole('heading', { level: 2, name: '2027년 1월' })).toBeInTheDocument();
     // 되돌아갈 방향의 접근명도 연 경계를 넘어 갱신돼야 한다.
     expect(screen.getByRole('button', { name: '이전 달로 이동, 2026년 12월' })).toBeInTheDocument();
-    // JEPI 2027년 1월 = 3일 예상.
-    expect(within(agenda()).getByText('1월 3일 (일)')).toBeInTheDocument();
-    expect(screen.getByRole('status')).toHaveTextContent('2027년 1월. 지급 예정 1건, 날짜 미정 0종.');
+
+    // 연도를 넘긴 뒤에도 이듬해 1월의 예상일이 그 달 아젠다에 놓인다(요일도 2027년 기준으로 계산된다).
+    const jepiNextJanuary = requirePayDate('JEPI', 1, 2027);
+    expect(within(agenda()).getByText(jepiNextJanuary.agendaLabel)).toBeInTheDocument();
+
+    const januaryTotals = monthTotals(['JEPI'], 1, 2027);
+    expect(screen.getByRole('status')).toHaveTextContent(
+      `2027년 1월. 지급 예정 ${januaryTotals.dated}건, 날짜 미정 ${januaryTotals.undated}종.`
+    );
   });
 
   it('"이번 달" 버튼은 이번 달에서 비활성이고, 이동한 뒤 눌러 돌아올 수 있다(포커스 유지)', async () => {
@@ -282,41 +423,59 @@ describe('배당 지급 캘린더 — 월 이동', () => {
 
 describe('배당 지급 캘린더 — 날짜 미정 분리', () => {
   it('예상일이 있는 종목만 날짜 칸에 놓고, 없는 종목은 미정 섹션에만 둔다', async () => {
-    const { user } = await renderCalendar({ entries: ['/dividend/calendar?tickers=JEPI,KO,O,SCHD'] });
+    const selected = ['JEPI', 'KO', 'O', 'SCHD'];
+    const { user } = await renderCalendar({ entries: [`/dividend/calendar?tickers=${selected.join(',')}`] });
 
     const july = calendarTable('2026년 7월');
 
-    // 예상일이 있는 종목: 날짜 칸 + 아젠다.
-    expect(within(dayCell(july, '2026-07-04')).getByText('JEPI')).toBeInTheDocument();
-    expect(within(dayCell(july, '2026-07-02')).getByText('KO')).toBeInTheDocument();
-    expect(agendaDayTickers('2026-07-02')).toEqual(['KO']);
-    expect(within(agenda()).getByText('7월 2일 (목)')).toBeInTheDocument();
+    // 예상일이 있는 종목: 스냅샷이 말하는 그 날짜 칸 + 아젠다.
+    const jepiJuly = requirePayDate('JEPI', 7);
+    const koJuly = requirePayDate('KO', 7);
+    expect(within(dayCell(july, jepiJuly.iso)).getByText('JEPI')).toBeInTheDocument();
+    expect(within(dayCell(july, koJuly.iso)).getByText('KO')).toBeInTheDocument();
+    // 같은 날에 다른 선택 종목이 겹치면 그것까지 정확히 나열돼야 한다(기대 목록도 스냅샷에서 만든다).
+    expect(agendaDayTickers(koJuly.iso)).toEqual(tickersOnDay(selected, 7, koJuly.day));
+    expect(within(agenda()).getByText(koJuly.agendaLabel)).toBeInTheDocument();
 
     // O 는 7월에 주지만 날짜를 모른다 → 어느 칸에도 놓지 않는다(임의 날짜로 채우지 않는다).
+    expect(paysIn('O', 7)).toBe(true);
+    expect(snapshotPayDay('O', 7)).toBeNull();
     expect(within(july).queryByText('O')).not.toBeInTheDocument();
 
     await openUndatedTab(user);
     expect(within(undatedRegion()).getByText('O')).toBeInTheDocument();
 
-    // SCHD 는 3·6·9·12월 종목이라 7월엔 아예 등장하지 않는다 — "미정"은 날짜를 모르는 것이지
-    // 지급 여부를 모르는 게 아니다.
+    // SCHD 는 7월 지급 자체가 없는 분기 종목이라 어디에도 등장하지 않는다 — "미정"은 날짜를 모르는
+    // 것이지 지급 여부를 모르는 게 아니다.
+    expect(paysIn('SCHD', 7)).toBe(false);
     expect(within(july).queryByText('SCHD')).not.toBeInTheDocument();
     expect(within(undatedRegion()).queryByText('SCHD')).not.toBeInTheDocument();
 
-    // 6주 그리드에 딸려 온 이월 칸(8월 4일)에는 칩을 놓지 않는다 — 8월 지급이 7월 화면에서
+    // 6주 그리드에 딸려 온 이월 칸(8월 앞부분)에는 칩을 놓지 않는다 — 8월 지급이 7월 화면에서
     // 한 번, 8월 화면에서 또 한 번 세어지면 달력이 같은 지급을 두 번 말하게 된다.
-    const carriedOver = dayCell(july, '2026-08-04');
-    expect(within(carriedOver).queryByText('JEPI')).not.toBeInTheDocument();
-    // 대신 어느 달의 4일인지는 낭독된다(숫자만 읽히면 위치를 잃는다).
-    expect(within(carriedOver).getByText('8월')).toBeInTheDocument();
+    // 단정이 공허해지지 않도록 "이월 칸 중 실제로 선택 종목의 8월 예상 지급일인 날"이 있음을 먼저 세운다.
+    const carriedDays = carriedOverDaysOf(2026, 7);
+    const carriedPayDays = selected
+      .map((ticker) => snapshotPayDay(ticker, 8))
+      .filter((day): day is number => day !== null && carriedDays.includes(day));
+    expect(carriedPayDays.length).toBeGreaterThan(0);
 
-    expect(screen.getByText('2026년 7월 지급 예정 2건 · 날짜 미정 1종')).toBeInTheDocument();
+    for (const day of carriedDays) {
+      const carriedOver = dayCell(july, isoOf(2026, 8, day));
+      expect(within(carriedOver).queryAllByRole('listitem')).toHaveLength(0);
+      // 대신 어느 달의 며칠인지는 낭독된다(숫자만 읽히면 위치를 잃는다).
+      expect(within(carriedOver).getByText('8월')).toBeInTheDocument();
+    }
+
+    expect(screen.getByText(monthSummaryText('2026년 7월', selected, 7))).toBeInTheDocument();
   });
 
   it('달을 옮기면 미정 목록도 그 달 기준으로 다시 계산된다', async () => {
-    const { user } = await renderCalendar({ entries: ['/dividend/calendar?tickers=SCHD,DGRO'] });
+    const selected = ['SCHD', 'DGRO'];
+    const { user } = await renderCalendar({ entries: [`/dividend/calendar?tickers=${selected.join(',')}`] });
 
-    // 7월: 둘 다 3·6·9·12월 종목이라 이 달엔 지급 자체가 없다.
+    // 7월: 둘 다 분기(3·6·9·12월) 종목이라 이 달엔 지급 자체가 없다.
+    expect(monthTotals(selected, 7)).toEqual({ dated: 0, undated: 0 });
     expect(screen.getByText('2026년 7월에는 선택한 종목의 지급 예정이 없습니다.')).toBeInTheDocument();
     expect(
       within(agenda()).getByText('이 달에는 지급 예정이 없습니다. 다른 달로 이동하거나 종목을 추가해 보세요.')
@@ -326,44 +485,52 @@ describe('배당 지급 캘린더 — 날짜 미정 분리', () => {
     await user.click(screen.getByRole('button', { name: '다음 달로 이동, 2026년 8월' }));
     await user.click(screen.getByRole('button', { name: '다음 달로 이동, 2026년 9월' }));
 
-    // 9월: DGRO 는 28일에, SCHD 는 날짜를 몰라 미정으로.
-    expect(within(dayCell(calendarTable('2026년 9월'), '2026-09-28')).getByText('DGRO')).toBeInTheDocument();
-    expect(within(agenda()).getByText('9월 28일 (월)')).toBeInTheDocument();
+    // 9월: DGRO 는 스냅샷의 예상일 칸에, SCHD 는 날짜를 몰라 미정으로.
+    const dgroSeptember = requirePayDate('DGRO', 9);
+    expect(within(dayCell(calendarTable('2026년 9월'), dgroSeptember.iso)).getByText('DGRO')).toBeInTheDocument();
+    expect(within(agenda()).getByText(dgroSeptember.agendaLabel)).toBeInTheDocument();
 
     await openUndatedTab(user);
+    expect(paysIn('SCHD', 9)).toBe(true);
+    expect(snapshotPayDay('SCHD', 9)).toBeNull();
     expect(within(undatedRegion()).getByText('SCHD')).toBeInTheDocument();
-    expect(screen.getByText('2026년 9월 지급 예정 1건 · 날짜 미정 1종')).toBeInTheDocument();
+    expect(screen.getByText(monthSummaryText('2026년 9월', selected, 9))).toBeInTheDocument();
   });
 
   it('날짜 있는 지급이 0건이고 미정만 있으면 "지급이 없다"고 말하지 않는다', async () => {
     const { user } = await renderCalendar({ entries: ['/dividend/calendar?tickers=O'] });
 
+    // 이 시나리오의 전제: O 는 7월에 주지만 일자 이력이 없다(스냅샷이 그렇게 말한다).
+    expect(monthTotals(['O'], 7)).toEqual({ dated: 0, undated: 1 });
     expect(
       within(agenda()).getByText('날짜를 추정할 수 있는 지급이 없습니다. "날짜 미정" 탭을 확인하세요.')
     ).toBeInTheDocument();
 
     await openUndatedTab(user);
     expect(within(undatedRegion()).getByText('O')).toBeInTheDocument();
-    expect(screen.getByText('2026년 7월 지급 예정 0건 · 날짜 미정 1종')).toBeInTheDocument();
+    expect(screen.getByText(monthSummaryText('2026년 7월', ['O'], 7))).toBeInTheDocument();
     expect(screen.queryByText('2026년 7월에는 선택한 종목의 지급 예정이 없습니다.')).not.toBeInTheDocument();
   });
 });
 
 describe('배당 지급 캘린더 — 셀 오버플로', () => {
   it('한 날짜에 표시 상한을 넘게 몰리면 나머지는 +N 으로 접고 원본은 아젠다에 남긴다', async () => {
-    // DES·DGRW·DHS·DLN 은 2026년 7월 28일로 예상일이 같다(실데이터).
-    const crowded = ['DES', 'DGRW', 'DHS', 'DLN'];
+    // 종목·날짜를 박지 않고 **스냅샷에서 가장 붐비는 날**을 찾아 그 종목들을 고른다
+    // (크론이 날짜를 옮기면 붐비는 날도 함께 옮겨갈 뿐, "상한 초과 = 접는다" 계약은 그대로다).
+    const { day, tickers: crowded } = busiestDayOf(7);
+    expect(crowded.length).toBeGreaterThan(MAX_DAY_CHIPS);
+
     await renderCalendar({ entries: [`/dividend/calendar?tickers=${crowded.join(',')}`] });
 
-    const cell = dayCell(calendarTable('2026년 7월'), '2026-07-28');
+    const cell = dayCell(calendarTable('2026년 7월'), isoOf(2026, 7, day));
 
     expect(within(cell).getAllByRole('listitem')).toHaveLength(MAX_DAY_CHIPS);
     expect(within(cell).getByText(`+${crowded.length - MAX_DAY_CHIPS}`)).toBeInTheDocument();
     expect(within(cell).getByLabelText(`지급 예정 ${crowded.length}종`)).toBeInTheDocument();
 
     // 표에서 잘린 정보의 완전한 원본은 항상 아젠다에 있다.
-    expect(agendaDayTickers('2026-07-28')).toEqual([...crowded].sort());
-    expect(screen.getByText('2026년 7월 지급 예정 4건 · 날짜 미정 0종')).toBeInTheDocument();
+    expect(agendaDayTickers(isoOf(2026, 7, day))).toEqual(crowded);
+    expect(screen.getByText(monthSummaryText('2026년 7월', crowded, 7))).toBeInTheDocument();
   });
 });
 
@@ -486,10 +653,15 @@ describe('배당 지급 캘린더 — 라이브 리전', () => {
 
     await openPicker(user);
     await user.click(optionButton('JEPI'));
-    expect(screen.getByRole('status')).toHaveTextContent('선택 1종, 이 달 지급 예정 1건.');
+    expect(screen.getByRole('status')).toHaveTextContent(
+      `선택 1종, 이 달 지급 예정 ${monthTotals(['JEPI'], 7).dated}건.`
+    );
 
     await user.click(screen.getByRole('button', { name: '다음 달로 이동, 2026년 8월' }));
-    expect(screen.getByRole('status')).toHaveTextContent('2026년 8월. 지급 예정 1건, 날짜 미정 0종.');
+    const augustTotals = monthTotals(['JEPI'], 8);
+    expect(screen.getByRole('status')).toHaveTextContent(
+      `2026년 8월. 지급 예정 ${augustTotals.dated}건, 날짜 미정 ${augustTotals.undated}종.`
+    );
 
     await user.click(screen.getByRole('button', { name: '선택 비우기' }));
     expect(screen.getByRole('status')).toHaveTextContent('선택을 모두 해제했습니다.');
@@ -509,15 +681,14 @@ describe('배당 지급 캘린더 — 데이터 사실성', () => {
 
       const expectedByDay = new Map<number, string[]>();
       for (const ticker of SPOT_CHECK) {
-        const day = paysIn(ticker, month) ? payoutDayOf(ticker, month) : null;
+        const day = snapshotPayDay(ticker, month);
         if (day === null) continue;
         expectedByDay.set(day, [...(expectedByDay.get(day) ?? []), ticker].sort());
       }
 
       expect(expectedByDay.size).toBeGreaterThan(0);
       for (const [day, tickers] of expectedByDay) {
-        const iso = `2026-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        expect(agendaDayTickers(iso)).toEqual(tickers);
+        expect(agendaDayTickers(isoOf(2026, month, day))).toEqual(tickers);
       }
 
       // 스냅샷에 없는 날짜에는 아무것도 놓이지 않는다(달력이 날짜를 지어내지 않는다).
@@ -536,7 +707,7 @@ describe('배당 지급 캘린더 — 데이터 사실성', () => {
     expect(MARKET_DATA.entries.JEPI?.payoutMonthsSource).toBe('pay');
     expect(MARKET_DATA.entries.O?.payoutMonthsSource).not.toBe('pay');
 
-    const jepiDay = agendaDay('2026-07-04');
+    const jepiDay = agendaDay(requirePayDate('JEPI', 7).iso);
     expect(jepiDay).not.toBeNull();
     expect(within(jepiDay as HTMLElement).getByText('실측')).toBeInTheDocument();
 
