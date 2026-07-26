@@ -21,8 +21,8 @@ import {
   BoardHead,
   BoardHint,
   DetailCard,
-  DetailTabButton,
-  DetailTabList,
+  DetailHead,
+  DetailTitle,
   EmptyBody,
   EmptyStateCard,
   EmptyTitle,
@@ -44,6 +44,7 @@ import {
   QuickPickList,
   UnavailableBody,
   UnavailableDetails,
+  UndatedToggleButton,
   UnavailableItem,
   UnavailableList,
   UnavailableSummary
@@ -210,29 +211,22 @@ export default function DividendCalendarView({
 
       {showCalendar ? (
         <DetailCard>
-          {/* 상세는 한 줄 전환으로 하나만 보여준다 — 목록 두 개가 세로로 쌓이면 달력에서 멀어진다.
-              미정이 0건이면 전환할 대상이 없다 — 탭 한 개만 남는 줄은 통째로 그리지 않는다
-              (사용자 결정 2026-07-26: "지급 일정 목록" 라벨 중복 제거의 일부). */}
-          {undatedCount > 0 ? (
-            <DetailTabList role="group" aria-label={copy.detailTabs.groupLabel}>
-              <DetailTabButton
-                type="button"
-                $active={activeDetailTab === 'agenda'}
-                aria-pressed={activeDetailTab === 'agenda'}
-                onClick={() => onDetailTabChange('agenda')}
-              >
-                {copy.detailTabs.agenda}
-              </DetailTabButton>
-              <DetailTabButton
+          {/* 섹션 라벨은 이 제목 **한 곳**이다(사용자 결정 2026-07-26 — 탭+제목 중복 정리의 최종형).
+              미정 전환은 제목 오른쪽의 토글 하나 — "지급 일정 목록" 탭을 따로 두면 제목과 같은 말이
+              두 번 보인다. 미정 0건이면 토글도 없다. */}
+          <DetailHead>
+            <DetailTitle>{copy.agenda.heading}</DetailTitle>
+            {undatedCount > 0 ? (
+              <UndatedToggleButton
                 type="button"
                 $active={activeDetailTab === 'undated'}
                 aria-pressed={activeDetailTab === 'undated'}
-                onClick={() => onDetailTabChange('undated')}
+                onClick={() => onDetailTabChange(activeDetailTab === 'undated' ? 'agenda' : 'undated')}
               >
                 {copy.detailTabs.undated(undatedCount)}
-              </DetailTabButton>
-            </DetailTabList>
-          ) : null}
+              </UndatedToggleButton>
+            ) : null}
+          </DetailHead>
 
           {activeDetailTab === 'undated' ? (
             <UndatedSection items={month.undated} />

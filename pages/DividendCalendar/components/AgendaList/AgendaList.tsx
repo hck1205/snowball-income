@@ -1,4 +1,3 @@
-import { useId } from 'react';
 import { DIVIDEND_CALENDAR_COPY } from '../../copy';
 import { agendaDayElementId, tickerSeriesVar } from '../../utils';
 import { ScheduleSourceBadge } from '../ScheduleSourceBadge';
@@ -10,7 +9,6 @@ import {
   AgendaDayList,
   AgendaDot,
   AgendaEmpty,
-  AgendaHeading,
   AgendaItem,
   AgendaItemList,
   AgendaName,
@@ -32,11 +30,8 @@ const copy = DIVIDEND_CALENDAR_COPY;
  * id와 `tabIndex={-1}`(프로그램 포커스 전용)을 갖는다. 폭에 따라 DOM이 달라지면 안 되므로 조건부가 아니다.
  */
 export default function AgendaList({ days, hasUndated, highlightedDate = null }: AgendaListProps) {
-  const headingId = useId();
-
   return (
-    <AgendaRoot aria-labelledby={headingId}>
-      <AgendaHeading id={headingId}>{copy.agenda.heading}</AgendaHeading>
+    <AgendaRoot aria-label={copy.agenda.heading}>
       {days.length === 0 ? (
         <AgendaEmpty>{hasUndated ? copy.agenda.undatedOnly : copy.agenda.empty}</AgendaEmpty>
       ) : (

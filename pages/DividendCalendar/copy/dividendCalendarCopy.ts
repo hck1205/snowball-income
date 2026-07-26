@@ -91,12 +91,10 @@ export const DIVIDEND_CALENDAR_COPY = {
     jumpHint: '지급 예정이 있는 날짜를 누르면 아래 목록에서 그 날 일정을 볼 수 있습니다.'
   },
   /**
-   * 달력 아래 상세 두 가지(날짜순 목록 / 날짜 미정)를 한 줄로 가르는 전환 버튼.
-   * 미정이 0건이면 그 버튼 자체를 렌더하지 않는다 — 누를 게 없는 탭은 만들지 않는다.
+   * 상세 카드 머리의 미정 보기 토글(aria-pressed). 미정이 0건이면 렌더하지 않는다.
+   * 구 2버튼 탭(groupLabel·agenda)은 폐기(2026-07-26) — "지급 일정 목록" 라벨은 카드 제목 한 곳만.
    */
   detailTabs: {
-    groupLabel: '지급 일정 보기 방식',
-    agenda: '지급 일정 목록',
     undated: (n: number) => `날짜 미정 ${n}종`
   },
   undated: {
