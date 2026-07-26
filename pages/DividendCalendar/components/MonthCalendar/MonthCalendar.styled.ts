@@ -75,7 +75,6 @@ export const DayCellRoot = styled.td<{
     return color.border;
   }};
   border-radius: ${radius.md};
-  min-height: 104px;
   height: 104px;
   /* 지급이 있는 날은 액센트 틴트로 "여기 뭔가 있다"가 한눈에 스캔되게 한다(칩 텍스트가 내용을 말한다). */
   background: ${({ $inMonth, $past, $hasPayout, $today }) => {
@@ -93,19 +92,20 @@ export const DayCellRoot = styled.td<{
     border-color ${motion.fast} ${motion.ease};
 
   /*
-   * 좁은 폭에서는 칩이 **점**으로 줄어 88px가 빈 공간이 된다 → 내용이 필요한 만큼만 쓰게 하한만 남긴다.
-   * height는 td에서 최소값으로만 해석되므로(표 셀은 내용보다 작아지지 않는다) 고정값을 남겨두면
-   * 의도를 오독하게 만든다 — auto로 명시해 "높이는 내용이 정한다"를 코드로 말한다.
+   * ⚠ 표 셀에는 min-height가 적용되지 않는다(CSS2.1 — display:table-cell에서 min/max-height는
+   * undefined, 브라우저가 무시한다. 375px 실기기에서 min-height 하한이 안 먹는 것 확인, 2026-07-26).
+   * 대신 td의 height가 정확히 "최소 높이"로 동작한다(내용이 넘치면 늘어난다) — 그래서 height를 쓴다.
    */
   ${media.down('tabletSm')} {
-    min-height: 72px;
-    height: auto;
+    height: 72px;
     padding: ${space[1]};
+    /* 좁은 칸에 12px 라운드는 과하다 — 칸이 작아질수록 모서리도 각지게(실기기 피드백 2026-07-26). */
+    border-radius: ${radius.xs};
   }
 
   ${media.down('mobile')} {
-    min-height: 48px;
-    height: auto;
+    /* 터치 타깃 하한이자 실기기(375px) 확인 값 — 64px는 격자가 세로로 늘어져 48px로 확정(2026-07-26). */
+    height: 48px;
   }
 `;
 
@@ -333,6 +333,11 @@ export const DayJumpButton = styled.button`
   &:focus-visible {
     outline: 2px solid ${color.focusRing};
     outline-offset: -2px;
+  }
+
+  /* 칸의 좁은 폭 라운드(radius.xs)와 맞춘다 — 링이 모서리에서 칸 밖으로 비어져 보이지 않게. */
+  ${media.down('tabletSm')} {
+    border-radius: ${radius.xs};
   }
 `;
 
