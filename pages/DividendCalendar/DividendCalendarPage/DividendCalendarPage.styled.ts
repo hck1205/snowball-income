@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, elevation, font, motion, radius, space } from '@/shared/styles';
+import { color, elevation, font, media, motion, radius, space } from '@/shared/styles';
 
 export const PageStack = styled.div`
   display: grid;
@@ -190,15 +190,21 @@ export const MonthSummaryLine = styled.p`
  * 위계 규칙: **래퍼는 틴트(라이트=연브랜드/다크=어두운 브랜드), 안쪽 패널은 밝게**(surfaceRaised).
  * 대비는 검증 쌍만 사용 — text·text-secondary·brand-text / brand-subtle (shared/styles/contrast.test.ts).
  */
+/**
+ * 상세 영역의 **유일한** 박스(사용자 결정 2026-07-26 — "박스 안에 박스 안에 박스" 평탄화).
+ * 안쪽(아젠다·미정)은 표면을 갖지 않는다 — 위계는 면이 아니라 제목·엣지·간격이 만든다.
+ * 브랜드 틴트도 뺐다: 안쪽 표면이 사라지면 틴트는 배경이 아니라 본문색이 되어 버린다.
+ */
 export const DetailCard = styled.section`
   min-width: 0;
   display: grid;
   gap: ${space[4]};
   align-content: start;
   padding: clamp(16px, 2.4vw, 28px);
-  border: 1px solid ${color.brandBorder};
+  border: 1px solid ${color.border};
   border-radius: ${radius.xl};
-  background: ${color.brandSubtle};
+  background: ${color.surfaceRaised};
+  box-shadow: ${elevation[1]};
 `;
 
 /** 각주 묶음 — 본문과 같은 무게로 나열되지 않게 한 덩어리로 눌러 둔다. */
@@ -209,35 +215,53 @@ export const FootNoteCard = styled.footer`
   border-left: 2px solid ${color.border};
 `;
 
-/**
- * 달력 아래 상세 전환(지급 일정 목록 ↔ 날짜 미정) 한 줄.
- * `role="tab"` 대신 `aria-pressed` 토글 버튼을 쓴다 — 레포 관례(MonthlyCashflow의 ViewToggleGroup)이고,
- * 탭 롤은 화살표 키 이동 계약을 동반하는데 이 화면은 그것을 구현하지 않는다.
- */
-export const DetailTabList = styled.div`
-  display: inline-flex;
-  justify-self: start;
-  border: 1px solid ${color.border};
-  border-radius: ${radius.pill};
-  background: ${color.surface};
-  padding: 2px;
-  gap: 2px;
+/** 상세 카드의 머리 한 줄 — 왼쪽 제목, 오른쪽 미정 토글(있을 때만). */
+export const DetailHead = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: ${space[2]};
+  flex-wrap: wrap;
 `;
 
-export const DetailTabButton = styled.button<{ $active: boolean }>`
-  border: 0;
+/** 섹션의 유일한 라벨(사용자 결정 2026-07-26). 오로라 리본이 섹션 시작을 눈으로 찍는다. */
+export const DetailTitle = styled.h3`
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: ${space[2]};
+  font-size: ${font.size.sm};
+  font-weight: ${font.weight.bold};
+  color: ${color.text};
+
+  &::before {
+    content: '';
+    width: 4px;
+    height: 16px;
+    border-radius: ${radius.pill};
+    background: ${color.gradientAurora};
+  }
+`;
+
+/**
+ * 날짜 미정 보기 토글(구 2버튼 탭의 후신 — "지급 일정 목록" 탭은 제목과 중복이라 폐기).
+ * `role="tab"` 대신 `aria-pressed` — 레포 관례(MonthlyCashflow의 ViewToggleGroup)이고,
+ * 탭 롤은 화살표 키 이동 계약을 동반하는데 이 화면은 그것을 구현하지 않는다.
+ */
+export const UndatedToggleButton = styled.button<{ $active: boolean }>`
+  border: 1px solid ${({ $active }) => ($active ? color.brand : color.border)};
   border-radius: ${radius.pill};
-  padding: ${space[2]} ${space[4]};
+  padding: ${space[1]} ${space[3]};
   font-family: inherit;
   font-size: ${font.size.xs};
   font-weight: ${font.weight.semibold};
   cursor: pointer;
-  /* 활성 탭은 **솔리드 브랜드** — 래퍼가 이미 brandSubtle 이라 같은 틴트로는 선택 상태가 안 읽힌다.
-     on-brand/brand 는 전 팔레트 대비 검증 쌍이다. */
+  /* 눌린 상태는 **솔리드 브랜드** — on-brand/brand 는 전 팔레트 대비 검증 쌍이다. */
   color: ${({ $active }) => ($active ? color.onBrand : color.textSecondary)};
-  background: ${({ $active }) => ($active ? color.brand : 'transparent')};
+  background: ${({ $active }) => ($active ? color.brand : color.surface)};
   transition:
     background ${motion.fast} ${motion.ease},
+    border-color ${motion.fast} ${motion.ease},
     color ${motion.fast} ${motion.ease};
 
   &:hover {
@@ -246,7 +270,7 @@ export const DetailTabButton = styled.button<{ $active: boolean }>`
 
   &:focus-visible {
     outline: 2px solid ${color.focusRing};
-    outline-offset: -2px;
+    outline-offset: 2px;
   }
 `;
 
@@ -360,6 +384,21 @@ export const UnavailableItem = styled.li`
   padding: 2px ${space[2]};
   border-radius: ${radius.pill};
   background: ${color.surfaceMuted};
+`;
+
+/**
+ * 달력 바로 아래 한 줄 힌트 — "날짜 칸을 누를 수 있다"는 것은 터치에서 보이지 않는다.
+ * 데스크톱에서는 커서와 호버 링이 이미 말하므로 좁은 폭에서만 띄운다.
+ */
+export const BoardHint = styled.p`
+  margin: 0;
+  font-size: ${font.size.xs};
+  color: ${color.textMuted};
+  line-height: ${font.leading.snug};
+
+  ${media.up('tabletSm')} {
+    display: none;
+  }
 `;
 
 export const FootNote = styled.p`

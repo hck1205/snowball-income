@@ -1,3 +1,4 @@
+import { prefersReducedMotion as sharedPrefersReducedMotion } from '@/shared/utils';
 import {
   findTickerContentBySlug,
   renderTickerContentTemplate,
@@ -103,8 +104,7 @@ export const buildTickerDetailViewModel = (content: TickerContent): TickerDetail
   };
 };
 
-/** matchMedia 가 없거나(SSR/구형) reduce 선호가 아니면 false. */
-export const prefersReducedMotion = (): boolean => {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-};
+/**
+ * 공용 구현(`@/shared/utils`)에 위임한다 — 이름은 유지한다(뷰·`useInView` 가 이 경로로 쓰고 있다).
+ */
+export const prefersReducedMotion = sharedPrefersReducedMotion;

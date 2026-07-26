@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, elevation, font, motion, radius, space } from '@/shared/styles';
+import { color, font, motion, radius, space } from '@/shared/styles';
 
 /**
  * 점선이 "확정되지 않음"을 형태로 말하고, 액센트-Alt 색은 **테두리·아이콘·개수 배지**에만 남긴다.
@@ -7,13 +7,9 @@ import { color, elevation, font, motion, radius, space } from '@/shared/styles';
  * 안쪽까지 틴트면 틴트 위에 틴트가 겹쳐 구역 구분이 무너진다(사용자 정정 2026-07-25).
  * 대비 검증 쌍만 사용: text·text-secondary/surface-raised, accent-alt-text/accent-alt-subtle.
  */
+/* 평탄화(2026-07-26): 자체 패널을 벗는다 — 박스는 DetailCard 하나뿐. "확정되지 않음"의 점선은
+   개별 칩이 계속 말한다. */
 export const UndatedRoot = styled.section`
-  border: 1px dashed ${color.accentAltBorder};
-  background: ${color.surfaceRaised};
-  /* 아젠다 래퍼와 같은 규격(radius.lg + space[4] + 같은 그림자) — 두 탭이 같은 위계의 표면으로 읽혀야 한다. */
-  border-radius: ${radius.lg};
-  padding: ${space[4]};
-  box-shadow: ${elevation[1]};
   display: grid;
   gap: ${space[2]};
 `;

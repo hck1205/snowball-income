@@ -63,6 +63,8 @@ export const DayCellRoot = styled.td<{
   $hasPayout: boolean;
   $today: boolean;
 }>`
+  /* 칸을 덮는 이동 버튼(DayJumpButton)의 컨테이닝 블록. */
+  position: relative;
   vertical-align: top;
   padding: ${space[2]};
   /* 격자선을 그리는 대신 칸을 카드처럼 띄운다(간격은 표의 border-spacing이 만든다). */
@@ -73,7 +75,6 @@ export const DayCellRoot = styled.td<{
     return color.border;
   }};
   border-radius: ${radius.md};
-  min-height: 104px;
   height: 104px;
   /* 지급이 있는 날은 액센트 틴트로 "여기 뭔가 있다"가 한눈에 스캔되게 한다(칩 텍스트가 내용을 말한다). */
   background: ${({ $inMonth, $past, $hasPayout, $today }) => {
@@ -90,23 +91,32 @@ export const DayCellRoot = styled.td<{
     background ${motion.fast} ${motion.ease},
     border-color ${motion.fast} ${motion.ease};
 
+  /*
+   * ⚠ 표 셀에는 min-height가 적용되지 않는다(CSS2.1 — display:table-cell에서 min/max-height는
+   * undefined, 브라우저가 무시한다. 375px 실기기에서 min-height 하한이 안 먹는 것 확인, 2026-07-26).
+   * 대신 td의 height가 정확히 "최소 높이"로 동작한다(내용이 넘치면 늘어난다) — 그래서 height를 쓴다.
+   */
   ${media.down('tabletSm')} {
-    min-height: 88px;
-    height: 88px;
+    height: 72px;
     padding: ${space[1]};
+    /* 좁은 칸에 12px 라운드는 과하다 — 칸이 작아질수록 모서리도 각지게(실기기 피드백 2026-07-26). */
+    border-radius: ${radius.xs};
   }
 
   ${media.down('mobile')} {
-    min-height: 44px;
-    height: 44px;
+    /* 터치 타깃 하한이자 실기기(375px) 확인 값 — 64px는 격자가 세로로 늘어져 48px로 확정(2026-07-26). */
+    height: 48px;
   }
 `;
 
+/**
+ * 날짜 숫자 줄. 배지("오늘"·개수)는 폐기됐다(사용자 결정 2026-07-26) —
+ * 오늘은 칸 보더(브랜드 링+틴트)가, 개수는 칩 나열 자체가 말한다.
+ */
 export const DayHead = styled.div`
   display: flex;
   align-items: center;
   gap: ${space[1]};
-  flex-wrap: wrap;
 `;
 
 /** 날짜 숫자에 accent 색 금지(숫자는 데이터다). */
@@ -121,20 +131,12 @@ export const DayNumber = styled.span<{ $muted: boolean }>`
   }
 `;
 
-/** 솔리드 브랜드 배지 — 오늘 칸의 링·틴트와 같은 색 언어로 "오늘"을 못 놓치게 한다. */
-export const TodayBadge = styled.span`
-  padding: 0 ${space[2]};
-  border-radius: ${radius.pill};
-  font-size: ${font.size['2xs']};
-  font-weight: ${font.weight.semibold};
-  white-space: nowrap;
-  color: ${color.onBrand};
-  background: ${color.brand};
-`;
+/* "오늘" 텍스트 배지는 전 폭에서 폐기됐다(사용자 결정 2026-07-26) — 시각 신호는 칸의 브랜드
+   보더 링+틴트가 전담하고, "오늘"이라는 말은 VisuallyHidden으로 접근성 트리에만 남긴다. */
 
 /**
- * 좁은 폭에서 감춘다 — **노드는 그대로 두고 표시만 끈다**(폭에 따라 DOM이 달라지면 안 된다).
- * 감춰도 정보 손실이 없다: 같은 내용이 표 아래 아젠다 목록에 전부 있다.
+ * 어느 폭에서든 티커 칩을 그대로 보여준다(좁으면 ellipsis로 줄인다 — 사용자 결정 2026-07-26,
+ * 구 설계의 "점 축약"과 "모바일 전체 숨김+개수 배지"를 폐기). 전체 이름은 아젠다 목록·툴팁이 말한다.
  */
 export const DayChipList = styled.ul`
   list-style: none;
@@ -143,9 +145,14 @@ export const DayChipList = styled.ul`
   display: flex;
   flex-wrap: wrap;
   gap: 2px;
+  /* 칸을 덮는 이동 버튼(DayJumpButton) 위로 올린다 — 칩이 hover·클릭(툴팁)을 직접 받아야 한다.
+     칩 영역 밖(칸의 나머지)은 여전히 이동 버튼이 받는다. */
+  position: relative;
+  z-index: 1;
 
-  ${media.down('mobile')} {
-    display: none;
+  /* 좁은 폭의 칩은 표시 전용 — 포인터를 뚫어 칸 탭이 이동 버튼(아젠다 점프)에 가게 한다. */
+  ${media.down('tabletSm')} {
+    pointer-events: none;
   }
 `;
 
@@ -154,33 +161,46 @@ export const DayChipItem = styled.li`
   min-width: 0;
 `;
 
-/** 틴트된 칸 위에서도 뜨는 흰 카드 칩. 색 점이 종목을, 텍스트가 티커를 말한다. */
-export const DayChip = styled.span`
+/**
+ * 틴트된 칸 위에서도 뜨는 흰 카드 칩. 텍스트가 티커를 말한다(색 점·개수 배지는 폐기 —
+ * 사용자 결정 2026-07-26: 어느 폭에서든 티커 텍스트를 ellipsis로 보여준다).
+ * 버튼인 이유: hover + 클릭으로 커스텀 툴팁을 여는 트리거라 키보드 포커스가 필요하다.
+ */
+export const DayChip = styled.button`
+  appearance: none;
+  position: relative;
   display: inline-flex;
   align-items: center;
   max-width: 100%;
-  padding: 1px ${space[2]} 1px ${space[1]};
+  min-width: 0;
+  padding: 1px ${space[1]};
   border: 1px solid ${color.border};
-  border-radius: ${radius.pill};
+  border-radius: ${radius.xs};
+  font: inherit;
   font-size: ${font.size['2xs']};
   font-weight: ${font.weight.semibold};
   color: ${color.text};
   background: ${color.surface};
+  cursor: pointer;
+  ${font.numeric}
+
+  &:focus-visible {
+    outline: 2px solid ${color.focusRing};
+    outline-offset: 1px;
+  }
+
+  ${media.down('tabletSm')} {
+    cursor: default;
+  }
+`;
+
+/** 칩 안의 티커 글자 — 칸 폭보다 길면 ellipsis로 줄인다(전체 이름은 툴팁·아젠다 목록이 말한다). */
+export const ChipLabel = styled.span`
+  min-width: 0;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  ${font.numeric}
-`;
-
-/** 티커 왼쪽 색 점 — tickerSeriesVar가 준 CSS 변수를 인라인 background로 받는다(장식, aria-hidden). */
-export const ChipDot = styled.span`
-  display: inline-block;
-  flex: 0 0 auto;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  margin-right: 4px;
-  vertical-align: middle;
 `;
 
 export const MoreCount = styled.span`
@@ -189,29 +209,46 @@ export const MoreCount = styled.span`
   font-size: ${font.size['2xs']};
   color: ${color.textMuted};
   ${font.numeric}
-
-  ${media.down('mobile')} {
-    display: none;
-  }
 `;
 
-/** 칩을 감추는 폭에서만 보이는 개수 배지. 칩 목록과 정확히 반대로 켜진다. */
-export const CountBadge = styled.span`
-  display: none;
-  align-items: center;
-  justify-content: center;
-  min-width: 18px;
-  padding: 0 ${space[1]};
-  border: 1px solid ${color.brandBorder};
-  border-radius: ${radius.pill};
-  font-size: ${font.size['2xs']};
-  font-weight: ${font.weight.semibold};
-  color: ${color.brandText};
-  background: ${color.brandSubtle};
-  ${font.numeric}
+/* 개수 배지(CountBadge)는 폐기됐다(사용자 결정 2026-07-26) — 어느 폭에서든 칩이 직접 나열되므로
+   "몇 건"은 칩 개수 자체가 말하고, 넘침은 MoreCount(+N)가 말한다. */
 
-  ${media.down('mobile')} {
-    display: inline-flex;
+/**
+ * 날짜 칸 전체를 덮는 투명 버튼(stretched-link) — 누르면 아래 아젠다의 그 날짜로 간다.
+ *
+ * `<td>`에 핸들러를 얹지 않고 버튼을 까는 이유: 셀은 버튼이 아니다. 선언하는 계약은 "버튼 하나"뿐이고
+ * 포커스·Enter/Space·역할 전달을 전부 브라우저가 이행한다(`role="grid"` 금지 결정과 정합).
+ * 지급이 있는 칸에만, 그리고 콜백이 배선됐을 때만 렌더한다.
+ *
+ * 휴지 상태에 **아무것도 그리지 않는다** → 데스크톱 기본 화면의 픽셀 변화가 0이다.
+ * 호버·포커스가 채움이 아니라 **안쪽 링**인 이유: 채우면 그 아래 칩·숫자를 덮어 정보가 가려진다.
+ */
+export const DayJumpButton = styled.button`
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  border: 0;
+  border-radius: ${radius.md};
+  background: transparent;
+  appearance: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: box-shadow ${motion.fast} ${motion.ease};
+
+  &:hover {
+    box-shadow: inset 0 0 0 2px ${color.brandBorder};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${color.focusRing};
+    outline-offset: -2px;
+  }
+
+  /* 칸의 좁은 폭 라운드(radius.xs)와 맞춘다 — 링이 모서리에서 칸 밖으로 비어져 보이지 않게. */
+  ${media.down('tabletSm')} {
+    border-radius: ${radius.xs};
   }
 `;
 

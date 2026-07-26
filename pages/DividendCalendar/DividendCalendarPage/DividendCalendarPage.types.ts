@@ -66,10 +66,14 @@ export type DividendCalendarViewProps = {
   liveMessage: string;
   /** 공유 주소에 있었지만 유니버스에 없어 제외한 심볼들. */
   unknownTickers: string[];
+  /** 달력 칸에서 눌러 들어온 아젠다 날짜(ISO). 없으면 null. */
+  highlightedAgendaDate: string | null;
   onKeywordChange: (keyword: string) => void;
   onDetailTabChange: (tab: CalendarDetailTab) => void;
   onOpenPicker: () => void;
   onClosePicker: () => void;
+  /** 지급이 있는 날짜 칸을 눌렀을 때(ISO). 아젠다 탭으로 전환하고 그 날짜로 보낸다. */
+  onDayJump: (isoDate: string) => void;
   onToggleTicker: (ticker: string) => void;
   onClearSelection: () => void;
   onPrevMonth: () => void;

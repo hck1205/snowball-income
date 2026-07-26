@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 import { DIVIDEND_CALENDAR_COPY } from '../../copy';
 import type { CalendarToolbarProps } from './CalendarToolbar.types';
 import { MonthTitle, NavButton, ToolbarRoot, TodayButton } from './CalendarToolbar.styled';
@@ -32,13 +32,14 @@ export default function CalendarToolbar({
       <NavButton type="button" aria-label={copy.nav.next(nextLabel)} onClick={onNext}>
         <ChevronRight size={16} strokeWidth={1.8} aria-hidden focusable={false} />
       </NavButton>
+      {/* "이번 달" 텍스트는 뺐다(사용자 결정 2026-07-26) — 아이콘 전용, 접근명은 그대로 말한다. */}
       <TodayButton
         type="button"
         aria-label={copy.nav.todayAria(todayLabel)}
         disabled={isCurrentMonth}
         onClick={onToday}
       >
-        {copy.nav.today}
+        <CalendarDays size={16} strokeWidth={1.8} aria-hidden focusable={false} />
       </TodayButton>
     </ToolbarRoot>
   );

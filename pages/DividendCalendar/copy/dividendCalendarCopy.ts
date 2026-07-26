@@ -25,12 +25,11 @@ export const DIVIDEND_CALENDAR_COPY = {
     title: '예상 지급일에 대해',
     body: '달력의 날짜는 과거 지급 이력에서 계산한 예상일입니다. 주말·공휴일이나 운용사 사정으로 실제 입금일은 달라질 수 있고, 지급 여부와 금액도 공시에 따라 바뀔 수 있습니다. 정확한 일정은 운용사 공시를 확인하세요.',
     monthSource:
-      '"추정"은 배당락일에서 역산한 값이라 실제 입금 달과 다를 수 있고, "실측"이라도 일정이 바뀔 수 있습니다.',
+      '"추정" 배지가 붙은 종목은 배당락일에서 역산한 값이라 실제 입금 달과 다를 수 있습니다. 배지가 없는 종목은 실제 입금 이력 기반이지만, 그래도 일정은 바뀔 수 있습니다.',
     undatedNote: '지급일을 추정할 이력이 없는 종목은 날짜에 놓지 않고 "날짜 미정"으로 따로 표시합니다.'
   },
   badge: {
-    /** 실제 입금일 이력에서 관측. */
-    pay: '실측',
+    /* '실측'(pay) 배지는 삭제했다(2026-07-26) — 기본값이라 표기하지 않고, 예외에만 배지를 단다. */
     /** 배당락일에서 추정. */
     ex: '추정',
     unavailable: '데이터 준비 중'
@@ -56,12 +55,13 @@ export const DIVIDEND_CALENDAR_COPY = {
     groupLabel: '월 이동',
     prev: (label: string) => `이전 달로 이동, ${label}`,
     next: (label: string) => `다음 달로 이동, ${label}`,
-    today: '이번 달',
+    /* 버튼의 보이는 텍스트('이번 달')는 삭제했다(2026-07-26) — 아이콘 전용, 접근명(todayAria)만 남는다. */
     todayAria: (label: string) => `이번 달로 돌아가기, ${label}`,
     monthLabel: (year: number, month: number) => `${year}년 ${month}월`
   },
   board: {
-    caption: (label: string) => `${label} 배당 지급 예정 캘린더. 날짜 칸에 그 날 지급 예정 종목이 표시됩니다.`,
+    caption: (label: string) =>
+      `${label} 배당 지급 예정 캘린더. 날짜 칸에 그 날 지급 예정 종목이 표시됩니다. 지급 예정이 있는 날짜는 눌러서 아래 지급 일정 목록으로 이동할 수 있습니다.`,
     weekdays: ['일', '월', '화', '수', '목', '금', '토'],
     weekdayFull: ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'],
     today: '오늘',
@@ -69,20 +69,32 @@ export const DIVIDEND_CALENDAR_COPY = {
     outOfMonthPrefix: (month: number) => `${month}월 `,
     moreCount: (n: number) => `+${n}`,
     moreCountAria: (n: number) => `외 ${n}종, 아래 지급 일정 목록 참고`,
-    dayCountAria: (n: number) => `지급 예정 ${n}종`,
+    /* 개수 배지 카피(dayCountAria)는 삭제했다(2026-07-26) — 배지 자체가 폐기됐다(칩이 전 폭에서 나열). */
     /** 종목별 12개월 표(연간 리듬)의 열 머리. */
     monthLabel: (month: number) => `${month}월`,
     summary: (label: string, dated: number, undated: number) =>
       `${label} 지급 예정 ${dated}건 · 날짜 미정 ${undated}종`,
-    summaryNone: (label: string) => `${label}에는 선택한 종목의 지급 예정이 없습니다.`
+    summaryNone: (label: string) => `${label}에는 선택한 종목의 지급 예정이 없습니다.`,
+    /**
+     * 날짜 칸을 덮는 투명 버튼의 접근명 — "무엇을 누르는지 + 무슨 일이 일어나는지"를 한 문장으로.
+     * 칸 안의 숫자·점만으로는 버튼의 목적지를 알 수 없다.
+     */
+    dayJump: (month: number, day: number, count: number) =>
+      `${month}월 ${day}일 지급 예정 ${count}종, 아래 지급 일정 목록에서 보기`,
+    /** 마우스 툴팁 — 좁은 폭에서 칩이 점으로 줄어도 종목명은 hover로 확인할 수 있다(칩별 title 대체). */
+    dayTooltip: (month: number, day: number, tickers: readonly string[]) =>
+      `${month}월 ${day}일 예상 지급: ${tickers.join(', ')}`,
+    /** 칩 커스텀 툴팁(hover/클릭) — 잘린 티커의 전체 이름과 예상 지급일을 말한다. */
+    chipTooltip: (ticker: string, month: number, day: number) => `${ticker} — ${month}월 ${day}일 예상 지급`,
+    chipTooltipUndated: (ticker: string) => `${ticker} — 이 달 지급 예상, 날짜 미정`,
+    /** 모바일 전용 발견 가능성 힌트 — 데스크톱은 커서·호버 링이 이미 말한다. */
+    jumpHint: '지급 예정이 있는 날짜를 누르면 아래 목록에서 그 날 일정을 볼 수 있습니다.'
   },
   /**
-   * 달력 아래 상세 두 가지(날짜순 목록 / 날짜 미정)를 한 줄로 가르는 전환 버튼.
-   * 미정이 0건이면 그 버튼 자체를 렌더하지 않는다 — 누를 게 없는 탭은 만들지 않는다.
+   * 상세 카드 머리의 미정 보기 토글(aria-pressed). 미정이 0건이면 렌더하지 않는다.
+   * 구 2버튼 탭(groupLabel·agenda)은 폐기(2026-07-26) — "지급 일정 목록" 라벨은 카드 제목 한 곳만.
    */
   detailTabs: {
-    groupLabel: '지급 일정 보기 방식',
-    agenda: '지급 일정 목록',
     undated: (n: number) => `날짜 미정 ${n}종`
   },
   undated: {
@@ -94,8 +106,8 @@ export const DIVIDEND_CALENDAR_COPY = {
     heading: '지급 일정 목록',
     dayLabel: (month: number, day: number, weekday: string) => `${month}월 ${day}일 (${weekday})`,
     /* 날짜별 종목 수 배지는 삭제했다(사용자 결정 2026-07-25) — 티커가 바로 아래 나열돼 중복이다. */
-    chipTitle: (ticker: string, month: number, day: number) => `${ticker} 예상 지급일 ${month}월 ${day}일`,
-    chipTitleUndated: (ticker: string) => `${ticker} 이 달 지급 예정, 날짜 미정`,
+    /* 칩별 native title(`chipTitle`/`chipTitleUndated`)은 삭제했다(2026-07-26) — 넓은 폭의 칩은
+       커스텀 툴팁(`board.chipTooltip`)이, 좁은 폭은 칸 전체를 덮는 `board.dayTooltip`이 말한다. */
     empty: '이 달에는 지급 예정이 없습니다. 다른 달로 이동하거나 종목을 추가해 보세요.',
     /** 날짜 있는 건 0 + 미정만 있을 때 — "지급이 없다"로 읽히면 거짓말이 된다. */
     undatedOnly: '날짜를 추정할 수 있는 지급이 없습니다. "날짜 미정" 탭을 확인하세요.'
