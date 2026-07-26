@@ -59,3 +59,96 @@ export const TaxAssumptionNote = styled.p`
 export const WarningSlot = styled.div`
   margin-top: ${space[3]};
 `;
+
+/* -------------------------------------------------------------------------- */
+/* 목표 월배당 도달 — 서사 하이라이트 블록                                        */
+/* -------------------------------------------------------------------------- */
+
+/** 서사 블록의 상태 톤. 미설정=중립, 미도달=warning, 도달=success. */
+export type NarrativeTone = 'muted' | 'warning' | 'success';
+
+const NARRATIVE_TONE: Record<NarrativeTone, { bg: string; fg: string }> = {
+  muted: { bg: color.surfaceMuted, fg: color.textMuted },
+  warning: { bg: color.warningSurface, fg: color.warning },
+  success: { bg: color.successSurface, fg: color.success }
+};
+
+/**
+ * 목표 도달 상태를 한 문장으로 말하는 하이라이트 블록.
+ *
+ * hero(최종 자산) 바로 아래에 그리드 한 줄 전체(`grid-column: 1 / -1`)를 차지한다.
+ * 상태별 surface 토큰으로 톤을 말한다(Banner와 달리 success 톤이 필요해 전용 블록으로 뒀다).
+ * 뷰 토글이 우측 상단에 절대배치되므로 `position: relative`.
+ */
+export const NarrativeBlock = styled.div<{ tone: NarrativeTone }>`
+  grid-column: 1 / -1;
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: ${space[3]};
+  padding: ${space[4]};
+  border-radius: ${radius.md};
+  background: ${({ tone }) => NARRATIVE_TONE[tone].bg};
+`;
+
+/** 좌측 lucide 아이콘 래퍼 — 톤 색을 입힌다. */
+export const NarrativeIcon = styled.span<{ tone: NarrativeTone }>`
+  display: inline-flex;
+  flex-shrink: 0;
+  color: ${({ tone }) => NARRATIVE_TONE[tone].fg};
+`;
+
+export const NarrativeBody = styled.div`
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: ${space[3]};
+`;
+
+/**
+ * 서사 문장. 우측 상단 뷰 토글이 **있을 때만** 그만큼 오른쪽을 비운다 —
+ * 토글이 없는 미설정 상태에서 같은 여백을 두면 문장 오른쪽에 죽은 공간만 남는다.
+ */
+export const NarrativeText = styled.p<{ tone: NarrativeTone; hasToggle: boolean }>`
+  margin: 0;
+  padding-right: ${({ hasToggle }) => (hasToggle ? '78px' : '0')};
+  font-size: ${font.size.sm};
+  line-height: ${font.leading.normal};
+  color: ${({ tone }) => NARRATIVE_TONE[tone].fg};
+`;
+
+/**
+ * 목표 미설정 상태의 액션 행 — "빠른 설정 칩 3개 + 직접 입력".
+ *
+ * 서사가 막다른 길이 되지 않게 문장 바로 아래에서 폐루프를 만든다. 좁은 화면에서 줄바꿈되므로
+ * `flex-wrap`을 둔다(≤960px에서는 좌패널이 드로어라 "왼쪽 설정" 안내가 성립하지 않는다).
+ */
+export const NarrativeActions = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: ${space[2]};
+`;
+
+/** 뷰 스위치(바 ↔ 게이지)의 우측 상단 고정 슬롯. */
+export const NarrativeToggleSlot = styled.div`
+  position: absolute;
+  top: ${space[3]};
+  right: ${space[3]};
+`;
+
+/**
+ * 원형 게이지 래퍼.
+ *
+ * 정사각으로 축소되며 가운데 정렬한다. ECharts 캔버스는 부모 크기를 채우므로
+ * 여기서 크기를 확정한다. target≤0/좁은 화면(≤360px)에선 렌더 자체가 생략된다.
+ * `role="img"` + `aria-label`은 컴포넌트에서 부여한다(색만으로 전달 금지).
+ */
+export const GaugeWrapper = styled.div`
+  width: 100%;
+  max-width: 220px;
+  min-height: 160px;
+  aspect-ratio: 1;
+  margin: 0 auto;
+`;

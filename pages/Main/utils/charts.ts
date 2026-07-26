@@ -42,21 +42,85 @@ export const buildLineChartOption = <TRow>({
   getXValue,
   getYValue,
   xAxisLabel,
-  yAxisLabelFormatter
+  yAxisLabelFormatter,
+  referenceLine,
+  reachMarker
 }: {
   rows: TRow[];
   getXValue: (row: TRow) => string;
   getYValue: (row: TRow) => number;
   xAxisLabel?: string;
   yAxisLabelFormatter?: (value: number) => string;
+  /** 목표선(markLine). `value>0`일 때만 그린다. `reached`로 도달(success)/미도달(warning) 색을 가른다. */
+  referenceLine?: { value: number; label: string; reached: boolean };
+  /** 도달 마커(markPoint). 도달 연도가 있을 때만 전달한다. */
+  reachMarker?: { xCategory: string; value: number; label: string };
 }): EChartsOption => {
   const formatValue = yAxisLabelFormatter ?? defaultAxisValueFormatter;
   const theme = getChartTheme();
   const axis = buildAxisStyle(theme);
 
+  /* 목표선/도달마커/y축 max 가드는 모두 target>0(목표 설정됨)일 때만. target≤0이면 전부 생략. */
+  const hasTarget = referenceLine !== undefined && referenceLine.value > 0;
+  const dataMax = rows.reduce((max, row) => Math.max(max, getYValue(row)), 0);
+  const yAxisMax = hasTarget ? Math.max(dataMax, referenceLine!.value) * 1.1 : undefined;
+
+  const markLine =
+    hasTarget && referenceLine
+      ? {
+          silent: true,
+          symbol: 'none' as const,
+          lineStyle: {
+            type: 'dashed' as const,
+            width: 2,
+            color: referenceLine.reached ? theme.success : theme.warning
+          },
+          label: {
+            formatter: referenceLine.label,
+            position: 'insideEndTop' as const,
+            color: referenceLine.reached ? theme.success : theme.warning,
+            fontFamily: theme.fontFamily,
+            fontSize: 11
+          },
+          data: [{ yAxis: referenceLine.value }]
+        }
+      : undefined;
+
+  const markPoint =
+    hasTarget && reachMarker
+      ? {
+          symbol: 'pin' as const,
+          symbolSize: 36,
+          itemStyle: { color: theme.success },
+          /*
+           * 라벨은 핀 **안**이 아니라 핀 **위의 상태 칩**이다. 핀(success 채움) 위에 얹던 onBrand
+           * 라벨은 대비가 무보장인 조합(다크 프리셋 5종에서 실측 2.36:1)이라, success 텍스트 ×
+           * successSurface 배경(contrast.test가 전 프리셋 강제)으로 떼어냈다.
+           * 좁은 화면에서도 숨기지 않는다 — 11px 칩은 320px 폭에도 들어가고, 뷰포트 분기를 지우면
+           * 리사이즈 시 옵션이 stale로 남던 문제도 함께 사라진다.
+           */
+          label: {
+            show: true,
+            position: 'top' as const,
+            distance: 6,
+            formatter: reachMarker.label,
+            color: theme.success,
+            backgroundColor: theme.successSurface,
+            borderColor: theme.success,
+            borderWidth: 1,
+            borderRadius: 4,
+            padding: [2, 6] as [number, number],
+            fontSize: 11,
+            fontFamily: theme.fontFamily
+          },
+          data: [{ name: reachMarker.label, xAxis: reachMarker.xCategory, yAxis: reachMarker.value }]
+        }
+      : undefined;
+
   return {
     animation: false,
-    grid: { left: 72, right: 20, top: 24, bottom: 40 },
+    /* right 32 — 도달 연도가 x축 마지막 카테고리면 도달 칩이 그리드 오른쪽으로 삐져나온다. */
+    grid: { left: 72, right: 32, top: 24, bottom: 40 },
     tooltip: {
       trigger: 'axis',
       ...buildTooltipStyle(theme),
@@ -74,6 +138,7 @@ export const buildLineChartOption = <TRow>({
     yAxis: {
       type: 'value',
       ...axis,
+      max: yAxisMax,
       axisLine: { show: false },
       axisLabel: {
         color: theme.label,
@@ -90,7 +155,9 @@ export const buildLineChartOption = <TRow>({
         lineStyle: { width: 2, color: theme.brand },
         itemStyle: { color: theme.brand },
         areaStyle: buildAuroraAreaStyle(theme),
-        data: rows.map((row) => getYValue(row))
+        data: rows.map((row) => getYValue(row)),
+        markLine,
+        markPoint
       }
     ]
   };

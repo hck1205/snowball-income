@@ -16,4 +16,3 @@ export { default as MainOverflowMenu } from './MainOverflowMenu';
 export { default as MainRightPanel } from './MainRightPanel';
 export { default as MarketDataAsOf } from './MarketDataAsOf';
 export { default as ModelChangeNotice } from './ModelChangeNotice';
-export * from './ResponsiveEChart';

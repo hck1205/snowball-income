@@ -3,6 +3,13 @@ import type { Frequency } from '@/shared/types';
 
 export type InputFieldProps = {
   label: string;
+  /**
+   * 입력의 DOM id(라벨 `htmlFor`도 같은 값). 기본은 라벨에서 파생한다(`toInputId`).
+   *
+   * 밖에서 이 입력을 **지목해야 할 때만** 준다(예: 다른 카드의 CTA가 여기로 포커스를 옮길 때) —
+   * 라벨 파생 id는 카피가 바뀌면 조용히 깨지기 때문이다.
+   */
+  id?: string;
   value: string | number;
   type?: 'text' | 'number' | 'date';
   helpAriaLabel?: string;

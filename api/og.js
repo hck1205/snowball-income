@@ -9237,6 +9237,11 @@ var FALLBACK = {
   textMuted: FALLBACK_TOKENS["text-muted"],
   brand: FALLBACK_TOKENS.brand,
   accent: FALLBACK_TOKENS.accent,
+  onBrand: FALLBACK_TOKENS["on-brand"],
+  progressTrack: FALLBACK_TOKENS["progress-track"],
+  success: FALLBACK_TOKENS.success,
+  successSurface: FALLBACK_TOKENS["success-surface"],
+  warning: FALLBACK_TOKENS.warning,
   series: Array.from({ length: 8 }, (_, index) => FALLBACK_TOKENS[`chart-series-${index}`])
 };
 var readVar = (name, fallback) => {
@@ -9253,6 +9258,11 @@ var getChartTheme = () => ({
   textMuted: readVar("--sb-text-muted", FALLBACK.textMuted),
   brand: readVar("--sb-brand", FALLBACK.brand),
   accent: readVar("--sb-accent", FALLBACK.accent),
+  onBrand: readVar("--sb-on-brand", FALLBACK.onBrand),
+  progressTrack: readVar("--sb-progress-track", FALLBACK.progressTrack),
+  success: readVar("--sb-success", FALLBACK.success),
+  successSurface: readVar("--sb-success-surface", FALLBACK.successSurface),
+  warning: readVar("--sb-warning", FALLBACK.warning),
   series: FALLBACK.series.map((fallback, index) => readVar(`--sb-chart-series-${index}`, fallback)),
   fontFamily: font.sans,
   labelFontSize: 12

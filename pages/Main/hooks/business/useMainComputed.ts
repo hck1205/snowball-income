@@ -130,6 +130,11 @@ export const useMainComputed = ({
     yearlyResultBarOption,
     yearlySeriesItems,
     /** 자체적으로 옵션을 만드는 표면(라인 차트 패널·실지급 배당 카드)이 같은 포맷터를 쓰도록 함께 돌려준다. */
-    formatChartValue
+    formatChartValue,
+    /**
+     * 차트 안 축약 라벨(목표선 markLine 라벨 등)용. 축과 같은 통화를 쓰게 하려고 함께 노출한다 —
+     * 원화 고정 포맷터를 쓰면 달러 표시 모드에서 축과 목표선의 단위가 섞인다.
+     */
+    formatChartCompact
   };
 };

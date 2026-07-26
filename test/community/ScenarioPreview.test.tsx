@@ -16,7 +16,7 @@ import {
  * 반응형 파이 래퍼를 스텁으로 갈아 끼워 미리보기 컴포넌트의 **아코디언·숫자·aria 계약**만 검증한다.
  * 파이 옵션(시뮬레이터 빌더 재사용)의 채색/정규화는 순수 함수로 별도 단정한다.
  */
-vi.mock('@/pages/Main/components/ResponsiveEChart', () => ({
+vi.mock('@/components/common/ResponsiveEChart', () => ({
   ResponsiveEChart: () => <div data-testid="pie-canvas" />
 }));
 

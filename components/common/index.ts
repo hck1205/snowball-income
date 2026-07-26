@@ -60,6 +60,9 @@ export {
 export { default as RangeSlider } from './RangeSlider';
 export type { RangeSliderProps } from './RangeSlider';
 
+export { ResponsiveEChart } from './ResponsiveEChart';
+export type { ResponsiveEChartProps } from './ResponsiveEChart';
+
 export { default as Select } from './Select';
 export type { SelectProps, SelectSize, SelectWidth } from './Select';
 
@@ -71,7 +74,7 @@ export {
   SeriesFilterRow
 } from './SeriesFilter';
 
-export { default as StatTile } from './StatTile';
+export { default as StatTile, toProgressPercent } from './StatTile';
 export type { StatEmphasis, StatTileProps, StatTone } from './StatTile';
 
 export { default as Tabs } from './Tabs';
