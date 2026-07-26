@@ -61,6 +61,14 @@ const TickerDetailPage = lazy(() => import('@/pages/Ticker/TickerDetailPage'));
  */
 const DividendCalendarPage = lazy(() => import('@/pages/DividendCalendar/DividendCalendarPage'));
 
+/**
+ * 목표 달성(`/dividend/goal`) — 캘린더와 같은 `lazy` 격리.
+ *
+ * 저장된 시나리오를 **읽기만** 해서 순수 재계산하는 독립 화면이라 시뮬레이터 엔트리에 실을 이유가 없다.
+ * PrimaryNav에는 경로 문자열과 아이콘만 추가되므로 이 lazy 경계가 유지된다.
+ */
+const GoalPage = lazy(() => import('@/pages/Goal/GoalPage'));
+
 const CommunityLayout = lazy(() => import('@/pages/Community/CommunityLayout'));
 const CommunityGalleryPage = lazy(() => import('@/pages/Community/CommunityGalleryPage'));
 const CommunityBoardPage = lazy(() => import('@/pages/Community/CommunityBoardPage'));
@@ -172,6 +180,14 @@ export const routes: RouteObject[] = [
         element: (
           <Suspense fallback={null}>
             <DividendCalendarPage />
+          </Suspense>
+        )
+      },
+      {
+        path: '/dividend/goal',
+        element: (
+          <Suspense fallback={null}>
+            <GoalPage />
           </Suspense>
         )
       },

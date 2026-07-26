@@ -54,6 +54,9 @@ export const ANALYTICS_EVENT = {
   // 추천 프리셋 적용 이벤트. 용도: 프리셋 인기 순위, 프리셋별 전환/완주율 비교.
   PRESET_APPLIED: "preset_applied",
   // 투자 설정 값 변경 이벤트. 용도: 목표 월배당/기간/세율 등 설정 분포와 월별 트렌드 분석.
+  // ⚠ 목표 달성 페이지(/dividend/goal)의 칩·직접 입력으로 정한 목표도 **시뮬레이터에서 커밋**되므로
+  //   이 이벤트로 함께 집계된다(field_name='targetMonthlyDividend'). 그 화면의 cta_click(goal_set_target)은
+  //   "누르는 순간"을, 이 이벤트는 "실제로 값이 정해진 순간"을 세는 별개 지표다(이중 집계 아님).
   INVESTMENT_SETTING_CHANGED: "investment_setting_changed",
   // 토글 상태 변경 이벤트. 용도: 간편/정밀, 그래프 모드 등 기능 선호도 분석.
   TOGGLE_CHANGED: "toggle_changed",
@@ -105,6 +108,12 @@ export const ANALYTICS_EVENT = {
   // 파라미터: shown(모달 노출 여부)·resolution(device|cloud|blend|deferred)·device_tabs·cloud_tabs·result_tabs.
   // 용도: 무음 last-write-wins를 대체한 화해 UI에서 사용자가 어느 쪽을 택하는지(디바이스/클라우드/블렌드/이연) 분포와 병합 결과 탭 수 모니터링.
   CLOUD_SYNC_CONFLICT: "cloud_sync_conflict",
+
+  // 목표 달성 페이지(/dividend/goal) 위젯 노출 이벤트(파라미터: has_target·progress_bucket·reached_in_range).
+  // 용도: ①목표를 실제로 설정해 두고 쓰는 비율(has_target) ②달성률 분포(진행 구간별 이탈·재방문 비교)
+  // ③투자 기간 안에 목표에 닿는 사용자 비율(reached_in_range)로 목표 난이도와 카피 톤을 조정.
+  // 목표 미설정이면 뒤 두 파라미터는 "0"이 아니라 해당 없음이라 아예 보내지 않는다.
+  GOAL_WIDGET_VIEW: "goal_widget_view",
 
   // ── 시나리오 공유 (Phase 1 신규) ────────────────────────────────────────────
   // 공유 링크 생성/복사(파라미터: share_method). 용도: 바이럴 계수, 공유 채널 분포.
@@ -246,6 +255,13 @@ export type AnalyticsEventParamMap = {
     error_code?: string;
   };
   [ANALYTICS_EVENT.SCENARIO_SHARED]: { share_method: string };
+  [ANALYTICS_EVENT.GOAL_WIDGET_VIEW]: {
+    has_target: boolean;
+    /** 달성률 버킷 — 연속값 금지 규칙에 따른 저카디널리티 라벨. 목표 미설정이면 미전송. */
+    progress_bucket?: "0-25" | "25-50" | "50-75" | "75-100" | "reached";
+    /** 저장된 투자 기간 안에 목표에 닿는가. 목표 미설정이면 미전송. */
+    reached_in_range?: boolean;
+  };
   [ANALYTICS_EVENT.CLOUD_SYNC_CONFLICT]: {
     shown: boolean;
     resolution: "device" | "cloud" | "blend" | "deferred";

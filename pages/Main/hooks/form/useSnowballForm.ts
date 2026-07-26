@@ -7,6 +7,10 @@ import { ANALYTICS_EVENT, bucketValue, trackEvent } from '@/shared/lib/analytics
  * 연속값 설정의 버킷 경계(저카디널리티 `value_bucket`용, docs/analytics/ga4-plan.md §0.5).
  * 금액은 원(KRW), 기간은 년, 세율은 %. 여기 없는 필드(토글·문자열)는 버킷을 붙이지 않는다.
  * 원값(`value`)은 그대로 유지하고 버킷만 추가로 실어 분포 분석을 돕는다.
+ *
+ * ⚠ `targetMonthlyDividend`의 앞 네 경계는 **빠른 설정 칩 값**(`TARGET_MONTHLY_DIVIDEND_QUICK_VALUES`
+ * = 50/100/200/300만원, 로드맵 v2)과 정확히 같은 자리다 — 칩으로 정한 목표가 버킷 경계에 걸쳐
+ * 분포가 두 칸으로 새는 것을 막는다. 칩 값을 바꾸면 이 배열도 함께 본다.
  */
 const VALUE_BUCKET_EDGES: Partial<Record<keyof YieldFormValues, readonly number[]>> = {
   initialInvestment: [10_000_000, 50_000_000, 100_000_000, 300_000_000, 500_000_000],

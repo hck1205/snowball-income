@@ -1,4 +1,5 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useInRouterContext } from 'react-router-dom';
 import { getTickerDisplayName } from '@/shared/utils';
 import { createPortal } from 'react-dom';
 import { ResponsiveEChart } from '@/components/common';
@@ -15,6 +16,7 @@ import {
   ScenarioTabs,
   ScenarioTabTooltip,
   TabDeleteModal,
+  TargetFocusRequest,
   type PortfolioPresetPlaceholder
 } from './components';
 import MonthlyCashflow from '@/components/MonthlyCashflow';
@@ -60,6 +62,11 @@ import { useScenarioTabInteractions } from './hooks';
 
 function MainRightPanelComponent() {
   const modalRoot = typeof document !== 'undefined' ? document.body : null;
+  /*
+   * 라우터 컨텍스트 유무. 값이 컴포넌트 수명 동안 바뀌지 않는 컨텍스트라 추가 리렌더를 만들지 않는다
+   * (memo 특성 불변). 라우터 훅을 쓰는 자식을 게이트하는 데만 쓴다.
+   */
+  const inRouter = useInRouterContext();
   // 프리셋 적용 확인 모달 대상 — 모바일에서 스크롤 중 실수 탭으로 프리셋이 즉시 적용되는 걸 막는다.
   const [pendingPreset, setPendingPreset] = useState<PortfolioPresetPlaceholder | null>(null);
   const [postInvestmentProjectionYears, setPostInvestmentProjectionYears] = useState(10);
@@ -221,17 +228,25 @@ function MainRightPanelComponent() {
     },
     [setField]
   );
-  const openTargetMonthlyDividendField = useCallback(() => {
-    trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
-      cta_name: 'set_target_monthly_dividend',
-      placement: 'simulation_result'
-    });
+  /**
+   * 목표 입력을 화면에 띄우고 포커스를 옮기는 **동작만** — 계측은 호출부가 한다.
+   * 결과 카드 CTA(이 화면 안의 클릭)와 다른 화면에서 넘어온 포커스 요청이 같은 경로를 타야
+   * "≤960px 드로어 열기 → 한 프레임 뒤 포커스" 규칙이 한 곳에만 남는다.
+   */
+  const focusTargetMonthlyDividendField = useCallback(() => {
     // ≤960px에서는 설정 패널이 드로어라 먼저 열어야 입력이 DOM에 나타난다.
     if (isConfigDrawerLayout()) setIsConfigDrawerOpen(true);
     // 드로어 마운트/레이아웃 뒤에 좌표를 잡도록 한 프레임 미룬다.
     if (typeof requestAnimationFrame === 'function') requestAnimationFrame(focusTargetMonthlyDividendInput);
     else focusTargetMonthlyDividendInput();
   }, [setIsConfigDrawerOpen]);
+  const openTargetMonthlyDividendField = useCallback(() => {
+    trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
+      cta_name: 'set_target_monthly_dividend',
+      placement: 'simulation_result'
+    });
+    focusTargetMonthlyDividendField();
+  }, [focusTargetMonthlyDividendField]);
   const projectedAnnualDividendGrowthRate = computeAnnualGrowthRate(postInvestmentDividendProjectionRows, (row) => row.annualDividend);
   const projectedAnnualAssetGrowthRate = computeAnnualGrowthRate(postInvestmentDividendProjectionRows, (row) => row.assetValue);
   const postInvestmentChartTitle =
@@ -344,6 +359,21 @@ function MainRightPanelComponent() {
 
   return (
     <ResultsColumn>
+      {/*
+        목표 달성 페이지에서 넘어온 요청의 수신 배선(location.state 1회 소비 → 값 커밋 → 포커스 → 소거).
+        값 커밋이 `quickSetTargetMonthlyDividend`(=결과 카드 칩과 **같은 setField 경로**)를 타므로
+        자동저장·클라우드 동기화·계측이 전부 기존 경로 그대로다. 이 패널은 하이드레이션 완료 후에만
+        마운트되므로 커밋이 저장값에 덮이지 않는다(TargetFocusRequest 주석 참고).
+        라우터 없이 격리 렌더되는 테스트가 있어 컨텍스트가 있을 때만 마운트한다 — 이 컴포넌트는
+        아무것도 그리지 않으므로 미렌더여도 화면은 동일하다.
+      */}
+      {inRouter ? (
+        <TargetFocusRequest
+          onApplyTarget={quickSetTargetMonthlyDividend}
+          onFocusTarget={focusTargetMonthlyDividendField}
+        />
+      ) : null}
+
       <ScenarioTabs
         tabs={tabs}
         activeScenarioId={activeScenarioId}
