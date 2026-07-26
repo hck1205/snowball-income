@@ -223,10 +223,19 @@ export const refreshTickers = async ({
       // guard the daily price refresh would quietly downgrade the better data every morning.
       const keepsPaySourced = previousPayoutMonthsSource === 'pay' && previousPayoutMonths !== undefined;
       const payoutMonths = keepsPaySourced ? previousPayoutMonths : inferredMonths;
+      // ⚠ `payoutMonthsSource: 'none'` ("ticker:paydates confirmed no dividend history") is this
+      // pipeline's to preserve, not to produce — it never fetches a payment-date schedule itself.
+      // When months are still undefined (this refresh could not infer any either) the marker must
+      // survive untouched, or the daily price refresh would silently erase it and the next
+      // `ticker:paydates` run would spend quota re-confirming the same ticker forever. The moment
+      // Yahoo *does* infer months (a dividend was initiated), the `'ex'` branch below wins instead —
+      // that is the natural, correct way for the marker to lift.
       const payoutMonthsSource = keepsPaySourced
         ? previousPayoutMonthsSource
         : payoutMonths === undefined
-          ? undefined
+          ? previousPayoutMonthsSource === 'none'
+            ? ('none' as const)
+            : undefined
           : ('ex' as const);
 
       // The day of month cash lands. Needs both a measured ex→pay lag and *pay*-sourced months —

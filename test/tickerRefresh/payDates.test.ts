@@ -177,6 +177,63 @@ describe('buildPayDatePatch', () => {
   });
 });
 
+/**
+ * 무배당 종목(ANET 등)은 매일 조회돼도 영원히 빈 응답만 돌려주므로, 회전 큐에서 미승급으로 남아
+ * 하루 25건의 쿼터를 1건씩 계속 태웠다. 한 번 확인되면 `payoutMonthsSource: 'none'` 으로 못 박아
+ * 후순위 그룹으로 내린다 — 단 **월 데이터가 없는 엔트리에만** 붙는다는 불변식을 지켜야 한다.
+ */
+describe('buildPayDatePatch — 지급 기록 없음 마커', () => {
+  it('처음 보는 무배당 종목은 marked-none 으로 한 번 기록한다', () => {
+    const outcome = buildPayDatePatch('ANET', [], undefined);
+
+    expect(outcome.status).toBe('marked-none');
+    if (outcome.status !== 'marked-none') return;
+    expect(outcome.patch).toEqual({ payoutMonthsSource: 'none' });
+  });
+
+  it('마커 patch 는 출처 하나만 담는다 — 지급월·lag·일자를 지어내지 않는다', () => {
+    const outcome = buildPayDatePatch('ANET', [], { payoutMonthsSource: undefined });
+
+    expect(outcome.status).toBe('marked-none');
+    if (outcome.status !== 'marked-none') return;
+    expect(Object.keys(outcome.patch)).toEqual(['payoutMonthsSource']);
+    expect(outcome.patch).not.toHaveProperty('payoutMonths');
+    expect(outcome.patch).not.toHaveProperty('exToPayLagDays');
+    expect(outcome.patch).not.toHaveProperty('estimatedPayDayByMonth');
+  });
+
+  /** 이게 깨지면 매일 같은 값을 다시 써서 스냅샷에 노이즈 커밋이 쌓인다. */
+  it('이미 none 으로 표시돼 있으면 unchanged — 매일 다시 쓰지 않는다', () => {
+    const outcome = buildPayDatePatch('ANET', [], { payoutMonthsSource: 'none' });
+
+    expect(outcome.status).toBe('unchanged');
+  });
+
+  it('ex 기준 지급월을 이미 갖고 있으면 skipped — 빈 응답이 기존 데이터를 지우지 못한다', () => {
+    const outcome = buildPayDatePatch('KO', [], { payoutMonths: [4, 7, 10, 12], payoutMonthsSource: 'ex' });
+
+    expect(outcome.status).toBe('skipped');
+    expect(outcome).not.toHaveProperty('patch');
+  });
+
+  it('pay 기준 지급월을 갖고 있으면 skipped — 실측 데이터가 none 으로 강등되지 않는다', () => {
+    const outcome = buildPayDatePatch('SCHD', [], {
+      payoutMonths: [3, 6, 9, 12],
+      payoutMonthsSource: 'pay',
+      exToPayLagDays: 5
+    });
+
+    expect(outcome.status).toBe('skipped');
+  });
+
+  /** 불변식: `'none'` 은 지급월이 없는 엔트리에만 붙는다. 월이 있으면 skipped 여야 한다. */
+  it('출처 없이 지급월만 있는 구 엔트리도 skipped (월이 있으면 none 을 붙이지 않는다)', () => {
+    const outcome = buildPayDatePatch('OLD', [], { payoutMonths: [1, 4, 7, 10] });
+
+    expect(outcome.status).toBe('skipped');
+  });
+});
+
 describe('toPaymentDatePayments', () => {
   it('지급일을 날짜로 삼아 기존 월 추론에 그대로 먹인다', () => {
     expect(toPaymentDatePayments(SCHD_SCHEDULE)[0]).toEqual({ date: '2026-06-29', amount: 0.2525 });

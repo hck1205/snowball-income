@@ -5200,7 +5200,8 @@ var marketDataSnapshotEntrySchema = external_exports.object({
   ).optional(),
   /** ex-date → 지급일 간격(일). 음수는 데이터 오류, 120일 초과는 정상 배당 스케줄이 아니다. */
   exToPayLagDays: external_exports.number().int().min(0).max(120).optional(),
-  payoutMonthsSource: external_exports.enum(["ex", "pay"]).optional(),
+  /** `'none'` = confirmed no dividend history (see `MarketDataSnapshotEntry.payoutMonthsSource`). */
+  payoutMonthsSource: external_exports.enum(["ex", "pay", "none"]).optional(),
   /**
    * 예상 지급일 — 키는 **지급월** 문자열('1'~'12'), 값은 그 달의 일(1~31).
    *

@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { applyMarketData, EMPTY_MARKET_DATA_SNAPSHOT, parseMarketDataSnapshot } from '@/shared/constants/marketData';
+import {
+  applyMarketData,
+  EMPTY_MARKET_DATA_SNAPSHOT,
+  MARKET_DATA,
+  parseMarketDataSnapshot
+} from '@/shared/constants/marketData';
 import type { MarketDataSnapshot } from '@/shared/constants/marketData';
 import { buildDividendUniverse, CURATED_DIVIDEND_UNIVERSE, DIVIDEND_UNIVERSE } from '@/shared/constants/presets';
 
@@ -249,5 +254,81 @@ describe('parseMarketDataSnapshot', () => {
       SCHD: { initialPrice: 32.1, dividendYield: 3.41, frequency: 'quarterly', observedDividendCagr: 900 }
     });
     expect(parseMarketDataSnapshot(bad)).toEqual(EMPTY_MARKET_DATA_SNAPSHOT);
+  });
+});
+
+/**
+ * `payoutMonthsSource: 'none'`("지급 기록 없음으로 확인") 은 나중에 추가된 값이다. 스키마가
+ * 이 값 하나를 못 받으면 **스냅샷 전체**가 폴백돼 전 종목 시세가 큐레이션 값으로 되돌아간다 —
+ * 하위 호환 양방향(신규 값 통과 / 구 엔트리 통과)을 여기서 못 박는다.
+ */
+describe("parseMarketDataSnapshot — payoutMonthsSource 'none' 하위 호환", () => {
+  it("'none' 마커가 붙은 엔트리를 그대로 통과시킨다", () => {
+    const snapshot = snapshotWith({
+      ANET: { initialPrice: 290, dividendYield: 0, frequency: 'quarterly', payoutMonthsSource: 'none' }
+    });
+
+    expect(parseMarketDataSnapshot(snapshot)).toEqual(snapshot);
+  });
+
+  it("기존 'ex'·'pay' 엔트리도 그대로 통과한다", () => {
+    const snapshot = snapshotWith({
+      SCHD: {
+        initialPrice: 32.1,
+        dividendYield: 3.41,
+        frequency: 'quarterly',
+        payoutMonths: [3, 6, 9, 12],
+        payoutMonthsSource: 'pay'
+      },
+      KO: {
+        initialPrice: 62,
+        dividendYield: 3.1,
+        frequency: 'quarterly',
+        payoutMonths: [4, 7, 10, 12],
+        payoutMonthsSource: 'ex'
+      }
+    });
+
+    expect(parseMarketDataSnapshot(snapshot)).toEqual(snapshot);
+  });
+
+  it('출처가 아예 없는 구 엔트리도 통과한다 (마이그레이션 없이 열려야 한다)', () => {
+    const legacy = snapshotWith({
+      SCHD: { initialPrice: 32.1, dividendYield: 3.41, frequency: 'quarterly', payoutMonths: [3, 6, 9, 12] }
+    });
+
+    expect(parseMarketDataSnapshot(legacy)).toEqual(legacy);
+  });
+
+  it('알 수 없는 출처 값은 여전히 막는다 (열거형이 느슨해지지 않았다)', () => {
+    const bad = {
+      asOf: '2026-07-14',
+      source: 'test',
+      entries: {
+        SCHD: { initialPrice: 32.1, dividendYield: 3.41, frequency: 'quarterly', payoutMonthsSource: 'guess' }
+      }
+    };
+
+    expect(parseMarketDataSnapshot(bad)).toEqual(EMPTY_MARKET_DATA_SNAPSHOT);
+  });
+
+  it("'none' 은 엔진 입력으로 새지 않는다 (오버레이는 관측 3필드만 옮긴다)", () => {
+    const overlaid = applyMarketData(
+      CURATED_DIVIDEND_UNIVERSE,
+      snapshotWith({
+        ANET: { initialPrice: 300, dividendYield: 0, frequency: 'quarterly', payoutMonthsSource: 'none' }
+      })
+    );
+
+    expect(overlaid.ANET.initialPrice).toBe(300);
+    expect(overlaid.ANET).not.toHaveProperty('payoutMonthsSource');
+  });
+
+  /** 불변식: `'none'` 은 지급월이 없는 엔트리에만 붙는다 — 실제 배포 스냅샷에서 검사한다. */
+  it("배포된 스냅샷의 'none' 엔트리에는 지급월이 없다", () => {
+    for (const [ticker, entry] of Object.entries(MARKET_DATA.entries)) {
+      if (entry.payoutMonthsSource !== 'none') continue;
+      expect(entry.payoutMonths, `${ticker} 는 'none' 인데 지급월을 갖고 있다`).toBeUndefined();
+    }
   });
 });

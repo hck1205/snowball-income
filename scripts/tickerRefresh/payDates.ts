@@ -11,6 +11,13 @@ import type { DividendScheduleRecord } from './derive';
 export type PayDateOutcome =
   | { ticker: string; status: 'updated'; patch: PayDatePatch; before: PayDateFields }
   | { ticker: string; status: 'unchanged' }
+  /**
+   * The provider was asked and confirmed there is no dividend history at all — recorded once so the
+   * queue stops re-asking every day (see `payDatesQueue`). Its own variant rather than `'updated'`
+   * because the patch shape differs: `payoutMonths` must stay absent (the invariant `'none'` only
+   * ever describes an entry with no months), while `PayDatePatch` requires one.
+   */
+  | { ticker: string; status: 'marked-none'; patch: NoneMarkerPatch }
   | { ticker: string; status: 'skipped'; reason: string }
   | { ticker: string; status: 'failed'; reason: string };
 
@@ -22,6 +29,9 @@ export type PayDateFields = Pick<
 
 export type PayDatePatch = Required<Pick<PayDateFields, 'payoutMonths' | 'payoutMonthsSource'>> &
   Pick<PayDateFields, 'exToPayLagDays' | 'estimatedPayDayByMonth'>;
+
+/** The patch written for a `'marked-none'` outcome. Deliberately narrower than `PayDatePatch`. */
+export type NoneMarkerPatch = { payoutMonthsSource: 'none' };
 
 const sameMonths = (left: readonly number[] | undefined, right: readonly number[]): boolean =>
   left !== undefined && left.length === right.length && left.every((month, index) => month === right[index]);
@@ -45,8 +55,10 @@ const samePayDays = (
  * (a fund whose ex-date is the 30th pays in the following month). Months derived here are therefore
  * marked `payoutMonthsSource: 'pay'` and outrank anything the daily refresh inferred.
  *
- * Returns `skipped` rather than an empty patch when the schedule yields nothing usable — an empty
- * result must never overwrite a good one.
+ * Returns `skipped` rather than an empty patch when the schedule yields nothing usable and the
+ * entry already has real months — an empty result must never overwrite a good one. When the entry
+ * has no months yet, an empty schedule instead becomes `marked-none` (`payoutMonthsSource: 'none'`),
+ * a permanent "confirmed no dividend history" record — see the branch below for why.
  */
 export const buildPayDatePatch = (
   ticker: string,
@@ -54,7 +66,20 @@ export const buildPayDatePatch = (
   previous: PayDateFields | undefined
 ): PayDateOutcome => {
   if (records.length === 0) {
-    return { ticker, status: 'skipped', reason: 'no dividend records' };
+    // Real months, from either source, are never overwritten by an empty response — a provider
+    // hiccup or a temporary gap must not erase good data, and lying about the source is worse.
+    if (previous?.payoutMonths !== undefined || previous?.payoutMonthsSource === 'pay') {
+      return { ticker, status: 'skipped', reason: 'no dividend records' };
+    }
+    // Already confirmed and marked on a previous run — nothing new to write today.
+    if (previous?.payoutMonthsSource === 'none') {
+      return { ticker, status: 'unchanged' };
+    }
+    // First confirmation that this ticker has no dividend history at all (e.g. it does not pay a
+    // dividend). Recorded once so the queue (`payDatesQueue`) stops spending quota on it every day —
+    // without this an entry that will never gain months sits at the front of the unsettled group
+    // forever.
+    return { ticker, status: 'marked-none', patch: { payoutMonthsSource: 'none' } };
   }
 
   // The frequency the entry already believes is the right cap: this pipeline observes *when*, not

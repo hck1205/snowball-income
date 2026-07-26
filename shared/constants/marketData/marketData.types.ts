@@ -62,12 +62,19 @@ export type MarketDataSnapshotEntry = MarketDataEntry & {
   /**
    * Where `payoutMonths` came from. `pay` means it was derived from real payment dates and is
    * authoritative; `ex` means it was inferred from ex-dates and can be off by a month when a payout
-   * sits near a month boundary (TXN/NEE/KO are the observed cases).
+   * sits near a month boundary (TXN/NEE/KO are the observed cases); `none` means the payment-date
+   * provider (`ticker:paydates`) was asked and confirmed there is no dividend history at all (e.g. a
+   * non-dividend-paying ticker).
    *
    * Kept explicit so a calendar can tell the user "estimated" instead of silently presenting a
    * guess as fact — and so a later refresh knows which entries still need upgrading.
+   *
+   * **Invariant**: `'none'` only ever appears on an entry that has no `payoutMonths` (there is
+   * nothing to be a source *of*). Consumers that branch on `=== 'pay'` and treat everything else as
+   * "estimated" stay correct for `'none'` too, because they only ever reach that branch when
+   * `payoutMonths` is present — which `'none'` entries never are.
    */
-  payoutMonthsSource?: 'ex' | 'pay';
+  payoutMonthsSource?: 'ex' | 'pay' | 'none';
   /**
    * Estimated day of month the dividend is **paid**, keyed by pay month (`'1'`..`'12'`).
    * **Reference only** — the engine never reads it (the simulation resolves payouts by `frequency`
