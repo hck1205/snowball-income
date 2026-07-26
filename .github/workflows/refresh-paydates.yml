@@ -22,7 +22,7 @@ on:
   workflow_dispatch:
     inputs:
       only:
-        description: 'Comma-separated tickers (blank = automatic queue, least-covered first)'
+        description: 'Comma-separated tickers (blank = automatic queue, unsettled group first, rotating daily)'
         required: false
         type: string
       limit:
@@ -64,13 +64,15 @@ jobs:
         run: npm ci
 
       # Inputs go through env vars rather than being interpolated into the shell, so a dispatch input
-      # cannot inject shell. With no `--only`/`--limit` the CLI queues tickers **least covered first**
-      # (entries without `payoutMonthsSource: 'pay'` come before those that already have it) and stops
-      # at the 25/day budget, so each daily run grows coverage by up to 25 tickers and the whole
-      # universe is covered in about three runs.
+      # cannot inject shell. With no `--only`/`--limit` the CLI queues two groups: tickers not yet
+      # settled (no `payoutMonthsSource: 'pay'` or `'none'`) first, then settled ones, and stops at
+      # the 25/day budget. Within each group the window rotates by one entry per UTC calendar day, so
+      # once a group grows past 25 the tail still gets reached — nothing sits at the back forever.
       #
       # The CLI never lets a bad response delete good data: a ticker that errors or returns nothing
-      # keeps what it had, and the first quota error stops the run instead of burning the rest.
+      # keeps what it had, and the first quota error stops the run instead of burning the rest. A
+      # ticker confirmed to have no dividend history at all (e.g. a non-dividend payer) is marked
+      # `payoutMonthsSource: 'none'` once, so the rotation does not keep re-asking about it forever.
       - name: Refresh pay dates
         env:
           ALPHAVANTAGE_API_KEY: ${{ secrets.ALPHAVANTAGE_API_KEY }}
@@ -129,7 +131,7 @@ jobs:
               echo 'Automated daily pay-date refresh of `shared/constants/marketData/marketData.generated.json` via Alpha Vantage.'
               echo
               echo '### What this run does'
-              echo '- Alpha Vantage free tier allows **25 requests per key per day**, so one run cannot cover the whole universe. The CLI queues tickers **least covered first** (entries whose `payoutMonthsSource` is not yet `pay`), takes the first 25, and stops at the first quota error - the leftovers are picked up by tomorrow'"'"'s run. Coverage therefore grows by up to 25 tickers a day until every ticker is pay-sourced, after which each run just re-verifies the oldest entries.'
+              echo '- Alpha Vantage free tier allows **25 requests per key per day**, so one run cannot cover the whole universe. The CLI groups tickers into unsettled (`payoutMonthsSource` not yet `pay` or `none`) and settled, unsettled first, takes the first 25, and stops at the first quota error - the leftovers are picked up by tomorrow'"'"'s run. Within each group the 25-wide window rotates by one entry per UTC day, so a group larger than 25 still gets fully covered over time instead of the same alphabetical head winning every run. A ticker confirmed to have no dividend history at all is marked `payoutMonthsSource: '"'"'none'"'"'` once, so quota stops being spent re-confirming it.'
               echo '- Fields that can change: `payoutMonths`, `payoutMonthsSource`, `exToPayLagDays`, `estimatedPayDayByMonth`.'
               echo
               echo '### Prices are NOT touched'

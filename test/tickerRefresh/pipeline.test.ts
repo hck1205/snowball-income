@@ -437,6 +437,87 @@ describe('estimatedPayDayByMonth (스냅샷 배선)', () => {
   });
 });
 
+/**
+ * `payoutMonthsSource` 는 `ticker:paydates`(월 1회, 쿼터 25건)가 소유하고 매일 도는 가격 갱신은
+ * **보존만** 한다. 매일 돌면서 마커를 지우면 다음 paydates 실행이 같은 무배당 종목을 영원히 다시
+ * 확인하느라 쿼터를 태운다 — 이 describe 가 그 회귀를 막는다.
+ */
+describe('payoutMonthsSource 이월 (매일 가격 갱신)', () => {
+  const snapshotWith = (entries: Record<string, MarketDataSnapshotEntry>) => ({
+    asOf: '2026-07-01',
+    source: 'fixture',
+    entries
+  });
+
+  /** ANET 은 큐레이션 프리셋에 있는 무배당 종목이라, 빈 배당 이력이 현실적인 픽스처가 된다. */
+  const noneMarked: MarketDataSnapshotEntry = {
+    initialPrice: 290,
+    dividendYield: 0,
+    frequency: 'quarterly',
+    payoutMonthsSource: 'none'
+  };
+
+  it("배당이 여전히 없으면 'none' 마커가 살아남는다 (가격은 갱신된다)", async () => {
+    const providerWithNoDividends = createFixtureProvider({ quotes: { ANET: 300 }, dividends: { ANET: [] } });
+
+    const result = await run(['ANET'], providerWithNoDividends, snapshotWith({ ANET: noneMarked }));
+    const entry = result.snapshot.entries.ANET;
+
+    expect(result.updated).toBe(1);
+    expect(entry.payoutMonthsSource).toBe('none');
+    expect(entry).not.toHaveProperty('payoutMonths');
+    expect(entry.initialPrice).toBe(300);
+  });
+
+  it("배당을 시작해 지급월이 추론되면 'ex' 로 자연 해제된다 (마커가 영구 고착되지 않는다)", async () => {
+    const providerWithDividends = createFixtureProvider({
+      quotes: { ANET: 300 },
+      dividends: { ANET: SCHD_DIVIDENDS }
+    });
+
+    const result = await run(['ANET'], providerWithDividends, snapshotWith({ ANET: noneMarked }));
+    const entry = result.snapshot.entries.ANET;
+
+    expect(entry.payoutMonthsSource).toBe('ex');
+    expect(entry.payoutMonths).toEqual([3, 6, 9, 12]);
+  });
+
+  it('마커가 없던 무배당 엔트리는 여전히 출처 없이 남는다 (가격 갱신이 마커를 만들지 않는다)', async () => {
+    const providerWithNoDividends = createFixtureProvider({ quotes: { ANET: 300 }, dividends: { ANET: [] } });
+
+    const result = await run(
+      ['ANET'],
+      providerWithNoDividends,
+      snapshotWith({ ANET: { initialPrice: 290, dividendYield: 0, frequency: 'quarterly' } })
+    );
+
+    expect(result.snapshot.entries.ANET).not.toHaveProperty('payoutMonthsSource');
+  });
+
+  it('pay 기준 지급월은 ex 추론으로 강등되지 않는다 (기존 이월 규칙 무회귀)', async () => {
+    const providerForSchd = createFixtureProvider({ quotes: { SCHD: 32.1 }, dividends: { SCHD: SCHD_DIVIDENDS } });
+
+    // 실측 지급월(2/5/8/11)은 배당락 기준 추론(3/6/9/12)과 일부러 다르게 잡았다.
+    const result = await run(
+      ['SCHD'],
+      providerForSchd,
+      snapshotWith({
+        SCHD: {
+          initialPrice: 32,
+          dividendYield: 3.4,
+          frequency: 'quarterly',
+          payoutMonths: [2, 5, 8, 11],
+          payoutMonthsSource: 'pay'
+        }
+      })
+    );
+    const entry = result.snapshot.entries.SCHD;
+
+    expect(entry.payoutMonths).toEqual([2, 5, 8, 11]);
+    expect(entry.payoutMonthsSource).toBe('pay');
+  });
+});
+
 describe('derived-growth warning (soft guard)', () => {
   it('warns when a refreshed yield overruns the curated expectedTotalReturn', async () => {
     // QYLD: curated etr 7%. An 11%+ TTM yield forces the derived growth negative.

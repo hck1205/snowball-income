@@ -4,6 +4,7 @@ import type { MarketDataSnapshotEntry } from '@/shared/constants/marketData';
 
 import { buildPayDatePatch } from './payDates';
 import type { PayDateOutcome } from './payDates';
+import { isKnownTicker, prioritize, rotationDayOf } from './payDatesQueue';
 import { ALPHA_VANTAGE_FREE_DAILY_LIMIT, createAlphaVantageProvider, ProviderError } from './provider';
 import { readCliEnv, readSnapshotFile, SNAPSHOT_PATH, writeSnapshotFile } from './snapshotIo';
 
@@ -16,9 +17,19 @@ import { readCliEnv, readSnapshotFile, SNAPSHOT_PATH, writeSnapshotFile } from '
  *
  * Safety rules, all of them about not losing good data:
  *   - writing is opt-in (`--write`), like the sibling CLI;
- *   - a ticker that errors or returns nothing keeps whatever it already had;
+ *   - a ticker that errors or returns nothing keeps whatever it already had — unless it has never
+ *     had any months at all, in which case a confirmed-empty response is recorded once as
+ *     `payoutMonthsSource: 'none'` so quota is not wasted re-asking about it forever
+ *     (see `buildPayDatePatch`);
+ *   - a `--only` ticker that has no snapshot entry at all (typo, or genuinely new) is skipped
+ *     *before* the provider is called — writing any pay-date patch for it would create a lone,
+ *     partial entry missing the required price/frequency fields and corrupt the whole snapshot on
+ *     the next read (see `isKnownTicker` in `./payDatesQueue`); run `ticker:refresh` first;
  *   - the run stops at the first quota error instead of burning through the remaining tickers,
  *     and reports what was left undone so the next run can pick it up.
+ *
+ * Queue order (which tickers get today's ~25 requests) lives in `./payDatesQueue` — kept out of
+ * this file because it is pure and needs to be importable by tests without triggering `main()`.
  */
 const LOG_PREFIX = '[ticker:paydates]';
 
@@ -43,11 +54,15 @@ const parseOptions = (argv: readonly string[]): { ok: true; options: Options } |
       continue;
     }
     if (arg.startsWith('--only=')) {
-      const tickers = arg
-        .slice('--only='.length)
-        .split(',')
-        .map((value) => value.trim().toUpperCase())
-        .filter((value) => value.length > 0);
+      const tickers = [
+        ...new Set(
+          arg
+            .slice('--only='.length)
+            .split(',')
+            .map((value) => value.trim().toUpperCase())
+            .filter((value) => value.length > 0)
+        )
+      ];
       if (tickers.length === 0) return { ok: false, error: '--only needs at least one ticker' };
       options.only = tickers;
       continue;
@@ -62,19 +77,6 @@ const parseOptions = (argv: readonly string[]): { ok: true; options: Options } |
   }
 
   return { ok: true, options };
-};
-
-
-/**
- * Tickers worth spending quota on, **least recently upgraded first**: entries with no pay-sourced
- * months come before those that already have them. With a 25/key/day cap the universe cannot be
- * covered in one run, so the order decides how fast coverage grows.
- */
-const prioritize = (entries: Record<string, MarketDataSnapshotEntry>, only: string[] | null): string[] => {
-  const all = only ?? Object.keys(entries).sort();
-  const needsUpgrade = all.filter((ticker) => entries[ticker]?.payoutMonthsSource !== 'pay');
-  const rest = all.filter((ticker) => entries[ticker]?.payoutMonthsSource === 'pay');
-  return [...needsUpgrade, ...rest];
 };
 
 const describe = (outcome: PayDateOutcome): string => {
@@ -94,6 +96,8 @@ const describe = (outcome: PayDateOutcome): string => {
     }
     case 'unchanged':
       return `${outcome.ticker}: 변화 없음`;
+    case 'marked-none':
+      return `${outcome.ticker}: 지급 기록 없음으로 확인 — 앞으로는 회전 순서상 뒤로 밀린다`;
     case 'skipped':
       return `${outcome.ticker}: 건너뜀 — ${outcome.reason}`;
     case 'failed':
@@ -122,23 +126,36 @@ const main = async (): Promise<number> => {
 
   // Never plan more calls than the daily quota allows — going over just collects errors.
   const budget = limit ?? ALPHA_VANTAGE_FREE_DAILY_LIMIT;
-  const queue = prioritize(snapshot.entries, only).slice(0, budget);
+  const queue = prioritize(snapshot.entries, only, rotationDayOf(new Date())).slice(0, budget);
 
   console.log(`${LOG_PREFIX} ${queue.length}종목 조회 (일일 예산 ${budget}건)${write ? '' : ' — DRY RUN'}`);
 
   const entries: Record<string, MarketDataSnapshotEntry> = { ...snapshot.entries };
   const outcomes: PayDateOutcome[] = [];
   let quotaHit: string | null = null;
+  let calls = 0;
 
-  for (const [index, ticker] of queue.entries()) {
-    if (index > 0) await sleep(DELAY_MS);
+  for (const ticker of queue) {
+    // Skip before spending a request or a politeness sleep — see the module doc comment above.
+    if (!isKnownTicker(snapshot.entries, ticker)) {
+      outcomes.push({ ticker, status: 'skipped', reason: 'not in snapshot — run ticker:refresh first' });
+      continue;
+    }
+
+    if (calls > 0) await sleep(DELAY_MS);
+    calls += 1;
 
     try {
       const records = await provider.fetchDividendSchedule(ticker);
       const outcome = buildPayDatePatch(ticker, records, snapshot.entries[ticker]);
       outcomes.push(outcome);
-      if (outcome.status === 'updated') {
-        entries[ticker] = { ...entries[ticker], ...outcome.patch };
+      switch (outcome.status) {
+        case 'updated':
+        case 'marked-none':
+          entries[ticker] = { ...entries[ticker], ...outcome.patch };
+          break;
+        default:
+          break;
       }
     } catch (error) {
       if (error instanceof ProviderError && error.code === 'rate_limit') {
@@ -152,11 +169,14 @@ const main = async (): Promise<number> => {
   }
 
   const updated = outcomes.filter((outcome) => outcome.status === 'updated');
+  const markedNone = outcomes.filter((outcome) => outcome.status === 'marked-none');
+  // Both leave a real change in `entries`; only these two justify writing the snapshot.
+  const changed = [...updated, ...markedNone];
   const done = outcomes.length;
   const remaining = queue.length - done;
 
   console.log(`--- ${LOG_PREFIX} ---`);
-  console.log(`처리    : ${done}종목 (갱신 ${updated.length} / 변화없음 ${outcomes.filter((o) => o.status === 'unchanged').length} / 건너뜀 ${outcomes.filter((o) => o.status === 'skipped').length} / 실패 ${outcomes.filter((o) => o.status === 'failed').length})`);
+  console.log(`처리    : ${done}종목 (갱신 ${updated.length} / 지급기록없음 확인 ${markedNone.length} / 변화없음 ${outcomes.filter((o) => o.status === 'unchanged').length} / 건너뜀 ${outcomes.filter((o) => o.status === 'skipped').length} / 실패 ${outcomes.filter((o) => o.status === 'failed').length})`);
   for (const outcome of outcomes) {
     if (outcome.status !== 'unchanged') console.log(`  - ${describe(outcome)}`);
   }
@@ -177,7 +197,7 @@ const main = async (): Promise<number> => {
     return 0;
   }
 
-  if (updated.length === 0) {
+  if (changed.length === 0) {
     console.log(`${LOG_PREFIX} 갱신할 내용이 없어 파일을 쓰지 않았다.`);
     return 0;
   }
