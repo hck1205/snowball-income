@@ -1,6 +1,7 @@
 import { z } from 'zod';
-import type { SimulationOutput, SimulationResult, YieldFormValues } from '@/shared/types';
+import type { PortfolioMonthlyPoint, SimulationOutput, SimulationResult, YieldFormValues } from '@/shared/types';
 import { defaultYieldFormValues, tickerInputSchema, validateFormValues } from './SnowballForm';
+import { aggregateMonthly } from './SnowballGoal';
 import { runSimulation } from './SnowballSimulation';
 
 /**
@@ -103,6 +104,14 @@ export type ScenarioRun = {
   outputs: SimulationOutput[];
   /** 티커별 연간 행을 합산한 포트폴리오 연간 행. */
   yearly: SimulationResult[];
+  /**
+   * 티커별 월 스냅샷을 달력 연·월로 합산한 포트폴리오 월 시계열 (`yearly`의 월 해상도 대응물).
+   *
+   * **additive 필드**다 — 기존 소비처(sim_summary·OG 카드)는 읽지 않는다. 목표 달성 화면처럼
+   * 월 해상도가 필요한 소비처가 payload 하나로 시계열을 얻도록 여기서 함께 내보낸다
+   * (`findTargetMonth`/`currentMonthlyDividend`의 입력).
+   */
+  monthly: PortfolioMonthlyPoint[];
 };
 
 /**
@@ -182,5 +191,12 @@ export const runScenarioPayload = (payload: unknown): ScenarioRun | null => {
     })
   );
 
-  return { profiles, weights, values, outputs, yearly: aggregateYearly(outputs) };
+  return {
+    profiles,
+    weights,
+    values,
+    outputs,
+    yearly: aggregateYearly(outputs),
+    monthly: aggregateMonthly(outputs)
+  };
 };

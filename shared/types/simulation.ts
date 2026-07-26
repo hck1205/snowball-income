@@ -84,6 +84,66 @@ export type SimulationSummary = {
   financialIncomeThresholdYear?: number;
 };
 
+/**
+ * 달력 연·월 한 쌍 (month 는 1..12).
+ * (컴포넌트 로컬 타입 `MonthlyCashflow.utils`의 `CalendarMonth`(month/total/items)와는 **다른 것**이다.)
+ */
+export type YearMonth = {
+  year: number;
+  month: number;
+};
+
+/**
+ * 포트폴리오 **전체**를 달력 연·월 단위로 합산한 한 점 — `SimulationResult`(연 해상도)의 월 해상도 대응물.
+ *
+ * 종목별 `MonthlySnapshot` 중 **합산이 의미 있는 값만** 담는다.
+ * (shares/price/dividendPerShare 는 종목마다 단위가 달라 더할 수 없으므로 제외한다.)
+ */
+export type PortfolioMonthlyPoint = {
+  /** 투자 시작 후 N개월째 (1-based) */
+  monthIndex: number;
+  /** 달력 연도 */
+  year: number;
+  /** 달력 월 (1..12) */
+  month: number;
+  /** 그 달에 지급된 **세후** 배당 합계 (엔진의 dividendPaid 가 이미 세후다) */
+  dividendPaid: number;
+  contributionPaid: number;
+  /** 그 달에 원천징수된 배당소득세 합계 */
+  taxPaid: number;
+  portfolioValue: number;
+  /** 시작부터 그 달까지 누적된 세후 배당 */
+  cumulativeDividend: number;
+};
+
+/** 월 해상도 목표 도달 시점. */
+export type TargetMonthReached = YearMonth & {
+  /** 투자 시작 후 N개월째 (1-based) */
+  monthIndex: number;
+  /** 도달 판정에 쓴 값 = 직전 12개월 세후 배당합 ÷ 12 */
+  monthlyDividend: number;
+};
+
+/**
+ * `currentMonthlyDividend` 의 계산 방식.
+ * - `trailing12m`: 기준 시점 직전 12개월 세후 배당합 ÷ 12 (정상 경로)
+ * - `firstYearAverage`: 12개월 미경과(또는 기준 시점이 투자 시작 전)라 1년차 월평균으로 폴백
+ */
+export type CurrentMonthlyDividendMode = 'trailing12m' | 'firstYearAverage';
+
+/** "오늘" 기준 현재 예상 월배당 (세후). */
+export type CurrentMonthlyDividend = {
+  /** 세후 월배당 (원). 항상 12로 나눈 값이라 연 해상도 monthlyDividend 와 같은 정의 계열이다. */
+  amount: number;
+  mode: CurrentMonthlyDividendMode;
+  /** `mode === 'firstYearAverage'` 와 동치 — UI 힌트 카피 분기용. */
+  isFallback: boolean;
+  /** 평균 창의 **마지막 달**(포함). 시계열이 비어 있으면 undefined. */
+  asOf?: YearMonth;
+  /** 창에 실제로 들어간 개월 수 (분모는 언제나 12다 — 연 해상도와 같은 정의). */
+  monthsCovered: number;
+};
+
 export type QuickEstimateOutput = {
   endValue: number;
   monthlyDividendApprox: number;
