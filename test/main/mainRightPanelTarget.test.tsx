@@ -45,7 +45,11 @@ import {
   weightByTickerIdAtom,
   yieldFormAtom
 } from '@/jotai';
-import { TARGET_MONTHLY_DIVIDEND_INPUT_ID } from '@/shared/constants';
+import {
+  TARGET_MONTHLY_DIVIDEND_INPUT_ID,
+  TARGET_MONTHLY_DIVIDEND_QUICK_VALUES,
+  formatTargetMonthlyDividendChipLabel
+} from '@/shared/constants';
 import { createChartCompactFormatter } from '@/pages/Main/utils';
 import type { TickerProfile } from '@/shared/types/snowball';
 
@@ -267,9 +271,15 @@ describe('"직접 입력" → 목표 월배당 입력으로 이동 (전체 경�
     const shownAmount = (): number => Number((targetInput().value || '0').replace(/[^\d.-]/g, ''));
     expect(shownAmount()).toBe(0);
 
-    await user.click(screen.getByRole('button', { name: '월 500만원' }));
+    /*
+     * 칩 값·라벨의 정본은 `shared/constants/targets`다(로드맵 v2: 50/100/200/300만원) —
+     * 목표 달성 페이지의 설정 패널과 같은 상수를 쓴다. 여기서 리터럴을 적으면 두 화면이
+     * 갈렸을 때 이 테스트가 그 사실을 못 잡는다.
+     */
+    const [, , , highest] = TARGET_MONTHLY_DIVIDEND_QUICK_VALUES;
+    await user.click(screen.getByRole('button', { name: formatTargetMonthlyDividendChipLabel(highest) }));
 
-    expect(shownAmount()).toBe(5_000_000);
+    expect(shownAmount()).toBe(highest);
   });
 });
 

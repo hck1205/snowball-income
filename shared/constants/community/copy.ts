@@ -25,6 +25,8 @@ export const COMMUNITY_COPY = {
     tickers: 'ETF 소개',
     /** 배당 지급 월 캘린더(/dividend/calendar). 시뮬 결과가 아니라 관측 지급월 기반 페이지다. */
     dividendCalendar: '배당 캘린더',
+    /** 목표 달성(/dividend/goal). 저장된 시나리오로 목표 월배당까지의 진행을 보여 준다. */
+    goal: '목표 달성',
     /** 상세/글쓰기 하위에서 목록으로 복귀하는 뒤로가기 라벨. */
     list: '목록'
   },

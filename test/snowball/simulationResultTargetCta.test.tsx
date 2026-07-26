@@ -4,6 +4,10 @@ import { createStore } from 'jotai/vanilla';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import SimulationResult from '@/components/SimulationResult';
+import {
+  TARGET_MONTHLY_DIVIDEND_QUICK_VALUES,
+  formatTargetMonthlyDividendChipLabel
+} from '@/shared/constants';
 import { createResultAmountFormatter, formatPercent, formatResultAmount, targetYearLabel } from '@/pages/Main/utils';
 import type { SimulationOutput, SimulationSummary } from '@/shared/types';
 
@@ -18,6 +22,11 @@ import type { SimulationOutput, SimulationSummary } from '@/shared/types';
 
 const UNSET_NARRATIVE = '목표 월배당을 정하면 도달 시점과 진행률을 함께 보여줘요.';
 const QUICK_SET_GROUP = '목표 월배당 빠른 설정';
+/**
+ * 칩 값·라벨의 정본은 `shared/constants/targets`다(로드맵 v2: 50/100/200/300만원).
+ * 여기서 리터럴을 다시 적으면 목표 달성 페이지와 값이 갈렸을 때 이 테스트가 그것을 못 잡는다.
+ */
+const QUICK_LABELS = TARGET_MONTHLY_DIVIDEND_QUICK_VALUES.map(formatTargetMonthlyDividendChipLabel);
 
 const buildSummary = (overrides: Partial<SimulationSummary> = {}): SimulationSummary => ({
   finalAssetValue: 1_137_786_866,
@@ -91,34 +100,33 @@ const renderResult = ({
 const quickSetGroup = () => screen.getByRole('group', { name: QUICK_SET_GROUP });
 
 describe('목표 미설정 CTA — 빠른 설정 칩', () => {
-  it('세 가지 빠른 목표와 직접 입력이 한 행에 함께 놓인다', () => {
+  it('네 가지 빠른 목표와 직접 입력이 한 행에 함께 놓인다', () => {
     renderResult();
 
     const group = quickSetGroup();
-    expect(within(group).getByRole('button', { name: '월 100만원' })).toBeInTheDocument();
-    expect(within(group).getByRole('button', { name: '월 300만원' })).toBeInTheDocument();
-    expect(within(group).getByRole('button', { name: '월 500만원' })).toBeInTheDocument();
+    for (const label of QUICK_LABELS) {
+      expect(within(group).getByRole('button', { name: label })).toBeInTheDocument();
+    }
     expect(within(group).getByRole('button', { name: '직접 입력' })).toBeInTheDocument();
   });
 
-  it.each([
-    ['월 100만원', 1_000_000],
-    ['월 300만원', 3_000_000],
-    ['월 500만원', 5_000_000]
-  ])('"%s" 칩은 원 단위 %d 을(를) 그대로 올려보낸다', async (label, won) => {
-    const { user, onQuickSetTarget } = renderResult();
+  it.each(TARGET_MONTHLY_DIVIDEND_QUICK_VALUES.map((won) => [formatTargetMonthlyDividendChipLabel(won), won]))(
+    '"%s" 칩은 원 단위 %d 을(를) 그대로 올려보낸다',
+    async (label, won) => {
+      const { user, onQuickSetTarget } = renderResult();
 
-    await user.click(within(quickSetGroup()).getByRole('button', { name: label }));
+      await user.click(within(quickSetGroup()).getByRole('button', { name: String(label) }));
 
-    // 만원 단위/문자열이 아니라 폼이 그대로 쓰는 원 단위 숫자여야 한다.
-    expect(onQuickSetTarget).toHaveBeenCalledTimes(1);
-    expect(onQuickSetTarget).toHaveBeenCalledWith(won);
-  });
+      // 만원 단위/문자열이 아니라 폼이 그대로 쓰는 원 단위 숫자여야 한다.
+      expect(onQuickSetTarget).toHaveBeenCalledTimes(1);
+      expect(onQuickSetTarget).toHaveBeenCalledWith(won);
+    }
+  );
 
   it('칩을 누르면 (칩이 사라질 자리 대신) 바뀐 서사 문장으로 포커스가 옮겨간다', async () => {
     const { user } = renderResult();
 
-    await user.click(within(quickSetGroup()).getByRole('button', { name: '월 100만원' }));
+    await user.click(within(quickSetGroup()).getByRole('button', { name: QUICK_LABELS[1] }));
 
     // 포커스가 body로 떨어지면 키보드 사용자가 맥락을 잃는다.
     // 포커스는 문장이 갱신된 다음 프레임에 온다(동기로 주면 스크린리더가 옛 문장을 읽는다).
@@ -148,7 +156,7 @@ describe('목표 미설정 CTA — 배선/상태에 따른 노출', () => {
   it('빠른 설정만 배선되면 칩만 보인다', () => {
     renderResult({ onOpenTargetField: null });
 
-    expect(within(quickSetGroup()).getByRole('button', { name: '월 100만원' })).toBeInTheDocument();
+    expect(within(quickSetGroup()).getByRole('button', { name: QUICK_LABELS[1] })).toBeInTheDocument();
     expect(within(quickSetGroup()).queryByRole('button', { name: '직접 입력' })).not.toBeInTheDocument();
   });
 
@@ -156,7 +164,7 @@ describe('목표 미설정 CTA — 배선/상태에 따른 노출', () => {
     renderResult({ onQuickSetTarget: null });
 
     expect(within(quickSetGroup()).getByRole('button', { name: '직접 입력' })).toBeInTheDocument();
-    expect(within(quickSetGroup()).queryByRole('button', { name: '월 100만원' })).not.toBeInTheDocument();
+    expect(within(quickSetGroup()).queryByRole('button', { name: QUICK_LABELS[1] })).not.toBeInTheDocument();
   });
 
   it('목표가 이미 있으면(>0) 액션 행을 그리지 않는다 — 대신 진행률 토글이 자리를 차지한다', () => {

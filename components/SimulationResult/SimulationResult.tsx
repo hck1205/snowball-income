@@ -14,7 +14,9 @@ import {
   CAPITAL_GAINS_ANNUAL_DEDUCTION,
   FINANCIAL_INCOME_TAX_THRESHOLD,
   OVERSEAS_CAPITAL_GAINS_TAX_RATE,
-  TOUR_TARGET
+  TARGET_MONTHLY_DIVIDEND_QUICK_VALUES,
+  TOUR_TARGET,
+  formatTargetMonthlyDividendChipLabel
 } from '@/shared/constants';
 import {
   GaugeWrapper,
@@ -37,14 +39,16 @@ import type { NarrativeTone } from './SimulationResult.styled';
 const toManWon = (won: number): string => `${(won / 10_000).toLocaleString()}만원`;
 
 /**
- * 목표 미설정 상태의 빠른 설정 값(원). GA `value_bucket` 경계(useSnowballForm)와 같은 자리에
- * 맞춰 두어, 칩으로 정한 목표가 분포 분석에서 경계에 걸치지 않게 한다.
+ * 목표 미설정 상태의 빠른 설정 값(원).
+ *
+ * 값·라벨은 **`shared/constants/targets`가 단일 정본**이다(로드맵 v2 확정 50/100/200/300만원) —
+ * 목표 달성 페이지의 설정 패널이 같은 상수를 쓰므로 두 화면의 칩이 영원히 같은 값을 낸다.
+ * (구 100/300/500 로컬 배열은 사용자 승인으로 대체됐다.)
  */
-const QUICK_TARGETS: { label: string; value: number }[] = [
-  { label: '월 100만원', value: 1_000_000 },
-  { label: '월 300만원', value: 3_000_000 },
-  { label: '월 500만원', value: 5_000_000 }
-];
+const QUICK_TARGETS: { label: string; value: number }[] = TARGET_MONTHLY_DIVIDEND_QUICK_VALUES.map((value) => ({
+  label: formatTargetMonthlyDividendChipLabel(value),
+  value
+}));
 
 /** 부호 있는 값의 방향성(한국 증권 관례: 상승 적색 / 하락 청색). 0은 중립. */
 const toneOf = (value: number): StatTone => (value > 0 ? 'positive' : value < 0 ? 'negative' : 'neutral');

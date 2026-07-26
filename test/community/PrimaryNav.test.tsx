@@ -88,6 +88,49 @@ describe('PrimaryNav', () => {
     expect(current[0]).toHaveAccessibleName('게시판');
   });
 
+  it('목표 달성(/dividend/goal)에선 목표 달성 링크만 활성이다', () => {
+    communityEnabled = true;
+    renderAt('/dividend/goal');
+
+    expect(screen.getByRole('link', { name: '목표 달성' })).toHaveAttribute('aria-current', 'page');
+    // `/dividend/*` 형제 세그먼트끼리 서로를 활성화하면 사용자는 현재 위치를 잃는다.
+    expect(screen.getByRole('link', { name: '배당 캘린더' })).not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('link', { name: '시뮬레이터' })).not.toHaveAttribute('aria-current');
+
+    const current = screen.getAllByRole('link').filter((link) => link.getAttribute('aria-current') === 'page');
+    expect(current).toHaveLength(1);
+  });
+
+  it('배당 캘린더에선 목표 달성 링크가 활성이 되지 않는다 (상호 배타)', () => {
+    communityEnabled = true;
+    renderAt('/dividend/calendar');
+
+    expect(screen.getByRole('link', { name: '배당 캘린더' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: '목표 달성' })).not.toHaveAttribute('aria-current');
+  });
+
+  it('라우트 링크는 6개이고 목표 달성은 시뮬레이터 바로 다음이다', () => {
+    communityEnabled = true;
+    renderAt('/dividend/goal');
+
+    // 라우트 링크만 aria-label을 갖는다(브랜드 링크는 워드마크 텍스트가 이름) — 순서 = 예상 관심도(확정 결정).
+    const names = screen
+      .getAllByRole('link')
+      .map((link) => link.getAttribute('aria-label'))
+      .filter((name): name is string => name !== null);
+
+    expect(names).toEqual(['시뮬레이터', '목표 달성', '배당 캘린더', '포트폴리오 갤러리', '게시판', 'ETF 소개']);
+  });
+
+  it('커뮤니티 비활성 배포에서도 목표 달성 링크는 남는다', () => {
+    communityEnabled = false;
+    renderAt('/dividend/goal');
+
+    expect(screen.getByRole('link', { name: '목표 달성' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: '배당 캘린더' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: '포트폴리오 갤러리' })).not.toBeInTheDocument();
+  });
+
   it('커뮤니티 비활성 배포에선 갤러리·게시판 링크를 렌더하지 않는다 (앱은 그대로 동작)', () => {
     communityEnabled = false;
     renderAt('/');
