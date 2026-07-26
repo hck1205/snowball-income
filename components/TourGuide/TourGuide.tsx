@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { TOUR_STEPS, TOUR_STORAGE_KEY, type TourStep } from '@/shared/constants';
 import { useTourLaunchRequestAtomValue } from '@/jotai';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
+import { prefersReducedMotion } from '@/shared/utils';
 import { Button } from '@/components/common';
 import type { TourGuideProps, TourPopoverPosition, TourRect } from './TourGuide.types';
 import {
@@ -47,11 +48,6 @@ const toRect = (rect: DOMRect): TourRect => ({
 });
 
 const getViewport = () => ({ width: window.innerWidth, height: window.innerHeight });
-
-const prefersReducedMotion = (): boolean => {
-  if (typeof window.matchMedia !== 'function') return false;
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-};
 
 /**
  * 가이드 투어 — 스포트라이트 코치마크 오버레이.

@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, elevation, font, motion, radius, space } from '@/shared/styles';
+import { color, elevation, font, media, motion, radius, space } from '@/shared/styles';
 
 export const PageStack = styled.div`
   display: grid;
@@ -360,6 +360,21 @@ export const UnavailableItem = styled.li`
   padding: 2px ${space[2]};
   border-radius: ${radius.pill};
   background: ${color.surfaceMuted};
+`;
+
+/**
+ * 달력 바로 아래 한 줄 힌트 — "날짜 칸을 누를 수 있다"는 것은 터치에서 보이지 않는다.
+ * 데스크톱에서는 커서와 호버 링이 이미 말하므로 좁은 폭에서만 띄운다.
+ */
+export const BoardHint = styled.p`
+  margin: 0;
+  font-size: ${font.size.xs};
+  color: ${color.textMuted};
+  line-height: ${font.leading.snug};
+
+  ${media.up('tabletSm')} {
+    display: none;
+  }
 `;
 
 export const FootNote = styled.p`

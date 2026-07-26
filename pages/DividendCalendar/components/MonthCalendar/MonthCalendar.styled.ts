@@ -63,6 +63,8 @@ export const DayCellRoot = styled.td<{
   $hasPayout: boolean;
   $today: boolean;
 }>`
+  /* 칸을 덮는 이동 버튼(DayJumpButton)의 컨테이닝 블록. */
+  position: relative;
   vertical-align: top;
   padding: ${space[2]};
   /* 격자선을 그리는 대신 칸을 카드처럼 띄운다(간격은 표의 border-spacing이 만든다). */
@@ -90,23 +92,41 @@ export const DayCellRoot = styled.td<{
     background ${motion.fast} ${motion.ease},
     border-color ${motion.fast} ${motion.ease};
 
+  /*
+   * 좁은 폭에서는 칩이 **점**으로 줄어 88px가 빈 공간이 된다 → 내용이 필요한 만큼만 쓰게 하한만 남긴다.
+   * height는 td에서 최소값으로만 해석되므로(표 셀은 내용보다 작아지지 않는다) 고정값을 남겨두면
+   * 의도를 오독하게 만든다 — auto로 명시해 "높이는 내용이 정한다"를 코드로 말한다.
+   */
   ${media.down('tabletSm')} {
-    min-height: 88px;
-    height: 88px;
+    min-height: 72px;
+    height: auto;
     padding: ${space[1]};
   }
 
   ${media.down('mobile')} {
-    min-height: 44px;
-    height: 44px;
+    min-height: 48px;
+    height: auto;
   }
 `;
 
+/**
+ * 날짜 숫자 + 배지 줄.
+ *
+ * 모바일에서 `flex-wrap: wrap`은 ~41px 칸에서 요소를 3줄로 흩어 격자를 부풀렸다 →
+ * **세로 스택 1행=날짜, 2행=개수 배지**로 줄 수를 우리가 정한다(줄바꿈을 폭에 맡기지 않는다).
+ */
 export const DayHead = styled.div`
   display: flex;
   align-items: center;
   gap: ${space[1]};
   flex-wrap: wrap;
+
+  ${media.down('mobile')} {
+    flex-direction: column;
+    align-items: flex-start;
+    flex-wrap: nowrap;
+    gap: 2px;
+  }
 `;
 
 /** 날짜 숫자에 accent 색 금지(숫자는 데이터다). */
@@ -121,7 +141,14 @@ export const DayNumber = styled.span<{ $muted: boolean }>`
   }
 `;
 
-/** 솔리드 브랜드 배지 — 오늘 칸의 링·틴트와 같은 색 언어로 "오늘"을 못 놓치게 한다. */
+/**
+ * 솔리드 브랜드 배지 — 오늘 칸의 링·틴트와 같은 색 언어로 "오늘"을 못 놓치게 한다.
+ *
+ * ≤560px에서는 **시각적으로만** 숨긴다(`display: none`이 아니다): 칸 폭이 ~41px라 nowrap 배지가
+ * 가로로 넘쳐 잘려 보이던 것이 실제 증상이었다. 오늘의 시각 신호는 칸의 브랜드 링+틴트가 이미
+ * 담당하고, "오늘"이라는 **말**은 접근성 트리에 남아야 한다(오늘 = `aria-current="date"` + "오늘" 배지).
+ * `display: none`은 그 말을 지울 뿐 아니라 jsdom이 실제로 평가하는 속성이라 테스트 기준까지 갈린다.
+ */
 export const TodayBadge = styled.span`
   padding: 0 ${space[2]};
   border-radius: ${radius.pill};
@@ -130,6 +157,20 @@ export const TodayBadge = styled.span`
   white-space: nowrap;
   color: ${color.onBrand};
   background: ${color.brand};
+
+  ${media.down('mobile')} {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+    /* 브랜드 채움이 1px 점으로 남지 않게. */
+    background: none;
+  }
 `;
 
 /**
@@ -144,6 +185,11 @@ export const DayChipList = styled.ul`
   flex-wrap: wrap;
   gap: 2px;
 
+  /* 칩이 점으로 줄어드는 폭 — 점끼리는 조금 더 벌려야 개수가 눈으로 세어진다. */
+  ${media.down('tabletSm')} {
+    gap: 3px;
+  }
+
   ${media.down('mobile')} {
     display: none;
   }
@@ -154,8 +200,14 @@ export const DayChipItem = styled.li`
   min-width: 0;
 `;
 
-/** 틴트된 칸 위에서도 뜨는 흰 카드 칩. 색 점이 종목을, 텍스트가 티커를 말한다. */
+/**
+ * 틴트된 칸 위에서도 뜨는 흰 카드 칩. 색 점이 종목을, 텍스트가 티커를 말한다.
+ *
+ * ≤760px에서는 **칩 껍데기를 벗고 점만 남긴다** — 이 폭에서 티커 텍스트를 담은 칩 3개는 칸 폭을
+ * 넘겨 잘려 보였다. 잃는 정보(어느 종목)는 아래 아젠다 목록에 그대로 있고, "몇 건"은 CountBadge가 말한다.
+ */
 export const DayChip = styled.span`
+  position: relative;
   display: inline-flex;
   align-items: center;
   max-width: 100%;
@@ -170,6 +222,30 @@ export const DayChip = styled.span`
   text-overflow: ellipsis;
   white-space: nowrap;
   ${font.numeric}
+
+  ${media.down('tabletSm')} {
+    padding: 0;
+    border-color: transparent;
+    background: transparent;
+  }
+`;
+
+/**
+ * 칩 안의 티커 글자. 좁은 폭에서 **시각적으로만** 감춘다 — `display: none`으로 지우면
+ * 칸에 색점만 남아 스크린리더에서 종목명이 사라진다(표 셀은 여전히 선형으로 읽힌다).
+ */
+export const ChipLabel = styled.span`
+  ${media.down('tabletSm')} {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
 `;
 
 /** 티커 왼쪽 색 점 — tickerSeriesVar가 준 CSS 변수를 인라인 background로 받는다(장식, aria-hidden). */
@@ -181,6 +257,13 @@ export const ChipDot = styled.span`
   border-radius: 50%;
   margin-right: 4px;
   vertical-align: middle;
+
+  /* 텍스트가 빠진 폭에서는 점 자체가 칩이다 — 조금 키우고 오른쪽 여백을 없앤다. */
+  ${media.down('tabletSm')} {
+    width: 8px;
+    height: 8px;
+    margin-right: 0;
+  }
 `;
 
 export const MoreCount = styled.span`
@@ -195,7 +278,12 @@ export const MoreCount = styled.span`
   }
 `;
 
-/** 칩을 감추는 폭에서만 보이는 개수 배지. 칩 목록과 정확히 반대로 켜진다. */
+/**
+ * 개수 배지.
+ *
+ * 노출 시작이 **칩이 점으로 줄어드는 폭(≤760px)** 이다(구: 칩이 완전히 사라지는 ≤560px).
+ * 점은 색뿐이라 "몇 건인가"를 못 나른다 — 개수는 숫자 텍스트가 말해야 한다.
+ */
 export const CountBadge = styled.span`
   display: none;
   align-items: center;
@@ -210,8 +298,41 @@ export const CountBadge = styled.span`
   background: ${color.brandSubtle};
   ${font.numeric}
 
-  ${media.down('mobile')} {
+  ${media.down('tabletSm')} {
     display: inline-flex;
+  }
+`;
+
+/**
+ * 날짜 칸 전체를 덮는 투명 버튼(stretched-link) — 누르면 아래 아젠다의 그 날짜로 간다.
+ *
+ * `<td>`에 핸들러를 얹지 않고 버튼을 까는 이유: 셀은 버튼이 아니다. 선언하는 계약은 "버튼 하나"뿐이고
+ * 포커스·Enter/Space·역할 전달을 전부 브라우저가 이행한다(`role="grid"` 금지 결정과 정합).
+ * 지급이 있는 칸에만, 그리고 콜백이 배선됐을 때만 렌더한다.
+ *
+ * 휴지 상태에 **아무것도 그리지 않는다** → 데스크톱 기본 화면의 픽셀 변화가 0이다.
+ * 호버·포커스가 채움이 아니라 **안쪽 링**인 이유: 채우면 그 아래 색점·숫자를 덮어 정보가 가려진다.
+ */
+export const DayJumpButton = styled.button`
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  border: 0;
+  border-radius: ${radius.md};
+  background: transparent;
+  appearance: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: box-shadow ${motion.fast} ${motion.ease};
+
+  &:hover {
+    box-shadow: inset 0 0 0 2px ${color.brandBorder};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${color.focusRing};
+    outline-offset: -2px;
   }
 `;
 

@@ -5,4 +5,9 @@ export type AgendaListProps = {
   days: AgendaDay[];
   /** 날짜는 없지만 그 달 지급 예정인 종목이 있는가 — 비었을 때 문구를 가른다. */
   hasUndated: boolean;
+  /**
+   * 달력 칸에서 눌러 들어온 날짜(ISO). 그 날짜 블록을 강조한다.
+   * 타이머로 흐려지지 않는다 — 다른 날짜를 누르거나 달을 옮길 때까지 "방금 여기로 왔다"가 남아야 한다.
+   */
+  highlightedDate?: string | null;
 };

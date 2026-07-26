@@ -1,15 +1,15 @@
 import { TARGET_MONTHLY_DIVIDEND_INPUT_ID } from '@/shared/constants';
+import { scrollIntoViewSafely } from '@/shared/utils';
 
 /** 좌측 설정 패널이 드로어로 접히는 폭. 이 아래에서는 "왼쪽 설정" 안내가 성립하지 않는다. */
 const CONFIG_DRAWER_MEDIA = '(max-width: 960px)';
 
+/** ⚠ 모션 선호 판정이 아니라 **레이아웃 폭 판정**에도 쓰인다 — 지우지 말 것. */
 const matchesMedia = (query: string): boolean =>
   typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia(query).matches;
 
 /** 설정 패널이 드로어로 접혀 있는 폭인가(= 목표 입력이 화면에 없다). jsdom은 항상 false. */
 export const isConfigDrawerLayout = (): boolean => matchesMedia(CONFIG_DRAWER_MEDIA);
-
-const prefersReducedMotion = (): boolean => matchesMedia('(prefers-reduced-motion: reduce)');
 
 /**
  * 목표 월배당 입력으로 스크롤 + 포커스를 옮긴다.
@@ -22,6 +22,6 @@ export const focusTargetMonthlyDividendInput = (): void => {
   const field = typeof document === 'undefined' ? null : document.getElementById(TARGET_MONTHLY_DIVIDEND_INPUT_ID);
   if (!field) return;
 
-  field.scrollIntoView?.({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'center' });
+  scrollIntoViewSafely(field, { block: 'center' });
   field.focus?.({ preventScroll: true });
 };

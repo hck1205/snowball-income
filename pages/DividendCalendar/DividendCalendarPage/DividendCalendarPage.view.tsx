@@ -19,6 +19,7 @@ import {
   AsOfLine,
   BoardCard,
   BoardHead,
+  BoardHint,
   DetailCard,
   DetailTabButton,
   DetailTabList,
@@ -72,10 +73,12 @@ export default function DividendCalendarView({
   isPickerOpen,
   liveMessage,
   unknownTickers,
+  highlightedAgendaDate,
   onKeywordChange,
   onDetailTabChange,
   onOpenPicker,
   onClosePicker,
+  onDayJump,
   onToggleTicker,
   onClearSelection,
   onPrevMonth,
@@ -193,8 +196,16 @@ export default function DividendCalendarView({
         {status === 'loading' ? <MonthCalendarSkeleton monthLabel={monthLabel} /> : null}
 
         {isReady ? (
-          <MonthCalendar weeks={month.weeks} monthLabel={monthLabel} labelledById={monthTitleId} />
+          <MonthCalendar
+            weeks={month.weeks}
+            monthLabel={monthLabel}
+            labelledById={monthTitleId}
+            onDayJump={onDayJump}
+          />
         ) : null}
+
+        {/* 누를 수 있는 날짜가 실제로 있을 때만 안내한다 — 없는 상호작용을 광고하지 않는다. */}
+        {showCalendar && month.datedCount > 0 ? <BoardHint>{copy.board.jumpHint}</BoardHint> : null}
       </BoardCard>
 
       {showCalendar ? (
@@ -224,7 +235,11 @@ export default function DividendCalendarView({
           {activeDetailTab === 'undated' ? (
             <UndatedSection items={month.undated} />
           ) : (
-            <AgendaList days={viewModel.agendaDays} hasUndated={undatedCount > 0} />
+            <AgendaList
+              days={viewModel.agendaDays}
+              hasUndated={undatedCount > 0}
+              highlightedDate={highlightedAgendaDate}
+            />
           )}
           <ScheduleLegendTable rows={viewModel.legendRows} />
         </DetailCard>

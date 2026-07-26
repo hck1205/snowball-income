@@ -1,9 +1,15 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { TickerPageShell } from '@/pages/Ticker/components';
 import { useDocumentMeta } from '@/pages/Ticker/hooks';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import { MARKET_DATA } from '@/shared/constants/marketData';
-import { getCalendarMonthOf, getCalendarUniverse, isSameCalendarMonth, shiftCalendarMonth } from '../utils';
+import {
+  focusAgendaDay,
+  getCalendarMonthOf,
+  getCalendarUniverse,
+  isSameCalendarMonth,
+  shiftCalendarMonth
+} from '../utils';
 import type { CalendarYearMonth } from '../utils';
 import { useCalendarSelection } from '../hooks';
 import { DIVIDEND_CALENDAR_COPY } from '../copy';
@@ -40,6 +46,15 @@ export default function DividendCalendarPage({ today }: DividendCalendarPageProp
    * 첫 선택마다 닫히면 매번 다시 열어야 한다(결과는 뒤에서 실시간으로 갱신된다).
    */
   const [isPickerOpen, setIsPickerOpen] = useState(false);
+  /**
+   * 달력 칸 → 아젠다 이동 요청. **페이지 로컬 상태**다(전역 atom을 만들 이유가 없다 — 이 화면 밖에서
+   * 의미가 없고 저장·공유 대상도 아니다).
+   *
+   * 재실행 자체는 **매 호출 새 객체 정체성**이 담보한다(같은 날짜를 다시 눌러도 참조가 달라 effect가 돈다).
+   * `seq`는 "같은 날 재클릭도 새 요청"이라는 의도를 코드로 명시하는 표식이다 — 이 상태를 원시값
+   * (`date` 문자열)으로 단순화하는 리팩터에서 재점프 계약이 조용히 사라지는 것을 막는다.
+   */
+  const [jumpRequest, setJumpRequest] = useState<{ date: string; seq: number } | null>(null);
 
   const { selected, status, lastAction, unknownTickers, toggleTicker, clearSelection } =
     useCalendarSelection(universe);
@@ -101,6 +116,8 @@ export default function DividendCalendarPage({ today }: DividendCalendarPageProp
     trackEvent(ANALYTICS_EVENT.CTA_CLICK, { cta_name: ctaName, placement: 'dividend_calendar' });
     setVisibleMonth((prev) => shiftCalendarMonth(prev, delta));
     setMonthAction('month');
+    // 다른 달의 목록에 지난 달 강조가 남으면 거짓말이 된다.
+    setJumpRequest(null);
   }, []);
 
   const handlePrevMonth = useCallback(() => moveMonth(-1, 'dividend_calendar_month_prev'), [moveMonth]);
@@ -113,12 +130,15 @@ export default function DividendCalendarPage({ today }: DividendCalendarPageProp
     });
     setVisibleMonth(getCalendarMonthOf(resolvedToday));
     setMonthAction('month');
+    setJumpRequest(null);
   }, [resolvedToday]);
 
   const handleToggleTicker = useCallback(
     (ticker: string) => {
       // 종목을 고른 뒤엔 선택 요약이 읽혀야 한다(월 이동 안내가 남아 있으면 안 된다).
       setMonthAction('none');
+      // 선택이 바뀌면 그 날짜의 구성도 바뀐다 — 강조를 들고 가지 않는다.
+      setJumpRequest(null);
       toggleTicker(ticker);
     },
     [toggleTicker]
@@ -126,8 +146,32 @@ export default function DividendCalendarPage({ today }: DividendCalendarPageProp
 
   const handleClearSelection = useCallback(() => {
     setMonthAction('none');
+    setJumpRequest(null);
     clearSelection();
   }, [clearSelection]);
+
+  /**
+   * 날짜 칸 → 아젠다 이동.
+   *
+   * 탭을 먼저 'agenda'로 되돌린다 — '날짜 미정' 탭을 보고 있으면 아젠다가 **아직 DOM에 없어서**
+   * 그냥 스크롤하면 아무 일도 일어나지 않는다.
+   */
+  const handleDayJump = useCallback((isoDate: string) => {
+    trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
+      cta_name: 'dividend_calendar_day_jump',
+      placement: 'dividend_calendar'
+    });
+    setDetailTab('agenda');
+    setJumpRequest((prev) => ({ date: isoDate, seq: (prev?.seq ?? 0) + 1 }));
+  }, []);
+
+  /** 탭 전환·강조 렌더가 커밋된 **다음 프레임**에 찾는다(그 전엔 대상 노드가 없을 수 있다). */
+  useEffect(() => {
+    if (!jumpRequest) return undefined;
+
+    const frame = requestAnimationFrame(() => focusAgendaDay(jumpRequest.date));
+    return () => cancelAnimationFrame(frame);
+  }, [jumpRequest]);
 
   const handleOpenPicker = useCallback(() => {
     trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
@@ -152,10 +196,12 @@ export default function DividendCalendarPage({ today }: DividendCalendarPageProp
         isPickerOpen={isPickerOpen}
         liveMessage={liveMessage}
         unknownTickers={unknownTickers}
+        highlightedAgendaDate={jumpRequest?.date ?? null}
         onKeywordChange={setKeyword}
         onDetailTabChange={setDetailTab}
         onOpenPicker={handleOpenPicker}
         onClosePicker={handleClosePicker}
+        onDayJump={handleDayJump}
         onToggleTicker={handleToggleTicker}
         onClearSelection={handleClearSelection}
         onPrevMonth={handlePrevMonth}

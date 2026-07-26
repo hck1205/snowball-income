@@ -1,3 +1,4 @@
+import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import { color, elevation, font, motion, radius, space } from '@/shared/styles';
 
@@ -57,8 +58,15 @@ export const AgendaDayList = styled.ol`
   gap: ${space[2]};
 `;
 
-/** 날짜 한 덩어리 = 카드. 왼쪽 브랜드 엣지가 "여기부터 이 날짜"를 말한다. */
-export const AgendaDayItem = styled.li`
+/**
+ * 날짜 한 덩어리 = 카드. 왼쪽 브랜드 엣지가 "여기부터 이 날짜"를 말한다.
+ *
+ * 달력 칸에서 눌러 들어오면 이 카드가 강조된다($highlighted). **면색 하나로는 부족하다** —
+ * 다크 프리셋에서 brand-subtle과 surface 계열의 밝기 차가 작아 "어디로 왔는지"가 안 읽힌다
+ * (accentAltSubtle은 velog 다크에서 surface-raised와 같은 값이라 쓰지 않는다).
+ * 그래서 **외곽 brand 링 + 좌측 엣지 확대 + elevation** 세 겹으로 경계를 만든다.
+ */
+export const AgendaDayItem = styled.li<{ $highlighted: boolean }>`
   display: grid;
   gap: ${space[2]};
   padding: ${space[3]};
@@ -69,6 +77,7 @@ export const AgendaDayItem = styled.li`
   min-width: 0;
   transition:
     border-color ${motion.fast} ${motion.ease},
+    background ${motion.fast} ${motion.ease},
     box-shadow ${motion.fast} ${motion.ease};
 
   &:hover {
@@ -77,6 +86,27 @@ export const AgendaDayItem = styled.li`
       inset 3px 0 0 ${color.brand},
       ${elevation[1]};
   }
+
+  /* 프로그램 포커스(칸 클릭으로 옮겨온 포커스)엔 링을 그리지 않는다 — 강조가 이미 위치를 말한다. */
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${color.focusRing};
+    outline-offset: 2px;
+  }
+
+  ${({ $highlighted }) =>
+    $highlighted &&
+    css`
+      border-color: ${color.brand};
+      background: ${color.brandSubtle};
+      box-shadow:
+        inset 4px 0 0 ${color.brand},
+        0 0 0 2px ${color.brand},
+        ${elevation[2]};
+    `}
 `;
 
 export const AgendaDayLabel = styled.h4`

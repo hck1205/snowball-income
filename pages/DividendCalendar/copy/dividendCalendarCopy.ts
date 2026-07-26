@@ -61,7 +61,8 @@ export const DIVIDEND_CALENDAR_COPY = {
     monthLabel: (year: number, month: number) => `${year}년 ${month}월`
   },
   board: {
-    caption: (label: string) => `${label} 배당 지급 예정 캘린더. 날짜 칸에 그 날 지급 예정 종목이 표시됩니다.`,
+    caption: (label: string) =>
+      `${label} 배당 지급 예정 캘린더. 날짜 칸에 그 날 지급 예정 종목이 표시됩니다. 지급 예정이 있는 날짜는 눌러서 아래 지급 일정 목록으로 이동할 수 있습니다.`,
     weekdays: ['일', '월', '화', '수', '목', '금', '토'],
     weekdayFull: ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'],
     today: '오늘',
@@ -74,7 +75,18 @@ export const DIVIDEND_CALENDAR_COPY = {
     monthLabel: (month: number) => `${month}월`,
     summary: (label: string, dated: number, undated: number) =>
       `${label} 지급 예정 ${dated}건 · 날짜 미정 ${undated}종`,
-    summaryNone: (label: string) => `${label}에는 선택한 종목의 지급 예정이 없습니다.`
+    summaryNone: (label: string) => `${label}에는 선택한 종목의 지급 예정이 없습니다.`,
+    /**
+     * 날짜 칸을 덮는 투명 버튼의 접근명 — "무엇을 누르는지 + 무슨 일이 일어나는지"를 한 문장으로.
+     * 칸 안의 숫자·점만으로는 버튼의 목적지를 알 수 없다.
+     */
+    dayJump: (month: number, day: number, count: number) =>
+      `${month}월 ${day}일 지급 예정 ${count}종, 아래 지급 일정 목록에서 보기`,
+    /** 마우스 툴팁 — 좁은 폭에서 칩이 점으로 줄어도 종목명은 hover로 확인할 수 있다(칩별 title 대체). */
+    dayTooltip: (month: number, day: number, tickers: readonly string[]) =>
+      `${month}월 ${day}일 예상 지급: ${tickers.join(', ')}`,
+    /** 모바일 전용 발견 가능성 힌트 — 데스크톱은 커서·호버 링이 이미 말한다. */
+    jumpHint: '지급 예정이 있는 날짜를 누르면 아래 목록에서 그 날 일정을 볼 수 있습니다.'
   },
   /**
    * 달력 아래 상세 두 가지(날짜순 목록 / 날짜 미정)를 한 줄로 가르는 전환 버튼.
@@ -94,8 +106,8 @@ export const DIVIDEND_CALENDAR_COPY = {
     heading: '지급 일정 목록',
     dayLabel: (month: number, day: number, weekday: string) => `${month}월 ${day}일 (${weekday})`,
     /* 날짜별 종목 수 배지는 삭제했다(사용자 결정 2026-07-25) — 티커가 바로 아래 나열돼 중복이다. */
-    chipTitle: (ticker: string, month: number, day: number) => `${ticker} 예상 지급일 ${month}월 ${day}일`,
-    chipTitleUndated: (ticker: string) => `${ticker} 이 달 지급 예정, 날짜 미정`,
+    /* 칩별 title(`chipTitle`/`chipTitleUndated`)도 삭제했다(2026-07-26) — 좁은 폭에서 칩이 점으로
+       줄어들면 칩 단위 툴팁이 무의미해진다. 날짜 칸 전체를 덮는 `board.dayTooltip`이 대신 말한다. */
     empty: '이 달에는 지급 예정이 없습니다. 다른 달로 이동하거나 종목을 추가해 보세요.',
     /** 날짜 있는 건 0 + 미정만 있을 때 — "지급이 없다"로 읽히면 거짓말이 된다. */
     undatedOnly: '날짜를 추정할 수 있는 지급이 없습니다. "날짜 미정" 탭을 확인하세요.'
