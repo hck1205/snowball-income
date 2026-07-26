@@ -31,23 +31,20 @@ export const AgendaRoot = styled.section`
   box-shadow: ${elevation[1]};
 `;
 
+/**
+ * 시각적으로만 숨긴다(사용자 결정 2026-07-26) — 바로 위 전환 버튼("지급 일정 목록")이 같은 말을
+ * 이미 하고 있어 화면에서는 중복이다. 제목은 region 의 접근명(aria-labelledby)과 문서 개요로만 남는다.
+ */
 export const AgendaHeading = styled.h3`
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: ${space[2]};
-  font-size: ${font.size.sm};
-  font-weight: ${font.weight.bold};
-  color: ${color.text};
-
-  /* 오로라 리본 한 조각 — 섹션의 시작을 눈으로 찍어 준다(장식). */
-  &::before {
-    content: '';
-    width: 4px;
-    height: 16px;
-    border-radius: ${radius.pill};
-    background: ${color.gradientAurora};
-  }
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 `;
 
 export const AgendaDayList = styled.ol`
@@ -174,7 +171,9 @@ export const AgendaDot = styled.span`
  * 티커 열은 **고정폭**이다(유니버스 최장 5자 기준 + tabular) — 글자 수에 따라 배지가 좌우로
  * 흔들리면 목록을 세로로 훑을 수 없다.
  */
-export const AgendaTicker = styled.span`
+/** strong 인 이유: 항목의 핵심어(티커)라는 사실이고, 실측 배지 폐기 후 테스트가 티커를
+    태그로 집는 유일한 계약이기도 하다(텍스트 이어붙기로는 한글명과 분리할 수 없다). */
+export const AgendaTicker = styled.strong`
   flex: 0 0 6ch;
   font-size: ${font.size.sm};
   font-weight: ${font.weight.bold};

@@ -190,10 +190,10 @@ describe('배당 지급 캘린더 — 날짜 칸 이동 버튼의 존재 범위'
     for (const day of datedDays) {
       const onThatDay = tickersOnDay(SELECTED, day);
       const cell = dayCell(isoOf(day));
-      const button = within(cell).getByRole('button');
+      // 칸에는 칩(툴팁 트리거) 버튼도 있으므로 이동 버튼은 접근명으로 식별한다.
+      const button = within(cell).getByRole('button', { name: jumpButtonName(day, onThatDay.length) });
 
-      expect(button).toHaveAccessibleName(jumpButtonName(day, onThatDay.length));
-      // 좁은 폭에서 칩이 점으로 줄어도 마우스로 종목을 확인할 수 있어야 한다(칩별 title 의 대체).
+      // 좁은 폭에서 칩은 표시 전용(포인터 꺼짐)이라 칸 hover 의 종목 나열은 이 title 이 맡는다.
       expect(button).toHaveAttribute('title', `${MONTH}월 ${day}일 예상 지급: ${onThatDay.join(', ')}`);
     }
   });
@@ -342,7 +342,7 @@ describe('배당 지급 캘린더 — 강조는 그 달·그 선택에서만 참
     expect(highlightedAgendaDays()).toHaveLength(1);
 
     await user.click(screen.getByRole('button', { name: /종목 선택 열기/ }));
-    await user.click(screen.getByRole('button', { name: /^SCHD .*(실측|추정)$/ }));
+    await user.click(screen.getByRole('button', { name: /^SCHD (?!선택 해제)/ }));
 
     // 그 날짜 블록 자체는 남아 있다(SCHD 는 7월에 지급하지 않는다) — 사라져서가 아니라 해제돼서 없다.
     expect(agendaDay(isoOf(day))).toBeInTheDocument();
@@ -450,12 +450,12 @@ describe('MonthCalendar — 이동 콜백이 없으면 버튼도 없다', () => 
       </>
     );
 
-  it('미배선으로 렌더하면 누를 수 없는 버튼이 생기지 않는다', () => {
+  it('미배선으로 렌더하면 아젠다 이동 버튼이 생기지 않는다(칩 툴팁 버튼은 별개다)', () => {
     renderIsolated();
 
-    expect(screen.queryAllByRole('button')).toHaveLength(0);
-    // 그래도 칸의 내용은 그대로다 — 버튼은 이동 수단일 뿐 정보의 그릇이 아니다.
-    expect(within(dayCell('2026-07-04')).getByText('AAA')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /아래 지급 일정 목록에서 보기/ })).toBeNull();
+    // 그래도 칸의 내용은 그대로다 — 칩(툴팁 트리거 버튼)은 이동 배선과 무관하게 존재한다.
+    expect(within(dayCell('2026-07-04')).getByRole('button', { name: 'AAA' })).toBeInTheDocument();
   });
 
   it('배선하면 지급이 있는 칸에서 그 날짜(ISO)를 돌려준다', async () => {
@@ -463,23 +463,18 @@ describe('MonthCalendar — 이동 콜백이 없으면 버튼도 없다', () => 
     const onDayJump = vi.fn();
     renderIsolated(onDayJump);
 
-    const buttons = screen.getAllByRole('button');
-    expect(buttons).toHaveLength(1);
-
-    await user.click(buttons[0]);
+    await user.click(screen.getByRole('button', { name: /아래 지급 일정 목록에서 보기/ }));
 
     expect(onDayJump).toHaveBeenCalledTimes(1);
     expect(onDayJump).toHaveBeenCalledWith('2026-07-04');
   });
 
-  it('칸의 티커 글자는 어느 폭에서도 DOM 에 남는다(시각적으로만 감춘다)', () => {
+  it('칸의 티커 글자는 어느 폭에서도 DOM 에 남는다(좁으면 ellipsis 로 줄 뿐이다)', () => {
     renderIsolated();
 
-    // ≤760px 에서 칩은 점으로 줄지만 글자를 `display: none` 으로 지우지는 않는다 —
-    // 지우면 표를 선형으로 읽는 사용자에게서 종목명이 사라진다. jsdom 은 폭을 모르므로
-    // 여기서 확인하는 것은 "글자가 마크업에 존재한다"는 계약이다.
+    // 어느 폭에서든 칩의 티커 텍스트는 마크업에 존재한다(사용자 결정 2026-07-26: 점·개수 배지 폐기,
+    // 전 폭 티커 ellipsis). jsdom 은 폭을 모르므로 여기서 확인하는 것은 "글자가 존재한다"는 계약이다.
     const cell = dayCell('2026-07-04');
     expect(within(cell).getByText('AAA')).toBeInTheDocument();
-    expect(within(cell).getByLabelText('지급 예정 1종')).toBeInTheDocument();
   });
 });

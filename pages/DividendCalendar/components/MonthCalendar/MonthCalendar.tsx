@@ -1,13 +1,11 @@
+import { Tooltip } from '@/components/common';
 import { DIVIDEND_CALENDAR_COPY } from '../../copy';
-import { tickerSeriesVar } from '../../utils';
 import type { MonthCalendarProps } from './MonthCalendar.types';
 import { splitDayChips } from './MonthCalendar.utils';
 import {
   CalendarCaption,
   CalendarTable,
-  ChipDot,
   ChipLabel,
-  CountBadge,
   DayCellRoot,
   DayChip,
   DayChipItem,
@@ -16,7 +14,6 @@ import {
   DayJumpButton,
   DayNumber,
   MoreCount,
-  TodayBadge,
   VisuallyHidden,
   WeekdayHead
 } from './MonthCalendar.styled';
@@ -73,24 +70,29 @@ export default function MonthCalendar({ weeks, monthLabel, labelledById, onDayJu
                         {cell.day}
                       </time>
                     </DayNumber>
-                    {cell.isToday ? <TodayBadge>{copy.board.today}</TodayBadge> : null}
-                    {cell.items.length > 0 ? (
-                      <CountBadge aria-label={copy.board.dayCountAria(cell.items.length)}>
-                        {cell.items.length}
-                      </CountBadge>
-                    ) : null}
+                    {/* "오늘"의 시각 신호는 칸 보더 링+틴트가 전담한다(사용자 결정 2026-07-26) —
+                        말은 접근성 트리에 남긴다(aria-current="date"와 함께). */}
+                    {cell.isToday ? <VisuallyHidden>{copy.board.today}</VisuallyHidden> : null}
                   </DayHead>
 
                   {cell.items.length > 0 ? (
                     <DayChipList>
                       {visible.map((item) => (
                         <DayChipItem key={item.ticker}>
-                          {/* 칩별 title은 없다 — 좁은 폭에서 칩이 점으로 줄어 hover 대상이 되지 못한다.
-                              대신 칸 전체를 덮는 버튼의 title(`board.dayTooltip`)이 그 날 종목을 말한다. */}
-                          <DayChip>
-                            <ChipDot aria-hidden style={{ background: tickerSeriesVar(item.ticker) }} />
-                            <ChipLabel>{item.ticker}</ChipLabel>
-                          </DayChip>
+                          {/* 넓은 폭: 칩(버튼)이 hover/클릭으로 커스텀 툴팁을 연다 — 잘린 티커의 전체
+                              이름·예상 지급일을 말한다. 좁은 폭: 칩은 표시 전용(포인터 꺼짐, DayChipList)
+                              이라 칸 전체를 덮는 이동 버튼의 title이 대신 말한다. */}
+                          <Tooltip
+                            content={
+                              item.day === null
+                                ? copy.board.chipTooltipUndated(item.ticker)
+                                : copy.board.chipTooltip(item.ticker, cellMonth, item.day)
+                            }
+                          >
+                            <DayChip type="button">
+                              <ChipLabel>{item.ticker}</ChipLabel>
+                            </DayChip>
+                          </Tooltip>
                         </DayChipItem>
                       ))}
                     </DayChipList>

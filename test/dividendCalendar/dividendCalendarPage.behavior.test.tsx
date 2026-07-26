@@ -98,11 +98,11 @@ const renderCalendar = async ({
 };
 
 /**
- * 결과 목록의 항목 버튼. 접근명이 "티커 + 한글명 + 근거 배지"라 배지 어휘로 끝나는 것을 앵커로 쓴다
- * (선택 칩의 제거 버튼과 티커 접두가 겹치기 때문).
+ * 결과 목록의 항목 버튼. 실측(pay)은 배지를 달지 않아 접근명이 배지로 끝난다는 보장이 없다 —
+ * 티커 접두로 집되, 같은 접두를 가진 선택 칩의 제거 버튼("X 선택 해제")만 걸러낸다.
  */
 const optionButton = (ticker: string) =>
-  screen.getByRole('button', { name: new RegExp(`^${ticker} .*(실측|추정|데이터 준비 중)$`) });
+  screen.getByRole('button', { name: new RegExp(`^${ticker} (?!선택 해제)`) });
 
 /**
  * 종목 선택은 **우측 드로어** 안에 산다(2026-07-25 개편) — 닫혀 있으면 `visibility: hidden` 이라
@@ -153,9 +153,11 @@ const agendaDayTickers = (isoDate: string): string[] => {
   const day = agendaDay(isoDate);
   if (day === null) return [];
 
+  // 티커는 <strong>으로 감싸인다(핵심어 시맨틱) — 배지가 사라진 뒤로 텍스트 이어붙기로는
+  // 한글명과 분리할 수 없어 태그 계약으로 집는다(TIME 을 집는 dayCell 과 같은 방식).
   return within(day)
     .getAllByRole('listitem')
-    .map((item) => (item.textContent ?? '').replace(/(실측|추정).*$/, '').trim());
+    .map((item) => item.querySelector('strong')?.textContent?.trim() ?? '');
 };
 
 const undatedRegion = () => screen.getByRole('region', { name: /날짜 미정/ });
@@ -526,7 +528,6 @@ describe('배당 지급 캘린더 — 셀 오버플로', () => {
 
     expect(within(cell).getAllByRole('listitem')).toHaveLength(MAX_DAY_CHIPS);
     expect(within(cell).getByText(`+${crowded.length - MAX_DAY_CHIPS}`)).toBeInTheDocument();
-    expect(within(cell).getByLabelText(`지급 예정 ${crowded.length}종`)).toBeInTheDocument();
 
     // 표에서 잘린 정보의 완전한 원본은 항상 아젠다에 있다.
     expect(agendaDayTickers(isoOf(2026, 7, day))).toEqual(crowded);
@@ -699,17 +700,19 @@ describe('배당 지급 캘린더 — 데이터 사실성', () => {
     }
   });
 
-  it('입금 이력이 있는 종목만 "실측"이고 배당락 기반은 "추정"으로 남는다', async () => {
+  it('실측(pay)은 무배지가 기본이고, 배당락 기반만 "추정" 배지를 단다', async () => {
     const { user } = await renderCalendar({ entries: ['/dividend/calendar?tickers=JEPI,O'] });
 
     // 데이터의 '형태'가 아니라 화면의 '어법'을 고정한다 — 스냅샷 재갱신으로 필드 표기가 바뀌어도
-    // 배당락 기반(non-'pay')이 "실측"으로 승격되지만 않으면 계약은 지켜진 것이다.
+    // 배당락 기반(non-'pay')이 무배지(=실측 취급)로 승격되지만 않으면 계약은 지켜진 것이다.
     expect(MARKET_DATA.entries.JEPI?.payoutMonthsSource).toBe('pay');
     expect(MARKET_DATA.entries.O?.payoutMonthsSource).not.toBe('pay');
 
     const jepiDay = agendaDay(requirePayDate('JEPI', 7).iso);
     expect(jepiDay).not.toBeNull();
-    expect(within(jepiDay as HTMLElement).getByText('실측')).toBeInTheDocument();
+    // 기본값(실측)에는 배지를 달지 않는다(사용자 결정 2026-07-26) — '실측'도 '추정'도 없어야 한다.
+    expect(within(jepiDay as HTMLElement).queryByText('실측')).toBeNull();
+    expect(within(jepiDay as HTMLElement).queryByText('추정')).toBeNull();
 
     await openUndatedTab(user);
     expect(within(undatedRegion()).getByText('추정')).toBeInTheDocument();

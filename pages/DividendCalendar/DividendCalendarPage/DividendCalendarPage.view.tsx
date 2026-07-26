@@ -210,17 +210,19 @@ export default function DividendCalendarView({
 
       {showCalendar ? (
         <DetailCard>
-          {/* 상세는 한 줄 전환으로 하나만 보여준다 — 목록 두 개가 세로로 쌓이면 달력에서 멀어진다. */}
-          <DetailTabList role="group" aria-label={copy.detailTabs.groupLabel}>
-            <DetailTabButton
-              type="button"
-              $active={activeDetailTab === 'agenda'}
-              aria-pressed={activeDetailTab === 'agenda'}
-              onClick={() => onDetailTabChange('agenda')}
-            >
-              {copy.detailTabs.agenda}
-            </DetailTabButton>
-            {undatedCount > 0 ? (
+          {/* 상세는 한 줄 전환으로 하나만 보여준다 — 목록 두 개가 세로로 쌓이면 달력에서 멀어진다.
+              미정이 0건이면 전환할 대상이 없다 — 탭 한 개만 남는 줄은 통째로 그리지 않는다
+              (사용자 결정 2026-07-26: "지급 일정 목록" 라벨 중복 제거의 일부). */}
+          {undatedCount > 0 ? (
+            <DetailTabList role="group" aria-label={copy.detailTabs.groupLabel}>
+              <DetailTabButton
+                type="button"
+                $active={activeDetailTab === 'agenda'}
+                aria-pressed={activeDetailTab === 'agenda'}
+                onClick={() => onDetailTabChange('agenda')}
+              >
+                {copy.detailTabs.agenda}
+              </DetailTabButton>
               <DetailTabButton
                 type="button"
                 $active={activeDetailTab === 'undated'}
@@ -229,8 +231,8 @@ export default function DividendCalendarView({
               >
                 {copy.detailTabs.undated(undatedCount)}
               </DetailTabButton>
-            ) : null}
-          </DetailTabList>
+            </DetailTabList>
+          ) : null}
 
           {activeDetailTab === 'undated' ? (
             <UndatedSection items={month.undated} />

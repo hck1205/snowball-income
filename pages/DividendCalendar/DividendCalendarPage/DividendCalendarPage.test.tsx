@@ -100,7 +100,8 @@ const renderCalendar = async (initialEntry = '/dividend/calendar', today: Date =
  * 선택 칩의 제거 버튼(`SCHD 선택 해제`)과 티커 접두가 같아 접두만으로는 두 개가 잡힌다.
  */
 const findOptionButton = (ticker: string) =>
-  screen.getByRole('button', { name: new RegExp(`^${ticker} .*(실측|추정|데이터 준비 중)$`) });
+  // 실측(pay)은 배지를 달지 않아 접미 보장이 없다 — 티커 접두로 집되 선택 칩의 제거 버튼만 걸러낸다.
+  screen.getByRole('button', { name: new RegExp(`^${ticker} (?!선택 해제)`) });
 
 /**
  * 종목 선택은 **우측 드로어** 안에 있다(2026-07-25 개편) — 닫혀 있으면 `visibility: hidden` 이라
