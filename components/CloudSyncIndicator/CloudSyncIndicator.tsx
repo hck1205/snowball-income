@@ -6,7 +6,9 @@ import {
   BadgeRoot,
   HeaderConflictButton,
   HeaderRoot,
+  HeaderSlot,
   HeaderText,
+  HeaderTextDetail,
   InlineRoot,
   InlineText,
   RetryButton,
@@ -63,33 +65,42 @@ export default function CloudSyncIndicator({ variant, onRetry, onResume }: Cloud
     // 충돌(동기화 보류)은 **클릭 가능한 표시**로 띄운다 — 눌러 화해 모달을 다시 연다(이연 후 재개봉).
     // 저장 중/실패의 정적 표시와 달리 사용자의 결정을 이어가야 하므로 버튼이다(무음 화해 금지).
     if (desc.status === 'conflict') {
+      // 지속 상태라 좁은 화면에선 자기 줄을 차지한다(= "설정 열기" 아래 줄).
       return (
-        <HeaderConflictButton
-          type="button"
-          tone={desc.tone}
-          onClick={onResume}
-          title={desc.sentence}
-          aria-label={`${desc.shortLabel} — 눌러서 확인하기`}
-        >
-          <GlyphIcon glyph={desc.glyph} />
-          <HeaderText>{desc.shortLabel}</HeaderText>
-        </HeaderConflictButton>
+        <HeaderSlot $ownLine>
+          <HeaderConflictButton
+            type="button"
+            tone={desc.tone}
+            onClick={onResume}
+            title={desc.sentence}
+            aria-label={`${desc.shortLabel} — 눌러서 확인하기`}
+          >
+            <GlyphIcon glyph={desc.glyph} />
+            <HeaderText>{desc.shortLabel}</HeaderText>
+            {desc.detailLabel ? <HeaderTextDetail>{` — ${desc.detailLabel}`}</HeaderTextDetail> : null}
+          </HeaderConflictButton>
+        </HeaderSlot>
       );
     }
     // 앱 헤더용 컴팩트 표시. **저장 중·저장 실패만** 노출한다 — 평상시(idle/저장됨/오프라인)는
     // 렌더하지 않는다. "저장됨" 체크가 상시 떠 있으면 의미가 모호하다는 사용자 피드백을 반영했다.
     // 실패는 무음 실패 금지 원칙상 반드시 보이며(라벨+재시도), 저장 중은 스피너로 잠깐 스친다.
+    // ⚠ 이 조기 반환은 래퍼보다 **앞**에 있어야 한다 — 빈 HeaderSlot이 남으면 평상시에도 헤더에
+    // 빈 요소가 붙어 줄 간격이 생기고, "아무것도 렌더하지 않는다" 계약이 깨진다.
     if (desc.status !== 'saving' && desc.status !== 'error') return null;
     return (
-      <HeaderRoot tone={desc.tone} role="status" aria-live="polite" title={desc.shortLabel}>
-        <GlyphIcon glyph={desc.glyph} />
-        {desc.canRetry ? <HeaderText>{desc.shortLabel}</HeaderText> : <SrOnly>{desc.shortLabel}</SrOnly>}
-        {desc.canRetry && onRetry ? (
-          <RetryButton type="button" onClick={onRetry}>
-            다시 시도
-          </RetryButton>
-        ) : null}
-      </HeaderRoot>
+      // 저장 중(전이)은 같은 줄에 두고, 저장 실패(지속·라벨+버튼)만 자기 줄로 내린다.
+      <HeaderSlot $ownLine={desc.status === 'error'}>
+        <HeaderRoot tone={desc.tone} role="status" aria-live="polite" title={desc.shortLabel}>
+          <GlyphIcon glyph={desc.glyph} />
+          {desc.canRetry ? <HeaderText>{desc.shortLabel}</HeaderText> : <SrOnly>{desc.shortLabel}</SrOnly>}
+          {desc.canRetry && onRetry ? (
+            <RetryButton type="button" onClick={onRetry}>
+              다시 시도
+            </RetryButton>
+          ) : null}
+        </HeaderRoot>
+      </HeaderSlot>
     );
   }
 

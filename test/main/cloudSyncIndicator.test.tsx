@@ -62,6 +62,25 @@ describe('describeCloudSyncState', () => {
     // 충돌은 재시도가 아니라 화해(모달)로 푼다 — canRetry는 false.
     expect(d.canRetry).toBe(false);
   });
+
+  /**
+   * 좁은 헤더에서 글자가 깨지지 않도록 충돌 라벨을 **핵심(shortLabel) + 보조(detailLabel)** 로 쪼갰다.
+   * 이 분해는 계약이다 — shortLabel이 다시 통짜 문구로 돌아가면 좁은 화면 줄바꿈 설계가 무너지고,
+   * detailLabel이 사라지면 넓은 화면에서 "왜 보류인지"를 잃는다. 둘을 이으면 기존 문구와 같아야 한다.
+   */
+  it('충돌 라벨은 핵심 "동기화 보류" + 보조 "확인 필요"로 쪼개져 있고, 이으면 기존 전체 문구가 된다', () => {
+    const d = describeCloudSyncState(at('conflict'));
+    expect(d.shortLabel).toBe('동기화 보류');
+    expect(d.detailLabel).toBe('확인 필요');
+    expect(`${d.shortLabel} — ${d.detailLabel}`).toBe('동기화 보류 — 확인 필요');
+  });
+
+  it('충돌 외의 상태에는 보조 설명이 없다(라벨 하나로 뜻이 완결된다)', () => {
+    const others: CloudSyncState['status'][] = ['idle', 'saving', 'saved', 'offline', 'error'];
+    others.forEach((status) => {
+      expect(describeCloudSyncState(at(status, Date.now())).detailLabel).toBeUndefined();
+    });
+  });
 });
 
 const renderInline = (state: CloudSyncState, onRetry = vi.fn()) => {
@@ -155,5 +174,28 @@ describe('CloudSyncIndicator (header)', () => {
     await userEvent.click(trigger);
     expect(onResume).toHaveBeenCalledTimes(1);
     expect(onRetry).not.toHaveBeenCalled();
+  });
+
+  /**
+   * 접근명은 **화면 폭과 무관하게** 상태를 다 말해야 한다. 라벨을 축약(통짜 → 핵심+보조)했으므로
+   * 접근명도 축약을 반영해 정확히 이 문장이어야 한다 — 부분일치(정규식)로는 예전 통짜 문구가
+   * 남아 있어도 통과해버려 축약 회귀를 못 잡는다.
+   */
+  it('충돌 버튼의 접근명은 축약된 라벨 + 행동 안내다', () => {
+    renderHeader({ status: 'conflict', lastSavedAt: null });
+    expect(screen.getByRole('button', { name: '동기화 보류 — 눌러서 확인하기' })).toBeInTheDocument();
+  });
+
+  /**
+   * 넓은 화면 풀 카피 계약. 보조 설명은 **DOM에 항상 있고** 좁은 화면에서만 CSS로 감춘다
+   * (jsdom은 미디어쿼리를 적용하지 않으므로 여기선 둘 다 보인다 — 접힘 자체는 이 층에서 검증 불가).
+   * 즉 이 단정은 "데스크톱에서 사용자가 읽는 문장"이 축약 이전과 동일함을 지킨다.
+   */
+  it('충돌 표시는 핵심 라벨과 보조 설명을 함께 담아 넓은 화면 전체 문구를 유지한다', () => {
+    renderHeader({ status: 'conflict', lastSavedAt: null });
+    const trigger = screen.getByRole('button', { name: /동기화 보류/ });
+    expect(trigger).toHaveTextContent('동기화 보류');
+    expect(trigger).toHaveTextContent('확인 필요');
+    expect(trigger).toHaveTextContent('동기화 보류 — 확인 필요');
   });
 });
