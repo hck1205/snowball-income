@@ -31,8 +31,10 @@ export const hasFocusTargetMonthlyDividendRequest = (state: unknown): boolean =>
 /**
  * 목표 월배당 **빠른 선택 값**(원) — 로드맵 v2 확정: 50 / 100 / 200 / 300만원.
  *
- * 목표 달성 카드의 설정 패널(`GoalSetupPanel`)과 결과 카드(`SimulationResult`)가 **같은 상수를 공유**한다.
- * 두 화면이 각자 값을 들고 있으면 "여기서 고른 100만원"과 "저기서 고른 100만원"이 언젠가 갈린다.
+ * 현재 제품 코드의 소비처는 목표 달성 카드의 설정 패널(`GoalSetupPanel`) 하나다 — 결과 카드
+ * (`SimulationResult`)의 목표 칩·CTA 가 걷힌 뒤 남은 유일한 칩 표면이다. **다른 화면에 칩을 다시
+ * 두게 되면 리터럴을 새로 적지 말고 이 상수를 읽는다**(두 화면이 각자 값을 들고 있으면 "여기서 고른
+ * 100만원"과 "저기서 고른 100만원"이 언젠가 갈린다).
  * 값은 GA `value_bucket` 경계(`useSnowballForm`의 `targetMonthlyDividend`)와 정확히 겹쳐 두어,
  * 칩으로 정한 목표가 분포 분석에서 경계에 걸치지 않는다.
  */
@@ -46,6 +48,13 @@ export const TARGET_MONTHLY_DIVIDEND_QUICK_VALUES = [500_000, 1_000_000, 2_000_0
  * 저장되면 정규화가 조용히 기본값으로 바꿔치기해(사용자에겐 "내가 넣은 값이 사라졌다") 원인을 못 찾는다.
  */
 export const TARGET_MONTHLY_DIVIDEND_MAX = 100_000_000;
+
+/**
+ * 위 상한의 **만원 표기**(= 10,000만원). 목표 입력은 0을 여섯 개 세지 않으려고 만원 단위로 받는데,
+ * 안내 문구의 상한(`GoalCard`)과 입력 필드의 `max`(`GoalSetupPanel`)가 각자 `MAX / 10_000` 을
+ * 계산하면 한쪽만 바뀌는 날 "N까지 됩니다"라 안내하고 입력은 거부하는 화면이 된다 — 나누기는 여기 한 번만.
+ */
+export const TARGET_MONTHLY_DIVIDEND_MAX_MAN_WON = TARGET_MONTHLY_DIVIDEND_MAX / 10_000;
 
 /**
  * 목표 월배당으로 **받아들일 수 있는 값인가**. 아니면 `null`.

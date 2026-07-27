@@ -182,7 +182,7 @@ describe('제외 안내는 사유별로 각각 말한다 (AC3-4)', () => {
       summary,
       fx: { status: 'success', rate: 1381, asOf: '2026-07-27T00:00:00+09:00' },
       writeError: null,
-      formatAmount: (usd: number) => `USD:${usd.toFixed(2)}`,
+      formatUsdAmount: (usd: number) => `USD:${usd.toFixed(2)}`,
       canSimulate: true,
       simulationExcludedCount: 0,
       calendarTickerCount: items.length,

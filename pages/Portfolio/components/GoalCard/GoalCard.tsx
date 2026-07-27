@@ -1,7 +1,7 @@
 import { useId } from 'react';
 import { CircleCheck, Info, Target } from 'lucide-react';
 import { Button, StatTile } from '@/components/common';
-import { TARGET_MONTHLY_DIVIDEND_MAX } from '@/shared/constants';
+import { TARGET_MONTHLY_DIVIDEND_MAX_MAN_WON } from '@/shared/constants';
 import { PORTFOLIO_COPY } from '../../copy';
 import { GoalMeter } from '../GoalMeter';
 import { GoalSetupPanel } from '../GoalSetupPanel';
@@ -65,7 +65,7 @@ export default function GoalCard({
           chipsLabel={copy.goal.setup.chipsLabel}
           inputLabel={copy.goal.setup.inputLabel}
           inputPlaceholder={copy.goal.setup.inputPlaceholder}
-          invalidMessage={copy.goal.setup.inputInvalid(TARGET_MONTHLY_DIVIDEND_MAX / 10_000)}
+          invalidMessage={copy.goal.setup.inputInvalid(TARGET_MONTHLY_DIVIDEND_MAX_MAN_WON)}
           submitLabel={copy.goal.setup.submit}
           onCommitTarget={onCommitTarget}
         />

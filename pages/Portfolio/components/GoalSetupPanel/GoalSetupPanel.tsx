@@ -1,7 +1,7 @@
 import { useCallback, useState, type FormEvent } from 'react';
 import { Button, Chip, InputField } from '@/components/common';
 import {
-  TARGET_MONTHLY_DIVIDEND_MAX,
+  TARGET_MONTHLY_DIVIDEND_MAX_MAN_WON,
   TARGET_MONTHLY_DIVIDEND_QUICK_VALUES,
   formatTargetMonthlyDividendChipLabel,
   sanitizeTargetMonthlyDividend
@@ -18,9 +18,11 @@ import {
   SetupTitle
 } from './GoalSetupPanel.styled';
 
-/** 입력은 만원 단위로 받는다(0을 여섯 개 세지 않게) — 원 단위 변환은 커밋 직전 한 번만. */
+/**
+ * 입력은 만원 단위로 받는다(0을 여섯 개 세지 않게) — 원 단위 변환은 커밋 직전 한 번만.
+ * 상한(`max`)은 자체 계산하지 않는다 — 안내 문구를 만드는 `GoalCard` 와 **같은 상수**를 읽는다.
+ */
 const MAN_WON = 10_000;
-const MAX_MAN_WON = TARGET_MONTHLY_DIVIDEND_MAX / MAN_WON;
 
 const QUICK_CHIPS = TARGET_MONTHLY_DIVIDEND_QUICK_VALUES.map((value) => ({
   value,
@@ -97,7 +99,7 @@ export default function GoalSetupPanel({
             placeholder={inputPlaceholder}
             suffix="만원"
             min={1}
-            max={MAX_MAN_WON}
+            max={TARGET_MONTHLY_DIVIDEND_MAX_MAN_WON}
             onChange={(event) => {
               setManWon(event.target.value);
               // 고치는 중에 안내가 계속 떠 있으면 방해가 된다 — 다시 입력하면 즉시 내린다.

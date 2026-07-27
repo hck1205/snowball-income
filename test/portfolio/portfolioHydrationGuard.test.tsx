@@ -29,7 +29,7 @@ const loadingViewModel = buildPortfolioViewModel({
   summary: computePortfolioSummary([], { today: localDate(2026, 7, 27), taxRatePercent: 15.4 }),
   fx: { status: 'loading', rate: null, asOf: null },
   writeError: null,
-  formatAmount: (usd: number) => `USD:${usd.toFixed(2)}`,
+  formatUsdAmount: (usd: number) => `USD:${usd.toFixed(2)}`,
   canSimulate: false,
   simulationExcludedCount: 0,
   calendarTickerCount: 0,

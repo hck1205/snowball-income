@@ -1222,6 +1222,10 @@ function atomWithStorage(key, initialValue, storage = defaultStorage, options) {
 // jotai/atom/index.ts
 var atomState = (initialValue) => atomWithReset(initialValue);
 
+// shared/constants/targets/index.ts
+var TARGET_MONTHLY_DIVIDEND_MAX = 1e8;
+var TARGET_MONTHLY_DIVIDEND_MAX_MAN_WON = TARGET_MONTHLY_DIVIDEND_MAX / 1e4;
+
 // shared/constants/marketData/marketData.generated.json
 var marketData_generated_default = {
   asOf: "2026-07-25",

@@ -4,7 +4,7 @@ import type {
   PortfolioSummary
 } from '@/shared/lib/portfolio';
 import { PORTFOLIO_COPY } from '../copy';
-import { resolvePortfolioTickerName } from '../utils';
+import { formatPortfolioDate, resolvePortfolioTickerName } from '../utils';
 import type { PortfolioHoldingRow, PortfolioHoldingsStatus } from '../hooks';
 import type { PortfolioStorageFailureReason } from '../utils';
 import type {
@@ -38,8 +38,14 @@ export type PortfolioViewModelInput = {
   summary: PortfolioSummary;
   fx: PortfolioFxView;
   writeError: PortfolioStorageFailureReason | null;
-  /** USD 한 값을 화면 문자열로. 환율 가드는 컨테이너가 이미 통과시킨 상태다(§5 포맷 계약). */
-  formatAmount: (usd: number) => string;
+  /**
+   * USD 한 값을 화면 문자열로. 환율 가드는 컨테이너가 이미 통과시킨 상태다(§5 포맷 계약).
+   *
+   * ⚠ 이름의 `Usd` 는 장식이 아니라 **입력 단위**다 — 목표 카드가 쓰는 원화 입력 포맷터
+   * (`formatKrwAmount`)와 시그니처가 같아 서로 바꿔 넣어도 tsc 가 잡지 못하고, 화면에는
+   * 환율배 틀린 숫자가 오류 없이 그려진다.
+   */
+  formatUsdAmount: (usd: number) => string;
   /** 시뮬레이터 프리필 state 가 만들어졌는가(= CTA 를 누를 수 있는가). */
   canSimulate: boolean;
   /** 합계에는 들었지만 시뮬레이터 유니버스 밖이라 **비중에서 빠지는** 종목 수. */
@@ -51,13 +57,11 @@ export type PortfolioViewModelInput = {
   pendingUndo: { ticker: string } | null;
 };
 
-/** `YYYY-MM-DD` → `2026년 7월 25일`. 형식이 다르면 원문을 그대로 보여 준다(거짓말보다 낫다). */
-export const formatPortfolioSnapshotDate = (isoDate: string): string => {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate);
-  if (!match) return isoDate;
-
-  return `${Number(match[1])}년 ${Number(match[2])}월 ${Number(match[3])}일`;
-};
+/**
+ * 시세 기준일 표기. 구현 정본은 `pages/Portfolio/utils` 의 `formatPortfolioDate` 이고(목표 카드의
+ * 투자 시작일도 같은 함수를 쓴다), 여기서는 페이지 배럴의 공개 이름만 유지한다.
+ */
+export { formatPortfolioDate as formatPortfolioSnapshotDate } from '../utils';
 
 /** ISO 타임스탬프 → `7월 27일`(로컬 기준). 파싱 실패면 `null`(없는 날짜를 지어내지 않는다). */
 export const formatPortfolioFxDate = (iso: string | null): string | null => {
@@ -76,7 +80,7 @@ export const formatPortfolioFxRate = (rate: number): string => new Intl.NumberFo
 export const buildPortfolioAsOfLine = (summary: PortfolioSummary, fx: PortfolioFxView): string => {
   const parts: string[] = [];
 
-  if (summary.asOf) parts.push(copy.hero.asOfPrice(formatPortfolioSnapshotDate(summary.asOf)));
+  if (summary.asOf) parts.push(copy.hero.asOfPrice(formatPortfolioDate(summary.asOf)));
 
   if (fx.status === 'loading') {
     parts.push(copy.hero.asOfFxLoading);
@@ -192,14 +196,14 @@ export const buildNextPayoutTile = (summary: PortfolioSummary): PortfolioTileMod
  */
 export const buildThisMonthTile = (
   summary: PortfolioSummary,
-  formatAmount: (usd: number) => string
+  formatUsdAmount: (usd: number) => string
 ): PortfolioTileModel => {
   const payingCount = summary.holdings.filter((row) => row.thisMonthDividendUsd > 0).length;
 
   if (payingCount > 0) {
     return {
       label: copy.summary.tiles.thisMonth,
-      value: formatAmount(summary.thisMonthDividendUsd),
+      value: formatUsdAmount(summary.thisMonthDividendUsd),
       hint: copy.summary.tiles.thisMonthHint(summary.thisMonth.month, payingCount)
     };
   }
@@ -233,7 +237,7 @@ const buildRowNote = (row: PortfolioHoldingBreakdown): string | null => {
 const buildRows = (
   items: readonly PortfolioHoldingRow[],
   summary: PortfolioSummary,
-  formatAmount: (usd: number) => string
+  formatUsdAmount: (usd: number) => string
 ): PortfolioRowModel[] =>
   items.map((item, index) => {
     // `summary.holdings` 는 입력 순서를 그대로 보존한다(1:1 매핑) — 인덱스로 짝을 맞춘다.
@@ -246,8 +250,8 @@ const buildRows = (
       name: freshness === 'manual' ? '' : resolvePortfolioTickerName(item.ticker),
       badge: freshness === 'preset' ? 'stale-price' : freshness === 'manual' ? 'manual' : null,
       quantityInput: item.quantityInput,
-      marketValue: included ? formatAmount(breakdown.valueUsd) : DASH,
-      annualNet: included ? formatAmount(breakdown.annualDividendAfterTaxUsd) : DASH,
+      marketValue: included ? formatUsdAmount(breakdown.valueUsd) : DASH,
+      annualNet: included ? formatUsdAmount(breakdown.annualDividendAfterTaxUsd) : DASH,
       note: breakdown ? buildRowNote(breakdown) : null
     };
   });
@@ -280,7 +284,7 @@ const buildAssumptionRows = (summary: PortfolioSummary, fx: PortfolioFxView): Po
     {
       label: copy.assumptions.priceBasis,
       value: summary.asOf
-        ? copy.assumptions.priceBasisValue(formatPortfolioSnapshotDate(summary.asOf))
+        ? copy.assumptions.priceBasisValue(formatPortfolioDate(summary.asOf))
         : copy.assumptions.priceBasisUnknown
     },
     {
@@ -359,7 +363,7 @@ const buildCtas = (
 const emptyTile = (label: string, hint?: string): PortfolioTileModel => ({ label, value: DASH, hint });
 
 export const buildPortfolioViewModel = (input: PortfolioViewModelInput): PortfolioViewModel => {
-  const { status, items, summary, fx, formatAmount, pendingUndo } = input;
+  const { status, items, summary, fx, formatUsdAmount, pendingUndo } = input;
 
   const isLoading = status === 'loading';
   const hasIncludedRows = summary.counts.included > 0;
@@ -367,7 +371,7 @@ export const buildPortfolioViewModel = (input: PortfolioViewModelInput): Portfol
 
   const heroTile: PortfolioTileModel = {
     label: copy.summary.tiles.monthlyNet,
-    value: hasIncludedRows ? formatAmount(summary.monthlyDividendAfterTaxUsd) : DASH,
+    value: hasIncludedRows ? formatUsdAmount(summary.monthlyDividendAfterTaxUsd) : DASH,
     // 수량이 하나도 없으면 "왜 0인가"가 먼저다 — 계산 근거 대신 다음 행동을 말한다.
     hint: hasIncludedRows ? copy.summary.tiles.monthlyNetHint : copy.summary.tiles.monthlyNetHintEmpty
   };
@@ -376,14 +380,14 @@ export const buildPortfolioViewModel = (input: PortfolioViewModelInput): Portfol
     ? [
         {
           label: copy.summary.tiles.marketValue,
-          value: formatAmount(summary.totalValueUsd),
+          value: formatUsdAmount(summary.totalValueUsd),
           hint: summary.asOf
-            ? copy.summary.tiles.marketValueHint(formatPortfolioSnapshotDate(summary.asOf))
+            ? copy.summary.tiles.marketValueHint(formatPortfolioDate(summary.asOf))
             : copy.summary.tiles.marketValueHintUnknown
         },
         {
           label: copy.summary.tiles.annualNet,
-          value: formatAmount(summary.annualDividendAfterTaxUsd),
+          value: formatUsdAmount(summary.annualDividendAfterTaxUsd),
           hint: copy.summary.tiles.annualNetHint(taxPercent)
         },
         {
@@ -391,7 +395,7 @@ export const buildPortfolioViewModel = (input: PortfolioViewModelInput): Portfol
           value: `${summary.weightedYieldPercent.toFixed(2)}%`,
           hint: copy.summary.tiles.yieldHint
         },
-        buildThisMonthTile(summary, formatAmount),
+        buildThisMonthTile(summary, formatUsdAmount),
         buildNextPayoutTile(summary)
       ]
     : [
@@ -417,7 +421,7 @@ export const buildPortfolioViewModel = (input: PortfolioViewModelInput): Portfol
     showMonthlyVsThisMonthNote:
       hasIncludedRows && summary.thisMonthDividendUsd <= 0 && summary.monthlyDividendAfterTaxUsd > 0,
     summaryNotes: buildSummaryNotes(summary),
-    rows: buildRows(items, summary, formatAmount),
+    rows: buildRows(items, summary, formatUsdAmount),
     holdingsCount: items.length,
     ...buildCtas(input, hasIncludedRows),
     assumptions: {

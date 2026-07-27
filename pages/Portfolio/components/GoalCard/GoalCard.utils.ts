@@ -1,4 +1,5 @@
 import { PORTFOLIO_COPY } from '../../copy';
+import { formatPortfolioDate } from '../../utils';
 import type { GoalScenarioViewModel, PortfolioHoldingsStatus } from '../../hooks';
 import type {
   GoalBasisNoteModel,
@@ -13,7 +14,7 @@ import type {
 /**
  * 목표 달성 카드의 **순수 계층**. DOM·시계·전역 상태를 읽지 않는다(전부 인자로 받는다).
  *
- * 🔴 이 파일이 다루는 금액은 **전부 원화**다. 페이지 요약 타일의 포맷터(`formatAmount`, USD 입력)를
+ * 🔴 이 파일이 다루는 금액은 **전부 원화**다. 페이지 요약 타일의 포맷터(`formatUsdAmount`, USD 입력)를
  * 여기 넘기면 조용히 환율배 틀린 숫자가 나오고 화면 어디에도 오류 표시가 없다 — 반드시 원화 입력
  * 포맷터(`formatKrwAmount`)를 넘긴다. 실측 월배당(USD)은 `resolvePortfolioGoalBasis`가 딱 한 번 환산한다.
  */
@@ -56,14 +57,6 @@ export const resolvePortfolioGoalBasis = (input: ResolvePortfolioGoalBasisInput)
   return { kind: 'measured', amountKrw: input.monthlyAfterTaxUsd * input.fxRateKrwPerUsd };
 };
 
-/** `YYYY-MM-DD` → `2024년 1월 1일`. 파싱 실패(구버전 데이터)면 원문 그대로(거짓말보다 낫다). */
-const formatStartDate = (isoDate: string): string => {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate);
-  if (!match) return isoDate;
-
-  return `${Number(match[1])}년 ${Number(match[2])}월 ${Number(match[3])}일`;
-};
-
 /**
  * 가정 요약의 목표 그룹 행. 예상 달성 시점이 **어떤 조건에서 나왔는지**를 화면에 남기는 유일한 자리라
  * 목표가 있을 때는 빼지 않는다(없으면 ETA 의 근거가 화면 어디에도 없다).
@@ -79,7 +72,7 @@ const buildGoalConditionRows = (
     { label: copy.goal.conditions.initialInvestment, value: formatKrwAmount(conditions.initialInvestment) },
     { label: copy.goal.conditions.monthlyContribution, value: formatKrwAmount(conditions.monthlyContribution) },
     { label: copy.goal.conditions.duration, value: copy.goal.conditions.durationValue(conditions.durationYears) },
-    { label: copy.goal.conditions.startDate, value: formatStartDate(conditions.investmentStartDate) },
+    { label: copy.goal.conditions.startDate, value: formatPortfolioDate(conditions.investmentStartDate) },
     {
       label: copy.goal.conditions.reinvest,
       value: conditions.reinvestDividends

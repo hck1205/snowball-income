@@ -90,15 +90,15 @@ export default function PortfolioPage({ now: nowProp }: PortfolioPageProps = {})
    * `compact=false` 고정 — 월 배당은 만~백만원대라 축약하면 차이가 안 보인다.
    */
   const displayRate = display.rate;
-  const formatAmount = useCallback(
+  const formatUsdAmount = useCallback(
     (usd: number) => (displayRate === null ? formatUSD(usd) : formatKrwBased(usd * displayRate, false)),
     [displayRate, formatKrwBased]
   );
 
   /**
-   * 🔴 목표 도메인 전용 포맷터 — **입력이 원화**다(위 `formatAmount` 는 USD 입력).
+   * 🔴 목표 도메인 전용 포맷터 — **입력이 원화**다(위 `formatUsdAmount` 는 USD 입력).
    *
-   * 목표 월배당·남은 금액·현재값(실측 환산분·시뮬 파생값)은 전부 원화 값이라, 여기에 `formatAmount` 를
+   * 목표 월배당·남은 금액·현재값(실측 환산분·시뮬 파생값)은 전부 원화 값이라, 여기에 `formatUsdAmount` 를
    * 넘기면 조용히 환율배 틀린 숫자가 나오고 화면 어디에도 오류 표시가 없다. 두 포맷터가 한 화면에
    * 공존하는 유일한 지점이므로 배선을 바꿀 때 이 주석을 먼저 읽을 것.
    */
@@ -133,7 +133,7 @@ export default function PortfolioPage({ now: nowProp }: PortfolioPageProps = {})
         summary,
         fx: { status: display.status, rate: display.rate, asOf: display.asOf },
         writeError,
-        formatAmount,
+        formatUsdAmount,
         canSimulate: prefillState !== null,
         simulationExcludedCount,
         calendarTickerCount: calendarTickers.length,
@@ -145,7 +145,7 @@ export default function PortfolioPage({ now: nowProp }: PortfolioPageProps = {})
       display.asOf,
       display.rate,
       display.status,
-      formatAmount,
+      formatUsdAmount,
       items,
       pendingUndo,
       prefillState,
@@ -202,11 +202,11 @@ export default function PortfolioPage({ now: nowProp }: PortfolioPageProps = {})
         status,
         holdingsCount: items.length,
         hasIncludedRows: summary.counts.included > 0,
-        monthlyText: formatAmount(summary.monthlyDividendAfterTaxUsd),
+        monthlyText: formatUsdAmount(summary.monthlyDividendAfterTaxUsd),
         fxFailed: display.status === 'error',
         goalProgressPercent: goalModel?.progressPercent ?? null
       }),
-    [display.status, formatAmount, goalModel, items.length, status, summary]
+    [display.status, formatUsdAmount, goalModel, items.length, status, summary]
   );
 
   /*

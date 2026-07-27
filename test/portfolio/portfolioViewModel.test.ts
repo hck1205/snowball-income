@@ -26,7 +26,7 @@ const copy = PORTFOLIO_COPY;
 const SNAPSHOT_AS_OF = '2026-07-25';
 
 /** 표시 문자열이 아니라 **어떤 값이 흘러갔는지**를 보려고 통화 기호 대신 원값을 찍는다. */
-const formatAmount = (usd: number) => `USD:${usd.toFixed(2)}`;
+const formatUsdAmount = (usd: number) => `USD:${usd.toFixed(2)}`;
 
 const row = (ticker: string, quantityInput: string, manual?: { price: number; dividendYield: number }): PortfolioHoldingRow => ({
   ticker,
@@ -58,7 +58,7 @@ const buildModel = (
     summary,
     fx: successFx,
     writeError: null,
-    formatAmount,
+    formatUsdAmount,
     canSimulate: true,
     simulationExcludedCount: 0,
     calendarTickerCount: items.length,
@@ -126,7 +126,7 @@ describe('요약 타일', () => {
 
     expect(model.rows[0].badge).toBe('manual');
     expect(model.rows[0].note).toBe(copy.holdings.rowManualExcluded);
-    expect(model.rows[0].marketValue).toBe(formatAmount(500));
+    expect(model.rows[0].marketValue).toBe(formatUsdAmount(500));
     expect(model.summaryNotes).toContain(copy.summary.manualExcludedNote(1));
   });
 
