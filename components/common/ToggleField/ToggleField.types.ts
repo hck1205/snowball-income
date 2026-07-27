@@ -1,4 +1,5 @@
 import type { ChangeEventHandler } from 'react';
+import type { ToggleSize } from '@/components/common/Toggle';
 
 export type ToggleFieldProps = {
   label: string;
@@ -13,10 +14,8 @@ export type ToggleFieldProps = {
   checked: boolean;
   disabled?: boolean;
   hideLabel?: boolean;
-  controlWidth?: string;
-  stateTextColor?: string;
-  onText?: string;
-  offText?: string;
+  /** 스위치 크기(기본 `'md'`). 현재 단일 단계라 사실상 디자인 고정이다. */
+  size?: ToggleSize;
   helpAriaLabel?: string;
   onHelpClick?: () => void;
   onChange: ChangeEventHandler<HTMLInputElement>;

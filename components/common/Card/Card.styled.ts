@@ -38,6 +38,10 @@ export const CardTitle = styled.h2`
   font-weight: ${font.weight.bold};
   line-height: ${font.leading.tight};
   letter-spacing: -0.02em;
+  /* 320px에서 titleRight(라벨 달린 토글)에 밀려 제목이 2줄이 될 때, 한국어를 음절이 아니라
+     어절 단위로 꺾는다. 그래도 안 맞는 긴 토큰(티커 등)은 anywhere로 넘치지 않게 끊는다. */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 `;
 
 export const CardSubtitle = styled.p`

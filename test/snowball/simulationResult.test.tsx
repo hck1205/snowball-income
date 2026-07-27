@@ -225,7 +225,7 @@ describe('SimulationResult target narrative block — 미설정(target<=0)', () 
   it('진행률 뷰 토글도, 진행률 바(progressbar)도 그리지 않는다', () => {
     renderResult({ targetMonthlyDividend: 0 });
 
-    expect(screen.queryByRole('checkbox', { name: '진행률 표시 방식' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('checkbox', { name: '진행률 게이지로 보기' })).not.toBeInTheDocument();
     expect(screen.queryByRole('progressbar', { name: '목표 월배당 달성률' })).not.toBeInTheDocument();
   });
 });
@@ -293,7 +293,7 @@ describe('SimulationResult 진행률 2뷰 토글(바 ↔ 게이지)', () => {
       summary: { targetMonthDividendReachedYear: undefined }
     });
 
-    await user.click(screen.getByRole('checkbox', { name: '진행률 표시 방식' }));
+    await user.click(screen.getByRole('checkbox', { name: '진행률 게이지로 보기' }));
 
     expect(screen.queryByRole('progressbar', { name: '목표 월배당 달성률' })).not.toBeInTheDocument();
     expect(screen.getByRole('img', { name: /목표/ })).toBeInTheDocument();
@@ -306,7 +306,7 @@ describe('SimulationResult 진행률 2뷰 토글(바 ↔ 게이지)', () => {
       summary: { targetMonthDividendReachedYear: 2028, finalMonthlyAverageDividend: 2_900_000 }
     });
 
-    await user.click(screen.getByRole('checkbox', { name: '진행률 표시 방식' }));
+    await user.click(screen.getByRole('checkbox', { name: '진행률 게이지로 보기' }));
 
     expect(screen.getByRole('img', { name: '목표 달성' })).toBeInTheDocument();
   });
@@ -322,7 +322,7 @@ describe('SimulationResult 진행률 2뷰 토글(바 ↔ 게이지)', () => {
     const bar = screen.getByRole('progressbar', { name: '목표 월배당 달성률' });
     expect(bar).toHaveAttribute('aria-valuenow', '50');
 
-    await user.click(screen.getByRole('checkbox', { name: '진행률 표시 방식' }));
+    await user.click(screen.getByRole('checkbox', { name: '진행률 게이지로 보기' }));
 
     // 게이지 뷰: 같은 50%.
     expect(screen.getByRole('img', { name: '목표의 50% 도달' })).toBeInTheDocument();

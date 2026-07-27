@@ -1,5 +1,17 @@
 import type { ChangeEventHandler } from 'react';
 
+/**
+ * 스위치 크기 단계.
+ *
+ * **지금은 `'md'` 하나뿐이고, 그게 의도다** — 앱의 모든 토글은 같은 크기로 보여야 한다
+ * (투자 설정 카드의 토글이 기준). 크기를 호출부가 임의로 정하면 화면마다 스위치가 달라진다.
+ *
+ * ⚠ 실사용처가 **2곳 이상** 요구하기 전에는 단계를 늘리지 않는다.
+ * 새 단계를 추가할 때는 `inset = (height - thumb) / 2` 를 지켜 썸이 트랙 세로 중앙에 오게 한다.
+ * (`sm` 후보 수치: `{ track: 36, height: 20, thumb: 14, inset: 3 }`)
+ */
+export type ToggleSize = 'md';
+
 export type ToggleProps = {
   /** 접근성 이름. 시각적 라벨이 따로 있으면 그 텍스트를 그대로 넘긴다. */
   label: string;
@@ -7,20 +19,8 @@ export type ToggleProps = {
   disabled?: boolean;
   id?: string;
 
-  /**
-   * 켬/끔이 아니라 **두 가지 모드** 중 하나를 고르는 스위치일 때 트랙 안에 보여줄 텍스트.
-   * (예: 간략/상세, 자산/배당)
-   *
-   * 둘 다 주지 않으면 텍스트 없는 순수 스위치로 그린다 — 이게 기본이다.
-   * 스위치에 "OFF"를 박아 넣으면 켜는 물건인지 끄는 물건인지 헷갈린다.
-   */
-  onText?: string;
-  offText?: string;
-
-  /** 라벨 텍스트가 들어가는 모드 스위치의 트랙 폭(기본값으로는 텍스트가 잘릴 수 있어서). */
-  controlWidth?: string;
-  /** 레거시 탈출구. 새 코드에서는 쓰지 마라. */
-  stateTextColor?: string;
+  /** 스위치 크기(기본 `'md'`). 현재 단일 단계라 사실상 디자인 고정이다. */
+  size?: ToggleSize;
 
   onChange: ChangeEventHandler<HTMLInputElement>;
 };

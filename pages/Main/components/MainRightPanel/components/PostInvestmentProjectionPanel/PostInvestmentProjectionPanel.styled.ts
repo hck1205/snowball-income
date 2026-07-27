@@ -3,9 +3,12 @@ import { color, font, space } from '@/shared/styles';
 
 /** `MainRightPanel.styled.ts`에서 옮겨온 것 — 원래는 인라인 style 속성이었다 (스타일 값 동일, 마크업/동작 변화 없음). */
 
+/* 토글 라벨이 보이게 되면서 컨트롤 줄이 길어졌다 — 좁은 폭에서는 접어서 흘리고 우측으로 붙인다. */
 export const ProjectionControls = styled.div`
   display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: ${space[2]};
 `;
 

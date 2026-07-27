@@ -49,12 +49,9 @@ function PostInvestmentProjectionPanel({
             <ProjectionYearSuffix>년</ProjectionYearSuffix>
           </ProjectionYearField>
           <ToggleField
-            label="추정 보기 전환"
-            hideLabel
-            controlWidth="60px"
+            label="자산"
+            accessibleName="자산가치로 보기"
             checked={isAssetView}
-            offText="배당"
-            onText="자산"
             onChange={(event) => {
               trackEvent(ANALYTICS_EVENT.TOGGLE_CHANGED, {
                 field_name: 'postInvestmentProjectionView',

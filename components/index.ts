@@ -28,5 +28,6 @@ export type {
   StatTone,
   TabItem,
   TabsProps,
-  ToggleProps
+  ToggleProps,
+  ToggleSize
 } from './common';

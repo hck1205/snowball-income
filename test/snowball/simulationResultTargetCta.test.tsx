@@ -163,7 +163,7 @@ describe('목표 미설정 CTA — 배선/상태에 따른 노출', () => {
     renderResult({ targetMonthlyDividend: 3_000_000 });
 
     expect(screen.queryByRole('group', { name: QUICK_SET_GROUP })).not.toBeInTheDocument();
-    expect(screen.getByRole('checkbox', { name: '진행률 표시 방식' })).toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: '진행률 게이지로 보기' })).toBeInTheDocument();
   });
 
   it('목표 0원은 "설정된 목표"가 아니다 — 달성/도달 표기 없이 미설정으로만 말한다', () => {

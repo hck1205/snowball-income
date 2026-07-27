@@ -199,7 +199,7 @@ weight: `regular 400` / `medium 500` / `semibold 600` / `bold 700` / `extrabold 
 | 컴포넌트 | variant / props | 언제 |
 |---|---|---|
 | `Button` | `primary` `secondary` `ghost` `danger` × `sm` `md`, `loading` `fullWidth` `iconOnly` | 앱의 **모든** 버튼 |
-| `Toggle` | `onText`/`offText` 주면 모드 스위치 | 스위치 컨트롤만 |
+| `Toggle` | `size`(현재 `'md'` 단일) — 디자인 고정 | 스위치 컨트롤만 |
 | `ToggleField` | 라벨 줄 + `Toggle` + 도움말 | 설정 한 줄 |
 | `Chip` | `selected` `onClick` `onRemove` | 티커/프리셋 조각 |
 | `StatTile` | `emphasis: hero \| default`, `tone: neutral \| positive \| negative` | 지표 |
