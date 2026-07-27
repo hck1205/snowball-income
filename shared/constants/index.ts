@@ -1,4 +1,5 @@
 export * from './targets';
+export * from './portfolioPrefill';
 export * from './marketData';
 export * from './allocation';
 export * from './currency';

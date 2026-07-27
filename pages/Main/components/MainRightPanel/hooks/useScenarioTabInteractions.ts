@@ -113,14 +113,20 @@ export const useScenarioTabInteractions = ({
     setHoverTooltip(null);
   }, []);
 
+  /**
+   * 로그인 유도 프롬프트 열기. "+" 버튼 말고도 **다른 화면에서 넘어온 프리필**이 탭을 못 만들 때
+   * 같은 프롬프트를 재사용한다(로그인 게이트의 표면은 하나여야 한다).
+   */
+  const openLoginNudge = useCallback(() => {
+    trackEvent(ANALYTICS_EVENT.MODAL_VIEW, { modal_type: 'scenario_login_nudge' });
+    setIsLoginNudgeOpen(true);
+  }, []);
+
   // 탭 추가("+"). 로그인 게이트에 걸리면(비로그인 2번째 탭) 생성하지 않고 로그인 유도 프롬프트를 띄운다.
   const handleCreateTab = useCallback(() => {
     const outcome = createScenarioTab();
-    if (outcome === 'login-required') {
-      trackEvent(ANALYTICS_EVENT.MODAL_VIEW, { modal_type: 'scenario_login_nudge' });
-      setIsLoginNudgeOpen(true);
-    }
-  }, [createScenarioTab]);
+    if (outcome === 'login-required') openLoginNudge();
+  }, [createScenarioTab, openLoginNudge]);
 
   const closeLoginNudge = useCallback(() => setIsLoginNudgeOpen(false), []);
   // [로그인] → 프롬프트를 닫고 기존 로그인 모달을 연다(소셜 로그인 선택). 로그인 성공 후 탭1 클라우드 push는
@@ -152,6 +158,7 @@ export const useScenarioTabInteractions = ({
     showHoverTooltip,
     hideHoverTooltip,
     handleCreateTab,
+    openLoginNudge,
     closeLoginNudge,
     handleLoginFromNudge,
     openScenarioTabsHelp

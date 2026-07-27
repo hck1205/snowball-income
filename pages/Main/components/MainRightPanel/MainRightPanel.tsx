@@ -13,6 +13,7 @@ import {
   PortfolioPresetBoard,
   PostInvestmentProjectionPanel,
   PresetApplyModal,
+  PortfolioPrefillRequest,
   ScenarioTabs,
   ScenarioTabTooltip,
   TabDeleteModal,
@@ -45,6 +46,7 @@ import {
   useSetActiveHelpWrite,
   useSetWeightByTickerIdWrite,
   useSetYieldFormWrite,
+  useTickerProfilesAtomValue,
   useVisibleYearlySeriesAtomValue
 } from '@/jotai';
 import { useMainComputed, useScenarioTabs, useSnowballForm, useTickerActions } from '@/pages/Main/hooks';
@@ -58,7 +60,7 @@ import {
   targetYearLabel
 } from '@/pages/Main/utils';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
-import { useScenarioTabInteractions } from './hooks';
+import { usePortfolioPrefillCommit, useScenarioTabInteractions } from './hooks';
 
 function MainRightPanelComponent() {
   const modalRoot = typeof document !== 'undefined' ? document.body : null;
@@ -79,6 +81,9 @@ function MainRightPanelComponent() {
   const isResultCompact = useIsResultCompactAtomValue();
   const setIsResultCompact = useSetIsResultCompactWrite();
   const includedProfiles = useIncludedProfilesAtomValue();
+  /* 프리필이 활성 탭을 덮어도 되는지 판정할 때만 쓴다 — **제외된 티커도 지우면 안 되는 데이터**라
+     includedProfiles가 아니라 전체 프로필을 본다. */
+  const tickerProfiles = useTickerProfilesAtomValue();
   const normalizedAllocation = useNormalizedAllocationAtomValue();
   const allocationPercentByTickerId = useAllocationPercentByTickerIdAtomValue();
   const adjustableTickerCount = useAdjustableTickerCountAtomValue();
@@ -134,6 +139,7 @@ function MainRightPanelComponent() {
     canCreateTab,
     canDeleteTab,
     requiresLoginToCreateTab,
+    tabCreationGate,
     selectScenarioTab,
     createScenarioTab,
     renameScenarioTab,
@@ -162,6 +168,7 @@ function MainRightPanelComponent() {
     showHoverTooltip,
     hideHoverTooltip,
     handleCreateTab,
+    openLoginNudge,
     closeLoginNudge,
     handleLoginFromNudge,
     openScenarioTabsHelp
@@ -171,6 +178,23 @@ function MainRightPanelComponent() {
     createScenarioTab,
     setActiveHelp,
     communityAuth
+  });
+  /*
+   * "내 포트폴리오" 화면에서 넘어온 프리필의 커밋. 기본은 새 탭 생성이고, 새 탭을 못 만들 때
+   * (비로그인 1탭 게이트)만 비어 있는 활성 탭에 커밋한다 — 판정·매핑은 전부 순수 함수에 있다.
+   */
+  const applyPortfolioPrefill = usePortfolioPrefillCommit({
+    tabCreationGate,
+    createScenarioTab,
+    tickerProfileCount: tickerProfiles.length,
+    initialInvestment: values.initialInvestment,
+    setTickerProfiles,
+    setIncludedTickerIds,
+    setWeightByTickerId,
+    setFixedByTickerId,
+    setSelectedTickerId,
+    setField,
+    openLoginNudge
   });
   const hasGraphData = includedProfiles.length > 0;
   const emptyGraphMessage = '좌측 티커 생성을 통해 포트폴리오를 구성해주세요.';
@@ -368,10 +392,18 @@ function MainRightPanelComponent() {
         아무것도 그리지 않으므로 미렌더여도 화면은 동일하다.
       */}
       {inRouter ? (
-        <TargetFocusRequest
-          onApplyTarget={quickSetTargetMonthlyDividend}
-          onFocusTarget={focusTargetMonthlyDividendField}
-        />
+        <>
+          <TargetFocusRequest
+            onApplyTarget={quickSetTargetMonthlyDividend}
+            onFocusTarget={focusTargetMonthlyDividendField}
+          />
+          {/*
+            "내 포트폴리오" → 시뮬레이터 프리필의 수신 배선. 위 목표 요청과 **같은 자리**여야 한다
+            (하이드레이션 완료 후 마운트). 커밋은 시나리오 탭 API + 기존 setter + setField만 쓰므로
+            저장 payload·공유 URL·클라우드 스키마는 아무것도 바뀌지 않는다.
+          */}
+          <PortfolioPrefillRequest onApplyPrefill={applyPortfolioPrefill} />
+        </>
       ) : null}
 
       <ScenarioTabs

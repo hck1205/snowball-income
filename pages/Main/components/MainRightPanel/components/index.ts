@@ -6,3 +6,4 @@ export { default as TabDeleteModal } from './TabDeleteModal';
 export { default as LoginNudgeModal } from './LoginNudgeModal';
 export { default as PostInvestmentProjectionPanel } from './PostInvestmentProjectionPanel';
 export { TargetFocusRequest } from './TargetFocusRequest';
+export { PortfolioPrefillRequest } from './PortfolioPrefillRequest';
