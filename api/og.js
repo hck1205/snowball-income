@@ -6317,6 +6317,1201 @@ var parseMarketDataSnapshot = (raw) => {
 var MARKET_DATA = parseMarketDataSnapshot(marketData_generated_default);
 var MARKET_DATA_AS_OF = MARKET_DATA.asOf;
 
+// shared/lib/snowball/SnowballCalendar.ts
+var getDaysInMonth = (year, monthIndex) => new Date(year, monthIndex + 1, 0).getDate();
+var addMonths = (baseDate, monthsToAdd) => {
+  const targetYear = baseDate.getFullYear();
+  const targetMonthIndex = baseDate.getMonth() + monthsToAdd;
+  const anchor = new Date(targetYear, targetMonthIndex, 1);
+  const nextDay = Math.min(baseDate.getDate(), getDaysInMonth(anchor.getFullYear(), anchor.getMonth()));
+  return new Date(anchor.getFullYear(), anchor.getMonth(), nextDay);
+};
+var DATE_INPUT_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+var parseStartDate = (value) => {
+  if (!DATE_INPUT_PATTERN.test(value)) return null;
+  const [yearText, monthText, dayText] = value.split("-");
+  const year = Number(yearText);
+  const monthIndex = Number(monthText) - 1;
+  const day = Number(dayText);
+  const date = new Date(year, monthIndex, day);
+  if (date.getFullYear() !== year || date.getMonth() !== monthIndex || date.getDate() !== day) {
+    return null;
+  }
+  return date;
+};
+var isCalendarDateInput = (value) => parseStartDate(value) !== null;
+var toStartDate = (value) => {
+  const parsed = parseStartDate(value);
+  if (!parsed) {
+    throw new Error(`\uC720\uD6A8\uD558\uC9C0 \uC54A\uC740 \uD22C\uC790 \uC2DC\uC791 \uB0A0\uC9DC\uC785\uB2C8\uB2E4: ${value}`);
+  }
+  return parsed;
+};
+var buildMonthContext = (startDate, monthIndex) => {
+  const elapsedMonths = monthIndex - 1;
+  const elapsedYears = Math.floor(elapsedMonths / 12);
+  const simulationMonth = elapsedMonths % 12 + 1;
+  const simulationYearLabel = startDate.getFullYear() + elapsedYears;
+  const calendarDate = addMonths(startDate, elapsedMonths);
+  return {
+    monthIndex,
+    elapsedMonths,
+    elapsedYears,
+    simulationMonth,
+    simulationYearLabel,
+    calendarYear: calendarDate.getFullYear(),
+    calendarMonth: calendarDate.getMonth() + 1,
+    // monthIndex 는 1-based 다. floor(monthIndex / 12) 를 쓰면 12개월째(= 아직 1년차)에 이미 1이 되어
+    // DPS 가 한 해 일찍 계단 상승했다. 완료된 연 수는 elapsedYears 와 같은 정의여야 한다.
+    completedYears: elapsedYears,
+    elapsedYearFraction: monthIndex / 12
+  };
+};
+
+// shared/constants/tax/index.ts
+var OVERSEAS_CAPITAL_GAINS_TAX_RATE = 22;
+var CAPITAL_GAINS_ANNUAL_DEDUCTION = 25e5;
+var FINANCIAL_INCOME_TAX_THRESHOLD = 2e7;
+
+// shared/lib/snowball/SnowballCapitalGains.ts
+var computeCapitalGains = ({
+  finalAssetValue,
+  totalCostBasis,
+  taxRatePercent = OVERSEAS_CAPITAL_GAINS_TAX_RATE,
+  annualDeduction = CAPITAL_GAINS_ANNUAL_DEDUCTION
+}) => {
+  const unrealizedGain = finalAssetValue - totalCostBasis;
+  const taxableGain = Math.max(0, unrealizedGain - annualDeduction);
+  const estimatedCapitalGainsTax = taxableGain * (taxRatePercent / 100);
+  return {
+    unrealizedGain,
+    estimatedCapitalGainsTax,
+    afterCapitalGainsTaxValue: finalAssetValue - estimatedCapitalGainsTax
+  };
+};
+var sumGrossDividendByYearIndex = (monthly) => monthly.reduce((byYear, row) => {
+  const yearIndex = Math.ceil(row.monthIndex / 12);
+  const gross = row.dividendPaid + row.taxPaid;
+  return byYear.set(yearIndex, (byYear.get(yearIndex) ?? 0) + gross);
+}, /* @__PURE__ */ new Map());
+var findFinancialIncomeThresholdYear = (monthly, threshold = FINANCIAL_INCOME_TAX_THRESHOLD) => {
+  const grossByYear = sumGrossDividendByYearIndex(monthly);
+  return [...grossByYear.entries()].sort(([left], [right]) => left - right).find(([, gross]) => gross > threshold)?.[0];
+};
+
+// shared/lib/snowball/SnowballRates.ts
+var MIN_GROWTH_RATE = -0.99;
+var MIN_PRICE_FACTOR = 1e-4;
+var toMonthlyGrowthRate = (annualRate) => Math.pow(1 + annualRate, 1 / 12) - 1;
+var toTaxRate = (taxRatePercent) => (taxRatePercent ?? 0) / 100;
+var clamp01 = (value) => Math.max(0, Math.min(1, value));
+var toReinvestRatio = (reinvestDividendPercent) => clamp01(reinvestDividendPercent / 100);
+var roundToTwoDecimals = (value) => Math.round(value * 100) / 100;
+var toPriceGrowth = (dividendGrowthPercent) => Math.max(MIN_GROWTH_RATE, dividendGrowthPercent / 100);
+var toExpectedTotalReturnPercent = (dividendYieldPercent, dividendGrowthPercent) => roundToTwoDecimals(dividendYieldPercent + dividendGrowthPercent);
+var toDerivedDividendGrowthPercent = (expectedTotalReturnPercent, dividendYieldPercent) => roundToTwoDecimals(expectedTotalReturnPercent - dividendYieldPercent);
+var priceAtMonth = (initialPrice, priceGrowth, elapsedYearFraction) => {
+  const floor = initialPrice * MIN_PRICE_FACTOR;
+  const price = initialPrice * Math.pow(1 + priceGrowth, elapsedYearFraction);
+  return Number.isFinite(price) ? Math.max(floor, price) : floor;
+};
+var dpsAtMonth = ({
+  dps0,
+  dividendGrowth,
+  mode,
+  elapsedYearFraction,
+  completedYears
+}) => {
+  const growthExponent = mode === "monthlySmooth" ? elapsedYearFraction : completedYears;
+  const dps = dps0 * Math.pow(1 + Math.max(MIN_GROWTH_RATE, dividendGrowth), growthExponent);
+  return Number.isFinite(dps) ? Math.max(0, dps) : 0;
+};
+
+// shared/lib/snowball/SnowballForm.ts
+var frequencySchema = external_exports.enum(["monthly", "quarterly", "semiannual", "annual"]);
+var reinvestTimingSchema = external_exports.enum(["sameMonth", "nextMonth"]);
+var dpsGrowthModeSchema = external_exports.enum(["annualStep", "monthlySmooth"]);
+var dateInputSchema = external_exports.string().regex(/^\d{4}-\d{2}-\d{2}$/, "\uD22C\uC790 \uC2DC\uC791 \uB0A0\uC9DC\uB97C \uC120\uD0DD\uD558\uC138\uC694.").refine(isCalendarDateInput, "\uC874\uC7AC\uD558\uC9C0 \uC54A\uB294 \uB0A0\uC9DC\uC785\uB2C8\uB2E4.");
+var formSchema = external_exports.object({
+  ticker: external_exports.string().trim().min(1, "\uD2F0\uCEE4\uB97C \uC785\uB825\uD558\uC138\uC694."),
+  initialPrice: external_exports.number().finite("\uD604\uC7AC \uC8FC\uAC00\uB97C \uC785\uB825\uD558\uC138\uC694.").positive("\uD604\uC7AC \uC8FC\uAC00\uB294 0\uBCF4\uB2E4 \uCEE4\uC57C \uD569\uB2C8\uB2E4."),
+  dividendYield: external_exports.number().finite("\uBC30\uB2F9\uB960\uC744 \uC785\uB825\uD558\uC138\uC694.").min(0, "\uBC30\uB2F9\uB960\uC740 0 \uC774\uC0C1\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4.").max(100, "\uBC30\uB2F9\uB960\uC740 100 \uC774\uD558\uC5EC\uC57C \uD569\uB2C8\uB2E4."),
+  // 음수 허용: 커버드콜 ETF의 NAV 침식/분배금 감소를 정직하게 표현하는 유일한 방법이다.
+  // (정합 모델에서 dividendGrowth 는 주가 성장률이기도 하다.)
+  dividendGrowth: external_exports.number().finite("\uBC30\uB2F9 \uC131\uC7A5\uB960\uC744 \uC785\uB825\uD558\uC138\uC694.").min(-100, "\uBC30\uB2F9 \uC131\uC7A5\uB960\uC740 -100 \uC774\uC0C1\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4.").max(100, "\uBC30\uB2F9 \uC131\uC7A5\uB960\uC740 100 \uC774\uD558\uC5EC\uC57C \uD569\uB2C8\uB2E4."),
+  expectedTotalReturn: external_exports.number().finite("\uAE30\uB300 \uCD1D\uC218\uC775\uC728 (CAGR)\uC744 \uC785\uB825\uD558\uC138\uC694.").min(-100, "\uAE30\uB300 \uCD1D\uC218\uC775\uC728 (CAGR)\uC740 -100 \uC774\uC0C1\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4.").max(100, "\uAE30\uB300 \uCD1D\uC218\uC775\uC728 (CAGR)\uC740 100 \uC774\uD558\uC5EC\uC57C \uD569\uB2C8\uB2E4."),
+  frequency: frequencySchema,
+  initialInvestment: external_exports.number().finite("\uCD08\uAE30 \uD22C\uC790\uAE08\uC744 \uC785\uB825\uD558\uC138\uC694.").min(0, "\uCD08\uAE30 \uD22C\uC790\uAE08\uC740 0 \uC774\uC0C1\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4."),
+  monthlyContribution: external_exports.number().finite("\uC6D4 \uD22C\uC790\uAE08\uC744 \uC785\uB825\uD558\uC138\uC694.").min(0, "\uC6D4 \uD22C\uC790\uAE08\uC740 0 \uC774\uC0C1\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4."),
+  targetMonthlyDividend: external_exports.number().finite("\uBAA9\uD45C \uC6D4\uBC30\uB2F9\uC744 \uC785\uB825\uD558\uC138\uC694.").min(0, "\uBAA9\uD45C \uC6D4\uBC30\uB2F9\uC740 0 \uC774\uC0C1\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4."),
+  investmentStartDate: dateInputSchema,
+  durationYears: external_exports.number().int("\uD22C\uC790 \uAE30\uAC04\uC740 \uC815\uC218\uC5EC\uC57C \uD569\uB2C8\uB2E4.").min(1, "\uD22C\uC790 \uAE30\uAC04\uC740 1\uB144 \uC774\uC0C1\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4.").max(60, "\uD22C\uC790 \uAE30\uAC04\uC740 60\uB144 \uC774\uD558\uC5EC\uC57C \uD569\uB2C8\uB2E4."),
+  reinvestDividends: external_exports.boolean(),
+  reinvestDividendPercent: external_exports.number().min(0, "\uC7AC\uD22C\uC790 \uBE44\uC728\uC740 0 \uC774\uC0C1\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4.").max(100, "\uC7AC\uD22C\uC790 \uBE44\uC728\uC740 100 \uC774\uD558\uC5EC\uC57C \uD569\uB2C8\uB2E4."),
+  taxRate: external_exports.number().min(0, "\uC138\uC728\uC740 0 \uC774\uC0C1\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4.").max(100, "\uC138\uC728\uC740 100 \uC774\uD558\uC5EC\uC57C \uD569\uB2C8\uB2E4.").optional(),
+  reinvestTiming: reinvestTimingSchema,
+  dpsGrowthMode: dpsGrowthModeSchema
+});
+var tickerInputSchema = formSchema.pick({
+  ticker: true,
+  initialPrice: true,
+  dividendYield: true,
+  dividendGrowth: true,
+  expectedTotalReturn: true,
+  frequency: true
+});
+var toDateInputValue = (date) => {
+  const year = String(date.getFullYear()).padStart(4, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+var createDefaultYieldFormValues = (today = /* @__PURE__ */ new Date()) => ({
+  ticker: "SCHD",
+  initialPrice: 1e5,
+  dividendYield: 3.5,
+  // 정합 모델 전환: 기존 기본값(dy 3.5 / dg 6 / etr 8.5)은 dy + dg !== etr 로 자기모순이었다.
+  // 마이그레이션 규칙(dy·etr 보존, dg 재계산)을 그대로 적용해 dg = 8.5 - 3.5 = 5 로 맞춘다.
+  dividendGrowth: 5,
+  expectedTotalReturn: 8.5,
+  frequency: "quarterly",
+  initialInvestment: 0,
+  monthlyContribution: 1e6,
+  targetMonthlyDividend: 2e6,
+  investmentStartDate: toDateInputValue(today),
+  durationYears: 20,
+  reinvestDividends: false,
+  reinvestDividendPercent: 100,
+  taxRate: 15.4,
+  reinvestTiming: "sameMonth",
+  dpsGrowthMode: "monthlySmooth"
+});
+var defaultYieldFormValues = createDefaultYieldFormValues();
+var validateFormValues = (values) => {
+  const parsed = formSchema.safeParse(values);
+  if (parsed.success) {
+    return { isValid: true, errors: [] };
+  }
+  return {
+    isValid: false,
+    errors: parsed.error.issues.map((issue) => issue.message)
+  };
+};
+var toSimulationInput = (values) => ({
+  ticker: {
+    ticker: values.ticker,
+    initialPrice: values.initialPrice,
+    dividendYield: values.dividendYield,
+    dividendGrowth: values.dividendGrowth,
+    // 파생 표시값이므로 폼에 남아 있는 값을 믿지 않고 항상 다시 계산한다 (엔진은 쓰지 않는다).
+    expectedTotalReturn: toExpectedTotalReturnPercent(values.dividendYield, values.dividendGrowth),
+    frequency: values.frequency
+  },
+  settings: {
+    initialInvestment: values.initialInvestment,
+    monthlyContribution: values.monthlyContribution,
+    targetMonthlyDividend: values.targetMonthlyDividend,
+    investmentStartDate: values.investmentStartDate,
+    durationYears: values.durationYears,
+    reinvestDividends: values.reinvestDividends,
+    reinvestDividendPercent: values.reinvestDividendPercent,
+    taxRate: values.taxRate,
+    reinvestTiming: values.reinvestTiming,
+    dpsGrowthMode: values.dpsGrowthMode
+  }
+});
+
+// shared/lib/snowball/SnowballPayout.ts
+var paymentsPerYearMap = {
+  monthly: 12,
+  quarterly: 4,
+  semiannual: 2,
+  annual: 1
+};
+var isPayoutMonth = (frequency, simulationMonth) => {
+  if (frequency === "monthly") return true;
+  if (frequency === "quarterly") return simulationMonth % 3 === 0;
+  if (frequency === "semiannual") return simulationMonth === 6 || simulationMonth === 12;
+  return simulationMonth === 12;
+};
+var computeMonthlyPayout = ({
+  shares,
+  annualDps,
+  paymentsPerYear,
+  taxRate
+}) => {
+  const gross = shares * (annualDps / paymentsPerYear);
+  const tax = gross * taxRate;
+  return { gross, tax, net: gross - tax };
+};
+var planReinvestment = ({
+  netDividend,
+  price,
+  enabled,
+  ratio,
+  timing
+}) => {
+  if (!enabled) return { sharesToBuyNow: 0, cashToCarry: 0, amountInvestedNow: 0 };
+  const reinvestAmount = netDividend * clamp01(ratio);
+  return timing === "sameMonth" ? { sharesToBuyNow: reinvestAmount / price, cashToCarry: 0, amountInvestedNow: reinvestAmount } : { sharesToBuyNow: 0, cashToCarry: reinvestAmount, amountInvestedNow: 0 };
+};
+
+// shared/lib/snowball/SnowballQuickEstimate.ts
+var runQuickEstimate = (input) => {
+  const { ticker, settings } = input;
+  const taxRate = toTaxRate(settings.taxRate);
+  const dividendYield = ticker.dividendYield / 100;
+  const growth = toPriceGrowth(ticker.dividendGrowth);
+  const paymentsPerYear = paymentsPerYearMap[ticker.frequency];
+  const reinvestRatio = settings.reinvestDividends ? toReinvestRatio(settings.reinvestDividendPercent) : 0;
+  const shareGrowthPerPayment = dividendYield / paymentsPerYear * (1 - taxRate) * reinvestRatio;
+  const annualShareGrowth = Math.pow(1 + shareGrowthPerPayment, paymentsPerYear);
+  const annualReturn = Math.max(MIN_GROWTH_RATE, (1 + growth) * annualShareGrowth - 1);
+  const monthlyReturn = toMonthlyGrowthRate(annualReturn);
+  const totalMonths = settings.durationYears * 12;
+  const monthlyContributionGrowth = Math.abs(monthlyReturn) < 1e-12 ? settings.monthlyContribution * totalMonths : settings.monthlyContribution * ((Math.pow(1 + monthlyReturn, totalMonths) - 1) / monthlyReturn);
+  const initialInvestmentGrowth = settings.initialInvestment * Math.pow(1 + monthlyReturn, totalMonths);
+  const rawEndValue = monthlyContributionGrowth + initialInvestmentGrowth;
+  const endValue = Number.isFinite(rawEndValue) ? Math.max(0, rawEndValue) : 0;
+  const yieldOnPriceAtEnd = Math.max(0, dividendYield);
+  const annualDividendApprox = endValue * yieldOnPriceAtEnd * (1 - taxRate);
+  return {
+    endValue,
+    annualDividendApprox,
+    monthlyDividendApprox: annualDividendApprox / 12,
+    yieldOnPriceAtEnd
+  };
+};
+
+// shared/lib/snowball/SnowballSummary.ts
+var findTargetYear = (rows, monthlyTarget) => {
+  return rows.find((row) => row.monthlyDividend >= monthlyTarget)?.year;
+};
+var sumDividendPaid = (rows) => rows.reduce((sum, row) => sum + row.dividendPaid, 0);
+var findLastPayoutMonth = (monthly) => [...monthly].reverse().find((row) => row.dividendPaid > 0);
+var buildYearlyRow = ({
+  year,
+  monthIndex,
+  initialInvestment,
+  monthlyContribution,
+  assetValue,
+  cumulativeDividend,
+  recentMonths
+}) => {
+  const annualDividend = sumDividendPaid(recentMonths);
+  return {
+    year,
+    totalContribution: initialInvestment + monthlyContribution * monthIndex,
+    assetValue,
+    annualDividend,
+    cumulativeDividend,
+    monthlyDividend: annualDividend / 12
+  };
+};
+var buildSummary = ({
+  monthly,
+  yearly,
+  totalTaxPaid,
+  targetMonthlyDividend,
+  totalReinvestedAmount
+}) => {
+  const finalYear = yearly[yearly.length - 1];
+  const lastPayoutRow = findLastPayoutMonth(monthly);
+  const finalAssetValue = finalYear?.assetValue ?? 0;
+  const totalContribution = finalYear?.totalContribution ?? 0;
+  const totalCostBasis = totalContribution + totalReinvestedAmount;
+  return {
+    finalAssetValue,
+    finalAnnualDividend: finalYear?.annualDividend ?? 0,
+    // finalMonthlyAverageDividend = 마지막 해 연 배당 / 12. (예전에는 같은 값이 finalMonthlyDividend
+    // 라는 이름으로 한 번 더 들어 있었으나, 어떤 화면도 읽지 않는 중복 필드라 제거했다.)
+    finalMonthlyAverageDividend: finalYear?.monthlyDividend ?? 0,
+    finalPayoutMonthDividend: lastPayoutRow?.dividendPaid ?? 0,
+    totalContribution,
+    totalNetDividend: finalYear?.cumulativeDividend ?? 0,
+    totalTaxPaid,
+    targetMonthDividendReachedYear: findTargetYear(yearly, targetMonthlyDividend),
+    totalCostBasis,
+    ...computeCapitalGains({ finalAssetValue, totalCostBasis }),
+    financialIncomeThresholdYear: findFinancialIncomeThresholdYear(monthly)
+  };
+};
+
+// shared/lib/snowball/SnowballSimulation.ts
+var runSimulation = (input) => {
+  const { ticker, settings } = input;
+  const taxRate = toTaxRate(settings.taxRate);
+  const dividendYield = ticker.dividendYield / 100;
+  const growth = toPriceGrowth(ticker.dividendGrowth);
+  const priceGrowth = growth;
+  const dividendGrowth = growth;
+  const totalMonths = settings.durationYears * 12;
+  const paymentsPerYear = paymentsPerYearMap[ticker.frequency];
+  const startDate = toStartDate(settings.investmentStartDate);
+  const reinvestRatio = toReinvestRatio(settings.reinvestDividendPercent);
+  const dps0 = ticker.initialPrice * dividendYield;
+  let shares = settings.initialInvestment / ticker.initialPrice;
+  let cumulativeDividend = 0;
+  let totalTaxPaid = 0;
+  let pendingReinvestCash = 0;
+  let totalReinvestedAmount = 0;
+  const monthly = [];
+  const yearly = [];
+  for (let m = 1; m <= totalMonths; m += 1) {
+    const context = buildMonthContext(startDate, m);
+    const price = priceAtMonth(ticker.initialPrice, priceGrowth, context.elapsedYearFraction);
+    const dps = dpsAtMonth({
+      dps0,
+      dividendGrowth,
+      mode: settings.dpsGrowthMode,
+      elapsedYearFraction: context.elapsedYearFraction,
+      completedYears: context.completedYears
+    });
+    if (pendingReinvestCash > 0) {
+      shares += pendingReinvestCash / price;
+      totalReinvestedAmount += pendingReinvestCash;
+      pendingReinvestCash = 0;
+    }
+    let dividendPaid = 0;
+    let taxPaid = 0;
+    if (isPayoutMonth(ticker.frequency, context.simulationMonth)) {
+      const payout = computeMonthlyPayout({ shares, annualDps: dps, paymentsPerYear, taxRate });
+      const reinvestment = planReinvestment({
+        netDividend: payout.net,
+        price,
+        enabled: settings.reinvestDividends,
+        ratio: reinvestRatio,
+        timing: settings.reinvestTiming
+      });
+      taxPaid = payout.tax;
+      dividendPaid = payout.net;
+      shares += reinvestment.sharesToBuyNow;
+      totalReinvestedAmount += reinvestment.amountInvestedNow;
+      pendingReinvestCash += reinvestment.cashToCarry;
+      cumulativeDividend += dividendPaid;
+      totalTaxPaid += taxPaid;
+    }
+    shares += settings.monthlyContribution / price;
+    const rawPortfolioValue = shares * price;
+    const portfolioValue = Number.isFinite(rawPortfolioValue) ? rawPortfolioValue : 0;
+    monthly.push({
+      monthIndex: m,
+      year: context.calendarYear,
+      month: context.calendarMonth,
+      shares,
+      price,
+      dividendPerShare: dps,
+      dividendPaid,
+      contributionPaid: settings.monthlyContribution,
+      taxPaid,
+      portfolioValue,
+      cumulativeDividend
+    });
+    if (context.simulationMonth === 12) {
+      yearly.push(
+        buildYearlyRow({
+          year: context.simulationYearLabel,
+          monthIndex: m,
+          initialInvestment: settings.initialInvestment,
+          monthlyContribution: settings.monthlyContribution,
+          assetValue: portfolioValue,
+          cumulativeDividend,
+          recentMonths: monthly.slice(-12)
+        })
+      );
+    }
+  }
+  return {
+    monthly,
+    yearly,
+    summary: buildSummary({
+      monthly,
+      yearly,
+      totalTaxPaid,
+      targetMonthlyDividend: settings.targetMonthlyDividend,
+      totalReinvestedAmount
+    }),
+    quickEstimate: runQuickEstimate(input)
+  };
+};
+
+// shared/lib/snowball/SnowballScenarioRun.ts
+var scenarioTickerProfileSchema = tickerInputSchema.extend({ id: external_exports.string() });
+var tickerIdSchema = external_exports.object({ id: external_exports.string() });
+var scenarioSettingsSchema = external_exports.object({
+  initialInvestment: external_exports.number(),
+  monthlyContribution: external_exports.number(),
+  targetMonthlyDividend: external_exports.number(),
+  investmentStartDate: external_exports.string(),
+  durationYears: external_exports.number(),
+  reinvestDividends: external_exports.boolean(),
+  reinvestDividendPercent: external_exports.number(),
+  taxRate: external_exports.number().optional(),
+  reinvestTiming: external_exports.string(),
+  dpsGrowthMode: external_exports.string()
+});
+var scenarioPayloadSchema = external_exports.object({
+  portfolio: external_exports.object({
+    tickerProfiles: external_exports.array(external_exports.unknown()),
+    includedTickerIds: external_exports.array(external_exports.string()),
+    weightByTickerId: external_exports.record(external_exports.string(), external_exports.number())
+  }),
+  investmentSettings: scenarioSettingsSchema
+});
+
+// shared/lib/snowball/SnowballScenarioSummary.ts
+var SCENARIO_SIM_SUMMARY_VERSION = 1;
+var scenarioSimSummarySchema = external_exports.object({
+  /** 스키마 버전. 이후 필드 추가/의미 변경 대비 — 모르는 버전은 파싱 단계에서 거른다. */
+  version: external_exports.literal(SCENARIO_SIM_SUMMARY_VERSION),
+  /** 시뮬 기간(년). */
+  durationYears: external_exports.number().int().min(1),
+  /** 시뮬레이션에 포함된 티커 수. */
+  tickerCount: external_exports.number().int().min(1),
+  /** 초기 투자금 (KRW). */
+  initialInvestment: external_exports.number().int().min(0),
+  /** 월 적립금 (KRW). */
+  monthlyContribution: external_exports.number().int().min(0),
+  /** 투입 원금 누계 = 초기 + 월 적립 × 개월 수 (KRW). 재투자된 배당은 포함하지 않는다. */
+  totalContribution: external_exports.number().int().min(0),
+  /** 기간 종료 시점 자산 평가액 (KRW) — 앱의 `summary.finalAssetValue`와 동일 정의. */
+  finalAssetValue: external_exports.number().int().min(0),
+  /** 마지막 해의 세후 월평균 배당(연/12, KRW) — 앱의 `summary.finalMonthlyAverageDividend`와 동일 정의. */
+  finalMonthlyDividend: external_exports.number().int().min(0),
+  /** 목표 월배당 (KRW). */
+  targetMonthlyDividend: external_exports.number().int().min(0),
+  /** 목표 월배당을 처음 달성한 n년차(1-based). 기간 내 미달성이면 null. */
+  targetReachedInYears: external_exports.number().int().min(1).nullable()
+});
+var parseScenarioSimSummary = (value) => {
+  const parsed = scenarioSimSummarySchema.safeParse(value);
+  return parsed.success ? parsed.data : null;
+};
+
+// shared/constants/presets/usDividendGrowthEtfs.ts
+var US_DIVIDEND_GROWTH_ETFS = {
+  SCHD: {
+    ticker: "SCHD",
+    name: "Schwab U.S. Dividend Equity ETF",
+    initialPrice: 31.61,
+    dividendYield: 3.34,
+    dividendGrowth: 6.66,
+    expectedTotalReturn: 10,
+    frequency: "quarterly"
+  },
+  VIG: {
+    ticker: "VIG",
+    name: "Vanguard Dividend Appreciation ETF",
+    initialPrice: 185,
+    dividendYield: 1.9,
+    dividendGrowth: 7.6,
+    expectedTotalReturn: 9.5,
+    frequency: "quarterly"
+  },
+  DGRO: {
+    ticker: "DGRO",
+    name: "iShares Core Dividend Growth ETF",
+    initialPrice: 73,
+    dividendYield: 2.2,
+    dividendGrowth: 7.3,
+    expectedTotalReturn: 9.5,
+    frequency: "quarterly"
+  },
+  DGRW: {
+    ticker: "DGRW",
+    name: "WisdomTree U.S. Quality Dividend Growth ETF",
+    initialPrice: 74,
+    dividendYield: 2,
+    dividendGrowth: 8,
+    expectedTotalReturn: 10,
+    frequency: "monthly"
+  },
+  NOBL: {
+    ticker: "NOBL",
+    name: "ProShares S&P 500 Dividend Aristocrats ETF",
+    initialPrice: 114,
+    dividendYield: 2.1,
+    dividendGrowth: 6.9,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  RDVY: {
+    ticker: "RDVY",
+    name: "First Trust Rising Dividend Achievers ETF",
+    initialPrice: 55,
+    dividendYield: 1.5,
+    dividendGrowth: 9.5,
+    expectedTotalReturn: 11,
+    frequency: "quarterly"
+  },
+  SDVY: {
+    ticker: "SDVY",
+    name: "First Trust SMID Cap Rising Dividend Achievers ETF",
+    initialPrice: 33,
+    dividendYield: 1.7,
+    dividendGrowth: 9.8,
+    expectedTotalReturn: 11.5,
+    frequency: "quarterly"
+  },
+  CGDV: {
+    ticker: "CGDV",
+    name: "Capital Group Dividend Value ETF",
+    initialPrice: 31,
+    dividendYield: 1.4,
+    dividendGrowth: 8.6,
+    expectedTotalReturn: 10,
+    frequency: "quarterly"
+  },
+  DLN: {
+    ticker: "DLN",
+    name: "WisdomTree U.S. LargeCap Dividend Fund",
+    initialPrice: 130,
+    dividendYield: 2.1,
+    dividendGrowth: 6.9,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  DON: {
+    ticker: "DON",
+    name: "WisdomTree U.S. MidCap Dividend Fund",
+    initialPrice: 47,
+    dividendYield: 2.3,
+    dividendGrowth: 6.7,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  DES: {
+    ticker: "DES",
+    name: "WisdomTree U.S. SmallCap Dividend Fund",
+    initialPrice: 32,
+    dividendYield: 2.7,
+    dividendGrowth: 5.8,
+    expectedTotalReturn: 8.5,
+    frequency: "quarterly"
+  }
+};
+
+// shared/constants/presets/usHighDividendEtfs.ts
+var US_HIGH_DIVIDEND_ETFS = {
+  VYM: {
+    ticker: "VYM",
+    name: "Vanguard High Dividend Yield ETF",
+    initialPrice: 155,
+    dividendYield: 2.8,
+    dividendGrowth: 6.2,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  HDV: {
+    ticker: "HDV",
+    name: "iShares Core High Dividend ETF",
+    initialPrice: 139,
+    dividendYield: 3.4,
+    dividendGrowth: 5.1,
+    expectedTotalReturn: 8.5,
+    frequency: "quarterly"
+  },
+  SDY: {
+    ticker: "SDY",
+    name: "SPDR S&P Dividend ETF",
+    initialPrice: 155,
+    dividendYield: 2.5,
+    dividendGrowth: 6,
+    expectedTotalReturn: 8.5,
+    frequency: "quarterly"
+  },
+  DVY: {
+    ticker: "DVY",
+    name: "iShares Select Dividend ETF",
+    initialPrice: 120,
+    dividendYield: 3.3,
+    dividendGrowth: 5.2,
+    expectedTotalReturn: 8.5,
+    frequency: "quarterly"
+  },
+  FDVV: {
+    ticker: "FDVV",
+    name: "Fidelity High Dividend ETF",
+    initialPrice: 44,
+    dividendYield: 2.9,
+    dividendGrowth: 6.1,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  SPYD: {
+    ticker: "SPYD",
+    name: "SPDR Portfolio S&P 500 High Dividend ETF",
+    initialPrice: 48,
+    dividendYield: 4.2,
+    dividendGrowth: 3.8,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  DHS: {
+    ticker: "DHS",
+    name: "WisdomTree U.S. High Dividend ETF",
+    initialPrice: 95,
+    dividendYield: 3.8,
+    dividendGrowth: 4.2,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  }
+};
+
+// shared/constants/presets/optionIncomeEtfs.ts
+var OPTION_INCOME_ETFS = {
+  JEPI: {
+    ticker: "JEPI",
+    name: "JPMorgan Equity Premium Income ETF",
+    initialPrice: 59,
+    dividendYield: 8,
+    dividendGrowth: 0,
+    expectedTotalReturn: 8,
+    frequency: "monthly"
+  },
+  JEPQ: {
+    ticker: "JEPQ",
+    name: "JPMorgan Nasdaq Equity Premium Income ETF",
+    initialPrice: 51,
+    dividendYield: 8.2,
+    dividendGrowth: 0.8,
+    expectedTotalReturn: 9,
+    frequency: "monthly"
+  },
+  DIVO: {
+    ticker: "DIVO",
+    name: "Amplify CWP Enhanced Dividend Income ETF",
+    initialPrice: 47,
+    dividendYield: 5.5,
+    dividendGrowth: 4,
+    expectedTotalReturn: 9.5,
+    frequency: "monthly"
+  },
+  IDVO: {
+    ticker: "IDVO",
+    name: "Amplify International Enhanced Dividend ETF",
+    initialPrice: 29,
+    dividendYield: 7,
+    dividendGrowth: 1,
+    expectedTotalReturn: 8,
+    frequency: "monthly"
+  },
+  QDVO: {
+    ticker: "QDVO",
+    name: "QRAFT AI-Enhanced U.S. Dividend ETF",
+    initialPrice: 27,
+    dividendYield: 6.5,
+    dividendGrowth: 2.5,
+    expectedTotalReturn: 9,
+    frequency: "monthly"
+  },
+  QYLD: {
+    ticker: "QYLD",
+    name: "Global X Nasdaq 100 Covered Call ETF",
+    initialPrice: 18,
+    dividendYield: 10,
+    dividendGrowth: -3,
+    expectedTotalReturn: 7,
+    frequency: "monthly"
+  },
+  XYLD: {
+    ticker: "XYLD",
+    name: "Global X S&P 500 Covered Call ETF",
+    initialPrice: 40,
+    dividendYield: 9,
+    dividendGrowth: -1.5,
+    expectedTotalReturn: 7.5,
+    frequency: "monthly"
+  }
+};
+
+// shared/constants/presets/internationalDividendEtfs.ts
+var INTERNATIONAL_DIVIDEND_ETFS = {
+  VIGI: {
+    ticker: "VIGI",
+    name: "Vanguard International Dividend Appreciation ETF",
+    initialPrice: 76,
+    dividendYield: 1.9,
+    dividendGrowth: 7.1,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  VYMI: {
+    ticker: "VYMI",
+    name: "Vanguard International High Dividend Yield ETF",
+    initialPrice: 70,
+    dividendYield: 4,
+    dividendGrowth: 4,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  SCHY: {
+    ticker: "SCHY",
+    name: "Schwab International Dividend Equity ETF",
+    initialPrice: 24,
+    dividendYield: 4.2,
+    dividendGrowth: 4.3,
+    expectedTotalReturn: 8.5,
+    frequency: "quarterly"
+  },
+  IDV: {
+    ticker: "IDV",
+    name: "iShares International Select Dividend ETF",
+    initialPrice: 29,
+    dividendYield: 6,
+    dividendGrowth: 1.5,
+    expectedTotalReturn: 7.5,
+    frequency: "quarterly"
+  },
+  DWX: {
+    ticker: "DWX",
+    name: "SPDR S&P International Dividend ETF",
+    initialPrice: 34,
+    dividendYield: 5.5,
+    dividendGrowth: 2,
+    expectedTotalReturn: 7.5,
+    frequency: "quarterly"
+  }
+};
+
+// shared/constants/presets/reitEtfs.ts
+var REIT_ETFS = {
+  SCHH: {
+    ticker: "SCHH",
+    name: "Schwab U.S. REIT ETF",
+    initialPrice: 20,
+    dividendYield: 3.8,
+    dividendGrowth: 4.2,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  VNQI: {
+    ticker: "VNQI",
+    name: "Vanguard Global ex-US Real Estate ETF",
+    initialPrice: 44,
+    dividendYield: 4.5,
+    dividendGrowth: 3,
+    expectedTotalReturn: 7.5,
+    frequency: "quarterly"
+  }
+};
+
+// shared/constants/presets/dividendGrowthStocks.ts
+var DIVIDEND_GROWTH_STOCKS = {
+  PG: {
+    ticker: "PG",
+    name: "Procter & Gamble",
+    initialPrice: 160,
+    dividendYield: 2.4,
+    dividendGrowth: 6.6,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  KO: {
+    ticker: "KO",
+    name: "Coca-Cola",
+    initialPrice: 60,
+    dividendYield: 3.1,
+    dividendGrowth: 4.9,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  JNJ: {
+    ticker: "JNJ",
+    name: "Johnson & Johnson",
+    initialPrice: 160,
+    dividendYield: 3,
+    dividendGrowth: 5.5,
+    expectedTotalReturn: 8.5,
+    frequency: "quarterly"
+  },
+  LOW: {
+    ticker: "LOW",
+    name: "Lowe\u2019s",
+    initialPrice: 220,
+    dividendYield: 1.8,
+    dividendGrowth: 9.2,
+    expectedTotalReturn: 11,
+    frequency: "quarterly"
+  },
+  ABBV: {
+    ticker: "ABBV",
+    name: "AbbVie",
+    initialPrice: 170,
+    dividendYield: 3.7,
+    dividendGrowth: 6.3,
+    expectedTotalReturn: 10,
+    frequency: "quarterly"
+  }
+};
+
+// shared/constants/presets/highDividendStocks.ts
+var HIGH_DIVIDEND_STOCKS = {
+  O: {
+    ticker: "O",
+    name: "Realty Income",
+    initialPrice: 57,
+    dividendYield: 5.5,
+    dividendGrowth: 2.5,
+    expectedTotalReturn: 8,
+    frequency: "monthly"
+  },
+  ENB: {
+    ticker: "ENB",
+    name: "Enbridge",
+    initialPrice: 35,
+    dividendYield: 7,
+    dividendGrowth: 2,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  VICI: {
+    ticker: "VICI",
+    name: "VICI Properties",
+    initialPrice: 32,
+    dividendYield: 5.2,
+    dividendGrowth: 4.3,
+    expectedTotalReturn: 9.5,
+    frequency: "quarterly"
+  },
+  UPS: {
+    ticker: "UPS",
+    name: "United Parcel Service",
+    initialPrice: 145,
+    dividendYield: 4,
+    dividendGrowth: 5,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  T: {
+    ticker: "T",
+    name: "AT&T",
+    initialPrice: 18,
+    dividendYield: 6.5,
+    dividendGrowth: 1,
+    expectedTotalReturn: 7.5,
+    frequency: "quarterly"
+  }
+};
+
+// shared/constants/presets/coreIndexEtfs.ts
+var CORE_INDEX_ETFS = {
+  VOO: {
+    ticker: "VOO",
+    name: "Vanguard S&P 500 ETF",
+    initialPrice: 480,
+    dividendYield: 1.3,
+    dividendGrowth: 8.2,
+    expectedTotalReturn: 9.5,
+    frequency: "quarterly"
+  },
+  IVV: {
+    ticker: "IVV",
+    name: "iShares Core S&P 500 ETF",
+    initialPrice: 520,
+    dividendYield: 1.3,
+    dividendGrowth: 8.2,
+    expectedTotalReturn: 9.5,
+    frequency: "quarterly"
+  },
+  SPY: {
+    ticker: "SPY",
+    name: "SPDR S&P 500 ETF Trust",
+    initialPrice: 500,
+    dividendYield: 1.3,
+    dividendGrowth: 8.2,
+    expectedTotalReturn: 9.5,
+    frequency: "quarterly"
+  },
+  VTI: {
+    ticker: "VTI",
+    name: "Vanguard Total Stock Market ETF",
+    initialPrice: 250,
+    dividendYield: 1.4,
+    dividendGrowth: 8.1,
+    expectedTotalReturn: 9.5,
+    frequency: "quarterly"
+  },
+  QQQ: {
+    ticker: "QQQ",
+    name: "Invesco QQQ Trust",
+    initialPrice: 430,
+    dividendYield: 0.6,
+    dividendGrowth: 10.4,
+    expectedTotalReturn: 11,
+    frequency: "quarterly"
+  },
+  VUG: {
+    ticker: "VUG",
+    name: "Vanguard Growth ETF",
+    initialPrice: 360,
+    dividendYield: 0.5,
+    dividendGrowth: 10,
+    expectedTotalReturn: 10.5,
+    frequency: "quarterly"
+  },
+  VT: {
+    ticker: "VT",
+    name: "Vanguard Total World Stock ETF",
+    initialPrice: 110,
+    dividendYield: 1.8,
+    dividendGrowth: 6.7,
+    expectedTotalReturn: 8.5,
+    frequency: "quarterly"
+  },
+  VXUS: {
+    ticker: "VXUS",
+    name: "Vanguard Total International Stock ETF",
+    initialPrice: 60,
+    dividendYield: 2.5,
+    dividendGrowth: 5.5,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  DIA: {
+    ticker: "DIA",
+    name: "SPDR Dow Jones Industrial Average ETF",
+    initialPrice: 390,
+    dividendYield: 1.8,
+    dividendGrowth: 6.7,
+    expectedTotalReturn: 8.5,
+    frequency: "quarterly"
+  }
+};
+
+// shared/constants/presets/semiconductorDividendGrowthPortfolio.ts
+var SEMICONDUCTOR_DIVIDEND_GROWTH_PORTFOLIO = {
+  AVGO: {
+    ticker: "AVGO",
+    name: "Broadcom Inc.",
+    initialPrice: 1350,
+    dividendYield: 1.5,
+    dividendGrowth: 12.5,
+    expectedTotalReturn: 14,
+    frequency: "quarterly"
+  },
+  TXN: {
+    ticker: "TXN",
+    name: "Texas Instruments Incorporated",
+    initialPrice: 190,
+    dividendYield: 3,
+    dividendGrowth: 8,
+    expectedTotalReturn: 11,
+    frequency: "quarterly"
+  },
+  ADI: {
+    ticker: "ADI",
+    name: "Analog Devices, Inc.",
+    initialPrice: 210,
+    dividendYield: 1.8,
+    dividendGrowth: 9.2,
+    expectedTotalReturn: 11,
+    frequency: "quarterly"
+  },
+  LRCX: {
+    ticker: "LRCX",
+    name: "Lam Research Corporation",
+    initialPrice: 900,
+    dividendYield: 1.2,
+    dividendGrowth: 11.8,
+    expectedTotalReturn: 13,
+    frequency: "quarterly"
+  },
+  KLAC: {
+    ticker: "KLAC",
+    name: "KLA Corporation",
+    initialPrice: 800,
+    dividendYield: 1.1,
+    dividendGrowth: 10.9,
+    expectedTotalReturn: 12,
+    frequency: "quarterly"
+  },
+  AMAT: {
+    ticker: "AMAT",
+    name: "Applied Materials, Inc.",
+    initialPrice: 220,
+    dividendYield: 0.9,
+    dividendGrowth: 11.1,
+    expectedTotalReturn: 12,
+    frequency: "quarterly"
+  },
+  TSM: {
+    ticker: "TSM",
+    name: "Taiwan Semiconductor Manufacturing Company",
+    initialPrice: 170,
+    dividendYield: 1.5,
+    dividendGrowth: 9.5,
+    expectedTotalReturn: 11,
+    frequency: "quarterly"
+  },
+  ASML: {
+    ticker: "ASML",
+    name: "ASML Holding N.V.",
+    initialPrice: 900,
+    dividendYield: 0.8,
+    dividendGrowth: 10.2,
+    expectedTotalReturn: 11,
+    frequency: "annual"
+  },
+  ETN: {
+    ticker: "ETN",
+    name: "Eaton Corporation plc",
+    initialPrice: 320,
+    dividendYield: 1.2,
+    dividendGrowth: 10.8,
+    expectedTotalReturn: 12,
+    frequency: "quarterly"
+  },
+  VRT: {
+    ticker: "VRT",
+    name: "Vertiv Holdings Co",
+    initialPrice: 80,
+    dividendYield: 0.2,
+    dividendGrowth: 13.8,
+    expectedTotalReturn: 14,
+    frequency: "quarterly"
+  }
+};
+
+// shared/constants/presets/aiInfraEtfsAndStocks.ts
+var AI_INFRA_ETFS_AND_STOCKS = {
+  SMH: {
+    ticker: "SMH",
+    name: "VanEck Semiconductor ETF",
+    initialPrice: 220,
+    dividendYield: 0.9,
+    dividendGrowth: 11.1,
+    expectedTotalReturn: 12,
+    frequency: "quarterly"
+  },
+  AIQ: {
+    ticker: "AIQ",
+    name: "Global X Artificial Intelligence & Technology ETF",
+    initialPrice: 38,
+    dividendYield: 0.3,
+    dividendGrowth: 10.7,
+    expectedTotalReturn: 11,
+    frequency: "quarterly"
+  },
+  SRVR: {
+    ticker: "SRVR",
+    name: "Pacer Data & Infrastructure Real Estate ETF",
+    initialPrice: 32,
+    dividendYield: 2.4,
+    dividendGrowth: 7.6,
+    expectedTotalReturn: 10,
+    frequency: "quarterly"
+  },
+  VRT: {
+    ticker: "VRT",
+    name: "Vertiv Holdings Co",
+    initialPrice: 90,
+    dividendYield: 0.3,
+    dividendGrowth: 15.7,
+    expectedTotalReturn: 16,
+    frequency: "quarterly"
+  },
+  ETN: {
+    ticker: "ETN",
+    name: "Eaton Corporation",
+    initialPrice: 320,
+    dividendYield: 1.1,
+    dividendGrowth: 11.9,
+    expectedTotalReturn: 13,
+    frequency: "quarterly"
+  },
+  ANET: {
+    ticker: "ANET",
+    name: "Arista Networks",
+    initialPrice: 290,
+    dividendYield: 0,
+    dividendGrowth: 14,
+    expectedTotalReturn: 14,
+    frequency: "quarterly"
+  },
+  NVDA: {
+    ticker: "NVDA",
+    name: "NVIDIA Corporation",
+    initialPrice: 900,
+    dividendYield: 0.03,
+    dividendGrowth: 17.97,
+    expectedTotalReturn: 18,
+    frequency: "quarterly"
+  },
+  AVGO: {
+    ticker: "AVGO",
+    name: "Broadcom Inc",
+    initialPrice: 1300,
+    dividendYield: 1.6,
+    dividendGrowth: 13.4,
+    expectedTotalReturn: 15,
+    frequency: "quarterly"
+  },
+  TSM: {
+    ticker: "TSM",
+    name: "Taiwan Semiconductor Manufacturing Company",
+    initialPrice: 150,
+    dividendYield: 1.4,
+    dividendGrowth: 11.6,
+    expectedTotalReturn: 13,
+    frequency: "quarterly"
+  },
+  ASML: {
+    ticker: "ASML",
+    name: "ASML Holding NV",
+    initialPrice: 950,
+    dividendYield: 0.9,
+    dividendGrowth: 13.1,
+    expectedTotalReturn: 14,
+    frequency: "quarterly"
+  },
+  CEG: {
+    ticker: "CEG",
+    name: "Constellation Energy Corporation",
+    initialPrice: 200,
+    dividendYield: 0.7,
+    dividendGrowth: 11.3,
+    expectedTotalReturn: 12,
+    frequency: "quarterly"
+  },
+  NEE: {
+    ticker: "NEE",
+    name: "NextEra Energy",
+    initialPrice: 65,
+    dividendYield: 2.6,
+    dividendGrowth: 7.4,
+    expectedTotalReturn: 10,
+    frequency: "quarterly"
+  }
+};
+
+// shared/constants/presets/index.ts
+var CURATED_DIVIDEND_UNIVERSE = {
+  ...CORE_INDEX_ETFS,
+  ...US_DIVIDEND_GROWTH_ETFS,
+  ...US_HIGH_DIVIDEND_ETFS,
+  ...OPTION_INCOME_ETFS,
+  ...INTERNATIONAL_DIVIDEND_ETFS,
+  ...REIT_ETFS,
+  ...DIVIDEND_GROWTH_STOCKS,
+  ...HIGH_DIVIDEND_STOCKS,
+  ...SEMICONDUCTOR_DIVIDEND_GROWTH_PORTFOLIO,
+  ...AI_INFRA_ETFS_AND_STOCKS
+};
+var withCoherentDividendGrowth = (universe) => {
+  const coherent = {};
+  for (const ticker of Object.keys(universe)) {
+    const preset = universe[ticker];
+    coherent[ticker] = {
+      ...preset,
+      dividendGrowth: toDerivedDividendGrowthPercent(preset.expectedTotalReturn, preset.dividendYield)
+    };
+  }
+  return coherent;
+};
+var buildDividendUniverse = (curated, snapshot) => withCoherentDividendGrowth(applyMarketData(curated, snapshot));
+var DIVIDEND_UNIVERSE = buildDividendUniverse(CURATED_DIVIDEND_UNIVERSE, MARKET_DATA);
+
 // shared/styles/primitives.ts
 var brand = {
   50: "#eaf6fd",
@@ -9372,1201 +10567,6 @@ var HELP_CONTENT = {
     body: "\uC774\uC790\xB7\uBC30\uB2F9 \uB4F1 \uAE08\uC735\uC18C\uB4DD\uC758 \uC138\uC804 \uD569\uACC4\uAC00 \uC5F0 2,000\uB9CC\uC6D0\uC744 \uB118\uC73C\uBA74, \uCD08\uACFC\uBD84\uC774 \uB2E4\uB978 \uC18C\uB4DD\uACFC \uD569\uC0B0\uB418\uC5B4 \uB204\uC9C4\uC138\uC728\uB85C \uACFC\uC138\uB429\uB2C8\uB2E4. \uADF8\uB9CC\uD07C \uC2E4\uC81C \uC138\uC728\uC774 \uC785\uB825\uD55C \uBC30\uB2F9\uC18C\uB4DD\uC138\uC728(\uAE30\uBCF8 15.4%)\uBCF4\uB2E4 \uB192\uC544\uC9C8 \uC218 \uC788\uC2B5\uB2C8\uB2E4.\n\uC774 \uC571\uC740 \uC0AC\uC6A9\uC790\uC758 \uB2E4\uB978 \uC18C\uB4DD\uC744 \uC54C \uC218 \uC5C6\uC73C\uBBC0\uB85C \uC138\uC728\uC744 \uC790\uB3D9\uC73C\uB85C \uBC14\uAFB8\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. \uC784\uACC4\uB97C \uB118\uB294 \uD574\uAC00 \uC788\uC73C\uBA74 \uC54C\uB824\uC8FC\uAE30\uB9CC \uD558\uACE0, \uACC4\uC0B0\uC740 \uC785\uB825\uD55C \uC138\uC728 \uADF8\uB300\uB85C \uC720\uC9C0\uD569\uB2C8\uB2E4.\n\uD310\uC815\uC740 \uC138\uC804 \uBC30\uB2F9(\uC6D0\uCC9C\uC9D5\uC218 \uC804 \uAE08\uC561) \uAE30\uC900\uC785\uB2C8\uB2E4. \uD654\uBA74\uC5D0 \uD45C\uC2DC\uB418\uB294 \uBC30\uB2F9\uC740 \uC138\uD6C4 \uAE08\uC561\uC774\uB77C \uAE30\uC900\uC561\uBCF4\uB2E4 \uC791\uC544 \uBCF4\uC77C \uC218 \uC788\uC2B5\uB2C8\uB2E4."
   }
 };
-
-// shared/lib/snowball/SnowballCalendar.ts
-var getDaysInMonth = (year, monthIndex) => new Date(year, monthIndex + 1, 0).getDate();
-var addMonths = (baseDate, monthsToAdd) => {
-  const targetYear = baseDate.getFullYear();
-  const targetMonthIndex = baseDate.getMonth() + monthsToAdd;
-  const anchor = new Date(targetYear, targetMonthIndex, 1);
-  const nextDay = Math.min(baseDate.getDate(), getDaysInMonth(anchor.getFullYear(), anchor.getMonth()));
-  return new Date(anchor.getFullYear(), anchor.getMonth(), nextDay);
-};
-var DATE_INPUT_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-var parseStartDate = (value) => {
-  if (!DATE_INPUT_PATTERN.test(value)) return null;
-  const [yearText, monthText, dayText] = value.split("-");
-  const year = Number(yearText);
-  const monthIndex = Number(monthText) - 1;
-  const day = Number(dayText);
-  const date = new Date(year, monthIndex, day);
-  if (date.getFullYear() !== year || date.getMonth() !== monthIndex || date.getDate() !== day) {
-    return null;
-  }
-  return date;
-};
-var isCalendarDateInput = (value) => parseStartDate(value) !== null;
-var toStartDate = (value) => {
-  const parsed = parseStartDate(value);
-  if (!parsed) {
-    throw new Error(`\uC720\uD6A8\uD558\uC9C0 \uC54A\uC740 \uD22C\uC790 \uC2DC\uC791 \uB0A0\uC9DC\uC785\uB2C8\uB2E4: ${value}`);
-  }
-  return parsed;
-};
-var buildMonthContext = (startDate, monthIndex) => {
-  const elapsedMonths = monthIndex - 1;
-  const elapsedYears = Math.floor(elapsedMonths / 12);
-  const simulationMonth = elapsedMonths % 12 + 1;
-  const simulationYearLabel = startDate.getFullYear() + elapsedYears;
-  const calendarDate = addMonths(startDate, elapsedMonths);
-  return {
-    monthIndex,
-    elapsedMonths,
-    elapsedYears,
-    simulationMonth,
-    simulationYearLabel,
-    calendarYear: calendarDate.getFullYear(),
-    calendarMonth: calendarDate.getMonth() + 1,
-    // monthIndex 는 1-based 다. floor(monthIndex / 12) 를 쓰면 12개월째(= 아직 1년차)에 이미 1이 되어
-    // DPS 가 한 해 일찍 계단 상승했다. 완료된 연 수는 elapsedYears 와 같은 정의여야 한다.
-    completedYears: elapsedYears,
-    elapsedYearFraction: monthIndex / 12
-  };
-};
-
-// shared/constants/tax/index.ts
-var OVERSEAS_CAPITAL_GAINS_TAX_RATE = 22;
-var CAPITAL_GAINS_ANNUAL_DEDUCTION = 25e5;
-var FINANCIAL_INCOME_TAX_THRESHOLD = 2e7;
-
-// shared/lib/snowball/SnowballCapitalGains.ts
-var computeCapitalGains = ({
-  finalAssetValue,
-  totalCostBasis,
-  taxRatePercent = OVERSEAS_CAPITAL_GAINS_TAX_RATE,
-  annualDeduction = CAPITAL_GAINS_ANNUAL_DEDUCTION
-}) => {
-  const unrealizedGain = finalAssetValue - totalCostBasis;
-  const taxableGain = Math.max(0, unrealizedGain - annualDeduction);
-  const estimatedCapitalGainsTax = taxableGain * (taxRatePercent / 100);
-  return {
-    unrealizedGain,
-    estimatedCapitalGainsTax,
-    afterCapitalGainsTaxValue: finalAssetValue - estimatedCapitalGainsTax
-  };
-};
-var sumGrossDividendByYearIndex = (monthly) => monthly.reduce((byYear, row) => {
-  const yearIndex = Math.ceil(row.monthIndex / 12);
-  const gross = row.dividendPaid + row.taxPaid;
-  return byYear.set(yearIndex, (byYear.get(yearIndex) ?? 0) + gross);
-}, /* @__PURE__ */ new Map());
-var findFinancialIncomeThresholdYear = (monthly, threshold = FINANCIAL_INCOME_TAX_THRESHOLD) => {
-  const grossByYear = sumGrossDividendByYearIndex(monthly);
-  return [...grossByYear.entries()].sort(([left], [right]) => left - right).find(([, gross]) => gross > threshold)?.[0];
-};
-
-// shared/lib/snowball/SnowballRates.ts
-var MIN_GROWTH_RATE = -0.99;
-var MIN_PRICE_FACTOR = 1e-4;
-var toMonthlyGrowthRate = (annualRate) => Math.pow(1 + annualRate, 1 / 12) - 1;
-var toTaxRate = (taxRatePercent) => (taxRatePercent ?? 0) / 100;
-var clamp01 = (value) => Math.max(0, Math.min(1, value));
-var toReinvestRatio = (reinvestDividendPercent) => clamp01(reinvestDividendPercent / 100);
-var roundToTwoDecimals = (value) => Math.round(value * 100) / 100;
-var toPriceGrowth = (dividendGrowthPercent) => Math.max(MIN_GROWTH_RATE, dividendGrowthPercent / 100);
-var toExpectedTotalReturnPercent = (dividendYieldPercent, dividendGrowthPercent) => roundToTwoDecimals(dividendYieldPercent + dividendGrowthPercent);
-var toDerivedDividendGrowthPercent = (expectedTotalReturnPercent, dividendYieldPercent) => roundToTwoDecimals(expectedTotalReturnPercent - dividendYieldPercent);
-var priceAtMonth = (initialPrice, priceGrowth, elapsedYearFraction) => {
-  const floor = initialPrice * MIN_PRICE_FACTOR;
-  const price = initialPrice * Math.pow(1 + priceGrowth, elapsedYearFraction);
-  return Number.isFinite(price) ? Math.max(floor, price) : floor;
-};
-var dpsAtMonth = ({
-  dps0,
-  dividendGrowth,
-  mode,
-  elapsedYearFraction,
-  completedYears
-}) => {
-  const growthExponent = mode === "monthlySmooth" ? elapsedYearFraction : completedYears;
-  const dps = dps0 * Math.pow(1 + Math.max(MIN_GROWTH_RATE, dividendGrowth), growthExponent);
-  return Number.isFinite(dps) ? Math.max(0, dps) : 0;
-};
-
-// shared/lib/snowball/SnowballForm.ts
-var frequencySchema = external_exports.enum(["monthly", "quarterly", "semiannual", "annual"]);
-var reinvestTimingSchema = external_exports.enum(["sameMonth", "nextMonth"]);
-var dpsGrowthModeSchema = external_exports.enum(["annualStep", "monthlySmooth"]);
-var dateInputSchema = external_exports.string().regex(/^\d{4}-\d{2}-\d{2}$/, "\uD22C\uC790 \uC2DC\uC791 \uB0A0\uC9DC\uB97C \uC120\uD0DD\uD558\uC138\uC694.").refine(isCalendarDateInput, "\uC874\uC7AC\uD558\uC9C0 \uC54A\uB294 \uB0A0\uC9DC\uC785\uB2C8\uB2E4.");
-var formSchema = external_exports.object({
-  ticker: external_exports.string().trim().min(1, "\uD2F0\uCEE4\uB97C \uC785\uB825\uD558\uC138\uC694."),
-  initialPrice: external_exports.number().finite("\uD604\uC7AC \uC8FC\uAC00\uB97C \uC785\uB825\uD558\uC138\uC694.").positive("\uD604\uC7AC \uC8FC\uAC00\uB294 0\uBCF4\uB2E4 \uCEE4\uC57C \uD569\uB2C8\uB2E4."),
-  dividendYield: external_exports.number().finite("\uBC30\uB2F9\uB960\uC744 \uC785\uB825\uD558\uC138\uC694.").min(0, "\uBC30\uB2F9\uB960\uC740 0 \uC774\uC0C1\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4.").max(100, "\uBC30\uB2F9\uB960\uC740 100 \uC774\uD558\uC5EC\uC57C \uD569\uB2C8\uB2E4."),
-  // 음수 허용: 커버드콜 ETF의 NAV 침식/분배금 감소를 정직하게 표현하는 유일한 방법이다.
-  // (정합 모델에서 dividendGrowth 는 주가 성장률이기도 하다.)
-  dividendGrowth: external_exports.number().finite("\uBC30\uB2F9 \uC131\uC7A5\uB960\uC744 \uC785\uB825\uD558\uC138\uC694.").min(-100, "\uBC30\uB2F9 \uC131\uC7A5\uB960\uC740 -100 \uC774\uC0C1\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4.").max(100, "\uBC30\uB2F9 \uC131\uC7A5\uB960\uC740 100 \uC774\uD558\uC5EC\uC57C \uD569\uB2C8\uB2E4."),
-  expectedTotalReturn: external_exports.number().finite("\uAE30\uB300 \uCD1D\uC218\uC775\uC728 (CAGR)\uC744 \uC785\uB825\uD558\uC138\uC694.").min(-100, "\uAE30\uB300 \uCD1D\uC218\uC775\uC728 (CAGR)\uC740 -100 \uC774\uC0C1\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4.").max(100, "\uAE30\uB300 \uCD1D\uC218\uC775\uC728 (CAGR)\uC740 100 \uC774\uD558\uC5EC\uC57C \uD569\uB2C8\uB2E4."),
-  frequency: frequencySchema,
-  initialInvestment: external_exports.number().finite("\uCD08\uAE30 \uD22C\uC790\uAE08\uC744 \uC785\uB825\uD558\uC138\uC694.").min(0, "\uCD08\uAE30 \uD22C\uC790\uAE08\uC740 0 \uC774\uC0C1\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4."),
-  monthlyContribution: external_exports.number().finite("\uC6D4 \uD22C\uC790\uAE08\uC744 \uC785\uB825\uD558\uC138\uC694.").min(0, "\uC6D4 \uD22C\uC790\uAE08\uC740 0 \uC774\uC0C1\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4."),
-  targetMonthlyDividend: external_exports.number().finite("\uBAA9\uD45C \uC6D4\uBC30\uB2F9\uC744 \uC785\uB825\uD558\uC138\uC694.").min(0, "\uBAA9\uD45C \uC6D4\uBC30\uB2F9\uC740 0 \uC774\uC0C1\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4."),
-  investmentStartDate: dateInputSchema,
-  durationYears: external_exports.number().int("\uD22C\uC790 \uAE30\uAC04\uC740 \uC815\uC218\uC5EC\uC57C \uD569\uB2C8\uB2E4.").min(1, "\uD22C\uC790 \uAE30\uAC04\uC740 1\uB144 \uC774\uC0C1\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4.").max(60, "\uD22C\uC790 \uAE30\uAC04\uC740 60\uB144 \uC774\uD558\uC5EC\uC57C \uD569\uB2C8\uB2E4."),
-  reinvestDividends: external_exports.boolean(),
-  reinvestDividendPercent: external_exports.number().min(0, "\uC7AC\uD22C\uC790 \uBE44\uC728\uC740 0 \uC774\uC0C1\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4.").max(100, "\uC7AC\uD22C\uC790 \uBE44\uC728\uC740 100 \uC774\uD558\uC5EC\uC57C \uD569\uB2C8\uB2E4."),
-  taxRate: external_exports.number().min(0, "\uC138\uC728\uC740 0 \uC774\uC0C1\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4.").max(100, "\uC138\uC728\uC740 100 \uC774\uD558\uC5EC\uC57C \uD569\uB2C8\uB2E4.").optional(),
-  reinvestTiming: reinvestTimingSchema,
-  dpsGrowthMode: dpsGrowthModeSchema
-});
-var tickerInputSchema = formSchema.pick({
-  ticker: true,
-  initialPrice: true,
-  dividendYield: true,
-  dividendGrowth: true,
-  expectedTotalReturn: true,
-  frequency: true
-});
-var toDateInputValue = (date) => {
-  const year = String(date.getFullYear()).padStart(4, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
-var createDefaultYieldFormValues = (today = /* @__PURE__ */ new Date()) => ({
-  ticker: "SCHD",
-  initialPrice: 1e5,
-  dividendYield: 3.5,
-  // 정합 모델 전환: 기존 기본값(dy 3.5 / dg 6 / etr 8.5)은 dy + dg !== etr 로 자기모순이었다.
-  // 마이그레이션 규칙(dy·etr 보존, dg 재계산)을 그대로 적용해 dg = 8.5 - 3.5 = 5 로 맞춘다.
-  dividendGrowth: 5,
-  expectedTotalReturn: 8.5,
-  frequency: "quarterly",
-  initialInvestment: 0,
-  monthlyContribution: 1e6,
-  targetMonthlyDividend: 2e6,
-  investmentStartDate: toDateInputValue(today),
-  durationYears: 20,
-  reinvestDividends: false,
-  reinvestDividendPercent: 100,
-  taxRate: 15.4,
-  reinvestTiming: "sameMonth",
-  dpsGrowthMode: "monthlySmooth"
-});
-var defaultYieldFormValues = createDefaultYieldFormValues();
-var validateFormValues = (values) => {
-  const parsed = formSchema.safeParse(values);
-  if (parsed.success) {
-    return { isValid: true, errors: [] };
-  }
-  return {
-    isValid: false,
-    errors: parsed.error.issues.map((issue) => issue.message)
-  };
-};
-var toSimulationInput = (values) => ({
-  ticker: {
-    ticker: values.ticker,
-    initialPrice: values.initialPrice,
-    dividendYield: values.dividendYield,
-    dividendGrowth: values.dividendGrowth,
-    // 파생 표시값이므로 폼에 남아 있는 값을 믿지 않고 항상 다시 계산한다 (엔진은 쓰지 않는다).
-    expectedTotalReturn: toExpectedTotalReturnPercent(values.dividendYield, values.dividendGrowth),
-    frequency: values.frequency
-  },
-  settings: {
-    initialInvestment: values.initialInvestment,
-    monthlyContribution: values.monthlyContribution,
-    targetMonthlyDividend: values.targetMonthlyDividend,
-    investmentStartDate: values.investmentStartDate,
-    durationYears: values.durationYears,
-    reinvestDividends: values.reinvestDividends,
-    reinvestDividendPercent: values.reinvestDividendPercent,
-    taxRate: values.taxRate,
-    reinvestTiming: values.reinvestTiming,
-    dpsGrowthMode: values.dpsGrowthMode
-  }
-});
-
-// shared/lib/snowball/SnowballPayout.ts
-var paymentsPerYearMap = {
-  monthly: 12,
-  quarterly: 4,
-  semiannual: 2,
-  annual: 1
-};
-var isPayoutMonth = (frequency, simulationMonth) => {
-  if (frequency === "monthly") return true;
-  if (frequency === "quarterly") return simulationMonth % 3 === 0;
-  if (frequency === "semiannual") return simulationMonth === 6 || simulationMonth === 12;
-  return simulationMonth === 12;
-};
-var computeMonthlyPayout = ({
-  shares,
-  annualDps,
-  paymentsPerYear,
-  taxRate
-}) => {
-  const gross = shares * (annualDps / paymentsPerYear);
-  const tax = gross * taxRate;
-  return { gross, tax, net: gross - tax };
-};
-var planReinvestment = ({
-  netDividend,
-  price,
-  enabled,
-  ratio,
-  timing
-}) => {
-  if (!enabled) return { sharesToBuyNow: 0, cashToCarry: 0, amountInvestedNow: 0 };
-  const reinvestAmount = netDividend * clamp01(ratio);
-  return timing === "sameMonth" ? { sharesToBuyNow: reinvestAmount / price, cashToCarry: 0, amountInvestedNow: reinvestAmount } : { sharesToBuyNow: 0, cashToCarry: reinvestAmount, amountInvestedNow: 0 };
-};
-
-// shared/lib/snowball/SnowballQuickEstimate.ts
-var runQuickEstimate = (input) => {
-  const { ticker, settings } = input;
-  const taxRate = toTaxRate(settings.taxRate);
-  const dividendYield = ticker.dividendYield / 100;
-  const growth = toPriceGrowth(ticker.dividendGrowth);
-  const paymentsPerYear = paymentsPerYearMap[ticker.frequency];
-  const reinvestRatio = settings.reinvestDividends ? toReinvestRatio(settings.reinvestDividendPercent) : 0;
-  const shareGrowthPerPayment = dividendYield / paymentsPerYear * (1 - taxRate) * reinvestRatio;
-  const annualShareGrowth = Math.pow(1 + shareGrowthPerPayment, paymentsPerYear);
-  const annualReturn = Math.max(MIN_GROWTH_RATE, (1 + growth) * annualShareGrowth - 1);
-  const monthlyReturn = toMonthlyGrowthRate(annualReturn);
-  const totalMonths = settings.durationYears * 12;
-  const monthlyContributionGrowth = Math.abs(monthlyReturn) < 1e-12 ? settings.monthlyContribution * totalMonths : settings.monthlyContribution * ((Math.pow(1 + monthlyReturn, totalMonths) - 1) / monthlyReturn);
-  const initialInvestmentGrowth = settings.initialInvestment * Math.pow(1 + monthlyReturn, totalMonths);
-  const rawEndValue = monthlyContributionGrowth + initialInvestmentGrowth;
-  const endValue = Number.isFinite(rawEndValue) ? Math.max(0, rawEndValue) : 0;
-  const yieldOnPriceAtEnd = Math.max(0, dividendYield);
-  const annualDividendApprox = endValue * yieldOnPriceAtEnd * (1 - taxRate);
-  return {
-    endValue,
-    annualDividendApprox,
-    monthlyDividendApprox: annualDividendApprox / 12,
-    yieldOnPriceAtEnd
-  };
-};
-
-// shared/lib/snowball/SnowballSummary.ts
-var findTargetYear = (rows, monthlyTarget) => {
-  return rows.find((row) => row.monthlyDividend >= monthlyTarget)?.year;
-};
-var sumDividendPaid = (rows) => rows.reduce((sum, row) => sum + row.dividendPaid, 0);
-var findLastPayoutMonth = (monthly) => [...monthly].reverse().find((row) => row.dividendPaid > 0);
-var buildYearlyRow = ({
-  year,
-  monthIndex,
-  initialInvestment,
-  monthlyContribution,
-  assetValue,
-  cumulativeDividend,
-  recentMonths
-}) => {
-  const annualDividend = sumDividendPaid(recentMonths);
-  return {
-    year,
-    totalContribution: initialInvestment + monthlyContribution * monthIndex,
-    assetValue,
-    annualDividend,
-    cumulativeDividend,
-    monthlyDividend: annualDividend / 12
-  };
-};
-var buildSummary = ({
-  monthly,
-  yearly,
-  totalTaxPaid,
-  targetMonthlyDividend,
-  totalReinvestedAmount
-}) => {
-  const finalYear = yearly[yearly.length - 1];
-  const lastPayoutRow = findLastPayoutMonth(monthly);
-  const finalAssetValue = finalYear?.assetValue ?? 0;
-  const totalContribution = finalYear?.totalContribution ?? 0;
-  const totalCostBasis = totalContribution + totalReinvestedAmount;
-  return {
-    finalAssetValue,
-    finalAnnualDividend: finalYear?.annualDividend ?? 0,
-    // finalMonthlyAverageDividend = 마지막 해 연 배당 / 12. (예전에는 같은 값이 finalMonthlyDividend
-    // 라는 이름으로 한 번 더 들어 있었으나, 어떤 화면도 읽지 않는 중복 필드라 제거했다.)
-    finalMonthlyAverageDividend: finalYear?.monthlyDividend ?? 0,
-    finalPayoutMonthDividend: lastPayoutRow?.dividendPaid ?? 0,
-    totalContribution,
-    totalNetDividend: finalYear?.cumulativeDividend ?? 0,
-    totalTaxPaid,
-    targetMonthDividendReachedYear: findTargetYear(yearly, targetMonthlyDividend),
-    totalCostBasis,
-    ...computeCapitalGains({ finalAssetValue, totalCostBasis }),
-    financialIncomeThresholdYear: findFinancialIncomeThresholdYear(monthly)
-  };
-};
-
-// shared/lib/snowball/SnowballSimulation.ts
-var runSimulation = (input) => {
-  const { ticker, settings } = input;
-  const taxRate = toTaxRate(settings.taxRate);
-  const dividendYield = ticker.dividendYield / 100;
-  const growth = toPriceGrowth(ticker.dividendGrowth);
-  const priceGrowth = growth;
-  const dividendGrowth = growth;
-  const totalMonths = settings.durationYears * 12;
-  const paymentsPerYear = paymentsPerYearMap[ticker.frequency];
-  const startDate = toStartDate(settings.investmentStartDate);
-  const reinvestRatio = toReinvestRatio(settings.reinvestDividendPercent);
-  const dps0 = ticker.initialPrice * dividendYield;
-  let shares = settings.initialInvestment / ticker.initialPrice;
-  let cumulativeDividend = 0;
-  let totalTaxPaid = 0;
-  let pendingReinvestCash = 0;
-  let totalReinvestedAmount = 0;
-  const monthly = [];
-  const yearly = [];
-  for (let m = 1; m <= totalMonths; m += 1) {
-    const context = buildMonthContext(startDate, m);
-    const price = priceAtMonth(ticker.initialPrice, priceGrowth, context.elapsedYearFraction);
-    const dps = dpsAtMonth({
-      dps0,
-      dividendGrowth,
-      mode: settings.dpsGrowthMode,
-      elapsedYearFraction: context.elapsedYearFraction,
-      completedYears: context.completedYears
-    });
-    if (pendingReinvestCash > 0) {
-      shares += pendingReinvestCash / price;
-      totalReinvestedAmount += pendingReinvestCash;
-      pendingReinvestCash = 0;
-    }
-    let dividendPaid = 0;
-    let taxPaid = 0;
-    if (isPayoutMonth(ticker.frequency, context.simulationMonth)) {
-      const payout = computeMonthlyPayout({ shares, annualDps: dps, paymentsPerYear, taxRate });
-      const reinvestment = planReinvestment({
-        netDividend: payout.net,
-        price,
-        enabled: settings.reinvestDividends,
-        ratio: reinvestRatio,
-        timing: settings.reinvestTiming
-      });
-      taxPaid = payout.tax;
-      dividendPaid = payout.net;
-      shares += reinvestment.sharesToBuyNow;
-      totalReinvestedAmount += reinvestment.amountInvestedNow;
-      pendingReinvestCash += reinvestment.cashToCarry;
-      cumulativeDividend += dividendPaid;
-      totalTaxPaid += taxPaid;
-    }
-    shares += settings.monthlyContribution / price;
-    const rawPortfolioValue = shares * price;
-    const portfolioValue = Number.isFinite(rawPortfolioValue) ? rawPortfolioValue : 0;
-    monthly.push({
-      monthIndex: m,
-      year: context.calendarYear,
-      month: context.calendarMonth,
-      shares,
-      price,
-      dividendPerShare: dps,
-      dividendPaid,
-      contributionPaid: settings.monthlyContribution,
-      taxPaid,
-      portfolioValue,
-      cumulativeDividend
-    });
-    if (context.simulationMonth === 12) {
-      yearly.push(
-        buildYearlyRow({
-          year: context.simulationYearLabel,
-          monthIndex: m,
-          initialInvestment: settings.initialInvestment,
-          monthlyContribution: settings.monthlyContribution,
-          assetValue: portfolioValue,
-          cumulativeDividend,
-          recentMonths: monthly.slice(-12)
-        })
-      );
-    }
-  }
-  return {
-    monthly,
-    yearly,
-    summary: buildSummary({
-      monthly,
-      yearly,
-      totalTaxPaid,
-      targetMonthlyDividend: settings.targetMonthlyDividend,
-      totalReinvestedAmount
-    }),
-    quickEstimate: runQuickEstimate(input)
-  };
-};
-
-// shared/lib/snowball/SnowballScenarioRun.ts
-var scenarioTickerProfileSchema = tickerInputSchema.extend({ id: external_exports.string() });
-var tickerIdSchema = external_exports.object({ id: external_exports.string() });
-var scenarioSettingsSchema = external_exports.object({
-  initialInvestment: external_exports.number(),
-  monthlyContribution: external_exports.number(),
-  targetMonthlyDividend: external_exports.number(),
-  investmentStartDate: external_exports.string(),
-  durationYears: external_exports.number(),
-  reinvestDividends: external_exports.boolean(),
-  reinvestDividendPercent: external_exports.number(),
-  taxRate: external_exports.number().optional(),
-  reinvestTiming: external_exports.string(),
-  dpsGrowthMode: external_exports.string()
-});
-var scenarioPayloadSchema = external_exports.object({
-  portfolio: external_exports.object({
-    tickerProfiles: external_exports.array(external_exports.unknown()),
-    includedTickerIds: external_exports.array(external_exports.string()),
-    weightByTickerId: external_exports.record(external_exports.string(), external_exports.number())
-  }),
-  investmentSettings: scenarioSettingsSchema
-});
-
-// shared/lib/snowball/SnowballScenarioSummary.ts
-var SCENARIO_SIM_SUMMARY_VERSION = 1;
-var scenarioSimSummarySchema = external_exports.object({
-  /** 스키마 버전. 이후 필드 추가/의미 변경 대비 — 모르는 버전은 파싱 단계에서 거른다. */
-  version: external_exports.literal(SCENARIO_SIM_SUMMARY_VERSION),
-  /** 시뮬 기간(년). */
-  durationYears: external_exports.number().int().min(1),
-  /** 시뮬레이션에 포함된 티커 수. */
-  tickerCount: external_exports.number().int().min(1),
-  /** 초기 투자금 (KRW). */
-  initialInvestment: external_exports.number().int().min(0),
-  /** 월 적립금 (KRW). */
-  monthlyContribution: external_exports.number().int().min(0),
-  /** 투입 원금 누계 = 초기 + 월 적립 × 개월 수 (KRW). 재투자된 배당은 포함하지 않는다. */
-  totalContribution: external_exports.number().int().min(0),
-  /** 기간 종료 시점 자산 평가액 (KRW) — 앱의 `summary.finalAssetValue`와 동일 정의. */
-  finalAssetValue: external_exports.number().int().min(0),
-  /** 마지막 해의 세후 월평균 배당(연/12, KRW) — 앱의 `summary.finalMonthlyAverageDividend`와 동일 정의. */
-  finalMonthlyDividend: external_exports.number().int().min(0),
-  /** 목표 월배당 (KRW). */
-  targetMonthlyDividend: external_exports.number().int().min(0),
-  /** 목표 월배당을 처음 달성한 n년차(1-based). 기간 내 미달성이면 null. */
-  targetReachedInYears: external_exports.number().int().min(1).nullable()
-});
-var parseScenarioSimSummary = (value) => {
-  const parsed = scenarioSimSummarySchema.safeParse(value);
-  return parsed.success ? parsed.data : null;
-};
-
-// shared/constants/presets/usDividendGrowthEtfs.ts
-var US_DIVIDEND_GROWTH_ETFS = {
-  SCHD: {
-    ticker: "SCHD",
-    name: "Schwab U.S. Dividend Equity ETF",
-    initialPrice: 31.61,
-    dividendYield: 3.34,
-    dividendGrowth: 6.66,
-    expectedTotalReturn: 10,
-    frequency: "quarterly"
-  },
-  VIG: {
-    ticker: "VIG",
-    name: "Vanguard Dividend Appreciation ETF",
-    initialPrice: 185,
-    dividendYield: 1.9,
-    dividendGrowth: 7.6,
-    expectedTotalReturn: 9.5,
-    frequency: "quarterly"
-  },
-  DGRO: {
-    ticker: "DGRO",
-    name: "iShares Core Dividend Growth ETF",
-    initialPrice: 73,
-    dividendYield: 2.2,
-    dividendGrowth: 7.3,
-    expectedTotalReturn: 9.5,
-    frequency: "quarterly"
-  },
-  DGRW: {
-    ticker: "DGRW",
-    name: "WisdomTree U.S. Quality Dividend Growth ETF",
-    initialPrice: 74,
-    dividendYield: 2,
-    dividendGrowth: 8,
-    expectedTotalReturn: 10,
-    frequency: "monthly"
-  },
-  NOBL: {
-    ticker: "NOBL",
-    name: "ProShares S&P 500 Dividend Aristocrats ETF",
-    initialPrice: 114,
-    dividendYield: 2.1,
-    dividendGrowth: 6.9,
-    expectedTotalReturn: 9,
-    frequency: "quarterly"
-  },
-  RDVY: {
-    ticker: "RDVY",
-    name: "First Trust Rising Dividend Achievers ETF",
-    initialPrice: 55,
-    dividendYield: 1.5,
-    dividendGrowth: 9.5,
-    expectedTotalReturn: 11,
-    frequency: "quarterly"
-  },
-  SDVY: {
-    ticker: "SDVY",
-    name: "First Trust SMID Cap Rising Dividend Achievers ETF",
-    initialPrice: 33,
-    dividendYield: 1.7,
-    dividendGrowth: 9.8,
-    expectedTotalReturn: 11.5,
-    frequency: "quarterly"
-  },
-  CGDV: {
-    ticker: "CGDV",
-    name: "Capital Group Dividend Value ETF",
-    initialPrice: 31,
-    dividendYield: 1.4,
-    dividendGrowth: 8.6,
-    expectedTotalReturn: 10,
-    frequency: "quarterly"
-  },
-  DLN: {
-    ticker: "DLN",
-    name: "WisdomTree U.S. LargeCap Dividend Fund",
-    initialPrice: 130,
-    dividendYield: 2.1,
-    dividendGrowth: 6.9,
-    expectedTotalReturn: 9,
-    frequency: "quarterly"
-  },
-  DON: {
-    ticker: "DON",
-    name: "WisdomTree U.S. MidCap Dividend Fund",
-    initialPrice: 47,
-    dividendYield: 2.3,
-    dividendGrowth: 6.7,
-    expectedTotalReturn: 9,
-    frequency: "quarterly"
-  },
-  DES: {
-    ticker: "DES",
-    name: "WisdomTree U.S. SmallCap Dividend Fund",
-    initialPrice: 32,
-    dividendYield: 2.7,
-    dividendGrowth: 5.8,
-    expectedTotalReturn: 8.5,
-    frequency: "quarterly"
-  }
-};
-
-// shared/constants/presets/usHighDividendEtfs.ts
-var US_HIGH_DIVIDEND_ETFS = {
-  VYM: {
-    ticker: "VYM",
-    name: "Vanguard High Dividend Yield ETF",
-    initialPrice: 155,
-    dividendYield: 2.8,
-    dividendGrowth: 6.2,
-    expectedTotalReturn: 9,
-    frequency: "quarterly"
-  },
-  HDV: {
-    ticker: "HDV",
-    name: "iShares Core High Dividend ETF",
-    initialPrice: 139,
-    dividendYield: 3.4,
-    dividendGrowth: 5.1,
-    expectedTotalReturn: 8.5,
-    frequency: "quarterly"
-  },
-  SDY: {
-    ticker: "SDY",
-    name: "SPDR S&P Dividend ETF",
-    initialPrice: 155,
-    dividendYield: 2.5,
-    dividendGrowth: 6,
-    expectedTotalReturn: 8.5,
-    frequency: "quarterly"
-  },
-  DVY: {
-    ticker: "DVY",
-    name: "iShares Select Dividend ETF",
-    initialPrice: 120,
-    dividendYield: 3.3,
-    dividendGrowth: 5.2,
-    expectedTotalReturn: 8.5,
-    frequency: "quarterly"
-  },
-  FDVV: {
-    ticker: "FDVV",
-    name: "Fidelity High Dividend ETF",
-    initialPrice: 44,
-    dividendYield: 2.9,
-    dividendGrowth: 6.1,
-    expectedTotalReturn: 9,
-    frequency: "quarterly"
-  },
-  SPYD: {
-    ticker: "SPYD",
-    name: "SPDR Portfolio S&P 500 High Dividend ETF",
-    initialPrice: 48,
-    dividendYield: 4.2,
-    dividendGrowth: 3.8,
-    expectedTotalReturn: 8,
-    frequency: "quarterly"
-  },
-  DHS: {
-    ticker: "DHS",
-    name: "WisdomTree U.S. High Dividend ETF",
-    initialPrice: 95,
-    dividendYield: 3.8,
-    dividendGrowth: 4.2,
-    expectedTotalReturn: 8,
-    frequency: "quarterly"
-  }
-};
-
-// shared/constants/presets/optionIncomeEtfs.ts
-var OPTION_INCOME_ETFS = {
-  JEPI: {
-    ticker: "JEPI",
-    name: "JPMorgan Equity Premium Income ETF",
-    initialPrice: 59,
-    dividendYield: 8,
-    dividendGrowth: 0,
-    expectedTotalReturn: 8,
-    frequency: "monthly"
-  },
-  JEPQ: {
-    ticker: "JEPQ",
-    name: "JPMorgan Nasdaq Equity Premium Income ETF",
-    initialPrice: 51,
-    dividendYield: 8.2,
-    dividendGrowth: 0.8,
-    expectedTotalReturn: 9,
-    frequency: "monthly"
-  },
-  DIVO: {
-    ticker: "DIVO",
-    name: "Amplify CWP Enhanced Dividend Income ETF",
-    initialPrice: 47,
-    dividendYield: 5.5,
-    dividendGrowth: 4,
-    expectedTotalReturn: 9.5,
-    frequency: "monthly"
-  },
-  IDVO: {
-    ticker: "IDVO",
-    name: "Amplify International Enhanced Dividend ETF",
-    initialPrice: 29,
-    dividendYield: 7,
-    dividendGrowth: 1,
-    expectedTotalReturn: 8,
-    frequency: "monthly"
-  },
-  QDVO: {
-    ticker: "QDVO",
-    name: "QRAFT AI-Enhanced U.S. Dividend ETF",
-    initialPrice: 27,
-    dividendYield: 6.5,
-    dividendGrowth: 2.5,
-    expectedTotalReturn: 9,
-    frequency: "monthly"
-  },
-  QYLD: {
-    ticker: "QYLD",
-    name: "Global X Nasdaq 100 Covered Call ETF",
-    initialPrice: 18,
-    dividendYield: 10,
-    dividendGrowth: -3,
-    expectedTotalReturn: 7,
-    frequency: "monthly"
-  },
-  XYLD: {
-    ticker: "XYLD",
-    name: "Global X S&P 500 Covered Call ETF",
-    initialPrice: 40,
-    dividendYield: 9,
-    dividendGrowth: -1.5,
-    expectedTotalReturn: 7.5,
-    frequency: "monthly"
-  }
-};
-
-// shared/constants/presets/internationalDividendEtfs.ts
-var INTERNATIONAL_DIVIDEND_ETFS = {
-  VIGI: {
-    ticker: "VIGI",
-    name: "Vanguard International Dividend Appreciation ETF",
-    initialPrice: 76,
-    dividendYield: 1.9,
-    dividendGrowth: 7.1,
-    expectedTotalReturn: 9,
-    frequency: "quarterly"
-  },
-  VYMI: {
-    ticker: "VYMI",
-    name: "Vanguard International High Dividend Yield ETF",
-    initialPrice: 70,
-    dividendYield: 4,
-    dividendGrowth: 4,
-    expectedTotalReturn: 8,
-    frequency: "quarterly"
-  },
-  SCHY: {
-    ticker: "SCHY",
-    name: "Schwab International Dividend Equity ETF",
-    initialPrice: 24,
-    dividendYield: 4.2,
-    dividendGrowth: 4.3,
-    expectedTotalReturn: 8.5,
-    frequency: "quarterly"
-  },
-  IDV: {
-    ticker: "IDV",
-    name: "iShares International Select Dividend ETF",
-    initialPrice: 29,
-    dividendYield: 6,
-    dividendGrowth: 1.5,
-    expectedTotalReturn: 7.5,
-    frequency: "quarterly"
-  },
-  DWX: {
-    ticker: "DWX",
-    name: "SPDR S&P International Dividend ETF",
-    initialPrice: 34,
-    dividendYield: 5.5,
-    dividendGrowth: 2,
-    expectedTotalReturn: 7.5,
-    frequency: "quarterly"
-  }
-};
-
-// shared/constants/presets/reitEtfs.ts
-var REIT_ETFS = {
-  SCHH: {
-    ticker: "SCHH",
-    name: "Schwab U.S. REIT ETF",
-    initialPrice: 20,
-    dividendYield: 3.8,
-    dividendGrowth: 4.2,
-    expectedTotalReturn: 8,
-    frequency: "quarterly"
-  },
-  VNQI: {
-    ticker: "VNQI",
-    name: "Vanguard Global ex-US Real Estate ETF",
-    initialPrice: 44,
-    dividendYield: 4.5,
-    dividendGrowth: 3,
-    expectedTotalReturn: 7.5,
-    frequency: "quarterly"
-  }
-};
-
-// shared/constants/presets/dividendGrowthStocks.ts
-var DIVIDEND_GROWTH_STOCKS = {
-  PG: {
-    ticker: "PG",
-    name: "Procter & Gamble",
-    initialPrice: 160,
-    dividendYield: 2.4,
-    dividendGrowth: 6.6,
-    expectedTotalReturn: 9,
-    frequency: "quarterly"
-  },
-  KO: {
-    ticker: "KO",
-    name: "Coca-Cola",
-    initialPrice: 60,
-    dividendYield: 3.1,
-    dividendGrowth: 4.9,
-    expectedTotalReturn: 8,
-    frequency: "quarterly"
-  },
-  JNJ: {
-    ticker: "JNJ",
-    name: "Johnson & Johnson",
-    initialPrice: 160,
-    dividendYield: 3,
-    dividendGrowth: 5.5,
-    expectedTotalReturn: 8.5,
-    frequency: "quarterly"
-  },
-  LOW: {
-    ticker: "LOW",
-    name: "Lowe\u2019s",
-    initialPrice: 220,
-    dividendYield: 1.8,
-    dividendGrowth: 9.2,
-    expectedTotalReturn: 11,
-    frequency: "quarterly"
-  },
-  ABBV: {
-    ticker: "ABBV",
-    name: "AbbVie",
-    initialPrice: 170,
-    dividendYield: 3.7,
-    dividendGrowth: 6.3,
-    expectedTotalReturn: 10,
-    frequency: "quarterly"
-  }
-};
-
-// shared/constants/presets/highDividendStocks.ts
-var HIGH_DIVIDEND_STOCKS = {
-  O: {
-    ticker: "O",
-    name: "Realty Income",
-    initialPrice: 57,
-    dividendYield: 5.5,
-    dividendGrowth: 2.5,
-    expectedTotalReturn: 8,
-    frequency: "monthly"
-  },
-  ENB: {
-    ticker: "ENB",
-    name: "Enbridge",
-    initialPrice: 35,
-    dividendYield: 7,
-    dividendGrowth: 2,
-    expectedTotalReturn: 9,
-    frequency: "quarterly"
-  },
-  VICI: {
-    ticker: "VICI",
-    name: "VICI Properties",
-    initialPrice: 32,
-    dividendYield: 5.2,
-    dividendGrowth: 4.3,
-    expectedTotalReturn: 9.5,
-    frequency: "quarterly"
-  },
-  UPS: {
-    ticker: "UPS",
-    name: "United Parcel Service",
-    initialPrice: 145,
-    dividendYield: 4,
-    dividendGrowth: 5,
-    expectedTotalReturn: 9,
-    frequency: "quarterly"
-  },
-  T: {
-    ticker: "T",
-    name: "AT&T",
-    initialPrice: 18,
-    dividendYield: 6.5,
-    dividendGrowth: 1,
-    expectedTotalReturn: 7.5,
-    frequency: "quarterly"
-  }
-};
-
-// shared/constants/presets/coreIndexEtfs.ts
-var CORE_INDEX_ETFS = {
-  VOO: {
-    ticker: "VOO",
-    name: "Vanguard S&P 500 ETF",
-    initialPrice: 480,
-    dividendYield: 1.3,
-    dividendGrowth: 8.2,
-    expectedTotalReturn: 9.5,
-    frequency: "quarterly"
-  },
-  IVV: {
-    ticker: "IVV",
-    name: "iShares Core S&P 500 ETF",
-    initialPrice: 520,
-    dividendYield: 1.3,
-    dividendGrowth: 8.2,
-    expectedTotalReturn: 9.5,
-    frequency: "quarterly"
-  },
-  SPY: {
-    ticker: "SPY",
-    name: "SPDR S&P 500 ETF Trust",
-    initialPrice: 500,
-    dividendYield: 1.3,
-    dividendGrowth: 8.2,
-    expectedTotalReturn: 9.5,
-    frequency: "quarterly"
-  },
-  VTI: {
-    ticker: "VTI",
-    name: "Vanguard Total Stock Market ETF",
-    initialPrice: 250,
-    dividendYield: 1.4,
-    dividendGrowth: 8.1,
-    expectedTotalReturn: 9.5,
-    frequency: "quarterly"
-  },
-  QQQ: {
-    ticker: "QQQ",
-    name: "Invesco QQQ Trust",
-    initialPrice: 430,
-    dividendYield: 0.6,
-    dividendGrowth: 10.4,
-    expectedTotalReturn: 11,
-    frequency: "quarterly"
-  },
-  VUG: {
-    ticker: "VUG",
-    name: "Vanguard Growth ETF",
-    initialPrice: 360,
-    dividendYield: 0.5,
-    dividendGrowth: 10,
-    expectedTotalReturn: 10.5,
-    frequency: "quarterly"
-  },
-  VT: {
-    ticker: "VT",
-    name: "Vanguard Total World Stock ETF",
-    initialPrice: 110,
-    dividendYield: 1.8,
-    dividendGrowth: 6.7,
-    expectedTotalReturn: 8.5,
-    frequency: "quarterly"
-  },
-  VXUS: {
-    ticker: "VXUS",
-    name: "Vanguard Total International Stock ETF",
-    initialPrice: 60,
-    dividendYield: 2.5,
-    dividendGrowth: 5.5,
-    expectedTotalReturn: 8,
-    frequency: "quarterly"
-  },
-  DIA: {
-    ticker: "DIA",
-    name: "SPDR Dow Jones Industrial Average ETF",
-    initialPrice: 390,
-    dividendYield: 1.8,
-    dividendGrowth: 6.7,
-    expectedTotalReturn: 8.5,
-    frequency: "quarterly"
-  }
-};
-
-// shared/constants/presets/semiconductorDividendGrowthPortfolio.ts
-var SEMICONDUCTOR_DIVIDEND_GROWTH_PORTFOLIO = {
-  AVGO: {
-    ticker: "AVGO",
-    name: "Broadcom Inc.",
-    initialPrice: 1350,
-    dividendYield: 1.5,
-    dividendGrowth: 12.5,
-    expectedTotalReturn: 14,
-    frequency: "quarterly"
-  },
-  TXN: {
-    ticker: "TXN",
-    name: "Texas Instruments Incorporated",
-    initialPrice: 190,
-    dividendYield: 3,
-    dividendGrowth: 8,
-    expectedTotalReturn: 11,
-    frequency: "quarterly"
-  },
-  ADI: {
-    ticker: "ADI",
-    name: "Analog Devices, Inc.",
-    initialPrice: 210,
-    dividendYield: 1.8,
-    dividendGrowth: 9.2,
-    expectedTotalReturn: 11,
-    frequency: "quarterly"
-  },
-  LRCX: {
-    ticker: "LRCX",
-    name: "Lam Research Corporation",
-    initialPrice: 900,
-    dividendYield: 1.2,
-    dividendGrowth: 11.8,
-    expectedTotalReturn: 13,
-    frequency: "quarterly"
-  },
-  KLAC: {
-    ticker: "KLAC",
-    name: "KLA Corporation",
-    initialPrice: 800,
-    dividendYield: 1.1,
-    dividendGrowth: 10.9,
-    expectedTotalReturn: 12,
-    frequency: "quarterly"
-  },
-  AMAT: {
-    ticker: "AMAT",
-    name: "Applied Materials, Inc.",
-    initialPrice: 220,
-    dividendYield: 0.9,
-    dividendGrowth: 11.1,
-    expectedTotalReturn: 12,
-    frequency: "quarterly"
-  },
-  TSM: {
-    ticker: "TSM",
-    name: "Taiwan Semiconductor Manufacturing Company",
-    initialPrice: 170,
-    dividendYield: 1.5,
-    dividendGrowth: 9.5,
-    expectedTotalReturn: 11,
-    frequency: "quarterly"
-  },
-  ASML: {
-    ticker: "ASML",
-    name: "ASML Holding N.V.",
-    initialPrice: 900,
-    dividendYield: 0.8,
-    dividendGrowth: 10.2,
-    expectedTotalReturn: 11,
-    frequency: "annual"
-  },
-  ETN: {
-    ticker: "ETN",
-    name: "Eaton Corporation plc",
-    initialPrice: 320,
-    dividendYield: 1.2,
-    dividendGrowth: 10.8,
-    expectedTotalReturn: 12,
-    frequency: "quarterly"
-  },
-  VRT: {
-    ticker: "VRT",
-    name: "Vertiv Holdings Co",
-    initialPrice: 80,
-    dividendYield: 0.2,
-    dividendGrowth: 13.8,
-    expectedTotalReturn: 14,
-    frequency: "quarterly"
-  }
-};
-
-// shared/constants/presets/aiInfraEtfsAndStocks.ts
-var AI_INFRA_ETFS_AND_STOCKS = {
-  SMH: {
-    ticker: "SMH",
-    name: "VanEck Semiconductor ETF",
-    initialPrice: 220,
-    dividendYield: 0.9,
-    dividendGrowth: 11.1,
-    expectedTotalReturn: 12,
-    frequency: "quarterly"
-  },
-  AIQ: {
-    ticker: "AIQ",
-    name: "Global X Artificial Intelligence & Technology ETF",
-    initialPrice: 38,
-    dividendYield: 0.3,
-    dividendGrowth: 10.7,
-    expectedTotalReturn: 11,
-    frequency: "quarterly"
-  },
-  SRVR: {
-    ticker: "SRVR",
-    name: "Pacer Data & Infrastructure Real Estate ETF",
-    initialPrice: 32,
-    dividendYield: 2.4,
-    dividendGrowth: 7.6,
-    expectedTotalReturn: 10,
-    frequency: "quarterly"
-  },
-  VRT: {
-    ticker: "VRT",
-    name: "Vertiv Holdings Co",
-    initialPrice: 90,
-    dividendYield: 0.3,
-    dividendGrowth: 15.7,
-    expectedTotalReturn: 16,
-    frequency: "quarterly"
-  },
-  ETN: {
-    ticker: "ETN",
-    name: "Eaton Corporation",
-    initialPrice: 320,
-    dividendYield: 1.1,
-    dividendGrowth: 11.9,
-    expectedTotalReturn: 13,
-    frequency: "quarterly"
-  },
-  ANET: {
-    ticker: "ANET",
-    name: "Arista Networks",
-    initialPrice: 290,
-    dividendYield: 0,
-    dividendGrowth: 14,
-    expectedTotalReturn: 14,
-    frequency: "quarterly"
-  },
-  NVDA: {
-    ticker: "NVDA",
-    name: "NVIDIA Corporation",
-    initialPrice: 900,
-    dividendYield: 0.03,
-    dividendGrowth: 17.97,
-    expectedTotalReturn: 18,
-    frequency: "quarterly"
-  },
-  AVGO: {
-    ticker: "AVGO",
-    name: "Broadcom Inc",
-    initialPrice: 1300,
-    dividendYield: 1.6,
-    dividendGrowth: 13.4,
-    expectedTotalReturn: 15,
-    frequency: "quarterly"
-  },
-  TSM: {
-    ticker: "TSM",
-    name: "Taiwan Semiconductor Manufacturing Company",
-    initialPrice: 150,
-    dividendYield: 1.4,
-    dividendGrowth: 11.6,
-    expectedTotalReturn: 13,
-    frequency: "quarterly"
-  },
-  ASML: {
-    ticker: "ASML",
-    name: "ASML Holding NV",
-    initialPrice: 950,
-    dividendYield: 0.9,
-    dividendGrowth: 13.1,
-    expectedTotalReturn: 14,
-    frequency: "quarterly"
-  },
-  CEG: {
-    ticker: "CEG",
-    name: "Constellation Energy Corporation",
-    initialPrice: 200,
-    dividendYield: 0.7,
-    dividendGrowth: 11.3,
-    expectedTotalReturn: 12,
-    frequency: "quarterly"
-  },
-  NEE: {
-    ticker: "NEE",
-    name: "NextEra Energy",
-    initialPrice: 65,
-    dividendYield: 2.6,
-    dividendGrowth: 7.4,
-    expectedTotalReturn: 10,
-    frequency: "quarterly"
-  }
-};
-
-// shared/constants/presets/index.ts
-var CURATED_DIVIDEND_UNIVERSE = {
-  ...CORE_INDEX_ETFS,
-  ...US_DIVIDEND_GROWTH_ETFS,
-  ...US_HIGH_DIVIDEND_ETFS,
-  ...OPTION_INCOME_ETFS,
-  ...INTERNATIONAL_DIVIDEND_ETFS,
-  ...REIT_ETFS,
-  ...DIVIDEND_GROWTH_STOCKS,
-  ...HIGH_DIVIDEND_STOCKS,
-  ...SEMICONDUCTOR_DIVIDEND_GROWTH_PORTFOLIO,
-  ...AI_INFRA_ETFS_AND_STOCKS
-};
-var withCoherentDividendGrowth = (universe) => {
-  const coherent = {};
-  for (const ticker of Object.keys(universe)) {
-    const preset = universe[ticker];
-    coherent[ticker] = {
-      ...preset,
-      dividendGrowth: toDerivedDividendGrowthPercent(preset.expectedTotalReturn, preset.dividendYield)
-    };
-  }
-  return coherent;
-};
-var buildDividendUniverse = (curated, snapshot) => withCoherentDividendGrowth(applyMarketData(curated, snapshot));
-var DIVIDEND_UNIVERSE = buildDividendUniverse(CURATED_DIVIDEND_UNIVERSE, MARKET_DATA);
 
 // shared/constants/tour/index.ts
 var TOUR_TARGET = {
