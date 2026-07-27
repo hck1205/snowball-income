@@ -12,7 +12,7 @@ import type { CurrencyToggleFieldProps } from './CurrencyToggleField.types';
  * 자리는 **투자 설정 카드 안**, "배당 재투자" 바로 아래다(사용자 지정).
  * 생김새는 같은 카드의 "빠른 추정 보기"/"그래프 나누어 보기"와 통일한다 — 그래서 라벨 줄을 직접
  * 조립하지 않고 그 둘과 **같은 `ToggleField`** 를 쓴다(보이는 라벨 + 우측 스위치).
- * 다른 점은 하나뿐: 값이 두 개인 모드 스위치라 트랙에 원/달러 텍스트가 들어간다.
+ * 값이 두 개인 모드 스위치지만, 켜짐이 달러라는 사실은 라벨과 접근명·캡션이 말한다.
  *
  * ⚠ 이 컨트롤이 `components/`(재사용) 레이어에 있는 이유: `components/InvestmentSettings` 가 쓰므로
  *   `pages/Main` 안에 두면 컴포넌트가 페이지를 import 하는 역방향 의존이 된다.
@@ -30,12 +30,7 @@ function CurrencyToggleFieldComponent({ display, onChangeCurrency }: CurrencyTog
     <Root role="group" aria-label="결과 표시 통화">
       <ToggleField
         label={DISPLAY_CURRENCY_COPY.label}
-        /*
-         * 라벨을 뺀 나머지(트랙 텍스트·폭)는 **아무것도 지정하지 않는다.** 같은 카드의
-         * "빠른 추정 보기"/"그래프 나누어 보기"가 전부 기본값이라, 여기서 `onText`/`offText`/
-         * `controlWidth` 를 주면 이 줄만 넓고 글자 박힌 스위치가 되어 혼자 튄다.
-         * 켜짐이 달러라는 사실은 라벨("달러로 표시")과 아래 캡션이 말한다.
-         */
+        /* 켜짐이 달러라는 사실은 라벨("달러로 표시")과 접근명, 그리고 아래 캡션이 말한다. */
         accessibleName={DISPLAY_CURRENCY_COPY.toggleAccessibleName}
         /* 환율이 없으면(loading·error) 켤 수 없다 — 켜도 원화로 떨어져 전환이 무반응처럼 보인다. */
         disabled={!canUseUsd}

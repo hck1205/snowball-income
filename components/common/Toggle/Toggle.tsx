@@ -1,5 +1,5 @@
 import type { ToggleProps } from './Toggle.types';
-import { HiddenCheckbox, ToggleStateText, ToggleThumb, ToggleTrack } from './Toggle.styled';
+import { HiddenCheckbox, ToggleThumb, ToggleTrack } from './Toggle.styled';
 
 /**
  * 스위치 컨트롤 그 자체(라벨 줄 없음).
@@ -11,29 +11,13 @@ import { HiddenCheckbox, ToggleStateText, ToggleThumb, ToggleTrack } from './Tog
  *    (실제로 SnowballApp 테스트가 '배당 재투자'/'빠른 추정 보기'를 그렇게 잡고 있다).
  *  - 체크박스도 스위치도 스크린리더에는 "켜짐/꺼짐"으로 읽히므로 실익이 없다.
  * 스위치는 **보이는 방식**이지 시맨틱이 아니다.
+ *
+ * 생김새는 크기 단계(`size`, 현재 'md' 하나) 말고는 호출부가 바꿀 수 없다 —
+ * "두 모드 중 하나"라는 의미는 트랙 안 글자가 아니라 `ToggleField`의 보이는 라벨이 말한다.
  */
-export default function Toggle({
-  label,
-  checked,
-  disabled,
-  id,
-  onText,
-  offText,
-  controlWidth,
-  stateTextColor,
-  onChange
-}: ToggleProps) {
-  // 둘 중 하나라도 주면 "모드 스위치"로 취급한다. 아무것도 안 주면 텍스트 없는 순수 스위치.
-  const isModeSwitch = onText !== undefined || offText !== undefined;
-  const stateText = checked ? onText : offText;
-
+export default function Toggle({ label, checked, disabled, id, size = 'md', onChange }: ToggleProps) {
   return (
-    <ToggleTrack checked={checked} disabled={disabled} controlWidth={controlWidth}>
-      {isModeSwitch && stateText ? (
-        <ToggleStateText checked={checked} disabled={disabled} stateTextColor={stateTextColor} aria-hidden="true">
-          {stateText}
-        </ToggleStateText>
-      ) : null}
+    <ToggleTrack checked={checked} disabled={disabled} sizeVariant={size}>
       <HiddenCheckbox
         id={id}
         type="checkbox"
@@ -42,7 +26,7 @@ export default function Toggle({
         disabled={disabled}
         onChange={onChange}
       />
-      <ToggleThumb checked={checked} disabled={disabled} />
+      <ToggleThumb checked={checked} disabled={disabled} sizeVariant={size} />
     </ToggleTrack>
   );
 }

@@ -28,24 +28,12 @@ describe('Toggle', () => {
     expect(screen.getByLabelText('재투자')).toBeDisabled();
   });
 
-  it('renders no state text by default (no "OFF" stamped in the track)', () => {
-    render(createElement(Toggle, { label: '재투자', checked: false, onChange: () => undefined }));
-
-    expect(screen.queryByText('OFF')).not.toBeInTheDocument();
-    expect(screen.queryByText('ON')).not.toBeInTheDocument();
-  });
-
-  it('renders mode text when onText/offText are given', () => {
-    const { rerender } = render(
-      createElement(Toggle, { label: '결과 상세도', checked: true, onText: '간략', offText: '상세', onChange: () => undefined })
+  /** 트랙 안에는 어떤 글자도 넣지 않는다 — 모드 의미는 ToggleField의 보이는 라벨이 말한다. */
+  it('renders no text inside the track', () => {
+    const { container } = render(
+      createElement(Toggle, { label: '재투자', checked: false, onChange: () => undefined })
     );
 
-    expect(screen.getByText('간략')).toBeInTheDocument();
-
-    rerender(
-      createElement(Toggle, { label: '결과 상세도', checked: false, onText: '간략', offText: '상세', onChange: () => undefined })
-    );
-
-    expect(screen.getByText('상세')).toBeInTheDocument();
+    expect(container.textContent).toBe('');
   });
 });

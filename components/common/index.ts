@@ -100,6 +100,6 @@ export { default as Tooltip } from './Tooltip';
 export type { TooltipProps } from './Tooltip';
 
 export { default as Toggle } from './Toggle';
-export type { ToggleProps } from './Toggle';
+export type { ToggleProps, ToggleSize } from './Toggle';
 
 export { default as ToggleField } from './ToggleField';

@@ -26,7 +26,7 @@ import {
   NarrativeBody,
   NarrativeIcon,
   NarrativeText,
-  NarrativeToggleSlot,
+  NarrativeToggleRow,
   SummaryGrid,
   TaxAssumptionNote,
   TaxSection,
@@ -233,12 +233,9 @@ function SimulationResultComponent({
       dataTour={TOUR_TARGET.simulationResult}
       titleRight={
         <ToggleField
-          label="결과 상세도"
+          label="간략히"
+          accessibleName="결과 간략히 보기"
           checked={isResultCompact}
-          hideLabel
-          controlWidth="54px"
-          onText="간략"
-          offText="상세"
           onChange={(event) => {
             trackEvent(ANALYTICS_EVENT.TOGGLE_CHANGED, {
               field_name: 'isResultCompact',
@@ -281,14 +278,14 @@ function SimulationResultComponent({
               value={formatResultAmount(summary.finalAssetValue, isResultCompact)}
             />
           </HeroSlot>
-          {/* 목표 도달 서사 — hero 바로 아래, 그리드 한 줄 전체. 우측 상단에 진행률 뷰 토글. */}
+          {/* 목표 도달 서사 — hero 바로 아래, 그리드 한 줄 전체. 진행률 뷰 토글은 문장 아래 in-flow 행. */}
           <NarrativeBlock tone={narrative.tone}>
             <NarrativeIcon tone={narrative.tone} aria-hidden="true">
               <narrative.Icon size={20} strokeWidth={1.8} />
             </NarrativeIcon>
             <NarrativeBody>
               {/* tabIndex=-1: 프로그램 포커스만 받는다(탭 순서에는 안 들어간다). */}
-              <NarrativeText ref={narrativeTextRef} tone={narrative.tone} hasToggle={hasTarget} tabIndex={-1}>
+              <NarrativeText ref={narrativeTextRef} tone={narrative.tone} tabIndex={-1}>
                 {narrative.text}
               </NarrativeText>
               {!hasTarget && (onQuickSetTarget || onOpenTargetField) ? (
@@ -311,6 +308,26 @@ function SimulationResultComponent({
                   ) : null}
                 </NarrativeActions>
               ) : null}
+              {/*
+                * 좁은 화면(≤360px)에선 showGauge가 강제로 false라 이 토글은 눌러도 아무 일이
+                * 일어나지 않는다 — 무음 no-op 컨트롤을 보여주느니 아예 그리지 않는다.
+                */}
+              {hasTarget && !isNarrowScreen ? (
+                <NarrativeToggleRow tone={narrative.tone}>
+                  <ToggleField
+                    label="게이지로 보기"
+                    accessibleName="진행률 게이지로 보기"
+                    checked={isGaugeView}
+                    onChange={(event) => {
+                      trackEvent(ANALYTICS_EVENT.TOGGLE_CHANGED, {
+                        field_name: 'targetProgressView',
+                        value: event.target.checked
+                      });
+                      setIsGaugeView(event.target.checked);
+                    }}
+                  />
+                </NarrativeToggleRow>
+              ) : null}
               {showGauge ? (
                 <GaugeWrapper
                   role="img"
@@ -320,25 +337,6 @@ function SimulationResultComponent({
                 </GaugeWrapper>
               ) : null}
             </NarrativeBody>
-            {hasTarget ? (
-              <NarrativeToggleSlot>
-                <ToggleField
-                  label="진행률 표시 방식"
-                  hideLabel
-                  checked={isGaugeView}
-                  controlWidth="60px"
-                  offText="바"
-                  onText="게이지"
-                  onChange={(event) => {
-                    trackEvent(ANALYTICS_EVENT.TOGGLE_CHANGED, {
-                      field_name: 'targetProgressView',
-                      value: event.target.checked
-                    });
-                    setIsGaugeView(event.target.checked);
-                  }}
-                />
-              </NarrativeToggleSlot>
-            ) : null}
           </NarrativeBlock>
           <StatTile
             label="월배당(월평균: 연/12)"
