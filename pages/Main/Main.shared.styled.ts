@@ -25,6 +25,28 @@ export const SkipLink = styled.a`
   }
 `;
 
+/**
+ * 메인 본문 래퍼.
+ *
+ * ⚠ **`container-type`은 드로어 폭(≤960px)에서 반드시 꺼야 한다.**
+ * `container-type: inline-size`는 "컨테이너 쿼리를 켜는 스위치"가 아니라 **레이아웃 컨테인먼트를
+ * 함께 적용**한다(css-contain-3: inline-size = layout + style + inline-size containment).
+ * 레이아웃 컨테인먼트가 걸린 요소는 **`position: fixed` 자손의 컨테이닝 블록**이 되므로,
+ * 이 안에 사는 모바일 설정 드로어(`ConfigDrawerColumn`, fixed·`height: 100dvh`)와 백드롭이
+ * 뷰포트가 아니라 **이 박스** 기준으로 배치된다 — `top: 0`이 뷰포트 최상단이 아니라 본문 최상단이라
+ * 패널이 sticky 헤더 높이만큼(그리고 열 때의 스크롤 오프셋만큼) 아래/위로 밀리고,
+ * 100dvh짜리 스크롤 영역의 아랫부분이 화면 밖으로 잘려 **드로어 안이 끝까지 스크롤되지 않는** 것처럼 보였다.
+ *
+ * `contain: none` 한 줄로는 못 끈다 — `contain`과 `container-type`은 별개 속성이고,
+ * `container-type`이 적용하는 컨테인먼트는 `contain`으로 빼낼 수 없다. 그래서 **둘 다** 끈다.
+ *
+ * 끊어도 안전한 이유(이 요소를 컨테이너로 삼는 쿼리 전수 확인 — `container.` 사용처 7곳 중):
+ * `DataTable`(TableWrap)과 `PortfolioAllocation`(범례 목록)은 **자기 루트에 container-type을 따로
+ * 갖고** 있어 이 요소와 무관하다. 남는 건 둘뿐인데, `ContentLayout`은 같은 규칙의 `media.down('layout')`
+ * 폴백을 이미 갖고 있고(≤960px에서 항상 매치), `ConfigForm`의 `ConfigInputGrid`는 폴백이 없는 편이
+ * 오히려 맞다 — 이 폭에서 설정 폼은 ≤360px 드로어 안에 있는데도 컨테이너(=본문 폭)가 넓다는
+ * 이유로 입력이 2열이 됐었다.
+ */
 export const FeatureLayout = styled.div`
   max-width: 1200px;
   margin: 0 auto;
@@ -37,6 +59,7 @@ export const FeatureLayout = styled.div`
 
   ${media.down('drawer')} {
     contain: none;
+    container-type: normal;
   }
 `;
 
@@ -197,7 +220,7 @@ export const ModalTickerSearchInput = styled.input`
  * 거의 보이지 않는 얇은 스크롤바 — 트랙 투명, 6px thumb는 은은한 border 색, hover 시에만 살짝 진해진다.
  * 티커 모달의 프리셋 목록·검색 결과 등 내부 스크롤 영역에 써서 과한 기본 스크롤바를 절제한다(테마 토큰만 사용).
  */
-const subtleScrollbar = `
+export const subtleScrollbar = `
   scrollbar-width: thin;
   scrollbar-color: ${color.border} transparent;
 
@@ -278,8 +301,9 @@ export const PresetChipGrid = styled.div`
 export const PresetChipScrollArea = styled.div`
   /* 모달 안에서 이 영역이 너무 높으면 아래 입력 필드가 밀려 스크롤이 이중으로 생긴다.
      칩이 여러 줄로 흐르는 영역이라 130px면 3줄가량 보이며 스크롤 신호(peek)를 주고,
-     프리셋 탭 콘텐츠 총 높이를 TickerModal 패널 안에 눌러 모달 자체 스크롤이 불필요해진다
-     (TickerModalPanel 이 overflow:hidden 로 스크롤을 끈다). 나머지는 이 영역 자체 스크롤로 훑는다. */
+     프리셋 탭 콘텐츠 총 높이를 눌러 넓은 화면에서는 모달 자체 스크롤이 안 생긴다.
+     ⚠ 좁은 폭에서는 이것만으로 부족해 패널이 넘친다 — 그래서 TickerModalPanel 은
+     세로 스크롤을 갖는다(예전엔 overflow:hidden 이라 넘친 부분이 잘렸다). */
   max-height: 130px;
   overflow-y: auto;
   overscroll-behavior: contain;

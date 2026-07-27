@@ -76,6 +76,11 @@ export const DrawerTitle = styled.h2`
   color: ${color.text};
 `;
 
+/**
+ * 닫기(×). 메인 설정 드로어와 같은 언어로 **테두리·면색 없는 아이콘 버튼**이다
+ * (원형 pill 보더 제거는 사용자 요청 — 두 드로어의 × 를 통일한다).
+ * 터치 타깃 36×36과 포커스 링은 유지한다.
+ */
 export const DrawerCloseButton = styled.button`
   display: inline-flex;
   align-items: center;
@@ -83,17 +88,14 @@ export const DrawerCloseButton = styled.button`
   flex: 0 0 auto;
   width: 36px;
   height: 36px;
-  border: 1px solid ${color.border};
-  border-radius: ${radius.pill};
-  background: ${color.surface};
+  border: 0;
+  border-radius: ${radius.sm};
+  background: none;
   color: ${color.textSecondary};
   cursor: pointer;
-  transition:
-    background ${motion.fast} ${motion.ease},
-    color ${motion.fast} ${motion.ease};
+  transition: color ${motion.fast} ${motion.ease};
 
   &:hover {
-    background: ${color.surfaceHover};
     color: ${color.text};
   }
 

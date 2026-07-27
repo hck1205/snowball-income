@@ -46,7 +46,14 @@ export const media = {
   up: (key: BreakpointKey) => `@media (min-width: ${BREAKPOINT[key] + 1}px)`
 } as const;
 
-/** ContentLayout이 `container-type: inline-size`라서 컨테이너 쿼리도 함께 쓴다. */
+/**
+ * 컨테이너 쿼리. 컨테이너는 `FeatureLayout`(본문 래퍼) · `DataTable`의 TableWrap ·
+ * `PortfolioAllocation`의 범례 목록이 각각 `container-type: inline-size`로 만든다.
+ *
+ * ⚠ `container-type`은 **레이아웃 컨테인먼트를 함께 적용**해 그 요소가 `position: fixed` 자손의
+ * 컨테이닝 블록이 된다 — fixed 오버레이(드로어·토스트)를 품는 요소에는 켜지 말 것
+ * (`FeatureLayout`이 드로어 폭에서 끄는 이유, Main.shared.styled.ts 참고).
+ */
 export const container = {
   down: (key: BreakpointKey) => `@container (max-width: ${BREAKPOINT[key]}px)`,
   between: (from: BreakpointKey, to: BreakpointKey) =>

@@ -4,6 +4,8 @@ import { PRESET_TICKER_KOREAN_NAME_BY_TICKER } from '@/shared/constants';
 import nasdaqListedJson from '@/utils/TickerParser/output/nasdaq-listed.json';
 import otherListedJson from '@/utils/TickerParser/output/other-listed.json';
 import { InlineField, ModalBackdrop, ModalBody, ModalTitle } from '@/components/common';
+import { useDrawerBackClose } from '@/shared/hooks';
+import { BREAKPOINT } from '@/shared/styles';
 import {
   PresetFilterDrawer,
   applyPresetFilters,
@@ -40,6 +42,14 @@ const SHOW_SEARCH_TAB = false;
 
 const SEARCH_ROWS = buildTickerSearchRows(nasdaqListedJson as ListedTickerMap, otherListedJson as ListedTickerMap);
 
+/** 설정 패널이 오버레이 드로어가 아닌(= 좌측 정적 컬럼) 폭. MobileMenuDrawer 와 같은 경계를 토큰에서 가져온다. */
+const STATIC_COLUMN_QUERY = `(min-width: ${BREAKPOINT.drawer + 1}px)`;
+
+function matchesStaticColumn(): boolean {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
+  return window.matchMedia(STATIC_COLUMN_QUERY).matches;
+}
+
 export default function TickerModalView({
   isOpen,
   mode,
@@ -72,6 +82,13 @@ export default function TickerModalView({
     filterTriggerRef.current?.focus();
   }, []);
 
+  /**
+   * 모바일 뒤로가기로 모달 닫기 — 사용자는 이 모달을 드로어류로 인식한다(드로어 3곳과 같은 훅).
+   * 중첩: 모달(마커1) → 필터 드로어(마커2). 마커가 인스턴스별 고유 id라 뒤로가기 1회는 필터만,
+   * 한 번 더는 모달만 닫는다. URL 은 한 글자도 바뀌지 않는다(훅 JSDoc 계약).
+   */
+  useDrawerBackClose(isOpen, onClose);
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -82,6 +99,36 @@ export default function TickerModalView({
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [isOpen, onClose]);
+
+  /**
+   * 열려 있는 동안 배경 페이지 스크롤 잠금 — 없으면 모바일에서 모달 위 터치가 뒤 페이지를 굴린다.
+   *
+   * ⚠ 잠그는 대상이 `body` 가 아니라 **`html`** 인 이유: 모바일에서 이 모달은 설정 드로어
+   * (MobileMenuDrawer) 위에 열리는데, 그 드로어가 `document.body.style.overflow` 를 같은
+   * 저장·복원 방식으로 소유한다. 저장 시점 값이 서로 얽혀 있어(모달은 드로어가 심어둔 'hidden'을
+   * 저장한다) 둘이 같은 값을 두고 겹치면 잠금이 남을 수 있다. 실측(QA)으로 확인된 영구 잠금 경로는
+   * **순차 닫힘** — 드로어가 먼저 닫혀 body 를 ''로 되돌린 뒤, 모달이 열린 채 남았다가 나중에
+   * 닫히며 자기가 저장해 둔 'hidden'을 복원한다 → 페이지가 영영 잠긴다.
+   * (티커 저장처럼 **같은 커밋에서 함께 닫히는** 경우는 React 18 passive 정리 순서상 언마운트되는
+   * 모달 정리가 드로어의 의존성 변경 정리보다 먼저 돌아 우연히 상쇄된다 — 정리 순서에 기댄 취약한
+   * 초록이라 근거로 삼지 않는다.)
+   * 뷰포트 스크롤은 html 이 visible 일 때만 body 로 전파되므로, 서로 다른 엘리먼트를 잠그면
+   * 두 잠금이 독립적이고 순서와 무관하게 항상 정확히 풀린다.
+   */
+  useEffect(() => {
+    if (!isOpen || typeof document === 'undefined') return undefined;
+    // 오버레이 폭(≤ BREAKPOINT.drawer)에서만 잠근다 — 데스크톱은 배경 스크롤 오작동이 없는 반면,
+    // 클래식 스크롤바(Windows)에서 잠그는 순간 스크롤바가 사라져 배경이 ~15px 밀리는 시각 변화가 생긴다.
+    if (matchesStaticColumn()) return undefined;
+
+    const root = document.documentElement;
+    const previousOverflow = root.style.overflow;
+    root.style.overflow = 'hidden';
+
+    return () => {
+      root.style.overflow = previousOverflow;
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;

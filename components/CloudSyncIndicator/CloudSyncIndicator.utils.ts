@@ -16,6 +16,11 @@ export type CloudSyncDescription = {
   glyph: CloudSyncGlyph;
   /** 버튼 배지용 짧은 라벨. */
   shortLabel: string;
+  /**
+   * shortLabel 뒤에 붙는 **보조 설명**(선택). 넓은 화면에서만 병기하고 좁은 화면에선 감춘다 —
+   * 상태 이름은 shortLabel이 이미 말하므로 없어도 뜻이 안 깨진다.
+   */
+  detailLabel?: string;
   /** 패널 헤더 문장(전체). */
   sentence: string;
   /** 실패 상태에서만 재시도 UI를 띄운다. */
@@ -76,11 +81,14 @@ export const describeCloudSyncState = (
     case 'conflict':
       // 세션 시작 시 이 기기↔클라우드 내용이 달라 화해 대기 중(클라우드 push 정지). 실패(danger)와 구분되는
       // warning 톤 — "손상"이 아니라 "결정 필요"다. 헤더에서 이 상태를 클릭하면 화해 모달을 다시 연다.
+      // 라벨을 '동기화 보류'(핵심) + '확인 필요'(보조)로 쪼갠 이유: 좁은 헤더에서 한 덩어리로 두면
+      // 줄이 넘쳐 글자가 깨졌다. 보조는 넓은 화면에서만 병기한다(합치면 기존 문구와 동일).
       return {
         status: 'conflict',
         tone: 'warning',
         glyph: 'conflict',
-        shortLabel: '동기화 보류 — 확인 필요',
+        shortLabel: '동기화 보류',
+        detailLabel: '확인 필요',
         sentence: '이 기기와 클라우드 내용이 달라요 — 어느 쪽으로 맞출지 확인이 필요해요.',
         canRetry: false
       };
