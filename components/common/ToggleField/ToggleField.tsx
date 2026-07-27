@@ -7,9 +7,10 @@ import { HelpButton, ToggleHeader, ToggleLabel } from './ToggleField.styled';
  * 라벨 줄 + 스위치 한 줄. 스위치 자체는 `Toggle` 프리미티브에 위임한다.
  * (이 컴포넌트는 배치·라벨·도움말만 책임진다)
  *
- * public props는 그대로다 — 호출부가 8곳이라 깨면 안 된다.
- * 달라진 건 스위치의 **생김새**뿐이다: 트랙에 박혀 있던 "ON"/"OFF" 글자가 사라지고,
- * 흰 썸 + 브랜드 트랙의 진짜 스위치가 됐다. `onText`/`offText`를 준 모드 스위치는 그대로 텍스트를 보여준다.
+ * **스위치의 생김새는 호출부가 못 바꾼다** — 트랙 폭(`controlWidth`)·트랙 안 글자(`onText`/`offText`)·
+ * 글자색(`stateTextColor`) prop은 전부 없앴다. 그 셋이 화면마다 다른 크기의 스위치를 만들던
+ * 원인이었다. 두 모드 중 하나를 고르는 스위치라면 그 의미는 **보이는 라벨(`label`)**과
+ * 켜짐의 뜻이 드러나는 **접근명(`accessibleName`)**으로 말한다.
  */
 export default function ToggleField({
   label,
@@ -17,10 +18,7 @@ export default function ToggleField({
   checked,
   disabled,
   hideLabel,
-  controlWidth,
-  stateTextColor,
-  onText,
-  offText,
+  size,
   helpAriaLabel,
   onHelpClick,
   onChange
@@ -52,10 +50,7 @@ export default function ToggleField({
         label={accessibleName ?? label}
         checked={checked}
         disabled={disabled}
-        onText={onText}
-        offText={offText}
-        controlWidth={controlWidth}
-        stateTextColor={stateTextColor}
+        size={size}
         onChange={onChange}
       />
     </ToggleLabel>

@@ -8,9 +8,10 @@
  */
 export const ALLOCATION_COPY = {
   /* ① 전역 "비율 조절 잠금" 토글 (A) */
+  /** 스위치 접근명(스크린리더) — 켜짐의 의미가 드러나는 긴 문장. */
   lockToggleLabel: '비율 조절 잠금',
-  lockToggleOnText: '잠금',
-  lockToggleOffText: '조절',
+  /** 카드 헤더에 보이는 짧은 라벨 — 자물쇠 글리프와 나란히 놓여 맥락이 이미 서 있다. */
+  lockToggleShortLabel: '잠금',
 
   /* ② 종목별 "고정" 버튼 (B) */
   fixButtonText: '고정',
@@ -20,7 +21,8 @@ export const ALLOCATION_COPY = {
   fixButtonTitleUnfix: '비중 고정 해제',
 
   /* 비활성 사유 힌트 (우선순위로 하나만 노출) */
-  hintLocked: "비중 조절이 잠겨 있어요. 위 스위치를 '조절'로 바꾸면 드래그할 수 있어요.",
+  /** 화면에 보이는 스위치 라벨(lockToggleShortLabel)을 그대로 인용한다 — 라벨을 바꾸면 이 문장도 함께 고칠 것. */
+  hintLocked: "비중 조절이 잠겨 있어요. 오른쪽 위 '잠금' 스위치를 끄면 드래그할 수 있어요.",
   hintOneAdjustable: '다른 종목이 고정돼 조절할 여지가 없어요. 고정을 풀면 다시 드래그할 수 있어요.',
   hintSingleTicker: '종목이 하나뿐이라 비중은 100%예요.',
 

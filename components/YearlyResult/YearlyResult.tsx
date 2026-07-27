@@ -62,12 +62,9 @@ function YearlyResultComponent({
               ))}
             </SeriesFilterGroup>
             <ToggleField
-              label="Fill"
+              label="채우기"
+              accessibleName="그래프 면 채우기"
               checked={isFillOn}
-              hideLabel
-              controlWidth="60px"
-              onText="Color"
-              offText="Blank"
               onChange={(event) => {
                 trackEvent(ANALYTICS_EVENT.TOGGLE_CHANGED, {
                   field_name: 'isYearlyAreaFillOn',

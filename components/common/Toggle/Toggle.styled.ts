@@ -1,5 +1,6 @@
 import styled from '@emotion/styled';
-import { color, font, motion, radius } from '@/shared/styles';
+import { color, motion, radius } from '@/shared/styles';
+import type { ToggleSize } from './Toggle.types';
 
 /**
  * 진짜 스위치.
@@ -10,19 +11,29 @@ import { color, font, motion, radius } from '@/shared/styles';
  * 고친 방식(iOS/Material이 수렴한 관례):
  *  - 썸은 **항상 흰색**이고 위치로 상태를 말한다(왼쪽=꺼짐, 오른쪽=켜짐).
  *  - 상태는 **트랙 색**이 말한다(중립 회색 → 브랜드).
- *  - 텍스트는 기본적으로 없다. 모드 선택 스위치(간략/상세)일 때만 넣는다.
+ *  - 트랙 안에는 **글자를 넣지 않는다**. 두 모드 중 하나를 고르는 스위치라면
+ *    그 의미는 `ToggleField`의 **보이는 라벨**이 말한다(트랙에 박힌 글자는 폭도 크기도 제각각이라
+ *    화면마다 스위치가 달라 보였다 — 그래서 API에서 아예 없앴다).
  */
 
-const TRACK_HEIGHT = 24;
-const THUMB = 18;
-const INSET = 3;
+/**
+ * 크기 단계별 치수. `inset`은 `(height - thumb) / 2` 라 썸이 세로 중앙에 온다.
+ * 단계 추가 기준은 `Toggle.types.ts`의 `ToggleSize` 주석에 있다.
+ */
+const TOGGLE_SIZE: Record<ToggleSize, { track: number; height: number; thumb: number; inset: number }> = {
+  md: { track: 44, height: 24, thumb: 18, inset: 3 }
+};
 
-export const ToggleTrack = styled.span<{ checked: boolean; disabled?: boolean; controlWidth?: string }>`
+/*
+ * ⚠ styled로 내리는 prop 이름이 `sizeVariant`인 이유: `size`는 **유효한 HTML 어트리뷰트**라
+ * @emotion/is-prop-valid를 통과해 DOM으로 새어 나간다(Select.styled.ts와 같은 처리).
+ */
+export const ToggleTrack = styled.span<{ checked: boolean; disabled?: boolean; sizeVariant: ToggleSize }>`
   position: relative;
   flex: 0 0 auto;
   display: inline-block;
-  width: ${({ controlWidth }) => controlWidth ?? '44px'};
-  height: ${TRACK_HEIGHT}px;
+  width: ${({ sizeVariant }) => TOGGLE_SIZE[sizeVariant].track}px;
+  height: ${({ sizeVariant }) => TOGGLE_SIZE[sizeVariant].height}px;
   border-radius: ${radius.pill};
   border: 1px solid ${({ checked, disabled }) => (disabled ? color.border : checked ? color.brand : color.borderStrong)};
   background: ${({ checked, disabled }) =>
@@ -30,7 +41,7 @@ export const ToggleTrack = styled.span<{ checked: boolean; disabled?: boolean; c
   transition: background-color ${motion.fast} ${motion.ease}, border-color ${motion.fast} ${motion.ease};
   cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
 
-  /* 스위치는 작다. 히트 영역만 44x44로 넓힌다(WCAG 2.5.5). */
+  /* 스위치는 작다. 히트 영역만 44x44로 넓힌다(WCAG 2.5.5) — 크기 단계와 무관하게 항상. */
   &::after {
     content: '';
     position: absolute;
@@ -43,12 +54,15 @@ export const ToggleTrack = styled.span<{ checked: boolean; disabled?: boolean; c
   }
 `;
 
-export const ToggleThumb = styled.span<{ checked: boolean; disabled?: boolean }>`
+export const ToggleThumb = styled.span<{ checked: boolean; disabled?: boolean; sizeVariant: ToggleSize }>`
   position: absolute;
   top: 50%;
-  left: ${({ checked }) => (checked ? `calc(100% - ${THUMB + INSET}px)` : `${INSET - 1}px`)};
-  width: ${THUMB}px;
-  height: ${THUMB}px;
+  left: ${({ checked, sizeVariant }) => {
+    const { thumb, inset } = TOGGLE_SIZE[sizeVariant];
+    return checked ? `calc(100% - ${thumb + inset}px)` : `${inset - 1}px`;
+  }};
+  width: ${({ sizeVariant }) => TOGGLE_SIZE[sizeVariant].thumb}px;
+  height: ${({ sizeVariant }) => TOGGLE_SIZE[sizeVariant].thumb}px;
   border-radius: ${radius.pill};
   /* 썸은 정적 흰색. onBrand는 프리셋별로 어두울 수 있어(velog 다크 #121212 → 트랙과 1.07:1로 소실)
      비브랜드 트랙 위에 놓이는 썸에는 부적합하다. 켜짐은 위치와 트랙 색이 말한다. */
@@ -57,23 +71,6 @@ export const ToggleThumb = styled.span<{ checked: boolean; disabled?: boolean }>
   transform: translateY(-50%);
   pointer-events: none;
   transition: left ${motion.fast} ${motion.ease};
-`;
-
-/** 모드 스위치(간략/상세)의 트랙 내부 텍스트. 썸 반대편에 붙는다. */
-export const ToggleStateText = styled.span<{ checked: boolean; disabled?: boolean; stateTextColor?: string }>`
-  position: absolute;
-  top: 50%;
-  left: ${({ checked }) => (checked ? '8px' : 'auto')};
-  right: ${({ checked }) => (checked ? 'auto' : '8px')};
-  transform: translateY(-50%);
-  font-size: ${font.size['2xs']};
-  font-weight: ${font.weight.bold};
-  line-height: 1;
-  letter-spacing: 0.02em;
-  color: ${({ checked, disabled, stateTextColor }) =>
-    stateTextColor ?? (disabled ? color.textMuted : checked ? color.onBrand : color.textSecondary)};
-  user-select: none;
-  pointer-events: none;
 `;
 
 /**
