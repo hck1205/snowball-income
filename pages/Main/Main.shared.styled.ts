@@ -220,7 +220,7 @@ export const ModalTickerSearchInput = styled.input`
  * 거의 보이지 않는 얇은 스크롤바 — 트랙 투명, 6px thumb는 은은한 border 색, hover 시에만 살짝 진해진다.
  * 티커 모달의 프리셋 목록·검색 결과 등 내부 스크롤 영역에 써서 과한 기본 스크롤바를 절제한다(테마 토큰만 사용).
  */
-const subtleScrollbar = `
+export const subtleScrollbar = `
   scrollbar-width: thin;
   scrollbar-color: ${color.border} transparent;
 
@@ -301,8 +301,9 @@ export const PresetChipGrid = styled.div`
 export const PresetChipScrollArea = styled.div`
   /* 모달 안에서 이 영역이 너무 높으면 아래 입력 필드가 밀려 스크롤이 이중으로 생긴다.
      칩이 여러 줄로 흐르는 영역이라 130px면 3줄가량 보이며 스크롤 신호(peek)를 주고,
-     프리셋 탭 콘텐츠 총 높이를 TickerModal 패널 안에 눌러 모달 자체 스크롤이 불필요해진다
-     (TickerModalPanel 이 overflow:hidden 로 스크롤을 끈다). 나머지는 이 영역 자체 스크롤로 훑는다. */
+     프리셋 탭 콘텐츠 총 높이를 눌러 넓은 화면에서는 모달 자체 스크롤이 안 생긴다.
+     ⚠ 좁은 폭에서는 이것만으로 부족해 패널이 넘친다 — 그래서 TickerModalPanel 은
+     세로 스크롤을 갖는다(예전엔 overflow:hidden 이라 넘친 부분이 잘렸다). */
   max-height: 130px;
   overflow-y: auto;
   overscroll-behavior: contain;
