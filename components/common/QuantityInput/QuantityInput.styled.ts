@@ -38,19 +38,6 @@ export const QuantityField = styled.input`
     color: ${color.textMuted};
     cursor: not-allowed;
   }
-
-  /*
-   * 브라우저 기본 스피너 제거 — 표 셀 안에서 화살표가 값과 겹치고, 소수 수량에는 1 단위 증감이 무의미하다.
-   * (포커스 링은 전역 규칙 그대로 둔다 — outline: none 금지.)
-   */
-  &::-webkit-outer-spin-button,
-  &::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-
-  -moz-appearance: textfield;
-  appearance: textfield;
 `;
 
 /** 단위 표기('주'). 값의 일부가 아니라 장식이라 클릭이 입력으로 통과한다. */

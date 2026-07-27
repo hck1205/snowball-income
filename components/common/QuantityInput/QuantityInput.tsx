@@ -11,6 +11,12 @@ import { QuantityField, QuantityRoot, QuantityUnit } from './QuantityInput.style
  * 값은 사용자가 친 문자열 그대로 들고 있고(`"1."` 도 유효한 중간 상태), 입력할 때마다
  * 숫자·점 1개·소수 4자리로만 걸러낸다. **표시값 반올림은 blur 시 호출부가** 한다 —
  * "정규화된 수량"의 정의는 계산 엔진이 소유하고, 이 컴포넌트가 그 규칙을 두 번째로 구현하지 않는다.
+ *
+ * ⚠ `type="number"` 가 아니라 **`type="text"` + `inputMode="decimal"`** 이다. 숫자 입력은 브라우저가
+ * 파싱하지 못하는 중간 상태(`"120."`)를 badInput 으로 보고 `value` 를 **빈 문자열로** 넘겨,
+ * 화면에는 `120.` 이 남는데 상태는 `''` 이 되는 괴리가 생긴다(소수점을 찍는 순간 값이 사라진다).
+ * 텍스트로 받으면 원문이 그대로 오고 걸러내기는 아래 한 곳(`toQuantityInputChange`)이 전부 맡는다.
+ * 모바일 숫자 키패드는 `inputMode` 가 책임진다.
  */
 export default function QuantityInput({
   value,
@@ -25,10 +31,8 @@ export default function QuantityInput({
   return (
     <QuantityRoot>
       <QuantityField
-        type="number"
+        type="text"
         inputMode="decimal"
-        step="any"
-        min="0"
         autoComplete="off"
         ref={inputRef}
         value={value}

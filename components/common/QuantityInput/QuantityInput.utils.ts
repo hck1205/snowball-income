@@ -11,7 +11,7 @@
  * ⚠ 계산 엔진의 `PORTFOLIO_QUANTITY_DECIMALS`(shared/lib/portfolio)와 **같은 값이어야 한다**.
  * 여기서 상수를 다시 정의하는 이유는 이 컴포넌트가 `components/common`(엔트리 번들)이라
  * 시세 스냅샷을 끌어오는 계산 계층을 import 하지 않기 위해서다. 두 값이 어긋나면
- * `test/portfolio/quantityInput.test.ts` 가 즉시 빨개진다(그 테스트가 두 상수를 대조한다).
+ * 옆 파일 `QuantityInput.test.ts` 가 즉시 빨개진다(그 테스트가 두 상수를 대조한다).
  */
 export const QUANTITY_INPUT_DECIMALS = 4;
 
