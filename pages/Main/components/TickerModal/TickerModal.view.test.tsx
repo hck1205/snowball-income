@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { PresetTickerKey } from '@/shared/constants';
 import type { TickerDraft } from '@/shared/types/snowball';
@@ -24,22 +24,24 @@ const PRESET_TICKERS = {
   D: makeDraft({ ticker: 'D', initialPrice: 40, dividendYield: 8, dividendGrowth: 1, frequency: 'monthly' })
 } as unknown as Record<PresetTickerKey, TickerDraft>;
 
+const makeProps = (overrides: Partial<TickerModalViewProps> = {}): TickerModalViewProps => ({
+  isOpen: true,
+  mode: 'create',
+  selectedPreset: 'custom',
+  presetTickers: PRESET_TICKERS,
+  tickerDraft: makeDraft({ ticker: '', name: '' }),
+  onBackdropClick: vi.fn(),
+  onSelectPreset: vi.fn(),
+  onChangeDraft: vi.fn(),
+  onHelpExpectedTotalReturn: vi.fn(),
+  onDelete: vi.fn(),
+  onClose: vi.fn(),
+  onSave: vi.fn(),
+  ...overrides
+});
+
 const renderModal = (overrides: Partial<TickerModalViewProps> = {}) => {
-  const props: TickerModalViewProps = {
-    isOpen: true,
-    mode: 'create',
-    selectedPreset: 'custom',
-    presetTickers: PRESET_TICKERS,
-    tickerDraft: makeDraft({ ticker: '', name: '' }),
-    onBackdropClick: vi.fn(),
-    onSelectPreset: vi.fn(),
-    onChangeDraft: vi.fn(),
-    onHelpExpectedTotalReturn: vi.fn(),
-    onDelete: vi.fn(),
-    onClose: vi.fn(),
-    onSave: vi.fn(),
-    ...overrides
-  };
+  const props = makeProps(overrides);
   render(<TickerModalView {...props} />);
   return props;
 };
@@ -255,5 +257,173 @@ describe('TickerModal "필터 적용 중" 표시(3중 표식)', () => {
     renderModal();
     expect(screen.queryByText(/필터 적용 중/)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/활성 필터/)).not.toBeInTheDocument();
+  });
+});
+
+describe('TickerModal 뒤로가기 닫기 · 배경 스크롤 잠금', () => {
+  const modal = () => screen.getByRole('dialog', { name: '티커 생성' });
+  const queryDrawer = () => screen.queryByRole('dialog', { name: /프리셋 필터/ });
+
+  /** jsdom 의 `history.back()` 은 비동기 태스크라 popstate 가 다음 틱에 온다. */
+  const goBack = async () => {
+    window.history.back();
+    await new Promise((resolve) => {
+      setTimeout(resolve, 0);
+    });
+  };
+
+  it('뒤로가기 1회는 필터 드로어만 닫고, 한 번 더 누르면 모달이 닫힌다', async () => {
+    // 중첩 계약: 모달(마커1) 위에 필터 드로어(마커2). 한 번에 두 겹이 걷히면 안 된다.
+    const user = userEvent.setup();
+    const props = renderModal();
+    await user.click(toggle(false));
+    expect(queryDrawer()).toBeInTheDocument();
+
+    await goBack();
+
+    await waitFor(() => {
+      expect(queryDrawer()).not.toBeInTheDocument();
+    });
+    // 모달은 controlled prop 이라 화면에 남는다 — "안 닫혔다"의 증거는 onClose 미호출이다.
+    expect(props.onClose).not.toHaveBeenCalled();
+    expect(modal()).toBeInTheDocument();
+
+    await goBack();
+
+    await waitFor(() => {
+      expect(props.onClose).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('모달을 열어도 URL 은 한 글자도 바뀌지 않는다', () => {
+    // 히스토리 마커는 state 에만 심는다(해시 라우팅 금지 · 공유 링크 보존).
+    const before = window.location.href;
+    renderModal();
+    expect(window.location.href).toBe(before);
+    /*
+     * ⚠ 위 캡처-비교만으로는 부족하다 — 앞선 테스트가 이미 URL 을 오염시켰으면 before 가 그
+     *   오염된 값이라 단정이 자기충족이 된다(마커에 '#drawer' 를 붙이는 뮤테이션이 이 테스트를
+     *   통과했다). 해시 라우팅 금지는 절대 단정으로 못 박는다.
+     */
+    expect(window.location.hash).toBe('');
+  });
+
+  it('열려 있는 동안 배경 스크롤을 잠그고, 닫으면 원래 값으로 되돌린다', () => {
+    const root = document.documentElement;
+    /*
+     * ⚠ 시작값을 캡처해 그 값과 비교하면(before = root.style.overflow → toBe(before)) 앞선 테스트가
+     *   잠금을 흘렸을 때 단정이 **자기충족**이 된다 — 복원 로직을 통째로 지운 뮤테이션이 파일 전체
+     *   실행에서 그대로 살아남았다(단독 실행에서만 빨개짐). 절대값 ''로 못 박아 누수까지 잡는다.
+     */
+    expect(root.style.overflow).toBe('');
+
+    const { unmount } = render(<TickerModalView {...makeProps()} />);
+    expect(root.style.overflow).toBe('hidden');
+
+    unmount();
+    expect(root.style.overflow).toBe('');
+  });
+});
+
+describe('TickerModal 히스토리 수지(엔트리 과·부족)', () => {
+  /** 훅이 `history.state`에만 심는 마커 키(useDrawerBackClose 내부 상수와 같은 값). */
+  const readDrawerMarker = (): unknown => (window.history.state as Record<string, unknown> | null)?.sbDrawer;
+  const readPageSentinel = (): unknown => (window.history.state as Record<string, unknown> | null)?.sbTestPage;
+
+  /** 예약된 되감기(setTimeout 0) → history.back() → popstate 까지 이벤트 루프를 흘려보낸다. */
+  const settleHistory = async () => {
+    for (let i = 0; i < 4; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await act(async () => {
+        await new Promise((resolve) => {
+          setTimeout(resolve, 0);
+        });
+      });
+    }
+  };
+
+  /** "이전 페이지" 역할의 기준면 엔트리. 되감기가 이걸 삼키면 = 실서비스에서 페이지 이탈이다. */
+  const pushPageSentinel = (id: string) => {
+    window.history.pushState({ sbTestPage: id }, '');
+  };
+
+  it('ESC 로 닫으면 심어둔 엔트리를 정확히 1개만 되감는다(죽은 엔트리도, 페이지 이탈도 없음)', async () => {
+    pushPageSentinel('esc-page');
+    const props = makeProps();
+    const { rerender } = render(<TickerModalView {...props} />);
+    // 열림 = 마커 엔트리 1개. 기준면 state 는 스프레드로 보존된다.
+    expect(readDrawerMarker()).toBeDefined();
+    expect(readPageSentinel()).toBe('esc-page');
+
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(props.onClose).toHaveBeenCalledTimes(1);
+    // 컨테이너가 닫는다(controlled) — 이 리렌더의 정리에서 되감기가 예약된다.
+    rerender(<TickerModalView {...props} isOpen={false} />);
+    await settleHistory();
+
+    // 부족(죽은 엔트리) 아님: 마커가 사라졌다.
+    await waitFor(() => {
+      expect(readDrawerMarker()).toBeUndefined();
+    });
+    // 과다(페이지 이탈) 아님: 기준면 엔트리가 그대로 현재 엔트리다.
+    expect(readPageSentinel()).toBe('esc-page');
+    // 되감기 popstate 가 onClose 를 다시 부르지 않는다(리스너 선해제 계약).
+    expect(props.onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('?share= 쿼리가 붙은 URL 에서 모달을 열고 닫아도 URL 이 한 글자도 바뀌지 않는다', async () => {
+    const originalHref = window.location.href;
+    const originalState = window.history.state;
+    window.history.replaceState({ sbTestPage: 'share-page' }, '', '/?share=NoBiIgbg9g');
+    const shareHref = window.location.href;
+
+    const props = makeProps();
+    const { rerender } = render(<TickerModalView {...props} />);
+    expect(window.location.href).toBe(shareHref);
+
+    // 중첩 드로어까지 열었다 닫아도(엔트리 2개) 쿼리는 불변이어야 한다.
+    fireEvent.click(screen.getByRole('button', { expanded: false }));
+    expect(window.location.href).toBe(shareHref);
+
+    rerender(<TickerModalView {...props} isOpen={false} />);
+    await settleHistory();
+
+    expect(window.location.href).toBe(shareHref);
+    expect(window.location.search).toBe('?share=NoBiIgbg9g');
+
+    window.history.replaceState(originalState, '', originalHref);
+  });
+
+  it('필터 드로어를 연 채 모달을 통째로 닫아도 기준면 엔트리를 삼키지 않는다', async () => {
+    // 저장/취소 = 모달과 그 안의 필터 드로어가 **같은 커밋**에 언마운트되는 동선.
+    pushPageSentinel('nested-page');
+    const props = makeProps();
+    const { rerender } = render(<TickerModalView {...props} />);
+    fireEvent.click(screen.getByRole('button', { expanded: false }));
+    expect(screen.getByRole('dialog', { name: /프리셋 필터/ })).toBeInTheDocument();
+
+    rerender(<TickerModalView {...props} isOpen={false} />);
+    await settleHistory();
+
+    // 핵심 안전선: 잘못 되감아 기준면(= 이전 페이지)까지 소비하면 실서비스에서 화면이 통째로 이탈한다.
+    expect(readPageSentinel()).toBe('nested-page');
+    expect(props.onClose).not.toHaveBeenCalled();
+
+    /*
+     * 관측된(그리고 훅 JSDoc 이 "의도된 트레이드오프"로 적어 둔) 결과: 바깥 모달의 마커 엔트리가
+     * **1개 남는다**. 트리 순서상 모달 정리가 먼저 도는데 그때 현재 엔트리는 안쪽 드로어의 마커라
+     * "남의 엔트리를 되감지 않는다" 규칙에 걸려 되감기를 포기하기 때문이다.
+     * → 사용자 비용은 "뒤로가기 1회가 화면 변화 없이 소비됨"까지이고, 그 1회는 기준면으로
+     *   정확히 복귀한다(두 칸 이탈 아님). 이 경계가 무너지면 여기서 빨개진다.
+     */
+    expect(readDrawerMarker()).toBeDefined();
+
+    window.history.back();
+    await settleHistory();
+
+    await waitFor(() => {
+      expect(readDrawerMarker()).toBeUndefined();
+    });
+    expect(readPageSentinel()).toBe('nested-page');
   });
 });

@@ -1004,11 +1004,18 @@ var marketData_generated_default = {
       observedDividendCagr: 9.15,
       payoutMonths: [
         3,
-        6,
-        9,
+        7,
+        10,
         12
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 4,
+      estimatedPayDayByMonth: {
+        "3": 31,
+        "7": 2,
+        "10": 1,
+        "12": 26
+      }
     },
     VIGI: {
       initialPrice: 95.16,

@@ -1,5 +1,13 @@
 import styled from '@emotion/styled';
-import { color, headerControlsGrid, headerGlassSurface, headerRowGap, space, zIndex } from '@/shared/styles';
+import {
+  color,
+  headerControlsGrid,
+  headerGlassSurface,
+  headerRowGap,
+  media,
+  space,
+  zIndex
+} from '@/shared/styles';
 
 /**
  * 시뮬레이터 헤더 — 커뮤니티 헤더(`components/community/CommunityHeader` HeaderRoot)와 **형태까지 동일**한
@@ -62,6 +70,11 @@ export const ControlsRow = styled.div`
  * 드로어 토글이 **여기 정적으로** 사는 것이 중요하다: 헤더가 sticky라 항상 화면에 있으므로
  * 예전의 `position: fixed` 플로팅 승격(+ IntersectionObserver sentinel)이 통째로 불필요해졌다.
  * 토글이 fixed가 아니게 되면서 헤더의 `backdrop-filter`가 만드는 컨테이닝 블록 문제도 사라졌다.
+ *
+ * drawer↓에선 **줄바꿈을 허용**한다. 좁은 폭에서 상태 표시(동기화 보류 등)가 "설정 열기" 옆에
+ * 억지로 끼면 글자가 잘리거나 우측 컨트롤을 밀어낸다 — 접혀서 토글 **아래 줄**로 내려가는 편이
+ * 사용자가 요청한 "설정 열기 아이콘 밑에 조그맣게"와도 맞는다. 어떤 자식이 줄을 차지할지는
+ * 자식(`CloudSyncIndicator`의 HeaderSlot)이 상태별로 결정한다.
  */
 export const LeadingSlot = styled.div`
   grid-column: 1;
@@ -70,9 +83,20 @@ export const LeadingSlot = styled.div`
   align-items: center;
   gap: ${space[2]};
   min-width: 0;
+
+  ${media.down('drawer')} {
+    flex-wrap: wrap;
+    row-gap: ${space[1]};
+  }
 `;
 
-/** 컨트롤 줄 3열 — 로그인·더보기 등. drawer↓ flex 폴백에서도 우측 정렬을 유지한다. */
+/**
+ * 컨트롤 줄 3열 — 로그인·더보기 등. drawer↓ flex 폴백에서도 우측 정렬을 유지한다.
+ *
+ * drawer↓에서 좌측(`LeadingSlot`)이 2줄로 접혀도 **우측 컨트롤은 첫 줄 높이에 그대로 머문다**
+ * (`align-self: flex-start` + 토글 버튼과 같은 40px 최소 높이). 안 그러면 좌측이 커질 때마다
+ * 우측 아이콘 묶음이 세로 중앙으로 따라 내려가 헤더가 출렁인다.
+ */
 export const Actions = styled.div`
   grid-column: 3;
   justify-self: end;
@@ -85,4 +109,9 @@ export const Actions = styled.div`
   flex-wrap: wrap;
   justify-content: flex-end;
   row-gap: ${space[1]};
+
+  ${media.down('drawer')} {
+    align-self: flex-start;
+    min-height: 40px;
+  }
 `;

@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef } from 'react';
 import { X } from 'lucide-react';
+import { useDrawerBackClose } from '@/shared/hooks';
 import type { PickerDrawerProps } from './PickerDrawer.types';
 import {
   DrawerBackdrop,
@@ -19,6 +20,9 @@ import {
  *
  * Escape 는 **이미 처리된 이벤트를 가로채지 않는다**(`defaultPrevented` 확인) — 안쪽 검색 입력의
  * "Escape = 검색어만 지우기"가 먼저고, 지울 게 없을 때만 드로어가 닫힌다.
+ *
+ * 이 드로어는 폭과 무관하게 항상 오버레이라(`PickerDrawer.styled`에 미디어 분기가 없다)
+ * 뒤로가기 닫기도 항상 켠다.
  */
 export default function PickerDrawer({
   id,
@@ -31,6 +35,9 @@ export default function PickerDrawer({
   const titleId = useId();
   const closeRef = useRef<HTMLButtonElement | null>(null);
   const restoreRef = useRef<HTMLElement | null>(null);
+
+  // 뒤로가기 = 드로어 닫기(페이지 이탈 아님). URL은 그대로다.
+  useDrawerBackClose(isOpen, onClose);
 
   useEffect(() => {
     if (!isOpen) return undefined;

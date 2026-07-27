@@ -23,7 +23,10 @@ export const ConfigColumn = styled.aside`
     background-color: ${color.bg};
     border-right: 1px solid ${color.border};
     box-shadow: ${shadow.e3};
+    /* 아래 여백은 홈 인디케이터(iOS)만큼 더 준다 — 그렇지 않으면 마지막 입력이 제스처 바에 물린다.
+       env()를 모르는 브라우저는 calc가 무효라 폴백 선언(위 padding)이 그대로 쓰인다. */
     padding: ${space[12]} ${space[3]} ${space[5]};
+    padding-bottom: calc(${space[5]} + env(safe-area-inset-bottom, 0px));
     transform: translateX(-100%);
     transition: transform ${motion.base} ${motion.ease};
     overflow-x: hidden;
@@ -53,6 +56,11 @@ export const DrawerBackdrop = styled.div<{ open: boolean }>`
   }
 `;
 
+/**
+ * 드로어 닫기(×). **테두리·면색 없는 아이콘 버튼**이다 — 예전의 원형 pill 보더는 사용자 요청으로 제거했다.
+ * 크롬은 사라져도 터치 타깃(38×38)은 그대로 두고, 포커스 링은 전역 `button:focus-visible`
+ * (globalStyles.ts:141-152)이 그린다 — 여기서 outline을 끄지 말 것.
+ */
 export const DrawerCloseButton = styled.button`
   display: none;
 
@@ -65,19 +73,18 @@ export const DrawerCloseButton = styled.button`
     right: ${space[2]};
     width: 38px;
     height: 38px;
-    border: 1px solid ${color.border};
-    background: ${color.surface};
+    border: 0;
+    background: none;
     color: ${color.textSecondary};
-    border-radius: ${radius.pill};
+    border-radius: ${radius.sm};
     padding: 0;
     font-size: ${font.size.lg};
     line-height: 1;
     cursor: pointer;
     touch-action: manipulation;
-    transition: background-color ${motion.fast} ${motion.ease}, color ${motion.fast} ${motion.ease};
+    transition: color ${motion.fast} ${motion.ease};
 
     &:hover {
-      background: ${color.surfaceHover};
       color: ${color.text};
     }
   }
