@@ -25,6 +25,11 @@ export const COMMUNITY_COPY = {
     tickers: 'ETF 소개',
     /** 배당 지급 월 캘린더(/dividend/calendar). 시뮬 결과가 아니라 관측 지급월 기반 페이지다. */
     dividendCalendar: '배당 캘린더',
+    /**
+     * 내 포트폴리오(/dividend/portfolio). 보유 종목·수량으로 현재 배당을 계산한다.
+     * ⚠ 단독 '포트폴리오' 금지 — 같은 nav 에 `gallery: '포트폴리오 갤러리'` 가 있어 서로 헷갈린다.
+     */
+    myPortfolio: '내 포트폴리오',
     /** 목표 달성(/dividend/goal). 저장된 시나리오로 목표 월배당까지의 진행을 보여 준다. */
     goal: '목표 달성',
     /** 상세/글쓰기 하위에서 목록으로 복귀하는 뒤로가기 라벨. */

@@ -57,6 +57,9 @@ export {
   SelectedChipWrap
 } from './PortfolioAllocation';
 
+export { default as QuantityInput, QUANTITY_INPUT_DECIMALS } from './QuantityInput';
+export type { QuantityInputProps } from './QuantityInput';
+
 export { default as RangeSlider } from './RangeSlider';
 export type { RangeSliderProps } from './RangeSlider';
 

@@ -69,6 +69,14 @@ const DividendCalendarPage = lazy(() => import('@/pages/DividendCalendar/Dividen
  */
 const GoalPage = lazy(() => import('@/pages/Goal/GoalPage'));
 
+/**
+ * 내 포트폴리오(`/dividend/portfolio`) — 목표 달성과 같은 `lazy` 격리.
+ *
+ * 보유 목록은 자기 저장소(IndexedDB `snowball-portfolio`)에만 있고 시뮬레이터 상태와 겹치지 않는다.
+ * PrimaryNav 에는 경로 문자열과 아이콘만 추가되므로 이 lazy 경계가 유지된다.
+ */
+const PortfolioPage = lazy(() => import('@/pages/Portfolio/PortfolioPage'));
+
 const CommunityLayout = lazy(() => import('@/pages/Community/CommunityLayout'));
 const CommunityGalleryPage = lazy(() => import('@/pages/Community/CommunityGalleryPage'));
 const CommunityBoardPage = lazy(() => import('@/pages/Community/CommunityBoardPage'));
@@ -188,6 +196,14 @@ export const routes: RouteObject[] = [
         element: (
           <Suspense fallback={null}>
             <GoalPage />
+          </Suspense>
+        )
+      },
+      {
+        path: '/dividend/portfolio',
+        element: (
+          <Suspense fallback={null}>
+            <PortfolioPage />
           </Suspense>
         )
       },

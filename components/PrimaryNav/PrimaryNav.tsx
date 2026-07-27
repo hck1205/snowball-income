@@ -1,6 +1,6 @@
 import { useInRouterContext } from 'react-router-dom';
 // per-icon named import(트리셰이킹) → 엔트리에는 이 아이콘들만 실린다(CommunityNavLink·ThemePresetSwitcher와 동일 패턴).
-import { BookOpen, CalendarDays, LayoutGrid, LineChart, MessageSquare, Target } from 'lucide-react';
+import { BookOpen, CalendarDays, LayoutGrid, LineChart, MessageSquare, Target, Wallet } from 'lucide-react';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
 import { isCommunityEnabled } from '@/shared/lib/supabase';
 import {
@@ -43,8 +43,14 @@ const NavLinkItems = () => (
       <NavLabel>{n.simulator}</NavLabel>
     </NavItem>
     {/* ── 순서 = 예상 관심도·클릭률(사용자 결정 2026-07-25) ──────────────────
-        시뮬레이터(핵심 도구) → 목표 달성(시뮬 결과를 이어 보는 화면) → 배당 캘린더(매일 볼 유틸리티) →
+        시뮬레이터(핵심 도구) → 내 포트폴리오(지금 상태) → 목표 달성(진행률) → 배당 캘린더(매일 볼 유틸리티) →
         갤러리(구경 콘텐츠) → 게시판 → ETF 소개(검색 유입이 주라 nav 클릭률은 가장 낮다). GA4 로 실측되면 재조정. */}
+    {/* 내 포트폴리오 — 보유 종목·수량으로 "지금 받는 배당"을 계산하는 화면. 아이콘은 지갑(Wallet):
+        Briefcase 는 클리셰이고 PieChart 는 시뮬레이터(LineChart)와 혼동된다. */}
+    <NavItem to="/dividend/portfolio" aria-label={n.myPortfolio}>
+      <Wallet size={16} strokeWidth={1.8} aria-hidden focusable={false} />
+      <NavLabel>{n.myPortfolio}</NavLabel>
+    </NavItem>
     {/* 목표 달성 — 저장된 시나리오를 읽기만 하는 독립 화면이라 커뮤니티 여부와 무관하게 항상 노출.
         `/dividend/calendar`와는 형제 세그먼트라 NavLink가 서로를 활성화하지 않는다(`end` 불필요). */}
     <NavItem to="/dividend/goal" aria-label={n.goal}>

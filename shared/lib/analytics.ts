@@ -115,6 +115,20 @@ export const ANALYTICS_EVENT = {
   // 목표 미설정이면 뒤 두 파라미터는 "0"이 아니라 해당 없음이라 아예 보내지 않는다.
   GOAL_WIDGET_VIEW: "goal_widget_view",
 
+  // 내 포트폴리오(/dividend/portfolio) 진입 이벤트(파라미터: holdings_count·has_holdings). 진입당 1회.
+  // 용도: ①이 화면에 오는 사람 중 실제로 보유를 등록해 둔 비율(has_holdings = 재방문 가치의 1차 신호)
+  // ②등록 종목 수 분포로 목록 UI(표/카드) 밀도와 정렬 필요성을 판단.
+  PORTFOLIO_VIEW: "portfolio_view",
+  // 보유 종목 저장 이벤트(파라미터: action='add'|'edit'·covered). 수량 편집은 **값이 실제로 바뀐 blur 시점**에만 발화한다.
+  // 용도: 추가 대비 수량 입력 완료율(=계산이 성립한 비율)과, 시뮬레이터가 아는 종목(covered)의 비중 파악.
+  PORTFOLIO_HOLDING_SAVED: "portfolio_holding_saved",
+  // 보유 종목 삭제 이벤트(파라미터: covered). 용도: 추가→삭제 이탈 패턴과 잘못 고른 종목의 규모 관측.
+  PORTFOLIO_HOLDING_DELETED: "portfolio_holding_deleted",
+  // 요약(지금 받는 배당) 노출 이벤트(파라미터: holdings_count·covered_count·value_bucket). 진입당 1회.
+  // 용도: 계산이 실제로 성립한 세션 비율(covered_count)과 평가금액 규모 분포. ⚠ 금액 원값은 싣지 않는다 —
+  // 환율 실패 세션과 성공 세션이 같은 축에 놓이도록 **달러 기준 버킷**만 보낸다(PortfolioPage.utils 경계).
+  PORTFOLIO_SUMMARY_VIEW: "portfolio_summary_view",
+
   // ── 시나리오 공유 (Phase 1 신규) ────────────────────────────────────────────
   // 공유 링크 생성/복사(파라미터: share_method). 용도: 바이럴 계수, 공유 채널 분포.
   SCENARIO_SHARED: "scenario_shared",
@@ -261,6 +275,23 @@ export type AnalyticsEventParamMap = {
     progress_bucket?: "0-25" | "25-50" | "50-75" | "75-100" | "reached";
     /** 저장된 투자 기간 안에 목표에 닿는가. 목표 미설정이면 미전송. */
     reached_in_range?: boolean;
+  };
+  [ANALYTICS_EVENT.PORTFOLIO_VIEW]: {
+    holdings_count: number;
+    has_holdings: boolean;
+  };
+  [ANALYTICS_EVENT.PORTFOLIO_HOLDING_SAVED]: {
+    action: "add" | "edit";
+    /** 시뮬레이터 유니버스가 아는 종목인가(직접 추가한 종목이면 false). */
+    covered: boolean;
+  };
+  [ANALYTICS_EVENT.PORTFOLIO_HOLDING_DELETED]: { covered: boolean };
+  [ANALYTICS_EVENT.PORTFOLIO_SUMMARY_VIEW]: {
+    holdings_count: number;
+    /** 합계에 실제로 반영된 종목 수(수량 미입력·데이터 없음 제외). */
+    covered_count: number;
+    /** 평가금액 버킷(**USD** 기준). 원값 금지 — `bucketValue` 라벨만. */
+    value_bucket: string;
   };
   [ANALYTICS_EVENT.CLOUD_SYNC_CONFLICT]: {
     shown: boolean;

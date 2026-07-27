@@ -109,7 +109,7 @@ describe('PrimaryNav', () => {
     expect(screen.getByRole('link', { name: '목표 달성' })).not.toHaveAttribute('aria-current');
   });
 
-  it('라우트 링크는 6개이고 목표 달성은 시뮬레이터 바로 다음이다', () => {
+  it('라우트 링크는 7개이고 시뮬레이터 → 내 포트폴리오 → 목표 달성 순이다', () => {
     communityEnabled = true;
     renderAt('/dividend/goal');
 
@@ -119,7 +119,15 @@ describe('PrimaryNav', () => {
       .map((link) => link.getAttribute('aria-label'))
       .filter((name): name is string => name !== null);
 
-    expect(names).toEqual(['시뮬레이터', '목표 달성', '배당 캘린더', '포트폴리오 갤러리', '게시판', 'ETF 소개']);
+    expect(names).toEqual([
+      '시뮬레이터',
+      '내 포트폴리오',
+      '목표 달성',
+      '배당 캘린더',
+      '포트폴리오 갤러리',
+      '게시판',
+      'ETF 소개'
+    ]);
   });
 
   it('커뮤니티 비활성 배포에서도 목표 달성 링크는 남는다', () => {
