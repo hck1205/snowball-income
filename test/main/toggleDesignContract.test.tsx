@@ -174,7 +174,7 @@ describe('PortfolioComposition 잠금 스위치 — 보이는 라벨 + 풀 힌�
   });
 });
 
-/* ── 3. 시뮬레이션 결과 — 간략히 / 게이지로 보기 ──────────────────────────────── */
+/* ── 3. 시뮬레이션 결과 — 간략히 ──────────────────────────────────────────────── */
 
 const buildSummary = (overrides: Partial<SimulationSummary> = {}): SimulationSummary => ({
   finalAssetValue: 1_137_786_866,
@@ -192,7 +192,7 @@ const buildSummary = (overrides: Partial<SimulationSummary> = {}): SimulationSum
   ...overrides
 });
 
-const renderSimulationResult = ({ targetMonthlyDividend = 3_000_000 }: { targetMonthlyDividend?: number } = {}) => {
+const renderSimulationResult = () => {
   const simulation: SimulationOutput = {
     monthly: [],
     yearly: [],
@@ -211,7 +211,7 @@ const renderSimulationResult = ({ targetMonthlyDividend = 3_000_000 }: { targetM
         simulation={simulation}
         showQuickEstimate={false}
         isResultCompact={false}
-        targetMonthlyDividend={targetMonthlyDividend}
+        targetMonthlyDividend={3_000_000}
         onToggleCompact={() => undefined}
         formatResultAmount={formatResultAmount}
         formatPercent={formatPercent}
@@ -221,7 +221,12 @@ const renderSimulationResult = ({ targetMonthlyDividend = 3_000_000 }: { targetM
   );
 };
 
-describe('SimulationResult 모드 스위치 2종', () => {
+/**
+ * 이 카드의 모드 스위치는 **하나뿐**이다. 진행률 뷰 토글("게이지로 보기")은 목표 서사 블록과 함께
+ * 제거됐다(목표 표면은 내 포트폴리오(`/dividend/portfolio`)의 목표 달성 카드로 이관) — 부재 계약은
+ * `test/snowball/simulationResultTargetNarrativeRemoved.test.tsx`가 지킨다.
+ */
+describe('SimulationResult 모드 스위치', () => {
   it('결과 상세도: 보이는 라벨 "간략히" + 접근명 "결과 간략히 보기"', () => {
     renderSimulationResult();
 
@@ -229,75 +234,6 @@ describe('SimulationResult 모드 스위치 2종', () => {
     // 구 트랙 텍스트('간략'/'상세')는 사라졌다.
     expect(screen.queryByText('간략')).toBeNull();
     expect(screen.queryByText('상세')).toBeNull();
-  });
-
-  it('진행률 뷰: 보이는 라벨 "게이지로 보기" + 접근명 "진행률 게이지로 보기"', () => {
-    renderSimulationResult();
-
-    expectUnifiedModeSwitch('게이지로 보기', '진행률 게이지로 보기');
-    // 구 트랙 텍스트('바'/'게이지')는 사라졌다.
-    expect(screen.queryByText('바')).toBeNull();
-    expect(screen.queryByText('게이지')).toBeNull();
-  });
-
-  /**
-   * 게이지 토글은 절대배치 슬롯에서 **서사 문장과 같은 블록 안(in-flow)** 으로 내려왔다.
-   * jsdom은 CSS(position/@media)를 평가하지 않으므로 "떠 있지 않다"는 직접 볼 수 없다 —
-   * 관측 가능한 대체 계약은 "문장을 담은 블록이 토글도 담는다 + 문장 뒤에 온다"이다.
-   */
-  it('게이지 토글은 서사 문장과 같은 블록 안, 문장 뒤에 온다(in-flow)', () => {
-    renderSimulationResult();
-
-    const narrative = screen.getByText(/달성해요/);
-    const control = screen.getByRole('checkbox', { name: '진행률 게이지로 보기' });
-    const narrativeBody = narrative.parentElement;
-
-    expect(narrativeBody).not.toBeNull();
-    expect(narrativeBody).toContainElement(control);
-    // DOM 순서: 문장 → 토글 (DOCUMENT_POSITION_FOLLOWING = 4)
-    expect(narrative.compareDocumentPosition(control) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-  });
-
-  it('목표가 없으면 게이지 토글을 아예 그리지 않는다', () => {
-    renderSimulationResult({ targetMonthlyDividend: 0 });
-
-    expect(screen.queryByRole('checkbox', { name: '진행률 게이지로 보기' })).toBeNull();
-    // 상세도 토글은 목표와 무관하게 남는다.
-    expect(screen.getByRole('checkbox', { name: '결과 간략히 보기' })).toBeInTheDocument();
-  });
-
-  /**
-   * ≤360px에서는 showGauge가 강제로 false라 토글이 무음 no-op이 된다 — 그래서 아예 안 그린다.
-   * jsdom은 @media를 평가하지 않지만 `window.matchMedia`는 setup.ts가 **configurable 스텁**으로
-   * 심어 두었으므로(항상 matches:false) 이 테스트에서만 좁은 화면으로 갈아끼울 수 있다.
-   */
-  it('좁은 화면(≤360px)에서는 게이지 토글을 그리지 않는다', () => {
-    const realMatchMedia = window.matchMedia;
-    Object.defineProperty(window, 'matchMedia', {
-      configurable: true,
-      value: (query: string) => ({
-        matches: query.includes('360px'),
-        media: query,
-        onchange: null,
-        addListener: () => undefined,
-        removeListener: () => undefined,
-        addEventListener: () => undefined,
-        removeEventListener: () => undefined,
-        dispatchEvent: () => false
-      })
-    });
-
-    try {
-      renderSimulationResult();
-
-      expect(screen.queryByRole('checkbox', { name: '진행률 게이지로 보기' })).toBeNull();
-      // 게이지도 없다(토글이 없으니 켤 방법 자체가 없다).
-      expect(screen.queryByRole('img', { name: /목표/ })).toBeNull();
-      // 상세도 토글은 화면 폭과 무관하게 남는다.
-      expect(screen.getByRole('checkbox', { name: '결과 간략히 보기' })).toBeInTheDocument();
-    } finally {
-      Object.defineProperty(window, 'matchMedia', { configurable: true, value: realMatchMedia });
-    }
   });
 });
 
@@ -398,9 +334,10 @@ describe('PostInvestmentProjectionPanel 자산/배당 스위치', () => {
 /**
  * 라벨·접근명은 UI 카피라 자유롭게 바뀔 수 있지만 `field_name` 은 **GA 시계열의 키**다.
  * 여기서 이름을 바꾸면 과거 데이터와 끊긴다(대시보드가 조용히 반토막 난다).
- * 그래서 카피와 분리해 따로 못박는다 — 이 5개 문자열은 리디자인의 불변식이다.
+ * 그래서 카피와 분리해 따로 못박는다 — 이 4개 문자열은 리디자인의 불변식이다.
+ * (`targetProgressView`는 토글 자체가 사라져 더 이상 발화되지 않는다 — 과거 데이터는 GA에 남는다.)
  */
-describe('토글 GA 계측 — field_name 5종 불변', () => {
+describe('토글 GA 계측 — field_name 4종 불변', () => {
   const expectToggleTracked = (fieldName: string, value: boolean) => {
     expect(trackEventMock).toHaveBeenCalledWith(ANALYTICS_EVENT.TOGGLE_CHANGED, {
       field_name: fieldName,
@@ -423,17 +360,6 @@ describe('토글 GA 계측 — field_name 5종 불변', () => {
     await user.click(screen.getByRole('checkbox', { name: '결과 간략히 보기' }));
 
     expectToggleTracked('isResultCompact', true);
-  });
-
-  it('게이지로 보기 → targetProgressView', async () => {
-    renderSimulationResult();
-    const user = userEvent.setup();
-
-    await user.click(screen.getByRole('checkbox', { name: '진행률 게이지로 보기' }));
-    // 게이지는 lazy(ECharts)라 로드를 기다려야 act 경고가 안 샌다.
-    await screen.findByTestId('echart');
-
-    expectToggleTracked('targetProgressView', true);
   });
 
   it('채우기 → isYearlyAreaFillOn', async () => {

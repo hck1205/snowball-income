@@ -1,22 +1,11 @@
-import { vi } from 'vitest';
 import { Provider } from 'jotai/react';
 import { createStore } from 'jotai/vanilla';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import SimulationResult from '@/components/SimulationResult';
 import HelpModal from '@/pages/Main/components/HelpModal';
-import { formatApproxKRW } from '@/shared/utils';
 import { formatPercent, formatResultAmount, targetYearLabel } from '@/pages/Main/utils/formatters';
 import type { SimulationOutput, SimulationSummary } from '@/shared/types';
-
-/**
- * 게이지 뷰는 ECharts 캔버스(lazy 청크)라 jsdom에서 비결정적이다 —
- * ResponsiveEChart를 스텁으로 갈아 끼워 게이지 래퍼의 role/aria 계약만 검증한다.
- * 기본(바) 뷰는 이 컴포넌트를 렌더하지 않으므로 기존 테스트에는 영향이 없다.
- */
-vi.mock('@/components/common/ResponsiveEChart', () => ({
-  ResponsiveEChart: () => <div data-testid="gauge-canvas" />
-}));
 
 const buildSummary = (overrides: Partial<SimulationSummary> = {}): SimulationSummary => ({
   finalAssetValue: 1_137_786_866,
@@ -34,7 +23,7 @@ const buildSummary = (overrides: Partial<SimulationSummary> = {}): SimulationSum
   ...overrides
 });
 
-/** 서사 블록의 durationYears·yearsToReach는 `simulation.yearly`를 읽는다 — year만 있으면 충분. */
+/** 목표 타일의 yearsToReach는 `simulation.yearly`를 읽는다 — year만 있으면 충분. */
 const buildYearly = (years: number[]): SimulationOutput['yearly'] =>
   years.map((year) => ({ year }) as SimulationOutput['yearly'][number]);
 
@@ -201,17 +190,16 @@ describe('SimulationResult financial income tax warning', () => {
   });
 });
 
-/* ≤960px에서는 좌패널이 드로어라 "왼쪽 투자 설정" 위치 안내가 거짓이 된다 — 위치 대신 결과를 말한다. */
-const UNSET_NARRATIVE = '목표 월배당을 정하면 도달 시점과 진행률을 함께 보여줘요.';
+/**
+ * 목표는 이 카드에서 **지표 한 칸**으로만 말한다(도달 서사·진행률 표시는
+ * 내 포트폴리오(`/dividend/portfolio`)의 목표 달성 카드로 이관).
+ * 남은 계약은 라벨/값/hint 셋이다.
+ */
+describe('SimulationResult 목표 월배당 타일', () => {
+  /** hint는 값과 별개의 짧은 문장 노드다 — 정확일치로 값(연도)과 구분한다. */
+  const yearCountHint = () => screen.queryByText(/^투자 \d+년차$/);
 
-describe('SimulationResult target narrative block — 미설정(target<=0)', () => {
-  it('목표 미설정 안내 문구를 그대로 노출한다', () => {
-    renderResult({ targetMonthlyDividend: 0 });
-
-    expect(screen.getByText(UNSET_NARRATIVE)).toBeInTheDocument();
-  });
-
-  it('목표 StatTile 라벨은 "목표 월배당", 값은 "미설정"이다(0원·첫해 노출 금지)', () => {
+  it('목표 미설정이면 라벨은 "목표 월배당", 값은 "미설정"이다(0원·첫해 노출 금지)', () => {
     renderResult({ targetMonthlyDividend: 0, summary: { targetMonthDividendReachedYear: 2050 } });
 
     // 라벨은 도달 표기가 아니라 순수 "목표 월배당".
@@ -220,41 +208,22 @@ describe('SimulationResult target narrative block — 미설정(target<=0)', () 
     expect(screen.getByText('미설정')).toBeInTheDocument();
     // reachedYear가 있어도 미설정이면 연도(2050년)를 목표 값으로 보이지 않는다.
     expect(screen.queryByText('2050년')).not.toBeInTheDocument();
+    expect(yearCountHint()).not.toBeInTheDocument();
   });
 
-  it('진행률 뷰 토글도, 진행률 바(progressbar)도 그리지 않는다', () => {
-    renderResult({ targetMonthlyDividend: 0 });
-
-    expect(screen.queryByRole('checkbox', { name: '진행률 게이지로 보기' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('progressbar', { name: '목표 월배당 달성률' })).not.toBeInTheDocument();
-  });
-});
-
-describe('SimulationResult target narrative block — 미도달(target>0, reachedYear 없음)', () => {
-  it('기간 안에 못 닿는다는 서사와 마지막 해 월배당을 함께 말한다', () => {
+  it('미도달이면 값은 "미도달"이고 년차 hint가 없다', () => {
     renderResult({
       targetMonthlyDividend: 3_000_000,
       yearly: buildYearly([2026, 2027, 2028]),
-      summary: { targetMonthDividendReachedYear: undefined, finalMonthlyAverageDividend: 2_564_105 }
-    });
-
-    const expected = `지금 조건으로는 3년 안에 목표 월배당 ${formatApproxKRW(3_000_000)}에 닿지 못해요. 마지막 해 월배당은 ${formatApproxKRW(2_564_105)}입니다. 월 적립이나 투자 기간을 늘리면 도달 시점이 앞당겨져요.`;
-    expect(screen.getByText(expected)).toBeInTheDocument();
-  });
-
-  it('미도달 목표 StatTile 값은 "미도달"이다', () => {
-    renderResult({
-      targetMonthlyDividend: 3_000_000,
       summary: { targetMonthDividendReachedYear: undefined }
     });
 
     expect(screen.getByText(/목표 월배당 도달/)).toBeInTheDocument();
     expect(screen.getByText('미도달')).toBeInTheDocument();
+    expect(yearCountHint()).not.toBeInTheDocument();
   });
-});
 
-describe('SimulationResult target narrative block — 도달(reachedYear 존재)', () => {
-  it('도달 연도와 투자 N년차를 함께 말한다', () => {
+  it('도달하면 연도가 값으로, "투자 N년차"가 hint로 붙는다', () => {
     // reachedYear=2028이 yearly의 3번째 → 투자 3년차.
     renderResult({
       targetMonthlyDividend: 3_000_000,
@@ -262,69 +231,19 @@ describe('SimulationResult target narrative block — 도달(reachedYear 존재)
       summary: { targetMonthDividendReachedYear: 2028 }
     });
 
-    const expected = `목표 월배당 ${formatApproxKRW(3_000_000)}을 2028년에 달성해요. (투자 3년차)`;
-    expect(screen.getByText(expected)).toBeInTheDocument();
+    // 값(연도)은 nowrap+ellipsis라 년차를 값에 넣으면 잘린다 — 값과 별도의 hint로 나온다.
+    expect(screen.getByText('2028년')).toBeInTheDocument();
+    expect(yearCountHint()).toHaveTextContent('투자 3년차');
   });
 
-  it('yearly에 도달 연도가 없으면 "N년차" 괄호를 생략한다', () => {
+  it('도달 연도가 yearly에 없으면 hint를 지어내지 않는다', () => {
     renderResult({
       targetMonthlyDividend: 3_000_000,
-      yearly: [],
+      yearly: buildYearly([2026, 2027]),
       summary: { targetMonthDividendReachedYear: 2050 }
     });
 
-    const expected = `목표 월배당 ${formatApproxKRW(3_000_000)}을 2050년에 달성해요.`;
-    expect(screen.getByText(expected)).toBeInTheDocument();
-    expect(screen.queryByText(/년차\)/)).not.toBeInTheDocument();
-  });
-});
-
-describe('SimulationResult 진행률 2뷰 토글(바 ↔ 게이지)', () => {
-  it('기본은 바 뷰 — 목표 StatTile progressbar가 있고 게이지는 없다', () => {
-    renderResult({ targetMonthlyDividend: 3_000_000, summary: { targetMonthDividendReachedYear: undefined } });
-
-    expect(screen.getByRole('progressbar', { name: '목표 월배당 달성률' })).toBeInTheDocument();
-    expect(screen.queryByRole('img', { name: /목표/ })).not.toBeInTheDocument();
-  });
-
-  it('게이지로 토글하면 게이지(role=img)가 뜨고 progressbar는 사라진다', async () => {
-    const user = renderResult({
-      targetMonthlyDividend: 3_000_000,
-      summary: { targetMonthDividendReachedYear: undefined }
-    });
-
-    await user.click(screen.getByRole('checkbox', { name: '진행률 게이지로 보기' }));
-
-    expect(screen.queryByRole('progressbar', { name: '목표 월배당 달성률' })).not.toBeInTheDocument();
-    expect(screen.getByRole('img', { name: /목표/ })).toBeInTheDocument();
-  });
-
-  it('도달이면 progress=1 강제 — 게이지 aria-label이 "목표 달성"이다(비율 모순 금지)', async () => {
-    // finalMonthlyAverageDividend가 목표에 못 미쳐도(97%) 도달 연도가 있으면 100% 달성으로 본다.
-    const user = renderResult({
-      targetMonthlyDividend: 3_000_000,
-      summary: { targetMonthDividendReachedYear: 2028, finalMonthlyAverageDividend: 2_900_000 }
-    });
-
-    await user.click(screen.getByRole('checkbox', { name: '진행률 게이지로 보기' }));
-
-    expect(screen.getByRole('img', { name: '목표 달성' })).toBeInTheDocument();
-  });
-
-  it('미도달 게이지 aria-label은 "목표의 N% 도달" — 바 aria-valuenow와 같은 값(단일 출처)', async () => {
-    // finalMonthlyAverageDividend/target = 1.5M/3M = 0.5 → 50%.
-    const user = renderResult({
-      targetMonthlyDividend: 3_000_000,
-      summary: { targetMonthDividendReachedYear: undefined, finalMonthlyAverageDividend: 1_500_000 }
-    });
-
-    // 바 뷰: aria-valuenow=50.
-    const bar = screen.getByRole('progressbar', { name: '목표 월배당 달성률' });
-    expect(bar).toHaveAttribute('aria-valuenow', '50');
-
-    await user.click(screen.getByRole('checkbox', { name: '진행률 게이지로 보기' }));
-
-    // 게이지 뷰: 같은 50%.
-    expect(screen.getByRole('img', { name: '목표의 50% 도달' })).toBeInTheDocument();
+    expect(screen.getByText('2050년')).toBeInTheDocument();
+    expect(yearCountHint()).not.toBeInTheDocument();
   });
 });

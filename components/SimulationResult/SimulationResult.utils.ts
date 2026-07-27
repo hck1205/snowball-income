@@ -7,7 +7,8 @@ import type { SimulationOutput } from '@/shared/types';
  * 얼마나 먼 미래인지는 `yearly` 배열에서의 위치로만 안다. **표시 파생값이라 계산 엔진을 건드리지
  * 않는다** — 이미 나온 결과를 읽어 순서만 센다.
  *
- * 서사 문장("투자 3년차")과 목표 타일 hint가 같은 숫자를 말해야 하므로 두 곳이 이 함수를 공유한다.
+ * 소비처는 목표 StatTile의 hint 한 곳이다 — 도달 서사는 내 포트폴리오(`/dividend/portfolio`)의
+ * 목표 달성 카드가 맡아 이 카드에서 제거됐다(그 카드가 구 `/dividend/goal` 페이지를 흡수했다).
  */
 export const findTargetReachYearIndex = (
   yearly: SimulationOutput['yearly'],
