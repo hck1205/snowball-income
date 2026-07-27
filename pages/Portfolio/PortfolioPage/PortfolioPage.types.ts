@@ -1,4 +1,4 @@
-import type { PortfolioHoldingRowModel } from '../components';
+import type { PortfolioGoalCardModel, PortfolioHoldingRowModel } from '../components';
 import type { PortfolioAddInput, PortfolioAddResult } from '../hooks';
 import type { PortfolioUniverseEntry } from '../utils';
 
@@ -56,7 +56,6 @@ export type PortfolioViewModel = {
   rows: PortfolioRowModel[];
   holdingsCount: number;
   simulateCta: PortfolioCtaModel;
-  goalCta: PortfolioCtaModel;
   calendarCta: PortfolioCtaModel;
   assumptions: { summaryLabel: string; rows: PortfolioAssumptionRow[] };
   /** H — 직전 삭제 1건(8초). 값이 있으면 실행 취소 배너를 띄운다. */
@@ -74,6 +73,11 @@ export type PortfolioPickerModel = {
 
 export type PortfolioViewProps = {
   viewModel: PortfolioViewModel;
+  /**
+   * 목표 달성 카드(요약 카드 아래 두 번째 카드). **`null` 이면 카드를 렌더하지 않는다** —
+   * 렌더 게이트는 순수 함수(`buildPortfolioGoalCardModel`)가 소유하고 뷰는 null 여부만 본다.
+   */
+  goal: PortfolioGoalCardModel | null;
   /** 항상 마운트되는 라이브 리전 문구. */
   liveMessage: string;
   picker: PortfolioPickerModel;
@@ -92,6 +96,13 @@ export type PortfolioViewProps = {
   /** 실행 취소. 복원한 티커(없으면 `null`)를 돌려준다 — 뷰가 그 행의 수량 입력으로 포커스를 옮긴다. */
   onUndo: () => string | null;
   onSimulate: () => void;
-  onOpenGoal: () => void;
   onOpenCalendar: () => void;
+  /** 목표 카드 [목표 수정] — 시뮬레이터의 목표 입력으로(값 없이 포커스만). */
+  onOpenTargetSetup: () => void;
+  /** 목표 카드 칩·직접 입력 — 고른 값(원)을 라우터 state 로 실어 시뮬레이터로. */
+  onCommitTarget: (won: number) => void;
+  /** 목표 카드 D·E′ 액션 — **프리필 없이** 시뮬레이터로(ETA 의 근거 시나리오를 덮지 않는다). */
+  onOpenSimulator: () => void;
+  /** 목표 카드 기준 안내의 [종목 추가] — 같은 화면의 드로어를 연다(계측 이름만 다르다). */
+  onAddHoldingFromGoal: () => void;
 };

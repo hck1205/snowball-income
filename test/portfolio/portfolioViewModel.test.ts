@@ -81,9 +81,8 @@ describe('요약 타일', () => {
     expect(model.heroTile.value).toBe(copy.summary.tiles.empty);
     expect(model.heroTile.hint).toBe(copy.summary.tiles.monthlyNetHintEmpty);
     expect(tileByLabel(model.tiles, copy.summary.tiles.marketValue).value).toBe(copy.summary.tiles.empty);
-    // 들고 갈 값이 없으므로 세 CTA 는 전부 비활성이고, 그 사유가 화면에 남는다(무음 비활성 금지).
+    // 들고 갈 값이 없으므로 두 CTA 는 전부 비활성이고, 그 사유가 화면에 남는다(무음 비활성 금지).
     expect(model.simulateCta.disabled).toBe(true);
-    expect(model.goalCta.disabled).toBe(true);
     expect(model.calendarCta.disabled).toBe(true);
     expect(model.simulateCta.hint).toBe(copy.cta.simulateDisabledEmpty);
   });
@@ -156,11 +155,24 @@ describe('CTA 사유', () => {
     expect(model.fxError).toBe(copy.error.fxFailed);
   });
 
+  it('환율을 아직 불러오는 중이면 실패가 아니라 로딩이라고 말한다', () => {
+    const loadingFx: PortfolioFxView = { status: 'loading', rate: null, asOf: null };
+    const model = buildModel([row('MONTHLY', '10')], { fx: loadingFx, canSimulate: false });
+
+    expect(model.simulateCta.disabled).toBe(true);
+    expect(model.simulateCta.hint).toBe(copy.cta.simulateDisabledFxLoading);
+    // 아직 실패하지 않았다 — 실패 문구("복구되면")와 배너를 미리 띄우지 않는다.
+    expect(model.simulateCta.hint).not.toBe(copy.cta.simulateDisabledFx);
+    expect(model.fxError).toBeNull();
+  });
+
   it('유니버스 밖 종목이 비중에서 빠지면 활성 상태에서도 먼저 알린다', () => {
     const model = buildModel([row('MONTHLY', '10')], { simulationExcludedCount: 2 });
 
     expect(model.simulateCta.disabled).toBe(false);
     expect(model.simulateCta.hint).toBe(copy.cta.simulateExcluded(2));
+    // 비중에서만 빠지고 **금액은 초기 투자금에 실린다**는 사실을 같은 줄에서 말한다(왜곡 무음 금지).
+    expect(model.simulateCta.hint).toContain('초기 투자금에 포함');
   });
 
   it('달력에 실을 수 없는 종목이 있으면 제외 사실을 말한다', () => {
@@ -206,14 +218,58 @@ describe('기준일 줄', () => {
 });
 
 describe('라이브 리전 기본 문구', () => {
-  it('로딩·빈 목록·요약을 구분해 말한다', () => {
-    const base = { holdingsCount: 0, hasIncludedRows: false, monthlyText: 'USD:0.00', fxFailed: false };
+  const base = {
+    holdingsCount: 0,
+    hasIncludedRows: false,
+    monthlyText: 'USD:0.00',
+    fxFailed: false,
+    goalProgressPercent: null
+  };
 
+  it('로딩·빈 목록·요약을 구분해 말한다', () => {
     expect(buildPortfolioLiveMessage({ ...base, status: 'loading' })).toBe(copy.live.loading);
     expect(buildPortfolioLiveMessage({ ...base, status: 'read-error' })).toBe(copy.error.readFailed);
     expect(buildPortfolioLiveMessage({ ...base, status: 'ready' })).toBe(copy.live.empty);
     expect(
       buildPortfolioLiveMessage({ ...base, status: 'ready', holdingsCount: 2, hasIncludedRows: true })
     ).toBe(copy.live.summary('USD:0.00', 2));
+  });
+
+  it('목표 카드가 값과 함께 떠 있으면 달성률 조각을 요약 문장 뒤에 잇는다 (새 리전을 만들지 않는다)', () => {
+    const message = buildPortfolioLiveMessage({
+      ...base,
+      status: 'ready',
+      holdingsCount: 3,
+      hasIncludedRows: true,
+      goalProgressPercent: 27
+    });
+
+    expect(message).toBe(`${copy.live.summary('USD:0.00', 3)} ${copy.goal.live.progress(27)}`);
+  });
+
+  it('목표 카드가 없으면(달성률 null) 조각을 붙이지 않는다', () => {
+    const message = buildPortfolioLiveMessage({
+      ...base,
+      status: 'ready',
+      holdingsCount: 3,
+      hasIncludedRows: true
+    });
+
+    expect(message).not.toContain('달성률');
+  });
+
+  it('환율 실패 문구는 달성률 조각 **뒤**에 온다 (읽는 순서 = 요약 → 목표 → 문제)', () => {
+    const message = buildPortfolioLiveMessage({
+      ...base,
+      status: 'ready',
+      holdingsCount: 1,
+      hasIncludedRows: true,
+      fxFailed: true,
+      goalProgressPercent: 40
+    });
+
+    expect(message).toBe(
+      `${copy.live.summary('USD:0.00', 1)} ${copy.goal.live.progress(40)} ${copy.live.fxFailed}`
+    );
   });
 });

@@ -8,7 +8,7 @@ import {
   type PersistedInvestmentSettings
 } from '@/jotai';
 import type { TickerProfile } from '@/shared/types/snowball';
-import { useGoalScenario } from '@/pages/Goal/hooks';
+import { useGoalScenario } from '@/pages/Portfolio/hooks';
 
 /**
  * `useGoalScenario` — 저장 payload → 순수 재계산 → 상태 7종.
@@ -18,7 +18,12 @@ import { useGoalScenario } from '@/pages/Goal/hooks';
  * 실패 경로(읽기 실패 / 정규화를 통과할 수 없는 값)에만 쓴다.
  */
 
-const PORTFOLIO_DB_NAME = 'snowball-income-db';
+/**
+ * 이 훅이 읽는 것은 **시뮬레이터 저장 payload** 저장소다(보유 목록 `snowball-portfolio` 가 아니다).
+ * 이름과 값이 어긋나면 다음 사람이 이름만 믿고 엉뚱한 DB 를 지운다 — 명명은
+ * `test/portfolio/portfolioGoalHarness.tsx` 의 구분(`PORTFOLIO_DB_NAME` / `APP_STATE_DB_NAME`)을 따른다.
+ */
+const APP_STATE_DB_NAME = 'snowball-income-db';
 
 /** 계산 기준 시점 — 투자 시작(2024-01) 후 29개월. 롤링 12개월 창이 꽉 찬다(폴백 아님). */
 const NOW = new Date('2026-06-15T00:00:00+09:00');
@@ -68,9 +73,9 @@ const buildPayload = (settings: Partial<PersistedInvestmentSettings> = {}): Pers
   };
 };
 
-const deletePortfolioDb = () =>
+const deleteAppStateDb = () =>
   new Promise<void>((resolve) => {
-    const request = indexedDB.deleteDatabase(PORTFOLIO_DB_NAME);
+    const request = indexedDB.deleteDatabase(APP_STATE_DB_NAME);
     request.onsuccess = () => resolve();
     request.onerror = () => resolve();
     request.onblocked = () => resolve();
@@ -80,7 +85,7 @@ const renderGoal = (options: Parameters<typeof useGoalScenario>[0] = {}) =>
   renderHook(() => useGoalScenario({ now: NOW, ...options }));
 
 beforeEach(async () => {
-  await deletePortfolioDb();
+  await deleteAppStateDb();
 });
 
 describe('useGoalScenario — 저장 데이터 왕복', () => {
@@ -204,6 +209,66 @@ describe('useGoalScenario — 상태 분기', () => {
     expect(result.current.progressPercent).toBe(100);
     // 이미 달성이면 도달월도 반드시 존재한다(같은 식이라 모순 불가).
     expect(result.current.reachedMonth).not.toBeNull();
+  });
+});
+
+describe('useGoalScenario — 실측 현재값 주입', () => {
+  it('measuredCurrentKrw 를 주면 달성률·남은 금액이 시뮬 파생값이 아니라 그 값을 따른다', async () => {
+    await writePersistedAppState(buildPayload({ targetMonthlyDividend: 3_000_000 }));
+
+    const { result: simulated } = renderGoal();
+    await waitFor(() => expect(simulated.current.isLoading).toBe(false));
+    const derivedAmount = simulated.current.currentAmount ?? 0;
+
+    const { result } = renderGoal({ measuredCurrentKrw: 1_500_000 });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.currentBasis).toBe('measured');
+    expect(result.current.currentAmount).toBe(1_500_000);
+    expect(result.current.currentAmount).not.toBe(derivedAmount);
+    expect(result.current.progressRatio).toBeCloseTo(0.5, 12);
+    expect(result.current.progressPercent).toBe(50);
+    // 시뮬 평균 창의 메타는 실측에서 사실이 아니다 — 계약을 거짓으로 두지 않는다.
+    expect(result.current.currentMode).toBeNull();
+    expect(result.current.isCurrentFallback).toBe(false);
+    expect(result.current.currentAsOf).toBeNull();
+  });
+
+  it('실측이 목표를 넘으면 already-reached — 도달 판정은 주입된 현재값 단독으로 한다', async () => {
+    await writePersistedAppState(buildPayload({ targetMonthlyDividend: 3_000_000 }));
+
+    const { result } = renderGoal({ measuredCurrentKrw: 4_000_000 });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.status).toBe('already-reached');
+    expect(result.current.isAlreadyReached).toBe(true);
+    expect(result.current.progressPercent).toBe(100);
+    // 예상 달성 시점은 여전히 **시뮬 궤적 파생**이라 실측 도달과 별개로 존재할 수 있다.
+    expect(result.current.currentBasis).toBe('measured');
+  });
+
+  it('실측 판정이 진행 중이면 저장 데이터를 다 읽어도 로딩을 유지한다 (숫자 바꿔치기 금지)', async () => {
+    await writePersistedAppState(buildPayload({ targetMonthlyDividend: 3_000_000 }));
+
+    const { result } = renderGoal({ isMeasurePending: true });
+
+    // 저장소 읽기가 끝날 시간을 준 뒤에도 로딩이어야 한다(시뮬 숫자를 먼저 내보내지 않는다).
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.status).toBe('loading');
+    expect(result.current.currentAmount).toBeNull();
+    expect(result.current.hasTarget).toBe(false);
+  });
+
+  it('measuredCurrentKrw 가 null 이면 시뮬 파생값(D1)을 그대로 쓴다', async () => {
+    await writePersistedAppState(buildPayload({ targetMonthlyDividend: 3_000_000 }));
+
+    const { result } = renderGoal({ measuredCurrentKrw: null });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.currentBasis).toBe('simulated');
+    expect(result.current.currentMode).toBe('trailing12m');
   });
 });
 

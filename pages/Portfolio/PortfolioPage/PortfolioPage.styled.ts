@@ -2,9 +2,9 @@ import styled from '@emotion/styled';
 import { color, elevation, font, media, radius, space } from '@/shared/styles';
 
 /**
- * 이 파일의 히어로·타일 그리드·빈 상태·조건 요약·각주는 **목표 달성 페이지(`pages/Goal`)와 같은 모양**을
+ * 이 파일의 히어로·타일 그리드·빈 상태·조건 요약·각주는 **배당 캘린더 페이지와 같은 모양**을
  * 의도적으로 **복제**한 것이다. 페이지 간 styled 를 직접 import 하면 두 화면이 서로의 레이아웃 변경에
- * 묶이고(한쪽을 고치면 다른 쪽이 조용히 바뀐다) lazy 청크도 섞인다 — 캘린더·목표가 세운 관례를 따른다.
+ * 묶이고(한쪽을 고치면 다른 쪽이 조용히 바뀐다) lazy 청크도 섞인다 — 캘린더가 세운 관례를 따른다.
  * 반대로 `StatTile`·`Banner`·`Button`·`Chip`·`InputField` 같은 **공용 프리미티브는 재사용**한다.
  */
 
@@ -334,6 +334,25 @@ export const AssumptionsBody = styled.div`
 
 export const TaxFieldSlot = styled.div`
   max-width: 200px;
+`;
+
+/**
+ * 가정 요약 안의 두 번째 그룹 제목(예상 달성 시점 계산 조건).
+ *
+ * 접힘 블록을 새로 만들지 않고 **그룹 제목 한 줄**로 소속을 밝힌다 — 같은 라벨(배당소득세)이 두 번
+ * 나와도 각 행이 자기 기준을 말하면 모순이 아니다. `h3`(카드 `h2` 아래 위계)로 두어 제목 목록에서도 읽힌다.
+ */
+export const AssumptionsGroupTitle = styled.h3`
+  margin: ${space[2]} 0 0;
+  font-size: ${font.size.xs};
+  font-weight: ${font.weight.bold};
+  color: ${color.textSecondary};
+`;
+
+export const AssumptionsGroupNote = styled.p`
+  margin: 0;
+  font-size: ${font.size['2xs']};
+  color: ${color.textMuted};
 `;
 
 export const ConditionsList = styled.dl`

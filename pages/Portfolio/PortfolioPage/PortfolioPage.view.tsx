@@ -2,7 +2,7 @@ import { useCallback, useId, useRef } from 'react';
 import { Info, Plus, Wallet } from 'lucide-react';
 import { Banner, Button, Chip, InputField, StatTile } from '@/components/common';
 import { PORTFOLIO_COPY } from '../copy';
-import { HoldingPicker, HoldingPickerDrawer, HoldingsTable, ManualTickerForm } from '../components';
+import { GoalCard, HoldingPicker, HoldingPickerDrawer, HoldingsTable, ManualTickerForm } from '../components';
 import type { ManualTickerSubmitResult } from '../components';
 import type { PortfolioCtaModel, PortfolioViewProps } from './PortfolioPage.types';
 import {
@@ -11,6 +11,8 @@ import {
   AsOfLine,
   AssumptionsBody,
   AssumptionsDetails,
+  AssumptionsGroupNote,
+  AssumptionsGroupTitle,
   AssumptionsSummary,
   CardHead,
   CardSubtitle,
@@ -62,6 +64,7 @@ const SKELETON_ROWS = [0, 1, 2];
  */
 export default function PortfolioPageView({
   viewModel,
+  goal,
   liveMessage,
   picker,
   taxInput,
@@ -76,8 +79,11 @@ export default function PortfolioPageView({
   onRemove,
   onUndo,
   onSimulate,
-  onOpenGoal,
-  onOpenCalendar
+  onOpenCalendar,
+  onOpenTargetSetup,
+  onCommitTarget,
+  onOpenSimulator,
+  onAddHoldingFromGoal
 }: PortfolioViewProps) {
   const summaryTitleId = useId();
   const holdingsTitleId = useId();
@@ -144,7 +150,10 @@ export default function PortfolioPageView({
         manual: { price: input.price, dividendYield: input.dividendYield }
       });
 
-      return result.ok ? { ok: true } : { ok: false, reason: 'duplicate' };
+      if (result.ok) return { ok: true };
+      // 거절 사유를 접지 않는다 — 하이드레이션 전 거절을 'duplicate' 로 접으면 있지도 않은
+      // "이미 보유 중"을 알리게 된다(폼은 목록을 모르므로 사유는 호출부만 안다).
+      return { ok: false, reason: result.reason === 'loading' ? 'loading' : 'duplicate' };
     },
     [onAdd]
   );
@@ -172,16 +181,30 @@ export default function PortfolioPageView({
   }, [focusQuantity, onUndo]);
 
   /**
-   * CTA 3종 + 사유 줄.
+   * CTA 2종 + 사유 줄.
    *
-   * 사유 문구는 **같은 문장이면 한 번만** 그린다(세 버튼이 같은 이유로 비활성일 때 같은 문장을 세 번
-   * 읽히지 않게) — 대신 세 버튼이 그 한 줄을 `aria-describedby` 로 함께 가리킨다.
+   * 사유 문구는 **같은 문장이면 한 번만** 그린다(두 버튼이 같은 이유로 비활성일 때 같은 문장을 두 번
+   * 읽히지 않게) — 대신 두 버튼이 그 한 줄을 `aria-describedby` 로 함께 가리킨다.
+   * 버튼이 둘로 줄면서 달력은 ghost → secondary 로 올렸다(primary + ghost 는 위계가 헐겁다).
    */
   const ctaItems: { key: string; cta: PortfolioCtaModel; label: string; variant: 'primary' | 'secondary' | 'ghost'; onClick: () => void }[] = [
     { key: 'simulate', cta: viewModel.simulateCta, label: copy.cta.simulate, variant: 'primary', onClick: onSimulate },
-    { key: 'goal', cta: viewModel.goalCta, label: copy.cta.goal, variant: 'secondary', onClick: onOpenGoal },
-    { key: 'calendar', cta: viewModel.calendarCta, label: copy.cta.calendar, variant: 'ghost', onClick: onOpenCalendar }
+    { key: 'calendar', cta: viewModel.calendarCta, label: copy.cta.calendar, variant: 'secondary', onClick: onOpenCalendar }
   ];
+
+  /** 목표 카드는 요약 카드 아래·보유 목록 위. 빈 상태에서는 빈 상태 카드 아래에 붙는다. */
+  const goalCard =
+    goal === null ? null : (
+      <GoalCard
+        model={goal}
+        pickerId={drawerId}
+        isPickerOpen={picker.isOpen}
+        onOpenTargetSetup={onOpenTargetSetup}
+        onCommitTarget={onCommitTarget}
+        onOpenSimulator={onOpenSimulator}
+        onAddHolding={onAddHoldingFromGoal}
+      />
+    );
 
   const hintIdByText = new Map<string, string>();
   for (const item of ctaItems) {
@@ -232,6 +255,7 @@ export default function PortfolioPageView({
       ) : null}
 
       {viewModel.showEmptyState ? (
+        <>
         <EmptyStateCard aria-labelledby={emptyTitleId}>
           <EmptyTitle id={emptyTitleId}>{copy.empty.title}</EmptyTitle>
           <EmptyBody>{copy.empty.body}</EmptyBody>
@@ -262,6 +286,9 @@ export default function PortfolioPageView({
             ))}
           </QuickPickList>
         </EmptyStateCard>
+        {/* 이미 정해 둔 목표가 있으면 보유가 비어도 진행을 화면에서 지우지 않는다(기준은 노트가 말한다). */}
+        {goalCard}
+        </>
       ) : (
         <>
           <SummaryCard aria-labelledby={summaryTitleId} aria-busy={viewModel.isLoading || undefined}>
@@ -323,14 +350,19 @@ export default function PortfolioPageView({
             ))}
           </SummaryCard>
 
+          {/* 읽기 경로: 지금 받는 배당(요약) → 목표까지 얼마나 왔나(목표) → 무엇을 갖고 있나(보유 목록). */}
+          {goalCard}
+
           <HoldingsCard aria-labelledby={holdingsTitleId} aria-busy={viewModel.isLoading || undefined}>
             <CardHead>
               <CardTitle id={holdingsTitleId}>{copy.holdings.title}</CardTitle>
+              {/* 저장소를 읽는 동안에는 추가를 받지 않는다(훅이 거절한다) — 버튼도 그 사실을 보인다. */}
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
                 ref={addButtonRef}
+                disabled={viewModel.isLoading}
                 aria-expanded={picker.isOpen}
                 aria-controls={drawerId}
                 aria-label={copy.holdings.addAria(viewModel.holdingsCount)}
@@ -367,6 +399,7 @@ export default function PortfolioPageView({
         <AssumptionsSummary>{viewModel.assumptions.summaryLabel}</AssumptionsSummary>
         <AssumptionsBody>
           <TaxFieldSlot>
+            {/* 세율도 하이드레이션 전에는 훅이 거절한다 — 입력은 받되 버려지는 상태를 만들지 않는다. */}
             <InputField
               label={copy.assumptions.taxLabel}
               type="number"
@@ -374,6 +407,7 @@ export default function PortfolioPageView({
               suffix="%"
               min={0}
               max={100}
+              disabled={viewModel.isLoading}
               hint={copy.assumptions.taxHint}
               onChange={(event) => onTaxInputChange(event.target.value)}
               onBlur={onTaxInputBlur}
@@ -388,6 +422,26 @@ export default function PortfolioPageView({
               </ConditionRow>
             ))}
           </ConditionsList>
+
+          {/*
+            예상 달성 시점의 근거는 화면에서 여기 한 곳에만 있다 — 빼면 ETA 가 어디서 왔는지 알 길이 없다.
+            페이지의 `<details>` 는 계속 하나다(새 접기 블록을 만들지 않는다). 세율 라벨이 두 번 나오지만
+            그룹 제목이 소속을 밝히므로 모순이 아니다(포트폴리오 세율 vs 시뮬레이터에 저장된 세율).
+          */}
+          {goal && goal.conditionRows.length > 0 ? (
+            <>
+              <AssumptionsGroupTitle>{copy.goal.conditions.groupTitle}</AssumptionsGroupTitle>
+              <AssumptionsGroupNote>{copy.goal.conditions.groupNote}</AssumptionsGroupNote>
+              <ConditionsList>
+                {goal.conditionRows.map((row) => (
+                  <ConditionRow key={row.label}>
+                    <ConditionTerm>{row.label}</ConditionTerm>
+                    <ConditionValue>{row.value}</ConditionValue>
+                  </ConditionRow>
+                ))}
+              </ConditionsList>
+            </>
+          ) : null}
         </AssumptionsBody>
       </AssumptionsDetails>
 
@@ -395,6 +449,8 @@ export default function PortfolioPageView({
         <FootNoteTitle>{copy.footnote.title}</FootNoteTitle>
         <FootNote>{copy.footnote.estimate}</FootNote>
         <FootNote>{copy.footnote.schedule}</FootNote>
+        {/* 두 숫자의 계열이 다르다는 사실 — 목표 카드가 실제로 떠 있을 때만 말한다. */}
+        {goal ? <FootNote>{copy.footnote.goal}</FootNote> : null}
         <FootNote>{copy.footnote.notAdvice}</FootNote>
       </FootNoteCard>
 

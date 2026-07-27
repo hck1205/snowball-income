@@ -96,24 +96,54 @@ export const buildPortfolioAsOfLine = (summary: PortfolioSummary, fx: PortfolioF
   return copy.hero.asOf(parts);
 };
 
-/** 지급 정렬 키. 가까운 달 → 날짜를 아는 쪽 → 이른 날 순. */
-const payoutSortKey = (payout: PortfolioNextPayout, currentMonth: number): number => {
+/** 지급월을 아는 지급(= 화면에 날짜/월을 적을 수 있는 것). */
+type ScheduledPayout = Exclude<PortfolioNextPayout, { kind: 'none' }>;
+
+/**
+ * 지급 정렬 키. 가까운 달 → 날짜를 아는 쪽 → 이른 날 순.
+ *
+ * ⚠ `month` 만으로 "몇 달 뒤"를 재지 않는다 — 연 1회 종목의 다음 차례는 **내년 같은 달**이라
+ * `(month - todayMonth + 12) % 12` 가 0(= 이번 달)으로 접힌다. 연도까지 함께 센다.
+ */
+const payoutSortKey = (payout: PortfolioNextPayout, todayYear: number): number => {
   if (payout.kind === 'none') return Number.POSITIVE_INFINITY;
 
-  const monthsAhead = (payout.month - currentMonth + 12) % 12;
+  const monthsAhead = (payout.year - todayYear) * 12 + payout.month;
   const day = payout.kind === 'estimated-day' ? payout.day : 40;
 
   return monthsAhead * 100 + day;
 };
 
-/** 같은 줄로 묶어 셀 수 있는 지급인가. 한쪽만 날짜를 아는 경우는 표기가 달라 묶지 않는다. */
+/**
+ * 같은 줄로 묶어 셀 수 있는 지급인가. 한쪽만 날짜를 아는 경우는 표기가 달라 묶지 않는다.
+ *
+ * **연도까지 같아야 한다** — 2026-08 과 2027-08 을 묶으면 내년 지급 종목이 이번 달 지급 줄의
+ * "외 n종"에 들어가 없는 입금을 알리게 된다.
+ */
 const isSamePayout = (left: PortfolioNextPayout, right: PortfolioNextPayout): boolean => {
   if (left.kind === 'estimated-day' && right.kind === 'estimated-day') {
-    return left.month === right.month && left.day === right.day;
+    return left.year === right.year && left.month === right.month && left.day === right.day;
   }
-  if (left.kind === 'month-only' && right.kind === 'month-only') return left.month === right.month;
+  if (left.kind === 'month-only' && right.kind === 'month-only') {
+    return left.year === right.year && left.month === right.month;
+  }
 
   return false;
+};
+
+/** 지급 표기. **연도는 올해가 아닐 때만** 병기한다 — 늘 붙이면 대부분의 화면에서 소음이다. */
+const formatPayoutValue = (payout: ScheduledPayout, todayYear: number): string => {
+  const isThisYear = payout.year === todayYear;
+
+  if (payout.kind === 'estimated-day') {
+    return isThisYear
+      ? copy.summary.tiles.nextPayoutDay(payout.month, payout.day)
+      : copy.summary.tiles.nextPayoutDayWithYear(payout.year, payout.month, payout.day);
+  }
+
+  return isThisYear
+    ? copy.summary.tiles.nextPayoutMonthOnly(payout.month)
+    : copy.summary.tiles.nextPayoutMonthOnlyWithYear(payout.year, payout.month);
 };
 
 /**
@@ -127,9 +157,9 @@ export const buildNextPayoutTile = (summary: PortfolioSummary): PortfolioTileMod
     return { label: copy.summary.tiles.nextPayout, value: copy.summary.tiles.nextPayoutNone, hint: copy.summary.tiles.nextPayoutNoneHint };
   }
 
-  const currentMonth = summary.thisMonth.month;
+  const todayYear = summary.thisMonth.year;
   const sorted = [...scheduled].sort(
-    (left, right) => payoutSortKey(left.nextPayout, currentMonth) - payoutSortKey(right.nextPayout, currentMonth)
+    (left, right) => payoutSortKey(left.nextPayout, todayYear) - payoutSortKey(right.nextPayout, todayYear)
   );
 
   const nearest = sorted[0].nextPayout;
@@ -144,18 +174,15 @@ export const buildNextPayoutTile = (summary: PortfolioSummary): PortfolioTileMod
 
   const sharing = sorted.filter((row) => isSamePayout(row.nextPayout, nearest));
   const tickers = copy.summary.tiles.tickerSummary(sharing[0].ticker, sharing.length);
+  const value = formatPayoutValue(nearest, todayYear);
 
   if (nearest.kind === 'estimated-day') {
-    return {
-      label: copy.summary.tiles.nextPayout,
-      value: copy.summary.tiles.nextPayoutDay(nearest.month, nearest.day),
-      hint: tickers
-    };
+    return { label: copy.summary.tiles.nextPayout, value, hint: tickers };
   }
 
   return {
     label: copy.summary.tiles.nextPayout,
-    value: copy.summary.tiles.nextPayoutMonthOnly(nearest.month),
+    value,
     hint: copy.summary.tiles.nextPayoutMonthOnlyHint(tickers)
   };
 };
@@ -290,19 +317,23 @@ const buildStorageError = (
 };
 
 /**
- * CTA 3종. 비활성이면 **반드시 사유**가 붙는다.
+ * CTA 2종. 비활성이면 **반드시 사유**가 붙는다.
  *
- * 상태 D(수량을 하나도 안 넣음)에서는 셋 다 비활성이다 — 이 화면의 세 CTA 는 전부 "지금 이 포트폴리오"를
+ * 상태 D(수량을 하나도 안 넣음)에서는 둘 다 비활성이다 — 이 화면의 두 CTA 는 "지금 이 포트폴리오"를
  * 다른 화면으로 들고 가는 동작이라, 들고 갈 것이 없으면 눌러도 빈 화면에 도착한다.
+ * (구 세 번째 CTA "목표까지 얼마나 왔는지 보기"는 목적지였던 `/dividend/goal` 이 이 페이지의
+ * 목표 달성 카드로 흡수되면서 사라졌다 — 바로 아래에 보이는 카드로 보내는 버튼은 소음이다.)
  */
 const buildCtas = (
   input: PortfolioViewModelInput,
   hasIncludedRows: boolean
-): Pick<PortfolioViewModel, 'simulateCta' | 'goalCta' | 'calendarCta'> => {
+): Pick<PortfolioViewModel, 'simulateCta' | 'calendarCta'> => {
   const { fx, canSimulate, simulationExcludedCount, calendarTickerCount, calendarExcludedCount } = input;
 
   const simulateHint = (): string | null => {
     if (!hasIncludedRows) return copy.cta.simulateDisabledEmpty;
+    // 조회 중을 실패보다 **먼저** 본다 — 아직 실패하지 않은 상태를 "불러오지 못했다"고 말하지 않는다.
+    if (fx.status === 'loading') return copy.cta.simulateDisabledFxLoading;
     if (fx.rate === null) return copy.cta.simulateDisabledFx;
     if (!canSimulate) return copy.cta.simulateDisabledUnsupported;
 
@@ -318,7 +349,6 @@ const buildCtas = (
 
   return {
     simulateCta: { disabled: !hasIncludedRows || !canSimulate, hint: simulateHint() },
-    goalCta: { disabled: !hasIncludedRows, hint: hasIncludedRows ? null : copy.cta.simulateDisabledEmpty },
     calendarCta: {
       disabled: !hasIncludedRows || calendarTickerCount === 0,
       hint: calendarHint()
@@ -405,6 +435,12 @@ export type PortfolioLiveMessageInput = {
   /** 이미 포맷된 월 배당(세후) 문자열. */
   monthlyText: string;
   fxFailed: boolean;
+  /**
+   * 목표 달성률(0..100). 목표 카드가 값을 가진 채 떠 있을 때만 숫자이고, 그 외에는 `null`.
+   *
+   * **새 라이브 리전을 만들지 않는다** — 두 번째 `role="status"` 를 두면 진입 시 두 문장이 겹쳐 낭독된다.
+   */
+  goalProgressPercent: number | null;
 };
 
 /**
@@ -414,13 +450,18 @@ export type PortfolioLiveMessageInput = {
 export const buildPortfolioLiveMessage = (input: PortfolioLiveMessageInput): string => {
   if (input.status === 'loading') return copy.live.loading;
   if (input.status === 'read-error') return copy.error.readFailed;
-  if (input.holdingsCount === 0) return copy.live.empty;
 
-  const summaryMessage = input.hasIncludedRows
-    ? copy.live.summary(input.monthlyText, input.holdingsCount)
-    : copy.live.empty;
+  const parts: string[] = [
+    input.holdingsCount === 0 || !input.hasIncludedRows
+      ? copy.live.empty
+      : copy.live.summary(input.monthlyText, input.holdingsCount)
+  ];
 
-  return input.fxFailed ? `${summaryMessage} ${copy.live.fxFailed}` : summaryMessage;
+  if (input.goalProgressPercent !== null) parts.push(copy.goal.live.progress(input.goalProgressPercent));
+  // 보유가 하나도 없으면 환율 실패는 사용자가 지금 겪는 문제가 아니다(환산할 값 자체가 없다).
+  if (input.fxFailed && input.holdingsCount > 0) parts.push(copy.live.fxFailed);
+
+  return parts.join(' ');
 };
 
 /**

@@ -69,7 +69,7 @@ describe('저장소 쓰기 실패(F)', () => {
     await screen.findByText(copy.empty.title);
 
     await user.click(screen.getByRole('button', { name: 'SCHD' }));
-    const quantity = await screen.findByRole('spinbutton', { name: copy.holdings.quantityAria('SCHD') });
+    const quantity = await screen.findByRole('textbox', { name: copy.holdings.quantityAria('SCHD') });
     await user.type(quantity, '12');
 
     // 디바운스(300ms) → 쓰기 → reject 까지 기다린다.
@@ -79,7 +79,7 @@ describe('저장소 쓰기 실패(F)', () => {
     expect(screen.queryByText(copy.error.readFailed)).not.toBeInTheDocument();
 
     // 메모리 상태는 정상이다 — 값이 화면에서 사라지거나 되돌아가지 않는다.
-    expect(quantity).toHaveValue(12);
+    expect(quantity).toHaveValue('12');
     expect(screen.getByRole('rowheader', { name: /SCHD/ })).toBeInTheDocument();
   });
 

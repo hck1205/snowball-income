@@ -40,11 +40,21 @@ describe('/dividend/portfolio 라우트', () => {
     expect(active[0]).toHaveAttribute('aria-label', COMMUNITY_COPY.nav.myPortfolio);
   });
 
-  it('형제 화면(목표 달성)에서는 내 포트폴리오가 활성이 아니다', async () => {
-    renderAt('/dividend/goal');
+  it('형제 화면(배당 캘린더)에서는 내 포트폴리오가 활성이 아니다', async () => {
+    renderAt('/dividend/calendar');
 
-    const goalNav = await screen.findByRole('link', { name: COMMUNITY_COPY.nav.goal });
-    expect(goalNav).toHaveAttribute('aria-current', 'page');
+    const calendarNav = await screen.findByRole('link', { name: COMMUNITY_COPY.nav.dividendCalendar });
+    expect(calendarNav).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: COMMUNITY_COPY.nav.myPortfolio })).not.toHaveAttribute('aria-current');
+  });
+
+  /*
+   * 구 목표 달성 페이지는 `/dividend/portfolio` 의 목표 카드로 흡수됐다. 프로덕션에 나간 적이 없는
+   * 경로라 **리다이렉트를 만들지 않는다** — 남기면 죽은 라우트가 영구히 유지된다.
+   */
+  it('구 /dividend/goal 라우트는 남아 있지 않다 (리다이렉트도 만들지 않는다)', () => {
+    const paths = routes.flatMap((route) => (route.children ?? []).map((child) => child.path));
+
+    expect(paths).not.toContain('/dividend/goal');
   });
 });

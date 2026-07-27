@@ -275,10 +275,10 @@ describe('삭제와 실행 취소 (AC1-4)', () => {
     { ticker: 'JEPI', quantity: 11 }
   ];
 
-  /** 표에 남은 행 순서. 수량 입력의 **접근명**으로 읽는다(세율 입력도 spinbutton 이라 걸러낸다). */
+  /** 표에 남은 행 순서. 수량 입력의 **접근명**으로 읽는다(세율 입력도 textbox 라 걸러낸다). */
   const tickerOrder = (): string[] =>
     screen
-      .getAllByRole('spinbutton')
+      .getAllByRole('textbox')
       .map((input) => input.getAttribute('aria-label') ?? '')
       .filter((label) => label.endsWith(' 보유 수량'))
       .map((label) => label.replace(' 보유 수량', ''));
@@ -296,7 +296,7 @@ describe('삭제와 실행 취소 (AC1-4)', () => {
 
     // 끝에 붙는 게 아니라 **원래 인덱스**로 돌아온다.
     expect(tickerOrder()).toEqual(['SCHD', 'O', 'JEPI']);
-    expect(screen.getByRole('spinbutton', { name: copy.holdings.quantityAria('O') })).toHaveValue(7);
+    expect(screen.getByRole('textbox', { name: copy.holdings.quantityAria('O') })).toHaveValue('7');
     // 배너는 확정돼 사라진다.
     expect(screen.queryByText(copy.undo.deleted('O'))).not.toBeInTheDocument();
   });
@@ -359,7 +359,7 @@ describe('계측 (AC7)', () => {
     });
 
     // 편집이 일어나도 요약 노출은 다시 세지 않는다(세션 지표가 부풀지 않게).
-    const quantity = screen.getByRole('spinbutton', { name: copy.holdings.quantityAria('JEPI') });
+    const quantity = screen.getByRole('textbox', { name: copy.holdings.quantityAria('JEPI') });
     await user.clear(quantity);
     await user.type(quantity, '9');
     await user.tab();
@@ -387,23 +387,50 @@ describe('계측 (AC7)', () => {
 });
 
 describe('저장소 격리 (AC4-4)', () => {
-  it('시뮬레이터·캘린더 DB 는 열지 않는다', async () => {
+  /**
+   * 목표 달성 카드를 흡수하면서 이 화면은 시뮬레이터 저장 payload(`snowball-income-db`)를 **읽는다**
+   * — 예상 달성 시점의 유일한 근거다. 그래서 계약이 "자기 DB 하나만 연다"에서
+   * **"시뮬 저장소는 읽기만, 쓰기는 자기 DB 에만"** 으로 바뀌었다. 캘린더 DB 는 여전히 열지 않는다.
+   *
+   * 쓰기가 새면 자동저장·클라우드 base 해시와 어긋나 다음 세션 충돌 판정이 바뀐다(무음 유실 경로).
+   */
+  it('시뮬 저장소는 읽기만 하고 쓰기는 자기 DB 에만 한다 (캘린더 DB 는 열지 않는다)', async () => {
     const user = userEvent.setup();
     // 프로토타입에 스파이를 건다 — 페이지가 어느 경로로 열든 전부 잡힌다.
     const openSpy = vi.spyOn(Object.getPrototypeOf(indexedDB) as IDBFactory, 'open');
 
-    await writePortfolioRecord([{ ticker: QUARTERLY_TICKER, quantity: 10 }], 15.4);
-    await renderPage({ now: new Date(2026, 6, 27), store: withFxRate() });
-    await screen.findByRole('rowheader', { name: new RegExp(QUARTERLY_TICKER) });
+    const realTransaction = IDBDatabase.prototype.transaction;
+    const transactions: { db: string; mode: string }[] = [];
+    const transactionSpy = vi
+      .spyOn(IDBDatabase.prototype, 'transaction')
+      .mockImplementation(function (this: IDBDatabase, ...args: Parameters<IDBDatabase['transaction']>) {
+        transactions.push({ db: this.name, mode: args[1] ?? 'readonly' });
+        return realTransaction.apply(this, args);
+      });
 
-    const quantity = screen.getByRole('spinbutton', { name: copy.holdings.quantityAria(QUARTERLY_TICKER) });
-    await user.clear(quantity);
-    await user.type(quantity, '25');
-    await user.click(screen.getByRole('button', { name: copy.holdings.deleteAria(QUARTERLY_TICKER) }));
+    try {
+      await writePortfolioRecord([{ ticker: QUARTERLY_TICKER, quantity: 10 }], 15.4);
+      await renderPage({ now: new Date(2026, 6, 27), store: withFxRate() });
+      await screen.findByRole('rowheader', { name: new RegExp(QUARTERLY_TICKER) });
 
-    // 저장이 실제로 일어났다(= 스파이가 살아 있다)는 것부터 확인한다 — 없으면 아래 단정이 공허해진다.
-    await waitFor(() => expect(openSpy.mock.calls.length).toBeGreaterThan(0));
-    // 이 화면이 여는 DB 는 자기 것 하나뿐이다(시뮬 자동저장·캘린더 DB 를 열면 여기서 걸린다).
-    expect([...new Set(openSpy.mock.calls.map(([name]) => name))]).toEqual([PORTFOLIO_DB_NAME]);
+      const quantity = screen.getByRole('textbox', { name: copy.holdings.quantityAria(QUARTERLY_TICKER) });
+      await user.clear(quantity);
+      await user.type(quantity, '25');
+      await user.click(screen.getByRole('button', { name: copy.holdings.deleteAria(QUARTERLY_TICKER) }));
+
+      // 저장이 실제로 일어났다(= 스파이가 살아 있다)는 것부터 확인한다 — 없으면 아래 단정이 공허해진다.
+      await waitFor(() => expect(openSpy.mock.calls.length).toBeGreaterThan(0));
+      await waitFor(() => expect(transactions.some((entry) => entry.mode === 'readwrite')).toBe(true));
+
+      const opened = new Set(openSpy.mock.calls.map(([name]) => name));
+      expect([...opened].sort()).toEqual(['snowball-income-db', PORTFOLIO_DB_NAME].sort());
+      expect(opened.has('snowball-dividend-calendar')).toBe(false);
+
+      const written = new Set(transactions.filter((entry) => entry.mode === 'readwrite').map((entry) => entry.db));
+      expect([...written]).toEqual([PORTFOLIO_DB_NAME]);
+    } finally {
+      transactionSpy.mockRestore();
+      openSpy.mockRestore();
+    }
   });
 });

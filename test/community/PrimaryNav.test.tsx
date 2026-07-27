@@ -88,11 +88,11 @@ describe('PrimaryNav', () => {
     expect(current[0]).toHaveAccessibleName('게시판');
   });
 
-  it('목표 달성(/dividend/goal)에선 목표 달성 링크만 활성이다', () => {
+  it('내 포트폴리오(/dividend/portfolio)에선 그 링크만 활성이다', () => {
     communityEnabled = true;
-    renderAt('/dividend/goal');
+    renderAt('/dividend/portfolio');
 
-    expect(screen.getByRole('link', { name: '목표 달성' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: '내 포트폴리오' })).toHaveAttribute('aria-current', 'page');
     // `/dividend/*` 형제 세그먼트끼리 서로를 활성화하면 사용자는 현재 위치를 잃는다.
     expect(screen.getByRole('link', { name: '배당 캘린더' })).not.toHaveAttribute('aria-current');
     expect(screen.getByRole('link', { name: '시뮬레이터' })).not.toHaveAttribute('aria-current');
@@ -101,17 +101,21 @@ describe('PrimaryNav', () => {
     expect(current).toHaveLength(1);
   });
 
-  it('배당 캘린더에선 목표 달성 링크가 활성이 되지 않는다 (상호 배타)', () => {
+  it('배당 캘린더에선 내 포트폴리오 링크가 활성이 되지 않는다 (상호 배타)', () => {
     communityEnabled = true;
     renderAt('/dividend/calendar');
 
     expect(screen.getByRole('link', { name: '배당 캘린더' })).toHaveAttribute('aria-current', 'page');
-    expect(screen.getByRole('link', { name: '목표 달성' })).not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('link', { name: '내 포트폴리오' })).not.toHaveAttribute('aria-current');
   });
 
-  it('라우트 링크는 7개이고 시뮬레이터 → 내 포트폴리오 → 목표 달성 순이다', () => {
+  /*
+   * 구 "목표 달성"(/dividend/goal) 항목은 내 포트폴리오 화면의 목표 카드로 흡수되면서 사라졌다 —
+   * 같은 이야기를 두 항목이 하지 않는다.
+   */
+  it('라우트 링크는 6개이고 시뮬레이터 → 내 포트폴리오 → 배당 캘린더 순이다', () => {
     communityEnabled = true;
-    renderAt('/dividend/goal');
+    renderAt('/dividend/portfolio');
 
     // 라우트 링크만 aria-label을 갖는다(브랜드 링크는 워드마크 텍스트가 이름) — 순서 = 예상 관심도(확정 결정).
     const names = screen
@@ -122,19 +126,19 @@ describe('PrimaryNav', () => {
     expect(names).toEqual([
       '시뮬레이터',
       '내 포트폴리오',
-      '목표 달성',
       '배당 캘린더',
       '포트폴리오 갤러리',
       '게시판',
       'ETF 소개'
     ]);
+    expect(screen.queryByRole('link', { name: '목표 달성' })).not.toBeInTheDocument();
   });
 
-  it('커뮤니티 비활성 배포에서도 목표 달성 링크는 남는다', () => {
+  it('커뮤니티 비활성 배포에서도 내 포트폴리오·배당 캘린더 링크는 남는다', () => {
     communityEnabled = false;
-    renderAt('/dividend/goal');
+    renderAt('/dividend/portfolio');
 
-    expect(screen.getByRole('link', { name: '목표 달성' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: '내 포트폴리오' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: '배당 캘린더' })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: '포트폴리오 갤러리' })).not.toBeInTheDocument();
   });

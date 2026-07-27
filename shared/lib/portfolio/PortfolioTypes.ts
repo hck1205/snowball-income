@@ -68,10 +68,16 @@ export type PortfolioMarketInfoResolver = (holding: PortfolioHolding) => Portfol
  * - `estimated-day`: 지급월 + 예상 일자(추정). 화면은 "N월 D일쯤(추정)".
  * - `month-only`: 지급월만 안다. 화면은 "N월 중(추정)".
  * - `none`: 지급월 정보가 없다(무배당·미갱신·수동 입력 종목).
+ *
+ * ⚠ `year` 는 **그 지급이 실제로 속한 달력 연도**다(추정이 아니라 탐색 결과 그 자체 —
+ * `findNextPayout` 이 오늘의 로컬 연·월에서 몇 달 뒤인지로 정한다). `month` 만으로는 연도를
+ * 복원할 수 없다: 연 1회 지급 종목의 3월 지급일이 지나면 다음 지급은 **내년 3월**이라
+ * `month === 오늘 달` 이 "이번 달"과 "내년 같은 달" 두 뜻을 갖는다. 소비 측에서 `month` 만으로
+ * 연도를 추론하거나 두 지급의 동일 여부를 판정하지 말 것(2026-08 과 2027-08 이 같아진다).
  */
 export type PortfolioNextPayout =
-  | { kind: 'estimated-day'; month: number; day: number }
-  | { kind: 'month-only'; month: number }
+  | { kind: 'estimated-day'; year: number; month: number; day: number }
+  | { kind: 'month-only'; year: number; month: number }
   | { kind: 'none' };
 
 /**

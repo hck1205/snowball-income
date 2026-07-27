@@ -52,19 +52,14 @@ const openPicker = async (user: ReturnType<typeof userEvent.setup>) => {
 };
 
 /**
- * 검색어를 **한 글자씩** 넣는다.
+ * 검색어를 **이어서** 친다(사람이 치는 그대로).
  *
- * ⚠ 지금 드로어는 리렌더마다 닫기 버튼으로 포커스를 되가져간다(qa 리포트 2026-07-27, `onClose`
- * 아이덴티티가 매 렌더 바뀌어 포커스 effect 가 재실행된다) — 한 번의 `type('SCHD')` 은 첫 글자만
- * 들어간다. 이 헬퍼는 글자마다 입력에 포커스를 되돌려 **검색 필터 자체의 계약**을 검증한다.
- * 포커스 버그가 고쳐지면 이 헬퍼는 그대로 두어도 통과하고, 연속 타이핑 회귀 테스트를 따로 추가한다.
+ * 예전에는 글자마다 입력에 포커스를 되돌려야 했다 — 드로어의 포커스 이펙트가 `onClose` 를 deps 로
+ * 갖고 있어 렌더마다 재실행되며 포커스를 닫기 버튼으로 끌고 갔기 때문(BUG-1, 아래 회귀 테스트).
+ * 지금은 우회가 필요 없으므로 헬퍼도 우회를 하지 않는다 — 우회를 남겨 두면 버그가 돌아와도 초록이다.
  */
 const typeSearch = async (user: ReturnType<typeof userEvent.setup>, text: string) => {
-  for (const char of text) {
-    const search = screen.getByRole('searchbox', { name: copy.picker.searchLabel });
-    await user.click(search);
-    await user.type(search, char);
-  }
+  await user.type(screen.getByRole('searchbox', { name: copy.picker.searchLabel }), text);
 };
 
 const submitManual = async (
@@ -76,9 +71,9 @@ const submitManual = async (
   if (values.ticker) await user.type(ticker, values.ticker);
 
   /*
-   * ⚠ 숫자 `InputField` 는 브라우저 스피너를 없애려고 실제 `type="text"` 로 렌더된다
-   * (InputField.tsx: `type={isNumber ? 'text' : type}`) — role 은 spinbutton 이 아니라 textbox 다.
-   * 표의 `QuantityInput` 만 진짜 `type="number"`(spinbutton)라서 두 입력의 쿼리가 다르다.
+   * ⚠ 숫자 입력도 role 은 spinbutton 이 아니라 **textbox** 다. `InputField` 는 스피너를 없애려고
+   * `type={isNumber ? 'text' : type}` 로 렌더하고, 표의 `QuantityInput` 도 같은 이유(+ `"120."` 중간
+   * 상태를 잃지 않으려고) `type="text" inputMode="decimal"` 이다.
    */
   const price = screen.getByRole('textbox', { name: copy.manual.fieldPrice });
   await user.clear(price);
@@ -118,7 +113,7 @@ describe('수동 추가 폼 (AC1-5)', () => {
     // 추가 직후에는 수량이 비어 있으므로 그 사유가 먼저다(에러가 아니라 다음 할 일 안내).
     expect(within(row).getByText(copy.holdings.rowNeedsQuantity)).toBeInTheDocument();
 
-    await user.type(screen.getByRole('spinbutton', { name: copy.holdings.quantityAria('TIGER200') }), '5');
+    await user.type(screen.getByRole('textbox', { name: copy.holdings.quantityAria('TIGER200') }), '5');
 
     // 수량이 들어가면 값 계산에는 포함되고, 빠지는 것이 무엇인지로 사유가 바뀐다.
     const filled = screen.getByRole('row', { name: /TIGER200/ });
@@ -167,7 +162,7 @@ describe('수동 추가 폼 (AC1-5)', () => {
     expect(await screen.findByText(copy.manual.duplicateInHoldings('TIGER200'))).toBeInTheDocument();
     // 행이 늘지도, 기존 수량이 바뀌지도 않는다.
     expect(screen.getAllByRole('rowheader', { name: /TIGER200/ })).toHaveLength(1);
-    expect(screen.getByRole('spinbutton', { name: copy.holdings.quantityAria('TIGER200') })).toHaveValue(5);
+    expect(screen.getByRole('textbox', { name: copy.holdings.quantityAria('TIGER200') })).toHaveValue('5');
 
     const announced = screen.getAllByRole('status').map((node) => node.textContent ?? '');
     expect(announced).toContain(copy.live.alreadyHeld('TIGER200'));
@@ -175,6 +170,25 @@ describe('수동 추가 폼 (AC1-5)', () => {
 });
 
 describe('드로어 계약', () => {
+  it('검색어를 이어서 쳐도 포커스가 검색 입력에 남는다 (BUG-1 회귀)', async () => {
+    const user = userEvent.setup();
+    await renderPage();
+    await screen.findByText(copy.empty.title);
+
+    await openPicker(user);
+
+    const search = screen.getByRole('searchbox', { name: copy.picker.searchLabel });
+    await user.type(search, 'SCHD');
+
+    /*
+     * 드로어의 포커스 이펙트가 렌더마다 재실행되면 **글자마다** 포커스가 닫기 버튼으로 끌려가
+     * 첫 글자만 남는다(검색이 사실상 불가능해진다). 값과 포커스를 함께 단정해야 회귀를 잡는다.
+     */
+    expect(search).toHaveValue('SCHD');
+    expect(search).toHaveFocus();
+    expect(await screen.findByRole('button', { name: copy.picker.addAria('SCHD') })).toBeInTheDocument();
+  });
+
   it('Escape 는 검색어를 먼저 지우고, 지울 게 없을 때 닫힌다 (열었던 버튼으로 포커스 복귀)', async () => {
     const user = userEvent.setup();
     await renderPage();

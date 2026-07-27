@@ -76,6 +76,61 @@ describe('다음 예상 지급일 — 같은 날 지급하는 종목 묶기 (AC3
     expect(buildNextPayoutTile(summary).value).toBe(copy.summary.tiles.nextPayoutDay(8, 14));
   });
 
+  /**
+   * **연도가 다르면 같은 달·같은 날이어도 다른 지급이다.**
+   *
+   * 엔진은 지급 연도를 `nextPayout.year` 로 준다(연 1회 종목의 당월 지급일이 지나면 다음 차례는
+   * 내년 같은 달이다). 화면이 연도를 무시하면 2026-08 과 2027-08 이 한 줄로 묶여, 내년에 들어올 돈이
+   * 이번 달 지급 줄의 "외 n종"으로 세어진다. 두 지급을 엔진으로 동시에 만들 수 없으므로
+   * (같은 (월,일)이면 탐색 결과의 연도도 같다) 여기서는 **뷰 모델의 계약**을 직접 겨눈다.
+   */
+  const withPayoutYear = (summary: ReturnType<typeof summaryOf>, index: number, year: number) => ({
+    ...summary,
+    holdings: summary.holdings.map((row, rowIndex) =>
+      rowIndex === index && row.nextPayout.kind !== 'none'
+        ? { ...row, nextPayout: { ...row.nextPayout, year } }
+        : row
+    )
+  });
+
+  it('연도가 다르면 같은 달·같은 날이어도 묶지 않는다', () => {
+    // 둘 다 8월 5일이지만 BBB 만 내년 지급이다.
+    const summary = summaryOf({ AAA: 10, BBB: 20 }, { AAA: FIXTURE_MONTHLY, BBB: FIXTURE_MONTHLY });
+    const tile = buildNextPayoutTile(withPayoutYear(summary, 1, 2027));
+
+    expect(tile.value).toBe(copy.summary.tiles.nextPayoutDay(8, 5));
+    // "외 1종"이 되면 내년 지급이 이번 달 입금으로 세어진 것이다.
+    expect(tile.hint).toBe('AAA');
+  });
+
+  it('올해가 아닌 지급에는 연도를 병기한다 (같은 해에는 붙이지 않는다)', () => {
+    const thisYear = summaryOf({ AAA: 10 }, { AAA: FIXTURE_MONTHLY });
+    expect(buildNextPayoutTile(thisYear).value).toBe(copy.summary.tiles.nextPayoutDay(8, 5));
+
+    const nextYear = buildNextPayoutTile(withPayoutYear(thisYear, 0, 2027));
+    expect(nextYear.value).toBe(copy.summary.tiles.nextPayoutDayWithYear(2027, 8, 5));
+    expect(nextYear.value).toBe('2027년 8월 5일 예상');
+  });
+
+  it('월만 아는 지급도 올해가 아니면 연도를 병기한다', () => {
+    const summary = summaryOf({ AAA: 10 }, { AAA: FIXTURE_QUARTERLY });
+    const tile = buildNextPayoutTile(withPayoutYear(summary, 0, 2027));
+
+    expect(tile.value).toBe(copy.summary.tiles.nextPayoutMonthOnlyWithYear(2027, 9));
+  });
+
+  it('내년 지급보다 올해 지급을 먼저 고른다 (달 숫자만 보고 정렬하지 않는다)', () => {
+    /*
+     * ODDQ 는 8월 14일, MONTHLY 는 8월 5일 — 달·일만 보면 MONTHLY 가 먼저다.
+     * MONTHLY 를 내년으로 옮기면 정렬 결과가 뒤집혀야 한다(연도를 세지 않으면 그대로 남는다).
+     */
+    const summary = summaryOf({ SOON: 10, LATER: 10 }, { SOON: FIXTURE_ODD_QUARTERLY, LATER: FIXTURE_MONTHLY });
+    const tile = buildNextPayoutTile(withPayoutYear(summary, 1, 2027));
+
+    expect(tile.value).toBe(copy.summary.tiles.nextPayoutDay(8, 14));
+    expect(tile.hint).toBe('SOON');
+  });
+
   it('수량을 넣지 않은 행은 지급일 타일에서 빠진다 (합계에 없는 행이 일정만 말하지 않게)', () => {
     const summary = summaryOf({ AAA: 0 }, { AAA: FIXTURE_MONTHLY });
     const tile = buildNextPayoutTile(summary);

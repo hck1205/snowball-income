@@ -48,6 +48,29 @@ const waitForReady = async (getStatus: () => string) => {
   await waitFor(() => expect(getStatus()).not.toBe('loading'));
 };
 
+/**
+ * 읽기를 **손으로 열어 주는** 리더 — "로드가 아직 안 끝난 창"을 결정적으로 만든다.
+ *
+ * ⚠ `let release: (() => void) | null` 로 두고 클로저에서만 대입하면 tsc 가 호출부를 `never` 로 좁혀
+ * 죽는다(vitest 는 통과, tsc 만 잡는다) — 그래서 속성 홀더로 감싼다.
+ */
+const gatedReader = (value: PortfolioPersistedRecord | null) => {
+  const gate: { release: () => void } = { release: () => undefined };
+  const readRecord: PortfolioRecordReader = () =>
+    new Promise((resolve) => {
+      gate.release = () => resolve({ ok: true, value });
+    });
+
+  return { gate, readRecord };
+};
+
+/** 디바운스(300ms)를 확실히 넘긴다 — 예약된 저장이 있었다면 이 사이에 반드시 발화한다. */
+const passDebounceWindow = async () => {
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 400));
+  });
+};
+
 beforeEach(async () => {
   await deletePortfolioDb();
   vi.mocked(trackEvent).mockClear();
@@ -204,6 +227,140 @@ describe('usePortfolioHoldings — 저장 타이밍 (저장 계층 주입)', () 
     unmount();
 
     expect(writeRecord).not.toHaveBeenCalled();
+  });
+});
+
+describe('usePortfolioHoldings — 하이드레이션 경합 (로드 지연 중 편집)', () => {
+  const seedRecord = buildPortfolioRecord(
+    [
+      { ticker: 'SCHD', quantity: 12.5 },
+      { ticker: 'O', quantity: 4 }
+    ],
+    22,
+    1_700_000_000_000
+  );
+
+  const seedRows = [
+    { ticker: 'SCHD', quantity: 12.5, quantityInput: '12.5' },
+    { ticker: 'O', quantity: 4, quantityInput: '4' }
+  ];
+
+  it('로드가 끝나기 전 add 는 loading 으로 거부하고, 저장된 원본이 그대로 화면에 온다', async () => {
+    const writeRecord = createWriter();
+    const { gate, readRecord } = gatedReader(seedRecord);
+    const { result } = renderHoldings({ readRecord, writeRecord });
+
+    expect(result.current.status).toBe('loading');
+
+    let added: ReturnType<typeof result.current.actions.add> | null = null;
+    act(() => {
+      added = result.current.actions.add('JEPI');
+    });
+
+    // 조용한 no-op 이 아니라 **구분 가능한 거절** — 화면이 "불러오는 중"을 말할 수 있어야 한다.
+    expect(added).toEqual({ ok: false, ticker: 'JEPI', reason: 'loading' });
+    expect(result.current.items).toEqual([]);
+
+    await act(async () => {
+      gate.release();
+    });
+    await waitForReady(() => result.current.status);
+
+    // 뒤늦게 도착한 로드값이 "추가 1행"에 오염되지 않고 원본 그대로 온다.
+    expect(result.current.items).toEqual(seedRows);
+    expect(result.current.taxPercent).toBe(22);
+  });
+
+  it('로딩 중 세율 변경·수량 수정·삭제·실행 취소도 전부 무시되고 저장을 예약하지 않는다', async () => {
+    const writeRecord = createWriter();
+    const { gate, readRecord } = gatedReader(seedRecord);
+    const { result } = renderHoldings({ readRecord, writeRecord });
+
+    let restored: string | null = 'unset';
+    act(() => {
+      result.current.actions.updateQuantity('SCHD', '99');
+      result.current.actions.remove('SCHD');
+      result.current.actions.setTaxPercent(33);
+      restored = result.current.actions.undo();
+    });
+
+    expect(restored).toBeNull();
+    expect(result.current.items).toEqual([]);
+    expect(result.current.pendingUndo).toBeNull();
+    // 세율만 목록 없이도 변이가 가능한 액션이다 — 33 이 남았다면 가드가 뚫린 것.
+    expect(result.current.taxPercent).toBe(15.4);
+
+    // 디바운스가 지나도 쓰지 않는다: 로딩 중 편집은 저장 **예약 자체**를 만들지 않는다.
+    await passDebounceWindow();
+    expect(writeRecord).not.toHaveBeenCalled();
+
+    await act(async () => {
+      gate.release();
+    });
+    await waitForReady(() => result.current.status);
+
+    expect(result.current.items).toEqual(seedRows);
+    expect(result.current.taxPercent).toBe(22);
+  });
+
+  it('로드 지연 중 add 는 저장을 예약조차 하지 않는다 — 디스크의 원본이 불변이다 (실제 IndexedDB)', async () => {
+    await writePortfolioRecord(
+      [
+        { ticker: 'SCHD', quantity: 12.5 },
+        { ticker: 'O', quantity: 4 }
+      ],
+      22
+    );
+    const stored = await readPortfolioRecord();
+
+    // 라이터는 주입하지 않는다 — 진짜 저장소에 무엇이 남는지가 이 테스트의 계약이다.
+    const { gate, readRecord } = gatedReader(stored.ok ? stored.value : null);
+    const { result, unmount } = renderHoldings({ readRecord });
+
+    expect(result.current.status).toBe('loading');
+    act(() => {
+      result.current.actions.add('JEPI');
+    });
+
+    // 디바운스 경과 + 언마운트 flush — 예약이 있었다면 여기서 디스크가 1행짜리로 교체된다.
+    await passDebounceWindow();
+    unmount();
+    await passDebounceWindow();
+
+    const after = await readPortfolioRecord();
+    expect(after.ok && after.value?.holdings).toEqual([
+      { ticker: 'SCHD', quantity: 12.5 },
+      { ticker: 'O', quantity: 4 }
+    ]);
+    expect(after.ok && after.value?.taxPercent).toBe(22);
+
+    gate.release();
+  });
+
+  it('로드가 끝난 뒤의 add 는 기존처럼 동작한다 (회귀 없음)', async () => {
+    const writeRecord = createWriter();
+    const { gate, readRecord } = gatedReader(seedRecord);
+    const { result } = renderHoldings({ readRecord, writeRecord });
+
+    await act(async () => {
+      gate.release();
+    });
+    await waitForReady(() => result.current.status);
+
+    let added: ReturnType<typeof result.current.actions.add> | null = null;
+    act(() => {
+      added = result.current.actions.add('jepi');
+    });
+
+    expect(added).toEqual({ ok: true, ticker: 'JEPI' });
+    expect(result.current.items.map((item) => item.ticker)).toEqual(['SCHD', 'O', 'JEPI']);
+
+    await waitFor(() => expect(writeRecord).toHaveBeenCalledTimes(1));
+    expect(writeRecord.mock.calls[0][0]).toEqual([
+      { ticker: 'SCHD', quantity: 12.5 },
+      { ticker: 'O', quantity: 4 },
+      { ticker: 'JEPI', quantity: 0 }
+    ]);
   });
 });
 

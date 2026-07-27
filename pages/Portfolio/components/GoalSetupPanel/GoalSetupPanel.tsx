@@ -1,5 +1,4 @@
 import { useCallback, useState, type FormEvent } from 'react';
-import { Target } from 'lucide-react';
 import { Button, Chip, InputField } from '@/components/common';
 import {
   TARGET_MONTHLY_DIVIDEND_MAX,
@@ -29,7 +28,7 @@ const QUICK_CHIPS = TARGET_MONTHLY_DIVIDEND_QUICK_VALUES.map((value) => ({
 }));
 
 /**
- * 목표 미설정(상태 C) 설정 패널 — 칩 4개 + 직접 입력 + 시뮬레이터로 가는 CTA.
+ * 목표 미설정 상태의 설정 패널 — 칩 4개 + 직접 입력.
  *
  * ⚠ **여기서 목표를 저장하지 않는다.** 시뮬레이터 밖에는 자동저장(120ms)도 클라우드 동기화
  * (4초 디바운스 + 3-way base 해시)도 마운트돼 있지 않아, 이 화면에서 쓰면 ①atom에 쓴 값은
@@ -49,9 +48,7 @@ export default function GoalSetupPanel({
   inputPlaceholder,
   invalidMessage,
   submitLabel,
-  ctaLabel,
-  onCommitTarget,
-  onStart
+  onCommitTarget
 }: GoalSetupPanelProps) {
   const [manWon, setManWon] = useState('');
   const [isInvalid, setIsInvalid] = useState(false);
@@ -114,15 +111,6 @@ export default function GoalSetupPanel({
       </InputRow>
       {/* 무음 실패 금지 — 왜 안 됐는지 문장으로 말한다(색만으로 말하지 않는다). */}
       {isInvalid ? <InvalidNote role="status">{invalidMessage}</InvalidNote> : null}
-
-      <Button
-        type="button"
-        variant="primary"
-        onClick={onStart}
-        startIcon={<Target size={16} strokeWidth={1.8} aria-hidden focusable={false} />}
-      >
-        {ctaLabel}
-      </Button>
     </SetupRoot>
   );
 }

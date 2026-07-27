@@ -49,6 +49,10 @@ export const resolvePortfolioPayoutDay = (
  * - 예상 일자를 모르는 달: 당월이 지급월이면 **당월**을 반환한다("N월 중" — 며칠인지 모르니 지났다고
  *   단정할 수 없다).
  * - 지급월 정보가 없으면(무배당·미갱신·수동 입력) `'none'`.
+ *
+ * 반환의 `year` 는 **그 지급이 속한 달력 연도**다(루프가 이미 계산한 값 — 버리지 않고 그대로 준다).
+ * `month` 만으로는 연도를 복원할 수 없다: 연 1회 종목의 당월 지급일이 지나면 다음 차례는 `offset 12`
+ * 의 **내년 같은 달**이라 `month === todayMonth` 가 "이번 달"과 "내년 같은 달" 양쪽을 뜻한다.
  */
 export const findNextPayout = (info: PortfolioMarketInfo | null, today: Date): PortfolioNextPayout => {
   if (!info || !hasPortfolioPayoutMonths(info)) return { kind: 'none' };
@@ -67,10 +71,10 @@ export const findNextPayout = (info: PortfolioMarketInfo | null, today: Date): P
     if (!payoutMonths.includes(month)) continue;
 
     const day = resolvePortfolioPayoutDay(info, year, month);
-    if (day === null) return { kind: 'month-only', month };
+    if (day === null) return { kind: 'month-only', year, month };
     if (offset === 0 && day < todayDate) continue;
 
-    return { kind: 'estimated-day', month, day };
+    return { kind: 'estimated-day', year, month, day };
   }
 
   return { kind: 'none' };

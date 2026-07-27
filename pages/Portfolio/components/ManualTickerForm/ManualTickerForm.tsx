@@ -68,7 +68,7 @@ export default function ManualTickerForm({ forceOpen, onSubmit }: ManualTickerFo
 
       const result = onSubmit({ ticker: symbol, price: parsedPrice, dividendYield: parsedYield });
       if (!result.ok) {
-        setError(copy.manual.duplicateInHoldings(symbol));
+        setError(result.reason === 'loading' ? copy.manual.notReady : copy.manual.duplicateInHoldings(symbol));
         return;
       }
 
@@ -102,6 +102,7 @@ export default function ManualTickerForm({ forceOpen, onSubmit }: ManualTickerFo
             type="number"
             value={price}
             prefix={copy.manual.priceUnit}
+            placeholder={copy.manual.fieldPricePlaceholder}
             hint={copy.manual.fieldPriceHint}
             min={0}
             onChange={(event) => {

@@ -7,17 +7,18 @@ export const TARGET_MONTHLY_DIVIDENDS = {
  * 목표 월배당 입력 필드의 **고정 DOM id**.
  *
  * 이 입력의 id는 원래 라벨에서 파생됐다(`toInputId('목표 월배당 (원)')`) — 라벨 카피를 한 글자만
- * 고쳐도 id가 조용히 바뀌는 구조라, 결과 카드의 "직접 입력" CTA가 이 필드로 스크롤·포커스를
- * 옮기는 순간부터는 상수로 못 박는다. 이 id를 바꾸면 그 CTA가 무음으로 아무것도 안 하게 된다.
+ * 고쳐도 id가 조용히 바뀌는 구조라, 다른 화면에서 이 필드로 스크롤·포커스를 옮기기 시작한
+ * 순간부터는 상수로 못 박는다. 실소비처는 `TargetFocusRequest`(pages/Main) — 라우터 state 로 들어온
+ * 포커스 요청을 받아 이 id 로 필드를 찾는다. id를 바꾸면 그 경로가 무음으로 아무것도 안 하게 된다.
  */
 export const TARGET_MONTHLY_DIVIDEND_INPUT_ID = 'target-monthly-dividend-input';
 
 /**
  * 라우터 `location.state` 로 넘기는 **목표 입력 포커스 요청**.
  *
- * 목표 달성 페이지(`/dividend/goal`)는 목표 값을 직접 쓰지 않는다(시뮬레이터 밖에는 자동저장·클라우드
- * 동기화가 없어 조용히 유실된다). 대신 시뮬레이터로 이동하면서 이 state를 실어 보내고, 결과 패널이
- * 한 번 읽어 목표 입력으로 포커스를 옮긴 뒤 state를 지운다.
+ * 내 포트폴리오(`/dividend/portfolio`)의 목표 달성 카드는 목표 값을 직접 쓰지 않는다(시뮬레이터 밖에는
+ * 자동저장·클라우드 동기화가 없어 조용히 유실된다). 대신 시뮬레이터로 이동하면서 이 state를 실어 보내고,
+ * 결과 패널이 한 번 읽어 목표 입력으로 포커스를 옮긴 뒤 state를 지운다.
  *
  * ⚠ 해시(`#`)나 쿼리로 옮기지 말 것 — 경로 기반 라우팅 유지(해시 라우팅 자제) + 공유 URL 오염 방지.
  */
@@ -30,7 +31,7 @@ export const hasFocusTargetMonthlyDividendRequest = (state: unknown): boolean =>
 /**
  * 목표 월배당 **빠른 선택 값**(원) — 로드맵 v2 확정: 50 / 100 / 200 / 300만원.
  *
- * 목표 달성 페이지의 설정 패널과 결과 카드(`SimulationResult`)가 **같은 상수를 공유**한다.
+ * 목표 달성 카드의 설정 패널(`GoalSetupPanel`)과 결과 카드(`SimulationResult`)가 **같은 상수를 공유**한다.
  * 두 화면이 각자 값을 들고 있으면 "여기서 고른 100만원"과 "저기서 고른 100만원"이 언젠가 갈린다.
  * 값은 GA `value_bucket` 경계(`useSnowballForm`의 `targetMonthlyDividend`)와 정확히 겹쳐 두어,
  * 칩으로 정한 목표가 분포 분석에서 경계에 걸치지 않는다.
@@ -40,7 +41,7 @@ export const TARGET_MONTHLY_DIVIDEND_QUICK_VALUES = [500_000, 1_000_000, 2_000_0
 /**
  * 목표 월배당 상한(원, 월 1억).
  *
- * 두 곳에서 같은 상수로 검증한다: ①목표 달성 페이지의 직접 입력 ②시뮬레이터가 받은 `location.state`.
+ * 두 곳에서 같은 상수로 검증한다: ①목표 달성 카드의 직접 입력 ②시뮬레이터가 받은 `location.state`.
  * 상한이 필요한 이유는 UI 미관이 아니라 **영속 안전**이다 — `setField`는 클램프하지 않고, 비정상 값이
  * 저장되면 정규화가 조용히 기본값으로 바꿔치기해(사용자에겐 "내가 넣은 값이 사라졌다") 원인을 못 찾는다.
  */
@@ -63,7 +64,7 @@ export const formatTargetMonthlyDividendChipLabel = (won: number): string =>
 
 /**
  * 포커스 요청 state. `targetMonthlyDividend`가 붙어 있으면 **시뮬레이터가 그 값을 커밋**한 뒤 포커스한다.
- * (쓰기는 언제나 시뮬레이터 안에서 — 목표 페이지는 값을 저장하지 않는다.)
+ * (쓰기는 언제나 시뮬레이터 안에서 — 목표 달성 카드는 값을 저장하지 않는다.)
  */
 export type FocusTargetMonthlyDividendState = {
   focusTargetMonthlyDividend: true;

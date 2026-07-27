@@ -217,12 +217,18 @@ export type MeasuredMonthlyDividendOptions = {
 /**
  * **실측 세후 월배당(USD) 한 숫자** = #5 ÷ 12.
  *
- * Goal 페이지의 "현재 월배당"을 시뮬레이션 파생값에서 실측으로 갈아끼울 때(후속 미션) 그대로 소비할
- * 공유 계층이다. `today` 가 필요 없다 — 값(#1~#5)은 달력과 무관하기 때문이고, 그래서 Goal 이 이
- * 숫자를 쓸 때 날짜 주입 계약을 새로 만들 필요가 없다.
+ * `computePortfolioSummary(...).monthlyDividendAfterTaxUsd` 와 **같은 숫자**를 요약 전체를 만들지 않고
+ * 보유 목록만으로 얻는 지름길이다(합산은 둘 다 `sumValuations` 하나를 공유하므로 값이 갈리지 않는다).
+ * 실제로 이 숫자를 화면에 쓰는 곳 — 내 포트폴리오(`/dividend/portfolio`)의 목표 달성 카드 — 은 이미
+ * 요약을 손에 들고 있어 요약 필드 쪽을 넘긴다(pages/Portfolio/PortfolioPage/PortfolioPage.tsx:170).
+ * 요약이 필요 없는 호출자(보유만 있는 계산·테스트)를 위한 진입점이다.
  *
- * ⚠ 이 값은 Goal 의 기존 `currentMonthlyDividend`(직전 12개월 **시뮬** 세후 평균)와 **정의가 다르다**
- * — 여기엔 성장·재투자·적립이 없다. 교체는 달성률·달성월 정의를 함께 다시 묶어야 하므로 후속 미션이다.
+ * `today` 가 필요 없다 — 값(#1~#5)은 달력과 무관하다. 그래서 소비처가 날짜 주입 계약을 만들 필요가 없다.
+ *
+ * ⚠ 이 값은 시뮬 파생 `currentMonthlyDividend`(직전 12개월 **시뮬** 세후 평균, shared/lib/snowball/SnowballGoal.ts)
+ * 와 **정의가 다르다** — 여기엔 성장·재투자·적립이 없다. 달성률의 현재값으로 둘 중 무엇을 쓸지는
+ * `resolvePortfolioGoalBasis`(pages/Portfolio/components/GoalCard/GoalCard.utils.ts)가 판정한다 —
+ * 실측이 서면 실측(원화 환산은 거기서 1회), 아니면 시뮬 폴백.
  */
 export const computeMeasuredMonthlyDividend = (
   holdings: readonly PortfolioHolding[],

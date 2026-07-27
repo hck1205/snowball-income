@@ -5,8 +5,6 @@ import {
   serializePortfolioCalendarTickers
 } from '@/pages/Portfolio/utils';
 import { CALENDAR_TICKERS_PARAM, getCalendarUniverse, parseCalendarTickersParam } from '@/pages/DividendCalendar/utils';
-import { QUANTITY_INPUT_DECIMALS } from '@/components/common';
-import { PORTFOLIO_QUANTITY_DECIMALS } from '@/shared/lib/portfolio';
 
 /**
  * 캘린더 딥링크 **포맷 미러링**의 왕복 검증.
@@ -39,9 +37,8 @@ describe('캘린더 딥링크', () => {
   });
 });
 
-describe('수량 소수 자릿수', () => {
-  it('입력 위젯과 계산 엔진이 같은 자릿수를 쓴다', () => {
-    // 두 값이 갈리면 "화면엔 4자리인데 합계는 다른 수량"이 되는데, 어느 쪽도 그 사실을 말하지 않는다.
-    expect(QUANTITY_INPUT_DECIMALS).toBe(PORTFOLIO_QUANTITY_DECIMALS);
-  });
-});
+/*
+ * 수량 소수 자릿수(`QUANTITY_INPUT_DECIMALS` ↔ `PORTFOLIO_QUANTITY_DECIMALS`) 대조는
+ * 위젯 옆으로 옮겼다 — `components/common/QuantityInput/QuantityInput.test.ts`.
+ * 상수를 복제한 파일 바로 옆에 단정이 있어야 그 파일만 보고도 제약을 안다.
+ */

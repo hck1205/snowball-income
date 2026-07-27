@@ -20,6 +20,11 @@ import {
  * - Escape 는 **이미 처리된 이벤트를 가로채지 않는다**(`defaultPrevented` 확인) — 안쪽 검색 입력의
  *   "Escape = 검색어만 지우기"가 먼저고, 지울 게 없을 때만 드로어가 닫힌다.
  * - 열릴 때 닫기 버튼으로 포커스, 닫힐 때 **열었던 요소로 복귀**.
+ *
+ * ⚠ 포커스 이펙트는 **열림 전이에만** 돈다(`onClose` 는 ref 로 잡는다). deps 에 `onClose` 를 두면
+ *   인라인 화살표 핸들러를 넘기는 호출부에서 렌더마다 이펙트가 재실행돼 **검색어를 한 글자 칠 때마다
+ *   포커스가 닫기 버튼으로 끌려간다**(qa BUG-1, 2026-07-27). 호출부가 메모이제이션을 지키는지에
+ *   의존하지 않고 여기서 끊는다 — `useDrawerBackClose` 가 같은 이유로 쓰는 패턴이다.
  */
 export default function HoldingPickerDrawer({
   id,
@@ -36,6 +41,9 @@ export default function HoldingPickerDrawer({
   // 뒤로가기 = 드로어 닫기(페이지 이탈 아님). URL은 그대로다.
   useDrawerBackClose(isOpen, onClose);
 
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
   useEffect(() => {
     if (!isOpen) return undefined;
 
@@ -47,7 +55,7 @@ export default function HoldingPickerDrawer({
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Escape' || event.defaultPrevented) return;
-      onClose();
+      onCloseRef.current();
     };
 
     document.addEventListener('keydown', handleKeyDown);
@@ -60,7 +68,7 @@ export default function HoldingPickerDrawer({
       const restore = restoreRef.current;
       if (restore && restore.isConnected) restore.focus();
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   return (
     <>

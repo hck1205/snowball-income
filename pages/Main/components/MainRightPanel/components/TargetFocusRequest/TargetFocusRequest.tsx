@@ -4,7 +4,8 @@ import { hasFocusTargetMonthlyDividendRequest, readTargetMonthlyDividendRequestV
 import type { TargetFocusRequestProps } from './TargetFocusRequest.types';
 
 /**
- * 다른 화면(목표 달성 페이지)에서 넘어온 **목표 요청**을 한 번 처리하고 지운다.
+ * 내 포트폴리오(`/dividend/portfolio`) **목표 달성 카드**에서 넘어온 **목표 요청**을 한 번 처리하고
+ * 지운다(보내는 쪽은 `pages/Portfolio/PortfolioPage`의 `navigate('/', { state })`).
  * 화면에는 아무것도 그리지 않는다(`null`).
  *
  * ## 왜 별도 컴포넌트인가

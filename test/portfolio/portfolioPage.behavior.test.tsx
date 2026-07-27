@@ -111,7 +111,7 @@ describe('정상 상태(C)', () => {
     const row = await screen.findByRole('row', { name: /SCHD/ });
     // 원화 환산은 표시 직전 한 번만 — 달러 값에 ₩ 가 붙으면 그 순간 화면이 거짓말이 된다.
     expect(within(row).getAllByText(/₩/).length).toBeGreaterThan(0);
-    expect(screen.getByRole('spinbutton', { name: copy.holdings.quantityAria('SCHD') })).toHaveValue(10);
+    expect(screen.getByRole('textbox', { name: copy.holdings.quantityAria('SCHD') })).toHaveValue('10');
   });
 
   it('환율을 불러오지 못하면 달러 원값으로 떨어지고 배너와 비활성 사유가 함께 뜬다', async () => {
@@ -132,12 +132,32 @@ describe('정상 상태(C)', () => {
     await writePortfolioRecord([{ ticker: 'SCHD', quantity: 10 }], 15.4);
     await renderPage(withFxRate());
 
-    const input = await screen.findByRole('spinbutton', { name: copy.holdings.quantityAria('SCHD') });
+    const input = await screen.findByRole('textbox', { name: copy.holdings.quantityAria('SCHD') });
     await user.clear(input);
 
     expect(await screen.findByText(copy.holdings.rowNeedsQuantity)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: copy.cta.simulate })).toBeDisabled();
     expect(screen.getByText(copy.cta.simulateDisabledEmpty)).toBeInTheDocument();
+  });
+
+  it('소수 수량을 한 글자씩 쳐도 소수점에서 값이 사라지지 않는다', async () => {
+    const user = userEvent.setup();
+    await writePortfolioRecord([{ ticker: 'SCHD', quantity: 10 }], 15.4);
+    await renderPage(withFxRate());
+
+    const input = await screen.findByRole('textbox', { name: copy.holdings.quantityAria('SCHD') });
+    await user.clear(input);
+    await user.type(input, '0.5');
+
+    /*
+     * `type="number"` 이던 시절엔 `"0."` 이 badInput 이라 브라우저가 빈 값을 넘겨, 소수점을 찍는 순간
+     * 상태가 `''` 로 비고 화면과 어긋났다. 소수 수량은 실제 사용 경로다(분할 매수·소수점 거래).
+     */
+    expect(input).toHaveValue('0.5');
+
+    // blur 정규화도 사용자가 친 값을 되돌리지 않는다.
+    await user.tab();
+    expect(input).toHaveValue('0.5');
   });
 });
 
@@ -185,7 +205,7 @@ describe('종목 추가 드로어', () => {
     await user.type(screen.getByRole('searchbox', { name: copy.picker.searchLabel }), 'SCHD');
     await user.click(await screen.findByRole('button', { name: copy.picker.heldAria('SCHD') }));
 
-    const input = screen.getByRole('spinbutton', { name: copy.holdings.quantityAria('SCHD') });
+    const input = screen.getByRole('textbox', { name: copy.holdings.quantityAria('SCHD') });
     await waitFor(() => expect(input).toHaveFocus());
     // 행이 하나 더 생기지 않았다(중복 추가 차단).
     expect(screen.getAllByRole('rowheader', { name: /SCHD/ })).toHaveLength(1);
@@ -207,13 +227,13 @@ describe('삭제와 실행 취소(H)', () => {
     await user.click(screen.getByRole('button', { name: copy.undo.action }));
 
     expect(await screen.findByRole('rowheader', { name: /SCHD/ })).toBeInTheDocument();
-    const input = screen.getByRole('spinbutton', { name: copy.holdings.quantityAria('SCHD') });
-    expect(input).toHaveValue(10);
+    const input = screen.getByRole('textbox', { name: copy.holdings.quantityAria('SCHD') });
+    expect(input).toHaveValue('10');
     await waitFor(() => expect(input).toHaveFocus());
   });
 });
 
-describe('CTA 3종', () => {
+describe('CTA 2종', () => {
   it('시뮬레이션은 프리필 state 를 실어 보내고 계측 이름을 남긴다', async () => {
     const user = userEvent.setup();
     await writePortfolioRecord([{ ticker: 'SCHD', quantity: 10 }], 15.4);
@@ -253,14 +273,19 @@ describe('CTA 3종', () => {
     });
   });
 
-  it('목표 달성으로 이동한다', async () => {
-    const user = userEvent.setup();
+  /*
+   * 구 세 번째 CTA "목표까지 얼마나 왔는지 보기"는 목적지(`/dividend/goal`)가 이 페이지의 목표 달성
+   * 카드로 흡수되면서 사라졌다 — 요약 카드에는 시뮬레이션·달력 둘만 남는다.
+   */
+  it('요약 카드의 CTA 는 시뮬레이션·달력 둘뿐이다', async () => {
     await writePortfolioRecord([{ ticker: 'SCHD', quantity: 10 }], 15.4);
     await renderPage(withFxRate());
-    await screen.findByRole('rowheader', { name: /SCHD/ });
+    const summary = await screen.findByRole('region', { name: copy.summary.title });
 
-    await user.click(screen.getByRole('button', { name: copy.cta.goal }));
+    const labels = within(summary)
+      .getAllByRole('button')
+      .map((button) => button.textContent);
 
-    expect(screen.getByTestId('probe-path')).toHaveTextContent('/dividend/goal');
+    expect(labels).toEqual([copy.cta.simulate, copy.cta.calendar]);
   });
 });

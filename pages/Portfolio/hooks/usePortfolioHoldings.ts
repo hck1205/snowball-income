@@ -23,6 +23,12 @@ import type { PortfolioRecordReader, PortfolioRecordWriter, PortfolioStorageFail
  * 쓰면 조용히 유실되거나 다음 세션 충돌 판정을 바꾼다(pitfalls 2026-07-27 🔴 3경로). 이 화면은
  * 자기 저장소(`snowball-portfolio`)만 만지고 시뮬 payload·공유 URL 은 읽지도 쓰지도 않는다.
  *
+ * ## 하이드레이션 전에는 편집을 받지 않는다
+ * 저장소 읽기가 끝나기 전(`status === 'loading'`)의 모든 변이는 **훅에서 거부**한다. 받아주면
+ * "빈 초기 상태 + 방금 추가한 1행"이 디바운스 저장으로 예약되고, 뒤늦게 도착한 로드값이 화면을
+ * 덮은 뒤 그 예약이 발화해 **디스크의 기존 보유 목록을 1행짜리로 교체**한다(읽기 지연만큼의 창이지만
+ * 결과는 사용자 데이터 파괴). 화면 어포던스(로딩 중 버튼 비활성)는 UI 몫이고, 여기가 정본 방어선이다.
+ *
  * ## 저장 규칙
  * - 편집 → **300ms 디바운스** 저장(수량을 타이핑할 때마다 쓰지 않게).
  * - **언마운트·pagehide·백그라운드 전환에서 pending 을 flush** 한다. ⚠ 시뮬 자동저장은 언마운트
@@ -61,13 +67,23 @@ export type PortfolioAddInput = { ticker: string; manual?: PortfolioManualMarket
 /**
  * 추가 결과. **중복은 조용히 무시하지 않고 사유를 돌려준다** — 화면이 "이미 보유 중"을 말하고
  * 그 행의 수량 입력으로 안내해야 하기 때문(AC1-3).
+ *
+ * `loading` = 저장소를 아직 못 읽어 편집을 받지 않는 상태(no-op 이 아니라 구분 가능한 거절).
  */
 export type PortfolioAddResult =
   | { ok: true; ticker: string }
-  | { ok: false; ticker: string; reason: 'duplicate' | 'invalid-ticker' };
+  | { ok: false; ticker: string; reason: 'duplicate' | 'invalid-ticker' | 'loading' };
 
+/**
+ * 모든 변이 액션은 `status === 'loading'` 동안 거부된다(위 "하이드레이션 전에는 편집을 받지 않는다").
+ * 값을 돌려주는 액션은 사유를 실어 주고(`add` → `loading`, `undo` → `null`), 반환이 없는 액션은
+ * 내부 가드로 무시한다.
+ */
 export type PortfolioHoldingsActions = {
-  /** 티커 문자열 또는 `{ ticker, manual }`. 이미 보유 중이면 추가하지 않고 `duplicate` 를 돌려준다. */
+  /**
+   * 티커 문자열 또는 `{ ticker, manual }`. 이미 보유 중이면 추가하지 않고 `duplicate` 를,
+   * 하이드레이션 전이면 `loading` 을 돌려준다.
+   */
   add: (input: string | PortfolioAddInput) => PortfolioAddResult;
   /** `QuantityInput` 의 원문을 그대로 받는다(빈 문자열 = 미입력). 없는 티커면 no-op. */
   updateQuantity: (ticker: string, rawInput: string | number) => void;
@@ -144,6 +160,15 @@ export const usePortfolioHoldings = (options: UsePortfolioHoldingsOptions = {}):
   const pendingSaveRef = useRef<PortfolioEditableState | null>(null);
   /** 읽기 실패 시 true — 이후 어떤 편집도 디스크에 쓰지 않는다(원본 보호). */
   const writeLockedRef = useRef(false);
+  /**
+   * 하이드레이션이 끝났나(성공·실패 무관 — `status !== 'loading'` 의 **동기** 미러).
+   *
+   * state 가 아니라 ref 인 이유 두 가지: 액션은 "지금" 판정해 결과를 즉시 돌려줘야 하고(setState 는
+   * 다음 렌더), status 를 deps 에 넣으면 액션 identity 가 매 전이마다 바뀐다.
+   */
+  const hydratedRef = useRef(false);
+  /** 편집이 한 번이라도 일어났나 — 로드 결과가 사용자 편집을 덮지 않게 하는 이중 방어용. */
+  const mutatedRef = useRef(false);
   const undoRef = useRef<{ row: PortfolioHoldingRow; index: number } | null>(null);
   const undoTimerRef = useRef<number | null>(null);
   const mountedRef = useRef(true);
@@ -173,7 +198,9 @@ export const usePortfolioHoldings = (options: UsePortfolioHoldingsOptions = {}):
 
   const scheduleSave = useCallback(
     (next: PortfolioEditableState) => {
-      if (writeLockedRef.current) return;
+      // 하이드레이션 전에는 **어떤 저장도 예약하지 않는다** — 액션 가드가 뚫리더라도 "빈 초기 상태 기준
+      // 목록"이 디스크 원본을 대체하는 마지막 단계를 여기서 한 번 더 막는다.
+      if (!hydratedRef.current || writeLockedRef.current) return;
 
       pendingSaveRef.current = next;
       if (saveTimerRef.current !== null) window.clearTimeout(saveTimerRef.current);
@@ -188,6 +215,7 @@ export const usePortfolioHoldings = (options: UsePortfolioHoldingsOptions = {}):
   /** 모든 편집이 지나는 **유일한** 경로 — 상태·동기 미러·저장 예약이 한 곳에서 같이 움직인다. */
   const applyState = useCallback(
     (next: PortfolioEditableState) => {
+      mutatedRef.current = true;
       stateRef.current = next;
       setState(next);
       scheduleSave(next);
@@ -209,10 +237,14 @@ export const usePortfolioHoldings = (options: UsePortfolioHoldingsOptions = {}):
 
   useEffect(() => {
     let cancelled = false;
+    hydratedRef.current = false;
 
     const fail = (reason: PortfolioStorageFailureReason) => {
       // 무음 실패 금지. 저장소는 건드리지 않고(삭제·덮어쓰기 없음) 자동 저장만 잠근다.
       writeLockedRef.current = true;
+      // 실패도 하이드레이션의 **끝**이다 — 여기서 계속 막으면 편집 자체가 영구 잠긴다.
+      // 디스크는 writeLockedRef 가 따로 지킨다(입력은 되되 쓰지 않는다).
+      hydratedRef.current = true;
       trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, { operation: 'portfolio_storage_read', reason });
       setStatus('read-error');
     };
@@ -227,7 +259,11 @@ export const usePortfolioHoldings = (options: UsePortfolioHoldingsOptions = {}):
           return;
         }
 
-        if (result.value) {
+        // 이중 방어: 로딩 중 변이는 액션 가드가 전부 거부하므로 여기서 `mutatedRef` 는 이론상 항상
+        // false 다. 그럼에도 편집이 있었다면 **로드값으로 덮지 않는다** — 방금 친 값이 눈앞에서
+        // 사라지는 쪽이 더 나쁘고, 하이드레이션 전 편집은 저장 예약조차 못 했으므로(scheduleSave
+        // 가드) 디스크 원본은 이 분기에서도 그대로 남아 있다.
+        if (result.value && !mutatedRef.current) {
           const next: PortfolioEditableState = {
             items: result.value.holdings.map(toRow),
             taxPercent: result.value.taxPercent
@@ -236,6 +272,7 @@ export const usePortfolioHoldings = (options: UsePortfolioHoldingsOptions = {}):
           setState(next);
         }
 
+        hydratedRef.current = true;
         setStatus('ready');
       } catch (error) {
         if (cancelled) return;
@@ -278,6 +315,8 @@ export const usePortfolioHoldings = (options: UsePortfolioHoldingsOptions = {}):
   const add = useCallback(
     (input: string | PortfolioAddInput): PortfolioAddResult => {
       const ticker = normalizePortfolioTicker(typeof input === 'string' ? input : input.ticker);
+      // 저장소를 아직 못 읽었다 — 지금 받으면 "빈 목록 + 이 1행"이 디스크의 원본을 대체한다.
+      if (!hydratedRef.current) return { ok: false, ticker, reason: 'loading' };
       if (ticker.length === 0) return { ok: false, ticker: '', reason: 'invalid-ticker' };
 
       const current = stateRef.current;
@@ -305,6 +344,8 @@ export const usePortfolioHoldings = (options: UsePortfolioHoldingsOptions = {}):
 
   const updateQuantity = useCallback(
     (ticker: string, rawInput: string | number) => {
+      if (!hydratedRef.current) return;
+
       const symbol = normalizePortfolioTicker(ticker);
       const current = stateRef.current;
       const index = current.items.findIndex((item) => item.ticker === symbol);
@@ -332,6 +373,8 @@ export const usePortfolioHoldings = (options: UsePortfolioHoldingsOptions = {}):
 
   const remove = useCallback(
     (ticker: string) => {
+      if (!hydratedRef.current) return;
+
       const symbol = normalizePortfolioTicker(ticker);
       const current = stateRef.current;
       const index = current.items.findIndex((item) => item.ticker === symbol);
@@ -354,6 +397,8 @@ export const usePortfolioHoldings = (options: UsePortfolioHoldingsOptions = {}):
   );
 
   const undo = useCallback((): string | null => {
+    if (!hydratedRef.current) return null;
+
     const buffered = undoRef.current;
     if (buffered === null) return null;
 
@@ -375,6 +420,8 @@ export const usePortfolioHoldings = (options: UsePortfolioHoldingsOptions = {}):
 
   const setTaxPercent = useCallback(
     (value: number) => {
+      if (!hydratedRef.current) return;
+
       const taxPercent = normalizePortfolioTaxRatePercent(value);
       const current = stateRef.current;
       if (current.taxPercent === taxPercent) return;
