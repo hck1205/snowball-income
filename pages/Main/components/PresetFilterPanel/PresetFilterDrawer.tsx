@@ -1,6 +1,7 @@
 import { useEffect, useRef, type KeyboardEvent } from 'react';
 import { X } from 'lucide-react';
 import { Button, RangeSlider } from '@/components/common';
+import { useDrawerBackClose } from '@/shared/hooks';
 import type { Frequency } from '@/shared/types';
 import type { PresetFilterDrawerProps, PresetFilterState } from './PresetFilterPanel.types';
 import {
@@ -52,6 +53,12 @@ export default function PresetFilterDrawer({
 }: PresetFilterDrawerProps) {
   const drawerRef = useRef<HTMLElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  /**
+   * 뒤로가기 1회 = **이 드로어만** 닫힘(뒤의 티커 모달은 유지). 모달 안 중첩이지만 마커가
+   * 인스턴스별 고유 id라 바깥 드로어의 엔트리를 건드리지 않는다.
+   */
+  useDrawerBackClose(open, onClose);
 
   // 열릴 때 닫기 버튼으로 포커스 이동(첫 포커서블).
   useEffect(() => {
