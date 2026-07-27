@@ -240,7 +240,7 @@ describe('표시 통화 토글 → 결과 표면 전체 전파', () => {
     expect(resultCardText('시뮬레이션 결과 (정밀)')).toMatch(/\$[\d,]/);
 
     // 간략: 축약 표기 `약 $1.4M`.
-    await user.click(screen.getByRole('checkbox', { name: '결과 상세도' }));
+    await user.click(screen.getByRole('checkbox', { name: '결과 간략히 보기' }));
     const compact = resultCardText('시뮬레이션 결과 (정밀)');
     expect(compact).toMatch(/약 \$/);
     expect(compact).not.toContain('₩');

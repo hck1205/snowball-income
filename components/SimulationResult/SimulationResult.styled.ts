@@ -78,11 +78,10 @@ const NARRATIVE_TONE: Record<NarrativeTone, { bg: string; fg: string }> = {
  *
  * hero(최종 자산) 바로 아래에 그리드 한 줄 전체(`grid-column: 1 / -1`)를 차지한다.
  * 상태별 surface 토큰으로 톤을 말한다(Banner와 달리 success 톤이 필요해 전용 블록으로 뒀다).
- * 뷰 토글이 우측 상단에 절대배치되므로 `position: relative`.
+ * 내부 요소는 전부 in-flow다 — 절대배치 슬롯은 없다(뷰 토글도 문장 아래 한 행으로 흐른다).
  */
 export const NarrativeBlock = styled.div<{ tone: NarrativeTone }>`
   grid-column: 1 / -1;
-  position: relative;
   display: flex;
   align-items: flex-start;
   gap: ${space[3]};
@@ -107,12 +106,11 @@ export const NarrativeBody = styled.div`
 `;
 
 /**
- * 서사 문장. 우측 상단 뷰 토글이 **있을 때만** 그만큼 오른쪽을 비운다 —
- * 토글이 없는 미설정 상태에서 같은 여백을 두면 문장 오른쪽에 죽은 공간만 남는다.
+ * 서사 문장. 뷰 토글이 in-flow 행으로 아래에 흐르므로 오른쪽을 비워 둘 이유가 없다
+ * (예전엔 절대배치 토글을 피하려 `padding-right: 78px`을 뒀다 — 320px에서 문장이 심하게 좁아졌다).
  */
-export const NarrativeText = styled.p<{ tone: NarrativeTone; hasToggle: boolean }>`
+export const NarrativeText = styled.p<{ tone: NarrativeTone }>`
   margin: 0;
-  padding-right: ${({ hasToggle }) => (hasToggle ? '78px' : '0')};
   font-size: ${font.size.sm};
   line-height: ${font.leading.normal};
   color: ${({ tone }) => NARRATIVE_TONE[tone].fg};
@@ -131,11 +129,23 @@ export const NarrativeActions = styled.div`
   gap: ${space[2]};
 `;
 
-/** 뷰 스위치(바 ↔ 게이지)의 우측 상단 고정 슬롯. */
-export const NarrativeToggleSlot = styled.div`
-  position: absolute;
-  top: ${space[3]};
-  right: ${space[3]};
+/**
+ * 뷰 스위치(바 ↔ 게이지)가 앉는 in-flow 행. 서사 문장 아래, 우측 정렬.
+ *
+ * ⚠ 라벨 색을 여기서 덮는 이유: `ToggleField`의 라벨은 기본 `textSecondary`인데 이 블록은
+ * 톤 surface(warning/success)로 칠해져 있어 **대비가 검증되지 않은 사각지대**다.
+ * 블록의 톤 전경색으로 맞춰 문장과 같은 색으로 읽히게 한다.
+ *
+ * ⚠ 선택자가 `> div`(자식 타입)인 이유: Emotion **컴포넌트 셀렉터**(`${ToggleLabel}`)는
+ * 이 레포 설정에서 런타임 throw를 낸다. ToggleField의 루트가 곧 그 라벨 div다.
+ */
+export const NarrativeToggleRow = styled.div<{ tone: NarrativeTone }>`
+  display: flex;
+  justify-content: flex-end;
+
+  > div {
+    color: ${({ tone }) => NARRATIVE_TONE[tone].fg};
+  }
 `;
 
 /**

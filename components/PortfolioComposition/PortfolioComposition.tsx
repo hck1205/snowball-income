@@ -78,14 +78,11 @@ function PortfolioCompositionComponent({
           <AllocationLockGlyph>
             {isLocked ? <Lock size={16} {...GLYPH_PROPS} /> : <Pencil size={16} {...GLYPH_PROPS} />}
           </AllocationLockGlyph>
-          {/* 비율 조절 잠금 — 기본 ON(잠금). 모바일 세로 스크롤 중 슬라이더 오조작을 막고, 풀 때만 조절 가능. */}
+          {/* 비율 조절 잠금 — 기본값은 위 useState 참고(모바일 ≤960px만 ON). 잠금을 풀 때만 슬라이더 조절 가능. */}
           <ToggleField
-            label={ALLOCATION_COPY.lockToggleLabel}
+            label={ALLOCATION_COPY.lockToggleShortLabel}
+            accessibleName={ALLOCATION_COPY.lockToggleLabel}
             checked={isLocked}
-            hideLabel
-            controlWidth="58px"
-            onText={ALLOCATION_COPY.lockToggleOnText}
-            offText={ALLOCATION_COPY.lockToggleOffText}
             onChange={(event) => {
               trackEvent(ANALYTICS_EVENT.TOGGLE_CHANGED, {
                 field_name: 'allocationLocked',
