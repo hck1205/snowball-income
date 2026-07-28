@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
 import { formatKRW } from '@/shared/utils/format';
-import { Banner, Button } from '@/components/common';
+import { Banner, Button, ShareDialog } from '@/components/common';
 import {
   Avatar,
   ConfirmDialog,
@@ -51,7 +51,12 @@ export default function CommunityDetailView({ viewModel }: CommunityDetailViewPr
     onOpenInSimulator,
     canShare,
     onShare,
-    shareToastMessage
+    shareToastMessage,
+    shareTarget,
+    isShareLinkCopied,
+    onCopyShareLink,
+    onSelectShareChannel,
+    onCloseShare
   } = viewModel;
   const navigate = useNavigate();
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -200,6 +205,17 @@ export default function CommunityDetailView({ viewModel }: CommunityDetailViewPr
             loading={detail.deleting}
             onConfirm={() => void detail.remove()}
             onCancel={() => setDeleteOpen(false)}
+          />
+        ) : null}
+
+        {/* 데스크톱 공유 창 — 자기 자신을 body 로 포털한다(상세 본문 카드에 잘리지 않게). */}
+        {shareTarget ? (
+          <ShareDialog
+            url={shareTarget.url}
+            isCopied={isShareLinkCopied}
+            onCopy={onCopyShareLink}
+            onSelectChannel={onSelectShareChannel}
+            onClose={onCloseShare}
           />
         ) : null}
 

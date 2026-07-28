@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
+import { buildShareChannelUrl, isNativeShareIdiomatic, type ShareChannelId } from '@/components/common';
 import { ANALYTICS_EVENT, track } from '@/shared/lib/analytics';
 
 const d = COMMUNITY_COPY.detail;
@@ -26,11 +27,26 @@ export type SharePostInput = {
   placement: SharePlacement;
 };
 
+/** 열려 있는 공유 창이 무엇을 공유하는가. `null` 이면 창은 닫혀 있다. */
+export type ShareTarget = {
+  url: string;
+  title: string;
+} & Pick<SharePostInput, 'postId' | 'kind' | 'placement'>;
+
 export type UsePostShare = {
   /** 복사 폴백 토스트 메시지(빈 문자열이면 미노출). */
   shareToastMessage: string;
-  /** 이 글의 공개 상세 URL(입력 url 또는 window.location.href)을 공유한다. */
+  /** 데스크톱 공유 창의 대상. `null` 이면 닫혀 있다. */
+  shareTarget: ShareTarget | null;
+  /** 직전 복사가 성공했는가 — 공유 창의 버튼 라벨이 이걸로 "복사했습니다"가 된다. */
+  isShareLinkCopied: boolean;
+  /** 이 글의 공개 상세 URL을 공유한다(터치=OS 시트, 그 외=공유 창). */
   sharePost: (input: SharePostInput) => Promise<void>;
+  /** 공유 창의 "링크 복사". */
+  copyShareLink: () => Promise<void>;
+  /** 공유 창의 채널 버튼. */
+  shareToChannel: (channel: ShareChannelId) => void;
+  closeShare: () => void;
 };
 
 const copyToClipboard = async (value: string): Promise<void> => {
@@ -47,14 +63,21 @@ const isAbortError = (error: unknown): boolean =>
 
 /**
  * 글의 **공개 상세 URL**(SEO 페이지)을 외부로 공유하는 훅 — 상세 페이지와 피드 카드가 공유한다.
- * - `navigator.share` 지원(주로 모바일): OS 네이티브 공유 시트를 연다.
- * - 미지원(주로 데스크톱): 클립보드에 URL을 복사하고 토스트로 알린다.
- * - 사용자가 네이티브 시트를 취소(AbortError)하면 **조용히** 종료한다(에러 토스트 없음).
+ *
+ * - **터치가 주 입력인 기기**(`isNativeShareIdiomatic`): OS 네이티브 공유 시트를 연다. 카카오톡·문자 등
+ *   그 기기에 설치된 앱으로 바로 보낼 수 있어 이 자리에선 OS 시트가 최선이다.
+ * - **그 외(데스크톱)**: `navigator.share` 가 있어도 **쓰지 않는다**. 데스크톱 브라우저의 그 API 는
+ *   운영체제 공유 창을 여는데 앱이 크기·위치를 손댈 수 없고 잘려 보인다는 신고가 있었다. 대신 우리가
+ *   그린 공유 창(`ShareDialog`)을 연다 — 1급 동작은 링크 복사이고 채널 버튼이 따라온다.
+ * - 네이티브 시트를 사용자가 취소(AbortError)하면 **조용히** 종료한다(에러 토스트 없음).
+ * - 네이티브 시트가 취소가 아닌 이유로 실패하면 공유 창으로 내려간다(무음 실패 금지).
  *
  * 시뮬 상태 공유(`?s=`/`scenario_shared`)와는 별개다 — 이건 글 자체를 퍼뜨려 유입을 만든다.
  */
 export const usePostShare = (): UsePostShare => {
   const [shareToastMessage, setShareToastMessage] = useState('');
+  const [shareTarget, setShareTarget] = useState<ShareTarget | null>(null);
+  const [isShareLinkCopied, setIsShareLinkCopied] = useState(false);
   const sharingRef = useRef(false);
 
   useEffect(() => {
@@ -70,10 +93,9 @@ export const usePostShare = (): UsePostShare => {
     const shareUrl = url ?? window.location.href;
 
     try {
-      const nav = window.navigator;
-      if (nav && typeof nav.share === 'function') {
+      if (isNativeShareIdiomatic()) {
         try {
-          await nav.share({ title, url: shareUrl });
+          await window.navigator.share({ title, url: shareUrl });
           track(ANALYTICS_EVENT.COMMUNITY_POST_SHARED, {
             method: 'web_share',
             post_id: postId,
@@ -82,26 +104,69 @@ export const usePostShare = (): UsePostShare => {
           });
           return;
         } catch (error) {
-          // 정상 취소는 조용히 종료. 그 외 공유 실패만 클립보드 복사로 폴백.
+          // 정상 취소는 조용히 종료. 그 외 실패만 공유 창으로 내려간다.
           if (isAbortError(error)) return;
         }
       }
 
-      await copyToClipboard(shareUrl);
-      track(ANALYTICS_EVENT.COMMUNITY_POST_SHARED, {
-        method: 'copy_link',
-        post_id: postId,
-        kind,
-        placement
-      });
-      setShareToastMessage(d.shareToastCopied);
-    } catch {
-      // 클립보드까지 실패 — URL을 토스트로 노출해 수동 복사할 수 있게 한다.
-      setShareToastMessage(`${d.shareToastFailed} ${shareUrl}`);
+      setIsShareLinkCopied(false);
+      setShareTarget({ url: shareUrl, title, postId, kind, placement });
     } finally {
       sharingRef.current = false;
     }
   }, []);
 
-  return { shareToastMessage, sharePost };
+  const closeShare = useCallback(() => {
+    setShareTarget(null);
+    setIsShareLinkCopied(false);
+  }, []);
+
+  const copyShareLink = useCallback(async () => {
+    if (!shareTarget) return;
+
+    try {
+      await copyToClipboard(shareTarget.url);
+      setIsShareLinkCopied(true);
+      setShareToastMessage(d.shareToastCopied);
+      track(ANALYTICS_EVENT.COMMUNITY_POST_SHARED, {
+        method: 'copy_link',
+        post_id: shareTarget.postId,
+        kind: shareTarget.kind,
+        placement: shareTarget.placement
+      });
+    } catch {
+      // 클립보드가 막힌 환경(권한 거부·비보안 컨텍스트) — 창 안의 주소 입력으로 직접 복사할 수 있다.
+      setIsShareLinkCopied(false);
+      setShareToastMessage(`${d.shareToastFailed} ${shareTarget.url}`);
+    }
+  }, [shareTarget]);
+
+  const shareToChannel = useCallback(
+    (channel: ShareChannelId) => {
+      if (!shareTarget) return;
+      const channelUrl = buildShareChannelUrl(channel, shareTarget.url, shareTarget.title);
+      if (!channelUrl) return;
+
+      // `noopener` 없이 새 창을 열면 그 창이 `window.opener` 로 이 탭을 조작할 수 있다.
+      window.open(channelUrl, '_blank', 'noopener,noreferrer');
+      track(ANALYTICS_EVENT.COMMUNITY_POST_SHARED, {
+        method: channel,
+        post_id: shareTarget.postId,
+        kind: shareTarget.kind,
+        placement: shareTarget.placement
+      });
+      setShareTarget(null);
+    },
+    [shareTarget]
+  );
+
+  return {
+    shareToastMessage,
+    shareTarget,
+    isShareLinkCopied,
+    sharePost,
+    copyShareLink,
+    shareToChannel,
+    closeShare
+  };
 };

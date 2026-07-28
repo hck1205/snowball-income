@@ -30,7 +30,8 @@ export default function CommunityDetailPage({ kind = 'portfolio' }: CommunityDet
 
   const detail = usePostDetail(id, onRequireLogin, sectionBase);
   const comments = useComments(id);
-  const { shareToastMessage, sharePost } = usePostShare();
+  const { shareToastMessage, shareTarget, isShareLinkCopied, sharePost, copyShareLink, shareToChannel, closeShare } =
+    usePostShare();
 
   // 공유는 공개 SEO 상세 전체에 노출한다 — 갤러리·게시판 둘 다(피드 카드가 둘 다 공유하므로 일관, 사용자 결정).
   const canShare = true;
@@ -66,7 +67,12 @@ export default function CommunityDetailPage({ kind = 'portfolio' }: CommunityDet
         onOpenInSimulator,
         canShare,
         onShare,
-        shareToastMessage
+        shareToastMessage,
+        shareTarget,
+        isShareLinkCopied,
+        onCopyShareLink: copyShareLink,
+        onSelectShareChannel: shareToChannel,
+        onCloseShare: closeShare
       }}
     />
   );

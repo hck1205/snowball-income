@@ -1,11 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
+import { SHARE_DIALOG_COPY } from '@/components/common';
 import { track } from '@/shared/lib/analytics';
 import type { PostListItem } from '@/shared/lib/supabase';
 import { PostCard, PostRow } from '@/components/community';
+import { restoreMatchMedia, stubTouchPrimary } from '../helpers';
 
 // 계측 파라미터(placement)만 보기 위해 track만 목으로 갈아끼운다(ANALYTICS_EVENT 등은 실제 유지).
 vi.mock('@/shared/lib/analytics', async (importOriginal) => {
@@ -56,6 +58,7 @@ beforeEach(() => {
 afterEach(() => {
   delete (navigator as { share?: unknown }).share;
   delete (navigator as { clipboard?: unknown }).clipboard;
+  restoreMatchMedia();
 });
 
 describe('피드 공유 버튼 — 노출 (갤러리·게시판, 카드·행)', () => {
@@ -82,6 +85,7 @@ describe('피드 공유 버튼 — 노출 (갤러리·게시판, 카드·행)', 
 
 describe('피드 공유 버튼 — 링크 안 버튼의 네비게이션 차단', () => {
   it('공유 버튼 클릭은 상세로 이동하지 않고(카드가 링크여도) 공유만 실행한다', async () => {
+    stubTouchPrimary();
     const share = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, 'share', { value: share, configurable: true });
 
@@ -107,7 +111,8 @@ describe('피드 공유 버튼 — 링크 안 버튼의 네비게이션 차단',
 });
 
 describe('피드 공유 버튼 — 공유 경로', () => {
-  it('navigator.share 지원 시 네이티브 시트를 호출하고 placement=feed로 계측한다', async () => {
+  it('터치 기기(navigator.share 지원)에서는 OS 시트를 호출하고 placement=feed로 계측한다', async () => {
+    stubTouchPrimary();
     const share = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, 'share', { value: share, configurable: true });
 
@@ -121,12 +126,31 @@ describe('피드 공유 버튼 — 공유 경로', () => {
     );
   });
 
-  it('navigator.share 미지원 시 클립보드로 URL을 복사하고 토스트를 띄운다', async () => {
+  /**
+   * 데스크톱 계약의 핵심. `navigator.share`는 데스크톱 브라우저에도 **있지만** 호출하면 OS가 그리는
+   * 창이 떠서 앱이 손댈 수 없다(잘려 보인다는 신고의 원인). 있어도 부르지 않는 것이 이 화면의 규칙이다.
+   */
+  it('데스크톱에서는 navigator.share가 있어도 OS 시트를 열지 않고 공유 창을 연다', async () => {
+    const share = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'share', { value: share, configurable: true });
+
+    renderFeed(<PostCard item={item({ kind: 'portfolio', id: 's1' })} />);
+    await userEvent.click(shareButton());
+
+    const dialog = await screen.findByRole('dialog', { name: SHARE_DIALOG_COPY.title });
+    expect(share).not.toHaveBeenCalled();
+    // 공유할 주소가 그대로 보여야 클립보드가 막힌 환경에서도 직접 복사할 수 있다.
+    const linkInput = within(dialog).getByLabelText(SHARE_DIALOG_COPY.linkLabel) as HTMLInputElement;
+    expect(linkInput.value).toContain('/community/portfolio/s1');
+  });
+
+  it('공유 창의 "링크 복사"가 클립보드에 복사하고 토스트를 띄운다', async () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
 
     renderFeed(<PostCard item={item({ kind: 'portfolio', id: 's1' })} />);
     await userEvent.click(shareButton());
+    await userEvent.click(await screen.findByRole('button', { name: SHARE_DIALOG_COPY.copy }));
 
     await waitFor(() =>
       expect(writeText).toHaveBeenCalledWith(expect.stringContaining('/community/portfolio/s1'))
@@ -138,7 +162,8 @@ describe('피드 공유 버튼 — 공유 경로', () => {
     );
   });
 
-  it('사용자가 공유를 취소(AbortError)하면 조용히 종료한다(폴백·토스트 없음)', async () => {
+  it('사용자가 OS 시트를 취소(AbortError)하면 조용히 종료한다(공유 창·토스트 없음)', async () => {
+    stubTouchPrimary();
     const abort = Object.assign(new Error('cancelled'), { name: 'AbortError' });
     const share = vi.fn().mockRejectedValue(abort);
     const writeText = vi.fn().mockResolvedValue(undefined);
@@ -149,8 +174,9 @@ describe('피드 공유 버튼 — 공유 경로', () => {
     await userEvent.click(shareButton());
 
     await waitFor(() => expect(share).toHaveBeenCalledTimes(1));
-    // 취소는 클립보드 폴백으로 흘러가지 않고, 토스트도 계측도 남기지 않는다.
+    // 취소는 공유 창으로도 흘러가지 않고, 토스트도 계측도 남기지 않는다.
     expect(writeText).not.toHaveBeenCalled();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
     expect(track).not.toHaveBeenCalled();
   });

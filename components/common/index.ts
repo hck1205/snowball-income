@@ -74,6 +74,16 @@ export {
   SeriesFilterRow
 } from './SeriesFilter';
 
+export {
+  SHARE_CHANNELS,
+  SHARE_DIALOG_COPY,
+  ShareDialog,
+  buildShareChannelUrl,
+  findShareChannel,
+  isNativeShareIdiomatic
+} from './ShareDialog';
+export type { ShareChannel, ShareChannelId, ShareDialogProps } from './ShareDialog';
+
 export { default as SideDrawer } from './SideDrawer';
 export type { SideDrawerProps, SideDrawerSide } from './SideDrawer';
 

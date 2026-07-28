@@ -47,6 +47,29 @@ export const stubViewportWidth = (width: number): void => {
   });
 };
 
+/**
+ * **터치가 주 입력인 기기**(호버 없음 + 굵은 포인터)를 재현한다.
+ *
+ * 공유 경로 분기(OS 시트 vs 앱 공유 창)는 폭이 아니라 **입력 방식**으로 갈리므로
+ * `stubViewportWidth` 로는 만들 수 없다. 전역 스텁은 모든 질의에 false 라서
+ * 스텁하지 않은 테스트는 자동으로 "데스크톱"이다(의도).
+ */
+export const stubTouchPrimary = (): void => {
+  Object.defineProperty(window, 'matchMedia', {
+    configurable: true,
+    value: (query: string) => ({
+      matches: /hover:\s*none/.test(query) && /pointer:\s*coarse/.test(query),
+      media: query,
+      onchange: null,
+      addListener: () => undefined,
+      removeListener: () => undefined,
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+      dispatchEvent: () => false
+    })
+  });
+};
+
 /** `matchMedia` 자체가 없는 환경(SSR·구형 브라우저)을 재현한다. */
 export const removeMatchMedia = (): void => {
   Object.defineProperty(window, 'matchMedia', { configurable: true, value: undefined });
