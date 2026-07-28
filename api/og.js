@@ -10965,6 +10965,12 @@ var displayCurrencyAtom = atomWithStorage(
 
 // jotai/snowball/atoms/fx/index.ts
 var import_react4 = __toESM(require_react(), 1);
+
+// shared/lib/fx/fxChange.ts
+var DIRECTION_DECIMALS = 2;
+var DIRECTION_EPSILON = 10 ** -DIRECTION_DECIMALS / 2;
+
+// jotai/snowball/atoms/fx/index.ts
 var fxViewAtom = atom({ status: "loading" });
 var applyFxFetchResultAtom = atom(null, (get, set, rate) => {
   if (rate !== null) {
@@ -11097,6 +11103,45 @@ var displayCurrencyViewAtom = atom((get) => {
 
 // jotai/snowball/atoms/form/index.ts
 var yieldFormAtom = atomState(defaultYieldFormValues);
+
+// jotai/snowball/atoms/marketIndices/index.ts
+var import_react5 = __toESM(require_react(), 1);
+
+// shared/lib/marketIndices/registry.ts
+var DEFINITIONS = [
+  { symbol: "^GSPC", label: "S&P 500" },
+  { symbol: "^IXIC", label: "\uB098\uC2A4\uB2E5 \uC885\uD569" },
+  { symbol: "^KS11", label: "\uCF54\uC2A4\uD53C" },
+  { symbol: "^KQ11", label: "\uCF54\uC2A4\uB2E5" },
+  { symbol: "^N225", label: "\uB2C8\uCF00\uC774225" }
+];
+var MARKET_INDEX_SYMBOLS = DEFINITIONS.map(
+  (definition) => definition.symbol
+);
+var SYMBOL_SET = new Set(MARKET_INDEX_SYMBOLS);
+
+// shared/lib/marketIndices/change.ts
+var DIRECTION_DECIMALS2 = 2;
+var DIRECTION_EPSILON2 = 10 ** -DIRECTION_DECIMALS2 / 2;
+
+// jotai/snowball/atoms/marketIndices/index.ts
+var marketIndicesViewAtom = atom({ status: "loading" });
+var applyMarketIndicesFetchResultAtom = atom(
+  null,
+  (get, set, snapshot) => {
+    if (snapshot !== null) {
+      set(marketIndicesViewAtom, { status: "success", snapshot });
+      return;
+    }
+    const current = get(marketIndicesViewAtom);
+    const lastGood = current.status === "success" || current.status === "stale" ? current.snapshot : null;
+    set(
+      marketIndicesViewAtom,
+      lastGood === null ? { status: "error" } : { status: "stale", snapshot: lastGood }
+    );
+  }
+);
+var REFRESH_MIN_INTERVAL_MS2 = 5 * 60 * 1e3;
 
 // jotai/snowball/persistence/appStateNormalize.ts
 var DEFAULT_VISIBLE_YEARLY_SERIES = {

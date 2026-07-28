@@ -18,6 +18,13 @@ export type FxRate = {
   quote: 'KRW';
   /** API 가 준 실제 갱신 시각(ISO). 오늘 날짜로 위장하지 않는다. */
   asOf: string;
+  /**
+   * 전일 종가. **없을 수 있다** — ①전일 종가를 주지 않는 폴백 공급자가 이겼거나 ②엣지 캐시에 이 필드가 없던
+   * 구버전 응답이 최대 24시간(`stale-while-revalidate`) 남아 있는 경우. 부재는 **정상**이고, 소비자는 전일 대비
+   * 변동률만 생략한다(`computeFxChange` 가 `null` 을 돌려준다). `rate` 와 **같은 스냅샷**의 값이라야 하므로
+   * 다른 출처의 전일값으로 채워 넣지 않는다.
+   */
+  previousClose?: number;
 };
 
 /**
@@ -36,9 +43,15 @@ export type ExchangeRateView =
   | { status: 'stale'; rate: FxRate }
   | { status: 'error' };
 
+const isFinitePositive = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isFinite(value) && value > 0;
+
 /**
  * 신뢰할 수 없는 `/api/fx` 응답을 `FxRate` 로 정규화한다. 형태가 어긋나면 `null`(가짜 값을 지어내지 않는다).
  * `rate` 는 유한한 양수여야 하고 `asOf` 는 비어 있지 않은 문자열이어야 한다.
+ *
+ * ⚠ `previousClose` 는 **선택 필드**다 — 없어도 실패가 아니고(구버전 캐시 응답·전일값 없는 폴백 공급자),
+ * 유한한 양수가 아니면 조용히 **키를 빼고** 나머지를 정상 파싱한다(환율 자체는 멀쩡하므로 버리지 않는다).
  */
 export const parseFxRate = (data: unknown): FxRate | null => {
   if (!data || typeof data !== 'object') return null;
@@ -49,5 +62,8 @@ export const parseFxRate = (data: unknown): FxRate | null => {
   if (typeof rate !== 'number' || !Number.isFinite(rate) || rate <= 0) return null;
   if (typeof asOf !== 'string' || asOf.length === 0) return null;
 
-  return { rate, base: 'USD', quote: 'KRW', asOf };
+  const parsed: FxRate = { rate, base: 'USD', quote: 'KRW', asOf };
+  const previousClose = record.previousClose;
+
+  return isFinitePositive(previousClose) ? { ...parsed, previousClose } : parsed;
 };

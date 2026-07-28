@@ -1,7 +1,24 @@
 // ⚠ 자동 생성물 — 직접 편집하지 마라. 편집해도 다음 빌드가 덮어쓰고, 그 전에 빌드가 실패한다.
-// 소스: server/handlers/Fx/Fx.ts
+// 소스: server/handlers/MarketIndices/MarketIndices.ts
 // 재생성: npm run api:bundle
 
+
+// shared/lib/marketIndices/registry.ts
+var DEFINITIONS = [
+  { symbol: "^GSPC", label: "S&P 500" },
+  { symbol: "^IXIC", label: "\uB098\uC2A4\uB2E5 \uC885\uD569" },
+  { symbol: "^KS11", label: "\uCF54\uC2A4\uD53C" },
+  { symbol: "^KQ11", label: "\uCF54\uC2A4\uB2E5" },
+  { symbol: "^N225", label: "\uB2C8\uCF00\uC774225" }
+];
+var MARKET_INDEX_SYMBOLS = DEFINITIONS.map(
+  (definition) => definition.symbol
+);
+var SYMBOL_SET = new Set(MARKET_INDEX_SYMBOLS);
+
+// shared/lib/marketIndices/change.ts
+var DIRECTION_DECIMALS = 2;
+var DIRECTION_EPSILON = 10 ** -DIRECTION_DECIMALS / 2;
 
 // shared/lib/server/nodeHandler.ts
 var firstHeaderValue = (headers, name) => {
@@ -121,10 +138,11 @@ var toNodeHandler = (webHandler) => {
   };
 };
 
-// server/handlers/Fx/Fx.ts
-var BASE = "USD";
-var QUOTE = "KRW";
-var CACHE_SUCCESS = "public, max-age=0, s-maxage=21600, stale-while-revalidate=86400";
+// server/handlers/MarketIndices/MarketIndices.ts
+var CHART_BASE_URL = "https://query1.finance.yahoo.com/v8/finance/chart";
+var USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36";
+var CACHE_SUCCESS = "public, max-age=0, s-maxage=900, stale-while-revalidate=86400";
+var CACHE_PARTIAL = "public, max-age=0, s-maxage=300, stale-while-revalidate=86400";
 var CACHE_FAILURE = "no-store";
 var UPSTREAM_TIMEOUT_MS = 4e3;
 var jsonResponse = (body, status, cache) => new Response(JSON.stringify(body), {
@@ -132,79 +150,58 @@ var jsonResponse = (body, status, cache) => new Response(JSON.stringify(body), {
   headers: { "content-type": "application/json; charset=utf-8", "cache-control": cache }
 });
 var isFinitePositive = (value) => typeof value === "number" && Number.isFinite(value) && value > 0;
-var toIso = (value) => {
-  if (typeof value !== "string" || value.length === 0) return null;
-  const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
-};
+var asRecord = (value) => value && typeof value === "object" ? value : null;
 var toIsoFromUnixSeconds = (value) => {
   if (!isFinitePositive(value)) return null;
   const parsed = new Date(value * 1e3);
   return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
 };
-var readRecord = (value) => value !== null && typeof value === "object" ? value : null;
-var fetchJson = async (url, headers) => {
+var readQuote = (symbol, data) => {
+  const chart = asRecord(asRecord(data)?.chart);
+  if (chart === null) return null;
+  if (chart.error !== null && chart.error !== void 0) return null;
+  if (!Array.isArray(chart.result)) return null;
+  const meta = asRecord(asRecord(chart.result[0])?.meta);
+  if (meta === null) return null;
+  if (!isFinitePositive(meta.regularMarketPrice)) return null;
+  const quote = { symbol, price: meta.regularMarketPrice };
+  if (isFinitePositive(meta.chartPreviousClose)) quote.previousClose = meta.chartPreviousClose;
+  if (typeof meta.currency === "string" && meta.currency.length > 0) quote.currency = meta.currency;
+  const asOf = toIsoFromUnixSeconds(meta.regularMarketTime);
+  if (asOf !== null) quote.asOf = asOf;
+  return quote;
+};
+var fetchQuote = async (symbol) => {
+  const url = `${CHART_BASE_URL}/${encodeURIComponent(symbol)}?range=2d&interval=1d`;
   try {
     const response = await fetch(url, {
-      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
-      ...headers ? { headers } : {}
+      headers: { "user-agent": USER_AGENT, accept: "application/json" },
+      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS)
     });
     if (!response.ok) return null;
-    return await response.json();
+    return readQuote(symbol, await response.json());
   } catch {
     return null;
   }
 };
-var readKrw = (data) => {
-  if (!data || typeof data !== "object") return void 0;
-  const rates = data.rates;
-  if (!rates || typeof rates !== "object") return void 0;
-  return rates.KRW;
-};
-var YAHOO_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36";
-var YAHOO_URL = "https://query1.finance.yahoo.com/v8/finance/chart/KRW=X?range=2d&interval=1d";
-var fromYahoo = async () => {
-  const data = await fetchJson(YAHOO_URL, { "User-Agent": YAHOO_USER_AGENT });
-  const chart = readRecord(readRecord(data)?.chart);
-  const results = chart?.result;
-  const meta = readRecord(readRecord(Array.isArray(results) ? results[0] : void 0)?.meta);
-  if (meta === null) return null;
-  const rate = meta.regularMarketPrice;
-  const asOf = toIsoFromUnixSeconds(meta.regularMarketTime);
-  if (!isFinitePositive(rate) || asOf === null) return null;
-  const previousClose = meta.chartPreviousClose;
-  if (!isFinitePositive(previousClose)) return { rate, base: BASE, quote: QUOTE, asOf };
-  return { rate, base: BASE, quote: QUOTE, asOf, previousClose };
-};
-var fromErApi = async () => {
-  const data = await fetchJson("https://open.er-api.com/v6/latest/USD");
-  if (!data || typeof data !== "object") return null;
-  if (data.result !== "success") return null;
-  const krw = readKrw(data);
-  const asOf = toIso(data.time_last_update_utc);
-  if (!isFinitePositive(krw) || asOf === null) return null;
-  return { rate: krw, base: BASE, quote: QUOTE, asOf };
-};
-var fromFrankfurter = async () => {
-  const data = await fetchJson("https://api.frankfurter.dev/v1/latest?base=USD&symbols=KRW");
-  const krw = readKrw(data);
-  const asOf = toIso(data && typeof data === "object" ? data.date : void 0);
-  if (!isFinitePositive(krw) || asOf === null) return null;
-  return { rate: krw, base: BASE, quote: QUOTE, asOf };
-};
-var settledValue = (result) => result.status === "fulfilled" ? result.value : null;
 async function handler(_request) {
-  const [yahooSettled, erApiSettled] = await Promise.allSettled([fromYahoo(), fromErApi()]);
-  const yahoo = settledValue(yahooSettled);
-  const erApi = settledValue(erApiSettled);
-  const result = (yahoo?.previousClose === void 0 ? null : yahoo) ?? erApi ?? yahoo ?? await fromFrankfurter();
-  if (result === null) {
-    return jsonResponse({ error: "fx_unavailable" }, 502, CACHE_FAILURE);
+  const settled = await Promise.allSettled(MARKET_INDEX_SYMBOLS.map(fetchQuote));
+  const indices = settled.flatMap(
+    (result) => result.status === "fulfilled" && result.value !== null ? [result.value] : []
+  );
+  if (indices.length === 0) {
+    return jsonResponse({ error: "market_indices_unavailable" }, 502, CACHE_FAILURE);
   }
-  return jsonResponse(result, 200, CACHE_SUCCESS);
+  const body = {
+    asOf: (/* @__PURE__ */ new Date()).toISOString(),
+    requested: MARKET_INDEX_SYMBOLS,
+    indices
+  };
+  const isComplete = indices.length === MARKET_INDEX_SYMBOLS.length;
+  return jsonResponse(body, 200, isComplete ? CACHE_SUCCESS : CACHE_PARTIAL);
 }
-var Fx_default = toNodeHandler(handler);
+var MarketIndices_default = toNodeHandler(handler);
 export {
-  Fx_default as default,
+  MarketIndices_default as default,
   handler
 };
