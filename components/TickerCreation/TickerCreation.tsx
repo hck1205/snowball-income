@@ -25,6 +25,9 @@ type SecondaryActionKey = 'share' | 'coffee';
 /** 채널 인텐트에 함께 실어 보내는 제목. 링크가 무엇인지 한 줄로 말한다. */
 const SHARE_TITLE = '배당 재투자 시뮬레이션 결과';
 
+/** 채널 새 창이 브라우저 팝업 차단에 막혔을 때 — 아무 일도 안 일어난 것처럼 보이면 안 된다. */
+const POPUP_BLOCKED_MESSAGE = '브라우저가 새 창을 막았어요. 팝업을 허용하거나 링크를 복사해 주세요.';
+
 function TickerCreationComponent({
   topContent,
   tickerProfiles,
@@ -94,7 +97,17 @@ function TickerCreationComponent({
     (channel: ShareChannelId) => {
       const channelUrl = buildShareChannelUrl(channel, shareDialogUrl, SHARE_TITLE);
       if (!channelUrl) return;
-      window.open(channelUrl, '_blank', 'noopener,noreferrer');
+
+      const opened = window.open(channelUrl, '_blank', 'noopener,noreferrer');
+      if (!opened) {
+        /*
+         * 팝업 차단(반환 null). 조용히 끝내면 버튼이 고장 난 것으로 보인다 — 사유를 말하고
+         * 공유 창은 **열어 둔다**(그 안의 링크 복사가 대안이다). 공유가 없었으니 계측도 없다.
+         */
+        setShareToastMessage(POPUP_BLOCKED_MESSAGE);
+        return;
+      }
+
       track(ANALYTICS_EVENT.SCENARIO_SHARED, { share_method: channel });
       setShareDialogUrl('');
     },

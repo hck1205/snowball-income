@@ -148,7 +148,17 @@ export const usePostShare = (): UsePostShare => {
       if (!channelUrl) return;
 
       // `noopener` 없이 새 창을 열면 그 창이 `window.opener` 로 이 탭을 조작할 수 있다.
-      window.open(channelUrl, '_blank', 'noopener,noreferrer');
+      const opened = window.open(channelUrl, '_blank', 'noopener,noreferrer');
+      if (!opened) {
+        /*
+         * 팝업 차단(반환 null). 여기서 조용히 끝내면 사용자에겐 **버튼이 고장 난 것**으로 보인다 —
+         * 사유를 말하고 공유 창은 **열어 둔다**(링크 복사라는 대안이 그 안에 있다).
+         * 공유가 일어나지 않았으므로 계측도 발화하지 않는다.
+         */
+        setShareToastMessage(d.shareToastPopupBlocked);
+        return;
+      }
+
       track(ANALYTICS_EVENT.COMMUNITY_POST_SHARED, {
         method: channel,
         post_id: shareTarget.postId,

@@ -59,7 +59,11 @@ const downloadBlob = (blob: Blob, fileName: string): void => {
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
-  URL.revokeObjectURL(url);
+  /*
+   * ⚠ `click()` 직후 **동기로** 해제하면 안 된다 — 다운로드 시작은 브라우저가 다음 태스크에 처리하는
+   * 구현이 있어(비-Chromium) 그 전에 URL 이 죽으면 저장이 조용히 취소된다. 한 태스크만 미룬다.
+   */
+  window.setTimeout(() => URL.revokeObjectURL(url), 0);
 };
 
 export type CaptureResultImageInput = {

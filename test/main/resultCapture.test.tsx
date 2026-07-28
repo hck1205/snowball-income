@@ -26,8 +26,15 @@ vi.mock('@/pages/Main/hooks/interaction/resultCapturePipeline', () => ({
 }));
 
 function CaptureHarness() {
-  const { isCapturing, failure, captureResult } = useResultCapture();
-  return <ResultCaptureButton isCapturing={isCapturing} failure={failure} onCapture={captureResult} />;
+  const { isCapturing, failure, captureResult, dismissFailure } = useResultCapture();
+  return (
+    <ResultCaptureButton
+      isCapturing={isCapturing}
+      failure={failure}
+      onCapture={captureResult}
+      onDismissFailure={dismissFailure}
+    />
+  );
 }
 
 const renderHarness = () => {
@@ -72,6 +79,18 @@ describe('결과 이미지 저장 — 버튼', () => {
     await userEvent.click(captureButton());
 
     expect(await screen.findByRole('alert')).toHaveTextContent('이미지를 만들지 못했습니다');
+  });
+
+  it('실패 안내는 읽고 나서 닫을 수 있다(다음 시도까지 결과 위에 남지 않는다)', async () => {
+    captureResultImage.mockRejectedValue(new Error('boom'));
+    renderHarness();
+
+    await userEvent.click(captureButton());
+    expect(await screen.findByRole('alert')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: '저장 실패 안내 닫기' }));
+
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 });
 

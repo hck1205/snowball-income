@@ -176,7 +176,8 @@ describe('usePostShare', () => {
   });
 
   it('채널 버튼은 그 채널의 공유 주소를 새 창으로 열고 창을 닫는다', async () => {
-    const open = vi.fn();
+    // 실제 브라우저는 열린 창 객체를 돌려준다 — 반환값이 성공/차단을 가르는 유일한 신호다.
+    const open = vi.fn(() => ({}) as Window);
     Object.defineProperty(window, 'open', { value: open, configurable: true, writable: true });
 
     const { result } = renderHook(() => usePostShare());
@@ -193,6 +194,27 @@ describe('usePostShare', () => {
       'noopener,noreferrer'
     );
     expect(result.current.shareTarget).toBeNull();
+  });
+
+  /**
+   * 팝업 차단은 예외를 던지지 않고 `null` 만 돌려준다 — 반환값을 안 보면 **버튼이 고장 난 것처럼**
+   * 아무 일도 일어나지 않는다(무음 실패 금지 원칙 위반).
+   */
+  it('브라우저가 팝업을 막으면 사유를 말하고 공유 창을 열어 둔다(링크 복사로 대체 가능)', async () => {
+    const open = vi.fn(() => null);
+    Object.defineProperty(window, 'open', { value: open, configurable: true, writable: true });
+
+    const { result } = renderHook(() => usePostShare());
+    await act(async () => {
+      await result.current.sharePost(shareInput);
+    });
+    act(() => {
+      result.current.shareToChannel('x');
+    });
+
+    expect(result.current.shareToastMessage).toBe(d.shareToastPopupBlocked);
+    // 창이 닫히면 사용자에게 남는 대안이 없다 — 링크 복사가 그 안에 있다.
+    expect(result.current.shareTarget).not.toBeNull();
   });
 
   it('사용자가 OS 시트를 취소(AbortError)하면 조용히 종료한다(공유 창·토스트 없음)', async () => {

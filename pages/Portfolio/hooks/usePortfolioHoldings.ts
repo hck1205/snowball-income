@@ -31,9 +31,10 @@ import type { PortfolioRecordReader, PortfolioRecordWriter, PortfolioStorageFail
  *
  * ## 저장 규칙
  * - 편집 → **300ms 디바운스** 저장(수량을 타이핑할 때마다 쓰지 않게).
- * - **언마운트·pagehide·백그라운드 전환에서 pending 을 flush** 한다. ⚠ 시뮬 자동저장은 언마운트
- *   cleanup 이 `clearTimeout` 이라 "편집 직후 다른 탭 클릭"이 통째로 유실되는 기존 결함이 있다
- *   (usePortfolioPersistence.ts:283-299). 같은 실수를 반복하지 않는다.
+ * - **언마운트·pagehide·백그라운드 전환에서 pending 을 flush** 한다. 시뮬 자동저장도 같은 결함
+ *   ("편집 직후 라우트 이동"이 통째로 유실)을 갖고 있었고 2026-07-28 에 같은 방식으로 고쳤다 —
+ *   대기 중인 저장을 ref 에 담고 **마운트 1회 effect 의 cleanup 에서** flush 한다
+ *   (usePortfolioPersistence.ts 의 "언마운트 시 대기 중인 로컬 autosave" effect).
  * - **읽기에 실패하면 저장을 잠근다** — 화면의 빈 목록으로 디스크의 원본을 덮어쓰지 않는다(AC4-3).
  * - 실패는 전부 표면화한다: 상태(`status`/`writeError`) + `OPERATION_ERROR` 계측.
  */

@@ -263,6 +263,8 @@ export const COMMUNITY_COPY = {
     shareText: '스노우볼 인컴에서 만든 배당 포트폴리오예요.',
     shareToastCopied: '링크를 복사했습니다.',
     shareToastFailed: '복사에 실패했어요. 링크:',
+    /* 채널 새 창이 브라우저 팝업 차단에 막혔을 때 — 아무 일도 안 일어난 것처럼 보이면 안 된다. */
+    shareToastPopupBlocked: '브라우저가 새 창을 막았어요. 팝업을 허용하거나 링크를 복사해 주세요.',
     notFoundTitle: '시나리오를 찾을 수 없어요',
     notFoundCta: '목록으로',
     errorTitle: '시나리오를 불러오지 못했어요',

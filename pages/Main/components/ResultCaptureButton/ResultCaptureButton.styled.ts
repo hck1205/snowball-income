@@ -19,6 +19,9 @@ export const CaptureFailureNote = styled.p`
   right: 0;
   z-index: ${zIndex.dropdown};
   margin: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: ${space[2]};
   width: max-content;
   max-width: min(320px, 70vw);
   padding: ${space[2]} ${space[3]};
@@ -30,4 +33,28 @@ export const CaptureFailureNote = styled.p`
   box-shadow: ${shadow.e2};
   font-size: ${font.size.xs};
   line-height: ${font.leading.snug};
+`;
+
+/**
+ * 안내를 치우는 버튼. 문구 오른쪽에 붙되 문구를 밀어내지 않는다(`flex: 0 0 auto`).
+ * 아이콘 14px 은 12px 본문 첫 줄의 라인박스 중심에 맞춘다 — `heroTitleRow` 의 잉크 보정이
+ * 필요할 만큼 큰 글자가 아니라 `align-items: flex-start` + 미세 오프셋으로 충분하다.
+ */
+export const CaptureFailureDismiss = styled.button`
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.7;
+
+  &:hover,
+  &:focus-visible {
+    opacity: 1;
+  }
 `;

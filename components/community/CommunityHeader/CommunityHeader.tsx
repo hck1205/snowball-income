@@ -22,8 +22,8 @@ import {
  * 이 파일이 헤더를 다시 조립하던 시절에는 같은 형태가 세 곳에 복제돼 서로 조금씩 갈렸다.
  * 여기 남은 것: (갤러리에서만) 인라인 검색 · 글쓰기 버튼 · 모바일 검색 펼침 바.
  *
- * **"← 목록"은 여기 없다** — 본문 첫 줄(`CommunityLayout` 의 `BackToList`)로 내려갔다(2026-07-28 사용자
- * 결정). 헤더에 있던 시절 좁은 폭에서 워드마크·글쓰기·프로필·더보기와 한 줄을 다퉜다.
+ * **"← 목록"은 여기 없다** — 본문 첫 줄(`pages/Community/components/CommunityTopBar`)로 내려갔다
+ * (2026-07-28 사용자 결정). 헤더에 있던 시절 좁은 폭에서 워드마크·글쓰기·프로필·더보기와 한 줄을 다퉜다.
  */
 export default function CommunityHeader() {
   const isGalleryIndex = Boolean(useMatch({ path: '/community/portfolio', end: true }));
@@ -38,7 +38,7 @@ export default function CommunityHeader() {
   const isWriteRoute = isPortfolioWriteRoute || isBoardWriteRoute;
 
   const { pathname } = useLocation();
-  // 글쓰기 목적지를 가르는 판단 하나만 남았다(목록 복귀 판단은 BackToList 로 옮겼다).
+  // 글쓰기 목적지를 가르는 판단 하나만 남았다(목록 복귀 판단은 CommunityTopBar 로 옮겼다).
   const inBoard = pathname === '/community/board' || pathname.startsWith('/community/board/');
 
   const isLoggedIn = useIsLoggedInAtomValue();

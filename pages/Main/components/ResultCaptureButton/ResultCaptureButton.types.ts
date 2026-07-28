@@ -6,4 +6,6 @@ export type ResultCaptureButtonProps = {
   /** 직전 실패 안내(없으면 null). 있으면 버튼 아래 `role="alert"` 로 붙는다. */
   failure: ResultCaptureFailure | null;
   onCapture: () => void;
+  /** 실패 안내를 닫는다 — 읽고 나서 치울 수 없으면 다음 시도까지 화면에 남는다. */
+  onDismissFailure: () => void;
 };

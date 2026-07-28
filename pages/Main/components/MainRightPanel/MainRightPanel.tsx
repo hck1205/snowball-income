@@ -85,7 +85,8 @@ function MainRightPanelComponent({ configDrawerId }: MainRightPanelProps) {
   const {
     isCapturing: isCapturingResult,
     failure: resultCaptureFailure,
-    captureResult
+    captureResult,
+    dismissFailure: dismissResultCaptureFailure
   } = useResultCapture();
   const includedProfiles = useIncludedProfilesAtomValue();
   /* 프리필이 활성 탭을 덮어도 되는지 판정할 때만 쓴다 — **제외된 티커도 지우면 안 되는 데이터**라
@@ -390,6 +391,7 @@ function MainRightPanelComponent({ configDrawerId }: MainRightPanelProps) {
             isCapturing={isCapturingResult}
             failure={resultCaptureFailure}
             onCapture={captureResult}
+            onDismissFailure={dismissResultCaptureFailure}
           />
         }
       >

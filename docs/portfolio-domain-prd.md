@@ -89,11 +89,11 @@
 | `useFxRateSync` 드라이버는 라우트별 마운트 필요(Main·Goal에 마운트됨 — 신규 라우트 직행 시 누락하면 원화 강등) | pitfalls [2026-07-27][frontend], jotai/snowball/atoms/fx/index.ts:43 |
 | Main 밖 화면에서 시뮬 전역 atom·저장 payload에 **쓰면 안 된다**(무음 유실·클라우드 base 발산). 안전한 유일 계약 = location.state 프리필 → Main 하이드레이션 게이트 하위에서 setField | pitfalls [2026-07-27][state] 🔴, decisions [2026-07-27][product] 프리필 커밋 계약 |
 | 캘린더 선례: 신규 도메인 저장은 **별도 IndexedDB DB**(`snowball-dividend-calendar`) — 기존 `snowball-income-db` 버전 범프가 자동저장 하위 호환 리스크라 스토어 추가 금지 | decisions [2026-07-25][state] |
-| Goal 페이지는 읽기 전용 훅(`useGoalScenario`)이 저장 payload를 직접 읽어 순수 재계산 — "현재 월배당" 산출 지점이 단일 함수(`currentMonthlyDividend`) 호출부 1곳 | pages/Goal/hooks/useGoalScenario.ts:240 |
+| 목표 달성 화면은 읽기 전용 훅(`useGoalScenario`)이 저장 payload를 직접 읽어 순수 재계산 — "현재 월배당" 산출 지점이 단일 함수(`currentMonthlyDividend`) 호출부 1곳. ⚠ 작성 시점의 구(舊) Goal 페이지(`/dividend/goal`)는 2026-07-28에 `/dividend/portfolio`로 흡수됐고 훅도 함께 이사했다 | pages/Portfolio/hooks/useGoalScenario.ts:261 |
 | Goal의 3숫자(현재·달성률·달성월)는 **같은 식** 불변식으로 묶여 있다 — 현재값만 실측으로 갈아끼우면 이 불변식이 깨진다(§6-⑥의 쟁점) | SnowballGoal.ts:16-25·155-157 |
 | 내비는 현재 6항목(시뮬레이터·목표 달성·배당 캘린더·갤러리·게시판·ETF 소개), 순서 = 예상 관심도(사용자 결정 2026-07-25) | components/PrimaryNav/PrimaryNav.tsx:39-77 |
 | `/portfolio` 최상위 경로는 비어 있다(갤러리는 `/community/portfolio` — 충돌 없음) | router/routes.tsx:126-198 |
-| 세율: 시뮬 영속 스키마에 `taxRate?: number`, 정규화 기본값 15.4 | jotai/snowball/types/persistence.ts:13, pages/Goal/hooks/useGoalScenario.ts:54 |
+| 세율: 시뮬 영속 스키마에 `taxRate?: number`, 정규화 기본값 15.4 | jotai/snowball/types/persistence.ts:13, pages/Portfolio/hooks/useGoalScenario.ts:54 |
 | 지급 횟수: `paymentsPerYearMap` monthly 12 / quarterly 4 / semiannual 2 / annual 1 | shared/lib/snowball/SnowballPayout.ts:4-9 |
 
 ---
