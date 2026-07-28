@@ -8,15 +8,19 @@ export const COMMUNITY_COPY = {
     simulator: '시뮬레이터',
     toSimulator: '시뮬레이터로',
     write: '글쓰기',
-    home: 'Snowball',
     login: '로그인',
     logout: '로그아웃',
     theme: '테마',
     // ── 전역 nav(PrimaryNav) — 브랜드 링크 + 라우트 링크(시뮬레이터·갤러리·게시판) ──
     /** nav 랜드마크 이름(<nav aria-label>). */
     primaryLabel: '주요 메뉴',
-    /** 브랜드 워드마크(로고+앱이름 링크). "Snowball Income" 워드마크 유지. */
-    brand: 'Snowball Income',
+    /**
+     * 브랜드 워드마크(홈 링크의 접근명). 표기는 한글 **"스노우볼 인컴"**(2026-07-27 확정) —
+     * 앞뒤 두 낱말을 서로 다른 색으로 그리므로 PrimaryNav가 **공백으로 쪼개 쓴다**.
+     * 낱말 수·공백 위치를 바꾸면 색 분할이 함께 바뀐다.
+     * (제품명 표기 "Snowball Income"은 <title> suffix·OG 등 문서 메타에 그대로 남는다 — 다른 계층이다.)
+     */
+    brand: '스노우볼 인컴',
     /** 커뮤니티 갤러리 링크(/community). */
     gallery: '포트폴리오 갤러리',
     /** 자유게시판 링크(/community/board). */

@@ -7,13 +7,13 @@ import {
   Brand,
   NavScroller,
   BrandFallback,
-  BrandLogo,
-  BrandLogoImage,
   BrandWordmark,
   Nav,
   NavItem,
   NavItems,
-  NavLabel
+  NavLabel,
+  WordmarkIncome,
+  WordmarkSnow
 } from './PrimaryNav.styled';
 import type { PrimaryNavProps } from './PrimaryNav.types';
 
@@ -22,7 +22,7 @@ const n = COMMUNITY_COPY.nav;
 /**
  * 전역 주요 nav — 모든 페이지 상단(시뮬레이터·커뮤니티 헤더)에 주입되는 공유 컴포넌트.
  *
- *   [로고 + 앱이름] → 하나의 `<Link to="/">`(홈)  +  라우트 링크: 시뮬레이터(/)·갤러리(/community)·게시판(/community/board)
+ *   [워드마크 "스노우볼 인컴"] → `<Link to="/">`(홈)  +  라우트 링크: 시뮬레이터(/)·갤러리(/community)·게시판(/community/board)
  *
  * ⚠ 엔트리 번들 격리: 이 컴포넌트는 시뮬레이터 헤더를 통해 **엔트리 번들에 들어간다.** 그래서
  *   `@/components/community` 배럴·CommunityIcons·supabase-js·Tiptap을 끌어오는 모듈을 import하지 않는다.
@@ -97,22 +97,16 @@ export function PrimaryNavLinks() {
 
 export default function PrimaryNav({ brandAs = 'span', withLinks = true }: PrimaryNavProps) {
   const inRouter = useInRouterContext();
-  // 워드마크를 두 줄로 스택("Snowball" / "Income"). 사이의 공백 텍스트로 접근명 "Snowball Income"을 유지한다.
-  const [brandFirst, ...brandRestWords] = n.brand.split(' ');
+  // 워드마크("스노우볼 인컴")를 낱말 단위로 쪼개 두 색으로 그린다(2026-07-27 확정 — 심볼 아이콘 없이 텍스트 단독).
+  // 두 파트 사이의 **공백은 진짜 텍스트 노드**로 남긴다: 접근명이 "스노우볼 인컴" 한 덩어리로 읽혀야 한다
+  // (aria-hidden·이미지 치환 금지 — 브랜드명을 읽어줄 다른 요소가 이제 없다).
+  const [brandSnow, ...brandIncomeWords] = n.brand.split(' ');
 
   const brandInner = (
-    <>
-      <BrandLogo>
-        {/* 워드마크가 브랜드명을 읽어주므로 로고 이미지는 장식(alt="") — 메인/커뮤니티 헤더 선례와 동일. */}
-        <BrandLogoImage src="/app_icon.png" alt="" width={28} height={28} />
-      </BrandLogo>
-      <BrandWordmark as={brandAs}>
-        {brandFirst}
-        {' '}
-        <br />
-        {brandRestWords.join(' ')}
-      </BrandWordmark>
-    </>
+    <BrandWordmark as={brandAs}>
+      <WordmarkSnow>{brandSnow}</WordmarkSnow>{' '}
+      <WordmarkIncome>{brandIncomeWords.join(' ')}</WordmarkIncome>
+    </BrandWordmark>
   );
 
   // Router 컨텍스트가 없는 렌더(일부 단위 테스트/비라우터 임베드)에선 Link/NavLink가 컨텍스트를 요구해

@@ -29,7 +29,7 @@ export const HeaderRoot = styled.header`
 `;
 
 /**
- * 헤더 안쪽 — 2줄 스택: 1줄 = 전역 nav(로고+메뉴), 2줄 = 컨트롤(뒤로·검색·액션).
+ * 헤더 안쪽 — 2줄 스택: 1줄 = 브랜드 워드마크 + 컨트롤(뒤로·검색·액션), 2줄 = 라우트 메뉴.
  * 두 줄 사이 세로 간격은 시뮬레이터 헤더와 **같은 값**(`headerRowGap`)을 쓴다.
  */
 export const HeaderInner = styled.div`

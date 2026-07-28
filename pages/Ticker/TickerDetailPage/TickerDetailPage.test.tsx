@@ -69,10 +69,15 @@ describe('TickerDetailPage', () => {
     expect(h1s[0]).toHaveTextContent('SCHD');
   });
 
+  /*
+   * 카피 금지 규칙은 **브랜드명을 예외**로 둔다("스노우볼 인컴"은 비유가 아니라 이름) — 헤더 워드마크가
+   * 한글 표기로 바뀌면서 페이지 전체 검색은 브랜드까지 잡는다. 규칙의 대상은 본문 카피이므로 main 안에서 본다.
+   */
   it('does not use snowball metaphor copy', () => {
     renderAt('/ticker/schd');
-    expect(screen.queryByText(/눈덩이/)).toBeNull();
-    expect(screen.queryByText(/스노우볼/)).toBeNull();
+    const main = within(screen.getByRole('main'));
+    expect(main.queryByText(/눈덩이/)).toBeNull();
+    expect(main.queryByText(/스노우볼/)).toBeNull();
   });
 
   it('injects the per-ticker accent theme at the page root', () => {

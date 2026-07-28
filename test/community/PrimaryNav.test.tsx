@@ -29,12 +29,45 @@ const renderAt = (path: string) =>
   );
 
 describe('PrimaryNav', () => {
-  it('로고+앱이름은 홈(/)으로 가는 하나의 링크다', () => {
+  it('워드마크는 홈(/)으로 가는 하나의 링크다', () => {
     communityEnabled = true;
     renderAt('/community');
 
-    const brand = screen.getByRole('link', { name: 'Snowball Income' });
+    const brand = screen.getByRole('link', { name: '스노우볼 인컴' });
     expect(brand).toHaveAttribute('href', '/');
+  });
+
+  /*
+   * 워드마크는 "스노우볼"·"인컴" 두 색으로 나뉘어 렌더되지만 **읽히는 이름은 한 덩어리**여야 한다.
+   * 부분일치(/스노우볼/)로는 두 파트 사이 공백이 사라지는 회귀("스노우볼인컴")를 못 잡으므로 정확일치로 못 박는다.
+   */
+  it('워드마크는 두 색으로 쪼개져도 "스노우볼 인컴" 한 덩어리로 읽힌다', () => {
+    communityEnabled = true;
+    renderAt('/');
+
+    const brand = screen.getByRole('link', { name: '스노우볼 인컴' });
+    expect(brand).toHaveAccessibleName('스노우볼 인컴');
+    expect(brand.textContent).toBe('스노우볼 인컴');
+  });
+
+  /*
+   * 아이콘이 사라졌으므로 브랜드명을 읽어줄 요소는 워드마크 텍스트뿐이다(장식 이미지도 남기지 않는다).
+   *
+   * ⚠ `img` 만 보면 안 된다 — 이 레포의 아이콘은 거의 전부 **lucide-react 인라인 `<svg>`** 다.
+   *   실제 뮤테이션에서 브랜드 블록에 `<LineChart/>` 를 되살렸을 때 `img` 단정만으로는 무음 통과했다.
+   *   그래서 브랜드 링크 **안쪽**에 그래픽 요소가 하나도 없음을 본다(라우트 링크의 아이콘은 정상이므로
+   *   nav 전체가 아니라 브랜드 링크로 범위를 좁힌다).
+   */
+  it('브랜드 영역은 텍스트 워드마크 단독이다 (img·svg 어떤 심볼 아이콘도 없음)', () => {
+    communityEnabled = true;
+    renderAt('/');
+
+    const brand = screen.getByRole('link', { name: '스노우볼 인컴' });
+
+    expect(brand.querySelector('img')).toBeNull();
+    expect(brand.querySelector('svg')).toBeNull();
+    // 워드마크가 브랜드 링크의 유일한 내용이다 — 텍스트만 남는다.
+    expect(brand.textContent).toBe('스노우볼 인컴');
   });
 
   it('현재 라우트의 링크에 aria-current="page"를 준다 (시뮬레이터)', () => {
@@ -148,7 +181,7 @@ describe('PrimaryNav', () => {
     renderAt('/');
 
     // 브랜드(홈)와 시뮬레이터 링크는 그대로. 커뮤니티 링크만 사라진다.
-    expect(screen.getByRole('link', { name: 'Snowball Income' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '스노우볼 인컴' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: '시뮬레이터' })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: '포트폴리오 갤러리' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: '게시판' })).not.toBeInTheDocument();

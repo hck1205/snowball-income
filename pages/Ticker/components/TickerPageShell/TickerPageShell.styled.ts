@@ -22,7 +22,7 @@ export const ShellRoot = styled.div`
 
 /**
  * 전역 헤더와 동일한 전폭 sticky 글래스 바(SimulatorHeader.styled HeaderRoot 와 같은 형태) —
- * 로고·워드마크·주요 nav 를 시뮬레이터/커뮤니티 헤더와 픽셀 단위로 일치시킨다.
+ * 브랜드 워드마크·주요 nav 를 시뮬레이터/커뮤니티 헤더와 픽셀 단위로 일치시킨다.
  *
  * 높이를 `--tk-header-h` 로 **확정**한다(box-sizing: border-box 라 border 포함). 목차 바가 이 값에
  * 정확히 맞물리게 하기 위함 — 자연 높이에 맡기면 목차 바의 하드코딩 top 과 어긋나 갭이 생긴다.

@@ -27,12 +27,13 @@ describe('SimulatorHeader', () => {
     expect(screen.getAllByRole('banner')).toHaveLength(1);
   });
 
-  it('워드마크가 페이지의 유일한 h1이다', () => {
+  it('워드마크가 페이지의 유일한 h1이고 "스노우볼 인컴"이다', () => {
     renderHeader({ actions: <button type="button">더보기</button> });
 
     const headings = screen.getAllByRole('heading', { level: 1 });
     expect(headings).toHaveLength(1);
-    expect(headings[0]).toHaveTextContent('Snowball Income');
+    // 두 색으로 쪼갠 워드마크가 h1 제목으로도 한 덩어리여야 한다 — 부분일치는 공백 소실 회귀를 못 잡는다.
+    expect(headings[0].textContent).toBe('스노우볼 인컴');
   });
 
   it('leading·status·actions 슬롯의 내용을 모두 헤더 안에 렌더한다', () => {

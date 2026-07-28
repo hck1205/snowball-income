@@ -26,17 +26,16 @@ export const Nav = styled.nav`
   }
 `;
 
-/** 브랜드(로고+워드마크) 공통 레이아웃 — 링크(Brand)와 비링크 폴백(BrandFallback)이 공유한다. */
+/** 브랜드(워드마크) 공통 레이아웃 — 링크(Brand)와 비링크 폴백(BrandFallback)이 공유한다. */
 const brandLayout = `
   display: inline-flex;
   align-items: center;
-  gap: ${space[2]};
   flex: 0 0 auto;
   /* 그리드 1열에서 좌측 고정 — stretch되면 클릭 영역이 빈 공간까지 넓어진다. */
   justify-self: start;
 `;
 
-/** [로고 + 앱이름]을 감싸는 홈(`/`) 링크. 링크 하나로 로고와 워드마크를 함께 클릭 대상으로. */
+/** 워드마크를 감싸는 홈(`/`) 링크 — 워드마크 텍스트가 곧 이 링크의 접근명이다. */
 export const Brand = styled(Link)`
   ${brandLayout}
   text-decoration: none;
@@ -56,39 +55,88 @@ export const BrandFallback = styled.span`
   ${brandLayout}
 `;
 
-/** 앱 아이콘 원형 프레임 — 메인/커뮤니티 헤더의 로고와 시각 통일. */
-export const BrandLogo = styled.span`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  overflow: hidden;
-`;
-
-export const BrandLogoImage = styled.img`
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-`;
-
 /**
- * 브랜드 워드마크("Snowball Income"). `as='h1'`(메인)이면 랜드마크 제목을 겸하므로 margin을 0으로 리셋한다.
- * 워드마크는 유지하되(요구사항) 자간을 조여 로고처럼 읽히게 한다.
+ * 브랜드 워드마크("스노우볼 인컴") — **심볼 아이콘 없이 텍스트 단독**(2026-07-27 확정).
+ * `as='h1'`(시뮬레이터)이면 랜드마크 제목을 겸하므로 margin을 0으로 리셋한다.
+ *
+ * 크기는 폭 예산으로 정했다(한글 표기는 영문 2줄보다 가로로 길다):
+ * Gmarket Sans Bold 의 한글 한 글자 = 0.962em, 공백 = 0.28em → "스노우볼 인컴" = 6.052em,
+ * 자간 -0.02em × 7자 = -0.14em → **5.912em**.
+ *  - 17px → 100.5px  (구 워드마크 블록 = 로고 28 + gap 8 + "Snowball" 4.2223em×13px 54.9 ≈ 90.9px)
+ *  - 15px →  88.7px  → 좁은 폭에서는 구 블록보다 **좁다**(폭 회귀 없음).
+ * 그래서 mobileWide↓에서만 15px로 내린다 — 이 구간이 헤더(브랜드+토글+우측 컨트롤)가 가장 빡빡하다.
  */
 export const BrandWordmark = styled.span`
   margin: 0;
-  color: ${color.text};
-  /* "Snowball / Income" 두 줄 — 28px 로고 높이에 맞춰 축소(2줄 × ~13px × 1.05 ≈ 28px). */
-  font-size: 13px;
+  font-family: ${font.display};
+  font-size: 17px;
   font-weight: ${font.weight.bold};
   letter-spacing: -0.02em;
-  line-height: 1.05;
+  line-height: 1.2;
   white-space: nowrap;
   text-align: left;
+
+  ${media.down('mobileWide')} {
+    font-size: 15px;
+  }
+`;
+
+/**
+ * 워드마크 두 파트("스노우볼"·"인컴")가 **공유하는 단일 헬퍼**. 그라디언트 텍스트는
+ * 세 환경에서 글자를 통째로 지우므로 폴백 3종이 한 세트다 — 회귀 시 여기 한 곳만 고친다.
+ *
+ *  ① `background-clip: text` 미지원 → 단색
+ *  ② Windows 고대비(forced-colors) → 투명 텍스트가 사라진다 → 시스템 전경색
+ *  ③ 인쇄 → 배경 이미지를 안 그리는 엔진이 있어 백지로 나간다 → 단색
+ *
+ * `background-size: 135%`는 hex를 바꾸지 않고 밝은 끝 stop을 글자 밖으로 미는 레버다
+ * (presets.ts `buildWordmarkGradient` JSDoc이 남긴 방법 — 글자 안에는 그라디언트의 0~74%만
+ * 렌더돼 라이트 테마 헤더에서 끝이 흐려지는 정도를 줄인다. 선언 hex 불변 → 회귀 플로어 테스트 그대로).
+ *
+ * **이 레버는 라이트를 위한 것인데 전 테마에 건다 — 일부러 그렇게 뒀다.**
+ *  - 라이트는 밝은 끝이 최악 지점이라 이득이 실측된다: 헤더 표면 위 끝 stop 1.57~1.79 → 1.72~1.97.
+ *  - 다크는 두 낱말 모두 램프가 뒤집혀 **최악 지점이 x=0의 첫 stop**이고(전 프리셋 최저: 스노우볼
+ *    brand300 6.98 / 인컴 teal400 7.19), 그 픽셀은 background-size와 무관하게 항상 렌더된다 →
+ *    다크 최저는 레버 유무와 동일하다(플로어 6.9). 레버가 깎는 건 밝은 끝(9.26 → 8.66)뿐이라
+ *    **대비 손실이 아니라 램프 폭 26% 압축**이고, 두 stop이 한 칸 차이(#79c5e6→#aadcf2)라
+ *    15~17px 워드마크에서는 사실상 단색으로 읽힌다.
+ *  - 반면 라이트에만 걸려면 이 앱의 모드 판정을 여기서 세 갈래로 복제해야 한다
+ *    (`@media (prefers-color-scheme: dark)` + `:root[data-theme='light'] &` + `:root[data-theme='dark'] &`
+ *    — TickerDetailPage.styled.ts 선례). 장식 한 줄 때문에 모드 판정이 한 곳 더 생기면 나중에 모드
+ *    해석이 바뀔 때 여기만 조용히 뒤처진다. **이득(눈에 안 보이는 26%) < 비용(영구 분기 3개)** 이라
+ *    전 테마 적용을 유지한다.
+ */
+const wordmarkGradientText = (gradient: string, solid: string) => `
+  background-image: ${gradient};
+  background-size: 135% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+
+  @supports not ((background-clip: text) or (-webkit-background-clip: text)) {
+    background-image: none;
+    color: ${solid};
+  }
+
+  @media (forced-colors: active) {
+    background-image: none;
+    color: CanvasText;
+  }
+
+  @media print {
+    background-image: none;
+    color: ${solid};
+  }
+`;
+
+/** 워드마크 앞 낱말 — 아이스 블루 램프. */
+export const WordmarkSnow = styled.span`
+  ${wordmarkGradientText(color.gradientWordmarkSnow, color.wordmarkSnowSolid)}
+`;
+
+/** 워드마크 뒤 낱말 — 틸→그린(액센트 축). */
+export const WordmarkIncome = styled.span`
+  ${wordmarkGradientText(color.gradientWordmarkIncome, color.wordmarkIncomeSolid)}
 `;
 
 /**

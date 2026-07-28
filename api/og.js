@@ -7577,6 +7577,22 @@ var auroraViolet = {
   /** 다크 accent-alt-subtle — text 위 11.93:1 */
   900: "#232a4d"
 };
+var auroraGreen = {
+  /** 라이트 accent-alt-subtle — text 위 14.71:1 */
+  50: "#e7f5ef",
+  /** 라이트 accent-alt-border(장식) — surface 위 1.57:1 */
+  200: "#a7d9c4",
+  /** 다크 accent-alt(표시)·accent-alt-text — 다크 서피스 10.69:1. 워드마크 다크 "인컴" 끝 stop */
+  400: "#6ee7a0",
+  /** 라이트 accent-alt(표시) — 라이트 surface 3.32:1(비텍스트). 워드마크 라이트 "인컴" 끝 stop */
+  600: "#22a06b",
+  /** 라이트 accent-alt-text — 흰 배경 5.71:1, accent-alt-subtle 위 5.09:1 */
+  700: "#0f763a",
+  /** 다크 accent-alt-border(장식) */
+  800: "#265441",
+  /** 다크 accent-alt-subtle — text 위 13.88:1 */
+  900: "#102422"
+};
 var neutral = {
   0: "#ffffff",
   25: "#f9fbfd",
@@ -7642,7 +7658,18 @@ var danger = {
   light: "#b42318",
   dark: "#f0776a"
 };
-var palette = { brand, auroraTeal, auroraViolet, neutral, up, down, positive, warning, danger };
+var palette = {
+  brand,
+  auroraTeal,
+  auroraViolet,
+  auroraGreen,
+  neutral,
+  up,
+  down,
+  positive,
+  warning,
+  danger
+};
 var SPACE_SCALE = {
   0: "0",
   1: "4px",
@@ -7677,7 +7704,7 @@ var FONT_WEIGHT_SCALE = {
   medium: 500,
   semibold: 600,
   bold: 700,
-  /** hero 지표 값 전용. Pretendard Variable이 800을 지원한다. */
+  /** hero 지표 값 전용. 본문 서체(Wanted Sans Variable)가 400~1000 가변이라 800을 지원한다. */
   extrabold: 800
 };
 var LEADING_SCALE = {
@@ -7694,7 +7721,25 @@ var isPalettePresetId = (value) => typeof value === "string" && PALETTE_PRESET_I
 var normalizePalettePresetId = (value) => isPalettePresetId(value) ? value : DEFAULT_PALETTE_PRESET_ID;
 
 // shared/styles/presets.ts
-var { brand: brand2, auroraTeal: auroraTeal2, auroraViolet: auroraViolet2, neutral: neutral2, up: up2, down: down2, positive: positive2, warning: warning2, danger: danger2 } = palette;
+var { brand: brand2, auroraTeal: auroraTeal2, auroraViolet: auroraViolet2, auroraGreen: auroraGreen2, neutral: neutral2, up: up2, down: down2, positive: positive2, warning: warning2, danger: danger2 } = palette;
+var buildAuroraGradient = ([stop1, stop2, stop3]) => `linear-gradient(135deg, ${stop1} 0%, ${stop2} 52%, ${stop3} 100%)`;
+var buildCtaGradient = ([stop1, stop2, stop3]) => `linear-gradient(135deg, ${stop1} 0%, ${stop2} 55%, ${stop3} 100%)`;
+var buildDuotoneGradient = (from2, to) => `linear-gradient(135deg, ${from2} 0%, ${to} 100%)`;
+var buildWordmarkGradient = (from2, to) => `linear-gradient(100deg, ${from2} 0%, ${to} 100%)`;
+var buildHeroGradient = (from2, to) => `linear-gradient(135deg, ${from2} 0%, ${to} 100%)`;
+var WORDMARK_LIGHT = {
+  "gradient-wordmark-snow": buildWordmarkGradient(brand2[400], brand2[300]),
+  "gradient-wordmark-income": buildWordmarkGradient(auroraTeal2[600], auroraGreen2[600]),
+  "wordmark-snow-solid": brand2[400],
+  "wordmark-income-solid": auroraTeal2[600]
+};
+var WORDMARK_DARK = {
+  "gradient-wordmark-snow": buildWordmarkGradient(brand2[300], brand2[200]),
+  "gradient-wordmark-income": buildWordmarkGradient(auroraTeal2[400], auroraGreen2[400]),
+  /* 단색 폴백은 라이트와 동일 값 — 위 주석 참조 */
+  "wordmark-snow-solid": brand2[400],
+  "wordmark-income-solid": auroraTeal2[600]
+};
 var COMMON_LIGHT = {
   "data-positive": up2.light,
   "data-positive-surface": up2.soft,
@@ -7706,7 +7751,8 @@ var COMMON_LIGHT = {
   "warning-surface": warning2.soft,
   danger: danger2.light,
   "danger-surface": danger2.soft,
-  "danger-border": danger2.softBorder
+  "danger-border": danger2.softBorder,
+  ...WORDMARK_LIGHT
 };
 var COMMON_DARK = {
   "data-positive": up2.dark,
@@ -7719,7 +7765,8 @@ var COMMON_DARK = {
   "warning-surface": warning2.softDark,
   danger: danger2.dark,
   "danger-surface": danger2.softDark,
-  "danger-border": danger2.softDarkBorder
+  "danger-border": danger2.softDarkBorder,
+  ...WORDMARK_DARK
 };
 var chartSeriesTokens = (series) => Object.fromEntries(series.map((hex, index) => [`chart-series-${index}`, hex]));
 var AURORA_CHART_SERIES = [
@@ -7800,9 +7847,6 @@ var GRAPE_CHART_SERIES = [
   "#9c4f92",
   "#6b7785"
 ];
-var buildAuroraGradient = ([stop1, stop2, stop3]) => `linear-gradient(135deg, ${stop1} 0%, ${stop2} 52%, ${stop3} 100%)`;
-var buildCtaGradient = ([stop1, stop2, stop3]) => `linear-gradient(135deg, ${stop1} 0%, ${stop2} 55%, ${stop3} 100%)`;
-var buildDuotoneGradient = (from2, to) => `linear-gradient(135deg, ${from2} 0%, ${to} 100%)`;
 var AURORA_LIGHT_RIBBON = [brand2[600], auroraTeal2[600], auroraViolet2[500]];
 var AURORA_LIGHT_CTA = [brand2[600], auroraTeal2[650], auroraViolet2[600]];
 var AURORA_DARK_RIBBON = [brand2[400], auroraTeal2[400], auroraViolet2[400]];
@@ -7838,16 +7882,17 @@ var AURORA_LIGHT = {
   "on-brand": neutral2[0],
   /*
    * 오로라 액센트 — 크롬 전용. **숫자 데이터에 금지** (숫자는 up/down 램프만).
-   * accent(teal) = 성장·복리·달성 / accent-alt(violet) = 목표·추천·하이라이트.
+   * accent(teal) = 성장·복리·달성 / accent-alt(green) = 목표·추천·프로모.
+   * 두 액센트는 같은 틸/그린 축의 양 끝이라 ΔE 15 이상으로 벌려 둔다(contrast.test가 강제).
    */
   accent: auroraTeal2[600],
   "accent-text": auroraTeal2[700],
   "accent-subtle": auroraTeal2[50],
   "accent-border": auroraTeal2[200],
-  "accent-alt": auroraViolet2[500],
-  "accent-alt-text": auroraViolet2[700],
-  "accent-alt-subtle": auroraViolet2[50],
-  "accent-alt-border": auroraViolet2[200],
+  "accent-alt": auroraGreen2[600],
+  "accent-alt-text": auroraGreen2[700],
+  "accent-alt-subtle": auroraGreen2[50],
+  "accent-alt-border": auroraGreen2[200],
   ...COMMON_LIGHT,
   /* 크롬 */
   overlay: "rgba(13, 27, 46, 0.45)",
@@ -7869,6 +7914,9 @@ var AURORA_LIGHT = {
   /* 시그니처 — CSS 값 문자열 (위 스칼라에서 조립) */
   "gradient-aurora": buildAuroraGradient(AURORA_LIGHT_RIBBON),
   "gradient-cta": buildCtaGradient(AURORA_LIGHT_CTA),
+  /* 히어로 면 — 라이트는 blue stop(t=0)이 최악 지점. text-muted 4.86:1 / soft 5.32:1(실측). */
+  "gradient-hero": buildHeroGradient("#dcebf6", "#e6f5ef"),
+  "gradient-hero-soft": buildHeroGradient("#ecf4fa", "#f1f9f6"),
   /*
    * 페이지 상단 오로라 글로우 — body 배경. 마지막 레이어가 bg 단색이라 폴백 겸용.
    * 알파 상한 0.05/0.04 — bg 틴트 강화(#e4f0fc)의 필수 연쇄 감쇄다. 구 0.06/0.05를 유지하면
@@ -7925,10 +7973,11 @@ var AURORA_DARK = {
   "accent-text": auroraTeal2[400],
   "accent-subtle": auroraTeal2[900],
   "accent-border": auroraTeal2[800],
-  "accent-alt": auroraViolet2[400],
-  "accent-alt-text": auroraViolet2[300],
-  "accent-alt-subtle": auroraViolet2[900],
-  "accent-alt-border": auroraViolet2[800],
+  /* 다크는 accent-alt == accent-alt-text (다크 프리셋 8종 공통 관례) */
+  "accent-alt": auroraGreen2[400],
+  "accent-alt-text": auroraGreen2[400],
+  "accent-alt-subtle": auroraGreen2[900],
+  "accent-alt-border": auroraGreen2[800],
   ...COMMON_DARK,
   overlay: "rgba(2, 6, 12, 0.68)",
   "focus-ring": brand2[300],
@@ -7948,6 +7997,9 @@ var AURORA_DARK = {
   /* 시그니처 — CSS 값 문자열 (위 스칼라에서 조립) */
   "gradient-aurora": buildAuroraGradient(AURORA_DARK_RIBBON),
   "gradient-cta": buildCtaGradient(AURORA_DARK_CTA),
+  /* 히어로 면 — 다크는 green stop 근처(t≈0.75~1)가 최악. text-muted 5.63:1 / soft 6.30:1(실측). */
+  "gradient-hero": buildHeroGradient("#12283e", "#10292f"),
+  "gradient-hero-soft": buildHeroGradient("#0f1e30", "#0d1f28"),
   /* 다크 글로우 — 뚜렷하되 절제. 알파 상한 0.14/0.12 (최악 지점 text-muted 4.57:1 실측). */
   "bg-glow": `radial-gradient(1100px 600px at 18% -10%, rgba(45, 212, 191, 0.14), transparent 60%), radial-gradient(900px 520px at 82% -14%, rgba(129, 140, 248, 0.12), transparent 55%), ${neutral2[950]}`,
   /*
@@ -7992,10 +8044,10 @@ var VELOG_LIGHT = {
   "accent-text": "#087f5b",
   "accent-subtle": "#e6fcf5",
   "accent-border": "#96f2d7",
-  "accent-alt": "#495057",
-  "accent-alt-text": "#343a40",
-  "accent-alt-subtle": "#f1f3f5",
-  "accent-alt-border": "#dee2e6",
+  "accent-alt": "#26a14f",
+  "accent-alt-text": "#13762a",
+  "accent-alt-subtle": "#e7f5ec",
+  "accent-alt-border": "#a8d9b9",
   ...COMMON_LIGHT,
   overlay: "rgba(33, 37, 41, 0.5)",
   "focus-ring": "#099268",
@@ -8014,6 +8066,9 @@ var VELOG_LIGHT = {
   /* 시그니처는 duotone — 그라데이션이 거의 안 보이는 것이 velog다움 */
   "gradient-aurora": buildDuotoneGradient("#087f5b", "#099268"),
   "gradient-cta": buildDuotoneGradient("#087f5b", "#066649"),
+  /* 히어로 면 — 라이트 최악 지점(blue stop) text-muted 4.63:1 / soft 5.05:1(실측). */
+  "gradient-hero": buildHeroGradient("#deecf6", "#e6f5ef"),
+  "gradient-hero-soft": buildHeroGradient("#edf5fa", "#f1f9f6"),
   /* 글로우 없음 = 단색 (역할: 페이지 배경) */
   "bg-glow": "#f8f9fa",
   /* 사실상 불투명한 유리 */
@@ -8051,10 +8106,10 @@ var VELOG_DARK = {
   "accent-text": "#20c997",
   "accent-subtle": "#12352a",
   "accent-border": "#2f7d5f",
-  "accent-alt": "#adb5bd",
-  "accent-alt-text": "#ced4da",
-  "accent-alt-subtle": "#2a2a2a",
-  "accent-alt-border": "#454545",
+  "accent-alt": "#75df98",
+  "accent-alt-text": "#75df98",
+  "accent-alt-subtle": "#142419",
+  "accent-alt-border": "#295437",
   ...COMMON_DARK,
   overlay: "rgba(0, 0, 0, 0.6)",
   "focus-ring": "#20c997",
@@ -8071,6 +8126,12 @@ var VELOG_DARK = {
   "progress-track": "#191919",
   "gradient-aurora": buildDuotoneGradient("#20c997", "#12b886"),
   "gradient-cta": buildDuotoneGradient("#20c997", "#12b886"),
+  /*
+   * 🔴 knife-edge — 다크 히어로 최악 지점(t≈0.88) text-muted 4.58:1. 16테마 32그라디언트 중 전역 최저다.
+   * 이 두 stop 을 더 밝게 올리거나 text-muted(#868e96)를 더 어둡게 내리면 즉시 AA 탈락한다.
+   */
+  "gradient-hero": buildHeroGradient("#192630", "#172923"),
+  "gradient-hero-soft": buildHeroGradient("#161d23", "#151f1b"),
   "bg-glow": "#121212",
   "surface-glass": "rgba(30, 30, 30, 0.96)",
   "surface-glass-fallback": "#1e1e1e",
@@ -8106,10 +8167,10 @@ var VIVID_LIGHT = {
   "accent-text": "#007a64",
   "accent-subtle": "#dcfaf3",
   "accent-border": "#86e8d3",
-  "accent-alt": "#7c5cff",
-  "accent-alt-text": "#5b3de6",
-  "accent-alt-subtle": "#efeaff",
-  "accent-alt-border": "#cfc2ff",
+  "accent-alt": "#0aa155",
+  "accent-alt-text": "#03772c",
+  "accent-alt-subtle": "#e4f5ec",
+  "accent-alt-border": "#9dd9bb",
   ...COMMON_LIGHT,
   overlay: "rgba(23, 26, 51, 0.5)",
   "focus-ring": "#2d5bf5",
@@ -8127,6 +8188,9 @@ var VIVID_LIGHT = {
   "progress-track": "#e9edfc",
   "gradient-aurora": buildAuroraGradient(["#2d5bf5", "#00997e", "#7c5cff"]),
   "gradient-cta": buildCtaGradient(["#2d5bf5", "#007a64", "#5b3de6"]),
+  /* 히어로 면 — 채도 강한 프리셋이라 캐스트를 라이트 0.16/0.13 으로 잡았다. 최악 text-muted 4.98:1. */
+  "gradient-hero": buildHeroGradient("#dcebf6", "#e3f4ee"),
+  "gradient-hero-soft": buildHeroGradient("#ecf4fa", "#f0f9f6"),
   /* 단색층만 새 bg(#eef0ff)로 — 알파 0.07/0.06은 유지 가능(글로우 최악 4.72 실측) */
   "bg-glow": "radial-gradient(1200px 640px at 16% -10%, rgba(0, 201, 167, 0.07), transparent 60%), radial-gradient(1000px 560px at 84% -12%, rgba(124, 92, 255, 0.06), transparent 55%), #eef0ff",
   "surface-glass": "rgba(255, 255, 255, 0.8)",
@@ -8163,10 +8227,10 @@ var VIVID_DARK = {
   "accent-text": "#00c9a7",
   "accent-subtle": "#0e3330",
   "accent-border": "#16665a",
-  "accent-alt": "#9d86ff",
-  "accent-alt-text": "#b8a7ff",
-  "accent-alt-subtle": "#292350",
-  "accent-alt-border": "#4f4590",
+  "accent-alt": "#61f299",
+  "accent-alt-text": "#61f299",
+  "accent-alt-subtle": "#132423",
+  "accent-alt-border": "#285441",
   ...COMMON_DARK,
   overlay: "rgba(5, 7, 20, 0.68)",
   "focus-ring": "#9db4ff",
@@ -8184,6 +8248,9 @@ var VIVID_DARK = {
   "progress-track": "#151831",
   "gradient-aurora": buildAuroraGradient(["#6a8aff", "#00c9a7", "#9d86ff"]),
   "gradient-cta": buildCtaGradient(["#3d63f2", "#00806a", "#6a4df0"]),
+  /* 히어로 면 — 다크 최악 text-muted 5.43:1 / soft 6.10:1(실측). */
+  "gradient-hero": buildHeroGradient("#172840", "#162b33"),
+  "gradient-hero-soft": buildHeroGradient("#141e33", "#13202c"),
   /* 알파 0.12/0.10 상한 — 0.16에서 text-muted 4.27:1 탈락 실측. 올리지 마라. */
   "bg-glow": "radial-gradient(1100px 600px at 18% -10%, rgba(0, 201, 167, 0.12), transparent 60%), radial-gradient(900px 520px at 82% -14%, rgba(157, 134, 255, 0.10), transparent 55%), #101223",
   "surface-glass": "rgba(38, 43, 79, 0.85)",
@@ -8225,10 +8292,11 @@ var NAVY_GOLD_LIGHT = {
   "accent-subtle": "#f7efd8",
   "accent-border": "#dfc98e",
   /* 버건디 */
-  "accent-alt": "#8e3b52",
-  "accent-alt-text": "#7c2f44",
-  "accent-alt-subtle": "#f7e9ed",
-  "accent-alt-border": "#dfb7c3",
+  "accent-alt": "#1c9e61",
+  "accent-alt-text": "#0b7432",
+  /* 틴트는 이 프리셋의 surface(아이보리)에서 파생 — 그래서 subtle 이 아이보리 기운을 갖는다 */
+  "accent-alt-subtle": "#e6f2e5",
+  "accent-alt-border": "#a4d6ba",
   ...COMMON_LIGHT,
   overlay: "rgba(24, 22, 16, 0.5)",
   "focus-ring": "#1f3a68",
@@ -8247,6 +8315,12 @@ var NAVY_GOLD_LIGHT = {
   /* 네이비→골드→버건디 (표시용) / CTA는 네이비 duotone — 골드는 CTA 채움 금지 */
   "gradient-aurora": buildAuroraGradient(["#1f3a68", "#a07617", "#8e3b52"]),
   "gradient-cta": buildDuotoneGradient("#1f3a68", "#16294b"),
+  /*
+   * 히어로 면 — 웜(아이보리) 프리셋이라 쿨 캐스트를 0.12/0.09 로 낮췄다("차가운 빛"이 스민 정도).
+   * brand 자체가 네이비(쿨)라 블루 캐스트가 정체성과 충돌하지 않는다. 최악 text-muted 5.07:1.
+   */
+  "gradient-hero": buildHeroGradient("#e5edef", "#ecf5ea"),
+  "gradient-hero-soft": buildHeroGradient("#f1f4f2", "#f5f8ef"),
   /* 단색층만 새 bg(#f5efdd)로 — 알파 0.06/0.05 유지(글로우 최악 4.52 실측, 상한) */
   "bg-glow": "radial-gradient(1200px 640px at 16% -10%, rgba(160, 118, 23, 0.06), transparent 60%), radial-gradient(1000px 560px at 84% -12%, rgba(31, 58, 104, 0.05), transparent 55%), #f5efdd",
   "surface-glass": "rgba(255, 252, 245, 0.8)",
@@ -8283,10 +8357,10 @@ var NAVY_GOLD_DARK = {
   "accent-text": "#d8b04a",
   "accent-subtle": "#2f2711",
   "accent-border": "#6e5a1e",
-  "accent-alt": "#cf8fa4",
-  "accent-alt-text": "#dba7b8",
-  "accent-alt-subtle": "#33202a",
-  "accent-alt-border": "#71404f",
+  "accent-alt": "#75dfa6",
+  "accent-alt-text": "#75dfa6",
+  "accent-alt-subtle": "#112322",
+  "accent-alt-border": "#265342",
   ...COMMON_DARK,
   overlay: "rgba(3, 6, 14, 0.68)",
   "focus-ring": "#a9c0e8",
@@ -8304,6 +8378,9 @@ var NAVY_GOLD_DARK = {
   "progress-track": "#0f1526",
   "gradient-aurora": buildAuroraGradient(["#6f8fc7", "#d8b04a", "#cf8fa4"]),
   "gradient-cta": buildDuotoneGradient("#4d6ca4", "#3a5488"),
+  /* 히어로 면 — 다크 최악 text-muted 5.40:1 / soft 5.93:1(실측). */
+  "gradient-hero": buildHeroGradient("#112338", "#10252c"),
+  "gradient-hero-soft": buildHeroGradient("#0e1a2d", "#0d1b26"),
   "bg-glow": "radial-gradient(1100px 600px at 18% -10%, rgba(216, 176, 74, 0.10), transparent 60%), radial-gradient(900px 520px at 82% -14%, rgba(111, 143, 199, 0.10), transparent 55%), #0a0f1e",
   "surface-glass": "rgba(31, 41, 66, 0.85)",
   "surface-glass-fallback": "#1f2942",
@@ -8340,10 +8417,11 @@ var FOREST_LIGHT = {
   "accent-subtle": "#ecf6e3",
   "accent-border": "#bfe0a4",
   /* 우디 브라운 */
-  "accent-alt": "#7d5a3c",
-  "accent-alt-text": "#67492f",
-  "accent-alt-subtle": "#f4ede4",
-  "accent-alt-border": "#d9c3ab",
+  /* brand(그린 145°)·accent(라임 95°)와 3중 그린이 되지 않게 축의 **틸 끝(174°)** 을 골랐다 */
+  "accent-alt": "#129e90",
+  "accent-alt-text": "#06726b",
+  "accent-alt-subtle": "#e5f4f3",
+  "accent-alt-border": "#a0d8d3",
   ...COMMON_LIGHT,
   overlay: "rgba(16, 26, 18, 0.5)",
   "focus-ring": "#2f7d4f",
@@ -8362,6 +8440,9 @@ var FOREST_LIGHT = {
   /* 숲의 빛: 그린→라임→우디 / CTA는 그린 duotone */
   "gradient-aurora": buildAuroraGradient(["#2f7d4f", "#4c8b2e", "#7d5a3c"]),
   "gradient-cta": buildDuotoneGradient("#2f7d4f", "#256540"),
+  /* 히어로 면 — 최악 text-muted 4.81:1 / soft 5.16:1(실측). */
+  "gradient-hero": buildHeroGradient("#e1eef7", "#e6f5ef"),
+  "gradient-hero-soft": buildHeroGradient("#eef5fb", "#f1f9f6"),
   "bg-glow": "radial-gradient(1200px 640px at 16% -10%, rgba(47, 125, 79, 0.05), transparent 60%), radial-gradient(1000px 560px at 84% -12%, rgba(76, 139, 46, 0.04), transparent 55%), #eef3ec",
   "surface-glass": "rgba(255, 255, 255, 0.8)",
   "surface-glass-fallback": "#ffffff",
@@ -8397,10 +8478,10 @@ var FOREST_DARK = {
   "accent-text": "#55c17e",
   "accent-subtle": "#12301d",
   "accent-border": "#29603c",
-  "accent-alt": "#c9a978",
-  "accent-alt-text": "#d8bd92",
-  "accent-alt-subtle": "#322a1c",
-  "accent-alt-border": "#6a5636",
+  "accent-alt": "#6ce7d7",
+  "accent-alt-text": "#6ce7d7",
+  "accent-alt-subtle": "#122621",
+  "accent-alt-border": "#27554d",
   ...COMMON_DARK,
   overlay: "rgba(4, 10, 6, 0.7)",
   "focus-ring": "#7fd4a5",
@@ -8418,6 +8499,9 @@ var FOREST_DARK = {
   "progress-track": "#131c16",
   "gradient-aurora": buildAuroraGradient(["#55c17e", "#8fd14f", "#c9a978"]),
   "gradient-cta": buildDuotoneGradient("#2b8052", "#236a44"),
+  /* 히어로 면 — 다크 최악 text-muted 5.25:1 / soft 5.86:1(실측). */
+  "gradient-hero": buildHeroGradient("#16292e", "#142e23"),
+  "gradient-hero-soft": buildHeroGradient("#132122", "#12241b"),
   /* 알파 0.10/0.08 상한 — 0.12/0.10에서 text-muted 4.35로 탈락(실측, 유일한 1차 실패). 올리지 마라. */
   "bg-glow": "radial-gradient(1100px 600px at 18% -10%, rgba(85, 193, 126, 0.10), transparent 60%), radial-gradient(900px 520px at 82% -14%, rgba(143, 209, 79, 0.08), transparent 55%), #0f1712",
   "surface-glass": "rgba(35, 50, 39, 0.85)",
@@ -8455,10 +8539,10 @@ var GRAPE_LIGHT = {
   "accent-subtle": "#f9ecfb",
   "accent-border": "#e3b8ea",
   /* 인디고 */
-  "accent-alt": "#4956d4",
-  "accent-alt-text": "#3a44c0",
-  "accent-alt-subtle": "#ecedfc",
-  "accent-alt-border": "#c4c9f4",
+  "accent-alt": "#1ca063",
+  "accent-alt-text": "#0c7633",
+  "accent-alt-subtle": "#e6f5ee",
+  "accent-alt-border": "#a4d9c1",
   ...COMMON_LIGHT,
   overlay: "rgba(28, 19, 41, 0.5)",
   "focus-ring": "#7048c8",
@@ -8476,6 +8560,9 @@ var GRAPE_LIGHT = {
   "progress-track": "#eae3f5",
   "gradient-aurora": buildAuroraGradient(["#7048c8", "#a136b8", "#4956d4"]),
   "gradient-cta": buildDuotoneGradient("#7048c8", "#5c39ab"),
+  /* 히어로 면 — 최악 text-muted 5.27:1 / soft 5.75:1(실측). */
+  "gradient-hero": buildHeroGradient("#deecf6", "#e6f5ef"),
+  "gradient-hero-soft": buildHeroGradient("#edf5fa", "#f1f9f6"),
   "bg-glow": "radial-gradient(1200px 640px at 16% -10%, rgba(112, 72, 200, 0.05), transparent 60%), radial-gradient(1000px 560px at 84% -12%, rgba(161, 54, 184, 0.05), transparent 55%), #f3effa",
   "surface-glass": "rgba(255, 255, 255, 0.8)",
   "surface-glass-fallback": "#ffffff",
@@ -8511,10 +8598,10 @@ var GRAPE_DARK = {
   "accent-text": "#d478e8",
   "accent-subtle": "#3a1f42",
   "accent-border": "#713d80",
-  "accent-alt": "#8f9bff",
-  "accent-alt-text": "#aab3ff",
-  "accent-alt-subtle": "#252a5c",
-  "accent-alt-border": "#47509b",
+  "accent-alt": "#6fe4a6",
+  "accent-alt-text": "#6fe4a6",
+  "accent-alt-subtle": "#162225",
+  "accent-alt-border": "#2a5345",
   ...COMMON_DARK,
   overlay: "rgba(10, 6, 20, 0.7)",
   "focus-ring": "#bba8f5",
@@ -8532,6 +8619,9 @@ var GRAPE_DARK = {
   "progress-track": "#1c1530",
   "gradient-aurora": buildAuroraGradient(["#a184f2", "#d478e8", "#8f9bff"]),
   "gradient-cta": buildDuotoneGradient("#7a53da", "#6845c6"),
+  /* 히어로 면 — 다크 최악 text-muted 5.00:1 / soft 5.58:1(실측). velog 다크 다음으로 얇다. */
+  "gradient-hero": buildHeroGradient("#1d2541", "#1b2934"),
+  "gradient-hero-soft": buildHeroGradient("#1a1c35", "#191e2e"),
   /* 다크 글로우 알파 0.10/0.08 상한(사전 계산으로 0.12에서 감쇄) */
   "bg-glow": "radial-gradient(1100px 600px at 18% -10%, rgba(161, 132, 242, 0.10), transparent 60%), radial-gradient(900px 520px at 82% -14%, rgba(212, 120, 232, 0.08), transparent 55%), #171126",
   "surface-glass": "rgba(47, 37, 81, 0.85)",
@@ -8570,10 +8660,11 @@ var SUNSET_LIGHT = {
   "accent-subtle": "#fdeed6",
   "accent-border": "#edcb92",
   /* 로즈마젠타 — B채널로 상승 적색과 분리 */
-  "accent-alt": "#b83280",
-  "accent-alt-text": "#9c2b6d",
-  "accent-alt-subtle": "#fbe9f3",
-  "accent-alt-border": "#efb8d9",
+  /* 웜 크림 위에서 튀지 않게 축의 채도를 8종 중 가장 낮게(0.48) 잡았다 */
+  "accent-alt": "#389f6b",
+  "accent-alt-text": "#1e7640",
+  "accent-alt-subtle": "#e9f4ef",
+  "accent-alt-border": "#afd9c4",
   ...COMMON_LIGHT,
   overlay: "rgba(30, 20, 16, 0.5)",
   "focus-ring": "#bc4c0f",
@@ -8592,6 +8683,12 @@ var SUNSET_LIGHT = {
   "progress-track": "#fdf8f3",
   "gradient-aurora": buildAuroraGradient(["#bc4c0f", "#b06a05", "#b83280"]),
   "gradient-cta": buildDuotoneGradient("#bc4c0f", "#a04a10"),
+  /*
+   * 히어로 면 — 8종 중 쿨 캐스트가 가장 약하다(0.10/0.08). 웜 크림이 정체성이라
+   * 여기서 캐스트를 올리면 프리셋이 다른 프리셋처럼 보인다. 최악 text-muted 5.68:1.
+   */
+  "gradient-hero": buildHeroGradient("#e9f3f9", "#eef8f5"),
+  "gradient-hero-soft": buildHeroGradient("#f3f8fc", "#f6fbf9"),
   "bg-glow": "radial-gradient(1200px 640px at 16% -10%, rgba(188, 76, 15, 0.05), transparent 60%), radial-gradient(1000px 560px at 84% -12%, rgba(201, 123, 6, 0.05), transparent 55%), #fbf1e8",
   "surface-glass": "rgba(255, 255, 255, 0.8)",
   "surface-glass-fallback": "#ffffff",
@@ -8628,10 +8725,10 @@ var SUNSET_DARK = {
   "accent-text": "#f5b942",
   "accent-subtle": "#3b2c12",
   "accent-border": "#7d5f24",
-  "accent-alt": "#ee85a8",
-  "accent-alt-text": "#f5a3c0",
-  "accent-alt-subtle": "#43222f",
-  "accent-alt-border": "#83415a",
+  "accent-alt": "#7bd9a2",
+  "accent-alt-text": "#7bd9a2",
+  "accent-alt-subtle": "#182419",
+  "accent-alt-border": "#2d5439",
   ...COMMON_DARK,
   overlay: "rgba(12, 6, 4, 0.7)",
   "focus-ring": "#ffb08e",
@@ -8650,6 +8747,9 @@ var SUNSET_DARK = {
   "gradient-aurora": buildAuroraGradient(["#ff8a5c", "#f5b942", "#ee85a8"]),
   /* 어두운 라벨(on-brand #1e1410) 전제의 밝은 CTA duotone */
   "gradient-cta": buildDuotoneGradient("#ff8a5c", "#f5b942"),
+  /* 히어로 면 — 웜 다크 위 최소 캐스트. 최악 text-muted 5.42:1 / soft 5.91:1(실측). */
+  "gradient-hero": buildHeroGradient("#222429", "#21281e"),
+  "gradient-hero-soft": buildHeroGradient("#201d1e", "#201f18"),
   /* 다크 글로우 알파 0.10/0.08 상한(사전 계산으로 0.12에서 감쇄). 글로우 최악 위 text-muted 4.63. */
   "bg-glow": "radial-gradient(1100px 600px at 18% -10%, rgba(255, 138, 92, 0.10), transparent 60%), radial-gradient(900px 520px at 82% -14%, rgba(245, 185, 66, 0.08), transparent 55%), #1e1410",
   "surface-glass": "rgba(55, 43, 35, 0.85)",
@@ -8686,10 +8786,10 @@ var INK_LIGHT = {
   "accent-text": "#333333",
   "accent-subtle": "#ededed",
   "accent-border": "#cfcfcf",
-  "accent-alt": "#6b6b6b",
-  "accent-alt-text": "#4f4f4f",
-  "accent-alt-subtle": "#f0f0f0",
-  "accent-alt-border": "#d6d6d6",
+  "accent-alt": "#359f6d",
+  "accent-alt-text": "#1c763d",
+  "accent-alt-subtle": "#e9f4ef",
+  "accent-alt-border": "#aed9c5",
   ...COMMON_LIGHT,
   overlay: "rgba(17, 17, 17, 0.5)",
   "focus-ring": "#1a1a1a",
@@ -8708,6 +8808,14 @@ var INK_LIGHT = {
   /* 잉크 번짐 */
   "gradient-aurora": buildAuroraGradient(["#1a1a1a", "#444444", "#6b6b6b"]),
   "gradient-cta": buildDuotoneGradient("#1a1a1a", "#0d0d0d"),
+  /*
+   * 히어로 면 — **캐스트 0(무채)**. 다른 7프리셋과 달리 쿨 파스텔을 섞지 않는다:
+   * 무채는 "웜톤 금지" 제약을 위반하지 않으면서 ink 정체성을 지키는 유일한 해다.
+   * 대가로 bg 와의 ΔE 가 2.8 밖에 안 되니 **밴드를 fill 단독으로 세우지 말고**
+   * 1px `color.border` + radius 로 경계를 함께 그려라. 최악 text-muted 5.76:1.
+   */
+  "gradient-hero": buildHeroGradient("#e9e9e9", "#f4f4f4"),
+  "gradient-hero-soft": buildHeroGradient("#f7f7f7", "#fcfcfc"),
   /* 글로우 없음 = 단색 */
   "bg-glow": "#f1f1f1",
   "surface-glass": "rgba(255, 255, 255, 0.92)",
@@ -8745,10 +8853,10 @@ var INK_DARK = {
   "accent-text": "#d4d4d4",
   "accent-subtle": "#262626",
   "accent-border": "#4d4d4d",
-  "accent-alt": "#a3a3a3",
-  "accent-alt-text": "#bfbfbf",
-  "accent-alt-subtle": "#232323",
-  "accent-alt-border": "#454545",
+  "accent-alt": "#7fd4a7",
+  "accent-alt-text": "#7fd4a7",
+  "accent-alt-subtle": "#13221a",
+  "accent-alt-border": "#28533c",
   ...COMMON_DARK,
   overlay: "rgba(0, 0, 0, 0.65)",
   "focus-ring": "#f2f2f2",
@@ -8766,6 +8874,9 @@ var INK_DARK = {
   "progress-track": "#131313",
   "gradient-aurora": buildAuroraGradient(["#f2f2f2", "#d4d4d4", "#a3a3a3"]),
   "gradient-cta": buildDuotoneGradient("#f2f2f2", "#dedede"),
+  /* 히어로 면 — 라이트와 같이 캐스트 0. bg 와 ΔE 3.6 이라 경계선 필수. 최악 text-muted 5.59:1. */
+  "gradient-hero": buildHeroGradient("#161616", "#101010"),
+  "gradient-hero-soft": buildHeroGradient("#141414", "#191919"),
   "bg-glow": "#0d0d0d",
   "surface-glass": "rgba(38, 38, 38, 0.92)",
   "surface-glass-fallback": "#262626",
@@ -8853,7 +8964,10 @@ var color = {
   brandBorder: "var(--sb-brand-border)",
   brandText: "var(--sb-brand-text)",
   onBrand: "var(--sb-on-brand)",
-  /* 오로라 액센트 — 크롬 전용. 숫자 데이터에 금지(숫자는 dataPositive/dataNegative만). */
+  /*
+   * 오로라 액센트 — 크롬 전용. 숫자 데이터에 금지(숫자는 dataPositive/dataNegative만).
+   * accent(틸) = 성장·복리·달성 / accent-alt(그린) = 목표·추천·프로모.
+   */
   accent: "var(--sb-accent)",
   accentText: "var(--sb-accent-text)",
   accentSubtle: "var(--sb-accent-subtle)",
@@ -8862,9 +8976,23 @@ var color = {
   accentAltText: "var(--sb-accent-alt-text)",
   accentAltSubtle: "var(--sb-accent-alt-subtle)",
   accentAltBorder: "var(--sb-accent-alt-border)",
+  /*
+   * 워드마크("스노우볼 인컴") — 전 프리셋 공통. `background-clip: text` 전용이고
+   * solid 는 그 폴백(@supports 미지원·forced-colors·print)이다. 다른 용도로 쓰지 마라.
+   */
+  gradientWordmarkSnow: "var(--sb-gradient-wordmark-snow)",
+  gradientWordmarkIncome: "var(--sb-gradient-wordmark-income)",
+  wordmarkSnowSolid: "var(--sb-wordmark-snow-solid)",
+  wordmarkIncomeSolid: "var(--sb-wordmark-income-solid)",
   /* 오로라 시그니처 — 그라데이션·글로우·글래스 (CSS 값 전체 문자열) */
   gradientAurora: "var(--sb-gradient-aurora)",
   gradientCta: "var(--sb-gradient-cta)",
+  /*
+   * 파스텔 히어로 — **면 배경 전용**(PageHero·EmptyState·프로모 카드). 버튼·리본에 금지.
+   * gradientCta(버튼 채움) / gradientAurora(리본·장식)와 교차 사용하지 않는 세 번째 계열이다.
+   */
+  gradientHero: "var(--sb-gradient-hero)",
+  gradientHeroSoft: "var(--sb-gradient-hero-soft)",
   bgGlow: "var(--sb-bg-glow)",
   surfaceGlass: "var(--sb-surface-glass)",
   surfaceGlassFallback: "var(--sb-surface-glass-fallback)",
@@ -8905,12 +9033,31 @@ var media = {
   up: (key) => `@media (min-width: ${BREAKPOINT[key] + 1}px)`
 };
 var font = {
+  sans: "'Wanted Sans Variable', 'Wanted Sans', -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Segoe UI', Roboto, sans-serif",
   /**
-   * Pretendard를 npm으로 셀프호스팅한다(`main.tsx`에서 동적 서브셋 CSS를 import).
-   * CDN을 쓰지 않는 이유: 서드파티 요청(프라이버시) + 렌더 블로킹 + 오프라인 실패.
-   * 폰트가 아직 안 왔을 때는 OS 한글 폰트로 우아하게 폴백한다(`font-display: swap`).
+   * 헤딩·워드마크. Gmarket Sans 는 Light(300)·Medium(400)·Bold(700) 세 벌뿐이고 이 앱은 **Bold 한 벌만**
+   * 싣는다(헤딩 실측이 600/700/800 뿐 — tools/fonts/build.mjs 주석 참고). 그래서 display 로 그린 글자는
+   * 굵기를 무엇으로 요청하든 Bold 로 보인다. 위계는 굵기가 아니라 **크기**로 만들어라.
    */
-  sans: "'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Segoe UI', Roboto, sans-serif",
+  display: "'Gmarket Sans', 'Wanted Sans Variable', 'Wanted Sans', -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif",
+  /**
+   * 그 화면의 주인공 숫자 **한 곳**에만. 두 곳에 쓰면 위계가 죽는다(`StatTile.types.ts` hero 규칙과 동일).
+   * 서브셋이 숫자·통화기호·단위 한글만 담고 있어 그 밖의 글자는 자동으로 sans 로 떨어진다(의도).
+   */
+  heroNumeric: "'LINE Seed Sans KR', 'Wanted Sans Variable', 'Wanted Sans', -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif",
+  /**
+   * hero 를 제외한 모든 숫자. `numeric`(tabular-nums)과 **함께** 쓴다 — Inter 의 기본 숫자는 비례폭이고
+   * `tnum` 을 켜야 자릿수가 정렬된다.
+   *
+   * ⚠ Inter 에는 한글 글리프가 없다 — 표 안 "3종"·"미정" 같은 한글이 본문 서체로 폴백되게 순서를 고정한다.
+   *
+   * ⚠ **`'Inter Variable'` 은 npm 패키지 이름이 아니라 우리 자체 서브셋(`shared/styles/selfHostedFonts.css`)의
+   * family 명이다.** `@fontsource-variable/inter` 를 설치해 import 하면 **같은 이름**으로 unicode-range 분할된
+   * 다른 `@font-face` 세트가 등록돼, CSS 순서에 따라 우리 서브셋(opsz 16 고정 · ₩ 포함 단일 파일)이 밀리고
+   * 최적화가 **조용히 무효화**된다 — tsc·테스트·대비 게이트 어느 것도 못 잡는 종류의 사고다. 그 패키지를
+   * 쓰고 싶어지면 서브셋 쪽 family 명을 먼저 바꿔라(tools/fonts/build.mjs).
+   */
+  dataNumeric: "'Inter Variable', Inter, 'Wanted Sans Variable', 'Wanted Sans', -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif",
   size: FONT_SIZE_SCALE,
   weight: FONT_WEIGHT_SCALE,
   leading: LEADING_SCALE,
@@ -10346,14 +10493,31 @@ var globalStyles = css`
   }
 
   /*
+   * 헤딩은 display 서체(Gmarket Sans). **여기 한 곳에서만** 건다 — 페이지별 styled 파일이 각자
+   * font-family를 박기 시작하면 역할이 흩어져 서체 교체가 불가능해진다.
+   * 굵기는 각 헤딩의 styled가 그대로 정한다(display 페이스가 한 벌이라 굵기 차이는 안 보인다 —
+   * tokens.ts의 font.display 주석 참고. 위계는 크기로 만든다).
+   */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: ${font.display};
+  }
+
+  /*
    * 금액·퍼센트는 자릿수 정렬(tabular-nums)이 되어야 표에서 눈이 흐르지 않는다.
-   * 숫자를 다루는 컨트롤과 표 셀에 일괄 적용.
+   * 숫자를 다루는 컨트롤과 표 셀에 일괄 적용 — 서체도 dataNumeric(Inter)으로 함께 건다.
+   * Inter에는 한글이 없으므로 같은 셀 안의 한글 라벨은 자동으로 본문 서체가 받는다(스택 순서).
    */
   input[type='number'],
   input[inputmode='decimal'],
   table,
   th,
   td {
+    font-family: ${font.dataNumeric};
     ${font.numeric};
   }
 
@@ -10471,7 +10635,7 @@ var getChartTheme = () => ({
   successSurface: readVar("--sb-success-surface", FALLBACK.successSurface),
   warning: readVar("--sb-warning", FALLBACK.warning),
   series: FALLBACK.series.map((fallback, index) => readVar(`--sb-chart-series-${index}`, fallback)),
-  fontFamily: font.sans,
+  fontFamily: font.dataNumeric,
   labelFontSize: 12
 });
 
@@ -11816,13 +11980,13 @@ var fontsPromise = null;
 var fetchFont = async (origin, file, weight) => {
   const response = await fetch(new URL(`/fonts/${file}`, origin));
   if (!response.ok) throw new Error(`font fetch failed: ${file} (${response.status})`);
-  return { name: "Pretendard", data: await response.arrayBuffer(), weight, style: "normal" };
+  return { name: "Wanted Sans", data: await response.arrayBuffer(), weight, style: "normal" };
 };
 var loadFonts = (origin) => {
   if (!fontsPromise) {
     fontsPromise = Promise.all([
-      fetchFont(origin, "Pretendard-Regular.otf", 400),
-      fetchFont(origin, "Pretendard-Bold.otf", 700)
+      fetchFont(origin, "WantedSans-Regular.otf", 400),
+      fetchFont(origin, "WantedSans-Bold.otf", 700)
     ]).catch((error) => {
       fontsPromise = null;
       throw error;
@@ -11877,7 +12041,7 @@ var Shell = ({ children }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
       justifyContent: "space-between",
       backgroundColor: COLOR.brand600,
       backgroundImage: `linear-gradient(135deg, ${COLOR.brand800} 0%, ${COLOR.brand600} 55%, ${COLOR.brand500} 100%)`,
-      fontFamily: "Pretendard"
+      fontFamily: "Wanted Sans"
     },
     children: [
       /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between" }, children: [
