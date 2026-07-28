@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ShareDialog from './ShareDialog';
 import { SHARE_CHANNELS, SHARE_DIALOG_COPY, buildShareChannelUrl, isNativeShareIdiomatic } from './ShareDialog.utils';
@@ -113,5 +114,56 @@ describe('공유 창', () => {
     await userEvent.keyboard('{Escape}');
 
     expect(props.onClose).toHaveBeenCalledTimes(1);
+  });
+});
+
+/**
+ * 이 창의 존재 이유는 **클립보드가 막힌 사용자의 수동 복사**다 — 주소를 드래그로 고르는 도중
+ * 포커스를 빼앗기면 선택이 통째로 날아가고, 그 사용자에게 남은 마지막 수단이 사라진다.
+ *
+ * 실제 호출부(`TickerCreation`)는 인라인 화살표 `onClose` 를 넘기고 **2.2초 토스트 타이머로
+ * 스스로 리렌더**된다. 포커스 이펙트 deps 에 `onClose` 가 들어 있으면 그 리렌더마다 정리가 돌아
+ * `restore.focus()` 가 포커스를 낚아챈다.
+ */
+describe('공유 창 포커스 — 부모 리렌더에 흔들리지 않는다', () => {
+  type ParentProps = { onReady: (rerender: () => void) => void };
+
+  function Parent({ onReady }: ParentProps) {
+    const [tick, setTick] = useState(0);
+    onReady(() => setTick((value) => value + 1));
+
+    return (
+      <>
+        <span data-testid="tick">{tick}</span>
+        {/* 인라인 화살표 — 렌더마다 identity 가 바뀐다(호출부 메모이제이션에 기대지 않는지 본다). */}
+        <ShareDialog
+          url={URL_UNDER_TEST}
+          onCopy={vi.fn()}
+          onSelectChannel={vi.fn()}
+          onClose={() => undefined}
+        />
+      </>
+    );
+  }
+
+  it('불안정한 onClose 를 받아도 부모 리렌더가 주소 입력의 포커스를 빼앗지 않는다', async () => {
+    const user = userEvent.setup();
+    let rerenderParent = () => undefined as void;
+    render(<Parent onReady={(rerender) => { rerenderParent = rerender; }} />);
+
+    const input = screen.getByLabelText(SHARE_DIALOG_COPY.linkLabel);
+    await user.click(input);
+    expect(input).toHaveFocus();
+
+    // 토스트 타이머가 하는 일과 같다 — 사용자는 아무것도 누르지 않았는데 부모만 다시 그려진다.
+    act(() => rerenderParent());
+    expect(screen.getByTestId('tick')).toHaveTextContent('1');
+
+    expect(input).toHaveFocus();
+
+    // 여러 번 흔들어도 마찬가지다(토스트는 열려 있는 동안 반복해서 뜬다).
+    act(() => rerenderParent());
+    act(() => rerenderParent());
+    expect(input).toHaveFocus();
   });
 });

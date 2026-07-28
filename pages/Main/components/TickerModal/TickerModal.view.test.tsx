@@ -167,7 +167,9 @@ describe('TickerModal 드로어 ↔ 모달 격리·포커스·닫기 경로', ()
   it('모달 배경에서의 ESC 는 모달 onClose 를 호출한다(격리가 모달 자체 ESC 를 막지 않음)', async () => {
     // 대조군: 드로어가 없을 때 ESC 는 정상적으로 모달 onClose 로 이어진다.
     const props = renderModal();
-    fireEvent.keyDown(window, { key: 'Escape' });
+    // 포커스가 어디에도 없을 때 실제 브라우저가 이벤트를 쏘는 자리(= body)에서 발화시킨다.
+    // window 에 직접 쏘면 전파 경로가 window 하나뿐이라 중간 노드의 리스너에 닿지 않는다.
+    fireEvent.keyDown(document.body, { key: 'Escape' });
     expect(props.onClose).toHaveBeenCalledTimes(1);
   });
 
@@ -355,7 +357,7 @@ describe('TickerModal 히스토리 수지(엔트리 과·부족)', () => {
     expect(readDrawerMarker()).toBeDefined();
     expect(readPageSentinel()).toBe('esc-page');
 
-    fireEvent.keyDown(window, { key: 'Escape' });
+    fireEvent.keyDown(document.body, { key: 'Escape' });
     expect(props.onClose).toHaveBeenCalledTimes(1);
     // 컨테이너가 닫는다(controlled) — 이 리렌더의 정리에서 되감기가 예약된다.
     rerender(<TickerModalView {...props} isOpen={false} />);

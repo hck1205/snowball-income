@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { X } from 'lucide-react';
-import { useDrawerBackClose } from '@/shared/hooks';
+import { useDrawerBackClose, useOverlayEscape } from '@/shared/hooks';
 import { BREAKPOINT } from '@/shared/styles';
 import type { BreakpointKey } from '@/shared/styles';
 import type { SideDrawerProps } from './SideDrawer.types';
@@ -49,8 +49,9 @@ function useIsDimmed(dimBelow: BreakpointKey): boolean {
  *
  * - 패널은 **항상 마운트**되고 열림은 CSS 가 정한다 — 언마운트/`display:none` 은 안쪽 스크롤·입력을 날린다.
  * - `useDrawerBackClose` 를 **전 해상도**에 배선한다(뒤로가기 = 닫기, URL 불변).
- * - `Escape` 는 **이미 처리된 이벤트를 가로채지 않는다**(`defaultPrevented` 확인) — 안쪽 입력의
- *   "Escape = 값 지우기"가 먼저고, 지울 게 없을 때만 드로어가 닫힌다.
+ * - `Escape` 는 `useOverlayEscape` 가 맡는다 — 안쪽 입력이 이미 처리한 Escape 는 가로채지 않고
+ *   ("Escape = 값 지우기"가 먼저다), **이 드로어 위에 모달·공유 창이 열려 있으면 그쪽이 먼저**
+ *   닫힌다. 직접 `document` 리스너를 달면 그 위층보다 먼저 돌아 두 겹이 한 번에 닫힌다.
  * - 열릴 때 닫기 버튼으로 포커스, 닫힐 때 **열었던 요소로 복귀**.
  * - 딤·스크롤 잠금은 `dimBelow` **이하**에서만. 넓은 폭은 투명 스크림(클릭=닫기)만 남는다.
  *
@@ -83,8 +84,8 @@ export default function SideDrawer({
   // 뒤로가기 = 드로어 닫기(페이지 이탈 아님). 폭과 무관하게 항상 켠다 — 이 드로어는 전 폭 오버레이다.
   useDrawerBackClose(isOpen, onClose);
 
-  const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
+  // Escape = 닫기. 위에 모달·공유 창이 열려 있으면 그쪽이 먼저 닫히고 이 드로어는 남는다.
+  useOverlayEscape(isOpen, onClose);
 
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -92,16 +93,7 @@ export default function SideDrawer({
     restoreRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     closeRef.current?.focus();
 
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape' || event.defaultPrevented) return;
-      onCloseRef.current();
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-
       // 닫힌 뒤 포커스가 body 로 떨어지면 키보드 사용자는 위치를 잃는다 — 열었던 요소로 돌린다.
       const restore = restoreRef.current;
       if (restore && restore.isConnected) restore.focus();

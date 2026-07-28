@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import { useOverlayEscape } from '@/shared/hooks';
 import Button from '../Button';
 import { ModalActions, ModalBackdrop, ModalPanel, ModalTitle } from '../Modal';
 import ShareChannelGlyph from './ShareChannelGlyph';
@@ -32,6 +33,12 @@ const copy = SHARE_DIALOG_COPY;
  *
  * 1급 동작은 **링크 복사**다. 채널 버튼은 그 아래 보조 줄이고, 주소는 읽기 전용 입력으로 항상
  * 보여 준다(클립보드가 막힌 환경에서도 직접 선택해 복사할 수 있어야 공유가 성립한다).
+ *
+ * ⚠ 포커스 이펙트는 **열림 전이에만** 돈다(deps 없음 = 마운트/언마운트 1회). `onClose` 를 deps 에
+ *   두면 인라인 화살표를 넘기는 호출부(TickerCreation)에서 부모가 리렌더될 때마다 정리가 돌아
+ *   `restore.focus()` 가 **주소를 드래그 선택하던 중에** 포커스를 빼앗는다 — 그 부모는 2.2초 토스트
+ *   타이머로 스스로 리렌더된다. 클립보드가 막힌 사용자의 수동 복사가 이 창의 존재 이유라 치명적이다.
+ *   같은 함정을 `SideDrawer`·`HoldingPickerDrawer` 는 `onCloseRef` 로 막아 뒀다(qa BUG-1).
  */
 export default function ShareDialog({
   url,
@@ -46,25 +53,21 @@ export default function ShareDialog({
   const restoreRef = useRef<HTMLElement | null>(null);
   const root = typeof document !== 'undefined' ? document.body : null;
 
+  // Escape = 닫기. 이 창은 설정 드로어 위에 열리므로 **한 겹만** 닫혀야 한다(스택이 순서를 정한다).
+  useOverlayEscape(true, onClose);
+
   useEffect(() => {
     restoreRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     // 1급 동작(링크 복사)에 포커스를 둔다 — 키보드 사용자는 창이 열리자마자 Enter 로 끝낼 수 있다.
     copyRef.current?.focus();
 
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape' || event.defaultPrevented) return;
-      onClose();
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
       // 닫은 뒤 포커스가 body 로 떨어지면 키보드 사용자는 위치를 잃는다 — 열었던 버튼으로 돌린다.
       const restore = restoreRef.current;
       if (restore && restore.isConnected) restore.focus();
     };
-  }, [onClose]);
+    // deps 는 비어 있어야 한다 — 위 ⚠ 참조. `onClose` 를 넣으면 리렌더마다 포커스를 빼앗는다.
+  }, []);
 
   if (!root) return null;
 

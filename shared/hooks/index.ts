@@ -6,3 +6,4 @@
  * 소비처는 폴더 경로 `@/shared/hooks`로 가져간다.
  */
 export { useDrawerBackClose } from './useDrawerBackClose';
+export { useOverlayEscape } from './useOverlayEscape';

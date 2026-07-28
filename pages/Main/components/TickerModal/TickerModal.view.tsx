@@ -4,7 +4,7 @@ import { PRESET_TICKER_KOREAN_NAME_BY_TICKER } from '@/shared/constants';
 import nasdaqListedJson from '@/utils/TickerParser/output/nasdaq-listed.json';
 import otherListedJson from '@/utils/TickerParser/output/other-listed.json';
 import { InlineField, ModalBackdrop, ModalBody, ModalTitle } from '@/components/common';
-import { useDrawerBackClose } from '@/shared/hooks';
+import { useDrawerBackClose, useOverlayEscape } from '@/shared/hooks';
 import { BREAKPOINT } from '@/shared/styles';
 import {
   PresetFilterDrawer,
@@ -89,16 +89,13 @@ export default function TickerModalView({
    */
   useDrawerBackClose(isOpen, onClose);
 
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [isOpen, onClose]);
+  /*
+   * Escape = 모달 닫기. 이 모달은 **설정 드로어 위에** 열리므로 층 순서를 스택이 정해야 한다 —
+   * 직접 window 리스너를 달던 시절엔 드로어의 document 리스너가 **먼저** 돌아(document 버블 →
+   * window 버블) Escape 한 번에 모달과 설정이 함께 닫혔다. 안쪽 필터 드로어는 여전히 자기
+   * `nativeEvent.stopPropagation()` 으로 이 층까지 오기 전에 이벤트를 끊는다.
+   */
+  useOverlayEscape(isOpen, onClose);
 
   /**
    * 열려 있는 동안 배경 페이지 스크롤 잠금 — 없으면 모바일에서 모달 위 터치가 뒤 페이지를 굴린다.
