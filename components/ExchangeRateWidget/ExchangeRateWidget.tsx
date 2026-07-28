@@ -1,24 +1,43 @@
 import { memo } from 'react';
+import { computeFxChange, type FxChange } from '@/shared/lib/fx';
+import { formatChangePercent } from '@/shared/utils';
 import { useFxViewAtomValue } from '@/jotai';
 import { formatAsOfDate, formatKrwRate } from './ExchangeRateWidget.utils';
 import {
   AsOf,
+  Change,
+  ChangeLabel,
+  ChangeValue,
   Disclaimer,
   Header,
   Message,
   Rate,
+  RateGroup,
   RateLine,
   RateValue,
   Root,
   SkeletonBar,
   StaleMark,
-  Title
+  Title,
+  VisuallyHidden
 } from './ExchangeRateWidget.styled';
 
 const WIDGET_LABEL = '오늘의 원 달러 환율';
 const WIDGET_TITLE = '원↔달러 환율';
-const DISCLAIMER = '계산은 원화 기준이에요 · 결과 표시만 달러로 바꿀 수 있어요';
-const FAILURE_MESSAGE = '환율을 불러오지 못했어요';
+const DISCLAIMER = '계산은 원화 기준입니다 · 결과 표시만 달러로 바꿀 수 있습니다';
+const FAILURE_MESSAGE = '환율을 불러오지 못했습니다';
+
+/**
+ * 비교 기준은 국내 증권 앱 관용 표기인 "전일 대비"로 통일한다 — 실제 비교 대상이 전일 *종가*라는 사실은
+ * 계약 주석(`shared/lib/fx`)에 있고, 화면 문구를 "전일 종가 대비"로 늘리지 않는다.
+ */
+const CHANGE_LABEL = '전일 대비';
+
+/** 색·부호가 말하는 방향을 문장으로 옮긴다(색은 단독 채널이 될 수 없다). */
+const changeAria = (change: FxChange): string =>
+  change.direction === 'flat'
+    ? '전일 대비 변동 없음'
+    : `전일 대비 ${Math.abs(change.percent).toFixed(2)}% ${change.direction === 'up' ? '상승' : '하락'}`;
 
 /**
  * 금일 원↔달러 환율 위젯 (표시 전용, Option A).
@@ -34,6 +53,11 @@ const FAILURE_MESSAGE = '환율을 불러오지 못했어요';
 function ExchangeRateWidgetComponent() {
   const view = useFxViewAtomValue();
   const hasRate = view.status === 'success' || view.status === 'stale';
+  /*
+   * 순수·초경량이라 useMemo 를 쓰지 않는다. `null` 이면 전일 종가가 없다는 뜻이고, 그건 **정상 경로**다
+   * (전일값을 안 주는 폴백 공급자가 이겼거나 구버전 엣지 캐시) — 0% 로 위장하지 말고 그냥 생략한다.
+   */
+  const change = hasRate ? computeFxChange(view.rate.rate, view.rate.previousClose) : null;
 
   return (
     <Root aria-label={WIDGET_LABEL} aria-busy={view.status === 'loading'}>
@@ -54,9 +78,20 @@ function ExchangeRateWidgetComponent() {
       {hasRate ? (
         <>
           <RateLine>
-            <Rate>
-              $1 ≈ <RateValue>{formatKrwRate(view.rate.rate)}</RateValue>원
-            </Rate>
+            <RateGroup>
+              <Rate>
+                $1 ≈ <RateValue>{formatKrwRate(view.rate.rate)}</RateValue>원
+              </Rate>
+              {change ? (
+                <>
+                  <Change aria-hidden="true">
+                    <ChangeLabel>{CHANGE_LABEL}</ChangeLabel>
+                    <ChangeValue $direction={change.direction}>{formatChangePercent(change)}</ChangeValue>
+                  </Change>
+                  <VisuallyHidden>{changeAria(change)}</VisuallyHidden>
+                </>
+              ) : null}
+            </RateGroup>
             <AsOf>
               {formatAsOfDate(view.rate.asOf)} 기준
               {view.status === 'stale' ? <StaleMark> · 업데이트 실패</StaleMark> : null}
