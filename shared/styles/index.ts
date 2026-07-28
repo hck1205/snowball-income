@@ -27,6 +27,8 @@ export { globalStyles } from './globalStyles';
 
 export { headerControlsGrid, headerGlassSurface, headerRowGap, headerSolidSurface } from './headerSurface';
 
+export { heroIconOpticalAlign, heroTitleFontSize } from './heroTitleRow';
+
 export {
   buildAxisStyle,
   buildLegendStyle,

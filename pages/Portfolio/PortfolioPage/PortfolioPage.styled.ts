@@ -1,5 +1,14 @@
 import styled from '@emotion/styled';
-import { color, elevation, font, media, radius, space } from '@/shared/styles';
+import {
+  color,
+  elevation,
+  font,
+  heroIconOpticalAlign,
+  heroTitleFontSize,
+  media,
+  radius,
+  space
+} from '@/shared/styles';
 
 /**
  * 이 파일의 히어로·타일 그리드·빈 상태·조건 요약·각주는 **배당 캘린더 페이지와 같은 모양**을
@@ -51,12 +60,13 @@ export const HeroIconBadge = styled.span`
   color: ${color.brandText};
   background: ${color.surface};
   border: 1px solid ${color.brandBorder};
+  ${heroIconOpticalAlign}
 `;
 
 /** 이 페이지의 유일한 `<h1>`. */
 export const HeroTitle = styled.h1`
   margin: 0;
-  font-size: clamp(${font.size['2xl']}, 4vw, ${font.size['4xl']});
+  font-size: ${heroTitleFontSize};
   font-weight: ${font.weight.extrabold};
   letter-spacing: -0.03em;
   line-height: ${font.leading.tight};

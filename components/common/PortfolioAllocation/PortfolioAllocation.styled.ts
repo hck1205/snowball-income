@@ -157,23 +157,6 @@ const stackedFixButton = `
   justify-self: end;
 `;
 
-/** 카드 헤더 우측 토글 묶음 — "배당 중앙표시"와 "비율 조절 잠금"을 나란히 둔다. */
-export const CardHeaderToggles = styled.div`
-  display: inline-flex;
-  align-items: center;
-  gap: ${space[3]};
-`;
-
-/**
- * "비율 조절 잠금" 토글 왼쪽의 상태 아이콘(자물쇠/연필) 래퍼 — 순수 장식.
- * 접근명은 토글 aria-label이 담당하고, 여기 아이콘은 currentColor(textSecondary)만 상속한다.
- */
-export const AllocationLockGlyph = styled.span`
-  display: inline-flex;
-  align-items: center;
-  color: ${color.textSecondary};
-`;
-
 export const AllocationFixButton = styled.button<{ active: boolean }>`
   grid-area: fix;
   display: inline-flex;

@@ -8207,6 +8207,12 @@ var headerControlsGrid = `
   }
 `;
 
+// shared/styles/heroTitleRow.ts
+var heroTitleFontSize = `clamp(${font.size["2xl"]}, 4vw, ${font.size["4xl"]})`;
+var heroIconOpticalAlign = `
+  transform: translateY(calc(${heroTitleFontSize} * -0.1));
+`;
+
 // shared/styles/chartTheme.ts
 var FALLBACK_TOKENS = DEFAULT_THEME_PRESET.light;
 var FALLBACK = {

@@ -1,5 +1,13 @@
 import styled from '@emotion/styled';
-import { color, font, media, radius, space } from '@/shared/styles';
+import {
+  color,
+  font,
+  heroIconOpticalAlign,
+  heroTitleFontSize,
+  media,
+  radius,
+  space
+} from '@/shared/styles';
 import type { PageHeroTone } from './PageHero.types';
 
 /**
@@ -18,6 +26,9 @@ import type { PageHeroTone } from './PageHero.types';
  *   **시각이 갈린다**: 공용(이 파일) = `gradientHero` 배경 + 상단 리본 없음 /
  *   로컬 2벌 = `brandSubtle` 배경 + `::before` 4px `gradientAurora` 리본.
  *   이관 전까지 시뮬레이터와 나머지 두 화면의 **첫인상이 다르다**(알려진 상태, 버그 아님).
+ *
+ *   단 **제목 크기와 아이콘 세로 정렬만은 3벌이 공유**한다(`shared/styles/heroTitleRow.ts`) —
+ *   여기서 갈리면 화면을 옮길 때마다 같은 요소가 다른 위치에 있는 것으로 보인다.
  *
  *   **지금 이관하지 마라 — 10단계(전면 페이지 리모델링) 소관이다.**
  *   이관 설계 힌트: 캘린더의 `HeroDisclaimer`(`DividendCalendarPage.styled.ts:69`, `role="note"`)는
@@ -68,6 +79,7 @@ export const HeroIconBadge = styled.span`
   background: ${color.surface};
   border: 1px solid ${color.accentBorder};
   color: ${color.accentText};
+  ${heroIconOpticalAlign}
 `;
 
 /**
@@ -81,7 +93,7 @@ export const HeroTitle = styled.h2`
   margin: 0;
   min-width: 0;
   font-family: ${font.display};
-  font-size: clamp(${font.size['2xl']}, 4vw, ${font.size['4xl']});
+  font-size: ${heroTitleFontSize};
   font-weight: ${font.weight.extrabold};
   line-height: ${font.leading.tight};
   letter-spacing: -0.03em;

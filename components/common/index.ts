@@ -49,8 +49,6 @@ export {
   AllocationLegendName,
   AllocationLegendSlider,
   AllocationLegendValue,
-  AllocationLockGlyph,
-  CardHeaderToggles,
   SelectedChipWrap
 } from './PortfolioAllocation';
 
