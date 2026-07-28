@@ -67,15 +67,18 @@ type LoadedFont = {
 };
 
 /**
- * Pretendard 를 **런타임에 fetch** 한다.
+ * 본문 서체(Wanted Sans)를 **런타임에 fetch** 한다.
  *
  * - Satori 는 시스템 폰트를 못 쓴다. 한글을 그리려면 폰트 바이트를 직접 넘겨야 한다.
- * - Satori 가 읽는 포맷은 ttf/otf/woff 뿐이다. **woff2 는 지원하지 않는다** → npm `pretendard` 가 웹용으로
- *   기본 제공하는 woff2 는 쓸 수 없고, 같은 패키지의 `dist/public/static/*.otf`(웨이트당 1.5MB)를 쓴다.
+ * - Satori 가 읽는 포맷은 ttf/otf/woff 뿐이다. **woff2 는 지원하지 않는다** → 화면이 쓰는 동적 서브셋
+ *   woff2 는 여기서 쓸 수 없고, 같은 npm 패키지의 `fonts/otf/*.otf`(웨이트당 약 1.3MB)를 쓴다.
  * - 함수 번들에 인라인하지 않고 **우리 배포 도메인의 정적 파일**(`/fonts/*.otf`)로 받아온다.
  *   vite 플러그인이 빌드 때 node_modules → dist/fonts 로 복사한다(레포에 바이너리를 커밋하지 않는다).
  *   외부 CDN(jsDelivr 등)에 의존하지 않으므로 서드파티 장애에 영향받지 않는다.
  * - 모듈 스코프에 캐시해서 워밍된 컨테이너에서는 다시 받지 않는다.
+ *
+ * ⚠ OG 카드는 **한 서체로만** 그린다(헤딩/숫자 역할 분리는 화면 전용) — Satori 에 넘길 폰트가 늘면
+ *   콜드 스타트마다 그만큼 더 받는다. 카드 위계는 크기·굵기로 만든다.
  */
 let fontsPromise: Promise<LoadedFont[]> | null = null;
 
@@ -83,14 +86,14 @@ const fetchFont = async (origin: string, file: string, weight: 400 | 700): Promi
   const response = await fetch(new URL(`/fonts/${file}`, origin));
   if (!response.ok) throw new Error(`font fetch failed: ${file} (${response.status})`);
 
-  return { name: 'Pretendard', data: await response.arrayBuffer(), weight, style: 'normal' };
+  return { name: 'Wanted Sans', data: await response.arrayBuffer(), weight, style: 'normal' };
 };
 
 const loadFonts = (origin: string): Promise<LoadedFont[]> => {
   if (!fontsPromise) {
     fontsPromise = Promise.all([
-      fetchFont(origin, 'Pretendard-Regular.otf', 400),
-      fetchFont(origin, 'Pretendard-Bold.otf', 700)
+      fetchFont(origin, 'WantedSans-Regular.otf', 400),
+      fetchFont(origin, 'WantedSans-Bold.otf', 700)
     ]).catch((error: unknown) => {
       // 실패를 캐시하면 컨테이너가 살아 있는 동안 영구히 폴백된다. 다음 요청이 다시 시도하도록 비운다.
       fontsPromise = null;
@@ -152,7 +155,7 @@ const Shell = ({ children }: { children: React.ReactNode }) => (
       justifyContent: 'space-between',
       backgroundColor: COLOR.brand600,
       backgroundImage: `linear-gradient(135deg, ${COLOR.brand800} 0%, ${COLOR.brand600} 55%, ${COLOR.brand500} 100%)`,
-      fontFamily: 'Pretendard'
+      fontFamily: 'Wanted Sans'
     }}
   >
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

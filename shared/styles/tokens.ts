@@ -64,13 +64,51 @@ export const container = {
 /* 타이포                                                                       */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * 서체는 **역할 4종**이다. 전부 셀프호스팅(CDN 금지 — 서드파티 요청·렌더 블로킹·오프라인 실패).
+ * 폰트가 아직 안 왔을 때는 OS 한글 폰트로 우아하게 폴백한다(`font-display: swap`).
+ *
+ *  | 역할          | 서체                | 어디에                                        |
+ *  |---------------|--------------------|-----------------------------------------------|
+ *  | `sans`        | Wanted Sans        | 본문·라벨·힌트·버튼·입력 (기본값)               |
+ *  | `display`     | Gmarket Sans       | 워드마크, 헤딩(h1~h6)                          |
+ *  | `heroNumeric` | LINE Seed Sans KR  | **화면당 1곳** — hero StatTile 값, GoalMeter 퍼센트 |
+ *  | `dataNumeric` | Inter + tabular    | 그 외 모든 숫자 — StatTile default, DataTable, 칩, 차트 축·툴팁 |
+ *
+ * 적재는 `main.tsx`(Wanted Sans = npm 동적 서브셋 CSS) + `shared/styles/selfHostedFonts.css`
+ * (나머지 3종 = `public/fonts/` 서브셋, `tools/fonts/build.mjs` 생성물)가 맡는다.
+ *
+ * ⚠ **컴포넌트에서 `font-family` 문자열을 직접 쓰지 마라.** 반드시 이 토큰을 거친다.
+ */
 export const font = {
+  sans: "'Wanted Sans Variable', 'Wanted Sans', -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Segoe UI', Roboto, sans-serif",
   /**
-   * Pretendard를 npm으로 셀프호스팅한다(`main.tsx`에서 동적 서브셋 CSS를 import).
-   * CDN을 쓰지 않는 이유: 서드파티 요청(프라이버시) + 렌더 블로킹 + 오프라인 실패.
-   * 폰트가 아직 안 왔을 때는 OS 한글 폰트로 우아하게 폴백한다(`font-display: swap`).
+   * 헤딩·워드마크. Gmarket Sans 는 Light(300)·Medium(400)·Bold(700) 세 벌뿐이고 이 앱은 **Bold 한 벌만**
+   * 싣는다(헤딩 실측이 600/700/800 뿐 — tools/fonts/build.mjs 주석 참고). 그래서 display 로 그린 글자는
+   * 굵기를 무엇으로 요청하든 Bold 로 보인다. 위계는 굵기가 아니라 **크기**로 만들어라.
    */
-  sans: "'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Segoe UI', Roboto, sans-serif",
+  display:
+    "'Gmarket Sans', 'Wanted Sans Variable', 'Wanted Sans', -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif",
+  /**
+   * 그 화면의 주인공 숫자 **한 곳**에만. 두 곳에 쓰면 위계가 죽는다(`StatTile.types.ts` hero 규칙과 동일).
+   * 서브셋이 숫자·통화기호·단위 한글만 담고 있어 그 밖의 글자는 자동으로 sans 로 떨어진다(의도).
+   */
+  heroNumeric:
+    "'LINE Seed Sans KR', 'Wanted Sans Variable', 'Wanted Sans', -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif",
+  /**
+   * hero 를 제외한 모든 숫자. `numeric`(tabular-nums)과 **함께** 쓴다 — Inter 의 기본 숫자는 비례폭이고
+   * `tnum` 을 켜야 자릿수가 정렬된다.
+   *
+   * ⚠ Inter 에는 한글 글리프가 없다 — 표 안 "3종"·"미정" 같은 한글이 본문 서체로 폴백되게 순서를 고정한다.
+   *
+   * ⚠ **`'Inter Variable'` 은 npm 패키지 이름이 아니라 우리 자체 서브셋(`shared/styles/selfHostedFonts.css`)의
+   * family 명이다.** `@fontsource-variable/inter` 를 설치해 import 하면 **같은 이름**으로 unicode-range 분할된
+   * 다른 `@font-face` 세트가 등록돼, CSS 순서에 따라 우리 서브셋(opsz 16 고정 · ₩ 포함 단일 파일)이 밀리고
+   * 최적화가 **조용히 무효화**된다 — tsc·테스트·대비 게이트 어느 것도 못 잡는 종류의 사고다. 그 패키지를
+   * 쓰고 싶어지면 서브셋 쪽 family 명을 먼저 바꿔라(tools/fonts/build.mjs).
+   */
+  dataNumeric:
+    "'Inter Variable', Inter, 'Wanted Sans Variable', 'Wanted Sans', -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif",
   size: FONT_SIZE_SCALE,
   weight: FONT_WEIGHT_SCALE,
   leading: LEADING_SCALE,

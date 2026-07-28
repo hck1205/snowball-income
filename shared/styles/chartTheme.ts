@@ -75,6 +75,12 @@ export type ChartTheme = {
    * 파이 조각·시리즈 라인 등 캔버스 색은 전부 여기서 가져간다(구 `CHART_SERIES` 대체).
    */
   series: string[];
+  /**
+   * 축 라벨·툴팁 서체 = `font.dataNumeric`(차트 안 글자는 대부분 숫자다).
+   *
+   * 캔버스는 `var()`를 못 읽지만 **font-family 문자열은 그대로 해석**하므로 토큰을 그대로 넘긴다.
+   * 축 라벨의 한글("2028년")은 Inter에 글리프가 없어 스택 뒤의 본문 서체가 받는다.
+   */
   fontFamily: string;
   labelFontSize: number;
 };
@@ -94,7 +100,7 @@ export const getChartTheme = (): ChartTheme => ({
   successSurface: readVar('--sb-success-surface', FALLBACK.successSurface),
   warning: readVar('--sb-warning', FALLBACK.warning),
   series: FALLBACK.series.map((fallback, index) => readVar(`--sb-chart-series-${index}`, fallback)),
-  fontFamily: font.sans,
+  fontFamily: font.dataNumeric,
   labelFontSize: 12
 });
 
@@ -116,7 +122,7 @@ const toChartTheme = (tokens: ThemeTokens): ChartTheme => ({
   successSurface: tokens['success-surface'],
   warning: tokens.warning,
   series: Array.from({ length: 8 }, (_unused, index) => tokens[`chart-series-${index}`]),
-  fontFamily: font.sans,
+  fontFamily: font.dataNumeric,
   labelFontSize: 12
 });
 

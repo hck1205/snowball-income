@@ -31,6 +31,8 @@ export const MeterLabel = styled.p`
  */
 export const MeterValue = styled.p`
   margin: 0;
+  /* 이 카드의 주인공 숫자라 hero 서체를 쓴다(StatTile hero 값과 같은 역할). */
+  font-family: ${font.heroNumeric};
   font-size: clamp(28px, 5vw, ${font.size['5xl']});
   font-weight: ${font.weight.extrabold};
   letter-spacing: -0.03em;

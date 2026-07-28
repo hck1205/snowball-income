@@ -112,16 +112,20 @@ Vercel의 **Vite 프리셋이 자동 감지**한다. 대시보드에서 따로 �
   // /api/og 나 /assets/*.js 를 잡아먹지 않는다. (legacy `routes` 를 쓰면 잡아먹는다 — 쓰지 마라.)
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
 
-  // OG 함수가 런타임에 가져가는 폰트. 내용이 바뀌지 않으므로 1년 immutable.
+  // /fonts/ 아래 정적 폰트 전부에 1년 immutable.
+  //   ① 화면용 서브셋 woff2 93개 — 파일명에 콘텐츠 해시가 박혀 있어(…split.7.<해시>.woff2)
+  //      내용이 바뀌면 이름이 바뀐다. 그래서 immutable 이 안전하다.
+  //   ② OG 함수가 런타임에 가져가는 WantedSans-{Regular,Bold}.otf — 해시 없는 고정 이름.
+  //      (근거는 public/fonts/README.md "OG 이미지용 폰트는 여기가 아니다")
   "headers": [{ "source": "/fonts/(.*)", "headers": [...] }],
 
-  // 콜드 스타트에 Pretendard(1.5MB×2) 파싱이 들어가므로 기본 10초보다 여유를 준다.
+  // 콜드 스타트에 Wanted Sans otf(약 1.35MB×2) 파싱이 들어가므로 기본 10초보다 여유를 준다.
   "functions": { "api/og.tsx": { "maxDuration": 30 } }
 }
 ```
 
 `api/share-html.ts`도 같은 제로 컨피그로 함수가 되지만, 별도 `maxDuration` 설정은 없다 — Supabase REST 조회
-1회뿐이라 Pretendard 폰트 로딩이 있는 `api/og.tsx`만큼 여유가 필요하지 않았다(Vercel 기본값을 그대로 쓴다).
+1회뿐이라 폰트 로딩이 있는 `api/og.tsx`만큼 여유가 필요하지 않았다(Vercel 기본값을 그대로 쓴다).
 
 ### ⚠️ 하면 안 되는 것
 
@@ -155,7 +159,7 @@ middleware.ts (Edge)  ── share 코드 있음 → dist/index.html 을 가져�
       │  GET /api/og?share=N4IgbiBcDMA0…
       ▼
 api/og.tsx (Node)  ── 공유 코드 디코드 → 앱과 같은 엔진으로 시뮬레이션
-                       → Pretendard 로 1200×630 PNG 렌더 (1년 immutable 캐시)
+                       → Wanted Sans 로 1200×630 PNG 렌더 (1년 immutable 캐시)
 ```
 
 ```
@@ -188,9 +192,11 @@ Supabase 조회·시뮬레이션 요약 코드를 미들웨어 번들에 넣으�
 (`api/share-html.ts`)로 격리해 `rewrite()` 한다 — "일반 방문자 비용 0" 원칙은 그대로 유지된다.
 
 **폰트**: Satori(=`@vercel/og`)는 시스템 폰트를 못 쓰고 **ttf/otf/woff만** 읽는다(**woff2 불가**).
-npm `pretendard` 의 `dist/public/static/*.otf` 를 빌드 때 `dist/fonts/` 로 복사하고(`vite.config.ts` 의
-`ogFontsPlugin`), 함수가 **런타임에 같은 도메인에서 fetch** 해 모듈 스코프에 캐시한다.
-레포에 폰트 바이너리를 커밋하지 않고, 외부 CDN에도 의존하지 않는다.
+npm `wanted-sans` 의 `node_modules/wanted-sans/fonts/otf/WantedSans-{Regular,Bold}.otf`(각각 1,346,604B ·
+1,349,152B)를 빌드 때 `dist/fonts/` 로 복사하고(`vite.config.ts` 의 `ogFontsPlugin`), 함수가 **런타임에 같은
+도메인에서 fetch** 해 모듈 스코프에 캐시한다. 레포에 폰트 바이너리를 커밋하지 않고, 외부 CDN에도 의존하지
+않는다. ⚠ 화면이 쓰는 `public/fonts/` 의 서브셋 woff2 와는 **다른 물건**이다(그쪽은 브라우저용, 이쪽은 OG
+렌더용) — 그래서 OG otf 에만 콘텐츠 해시가 없다(`public/fonts/README.md` 참고).
 
 **실패해도 5xx를 내지 않는다.** 크롤러는 미리보기 요청이 실패하면 카드를 아예 포기하기 때문이다.
 공유 코드/key가 깨졌거나 조회에 실패하면 `api/og.tsx`는 브랜드 기본 카드(또는 폰트를 못 받으면 정적
