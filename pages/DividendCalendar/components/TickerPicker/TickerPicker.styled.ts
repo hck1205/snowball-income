@@ -66,9 +66,30 @@ export const PickerMetaRow = styled.div`
 
 export const ResultCount = styled.p`
   margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: ${space[1]};
+  min-width: 0;
   font-size: ${font.size.xs};
   color: ${color.textMuted};
   ${font.numeric}
+`;
+
+/** 총 개수와 "준비 중 N종" 사이의 장식 구분자 — 의미는 양쪽 텍스트가 전부 말한다. */
+export const ResultCountDivider = styled.span`
+  color: ${color.border};
+`;
+
+/**
+ * 개수 한 조각("68종목" / "준비 중 19종"). 둘을 같은 부품으로 만든 이유:
+ * ① 어느 쪽도 중간에서 줄바꿈되지 않는다 ② 각 조각이 자기 텍스트를 **온전히 가진 노드**라
+ *    "68종목"만 집는 단정이 옆에 무엇이 붙어도 계속 성립한다.
+ *
+ * 준비 중 조각에 별도 색을 주지 않는다 — 상태는 **단어**가 말하고(목록 안 `데이터 준비 중` 배지와
+ * 같은 어휘), 색으로만 전달하지 않는다.
+ */
+export const CountToken = styled.span`
+  white-space: nowrap;
 `;
 
 export const ClearButton = styled.button`
