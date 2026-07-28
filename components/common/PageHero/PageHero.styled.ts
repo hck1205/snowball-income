@@ -69,7 +69,6 @@ export const HeroTitleGroup = styled.div`
  * 장식 배지. 브랜드 블루는 인터랙션(누를 수 있는 것)의 축이라 장식에서는 물러나고 accent 계열을 쓴다.
  */
 export const HeroIconBadge = styled.span`
-  flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;

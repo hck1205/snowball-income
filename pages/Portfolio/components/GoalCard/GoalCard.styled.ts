@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, elevation, font, media, radius, space } from '@/shared/styles';
+import { color, elevation, font, iconFirstLineAlign, media, radius, space } from '@/shared/styles';
 
 /**
  * 요약 카드·보유 목록 카드와 **같은 면**(surface + border + elevation + radius.xl)이다.
@@ -84,9 +84,9 @@ export const BasisNote = styled.p`
   font-size: ${font.size.xs};
   line-height: ${font.leading.snug};
 
+  /* 아이콘은 문단 가운데가 아니라 **첫 줄**에 맞춘다 — 보정은 공용 유틸이 글자 크기·행간에서 계산한다. */
   svg {
-    flex: 0 0 auto;
-    margin-top: 2px;
+    ${iconFirstLineAlign(font.size.xs, font.leading.snug)}
   }
 `;
 

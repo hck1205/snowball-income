@@ -192,7 +192,7 @@ export default function PortfolioPageView({
     { key: 'calendar', cta: viewModel.calendarCta, label: copy.cta.calendar, variant: 'secondary', onClick: onOpenCalendar }
   ];
 
-  /** 목표 카드는 요약 카드 아래·보유 목록 위. 빈 상태에서는 빈 상태 카드 아래에 붙는다. */
+  /** 목표 카드는 보유 목록 아래·요약 카드 위(2026-07-29 순서). 빈 상태에서는 빈 상태 카드 아래에 붙는다. */
   const goalCard =
     goal === null ? null : (
       <GoalCard
@@ -291,6 +291,52 @@ export default function PortfolioPageView({
         </>
       ) : (
         <>
+          {/* 🔴 카드 순서 = **보유 종목 → 목표 달성 → 지금 받는 배당**(사용자 확정 2026-07-29).
+              "무엇을 갖고 있나 → 목표까지 얼마나 왔나 → 지금 얼마 받나" 순으로 읽는다.
+              순서는 `test/portfolio/portfolioCardOrder.test.tsx` 가 DOM 순서로 잠근다 — 눈에 잘 띄는 만큼
+              회귀도 쉽다. ⚠ hero 타일(`emphasis="hero"`)은 여전히 요약 카드 하나만 갖는다(화면당 1개). */}
+          <HoldingsCard aria-labelledby={holdingsTitleId} aria-busy={viewModel.isLoading || undefined}>
+            <CardHead>
+              <CardTitle id={holdingsTitleId}>{copy.holdings.title}</CardTitle>
+              {/* 저장소를 읽는 동안에는 추가를 받지 않는다(훅이 거절한다) — 버튼도 그 사실을 보인다. */}
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                ref={addButtonRef}
+                disabled={viewModel.isLoading}
+                aria-expanded={picker.isOpen}
+                aria-controls={drawerId}
+                aria-label={copy.holdings.addAria(viewModel.holdingsCount)}
+                startIcon={<Plus size={16} strokeWidth={1.8} aria-hidden focusable={false} />}
+                onClick={onOpenPicker}
+              >
+                {copy.holdings.add}
+              </Button>
+            </CardHead>
+            {/* 로컬 전용 고지는 화면에서 한 번만 말한다(각주에서 반복하지 않는다). */}
+            <CardSubtitle>{copy.holdings.localOnly}</CardSubtitle>
+
+            {viewModel.isLoading ? (
+              <SkeletonList aria-hidden>
+                {SKELETON_ROWS.map((row) => (
+                  <SkeletonRow key={row} />
+                ))}
+              </SkeletonList>
+            ) : (
+              <HoldingsTable
+                rows={viewModel.rows}
+                onQuantityChange={onQuantityChange}
+                onQuantityBlur={onQuantityBlur}
+                onRemove={handleRemove}
+                registerQuantityInput={registerQuantityInput}
+                registerDeleteButton={registerDeleteButton}
+              />
+            )}
+          </HoldingsCard>
+
+          {goalCard}
+
           <SummaryCard aria-labelledby={summaryTitleId} aria-busy={viewModel.isLoading || undefined}>
             <CardHead>
               <CardTitle id={summaryTitleId}>{copy.summary.title}</CardTitle>
@@ -349,49 +395,6 @@ export default function PortfolioPageView({
               </ActionHint>
             ))}
           </SummaryCard>
-
-          {/* 읽기 경로: 지금 받는 배당(요약) → 목표까지 얼마나 왔나(목표) → 무엇을 갖고 있나(보유 목록). */}
-          {goalCard}
-
-          <HoldingsCard aria-labelledby={holdingsTitleId} aria-busy={viewModel.isLoading || undefined}>
-            <CardHead>
-              <CardTitle id={holdingsTitleId}>{copy.holdings.title}</CardTitle>
-              {/* 저장소를 읽는 동안에는 추가를 받지 않는다(훅이 거절한다) — 버튼도 그 사실을 보인다. */}
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                ref={addButtonRef}
-                disabled={viewModel.isLoading}
-                aria-expanded={picker.isOpen}
-                aria-controls={drawerId}
-                aria-label={copy.holdings.addAria(viewModel.holdingsCount)}
-                startIcon={<Plus size={16} strokeWidth={1.8} aria-hidden focusable={false} />}
-                onClick={onOpenPicker}
-              >
-                {copy.holdings.add}
-              </Button>
-            </CardHead>
-            {/* 로컬 전용 고지는 화면에서 한 번만 말한다(각주에서 반복하지 않는다). */}
-            <CardSubtitle>{copy.holdings.localOnly}</CardSubtitle>
-
-            {viewModel.isLoading ? (
-              <SkeletonList aria-hidden>
-                {SKELETON_ROWS.map((row) => (
-                  <SkeletonRow key={row} />
-                ))}
-              </SkeletonList>
-            ) : (
-              <HoldingsTable
-                rows={viewModel.rows}
-                onQuantityChange={onQuantityChange}
-                onQuantityBlur={onQuantityBlur}
-                onRemove={handleRemove}
-                registerQuantityInput={registerQuantityInput}
-                registerDeleteButton={registerDeleteButton}
-              />
-            )}
-          </HoldingsCard>
         </>
       )}
 

@@ -28,13 +28,17 @@ const stackedTable = `
     display: none;
   }
 
+  /* 🔴 minmax(0, 1fr) 은 장식이 아니다 — 기본 암시 트랙(auto)은 최소 크기가 min-content 라
+     긴 종목명 하나가 카드 폭을 래퍼 밖으로 밀어낸다(이 레포에서 반복된 가로 오버플로 원인). */
   tbody {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: ${space[2]};
   }
 
   tbody tr {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: ${space[2]};
     position: relative;
     padding: ${space[4]};
@@ -213,7 +217,16 @@ export const RowNote = styled.span`
   line-height: ${font.leading.snug};
 `;
 
-/** 삭제 셀. 카드 모드에서는 카드 우상단에 절대 배치한다(라벨 없이도 위치로 읽힌다). */
+/**
+ * 삭제 셀. 표 모드에서는 `width: 1%`(표 레이아웃의 "내용만큼만" 관용구)로 열을 최소로 만들고,
+ * 카드 모드에서는 카드 우상단에 절대 배치한다(라벨 없이도 위치로 읽힌다).
+ *
+ * 🔴 **카드 모드에서는 `width: auto` 로 되돌려야 한다.** `width: 1%` 는 표 레이아웃 알고리즘이
+ * "가능한 한 좁게"로 해석해 주는 관용구일 뿐이고, `display: block` + `position: absolute` 가 되는
+ * 순간 문자 그대로 **부모 폭의 1%**(768px 화면에서 6.5px)가 된다. 그 안의 28px 삭제 버튼이 21px
+ * 삐져나와 표 래퍼(`overflow-x: auto`)에 **가로 스크롤바가 생긴다** — "래퍼는 충분히 큰데 스크롤이
+ * 생긴다"던 사용자 신고의 원인이 이것이었다(≤820px 전 구간, 실측 20~41px).
+ */
 export const DeleteCell = styled.td`
   text-align: right;
   border-bottom: 1px solid ${color.border};
@@ -224,6 +237,7 @@ export const DeleteCell = styled.td`
     position: absolute;
     top: ${space[2]};
     right: ${space[2]};
+    width: auto;
     padding: 0;
     border-bottom: 0;
   }
@@ -232,6 +246,7 @@ export const DeleteCell = styled.td`
     position: absolute;
     top: ${space[2]};
     right: ${space[2]};
+    width: auto;
     padding: 0;
     border-bottom: 0;
   }

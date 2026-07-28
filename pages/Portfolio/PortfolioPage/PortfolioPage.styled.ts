@@ -5,6 +5,7 @@ import {
   font,
   heroIconOpticalAlign,
   heroTitleFontSize,
+  iconFirstLineAlign,
   media,
   radius,
   space
@@ -188,6 +189,11 @@ export const HeroSlot = styled.div`
  * 개념 구분 안내(월 평균 vs 이번 달). 경고가 아니라 **본문**이라 role 을 주지 않고,
  * 면(surfaceSunken)으로만 한 겹 눌러 둔다.
  */
+/**
+ * 인포 아이콘 + 여러 줄 설명. 아이콘은 **문단 가운데가 아니라 첫 줄**에 맞춘다
+ * (`align-items: center` 는 두 줄 이상에서 아이콘을 문단 한복판으로 내린다).
+ * 보정값은 손으로 적은 `margin-top: 2px` 대신 공용 `iconFirstLineAlign` 이 글자 크기·행간에서 계산한다.
+ */
 export const NoteLine = styled.p`
   margin: 0;
   display: flex;
@@ -201,8 +207,7 @@ export const NoteLine = styled.p`
   line-height: ${font.leading.snug};
 
   svg {
-    flex: 0 0 auto;
-    margin-top: 2px;
+    ${iconFirstLineAlign(font.size.xs, font.leading.snug)}
   }
 `;
 

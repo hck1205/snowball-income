@@ -9,7 +9,6 @@ import type { MonthlyCashflowProps } from './MonthlyCashflow.types';
 import { buildCalendarMonths, buildPayoutScheduleRows, resolveSelectedYear } from './MonthlyCashflow.utils';
 import { CashflowCalendar, CashflowControls, PayoutScheduleStrip } from './components';
 import type { CashflowViewMode } from './components';
-import { CashflowHeader, CashflowTitle } from './MonthlyCashflow.styled';
 
 function MonthlyCashflowComponent({
   yearlyCashflowByTicker,
@@ -49,9 +48,12 @@ function MonthlyCashflowComponent({
   );
 
   return (
-    <Card>
-      <CashflowHeader>
-        <CashflowTitle>실지급 월별 배당</CashflowTitle>
+    /* 제목·컨트롤 줄은 공용 `Card` 헤더가 그린다 — 예전에는 같은 형태를 이 파일이 손으로 복제해
+       (CashflowHeader/CashflowTitle) 카드 제목 크기·여백 규칙이 다른 카드와 따로 놀았다.
+       좁은 폭 줄바꿈도 이제 `CardHeader` 한 곳에서 온다. */
+    <Card
+      title="실지급 월별 배당"
+      titleRight={
         <CashflowControls
           years={years}
           selectedYear={selectedYear}
@@ -61,7 +63,8 @@ function MonthlyCashflowComponent({
           viewMode={viewMode}
           onChangeViewMode={setViewMode}
         />
-      </CashflowHeader>
+      }
+    >
       {!hasData ? (
         <HintText>{emptyMessage ?? SIMULATOR_COPY.emptyPortfolioHint}</HintText>
       ) : viewMode === 'chart' ? (

@@ -22,8 +22,11 @@ const stackedTable = `
     display: none;
   }
 
+  /* minmax(0, 1fr) — 기본 암시 트랙(auto)은 최소 크기가 min-content 라 긴 셀 하나가 카드 폭을
+     래퍼(overflow-x: auto) 밖으로 밀어낸다. 보유 표에서 실제로 20~41px 가로 스크롤이 생겼던 원인이다. */
   tbody {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: ${space[2]};
   }
 
