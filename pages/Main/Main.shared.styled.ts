@@ -28,24 +28,13 @@ export const SkipLink = styled.a`
 /**
  * 메인 본문 래퍼.
  *
- * ⚠ **`container-type`은 드로어 폭(≤960px)에서 반드시 꺼야 한다.**
- * `container-type: inline-size`는 "컨테이너 쿼리를 켜는 스위치"가 아니라 **레이아웃 컨테인먼트를
- * 함께 적용**한다(css-contain-3: inline-size = layout + style + inline-size containment).
- * 레이아웃 컨테인먼트가 걸린 요소는 **`position: fixed` 자손의 컨테이닝 블록**이 되므로,
- * 이 안에 사는 모바일 설정 드로어(`ConfigDrawerColumn`, fixed·`height: 100dvh`)와 백드롭이
- * 뷰포트가 아니라 **이 박스** 기준으로 배치된다 — `top: 0`이 뷰포트 최상단이 아니라 본문 최상단이라
- * 패널이 sticky 헤더 높이만큼(그리고 열 때의 스크롤 오프셋만큼) 아래/위로 밀리고,
- * 100dvh짜리 스크롤 영역의 아랫부분이 화면 밖으로 잘려 **드로어 안이 끝까지 스크롤되지 않는** 것처럼 보였다.
+ * 설정 폼(`ConfigInputGrid`)이 기대는 컨테이너는 이제 `SideDrawerBody` 다 — **여기에는
+ * `container-type`을 되살리지 마라.** 되살리면 fixed 자손의 컨테이닝 블록을 가로채는 함정
+ * (2026-07-27, 드로어가 뷰포트가 아니라 본문 박스 기준으로 배치돼 끝까지 스크롤되지 않던 버그)이
+ * 그대로 되살아난다. (앱의 다른 컨테이너 목록은 `shared/styles/tokens.ts`의 `container` 주석 참고.)
  *
- * `contain: none` 한 줄로는 못 끈다 — `contain`과 `container-type`은 별개 속성이고,
- * `container-type`이 적용하는 컨테인먼트는 `contain`으로 빼낼 수 없다. 그래서 **둘 다** 끈다.
- *
- * 끊어도 안전한 이유(이 요소를 컨테이너로 삼는 쿼리 전수 확인 — `container.` 사용처 7곳 중):
- * `DataTable`(TableWrap)과 `PortfolioAllocation`(범례 목록)은 **자기 루트에 container-type을 따로
- * 갖고** 있어 이 요소와 무관하다. 남는 건 둘뿐인데, `ContentLayout`은 같은 규칙의 `media.down('layout')`
- * 폴백을 이미 갖고 있고(≤960px에서 항상 매치), `ConfigForm`의 `ConfigInputGrid`는 폴백이 없는 편이
- * 오히려 맞다 — 이 폭에서 설정 폼은 ≤360px 드로어 안에 있는데도 컨테이너(=본문 폭)가 넓다는
- * 이유로 입력이 2열이 됐었다.
+ * ⚠ `padding`/`max-width`는 바꾸지 마라 — `SimulatorHeader`의 `HeaderInner`가 같은 값으로
+ * 좌우 끝선을 맞추고 있다.
  */
 export const FeatureLayout = styled.div`
   max-width: 1200px;
@@ -54,72 +43,19 @@ export const FeatureLayout = styled.div`
   display: grid;
   gap: clamp(12px, 1.8vw, 20px);
   color: ${color.text};
-  container-type: inline-size;
-  contain: layout style;
-
-  ${media.down('drawer')} {
-    contain: none;
-    container-type: normal;
-  }
 `;
 
 export const MainContent = styled.main`
   display: contents;
 `;
 
-/**
- * 모바일 설정 드로어를 여는 버튼. **`SimulatorHeader`의 컨트롤 줄 안에 정적으로** 산다.
- *
- * 예전에는 본문 흐름에 있다가 sentinel(IntersectionObserver)이 뷰포트를 벗어나면
- * `position: fixed`로 승격해 화면 좌상단에 떠 있었다. 헤더가 전폭 sticky 바가 되면서 그 전제가
- * 깨졌다 — 헤더가 `top: 0`을 영구 점유하므로 `top: 12px` 플로팅 토글이 헤더(브랜드 영역) 위에
- * 겹쳐 그려졌고, 데스크톱→모바일 리사이즈 시 sentinel이 뷰포트 밖이면 승격이 영영 안 걸려
- * 설정 진입이 막히는 경로도 있었다.
- *
- * **헤더가 항상 화면에 있으므로 플로팅 승격 자체가 불필요하다.** 버튼을 헤더에 정적으로 두면
- * 항상 보이고 누를 수 있으며, `position: fixed`가 사라져 컨테이닝 블록/스태킹 문제도 없다
- * (그 덕에 sentinel·IntersectionObserver·`isFloating` 상태를 전부 삭제했다 — 되살리지 말 것).
- *
- * 데스크톱에는 드로어 자체가 없으므로 `display: none`이고, 드로어가 열려 있는 동안에도 숨긴다.
- */
-export const DrawerToggleButton = styled.button`
-  display: none;
-
-  ${media.down('drawer')} {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: fit-content;
-    /* 브랜드(좌측 이웃)와의 최소 간격 — 헤더 2줄 개편 후 같은 줄에 서게 되어 살짝 띄운다(사용자 요청). */
-    margin-left: ${space[1]};
-    /* 터치 타깃 하한. 헤더 컨트롤 줄에서 가장 높은 요소가 되어 줄 높이를 정한다. */
-    min-height: 40px;
-    border: 1px solid ${color.brand};
-    background: ${color.brand};
-    color: ${color.onBrand};
-    border-radius: ${radius.sm};
-    padding: ${space[2]} ${space[3]};
-    font-size: ${font.size.sm};
-    font-weight: ${font.weight.semibold};
-    white-space: nowrap;
-    cursor: pointer;
-    touch-action: manipulation;
-    transition: background-color ${motion.fast} ${motion.ease};
-
-    &:hover {
-      background: ${color.brandHover};
-    }
-
-    &[aria-expanded='true'] {
-      display: none;
-    }
-  }
-`;
-
-/* ResultsColumn·시나리오 탭·포트폴리오 프리셋 카드 — MainRightPanel 전용이라 각각
-   `pages/Main/components/MainRightPanel/MainRightPanel.styled.ts` ·
-   `.../MainRightPanel/components/ScenarioTabs/ScenarioTabs.styled.ts` ·
-   `.../MainRightPanel/components/PortfolioPresetBoard/PortfolioPresetBoard.styled.ts` 로 이동했다. */
+/* 결과 그리드·시나리오 탭·포트폴리오 프리셋 카드 — 각각
+   `components/common/ResultGrid/ResultGrid.styled.ts` ·
+   `pages/Main/components/MainRightPanel/components/ScenarioTabs/ScenarioTabs.styled.ts` ·
+   `.../MainRightPanel/components/PortfolioPresetBoard/PortfolioPresetBoard.styled.ts` 에 있다.
+   설정 드로어를 여는 버튼은 `pages/Main/components/SettingsEntryButton` 이 소유한다
+   (구 `DrawerToggleButton`은 삭제 — 드로어가 전 해상도 상시가 되면서 `display:none` 분기와
+   "열려 있으면 숨김" 규칙이 둘 다 틀린 계약이 됐다). */
 
 /* -------------------------------------------------------------------------- */
 /* 폼 그리드 / 필드                                                             */

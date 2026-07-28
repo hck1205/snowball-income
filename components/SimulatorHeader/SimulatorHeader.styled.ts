@@ -16,12 +16,12 @@ import {
  * 예전에는 이 헤더가 `FeatureLayout`(max-width 1200) 안의 카드였고, sticky·backdrop-filter를 둘 다
  * 금지하고 있었다. 이유는 **헤더가 모바일 드로어 토글을 자손으로 품고 있었기 때문**이다:
  *  - `backdrop-filter` 요소는 fixed 자손의 컨테이닝 블록이 된다(Filter Effects L2)
- *    → floating 토글(`DrawerToggleButton[data-floating='true']`)이 화면 밖에 그려졌다.
+ *    → 구 floating 설정 토글(`DrawerToggleButton`, 지금은 삭제)이 화면 밖에 그려졌다.
  *  - sticky면 토글 승격을 판정하는 IntersectionObserver 앵커가 뷰포트를 영영 벗어나지 않는다
  *    → floating 토글이 뜨지 않았다(모바일 설정 진입 회귀).
  *
- * **토글과 그 앵커를 헤더 밖(`MobileMenuDrawer` 콘텐츠 흐름 최상단)으로 옮기면서 두 제약이 함께 풀렸다.**
- * 이제 헤더에는 fixed 자손이 없고, 커뮤니티와 같은 글래스 승격이 안전하다.
+ * **플로팅 승격 자체를 폐기하고 설정 진입 버튼을 헤더 안 정적 버튼(`SettingsEntryButton`)으로 두면서
+ * 두 제약이 함께 풀렸다.** 이제 헤더에는 fixed 자손이 없고, 커뮤니티와 같은 글래스 승격이 안전하다.
  *
  * 층위는 `zIndex.headerSurface`(30) — `dropdown`(20)보다 **높아야** 한다. 이 헤더는 sticky+z-index와
  * backdrop-filter로 스태킹 컨텍스트를 만들므로 안에 사는 팝오버(더보기 ⋯ / AuthControl / 테마)의

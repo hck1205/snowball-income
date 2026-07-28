@@ -6,6 +6,7 @@ export * from './currency';
 export * from './help';
 export * from './palette';
 export * from './presets';
+export * from './simulator';
 export * from './tax';
 export * from './tour';
 export * from './yearlySeries';

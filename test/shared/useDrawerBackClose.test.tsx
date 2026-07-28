@@ -4,8 +4,9 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it } from 'vitest';
 import { PickerDrawer } from '@/pages/DividendCalendar/components';
 import { EMPTY_FILTER_STATE, PresetFilterDrawer } from '@/pages/Main/components/PresetFilterPanel';
-import MobileMenuDrawer from '@/components/MobileMenuDrawer';
+import { SideDrawer } from '@/components/common';
 import { useDrawerBackClose } from '@/shared/hooks';
+import { restoreMatchMedia, stubViewportWidth } from '@/test';
 
 /**
  * 드로어 하나. 실제 드로어들(설정·종목 선택·프리셋 필터)이 공유하는 계약만 남긴 최소 하네스 —
@@ -581,7 +582,7 @@ describe('드로어 배선 — 실제 컴포넌트', () => {
     expect(screen.getByRole('button', { name: '모달 닫기' })).toBeInTheDocument();
   });
 
-  it('메인 설정 드로어는 모바일 폭에서만 뒤로가기를 소비한다', async () => {
+  it('메인 설정 드로어는 뒤로가기를 소비한다(전 해상도)', async () => {
     const user = userEvent.setup();
 
     function Harness() {
@@ -592,18 +593,19 @@ describe('드로어 배선 — 실제 컴포넌트', () => {
           <button type="button" aria-controls="config" onClick={() => setIsOpen(true)}>
             설정 열기
           </button>
-          <MobileMenuDrawer
-            drawerId="config"
+          <SideDrawer
+            id="config"
             isOpen={isOpen}
+            title="투자 설정"
+            closeLabel="설정 닫기"
             onClose={() => setIsOpen(false)}
-            left={<p>설정 폼</p>}
-            right={<p>결과</p>}
-          />
+          >
+            <p>설정 폼</p>
+          </SideDrawer>
         </>
       );
     }
 
-    // jsdom 기본 스텁은 어떤 미디어쿼리도 매치하지 않는다 = 오버레이(모바일) 폭.
     render(<Harness />);
     await user.click(screen.getByRole('button', { name: '설정 열기' }));
     expect(hasDrawerEntry()).toBe(true);
@@ -616,24 +618,16 @@ describe('드로어 배선 — 실제 컴포넌트', () => {
     });
   });
 
-  it('메인 설정 드로어는 데스크톱(정적 컬럼) 폭에서는 히스토리를 건드리지 않는다', async () => {
+  /**
+   * 🔄 **뒤집힌 계약(2026-07-28)**: 설정 패널이 전 해상도 오버레이 드로어가 되면서, 넓은 폭에서도
+   * 뒤로가기는 **페이지 이탈이 아니라 드로어 닫기**여야 한다(예전엔 데스크톱에서 히스토리를 건드리지
+   * 않는 것이 계약이었다). 넓은 폭에서 달라지는 것은 딤·스크롤 잠금뿐이다.
+   */
+  it('메인 설정 드로어는 넓은 폭에서도 히스토리 엔트리를 심는다', async () => {
     const user = userEvent.setup();
-    const originalMatchMedia = window.matchMedia;
 
-    // 데스크톱: `(min-width: 961px)` 가 매치 = 드로어가 아니라 좌측 정적 컬럼.
-    Object.defineProperty(window, 'matchMedia', {
-      configurable: true,
-      value: (query: string) => ({
-        matches: query === '(min-width: 961px)',
-        media: query,
-        onchange: null,
-        addListener: () => undefined,
-        removeListener: () => undefined,
-        addEventListener: () => undefined,
-        removeEventListener: () => undefined,
-        dispatchEvent: () => false
-      })
-    });
+    // 넓은 폭: `(max-width: 960px)` 가 매치되지 않는다 = 딤·스크롤 잠금 없음.
+    stubViewportWidth(1440);
 
     try {
       function Harness() {
@@ -644,13 +638,15 @@ describe('드로어 배선 — 실제 컴포넌트', () => {
             <button type="button" aria-controls="config" onClick={() => setIsOpen(true)}>
               설정 열기
             </button>
-            <MobileMenuDrawer
-              drawerId="config"
+            <SideDrawer
+              id="config"
               isOpen={isOpen}
+              title="투자 설정"
+              closeLabel="설정 닫기"
               onClose={() => setIsOpen(false)}
-              left={<p>설정 폼</p>}
-              right={<p>결과</p>}
-            />
+            >
+              <p>설정 폼</p>
+            </SideDrawer>
           </>
         );
       }
@@ -658,10 +654,14 @@ describe('드로어 배선 — 실제 컴포넌트', () => {
       render(<Harness />);
       await user.click(screen.getByRole('button', { name: '설정 열기' }));
 
-      // 데스크톱에서 뒤로가기는 페이지 내비게이션이어야 한다 — 드로어가 삼키면 안 된다.
-      expect(hasDrawerEntry()).toBe(false);
+      expect(hasDrawerEntry()).toBe(true);
+
+      await goBack();
+      await waitFor(() => {
+        expect(hasDrawerEntry()).toBe(false);
+      });
     } finally {
-      Object.defineProperty(window, 'matchMedia', { configurable: true, value: originalMatchMedia });
+      restoreMatchMedia();
     }
   });
 });

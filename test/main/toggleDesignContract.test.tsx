@@ -3,12 +3,11 @@ import { createStore } from 'jotai/vanilla';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import PortfolioComposition from '@/components/PortfolioComposition';
-import SimulationResult from '@/components/SimulationResult';
+import ScenarioTabsRow from '@/pages/Main/components/ScenarioTabsRow';
 import YearlyResult from '@/components/YearlyResult';
 import PostInvestmentProjectionPanel from '@/pages/Main/components/MainRightPanel/components/PostInvestmentProjectionPanel';
 import { ALLOCATION_COPY } from '@/shared/constants';
-import { formatPercent, formatResultAmount, targetYearLabel } from '@/pages/Main/utils';
-import type { SimulationOutput, SimulationSummary, TickerProfile } from '@/shared/types';
+import type { TickerProfile } from '@/shared/types';
 import type { PortfolioCompositionProps } from '@/components/PortfolioComposition';
 import type { PostInvestmentDividendProjectionRow } from '@/pages/Main/utils';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
@@ -174,61 +173,25 @@ describe('PortfolioComposition 잠금 스위치 — 보이는 라벨 + 풀 힌�
   });
 });
 
-/* ── 3. 시뮬레이션 결과 — 간략히 ──────────────────────────────────────────────── */
+/* ── 3. 결과 밀도 — 간략히 ──────────────────────────────────────────────── */
 
-const buildSummary = (overrides: Partial<SimulationSummary> = {}): SimulationSummary => ({
-  finalAssetValue: 1_137_786_866,
-  finalAnnualDividend: 30_769_261,
-  finalMonthlyAverageDividend: 2_564_105,
-  finalPayoutMonthDividend: 8_000_000,
-  totalContribution: 190_000_000,
-  totalNetDividend: 290_712_891,
-  totalTaxPaid: 52_919_368,
-  targetMonthDividendReachedYear: 2050,
-  totalCostBasis: 480_712_891,
-  unrealizedGain: 657_073_975,
-  estimatedCapitalGainsTax: 144_006_274,
-  afterCapitalGainsTaxValue: 993_780_591,
-  ...overrides
-});
-
-const renderSimulationResult = () => {
-  const simulation: SimulationOutput = {
-    monthly: [],
-    yearly: [],
-    summary: buildSummary(),
-    quickEstimate: {
-      endValue: 1_100_000_000,
-      monthlyDividendApprox: 2_500_000,
-      annualDividendApprox: 30_000_000,
-      yieldOnPriceAtEnd: 0.0334
-    }
-  };
-
+/**
+ * "간략히"는 결과 그리드 전체에 걸리는 조작이라 그리드 **위** 컨트롤 줄(`ScenarioTabsRow`)이 소유한다
+ * (구 결과 카드 헤더에서 이관). 토글 자체의 계약과 계측 field_name 은 불변이다.
+ */
+const renderCompactToggle = () => {
   render(
     <Provider store={createStore()}>
-      <SimulationResult
-        simulation={simulation}
-        showQuickEstimate={false}
-        isResultCompact={false}
-        targetMonthlyDividend={3_000_000}
-        onToggleCompact={() => undefined}
-        formatResultAmount={formatResultAmount}
-        formatPercent={formatPercent}
-        targetYearLabel={targetYearLabel}
-      />
+      <ScenarioTabsRow showCompactToggle isResultCompact={false} onToggleCompact={() => undefined}>
+        <div />
+      </ScenarioTabsRow>
     </Provider>
   );
 };
 
-/**
- * 이 카드의 모드 스위치는 **하나뿐**이다. 진행률 뷰 토글("게이지로 보기")은 목표 서사 블록과 함께
- * 제거됐다(목표 표면은 내 포트폴리오(`/dividend/portfolio`)의 목표 달성 카드로 이관) — 부재 계약은
- * `test/snowball/simulationResultTargetNarrativeRemoved.test.tsx`가 지킨다.
- */
-describe('SimulationResult 모드 스위치', () => {
+describe('결과 간략히 스위치', () => {
   it('결과 상세도: 보이는 라벨 "간략히" + 접근명 "결과 간략히 보기"', () => {
-    renderSimulationResult();
+    renderCompactToggle();
 
     expectUnifiedModeSwitch('간략히', '결과 간략히 보기');
     // 구 트랙 텍스트('간략'/'상세')는 사라졌다.
@@ -354,7 +317,7 @@ describe('토글 GA 계측 — field_name 4종 불변', () => {
   });
 
   it('간략히 → isResultCompact', async () => {
-    renderSimulationResult();
+    renderCompactToggle();
     const user = userEvent.setup();
 
     await user.click(screen.getByRole('checkbox', { name: '결과 간략히 보기' }));

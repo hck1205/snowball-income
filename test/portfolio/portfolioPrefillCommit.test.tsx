@@ -110,7 +110,7 @@ const renderPanel = (store: ReturnType<typeof seedStore>, state: unknown = PREFI
     <Provider store={store}>
       <MemoryRouter initialEntries={[{ pathname: '/', state }]}>
         <CommunityAuthProvider>
-          <MainRightPanel />
+          <MainRightPanel configDrawerId="config-drawer" />
           <LocationProbe
             onState={(value) => {
               lastState = value;

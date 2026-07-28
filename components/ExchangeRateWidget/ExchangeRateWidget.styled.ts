@@ -5,7 +5,7 @@ import { color, font, motion, radius, space } from '@/shared/styles';
 /**
  * 위젯 컨테이너 — 주변 도구 카드(Card)와 같은 시각 언어(surface + border + radius.lg)를 쓰되,
  * 상단 타이틀로 **독립된 "환율 위젯"** 으로 읽히게 한다.
- * `width:100% + min-width:0` 로 좁은 좌패널에서도 가로 오버플로가 없다(AC12).
+ * `width:100% + min-width:0` 로 좁은 설정 드로어(≤400px)에서도 가로 오버플로가 없다(AC12).
  */
 export const Root = styled.section`
   display: grid;

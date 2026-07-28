@@ -4,6 +4,16 @@ import type { ReactNode } from 'react';
 export type CardElevation = 1 | 2 | 3;
 
 /**
+ * 카드의 격.
+ *
+ * - `default` — **도구 카드**. 페이지의 주 정보 표면(`radius.lg` · `surface` · 그림자).
+ * - `sunken`  — **부속 카드**. "다른 가정"을 말하는 곁가지(예: 전량 매도 시 세금)라
+ *   한 단계 가라앉힌다(`radius.md` · `surfaceSunken` · **그림자 없음**).
+ *   같은 위계로 보이면 사용자가 부가 가정을 본문 결과로 읽는다.
+ */
+export type CardTone = 'default' | 'sunken';
+
+/**
  * 기존 props(title / titleRight / titleRightInline / children)는 그대로다 — 호출부가 많다.
  * 새 슬롯은 전부 optional로만 추가했다.
  */
@@ -16,6 +26,8 @@ export type CardProps = {
   /** 제목 아래 보조 설명 한 줄. */
   subtitle?: ReactNode;
   elevation?: CardElevation;
+  /** 기본 `'default'`(도구 카드). `'sunken'` 은 부속 카드 — `elevation` 은 무시된다. */
+  tone?: CardTone;
   /**
    * 가이드 투어가 이 카드를 가리킬 수 있게 하는 표식(`data-tour`).
    * 카드 루트가 곧 하이라이트 대상이라, 래퍼 div를 덧대면 레이아웃 간격이 흔들린다 → 속성만 통과시킨다.

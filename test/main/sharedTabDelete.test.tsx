@@ -57,7 +57,7 @@ describe('공유 탭 삭제 — UI 한 번의 확인으로 삭제된다', () => 
 
     render(
       <Provider store={store}>
-        <MainRightPanel />
+        <MainRightPanel configDrawerId="config-drawer" />
       </Provider>
     );
 

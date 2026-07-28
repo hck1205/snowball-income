@@ -110,7 +110,7 @@ const renderSimulator = (state: unknown) => {
   render(
     <Provider store={store}>
       <MemoryRouter initialEntries={[{ pathname: '/', state }]}>
-        <MainRightPanel />
+        <MainRightPanel configDrawerId="config-drawer" />
       </MemoryRouter>
     </Provider>
   );

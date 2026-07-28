@@ -293,7 +293,7 @@ export const useGoalScenario = (options: UseGoalScenarioOptions = {}): GoalScena
     const reachedMonth = findTargetMonth(run.monthly, target);
     const isAlreadyReached = currentAmount >= target;
 
-    // 연 해상도 "N년차" (표시 파생값). findTargetReachYearIndex(components/SimulationResult)가
+    // 연 해상도 "N년차" (표시 파생값). findTargetReachYearIndex(components/ResultSummaryCard)가
     // 폴더 배럴에 노출돼 있지 않아 같은 규칙을 여기서 계산한다 — 규칙이 바뀌면 두 곳을 함께 고칠 것.
     const reachedYear = findTargetYear(run.yearly, target);
     const yearIndex = reachedYear === undefined ? -1 : run.yearly.findIndex((row) => row.year === reachedYear);

@@ -53,6 +53,7 @@ import {
   buildFocusTargetMonthlyDividendState
 } from '@/shared/constants';
 import { createChartCompactFormatter } from '@/pages/Main/utils';
+import { restoreMatchMedia, stubViewportWidth } from '@/test';
 import type { TickerProfile } from '@/shared/types/snowball';
 
 const FX_RATE = { rate: 1_000, base: 'USD', quote: 'KRW', asOf: '2026-07-23T00:02:31.000Z' } as const;
@@ -91,7 +92,7 @@ const seedStore = ({ targetMonthlyDividend = 3_000_000, showSplitGraphs = false,
 const renderPanel = (store: ReturnType<typeof seedStore>) => {
   render(
     <Provider store={store}>
-      <MainRightPanel />
+      <MainRightPanel configDrawerId="config-drawer" />
     </Provider>
   );
   return userEvent.setup();
@@ -110,27 +111,8 @@ const chartProbeText = async (name: string | RegExp): Promise<string> => {
   });
 };
 
-const realMatchMedia = window.matchMedia;
-
-/** ≤960px(설정 패널이 드로어) 상태를 흉내낸다 — jsdom은 @media를 평가하지 못한다. */
-const stubDrawerViewport = () => {
-  Object.defineProperty(window, 'matchMedia', {
-    configurable: true,
-    value: (query: string) => ({
-      matches: query === '(max-width: 960px)',
-      media: query,
-      onchange: null,
-      addListener: () => undefined,
-      removeListener: () => undefined,
-      addEventListener: () => undefined,
-      removeEventListener: () => undefined,
-      dispatchEvent: () => false
-    })
-  });
-};
-
 afterEach(() => {
-  Object.defineProperty(window, 'matchMedia', { configurable: true, value: realMatchMedia });
+  restoreMatchMedia();
 });
 
 describe('"월 평균 배당" 차트 노출 조건', () => {
@@ -195,7 +177,7 @@ function SettingsAndResults() {
         onHelpReinvestTiming={() => undefined}
         onHelpDpsGrowthMode={() => undefined}
       />
-      <MainRightPanel />
+      <MainRightPanel configDrawerId="config-drawer" />
     </>
   );
 }
@@ -220,8 +202,8 @@ const renderWithTargetRequest = (store: ReturnType<typeof seedStore>, state: unk
  * 칩·직접 입력·[목표 수정]이 전부 무음 no-op이 된다. 고정 id(`TARGET_MONTHLY_DIVIDEND_INPUT_ID`)가
  * 조준점이라 라벨 카피에서 id를 다시 파생시키면 조용히 끊긴다.
  */
-describe('목표 요청(location.state) → 좌측 목표 월배당 입력 (전체 경로)', () => {
-  it('요청이 실려 오면 좌측 설정의 목표 입력이 포커스를 받는다', async () => {
+describe('목표 요청(location.state) → 설정 드로어의 목표 월배당 입력 (전체 경로)', () => {
+  it('요청이 실려 오면 설정 드로어의 목표 입력이 포커스를 받는다', async () => {
     const store = seedStore({ targetMonthlyDividend: 0 });
     renderWithTargetRequest(store, FOCUS_TARGET_MONTHLY_DIVIDEND_STATE);
 
@@ -233,7 +215,7 @@ describe('목표 요청(location.state) → 좌측 목표 월배당 입력 (전�
     expect(store.get(yieldFormAtom).targetMonthlyDividend).toBe(0);
   });
 
-  it('값이 실려 오면 그 값이 좌측 설정 입력에 그대로 들어간다', async () => {
+  it('값이 실려 오면 그 값이 설정 드로어 입력에 그대로 들어간다', async () => {
     const store = seedStore({ targetMonthlyDividend: 0 });
     /*
      * 칩 값의 정본은 `shared/constants/targets`다(로드맵 v2: 50/100/200/300만원) —
@@ -250,7 +232,7 @@ describe('목표 요청(location.state) → 좌측 목표 월배당 입력 (전�
   });
 
   it('좁은 화면이면 설정 드로어를 먼저 연다(입력이 DOM에 없으면 포커스가 무음 실패한다)', async () => {
-    stubDrawerViewport();
+    stubViewportWidth(360);
     const store = seedStore({ targetMonthlyDividend: 0 });
     renderWithTargetRequest(store, FOCUS_TARGET_MONTHLY_DIVIDEND_STATE);
 

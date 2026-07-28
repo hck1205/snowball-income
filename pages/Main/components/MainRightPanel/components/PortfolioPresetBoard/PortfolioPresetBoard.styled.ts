@@ -2,8 +2,9 @@ import styled from '@emotion/styled';
 import { color, font, media, motion, radius, shadow, space } from '@/shared/styles';
 
 /**
- * `pages/Main/Main.shared.styled.ts`(카드 조각)와 `MainRightPanel.styled.ts`(아이콘 배지)에서
- * 옮겨온 포트폴리오 프리셋 카드 스타일 (스타일 값 동일, 마크업/동작 변화 없음).
+ * 포트폴리오 프리셋 카드 스타일. `pages/Main/Main.shared.styled.ts`(카드 조각)와
+ * 구 `MainRightPanel.styled.ts`(아이콘 배지 — 결과 배치가 `MainResultGrid`로 옮겨가며 삭제됐다)에서
+ * 이관했다 (스타일 값 동일, 마크업/동작 변화 없음).
  */
 
 export const PortfolioPresetGrid = styled.div`

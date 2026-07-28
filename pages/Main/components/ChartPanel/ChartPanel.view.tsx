@@ -1,5 +1,6 @@
 import { Card } from '@/components';
 import { HintText, ResponsiveEChart } from '@/components/common';
+import { SIMULATOR_COPY } from '@/shared/constants';
 import { ChartPanelWrap } from './ChartPanel.styled';
 import type { ChartPanelViewProps } from './ChartPanel.types';
 
@@ -19,7 +20,7 @@ export default function ChartPanelView({
           <ResponsiveEChart option={chartOption} />
         </ChartPanelWrap>
       ) : (
-        <HintText>{emptyMessage ?? '좌측 티커 생성을 통해 포트폴리오를 구성해주세요.'}</HintText>
+        <HintText>{emptyMessage ?? SIMULATOR_COPY.emptyPortfolioHint}</HintText>
       )}
     </Card>
   );

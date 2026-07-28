@@ -1,13 +1,18 @@
 import styled from '@emotion/styled';
 import { color, elevation as elevationToken, font, radius, space } from '@/shared/styles';
-import type { CardElevation } from './Card.types';
+import type { CardElevation, CardTone } from './Card.types';
 
-export const CardContainer = styled.section<{ elevation: CardElevation }>`
-  background: ${color.surface};
+/**
+ * `tone='default'` 일 때 나오는 CSS 는 tone 도입 **이전과 완전히 같다** — 기존 카드 수십 곳의
+ * 회귀를 0으로 두기 위한 조건이다. 새 값은 `sunken` 분기에만 들어간다.
+ * (새 prop 은 `$` 접두 transient 로 둔다 — `$` 가 없으면 DOM 으로 새는 사고가 반복됐다.)
+ */
+export const CardContainer = styled.section<{ elevation: CardElevation; $tone: CardTone }>`
+  background: ${({ $tone }) => ($tone === 'sunken' ? color.surfaceSunken : color.surface)};
   border: 1px solid ${color.border};
-  border-radius: ${radius.lg};
+  border-radius: ${({ $tone }) => ($tone === 'sunken' ? radius.md : radius.lg)};
   padding: clamp(16px, 1.8vw, 20px);
-  box-shadow: ${({ elevation }) => elevationToken[elevation]};
+  box-shadow: ${({ elevation, $tone }) => ($tone === 'sunken' ? 'none' : elevationToken[elevation])};
   color: ${color.text};
   min-width: 0;
   width: 100%;

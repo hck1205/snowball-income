@@ -1,7 +1,7 @@
 import { memo, useState, type CSSProperties } from 'react';
 import { Info, Lock, Pencil, Pin, PinOff } from 'lucide-react';
 import { Card, Chip, ToggleField } from '@/components';
-import { ALLOCATION_COPY, TOUR_TARGET } from '@/shared/constants';
+import { ALLOCATION_COPY, SIMULATOR_COPY, TOUR_TARGET } from '@/shared/constants';
 import { CHART_SERIES_VARS } from '@/shared/styles';
 import { getTickerDisplayName } from '@/shared/utils';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
@@ -95,7 +95,7 @@ function PortfolioCompositionComponent({
       }
     >
       {includedProfiles.length === 0 ? (
-        <HintText>좌측 티커 생성을 통해 포트폴리오를 구성해주세요.</HintText>
+        <HintText>{SIMULATOR_COPY.emptyPortfolioHint}</HintText>
       ) : (
         <>
           {allocationPieOption ? (

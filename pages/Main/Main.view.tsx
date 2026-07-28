@@ -1,12 +1,6 @@
 import { Global } from "@emotion/react";
 import { lazy, memo, Suspense, useCallback, useId, useRef, useState } from "react";
-import {
-  DrawerToggleButton,
-  FeatureLayout,
-  MainContent,
-  SkipLink,
-} from "@/pages/Main/Main.shared.styled";
-import MobileMenuDrawer from "@/components/MobileMenuDrawer";
+import { FeatureLayout, MainContent, SkipLink } from "@/pages/Main/Main.shared.styled";
 import SimulatorHeader from "@/components/SimulatorHeader";
 import TourGuide from "@/components/TourGuide";
 import { CloudSyncIndicator } from "@/components/CloudSyncIndicator";
@@ -21,10 +15,12 @@ import HelpModal from "./components/HelpModal";
 import {
   LandingDisclaimer,
   MainContentLoader,
-  MainLeftPanel,
   MainOverflowMenu,
   MainRightPanel,
   MarketDataAsOf,
+  SettingsDrawer,
+  SettingsEntryButton,
+  SimulatorHero,
 } from "./components";
 import { globalStyle } from "./Main.styled";
 import { TOUR_TARGET } from "@/shared/constants";
@@ -61,8 +57,8 @@ function MainViewComponent({ viewModel }: MainViewProps) {
   const closeConfigDrawer = useCallback(() => setIsConfigDrawerOpen(false), [setIsConfigDrawerOpen]);
 
   /**
-   * 설정 드로어의 id. 여는 버튼(sticky 헤더 안)과 열리는 패널(`MobileMenuDrawer` 안)이 서로 다른
-   * 서브트리에 살기 때문에 두 곳의 공통 조상인 여기서 만들어 `aria-controls` ↔ `id`를 맺어 준다.
+   * 설정 드로어의 id. 여는 버튼 3자리(헤더 · 히어로 · 조건 스트립)와 열리는 패널(`SettingsDrawer`)이
+   * 서로 다른 서브트리에 살기 때문에 두 곳의 공통 조상인 여기서 만들어 `aria-controls` ↔ `id`를 맺어 준다.
    */
   const configDrawerId = useId();
 
@@ -121,23 +117,19 @@ function MainViewComponent({ viewModel }: MainViewProps) {
       {/* 커뮤니티 헤더와 같은 형태의 전폭 sticky 바라 `FeatureLayout`(max-width 1200) **밖**에 둔다.
           좌우 끝선은 SimulatorHeader의 HeaderInner가 같은 max-width/패딩을 써서 맞춘다. */}
       <SimulatorHeader
-        /* 모바일 설정 드로어 토글 — 헤더가 항상 화면에 있으므로 여기 **정적으로** 둔다.
+        /* 설정 드로어를 여는 **상시** 진입점. 헤더가 sticky라 스크롤 어디서든 닿는다.
            예전엔 본문 흐름에 두고 sentinel이 스크롤 아웃되면 fixed로 띄웠는데, sticky 헤더가
            화면 상단을 영구 점유하게 되면서 그 플로팅 버튼이 헤더 위에 겹쳐 그려졌다.
            헤더 안 정적 배치로 바꿔 IntersectionObserver·sentinel·isFloating을 전부 없앴다.
-           데스크톱에선 스타일이 `display:none`이라(드로어 자체가 없음) 자리를 차지하지 않는다. */
+           설정은 이제 **전 해상도에서 드로어**라 이 버튼도 전 해상도에서 보인다(구 `display:none` 분기 삭제). */
         leading={
-          <DrawerToggleButton
-            type="button"
-            data-tour={TOUR_TARGET.openSettings}
-            data-capture-role="drawer-toggle-open"
-            aria-label="설정 열기"
-            aria-expanded={isConfigDrawerOpen}
-            aria-controls={configDrawerId}
-            onClick={openConfigDrawer}
-          >
-            설정 열기
-          </DrawerToggleButton>
+          <SettingsEntryButton
+            variant="header"
+            drawerId={configDrawerId}
+            isOpen={isConfigDrawerOpen}
+            onOpen={openConfigDrawer}
+            dataTour={TOUR_TARGET.openSettings}
+          />
         }
         // 클라우드 저장 상태를 컨트롤 줄 좌측에 둔다. 저장 중/실패만 노출(평상시 숨김), 실패는 무음 금지.
         status={
@@ -170,25 +162,28 @@ function MainViewComponent({ viewModel }: MainViewProps) {
       />
       <FeatureLayout>
         <MainContent id="main-content">
-          <MobileMenuDrawer
+          <SimulatorHero
+            drawerId={configDrawerId}
+            isSettingsOpen={isConfigDrawerOpen}
+            onOpenSettings={openConfigDrawer}
+          />
+
+          {/* 🔴 조건부 마운트로 바꾸지 마라 — 좌패널이 하이드레이션 트리거와 ref 배선 3종을 소유한다
+              (자세한 이유는 SettingsDrawer 주석). 드로어 패널은 항상 마운트되고 열림은 CSS가 정한다. */}
+          <SettingsDrawer
             drawerId={configDrawerId}
             isOpen={isConfigDrawerOpen}
             onClose={closeConfigDrawer}
-            left={
-              <MainLeftPanel
-                onHydratedChange={setIsPortfolioHydrated}
-                onRegisterRetryCloudSave={registerRetryCloudSave}
-                onRegisterResumeConflict={registerResumeConflict}
-              />
-            }
-            right={
-              isPortfolioHydrated ? (
-                <MainRightPanel />
-              ) : (
-                <MainContentLoader label="결과를 불러오는 중…" minHeight="480px" />
-              )
-            }
+            onHydratedChange={setIsPortfolioHydrated}
+            onRegisterRetryCloudSave={registerRetryCloudSave}
+            onRegisterResumeConflict={registerResumeConflict}
           />
+
+          {isPortfolioHydrated ? (
+            <MainRightPanel configDrawerId={configDrawerId} />
+          ) : (
+            <MainContentLoader label="결과를 불러오는 중…" minHeight="480px" />
+          )}
 
           <Suspense fallback={null}>
             {isTickerModalOpen && (

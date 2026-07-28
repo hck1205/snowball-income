@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { findTargetReachYearIndex } from '@/components/SimulationResult/SimulationResult.utils';
+import { findTargetReachYearIndex } from '@/components/ResultSummaryCard';
 import type { SimulationOutput } from '@/shared/types';
 
 /**

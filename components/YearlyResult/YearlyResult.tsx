@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { Card, ToggleField } from '@/components';
 import type { YearlyResultProps } from './YearlyResult.types';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
+import { SIMULATOR_COPY } from '@/shared/constants';
 import {
   ChartWrap,
   HintText,
@@ -79,7 +80,7 @@ function YearlyResultComponent({
           </ChartWrap>
         </>
       ) : (
-        <HintText>{emptyMessage ?? '좌측 티커 생성을 통해 포트폴리오를 구성해주세요.'}</HintText>
+        <HintText>{emptyMessage ?? SIMULATOR_COPY.emptyPortfolioHint}</HintText>
       )}
     </Card>
   );

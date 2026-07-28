@@ -5,7 +5,7 @@ export { default as Button } from './Button';
 export type { ButtonProps, ButtonSize, ButtonVariant } from './Button';
 
 export { default as Card } from './Card';
-export type { CardElevation, CardProps } from './Card';
+export type { CardElevation, CardProps, CardTone } from './Card';
 
 export { ChartWrap } from './ChartWrap';
 
@@ -14,19 +14,13 @@ export type { ChipProps } from './Chip';
 
 export { CompactSummaryHelpButton } from './CompactSummaryHelpButton';
 
-export { ConfigColumn, ConfigDrawerColumn, DrawerBackdrop, DrawerCloseButton } from './ConfigDrawer';
-
 export { ConfigFormGrid, ConfigInputGrid, ConfigSectionDivider } from './ConfigForm';
-
-export { ContentLayout } from './ContentLayout';
 
 export { default as DataTable } from './DataTable';
 
 export { ErrorBox } from './ErrorBox';
 
 export { default as FormSection } from './FormSection';
-
-export { HeaderDescription } from './HeaderDescription';
 
 export { HelpMarkButton } from './HelpMarkButton';
 
@@ -40,6 +34,9 @@ export { FrequencySelect } from './InputField';
 export { default as Modal } from './Modal';
 export { ModalActions, ModalBackdrop, ModalBody, ModalPanel, ModalTitle } from './Modal';
 export type { ModalProps } from './Modal';
+
+export { default as PageHero } from './PageHero';
+export type { PageHeroProps, PageHeroTone } from './PageHero';
 
 export {
   AllocationChartLayout,
@@ -66,6 +63,8 @@ export type { RangeSliderProps } from './RangeSlider';
 export { ResponsiveEChart } from './ResponsiveEChart';
 export type { ResponsiveEChartProps } from './ResponsiveEChart';
 
+export { ResultGrid, ResultGridCell } from './ResultGrid';
+
 export { default as Select } from './Select';
 export type { SelectProps, SelectSize, SelectWidth } from './Select';
 
@@ -76,6 +75,9 @@ export {
   SeriesFilterLabel,
   SeriesFilterRow
 } from './SeriesFilter';
+
+export { default as SideDrawer } from './SideDrawer';
+export type { SideDrawerProps, SideDrawerSide } from './SideDrawer';
 
 export { default as StatTile, toProgressPercent } from './StatTile';
 export type { StatEmphasis, StatTileProps, StatTone } from './StatTile';

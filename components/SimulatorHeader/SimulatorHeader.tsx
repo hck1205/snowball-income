@@ -6,7 +6,7 @@ import type { SimulatorHeaderProps } from './SimulatorHeader.types';
 /**
  * 시뮬레이터 전역 헤더 — 커뮤니티 헤더와 같은 형태(전폭 sticky 글래스 바 + 2줄 스택)다.
  *
- * `MobileMenuDrawer`가 아니라 이 컴포넌트가 헤더를 소유한다. 드로어가 헤더를 품고 있던 시절에는
+ * 설정 드로어가 아니라 이 컴포넌트가 헤더를 소유한다. 드로어가 헤더를 품고 있던 시절에는
  * 헤더가 모바일 floating 토글과 그 IntersectionObserver 앵커를 자손으로 갖게 되어
  * sticky·backdrop-filter를 둘 다 쓸 수 없었다(SimulatorHeader.styled 주석 참고).
  */

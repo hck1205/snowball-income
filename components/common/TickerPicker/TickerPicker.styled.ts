@@ -61,7 +61,7 @@ export const TickerQuickActionIcon = styled.span`
 `;
 
 /**
- * 좌측 패널의 사실상 primary CTA — Button primary와 같은 오로라 CTA 리본 레시피를 쓴다.
+ * 설정 드로어의 사실상 primary CTA — Button primary와 같은 오로라 CTA 리본 레시피를 쓴다.
  * hover는 색을 바꾸지 않고 background-position만 움직여 라벨 대비(전 stop 흰 라벨 ≥4.5:1)가 불변이다.
  */
 export const TickerCreateButton = styled.button`
@@ -132,7 +132,7 @@ export const TickerChipWrap = styled.div`
 `;
 
 /**
- * 티커 칩(좌측 패널 그리드).
+ * 티커 칩(설정 드로어 그리드).
  *
  * `Chip` 프리미티브와 같은 시각 언어(pill, 선택 시 브랜드 채움)를 쓰되, 여기서는
  * 고정폭 그리드 셀이라 폭 100%가 필요해서 별도 스타일로 둔다.
