@@ -1470,9 +1470,9 @@ const SUNSET_DARK: ThemeTokens = {
  * 모노 8색은 물리적으로 불가; "흑백 신문 위 컬러 인포그래픽" 정합). 다크는 velog식 반전:
  * brand #f2f2f2 + on-brand #111111(15.9:1).
  *
- * ⚠ 유일한 유채 크롬 = `accent-alt`(그린, 2026-07-28 아이덴티티 패스). 세컨더리 액센트는
- * 제품 아이덴티티 축이라 8프리셋 공통으로 그린을 채택했다 — "완전 무채"가 아니라
- * "**그린 배지 하나를 제외하면** 무채"가 지금의 정확한 서술이다.
+ * ⚠ ink 는 **크롬 전 영역이 무채**다(차트만 유채 — aurora 8색 재사용). 세컨더리 액센트(`accent-alt`)도
+ * 예외가 아니다: 아이덴티티 패스에서 잠시 그린으로 재정의했다가 ink 정체성을 지키려고 무채로 되돌렸다
+ * (2026-07-28). 그래서 `Chip variant='accentAlt'` 같은 소비처는 ink 에서만 회색으로 보인다 — 의도다.
  */
 const INK_LIGHT: ThemeTokens = {
   /* 무틴트 — 정체성 */
@@ -1503,10 +1503,14 @@ const INK_LIGHT: ThemeTokens = {
   'accent-text': '#333333',
   'accent-subtle': '#ededed',
   'accent-border': '#cfcfcf',
-  'accent-alt': '#359f6d',
-  'accent-alt-text': '#1c763d',
-  'accent-alt-subtle': '#e9f4ef',
-  'accent-alt-border': '#aed9c5',
+  /**
+   * 🔴 knife-edge — 더 조정 금지. `accent`(#444444) 와의 ΔE 가 **16.37**(하한 15, 여유 1.37)이라
+   * `accent-alt` 를 조금이라도 밝히거나 어둡게 하면 `contrast.test.ts` 의 MIN_ACCENT_SEPARATION 이 즉시 깨진다.
+   */
+  'accent-alt': '#6b6b6b',
+  'accent-alt-text': '#4f4f4f',
+  'accent-alt-subtle': '#f0f0f0',
+  'accent-alt-border': '#d6d6d6',
 
   ...COMMON_LIGHT,
 
@@ -1583,10 +1587,11 @@ const INK_DARK: ThemeTokens = {
   'accent-text': '#d4d4d4',
   'accent-subtle': '#262626',
   'accent-border': '#4d4d4d',
-  'accent-alt': '#7fd4a7',
-  'accent-alt-text': '#7fd4a7',
-  'accent-alt-subtle': '#13221a',
-  'accent-alt-border': '#28533c',
+  /** `accent`(#d4d4d4) 와의 ΔE 17.92 — 라이트만큼은 아니지만 여기도 무채 구간이라 여유가 넓지 않다. */
+  'accent-alt': '#a3a3a3',
+  'accent-alt-text': '#bfbfbf',
+  'accent-alt-subtle': '#232323',
+  'accent-alt-border': '#454545',
 
   ...COMMON_DARK,
 

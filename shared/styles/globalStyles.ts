@@ -127,7 +127,8 @@ export const globalStyles = css`
   }
 
   /*
-   * 헤딩은 display 서체(Gmarket Sans). **여기 한 곳에서만** 건다 — 페이지별 styled 파일이 각자
+   * 헤딩은 display 서체(원본은 Gmarket Sans / CSS family는 'Snowball Display').
+   * **여기 한 곳에서만** 건다 — 페이지별 styled 파일이 각자
    * font-family를 박기 시작하면 역할이 흩어져 서체 교체가 불가능해진다.
    * 굵기는 각 헤딩의 styled가 그대로 정한다(display 페이스가 한 벌이라 굵기 차이는 안 보인다 —
    * tokens.ts의 font.display 주석 참고. 위계는 크기로 만든다).

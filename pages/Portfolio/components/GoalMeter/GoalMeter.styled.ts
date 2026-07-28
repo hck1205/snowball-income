@@ -24,15 +24,15 @@ export const MeterLabel = styled.p`
 `;
 
 /**
- * 이 화면의 주인공 숫자.
+ * 이 카드에서 가장 큰 숫자(페이지의 hero 는 요약 카드 StatTile 한 곳이다).
  *
  * ⚠ 색은 **중립(`color.text`)** 이다 — 숫자(데이터)에 accent를 칠하지 않는다(확정 결정).
  * 시선은 색이 아니라 크기·굵기가 끈다.
  */
 export const MeterValue = styled.p`
   margin: 0;
-  /* 이 카드의 주인공 숫자라 hero 서체를 쓴다(StatTile hero 값과 같은 역할). */
-  font-family: ${font.heroNumeric};
+  /* 페이지의 hero 서체는 요약 카드 StatTile 한 곳(PortfolioPage.view.tsx:301)이므로 여기는 dataNumeric */
+  font-family: ${font.dataNumeric};
   font-size: clamp(28px, 5vw, ${font.size['5xl']});
   font-weight: ${font.weight.extrabold};
   letter-spacing: -0.03em;

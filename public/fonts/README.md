@@ -18,9 +18,13 @@ CDN 을 쓰지 않는 이유는 셋이다 — 서드파티 요청(프라이버�
 | 역할 | 서체 | 조달 | 이 폴더의 산출물 |
 |---|---|---|---|
 | `font.sans` — 본문·라벨·버튼·입력 | Wanted Sans Variable | npm `wanted-sans` (92분할 동적 서브셋 CSS 를 그대로 import) | 없음(node_modules 에서 번들) |
-| `font.display` — 워드마크·헤딩(h1~h6) | Gmarket Sans Bold | 공식 zip → 92분할 동적 서브셋 | `gmarket/GmarketSans-Bold.split.<n>.<해시>.woff2` (91개) |
+| `font.display` — 워드마크·헤딩(h1~h6) | Gmarket Sans Bold (CSS family `Snowball Display`) | 공식 zip → 92분할 동적 서브셋 | `gmarket/GmarketSans-Bold.split.<n>.<해시>.woff2` (91개) |
 | `font.heroNumeric` — 화면당 1곳의 주인공 숫자 | LINE Seed Sans KR Bold | 공식 zip → 숫자·기호·단위 서브셋 | `line-seed/LINESeedSansKR-Bold.subset.<해시>.woff2` |
-| `font.dataNumeric` — 표·칩·차트의 모든 숫자 | Inter Variable | 공식 릴리스 → opsz 16 고정 + 라틴/기호 서브셋 | `inter/InterVariable.subset.<해시>.woff2` |
+| `font.dataNumeric` — 표·칩·차트의 모든 숫자 | Inter Variable (CSS family `Snowball Numeric`) | 공식 릴리스 → opsz 16 고정 + 라틴/기호 서브셋 | `inter/InterVariable.subset.<해시>.woff2` |
+
+> **파일명·폴더명은 원본 이름 그대로, CSS family 명만 앱 고유명이다.** display 는 OFL §3 Reserved Font
+> Name 회색지대를 피하려고(아래 절), dataNumeric 은 npm `@fontsource-variable/inter` 와의 이름 충돌을
+> 피하려고 갈랐다. 저작권 고지·OFL 동봉은 원본 그대로다.
 
 `gmarket/` 이 91조각인 이유: 헤딩에는 **커뮤니티 글 제목 같은 사용자 입력**이 들어온다. 앱 코퍼스만
 잘라 두면 예상 못 한 음절이 조용히 폴백돼 **한 제목 안에서 서체가 섞인다**. 한글 11,172자를 전부
@@ -69,14 +73,15 @@ woff2 옆에 아래 4개 파일을 함께 커밋한다. 서브셋 woff2 자신�
 웹 임베딩·상업적 사용·서브셋(수정본) 재배포는 4종 모두 허용된다. 공통으로 금지되는 것은 **폰트 자체를
 단독으로 판매**하는 것과, 다른 라이선스로 재배포하는 것이다.
 
-### ⚠ Gmarket 만 Reserved Font Name 이 선언돼 있다 (미해결 · 법률 자문 아님)
+### Gmarket 만 Reserved Font Name 이 선언돼 있다 (해소됨 · 법률 자문 아님)
 
 **사실관계부터.**
 
 - `OFL-Gmarket.txt:5-6` 은 저작권 문구 뒤에 RFN 을 **실제로 선언한다**:
   "Copyright © < 2019.>, <eBay Korea Co., Ltd.> (<www.gmarket.co.kr>), **with Reserved Font Name
   \<Gmarket Sans Font\>**." → 선언된 이름은 `Gmarket Sans Font` 다.
-- 이 앱이 `@font-face` 로 선언하는 family 명은 **`Gmarket Sans`** 다(`Font` 없음) — **완전 일치가 아니다**.
+- 이 앱이 2026-07-28 이전에 `@font-face` 로 선언하던 family 명은 **`Gmarket Sans`** 였다(`Font` 없음) —
+  선언된 이름과 **완전 일치는 아니었다**. 지금은 아예 `Snowball Display` 로 갈랐다(아래 "해소됨").
 - 나머지 3종(Wanted Sans · LINE Seed · Inter)은 저작권 문구에 **RFN 선언이 없다**(각 OFL 파일 1행 확인).
   그 3종에는 이 논점 자체가 성립하지 않는다.
 - OFL 1.1 의 정의(`OFL-Gmarket.txt:20`): *"**Modified Version** refers to any derivative made by adding
@@ -96,11 +101,12 @@ woff2 옆에 아래 4개 파일을 함께 커밋한다. 서브셋 woff2 자신�
 조건 3 이 "사용자에게 제시되는 주 폰트명"에만 적용된다는 단서)와, 걸린다고 볼 여지(서브셋+포맷 변환 =
 Modified Version, 한글 요약의 "수정 시 명칭 변경") 가 **둘 다 있다. 회색지대다 — 이 문서는 법률 자문이 아니다.**
 
-**해소 방법(미결 · 사용자 결정 대기).** family 명을 앱 고유명(예: `Snowball Display`)으로 바꾸면 논점이 통째로
-사라진다 — OFL 이 요구하는 것은 **이름 변경**이지 사용 금지가 아니기 때문이다. 저작권 고지(ID0)·라이선스
-동봉·OFL 유지는 그대로 두면 된다. 지금 바꾸지 않은 이유는 폰트 family 명 변경이 확정 스펙과 토큰
-문자열(`shared/styles/tokens.ts` 의 `font.display`)을 함께 건드리는 결정이라 **사용자 승인 대기 항목**이기
-때문이다. 다른 선택지는 지마켓에 서면 허가를 요청하는 것이다(조건 3 이 명시하는 예외 경로).
+**해소됨 — CSS family 명을 `Snowball Display` 로 변경(2026-07-28).** OFL 이 요구하는 것은 **이름 변경**이지
+사용 금지가 아니므로, 이름을 앱 고유명으로 갈라 논점을 통째로 없앴다. **파일명·폴더명·저작권 고지(ID0)·
+`OFL-Gmarket.txt` 동봉·OFL 유지는 원본 그대로다** — 바뀐 것은 `tools/fonts/build.mjs` 가 생성하는
+`@font-face` 의 family 문자열과 그것을 가리키는 `shared/styles/tokens.ts` 의 `font.display` 스택뿐이고,
+폰트 바이트는 하나도 바뀌지 않았다(파일 해시·캐시 영향 0). 원본 이름으로 되돌리려면 이 절부터 다시 읽어라.
+남은 선택지였던 "지마켓에 서면 허가 요청"(조건 3 의 예외 경로)은 이제 필요 없다.
 
 ## OG 이미지용 폰트는 여기가 아니다
 

@@ -4,9 +4,9 @@
  *   node tools/fonts/build.mjs
  *
  * 무엇을 만드나:
- *   public/fonts/gmarket/*.woff2      Gmarket Sans (display) — 92분할 동적 서브셋
+ *   public/fonts/gmarket/*.woff2      Gmarket Sans(원본) → Snowball Display(CSS family) — 92분할 동적 서브셋
  *   public/fonts/line-seed/*.woff2    LINE Seed Sans KR (heroNumeric) — 숫자·기호·단위만
- *   public/fonts/inter/*.woff2        Inter (dataNumeric) — 라틴 기본 + 통화/수학 기호
+ *   public/fonts/inter/*.woff2        Inter(원본) → Snowball Numeric(CSS family) — 라틴 기본 + 통화/수학 기호
  *   shared/styles/selfHostedFonts.css 위 세 폰트의 @font-face 선언(생성물, 커밋)
  *
  * 파일명에는 **콘텐츠 해시**가 붙는다(`…split.7.<8자 해시>.woff2`) — 이유는 아래 `subsetHashed` 참고.
@@ -388,7 +388,9 @@ const buildGmarket = async (splitRanges) => {
       const { file, size } = subsetHashed({ dir: outDir, base: `${name}.split.${index}`, input: source, unicodes: range });
       weightTotal += size;
       slices += 1;
-      faces.push(fontFace({ family: 'Gmarket Sans', weight, url: `/fonts/gmarket/${file}`, unicodeRange: range }));
+      // CSS family 명만 앱 고유명이다 — 원본은 Gmarket Sans(파일명·저작권 고지·OFL 은 원본 유지).
+      // OFL §3 Reserved Font Name 회색지대를 이름 변경으로 해소한다(public/fonts/README.md).
+      faces.push(fontFace({ family: 'Snowball Display', weight, url: `/fonts/gmarket/${file}`, unicodeRange: range }));
     });
     total += weightTotal;
     log(`Gmarket ${name} (${weight}) — ${slices} 조각 ${formatBytes(weightTotal)}`);
@@ -488,7 +490,9 @@ const buildInter = async () => {
     faces: [
       // 가변 축(wght 100~900)이 서브셋 후에도 그대로 남는다 — 표·칩·차트가 쓰는 400~800 을 한 파일이 덮는다.
       fontFace({
-        family: 'Inter Variable',
+        // 원본은 Inter. family 명을 앱 고유명으로 두는 이유는 npm `@fontsource-variable/inter` 가
+        // 같은 이름('Inter Variable')으로 다른 @font-face 세트를 등록해 조용히 충돌하기 때문이다.
+        family: 'Snowball Numeric',
         weight: '100 900',
         url: `/fonts/inter/${file}`,
         format: 'woff2-variations'

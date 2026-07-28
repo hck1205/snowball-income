@@ -44,9 +44,10 @@ const ROLES = ['sans', 'display', 'heroNumeric', 'dataNumeric'] as const;
 /** 각 역할의 **1순위** 서체 — 역할이 뒤바뀌면 여기서 걸린다. */
 const PRIMARY_BY_ROLE: Record<(typeof ROLES)[number], string> = {
   sans: 'Wanted Sans Variable',
-  display: 'Gmarket Sans',
+  // 자체 서브셋의 family 명(원본은 Gmarket Sans / Inter) — tools/fonts/build.mjs 가 이 이름으로 선언한다.
+  display: 'Snowball Display',
   heroNumeric: 'LINE Seed Sans KR',
-  dataNumeric: 'Inter Variable'
+  dataNumeric: 'Snowball Numeric'
 };
 
 describe('서체 역할 토큰', () => {
