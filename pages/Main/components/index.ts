@@ -17,6 +17,8 @@ export { default as MainResultGrid } from './MainResultGrid';
 export { default as MainRightPanel } from './MainRightPanel';
 export { default as MarketDataAsOf } from './MarketDataAsOf';
 export { default as ModelChangeNotice } from './ModelChangeNotice';
+export { default as ResultCaptureButton } from './ResultCaptureButton';
+export type { ResultCaptureButtonProps } from './ResultCaptureButton';
 export { default as ScenarioTabsRow } from './ScenarioTabsRow';
 export { default as SettingsDrawer } from './SettingsDrawer';
 export { default as SettingsEntryButton } from './SettingsEntryButton';

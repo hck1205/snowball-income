@@ -1,6 +1,9 @@
 import { memo } from 'react';
 import type { ReactNode } from 'react';
 import { ResultGrid, ResultGridCell } from '@/components/common';
+// 훅 배럴(`@/pages/Main/hooks`)이 아니라 `interaction` 폴더를 직접 가리킨다 — 상위 배럴은 페이지
+// 비즈니스 훅까지 끌고 와 `components → hooks → components` 순환이 될 수 있다. 마커 상수만 필요하다.
+import { RESULT_CAPTURE_ROOT_ATTRIBUTE } from '@/pages/Main/hooks/interaction';
 import type { MainResultGridProps } from './MainResultGrid.types';
 
 type ResultCell = { key: string; span: number; node: ReactNode };
@@ -54,7 +57,11 @@ function MainResultGridComponent({
   if (cells.length === 0) return null;
 
   return (
-    <ResultGrid>
+    /*
+     * 결과 **이미지 저장**의 캡처 대상 표식. 이 요소가 곧 "지금 탭의 결과 카드 전부"이고,
+     * 시나리오 탭 바는 이 밖(형제)이라 캡처에 들어가지 않는다.
+     */
+    <ResultGrid {...{ [RESULT_CAPTURE_ROOT_ATTRIBUTE]: '' }}>
       {cells.map((cell) => (
         <ResultGridCell key={cell.key} $span={cell.span}>
           {cell.node}

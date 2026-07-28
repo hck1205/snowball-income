@@ -1,6 +1,8 @@
 import { memo } from 'react';
 import { Settings } from 'lucide-react';
 import { SIMULATOR_COPY } from '@/shared/constants';
+// 마커 상수만 — `interaction` 배럴은 html2canvas 를 정적으로 끌고 오지 않는다(동적 import 뿐).
+import { CAPTURE_EXCLUDE_ATTRIBUTE } from '@/pages/Main/hooks/interaction';
 import type { SettingsEntryButtonProps } from './SettingsEntryButton.types';
 import { SettingsEntry } from './SettingsEntryButton.styled';
 
@@ -30,7 +32,11 @@ function SettingsEntryButtonComponent({ variant, drawerId, isOpen, onOpen, dataT
   }
 
   return (
-    <SettingsEntry {...shared} variant="ghost" size="sm">
+    /*
+     * inline 변형은 결과 요약 카드 안(조건 스트립)에 산다 — 결과를 **이미지로 저장**할 때는
+     * 빠져야 한다. 저장된 그림 속 "조건 수정" 버튼은 누를 수 없는 미끼가 된다.
+     */
+    <SettingsEntry {...shared} {...{ [CAPTURE_EXCLUDE_ATTRIBUTE]: '' }} variant="ghost" size="sm">
       {SIMULATOR_COPY.editCondition}
     </SettingsEntry>
   );

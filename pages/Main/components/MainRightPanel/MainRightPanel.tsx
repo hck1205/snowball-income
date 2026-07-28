@@ -51,10 +51,11 @@ import {
   useTickerProfilesAtomValue,
   useVisibleYearlySeriesAtomValue
 } from '@/jotai';
-import { useMainComputed, useScenarioTabs, useSnowballForm, useTickerActions } from '@/pages/Main/hooks';
+import { useMainComputed, useResultCapture, useScenarioTabs, useSnowballForm, useTickerActions } from '@/pages/Main/hooks';
 // 형제 폴더 직접 참조 — 상위 배럴(@/pages/Main/components)은 이 파일 자신도 재수출해 import 순환이 된다.
 import { ChartPanel } from '../ChartPanel';
 import MainResultGrid from '../MainResultGrid';
+import ResultCaptureButton from '../ResultCaptureButton';
 import ScenarioTabsRow from '../ScenarioTabsRow';
 import SettingsEntryButton from '../SettingsEntryButton';
 import { createResultAmountFormatter, formatPercent, targetYearLabel } from '@/pages/Main/utils';
@@ -80,6 +81,12 @@ function MainRightPanelComponent({ configDrawerId }: MainRightPanelProps) {
   const showQuickEstimate = useShowQuickEstimateAtomValue();
   const isResultCompact = useIsResultCompactAtomValue();
   const setIsResultCompact = useSetIsResultCompactWrite();
+  /* 결과 이미지 저장 — 시나리오 이름은 클릭 시점 스냅샷이라 이 훅은 아무 폼 원자도 구독하지 않는다. */
+  const {
+    isCapturing: isCapturingResult,
+    failure: resultCaptureFailure,
+    captureResult
+  } = useResultCapture();
   const includedProfiles = useIncludedProfilesAtomValue();
   /* 프리필이 활성 탭을 덮어도 되는지 판정할 때만 쓴다 — **제외된 티커도 지우면 안 되는 데이터**라
      includedProfiles가 아니라 전체 프로필을 본다. */
@@ -378,6 +385,13 @@ function MainRightPanelComponent({ configDrawerId }: MainRightPanelProps) {
         showCompactToggle={simulation !== null}
         isResultCompact={isResultCompact}
         onToggleCompact={setIsResultCompact}
+        captureAction={
+          <ResultCaptureButton
+            isCapturing={isCapturingResult}
+            failure={resultCaptureFailure}
+            onCapture={captureResult}
+          />
+        }
       >
         <ScenarioTabs
           tabs={tabs}

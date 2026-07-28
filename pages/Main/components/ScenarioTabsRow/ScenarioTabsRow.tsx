@@ -3,7 +3,7 @@ import type { ChangeEvent } from 'react';
 import { ToggleField } from '@/components';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import type { ScenarioTabsRowProps } from './ScenarioTabsRow.types';
-import { CompactToggleSlot, TabsRowRoot } from './ScenarioTabsRow.styled';
+import { CompactToggleSlot, RowActions, TabsRowRoot } from './ScenarioTabsRow.styled';
 
 /**
  * 결과 그리드 **위**의 컨트롤 줄. 시나리오 전환(탭)과 결과 밀도(간략히)는 둘 다 "그리드 전체에
@@ -13,7 +13,8 @@ function ScenarioTabsRowComponent({
   children,
   showCompactToggle,
   isResultCompact,
-  onToggleCompact
+  onToggleCompact,
+  captureAction
 }: ScenarioTabsRowProps) {
   const handleChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
@@ -29,15 +30,19 @@ function ScenarioTabsRowComponent({
   return (
     <TabsRowRoot>
       {children}
+      {/* 캡처 버튼도 "결과가 있을 때"만 의미가 있다 — 토글과 같은 조건으로 함께 서고 함께 사라진다. */}
       {showCompactToggle ? (
-        <CompactToggleSlot>
-          <ToggleField
-            label="간략히"
-            accessibleName="결과 간략히 보기"
-            checked={isResultCompact}
-            onChange={handleChange}
-          />
-        </CompactToggleSlot>
+        <RowActions>
+          {captureAction}
+          <CompactToggleSlot>
+            <ToggleField
+              label="간략히"
+              accessibleName="결과 간략히 보기"
+              checked={isResultCompact}
+              onChange={handleChange}
+            />
+          </CompactToggleSlot>
+        </RowActions>
       ) : null}
     </TabsRowRoot>
   );

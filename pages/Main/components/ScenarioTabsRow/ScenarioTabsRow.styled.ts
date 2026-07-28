@@ -22,7 +22,21 @@ export const TabsRowRoot = styled.div`
   }
 `;
 
+/**
+ * 탭 스트립 오른쪽의 액션 묶음 — [이미지 저장] [간략히] 순서다.
+ *
+ * 두 컨트롤을 한 덩어리로 묶는 이유: 밑줄 위에서 **같은 기준선**을 쓰고, 좁은 폭에서 줄바꿈될 때
+ * 둘이 함께 움직여야 하기 때문이다(따로 두면 토글만 아래로 떨어져 밑줄이 두 번 꺾인다).
+ */
+export const RowActions = styled.div`
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: ${space[2]};
+  /* 밑줄에서 띄우는 여백은 **묶음이** 갖는다 — 각자 가지면 둘의 기준선이 갈린다. */
+  padding-bottom: ${space[2]};
+`;
+
 export const CompactToggleSlot = styled.div`
   flex: 0 0 auto;
-  padding-bottom: ${space[2]};
 `;
