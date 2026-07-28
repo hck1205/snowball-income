@@ -8786,10 +8786,14 @@ var INK_LIGHT = {
   "accent-text": "#333333",
   "accent-subtle": "#ededed",
   "accent-border": "#cfcfcf",
-  "accent-alt": "#359f6d",
-  "accent-alt-text": "#1c763d",
-  "accent-alt-subtle": "#e9f4ef",
-  "accent-alt-border": "#aed9c5",
+  /**
+   * 🔴 knife-edge — 더 조정 금지. `accent`(#444444) 와의 ΔE 가 **16.37**(하한 15, 여유 1.37)이라
+   * `accent-alt` 를 조금이라도 밝히거나 어둡게 하면 `contrast.test.ts` 의 MIN_ACCENT_SEPARATION 이 즉시 깨진다.
+   */
+  "accent-alt": "#6b6b6b",
+  "accent-alt-text": "#4f4f4f",
+  "accent-alt-subtle": "#f0f0f0",
+  "accent-alt-border": "#d6d6d6",
   ...COMMON_LIGHT,
   overlay: "rgba(17, 17, 17, 0.5)",
   "focus-ring": "#1a1a1a",
@@ -8853,10 +8857,11 @@ var INK_DARK = {
   "accent-text": "#d4d4d4",
   "accent-subtle": "#262626",
   "accent-border": "#4d4d4d",
-  "accent-alt": "#7fd4a7",
-  "accent-alt-text": "#7fd4a7",
-  "accent-alt-subtle": "#13221a",
-  "accent-alt-border": "#28533c",
+  /** `accent`(#d4d4d4) 와의 ΔE 17.92 — 라이트만큼은 아니지만 여기도 무채 구간이라 여유가 넓지 않다. */
+  "accent-alt": "#a3a3a3",
+  "accent-alt-text": "#bfbfbf",
+  "accent-alt-subtle": "#232323",
+  "accent-alt-border": "#454545",
   ...COMMON_DARK,
   overlay: "rgba(0, 0, 0, 0.65)",
   "focus-ring": "#f2f2f2",
@@ -9035,11 +9040,21 @@ var media = {
 var font = {
   sans: "'Wanted Sans Variable', 'Wanted Sans', -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Segoe UI', Roboto, sans-serif",
   /**
-   * 헤딩·워드마크. Gmarket Sans 는 Light(300)·Medium(400)·Bold(700) 세 벌뿐이고 이 앱은 **Bold 한 벌만**
-   * 싣는다(헤딩 실측이 600/700/800 뿐 — tools/fonts/build.mjs 주석 참고). 그래서 display 로 그린 글자는
-   * 굵기를 무엇으로 요청하든 Bold 로 보인다. 위계는 굵기가 아니라 **크기**로 만들어라.
+   * 헤딩·워드마크.
+   *
+   * 1순위 `'Snowball Display'` 는 우리 자체 서브셋(`shared/styles/selfHostedFonts.css`)의 family 명이고
+   * **원본은 Gmarket Sans** 다 — CSS family 명만 앱 고유명으로 두어 OFL §3 Reserved Font Name 회색지대를
+   * 해소했다(2026-07-28). 파일명·저작권 고지·OFL 원문은 원본 그대로다(public/fonts/README.md).
+   *
+   * 원본은 Light(300)·Medium(400)·Bold(700) 세 벌뿐이고 이 앱은 **Bold 한 벌만** 싣는다(헤딩 실측이
+   * 600/700/800 뿐 — tools/fonts/build.mjs 주석 참고). 그래서 display 로 그린 글자는 굵기를 무엇으로
+   * 요청하든 Bold 로 보인다.
+   *
+   * **판단(2026-07-28 — 현 상태 수용)**: 위계는 굵기가 아니라 **크기**로 만든다. `weight` 를 600·700·800 중
+   * 무엇으로 적든 헤딩은 같은 굵기로 렌더되지만, 굵기 범위를 실제로 넓히려면 헤딩 일부를 `sans` 로
+   * 내려야 하고 그러면 같은 화면의 헤딩끼리 서체가 갈려 더 나쁘다. 헤딩 굵기를 "고쳐야 할 버그"로 보지 마라.
    */
-  display: "'Gmarket Sans', 'Wanted Sans Variable', 'Wanted Sans', -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif",
+  display: "'Snowball Display', 'Wanted Sans Variable', 'Wanted Sans', -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif",
   /**
    * 그 화면의 주인공 숫자 **한 곳**에만. 두 곳에 쓰면 위계가 죽는다(`StatTile.types.ts` hero 규칙과 동일).
    * 서브셋이 숫자·통화기호·단위 한글만 담고 있어 그 밖의 글자는 자동으로 sans 로 떨어진다(의도).
@@ -9051,13 +9066,16 @@ var font = {
    *
    * ⚠ Inter 에는 한글 글리프가 없다 — 표 안 "3종"·"미정" 같은 한글이 본문 서체로 폴백되게 순서를 고정한다.
    *
-   * ⚠ **`'Inter Variable'` 은 npm 패키지 이름이 아니라 우리 자체 서브셋(`shared/styles/selfHostedFonts.css`)의
-   * family 명이다.** `@fontsource-variable/inter` 를 설치해 import 하면 **같은 이름**으로 unicode-range 분할된
-   * 다른 `@font-face` 세트가 등록돼, CSS 순서에 따라 우리 서브셋(opsz 16 고정 · ₩ 포함 단일 파일)이 밀리고
-   * 최적화가 **조용히 무효화**된다 — tsc·테스트·대비 게이트 어느 것도 못 잡는 종류의 사고다. 그 패키지를
-   * 쓰고 싶어지면 서브셋 쪽 family 명을 먼저 바꿔라(tools/fonts/build.mjs).
+   * 1순위 `'Snowball Numeric'` 은 우리 자체 서브셋(`shared/styles/selfHostedFonts.css`)의 family 명이다
+   * (원본 Inter, opsz 16 고정 · ₩ 포함 단일 파일). 이름 충돌은 **해소 완료**(2026-07-28) — 예전 이름
+   * `'Inter Variable'` 은 npm `@fontsource-variable/inter` 가 등록하는 이름과 같아서, 누군가 그 패키지를
+   * 설치·import 하면 unicode-range 분할된 다른 `@font-face` 세트가 같은 이름으로 끼어들어 CSS 순서에 따라
+   * 우리 서브셋이 밀리고 최적화가 **조용히 무효화**됐다(tsc·테스트·대비 게이트 어느 것도 못 잡는 사고).
+   * 이름을 갈라 그 경로 자체를 없앴으니 family 명을 다시 원본 이름으로 되돌리지 마라.
+   *
+   * 2순위의 맨몸 `Inter` 는 **사용자 OS 에 설치된 Inter** 를 쓰는 폴백이라 충돌과 무관하다 — 유지한다.
    */
-  dataNumeric: "'Inter Variable', Inter, 'Wanted Sans Variable', 'Wanted Sans', -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif",
+  dataNumeric: "'Snowball Numeric', Inter, 'Wanted Sans Variable', 'Wanted Sans', -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif",
   size: FONT_SIZE_SCALE,
   weight: FONT_WEIGHT_SCALE,
   leading: LEADING_SCALE,
@@ -10493,7 +10511,8 @@ var globalStyles = css`
   }
 
   /*
-   * 헤딩은 display 서체(Gmarket Sans). **여기 한 곳에서만** 건다 — 페이지별 styled 파일이 각자
+   * 헤딩은 display 서체(원본은 Gmarket Sans / CSS family는 'Snowball Display').
+   * **여기 한 곳에서만** 건다 — 페이지별 styled 파일이 각자
    * font-family를 박기 시작하면 역할이 흩어져 서체 교체가 불가능해진다.
    * 굵기는 각 헤딩의 styled가 그대로 정한다(display 페이스가 한 벌이라 굵기 차이는 안 보인다 —
    * tokens.ts의 font.display 주석 참고. 위계는 크기로 만든다).
@@ -10752,7 +10771,7 @@ var TOUR_STEPS = [
     id: "open-settings",
     target: TOUR_TARGET.openSettings,
     title: "\uC124\uC815\uC740 \uC774 \uBC84\uD2BC \uC548\uC5D0 \uC788\uC5B4\uC694",
-    body: "\uD654\uBA74\uC774 \uC881\uC73C\uBA74 \uD2F0\uCEE4 \uC0DD\uC131\xB7\uD22C\uC790 \uC124\uC815\xB7\uC800\uC7A5/\uACF5\uC720\uAC00 \uC774 \uBC84\uD2BC \uB4A4\uB85C \uB4E4\uC5B4\uAC11\uB2C8\uB2E4. \uD22C\uC5B4\uB97C \uB9C8\uCE5C \uB4A4 \uB20C\uB7EC\uC11C \uC5F4\uC5B4\uBCF4\uC138\uC694.",
+    body: "\uC885\uBAA9 \uCD94\uAC00\xB7\uD22C\uC790 \uC870\uAC74\xB7\uACF5\uC720\uAC00 \uBAA8\uB450 \uC774 \uBC84\uD2BC \uB4A4\uC5D0 \uC788\uC2B5\uB2C8\uB2E4. \uD22C\uC5B4\uB97C \uB9C8\uCE5C \uB4A4 \uB20C\uB7EC\uC11C \uC5F4\uC5B4\uBCF4\uC138\uC694.",
     placement: "bottom"
   },
   {
@@ -10766,7 +10785,7 @@ var TOUR_STEPS = [
     id: "portfolio-presets",
     target: TOUR_TARGET.portfolioPresets,
     title: "\uCD94\uCC9C \uD3EC\uD2B8\uD3F4\uB9AC\uC624\uB85C \uC2DC\uC791\uD574\uB3C4 \uC88B\uC544\uC694",
-    body: "\uBB34\uC5C7\uBD80\uD130 \uD560\uC9C0 \uBAA8\uB974\uACA0\uB2E4\uBA74 \uCD94\uCC9C \uD3EC\uD2B8\uD3F4\uB9AC\uC624\uB97C \uD558\uB098 \uACE0\uB974\uC138\uC694. \uC885\uBAA9\uACFC \uBE44\uC911, \uD22C\uC790 \uC124\uC815\uC774 \uD55C \uBC88\uC5D0 \uCC44\uC6CC\uC9D1\uB2C8\uB2E4. \uCC44\uC6CC\uC9C4 \uAC12\uC740 \uC5B8\uC81C\uB4E0 \uC67C\uCABD\uC5D0\uC11C \uBC14\uAFC0 \uC218 \uC788\uC2B5\uB2C8\uB2E4.",
+    body: "\uBB34\uC5C7\uBD80\uD130 \uD560\uC9C0 \uBAA8\uB974\uACA0\uB2E4\uBA74 \uCD94\uCC9C \uD3EC\uD2B8\uD3F4\uB9AC\uC624\uB97C \uD558\uB098 \uACE0\uB974\uC138\uC694. \uC885\uBAA9\uACFC \uBE44\uC911, \uD22C\uC790 \uC124\uC815\uC774 \uD55C \uBC88\uC5D0 \uCC44\uC6CC\uC9D1\uB2C8\uB2E4. \uCC44\uC6CC\uC9C4 \uAC12\uC740 \uC5B8\uC81C\uB4E0 \uD22C\uC790 \uC124\uC815\uC5D0\uC11C \uBC14\uAFC0 \uC218 \uC788\uC2B5\uB2C8\uB2E4.",
     placement: "left"
   },
   {
@@ -10780,21 +10799,21 @@ var TOUR_STEPS = [
     id: "investment-settings",
     target: TOUR_TARGET.investmentSettings,
     title: "\uD22C\uC790 \uC124\uC815\uC744 \uB123\uC73C\uC138\uC694",
-    body: "\uCD08\uAE30 \uD22C\uC790\uAE08\xB7\uC6D4 \uD22C\uC790\uAE08\xB7\uD22C\uC790 \uAE30\uAC04\xB7\uC138\uC728\uC744 \uC785\uB825\uD569\uB2C8\uB2E4. \uBC30\uB2F9 \uC7AC\uD22C\uC790\uB97C \uCF1C\uBA74 \uBC1B\uC740 \uBC30\uB2F9\uC73C\uB85C \uC8FC\uC2DD\uC744 \uB2E4\uC2DC \uC0BD\uB2C8\uB2E4 \u2014 \uC774\uAC8C \uB208\uB369\uC774(\uC2A4\uB178\uC6B0\uBCFC)\uAC00 \uAD74\uB7EC\uAC00\uB294 \uC6D0\uB9AC\uC785\uB2C8\uB2E4.",
+    body: "\uCD08\uAE30 \uD22C\uC790\uAE08\xB7\uC6D4 \uD22C\uC790\uAE08\xB7\uD22C\uC790 \uAE30\uAC04\xB7\uC138\uC728\uC744 \uC785\uB825\uD569\uB2C8\uB2E4. \uBC30\uB2F9 \uC7AC\uD22C\uC790\uB97C \uCF1C\uBA74 \uBC1B\uC740 \uBC30\uB2F9\uC73C\uB85C \uC8FC\uC2DD\uC744 \uB2E4\uC2DC \uC0AC\uC11C \uBCF5\uB9AC\uAC00 \uBD99\uC2B5\uB2C8\uB2E4.",
     placement: "right"
   },
   {
     id: "simulation-result",
     target: TOUR_TARGET.simulationResult,
     title: "\uACB0\uACFC \uC77D\uB294 \uBC95",
-    body: '\uAE30\uAC04\uC774 \uB05D\uB0AC\uC744 \uB54C\uC758 \uCD5C\uC885 \uC790\uC0B0\uACFC \uC6D4 \uBC30\uB2F9\uC744 \uD655\uC778\uD569\uB2C8\uB2E4. \uC544\uB798 "\uC804\uB7C9 \uB9E4\uB3C4\uD55C\uB2E4\uBA74" \uBD80\uBD84\uC740 \uC2E4\uC81C\uB85C \uD314\uC558\uC744 \uB54C \uB0B4\uC57C \uD558\uB294 \uC591\uB3C4\uC138\uAE4C\uC9C0 \uBE7C\uC11C \uBCF4\uC5EC\uC90D\uB2C8\uB2E4.',
+    body: '\uAE30\uAC04\uC774 \uB05D\uB0AC\uC744 \uB54C\uC758 \uCD5C\uC885 \uC790\uC0B0\uACFC \uC6D4 \uBC30\uB2F9\uC744 \uD655\uC778\uD569\uB2C8\uB2E4. \uB9E8 \uC544\uB798 "\uC804\uB7C9 \uB9E4\uB3C4\uD55C\uB2E4\uBA74" \uCE74\uB4DC\uB294 \uC2E4\uC81C\uB85C \uD314\uC558\uC744 \uB54C \uB0B4\uC57C \uD558\uB294 \uC591\uB3C4\uC138\uAE4C\uC9C0 \uBE7C\uC11C \uBCF4\uC5EC\uC90D\uB2C8\uB2E4.',
     placement: "left"
   },
   {
     id: "quick-actions",
     target: TOUR_TARGET.quickActions,
     title: "\uC800\uC7A5\uD558\uACE0 \uACF5\uC720\uD558\uAE30",
-    body: "\uB9CC\uB4E0 \uC2DC\uB098\uB9AC\uC624\uB97C \uC774 \uBE0C\uB77C\uC6B0\uC800\uC5D0 \uC800\uC7A5\uD558\uAC70\uB098(Save), \uB9C1\uD06C\uB85C \uACF5\uC720\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4(Share). \uD654\uBA74 \uCEA1\uCC98\uC640 JSON \uD30C\uC77C \uB0B4\uBCF4\uB0B4\uAE30\uB3C4 \uC5EC\uAE30 \uC788\uC2B5\uB2C8\uB2E4.",
+    body: "\uB9CC\uB4E0 \uC2DC\uB098\uB9AC\uC624\uB97C \uB9C1\uD06C\uB85C \uACF5\uC720\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4. \uB9C1\uD06C\uB97C \uBC1B\uC740 \uC0AC\uB78C\uC740 \uAC19\uC740 \uC870\uAC74\uC73C\uB85C \uACB0\uACFC\uB97C \uB2E4\uC2DC \uBCFC \uC218 \uC788\uC2B5\uB2C8\uB2E4.",
     placement: "right"
   },
   {
