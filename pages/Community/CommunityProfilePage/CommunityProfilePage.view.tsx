@@ -10,6 +10,7 @@ import {
 import { SocialLoginButton } from '@/components/community/SocialLoginButton';
 import { NICKNAME_MAX_LENGTH } from '@/shared/lib/community';
 import { isNaverEnabled } from '@/shared/lib/supabase';
+import { CommunityTopBar } from '@/pages/Community/components';
 import type { CommunityProfileViewProps } from './CommunityProfilePage.types';
 import {
   Chevron,
@@ -81,6 +82,7 @@ export default function CommunityProfileView({ viewModel }: CommunityProfileView
 
   return (
     <ProfileMain>
+      <CommunityTopBar />
       <PageTitle>{p.title}</PageTitle>
 
       {/* ① 닉네임 카드 — 유일한 편집 대상 */}

@@ -61,13 +61,6 @@ export const DetailHeader = styled.header`
   border-bottom: 1px solid ${color.border};
 `;
 
-export const HeaderTopRow = styled.div`
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: ${space[3]};
-`;
-
 export const Title = styled.h1`
   margin: 0;
   color: ${color.text};
@@ -75,13 +68,6 @@ export const Title = styled.h1`
   font-weight: ${font.weight.bold};
   line-height: ${font.leading.tight};
   word-break: break-word;
-`;
-
-export const OwnerActions = styled.div`
-  display: inline-flex;
-  align-items: center;
-  gap: ${space[1]};
-  flex: 0 0 auto;
 `;
 
 export const MetaRow = styled.div`

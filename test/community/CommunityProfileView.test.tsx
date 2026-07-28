@@ -1,5 +1,7 @@
+import type { ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import userEvent from '@testing-library/user-event';
 import CommunityProfileView from '@/pages/Community/CommunityProfilePage/CommunityProfilePage.view';
 import type { CommunityProfileViewModel } from '@/pages/Community/CommunityProfilePage/CommunityProfilePage.types';
@@ -45,7 +47,13 @@ const makeVM = (over: Partial<CommunityProfileViewModel> = {}): CommunityProfile
   ...over
 });
 
-const renderView = (vm: CommunityProfileViewModel) => render(<CommunityProfileView viewModel={vm} />);
+/**
+ * 이 화면은 본문 첫 줄에 "← 목록"(`CommunityTopBar`)을 갖는다 — 라우터 훅을 쓰므로 라우터 안에서 렌더한다.
+ * 경로는 프로필(`/community/profile`)로 고정한다: 목록 화면이 아니어야 상단 바가 실제로 렌더된다.
+ */
+const inRouter = (node: ReactNode) => <MemoryRouter initialEntries={['/community/profile']}>{node}</MemoryRouter>;
+
+const renderView = (vm: CommunityProfileViewModel) => render(inRouter(<CommunityProfileView viewModel={vm} />));
 
 describe('CommunityProfileView — 게이트', () => {
   it('authReady 전에는 로딩을 보여준다', () => {
@@ -77,11 +85,13 @@ describe('CommunityProfileView — 닉네임 카드 / 이메일 미노출', () =
 
   it('중복 검사 상태를 화면에 알린다 — 확인 중 / 사용 가능', () => {
     const { rerender } = render(
-      <CommunityProfileView viewModel={makeVM({ nickname: nickname({ availability: 'checking' }) })} />
+      inRouter(<CommunityProfileView viewModel={makeVM({ nickname: nickname({ availability: 'checking' }) })} />)
     );
     expect(screen.getByText(p.nicknameChecking)).toBeInTheDocument();
 
-    rerender(<CommunityProfileView viewModel={makeVM({ nickname: nickname({ availability: 'available' }) })} />);
+    rerender(
+      inRouter(<CommunityProfileView viewModel={makeVM({ nickname: nickname({ availability: 'available' }) })} />)
+    );
     expect(screen.getByText(p.nicknameAvailable)).toBeInTheDocument();
   });
 

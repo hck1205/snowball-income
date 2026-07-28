@@ -2,7 +2,6 @@ import { Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
 import { CommunityAuthProvider, CommunityHeader } from '@/components/community';
 import { CommunityMain, LayoutRoot, SkipLink } from './CommunityLayout.styled';
-import { BackToList } from './components/BackToList';
 import { KakaoLoginErrorBanner } from './components/KakaoLoginErrorBanner';
 import { NaverLoginErrorBanner } from './components/NaverLoginErrorBanner';
 
@@ -25,8 +24,6 @@ export default function CommunityLayout() {
         <SkipLink href="#main-content">본문으로 건너뛰기</SkipLink>
         <CommunityHeader />
         <CommunityMain id="main-content">
-          {/* "← 목록"은 헤더가 아니라 본문 첫 줄이다(2026-07-28 사용자 결정) — 목록 화면에서는 렌더되지 않는다. */}
-          <BackToList />
           {/* 소셜 로그인 커스텀 콜백 실패 표면화 — 어느 커뮤니티 페이지로 착지하든 보인다. */}
           <NaverLoginErrorBanner />
           <KakaoLoginErrorBanner />
