@@ -10584,6 +10584,8 @@ var globalStyles = css`
 `;
 
 // shared/styles/headerSurface.ts
+var APP_HEADER_HEIGHT_VAR = "--sb-app-header-h";
+var appHeaderHeight = `var(${APP_HEADER_HEIGHT_VAR}, 88px)`;
 var headerSolidSurface = `
   background: linear-gradient(180deg, ${color.brandSubtle}, ${color.surfaceGlassFallback} 68%);
   box-shadow: ${shadow.e1};
@@ -10617,9 +10619,12 @@ var headerControlsGrid = `
 `;
 
 // shared/styles/heroTitleRow.ts
-var heroTitleFontSize = `clamp(${font.size["2xl"]}, 4vw, ${font.size["4xl"]})`;
+var heroTitleFontSize = `clamp(${font.size["2xl"]}, calc(0.9rem + 1.8vw), ${font.size["4xl"]})`;
+var sectionTitleFontSize = `clamp(${font.size.lg}, calc(0.86rem + 0.56vw), ${font.size.xl})`;
+var ICON_OPTICAL_SHIFT = 0.1;
 var heroIconOpticalAlign = `
-  transform: translateY(calc(${heroTitleFontSize} * -0.1));
+  flex: 0 0 auto;
+  transform: translateY(calc(${heroTitleFontSize} * -${ICON_OPTICAL_SHIFT}));
 `;
 
 // shared/styles/chartTheme.ts
