@@ -4,7 +4,7 @@ import type { MouseEventHandler, ReactNode } from 'react';
  * 칩의 색 계열(§4.6 공용 배지 규칙).
  *  - neutral:   기본. 선택 여부만 색으로 말한다(선택=brand — 기존 학습 보존).
  *  - accent:    성장·달성·증가 계열 정보 배지 (오로라 teal 틴트).
- *  - accentAlt: 목표·추천·하이라이트 계열 정보 배지 (오로라 violet 틴트).
+ *  - accentAlt: 목표·추천·프로모 계열 정보 배지 (오로라 green 틴트).
  * **부호 있는 숫자에는 쓰지 마라** — 숫자의 색은 up/down(tone) 어휘 소유다.
  */
 export type ChipVariant = 'neutral' | 'accent' | 'accentAlt';

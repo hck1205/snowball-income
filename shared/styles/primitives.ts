@@ -70,7 +70,13 @@ const auroraTeal = {
 } as const;
 
 /**
- * 오로라 violet — 목표·하이라이트의 크롬 색. hue ~243. (신규)
+ * 오로라 violet — **리본/CTA stop-3 전용**. hue ~243.
+ *
+ * 구 accent-alt(목표·추천·하이라이트) 역할은 2026-07-28 아이덴티티 패스에서
+ * `auroraGreen`으로 이관됐다. 이 램프는 aurora 프리셋의 시그니처 리본
+ * (`ribbon-stop-3`)과 CTA(`cta-stop-3`)가 계속 소비하므로 **삭제하지 마라**
+ * (그 두 계열은 대비 하한이 걸려 있고 교차 사용이 금지돼 있다).
+ * 50/200/300/800/900 슬롯은 구 accent-alt 시절의 값이 그대로 남아 있다 — 참조 이력용.
  *
  * 차트 시리즈 4의 보라(#8b6fc9)와는 별개 — 시리즈 팔레트는 불변이다.
  * auroraTeal과 마찬가지로 크롬 전용, 숫자 데이터에 금지.
@@ -96,6 +102,35 @@ const auroraViolet = {
   800: '#454e8f',
   /** 다크 accent-alt-subtle — text 위 11.93:1 */
   900: '#232a4d'
+} as const;
+
+/**
+ * 오로라 green — 목표·추천·프로모의 크롬 색. hue ~150. (신규, 구 auroraViolet 역할 대체)
+ *
+ * 확정 아이덴티티(2026-07-27)의 "세컨더리 액센트 = 틸/그린 축" 한쪽 끝이다.
+ * 600/400 은 워드마크 "인컴"의 끝 stop 과 **같은 값**이다 — 브랜드 색과 액센트가 한 시스템이라는 뜻.
+ * auroraTeal 과 마찬가지로 **크롬 전용, 숫자 데이터에 금지**.
+ *
+ * ⚠ 700(텍스트 슬롯)은 600 과 hue 가 10° 다르다. 의도된 것이다:
+ *   ① 어두운 그린은 지각적으로 청록 쪽으로 밀린다(Abney/Bezold–Brücke) — 그린 쪽으로 틀어야 같은 계열로 읽힌다.
+ *   ② 공통 `success`(#0f7a52, hue≈158)와 붙어 있는 화면이 있다 — 여기서 갈라놓지 않으면 두 배지가 같은 색이 된다.
+ *      hue 145 에서 ΔE 11.9, hue 158 이면 ΔE 2.8(=사실상 동일).
+ */
+const auroraGreen = {
+  /** 라이트 accent-alt-subtle — text 위 14.71:1 */
+  50: '#e7f5ef',
+  /** 라이트 accent-alt-border(장식) — surface 위 1.57:1 */
+  200: '#a7d9c4',
+  /** 다크 accent-alt(표시)·accent-alt-text — 다크 서피스 10.69:1. 워드마크 다크 "인컴" 끝 stop */
+  400: '#6ee7a0',
+  /** 라이트 accent-alt(표시) — 라이트 surface 3.32:1(비텍스트). 워드마크 라이트 "인컴" 끝 stop */
+  600: '#22a06b',
+  /** 라이트 accent-alt-text — 흰 배경 5.71:1, accent-alt-subtle 위 5.09:1 */
+  700: '#0f763a',
+  /** 다크 accent-alt-border(장식) */
+  800: '#265441',
+  /** 다크 accent-alt-subtle — text 위 13.88:1 */
+  900: '#102422'
 } as const;
 
 /**
@@ -184,7 +219,18 @@ const danger = {
   dark: '#f0776a'
 } as const;
 
-export const palette = { brand, auroraTeal, auroraViolet, neutral, up, down, positive, warning, danger } as const;
+export const palette = {
+  brand,
+  auroraTeal,
+  auroraViolet,
+  auroraGreen,
+  neutral,
+  up,
+  down,
+  positive,
+  warning,
+  danger
+} as const;
 
 /* -------------------------------------------------------------------------- */
 /* 스케일                                                                       */
@@ -241,7 +287,7 @@ export const FONT_WEIGHT_SCALE = {
   medium: 500,
   semibold: 600,
   bold: 700,
-  /** hero 지표 값 전용. Pretendard Variable이 800을 지원한다. */
+  /** hero 지표 값 전용. 본문 서체(Wanted Sans Variable)가 400~1000 가변이라 800을 지원한다. */
   extrabold: 800
 } as const;
 

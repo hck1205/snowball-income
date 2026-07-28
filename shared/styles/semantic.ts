@@ -60,7 +60,10 @@ export const color = {
   brandText: 'var(--sb-brand-text)',
   onBrand: 'var(--sb-on-brand)',
 
-  /* 오로라 액센트 — 크롬 전용. 숫자 데이터에 금지(숫자는 dataPositive/dataNegative만). */
+  /*
+   * 오로라 액센트 — 크롬 전용. 숫자 데이터에 금지(숫자는 dataPositive/dataNegative만).
+   * accent(틸) = 성장·복리·달성 / accent-alt(그린) = 목표·추천·프로모.
+   */
   accent: 'var(--sb-accent)',
   accentText: 'var(--sb-accent-text)',
   accentSubtle: 'var(--sb-accent-subtle)',
@@ -70,9 +73,24 @@ export const color = {
   accentAltSubtle: 'var(--sb-accent-alt-subtle)',
   accentAltBorder: 'var(--sb-accent-alt-border)',
 
+  /*
+   * 워드마크("스노우볼 인컴") — 전 프리셋 공통. `background-clip: text` 전용이고
+   * solid 는 그 폴백(@supports 미지원·forced-colors·print)이다. 다른 용도로 쓰지 마라.
+   */
+  gradientWordmarkSnow: 'var(--sb-gradient-wordmark-snow)',
+  gradientWordmarkIncome: 'var(--sb-gradient-wordmark-income)',
+  wordmarkSnowSolid: 'var(--sb-wordmark-snow-solid)',
+  wordmarkIncomeSolid: 'var(--sb-wordmark-income-solid)',
+
   /* 오로라 시그니처 — 그라데이션·글로우·글래스 (CSS 값 전체 문자열) */
   gradientAurora: 'var(--sb-gradient-aurora)',
   gradientCta: 'var(--sb-gradient-cta)',
+  /*
+   * 파스텔 히어로 — **면 배경 전용**(PageHero·EmptyState·프로모 카드). 버튼·리본에 금지.
+   * gradientCta(버튼 채움) / gradientAurora(리본·장식)와 교차 사용하지 않는 세 번째 계열이다.
+   */
+  gradientHero: 'var(--sb-gradient-hero)',
+  gradientHeroSoft: 'var(--sb-gradient-hero-soft)',
   bgGlow: 'var(--sb-bg-glow)',
   surfaceGlass: 'var(--sb-surface-glass)',
   surfaceGlassFallback: 'var(--sb-surface-glass-fallback)',

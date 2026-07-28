@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { CHART_SERIES } from './tokens';
 import { THEME_PRESETS } from './presets';
-import { compositeOver, contrastRatio, deltaE, roundRatio } from './contrast';
+import { compositeOver, contrastRatio, deltaE, hexToRgb, roundRatio } from './contrast';
 import type { ThemeTokens } from './semantic';
 
 /**
@@ -48,6 +48,57 @@ const THEMES: ReadonlyArray<[string, ThemeTokens]> = PRESETS.flatMap(
 const chartSeriesOf = (tokens: ThemeTokens): string[] =>
   Array.from({ length: 8 }, (_, index) => tokens[`chart-series-${index}`]);
 
+/* -------------------------------------------------------------------------- */
+/* 그라데이션 문자열 검증                                                        */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * `linear-gradient(...)` 문자열에서 hex stop을 선언 순서대로 뽑는다.
+ *
+ * ⚠ 스칼라 stop 토큰을 **따로 두지 않는 이유**: 그러면 CSS 변수가 6개 → 14개로 늘고,
+ * 무엇보다 "실제로 배포되는 문자열"이 아니라 그 옆의 사본을 검사하게 된다.
+ * 여기서는 gradient-aurora/cta 처럼 스칼라를 병기하지 않고 **배포되는 값 자체**를 판다.
+ */
+const parseGradientStops = (token: string): string[] => token.match(/#[0-9a-fA-F]{6}/g) ?? [];
+
+/** sRGB 선형 보간. CSS 그라데이션의 기본 보간 공간과 같다(`in oklab` 미지정 시). */
+const mixSrgb = (a: string, b: string, t: number): string => {
+  const from = hexToRgb(a);
+  const to = hexToRgb(b);
+  const channel = (f: number, g: number): string =>
+    Math.round(f + (g - f) * t)
+      .toString(16)
+      .padStart(2, '0');
+
+  return `#${channel(from.r, to.r)}${channel(from.g, to.g)}${channel(from.b, to.b)}`;
+};
+
+/**
+ * 그라데이션 위 전경색의 **최악 지점** 대비.
+ *
+ * 끝점만 재면 안 된다 — sRGB 보간의 중간 지점 휘도는 두 끝점 사이에 갇히지 않는다
+ * (채널별 선형 보간 + 채널 감마의 볼록성 때문에 색상이 다른 두 stop 사이에서 아래로 처질 수 있다).
+ * 그래서 인접 stop 쌍마다 여러 지점을 샘플링해 최솟값을 취한다.
+ */
+const worstGradientRatio = (foreground: string, gradient: string, samples = 9): number => {
+  const stops = parseGradientStops(gradient);
+  if (stops.length === 0) throw new Error(`그라데이션에서 hex stop을 못 찾았습니다: ${gradient}`);
+  if (stops.length === 1) return contrastRatio(foreground, stops[0]);
+
+  let worst = Number.POSITIVE_INFINITY;
+
+  stops.slice(0, -1).forEach((stop, index) => {
+    const next = stops[index + 1];
+
+    for (let sample = 0; sample < samples; sample += 1) {
+      const ratio = contrastRatio(foreground, mixSrgb(stop, next, sample / (samples - 1)));
+      if (ratio < worst) worst = ratio;
+    }
+  });
+
+  return worst;
+};
+
 /** 각 서피스 위에 올라가는 본문 텍스트 조합. */
 const TEXT_ON_SURFACE: ReadonlyArray<[string, string]> = [
   ['text', 'bg'],
@@ -80,7 +131,7 @@ const TEXT_ON_SURFACE: ReadonlyArray<[string, string]> = [
   ['data-positive', 'surface-muted'],
   ['data-negative', 'surface'],
   ['data-negative', 'surface-muted'],
-  // 액센트 텍스트 (프리셋별 크롬 — aurora teal/violet, velog 틸/회색, vivid 민트/퍼플, navy-gold 골드/버건디)
+  // 액센트 텍스트 (accent = 프리셋별 틸/민트/골드… , accent-alt = 전 프리셋 그린 축)
   ['accent-text', 'surface'],
   ['accent-text', 'accent-subtle'],
   ['text', 'accent-subtle'],
@@ -119,8 +170,97 @@ const NON_TEXT: ReadonlyArray<[string, string]> = [
   ['ribbon-stop-3', 'progress-track']
 ];
 
+/** 파스텔 히어로 면 — 이 위에 본문 3단 위계가 그대로 올라간다(PageHero·EmptyState·프로모 카드). */
+const HERO_GRADIENTS = ['gradient-hero', 'gradient-hero-soft'] as const;
+const HERO_TEXTS = ['text', 'text-secondary', 'text-muted'] as const;
+
+/**
+ * 두 액센트(teal ↔ green)가 하나로 뭉치지 않는 최소 지각 거리.
+ * 대비비로는 잴 수 없는 축이다(contrast.ts의 ΔE 주석 참조).
+ * 실측 최저 16.0(velog/dark) — 여유 1.0을 남긴 값으로 못 박는다.
+ */
+const MIN_ACCENT_SEPARATION = 15;
+
+/**
+ * 워드마크 회귀 플로어 (**AA가 아니다**).
+ *
+ * ⚠ WCAG 2.1 SC 1.4.3은 **로고·브랜드명 텍스트를 명시적으로 면제**한다
+ *   ("Text that is part of a logo or brand name has no contrast requirement").
+ *   그래서 여기서 4.5:1을 요구하지 않는다 — 요구하면 사용자 확정 hex가 CI에서 떨어진다.
+ * 대신 **확정값의 실측 최저치를 플로어로** 잡아, 헤더 표면(brand-subtle)이나 워드마크 토큰을
+ * 바꿔 지금보다 **더 묻히게 만드는** 변경을 잡는다.
+ * 실측 최저: 라이트 첫 stop 2.28 / 끝 stop 1.56(둘 다 ink), 다크 6.97(velog), 단색 폴백 2.28 / 3.57.
+ */
+const WORDMARK_FLOOR = {
+  light: { firstStop: 2.2, anyStop: 1.5, solid: 2.2 },
+  dark: { firstStop: 6.9, anyStop: 6.9, solid: 3.5 }
+} as const;
+
+const WORDMARK_GRADIENTS = ['gradient-wordmark-snow', 'gradient-wordmark-income'] as const;
+const WORDMARK_SOLIDS = ['wordmark-snow-solid', 'wordmark-income-solid'] as const;
+
+/** 테마 이름 `${presetId}/${mode}` 에서 모드만. */
+const modeOf = (themeName: string): 'light' | 'dark' => (themeName.endsWith('/dark') ? 'dark' : 'light');
+
+/* -------------------------------------------------------------------------- */
+/* 게이트 헬퍼 자체 검증 (vacuity 방지)                                          */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * 🔴 **게이트가 헬퍼 때문에 조용히 무력화되는 것**을 막는다.
+ *
+ * 실측(QA 뮤테이션): `parseGradientStops` 가 stop 을 **하나만** 돌려주도록 망가뜨려도
+ * 아래 히어로·워드마크 게이트 1,129건이 **한 건도 실패하지 않았다**(끝 stop·중간 지점이
+ * 검사 대상에서 통째로 빠지는데도). 게이트가 "무엇을 실제로 보고 있는지"를 여기서 못 박아,
+ * 헬퍼가 약해지면 토큰이 아니라 **헬퍼 쪽에서** 빨개지게 한다.
+ */
+describe('그라데이션 게이트 헬퍼', () => {
+  it('parseGradientStops 는 선언된 stop 을 전부·선언 순서대로 뽑는다', () => {
+    expect(parseGradientStops('linear-gradient(100deg, #112233 0%, #445566 100%)')).toEqual([
+      '#112233',
+      '#445566'
+    ]);
+    expect(parseGradientStops('linear-gradient(135deg, #aabbcc 0%, #ddeeff 50%, #010203 100%)')).toEqual([
+      '#aabbcc',
+      '#ddeeff',
+      '#010203'
+    ]);
+  });
+
+  it('parseGradientStops 는 hex 가 없으면 빈 배열이다 (게이트가 throw 로 알아채도록)', () => {
+    expect(parseGradientStops('linear-gradient(90deg, red 0%, blue 100%)')).toEqual([]);
+    expect(() => worstGradientRatio('#ffffff', 'linear-gradient(90deg, red, blue)')).toThrow();
+  });
+
+  /**
+   * 끝점만 재면 놓치는 구간이 실제로 존재한다는 증거.
+   *
+   * 어두운 전경에서는 **배경이 어두워질수록** 대비가 나빠진다. 그런데 sRGB 채널을 선형 보간하면
+   * 감마 디코딩이 볼록(convex)이라 중간 지점의 휘도가 **두 끝점 모두보다 낮아질 수 있다**
+   * (#ff0000 L=0.2126 · #0000ff L=0.0722 · 중간 #800080 L≈0.061). 그래서 끝점만 재는 구현은
+   * 이 구간을 통째로 놓친다 — 아래 단정이 그 차이를 고정한다.
+   */
+  it('worstGradientRatio 는 끝점이 아니라 경로 전체의 최악 지점을 잡는다', () => {
+    const foreground = '#000000';
+    const gradient = 'linear-gradient(90deg, #ff0000 0%, #0000ff 100%)';
+
+    const endpointsOnly = Math.min(contrastRatio(foreground, '#ff0000'), contrastRatio(foreground, '#0000ff'));
+    const worst = worstGradientRatio(foreground, gradient);
+
+    // 중간 지점이 두 끝점 중 어느 쪽보다도 나쁘다 — 그래서 샘플링이 필요하다.
+    expect(worst).toBeLessThan(endpointsOnly);
+  });
+
+  it('worstGradientRatio 는 stop 이 하나뿐이면 그 색의 대비를 그대로 쓴다', () => {
+    expect(worstGradientRatio('#ffffff', 'linear-gradient(90deg, #000000 0%)')).toBeCloseTo(
+      contrastRatio('#ffffff', '#000000'),
+      5
+    );
+  });
+});
+
 describe('디자인 토큰 대비 (WCAG AA)', () => {
-  describe.each(THEMES)('%s 테마', (_themeName, theme) => {
+  describe.each(THEMES)('%s 테마', (themeName, theme) => {
     it.each(TEXT_ON_SURFACE)('본문 %s on %s ≥ 4.5:1', (fg, bg) => {
       const ratio = roundRatio(contrastRatio(theme[fg], theme[bg]));
 
@@ -138,6 +278,58 @@ describe('디자인 토큰 대비 (WCAG AA)', () => {
       const ratio = contrastRatio(theme.border, theme.surface);
 
       expect(ratio).toBeGreaterThan(1.05);
+    });
+
+    /**
+     * 히어로 면은 **그라데이션 문자열**이라 위 쌍 순회로는 못 잰다.
+     * 끝점이 아니라 경로 전체를 샘플링해 **최악 지점**을 본다(worstGradientRatio 주석 참조).
+     */
+    it.each(HERO_GRADIENTS.flatMap((gradient) => HERO_TEXTS.map((text) => [gradient, text] as const)))(
+      '히어로 면 %s 위 %s ≥ 4.5:1 (그라데이션 최악 지점)',
+      (gradientKey, textKey) => {
+        const ratio = roundRatio(worstGradientRatio(theme[textKey], theme[gradientKey]));
+
+        expect(
+          ratio,
+          `${textKey}(${theme[textKey]}) on ${gradientKey}(${theme[gradientKey]}) 최악 = ${ratio}:1`
+        ).toBeGreaterThanOrEqual(AA_TEXT);
+      }
+    );
+
+    it('accent 와 accent-alt 는 지각적으로 갈린다 (ΔE ≥ 15)', () => {
+      const distance = deltaE(theme.accent, theme['accent-alt']);
+
+      expect(
+        distance,
+        `accent(${theme.accent}) vs accent-alt(${theme['accent-alt']}) = ΔE ${distance.toFixed(1)}`
+      ).toBeGreaterThanOrEqual(MIN_ACCENT_SEPARATION);
+    });
+
+    it.each(WORDMARK_GRADIENTS)('워드마크 %s 는 헤더 표면(brand-subtle) 위에서 회귀 플로어를 지킨다', (key) => {
+      const floor = WORDMARK_FLOOR[modeOf(themeName)];
+      const stops = parseGradientStops(theme[key]);
+
+      expect(stops.length, `${key} 에서 hex stop 을 못 찾았다: ${theme[key]}`).toBeGreaterThan(0);
+
+      stops.forEach((stop, index) => {
+        const ratio = roundRatio(contrastRatio(stop, theme['brand-subtle']));
+        const minimum = index === 0 ? floor.firstStop : floor.anyStop;
+
+        expect(
+          ratio,
+          `${key} stop${index}(${stop}) on brand-subtle(${theme['brand-subtle']}) = ${ratio}:1 (플로어 ${minimum})`
+        ).toBeGreaterThanOrEqual(minimum);
+      });
+    });
+
+    it.each(WORDMARK_SOLIDS)('워드마크 단색 폴백 %s 도 헤더 표면 위에서 플로어를 지킨다', (key) => {
+      const floor = WORDMARK_FLOOR[modeOf(themeName)];
+      const ratio = roundRatio(contrastRatio(theme[key], theme['brand-subtle']));
+
+      expect(
+        ratio,
+        `${key}(${theme[key]}) on brand-subtle(${theme['brand-subtle']}) = ${ratio}:1 (플로어 ${floor.solid})`
+      ).toBeGreaterThanOrEqual(floor.solid);
     });
   });
 

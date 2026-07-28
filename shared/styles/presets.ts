@@ -24,7 +24,7 @@ import type { PalettePresetId } from '@/shared/constants/palette';
 import { palette } from './primitives';
 import type { ThemeTokens } from './semantic';
 
-const { brand, auroraTeal, auroraViolet, neutral, up, down, positive, warning, danger } = palette;
+const { brand, auroraTeal, auroraViolet, auroraGreen, neutral, up, down, positive, warning, danger } = palette;
 
 export type ThemePreset = {
   /** 스위처에 노출되는 한국어 이름 */
@@ -36,8 +36,79 @@ export type ThemePreset = {
 };
 
 /* -------------------------------------------------------------------------- */
+/* 그라데이션 조립 — 스칼라 stop이 진실 공급원                                     */
+/* -------------------------------------------------------------------------- */
+
+/*
+ * ⚠ 이 블록은 아래 COMMON_* 보다 **먼저** 와야 한다 — `const` 는 호이스팅되지 않아
+ * (TDZ) 워드마크 토큰이 빌더보다 위에 있으면 모듈 평가 시 ReferenceError 로 죽는다.
+ */
+
+type GradientStops = readonly [string, string, string];
+
+/** 표시용 시그니처 리본 — hero 액센트 바, 진행률 채움, 탭 인디케이터, BrandMark. 서피스 대비 3:1 기준. */
+const buildAuroraGradient = ([stop1, stop2, stop3]: GradientStops): string =>
+  `linear-gradient(135deg, ${stop1} 0%, ${stop2} 52%, ${stop3} 100%)`;
+
+/** CTA 리본 — primary 버튼 채움. 모든 stop이 흰 라벨 ≥ 4.5:1 기준. */
+const buildCtaGradient = ([stop1, stop2, stop3]: GradientStops): string =>
+  `linear-gradient(135deg, ${stop1} 0%, ${stop2} 55%, ${stop3} 100%)`;
+
+/** duotone — velog·navy-gold처럼 그라데이션이 "거의 안 보이는" 프리셋의 시그니처. */
+const buildDuotoneGradient = (from: string, to: string): string =>
+  `linear-gradient(135deg, ${from} 0%, ${to} 100%)`;
+
+/**
+ * 워드마크 텍스트 그라데이션 — `background-clip: text` 전용. 글자가 가로로 흐르므로 각도를 눕힌다.
+ *
+ * 라이트 헤더 표면(brand-subtle) 위 실측은 stop-1 2.28~2.61 / stop-2 1.56~1.79 로 얇다.
+ * WCAG 2.1 SC 1.4.3은 로고·브랜드명 텍스트를 명시적으로 면제하므로 **실패가 아니지만**,
+ * 소비 컴포넌트에서 더 옅어 보이면 **hex를 바꾸지 말고** 끝 stop 위치를 100% 밖(예: 135%)으로
+ * 밀어 렌더되는 최연색만 제한하라(선언 hex 불변 → 회귀 플로어 테스트도 그대로 통과한다).
+ */
+const buildWordmarkGradient = (from: string, to: string): string =>
+  `linear-gradient(100deg, ${from} 0%, ${to} 100%)`;
+
+/**
+ * 파스텔 히어로 면 — PageHero 배경·EmptyState 카드·프로모/CTA 카드 **전용**. 콘텐츠 카드 금지.
+ *
+ * `gradient-cta`(버튼 채움) ↔ `gradient-aurora`(리본·장식) 교차 금지 규칙은 그대로이고,
+ * 이 계열은 **면 배경 전용의 세 번째 계열**이다 — 버튼·리본에 쓰면 안 된다.
+ * stop은 임의의 파스텔이 아니라 각 프리셋의 surface(라이트)·bg(다크)에
+ * 쿨 캐스트(blue 205° / teal-green 158°)를 섞어 파생한 값이다.
+ */
+const buildHeroGradient = (from: string, to: string): string =>
+  `linear-gradient(135deg, ${from} 0%, ${to} 100%)`;
+
+/* -------------------------------------------------------------------------- */
 /* 전 프리셋 공통 토큰 — 데이터·상태 어휘 (변경 금지)                              */
 /* -------------------------------------------------------------------------- */
+
+/**
+ * 워드마크("스노우볼 인컴")도 **전 프리셋 공통**이다 — 프리셋은 사용자가 고르는 피부고
+ * 워드마크는 제품의 이름이라, 스킨을 따라 색이 바뀌면 안 된다. 더 실제적인 이유:
+ * OG 이미지·파비콘·webmanifest는 `data-palette`를 모르는 표면이라 프리셋별로 갈리면
+ * **어떤 값을 구울지 결정 불가**가 된다.
+ *
+ * 2색 구성: "스노우볼" = 브랜드 램프(아이스블루), "인컴" = 틸→그린(액센트 축).
+ * 단색 폴백(`wordmark-*-solid`)은 **라이트/다크 동일 1쌍** — 다크 헤더 위에서도
+ * 3.57~5.14:1로 살아 있어 테마별로 가를 이유가 없고, 표면마다 브랜드 색이 갈리지 않는다.
+ * 소비처에서 `background-clip: text`를 쓸 때 폴백(@supports·forced-colors·print)을 반드시 깔 것.
+ */
+const WORDMARK_LIGHT: ThemeTokens = {
+  'gradient-wordmark-snow': buildWordmarkGradient(brand[400], brand[300]),
+  'gradient-wordmark-income': buildWordmarkGradient(auroraTeal[600], auroraGreen[600]),
+  'wordmark-snow-solid': brand[400],
+  'wordmark-income-solid': auroraTeal[600]
+};
+
+const WORDMARK_DARK: ThemeTokens = {
+  'gradient-wordmark-snow': buildWordmarkGradient(brand[300], brand[200]),
+  'gradient-wordmark-income': buildWordmarkGradient(auroraTeal[400], auroraGreen[400]),
+  /* 단색 폴백은 라이트와 동일 값 — 위 주석 참조 */
+  'wordmark-snow-solid': brand[400],
+  'wordmark-income-solid': auroraTeal[600]
+};
 
 /**
  * up/down(상승 적색/하락 청색)·success/warning/danger는 **전 프리셋 공통 동일값**이다.
@@ -58,7 +129,9 @@ const COMMON_LIGHT: ThemeTokens = {
   'warning-surface': warning.soft,
   danger: danger.light,
   'danger-surface': danger.soft,
-  'danger-border': danger.softBorder
+  'danger-border': danger.softBorder,
+
+  ...WORDMARK_LIGHT
 };
 
 const COMMON_DARK: ThemeTokens = {
@@ -72,7 +145,9 @@ const COMMON_DARK: ThemeTokens = {
   'warning-surface': warning.softDark,
   danger: danger.dark,
   'danger-surface': danger.softDark,
-  'danger-border': danger.softDarkBorder
+  'danger-border': danger.softDarkBorder,
+
+  ...WORDMARK_DARK
 };
 
 /* -------------------------------------------------------------------------- */
@@ -198,24 +273,6 @@ const GRAPE_CHART_SERIES: ChartSeries = [
  */
 
 /* -------------------------------------------------------------------------- */
-/* 그라데이션 조립 — 스칼라 stop이 진실 공급원                                     */
-/* -------------------------------------------------------------------------- */
-
-type GradientStops = readonly [string, string, string];
-
-/** 표시용 시그니처 리본 — hero 액센트 바, 진행률 채움, 탭 인디케이터, BrandMark. 서피스 대비 3:1 기준. */
-const buildAuroraGradient = ([stop1, stop2, stop3]: GradientStops): string =>
-  `linear-gradient(135deg, ${stop1} 0%, ${stop2} 52%, ${stop3} 100%)`;
-
-/** CTA 리본 — primary 버튼 채움. 모든 stop이 흰 라벨 ≥ 4.5:1 기준. */
-const buildCtaGradient = ([stop1, stop2, stop3]: GradientStops): string =>
-  `linear-gradient(135deg, ${stop1} 0%, ${stop2} 55%, ${stop3} 100%)`;
-
-/** duotone — velog·navy-gold처럼 그라데이션이 "거의 안 보이는" 프리셋의 시그니처. */
-const buildDuotoneGradient = (from: string, to: string): string =>
-  `linear-gradient(135deg, ${from} 0%, ${to} 100%)`;
-
-/* -------------------------------------------------------------------------- */
 /* aurora — 기존 LIGHT_THEME/DARK_THEME 값 그대로 이동 (단 한 값도 재설계 없음)     */
 /* -------------------------------------------------------------------------- */
 
@@ -267,16 +324,17 @@ const AURORA_LIGHT: ThemeTokens = {
 
   /*
    * 오로라 액센트 — 크롬 전용. **숫자 데이터에 금지** (숫자는 up/down 램프만).
-   * accent(teal) = 성장·복리·달성 / accent-alt(violet) = 목표·추천·하이라이트.
+   * accent(teal) = 성장·복리·달성 / accent-alt(green) = 목표·추천·프로모.
+   * 두 액센트는 같은 틸/그린 축의 양 끝이라 ΔE 15 이상으로 벌려 둔다(contrast.test가 강제).
    */
   accent: auroraTeal[600],
   'accent-text': auroraTeal[700],
   'accent-subtle': auroraTeal[50],
   'accent-border': auroraTeal[200],
-  'accent-alt': auroraViolet[500],
-  'accent-alt-text': auroraViolet[700],
-  'accent-alt-subtle': auroraViolet[50],
-  'accent-alt-border': auroraViolet[200],
+  'accent-alt': auroraGreen[600],
+  'accent-alt-text': auroraGreen[700],
+  'accent-alt-subtle': auroraGreen[50],
+  'accent-alt-border': auroraGreen[200],
 
   ...COMMON_LIGHT,
 
@@ -303,6 +361,9 @@ const AURORA_LIGHT: ThemeTokens = {
   /* 시그니처 — CSS 값 문자열 (위 스칼라에서 조립) */
   'gradient-aurora': buildAuroraGradient(AURORA_LIGHT_RIBBON),
   'gradient-cta': buildCtaGradient(AURORA_LIGHT_CTA),
+  /* 히어로 면 — 라이트는 blue stop(t=0)이 최악 지점. text-muted 4.86:1 / soft 5.32:1(실측). */
+  'gradient-hero': buildHeroGradient('#dcebf6', '#e6f5ef'),
+  'gradient-hero-soft': buildHeroGradient('#ecf4fa', '#f1f9f6'),
   /*
    * 페이지 상단 오로라 글로우 — body 배경. 마지막 레이어가 bg 단색이라 폴백 겸용.
    * 알파 상한 0.05/0.04 — bg 틴트 강화(#e4f0fc)의 필수 연쇄 감쇄다. 구 0.06/0.05를 유지하면
@@ -368,10 +429,11 @@ const AURORA_DARK: ThemeTokens = {
   'accent-text': auroraTeal[400],
   'accent-subtle': auroraTeal[900],
   'accent-border': auroraTeal[800],
-  'accent-alt': auroraViolet[400],
-  'accent-alt-text': auroraViolet[300],
-  'accent-alt-subtle': auroraViolet[900],
-  'accent-alt-border': auroraViolet[800],
+  /* 다크는 accent-alt == accent-alt-text (다크 프리셋 8종 공통 관례) */
+  'accent-alt': auroraGreen[400],
+  'accent-alt-text': auroraGreen[400],
+  'accent-alt-subtle': auroraGreen[900],
+  'accent-alt-border': auroraGreen[800],
 
   ...COMMON_DARK,
 
@@ -396,6 +458,9 @@ const AURORA_DARK: ThemeTokens = {
   /* 시그니처 — CSS 값 문자열 (위 스칼라에서 조립) */
   'gradient-aurora': buildAuroraGradient(AURORA_DARK_RIBBON),
   'gradient-cta': buildCtaGradient(AURORA_DARK_CTA),
+  /* 히어로 면 — 다크는 green stop 근처(t≈0.75~1)가 최악. text-muted 5.63:1 / soft 6.30:1(실측). */
+  'gradient-hero': buildHeroGradient('#12283e', '#10292f'),
+  'gradient-hero-soft': buildHeroGradient('#0f1e30', '#0d1f28'),
   /* 다크 글로우 — 뚜렷하되 절제. 알파 상한 0.14/0.12 (최악 지점 text-muted 4.57:1 실측). */
   'bg-glow': `radial-gradient(1100px 600px at 18% -10%, rgba(45, 212, 191, 0.14), transparent 60%), radial-gradient(900px 520px at 82% -14%, rgba(129, 140, 248, 0.12), transparent 55%), ${neutral[950]}`,
   /*
@@ -429,7 +494,8 @@ const AURORA_DARK: ThemeTokens = {
  *    밝은 틸(#20c997)은 다크에서 **어두운 라벨(on-brand=#121212, 8.79:1)** 과 함께 본색으로 산다.
  *
  * 라이트 border-strong(#868e96)은 bg(#f8f9fa) 대비 3.15로 빠듯 — bg를 더 어둡게 내리면 즉시 탈락.
- * velog는 accent==brand(단일 색상계), accent-alt==회색 — "하이라이트조차 조용한" 의도적 결과다.
+ * velog는 accent==brand(단일 색상계)다. accent-alt는 구 회색에서 **open-color green 계열**로
+ * 옮겼다(2026-07-28 아이덴티티 패스) — 원본 팔레트 충실성은 유지되고, brand 틸과는 ΔE 22.1로 갈린다.
  */
 const VELOG_LIGHT: ThemeTokens = {
   /*
@@ -463,10 +529,10 @@ const VELOG_LIGHT: ThemeTokens = {
   'accent-text': '#087f5b',
   'accent-subtle': '#e6fcf5',
   'accent-border': '#96f2d7',
-  'accent-alt': '#495057',
-  'accent-alt-text': '#343a40',
-  'accent-alt-subtle': '#f1f3f5',
-  'accent-alt-border': '#dee2e6',
+  'accent-alt': '#26a14f',
+  'accent-alt-text': '#13762a',
+  'accent-alt-subtle': '#e7f5ec',
+  'accent-alt-border': '#a8d9b9',
 
   ...COMMON_LIGHT,
 
@@ -490,6 +556,9 @@ const VELOG_LIGHT: ThemeTokens = {
   /* 시그니처는 duotone — 그라데이션이 거의 안 보이는 것이 velog다움 */
   'gradient-aurora': buildDuotoneGradient('#087f5b', '#099268'),
   'gradient-cta': buildDuotoneGradient('#087f5b', '#066649'),
+  /* 히어로 면 — 라이트 최악 지점(blue stop) text-muted 4.63:1 / soft 5.05:1(실측). */
+  'gradient-hero': buildHeroGradient('#deecf6', '#e6f5ef'),
+  'gradient-hero-soft': buildHeroGradient('#edf5fa', '#f1f9f6'),
   /* 글로우 없음 = 단색 (역할: 페이지 배경) */
   'bg-glow': '#f8f9fa',
   /* 사실상 불투명한 유리 */
@@ -535,10 +604,10 @@ const VELOG_DARK: ThemeTokens = {
   'accent-text': '#20c997',
   'accent-subtle': '#12352a',
   'accent-border': '#2f7d5f',
-  'accent-alt': '#adb5bd',
-  'accent-alt-text': '#ced4da',
-  'accent-alt-subtle': '#2a2a2a',
-  'accent-alt-border': '#454545',
+  'accent-alt': '#75df98',
+  'accent-alt-text': '#75df98',
+  'accent-alt-subtle': '#142419',
+  'accent-alt-border': '#295437',
 
   ...COMMON_DARK,
 
@@ -560,6 +629,12 @@ const VELOG_DARK: ThemeTokens = {
 
   'gradient-aurora': buildDuotoneGradient('#20c997', '#12b886'),
   'gradient-cta': buildDuotoneGradient('#20c997', '#12b886'),
+  /*
+   * 🔴 knife-edge — 다크 히어로 최악 지점(t≈0.88) text-muted 4.58:1. 16테마 32그라디언트 중 전역 최저다.
+   * 이 두 stop 을 더 밝게 올리거나 text-muted(#868e96)를 더 어둡게 내리면 즉시 AA 탈락한다.
+   */
+  'gradient-hero': buildHeroGradient('#192630', '#172923'),
+  'gradient-hero-soft': buildHeroGradient('#161d23', '#151f1b'),
   'bg-glow': '#121212',
   'surface-glass': 'rgba(30, 30, 30, 0.96)',
   'surface-glass-fallback': '#1e1e1e',
@@ -615,10 +690,10 @@ const VIVID_LIGHT: ThemeTokens = {
   'accent-text': '#007a64',
   'accent-subtle': '#dcfaf3',
   'accent-border': '#86e8d3',
-  'accent-alt': '#7c5cff',
-  'accent-alt-text': '#5b3de6',
-  'accent-alt-subtle': '#efeaff',
-  'accent-alt-border': '#cfc2ff',
+  'accent-alt': '#0aa155',
+  'accent-alt-text': '#03772c',
+  'accent-alt-subtle': '#e4f5ec',
+  'accent-alt-border': '#9dd9bb',
 
   ...COMMON_LIGHT,
 
@@ -641,6 +716,9 @@ const VIVID_LIGHT: ThemeTokens = {
 
   'gradient-aurora': buildAuroraGradient(['#2d5bf5', '#00997e', '#7c5cff']),
   'gradient-cta': buildCtaGradient(['#2d5bf5', '#007a64', '#5b3de6']),
+  /* 히어로 면 — 채도 강한 프리셋이라 캐스트를 라이트 0.16/0.13 으로 잡았다. 최악 text-muted 4.98:1. */
+  'gradient-hero': buildHeroGradient('#dcebf6', '#e3f4ee'),
+  'gradient-hero-soft': buildHeroGradient('#ecf4fa', '#f0f9f6'),
   /* 단색층만 새 bg(#eef0ff)로 — 알파 0.07/0.06은 유지 가능(글로우 최악 4.72 실측) */
   'bg-glow':
     'radial-gradient(1200px 640px at 16% -10%, rgba(0, 201, 167, 0.07), transparent 60%), radial-gradient(1000px 560px at 84% -12%, rgba(124, 92, 255, 0.06), transparent 55%), #eef0ff',
@@ -686,10 +764,10 @@ const VIVID_DARK: ThemeTokens = {
   'accent-text': '#00c9a7',
   'accent-subtle': '#0e3330',
   'accent-border': '#16665a',
-  'accent-alt': '#9d86ff',
-  'accent-alt-text': '#b8a7ff',
-  'accent-alt-subtle': '#292350',
-  'accent-alt-border': '#4f4590',
+  'accent-alt': '#61f299',
+  'accent-alt-text': '#61f299',
+  'accent-alt-subtle': '#132423',
+  'accent-alt-border': '#285441',
 
   ...COMMON_DARK,
 
@@ -712,6 +790,9 @@ const VIVID_DARK: ThemeTokens = {
 
   'gradient-aurora': buildAuroraGradient(['#6a8aff', '#00c9a7', '#9d86ff']),
   'gradient-cta': buildCtaGradient(['#3d63f2', '#00806a', '#6a4df0']),
+  /* 히어로 면 — 다크 최악 text-muted 5.43:1 / soft 6.10:1(실측). */
+  'gradient-hero': buildHeroGradient('#172840', '#162b33'),
+  'gradient-hero-soft': buildHeroGradient('#141e33', '#13202c'),
   /* 알파 0.12/0.10 상한 — 0.16에서 text-muted 4.27:1 탈락 실측. 올리지 마라. */
   'bg-glow':
     'radial-gradient(1100px 600px at 18% -10%, rgba(0, 201, 167, 0.12), transparent 60%), radial-gradient(900px 520px at 82% -14%, rgba(157, 134, 255, 0.10), transparent 55%), #101223',
@@ -772,10 +853,11 @@ const NAVY_GOLD_LIGHT: ThemeTokens = {
   'accent-subtle': '#f7efd8',
   'accent-border': '#dfc98e',
   /* 버건디 */
-  'accent-alt': '#8e3b52',
-  'accent-alt-text': '#7c2f44',
-  'accent-alt-subtle': '#f7e9ed',
-  'accent-alt-border': '#dfb7c3',
+  'accent-alt': '#1c9e61',
+  'accent-alt-text': '#0b7432',
+  /* 틴트는 이 프리셋의 surface(아이보리)에서 파생 — 그래서 subtle 이 아이보리 기운을 갖는다 */
+  'accent-alt-subtle': '#e6f2e5',
+  'accent-alt-border': '#a4d6ba',
 
   ...COMMON_LIGHT,
 
@@ -799,6 +881,12 @@ const NAVY_GOLD_LIGHT: ThemeTokens = {
   /* 네이비→골드→버건디 (표시용) / CTA는 네이비 duotone — 골드는 CTA 채움 금지 */
   'gradient-aurora': buildAuroraGradient(['#1f3a68', '#a07617', '#8e3b52']),
   'gradient-cta': buildDuotoneGradient('#1f3a68', '#16294b'),
+  /*
+   * 히어로 면 — 웜(아이보리) 프리셋이라 쿨 캐스트를 0.12/0.09 로 낮췄다("차가운 빛"이 스민 정도).
+   * brand 자체가 네이비(쿨)라 블루 캐스트가 정체성과 충돌하지 않는다. 최악 text-muted 5.07:1.
+   */
+  'gradient-hero': buildHeroGradient('#e5edef', '#ecf5ea'),
+  'gradient-hero-soft': buildHeroGradient('#f1f4f2', '#f5f8ef'),
   /* 단색층만 새 bg(#f5efdd)로 — 알파 0.06/0.05 유지(글로우 최악 4.52 실측, 상한) */
   'bg-glow':
     'radial-gradient(1200px 640px at 16% -10%, rgba(160, 118, 23, 0.06), transparent 60%), radial-gradient(1000px 560px at 84% -12%, rgba(31, 58, 104, 0.05), transparent 55%), #f5efdd',
@@ -844,10 +932,10 @@ const NAVY_GOLD_DARK: ThemeTokens = {
   'accent-text': '#d8b04a',
   'accent-subtle': '#2f2711',
   'accent-border': '#6e5a1e',
-  'accent-alt': '#cf8fa4',
-  'accent-alt-text': '#dba7b8',
-  'accent-alt-subtle': '#33202a',
-  'accent-alt-border': '#71404f',
+  'accent-alt': '#75dfa6',
+  'accent-alt-text': '#75dfa6',
+  'accent-alt-subtle': '#112322',
+  'accent-alt-border': '#265342',
 
   ...COMMON_DARK,
 
@@ -870,6 +958,9 @@ const NAVY_GOLD_DARK: ThemeTokens = {
 
   'gradient-aurora': buildAuroraGradient(['#6f8fc7', '#d8b04a', '#cf8fa4']),
   'gradient-cta': buildDuotoneGradient('#4d6ca4', '#3a5488'),
+  /* 히어로 면 — 다크 최악 text-muted 5.40:1 / soft 5.93:1(실측). */
+  'gradient-hero': buildHeroGradient('#112338', '#10252c'),
+  'gradient-hero-soft': buildHeroGradient('#0e1a2d', '#0d1b26'),
   'bg-glow':
     'radial-gradient(1100px 600px at 18% -10%, rgba(216, 176, 74, 0.10), transparent 60%), radial-gradient(900px 520px at 82% -14%, rgba(111, 143, 199, 0.10), transparent 55%), #0a0f1e',
   'surface-glass': 'rgba(31, 41, 66, 0.85)',
@@ -925,10 +1016,11 @@ const FOREST_LIGHT: ThemeTokens = {
   'accent-subtle': '#ecf6e3',
   'accent-border': '#bfe0a4',
   /* 우디 브라운 */
-  'accent-alt': '#7d5a3c',
-  'accent-alt-text': '#67492f',
-  'accent-alt-subtle': '#f4ede4',
-  'accent-alt-border': '#d9c3ab',
+  /* brand(그린 145°)·accent(라임 95°)와 3중 그린이 되지 않게 축의 **틸 끝(174°)** 을 골랐다 */
+  'accent-alt': '#129e90',
+  'accent-alt-text': '#06726b',
+  'accent-alt-subtle': '#e5f4f3',
+  'accent-alt-border': '#a0d8d3',
 
   ...COMMON_LIGHT,
 
@@ -952,6 +1044,9 @@ const FOREST_LIGHT: ThemeTokens = {
   /* 숲의 빛: 그린→라임→우디 / CTA는 그린 duotone */
   'gradient-aurora': buildAuroraGradient(['#2f7d4f', '#4c8b2e', '#7d5a3c']),
   'gradient-cta': buildDuotoneGradient('#2f7d4f', '#256540'),
+  /* 히어로 면 — 최악 text-muted 4.81:1 / soft 5.16:1(실측). */
+  'gradient-hero': buildHeroGradient('#e1eef7', '#e6f5ef'),
+  'gradient-hero-soft': buildHeroGradient('#eef5fb', '#f1f9f6'),
   'bg-glow':
     'radial-gradient(1200px 640px at 16% -10%, rgba(47, 125, 79, 0.05), transparent 60%), radial-gradient(1000px 560px at 84% -12%, rgba(76, 139, 46, 0.04), transparent 55%), #eef3ec',
   'surface-glass': 'rgba(255, 255, 255, 0.8)',
@@ -996,10 +1091,10 @@ const FOREST_DARK: ThemeTokens = {
   'accent-text': '#55c17e',
   'accent-subtle': '#12301d',
   'accent-border': '#29603c',
-  'accent-alt': '#c9a978',
-  'accent-alt-text': '#d8bd92',
-  'accent-alt-subtle': '#322a1c',
-  'accent-alt-border': '#6a5636',
+  'accent-alt': '#6ce7d7',
+  'accent-alt-text': '#6ce7d7',
+  'accent-alt-subtle': '#122621',
+  'accent-alt-border': '#27554d',
 
   ...COMMON_DARK,
 
@@ -1022,6 +1117,9 @@ const FOREST_DARK: ThemeTokens = {
 
   'gradient-aurora': buildAuroraGradient(['#55c17e', '#8fd14f', '#c9a978']),
   'gradient-cta': buildDuotoneGradient('#2b8052', '#236a44'),
+  /* 히어로 면 — 다크 최악 text-muted 5.25:1 / soft 5.86:1(실측). */
+  'gradient-hero': buildHeroGradient('#16292e', '#142e23'),
+  'gradient-hero-soft': buildHeroGradient('#132122', '#12241b'),
   /* 알파 0.10/0.08 상한 — 0.12/0.10에서 text-muted 4.35로 탈락(실측, 유일한 1차 실패). 올리지 마라. */
   'bg-glow':
     'radial-gradient(1100px 600px at 18% -10%, rgba(85, 193, 126, 0.10), transparent 60%), radial-gradient(900px 520px at 82% -14%, rgba(143, 209, 79, 0.08), transparent 55%), #0f1712',
@@ -1077,10 +1175,10 @@ const GRAPE_LIGHT: ThemeTokens = {
   'accent-subtle': '#f9ecfb',
   'accent-border': '#e3b8ea',
   /* 인디고 */
-  'accent-alt': '#4956d4',
-  'accent-alt-text': '#3a44c0',
-  'accent-alt-subtle': '#ecedfc',
-  'accent-alt-border': '#c4c9f4',
+  'accent-alt': '#1ca063',
+  'accent-alt-text': '#0c7633',
+  'accent-alt-subtle': '#e6f5ee',
+  'accent-alt-border': '#a4d9c1',
 
   ...COMMON_LIGHT,
 
@@ -1103,6 +1201,9 @@ const GRAPE_LIGHT: ThemeTokens = {
 
   'gradient-aurora': buildAuroraGradient(['#7048c8', '#a136b8', '#4956d4']),
   'gradient-cta': buildDuotoneGradient('#7048c8', '#5c39ab'),
+  /* 히어로 면 — 최악 text-muted 5.27:1 / soft 5.75:1(실측). */
+  'gradient-hero': buildHeroGradient('#deecf6', '#e6f5ef'),
+  'gradient-hero-soft': buildHeroGradient('#edf5fa', '#f1f9f6'),
   'bg-glow':
     'radial-gradient(1200px 640px at 16% -10%, rgba(112, 72, 200, 0.05), transparent 60%), radial-gradient(1000px 560px at 84% -12%, rgba(161, 54, 184, 0.05), transparent 55%), #f3effa',
   'surface-glass': 'rgba(255, 255, 255, 0.8)',
@@ -1147,10 +1248,10 @@ const GRAPE_DARK: ThemeTokens = {
   'accent-text': '#d478e8',
   'accent-subtle': '#3a1f42',
   'accent-border': '#713d80',
-  'accent-alt': '#8f9bff',
-  'accent-alt-text': '#aab3ff',
-  'accent-alt-subtle': '#252a5c',
-  'accent-alt-border': '#47509b',
+  'accent-alt': '#6fe4a6',
+  'accent-alt-text': '#6fe4a6',
+  'accent-alt-subtle': '#162225',
+  'accent-alt-border': '#2a5345',
 
   ...COMMON_DARK,
 
@@ -1173,6 +1274,9 @@ const GRAPE_DARK: ThemeTokens = {
 
   'gradient-aurora': buildAuroraGradient(['#a184f2', '#d478e8', '#8f9bff']),
   'gradient-cta': buildDuotoneGradient('#7a53da', '#6845c6'),
+  /* 히어로 면 — 다크 최악 text-muted 5.00:1 / soft 5.58:1(실측). velog 다크 다음으로 얇다. */
+  'gradient-hero': buildHeroGradient('#1d2541', '#1b2934'),
+  'gradient-hero-soft': buildHeroGradient('#1a1c35', '#191e2e'),
   /* 다크 글로우 알파 0.10/0.08 상한(사전 계산으로 0.12에서 감쇄) */
   'bg-glow':
     'radial-gradient(1100px 600px at 18% -10%, rgba(161, 132, 242, 0.10), transparent 60%), radial-gradient(900px 520px at 82% -14%, rgba(212, 120, 232, 0.08), transparent 55%), #171126',
@@ -1230,10 +1334,11 @@ const SUNSET_LIGHT: ThemeTokens = {
   'accent-subtle': '#fdeed6',
   'accent-border': '#edcb92',
   /* 로즈마젠타 — B채널로 상승 적색과 분리 */
-  'accent-alt': '#b83280',
-  'accent-alt-text': '#9c2b6d',
-  'accent-alt-subtle': '#fbe9f3',
-  'accent-alt-border': '#efb8d9',
+  /* 웜 크림 위에서 튀지 않게 축의 채도를 8종 중 가장 낮게(0.48) 잡았다 */
+  'accent-alt': '#389f6b',
+  'accent-alt-text': '#1e7640',
+  'accent-alt-subtle': '#e9f4ef',
+  'accent-alt-border': '#afd9c4',
 
   ...COMMON_LIGHT,
 
@@ -1257,6 +1362,12 @@ const SUNSET_LIGHT: ThemeTokens = {
 
   'gradient-aurora': buildAuroraGradient(['#bc4c0f', '#b06a05', '#b83280']),
   'gradient-cta': buildDuotoneGradient('#bc4c0f', '#a04a10'),
+  /*
+   * 히어로 면 — 8종 중 쿨 캐스트가 가장 약하다(0.10/0.08). 웜 크림이 정체성이라
+   * 여기서 캐스트를 올리면 프리셋이 다른 프리셋처럼 보인다. 최악 text-muted 5.68:1.
+   */
+  'gradient-hero': buildHeroGradient('#e9f3f9', '#eef8f5'),
+  'gradient-hero-soft': buildHeroGradient('#f3f8fc', '#f6fbf9'),
   'bg-glow':
     'radial-gradient(1200px 640px at 16% -10%, rgba(188, 76, 15, 0.05), transparent 60%), radial-gradient(1000px 560px at 84% -12%, rgba(201, 123, 6, 0.05), transparent 55%), #fbf1e8',
   'surface-glass': 'rgba(255, 255, 255, 0.8)',
@@ -1302,10 +1413,10 @@ const SUNSET_DARK: ThemeTokens = {
   'accent-text': '#f5b942',
   'accent-subtle': '#3b2c12',
   'accent-border': '#7d5f24',
-  'accent-alt': '#ee85a8',
-  'accent-alt-text': '#f5a3c0',
-  'accent-alt-subtle': '#43222f',
-  'accent-alt-border': '#83415a',
+  'accent-alt': '#7bd9a2',
+  'accent-alt-text': '#7bd9a2',
+  'accent-alt-subtle': '#182419',
+  'accent-alt-border': '#2d5439',
 
   ...COMMON_DARK,
 
@@ -1329,6 +1440,9 @@ const SUNSET_DARK: ThemeTokens = {
   'gradient-aurora': buildAuroraGradient(['#ff8a5c', '#f5b942', '#ee85a8']),
   /* 어두운 라벨(on-brand #1e1410) 전제의 밝은 CTA duotone */
   'gradient-cta': buildDuotoneGradient('#ff8a5c', '#f5b942'),
+  /* 히어로 면 — 웜 다크 위 최소 캐스트. 최악 text-muted 5.42:1 / soft 5.91:1(실측). */
+  'gradient-hero': buildHeroGradient('#222429', '#21281e'),
+  'gradient-hero-soft': buildHeroGradient('#201d1e', '#201f18'),
   /* 다크 글로우 알파 0.10/0.08 상한(사전 계산으로 0.12에서 감쇄). 글로우 최악 위 text-muted 4.63. */
   'bg-glow':
     'radial-gradient(1100px 600px at 18% -10%, rgba(255, 138, 92, 0.10), transparent 60%), radial-gradient(900px 520px at 82% -14%, rgba(245, 185, 66, 0.08), transparent 55%), #1e1410',
@@ -1350,11 +1464,15 @@ const SUNSET_DARK: ThemeTokens = {
 /* -------------------------------------------------------------------------- */
 
 /**
- * 8종 중 유일한 무채 — 고대비·저자극 선호와 인쇄물 감성을 커버하고, 스위처에서 "색 자체를 끄는"
- * 선택지를 제공한다. **크롬은 완전 무채**(그라데이션 = 잉크 번짐 그레이 duotone, 글로우 없음,
- * 유리 거의 불투명), **차트만 유채색**(aurora 8색 재사용 — 데이터 구분은 ΔE가 필수라 모노 8색은
- * 물리적으로 불가; "흑백 신문 위 컬러 인포그래픽" 정합). 다크는 velog식 반전:
+ * 8종 중 유일한 무채 — 고대비·저자극 선호와 인쇄물 감성을 커버하고, 스위처에서 "색 자체를 거의 끄는"
+ * 선택지를 제공한다. **크롬은 무채**(그라데이션 = 잉크 번짐 그레이 duotone, 히어로 면도 캐스트 0,
+ * 글로우 없음, 유리 거의 불투명), **차트만 유채색**(aurora 8색 재사용 — 데이터 구분은 ΔE가 필수라
+ * 모노 8색은 물리적으로 불가; "흑백 신문 위 컬러 인포그래픽" 정합). 다크는 velog식 반전:
  * brand #f2f2f2 + on-brand #111111(15.9:1).
+ *
+ * ⚠ 유일한 유채 크롬 = `accent-alt`(그린, 2026-07-28 아이덴티티 패스). 세컨더리 액센트는
+ * 제품 아이덴티티 축이라 8프리셋 공통으로 그린을 채택했다 — "완전 무채"가 아니라
+ * "**그린 배지 하나를 제외하면** 무채"가 지금의 정확한 서술이다.
  */
 const INK_LIGHT: ThemeTokens = {
   /* 무틴트 — 정체성 */
@@ -1385,10 +1503,10 @@ const INK_LIGHT: ThemeTokens = {
   'accent-text': '#333333',
   'accent-subtle': '#ededed',
   'accent-border': '#cfcfcf',
-  'accent-alt': '#6b6b6b',
-  'accent-alt-text': '#4f4f4f',
-  'accent-alt-subtle': '#f0f0f0',
-  'accent-alt-border': '#d6d6d6',
+  'accent-alt': '#359f6d',
+  'accent-alt-text': '#1c763d',
+  'accent-alt-subtle': '#e9f4ef',
+  'accent-alt-border': '#aed9c5',
 
   ...COMMON_LIGHT,
 
@@ -1412,6 +1530,14 @@ const INK_LIGHT: ThemeTokens = {
   /* 잉크 번짐 */
   'gradient-aurora': buildAuroraGradient(['#1a1a1a', '#444444', '#6b6b6b']),
   'gradient-cta': buildDuotoneGradient('#1a1a1a', '#0d0d0d'),
+  /*
+   * 히어로 면 — **캐스트 0(무채)**. 다른 7프리셋과 달리 쿨 파스텔을 섞지 않는다:
+   * 무채는 "웜톤 금지" 제약을 위반하지 않으면서 ink 정체성을 지키는 유일한 해다.
+   * 대가로 bg 와의 ΔE 가 2.8 밖에 안 되니 **밴드를 fill 단독으로 세우지 말고**
+   * 1px `color.border` + radius 로 경계를 함께 그려라. 최악 text-muted 5.76:1.
+   */
+  'gradient-hero': buildHeroGradient('#e9e9e9', '#f4f4f4'),
+  'gradient-hero-soft': buildHeroGradient('#f7f7f7', '#fcfcfc'),
   /* 글로우 없음 = 단색 */
   'bg-glow': '#f1f1f1',
   'surface-glass': 'rgba(255, 255, 255, 0.92)',
@@ -1457,10 +1583,10 @@ const INK_DARK: ThemeTokens = {
   'accent-text': '#d4d4d4',
   'accent-subtle': '#262626',
   'accent-border': '#4d4d4d',
-  'accent-alt': '#a3a3a3',
-  'accent-alt-text': '#bfbfbf',
-  'accent-alt-subtle': '#232323',
-  'accent-alt-border': '#454545',
+  'accent-alt': '#7fd4a7',
+  'accent-alt-text': '#7fd4a7',
+  'accent-alt-subtle': '#13221a',
+  'accent-alt-border': '#28533c',
 
   ...COMMON_DARK,
 
@@ -1483,6 +1609,9 @@ const INK_DARK: ThemeTokens = {
 
   'gradient-aurora': buildAuroraGradient(['#f2f2f2', '#d4d4d4', '#a3a3a3']),
   'gradient-cta': buildDuotoneGradient('#f2f2f2', '#dedede'),
+  /* 히어로 면 — 라이트와 같이 캐스트 0. bg 와 ΔE 3.6 이라 경계선 필수. 최악 text-muted 5.59:1. */
+  'gradient-hero': buildHeroGradient('#161616', '#101010'),
+  'gradient-hero-soft': buildHeroGradient('#141414', '#191919'),
   'bg-glow': '#0d0d0d',
   'surface-glass': 'rgba(38, 38, 38, 0.92)',
   'surface-glass-fallback': '#262626',
