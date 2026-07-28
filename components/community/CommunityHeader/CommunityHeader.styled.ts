@@ -52,10 +52,10 @@ export const ControlsRow = styled.div`
 `;
 
 /**
- * 1열 — "← 목록". 목록 화면(갤러리/게시판 인덱스)에선 렌더되지 않지만, 그리드가 1열 자리를
- * 그대로 잡아 주므로 가운데 검색은 어느 라우트에서도 같은 x좌표에 선다.
+ * 1열 — 브랜드 워드마크. 예전엔 여기 "← 목록"이 함께 앉아 좁은 폭에서 우측 액션과 폭을 다퉜다
+ * (2026-07-28 본문 첫 줄로 이관 — `CommunityLayout` 의 `BackToList`).
  */
-export const BackSlot = styled.div`
+export const BrandSlot = styled.div`
   grid-column: 1;
   justify-self: start;
   display: inline-flex;

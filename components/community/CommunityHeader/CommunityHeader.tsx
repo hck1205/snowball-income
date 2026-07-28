@@ -8,10 +8,10 @@ import { PrimaryNav, PrimaryNavLinks } from '@/components/PrimaryNav';
 import { AuthControl } from '@/components/community/AuthControl';
 import { useCommunityAuth } from '@/components/community/CommunityAuthProvider';
 import { CommunitySearchBar } from '@/components/community/CommunitySearchBar';
-import { BackIcon, PencilIcon, SearchIcon } from '@/components/community/CommunityIcons';
+import { PencilIcon, SearchIcon } from '@/components/community/CommunityIcons';
 import {
   Actions,
-  BackSlot,
+  BrandSlot,
   ControlsRow,
   DesktopOnly,
   HeaderInner,
@@ -25,15 +25,13 @@ import {
  * 커뮤니티 전용 sticky 경량 헤더.
  *
  * 브랜드/홈 + 라우트 링크(시뮬레이터·갤러리·게시판)는 전역 nav(PrimaryNav)가 담당한다.
- * 나머지: (하위 경로에서만) ← 목록 복귀 · (갤러리에서만) 인라인 검색 · 글쓰기 · 인증 컨트롤 ·
- * 더보기(⋯: 앱 설치 + 테마, 튜토리얼 제외).
+ * 나머지: (갤러리에서만) 인라인 검색 · 글쓰기 · 인증 컨트롤 · 더보기(⋯: 앱 설치 + 테마, 튜토리얼 제외).
  *
- * 갤러리(`/community`)와 게시판(`/community/board`)이 각자 목록 화면이라, 두 목록에선 뒤로가기를
- * 숨기고 nav 링크가 이동을 담당한다. 상세/글쓰기 등 하위 경로에서만 "← 목록"으로 자기 섹션 목록에 돌아간다.
+ * **"← 목록"은 여기 없다** — 본문 첫 줄(`CommunityLayout` 의 `BackToList`)로 내려갔다(2026-07-28 사용자
+ * 결정). 헤더에 있던 시절 좁은 폭에서 워드마크·글쓰기·프로필·더보기와 한 줄을 다퉜다.
  */
 export default function CommunityHeader() {
   const isGalleryIndex = Boolean(useMatch({ path: '/community/portfolio', end: true }));
-  const isBoardIndex = Boolean(useMatch({ path: '/community/board', end: true }));
   // 글쓰기 라우트에선 헤더의 '글쓰기' 버튼이 페이지와 중복이라 숨긴다(갤러리/게시판 양쪽).
   //
   // ⚠ 두 `useMatch`를 `||`로 **한 식에 묶지 말 것** — `||`는 단축 평가라 앞이 참이면 뒤의 훅이
@@ -45,9 +43,8 @@ export default function CommunityHeader() {
   const isWriteRoute = isPortfolioWriteRoute || isBoardWriteRoute;
 
   const { pathname } = useLocation();
+  // 글쓰기 목적지를 가르는 판단 하나만 남았다(목록 복귀 판단은 BackToList 로 옮겼다).
   const inBoard = pathname === '/community/board' || pathname.startsWith('/community/board/');
-  const listPath = inBoard ? '/community/board' : '/community/portfolio';
-  const isIndex = isGalleryIndex || isBoardIndex;
 
   const isLoggedIn = useIsLoggedInAtomValue();
   const { openLoginPrompt } = useCommunityAuth();
@@ -72,20 +69,9 @@ export default function CommunityHeader() {
           {/* 뒤로가기: 목록 화면(갤러리/게시판 인덱스)에선 nav 링크가 이동을 담당하므로 숨기고,
               상세/글쓰기 등 하위 경로에서만 "← 목록"으로 자기 섹션 목록에 복귀한다.
               숨겨도 1열 트랙은 그대로 남아 가운데 검색 위치는 변하지 않는다. */}
-          <BackSlot>
+          <BrandSlot>
             <PrimaryNav withLinks={false} />
-            {isIndex ? null : (
-              <Button
-                variant="ghost"
-                size="sm"
-                startIcon={<BackIcon size={16} />}
-                onClick={() => navigate(listPath)}
-                aria-label={COMMUNITY_COPY.nav.list}
-              >
-                <DesktopOnly>{COMMUNITY_COPY.nav.list}</DesktopOnly>
-              </Button>
-            )}
-          </BackSlot>
+          </BrandSlot>
 
           {isGalleryIndex ? (
             <SearchSlot>
