@@ -260,7 +260,7 @@ export const COMMUNITY_COPY = {
     likeActiveAria: '좋아요 취소',
     share: '공유',
     shareAria: '이 글 공유하기',
-    shareText: '눈덩이 배당 시뮬레이터에서 만든 포트폴리오예요.',
+    shareText: '스노우볼 인컴에서 만든 배당 포트폴리오예요.',
     shareToastCopied: '링크를 복사했습니다.',
     shareToastFailed: '복사에 실패했어요. 링크:',
     notFoundTitle: '시나리오를 찾을 수 없어요',
