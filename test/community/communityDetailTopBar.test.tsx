@@ -103,6 +103,16 @@ describe('글 상세 본문 첫 줄 — 목록 복귀 + 소유자 액션', () =>
     expect(comesBefore(remove, title)).toBe(true);
   });
 
+  it('상단 바는 글 카드와 같은 폭 컨테이너 안에 있다(본문과 좌우 경계가 같다)', () => {
+    renderView({ isOwner: true });
+
+    // 좌우 정렬 자체는 CSS(max-width 컨테이너)라 jsdom 이 계산하지 않는다 — 대신 "같은 래퍼의
+    // 형제"라는 **구조**를 고정한다. 상단 바가 이 래퍼 밖으로 나가면 본문보다 넓게 퍼진다.
+    const back = screen.getByRole('button', { name: COMMUNITY_COPY.nav.list });
+    const article = screen.getByRole('article', { name: d.mainLabel });
+    expect(article.parentElement).toContainElement(back);
+  });
+
   it('삭제는 곧바로 지우지 않고 확인 다이얼로그를 먼저 띄운다', async () => {
     const user = userEvent.setup();
     renderView({ isOwner: true });

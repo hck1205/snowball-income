@@ -26,6 +26,7 @@ import {
   BannerAction,
   CommentsCard,
   DetailHeader,
+  DetailShell,
   Dot,
   LikeRow,
   MetaRow,
@@ -97,7 +98,7 @@ export default function CommunityDetailView({ viewModel }: CommunityDetailViewPr
   const monthly = post.payload?.investmentSettings?.monthlyContribution ?? 0;
 
   return (
-    <>
+    <DetailShell>
       {/*
        * 본문 첫 줄 = [← 목록] ↔ [수정][삭제] (2026-07-28 사용자 결정 — 게시판·갤러리 상세 공통).
        * 수정·삭제는 예전에 제목 오른쪽에 붙어 있어 긴 제목과 폭을 다퉜다.
@@ -211,6 +212,6 @@ export default function CommunityDetailView({ viewModel }: CommunityDetailViewPr
             )
           : null}
       </Article>
-    </>
+    </DetailShell>
   );
 }

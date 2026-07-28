@@ -9,9 +9,17 @@ import { color, font, motion, radius, shadow, space, zIndex } from '@/shared/sty
  * (390px 뷰포트 → 문서 592px), 뷰포트 폭인 sticky 헤더가 가로 스크롤에 잘려 상단 메뉴가 화면 밖으로
  * 나갔다. 트랙을 0 까지 줄 수 있게 두면 넘치는 것은 자기 안에서 스크롤한다(RichTextContent 의 표).
  */
-export const Article = styled.article`
+/**
+ * 상단 바(← 목록 / 수정·삭제)와 글 카드가 **같은 좌우 경계**를 갖게 하는 폭 컨테이너
+ * (사용자 요청 2026-07-28 — 액션이 본문보다 넓게 퍼져 있었다).
+ * 폭 제한은 여기 하나뿐이다 — 아래 `Article` 이 자기 max-width 를 또 갖고 있으면 둘이 갈라진다.
+ */
+export const DetailShell = styled.div`
   max-width: 760px;
   margin: 0 auto;
+`;
+
+export const Article = styled.article`
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: clamp(${space[4]}, 3vw, ${space[6]});
