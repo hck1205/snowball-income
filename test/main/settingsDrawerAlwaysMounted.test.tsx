@@ -6,6 +6,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { MainPage } from '@/pages';
 import SettingsDrawer from '@/pages/Main/components/SettingsDrawer';
+import { SIMULATOR_COPY } from '@/shared/constants';
 
 /**
  * 🔴 **설정 드로어의 좌패널은 조건부 마운트가 아니다.**
@@ -54,7 +55,7 @@ describe('설정 드로어 — 닫혀 있어도 좌패널은 살아 있다', () 
       </Provider>
     );
 
-    const trigger = screen.getByRole('button', { name: '설정 열기' });
+    const trigger = screen.getByRole('button', { name: SIMULATOR_COPY.settingsTitle });
 
     await user.click(trigger);
     expect(screen.getByRole('button', { name: '티커 생성 열기' })).toBeInTheDocument();

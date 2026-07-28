@@ -17,10 +17,11 @@ describe('SIMULATOR_COPY — 확정 문자열', () => {
   });
 
   it('설정 진입/닫기/제목/조건 수정 라벨', () => {
-    expect(SIMULATOR_COPY.settingsOpen).toBe('설정 열기');
     expect(SIMULATOR_COPY.settingsClose).toBe('설정 닫기');
     expect(SIMULATOR_COPY.settingsTitle).toBe('투자 설정');
     expect(SIMULATOR_COPY.editCondition).toBe('조건 수정');
+    // 설정을 여는 라벨은 하나다 — 구 헤더 버튼의 "설정 열기"는 삭제됐다(2026-07-29).
+    expect(SIMULATOR_COPY).not.toHaveProperty('settingsOpen');
   });
 
   it('히어로 제목과 리드', () => {

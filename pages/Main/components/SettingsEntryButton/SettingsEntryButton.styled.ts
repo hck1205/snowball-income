@@ -1,6 +1,6 @@
 import styled from '@emotion/styled';
 import { Button } from '@/components/common';
-import { color, media } from '@/shared/styles';
+import { color } from '@/shared/styles';
 
 /**
  * 설정 진입 버튼.
@@ -15,21 +15,5 @@ export const SettingsEntry = styled(Button)`
     background: ${color.brandSubtle};
     border-color: ${color.brandBorder};
     color: ${color.brandText};
-  }
-`;
-
-/**
- * 헤더 버튼의 라벨. 좁은 폭에서는 **시각적으로만** 접는다 — 버튼의 `aria-label` 이 접근명을
- * 고정하고 있어 낭독 문구는 폭과 무관하게 같다. (JS 반응형 금지 — 접힘은 CSS 로만.)
- */
-export const SettingsEntryLabel = styled.span`
-  ${media.down('mobileWide')} {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    margin: -1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
   }
 `;

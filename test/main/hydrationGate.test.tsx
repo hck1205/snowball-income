@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { MainPage } from '@/pages';
 import MainContentLoader from '@/pages/Main/components/MainContentLoader';
+import { SIMULATOR_COPY } from '@/shared/constants';
 
 /**
  * 하이드레이션 홀딩(깜빡임 제거) 계약.
@@ -41,7 +42,7 @@ describe('하이드레이션 홀딩 로더', () => {
     expect(screen.getByRole('heading', { name: '추천 포트폴리오로 시작해보세요' })).toBeInTheDocument();
 
     // 설정은 드로어 안이라 열어야 보인다(패널은 항상 마운트되지만 닫혀 있으면 visibility:hidden).
-    await user.click(screen.getByRole('button', { name: '설정 열기' }));
+    await user.click(screen.getByRole('button', { name: SIMULATOR_COPY.settingsTitle }));
     expect(screen.getByRole('button', { name: '티커 생성 열기' })).toBeInTheDocument();
 
     // 홀딩 문구는 더 이상 화면에 없다(설정·결과 게이트가 모두 열렸다).

@@ -14,7 +14,9 @@ type User = ReturnType<typeof userEvent.setup>;
  * 뒤에 다시 부르는 호출부가 많아 멱등이어야 한다.
  */
 export const openSettingsDrawer = async (user: User): Promise<void> => {
-  const trigger = screen.getByRole('button', { name: SIMULATOR_COPY.settingsOpen });
+  /* 진입점은 히어로의 "투자 설정" 버튼 하나다(sticky 라 어느 스크롤 위치에서도 닿는다).
+     구 헤더 "설정 열기" 버튼은 2026-07-29 에 삭제됐다. */
+  const trigger = screen.getByRole('button', { name: SIMULATOR_COPY.settingsTitle });
   if (trigger.getAttribute('aria-expanded') === 'true') return;
   await user.click(trigger);
 };

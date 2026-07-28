@@ -10,7 +10,9 @@
 export const SIMULATOR_COPY = {
   /** 포트폴리오가 비어 결과를 그릴 수 없을 때의 안내. 설정이 드로어 뒤에 있으므로 방향이 아니라 **행동**을 말한다. */
   emptyPortfolioHint: '투자 설정을 열어 종목을 추가하면 결과가 나타납니다.',
-  settingsOpen: '설정 열기',
+  /* 구 `settingsOpen`("설정 열기")은 헤더 진입 버튼과 함께 삭제됐다(2026-07-29) — 이제 설정을 여는
+     라벨은 히어로의 `settingsTitle`("투자 설정") 하나다. 같은 동작에 두 이름이 있으면 사용자도
+     테스트도 어느 쪽을 찾아야 할지 모른다. */
   settingsClose: '설정 닫기',
   settingsTitle: '투자 설정',
   editCondition: '조건 수정',

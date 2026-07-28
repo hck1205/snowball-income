@@ -1,10 +1,9 @@
 import { Global } from "@emotion/react";
 import { lazy, memo, Suspense, useCallback, useId, useRef, useState } from "react";
 import { FeatureLayout, MainContent, SkipLink } from "@/pages/Main/Main.shared.styled";
-import SimulatorHeader from "@/components/SimulatorHeader";
+import AppHeader from "@/components/AppHeader";
 import TourGuide from "@/components/TourGuide";
 import { CloudSyncIndicator } from "@/components/CloudSyncIndicator";
-import { AuthControl } from "@/components/community/AuthControl";
 import { isCommunityEnabled } from "@/shared/lib/supabase";
 import {
   useIsConfigDrawerOpenAtomValue,
@@ -19,11 +18,9 @@ import {
   MainRightPanel,
   MarketDataAsOf,
   SettingsDrawer,
-  SettingsEntryButton,
   SimulatorHero,
 } from "./components";
 import { globalStyle } from "./Main.styled";
-import { TOUR_TARGET } from "@/shared/constants";
 import type { MainViewProps } from "./Main.types";
 
 /**
@@ -57,7 +54,7 @@ function MainViewComponent({ viewModel }: MainViewProps) {
   const closeConfigDrawer = useCallback(() => setIsConfigDrawerOpen(false), [setIsConfigDrawerOpen]);
 
   /**
-   * 설정 드로어의 id. 여는 버튼 3자리(헤더 · 히어로 · 조건 스트립)와 열리는 패널(`SettingsDrawer`)이
+   * 설정 드로어의 id. 여는 버튼 2자리(히어로 sticky 도크 · 조건 스트립)와 열리는 패널(`SettingsDrawer`)이
    * 서로 다른 서브트리에 살기 때문에 두 곳의 공통 조상인 여기서 만들어 `aria-controls` ↔ `id`를 맺어 준다.
    */
   const configDrawerId = useId();
@@ -114,24 +111,16 @@ function MainViewComponent({ viewModel }: MainViewProps) {
     <>
       <Global styles={globalStyle} />
       <SkipLink href="#main-content">본문으로 건너뛰기</SkipLink>
-      {/* 커뮤니티 헤더와 같은 형태의 전폭 sticky 바라 `FeatureLayout`(max-width 1200) **밖**에 둔다.
-          좌우 끝선은 SimulatorHeader의 HeaderInner가 같은 max-width/패딩을 써서 맞춘다. */}
-      <SimulatorHeader
-        /* 설정 드로어를 여는 **상시** 진입점. 헤더가 sticky라 스크롤 어디서든 닿는다.
-           예전엔 본문 흐름에 두고 sentinel이 스크롤 아웃되면 fixed로 띄웠는데, sticky 헤더가
-           화면 상단을 영구 점유하게 되면서 그 플로팅 버튼이 헤더 위에 겹쳐 그려졌다.
-           헤더 안 정적 배치로 바꿔 IntersectionObserver·sentinel·isFloating을 전부 없앴다.
-           설정은 이제 **전 해상도에서 드로어**라 이 버튼도 전 해상도에서 보인다(구 `display:none` 분기 삭제). */
-        leading={
-          <SettingsEntryButton
-            variant="header"
-            drawerId={configDrawerId}
-            isOpen={isConfigDrawerOpen}
-            onOpen={openConfigDrawer}
-            dataTour={TOUR_TARGET.openSettings}
-          />
-        }
-        // 클라우드 저장 상태를 컨트롤 줄 좌측에 둔다. 저장 중/실패만 노출(평상시 숨김), 실패는 무음 금지.
+      {/* 전 페이지 공통 헤더. 전폭 sticky 바라 `FeatureLayout`(max-width 1200) **밖**에 둔다 —
+          좌우 끝선은 AppHeader의 HeaderInner가 같은 max-width/여백을 써서 맞춘다.
+          로그인(AuthControl)·더보기·라우트 메뉴는 AppHeader가 직접 그린다(여기서 조립하지 않는다).
+
+          🔴 설정 드로어를 여는 버튼은 **헤더에 없다**(2026-07-29 사용자 결정) — 히어로의 "투자 설정"
+          버튼과 역할이 겹쳤다. 그 버튼이 sticky라 스크롤 어디서든 닿으므로 진입 경로는 유지된다
+          (`SimulatorHero`의 SettingsDock 주석 참고). 헤더로 되돌리지 말 것. */}
+      <AppHeader
+        brandAs="h1"
+        // 클라우드 저장 상태를 워드마크 오른쪽에 둔다. 저장 중/실패만 노출(평상시 숨김), 실패는 무음 금지.
         status={
           isCommunityEnabled ? (
             <CloudSyncIndicator
@@ -141,24 +130,13 @@ function MainViewComponent({ viewModel }: MainViewProps) {
             />
           ) : null
         }
-        actions={
-          <>
-            {/* 커뮤니티 진입점은 이제 헤더 브랜드 옆 전역 nav(PrimaryNav)의 갤러리·게시판 링크가 담당한다
-                (기존 CommunityNavLink '커뮤니티' 버튼은 nav 링크로 대체·제거). */}
-            {/* AuthControl은 useNavigate + 세션에 의존한다 — 백엔드 없는 배포에선 렌더하지 않는다. */}
-            {isCommunityEnabled ? <AuthControl /> : null}
-            {/* 튜토리얼 보기 + 앱 설치 + 테마를 모은 아이콘 전용 "더보기(⋯)" 메뉴. 로그인/커뮤니티 여부와
-                무관하게 항상 노출된다 — 테마 접근점을 여기로 단일화했다(기존 standalone 테마 스위처 제거).
-                "테마는 어떤 상태에서도 사라지면 안 됨" 제약은 이 메뉴가 항상 있으므로 충족.
-                시뮬레이터에서만 "PDF 리포트 저장"이 하나 더 붙는다 — 그 상태·동작은 MainOverflowMenu가
-                소유하고(HeaderOverflowMenu는 커뮤니티와 공유라 시뮬레이터 데이터에 결합시키지 않는다),
-                구독은 불리언 2개로 좁혀져 있어 타건 리렌더가 헤더로 번지지 않는다. */}
-            <MainOverflowMenu />
-            {/* TourGuide는 코치마크 오버레이 전용으로 계속 마운트한다 — 헤더엔 아무것도 안 그리고,
-                실행 트리거는 HeaderOverflowMenu가 소유한다(tourLaunchRequestAtom bump). */}
-            <TourGuide />
-          </>
-        }
+        /* 시뮬레이터만 "PDF 리포트 저장"과 튜토리얼이 붙은 자체 더보기를 쓴다 — 그 상태·동작은
+           MainOverflowMenu가 소유하고(HeaderOverflowMenu는 전 페이지 공유라 시뮬레이터 데이터에
+           결합시키지 않는다), 구독은 불리언 2개로 좁혀져 있어 타건 리렌더가 헤더로 번지지 않는다. */
+        overflowMenu={<MainOverflowMenu />}
+        /* TourGuide는 코치마크 오버레이 전용이다 — 헤더 줄에는 아무것도 그리지 않고 포털로만 뜬다.
+           실행 트리거는 더보기 메뉴가 소유한다(tourLaunchRequestAtom bump). */
+        actions={<TourGuide />}
       />
       <FeatureLayout>
         <MainContent id="main-content">

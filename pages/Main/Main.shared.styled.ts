@@ -33,8 +33,12 @@ export const SkipLink = styled.a`
  * (2026-07-27, 드로어가 뷰포트가 아니라 본문 박스 기준으로 배치돼 끝까지 스크롤되지 않던 버그)이
  * 그대로 되살아난다. (앱의 다른 컨테이너 목록은 `shared/styles/tokens.ts`의 `container` 주석 참고.)
  *
- * ⚠ `padding`/`max-width`는 바꾸지 마라 — `SimulatorHeader`의 `HeaderInner`가 같은 값으로
- * 좌우 끝선을 맞추고 있다.
+ * ⚠ `padding`/`max-width`는 바꾸지 마라 — `AppHeader`의 `HeaderInner`가 같은 값으로
+ * 좌우 끝선을 맞추고 있다(`AppHeader` 의 `contentGutter` 기본값).
+ *
+ * ⚠ 이 컨테이너에 `position: sticky` 자식을 두려고 하지 마라 — grid item 의 sticky 는 자기 grid
+ * area(= 자기 행) 안에서만 움직여 사실상 무력화된다. 히어로 설정 버튼의 상단 고정은 그래서
+ * sticky 가 아니라 실측 기반 `position: fixed` 승격이다(`useStickyHeroAction` 주석 참고).
  */
 export const FeatureLayout = styled.div`
   max-width: 1200px;

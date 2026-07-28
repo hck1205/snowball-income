@@ -65,9 +65,9 @@ export default function CloudSyncIndicator({ variant, onRetry, onResume }: Cloud
     // 충돌(동기화 보류)은 **클릭 가능한 표시**로 띄운다 — 눌러 화해 모달을 다시 연다(이연 후 재개봉).
     // 저장 중/실패의 정적 표시와 달리 사용자의 결정을 이어가야 하므로 버튼이다(무음 화해 금지).
     if (desc.status === 'conflict') {
-      // 지속 상태라 좁은 화면에선 자기 줄을 차지한다(= "설정 열기" 아래 줄).
+      // 지속 상태 — 워드마크 오른쪽 같은 줄에서 라벨과 액션을 편다(자기 줄로 내려가지 않는다).
       return (
-        <HeaderSlot $ownLine>
+        <HeaderSlot>
           <HeaderConflictButton
             type="button"
             tone={desc.tone}
@@ -89,8 +89,8 @@ export default function CloudSyncIndicator({ variant, onRetry, onResume }: Cloud
     // 빈 요소가 붙어 줄 간격이 생기고, "아무것도 렌더하지 않는다" 계약이 깨진다.
     if (desc.status !== 'saving' && desc.status !== 'error') return null;
     return (
-      // 저장 중(전이)은 같은 줄에 두고, 저장 실패(지속·라벨+버튼)만 자기 줄로 내린다.
-      <HeaderSlot $ownLine={desc.status === 'error'}>
+      // 저장 중(전이)은 아이콘만, 저장 실패(지속)는 라벨+재시도까지 — 둘 다 워드마크 오른쪽 같은 줄이다.
+      <HeaderSlot>
         <HeaderRoot tone={desc.tone} role="status" aria-live="polite" title={desc.shortLabel}>
           <GlyphIcon glyph={desc.glyph} />
           {desc.canRetry ? <HeaderText>{desc.shortLabel}</HeaderText> : <SrOnly>{desc.shortLabel}</SrOnly>}

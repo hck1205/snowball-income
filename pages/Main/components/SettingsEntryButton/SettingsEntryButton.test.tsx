@@ -5,16 +5,16 @@ import SettingsEntryButton from './SettingsEntryButton';
 import type { SettingsEntryVariant } from './SettingsEntryButton.types';
 
 /**
- * 설정 드로어를 여는 자리는 셋(헤더·히어로·조건 스트립)이고, **이 컴포넌트가 존재하는 이유는
- * 그 셋이 같은 접근성 계약을 잃지 않게 하는 것**이다. 계약이 깨지면:
+ * 설정 드로어를 여는 자리는 둘(히어로·조건 스트립)이고, **이 컴포넌트가 존재하는 이유는
+ * 그 둘이 같은 접근성 계약을 잃지 않게 하는 것**이다. 계약이 깨지면:
  *  - `aria-controls` 없음 → 보조기술이 "이 버튼이 무엇을 여는지" 모른다.
  *  - `aria-expanded` 없음 → 지금 열려 있는지 낭독되지 않고, 드로어가 열린 채 같은 버튼을 또 누른다.
  *
- * 세 자리를 **한 테이블로 돌려** 한 곳만 계약을 잃는 회귀를 막는다(손으로 복제하던 시절의 실패 모드).
+ * 두 자리를 **한 테이블로 돌려** 한 곳만 계약을 잃는 회귀를 막는다(손으로 복제하던 시절의 실패 모드).
+ * (구 `header` 변형은 2026-07-29 에 삭제됐다 — 히어로 버튼과 역할이 겹쳤다.)
  */
 
 const VARIANTS: { variant: SettingsEntryVariant; accessibleName: string }[] = [
-  { variant: 'header', accessibleName: SIMULATOR_COPY.settingsOpen },
   { variant: 'hero', accessibleName: SIMULATOR_COPY.settingsTitle },
   { variant: 'inline', accessibleName: SIMULATOR_COPY.editCondition }
 ];
@@ -65,10 +65,10 @@ describe.each(VARIANTS)('SettingsEntryButton — $variant', ({ variant, accessib
 });
 
 describe('SettingsEntryButton — 자리별 차이', () => {
-  it('헤더 버튼만 가이드 투어 앵커를 갖는다', () => {
+  it('히어로 버튼만 가이드 투어 앵커를 갖는다', () => {
     const { rerender } = render(
       <SettingsEntryButton
-        variant="header"
+        variant="hero"
         drawerId="config-drawer"
         isOpen={false}
         onOpen={vi.fn()}
@@ -76,28 +76,18 @@ describe('SettingsEntryButton — 자리별 차이', () => {
       />
     );
 
-    expect(screen.getByRole('button', { name: SIMULATOR_COPY.settingsOpen })).toHaveAttribute(
+    expect(screen.getByRole('button', { name: SIMULATOR_COPY.settingsTitle })).toHaveAttribute(
       'data-tour',
       'open-settings'
     );
 
-    rerender(<SettingsEntryButton variant="hero" drawerId="config-drawer" isOpen={false} onOpen={vi.fn()} />);
-    expect(screen.getByRole('button', { name: SIMULATOR_COPY.settingsTitle })).not.toHaveAttribute('data-tour');
+    rerender(<SettingsEntryButton variant="inline" drawerId="config-drawer" isOpen={false} onOpen={vi.fn()} />);
+    expect(screen.getByRole('button', { name: SIMULATOR_COPY.editCondition })).not.toHaveAttribute('data-tour');
   });
 
-  it('헤더 버튼은 라벨이 시각적으로 접혀도 접근명이 고정된다', () => {
-    renderEntry('header');
-
-    const button = screen.getByRole('button', { name: SIMULATOR_COPY.settingsOpen });
-    // 명시 `aria-label` — 좁은 폭에서 가시 라벨이 sr-only 로 접혀도 접근명이 폭에 따라 흔들리지 않는다.
-    expect(button).toHaveAttribute('aria-label', SIMULATOR_COPY.settingsOpen);
-    // 가시 텍스트도 함께 남아 있어야 label-in-name(음성 명령)이 성립한다.
-    expect(button).toHaveTextContent(SIMULATOR_COPY.settingsOpen);
-  });
-
-  it('세 자리의 카피는 서로 다르다 — 같은 문구면 자리 구분이 사라진다', () => {
+  it('두 자리의 카피는 서로 다르다 — 같은 문구면 자리 구분이 사라진다', () => {
     const names = VARIANTS.map((entry) => entry.accessibleName);
 
-    expect(new Set(names).size).toBe(3);
+    expect(new Set(names).size).toBe(2);
   });
 });

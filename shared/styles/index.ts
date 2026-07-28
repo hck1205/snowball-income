@@ -25,9 +25,22 @@ export type { ThemePreset } from './presets';
 
 export { globalStyles } from './globalStyles';
 
-export { headerControlsGrid, headerGlassSurface, headerRowGap, headerSolidSurface } from './headerSurface';
+export {
+  APP_HEADER_HEIGHT_VAR,
+  appHeaderHeight,
+  headerControlsGrid,
+  headerGlassSurface,
+  headerRowGap,
+  headerSolidSurface
+} from './headerSurface';
 
-export { heroIconOpticalAlign, heroTitleFontSize } from './heroTitleRow';
+export {
+  heroIconOpticalAlign,
+  heroTitleFontSize,
+  iconFirstLineAlign,
+  iconOpticalAlign,
+  sectionTitleFontSize
+} from './heroTitleRow';
 
 export {
   buildAxisStyle,

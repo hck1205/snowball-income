@@ -1,7 +1,7 @@
 import { keyframes } from '@emotion/react';
 import styled from '@emotion/styled';
 import { Link } from 'react-router-dom';
-import { color, font, media, motion, radius, space } from '@/shared/styles';
+import { appHeaderHeight, color, font, media, motion, radius, space } from '@/shared/styles';
 
 /* -------------------------------------------------------------------------- */
 /* 액센트 스코프 + 스크롤 리빌 공통                                               */
@@ -287,16 +287,16 @@ export const Layout = styled.div`
 
 export const TocAside = styled.nav`
   position: sticky;
-  /* 데스크톱 사이드바 — 앱 헤더 높이(--tk-header-h) + 약간의 여백 아래에 붙는다(하드코딩 84px 대체). */
-  top: calc(var(--tk-header-h) + ${space[3]});
+  /* 데스크톱 사이드바 — 앱 헤더 **실측 높이** + 약간의 여백 아래에 붙는다(AppHeader 가 발행). */
+  top: calc(${appHeaderHeight} + ${space[3]});
   align-self: start;
   min-width: 0;
 
   ${media.down('layout')} {
     position: sticky;
-    /* ⚠ 앱 헤더 높이에 정확히 맞물린다 — 하드코딩 57px 은 티커 한 줄 헤더(≈48px)와 안 맞아
-       헤더와 이 목차 바 사이에 빈 띠(갭)를 만들었다. 이제 헤더 바로 아래에 딱 붙는다. */
-    top: var(--tk-header-h);
+    /* ⚠ 앱 헤더 높이에 정확히 맞물린다 — 하드코딩(구 57px·88px)은 헤더 줄 수가 바뀔 때마다 어긋나
+       헤더와 이 목차 바 사이에 빈 띠(갭)를 만들었다. 이제 실측값이라 항상 딱 붙는다. */
+    top: ${appHeaderHeight};
     z-index: 5;
     /* 화면 끝까지 번지게 하던 음수 마진(0 calc(4vw*-1))을 제거했다 — 뷰포트 단위 음수 마진이
        모바일 레이아웃 뷰포트를 스스로 넓히는 폭주(overflow) 루프의 씨앗이었다(490px대까지 확장).

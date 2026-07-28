@@ -4,6 +4,7 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { MainPage } from '@/pages';
+import { SIMULATOR_COPY } from '@/shared/constants';
 import { openSettingsDrawer } from '@/test';
 
 /**
@@ -37,7 +38,7 @@ const renderApp = (): User => {
   return userEvent.setup();
 };
 
-const settingsTrigger = () => screen.getByRole('button', { name: '설정 열기' });
+const settingsTrigger = () => screen.getByRole('button', { name: SIMULATOR_COPY.settingsTitle });
 const isDrawerOpen = () => settingsTrigger().getAttribute('aria-expanded') === 'true';
 
 const openTickerModal = async (user: User): Promise<HTMLElement> => {
