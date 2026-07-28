@@ -65,14 +65,18 @@ describe('usePortfolioPersistence — 페이지 이탈 시 대기 중 클라우�
     expect(flushSpy).not.toHaveBeenCalled();
   });
 
-  it('언마운트하면 리스너를 제거한다 — 이후 이벤트는 flush를 부르지 않는다(누수 방지)', () => {
+  it('언마운트하면 리스너를 제거한다 — 이후 이벤트는 flush를 더 부르지 않는다(누수 방지)', () => {
     const { unmount } = renderHook(() => usePortfolioPersistence(), { wrapper });
 
     unmount();
+    // 언마운트 자체는 대기 중인 autosave를 flush하므로(localAutosaveUnmountFlush.test) flush 호출이
+    // 있을 수 있다. 여기서 고정하려는 건 "리스너가 남아 있지 않다"이므로 **언마운트 이후의 증분**만 본다.
+    const callsAtUnmount = flushSpy.mock.calls.length;
+
     window.dispatchEvent(new Event('pagehide'));
     setVisibility('hidden');
     document.dispatchEvent(new Event('visibilitychange'));
 
-    expect(flushSpy).not.toHaveBeenCalled();
+    expect(flushSpy.mock.calls.length).toBe(callsAtUnmount);
   });
 });
