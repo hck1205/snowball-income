@@ -73,7 +73,7 @@ export default function CommunityHeader() {
               aria-expanded={mobileSearchOpen}
               onClick={() => setMobileSearchOpen((prev) => !prev)}
             >
-              <SearchIcon size={18} />
+              <SearchIcon size={18} strokeWidth={1.8} />
             </MobileSearchToggle>
           ) : null}
 
@@ -81,7 +81,7 @@ export default function CommunityHeader() {
             <Button
               variant="primary"
               size="sm"
-              startIcon={<PencilIcon size={16} />}
+              startIcon={<PencilIcon size={16} strokeWidth={1.8} />}
               onClick={handleWrite}
               aria-label={COMMUNITY_COPY.nav.write}
             >

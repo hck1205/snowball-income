@@ -23,7 +23,7 @@ const PresetFilterTrigger = forwardRef<HTMLButtonElement, PresetFilterTriggerPro
         aria-haspopup="dialog"
         onClick={onToggle}
       >
-        <SlidersHorizontal size={16} aria-hidden focusable={false} />
+        <SlidersHorizontal size={16} strokeWidth={1.8} aria-hidden focusable={false} />
         {isActive ? <Badge aria-label={`활성 필터 ${activeCount}개`}>{activeCount}</Badge> : null}
       </PresetFilterTriggerButton>
     );

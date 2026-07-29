@@ -9,7 +9,7 @@ import { SimBadgeRoot } from './SimBadge.styled';
 export default function SimBadge() {
   return (
     <SimBadgeRoot>
-      <ChartIcon size={12} />
+      <ChartIcon size={12} strokeWidth={1.8} />
       {COMMUNITY_COPY.gallery.simBadge}
     </SimBadgeRoot>
   );

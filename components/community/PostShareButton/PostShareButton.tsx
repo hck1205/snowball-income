@@ -52,7 +52,7 @@ export function PostShareButton({ postId, kind, title, url, placement, className
   return (
     <>
       <ShareIconButton type="button" className={className} aria-label={d.shareAria} onClick={handleClick}>
-        <ShareIcon size={16} />
+        <ShareIcon size={16} strokeWidth={1.8} />
       </ShareIconButton>
       {shareTarget ? (
         <ShareDialog

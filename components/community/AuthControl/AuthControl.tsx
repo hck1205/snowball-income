@@ -75,7 +75,7 @@ export default function AuthControl() {
               navigate('/community/profile');
             }}
           >
-            <UserRoundIcon size={16} />
+            <UserRoundIcon size={16} strokeWidth={1.8} />
             {COMMUNITY_COPY.profile.menuItem}
           </MenuItem>
           {/* 내가 쓴 글 — 프로필 설정 바로 아래. 비공개 글을 볼 수 있는 유일한 화면이라
@@ -88,7 +88,7 @@ export default function AuthControl() {
               navigate('/community/my-posts');
             }}
           >
-            <ListIcon size={16} />
+            <ListIcon size={16} strokeWidth={1.8} />
             {COMMUNITY_COPY.myPosts.menuItem}
           </MenuItem>
           <MenuItem
@@ -99,7 +99,7 @@ export default function AuthControl() {
               navigate('/');
             }}
           >
-            <ChartIcon size={16} />
+            <ChartIcon size={16} strokeWidth={1.8} />
             {COMMUNITY_COPY.nav.toSimulator}
           </MenuItem>
           <MenuItem

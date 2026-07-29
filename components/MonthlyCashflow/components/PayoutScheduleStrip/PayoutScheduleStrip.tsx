@@ -29,7 +29,7 @@ function PayoutScheduleStrip({ rows }: PayoutScheduleStripProps) {
   return (
     <ScheduleDetails>
       <ScheduleSummary>
-        <ChevronRight size={14} aria-hidden focusable={false} />
+        <ChevronRight size={14} strokeWidth={1.8} aria-hidden focusable={false} />
         종목별 실제 지급 월 (지급 이력 기준)
       </ScheduleSummary>
       <ScheduleBody>

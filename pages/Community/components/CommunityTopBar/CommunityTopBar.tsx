@@ -39,7 +39,7 @@ export default function CommunityTopBar({ actions }: CommunityTopBarProps) {
       <Button
         variant="secondary"
         size="sm"
-        startIcon={<BackIcon size={16} />}
+        startIcon={<BackIcon size={16} strokeWidth={1.8} />}
         onClick={() => navigate(listPath)}
       >
         {COMMUNITY_COPY.nav.list}

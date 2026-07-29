@@ -69,7 +69,7 @@ export default function PostCard({ item, simSummary }: PostCardProps) {
         <FooterActions>
           {/* 아이콘만으로 의미 전달 금지 — 숨김 라벨을 병기해 "좋아요 12"로 읽히게 한다. */}
           <LikeStat>
-            <HeartIcon size={14} />
+            <HeartIcon size={14} strokeWidth={1.8} />
             <VisuallyHidden>{metaLikes}</VisuallyHidden>
             {formatCompactCount(item.like_count)}
           </LikeStat>

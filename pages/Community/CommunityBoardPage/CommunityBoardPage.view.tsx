@@ -67,7 +67,7 @@ export default function CommunityBoardView({ viewModel }: CommunityBoardViewProp
           <BoardTitle>{b.title}</BoardTitle>
           <BoardSubtitle>{b.subtitle}</BoardSubtitle>
         </BoardHeading>
-        <Button variant="primary" size="sm" startIcon={<PencilIcon size={16} />} onClick={onWrite}>
+        <Button variant="primary" size="sm" startIcon={<PencilIcon size={16} strokeWidth={1.8} />} onClick={onWrite}>
           {b.write}
         </Button>
       </BoardHeader>
@@ -89,7 +89,7 @@ export default function CommunityBoardView({ viewModel }: CommunityBoardViewProp
 
       {status === 'empty' ? (
         <EmptyState
-          icon={<UsersIcon size={24} />}
+          icon={<UsersIcon size={24} strokeWidth={1.8} />}
           title={b.emptyTitle}
           subtitle={b.emptySubtitle}
           action={

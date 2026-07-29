@@ -47,7 +47,7 @@ function ScenarioPreviewComponent({ payload }: ScenarioPreviewProps) {
       <PreviewHeader type="button" id={headerId} aria-expanded={open} aria-controls={panelId} onClick={() => setOpen((prev) => !prev)}>
         <PreviewHeaderText>{c.previewTitle}</PreviewHeaderText>
         <Chevron open={open} aria-hidden="true">
-          <ChevronDownIcon size={18} />
+          <ChevronDownIcon size={18} strokeWidth={1.8} />
         </Chevron>
       </PreviewHeader>
 

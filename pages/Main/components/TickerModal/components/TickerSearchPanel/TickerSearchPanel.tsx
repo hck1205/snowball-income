@@ -28,7 +28,7 @@ function TickerSearchPanel({
     <>
       <ModalTickerSearchWrap>
         <ModalTickerSearchIcon aria-hidden="true">
-          <Search size={14} aria-hidden focusable={false} />
+          <Search size={14} strokeWidth={1.8} aria-hidden focusable={false} />
         </ModalTickerSearchIcon>
         <ModalTickerSearchInput
           type="text"

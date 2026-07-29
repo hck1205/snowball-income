@@ -76,7 +76,7 @@ const RichTextToolbar = ({ editor, state }: RichTextToolbarProps) => {
           active={state?.bold ?? false}
           onClick={() => editor.chain().focus().toggleBold().run()}
         >
-          <BoldIcon size={16} />
+          <BoldIcon size={16} strokeWidth={1.8} />
         </ToolButton>
         <ToolButton
           label={c.italic}
@@ -84,7 +84,7 @@ const RichTextToolbar = ({ editor, state }: RichTextToolbarProps) => {
           active={state?.italic ?? false}
           onClick={() => editor.chain().focus().toggleItalic().run()}
         >
-          <ItalicIcon size={16} />
+          <ItalicIcon size={16} strokeWidth={1.8} />
         </ToolButton>
         <ToolButton
           label={c.underline}
@@ -92,7 +92,7 @@ const RichTextToolbar = ({ editor, state }: RichTextToolbarProps) => {
           active={state?.underline ?? false}
           onClick={() => editor.chain().focus().toggleUnderline().run()}
         >
-          <UnderlineIcon size={16} />
+          <UnderlineIcon size={16} strokeWidth={1.8} />
         </ToolButton>
         <ToolButton
           label={c.strike}
@@ -100,7 +100,7 @@ const RichTextToolbar = ({ editor, state }: RichTextToolbarProps) => {
           active={state?.strike ?? false}
           onClick={() => editor.chain().focus().toggleStrike().run()}
         >
-          <StrikethroughIcon size={16} />
+          <StrikethroughIcon size={16} strokeWidth={1.8} />
         </ToolButton>
         <ToolButton
           label={c.inlineCode}
@@ -108,7 +108,7 @@ const RichTextToolbar = ({ editor, state }: RichTextToolbarProps) => {
           active={state?.code ?? false}
           onClick={() => editor.chain().focus().toggleCode().run()}
         >
-          <InlineCodeIcon size={16} />
+          <InlineCodeIcon size={16} strokeWidth={1.8} />
         </ToolButton>
       </ToolbarGroup>
 
@@ -137,7 +137,7 @@ const RichTextToolbar = ({ editor, state }: RichTextToolbarProps) => {
           active={state?.blockquote ?? false}
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
         >
-          <QuoteIcon size={16} />
+          <QuoteIcon size={16} strokeWidth={1.8} />
         </ToolButton>
         <ToolButton
           label={c.codeBlock}
@@ -145,7 +145,7 @@ const RichTextToolbar = ({ editor, state }: RichTextToolbarProps) => {
           active={state?.codeBlock ?? false}
           onClick={() => editor.chain().focus().toggleCodeBlock().run()}
         >
-          <CodeBlockIcon size={16} />
+          <CodeBlockIcon size={16} strokeWidth={1.8} />
         </ToolButton>
       </ToolbarGroup>
 
@@ -158,7 +158,7 @@ const RichTextToolbar = ({ editor, state }: RichTextToolbarProps) => {
           active={state?.bullet ?? false}
           onClick={() => editor.chain().focus().toggleBulletList().run()}
         >
-          <BulletListIcon size={16} />
+          <BulletListIcon size={16} strokeWidth={1.8} />
         </ToolButton>
         <ToolButton
           label={c.orderedList}
@@ -166,7 +166,7 @@ const RichTextToolbar = ({ editor, state }: RichTextToolbarProps) => {
           active={state?.ordered ?? false}
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
         >
-          <OrderedListIcon size={16} />
+          <OrderedListIcon size={16} strokeWidth={1.8} />
         </ToolButton>
       </ToolbarGroup>
 
@@ -175,7 +175,7 @@ const RichTextToolbar = ({ editor, state }: RichTextToolbarProps) => {
       <ToolbarGroup role="group" aria-label={c.toolbarGroupInsert}>
         <LinkPopover>
           <ToolButton label={c.link} active={state?.link ?? false} onClick={openLinkEditor}>
-            <LinkIcon size={16} />
+            <LinkIcon size={16} strokeWidth={1.8} />
           </ToolButton>
           {linkOpen ? (
             <LinkForm
@@ -206,13 +206,13 @@ const RichTextToolbar = ({ editor, state }: RichTextToolbarProps) => {
           ) : null}
         </LinkPopover>
         <ToolButton label={c.horizontalRule} onClick={() => editor.chain().focus().setHorizontalRule().run()}>
-          <HorizontalRuleIcon size={16} />
+          <HorizontalRuleIcon size={16} strokeWidth={1.8} />
         </ToolButton>
         <ToolButton
           label={c.insertTable}
           onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
         >
-          <TableIcon size={16} />
+          <TableIcon size={16} strokeWidth={1.8} />
         </ToolButton>
       </ToolbarGroup>
 
@@ -225,7 +225,7 @@ const RichTextToolbar = ({ editor, state }: RichTextToolbarProps) => {
           disabled={!(state?.canUndo ?? false)}
           onClick={() => editor.chain().focus().undo().run()}
         >
-          <UndoIcon size={16} />
+          <UndoIcon size={16} strokeWidth={1.8} />
         </ToolButton>
         <ToolButton
           label={c.redo}
@@ -233,7 +233,7 @@ const RichTextToolbar = ({ editor, state }: RichTextToolbarProps) => {
           disabled={!(state?.canRedo ?? false)}
           onClick={() => editor.chain().focus().redo().run()}
         >
-          <RedoIcon size={16} />
+          <RedoIcon size={16} strokeWidth={1.8} />
         </ToolButton>
       </ToolbarGroup>
 

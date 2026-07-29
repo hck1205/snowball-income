@@ -11,6 +11,8 @@ export {
   font,
   media,
   motion,
+  ICON,
+  ICON_SIZES,
   palette,
   radius,
   shadow,
