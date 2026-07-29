@@ -14,6 +14,14 @@ export type ToggleFieldProps = {
   checked: boolean;
   disabled?: boolean;
   hideLabel?: boolean;
+  /**
+   * 두 줄 표기 — 라벨을 스위치 **위**에 올려 세로로 쌓는다(기본 `false` = 한 줄, 라벨 좌·스위치 우).
+   *
+   * 쓰는 자리: **가로 폭이 모자란 곳**. 한 줄 배치는 `라벨 + gap + 스위치` 만큼 폭을 먹는데,
+   * 쌓으면 둘 중 넓은 쪽 폭만 쓴다. 모바일 결과 컨트롤 줄(`ScenarioTabsRow`)이 이 경우다.
+   * 반대로 폼처럼 세로 공간이 아쉬운 곳에서는 기본값(한 줄)이 낫다.
+   */
+  stacked?: boolean;
   /** 스위치 크기(기본 `'md'`). 현재 단일 단계라 사실상 디자인 고정이다. */
   size?: ToggleSize;
   helpAriaLabel?: string;

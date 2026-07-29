@@ -4,8 +4,12 @@ import { toToggleId } from './ToggleField.utils';
 import { HelpButton, ToggleHeader, ToggleLabel } from './ToggleField.styled';
 
 /**
- * 라벨 줄 + 스위치 한 줄. 스위치 자체는 `Toggle` 프리미티브에 위임한다.
+ * 라벨 + 스위치. 스위치 자체는 `Toggle` 프리미티브에 위임한다.
  * (이 컴포넌트는 배치·라벨·도움말만 책임진다)
+ *
+ * 배치는 **한 줄(기본)** 과 **두 줄(`stacked`)** 두 가지고, 고르는 건 호출부의 불리언 하나다.
+ * 화면마다 다른 토글을 만들지 않기 위해서다 — 아래 "생김새는 호출부가 못 바꾼다" 와 같은 이유로,
+ * 배치도 자유 CSS가 아니라 **정해진 두 형태 중 선택**만 허용한다.
  *
  * **스위치의 생김새는 호출부가 못 바꾼다** — 트랙 폭(`controlWidth`)·트랙 안 글자(`onText`/`offText`)·
  * 글자색(`stateTextColor`) prop은 전부 없앴다. 그 셋이 화면마다 다른 크기의 스위치를 만들던
@@ -18,6 +22,7 @@ export default function ToggleField({
   checked,
   disabled,
   hideLabel,
+  stacked,
   size,
   helpAriaLabel,
   onHelpClick,
@@ -26,7 +31,7 @@ export default function ToggleField({
   const id = toToggleId(label);
 
   return (
-    <ToggleLabel>
+    <ToggleLabel $stacked={stacked}>
       {hideLabel ? null : (
         <ToggleHeader>
           {label}

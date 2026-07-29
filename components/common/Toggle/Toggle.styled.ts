@@ -19,9 +19,13 @@ import type { ToggleSize } from './Toggle.types';
 /**
  * 크기 단계별 치수. `inset`은 `(height - thumb) / 2` 라 썸이 세로 중앙에 온다.
  * 단계 추가 기준은 `Toggle.types.ts`의 `ToggleSize` 주석에 있다.
+ *
+ * 치수를 24→20px 로 줄인 이유: 모바일 결과 화면의 컨트롤 줄이 가로로 모자랐다.
+ * 스위치는 **크기가 아니라 트랙 색과 썸 위치**로 상태를 말하므로, 비율(track:height ≈ 1.9)만
+ * 유지하면 작아져도 읽힌다. 히트 영역은 치수와 무관하게 항상 44x44다(아래 `::after`).
  */
 const TOGGLE_SIZE: Record<ToggleSize, { track: number; height: number; thumb: number; inset: number }> = {
-  md: { track: 44, height: 24, thumb: 18, inset: 3 }
+  md: { track: 38, height: 20, thumb: 14, inset: 3 }
 };
 
 /*
