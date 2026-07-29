@@ -3,11 +3,28 @@ import { color, media, shadow, space } from './tokens';
 /**
  * ── 헤더 공통 레시피 ────────────────────────────────────────────────────────────
  *
- * 커뮤니티 헤더(`components/community/CommunityHeader`)와 시뮬레이터 헤더
- * (`components/SimulatorHeader`)가 **같은 시각 언어**를 갖도록 실제로 중복되던 것만 뽑았다.
- * 두 헤더는 이제 형태까지 같다(화면 최상단 전폭 sticky 글래스 바 + 아래 hairline).
- * 안쪽 컨테이너의 max-width/패딩만 각 페이지 본문 컨테이너에 맞춰 소비처가 소유한다.
+ * 앱의 헤더는 **`components/AppHeader` 한 벌뿐이다**(2026-07-29 통합 — 그전에는 시뮬레이터·커뮤니티·
+ * 티커 셸이 같은 형태를 세 곳에 복제하고 있었다). 아래 레시피들은 그 한 벌이 쓰는 조각이고,
+ * 헤더를 다시 손으로 조립하지 못하게 `test/shared/appHeaderSingleSource.test.ts` 가 잠근다.
+ * 안쪽 컨테이너의 좌우 여백만 각 페이지 본문 컨테이너에 맞춰 소비처가 정한다(`AppHeader` 의 `contentGutter`).
  */
+
+/**
+ * 헤더 실제 높이를 담는 CSS 변수 이름. `AppHeader` 가 마운트/리사이즈마다 실측해
+ * `document.documentElement` 에 발행한다.
+ *
+ * 헤더 아래에 붙는 sticky 요소(티커 상세 목차 바 · 시뮬레이터 설정 도크)는 **높이를 하드코딩하지 말고**
+ * 이 변수를 쓴다. 예전에는 티커 셸이 `--tk-header-h: 88px` 로 헤더 높이를 *확정*해 두고 있었는데,
+ * 헤더가 한 줄에서 두 줄로 바뀔 때마다 그 숫자가 조용히 낡아 목차 바와 헤더 사이에 빈 띠가 생기거나
+ * 헤더 두 번째 줄이 잘렸다(56 → 80 → 88px 로 세 번 고쳐 쓴 이력). 실측이라 다시는 어긋나지 않는다.
+ */
+export const APP_HEADER_HEIGHT_VAR = '--sb-app-header-h';
+
+/**
+ * 위 변수를 CSS 길이로 쓰는 형태. 폴백 88px 은 "2줄 헤더의 데스크톱 자연 높이"로,
+ * JS 가 아직 실측을 발행하지 못한 첫 페인트에서만 쓰인다.
+ */
+export const appHeaderHeight = `var(${APP_HEADER_HEIGHT_VAR}, 88px)`;
 
 /**
  * 상단 브랜드 틴트 서피스(불투명) — 글래스의 **폴백/기반 레이어**.

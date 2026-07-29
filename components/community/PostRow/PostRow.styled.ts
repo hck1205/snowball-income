@@ -75,7 +75,7 @@ export const RowTitleRow = styled.div`
 
 /**
  * 게시판 글 분류 배지(건의사항/공지). 색만으로 구분하지 않도록 **라벨 텍스트를 반드시 동반**한다.
- * 공지(emphasis)는 브랜드 틴트로 한 단계 강조하고, 그 외는 오로라 violet 계열 정보 배지(§4.6).
+ * 공지(emphasis)는 브랜드 틴트로 한 단계 강조하고, 그 외는 오로라 green 계열 정보 배지(§4.6).
  * 컴포넌트 셀렉터 대신 prop 분기 — 이 레포 테스트 변환은 컴포넌트 셀렉터에서 런타임 throw한다.
  */
 export const CategoryBadge = styled.span<{ emphasis?: boolean }>`

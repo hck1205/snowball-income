@@ -1,19 +1,21 @@
 import { useState } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, render, screen } from '@testing-library/react';
-import MobileMenuDrawer from '@/components/MobileMenuDrawer';
+import { SideDrawer } from '@/components/common';
 import TickerModalView from '@/pages/Main/components/TickerModal/TickerModal.view';
 import type { TickerModalViewProps } from '@/pages/Main/components/TickerModal/TickerModal.types';
+import { restoreMatchMedia, stubViewportWidth } from '@/test';
 import type { PresetTickerKey } from '@/shared/constants';
 import type { TickerDraft } from '@/shared/types/snowball';
 
 /**
- * 모바일에서 **설정 드로어(body 잠금)** 와 **티커 모달(html 잠금)** 이 겹칠 때 배경 스크롤이
+ * 좁은 폭에서 **설정 드로어(body 잠금)** 와 **티커 모달(html 잠금)** 이 겹칠 때 배경 스크롤이
  * 영구 잠기지 않는지 검증한다. 두 잠금이 서로 다른 엘리먼트를 소유한다는 것이 "정리 순서와
  * 무관하게 항상 풀린다"의 유일한 근거라, 그 주장을 순서를 바꿔가며 실제로 구동해 확인한다.
  *
- * 전역 `matchMedia` 스텁이 `matches: false` 라 `MobileMenuDrawer` 는 기본이 오버레이(모바일)
- * 모드다(test/setup.ts) — 데스크톱 정적 컬럼 모드는 아래에서 따로 스텁해 대조군으로 쓴다.
+ * 설정 패널은 이제 **전 해상도에서 오버레이 드로어**다. 갈리는 것은 "열려 있는가"가 아니라
+ * **딤·스크롤 잠금을 걸 만큼 좁은가**(≤960)뿐이다 — 전역 `matchMedia` 스텁이 `matches: false` 라
+ * 기본은 "딤 없음"이고, 좁은 폭은 아래에서 따로 스텁한다.
  */
 
 const makeDraft = (ticker: string): TickerDraft => ({
@@ -68,13 +70,15 @@ function Harness({ onReady }: { onReady: (handle: HarnessHandle) => void }) {
 
   return (
     <>
-      <MobileMenuDrawer
-        drawerId="config-drawer"
+      <SideDrawer
+        id="config-drawer"
         isOpen={isDrawerOpen}
+        title="투자 설정"
+        closeLabel="설정 닫기"
         onClose={() => setIsDrawerOpen(false)}
-        left={<p>설정 패널</p>}
-        right={<p>결과 패널</p>}
-      />
+      >
+        <p>설정 패널</p>
+      </SideDrawer>
       {isModalOpen ? <TickerModalView {...makeModalProps()} isOpen /> : null}
     </>
   );
@@ -99,6 +103,15 @@ const locks = () => ({
 });
 
 describe('모바일 오버레이 스크롤 잠금 — 설정 드로어(body) × 티커 모달(html)', () => {
+  beforeEach(() => {
+    // 딤·스크롤 잠금이 걸리는 좁은 폭(≤960). 전역 스텁은 어떤 질의도 매치하지 않는다.
+    stubViewportWidth(360);
+  });
+
+  afterEach(() => {
+    restoreMatchMedia();
+  });
+
   it('두 잠금은 서로 다른 엘리먼트를 소유한다(같은 값을 덮어쓰지 않는다)', () => {
     expect(locks()).toEqual({ body: '', html: '' });
 
@@ -147,29 +160,33 @@ describe('모바일 오버레이 스크롤 잠금 — 설정 드로어(body) × 
   });
 });
 
-describe('데스크톱(정적 컬럼) 대조군 — 오버레이가 아니면 아무것도 잠그지 않는다', () => {
-  const originalMatchMedia = window.matchMedia;
-
+/**
+ * 🔄 **뒤집힌 계약(2026-07-28)**: 설정 패널은 이제 넓은 폭에서도 오버레이 드로어다.
+ * 그래서 대조군은 "오버레이가 아니면 안 잠근다"가 아니라 **"딤이 없는 폭(≥961)에서는
+ * 열려 있어도 스크롤을 잠그지 않는다"** 다 — 설정을 만지면서 결과를 계속 스크롤하는 동선이
+ * 이 계약에 걸려 있다.
+ */
+describe('넓은 폭 대조군 — 드로어는 열리되 딤·스크롤 잠금은 걸리지 않는다', () => {
   beforeEach(() => {
-    // 데스크톱: `(min-width: 961px)`(= BREAKPOINT.drawer + 1) 가 매치 = 설정 패널이 오버레이
-    // 드로어가 아니라 좌측 정적 컬럼. 전역 스텁(test/setup.ts)은 matches:false 라 모바일이다.
-    Object.defineProperty(window, 'matchMedia', {
-      configurable: true,
-      value: (query: string) => ({
-        matches: query === '(min-width: 961px)',
-        media: query,
-        onchange: null,
-        addListener: () => undefined,
-        removeListener: () => undefined,
-        addEventListener: () => undefined,
-        removeEventListener: () => undefined,
-        dispatchEvent: () => false
-      })
-    });
+    // 넓은 폭: `(max-width: 960px)` 는 false, `(min-width: 961px)` 는 true.
+    stubViewportWidth(1440);
   });
 
   afterEach(() => {
-    Object.defineProperty(window, 'matchMedia', { configurable: true, value: originalMatchMedia });
+    restoreMatchMedia();
+  });
+
+  it('드로어가 열려 있어도 body 를 잠그지 않는다(결과를 계속 스크롤할 수 있어야 한다)', () => {
+    expect(locks()).toEqual({ body: '', html: '' });
+
+    const view = renderHarness();
+
+    // 드로어는 실제로 열려 있다 — 잠금이 없는 이유가 "안 열려서"가 아님을 못 박는다.
+    expect(screen.getByRole('button', { name: '설정 닫기' })).toBeInTheDocument();
+    expect(document.body.style.overflow).toBe('');
+
+    view.act((handle) => handle.closeBoth());
+    expect(locks()).toEqual({ body: '', html: '' });
   });
 
   it('티커 모달이 열려도 html 을 잠그지 않는다(클래식 스크롤바가 사라져 배경이 밀리는 것 방지)', () => {

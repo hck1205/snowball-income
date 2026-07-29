@@ -1,5 +1,15 @@
 import styled from '@emotion/styled';
-import { color, elevation, font, media, motion, radius, space } from '@/shared/styles';
+import {
+  color,
+  elevation,
+  font,
+  heroIconOpticalAlign,
+  heroTitleFontSize,
+  media,
+  motion,
+  radius,
+  space
+} from '@/shared/styles';
 
 export const PageStack = styled.div`
   display: grid;
@@ -45,11 +55,12 @@ export const HeroIconBadge = styled.span`
   color: ${color.brandText};
   background: ${color.surface};
   border: 1px solid ${color.brandBorder};
+  ${heroIconOpticalAlign}
 `;
 
 export const HeroTitle = styled.h1`
   margin: 0;
-  font-size: clamp(${font.size['2xl']}, 4vw, ${font.size['4xl']});
+  font-size: ${heroTitleFontSize};
   font-weight: ${font.weight.extrabold};
   letter-spacing: -0.03em;
   line-height: ${font.leading.tight};

@@ -1,7 +1,7 @@
 import { memo, useState, type CSSProperties } from 'react';
-import { Info, Lock, Pencil, Pin, PinOff } from 'lucide-react';
+import { Info, Lock, Pin, PinOff } from 'lucide-react';
 import { Card, Chip, ToggleField } from '@/components';
-import { ALLOCATION_COPY, TOUR_TARGET } from '@/shared/constants';
+import { ALLOCATION_COPY, SIMULATOR_COPY, TOUR_TARGET } from '@/shared/constants';
 import { CHART_SERIES_VARS } from '@/shared/styles';
 import { getTickerDisplayName } from '@/shared/utils';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
@@ -17,8 +17,6 @@ import {
   AllocationLegendName,
   AllocationLegendSlider,
   AllocationLegendValue,
-  AllocationLockGlyph,
-  CardHeaderToggles,
   ChartWrap,
   HintText,
   SelectedChipWrap
@@ -73,29 +71,25 @@ function PortfolioCompositionComponent({
       title="포트폴리오 구성"
       dataTour={TOUR_TARGET.portfolioComposition}
       titleRight={
-        <CardHeaderToggles>
-          {/* 자물쇠 메타포(A) — 종목별 "고정"(핀, B)과 글리프로 구분해 "잠금/고정" 혼동을 없앤다. */}
-          <AllocationLockGlyph>
-            {isLocked ? <Lock size={16} {...GLYPH_PROPS} /> : <Pencil size={16} {...GLYPH_PROPS} />}
-          </AllocationLockGlyph>
-          {/* 비율 조절 잠금 — 기본값은 위 useState 참고(모바일 ≤960px만 ON). 잠금을 풀 때만 슬라이더 조절 가능. */}
-          <ToggleField
-            label={ALLOCATION_COPY.lockToggleShortLabel}
-            accessibleName={ALLOCATION_COPY.lockToggleLabel}
-            checked={isLocked}
-            onChange={(event) => {
-              trackEvent(ANALYTICS_EVENT.TOGGLE_CHANGED, {
-                field_name: 'allocationLocked',
-                value: event.target.checked
-              });
-              setIsLocked(event.target.checked);
-            }}
-          />
-        </CardHeaderToggles>
+        /* 비율 조절 잠금 — 기본값은 위 useState 참고(모바일 ≤960px만 ON). 잠금을 풀 때만 슬라이더 조절 가능.
+           상태(잠김/조절)는 토글 자신의 on/off 와 라벨이 말한다 — 옆에 자물쇠·연필 글리프를 덧대면
+           같은 말을 두 번 하는 장식이라 두지 않는다(2026-07-28 사용자 결정). */
+        <ToggleField
+          label={ALLOCATION_COPY.lockToggleShortLabel}
+          accessibleName={ALLOCATION_COPY.lockToggleLabel}
+          checked={isLocked}
+          onChange={(event) => {
+            trackEvent(ANALYTICS_EVENT.TOGGLE_CHANGED, {
+              field_name: 'allocationLocked',
+              value: event.target.checked
+            });
+            setIsLocked(event.target.checked);
+          }}
+        />
       }
     >
       {includedProfiles.length === 0 ? (
-        <HintText>좌측 티커 생성을 통해 포트폴리오를 구성해주세요.</HintText>
+        <HintText>{SIMULATOR_COPY.emptyPortfolioHint}</HintText>
       ) : (
         <>
           {allocationPieOption ? (

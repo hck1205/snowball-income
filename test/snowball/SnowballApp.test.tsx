@@ -4,6 +4,12 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MainPage } from '@/pages';
 import { DIVIDEND_UNIVERSE } from '@/shared/constants';
+/*
+ * 투자 설정은 **전 해상도에서 드로어** 안이다. 패널은 항상 마운트되지만 닫혀 있으면
+ * `visibility: hidden` 이라 접근성 트리에서 빠진다 — 그래서 설정을 만지는 모든 동선은
+ * 사용자와 똑같이 "설정 열기"부터 시작한다(멱등 헬퍼).
+ */
+import { openSettingsDrawer } from '@/test';
 
 type User = ReturnType<typeof userEvent.setup>;
 
@@ -33,6 +39,7 @@ beforeAll(async () => {
 });
 
 const openTickerModal = async (user: User): Promise<HTMLElement> => {
+  await openSettingsDrawer(user);
   await user.click(screen.getByRole('button', { name: '티커 생성 열기' }));
   return screen.findByRole('dialog', { name: '티커 생성' }, LAZY_MODAL_TIMEOUT);
 };
@@ -59,11 +66,17 @@ const fillField = async (user: User, dialog: HTMLElement, label: string, value: 
   await user.type(field, value);
 };
 
-/** 프리셋을 골라 티커를 만든다. 프리셋 값이 그대로 들어오므로 결과가 바로 계산된다. */
+/**
+ * 프리셋을 골라 티커를 만든다. 프리셋 값이 그대로 들어오므로 결과가 바로 계산된다.
+ *
+ * ⚠ 티커 저장은 **설정 드로어를 닫는다**(`useTickerActions` — 만든 결과를 바로 보여주려는 동선).
+ *   이어서 설정을 더 만지는 테스트가 많으므로 여기서 다시 열어 준다.
+ */
 const createTickerFromPreset = async (user: User, ticker: string): Promise<void> => {
   const dialog = await openTickerModal(user);
   await selectPresetChip(user, dialog, ticker);
   await user.click(within(dialog).getByRole('button', { name: '생성' }));
+  await openSettingsDrawer(user);
 };
 
 /** 입력 탭에서 직접 값을 타이핑해 티커를 만든다. */
@@ -80,6 +93,8 @@ const createCustomTicker = async (
   await fillField(user, dialog, '배당 성장률', draft.dividendGrowth);
 
   await user.click(within(dialog).getByRole('button', { name: '생성' }));
+  // 저장이 드로어를 닫는다 — 이어지는 단정이 설정 안을 보므로 다시 연다.
+  await openSettingsDrawer(user);
 };
 
 /** "포트폴리오 구성" 카드. 우측 결과 영역에서 포함된 티커 칩이 보이는 곳이다. */
@@ -101,8 +116,9 @@ describe('SnowballAppFeature', () => {
     renderFeature();
 
     expect(screen.getByRole('heading', { name: '추천 포트폴리오로 시작해보세요' })).toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: '시뮬레이션 결과 (정밀)' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: '시뮬레이션 결과 (간편)' })).not.toBeInTheDocument();
+    // 요약 카드는 제목 없이 hero 숫자로 시작한다 — 존재 앵커는 그 hero 라벨이다.
+    expect(screen.queryByText('최종 자산 가치')).not.toBeInTheDocument();
+    expect(screen.queryByText('최종 자산 추정')).not.toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: '포트폴리오 구성' })).not.toBeInTheDocument();
   });
 
@@ -126,7 +142,7 @@ describe('SnowballAppFeature', () => {
     const user = renderFeature();
     await createTickerFromPreset(user, 'SCHD');
 
-    expect(screen.getByRole('heading', { name: '시뮬레이션 결과 (정밀)' })).toBeInTheDocument();
+    expect(screen.getByText('최종 자산 가치')).toBeInTheDocument();
     const baseline = readSummaryAmount('최종 자산 가치');
     expect(baseline).toMatch(/₩/);
 
@@ -138,6 +154,7 @@ describe('SnowballAppFeature', () => {
   it('opens and closes help modal when help mark is clicked', async () => {
     const user = renderFeature();
 
+    await openSettingsDrawer(user);
     await user.click(screen.getByRole('button', { name: 'DPS 성장 반영 설명 열기' }));
     expect(screen.getByRole('dialog', { name: 'DPS 성장 반영' })).toBeInTheDocument();
 
@@ -164,7 +181,7 @@ describe('SnowballAppFeature', () => {
     const tickerChip = screen.getByRole('button', { name: '티커 VYM 선택' });
     expect(tickerChip).toHaveAttribute('aria-pressed', 'true');
 
-    expect(screen.getByRole('heading', { name: '시뮬레이션 결과 (정밀)' })).toBeInTheDocument();
+    expect(screen.getByText('최종 자산 가치')).toBeInTheDocument();
     expect(within(getPortfolioSection()).getByRole('button', { name: '티커 VYM 삭제' })).toBeInTheDocument();
   });
 
@@ -188,9 +205,9 @@ describe('SnowballAppFeature', () => {
     const removeButton = within(getPortfolioSection()).getByRole('button', { name: '티커 HDV 삭제' });
     await user.click(removeButton);
 
-    // 포함 해제이므로 결과는 초기화되고, 좌측 티커는 남아 있되 선택 해제된다.
+    // 포함 해제이므로 결과는 초기화되고, 설정 드로어의 티커는 남아 있되 선택 해제된다.
     expect(screen.queryByRole('heading', { name: '포트폴리오 구성' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: '시뮬레이션 결과 (정밀)' })).not.toBeInTheDocument();
+    expect(screen.queryByText('최종 자산 가치')).not.toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '추천 포트폴리오로 시작해보세요' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '티커 HDV 선택' })).toHaveAttribute('aria-pressed', 'false');
   });
@@ -199,13 +216,16 @@ describe('SnowballAppFeature', () => {
     const user = renderFeature();
     await createTickerFromPreset(user, 'JEPI');
 
-    expect(screen.getByRole('heading', { name: '시뮬레이션 결과 (정밀)' })).toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: '시뮬레이션 결과 (간편)' })).not.toBeInTheDocument();
+    // 모드는 hero 라벨 + 조건 스트립의 마지막 항목 두 곳이 함께 말한다(구 카드 제목의 후속).
+    expect(screen.getByText('최종 자산 가치')).toBeInTheDocument();
+    expect(screen.getByText('정밀 계산')).toBeInTheDocument();
+    expect(screen.queryByText('최종 자산 추정')).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('checkbox', { name: '빠른 추정 보기' }));
 
-    expect(screen.getByRole('heading', { name: '시뮬레이션 결과 (간편)' })).toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: '시뮬레이션 결과 (정밀)' })).not.toBeInTheDocument();
+    expect(screen.getByText('최종 자산 추정')).toBeInTheDocument();
+    expect(screen.getByText('간편 추정')).toBeInTheDocument();
+    expect(screen.queryByText('최종 자산 가치')).not.toBeInTheDocument();
   });
 
   it('opens ticker settings by gear button and updates ticker name', async () => {
@@ -219,6 +239,7 @@ describe('SnowballAppFeature', () => {
     await fillField(user, dialog, '티커', 'QQQM');
     await user.click(within(dialog).getByRole('button', { name: '저장' }));
 
+    await openSettingsDrawer(user);
     expect(screen.getByRole('button', { name: '티커 QQQM 선택' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '티커 QQQ 선택' })).not.toBeInTheDocument();
   });
@@ -232,6 +253,8 @@ describe('SnowballAppFeature', () => {
     const dialog = await screen.findByRole('dialog', { name: '티커 설정 수정' }, LAZY_MODAL_TIMEOUT);
     await user.click(within(dialog).getByRole('button', { name: '티커 삭제' }));
 
+    // 삭제도 드로어를 닫는다 — 목록이 정말 비었는지 보려면 다시 열어야 한다.
+    await openSettingsDrawer(user);
     expect(screen.queryByRole('button', { name: '티커 SCHD 선택' })).not.toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '추천 포트폴리오로 시작해보세요' })).toBeInTheDocument();
   });

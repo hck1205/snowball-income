@@ -334,7 +334,7 @@ export const PRESET_ICON_BY_ID: Record<string, LucideIcon> = {
   'ai-infra-dividend-growth': Cpu // AI 반도체·인프라
 };
 
-/** 앱 공용 아이콘 언어와 동일한 라인 두께(CommunityIcons·좌측 패널 인라인 SVG와 같은 1.8). */
+/** 앱 공용 아이콘 언어와 동일한 라인 두께(CommunityIcons·설정 드로어 인라인 SVG와 같은 1.8). */
 export const PRESET_ICON_STROKE = 1.8;
 
 /** id 매핑이 없을 때의 안전 기본 아이콘 (기존 `?? Landmark` 폴백과 동일). */

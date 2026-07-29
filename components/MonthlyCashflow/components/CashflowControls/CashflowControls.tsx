@@ -1,14 +1,15 @@
-import { Select } from '@/components/common';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import type { CashflowControlsProps } from './CashflowControls.types';
 import {
   CashflowHeaderControls,
   CashflowTotalLabel,
+  CashflowTotalValue,
   ViewToggleButton,
-  ViewToggleGroup
+  ViewToggleGroup,
+  YearSelect
 } from './CashflowControls.styled';
 
-/** 헤더 한 줄: 연도 선택 · 배당 합계 · 차트/캘린더 보기 전환. */
+/** 헤더 컨트롤: 연도 선택 · 배당 합계 · 차트/캘린더 보기 전환(좁아지면 아랫줄로 접힌다). */
 function CashflowControls({
   years,
   selectedYear,
@@ -20,7 +21,7 @@ function CashflowControls({
 }: CashflowControlsProps) {
   return (
     <CashflowHeaderControls>
-      <Select
+      <YearSelect
         size="md"
         width="116px"
         aria-label="실지급 배당 연도 선택"
@@ -39,12 +40,13 @@ function CashflowControls({
             {year}년
           </option>
         ))}
-      </Select>
+      </YearSelect>
       <CashflowTotalLabel>
-        {/* 합계는 원화에서 이미 합산된 값이다 — 여기서 표시 직전에 한 번만 환산한다. */}
+        {/* 합계는 원화에서 이미 합산된 값이다 — 여기서 표시 직전에 한 번만 환산한다.
+            한 줄 ↔ 두 줄 전환은 순수 CSS다(styled 참고) — 마크업은 폭과 무관하게 하나다. */}
         {selectedYear ? (
           <>
-            배당 합계: <strong>{formatAmount(totalDividend)}</strong>
+            배당 합계: <CashflowTotalValue>{formatAmount(totalDividend)}</CashflowTotalValue>
           </>
         ) : (
           '실지급 배당 데이터 없음'

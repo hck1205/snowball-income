@@ -4,6 +4,7 @@ import { COMMUNITY_COPY } from '@/shared/constants/community';
 import { buildScenarioSimSummary } from '@/shared/lib/snowball';
 import { Banner, Button } from '@/components/common';
 import { ConfirmDialog, EmptyState } from '@/components/community';
+import { CommunityTopBar } from '@/pages/Community/components';
 import type { CommunityWriteViewProps } from './CommunityWritePage.types';
 import type { ScenarioCandidate } from './hooks';
 import {
@@ -125,6 +126,7 @@ export default function CommunityWriteView({ viewModel }: CommunityWriteViewProp
 
   return (
     <>
+      <CommunityTopBar />
       <PageTitle>{pageTitle}</PageTitle>
 
       <WriteForm

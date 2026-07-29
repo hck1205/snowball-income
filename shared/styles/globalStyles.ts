@@ -127,14 +127,32 @@ export const globalStyles = css`
   }
 
   /*
+   * 헤딩은 display 서체(원본은 Gmarket Sans / CSS family는 'Snowball Display').
+   * **여기 한 곳에서만** 건다 — 페이지별 styled 파일이 각자
+   * font-family를 박기 시작하면 역할이 흩어져 서체 교체가 불가능해진다.
+   * 굵기는 각 헤딩의 styled가 그대로 정한다(display 페이스가 한 벌이라 굵기 차이는 안 보인다 —
+   * tokens.ts의 font.display 주석 참고. 위계는 크기로 만든다).
+   */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: ${font.display};
+  }
+
+  /*
    * 금액·퍼센트는 자릿수 정렬(tabular-nums)이 되어야 표에서 눈이 흐르지 않는다.
-   * 숫자를 다루는 컨트롤과 표 셀에 일괄 적용.
+   * 숫자를 다루는 컨트롤과 표 셀에 일괄 적용 — 서체도 dataNumeric(Inter)으로 함께 건다.
+   * Inter에는 한글이 없으므로 같은 셀 안의 한글 라벨은 자동으로 본문 서체가 받는다(스택 순서).
    */
   input[type='number'],
   input[inputmode='decimal'],
   table,
   th,
   td {
+    font-family: ${font.dataNumeric};
     ${font.numeric};
   }
 

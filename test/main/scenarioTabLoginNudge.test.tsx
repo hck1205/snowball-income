@@ -54,7 +54,7 @@ const renderPanel = (store: ReturnType<typeof seedStore>) =>
   render(
     <Provider store={store}>
       <CommunityAuthProvider>
-        <MainRightPanel />
+        <MainRightPanel configDrawerId="config-drawer" />
       </CommunityAuthProvider>
     </Provider>
   );

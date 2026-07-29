@@ -73,7 +73,7 @@ export const TitleRow = styled.span`
 
 /**
  * 공개/비공개 배지 — **라벨 텍스트를 항상 동반**하므로 색은 보조 신호일 뿐이다.
- * 비공개는 중립 톤(sunken)으로 "남에게 안 보임"을, 공개는 violet 정보 배지(피드 분류 배지와 동일 토큰)를 쓴다.
+ * 비공개는 중립 톤(sunken)으로 "남에게 안 보임"을, 공개는 green 정보 배지(피드 분류 배지와 동일 토큰)를 쓴다.
  * 컴포넌트 셀렉터 대신 prop 분기(이 레포 관례).
  */
 export const VisibilityBadge = styled.span<{ isPublic: boolean }>`

@@ -47,12 +47,20 @@ export const media = {
 } as const;
 
 /**
- * 컨테이너 쿼리. 컨테이너는 `FeatureLayout`(본문 래퍼) · `DataTable`의 TableWrap ·
- * `PortfolioAllocation`의 범례 목록이 각각 `container-type: inline-size`로 만든다.
+ * 컨테이너 쿼리. `container-type: inline-size`를 켜는 곳은 **5곳**이다(2026-07-28 실측):
+ *
+ *  | 컨테이너 | 위치 |
+ *  |---|---|
+ *  | `DataTable`의 TableWrap | `components/common/DataTable/DataTable.styled.ts:6` |
+ *  | `PortfolioAllocation`의 범례 목록 | `components/common/PortfolioAllocation/PortfolioAllocation.styled.ts:29` |
+ *  | `SideDrawerBody`(드로어 안 폼) | `components/common/SideDrawer/SideDrawer.styled.ts:179` |
+ *  | 티커 상세 카드 | `pages/Ticker/TickerDetailPage/TickerDetailPage.styled.ts:199` |
+ *  | 티커 허브 카드 | `pages/Ticker/TickerHubPage/TickerHubPage.styled.ts:114` |
  *
  * ⚠ `container-type`은 **레이아웃 컨테인먼트를 함께 적용**해 그 요소가 `position: fixed` 자손의
- * 컨테이닝 블록이 된다 — fixed 오버레이(드로어·토스트)를 품는 요소에는 켜지 말 것
- * (`FeatureLayout`이 드로어 폭에서 끄는 이유, Main.shared.styled.ts 참고).
+ * 컨테이닝 블록이 된다 — fixed 오버레이(드로어·토스트)를 품는 요소에는 켜지 말 것.
+ * 그래서 구 `FeatureLayout`(본문 래퍼)의 컨테인먼트는 **2026-07-28 드로어 전환으로 제거됐다**
+ * (되살리면 안 되는 이유는 `pages/Main/Main.shared.styled.ts`의 `FeatureLayout` 주석에 남아 있다).
  */
 export const container = {
   down: (key: BreakpointKey) => `@container (max-width: ${BREAKPOINT[key]}px)`,
@@ -64,13 +72,64 @@ export const container = {
 /* 타이포                                                                       */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * 서체는 **역할 4종**이다. 전부 셀프호스팅(CDN 금지 — 서드파티 요청·렌더 블로킹·오프라인 실패).
+ * 폰트가 아직 안 왔을 때는 OS 한글 폰트로 우아하게 폴백한다(`font-display: swap`).
+ *
+ *  | 역할          | 서체                | 어디에                                        |
+ *  |---------------|--------------------|-----------------------------------------------|
+ *  | `sans`        | Wanted Sans        | 본문·라벨·힌트·버튼·입력 (기본값)               |
+ *  | `display`     | Snowball Display   | 워드마크, 헤딩(h1~h6) — 원본은 Gmarket Sans      |
+ *  | `heroNumeric` | LINE Seed Sans KR  | **화면당 1곳** — hero StatTile 값                |
+ *  | `dataNumeric` | Snowball Numeric   | 그 외 모든 숫자 — StatTile default, DataTable, 칩, 차트 축·툴팁 (원본은 Inter + tabular) |
+ *
+ * 적재는 `main.tsx`(Wanted Sans = npm 동적 서브셋 CSS) + `shared/styles/selfHostedFonts.css`
+ * (나머지 3종 = `public/fonts/` 서브셋, `tools/fonts/build.mjs` 생성물)가 맡는다.
+ *
+ * ⚠ **컴포넌트에서 `font-family` 문자열을 직접 쓰지 마라.** 반드시 이 토큰을 거친다.
+ */
 export const font = {
+  sans: "'Wanted Sans Variable', 'Wanted Sans', -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Segoe UI', Roboto, sans-serif",
   /**
-   * Pretendard를 npm으로 셀프호스팅한다(`main.tsx`에서 동적 서브셋 CSS를 import).
-   * CDN을 쓰지 않는 이유: 서드파티 요청(프라이버시) + 렌더 블로킹 + 오프라인 실패.
-   * 폰트가 아직 안 왔을 때는 OS 한글 폰트로 우아하게 폴백한다(`font-display: swap`).
+   * 헤딩·워드마크.
+   *
+   * 1순위 `'Snowball Display'` 는 우리 자체 서브셋(`shared/styles/selfHostedFonts.css`)의 family 명이고
+   * **원본은 Gmarket Sans** 다 — CSS family 명만 앱 고유명으로 두어 OFL §3 Reserved Font Name 회색지대를
+   * 해소했다(2026-07-28). 파일명·저작권 고지·OFL 원문은 원본 그대로다(public/fonts/README.md).
+   *
+   * 원본은 Light(300)·Medium(400)·Bold(700) 세 벌뿐이고 이 앱은 **Bold 한 벌만** 싣는다(헤딩 실측이
+   * 600/700/800 뿐 — tools/fonts/build.mjs 주석 참고). 그래서 display 로 그린 글자는 굵기를 무엇으로
+   * 요청하든 Bold 로 보인다.
+   *
+   * **판단(2026-07-28 — 현 상태 수용)**: 위계는 굵기가 아니라 **크기**로 만든다. `weight` 를 600·700·800 중
+   * 무엇으로 적든 헤딩은 같은 굵기로 렌더되지만, 굵기 범위를 실제로 넓히려면 헤딩 일부를 `sans` 로
+   * 내려야 하고 그러면 같은 화면의 헤딩끼리 서체가 갈려 더 나쁘다. 헤딩 굵기를 "고쳐야 할 버그"로 보지 마라.
    */
-  sans: "'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Segoe UI', Roboto, sans-serif",
+  display:
+    "'Snowball Display', 'Wanted Sans Variable', 'Wanted Sans', -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif",
+  /**
+   * 그 화면의 주인공 숫자 **한 곳**에만. 두 곳에 쓰면 위계가 죽는다(`StatTile.types.ts` hero 규칙과 동일).
+   * 서브셋이 숫자·통화기호·단위 한글만 담고 있어 그 밖의 글자는 자동으로 sans 로 떨어진다(의도).
+   */
+  heroNumeric:
+    "'LINE Seed Sans KR', 'Wanted Sans Variable', 'Wanted Sans', -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif",
+  /**
+   * hero 를 제외한 모든 숫자. `numeric`(tabular-nums)과 **함께** 쓴다 — Inter 의 기본 숫자는 비례폭이고
+   * `tnum` 을 켜야 자릿수가 정렬된다.
+   *
+   * ⚠ Inter 에는 한글 글리프가 없다 — 표 안 "3종"·"미정" 같은 한글이 본문 서체로 폴백되게 순서를 고정한다.
+   *
+   * 1순위 `'Snowball Numeric'` 은 우리 자체 서브셋(`shared/styles/selfHostedFonts.css`)의 family 명이다
+   * (원본 Inter, opsz 16 고정 · ₩ 포함 단일 파일). 이름 충돌은 **해소 완료**(2026-07-28) — 예전 이름
+   * `'Inter Variable'` 은 npm `@fontsource-variable/inter` 가 등록하는 이름과 같아서, 누군가 그 패키지를
+   * 설치·import 하면 unicode-range 분할된 다른 `@font-face` 세트가 같은 이름으로 끼어들어 CSS 순서에 따라
+   * 우리 서브셋이 밀리고 최적화가 **조용히 무효화**됐다(tsc·테스트·대비 게이트 어느 것도 못 잡는 사고).
+   * 이름을 갈라 그 경로 자체를 없앴으니 family 명을 다시 원본 이름으로 되돌리지 마라.
+   *
+   * 2순위의 맨몸 `Inter` 는 **사용자 OS 에 설치된 Inter** 를 쓰는 폴백이라 충돌과 무관하다 — 유지한다.
+   */
+  dataNumeric:
+    "'Snowball Numeric', Inter, 'Wanted Sans Variable', 'Wanted Sans', -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif",
   size: FONT_SIZE_SCALE,
   weight: FONT_WEIGHT_SCALE,
   leading: LEADING_SCALE,
@@ -119,6 +178,14 @@ export const zIndex = {
   drawerBackdrop: 55,
   drawer: 60,
   dropdown: 20,
+  /**
+   * 본문 흐름 안의 sticky 액션(시뮬레이터 설정 도크) — 스크롤하면 결과 카드 **위로** 지나가야 한다.
+   *
+   * 콘텐츠 지역 층(1~2)보다 높고 `dropdown`(20)보다 낮다. 명시하지 않으면 DOM 순서상 **뒤에 오는**
+   * 카드(`position: relative` 를 쓰는 것들)가 이 버튼을 덮는다. 헤더(30)보다 낮아 스크롤 시
+   * 헤더 뒤로 들어가고, 드로어 계열(55~60)보다 낮아 드로어가 열리면 그 아래에 깔린다.
+   */
+  stickyAction: 10,
   /**
    * 헤더 서피스 층 — **팝오버를 품는 헤더 자신**의 층위.
    *

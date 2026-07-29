@@ -7,11 +7,13 @@ import { ScheduleSourceBadge } from '../ScheduleSourceBadge';
 import type { TickerPickerProps } from './TickerPicker.types';
 import {
   ClearButton,
+  CountToken,
   NoResultText,
   PickerMetaRow,
   PickerRoot,
   ResultButton,
   ResultCount,
+  ResultCountDivider,
   ResultItem,
   ResultList,
   ResultName,
@@ -44,6 +46,12 @@ export default function TickerPicker({
   const resultCountId = useId();
   const searchRef = useRef<HTMLInputElement | null>(null);
   const selectedSet = new Set(selected);
+  /**
+   * "데이터 준비 중" 판정은 목록 항목의 배지와 **같은 한 가지 기준**(`source === null`)에서 온다.
+   * 세는 대상도 지금 화면에 보이는 목록(`options`, 검색어 적용 후)이라 검색을 좁히면 두 숫자가
+   * 같이 줄어든다 — 전체 유니버스를 세면 "3종목 · 준비 중 19종"처럼 읽히는 거짓말이 된다.
+   */
+  const unavailableCount = options.reduce((count, option) => (option.source === null ? count + 1 : count), 0);
 
   const handleSearchKeyDown = useCallback(
     (event: KeyboardEvent<HTMLInputElement>) => {
@@ -86,7 +94,17 @@ export default function TickerPicker({
       </SearchRow>
 
       <PickerMetaRow>
-        <ResultCount id={resultCountId}>{copy.picker.resultCount(options.length)}</ResultCount>
+        {/* 검색 입력의 aria-describedby 가 이 문단을 가리킨다 — 준비 중 개수도 같은 문단에 담아
+            "68종목"만 읽히고 끝나지 않게 한다(구분자만 장식으로 숨긴다). */}
+        <ResultCount id={resultCountId}>
+          <CountToken>{copy.picker.resultCount(options.length)}</CountToken>
+          {unavailableCount > 0 ? (
+            <>
+              <ResultCountDivider aria-hidden>·</ResultCountDivider>
+              <CountToken>{copy.picker.unavailableCount(unavailableCount)}</CountToken>
+            </>
+          ) : null}
+        </ResultCount>
         {selected.length > 0 ? (
           <ClearButton type="button" onClick={onClear}>
             {copy.picker.clear}

@@ -8,7 +8,7 @@ import type { ChipVariant } from './Chip.types';
  * 예전에는 밋밋한 아웃라인 버튼이라 "선택 가능한 토큰"이 아니라 그냥 작은 버튼처럼 보였다.
  * pill 형태 + 선택 시 브랜드 채움으로 "이건 붙였다 뗐다 하는 조각"이라는 걸 형태로 말한다.
  *
- * variant(§4.6): 정보 배지로 쓸 때만 오로라 틴트(accent/accentAlt). **선택 상태는 항상 brand** —
+ * variant(§4.6): 정보 배지로 쓸 때만 오로라 틴트(accent=틸 / accentAlt=그린). **선택 상태는 항상 brand** —
  * "선택=브랜드"라는 기존 학습을 variant가 침범하지 않는다.
  */
 

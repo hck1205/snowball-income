@@ -4,13 +4,16 @@ import { color, font, media, motion, radius, shadow, space, zIndex } from '@/sha
 
 /** `pages/Main/Main.shared.styled.ts`에서 옮겨온 시나리오 탭 조각 (스타일 값 동일, 마크업/동작 변화 없음). */
 
+/**
+ * 탭 스트립. **밑줄은 여기 없다** — 래퍼(`ScenarioTabsRow`)가 갖는다.
+ * 여기에 두면 스트립 폭(= 탭 개수만큼)까지만 선이 그려져 우측 "간략히" 토글 아래가 끊긴다.
+ */
 export const ScenarioTabsWrap = styled.div`
   display: flex;
   align-items: flex-end;
   gap: ${space[1]};
   overflow-x: auto;
   overflow-y: hidden;
-  border-bottom: 1px solid ${color.border};
   scrollbar-width: thin;
   -webkit-overflow-scrolling: touch;
 
@@ -51,6 +54,11 @@ export const ScenarioTabButton = styled.button<{ active?: boolean; dragOver?: bo
   opacity: ${({ isDragging }) => (isDragging ? 0.65 : 1)};
   box-shadow: ${({ dragOver }) => (dragOver ? `inset 0 0 0 2px ${color.brand}` : 'none')};
   transition: background-color ${motion.fast} ${motion.ease}, color ${motion.fast} ${motion.ease};
+
+  /* 손가락으로 쓰는 폭에서는 터치 타깃 하한(44px)까지 올린다. */
+  ${media.down('tablet')} {
+    min-height: 44px;
+  }
 
   /* 활성 탭이 아래 패널과 이어져 보이도록 경계선을 덮는다 */
   &::after {

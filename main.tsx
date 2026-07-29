@@ -1,7 +1,11 @@
-// Pretendard 셀프호스팅. CDN이 아니라 npm 패키지에서 직접 번들한다(성능·프라이버시).
+// 본문 서체(font.sans) = Wanted Sans. CDN이 아니라 npm 패키지에서 직접 번들한다(성능·프라이버시).
 // 동적 서브셋(unicode-range 92분할)이라 브라우저는 실제로 그리는 글자에 해당하는 조각만 내려받는다.
-// 통짜 가변 폰트(PretendardVariable.woff2)는 2.05MB라 초기 로딩에 쓰기엔 너무 크다.
-import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
+// 통짜 가변 폰트(WantedSansVariable.woff2)는 1.7MB라 초기 로딩에 쓰기엔 너무 크다.
+import "wanted-sans/fonts/webfonts/variable/split/WantedSansVariable.css";
+// 나머지 3역할(display=Gmarket Sans · heroNumeric=LINE Seed · dataNumeric=Inter)은 npm 배포가 없거나
+// 서브셋이 필요해 직접 자른 woff2를 public/fonts/에 커밋해 두었다. 이 CSS는 그 @font-face 선언 묶음으로,
+// `tools/fonts/build.mjs`가 생성한다(빌드는 네트워크를 타지 않는다 — 산출물이 레포에 있다).
+import "@/shared/styles/selfHostedFonts.css";
 import ReactDOM from "react-dom/client";
 import AppRouter from "@/router";
 import { ANALYTICS_EVENT, applySeoRuntimeMetadata, initGoogleAnalytics, peekLoginSource, track } from "@/shared/lib/analytics";

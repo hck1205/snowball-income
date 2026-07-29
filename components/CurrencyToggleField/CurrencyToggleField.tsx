@@ -16,7 +16,7 @@ import type { CurrencyToggleFieldProps } from './CurrencyToggleField.types';
  *
  * ⚠ 이 컨트롤이 `components/`(재사용) 레이어에 있는 이유: `components/InvestmentSettings` 가 쓰므로
  *   `pages/Main` 안에 두면 컴포넌트가 페이지를 import 하는 역방향 의존이 된다.
- * ⚠ 트레이드오프: 좌패널은 ≤960px 에서 드로어로 접히므로 모바일에서는 드로어를 열어야 전환할 수 있다.
+ * ⚠ 트레이드오프: 투자 설정은 **전 해상도에서 드로어** 안이라 통화를 바꾸려면 드로어를 열어야 한다.
  *
  * 계산은 언제나 원화다 — 이 토글은 **결과 표시**만 바꾼다(입력 필드·PDF·커뮤니티는 원화 고정).
  */

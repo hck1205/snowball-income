@@ -1,10 +1,27 @@
 import styled from '@emotion/styled';
 import { color, font, motion, radius, shadow, space, zIndex } from '@/shared/styles';
 
-export const Article = styled.article`
+/**
+ * 글 상세의 세로 스택.
+ *
+ * `minmax(0, 1fr)` 은 장식이 아니다 — 기본 `auto` 트랙은 **자손의 min-content 로 부풀어** 컨테이너
+ * 폭을 넘어선다. 본문에 표가 들어간 글에서 그 경로로 문서 전체가 뷰포트보다 넓어졌고
+ * (390px 뷰포트 → 문서 592px), 뷰포트 폭인 sticky 헤더가 가로 스크롤에 잘려 상단 메뉴가 화면 밖으로
+ * 나갔다. 트랙을 0 까지 줄 수 있게 두면 넘치는 것은 자기 안에서 스크롤한다(RichTextContent 의 표).
+ */
+/**
+ * 상단 바(← 목록 / 수정·삭제)와 글 카드가 **같은 좌우 경계**를 갖게 하는 폭 컨테이너
+ * (사용자 요청 2026-07-28 — 액션이 본문보다 넓게 퍼져 있었다).
+ * 폭 제한은 여기 하나뿐이다 — 아래 `Article` 이 자기 max-width 를 또 갖고 있으면 둘이 갈라진다.
+ */
+export const DetailShell = styled.div`
   max-width: 760px;
   margin: 0 auto;
+`;
+
+export const Article = styled.article`
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: clamp(${space[4]}, 3vw, ${space[6]});
 `;
 
@@ -15,6 +32,9 @@ export const Article = styled.article`
  */
 export const PostCard = styled.div`
   display: grid;
+  /* 위 Article 과 같은 이유 — 카드 안의 넓은 콘텐츠(표·코드)가 카드 폭을 밀어내지 못하게 한다. */
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
   gap: ${space[5]};
   padding: clamp(${space[5]}, 4vw, ${space[8]});
   border-radius: ${radius.xs};
@@ -49,13 +69,6 @@ export const DetailHeader = styled.header`
   border-bottom: 1px solid ${color.border};
 `;
 
-export const HeaderTopRow = styled.div`
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: ${space[3]};
-`;
-
 export const Title = styled.h1`
   margin: 0;
   color: ${color.text};
@@ -63,13 +76,6 @@ export const Title = styled.h1`
   font-weight: ${font.weight.bold};
   line-height: ${font.leading.tight};
   word-break: break-word;
-`;
-
-export const OwnerActions = styled.div`
-  display: inline-flex;
-  align-items: center;
-  gap: ${space[1]};
-  flex: 0 0 auto;
 `;
 
 export const MetaRow = styled.div`

@@ -22,8 +22,11 @@ const stackedTable = `
     display: none;
   }
 
+  /* minmax(0, 1fr) — 기본 암시 트랙(auto)은 최소 크기가 min-content 라 긴 셀 하나가 카드 폭을
+     래퍼(overflow-x: auto) 밖으로 밀어낸다. 보유 표에서 실제로 20~41px 가로 스크롤이 생겼던 원인이다. */
   tbody {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: ${space[2]};
   }
 
@@ -119,6 +122,19 @@ export const TD = styled.td`
   padding: ${space[2]};
   color: ${color.text};
   white-space: nowrap;
+  /*
+   * 값 셀의 서체 역할을 여기서 못 박는다. 전역 규칙(globalStyles의 table/th/td)도 같은 서체를 걸지만,
+   * 그건 "모든 표"에 대한 기본값이고 이 선언은 **이 셀이 데이터 숫자라는 사실**을 컴포넌트가 직접
+   * 말하는 쪽이다.
+   *
+   * 사실 관계(주석과 코드가 어긋나지 않게 적어 둔다 — 이 파일은 css 템플릿 리터럴이라 주석에 백틱 금지):
+   *  - 전역 규칙은 **th도 포함**한다 — 헤더가 예외인 게 아니다. Inter에 한글이 없어 한글 라벨이
+   *    스택 다음(본문 서체)으로 폴백될 뿐이다.
+   *  - globalStyles의 "button, input, select, textarea { font-family: inherit }"(표 규칙보다 앞, 명시도
+   *    0,0,1)가 브라우저 기본 서체를 걷어내므로 **표 안의 버튼·입력도 부모 셀에서 Inter를 상속**받는다.
+   *    전역 표 규칙이 button을 직접 나열하지 않아도 결과는 같다.
+   */
+  font-family: ${font.dataNumeric};
   ${font.numeric};
 
   ${container.down('tablet')} {

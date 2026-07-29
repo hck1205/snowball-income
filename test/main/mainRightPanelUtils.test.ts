@@ -1,17 +1,14 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { TARGET_MONTHLY_DIVIDEND_INPUT_ID } from '@/shared/constants';
-import {
-  focusTargetMonthlyDividendInput,
-  isConfigDrawerLayout
-} from '@/pages/Main/components/MainRightPanel/MainRightPanel.utils';
+import { focusTargetMonthlyDividendInput } from '@/pages/Main/components/MainRightPanel/MainRightPanel.utils';
 
 /**
- * 결과 카드 "직접 입력" CTA가 기대는 두 순수 헬퍼.
+ * 목표 포커스 요청이 기대는 순수 헬퍼.
  *
- * jsdom은 `@media`를 평가하지 않으므로 **레이아웃 분기 자체는 테스트 불가**다 — 여기서 보는 것은
- * "matchMedia가 이렇게 답하면 헬퍼가 이렇게 판정한다"는 계약뿐이다(드로어가 실제로 열리는지는 실기기 확인).
- * 포커스 쪽은 반대로 jsdom에서 그대로 관측된다 — 단 `scrollIntoView`가 **없는** 환경이라
- * 옵셔널 가드가 빠지면 CTA 전체가 TypeError로 죽는다(이 파일이 그 회귀 가드다).
+ * 구 `isConfigDrawerLayout`(폭 판정)은 설정 패널이 **전 해상도 드로어**가 되면서 사라졌다 —
+ * 호출부는 이제 폭과 무관하게 드로어를 먼저 연다.
+ * 포커스 쪽은 jsdom에서 그대로 관측된다 — 단 `scrollIntoView`가 **없는** 환경이라
+ * 옵셔널 가드가 빠지면 요청 처리 전체가 TypeError로 죽는다(이 파일이 그 회귀 가드다).
  */
 
 const realMatchMedia = window.matchMedia;
@@ -48,28 +45,6 @@ const mountTargetInput = (): HTMLInputElement => {
 afterEach(() => {
   Object.defineProperty(window, 'matchMedia', { configurable: true, value: realMatchMedia });
   document.body.innerHTML = '';
-});
-
-describe('isConfigDrawerLayout', () => {
-  it('≤960px 질의가 참이면 드로어 레이아웃으로 본다', () => {
-    stubMatchMedia('(max-width: 960px)');
-    expect(isConfigDrawerLayout()).toBe(true);
-  });
-
-  it('아무 질의도 안 맞으면 false (넓은 화면 = 설정 패널이 이미 보인다)', () => {
-    stubMatchMedia('(max-width: 360px)');
-    expect(isConfigDrawerLayout()).toBe(false);
-  });
-
-  it('jsdom 기본(matches:false)에서도 false — 테스트가 드로어 경로로 새지 않는다', () => {
-    expect(isConfigDrawerLayout()).toBe(false);
-  });
-
-  it('matchMedia가 없는 환경에서도 던지지 않고 false', () => {
-    stubMatchMedia(null);
-    expect(() => isConfigDrawerLayout()).not.toThrow();
-    expect(isConfigDrawerLayout()).toBe(false);
-  });
 });
 
 describe('focusTargetMonthlyDividendInput', () => {

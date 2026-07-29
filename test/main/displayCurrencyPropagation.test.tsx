@@ -5,6 +5,7 @@ import { Provider } from 'jotai/react';
 import { createStore } from 'jotai/vanilla';
 import { MainPage } from '@/pages';
 import { DISPLAY_CURRENCY_COPY } from '@/shared/constants';
+import { openSettingsDrawer } from '@/test';
 
 /**
  * 표시 통화 토글 → **결과 표면 전체**가 함께 바뀌는가.
@@ -82,13 +83,18 @@ const renderApp = (): User => {
   return userEvent.setup();
 };
 
+/* 투자 설정은 **전 해상도에서 드로어** 안이다 — 설정을 만지는 동선은 `openSettingsDrawer`(@/test)에서 시작한다. */
+
 /** 사용자와 같은 경로로 프리셋 티커를 하나 담는다 — 여기서부터 결과 영역이 나타난다. */
 const createTickerFromPreset = async (user: User, ticker: string): Promise<void> => {
+  await openSettingsDrawer(user);
   await user.click(screen.getByRole('button', { name: '티커 생성 열기' }));
   const dialog = await screen.findByRole('dialog', { name: '티커 생성' }, LAZY_TIMEOUT);
   await user.type(within(dialog).getByRole('textbox', { name: '프리셋 티커 검색' }), ticker);
   await user.click(within(dialog).getByRole('option', { name: `${ticker} 선택` }));
   await user.click(within(dialog).getByRole('button', { name: '생성' }));
+  // 티커 저장은 드로어를 닫는다(만든 결과를 바로 보여주는 동선) — 설정을 계속 만지려면 다시 연다.
+  await openSettingsDrawer(user);
 };
 
 const currencyToggle = (): HTMLElement =>
@@ -106,8 +112,16 @@ const chartProbeText = async (name: string | RegExp): Promise<string> => {
   }, LAZY_TIMEOUT);
 };
 
-const resultCardText = (title: string): string =>
-  screen.getByRole('heading', { name: title }).closest('section')?.textContent ?? '';
+/**
+ * 결과 요약 카드의 텍스트.
+ *
+ * 이 카드는 **제목이 없다**(hero 숫자가 첫 요소) — 그래서 앵커는 카드 제목이 아니라 hero 라벨이다.
+ * 정밀/간편은 hero 라벨 자체가 갈린다(`최종 자산 가치` / `최종 자산 추정`).
+ */
+const summaryCardText = (): string => {
+  const anchor = screen.queryByText('최종 자산 가치') ?? screen.getByText('최종 자산 추정');
+  return anchor.closest('section')?.textContent ?? '';
+};
 
 beforeAll(async () => {
   /*
@@ -164,9 +178,10 @@ describe('표시 통화 토글의 자리 — 투자 설정 카드 안', () => {
    */
   it('티커를 담기 전(빈 상태)에도 투자 설정 패널 안에 있다', async () => {
     stubFx(async () => new Response(JSON.stringify(FX_RATE), { status: 200 }));
-    renderApp();
+    const user = renderApp();
+    await openSettingsDrawer(user);
 
-    const settingsPanel = await screen.findByRole('complementary', { name: '투자 설정 패널' }, LAZY_TIMEOUT);
+    const settingsPanel = await screen.findByRole('complementary', { name: '투자 설정' }, LAZY_TIMEOUT);
     await waitFor(() => expect(within(settingsPanel).getByRole('group', { name: '결과 표시 통화' })).toBeInTheDocument());
     await waitFor(() => expect(currencyToggle()).toBeEnabled(), LAZY_TIMEOUT);
 
@@ -181,7 +196,7 @@ describe('표시 통화 토글의 자리 — 투자 설정 카드 안', () => {
     await createTickerFromPreset(user, 'SCHD');
 
     expect(screen.getAllByRole('group', { name: '결과 표시 통화' })).toHaveLength(1);
-    const settingsPanel = screen.getByRole('complementary', { name: '투자 설정 패널' });
+    const settingsPanel = screen.getByRole('complementary', { name: '투자 설정' });
     expect(settingsPanel).toContainElement(currencyToggle());
   }, 30_000);
 });
@@ -196,7 +211,7 @@ describe('표시 통화 토글 → 결과 표면 전체 전파', () => {
     await user.click(screen.getByRole('checkbox', { name: '그래프 나누어 보기' }));
 
     // ── 토글 전: 전부 원화 (아래 달러 단정이 "그냥 통과"가 아님을 같은 노드로 증명한다) ──
-    expect(resultCardText('시뮬레이션 결과 (정밀)')).toContain('₩');
+    expect(summaryCardText()).toContain('₩');
     expect(screen.getByText(/배당 합계:/).textContent).toContain('₩');
     for (const { krw, krwMarker } of CHART_MATRIX) {
       const text = await chartProbeText(krw);
@@ -210,7 +225,7 @@ describe('표시 통화 토글 → 결과 표면 전체 전파', () => {
     expect(currencyToggle()).toBeChecked();
 
     // ── 토글 후: 결과 표면 전부 달러 ───────────────────────────────────
-    const summary = resultCardText('시뮬레이션 결과 (정밀)');
+    const summary = summaryCardText();
     expect(summary).toContain('$');
     expect(summary).not.toContain('₩');
 
@@ -237,18 +252,18 @@ describe('표시 통화 토글 → 결과 표면 전체 전파', () => {
     await user.click(currencyToggle());
 
     // 상세(기본): 정밀 표기 `$1,234`.
-    expect(resultCardText('시뮬레이션 결과 (정밀)')).toMatch(/\$[\d,]/);
+    expect(summaryCardText()).toMatch(/\$[\d,]/);
 
     // 간략: 축약 표기 `약 $1.4M`.
     await user.click(screen.getByRole('checkbox', { name: '결과 간략히 보기' }));
-    const compact = resultCardText('시뮬레이션 결과 (정밀)');
+    const compact = summaryCardText();
     expect(compact).toMatch(/약 \$/);
     expect(compact).not.toContain('₩');
     expect(compact).not.toContain('억');
 
     // 간편(빠른 추정) 카드도 같은 포맷터를 쓴다 — 정밀 카드와 갈라지지 않는지 확인.
     await user.click(screen.getByRole('checkbox', { name: '빠른 추정 보기' }));
-    const quick = resultCardText('시뮬레이션 결과 (간편)');
+    const quick = summaryCardText();
     expect(quick).toMatch(/약 \$/);
     expect(quick).not.toContain('₩');
   }, 30_000);
@@ -268,7 +283,7 @@ describe('표시 통화 토글 → 결과 표면 전체 전파', () => {
     const back = await chartProbeText('연도별 자산 및 배당 추이 차트');
     expect(back).toContain('₩');
     expect(back).not.toContain('$');
-    expect(resultCardText('시뮬레이션 결과 (정밀)')).not.toContain('$');
+    expect(summaryCardText()).not.toContain('$');
   }, 30_000);
 });
 
@@ -288,7 +303,7 @@ describe('$NaN / $Infinity 부재 — 환율 전 경로', () => {
     expect(currencyToggle()).not.toBeChecked();
 
     // 결과는 원화 그대로 — 달러 포맷터가 rate=null 로 불린 흔적이 없어야 한다.
-    expect(resultCardText('시뮬레이션 결과 (정밀)')).toContain('₩');
+    expect(summaryCardText()).toContain('₩');
     expect(document.body.textContent ?? '').not.toMatch(/NaN|Infinity|\$undefined|\$null/);
   }, 30_000);
 
@@ -298,7 +313,7 @@ describe('$NaN / $Infinity 부재 — 환율 전 경로', () => {
     await createTickerFromPreset(user, 'SCHD');
 
     await waitFor(() => expect(currencyToggle()).toBeDisabled(), LAZY_TIMEOUT);
-    expect(resultCardText('시뮬레이션 결과 (정밀)')).toContain('₩');
+    expect(summaryCardText()).toContain('₩');
     expect(document.body.textContent ?? '').not.toMatch(/NaN|Infinity|\$undefined|\$null/);
   }, 30_000);
 

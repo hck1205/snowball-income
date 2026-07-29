@@ -1,6 +1,7 @@
 import { createElement } from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { SIMULATOR_COPY } from '@/shared/constants';
 import type { TickerProfile } from '@/shared/types/snowball';
 import type { PortfolioCompositionProps } from './PortfolioComposition.types';
 import PortfolioComposition from './PortfolioComposition';
@@ -237,7 +238,7 @@ describe('PortfolioComposition — 회귀 안전망', () => {
   it('종목이 없으면 안내 문구만 보이고 슬라이더/힌트가 없다', () => {
     renderComposition([], { normalizedAllocation: [], allocationPieOption: null, adjustableTickerCount: 0 });
 
-    expect(screen.getByText('좌측 티커 생성을 통해 포트폴리오를 구성해주세요.')).toBeInTheDocument();
+    expect(screen.getByText(SIMULATOR_COPY.emptyPortfolioHint)).toBeInTheDocument();
     expect(screen.queryByRole('slider')).not.toBeInTheDocument();
   });
 });

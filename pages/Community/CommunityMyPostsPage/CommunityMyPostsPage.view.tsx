@@ -2,6 +2,7 @@ import { COMMUNITY_COPY } from '@/shared/constants/community';
 import { EmptyState } from '@/components/community';
 import { SocialLoginButton } from '@/components/community/SocialLoginButton';
 import { isNaverEnabled } from '@/shared/lib/supabase';
+import { CommunityTopBar } from '@/pages/Community/components';
 import type { CommunityMyPostsViewProps } from './CommunityMyPostsPage.types';
 import { MyPostsSection } from './components';
 import { GateButtons, GateWrap, MyPostsMain, PageTitle } from './CommunityMyPostsPage.styled';
@@ -44,6 +45,7 @@ export default function CommunityMyPostsView({ viewModel }: CommunityMyPostsView
 
   return (
     <MyPostsMain>
+      <CommunityTopBar />
       <PageTitle>{c.title}</PageTitle>
       <MyPostsSection />
     </MyPostsMain>

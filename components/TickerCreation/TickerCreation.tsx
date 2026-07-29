@@ -1,6 +1,7 @@
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Card } from '@/components';
+import { ShareDialog, buildShareChannelUrl, type ShareChannelId } from '@/components/common';
 import { TOUR_TARGET } from '@/shared/constants';
 import { getTickerDisplayName } from '@/shared/utils';
 import { ANALYTICS_EVENT, track, trackEvent } from '@/shared/lib/analytics';
@@ -21,6 +22,12 @@ import { ShareToast } from './TickerCreation.styled';
 
 type SecondaryActionKey = 'share' | 'coffee';
 
+/** 채널 인텐트에 함께 실어 보내는 제목. 링크가 무엇인지 한 줄로 말한다. */
+const SHARE_TITLE = '배당 재투자 시뮬레이션 결과';
+
+/** 채널 새 창이 브라우저 팝업 차단에 막혔을 때 — 아무 일도 안 일어난 것처럼 보이면 안 된다. */
+const POPUP_BLOCKED_MESSAGE = '브라우저가 새 창을 막았어요. 팝업을 허용하거나 링크를 복사해 주세요.';
+
 function TickerCreationComponent({
   topContent,
   tickerProfiles,
@@ -36,6 +43,8 @@ function TickerCreationComponent({
   const [isSharing, setIsSharing] = useState(false);
   const [shareResultMessage, setShareResultMessage] = useState('');
   const [shareToastMessage, setShareToastMessage] = useState('');
+  /** 복사가 안 됐을 때만 세우는 공유 창 대상. 복사가 됐으면 토스트 한 줄로 끝난다(창을 띄우지 않는다). */
+  const [shareDialogUrl, setShareDialogUrl] = useState('');
 
   useEffect(() => {
     if (!shareToastMessage) return;
@@ -58,15 +67,52 @@ function TickerCreationComponent({
       if (result.copied) {
         setShareResultMessage('');
         setShareToastMessage('공유 링크를 클립보드에 복사했습니다.');
-      } else {
-        setShareResultMessage(`공유 링크: ${result.url}`);
+        return;
       }
+      /*
+       * 클립보드가 막힌 환경(권한 거부·비보안 컨텍스트). 예전에는 긴 주소를 카드 안 한 줄 힌트로
+       * 뱉었는데, 그 자리는 설정 드로어 안이라 주소가 잘려 보이고 선택도 어려웠다. 공유 창이
+       * 주소를 읽기 전용 입력으로 보여 주고 다시 복사·채널 전송까지 그 자리에서 끝낸다.
+       */
+      setShareDialogUrl(result.url);
     } catch {
       setShareResultMessage('공유 링크 생성에 실패했습니다.');
     } finally {
       setIsSharing(false);
     }
   }, [isSharing, onCreateShareLink]);
+
+  const handleCopyShareDialogUrl = useCallback(async () => {
+    if (!shareDialogUrl) return;
+    try {
+      await navigator.clipboard.writeText(shareDialogUrl);
+      setShareToastMessage('공유 링크를 클립보드에 복사했습니다.');
+    } catch {
+      // 여전히 막혀 있다 — 창 안의 주소를 직접 선택해 복사하면 된다(무음 실패 금지).
+      setShareToastMessage('복사에 실패했습니다. 주소를 직접 선택해 복사해 주세요.');
+    }
+  }, [shareDialogUrl]);
+
+  const handleShareChannel = useCallback(
+    (channel: ShareChannelId) => {
+      const channelUrl = buildShareChannelUrl(channel, shareDialogUrl, SHARE_TITLE);
+      if (!channelUrl) return;
+
+      const opened = window.open(channelUrl, '_blank', 'noopener,noreferrer');
+      if (!opened) {
+        /*
+         * 팝업 차단(반환 null). 조용히 끝내면 버튼이 고장 난 것으로 보인다 — 사유를 말하고
+         * 공유 창은 **열어 둔다**(그 안의 링크 복사가 대안이다). 공유가 없었으니 계측도 없다.
+         */
+        setShareToastMessage(POPUP_BLOCKED_MESSAGE);
+        return;
+      }
+
+      track(ANALYTICS_EVENT.SCENARIO_SHARED, { share_method: channel });
+      setShareDialogUrl('');
+    },
+    [shareDialogUrl]
+  );
 
   const handleSecondaryAction = useCallback(
     (key: SecondaryActionKey) => {
@@ -130,6 +176,15 @@ function TickerCreationComponent({
           </TickerQuickActionButton>
         ))}
       </TickerQuickActionRow>
+      {/* 공유 창은 스스로 body 로 포털한다 — 이 카드는 설정 드로어 안에 있어 여기 그리면 잘린다. */}
+      {shareDialogUrl ? (
+        <ShareDialog
+          url={shareDialogUrl}
+          onCopy={handleCopyShareDialogUrl}
+          onSelectChannel={handleShareChannel}
+          onClose={() => setShareDialogUrl('')}
+        />
+      ) : null}
       {shareToastMessage && modalRoot
         ? createPortal(
             <ShareToast role="status" aria-live="polite">

@@ -303,23 +303,24 @@ const buildStaticExampleHtml = async (): Promise<string> => {
 /* -------------------------------------------------------------------------- */
 
 /**
- * `/api/og` 가 런타임에 fetch 하는 Pretendard 를 정적 자산으로 내보낸다.
+ * `/api/og` 가 런타임에 fetch 하는 본문 서체(Wanted Sans) otf 를 정적 자산으로 내보낸다.
  *
- * - Satori 는 시스템 폰트를 못 쓰고 **ttf/otf/woff 만** 읽는다(woff2 불가). 그래서 npm `pretendard` 가 함께
- *   싣는 `dist/public/static/*.otf` 를 쓴다.
- * - 레포에 1.5MB짜리 바이너리를 커밋하지 않으려고 **빌드 때 node_modules 에서 복사**한다.
+ * - Satori 는 시스템 폰트를 못 쓰고 **ttf/otf/woff 만** 읽는다(woff2 불가). 그래서 화면이 쓰는 동적 서브셋
+ *   woff2 가 아니라, npm `wanted-sans` 가 함께 싣는 `fonts/otf/*.otf` 를 쓴다.
+ * - 레포에 1.3MB짜리 바이너리를 커밋하지 않으려고 **빌드 때 node_modules 에서 복사**한다.
+ *   (`public/fonts/` 의 서브셋 woff2 와는 다른 물건이다 — 그쪽은 화면용, 이쪽은 OG 렌더용.)
  * - 클라이언트 번들과는 무관하다(HTML/CSS 어디서도 참조하지 않는다). 서버 함수만 HTTP 로 가져간다.
  */
-const OG_FONT_FILES = ['Pretendard-Regular.otf', 'Pretendard-Bold.otf'] as const;
-const PRETENDARD_STATIC_DIR = 'node_modules/pretendard/dist/public/static';
+const OG_FONT_FILES = ['WantedSans-Regular.otf', 'WantedSans-Bold.otf'] as const;
+const OG_FONT_SOURCE_DIR = 'node_modules/wanted-sans/fonts/otf';
 
 const readOgFont = (file: string): Buffer => {
   try {
-    return readFileSync(new URL(`./${PRETENDARD_STATIC_DIR}/${file}`, import.meta.url));
+    return readFileSync(new URL(`./${OG_FONT_SOURCE_DIR}/${file}`, import.meta.url));
   } catch (error) {
     // 조용히 넘어가면 동적 OG 가 영구히 정적 이미지로 폴백되면서도 아무도 모른다. 빌드를 세운다.
     throw new Error(
-      `[snowball] OG 폰트를 찾지 못했다: ${PRETENDARD_STATIC_DIR}/${file}. \`npm install\` 후 다시 시도하라. (${String(error)})`
+      `[snowball] OG 폰트를 찾지 못했다: ${OG_FONT_SOURCE_DIR}/${file}. \`npm install\` 후 다시 시도하라. (${String(error)})`
     );
   }
 };

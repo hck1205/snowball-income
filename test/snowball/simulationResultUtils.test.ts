@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { findTargetReachYearIndex } from '@/components/SimulationResult/SimulationResult.utils';
+import { findTargetReachYearIndex } from '@/components/ResultSummaryCard';
 import type { SimulationOutput } from '@/shared/types';
 
 /**
  * `findTargetReachYearIndex` — 달력 연도(엔진 출력)를 **투자 N년차**(표시용)로 옮기는 순수 함수.
  *
- * 서사 문장("… 2028년에 달성해요. (투자 3년차)")과 목표 StatTile hint("투자 3년차")가 같은 숫자를
- * 말해야 하므로 두 표면이 이 함수 하나를 공유한다 — 여기서 계약이 깨지면 두 곳이 동시에 거짓말한다.
+ * 결과 카드의 목표 StatTile hint("투자 3년차")가 이 함수 하나에 걸려 있다 — 달력 연도만 주는 엔진
+ * 출력과 "얼마나 먼 미래인가"를 잇는 유일한 지점이라, 여기서 어긋나면 화면이 조용히 거짓말한다.
  */
 
 const yearly = (years: number[]): SimulationOutput['yearly'] =>

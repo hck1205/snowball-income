@@ -8,15 +8,19 @@ export const COMMUNITY_COPY = {
     simulator: '시뮬레이터',
     toSimulator: '시뮬레이터로',
     write: '글쓰기',
-    home: 'Snowball',
     login: '로그인',
     logout: '로그아웃',
     theme: '테마',
     // ── 전역 nav(PrimaryNav) — 브랜드 링크 + 라우트 링크(시뮬레이터·갤러리·게시판) ──
     /** nav 랜드마크 이름(<nav aria-label>). */
     primaryLabel: '주요 메뉴',
-    /** 브랜드 워드마크(로고+앱이름 링크). "Snowball Income" 워드마크 유지. */
-    brand: 'Snowball Income',
+    /**
+     * 브랜드 워드마크(홈 링크의 접근명). 표기는 한글 **"스노우볼 인컴"**(2026-07-27 확정) —
+     * 앞뒤 두 낱말을 서로 다른 색으로 그리므로 PrimaryNav가 **공백으로 쪼개 쓴다**.
+     * 낱말 수·공백 위치를 바꾸면 색 분할이 함께 바뀐다.
+     * (제품명 표기 "Snowball Income"은 <title> suffix·OG 등 문서 메타에 그대로 남는다 — 다른 계층이다.)
+     */
+    brand: '스노우볼 인컴',
     /** 커뮤니티 갤러리 링크(/community). */
     gallery: '포트폴리오 갤러리',
     /** 자유게시판 링크(/community/board). */
@@ -25,6 +29,12 @@ export const COMMUNITY_COPY = {
     tickers: 'ETF 소개',
     /** 배당 지급 월 캘린더(/dividend/calendar). 시뮬 결과가 아니라 관측 지급월 기반 페이지다. */
     dividendCalendar: '배당 캘린더',
+    /**
+     * 내 포트폴리오(/dividend/portfolio). 보유 종목·수량으로 현재 배당을 계산한다.
+     * 목표 달성률·예상 달성 시점도 이 화면 안에 있다(구 /dividend/goal 흡수).
+     * ⚠ 단독 '포트폴리오' 금지 — 같은 nav 에 `gallery: '포트폴리오 갤러리'` 가 있어 서로 헷갈린다.
+     */
+    myPortfolio: '내 포트폴리오',
     /** 상세/글쓰기 하위에서 목록으로 복귀하는 뒤로가기 라벨. */
     list: '목록'
   },
@@ -250,9 +260,11 @@ export const COMMUNITY_COPY = {
     likeActiveAria: '좋아요 취소',
     share: '공유',
     shareAria: '이 글 공유하기',
-    shareText: '눈덩이 배당 시뮬레이터에서 만든 포트폴리오예요.',
+    shareText: '스노우볼 인컴에서 만든 배당 포트폴리오예요.',
     shareToastCopied: '링크를 복사했습니다.',
     shareToastFailed: '복사에 실패했어요. 링크:',
+    /* 채널 새 창이 브라우저 팝업 차단에 막혔을 때 — 아무 일도 안 일어난 것처럼 보이면 안 된다. */
+    shareToastPopupBlocked: '브라우저가 새 창을 막았어요. 팝업을 허용하거나 링크를 복사해 주세요.',
     notFoundTitle: '시나리오를 찾을 수 없어요',
     notFoundCta: '목록으로',
     errorTitle: '시나리오를 불러오지 못했어요',

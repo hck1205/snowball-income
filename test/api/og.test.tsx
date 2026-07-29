@@ -15,7 +15,7 @@ import {
  *
  * ## 왜 렌더 결과를 검증하지 않는가
  * 이 핸들러의 본체는 `@vercel/og`(satori + resvg.wasm)로 1200×630 PNG 를 굽는 것이다. 유닛에서 그걸 돌리려면
- *   (a) Pretendard **otf 바이트**(런타임에 `/fonts/*.otf` 로 fetch — dist 빌드 산출물이라 테스트가 의존하면 안 된다),
+ *   (a) 본문 서체 **otf 바이트**(런타임에 `/fonts/*.otf` 로 fetch — dist 빌드 산출물이라 테스트가 의존하면 안 된다),
  *   (b) jsdom 안에서 wasm 래스터라이저 실행(수 초 + 플랫폼 의존),
  *   (c) PNG 바이트 비교(폰트/wasm 버전이 바뀌면 무의미하게 깨지는 골든)
  * 이 필요하다. 즉 **비용은 크고 회귀 검출력은 낮다**(지식 기반 pitfalls: "api/og 핸들러는 fetch+ImageResponse 라

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { Button } from '@/components';
 import { ModalActions, ModalBackdrop, ModalBody, ModalPanel, ModalTitle } from '@/components/common';
 import { useCurrentHelpAtomValue } from '@/jotai';
+import { useOverlayEscape } from '@/shared/hooks';
 import type { HelpModalProps } from './HelpModal.types';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import { HelpBulletIcon, HelpBulletList } from './HelpModal.styled';
@@ -60,16 +61,11 @@ export default function HelpModal({ onBackdropClick, onClose }: HelpModalProps) 
   const titleId = useId();
   const modalRoot = typeof document !== 'undefined' ? document.body : null;
 
-  useEffect(() => {
-    if (!help) return;
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [help, onClose]);
+  /*
+   * Escape = 도움말 닫기. 도움말은 설정 드로어 안 물음표에서도 열리므로 **한 겹만** 닫혀야 한다
+   * (직접 window 리스너를 달면 드로어의 document 리스너가 먼저 돌아 둘이 함께 닫힌다).
+   */
+  useOverlayEscape(Boolean(help), onClose);
 
   useEffect(() => {
     if (!help) return;

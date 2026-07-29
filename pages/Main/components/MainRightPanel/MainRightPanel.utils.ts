@@ -1,15 +1,13 @@
 import { TARGET_MONTHLY_DIVIDEND_INPUT_ID } from '@/shared/constants';
 import { scrollIntoViewSafely } from '@/shared/utils';
+import { computeAnnualGrowthRate } from '@/pages/Main/utils';
+import type { PostInvestmentDividendProjectionRow } from '@/pages/Main/utils';
 
-/** 좌측 설정 패널이 드로어로 접히는 폭. 이 아래에서는 "왼쪽 설정" 안내가 성립하지 않는다. */
-const CONFIG_DRAWER_MEDIA = '(max-width: 960px)';
-
-/** ⚠ 모션 선호 판정이 아니라 **레이아웃 폭 판정**에도 쓰인다 — 지우지 말 것. */
-const matchesMedia = (query: string): boolean =>
-  typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia(query).matches;
-
-/** 설정 패널이 드로어로 접혀 있는 폭인가(= 목표 입력이 화면에 없다). jsdom은 항상 false. */
-export const isConfigDrawerLayout = (): boolean => matchesMedia(CONFIG_DRAWER_MEDIA);
+/*
+ * 구 `isConfigDrawerLayout()`(`(max-width: 960px)` 판정)은 삭제했다 — 설정 패널이 **전 해상도에서
+ * 드로어**가 되면서 항상 true 여야 하는 함수가 됐고, 남겨두면 넓은 화면에서 목표 포커스 요청이
+ * 드로어를 열지 않아 입력이 화면에 없는 상태로 포커스만 시도한다.
+ */
 
 /**
  * 목표 월배당 입력으로 스크롤 + 포커스를 옮긴다.
@@ -24,4 +22,22 @@ export const focusTargetMonthlyDividendInput = (): void => {
 
   scrollIntoViewSafely(field, { block: 'center' });
   field.focus?.({ preventScroll: true });
+};
+
+/**
+ * "투자 종료 후 추정" 패널의 제목. 연평균 성장률을 못 구하면(행이 부족) **괄호 안 수치를 빼고**
+ * 제목만 낸다 — 숫자를 지어내지 않는다.
+ */
+export const buildPostInvestmentChartTitle = (
+  rows: PostInvestmentDividendProjectionRow[],
+  isAssetView: boolean
+): string => {
+  const subject = isAssetView ? '자산가치 추정' : '월배당 성장 추정';
+  const rate = isAssetView
+    ? computeAnnualGrowthRate(rows, (row) => row.assetValue)
+    : computeAnnualGrowthRate(rows, (row) => row.annualDividend);
+
+  if (rate === null) return `투자 종료 후 ${subject} (추가 납입 없음)`;
+
+  return `투자 종료 후 ${subject} (추가 납입 없음, 연 ${rate >= 0 ? '+' : ''}${(rate * 100).toFixed(2)}%)`;
 };

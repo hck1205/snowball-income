@@ -1,7 +1,7 @@
 import styled from '@emotion/styled';
 import { color, font, space } from '@/shared/styles';
 
-/** `MainRightPanel.styled.ts`에서 옮겨온 것 — 원래는 인라인 style 속성이었다 (스타일 값 동일, 마크업/동작 변화 없음). */
+/** 구 `MainRightPanel.styled.ts`(결과 배치가 `MainResultGrid`로 옮겨가며 삭제됨)에서 이관 — 원래는 인라인 style 속성이었다. */
 
 /* 토글 라벨이 보이게 되면서 컨트롤 줄이 길어졌다 — 좁은 폭에서는 접어서 흘리고 우측으로 붙인다. */
 export const ProjectionControls = styled.div`

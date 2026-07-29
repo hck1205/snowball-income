@@ -607,6 +607,40 @@ describe('배당 지급 캘린더 — 포커스 계약', () => {
 });
 
 describe('배당 지급 캘린더 — 지급월 데이터가 없는 종목', () => {
+  /**
+   * "데이터 준비 중" = 스냅샷에 지급월이 하나도 없는 종목. 리터럴(19)을 박지 않는 이유는
+   * 이 파일 머리의 규칙과 같다 — 크론이 스냅샷을 채우는 날 화면 버그가 아닌 이유로 빨개진다.
+   */
+  const unavailableTickers = Object.keys(DIVIDEND_UNIVERSE).filter(
+    (ticker) => (MARKET_DATA.entries[ticker]?.payoutMonths ?? []).length === 0
+  );
+
+  it('총 개수 옆에 "준비 중 N종"을 함께 적고, 그 수는 목록 배지와 같은 기준에서 나온다', async () => {
+    const { user } = await renderCalendar();
+    await openPicker(user);
+
+    expect(screen.getByText(`${Object.keys(DIVIDEND_UNIVERSE).length}종목`)).toBeInTheDocument();
+    expect(screen.getByText(`준비 중 ${unavailableTickers.length}종`)).toBeInTheDocument();
+    // 숫자의 근거 = 화면에 실제로 "데이터 준비 중" 배지가 달린 항목 수. 둘이 어긋나면 둘 다 못 믿는다.
+    expect(screen.getAllByText('데이터 준비 중')).toHaveLength(unavailableTickers.length);
+  });
+
+  it('검색으로 목록을 좁히면 준비 중 개수도 함께 좁혀지고, 0이면 아예 사라진다', async () => {
+    const { user } = await renderCalendar();
+    await openPicker(user);
+    const search = screen.getByLabelText('종목 검색');
+
+    // QQQ 는 스냅샷에 지급월이 없다 — 좁힌 목록이 준비 중 1종뿐인 상태.
+    await user.type(search, 'QQQ');
+    expect(screen.getByText('1종목')).toBeInTheDocument();
+    expect(screen.getByText('준비 중 1종')).toBeInTheDocument();
+
+    await user.clear(search);
+    await user.type(search, 'JEPI');
+    expect(screen.getByText('1종목')).toBeInTheDocument();
+    expect(screen.queryByText(/^준비 중/)).not.toBeInTheDocument();
+  });
+
   it('클릭도 Enter 도 선택으로 이어지지 않고 이유를 배지로 남긴다', async () => {
     const { user } = await renderCalendar();
 

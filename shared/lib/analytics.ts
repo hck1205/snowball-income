@@ -54,6 +54,9 @@ export const ANALYTICS_EVENT = {
   // 추천 프리셋 적용 이벤트. 용도: 프리셋 인기 순위, 프리셋별 전환/완주율 비교.
   PRESET_APPLIED: "preset_applied",
   // 투자 설정 값 변경 이벤트. 용도: 목표 월배당/기간/세율 등 설정 분포와 월별 트렌드 분석.
+  // ⚠ 내 포트폴리오(/dividend/portfolio) 목표 카드의 칩·직접 입력으로 정한 목표도 **시뮬레이터에서 커밋**되므로
+  //   이 이벤트로 함께 집계된다(field_name='targetMonthlyDividend'). 그 카드의 cta_click(goal_set_target)은
+  //   "누르는 순간"을, 이 이벤트는 "실제로 값이 정해진 순간"을 세는 별개 지표다(이중 집계 아님).
   INVESTMENT_SETTING_CHANGED: "investment_setting_changed",
   // 토글 상태 변경 이벤트. 용도: 간편/정밀, 그래프 모드 등 기능 선호도 분석.
   TOGGLE_CHANGED: "toggle_changed",
@@ -106,6 +109,31 @@ export const ANALYTICS_EVENT = {
   // 용도: 무음 last-write-wins를 대체한 화해 UI에서 사용자가 어느 쪽을 택하는지(디바이스/클라우드/블렌드/이연) 분포와 병합 결과 탭 수 모니터링.
   CLOUD_SYNC_CONFLICT: "cloud_sync_conflict",
 
+  // 내 포트폴리오(/dividend/portfolio) **목표 달성 카드** 노출 이벤트
+  // (파라미터: has_target·current_basis·progress_bucket·reached_in_range). 카드가 값과 함께 실제로 떴을 때 1회.
+  // 용도: ①목표를 실제로 설정해 두고 쓰는 비율(has_target) ②달성률 분포(진행 구간별 이탈·재방문 비교)
+  // ③투자 기간 안에 목표에 닿는 사용자 비율(reached_in_range) ④달성률의 현재값이 실측(보유)인지 시뮬
+  // 폴백인지(current_basis)로 목표 난이도와 카피 톤을 조정.
+  // 목표 미설정이면 progress_bucket·reached_in_range 는 "0"이 아니라 해당 없음이라 아예 보내지 않는다.
+  // ⚠ 이름은 구 목표 달성 페이지 시절 그대로다(미배포라 과거 데이터가 없어 개명 이득이 없다). has_target 의
+  //   **모수만 바뀌었다**: "목표 페이지 방문자" → "목표 카드가 뜬 포트폴리오 방문자"(전환율 지표로 더 정확).
+  //   holdings_count·value_bucket 은 여기 싣지 않는다 — 같은 세션의 portfolio_summary_view 로 조인한다.
+  GOAL_WIDGET_VIEW: "goal_widget_view",
+
+  // 내 포트폴리오(/dividend/portfolio) 진입 이벤트(파라미터: holdings_count·has_holdings). 진입당 1회.
+  // 용도: ①이 화면에 오는 사람 중 실제로 보유를 등록해 둔 비율(has_holdings = 재방문 가치의 1차 신호)
+  // ②등록 종목 수 분포로 목록 UI(표/카드) 밀도와 정렬 필요성을 판단.
+  PORTFOLIO_VIEW: "portfolio_view",
+  // 보유 종목 저장 이벤트(파라미터: action='add'|'edit'·covered). 수량 편집은 **값이 실제로 바뀐 blur 시점**에만 발화한다.
+  // 용도: 추가 대비 수량 입력 완료율(=계산이 성립한 비율)과, 시뮬레이터가 아는 종목(covered)의 비중 파악.
+  PORTFOLIO_HOLDING_SAVED: "portfolio_holding_saved",
+  // 보유 종목 삭제 이벤트(파라미터: covered). 용도: 추가→삭제 이탈 패턴과 잘못 고른 종목의 규모 관측.
+  PORTFOLIO_HOLDING_DELETED: "portfolio_holding_deleted",
+  // 요약(지금 받는 배당) 노출 이벤트(파라미터: holdings_count·covered_count·value_bucket). 진입당 1회.
+  // 용도: 계산이 실제로 성립한 세션 비율(covered_count)과 평가금액 규모 분포. ⚠ 금액 원값은 싣지 않는다 —
+  // 환율 실패 세션과 성공 세션이 같은 축에 놓이도록 **달러 기준 버킷**만 보낸다(PortfolioPage.utils 경계).
+  PORTFOLIO_SUMMARY_VIEW: "portfolio_summary_view",
+
   // ── 시나리오 공유 (Phase 1 신규) ────────────────────────────────────────────
   // 공유 링크 생성/복사(파라미터: share_method). 용도: 바이럴 계수, 공유 채널 분포.
   SCENARIO_SHARED: "scenario_shared",
@@ -123,7 +151,9 @@ export const ANALYTICS_EVENT = {
   COMMUNITY_COMMENT: "community_comment",
   // 상세→시뮬레이터 유입("이 시나리오로 열기"). 용도: 커뮤니티→코어 제품 유입 측정.
   COMMUNITY_TO_SIMULATOR: "community_to_simulator",
-  // 글 자체(공개 상세 URL)를 외부로 공유(파라미터: method='web_share'|'copy_link', post_id, kind, placement='feed'|'detail').
+  // 글 자체(공개 상세 URL)를 외부로 공유(파라미터: method='web_share'|'copy_link'|채널id, post_id, kind, placement='feed'|'detail').
+  // method 는 사용자가 실제로 고른 경로다: 'web_share'=터치 기기 OS 시트, 'copy_link'=공유 창의 링크 복사,
+  // 'x'|'facebook'|'naver'=공유 창의 채널 버튼. 데스크톱은 OS 시트를 쓰지 않으므로 web_share 는 모바일 신호에 가깝다.
   // 시뮬 상태 공유(scenario_shared)와 구분 — 이건 공개 SEO 페이지로의 유입을 노린 글 공유. 용도: 바이럴 계수(어떤 글이 퍼지나) 측정.
   COMMUNITY_POST_SHARED: "community_post_shared",
 } as const;
@@ -246,6 +276,35 @@ export type AnalyticsEventParamMap = {
     error_code?: string;
   };
   [ANALYTICS_EVENT.SCENARIO_SHARED]: { share_method: string };
+  [ANALYTICS_EVENT.GOAL_WIDGET_VIEW]: {
+    has_target: boolean;
+    /**
+     * 달성률의 현재값 출처 — 지금 보유한 종목(measured) / 시뮬레이터에 저장된 조건(simulated).
+     * ⚠ GA4 콘솔에 커스텀 차원을 등록하기 전까지는 `(not set)` 으로만 보인다.
+     */
+    current_basis: "measured" | "simulated";
+    /** 달성률 버킷 — 연속값 금지 규칙에 따른 저카디널리티 라벨. 목표 미설정이면 미전송. */
+    progress_bucket?: "0-25" | "25-50" | "50-75" | "75-100" | "reached";
+    /** 저장된 투자 기간 안에 목표에 닿는가. 목표 미설정이면 미전송. */
+    reached_in_range?: boolean;
+  };
+  [ANALYTICS_EVENT.PORTFOLIO_VIEW]: {
+    holdings_count: number;
+    has_holdings: boolean;
+  };
+  [ANALYTICS_EVENT.PORTFOLIO_HOLDING_SAVED]: {
+    action: "add" | "edit";
+    /** 시뮬레이터 유니버스가 아는 종목인가(직접 추가한 종목이면 false). */
+    covered: boolean;
+  };
+  [ANALYTICS_EVENT.PORTFOLIO_HOLDING_DELETED]: { covered: boolean };
+  [ANALYTICS_EVENT.PORTFOLIO_SUMMARY_VIEW]: {
+    holdings_count: number;
+    /** 합계에 실제로 반영된 종목 수(수량 미입력·데이터 없음 제외). */
+    covered_count: number;
+    /** 평가금액 버킷(**USD** 기준). 원값 금지 — `bucketValue` 라벨만. */
+    value_bucket: string;
+  };
   [ANALYTICS_EVENT.CLOUD_SYNC_CONFLICT]: {
     shown: boolean;
     resolution: "device" | "cloud" | "blend" | "deferred";
@@ -257,7 +316,8 @@ export type AnalyticsEventParamMap = {
   [ANALYTICS_EVENT.COMMUNITY_POST_PUBLISHED]: { has_sim: boolean };
   [ANALYTICS_EVENT.COMMUNITY_LIKE]: { like_action: "like" | "unlike" };
   [ANALYTICS_EVENT.COMMUNITY_POST_SHARED]: {
-    method: "web_share" | "copy_link";
+    /** 'x'|'facebook'|'naver' 는 공유 창의 채널 버튼(components/common/ShareDialog 의 ShareChannelId). */
+    method: "web_share" | "copy_link" | "x" | "facebook" | "naver";
     post_id: string;
     kind: string;
     /** 공유가 일어난 표면 — 피드 카드='feed', 상세 페이지='detail'. */

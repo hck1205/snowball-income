@@ -13,6 +13,16 @@ export const Prose = styled.article`
   line-height: ${font.leading.relaxed};
   word-break: break-word;
   overflow-wrap: anywhere;
+  /*
+   * 🔴 본문이 페이지 폭을 넓히지 못하게 하는 마개.
+   * 아래 table 이 GitHub 레시피(display:block + width:max-content + max-width:100%)를 쓰는데,
+   * 퍼센트 max-width 는 내재 크기(min/max-content) 계산에서 무시된다 — 그래서 이 요소의 min-content
+   * 기여가 표의 max-content(실측 534px)가 되고, 조상 grid 의 auto 트랙이 그 값으로 부풀어
+   * 문서 전체가 뷰포트보다 넓어진다(390px 뷰포트에서 문서 592px 실측 → 뷰포트 폭인 sticky 헤더가
+   * 가로 스크롤에 잘려 상단 메뉴가 화면 밖으로 나갔다).
+   * 여기서 0 으로 끊으면 표는 설계대로 자기 안에서만 스크롤한다.
+   */
+  min-width: 0;
 
   p {
     margin: 0 0 ${space[4]};

@@ -30,7 +30,7 @@ npm run predeploy -- reconcile     # = node tools/dev/predeploy.mjs reconcile
 | `ticker-seo` | `pages/Ticker/`, `shared/constants/tickers/`, `server/handlers/TickerHtml/`, `api/ticker-html.js`, `test/api/tickerHtml*` |
 | `reconcile` | `jotai/snowball/cloud/`, `components/CloudReconcileModal/`·`CloudSyncIndicator/`, `pages/Main/hooks/business/useCloud*`, `pages/Main/components/MainLeftPanel/`, `*cloud*`·`*reconcile*` 테스트 |
 | `ticker-data` | `shared/constants/marketData/`·`presets/`, `scripts/tickerRefresh/` |
-| `chart-viz` | `pages/Main/components/ChartPanel/`·`MainRightPanel/`, `pages/Main/utils/charts*`, `components/SimulationResult/`, `components/common/StatTile/`, `shared/styles/chartTheme*` |
+| `chart-viz` | `pages/Main/components/ChartPanel/`·`MainRightPanel/`, `pages/Main/utils/charts*`, `components/ResultSummaryCard/`, `components/common/StatTile/`, `shared/styles/chartTheme*` |
 | `fx` | `components/ExchangeRateWidget/`, `api/fx.js` |
 | `docs-knowledge` | `.claude/`, `docs/`, 루트의 `*.md` |
 | `other` | 위 어디에도 안 걸리는 전부 |

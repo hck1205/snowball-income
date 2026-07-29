@@ -2,8 +2,9 @@ import styled from '@emotion/styled';
 import { color, font, media, motion, radius, shadow, space } from '@/shared/styles';
 
 /**
- * `pages/Main/Main.shared.styled.ts`(카드 조각)와 `MainRightPanel.styled.ts`(아이콘 배지)에서
- * 옮겨온 포트폴리오 프리셋 카드 스타일 (스타일 값 동일, 마크업/동작 변화 없음).
+ * 포트폴리오 프리셋 카드 스타일. `pages/Main/Main.shared.styled.ts`(카드 조각)와
+ * 구 `MainRightPanel.styled.ts`(아이콘 배지 — 결과 배치가 `MainResultGrid`로 옮겨가며 삭제됐다)에서
+ * 이관했다 (스타일 값 동일, 마크업/동작 변화 없음).
  */
 
 export const PortfolioPresetGrid = styled.div`
@@ -159,7 +160,9 @@ const PRESET_ICON_TONE_STYLE: Record<PresetIconTone, { bg: string; fg: string }>
 /**
  * 프리셋 아이콘 배지. 기존의 이모지 대신 lucide 아이콘을 서브틀 틴트 배경 위에 얹어
  * 완성도 있는 룩을 준다. 아이콘은 `currentColor`로 그려진다.
- * 틴트는 오로라 로테이션(brand → teal → violet) — 카드마다 다른 결을 줘 훑어보기 쉽게 한다.
+ * 틴트는 오로라 로테이션(brand → teal → green) — 카드마다 다른 결을 줘 훑어보기 쉽게 한다.
+ * ⚠ forest·velog 처럼 brand 자체가 그린/틸인 프리셋에서는 세 톤이 같은 색 계열로 보일 수 있다
+ * (실측 ΔE(accent, accent-alt) velog 22.1 / forest 44.9 — 구분은 되지만 결은 비슷하다).
  */
 export const PortfolioPresetIcon = styled.span<{ tone?: PresetIconTone }>`
   display: inline-flex;

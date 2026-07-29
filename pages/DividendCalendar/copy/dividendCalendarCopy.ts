@@ -43,6 +43,12 @@ export const DIVIDEND_CALENDAR_COPY = {
     searchLabel: '종목 검색',
     searchPlaceholder: '티커 또는 한글 이름 (예: SCHD, 리얼티)',
     resultCount: (n: number) => `${n}종목`,
+    /**
+     * 목록에 남아 있지만 지급월 데이터가 없어 고를 수 없는 종목 수 — 총 개수 바로 오른쪽에 적는다.
+     * 기준은 목록 항목의 `데이터 준비 중` 배지(`badge.unavailable`)와 **같다**(`source === null`):
+     * 같은 화면에서 숫자와 배지가 어긋나면 둘 다 신뢰를 잃는다.
+     */
+    unavailableCount: (n: number) => `준비 중 ${n}종`,
     /* 달력 위 "선택 N종" 텍스트는 삭제했다(사용자 결정 2026-07-25 — 필터 버튼 배지와 중복).
        개수는 `picker.open` 접근명과 라이브 리전(`status.selectionSummary`)이 계속 말한다. */
     clear: '선택 비우기',

@@ -111,6 +111,11 @@ export const TileLabel = styled.span<{ emphasis: StatEmphasis }>`
 
 export const TileValue = styled.p<{ emphasis: StatEmphasis; tone: StatTone }>`
   margin: 0;
+  /*
+   * 서체로도 위계를 나눈다: hero 값만 heroNumeric(LINE Seed), 나머지는 dataNumeric(Inter).
+   * hero 서체는 화면당 한 곳이어야 의미가 있다 — StatTile.types.ts의 hero 규칙과 같은 제약이다.
+   */
+  font-family: ${({ emphasis }) => (emphasis === 'hero' ? font.heroNumeric : font.dataNumeric)};
   /* hero도 값 색은 text 그대로 — 그라데이션 텍스트 금지(핵심 숫자의 가독이 시그니처보다 우선). */
   color: ${({ tone }) => TONE[tone]};
   font-weight: ${({ emphasis }) => (emphasis === 'hero' ? font.weight.extrabold : font.weight.bold)};

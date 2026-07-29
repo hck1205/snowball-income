@@ -57,10 +57,15 @@ teal의 물리 특성상 두 조건을 한 색으로 만족 못 한다(다크 �
 
 ### accent는 크롬 전용 — 숫자 데이터에 금지
 
-`accent`(오로라 teal, 성장·복리·달성)와 `accentAlt`(violet, 목표·추천·하이라이트)는
+`accent`(오로라 teal, 성장·복리·달성)와 `accentAlt`(green, 목표·추천·프로모)는
 아이콘·배지·장식 같은 **크롬에만** 쓴다. **숫자(금액·퍼센트)에 칠하면 안 된다** —
 부호 있는 숫자의 색은 오직 `dataPositive`/`dataNegative`(up/down 램프)다.
-teal이 상승처럼, violet이 하락처럼 오독되는 순간 데이터 색 체계가 무너진다.
+teal·green이 상승처럼 오독되는 순간 데이터 색 체계가 무너진다.
+
+두 액센트는 같은 **틸/그린 축**의 양 끝이라(브랜드와 한 시스템) 서로 뭉치지 않게
+`contrast.test.ts`가 **ΔE ≥ 15**를 강제한다. `accentAlt`가 violet이던 시절의 서술을 보면
+2026-07-28 아이덴티티 패스 이전 문서다 — violet 램프(`auroraViolet`)는 이제
+**리본/CTA stop-3 전용**으로만 남아 있다.
 
 로고 마크(`components/BrandMark`)는 같은 중심에서 커지는 원 세 개 = 복리(누적)의 시각화다.
 
@@ -115,7 +120,8 @@ velog에서 `gradient-aurora`는 "오로라"가 아니라 틸그린 duotone이�
 |---|---|
 | `brand` 50–900 | 브랜드 애저 (오로라 리스타일에서 채도 증폭 — 구 500 대비 ΔE 7.8) |
 | `auroraTeal` 50–900 | 오로라 teal — 성장·복리 **크롬** (데이터 상승색 아님) |
-| `auroraViolet` 50–900 | 오로라 violet — 목표·하이라이트 **크롬** |
+| `auroraViolet` 50–900 | 오로라 violet — **리본/CTA stop-3 전용** (구 accent-alt 역할은 auroraGreen으로 이관) |
+| `auroraGreen` 50–900 | 오로라 green — 목표·추천·프로모 **크롬** (600/400 = 워드마크 "인컴" 끝 stop) |
 | `neutral` 0–950 | ice-white / polar-night — 파랑 틴트 쿨 슬레이트 |
 | `up` / `down` | 데이터 상승/하락 (**불변** — 오로라와 분리) |
 | `positive` / `warning` / `danger` | 상태 (**불변**) |
@@ -141,11 +147,14 @@ velog에서 `gradient-aurora`는 "오로라"가 아니라 틸그린 duotone이�
 | `color.accent` | `#0d9488` | `#2dd4bf` | 오로라 teal 표시(비텍스트 크롬) |
 | `color.accentText` | `#0b6b5d` | `#2dd4bf` | teal 텍스트 (4.5:1 검증) |
 | `color.accentSubtle` / `accentBorder` | teal 틴트 | teal 틴트 | 배지/칩 서피스·경계 |
-| `color.accentAlt` | `#6d5ae6` | `#818cf8` | 오로라 violet 표시 |
-| `color.accentAltText` | `#4f46cf` | `#a7b0fb` | violet 텍스트 (4.5:1 검증) |
-| `color.accentAltSubtle` / `accentAltBorder` | violet 틴트 | violet 틴트 | 배지/칩 서피스·경계 |
+| `color.accentAlt` | `#22a06b` | `#6ee7a0` | 오로라 green 표시 |
+| `color.accentAltText` | `#0f763a` | `#6ee7a0` | green 텍스트 (4.5:1 검증) |
+| `color.accentAltSubtle` / `accentAltBorder` | green 틴트 | green 틴트 | 배지/칩 서피스·경계 |
 | `color.gradientAurora` | glacier→teal→violet | (밝은 stop) | 표시용 리본 |
 | `color.gradientCta` | 흰 라벨 4.5:1 stop | (동) | primary CTA 채움 |
+| `color.gradientHero` / `gradientHeroSoft` | `#dcebf6→#e6f5ef` / `#ecf4fa→#f1f9f6` | `#12283e→#10292f` / `#0f1e30→#0d1f28` | **면 배경 전용** 파스텔 히어로 (버튼·리본 금지) |
+| `color.gradientWordmarkSnow` / `...Income` | `#3ba5d3→#79c5e6` / `#0d9488→#22a06b` | `#79c5e6→#aadcf2` / `#2dd4bf→#6ee7a0` | 워드마크 텍스트 그라데이션 (**전 프리셋 공통**) |
+| `color.wordmarkSnowSolid` / `wordmarkIncomeSolid` | `#3ba5d3` / `#0d9488` | (라이트와 동일) | 워드마크 단색 폴백 |
 | `color.bgGlow` | radial×2+bg | (동) | body 배경 전용 |
 | `color.surfaceGlass` / `surfaceGlassFallback` | `rgba(255,255,255,0.78)` / `#ffffff` | `rgba(27,42,68,0.85)` / `#1b2a44` | 서리유리 (다크 알파 0.85 미만 금지) |
 | `color.progressTrack` | `#e6eef7` | `#0e1727` | 진행률 트랙 |
@@ -154,6 +163,10 @@ velog에서 `gradient-aurora`는 "오로라"가 아니라 틸그린 duotone이�
 
 > 그라데이션 stop의 진실 공급원은 스칼라 토큰(`--sb-ribbon-stop-1~3`, `--sb-cta-stop-1~3`)이고,
 > 그라데이션 문자열은 semantic.ts 안에서 그 스칼라로 조립된다. stop을 바꾸면 문자열도 따라온다.
+>
+> **히어로·워드마크 그라데이션에는 스칼라 stop을 병기하지 않는다**(CSS 변수가 6→14개로 늘고,
+> 무엇보다 "배포되는 문자열"이 아니라 그 사본을 검사하게 된다). 대신 `contrast.test.ts`가
+> 그라데이션 문자열에서 hex stop을 파싱해(`parseGradientStops`) **경로 최악 지점**을 잰다.
 
 > **다크에서 위계 만드는 법**: 그림자가 안 보이므로 **서피스가 밝아질수록 위로 뜬다**.
 > `sunken < base < raised`. 라이트에서는 그림자(`elevation`)가 그 역할을 한다.
@@ -168,8 +181,23 @@ velog에서 `gradient-aurora`는 "오로라"가 아니라 틸그린 duotone이�
 
 ### 타이포
 
-Pretendard를 npm으로 셀프호스팅한다(CDN 금지 — 프라이버시·렌더블로킹·오프라인 실패).
+**서체는 역할 4종**이고 전부 셀프호스팅한다(CDN 금지 — 프라이버시·렌더블로킹·오프라인 실패).
 동적 서브셋이라 브라우저는 **실제로 그리는 글자의 조각만** 내려받는다.
+
+| 토큰 | 서체 | 어디에 |
+|---|---|---|
+| `font.sans` | Wanted Sans | 본문·라벨·힌트·버튼·입력 (기본값) |
+| `font.display` | Gmarket Sans | 워드마크, 헤딩 — **`globalStyles`의 `h1~h6` 한 곳에서만** 건다 |
+| `font.heroNumeric` | LINE Seed Sans KR | **화면당 1곳**의 주인공 숫자 (hero StatTile 값, GoalMeter 퍼센트) |
+| `font.dataNumeric` | Inter + `tabular-nums` | 그 외 모든 숫자 (StatTile default, DataTable 값 셀, 차트 축·툴팁) |
+
+> 컴포넌트에서 `font-family` 문자열을 **직접 쓰지 마라**. 색과 같은 규율이다 — 반드시 토큰을 거친다.
+> Gmarket은 이 앱에 Bold 한 벌만 실려 있어 `display`로 그린 글자는 굵기를 바꿔도 같아 보인다.
+> 헤딩 위계는 **크기**로 만든다.
+
+적재 지점: `main.tsx`(Wanted Sans = npm 동적 서브셋) + `shared/styles/selfHostedFonts.css`
+(나머지 3종 = `public/fonts/` 서브셋 — 생성물, `tools/fonts/build.mjs`가 만든다. 출처·라이선스는
+[`public/fonts/README.md`](../../public/fonts/README.md)).
 
 | 단계 | px | 쓰는 곳 |
 |---|---|---|

@@ -4,7 +4,7 @@ import { PRESET_TICKER_KOREAN_NAME_BY_TICKER } from '@/shared/constants';
 import nasdaqListedJson from '@/utils/TickerParser/output/nasdaq-listed.json';
 import otherListedJson from '@/utils/TickerParser/output/other-listed.json';
 import { InlineField, ModalBackdrop, ModalBody, ModalTitle } from '@/components/common';
-import { useDrawerBackClose } from '@/shared/hooks';
+import { useDrawerBackClose, useOverlayEscape } from '@/shared/hooks';
 import { BREAKPOINT } from '@/shared/styles';
 import {
   PresetFilterDrawer,
@@ -42,7 +42,7 @@ const SHOW_SEARCH_TAB = false;
 
 const SEARCH_ROWS = buildTickerSearchRows(nasdaqListedJson as ListedTickerMap, otherListedJson as ListedTickerMap);
 
-/** 설정 패널이 오버레이 드로어가 아닌(= 좌측 정적 컬럼) 폭. MobileMenuDrawer 와 같은 경계를 토큰에서 가져온다. */
+/** 이 모달이 딤·스크롤 잠금을 쓰지 않아도 되는 넓은 폭. 설정 드로어의 딤 경계와 같은 토큰을 쓴다. */
 const STATIC_COLUMN_QUERY = `(min-width: ${BREAKPOINT.drawer + 1}px)`;
 
 function matchesStaticColumn(): boolean {
@@ -89,22 +89,19 @@ export default function TickerModalView({
    */
   useDrawerBackClose(isOpen, onClose);
 
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [isOpen, onClose]);
+  /*
+   * Escape = 모달 닫기. 이 모달은 **설정 드로어 위에** 열리므로 층 순서를 스택이 정해야 한다 —
+   * 직접 window 리스너를 달던 시절엔 드로어의 document 리스너가 **먼저** 돌아(document 버블 →
+   * window 버블) Escape 한 번에 모달과 설정이 함께 닫혔다. 안쪽 필터 드로어는 여전히 자기
+   * `nativeEvent.stopPropagation()` 으로 이 층까지 오기 전에 이벤트를 끊는다.
+   */
+  useOverlayEscape(isOpen, onClose);
 
   /**
    * 열려 있는 동안 배경 페이지 스크롤 잠금 — 없으면 모바일에서 모달 위 터치가 뒤 페이지를 굴린다.
    *
-   * ⚠ 잠그는 대상이 `body` 가 아니라 **`html`** 인 이유: 모바일에서 이 모달은 설정 드로어
-   * (MobileMenuDrawer) 위에 열리는데, 그 드로어가 `document.body.style.overflow` 를 같은
+   * ⚠ 잠그는 대상이 `body` 가 아니라 **`html`** 인 이유: 이 모달은 설정 드로어
+   * (공용 `SideDrawer`) 위에 열리는데, 그 드로어가 `document.body.style.overflow` 를 같은
    * 저장·복원 방식으로 소유한다. 저장 시점 값이 서로 얽혀 있어(모달은 드로어가 심어둔 'hidden'을
    * 저장한다) 둘이 같은 값을 두고 겹치면 잠금이 남을 수 있다. 실측(QA)으로 확인된 영구 잠금 경로는
    * **순차 닫힘** — 드로어가 먼저 닫혀 body 를 ''로 되돌린 뒤, 모달이 열린 채 남았다가 나중에
@@ -186,7 +183,7 @@ export default function TickerModalView({
         <ModalBody>
           {mode === 'edit'
             ? '값을 수정하면 해당 티커 설정이 업데이트됩니다.'
-            : '아래 값을 저장하면 좌측 목록에 티커가 추가됩니다.'}
+            : '아래 값을 저장하면 종목 목록에 티커가 추가됩니다.'}
         </ModalBody>
         <TickerModalTabs activeTab={activeTab} mode={mode} showSearchTab={SHOW_SEARCH_TAB} onSelectTab={setActiveTab} />
 

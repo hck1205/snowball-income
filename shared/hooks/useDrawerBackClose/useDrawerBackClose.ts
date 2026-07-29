@@ -83,8 +83,8 @@ type RewindState = {
  *
  * @param isOpen 드로어 열림 여부
  * @param onClose 닫기(드로어 상태를 false로) — 참조가 매 렌더 바뀌어도 엔트리를 다시 push하지 않는다
- * @param enabled 훅 활성 여부. 오버레이일 때만 히스토리를 건드려야 하는 드로어(예: 데스크톱에서
- *   정적 컬럼이 되는 메인 설정 드로어)가 `matchMedia` 결과를 넘긴다. 기본값 `true`.
+ * @param enabled 훅 활성 여부. 특정 폭에서만 오버레이가 되는 드로어가 `matchMedia` 결과를 넘길 수 있다.
+ *   기본값 `true` — 앱의 드로어는 전부 전 폭 오버레이라 현재 이 인자를 넘기는 곳은 없다.
  */
 export function useDrawerBackClose(isOpen: boolean, onClose: () => void, enabled = true): void {
   // 인스턴스별 고유 마커. 중첩 드로어끼리 서로의 popstate를 가로채지 않게 하는 유일한 근거다.

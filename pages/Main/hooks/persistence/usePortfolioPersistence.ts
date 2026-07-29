@@ -120,6 +120,12 @@ export const usePortfolioPersistence = () => {
    * 로컬 write는 이 게이트와 무관하게 매번 전체 payload를 저장한다(뷰 상태 복원 유지).
    */
   const lastCloudMeaningfulRef = useRef<string | null>(null);
+  /**
+   * **대기 중인** 로컬 autosave를 즉시 실행하는 함수(없으면 null). 120ms 디바운스 타이머를 걸 때마다
+   * 그 시점의 최신 클로저로 갱신되고, 저장이 실제로 실행되면 다시 null이 된다(= 대기 중인 저장 없음).
+   * 언마운트 정리에서 이걸 호출해 "취소" 대신 **flush**한다(아래 언마운트 전용 effect).
+   */
+  const pendingAutosaveFlushRef = useRef<(() => void) | null>(null);
 
   /**
    * 세션 시작 로컬 autosave를 **1회만** 읽어 하이드레이션과 세션시작 클라우드 sync가 공유하는 캐시.
@@ -276,11 +282,16 @@ export const usePortfolioPersistence = () => {
   ]);
 
   useEffect(() => {
-    if (!isPortfolioHydrated) return;
-    // 읽기에 실패했다면 화면의 기본값으로 디스크의 원본을 덮어쓰지 않는다.
-    if (hasHydrationFailed) return;
+    // 하이드레이션 전이거나 읽기에 실패했다면 저장 자체를 걸지 않는다(화면 기본값이 디스크 원본을 덮어쓰는
+    // 경로 차단). 대기 중이던 flush도 함께 비운다 — 언마운트 flush가 이 가드를 우회하면 안 된다.
+    if (!isPortfolioHydrated || hasHydrationFailed) {
+      pendingAutosaveFlushRef.current = null;
+      return;
+    }
 
-    const timer = window.setTimeout(() => {
+    const save = ({ isUnmountFlush }: { isUnmountFlush: boolean }) => {
+      pendingAutosaveFlushRef.current = null;
+
       const payload = buildPayload();
       void writePersistedAppState(payload).catch(() => {
         trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
@@ -294,10 +305,22 @@ export const usePortfolioPersistence = () => {
         lastCloudMeaningfulRef.current = meaningful;
         scheduleCloudSave(payload);
       }
-    }, 120);
+      // 언마운트 경로에서는 4초 디바운스를 기다려 줄 주체가 없다 — useCloudSync의 정리가 스케줄러를
+      // dispose해 대기 중인 예약을 버린다. 그래서 여기서 즉시 flush한다(예약이 없으면 스케줄러가 no-op).
+      // 이미 push 중이거나 대기가 비어 있으면 아무 일도 안 하므로 pagehide/visibilitychange flush와
+      // 겹쳐도 이중 push는 없다. 예약→flush 순서라 base 갱신 계약(onSaved에 push된 payload)도 그대로다.
+      if (isUnmountFlush) void flushCloudSave();
+    };
 
+    pendingAutosaveFlushRef.current = () => save({ isUnmountFlush: true });
+    const timer = window.setTimeout(() => save({ isUnmountFlush: false }), 120);
+
+    // 의존성이 바뀐 재실행이면 타이머만 버린다(= 기존 디바운스 그대로). 대기 중인 저장은 바로 위에서
+    // 최신 클로저로 다시 걸리므로 유실되지 않는다. **언마운트는 이 cleanup으로 구분할 수 없어**
+    // (deps 변경과 같은 cleanup) 아래 전용 effect가 flush를 맡는다.
     return () => window.clearTimeout(timer);
   }, [
+    flushCloudSave,
     scheduleCloudSave,
     fixedByTickerId,
     hasHydrationFailed,
@@ -325,6 +348,24 @@ export const usePortfolioPersistence = () => {
     activeScenarioId,
     weightByTickerId
   ]);
+
+  /**
+   * **언마운트 시 대기 중인 로컬 autosave를 취소하지 않고 flush한다.**
+   *
+   * 위 autosave effect의 cleanup은 "의존성 변경(정상 디바운스)"과 "언마운트"를 구분하지 못한다. 언마운트에서
+   * 타이머만 지우면 마지막 편집 후 120ms 안에 트리가 사라질 때(라우트 이동 등) IndexedDB 쓰기가 **아예 일어나지
+   * 않는다** — 편집 유실. 마운트 시 1회만 도는 이 effect의 cleanup은 언마운트에서만 실행되므로, 여기서만 flush한다.
+   * (autosave cleanup과의 실행 순서는 무관하다 — 타이머 해제는 ref에 담긴 flush 함수를 건드리지 않고,
+   *  flush는 실행 즉시 ref를 비워 이중 저장이 없다.)
+   *
+   * ⚠ **best-effort**: `writePersistedAppState`는 비동기(IndexedDB 트랜잭션)라 "쓰기를 시작한다"까지만 보장한다.
+   *   라우트 이동 같은 앱 내부 언마운트는 페이지가 살아 있어 트랜잭션이 정상 완료되지만, 페이지 종료와 겹치면
+   *   완료 전에 잘릴 수 있다. 실패하면 조용히 넘기지 않고 `operation_error`로 계측된다(save 내부 catch).
+   * ⚠ 현재 설계상 시뮬레이터 설정 드로어는 **항상 마운트**(닫힘=visibility:hidden)라 "드로어 닫기 = 언마운트"는
+   *   일어나지 않는다. 이 flush의 실효 대상은 라우트 이동이다. 다만 나중에 조건부 마운트로 바뀌어도
+   *   같은 이유로 안전하다 — 언마운트 경로가 이미 막혀 있다.
+   */
+  useEffect(() => () => pendingAutosaveFlushRef.current?.(), []);
 
   function applyScenario(scenario: PersistedScenarioState) {
     setTickerProfiles(scenario.portfolio.tickerProfiles);
@@ -506,12 +547,16 @@ export const usePortfolioPersistence = () => {
   /**
    * 페이지 이탈(새로고침·탭 닫기·백그라운드 전환) 직전, 대기 중인 클라우드 저장을 **즉시 flush**한다.
    *
-   * 로컬 autosave(IndexedDB)는 120ms라 이탈 시점에 이미 최신이지만, 클라우드 push는 4초 디바운스라
+   * 로컬 autosave(IndexedDB)는 120ms라 이탈 시점에 **대부분** 최신이지만, 클라우드 push는 4초 디바운스라
    * 이탈이 디바운스를 앞지르면 마지막 편집(예: 탭 삭제)이 클라우드에 도달하지 못한다 → 다음 세션 시작에
    * 로컬{a,b} vs 클라우드{a,b,c}로 거짓 충돌 모달이 뜬다(레이스 창). 이탈 시 flush로 그 창을 닫는다.
    *
    * ⚠ 이탈 시점의 비동기 네트워크 완료는 보장되지 않는다(best-effort). 진짜 안전망은 세션시작 엔진의
    *   타임스탬프 판정(로컬 ⊂ 클라우드 + 로컬이 더 최근 → 삭제가 이김)이다. 여기선 레이스 창을 좁힐 뿐이다.
+   * ⚠ 여기서 flush하는 건 **클라우드뿐**이다. 페이지 종료(pagehide)에서는 React 언마운트가 일어나지 않아
+   *   위 언마운트 flush도 안 탄다 — 즉 마지막 120ms 안의 편집은 로컬에도 안 써질 수 있다(≤120ms 유실 창).
+   *   여기서 로컬까지 동기로 쓰려 해도 IndexedDB는 비동기라 종료와 경합해 보장이 생기지 않는다.
+   *   앱 내부 언마운트(라우트 이동)는 위 전용 effect가 확실히 막는다 — 이 창은 페이지 종료에만 남는다.
    * ⚠ 리스너는 가볍게(동기 무거운 작업·alert 금지) 유지하고, cleanup에서 반드시 제거한다.
    * pagehide(새로고침·닫기·bfcache 진입) + visibilitychange→hidden(모바일 백그라운드·앱 전환 보강) 둘 다 건다.
    */

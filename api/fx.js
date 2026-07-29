@@ -137,9 +137,18 @@ var toIso = (value) => {
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
 };
-var fetchJson = async (url) => {
+var toIsoFromUnixSeconds = (value) => {
+  if (!isFinitePositive(value)) return null;
+  const parsed = new Date(value * 1e3);
+  return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
+};
+var readRecord = (value) => value !== null && typeof value === "object" ? value : null;
+var fetchJson = async (url, headers) => {
   try {
-    const response = await fetch(url, { signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS) });
+    const response = await fetch(url, {
+      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
+      ...headers ? { headers } : {}
+    });
     if (!response.ok) return null;
     return await response.json();
   } catch {
@@ -151,6 +160,21 @@ var readKrw = (data) => {
   const rates = data.rates;
   if (!rates || typeof rates !== "object") return void 0;
   return rates.KRW;
+};
+var YAHOO_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36";
+var YAHOO_URL = "https://query1.finance.yahoo.com/v8/finance/chart/KRW=X?range=2d&interval=1d";
+var fromYahoo = async () => {
+  const data = await fetchJson(YAHOO_URL, { "User-Agent": YAHOO_USER_AGENT });
+  const chart = readRecord(readRecord(data)?.chart);
+  const results = chart?.result;
+  const meta = readRecord(readRecord(Array.isArray(results) ? results[0] : void 0)?.meta);
+  if (meta === null) return null;
+  const rate = meta.regularMarketPrice;
+  const asOf = toIsoFromUnixSeconds(meta.regularMarketTime);
+  if (!isFinitePositive(rate) || asOf === null) return null;
+  const previousClose = meta.chartPreviousClose;
+  if (!isFinitePositive(previousClose)) return { rate, base: BASE, quote: QUOTE, asOf };
+  return { rate, base: BASE, quote: QUOTE, asOf, previousClose };
 };
 var fromErApi = async () => {
   const data = await fetchJson("https://open.er-api.com/v6/latest/USD");
@@ -168,8 +192,12 @@ var fromFrankfurter = async () => {
   if (!isFinitePositive(krw) || asOf === null) return null;
   return { rate: krw, base: BASE, quote: QUOTE, asOf };
 };
+var settledValue = (result) => result.status === "fulfilled" ? result.value : null;
 async function handler(_request) {
-  const result = await fromErApi() ?? await fromFrankfurter();
+  const [yahooSettled, erApiSettled] = await Promise.allSettled([fromYahoo(), fromErApi()]);
+  const yahoo = settledValue(yahooSettled);
+  const erApi = settledValue(erApiSettled);
+  const result = (yahoo?.previousClose === void 0 ? null : yahoo) ?? erApi ?? yahoo ?? await fromFrankfurter();
   if (result === null) {
     return jsonResponse({ error: "fx_unavailable" }, 502, CACHE_FAILURE);
   }

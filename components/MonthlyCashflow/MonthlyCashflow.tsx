@@ -2,13 +2,13 @@ import { memo, useEffect, useMemo, useState } from 'react';
 import { Card } from '@/components';
 import { ChartWrap, HintText } from '@/components/common';
 import { buildRecentCashflowBarOption } from '@/shared/lib/charts';
+import { SIMULATOR_COPY } from '@/shared/constants';
 import { formatKRW } from '@/shared/utils';
 import { usePalettePresetAtomValue } from '@/jotai';
 import type { MonthlyCashflowProps } from './MonthlyCashflow.types';
 import { buildCalendarMonths, buildPayoutScheduleRows, resolveSelectedYear } from './MonthlyCashflow.utils';
 import { CashflowCalendar, CashflowControls, PayoutScheduleStrip } from './components';
 import type { CashflowViewMode } from './components';
-import { CashflowHeader, CashflowTitle } from './MonthlyCashflow.styled';
 
 function MonthlyCashflowComponent({
   yearlyCashflowByTicker,
@@ -48,9 +48,12 @@ function MonthlyCashflowComponent({
   );
 
   return (
-    <Card>
-      <CashflowHeader>
-        <CashflowTitle>실지급 월별 배당</CashflowTitle>
+    /* 제목·컨트롤 줄은 공용 `Card` 헤더가 그린다 — 예전에는 같은 형태를 이 파일이 손으로 복제해
+       (CashflowHeader/CashflowTitle) 카드 제목 크기·여백 규칙이 다른 카드와 따로 놀았다.
+       좁은 폭 줄바꿈도 이제 `CardHeader` 한 곳에서 온다. */
+    <Card
+      title="실지급 월별 배당"
+      titleRight={
         <CashflowControls
           years={years}
           selectedYear={selectedYear}
@@ -60,9 +63,10 @@ function MonthlyCashflowComponent({
           viewMode={viewMode}
           onChangeViewMode={setViewMode}
         />
-      </CashflowHeader>
+      }
+    >
       {!hasData ? (
-        <HintText>{emptyMessage ?? '좌측 티커 생성을 통해 포트폴리오를 구성해주세요.'}</HintText>
+        <HintText>{emptyMessage ?? SIMULATOR_COPY.emptyPortfolioHint}</HintText>
       ) : viewMode === 'chart' ? (
         <ChartWrap role="img" aria-label={`선택 연도의 월별 실지급 배당 차트${chartLabelSuffix}`}>
           <ResponsiveChart option={chartOption} replaceMerge={['series', 'legend', 'xAxis']} />

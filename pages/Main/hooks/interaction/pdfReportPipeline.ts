@@ -10,6 +10,7 @@ import { getPrintChartTheme, getPrintThemeTokens } from '@/shared/styles';
 import type { ChartTheme } from '@/shared/styles';
 import { formatApproxKRW } from '@/shared/utils';
 import { PdfReportError } from './pdfReportError';
+import { captureElementToCanvas, nextFrame, waitForFonts, waitForImages } from './htmlCapture';
 import PdfReportDocument, { buildPdfReportFileName } from '@/pages/Main/components/PdfReportDocument';
 import type { PdfReportCharts } from '@/pages/Main/components/PdfReportDocument';
 import { buildRecentCashflowBarOption } from '@/shared/lib/charts';
@@ -194,51 +195,16 @@ const buildCharts = async (
   };
 };
 
-/** 다음 페인트까지 기다린다 — 이미지(`<img src="data:...">`)와 폰트가 자리를 잡을 시간을 준다. */
-const nextFrame = (): Promise<void> =>
-  new Promise((resolve) => {
-    if (typeof requestAnimationFrame !== 'function') {
-      setTimeout(resolve, 0);
-      return;
-    }
-    requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
-  });
-
-/**
- * 문서 안의 모든 `<img>`가 디코드될 때까지 기다린다.
- *
- * 차트 PNG와 앱 아이콘이 아직 로드되지 않은 상태로 캡처하면 그 자리가 **빈 칸으로 인쇄된다**.
- * 실패한 이미지는 그냥 넘긴다 — 아이콘 하나 때문에 리포트 전체를 포기하지 않는다.
- */
-const waitForImages = async (host: HTMLElement): Promise<void> => {
-  const images = Array.from(host.querySelectorAll('img'));
-
-  await Promise.all(
-    images.map((image) => {
-      if (image.complete) return Promise.resolve();
-      return new Promise<void>((resolve) => {
-        image.addEventListener('load', () => resolve(), { once: true });
-        image.addEventListener('error', () => resolve(), { once: true });
-      });
-    })
-  );
-};
-
 /** 오프스크린 문서의 페이지 div들을 캡처해 A4 PDF로 저장한다. */
 const exportPages = async (pages: HTMLElement[], fileName: string, backgroundColor: string): Promise<void> => {
-  const [{ default: html2canvas }, { jsPDF }] = await Promise.all([import('html2canvas'), import('jspdf')]);
+  const { jsPDF } = await import('jspdf');
 
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
   for (let index = 0; index < pages.length; index += 1) {
     // 페이지 단위 순차 캡처 — 병렬로 돌리면 html2canvas가 같은 문서를 동시에 복제하며 메모리가 튄다.
     // eslint-disable-next-line no-await-in-loop
-    const canvas = await html2canvas(pages[index], {
-      scale: 2,
-      backgroundColor,
-      logging: false,
-      useCORS: true
-    });
+    const canvas = await captureElementToCanvas(pages[index], { backgroundColor });
 
     if (index > 0) doc.addPage();
     doc.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM, undefined, 'FAST');
@@ -281,7 +247,8 @@ export const generatePdfReport = async (input: GeneratePdfReportInput): Promise<
       );
     });
 
-    await waitForImages(host);
+    // 서체가 아직 오는 중이면 폴백으로 인쇄된다 — 이미지·레이아웃과 함께 폰트도 기다린다.
+    await Promise.all([waitForImages(host), waitForFonts()]);
     await nextFrame();
 
     const pages = Array.from(host.querySelectorAll<HTMLElement>('[data-pdf-page]'));

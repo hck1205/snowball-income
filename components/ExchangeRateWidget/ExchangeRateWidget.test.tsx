@@ -16,13 +16,26 @@ vi.mock('@/shared/lib/analytics', async (importOriginal) => {
 
 const WIDGET_LABEL = '오늘의 원 달러 환율';
 const WIDGET_TITLE = '원↔달러 환율';
-const DISCLAIMER = '계산은 원화 기준이에요 · 결과 표시만 달러로 바꿀 수 있어요';
-const FAILURE_MESSAGE = '환율을 불러오지 못했어요';
+const DISCLAIMER = '계산은 원화 기준입니다 · 결과 표시만 달러로 바꿀 수 있습니다';
+const FAILURE_MESSAGE = '환율을 불러오지 못했습니다';
 
-const SUCCESS_BODY = { rate: 1478.49, base: 'USD', quote: 'KRW', asOf: '2026-07-23T00:02:31.000Z' };
+/** 전일 종가 1,473.78 → 원값 +0.3196% → 표시 `+0.32%`. */
+const SUCCESS_BODY = {
+  rate: 1478.49,
+  base: 'USD',
+  quote: 'KRW',
+  asOf: '2026-07-23T00:02:31.000Z',
+  previousClose: 1473.78
+};
 
-const okResponse = () =>
-  new Response(JSON.stringify(SUCCESS_BODY), { status: 200, headers: { 'content-type': 'application/json' } });
+/** 전일 종가를 안 주는 공급자가 이겼을 때(정상 경로) — 환율만 온다. */
+const NO_PREVIOUS_BODY = { rate: 1478.49, base: 'USD', quote: 'KRW', asOf: '2026-07-23T00:02:31.000Z' };
+
+/** 전일 종가 == 당일 환율 → 보합. */
+const FLAT_BODY = { ...NO_PREVIOUS_BODY, previousClose: 1478.49 };
+
+const okResponse = (body: object = SUCCESS_BODY) =>
+  new Response(JSON.stringify(body), { status: 200, headers: { 'content-type': 'application/json' } });
 
 const region = () => screen.getByLabelText(WIDGET_LABEL);
 
@@ -71,6 +84,46 @@ describe('ExchangeRateWidget — 표시 전용 환율 (Option A)', () => {
     expect(region()).toHaveTextContent('2026-07-23 기준'); // API 실값의 달력 날짜(오늘 위장 아님)
     expect(region()).toHaveTextContent(DISCLAIMER); // AC3: 상시 노출
     expect(region()).not.toHaveTextContent('업데이트 실패');
+  });
+
+  it('전일 종가가 함께 오면 "전일 대비 +0.32%" 를 값 옆에 그리고 방향을 문장으로도 말한다', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => okResponse()));
+
+    renderWidget();
+
+    await waitFor(() => expect(region()).toHaveTextContent('$1 ≈ 1,478원'));
+
+    // 라벨이 없으면 "무엇 대비"인지 화면만 봐서는 알 수 없다.
+    expect(screen.getByText('전일 대비')).toBeInTheDocument();
+    // 부호는 색과 무관하게 언제나 남는다(색 단독 채널 금지).
+    expect(screen.getByText('+0.32%')).toBeInTheDocument();
+    // 색·부호를 못 읽는 사용자를 위한 문장.
+    expect(screen.getByText('전일 대비 0.32% 상승')).toBeInTheDocument();
+  });
+
+  it('전일 종가가 없는 응답이면 환율만 그리고 변동률은 흔적 없이 생략한다 (0% 위장 금지)', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => okResponse(NO_PREVIOUS_BODY)));
+
+    renderWidget();
+
+    await waitFor(() => expect(region()).toHaveTextContent('$1 ≈ 1,478원'));
+
+    expect(region()).not.toHaveTextContent('전일 대비');
+    expect(region()).not.toHaveTextContent('%');
+    // 전일값 부재는 정상 경로라 실패 표식을 붙이지 않는다.
+    expect(region()).not.toHaveTextContent('업데이트 실패');
+  });
+
+  it('전일 종가와 같으면 보합(0.00%)이라 부호를 붙이지 않는다', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => okResponse(FLAT_BODY)));
+
+    renderWidget();
+
+    await waitFor(() => expect(region()).toHaveTextContent('$1 ≈ 1,478원'));
+
+    // 부호 유무는 접근명이 아니라 실제 문자열로 단정한다(jsdom 접근명은 조각 사이 공백에 관대하다).
+    expect(screen.getByText('0.00%').textContent).toBe('0.00%');
+    expect(screen.getByText('전일 대비 변동 없음')).toBeInTheDocument();
   });
 
   it('네트워크 실패면 중립 안내를 보이고 OPERATION_ERROR 를 계측한다 (무음 실패 금지, AC10)', async () => {
@@ -156,6 +209,14 @@ describe('ExchangeRateWidget.utils — 순수 포매팅/파싱', () => {
 
   it('parseFxRate: 형태가 어긋난 응답은 null (가짜 값 금지)', () => {
     expect(parseFxRate(SUCCESS_BODY)).toEqual({
+      rate: 1478.49,
+      base: 'USD',
+      quote: 'KRW',
+      asOf: '2026-07-23T00:02:31.000Z',
+      previousClose: 1473.78
+    });
+    // 전일 종가가 없어도 환율 자체는 멀쩡하므로 버리지 않는다.
+    expect(parseFxRate(NO_PREVIOUS_BODY)).toEqual({
       rate: 1478.49,
       base: 'USD',
       quote: 'KRW',

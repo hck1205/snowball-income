@@ -34,7 +34,7 @@ function PortfolioPresetBoard({ isPortfolioEmpty, onPresetSelect }: PortfolioPre
       title={isPortfolioEmpty ? '추천 포트폴리오로 시작해보세요' : '결과'}
       subtitle={
         isPortfolioEmpty
-          ? '하나를 고르면 설정이 자동으로 채워집니다. 언제든 왼쪽에서 바꿀 수 있어요.'
+          ? '하나를 고르면 설정이 자동으로 채워집니다. 언제든 투자 설정에서 바꿀 수 있어요.'
           : undefined
       }
     >

@@ -259,16 +259,33 @@ export const useScenarioTabs = () => {
     [activeScenarioId, applyScenario, prepareTabsWithActiveSnapshot, setActiveScenarioId, setScenarioTabs]
   );
 
-  const createScenarioTab = useCallback((): ScenarioTabCreateOutcome => {
-    const gate = evaluateScenarioTabCreation({
-      tabCount: tabs.length,
-      maxTabs: MAX_SCENARIO_TABS,
-      isCommunityEnabled,
-      isLoggedIn,
-    });
+  /**
+   * 탭 생성 게이트의 **현재 판정**. `createScenarioTab`이 쓰는 값과 같은 값을 호출부에도 노출한다 —
+   * "만들어 보고 결과로 안다"가 아니라 **만들기 전에** 분기해야 하는 곳(다른 화면에서 넘어온 프리필의
+   * 커밋 대상 결정)이 규칙을 따로 재구현하지 않게 하기 위함이다.
+   */
+  const tabCreationGate = useMemo(
+    () =>
+      evaluateScenarioTabCreation({
+        tabCount: tabs.length,
+        maxTabs: MAX_SCENARIO_TABS,
+        isCommunityEnabled,
+        isLoggedIn
+      }),
+    [isLoggedIn, tabs.length]
+  );
+
+  /**
+   * 새 시나리오 탭을 만든다. `name`을 주면 그 이름으로 만든다(비우면 `탭 N`) —
+   * 다른 화면에서 넘어온 프리필이 "무엇으로 만든 탭인지" 이름으로 말할 수 있게 하는 용도다.
+   *
+   * ⚠ 이 함수를 `onClick={createScenarioTab}`처럼 이벤트 핸들러로 직접 넘기지 말 것(이벤트 객체가
+   * `name`으로 들어온다). 문자열이 아닌 값은 이름 없음으로 접어 방어하지만, 의도는 명시 호출이다.
+   */
+  const createScenarioTab = useCallback((name?: string): ScenarioTabCreateOutcome => {
     // 하드 상한이면 조용히 막고(버튼도 숨겨져 있음), 로그인 게이트면 생성하지 말고 신호만 반환한다
     // (호출부가 로그인 유도 프롬프트를 띄운다 — 무음으로 막지 않는다).
-    if (gate !== 'allowed') return gate;
+    if (tabCreationGate !== 'allowed') return tabCreationGate;
 
     const nextTabs = prepareTabsWithActiveSnapshot();
     const newTabNumber = nextTabs.length + 1;
@@ -276,7 +293,7 @@ export const useScenarioTabs = () => {
     const emptyInvestmentSettings = createEmptyScenarioInvestmentSettings();
     const newTab: PersistedScenarioState = {
       id: makeScenarioId(),
-      name: `탭 ${newTabNumber}`,
+      name: sanitizeScenarioName(typeof name === 'string' ? name : '') || `탭 ${newTabNumber}`,
       portfolio: emptyPortfolio,
       investmentSettings: emptyInvestmentSettings
     };
@@ -291,11 +308,10 @@ export const useScenarioTabs = () => {
     return 'created';
   }, [
     applyScenario,
-    isLoggedIn,
     prepareTabsWithActiveSnapshot,
     setActiveScenarioId,
     setScenarioTabs,
-    tabs.length,
+    tabCreationGate
   ]);
 
   const deleteScenarioTab = useCallback((scenarioId: string) => {
@@ -371,6 +387,8 @@ export const useScenarioTabs = () => {
     // 하드 상한 미만이면 "+"를 보인다. 로그인 게이트(비로그인 2번째 탭)여도 "+"는 보이되, 누르면
     // createScenarioTab이 'login-required'를 반환해 호출부가 프롬프트를 띄운다(막지 않고 유도).
     canCreateTab: tabs.length < MAX_SCENARIO_TABS,
+    /** 지금 새 탭을 만들 수 있는가(`allowed`) 아니면 왜 못 만드는가. 만들기 전에 분기해야 할 때 쓴다. */
+    tabCreationGate,
     /** 비로그인+로그인 가능 배포에서 이미 무료 상한(1개)에 도달 → 다음 생성은 로그인 유도로 이어진다. */
     requiresLoginToCreateTab:
       isCommunityEnabled && !isLoggedIn && tabs.length >= FREE_SCENARIO_TAB_LIMIT,
