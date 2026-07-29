@@ -175,6 +175,15 @@ export const TileHint = styled.p`
   font-weight: ${font.weight.medium};
   color: ${color.textMuted};
   line-height: ${font.leading.snug};
+  /*
+   * 힌트에도 숫자가 산다("투자 3년차", ETA 기간) — 그래서 값(TileValue)과 같은 규칙을 건다.
+   *
+   * 본문 서체 Wanted Sans 의 기본 숫자는 **비례폭**이다(실측: '1'=880 / '0'=1280 units).
+   * 즉 '1년차' → '4년차' 로 바뀔 때 글자폭이 실제로 달라지고, 이 줄은 'nowrap' + ellipsis 라
+   * **말줄임 지점까지 같이 움직인다.** 이론이 아니라 31% 실측차다.
+   */
+  font-family: ${font.dataNumeric};
+  ${font.numeric};
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

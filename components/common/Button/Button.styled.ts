@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, motion, radius, shadow, space } from '@/shared/styles';
+import { color, font, motion, pressable, radius, shadow, space } from '@/shared/styles';
 import type { ButtonSize, ButtonVariant } from './Button.types';
 
 /**
@@ -110,19 +110,31 @@ export const StyledButton = styled.button<{
     transform: translate(-50%, -50%);
   }
 
-  /* 눌리는 느낌. reduced-motion 사용자는 전역 스타일이 transition을 끈다. */
-  &:active:not(:disabled) {
-    transform: translateY(1px);
-  }
+  /*
+   * 눌리는 느낌.
+   *
+   * 2026-07-30 까지 'translateY(1px)' 이었는데 둘 다 문제였다 — 40px 버튼에서 1px 은 **지각 한계
+   * 아래**였고, 'transition' 목록에 'transform' 이 없어 **중간에 되돌릴 수 없는 스냅**이었다
+   * (누르다 말면 뚝 끊긴다). 공용 믹스인으로 옮겨 축소(0.96) + 중단 가능한 전환으로 바꿨다.
+   */
+  ${pressable}
 
   &:disabled {
     opacity: 0.55;
     cursor: ${({ isLoading }) => (isLoading ? 'progress' : 'not-allowed')};
   }
 
+  /*
+   * ⚠ 크기를 여기서 정하지 마라 — 'size' prop 이 정본이다('ICON' 계단).
+   *
+   * 2026-07-30 까지 여기 'width: 1em; height: 1em' 이 있었다. CSS 는 SVG 프레젠테이션 속성을
+   * 이기므로 **버튼 안 아이콘은 'size' prop 을 통째로 무시했다** — 'size="md"' 버튼의
+   * '<Plus size={16}>' 이 13px(=font-size)로 그려졌다. 13 은 계단에 없는 값이고, 2026-07-29
+   * 아이콘 통일 작업이 버튼 안에서만 조용히 무효였다는 뜻이다. 소스만 읽으면 안 보인다.
+   *
+   * 'flex: none' 은 남긴다 — 라벨이 길 때 아이콘이 찌그러지는 걸 막는 건 레이아웃 책임이다.
+   */
   svg {
-    width: 1em;
-    height: 1em;
     flex: none;
   }
 `;

@@ -173,6 +173,16 @@
         line-height: 1.65;
         color: #334458;
       }
+      /* 줄바꿈 규칙은 앱(shared/styles/globalStyles.ts)과 같게 맞춘다 — 크롤러와 no-JS 사용자가
+         보는 화면이 이것이고, 하이드레이션 전 첫 페인트도 이것이다. keep-all 과 balance 는
+         한 짝이다(한국어 음절 절단 방지 — 그쪽 주석 참고). */
+      .app-shell-fallback h1,
+      .app-shell-fallback h2,
+      .app-shell-fallback h3 {
+        word-break: keep-all;
+        overflow-wrap: anywhere;
+        text-wrap: balance;
+      }
       .app-shell-fallback h1 {
         font-size: 1.5rem;
         line-height: 1.35;
@@ -188,6 +198,7 @@
       }
       .app-shell-fallback p {
         margin: 0 0 0.5rem;
+        text-wrap: pretty;
       }
       .app-shell-fallback ol,
       .app-shell-fallback ul {
@@ -218,6 +229,10 @@
       /* 무스코프 기본 = 기본 팔레트(velog). 프리셋별 값은 shared/styles/presets.ts의 bg와 동기. */
       html {
         background: #f8f9fa;
+        /* 앱이 뜨면 globalStyles 가 body 에 같은 값을 건다. 여기 없으면 macOS 에서 첫 페인트가
+           **더 굵게** 나왔다가 Emotion 이 붙는 순간 얇아지는 깜빡임이 보인다. */
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
       }
       html[data-palette='forest'] {
         background: #eef3ec;

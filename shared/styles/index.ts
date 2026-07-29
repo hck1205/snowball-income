@@ -44,6 +44,18 @@ export {
   sectionTitleFontSize
 } from './heroTitleRow';
 
+export { pressable, pressableSubtle } from './pressable';
+
+export {
+  SEPARATE_SURFACE_PADDING,
+  hitArea,
+  hitAreaWithin,
+  innerRadius,
+  nestedRadius,
+  outerRadius,
+  surface
+} from './surfaces';
+
 export {
   buildAxisStyle,
   buildLegendStyle,

@@ -38,7 +38,7 @@ function ResultCaptureButtonComponent({
   onDismissFailure
 }: ResultCaptureButtonProps) {
   return (
-    <CaptureSlot $iconSize={ICON_SIZE}>
+    <CaptureSlot>
       <Button
         type="button"
         /* 히어로 액션 줄에서 "투자 설정" 옆에 선다 — ghost 는 배경이 없어 버튼으로 안 읽혔다.

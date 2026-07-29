@@ -28,6 +28,9 @@ const TOGGLE_SIZE: Record<ToggleSize, { track: number; height: number; thumb: nu
   md: { track: 38, height: 20, thumb: 14, inset: 3 }
 };
 
+/** 트랙 테두리 두께. 썸 이동 거리 계산이 이 값에 의존하므로 상수로 묶는다(아래 ToggleThumb 참고). */
+const TRACK_BORDER = 1;
+
 /*
  * ⚠ styled로 내리는 prop 이름이 `sizeVariant`인 이유: `size`는 **유효한 HTML 어트리뷰트**라
  * @emotion/is-prop-valid를 통과해 DOM으로 새어 나간다(Select.styled.ts와 같은 처리).
@@ -39,7 +42,7 @@ export const ToggleTrack = styled.span<{ checked: boolean; disabled?: boolean; s
   width: ${({ sizeVariant }) => TOGGLE_SIZE[sizeVariant].track}px;
   height: ${({ sizeVariant }) => TOGGLE_SIZE[sizeVariant].height}px;
   border-radius: ${radius.pill};
-  border: 1px solid ${({ checked, disabled }) => (disabled ? color.border : checked ? color.brand : color.borderStrong)};
+  border: ${TRACK_BORDER}px solid ${({ checked, disabled }) => (disabled ? color.border : checked ? color.brand : color.borderStrong)};
   background: ${({ checked, disabled }) =>
     disabled ? color.surfaceSunken : checked ? color.brand : color.surfaceSunken};
   transition: background-color ${motion.fast} ${motion.ease}, border-color ${motion.fast} ${motion.ease};
@@ -61,9 +64,28 @@ export const ToggleTrack = styled.span<{ checked: boolean; disabled?: boolean; s
 export const ToggleThumb = styled.span<{ checked: boolean; disabled?: boolean; sizeVariant: ToggleSize }>`
   position: absolute;
   top: 50%;
-  left: ${({ checked, sizeVariant }) => {
-    const { thumb, inset } = TOGGLE_SIZE[sizeVariant];
-    return checked ? `calc(100% - ${thumb + inset}px)` : `${inset - 1}px`;
+  /*
+   * 위치는 고정하고 **이동만** 애니메이션한다.
+   *
+   * 2026-07-30 까지 'left' 를 전환했다. 'left' 는 레이아웃 속성이라 프레임마다
+   * 레이아웃 → 페인트 → 합성을 전부 다시 돈다. 이 앱에서 가장 많이 눌리는 컨트롤인데
+   * 가장 비싼 방식으로 움직이고 있었다. 'translate' 는 합성 단계만 탄다.
+   *
+   * ⚠ 'transform: translateY(-50%)' 와 합치지 않고 **독립 'translate' 속성**을 쓴다 —
+   * 그래야 세로 중앙 정렬(transform)과 가로 이동(translate)이 서로를 덮지 않는다.
+   */
+  left: ${({ sizeVariant }) => TOGGLE_SIZE[sizeVariant].inset - 1}px;
+  translate: ${({ checked, sizeVariant }) => {
+    if (!checked) return '0';
+    const { track, thumb, inset } = TOGGLE_SIZE[sizeVariant];
+    /*
+     * 종전 켜짐 위치는 'left: calc(100% - (thumb + inset))' 이었다. 전역 'box-sizing: border-box'
+     * 라 트랙 'width' 에 테두리가 포함되고, 절대배치 '100%' 는 **패딩 박스**(= track − 테두리 2px)를
+     * 기준으로 푼다. 그 최종 위치를 그대로 재현한다:
+     *   (track − 2) − (thumb + inset) − (꺼짐 위치 inset − 1)
+     * ⚠ 'translate' 의 % 는 'left' 와 달리 **자기 크기** 기준이라 calc(100% − …) 로는 못 옮긴다.
+     */
+    return `${track - TRACK_BORDER * 2 - (thumb + inset) - (inset - 1)}px`;
   }};
   width: ${({ sizeVariant }) => TOGGLE_SIZE[sizeVariant].thumb}px;
   height: ${({ sizeVariant }) => TOGGLE_SIZE[sizeVariant].thumb}px;
@@ -74,7 +96,7 @@ export const ToggleThumb = styled.span<{ checked: boolean; disabled?: boolean; s
   box-shadow: 0 1px 2px rgba(15, 25, 35, 0.32);
   transform: translateY(-50%);
   pointer-events: none;
-  transition: left ${motion.fast} ${motion.ease};
+  transition: translate ${motion.fast} ${motion.ease};
 `;
 
 /**
