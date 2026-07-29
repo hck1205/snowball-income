@@ -125,9 +125,16 @@ export const TickerCard = styled(Link)`
   text-decoration: none;
   transition: transform ${motion.fast} ${motion.ease}, border-color ${motion.fast} ${motion.ease};
 
+  /* 색 hover 는 어디서나 — 터치에서 남아도 무해하다. */
   &:hover {
-    transform: translateY(-2px);
     border-color: ${color.brandBorder};
+  }
+
+  /* 이동은 진짜 포인터에서만 — 터치는 탭 뒤 :hover 가 남아 카드가 들린 채로 굳는다. */
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      transform: translateY(-2px);
+    }
   }
 `;
 

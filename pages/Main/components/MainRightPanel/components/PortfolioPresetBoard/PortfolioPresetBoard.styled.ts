@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, media, motion, radius, shadow, space } from '@/shared/styles';
+import { color, font, media, motion, pressableSubtle, radius, shadow, space } from '@/shared/styles';
 
 /**
  * 포트폴리오 프리셋 카드 스타일. `pages/Main/Main.shared.styled.ts`(카드 조각)와
@@ -58,7 +58,14 @@ export const PortfolioPresetCardButton = styled.button`
     border-color: ${color.brandBorder};
     background: ${color.surfaceHover};
     box-shadow: ${shadow.e2};
-    transform: translateY(-1px);
+  }
+
+  /* 들어올림은 진짜 포인터에서만 — 터치는 탭 뒤 :hover 가 남아 카드가 들린 채로 굳는다. */
+  @media (hover: hover) and (pointer: fine) {
+    &:hover,
+    &:focus-visible {
+      transform: translateY(-1px);
+    }
   }
 
   &:hover::before,
@@ -67,9 +74,13 @@ export const PortfolioPresetCardButton = styled.button`
     opacity: 1;
   }
 
-  &:active {
-    transform: translateY(0);
-  }
+  /*
+   * 누름은 "제자리로 되돌리기"가 아니라 **축소**여야 한다 — 되돌리기는 피드백을 주는 게 아니라
+   * 피드백을 **없애는** 것처럼 읽힌다. 게다가 터치에는 hover 자체가 없어서 종전 구현은
+   * 모바일에서 아무 반응도 없었다. 전체 폭 카드라 약한 배율(0.99)을 쓴다 — 큰 면에 0.96 을
+   * 주면 화면이 출렁인다.
+   */
+  ${pressableSubtle}
 `;
 
 export const PortfolioPresetContentRow = styled.div`

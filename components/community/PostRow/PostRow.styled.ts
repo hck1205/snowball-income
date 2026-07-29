@@ -25,7 +25,8 @@ export const RowLink = styled(Link)`
     box-shadow: ${shadow.e3};
   }
 
-  @media (prefers-reduced-motion: no-preference) {
+  /* 이동 hover 는 진짜 포인터에서만 — 터치는 탭 뒤 :hover 가 남아 행이 들린 채로 굳는다. */
+  @media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
     transition:
       transform ${motion.base} ${motion.ease},
       box-shadow ${motion.base} ${motion.ease};

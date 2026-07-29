@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, motion, radius, space } from '@/shared/styles';
+import { color, font, hitAreaWithin, motion, radius, space } from '@/shared/styles';
 
 /**
  * 필드 한 칸(라벨 줄 + 컨트롤). `<label>` 이 아니라 `<div>` 인 이유:
@@ -49,15 +49,14 @@ export const HelpButton = styled.button`
   transition: background-color ${motion.fast} ${motion.ease}, border-color ${motion.fast} ${motion.ease},
     color ${motion.fast} ${motion.ease};
 
-  &::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 44px;
-    height: 44px;
-    transform: translate(-50%, -50%);
-  }
+  /*
+   * 🔴 2026-07-30 까지 여기 히트 영역이 무조건 44×44 였다. 이 버튼은 라벨 줄(21px)에 있고
+   * 아래 입력칸까지 간격이 8px 뿐이라, 세로 44px 영역이 **입력칸 상단 3.5px 을 덮었다**
+   * (게다가 의사요소라 입력칸 위에 그려진다). 입력칸 위쪽을 누르면 도움말이 열렸다.
+   *
+   * 44px 는 상한이 아니라 희망값이다 — 이웃에 닿지 않는 선까지만 넓힌다.
+   */
+  ${hitAreaWithin(space[2])}
 
   &:hover {
     background: ${color.brandSubtle};

@@ -25,11 +25,21 @@ export const CardLink = styled(Link)`
     box-shadow: ${shadow.e3};
   }
 
-  @media (prefers-reduced-motion: no-preference) {
+  /*
+   * 들어올림은 **진짜 포인터가 있을 때만**.
+   *
+   * 터치에서는 탭이 :hover 를 발화시키고 그 상태가 **다른 곳을 누를 때까지 남는다** — 카드가
+   * 들린 채로 굳고, 뒤로가기로 돌아와도 여전히 들려 있다. 색·그림자 hover 는 남아도 무해하지만
+   * 이동은 눈에 띄게 잘못돼 보인다.
+   *
+   * 이동량도 8px → 2px 로 줄인다. 8px 은 힌트가 아니라 점프고, 카드 격자를 훑으면 화면이
+   * 출렁인다. 형제 컴포넌트(PostRow · TickerHubPage)는 이미 2px 이라 이쪽이 예외였다.
+   */
+  @media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
     transition: transform ${motion.base} ${motion.ease}, box-shadow ${motion.base} ${motion.ease};
 
     &:hover {
-      transform: translateY(-8px);
+      transform: translateY(-2px);
     }
   }
 `;
