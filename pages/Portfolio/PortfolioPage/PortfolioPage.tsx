@@ -13,9 +13,21 @@ import {
 } from '@/shared/constants';
 import { computePortfolioSummary } from '@/shared/lib/portfolio';
 import { formatUSD } from '@/shared/utils';
+import { isCommunityEnabled } from '@/shared/lib/supabase';
 import { PORTFOLIO_COPY } from '../copy';
-import { buildPortfolioGoalCardModel, resolvePortfolioGoalBasis, toProgressBucket } from '../components';
-import { toPortfolioHoldings, toQuantityInputValue, useGoalScenario, usePortfolioHoldings } from '../hooks';
+import {
+  CloudSyncNotice,
+  buildPortfolioGoalCardModel,
+  resolvePortfolioGoalBasis,
+  toProgressBucket
+} from '../components';
+import {
+  toPortfolioHoldings,
+  toQuantityInputValue,
+  useGoalScenario,
+  usePortfolioCloudSync,
+  usePortfolioHoldings
+} from '../hooks';
 import type { PortfolioAddInput, PortfolioAddResult } from '../hooks';
 import { buildPortfolioCalendarPath, filterPortfolioUniverse, getPortfolioUniverse } from '../utils';
 import PortfolioPageView from './PortfolioPage.view';
@@ -121,6 +133,21 @@ export default function PortfolioPage({ now: nowProp }: PortfolioPageProps = {})
     () => items.map((item) => item.ticker).filter((ticker) => isSimulationKnownTicker(ticker)),
     [items]
   );
+
+  /*
+   * 클라우드 동기화. 정책은 순수 함수(`portfolioCloudSync`)가, 배선은 훅이 갖는다 —
+   * 이 컨테이너는 무엇을 넘길지만 고른다.
+   *
+   * 캘린더 선택(`calendarTickers`)을 같은 payload 에 태운다 — 둘 다 "이 사람이 고른 종목"이고,
+   * 슬롯을 나누면 저장 시점이 어긋나 한쪽만 최신인 상태가 생긴다.
+   */
+  const cloudSync = usePortfolioCloudSync({
+    holdings: toPortfolioHoldings(items),
+    taxPercent,
+    isReady: status === 'ready',
+    applyFromCloud: actions.replaceAll,
+    calendarTickers
+  });
 
   const pickerOptions = useMemo(() => filterPortfolioUniverse(getPortfolioUniverse(), keyword), [keyword]);
   const heldTickers = useMemo(() => items.map((item) => item.ticker), [items]);
@@ -431,6 +458,13 @@ export default function PortfolioPage({ now: nowProp }: PortfolioPageProps = {})
         viewModel={viewModel}
         goal={goalModel}
         liveMessage={announcement ?? derivedLiveMessage}
+        cloudNotice={
+          <CloudSyncNotice
+            status={cloudSync.status}
+            canSignIn={isCommunityEnabled}
+            onDismissApplied={cloudSync.dismissApplied}
+          />
+        }
         picker={{ isOpen: isPickerOpen, keyword, options: pickerOptions, heldTickers }}
         taxInput={taxDraft ?? String(taxPercent)}
         onTaxInputChange={handleTaxInputChange}

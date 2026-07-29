@@ -37,3 +37,6 @@ export type {
   ManualTickerSubmitInput,
   ManualTickerSubmitResult
 } from './ManualTickerForm';
+
+export { default as CloudSyncNotice } from './CloudSyncNotice';
+export type { CloudSyncNoticeProps } from './CloudSyncNotice';

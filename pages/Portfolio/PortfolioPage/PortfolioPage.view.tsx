@@ -66,6 +66,7 @@ export default function PortfolioPageView({
   viewModel,
   goal,
   liveMessage,
+  cloudNotice,
   picker,
   taxInput,
   onTaxInputChange,
@@ -229,6 +230,10 @@ export default function PortfolioPageView({
       <LiveRegion role="status" aria-live="polite">
         {liveMessage}
       </LiveRegion>
+
+      {/* 클라우드 상태 — 비로그인이면 "이 브라우저에만 저장된다"를 저장소 오류보다 **먼저** 말한다.
+          아직 아무 것도 잃지 않았을 때 알려야 의미가 있다. */}
+      {cloudNotice}
 
       {/* 사용자가 직접 친 수량이 저장되지 않는 상태다 — 하던 낭독을 끊어서라도 알린다. */}
       {viewModel.storageError ? (

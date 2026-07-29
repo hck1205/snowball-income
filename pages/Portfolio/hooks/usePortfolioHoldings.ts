@@ -8,6 +8,7 @@ import {
 } from '@/shared/lib/portfolio';
 import type { PortfolioHolding, PortfolioManualMarketInput } from '@/shared/lib/portfolio';
 import {
+  buildPortfolioRecord,
   normalizePortfolioManualInput,
   readPortfolioRecord,
   toPortfolioStorageReason,
@@ -92,6 +93,14 @@ export type PortfolioHoldingsActions = {
   /** 직전 삭제 1건을 **원래 인덱스**로 되돌린다. 복원한 티커(없으면 `null`)를 돌려준다. */
   undo: () => string | null;
   setTaxPercent: (value: number) => void;
+  /**
+   * 보유 목록 전체를 갈아끼운다 — **클라우드 적용 전용**(`usePortfolioCloudSync`).
+   *
+   * 사용자 편집 액션이 아니다. 로그인 시 클라우드 정본을 내려받아 로컬을 맞출 때만 쓴다
+   * (포트폴리오는 "클라우드가 이긴다" 정책 — `portfolioCloudSync` 주석 참고).
+   * 실행 취소 버퍼를 확정하고 로컬 저장까지 예약하므로, 적용 직후 새로고침해도 살아남는다.
+   */
+  replaceAll: (holdings: readonly PortfolioHolding[], taxPercent: number) => void;
 };
 
 export type UsePortfolioHoldingsResult = {
@@ -433,9 +442,29 @@ export const usePortfolioHoldings = (options: UsePortfolioHoldingsOptions = {}):
     [applyState, commitUndo]
   );
 
+  /**
+   * 클라우드 정본으로 전체 교체. 사용자 편집이 아니라 **동기화**다.
+   *
+   * 하이드레이션 전에는 무시한다 — 아직 로컬을 못 읽은 상태에서 덮으면, 읽기가 끝난 뒤
+   * 하이드레이션이 이 값을 다시 덮거나(순서 역전) 반대로 로컬이 사라진다.
+   */
+  const replaceAll = useCallback(
+    (holdings: readonly PortfolioHolding[], taxPercent: number) => {
+      if (!hydratedRef.current) return;
+
+      // 정규화는 저장 경로와 **같은 함수**를 탄다 — 클라우드로 들어온 값만 다른 규칙을 쓰면
+      // 로컬에서 만든 것과 미묘하게 다른 상태가 생긴다.
+      const normalized = buildPortfolioRecord(holdings, taxPercent);
+
+      commitUndo();
+      applyState({ items: normalized.holdings.map(toRow), taxPercent: normalized.taxPercent });
+    },
+    [applyState, commitUndo]
+  );
+
   const actions = useMemo<PortfolioHoldingsActions>(
-    () => ({ add, updateQuantity, remove, undo, setTaxPercent }),
-    [add, remove, setTaxPercent, undo, updateQuantity]
+    () => ({ add, updateQuantity, remove, undo, setTaxPercent, replaceAll }),
+    [add, remove, replaceAll, setTaxPercent, undo, updateQuantity]
   );
 
   return useMemo<UsePortfolioHoldingsResult>(
