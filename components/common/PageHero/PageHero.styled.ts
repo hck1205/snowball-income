@@ -38,6 +38,8 @@ import type { PageHeroTone } from './PageHero.types';
 export const HeroRoot = styled.header<{ $tone: PageHeroTone }>`
   display: grid;
   gap: ${space[3]};
+  /* 좁은 폭에서 titleAction 이 흐름에서 빠져 제목 줄 오른쪽에 붙는다 — 그 좌표 기준. */
+  position: relative;
   padding: clamp(20px, 3vw, 32px);
   border: 1px solid ${color.brandBorder};
   border-radius: ${radius.xl};
@@ -78,7 +80,20 @@ export const HeroTitleAction = styled.div`
   flex: 0 0 auto;
   display: flex;
   align-items: center;
-  margin-left: auto;
+
+  /*
+   * 좁은 폭에서 HeroTitleRow 가 column 이 되면 이 슬롯도 아래로 떨어진다 — 그러면 "제목 줄에
+   * 남는다"는 존재 이유가 사라진다. 그래서 이 구간에서만 흐름에서 빼 **제목 줄 오른쪽**에 붙인다.
+   * 좌표 기준은 HeroRoot(아래에서 position: relative 를 준다).
+   *
+   * top 은 제목 줄 높이의 중앙이 아니라 위쪽에 맞춘다 — 제목이 두 줄이 돼도 아이콘이 첫 줄 옆에
+   * 남는 편이 읽기 흐름과 맞다(이 레포의 iconFirstLineAlign 과 같은 판단).
+   */
+  ${media.down('mobileWide')} {
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
 `;
 
 /**

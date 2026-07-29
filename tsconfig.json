@@ -37,5 +37,34 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["server", "middleware.ts"]
+  /*
+    ⚠ 2026-07-29: 앱 폴더를 **에디터를 위해** 추가했다.
+
+    문제: 에디터의 TS 서버는 파일에서 **가장 가까운 tsconfig.json** 을 찾는데, `pages/`·`components/`
+    밑에는 없어서 이 루트 파일로 올라온다. 그런데 include 가 server/middleware 뿐이라 그 파일들이
+    프로그램에 안 들어가고, TS 서버는 paths 없는 추론 설정으로 떨어져 **`@/...` 전부를 TS2307 로
+    빨갛게 칠했다**(실제 `tsc -b tsconfig.build.json` 은 통과하는데 에디터만 오류).
+
+    이 변경이 안전한 이유: 주석 위에서 경고하는 사고는 이 파일을 **솔루션 스타일**(`files: []` +
+    `references`)로 만들었을 때 @vercel/node 가 paths 를 무시하는 것이었다. include 를 넓히는 것은
+    정상 config 를 유지하므로 paths 는 그대로 적용된다. 실제 타입체크(엄격도)는 여전히 각
+    tsconfig.app/scripts/api 가 담당한다 — 이 파일의 옵션은 그보다 느슨해서(noUnusedLocals 없음)
+    앱 코드에 새 오류를 만들지 않는다.
+  */
+  "include": [
+    "server",
+    "middleware.ts",
+    "components",
+    "jotai",
+    "pages",
+    "router",
+    "shared",
+    "utils"
+  ],
+  /*
+    테스트는 제외한다 — 이 config 에는 vitest·jest-dom 타입이 없어서 `toBeInTheDocument` 류가
+    전부 TS2339 가 된다. 테스트의 타입체크는 tsconfig.app.json 이 담당한다(거기엔 그 타입이 있다).
+    여기 include 를 넓힌 목적은 **에디터가 앱 소스의 `@/*` 를 resolve 하게** 하는 것뿐이다.
+  */
+  "exclude": ["**/*.test.ts", "**/*.test.tsx", "test"]
 }

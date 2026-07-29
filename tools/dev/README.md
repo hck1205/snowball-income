@@ -126,3 +126,31 @@ node tools/dev/predeploy.mjs <track> --run    # 실제 격리 빌드
 | `tracks.mjs` | `collectChanges()`(git status 파싱+분류, 다른 둘이 재사용) + `tracks` CLI |
 | `devstatus.mjs` | 대시보드 CLI |
 | `predeploy.mjs` | 격리 빌드 검증 CLI |
+
+---
+
+## 4. `uiprobe` — 앱을 **실제로 그려서** 재고 찍는다
+
+```sh
+npm run uiprobe -- --shot tmp/main.png --width 390
+npm run uiprobe -- --overflow --width 320,360,390,768,1200
+npm run uiprobe -- --eval "document.querySelectorAll('[role=tab]').length"
+npm run uiprobe -- --click "워렌 버핏" --click "적용" --shot tmp/result.png
+```
+
+**왜 있나.** 이 레포에는 렌더 테스트로 못 잡는 결함이 반복해서 난다 — 아이콘 정렬 어긋남, 좁은 폭
+가로 오버플로, 컨테인먼트로 잘리는 카드. jsdom 은 레이아웃을 계산하지 않아서(`@media`·
+`getBoundingClientRect` 전부 0) 테스트가 그린이어도 화면은 깨져 있을 수 있다. 그때마다 CDP 스크립트를
+즉석에서 다시 짜는 낭비가 매 세션 반복됐다(2026-07-29 하루에만 8개).
+
+**가장 중요한 옵션은 `--shot` 이다.** PNG 로 남기면 **눈으로 확인**할 수 있다 — 보지 않고 고치는 것이
+이 레포에서 가장 비쌌던 실패다(같은 날 캡처 기능을 추측으로 5회 수정).
+
+- 이미 CDP 가 떠 있으면 **붙고**, 없으면 헤드리스로 띄운다(`--keep` 로 남길 수 있다).
+- `--width` 에 쉼표를 주면 각 폭을 순회하며 같은 검사를 반복한다. `--shot` 은 파일명에 폭이 붙는다.
+- `--overflow` 는 넘쳤을 때 **범인 후보 요소**까지 같이 준다 — "문서가 넘쳤다"만으로는 어디를 볼지 모른다.
+- 외부 의존성 0. Node 빌트인 `fetch` + `WebSocket` 으로 CDP 를 직접 말한다.
+
+> ⚠ `content-visibility: auto` 인 요소(이 레포의 `Card`)는 **뷰포트 밖이면 그려지지 않는다.**
+> 전체 페이지 스샷에서 아래쪽 카드가 비어 보이면 그것 때문이다 — 화면 결함이 아니다.
+> 같은 이유로 **이미지 내보내기(결과 캡처)도 영향을 받는다.**

@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { PortfolioGoalCardModel, PortfolioHoldingRowModel } from '../components';
 import type { PortfolioAddInput, PortfolioAddResult } from '../hooks';
 import type { PortfolioUniverseEntry } from '../utils';
@@ -80,6 +81,11 @@ export type PortfolioViewProps = {
   goal: PortfolioGoalCardModel | null;
   /** 항상 마운트되는 라이브 리전 문구. */
   liveMessage: string;
+  /**
+   * 클라우드 동기화 안내(비로그인 유도 · 덮어씀 알림 · 실패). **`null` 이면 아무 것도 그리지 않는다** —
+   * 잘 되고 있을 때는 자리를 차지하지 않는다.
+   */
+  cloudNotice: ReactNode;
   picker: PortfolioPickerModel;
   /** 세율 입력의 제어값(빈 문자열 중간 상태를 허용하려고 문자열로 쥔다). */
   taxInput: string;

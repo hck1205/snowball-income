@@ -43,6 +43,8 @@ const renderLoadingView = (onAdd: PortfolioViewProps['onAdd']) => {
     // 보유를 아직 읽는 중이면 목표 카드는 렌더 자체가 없다(카드가 떴다 사라지는 깜빡임 방지).
     goal: null,
     liveMessage: copy.live.loading,
+    // 클라우드 안내는 이 테스트의 관심사가 아니다(하이드레이션 가드만 본다) — 렌더하지 않는다.
+    cloudNotice: null,
     // 드로어는 열어 둔 채로 그린다 — 로딩 중 열림은 UI 로는 못 만들지만 사유 매핑은 여기서만 보인다.
     picker: { isOpen: true, keyword: '', options: [], heldTickers: [] },
     taxInput: '15.4',

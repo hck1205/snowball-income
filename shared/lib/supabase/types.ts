@@ -191,6 +191,34 @@ export type UserAppStateRow = {
 export type UserAppStateSummary = Omit<UserAppStateRow, 'payload'>;
 
 /**
+ * 내 포트폴리오 클라우드 payload (`user_portfolio_states.payload`).
+ *
+ * 보유 목록과 **배당 캘린더 선택**을 한 payload 에 함께 담는다 — 둘 다 "이 사람이 고른 종목"이라
+ * 성격이 같고, 슬롯을 나누면 저장 시점이 어긋나 한쪽만 최신인 상태가 생긴다.
+ *
+ * ⚠ 서버는 이 모양을 검증하지 않는다(jsonb). 읽는 쪽이 반드시 정규화한다 —
+ *   구버전 앱이 쓴 payload 나 손상된 값이 그대로 화면에 오면 안 된다.
+ */
+export type UserPortfolioCloudPayload = {
+  /** 스키마 버전. 늘어나면 읽는 쪽이 마이그레이션한다. */
+  v: number;
+  /** `PortfolioPersistedRecord` 의 보유 목록(수량 0 = 미입력). */
+  holdings: unknown[];
+  /** 배당소득세(%). */
+  taxPercent: number;
+  /** 배당 캘린더에서 고른 티커 심볼. 없으면 캘린더를 쓴 적 없다는 뜻이다. */
+  calendarTickers?: string[];
+  /** 이 payload 를 만든 기기의 저장 시각(클라이언트 `Date.now()`). */
+  updatedAt: number;
+};
+
+export type UserPortfolioStateRow = {
+  user_id: string;
+  payload: UserPortfolioCloudPayload;
+  updated_at: string;
+};
+
+/**
  * 공유 스냅샷 payload 계약 (마이그레이션 20260720000000, 트랙 E).
  *
  * "Share" 버튼이 현재 active 시나리오 탭을 서버에 저장하고 `?s=<key>`로 공유한다.
@@ -392,6 +420,22 @@ export type Database = {
             columns: ['user_id'];
             isOneToOne: false;
             referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          }
+        ];
+      };
+      user_portfolio_states: {
+        // user_id 가 primary key 라 1인 1행이 스키마로 강제된다(시뮬레이터의 partial unique index 와 다름).
+        // upsert 에 onConflict: 'user_id' 를 쓰므로 Insert 에 user_id 가 필요하다.
+        Row: UserPortfolioStateRow;
+        Insert: Pick<UserPortfolioStateRow, 'user_id' | 'payload'>;
+        Update: Partial<Pick<UserPortfolioStateRow, 'payload'>>;
+        Relationships: [
+          {
+            foreignKeyName: 'user_portfolio_states_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: true;
+            referencedRelation: 'users';
             referencedColumns: ['id'];
           }
         ];
