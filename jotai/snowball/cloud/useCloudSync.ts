@@ -7,7 +7,8 @@ import {
   type CommunityClient
 } from '@/shared/lib/supabase';
 import { useSessionAtomValue } from '@/jotai/community';
-import { normalizePersistedAppState, serializeMeaningfulPayload } from '../persistence';
+import { normalizePersistedAppState } from '../persistence';
+import { serializeTabBase } from './cloudWorkspaceThreeWay';
 import type { PersistedAppStatePayload } from '../types';
 import { readCloudSavedAt, stampCloudAutosave } from './cloudAutosaveTimestamp';
 import { writeSyncBase } from './cloudSyncBase';
@@ -69,7 +70,7 @@ export const useCloudSync = () => {
         // 다음 세션 시작 3-way에서 로컬(더 편집됐을 수 있음)만 base에서 전진한 것으로 정확히 판정된다.
         onSaved: (pushedPayload) => {
           const uid = userIdRef.current;
-          if (uid) writeSyncBase(uid, serializeMeaningfulPayload(pushedPayload));
+          if (uid) writeSyncBase(uid, serializeTabBase(pushedPayload));
         }
       }),
     [setSyncState]

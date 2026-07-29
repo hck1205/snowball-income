@@ -102,7 +102,7 @@ describe('결과 이미지 저장 — 캡처 범위', () => {
   it('캡처 루트는 결과 그리드이고 시나리오 탭 줄을 품지 않는다', () => {
     const { container } = render(
       <>
-        <ScenarioTabsRow showCompactToggle isResultCompact={false} onToggleCompact={() => undefined}>
+        <ScenarioTabsRow>
           <div role="tablist" aria-label="시나리오 탭" />
         </ScenarioTabsRow>
         <MainResultGrid summary={<span>요약</span>} />
@@ -113,8 +113,8 @@ describe('결과 이미지 저장 — 캡처 범위', () => {
     expect(root).not.toBeNull();
     expect(root).toContainElement(screen.getByText('요약'));
     expect(root).not.toContainElement(screen.getByRole('tablist'));
-    // "간략히" 토글도 탭 줄에 있으므로 캡처 밖이다.
-    expect(root).not.toContainElement(screen.getByRole('checkbox', { name: '결과 간략히 보기' }));
+    /* "간략히" 토글은 2026-07-29 에 결과 요약 카드 우측 상단으로 옮겨갔다 — 이제 탭 줄이 아니라
+       **캡처 루트 안**에 있으므로 여기서 밖에 있다고 단언하지 않는다. */
   });
 
   it('결과 카드 안의 "조건 수정" 버튼에는 캡처 제외 마커가 붙는다', () => {

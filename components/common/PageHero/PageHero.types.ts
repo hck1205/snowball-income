@@ -18,5 +18,13 @@ export type PageHeroProps = {
   meta?: ReactNode;
   /** 최대 2개(primary 1 + secondary 1)를 넘기지 않는다. */
   actions?: ReactNode;
+  /**
+   * 제목과 **같은 줄** 맨 오른쪽에 서는 작은 액션(아이콘 버튼 한 개 수준).
+   *
+   * `actions` 는 좁은 폭에서 제목 아래로 내려가 전폭을 쓰지만, 이 슬롯은 **어느 폭에서도 제목 줄에
+   * 남는다.** 좁은 화면에서도 제목 옆자리를 지켜야 하는 보조 동작(예: 결과 이미지 저장)에 쓴다.
+   * 여러 개를 넣지 마라 — 제목 줄이 잘린다.
+   */
+  titleAction?: ReactNode;
   tone?: PageHeroTone;
 };

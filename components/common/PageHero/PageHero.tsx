@@ -6,6 +6,7 @@ import {
   HeroMeta,
   HeroRoot,
   HeroTitle,
+  HeroTitleAction,
   HeroTitleGroup,
   HeroTitleRow
 } from './PageHero.styled';
@@ -25,6 +26,7 @@ export default function PageHero({
   lede,
   meta,
   actions,
+  titleAction,
   tone = 'gradient'
 }: PageHeroProps) {
   return (
@@ -33,6 +35,8 @@ export default function PageHero({
         <HeroTitleGroup>
           {icon ? <HeroIconBadge aria-hidden>{icon}</HeroIconBadge> : null}
           <HeroTitle as={titleAs}>{title}</HeroTitle>
+          {/* 제목 줄 맨 오른쪽 — 좁은 폭에서 `actions` 가 아래로 내려가도 여기는 남는다. */}
+          {titleAction ? <HeroTitleAction>{titleAction}</HeroTitleAction> : null}
         </HeroTitleGroup>
         {actions ? <HeroActions>{actions}</HeroActions> : null}
       </HeroTitleRow>

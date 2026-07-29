@@ -13,6 +13,7 @@ import {
   type LocalAutosaveRead
 } from '@/jotai/snowball/cloud';
 import { buildDefaultPayload, isSameMeaningfulPayload, serializeMeaningfulPayload, type PersistedAppStatePayload } from '@/jotai';
+import { serializeTabBase } from '@/jotai/snowball/cloud';
 import type { PersistedScenarioState, PersistedInvestmentSettings } from '@/jotai/snowball/types';
 import type { TickerProfile } from '@/shared/types/snowball';
 import { useCloudWorkspaceSync, type CloudReconciliationApi } from '@/pages/Main/hooks';
@@ -372,7 +373,7 @@ describe('merge-base 정책 A — 단방향 FF(무모달) vs 양방향 모달, �
     expect(jotaiStore.get(cloudConflictAtom)).toBeNull();
     expect(jotaiStore.get(cloudSyncStateAtom).status).not.toBe('conflict');
     expect(liveWorkspace.scenarios.map((s) => s.id)).toEqual(['a', 'b', 'd']);
-    expect(readSyncBase('user-1')).toBe(serializeMeaningfulPayload(cloudPlusD));
+    expect(readSyncBase('user-1')).toBe(serializeTabBase(cloudPlusD));
     expect(await nextSessionEventsWithBase()).toEqual(['noop']);
   });
 
@@ -390,7 +391,7 @@ describe('merge-base 정책 A — 단방향 FF(무모달) vs 양방향 모달, �
     await waitFor(() => expect(store.cloud?.scenarios.map((s) => s.id)).toEqual(['a', 'b', 'c']));
     expect(jotaiStore.get(cloudConflictAtom)).toBeNull();
     expect(jotaiStore.get(cloudSyncStateAtom).status).not.toBe('conflict');
-    expect(readSyncBase('user-1')).toBe(serializeMeaningfulPayload(localPlusC));
+    expect(readSyncBase('user-1')).toBe(serializeTabBase(localPlusC));
     expect(await nextSessionEventsWithBase()).toEqual(['noop']);
   });
 
@@ -439,7 +440,7 @@ describe('merge-base 정책 A — 단방향 FF(무모달) vs 양방향 모달, �
     });
     await waitFor(() => expect(jotaiStore.get(cloudConflictAtom)).toBeNull());
     expect(store.cloud?.scenarios.map((s) => s.id)).toEqual(['a', 'b', 'c']);
-    expect(readSyncBase('user-1')).toBe(serializeMeaningfulPayload(localPlusC));
+    expect(readSyncBase('user-1')).toBe(serializeTabBase(localPlusC));
 
     // 3) 다음 세션: 다른 기기가 클라우드에 EEE만 더 얹었다(로컬은 여전히 base). 재충돌 없이 조용히 FF apply.
     const cloudPlusCE = makePayload([

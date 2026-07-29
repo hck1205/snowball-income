@@ -1,4 +1,5 @@
 import { isSameMeaningfulPayload, isSamePersistedPayload, serializeMeaningfulPayload } from '../persistence';
+import { hasChangesFromBase, mergeWorkspacesThreeWay, parseTabBase, serializeTabBase } from './cloudWorkspaceThreeWay';
 import type { PersistedAppStatePayload } from '../types';
 import { isWorkspaceSubsumedBy } from './cloudWorkspaceReconcile';
 
@@ -60,6 +61,9 @@ export type CloudWorkspaceSyncEvent =
   | { type: 'applied-cloud' } // cloud→local: 클라우드가 최신 → 적용 + 로컬 미러
   | { type: 'pushed-local' } // local→cloud: 로컬이 최신 → 클라우드에 push
   | { type: 'noop' } // 이미 동기(내용 동일) 또는 양쪽 비어 있음
+  // 탭 단위 3-way 자동 병합: 서로 **다른 탭**을 고쳐 겹치지 않으므로 물어볼 것 없이 양쪽을 합쳤다.
+  // 종전에는 이 경우도 conflict 였고, 선택지가 전체↔전체라 반대편 편집이 사라졌다.
+  | { type: 'merged-tabs' }
   // 충돌: 로컬·클라우드 **둘 다 내용 있고** 의미있게 다름 → 자동 화해 대신 경계(모달)로 위임한다.
   // 엔진은 이 이벤트만 방출하고 **어느 쪽도 apply/mirror/push하지 않는다**(순수·비파괴). local/cloud는 후보
   // payload, 타임스탬프는 요약(마지막 편집시각) 표시용이다(정본 결정은 사용자 몫이라 여기선 비교하지 않는다).
@@ -121,9 +125,43 @@ const applyIfChanged = (deps: CloudWorkspaceSyncDeps, payload: PersistedAppState
   if (!isSamePersistedPayload(payload, deps.getCurrentPayload())) deps.applyPayload(payload);
 };
 
-/** 수렴 시 합의 payload의 의미있는 해시를 base로 확립(다음 세션 3-way 기준). writeBase 미주입=no-op(폴백). */
+/**
+ * 수렴 시 합의 payload를 base로 확립(다음 세션 3-way 기준). writeBase 미주입=no-op(폴백).
+ *
+ * 저장 형식은 **탭 id → 해시 맵**이다(`serializeTabBase`). 종전에는 payload 전체 문자열이었는데,
+ * 그러면 "어느 탭이 바뀌었나"를 알 수 없어 겹치지 않는 편집까지 충돌로 몰렸다.
+ */
 const recordBase = (deps: CloudWorkspaceSyncDeps, payload: PersistedAppStatePayload): void => {
-  deps.writeBase?.(serializeMeaningfulPayload(payload));
+  deps.writeBase?.(serializeTabBase(payload));
+};
+
+/** 3-way 자동 병합 결과를 양쪽에 반영한다 — 앱·로컬에 적용하고 클라우드로 밀어 올린다. */
+const applyMerged = async (
+  deps: CloudWorkspaceSyncDeps,
+  merged: PersistedAppStatePayload,
+  localUpdatedAt: number | undefined
+): Promise<void> => {
+  const now = deps.now ?? Date.now;
+  applyIfChanged(deps, merged);
+
+  try {
+    await deps.writeLocalAutosave(merged);
+  } catch {
+    // 로컬 미러 실패 → 앱에는 적용됨. base 는 갱신하지 않는다(수렴 실패).
+    deps.onEvent?.({ type: 'failed', reason: 'mirror-error' });
+    return;
+  }
+
+  try {
+    await deps.pushCloudAutosave(merged, localUpdatedAt ?? now());
+  } catch {
+    deps.onEvent?.({ type: 'failed', reason: 'push-error' });
+    return;
+  }
+
+  // 양쪽이 병합본으로 수렴 → base 확립.
+  recordBase(deps, merged);
+  deps.onEvent?.({ type: 'merged-tabs' });
 };
 
 /**
@@ -235,6 +273,47 @@ export const syncCloudWorkspaceAtSessionStart = async (deps: CloudWorkspaceSyncD
   //   base가 없으면(레거시·신규 기기·localStorage 불가) 이 블록을 건너뛰어 아래 휴리스틱으로 폴백한다(하위호환).
   const base = deps.readBase?.();
   if (base !== undefined && cloud && localPayload && hasContent(localPayload) && hasContent(cloud.payload)) {
+    /*
+     * 1.35) **탭 단위 3-way**(base 가 새 형식일 때). 겹치지 않는 편집은 충돌이 아니다 —
+     *   A 기기가 탭1만, B 기기가 탭2만 고쳤다면 양쪽을 다 살려 합친다. 종전에는 이것도
+     *   "양쪽 다 변함"으로 묶여 모달이 떴고, 선택지가 전체↔전체라 반대편 편집이 사라졌다.
+     *   같은 탭을 양쪽에서 다르게 고친 경우에만 아래 conflict 로 내려간다.
+     *
+     *   구 형식 base(payload 전체 문자열)는 `parseTabBase` 가 null 을 주고, 그때는 아래
+     *   종전 전체 비교로 그대로 간다(하위호환 — 남의 기기에 있는 base 를 무효로 만들지 않는다).
+     */
+    const tabBase = parseTabBase(base);
+    if (tabBase) {
+      const localMoved = hasChangesFromBase(tabBase, localPayload);
+      const cloudMoved = hasChangesFromBase(tabBase, cloud.payload);
+
+      // 한쪽만 전진 = 순수 FF. 병합할 것이 없으므로 종전 경로 그대로(불필요한 push/mirror 없음).
+      if (localMoved && !cloudMoved) {
+        await pushLocal(deps, localPayload, local.updatedAt);
+        return;
+      }
+      if (cloudMoved && !localMoved) {
+        await applyCloud(deps, cloud.payload);
+        return;
+      }
+
+      // 양쪽 다 전진 → 탭 단위로 본다. 겹치지 않으면 자동 병합, 겹치면 모달.
+      const outcome = mergeWorkspacesThreeWay(tabBase, localPayload, cloud.payload);
+      if (outcome.type === 'merged') {
+        await applyMerged(deps, outcome.payload, local.updatedAt);
+        return;
+      }
+      // 같은 탭 충돌 → 자동 병합 금지, 경계(모달)로 위임. base 는 갱신하지 않는다.
+      deps.onEvent?.({
+        type: 'conflict',
+        local: localPayload,
+        cloud: cloud.payload,
+        localUpdatedAt: local.updatedAt,
+        cloudSavedAt: cloud.savedAt
+      });
+      return;
+    }
+
     // 여기 도달 = 1)에서 안 걸림 → 로컬·클라우드가 의미있게 다름 → 최소 한쪽은 base와도 다르다.
     const localChanged = serializeMeaningfulPayload(localPayload) !== base;
     const cloudChanged = serializeMeaningfulPayload(cloud.payload) !== base;

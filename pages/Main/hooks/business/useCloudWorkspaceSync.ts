@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { serializeMeaningfulPayload, writePersistedAppState, type PersistedAppStatePayload } from '@/jotai';
+import { writePersistedAppState, type PersistedAppStatePayload } from '@/jotai';
+import { serializeTabBase } from '@/jotai/snowball/cloud';
 import {
   readLocalOwner,
   readSyncBase,
@@ -217,7 +218,7 @@ export const useCloudWorkspaceSync = (deps: {
               : await resolveWithBlend(device, current.cloud, reconcileDeps);
         // 화해로 로컬·클라우드가 `resolved`로 수렴했다 → 그 해시를 base로 확립해 **핑퐁을 끊는다**
         // (다음 세션은 local==base==cloud → noop, 또는 한쪽만 편집 시 조용한 FF). defer(미해결)는 갱신 안 함.
-        writeSyncBase(userIdRef.current, serializeMeaningfulPayload(resolved));
+        writeSyncBase(userIdRef.current, serializeTabBase(resolved));
         track(ANALYTICS_EVENT.CLOUD_SYNC_CONFLICT, {
           shown: true,
           resolution: mode,

@@ -56,11 +56,15 @@ function MainResultGridComponent({
 
   if (cells.length === 0) return null;
 
+  /*
+   * 결과 **이미지 저장**의 캡처 대상 표식. 이 요소가 곧 "지금 탭의 결과 카드 전부"이고,
+   * 시나리오 탭 바는 이 밖(형제)이라 캡처에 들어가지 않는다.
+   *
+   * 캡처는 이 **살아 있는 요소를 그대로** 찍는다 — 한때 고정 폭 오프스크린 사본을 만들어
+   * 그쪽을 찍었지만, 사본은 카드 높이·표 폭이 화면과 계속 어긋났다(자세한 경위는
+   * `resultCapturePipeline` 주석). 래스터라이저가 브라우저라 사본이 필요 없다.
+   */
   return (
-    /*
-     * 결과 **이미지 저장**의 캡처 대상 표식. 이 요소가 곧 "지금 탭의 결과 카드 전부"이고,
-     * 시나리오 탭 바는 이 밖(형제)이라 캡처에 들어가지 않는다.
-     */
     <ResultGrid {...{ [RESULT_CAPTURE_ROOT_ATTRIBUTE]: '' }}>
       {cells.map((cell) => (
         <ResultGridCell key={cell.key} $span={cell.span}>

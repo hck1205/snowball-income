@@ -63,6 +63,22 @@ export const HeroTitleGroup = styled.div`
   align-items: center;
   gap: ${space[3]};
   min-width: 0;
+  /* titleAction 이 이 줄의 **맨 오른쪽**까지 밀려나려면 그룹이 남는 폭을 가져야 한다. */
+  flex: 1 1 auto;
+`;
+
+/**
+ * 제목 **같은 줄**의 맨 오른쪽에 서는 작은 액션(아이콘 버튼 한 개 수준).
+ *
+ * `actions` 와 다른 점: `actions` 는 좁은 폭(mobileWide↓)에서 제목 아래로 내려가 전폭을 쓰지만,
+ * 이 슬롯은 **어느 폭에서도 제목 줄에 남는다.** 넓은 화면에서는 결과적으로 `actions` 바로 옆에
+ * 서므로 두 자리가 같아 보이고, 좁은 화면에서만 차이가 드러난다.
+ */
+export const HeroTitleAction = styled.div`
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  margin-left: auto;
 `;
 
 /**

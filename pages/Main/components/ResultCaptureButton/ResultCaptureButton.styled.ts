@@ -2,11 +2,23 @@ import styled from '@emotion/styled';
 import { color, font, radius, shadow, space, zIndex } from '@/shared/styles';
 
 /** 버튼과 실패 알림을 함께 쥐는 자리. 알림은 흐름 밖(절대 배치)이라 컨트롤 줄 높이를 흔들지 않는다. */
-export const CaptureSlot = styled.div`
+export const CaptureSlot = styled.div<{ $iconSize: number }>`
   position: relative;
   flex: 0 0 auto;
   display: flex;
   align-items: center;
+
+  /*
+   * 🔴 공용 Button 은 아이콘을 width/height: 1em 으로 **고정**한다(글자와 함께 커지라는 설계).
+   * 그래서 lucide 의 size prop 은 무시된다 — 아이콘 전용 버튼에서 아이콘만 키우려면
+   * 여기서 실제 픽셀로 덮어써야 한다. 글자가 없는 버튼이라 1em 규칙이 지킬 것도 없다.
+   *
+   * 스피너(로딩 중)는 svg 가 아니라 별도 요소라 이 규칙에 걸리지 않는다.
+   */
+  button svg {
+    width: ${({ $iconSize }) => $iconSize}px;
+    height: ${({ $iconSize }) => $iconSize}px;
+  }
 `;
 
 /**

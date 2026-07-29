@@ -23,6 +23,7 @@ function ResultSummaryCardComponent({
   simulation,
   showQuickEstimate,
   isResultCompact,
+  densityToggle,
   targetMonthlyDividend,
   formatResultAmount,
   formatPercent,
@@ -52,7 +53,9 @@ function ResultSummaryCardComponent({
   const yearsToReach = findTargetReachYearIndex(simulation.yearly, summary.targetMonthDividendReachedYear);
 
   return (
-    <Card dataTour={TOUR_TARGET.simulationResult}>
+    /* 제목은 없고 우측 상단 토글만 있는 헤더 — `Card` 는 `titleRight` 만으로도 헤더를 그린다.
+       hero 숫자가 곧 제목 역할을 하므로 글자 제목을 더하지 않는다(기존 결정 유지). */
+    <Card dataTour={TOUR_TARGET.simulationResult} titleRight={densityToggle}>
       {showQuickEstimate ? (
         <SummaryGrid>
           <HeroSlot>

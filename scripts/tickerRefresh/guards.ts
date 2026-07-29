@@ -22,6 +22,14 @@ const formatIssue = (path: readonly (string | number | symbol)[], message: strin
  * - `initialPrice` <= 0
  * - `initialPrice` moving more than +/-50% vs the previous known price (split or bad data —
  *   a human should confirm)
+ *
+ * ⚠ 2026-07-29: this guard held 18 tickers (QQQ, NVDA, TSM, ASML, ...) hostage for months. Their
+ * curated seed prices were hand-typed placeholders (NVDA 900 vs the real 197), so every refresh
+ * looked like a >50% move and was rejected — the tickers never entered the snapshot at all, and the
+ * calendar showed them as "데이터 준비 중" forever. The guard was right; the *seeds* were wrong.
+ * It was resolved by a one-off `--only=` refresh, so the snapshot now holds all 68 tickers and
+ * subsequent runs compare measured-to-measured. Do not weaken this guard to unblock bad seed data —
+ * fix the seed, or run the one-off and review the reported diff.
  * - `frequency` not one of the four known literals
  *
  * There is deliberately no `dividendGrowth` check: the pipeline no longer produces one. Growth is

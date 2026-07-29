@@ -1,4 +1,6 @@
 import { memo, useCallback, useMemo, useState } from 'react';
+import type { ChangeEvent } from 'react';
+import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import { useInRouterContext } from 'react-router-dom';
 import { getTickerDisplayName } from '@/shared/utils';
 import { createPortal } from 'react-dom';
@@ -23,6 +25,7 @@ import { buildConditionStripItems } from '@/components/ConditionStrip';
 import MonthlyCashflow from '@/components/MonthlyCashflow';
 import PortfolioComposition from '@/components/PortfolioComposition';
 import ResultSummaryCard from '@/components/ResultSummaryCard';
+import { ToggleField } from '@/components/common';
 import SaleTaxCard from '@/components/SaleTaxCard';
 import YearlyResult from '@/components/YearlyResult';
 import {
@@ -51,11 +54,10 @@ import {
   useTickerProfilesAtomValue,
   useVisibleYearlySeriesAtomValue
 } from '@/jotai';
-import { useMainComputed, useResultCapture, useScenarioTabs, useSnowballForm, useTickerActions } from '@/pages/Main/hooks';
+import { useMainComputed, useScenarioTabs, useSnowballForm, useTickerActions } from '@/pages/Main/hooks';
 // 형제 폴더 직접 참조 — 상위 배럴(@/pages/Main/components)은 이 파일 자신도 재수출해 import 순환이 된다.
 import { ChartPanel } from '../ChartPanel';
 import MainResultGrid from '../MainResultGrid';
-import ResultCaptureButton from '../ResultCaptureButton';
 import ScenarioTabsRow from '../ScenarioTabsRow';
 import SettingsEntryButton from '../SettingsEntryButton';
 import { createResultAmountFormatter, formatPercent, targetYearLabel } from '@/pages/Main/utils';
@@ -81,13 +83,17 @@ function MainRightPanelComponent({ configDrawerId }: MainRightPanelProps) {
   const showQuickEstimate = useShowQuickEstimateAtomValue();
   const isResultCompact = useIsResultCompactAtomValue();
   const setIsResultCompact = useSetIsResultCompactWrite();
-  /* 결과 이미지 저장 — 시나리오 이름은 클릭 시점 스냅샷이라 이 훅은 아무 폼 원자도 구독하지 않는다. */
-  const {
-    isCapturing: isCapturingResult,
-    failure: resultCaptureFailure,
-    captureResult,
-    dismissFailure: dismissResultCaptureFailure
-  } = useResultCapture();
+  /* 결과 밀도 토글의 계측 — 토글이 탭 줄에서 요약 카드로 옮겨오면서 함께 온 배선이다. */
+  const handleToggleCompact = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      trackEvent(ANALYTICS_EVENT.TOGGLE_CHANGED, {
+        field_name: 'isResultCompact',
+        value: event.target.checked
+      });
+      setIsResultCompact(event.target.checked);
+    },
+    [setIsResultCompact]
+  );
   const includedProfiles = useIncludedProfilesAtomValue();
   /* 프리필이 활성 탭을 덮어도 되는지 판정할 때만 쓴다 — **제외된 티커도 지우면 안 되는 데이터**라
      includedProfiles가 아니라 전체 프로필을 본다. */
@@ -382,19 +388,9 @@ function MainRightPanelComponent({ configDrawerId }: MainRightPanelProps) {
         </>
       ) : null}
 
-      <ScenarioTabsRow
-        showCompactToggle={simulation !== null}
-        isResultCompact={isResultCompact}
-        onToggleCompact={setIsResultCompact}
-        captureAction={
-          <ResultCaptureButton
-            isCapturing={isCapturingResult}
-            failure={resultCaptureFailure}
-            onCapture={captureResult}
-            onDismissFailure={dismissResultCaptureFailure}
-          />
-        }
-      >
+      {/* 탭 줄은 이제 탭 스트립만 소유한다 — "간략히" 토글은 2026-07-29 에 결과 요약 카드
+          우측 상단으로 옮겼다(탭 스트립과 가로를 나눠 써서 좁은 폭에서 가장 먼저 눌렸다). */}
+      <ScenarioTabsRow>
         <ScenarioTabs
           tabs={tabs}
           activeScenarioId={activeScenarioId}
@@ -431,6 +427,15 @@ function MainRightPanelComponent({ configDrawerId }: MainRightPanelProps) {
               simulation={simulation}
               showQuickEstimate={showQuickEstimate}
               isResultCompact={isResultCompact}
+              /* 결과 밀도 토글 — 카드 우측 상단. 한 줄 배치(라벨 좌·스위치 우)가 기본이다. */
+              densityToggle={
+                <ToggleField
+                  label="간략히"
+                  accessibleName="결과 간략히 보기"
+                  checked={isResultCompact}
+                  onChange={handleToggleCompact}
+                />
+              }
               targetMonthlyDividend={values.targetMonthlyDividend}
               formatResultAmount={formatResultAmount}
               formatPercent={formatPercent}

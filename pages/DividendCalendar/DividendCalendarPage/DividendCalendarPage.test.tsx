@@ -242,7 +242,12 @@ describe('DividendCalendarPage — v2 월간 달력', () => {
     await screen.findByText('아직 선택한 종목이 없습니다');
 
     await openPicker(user);
-    const unavailable = findOptionButton('QQQ');
+    /*
+     * 무배당 ANET — "지급월 데이터가 없는 종목"의 안전한 예시.
+     * ⚠ 예전에는 QQQ 를 썼는데 2026-07-29 시세 갱신으로 데이터가 생겨 깨졌다.
+     *   시세 갱신으로 채워질 수 있는 티커를 이 자리에 쓰지 마라.
+     */
+    const unavailable = findOptionButton('ANET');
     expect(unavailable).toHaveAttribute('aria-disabled', 'true');
     expect(unavailable).toHaveTextContent('데이터 준비 중');
 

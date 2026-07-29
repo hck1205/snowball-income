@@ -7,30 +7,21 @@ import { color, font, motion, radius, space } from '@/shared/styles';
  */
 
 /**
- * 배치는 이 한 곳이 정본이다 — 호출부는 `stacked` 불리언만 준다.
+ * 라벨 좌 · 스위치 우 한 줄. `min-height` 는 이웃 폼 행과 높이를 맞춘다.
  *
- * - 기본(한 줄): 라벨 좌 · 스위치 우. `min-height`로 이웃 폼 행과 높이를 맞춘다.
- * - `stacked`(두 줄): 라벨 위 · 스위치 아래, 좌측 정렬. **가로 폭을 아끼는 배치**라
- *   `min-height`를 걸지 않는다(걸면 아낀 세로를 도로 쓴다).
+ * ⚠ 한때 두 줄 배치(`stacked`)를 옵션으로 뒀다 — 좁은 폭 컨트롤 줄에서 가로를 아끼려는 것이었다.
+ * 그 토글이 카드 헤더로 옮겨가면서 쓰는 곳이 없어져 제거했다(2026-07-29). 다시 필요하면
+ * 그때 되살려라 — 쓰지 않는 배치 옵션은 화면마다 다른 토글을 만드는 입구가 된다.
  */
-export const ToggleLabel = styled.div<{ $stacked?: boolean }>`
+export const ToggleLabel = styled.div`
   display: flex;
-  gap: ${({ $stacked }) => ($stacked ? space[1] : space[3])};
+  align-items: center;
+  justify-content: space-between;
+  gap: ${space[3]};
+  min-height: 32px;
   color: ${color.textSecondary};
   font-size: ${font.size.base};
   font-weight: ${font.weight.medium};
-
-  ${({ $stacked }) =>
-    $stacked
-      ? `
-    flex-direction: column;
-    align-items: flex-start;
-  `
-      : `
-    align-items: center;
-    justify-content: space-between;
-    min-height: 32px;
-  `}
 `;
 
 export const ToggleHeader = styled.span`
