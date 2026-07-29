@@ -2,25 +2,29 @@ import { sanitizeScenarioNameForFile } from '@/pages/Main/components/PdfReportDo
 import { ResultCaptureError } from './resultCaptureError';
 import {
   RESULT_CAPTURE_ROOT_ATTRIBUTE,
-  captureElementToCanvas,
-  nextFrame,
+  captureElementToPng,
+  waitForElement,
   waitForFonts,
-  waitForImages
+  waitForImages,
+  waitForStableHeight
 } from './htmlCapture';
 
 /**
  * 결과 카드 **한 장의 이미지** 생성 파이프라인.
  *
- * PDF 리포트와 달리 인쇄용 문서를 새로 그리지 않는다 — 화면에 **지금 보이는 그대로**를 찍는 것이
- * 이 기능의 요구다(사용자: "해당 탭의 박스들만 모아서 사진 캡쳐"). 그래서 오프스크린 렌더도,
- * 별도 테마 토큰도 없다. 캡처 대상은 결과 그리드 하나이고 **시나리오 탭 바는 그 밖**이라 자연히 빠진다.
+ * 찍는 대상은 **오프스크린 캡처 프레임**(`ResultCaptureFrame`) 안의 결과 그리드다.
+ *
+ * 처음에는 화면에 보이는 그리드를 그 자리에서 찍었다. 그런데 카드 안의 컨테이너 쿼리
+ * (`DataTable`·`PortfolioAllocation` 의 `container-type: inline-size`)가 html2canvas 의 복제 문서에서
+ * 다르게 풀려 **결과물이 깨졌다**. 지금은 고정 폭·컨테이너 쿼리 없는 무대에 같은 카드를 한 번 더
+ * 그려서 그쪽을 찍는다 — 카드 컴포넌트는 재사용하므로 저장본과 화면이 갈라지지 않는다.
+ *
+ * PDF 리포트처럼 인쇄용 문서를 **새로 작성하지는 않는다**. 다른 건 감싸는 무대뿐이다.
+ * 테마도 화면 그대로다(프레임이 `var(--sb-bg)` 를 쓴다).
  *
  * html2canvas 는 `htmlCapture` 가 **동적 import** 로 부른다 — 이 모듈도 호출부(`useResultCapture`)가
  * `await import()` 로만 불러서 초기 번들에는 한 바이트도 실리지 않는다. jspdf 는 여기 오지 않는다.
  */
-
-/** 캡처 결과물의 좌우·상하 여백(px). 카드가 화면 끝에 붙어 잘린 것처럼 보이지 않게 한다. */
-const CAPTURE_PADDING = 20;
 
 const pad2 = (value: number): string => String(value).padStart(2, '0');
 
@@ -35,20 +39,6 @@ const readThemeBackground = (): string => {
   const computed = getComputedStyle(document.documentElement).getPropertyValue('--sb-bg').trim();
   return computed.length > 0 ? computed : '#ffffff';
 };
-
-/** 캔버스 → PNG Blob. `toBlob` 이 없는(또는 실패하는) 환경은 사유를 남기고 끝낸다. */
-const toPngBlob = (canvas: HTMLCanvasElement): Promise<Blob> =>
-  new Promise((resolve, reject) => {
-    if (typeof canvas.toBlob !== 'function') {
-      reject(new ResultCaptureError('render-failed'));
-      return;
-    }
-
-    canvas.toBlob((blob) => {
-      if (blob) resolve(blob);
-      else reject(new ResultCaptureError('render-failed'));
-    }, 'image/png');
-  });
 
 /** Blob → 다운로드. object URL 은 반드시 해제한다(안 하면 탭이 살아 있는 동안 메모리를 붙든다). */
 const downloadBlob = (blob: Blob, fileName: string): void => {
@@ -79,31 +69,44 @@ export const captureResultImage = async ({
   scenarioName,
   capturedAt
 }: CaptureResultImageInput): Promise<string> => {
-  const target = document.querySelector<HTMLElement>(`[${RESULT_CAPTURE_ROOT_ATTRIBUTE}]`);
+  /*
+   * 🔴 **화면에 보이는 그리드를 그대로 찍는다.**
+   *
+   * 한때 고정 폭(1120px) 오프스크린 사본을 만들어 그쪽을 찍었다. 저장본을 화면 폭에서 떼어내
+   * 결정적으로 만들려는 의도였는데, 결과가 계속 화면과 어긋났다 — 갓 마운트된 사본은 카드 높이가
+   * 덜 자라고, 좁은 폭에서 표 글자가 찌그러지고, 차트 여백이 달라졌다. 사본을 화면에 맞추는 일은
+   * 끝이 없었다.
+   *
+   * `modern-screenshot` 은 브라우저가 **실제로 그린 레이아웃**을 그대로 래스터라이즈하므로,
+   * 살아 있는 그리드를 찍으면 정의상 "보이는 그대로"가 나온다. 저장본 폭은 사용자 화면 폭을
+   * 따르게 되지만(모바일에선 좁은 그림), 그게 원래 이 기능의 요구였다.
+   */
+  const target = await waitForElement(`[${RESULT_CAPTURE_ROOT_ATTRIBUTE}]`);
   if (!target) throw new ResultCaptureError('target-missing');
 
   const backgroundColor = readThemeBackground();
   const fileName = buildResultCaptureFileName(scenarioName, capturedAt ?? new Date());
 
   await Promise.all([waitForImages(target), waitForFonts()]);
-  await nextFrame();
+  /*
+   * 🔴 순서가 중요하다 — 폰트·이미지를 기다린 **뒤에** 높이 안정을 본다.
+   * 폰트가 바뀌면 줄 수가 달라져 높이가 또 움직이기 때문이다.
+   * 이 대기가 없으면 갓 마운트된 사본의 덜 자란 높이로 카드가 잘려 박제된다.
+   */
+  await waitForStableHeight(target);
 
-  const canvas = await captureElementToCanvas(target, {
-    backgroundColor,
-    onCloneElement: (clone) => {
-      /*
-       * 복제본에만 손댄다(살아 있는 화면은 그대로다).
-       * - `contain: layout style` 은 캡처 문서에서 불필요할 뿐 아니라 일부 브라우저에서 자식 높이
-       *   계산을 가로챈다 — 복제본에선 푼다.
-       * - 여백은 결과물이 "잘린 스크린샷"이 아니라 한 장의 카드처럼 보이게 한다.
-       */
-      clone.style.contain = 'none';
-      clone.style.padding = `${CAPTURE_PADDING}px`;
-      clone.style.background = backgroundColor;
-    }
-  });
+  /*
+   * 여백·배경·폭은 **판이 이미 갖고 있다**(`ResultCaptureFrame.styled`) — 여기서 또 주지 않는다.
+   * 판은 무대 안에 있어 화면 밖에 있지만, 직렬화되는 것은 판 자신의 박스라 위치는 문제되지 않는다.
+   */
+  let blob: Blob;
+  try {
+    blob = await captureElementToPng(target, { backgroundColor });
+  } catch {
+    // 래스터라이즈 실패는 사유 어휘로 바꿔 올린다 — 호출부가 사용자에게 보여줄 문장을 고른다.
+    throw new ResultCaptureError('render-failed');
+  }
 
-  const blob = await toPngBlob(canvas);
   downloadBlob(blob, fileName);
   return fileName;
 };

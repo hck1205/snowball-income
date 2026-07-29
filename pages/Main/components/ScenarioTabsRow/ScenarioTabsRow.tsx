@@ -13,8 +13,7 @@ function ScenarioTabsRowComponent({
   children,
   showCompactToggle,
   isResultCompact,
-  onToggleCompact,
-  captureAction
+  onToggleCompact
 }: ScenarioTabsRowProps) {
   const handleChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
@@ -30,10 +29,10 @@ function ScenarioTabsRowComponent({
   return (
     <TabsRowRoot>
       {children}
-      {/* 캡처 버튼도 "결과가 있을 때"만 의미가 있다 — 토글과 같은 조건으로 함께 서고 함께 사라진다. */}
+      {/* 결과 밀도 토글은 "결과가 있을 때"만 의미가 있다.
+          (이미지 저장 버튼은 2026-07-29 에 히어로의 "투자 설정" 우측으로 옮겼다 — `SimulatorHero`) */}
       {showCompactToggle ? (
         <RowActions>
-          {captureAction}
           <CompactToggleSlot>
             {/* 두 줄 표기 — 이 줄은 탭 스트립과 가로를 나눠 쓰는 자리라 폭이 가장 먼저 모자란다.
                 라벨을 위로 올리면 `라벨 + gap + 스위치` 대신 둘 중 넓은 쪽 폭만 쓴다. */}

@@ -14,10 +14,13 @@ const TITLE = '이미지 저장';
 const DISMISS_LABEL = '저장 실패 안내 닫기';
 
 /**
- * 앱 공용 아이콘은 16px지만 여기만 20px다 — 글자를 뺀 뒤 **아이콘이 유일한 어포던스**라
- * 버튼임이 먼저 읽혀야 한다. sm 버튼의 28px 박스 안이라 상하 4px 여백이 남는다.
+ * 앱 공용 아이콘은 16px지만 여기는 조금 크다 — 글자를 뺀 뒤 **아이콘이 유일한 어포던스**라
+ * 버튼임이 먼저 읽혀야 한다. sm 버튼의 28px 박스 안이라 상하 5px 여백이 남는다.
+ *
+ * ⚠ 이 값은 `CaptureSlot` 의 CSS 로도 내려간다. 공용 `Button` 이 `svg { width: 1em }` 로
+ * 아이콘을 버튼 글자 크기에 고정하기 때문에, **lucide 의 size prop 만으로는 크기가 바뀌지 않는다.**
  */
-const ICON_SIZE = 20;
+const ICON_SIZE = 18;
 
 /**
  * 결과 컨트롤 줄의 **이미지 저장** 버튼 — "간략히" 토글 바로 왼쪽에 선다.
@@ -35,11 +38,14 @@ function ResultCaptureButtonComponent({
   onDismissFailure
 }: ResultCaptureButtonProps) {
   return (
-    <CaptureSlot>
+    <CaptureSlot $iconSize={ICON_SIZE}>
       <Button
         type="button"
-        variant="ghost"
-        size="sm"
+        /* 히어로 액션 줄에서 "투자 설정" 옆에 선다 — ghost 는 배경이 없어 버튼으로 안 읽혔다.
+           secondary 는 면과 테두리가 있어 아이콘 하나만으로도 눌리는 것임이 드러난다. */
+        variant="secondary"
+        /* md = 40×40 정사각형(`iconOnly` 라 폭도 40px). "투자 설정" 버튼이 md 라 높이가 정확히 맞는다. */
+        size="md"
         iconOnly
         loading={isCapturing}
         aria-label={ACCESSIBLE_NAME}

@@ -7,9 +7,4 @@ export type ScenarioTabsRowProps = {
   showCompactToggle: boolean;
   isResultCompact: boolean;
   onToggleCompact: (checked: boolean) => void;
-  /**
-   * "간략히" **왼쪽**에 서는 액션 슬롯(이미지 저장). 노드로 받는 이유: 이 줄은 배치만 소유하고
-   * 캡처 상태·계측은 그 부품이 갖는다(여기서 훅을 부르면 탭 줄이 캡처 상태마다 리렌더된다).
-   */
-  captureAction?: ReactNode;
 };

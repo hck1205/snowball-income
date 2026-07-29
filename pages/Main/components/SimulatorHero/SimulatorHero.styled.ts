@@ -17,6 +17,25 @@ import { zIndex } from '@/shared/styles';
  * 층위는 `zIndex.stickyAction`(10): 결과 카드 위 · 헤더(30)와 드로어(55~60) 아래. 드로어가 열리면
  * 드로어가 이 버튼을 덮는다. 전환 애니메이션은 두지 않는다(`prefers-reduced-motion` 이 볼 것이 없다).
  */
+/**
+ * 히어로 액션 줄에서 **캡처 버튼이 앉는 자리**. 설정 버튼 오른쪽에 선다.
+ *
+ * 🔴 `SettingsSlot` **바깥**에 두는 것이 요점이다 — 그 슬롯은 스크롤 시 안쪽 버튼을
+ * `position: fixed` 로 승격시킨다. 캡처 버튼에는 그 고정을 걸지 않는다(사용자 지시 2026-07-29).
+ *
+ * `&&&` 로 특이도를 올리는 이유: 공용 `HeroActions` 가 좁은 폭에서 `> * { flex: 1 1 auto }` 로
+ * 자식을 전폭으로 늘린다. 설정 버튼은 그래야 맞지만(주 CTA), 아이콘 하나짜리 캡처 버튼까지
+ * 화면 폭만큼 늘어나면 어색하다 — 여기만 고유 폭을 지킨다.
+ */
+export const CaptureAction = styled.div`
+  display: flex;
+  align-items: center;
+
+  &&& {
+    flex: 0 0 auto;
+  }
+`;
+
 export const SettingsSlot = styled.div<{ $pinned: boolean }>`
   display: flex;
   min-width: 0;

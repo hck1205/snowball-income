@@ -2,11 +2,12 @@ import { memo, type CSSProperties } from 'react';
 import { LineChart } from 'lucide-react';
 import { PageHero } from '@/components/common';
 import SettingsEntryButton from '@/pages/Main/components/SettingsEntryButton';
-import { useStickyHeroAction } from '@/pages/Main/hooks';
+import ResultCaptureButton from '@/pages/Main/components/ResultCaptureButton';
+import { useResultCapture, useStickyHeroAction } from '@/pages/Main/hooks';
 import { useDisplayCurrencyViewAtomValue } from '@/jotai';
 import { SIMULATOR_COPY, TOUR_TARGET } from '@/shared/constants';
 import { formatKRW } from '@/shared/utils';
-import { SettingsSlot } from './SimulatorHero.styled';
+import { CaptureAction, SettingsSlot } from './SimulatorHero.styled';
 import type { SimulatorHeroProps } from './SimulatorHero.types';
 
 /**
@@ -34,12 +35,34 @@ function SimulatorHeroComponent({ drawerId, isSettingsOpen, onOpenSettings }: Si
 
   const { slotRef, pinned, box } = useStickyHeroAction();
 
+  /*
+   * 결과 **이미지 저장**. 이 훅은 설계상 어떤 폼 원자도 구독하지 않으므로(시나리오 이름은 클릭 시점
+   * 스냅샷) 히어로에서 불러도 타건 리렌더가 번지지 않는다.
+   *
+   * 결과가 없을 때를 따로 막지 않는다 — 파이프라인이 "저장할 결과가 아직 없습니다…" 안내를
+   * 그 자리에서 띄운다(`resultCaptureError`). 조건부로 버튼을 숨기면 히어로 액션 줄의 폭이
+   * 결과 유무에 따라 흔들린다.
+   */
+  const capture = useResultCapture();
+
   return (
     <PageHero
       icon={<LineChart size={20} strokeWidth={1.8} aria-hidden focusable={false} />}
       title={SIMULATOR_COPY.heroTitle}
       lede={SIMULATOR_COPY.heroLede}
       meta={meta}
+      /* 제목 줄 맨 오른쪽 — 좁은 폭에서도 "배당 시뮬레이터" 와 같은 줄에 남는다.
+         넓은 화면에서는 결과적으로 "투자 설정" 바로 옆자리가 된다. */
+      titleAction={
+        <CaptureAction>
+          <ResultCaptureButton
+            isCapturing={capture.isCapturing}
+            failure={capture.failure}
+            onCapture={capture.captureResult}
+            onDismissFailure={capture.dismissFailure}
+          />
+        </CaptureAction>
+      }
       actions={
         <SettingsSlot
           ref={slotRef}
