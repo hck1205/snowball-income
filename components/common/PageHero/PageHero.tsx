@@ -35,10 +35,12 @@ export default function PageHero({
         <HeroTitleGroup>
           {icon ? <HeroIconBadge aria-hidden>{icon}</HeroIconBadge> : null}
           <HeroTitle as={titleAs}>{title}</HeroTitle>
-          {/* 제목 줄 맨 오른쪽 — 좁은 폭에서 `actions` 가 아래로 내려가도 여기는 남는다. */}
-          {titleAction ? <HeroTitleAction>{titleAction}</HeroTitleAction> : null}
         </HeroTitleGroup>
         {actions ? <HeroActions>{actions}</HeroActions> : null}
+        {/* `actions` **뒤**에 온다 — 넓은 화면에서 주 CTA 오른쪽에 서야 한다.
+            좁은 폭에서는 `actions` 가 아래로 내려가는데, 이 슬롯만 제목 줄 오른쪽에 남는다
+            (`HeroTitleAction` 의 absolute 분기). */}
+        {titleAction ? <HeroTitleAction>{titleAction}</HeroTitleAction> : null}
       </HeroTitleRow>
       {lede ? <HeroLede>{lede}</HeroLede> : null}
       {meta ? <HeroMeta>{meta}</HeroMeta> : null}
