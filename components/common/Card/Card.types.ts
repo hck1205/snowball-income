@@ -11,7 +11,14 @@ export type CardElevation = 1 | 2 | 3;
  *   한 단계 가라앉힌다(`radius.md` · `surfaceSunken` · **그림자 없음**).
  *   같은 위계로 보이면 사용자가 부가 가정을 본문 결과로 읽는다.
  */
-export type CardTone = 'default' | 'sunken';
+/**
+ * `default` 일반 카드 · `sunken` 카드 안 카드(들어간 면) ·
+ * `wash` **장식 표면** — 파스텔 그라디언트 배경.
+ *
+ * ⚠ `wash` 는 **콘텐츠 카드에 쓰지 마라**(디자인 결정 트랙 ③). 빈 상태·프로모·CTA 처럼
+ * "여기서 시작하세요"를 말하는 면에만 쓴다. 데이터가 든 카드에 깔면 숫자가 배경과 경쟁한다.
+ */
+export type CardTone = 'default' | 'sunken' | 'wash';
 
 /**
  * 기존 props(title / titleRight / titleRightInline / children)는 그대로다 — 호출부가 많다.

@@ -31,6 +31,9 @@ import type { PortfolioPresetBoardProps } from './PortfolioPresetBoard.types';
 function PortfolioPresetBoard({ isPortfolioEmpty, onPresetSelect }: PortfolioPresetBoardProps) {
   return (
     <Card
+      /* 빈 상태는 이 앱의 첫인상이다 — 회색 면이 아니라 "여기서 시작하세요"라고 말하는
+         장식 표면(파스텔 워시)으로 둔다. 결과가 생기면 평범한 카드로 돌아간다. */
+      tone={isPortfolioEmpty ? 'wash' : 'default'}
       title={isPortfolioEmpty ? '추천 포트폴리오로 시작해보세요' : '결과'}
       subtitle={
         isPortfolioEmpty

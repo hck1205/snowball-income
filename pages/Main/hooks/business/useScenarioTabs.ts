@@ -315,7 +315,34 @@ export const useScenarioTabs = () => {
   ]);
 
   const deleteScenarioTab = useCallback((scenarioId: string) => {
-    if (tabs.length <= 1) return false;
+    /*
+     * **마지막 탭 삭제 = 빈 탭으로 초기화.**
+     *
+     * 탭 0개는 성립하지 않는다 — 포트폴리오·투자설정·결과가 앉을 자리가 사라진다. 그렇다고
+     * 버튼을 잠가 두면(종전) 왜 못 누르는지 말해주지 않아 "왜 안 되지?"가 된다. 사용자가 마지막
+     * 탭에서 삭제를 누를 때 원하는 것은 대개 **비우기**이므로, 지우고 새 빈 탭을 그 자리에 둔다.
+     * 결과적으로 화면은 빈 상태(프리셋 보드)로 돌아간다.
+     */
+    if (tabs.length <= 1) {
+      const onlyTab = tabs[0];
+      if (!onlyTab || onlyTab.id !== scenarioId) return false;
+
+      const freshTab: PersistedScenarioState = {
+        id: makeScenarioId(),
+        name: '탭 1',
+        portfolio: createEmptyScenarioPortfolio(),
+        investmentSettings: createEmptyScenarioInvestmentSettings()
+      };
+
+      setScenarioTabs([freshTab]);
+      setActiveScenarioId(freshTab.id);
+      applyScenario(freshTab);
+      trackEvent(ANALYTICS_EVENT.SCENARIO_TAB_ACTION, {
+        action: 'delete',
+        scenario_id: scenarioId
+      });
+      return true;
+    }
 
     const removal = removeScenarioTab({
       tabs: prepareTabsWithActiveSnapshot(),
@@ -334,7 +361,7 @@ export const useScenarioTabs = () => {
       scenario_id: scenarioId
     });
     return true;
-  }, [activeScenarioId, applyScenario, prepareTabsWithActiveSnapshot, setActiveScenarioId, setScenarioTabs, tabs.length]);
+  }, [activeScenarioId, applyScenario, prepareTabsWithActiveSnapshot, setActiveScenarioId, setScenarioTabs, tabs]);
 
   const renameScenarioTab = useCallback(
     (scenarioId: string, rawName: string) => {
@@ -392,7 +419,8 @@ export const useScenarioTabs = () => {
     /** 비로그인+로그인 가능 배포에서 이미 무료 상한(1개)에 도달 → 다음 생성은 로그인 유도로 이어진다. */
     requiresLoginToCreateTab:
       isCommunityEnabled && !isLoggedIn && tabs.length >= FREE_SCENARIO_TAB_LIMIT,
-    canDeleteTab: tabs.length > 1,
+    /** 이제 항상 지울 수 있다 — 마지막 탭은 삭제 대신 **빈 탭으로 초기화**된다(deleteScenarioTab 주석). */
+    canDeleteTab: true,
     selectScenarioTab,
     createScenarioTab,
     renameScenarioTab,

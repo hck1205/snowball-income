@@ -39,14 +39,14 @@
 
 | 기능 | 출처 | 현황 | 근거 / 비고 |
 |---|---|---|---|
-| **ETF Detail** | OS🔥 · v1★★★★☆ · v2§6 | ✅ | `/ticker/:name` 11종 · 크롤러 서버렌더(`api/ticker-html.js`) · JSON-LD · 사이트맵 · 허브 `/ticker/all`. ⚠️ v2 는 `/etf/*` 경로를 제안 — **전환 여부 미결정** |
-| **Future Dividend Simulator** | OS🔥 · v2§2 | ✅ | `/` · `runSimulation` |
-| **Dividend Calendar** | OS(4) · v1★★★★★ · v2§7 | ✅ | `/dividend/calendar`. ⚠️ v2 가 말한 "이번 달 예상 입금" 단독 KPI 는 없음(RP B-7 로 보류됨) |
+| **ETF Detail** | OS🔥 · v1★★★★☆ · v2 6항 | ✅ | `/ticker/:name` 11종 · 크롤러 서버렌더(`api/ticker-html.js`) · JSON-LD · 사이트맵 · 허브 `/ticker/all`. ⚠️ v2 는 `/etf/*` 경로를 제안 — **전환 여부 미결정** |
+| **Future Dividend Simulator** | OS🔥 · v2 2항 | ✅ | `/` · `runSimulation` |
+| **Dividend Calendar** | OS(4) · v1★★★★★ · v2 7항 | ✅ | `/dividend/calendar`. ⚠️ v2 가 말한 "이번 달 예상 입금" 단독 KPI 는 없음(RP B-7 로 보류됨) |
 | 실시간 환율 반영 | v1★★★★☆ · RP⑩-1 | ✅ | `ExchangeRateWidget` + `api/fx.js` · 변동률까지 |
 | 주요 지수 5종 | RP⑩-2 | ⚠️ | 부품·API 완성. **어느 페이지에도 미배선** — 5단계 랜딩에서 꽂을 예정 |
 | Dividend Calculator | OS🔥 | ⚠️ | 시뮬레이터가 계산은 하나 **"1억 투자하면?" 단독 SEO 랜딩이 없다** |
 | Ex-Dividend Calendar | OS(9) | ⚠️ | 배당락일 데이터는 `marketData` 에 있으나 전용 화면 없음 |
-| **ETF Compare** | OS(5) · v1★★★★★ · v2§5 | ❌ | **세 문서가 모두 요구** |
+| **ETF Compare** | OS(5) · v1★★★★★ · v2 5항 | ❌ | **세 문서가 모두 요구** |
 | 새 랜딩 페이지 (ETF쇼핑형) | RP⑦ | ❌ | 트랙⑥(`/`→`/simulator`)이 선행 |
 | **통합 검색** (랜딩 히어로) | RP⑧ | ❌ | 트랙⑨(해시태그)가 선행 |
 | ETF Screener | OS(6) | ❌ | |
@@ -56,8 +56,8 @@
 
 | 기능 | 출처 | 현황 | 근거 / 비고 |
 |---|---|---|---|
-| **Portfolio 등록** | OS🔥 · v2§1 | ✅ | `/dividend/portfolio` · IndexedDB `snowball-portfolio` · 계산 7종 |
-| **Dividend Goal** | OS🔥 · v1★★★★★ · v2§3 | ✅ | Portfolio 에 흡수 · 목표 칩 50/100/200/300만원 |
+| **Portfolio 등록** | OS🔥 · v2 1항 | ✅ | `/dividend/portfolio` · IndexedDB `snowball-portfolio` · 계산 7종 |
+| **Dividend Goal** | OS🔥 · v1★★★★★ · v2 3항 | ✅ | Portfolio 에 흡수 · 목표 칩 50/100/200/300만원 |
 | 월 투자금 입력 | OS🔥 | ✅ | 시뮬레이터 입력 |
 | **월급 입력** | OS(4) | ❌ | Layer 3 대체율 · Layer 7 카드의 **선행 조건** |
 | 생활비 입력 | OS(5) | ❌ | FIRE 의 선행 조건 |
@@ -69,13 +69,13 @@
 | 기능 | 출처 | 현황 | 근거 / 비고 |
 |---|---|---|---|
 | Portfolio Value | OS(4) | ✅ | 포트폴리오 화면 |
-| **Dashboard (허브)** | OS🔥 · v2§3 | ❌ | **MVP 최대 공백.** 새로 수집할 데이터 0 |
-| Goal Progress | OS🔥 · v2§3 | ⚠️ | 달성률은 있으나 **"현재↔미래를 잇는 허브"** 역할 미완성 |
-| 이번 달 예상 배당 | OS🔥 · v2§7 | ⚠️ | 캘린더에 월별은 있으나 단독 KPI 없음 |
+| **Dashboard (허브)** | OS🔥 · v2 3항 | ❌ | **MVP 최대 공백.** 새로 수집할 데이터 0 |
+| Goal Progress | OS🔥 · v2 3항 | ⚠️ | 달성률은 있으나 **"현재↔미래를 잇는 허브"** 역할 미완성 |
+| 이번 달 예상 배당 | OS🔥 · v2 7항 | ⚠️ | 캘린더에 월별은 있으나 단독 KPI 없음 |
 | 올해 예상 배당 | OS(8) | ⚠️ | 시뮬레이션 연도별 표에 포함 |
 | **월급 대체율** | OS(5) | ❌ | 입력 1개로 지표+바이럴 카드가 동시에 나오는 **ROI 최고 지점** |
 | 다음 배당 D-Day | OS(6) | ❌ | 지급일 데이터는 있음 — 표시만 없음 |
-| **FIRE Progress / Dashboard** | OS(7) · v1★★★★★ · v2§4 | ❌ | 생활비 입력 선행 |
+| **FIRE Progress / Dashboard** | OS(7) · v1★★★★★ · v2 4항 | ❌ | 생활비 입력 선행 |
 
 ## Layer 4. Analytics — **전부 없음, 데이터가 병목**
 
@@ -96,10 +96,10 @@
 
 | 기능 | 출처 | 현황 | 비고 |
 |---|---|---|---|
-| **Dividend Journey** | OS🔥 · v1★★★★☆ · v2§9 | ❌ | **세 문서가 모두 요구** |
+| **Dividend Journey** | OS🔥 · v1★★★★☆ · v2 9항 | ❌ | **세 문서가 모두 요구** |
 | **배당 가계부** (실제 입금 기록) | v1★★★★☆ · RP⑬ | ❌ | Portfolio 보유·지급월에서 **행 자동 프리필** → 예상 vs 실측 비교. 실측이 쌓이면 Goal "현재 월배당"의 **최종 정본** |
 | Monthly Report | OS🔥 | ❌ | |
-| **Milestone / 배지** | OS🔥 · v1★★★★☆ · v2§10 | ❌ | 🥉첫 배당 ~ 🏆FIRE 6단계 |
+| **Milestone / 배지** | OS🔥 · v1★★★★☆ · v2 10항 | ❌ | 🥉첫 배당 ~ 🏆FIRE 6단계 |
 | 추정 vs 실측 벤치마크 인사이트 | RP⑪ | ❌ | 가계부의 프레이밍 지면 |
 | Portfolio Replay / Streak / Heatmap | OS(4·5·6) | ❌ | |
 | Year Wrapped | OS(7) | ❌ | Layer 7 과 중복 항목 |
@@ -118,7 +118,7 @@ Income Tree · Dividend Passport · Financial Freedom Island · Level System · 
 | 월급 대체율 카드 | OS🔥 | ❌ | 월급 입력(L2) 선행 |
 | Future Me Card | OS🔥 | ❌ | |
 | Dividend Journey Card | OS🔥 | ❌ | |
-| 포트폴리오 복사 + 내 조건으로 시뮬 | v1★★★★☆ · v2§8 | ⚠️→❌ | 갤러리 시나리오 첨부·미리보기는 ✅ / **"내 조건으로 계산" 버튼 ❌** |
+| 포트폴리오 복사 + 내 조건으로 시뮬 | v1★★★★☆ · v2 8항 | ⚠️→❌ | 갤러리 시나리오 첨부·미리보기는 ✅ / **"내 조건으로 계산" 버튼 ❌** |
 | Year Wrapped / FIRE / Milestone / Monthly Report Card | OS(4~7) | ❌ | |
 | 게시판 해시태그 | RP⑨ | ❌ | 통합 검색(⑧)의 선행 |
 
@@ -143,9 +143,9 @@ Retirement Simulator · Advanced Stress Test · Tax Simulator · Currency Analys
 | 시뮬레이터 설정 = 상시 오버레이 드로어 | RP⑭ | ✅ |
 | Portfolio 도메인 + Goal 흡수 | RP 0단계 | ✅ |
 | **미갱신 18종 가격 리베이스** | RP B-4 | ✅ **2026-07-29 완료** — marketData 50→**68종**, 캘린더 "준비 중" **19종→ANET 1종** |
-| 아이콘 일관성 감사 | RP⑤ | ⚠️ 정렬 유틸 승격까지 |
+| 아이콘 일관성 감사 | RP⑤ | ✅ **2026-07-29 완료** — 굵기 98곳 전부 1.8 통일(종전 55곳이 lucide 기본값 2), 계단 밖 size 제거, ICON 토큰 + 계약 테스트 4건 |
 | 콘텐츠 공동 작성 (상시) | RP S-1 | ⚠️ 티커 11종 작성됨 · 해시태그 미구현으로 부착 불가 |
-| 파스텔 그라디언트 배경 | RP③ | ❌ |
+| 파스텔 그라디언트 배경 | RP③ | ⚠️ **부분** (2026-07-29) — Card 에 `wash` 톤 신설 + 빈 상태 보드 적용(검증된 `gradient-hero-soft` 재사용). **색 강도는 미정** — 8프리셋 × 라이트/다크 16세트를 눈으로 보며 골라야 한다 |
 | **라우팅 개편 `/`→`/simulator`** | RP⑥ | ❌ **5단계 랜딩의 선행 조건** |
 | 한국 티커 확장 | RP⑩-3 | ❌ |
 | **클라우드 충돌 판정 탭 단위** | RP⑯ | ✅ **2026-07-29 완료** — base 를 탭 id → 해시 맵으로 바꿔 3-way 판정. 겹치지 않는 편집은 자동 병합(양쪽 생존), 같은 탭만 모달. 구 형식 base 하위호환 |
