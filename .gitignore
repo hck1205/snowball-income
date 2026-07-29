@@ -82,3 +82,15 @@ Desktop.ini
 
 # uiprobe 스크린샷 세트 (tools/dev/shotset.mjs 생성물 — 비교용, 커밋하지 않는다)
 .shots/
+
+# npx skills 가 만드는 심볼릭 링크 — 실체는 .agents/skills/ 에 커밋돼 있다.
+# 링크가 절대경로라 커밋하면 다른 PC에서 깨진다(`npx skills add` 가 다시 만든다).
+.claude/skills/animation-vocabulary
+.claude/skills/apple-design
+.claude/skills/emil-design-eng
+.claude/skills/find-animation-opportunities
+.claude/skills/improve-animations
+.claude/skills/make-interfaces-feel-better
+.claude/skills/pick-ui-library
+.claude/skills/prototype
+.claude/skills/review-animations
