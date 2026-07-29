@@ -6,15 +6,31 @@ import { color, font, motion, radius, space } from '@/shared/styles';
  * 스위치 트랙/썸/체크박스 스타일은 `Toggle` 프리미티브(`components/common/Toggle`)로 옮겼다.
  */
 
-export const ToggleLabel = styled.div`
+/**
+ * 배치는 이 한 곳이 정본이다 — 호출부는 `stacked` 불리언만 준다.
+ *
+ * - 기본(한 줄): 라벨 좌 · 스위치 우. `min-height`로 이웃 폼 행과 높이를 맞춘다.
+ * - `stacked`(두 줄): 라벨 위 · 스위치 아래, 좌측 정렬. **가로 폭을 아끼는 배치**라
+ *   `min-height`를 걸지 않는다(걸면 아낀 세로를 도로 쓴다).
+ */
+export const ToggleLabel = styled.div<{ $stacked?: boolean }>`
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: ${space[3]};
-  min-height: 32px;
+  gap: ${({ $stacked }) => ($stacked ? space[1] : space[3])};
   color: ${color.textSecondary};
   font-size: ${font.size.base};
   font-weight: ${font.weight.medium};
+
+  ${({ $stacked }) =>
+    $stacked
+      ? `
+    flex-direction: column;
+    align-items: flex-start;
+  `
+      : `
+    align-items: center;
+    justify-content: space-between;
+    min-height: 32px;
+  `}
 `;
 
 export const ToggleHeader = styled.span`

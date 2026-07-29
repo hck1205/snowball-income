@@ -31,7 +31,9 @@ export const TabsRowRoot = styled.div`
 export const RowActions = styled.div`
   flex: 0 0 auto;
   display: flex;
-  align-items: center;
+  /* 토글이 두 줄(라벨 위·스위치 아래)이라 두 컨트롤의 높이가 다르다 — center 로 두면 카메라가
+     라벨과 스위치 사이 빈 곳에 뜬다. 아래를 맞춰야 스위치와 카메라가 같은 선에 선다. */
+  align-items: flex-end;
   gap: ${space[2]};
   /* 밑줄에서 띄우는 여백은 **묶음이** 갖는다 — 각자 가지면 둘의 기준선이 갈린다. */
   padding-bottom: ${space[2]};
