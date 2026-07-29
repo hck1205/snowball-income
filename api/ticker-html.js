@@ -912,12 +912,19 @@ var marketData_generated_default = {
       frequency: "quarterly",
       observedDividendCagr: 5.05,
       payoutMonths: [
-        3,
-        6,
-        9,
-        12
+        1,
+        4,
+        7,
+        10
       ],
-      payoutMonthsSource: "ex"
+      exToPayLagDays: 42,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "1": 31,
+        "4": 30,
+        "7": 31,
+        "10": 31
+      }
     },
     SPYD: {
       initialPrice: 49.75,
@@ -1008,8 +1015,8 @@ var marketData_generated_default = {
         10,
         12
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 4,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "3": 31,
         "7": 2,
@@ -1116,7 +1123,14 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 4,
+      estimatedPayDayByMonth: {
+        "3": 24,
+        "6": 24,
+        "9": 23,
+        "12": 23
+      }
     },
     XYLD: {
       initialPrice: 40.76,
