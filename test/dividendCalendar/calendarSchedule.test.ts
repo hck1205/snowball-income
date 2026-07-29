@@ -32,11 +32,27 @@ describe('getCalendarUniverse', () => {
     }
   });
 
-  it('무배당 ANET 과 시장데이터가 없는 QQQ 는 목록에 남되 hasSchedule=false 다', () => {
-    const byTicker = new Map(getCalendarUniverse().map((item) => [item.ticker, item]));
+  /*
+   * ⚠ 특정 티커를 "데이터 없는 예시"로 박아두지 마라. 예전에는 QQQ 를 그 예로 썼는데,
+   * 2026-07-29 시세 갱신으로 QQQ 에 데이터가 생기면서 이 테스트가 깨졌다(기능 회귀가 아니라
+   * 테스트가 옛 사실을 붙들고 있던 것). 지켜야 할 계약은 **"일정을 못 구해도 목록에서 빠지지
+   * 않는다"** 는 성질이지, 어느 티커가 그에 해당하느냐가 아니다.
+   *
+   * ANET 만 이름으로 남긴다 — 배당을 지급하지 않는 종목이라 데이터 갱신으로 바뀌지 않는다.
+   * (언젠가 배당을 시작하면 이 줄이 깨지는데, 그건 알아야 할 변화가 맞다.)
+   */
+  it('일정을 못 구한 종목도 목록에 남되 hasSchedule=false 다', () => {
+    const items = getCalendarUniverse();
+    const byTicker = new Map(items.map((item) => [item.ticker, item]));
 
+    // 무배당 종목은 지급 일정이 있을 수 없다.
     expect(byTicker.get('ANET')?.hasSchedule).toBe(false);
-    expect(byTicker.get('QQQ')?.hasSchedule).toBe(false);
+
+    // 일정이 없는 종목은 **전부** 목록에 남고, 일정 관련 필드만 비어 있다.
+    for (const item of items.filter((candidate) => !candidate.hasSchedule)) {
+      expect(item.payoutMonths).toBeUndefined();
+      expect(item.source).toBeUndefined();
+    }
   });
 
   it('실측 지급월을 그대로 싣는다 (SCHD 분기, O 매월)', () => {

@@ -630,8 +630,12 @@ describe('배당 지급 캘린더 — 지급월 데이터가 없는 종목', () 
     await openPicker(user);
     const search = screen.getByLabelText('종목 검색');
 
-    // QQQ 는 스냅샷에 지급월이 없다 — 좁힌 목록이 준비 중 1종뿐인 상태.
-    await user.type(search, 'QQQ');
+    /*
+     * ANET 은 배당을 지급하지 않아 스냅샷에 지급월이 없다 — 좁힌 목록이 준비 중 1종뿐인 상태.
+     * ⚠ 예전에는 QQQ 를 썼는데 2026-07-29 시세 갱신으로 데이터가 생겨 깨졌다. 시세 갱신으로
+     *   바뀔 수 있는 티커를 "데이터 없는 예시"로 쓰지 마라 — 무배당 종목만 안전하다.
+     */
+    await user.type(search, 'ANET');
     expect(screen.getByText('1종목')).toBeInTheDocument();
     expect(screen.getByText('준비 중 1종')).toBeInTheDocument();
 
@@ -645,7 +649,8 @@ describe('배당 지급 캘린더 — 지급월 데이터가 없는 종목', () 
     const { user } = await renderCalendar();
 
     await openPicker(user);
-    const unavailable = optionButton('QQQ');
+    // 무배당 ANET — 시세 갱신으로 바뀌지 않는 "데이터 없는 종목"의 유일한 안전한 예시.
+    const unavailable = optionButton('ANET');
     expect(unavailable).toHaveAttribute('aria-disabled', 'true');
     // 사유는 항목 안 "데이터 준비 중" 배지가 말한다(별도 안내문은 삭제 — 사용자 결정 2026-07-25).
     expect(unavailable).toHaveTextContent('데이터 준비 중');
@@ -654,14 +659,15 @@ describe('배당 지급 캘린더 — 지급월 데이터가 없는 종목', () 
     unavailable.focus();
     await user.keyboard('{Enter}');
 
-    expect(optionButton('QQQ')).toHaveAttribute('aria-pressed', 'false');
+    expect(optionButton('ANET')).toHaveAttribute('aria-pressed', 'false');
     expect(screen.getByRole('button', { name: '종목 선택 열기' })).toBeInTheDocument();
     expect(screen.getByText('아직 선택한 종목이 없습니다')).toBeInTheDocument();
     expect(searchParamsOf().has('tickers')).toBe(false);
   });
 
   it('데이터 없는 종목만 선택되면 빈 달력과 함께 경고를 보여준다', async () => {
-    await renderCalendar({ entries: ['/dividend/calendar?tickers=QQQ,ANET'] });
+    // 데이터 없는 종목만 고른 상태. 지금 유니버스에서 그런 종목은 무배당 ANET 하나뿐이다.
+    await renderCalendar({ entries: ['/dividend/calendar?tickers=ANET'] });
 
     expect(
       screen.getByText(
@@ -672,9 +678,9 @@ describe('배당 지급 캘린더 — 지급월 데이터가 없는 종목', () 
     // "이 종목들은 이 달에 안 준다"가 아니라 "데이터가 없다"를 경고가 말하고, 요약·상세 목록은 붙지 않는다.
     const july = screen.getByRole('table', { name: '2026년 7월' });
     expect(july).toBeInTheDocument();
-    expect(within(july).queryByText('QQQ')).not.toBeInTheDocument();
+    expect(within(july).queryByText('ANET')).not.toBeInTheDocument();
     expect(screen.queryByRole('region', { name: '지급 일정 목록' })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /현재 2종 선택됨/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /현재 1종 선택됨/ })).toBeInTheDocument();
   });
 });
 
