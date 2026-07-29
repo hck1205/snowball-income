@@ -123,7 +123,7 @@ export default function PresetFilterDrawer({
         <DrawerHeader>
           <DrawerTitle>필터</DrawerTitle>
           <DrawerCloseButton ref={closeButtonRef} type="button" aria-label="필터 닫기" onClick={onClose}>
-            <X size={18} aria-hidden focusable={false} />
+            <X size={18} strokeWidth={1.8} aria-hidden focusable={false} />
           </DrawerCloseButton>
         </DrawerHeader>
 

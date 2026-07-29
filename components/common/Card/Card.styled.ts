@@ -8,7 +8,13 @@ import type { CardElevation, CardTone } from './Card.types';
  * (새 prop 은 `$` 접두 transient 로 둔다 — `$` 가 없으면 DOM 으로 새는 사고가 반복됐다.)
  */
 export const CardContainer = styled.section<{ elevation: CardElevation; $tone: CardTone }>`
-  background: ${({ $tone }) => ($tone === 'sunken' ? color.surfaceSunken : color.surface)};
+  /*
+   * wash = 장식 표면(빈 상태·프로모·CTA). gradient-hero-soft 를 그대로 쓴다 —
+   * 히어로와 같은 어휘라 화면이 따로 놀지 않고, **이미 8프리셋 × 라이트/다크 대비 검증을
+   * 통과한 값**이라 새 색을 지어내지 않아도 된다(contrast.test.ts 의 HERO_GRADIENTS).
+   */
+  background: ${({ $tone }) =>
+    $tone === 'sunken' ? color.surfaceSunken : $tone === 'wash' ? color.gradientHeroSoft : color.surface};
   border: 1px solid ${color.border};
   border-radius: ${({ $tone }) => ($tone === 'sunken' ? radius.md : radius.lg)};
   padding: clamp(16px, 1.8vw, 20px);

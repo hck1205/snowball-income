@@ -146,7 +146,7 @@ export default function PrecisionSearch({ layout = 'popover' }: PrecisionSearchP
         aria-controls={open ? panelId : undefined}
         onClick={() => setOpen((prev) => !prev)}
       >
-        <FilterIcon size={16} />
+        <FilterIcon size={16} strokeWidth={1.8} />
         {layout === 'inline' ? <TriggerLabel>{g.filterTitle}</TriggerLabel> : null}
         {activeCount > 0 ? <Badge aria-hidden="true">{activeCount}</Badge> : null}
       </FilterTrigger>
@@ -156,7 +156,7 @@ export default function PrecisionSearch({ layout = 'popover' }: PrecisionSearchP
           <PanelHeader>
             <PanelTitle id={titleId}>{g.filterTitle}</PanelTitle>
             <Button variant="ghost" size="sm" iconOnly aria-label={g.filterClose} onClick={() => setOpen(false)}>
-              <CloseIcon size={16} />
+              <CloseIcon size={16} strokeWidth={1.8} />
             </Button>
           </PanelHeader>
 
@@ -239,7 +239,7 @@ export default function PrecisionSearch({ layout = 'popover' }: PrecisionSearchP
 
             {error ? (
               <FieldError role="alert">
-                <AlertIcon size={14} />
+                <AlertIcon size={14} strokeWidth={1.8} />
                 {error}
               </FieldError>
             ) : null}

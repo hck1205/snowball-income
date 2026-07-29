@@ -112,7 +112,7 @@ export default function CommunitySearchBar({ autoFocus, variant = 'desktop' }: C
           </Select>
         </FilterField>
         <SearchInputWrap>
-          <SearchIcon size={16} />
+          <SearchIcon size={16} strokeWidth={1.8} />
           <SearchInput
             type="search"
             role="searchbox"

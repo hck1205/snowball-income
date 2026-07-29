@@ -109,8 +109,8 @@ export default function CommunityGalleryView({ viewModel }: CommunityGalleryView
           activeId={sort}
           onChange={(id) => setSort(id === 'popular' ? 'popular' : 'recent')}
           items={[
-            { id: 'recent', label: g.sortRecent, icon: <ClockIcon size={15} /> },
-            { id: 'popular', label: g.sortPopular, icon: <FlameIcon size={15} /> }
+            { id: 'recent', label: g.sortRecent, icon: <ClockIcon size={16} strokeWidth={1.8} /> },
+            { id: 'popular', label: g.sortPopular, icon: <FlameIcon size={16} strokeWidth={1.8} /> }
           ]}
         />
         <ViewToggle>
@@ -121,7 +121,7 @@ export default function CommunityGalleryView({ viewModel }: CommunityGalleryView
             aria-label={g.viewCard}
             onClick={() => onToggleView('card')}
           >
-            <GridIcon size={16} />
+            <GridIcon size={16} strokeWidth={1.8} />
           </ViewToggleButton>
           <ViewToggleButton
             type="button"
@@ -130,7 +130,7 @@ export default function CommunityGalleryView({ viewModel }: CommunityGalleryView
             aria-label={g.viewInline}
             onClick={() => onToggleView('inline')}
           >
-            <ListIcon size={16} />
+            <ListIcon size={16} strokeWidth={1.8} />
           </ViewToggleButton>
         </ViewToggle>
       </ControlBar>
@@ -154,7 +154,7 @@ export default function CommunityGalleryView({ viewModel }: CommunityGalleryView
 
       {status === 'empty' ? (
         <EmptyState
-          icon={<UsersIcon size={24} />}
+          icon={<UsersIcon size={24} strokeWidth={1.8} />}
           title={g.emptyTitle}
           subtitle={g.emptySubtitle}
           action={

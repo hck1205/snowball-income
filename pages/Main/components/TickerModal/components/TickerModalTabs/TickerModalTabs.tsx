@@ -24,7 +24,7 @@ function TickerModalTabs({ activeTab, mode, showSearchTab, onSelectTab }: Ticker
           onSelectTab('preset');
         }}
       >
-        <LayoutGrid size={15} aria-hidden focusable={false} />
+        <LayoutGrid size={16} strokeWidth={1.8} aria-hidden focusable={false} />
         프리셋
       </ModalTabButton>
       <ModalTabButton
@@ -40,7 +40,7 @@ function TickerModalTabs({ activeTab, mode, showSearchTab, onSelectTab }: Ticker
           onSelectTab('input');
         }}
       >
-        <Pencil size={15} aria-hidden focusable={false} />
+        <Pencil size={16} strokeWidth={1.8} aria-hidden focusable={false} />
         직접 입력
       </ModalTabButton>
       {showSearchTab ? (

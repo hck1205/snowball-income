@@ -9337,6 +9337,23 @@ var CHART_SERIES_VARS = Array.from(
   { length: 8 },
   (_, index) => `var(--sb-chart-series-${index})`
 );
+var ICON = {
+  /** 배지 안 초소형(좋아요 수·시뮬 배지). */
+  xs: 12,
+  /** 촘촘한 자리(칩·메타 줄). */
+  sm: 14,
+  /** 본문·버튼 안 기본 글리프. **대부분 이 값이다**(70/97). */
+  md: 16,
+  /** 헤더·메뉴의 누를 것(검색·더보기·닫기·펼침). 본문보다 한 단 크게 잡아 손이 가게 한다. */
+  lg: 18,
+  /** 히어로 배지·섹션 머리 등 강조. */
+  xl: 20,
+  /** 아이콘 단독 버튼(글자 없이 아이콘만 어포던스일 때). */
+  xxl: 24,
+  /** 획 굵기 — 크기와 무관하게 고정. */
+  stroke: 1.8
+};
+var ICON_SIZES = [ICON.xs, ICON.sm, ICON.md, ICON.lg, ICON.xl, ICON.xxl];
 
 // node_modules/@emotion/react/dist/emotion-element-d59e098f.esm.js
 var React2 = __toESM(require_react());

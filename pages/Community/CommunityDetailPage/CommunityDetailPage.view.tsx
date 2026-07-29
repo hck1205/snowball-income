@@ -116,7 +116,7 @@ export default function CommunityDetailView({ viewModel }: CommunityDetailViewPr
               <Button
                 variant="secondary"
                 size="sm"
-                startIcon={<PencilIcon size={16} />}
+                startIcon={<PencilIcon size={16} strokeWidth={1.8} />}
                 onClick={onEdit}
                 aria-label={d.edit}
               >
@@ -126,7 +126,7 @@ export default function CommunityDetailView({ viewModel }: CommunityDetailViewPr
               <Button
                 variant="danger"
                 size="sm"
-                startIcon={<TrashIcon size={16} />}
+                startIcon={<TrashIcon size={16} strokeWidth={1.8} />}
                 onClick={() => setDeleteOpen(true)}
                 aria-label={d.delete}
               >
@@ -179,7 +179,7 @@ export default function CommunityDetailView({ viewModel }: CommunityDetailViewPr
             />
             {canShare ? (
               <ShareButton type="button" aria-label={d.shareAria} onClick={onShare}>
-                <ShareIcon size={16} />
+                <ShareIcon size={16} strokeWidth={1.8} />
                 {d.share}
               </ShareButton>
             ) : null}

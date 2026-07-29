@@ -110,13 +110,13 @@ export default function CommunityProfileView({ viewModel }: CommunityProfileView
             {nickname.availability === 'checking' ? <Hint role="status">{p.nicknameChecking}</Hint> : null}
             {nickname.availability === 'available' ? (
               <SuccessText role="status">
-                <CheckCircleIcon size={16} />
+                <CheckCircleIcon size={16} strokeWidth={1.8} />
                 {p.nicknameAvailable}
               </SuccessText>
             ) : null}
             {nickname.saved ? (
               <SuccessText role="status">
-                <CheckCircleIcon size={16} />
+                <CheckCircleIcon size={16} strokeWidth={1.8} />
                 {p.nicknameSaved}
               </SuccessText>
             ) : null}
@@ -155,7 +155,7 @@ export default function CommunityProfileView({ viewModel }: CommunityProfileView
             <DangerCaption>{p.dangerBody}</DangerCaption>
           </DangerHeaderText>
           <Chevron open={dangerOpen}>
-            <ChevronDownIcon size={20} />
+            <ChevronDownIcon size={20} strokeWidth={1.8} />
           </Chevron>
         </DangerHeader>
 

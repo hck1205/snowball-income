@@ -72,7 +72,7 @@ export default function PostRow({ item, simSummary }: PostRowProps) {
             <RelativeTime iso={item.created_at} />
             {` · ${metaComments} ${formatCompactCount(item.comment_count)} · ${metaViews} ${formatCompactCount(item.view_count)} · `}
             <LikeInline>
-              <HeartIcon size={12} />
+              <HeartIcon size={12} strokeWidth={1.8} />
               <VisuallyHidden>{metaLikes}</VisuallyHidden>
               {formatCompactCount(item.like_count)}
             </LikeInline>

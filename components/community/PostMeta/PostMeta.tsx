@@ -13,18 +13,18 @@ export default function PostMeta({ viewCount, likeCount, commentCount, hideViews
   return (
     <MetaRow>
       <MetaItem>
-        <HeartIcon size={14} />
+        <HeartIcon size={14} strokeWidth={1.8} />
         <VisuallyHidden>{metaLikes}</VisuallyHidden>
         {formatCompactCount(likeCount)}
       </MetaItem>
       <MetaItem>
-        <CommentIcon size={14} />
+        <CommentIcon size={14} strokeWidth={1.8} />
         <VisuallyHidden>{metaComments}</VisuallyHidden>
         {formatCompactCount(commentCount)}
       </MetaItem>
       {hideViews ? null : (
         <MetaItem>
-          <EyeIcon size={14} />
+          <EyeIcon size={14} strokeWidth={1.8} />
           <VisuallyHidden>{metaViews}</VisuallyHidden>
           {formatCompactCount(viewCount)}
         </MetaItem>
