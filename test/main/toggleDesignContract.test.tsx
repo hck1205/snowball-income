@@ -1,9 +1,11 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { Provider } from 'jotai/react';
 import { createStore } from 'jotai/vanilla';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import PortfolioComposition from '@/components/PortfolioComposition';
-import ScenarioTabsRow from '@/pages/Main/components/ScenarioTabsRow';
+import { ToggleField } from '@/components/common';
 import YearlyResult from '@/components/YearlyResult';
 import PostInvestmentProjectionPanel from '@/pages/Main/components/MainRightPanel/components/PostInvestmentProjectionPanel';
 import { ALLOCATION_COPY } from '@/shared/constants';
@@ -176,15 +178,15 @@ describe('PortfolioComposition 잠금 스위치 — 보이는 라벨 + 풀 힌�
 /* ── 3. 결과 밀도 — 간략히 ──────────────────────────────────────────────── */
 
 /**
- * "간략히"는 결과 그리드 전체에 걸리는 조작이라 그리드 **위** 컨트롤 줄(`ScenarioTabsRow`)이 소유한다
- * (구 결과 카드 헤더에서 이관). 토글 자체의 계약과 계측 field_name 은 불변이다.
+ * "간략히"는 **결과 요약 카드 우측 상단**에 산다(2026-07-29 이관 — 그전에는 시나리오 탭 줄이었고,
+ * 그전에는 결과 카드 헤더였다). 이 파일이 지키는 것은 **토글 자체의 계약**(보이는 라벨 · 접근명 ·
+ * 계측 field_name)이지 어느 컴포넌트가 그것을 품느냐가 아니다 — 그래서 소유자가 바뀌어도
+ * 여기서는 `ToggleField` 를 직접 렌더해 계약만 본다.
  */
 const renderCompactToggle = () => {
   render(
     <Provider store={createStore()}>
-      <ScenarioTabsRow showCompactToggle isResultCompact={false} onToggleCompact={() => undefined}>
-        <div />
-      </ScenarioTabsRow>
+      <ToggleField label="간략히" accessibleName="결과 간략히 보기" checked={false} onChange={() => undefined} />
     </Provider>
   );
 };
@@ -316,13 +318,21 @@ describe('토글 GA 계측 — field_name 4종 불변', () => {
     expectToggleTracked('allocationLocked', true);
   });
 
-  it('간략히 → isResultCompact', async () => {
-    renderCompactToggle();
-    const user = userEvent.setup();
+  /*
+   * "간략히"는 2026-07-29 에 결과 요약 카드 우측 상단으로 옮겨가면서, 계측 배선도 그 슬롯을 채우는
+   * `MainRightPanel` 로 함께 갔다. 그 컴포넌트를 렌더하려면 시뮬레이션 전체를 세워야 해서
+   * 다른 셋처럼 클릭으로 확인할 수 없다 — 대신 **소스 레벨로 field_name 을 잠근다**
+   * (`appHeaderSingleSource` 와 같은 방식: 렌더 테스트가 못 잡는 계약을 소스로 지킨다).
+   */
+  it('간략히 → isResultCompact (배선 위치: MainRightPanel)', () => {
+    const source = readFileSync(
+      resolve(__dirname, '../../pages/Main/components/MainRightPanel/MainRightPanel.tsx'),
+      'utf-8'
+    );
 
-    await user.click(screen.getByRole('checkbox', { name: '결과 간략히 보기' }));
-
-    expectToggleTracked('isResultCompact', true);
+    expect(source).toContain("field_name: 'isResultCompact'");
+    // 토글 자체의 라벨·접근명 계약은 위 "결과 간략히 스위치" describe 가 지킨다.
+    expect(source).toContain("accessibleName=\"결과 간략히 보기\"");
   });
 
   it('채우기 → isYearlyAreaFillOn', async () => {

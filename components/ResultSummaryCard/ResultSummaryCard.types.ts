@@ -14,4 +14,14 @@ export type ResultSummaryCardProps = {
   condition: ConditionStripItem[];
   /** 조건 스트립 우측 액션("조건 수정"). 페이지가 설정 진입 버튼을 만들어 넣는다. */
   conditionAction?: ReactNode;
+  /**
+   * 카드 **우측 상단**에 서는 결과 밀도 토글("간략히").
+   *
+   * 여기 두는 이유: 이 토글이 바꾸는 것은 결과 카드들의 **숫자 표기**이고, 그 숫자가 가장 크게
+   * 보이는 곳이 이 카드다 — 조작과 결과가 한눈에 들어온다. 예전에는 시나리오 탭 줄에 있었는데
+   * 탭 스트립과 가로를 나눠 써서 좁은 폭에서 가장 먼저 눌렸다(2026-07-29 이동).
+   *
+   * 이 카드는 제목이 없지만 `Card` 는 `titleRight` 만으로도 헤더를 그린다.
+   */
+  densityToggle?: ReactNode;
 };

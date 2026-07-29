@@ -22,7 +22,6 @@ export default function ToggleField({
   checked,
   disabled,
   hideLabel,
-  stacked,
   size,
   helpAriaLabel,
   onHelpClick,
@@ -31,7 +30,7 @@ export default function ToggleField({
   const id = toToggleId(label);
 
   return (
-    <ToggleLabel $stacked={stacked}>
+    <ToggleLabel>
       {hideLabel ? null : (
         <ToggleHeader>
           {label}
