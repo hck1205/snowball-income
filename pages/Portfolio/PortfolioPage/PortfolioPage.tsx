@@ -463,6 +463,7 @@ export default function PortfolioPage({ now: nowProp }: PortfolioPageProps = {})
             status={cloudSync.status}
             canSignIn={isCommunityEnabled}
             onDismissApplied={cloudSync.dismissApplied}
+            onRetry={cloudSync.retry}
           />
         }
         picker={{ isOpen: isPickerOpen, keyword, options: pickerOptions, heldTickers }}

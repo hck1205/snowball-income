@@ -6,4 +6,6 @@ export type CloudSyncNoticeProps = {
   canSignIn: boolean;
   /** "클라우드 것으로 맞췄다" 안내를 닫는다. */
   onDismissApplied: () => void;
+  /** 실패 상태에서 처음부터(클라우드 읽기부터) 다시 시도한다. */
+  onRetry: () => void;
 };

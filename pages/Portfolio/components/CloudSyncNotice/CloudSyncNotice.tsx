@@ -17,7 +17,7 @@ import { NoticeRow, NoticeText } from './CloudSyncNotice.styled';
  * `synced`·`syncing` 은 **아무 것도 그리지 않는다.** 잘 되고 있다는 말은 자리를 차지할 가치가 없다
  * (이 레포의 CloudSyncIndicator 가 평상시 숨는 것과 같은 판단).
  */
-export default function CloudSyncNotice({ status, canSignIn, onDismissApplied }: CloudSyncNoticeProps) {
+export default function CloudSyncNotice({ status, canSignIn, onDismissApplied, onRetry }: CloudSyncNoticeProps) {
   if (status === 'signed-out') {
     // 로그인을 못 하는 배포에서는 유도할 곳이 없다 — 불안만 남기고 해결책이 없는 문구는 쓰지 않는다.
     if (!canSignIn) return null;
@@ -63,9 +63,15 @@ export default function CloudSyncNotice({ status, canSignIn, onDismissApplied }:
         <NoticeRow>
           <TriangleAlert size={ICON.md} strokeWidth={ICON.stroke} aria-hidden focusable={false} />
           <NoticeText>
-            클라우드와 맞추지 못했습니다. <strong>이 기기의 포트폴리오는 그대로</strong>이니 계속 쓰셔도 됩니다 —
-            연결이 돌아오면 다시 올립니다.
+            클라우드와 맞추지 못했습니다. <strong>이 기기의 포트폴리오는 그대로</strong>이니 계속 쓰셔도 됩니다.
           </NoticeText>
+          {/*
+            실패는 **스스로 낫지 않는다** — 이 상태에서는 올리기도 막아둔다(클라우드를 못 읽은 채
+            올리면 정본을 덮는다). 그래서 다시 시도할 수단을 반드시 함께 준다.
+          */}
+          <Button type="button" variant="ghost" size="sm" onClick={onRetry}>
+            다시 시도
+          </Button>
         </NoticeRow>
       </Banner>
     );
