@@ -7,6 +7,7 @@ import {
   type LocalAutosaveRead
 } from '@/jotai/snowball/cloud';
 import { buildDefaultPayload, serializeMeaningfulPayload, type PersistedAppStatePayload } from '@/jotai';
+import { serializeTabBase } from '@/jotai/snowball/cloud';
 import type { TickerProfile } from '@/shared/types/snowball';
 
 /**
@@ -449,7 +450,7 @@ describe('merge-base 3-way: base 주입 시 FF vs 진짜 충돌(다기기 핑퐁
     expect(types(h.events)).toEqual(['pushed-local']);
     expect(h.calls.push).toEqual([{ payload: localAdvanced, savedAt: 1000 }]);
     expect(h.calls.apply).toEqual([]);
-    expect(h.baseStore.writes).toEqual([serializeMeaningfulPayload(localAdvanced)]);
+    expect(h.baseStore.writes).toEqual([serializeTabBase(localAdvanced)]);
   });
 
   it('클라우드만 base에서 변함(local==base) → 이 기기 미편집 → 클라우드 FF apply+미러 + base=클라우드 해시', async () => {
@@ -470,7 +471,7 @@ describe('merge-base 3-way: base 주입 시 FF vs 진짜 충돌(다기기 핑퐁
     expect(h.calls.apply).toEqual([cloudAdvanced]);
     expect(h.calls.mirror).toEqual([cloudAdvanced]);
     expect(h.calls.push).toEqual([]);
-    expect(h.baseStore.writes).toEqual([serializeMeaningfulPayload(cloudAdvanced)]);
+    expect(h.baseStore.writes).toEqual([serializeTabBase(cloudAdvanced)]);
   });
 
   it('양쪽 다 base에서 변함(진짜 동시편집) → conflict, 부작용 없음, base 갱신 안 함', async () => {
@@ -511,7 +512,7 @@ describe('merge-base 3-way: base 주입 시 FF vs 진짜 충돌(다기기 핑퐁
     expect(types(h.events)).toEqual(['pushed-local']);
     expect(h.calls.push).toEqual([{ payload: localDeleted, savedAt: 999_999 }]); // updatedAt 없음 → now() 폴백
     expect(h.calls.apply).toEqual([]); // 삭제된 CCC를 되살리지 않는다
-    expect(h.baseStore.writes).toEqual([serializeMeaningfulPayload(localDeleted)]);
+    expect(h.baseStore.writes).toEqual([serializeTabBase(localDeleted)]);
   });
 
   it('base 미존재(undefined) → 현행 휴리스틱 폴백(진짜 발산 → conflict, 기존 4테스트 그린 유지)', async () => {
@@ -551,7 +552,7 @@ describe('merge-base 3-way: base 주입 시 FF vs 진짜 충돌(다기기 핑퐁
     await syncCloudWorkspaceAtSessionStart(h.deps);
 
     expect(types(h.events)).toEqual(['applied-cloud']); // 클라우드만 전진 → 조용히 FF(모달 없음)
-    expect(h.baseStore.writes).toEqual([serializeMeaningfulPayload(cloudDifferentStart)]); // base 흡수·전진
+    expect(h.baseStore.writes).toEqual([serializeTabBase(cloudDifferentStart)]); // base 흡수·전진
   });
 
   it('수렴 불변식: FF push 후 base==양쪽 해시 → 재실행 시 noop(핑퐁 재발 없음)', async () => {
@@ -568,7 +569,7 @@ describe('merge-base 3-way: base 주입 시 FF vs 진짜 충돌(다기기 핑퐁
 
     await syncCloudWorkspaceAtSessionStart(h.deps); // 1회차: 로컬만 전진 → FF push
     expect(types(h.events)).toEqual(['pushed-local']);
-    const agreed = serializeMeaningfulPayload(localAdvanced);
+    const agreed = serializeTabBase(localAdvanced);
     expect(h.baseStore.current).toBe(agreed); // base가 합의 해시로 전진
 
     // 2회차(새로고침): 클라우드가 방금 push된 로컬로 수렴 → local==cloud==base → noop(모달·부작용 없음).

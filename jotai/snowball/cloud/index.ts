@@ -12,5 +12,6 @@ export * from './cloudSyncEngine';
 export * from './cloudSyncState';
 export * from './cloudWorkspaceReconcile';
 export * from './cloudWorkspaceSyncEngine';
+export * from './cloudWorkspaceThreeWay';
 export * from './sessionLocalAutosave';
 export * from './useCloudSync';
