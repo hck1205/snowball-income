@@ -17,13 +17,18 @@ export const PageStack = styled.div`
   min-width: 0;
 `;
 
+/**
+ * 히어로 면은 **누를 수 없는 정보 표면**이라 크롬을 전부 accent 축으로 둔다(테두리·바탕·배지).
+ * 공용 `components/common/PageHero`·포트폴리오 히어로와 같은 규칙 — 브랜드는 액션에만 남는다.
+ * `::before` 오로라 리본만 브랜드 시그니처로 남는다.
+ */
 export const PageHero = styled.header`
   display: grid;
   gap: ${space[3]};
   padding: clamp(20px, 3vw, 32px);
   border-radius: ${radius.xl};
-  border: 1px solid ${color.brandBorder};
-  background: ${color.brandSubtle};
+  border: 1px solid ${color.accentBorder};
+  background: ${color.accentSubtle};
   position: relative;
   overflow: hidden;
 
@@ -52,9 +57,9 @@ export const HeroIconBadge = styled.span`
   width: 36px;
   height: 36px;
   border-radius: ${radius.md};
-  color: ${color.brandText};
+  color: ${color.accentText};
   background: ${color.surface};
-  border: 1px solid ${color.brandBorder};
+  border: 1px solid ${color.accentBorder};
   ${heroIconOpticalAlign}
 `;
 
@@ -81,14 +86,24 @@ export const HeroDisclaimer = styled.p`
   margin: 0;
   width: 100%;
   font-size: ${font.size.sm};
-  color: ${color.textMuted};
+    /*
+   * 히어로 면(accent-subtle) 위라 'text-muted' 를 쓰지 않는다 — velog 다크에서 4.04:1 로
+   * AA 미달이다(2026-07-31 실측). 위계는 크기(xs/sm)와 'text-secondary' 로 충분히 낮아진다.
+   * 가드: shared/styles/contrast.test.ts 의 [text-muted, accent-subtle] 쌍.
+   */
+  color: ${color.textSecondary};
   line-height: ${font.leading.snug};
 `;
 
 export const AsOfLine = styled.p`
   margin: 0;
   font-size: ${font.size.xs};
-  color: ${color.textMuted};
+    /*
+   * 히어로 면(accent-subtle) 위라 'text-muted' 를 쓰지 않는다 — velog 다크에서 4.04:1 로
+   * AA 미달이다(2026-07-31 실측). 위계는 크기(xs/sm)와 'text-secondary' 로 충분히 낮아진다.
+   * 가드: shared/styles/contrast.test.ts 의 [text-muted, accent-subtle] 쌍.
+   */
+  color: ${color.textSecondary};
   ${font.numeric}
 `;
 
@@ -285,14 +300,18 @@ export const UndatedToggleButton = styled.button<{ $active: boolean }>`
   }
 `;
 
-/** 빈 상태도 하나의 화면이다 — 점선(미확정)에 브랜드 틴트를 얹어 "여기서 시작하라"로 읽히게 한다. */
+/**
+ * 빈 상태도 하나의 화면이다 — 점선(미확정)에 틴트를 얹어 "여기서 시작하라"로 읽히게 한다.
+ * 틴트는 **accent**다(포트폴리오 빈 상태와 같은 이유): 이 안에 서는 브랜드 액션이 바탕과 같은
+ * 색이면 눌러야 할 것이 묻힌다.
+ */
 export const EmptyStateCard = styled.div`
   display: grid;
   gap: ${space[3]};
   padding: clamp(20px, 3vw, 28px);
-  border: 1px dashed ${color.brandBorder};
+  border: 1px dashed ${color.accentBorder};
   border-radius: ${radius.lg};
-  background: ${color.brandSubtle};
+  background: ${color.accentSubtle};
 `;
 
 export const EmptyTitle = styled.p`

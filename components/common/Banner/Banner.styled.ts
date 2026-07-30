@@ -9,15 +9,26 @@ import type { BannerTone } from './Banner.types';
  * 배너가 화면의 주인공이 되어버려서, 정작 주인공인 데이터를 밀어낸다.
  *
  * 본문에 `textMuted`를 쓰지 않는 이유: 옅은 톤 배경 위에서 대비가 AA에 못 미친다.
- * `textSecondary`를 쓴다(대비 검증은 `shared/styles/contrast.test.ts`).
+ * `textSecondary`를 쓴다.
+ *
+ * ⚠ `text-secondary on accent-subtle` 쌍은 아직 `shared/styles/contrast.test.ts` 의 순회 목록에
+ * 없다(`brand-subtle` 쪽만 있다). 실측은 16테마 최저 6.47:1(velog/dark)로 AA 여유가 있지만,
+ * **게이트가 없으므로** accent-subtle 을 손대는 사람이 이 배너를 못 본다 — 그 쌍을 목록에 넣는 것이
+ * 다음 정리 항목이다.
  */
 
+/**
+ * `info` 가 브랜드가 아니라 액센트인 이유: 배너는 **누를 수 없는 정보 표면**이다.
+ * 브랜드 축은 사용자가 누르는 것(주 버튼·활성 탭·선택 상태·포커스)에만 남기고, 크롬·정보·장식은
+ * 액센트가 맡는다 — 두 축이 같은 색이면 화면에 "액션"이라는 신호가 사라진다.
+ * `warning`/`danger` 가 이미 자기 상태색을 쓰므로 hover 도 같은 어법(중립 `surfaceHover`)으로 맞춘다.
+ */
 const TONE: Record<BannerTone, { border: string; bg: string; accent: string; hover: string }> = {
   info: {
-    border: color.brandBorder,
-    bg: color.brandSubtle,
-    accent: color.brand,
-    hover: color.brandSubtleHover
+    border: color.accentBorder,
+    bg: color.accentSubtle,
+    accent: color.accent,
+    hover: color.surfaceHover
   },
   warning: {
     border: color.warning,

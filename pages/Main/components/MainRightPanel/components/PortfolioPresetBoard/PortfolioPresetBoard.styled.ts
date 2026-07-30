@@ -151,20 +151,31 @@ export const PortfolioPresetPlanItem = styled.span`
   }
 `;
 
-/** 추천 포트폴리오 카드의 제목 행 — 브랜드 톤 아이콘 배지 + 제목을 가로로 정렬한다. */
+/** 추천 포트폴리오 카드의 제목 행 — 액센트 톤 아이콘 배지 + 제목을 가로로 정렬한다. */
 export const PortfolioPresetTitleRow = styled.div`
   display: flex;
   align-items: center;
   gap: ${space[2]};
 `;
 
-/** 프리셋 아이콘 배지의 오로라 틴트 로테이션 순서 — 카드 인덱스 % 3 으로 고른다. */
-export const PRESET_ICON_TONES = ['brand', 'accent', 'accentAlt'] as const;
+/**
+ * 프리셋 아이콘 배지의 틴트 로테이션 순서 — 카드 인덱스 % 길이로 고른다.
+ *
+ * **brand 를 뺐다**(구 `['brand','accent','accentAlt']`). 두 가지 이유:
+ *  ① 배지는 순수 장식이라 브랜드 축(누르는 것)이 설 자리가 아니다.
+ *  ② 구 3톤에는 **(brand, accentAlt) 라는 분리 보장이 없는 쌍**이 섞여 있었다 —
+ *     `contrast.test.ts` 가 못 박는 것은 brand↔accent(ΔE ≥ 8)와 accent↔accentAlt(ΔE ≥ 15)뿐이다.
+ *     brand 와 accentAlt 가 둘 다 그린인 프리셋(velog·forest)에서 3톤이 "초록·파랑·초록"으로
+ *     보이던 것이 그 결과다. 남은 두 톤은 ΔE ≥ 15 가 테스트로 강제되므로 로테이션의 구분이
+ *     감이 아니라 **게이트로** 보장된다.
+ * ⚠ ink 는 accent·accentAlt 가 둘 다 무채다(사용자 확정 정체성) — 그 프리셋에서 회색 두 톤으로
+ *   보이는 것은 의도다(ΔE 16.37, 하한 15).
+ */
+export const PRESET_ICON_TONES = ['accent', 'accentAlt'] as const;
 
 export type PresetIconTone = (typeof PRESET_ICON_TONES)[number];
 
 const PRESET_ICON_TONE_STYLE: Record<PresetIconTone, { bg: string; fg: string }> = {
-  brand: { bg: color.brandSubtle, fg: color.brand },
   accent: { bg: color.accentSubtle, fg: color.accentText },
   accentAlt: { bg: color.accentAltSubtle, fg: color.accentAltText }
 };
@@ -172,9 +183,7 @@ const PRESET_ICON_TONE_STYLE: Record<PresetIconTone, { bg: string; fg: string }>
 /**
  * 프리셋 아이콘 배지. 기존의 이모지 대신 lucide 아이콘을 서브틀 틴트 배경 위에 얹어
  * 완성도 있는 룩을 준다. 아이콘은 `currentColor`로 그려진다.
- * 틴트는 오로라 로테이션(brand → teal → green) — 카드마다 다른 결을 줘 훑어보기 쉽게 한다.
- * ⚠ forest·velog 처럼 brand 자체가 그린/틸인 프리셋에서는 세 톤이 같은 색 계열로 보일 수 있다
- * (실측 ΔE(accent, accent-alt) velog 22.1 / forest 44.9 — 구분은 되지만 결은 비슷하다).
+ * 틴트는 두 액센트 축을 번갈아 쓴다 — 카드마다 다른 결을 줘 훑어보기 쉽게 한다.
  */
 export const PortfolioPresetIcon = styled.span<{ tone?: PresetIconTone }>`
   display: inline-flex;
@@ -184,8 +193,8 @@ export const PortfolioPresetIcon = styled.span<{ tone?: PresetIconTone }>`
   width: 30px;
   height: 30px;
   border-radius: ${radius.sm};
-  background: ${({ tone = 'brand' }) => PRESET_ICON_TONE_STYLE[tone].bg};
-  color: ${({ tone = 'brand' }) => PRESET_ICON_TONE_STYLE[tone].fg};
+  background: ${({ tone = 'accent' }) => PRESET_ICON_TONE_STYLE[tone].bg};
+  color: ${({ tone = 'accent' }) => PRESET_ICON_TONE_STYLE[tone].fg};
 
   svg {
     width: 18px;

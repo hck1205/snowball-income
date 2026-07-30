@@ -9,9 +9,14 @@ import type { StatEmphasis, StatTone } from './StatTile.types';
  * **완전히 같은 카드·같은 글자 크기**였다. 위계가 없으면 사용자는 매번 6개를 다 읽어야 한다.
  *
  * 위계를 만드는 수단(색이 아니라 **크기·무게·서피스**):
- *  - hero: 값 30~38px + 좌측 브랜드 액센트 바 + raised 서피스. 한눈에 먼저 잡힌다.
+ *  - hero: 값 30~38px + 좌측 오로라 리본 + 액센트 틴트 면. 한눈에 먼저 잡힌다.
  *  - default: 값 16px. 조용히 뒤로 물러난다.
  * 색은 방향성(상승/하락)에만 남겨둔다 — 색까지 위계에 쓰면 데이터의 색이 의미를 잃는다.
+ *
+ * hero 의 면·테두리·라벨이 **brand 가 아니라 accent** 인 이유: 타일은 누를 수 없는 표시 표면이다.
+ * 브랜드 축은 액션(버튼·활성 탭·포커스)에만 남겨야 그 신호가 산다 — 결과 카드 안에서 hero 타일과
+ * 주 버튼이 같은 색이면 어느 쪽이 "누르는 것"인지 화면이 말하지 못한다.
+ * ⚠ **값(TileValue)은 여기 해당 없음** — 숫자에 accent·손익색을 쓰지 않는다는 규칙은 그대로다.
  */
 
 const TONE: Record<StatTone, string> = {
@@ -26,11 +31,11 @@ export const TileRoot = styled.div<{ emphasis: StatEmphasis }>`
   display: grid;
   gap: ${({ emphasis }) => (emphasis === 'hero' ? space[1] : '2px')};
   align-content: start;
-  border: 1px solid ${({ emphasis }) => (emphasis === 'hero' ? color.brandBorder : color.border)};
+  border: 1px solid ${({ emphasis }) => (emphasis === 'hero' ? color.accentBorder : color.border)};
   /* 카드 안에 앉는 면(타일) = 동심 라운드의 '안쪽' 두 조 중 큰 쪽. 컨트롤(8px)과 달리 12px 이다.
      아래 리본·프로그레스의 pill 은 캡슐 형태 자체가 요건이라 이 결정과 무관하다(그대로 둔다). */
   border-radius: ${radius.md};
-  background: ${({ emphasis }) => (emphasis === 'hero' ? color.brandSubtle : color.surfaceMuted)};
+  background: ${({ emphasis }) => (emphasis === 'hero' ? color.accentSubtle : color.surfaceMuted)};
   padding: ${({ emphasis }) => (emphasis === 'hero' ? `${space[4]} ${space[4]} ${space[4]} ${space[5]}` : space[3])};
   transition: border-color ${motion.fast} ${motion.ease};
 
@@ -111,7 +116,7 @@ export const TileLabel = styled.span<{ emphasis: StatEmphasis }>`
   min-width: 0;
   font-size: ${({ emphasis }) => (emphasis === 'hero' ? font.size.sm : font.size.xs)};
   font-weight: ${({ emphasis }) => (emphasis === 'hero' ? font.weight.semibold : font.weight.medium)};
-  color: ${({ emphasis }) => (emphasis === 'hero' ? color.brandText : color.textMuted)};
+  color: ${({ emphasis }) => (emphasis === 'hero' ? color.accentText : color.textMuted)};
   line-height: ${font.leading.snug};
   white-space: nowrap;
   overflow: hidden;
