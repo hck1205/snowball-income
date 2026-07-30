@@ -11,6 +11,17 @@ import {
 import type { PageHeroTone } from './PageHero.types';
 
 /**
+ * 히어로 안쪽 여백.
+ *
+ * **아래 `HeroTitleAction` 의 절대 좌표가 이 값을 그대로 써야 한다.** 절대 배치의 기준은
+ * `HeroRoot` 의 **패딩 박스**라서 `top/right: 0` 은 "여백 안쪽 맨 위"가 아니라 **카드의 모서리**,
+ * 즉 `radius.xl`(20px) 로 둥근 구간에 앉는다. 그래서 40px 액션 버튼이 히어로의 둥근 모서리를
+ * 가로질러 4.6px 삐져나와 있었다(2026-07-30 실측, ≤640px). 두 자리에 손으로 적으면 어긋나므로
+ * 한 곳에서 파생한다.
+ */
+const HERO_PADDING = 'clamp(20px, 3vw, 32px)';
+
+/**
  * 페이지 첫 화면. 전 페이지가 **같은 자리에서 같은 것**(무엇을 하는 화면인가 → 근거 → 액션)을 말하게 해
  * 사용자가 화면을 옮길 때 "어디를 봐야 하는지"를 다시 배우지 않게 한다.
  *
@@ -40,7 +51,7 @@ export const HeroRoot = styled.header<{ $tone: PageHeroTone }>`
   gap: ${space[3]};
   /* 좁은 폭에서 titleAction 이 흐름에서 빠져 제목 줄 오른쪽에 붙는다 — 그 좌표 기준. */
   position: relative;
-  padding: clamp(20px, 3vw, 32px);
+  padding: ${HERO_PADDING};
   border: 1px solid ${color.brandBorder};
   border-radius: ${radius.xl};
   background: ${({ $tone }) => ($tone === 'gradient' ? color.gradientHero : color.surface)};
@@ -88,11 +99,14 @@ export const HeroTitleAction = styled.div`
    *
    * top 은 제목 줄 높이의 중앙이 아니라 위쪽에 맞춘다 — 제목이 두 줄이 돼도 아이콘이 첫 줄 옆에
    * 남는 편이 읽기 흐름과 맞다(이 레포의 iconFirstLineAlign 과 같은 판단).
+   *
+   * 좌표는 0 이 아니라 히어로 여백만큼 들여야 한다 — 0 은 패딩 박스의 모서리(둥근 구간)라
+   * 버튼이 카드의 라운드를 덮고 밖으로 삐져나온다. HERO_PADDING 주석 참고.
    */
   ${media.down('mobileWide')} {
     position: absolute;
-    top: 0;
-    right: 0;
+    top: ${HERO_PADDING};
+    right: ${HERO_PADDING};
   }
 `;
 

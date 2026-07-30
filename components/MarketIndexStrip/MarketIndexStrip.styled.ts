@@ -198,6 +198,11 @@ const pulse = keyframes`
 /**
  * 로딩 스켈레톤 바 — 값 셀과 **같은 줄 구성/높이**로 렌더해 레이아웃 점프를 없앤다.
  * 1em 높이는 담는 요소의 font-size 를 따라간다.
+ *
+ * reduced-motion 에서 **일부러 되찾지 않는다**(2026-07-30 판정, ExchangeRateWidget 과 같은 근거):
+ * 스켈레톤은 "아직 살아 있다"가 아니라 **"이 자리에 올 값이 아직 없다"**를 말하고 그건 회색 막대의
+ * *모양*이 통째로 말한다. 펄스의 쉬는 프레임이 `opacity: 1` 이라 정지가 가장 잘 보이는 프레임이다.
+ * (되찾는 쪽은 **스피너** — 그건 모양만으로는 "멈췄다/일한다"를 구분하지 못한다.)
  */
 export const SkeletonBar = styled.span<{ w: string }>`
   display: block;

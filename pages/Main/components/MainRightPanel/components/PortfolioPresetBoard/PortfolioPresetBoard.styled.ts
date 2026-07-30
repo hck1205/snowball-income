@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, media, motion, pressableSubtle, radius, shadow, space } from '@/shared/styles';
+import { color, font, media, motion, pressableSubtle, pressTransition, radius, shadow, space } from '@/shared/styles';
 
 /**
  * 포트폴리오 프리셋 카드 스타일. `pages/Main/Main.shared.styled.ts`(카드 조각)와
@@ -38,7 +38,8 @@ export const PortfolioPresetCardButton = styled.button`
   cursor: pointer;
   overflow: hidden;
   transition: border-color ${motion.fast} ${motion.ease}, box-shadow ${motion.fast} ${motion.ease},
-    transform ${motion.fast} ${motion.ease}, background-color ${motion.fast} ${motion.ease};
+    transform ${motion.fast} ${motion.ease}, background-color ${motion.fast} ${motion.ease},
+    ${pressTransition};
 
   /* 좌측 액센트 바 — 평소엔 투명, hover/focus 시 오로라 리본(표시용). */
   &::before {

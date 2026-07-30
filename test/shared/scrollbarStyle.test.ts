@@ -100,12 +100,33 @@ describe('스크롤바 모양', () => {
    * `::-webkit-scrollbar` 를 같이 선언하면 스크롤바가 10px 네이티브(화살표 버튼 포함)로 나오고,
    * 표준을 `@supports` 안으로 옮기면 6px 우리 thumb 가 나온다.
    */
-  it('표준 스크롤바 속성은 @supports 가림 안에만 있다 — 밖에 두면 webkit 규칙이 무시된다', () => {
-    const GUARD = '@supports not selector(::-webkit-scrollbar)';
+  /*
+   * ⚠ 믹스인 안에는 **왜 이렇게 썼는지 설명하는 주석**이 있고 그 주석이 `@supports`·`-webkit-` 같은
+   * 문자열을 그대로 담는다. 주석을 걷어내지 않고 `indexOf` 로 찾으면 **실제 at-rule 이 아니라
+   * 주석을 잡는다**(실제로 이 테스트를 처음 쓸 때 그렇게 틀렸다). 선언부만 보고 판정한다.
+   */
+  const declarations = subtleScrollbar.replace(/\/\*[\s\S]*?\*\//g, '');
 
-    expect(subtleScrollbar).toContain(GUARD);
-    expect(subtleScrollbar.slice(0, subtleScrollbar.indexOf(GUARD))).not.toMatch(
-      /scrollbar-width:|scrollbar-color:/
-    );
+  it('표준 스크롤바 속성은 @supports 가림 안에만 있다 — 밖에 두면 webkit 규칙이 무시된다', () => {
+    const guardIndex = declarations.indexOf('@supports');
+
+    expect(guardIndex).toBeGreaterThan(-1);
+    expect(declarations.slice(0, guardIndex)).not.toMatch(/scrollbar-width:|scrollbar-color:/);
+  });
+
+  /*
+   * 가드의 **내용**까지 잠근다. 2026-07-31 에 `@supports not selector(::-webkit-scrollbar)` 가
+   * Firefox 에서 `not true` = false 로 평가돼(그 브라우저가 선택자에 true 를 반환한다 —
+   * bugzil.la/1977511) 폴백이 어느 엔진에도 닿지 않는 죽은 조건이었음이 드러났다.
+   * 위 테스트는 "가림 안에 있다"만 보므로 그 사고를 못 잡았다 — 이 테스트가 그 구멍이다.
+   */
+  it('Firefox 폴백 가드는 webkit 접두 선택자로 엔진을 가르지 않는다', () => {
+    const guard = declarations.slice(declarations.indexOf('@supports'));
+
+    // 파싱 가능성만 묻는 조건은 Firefox 에서도 참이라 판별에 쓸 수 없다.
+    expect(guard).not.toMatch(/selector\(\s*::-webkit-/);
+    expect(guard).not.toMatch(/\(\s*-webkit-appearance/);
+    // 엔진 판별은 Chromium 에서 거짓인 `-moz-` 접두 속성으로 한다(Chrome 150 실측).
+    expect(guard).toMatch(/-moz-/);
   });
 });

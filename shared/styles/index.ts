@@ -44,7 +44,7 @@ export {
   sectionTitleFontSize
 } from './heroTitleRow';
 
-export { pressable, pressableSubtle } from './pressable';
+export { pressable, pressableSubtle, pressTransition } from './pressable';
 
 export { hiddenScrollbar, subtleScrollbar } from './scrollbar';
 

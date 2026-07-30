@@ -161,8 +161,20 @@ export const MenuLiveStatus = styled.p`
 `;
 
 /**
- * 진행 스피너. `prefers-reduced-motion`에서는 회전을 멈춘다 — 전역 reduced-motion 리셋은
- * `transition-duration`만 덮고 `animation`은 건드리지 않으므로 여기서 직접 끈다.
+ * PDF 리포트 생성 중 스피너.
+ *
+ * 🔴 구 주석은 *"전역 reduced-motion 리셋은 `transition-duration`만 덮고 `animation`은 건드리지
+ * 않는다"* 고 적었는데 **사실이 아니다** — `globalStyles.ts` 는 `animation-duration: 0.01ms` 와
+ * `animation-iteration-count: 1` 을 **`!important` 로** 건다. 즉 아래 `animation: none` 이 없어도
+ * 회전은 어차피 첫 바퀴에서 얼어붙었다. 이 오해가 레포 여러 곳에 복제돼 있었다(2026-07-30 정정).
+ *
+ * 여기는 라벨이 "리포트 만드는 중…"으로 **켜져 있어** 정적 단서가 이미 있다. 그래도 회전을 완전히
+ * 끄지 않고 **불투명도 펄스로 되찾는** 이유: 정적 텍스트는 "시작했다"만 말하고 "**아직 살아 있다**"를
+ * 말하지 못한다. 리포트 생성은 수 초가 걸려서(html2canvas + 폰트 대기) 아무 것도 변하지 않으면
+ * 멈춘 것으로 읽힌다. 펄스는 움직임이 없어 전정계에 안전하다(선례 `Button.styled.ts`).
+ *
+ * ⚠ 되찾으려면 `animation-duration`·`animation-iteration-count` 를 `!important` 로 **회수**해야 한다
+ * (`MainContentLoader.styled.ts` 가 확립한 패턴). 이름만 바꾸면 여전히 0.01ms 1회로 끝난다.
  */
 export const MenuSpinner = styled.span`
   display: inline-flex;
@@ -176,8 +188,17 @@ export const MenuSpinner = styled.span`
     }
   }
 
+  @keyframes sb-overflow-busy-pulse {
+    50% {
+      opacity: 0.35;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    animation: none;
+    animation-name: sb-overflow-busy-pulse;
+    animation-timing-function: ${motion.ease};
+    animation-duration: 1.4s !important;
+    animation-iteration-count: infinite !important;
   }
 `;
 

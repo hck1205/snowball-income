@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, media, motion, pressable, radius, shadow, space } from '@/shared/styles';
+import { color, font, media, motion, pressable, pressTransition, radius, shadow, space } from '@/shared/styles';
 
 /**
  * 퀵액션 툴바 — "데이터 저장"이 자동저장으로 대체돼 제거된 뒤 보이는 버튼은 [공유] 하나뿐이라 단일 열로
@@ -83,7 +83,8 @@ export const TickerCreateButton = styled.button`
   width: 100%;
   margin-bottom: ${space[3]};
   touch-action: manipulation;
-  transition: background-position ${motion.base} ${motion.ease}, box-shadow ${motion.fast} ${motion.ease};
+  transition: background-position ${motion.base} ${motion.ease}, box-shadow ${motion.fast} ${motion.ease},
+    ${pressTransition};
 
   &:hover {
     background-position: 100% 100%;

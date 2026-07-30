@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, hitAreaWithin, motion, pressable, radius, space } from '@/shared/styles';
+import { color, font, hitAreaWithin, motion, pressable, pressTransition, radius, space } from '@/shared/styles';
 import type { ChipVariant } from './Chip.types';
 
 /**
@@ -58,7 +58,7 @@ export const ChipButton = styled.button<{ selected?: boolean; hasRemove?: boolea
   cursor: pointer;
   touch-action: manipulation;
   transition: background-color ${motion.fast} ${motion.ease}, border-color ${motion.fast} ${motion.ease},
-    color ${motion.fast} ${motion.ease};
+    color ${motion.fast} ${motion.ease}, ${pressTransition};
 
   ${pressable}
 

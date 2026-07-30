@@ -22,10 +22,26 @@
  * (확대 촬영으로 확인: 표준 경로에는 트랙 끝에 **화살표 버튼**이 그려지고, webkit 경로에는 thumb 만
  *  남는다 — 두 경로를 눈으로 구별하는 가장 쉬운 표시다.)
  *
- * 그래서 순서를 뒤집는다: **webkit 을 기본으로 두고**, 표준 속성은 `@supports not
- * selector(::-webkit-scrollbar)` 안에 넣어 **webkit 을 못 쓰는 브라우저(Firefox)만** 받게 한다.
- * (`@supports` 의 질문이 정확히 "이 브라우저가 webkit 스크롤바를 스타일할 수 있나"라서, 브라우저
- * 이름을 찍는 해킹보다 낫다. Chrome 150 실측: `CSS.supports('selector(::-webkit-scrollbar)') === true`.)
+ * 그래서 순서를 뒤집는다: **webkit 을 기본으로 두고**, 표준 속성은 `@supports` 가림 안에 넣어
+ * **webkit 스크롤바를 못 꾸미는 브라우저(Firefox)만** 받게 한다.
+ *
+ * 🔴 그 가림을 무엇으로 쓰느냐에서 한 번 더 틀렸다 (2026-07-31)
+ * ---------------------------------------------------------------------------
+ * 처음엔 `@supports not selector(::-webkit-scrollbar)` 를 썼다 — "이 브라우저가 webkit 스크롤바를
+ * 스타일할 수 있나"를 직접 묻는 것처럼 보여 브라우저 이름을 찍는 해킹보다 낫다고 판단했다.
+ * **그런데 Firefox 가 이 선택자에 `true` 를 반환한다.** 파싱은 되지만 실제 스타일링은 안 되는데,
+ * 중첩 스크롤 영역이 도달 불가능해지는 것을 막으려는 의도적 동작이다(bugzil.la/1977511).
+ * 결과적으로 `not true` = false 라 **Firefox 가 폴백을 못 받고 네이티브 기본 막대로 떨어졌다** —
+ * 즉 그 가드는 어느 엔진에서도 참이 아닌, 아무 효과 없는 조건이었다.
+ *
+ * 교훈: `@supports selector()` 는 **"파싱 가능한가"** 를 묻지 **"동작하는가"** 를 묻지 않는다.
+ * WHATWG Compatibility Standard 가 알 수 없는 `-webkit-` 의사요소를 파싱상 유효로 취급하라고
+ * 요구하기 때문에, webkit 접두 선택자로 엔진을 가르려는 시도는 원리적으로 실패한다.
+ *
+ * 그래서 **엔진 판별**로 간다(아래 `subtleScrollbar`). Chrome 150 실측:
+ *   `-moz-appearance` false · `-moz-orient` false · `-webkit-appearance` **true** ·
+ *   `selector(::-webkit-scrollbar)` **true**
+ * 뒤 두 개는 Firefox 에서도 true 라 판별에 쓸 수 없다.
  *
  * ⚠ 기대치를 정직하게 — Firefox 는 `scrollbar-width`/`scrollbar-color` 만 지원하고 그 두 속성으로는
  * **라디우스를 제어할 수 없다**(표준 `::scrollbar` 의사요소는 아직 없다). 즉 Firefox 에서는 폭·색만
@@ -65,8 +81,29 @@ export const subtleScrollbar = `
     background: ${color.borderStrong};
   }
 
-  /* Firefox 폴백 — 위 의사요소를 못 쓰는 브라우저만 여기로 온다(같이 선언하면 위가 죽는다). */
-  @supports not selector(::-webkit-scrollbar) {
+  /*
+   * Firefox 폴백. 표준 속성을 위와 **같이** 선언하면 Chromium 121+ 가 위 webkit 규칙을 통째로
+   * 무시하므로(이 파일 상단 실측표) 반드시 Firefox 에만 닿아야 한다.
+   *
+   * 🔴 종전에는 '@supports not selector(::-webkit-scrollbar)' 로 갈랐는데 **그게 틀렸다**(2026-07-31).
+   * Firefox 는 이 선택자에 'true' 를 반환하면서도 실제로는 그 의사요소로 스크롤바를 못 꾸민다 —
+   * 중첩 스크롤 영역이 도달 불가능해지는 것을 막으려는 의도적 동작이다(bugzil.la/1977511).
+   * 그래서 'not true' = false 가 되어 **Firefox 가 폴백을 못 받고 네이티브 기본 막대로 떨어졌다.**
+   * 즉 이 가드는 "지원 여부"를 묻는 것처럼 보이지만 어느 엔진에서도 참이 아니었다.
+   *
+   * 대신 **엔진 판별**로 간다. 양쪽 브라우저에서 직접 재서 고른 조건이다:
+   *   Chrome 150 : '-moz-orient' false · '-moz-appearance' false ·
+   *                '-webkit-appearance' true · 'selector(::-webkit-scrollbar)' true
+   *   Firefox    : '-moz-orient' **true** · '-moz-appearance' **속성 자체가 없다**
+   * 뒤 두 조건은 Firefox 에서도 true 라 판별에 못 쓰고, '-moz-appearance' 는 이미 제거돼
+   * **어느 엔진에서도 참이 아니다** — 그래서 'or' 로 끼워 넣지 않았다. 바로 위 문단의 사고가
+   * 정확히 "어디서도 참이 아닌 조건을 남겨 둔 것"이었다. 죽은 조건을 보험처럼 두지 마라.
+   *
+   * ⚠ Firefox 가 언젠가 '-moz-orient' 마저 걷어내면 폴백이 조용히 꺼지고 네이티브 막대로 돌아간다 —
+   * **오늘과 같은 상태**라 회귀가 아니라 우아한 퇴화다. Chromium 은 어느 경우에도 영향받지 않는다
+   * (이 가드는 Chromium 에서 항상 false 이고, 그래야 위 webkit 규칙이 산다).
+   */
+  @supports (-moz-orient: inline) {
     scrollbar-width: thin;
     scrollbar-color: ${color.border} transparent;
   }

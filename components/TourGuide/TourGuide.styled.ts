@@ -55,8 +55,20 @@ export const TourPopover = styled.div`
   background: ${color.surfaceRaised};
   box-shadow: ${shadow.e3};
   color: ${color.text};
+  /*
+   * 아래 리본을 카드의 라운드로 잘라내기 위한 것이다.
+   * 지우면 2px 리본의 각진 양끝이 둥근 모서리 밖으로 5.4px 삐져나온다(2026-07-30 실측).
+   */
+  overflow: hidden;
 
-  /* 상단 오로라 리본 — 온보딩은 오로라 시그니처를 소개하는 순간이다. */
+  /*
+   * 상단 오로라 리본 — 온보딩은 오로라 시그니처를 소개하는 순간이다.
+   *
+   * 리본에 반경을 주지 않는 이유: 높이가 2px 이라 어떤 반경을 적어도 브라우저가 높이 기준으로
+   * 비례 축소해 실효 2px 이 상한이다(선언 16px → 실효 2px 실측). 즉 카드의 15px 안쪽 모서리와는
+   * **원리적으로** 맞출 수 없다. 그래서 반경 대신 부모의 overflow 로 잘라낸다 — Banner ·
+   * PortfolioPresetBoard · TickerDetailPage 의 좌측 액센트 바가 쓰는 것과 같은 방식이다.
+   */
   &::before {
     content: '';
     position: absolute;
@@ -64,7 +76,6 @@ export const TourPopover = styled.div`
     left: 0;
     right: 0;
     height: 2px;
-    border-radius: ${radius.lg} ${radius.lg} 0 0;
     background: ${color.gradientAurora};
   }
 `;

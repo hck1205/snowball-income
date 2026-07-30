@@ -22,10 +22,34 @@
  *
  * ⚠ reduced-motion 은 전역 리셋이 처리한다(`globalStyles.ts` 가 `transition-duration` 을
  * 0.01ms 로 덮는다) — 즉 축소는 남고 애니메이션만 사라진다. 의도한 대로다.
+ *
+ * 🔴 왜 이 믹스인이 `transition` 을 선언하지 않는가 (2026-07-31 실측)
+ * ---------------------------------------------------------------------------
+ * 처음엔 믹스인 안에 `transition: scale …` 을 넣었다. 그런데 `transition` 은 **단축 속성**이라
+ * 뒤에 오는 선언이 앞의 것을 **통째로 덮는다** — 소비처가 자기 `transition` 을 먼저 쓰고
+ * 그 뒤에 이 믹스인을 얹으면 **색·테두리·그림자 전환이 전부 사라진다.**
+ * 실측: 헤더 '글쓰기' 버튼의 computed `transition-property` 가 `scale` **하나뿐**이었다.
+ * 공용 `Button`·`Chip`·`TickerPicker`·`PortfolioPresetBoard` 네 곳이 그 상태였다 —
+ * 즉 가장 많이 눌리는 컨트롤들의 hover 가 즉시 스냅으로 죽어 있었고, 소스만 읽으면
+ * 두 선언이 다 보이기 때문에 리뷰로는 잡히지 않았다.
+ *
+ * 그래서 **전환 목록의 소유권을 컴포넌트 한 곳으로 모은다.** 믹스인은 "눌렀을 때 무엇이
+ * 일어나는가"만 말하고, 애니메이션 여부는 소비처가 자기 `transition` 에 `${pressTransition}`
+ * 을 끼워 선언한다. 순서에 의존하지 않으므로 얹는 위치가 어디든 안전하다.
+ * 가드: `test/shared/pressTransition.test.ts`
  */
-export const pressable = `
-  transition: scale var(--sb-motion-fast, 150ms) cubic-bezier(0.2, 0, 0, 1);
 
+/**
+ * 소비처의 `transition` 목록에 끼워 넣는 조각.
+ *
+ * 토큰(`motion.fast`)이 아니라 CSS 변수를 직접 쓰는 이유는 이 파일이 `tokens` 를 import 하지
+ * 않기 때문이다 — 스타일 유틸이 토큰 그래프에 얽히지 않게 유지한다.
+ *
+ * 사용: `transition: background-color …, ${pressTransition};`
+ */
+export const pressTransition = 'scale var(--sb-motion-fast, 150ms) cubic-bezier(0.2, 0, 0, 1)';
+
+export const pressable = `
   &:active:not(:disabled):not([aria-disabled='true']) {
     scale: 0.96;
   }
@@ -36,8 +60,6 @@ export const pressable = `
  * 면적이 클수록 같은 배율이 더 크게 움직여 보이기 때문이다.
  */
 export const pressableSubtle = `
-  transition: scale var(--sb-motion-fast, 150ms) cubic-bezier(0.2, 0, 0, 1);
-
   &:active:not(:disabled):not([aria-disabled='true']) {
     scale: 0.99;
   }
