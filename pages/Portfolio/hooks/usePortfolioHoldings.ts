@@ -11,10 +11,27 @@ import {
   buildPortfolioRecord,
   normalizePortfolioManualInput,
   readPortfolioRecord,
+  toPortfolioHoldingRow,
+  toPortfolioHoldings,
   toPortfolioStorageReason,
+  toQuantityInputValue,
   writePortfolioRecord
 } from '../utils';
-import type { PortfolioRecordReader, PortfolioRecordWriter, PortfolioStorageFailureReason } from '../utils';
+import type {
+  PortfolioHoldingRow,
+  PortfolioHoldingsStatus,
+  PortfolioRecordReader,
+  PortfolioRecordWriter,
+  PortfolioStorageFailureReason
+} from '../utils';
+
+/**
+ * 행 매핑 순수 함수(`toPortfolioHoldings`·`toQuantityInputValue`)와 그 타입은 `../utils`(순수
+ * 계층)에 산다 — 이 훅은 부수효과(저장·실행취소)만 갖고, 재-export 로 기존 배럴 표면
+ * (`@/pages/Portfolio/hooks`)을 그대로 유지한다.
+ */
+export type { PortfolioHoldingRow, PortfolioHoldingsStatus };
+export { toPortfolioHoldings, toQuantityInputValue };
 
 /**
  * 내 포트폴리오 화면의 **보유 목록 단일 소유자** — 로드·편집·실행 취소·저장을 전부 여기서 쥔다.
@@ -44,25 +61,6 @@ import type { PortfolioRecordReader, PortfolioRecordWriter, PortfolioStorageFail
 export const PORTFOLIO_SAVE_DEBOUNCE_MS = 300;
 /** 삭제 실행 취소 버퍼의 수명. 배너가 사라지는 시점과 같다(디자인 스펙 §4.4). */
 export const PORTFOLIO_UNDO_TIMEOUT_MS = 8000;
-
-/**
- * 화면이 그리는 보유 1행.
- *
- * `quantity` 와 `quantityInput` 이 **둘 다** 있는 이유: 저장·계산은 정규화된 숫자를 쓰지만,
- * 입력창은 사용자가 친 문자열 그대로여야 한다(`"1."` 을 숫자로 되돌리면 소수점을 못 찍는다).
- */
-export type PortfolioHoldingRow = {
-  /** 대문자·트림된 심볼. */
-  ticker: string;
-  /** 정규화된 수량. **`null` = 미입력**(에러가 아니다 — 행은 유지되고 합계에서만 빠진다). */
-  quantity: number | null;
-  /** `QuantityInput` 제어값. 저장하지 않는다(세션 안에서만 산다). */
-  quantityInput: string;
-  /** 유니버스 밖 종목의 수동 시장 정보(USD). */
-  manual?: PortfolioManualMarketInput;
-};
-
-export type PortfolioHoldingsStatus = 'loading' | 'ready' | 'read-error';
 
 export type PortfolioAddInput = { ticker: string; manual?: PortfolioManualMarketInput };
 
@@ -123,34 +121,6 @@ export type UsePortfolioHoldingsOptions = {
 };
 
 type PortfolioEditableState = { items: PortfolioHoldingRow[]; taxPercent: number };
-
-/** 정규화 수량 → 입력창 문자열. 미입력은 빈 문자열이다(`0` 을 찍으면 지우고 다시 치게 된다). */
-export const toQuantityInputValue = (quantity: number | null): string => (quantity === null ? '' : String(quantity));
-
-/**
- * 행 → 계산 엔진 입력.
- *
- * M0 의 `PortfolioHolding.quantity` 는 `number` 필수라 **미입력을 `0` 으로 옮긴다** —
- * `normalizePortfolioQuantity(0)` 이 `null`(미입력)을 돌려주므로 엔진에서 의미가 정확히 보존되고,
- * 그 행은 `no-quantity` 사유와 함께 합계에서만 빠진다(엔진을 고치지 않는 쪽을 택한 이유).
- */
-export const toPortfolioHoldings = (rows: readonly PortfolioHoldingRow[]): PortfolioHolding[] =>
-  rows.map((row) => ({
-    ticker: row.ticker,
-    quantity: row.quantity ?? 0,
-    ...(row.manual ? { manual: row.manual } : {})
-  }));
-
-const toRow = (holding: PortfolioHolding): PortfolioHoldingRow => {
-  const quantity = normalizePortfolioQuantity(holding.quantity);
-
-  return {
-    ticker: normalizePortfolioTicker(holding.ticker),
-    quantity,
-    quantityInput: toQuantityInputValue(quantity),
-    ...(holding.manual ? { manual: holding.manual } : {})
-  };
-};
 
 const EMPTY_STATE: PortfolioEditableState = { items: [], taxPercent: DEFAULT_PORTFOLIO_TAX_RATE_PERCENT };
 
@@ -275,7 +245,7 @@ export const usePortfolioHoldings = (options: UsePortfolioHoldingsOptions = {}):
         // 가드) 디스크 원본은 이 분기에서도 그대로 남아 있다.
         if (result.value && !mutatedRef.current) {
           const next: PortfolioEditableState = {
-            items: result.value.holdings.map(toRow),
+            items: result.value.holdings.map(toPortfolioHoldingRow),
             taxPercent: result.value.taxPercent
           };
           stateRef.current = next;
@@ -457,7 +427,7 @@ export const usePortfolioHoldings = (options: UsePortfolioHoldingsOptions = {}):
       const normalized = buildPortfolioRecord(holdings, taxPercent);
 
       commitUndo();
-      applyState({ items: normalized.holdings.map(toRow), taxPercent: normalized.taxPercent });
+      applyState({ items: normalized.holdings.map(toPortfolioHoldingRow), taxPercent: normalized.taxPercent });
     },
     [applyState, commitUndo]
   );

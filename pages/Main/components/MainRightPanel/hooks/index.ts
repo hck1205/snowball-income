@@ -7,3 +7,6 @@ export type {
   PortfolioPrefillCommitOutcome,
   PortfolioPrefillCommitResult
 } from './usePortfolioPrefillCommit';
+export { useResultChartAdapters } from './useResultChartAdapters';
+export { useConditionStripItems } from './useConditionStripItems';
+export { useTargetFieldControls } from './useTargetFieldControls';

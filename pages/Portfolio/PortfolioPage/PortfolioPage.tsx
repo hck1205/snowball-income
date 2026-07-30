@@ -4,7 +4,7 @@ import { TickerPageShell } from '@/pages/Ticker/components';
 import { useDocumentMeta } from '@/pages/Ticker/hooks';
 import { createResultAmountFormatter } from '@/pages/Main/utils';
 import { useDisplayCurrencyViewAtomValue, useFxRateSync, useFxRateValueAtomValue } from '@/jotai';
-import { ANALYTICS_EVENT, bucketValue, track, trackEvent } from '@/shared/lib/analytics';
+import { ANALYTICS_EVENT, track, trackEvent } from '@/shared/lib/analytics';
 import {
   FOCUS_TARGET_MONTHLY_DIVIDEND_STATE,
   buildFocusTargetMonthlyDividendState,
@@ -15,12 +15,7 @@ import { computePortfolioSummary } from '@/shared/lib/portfolio';
 import { formatUSD } from '@/shared/utils';
 import { isCommunityEnabled } from '@/shared/lib/supabase';
 import { PORTFOLIO_COPY } from '../copy';
-import {
-  CloudSyncNotice,
-  buildPortfolioGoalCardModel,
-  resolvePortfolioGoalBasis,
-  toProgressBucket
-} from '../components';
+import { CloudSyncNotice, buildPortfolioGoalCardModel, resolvePortfolioGoalBasis } from '../components';
 import {
   toPortfolioHoldings,
   toQuantityInputValue,
@@ -37,6 +32,7 @@ import {
   buildPortfolioLiveMessage,
   buildPortfolioViewModel
 } from './PortfolioPage.utils';
+import { usePortfolioPageAnalytics } from './hooks';
 
 const copy = PORTFOLIO_COPY;
 
@@ -237,57 +233,16 @@ export default function PortfolioPage({ now: nowProp }: PortfolioPageProps = {})
   );
 
   /*
-   * 계측 — 진입 1회 / 요약 노출 1회. 로딩 상태에서 쏘면 보유 0종으로 기록돼 지표가 왜곡되므로
-   * 하이드레이션이 끝난 뒤에만 발화하고 ref 로 중복을 막는다(이 레포의 노출 계측 공통 패턴).
+   * 진입·요약·목표 카드 노출 계측 — 훅으로 뺐다(`usePortfolioPageAnalytics`). 언제 1회만 쏘는지의
+   * 판정(로딩 가드·ref 중복 방지)은 전부 그 안에 있고, 여기서는 무엇을 넘길지만 고른다.
    */
-  const hasTrackedViewRef = useRef(false);
-  useEffect(() => {
-    if (status === 'loading' || hasTrackedViewRef.current) return;
-    hasTrackedViewRef.current = true;
-
-    track(ANALYTICS_EVENT.PORTFOLIO_VIEW, { holdings_count: items.length, has_holdings: items.length > 0 });
-  }, [items.length, status]);
-
-  const hasTrackedSummaryRef = useRef(false);
-  useEffect(() => {
-    if (status === 'loading' || hasTrackedSummaryRef.current || items.length === 0) return;
-    hasTrackedSummaryRef.current = true;
-
-    track(ANALYTICS_EVENT.PORTFOLIO_SUMMARY_VIEW, {
-      holdings_count: items.length,
-      covered_count: summary.counts.included,
-      // 금액 원값은 싣지 않는다 — 환율과 무관하게 비교되도록 **달러 기준** 버킷만 보낸다.
-      value_bucket: bucketValue(summary.totalValueUsd, PORTFOLIO_VALUE_BUCKET_EDGES_USD)
-    });
-  }, [items.length, status, summary]);
-
-  /*
-   * 목표 카드 노출 계측 — **카드가 실제로 값과 함께 떴을 때 1회만**. 로딩 골격에서 쏘면 has_target 이
-   * 항상 false 로 기록돼 목표 설정률이 0 으로 왜곡되고, 카드가 아예 안 뜨는 상태(보유 0 + 목표 없음,
-   * 시뮬 읽기 실패)에서는 발화하지 않는다. `holdings_count`·`value_bucket` 은 **다시 싣지 않는다** —
-   * 같은 세션의 `portfolio_summary_view` 로 조인한다(중복 파라미터 회피).
-   */
-  const hasTrackedGoalRef = useRef(false);
-  useEffect(() => {
-    if (goalModel === null || goalModel.isLoading || hasTrackedGoalRef.current) return;
-    hasTrackedGoalRef.current = true;
-
-    track(ANALYTICS_EVENT.GOAL_WIDGET_VIEW, {
-      has_target: goalModel.hasTarget,
-      current_basis: goalModel.currentBasis,
-      // 목표가 없으면 달성률·도달 여부는 "0"이 아니라 **해당 없음**이다 — 아예 보내지 않는다.
-      ...(goalModel.hasTarget
-        ? {
-            /*
-             * 버킷은 **지금 화면에 보이는 달성률**을 따른다 — 도달 판정으로 `reachedInRange`(미래 언젠가
-             * 도달)를 섞으면 달성률 5%짜리도 'reached'로 기록돼 진행 분포가 무의미해진다.
-             */
-            progress_bucket: toProgressBucket(goalModel.progressPercent ?? 0, goalModel.isAlreadyReached),
-            reached_in_range: goalModel.reachedInRange
-          }
-        : {})
-    });
-  }, [goalModel]);
+  usePortfolioPageAnalytics({
+    status,
+    holdingsCount: items.length,
+    summary,
+    goalModel,
+    valueBucketEdgesUsd: PORTFOLIO_VALUE_BUCKET_EDGES_USD
+  });
 
   /**
    * 수량 편집 계측용 직전 값. 타이핑마다 쏘면 GA 가 스팸되므로 **blur 시점에 값이 바뀐 경우만** 센다.

@@ -6,7 +6,6 @@ import { getTickerDisplayName } from '@/shared/utils';
 import { createPortal } from 'react-dom';
 import { ResponsiveEChart } from '@/components/common';
 import { useOptionalCommunityAuth } from '@/components/community/CommunityAuthProvider';
-import type { SimulationResult as SimulationResultRow } from '@/shared/types';
 import { DISPLAY_CURRENCY_COPY, SIMULATOR_COPY } from '@/shared/constants';
 import { buildPostInvestmentChartTitle, focusTargetMonthlyDividendInput } from './MainRightPanel.utils';
 import {
@@ -21,7 +20,6 @@ import {
   TabDeleteModal,
   TargetFocusRequest
 } from './components';
-import { buildConditionStripItems } from '@/components/ConditionStrip';
 import MonthlyCashflow from '@/components/MonthlyCashflow';
 import PortfolioComposition from '@/components/PortfolioComposition';
 import ResultSummaryCard from '@/components/ResultSummaryCard';
@@ -62,10 +60,13 @@ import ScenarioTabsRow from '../ScenarioTabsRow';
 import SettingsEntryButton from '../SettingsEntryButton';
 import { createResultAmountFormatter, formatPercent, targetYearLabel } from '@/pages/Main/utils';
 import {
+  useConditionStripItems,
   usePortfolioPrefillCommit,
   usePortfolioPresetApply,
+  useResultChartAdapters,
   useResultViewAnalytics,
-  useScenarioTabInteractions
+  useScenarioTabInteractions,
+  useTargetFieldControls
 } from './hooks';
 import type { MainRightPanelProps } from './MainRightPanel.types';
 
@@ -224,101 +225,51 @@ function MainRightPanelComponent({ configDrawerId }: MainRightPanelProps) {
       })),
     [includedProfiles]
   );
-  const getYear = useCallback((row: SimulationResultRow) => `${row.year}`, []);
-  const getMonthlyDividend = useCallback((row: SimulationResultRow) => row.monthlyDividend, []);
-  const getAssetValue = useCallback((row: SimulationResultRow) => row.assetValue, []);
-  const getCumulativeDividend = useCallback((row: SimulationResultRow) => row.cumulativeDividend, []);
   /*
-   * "월 평균 배당" 차트의 목표선/도달 마커. target≤0(미설정)이면 둘 다 undefined → charts.ts가 markLine/
-   * markPoint/y축 max 가드를 모두 생략한다. ChartPanel이 memo라 객체를 memo로 안정화해 리렌더를 막는다.
+   * 시계열 차트 3종의 게터 + "월 평균 배당" 차트의 목표선/도달 마커. target≤0(미설정)이면 둘 다
+   * undefined → charts.ts가 markLine/markPoint/y축 max 가드를 모두 생략한다.
    */
   const targetMonthlyDividend = values.targetMonthlyDividend;
   const targetReachedYear = simulation?.summary.targetMonthDividendReachedYear;
-  const hasTarget = targetMonthlyDividend > 0;
-  const monthlyDividendReferenceLine = useMemo(
-    () =>
-      hasTarget
-        ? {
-            value: targetMonthlyDividend,
-            /* 축과 같은 포맷터를 쓴다 — 원화 고정이면 달러 표시 모드에서 목표선만 단위가 어긋난다. */
-            label: `목표 ${formatChartCompact(targetMonthlyDividend)}`,
-            reached: targetReachedYear !== undefined
-          }
-        : undefined,
-    [formatChartCompact, hasTarget, targetMonthlyDividend, targetReachedYear]
-  );
-  const monthlyDividendReachMarker = useMemo(
-    () =>
-      hasTarget && targetReachedYear !== undefined
-        ? {
-            xCategory: String(targetReachedYear),
-            value: targetMonthlyDividend,
-            label: `${targetReachedYear}년 도달`
-          }
-        : undefined,
-    [hasTarget, targetMonthlyDividend, targetReachedYear]
-  );
+  const {
+    getYear,
+    getMonthlyDividend,
+    getAssetValue,
+    getCumulativeDividend,
+    hasTarget,
+    monthlyDividendReferenceLine,
+    monthlyDividendReachMarker
+  } = useResultChartAdapters({ targetMonthlyDividend, targetReachedYear, formatChartCompact });
 
   /*
-   * 내 포트폴리오(`/dividend/portfolio`)의 **목표 달성 카드**에서 실려 온 목표 값의 **커밋 경로**.
-   * 값 쓰기는 기존 `setField`를 그대로 탄다(계측·자동저장·클라우드 동기화가 이미 붙어 있다) —
-   * 시뮬레이터 밖에서 직접 쓰지 않는 이유.
+   * 설정 드로어 열기 + 목표 월배당 필드 커밋·포커스 이동. 셋 다 "목표 입력 조작"이라는 하나의
+   * 관심사라 훅으로 묶었다(`useTargetFieldControls`) — 커밋은 기존 `setField` 경로를 그대로 타므로
+   * 자동저장·계측이 그대로 따라온다.
    */
-  const commitTargetMonthlyDividend = useCallback(
-    (won: number) => {
-      setField('targetMonthlyDividend', won);
-    },
-    [setField]
-  );
-  /**
-   * 목표 입력을 화면에 띄우고 포커스를 옮기는 **동작만** — 계측은 요청을 보내는 쪽
-   * (내 포트폴리오(`/dividend/portfolio`)의 목표 달성 카드)이 한다.
-   * "드로어 열기 → 한 프레임 뒤 포커스" 규칙은 여기 한 곳에만 둔다.
-   */
-  const focusTargetMonthlyDividendField = useCallback(() => {
-    // 설정 패널은 이제 **전 해상도에서 드로어**라 폭 판정 없이 무조건 먼저 연다
-    // (구 `isConfigDrawerLayout()` 게이트를 남겨두면 넓은 화면에서 입력이 화면에 없다).
-    setIsConfigDrawerOpen(true);
-    // 드로어 마운트/레이아웃 뒤에 좌표를 잡도록 한 프레임 미룬다.
-    if (typeof requestAnimationFrame === 'function') requestAnimationFrame(focusTargetMonthlyDividendInput);
-    else focusTargetMonthlyDividendInput();
-  }, [setIsConfigDrawerOpen]);
-
-  /** 설정 드로어를 여는 동작 — 조건 스트립의 "조건 수정" 진입점이 쓴다. */
-  const openConfigDrawer = useCallback(() => setIsConfigDrawerOpen(true), [setIsConfigDrawerOpen]);
+  const { commitTargetMonthlyDividend, focusTargetMonthlyDividendField, openConfigDrawer } = useTargetFieldControls({
+    setField,
+    setIsConfigDrawerOpen,
+    focusTargetMonthlyDividendInput
+  });
 
   /**
-   * "이 결과의 계산 조건" 항목. 조립은 순수 함수(`buildConditionStripItems`)가 하고 여기서는
-   * 폼 값만 넘긴다. 금액은 결과 숫자와 **같은 표시 통화 포맷터**를 compact로 재사용한다 —
-   * 스트립 전용 포맷터를 새로 만들면 달러 모드에서 이 줄만 원화로 남는다.
+   * "이 결과의 계산 조건" 항목. 조립은 순수 함수(`buildConditionStripItems`)가 하고, 여기서는
+   * 폼 값을 그 계약에 맞게 넘기는 훅(`useConditionStripItems`)만 부른다. 금액은 결과 숫자와
+   * **같은 표시 통화 포맷터**를 compact로 재사용한다 — 스트립 전용 포맷터를 새로 만들면 달러
+   * 모드에서 이 줄만 원화로 남는다.
    */
-  const conditionItems = useMemo(
-    () =>
-      buildConditionStripItems({
-        durationYears: values.durationYears,
-        monthlyContribution: values.monthlyContribution,
-        initialInvestment: values.initialInvestment,
-        taxRatePercent: values.taxRate,
-        reinvestDividends: values.reinvestDividends,
-        reinvestDividendPercent: values.reinvestDividendPercent,
-        targetMonthlyDividend: values.targetMonthlyDividend,
-        includedTickerCount: includedProfiles.length,
-        showQuickEstimate,
-        formatAmount: (won: number) => formatResultAmount(won, true)
-      }),
-    [
-      formatResultAmount,
-      includedProfiles.length,
-      showQuickEstimate,
-      values.durationYears,
-      values.initialInvestment,
-      values.monthlyContribution,
-      values.reinvestDividendPercent,
-      values.reinvestDividends,
-      values.targetMonthlyDividend,
-      values.taxRate
-    ]
-  );
+  const conditionItems = useConditionStripItems({
+    durationYears: values.durationYears,
+    monthlyContribution: values.monthlyContribution,
+    initialInvestment: values.initialInvestment,
+    taxRatePercent: values.taxRate,
+    reinvestDividends: values.reinvestDividends,
+    reinvestDividendPercent: values.reinvestDividendPercent,
+    targetMonthlyDividend: values.targetMonthlyDividend,
+    includedTickerCount: includedProfiles.length,
+    showQuickEstimate,
+    formatResultAmount
+  });
 
   /** 연도별 시계열 라인 차트 3종(월평균·자산·누적)이 공유하는 props. 제목과 y값만 달라진다. */
   const seriesChartProps = {
