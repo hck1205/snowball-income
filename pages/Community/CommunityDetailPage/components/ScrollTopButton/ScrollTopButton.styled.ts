@@ -43,8 +43,10 @@ export const FloatingButton = styled.button`
 
   ${pressable}
   /*
-   * pressable 이 자기 transition 을 선언하므로 **그 뒤에** 쓰는 transition 은 그것을 덮는다
-   * (같은 규칙 안 마지막 선언이 이긴다). 그래서 scale 을 여기 함께 나열해 누름 피드백을 살린다.
+   * 'pressable' 은 'transition' 을 선언하지 않는다 — 단축 속성이라 얹는 순서에 따라 소비처의
+   * 전환을 통째로 덮어 버렸고(2026-07-31 에 그렇게 네 곳이 죽어 있었다) 그래서 전환 목록의
+   * 소유권을 컴포넌트로 옮겼다. 누름 애니메이션은 여기 '${pressTransition}' 이 책임진다 —
+   * 빼면 누름이 애니메이션 없이 즉시 튄다. 상세는 'shared/styles/pressable.ts'.
    */
   transition: color ${motion.fast} ${motion.ease}, border-color ${motion.fast} ${motion.ease},
     box-shadow ${motion.fast} ${motion.ease}, ${pressTransition};
