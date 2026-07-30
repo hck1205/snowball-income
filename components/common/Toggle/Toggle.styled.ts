@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, motion, radius } from '@/shared/styles';
+import { color, hitAreaWithin, motion, radius, shadow, space } from '@/shared/styles';
 import type { ToggleSize } from './Toggle.types';
 
 /**
@@ -22,7 +22,11 @@ import type { ToggleSize } from './Toggle.types';
  *
  * 치수를 24→20px 로 줄인 이유: 모바일 결과 화면의 컨트롤 줄이 가로로 모자랐다.
  * 스위치는 **크기가 아니라 트랙 색과 썸 위치**로 상태를 말하므로, 비율(track:height ≈ 1.9)만
- * 유지하면 작아져도 읽힌다. 히트 영역은 치수와 무관하게 항상 44x44다(아래 `::after`).
+ * 유지하면 작아져도 읽힌다.
+ *
+ * 히트 영역은 가로 44px · **세로 44px 이 아니다**(아래 `::before` 의 `hitAreaWithin`).
+ * 세로를 44 로 두면 32px 라벨 줄을 넘어 이웃 행을 덮어 오탭이 났다 — 44 는 상한이 아니라
+ * 희망값으로 다루고 이웃과 겹치지 않는 선까지만 뻗는다. 상세는 `shared/styles/surfaces.ts`.
  */
 const TOGGLE_SIZE: Record<ToggleSize, { track: number; height: number; thumb: number; inset: number }> = {
   md: { track: 38, height: 20, thumb: 14, inset: 3 }
@@ -48,17 +52,14 @@ export const ToggleTrack = styled.span<{ checked: boolean; disabled?: boolean; s
   transition: background-color ${motion.fast} ${motion.ease}, border-color ${motion.fast} ${motion.ease};
   cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
 
-  /* 스위치는 작다. 히트 영역만 44x44로 넓힌다(WCAG 2.5.5) — 크기 단계와 무관하게 항상. */
-  &::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    min-width: 44px;
-    height: 44px;
-    width: 100%;
-    transform: translate(-50%, -50%);
-  }
+  /*
+   * 스위치는 작다(38×20). 히트 영역만 넓힌다(WCAG 2.5.5) — 크기 단계와 무관하게 항상.
+   *
+   * 2026-07-30 까지 손코딩 44×44 였다. 세로 44px 은 이 스위치가 앉는 32px 라벨 줄
+   * ('ToggleField' 의 'ToggleLabel')을 위아래로 6px 씩 넘겨 **이웃 폼 행을 덮었다.**
+   * 헬퍼가 이웃 간격(줄 사이 'gap: space[3]')까지만 넓힌다 → 가로는 44px 확보, 세로는 32px.
+   */
+  ${hitAreaWithin(space[3])}
 `;
 
 export const ToggleThumb = styled.span<{ checked: boolean; disabled?: boolean; sizeVariant: ToggleSize }>`
@@ -93,7 +94,13 @@ export const ToggleThumb = styled.span<{ checked: boolean; disabled?: boolean; s
   /* 썸은 정적 흰색. onBrand는 프리셋별로 어두울 수 있어(velog 다크 #121212 → 트랙과 1.07:1로 소실)
      비브랜드 트랙 위에 놓이는 썸에는 부적합하다. 켜짐은 위치와 트랙 색이 말한다. */
   background: ${({ disabled }) => (disabled ? color.surfaceMuted : '#ffffff')};
-  box-shadow: 0 1px 2px rgba(15, 25, 35, 0.32);
+  /*
+   * 깊이는 토큰으로만 말한다(DESIGN.md §6). 종전 생 리터럴 '0 1px 2px rgba(15,25,35,0.32)' 는
+   * **다크에서 어두운 면 위에 어두운 그림자**라 사실상 보이지 않았다 — 'shadow.e1' 은 프리셋마다
+   * 라이트/다크 값을 따로 갖는다(다크는 검정 0.3~0.4, 라이트는 6~8%).
+   * ⚠ 썸의 **채움**은 여전히 정적 '#ffffff' 다(위 주석) — 토큰화 대상은 그림자뿐이다.
+   */
+  box-shadow: ${shadow.e1};
   transform: translateY(-50%);
   pointer-events: none;
   transition: translate ${motion.fast} ${motion.ease};

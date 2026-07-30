@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, motion, radius, space } from '@/shared/styles';
+import { color, font, hitArea, motion, radius, space } from '@/shared/styles';
 
 export const LikeRoot = styled.button<{ liked: boolean; size: 'sm' | 'md' }>`
   display: inline-flex;
@@ -18,16 +18,12 @@ export const LikeRoot = styled.button<{ liked: boolean; size: 'sm' | 'md' }>`
   transition: background ${motion.fast} ${motion.ease}, color ${motion.fast} ${motion.ease},
     border-color ${motion.fast} ${motion.ease};
 
-  /* 히트 영역 44px 확장 */
-  position: relative;
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 50% auto auto 50%;
-    width: 44px;
-    height: 44px;
-    transform: translate(-50%, -50%);
-  }
+  /*
+   * 히트 영역 확장. 손코딩 'width/height: 44px' 였는데 이 버튼은 라벨(♥ + 개수)이 붙어
+   * **44px 보다 넓다** — 고정 44px 은 히트 영역을 오히려 버튼보다 좁게 만들고 있었다.
+   * 헬퍼는 'max(100%, 44px)' 라 시각 크기 이상을 보장한다.
+   */
+  ${hitArea()}
 
   &:hover:not(:disabled) {
     border-color: ${color.danger};

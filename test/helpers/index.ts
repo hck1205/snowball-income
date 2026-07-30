@@ -1,2 +1,8 @@
 export { openSettingsDrawer, settingsDrawerPanel } from './settingsDrawer';
-export { removeMatchMedia, restoreMatchMedia, stubTouchPrimary, stubViewportWidth } from './viewport';
+export {
+  removeMatchMedia,
+  restoreMatchMedia,
+  stubReducedMotion,
+  stubTouchPrimary,
+  stubViewportWidth
+} from './viewport';

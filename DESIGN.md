@@ -91,6 +91,12 @@ Provider 없이 단독 렌더되기 때문이다. CSS 변수는 Provider가 필�
    `gradientHero*`(면 배경). 섞으면 위계가 무너진다.
 5. **대비 하한은 테스트가 강제한다.** 새 색을 넣으면 `contrast.test.ts` 를 돌린다.
    비텍스트 3:1(WCAG 1.4.11), 작은 글씨 4.5:1.
+6. **한 화면에 틴트 면은 최대 2개.** 틴트 면 = 그라디언트 히어로 · 톤 배너(`info`/`warning`/`danger`) ·
+   `Card tone='wash'` · 색 있는 빈 상태 보드. 셋 이상이 연달아 쌓이면 경계가 흐려져 **하나의 큰
+   색 덩어리**로 읽힌다 — 각각은 옳은 선택인데 겹쳐 놓으면 틀린다.
+   실측(`docs/design-audit-visual.md` P5): `/dividend/portfolio` 390px 에서 히어로(민트) +
+   안내 배너(연초록) + 빈 상태 보드(연초록)가 한 덩어리가 됐다. 셋째가 필요하면 **가장 싼 해법은
+   배너의 틴트를 빼고 좌측 컬러 바 + 중립 면**으로 바꾸는 것이다.
 
 ---
 
@@ -129,11 +135,19 @@ Provider 없이 단독 렌더되기 때문이다. CSS 변수는 Provider가 필�
 
 ### 줄바꿈 (2026-07-30 채택)
 
-- 헤딩 → `text-wrap: balance`
+- 헤딩 → `text-wrap: balance` (+ `word-break: keep-all` 과 **한 짝**)
 - 본문·설명 → `text-wrap: pretty` (외톨이 낱말 방지)
 
 > ⚠ 한국어 주의: CJK 는 어절 단위로 끊기므로 `balance` 의 체감이 영문보다 작다.
 > 짧은 헤딩(1줄)에는 효과가 없고, **2~3줄 헤딩에서만** 의미가 있다. 남발하지 말 것.
+
+> ⚠ **본문에 `keep-all`·`balance` 를 걸지 마라.** 한국어 산문은 음절 단위 줄바꿈이 관례이고,
+> `keep-all` 을 걸면 좁은 카드에서 가로로 넘친다. `balance` 는 제목 전용이다.
+
+전역 규칙은 `globalStyles.ts` 한 곳이지만 **요소 선택자**(`p,li,dd,figcaption,caption,summary,
+small,blockquote`)라서 `span`·`div` 로 그린 본문은 못 받는다. 그런 표면은 자기 `.styled.ts` 에서
+직접 선언한다 — 현재 3곳: `InputField` `FieldHint`(모든 필드 힌트 + zod 에러) · `Banner` `BannerBody` ·
+`ErrorBox`. **새 설명 표면을 `span`/`div` 로 만들면 이 목록에 추가하라.**
 
 ---
 
@@ -178,6 +192,16 @@ Provider 없이 단독 렌더되기 때문이다. CSS 변수는 Provider가 필�
 ## 5. Layout Principles
 
 - **4px 베이스라인 그리드.** 간격은 `space.*` 만 쓴다(0/4/8/12/16/20/24/28/32/40/48/64).
+  > 🔸 **선언되지 않았던 이탈(2026-07-30 명시)**: **면의 패딩은 유동 `clamp()` 생 px** 이고
+  > `space.*` 가 아니다 — `Card` `clamp(16px,1.8vw,20px)` · `GoalCard` 16~28 · `PageHero`
+  > `clamp(20px,3vw,32px)` · `EmptyState` 20~28 · `TickerHub` 24~40 — 실측 `padding: clamp(…)`
+  > **24곳**(2026-07-30).
+  > 이유: 좁은 폭에서 카드 패딩이 콘텐츠를 먹는다(390px 에서 20px 패딩 두 겹 = 본문 폭의 10%).
+  > `space.*` 는 **간격(gap·margin)과 컨트롤 내부 패딩**을 규율하고, **면의 패딩은 clamp 유동**이다.
+  > 이 이탈은 유틸의 설계 근거이기도 하다 — `surfaces.ts` 의 `innerRadius()` 가 상수표가 아니라
+  > `calc()` 인 것은 "패딩이 뷰포트마다 다르다"를 전제하기 때문이다.
+  > 새 clamp 를 만들지 말고 **위 다섯 곡선 중 하나를 재사용**하라(제목 축소 곡선은
+  > `sectionTitleFontSize` 가 정본인 것과 같은 규율).
 - 브레이크포인트 — `mobile 560 / mobileWide 640 / tabletSm 760 / tablet 820 / drawer 960 / layout 980`.
   `media.down(key)` · `media.up(key)` 로만 접근한다.
 - **컨테이너 쿼리**는 5곳에서만 켜져 있다. 새로 켤 때는 아래를 반드시 확인한다:
@@ -244,8 +268,14 @@ Provider 없이 단독 렌더되기 때문이다. CSS 변수는 Provider가 필�
 
 - 모바일 우선은 아니지만 **모바일에서 깨지지 않는 것이 하한**이다.
 - 터치 타겟 최소 **44×44**(`TOUCH_TARGET`, WCAG 2.5.5 / iOS HIG).
-  밀집한 데스크톱 UI라면 최소 40×40. 보이는 요소가 작으면 의사요소로 넓힌다.
-  **두 요소의 히트 영역이 겹치게 두지 마라.**
+  밀집한 데스크톱 UI라면 최소 40×40. 보이는 요소가 작으면 의사요소로 넓힌다 —
+  손으로 적지 말고 `shared/styles/surfaces.ts` 의 유틸을 쓴다:
+  - `hitArea()` — 이웃이 멀 때. `max(100%, 44px)`
+  - `hitAreaWithin(gap)` — **이웃이 가까울 때. 44px 를 상한이 아니라 희망값으로 다뤄 `gap` 까지만 넓힌다**
+  > ⚠ **두 요소의 히트 영역이 겹치게 두지 마라.** 겹치면 "눌렀는데 다른 게 열린다".
+  > 실측: 18px 도움말 원에 무조건 44px 을 걸어 **아래 입력칸 상단 3.5px 을 덮고 있었다**(의사요소라
+  > 입력칸 위에 그려진다). 20px 스위치도 32px 라벨 줄을 위아래로 넘겼다. 좁은 격자(8px)에서
+  > 무조건 44px 은 **거의 항상 틀린다.**
 - 960px 아래에서 설정은 드로어로 간다.
 - 820px 아래에서 표는 카드형으로 전환한다.
 - 넓은 콘텐츠(표·차트·코드)는 **자기 안에서** 가로 스크롤한다. 본문이 가로로 밀리면 안 된다.
@@ -284,27 +314,32 @@ DESIGN.md 를 따른다. 색은 semantic 토큰(color.*)만, 간격은 space.*, 
 `.agents/skills/make-interfaces-feel-better` 의 19개 원칙 대비 이 레포의 상태다.
 **이탈에는 반드시 이유가 있다** — 이유 없이 다시 "고치지" 마라.
 
-| # | 원칙 | 상태 |
-|---|---|---|
-| 1 | 동심원 반경 | 🆕 **채택** (§6) — 규칙 자체가 없었다 |
-| 2 | 광학 정렬 우선 | ⚠ **반복 결함 영역** — 한글 라인박스 중심 어긋남. 공용 유틸로 보정한다 |
-| 3 | 그림자=높이 / 테두리=구조 | ✅ 토큰 존재 |
-| 4 | 중단 가능한 애니메이션 | ✅ CSS 전환 위주 |
-| 5 | 진입 애니메이션 분할·스태거 | 🆕 채택 — 드문 등장에만, ~100ms 간격 |
-| 6 | 부드러운 퇴장 | 🆕 채택 — 높이 대신 작은 고정 `translateY`, 진입보다 약하게 |
-| 7 | 맥락 있는 아이콘 전환 | 🆕 채택 — `scale .25→1`, `opacity 0→1`, `blur 4px→0`, `cubic-bezier(0.2,0,0,1)` |
-| 8 | 폰트 스무딩 | ✅ 적용됨 |
-| 9 | tabular-nums | ✅ 86곳 |
-| 10 | text-wrap | 🆕 **채택** — 종전 0건 |
-| 11 | 이미지 아웃라인 | 🆕 채택 — 순수 흑/백 10%. **틴트 금지**(면 색을 받아 때처럼 보인다) |
-| 12 | 누를 때 `scale(0.96)` | 🆕 채택 — 종전 7곳뿐 |
-| 13 | 첫 렌더 애니메이션 생략 | — 모션 라이브러리 없음(해당 없음) |
-| 14 | `transition: all` 금지 | ✅ **위반 0건** |
-| 15 | `will-change` 절제 | ✅ 2곳 |
-| 16 | 최소 히트 영역 | ✅ 토큰 존재 · 적용 감사 필요 |
-| 17 | 아이콘 획 = 글자 굵기 | 🔸 **의도적 이탈** — 원칙은 400 옆 1.5 / 600 옆 2 를 말하지만 이 레포는 **1.8 고정**이다. 한 줄에 굵기가 다른 아이콘이 섞이면 정돈돼 보이지 않고, 2 는 14~16px 에서 획이 뭉친다. 되돌리지 마라 |
-| 18 | 하나의 SVG, 상태는 CSS | ✅ lucide + `currentColor` |
-| 19 | 모션 절제 | ✅ 전역 `prefers-reduced-motion` 처리 |
+> 🔴 **"규칙"과 "적용"은 다른 열이다.** 2026-07-30 감사에서 이 표가 *규칙으로 적었다* 를
+> *코드에 넣었다* 로 읽히게 쓰여 있었고(`🆕 채택` 6건 중 코드에 붙은 것은 2건), 그래서
+> 열을 갈랐다. **적용 수를 적을 때는 실측치를 적어라** — 이 표가 거짓이면 다음 사람이
+> "이미 됐다"고 믿고 지나간다. 규칙만 확정된 항목은 적용 열에 **무엇을 기다리는지** 적는다.
+
+| # | 원칙 | 규칙 | 코드 적용 (2026-07-30 실측) |
+|---|---|---|---|
+| 1 | 동심원 반경 | 🆕 **확정** (§6) — 규칙 자체가 없었다 | ⏸ **0곳.** 유틸(`surfaces.ts` `surface`/`nestedRadius`)만 있고 호출부 없음 — **`Card` 반경 결정 대기**(바깥 28px 로 키우느냐 안쪽 0px 로 낮추느냐는 취향 결정이고 한 번에 ~30곳을 정한다. 사용자 승인 없이 적용 금지) |
+| 2 | 광학 정렬 우선 | ⚠ **반복 결함 영역** — 한글 라인박스 중심 어긋남 | ✅ 공용 유틸 `heroTitleRow.ts`(`iconOpticalAlign`/`iconFirstLineAlign`)로 보정. 새 자리에 상수 px 를 박지 마라 |
+| 3 | 그림자=높이 / 테두리=구조 | ✅ 토큰 `shadow.e1..e3` | ✅ **생 `box-shadow` 색 리터럴 0건**(2026-07-30 마지막 3건 정리: `Toggle` 썸 1 · `PortfolioAllocation` 슬라이더 손잡이 2 — 셋 다 다크에서 그림자가 사라져 있었다). 가드 `test/shared/depthTokens.test.ts` |
+| 4 | 중단 가능한 애니메이션 | ✅ CSS 전환 위주 | ✅ 전환 목록에 움직이는 속성을 반드시 넣는다(빠뜨리면 되돌릴 수 없는 스냅이 된다 — `Button`·`TickerPicker` 가 그랬다) |
+| 5 | 진입 애니메이션 분할·스태거 | 🆕 확정 — 드문 등장에만 | 🔸 **1곳뿐**(`TickerDetailPage.styled.ts:77,208`, 간격 **80ms**) — 어젯밤 폴리시 작업 **이전부터** 있던 코드다. 새로 뿌린 곳은 없다. 간격을 늘리려면 이 한 곳을 고치고 이 줄을 갱신하라 |
+| 6 | 부드러운 퇴장 | 🆕 확정 — 높이 대신 작은 고정 `translateY`, 진입보다 약하게 | ⏸ **0곳.** 퇴장 애니메이션이 레포에 없다 — `Modal.styled.ts:22,59` 의 `sb-modal-fade`/`sb-modal-rise` 는 진입만 있고 닫힘은 **즉시 언마운트**다. 넣으려면 언마운트 지연(상태 or `@starting-style`) 결정이 선행한다 |
+| 7 | 맥락 있는 아이콘 전환 | 🆕 확정 — `scale .25→1`, `opacity 0→1`, `blur 4px→0`, `cubic-bezier(0.2,0,0,1)` | ⏸ **0곳.** 레포의 `blur(` 은 전부 오버레이 `backdrop-filter` 다. 아이콘 교체는 현재 즉시 스왑 |
+| 8 | 폰트 스무딩 | ✅ | ✅ `globalStyles.ts` body 1지점 |
+| 9 | tabular-nums | ✅ | ✅ 86곳 + 전역(숫자 입력·표) |
+| 10 | text-wrap | 🆕 **확정**(§3) — 종전 레포 전체 0건 | ✅ 전역 헤딩 `balance` + 본문 `pretty`. 요소 선택자가 못 잡는 본문 표면 3곳은 각자 선언(`InputField` `FieldHint` = 힌트·zod 에러 · `Banner` `BannerBody` · `ErrorBox`) |
+| 11 | 이미지 아웃라인 | — **해당 없음** | — **이미지 표면이 없다.** `Avatar.tsx:10-15` 은 사진을 폐기하고 이니셜만 그리며 테두리는 `Avatar.styled.ts:29` 의 틴트다. 사진·차트 이미지 표면이 생기면 그때 규칙을 정한다(순수 흑/백 10%, **틴트 금지** — 면 색을 받아 때처럼 보인다) |
+| 12 | 누를 때 `scale(0.96)` | 🆕 확정 — 공용 믹스인 `pressable`/`pressableSubtle` | 🔸 **4곳**(`Button` · `Chip` · `PortfolioPresetBoard` · `TickerPicker`). 종전 실측은 **"누를 수 있는 요소 약 77개 중 `:active` 를 가진 것 6개"** 였다(`shared/styles/pressable.ts` 주석과 **같은 수를 쓴다** — 예전 이 칸의 "종전 7곳"은 같은 실측을 다르게 적은 것이었다). 남은 손코딩 `:active` = `SocialLoginButton` 3(색만) + `RangeSlider` 1(**의도적 제외** — 연속 제스처) |
+| 13 | 첫 렌더 애니메이션 생략 | — 해당 없음 | — 모션 라이브러리 없음 |
+| 14 | `transition: all` 금지 | ✅ | ✅ **위반 0건** (지켜라) |
+| 15 | `will-change` 절제 | ✅ | ✅ **1곳**(`TickerDetailPage.styled.ts:396`). 예전 이 칸의 "2곳"은 `tokens.ts:174` 의 **주석**을 센 것이었다 |
+| 16 | 최소 히트 영역 | ✅ 토큰 `TOUCH_TARGET` + 유틸 `hitArea()`/`hitAreaWithin(gap)` | 🔸 **진행 중.** 44px 를 상한이 아니라 **희망값**으로 다루는 `hitAreaWithin` 으로 겹침을 막는다(적용: `InputField`·`ToggleField` 도움말 · `CompactSummaryHelpButton` · `Toggle` 트랙 / `hitArea`: `Button`·`LikeButton`). 남은 손코딩 44px 은 `SideDrawer.styled.ts:153` (드로어 헤드 닫기 버튼) — **미처리**. 겹침은 없다(헤드 gap 12px, 38px 버튼에서 3px씩만 넘친다)는 것을 확인했으므로 급하지 않다. ⚠ `hitAreaWithin` 은 44 를 **상한이 아니라 희망값**으로 다루므로 실제 최솟값은 이웃 간격에 달렸다 — 18px 원 + gap 8px 이면 **26×26**, `Toggle` 트랙은 44×**32**다. WCAG 2.5.5(44px)는 만족하지 않고 2.5.8(AA, 24px)만 만족한다. 겹쳐서 오탭이 나는 것보다 낫다는 판단이며, 이 하한을 모르고 새 자리에 쓰면 안 된다 |
+| 17 | 아이콘 획 = 글자 굵기 | 🔸 **의도적 이탈** — 원칙은 400 옆 1.5 / 600 옆 2 를 말하지만 이 레포는 **1.8 고정**이다. 한 줄에 굵기가 다른 아이콘이 섞이면 정돈돼 보이지 않고, 2 는 14~16px 에서 획이 뭉친다. 되돌리지 마라 | ✅ 가드 `test/shared/iconConsistency.test.ts` |
+| 18 | 하나의 SVG, 상태는 CSS | ✅ | ✅ lucide + `currentColor` |
+| 19 | 모션 절제 | ✅ 전역 `prefers-reduced-motion` 리셋 | 🔸 **전역 리셋은 `!important` 라 로컬이 되찾아야 한다.** 무한 애니메이션 11곳 중 되찾은 것은 **2곳**(`MainContentLoader` 스피너 · `Button` 로딩 = 정적 링 + 불투명도 펄스). 남은 **9곳**(`CloudSyncIndicator`·`HeaderOverflowMenu`·`CommunityBoardPage` 2·`CommunityGalleryPage` 2·`ExchangeRateWidget`·`MarketIndexStrip`·`MonthCalendar`)은 reduced-motion 에서 **첫 프레임에 얼어붙는다** — 그 화면이 모션 말고 어떤 단서를 주는지 확인하고 고쳐라 |
 
 ### 모션 토큰
 

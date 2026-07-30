@@ -148,4 +148,12 @@ export const FieldHint = styled.span`
   font-size: ${font.size.sm};
   color: ${color.textMuted};
   font-variant-numeric: tabular-nums;
+  /*
+   * 이 앱에서 가장 많이 읽히는 설명·검증 카피가 여기다(모든 필드의 힌트 + zod 에러 메시지).
+   * 전역 'text-wrap: pretty' 규칙은 'p,li,dd,…' 요소 선택자라 'span' 인 이 자리를 놓친다
+   * ('globalStyles.ts' 본문 블록). DESIGN.md §3 "본문·설명 → pretty" 에 예외는 없다.
+   * ⚠ 'keep-all' 은 걸지 않는다 — 한국어 산문은 음절 단위 줄바꿈이 관례이고, 걸면 좁은 필드에서
+   * 가로로 넘친다. 'balance' 도 제목 전용이다.
+   */
+  text-wrap: pretty;
 `;

@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, motion, radius, space } from '@/shared/styles';
+import { color, font, hitAreaWithin, motion, radius, space } from '@/shared/styles';
 
 /**
  * 라벨 줄만 책임진다.
@@ -32,8 +32,8 @@ export const ToggleHeader = styled.span`
 `;
 
 /**
- * 도움말 버튼. 시각적으로는 18px 원이지만 ::before로 44x44 히트 영역을 깔아
- * 레이아웃을 바꾸지 않으면서 터치 타겟(WCAG 2.5.5)을 확보한다.
+ * 도움말 버튼. 시각적으로는 18px 원이지만 의사요소로 히트 영역을 깔아
+ * 레이아웃을 바꾸지 않으면서 터치 타겟(WCAG 2.5.5)에 다가간다.
  */
 export const HelpButton = styled.button`
   position: relative;
@@ -56,15 +56,14 @@ export const HelpButton = styled.button`
   transition: background-color ${motion.fast} ${motion.ease}, border-color ${motion.fast} ${motion.ease},
     color ${motion.fast} ${motion.ease};
 
-  &::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 44px;
-    height: 44px;
-    transform: translate(-50%, -50%);
-  }
+  /*
+   * 🔴 2026-07-30 까지 무조건 44×44 였다 — 고친 'InputField' 도움말 버튼과 거의 글자 단위로 같은
+   * 코드였고, 여기는 자리가 더 좁다: 이 버튼은 'min-height: 32px' 라벨 줄에 앉고 옆 스위치와의
+   * 간격이 8px('ToggleHeader' gap)뿐이라 44px 히트 영역이 **라벨 텍스트와 스위치 양쪽을 덮었다.**
+   *
+   * 44px 는 상한이 아니라 희망값이다 — 이웃에 닿지 않는 선까지만 넓힌다.
+   */
+  ${hitAreaWithin(space[2])}
 
   &:hover {
     background: ${color.brandSubtle};

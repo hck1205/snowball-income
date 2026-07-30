@@ -1,4 +1,5 @@
 import { forwardRef } from 'react';
+import { prefersReducedMotion } from '@/shared/utils';
 import type { ButtonProps } from './Button.types';
 import { LabelSlot, Spinner, StyledButton } from './Button.styled';
 
@@ -23,6 +24,15 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   },
   ref
 ) {
+  /*
+   * reduced-motion 에서는 링이 돌지 않는다(전역 리셋이 '!important' 로 애니메이션을 죽인다).
+   * 그때 라벨까지 지우면 로딩 중 시각 단서가 **하나도** 남지 않으므로 라벨을 그대로 둔다.
+   * 링은 정적 링 + 불투명도 펄스로 바뀌어 오른쪽 여백에 앉는다(Button.styled.ts 'Spinner' 주석).
+   *
+   * 판정은 로딩 중일 때만 한다 — 앱의 모든 버튼이 매 렌더 'matchMedia' 를 부르지 않게.
+   */
+  const staticBusy = loading && prefersReducedMotion();
+
   return (
     <StyledButton
       ref={ref}
@@ -37,8 +47,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
       aria-busy={loading || undefined}
       {...rest}
     >
-      {loading ? <Spinner aria-hidden="true" /> : null}
-      <LabelSlot isHidden={loading}>
+      {loading ? <Spinner aria-hidden="true" isStatic={staticBusy} /> : null}
+      <LabelSlot isHidden={loading && !staticBusy}>
         {startIcon}
         {children}
       </LabelSlot>

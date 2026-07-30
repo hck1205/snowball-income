@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, media, motion, radius, shadow, space } from '@/shared/styles';
+import { color, font, media, motion, pressable, radius, shadow, space } from '@/shared/styles';
 
 /**
  * 퀵액션 툴바 — "데이터 저장"이 자동저장으로 대체돼 제거된 뒤 보이는 버튼은 [공유] 하나뿐이라 단일 열로
@@ -90,9 +90,12 @@ export const TickerCreateButton = styled.button`
     box-shadow: ${shadow.e2};
   }
 
-  &:active {
-    transform: translateY(1px);
-  }
+  /*
+   * 누름은 공용 믹스인으로. 종전 'transform: translateY(1px)' 은 위 'transition' 목록에
+   * 'transform' 이 없어 **중간에 되돌릴 수 없는 스냅**이었고(누르다 말면 뚝 끊긴다),
+   * 44px 버튼에서 1px 은 지각 한계 아래였다 — 공용 'Button' 에서 고친 것과 같은 부류의 결함이다.
+   */
+  ${pressable}
 
   ${media.down('drawer')} {
     margin-bottom: ${space[5]};
