@@ -1,4 +1,5 @@
-import type { TickerHubViewProps } from './TickerHubPage.types';
+import type { CSSProperties } from 'react';
+import type { HubTickerCard, TickerHubViewProps } from './TickerHubPage.types';
 import {
   CardGrid,
   CardHead,
@@ -20,6 +21,21 @@ import {
   HubTitle,
   TickerCard
 } from './TickerHubPage.styled';
+
+/**
+ * 티커 액센트를 카드에 원시 변수로 얹는다 — 상세 페이지의 `AccentScope` 와 **같은 변수명**이라
+ * 두 화면에서 같은 티커가 같은 색으로 읽힌다. 파생(테마 대응)은 스타일이 한다.
+ * 액센트가 없는 티커는 `undefined` → 카드는 카테고리 색으로 폴백한다.
+ */
+const accentVars = (accent: HubTickerCard['accent']): CSSProperties | undefined =>
+  accent
+    ? ({
+        '--tk-from': accent.from,
+        '--tk-to': accent.to,
+        '--tk-text-light': accent.textLight,
+        '--tk-text-dark': accent.textDark
+      } as CSSProperties)
+    : undefined;
 
 export default function TickerHubView({ viewModel }: TickerHubViewProps) {
   const { categories } = viewModel;
@@ -54,7 +70,7 @@ export default function TickerHubView({ viewModel }: TickerHubViewProps) {
             </CategoryHeading>
             <CardGrid>
               {category.tickers.map((ticker) => (
-                <TickerCard key={ticker.ticker} to={`/ticker/${ticker.slug}`}>
+                <TickerCard key={ticker.ticker} to={`/ticker/${ticker.slug}`} style={accentVars(ticker.accent)}>
                   <CardHead>
                     <CardTicker>{ticker.ticker}</CardTicker>
                     <CardKorean>
@@ -67,6 +83,13 @@ export default function TickerHubView({ viewModel }: TickerHubViewProps) {
                       <CardStatLabel>배당률</CardStatLabel>
                       <CardStatValue>{ticker.dividendYield}</CardStatValue>
                     </CardStat>
+                    {/* 값이 없는 티커는 스탯 자체를 뺀다 — 빈 값·'-'·0% 로 자리를 채우지 않는다. */}
+                    {ticker.expenseRatio ? (
+                      <CardStat>
+                        <CardStatLabel>운용보수</CardStatLabel>
+                        <CardStatValue>{ticker.expenseRatio}</CardStatValue>
+                      </CardStat>
+                    ) : null}
                     <CardStat>
                       <CardStatLabel>지급</CardStatLabel>
                       <CardStatValue>{ticker.frequencyLabel}</CardStatValue>

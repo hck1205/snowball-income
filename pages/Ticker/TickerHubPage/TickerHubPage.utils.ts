@@ -18,7 +18,12 @@ const toCard = (content: TickerContent): HubTickerCard => {
     englishName: facts.englishName,
     tagline: renderTickerContentTemplate(content.heroTagline, facts),
     dividendYield: facts.dividendYieldDisplay,
-    frequencyLabel: facts.frequencyLabel
+    // 값이 없는 티커는 undefined 로 두고 뷰가 스탯을 통째로 뺀다(placeholder 금지).
+    expenseRatio:
+      content.reference.expenseRatioPercent !== undefined ? `${content.reference.expenseRatioPercent}%` : undefined,
+    frequencyLabel: facts.frequencyLabel,
+    // 상세 페이지와 **같은 출처**의 액센트를 그대로 넘긴다(허브에서 새 색을 만들지 않는다).
+    accent: content.accent
   };
 };
 

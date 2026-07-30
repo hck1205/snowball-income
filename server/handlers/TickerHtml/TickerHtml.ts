@@ -198,9 +198,19 @@ const renderRelatedTickers = (related: TickerRelatedLink[]): string => {
   return `<section id="related"><h2>관련 티커</h2><ul>${items}</ul></section>`;
 };
 
+/**
+ * 히어로 = h1 + 한 줄 소개 + **시뮬레이터로 가는 링크**.
+ *
+ * 마지막 줄이 이 페이지의 최종 목적지다. 앱(`TickerDetailPage.view.tsx` 의 `PrimaryCta`)에만 넣으면
+ * **크롤러는 여전히 막다른 길을 본다** — 이 핸들러가 그리는 HTML 이 검색엔진이 읽는 전부다.
+ * 두 곳의 라벨·목적지를 같게 유지하라.
+ *
+ * ⚠ 티커를 시뮬레이터에 프리필하는 배선은 아직 없다 — 루트(`/`)로만 보낸다.
+ */
 const renderHero = (content: TickerContent, facts: TickerEngineFacts): string =>
   `<h1>${escapeHtmlText(facts.ticker)} — ${escapeHtmlText(facts.koreanName)} (${escapeHtmlText(facts.englishName)})</h1>` +
-  `<p class="hero-tagline">${renderText(content.heroTagline, facts)}</p>`;
+  `<p class="hero-tagline">${renderText(content.heroTagline, facts)}</p>` +
+  `<p class="hero-cta"><a href="/">${escapeHtmlText(facts.ticker)}로 계산해 보기</a></p>`;
 
 /**
  * `FinancialProduct` — 엔진 6필드(가격 제외 배당률·성장률·기대수익·주기)는 `additionalProperty` 로

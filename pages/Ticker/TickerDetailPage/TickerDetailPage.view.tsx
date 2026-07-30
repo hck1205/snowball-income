@@ -31,6 +31,7 @@ import {
   Panel,
   PanelHeading,
   Paragraph,
+  PrimaryCta,
   HeroReveal,
   RelatedCard,
   RelatedGrid,
@@ -138,6 +139,13 @@ export default function TickerDetailView({ viewModel }: TickerDetailViewProps) {
         </HeroStatGrid>
         <HeroReveal $delay={520}>
           <CtaRow>
+            {/*
+              이 페이지의 최종 목적지. 허브 lede 가 "바로 시뮬레이터로 가져가 계산해 보세요"라고
+              약속하는데 두 지면 어디에도 링크가 없었다(2026-07-30). 크롤러가 읽는 서버 렌더
+              HTML(server/handlers/TickerHtml)에도 같은 링크가 있어야 하므로 둘을 함께 고쳤다.
+              ⚠ 티커 프리필은 아직 배선이 없다 — 시뮬레이터 루트로만 보낸다(별도 승인 사안).
+            */}
+            <PrimaryCta to="/">{viewModel.ticker}로 계산해 보기</PrimaryCta>
             <SecondaryCta to="/ticker/all">다른 티커 보기</SecondaryCta>
           </CtaRow>
         </HeroReveal>

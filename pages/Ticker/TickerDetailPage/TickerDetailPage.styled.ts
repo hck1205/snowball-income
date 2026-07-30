@@ -1,7 +1,10 @@
 import { keyframes } from '@emotion/react';
 import styled from '@emotion/styled';
 import { Link } from 'react-router-dom';
-import { appHeaderHeight, color, font, media, motion, radius, space } from '@/shared/styles';
+import { appHeaderHeight, color, elevation, font, media, motion, radius, space } from '@/shared/styles';
+
+/** 섹션 제목 왼쪽 액센트 레일 폭. 얇은 막대라 반경을 주지 않는다(radiusShape 가드 §②). */
+const RAIL = '4px';
 
 /* -------------------------------------------------------------------------- */
 /* 액센트 스코프 + 스크롤 리빌 공통                                               */
@@ -36,11 +39,20 @@ export const AccentScope = styled.div`
     @media (prefers-color-scheme: dark) {
       --tk-text: var(--tk-text-dark);
     }
-    /* 팔레트 시스템의 강제 테마 오버라이드(data-theme)와도 정합을 맞춘다. */
-    :root[data-theme='light'] & {
+    /*
+     * 팔레트 시스템의 강제 테마 오버라이드(data-theme)와도 정합을 맞춘다.
+     *
+     * 🔴 조상 선택자는 반드시 html[...] 로 쓴다 — :root[...] & 는 **동작하지 않는다.**
+     * stylis 는 콜론으로 시작하는 중첩 선택자를 "부모에 붙는 의사선택자"로 보고 부모를 앞에
+     * 덧붙이는데, 그 결과가 .css-x[data-accent]:root[data-theme='dark'] .css-x[data-accent] 라
+     * **영원히 매치되지 않는다**(2026-07-30 실측: 앱 토글로 강제 다크를 켜면 액센트 텍스트가
+     * 라이트 값으로 남아 대비가 ≈2.0:1 까지 떨어졌다). html 은 콜론으로 시작하지 않아
+     * 그대로 조상 선택자로 나간다. 허브 카드(TickerHubPage.styled.ts)가 같은 처방을 쓴다.
+     */
+    html[data-theme='light'] & {
       --tk-text: var(--tk-text-light);
     }
-    :root[data-theme='dark'] & {
+    html[data-theme='dark'] & {
       --tk-text: var(--tk-text-dark);
     }
   }
@@ -65,6 +77,16 @@ const revealIn = keyframes`
   }
 `;
 
+/** 목차 진행 레일 — 스크롤 타임라인에 매여 위에서 아래로 자란다(스크롤 진행도 = 애니메이션 진행도). */
+const scrollRail = keyframes`
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+`;
+
 /**
  * 히어로(첫 화면·above-the-fold) 요소용 **시간 기반 마운트 리빌**.
  *
@@ -73,7 +95,8 @@ const revealIn = keyframes`
  * `$delay` stagger 한다 — CSS 애니메이션이라 JS 트리거가 필요 없고 전 브라우저에서 동작한다.
  */
 export const HeroReveal = styled.div<{ $delay?: number }>`
-  animation: ${revealIn} 900ms ${REVEAL_EASE} both;
+  /* 700ms — 첫인상은 남기되 읽기를 덜 지연시킨다(구 900ms 에서 단축). */
+  animation: ${revealIn} 700ms ${REVEAL_EASE} both;
   animation-delay: ${({ $delay = 0 }) => $delay}ms;
 
   @media (prefers-reduced-motion: reduce) {
@@ -96,14 +119,17 @@ export const Hero = styled.section`
   padding: clamp(20px, 3vw, 32px);
   border: 1px solid var(--tk-border);
   border-radius: ${radius.xl};
+  /* 허브가 파스텔 히어로 그라디언트를 쓰는 자리 — 상세는 **티커별 액센트 틴트**를 쓴다.
+     49개 페이지가 같은 템플릿을 쓰므로 여기서 얼굴이 갈려야 한다. */
   background: var(--tk-soft);
   overflow: hidden;
 
+  /* ⚠ 얇은 막대(6px)라 반경을 주지 않는다 — 부모 overflow 가 잘라낸다(radiusShape 가드 §②). */
   &::before {
     content: '';
     position: absolute;
     inset: 0 0 auto 0;
-    height: 4px;
+    height: 6px;
     background: var(--tk-gradient);
   }
 `;
@@ -151,8 +177,37 @@ export const TickerSymbol = styled.span`
   font-weight: ${font.weight.extrabold};
   letter-spacing: -0.04em;
   line-height: ${font.leading.tight};
-  color: ${color.text};
   ${font.numeric};
+
+  /*
+   * 티커별 액센트 그라디언트를 **심볼 글자에** 입힌다.
+   * 검색으로 처음 들어온 사람이 첫 화면에서 기억할 한 지점이고, 티커마다 색이 달라 같은 템플릿을
+   * 쓰는 49개 페이지가 서로 다른 얼굴을 갖는다. 대상은 **이름(레이블)** 이지 숫자가 아니다 —
+   * "숫자에 accent 금지" 규칙에 걸리지 않는다.
+   *
+   * ⚠ 'background-clip: text' 는 폴백 3종이 없으면 글자가 통째로 사라진다(워드마크에서 겪은 사고).
+   *   ①'@supports not' ②'forced-colors: active'(고대비 모드) ③'@media print'.
+   */
+  background-image: var(--tk-gradient);
+  /* 밝은 끝을 글자 밖으로 밀어 대비를 확보한다(토큰이 완성된 그라디언트 문자열이라 stop 은 못 옮긴다). */
+  background-size: 135%;
+  background-position: 0 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+
+  @supports not ((background-clip: text) or (-webkit-background-clip: text)) {
+    background-image: none;
+    color: ${color.text};
+  }
+  @media (forced-colors: active) {
+    background-image: none;
+    color: CanvasText;
+  }
+  @media print {
+    background-image: none;
+    color: ${color.text};
+  }
 `;
 
 export const TickerNames = styled.span`
@@ -248,17 +303,43 @@ export const CtaRow = styled.div`
   align-items: center;
 `;
 
-export const SecondaryCta = styled(Link)`
+const ctaBase = `
   display: inline-flex;
   align-items: center;
   gap: ${space[2]};
   padding: ${space[3]} ${space[5]};
   border-radius: ${radius.pill};
-  background: transparent;
   color: var(--tk-text);
   font-size: ${font.size.md};
   font-weight: ${font.weight.semibold};
   text-decoration: none;
+`;
+
+/**
+ * 이 페이지의 **최종 목적지** — 시뮬레이터로 넘어가는 링크.
+ *
+ * 허브 lede 가 "바로 시뮬레이터로 가져가 내 조건에서 계산해 보세요"라고 약속하는데 두 지면 어디에도
+ * 그 링크가 없었다(2026-07-30 감사). SEO 유입 = 첫 방문자 비중이 가장 높은 지면이라 여기가 비면
+ * 페이지 전체가 막다른 길이 된다.
+ *
+ * 채운(soft) 버튼인 이유: 히어로에서 위계를 만드는 유일한 수단이고, `--tk-text` × `--tk-soft` 는
+ * 이 페이지가 이미 여러 곳(StatHighlight·활성 목차)에서 쓰는 **대비가 검증된 짝**이다.
+ * 티커 액센트를 solid 로 채우고 그 위에 흰 글자를 얹는 방식은 티커마다 색이 달라 대비를 보장할 수 없다.
+ */
+export const PrimaryCta = styled(Link)`
+  ${ctaBase}
+  background: var(--tk-soft);
+  border: 1px solid color-mix(in srgb, var(--tk-text) 55%, transparent);
+
+  &:hover {
+    background: color-mix(in srgb, var(--tk-text) 18%, ${color.surface});
+  }
+`;
+
+/** 보조 액션(다른 티커 보기) — 위 primary 와 위계를 가르기 위해 테두리만 남긴다. */
+export const SecondaryCta = styled(Link)`
+  ${ctaBase}
+  background: transparent;
   border: 1px solid var(--tk-border);
 
   &:hover {
@@ -304,6 +385,41 @@ export const TocAside = styled.nav`
     padding: ${space[2]} 0;
     background: ${color.surfaceGlassFallback};
     border-bottom: 1px solid ${color.border};
+  }
+
+  /*
+   * 데스크톱에서는 목차를 **카드**로 올린다.
+   * 구 목차는 배경도 테두리도 없어 본문 옆 여백처럼 읽혔고, 그래서 "이 글이 6장으로 나뉘어 있다"는
+   * 사실이 첫 화면에서 전달되지 않았다. 면을 주면 목차가 먼저 눈에 들어온다.
+   */
+  ${media.up('layout')} {
+    padding: ${space[4]};
+    border: 1px solid ${color.border};
+    border-radius: ${radius.lg};
+    background: ${color.surfaceRaised};
+    box-shadow: ${elevation[1]};
+    overflow: hidden;
+
+    /*
+     * 읽은 분량 진행 레일 — 문서 스크롤 진행도에 매인다(JS 0). 목차 왼쪽 끝에 붙어 자란다.
+     * ⚠ 얇은 막대라 반경을 주지 않는다(radiusShape §②). 미지원 브라우저에서는 그냥 꽉 찬 레일.
+     */
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 3px;
+      background: var(--tk-gradient);
+      transform-origin: 0 0;
+
+      @supports (animation-timeline: scroll(root block)) {
+        animation: ${scrollRail} linear both;
+        animation-timeline: scroll(root block);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        animation: none;
+      }
+    }
   }
 `;
 
@@ -365,6 +481,22 @@ export const TocButton = styled.button<{ $active: boolean }>`
     padding: ${space[1]} ${space[3]};
     border-radius: ${radius.pill};
     border: 1px solid ${({ $active }) => ($active ? 'var(--tk-solid)' : color.border)};
+  }
+
+  /*
+   * 데스크톱에서도 활성 항목을 **액센트로 채운 pill** 로(모바일 칩과 같은 처방).
+   * 구 표시는 옅은 배경 + 2px 왼쪽 선뿐이라 스크롤스파이가 움직여도 눈에 띄지 않았다.
+   */
+  ${media.up('layout')} {
+    border-left: none;
+    border-radius: ${radius.md};
+    ${({ $active }) =>
+      $active
+        ? `
+      background: var(--tk-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tk-text) 45%, transparent);
+      `
+        : ''}
   }
 `;
 
@@ -440,6 +572,10 @@ export const SectionHeading = styled.h2`
   letter-spacing: -0.02em;
   line-height: ${font.leading.tight};
   color: ${color.text};
+
+  /* 티커 액센트 레일 — 얇은 막대라 반경 없음(radiusShape 가드 §②). */
+  border-left: ${RAIL} solid var(--tk-solid);
+  padding-left: calc(${RAIL} * 2.5);
 `;
 
 export const Paragraph = styled.p`
@@ -514,9 +650,10 @@ export const Panel = styled.section`
   display: grid;
   gap: ${space[4]};
   padding: clamp(20px, 3vw, 28px);
-  border-radius: ${radius.lg};
+  border-radius: ${radius.xl};
   border: 1px solid ${color.border};
-  background: ${color.surface};
+  background: ${color.surfaceRaised};
+  box-shadow: ${elevation[1]};
 `;
 
 export const PanelHeading = styled.h2`
@@ -538,12 +675,20 @@ export const FactGrid = styled.dl`
   }
 `;
 
+/**
+ * 참고 지표 한 칸 — 떠 있는 패널(`Panel`) **안**에 앉는 타일이라 면색이 `surface` 다
+ * (패널이 `surfaceRaised` 라, 타일이 한 단계 내려가야 겹이 읽힌다).
+ *
+ * ⚠ 테두리는 `border` 가 아니라 **inset box-shadow** 로 그린다 — 박스 크기를 1px 도 바꾸지 않아
+ * 위 격자의 트랙 계산에 영향을 주지 않는다(`border` 는 자리를 먹는다).
+ */
 export const FactRow = styled.div`
   display: grid;
   gap: 2px;
   padding: ${space[3]};
   border-radius: ${radius.md};
-  background: ${color.surfaceMuted};
+  box-shadow: inset 0 0 0 1px ${color.border};
+  background: ${color.surface};
 `;
 
 export const FactLabel = styled.dt`
@@ -594,12 +739,23 @@ export const FaqList = styled.div`
 export const FaqItem = styled.details`
   border: 1px solid ${color.border};
   border-radius: ${radius.md};
-  background: ${color.surfaceMuted};
+  background: ${color.surface};
   overflow: hidden;
+  position: relative;
 
   &[open] {
     background: ${color.surface};
     border-color: ${color.borderStrong};
+  }
+
+  /* 펼친 항목만 왼쪽 액센트 레일로 표시 — 어디를 열어 뒀는지가 한눈에.
+     ⚠ 얇은 막대라 반경을 주지 않는다(부모 overflow 가 잘라낸다 — radiusShape 가드 §②). */
+  &[open]::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: var(--tk-gradient);
   }
 `;
 
@@ -656,7 +812,7 @@ export const RelatedCard = styled(Link)`
   padding: ${space[4]};
   border-radius: ${radius.md};
   border: 1px solid ${color.border};
-  background: ${color.surfaceMuted};
+  background: ${color.surface};
   text-decoration: none;
   transition: border-color ${motion.fast} ${motion.ease}, background ${motion.fast} ${motion.ease};
 
@@ -673,7 +829,7 @@ export const RelatedStatic = styled.div`
   padding: ${space[4]};
   border-radius: ${radius.md};
   border: 1px dashed ${color.border};
-  background: ${color.surfaceMuted};
+  background: ${color.surface};
 `;
 
 export const RelatedTicker = styled.span`
