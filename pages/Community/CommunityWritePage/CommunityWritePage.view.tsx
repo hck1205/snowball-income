@@ -96,7 +96,7 @@ export default function CommunityWriteView({ viewModel }: CommunityWriteViewProp
   if (composer.mode === 'edit') {
     if (composer.loadState === 'loading') return <EmptyState title="불러오는 중…" />;
     if (composer.loadState === 'forbidden')
-      return <EmptyState title="이 글을 수정할 권한이 없어요" subtitle={COMMUNITY_COPY.detail.notFoundTitle} />;
+      return <EmptyState title="이 글을 수정할 권한이 없습니다" subtitle={COMMUNITY_COPY.detail.notFoundTitle} />;
     if (composer.loadState === 'notfound')
       return (
         <EmptyState

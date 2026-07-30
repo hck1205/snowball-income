@@ -81,7 +81,7 @@ describe('CommentSection — 표시', () => {
 
   it('빈 상태(글 없음) 안내', () => {
     renderSection({ comments: makeComments({ totalCount: 0, threads: [] }) });
-    expect(screen.getByText('첫 댓글을 남겨보세요.')).toBeInTheDocument();
+    expect(screen.getByText('첫 댓글을 남겨 주세요.')).toBeInTheDocument();
   });
 
   it('로딩/에러 상태', () => {
@@ -96,7 +96,7 @@ describe('CommentSection — 표시', () => {
         onRequireLogin={() => undefined}
       />
     );
-    expect(screen.getByRole('alert')).toHaveTextContent('댓글을 불러오지 못했어요');
+    expect(screen.getByRole('alert')).toHaveTextContent('댓글을 불러오지 못했습니다');
   });
 
   it('대댓글 1단계를 렌더하고, 대댓글에도 답글 버튼을 둔다 (같은 스레드로 이어짐)', () => {
@@ -200,7 +200,7 @@ describe('CommentSection — 사용자 행동', () => {
 
     await userEvent.click(screen.getByRole('button', { name: '삭제' }));
 
-    const dialog = screen.getByRole('dialog', { name: '댓글을 삭제할까요?' });
+    const dialog = screen.getByRole('dialog', { name: '댓글을 삭제하시겠습니까?' });
     await userEvent.click(within(dialog).getByRole('button', { name: '삭제' }));
 
     expect(remove).toHaveBeenCalledWith('c-mine');
@@ -253,7 +253,7 @@ describe('CommentSection — 등록 실패 표면화', () => {
       comments: makeComments({
         totalCount: 1,
         threads: [thread(root)],
-        submitError: '댓글을 등록하지 못했어요. 잠시 후 다시 시도해 주세요.'
+        submitError: '댓글을 등록하지 못했습니다. 잠시 후 다시 시도해 주세요.'
       })
     });
 
@@ -262,17 +262,17 @@ describe('CommentSection — 등록 실패 표면화', () => {
     const replyBox = screen.getByRole('textbox', { name: '답글' });
     const form = replyBox.closest('form');
     expect(form).not.toBeNull();
-    expect(within(form as HTMLElement).getByRole('alert')).toHaveTextContent('등록하지 못했어요');
+    expect(within(form as HTMLElement).getByRole('alert')).toHaveTextContent('등록하지 못했습니다');
     // 루트 컴포저 쪽엔 중복 표시하지 않는다 (alert는 폼 안의 1개만)
     expect(screen.getAllByRole('alert')).toHaveLength(1);
   });
 
   it('삭제/좋아요 실패(actionError)도 alert로 알린다', () => {
     renderSection({
-      comments: makeComments({ actionError: '댓글을 삭제하지 못했어요. 잠시 후 다시 시도해 주세요.' })
+      comments: makeComments({ actionError: '댓글을 삭제하지 못했습니다. 잠시 후 다시 시도해 주세요.' })
     });
 
-    expect(screen.getByRole('alert')).toHaveTextContent('댓글을 삭제하지 못했어요');
+    expect(screen.getByRole('alert')).toHaveTextContent('댓글을 삭제하지 못했습니다');
   });
 });
 

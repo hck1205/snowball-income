@@ -301,7 +301,7 @@ describe('택1 피커 — 선택 즉시 첨부 (1단계)', () => {
     expect(screen.getByRole('radio', { name: /안정 배당/ })).toHaveAttribute('aria-checked', 'true');
     expect(screen.getByRole('radio', { name: /공격적 성장/ })).toHaveAttribute('aria-checked', 'false');
     // 첨부 안내가 노출된다
-    expect(screen.getByText(/첨부 시점의 설정이 저장돼요/)).toBeInTheDocument();
+    expect(screen.getByText(/첨부 시점의 설정이 저장됩니다/)).toBeInTheDocument();
   });
 });
 
@@ -316,7 +316,7 @@ describe('택1 피커 — 무효 시나리오 비활성 카드', () => {
           id: 'c2',
           name: '실험용',
           selectable: false,
-          disabledReason: '시뮬레이션 설정이 비어 있어요. 시뮬레이터에서 먼저 구성해주세요.'
+          disabledReason: '시뮬레이션 설정이 비어 있습니다. 시뮬레이터에서 먼저 구성해주세요.'
         })
       ]
     };
@@ -325,7 +325,7 @@ describe('택1 피커 — 무효 시나리오 비활성 카드', () => {
 
     const disabled = screen.getByRole('radio', { name: /실험용/ });
     expect(disabled).toHaveAttribute('aria-disabled', 'true');
-    expect(within(disabled).getByText(/첨부할 수 없어요/)).toBeInTheDocument();
+    expect(within(disabled).getByText(/첨부할 수 없습니다/)).toBeInTheDocument();
 
     // 비활성 카드를 눌러도 첨부되지 않는다
     await userEvent.click(disabled);
@@ -339,7 +339,7 @@ describe('택1 피커 — 빈 상태', () => {
     renderView(baseVM(baseComposer(), { status: 'empty' }));
     await enableAttach();
 
-    expect(screen.getByText('아직 첨부할 시뮬레이션이 없어요')).toBeInTheDocument();
+    expect(screen.getByText('아직 첨부할 시뮬레이션이 없습니다')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: '시뮬레이터로 가기' })).toHaveAttribute('href', '/');
     expect(screen.queryByRole('radiogroup')).not.toBeInTheDocument();
   });
@@ -349,7 +349,7 @@ describe('택1 피커 — 빈 상태', () => {
     await enableAttach();
 
     expect(screen.queryByRole('radiogroup')).not.toBeInTheDocument();
-    expect(screen.queryByText('아직 첨부할 시뮬레이션이 없어요')).not.toBeInTheDocument();
+    expect(screen.queryByText('아직 첨부할 시뮬레이션이 없습니다')).not.toBeInTheDocument();
   });
 });
 
@@ -365,7 +365,7 @@ describe('첨부됨 — 외부 첨부(수정 모드)', () => {
     // 첨부가 있으면 토글이 자동으로 켜진다
     expect(attachToggle()).toBeChecked();
     expect(screen.getByText('티커 2개 · 초기 ₩10,000,000 · 월 ₩1,000,000')).toBeInTheDocument();
-    expect(screen.getByText(/첨부 시점의 설정이 저장돼요/)).toBeInTheDocument();
+    expect(screen.getByText(/첨부 시점의 설정이 저장됩니다/)).toBeInTheDocument();
     // 외부 첨부 요약 카드는 피커를 대체한다(해제는 카드 버튼이 아니라 헤더 토글)
     expect(screen.queryByRole('radiogroup')).not.toBeInTheDocument();
 
