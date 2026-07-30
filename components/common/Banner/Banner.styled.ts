@@ -86,6 +86,12 @@ export const BannerBody = styled.div`
   font-size: ${font.size.sm};
   line-height: ${font.leading.relaxed};
   overflow-wrap: anywhere;
+  /*
+   * 배너 본문은 'div' 라 전역 'text-wrap: pretty'(요소 선택자 'p,li,dd,…')를 못 받는다.
+   * 안쪽 'p' 는 받지만 배너는 문자열을 직접 넣는 호출부가 많다 — 여기서 한 번에 건다.
+   * ⚠ 'keep-all' 금지(한국어 산문은 음절 단위 줄바꿈이 관례 + 좁은 카드 가로 넘침).
+   */
+  text-wrap: pretty;
 
   p {
     margin: 0;

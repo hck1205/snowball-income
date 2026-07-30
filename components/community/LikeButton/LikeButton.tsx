@@ -1,6 +1,7 @@
 import { COMMUNITY_COPY } from '@/shared/constants/community';
 import { formatCompactCount } from '@/shared/lib/community';
 import { HeartIcon } from '@/components/community/CommunityIcons';
+import { ICON } from '@/shared/styles';
 import type { LikeButtonProps } from './LikeButton.types';
 import { LikeRoot } from './LikeButton.styled';
 
@@ -18,7 +19,8 @@ export default function LikeButton({ liked, count, onToggle, disabled, size = 's
       disabled={disabled}
       onClick={onToggle}
     >
-      <HeartIcon size={size === 'md' ? 18 : 15} filled={liked} />
+      {/* 15 는 계단 밖이었다(2026-07-30 수정) — 삼항 안에 숨어 있어 가드 테스트가 못 봤다. */}
+      <HeartIcon size={size === 'md' ? ICON.lg : ICON.sm} filled={liked} />
       {formatCompactCount(count)}
     </LikeRoot>
   );

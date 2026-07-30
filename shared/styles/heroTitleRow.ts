@@ -45,49 +45,67 @@ export const sectionTitleFontSize = `clamp(${font.size.lg}, calc(0.86rem + 0.56v
 /**
  * 라인박스 중심 ↔ 글자 잉크 중심의 어긋남(글자 크기 대비 비율). 아이콘을 이만큼 **위로** 올린다.
  *
- * 왜 어긋나는가: 한글에는 사실상 디센더가 없는데(잉크 bbox −104~750 / 1000upm) 폰트 메타데이터는
- * 디센더 공간을 크게 잡는다(헤딩 서체 `font.display` = 원본 Gmarket Sans 의 OS/2 `usWinDescent` 350,
- * 그리고 **Chrome/Windows 는 이 win 메트릭을 콘텐츠 영역으로 쓴다**). 그래서 라인박스 중심
- * (베이스라인 +0.217em)이 잉크 중심(+0.323em)보다 **0.106em 아래**에 있고, `align-items: center` 로
- * 정확히 정렬해도 아이콘이 그만큼 낮게 앉아 보인다.
+ * 🔴 **헤딩 서체(`font.display`) 전용 상수다. 본문 서체에 쓰면 오히려 틀어진다** — 아래 실측 참고.
+ *
+ * 왜 어긋나는가: 한글에는 사실상 디센더가 없는데 폰트 메타데이터는 디센더 공간을 크게 잡는다
+ * (`font.display` = 원본 Gmarket Sans 의 OS/2 `usWinDescent` 350, 그리고 **Chrome/Windows 는 이 win
+ * 메트릭을 콘텐츠 영역으로 쓴다**). 그래서 라인박스 중심이 잉크 중심보다 아래에 있고,
+ * `align-items: center` 로 정확히 정렬해도 아이콘이 그만큼 낮게 앉아 보인다.
  *
  * 🔴 **`line-height` 로는 못 고친다** — 콘텐츠 영역의 중심은 (ascent−descent)/2 로 정해져
  * `line-height` 와 무관하다. 늘리면 위아래로 같이 벌어질 뿐 중심은 그대로다.
  *
- * 0.106 대신 0.1 을 쓰는 이유: 히어로 clamp 양 끝(20px·30px)에서 정확히 2px·3px 이 되어 배지 테두리가
- * 반픽셀에 걸리지 않는다(잔차 0.2px 이하 — 눈으로 구분 불가).
+ * **실측(2026-07-30, 헤드리스 크롬 + `TextMetrics`, `Snowball Display` 800 / 30px).** 실제 히어로
+ * 제목 7개로 잰 어긋남: 목표 달성 0.0875 · 내 포트폴리오/포트폴리오 갤러리/게시판 0.0953 ·
+ * 배당 재투자 시뮬레이터/ETF 소개 0.1031 · 배당 캘린더 0.1187 → **평균 0.0997**. 문자열마다
+ * 잉크 디센트가 달라 ±0.015em 폭으로 흔들리므로 한 값으로 고정하는 편이 옳고, `0.1` 이 그 평균이다
+ * (덤으로 히어로 clamp 양 끝 20px·30px 에서 정확히 2px·3px 이라 배지 테두리가 반픽셀에 안 걸린다).
  *
- * ⚠ 헤딩/본문 서체를 바꾸면 이 값을 **다시 재야 한다**. 재는 법(눈대중 금지): 헤드리스 크롬 + CDP 로
- * 글자의 `TextMetrics`(fontBoundingBox·actualBoundingBox)에서 잉크 중심을, 아이콘의
- * `getBoundingClientRect()` 로 아이콘 중심을 구해 차이를 본다. 목표는 0.0px.
+ * ⚠ **헤딩 서체를 바꾸면 다시 재야 한다.** 재는 법(눈대중 금지): 헤드리스 크롬 + CDP 로
+ * `measureText` 의 `fontBoundingBoxAscent/Descent`(라인박스 중심)와
+ * `actualBoundingBoxAscent/Descent`(잉크 중심)를 구해 차를 본다 —
+ * `shift = (actualAsc − actualDesc)/2 − (fontAsc − fontDesc)/2`, 전부 글자 크기로 나눈 값.
  */
-const ICON_OPTICAL_SHIFT = 0.1;
+const DISPLAY_ICON_OPTICAL_SHIFT = 0.1;
 
 /**
- * **한 줄** 조합(아이콘 + 한 줄 라벨)의 아이콘 보정. 부모는 `align-items: center` 여야 한다.
+ * **한 줄** 조합(헤딩 + 그 옆 아이콘)의 아이콘 보정. 부모는 `align-items: center` 여야 한다.
+ *
+ * 🔴 **헤딩 서체(`font.display`)로 그린 글자 옆에서만 쓴다.** 본문 서체(`font.sans` = Wanted Sans)는
+ * 라인박스 중심과 잉크 중심이 사실상 같아(실측 ±0.004em) 보정이 필요 없다 — 거기에 이 유틸을 쓰면
+ * 없던 오차 1.2px 을 만든다(아래 `iconFirstLineAlign` 주석의 실측표).
+ *
  * `textFontSize` 는 **글자 크기**를 넘긴다 — 아이콘 자신의 `em` 으로 쓰면 안 된다(아이콘 폰트 크기와
  * 제목 폰트 크기는 대개 다르다. 히어로에서 배지 16px vs 제목 30px).
  */
 export const iconOpticalAlign = (textFontSize: string) => `
   flex: 0 0 auto;
-  transform: translateY(calc(${textFontSize} * -${ICON_OPTICAL_SHIFT}));
+  transform: translateY(calc(${textFontSize} * -${DISPLAY_ICON_OPTICAL_SHIFT}));
 `;
 
 /** 히어로 제목 옆 아이콘 배지 — 위 유틸을 히어로 제목 크기로 적용한 것. */
-export const heroIconOpticalAlign = `
-  flex: 0 0 auto;
-  transform: translateY(calc(${heroTitleFontSize} * -${ICON_OPTICAL_SHIFT}));
-`;
+export const heroIconOpticalAlign = iconOpticalAlign(heroTitleFontSize);
 
 /**
  * **여러 줄** 조합(아이콘 + 여러 줄 설명문)의 아이콘 보정.
  *
  * 여러 줄 문구에 `align-items: center` 를 쓰면 아이콘이 **문단 한가운데**로 내려간다 — 아이콘은
- * 문단이 아니라 **첫 줄**에 붙어야 한다. 그래서 부모는 `align-items: flex-start` 로 두고, 아이콘을
- * ①첫 줄 라인박스 중심까지 내린 뒤 ②위의 잉크 보정만큼 다시 올린다.
+ * 문단이 아니라 **첫 줄**에 붙어야 한다. 그래서 부모는 `align-items: flex-start` 로 두고 아이콘을
+ * 첫 줄 라인박스 중심까지 내린다.
  *
  * 손으로 `margin-top: 2px` 를 적어 두던 자리를 대신한다. 그 상수는 어느 글자 크기·행간에서 잰
  * 값인지 아무도 모르고, 크기가 바뀌면 조용히 틀려진다.
+ *
+ * 🔴 **잉크 보정(`DISPLAY_ICON_OPTICAL_SHIFT`)을 여기에 쓰지 마라 — 2026-07-30 실측으로 걷어냈다.**
+ * 이 유틸의 소비처는 전부 **본문 서체**(`font.sans` = Wanted Sans, 12px/1.4)인데 그 서체는
+ * 라인박스 중심과 잉크 중심이 사실상 겹친다(실측 어긋남 **±0.0039em ≈ 0.05px @12px**,
+ * `fontBoundingBox 0.952/0.241` vs `actualBoundingBox 0.797/0.094`). 헤딩 서체의 0.1em 을 그대로
+ * 가져다 쓰면 아이콘을 1.2px 헛으로 들어올린다. 같은 DOM 을 세 벌 그려 잰 잔차(아이콘 중심 −
+ * 첫 줄 잉크 중심):
+ *
+ *   A 구 유틸(margin + translateY −0.1em)  **−0.92px** (아이콘이 위로 뜸)
+ *   B 현행(margin 만)                       **+0.28px**
+ *   C 옛 `margin-top: 2px`                  **+1.89px**
  *
  * @param textFontSize 본문 글자 크기(CSS 길이). 예: `font.size.xs`
  * @param leading      본문 `line-height` 배수. 예: `font.leading.snug`
@@ -97,5 +115,4 @@ export const iconFirstLineAlign = (textFontSize: string, leading: number, iconSi
   flex: 0 0 auto;
   align-self: flex-start;
   margin-top: calc((${textFontSize} * ${leading} - ${iconSize}px) / 2);
-  transform: translateY(calc(${textFontSize} * -${ICON_OPTICAL_SHIFT}));
 `;

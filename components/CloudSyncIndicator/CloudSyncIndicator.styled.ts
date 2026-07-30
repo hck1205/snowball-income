@@ -42,17 +42,45 @@ export const BadgeRoot = styled.span<{ tone: CloudSyncTone }>`
   }
 `;
 
+/**
+ * '저장 중' 아이콘의 회전.
+ *
+ * 🔴 이 자리는 **모션이 유일한 시각 채널**이다 — 헤더 변형의 저장 중 상태는 라벨을 `SrOnly` 로
+ * 감추고(위 `HeaderRoot` 주석: 전이 상태는 아이콘만) 배지 변형은 아예 16px 아이콘 하나다.
+ * 그래서 reduced-motion 에서 회전이 죽으면 남는 것은 **멈춘 새로고침 아이콘 한 개**뿐이고,
+ * 그건 "저장 중"이 아니라 "누를 수 있는 새로고침 버튼"으로 읽힌다.
+ *
+ * 그런데 구 코드는 회전을 `no-preference` 안에만 두어 reduced-motion 에서 **아무 것도 남기지
+ * 않았다.** 전역 리셋(`globalStyles.ts`)이 `animation-duration`·`animation-iteration-count` 를
+ * `!important` 로 죽이므로 여기 바깥에 옮겨 적어도 결과는 같다 — 되찾으려면 그 두 속성을
+ * **`!important` 로 회수**해야 한다(`MainContentLoader.styled.ts` 가 확립한 패턴).
+ *
+ * 되찾되 **회전이 아니라 불투명도 펄스**로 바꾼다(선례 `Button.styled.ts` 의 `isStatic` 경로):
+ * 움직임이 없어 전정계에 안전하면서 "아직 일하는 중"이라는 단서는 남는다.
+ * 라벨을 펴는 대안은 쓸 수 없다 — 4초 디바운스마다 도는 '저장 중'이 폭을 차지하면 헤더가
+ * 주기적으로 출렁인다(2026-07-29 확정 결정, 위 `HeaderSlot` 주석).
+ */
 export const SpinAnim = styled.span`
   display: inline-flex;
-
-  @media (prefers-reduced-motion: no-preference) {
-    animation: cloud-sync-spin 0.9s linear infinite;
-  }
+  animation: cloud-sync-spin 0.9s linear infinite;
 
   @keyframes cloud-sync-spin {
     to {
       transform: rotate(360deg);
     }
+  }
+
+  @keyframes cloud-sync-busy-pulse {
+    50% {
+      opacity: 0.35;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation-name: cloud-sync-busy-pulse;
+    animation-timing-function: ${motion.ease};
+    animation-duration: 1.4s !important;
+    animation-iteration-count: infinite !important;
   }
 `;
 

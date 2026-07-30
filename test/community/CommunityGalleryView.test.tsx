@@ -62,7 +62,7 @@ describe('CommunityGalleryView — 상태별 표시', () => {
     const retry = vi.fn();
     renderView(baseVM({ status: 'error', retry }));
 
-    expect(screen.getByRole('alert')).toHaveTextContent('목록을 불러오지 못했어요');
+    expect(screen.getByRole('alert')).toHaveTextContent('목록을 불러오지 못했습니다');
     await userEvent.click(screen.getByRole('button', { name: '다시 시도' }));
     expect(retry).toHaveBeenCalledTimes(1);
   });
@@ -71,7 +71,7 @@ describe('CommunityGalleryView — 상태별 표시', () => {
     const onWrite = vi.fn();
     renderView(baseVM({ status: 'empty', onWrite }));
 
-    expect(screen.getByText('아직 공유된 시나리오가 없어요')).toBeInTheDocument();
+    expect(screen.getByText('아직 공유된 시나리오가 없습니다')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: '글쓰기' }));
     expect(onWrite).toHaveBeenCalledTimes(1);
   });

@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, media, motion, radius, shadow, space } from '@/shared/styles';
+import { color, font, media, motion, radius, shadow, space, subtleScrollbar } from '@/shared/styles';
 
 /*
  * 색 규율: 시맨틱 토큰만. 상태(isActive/isOpen/active)는 prop 기반 styled 로 분기한다 —
@@ -234,20 +234,7 @@ export const DrawerBody = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${space[4]};
-
-  scrollbar-width: thin;
-  scrollbar-color: ${color.border} transparent;
-
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  &::-webkit-scrollbar-thumb {
-    background: ${color.border};
-    border-radius: ${radius.pill};
-  }
+  ${subtleScrollbar}
 `;
 
 export const DrawerFooter = styled.footer`

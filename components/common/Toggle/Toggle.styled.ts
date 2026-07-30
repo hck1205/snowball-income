@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, motion, radius } from '@/shared/styles';
+import { color, hitAreaWithin, motion, radius, shadow, space } from '@/shared/styles';
 import type { ToggleSize } from './Toggle.types';
 
 /**
@@ -22,48 +22,90 @@ import type { ToggleSize } from './Toggle.types';
  *
  * 치수를 24→20px 로 줄인 이유: 모바일 결과 화면의 컨트롤 줄이 가로로 모자랐다.
  * 스위치는 **크기가 아니라 트랙 색과 썸 위치**로 상태를 말하므로, 비율(track:height ≈ 1.9)만
- * 유지하면 작아져도 읽힌다. 히트 영역은 치수와 무관하게 항상 44x44다(아래 `::after`).
+ * 유지하면 작아져도 읽힌다.
+ *
+ * 히트 영역은 가로 44px · **세로 44px 이 아니다**(아래 `::before` 의 `hitAreaWithin`).
+ * 세로를 44 로 두면 32px 라벨 줄을 넘어 이웃 행을 덮어 오탭이 났다 — 44 는 상한이 아니라
+ * 희망값으로 다루고 이웃과 겹치지 않는 선까지만 뻗는다. 상세는 `shared/styles/surfaces.ts`.
  */
 const TOGGLE_SIZE: Record<ToggleSize, { track: number; height: number; thumb: number; inset: number }> = {
   md: { track: 38, height: 20, thumb: 14, inset: 3 }
 };
 
+/** 트랙 테두리 두께. 썸 이동 거리 계산이 이 값에 의존하므로 상수로 묶는다(아래 ToggleThumb 참고). */
+const TRACK_BORDER = 1;
+
 /*
  * ⚠ styled로 내리는 prop 이름이 `sizeVariant`인 이유: `size`는 **유효한 HTML 어트리뷰트**라
  * @emotion/is-prop-valid를 통과해 DOM으로 새어 나간다(Select.styled.ts와 같은 처리).
+ *
+ * 🔴 `<span>` 이 아니라 **`<label>`** 이다(2026-07-30). 아래 히트 영역은 트랙 밖으로 3px·6px 뻗는데,
+ * 실제 클릭 타깃인 `HiddenCheckbox` 는 트랙을 **정확히** 덮을 뿐이라(inset: 0) 그 바깥 띠에 떨어진
+ * 클릭은 어느 핸들러에도 닿지 않았다 — **넓혀 놓고 작동하지 않는 히트 영역**이었다.
+ * 헤드리스 Chrome 실측(38×20 트랙, 트랙 위 4px 지점): `elementFromPoint` = 트랙 자신, 토글 **안 됨**.
+ * `<label>` 로 바꾸면 그 띠의 클릭이 라벨 활성화로 체크박스에 위임된다(같은 지점 재측: 토글 **됨**).
+ *
+ * 왜 `ToggleField` 의 라벨 줄 전체(`ToggleLabel`)를 `<label>` 로 만들지 않았나 — 그러면 라벨 텍스트와
+ * 스위치 사이의 **빈 공간 200px 남짓까지** 토글이 된다(`justify-content: space-between`). 약속한 것은
+ * "스위치의 터치 타깃 44×32" 이지 "줄 전체가 스위치"가 아니다. 게다가 그 줄에는 도움말 버튼이 들어
+ * 있어 라벨 안 인터랙티브 요소 예외에 기대야 한다. 여기서 끝내면 그 두 가지가 모두 필요 없다.
+ * (`::before` 를 체크박스로 옮기는 방법도 Chrome 에서는 동작하지만 `input` 의 의사요소라 브라우저
+ *  지원이 갈린다 — 라벨 위임은 어디서나 같은 규칙이다.)
  */
-export const ToggleTrack = styled.span<{ checked: boolean; disabled?: boolean; sizeVariant: ToggleSize }>`
+export const ToggleTrack = styled.label<{ checked: boolean; disabled?: boolean; sizeVariant: ToggleSize }>`
   position: relative;
   flex: 0 0 auto;
   display: inline-block;
   width: ${({ sizeVariant }) => TOGGLE_SIZE[sizeVariant].track}px;
   height: ${({ sizeVariant }) => TOGGLE_SIZE[sizeVariant].height}px;
   border-radius: ${radius.pill};
-  border: 1px solid ${({ checked, disabled }) => (disabled ? color.border : checked ? color.brand : color.borderStrong)};
+  border: ${TRACK_BORDER}px solid ${({ checked, disabled }) => (disabled ? color.border : checked ? color.brand : color.borderStrong)};
   background: ${({ checked, disabled }) =>
     disabled ? color.surfaceSunken : checked ? color.brand : color.surfaceSunken};
   transition: background-color ${motion.fast} ${motion.ease}, border-color ${motion.fast} ${motion.ease};
   cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
 
-  /* 스위치는 작다. 히트 영역만 44x44로 넓힌다(WCAG 2.5.5) — 크기 단계와 무관하게 항상. */
-  &::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    min-width: 44px;
-    height: 44px;
-    width: 100%;
-    transform: translate(-50%, -50%);
-  }
+  /*
+   * 스위치는 작다(38×20). 히트 영역만 넓힌다(WCAG 2.5.5) — 크기 단계와 무관하게 항상.
+   *
+   * 2026-07-30 까지 손코딩 44×44 였다. 세로 44px 은 이 스위치가 앉는 32px 라벨 줄
+   * ('ToggleField' 의 'ToggleLabel')을 위아래로 6px 씩 넘겨 **이웃 폼 행을 덮었다.**
+   * 헬퍼가 이웃 간격(줄 사이 'gap: space[3]')까지만 넓힌다 → 가로는 44px 확보, 세로는 32px.
+   *
+   * ⚠ 이 띠가 **실제로 눌리는 것은 위 'styled.label' 덕분이다.** 클릭 타깃인 'HiddenCheckbox' 는
+   * 트랙만 덮으므로(inset: 0) 이 요소가 'span' 이면 띠는 그리기만 하고 아무 핸들러에도 닿지 않는다.
+   * 실측(헤드리스 Chrome, 열린 설정 드로어의 토글 4개): 트랙 위/아래 4px·좌우 2px 네 지점 모두
+   * 'elementFromPoint' = label, 클릭 시 토글 **됨**. 위로 9px(띠 밖)은 label 이 아니라 상위 div —
+   * 즉 띠 크기가 정확히 44×32 로 실현돼 있다.
+   */
+  ${hitAreaWithin(space[3])}
 `;
 
 export const ToggleThumb = styled.span<{ checked: boolean; disabled?: boolean; sizeVariant: ToggleSize }>`
   position: absolute;
   top: 50%;
-  left: ${({ checked, sizeVariant }) => {
-    const { thumb, inset } = TOGGLE_SIZE[sizeVariant];
-    return checked ? `calc(100% - ${thumb + inset}px)` : `${inset - 1}px`;
+  /*
+   * 위치는 고정하고 **이동만** 애니메이션한다.
+   *
+   * 2026-07-30 까지 'left' 를 전환했다. 'left' 는 레이아웃 속성이라 프레임마다
+   * 레이아웃 → 페인트 → 합성을 전부 다시 돈다. 이 앱에서 가장 많이 눌리는 컨트롤인데
+   * 가장 비싼 방식으로 움직이고 있었다. 'translate' 는 합성 단계만 탄다.
+   *
+   * ⚠ 'transform: translateY(-50%)' 와 합치지 않고 **독립 'translate' 속성**을 쓴다 —
+   * 그래야 세로 중앙 정렬(transform)과 가로 이동(translate)이 서로를 덮지 않는다.
+   */
+  left: ${({ sizeVariant }) => TOGGLE_SIZE[sizeVariant].inset - 1}px;
+  translate: ${({ checked, sizeVariant }) => {
+    if (!checked) return '0';
+    const { track, thumb, inset } = TOGGLE_SIZE[sizeVariant];
+    /*
+     * 종전 켜짐 위치는 'left: calc(100% - (thumb + inset))' 이었다. 전역 'box-sizing: border-box'
+     * 라 트랙 'width' 에 테두리가 포함되고, 절대배치 '100%' 는 **패딩 박스**(= track − 테두리 2px)를
+     * 기준으로 푼다. 그 최종 위치를 그대로 재현한다:
+     *   (track − 2) − (thumb + inset) − (꺼짐 위치 inset − 1)
+     * ⚠ 'translate' 의 % 는 'left' 와 달리 **자기 크기** 기준이라 calc(100% − …) 로는 못 옮긴다.
+     */
+    return `${track - TRACK_BORDER * 2 - (thumb + inset) - (inset - 1)}px`;
   }};
   width: ${({ sizeVariant }) => TOGGLE_SIZE[sizeVariant].thumb}px;
   height: ${({ sizeVariant }) => TOGGLE_SIZE[sizeVariant].thumb}px;
@@ -71,10 +113,16 @@ export const ToggleThumb = styled.span<{ checked: boolean; disabled?: boolean; s
   /* 썸은 정적 흰색. onBrand는 프리셋별로 어두울 수 있어(velog 다크 #121212 → 트랙과 1.07:1로 소실)
      비브랜드 트랙 위에 놓이는 썸에는 부적합하다. 켜짐은 위치와 트랙 색이 말한다. */
   background: ${({ disabled }) => (disabled ? color.surfaceMuted : '#ffffff')};
-  box-shadow: 0 1px 2px rgba(15, 25, 35, 0.32);
+  /*
+   * 깊이는 토큰으로만 말한다(DESIGN.md §6). 종전 생 리터럴 '0 1px 2px rgba(15,25,35,0.32)' 는
+   * **다크에서 어두운 면 위에 어두운 그림자**라 사실상 보이지 않았다 — 'shadow.e1' 은 프리셋마다
+   * 라이트/다크 값을 따로 갖는다(다크는 검정 0.3~0.4, 라이트는 6~8%).
+   * ⚠ 썸의 **채움**은 여전히 정적 '#ffffff' 다(위 주석) — 토큰화 대상은 그림자뿐이다.
+   */
+  box-shadow: ${shadow.e1};
   transform: translateY(-50%);
   pointer-events: none;
-  transition: left ${motion.fast} ${motion.ease};
+  transition: translate ${motion.fast} ${motion.ease};
 `;
 
 /**

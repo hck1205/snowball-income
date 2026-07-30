@@ -1,3 +1,4 @@
+// @vitest-environment node — DOM 을 쓰지 않는 순수 테스트 (기준: vitest.config.ts)
 import { SCENARIO_PAYLOAD_MATRIX, buildMatrixPayload, MATRIX_SCHD, MATRIX_SEMI, MATRIX_VIG } from './scenarioPayloadMatrix';
 import { buildSnowballReport } from '@/shared/lib/snowball';
 import type { SnowballReport } from '@/shared/lib/snowball';

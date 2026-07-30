@@ -37,9 +37,18 @@ export const LoaderSpinner = styled.span`
     }
   }
 
-  /* 전역 reduced-motion 리셋은 transition만 덮는다 — 키프레임 애니메이션은 여기서 완만하게 늦춘다. */
+  /*
+   * 🔴 이 블록은 2026-07-30 까지 **아무 효과가 없었다.** 위 주석이 "전역 리셋은 transition만
+   * 덮는다"고 말하는데 사실이 아니다 — 'globalStyles.ts' 는 'animation-duration: 0.01ms' 와
+   * 'animation-iteration-count: 1' 을 **'!important' 로** 건다. 그래서 여기 1.6s 는 무시됐고,
+   * reduced-motion 사용자의 스피너는 한 바퀴를 순식간에 돌고 **얼어붙었다.** "작업 중"이라는
+   * 유일한 신호가 죽어 있었던 셈이다(라벨 텍스트가 있어 완전한 실패는 면했다).
+   *
+   * reduced-motion 은 "없애라"가 아니라 "완만하게"다 — '!important' 로 되찾아 느리게 돌린다.
+   */
   @media (prefers-reduced-motion: reduce) {
-    animation-duration: 1.6s;
+    animation-duration: 1.6s !important;
+    animation-iteration-count: infinite !important;
   }
 `;
 

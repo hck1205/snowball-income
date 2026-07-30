@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, motion, radius, space } from '@/shared/styles';
+import { color, font, hitAreaWithin, motion, radius, space } from '@/shared/styles';
 
 /**
  * 필드 한 칸(라벨 줄 + 컨트롤). `<label>` 이 아니라 `<div>` 인 이유:
@@ -49,15 +49,14 @@ export const HelpButton = styled.button`
   transition: background-color ${motion.fast} ${motion.ease}, border-color ${motion.fast} ${motion.ease},
     color ${motion.fast} ${motion.ease};
 
-  &::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 44px;
-    height: 44px;
-    transform: translate(-50%, -50%);
-  }
+  /*
+   * 🔴 2026-07-30 까지 여기 히트 영역이 무조건 44×44 였다. 이 버튼은 라벨 줄(21px)에 있고
+   * 아래 입력칸까지 간격이 8px 뿐이라, 세로 44px 영역이 **입력칸 상단 3.5px 을 덮었다**
+   * (게다가 의사요소라 입력칸 위에 그려진다). 입력칸 위쪽을 누르면 도움말이 열렸다.
+   *
+   * 44px 는 상한이 아니라 희망값이다 — 이웃에 닿지 않는 선까지만 넓힌다.
+   */
+  ${hitAreaWithin(space[2])}
 
   &:hover {
     background: ${color.brandSubtle};
@@ -71,6 +70,8 @@ const controlBase = `
   min-width: 0;
   min-height: 40px;
   border: 1px solid ${color.borderStrong};
+  /* 버튼과 같은 조(카드 안 컨트롤) = 동심 라운드의 '안쪽'. Card.styled.ts 의 CARD_RADIUS 가 이
+     값에서 역산되므로 버튼과 반드시 같은 값이어야 한다. */
   border-radius: ${radius.sm};
   background-color: ${color.surface};
   color: ${color.text};
@@ -149,4 +150,12 @@ export const FieldHint = styled.span`
   font-size: ${font.size.sm};
   color: ${color.textMuted};
   font-variant-numeric: tabular-nums;
+  /*
+   * 이 앱에서 가장 많이 읽히는 설명·검증 카피가 여기다(모든 필드의 힌트 + zod 에러 메시지).
+   * 전역 'text-wrap: pretty' 규칙은 'p,li,dd,…' 요소 선택자라 'span' 인 이 자리를 놓친다
+   * ('globalStyles.ts' 본문 블록). DESIGN.md §3 "본문·설명 → pretty" 에 예외는 없다.
+   * ⚠ 'keep-all' 은 걸지 않는다 — 한국어 산문은 음절 단위 줄바꿈이 관례이고, 걸면 좁은 필드에서
+   * 가로로 넘친다. 'balance' 도 제목 전용이다.
+   */
+  text-wrap: pretty;
 `;

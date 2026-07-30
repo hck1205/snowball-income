@@ -76,8 +76,9 @@ teal·green이 상승처럼 오독되는 순간 데이터 색 체계가 무너�
 ```
 primitives.ts   원시 램프/스케일 — 의미 없음. 화면에서 직접 쓰지 마라.
       ↓
-presets.ts      팔레트 프리셋 레지스트리(THEME_PRESETS) — 역할 → hex 의 유일한 진실 공급원.
-      ↓         8프리셋(velog/forest/aurora/vivid/navy-gold/grape/sunset/ink) × light/dark. globalStyles가 이걸로
+presets/        팔레트 프리셋 레지스트리(THEME_PRESETS) — 역할 → hex 의 유일한 진실 공급원.
+      ↓         8프리셋(velog/forest/aurora/vivid/navy-gold/grape/sunset/ink, 프리셋당 파일 1개) × light/dark.
+      ↓         globalStyles가 이걸로
 semantic.ts     CSS 변수를 찍고, 대비 검증 테스트(contrast.test.ts)도 같은 값을 읽는다.
       ↓         semantic.ts는 `color` 파사드(var 참조)와 하위 호환 별칭(LIGHT/DARK_THEME=aurora)만 남는다.
 tokens.ts       파사드. `@/shared/styles`가 여기서 전부 re-export 한다.
@@ -111,7 +112,8 @@ velog에서 `gradient-aurora`는 "오로라"가 아니라 틸그린 duotone이�
 
 **프리셋 추가 절차 (3줄)**
 1. `shared/constants/palette`의 `PALETTE_PRESET_IDS`에 id 추가 + index.html 인라인 스크립트의 유효값 목록·프리페인트 배경 갱신.
-2. `presets.ts`에 light/dark 전체 토큰 맵(키 집합은 기존과 동일해야 함 — 테스트가 강제)과 label·swatch를 등록.
+2. `presets/`에 새 프리셋 파일(`<preset>.ts`)을 추가해 light/dark 전체 토큰 맵(키 집합은 기존과 동일해야 함 —
+   테스트가 강제)을 정의하고, `presets/index.ts`의 `THEME_PRESETS`에 label·swatch와 함께 등록.
 3. `npx vitest run shared/styles` — 새 프리셋까지 자동 순회되는 대비·ΔE·키 동등성 전부 그린이어야 출시 가능.
 
 ### 색 램프 (primitive)
@@ -128,7 +130,7 @@ velog에서 `gradient-aurora`는 "오로라"가 아니라 틸그린 duotone이�
 
 ### 시맨틱 토큰
 
-> 아래 표의 hex는 **aurora 프리셋** 값이다(역할 설명용 예시). 다른 프리셋의 값은 `presets.ts`가
+> 아래 표의 hex는 **aurora 프리셋** 값이다(역할 설명용 예시). 다른 프리셋의 값은 `presets/`(`presets/aurora.ts` 등)가
 > 진실 공급원이고, 역할(토큰 이름)과 용도 열은 전 프리셋 공통이다.
 
 | 토큰 | 라이트 | 다크 | 용도 |

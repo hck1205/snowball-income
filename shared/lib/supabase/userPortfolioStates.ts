@@ -43,17 +43,21 @@ export const fetchCloudPortfolio = async (client: CommunityClient): Promise<User
  *
  * `user_id` 가 primary key 라 `onConflict` upsert 가 깔끔하게 동작한다
  * (시뮬레이터 쪽은 partial unique index 라 존재 확인 → update/insert 로 나눠야 했다).
- * `user_id` 는 넣지 않는다 — RLS 정책(`auth.uid() = user_id`)과 컬럼 기본값이 채운다.
+ *
+ * ⚠ **`user_id` 를 넣지 않는다.** 이 레포는 위조를 막으려고 컬럼 단위로 GRANT 하고
+ * (`grant insert (payload)`), 값은 `default auth.uid()` 가 채운다. 넣으면 그 컬럼에 쓰기 권한이
+ * 없어 `permission denied for column user_id` 로 **전체 요청이 실패한다** — 2026-07-29 에 실제로
+ * 그렇게 넣어서 화면이 "클라우드와 맞추지 못했습니다"에 갇혔다. `userAppStates.ts` 도 같은 이유로
+ * `insert({ payload, name: null })` 만 보낸다.
  */
 export const pushCloudPortfolio = async (
   client: CommunityClient,
-  userId: string,
   payload: UserPortfolioCloudPayload
 ): Promise<UserPortfolioStateRow> =>
   unwrap(
     await client
       .from('user_portfolio_states')
-      .upsert({ user_id: userId, payload }, { onConflict: 'user_id' })
+      .upsert({ payload }, { onConflict: 'user_id' })
       .select(PORTFOLIO_STATE_COLUMNS)
       .single()
       .returns<UserPortfolioStateRow>()

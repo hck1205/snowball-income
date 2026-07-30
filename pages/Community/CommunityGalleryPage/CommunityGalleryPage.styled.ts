@@ -52,7 +52,10 @@ export const ViewToggleButton = styled.button<{ active: boolean }>`
 export const CardGrid = styled.ul`
   list-style: none;
   margin: 0;
-  /* padding-top: 카드 hover translateY(-8px)가 위 컨트롤 바와 겹치지 않게 하는 여유. */
+  /*
+   * padding-top: 카드 hover 이동이 위 컨트롤 바와 겹치지 않게 하는 여유.
+   * (이동량은 2026-07-30 에 8px → 2px 로 줄었다 — 'PostCard.styled.ts' 참고. 여유는 space[2] 로 남긴다.)
+   */
   padding: ${space[2]} 0 0;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));

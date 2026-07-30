@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { Button } from '@/components';
 import { ModalActions, ModalBackdrop, ModalBody, ModalPanel, ModalTitle } from '@/components/common';
 import { useCurrentHelpAtomValue } from '@/jotai';
-import { useOverlayEscape } from '@/shared/hooks';
+import { useDrawerBackClose, useOverlayEscape } from '@/shared/hooks';
 import type { HelpModalProps } from './HelpModal.types';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import { HelpBulletIcon, HelpBulletList } from './HelpModal.styled';
@@ -66,6 +66,14 @@ export default function HelpModal({ onBackdropClick, onClose }: HelpModalProps) 
    * (직접 window 리스너를 달면 드로어의 document 리스너가 먼저 돌아 둘이 함께 닫힌다).
    */
   useOverlayEscape(Boolean(help), onClose);
+
+  /*
+   * 뒤로가기 = 도움말만 닫기. Escape 와 **같은 층 판정**을 쓴다(2026-07-30) — 그 전에는 이 모달이
+   * 뒤로가기 스택 밖에 있어서, 설정 드로어 안 물음표로 도움말을 띄우고 기기 뒤로가기를 누르면
+   * 도움말은 남고 **뒤의 드로어가 닫혔다**. 두 제스처는 서로 다른 훅이 맡으므로 한쪽만 배선하면
+   * 이렇게 갈라진다.
+   */
+  useDrawerBackClose(Boolean(help), onClose);
 
   useEffect(() => {
     if (!help) return;

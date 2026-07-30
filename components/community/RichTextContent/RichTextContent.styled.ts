@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, radius, space } from '@/shared/styles';
+import { color, font, radius, space, subtleScrollbar } from '@/shared/styles';
 
 /**
  * 본문 프로즈 스타일. sanitize 허용 태그(p/br/h2/h3/ul/ol/li/a/strong/b/em/i/s/u/blockquote/code/pre/hr/
@@ -104,6 +104,7 @@ export const Prose = styled.article`
     background: ${color.surfaceSunken};
     border-radius: ${radius.sm};
     overflow-x: auto;
+    ${subtleScrollbar}
 
     code {
       background: none;
@@ -124,8 +125,7 @@ export const Prose = styled.article`
     max-width: 100%;
     overflow-x: auto;
     overscroll-behavior-x: contain;
-    scrollbar-width: thin;
-    scrollbar-color: ${color.borderStrong} transparent;
+    ${subtleScrollbar}
     border-collapse: collapse;
     margin: 0 0 ${space[4]};
     font-size: ${font.size.sm};

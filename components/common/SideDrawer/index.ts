@@ -1,2 +1,7 @@
 export { default } from './SideDrawer';
-export type { SideDrawerProps, SideDrawerSide } from './SideDrawer.types';
+export type {
+  SideDrawerBodyLayout,
+  SideDrawerDimScope,
+  SideDrawerProps,
+  SideDrawerSide
+} from './SideDrawer.types';

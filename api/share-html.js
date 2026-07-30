@@ -5277,6 +5277,14 @@ var SPACE_SCALE = {
   12: "48px",
   16: "64px"
 };
+var RADIUS_SCALE = {
+  xs: "4px",
+  sm: "8px",
+  md: "12px",
+  lg: "16px",
+  xl: "20px",
+  pill: "999px"
+};
 var FONT_SIZE_SCALE = {
   "2xs": "11px",
   xs: "12px",
@@ -5311,13 +5319,18 @@ var LEADING_SCALE = {
 var PALETTE_PRESET_IDS = ["velog", "forest", "aurora", "vivid", "navy-gold", "grape", "sunset", "ink"];
 var DEFAULT_PALETTE_PRESET_ID = "velog";
 
-// shared/styles/presets.ts
-var { brand: brand2, auroraTeal: auroraTeal2, auroraViolet: auroraViolet2, auroraGreen: auroraGreen2, neutral: neutral2, up: up2, down: down2, positive: positive2, warning: warning2, danger: danger2 } = palette;
+// shared/styles/presets/chartSeriesTokens.ts
+var chartSeriesTokens = (series) => Object.fromEntries(series.map((hex, index) => [`chart-series-${index}`, hex]));
+
+// shared/styles/presets/gradients.ts
 var buildAuroraGradient = ([stop1, stop2, stop3]) => `linear-gradient(135deg, ${stop1} 0%, ${stop2} 52%, ${stop3} 100%)`;
 var buildCtaGradient = ([stop1, stop2, stop3]) => `linear-gradient(135deg, ${stop1} 0%, ${stop2} 55%, ${stop3} 100%)`;
 var buildDuotoneGradient = (from2, to) => `linear-gradient(135deg, ${from2} 0%, ${to} 100%)`;
 var buildWordmarkGradient = (from2, to) => `linear-gradient(100deg, ${from2} 0%, ${to} 100%)`;
 var buildHeroGradient = (from2, to) => `linear-gradient(135deg, ${from2} 0%, ${to} 100%)`;
+
+// shared/styles/presets/sharedTokens.ts
+var { brand: brand2, auroraTeal: auroraTeal2, auroraGreen: auroraGreen2, up: up2, down: down2, positive: positive2, warning: warning2, danger: danger2 } = palette;
 var WORDMARK_LIGHT = {
   "gradient-wordmark-snow": buildWordmarkGradient(brand2[400], brand2[300]),
   "gradient-wordmark-income": buildWordmarkGradient(auroraTeal2[600], auroraGreen2[600]),
@@ -5359,9 +5372,11 @@ var COMMON_DARK = {
   "danger-border": danger2.softDarkBorder,
   ...WORDMARK_DARK
 };
-var chartSeriesTokens = (series) => Object.fromEntries(series.map((hex, index) => [`chart-series-${index}`, hex]));
+
+// shared/styles/presets/aurora.ts
+var { brand: brand3, auroraTeal: auroraTeal3, auroraViolet: auroraViolet2, auroraGreen: auroraGreen3, neutral: neutral2 } = palette;
 var AURORA_CHART_SERIES = [
-  brand2[500],
+  brand3[500],
   // #0c7cb3 azure — 자산 가치(주인공)
   "#c26d22",
   // orange
@@ -5378,70 +5393,10 @@ var AURORA_CHART_SERIES = [
   "#6b7785"
   // slate — 기준선(누적 투자금)
 ];
-var VELOG_CHART_SERIES = [
-  "#0ca678",
-  "#c26d22",
-  "#4263eb",
-  "#cf5f7d",
-  "#8b6fc9",
-  "#9a7b14",
-  "#9c4f92",
-  "#6b7785"
-];
-var VIVID_CHART_SERIES = [
-  "#2d5bf5",
-  "#c26d22",
-  "#00997e",
-  "#cf5f7d",
-  "#8b6fc9",
-  "#9a7b14",
-  "#9c4f92",
-  "#6b7785"
-];
-var NAVY_GOLD_CHART_SERIES = [
-  "#4d6ca4",
-  "#c26d22",
-  "#47955e",
-  "#cf5f7d",
-  "#8b6fc9",
-  "#b08a24",
-  "#9c4f92",
-  "#6b7785"
-];
-var SUNSET_CHART_SERIES = [
-  "#bc4c0f",
-  "#1f7ba5",
-  "#47955e",
-  "#cf5f7d",
-  "#8b6fc9",
-  "#9a7b14",
-  "#9c4f92",
-  "#6b7785"
-];
-var FOREST_CHART_SERIES = [
-  "#2b8052",
-  "#c26d22",
-  "#1f7ba5",
-  "#cf5f7d",
-  "#8b6fc9",
-  "#9a7b14",
-  "#9c4f92",
-  "#6b7785"
-];
-var GRAPE_CHART_SERIES = [
-  "#7a53da",
-  "#c26d22",
-  "#47955e",
-  "#cf5f7d",
-  "#1f7ba5",
-  "#9a7b14",
-  "#9c4f92",
-  "#6b7785"
-];
-var AURORA_LIGHT_RIBBON = [brand2[600], auroraTeal2[600], auroraViolet2[500]];
-var AURORA_LIGHT_CTA = [brand2[600], auroraTeal2[650], auroraViolet2[600]];
-var AURORA_DARK_RIBBON = [brand2[400], auroraTeal2[400], auroraViolet2[400]];
-var AURORA_DARK_CTA = [brand2[500], auroraTeal2[650], auroraViolet2[550]];
+var AURORA_LIGHT_RIBBON = [brand3[600], auroraTeal3[600], auroraViolet2[500]];
+var AURORA_LIGHT_CTA = [brand3[600], auroraTeal3[650], auroraViolet2[600]];
+var AURORA_DARK_RIBBON = [brand3[400], auroraTeal3[400], auroraViolet2[400]];
+var AURORA_DARK_CTA = [brand3[500], auroraTeal3[650], auroraViolet2[550]];
 var AURORA_LIGHT = {
   /* 서피스 — 낮은 곳(sunken) → 기본(base) → 떠 있는 곳(raised) */
   /*
@@ -5464,30 +5419,30 @@ var AURORA_LIGHT = {
   "text-muted": neutral2[500],
   "text-inverse": neutral2[0],
   /* 브랜드 */
-  brand: brand2[600],
-  "brand-hover": brand2[700],
-  "brand-subtle": brand2[50],
-  "brand-subtle-hover": brand2[100],
-  "brand-border": brand2[200],
-  "brand-text": brand2[700],
+  brand: brand3[600],
+  "brand-hover": brand3[700],
+  "brand-subtle": brand3[50],
+  "brand-subtle-hover": brand3[100],
+  "brand-border": brand3[200],
+  "brand-text": brand3[700],
   "on-brand": neutral2[0],
   /*
    * 오로라 액센트 — 크롬 전용. **숫자 데이터에 금지** (숫자는 up/down 램프만).
    * accent(teal) = 성장·복리·달성 / accent-alt(green) = 목표·추천·프로모.
    * 두 액센트는 같은 틸/그린 축의 양 끝이라 ΔE 15 이상으로 벌려 둔다(contrast.test가 강제).
    */
-  accent: auroraTeal2[600],
-  "accent-text": auroraTeal2[700],
-  "accent-subtle": auroraTeal2[50],
-  "accent-border": auroraTeal2[200],
-  "accent-alt": auroraGreen2[600],
-  "accent-alt-text": auroraGreen2[700],
-  "accent-alt-subtle": auroraGreen2[50],
-  "accent-alt-border": auroraGreen2[200],
+  accent: auroraTeal3[600],
+  "accent-text": auroraTeal3[700],
+  "accent-subtle": auroraTeal3[50],
+  "accent-border": auroraTeal3[200],
+  "accent-alt": auroraGreen3[600],
+  "accent-alt-text": auroraGreen3[700],
+  "accent-alt-subtle": auroraGreen3[50],
+  "accent-alt-border": auroraGreen3[200],
   ...COMMON_LIGHT,
   /* 크롬 */
   overlay: "rgba(13, 27, 46, 0.45)",
-  "focus-ring": brand2[500],
+  "focus-ring": brand3[500],
   "focus-shadow": "rgba(12, 124, 179, 0.28)",
   /* 엘리베이션 — 라이트는 그림자가 위계를 만든다. 틴트는 polar-night 계열(쿨). */
   "shadow-1": "0 1px 2px rgba(13, 32, 58, 0.05), 0 1px 3px rgba(13, 32, 58, 0.07)",
@@ -5552,26 +5507,26 @@ var AURORA_DARK = {
    * 배경과 붙어버려서 버튼이 눌리는 물건으로 안 보인다.
    * brand[500](#0c7cb3)은 흰 라벨 대비 4.61:1 로 AA를 넘긴다.
    */
-  brand: brand2[500],
-  "brand-hover": brand2[400],
+  brand: brand3[500],
+  "brand-hover": brand3[400],
   "brand-subtle": "#0d3049",
   "brand-subtle-hover": "#123c5a",
   "brand-border": "#2e5f7d",
-  "brand-text": brand2[300],
+  "brand-text": brand3[300],
   "on-brand": neutral2[0],
   /* 오로라 액센트 — 라이트와 같은 역할. 숫자 데이터에 금지. */
-  accent: auroraTeal2[400],
-  "accent-text": auroraTeal2[400],
-  "accent-subtle": auroraTeal2[900],
-  "accent-border": auroraTeal2[800],
+  accent: auroraTeal3[400],
+  "accent-text": auroraTeal3[400],
+  "accent-subtle": auroraTeal3[900],
+  "accent-border": auroraTeal3[800],
   /* 다크는 accent-alt == accent-alt-text (다크 프리셋 8종 공통 관례) */
-  "accent-alt": auroraGreen2[400],
-  "accent-alt-text": auroraGreen2[400],
-  "accent-alt-subtle": auroraGreen2[900],
-  "accent-alt-border": auroraGreen2[800],
+  "accent-alt": auroraGreen3[400],
+  "accent-alt-text": auroraGreen3[400],
+  "accent-alt-subtle": auroraGreen3[900],
+  "accent-alt-border": auroraGreen3[800],
   ...COMMON_DARK,
   overlay: "rgba(2, 6, 12, 0.68)",
-  "focus-ring": brand2[300],
+  "focus-ring": brand3[300],
   "focus-shadow": "rgba(121, 197, 230, 0.3)",
   "shadow-1": "0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.24)",
   "shadow-2": "0 2px 4px rgba(0, 0, 0, 0.32), 0 4px 12px rgba(0, 0, 0, 0.36)",
@@ -5607,381 +5562,18 @@ var AURORA_DARK = {
   ...chartSeriesTokens(AURORA_CHART_SERIES),
   "picker-filter": "invert(0.86)"
 };
-var VELOG_LIGHT = {
-  /*
-   * 의도적 무틴트 — 라이트 bg 틴트 강화(2차 배리에이션)에서 velog만 제외했다.
-   * open-color gray-0(#f8f9fa) 참조 충실성이 이 프리셋의 정체성이다. 틴트를 넣지 마라.
-   */
-  bg: "#f8f9fa",
-  surface: "#ffffff",
-  "surface-raised": "#ffffff",
-  "surface-muted": "#f8f9fa",
-  "surface-sunken": "#f1f3f5",
-  "surface-hover": "#f8f9fa",
-  border: "#e9ecef",
-  "border-strong": "#868e96",
-  text: "#212529",
-  "text-secondary": "#495057",
-  "text-muted": "#5f6975",
-  "text-inverse": "#ffffff",
-  brand: "#087f5b",
-  "brand-hover": "#066649",
-  "brand-subtle": "#e6fcf5",
-  "brand-subtle-hover": "#c3fae8",
-  "brand-border": "#96f2d7",
-  "brand-text": "#087f5b",
-  "on-brand": "#ffffff",
-  accent: "#099268",
-  "accent-text": "#087f5b",
-  "accent-subtle": "#e6fcf5",
-  "accent-border": "#96f2d7",
-  "accent-alt": "#26a14f",
-  "accent-alt-text": "#13762a",
-  "accent-alt-subtle": "#e7f5ec",
-  "accent-alt-border": "#a8d9b9",
-  ...COMMON_LIGHT,
-  overlay: "rgba(33, 37, 41, 0.5)",
-  "focus-ring": "#099268",
-  "focus-shadow": "rgba(9, 146, 104, 0.22)",
-  /* 플랫 그림자 — 은은하게. velog다움은 그림자 절제가 만든다. */
-  "shadow-1": "0 1px 3px rgba(0, 0, 0, 0.05)",
-  "shadow-2": "0 2px 8px rgba(0, 0, 0, 0.06)",
-  "shadow-3": "0 8px 24px rgba(0, 0, 0, 0.12)",
-  "ribbon-stop-1": "#087f5b",
-  "ribbon-stop-2": "#099268",
-  "ribbon-stop-3": "#099268",
-  "cta-stop-1": "#087f5b",
-  "cta-stop-2": "#076c50",
-  "cta-stop-3": "#066649",
-  "progress-track": "#f8f9fa",
-  /* 시그니처는 duotone — 그라데이션이 거의 안 보이는 것이 velog다움 */
-  "gradient-aurora": buildDuotoneGradient("#087f5b", "#099268"),
-  "gradient-cta": buildDuotoneGradient("#087f5b", "#066649"),
-  /* 히어로 면 — 라이트 최악 지점(blue stop) text-muted 4.63:1 / soft 5.05:1(실측). */
-  "gradient-hero": buildHeroGradient("#deecf6", "#e6f5ef"),
-  "gradient-hero-soft": buildHeroGradient("#edf5fa", "#f1f9f6"),
-  /* 글로우 없음 = 단색 (역할: 페이지 배경) */
-  "bg-glow": "#f8f9fa",
-  /* 사실상 불투명한 유리 */
-  "surface-glass": "rgba(255, 255, 255, 0.96)",
-  "surface-glass-fallback": "#ffffff",
-  "chart-axis-line": "#dee2e6",
-  "chart-split-line": "#f1f3f5",
-  "chart-label": "#495057",
-  "chart-slice-border": "#ffffff",
-  ...chartSeriesTokens(VELOG_CHART_SERIES),
-  "picker-filter": "none"
-};
-var VELOG_DARK = {
-  bg: "#121212",
-  surface: "#1e1e1e",
-  "surface-raised": "#2a2a2a",
-  "surface-muted": "#242424",
-  "surface-sunken": "#191919",
-  "surface-hover": "#313131",
-  border: "#343434",
-  "border-strong": "#7b828a",
-  text: "#ececec",
-  "text-secondary": "#adb5bd",
-  "text-muted": "#868e96",
-  "text-inverse": "#121212",
-  brand: "#20c997",
-  "brand-hover": "#38d9a9",
-  "brand-subtle": "#12352a",
-  "brand-subtle-hover": "#1a4634",
-  "brand-border": "#2f7d5f",
-  "brand-text": "#20c997",
-  /** 어두운 라벨 — 밝은 틸(#20c997) 위 #121212 = 8.79:1. 라벨 색을 흰색으로 하드코딩하면 여기서 깨진다. */
-  "on-brand": "#121212",
-  accent: "#20c997",
-  "accent-text": "#20c997",
-  "accent-subtle": "#12352a",
-  "accent-border": "#2f7d5f",
-  "accent-alt": "#75df98",
-  "accent-alt-text": "#75df98",
-  "accent-alt-subtle": "#142419",
-  "accent-alt-border": "#295437",
-  ...COMMON_DARK,
-  overlay: "rgba(0, 0, 0, 0.6)",
-  "focus-ring": "#20c997",
-  "focus-shadow": "rgba(32, 201, 151, 0.3)",
-  "shadow-1": "0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3)",
-  "shadow-2": "0 2px 4px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.4)",
-  "shadow-3": "0 2px 6px rgba(0, 0, 0, 0.44), 0 12px 32px rgba(0, 0, 0, 0.52)",
-  "ribbon-stop-1": "#20c997",
-  "ribbon-stop-2": "#12b886",
-  "ribbon-stop-3": "#12b886",
-  "cta-stop-1": "#20c997",
-  "cta-stop-2": "#19c18f",
-  "cta-stop-3": "#12b886",
-  "progress-track": "#191919",
-  "gradient-aurora": buildDuotoneGradient("#20c997", "#12b886"),
-  "gradient-cta": buildDuotoneGradient("#20c997", "#12b886"),
-  /*
-   * 🔴 knife-edge — 다크 히어로 최악 지점(t≈0.88) text-muted 4.58:1. 16테마 32그라디언트 중 전역 최저다.
-   * 이 두 stop 을 더 밝게 올리거나 text-muted(#868e96)를 더 어둡게 내리면 즉시 AA 탈락한다.
-   */
-  "gradient-hero": buildHeroGradient("#192630", "#172923"),
-  "gradient-hero-soft": buildHeroGradient("#161d23", "#151f1b"),
-  "bg-glow": "#121212",
-  "surface-glass": "rgba(30, 30, 30, 0.96)",
-  "surface-glass-fallback": "#1e1e1e",
-  "chart-axis-line": "#3a3a3a",
-  "chart-split-line": "#2c2c2c",
-  "chart-label": "#adb5bd",
-  "chart-slice-border": "#1e1e1e",
-  ...chartSeriesTokens(VELOG_CHART_SERIES),
-  "picker-filter": "invert(0.86)"
-};
-var VIVID_LIGHT = {
-  /* 라벤더 틴트 강화(구 #f5f7ff → #eef0ff) — border-strong on bg 3.56, 글로우 최악 4.72(실측). hover=bg 동기. */
-  bg: "#eef0ff",
-  surface: "#ffffff",
-  "surface-raised": "#ffffff",
-  "surface-muted": "#fafbff",
-  "surface-sunken": "#e9edfc",
-  "surface-hover": "#eef0ff",
-  border: "#dbe1f5",
-  "border-strong": "#737e9d",
-  text: "#171c33",
-  "text-secondary": "#454f6e",
-  "text-muted": "#57627f",
-  "text-inverse": "#ffffff",
-  brand: "#2d5bf5",
-  "brand-hover": "#1e46d6",
-  "brand-subtle": "#e8eeff",
-  "brand-subtle-hover": "#d6e0ff",
-  "brand-border": "#b3c6ff",
-  "brand-text": "#2447cf",
-  "on-brand": "#ffffff",
-  accent: "#00997e",
-  "accent-text": "#007a64",
-  "accent-subtle": "#dcfaf3",
-  "accent-border": "#86e8d3",
-  "accent-alt": "#0aa155",
-  "accent-alt-text": "#03772c",
-  "accent-alt-subtle": "#e4f5ec",
-  "accent-alt-border": "#9dd9bb",
-  ...COMMON_LIGHT,
-  overlay: "rgba(23, 26, 51, 0.5)",
-  "focus-ring": "#2d5bf5",
-  "focus-shadow": "rgba(45, 91, 245, 0.25)",
-  /* 살짝 컬러 섀도 — 경쾌함의 디테일 */
-  "shadow-1": "0 1px 2px rgba(23, 26, 51, 0.06), 0 1px 3px rgba(23, 26, 51, 0.08)",
-  "shadow-2": "0 2px 4px rgba(45, 91, 245, 0.06), 0 4px 12px rgba(23, 26, 51, 0.10)",
-  "shadow-3": "0 4px 10px rgba(45, 91, 245, 0.08), 0 12px 32px rgba(23, 26, 51, 0.18)",
-  "ribbon-stop-1": "#2d5bf5",
-  "ribbon-stop-2": "#00997e",
-  "ribbon-stop-3": "#7c5cff",
-  "cta-stop-1": "#2d5bf5",
-  "cta-stop-2": "#007a64",
-  "cta-stop-3": "#5b3de6",
-  "progress-track": "#e9edfc",
-  "gradient-aurora": buildAuroraGradient(["#2d5bf5", "#00997e", "#7c5cff"]),
-  "gradient-cta": buildCtaGradient(["#2d5bf5", "#007a64", "#5b3de6"]),
-  /* 히어로 면 — 채도 강한 프리셋이라 캐스트를 라이트 0.16/0.13 으로 잡았다. 최악 text-muted 4.98:1. */
-  "gradient-hero": buildHeroGradient("#dcebf6", "#e3f4ee"),
-  "gradient-hero-soft": buildHeroGradient("#ecf4fa", "#f0f9f6"),
-  /* 단색층만 새 bg(#eef0ff)로 — 알파 0.07/0.06은 유지 가능(글로우 최악 4.72 실측) */
-  "bg-glow": "radial-gradient(1200px 640px at 16% -10%, rgba(0, 201, 167, 0.07), transparent 60%), radial-gradient(1000px 560px at 84% -12%, rgba(124, 92, 255, 0.06), transparent 55%), #eef0ff",
-  "surface-glass": "rgba(255, 255, 255, 0.8)",
-  "surface-glass-fallback": "#ffffff",
-  "chart-axis-line": "#d6ddf2",
-  "chart-split-line": "#e9edfc",
-  "chart-label": "#454f6e",
-  "chart-slice-border": "#ffffff",
-  ...chartSeriesTokens(VIVID_CHART_SERIES),
-  "picker-filter": "none"
-};
-var VIVID_DARK = {
-  /* 딥 인디고 */
-  bg: "#101223",
-  surface: "#1a1e38",
-  "surface-raised": "#262b4f",
-  "surface-muted": "#202544",
-  "surface-sunken": "#151831",
-  "surface-hover": "#2d335c",
-  border: "#313a63",
-  "border-strong": "#6d7aa8",
-  text: "#eaedfb",
-  "text-secondary": "#aeb6d9",
-  "text-muted": "#929cc4",
-  "text-inverse": "#101223",
-  brand: "#3d63f2",
-  "brand-hover": "#2e51d8",
-  "brand-subtle": "#1b2a5c",
-  "brand-subtle-hover": "#223471",
-  "brand-border": "#3a4d99",
-  "brand-text": "#9db4ff",
-  "on-brand": "#ffffff",
-  accent: "#00c9a7",
-  "accent-text": "#00c9a7",
-  "accent-subtle": "#0e3330",
-  "accent-border": "#16665a",
-  "accent-alt": "#61f299",
-  "accent-alt-text": "#61f299",
-  "accent-alt-subtle": "#132423",
-  "accent-alt-border": "#285441",
-  ...COMMON_DARK,
-  overlay: "rgba(5, 7, 20, 0.68)",
-  "focus-ring": "#9db4ff",
-  "focus-shadow": "rgba(157, 180, 255, 0.3)",
-  /* aurora 다크 값 재사용 — 다크 그림자는 프리셋 개성 요소가 아니다 */
-  "shadow-1": "0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.24)",
-  "shadow-2": "0 2px 4px rgba(0, 0, 0, 0.32), 0 4px 12px rgba(0, 0, 0, 0.36)",
-  "shadow-3": "0 2px 6px rgba(0, 0, 0, 0.36), 0 12px 32px rgba(0, 0, 0, 0.48)",
-  "ribbon-stop-1": "#6a8aff",
-  "ribbon-stop-2": "#00c9a7",
-  "ribbon-stop-3": "#9d86ff",
-  "cta-stop-1": "#3d63f2",
-  "cta-stop-2": "#00806a",
-  "cta-stop-3": "#6a4df0",
-  "progress-track": "#151831",
-  "gradient-aurora": buildAuroraGradient(["#6a8aff", "#00c9a7", "#9d86ff"]),
-  "gradient-cta": buildCtaGradient(["#3d63f2", "#00806a", "#6a4df0"]),
-  /* 히어로 면 — 다크 최악 text-muted 5.43:1 / soft 6.10:1(실측). */
-  "gradient-hero": buildHeroGradient("#172840", "#162b33"),
-  "gradient-hero-soft": buildHeroGradient("#141e33", "#13202c"),
-  /* 알파 0.12/0.10 상한 — 0.16에서 text-muted 4.27:1 탈락 실측. 올리지 마라. */
-  "bg-glow": "radial-gradient(1100px 600px at 18% -10%, rgba(0, 201, 167, 0.12), transparent 60%), radial-gradient(900px 520px at 82% -14%, rgba(157, 134, 255, 0.10), transparent 55%), #101223",
-  "surface-glass": "rgba(38, 43, 79, 0.85)",
-  "surface-glass-fallback": "#262b4f",
-  "chart-axis-line": "#343c68",
-  "chart-split-line": "#232849",
-  "chart-label": "#aeb6d9",
-  "chart-slice-border": "#1a1e38",
-  ...chartSeriesTokens(VIVID_CHART_SERIES),
-  "picker-filter": "invert(0.86)"
-};
-var NAVY_GOLD_LIGHT = {
-  /*
-   * 아이보리→크림 골드 틴트 강화(구 #f7f4ec → #f5efdd) — border-strong on bg 4.08,
-   * 글로우 최악 4.52(8종 중 가장 타이트 — 실측). 더 진하게 하려면 text-muted부터 어둡게. hover=bg 동기.
-   */
-  bg: "#f5efdd",
-  surface: "#fffcf5",
-  "surface-raised": "#fffcf5",
-  "surface-muted": "#fbf9f2",
-  "surface-sunken": "#efeadd",
-  "surface-hover": "#f5efdd",
-  border: "#e3dcc9",
-  "border-strong": "#7c7360",
-  text: "#1f2430",
-  "text-secondary": "#475063",
-  "text-muted": "#5c6373",
-  "text-inverse": "#ffffff",
-  brand: "#1f3a68",
-  "brand-hover": "#16294b",
-  "brand-subtle": "#edf0f8",
-  "brand-subtle-hover": "#dce3f0",
-  "brand-border": "#b9c7de",
-  "brand-text": "#274672",
-  "on-brand": "#ffffff",
-  /* 골드 = 장신구 전용 액센트 */
-  accent: "#a07617",
-  "accent-text": "#7a5a0f",
-  "accent-subtle": "#f7efd8",
-  "accent-border": "#dfc98e",
-  /* 버건디 */
-  "accent-alt": "#1c9e61",
-  "accent-alt-text": "#0b7432",
-  /* 틴트는 이 프리셋의 surface(아이보리)에서 파생 — 그래서 subtle 이 아이보리 기운을 갖는다 */
-  "accent-alt-subtle": "#e6f2e5",
-  "accent-alt-border": "#a4d6ba",
-  ...COMMON_LIGHT,
-  overlay: "rgba(24, 22, 16, 0.5)",
-  "focus-ring": "#1f3a68",
-  "focus-shadow": "rgba(31, 58, 104, 0.22)",
-  /* 웜 섀도 — 아이보리 지면과 어울리는 갈색 틴트 */
-  "shadow-1": "0 1px 2px rgba(46, 40, 24, 0.06), 0 1px 3px rgba(46, 40, 24, 0.08)",
-  "shadow-2": "0 2px 4px rgba(46, 40, 24, 0.06), 0 4px 12px rgba(46, 40, 24, 0.10)",
-  "shadow-3": "0 2px 6px rgba(46, 40, 24, 0.08), 0 12px 32px rgba(46, 40, 24, 0.18)",
-  "ribbon-stop-1": "#1f3a68",
-  "ribbon-stop-2": "#a07617",
-  "ribbon-stop-3": "#8e3b52",
-  "cta-stop-1": "#1f3a68",
-  "cta-stop-2": "#1b3159",
-  "cta-stop-3": "#16294b",
-  "progress-track": "#efeadd",
-  /* 네이비→골드→버건디 (표시용) / CTA는 네이비 duotone — 골드는 CTA 채움 금지 */
-  "gradient-aurora": buildAuroraGradient(["#1f3a68", "#a07617", "#8e3b52"]),
-  "gradient-cta": buildDuotoneGradient("#1f3a68", "#16294b"),
-  /*
-   * 히어로 면 — 웜(아이보리) 프리셋이라 쿨 캐스트를 0.12/0.09 로 낮췄다("차가운 빛"이 스민 정도).
-   * brand 자체가 네이비(쿨)라 블루 캐스트가 정체성과 충돌하지 않는다. 최악 text-muted 5.07:1.
-   */
-  "gradient-hero": buildHeroGradient("#e5edef", "#ecf5ea"),
-  "gradient-hero-soft": buildHeroGradient("#f1f4f2", "#f5f8ef"),
-  /* 단색층만 새 bg(#f5efdd)로 — 알파 0.06/0.05 유지(글로우 최악 4.52 실측, 상한) */
-  "bg-glow": "radial-gradient(1200px 640px at 16% -10%, rgba(160, 118, 23, 0.06), transparent 60%), radial-gradient(1000px 560px at 84% -12%, rgba(31, 58, 104, 0.05), transparent 55%), #f5efdd",
-  "surface-glass": "rgba(255, 252, 245, 0.8)",
-  "surface-glass-fallback": "#fffcf5",
-  "chart-axis-line": "#ded6c1",
-  "chart-split-line": "#efeadd",
-  "chart-label": "#475063",
-  "chart-slice-border": "#fffcf5",
-  ...chartSeriesTokens(NAVY_GOLD_CHART_SERIES),
-  "picker-filter": "none"
-};
-var NAVY_GOLD_DARK = {
-  bg: "#0a0f1e",
-  surface: "#141b30",
-  "surface-raised": "#1f2942",
-  "surface-muted": "#182138",
-  "surface-sunken": "#0f1526",
-  "surface-hover": "#263250",
-  border: "#2a3450",
-  "border-strong": "#62708f",
-  text: "#e8e9ef",
-  "text-secondary": "#acb2c4",
-  "text-muted": "#8e97ad",
-  "text-inverse": "#0a0f1e",
-  /* 스틸 블루 — 서피스 3.25:1, 흰 라벨 5.4:1 */
-  brand: "#4d6ca4",
-  "brand-hover": "#6283b8",
-  "brand-subtle": "#1c2b4f",
-  "brand-subtle-hover": "#233459",
-  "brand-border": "#38517f",
-  "brand-text": "#a9c0e8",
-  "on-brand": "#ffffff",
-  accent: "#d8b04a",
-  "accent-text": "#d8b04a",
-  "accent-subtle": "#2f2711",
-  "accent-border": "#6e5a1e",
-  "accent-alt": "#75dfa6",
-  "accent-alt-text": "#75dfa6",
-  "accent-alt-subtle": "#112322",
-  "accent-alt-border": "#265342",
-  ...COMMON_DARK,
-  overlay: "rgba(3, 6, 14, 0.68)",
-  "focus-ring": "#a9c0e8",
-  "focus-shadow": "rgba(169, 192, 232, 0.3)",
-  /* aurora 다크 값 재사용 */
-  "shadow-1": "0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.24)",
-  "shadow-2": "0 2px 4px rgba(0, 0, 0, 0.32), 0 4px 12px rgba(0, 0, 0, 0.36)",
-  "shadow-3": "0 2px 6px rgba(0, 0, 0, 0.36), 0 12px 32px rgba(0, 0, 0, 0.48)",
-  "ribbon-stop-1": "#6f8fc7",
-  "ribbon-stop-2": "#d8b04a",
-  "ribbon-stop-3": "#cf8fa4",
-  "cta-stop-1": "#4d6ca4",
-  "cta-stop-2": "#435d97",
-  "cta-stop-3": "#3a5488",
-  "progress-track": "#0f1526",
-  "gradient-aurora": buildAuroraGradient(["#6f8fc7", "#d8b04a", "#cf8fa4"]),
-  "gradient-cta": buildDuotoneGradient("#4d6ca4", "#3a5488"),
-  /* 히어로 면 — 다크 최악 text-muted 5.40:1 / soft 5.93:1(실측). */
-  "gradient-hero": buildHeroGradient("#112338", "#10252c"),
-  "gradient-hero-soft": buildHeroGradient("#0e1a2d", "#0d1b26"),
-  "bg-glow": "radial-gradient(1100px 600px at 18% -10%, rgba(216, 176, 74, 0.10), transparent 60%), radial-gradient(900px 520px at 82% -14%, rgba(111, 143, 199, 0.10), transparent 55%), #0a0f1e",
-  "surface-glass": "rgba(31, 41, 66, 0.85)",
-  "surface-glass-fallback": "#1f2942",
-  "chart-axis-line": "#2f3b5c",
-  "chart-split-line": "#1e2740",
-  "chart-label": "#acb2c4",
-  "chart-slice-border": "#141b30",
-  ...chartSeriesTokens(NAVY_GOLD_CHART_SERIES),
-  "picker-filter": "invert(0.86)"
-};
+
+// shared/styles/presets/forest.ts
+var FOREST_CHART_SERIES = [
+  "#2b8052",
+  "#c26d22",
+  "#1f7ba5",
+  "#cf5f7d",
+  "#8b6fc9",
+  "#9a7b14",
+  "#9c4f92",
+  "#6b7785"
+];
 var FOREST_LIGHT = {
   bg: "#eef3ec",
   surface: "#ffffff",
@@ -6104,6 +5696,18 @@ var FOREST_DARK = {
   ...chartSeriesTokens(FOREST_CHART_SERIES),
   "picker-filter": "invert(0.86)"
 };
+
+// shared/styles/presets/grape.ts
+var GRAPE_CHART_SERIES = [
+  "#7a53da",
+  "#c26d22",
+  "#47955e",
+  "#cf5f7d",
+  "#1f7ba5",
+  "#9a7b14",
+  "#9c4f92",
+  "#6b7785"
+];
 var GRAPE_LIGHT = {
   bg: "#f3effa",
   surface: "#ffffff",
@@ -6224,134 +5828,8 @@ var GRAPE_DARK = {
   ...chartSeriesTokens(GRAPE_CHART_SERIES),
   "picker-filter": "invert(0.86)"
 };
-var SUNSET_LIGHT = {
-  /* 웜 크림 */
-  bg: "#fbf1e8",
-  surface: "#ffffff",
-  "surface-raised": "#ffffff",
-  "surface-muted": "#fdf8f3",
-  "surface-sunken": "#f6e9dd",
-  "surface-hover": "#fbf1e8",
-  border: "#f0dcc9",
-  "border-strong": "#8a7a68",
-  text: "#2b2118",
-  "text-secondary": "#5c4c3d",
-  "text-muted": "#6d5c4a",
-  "text-inverse": "#ffffff",
-  brand: "#bc4c0f",
-  "brand-hover": "#9c3f0c",
-  "brand-subtle": "#fdf0e3",
-  "brand-subtle-hover": "#fbe3cd",
-  "brand-border": "#f3c9a4",
-  "brand-text": "#a03f0c",
-  "on-brand": "#ffffff",
-  /* 앰버 */
-  accent: "#b06a05",
-  "accent-text": "#96610a",
-  "accent-subtle": "#fdeed6",
-  "accent-border": "#edcb92",
-  /* 로즈마젠타 — B채널로 상승 적색과 분리 */
-  /* 웜 크림 위에서 튀지 않게 축의 채도를 8종 중 가장 낮게(0.48) 잡았다 */
-  "accent-alt": "#389f6b",
-  "accent-alt-text": "#1e7640",
-  "accent-alt-subtle": "#e9f4ef",
-  "accent-alt-border": "#afd9c4",
-  ...COMMON_LIGHT,
-  overlay: "rgba(30, 20, 16, 0.5)",
-  "focus-ring": "#bc4c0f",
-  "focus-shadow": "rgba(188, 76, 15, 0.25)",
-  /* 웜 섀도 */
-  "shadow-1": "0 1px 2px rgba(58, 38, 20, 0.06), 0 1px 3px rgba(58, 38, 20, 0.08)",
-  "shadow-2": "0 2px 4px rgba(58, 38, 20, 0.06), 0 4px 12px rgba(58, 38, 20, 0.10)",
-  "shadow-3": "0 2px 6px rgba(58, 38, 20, 0.08), 0 12px 32px rgba(58, 38, 20, 0.18)",
-  "ribbon-stop-1": "#bc4c0f",
-  "ribbon-stop-2": "#b06a05",
-  "ribbon-stop-3": "#b83280",
-  "cta-stop-1": "#bc4c0f",
-  "cta-stop-2": "#ae470f",
-  "cta-stop-3": "#a04a10",
-  /* sunken이 아니라 muted — sunken(#f6e9dd) 위에서는 리본 stop 3:1이 무너져 승격(실측) */
-  "progress-track": "#fdf8f3",
-  "gradient-aurora": buildAuroraGradient(["#bc4c0f", "#b06a05", "#b83280"]),
-  "gradient-cta": buildDuotoneGradient("#bc4c0f", "#a04a10"),
-  /*
-   * 히어로 면 — 8종 중 쿨 캐스트가 가장 약하다(0.10/0.08). 웜 크림이 정체성이라
-   * 여기서 캐스트를 올리면 프리셋이 다른 프리셋처럼 보인다. 최악 text-muted 5.68:1.
-   */
-  "gradient-hero": buildHeroGradient("#e9f3f9", "#eef8f5"),
-  "gradient-hero-soft": buildHeroGradient("#f3f8fc", "#f6fbf9"),
-  "bg-glow": "radial-gradient(1200px 640px at 16% -10%, rgba(188, 76, 15, 0.05), transparent 60%), radial-gradient(1000px 560px at 84% -12%, rgba(201, 123, 6, 0.05), transparent 55%), #fbf1e8",
-  "surface-glass": "rgba(255, 255, 255, 0.8)",
-  "surface-glass-fallback": "#ffffff",
-  "chart-axis-line": "#ecdcc8",
-  "chart-split-line": "#f6e9dd",
-  "chart-label": "#5c4c3d",
-  "chart-slice-border": "#ffffff",
-  ...chartSeriesTokens(SUNSET_CHART_SERIES),
-  "picker-filter": "none"
-};
-var SUNSET_DARK = {
-  /* 딥 웜 브라운 */
-  bg: "#1e1410",
-  surface: "#2a1f19",
-  "surface-raised": "#372b23",
-  "surface-muted": "#30251e",
-  "surface-sunken": "#241a15",
-  "surface-hover": "#3f322a",
-  border: "#45362c",
-  "border-strong": "#8a7a6c",
-  text: "#f2ebe4",
-  "text-secondary": "#cbbcae",
-  "text-muted": "#a8988a",
-  "text-inverse": "#1e1410",
-  brand: "#ff8a5c",
-  "brand-hover": "#ffa075",
-  "brand-subtle": "#40251c",
-  "brand-subtle-hover": "#4b2d22",
-  "brand-border": "#7a4630",
-  "brand-text": "#ffb08e",
-  /** 어두운 라벨 반전 — 밝은 코랄(#ff8a5c) 위 #1e1410 = 7.77:1 (velog 다크와 같은 패턴) */
-  "on-brand": "#1e1410",
-  accent: "#f5b942",
-  "accent-text": "#f5b942",
-  "accent-subtle": "#3b2c12",
-  "accent-border": "#7d5f24",
-  "accent-alt": "#7bd9a2",
-  "accent-alt-text": "#7bd9a2",
-  "accent-alt-subtle": "#182419",
-  "accent-alt-border": "#2d5439",
-  ...COMMON_DARK,
-  overlay: "rgba(12, 6, 4, 0.7)",
-  "focus-ring": "#ffb08e",
-  "focus-shadow": "rgba(255, 176, 142, 0.3)",
-  /* aurora 다크 값 재사용 */
-  "shadow-1": "0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.24)",
-  "shadow-2": "0 2px 4px rgba(0, 0, 0, 0.32), 0 4px 12px rgba(0, 0, 0, 0.36)",
-  "shadow-3": "0 2px 6px rgba(0, 0, 0, 0.36), 0 12px 32px rgba(0, 0, 0, 0.48)",
-  "ribbon-stop-1": "#ff8a5c",
-  "ribbon-stop-2": "#f5b942",
-  "ribbon-stop-3": "#ee85a8",
-  "cta-stop-1": "#ff8a5c",
-  "cta-stop-2": "#f6a04b",
-  "cta-stop-3": "#f5b942",
-  "progress-track": "#241a15",
-  "gradient-aurora": buildAuroraGradient(["#ff8a5c", "#f5b942", "#ee85a8"]),
-  /* 어두운 라벨(on-brand #1e1410) 전제의 밝은 CTA duotone */
-  "gradient-cta": buildDuotoneGradient("#ff8a5c", "#f5b942"),
-  /* 히어로 면 — 웜 다크 위 최소 캐스트. 최악 text-muted 5.42:1 / soft 5.91:1(실측). */
-  "gradient-hero": buildHeroGradient("#222429", "#21281e"),
-  "gradient-hero-soft": buildHeroGradient("#201d1e", "#201f18"),
-  /* 다크 글로우 알파 0.10/0.08 상한(사전 계산으로 0.12에서 감쇄). 글로우 최악 위 text-muted 4.63. */
-  "bg-glow": "radial-gradient(1100px 600px at 18% -10%, rgba(255, 138, 92, 0.10), transparent 60%), radial-gradient(900px 520px at 82% -14%, rgba(245, 185, 66, 0.08), transparent 55%), #1e1410",
-  "surface-glass": "rgba(55, 43, 35, 0.85)",
-  "surface-glass-fallback": "#372b23",
-  "chart-axis-line": "#4a3a2e",
-  "chart-split-line": "#362a21",
-  "chart-label": "#cbbcae",
-  "chart-slice-border": "#2a1f19",
-  ...chartSeriesTokens(SUNSET_CHART_SERIES),
-  "picker-filter": "invert(0.86)"
-};
+
+// shared/styles/presets/ink.ts
 var INK_LIGHT = {
   /* 무틴트 — 정체성 */
   bg: "#f1f1f1",
@@ -6483,6 +5961,559 @@ var INK_DARK = {
   ...chartSeriesTokens(AURORA_CHART_SERIES),
   "picker-filter": "invert(0.86)"
 };
+
+// shared/styles/presets/navyGold.ts
+var NAVY_GOLD_CHART_SERIES = [
+  "#4d6ca4",
+  "#c26d22",
+  "#47955e",
+  "#cf5f7d",
+  "#8b6fc9",
+  "#b08a24",
+  "#9c4f92",
+  "#6b7785"
+];
+var NAVY_GOLD_LIGHT = {
+  /*
+   * 아이보리→크림 골드 틴트 강화(구 #f7f4ec → #f5efdd) — border-strong on bg 4.08,
+   * 글로우 최악 4.52(8종 중 가장 타이트 — 실측). 더 진하게 하려면 text-muted부터 어둡게. hover=bg 동기.
+   */
+  bg: "#f5efdd",
+  surface: "#fffcf5",
+  "surface-raised": "#fffcf5",
+  "surface-muted": "#fbf9f2",
+  "surface-sunken": "#efeadd",
+  "surface-hover": "#f5efdd",
+  border: "#e3dcc9",
+  "border-strong": "#7c7360",
+  text: "#1f2430",
+  "text-secondary": "#475063",
+  "text-muted": "#5c6373",
+  "text-inverse": "#ffffff",
+  brand: "#1f3a68",
+  "brand-hover": "#16294b",
+  "brand-subtle": "#edf0f8",
+  "brand-subtle-hover": "#dce3f0",
+  "brand-border": "#b9c7de",
+  "brand-text": "#274672",
+  "on-brand": "#ffffff",
+  /* 골드 = 장신구 전용 액센트 */
+  accent: "#a07617",
+  "accent-text": "#7a5a0f",
+  "accent-subtle": "#f7efd8",
+  "accent-border": "#dfc98e",
+  /* 버건디 */
+  "accent-alt": "#1c9e61",
+  "accent-alt-text": "#0b7432",
+  /* 틴트는 이 프리셋의 surface(아이보리)에서 파생 — 그래서 subtle 이 아이보리 기운을 갖는다 */
+  "accent-alt-subtle": "#e6f2e5",
+  "accent-alt-border": "#a4d6ba",
+  ...COMMON_LIGHT,
+  overlay: "rgba(24, 22, 16, 0.5)",
+  "focus-ring": "#1f3a68",
+  "focus-shadow": "rgba(31, 58, 104, 0.22)",
+  /* 웜 섀도 — 아이보리 지면과 어울리는 갈색 틴트 */
+  "shadow-1": "0 1px 2px rgba(46, 40, 24, 0.06), 0 1px 3px rgba(46, 40, 24, 0.08)",
+  "shadow-2": "0 2px 4px rgba(46, 40, 24, 0.06), 0 4px 12px rgba(46, 40, 24, 0.10)",
+  "shadow-3": "0 2px 6px rgba(46, 40, 24, 0.08), 0 12px 32px rgba(46, 40, 24, 0.18)",
+  "ribbon-stop-1": "#1f3a68",
+  "ribbon-stop-2": "#a07617",
+  "ribbon-stop-3": "#8e3b52",
+  "cta-stop-1": "#1f3a68",
+  "cta-stop-2": "#1b3159",
+  "cta-stop-3": "#16294b",
+  "progress-track": "#efeadd",
+  /* 네이비→골드→버건디 (표시용) / CTA는 네이비 duotone — 골드는 CTA 채움 금지 */
+  "gradient-aurora": buildAuroraGradient(["#1f3a68", "#a07617", "#8e3b52"]),
+  "gradient-cta": buildDuotoneGradient("#1f3a68", "#16294b"),
+  /*
+   * 히어로 면 — 웜(아이보리) 프리셋이라 쿨 캐스트를 0.12/0.09 로 낮췄다("차가운 빛"이 스민 정도).
+   * brand 자체가 네이비(쿨)라 블루 캐스트가 정체성과 충돌하지 않는다. 최악 text-muted 5.07:1.
+   */
+  "gradient-hero": buildHeroGradient("#e5edef", "#ecf5ea"),
+  "gradient-hero-soft": buildHeroGradient("#f1f4f2", "#f5f8ef"),
+  /* 단색층만 새 bg(#f5efdd)로 — 알파 0.06/0.05 유지(글로우 최악 4.52 실측, 상한) */
+  "bg-glow": "radial-gradient(1200px 640px at 16% -10%, rgba(160, 118, 23, 0.06), transparent 60%), radial-gradient(1000px 560px at 84% -12%, rgba(31, 58, 104, 0.05), transparent 55%), #f5efdd",
+  "surface-glass": "rgba(255, 252, 245, 0.8)",
+  "surface-glass-fallback": "#fffcf5",
+  "chart-axis-line": "#ded6c1",
+  "chart-split-line": "#efeadd",
+  "chart-label": "#475063",
+  "chart-slice-border": "#fffcf5",
+  ...chartSeriesTokens(NAVY_GOLD_CHART_SERIES),
+  "picker-filter": "none"
+};
+var NAVY_GOLD_DARK = {
+  bg: "#0a0f1e",
+  surface: "#141b30",
+  "surface-raised": "#1f2942",
+  "surface-muted": "#182138",
+  "surface-sunken": "#0f1526",
+  "surface-hover": "#263250",
+  border: "#2a3450",
+  "border-strong": "#62708f",
+  text: "#e8e9ef",
+  "text-secondary": "#acb2c4",
+  "text-muted": "#8e97ad",
+  "text-inverse": "#0a0f1e",
+  /* 스틸 블루 — 서피스 3.25:1, 흰 라벨 5.4:1 */
+  brand: "#4d6ca4",
+  "brand-hover": "#6283b8",
+  "brand-subtle": "#1c2b4f",
+  "brand-subtle-hover": "#233459",
+  "brand-border": "#38517f",
+  "brand-text": "#a9c0e8",
+  "on-brand": "#ffffff",
+  accent: "#d8b04a",
+  "accent-text": "#d8b04a",
+  "accent-subtle": "#2f2711",
+  "accent-border": "#6e5a1e",
+  "accent-alt": "#75dfa6",
+  "accent-alt-text": "#75dfa6",
+  "accent-alt-subtle": "#112322",
+  "accent-alt-border": "#265342",
+  ...COMMON_DARK,
+  overlay: "rgba(3, 6, 14, 0.68)",
+  "focus-ring": "#a9c0e8",
+  "focus-shadow": "rgba(169, 192, 232, 0.3)",
+  /* aurora 다크 값 재사용 */
+  "shadow-1": "0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.24)",
+  "shadow-2": "0 2px 4px rgba(0, 0, 0, 0.32), 0 4px 12px rgba(0, 0, 0, 0.36)",
+  "shadow-3": "0 2px 6px rgba(0, 0, 0, 0.36), 0 12px 32px rgba(0, 0, 0, 0.48)",
+  "ribbon-stop-1": "#6f8fc7",
+  "ribbon-stop-2": "#d8b04a",
+  "ribbon-stop-3": "#cf8fa4",
+  "cta-stop-1": "#4d6ca4",
+  "cta-stop-2": "#435d97",
+  "cta-stop-3": "#3a5488",
+  "progress-track": "#0f1526",
+  "gradient-aurora": buildAuroraGradient(["#6f8fc7", "#d8b04a", "#cf8fa4"]),
+  "gradient-cta": buildDuotoneGradient("#4d6ca4", "#3a5488"),
+  /* 히어로 면 — 다크 최악 text-muted 5.40:1 / soft 5.93:1(실측). */
+  "gradient-hero": buildHeroGradient("#112338", "#10252c"),
+  "gradient-hero-soft": buildHeroGradient("#0e1a2d", "#0d1b26"),
+  "bg-glow": "radial-gradient(1100px 600px at 18% -10%, rgba(216, 176, 74, 0.10), transparent 60%), radial-gradient(900px 520px at 82% -14%, rgba(111, 143, 199, 0.10), transparent 55%), #0a0f1e",
+  "surface-glass": "rgba(31, 41, 66, 0.85)",
+  "surface-glass-fallback": "#1f2942",
+  "chart-axis-line": "#2f3b5c",
+  "chart-split-line": "#1e2740",
+  "chart-label": "#acb2c4",
+  "chart-slice-border": "#141b30",
+  ...chartSeriesTokens(NAVY_GOLD_CHART_SERIES),
+  "picker-filter": "invert(0.86)"
+};
+
+// shared/styles/presets/sunset.ts
+var SUNSET_CHART_SERIES = [
+  "#bc4c0f",
+  "#1f7ba5",
+  "#47955e",
+  "#cf5f7d",
+  "#8b6fc9",
+  "#9a7b14",
+  "#9c4f92",
+  "#6b7785"
+];
+var SUNSET_LIGHT = {
+  /* 웜 크림 */
+  bg: "#fbf1e8",
+  surface: "#ffffff",
+  "surface-raised": "#ffffff",
+  "surface-muted": "#fdf8f3",
+  "surface-sunken": "#f6e9dd",
+  "surface-hover": "#fbf1e8",
+  border: "#f0dcc9",
+  "border-strong": "#8a7a68",
+  text: "#2b2118",
+  "text-secondary": "#5c4c3d",
+  "text-muted": "#6d5c4a",
+  "text-inverse": "#ffffff",
+  brand: "#bc4c0f",
+  "brand-hover": "#9c3f0c",
+  "brand-subtle": "#fdf0e3",
+  "brand-subtle-hover": "#fbe3cd",
+  "brand-border": "#f3c9a4",
+  "brand-text": "#a03f0c",
+  "on-brand": "#ffffff",
+  /* 앰버 */
+  accent: "#b06a05",
+  "accent-text": "#96610a",
+  "accent-subtle": "#fdeed6",
+  "accent-border": "#edcb92",
+  /* 로즈마젠타 — B채널로 상승 적색과 분리 */
+  /* 웜 크림 위에서 튀지 않게 축의 채도를 8종 중 가장 낮게(0.48) 잡았다 */
+  "accent-alt": "#389f6b",
+  "accent-alt-text": "#1e7640",
+  "accent-alt-subtle": "#e9f4ef",
+  "accent-alt-border": "#afd9c4",
+  ...COMMON_LIGHT,
+  overlay: "rgba(30, 20, 16, 0.5)",
+  "focus-ring": "#bc4c0f",
+  "focus-shadow": "rgba(188, 76, 15, 0.25)",
+  /* 웜 섀도 */
+  "shadow-1": "0 1px 2px rgba(58, 38, 20, 0.06), 0 1px 3px rgba(58, 38, 20, 0.08)",
+  "shadow-2": "0 2px 4px rgba(58, 38, 20, 0.06), 0 4px 12px rgba(58, 38, 20, 0.10)",
+  "shadow-3": "0 2px 6px rgba(58, 38, 20, 0.08), 0 12px 32px rgba(58, 38, 20, 0.18)",
+  "ribbon-stop-1": "#bc4c0f",
+  "ribbon-stop-2": "#b06a05",
+  "ribbon-stop-3": "#b83280",
+  "cta-stop-1": "#bc4c0f",
+  "cta-stop-2": "#ae470f",
+  "cta-stop-3": "#a04a10",
+  /* sunken이 아니라 muted — sunken(#f6e9dd) 위에서는 리본 stop 3:1이 무너져 승격(실측) */
+  "progress-track": "#fdf8f3",
+  "gradient-aurora": buildAuroraGradient(["#bc4c0f", "#b06a05", "#b83280"]),
+  "gradient-cta": buildDuotoneGradient("#bc4c0f", "#a04a10"),
+  /*
+   * 히어로 면 — 8종 중 쿨 캐스트가 가장 약하다(0.10/0.08). 웜 크림이 정체성이라
+   * 여기서 캐스트를 올리면 프리셋이 다른 프리셋처럼 보인다. 최악 text-muted 5.68:1.
+   */
+  "gradient-hero": buildHeroGradient("#e9f3f9", "#eef8f5"),
+  "gradient-hero-soft": buildHeroGradient("#f3f8fc", "#f6fbf9"),
+  "bg-glow": "radial-gradient(1200px 640px at 16% -10%, rgba(188, 76, 15, 0.05), transparent 60%), radial-gradient(1000px 560px at 84% -12%, rgba(201, 123, 6, 0.05), transparent 55%), #fbf1e8",
+  "surface-glass": "rgba(255, 255, 255, 0.8)",
+  "surface-glass-fallback": "#ffffff",
+  "chart-axis-line": "#ecdcc8",
+  "chart-split-line": "#f6e9dd",
+  "chart-label": "#5c4c3d",
+  "chart-slice-border": "#ffffff",
+  ...chartSeriesTokens(SUNSET_CHART_SERIES),
+  "picker-filter": "none"
+};
+var SUNSET_DARK = {
+  /* 딥 웜 브라운 */
+  bg: "#1e1410",
+  surface: "#2a1f19",
+  "surface-raised": "#372b23",
+  "surface-muted": "#30251e",
+  "surface-sunken": "#241a15",
+  "surface-hover": "#3f322a",
+  border: "#45362c",
+  "border-strong": "#8a7a6c",
+  text: "#f2ebe4",
+  "text-secondary": "#cbbcae",
+  "text-muted": "#a8988a",
+  "text-inverse": "#1e1410",
+  brand: "#ff8a5c",
+  "brand-hover": "#ffa075",
+  "brand-subtle": "#40251c",
+  "brand-subtle-hover": "#4b2d22",
+  "brand-border": "#7a4630",
+  "brand-text": "#ffb08e",
+  /** 어두운 라벨 반전 — 밝은 코랄(#ff8a5c) 위 #1e1410 = 7.77:1 (velog 다크와 같은 패턴) */
+  "on-brand": "#1e1410",
+  accent: "#f5b942",
+  "accent-text": "#f5b942",
+  "accent-subtle": "#3b2c12",
+  "accent-border": "#7d5f24",
+  "accent-alt": "#7bd9a2",
+  "accent-alt-text": "#7bd9a2",
+  "accent-alt-subtle": "#182419",
+  "accent-alt-border": "#2d5439",
+  ...COMMON_DARK,
+  overlay: "rgba(12, 6, 4, 0.7)",
+  "focus-ring": "#ffb08e",
+  "focus-shadow": "rgba(255, 176, 142, 0.3)",
+  /* aurora 다크 값 재사용 */
+  "shadow-1": "0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.24)",
+  "shadow-2": "0 2px 4px rgba(0, 0, 0, 0.32), 0 4px 12px rgba(0, 0, 0, 0.36)",
+  "shadow-3": "0 2px 6px rgba(0, 0, 0, 0.36), 0 12px 32px rgba(0, 0, 0, 0.48)",
+  "ribbon-stop-1": "#ff8a5c",
+  "ribbon-stop-2": "#f5b942",
+  "ribbon-stop-3": "#ee85a8",
+  "cta-stop-1": "#ff8a5c",
+  "cta-stop-2": "#f6a04b",
+  "cta-stop-3": "#f5b942",
+  "progress-track": "#241a15",
+  "gradient-aurora": buildAuroraGradient(["#ff8a5c", "#f5b942", "#ee85a8"]),
+  /* 어두운 라벨(on-brand #1e1410) 전제의 밝은 CTA duotone */
+  "gradient-cta": buildDuotoneGradient("#ff8a5c", "#f5b942"),
+  /* 히어로 면 — 웜 다크 위 최소 캐스트. 최악 text-muted 5.42:1 / soft 5.91:1(실측). */
+  "gradient-hero": buildHeroGradient("#222429", "#21281e"),
+  "gradient-hero-soft": buildHeroGradient("#201d1e", "#201f18"),
+  /* 다크 글로우 알파 0.10/0.08 상한(사전 계산으로 0.12에서 감쇄). 글로우 최악 위 text-muted 4.63. */
+  "bg-glow": "radial-gradient(1100px 600px at 18% -10%, rgba(255, 138, 92, 0.10), transparent 60%), radial-gradient(900px 520px at 82% -14%, rgba(245, 185, 66, 0.08), transparent 55%), #1e1410",
+  "surface-glass": "rgba(55, 43, 35, 0.85)",
+  "surface-glass-fallback": "#372b23",
+  "chart-axis-line": "#4a3a2e",
+  "chart-split-line": "#362a21",
+  "chart-label": "#cbbcae",
+  "chart-slice-border": "#2a1f19",
+  ...chartSeriesTokens(SUNSET_CHART_SERIES),
+  "picker-filter": "invert(0.86)"
+};
+
+// shared/styles/presets/velog.ts
+var VELOG_CHART_SERIES = [
+  "#0ca678",
+  "#c26d22",
+  "#4263eb",
+  "#cf5f7d",
+  "#8b6fc9",
+  "#9a7b14",
+  "#9c4f92",
+  "#6b7785"
+];
+var VELOG_LIGHT = {
+  /*
+   * 의도적 무틴트 — 라이트 bg 틴트 강화(2차 배리에이션)에서 velog만 제외했다.
+   * open-color gray-0(#f8f9fa) 참조 충실성이 이 프리셋의 정체성이다. 틴트를 넣지 마라.
+   */
+  bg: "#f8f9fa",
+  surface: "#ffffff",
+  "surface-raised": "#ffffff",
+  "surface-muted": "#f8f9fa",
+  "surface-sunken": "#f1f3f5",
+  "surface-hover": "#f8f9fa",
+  border: "#e9ecef",
+  "border-strong": "#868e96",
+  text: "#212529",
+  "text-secondary": "#495057",
+  "text-muted": "#5f6975",
+  "text-inverse": "#ffffff",
+  brand: "#087f5b",
+  "brand-hover": "#066649",
+  "brand-subtle": "#e6fcf5",
+  "brand-subtle-hover": "#c3fae8",
+  "brand-border": "#96f2d7",
+  "brand-text": "#087f5b",
+  "on-brand": "#ffffff",
+  accent: "#099268",
+  "accent-text": "#087f5b",
+  "accent-subtle": "#e6fcf5",
+  "accent-border": "#96f2d7",
+  "accent-alt": "#26a14f",
+  "accent-alt-text": "#13762a",
+  "accent-alt-subtle": "#e7f5ec",
+  "accent-alt-border": "#a8d9b9",
+  ...COMMON_LIGHT,
+  overlay: "rgba(33, 37, 41, 0.5)",
+  "focus-ring": "#099268",
+  "focus-shadow": "rgba(9, 146, 104, 0.22)",
+  /* 플랫 그림자 — 은은하게. velog다움은 그림자 절제가 만든다. */
+  "shadow-1": "0 1px 3px rgba(0, 0, 0, 0.05)",
+  "shadow-2": "0 2px 8px rgba(0, 0, 0, 0.06)",
+  "shadow-3": "0 8px 24px rgba(0, 0, 0, 0.12)",
+  "ribbon-stop-1": "#087f5b",
+  "ribbon-stop-2": "#099268",
+  "ribbon-stop-3": "#099268",
+  "cta-stop-1": "#087f5b",
+  "cta-stop-2": "#076c50",
+  "cta-stop-3": "#066649",
+  "progress-track": "#f8f9fa",
+  /* 시그니처는 duotone — 그라데이션이 거의 안 보이는 것이 velog다움 */
+  "gradient-aurora": buildDuotoneGradient("#087f5b", "#099268"),
+  "gradient-cta": buildDuotoneGradient("#087f5b", "#066649"),
+  /* 히어로 면 — 라이트 최악 지점(blue stop) text-muted 4.63:1 / soft 5.05:1(실측). */
+  "gradient-hero": buildHeroGradient("#deecf6", "#e6f5ef"),
+  "gradient-hero-soft": buildHeroGradient("#edf5fa", "#f1f9f6"),
+  /* 글로우 없음 = 단색 (역할: 페이지 배경) */
+  "bg-glow": "#f8f9fa",
+  /* 사실상 불투명한 유리 */
+  "surface-glass": "rgba(255, 255, 255, 0.96)",
+  "surface-glass-fallback": "#ffffff",
+  "chart-axis-line": "#dee2e6",
+  "chart-split-line": "#f1f3f5",
+  "chart-label": "#495057",
+  "chart-slice-border": "#ffffff",
+  ...chartSeriesTokens(VELOG_CHART_SERIES),
+  "picker-filter": "none"
+};
+var VELOG_DARK = {
+  bg: "#121212",
+  surface: "#1e1e1e",
+  "surface-raised": "#2a2a2a",
+  "surface-muted": "#242424",
+  "surface-sunken": "#191919",
+  "surface-hover": "#313131",
+  border: "#343434",
+  "border-strong": "#7b828a",
+  text: "#ececec",
+  "text-secondary": "#adb5bd",
+  "text-muted": "#868e96",
+  "text-inverse": "#121212",
+  brand: "#20c997",
+  "brand-hover": "#38d9a9",
+  "brand-subtle": "#12352a",
+  "brand-subtle-hover": "#1a4634",
+  "brand-border": "#2f7d5f",
+  "brand-text": "#20c997",
+  /** 어두운 라벨 — 밝은 틸(#20c997) 위 #121212 = 8.79:1. 라벨 색을 흰색으로 하드코딩하면 여기서 깨진다. */
+  "on-brand": "#121212",
+  accent: "#20c997",
+  "accent-text": "#20c997",
+  "accent-subtle": "#12352a",
+  "accent-border": "#2f7d5f",
+  "accent-alt": "#75df98",
+  "accent-alt-text": "#75df98",
+  "accent-alt-subtle": "#142419",
+  "accent-alt-border": "#295437",
+  ...COMMON_DARK,
+  overlay: "rgba(0, 0, 0, 0.6)",
+  "focus-ring": "#20c997",
+  "focus-shadow": "rgba(32, 201, 151, 0.3)",
+  "shadow-1": "0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3)",
+  "shadow-2": "0 2px 4px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.4)",
+  "shadow-3": "0 2px 6px rgba(0, 0, 0, 0.44), 0 12px 32px rgba(0, 0, 0, 0.52)",
+  "ribbon-stop-1": "#20c997",
+  "ribbon-stop-2": "#12b886",
+  "ribbon-stop-3": "#12b886",
+  "cta-stop-1": "#20c997",
+  "cta-stop-2": "#19c18f",
+  "cta-stop-3": "#12b886",
+  "progress-track": "#191919",
+  "gradient-aurora": buildDuotoneGradient("#20c997", "#12b886"),
+  "gradient-cta": buildDuotoneGradient("#20c997", "#12b886"),
+  /*
+   * 🔴 knife-edge — 다크 히어로 최악 지점(t≈0.88) text-muted 4.58:1. 16테마 32그라디언트 중 전역 최저다.
+   * 이 두 stop 을 더 밝게 올리거나 text-muted(#868e96)를 더 어둡게 내리면 즉시 AA 탈락한다.
+   */
+  "gradient-hero": buildHeroGradient("#192630", "#172923"),
+  "gradient-hero-soft": buildHeroGradient("#161d23", "#151f1b"),
+  "bg-glow": "#121212",
+  "surface-glass": "rgba(30, 30, 30, 0.96)",
+  "surface-glass-fallback": "#1e1e1e",
+  "chart-axis-line": "#3a3a3a",
+  "chart-split-line": "#2c2c2c",
+  "chart-label": "#adb5bd",
+  "chart-slice-border": "#1e1e1e",
+  ...chartSeriesTokens(VELOG_CHART_SERIES),
+  "picker-filter": "invert(0.86)"
+};
+
+// shared/styles/presets/vivid.ts
+var VIVID_CHART_SERIES = [
+  "#2d5bf5",
+  "#c26d22",
+  "#00997e",
+  "#cf5f7d",
+  "#8b6fc9",
+  "#9a7b14",
+  "#9c4f92",
+  "#6b7785"
+];
+var VIVID_LIGHT = {
+  /* 라벤더 틴트 강화(구 #f5f7ff → #eef0ff) — border-strong on bg 3.56, 글로우 최악 4.72(실측). hover=bg 동기. */
+  bg: "#eef0ff",
+  surface: "#ffffff",
+  "surface-raised": "#ffffff",
+  "surface-muted": "#fafbff",
+  "surface-sunken": "#e9edfc",
+  "surface-hover": "#eef0ff",
+  border: "#dbe1f5",
+  "border-strong": "#737e9d",
+  text: "#171c33",
+  "text-secondary": "#454f6e",
+  "text-muted": "#57627f",
+  "text-inverse": "#ffffff",
+  brand: "#2d5bf5",
+  "brand-hover": "#1e46d6",
+  "brand-subtle": "#e8eeff",
+  "brand-subtle-hover": "#d6e0ff",
+  "brand-border": "#b3c6ff",
+  "brand-text": "#2447cf",
+  "on-brand": "#ffffff",
+  accent: "#00997e",
+  "accent-text": "#007a64",
+  "accent-subtle": "#dcfaf3",
+  "accent-border": "#86e8d3",
+  "accent-alt": "#0aa155",
+  "accent-alt-text": "#03772c",
+  "accent-alt-subtle": "#e4f5ec",
+  "accent-alt-border": "#9dd9bb",
+  ...COMMON_LIGHT,
+  overlay: "rgba(23, 26, 51, 0.5)",
+  "focus-ring": "#2d5bf5",
+  "focus-shadow": "rgba(45, 91, 245, 0.25)",
+  /* 살짝 컬러 섀도 — 경쾌함의 디테일 */
+  "shadow-1": "0 1px 2px rgba(23, 26, 51, 0.06), 0 1px 3px rgba(23, 26, 51, 0.08)",
+  "shadow-2": "0 2px 4px rgba(45, 91, 245, 0.06), 0 4px 12px rgba(23, 26, 51, 0.10)",
+  "shadow-3": "0 4px 10px rgba(45, 91, 245, 0.08), 0 12px 32px rgba(23, 26, 51, 0.18)",
+  "ribbon-stop-1": "#2d5bf5",
+  "ribbon-stop-2": "#00997e",
+  "ribbon-stop-3": "#7c5cff",
+  "cta-stop-1": "#2d5bf5",
+  "cta-stop-2": "#007a64",
+  "cta-stop-3": "#5b3de6",
+  "progress-track": "#e9edfc",
+  "gradient-aurora": buildAuroraGradient(["#2d5bf5", "#00997e", "#7c5cff"]),
+  "gradient-cta": buildCtaGradient(["#2d5bf5", "#007a64", "#5b3de6"]),
+  /* 히어로 면 — 채도 강한 프리셋이라 캐스트를 라이트 0.16/0.13 으로 잡았다. 최악 text-muted 4.98:1. */
+  "gradient-hero": buildHeroGradient("#dcebf6", "#e3f4ee"),
+  "gradient-hero-soft": buildHeroGradient("#ecf4fa", "#f0f9f6"),
+  /* 단색층만 새 bg(#eef0ff)로 — 알파 0.07/0.06은 유지 가능(글로우 최악 4.72 실측) */
+  "bg-glow": "radial-gradient(1200px 640px at 16% -10%, rgba(0, 201, 167, 0.07), transparent 60%), radial-gradient(1000px 560px at 84% -12%, rgba(124, 92, 255, 0.06), transparent 55%), #eef0ff",
+  "surface-glass": "rgba(255, 255, 255, 0.8)",
+  "surface-glass-fallback": "#ffffff",
+  "chart-axis-line": "#d6ddf2",
+  "chart-split-line": "#e9edfc",
+  "chart-label": "#454f6e",
+  "chart-slice-border": "#ffffff",
+  ...chartSeriesTokens(VIVID_CHART_SERIES),
+  "picker-filter": "none"
+};
+var VIVID_DARK = {
+  /* 딥 인디고 */
+  bg: "#101223",
+  surface: "#1a1e38",
+  "surface-raised": "#262b4f",
+  "surface-muted": "#202544",
+  "surface-sunken": "#151831",
+  "surface-hover": "#2d335c",
+  border: "#313a63",
+  "border-strong": "#6d7aa8",
+  text: "#eaedfb",
+  "text-secondary": "#aeb6d9",
+  "text-muted": "#929cc4",
+  "text-inverse": "#101223",
+  brand: "#3d63f2",
+  "brand-hover": "#2e51d8",
+  "brand-subtle": "#1b2a5c",
+  "brand-subtle-hover": "#223471",
+  "brand-border": "#3a4d99",
+  "brand-text": "#9db4ff",
+  "on-brand": "#ffffff",
+  accent: "#00c9a7",
+  "accent-text": "#00c9a7",
+  "accent-subtle": "#0e3330",
+  "accent-border": "#16665a",
+  "accent-alt": "#61f299",
+  "accent-alt-text": "#61f299",
+  "accent-alt-subtle": "#132423",
+  "accent-alt-border": "#285441",
+  ...COMMON_DARK,
+  overlay: "rgba(5, 7, 20, 0.68)",
+  "focus-ring": "#9db4ff",
+  "focus-shadow": "rgba(157, 180, 255, 0.3)",
+  /* aurora 다크 값 재사용 — 다크 그림자는 프리셋 개성 요소가 아니다 */
+  "shadow-1": "0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.24)",
+  "shadow-2": "0 2px 4px rgba(0, 0, 0, 0.32), 0 4px 12px rgba(0, 0, 0, 0.36)",
+  "shadow-3": "0 2px 6px rgba(0, 0, 0, 0.36), 0 12px 32px rgba(0, 0, 0, 0.48)",
+  "ribbon-stop-1": "#6a8aff",
+  "ribbon-stop-2": "#00c9a7",
+  "ribbon-stop-3": "#9d86ff",
+  "cta-stop-1": "#3d63f2",
+  "cta-stop-2": "#00806a",
+  "cta-stop-3": "#6a4df0",
+  "progress-track": "#151831",
+  "gradient-aurora": buildAuroraGradient(["#6a8aff", "#00c9a7", "#9d86ff"]),
+  "gradient-cta": buildCtaGradient(["#3d63f2", "#00806a", "#6a4df0"]),
+  /* 히어로 면 — 다크 최악 text-muted 5.43:1 / soft 6.10:1(실측). */
+  "gradient-hero": buildHeroGradient("#172840", "#162b33"),
+  "gradient-hero-soft": buildHeroGradient("#141e33", "#13202c"),
+  /* 알파 0.12/0.10 상한 — 0.16에서 text-muted 4.27:1 탈락 실측. 올리지 마라. */
+  "bg-glow": "radial-gradient(1100px 600px at 18% -10%, rgba(0, 201, 167, 0.12), transparent 60%), radial-gradient(900px 520px at 82% -14%, rgba(157, 134, 255, 0.10), transparent 55%), #101223",
+  "surface-glass": "rgba(38, 43, 79, 0.85)",
+  "surface-glass-fallback": "#262b4f",
+  "chart-axis-line": "#343c68",
+  "chart-split-line": "#232849",
+  "chart-label": "#aeb6d9",
+  "chart-slice-border": "#1a1e38",
+  ...chartSeriesTokens(VIVID_CHART_SERIES),
+  "picker-filter": "invert(0.86)"
+};
+
+// shared/styles/presets/index.ts
 var THEME_PRESETS = {
   velog: {
     /** id는 내부 식별자(velog 유지) — 표시명은 타사 서비스명을 피해 "미니멀 그린". */
@@ -6674,6 +6705,7 @@ var font = {
   numeric: "font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1;"
 };
 var space = SPACE_SCALE;
+var radius = RADIUS_SCALE;
 var shadow = {
   e1: "var(--sb-shadow-1)",
   e2: "var(--sb-shadow-2)",
@@ -8132,6 +8164,43 @@ var globalStyles = css`
   h5,
   h6 {
     font-family: ${font.display};
+
+    /*
+     * 줄바꿈도 여기서 한 번에 건다(2026-07-30 신설 — 종전 레포 전체에 'text-wrap' 0건).
+     *
+     * ⚠ 'keep-all' 과 'balance' 는 **한 짝이다. 따로 쓰면 한국어가 나빠진다.**
+     * 'balance' 는 줄들을 고르게 만들려고 **줄 중앙 쪽**에서 끊을 자리를 찾는데, 한글은 음절마다
+     * 끊을 수 있어서 그 중앙이 어절 한가운데 떨어지기 쉽다("시뮬레이" / "터"). greedy 줄바꿈은
+     * 오른쪽 끝에서만 잘못 끊기지만 balance 는 **어디서든** 그럴 수 있다.
+     * 'keep-all' 로 끊을 자리를 공백으로 제한하면 그제서야 balance 가 이득이 된다.
+     *
+     * 'anywhere' 는 마지막 방어선이다 — 공백 없는 긴 토큰(티커·URL)이 컨테이너를 뚫는 걸 막는다.
+     *
+     * 이 짝은 'Card'·'PageHero' 가 이미 각자 쓰고 있었다. 검증된 패턴을 전역으로 올린 것이다.
+     */
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+    text-wrap: balance;
+  }
+
+  /*
+   * 본문은 'pretty' — 마지막 줄에 낱말 하나만 남는 것(외톨이)을 막는다.
+   *
+   * ⚠ 여기엔 'keep-all' 을 걸지 않는다. 한국어 **산문**은 음절 단위 줄바꿈이 관례이고,
+   * 본문에 keep-all 을 걸면 오른쪽 끝이 심하게 들쭉날쭉해지며 좁은 카드에서 가로 넘침이 생긴다.
+   * 헤딩과 본문은 이 점에서 규칙이 다르다.
+   *
+   * 요소 선택자(0,0,1)라 Emotion 클래스(0,1,0)에 항상 진다 — 기존 컴포넌트 선언을 건드리지 않는다.
+   */
+  p,
+  li,
+  dd,
+  figcaption,
+  caption,
+  summary,
+  small,
+  blockquote {
+    text-wrap: pretty;
   }
 
   /*
@@ -8229,10 +8298,56 @@ var headerControlsGrid = `
 // shared/styles/heroTitleRow.ts
 var heroTitleFontSize = `clamp(${font.size["2xl"]}, calc(0.9rem + 1.8vw), ${font.size["4xl"]})`;
 var sectionTitleFontSize = `clamp(${font.size.lg}, calc(0.86rem + 0.56vw), ${font.size.xl})`;
-var ICON_OPTICAL_SHIFT = 0.1;
-var heroIconOpticalAlign = `
+var DISPLAY_ICON_OPTICAL_SHIFT = 0.1;
+var iconOpticalAlign = (textFontSize) => `
   flex: 0 0 auto;
-  transform: translateY(calc(${heroTitleFontSize} * -${ICON_OPTICAL_SHIFT}));
+  transform: translateY(calc(${textFontSize} * -${DISPLAY_ICON_OPTICAL_SHIFT}));
+`;
+var heroIconOpticalAlign = iconOpticalAlign(heroTitleFontSize);
+
+// shared/styles/scrollbar.ts
+var subtleScrollbar = `
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: ${color.border};
+    border-radius: ${radius.pill};
+  }
+  &:hover::-webkit-scrollbar-thumb {
+    background: ${color.borderStrong};
+  }
+
+  /*
+   * Firefox \uD3F4\uBC31. \uD45C\uC900 \uC18D\uC131\uC744 \uC704\uC640 **\uAC19\uC774** \uC120\uC5B8\uD558\uBA74 Chromium 121+ \uAC00 \uC704 webkit \uADDC\uCE59\uC744 \uD1B5\uC9F8\uB85C
+   * \uBB34\uC2DC\uD558\uBBC0\uB85C(\uC774 \uD30C\uC77C \uC0C1\uB2E8 \uC2E4\uCE21\uD45C) \uBC18\uB4DC\uC2DC Firefox \uC5D0\uB9CC \uB2FF\uC544\uC57C \uD55C\uB2E4.
+   *
+   * \u{1F534} \uC885\uC804\uC5D0\uB294 '@supports not selector(::-webkit-scrollbar)' \uB85C \uAC08\uB790\uB294\uB370 **\uADF8\uAC8C \uD2C0\uB838\uB2E4**(2026-07-31).
+   * Firefox \uB294 \uC774 \uC120\uD0DD\uC790\uC5D0 'true' \uB97C \uBC18\uD658\uD558\uBA74\uC11C\uB3C4 \uC2E4\uC81C\uB85C\uB294 \uADF8 \uC758\uC0AC\uC694\uC18C\uB85C \uC2A4\uD06C\uB864\uBC14\uB97C \uBABB \uAFB8\uBBFC\uB2E4 \u2014
+   * \uC911\uCCA9 \uC2A4\uD06C\uB864 \uC601\uC5ED\uC774 \uB3C4\uB2EC \uBD88\uAC00\uB2A5\uD574\uC9C0\uB294 \uAC83\uC744 \uB9C9\uC73C\uB824\uB294 \uC758\uB3C4\uC801 \uB3D9\uC791\uC774\uB2E4(bugzil.la/1977511).
+   * \uADF8\uB798\uC11C 'not true' = false \uAC00 \uB418\uC5B4 **Firefox \uAC00 \uD3F4\uBC31\uC744 \uBABB \uBC1B\uACE0 \uB124\uC774\uD2F0\uBE0C \uAE30\uBCF8 \uB9C9\uB300\uB85C \uB5A8\uC5B4\uC84C\uB2E4.**
+   * \uC989 \uC774 \uAC00\uB4DC\uB294 "\uC9C0\uC6D0 \uC5EC\uBD80"\uB97C \uBB3B\uB294 \uAC83\uCC98\uB7FC \uBCF4\uC774\uC9C0\uB9CC \uC5B4\uB290 \uC5D4\uC9C4\uC5D0\uC11C\uB3C4 \uCC38\uC774 \uC544\uB2C8\uC5C8\uB2E4.
+   *
+   * \uB300\uC2E0 **\uC5D4\uC9C4 \uD310\uBCC4**\uB85C \uAC04\uB2E4. \uC591\uCABD \uBE0C\uB77C\uC6B0\uC800\uC5D0\uC11C \uC9C1\uC811 \uC7AC\uC11C \uACE0\uB978 \uC870\uAC74\uC774\uB2E4:
+   *   Chrome 150 : '-moz-orient' false \xB7 '-moz-appearance' false \xB7
+   *                '-webkit-appearance' true \xB7 'selector(::-webkit-scrollbar)' true
+   *   Firefox    : '-moz-orient' **true** \xB7 '-moz-appearance' **\uC18D\uC131 \uC790\uCCB4\uAC00 \uC5C6\uB2E4**
+   * \uB4A4 \uB450 \uC870\uAC74\uC740 Firefox \uC5D0\uC11C\uB3C4 true \uB77C \uD310\uBCC4\uC5D0 \uBABB \uC4F0\uACE0, '-moz-appearance' \uB294 \uC774\uBBF8 \uC81C\uAC70\uB3FC
+   * **\uC5B4\uB290 \uC5D4\uC9C4\uC5D0\uC11C\uB3C4 \uCC38\uC774 \uC544\uB2C8\uB2E4** \u2014 \uADF8\uB798\uC11C 'or' \uB85C \uB07C\uC6CC \uB123\uC9C0 \uC54A\uC558\uB2E4. \uBC14\uB85C \uC704 \uBB38\uB2E8\uC758 \uC0AC\uACE0\uAC00
+   * \uC815\uD655\uD788 "\uC5B4\uB514\uC11C\uB3C4 \uCC38\uC774 \uC544\uB2CC \uC870\uAC74\uC744 \uB0A8\uACA8 \uB454 \uAC83"\uC774\uC5C8\uB2E4. \uC8FD\uC740 \uC870\uAC74\uC744 \uBCF4\uD5D8\uCC98\uB7FC \uB450\uC9C0 \uB9C8\uB77C.
+   *
+   * \u26A0 Firefox \uAC00 \uC5B8\uC820\uAC00 '-moz-orient' \uB9C8\uC800 \uAC77\uC5B4\uB0B4\uBA74 \uD3F4\uBC31\uC774 \uC870\uC6A9\uD788 \uAEBC\uC9C0\uACE0 \uB124\uC774\uD2F0\uBE0C \uB9C9\uB300\uB85C \uB3CC\uC544\uAC04\uB2E4 \u2014
+   * **\uC624\uB298\uACFC \uAC19\uC740 \uC0C1\uD0DC**\uB77C \uD68C\uADC0\uAC00 \uC544\uB2C8\uB77C \uC6B0\uC544\uD55C \uD1F4\uD654\uB2E4. Chromium \uC740 \uC5B4\uB290 \uACBD\uC6B0\uC5D0\uB3C4 \uC601\uD5A5\uBC1B\uC9C0 \uC54A\uB294\uB2E4
+   * (\uC774 \uAC00\uB4DC\uB294 Chromium \uC5D0\uC11C \uD56D\uC0C1 false \uC774\uACE0, \uADF8\uB798\uC57C \uC704 webkit \uADDC\uCE59\uC774 \uC0B0\uB2E4).
+   */
+  @supports (-moz-orient: inline) {
+    scrollbar-width: thin;
+    scrollbar-color: ${color.border} transparent;
+  }
 `;
 
 // shared/styles/chartTheme.ts

@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, motion, radius, space } from '@/shared/styles';
+import { color, font, hiddenScrollbar, motion, radius, space } from '@/shared/styles';
 
 /**
  * 탭 — 세그먼트(칩) 스타일.
@@ -19,12 +19,8 @@ export const TabList = styled.div`
   /* 공유 트랙 없음 — 활성/비활성은 칩(배경·테두리·텍스트)과 활성 탭 자체의 하단 리본으로 구분한다. */
   overflow-x: auto;
   overflow-y: hidden;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
+  /* 스크롤바를 **일부러 감춘다** — 40px 칩 줄 아래 막대가 붙으면 칩이 잘려 보인다(기존 동작 유지). */
+  ${hiddenScrollbar}
 `;
 
 export const TabButton = styled.button<{ active?: boolean }>`
@@ -78,10 +74,14 @@ export const TabButton = styled.button<{ active?: boolean }>`
     cursor: not-allowed;
   }
 
-  /* 탭 아이콘은 라벨 크기에 맞춘다(라벨 없이 아이콘만 쓰는 탭이 없어 1em 기준으로 충분). */
+  /*
+   * ⚠ 크기를 여기서 정하지 마라 — 'size' prop 이 정본이다('ICON' 계단).
+   *
+   * 2026-07-30 까지 '1.15em' 이었다. 라벨이 'font.size.sm'(13px)이라 **14.95px** 로 그려졌는데,
+   * 그 15px 은 2026-07-29 아이콘 통일 작업이 계단 밖이라고 **명시적으로 걷어낸 값**이다.
+   * CSS 로 다시 들어와 있었다 — 'size={16}' 을 선언한 호출부가 15 를 받고 있었다.
+   */
   svg {
-    width: 1.15em;
-    height: 1.15em;
     flex: 0 0 auto;
   }
 `;

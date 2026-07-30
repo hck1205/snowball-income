@@ -223,6 +223,20 @@ describe('SideDrawer', () => {
     expect(document.body.style.overflow).toBe('');
   });
 
+  it('열기 전 페이지에 걸려 있던 overflow 를 그대로 되돌린다', async () => {
+    stubViewportWidth(NARROW);
+    document.body.style.overflow = 'clip';
+    const user = userEvent.setup();
+    render(<Harness />);
+
+    await user.click(openButton());
+    expect(document.body.style.overflow).toBe('hidden');
+
+    await user.click(closeButton());
+    // 복원값은 "빈 문자열"이 아니라 **잠그기 직전의 값**이다.
+    expect(document.body.style.overflow).toBe('clip');
+  });
+
   it('대화상자 역할을 선언하지 않는다 — 포커스 트랩이 없기 때문이다', async () => {
     const user = userEvent.setup();
     render(<Harness />);
@@ -233,5 +247,73 @@ describe('SideDrawer', () => {
     expect(panel()).not.toHaveAttribute('aria-modal');
     // 제목이 곧 접근명이다.
     expect(screen.getByRole('heading', { name: '투자 설정' })).toBeInTheDocument();
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/* 2개 동시 오픈 — body 스크롤 잠금은 모듈이 센다                                 */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * 인스턴스마다 `previousOverflow` 를 저장·복원하던 시절의 결함:
+ * A(캡처 `''`) → B(캡처 `'hidden'`) 순서로 열고 **A 를 먼저 닫으면** A 가 `''` 를 복원해
+ * B 가 열려 있는데도 배경이 스크롤됐다. 그 다음 B 가 닫히면 이번엔 `'hidden'` 을 복원해
+ * 페이지가 **영구 잠금**이 된다. 두 증상을 각각 잠근다.
+ *
+ * 이 껍데기를 쓰는 래퍼는 라우트 배타지만 1개 → 3개로 늘었다(설정·보유 피커·캘린더 피커) —
+ * 한 화면에 둘이 겹치는 배치가 생기는 순간 이 테스트가 방어선이 된다.
+ */
+function TwoDrawerHarness() {
+  const [isAOpen, setIsAOpen] = useState(false);
+  const [isBOpen, setIsBOpen] = useState(false);
+
+  return (
+    <>
+      <button type="button" onClick={() => setIsAOpen(true)}>
+        A 열기
+      </button>
+      <button type="button" onClick={() => setIsBOpen(true)}>
+        B 열기
+      </button>
+      {/* `dimBelow='always'` = 폭과 무관하게 딤·락(목록 피커와 같은 조합) — matchMedia 스텁이 필요 없다. */}
+      <SideDrawer id="drawer-a" isOpen={isAOpen} dimBelow="always" title="A 드로어" closeLabel="A 닫기" onClose={() => setIsAOpen(false)}>
+        <p>A 본문</p>
+      </SideDrawer>
+      <SideDrawer id="drawer-b" isOpen={isBOpen} dimBelow="always" title="B 드로어" closeLabel="B 닫기" onClose={() => setIsBOpen(false)}>
+        <p>B 본문</p>
+      </SideDrawer>
+    </>
+  );
+}
+
+describe('SideDrawer — 2개 동시 오픈', () => {
+  it('하나만 닫아도 나머지가 열려 있는 한 스크롤 잠금이 유지된다', async () => {
+    const user = userEvent.setup();
+    render(<TwoDrawerHarness />);
+
+    await user.click(screen.getByRole('button', { name: 'A 열기' }));
+    await user.click(screen.getByRole('button', { name: 'B 열기' }));
+    expect(document.body.style.overflow).toBe('hidden');
+
+    await user.click(screen.getByRole('button', { name: 'A 닫기' }));
+    // 먼저 열린 쪽이 먼저 닫혀도 잠금은 B 의 것으로 남는다.
+    expect(document.body.style.overflow).toBe('hidden');
+
+    await user.click(screen.getByRole('button', { name: 'B 닫기' }));
+    expect(document.body.style.overflow).toBe('');
+  });
+
+  it('마지막 하나가 닫힐 때 되돌리는 값은 **첫 잠금 시점**의 값이다', async () => {
+    document.body.style.overflow = 'scroll';
+    const user = userEvent.setup();
+    render(<TwoDrawerHarness />);
+
+    await user.click(screen.getByRole('button', { name: 'A 열기' }));
+    await user.click(screen.getByRole('button', { name: 'B 열기' }));
+    await user.click(screen.getByRole('button', { name: 'A 닫기' }));
+    await user.click(screen.getByRole('button', { name: 'B 닫기' }));
+
+    // 인스턴스별 캡처였다면 B 가 A 의 'hidden' 을 "원래 값"으로 알고 되살려 영구 잠금이 됐다.
+    expect(document.body.style.overflow).toBe('scroll');
   });
 });

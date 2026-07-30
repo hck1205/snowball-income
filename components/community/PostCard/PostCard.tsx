@@ -47,7 +47,8 @@ export default function PostCard({ item, simSummary }: PostCardProps) {
   return (
     <CardLink to={detailPath}>
       {simSummary ? (
-        <PreviewBlock>
+        // data-feed-hero: 카드가 hover 규칙으로 이 숫자 판을 집는 손잡이(FeedSurface.FEED_HERO_ATTR).
+        <PreviewBlock data-feed-hero="">
           <SimSummaryStats variant="card" summary={simSummary} />
         </PreviewBlock>
       ) : null}

@@ -1,3 +1,4 @@
+// @vitest-environment node — DOM 을 쓰지 않는 순수 테스트 (기준: vitest.config.ts)
 import { describe, expect, it, vi } from 'vitest';
 import { computeAnnualGrowthRate, removeScenarioTab, renameScenarioTabs, reorderTabs } from '@/pages/Main/utils';
 import { resolveSelectedYear } from '@/components/MonthlyCashflow';

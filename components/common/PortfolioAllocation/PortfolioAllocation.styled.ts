@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, container, font, media, motion, radius, space } from '@/shared/styles';
+import { color, container, font, media, motion, radius, shadow, space } from '@/shared/styles';
 
 export const SelectedChipWrap = styled.div`
   display: flex;
@@ -119,6 +119,11 @@ export const AllocationLegendSlider = styled.input`
     border-radius: ${radius.pill};
   }
 
+  /*
+   * 손잡이 깊이는 토큰으로만 말한다(DESIGN.md §6). 종전 생 리터럴 '0 1px 3px rgba(15,25,35,0.3)' 는
+   * 어느 테마에서도 같은 값이라 **다크에서 어두운 면 위에 어두운 그림자**로 사라졌다.
+   * 손잡이의 구조적 경계는 여전히 'border: 2px solid color.surface' 가 만든다 — 그림자는 높이만.
+   */
   &::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
@@ -128,7 +133,7 @@ export const AllocationLegendSlider = styled.input`
     border-radius: ${radius.pill};
     border: 2px solid ${color.surface};
     background: ${color.brand};
-    box-shadow: 0 1px 3px rgba(15, 25, 35, 0.3);
+    box-shadow: ${shadow.e1};
   }
 
   &::-moz-range-track {
@@ -149,7 +154,7 @@ export const AllocationLegendSlider = styled.input`
     border-radius: ${radius.pill};
     border: 2px solid ${color.surface};
     background: ${color.brand};
-    box-shadow: 0 1px 3px rgba(15, 25, 35, 0.3);
+    box-shadow: ${shadow.e1};
   }
 `;
 

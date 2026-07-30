@@ -21,7 +21,7 @@ import { BannerSlot } from './KakaoLoginErrorBanner.styled';
  * 제목은 컴포넌트 로컬 카피다(NaverLoginErrorBanner 와 같은 선례): 실패 "원인(카카오 로그인)"을
  * 드러내야 하는데 copy.ts 에 해당 키가 없고, 본문은 정본 `common.genericError` 를 재사용한다.
  */
-const KAKAO_LOGIN_ERROR_TITLE = '카카오 로그인에 실패했어요';
+const KAKAO_LOGIN_ERROR_TITLE = '카카오 로그인에 실패했습니다';
 
 export default function KakaoLoginErrorBanner() {
   const [failed, setFailed] = useState(false);

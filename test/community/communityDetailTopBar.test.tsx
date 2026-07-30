@@ -18,7 +18,9 @@ import type { CommunityDetailViewModel } from '@/pages/Community/CommunityDetail
  */
 vi.mock('@/pages/Community/CommunityDetailPage/components', () => ({
   CommentSection: () => <div data-testid="comments" />,
-  ScenarioPreview: () => <div data-testid="preview" />
+  ScenarioPreview: () => <div data-testid="preview" />,
+  // 배럴을 통째로 갈아끼우므로 상세가 쓰는 부품은 전부 여기 있어야 한다(빠지면 렌더가 터진다).
+  ScrollTopButton: () => null
 }));
 
 const d = COMMUNITY_COPY.detail;

@@ -1,26 +1,18 @@
 import { useCallback, useId, useRef } from 'react';
 import { Info, Plus, Wallet } from 'lucide-react';
-import { Banner, Button, Chip, InputField, StatTile } from '@/components/common';
+import { Banner, Button, Chip, StatTile } from '@/components/common';
 import { PORTFOLIO_COPY } from '../copy';
 import { GoalCard, HoldingPicker, HoldingPickerDrawer, HoldingsTable, ManualTickerForm } from '../components';
 import type { ManualTickerSubmitResult } from '../components';
+import { PortfolioAssumptions } from './components';
 import type { PortfolioCtaModel, PortfolioViewProps } from './PortfolioPage.types';
 import {
   ActionHint,
   ActionRow,
   AsOfLine,
-  AssumptionsBody,
-  AssumptionsDetails,
-  AssumptionsGroupNote,
-  AssumptionsGroupTitle,
-  AssumptionsSummary,
   CardHead,
   CardSubtitle,
   CardTitle,
-  ConditionRow,
-  ConditionTerm,
-  ConditionValue,
-  ConditionsList,
   EmptyBody,
   EmptyStateCard,
   EmptyTitle,
@@ -45,7 +37,6 @@ import {
   SkeletonList,
   SkeletonRow,
   SummaryCard,
-  TaxFieldSlot,
   TileGrid,
   UndoRow
 } from './PortfolioPage.styled';
@@ -403,55 +394,16 @@ export default function PortfolioPageView({
         </>
       )}
 
-      <AssumptionsDetails>
-        <AssumptionsSummary>{viewModel.assumptions.summaryLabel}</AssumptionsSummary>
-        <AssumptionsBody>
-          <TaxFieldSlot>
-            {/* 세율도 하이드레이션 전에는 훅이 거절한다 — 입력은 받되 버려지는 상태를 만들지 않는다. */}
-            <InputField
-              label={copy.assumptions.taxLabel}
-              type="number"
-              value={taxInput}
-              suffix="%"
-              min={0}
-              max={100}
-              disabled={viewModel.isLoading}
-              hint={copy.assumptions.taxHint}
-              onChange={(event) => onTaxInputChange(event.target.value)}
-              onBlur={onTaxInputBlur}
-            />
-          </TaxFieldSlot>
-
-          <ConditionsList>
-            {viewModel.assumptions.rows.map((row) => (
-              <ConditionRow key={row.label}>
-                <ConditionTerm>{row.label}</ConditionTerm>
-                <ConditionValue>{row.value}</ConditionValue>
-              </ConditionRow>
-            ))}
-          </ConditionsList>
-
-          {/*
-            예상 달성 시점의 근거는 화면에서 여기 한 곳에만 있다 — 빼면 ETA 가 어디서 왔는지 알 길이 없다.
-            페이지의 `<details>` 는 계속 하나다(새 접기 블록을 만들지 않는다). 세율 라벨이 두 번 나오지만
-            그룹 제목이 소속을 밝히므로 모순이 아니다(포트폴리오 세율 vs 시뮬레이터에 저장된 세율).
-          */}
-          {goal && goal.conditionRows.length > 0 ? (
-            <>
-              <AssumptionsGroupTitle>{copy.goal.conditions.groupTitle}</AssumptionsGroupTitle>
-              <AssumptionsGroupNote>{copy.goal.conditions.groupNote}</AssumptionsGroupNote>
-              <ConditionsList>
-                {goal.conditionRows.map((row) => (
-                  <ConditionRow key={row.label}>
-                    <ConditionTerm>{row.label}</ConditionTerm>
-                    <ConditionValue>{row.value}</ConditionValue>
-                  </ConditionRow>
-                ))}
-              </ConditionsList>
-            </>
-          ) : null}
-        </AssumptionsBody>
-      </AssumptionsDetails>
+      <PortfolioAssumptions
+        summaryLabel={viewModel.assumptions.summaryLabel}
+        rows={viewModel.assumptions.rows}
+        isLoading={viewModel.isLoading}
+        taxInput={taxInput}
+        onTaxInputChange={onTaxInputChange}
+        onTaxInputBlur={onTaxInputBlur}
+        // 목표 카드가 없으면(=목표 미설정·미노출) 빈 배열 — 컴포넌트는 이 경우 그룹을 그리지 않는다.
+        goalConditionRows={goal?.conditionRows ?? []}
+      />
 
       <FootNoteCard>
         <FootNoteTitle>{copy.footnote.title}</FootNoteTitle>

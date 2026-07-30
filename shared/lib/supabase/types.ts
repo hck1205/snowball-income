@@ -411,8 +411,10 @@ export type Database = {
       user_app_states: {
         Row: UserAppStateRow;
         // payload만 필수. name/user_id는 서버 default가 채운다(name null=자동 슬롯, user_id=auth.uid()).
-        // 컬럼 GRANT가 user_id/timestamps 쓰기를 막으므로 Insert 타입도 그에 맞춘다.
-        Insert: Pick<UserAppStateRow, 'payload'> & Partial<Pick<UserAppStateRow, 'name' | 'user_id'>>;
+        // 컬럼 GRANT가 user_id/timestamps 쓰기를 막으므로 Insert 타입도 그에 맞춘다 —
+        // `grant insert (name, payload)` 가 허용하는 두 컬럼만 쓴다(20260718000000_user_app_states.sql:97).
+        // ⚠ user_id 를 다시 넣지 마라. 아래 user_portfolio_states 가 같은 실수로 한 번 깨졌다.
+        Insert: Pick<UserAppStateRow, 'payload'> & Partial<Pick<UserAppStateRow, 'name'>>;
         Update: Partial<Pick<UserAppStateRow, 'name' | 'payload'>>;
         Relationships: [
           {
@@ -426,9 +428,16 @@ export type Database = {
       };
       user_portfolio_states: {
         // user_id 가 primary key 라 1인 1행이 스키마로 강제된다(시뮬레이터의 partial unique index 와 다름).
-        // upsert 에 onConflict: 'user_id' 를 쓰므로 Insert 에 user_id 가 필요하다.
+        // payload만 필수 — user_app_states 와 같은 이유로 user_id 는 클라이언트가 쓰지 않는다.
+        // 컬럼 GRANT가 user_id/updated_at 쓰기를 막고 default auth.uid()가 채운다.
+        // ⚠ onConflict: 'user_id' 는 **충돌 대상 지정**일 뿐 값을 실어 보내는 것과 무관하다
+        //   (INSERT (payload) ... ON CONFLICT (user_id) DO UPDATE — 유효한 SQL이다).
         Row: UserPortfolioStateRow;
-        Insert: Pick<UserPortfolioStateRow, 'user_id' | 'payload'>;
+        // ⚠ user_id 를 **타입에서도** 뺀다(2026-07-30). 한때 `& Partial<Pick<…,'user_id'>>` 였는데,
+        //   바로 위 주석이 "보내지 마라"라고 적는 동안 타입은 허용하고 있었다 — 그리고 2026-07-29 에
+        //   실제로 실어 보내 `permission denied for column user_id` 로 클라우드 저장이 통째로 깨졌다.
+        //   주석은 사고를 막지 못했고 컴파일러는 막을 수 있다. 넓히지 마라.
+        Insert: Pick<UserPortfolioStateRow, 'payload'>;
         Update: Partial<Pick<UserPortfolioStateRow, 'payload'>>;
         Relationships: [
           {

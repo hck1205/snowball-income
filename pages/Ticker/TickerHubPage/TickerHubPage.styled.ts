@@ -1,22 +1,47 @@
 import styled from '@emotion/styled';
 import { Link } from 'react-router-dom';
-import { color, font, media, motion, radius, space } from '@/shared/styles';
+import { color, elevation, font, media, motion, radius, space } from '@/shared/styles';
 
+/**
+ * 카테고리 색 순환 — 섹션 하나가 자기 색을 정하고, 그 안의 칩·제목 레일·종목 수 칩이 전부 이
+ * 변수를 읽는다. 색이 장식이 아니라 **길찾기 단서**가 되게 하는 장치다.
+ *
+ * ⚠ 3색은 프리셋의 brand/accent/accentAlt 라 **velog(기본)에서는 셋 다 초록 계열**이다 —
+ * 색상군이 하나인 프리셋의 의도된 결과이고, navy-gold·grape·sunset 에서는 확실히 갈린다.
+ * 전경으로도 쓰이므로 solid 가 아니라 대비 검증된 `*Text` 계열을 넣는다.
+ */
+const CAT_VAR = '--tk-cat';
+const CAT_COLORS = [color.brandText, color.accentText, color.accentAltText] as const;
+
+/** 카테고리 색의 **틴트 강도** 한 손잡이 — 칩 바탕·테두리가 전부 여기서 파생된다. */
+const CAT_TINT = '12%';
+
+/** 제목 왼쪽 액센트 레일 폭. 얇은 막대라 반경을 주지 않는다(radiusShape 가드 §②). */
+const RAIL = '4px';
+
+/**
+ * 허브 히어로 — 파스텔 히어로 그라디언트 + 상단 오로라 리본.
+ *
+ * `gradient-hero` 는 **장식 표면 전용** 토큰이다(콘텐츠 카드 배경 금지, `gradient-cta`·
+ * `gradient-aurora` 와 교차 사용 금지). ink 프리셋은 hero↔bg ΔE 가 2.8 이라 fill 단독으로는
+ * 띠가 안 보이므로 **1px border 가 필수**다 — 아래 테두리를 지우지 마라.
+ */
 export const HubHero = styled.section`
   display: grid;
   gap: ${space[3]};
   padding: clamp(24px, 4vw, 40px);
   border-radius: ${radius.xl};
   border: 1px solid ${color.brandBorder};
-  background: ${color.brandSubtle};
+  background: ${color.gradientHero};
   position: relative;
   overflow: hidden;
 
+  /* ⚠ 얇은 막대(6px)라 반경을 주지 않는다 — 부모 overflow 가 잘라낸다(radiusShape 가드 §②). */
   &::before {
     content: '';
     position: absolute;
     inset: 0 0 auto 0;
-    height: 4px;
+    height: 6px;
     background: ${color.gradientAurora};
   }
 `;
@@ -46,20 +71,41 @@ export const CategoryNav = styled.nav`
   margin-top: ${space[2]};
 `;
 
+/**
+ * 카테고리 칩.
+ *
+ * 3색 순환을 칩에도 적용해 **히어로의 칩 색 = 아래 섹션 제목 레일 색 = 그 섹션의 종목 수 칩 색**
+ * 이 맞물린다.
+ *
+ * ⚠ 순서는 `nth-of-type` 으로 센다 — 이 칩들은 nav 안의 유일한 `<a>` 라 히어로/섹션 세기 문제가 없다.
+ */
 export const CategoryNavLink = styled.a`
+  /* 셋 다 같은 기본값 — 아래 nth-of-type 이 못 잡는 경우에도 color-mix 가 무효화되지 않게. */
+  ${CAT_VAR}: ${CAT_COLORS[0]};
+
   display: inline-flex;
   align-items: center;
   padding: ${space[1]} ${space[3]};
   border-radius: ${radius.pill};
-  background: ${color.surface};
-  border: 1px solid ${color.border};
+  background: color-mix(in srgb, var(${CAT_VAR}) ${CAT_TINT}, ${color.surface});
+  border: 1px solid color-mix(in srgb, var(${CAT_VAR}) calc(${CAT_TINT} * 2.5), ${color.border});
   font-size: ${font.size.sm};
   font-weight: ${font.weight.semibold};
   color: ${color.textSecondary};
   text-decoration: none;
 
+  &:nth-of-type(3n + 1) {
+    ${CAT_VAR}: ${CAT_COLORS[0]};
+  }
+  &:nth-of-type(3n + 2) {
+    ${CAT_VAR}: ${CAT_COLORS[1]};
+  }
+  &:nth-of-type(3n) {
+    ${CAT_VAR}: ${CAT_COLORS[2]};
+  }
+
   &:hover {
-    border-color: ${color.brandBorder};
+    border-color: color-mix(in srgb, var(${CAT_VAR}) calc(${CAT_TINT} * 4), ${color.brandBorder});
     color: ${color.brandText};
   }
 `;
@@ -71,8 +117,25 @@ export const CategoryNavLink = styled.a`
  * opacity 를 매면 아직 화면 아래쪽에 있는 카테고리들이 **흐릿하게 비쳐** 사용자가 "덜 그려진 화면"
  * 으로 읽는다(2026-07-25 사용자 요청으로 제거). 같은 이유로 상세 페이지의 blur 도 앞서 걷어냈다
  * (2026-07-22). 되살리지 마라 — 되살린다면 리빌 대상이 뷰포트 밖에서 완전히 불투명해야 한다.
+ *
+ * 카테고리 색은 **id 로** 배정한다(`nth-of-type` 은 히어로도 `section` 이라 세기가 어긋난다).
+ * id 는 `TICKER_CATEGORY_LABEL` 의 키다 — 카테고리를 추가하면 여기 한 줄이 늘고, 빠뜨리면
+ * 기본 색으로 폴백한다(깨지지 않는다).
  */
 export const CategorySection = styled.section`
+  ${CAT_VAR}: ${CAT_COLORS[0]};
+
+  &#high-dividend,
+  &#reit,
+  &#core-index {
+    ${CAT_VAR}: ${CAT_COLORS[1]};
+  }
+  &#covered-call,
+  &#international,
+  &#dividend-stock {
+    ${CAT_VAR}: ${CAT_COLORS[2]};
+  }
+
   scroll-margin-top: 80px;
   margin-top: clamp(28px, 4vw, 44px);
   display: grid;
@@ -88,12 +151,22 @@ export const CategoryHeading = styled.h2`
   font-weight: ${font.weight.bold};
   letter-spacing: -0.02em;
   color: ${color.text};
+
+  /* 카테고리 색 레일. */
+  border-left: ${RAIL} solid var(${CAT_VAR});
+  padding-left: calc(${RAIL} * 2.5);
 `;
 
+/** 종목 수 — 색 칩으로 올린다(섹션마다 색이 한 번 더 찍혀 목록에 리듬이 생긴다). */
 export const CategoryCount = styled.span`
+  padding: 2px ${space[2]};
+  border-radius: ${radius.pill};
+  background: color-mix(in srgb, var(${CAT_VAR}) 14%, ${color.surface});
+  border: 1px solid color-mix(in srgb, var(${CAT_VAR}) 32%, transparent);
   font-size: ${font.size.sm};
-  font-weight: ${font.weight.medium};
-  color: ${color.textMuted};
+  /* 🔴 값(개수)은 중립색이다 — 색은 칩의 면·테두리(크롬)에만. */
+  color: ${color.text};
+  font-weight: ${font.weight.bold};
 `;
 
 export const CardGrid = styled.div`
@@ -115,19 +188,78 @@ export const TickerCard = styled(Link)`
   display: grid;
   /* 내부 열을 셀에 묶는다(auto 열이 max-content=긴 영문명/소개 한 줄로 커져 카드를 뷰포트 밖으로 밀던 주범). */
   grid-template-columns: minmax(0, 1fr);
+  /* 소개가 남는 높이를 먹고 스탯 행이 카드 바닥에 정렬된다 — 같은 줄의 카드끼리 배당률이 한 선에
+     놓여야 세로로 비교가 된다(비교 가능성은 취향이 아니다). */
+  grid-template-rows: auto 1fr auto;
   /* 그리드 셀 안에서 카드 자신이 줄어들 수 있게(없으면 min-content 가 커서 축소 불가 → ellipsis 도 안 먹는다). */
   min-width: 0;
   gap: ${space[3]};
   padding: ${space[5]};
-  border-radius: ${radius.lg};
+  border-radius: ${radius.xl};
   border: 1px solid ${color.border};
-  background: ${color.surface};
+  background: ${color.surfaceRaised};
+  box-shadow: ${elevation[1]};
   text-decoration: none;
+  /* 아래 레일이 둥근 모서리 밖으로 삐져나오지 않게 자른다(레일에 반경을 주는 대신 — radiusShape §②). */
+  position: relative;
+  overflow: hidden;
   transition: transform ${motion.fast} ${motion.ease}, border-color ${motion.fast} ${motion.ease};
 
+  /*
+   * 카드 왼쪽 액센트 레일.
+   *
+   * 색은 **그 티커 자신의 액센트**(뷰가 '--tk-from/--tk-to' 를 얹는다. 상세 페이지가 쓰는 것과
+   * 같은 큐레이션 값이라 두 화면에서 같은 티커가 같은 색으로 읽힌다). 액센트가 없는 티커는
+   * 카테고리 색으로 폴백한다. 색을 새로 만들지 않는다 — 데이터에 있는 것만 쓴다.
+   */
+  --tk-rail-from: var(--tk-from, var(${CAT_VAR}, ${color.brandText}));
+  --tk-rail-to: var(--tk-to, var(${CAT_VAR}, ${color.brandText}));
+
+  /*
+   * 심볼에 쓸 액센트 **텍스트** 색. 라이트/다크로 갈린 값을 티커 데이터가 이미 갖고 있고
+   * (상세 페이지 AccentScope 가 쓰는 바로 그 두 값), 여기서 같은 방식으로 고른다.
+   * 액센트가 없는 티커는 기본 본문색으로 폴백한다.
+   */
+  --tk-card-accent-text: var(--tk-text-light, ${color.text});
+
+  @media (prefers-color-scheme: dark) {
+    --tk-card-accent-text: var(--tk-text-dark, ${color.text});
+  }
+  /*
+   * 팔레트 시스템의 강제 테마 오버라이드(data-theme)와도 정합을 맞춘다.
+   *
+   * 🔴 조상 선택자는 반드시 'html[...]' 로 쓴다 — ':root[...] &' 는 **동작하지 않는다.**
+   * stylis 는 콜론으로 시작하는 중첩 선택자를 "부모에 붙는 의사선택자"로 보고 부모를 앞에
+   * 덧붙이는데, 그 결과가 '.css-x:root[data-theme="dark"] .css-x' 라 **영원히 매치되지 않는다**
+   * (2026-07-30 실측: 강제 다크에서 액센트 텍스트가 라이트 값으로 남는다).
+   * 'html' 은 콜론으로 시작하지 않아 그대로 조상 선택자로 나간다.
+   */
+  html[data-theme='light'] & {
+    --tk-card-accent-text: var(--tk-text-light, ${color.text});
+  }
+  html[data-theme='dark'] & {
+    --tk-card-accent-text: var(--tk-text-dark, ${color.text});
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: ${RAIL};
+    background: linear-gradient(180deg, var(--tk-rail-from), var(--tk-rail-to));
+  }
+
+  /* 색 hover 는 어디서나 — 터치에서 남아도 무해하다. 그 티커 자신의 색으로 물들어 어느 카드를
+     겨냥했는지가 분명해진다. */
   &:hover {
-    transform: translateY(-2px);
-    border-color: ${color.brandBorder};
+    border-color: color-mix(in srgb, var(--tk-rail-to) 55%, transparent);
+  }
+
+  /* 이동은 진짜 포인터에서만 — 터치는 탭 뒤 :hover 가 남아 카드가 들린 채로 굳는다. */
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      transform: translateY(-2px);
+    }
   }
 `;
 
@@ -141,7 +273,12 @@ export const CardTicker = styled.span`
   font-size: clamp(20px, 7cqi, ${font.size['3xl']});
   font-weight: ${font.weight.extrabold};
   letter-spacing: -0.03em;
-  color: ${color.text};
+  /*
+   * 심볼이 그 티커의 색을 입는다. 14장이 저마다 다른 색이라 격자가 카탈로그처럼 읽히고,
+   * 같은 티커의 상세 페이지와 색이 이어진다(액센트 없는 티커는 기본 본문색으로 폴백).
+   * 🔴 대상은 **이름**이다 — 아래 배당률 숫자는 계속 중립색이다(숫자에 accent 금지).
+   */
+  color: var(--tk-card-accent-text);
   ${font.numeric};
   overflow-wrap: anywhere;
 `;
@@ -161,6 +298,7 @@ export const CardKorean = styled.span`
 export const CardTagline = styled.p`
   margin: 0;
   min-width: 0;
+  align-self: start;
   font-size: ${font.size.md};
   line-height: ${font.leading.snug};
   color: ${color.textSecondary};
@@ -174,6 +312,8 @@ export const CardStatRow = styled.div`
   display: flex;
   align-items: center;
   gap: ${space[4]};
+  /* 카드 바닥으로 밀린다 — 같은 줄의 카드끼리 배당률이 한 선에 놓여야 비교가 된다. */
+  margin-top: auto;
   padding-top: ${space[3]};
   border-top: 1px solid ${color.border};
   min-width: 0;
@@ -190,10 +330,16 @@ export const CardStatLabel = styled.span`
   color: ${color.textMuted};
 `;
 
+/**
+ * 배당률·운용보수·지급 주기 값.
+ *
+ * 🔴 색은 **중립(`color.text`) 고정**이다 — 숫자에 accent·손익색은 확정 금지(색은 배지·아이콘·
+ * 크롬에만). 카테고리 색(`--tk-cat`)이나 티커 액센트를 여기에 연결하지 마라.
+ */
 export const CardStatValue = styled.span`
   font-size: clamp(13px, 4.6cqi, ${font.size.lg});
   font-weight: ${font.weight.bold};
-  color: ${color.brandText};
+  color: ${color.text};
   ${font.numeric};
   overflow-wrap: anywhere;
 `;

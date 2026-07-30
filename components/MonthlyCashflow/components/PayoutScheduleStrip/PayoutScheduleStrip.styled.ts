@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, space } from '@/shared/styles';
+import { color, font, space, subtleScrollbar } from '@/shared/styles';
 
 /* ── 종목별 지급 일정 스트립 ────────────────────────────────────────────── */
 
@@ -21,6 +21,7 @@ export const ScheduleHeading = styled.h3`
 /* 표 전체가 좁은 화면에서 자체 스크롤한다 — 12칸 그리드를 줄바꿈으로 구기지 않는다. */
 export const ScheduleScroll = styled.div`
   overflow-x: auto;
+  ${subtleScrollbar}
 `;
 
 export const ScheduleTable = styled.table`

@@ -1,12 +1,12 @@
 import styled from '@emotion/styled';
-import { color, font, motion, radius, shadow, space } from '@/shared/styles';
+import { color, font, hitArea, motion, pressable, pressTransition, radius, shadow, space } from '@/shared/styles';
 import type { ButtonSize, ButtonVariant } from './Button.types';
 
 /**
  * 앱 전체 버튼의 단일 출처.
  *
- * 터치 타겟: 시각적 높이는 sm=32 / md=40 이지만, `::before`로 44x44 히트 영역을 깔아
- * **레이아웃을 바꾸지 않으면서** WCAG 2.5.5를 만족시킨다. 밀도 높은 금융 UI에서
+ * 터치 타겟: 시각적 높이는 sm=32 / md=40 이지만, `hitArea()` 가 깔는 의사요소로 44x44 히트 영역을
+ * 확보해 **레이아웃을 바꾸지 않으면서** WCAG 2.5.5를 만족시킨다. 밀도 높은 금융 UI에서
  * 모든 버튼을 44px로 키우면 화면이 터지기 때문에 이 방식을 쓴다.
  */
 
@@ -83,6 +83,9 @@ export const StyledButton = styled.button<{
   height: ${({ size }) => SIZE[size].height};
   padding: ${({ size, iconOnly }) => (iconOnly ? '0' : SIZE[size].padding)};
   border: 1px solid transparent;
+  /* 카드 안에 앉는 컨트롤 = 동심 라운드(DESIGN.md §6)의 '안쪽'. 카드 바깥 반경이 이 값 + 카드
+     패딩으로 역산되므로 여기를 바꾸면 Card.styled.ts 의 CARD_RADIUS 가 따라 움직인다.
+     (Spinner 의 pill 은 캡슐 형태 자체가 요건이라 이 결정과 무관하다.) */
   border-radius: ${radius.sm};
   font-family: inherit;
   font-size: ${({ size }) => SIZE[size].font};
@@ -93,36 +96,44 @@ export const StyledButton = styled.button<{
   touch-action: manipulation;
   transition: background-color ${motion.fast} ${motion.ease}, border-color ${motion.fast} ${motion.ease},
     color ${motion.fast} ${motion.ease}, box-shadow ${motion.fast} ${motion.ease},
-    background-position ${motion.base} ${motion.ease};
+    background-position ${motion.base} ${motion.ease}, ${pressTransition};
 
   ${({ variant }) => VARIANT[variant]};
 
-  /* 히트 영역만 44x44로 확장 (시각 크기는 유지). */
-  &::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    min-width: 44px;
-    min-height: 44px;
-    width: 100%;
-    height: 100%;
-    transform: translate(-50%, -50%);
-  }
+  /*
+   * 히트 영역만 44x44로 확장 (시각 크기는 유지).
+   *
+   * 2026-07-30 까지 같은 기하를 여기 손으로 적고 있었다('min-width/min-height: 44px' + 'width: 100%'
+   * = 헬퍼의 'max(100%, 44px)' 와 동일). 헬퍼로 옮겨 정렬(top/left/transform)을 구조적으로 보장한다 —
+   * 손코딩본 20곳 중 'Chip' 이 정확히 그 정렬을 빠뜨려 옆 칩을 잡아먹고 있었다.
+   */
+  ${hitArea()}
 
-  /* 눌리는 느낌. reduced-motion 사용자는 전역 스타일이 transition을 끈다. */
-  &:active:not(:disabled) {
-    transform: translateY(1px);
-  }
+  /*
+   * 눌리는 느낌.
+   *
+   * 2026-07-30 까지 'translateY(1px)' 이었는데 둘 다 문제였다 — 40px 버튼에서 1px 은 **지각 한계
+   * 아래**였고, 'transition' 목록에 'transform' 이 없어 **중간에 되돌릴 수 없는 스냅**이었다
+   * (누르다 말면 뚝 끊긴다). 공용 믹스인으로 옮겨 축소(0.96) + 중단 가능한 전환으로 바꿨다.
+   */
+  ${pressable}
 
   &:disabled {
     opacity: 0.55;
     cursor: ${({ isLoading }) => (isLoading ? 'progress' : 'not-allowed')};
   }
 
+  /*
+   * ⚠ 크기를 여기서 정하지 마라 — 'size' prop 이 정본이다('ICON' 계단).
+   *
+   * 2026-07-30 까지 여기 'width: 1em; height: 1em' 이 있었다. CSS 는 SVG 프레젠테이션 속성을
+   * 이기므로 **버튼 안 아이콘은 'size' prop 을 통째로 무시했다** — 'size="md"' 버튼의
+   * '<Plus size={16}>' 이 13px(=font-size)로 그려졌다. 13 은 계단에 없는 값이고, 2026-07-29
+   * 아이콘 통일 작업이 버튼 안에서만 조용히 무효였다는 뜻이다. 소스만 읽으면 안 보인다.
+   *
+   * 'flex: none' 은 남긴다 — 라벨이 길 때 아이콘이 찌그러지는 걸 막는 건 레이아웃 책임이다.
+   */
   svg {
-    width: 1em;
-    height: 1em;
     flex: none;
   }
 `;
@@ -130,8 +141,10 @@ export const StyledButton = styled.button<{
 /**
  * 로딩 스피너. 라벨을 지우지 않고 **위에 겹쳐서** 보여준다.
  * 라벨을 스피너로 갈아끼우면 버튼 폭이 바뀌어 옆 버튼들이 튄다.
+ *
+ * `isStatic` = reduced-motion 경로(호출부가 JS로 판정해 내린다. 아래 주석 참고).
  */
-export const Spinner = styled.span`
+export const Spinner = styled.span<{ isStatic?: boolean }>`
   position: absolute;
   width: 14px;
   height: 14px;
@@ -146,6 +159,49 @@ export const Spinner = styled.span`
       transform: rotate(360deg);
     }
   }
+
+  @keyframes sb-button-busy-pulse {
+    50% {
+      opacity: 0.25;
+    }
+  }
+
+  /*
+   * 🔴 reduced-motion 에서 이 버튼의 로딩은 2026-07-30 까지 **완전히 죽어 있었다.**
+   * 'globalStyles.ts' 의 전역 리셋이 'animation-duration: 0.01ms' 와
+   * 'animation-iteration-count: 1' 을 **'!important' 로** 걸어 회전이 첫 프레임에 얼어붙었고,
+   * 그 상태에서 라벨까지 'opacity: 0' 으로 지워져 **로딩 중 시각 단서가 0** 이었다
+   * ('aria-busy' 는 스크린리더만 구제한다). DESIGN.md §7 "모션이 유일한 피드백 채널이면 안 된다"의
+   * 정면 위반이었다.
+   *
+   * 처방 3겹:
+   *  ① 라벨을 지우지 않는다(아래 'LabelSlot' — 정적 단서).
+   *  ② 그러면 가운데 링이 글자 위에 앉으므로 링을 **오른쪽 패딩 안**으로 옮긴다.
+   *     크기를 12px 로 줄여 sm(패딩 12px)에서도 콘텐츠 박스를 사실상 침범하지 않는다
+   *     (md 패딩 16px = 침범 0 · sm = 1px). 절대배치라 레이아웃 시프트는 어느 쪽도 0 이다.
+   *  ③ 회전 대신 **불투명도 펄스** — 움직임이 없어 전정계에 안전하면서 "진행 중"을 말한다.
+   *     전역 리셋을 되찾으려면 duration·iteration-count 에 '!important' 가 필요하다
+   *     ('MainContentLoader.styled.ts' 가 확립한 패턴).
+   *
+   * ⚠ 판정을 CSS '@media' 가 아니라 JS('prefersReducedMotion')로 하는 이유: 라벨을 지울지 말지는
+   * 컴포넌트 상태이고, jsdom 은 '@media' 를 평가하지 않아 CSS 로만 두면 **회귀 테스트를 쓸 수 없다.**
+   */
+  ${({ isStatic }) =>
+    isStatic
+      ? `
+    left: auto;
+    right: 1px;
+    top: 50%;
+    width: 12px;
+    height: 12px;
+    transform: translateY(-50%);
+    border-right-color: currentColor;
+    animation-name: sb-button-busy-pulse;
+    animation-timing-function: ${motion.ease};
+    animation-duration: 1.4s !important;
+    animation-iteration-count: infinite !important;
+  `
+      : ''}
 `;
 
 /**
@@ -154,6 +210,9 @@ export const Spinner = styled.span`
  * `visibility: hidden`이 아니라 `opacity: 0`인 이유: visibility는 요소를 **접근성 트리에서 제거**한다.
  * 그러면 로딩 중인 버튼의 접근 가능한 이름이 사라져서 스크린리더가 "버튼"이라고만 읽는다.
  * opacity는 트리에 남기므로 이름이 유지된다. (테스트가 이걸 잡아냈다)
+ *
+ * ⚠ reduced-motion 에서는 호출부가 `isHidden`을 주지 않는다 — 링이 돌지 않는 사용자에게 라벨까지
+ * 지우면 남는 단서가 없다(위 `Spinner` 주석).
  */
 export const LabelSlot = styled.span<{ isHidden?: boolean }>`
   display: inline-flex;

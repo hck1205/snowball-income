@@ -1,30 +1,22 @@
-import { useEffect, useId, useRef } from 'react';
-import { X } from 'lucide-react';
-import { useDrawerBackClose } from '@/shared/hooks';
+import { SideDrawer } from '@/components/common';
 import type { HoldingPickerDrawerProps } from './HoldingPickerDrawer.types';
-import {
-  DrawerBackdrop,
-  DrawerBody,
-  DrawerCloseButton,
-  DrawerHead,
-  DrawerPanel,
-  DrawerTitle
-} from './HoldingPickerDrawer.styled';
 
 /**
- * 종목 추가 드로어 — 배당 캘린더 `PickerDrawer` 의 페이지 로컬 **복제**(import 금지: 페이지 간 결합·
- * 청크 혼입 방지). 원본이 세운 계약을 그대로 유지한다:
+ * 종목 추가 드로어 — 공용 `SideDrawer` 에 **피커 조합**만 얹은 얇은 래퍼다
+ * (`pages/Main/components/SettingsDrawer` 와 같은 패턴).
  *
- * - 패널은 **항상 마운트**되고 열림은 CSS 가 정한다 — 언마운트하면 검색어·스크롤이 매번 날아간다.
- * - `useDrawerBackClose` 는 **폭과 무관하게 항상** 켠다(이 드로어는 모든 폭에서 오버레이다). URL 은 안 바뀐다.
- * - Escape 는 **이미 처리된 이벤트를 가로채지 않는다**(`defaultPrevented` 확인) — 안쪽 검색 입력의
- *   "Escape = 검색어만 지우기"가 먼저고, 지울 게 없을 때만 드로어가 닫힌다.
- * - 열릴 때 닫기 버튼으로 포커스, 닫힐 때 **열었던 요소로 복귀**.
+ * 🔴 2026-07-30 통합 전까지 이 파일은 껍데기(오버레이·포커스·스크롤락·Escape)를 통째로 복제하고
+ *   있었고, 그 복제본은 `useOverlayEscape` 를 빠뜨려 **중첩 Escape 스택 밖**에 있었다. 이런 결손은
+ *   드로어가 단독으로 뜨는 화면에서는 증상이 없어(위층 오버레이가 없으니) 렌더 테스트로 안 잡힌다 —
+ *   위에 모달을 하나 올리는 날 "Escape 한 번에 두 겹이 닫힌다"로 터진다. **껍데기를 다시 복제하지 마라.**
  *
- * ⚠ 포커스 이펙트는 **열림 전이에만** 돈다(`onClose` 는 ref 로 잡는다). deps 에 `onClose` 를 두면
- *   인라인 화살표 핸들러를 넘기는 호출부에서 렌더마다 이펙트가 재실행돼 **검색어를 한 글자 칠 때마다
- *   포커스가 닫기 버튼으로 끌려간다**(qa BUG-1, 2026-07-27). 호출부가 메모이제이션을 지키는지에
- *   의존하지 않고 여기서 끊는다 — `useDrawerBackClose` 가 같은 이유로 쓰는 패턴이다.
+ * 조합의 근거:
+ * - `side="right"` · `width="min(420px, 92vw)"` — 목록 피커는 오른쪽에서 나오고 설정 드로어(400px)보다 넓다.
+ * - `dimBelow="always"` — 이 드로어는 **전 폭에서 모달**이다(딤+스크롤락 항상). 데스크톱에서 딤·락을
+ *   끄는 것은 설정 드로어만의 정책이다("조정 ↔ 확인" 루프 보존, 확정 결정 2026-07-28) — 여기서는
+ *   고르고 돌아오는 한 갈래 동선이라 배경을 굴릴 이유가 없다.
+ * - `bodyLayout="fill"` — 검색행은 제 높이, 결과 목록이 남은 높이를 전부 먹고 그 안에서만 스크롤한다
+ *   (`HoldingPicker` 의 `PickerRoot` 가 `flex: 1 1 auto` 를 기대한다).
  */
 export default function HoldingPickerDrawer({
   id,
@@ -34,54 +26,19 @@ export default function HoldingPickerDrawer({
   onClose,
   children
 }: HoldingPickerDrawerProps) {
-  const titleId = useId();
-  const closeRef = useRef<HTMLButtonElement | null>(null);
-  const restoreRef = useRef<HTMLElement | null>(null);
-
-  // 뒤로가기 = 드로어 닫기(페이지 이탈 아님). URL은 그대로다.
-  useDrawerBackClose(isOpen, onClose);
-
-  const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
-
-  useEffect(() => {
-    if (!isOpen) return undefined;
-
-    restoreRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    closeRef.current?.focus();
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape' || event.defaultPrevented) return;
-      onCloseRef.current();
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      document.removeEventListener('keydown', handleKeyDown);
-
-      // 닫힌 뒤 포커스가 body 로 떨어지면 키보드 사용자는 위치를 잃는다 — 열었던 버튼으로 돌린다.
-      const restore = restoreRef.current;
-      if (restore && restore.isConnected) restore.focus();
-    };
-  }, [isOpen]);
-
   return (
-    <>
-      <DrawerBackdrop $open={isOpen} aria-hidden onClick={onClose} />
-      <DrawerPanel id={id} $open={isOpen} aria-labelledby={titleId}>
-        <DrawerHead>
-          <DrawerTitle id={titleId}>{title}</DrawerTitle>
-          <DrawerCloseButton type="button" ref={closeRef} aria-label={closeLabel} onClick={onClose}>
-            <X size={16} strokeWidth={1.8} aria-hidden focusable={false} />
-          </DrawerCloseButton>
-        </DrawerHead>
-        <DrawerBody>{children}</DrawerBody>
-      </DrawerPanel>
-    </>
+    <SideDrawer
+      id={id}
+      side="right"
+      isOpen={isOpen}
+      title={title}
+      closeLabel={closeLabel}
+      onClose={onClose}
+      width="min(420px, 92vw)"
+      dimBelow="always"
+      bodyLayout="fill"
+    >
+      {children}
+    </SideDrawer>
   );
 }

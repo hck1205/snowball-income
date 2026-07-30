@@ -1,7 +1,7 @@
 import { useEffect, useRef, type KeyboardEvent } from 'react';
 import { X } from 'lucide-react';
 import { Button, RangeSlider } from '@/components/common';
-import { useDrawerBackClose } from '@/shared/hooks';
+import { useDrawerBackClose, useOverlayEscape } from '@/shared/hooks';
 import type { Frequency } from '@/shared/types';
 import type { PresetFilterDrawerProps, PresetFilterState } from './PresetFilterPanel.types';
 import {
@@ -36,10 +36,24 @@ const FOCUSABLE_SELECTOR =
 /**
  * 모달 우측 슬라이드 드로어. 셸(ModalShell)의 absolute 형제로 마운트돼 패널 스크롤과 무관하게 핀된다.
  *
+ * 🔴 **공용 `SideDrawer` 로 통합하지 않는다**(2026-07-30 판단, 근거를 남긴다). 이름은 드로어지만
+ *   성격이 다른 부품이다:
+ *   - 좌표계: 뷰포트 `fixed` 가 아니라 **모달 셸 기준 `absolute`** 다. 티커 모달의 둥근 코너 안쪽에
+ *     핀되고 스크림도 셸만 덮는다 — `SideDrawer` 로 바꾸면 화면 전체를 덮는 별개 층이 되어
+ *     "모달 위에 뜬 전면 드로어"로 보인다.
+ *   - 모달성: 여기는 **진짜 모달**이라 `role="dialog" aria-modal` + Tab 트랩을 갖는다. `SideDrawer` 는
+ *     그 둘을 **일부러 갖지 않는다**(지키지 않을 계약을 선언하지 않는다는 관례).
+ *   - 스크롤락: **여기서 잠그지 않는다.** 배경 페이지는 이미 TickerModal 이 `documentElement` 로
+ *     잠갔고(≤960), 넓은 폭은 잠그지 않는 게 그쪽 정책이다. `SideDrawer` 를 쓰면 `body` 락이 딸려와
+ *     두 잠금이 얽히고(과거 영구 잠김 경로) 데스크톱 동작도 바뀐다.
+ *
  * 접근성(이 컴포넌트가 소유):
  * - `role="dialog" aria-modal aria-label` + 열릴 때 닫기 버튼으로 포커스 이동 + Tab 트랩.
- * - ESC 는 여기서 삼켜 `onClose` 만 부르고 **native stopPropagation** 으로 TickerModal 의 window
- *   keydown(모달 닫기)까지 전파를 끊는다 — 이게 없으면 ESC 한 번에 모달까지 닫힌다.
+ * - Escape 는 **공용 `useOverlayEscape` 스택**이 맡는다 — 이 드로어가 모달보다 나중에 열려 스택
+ *   맨 위이므로 Escape 한 번은 여기까지만 온다(모달은 자기 차례를 기다린다). 옛 구현은 패널의
+ *   React `onKeyDown` 에서 `nativeEvent.stopPropagation()` 으로 전파를 끊었는데, 그 방식은
+ *   **포커스가 패널 안에 있을 때만** 동작했다(스크림·비포커서블을 클릭해 포커스가 body 로 떨어지면
+ *   Escape 가 모달까지 내려가 모달이 닫혔다). 스택은 포커스 위치와 무관하다.
  * - 포커스 복귀(트리거로)는 상위 뷰가 소유한다(닫힐 때 드로어가 언마운트되므로).
  */
 export default function PresetFilterDrawer({
@@ -59,6 +73,12 @@ export default function PresetFilterDrawer({
    * 인스턴스별 고유 id라 바깥 드로어의 엔트리를 건드리지 않는다.
    */
   useDrawerBackClose(open, onClose);
+
+  /**
+   * Escape 1회 = **이 드로어만** 닫힘. `useDrawerBackClose` 가 뒤로가기에 대해 하는 일의 키보드
+   * 쌍둥이다 — 층 순서를 DOM 전파가 아니라 스택이 정하므로 포커스가 어디에 있어도 성립한다.
+   */
+  useOverlayEscape(open, onClose);
 
   // 열릴 때 닫기 버튼으로 포커스 이동(첫 포커서블).
   useEffect(() => {
@@ -81,15 +101,8 @@ export default function PresetFilterDrawer({
 
   const reset = () => onChange(createInitialFilterState(ranges));
 
+  // Tab 트랩만 남는다 — Escape 는 위 `useOverlayEscape`(document 스택)가 소유한다.
   const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-    if (event.key === 'Escape') {
-      event.stopPropagation();
-      // window(모달) keydown 까지 native 전파를 끊어 ESC 한 번에 모달이 닫히는 걸 막는다.
-      event.nativeEvent.stopPropagation();
-      onClose();
-      return;
-    }
-
     if (event.key !== 'Tab') return;
     const root = drawerRef.current;
     if (!root) return;

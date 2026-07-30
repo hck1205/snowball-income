@@ -157,7 +157,7 @@ describe('useComments — 등록 실패 표면화', () => {
       await result.current.addComment('댓글');
     });
 
-    expect(result.current.submitError).toBe('댓글을 등록하지 못했어요. 잠시 후 다시 시도해 주세요.');
+    expect(result.current.submitError).toBe('댓글을 등록하지 못했습니다. 잠시 후 다시 시도해 주세요.');
   });
 
   it('성공하면 에러를 해제하고 총계를 +1 한다', async () => {
@@ -202,7 +202,7 @@ describe('useComments — 삭제/좋아요 실패 표면화', () => {
     // 롤백 — 댓글은 삭제되지 않은 상태로 남는다
     expect(result.current.threads[0].comment.deleted_at).toBeNull();
     expect(result.current.totalCount).toBe(1);
-    expect(result.current.actionError).toBe('댓글을 삭제하지 못했어요. 잠시 후 다시 시도해 주세요.');
+    expect(result.current.actionError).toBe('댓글을 삭제하지 못했습니다. 잠시 후 다시 시도해 주세요.');
   });
 
   it('좋아요 실패는 롤백하고 actionError로 알린다', async () => {
@@ -218,7 +218,7 @@ describe('useComments — 삭제/좋아요 실패 표면화', () => {
     act(() => result.current.toggleLike('r1'));
 
     await waitFor(() =>
-      expect(result.current.actionError).toBe('좋아요 처리에 실패했어요. 잠시 후 다시 시도해 주세요.')
+      expect(result.current.actionError).toBe('좋아요 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.')
     );
     expect(result.current.likedCommentIds.has('r1')).toBe(false); // 롤백
     expect(result.current.threads[0].comment.like_count).toBe(0);

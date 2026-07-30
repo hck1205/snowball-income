@@ -140,6 +140,43 @@ export const globalStyles = css`
   h5,
   h6 {
     font-family: ${font.display};
+
+    /*
+     * 줄바꿈도 여기서 한 번에 건다(2026-07-30 신설 — 종전 레포 전체에 'text-wrap' 0건).
+     *
+     * ⚠ 'keep-all' 과 'balance' 는 **한 짝이다. 따로 쓰면 한국어가 나빠진다.**
+     * 'balance' 는 줄들을 고르게 만들려고 **줄 중앙 쪽**에서 끊을 자리를 찾는데, 한글은 음절마다
+     * 끊을 수 있어서 그 중앙이 어절 한가운데 떨어지기 쉽다("시뮬레이" / "터"). greedy 줄바꿈은
+     * 오른쪽 끝에서만 잘못 끊기지만 balance 는 **어디서든** 그럴 수 있다.
+     * 'keep-all' 로 끊을 자리를 공백으로 제한하면 그제서야 balance 가 이득이 된다.
+     *
+     * 'anywhere' 는 마지막 방어선이다 — 공백 없는 긴 토큰(티커·URL)이 컨테이너를 뚫는 걸 막는다.
+     *
+     * 이 짝은 'Card'·'PageHero' 가 이미 각자 쓰고 있었다. 검증된 패턴을 전역으로 올린 것이다.
+     */
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+    text-wrap: balance;
+  }
+
+  /*
+   * 본문은 'pretty' — 마지막 줄에 낱말 하나만 남는 것(외톨이)을 막는다.
+   *
+   * ⚠ 여기엔 'keep-all' 을 걸지 않는다. 한국어 **산문**은 음절 단위 줄바꿈이 관례이고,
+   * 본문에 keep-all 을 걸면 오른쪽 끝이 심하게 들쭉날쭉해지며 좁은 카드에서 가로 넘침이 생긴다.
+   * 헤딩과 본문은 이 점에서 규칙이 다르다.
+   *
+   * 요소 선택자(0,0,1)라 Emotion 클래스(0,1,0)에 항상 진다 — 기존 컴포넌트 선언을 건드리지 않는다.
+   */
+  p,
+  li,
+  dd,
+  figcaption,
+  caption,
+  summary,
+  small,
+  blockquote {
+    text-wrap: pretty;
   }
 
   /*

@@ -20,7 +20,7 @@ import { BannerSlot } from './NaverLoginErrorBanner.styled';
  * (이번 세션 다른 트랙 소유라 편집 불가) 본문은 정본 `common.genericError` 를 재사용한다. copy.ts 에
  * 네이버 실패 카피가 생기면 이 로컬 상수를 그 키로 바꾼다.
  */
-const NAVER_LOGIN_ERROR_TITLE = '네이버 로그인에 실패했어요';
+const NAVER_LOGIN_ERROR_TITLE = '네이버 로그인에 실패했습니다';
 
 export default function NaverLoginErrorBanner() {
   const [failed, setFailed] = useState(false);

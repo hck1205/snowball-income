@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { useOverlayEscape } from '@/shared/hooks';
+import { useDrawerBackClose, useOverlayEscape } from '@/shared/hooks';
 import Button from '../Button';
 import { ModalActions, ModalBackdrop, ModalPanel, ModalTitle } from '../Modal';
 import ShareChannelGlyph from './ShareChannelGlyph';
@@ -56,6 +56,16 @@ export default function ShareDialog({
   // Escape = 닫기. 이 창은 설정 드로어 위에 열리므로 **한 겹만** 닫혀야 한다(스택이 순서를 정한다).
   useOverlayEscape(true, onClose);
 
+  /*
+   * 뒤로가기 = 이 창만 닫기. **Escape 와 짝을 맞춘 것**이다(2026-07-30) — 그 전에는 이 창이
+   * `useOverlayEscape` 에만 참여해서, 설정 드로어 위에 이 창을 띄우고 기기 뒤로가기를 누르면
+   * 이 창은 그대로 남고 **뒤의 드로어가 닫혔다**(사용자가 기대하는 것과 정확히 반대).
+   * 이 부품은 열릴 때만 마운트되므로 열림 인자는 상수 `true` 다(위 `useOverlayEscape` 와 같은 이유).
+   * 닫을 때 훅이 자기 엔트리를 되감으므로 히스토리 길이는 열기 전과 같다 — 채널 버튼은
+   * `window.open(_blank)` 이라 이 탭의 히스토리를 건드리지 않는다.
+   */
+  useDrawerBackClose(true, onClose);
+
   useEffect(() => {
     restoreRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     // 1급 동작(링크 복사)에 포커스를 둔다 — 키보드 사용자는 창이 열리자마자 Enter 로 끝낼 수 있다.
@@ -77,6 +87,20 @@ export default function ShareDialog({
       aria-modal="true"
       aria-labelledby={titleId}
       onClick={(event) => {
+        /*
+         * 🔴 여기서 전파를 끊는 이유 — React 포털은 **DOM 트리가 아니라 React 트리**를 따라
+         * 이벤트를 버블시킨다. 이 창은 `document.body` 로 포털되지만 React 상으로는 여전히
+         * 호출부의 자식이고, 피드에서는 그 호출부(`PostShareButton`)가 **카드 전체를 감싼
+         * `<Link>` 안**에 있다. 그래서 창 안의 클릭(닫기·복사·채널·백드롭)이 링크의 onClick 에
+         * 닿아 **닫는 순간 글 상세로 이동하는** 버그가 났다(사용자 신고, 2026-07-31).
+         * 여는 쪽은 `PostShareButton` 이 자기 클릭에 preventDefault+stopPropagation 을 걸어
+         * 멀쩡했기 때문에 "열면 정상, 닫으면 이동"으로 나타났다.
+         *
+         * 포털 루트 한 곳에서 끊으면 이 창을 쓰는 **모든 호출부**가 같은 보호를 받는다.
+         * 아래 백드롭 판정보다 **먼저** 와야 한다 — 패널 안쪽 클릭은 여기서 조기 반환하므로
+         * 그 뒤에 두면 정작 닫기 버튼의 전파를 못 막는다.
+         */
+        event.stopPropagation();
         // 패널 안쪽에서 시작한 클릭(주소 드래그 선택 등)으로 닫히지 않게 백드롭 자신만 본다.
         if (event.target !== event.currentTarget) return;
         onClose();

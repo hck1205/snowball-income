@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, motion, radius, shadow, space, zIndex } from '@/shared/styles';
+import { color, font, motion, radius, shadow, space, subtleScrollbar, zIndex } from '@/shared/styles';
 
 export const AuthRoot = styled.div`
   position: relative;
@@ -142,4 +142,5 @@ export const ThemePanel = styled.div`
   max-height: min(50vh, 320px);
   overflow-y: auto;
   scrollbar-gutter: stable;
+  ${subtleScrollbar}
 `;

@@ -18,7 +18,17 @@ const toCard = (content: TickerContent): HubTickerCard => {
     englishName: facts.englishName,
     tagline: renderTickerContentTemplate(content.heroTagline, facts),
     dividendYield: facts.dividendYieldDisplay,
-    frequencyLabel: facts.frequencyLabel
+    /*
+     * 값이 **없는**(undefined) 티커는 그대로 undefined 로 둬 뷰가 스탯을 통째로 뺀다 — '-'·'미정'
+     * 같은 placeholder 로 자리를 채우지 않는다.
+     * ⚠ `0` 은 없는 값이 아니라 **진짜 값**이다(무보수 ETF 는 실존한다). 그래서 '0%' 로 렌더되고
+     * 그게 맞다 — 뷰의 truthy 가드(`ticker.expenseRatio ? …`)를 "0 을 숨기는 버그"로 읽지 마라.
+     */
+    expenseRatio:
+      content.reference.expenseRatioPercent !== undefined ? `${content.reference.expenseRatioPercent}%` : undefined,
+    frequencyLabel: facts.frequencyLabel,
+    // 상세 페이지와 **같은 출처**의 액센트를 그대로 넘긴다(허브에서 새 색을 만들지 않는다).
+    accent: content.accent
   };
 };
 

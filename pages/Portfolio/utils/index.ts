@@ -3,3 +3,4 @@ export * from './portfolioStorage';
 export * from './portfolioShareUrl';
 export * from './portfolioUniverse';
 export * from './portfolioCloudSync';
+export * from './portfolioHoldingsMapping';

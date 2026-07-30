@@ -1,3 +1,4 @@
+// @vitest-environment node — DOM 을 쓰지 않는 순수 테스트 (기준: vitest.config.ts)
 import { MARKET_DATA } from '@/shared/constants/marketData';
 import { DIVIDEND_UNIVERSE } from '@/shared/constants/presets';
 import { runSimulation } from '@/shared/lib/snowball';

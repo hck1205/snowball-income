@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, media, motion, radius, shadow, space, zIndex } from '@/shared/styles';
+import { color, font, media, motion, radius, shadow, space, subtleScrollbar, zIndex } from '@/shared/styles';
 
 /* -------------------------------------------------------------------------- */
 /* 레이아웃                                                                     */
@@ -153,30 +153,6 @@ export const ModalTickerSearchInput = styled.input`
 
   &:hover {
     border-color: ${color.brandBorder};
-  }
-`;
-
-/**
- * 거의 보이지 않는 얇은 스크롤바 — 트랙 투명, 6px thumb는 은은한 border 색, hover 시에만 살짝 진해진다.
- * 티커 모달의 프리셋 목록·검색 결과 등 내부 스크롤 영역에 써서 과한 기본 스크롤바를 절제한다(테마 토큰만 사용).
- */
-export const subtleScrollbar = `
-  scrollbar-width: thin;
-  scrollbar-color: ${color.border} transparent;
-
-  &::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  &::-webkit-scrollbar-thumb {
-    background: ${color.border};
-    border-radius: 999px;
-  }
-  &:hover::-webkit-scrollbar-thumb {
-    background: ${color.borderStrong};
   }
 `;
 

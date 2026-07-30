@@ -8,6 +8,19 @@ import { useEffect, useId, useRef } from 'react';
  */
 const DRAWER_HISTORY_MARKER = 'sbDrawer';
 
+/**
+ * 지금 열려 있는 층의 스택 — **여는 순서 = 쌓이는 순서**이고 맨 뒤가 최상위다.
+ * `useOverlayEscape` 의 스택과 같은 모양·같은 이유(층끼리 서로를 모른다)이고, 그 훅이 Escape 에
+ * 대해 하는 일을 여기서는 뒤로가기에 대해 한다.
+ *
+ * **왜 마커만으로는 부족한가**(2026-07-30 실측): 마커는 `history.state` 의 **슬롯 1개**라
+ * "지금 현재 엔트리가 누구 것인가"만 답한다. 3층(설정 드로어 → 티커 모달 → 필터 드로어)에서
+ * 필터가 자기 엔트리를 되감으면 착지한 엔트리의 마커는 **모달의 것**이고, 두 칸 아래 설정 드로어는
+ * "내 마커가 아니다 = 사용자가 뒤로가기를 눌렀다"로 오판해 함께 닫혔다. 슬롯 1개로는 "내 엔트리가
+ * 소비됐다"와 "내 위의 층이 소비됐다"를 구별할 수 없다 — 그 구별을 **스택 순서**가 한다.
+ */
+const openBackCloseLayers: string[] = [];
+
 type HistoryState = Record<string, unknown> | null;
 
 function readMarker(): unknown {
@@ -57,20 +70,28 @@ type RewindState = {
  * - X/백드롭/ESC → 언마운트·닫힘 이펙트 정리에서 `history.back()`으로 마커 소비.
  *   이때 리스너를 **먼저 해제**하므로 그 popstate가 `onClose`를 다시 부르지 않는다(이중 호출 없음).
  * - 닫힌 뒤 뒤로가기 → 원래대로 이전 페이지로 이동.
- * - 중첩(예: 티커 모달 안 필터 드로어)에서도 뒤로가기 1회 = 가장 안쪽 드로어 1개만 닫힌다 —
- *   마커가 boolean이 아니라 **인스턴스별 고유 id**라, 다른 드로어가 만든 popstate에서는
- *   "내 마커가 아직 현재 엔트리"임을 보고 조용히 무시한다.
+ * - 중첩(설정 드로어 → 티커 모달 → 필터 드로어)에서 뒤로가기 1회 = **맨 위 한 겹만** 닫힌다.
+ *   판정은 두 조건의 **AND** 다: ①내가 스택 최상위인가(`openBackCloseLayers`) ②내 마커가 더는
+ *   현재 엔트리가 아닌가. ②만으로는 두 칸 아래 층이 함께 닫히고(위 스택 주석의 3층 결함), ①만으로는
+ *   새로 최상위가 된 층이 아래층의 되감기 popstate에 반응해 닫힌다.
  * - **되감기 경합**: 닫기가 부른 `history.back()`은 예약이라 popstate가 다음 태스크에 온다.
  *   그 전에 다시 열려도 마커 엔트리는 항상 1개다 — 아직 실행 전이면 되감기를 **취소**하고
  *   살아 있는 엔트리를 재사용하고, 이미 날아갔으면 **도착한 뒤에** 다시 심는다(`RewindState`).
  *   둘 다 안 하면(=닫히자마자 무조건 다시 push) 뒤늦은 되감기가 엔트리 하나를 삼켜
  *   사용자의 첫 뒤로가기가 먹통이 된다.
  *
- * 알려진 제약: 되감기 경합 방어는 **인스턴스 안에서만** 성립한다(상태가 인스턴스 ref다).
- * 서로 다른 드로어 A가 닫히는 같은 틱에 드로어 B가 열리면 B는 A의 되감기를 모른 채 push해
- * 같은 증상이 날 수 있다. 현재 앱에는 그런 동선이 없다 — 중첩 드로어는 바깥이 열린 채로
- * 안쪽만 여닫히고(둘 다 자기 엔트리를 따로 소유), 화면 전환은 드로어를 서로 교체하지 않는다.
- * 그런 동선이 생기면 이 상태를 인스턴스 ref가 아니라 모듈 단위로 올려야 한다.
+ * 알려진 제약 ①: 스택 순서는 "여는 순서"가 아니라 **이펙트 실행 순서**다. React 는 마운트 시
+ * **자식 이펙트를 부모보다 먼저** 실행하므로, 부모 오버레이와 그 위에 뜰 오버레이가 **같은 커밋에서
+ * 함께 마운트되면** 안쪽이 먼저 push 되어 **바깥이 최상위**가 된다 — 뒤로가기 한 번이 위층이 아니라
+ * 아래층을 닫는다. 지금 앱의 층은 전부 이미 뜬 화면에서 클릭으로 하나씩 열리고 초기 상태가 닫힘이라
+ * 도달 불가다. "열린 채로 시작하는 중첩 오버레이"(URL 파라미터로 모달+필터 동시 오픈 등)를 만들면
+ * 순서를 이펙트가 아니라 명시적 depth 로 받아야 한다. 같은 제약이 `useOverlayEscape` 에도 있다.
+ *
+ * 알려진 제약 ②: 층 순서만 모듈 스코프(`openBackCloseLayers`)이고 **되감기 경합 방어(`RewindState`)는
+ * 여전히 인스턴스 ref** 다. 서로 다른 드로어 A가 닫히는 같은 틱에 드로어 B가 열리면 B는 A의
+ * 되감기를 모른 채 push해 엔트리가 2개가 될 수 있다(= 첫 뒤로가기가 먹통). 현재 앱에는 그런 동선이
+ * 없다 — 중첩 드로어는 바깥이 열린 채로 안쪽만 여닫히고(각자 자기 엔트리를 소유), 화면 전환은
+ * 드로어를 서로 교체하지 않는다. 그런 동선이 생기면 이 상태도 모듈 단위로 올려야 한다.
  *
  * React Router v6(데이터 라우터)와의 간섭: RR은 popstate를 듣지만 우리는 URL을 안 바꾸고
  * 기존 state(RR의 `idx` 포함)를 스프레드로 보존하므로 **pathname/search/hash가 동일**하다 —
@@ -87,7 +108,8 @@ type RewindState = {
  *   기본값 `true` — 앱의 드로어는 전부 전 폭 오버레이라 현재 이 인자를 넘기는 곳은 없다.
  */
 export function useDrawerBackClose(isOpen: boolean, onClose: () => void, enabled = true): void {
-  // 인스턴스별 고유 마커. 중첩 드로어끼리 서로의 popstate를 가로채지 않게 하는 유일한 근거다.
+  // 인스턴스별 고유 토큰. 히스토리 마커와 층 스택에서 같은 값을 쓴다 — 같은 컴포넌트가 여러 벌
+  // 떠 있어도 서로의 엔트리·순서를 오인하지 않는다.
   const markerId = useId();
 
   // onClose 참조만 최신으로 유지한다 — 콜백 identity가 바뀔 때마다 엔트리를 다시 push하면
@@ -122,9 +144,13 @@ export function useDrawerBackClose(isOpen: boolean, onClose: () => void, enabled
     // else: ①에서 되감기를 취소했다 = 내 엔트리가 아직 현재 엔트리 → 그대로 재사용한다(중복 push 금지).
 
     const handlePopState = () => {
-      // 내 마커가 여전히 현재 엔트리면 = 다른(중첩) 드로어가 자기 엔트리를 되감아 생긴 popstate다.
-      // ②의 재심기도 여기 걸린다 — 아래 handleRewindLanded가 **먼저** 등록돼 있어 이 리스너가
-      // 도는 시점엔 마커가 이미 다시 심겨 있다(이중 onClose 없음).
+      // 내 위에 층이 더 있으면 이 popstate 는 그 층 몫이다 — 내 엔트리는 그 층 아래에 그대로 살아
+      // 있으므로 마커만 봐서는(내 것이 아니니) 나까지 닫혀 버린다. 아래층은 자기 차례를 기다린다.
+      if (openBackCloseLayers[openBackCloseLayers.length - 1] !== markerId) return;
+
+      // 최상위인데도 내 마커가 여전히 현재 엔트리면 = 방금 닫힌 위층이 자기 엔트리를 되감아 생긴
+      // popstate다(그 층은 이미 스택에서 빠졌다). ②의 재심기도 여기 걸린다 — 아래 handleRewindLanded가
+      // **먼저** 등록돼 있어 이 리스너가 도는 시점엔 마커가 이미 다시 심겨 있다(이중 onClose 없음).
       if (readMarker() === markerId) return;
       onCloseRef.current();
     };
@@ -138,11 +164,19 @@ export function useDrawerBackClose(isOpen: boolean, onClose: () => void, enabled
       pushMarkerEntry(markerId);
     };
 
+    // 스택 참여는 마커를 실제로 소유한 뒤에만 한다(push 실패한 인스턴스가 남의 최상위를 훔치지 않게).
+    openBackCloseLayers.push(markerId);
     window.addEventListener('popstate', handlePopState);
 
     return () => {
       // ⚠ 순서가 계약이다: 리스너를 먼저 떼고 back()을 예약해야 그 popstate가 onClose를 재호출하지 않는다.
       window.removeEventListener('popstate', handlePopState);
+
+      // 닫히면 스택에서 빠져야 아래층이 최상위가 된다. 안 빼면 **닫힌 층이 영원히 최상위**라
+      // 남은 층 전원이 "내 차례가 아니다"라며 비켜서고, 다음 뒤로가기를 아무도 받지 않아 브라우저가
+      // 그대로 페이지를 떠난다(누수 뮤턴트로 실측: 기존 2층 테스트 2건도 함께 빨개진다).
+      const layerIndex = openBackCloseLayers.lastIndexOf(markerId);
+      if (layerIndex >= 0) openBackCloseLayers.splice(layerIndex, 1);
 
       // 되감기가 이미 날아간 채로 닫혔다 → 그게 내 엔트리를 소비한다. 대기 중이던 재심기만 취소하면
       // 수지가 맞는다(여기서 back()을 또 부르면 두 칸 뒤로 = 페이지 이탈이다).

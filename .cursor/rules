@@ -4,6 +4,10 @@
 
 # 요청과 충돌하더라도 아래 규칙이 우선이다.
 
+# ⚠ 이 문서는 **실제 배치를 기술**한다. 이상형을 적고 코드가 어기게 두면 규칙 전체가 무시된다.
+#   실제와 어긋난 조항을 발견하면 §10 의 자동 검사부터 확인하고, 코드가 아니라 이 문서를 고쳐야
+#   하는 경우인지 먼저 판단하라. 편차는 숨기지 말고 §1.1 처럼 **이탈로 명시**한다.
+
 =============================================================================== 0) 기술 스택 (고정)
 ===============================================================================
 
@@ -18,13 +22,35 @@ TypeScript strict 모드를 가정한다.
 ===============================================================================
 
 1. # 최상위 폴더 구조 (고정)
-   루트에는 반드시 아래 폴더 구조를 사용한다:
+   루트에는 아래 폴더를 사용한다:
 
-- components/ : 재사용 가능한 UI 컴포넌트 (feature를 구성할 수 있는 단위)
-- features/ : 하나의 기능 단위로 동작하는 모듈
-- pages/ : 라우팅 단위 페이지 (조립/Composition 레이어)
+- components/ : 재사용 가능한 UI 컴포넌트 (화면을 구성할 수 있는 단위)
+- pages/ : 라우팅 단위 페이지 (조립/Composition 레이어 + 그 페이지 전용 hooks/components)
+- shared/ : 공용 모듈 (utils/types/constants/hooks/lib/styles 등)
+- jotai/ : 전역 상태 (atoms/selectors/persistence/cloud)
+- router/ : 라우트 정의
+- utils/ : 생성 스크립트가 있는 독립 유틸 (예: TickerParser)
+- server/ : 서버리스 핸들러 **소스**
+- api/ : 서버리스 **배포 산출물** (커밋되는 생성물, 직접 편집 금지)
 - public/ : 정적 리소스
-- shared/ : 공용 모듈 (utils/types/constants/hooks/lib 등)
+
+## 1.1 선언된 이탈 — `features/` 는 이 레포에 없다
+
+이 문서의 이전 판은 `features/` 를 최상위 필수로 규정했고 상태를 `features/<F>/state`,
+비즈니스 훅을 `features/<F>Hooks/` 에 두라고 했다. **실제 코드에는 `features/` 가 없다.**
+같은 역할을 아래가 맡고 있고, 이 배치는 정상 동작 중이다:
+
+| 규칙이 말한 자리 | 실제 자리 |
+|---|---|
+| `features/<F>/state` (Jotai atom) | `jotai/snowball/atoms/`, `jotai/snowball/selectors/` |
+| `features/<F>Hooks/` (비즈니스 훅) | `pages/Main/hooks/{business,form,interaction,persistence}/` |
+| `features/<F>.tsx` (기능 조립) | `pages/<Page>/<Page>.tsx` ↔ `<Page>.view.tsx` |
+| `features/<F>/state/persistence` | `jotai/snowball/persistence/` |
+
+**대규모 재배치는 사용자 승인 없이 하지 않는다.** 이 편차는 알고 있는 편차이고,
+`features/` 로 옮기는 것은 수백 파일의 import 를 흔들면서 얻는 것이 명명뿐이다.
+새 코드는 위 "실제 자리" 열을 따른다. `features/` 폴더를 새로 만들지 마라 —
+두 체계가 공존하는 것이 어느 한쪽으로 통일된 것보다 나쁘다.
 
 =============================================================================== 2) 모든 폴더는 index.ts 필수 (절대 규칙)
 ===============================================================================
@@ -33,12 +59,9 @@ TypeScript strict 모드를 가정한다.
 적용 대상:
 
 - components 하위 모든 폴더
-- features 하위 모든 폴더
-- features 내부의 state/
-- features 내부의 hooks/
-- features 내부의 **tests**/
+- pages 하위 모든 폴더 (그 안의 components/·hooks/·copy/ 포함)
 - shared 하위 모든 폴더
-- pages 하위 모든 폴더
+- jotai 하위 모든 폴더
 
 규칙:
 
@@ -47,13 +70,13 @@ TypeScript strict 모드를 가정한다.
 - index.ts가 없는 폴더를 생성하지 않는다.
 
 ✅ 올바른 예:
-import Button from '@/components/Button';
-import { useLogin } from '@/features/Auth/hooks';
-import { authAtoms } from '@/features/Auth/state';
+import { Card } from '@/components/common';
+import { useScenarioTabs } from '@/pages/Main/hooks/business';
+import { formAtoms } from '@/jotai/snowball/atoms';
 
 ❌ 잘못된 예:
-import { something } from '@/features/Auth/state/atoms';
-import Button from '@/components/Button/component';
+import Card from '@/components/common/Card/Card';
+import { formAtom } from '@/jotai/snowball/atoms/form';
 
 index.ts 작성 규칙:
 
@@ -61,26 +84,33 @@ index.ts 작성 규칙:
   export { default } from './Card';
 
 - 타입 재노출
-  export type * from './Card.types';
+  export type \* from './Card.types';
 
 - named export 재노출
   export \* from './atoms';
 
 비어있더라도 index.ts는 반드시 존재해야 한다.
 
+**예외(런타임 제약이지 취향이 아니다)** — 아래 두 곳은 배럴을 **의도적으로 우회**한다:
+
+- `shared/lib/supabase/` · `components/community/*` — 배럴이 supabase-js·Tiptap 을 초기 번들로
+  끌어오므로 **폴더 경로로 직접** 소비한다(청크 격리). 배럴 안 주석에 이유가 적혀 있다.
+- `server/handlers/*` — 모듈 스코프 `import.meta.env` 가 금지된 서버리스 런타임이라 앱 배럴을
+  탈 수 없다. `api/*.js` 는 esbuild 산출물이며 확장자 생략·배럴이 전부 불법이다.
+
 =============================================================================== 3) components (재사용 UI 계층)
 ===============================================================================
 components는 너무 잘게 쪼갠 atomic 단위가 아니라,
-하나 이상의 UI 블록으로 feature를 충분히 구성할 수 있는 단위로 작성한다.
+하나 이상의 UI 블록으로 화면을 충분히 구성할 수 있는 단위로 작성한다.
 
 예:
 
 - Button
 - Modal
-- FormSection
 - Card
 - DataTable
 - InputField
+- SideDrawer
 
 각 컴포넌트는 명확한 책임을 가진다.
 
@@ -92,15 +122,18 @@ SOME_COMPONENT.tsx
 SOME_COMPONENT.styled.ts
 SOME_COMPONENT.types.ts
 SOME_COMPONENT.utils.ts
-SOME_COMPONENT.test.ts
+SOME_COMPONENT.test.tsx
 index.ts
 
 규칙:
 
 - 폴더명은 PascalCase
 - 파일명 prefix는 폴더명과 동일한 PascalCase 사용
-- 테스트 파일명은 반드시 SOME_COMPONENT.test.ts 패턴 사용
+- 테스트 파일명은 SOME_COMPONENT.test.tsx 패턴 사용 (DOM 없는 순수 모듈은 .test.ts)
 - index.ts는 default + type 재export
+- **재사용 컴포넌트를 페이지 안에 복제하지 마라.** 공용 껍데기가 이미 있으면 그것을 쓴다 —
+  복제본은 각자 잘 동작하기 때문에 렌더 테스트로 안 잡히고, 오버레이 스택·스크롤락처럼
+  **여러 벌이 서로를 몰라서 생기는 결함**만 남는다(실제 사고: 드로어 3벌, 헤더 4벌).
 
 SOME_COMPONENT.tsx:
 
@@ -111,6 +144,8 @@ SOME_COMPONENT.styled.ts:
 
 - Emotion styled 사용
 - 시맨틱 HTML 요소 사용
+- ⚠ 템플릿 리터럴 안 주석에 백틱을 쓰지 마라 — 거기서 템플릿이 끝나 엉뚱한 구문 오류가 쏟아진다.
+  검사·수정: `node tools/dev/styled-comment-backticks.mjs [--fix]`
 
 SOME_COMPONENT.types.ts:
 
@@ -121,63 +156,46 @@ SOME_COMPONENT.utils.ts:
 - 컴포넌트 전용 유틸
 - 공용이면 shared/utils로 이동
 
-=============================================================================== 4) features (기능 단위 계층)
+=============================================================================== 4) 상태 계층 (jotai/)
 ===============================================================================
-features는 기능 단위로 독립 동작 가능해야 한다.
+전역 상태는 `jotai/<도메인>/` 아래 관심사별로 나눈다.
 
-권장 구조:
-
-features/
-SOME_APP.tsx
-SOME_APP.styled.ts
-SOME_APP.types.ts
-SOME_APP.utils.ts
-SOME_APPState/
-atoms.ts
-selectors.ts
-index.ts
-SOME_APPHooks/
-useSomething.ts
-index.ts
-SUB_FEATURE_A/
-SUB_FEATURE_A.tsx
-SUB_FEATURE_A.types.ts
-index.ts
-SOME_APPTests/
-SOME_APP.test.tsx
-index.ts
+jotai/
+snowball/
+atoms/ (form·portfolio·ui·derived)
+selectors/
+persistence/
+cloud/ (배럴 미연결 — supabase 격리)
 index.ts
 
 규칙:
 
-- features 내부에 components/ 폴더를 두지 않는다.
-- app 수준 feature는 `features` 루트에 직접 파일로 둔다. (예: `features/SOME_APP.tsx`)
-- features 내부의 기능 분리는 PascalCase 하위 feature 폴더(SUB_FEATURE_A)로 분리한다.
-- UI는 상위 components를 조합하여 구성한다.
-- feature는 로직 + 상태 + 조합 역할을 한다.
-- feature 내부 모든 하위 폴더에 index.ts 포함
-- 파일명 prefix는 폴더명과 동일한 PascalCase 사용
-
-state 규칙:
-
-- Jotai atom은 features/<Feature>/state 에 둔다.
-- 거대한 atom 금지 → 분리
-- 전역 atom 남발 금지
+- 거대한 atom 금지 → 관심사별로 분리
+- 전역 atom 남발 금지 — 한 화면에서만 쓰는 상태는 그 페이지의 hooks/ 로
+- 영속 페이로드·공유 링크 스키마는 **사용자 자산**이다. 바꾸면 기존 데이터가 계속 열리는지
+  왕복 테스트로 확인한다(§7).
 
 =============================================================================== 5) pages (라우팅 계층)
 ===============================================================================
-pages는 화면 단위 조립 레이어다.
+pages는 화면 단위 조립 레이어다. 실제 관례는 **컨테이너 ↔ 뷰 분리**다.
 
 pages/
-Home/
-page.tsx
+SOME_PAGE/
+SOME_PAGE.tsx (컨테이너 — 상태·훅 배선)
+SOME_PAGE.view.tsx (뷰 — props 로만 그린다)
+SOME_PAGE.styled.ts
+SOME_PAGE.utils.ts
+hooks/ (그 페이지 전용 훅, 관심사별 하위 폴더)
+components/ (그 페이지 전용 컴포넌트)
+copy/ (그 페이지 카피 상수)
 index.ts
 
 규칙:
 
 - 페이지는 조립 역할만 수행
-- 로직은 features로 이동
-- 큰 UI는 components로 이동
+- 계산 로직은 `shared/lib/` 의 순수 함수로, 재사용 UI 는 `components/` 로 이동
+- 페이지 전용 상수를 페이지 배럴에서 export 하고 하위 컴포넌트가 그 배럴을 import 하면
+  **순환 의존이 된다** → `copy/` 같은 형제 폴더로 분리한다(실측 사고).
 - index pattern 유지
 
 =============================================================================== 6) shared (공용 모듈)
@@ -186,27 +204,31 @@ shared는 전역 공용 코드만 둔다.
 
 shared/
 utils/
-index.ts
 types/
-index.ts
-constants/
-index.ts
+constants/ (하위 소분류 폴더: presets/·marketData/·community/·help/…)
 hooks/
-index.ts
-lib/
-index.ts
-index.ts
+lib/ (snowball/·supabase/·community/…)
+styles/ (tokens·semantic·presets/·globalStyles·pressable·surfaces)
+index.ts (각 폴더마다)
 
 규칙:
 
-- 특정 feature 전용 코드 금지
-- truly shared 코드만 위치
+- 특정 페이지 전용 코드 금지 — truly shared 코드만 위치
 - 정적 상수(static const)는 `shared/constants` 하위 소분류 폴더로 분리
-  예: `shared/constants/snowball/presets.ts`, `shared/constants/snowball/help.ts`
+  예: `shared/constants/presets/`, `shared/constants/help/`
+- 한 파일이 1,000줄을 넘으면 관심사별로 쪼갠다. 값이 눈에 보이는 것이 미덕인 데이터 파일은
+  **제네릭 팩토리로 생성하지 말고** 파일을 나눈다(예: `shared/styles/presets/` — 프리셋당 1파일).
+- 🔴 `shared/styles`·`shared/constants` 를 스치면 `api/*.js` 가 stale 이 된다(비minify 번들이라
+  **주석만 고쳐도** 바뀐다). `npm run api:bundle` 후 `npm run api:check` **단독 실행**으로 확인하고
+  산출물을 동반 스테이징하라. ⚠ `npm run verify` 는 api:bundle 이 먼저 돌아 stale 을 자동 치유해
+  **가린다** — verify 그린인데 Vercel 빌드가 깨진 사고가 있었다.
 
 =============================================================================== 7) 테스트 규칙
 ===============================================================================
-모든 components는 반드시 SOME_COMPONENT.test.ts 포함.
+components 하위의 모든 재사용 컴포넌트는 **반드시** `SOME_COMPONENT.test.ts(x)` 를 포함한다.
+(JSX 를 쓰면 `.tsx`, `createElement` 로만 렌더하거나 DOM 이 필요 없으면 `.ts`.)
+"재사용"의 판정은 위치다 — `components/` 아래면 재사용이다. 페이지 전용 부품은
+`pages/<Page>/components/` 에 두고, 그쪽은 페이지 단위 행동 테스트로 덮어도 된다.
 
 테스트는 다음을 검증:
 
@@ -220,17 +242,48 @@ className 기반 테스트 금지.
 
 Vitest + React Testing Library 기준.
 
+추가 규칙:
+
+- **계산 엔진을 바꿨으면 `npm run test` 로 확인한다.** 지급 주기 off-by-one, 연↔월 이율 변환,
+  재투자 타이밍, 수익률 이중 반영이 반복 결함 지점이다.
+- **영속 데이터·공유 URL 스키마를 바꿨으면 왕복(round-trip) 테스트**로 기존 데이터가 계속
+  열리는지 확인한다.
+- jsdom 한계를 알고 써라: `@media` 미평가·레이아웃 미계산·canvas 없음·indexedDB 없음.
+  "테스트가 그린이니 됐다"를 시각·레이아웃 판정의 근거로 쓰지 마라 — 실브라우저로 1회 실증한다.
+- DOM 이 필요 없는 테스트는 node 환경으로 돌린다(jsdom 셋업이 스위트 시간을 지배한다).
+  분류 기준과 자동 검사는 §10.
+
 =============================================================================== 8) import 규칙 요약
 ===============================================================================
 항상 폴더 단위 import만 허용.
 index.ts를 통해서만 외부 접근 허용.
-직접 파일 경로 import 금지.
+직접 파일 경로 import 금지. (§2 의 런타임 제약 예외 2건만 허용)
+import alias: `@/*` → 저장소 루트.
 
 =============================================================================== 9) 코드 작성 기준
 ===============================================================================
 
-- TypeScript strict 준수
+- TypeScript strict 준수 (`noUnusedLocals`/`noUnusedParams` 켜져 있음 —
+  전체 타입체크는 `npx tsc -b tsconfig.build.json`. bare `tsc -b` 는 루트만 본다)
 - 과도한 추상화 금지
 - index.ts 누락 금지
-- feature는 명확한 책임 단위
-- components는 feature를 구성할 수 있는 충분한 단위로 유지
+- components는 화면을 구성할 수 있는 충분한 단위로 유지
+- 주석은 **"무엇"이 아니라 "왜"** 를 적는다. 특히 관례를 벗어난 선택은 이유를 남겨야
+  다음 사람이 "고치지" 않는다.
+- 디자인·UI 규칙은 `DESIGN.md` 가 정본이다(이 문서는 구조, DESIGN.md 는 표현).
+
+=============================================================================== 10) 이 규칙의 자동 검사
+===============================================================================
+아래 불변식은 **테스트로 잠겨 있다** — 어기면 `npm run test` 가 빨개진다.
+규칙을 문서로만 두면 조용히 무효화된다는 것이 이 레포의 반복 경험이다.
+
+| 불변식 | 검사 |
+|---|---|
+| 모든 폴더에 index.ts (§2) | `test/shared/structureRules.test.ts` |
+| 폴더 내부 파일 직접 import 금지 (§2·§8) | 같은 파일 (§2 예외는 화이트리스트) |
+| 컴포넌트 파일명 prefix = 폴더명 (§3) | 같은 파일 |
+| 헤더는 단일 컴포넌트 (복제 금지) | `test/shared/appHeaderSingleSource.test.ts` |
+| styled 템플릿 안 주석 백틱 금지 (§3) | `node tools/dev/styled-comment-backticks.mjs` |
+| api 산출물 ↔ 소스 일치 (§6) | `npm run api:check` |
+
+검증 게이트 전체는 `npm run verify`(tsc → test → api번들 → api체크 → build, fail-fast).

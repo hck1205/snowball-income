@@ -70,6 +70,29 @@ export const stubTouchPrimary = (): void => {
   });
 };
 
+/**
+ * **모션을 줄이라고 설정한 사용자**를 재현한다.
+ *
+ * 이 질의는 폭 스텁이 일부러 답하지 않는다(위 `evaluate` 주석) — 전역 스텁도 false 라
+ * 스텁 없는 테스트는 자동으로 "모션 허용"이다(의도). 로딩·전이 UI가 reduced-motion 에서
+ * 시각 단서를 잃는 회귀(2026-07-30 `Button` 로딩)는 이 스텁 없이는 관측할 수 없다.
+ */
+export const stubReducedMotion = (): void => {
+  Object.defineProperty(window, 'matchMedia', {
+    configurable: true,
+    value: (query: string) => ({
+      matches: /prefers-reduced-motion:\s*reduce/.test(query),
+      media: query,
+      onchange: null,
+      addListener: () => undefined,
+      removeListener: () => undefined,
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+      dispatchEvent: () => false
+    })
+  });
+};
+
 /** `matchMedia` 자체가 없는 환경(SSR·구형 브라우저)을 재현한다. */
 export const removeMatchMedia = (): void => {
   Object.defineProperty(window, 'matchMedia', { configurable: true, value: undefined });

@@ -5,7 +5,6 @@ import {
   CALENDAR_TICKERS_PARAM,
   parseCalendarTickersParam,
   readCalendarSelection,
-  serializeCalendarTickersParam,
   writeCalendarSelection
 } from '../utils';
 import type { CalendarTickerEntry } from '../utils';
@@ -49,10 +48,18 @@ export type CalendarSelectionApi = {
 /**
  * 캘린더 선택 상태의 단일 소유자.
  *
- * 초기 선택 우선순위는 **URL `?tickers=` > IndexedDB > 빈 상태**다. 공유 링크로 들어온 사람은
+ * 초기 선택 우선순위는 **URL `?tickers=` > IndexedDB > 빈 상태**다. 링크로 들어온 사람은
  * 그 조합을 보러 온 것이므로 URL이 이기고, 그 선택을 **방문자의 저장소에 기록하지 않는다**
  * (남의 링크 한 번 열었다고 내 저장이 덮이면 안 된다). 저장은 사용자가 직접 고르거나 비울 때만,
  * 그리고 실패해도 화면은 계속 간다 — 세션 안의 선택은 이 메모리 상태가 책임진다.
+ *
+ * 🔴 **주소는 읽기 전용이다 — 선택이 바뀌어도 주소를 갱신하지 않는다**(2026-07-30, 사용자 요청).
+ * 구 코드에는 선택 ↔ 주소 동기화 이펙트가 있었고 주석은 *"주소 복사가 곧 공유가 된다"* 고 적었는데,
+ * **캘린더에는 공유 버튼도 공유 안내도 없다** — 주소창을 복사하라고 알려주는 장치가 하나도 없으니
+ * 도달 가능한 기능이 아니라 선언된 의도였을 뿐이고, 대가로 종목을 누를 때마다 주소가 흔들렸다.
+ * 읽기만 남기는 이유는 **이미 밖에 나가 있는 링크와 앱 안의 생산자**다(`pages/Portfolio/utils/
+ * portfolioShareUrl.ts` 가 `/dividend/calendar?tickers=…` 를 만든다). 나중에 공유 버튼이 생기면
+ * 이 동기화를 되살릴 게 아니라 **그 버튼이 직접 URL 을 만들면 된다**(직렬화 유틸은 그대로 있다).
  */
 export const useCalendarSelection = (universe: CalendarTickerEntry[]): CalendarSelectionApi => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -61,8 +68,10 @@ export const useCalendarSelection = (universe: CalendarTickerEntry[]): CalendarS
   const [lastAction, setLastAction] = useState<CalendarLastAction>('none');
   const [unknownTickers, setUnknownTickers] = useState<string[]>([]);
 
-  // 진입 시점의 쿼리스트링만 초기 선택의 근거다(이후 갱신은 아래 동기화 이펙트가 소유).
+  // 진입 시점의 쿼리스트링만 초기 선택의 근거다 — 이후 주소 변화는 선택에 영향을 주지 않는다.
   const initialSearch = useRef(searchParams.toString()).current;
+  /** 진입 파람 정리를 **한 번만** 하기 위한 빗장(아래 정리 이펙트). */
+  const urlParamCleanedRef = useRef(false);
   /**
    * 사용자가 이미 손을 댔는가. IndexedDB 읽기는 비동기라 **로딩 중에도 목록은 조작 가능**한데
    * (검색·선택은 정적 상수만으로 즉시 동작한다), 뒤늦게 도착한 저장값이 그 조작을 덮으면
@@ -108,19 +117,28 @@ export const useCalendarSelection = (universe: CalendarTickerEntry[]): CalendarS
     };
   }, [initialSearch, universe]);
 
-  // 선택 ↔ 주소 동기화. `replace`라 히스토리를 더럽히지 않고, 주소 복사가 곧 공유가 된다.
+  /**
+   * 진입 링크 정리 — 읽고 난 `?tickers=` 를 **딱 한 번** 지운다.
+   *
+   * 안 지우면 링크로 들어온 사람이 종목을 바꾼 순간 주소가 화면과 어긋난 채 남고, 새로고침하면
+   * **저장된 자기 선택이 아니라 남의 링크 선택으로 되돌아간다**(위 우선순위상 URL 이 이긴다).
+   * 주소를 안 쓰기로 한 이상 그 유령은 정리하는 편이 옳다.
+   *
+   * `replace` 라 히스토리 항목이 늘지 않는다 — 뒤로가기는 여전히 이 페이지에 오기 **전** 화면으로 간다.
+   * 대가: 링크로 들어와 아무 것도 건드리지 않고 새로고침하면 선택이 사라진다(저장소로 떨어진다).
+   * 그쪽이 낫다고 본 이유는 **사용자가 실제로 한 조작**(= IndexedDB 에 남는다)을 링크가 덮는 편이
+   * 더 나쁘기 때문이다.
+   */
   useEffect(() => {
-    if (status !== 'ready') return;
+    if (urlParamCleanedRef.current) return;
+    urlParamCleanedRef.current = true;
 
-    const value = serializeCalendarTickersParam(selected);
-    if ((searchParams.get(CALENDAR_TICKERS_PARAM) ?? '') === value) return;
+    if (!new URLSearchParams(initialSearch).has(CALENDAR_TICKERS_PARAM)) return;
 
     const next = new URLSearchParams(searchParams);
-    if (value.length > 0) next.set(CALENDAR_TICKERS_PARAM, value);
-    else next.delete(CALENDAR_TICKERS_PARAM);
-
+    next.delete(CALENDAR_TICKERS_PARAM);
     setSearchParams(next, { replace: true });
-  }, [searchParams, selected, setSearchParams, status]);
+  }, [initialSearch, searchParams, setSearchParams]);
 
   /** 선택을 바꾸는 **유일한** 경로 — 토글·비우기·빠른 선택이 전부 여기로 모인다(경합 플래그도 여기 하나). */
   const applySelection = useCallback((next: string[], action: CalendarLastAction) => {

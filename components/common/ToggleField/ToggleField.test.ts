@@ -47,6 +47,36 @@ describe('ToggleField', () => {
     expect(track?.contains(screen.getByText('재투자'))).toBe(false);
   });
 
+  /**
+   * 히트 영역은 **스위치 주변 44×32 까지**다. 라벨 줄 전체가 스위치가 되면 안 된다 —
+   * 이 줄은 `justify-content: space-between` 이라 라벨 텍스트와 스위치 사이에 200px 넘는 빈 공간이
+   * 생기고, 거기를 눌렀을 때 설정이 바뀌면 "안 누른 게 켜졌다"가 된다.
+   * (그래서 `ToggleLabel` 은 `<label>` 이 아니라 `<div>` 로 남는다 — 위임은 트랙에서 끝낸다.)
+   */
+  it('라벨 줄의 빈 공간·라벨 텍스트를 눌러도 토글되지 않는다', () => {
+    const onChange = vi.fn();
+    render(createElement(ToggleField, { label: '재투자', checked: false, onChange }));
+
+    const row = screen.getByText('재투자').closest('div') as HTMLElement;
+
+    fireEvent.click(row);
+    fireEvent.click(screen.getByText('재투자'));
+
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  /** 라벨 줄 안의 다른 인터랙티브 요소(도움말)가 토글에 삼켜지지 않는다. */
+  it('도움말 버튼을 눌러도 토글되지 않는다', () => {
+    const onChange = vi.fn();
+    const onHelpClick = vi.fn();
+    render(createElement(ToggleField, { label: '재투자', checked: false, onChange, onHelpClick }));
+
+    fireEvent.click(screen.getByRole('button', { name: '재투자 설명 열기' }));
+
+    expect(onHelpClick).toHaveBeenCalledTimes(1);
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
   /** `hideLabel`은 여전히 있는 탈출구지만, 통일된 모드 스위치 5곳은 쓰지 않는다. */
   it('hideLabel이면 보이는 라벨이 사라지고 접근명만 남는다', () => {
     render(

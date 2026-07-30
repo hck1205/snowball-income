@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, media, motion, radius, shadow, space, zIndex } from '@/shared/styles';
+import { color, font, media, motion, radius, shadow, space, subtleScrollbar, zIndex } from '@/shared/styles';
 
 /**
  * 스와치 점의 실제 색(hex)은 여기에 없다 — 레지스트리(`THEME_PRESETS[..].swatch`) 값을
@@ -74,6 +74,7 @@ export const Popover = styled.div`
   max-height: min(60vh, 420px);
   overflow-y: auto;
   scrollbar-gutter: stable;
+  ${subtleScrollbar}
 `;
 
 /**

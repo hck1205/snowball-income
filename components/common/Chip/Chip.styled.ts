@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, motion, radius, space } from '@/shared/styles';
+import { color, font, hitAreaWithin, motion, pressable, pressTransition, radius, space } from '@/shared/styles';
 import type { ChipVariant } from './Chip.types';
 
 /**
@@ -58,7 +58,9 @@ export const ChipButton = styled.button<{ selected?: boolean; hasRemove?: boolea
   cursor: pointer;
   touch-action: manipulation;
   transition: background-color ${motion.fast} ${motion.ease}, border-color ${motion.fast} ${motion.ease},
-    color ${motion.fast} ${motion.ease};
+    color ${motion.fast} ${motion.ease}, ${pressTransition};
+
+  ${pressable}
 
   &:hover:not(:disabled) {
     border-color: ${color.brandBorder};
@@ -98,15 +100,17 @@ export const ChipRemove = styled.button`
   touch-action: manipulation;
   transition: background-color ${motion.fast} ${motion.ease};
 
-  /* 20px 원이지만 히트 영역은 44x44. */
-  &::before {
-    content: '';
-    position: absolute;
-    width: 44px;
-    height: 44px;
-  }
-
-  position: relative;
+  /*
+   * 20px 원이지만 히트 영역은 넓힌다.
+   *
+   * 🔴 2026-07-30 까지 여기 '::before' 에 'top/left/transform' 이 **없었다.** 그래서 44×44 영역이
+   * 중앙이 아니라 버튼 왼쪽 위 모서리에서 **오른쪽·아래로** 뻗었고, 칩이 줄바꿈되는 목록
+   * ('SelectedChipWrap', gap 8px)에서 **옆 칩과 아랫줄 칩을 덮었다** — 지우려고 눌렀는데 다른
+   * 칩이 반응하는 버그였다.
+   *
+   * 이제 'hitAreaWithin' 이 정렬을 구조적으로 보장하고, 형제 간격(8px)을 넘지 않게 상한도 건다.
+   */
+  ${hitAreaWithin(space[2])}
 
   &:hover {
     background: ${color.brandSubtleHover};

@@ -1,3 +1,4 @@
+// @vitest-environment node — DOM 을 쓰지 않는 순수 테스트 (기준: vitest.config.ts)
 import type { Frequency, YieldFormValues } from '@/shared/types';
 import { defaultYieldFormValues, paymentsPerYearMap, runSimulation, toSimulationInput } from '@/shared/lib/snowball';
 import { CURATED_DIVIDEND_UNIVERSE, DIVIDEND_UNIVERSE } from '@/shared/constants';

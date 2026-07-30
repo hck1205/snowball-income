@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, container, font, media, motion, radius, space } from '@/shared/styles';
+import { color, container, font, media, motion, radius, space, subtleScrollbar } from '@/shared/styles';
 
 /**
  * 보유 표 — **데스크톱은 `<table>`, ≤820px 는 행 카드**. DOM 은 한 벌이고 CSS 만 갈린다
@@ -18,6 +18,7 @@ export const TableWrap = styled.div`
   overscroll-behavior-x: contain;
   min-width: 0;
   width: 100%;
+  ${subtleScrollbar}
 `;
 
 const stackedTable = `

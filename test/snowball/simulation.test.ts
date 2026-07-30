@@ -1,3 +1,4 @@
+// @vitest-environment node — DOM 을 쓰지 않는 순수 테스트 (기준: vitest.config.ts)
 import type { YieldFormValues } from '@/shared/types';
 import { computeCapitalGains, defaultYieldFormValues, runSimulation, toSimulationInput } from '@/shared/lib/snowball';
 import { CAPITAL_GAINS_ANNUAL_DEDUCTION } from '@/shared/constants';

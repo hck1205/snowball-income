@@ -12,7 +12,9 @@ import { restoreMatchMedia, stubTouchPrimary } from '../helpers';
 // 댓글/미리보기는 이 스펙과 무관 — 상세 뷰의 공유 버튼 게이트만 보게 스텁으로 갈아 끼운다.
 vi.mock('@/pages/Community/CommunityDetailPage/components', () => ({
   CommentSection: () => <div data-testid="comments" />,
-  ScenarioPreview: () => <div data-testid="preview" />
+  ScenarioPreview: () => <div data-testid="preview" />,
+  // 배럴을 통째로 갈아끼우므로 상세가 쓰는 부품은 전부 여기 있어야 한다(빠지면 렌더가 터진다).
+  ScrollTopButton: () => null
 }));
 
 const d = COMMUNITY_COPY.detail;

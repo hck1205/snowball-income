@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, motion, radius, space } from '@/shared/styles';
+import { color, font, motion, radius, space, subtleScrollbar } from '@/shared/styles';
 
 /** 브랜드 틴트 래퍼(DetailCard) 위에 놓이는 밝은 패널 — 아젠다·미정과 같은 표면 규칙. */
 export const LegendDetails = styled.details`
@@ -46,6 +46,7 @@ export const LegendSummary = styled.summary`
 export const LegendScroll = styled.div`
   margin-top: ${space[3]};
   overflow-x: auto;
+  ${subtleScrollbar}
 `;
 
 export const LegendTable = styled.table`
