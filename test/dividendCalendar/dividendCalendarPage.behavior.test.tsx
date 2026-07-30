@@ -616,54 +616,80 @@ describe('배당 지급 캘린더 — 포커스 계약', () => {
   });
 });
 
-describe('배당 지급 캘린더 — 지급월 데이터가 없는 종목', () => {
+describe('배당 지급 캘린더 — 캘린더에 놓을 수 없는 종목', () => {
   /**
-   * "데이터 준비 중" = 스냅샷에 지급월이 하나도 없는 종목. 리터럴(19)을 박지 않는 이유는
-   * 이 파일 머리의 규칙과 같다 — 크론이 스냅샷을 채우는 날 화면 버그가 아닌 이유로 빨개진다.
+   * 🔴 **"아직 없음"과 "해당 없음"은 다른 부류다.**
+   *
+   * - 배당 없음 = 배당을 지급하지 않는 종목(`frequency: 'none'`). 기다려도 데이터가 생기지 않는다.
+   * - 데이터 준비 중 = 배당은 지급하는데 지급월 스냅샷이 아직 없는 종목. 갱신되면 사라진다.
+   *
+   * 리터럴(19)을 박지 않는 이유는 이 파일 머리의 규칙과 같다 — 크론이 스냅샷을 채우는 날
+   * 화면 버그가 아닌 이유로 빨개진다.
    */
+  const nonDividendTickers = Object.entries(DIVIDEND_UNIVERSE)
+    .filter(([, preset]) => preset.frequency === 'none')
+    .map(([ticker]) => ticker);
+
   const unavailableTickers = Object.keys(DIVIDEND_UNIVERSE).filter(
-    (ticker) => (MARKET_DATA.entries[ticker]?.payoutMonths ?? []).length === 0
+    (ticker) =>
+      (MARKET_DATA.entries[ticker]?.payoutMonths ?? []).length === 0 && !nonDividendTickers.includes(ticker)
   );
 
-  it('총 개수 옆에 "준비 중 N종"을 함께 적고, 그 수는 목록 배지와 같은 기준에서 나온다', async () => {
+  it('총 개수 옆에 "준비 중 N종"·"배당 없음 N종"을 나눠 적고, 그 수는 목록 배지와 같은 기준에서 나온다', async () => {
     const { user } = await renderCalendar();
     await openPicker(user);
 
     expect(screen.getByText(`${Object.keys(DIVIDEND_UNIVERSE).length}종목`)).toBeInTheDocument();
-    expect(screen.getByText(`준비 중 ${unavailableTickers.length}종`)).toBeInTheDocument();
-    // 숫자의 근거 = 화면에 실제로 "데이터 준비 중" 배지가 달린 항목 수. 둘이 어긋나면 둘 다 못 믿는다.
-    expect(screen.getAllByText('데이터 준비 중')).toHaveLength(unavailableTickers.length);
+    expect(screen.getByText(`배당 없음 ${nonDividendTickers.length}종`)).toBeInTheDocument();
+    // 숫자의 근거 = 화면에 실제로 그 배지가 달린 항목 수. 둘이 어긋나면 둘 다 못 믿는다.
+    expect(screen.getAllByText('배당 없음')).toHaveLength(nonDividendTickers.length);
+
+    /*
+     * "준비 중"은 스냅샷이 채워지면 0 이 되는 부류다(2026-07-29 갱신으로 실제 0 이 됐다).
+     * 0 일 때 토큰을 아예 렌더하지 않는 것도 계약이라, 개수에 따라 양쪽을 모두 단정한다.
+     */
+    if (unavailableTickers.length > 0) {
+      expect(screen.getByText(`준비 중 ${unavailableTickers.length}종`)).toBeInTheDocument();
+      expect(screen.getAllByText('데이터 준비 중')).toHaveLength(unavailableTickers.length);
+    } else {
+      expect(screen.queryByText(/^준비 중/)).not.toBeInTheDocument();
+      expect(screen.queryByText('데이터 준비 중')).not.toBeInTheDocument();
+    }
   });
 
-  it('검색으로 목록을 좁히면 준비 중 개수도 함께 좁혀지고, 0이면 아예 사라진다', async () => {
+  it('검색으로 목록을 좁히면 개수도 함께 좁혀지고, 0이면 아예 사라진다', async () => {
     const { user } = await renderCalendar();
     await openPicker(user);
     const search = screen.getByLabelText('종목 검색');
 
     /*
-     * ANET 은 배당을 지급하지 않아 스냅샷에 지급월이 없다 — 좁힌 목록이 준비 중 1종뿐인 상태.
-     * ⚠ 예전에는 QQQ 를 썼는데 2026-07-29 시세 갱신으로 데이터가 생겨 깨졌다. 시세 갱신으로
-     *   바뀔 수 있는 티커를 "데이터 없는 예시"로 쓰지 마라 — 무배당 종목만 안전하다.
+     * ANET 은 배당을 지급하지 않는다 — 시세 갱신으로 바뀌지 않는 유일하게 안전한 예시다.
+     * ⚠ 예전에는 QQQ 를 "데이터 없는 예시"로 썼는데 2026-07-29 시세 갱신으로 데이터가 생겨 깨졌다.
+     *   갱신으로 바뀔 수 있는 티커를 고정 예시로 쓰지 마라.
      */
     await user.type(search, 'ANET');
     expect(screen.getByText('1종목')).toBeInTheDocument();
-    expect(screen.getByText('준비 중 1종')).toBeInTheDocument();
+    expect(screen.getByText('배당 없음 1종')).toBeInTheDocument();
+    // ANET 은 준비 중이 아니다 — 이 단정이 이 미션의 핵심(사용자 신고: "ANET 은 준비 중으로 나와").
+    expect(screen.queryByText(/^준비 중/)).not.toBeInTheDocument();
 
     await user.clear(search);
     await user.type(search, 'JEPI');
     expect(screen.getByText('1종목')).toBeInTheDocument();
     expect(screen.queryByText(/^준비 중/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^배당 없음/)).not.toBeInTheDocument();
   });
 
   it('클릭도 Enter 도 선택으로 이어지지 않고 이유를 배지로 남긴다', async () => {
     const { user } = await renderCalendar();
 
     await openPicker(user);
-    // 무배당 ANET — 시세 갱신으로 바뀌지 않는 "데이터 없는 종목"의 유일한 안전한 예시.
+    // 배당을 지급하지 않는 ANET — 고를 수 없는 건 준비 중과 같지만 **사유 표기가 달라야** 한다.
     const unavailable = optionButton('ANET');
     expect(unavailable).toHaveAttribute('aria-disabled', 'true');
-    // 사유는 항목 안 "데이터 준비 중" 배지가 말한다(별도 안내문은 삭제 — 사용자 결정 2026-07-25).
-    expect(unavailable).toHaveTextContent('데이터 준비 중');
+    // 사유는 항목 안 배지가 말한다(별도 안내문은 삭제 — 사용자 결정 2026-07-25).
+    expect(unavailable).toHaveTextContent('배당 없음');
+    expect(unavailable).not.toHaveTextContent('데이터 준비 중');
 
     await user.click(unavailable);
     unavailable.focus();
@@ -675,13 +701,18 @@ describe('배당 지급 캘린더 — 지급월 데이터가 없는 종목', () 
     expect(searchParamsOf().has('tickers')).toBe(false);
   });
 
-  it('데이터 없는 종목만 선택되면 빈 달력과 함께 경고를 보여준다', async () => {
-    // 데이터 없는 종목만 고른 상태. 지금 유니버스에서 그런 종목은 무배당 ANET 하나뿐이다.
+  it('일정을 놓을 수 없는 종목만 선택되면 빈 달력과 함께 경고를 보여준다', async () => {
+    // 목록에서는 고를 수 없지만 공유 주소로는 들어올 수 있는 상태(`?tickers=`).
     await renderCalendar({ entries: ['/dividend/calendar?tickers=ANET'] });
 
+    /*
+     * 경고문은 "아직 지급월 데이터가 없습니다"라고 쓰지 않는다 — ANET 처럼 배당을 지급하지 않는
+     * 종목에는 거짓이 되기 때문이다(기다려도 데이터가 생기지 않는다). 두 부류를 모두 참으로
+     * 덮는 한 문장이면 분기 없이 정직할 수 있다.
+     */
     expect(
       screen.getByText(
-        '선택한 종목은 아직 지급월 데이터가 없습니다. 데이터가 있는 종목을 추가하면 캘린더가 채워집니다.'
+        '선택한 종목은 캘린더에 표시할 지급 일정이 없습니다. 지급 일정이 있는 종목을 추가하면 캘린더가 채워집니다.'
       )
     ).toBeInTheDocument();
     // 달력 표는 화면의 뼈대라 항상 남는다(사용자 결정 2026-07-25). 다만 표는 아무 주장도 하지 않는다 —

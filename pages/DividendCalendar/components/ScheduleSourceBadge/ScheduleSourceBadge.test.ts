@@ -25,6 +25,7 @@ describe('ScheduleSourceBadge', () => {
     // 다른 상태의 문구가 새어 나오지 않는지도 함께 본다.
     expect(screen.queryByText(copy.badge.ex)).toBeNull();
     expect(screen.queryByText(copy.badge.unavailable)).toBeNull();
+    expect(screen.queryByText(copy.badge.nonDividend)).toBeNull();
   });
 
   it('배당락 기반(ex)은 "추정"으로 표기한다', () => {
@@ -41,11 +42,23 @@ describe('ScheduleSourceBadge', () => {
     expect(screen.getByText(copy.badge.unavailable).textContent).toBe('데이터 준비 중');
   });
 
+  it('배당을 지급하지 않는 종목(nonDividend)은 "배당 없음"으로 표기한다', () => {
+    render(createElement(ScheduleSourceBadge, { source: 'nonDividend' }));
+
+    expect(screen.getByText(copy.badge.nonDividend)).toBeInTheDocument();
+    expect(screen.getByText(copy.badge.nonDividend).textContent).toBe('배당 없음');
+    // "준비 중"으로 읽히면 사용자는 오지 않을 데이터를 계속 기다린다(실제 신고).
+    expect(screen.queryByText(copy.badge.unavailable)).toBeNull();
+  });
+
   /**
-   * 두 배지는 신뢰도 등급이 다르다("추정" = 근거는 있음 / "데이터 준비 중" = 근거 없음).
-   * 문구가 하나로 합쳐지면 사용자가 두 상태를 구별할 방법이 사라진다 — 색은 보조일 뿐이다.
+   * 세 배지는 서로 다른 상태다:
+   * "추정" = 근거는 있음 / "데이터 준비 중" = **아직** 근거 없음 / "배당 없음" = 근거를 물을 수 없음.
+   * 문구가 하나로 합쳐지면 사용자가 상태를 구별할 방법이 사라진다 — 색은 보조일 뿐이다.
    */
-  it('"추정"과 "데이터 준비 중"은 서로 다른 문구다 (색이 아니라 텍스트가 상태를 가른다)', () => {
-    expect(copy.badge.ex).not.toBe(copy.badge.unavailable);
+  it('세 문구가 모두 서로 다르다 (색이 아니라 텍스트가 상태를 가른다)', () => {
+    const labels = [copy.badge.ex, copy.badge.unavailable, copy.badge.nonDividend];
+
+    expect(new Set(labels).size).toBe(labels.length);
   });
 });

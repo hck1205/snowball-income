@@ -3,6 +3,7 @@ import type { KeyboardEvent } from 'react';
 import { Search } from 'lucide-react';
 import { Chip } from '@/components/common';
 import { DIVIDEND_CALENDAR_COPY } from '../../copy';
+import { isSchedulableState } from '../../utils';
 import { ScheduleSourceBadge } from '../ScheduleSourceBadge';
 import type { TickerPickerProps } from './TickerPicker.types';
 import {
@@ -47,11 +48,18 @@ export default function TickerPicker({
   const searchRef = useRef<HTMLInputElement | null>(null);
   const selectedSet = new Set(selected);
   /**
-   * "데이터 준비 중" 판정은 목록 항목의 배지와 **같은 한 가지 기준**(`source === null`)에서 온다.
-   * 세는 대상도 지금 화면에 보이는 목록(`options`, 검색어 적용 후)이라 검색을 좁히면 두 숫자가
+   * "데이터 준비 중"·"배당 없음" 판정은 목록 항목의 배지와 **같은 기준**(`source`)에서 온다.
+   * 세는 대상도 지금 화면에 보이는 목록(`options`, 검색어 적용 후)이라 검색을 좁히면 숫자가
    * 같이 줄어든다 — 전체 유니버스를 세면 "3종목 · 준비 중 19종"처럼 읽히는 거짓말이 된다.
+   *
+   * 🔴 두 수를 **합치지 않는다**: 준비 중은 갱신되면 사라지는 임시 상태고, 배당 없음은 영구
+   * 사실이다. 합쳐 세면 배당을 지급하지 않는 종목이 "곧 들어올 데이터"로 읽힌다(실제 신고).
    */
   const unavailableCount = options.reduce((count, option) => (option.source === null ? count + 1 : count), 0);
+  const nonDividendCount = options.reduce(
+    (count, option) => (option.source === 'nonDividend' ? count + 1 : count),
+    0
+  );
 
   const handleSearchKeyDown = useCallback(
     (event: KeyboardEvent<HTMLInputElement>) => {
@@ -104,6 +112,12 @@ export default function TickerPicker({
               <CountToken>{copy.picker.unavailableCount(unavailableCount)}</CountToken>
             </>
           ) : null}
+          {nonDividendCount > 0 ? (
+            <>
+              <ResultCountDivider aria-hidden>·</ResultCountDivider>
+              <CountToken>{copy.picker.nonDividendCount(nonDividendCount)}</CountToken>
+            </>
+          ) : null}
         </ResultCount>
         {selected.length > 0 ? (
           <ClearButton type="button" onClick={onClear}>
@@ -134,7 +148,8 @@ export default function TickerPicker({
         <ResultList>
           {options.map((option) => {
             const isSelected = selectedSet.has(option.ticker);
-            const isUnavailable = option.source === null;
+            // 배당 없음도 준비 중과 마찬가지로 캘린더에 놓을 수 없다 — 사유만 다르고 선택은 불가.
+            const isUnavailable = !isSchedulableState(option.source);
 
             return (
               <ResultItem key={option.ticker}>

@@ -1,7 +1,7 @@
 import styled from '@emotion/styled';
 import { color, font, radius, space } from '@/shared/styles';
 
-type BadgeTone = 'pay' | 'ex' | 'unavailable';
+type BadgeTone = 'pay' | 'ex' | 'unavailable' | 'nonDividend';
 
 /**
  * 톤은 전부 **대비가 검증된 토큰 쌍**만 쓴다(`shared/styles/contrast.test.ts`):
@@ -23,24 +23,34 @@ type BadgeTone = 'pay' | 'ex' | 'unavailable';
 const TONE_COLOR: Record<BadgeTone, string> = {
   pay: color.success,
   ex: color.textSecondary,
-  unavailable: color.textMuted
+  unavailable: color.textMuted,
+  nonDividend: color.textMuted
 };
 
 const TONE_BACKGROUND: Record<BadgeTone, string> = {
   pay: color.successSurface,
   ex: color.surfaceSunken,
-  unavailable: color.surfaceMuted
-};
-
-/** 데이터 준비 중은 테두리도 점선 — 색을 못 보는 사람에게도 "확정 아님"이 형태로 남는다. */
-const TONE_BORDER: Record<BadgeTone, string> = {
-  pay: `1px solid ${color.successSurface}`,
-  ex: `1px solid ${color.border}`,
-  unavailable: `1px dashed ${color.border}`
+  unavailable: color.surfaceMuted,
+  nonDividend: color.surfaceMuted
 };
 
 /**
- * 실측 / 추정 / 데이터 준비 중을 한 단어로 가르는 배지.
+ * 데이터 준비 중은 테두리가 **점선** — 색을 못 보는 사람에게도 "확정 아님"이 형태로 남는다.
+ *
+ * `nonDividend`(배당 없음)는 같은 중립 색쌍에 **실선**을 쓴다: 둘 다 "캘린더에 놓을 수 없음"이라
+ * 위계는 같지만, 점선=미확정 / 실선=확정된 사실이라는 이 배지의 어법을 그대로 따른다.
+ * 새 색을 만들지 않은 이유 = 대비가 검증된 토큰 쌍(`contrast.test.ts`) 밖으로 나가지 않기 위해서다.
+ * 의미의 본체는 언제나 텍스트가 말한다("배당 없음" vs "데이터 준비 중").
+ */
+const TONE_BORDER: Record<BadgeTone, string> = {
+  pay: `1px solid ${color.successSurface}`,
+  ex: `1px solid ${color.border}`,
+  unavailable: `1px dashed ${color.border}`,
+  nonDividend: `1px solid ${color.border}`
+};
+
+/**
+ * 실측 / 추정 / 데이터 준비 중 / 배당 없음을 한 단어로 가르는 배지.
  * 색은 보조일 뿐이고 **텍스트가 정보를 전부 말한다**(색만으로 전달 금지).
  */
 export const SourceBadgeRoot = styled.span<{ $tone: BadgeTone }>`

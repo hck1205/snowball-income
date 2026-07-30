@@ -114,6 +114,9 @@ export function FrequencySelect({ label, value, helpAriaLabel, onHelpClick, disa
         <option value="quarterly">분기</option>
         <option value="semiannual">반기</option>
         <option value="annual">연</option>
+        {/* 무배당 종목(성장주)을 정직하게 담기 위한 값. 이 옵션이 없으면 프리셋에서 들어온
+            'none' 이 어느 옵션과도 맞지 않아 셀렉트가 빈 칸으로 보인다. */}
+        <option value="none">배당 없음</option>
       </Select>
     </FieldWrapper>
   );

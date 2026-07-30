@@ -423,6 +423,7 @@ describe('MonthCalendar — 이동 콜백이 없으면 버튼도 없다', () => 
     ticker,
     name: `${ticker} 한글명`,
     hasSchedule: true,
+    isNonDividend: false,
     payoutMonths: [MONTH],
     source: 'pay'
   });

@@ -1,4 +1,18 @@
-export type Frequency = 'monthly' | 'quarterly' | 'semiannual' | 'annual';
+/**
+ * 배당 지급 주기.
+ *
+ * `'none'` 은 **배당을 지급하지 않는 종목**(예: 성장주 ANET)을 뜻한다. "데이터가 아직 없다"가
+ * 아니라 "지급 자체가 없다" — 주기를 물을 수 없는 상태다. 이 값을 만나는 코드는:
+ *   - 계산: 지급월이 없다(`isPayoutMonth` 는 항상 false, 연 지급 횟수는 0).
+ *   - 표시: "분기"·"연 1회" 같은 주기 라벨 대신 **"배당 없음"** 을 쓴다.
+ *
+ * 유니온에 값을 더한 이유: `Record<Frequency, …>` 로 된 지급횟수표·라벨표가 컴파일 시점에
+ * 깨지므로, 주기를 소비하는 모든 코드가 무배당을 어떻게 다룰지 **한 번은 반드시 결정**하게 된다.
+ * (별도 불리언 플래그였다면 아무도 읽지 않아도 컴파일이 통과한다.)
+ *
+ * ⚠ 하위 호환: 유니온을 **넓히기만** 했다. 이미 저장·공유된 `'quarterly'` 등 네 값은 그대로 통과한다.
+ */
+export type Frequency = 'monthly' | 'quarterly' | 'semiannual' | 'annual' | 'none';
 export type ReinvestTiming = 'sameMonth' | 'nextMonth';
 export type DpsGrowthMode = 'annualStep' | 'monthlySmooth';
 

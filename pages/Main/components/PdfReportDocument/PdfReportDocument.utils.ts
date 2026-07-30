@@ -34,7 +34,9 @@ const FREQUENCY_LABEL: Record<Frequency, string> = {
   monthly: '월',
   quarterly: '분기',
   semiannual: '반기',
-  annual: '연'
+  annual: '연',
+  /** 무배당. 주기 목록에 "월·분기" 처럼 끼어 읽히므로 명사구로 쓴다. */
+  none: '배당 없음'
 };
 
 export const frequencyLabel = (frequency: Frequency): string => FREQUENCY_LABEL[frequency] ?? String(frequency);

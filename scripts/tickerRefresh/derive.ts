@@ -148,11 +148,16 @@ const countByYear = (payments: readonly { time: number; amount: number }[]): Map
   return byYear;
 };
 
+/**
+ * `none` is 0, but it is unreachable here: the only caller reads this with a frequency from
+ * `inferFrequency`, which returns `null` (never `'none'`) when there is no payment history.
+ */
 const EXPECTED_PAYMENTS_PER_YEAR: Record<Frequency, number> = {
   monthly: 12,
   quarterly: 4,
   semiannual: 2,
-  annual: 1
+  annual: 1,
+  none: 0
 };
 
 /**
@@ -199,12 +204,20 @@ export const computeDividendCagr = (
 /** How many years of history the payout-month inference looks at. */
 const PAYOUT_MONTH_YEARS = 3;
 
-/** Payments expected per year for each frequency — the number of distinct months to keep. */
+/**
+ * Payments expected per year for each frequency — the number of distinct months to keep.
+ *
+ * `none` is 0, and `inferPayoutMonths` refuses the case outright rather than letting the cap do the
+ * work: a cap of 0 would return an **empty array**, which callers read as "inferred: pays in no
+ * month" and would write over a previously known schedule. `null` ("could not infer") is the honest
+ * answer, and callers already keep the previous value for it.
+ */
 const PAYMENTS_PER_YEAR: Record<Frequency, number> = {
   monthly: 12,
   quarterly: 4,
   semiannual: 2,
-  annual: 1
+  annual: 1,
+  none: 0
 };
 
 /**
@@ -233,6 +246,11 @@ export const inferPayoutMonths = (
 ): number[] | null => {
   const payments = sanitize(dividends);
   if (payments.length === 0) return null;
+
+  // A ticker that pays nothing has no payout months to infer — and no empty array to write either
+  // (see `PAYMENTS_PER_YEAR`). Reaching here with payments in hand means the two disagree, so the
+  // months are not ours to conclude.
+  if (frequency === 'none') return null;
 
   /*
    * Monthly is every month **by definition** — counting would only introduce error.

@@ -84,11 +84,29 @@ const buildScenario = (overrides: Partial<PersistedScenarioState> = {}): Persist
 });
 
 describe('encodeFrequency / decodeFrequency', () => {
-  it('4가지 지급 주기가 왕복한다', () => {
-    const frequencies: Frequency[] = ['monthly', 'quarterly', 'semiannual', 'annual'];
+  it('5가지 지급 주기가 왕복한다', () => {
+    const frequencies: Frequency[] = ['monthly', 'quarterly', 'semiannual', 'annual', 'none'];
     frequencies.forEach((frequency) => {
       expect(decodeFrequency(encodeFrequency(frequency))).toBe(frequency);
     });
+  });
+
+  /**
+   * 🔴 하위 호환의 본체. 이미 발행된 공유 링크에 0~3 이 박혀 있으므로 **번호를 재배치하면
+   * 남의 링크가 다른 주기로 열린다.** `none` 은 뒤에 4 로 덧붙였다.
+   */
+  it('코드 0~3 의 의미가 고정돼 있고, none 은 뒤에 붙은 4 다', () => {
+    expect(encodeFrequency('monthly')).toBe(0);
+    expect(encodeFrequency('quarterly')).toBe(1);
+    expect(encodeFrequency('semiannual')).toBe(2);
+    expect(encodeFrequency('annual')).toBe(3);
+    expect(encodeFrequency('none')).toBe(4);
+
+    expect(decodeFrequency(0)).toBe('monthly');
+    expect(decodeFrequency(1)).toBe('quarterly');
+    expect(decodeFrequency(2)).toBe('semiannual');
+    expect(decodeFrequency(3)).toBe('annual');
+    expect(decodeFrequency(4)).toBe('none');
   });
 
   it('알 수 없는 코드는 annual로 폴백한다', () => {

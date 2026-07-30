@@ -1,7 +1,16 @@
 import { z } from 'zod';
 
-/** The four dividend frequencies the app understands. Mirrors `Frequency` in `@/shared/types`. */
-export const FREQUENCY_VALUES = ['monthly', 'quarterly', 'semiannual', 'annual'] as const;
+/**
+ * The dividend frequencies the app understands. Mirrors `Frequency` in `@/shared/types`.
+ *
+ * `'none'` (pays no dividend) is accepted so the type and the schema cannot drift, but the daily
+ * refresh never *writes* it: `inferFrequency` returns `null` on an empty payment history and the
+ * pipeline keeps the previous value rather than concluding "this ticker stopped paying" from one
+ * failed fetch. A ticker with no dividends is instead recognised downstream by its `dividendYield`
+ * of 0 (see `buildDividendUniverse`) and, once the pay-date pipeline reaches it, by
+ * `payoutMonthsSource: 'none'`.
+ */
+export const FREQUENCY_VALUES = ['monthly', 'quarterly', 'semiannual', 'annual', 'none'] as const;
 
 /** Plausible bounds for automatically refreshed values. Anything outside is treated as bad data. */
 export const MARKET_DATA_BOUNDS = {

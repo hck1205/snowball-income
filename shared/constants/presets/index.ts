@@ -84,10 +84,37 @@ const withCoherentDividendGrowth = <
 };
 
 /**
+ * Forces `frequency: 'none'` on every ticker whose (possibly refreshed) `dividendYield` is 0.
+ *
+ * Why this is a derivation and not a stored fact: a payout *cadence* is meaningless without a
+ * payout. Storing both "yield 0" and "pays quarterly" lets the two disagree, and they did — ANET
+ * sat in the snapshot as `dividendYield: 0, frequency: 'quarterly'`, which the dividend calendar
+ * then read as "schedule data still missing" instead of "there is nothing to schedule".
+ *
+ * The snapshot keeps its stale cadence on purpose: the refresh pipeline's `inferFrequency` returns
+ * `null` for an empty payment history and the pipeline deliberately keeps the previous value rather
+ * than concluding "stopped paying" from one failed fetch. So the *yield* — an observed fact the
+ * pipeline does write — is the honest signal, and this step turns it into the cadence.
+ *
+ * Self-healing: the day the yield comes back non-zero, the snapshot's cadence flows through again.
+ */
+const withCoherentPayoutFrequency = <T extends Record<string, MarketDataEntry>>(universe: T): T => {
+  const coherent = {} as T;
+
+  for (const ticker of Object.keys(universe) as (keyof T)[]) {
+    const entry = universe[ticker];
+    coherent[ticker] = (entry.dividendYield === 0 ? { ...entry, frequency: 'none' as const } : entry) as T[keyof T];
+  }
+
+  return coherent;
+};
+
+/**
  * Composes the universe the app runs on: **overlay first, derive second.**
  *
  * 1. `applyMarketData` overwrites the observable facts (price / yield / frequency).
- * 2. `withCoherentDividendGrowth` then re-derives `dividendGrowth` from the *refreshed* yield.
+ * 2. `withCoherentPayoutFrequency` collapses a 0% yield to `frequency: 'none'` (no payout, no cadence).
+ * 3. `withCoherentDividendGrowth` then re-derives `dividendGrowth` from the *refreshed* yield.
  *
  * Doing it the other way round would leave `dividendGrowth` derived from the stale preset yield, so a
  * refresh that moved `dividendYield` would silently break `dy + dg === etr` — the whole point of the
@@ -100,7 +127,7 @@ export const buildDividendUniverse = <
   curated: T,
   snapshot: MarketDataSnapshot
 ): WithDerivedDividendGrowth<MarketDataOverlaid<T>> =>
-  withCoherentDividendGrowth(applyMarketData(curated, snapshot));
+  withCoherentDividendGrowth(withCoherentPayoutFrequency(applyMarketData(curated, snapshot)));
 
 /**
  * The universe the app actually uses: curated presets with the latest auto-refreshed market data

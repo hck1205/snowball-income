@@ -1,4 +1,4 @@
-import { buildAgendaDays, buildMonthViewModel, filterCalendarUniverse } from '../utils';
+import { buildAgendaDays, buildMonthViewModel, filterCalendarUniverse, isSchedulableState } from '../utils';
 import type { CalendarTickerEntry, ExpectedPayoutDayResolver } from '../utils';
 import { DIVIDEND_CALENDAR_COPY } from '../copy';
 import type {
@@ -21,18 +21,19 @@ export const CALENDAR_QUICK_PICK_TICKERS: string[] = ['JEPI', 'KO', 'ABBV', 'SCH
  * 로직 레이어(`../utils`)의 엔트리를 뷰 옵션으로 옮기는 **어댑터**.
  *
  * `source`는 로직 레이어가 이미 접어 둔 값을 그대로 쓴다 — 여기서 `?? 'pay'` 같은 보정을 하면
- * 검증되지 않은 값을 "실측"으로 올려 부르게 된다.
+ * 검증되지 않은 값을 "실측"으로 올려 부르게 된다. 일정이 없는 종목은 그 **사유**까지 옮긴다:
+ * 배당을 지급하지 않으면 `'nonDividend'`, 아직 갱신되지 않았으면 `null`.
  */
 export const toCalendarTickerOption = (entry: CalendarTickerEntry): CalendarTickerOption => ({
   ticker: entry.ticker,
   koreanName: entry.name,
   // 캐시된 공유 배열이라 복사해서 넘긴다(호출부의 정렬·역순이 원본을 오염시키지 않게).
   months: entry.payoutMonths ? [...entry.payoutMonths] : [],
-  source: entry.hasSchedule ? (entry.source ?? 'ex') : null
+  source: entry.hasSchedule ? (entry.source ?? 'ex') : entry.isNonDividend ? 'nonDividend' : null
 });
 
 const toLegendRow = (option: CalendarTickerOption): ScheduleLegendRow | null =>
-  option.source === null ? null : { ...option, source: option.source };
+  isSchedulableState(option.source) ? { ...option, source: option.source } : null;
 
 export type CalendarViewModelInput = {
   universe: CalendarTickerEntry[];
@@ -85,6 +86,8 @@ export const buildDividendCalendarViewModel = ({
     filtered,
     selected,
     selectedWithData: legendRows.length,
+    // "지급 이력을 확보하는 대로 추가됩니다" 안내가 붙는 목록이라, 그 말이 참인 종목만 담는다 —
+    // 배당을 지급하지 않는 종목은 기다린다고 데이터가 생기지 않는다.
     unavailable: options.filter((option) => option.source === null),
     legendRows,
     asOf,
@@ -99,7 +102,7 @@ export const selectQuickPickOptions = (options: CalendarTickerOption[]): Calenda
   const byTicker = new Map(options.map((option) => [option.ticker, option]));
 
   return CALENDAR_QUICK_PICK_TICKERS.map((ticker) => byTicker.get(ticker)).filter(
-    (option): option is CalendarTickerOption => option !== undefined && option.source !== null
+    (option): option is CalendarTickerOption => option !== undefined && isSchedulableState(option.source)
   );
 };
 

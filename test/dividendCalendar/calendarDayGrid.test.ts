@@ -26,15 +26,17 @@ const entry = (
   ticker,
   name: `${ticker} 한글명`,
   hasSchedule: true,
+  isNonDividend: false,
   payoutMonths,
   source
 });
 
-/** 지급월 데이터 자체가 없는 종목(19종 부류). */
+/** 지급월 데이터가 아직 없는 종목("데이터 준비 중" 부류 — 배당 없음과는 다르다). */
 const emptyEntry = (ticker: string): CalendarTickerEntry => ({
   ticker,
   name: `${ticker} 한글명`,
-  hasSchedule: false
+  hasSchedule: false,
+  isNonDividend: false
 });
 
 describe('월 이동 · 날짜 포맷', () => {

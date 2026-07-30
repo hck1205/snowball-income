@@ -1,4 +1,4 @@
-import type { AgendaDay, CalendarScheduleSource, MonthViewModel } from '../utils';
+import type { AgendaDay, CalendarScheduleSource, CalendarScheduleState, MonthViewModel } from '../utils';
 
 /** 저장된 선택을 불러오는 중인지. 불러오기 실패도 `ready`(빈 선택)로 수렴한다 — 화면을 막지 않는다. */
 export type CalendarLoadStatus = 'loading' | 'ready';
@@ -11,14 +11,16 @@ export type CalendarDetailTab = 'agenda' | 'undated';
 
 /**
  * 검색 목록의 한 줄. **지급월 데이터가 없는 종목도 목록에 남긴다** — 조용히 빼면 "왜 없지?"가 된다.
- * `source: null` 이 곧 "데이터 준비 중"(선택 불가)이다.
+ *
+ * 선택 불가는 두 가지고, 둘은 **다른 말을 해야 한다**:
+ * `'nonDividend'` = 배당을 지급하지 않는 종목(해당 없음), `null` = 데이터 준비 중(아직 모름).
  */
 export type CalendarTickerOption = {
   ticker: string;
   koreanName: string;
   /** 1-12 오름차순. 데이터가 없으면 빈 배열. */
   months: number[];
-  source: CalendarScheduleSource | null;
+  source: CalendarScheduleState;
 };
 
 /** 종목별 12개월 점 표의 한 행. 월간 달력이 답하지 못하는 "연간 리듬"을 저비용으로 흡수한다. */
