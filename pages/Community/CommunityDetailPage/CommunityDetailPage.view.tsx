@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
@@ -16,7 +16,7 @@ import {
 } from '@/components/community';
 import { RichTextContent } from '@/components/community/RichTextContent';
 import { CommunityTopBar, TopBarActions } from '@/pages/Community/components';
-import { CommentSection, ScenarioPreview } from './components';
+import { CommentSection, ScenarioPreview, ScrollTopButton } from './components';
 import type { CommunityDetailViewProps } from './CommunityDetailPage.types';
 import {
   Article,
@@ -60,6 +60,8 @@ export default function CommunityDetailView({ viewModel }: CommunityDetailViewPr
   } = viewModel;
   const navigate = useNavigate();
   const [deleteOpen, setDeleteOpen] = useState(false);
+  /* "맨 위로" 이후 포커스가 앉을 자리. 제목이라 스크린리더가 글 제목을 다시 읽어 준다. */
+  const titleRef = useRef<HTMLHeadingElement>(null);
   const toastRoot = typeof document !== 'undefined' ? document.body : null;
 
   if (detail.status === 'loading') {
@@ -139,7 +141,14 @@ export default function CommunityDetailView({ viewModel }: CommunityDetailViewPr
       <Article aria-label={d.mainLabel}>
           <PostCard>
             <DetailHeader>
-              <Title>{post.title}</Title>
+              {/*
+               * `tabIndex={-1}` 은 "맨 위로" 버튼이 포커스를 넘길 자리를 만들기 위한 것이다(탭 순서
+               * 에는 들어가지 않는다). 전역 포커스 링은 `[tabindex='-1']` 을 일부러 제외하므로
+               * 클릭으로 제목을 눌러도 테두리가 생기지 않는다.
+               */}
+              <Title ref={titleRef} tabIndex={-1}>
+                {post.title}
+              </Title>
               <MetaRow>
                 <Avatar displayName={authorName} avatarUrl={post.author?.avatar_url} size="sm" />
                 <b>{authorName}</b>
@@ -228,6 +237,13 @@ export default function CommunityDetailView({ viewModel }: CommunityDetailViewPr
             )
           : null}
       </Article>
+
+      {/*
+       * 본문·댓글을 다 내려간 뒤 위로 돌아가는 길. 임계(뷰포트 1개분) 아래에서는 렌더되지 않는다.
+       * `Article` 밖에 두는 이유: fixed 요소는 조상이 transform/containment 를 얻는 순간 그 안에
+       * 갇힌다 — 본문 카드 바깥, 페이지 스택 바로 아래가 가장 안전한 자리다.
+       */}
+      <ScrollTopButton focusRef={titleRef} />
     </DetailShell>
   );
 }
