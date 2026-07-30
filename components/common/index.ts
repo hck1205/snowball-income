@@ -85,7 +85,7 @@ export {
 export type { ShareChannel, ShareChannelId, ShareDialogProps } from './ShareDialog';
 
 export { default as SideDrawer } from './SideDrawer';
-export type { SideDrawerProps, SideDrawerSide } from './SideDrawer';
+export type { SideDrawerBodyLayout, SideDrawerDimScope, SideDrawerProps, SideDrawerSide } from './SideDrawer';
 
 export { default as StatTile, toProgressPercent } from './StatTile';
 export type { StatEmphasis, StatTileProps, StatTone } from './StatTile';

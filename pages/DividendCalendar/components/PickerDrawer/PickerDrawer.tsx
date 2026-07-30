@@ -1,82 +1,37 @@
-import { useEffect, useId, useRef } from 'react';
-import { X } from 'lucide-react';
-import { useDrawerBackClose } from '@/shared/hooks';
+import { SideDrawer } from '@/components/common';
 import type { PickerDrawerProps } from './PickerDrawer.types';
-import {
-  DrawerBackdrop,
-  DrawerBody,
-  DrawerCloseButton,
-  DrawerHead,
-  DrawerPanel,
-  DrawerTitle
-} from './PickerDrawer.styled';
 
 /**
- * 종목 선택 드로어.
+ * 종목 선택 드로어 — 공용 `SideDrawer` 에 **피커 조합**만 얹은 얇은 래퍼다
+ * (`pages/Main/components/SettingsDrawer` 와 같은 패턴).
  *
- * 패널은 **항상 마운트**돼 있고 열림 여부는 CSS(transform + visibility)가 정한다 — 언마운트하면
- * 검색어·스크롤 위치가 매번 초기화되고 슬라이드 전환도 못 준다. 대신 닫혀 있으면 `visibility: hidden`
- * 이라 탭 이동·스크린리더가 닿지 않는다(화면 밖으로 밀기만 하는 구현의 흔한 버그).
+ * 🔴 2026-07-30 통합 전까지 이 파일과 포트폴리오의 `HoldingPickerDrawer` 는 껍데기를 각자 복제하고
+ *   있었고(원본-복제 관계였다), 둘 다 `useOverlayEscape` 를 빠뜨려 **중첩 Escape 스택 밖**에 있었다.
+ *   각자 잘 동작하는 결손이라 렌더 테스트로 안 잡힌다 — 이 화면에 위층 오버레이를 올리는 날
+ *   "Escape 한 번에 두 겹이 닫힌다"로 나타난다. **껍데기를 다시 복제하지 마라.**
  *
- * Escape 는 **이미 처리된 이벤트를 가로채지 않는다**(`defaultPrevented` 확인) — 안쪽 검색 입력의
- * "Escape = 검색어만 지우기"가 먼저고, 지울 게 없을 때만 드로어가 닫힌다.
- *
- * 이 드로어는 폭과 무관하게 항상 오버레이라(`PickerDrawer.styled`에 미디어 분기가 없다)
- * 뒤로가기 닫기도 항상 켠다.
+ * 조합의 근거:
+ * - `side="right"` · `width="min(420px, 92vw)"` — 목록 피커는 오른쪽에서 나오고 설정 드로어(400px)보다 넓다.
+ * - `dimBelow="always"` — 폭과 무관하게 오버레이(딤+스크롤락 항상)다. 데스크톱에서 딤·락을 끄는 것은
+ *   설정 드로어만의 정책이다(확정 결정 2026-07-28) — 여기는 고르고 돌아오는 한 갈래 동선이다.
+ * - `bodyLayout="fill"` — 검색·칩은 제 높이만 쓰고 **결과 목록이 남은 높이를 전부** 채운다
+ *   (`TickerPicker` 의 `PickerRoot` 가 `flex: 1 1 auto`). 짧은 max-height + 안쪽 스크롤이면 드로어
+ *   아래가 텅 빈다.
  */
-export default function PickerDrawer({
-  id,
-  isOpen,
-  title,
-  closeLabel,
-  onClose,
-  children
-}: PickerDrawerProps) {
-  const titleId = useId();
-  const closeRef = useRef<HTMLButtonElement | null>(null);
-  const restoreRef = useRef<HTMLElement | null>(null);
-
-  // 뒤로가기 = 드로어 닫기(페이지 이탈 아님). URL은 그대로다.
-  useDrawerBackClose(isOpen, onClose);
-
-  useEffect(() => {
-    if (!isOpen) return undefined;
-
-    restoreRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    closeRef.current?.focus();
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape' || event.defaultPrevented) return;
-      onClose();
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      document.removeEventListener('keydown', handleKeyDown);
-
-      // 닫힌 뒤 포커스가 body 로 떨어지면 키보드 사용자는 위치를 잃는다 — 열었던 버튼으로 돌린다.
-      const restore = restoreRef.current;
-      if (restore && restore.isConnected) restore.focus();
-    };
-  }, [isOpen, onClose]);
-
+export default function PickerDrawer({ id, isOpen, title, closeLabel, onClose, children }: PickerDrawerProps) {
   return (
-    <>
-      <DrawerBackdrop $open={isOpen} aria-hidden onClick={onClose} />
-      <DrawerPanel id={id} $open={isOpen} aria-labelledby={titleId}>
-        <DrawerHead>
-          <DrawerTitle id={titleId}>{title}</DrawerTitle>
-          <DrawerCloseButton type="button" ref={closeRef} aria-label={closeLabel} onClick={onClose}>
-            <X size={16} strokeWidth={1.8} aria-hidden focusable={false} />
-          </DrawerCloseButton>
-        </DrawerHead>
-        <DrawerBody>{children}</DrawerBody>
-      </DrawerPanel>
-    </>
+    <SideDrawer
+      id={id}
+      side="right"
+      isOpen={isOpen}
+      title={title}
+      closeLabel={closeLabel}
+      onClose={onClose}
+      width="min(420px, 92vw)"
+      dimBelow="always"
+      bodyLayout="fill"
+    >
+      {children}
+    </SideDrawer>
   );
 }

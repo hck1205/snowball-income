@@ -1,7 +1,7 @@
+import { css } from '@emotion/react';
 import styled from '@emotion/styled';
-import { color, font, media, motion, radius, shadow, space, zIndex } from '@/shared/styles';
-import type { BreakpointKey } from '@/shared/styles';
-import type { SideDrawerSide } from './SideDrawer.types';
+import { color, font, media, motion, radius, shadow, space, subtleScrollbar, zIndex } from '@/shared/styles';
+import type { SideDrawerBodyLayout, SideDrawerDimScope, SideDrawerSide } from './SideDrawer.types';
 
 /**
  * 오버레이 사이드 드로어의 표면. 백드롭은 **두 겹으로 쪼개져 있다** — 의도된 분리다:
@@ -13,7 +13,19 @@ import type { SideDrawerSide } from './SideDrawer.types';
  * `pointer-events: none` **한 줄**만 넣어 비모달 사이드 패널로 바꿀 수 있다(딤 동작은 무영향).
  * 두 역할을 한 요소에 합치면 그 전환이 딤까지 함께 꺼버린다.
  */
-export const SideDrawerDim = styled.div<{ $open: boolean; $dimBelow: BreakpointKey }>`
+/**
+ * 딤이 실제로 보이는 상태. `dimBelow` 가 브레이크포인트면 미디어 블록 안에, `'always'` 면
+ * 바깥에 그대로 얹는다 — **같은 선언 한 벌**을 두 자리에 쓰기 위해 뽑았다(두 벌로 나누면
+ * 한쪽만 고쳐진다).
+ */
+const dimSurface = (open: boolean) => css`
+  background: ${color.overlay};
+  backdrop-filter: blur(2px);
+  opacity: ${open ? 1 : 0};
+  visibility: ${open ? 'visible' : 'hidden'};
+`;
+
+export const SideDrawerDim = styled.div<{ $open: boolean; $dimBelow: SideDrawerDimScope }>`
   position: fixed;
   inset: 0;
   z-index: ${zIndex.drawerBackdrop};
@@ -26,12 +38,14 @@ export const SideDrawerDim = styled.div<{ $open: boolean; $dimBelow: BreakpointK
     opacity ${motion.base} ${motion.ease},
     visibility ${motion.base} ${motion.ease};
 
-  ${({ $dimBelow }) => media.down($dimBelow)} {
-    background: ${color.overlay};
-    backdrop-filter: blur(2px);
-    opacity: ${({ $open }) => ($open ? 1 : 0)};
-    visibility: ${({ $open }) => ($open ? 'visible' : 'hidden')};
-  }
+  ${({ $open, $dimBelow }) =>
+    $dimBelow === 'always'
+      ? dimSurface($open)
+      : css`
+          ${media.down($dimBelow)} {
+            ${dimSurface($open)}
+          }
+        `}
 
   @media (prefers-reduced-motion: reduce) {
     transition: none;
@@ -157,9 +171,15 @@ export const SideDrawerCloseButton = styled.button`
 `;
 
 /**
- * 본문(스크롤 컨테이너). **드로어 안 폼(`ConfigInputGrid`)이 기대는 컨테이너**다 —
- * 여기서 `container-type`을 빼면 드로어 폭에서 설정 입력이 1열로 접히지 않는다.
- * (앱 전체의 유일한 컨테이너는 아니다: `DataTable`·`PortfolioAllocation`·티커 상세/허브도 각자 만든다.)
+ * 본문(스크롤 컨테이너). 배치는 `$layout` 이 정한다:
+ *
+ * - `'scroll'`: **드로어 안 폼(`ConfigInputGrid`)이 기대는 컨테이너**다 — 여기서 `container-type`을
+ *   빼면 드로어 폭에서 설정 입력이 1열로 접히지 않는다. (앱 전체의 유일한 컨테이너는 아니다:
+ *   `DataTable`·`PortfolioAllocation`·티커 상세/허브도 각자 만든다.)
+ * - `'fill'`: 목록 피커용 flex 컬럼. 검색행은 제 높이를 쓰고 `flex: 1 1 auto` 자식(`PickerRoot`)이
+ *   남은 높이를 전부 먹어 **그 안에서만** 스크롤한다 — grid 로 두면 목록이 자연 높이로 자라
+ *   검색행이 위로 밀려 사라진다. 여기에는 `container-type` 을 **일부러 켜지 않는다**(피커 안에
+ *   컨테이너 쿼리 소비자가 없고, 아래 ⚠ 위험만 남는다).
  *
  * ⚠ `container-type: inline-size` 는 레이아웃 컨테인먼트를 함께 적용해 **`position: fixed` 자손의
  *   컨테이닝 블록을 가로챈다**(뷰포트가 아니라 이 박스 기준으로 배치된다). 그래서 드로어 안에서
@@ -168,15 +188,27 @@ export const SideDrawerCloseButton = styled.button`
  *   (`contain: none` 으로는 못 끈다 — `contain` 과 `container-type` 은 별개 속성이다.)
  *
  * `scrollbar-gutter` 는 쓰지 않는다 — 비대칭 여백이 좁은 폭에서 더 나쁘다.
+ * (모양만 `subtleScrollbar` 로 통일한다 — 거터와는 별개 결정이다.)
  */
-export const SideDrawerBody = styled.div`
+export const SideDrawerBody = styled.div<{ $layout: SideDrawerBodyLayout }>`
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: contain;
-  display: grid;
+  ${subtleScrollbar}
+  min-height: 0;
   gap: ${space[4]};
-  align-content: start;
   padding: ${space[4]};
   padding-bottom: calc(${space[5]} + env(safe-area-inset-bottom, 0px));
-  container-type: inline-size;
+
+  ${({ $layout }) =>
+    $layout === 'fill'
+      ? css`
+          display: flex;
+          flex-direction: column;
+        `
+      : css`
+          display: grid;
+          align-content: start;
+          container-type: inline-size;
+        `}
 `;
