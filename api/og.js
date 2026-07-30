@@ -6493,7 +6493,7 @@ var coerce = {
 var NEVER = INVALID;
 
 // shared/constants/marketData/marketData.schema.ts
-var FREQUENCY_VALUES = ["monthly", "quarterly", "semiannual", "annual"];
+var FREQUENCY_VALUES = ["monthly", "quarterly", "semiannual", "annual", "none"];
 var MARKET_DATA_BOUNDS = {
   dividendYield: { min: 0, max: 30 },
   /** Bounds for the reference-only observed dividend CAGR. Wide, because it never reaches the engine. */
@@ -6677,7 +6677,7 @@ var dpsAtMonth = ({
 };
 
 // shared/lib/snowball/SnowballForm.ts
-var frequencySchema = external_exports.enum(["monthly", "quarterly", "semiannual", "annual"]);
+var frequencySchema = external_exports.enum(["monthly", "quarterly", "semiannual", "annual", "none"]);
 var reinvestTimingSchema = external_exports.enum(["sameMonth", "nextMonth"]);
 var dpsGrowthModeSchema = external_exports.enum(["annualStep", "monthlySmooth"]);
 var dateInputSchema = external_exports.string().regex(/^\d{4}-\d{2}-\d{2}$/, "\uD22C\uC790 \uC2DC\uC791 \uB0A0\uC9DC\uB97C \uC120\uD0DD\uD558\uC138\uC694.").refine(isCalendarDateInput, "\uC874\uC7AC\uD558\uC9C0 \uC54A\uB294 \uB0A0\uC9DC\uC785\uB2C8\uB2E4.");
@@ -6775,13 +6775,22 @@ var paymentsPerYearMap = {
   monthly: 12,
   quarterly: 4,
   semiannual: 2,
-  annual: 1
+  annual: 1,
+  none: 0
 };
 var isPayoutMonth = (frequency, simulationMonth) => {
-  if (frequency === "monthly") return true;
-  if (frequency === "quarterly") return simulationMonth % 3 === 0;
-  if (frequency === "semiannual") return simulationMonth === 6 || simulationMonth === 12;
-  return simulationMonth === 12;
+  switch (frequency) {
+    case "monthly":
+      return true;
+    case "quarterly":
+      return simulationMonth % 3 === 0;
+    case "semiannual":
+      return simulationMonth === 6 || simulationMonth === 12;
+    case "annual":
+      return simulationMonth === 12;
+    case "none":
+      return false;
+  }
 };
 var computeMonthlyPayout = ({
   shares,
@@ -7669,6 +7678,15 @@ var AI_INFRA_ETFS_AND_STOCKS = {
     expectedTotalReturn: 13,
     frequency: "quarterly"
   },
+  /**
+   * 배당을 지급하지 않는 성장주. 이 프리셋에 있는 이유는 배당이 아니라 자본 성장이다
+   * (`expectedTotalReturn` 14% 가 전부 주가 성장으로 실현된다 — 정합 모델에서
+   * `dividendGrowth` 는 곧 주가 성장률이므로 이 값은 0 이 아니라 14 가 맞다).
+   *
+   * `frequency: 'none'` = "지급 주기 데이터가 없다"가 아니라 **"지급이 없다"**.
+   * 구 값 `'quarterly'` 는 계산상 무해했지만(0 에 무엇을 곱해도 0), 화면이 이 종목을
+   * "데이터 준비 중"으로 분류하게 만들었다.
+   */
   ANET: {
     ticker: "ANET",
     name: "Arista Networks",
@@ -7676,7 +7694,7 @@ var AI_INFRA_ETFS_AND_STOCKS = {
     dividendYield: 0,
     dividendGrowth: 14,
     expectedTotalReturn: 14,
-    frequency: "quarterly"
+    frequency: "none"
   },
   NVDA: {
     ticker: "NVDA",
@@ -7758,7 +7776,15 @@ var withCoherentDividendGrowth = (universe) => {
   }
   return coherent;
 };
-var buildDividendUniverse = (curated, snapshot) => withCoherentDividendGrowth(applyMarketData(curated, snapshot));
+var withCoherentPayoutFrequency = (universe) => {
+  const coherent = {};
+  for (const ticker of Object.keys(universe)) {
+    const entry = universe[ticker];
+    coherent[ticker] = entry.dividendYield === 0 ? { ...entry, frequency: "none" } : entry;
+  }
+  return coherent;
+};
+var buildDividendUniverse = (curated, snapshot) => withCoherentDividendGrowth(withCoherentPayoutFrequency(applyMarketData(curated, snapshot)));
 var DIVIDEND_UNIVERSE = buildDividendUniverse(CURATED_DIVIDEND_UNIVERSE, MARKET_DATA);
 
 // shared/styles/primitives.ts
@@ -8898,6 +8924,7 @@ var SUNSET_DARK = {
 };
 
 // shared/styles/presets/velog.ts
+var { brand: brand4 } = palette;
 var VELOG_CHART_SERIES = [
   "#0ca678",
   "#c26d22",
@@ -8932,10 +8959,11 @@ var VELOG_LIGHT = {
   "brand-border": "#96f2d7",
   "brand-text": "#087f5b",
   "on-brand": "#ffffff",
-  accent: "#099268",
-  "accent-text": "#087f5b",
-  "accent-subtle": "#e6fcf5",
-  "accent-border": "#96f2d7",
+  /* 액센트 = 글레이셔 애저 램프 그대로. 흰 서피스 위 accent 5.63:1 / accent-text 7.42:1(실측). */
+  accent: brand4[600],
+  "accent-text": brand4[700],
+  "accent-subtle": brand4[50],
+  "accent-border": brand4[200],
   "accent-alt": "#26a14f",
   "accent-alt-text": "#13762a",
   "accent-alt-subtle": "#e7f5ec",
@@ -8994,10 +9022,18 @@ var VELOG_DARK = {
   "brand-text": "#20c997",
   /** 어두운 라벨 — 밝은 틸(#20c997) 위 #121212 = 8.79:1. 라벨 색을 흰색으로 하드코딩하면 여기서 깨진다. */
   "on-brand": "#121212",
-  accent: "#20c997",
-  "accent-text": "#20c997",
-  "accent-subtle": "#12352a",
-  "accent-border": "#2f7d5f",
+  /*
+   * 액센트 = 글레이셔 애저(라이트와 같은 램프의 다크 슬롯). brand[300]은 밝기가 velog 다크 brand
+   * (#20c997, surface 대비 7.82)와 맞물린다(8.68) — 더 어두운 brand[400]을 쓰면 민트 옆에서 탁해진다.
+   * subtle/border 2값만 velog 로컬 파생이다(램프에 다크 서피스용 틴트가 없다). 파생 규칙은
+   * **명도 이식**: 각각 brand-subtle/brand-border가 이 프리셋에서 내는 대비를 그대로 맞춘다
+   * (text on subtle 11.37 vs brand-subtle 11.33 / border on surface 3.31 vs brand-border 3.34).
+   * HSL 명도를 그대로 복사하면 파랑이 초록보다 어둡게 보여 액센트 칩만 죽는다.
+   */
+  accent: brand4[300],
+  "accent-text": brand4[300],
+  "accent-subtle": "#123243",
+  "accent-border": "#3a7690",
   "accent-alt": "#75df98",
   "accent-alt-text": "#75df98",
   "accent-alt-subtle": "#142419",
@@ -10952,12 +10988,21 @@ var headerControlsGrid = `
 // shared/styles/heroTitleRow.ts
 var heroTitleFontSize = `clamp(${font.size["2xl"]}, calc(0.9rem + 1.8vw), ${font.size["4xl"]})`;
 var sectionTitleFontSize = `clamp(${font.size.lg}, calc(0.86rem + 0.56vw), ${font.size.xl})`;
-var DISPLAY_ICON_OPTICAL_SHIFT = 0.1;
-var iconOpticalAlign = (textFontSize) => `
+var INK_ABOVE_LINE_BOX = {
+  display: 0.1,
+  sans: 0,
+  heroNumeric: -0.06,
+  dataNumeric: 0
+};
+var iconOpticalAlign = (role, textFontSize) => {
+  const shift = INK_ABOVE_LINE_BOX[role];
+  if (shift === 0) return `flex: 0 0 auto;`;
+  return `
   flex: 0 0 auto;
-  transform: translateY(calc(${textFontSize} * -${DISPLAY_ICON_OPTICAL_SHIFT}));
+  transform: translateY(calc(${textFontSize} * ${-shift}));
 `;
-var heroIconOpticalAlign = iconOpticalAlign(heroTitleFontSize);
+};
+var heroIconOpticalAlign = iconOpticalAlign("display", heroTitleFontSize);
 
 // shared/styles/scrollbar.ts
 var subtleScrollbar = `
@@ -11158,7 +11203,7 @@ var TOUR_STEPS = [
   {
     id: "open-settings",
     target: TOUR_TARGET.openSettings,
-    title: "\uC124\uC815\uC740 \uC774 \uBC84\uD2BC \uC548\uC5D0 \uC788\uC5B4\uC694",
+    title: "\uC124\uC815\uC740 \uC774 \uBC84\uD2BC \uC548\uC5D0 \uC788\uC2B5\uB2C8\uB2E4",
     body: "\uC885\uBAA9 \uCD94\uAC00\xB7\uD22C\uC790 \uC870\uAC74\xB7\uACF5\uC720\uAC00 \uBAA8\uB450 \uC774 \uBC84\uD2BC \uB4A4\uC5D0 \uC788\uC2B5\uB2C8\uB2E4. \uD22C\uC5B4\uB97C \uB9C8\uCE5C \uB4A4 \uB20C\uB7EC\uC11C \uC5F4\uC5B4\uBCF4\uC138\uC694.",
     placement: "bottom"
   },
@@ -11172,7 +11217,7 @@ var TOUR_STEPS = [
   {
     id: "portfolio-presets",
     target: TOUR_TARGET.portfolioPresets,
-    title: "\uCD94\uCC9C \uD3EC\uD2B8\uD3F4\uB9AC\uC624\uB85C \uC2DC\uC791\uD574\uB3C4 \uC88B\uC544\uC694",
+    title: "\uCD94\uCC9C \uD3EC\uD2B8\uD3F4\uB9AC\uC624\uB85C \uC2DC\uC791\uD574\uB3C4 \uC88B\uC2B5\uB2C8\uB2E4",
     body: "\uBB34\uC5C7\uBD80\uD130 \uD560\uC9C0 \uBAA8\uB974\uACA0\uB2E4\uBA74 \uCD94\uCC9C \uD3EC\uD2B8\uD3F4\uB9AC\uC624\uB97C \uD558\uB098 \uACE0\uB974\uC138\uC694. \uC885\uBAA9\uACFC \uBE44\uC911, \uD22C\uC790 \uC124\uC815\uC774 \uD55C \uBC88\uC5D0 \uCC44\uC6CC\uC9D1\uB2C8\uB2E4. \uCC44\uC6CC\uC9C4 \uAC12\uC740 \uC5B8\uC81C\uB4E0 \uD22C\uC790 \uC124\uC815\uC5D0\uC11C \uBC14\uAFC0 \uC218 \uC788\uC2B5\uB2C8\uB2E4.",
     placement: "left"
   },
@@ -11547,6 +11592,8 @@ var DEFAULT_PERSISTED_INVESTMENT_SETTINGS = {
   visibleYearlySeries: DEFAULT_VISIBLE_YEARLY_SERIES
 };
 var migrateToCoherentGrowth = (dividendYield, expectedTotalReturn) => Math.max(-100, Math.min(100, toDerivedDividendGrowthPercent(expectedTotalReturn, dividendYield)));
+var PERSISTED_FREQUENCIES = ["monthly", "quarterly", "semiannual", "annual", "none"];
+var isPersistedFrequency = (value) => typeof value === "string" && PERSISTED_FREQUENCIES.includes(value);
 var sanitizeTickerProfile = (input) => {
   if (!input || typeof input !== "object") return null;
   const parsed = input;
@@ -11562,7 +11609,7 @@ var sanitizeTickerProfile = (input) => {
   if (!Number.isFinite(initialPrice) || initialPrice <= 0) return null;
   if (!Number.isFinite(dividendYield) || dividendYield < 0) return null;
   if (!Number.isFinite(dividendGrowthRaw)) return null;
-  if (frequency !== "monthly" && frequency !== "quarterly" && frequency !== "semiannual" && frequency !== "annual") return null;
+  if (!isPersistedFrequency(frequency)) return null;
   const expectedTotalReturn = Number.isFinite(expectedTotalReturnRaw) ? expectedTotalReturnRaw : dividendYield;
   const dividendGrowth = migrateToCoherentGrowth(dividendYield, expectedTotalReturn);
   return {
@@ -11706,6 +11753,7 @@ var decodeFrequency = (value) => {
   if (value === 0) return "monthly";
   if (value === 1) return "quarterly";
   if (value === 2) return "semiannual";
+  if (value === 4) return "none";
   return "annual";
 };
 var DEFAULT_VISIBLE_YEARLY_SERIES2 = EMPTY_INVESTMENT_SETTINGS.visibleYearlySeries;

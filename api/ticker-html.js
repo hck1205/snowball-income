@@ -5429,7 +5429,7 @@ var coerce = {
 var NEVER = INVALID;
 
 // shared/constants/marketData/marketData.schema.ts
-var FREQUENCY_VALUES = ["monthly", "quarterly", "semiannual", "annual"];
+var FREQUENCY_VALUES = ["monthly", "quarterly", "semiannual", "annual", "none"];
 var MARKET_DATA_BOUNDS = {
   dividendYield: { min: 0, max: 30 },
   /** Bounds for the reference-only observed dividend CAGR. Wide, because it never reaches the engine. */
@@ -5523,7 +5523,7 @@ var roundToTwoDecimals = (value) => Math.round(value * 100) / 100;
 var toDerivedDividendGrowthPercent = (expectedTotalReturnPercent, dividendYieldPercent) => roundToTwoDecimals(expectedTotalReturnPercent - dividendYieldPercent);
 
 // shared/lib/snowball/SnowballForm.ts
-var frequencySchema = external_exports.enum(["monthly", "quarterly", "semiannual", "annual"]);
+var frequencySchema = external_exports.enum(["monthly", "quarterly", "semiannual", "annual", "none"]);
 var reinvestTimingSchema = external_exports.enum(["sameMonth", "nextMonth"]);
 var dpsGrowthModeSchema = external_exports.enum(["annualStep", "monthlySmooth"]);
 var dateInputSchema = external_exports.string().regex(/^\d{4}-\d{2}-\d{2}$/, "\uD22C\uC790 \uC2DC\uC791 \uB0A0\uC9DC\uB97C \uC120\uD0DD\uD558\uC138\uC694.").refine(isCalendarDateInput, "\uC874\uC7AC\uD558\uC9C0 \uC54A\uB294 \uB0A0\uC9DC\uC785\uB2C8\uB2E4.");
@@ -6264,6 +6264,15 @@ var AI_INFRA_ETFS_AND_STOCKS = {
     expectedTotalReturn: 13,
     frequency: "quarterly"
   },
+  /**
+   * 배당을 지급하지 않는 성장주. 이 프리셋에 있는 이유는 배당이 아니라 자본 성장이다
+   * (`expectedTotalReturn` 14% 가 전부 주가 성장으로 실현된다 — 정합 모델에서
+   * `dividendGrowth` 는 곧 주가 성장률이므로 이 값은 0 이 아니라 14 가 맞다).
+   *
+   * `frequency: 'none'` = "지급 주기 데이터가 없다"가 아니라 **"지급이 없다"**.
+   * 구 값 `'quarterly'` 는 계산상 무해했지만(0 에 무엇을 곱해도 0), 화면이 이 종목을
+   * "데이터 준비 중"으로 분류하게 만들었다.
+   */
   ANET: {
     ticker: "ANET",
     name: "Arista Networks",
@@ -6271,7 +6280,7 @@ var AI_INFRA_ETFS_AND_STOCKS = {
     dividendYield: 0,
     dividendGrowth: 14,
     expectedTotalReturn: 14,
-    frequency: "quarterly"
+    frequency: "none"
   },
   NVDA: {
     ticker: "NVDA",
@@ -6353,7 +6362,15 @@ var withCoherentDividendGrowth = (universe) => {
   }
   return coherent;
 };
-var buildDividendUniverse = (curated, snapshot) => withCoherentDividendGrowth(applyMarketData(curated, snapshot));
+var withCoherentPayoutFrequency = (universe) => {
+  const coherent = {};
+  for (const ticker of Object.keys(universe)) {
+    const entry = universe[ticker];
+    coherent[ticker] = entry.dividendYield === 0 ? { ...entry, frequency: "none" } : entry;
+  }
+  return coherent;
+};
+var buildDividendUniverse = (curated, snapshot) => withCoherentDividendGrowth(withCoherentPayoutFrequency(applyMarketData(curated, snapshot)));
 var DIVIDEND_UNIVERSE = buildDividendUniverse(CURATED_DIVIDEND_UNIVERSE, MARKET_DATA);
 var PRESET_TICKER_KOREAN_NAME_BY_TICKER = {
   VOO: "\uBC45\uAC00\uB4DC S&P 500 ETF",
@@ -6431,7 +6448,9 @@ var FREQUENCY_LABEL_KO = {
   monthly: "\uB9E4\uC6D4",
   quarterly: "\uBD84\uAE30(\uC5F0 4\uD68C)",
   semiannual: "\uBC18\uAE30(\uC5F0 2\uD68C)",
-  annual: "\uC5F0 1\uD68C"
+  annual: "\uC5F0 1\uD68C",
+  /** 배당을 지급하지 않는 종목. "연 0회" 로 쓰지 않는다 — 횟수 문제가 아니라 지급이 없다. */
+  none: "\uBC30\uB2F9 \uC5C6\uC74C"
 };
 var formatPercent = (value) => `${value.toFixed(2)}%`;
 var formatUsd = (value) => `$${value.toFixed(2)}`;
