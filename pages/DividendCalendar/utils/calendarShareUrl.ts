@@ -38,5 +38,14 @@ export const parseCalendarTickersParam = (search: string, universe: CalendarTick
   return normalizeSymbols(raw.split(',')).filter((symbol) => known.has(symbol));
 };
 
-/** 파라미터 **값**만 만든다(`SCHD,JEPI,O`). 빈 선택은 빈 문자열 — 호출자가 파라미터를 지우면 된다. */
+/**
+ * 파라미터 **값**만 만든다(`SCHD,JEPI,O`). 빈 선택은 빈 문자열 — 호출자가 파라미터를 지우면 된다.
+ *
+ * ⚠ 2026-07-30 이후 **캘린더 안에는 호출부가 없다**(선택 → 주소 동기화를 걷어냈다 —
+ * `hooks/useCalendarSelection.ts` 주석). 그래도 남기는 이유는 "언젠가 쓸지도"가 아니라
+ * 이 함수가 **파라미터 포맷의 정본**이기 때문이다: `pages/Portfolio/utils/portfolioShareUrl.ts`
+ * 가 이 포맷을 미러링해 `/dividend/calendar?tickers=…` 링크를 실제로 만들고 있고(살아 있는 생산자),
+ * 위 `parseCalendarTickersParam` 과의 왕복은 `test/dividendCalendar/calendarShareUrl.test.ts` 가
+ * 잠근다. 즉 읽기 계약의 반대편 절반이지 죽은 코드가 아니다.
+ */
 export const serializeCalendarTickersParam = (tickers: string[]): string => normalizeSymbols(tickers).join(',');

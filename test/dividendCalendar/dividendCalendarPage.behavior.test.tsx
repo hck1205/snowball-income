@@ -21,7 +21,7 @@ import { DIVIDEND_UNIVERSE } from '@/shared/constants/presets';
  * `/dividend/calendar` (v2 월간 주×일 달력) 사용자 행동 교차 검증.
  *
  * 페이지 colocated 테스트가 기본 루프를 확인한다면, 여기서는 **깨지면 사용자 자산이 상하거나
- * 화면이 거짓말을 하는 계약**을 사용자 조작으로 재현한다: 주소 동기화(replace·다른 파라미터 보존),
+ * 화면이 거짓말을 하는 계약**을 사용자 조작으로 재현한다: 주소 읽기(진입 링크 복원·1회 정리),
  * 포커스, '오늘'의 결정성(자정 경계 포함), 날짜 미정 분리, 셀 오버플로, 그리고 화면의 예상 지급일이
  * 실제 스냅샷과 같은지.
  *
@@ -47,7 +47,7 @@ import { DIVIDEND_UNIVERSE } from '@/shared/constants/presets';
  */
 const TODAY = new Date(2026, 6, 25);
 
-/** 주소·히스토리 관찰용 프로브. 화면 밖 계약(주소가 곧 공유 링크)을 눈에 보이게 만든다. */
+/** 주소·히스토리 관찰용 프로브. 화면 밖 계약(주소는 읽기 전용)을 눈에 보이게 만든다. */
 function LocationProbe() {
   const location = useLocation();
   const navigationType = useNavigationType();
@@ -535,19 +535,56 @@ describe('배당 지급 캘린더 — 셀 오버플로', () => {
   });
 });
 
-describe('배당 지급 캘린더 — 주소 동기화(공유 링크)', () => {
-  it('선택을 바꿔도 다른 쿼리 파라미터를 보존하고 히스토리를 쌓지 않는다(replace)', async () => {
+/**
+ * 🔴 2026-07-30 계약 변경 — **주소는 읽기 전용이다.**
+ *
+ * 구 계약은 "선택이 바뀌면 주소도 바뀐다(주소 복사 = 공유)"였는데 **캘린더에는 공유 버튼도
+ * 공유 안내도 없었다** — 도달 가능한 기능이 아니었고, 대가로 종목을 누를 때마다 주소가 흔들렸다.
+ * 남긴 것은 **읽기**다: 이미 밖에 나간 링크와 앱 안의 생산자(`pages/Portfolio/utils/portfolioShareUrl`)
+ * 가 계속 `/dividend/calendar?tickers=…` 를 만든다. 아래 케이스는 **읽기 유지 ↔ 쓰기 제거**의
+ * 대조군 한 짝이다 — 읽기 케이스가 없으면 "쓰지 않는다"가 "파람을 아예 안 본다"와 구분되지 않는다.
+ */
+describe('배당 지급 캘린더 — 주소(읽기 전용)', () => {
+  it('?tickers= 로 들어오면 그 선택으로 열린다 — 대문자·중복 제거한 표준형으로 읽는다', async () => {
+    await renderCalendar({ entries: ['/dividend/calendar?tickers=schd,jepi,SCHD'] });
+
+    expect(screen.getByRole('button', { name: /현재 2종 선택됨/ })).toBeInTheDocument();
+  });
+
+  it('읽고 난 tickers 파라미터는 한 번 정리하고, 남의 파라미터는 보존한다(replace — 히스토리 불변)', async () => {
+    await renderCalendar({ entries: ['/dividend/calendar?tickers=SCHD&foo=bar'] });
+
+    await waitFor(() => {
+      expect(searchParamsOf().has('tickers')).toBe(false);
+    });
+    // 캘린더가 남의 파라미터를 지우면 유입 추적이 조용히 깨진다.
+    expect(searchParamsOf().get('foo')).toBe('bar');
+    expect(screen.getByTestId('probe-nav-type')).toHaveTextContent('REPLACE');
+    // 정리했다고 화면의 선택까지 지워지면 안 된다.
+    expect(screen.getByRole('button', { name: /현재 1종 선택됨/ })).toBeInTheDocument();
+  });
+
+  it('선택을 바꿔도 주소는 그대로다', async () => {
+    const { user } = await renderCalendar({ entries: ['/dividend/calendar?foo=bar'] });
+
+    await openPicker(user);
+    await user.click(optionButton('SCHD'));
+    await user.click(optionButton('KO'));
+
+    expect(screen.getByRole('button', { name: /현재 2종 선택됨/ })).toBeInTheDocument();
+    expect(searchParamsOf().has('tickers')).toBe(false);
+    expect(searchParamsOf().get('foo')).toBe('bar');
+  });
+
+  it('선택을 비워도 주소는 그대로다', async () => {
     const { user } = await renderCalendar({ entries: ['/dividend/calendar?tickers=SCHD&foo=bar'] });
 
     await openPicker(user);
-    await user.click(optionButton('KO'));
+    await user.click(screen.getByRole('button', { name: '선택 비우기' }));
 
-    await waitFor(() => {
-      expect(searchParamsOf().get('tickers')).toBe('SCHD,KO');
-    });
-    // 캘린더가 남의 파라미터를 지우면 공유 링크·유입 추적이 조용히 깨진다.
+    expect(screen.getByRole('status')).toHaveTextContent('선택을 모두 해제했습니다.');
+    expect(searchParamsOf().has('tickers')).toBe(false);
     expect(searchParamsOf().get('foo')).toBe('bar');
-    expect(screen.getByTestId('probe-nav-type')).toHaveTextContent('REPLACE');
   });
 
   it('선택 후 뒤로 가면 캘린더의 이전 상태가 아니라 직전 화면으로 돌아간다', async () => {
@@ -555,40 +592,13 @@ describe('배당 지급 캘린더 — 주소 동기화(공유 링크)', () => {
 
     await openPicker(user);
     await user.click(optionButton('SCHD'));
-    await waitFor(() => {
-      expect(searchParamsOf().get('tickers')).toBe('SCHD');
-    });
     await user.click(optionButton('KO'));
-    await waitFor(() => {
-      expect(searchParamsOf().get('tickers')).toBe('SCHD,KO');
-    });
+    expect(screen.getByRole('button', { name: /현재 2종 선택됨/ })).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: '테스트 뒤로 가기' }));
 
     expect(screen.getByTestId('probe-pathname')).toHaveTextContent('/before');
     expect(screen.getByText('이전 화면')).toBeInTheDocument();
-  });
-
-  it('주소의 티커를 대문자·중복 제거한 표준형으로 되돌려 쓴다', async () => {
-    await renderCalendar({ entries: ['/dividend/calendar?tickers=schd,jepi,SCHD'] });
-
-    expect(screen.getByRole('button', { name: /현재 2종 선택됨/ })).toBeInTheDocument();
-    await waitFor(() => {
-      expect(searchParamsOf().get('tickers')).toBe('SCHD,JEPI');
-    });
-  });
-
-  it('선택을 비우면 주소에서 tickers 파라미터가 사라진다', async () => {
-    const { user } = await renderCalendar({ entries: ['/dividend/calendar?tickers=SCHD&foo=bar'] });
-
-    await openPicker(user);
-    await user.click(screen.getByRole('button', { name: '선택 비우기' }));
-
-    await waitFor(() => {
-      expect(searchParamsOf().has('tickers')).toBe(false);
-    });
-    expect(searchParamsOf().get('foo')).toBe('bar');
-    expect(screen.getByRole('status')).toHaveTextContent('선택을 모두 해제했습니다.');
   });
 });
 

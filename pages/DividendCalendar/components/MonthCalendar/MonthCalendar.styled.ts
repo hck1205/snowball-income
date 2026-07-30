@@ -252,6 +252,14 @@ export const DayJumpButton = styled.button`
   }
 `;
 
+/**
+ * 날짜 칸 안의 로딩 자리표시.
+ *
+ * reduced-motion 에서 **일부러 되찾지 않는다**(2026-07-30 판정, ExchangeRateWidget·MarketIndexStrip 과
+ * 같은 근거): 스켈레톤이 말하는 것은 "아직 살아 있다"가 아니라 **"이 칸에 올 값이 아직 없다"**이고,
+ * 그건 회색 막대의 *모양*이 통째로 말한다. 펄스의 쉬는 프레임이 `opacity: 1` 이라 정지가 가장 잘
+ * 보이는 프레임이기도 하다. 되찾는 쪽은 **스피너**뿐이다(모양만으로 "멈췄다/일한다"를 못 가른다).
+ */
 export const SkeletonBlock = styled.span`
   display: block;
   height: 10px;

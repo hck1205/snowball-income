@@ -257,14 +257,20 @@ describe('DividendCalendarPage — v2 월간 달력', () => {
     expect(screen.getByText('아직 선택한 종목이 없습니다')).toBeInTheDocument();
   });
 
-  it('선택이 바뀌면 주소의 ?tickers= 가 따라 바뀐다 (주소 복사 = 공유)', async () => {
+  /*
+   * 🔴 2026-07-30 계약 변경 — 주소는 **읽기 전용**이다. 구 케이스는 "선택이 바뀌면 ?tickers= 가
+   * 따라 바뀐다(주소 복사 = 공유)"였는데 캘린더엔 공유 버튼도 안내도 없어 도달 가능한 기능이
+   * 아니었다. 읽기 계약(진입 링크 복원·1회 정리)은 교차 테스트가 함께 잠근다
+   * (`test/dividendCalendar/dividendCalendarPage.behavior.test.tsx` — "주소(읽기 전용)").
+   */
+  it('선택을 바꾸거나 비워도 주소는 그대로다 (주소는 읽기 전용)', async () => {
     const user = userEvent.setup();
     await renderCalendar();
     await screen.findByText('아직 선택한 종목이 없습니다');
 
     await openPicker(user);
     await user.click(findOptionButton('SCHD'));
-    expect(screen.getByTestId('location-search')).toHaveTextContent('tickers=SCHD');
+    expect(screen.getByTestId('location-search').textContent).toBe('');
 
     await user.click(screen.getByRole('button', { name: '선택 비우기' }));
     expect(screen.getByTestId('location-search').textContent).toBe('');
