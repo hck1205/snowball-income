@@ -20,6 +20,49 @@ function matchesDim(dimBelow: SideDrawerDimScope): boolean {
   return window.matchMedia(`(max-width: ${BREAKPOINT[dimBelow]}px)`).matches;
 }
 
+/* -------------------------------------------------------------------------- */
+/* body 스크롤 잠금 — 인스턴스가 아니라 모듈이 소유한다                            */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * 지금 잠금을 잡고 있는 드로어 수. **0 → 1 에서만 잠그고 1 → 0 에서만 복원한다.**
+ *
+ * 왜 모듈 스코프인가(2026-07-30): 인스턴스마다 `previousOverflow` 를 캡처·복원하던 시절엔
+ * A(캡처 `''`) → B(캡처 `'hidden'`) 순서로 열고 **A 를 먼저 닫으면** A 가 `''` 를 복원해
+ * B 가 열린 채 배경이 스크롤됐다. 층끼리 서로를 모르므로(`useOverlayEscape`·`useDrawerBackClose`
+ * 의 스택과 같은 문제) 잠금의 소유자도 층이 아니라 모듈이어야 한다.
+ *
+ * 라우트 배타라 지금은 무증상이지만 이 껍데기를 쓰는 래퍼가 1개 → 3개로 늘었다(설정·보유 피커·
+ * 배당 캘린더 피커). 표면이 늘어난 만큼 잠금은 세는 방식으로 바꾼다.
+ */
+let bodyScrollLockCount = 0;
+
+/**
+ * **첫 잠금 시점**의 인라인 `overflow`. 인스턴스별로 들고 있으면 두 번째 드로어가 첫 드로어가
+ * 걸어 둔 `'hidden'` 을 "원래 값"으로 삼아 영구 잠금이 된다 — 복원값은 하나뿐이다.
+ */
+let bodyScrollLockPreviousOverflow = '';
+
+/** 잠금을 하나 잡고, 그 하나를 놓는 함수를 돌려준다(두 번 불러도 한 번만 센다). */
+function acquireBodyScrollLock(): () => void {
+  if (bodyScrollLockCount === 0) {
+    bodyScrollLockPreviousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+  }
+  bodyScrollLockCount += 1;
+
+  let isReleased = false;
+  return () => {
+    if (isReleased) return;
+    isReleased = true;
+    bodyScrollLockCount -= 1;
+    // 마지막 하나가 놓을 때만 복원한다. 남아 있는 드로어가 있으면 잠금은 그대로 유지된다.
+    if (bodyScrollLockCount > 0) return;
+    document.body.style.overflow = bodyScrollLockPreviousOverflow;
+    bodyScrollLockPreviousOverflow = '';
+  };
+}
+
 /**
  * 지금 딤이 켜지는 폭인가. **스크롤 잠금의 유일한 게이트**다 — 딤이 없는 폭(넓은 화면)에서
  * 페이지 스크롤까지 잠그면 "설정을 만지며 결과를 확인"하는 동선이 끊긴다.
@@ -73,9 +116,9 @@ function useIsDimmed(dimBelow: SideDrawerDimScope): boolean {
  * (`pages/Main/.../PresetFilterDrawer` 는 **의도적으로 여기 없다** — 뷰포트가 아니라 티커 모달 셸에
  *  `absolute` 로 핀되는 모달 안 패널이라 이 껍데기와 좌표계·모달성이 다르다. 그 파일 주석 참고.)
  *
- * ⚠ 이 컴포넌트 **2개가 동시에 열리면** body 스크롤락이 조기에 풀린다(인스턴스별로 이전 값을
- *   저장·복원하므로). 지금은 세 래퍼가 라우트 배타라 무증상이다 — 한 화면에 두 드로어를 올리는
- *   변경을 한다면 잠금을 모듈 스코프 refcount 로 바꿔야 한다.
+ * ⚠ body 스크롤 잠금은 **모듈 스코프 refcount** 다(위 `acquireBodyScrollLock`). 2개가 동시에 열려도
+ *   마지막 하나가 닫힐 때만 복원되므로 조기 해제가 없다 — 인스턴스별 저장·복원이던 시절엔
+ *   먼저 닫히는 쪽이 잠금을 풀어 뒤쪽 드로어가 열린 채 배경이 스크롤됐다(2026-07-30 수정).
  *
  * ⚠ 포커스 이펙트는 **열림 전이에만** 돈다(`onClose` 는 ref 로 잡는다). deps 에 `onClose` 를 두면
  *   인라인 화살표 핸들러를 넘기는 호출부에서 렌더마다 이펙트가 재실행돼 **한 글자 칠 때마다 포커스가
@@ -125,13 +168,7 @@ export default function SideDrawer({
 
   useEffect(() => {
     if (!isOpen || !isDimmed) return undefined;
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
+    return acquireBodyScrollLock();
   }, [isOpen, isDimmed]);
 
   return (

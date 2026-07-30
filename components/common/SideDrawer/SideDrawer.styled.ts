@@ -1,6 +1,17 @@
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
-import { color, font, media, motion, radius, shadow, space, subtleScrollbar, zIndex } from '@/shared/styles';
+import {
+  color,
+  font,
+  hitAreaWithin,
+  media,
+  motion,
+  radius,
+  shadow,
+  space,
+  subtleScrollbar,
+  zIndex
+} from '@/shared/styles';
 import type { SideDrawerBodyLayout, SideDrawerDimScope, SideDrawerSide } from './SideDrawer.types';
 
 /**
@@ -132,8 +143,18 @@ export const SideDrawerTitle = styled.h2`
 
 /**
  * 닫기(×) — 테두리·면색 없는 담백형 아이콘 버튼(드로어 공통 확정 스타일).
- * 시각 크기는 38×38이지만 `::before` 로 히트 영역만 44×44 로 넓혀 터치 하한을 만족한다.
+ * 시각 크기는 38×38이지만 히트 영역만 넓혀 터치 하한(WCAG 2.5.5)에 다가간다.
  * 포커스 링은 전역 `:focus-visible` 규칙 위에 얹기만 하고 절대 끄지 않는다.
+ *
+ * 2026-07-30 까지 `::before` 44×44 를 손으로 적고 있었다 — `shared/styles/surfaces.ts` 가
+ * 정확히 그 20곳을 모으려고 생긴 헬퍼인데 여기가 빠져 있었고, 손코딩 사본 중 하나(`Chip`)는
+ * `top/left/transform` 을 빠뜨려 히트 영역이 옆·아래로만 뻗는 실제 버그였다. 정렬을 헬퍼가
+ * 구조적으로 보장한다.
+ *
+ * `hitArea()`(무조건 44) 가 아니라 `hitAreaWithin(space[3])` 인 이유: 이 버튼은 헤드 줄에서
+ * 제목과 `gap: space[3]`(12px) 로 붙어 앉는다. 헬퍼가 그 간격을 넘지 않는 선까지만 넓히므로
+ * 나중에 버튼이 커지거나 헤드 gap 이 줄어도 제목을 덮지 않는다.
+ * 현재 치수의 실효값은 `min(44px, 38 + 12) = 44px` — **바꾸기 전과 같은 44×44** 다.
  */
 export const SideDrawerCloseButton = styled.button`
   position: relative;
@@ -150,15 +171,7 @@ export const SideDrawerCloseButton = styled.button`
   cursor: pointer;
   transition: color ${motion.fast} ${motion.ease};
 
-  &::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 44px;
-    height: 44px;
-    transform: translate(-50%, -50%);
-  }
+  ${hitAreaWithin(space[3])}
 
   &:hover {
     color: ${color.text};

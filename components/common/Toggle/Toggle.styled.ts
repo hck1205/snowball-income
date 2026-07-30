@@ -38,8 +38,21 @@ const TRACK_BORDER = 1;
 /*
  * ⚠ styled로 내리는 prop 이름이 `sizeVariant`인 이유: `size`는 **유효한 HTML 어트리뷰트**라
  * @emotion/is-prop-valid를 통과해 DOM으로 새어 나간다(Select.styled.ts와 같은 처리).
+ *
+ * 🔴 `<span>` 이 아니라 **`<label>`** 이다(2026-07-30). 아래 히트 영역은 트랙 밖으로 3px·6px 뻗는데,
+ * 실제 클릭 타깃인 `HiddenCheckbox` 는 트랙을 **정확히** 덮을 뿐이라(inset: 0) 그 바깥 띠에 떨어진
+ * 클릭은 어느 핸들러에도 닿지 않았다 — **넓혀 놓고 작동하지 않는 히트 영역**이었다.
+ * 헤드리스 Chrome 실측(38×20 트랙, 트랙 위 4px 지점): `elementFromPoint` = 트랙 자신, 토글 **안 됨**.
+ * `<label>` 로 바꾸면 그 띠의 클릭이 라벨 활성화로 체크박스에 위임된다(같은 지점 재측: 토글 **됨**).
+ *
+ * 왜 `ToggleField` 의 라벨 줄 전체(`ToggleLabel`)를 `<label>` 로 만들지 않았나 — 그러면 라벨 텍스트와
+ * 스위치 사이의 **빈 공간 200px 남짓까지** 토글이 된다(`justify-content: space-between`). 약속한 것은
+ * "스위치의 터치 타깃 44×32" 이지 "줄 전체가 스위치"가 아니다. 게다가 그 줄에는 도움말 버튼이 들어
+ * 있어 라벨 안 인터랙티브 요소 예외에 기대야 한다. 여기서 끝내면 그 두 가지가 모두 필요 없다.
+ * (`::before` 를 체크박스로 옮기는 방법도 Chrome 에서는 동작하지만 `input` 의 의사요소라 브라우저
+ *  지원이 갈린다 — 라벨 위임은 어디서나 같은 규칙이다.)
  */
-export const ToggleTrack = styled.span<{ checked: boolean; disabled?: boolean; sizeVariant: ToggleSize }>`
+export const ToggleTrack = styled.label<{ checked: boolean; disabled?: boolean; sizeVariant: ToggleSize }>`
   position: relative;
   flex: 0 0 auto;
   display: inline-block;
@@ -58,6 +71,12 @@ export const ToggleTrack = styled.span<{ checked: boolean; disabled?: boolean; s
    * 2026-07-30 까지 손코딩 44×44 였다. 세로 44px 은 이 스위치가 앉는 32px 라벨 줄
    * ('ToggleField' 의 'ToggleLabel')을 위아래로 6px 씩 넘겨 **이웃 폼 행을 덮었다.**
    * 헬퍼가 이웃 간격(줄 사이 'gap: space[3]')까지만 넓힌다 → 가로는 44px 확보, 세로는 32px.
+   *
+   * ⚠ 이 띠가 **실제로 눌리는 것은 위 'styled.label' 덕분이다.** 클릭 타깃인 'HiddenCheckbox' 는
+   * 트랙만 덮으므로(inset: 0) 이 요소가 'span' 이면 띠는 그리기만 하고 아무 핸들러에도 닿지 않는다.
+   * 실측(헤드리스 Chrome, 열린 설정 드로어의 토글 4개): 트랙 위/아래 4px·좌우 2px 네 지점 모두
+   * 'elementFromPoint' = label, 클릭 시 토글 **됨**. 위로 9px(띠 밖)은 label 이 아니라 상위 div —
+   * 즉 띠 크기가 정확히 44×32 로 실현돼 있다.
    */
   ${hitAreaWithin(space[3])}
 `;

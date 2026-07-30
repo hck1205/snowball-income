@@ -1,8 +1,12 @@
 import { useState, type ReactNode } from 'react';
+import { Provider } from 'jotai/react';
+import { createStore } from 'jotai/vanilla';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { SideDrawer } from '@/components/common';
+import { ShareDialog, SideDrawer } from '@/components/common';
+import { useSetActiveHelpWrite } from '@/jotai';
+import HelpModal from '@/pages/Main/components/HelpModal';
 import TickerModalView from '@/pages/Main/components/TickerModal/TickerModal.view';
 import type { TickerModalViewProps } from '@/pages/Main/components/TickerModal/TickerModal.types';
 import { useDrawerBackClose } from '@/shared/hooks';
@@ -317,5 +321,182 @@ describe('중첩 뒤로가기 — 설정 드로어 > 티커 모달 > 필터 드�
     });
 
     expect(window.location.href).toBe(hrefWhileOpen);
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/* C. 드로어 위의 모달 — 도움말 · 공유 창                                        */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * **두 제스처를 한쪽만 배선하면 정확히 반대로 동작한다.**
+ *
+ * `HelpModal`·`ShareDialog` 는 2026-07-30 까지 `useOverlayEscape` 에만 참여했다 — Escape 는
+ * 맨 위 한 겹만 닫혀 정상이었지만, **기기 뒤로가기**는 이 두 층을 보지 못해 그 아래 드로어의
+ * 엔트리를 소비했다: 도움말은 그대로 남고 **뒤의 설정 드로어가 닫혔다.** 사용자가 "뒤로"에
+ * 기대하는 것과 정확히 반대다. 위 A·B 절의 3층 하네스로는 안 잡힌다 — 그 층들은 모두 이미
+ * 두 훅에 배선돼 있었기 때문이다.
+ */
+
+const HELP_TITLE = '배당률';
+
+function HelpHarness() {
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const setActiveHelp = useSetActiveHelpWrite();
+
+  return (
+    <>
+      <button
+        type="button"
+        aria-controls="help-harness-drawer"
+        aria-expanded={isDrawerOpen}
+        onClick={() => setIsDrawerOpen(true)}
+      >
+        설정 열기
+      </button>
+      <SideDrawer
+        id="help-harness-drawer"
+        isOpen={isDrawerOpen}
+        title="투자 설정"
+        closeLabel="설정 닫기"
+        onClose={() => setIsDrawerOpen(false)}
+      >
+        <button type="button" onClick={() => setActiveHelp('dividendYield')}>
+          도움말 열기
+        </button>
+      </SideDrawer>
+      {/* 실제 화면과 같이 **항상 마운트**하고 열림은 atom 이 정한다(Main.view.tsx). */}
+      <HelpModal onBackdropClick={() => setActiveHelp(null)} onClose={() => setActiveHelp(null)} />
+    </>
+  );
+}
+
+function ShareHarness() {
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isShareOpen, setIsShareOpen] = useState(false);
+
+  return (
+    <>
+      <button
+        type="button"
+        aria-controls="share-harness-drawer"
+        aria-expanded={isDrawerOpen}
+        onClick={() => setIsDrawerOpen(true)}
+      >
+        설정 열기
+      </button>
+      <SideDrawer
+        id="share-harness-drawer"
+        isOpen={isDrawerOpen}
+        title="투자 설정"
+        closeLabel="설정 닫기"
+        onClose={() => setIsDrawerOpen(false)}
+      >
+        <button type="button" onClick={() => setIsShareOpen(true)}>
+          공유 창 열기
+        </button>
+      </SideDrawer>
+      {isShareOpen ? (
+        <ShareDialog
+          url="https://example.com/share"
+          onCopy={async () => undefined}
+          onSelectChannel={() => undefined}
+          // 인라인 화살표 — 렌더마다 identity 가 바뀌어도 엔트리가 쌓이지 않아야 한다.
+          onClose={() => setIsShareOpen(false)}
+        />
+      ) : null}
+    </>
+  );
+}
+
+const renderWithStore = (ui: ReactNode) => render(<Provider store={createStore()}>{ui}</Provider>);
+
+const isDrawerOpen = () => screen.getByRole('button', { name: '설정 열기' }).getAttribute('aria-expanded') === 'true';
+const isHelpOpen = () => screen.queryByRole('dialog', { name: HELP_TITLE }) !== null;
+const isShareOpen = () => screen.queryByRole('dialog', { name: '공유하기' }) !== null;
+
+describe('중첩 뒤로가기 — 설정 드로어 > 도움말 모달', () => {
+  it('기기 뒤로가기는 도움말만 닫고 드로어를 남긴다', async () => {
+    const user = userEvent.setup();
+    renderWithStore(<HelpHarness />);
+
+    await user.click(screen.getByRole('button', { name: '설정 열기' }));
+    await user.click(screen.getByRole('button', { name: '도움말 열기' }));
+    expect(isHelpOpen()).toBe(true);
+    const hrefWhileOpen = window.location.href;
+
+    await goBack();
+    await waitFor(() => {
+      expect(isHelpOpen()).toBe(false);
+    });
+    // 회귀의 핵심: 이 훅에 참여하기 전에는 도움말이 남고 **드로어가** 닫혔다.
+    expect(isDrawerOpen()).toBe(true);
+
+    await goBack();
+    await waitFor(() => {
+      expect(isDrawerOpen()).toBe(false);
+    });
+    expect(window.location.href).toBe(hrefWhileOpen);
+  });
+
+  it('도움말을 닫기 버튼으로 닫으면 뒤로가기 횟수가 늘지 않는다', async () => {
+    const user = userEvent.setup();
+    renderWithStore(<HelpHarness />);
+
+    await user.click(screen.getByRole('button', { name: '설정 열기' }));
+    await user.click(screen.getByRole('button', { name: '도움말 열기' }));
+    await user.click(screen.getByRole('button', { name: '닫기' }));
+    await settle();
+
+    expect(isHelpOpen()).toBe(false);
+    expect(isDrawerOpen()).toBe(true);
+
+    /*
+     * ⚠ `history.length` 로는 못 잰다 — `history.back()` 은 엔트리를 **지우지 않고** 포인터만
+     * 뒤로 옮기므로(앞쪽 엔트리가 남는다) 길이는 그대로 1 늘어난 채다. 실제로 사용자가 겪는
+     * 것은 "뒤로 몇 번 눌러야 하나"이므로 그것을 직접 잰다 — 닫기 버튼이 자기 엔트리를 되감았다면
+     * **한 번**에 드로어까지 닫힌다. 안 되감았다면 첫 뒤로가기가 빈 엔트리에 먹혀 아무 일도 없다.
+     */
+    await goBack();
+    await waitFor(() => {
+      expect(isDrawerOpen()).toBe(false);
+    });
+  });
+});
+
+describe('중첩 뒤로가기 — 설정 드로어 > 공유 창', () => {
+  it('기기 뒤로가기는 공유 창만 닫고 드로어를 남긴다', async () => {
+    const user = userEvent.setup();
+    renderWithStore(<ShareHarness />);
+
+    await user.click(screen.getByRole('button', { name: '설정 열기' }));
+    await user.click(screen.getByRole('button', { name: '공유 창 열기' }));
+    expect(isShareOpen()).toBe(true);
+
+    await goBack();
+    await waitFor(() => {
+      expect(isShareOpen()).toBe(false);
+    });
+    expect(isDrawerOpen()).toBe(true);
+  });
+
+  it('링크 복사 후 닫기로 닫아도 뒤로가기 횟수가 늘지 않는다', async () => {
+    const user = userEvent.setup();
+    renderWithStore(<ShareHarness />);
+
+    await user.click(screen.getByRole('button', { name: '설정 열기' }));
+    await user.click(screen.getByRole('button', { name: '공유 창 열기' }));
+    await user.click(screen.getByRole('button', { name: '링크 복사' }));
+    await user.click(screen.getByRole('button', { name: '닫기' }));
+    await settle();
+
+    expect(isShareOpen()).toBe(false);
+    expect(isDrawerOpen()).toBe(true);
+
+    // 공유 창이 자기 엔트리를 되감았다면 뒤로가기 **한 번**에 드로어까지 닫힌다(위 도움말 절 참고).
+    await goBack();
+    await waitFor(() => {
+      expect(isDrawerOpen()).toBe(false);
+    });
   });
 });
