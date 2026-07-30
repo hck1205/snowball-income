@@ -8160,7 +8160,7 @@ var renderRelatedTickers = (related) => {
   }).join("");
   return `<section id="related"><h2>\uAD00\uB828 \uD2F0\uCEE4</h2><ul>${items}</ul></section>`;
 };
-var renderHero = (content, facts) => `<h1>${escapeHtmlText(facts.ticker)} \u2014 ${escapeHtmlText(facts.koreanName)} (${escapeHtmlText(facts.englishName)})</h1><p class="hero-tagline">${renderText(content.heroTagline, facts)}</p>`;
+var renderHero = (content, facts) => `<h1>${escapeHtmlText(facts.ticker)} \u2014 ${escapeHtmlText(facts.koreanName)} (${escapeHtmlText(facts.englishName)})</h1><p class="hero-tagline">${renderText(content.heroTagline, facts)}</p><p class="hero-cta"><a href="/">${escapeHtmlText(facts.ticker)}\uB85C \uACC4\uC0B0\uD574 \uBCF4\uAE30</a></p>`;
 var buildFinancialProductSchema = (content, facts, canonical) => {
   const additionalProperty = [
     { "@type": "PropertyValue", name: "\uBC30\uB2F9\uB960(\uC138\uC804, \uBA85\uBAA9)", value: facts.dividendYieldDisplay },

@@ -10945,11 +10945,12 @@ var headerControlsGrid = `
 // shared/styles/heroTitleRow.ts
 var heroTitleFontSize = `clamp(${font.size["2xl"]}, calc(0.9rem + 1.8vw), ${font.size["4xl"]})`;
 var sectionTitleFontSize = `clamp(${font.size.lg}, calc(0.86rem + 0.56vw), ${font.size.xl})`;
-var ICON_OPTICAL_SHIFT = 0.1;
-var heroIconOpticalAlign = `
+var DISPLAY_ICON_OPTICAL_SHIFT = 0.1;
+var iconOpticalAlign = (textFontSize) => `
   flex: 0 0 auto;
-  transform: translateY(calc(${heroTitleFontSize} * -${ICON_OPTICAL_SHIFT}));
+  transform: translateY(calc(${textFontSize} * -${DISPLAY_ICON_OPTICAL_SHIFT}));
 `;
+var heroIconOpticalAlign = iconOpticalAlign(heroTitleFontSize);
 
 // shared/styles/scrollbar.ts
 var subtleScrollbar = `
@@ -10968,8 +10969,29 @@ var subtleScrollbar = `
     background: ${color.borderStrong};
   }
 
-  /* Firefox \uD3F4\uBC31 \u2014 \uC704 \uC758\uC0AC\uC694\uC18C\uB97C \uBABB \uC4F0\uB294 \uBE0C\uB77C\uC6B0\uC800\uB9CC \uC5EC\uAE30\uB85C \uC628\uB2E4(\uAC19\uC774 \uC120\uC5B8\uD558\uBA74 \uC704\uAC00 \uC8FD\uB294\uB2E4). */
-  @supports not selector(::-webkit-scrollbar) {
+  /*
+   * Firefox \uD3F4\uBC31. \uD45C\uC900 \uC18D\uC131\uC744 \uC704\uC640 **\uAC19\uC774** \uC120\uC5B8\uD558\uBA74 Chromium 121+ \uAC00 \uC704 webkit \uADDC\uCE59\uC744 \uD1B5\uC9F8\uB85C
+   * \uBB34\uC2DC\uD558\uBBC0\uB85C(\uC774 \uD30C\uC77C \uC0C1\uB2E8 \uC2E4\uCE21\uD45C) \uBC18\uB4DC\uC2DC Firefox \uC5D0\uB9CC \uB2FF\uC544\uC57C \uD55C\uB2E4.
+   *
+   * \u{1F534} \uC885\uC804\uC5D0\uB294 '@supports not selector(::-webkit-scrollbar)' \uB85C \uAC08\uB790\uB294\uB370 **\uADF8\uAC8C \uD2C0\uB838\uB2E4**(2026-07-31).
+   * Firefox \uB294 \uC774 \uC120\uD0DD\uC790\uC5D0 'true' \uB97C \uBC18\uD658\uD558\uBA74\uC11C\uB3C4 \uC2E4\uC81C\uB85C\uB294 \uADF8 \uC758\uC0AC\uC694\uC18C\uB85C \uC2A4\uD06C\uB864\uBC14\uB97C \uBABB \uAFB8\uBBFC\uB2E4 \u2014
+   * \uC911\uCCA9 \uC2A4\uD06C\uB864 \uC601\uC5ED\uC774 \uB3C4\uB2EC \uBD88\uAC00\uB2A5\uD574\uC9C0\uB294 \uAC83\uC744 \uB9C9\uC73C\uB824\uB294 \uC758\uB3C4\uC801 \uB3D9\uC791\uC774\uB2E4(bugzil.la/1977511).
+   * \uADF8\uB798\uC11C 'not true' = false \uAC00 \uB418\uC5B4 **Firefox \uAC00 \uD3F4\uBC31\uC744 \uBABB \uBC1B\uACE0 \uB124\uC774\uD2F0\uBE0C \uAE30\uBCF8 \uB9C9\uB300\uB85C \uB5A8\uC5B4\uC84C\uB2E4.**
+   * \uC989 \uC774 \uAC00\uB4DC\uB294 "\uC9C0\uC6D0 \uC5EC\uBD80"\uB97C \uBB3B\uB294 \uAC83\uCC98\uB7FC \uBCF4\uC774\uC9C0\uB9CC \uC5B4\uB290 \uC5D4\uC9C4\uC5D0\uC11C\uB3C4 \uCC38\uC774 \uC544\uB2C8\uC5C8\uB2E4.
+   *
+   * \uB300\uC2E0 **\uC5D4\uC9C4 \uD310\uBCC4**\uB85C \uAC04\uB2E4. \uC591\uCABD \uBE0C\uB77C\uC6B0\uC800\uC5D0\uC11C \uC9C1\uC811 \uC7AC\uC11C \uACE0\uB978 \uC870\uAC74\uC774\uB2E4:
+   *   Chrome 150 : '-moz-orient' false \xB7 '-moz-appearance' false \xB7
+   *                '-webkit-appearance' true \xB7 'selector(::-webkit-scrollbar)' true
+   *   Firefox    : '-moz-orient' **true** \xB7 '-moz-appearance' **\uC18D\uC131 \uC790\uCCB4\uAC00 \uC5C6\uB2E4**
+   * \uB4A4 \uB450 \uC870\uAC74\uC740 Firefox \uC5D0\uC11C\uB3C4 true \uB77C \uD310\uBCC4\uC5D0 \uBABB \uC4F0\uACE0, '-moz-appearance' \uB294 \uC774\uBBF8 \uC81C\uAC70\uB3FC
+   * **\uC5B4\uB290 \uC5D4\uC9C4\uC5D0\uC11C\uB3C4 \uCC38\uC774 \uC544\uB2C8\uB2E4** \u2014 \uADF8\uB798\uC11C 'or' \uB85C \uB07C\uC6CC \uB123\uC9C0 \uC54A\uC558\uB2E4. \uBC14\uB85C \uC704 \uBB38\uB2E8\uC758 \uC0AC\uACE0\uAC00
+   * \uC815\uD655\uD788 "\uC5B4\uB514\uC11C\uB3C4 \uCC38\uC774 \uC544\uB2CC \uC870\uAC74\uC744 \uB0A8\uACA8 \uB454 \uAC83"\uC774\uC5C8\uB2E4. \uC8FD\uC740 \uC870\uAC74\uC744 \uBCF4\uD5D8\uCC98\uB7FC \uB450\uC9C0 \uB9C8\uB77C.
+   *
+   * \u26A0 Firefox \uAC00 \uC5B8\uC820\uAC00 '-moz-orient' \uB9C8\uC800 \uAC77\uC5B4\uB0B4\uBA74 \uD3F4\uBC31\uC774 \uC870\uC6A9\uD788 \uAEBC\uC9C0\uACE0 \uB124\uC774\uD2F0\uBE0C \uB9C9\uB300\uB85C \uB3CC\uC544\uAC04\uB2E4 \u2014
+   * **\uC624\uB298\uACFC \uAC19\uC740 \uC0C1\uD0DC**\uB77C \uD68C\uADC0\uAC00 \uC544\uB2C8\uB77C \uC6B0\uC544\uD55C \uD1F4\uD654\uB2E4. Chromium \uC740 \uC5B4\uB290 \uACBD\uC6B0\uC5D0\uB3C4 \uC601\uD5A5\uBC1B\uC9C0 \uC54A\uB294\uB2E4
+   * (\uC774 \uAC00\uB4DC\uB294 Chromium \uC5D0\uC11C \uD56D\uC0C1 false \uC774\uACE0, \uADF8\uB798\uC57C \uC704 webkit \uADDC\uCE59\uC774 \uC0B0\uB2E4).
+   */
+  @supports (-moz-orient: inline) {
     scrollbar-width: thin;
     scrollbar-color: ${color.border} transparent;
   }
