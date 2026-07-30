@@ -101,7 +101,8 @@ describe('isPayoutMonth', () => {
 
 describe('paymentsPerYearMap', () => {
   it('maps each frequency to its payment count', () => {
-    expect(paymentsPerYearMap).toEqual({ monthly: 12, quarterly: 4, semiannual: 2, annual: 1 });
+    // `none`(무배당)은 0 — 지급 자체가 없다. `isPayoutMonth` 가 먼저 걸러 주므로 나눗셈에 닿지 않는다.
+    expect(paymentsPerYearMap).toEqual({ monthly: 12, quarterly: 4, semiannual: 2, annual: 1, none: 0 });
   });
 });
 

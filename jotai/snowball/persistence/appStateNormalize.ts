@@ -1,4 +1,5 @@
 import { defaultYieldFormValues, isCalendarDateInput, toDerivedDividendGrowthPercent } from '@/shared/lib/snowball';
+import type { Frequency } from '@/shared/types';
 import type { PortfolioPersistedState, TickerProfile } from '@/shared/types/snowball';
 import type { YearlySeriesKey } from '@/shared/constants';
 import type { PersistedAppStatePayload, PersistedInvestmentSettings, PersistedScenarioState } from '../types';
@@ -64,6 +65,18 @@ const DEFAULT_PERSISTED_INVESTMENT_SETTINGS_FOR_NEW_STATE = EMPTY_INVESTMENT_SET
 const migrateToCoherentGrowth = (dividendYield: number, expectedTotalReturn: number): number =>
   Math.max(-100, Math.min(100, toDerivedDividendGrowthPercent(expectedTotalReturn, dividendYield)));
 
+/**
+ * 저장 페이로드에서 받아들이는 지급 주기.
+ *
+ * 🔴 **이 목록은 늘기만 한다.** 값을 빼면 그 값을 담은 저장·공유 데이터의 종목이 통째로 버려진다
+ * (`sanitizeTickerProfile` 은 알 수 없는 주기를 만나면 프로필 자체를 `null` 로 떨군다 = 보유 종목 소실).
+ * `'none'`(무배당)은 나중에 추가된 값이고, 기존 네 값은 그대로 통과한다.
+ */
+const PERSISTED_FREQUENCIES: readonly Frequency[] = ['monthly', 'quarterly', 'semiannual', 'annual', 'none'];
+
+const isPersistedFrequency = (value: unknown): value is Frequency =>
+  typeof value === 'string' && (PERSISTED_FREQUENCIES as readonly string[]).includes(value);
+
 export const sanitizeTickerProfile = (input: unknown): TickerProfile | null => {
   if (!input || typeof input !== 'object') return null;
 
@@ -82,7 +95,7 @@ export const sanitizeTickerProfile = (input: unknown): TickerProfile | null => {
   if (!Number.isFinite(dividendYield) || dividendYield < 0) return null;
   // 배당 성장률은 이제 음수를 허용한다 (커버드콜의 NAV 침식). 유한하기만 하면 받는다.
   if (!Number.isFinite(dividendGrowthRaw)) return null;
-  if (frequency !== 'monthly' && frequency !== 'quarterly' && frequency !== 'semiannual' && frequency !== 'annual') return null;
+  if (!isPersistedFrequency(frequency)) return null;
 
   const expectedTotalReturn = Number.isFinite(expectedTotalReturnRaw) ? expectedTotalReturnRaw : dividendYield;
   const dividendGrowth = migrateToCoherentGrowth(dividendYield, expectedTotalReturn);

@@ -2,10 +2,13 @@
 /* velog — 기본 프리셋. open-color 기반, 플랫·미니멀·콘텐츠 우선                    */
 /* -------------------------------------------------------------------------- */
 
+import { palette } from '../primitives';
 import type { ThemeTokens } from '../semantic';
 import { chartSeriesTokens, type ChartSeries } from './chartSeriesTokens';
 import { buildDuotoneGradient, buildHeroGradient } from './gradients';
 import { COMMON_DARK, COMMON_LIGHT } from './sharedTokens';
+
+const { brand } = palette;
 
 /**
  * velog: 시리즈 0 = teal-7(#0ca678: 흰 3.11 / #1e1e1e 5.35). 기존 green(#47955e)은
@@ -31,8 +34,18 @@ const VELOG_CHART_SERIES: ChartSeries = [
  *    밝은 틸(#20c997)은 다크에서 **어두운 라벨(on-brand=#121212, 8.79:1)** 과 함께 본색으로 산다.
  *
  * 라이트 border-strong(#868e96)은 bg(#f8f9fa) 대비 3.15로 빠듯 — bg를 더 어둡게 내리면 즉시 탈락.
- * velog는 accent==brand(단일 색상계)다. accent-alt는 구 회색에서 **open-color green 계열**로
- * 옮겼다(2026-07-28 아이덴티티 패스) — 원본 팔레트 충실성은 유지되고, brand 틸과는 ΔE 22.1로 갈린다.
+ * accent-alt는 구 회색에서 **open-color green 계열**로 옮겼다(2026-07-28 아이덴티티 패스) —
+ * 원본 팔레트 충실성은 유지되고, brand 틸과는 ΔE 22.1로 갈린다.
+ *
+ * 🔵 **accent = 브랜드 램프(글레이셔 애저)** (2026-07-31). 구 velog는 accent가 brand의 사본이었다
+ * (라이트 ΔE 8.2 + subtle/border/text 3토큰 문자열 동일, **다크는 ΔE 0 = 완전 동일**).
+ * 8프리셋 중 역할 분리가 없던 것은 velog뿐이었고(실측: 나머지 7종 ΔE 19.6~120.2), velog가
+ * 기본 프리셋이라 "앱이 단색으로 보인다"는 인상의 물리적 원인이 여기였다.
+ * 새 hex를 만들지 않고 `palette.brand`(primitives.ts) 램프를 그대로 꺼내 쓴다 — 그 파랑은
+ * 이미 전 프리셋 공통 워드마크("스노우볼")가 헤더에서 쓰는 색이라, 화면에 없던 색을 들이는 게
+ * 아니라 **헤더에만 있던 색을 토큰 계층으로 내리는** 것이다.
+ * 역할: brand(틸) = 액션·인터랙션(버튼·탭·포커스링) / accent(애저) = 정보 크롬(배지·아이콘·레일).
+ * ⚠ focus-ring/focus-shadow는 **일부러 틸 그대로** 뒀다 — 포커스는 액션 축이다.
  */
 export const VELOG_LIGHT: ThemeTokens = {
   /*
@@ -62,10 +75,11 @@ export const VELOG_LIGHT: ThemeTokens = {
   'brand-text': '#087f5b',
   'on-brand': '#ffffff',
 
-  accent: '#099268',
-  'accent-text': '#087f5b',
-  'accent-subtle': '#e6fcf5',
-  'accent-border': '#96f2d7',
+  /* 액센트 = 글레이셔 애저 램프 그대로. 흰 서피스 위 accent 5.63:1 / accent-text 7.42:1(실측). */
+  accent: brand[600],
+  'accent-text': brand[700],
+  'accent-subtle': brand[50],
+  'accent-border': brand[200],
   'accent-alt': '#26a14f',
   'accent-alt-text': '#13762a',
   'accent-alt-subtle': '#e7f5ec',
@@ -137,10 +151,18 @@ export const VELOG_DARK: ThemeTokens = {
   /** 어두운 라벨 — 밝은 틸(#20c997) 위 #121212 = 8.79:1. 라벨 색을 흰색으로 하드코딩하면 여기서 깨진다. */
   'on-brand': '#121212',
 
-  accent: '#20c997',
-  'accent-text': '#20c997',
-  'accent-subtle': '#12352a',
-  'accent-border': '#2f7d5f',
+  /*
+   * 액센트 = 글레이셔 애저(라이트와 같은 램프의 다크 슬롯). brand[300]은 밝기가 velog 다크 brand
+   * (#20c997, surface 대비 7.82)와 맞물린다(8.68) — 더 어두운 brand[400]을 쓰면 민트 옆에서 탁해진다.
+   * subtle/border 2값만 velog 로컬 파생이다(램프에 다크 서피스용 틴트가 없다). 파생 규칙은
+   * **명도 이식**: 각각 brand-subtle/brand-border가 이 프리셋에서 내는 대비를 그대로 맞춘다
+   * (text on subtle 11.37 vs brand-subtle 11.33 / border on surface 3.31 vs brand-border 3.34).
+   * HSL 명도를 그대로 복사하면 파랑이 초록보다 어둡게 보여 액센트 칩만 죽는다.
+   */
+  accent: brand[300],
+  'accent-text': brand[300],
+  'accent-subtle': '#123243',
+  'accent-border': '#3a7690',
   'accent-alt': '#75df98',
   'accent-alt-text': '#75df98',
   'accent-alt-subtle': '#142419',

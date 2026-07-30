@@ -44,8 +44,8 @@ const isInputInvalidAtom = selectAtom(validationAtom, (validation) => !validatio
  * 비활성 사유는 **하나로 뭉치지 않는다** — 사용자가 취해야 할 행동이 다르기 때문이다
  * (종목을 담아야 하는가 vs 잘못 입력한 값을 고쳐야 하는가).
  */
-export const PDF_REPORT_BLOCKED_EMPTY = '포트폴리오를 구성하면 리포트를 만들 수 있어요';
-export const PDF_REPORT_BLOCKED_INVALID = '입력값 오류를 수정하면 리포트를 만들 수 있어요';
+export const PDF_REPORT_BLOCKED_EMPTY = '포트폴리오를 구성하면 리포트를 만들 수 있습니다';
+export const PDF_REPORT_BLOCKED_INVALID = '입력값 오류를 수정하면 리포트를 만들 수 있습니다';
 
 export type PdfReportController = {
   /** 생성 중 — 메뉴 항목을 비활성/aria-busy로 만들고, 메뉴는 닫지 않는다. */

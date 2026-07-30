@@ -5,7 +5,9 @@ const FREQUENCY_LABEL_KO: Record<Frequency, string> = {
   monthly: '매월',
   quarterly: '분기(연 4회)',
   semiannual: '반기(연 2회)',
-  annual: '연 1회'
+  annual: '연 1회',
+  /** 배당을 지급하지 않는 종목. "연 0회" 로 쓰지 않는다 — 횟수 문제가 아니라 지급이 없다. */
+  none: '배당 없음'
 };
 
 /**

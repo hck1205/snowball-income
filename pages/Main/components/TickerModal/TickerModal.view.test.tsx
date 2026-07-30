@@ -107,7 +107,7 @@ describe('TickerModal 프리셋 필터 흐름', () => {
     fireEvent.change(screen.getByLabelText('배당률 최소값 입력'), { target: { value: '20' } });
 
     expect(screen.getByText('표시: 0 / 전체: 4')).toBeInTheDocument();
-    expect(screen.getByText(/조건에 맞는 티커가 없어요/)).toBeInTheDocument();
+    expect(screen.getByText(/조건에 맞는 티커가 없습니다/)).toBeInTheDocument();
     expect(screen.getByText(/일치하는 프리셋 티커가 없습니다/)).toBeInTheDocument();
   });
 
@@ -232,7 +232,7 @@ describe('TickerModal 드로어 ↔ 모달 격리·포커스·닫기 경로', ()
 
     // 배당률 하한 20 → 결과 0개.
     fireEvent.change(screen.getByLabelText('배당률 최소값 입력'), { target: { value: '20' } });
-    expect(screen.getByText(/조건에 맞는 티커가 없어요/)).toBeInTheDocument();
+    expect(screen.getByText(/조건에 맞는 티커가 없습니다/)).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: '닫기' }));
     expect(queryDrawer()).not.toBeInTheDocument();

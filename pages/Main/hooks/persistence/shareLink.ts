@@ -1,6 +1,7 @@
 import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from 'lz-string';
 import { EMPTY_INVESTMENT_SETTINGS, normalizePersistedAppState, type PersistedInvestmentSettings, type PersistedScenarioState } from '@/jotai';
 import { toDerivedDividendGrowthPercent } from '@/shared/lib/snowball';
+import type { Frequency } from '@/shared/types';
 import type { PortfolioPersistedState, TickerProfile } from '@/shared/types/snowball';
 
 export const SHARE_SCHEMA_VERSION = 3;
@@ -22,7 +23,7 @@ type CompactTickerTuple = [
   dividendYield: number,
   dividendGrowth: number,
   expectedTotalReturn: number,
-  frequencyCode: 0 | 1 | 2 | 3,
+  frequencyCode: 0 | 1 | 2 | 3 | 4,
   name?: string
 ];
 
@@ -90,17 +91,30 @@ type SharedScenarioEnvelope = {
 
 const isObject = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === 'object';
 
-export const encodeFrequency = (frequency: string): 0 | 1 | 2 | 3 => {
+/**
+ * 주기 ↔ 공유 URL 코드.
+ *
+ * 🔴 **코드 0~3 의 의미는 영구 고정이다** — 이미 발행된 공유 링크가 그 숫자를 담고 있다.
+ * `none`(무배당)은 **뒤에 4 를 덧붙여** 추가했다: 옛 링크는 4 를 담을 수 없으므로 해석이 바뀌지 않고,
+ * 옛 코드가 새 링크의 4 를 만나면 폴백(`annual`)으로 읽힌다 — 프리셋 무배당 종목은 배당률도 0 이라
+ * 결과가 그대로 0 이지만, **사용자가 배당률을 남긴 채 주기만 `none` 으로 바꾼 링크**라면 구버전
+ * 클라이언트에서는 배당이 있는 종목으로 열린다. 이 조합 자체를 만들지 않는 것이 방어선이고
+ * (간편 추정도 같은 이유로 지급 0 을 명시적으로 끊는다 — `SnowballQuickEstimate.ts`),
+ * 코드 재배치는 그것과 무관하게 **절대 금지**다 — 남의 저장·링크가 다른 종목으로 열린다.
+ */
+export const encodeFrequency = (frequency: string): 0 | 1 | 2 | 3 | 4 => {
   if (frequency === 'monthly') return 0;
   if (frequency === 'quarterly') return 1;
   if (frequency === 'semiannual') return 2;
+  if (frequency === 'none') return 4;
   return 3;
 };
 
-export const decodeFrequency = (value: unknown): 'monthly' | 'quarterly' | 'semiannual' | 'annual' => {
+export const decodeFrequency = (value: unknown): Frequency => {
   if (value === 0) return 'monthly';
   if (value === 1) return 'quarterly';
   if (value === 2) return 'semiannual';
+  if (value === 4) return 'none';
   return 'annual';
 };
 

@@ -4742,7 +4742,7 @@ var dpsAtMonth = ({
 };
 
 // shared/lib/snowball/SnowballForm.ts
-var frequencySchema = external_exports.enum(["monthly", "quarterly", "semiannual", "annual"]);
+var frequencySchema = external_exports.enum(["monthly", "quarterly", "semiannual", "annual", "none"]);
 var reinvestTimingSchema = external_exports.enum(["sameMonth", "nextMonth"]);
 var dpsGrowthModeSchema = external_exports.enum(["annualStep", "monthlySmooth"]);
 var dateInputSchema = external_exports.string().regex(/^\d{4}-\d{2}-\d{2}$/, "\uD22C\uC790 \uC2DC\uC791 \uB0A0\uC9DC\uB97C \uC120\uD0DD\uD558\uC138\uC694.").refine(isCalendarDateInput, "\uC874\uC7AC\uD558\uC9C0 \uC54A\uB294 \uB0A0\uC9DC\uC785\uB2C8\uB2E4.");
@@ -4817,13 +4817,22 @@ var paymentsPerYearMap = {
   monthly: 12,
   quarterly: 4,
   semiannual: 2,
-  annual: 1
+  annual: 1,
+  none: 0
 };
 var isPayoutMonth = (frequency, simulationMonth) => {
-  if (frequency === "monthly") return true;
-  if (frequency === "quarterly") return simulationMonth % 3 === 0;
-  if (frequency === "semiannual") return simulationMonth === 6 || simulationMonth === 12;
-  return simulationMonth === 12;
+  switch (frequency) {
+    case "monthly":
+      return true;
+    case "quarterly":
+      return simulationMonth % 3 === 0;
+    case "semiannual":
+      return simulationMonth === 6 || simulationMonth === 12;
+    case "annual":
+      return simulationMonth === 12;
+    case "none":
+      return false;
+  }
 };
 var computeMonthlyPayout = ({
   shares,
@@ -4855,8 +4864,10 @@ var runQuickEstimate = (input) => {
   const growth = toPriceGrowth(ticker.dividendGrowth);
   const paymentsPerYear = paymentsPerYearMap[ticker.frequency];
   const reinvestRatio = settings.reinvestDividends ? toReinvestRatio(settings.reinvestDividendPercent) : 0;
-  const shareGrowthPerPayment = dividendYield / paymentsPerYear * (1 - taxRate) * reinvestRatio;
-  const annualShareGrowth = Math.pow(1 + shareGrowthPerPayment, paymentsPerYear);
+  const pays = paymentsPerYear > 0;
+  const effectiveYield = pays ? dividendYield : 0;
+  const shareGrowthPerPayment = pays ? dividendYield / paymentsPerYear * (1 - taxRate) * reinvestRatio : 0;
+  const annualShareGrowth = pays ? Math.pow(1 + shareGrowthPerPayment, paymentsPerYear) : 1;
   const annualReturn = Math.max(MIN_GROWTH_RATE, (1 + growth) * annualShareGrowth - 1);
   const monthlyReturn = toMonthlyGrowthRate(annualReturn);
   const totalMonths = settings.durationYears * 12;
@@ -4864,7 +4875,7 @@ var runQuickEstimate = (input) => {
   const initialInvestmentGrowth = settings.initialInvestment * Math.pow(1 + monthlyReturn, totalMonths);
   const rawEndValue = monthlyContributionGrowth + initialInvestmentGrowth;
   const endValue = Number.isFinite(rawEndValue) ? Math.max(0, rawEndValue) : 0;
-  const yieldOnPriceAtEnd = Math.max(0, dividendYield);
+  const yieldOnPriceAtEnd = Math.max(0, effectiveYield);
   const annualDividendApprox = endValue * yieldOnPriceAtEnd * (1 - taxRate);
   return {
     endValue,
@@ -6244,6 +6255,7 @@ var SUNSET_DARK = {
 };
 
 // shared/styles/presets/velog.ts
+var { brand: brand4 } = palette;
 var VELOG_CHART_SERIES = [
   "#0ca678",
   "#c26d22",
@@ -6278,10 +6290,11 @@ var VELOG_LIGHT = {
   "brand-border": "#96f2d7",
   "brand-text": "#087f5b",
   "on-brand": "#ffffff",
-  accent: "#099268",
-  "accent-text": "#087f5b",
-  "accent-subtle": "#e6fcf5",
-  "accent-border": "#96f2d7",
+  /* 액센트 = 글레이셔 애저 램프 그대로. 흰 서피스 위 accent 5.63:1 / accent-text 7.42:1(실측). */
+  accent: brand4[600],
+  "accent-text": brand4[700],
+  "accent-subtle": brand4[50],
+  "accent-border": brand4[200],
   "accent-alt": "#26a14f",
   "accent-alt-text": "#13762a",
   "accent-alt-subtle": "#e7f5ec",
@@ -6340,10 +6353,18 @@ var VELOG_DARK = {
   "brand-text": "#20c997",
   /** 어두운 라벨 — 밝은 틸(#20c997) 위 #121212 = 8.79:1. 라벨 색을 흰색으로 하드코딩하면 여기서 깨진다. */
   "on-brand": "#121212",
-  accent: "#20c997",
-  "accent-text": "#20c997",
-  "accent-subtle": "#12352a",
-  "accent-border": "#2f7d5f",
+  /*
+   * 액센트 = 글레이셔 애저(라이트와 같은 램프의 다크 슬롯). brand[300]은 밝기가 velog 다크 brand
+   * (#20c997, surface 대비 7.82)와 맞물린다(8.68) — 더 어두운 brand[400]을 쓰면 민트 옆에서 탁해진다.
+   * subtle/border 2값만 velog 로컬 파생이다(램프에 다크 서피스용 틴트가 없다). 파생 규칙은
+   * **명도 이식**: 각각 brand-subtle/brand-border가 이 프리셋에서 내는 대비를 그대로 맞춘다
+   * (text on subtle 11.37 vs brand-subtle 11.33 / border on surface 3.31 vs brand-border 3.34).
+   * HSL 명도를 그대로 복사하면 파랑이 초록보다 어둡게 보여 액센트 칩만 죽는다.
+   */
+  accent: brand4[300],
+  "accent-text": brand4[300],
+  "accent-subtle": "#123243",
+  "accent-border": "#3a7690",
   "accent-alt": "#75df98",
   "accent-alt-text": "#75df98",
   "accent-alt-subtle": "#142419",
@@ -8298,12 +8319,21 @@ var headerControlsGrid = `
 // shared/styles/heroTitleRow.ts
 var heroTitleFontSize = `clamp(${font.size["2xl"]}, calc(0.9rem + 1.8vw), ${font.size["4xl"]})`;
 var sectionTitleFontSize = `clamp(${font.size.lg}, calc(0.86rem + 0.56vw), ${font.size.xl})`;
-var DISPLAY_ICON_OPTICAL_SHIFT = 0.1;
-var iconOpticalAlign = (textFontSize) => `
+var INK_ABOVE_LINE_BOX = {
+  display: 0.1,
+  sans: 0,
+  heroNumeric: -0.06,
+  dataNumeric: 0
+};
+var iconOpticalAlign = (role, textFontSize) => {
+  const shift = INK_ABOVE_LINE_BOX[role];
+  if (shift === 0) return `flex: 0 0 auto;`;
+  return `
   flex: 0 0 auto;
-  transform: translateY(calc(${textFontSize} * -${DISPLAY_ICON_OPTICAL_SHIFT}));
+  transform: translateY(calc(${textFontSize} * ${-shift}));
 `;
-var heroIconOpticalAlign = iconOpticalAlign(heroTitleFontSize);
+};
+var heroIconOpticalAlign = iconOpticalAlign("display", heroTitleFontSize);
 
 // shared/styles/scrollbar.ts
 var subtleScrollbar = `

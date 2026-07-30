@@ -26,7 +26,7 @@ type SecondaryActionKey = 'share' | 'coffee';
 const SHARE_TITLE = '배당 재투자 시뮬레이션 결과';
 
 /** 채널 새 창이 브라우저 팝업 차단에 막혔을 때 — 아무 일도 안 일어난 것처럼 보이면 안 된다. */
-const POPUP_BLOCKED_MESSAGE = '브라우저가 새 창을 막았어요. 팝업을 허용하거나 링크를 복사해 주세요.';
+const POPUP_BLOCKED_MESSAGE = '브라우저가 새 창을 막았습니다. 팝업을 허용하거나 링크를 복사해 주세요.';
 
 function TickerCreationComponent({
   topContent,

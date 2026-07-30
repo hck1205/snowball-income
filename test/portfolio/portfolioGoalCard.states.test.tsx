@@ -119,7 +119,7 @@ describe('기간 내 미도달 (D)', () => {
     expect(Number(meter.getAttribute('aria-valuenow'))).toBeLessThan(100);
   });
 
-  it('"매월 얼마를 더 넣으면 닿을까요?"는 프리필 없이 시뮬레이터로 보낸다', async () => {
+  it('"매월 얼마를 더 넣으면 닿을지 확인하기"는 프리필 없이 시뮬레이터로 보낸다', async () => {
     const user = userEvent.setup();
     renderPortfolioPage();
     await screen.findByText(copy.goal.tiles.etaNotReached);

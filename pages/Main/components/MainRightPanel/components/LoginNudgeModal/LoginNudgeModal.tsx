@@ -21,7 +21,7 @@ function LoginNudgeModal({ modalRoot, onClose, onLogin }: LoginNudgeModalProps) 
       <ModalPanel>
         <ModalTitle>탭을 더 만들려면 로그인하세요</ModalTitle>
         <ModalBody>
-          로그인하면 <strong>클라우드에 저장돼 데이터가 사라지지 않아요.</strong>
+          로그인하면 <strong>클라우드에 저장돼 데이터가 사라지지 않습니다.</strong>
           {'\n'}지금(로그인 전) 만든 탭도 로그인하면 <strong>그대로 함께 동기화</strong>됩니다.
         </ModalBody>
         <ModalActions>

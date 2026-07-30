@@ -4,6 +4,7 @@ import {
   font,
   heroIconOpticalAlign,
   heroTitleFontSize,
+  iconOpticalAlign,
   media,
   radius,
   space
@@ -52,7 +53,12 @@ export const HeroRoot = styled.header<{ $tone: PageHeroTone }>`
   /* 좁은 폭에서 titleAction 이 흐름에서 빠져 제목 줄 오른쪽에 붙는다 — 그 좌표 기준. */
   position: relative;
   padding: ${HERO_PADDING};
-  border: 1px solid ${color.brandBorder};
+  /*
+   * 테두리도 아이콘 배지와 **같은 축**이다(아래 HeroIconBadge 주석: "브랜드는 장식에서 물러난다").
+   * 배지만 accent 이고 테두리는 brand 였을 때 같은 카드 안에서 두 축이 어긋나 보였다 —
+   * 히어로는 누를 수 없는 표면이므로 크롬 전체를 accent 로 통일한다.
+   */
+  border: 1px solid ${color.accentBorder};
   border-radius: ${radius.xl};
   background: ${({ $tone }) => ($tone === 'gradient' ? color.gradientHero : color.surface)};
   min-width: 0;
@@ -88,9 +94,13 @@ export const HeroTitleGroup = styled.div`
  * 서므로 두 자리가 같아 보이고, 좁은 화면에서만 차이가 드러난다.
  */
 export const HeroTitleAction = styled.div`
-  flex: 0 0 auto;
   display: flex;
   align-items: center;
+  /*
+   * 제목 줄에 같이 서므로 배지와 **같은 잉크 보정**을 받는다. 안 그러면 배지만 올라가고 이 슬롯은
+   * 라인박스 중심에 남아, 제목 옆에서 3.1px 낮게 앉는다(2026-07-30 실측 @1280).
+   */
+  ${iconOpticalAlign('display', heroTitleFontSize)}
 
   /*
    * 좁은 폭에서 HeroTitleRow 가 column 이 되면 이 슬롯도 아래로 떨어진다 — 그러면 "제목 줄에
@@ -107,6 +117,9 @@ export const HeroTitleAction = styled.div`
     position: absolute;
     top: ${HERO_PADDING};
     right: ${HERO_PADDING};
+    /* 이 구간에서는 제목 줄의 **중심**이 아니라 히어로 여백 위쪽에 맞춘다 — 잉크 보정은 중심
+       정렬을 전제한 것이라 여기서는 버튼을 여백 밖으로 밀어낼 뿐이다. */
+    transform: none;
   }
 `;
 
@@ -150,13 +163,16 @@ export const HeroTitle = styled.h2`
  * 좁은 폭에서는 제목 아래로 내려가 **전폭**을 쓴다 — 320px 에서 제목과 같은 줄에 두면 둘 다 잘린다.
  */
 export const HeroActions = styled.div`
-  flex: 0 0 auto;
   display: flex;
   align-items: center;
   gap: ${space[2]};
+  /* 넓은 폭에서는 제목과 같은 줄에 서므로 제목의 잉크 중심에 맞춘다(위 HeroTitleAction 과 같은 이유). */
+  ${iconOpticalAlign('display', heroTitleFontSize)}
 
   ${media.down('mobileWide')} {
     width: 100%;
+    /* 제목 아래로 내려가 전폭을 쓰는 구간 — 더 이상 제목 줄이 아니므로 보정을 되돌린다. */
+    transform: none;
 
     > * {
       flex: 1 1 auto;
@@ -178,6 +194,11 @@ export const HeroMeta = styled.p`
   margin: 0;
   font-family: ${font.dataNumeric};
   font-size: ${font.size.xs};
-  color: ${color.textMuted};
+    /*
+   * 히어로 면(accent-subtle) 위라 'text-muted' 를 쓰지 않는다 — velog 다크에서 4.04:1 로
+   * AA 미달이다(2026-07-31 실측). 위계는 크기(xs/sm)와 'text-secondary' 로 충분히 낮아진다.
+   * 가드: shared/styles/contrast.test.ts 의 [text-muted, accent-subtle] 쌍.
+   */
+  color: ${color.textSecondary};
   ${font.numeric}
 `;

@@ -13,7 +13,13 @@ export const DIVIDEND_YIELD_CAP = 20;
 /** 기대총수익률(배당률+성장률) 슬라이더 상한 캡. etrMax 가 이 값이면 "25%+"(상한 없음). */
 export const EXPECTED_TOTAL_RETURN_CAP = 25;
 
-/** 주기 멀티토글 옵션(라벨은 FrequencySelect 와 일치: 월/분기/반기/연). */
+/**
+ * 주기 멀티토글 옵션(라벨은 FrequencySelect 와 일치: 월/분기/반기/연).
+ *
+ * `none`(무배당)은 **일부러 칩을 만들지 않았다** — 이 패널은 "언제 받는가"로 배당주를 고르는
+ * 도구라 무배당 필터는 배당률 슬라이더 하한 0 과 하는 일이 겹친다. 값 자체는 아래 라벨표가
+ * 알고 있으므로, 무배당 종목이 목록에서 사라지지는 않는다(주기 필터를 안 걸면 그대로 보인다).
+ */
 export const FREQUENCY_OPTIONS: ReadonlyArray<{ value: Frequency; label: string }> = [
   { value: 'monthly', label: '월' },
   { value: 'quarterly', label: '분기' },
@@ -25,7 +31,8 @@ const FREQUENCY_LABEL: Record<Frequency, string> = {
   monthly: '월',
   quarterly: '분기',
   semiannual: '반기',
-  annual: '연'
+  annual: '연',
+  none: '배당 없음'
 };
 
 /**

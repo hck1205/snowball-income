@@ -46,7 +46,7 @@ const renderModal = (over: { summary?: CloudReconciliationSummary; blendTabCount
 describe('CloudReconcileModal', () => {
   it('제목·본문과 양측 요약(탭 개수·이름·상대 편집시각)을 보여준다', () => {
     renderModal();
-    expect(screen.getByRole('dialog', { name: /다른 기기에서도 편집했어요/ })).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: /다른 기기에서도 편집했습니다/ })).toBeInTheDocument();
     expect(screen.getByText(/어떻게 이어갈지 골라 주세요/)).toBeInTheDocument();
 
     // 각 측 탭 이름이 칩으로 보인다.

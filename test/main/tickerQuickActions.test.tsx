@@ -75,7 +75,7 @@ describe('TickerCreation 공유 창 — 채널 팝업 차단', () => {
 
     await userEvent.click(screen.getByRole('button', { name: SHARE_DIALOG_COPY.channelAria('X') }));
 
-    expect(await screen.findByRole('status')).toHaveTextContent('브라우저가 새 창을 막았어요');
+    expect(await screen.findByRole('status')).toHaveTextContent('브라우저가 새 창을 막았습니다');
     // 창이 닫히면 대안(링크 복사·주소 직접 선택)까지 함께 사라진다.
     expect(screen.getByRole('dialog', { name: SHARE_DIALOG_COPY.title })).toBeInTheDocument();
   });

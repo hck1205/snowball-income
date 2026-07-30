@@ -4,7 +4,12 @@ import type { YieldValidation } from '@/shared/types/snowball';
 import { isCalendarDateInput } from './SnowballCalendar';
 import { toExpectedTotalReturnPercent } from './SnowballRates';
 
-const frequencySchema = z.enum(['monthly', 'quarterly', 'semiannual', 'annual']);
+/**
+ * ⚠ 하위 호환: `'none'`(무배당)은 **나중에 추가된 값**이고, 유니온을 넓히기만 했다.
+ * 이미 저장·공유된 페이로드의 네 값(`monthly`/`quarterly`/`semiannual`/`annual`)은 그대로 통과한다.
+ * 좁히는 방향(값 제거·이름 변경)은 저장 데이터를 못 열게 만들므로 금지.
+ */
+const frequencySchema = z.enum(['monthly', 'quarterly', 'semiannual', 'annual', 'none']);
 const reinvestTimingSchema = z.enum(['sameMonth', 'nextMonth']);
 const dpsGrowthModeSchema = z.enum(['annualStep', 'monthlySmooth']);
 // 정규식만으로는 2026-02-31 / 2026-13-01 같은 "형식은 맞지만 실재하지 않는" 날짜가 통과한다.

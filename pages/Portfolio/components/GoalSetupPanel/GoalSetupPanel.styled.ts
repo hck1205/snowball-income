@@ -3,8 +3,9 @@ import { color, font, media, radius, space } from '@/shared/styles';
 
 /**
  * 목표 미설정일 때 **hero 타일 자리**를 차지하는 안내 패널.
- * hero StatTile과 같은 면(brandSubtle)·같은 테두리(brandBorder)를 써서 "여기가 주인공 자리"라는
+ * hero StatTile과 같은 면(accentSubtle)·같은 테두리(accentBorder)를 써서 "여기가 주인공 자리"라는
  * 위계를 유지한다(그리드에서 전 폭을 차지하는 것은 부모 레이아웃이 정한다).
+ * ⚠ 이 두 값은 **hero StatTile 과 반드시 같이 움직인다** — 한쪽만 바꾸면 같은 자리에서 면이 갈린다.
  */
 export const SetupRoot = styled.div`
   min-width: 0;
@@ -13,9 +14,9 @@ export const SetupRoot = styled.div`
   align-content: start;
   justify-items: start;
   padding: clamp(16px, 2.4vw, ${space[6]});
-  border: 1px solid ${color.brandBorder};
+  border: 1px solid ${color.accentBorder};
   border-radius: ${radius.md};
-  background: ${color.brandSubtle};
+  background: ${color.accentSubtle};
 `;
 
 /**

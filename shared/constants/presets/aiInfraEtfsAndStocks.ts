@@ -44,6 +44,15 @@ export const AI_INFRA_ETFS_AND_STOCKS = {
     expectedTotalReturn: 13,
     frequency: 'quarterly' as const
   },
+  /**
+   * 배당을 지급하지 않는 성장주. 이 프리셋에 있는 이유는 배당이 아니라 자본 성장이다
+   * (`expectedTotalReturn` 14% 가 전부 주가 성장으로 실현된다 — 정합 모델에서
+   * `dividendGrowth` 는 곧 주가 성장률이므로 이 값은 0 이 아니라 14 가 맞다).
+   *
+   * `frequency: 'none'` = "지급 주기 데이터가 없다"가 아니라 **"지급이 없다"**.
+   * 구 값 `'quarterly'` 는 계산상 무해했지만(0 에 무엇을 곱해도 0), 화면이 이 종목을
+   * "데이터 준비 중"으로 분류하게 만들었다.
+   */
   ANET: {
     ticker: 'ANET',
     name: 'Arista Networks',
@@ -51,7 +60,7 @@ export const AI_INFRA_ETFS_AND_STOCKS = {
     dividendYield: 0,
     dividendGrowth: 14,
     expectedTotalReturn: 14,
-    frequency: 'quarterly' as const
+    frequency: 'none' as const
   },
   NVDA: {
     ticker: 'NVDA',

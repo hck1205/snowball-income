@@ -72,17 +72,17 @@ describe('PortfolioComposition — 슬라이더 disabled 판정', () => {
     expect(sliderFor('AAA')).toBeDisabled();
     expect(sliderFor('BBB')).toBeDisabled();
 
-    // 힌트 2번: "다른 종목이 고정돼 조절할 여지가 없어요…"
+    // 힌트 2번: "다른 종목이 고정돼 조절할 여지가 없습니다…"
     expect(
-      screen.getByText(/다른 종목이 고정돼 조절할 여지가 없어요/)
+      screen.getByText(/다른 종목이 고정돼 조절할 여지가 없습니다/)
     ).toBeInTheDocument();
     // 힌트 1/3번은 뜨지 않는다
-    expect(screen.queryByText(/비중 조절이 잠겨 있어요/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/비중 조절이 잠겨 있습니다/)).not.toBeInTheDocument();
     expect(screen.queryByText(/종목이 하나뿐이라/)).not.toBeInTheDocument();
 
     // 조절 후보 슬라이더는 왜 비활성인지 힌트를 스크린리더로 전달한다(aria-describedby)
     expect(sliderFor('BBB')).toHaveAccessibleDescription(
-      /다른 종목이 고정돼 조절할 여지가 없어요/
+      /다른 종목이 고정돼 조절할 여지가 없습니다/
     );
   });
 
@@ -97,8 +97,8 @@ describe('PortfolioComposition — 슬라이더 disabled 판정', () => {
     expect(sliderFor('CCC')).toBeEnabled();
 
     // 조절 여지가 있으므로 비활성 사유 텍스트 힌트는 없다(고정 전체 해제 버튼만)
-    expect(screen.queryByText(/다른 종목이 고정돼 조절할 여지가 없어요/)).not.toBeInTheDocument();
-    expect(screen.queryByText(/비중 조절이 잠겨 있어요/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/다른 종목이 고정돼 조절할 여지가 없습니다/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/비중 조절이 잠겨 있습니다/)).not.toBeInTheDocument();
   });
 });
 
@@ -114,8 +114,8 @@ describe('PortfolioComposition — 힌트 우선순위 분기', () => {
     await user.click(screen.getByRole('checkbox', { name: '비율 조절 잠금' }));
 
     // 힌트 1번만
-    expect(screen.getByText(/비중 조절이 잠겨 있어요/)).toBeInTheDocument();
-    expect(screen.queryByText(/다른 종목이 고정돼 조절할 여지가 없어요/)).not.toBeInTheDocument();
+    expect(screen.getByText(/비중 조절이 잠겨 있습니다/)).toBeInTheDocument();
+    expect(screen.queryByText(/다른 종목이 고정돼 조절할 여지가 없습니다/)).not.toBeInTheDocument();
     expect(screen.queryByText(/종목이 하나뿐이라/)).not.toBeInTheDocument();
 
     // 잠금 상태에서는 모든 슬라이더 비활성
@@ -127,9 +127,9 @@ describe('PortfolioComposition — 힌트 우선순위 분기', () => {
   it('종목이 하나뿐이면 100% 힌트(3번)를 노출한다', () => {
     renderComposition([makeProfile('a', 'AAA')], { adjustableTickerCount: 1 });
 
-    expect(screen.getByText('종목이 하나뿐이라 비중은 100%예요.')).toBeInTheDocument();
-    expect(screen.queryByText(/비중 조절이 잠겨 있어요/)).not.toBeInTheDocument();
-    expect(screen.queryByText(/다른 종목이 고정돼 조절할 여지가 없어요/)).not.toBeInTheDocument();
+    expect(screen.getByText('종목이 하나뿐이라 비중은 100%입니다.')).toBeInTheDocument();
+    expect(screen.queryByText(/비중 조절이 잠겨 있습니다/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/다른 종목이 고정돼 조절할 여지가 없습니다/)).not.toBeInTheDocument();
     expect(sliderFor('AAA')).toBeDisabled();
   });
 
@@ -140,8 +140,8 @@ describe('PortfolioComposition — 힌트 우선순위 분기', () => {
     // 잠금을 켜도 단일 종목은 잠금을 풀어도 계속 disabled라 "잠금을 풀면 드래그" 안내는 거짓이다.
     await user.click(screen.getByRole('checkbox', { name: '비율 조절 잠금' }));
 
-    expect(screen.getByText('종목이 하나뿐이라 비중은 100%예요.')).toBeInTheDocument();
-    expect(screen.queryByText(/비중 조절이 잠겨 있어요/)).not.toBeInTheDocument();
+    expect(screen.getByText('종목이 하나뿐이라 비중은 100%입니다.')).toBeInTheDocument();
+    expect(screen.queryByText(/비중 조절이 잠겨 있습니다/)).not.toBeInTheDocument();
     expect(sliderFor('AAA')).toBeDisabled();
   });
 });

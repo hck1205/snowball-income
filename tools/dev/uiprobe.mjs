@@ -27,6 +27,7 @@
  *   --eval <expr>    페이지 안에서 평가할 식. 결과를 JSON 으로 출력
  *   --shot <path>    스크린샷 PNG 저장(폭마다 파일명에 폭이 붙는다)
  *   --overflow       가로 오버플로 검사(scrollWidth > clientWidth) — 이 레포 단골 결함
+ *   --align          한 줄 안 세로 정렬 검사(글자 잉크 중심 ↔ 아이콘·선·배지 중심) — 아래 참고
  *   --port <n>       CDP 포트. 기본 9222
  *   --keep           끝나고 브라우저를 남긴다(이어서 수동 확인할 때)
  */
@@ -46,6 +47,7 @@ let waitMs = null;
 let evalExpr = null;
 let shotPath = null;
 let checkOverflow = false;
+let checkAlign = false;
 let port = 9222;
 let keepOpen = false;
 
@@ -60,6 +62,7 @@ for (let i = 0; i < argv.length; i += 1) {
   else if (arg === '--eval') evalExpr = next();
   else if (arg === '--shot') shotPath = next();
   else if (arg === '--overflow') checkOverflow = true;
+  else if (arg === '--align') checkAlign = true;
   else if (arg === '--port') port = Number(next());
   else if (arg === '--keep') keepOpen = true;
   else if (arg === '--help' || arg === '-h') {
@@ -73,6 +76,7 @@ for (let i = 0; i < argv.length; i += 1) {
   --eval <expr>    페이지에서 평가할 식 → JSON 출력
   --shot <path>    PNG 저장(폭마다 파일명에 폭이 붙는다) ← 눈으로 확인하는 용도
   --overflow       가로 오버플로 검사
+  --align          한 줄 세로 정렬 검사(잉크 중심 ↔ 아이콘 중심)
   --keep           브라우저를 남긴다`);
     process.exit(0);
   }
@@ -217,6 +221,143 @@ const OVERFLOW_EXPR = `(() => {
   return { scrollWidth: doc.scrollWidth, clientWidth: doc.clientWidth, overflowing, culprits };
 })()`;
 
+/**
+ * 한 줄 세로 정렬 검사 — **이 레포에서 렌더 테스트로 원리적으로 못 잡는 결함**이다.
+ * 소스에는 `align-items: center` 가 멀쩡히 있는데 화면이 틀리기 때문에 소스 스캔으로도 안 잡히고,
+ * jsdom 은 레이아웃을 계산하지 않아 vitest 로도 안 잡힌다. 남은 방법은 실제로 그려서 재는 것뿐이다.
+ *
+ * 무엇을 재나: `align-items: center` 인 flex 행에서 **글자의 잉크 중심**과 **형제(아이콘·구분선·
+ * 배지·체크박스)의 기하 중심**의 차. 사람 눈은 라인박스가 아니라 잉크를 기준으로 "가운데"를 본다.
+ *
+ *   baseline = 텍스트 Range rect.top + (rect.height − (fontAsc+fontDesc))/2 + fontAsc
+ *   ink      = baseline − (actualAsc − actualDesc)/2
+ *
+ * ⚠ 잉크 비율은 **400px 에서 한 번 재서 축척한다** — Chrome 은 `actualBoundingBox*` 를 정수 픽셀로
+ * 반올림해서 13px 에서 재면 ±0.5px 짜리 가짜 어긋남이 나온다. 반대로 라인박스(`fontBoundingBox*`)는
+ * 그 크기에서 반올림된 값을 레이아웃이 **실제로 쓰므로** 원래 크기에서 잰 값을 그대로 써야 한다.
+ *
+ * 오탐을 걸러야 결과를 믿을 수 있다(전부 실제로 겪은 오탐이다):
+ *   - 스크린리더 전용 텍스트(clip/clip-path/1px/화면 밖) → 화면에 없는 좌표를 잡는다
+ *   - 여러 줄 텍스트 → 규칙이 "중심 정렬"이 아니라 "첫 줄 정렬"이라 비교 자체가 무의미하다
+ *   - 세로로 안 겹치는 형제 → 애초에 같은 줄이 아니다
+ */
+const ALIGN_EXPR = `(() => {
+  const ctx = document.createElement('canvas').getContext('2d');
+  const REF = 400;
+  const inkCache = new Map();
+  const inkHalfEm = (style, weight, family, sample) => {
+    const key = style + '|' + weight + '|' + family + '|' + sample;
+    if (inkCache.has(key)) return inkCache.get(key);
+    ctx.font = style + ' ' + weight + ' ' + REF + 'px ' + family;
+    const m = ctx.measureText(sample);
+    const v = (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2 / REF;
+    inkCache.set(key, v);
+    return v;
+  };
+  const hiddenish = (el) => {
+    const cs = getComputedStyle(el);
+    if (cs.display === 'none' || cs.visibility === 'hidden' || cs.opacity === '0') return true;
+    if (cs.clipPath !== 'none' || cs.clip !== 'auto') return true;
+    const r = el.getBoundingClientRect();
+    return r.width <= 1 || r.height <= 1 || r.right < 0 || r.bottom < 0;
+  };
+  const inkFrom = (node, row) => {
+    const parent = node.parentElement;
+    for (let p = parent; p && p !== row.parentElement; p = p.parentElement) {
+      const cs = getComputedStyle(p);
+      if (cs.display === 'none' || cs.visibility === 'hidden') return null;
+      if (cs.clipPath !== 'none' || cs.clip !== 'auto') return null;
+      if (cs.position === 'absolute' || cs.position === 'fixed') {
+        const pr = p.getBoundingClientRect();
+        if (pr.width <= 1 || pr.height <= 1) return null;
+      }
+    }
+    const range = document.createRange();
+    range.selectNodeContents(node);
+    const rects = [...range.getClientRects()].filter((r) => r.width > 0.5 && r.height > 0.5);
+    if (!rects.length) return null;
+    const cs = getComputedStyle(parent);
+    const size = parseFloat(cs.fontSize);
+    const lineHeight = parseFloat(cs.lineHeight) || rects[0].height;
+    const tops = new Set(rects.map((r) => Math.round(r.top)));
+    if (tops.size > 1 || rects[0].height > lineHeight * 1.5) return null; // 여러 줄 → 첫 줄 정렬 규칙
+    const sample = node.data.trim().slice(0, 40);
+    ctx.font = cs.fontStyle + ' ' + cs.fontWeight + ' ' + size + 'px ' + cs.fontFamily;
+    const m = ctx.measureText(sample);
+    const rect = rects[0];
+    const baseline =
+      rect.top + (rect.height - (m.fontBoundingBoxAscent + m.fontBoundingBoxDescent)) / 2 + m.fontBoundingBoxAscent;
+    return {
+      rect,
+      size,
+      text: sample,
+      center: baseline - inkHalfEm(cs.fontStyle, cs.fontWeight, cs.fontFamily, sample) * size
+    };
+  };
+  const firstInk = (el, row) => {
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, {
+      acceptNode: (n) => (n.data.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT)
+    });
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+      const ink = inkFrom(n, row);
+      if (ink) return ink;
+    }
+    return null;
+  };
+  const findings = [];
+  const rows = [...document.querySelectorAll('*')].filter((el) => {
+    const cs = getComputedStyle(el);
+    return (
+      (cs.display === 'flex' || cs.display === 'inline-flex') &&
+      cs.alignItems === 'center' &&
+      !cs.flexDirection.startsWith('column') &&
+      !hiddenish(el)
+    );
+  });
+  for (const row of rows) {
+    const texts = [];
+    const graphics = [];
+    for (const node of row.childNodes) {
+      if (node.nodeType === 3) {
+        if (node.data.trim()) {
+          const ink = inkFrom(node, row);
+          if (ink) texts.push(ink);
+        }
+        continue;
+      }
+      if (node.nodeType !== 1) continue;
+      const cs = getComputedStyle(node);
+      if (cs.position === 'absolute' || cs.position === 'fixed' || hiddenish(node)) continue;
+      const ink = firstInk(node, row);
+      if (ink) {
+        texts.push(ink);
+        continue;
+      }
+      const svg = node.tagName.toLowerCase() === 'svg' ? node : node.querySelector('svg');
+      const target = svg ?? node;
+      const r = target.getBoundingClientRect();
+      if (r.width < 1 || r.height < 1) continue;
+      graphics.push({ rect: r, tag: target.tagName.toLowerCase(), cls: (target.getAttribute('class') || '').slice(0, 32) });
+    }
+    for (const t of texts) {
+      for (const g of graphics) {
+        const overlap = Math.min(t.rect.bottom, g.rect.bottom) - Math.max(t.rect.top, g.rect.top);
+        if (overlap < Math.min(t.rect.height, g.rect.height) * 0.4) continue; // 같은 줄이 아니다
+        const delta = g.rect.top + g.rect.height / 2 - t.center;
+        if (Math.abs(delta) < 1) continue;
+        findings.push({
+          delta: Math.round(delta * 100) / 100,
+          size: Math.round(t.size * 10) / 10,
+          text: t.text,
+          graphic: g.tag + ' ' + Math.round(g.rect.height) + 'px ' + g.cls
+        });
+      }
+    }
+  }
+  findings.sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
+  return { rows: rows.length, findings: findings.slice(0, 20) };
+})()`;
+
 /* ── 실행 ─────────────────────────────────────────────────────────────────── */
 
 const mode = await launch();
@@ -257,6 +398,17 @@ for (const width of widths) {
     console.log(`  ${String(width).padStart(4)}px  ${mark}  scrollWidth=${report.scrollWidth} clientWidth=${report.clientWidth}`);
     for (const culprit of report.culprits) {
       console.log(`          범인 후보 <${culprit.tag}> right=${culprit.right} w=${culprit.width} "${culprit.text}"`);
+    }
+  }
+
+  if (checkAlign) {
+    // 서체가 늦게 오면 폴백으로 그려져 측정이 통째로 빗나간다.
+    await evaluate('document.fonts.ready.then(() => 1)');
+    const report = await evaluate(ALIGN_EXPR);
+    const mark = report.findings.length ? `✗ ${report.findings.length}건` : '✓ 정상';
+    console.log(`  ${String(width).padStart(4)}px  ${mark}  align-items:center 행 ${report.rows}개`);
+    for (const f of report.findings) {
+      console.log(`          ${String(f.delta).padStart(6)}px  [${f.size}px] "${f.text}" ↔ ${f.graphic}`);
     }
   }
 

@@ -26,8 +26,23 @@ export const runQuickEstimate = (input: SimulationInput): QuickEstimateOutput =>
   const paymentsPerYear = paymentsPerYearMap[ticker.frequency];
   const reinvestRatio = settings.reinvestDividends ? toReinvestRatio(settings.reinvestDividendPercent) : 0;
 
-  const shareGrowthPerPayment = (dividendYield / paymentsPerYear) * (1 - taxRate) * reinvestRatio;
-  const annualShareGrowth = Math.pow(1 + shareGrowthPerPayment, paymentsPerYear);
+  /*
+   * 지급이 없는 종목(paymentsPerYear === 0)은 배당 경로를 통째로 끊는다.
+   *
+   * 정밀 계산은 'isPayoutMonth' 가 매달 걸러 주지만 **이 함수는 그 게이트를 지나지 않는 유일한
+   * 소비처다.** 아래 근사식은 지급 여부를 묻지 않고 배당률을 그대로 쓰기 때문에, 배당률이 남아
+   * 있는 채로 주기만 'none' 이면 같은 카드에서 토글 하나로 "월 배당 6만원"과 "0원"이 갈린다
+   * (2026-07-31 실측). 사용자가 셀렉트에서 만들 수 있는 조합이다.
+   *
+   * 자산 성장은 그대로 돌린다 — 무배당 성장주도 주가는 자란다. 끊는 것은 배당뿐이다.
+   * (종전에 'endValue' 가 우연히 맞았던 것은 'Math.pow(x, 0) === 1' 덕분이다. 0 나눗셈이 만든
+   *  NaN·Infinity 가 지수 0 에 먹혔을 뿐이라 우연에 기대고 있었다.)
+   */
+  const pays = paymentsPerYear > 0;
+  const effectiveYield = pays ? dividendYield : 0;
+
+  const shareGrowthPerPayment = pays ? (dividendYield / paymentsPerYear) * (1 - taxRate) * reinvestRatio : 0;
+  const annualShareGrowth = pays ? Math.pow(1 + shareGrowthPerPayment, paymentsPerYear) : 1;
   const annualReturn = Math.max(MIN_GROWTH_RATE, ((1 + growth) * annualShareGrowth) - 1);
 
   const monthlyReturn = toMonthlyGrowthRate(annualReturn);
@@ -41,7 +56,7 @@ export const runQuickEstimate = (input: SimulationInput): QuickEstimateOutput =>
   const endValue = Number.isFinite(rawEndValue) ? Math.max(0, rawEndValue) : 0;
 
   // 정합 모델의 핵심 성질: 배당수익률은 주가 대비 불변이다. 60년이 지나도 초기 배당률 그대로다.
-  const yieldOnPriceAtEnd = Math.max(0, dividendYield);
+  const yieldOnPriceAtEnd = Math.max(0, effectiveYield);
   const annualDividendApprox = endValue * yieldOnPriceAtEnd * (1 - taxRate);
 
   return {

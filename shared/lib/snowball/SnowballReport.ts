@@ -197,7 +197,8 @@ export type SnowballReport = {
 
 type SnowballReportRun = NonNullable<ReturnType<typeof runScenarioPayload>>;
 
-const FREQUENCY_ORDER: Frequency[] = ['monthly', 'quarterly', 'semiannual', 'annual'];
+/** 잦은 순. `none`(무배당)은 주기가 아니므로 맨 뒤 — 리포트의 주기 구성에서 빠지면 비중 합이 어긋난다. */
+const FREQUENCY_ORDER: Frequency[] = ['monthly', 'quarterly', 'semiannual', 'annual', 'none'];
 
 const sumBy = <T>(items: T[], getValue: (item: T) => number): number =>
   items.reduce((sum, item) => sum + getValue(item), 0);

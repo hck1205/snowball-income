@@ -140,9 +140,9 @@ export default function CloudReconcileModal({
       onClick={handleBackdropClick}
     >
       <ModalPanel>
-        <ModalTitle id={titleId}>다른 기기에서도 편집했어요</ModalTitle>
+        <ModalTitle id={titleId}>다른 기기에서도 편집했습니다</ModalTitle>
         <ModalBody id={bodyId}>
-          이 기기와 클라우드 양쪽에 저장된 시나리오가 있어요. 어떻게 이어갈지 골라 주세요.
+          이 기기와 클라우드 양쪽에 저장된 시나리오가 있습니다. 어떻게 이어갈지 골라 주세요.
         </ModalBody>
 
         <CompareRow>
@@ -152,7 +152,7 @@ export default function CloudReconcileModal({
 
         {hasResolveFailed ? (
           <ResolveError role="alert">
-            클라우드에 반영하지 못했습니다. 이 기기의 데이터는 그대로 있어요 — 연결을 확인한 뒤 다시 선택해
+            클라우드에 반영하지 못했습니다. 이 기기의 데이터는 그대로 있습니다 — 연결을 확인한 뒤 다시 선택해
             주세요.
           </ResolveError>
         ) : null}
@@ -163,17 +163,17 @@ export default function CloudReconcileModal({
               둘 다 합치기
               <RecommendBadge>추천</RecommendBadge>
             </ChoiceTitleRow>
-            <ChoiceHint>합치면 {blendTabCount}개 탭 · 아무것도 지우지 않아요</ChoiceHint>
+            <ChoiceHint>합치면 {blendTabCount}개 탭 · 아무것도 지우지 않습니다</ChoiceHint>
           </ChoiceButton>
 
           <ChoiceButton type="button" disabled={isResolving} onClick={onUseDevice}>
             <ChoiceTitleRow>이 기기 데이터로 맞추기</ChoiceTitleRow>
-            <ChoiceHint>클라우드에만 있던 탭은 반영하지 않아요</ChoiceHint>
+            <ChoiceHint>클라우드에만 있던 탭은 반영하지 않습니다</ChoiceHint>
           </ChoiceButton>
 
           <ChoiceButton type="button" disabled={isResolving} onClick={onUseCloud}>
             <ChoiceTitleRow>클라우드 데이터로 맞추기</ChoiceTitleRow>
-            <ChoiceHint>이 기기에만 있던 탭은 반영하지 않아요</ChoiceHint>
+            <ChoiceHint>이 기기에만 있던 탭은 반영하지 않습니다</ChoiceHint>
           </ChoiceButton>
         </ChoiceList>
       </ModalPanel>

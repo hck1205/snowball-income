@@ -12,6 +12,25 @@ import { DIVIDEND_UNIVERSE, PRESET_TICKER_KOREAN_NAME_BY_TICKER } from '@/shared
  */
 export type CalendarScheduleSource = 'pay' | 'ex';
 
+/**
+ * 목록의 한 종목이 캘린더에 대해 갖는 상태. **"아직 모른다"와 "해당 없다"를 가르는 것**이 요점이다.
+ *
+ * - `'pay'` / `'ex'` : 지급월을 안다(위 `CalendarScheduleSource` 참고).
+ * - `'nonDividend'` : **배당을 지급하지 않는 종목**. 지급월 데이터가 들어올 일이 없으므로
+ *   "준비 중"이 아니다. 판정 근거는 유니버스의 `frequency === 'none'`(= 관측된 배당률 0에서
+ *   파생 — `shared/constants/presets` 의 `buildDividendUniverse`).
+ * - `null` : 지급월 데이터가 **아직** 없다("데이터 준비 중"). 갱신되면 `pay`/`ex` 가 된다.
+ */
+export type CalendarScheduleState = CalendarScheduleSource | 'nonDividend' | null;
+
+/**
+ * 이 상태의 종목을 캘린더에 놓을 수 있는가. **선택 가능 여부의 단일 판정**이라
+ * 목록 버튼(비활성)·범례 행·요약 집계가 전부 이 함수를 통해서만 묻는다 — 판정이 흩어지면
+ * "고를 수는 있는데 달력엔 안 뜨는" 종목이 생긴다.
+ */
+export const isSchedulableState = (state: CalendarScheduleState): state is CalendarScheduleSource =>
+  state === 'pay' || state === 'ex';
+
 export type CalendarTickerEntry = {
   /** 대문자 심볼. */
   ticker: string;
@@ -19,6 +38,11 @@ export type CalendarTickerEntry = {
   name: string;
   /** 관측된 지급월 데이터가 있는가. false 면 이 종목은 캘린더에 놓을 수 없다. */
   hasSchedule: boolean;
+  /**
+   * 배당을 지급하지 않는 종목인가. `hasSchedule: false` 의 **사유**를 가른다 —
+   * 캘린더에 놓을 수 없다는 결과는 같지만 사용자에게 할 말이 다르다.
+   */
+  isNonDividend: boolean;
   /** 1-12 오름차순. `hasSchedule` 이 true 일 때만 있다. */
   payoutMonths?: number[];
   source?: CalendarScheduleSource;
@@ -35,9 +59,13 @@ const KOREAN_NAME_BY_TICKER: Record<string, string> = PRESET_TICKER_KOREAN_NAME_
 /**
  * 유니버스 + 관측 지급월 조인.
  *
- * 지급월 데이터가 없는 종목(무배당 ANET, 아직 갱신되지 않은 종목)은 **빼지 않고 `hasSchedule: false`**
- * 로 남긴다 — 검색 결과에서 조용히 사라지면 "왜 없지?" 가 되고, `frequency` 로 아무 달이나 채우면
- * 거짓이 된다. 모른다는 사실을 그대로 들고 다니는 게 유일하게 정직하다.
+ * 지급월 데이터가 없는 종목(배당을 지급하지 않는 ANET, 아직 갱신되지 않은 종목)은 **빼지 않고
+ * `hasSchedule: false`** 로 남긴다 — 검색 결과에서 조용히 사라지면 "왜 없지?" 가 되고, `frequency`
+ * 로 아무 달이나 채우면 거짓이 된다. 모른다는 사실을 그대로 들고 다니는 게 유일하게 정직하다.
+ *
+ * **판정 순서가 중요하다**: 관측된 지급월이 있으면 그것이 이긴다. 지급 이력이 있는데 배당률만
+ * 일시적으로 0 으로 들어온 종목(공급자 이상치)을 "배당 없음"으로 낙인찍지 않기 위해서다.
+ * 무배당 판정은 **지급월이 하나도 없을 때만** 내린다.
  */
 const buildCalendarUniverse = (): CalendarTickerEntry[] =>
   Object.keys(DIVIDEND_UNIVERSE)
@@ -48,13 +76,14 @@ const buildCalendarUniverse = (): CalendarTickerEntry[] =>
       const name = KOREAN_NAME_BY_TICKER[ticker] ?? preset.name ?? ticker;
 
       if (months.length === 0) {
-        return { ticker, name, hasSchedule: false };
+        return { ticker, name, hasSchedule: false, isNonDividend: preset.frequency === 'none' };
       }
 
       return {
         ticker,
         name,
         hasSchedule: true,
+        isNonDividend: false,
         payoutMonths: months,
         source: MARKET_DATA.entries[ticker]?.payoutMonthsSource === 'pay' ? 'pay' : 'ex'
       };

@@ -1,11 +1,16 @@
 import type { Frequency, ReinvestTiming } from '@/shared/types';
 import { clamp01 } from './SnowballRates';
 
+/**
+ * 연 지급 횟수. `none`(무배당)은 0 이다 — 나눗셈에 쓰면 `Infinity`/`NaN` 이 되므로
+ * **`isPayoutMonth` 가 먼저 걸러 주는 것에 의존한다**(무배당은 지급월이 하나도 없다).
+ */
 export const paymentsPerYearMap: Record<Frequency, number> = {
   monthly: 12,
   quarterly: 4,
   semiannual: 2,
-  annual: 1
+  annual: 1,
+  none: 0
 };
 
 /**
@@ -13,13 +18,30 @@ export const paymentsPerYearMap: Record<Frequency, number> = {
  *
  * `simulationMonth` 는 달력월이 아니라 **투자 시작 후 N개월째**(1..12)다.
  * 따라서 quarterly 는 시작 후 3/6/9/12개월째, semiannual 은 6/12개월째, annual 은 12개월째에 지급한다.
+ * `none`(무배당)은 지급월이 없다.
+ *
+ * ⚠ `switch` 로 쓴 이유: 예전에는 마지막 `return simulationMonth === 12`(annual)이 **폴백**이라
+ * 주기 값이 하나 늘면 그것이 조용히 "연 1회 지급"으로 흘러들었다. 지금은 각 주기를 명시하고
+ * `default` 를 두지 않아, 값이 늘면 컴파일이 깨진다.
+ *
+ * 🔴 그 소진성을 지탱하는 것은 **명시 반환 타입 `: boolean` + `strict`** 다(TS2366 —
+ * "Function lacks ending return statement"). 이 레포에는 `noImplicitReturns` 가 없으므로
+ * 그것에 기대고 있다고 착각하지 마라. 반환 타입을 `boolean | undefined` 로 넓히거나 지우면
+ * 가드가 조용히 사라지고, 새 주기는 런타임에서 `undefined`(= falsy = 무지급)로 흘러든다.
  */
 export const isPayoutMonth = (frequency: Frequency, simulationMonth: number): boolean => {
-  if (frequency === 'monthly') return true;
-  if (frequency === 'quarterly') return simulationMonth % 3 === 0;
-  if (frequency === 'semiannual') return simulationMonth === 6 || simulationMonth === 12;
-
-  return simulationMonth === 12;
+  switch (frequency) {
+    case 'monthly':
+      return true;
+    case 'quarterly':
+      return simulationMonth % 3 === 0;
+    case 'semiannual':
+      return simulationMonth === 6 || simulationMonth === 12;
+    case 'annual':
+      return simulationMonth === 12;
+    case 'none':
+      return false;
+  }
 };
 
 export type MonthlyPayoutParams = {

@@ -4,6 +4,7 @@ import {
   color,
   font,
   hitAreaWithin,
+  iconOpticalAlign,
   media,
   motion,
   radius,
@@ -161,7 +162,6 @@ export const SideDrawerCloseButton = styled.button`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 auto;
   width: 38px;
   height: 38px;
   border: 0;
@@ -170,6 +170,13 @@ export const SideDrawerCloseButton = styled.button`
   color: ${color.textSecondary};
   cursor: pointer;
   transition: color ${motion.fast} ${motion.ease};
+
+  /*
+   * 제목(SideDrawerTitle)은 헤딩 서체라 잉크 중심이 라인박스 중심보다 위에 있다 — 헤드 줄이
+   * align-items: center 인데도 X 가 제목 한가운데보다 2.0px 아래에 앉아 있었다(2026-07-30 실측).
+   * 보정 기준은 X 자신이 아니라 **제목 글자 크기**다.
+   */
+  ${iconOpticalAlign('display', font.size.lg)}
 
   ${hitAreaWithin(space[3])}
 

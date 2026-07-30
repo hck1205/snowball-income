@@ -11,8 +11,8 @@ import { DIVIDEND_UNIVERSE } from '@/shared/constants/presets';
 
 const entry = (ticker: string, months: number[] | null, name = `${ticker} 이름`): CalendarTickerEntry =>
   months === null
-    ? { ticker, name, hasSchedule: false }
-    : { ticker, name, hasSchedule: true, payoutMonths: months, source: 'pay' };
+    ? { ticker, name, hasSchedule: false, isNonDividend: false }
+    : { ticker, name, hasSchedule: true, isNonDividend: false, payoutMonths: months, source: 'pay' };
 
 describe('getCalendarUniverse', () => {
   it('프리셋 유니버스의 모든 종목을 티커 알파벳순으로 돌려준다', () => {

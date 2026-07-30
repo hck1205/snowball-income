@@ -70,8 +70,8 @@ describe('PDF 리포트 게이트 — 비활성 사유는 뭉뚱그려지지 않
     await openMenu();
 
     expect(screen.getByRole('menuitem', { name: /PDF 리포트 저장/ })).toBeDisabled();
-    expect(screen.getByText('포트폴리오를 구성하면 리포트를 만들 수 있어요')).toBeInTheDocument();
-    expect(screen.queryByText('입력값 오류를 수정하면 리포트를 만들 수 있어요')).not.toBeInTheDocument();
+    expect(screen.getByText('포트폴리오를 구성하면 리포트를 만들 수 있습니다')).toBeInTheDocument();
+    expect(screen.queryByText('입력값 오류를 수정하면 리포트를 만들 수 있습니다')).not.toBeInTheDocument();
   });
 
   it('종목은 있는데 입력값이 잘못되면 "입력값 오류를 수정하면" 사유로 비활성이다', async () => {
@@ -79,16 +79,16 @@ describe('PDF 리포트 게이트 — 비활성 사유는 뭉뚱그려지지 않
     await openMenu();
 
     expect(screen.getByRole('menuitem', { name: /PDF 리포트 저장/ })).toBeDisabled();
-    expect(screen.getByText('입력값 오류를 수정하면 리포트를 만들 수 있어요')).toBeInTheDocument();
-    expect(screen.queryByText('포트폴리오를 구성하면 리포트를 만들 수 있어요')).not.toBeInTheDocument();
+    expect(screen.getByText('입력값 오류를 수정하면 리포트를 만들 수 있습니다')).toBeInTheDocument();
+    expect(screen.queryByText('포트폴리오를 구성하면 리포트를 만들 수 있습니다')).not.toBeInTheDocument();
   });
 
   it('둘 다 문제면 먼저 해야 할 일(포트폴리오 구성)을 말한다', async () => {
     renderMenu({ hasPortfolio: false, isFormValid: false });
     await openMenu();
 
-    expect(screen.getByText('포트폴리오를 구성하면 리포트를 만들 수 있어요')).toBeInTheDocument();
-    expect(screen.queryByText('입력값 오류를 수정하면 리포트를 만들 수 있어요')).not.toBeInTheDocument();
+    expect(screen.getByText('포트폴리오를 구성하면 리포트를 만들 수 있습니다')).toBeInTheDocument();
+    expect(screen.queryByText('입력값 오류를 수정하면 리포트를 만들 수 있습니다')).not.toBeInTheDocument();
   });
 
   it('포트폴리오가 있고 입력이 유효하면 활성이고 사유 문구가 없다', async () => {
@@ -96,6 +96,6 @@ describe('PDF 리포트 게이트 — 비활성 사유는 뭉뚱그려지지 않
     await openMenu();
 
     expect(screen.getByRole('menuitem', { name: /PDF 리포트 저장/ })).toBeEnabled();
-    expect(screen.queryByText(/리포트를 만들 수 있어요/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/리포트를 만들 수 있습니다/)).not.toBeInTheDocument();
   });
 });

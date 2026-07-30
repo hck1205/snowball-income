@@ -201,7 +201,7 @@ export default function PresetFilterDrawer({
               <ResultCount aria-live="polite">결과 {resultCount}개</ResultCount>
             ) : (
               <EmptyNote aria-live="polite">
-                조건에 맞는 티커가 없어요. 필터를 완화하거나 초기화해 주세요.
+                조건에 맞는 티커가 없습니다. 필터를 완화하거나 초기화해 주세요.
               </EmptyNote>
             )}
             <ResetButton type="button" onClick={reset}>
