@@ -92,7 +92,8 @@ export default function PostRow({ item, simSummary }: PostRowProps) {
         </RowSubInfo>
       </RowBody>
       {simSummary ? (
-        <RowStats>
+        // data-feed-hero: 행이 hover 규칙으로 이 숫자 칩을 집는 손잡이(FeedSurface.FEED_HERO_ATTR).
+        <RowStats data-feed-hero="">
           <SimSummaryStats variant="row" summary={simSummary} />
         </RowStats>
       ) : null}

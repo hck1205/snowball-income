@@ -34,12 +34,16 @@ export const HeroLabel = styled.span`
 /**
  * hero 값 — 방향 없는 결과치라 무채색으로 선다(§F1). 초고액("1,234.5억") 방어로 한 줄 유지 +
  * 넘치면 말줄임(§5) — block이어야 max-width/ellipsis가 먹는다.
+ *
+ * 크기가 `4xl`(30px)인 이유: 갤러리는 **카드를 훑어 고르는 지면**이고 그 비교 축이 이 숫자
+ * 하나다(구 3xl=24px 에서 한 단계 올렸다). 리스트 행은 밀도가 달라 `RowHero`(xl=18px)를 그대로
+ * 유지한다 — 재질은 공유하되 밀도는 나눈다.
  */
 export const HeroValue = styled.strong`
   display: block;
   max-width: 100%;
   color: ${color.text};
-  font-size: ${font.size['3xl']};
+  font-size: ${font.size['4xl']};
   font-weight: ${font.weight.extrabold};
   line-height: ${font.leading.tight};
   letter-spacing: -0.02em;

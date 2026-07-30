@@ -1,21 +1,33 @@
 import styled from '@emotion/styled';
 import { Link } from 'react-router-dom';
-import { color, font, motion, radius, shadow, space } from '@/shared/styles';
+import { color, font, motion, shadow, space } from '@/shared/styles';
+import {
+  FEED_INNER_RADIUS,
+  FEED_PADDING,
+  FEED_RADIUS,
+  FEED_SHADOW,
+  feedHeroHover,
+  feedRail
+} from '@/components/community/FeedSurface';
 
 /**
  * velog 글 카드 — 프리뷰 없이 제목부터 시작하는 콘텐츠 카드.
  * border 없이 그림자 + 서피스 밝기 사다리로 뜬다(전 프리셋 bg≠surface 실측 검증).
- * radius.xs(4px)는 의도적 — 도구 카드(radius.lg)와 구분되는 "콘텐츠 카드" 형태.
  * focus 링은 전역 a:focus-visible 규칙을 그대로 쓴다(여기서 outline을 건드리지 않는다).
+ *
+ * 반경·평상시 그림자는 `FeedSurface` 에서 온다 — **리스트 행(PostRow)과 같은 재질을 쓰기 위해서다**
+ * (갤러리 우상단 토글이 이 둘을 왕복한다). 구 주석의 "radius.xs(4px)는 의도적 — 도구 카드와
+ * 구분되는 콘텐츠 카드 형태"는 2026-07-30 사용자 신고("프리뷰 면이 직각으로 읽힌다")로 폐기됐고,
+ * 지금은 동심 규칙에서 역산한 24px 이다(`FeedSurface.ts` 의 `FEED_RADIUS`).
  */
 export const CardLink = styled(Link)`
   display: flex;
   flex-direction: column;
   min-width: 0;
-  padding: ${space[4]} ${space[4]} 0; /* 하단 0 — 푸터가 자체 패딩을 갖는다 */
-  border-radius: ${radius.xs};
+  padding: ${FEED_PADDING} ${FEED_PADDING} 0; /* 하단 0 — 푸터가 자체 패딩을 갖는다 */
+  border-radius: ${FEED_RADIUS};
   background: ${color.surface};
-  box-shadow: ${shadow.e1};
+  box-shadow: ${FEED_SHADOW};
   overflow: hidden;
   text-decoration: none;
   color: inherit;
@@ -24,6 +36,9 @@ export const CardLink = styled(Link)`
   &:hover {
     box-shadow: ${shadow.e3};
   }
+
+  /* 숫자 판의 hover 반응(면색 + 캡슐 두께). 캡슐이 없는 안에서는 전부 no-op 이다. */
+  ${feedHeroHover}
 
   /*
    * 들어올림은 **진짜 포인터가 있을 때만**.
@@ -45,19 +60,27 @@ export const CardLink = styled(Link)`
 `;
 
 /**
- * 시뮬 프리뷰 블록(스펙 §E2) — velog 썸네일 슬롯에 숫자를 얹는다. CardLink의 패딩을 음수 마진으로
- * 상쇄해 full-bleed. 조용한 판(surfaceSunken) 위에 숫자가 색 없이 서게 한다 — 그라데이션·brand 채움 금지.
- * hover 시 블록 자체는 그대로(카드 전체의 그림자/이동만 반응한다).
+ * 시뮬 프리뷰 블록(스펙 §E2) — velog 썸네일 슬롯에 숫자를 얹는다. 조용한 판(surfaceSunken) 위에
+ * 숫자가 색 없이 서게 한다 — **그라데이션·brand 채움 금지**(확정 규칙, 여기 색을 넣지 마라).
+ *
+ * **카드 패딩 안의 인셋 타일**이다(구 full-bleed 폐기). DESIGN.md §6 동심 라운드가 이 형태를
+ * 정한다: 타일이 자기 반경 8px(`FEED_INNER_RADIUS`)을 갖고, 바깥(카드)이 `8 + 16 = 24px` 로
+ * 커진다. 인셋되면 카드 여백이 본문과의 분리를 대신하므로 **하단 hairline 은 없다** —
+ * 남기면 여백과 선이 두 겹으로 읽힌다.
+ *
+ * `position: relative` 는 좌측 오로라 캡슐(`feedRail`)의 기준면이다.
  */
 export const PreviewBlock = styled.div`
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: center;
   min-height: 132px;
-  margin: -${space[4]} -${space[4]} ${space[3]};
-  padding: ${space[4]};
+  margin: 0 0 ${space[3]};
+  padding: ${space[3]} ${space[4]};
+  border-radius: ${FEED_INNER_RADIUS};
   background: ${color.surfaceSunken};
-  border-bottom: 1px solid ${color.border};
+  ${feedRail}
 `;
 
 export const CardTitle = styled.h3`
