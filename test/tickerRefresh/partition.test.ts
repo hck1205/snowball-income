@@ -1,3 +1,4 @@
+// @vitest-environment node — DOM 을 쓰지 않는 순수 테스트 (기준: vitest.config.ts)
 import { describe, expect, it } from 'vitest';
 import { BUCKET_COUNT, partitionTickers, tickersInBucket } from '@/scripts/tickerRefresh';
 import { CURATED_DIVIDEND_UNIVERSE } from '@/shared/constants/presets';

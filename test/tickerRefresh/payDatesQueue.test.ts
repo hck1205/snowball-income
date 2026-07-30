@@ -1,3 +1,4 @@
+// @vitest-environment node — DOM 을 쓰지 않는 순수 테스트 (기준: vitest.config.ts)
 import { describe, expect, it } from 'vitest';
 import { isKnownTicker, prioritize, rotationDayOf } from '@/scripts/tickerRefresh';
 import type { MarketDataSnapshotEntry } from '@/shared/constants/marketData';

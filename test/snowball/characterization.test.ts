@@ -1,3 +1,4 @@
+// @vitest-environment node — DOM 을 쓰지 않는 순수 테스트 (기준: vitest.config.ts)
 import { runSimulation, toSimulationInput } from '@/shared/lib/snowball';
 import type { SimulationOutput } from '@/shared/types';
 import goldenFixture from './characterization.golden.json';

@@ -1,3 +1,4 @@
+// @vitest-environment node — DOM 을 쓰지 않는 순수 테스트 (기준: vitest.config.ts)
 import { describe, expect, it } from 'vitest';
 import type { DisplayCurrencyView } from '@/jotai';
 import { buildAmountHint } from '@/components/InvestmentSettings/InvestmentSettings.utils';
