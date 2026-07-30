@@ -34,15 +34,15 @@ export type PdfReportFailure = {
 
 const FAILURE_COPY: Record<PdfReportFailureReason, PdfReportFailure> = {
   'report-unavailable': {
-    message: '이 시나리오로는 리포트를 만들 수 없어요. 포트폴리오와 투자 조건을 확인해 주세요.',
+    message: '이 시나리오로는 리포트를 만들 수 없습니다. 포트폴리오와 투자 조건을 확인해 주세요.',
     canRetry: false
   },
   'render-failed': {
-    message: '리포트를 만들지 못했어요. 잠시 후 다시 시도해 주세요.',
+    message: '리포트를 만들지 못했습니다. 잠시 후 다시 시도해 주세요.',
     canRetry: true
   },
   unknown: {
-    message: '리포트를 만들지 못했어요. 잠시 후 다시 시도해 주세요.',
+    message: '리포트를 만들지 못했습니다. 잠시 후 다시 시도해 주세요.',
     canRetry: true
   }
 };

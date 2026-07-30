@@ -22,9 +22,9 @@ export const ALLOCATION_COPY = {
 
   /* 비활성 사유 힌트 (우선순위로 하나만 노출) */
   /** 화면에 보이는 스위치 라벨(lockToggleShortLabel)을 그대로 인용한다 — 라벨을 바꾸면 이 문장도 함께 고칠 것. */
-  hintLocked: "비중 조절이 잠겨 있어요. 오른쪽 위 '잠금' 스위치를 끄면 드래그할 수 있어요.",
-  hintOneAdjustable: '다른 종목이 고정돼 조절할 여지가 없어요. 고정을 풀면 다시 드래그할 수 있어요.',
-  hintSingleTicker: '종목이 하나뿐이라 비중은 100%예요.',
+  hintLocked: "비중 조절이 잠겨 있습니다. 오른쪽 위 '잠금' 스위치를 끄면 드래그할 수 있습니다.",
+  hintOneAdjustable: '다른 종목이 고정돼 조절할 여지가 없습니다. 고정을 풀면 다시 드래그할 수 있습니다.',
+  hintSingleTicker: '종목이 하나뿐이라 비중은 100%입니다.',
 
   /* '고정 전체 해제' 단축 액션 */
   clearAllFixedLabel: '고정 전체 해제',

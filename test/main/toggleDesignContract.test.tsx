@@ -85,7 +85,7 @@ describe('ALLOCATION_COPY — 잠금 힌트 정본', () => {
    */
   it('hintLocked 는 디자이너 확정 풀 문장 그대로다', () => {
     expect(ALLOCATION_COPY.hintLocked).toBe(
-      "비중 조절이 잠겨 있어요. 오른쪽 위 '잠금' 스위치를 끄면 드래그할 수 있어요."
+      "비중 조절이 잠겨 있습니다. 오른쪽 위 '잠금' 스위치를 끄면 드래그할 수 있습니다."
     );
   });
 
@@ -261,7 +261,7 @@ const renderProjectionPanel = async (onAssetViewChange = vi.fn()) => {
         title="투자 종료 후 추정"
         rows={projectionRows}
         hasData
-        emptyMessage="데이터가 없어요."
+        emptyMessage="데이터가 없습니다."
         projectionYears={10}
         onProjectionYearsChange={vi.fn()}
         isAssetView={false}

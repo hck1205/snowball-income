@@ -20,7 +20,7 @@ function PresetApplyModal({ modalRoot, presetTitle, onCancel, onConfirm }: Prese
     >
       <ModalPanel>
         <ModalTitle>프리셋 적용</ModalTitle>
-        <ModalBody>“{presetTitle}” 프리셋으로 포트폴리오를 구성할까요?</ModalBody>
+        <ModalBody>“{presetTitle}” 프리셋으로 포트폴리오를 구성하시겠습니까?</ModalBody>
         <ModalActions>
           <Button variant="secondary" type="button" onClick={onCancel}>
             취소

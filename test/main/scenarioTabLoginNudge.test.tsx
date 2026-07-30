@@ -72,7 +72,7 @@ describe('비로그인 1탭 게이트 (MainRightPanel)', () => {
     // 로그인 유도 프롬프트가 뜬다.
     const dialog = screen.getByRole('dialog', { name: '로그인 유도' });
     expect(dialog).toHaveTextContent('탭을 더 만들려면 로그인하세요');
-    expect(dialog).toHaveTextContent('데이터가 사라지지 않아요');
+    expect(dialog).toHaveTextContent('데이터가 사라지지 않습니다');
     expect(dialog).toHaveTextContent('함께 동기화');
   });
 

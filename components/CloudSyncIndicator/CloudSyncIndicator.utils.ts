@@ -31,7 +31,7 @@ export type CloudSyncDescription = {
  * 클라우드 동기화 상태 → 표시 서술. **순수 함수**(now 주입으로 결정적 테스트).
  *
  * idle은 §8.3의 4상태에 없지만 실제로 발생한다(첫 렌더 / 비로그인 skip 직후). 이 앱은 local-first라
- * "이 기기에 저장돼요"가 정직한 기본 문장이다 — 클라우드를 약속하지 않는다.
+ * "이 기기에 저장됩니다"가 정직한 기본 문장이다 — 클라우드를 약속하지 않는다.
  */
 export const describeCloudSyncState = (
   state: CloudSyncState,
@@ -56,7 +56,7 @@ export const describeCloudSyncState = (
         tone: 'success',
         glyph: 'check',
         shortLabel: `저장됨 · ${when}`,
-        sentence: `모든 변경사항이 저장됐어요 · ${when}`,
+        sentence: `모든 변경사항이 저장됐습니다 · ${when}`,
         canRetry: false
       };
     }
@@ -66,7 +66,7 @@ export const describeCloudSyncState = (
         tone: 'muted',
         glyph: 'offline',
         shortLabel: '오프라인',
-        sentence: '오프라인 — 이 기기에는 저장돼요. 연결되면 자동으로 올라가요.',
+        sentence: '오프라인 — 이 기기에는 저장됩니다. 연결되면 자동으로 올라갑니다.',
         canRetry: false
       };
     case 'error':
@@ -75,7 +75,7 @@ export const describeCloudSyncState = (
         tone: 'danger',
         glyph: 'alert',
         shortLabel: '저장 실패',
-        sentence: '클라우드 저장에 실패했어요 — 이 기기에는 저장돼 있어요.',
+        sentence: '클라우드 저장에 실패했습니다 — 이 기기에는 저장돼 있습니다.',
         canRetry: true
       };
     case 'conflict':
@@ -89,7 +89,7 @@ export const describeCloudSyncState = (
         glyph: 'conflict',
         shortLabel: '동기화 보류',
         detailLabel: '확인 필요',
-        sentence: '이 기기와 클라우드 내용이 달라요 — 어느 쪽으로 맞출지 확인이 필요해요.',
+        sentence: '이 기기와 클라우드 내용이 다릅니다 — 어느 쪽으로 맞출지 확인이 필요합니다.',
         canRetry: false
       };
     case 'idle':
@@ -99,7 +99,7 @@ export const describeCloudSyncState = (
         tone: 'neutral',
         glyph: 'device',
         shortLabel: '이 기기에 저장됨',
-        sentence: '이 기기에 저장돼요. 로그인하면 다른 기기에서도 이어서 볼 수 있어요.',
+        sentence: '이 기기에 저장됩니다. 로그인하면 다른 기기에서도 이어서 볼 수 있습니다.',
         canRetry: false
       };
   }

@@ -49,26 +49,26 @@ describe('더보기 메뉴 — PDF 리포트 상태', () => {
     render(
       <HeaderOverflowMenu
         showPdfReport
-        pdfReport={pdfReportProps({ blockedReason: '포트폴리오를 구성하면 리포트를 만들 수 있어요' })}
+        pdfReport={pdfReportProps({ blockedReason: '포트폴리오를 구성하면 리포트를 만들 수 있습니다' })}
       />
     );
     await openMenu();
 
     const item = screen.getByRole('menuitem', { name: /PDF 리포트 저장/ });
     expect(item).toBeDisabled();
-    expect(screen.getByText('포트폴리오를 구성하면 리포트를 만들 수 있어요')).toBeInTheDocument();
+    expect(screen.getByText('포트폴리오를 구성하면 리포트를 만들 수 있습니다')).toBeInTheDocument();
   });
 
   it('입력값 오류 사유는 포트폴리오 비었음과 다른 문구다', async () => {
     render(
       <HeaderOverflowMenu
         showPdfReport
-        pdfReport={pdfReportProps({ blockedReason: '입력값 오류를 수정하면 리포트를 만들 수 있어요' })}
+        pdfReport={pdfReportProps({ blockedReason: '입력값 오류를 수정하면 리포트를 만들 수 있습니다' })}
       />
     );
     await openMenu();
 
-    expect(screen.getByText('입력값 오류를 수정하면 리포트를 만들 수 있어요')).toBeInTheDocument();
+    expect(screen.getByText('입력값 오류를 수정하면 리포트를 만들 수 있습니다')).toBeInTheDocument();
   });
 
   it('생성 중에는 라벨이 바뀌고 메뉴가 닫히지 않는다', async () => {
@@ -87,14 +87,14 @@ describe('더보기 메뉴 — PDF 리포트 상태', () => {
       <HeaderOverflowMenu
         showPdfReport
         pdfReport={pdfReportProps({
-          failure: { message: '리포트를 만들지 못했어요. 잠시 후 다시 시도해 주세요.', canRetry: true },
+          failure: { message: '리포트를 만들지 못했습니다. 잠시 후 다시 시도해 주세요.', canRetry: true },
           onDownload
         })}
       />
     );
     const user = await openMenu();
 
-    expect(screen.getByRole('alert')).toHaveTextContent('리포트를 만들지 못했어요.');
+    expect(screen.getByRole('alert')).toHaveTextContent('리포트를 만들지 못했습니다.');
     await user.click(screen.getByRole('button', { name: '다시 시도' }));
 
     expect(onDownload).toHaveBeenCalled();
@@ -108,7 +108,7 @@ describe('더보기 메뉴 — PDF 리포트 상태', () => {
         showPdfReport
         pdfReport={pdfReportProps({
           failure: {
-            message: '이 시나리오로는 리포트를 만들 수 없어요. 포트폴리오와 투자 조건을 확인해 주세요.',
+            message: '이 시나리오로는 리포트를 만들 수 없습니다. 포트폴리오와 투자 조건을 확인해 주세요.',
             canRetry: false
           }
         })}
@@ -116,7 +116,7 @@ describe('더보기 메뉴 — PDF 리포트 상태', () => {
     );
     await openMenu();
 
-    expect(screen.getByRole('alert')).toHaveTextContent('이 시나리오로는 리포트를 만들 수 없어요.');
+    expect(screen.getByRole('alert')).toHaveTextContent('이 시나리오로는 리포트를 만들 수 없습니다.');
     expect(screen.queryByRole('button', { name: '다시 시도' })).not.toBeInTheDocument();
   });
 

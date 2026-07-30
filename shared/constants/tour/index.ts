@@ -49,7 +49,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
   {
     id: 'open-settings',
     target: TOUR_TARGET.openSettings,
-    title: '설정은 이 버튼 안에 있어요',
+    title: '설정은 이 버튼 안에 있습니다',
     body: '종목 추가·투자 조건·공유가 모두 이 버튼 뒤에 있습니다. 투어를 마친 뒤 눌러서 열어보세요.',
     placement: 'bottom'
   },
@@ -63,7 +63,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
   {
     id: 'portfolio-presets',
     target: TOUR_TARGET.portfolioPresets,
-    title: '추천 포트폴리오로 시작해도 좋아요',
+    title: '추천 포트폴리오로 시작해도 좋습니다',
     body: '무엇부터 할지 모르겠다면 추천 포트폴리오를 하나 고르세요. 종목과 비중, 투자 설정이 한 번에 채워집니다. 채워진 값은 언제든 투자 설정에서 바꿀 수 있습니다.',
     placement: 'left'
   },

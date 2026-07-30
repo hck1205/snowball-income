@@ -42,9 +42,9 @@ export const DISPLAY_CURRENCY_COPY = {
   /** {rate}=1,478 {asOf}=2026-07-23 */
   basisUsd: '달러 표시 · 1달러 = {rate}원 ({asOf} 기준)',
   basisUsdStale: '달러 표시 · 1달러 = {rate}원 ({asOf} 기준 · 최신 환율 업데이트 실패)',
-  reasonLoading: '환율을 불러오는 중이에요 · 잠시 후 달러로 바꿀 수 있어요',
-  reasonUnavailable: '환율을 불러오지 못해 지금은 달러로 표시할 수 없어요',
-  reasonFallback: '환율을 불러오지 못해 원화로 표시하고 있어요',
+  reasonLoading: '환율을 불러오는 중입니다 · 잠시 후 달러로 바꿀 수 있습니다',
+  reasonUnavailable: '환율을 불러오지 못해 지금은 달러로 표시할 수 없습니다',
+  reasonFallback: '환율을 불러오지 못해 원화로 표시하고 있습니다',
   /** 차트 `aria-label` 접미 — 시각적으로 안 보이는 통화 전환을 스크린리더에도 알린다. */
   chartSuffixUsd: ' (달러 표시)'
 } as const;

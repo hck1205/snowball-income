@@ -129,7 +129,7 @@ function ScenarioTabs({
         <ScenarioTabButton
           type="button"
           aria-label="새 포트폴리오 탭 추가"
-          title={requiresLoginToCreateTab ? '로그인하면 탭을 더 만들 수 있어요' : undefined}
+          title={requiresLoginToCreateTab ? '로그인하면 탭을 더 만들 수 있습니다' : undefined}
           onClick={onCreateTab}
         >
           +
