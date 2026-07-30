@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, motion, radius, space } from '@/shared/styles';
+import { color, font, iconOpticalAlign, motion, radius, space } from '@/shared/styles';
 
 /* 좌우 버튼·월 제목을 달력 폭의 정중앙에(사용자 결정 2026-07-25). "이번 달" 버튼은 흐름 그대로 우측. */
 export const ToolbarRoot = styled.div`
@@ -11,12 +11,18 @@ export const ToolbarRoot = styled.div`
   position: relative;
 `;
 
+/**
+ * 월 제목의 크기. 상수로 뽑은 이유는 아래 `NavButton` 의 광학 보정이 **이 값을 기준으로** 계산되기
+ * 때문이다 — 두 곳에 따로 적으면 한쪽만 바뀌었을 때 정렬이 조용히 틀어진다.
+ */
+const MONTH_TITLE_FONT_SIZE = `clamp(${font.size.xl}, 3vw, ${font.size['2xl']})`;
+
 /** `min-width`+가운데 정렬로 폭을 고정한다 — 월을 넘길 때마다 제목 폭이 흔들리면 버튼이 좌우로 뛴다. */
 export const MonthTitle = styled.h2`
   margin: 0;
   min-width: 9ch;
   text-align: center;
-  font-size: clamp(${font.size.xl}, 3vw, ${font.size['2xl']});
+  font-size: ${MONTH_TITLE_FONT_SIZE};
   font-weight: ${font.weight.extrabold};
   letter-spacing: -0.02em;
   color: ${color.text};
@@ -30,7 +36,13 @@ export const NavButton = styled.button`
   justify-content: center;
   width: 40px;
   height: 40px;
-  flex: 0 0 auto;
+
+  /*
+   * 제목(h2 = 헤딩 서체)의 **잉크 중심**에 맞춘다. 한글은 디센더가 거의 없는데 폰트가 디센더
+   * 공간을 크게 잡아 라인박스 중심이 잉크 중심보다 아래에 있고, 그래서 'align-items: center'
+   * 만으로는 버튼이 낮게 앉는다(실측 +2.56px@1280 / +2.41px@390).
+   */
+  ${iconOpticalAlign('display', MONTH_TITLE_FONT_SIZE)}
   border: 1px solid ${color.border};
   border-radius: ${radius.pill};
   background: ${color.surface};

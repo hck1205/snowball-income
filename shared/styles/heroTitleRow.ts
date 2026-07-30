@@ -43,48 +43,69 @@ export const sectionTitleFontSize = `clamp(${font.size.lg}, calc(0.86rem + 0.56v
 /* -------------------------------------------------------------------------- */
 
 /**
- * 라인박스 중심 ↔ 글자 잉크 중심의 어긋남(글자 크기 대비 비율). 아이콘을 이만큼 **위로** 올린다.
+ * **서체 역할 → "잉크 중심이 라인박스 중심보다 얼마나 위인가"(글자 크기 대비 비율).**
  *
- * 🔴 **헤딩 서체(`font.display`) 전용 상수다. 본문 서체에 쓰면 오히려 틀어진다** — 아래 실측 참고.
+ * 한 줄에 글자와 다른 것(아이콘·버튼·구분선·배지)이 섞이면 `align-items: center` 는 **라인박스**를
+ * 기준으로 맞춘다. 그런데 사람 눈이 "가운데"로 보는 것은 **잉크**다. 둘이 어긋난 만큼 옆에 선
+ * 형제가 낮게(또는 높게) 앉아 보인다 — 정렬 선언이 옳아도 화면은 틀린다.
  *
  * 왜 어긋나는가: 한글에는 사실상 디센더가 없는데 폰트 메타데이터는 디센더 공간을 크게 잡는다
  * (`font.display` = 원본 Gmarket Sans 의 OS/2 `usWinDescent` 350, 그리고 **Chrome/Windows 는 이 win
- * 메트릭을 콘텐츠 영역으로 쓴다**). 그래서 라인박스 중심이 잉크 중심보다 아래에 있고,
- * `align-items: center` 로 정확히 정렬해도 아이콘이 그만큼 낮게 앉아 보인다.
+ * 메트릭을 콘텐츠 영역으로 쓴다**).
  *
  * 🔴 **`line-height` 로는 못 고친다** — 콘텐츠 영역의 중심은 (ascent−descent)/2 로 정해져
  * `line-height` 와 무관하다. 늘리면 위아래로 같이 벌어질 뿐 중심은 그대로다.
  *
- * **실측(2026-07-30, 헤드리스 크롬 + `TextMetrics`, `Snowball Display` 800 / 30px).** 실제 히어로
- * 제목 7개로 잰 어긋남: 목표 달성 0.0875 · 내 포트폴리오/포트폴리오 갤러리/게시판 0.0953 ·
- * 배당 재투자 시뮬레이터/ETF 소개 0.1031 · 배당 캘린더 0.1187 → **평균 0.0997**. 문자열마다
- * 잉크 디센트가 달라 ±0.015em 폭으로 흔들리므로 한 값으로 고정하는 편이 옳고, `0.1` 이 그 평균이다
- * (덤으로 히어로 clamp 양 끝 20px·30px 에서 정확히 2px·3px 이라 배지 테두리가 반픽셀에 안 걸린다).
+ * 🔴 **역할마다 값이 다르고 부호까지 다르다. 한 상수를 전 화면에 뿌리면 지금 옳은 자리를 망친다.**
+ * 실측(2026-07-30, 헤드리스 크롬 150 + `TextMetrics`, 실제 로드된 웹폰트, 문자열 5종):
  *
- * ⚠ **헤딩 서체를 바꾸면 다시 재야 한다.** 재는 법(눈대중 금지): 헤드리스 크롬 + CDP 로
- * `measureText` 의 `fontBoundingBoxAscent/Descent`(라인박스 중심)와
- * `actualBoundingBoxAscent/Descent`(잉크 중심)를 구해 차를 본다 —
+ * | 역할 | (잉크 중심 − 라인박스 중심)/em | 판정 |
+ * |---|---|---|
+ * | `font.display` (Gmarket) | +0.072 ~ +0.134, 평균 **+0.100** | 보정한다 |
+ * | `font.sans` (Wanted) | −0.028 ~ +0.003 | **보정하지 않는다** |
+ * | `font.heroNumeric` (LINE Seed) | −0.030 ~ −0.132, 한글 **−0.061** | 반대 방향 |
+ * | `font.dataNumeric` (Inter) | −0.037 ~ +0.010 | **보정하지 않는다** |
+ *
+ * ⚠ **재려면 큰 크기에서 재라.** Chrome 은 `actualBoundingBox*` 를 **정수 픽셀로 반올림**해서
+ * 13px 에서 잰 값은 ±0.04em 짜리 가짜 어긋남을 만든다(400px 에서 재면 ±0.00125em). 재는 식:
  * `shift = (actualAsc − actualDesc)/2 − (fontAsc − fontDesc)/2`, 전부 글자 크기로 나눈 값.
+ *
+ * ⚠ 같은 서체라도 **문자열마다 ±0.03em 흔들린다**(잉크 자체가 글자에 따라 다르다). 어떤 방식으로도
+ * 0 으로 만들 수 없는 몫이라 역할마다 **한 값**으로 고정하는 편이 옳다.
  */
-const DISPLAY_ICON_OPTICAL_SHIFT = 0.1;
+const INK_ABOVE_LINE_BOX = {
+  display: 0.1,
+  sans: 0,
+  heroNumeric: -0.06,
+  dataNumeric: 0
+} as const;
+
+/** 위 표의 서체 역할. `shared/styles/tokens.ts` 의 `font.*` 이름과 1:1 이다. */
+export type TextInkRole = keyof typeof INK_ABOVE_LINE_BOX;
 
 /**
- * **한 줄** 조합(헤딩 + 그 옆 아이콘)의 아이콘 보정. 부모는 `align-items: center` 여야 한다.
+ * **한 줄** 조합에서 글자 옆에 서는 형제(아이콘·아이콘 버튼·구분선·배지·체크박스)를 글자의
+ * **잉크 중심**에 맞춘다. 부모는 `align-items: center` 여야 한다.
  *
- * 🔴 **헤딩 서체(`font.display`)로 그린 글자 옆에서만 쓴다.** 본문 서체(`font.sans` = Wanted Sans)는
- * 라인박스 중심과 잉크 중심이 사실상 같아(실측 ±0.004em) 보정이 필요 없다 — 거기에 이 유틸을 쓰면
- * 없던 오차 1.2px 을 만든다(아래 `iconFirstLineAlign` 주석의 실측표).
+ * 어느 자리에 무엇을 적을지 고민하지 않게 하려고 **역할을 받는다** — 보정이 필요 없는 역할
+ * (`sans`·`dataNumeric`)에는 `transform` 을 **아예 내보내지 않는다**. 불필요한 보정은 그 자체로
+ * 결함이고(본문 서체에 헤딩 상수를 쓰면 없던 오차 1.2px 이 생긴다), 빈 `transform` 은 합성 레이어를
+ * 공짜로 만들지 않기 위해서다.
  *
- * `textFontSize` 는 **글자 크기**를 넘긴다 — 아이콘 자신의 `em` 으로 쓰면 안 된다(아이콘 폰트 크기와
- * 제목 폰트 크기는 대개 다르다. 히어로에서 배지 16px vs 제목 30px).
+ * `textFontSize` 는 **글자 크기**를 넘긴다 — 형제 자신의 `em` 으로 쓰면 안 된다(아이콘 16px vs
+ * 제목 30px 처럼 대개 다르다).
  */
-export const iconOpticalAlign = (textFontSize: string) => `
+export const iconOpticalAlign = (role: TextInkRole, textFontSize: string) => {
+  const shift = INK_ABOVE_LINE_BOX[role];
+  if (shift === 0) return `flex: 0 0 auto;`;
+  return `
   flex: 0 0 auto;
-  transform: translateY(calc(${textFontSize} * -${DISPLAY_ICON_OPTICAL_SHIFT}));
+  transform: translateY(calc(${textFontSize} * ${-shift}));
 `;
+};
 
-/** 히어로 제목 옆 아이콘 배지 — 위 유틸을 히어로 제목 크기로 적용한 것. */
-export const heroIconOpticalAlign = iconOpticalAlign(heroTitleFontSize);
+/** 히어로 제목 옆 아이콘 배지 — 위 유틸을 헤딩 서체 · 히어로 제목 크기로 적용한 것. */
+export const heroIconOpticalAlign = iconOpticalAlign('display', heroTitleFontSize);
 
 /**
  * **여러 줄** 조합(아이콘 + 여러 줄 설명문)의 아이콘 보정.
@@ -96,7 +117,7 @@ export const heroIconOpticalAlign = iconOpticalAlign(heroTitleFontSize);
  * 손으로 `margin-top: 2px` 를 적어 두던 자리를 대신한다. 그 상수는 어느 글자 크기·행간에서 잰
  * 값인지 아무도 모르고, 크기가 바뀌면 조용히 틀려진다.
  *
- * 🔴 **잉크 보정(`DISPLAY_ICON_OPTICAL_SHIFT`)을 여기에 쓰지 마라 — 2026-07-30 실측으로 걷어냈다.**
+ * 🔴 **잉크 보정(`INK_ABOVE_LINE_BOX`)을 여기에 쓰지 마라 — 2026-07-30 실측으로 걷어냈다.**
  * 이 유틸의 소비처는 전부 **본문 서체**(`font.sans` = Wanted Sans, 12px/1.4)인데 그 서체는
  * 라인박스 중심과 잉크 중심이 사실상 겹친다(실측 어긋남 **±0.0039em ≈ 0.05px @12px**,
  * `fontBoundingBox 0.952/0.241` vs `actualBoundingBox 0.797/0.094`). 헤딩 서체의 0.1em 을 그대로
