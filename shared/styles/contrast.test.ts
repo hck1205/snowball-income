@@ -115,11 +115,25 @@ const TEXT_ON_SURFACE: ReadonlyArray<[string, string]> = [
   ['text-muted', 'surface'],
   ['text-muted', 'surface-muted'],
   ['text-muted', 'surface-sunken'],
-  // 브랜드 서피스(brand-subtle) 위의 텍스트 — 배너/칩이 여기에 해당한다
+  // 브랜드 서피스(brand-subtle) 위의 텍스트 — 칩·활성 상태가 여기에 해당한다
   ['text', 'brand-subtle'],
   ['text-secondary', 'brand-subtle'],
   ['brand-text', 'brand-subtle'],
   ['brand-text', 'surface'],
+  /*
+   * 액센트 서피스(accent-subtle) 위의 본문 — 2026-07-31 에 소비처가 크게 늘었다.
+   * 정보 배너·히어로 카드·빈 상태가 brand-subtle 에서 accent-subtle 로 옮겨 갔는데
+   * (누를 수 없는 표면에 액션 축 색을 쓰지 않는다), 그때까지 이 목록에는 brand-subtle 쪽만
+   * 있어서 **새 조합이 어느 게이트도 받지 않고** 있었다. 대칭이 아니면 옮겨 간 쪽이 무방비다.
+   *
+   * ⚠ `text-muted` 는 **일부러 넣지 않는다.** 이 쌍은 velog 다크에서 4.04:1 로 AA 미달이고
+   * (`#868e96` on `#123243`, 2026-07-31 실측), 통과시키려면 액센트 면 색을 흔들어야 한다.
+   * 대신 **muted 를 액센트 면에 올리지 않기로** 정했다 — 위계는 크기(xs/sm)와 `text-secondary`
+   * 로 충분히 낮아진다. 히어로 메타 줄 4곳이 그 결정으로 `text-secondary` 가 됐다
+   * (`PageHero` `HeroMeta` · Portfolio·Calendar 의 `AsOfLine` · Calendar `HeroDisclaimer`).
+   * 새 자리에 muted 를 쓰고 싶으면 이 쌍을 여기 되살려 **먼저 빨갛게 만든 뒤** 색을 정하라.
+   */
+  ['text-secondary', 'accent-subtle'],
   // 솔리드 브랜드 버튼: 라벨 대 배경 (velog 다크는 어두운 라벨 #121212 — 방향 무관하게 4.5:1)
   ['on-brand', 'brand'],
   // 상태 서피스 위의 상태 텍스트
@@ -181,6 +195,30 @@ const HERO_TEXTS = ['text', 'text-secondary', 'text-muted'] as const;
  * 실측 최저 16.0(velog/dark) — 여유 1.0을 남긴 값으로 못 박는다.
  */
 const MIN_ACCENT_SEPARATION = 15;
+
+/**
+ * brand ↔ accent 는 **역할이 다르므로 값도 달라야 한다**(brand = 액션·인터랙션, accent = 정보 크롬).
+ *
+ * 이 게이트가 생긴 이유: 기본 프리셋 velog 가 accent 를 brand 의 사본으로 두고 있었다 —
+ * 라이트는 subtle/border/text 3토큰이 **문자열까지 동일**했고 다크는 accent 자체가 brand 와
+ * 완전히 같은 값(ΔE 0)이었다. 화면에 색이 부족한 게 아니라 **색이 하나뿐**이었다는 뜻이고,
+ * 대비 테스트 1,133건은 그것을 한 건도 잡지 못했다(각 색은 저마다 AA 를 만족했으므로).
+ *
+ * 두 겹으로 막는다:
+ *  ① 짝지어진 4토큰이 같은 문자열이면 실패 — 위 velog 라이트가 여기 걸린다.
+ *  ② 표시색 ΔE 하한 8 — 위 velog 다크(ΔE 0)가 여기 걸린다.
+ * 하한을 더 올리지 않는 이유는 **ink**다. 무채 프리셋이라 실측 최저가 10.6(ink/dark)이고,
+ * 그 무채는 사용자가 확정한 정체성이라 색을 넣을 수 없다. 8은 그 위에 여유를 남긴 값이다.
+ */
+const MIN_BRAND_ACCENT_SEPARATION = 8;
+
+/** brand ↔ accent 의 짝지어진 역할 슬롯. 같은 값이면 그 프리셋엔 액센트가 없는 것이다. */
+const BRAND_ACCENT_PAIRS: ReadonlyArray<[string, string]> = [
+  ['brand', 'accent'],
+  ['brand-text', 'accent-text'],
+  ['brand-subtle', 'accent-subtle'],
+  ['brand-border', 'accent-border']
+];
 
 /**
  * 워드마크 회귀 플로어 (**AA가 아니다**).
@@ -296,6 +334,22 @@ describe('디자인 토큰 대비 (WCAG AA)', () => {
         ).toBeGreaterThanOrEqual(AA_TEXT);
       }
     );
+
+    it.each(BRAND_ACCENT_PAIRS)('brand 와 accent 는 같은 값이 아니다 (%s ≠ %s)', (brandKey, accentKey) => {
+      expect(
+        theme[accentKey],
+        `${accentKey} 가 ${brandKey} 와 같은 값(${theme[brandKey]})이다 — 이 프리셋엔 액센트가 없다`
+      ).not.toBe(theme[brandKey]);
+    });
+
+    it('brand 와 accent 는 지각적으로 갈린다 (ΔE ≥ 8)', () => {
+      const distance = deltaE(theme.brand, theme.accent);
+
+      expect(
+        distance,
+        `brand(${theme.brand}) vs accent(${theme.accent}) = ΔE ${distance.toFixed(1)}`
+      ).toBeGreaterThanOrEqual(MIN_BRAND_ACCENT_SEPARATION);
+    });
 
     it('accent 와 accent-alt 는 지각적으로 갈린다 (ΔE ≥ 15)', () => {
       const distance = deltaE(theme.accent, theme['accent-alt']);
