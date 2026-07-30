@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, motion, radius, space } from '@/shared/styles';
+import { color, font, motion, radius, space, subtleScrollbar } from '@/shared/styles';
 
 /** 티커 열 고정폭 — 목록 전체의 정렬선을 하나로 만드는 기준값. */
 const TICKER_COLUMN = '58px';
@@ -143,6 +143,7 @@ export const ResultList = styled.ul`
   min-height: 120px;
   overflow-y: auto;
   overscroll-behavior: contain;
+  ${subtleScrollbar}
 `;
 
 export const ResultItem = styled.li`

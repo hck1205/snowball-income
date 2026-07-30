@@ -1,6 +1,17 @@
 import styled from '@emotion/styled';
 import { HelpMarkButton } from '@/components/common';
-import { color, font, media, motion, radius, shadow, space, zIndex } from '@/shared/styles';
+import {
+  color,
+  font,
+  hiddenScrollbar,
+  media,
+  motion,
+  radius,
+  shadow,
+  space,
+  subtleScrollbar,
+  zIndex
+} from '@/shared/styles';
 
 /** `pages/Main/Main.shared.styled.ts`에서 옮겨온 시나리오 탭 조각 (스타일 값 동일, 마크업/동작 변화 없음). */
 
@@ -14,19 +25,15 @@ export const ScenarioTabsWrap = styled.div`
   gap: ${space[1]};
   overflow-x: auto;
   overflow-y: hidden;
-  scrollbar-width: thin;
   -webkit-overflow-scrolling: touch;
+  ${subtleScrollbar}
 
-  /* 모바일에서 탭이 넘칠 때: 스냅 + 우측 페이드로 "더 있음"을 알린다 */
+  /* 모바일에서 탭이 넘칠 때: 스냅 + 우측 페이드로 "더 있음"을 알린다 —
+     넘침 신호가 따로 있으므로 여기서만 스크롤바를 감춘다(위 선언을 덮는다). */
   ${media.down('drawer')} {
     scroll-snap-type: x proximity;
     scroll-padding-inline: ${space[2]};
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-
-    &::-webkit-scrollbar {
-      display: none;
-    }
+    ${hiddenScrollbar}
   }
 `;
 

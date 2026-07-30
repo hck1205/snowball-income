@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, motion, radius, shadow, space } from '@/shared/styles';
+import { color, font, motion, radius, shadow, space, subtleScrollbar } from '@/shared/styles';
 
 export const EditorShell = styled.div`
   border: 1px solid ${color.borderStrong};
@@ -147,6 +147,7 @@ export const EditorArea = styled.div`
       background: ${color.surfaceSunken};
       border-radius: ${radius.sm};
       overflow-x: auto;
+      ${subtleScrollbar}
 
       code {
         background: none;

@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, media, motion, radius, shadow, space, zIndex } from '@/shared/styles';
+import { color, font, media, motion, radius, shadow, space, subtleScrollbar, zIndex } from '@/shared/styles';
 
 /**
  * 모달의 시각 언어 — 앱의 모든 모달(도움말/티커/프리셋 확인)이 이걸 공유한다.
@@ -46,6 +46,7 @@ export const ModalPanel = styled.section`
   align-content: start;
   overflow-y: auto;
   scrollbar-gutter: stable;
+  ${subtleScrollbar}
   box-shadow: ${shadow.e3};
   color: ${color.text};
 

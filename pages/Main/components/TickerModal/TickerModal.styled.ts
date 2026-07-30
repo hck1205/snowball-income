@@ -1,7 +1,6 @@
 import styled from '@emotion/styled';
 import { ModalBody, ModalPanel } from '@/components/common';
-import { subtleScrollbar } from '@/pages/Main/Main.shared.styled';
-import { color, font, space } from '@/shared/styles';
+import { color, font, space, subtleScrollbar } from '@/shared/styles';
 
 /**
  * ModalPanel 밖의 relative 셸 — 프리셋 필터 드로어를 이 셸의 absolute 형제로

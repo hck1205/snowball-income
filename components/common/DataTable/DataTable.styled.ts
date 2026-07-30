@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, container, font, media, motion, radius, space } from '@/shared/styles';
+import { color, container, font, media, motion, radius, space, subtleScrollbar } from '@/shared/styles';
 
 export const TableWrap = styled.div`
   overflow-x: auto;
@@ -8,6 +8,8 @@ export const TableWrap = styled.div`
   width: 100%;
   /* 가로 스크롤이 카드 밖으로 새지 않도록 */
   overscroll-behavior-x: contain;
+  /* 표는 넘칠 때 스크롤바가 **보여야** 한다(넘친다는 사실이 정보다) — 모양만 앱 공용으로. */
+  ${subtleScrollbar}
 `;
 
 /**

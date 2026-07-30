@@ -1,6 +1,6 @@
 import styled from '@emotion/styled';
 import { Link, NavLink } from 'react-router-dom';
-import { color, font, media, radius, shadow, space } from '@/shared/styles';
+import { color, font, media, radius, shadow, space, subtleScrollbar } from '@/shared/styles';
 
 /**
  * 전역 nav 랜드마크 — 브랜드 링크 + 라우트 링크를 한 줄로. 좁아지면 라벨이 접혀 아이콘만 남는다.
@@ -151,7 +151,7 @@ export const NavScroller = styled.nav`
      좌우 2px 는 포커스 링이 스크롤 클리핑에 잘리지 않게 하는 최소값 그대로 둔다. */
   padding: ${space[2]} 2px;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
+  ${subtleScrollbar}
 `;
 
 export const NavItems = styled.div<{ $scrollRow?: boolean }>`

@@ -46,6 +46,8 @@ export {
 
 export { pressable, pressableSubtle } from './pressable';
 
+export { hiddenScrollbar, subtleScrollbar } from './scrollbar';
+
 export {
   SEPARATE_SURFACE_PADDING,
   hitArea,

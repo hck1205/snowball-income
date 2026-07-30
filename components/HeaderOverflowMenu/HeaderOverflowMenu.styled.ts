@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, motion, radius, shadow, space, zIndex } from '@/shared/styles';
+import { color, font, motion, radius, shadow, space, subtleScrollbar, zIndex } from '@/shared/styles';
 
 /** 트리거 + 드롭다운을 묶는 기준점. 바깥 클릭 판정(rootRef)과 뱃지 위치의 기준이다. */
 export const MenuRoot = styled.div`
@@ -106,6 +106,7 @@ export const ThemePanel = styled.div`
   max-height: min(50vh, 320px);
   overflow-y: auto;
   scrollbar-gutter: stable;
+  ${subtleScrollbar}
   padding: 2px;
 `;
 
