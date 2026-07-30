@@ -496,8 +496,8 @@
         9,
         12
       ],
-      "payoutMonthsSource": "pay",
       "exToPayLagDays": 3,
+      "payoutMonthsSource": "pay",
       "estimatedPayDayByMonth": {
         "3": 21,
         "6": 18,
@@ -973,12 +973,19 @@
       "frequency": "quarterly",
       "observedDividendCagr": 6.16,
       "payoutMonths": [
+        1,
         3,
         6,
-        9,
-        12
+        9
       ],
-      "payoutMonthsSource": "ex"
+      "payoutMonthsSource": "pay",
+      "exToPayLagDays": 6,
+      "estimatedPayDayByMonth": {
+        "1": 4,
+        "3": 12,
+        "6": 11,
+        "9": 19
+      }
     },
     "T": {
       "initialPrice": 24.13,
