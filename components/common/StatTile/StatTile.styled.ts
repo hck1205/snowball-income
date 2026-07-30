@@ -27,6 +27,8 @@ export const TileRoot = styled.div<{ emphasis: StatEmphasis }>`
   gap: ${({ emphasis }) => (emphasis === 'hero' ? space[1] : '2px')};
   align-content: start;
   border: 1px solid ${({ emphasis }) => (emphasis === 'hero' ? color.brandBorder : color.border)};
+  /* 카드 안에 앉는 면(타일) = 동심 라운드의 '안쪽' 두 조 중 큰 쪽. 컨트롤(8px)과 달리 12px 이다.
+     아래 리본·프로그레스의 pill 은 캡슐 형태 자체가 요건이라 이 결정과 무관하다(그대로 둔다). */
   border-radius: ${radius.md};
   background: ${({ emphasis }) => (emphasis === 'hero' ? color.brandSubtle : color.surfaceMuted)};
   padding: ${({ emphasis }) => (emphasis === 'hero' ? `${space[4]} ${space[4]} ${space[4]} ${space[5]}` : space[3])};
@@ -43,7 +45,14 @@ export const TileRoot = styled.div<{ emphasis: StatEmphasis }>`
       top: ${space[3]};
       bottom: ${space[3]};
       width: 4px;
-      border-radius: 0 ${radius.pill} ${radius.pill} 0;
+      /*
+       * 네 모서리 전부 pill = 폭 4px 의 **캡슐**. 오른쪽 두 곳만 pill 로 두면 안 된다 —
+       * 브라우저는 한 변의 두 반경 합이 그 변보다 크면 반경을 비례 축소하므로
+       * (실측: 4x85.2 박스, 선언 0/999/999/0 → 실효 0/4/4/0) **왼쪽이 완전히 각진 막대**가
+       * 되어 12px 로 둥근 타일 위에 직사각형이 붙은 것처럼 보인다(사용자 신고, 2026-07-30).
+       * 같은 4px 리본의 선례가 PortfolioPage/DividendCalendarPage 에 있고 둘 다 네 모서리 pill 이다.
+       */
+      border-radius: ${radius.pill};
       background: ${color.gradientAurora};
     }
 

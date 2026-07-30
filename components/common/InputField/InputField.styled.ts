@@ -70,6 +70,8 @@ const controlBase = `
   min-width: 0;
   min-height: 40px;
   border: 1px solid ${color.borderStrong};
+  /* 버튼과 같은 조(카드 안 컨트롤) = 동심 라운드의 '안쪽'. Card.styled.ts 의 CARD_RADIUS 가 이
+     값에서 역산되므로 버튼과 반드시 같은 값이어야 한다. */
   border-radius: ${radius.sm};
   background-color: ${color.surface};
   color: ${color.text};

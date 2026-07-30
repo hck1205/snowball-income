@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, hitArea, motion, pressable, radius, shadow, space } from '@/shared/styles';
+import { color, font, hitArea, motion, pressable, pressTransition, radius, shadow, space } from '@/shared/styles';
 import type { ButtonSize, ButtonVariant } from './Button.types';
 
 /**
@@ -83,6 +83,9 @@ export const StyledButton = styled.button<{
   height: ${({ size }) => SIZE[size].height};
   padding: ${({ size, iconOnly }) => (iconOnly ? '0' : SIZE[size].padding)};
   border: 1px solid transparent;
+  /* 카드 안에 앉는 컨트롤 = 동심 라운드(DESIGN.md §6)의 '안쪽'. 카드 바깥 반경이 이 값 + 카드
+     패딩으로 역산되므로 여기를 바꾸면 Card.styled.ts 의 CARD_RADIUS 가 따라 움직인다.
+     (Spinner 의 pill 은 캡슐 형태 자체가 요건이라 이 결정과 무관하다.) */
   border-radius: ${radius.sm};
   font-family: inherit;
   font-size: ${({ size }) => SIZE[size].font};
@@ -93,7 +96,7 @@ export const StyledButton = styled.button<{
   touch-action: manipulation;
   transition: background-color ${motion.fast} ${motion.ease}, border-color ${motion.fast} ${motion.ease},
     color ${motion.fast} ${motion.ease}, box-shadow ${motion.fast} ${motion.ease},
-    background-position ${motion.base} ${motion.ease};
+    background-position ${motion.base} ${motion.ease}, ${pressTransition};
 
   ${({ variant }) => VARIANT[variant]};
 

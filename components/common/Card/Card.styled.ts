@@ -1,6 +1,32 @@
 import styled from '@emotion/styled';
-import { color, elevation as elevationToken, font, radius, sectionTitleFontSize, space } from '@/shared/styles';
+import {
+  color,
+  elevation as elevationToken,
+  font,
+  outerRadius,
+  radius,
+  sectionTitleFontSize,
+  space
+} from '@/shared/styles';
 import type { CardElevation, CardTone } from './Card.types';
+
+/**
+ * 공용 `Card` 의 패딩. **여기가 단일 원천이다** — 아래 바깥 반경이 이 값에서 역산되므로
+ * 다른 곳에서 카드 패딩을 따로 적으면 동심이 조용히 어긋난다.
+ */
+const CARD_PADDING = 'clamp(16px, 1.8vw, 20px)';
+
+/**
+ * 바깥 면(카드)의 반경 = **안쪽 컨트롤(8px) + 카드 패딩**(DESIGN.md §6 동심 라운드).
+ *
+ * 왜 상수 28px 이 아닌가: 패딩이 `clamp(16px, 1.8vw, 20px)` 라 폭마다 달라서, 28px 은 패딩이
+ * 20px 로 포화되는 폭(≈1111px 이상)에서만 동심이다 — 390px 에서는 24px 이어야 맞다.
+ * `calc()` 만이 모든 폭에서 성립한다(`surfaces.ts` 가 `calc()` 를 쓰는 바로 그 이유).
+ *
+ * 자식(Button·InputField 8px · StatTile·sunken 12px)의 반경은 **바꾸지 않는다** — 이 결정은
+ * "바깥을 키운다"이지 "속을 낮춘다"가 아니다.
+ */
+const CARD_RADIUS = outerRadius(radius.sm, CARD_PADDING);
 
 /**
  * `tone='default'` 일 때 나오는 CSS 는 tone 도입 **이전과 완전히 같다** — 기존 카드 수십 곳의
@@ -16,8 +42,12 @@ export const CardContainer = styled.section<{ elevation: CardElevation; $tone: C
   background: ${({ $tone }) =>
     $tone === 'sunken' ? color.surfaceSunken : $tone === 'wash' ? color.gradientHeroSoft : color.surface};
   border: 1px solid ${color.border};
-  border-radius: ${({ $tone }) => ($tone === 'sunken' ? radius.md : radius.lg)};
-  padding: clamp(16px, 1.8vw, 20px);
+  /*
+   * sunken 은 '가라앉은 면' = 카드 위에 얹힌 **자식** 면이라 StatTile 과 같은 조(tile, 12px)로
+   * 묶는다. 바깥 면만 패딩에서 역산한 큰 반경을 갖는다(위 CARD_RADIUS 주석).
+   */
+  border-radius: ${({ $tone }) => ($tone === 'sunken' ? radius.md : CARD_RADIUS)};
+  padding: ${CARD_PADDING};
   box-shadow: ${({ elevation, $tone }) => ($tone === 'sunken' ? 'none' : elevationToken[elevation])};
   color: ${color.text};
   min-width: 0;
