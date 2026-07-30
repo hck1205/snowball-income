@@ -22,7 +22,12 @@ export const paymentsPerYearMap: Record<Frequency, number> = {
  *
  * ⚠ `switch` 로 쓴 이유: 예전에는 마지막 `return simulationMonth === 12`(annual)이 **폴백**이라
  * 주기 값이 하나 늘면 그것이 조용히 "연 1회 지급"으로 흘러들었다. 지금은 각 주기를 명시하고
- * `default` 를 두지 않아, 값이 늘면 `noImplicitReturns` 로 컴파일이 깨진다.
+ * `default` 를 두지 않아, 값이 늘면 컴파일이 깨진다.
+ *
+ * 🔴 그 소진성을 지탱하는 것은 **명시 반환 타입 `: boolean` + `strict`** 다(TS2366 —
+ * "Function lacks ending return statement"). 이 레포에는 `noImplicitReturns` 가 없으므로
+ * 그것에 기대고 있다고 착각하지 마라. 반환 타입을 `boolean | undefined` 로 넓히거나 지우면
+ * 가드가 조용히 사라지고, 새 주기는 런타임에서 `undefined`(= falsy = 무지급)로 흘러든다.
  */
 export const isPayoutMonth = (frequency: Frequency, simulationMonth: number): boolean => {
   switch (frequency) {

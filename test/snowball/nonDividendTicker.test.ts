@@ -199,3 +199,37 @@ describe('무배당 종목 — 유니버스 파생', () => {
     }
   });
 });
+
+/*
+ * 사용자가 셀렉트에서 만들 수 있는 **모순 입력**: 배당률은 남아 있는데 주기만 '배당 없음'.
+ * 프리셋(ANET)은 배당률도 0 이라 이 조합에 안 닿지만, 2026-07-31 에 'none' 이 폼 셀렉트로
+ * 노출되면서 도달 가능해졌다. 그때 간편 추정이 유령 배당을 보여주고 정밀 계산은 0 을 보여줘
+ * **같은 카드에서 토글 하나로 숫자가 갈렸다** — 근사식이 지급 여부를 안 묻고 배당률을 그대로
+ * 썼기 때문이다(shared/lib/snowball/SnowballQuickEstimate.ts).
+ */
+describe('배당률이 남아 있어도 주기가 none 이면 배당은 0 이다', () => {
+  const contradictory = () =>
+    runSimulation(toSimulationInput(buildValues({ dividendYield: 3, frequency: 'none' })));
+
+  it('간편 추정이 배당을 만들어내지 않는다', () => {
+    const { quickEstimate } = contradictory();
+
+    expect(quickEstimate.annualDividendApprox).toBe(0);
+    expect(quickEstimate.monthlyDividendApprox).toBe(0);
+    expect(quickEstimate.yieldOnPriceAtEnd).toBe(0);
+  });
+
+  it('자산은 그대로 자란다 — 끊는 것은 배당뿐이다', () => {
+    const { quickEstimate } = contradictory();
+
+    expect(Number.isFinite(quickEstimate.endValue)).toBe(true);
+    expect(quickEstimate.endValue).toBeGreaterThan(0);
+  });
+
+  it('정밀 계산과 간편 추정이 배당에서 어긋나지 않는다', () => {
+    const result = contradictory();
+
+    expect(result.summary.totalNetDividend).toBe(0);
+    expect(result.quickEstimate.annualDividendApprox).toBe(0);
+  });
+});

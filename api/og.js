@@ -6822,8 +6822,10 @@ var runQuickEstimate = (input) => {
   const growth = toPriceGrowth(ticker.dividendGrowth);
   const paymentsPerYear = paymentsPerYearMap[ticker.frequency];
   const reinvestRatio = settings.reinvestDividends ? toReinvestRatio(settings.reinvestDividendPercent) : 0;
-  const shareGrowthPerPayment = dividendYield / paymentsPerYear * (1 - taxRate) * reinvestRatio;
-  const annualShareGrowth = Math.pow(1 + shareGrowthPerPayment, paymentsPerYear);
+  const pays = paymentsPerYear > 0;
+  const effectiveYield = pays ? dividendYield : 0;
+  const shareGrowthPerPayment = pays ? dividendYield / paymentsPerYear * (1 - taxRate) * reinvestRatio : 0;
+  const annualShareGrowth = pays ? Math.pow(1 + shareGrowthPerPayment, paymentsPerYear) : 1;
   const annualReturn = Math.max(MIN_GROWTH_RATE, (1 + growth) * annualShareGrowth - 1);
   const monthlyReturn = toMonthlyGrowthRate(annualReturn);
   const totalMonths = settings.durationYears * 12;
@@ -6831,7 +6833,7 @@ var runQuickEstimate = (input) => {
   const initialInvestmentGrowth = settings.initialInvestment * Math.pow(1 + monthlyReturn, totalMonths);
   const rawEndValue = monthlyContributionGrowth + initialInvestmentGrowth;
   const endValue = Number.isFinite(rawEndValue) ? Math.max(0, rawEndValue) : 0;
-  const yieldOnPriceAtEnd = Math.max(0, dividendYield);
+  const yieldOnPriceAtEnd = Math.max(0, effectiveYield);
   const annualDividendApprox = endValue * yieldOnPriceAtEnd * (1 - taxRate);
   return {
     endValue,

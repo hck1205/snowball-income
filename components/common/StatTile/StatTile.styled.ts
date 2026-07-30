@@ -187,7 +187,13 @@ export const TileHint = styled.p`
   margin: 0;
   font-size: ${font.size.xs};
   font-weight: ${font.weight.medium};
-  color: ${color.textMuted};
+  /*
+   * 'text-muted' 가 아닌 이유: hero 타일의 면이 'accent-subtle' 이라 muted 는 velog 다크에서
+   * 4.05:1 로 AA 미달이다(2026-07-31 실측. 종전 'brand-subtle' 면에서도 4.03:1 로 이미 미달이었다).
+   * 위계는 크기(xs)와 굵기로 이미 충분히 낮다 — 색까지 낮추면 못 읽는다.
+   * 근거·결정: shared/styles/contrast.test.ts 의 [text-muted, accent-subtle] 주석.
+   */
+  color: ${color.textSecondary};
   line-height: ${font.leading.snug};
   /*
    * 힌트에도 숫자가 산다("투자 3년차", ETA 기간) — 그래서 값(TileValue)과 같은 규칙을 건다.
