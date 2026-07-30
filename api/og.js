@@ -1725,7 +1725,14 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 3,
+      estimatedPayDayByMonth: {
+        "3": 21,
+        "6": 18,
+        "9": 25,
+        "12": 20
+      }
     },
     IDV: {
       initialPrice: 43.18,
