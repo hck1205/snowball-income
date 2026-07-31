@@ -923,7 +923,14 @@
         9,
         12
       ],
-      "payoutMonthsSource": "ex"
+      "payoutMonthsSource": "pay",
+      "exToPayLagDays": 2,
+      "estimatedPayDayByMonth": {
+        "3": 26,
+        "6": 25,
+        "9": 24,
+        "12": 24
+      }
     },
     "SMH": {
       "initialPrice": 529.6,
@@ -978,8 +985,8 @@
         6,
         9
       ],
-      "payoutMonthsSource": "pay",
       "exToPayLagDays": 6,
+      "payoutMonthsSource": "pay",
       "estimatedPayDayByMonth": {
         "1": 4,
         "3": 12,
