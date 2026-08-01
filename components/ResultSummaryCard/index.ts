@@ -1,3 +1,3 @@
 export { default } from './ResultSummaryCard';
-export { findTargetReachYearIndex } from './ResultSummaryCard.utils';
+export { findTargetReachYearIndex, useGoalReachCelebration } from './ResultSummaryCard.utils';
 export type * from './ResultSummaryCard.types';

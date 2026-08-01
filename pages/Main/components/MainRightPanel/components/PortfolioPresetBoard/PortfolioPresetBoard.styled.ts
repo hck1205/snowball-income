@@ -2,31 +2,71 @@ import styled from '@emotion/styled';
 import { color, font, media, motion, pressableSubtle, pressTransition, radius, shadow, space } from '@/shared/styles';
 
 /**
- * 포트폴리오 프리셋 카드 스타일. `pages/Main/Main.shared.styled.ts`(카드 조각)와
- * 구 `MainRightPanel.styled.ts`(아이콘 배지 — 결과 배치가 `MainResultGrid`로 옮겨가며 삭제됐다)에서
- * 이관했다 (스타일 값 동일, 마크업/동작 변화 없음).
+ * 포트폴리오 프리셋 보드 스타일.
+ *
+ * 구조가 바뀌었다(2026-07-31 리워크 V1): 13장을 같은 높이·같은 배경으로 한 줄씩 쌓아 두던
+ * 세로 목록 → **성향 4묶음 × 그룹당 2장 + 더 보기**. 예전 카드가 갖고 있던
+ * "월 투자금 제안 / 목표 투자금 / 투자 기간 / 목표 월배당" **4행 스펙표는 삭제**했다 —
+ * 행마다 밑줄이 깔린 스펙 시트는 훑어보기를 돕는 게 아니라 13장을 전부 같은 모양으로 만든다.
+ * 카드에 남은 숫자는 2개뿐이고, 나머지 조건은 **적용한 뒤 결과가** 말한다.
  */
 
+/** 그룹 섹션들의 세로 스택. `data-tour` 앵커가 붙는 요소이기도 하다. */
+export const PortfolioPresetGroups = styled.div`
+  display: grid;
+  gap: ${space[5]};
+`;
+
+export const PortfolioPresetGroupSection = styled.section`
+  display: grid;
+  gap: ${space[3]};
+`;
+
+/** 그룹 머리 — 톤 배지 + 이름 + 한 줄 설명. 설명은 좁은 폭에서 아랫줄로 접힌다. */
+export const PortfolioPresetGroupHead = styled.div`
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: ${space[2]};
+`;
+
+export const PortfolioPresetGroupTitle = styled.h3`
+  margin: 0;
+  font-size: ${font.size.base};
+  font-weight: ${font.weight.bold};
+  line-height: ${font.leading.tight};
+  color: ${color.text};
+  letter-spacing: -0.01em;
+`;
+
+export const PortfolioPresetGroupHint = styled.span`
+  font-size: ${font.size.xs};
+  color: ${color.textMuted};
+  line-height: ${font.leading.snug};
+`;
+
+/**
+ * 카드 그리드. `align-items: start` 가 중요하다 — stretch 로 두면 한 행의 카드가 전부 같은
+ * 높이로 늘어나 "같은 크기 카드가 페이지 구조가 되는" 그 모양으로 돌아간다.
+ */
 export const PortfolioPresetGrid = styled.div`
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  align-items: start;
   gap: ${space[3]};
 `;
 
 /**
- * 프리셋 카드(빈 상태의 온보딩).
- *
- * 빈 상태는 이 앱의 **첫인상**이다. 예전엔 회색 테두리 상자가 세 개 있을 뿐이라
- * "고를 수 있는 것"으로 보이지 않았다. 고친 것:
- *  - 좌측 브랜드 액센트 바가 hover 시 나타난다 → 선택 가능한 카드임을 말한다
- *  - hover 시 살짝 떠오른다(그림자 + 1px) → 누를 수 있는 물건
- *  - 카드 전체가 버튼이므로 커서/포커스 링이 카드 전체에 걸린다
+ * 프리셋 카드(버튼). hover/focus 에서 좌측 오로라 리본이 켜지고 살짝 떠오른다.
+ * 카드 전체가 버튼이라 커서·포커스 링이 카드 전체에 걸린다.
  */
 export const PortfolioPresetCardButton = styled.button`
   position: relative;
   display: grid;
   gap: ${space[2]};
+  align-content: start;
   width: 100%;
+  min-width: 0;
   text-align: left;
   border: 1px solid ${color.border};
   border-radius: ${radius.md};
@@ -75,37 +115,35 @@ export const PortfolioPresetCardButton = styled.button`
     opacity: 1;
   }
 
-  /*
-   * 누름은 "제자리로 되돌리기"가 아니라 **축소**여야 한다 — 되돌리기는 피드백을 주는 게 아니라
-   * 피드백을 **없애는** 것처럼 읽힌다. 게다가 터치에는 hover 자체가 없어서 종전 구현은
-   * 모바일에서 아무 반응도 없었다. 전체 폭 카드라 약한 배율(0.99)을 쓴다 — 큰 면에 0.96 을
-   * 주면 화면이 출렁인다.
-   */
   ${pressableSubtle}
 `;
 
-export const PortfolioPresetContentRow = styled.div`
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
-  gap: ${space[4]};
-  align-items: start;
-
-  ${media.down('tabletSm')} {
-    grid-template-columns: 1fr;
-  }
-`;
-
-export const PortfolioPresetMain = styled.div`
-  display: grid;
+export const PortfolioPresetTitleRow = styled.div`
+  display: flex;
+  align-items: center;
   gap: ${space[2]};
 `;
 
 export const PortfolioPresetTitle = styled.span`
-  font-size: ${font.size.lg};
+  font-size: ${font.size.base};
   font-weight: ${font.weight.bold};
   line-height: ${font.leading.tight};
   color: ${color.text};
   letter-spacing: -0.01em;
+  min-width: 0;
+`;
+
+/** 지금 화면에 적용돼 있는 프리셋 표식(프리필 포함). 중립 면 + 중립 글자 — 숫자가 아니라 상태다. */
+export const PortfolioPresetAppliedTag = styled.span`
+  flex: 0 0 auto;
+  margin-left: auto;
+  border-radius: ${radius.pill};
+  background: ${color.surfaceSunken};
+  color: ${color.textSecondary};
+  font-size: ${font.size.xs};
+  font-weight: ${font.weight.medium};
+  line-height: 1;
+  padding: 4px ${space[2]};
 `;
 
 export const PortfolioPresetDesc = styled.span`
@@ -119,73 +157,113 @@ export const PortfolioPresetCore = styled.span`
   color: ${color.brandText};
   font-weight: ${font.weight.medium};
   line-height: ${font.leading.snug};
+  overflow-wrap: anywhere;
 `;
 
-export const PortfolioPresetMeta = styled.span`
+/**
+ * 지표 2개. **표가 아니다** — 밑줄도 테두리도 배경도 없이 라벨 위 값 두 쌍만 가로로 놓는다.
+ * 숫자에는 색을 넣지 않는다(중립 `color.text` 만).
+ */
+export const PortfolioPresetMetrics = styled.dl`
+  display: flex;
+  flex-wrap: wrap;
+  gap: ${space[1]} ${space[4]};
+  margin: ${space[1]} 0 0;
+`;
+
+export const PortfolioPresetMetric = styled.div`
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+`;
+
+export const PortfolioPresetMetricLabel = styled.dt`
   font-size: ${font.size.xs};
   color: ${color.textMuted};
   line-height: ${font.leading.snug};
 `;
 
-export const PortfolioPresetPlan = styled.div`
-  display: grid;
-  gap: ${space[2]};
-  border: 1px solid ${color.border};
-  border-radius: ${radius.sm};
-  background: ${color.surfaceMuted};
-  padding: ${space[3]};
+export const PortfolioPresetMetricValue = styled.dd`
+  margin: 0;
+  font-size: ${font.size.sm};
+  font-weight: ${font.weight.semibold};
+  color: ${color.text};
+  line-height: ${font.leading.snug};
+  ${font.numeric};
 `;
 
-export const PortfolioPresetPlanItem = styled.span`
-  font-size: ${font.size.xs};
+/**
+ * "더 보기 / 접기" — 그룹 머리 **오른쪽 끝**에 서는 조용한 버튼(장식 없음).
+ * 별도 줄을 쓰지 않는 이유: 그룹이 4개라 줄 하나가 곧 화면 네 줄이 된다.
+ */
+export const PortfolioPresetMoreButton = styled.button`
+  margin-left: auto;
+  flex: 0 0 auto;
+  border: 1px solid ${color.border};
+  border-radius: ${radius.pill};
+  background: transparent;
   color: ${color.textSecondary};
-  line-height: ${font.leading.snug};
-  display: flex;
-  justify-content: space-between;
-  gap: ${space[2]};
+  font-family: inherit;
+  font-size: ${font.size.xs};
+  font-weight: ${font.weight.medium};
+  padding: 6px ${space[3]};
+  cursor: pointer;
+  transition: border-color ${motion.fast} ${motion.ease}, color ${motion.fast} ${motion.ease},
+    background-color ${motion.fast} ${motion.ease};
 
-  strong {
+  &:hover,
+  &:focus-visible {
+    border-color: ${color.brandBorder};
+    background: ${color.surfaceHover};
     color: ${color.text};
-    font-weight: ${font.weight.semibold};
-    ${font.numeric};
   }
 `;
 
-/** 추천 포트폴리오 카드의 제목 행 — 액센트 톤 아이콘 배지 + 제목을 가로로 정렬한다. */
-export const PortfolioPresetTitleRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: ${space[2]};
+export const PortfolioPresetFallbackText = styled.p`
+  margin: 0;
+  color: ${color.textSecondary};
+  font-size: ${font.size.sm};
+
+  ${media.down('mobileWide')} {
+    font-size: ${font.size.xs};
+  }
 `;
 
 /**
- * 프리셋 아이콘 배지의 틴트 로테이션 순서 — 카드 인덱스 % 길이로 고른다.
- *
- * **brand 를 뺐다**(구 `['brand','accent','accentAlt']`). 두 가지 이유:
- *  ① 배지는 순수 장식이라 브랜드 축(누르는 것)이 설 자리가 아니다.
- *  ② 구 3톤에는 **(brand, accentAlt) 라는 분리 보장이 없는 쌍**이 섞여 있었다 —
- *     `contrast.test.ts` 가 못 박는 것은 brand↔accent(ΔE ≥ 8)와 accent↔accentAlt(ΔE ≥ 15)뿐이다.
- *     brand 와 accentAlt 가 둘 다 그린인 프리셋(velog·forest)에서 3톤이 "초록·파랑·초록"으로
- *     보이던 것이 그 결과다. 남은 두 톤은 ΔE ≥ 15 가 테스트로 강제되므로 로테이션의 구분이
- *     감이 아니라 **게이트로** 보장된다.
- * ⚠ ink 는 accent·accentAlt 가 둘 다 무채다(사용자 확정 정체성) — 그 프리셋에서 회색 두 톤으로
- *   보이는 것은 의도다(ΔE 16.37, 하한 15).
+ * 그룹 배지·카드 아이콘의 톤. 그룹마다 하나씩 배정되고(`PORTFOLIO_PRESET_GROUPS.tone`),
+ * **면 위에 글리프**만 얹는다(채움 위 텍스트 금지 규칙 준수). 값은 전부 검증된 토큰 쌍이라
+ * `color-mix` 파생 면처럼 대비 테스트의 사각지대가 생기지 않는다.
  */
-export const PRESET_ICON_TONES = ['accent', 'accentAlt'] as const;
-
-export type PresetIconTone = (typeof PRESET_ICON_TONES)[number];
-
-const PRESET_ICON_TONE_STYLE: Record<PresetIconTone, { bg: string; fg: string }> = {
+export const PRESET_TONE_STYLE = {
+  identity: { bg: color.identitySubtle, fg: color.identityText },
   accent: { bg: color.accentSubtle, fg: color.accentText },
-  accentAlt: { bg: color.accentAltSubtle, fg: color.accentAltText }
-};
+  accentAlt: { bg: color.accentAltSubtle, fg: color.accentAltText },
+  neutral: { bg: color.surfaceSunken, fg: color.textSecondary }
+} as const;
 
-/**
- * 프리셋 아이콘 배지. 기존의 이모지 대신 lucide 아이콘을 서브틀 틴트 배경 위에 얹어
- * 완성도 있는 룩을 준다. 아이콘은 `currentColor`로 그려진다.
- * 틴트는 두 액센트 축을 번갈아 쓴다 — 카드마다 다른 결을 줘 훑어보기 쉽게 한다.
- */
-export const PortfolioPresetIcon = styled.span<{ tone?: PresetIconTone }>`
+export type PresetTone = keyof typeof PRESET_TONE_STYLE;
+
+/** 그룹 머리의 톤 배지(24px) — 카드 배지보다 한 단계 작다. */
+export const PortfolioPresetGroupBadge = styled.span<{ tone: PresetTone }>`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  border-radius: ${radius.sm};
+  background: ${({ tone }) => PRESET_TONE_STYLE[tone].bg};
+  color: ${({ tone }) => PRESET_TONE_STYLE[tone].fg};
+
+  svg {
+    width: 14px;
+    height: 14px;
+    display: block;
+  }
+`;
+
+/** 카드 아이콘 배지 — 그룹 톤을 그대로 물려받아 "이 카드가 어느 묶음인지"를 색으로도 말한다. */
+export const PortfolioPresetIcon = styled.span<{ tone: PresetTone }>`
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -193,8 +271,8 @@ export const PortfolioPresetIcon = styled.span<{ tone?: PresetIconTone }>`
   width: 30px;
   height: 30px;
   border-radius: ${radius.sm};
-  background: ${({ tone = 'accent' }) => PRESET_ICON_TONE_STYLE[tone].bg};
-  color: ${({ tone = 'accent' }) => PRESET_ICON_TONE_STYLE[tone].fg};
+  background: ${({ tone }) => PRESET_TONE_STYLE[tone].bg};
+  color: ${({ tone }) => PRESET_TONE_STYLE[tone].fg};
 
   svg {
     width: 18px;

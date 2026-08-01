@@ -24,6 +24,11 @@ export type PortfolioPresetApply = {
   requestApply: (preset: PortfolioPresetPlaceholder) => void;
   cancelApply: () => void;
   confirmApply: () => void;
+  /**
+   * 확인 모달 없이 **조용히** 적용한다(첫 방문 기본 시나리오 프리필 전용).
+   * 계측을 쏘지 않는 이유는 아래 `applyPreset` 주석 참고.
+   */
+  applyPresetSilently: (preset: PortfolioPresetPlaceholder) => void;
 };
 
 /**
@@ -48,20 +53,33 @@ export function usePortfolioPresetApply(deps: PortfolioPresetApplyDeps): Portfol
 
   const [pendingPreset, setPendingPreset] = useState<PortfolioPresetPlaceholder | null>(null);
 
+  /**
+   * 프리셋을 워크스페이스에 커밋한다.
+   *
+   * `isUserChoice` 는 **계측 게이트**다. `preset_applied` 는 "프리셋 인기 순위"의 모수이고
+   * `cta_click`(apply_portfolio_preset)은 클릭 수라, 첫 방문에 앱이 대신 적용하는
+   * 기본 시나리오(프리필)까지 여기 섞이면 **모든 방문이 한 프리셋에 1표씩 주는 꼴**이 되어
+   * 순위가 통째로 무의미해진다. 그래서 프리필은 **미발화**를 골랐다
+   * (`source:'prefill'` 파라미터 추가안은 기각 — 기존 대시보드·탐색 질의가 그 파라미터를
+   *  필터링하지 않아 "필터를 안 걸면 틀린 값"이 되고, 그건 조용히 틀리는 쪽이다).
+   * 상태 쓰기 경로는 사용자 선택과 **완전히 동일**하다.
+   */
   const applyPreset = useCallback(
-    (preset: PortfolioPresetPlaceholder) => {
+    (preset: PortfolioPresetPlaceholder, { isUserChoice = true }: { isUserChoice?: boolean } = {}) => {
       const nextPortfolio = buildPresetPortfolio({ preset, universe: DIVIDEND_UNIVERSE });
       if (!nextPortfolio) return;
 
-      trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
-        cta_name: 'apply_portfolio_preset',
-        placement: 'empty_result_preset_grid',
-        preset_id: preset.id
-      });
-      trackEvent(ANALYTICS_EVENT.PRESET_APPLIED, {
-        preset_id: preset.id,
-        ticker_count: nextPortfolio.profiles.length
-      });
+      if (isUserChoice) {
+        trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
+          cta_name: 'apply_portfolio_preset',
+          placement: 'empty_result_preset_grid',
+          preset_id: preset.id
+        });
+        trackEvent(ANALYTICS_EVENT.PRESET_APPLIED, {
+          preset_id: preset.id,
+          ticker_count: nextPortfolio.profiles.length
+        });
+      }
 
       setTickerProfiles(nextPortfolio.profiles);
       setIncludedTickerIds(nextPortfolio.includedIds);
@@ -90,6 +108,10 @@ export function usePortfolioPresetApply(deps: PortfolioPresetApplyDeps): Portfol
     if (pendingPreset) applyPreset(pendingPreset);
     setPendingPreset(null);
   }, [applyPreset, pendingPreset]);
+  const applyPresetSilently = useCallback(
+    (preset: PortfolioPresetPlaceholder) => applyPreset(preset, { isUserChoice: false }),
+    [applyPreset]
+  );
 
-  return { pendingPreset, requestApply: setPendingPreset, cancelApply, confirmApply };
+  return { pendingPreset, requestApply: setPendingPreset, cancelApply, confirmApply, applyPresetSilently };
 }

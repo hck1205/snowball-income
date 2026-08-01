@@ -1,25 +1,23 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import TickerCreation from '@/components/TickerCreation';
+import SettingsToolsSection from '@/pages/Main/components/MainLeftPanel/components/SettingsToolsSection';
 import { SHARE_DIALOG_COPY } from '@/components/common';
-import type { TickerCreationProps } from '@/components/TickerCreation/TickerCreation.types';
+import type { SettingsToolsSectionProps } from '@/pages/Main/components/MainLeftPanel/components/SettingsToolsSection';
 
-const baseProps = (overrides: Partial<TickerCreationProps> = {}): TickerCreationProps => ({
-  tickerProfiles: [],
-  includedTickerIds: [],
-  onOpenCreate: vi.fn(),
+/**
+ * 공유 동작은 2026-07-31 에 `TickerCreation`(종목 카드) → `SettingsToolsSection`(드로어 마지막 도구
+ * 섹션)으로 **옮겨 왔다**. 동작 계약은 그대로라 이 파일은 구 `tickerQuickActions.test.tsx` 의 후신이다.
+ */
+
+const baseProps = (overrides: Partial<SettingsToolsSectionProps> = {}): SettingsToolsSectionProps => ({
   onCreateShareLink: vi.fn().mockResolvedValue({ ok: true, url: 'x', copied: true }),
-  onTickerClick: vi.fn(),
-  onTickerPressStart: vi.fn(),
-  onTickerPressEnd: vi.fn(),
-  onOpenEdit: vi.fn(),
   ...overrides
 });
 
-describe('TickerCreation 퀵액션 — 공유만 남김(데이터 저장은 자동저장으로 대체·제거)', () => {
+describe('설정 드로어 도구 섹션 — 공유만 남김(데이터 저장은 자동저장으로 대체·제거)', () => {
   it('공유가 보이고, 데이터 저장·Capture·Save·Load·File은 사라졌다', () => {
-    render(<TickerCreation {...baseProps()} />);
+    render(<SettingsToolsSection {...baseProps()} />);
 
     expect(screen.getByRole('button', { name: '공유' })).toBeInTheDocument();
 
@@ -31,7 +29,7 @@ describe('TickerCreation 퀵액션 — 공유만 남김(데이터 저장은 자�
   });
 
   it('Coffee는 스코프 유지로 DOM에 남되 숨겨져 있다', () => {
-    const { container } = render(<TickerCreation {...baseProps()} />);
+    const { container } = render(<SettingsToolsSection {...baseProps()} />);
     // 보이는 버튼으로는 잡히지 않는다(hidden).
     expect(screen.queryByRole('button', { name: 'Coffee' })).not.toBeInTheDocument();
     // 마크업에는 존재하고 숨겨져 있다.
@@ -42,7 +40,7 @@ describe('TickerCreation 퀵액션 — 공유만 남김(데이터 저장은 자�
 
   it('공유 버튼이 onCreateShareLink를 부른다', async () => {
     const onCreateShareLink = vi.fn().mockResolvedValue({ ok: true, url: 'x', copied: true });
-    render(<TickerCreation {...baseProps({ onCreateShareLink })} />);
+    render(<SettingsToolsSection {...baseProps({ onCreateShareLink })} />);
     await userEvent.click(screen.getByRole('button', { name: '공유' }));
     expect(onCreateShareLink).toHaveBeenCalledTimes(1);
   });
@@ -52,7 +50,7 @@ describe('TickerCreation 퀵액션 — 공유만 남김(데이터 저장은 자�
  * 클립보드가 막힌 사용자만 보는 폴백 경로다. 여기서 채널 새 창까지 팝업 차단에 막히면
  * **아무 일도 일어나지 않은 것처럼** 보인다 — `window.open` 의 `null` 반환이 유일한 신호다.
  */
-describe('TickerCreation 공유 창 — 채널 팝업 차단', () => {
+describe('설정 드로어 공유 창 — 채널 팝업 차단', () => {
   const ORIGINAL_OPEN = Object.getOwnPropertyDescriptor(window, 'open');
 
   afterEach(() => {
@@ -64,7 +62,7 @@ describe('TickerCreation 공유 창 — 채널 팝업 차단', () => {
     const onCreateShareLink = vi
       .fn()
       .mockResolvedValue({ ok: true, url: 'https://snowball.example/?s=abc', copied: false });
-    render(<TickerCreation {...baseProps({ onCreateShareLink })} />);
+    render(<SettingsToolsSection {...baseProps({ onCreateShareLink })} />);
     await userEvent.click(screen.getByRole('button', { name: '공유' }));
     return screen.findByRole('dialog', { name: SHARE_DIALOG_COPY.title });
   };

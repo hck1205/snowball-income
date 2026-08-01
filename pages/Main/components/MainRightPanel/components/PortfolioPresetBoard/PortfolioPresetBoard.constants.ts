@@ -8,17 +8,70 @@ import {
   Globe,
   Landmark,
   Layers,
+  LineChart,
   PiggyBank,
   Scale,
   Shield,
+  Sparkles,
   Sprout,
   TrendingUp,
+  Wallet,
   type LucideIcon
 } from 'lucide-react';
+
+/**
+ * 프리셋 **성향 묶음**. 13지선다를 4묶음으로 접는 유일한 출처다.
+ *
+ * 🔴 목록·순서·라벨을 컴포넌트에 다시 적지 마라 — 화면은 이 배열과 각 프리셋의 `group` 필드에서
+ *    **파생**한다(`groupPortfolioPresets`). 프리셋을 하나 추가하면 `group` 만 적어도 화면에 따라온다.
+ *
+ * `tone` 은 "색"이 아니라 **역할**이다. 그룹마다 다른 hue 를 주되 채움 위에 라벨을 얹지 않도록
+ * `*Subtle` 면 + `*Text` 글리프 쌍(대비가 `contrast.test.ts` 로 보장된 조합)만 쓴다.
+ * `color-mix` 파생 면은 대비 테스트가 못 보므로 여기서는 쓰지 않는다(decisions 2026-07-31).
+ * ⚠ `neutral` 은 색이 아니라 "그 밖의" 라는 의미다 — velog·forest 처럼 brand 와 accentAlt 가
+ *   둘 다 초록인 프리셋에서 네 번째 유채 톤을 억지로 만들면 두 그룹이 같은 색으로 보인다.
+ */
+export const PORTFOLIO_PRESET_GROUPS = [
+  {
+    id: 'income',
+    label: '인컴',
+    hint: '지금부터 매달 현금이 들어오는 쪽',
+    tone: 'identity',
+    icon: Wallet
+  },
+  {
+    id: 'growth',
+    label: '성장',
+    hint: '배당이 해마다 불어나는 쪽',
+    tone: 'accentAlt',
+    icon: LineChart
+  },
+  {
+    id: 'balanced',
+    label: '균형',
+    hint: '현금흐름과 성장을 반씩',
+    tone: 'accent',
+    icon: Scale
+  },
+  {
+    id: 'special',
+    label: '특화',
+    hint: '리츠·AI 인프라 같은 주제 집중',
+    tone: 'neutral',
+    icon: Sparkles
+  }
+] as const;
+
+export type PortfolioPresetGroup = (typeof PORTFOLIO_PRESET_GROUPS)[number];
+export type PortfolioPresetGroupId = PortfolioPresetGroup['id'];
+
+/** 그룹마다 처음에 펼쳐 두는 카드 수. 나머지는 "더 보기"가 연다. */
+export const PORTFOLIO_PRESET_VISIBLE_PER_GROUP = 2;
 
 export const PORTFOLIO_PRESET_PLACEHOLDERS = [
   {
     id: 'warren-buffett-style',
+    group: 'growth',
     title: '워렌 버핏 스타일',
     hook: '우량 기업 중심의 장기 복리 전략',
     coreType: 'SCHD, VIG, PG, KO, JNJ, ABBV',
@@ -42,6 +95,7 @@ export const PORTFOLIO_PRESET_PLACEHOLDERS = [
   },
   {
     id: 'cashflow-now',
+    group: 'income',
     title: '당장 현금흐름',
     hook: '매달 배당 받는 월 인컴 전략',
     coreType: 'JEPI, JEPQ, QYLD, O, ENB',
@@ -64,6 +118,7 @@ export const PORTFOLIO_PRESET_PLACEHOLDERS = [
   },
   {
     id: 'stable-dividend-growth',
+    group: 'growth',
     title: '안정적 배당성장',
     hook: '꾸준히 배당이 증가하는 ETF 중심',
     coreType: 'SCHD, DGRO, DGRW, NOBL',
@@ -85,6 +140,7 @@ export const PORTFOLIO_PRESET_PLACEHOLDERS = [
   },
   {
     id: 'global-dividend-diversified',
+    group: 'balanced',
     title: '글로벌 배당 분산',
     hook: '미국 + 해외 배당 ETF 분산',
     coreType: 'SCHD, VIGI, SCHY, VNQI, VYMI',
@@ -107,6 +163,7 @@ export const PORTFOLIO_PRESET_PLACEHOLDERS = [
   },
   {
     id: 'reit-monthly-rent-strategy',
+    group: 'special',
     title: '월세 리츠 전략',
     hook: '부동산 중심 현금흐름 전략',
     coreType: 'O, VICI, SCHH, VNQI, JEPI',
@@ -129,6 +186,7 @@ export const PORTFOLIO_PRESET_PLACEHOLDERS = [
   },
   {
     id: 'growth-income-balance',
+    group: 'balanced',
     title: '성장 + 인컴 밸런스',
     hook: '배당과 자본 성장을 동시에',
     coreType: 'SCHD, DGRW, DIVO, VYM, JEPI',
@@ -151,6 +209,7 @@ export const PORTFOLIO_PRESET_PLACEHOLDERS = [
   },
   {
     id: 'high-growth-dividend-challenger',
+    group: 'growth',
     title: '고성장 배당 챌린저',
     hook: '배당 성장률 높은 종목 중심',
     coreType: 'RDVY, SDVY, LOW, ABBV, SCHD',
@@ -173,6 +232,7 @@ export const PORTFOLIO_PRESET_PLACEHOLDERS = [
   },
   {
     id: 'retirement-prep',
+    group: 'balanced',
     title: '은퇴 준비형',
     hook: '은퇴 10년 전 리스크 완화 전략',
     coreType: 'SCHD, JEPI, DGRO, VYM, O',
@@ -195,6 +255,7 @@ export const PORTFOLIO_PRESET_PLACEHOLDERS = [
   },
   {
     id: 'dividend-aristocrats-collection',
+    group: 'growth',
     title: '배당 귀족 컬렉션',
     hook: '25년 이상 배당 증가 기업 중심',
     coreType: 'NOBL, PG, KO, JNJ, ABBV, LOW',
@@ -218,6 +279,7 @@ export const PORTFOLIO_PRESET_PLACEHOLDERS = [
   },
   {
     id: 'defensive-dividend-etf',
+    group: 'income',
     title: '방어형 배당 ETF',
     hook: '변동성 낮은 고배당 ETF 중심',
     coreType: 'HDV, VYM, SCHD, DGRO',
@@ -239,6 +301,7 @@ export const PORTFOLIO_PRESET_PLACEHOLDERS = [
   },
   {
     id: 'monthly-dividend-addict',
+    group: 'income',
     title: '월배당 중독자',
     hook: '올 월배당 ETF 구성',
     coreType: 'JEPI, JEPQ, DIVO, IDVO, QDVO, O',
@@ -262,6 +325,7 @@ export const PORTFOLIO_PRESET_PLACEHOLDERS = [
   },
   {
     id: 'smart-diversification-360',
+    group: 'balanced',
     title: '올인원 배당 전략',
     hook: '모든 자산군 혼합 입문형',
     coreType: 'SCHD, VYM, JEPI, VIGI, VNQI, DIVO',
@@ -285,6 +349,7 @@ export const PORTFOLIO_PRESET_PLACEHOLDERS = [
   },
   {
     id: 'ai-infra-dividend-growth',
+    group: 'special',
     title: 'AI 인프라 성장형',
     hook: 'AI 반도체, 전력, 데이터센터 인프라 중심',
     coreType: 'SMH, VRT, ETN, NVDA, AVGO, CEG',
@@ -306,7 +371,9 @@ export const PORTFOLIO_PRESET_PLACEHOLDERS = [
     durationYearsValue: 11,
     targetMonthlyDividendValue: 650_000
   }
-] as const;
+  // `Record<string, unknown>` 교차는 **초과 프로퍼티 검사를 끄기 위한 것**이다(satisfies 는 리터럴에
+  // 초과 검사를 건다). 실제 목적은 `group` 이 위 레지스트리의 id 인지 타입체크로 잡는 것 하나뿐이다.
+] as const satisfies readonly (Record<string, unknown> & { group: PortfolioPresetGroupId })[];
 
 /** 카드 한 장(프리셋 정의) — 부모(MainRightPanel)의 `pendingPreset` 상태·적용 콜백이 이 타입을 쓴다. */
 export type PortfolioPresetPlaceholder = (typeof PORTFOLIO_PRESET_PLACEHOLDERS)[number];

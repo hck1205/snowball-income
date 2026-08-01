@@ -15,6 +15,9 @@ import {
   PostInvestmentProjectionPanel,
   PresetApplyModal,
   PortfolioPrefillRequest,
+  QuickAdjustBar,
+  ScenarioPrefillNotice,
+  ShareLinkFailureNotice,
   ScenarioTabs,
   ScenarioTabTooltip,
   TabDeleteModal,
@@ -49,6 +52,7 @@ import {
   useSetActiveHelpWrite,
   useSetWeightByTickerIdWrite,
   useSetYieldFormWrite,
+  useScenarioPrefillAtomValue,
   useTickerProfilesAtomValue,
   useVisibleYearlySeriesAtomValue
 } from '@/jotai';
@@ -61,6 +65,7 @@ import SettingsEntryButton from '../SettingsEntryButton';
 import { createResultAmountFormatter, formatPercent, targetYearLabel } from '@/pages/Main/utils';
 import {
   useConditionStripItems,
+  usePortfolioPrefill,
   usePortfolioPrefillCommit,
   usePortfolioPresetApply,
   useResultChartAdapters,
@@ -291,7 +296,7 @@ function MainRightPanelComponent({ configDrawerId }: MainRightPanelProps) {
     isPostInvestmentAssetView
   );
 
-  const { pendingPreset, requestApply, cancelApply, confirmApply } = usePortfolioPresetApply({
+  const { pendingPreset, requestApply, cancelApply, confirmApply, applyPresetSilently } = usePortfolioPresetApply({
     activeScenarioId,
     renameScenarioTab,
     setTickerProfiles,
@@ -302,6 +307,15 @@ function MainRightPanelComponent({ configDrawerId }: MainRightPanelProps) {
     setShowPortfolioDividendCenter,
     setYieldFormValues
   });
+
+  /*
+   * 첫 방문 기본 시나리오. **저장소가 비어 있을 때만** 영속 계층이 id 를 발행하고(그 순간부터 저장 정지),
+   * 여기서 프리셋 카드와 같은 경로로 적용한다. 계측만 쏘지 않는다(프리셋 인기 순위 오염 방지).
+   */
+  usePortfolioPrefill({ hasTickerProfiles: tickerProfiles.length > 0, applyPreset: applyPresetSilently });
+  /* 프리필이 살아 있는 동안에만 결과 아래에 프리셋 고르개를 붙이고, 배너·"지금 적용됨" 표식을 켠다. */
+  const scenarioPrefill = useScenarioPrefillAtomValue();
+  const appliedPrefillPresetId = scenarioPrefill?.status === 'applied' ? scenarioPrefill.presetId : null;
 
   useResultViewAnalytics({
     simulation,
@@ -370,6 +384,14 @@ function MainRightPanelComponent({ configDrawerId }: MainRightPanelProps) {
         />
       </ScenarioTabsRow>
 
+      {/* 공유 링크가 열리지 못한 이유. 프리필 안내보다 **위**다 — 링크를 타고 온 사람에게는
+          "이 화면이 당신이 열려던 것이 아니다"가 먼저 와야 한다. 실패했을 때만 렌더된다. */}
+      <ShareLinkFailureNotice />
+
+      {/* 첫 방문 프리필 안내. 결과 그리드 **밖**(형제)이라 결과 이미지 캡처에 들어가지 않고,
+          시나리오 탭 줄과 결과 사이에 서서 "이 숫자가 어디서 왔는지"를 결과보다 먼저 말한다. */}
+      <ScenarioPrefillNotice />
+
       {/* 카드의 **폭·순서는 전부 MainResultGrid가 정한다** — 이 파일은 무엇을 넘길지만 고른다. */}
       {simulation ? (
         <MainResultGrid
@@ -400,6 +422,16 @@ function MainRightPanelComponent({ configDrawerId }: MainRightPanelProps) {
                   onOpen={openConfigDrawer}
                 />
               }
+            />
+          }
+          quickAdjust={
+            <QuickAdjustBar
+              values={{
+                monthlyContribution: values.monthlyContribution,
+                durationYears: values.durationYears,
+                targetMonthlyDividend: values.targetMonthlyDividend
+              }}
+              onSetField={setField}
             />
           }
           financialIncomeBanner={
@@ -497,6 +529,21 @@ function MainRightPanelComponent({ configDrawerId }: MainRightPanelProps) {
           }
         />
       )}
+
+      {/*
+        🔴 결과 그리드의 **형제**다 — 캡처 루트(`ResultGrid`) 안에 넣으면 결과 이미지에 프리셋 13장이
+        따라 들어간다. 프리필로 열린 화면에서만 붙인다: 사용자가 자기 포트폴리오를 만든 뒤에도
+        프리셋 벽이 결과 아래에 상주하면 "내 화면"이 아니라 카탈로그가 된다.
+        여기에 보드가 서 있는 덕분에 첫 화면에서도 `TOUR_TARGET.portfolioPresets` 앵커가 살아 있다.
+      */}
+      {simulation && appliedPrefillPresetId ? (
+        <PortfolioPresetBoard
+          isPortfolioEmpty
+          variant="browse"
+          appliedPresetId={appliedPrefillPresetId}
+          onPresetSelect={requestApply}
+        />
+      ) : null}
 
       {pendingPreset && modalRoot ? (
         <PresetApplyModal
