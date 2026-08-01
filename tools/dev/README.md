@@ -8,6 +8,11 @@
 | `tracks` | 미커밋 변경을 "기능 트랙"별로 갈라 본다 | 읽기 전용 |
 | `devstatus` | 브랜치·변경·워크트리·인덱스·api번들 한 화면 대시보드 | 읽기 전용 |
 | `predeploy` | 한 트랙의 변경만으로 격리 빌드가 그린인지 검증 + api 드리프트 진단 | 기본 dry-run, `--run` 도 라이브 트리 무손상 |
+| `uiprobe` | 앱을 실제로 그려서 재고 찍는다(스샷·오버플로·정렬) | 읽기 전용(헤드리스) |
+| `tintscan` | 라우트별 **틴트 면 개수** 실측 — `DESIGN.md` §2-6 상한 2 | 헤드리스 · 자기가 띄운 프로파일의 localhost 저장소만 비운다 |
+| `archclip` | 카드의 **둥근 모서리(아치)를 콘텐츠가 넘는지** 실측 — 허용 0건 | 헤드리스 · 자기가 띄운 프로파일의 localhost 저장소만 비운다 |
+| `headerprobe` | 헤더 높이 상한 + **문서 레벨** 가로 오버플로 | 읽기 전용(헤드리스) |
+| `overflowprobe` | **요소 레벨** 가로 오버플로 — 터치 타깃 거짓 양성을 걸러낸다 | 헤드리스 · 시드로 localhost IndexedDB 에만 쓴다 |
 
 ```sh
 npm run tracks                     # = node tools/dev/tracks.mjs
@@ -154,3 +159,140 @@ npm run uiprobe -- --click "워렌 버핏" --click "적용" --shot tmp/result.pn
 > ⚠ `content-visibility: auto` 인 요소(이 레포의 `Card`)는 **뷰포트 밖이면 그려지지 않는다.**
 > 전체 페이지 스샷에서 아래쪽 카드가 비어 보이면 그것 때문이다 — 화면 결함이 아니다.
 > 같은 이유로 **이미지 내보내기(결과 캡처)도 영향을 받는다.**
+
+---
+
+## 5. `tintscan` — 라우트별 **틴트 면 개수**를 실측한다
+
+```sh
+npm run tintscan                                     # 3라우트 · 1280px · 상한 2 (초과하면 exit 1)
+npm run tintscan -- --url http://localhost:5199      # dev 서버 포트가 다를 때
+npm run tintscan -- --route /dividend/portfolio --click SCHD   # 빈 상태가 아닌 화면을 만들어서 센다
+npm run tintscan -- --json
+```
+
+**왜 있나.** `DESIGN.md` §2-6 이 "한 화면에 틴트 면 최대 2개"를 규칙으로 적어 뒀는데 **아무도 세지
+않아서** `/dividend/portfolio` 가 3~5개로 늘어난 채 배포돼 있었다. 이건 **소스 스캔으로 못 잡는다** —
+각 면은 각자의 파일에서 각자 옳고, 문제는 "한 화면에 몇 개가 동시에 서는가"다. jsdom 도 못 잡는다.
+
+- **면의 정의**: 스코프(기본 `main`) 안에서 폭 ≥180px · 높이 ≥8px 이고 배경이 중립 토큰
+  (`--sb-bg`/`surface*`/`progress-track`)이 아니거나 `background-image`가 있는 엘리먼트.
+  중립 색은 **런타임 `:root`에서 읽어** 비교하므로 8프리셋 × 라이트/다크 어디서 돌려도 맞는다.
+- 전역 헤더는 뺀다(`<main>` 안쪽만) — 모든 라우트에 상시 서는 앱 크롬이라 비교값에 상수로 얹힌다.
+- **빈 화면은 통과가 아니라 실패다**(`측정 불가`). 콜드 로드가 늦으면 "0개 ✓"가 나오던 것을 막는다.
+- 우리가 띄운 브라우저면 측정 전에 **origin 저장소를 비운다** — 안 그러면 `--click` 으로 만든 상태가
+  다음 실행의 "기본 상태"로 남아 값이 흔들린다.
+
+> ⚠ Git Bash 에서는 `--route /dividend/portfolio` 가 윈도 경로로 바뀐다(MSYS 경로 변환).
+> `MSYS_NO_PATHCONV=1` 을 앞에 붙여라 — 안 붙이면 도구가 죽지 않고 **그 사실을 알려준다**.
+
+---
+
+## 6. `headerprobe` — 앱 헤더의 **높이 상한과 가로 오버플로**를 실측한다
+
+```sh
+npm run headerprobe                                   # 5라우트 × 5폭, 계약 위반이면 exit 1
+npm run headerprobe -- --base http://localhost:5199   # dev 서버 포트가 다를 때
+npm run headerprobe -- --widths 1280,390 --routes /
+```
+
+**왜 있나.** 헤더는 이 레포에서 가장 조용히 뚱뚱해지는 표면이다. 2026-07-31 이전에는 데스크톱에서
+**117px 짜리 2줄**(브랜드 줄 오른쪽 900px 이 빈 채로), 390px 에서 127px 로 첫 화면의 15% 를 먹고
+있었는데 **어떤 테스트도 깨지지 않았다** — jsdom 은 `@media` 도 레이아웃도 계산하지 않아 높이를
+알 수 없고, 소스만 읽어서는 "두 줄"이 결함으로 보이지 않는다.
+
+재는 계약 4가지:
+
+1. `--sb-app-header-h`(AppHeader 가 실측해 발행하는 값)가 **≥1024px 에서 80px 이하** — 목표 대역 64~72.
+2. **발행값 = 실측 박스**. 어긋나면 `ResizeObserver` 발행이 멎은 것이라 그 자체가 결함이다.
+3. 전 폭 **가로 오버플로 0**(`documentElement.scrollWidth > clientWidth` 면 실패).
+   등호로 판정하지 않는다 — 세로 스크롤바가 없는 짧은 페이지에서는 `scrollWidth`(1265)가
+   `clientWidth`(1280)보다 **작게** 나오는 정상 상태가 있다.
+4. **스크롤한 뒤에도** 오버플로 0 + 승격된 히어로 액션이 헤더 아래 정확히 8px.
+   로드 직후만 재면 못 잡는다 — 실제로 조상 `transform` 하나 때문에 그 버튼이 화면 밖(x=2043px)으로
+   날아가 **스크롤한 상태에서만 드러나는** 가로 오버플로가 있었다(2026-07-31 수정).
+
+> ⚠ Git Bash 에서 `--routes /dividend/calendar` 는 윈도 경로로 바뀐다(위 tintscan 과 같은 MSYS 변환).
+> `MSYS_NO_PATHCONV=1` 을 앞에 붙이거나 PowerShell 에서 실행하라.
+
+---
+
+## 7. `archclip` — 카드 **아치를 콘텐츠가 넘는지** 실측한다
+
+```sh
+node tools/dev/archclip.mjs                                  # / · 390px · 허용 0건
+node tools/dev/archclip.mjs --width 320,360,390,414,768
+node tools/dev/archclip.mjs --click 캘린더                    # 씨앗 뒤에 이어 눌러 상태를 만든다
+node tools/dev/archclip.mjs --json
+```
+
+**왜 있나.** 카드 반경을 `calc(radius.sm + 카드패딩)` 으로 키운 뒤에도, **반경 값과 무관하게**
+"콘텐츠가 둥근 모서리에 잘리는" 결함은 따로 존재한다(가로 스크롤 표·음수 마진·마지막 행 밀착).
+이건 세 방법 다 못 잡는다 — 소스는 파일마다 각자 옳고, jsdom 은 `getBoundingClientRect` 가 전부 0,
+`getComputedStyle` 은 선언값만 준다. **기하로 따져야 보인다.**
+
+판정: 모서리는 반지름 r 인 원호다(중심 = 모서리에서 r 안쪽). 자식의 그 방향 꼭짓점이 중심에서
+**r 보다 멀면** 그만큼 잘린다.
+
+🔴 이 도구가 **틀린 답을 내지 않기 위해** 하는 세 가지(전부 실측으로 한 번씩 속았던 것):
+
+1. **카드마다 `scrollIntoView` + rAF 2회 뒤에 잰다.** 공용 `Card` 는 `content-visibility: auto` 라
+   뷰포트 밖이면 DOM 측정이 거짓말한다.
+2. **`checkVisibility({ contentVisibilityAuto: true })` 로 건너뛴 서브트리를 버린다.** 닫힌
+   `<details>` 안의 지급월 표가 **카드 아래로 223px 삐져나온 것처럼** 잡혔다 — 화면엔 아무것도 없는데도.
+3. **클리핑 조상과 교집합한 뒤에 판정한다.** 지급월 표는 `min-width: 520px` 라 390px 에서 카드 밖까지
+   뻗지만 자기 스크롤 컨테이너가 자른다 — 아치 결함이 아니다.
+
+**빈 화면은 통과가 아니다.** 프로파일이 비면 시뮬레이터는 결과 카드 대신 프리셋 보드만 그린다
+(카드 18개·침범 0건). 그래서 기본으로 프리셋을 하나 눌러 결과 카드를 세우고, `실지급 월별 배당` 이
+없으면 **실패로 끝낸다**.
+
+> 감도 확인(2026-07-31): `ScheduleDetails` 에 `margin-inline: -16px; margin-bottom: -11px` 를 넣으면
+> `0건 → 4건 · 최대 5.21px` 로 빨개지고(exit 1), 되돌리면 다시 0건이 된다.
+
+---
+
+## 8. `overflowprobe` — **요소 단위** 가로 오버플로
+
+```sh
+npm run overflowprobe                                          # 5라우트 × 390·360px
+npm run overflowprobe -- --base http://localhost:5178
+npm run overflowprobe -- --routes / --widths 390 --verbose      # 의도적 스크롤러 목록까지
+npm run overflowprobe -- --mutant                                # 감도 자가검증
+```
+
+**왜 있나.** `headerprobe` 는 **문서 레벨**(`documentElement.scrollWidth > clientWidth`)만 본다.
+그건 "페이지가 통째로 가로 스크롤되나"라는 가장 큰 사고만 잡고, **카드 안쪽에서 새는 것**은 문서를
+넓히지 않고도 옆 요소를 덮거나 잘려 보인다(실측 사례: 표를 카드로 접는 CSS에서 `width: 1%` 가 문자
+그대로 1% 가 되어 삭제 버튼이 21px 삐져나간 건). 그래서 **모든 요소**를 훑는다.
+
+### 🔴 핵심은 "무엇을 세지 않느냐" 다
+
+`scrollWidth − clientWidth` 를 그대로 믿으면 이 레포에서는 **거의 전부가 거짓 양성**이다.
+2026-08-01 실측(390px `/`): 걸린 68개 중 **진짜 레이아웃 결함은 0개**였다. 세 부류를 걸러낸다.
+
+1. **스크롤 컨테이너**(`overflow-x: auto|scroll`, **조상까지** 본다) — 내용이 스크롤로 도달 가능하고
+   조상으로 전파되지 않는다. 조상까지 보는 이유: 스크롤러는 래퍼고 실제로 넘치는 것은 그 안쪽
+   트랙 div 다(`NavScroller` 가 그렇다).
+2. **클리핑 컨테이너**(`hidden|clip`) — `sr-only`(1×1+hidden)와 말줄임이 여기 대량으로 걸린다.
+3. **의사요소만 넘치는 경우 = 터치 타깃.** `shared/styles/surfaces.ts` 의 `hitArea`/`hitAreaWithin`
+   이 시각 크기는 그대로 두고 `::before` 로 히트 영역만 넓힌다. 지문: 38px 토글 트랙 → 좌우 **3px**,
+   18px 도움말 버튼 → 좌우 **4px**, 28px 헤더 아이콘 버튼 → 좌우 **8px**. 판정은 자손 **요소 박스**와
+   **텍스트 조각(Range)** 중 무엇도 패딩 박스를 넘지 않는지로 한다.
+
+남는 것 = `overflow-x: visible` 인데 실제 자손 박스나 텍스트가 밖으로 나간 요소. 그것만 실패다.
+
+**허용 목록**은 `INTENTIONAL_SCROLLERS` 에 근거와 함께 있다(emotion 해시가 아니라 시맨틱 앵커로
+지목한다 — 해시는 빌드마다 바뀐다). 목록에 없는 새 스크롤러는 실패가 아니라 `INFO` 로 찍는다.
+
+**보유 종목 시드**: `/dividend/portfolio` 는 빈 상태로 재면 의미가 없어서 IndexedDB 에 5건을 심고
+잰다(`--no-seed` 로 끈다). 스키마 근거는 `pages/Portfolio/utils/portfolioStorage.ts`.
+
+> 감도 확인(2026-08-01, 5라우트 × 2폭 전부): `--mutant` 가 넘치는 요소 3종(고정폭 초과 자식 /
+> 무공백 긴 텍스트 / 음수 마진)을 심으면 `0건 → 6건(3/3종 지목) → 제거 후 0건`.
+> 건수가 6인 이유는 넘침이 조상으로 전파되기 때문이라 **종류**로 단정한다.
+> 소스 뮤턴트로도 확인했다: `PayoutScheduleStrip.styled.ts` 의 `ScheduleScroll` 을
+> `overflow-x: auto → visible` 로 바꾸면 `0건 → 1건 · 188px(client 332 / scroll 520)` 로 빨개진다.
+
+> ⚠ Git Bash 에서 `--routes /dividend/calendar` 는 윈도 경로로 바뀐다(MSYS 변환).
+> `MSYS_NO_PATHCONV=1` 을 앞에 붙이거나 PowerShell 에서 실행하라.

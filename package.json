@@ -22,7 +22,11 @@
     "verify": "node tools/dev/verify.mjs",
     "hooks:install": "git config core.hooksPath .githooks",
     "ticker:paydates": "vite-node scripts/tickerRefresh/payDatesCli.ts --",
-    "uiprobe": "node tools/dev/uiprobe.mjs"
+    "uiprobe": "node tools/dev/uiprobe.mjs",
+    "tintscan": "node tools/dev/tintscan.mjs",
+    "headerprobe": "node tools/dev/headerprobe.mjs",
+    "overflowprobe": "node tools/dev/overflowprobe.mjs",
+    "archclip": "node tools/dev/archclip.mjs"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
