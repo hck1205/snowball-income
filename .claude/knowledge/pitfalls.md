@@ -473,10 +473,15 @@
 - [2026-08-01][test] **env 플래그로 꺼진 기능도 양방향 검증이 가능하다** — `vi.mock` 팩토리에서 `get isEnabled() { return flag; }` 로 내보내면 한 파일에서 on/off 를 모두 렌더한다(값으로 내보내면 고정된다).
 - [2026-08-01][test] **뮤턴트 감도 판정을 종료코드로 하면 그 파일에 의도적 red 가 있을 때 전부 "KILLED" 로 오판한다** — 기준선의 **실패 테스트 이름 집합**을 먼저 뜨고 "새로 red 된 것"으로 판정하라.
 - [2026-08-01][docs] **"배당 가계부 트랙 ⑬"의 정본은 `docs/design-refresh-plan.md:230` 이지 `docs/ROADMAP-v2.md` 가 아니다**(후자는 "가계부"를 0회 포함). 두 문서가 로드맵을 나눠 갖고 있어 브리핑에서 반복 오인된다.
-- [2026-08-01][seo] 🔴 **`public/ai-overview.json` 은 llms.txt 수정에서 누락됐다** — `"collects_personal_data": false`, `"computation": "client-side only (no backend)"` 가 그대로 남아 있다. **AI 크롤러용 표면 3종(llms.txt·llms-full.txt·ai-overview.json) 중 1종만 거짓인 상태**다. 세 파일이 따로 노는 것이 원인 — 계약 테스트가 없다.
+- [2026-08-01][seo] **AI 크롤러용 표면은 3종(`llms.txt`·`llms-full.txt`·`public/ai-overview.json`)이고 서로를 모른다** — 한 번은 앞의 둘만 고쳐 `ai-overview.json` 만 거짓("collects_personal_data": false)으로 남았다(2026-08-01 커밋 e58c788 에서 3종 모두 정정). **하나를 고치면 나머지 둘을 반드시 같이 열어라** — 계약 테스트가 없어 이 드리프트는 자동으로 잡히지 않는다.
 
 ## 측정 함정 (2026-08-01 메인 세션이 직접 밟음)
 - [2026-08-01][tooling] **vite dev 의 lazy 청크 콜드 로드는 `--wait 1200` 에서 4개 라우트를 `root:0`(빈 화면)으로 만든다** — `--wait 6000` 이면 전부 정상. **6초 미만 대기는 빈 화면 오판을 만든다.**
 - [2026-08-01][tooling] **wmux 브라우저 도구(`browser_evaluate`·`browser_snapshot`)가 페이지가 아니라 wmux 셸에서 실행된다** — `document.querySelectorAll` 이 전부 0으로 나와 "페이지가 안 그려졌다"고 오판했다. **앱 측정에는 `tools/dev/uiprobe.mjs` 를 써라**(자체 Chrome 을 새로 띄운다).
 - [2026-08-01][tooling] 🔴 **로그 리다이렉트 실패가 stale 로그를 진짜 결과로 읽게 만든다** — `> "$TMPDIR/tsc.log"` 에서 `TMPDIR` 이 비어 `/tsc.log` → Permission denied 로 명령이 **실행되지 않았는데**, 그 뒤 `tail /tmp/tsc.log` 가 오래된 로그를 출력했다. **절대 경로로 리다이렉트하고 EXIT 코드를 직접 확인하라.**
 - [2026-08-01][tooling] **`headerprobe` 첫 실행의 `/ @1280 h=null` 은 콜드로드 플레이크다** — 재실행하면 통과. 1회 실패로 회귀를 단정하지 마라.
+
+## 배포·커밋 운영 (2026-08-01 git-manager 실측)
+- [2026-08-01][git] **pre-commit 훅(indexer + codegraph + graphify)이 커밋 1건당 30~50초 걸린다** — 커밋 여러 개를 한 셸 호출로 묶으면 2분 타임아웃에 걸려 훅 도중에 죽는다. 그때 **인덱스는 스테이징된 채 남으므로** 같은 메시지로 `git commit` 만 다시 부르면 그대로 이어진다(재스테이징 불필요). 3~4건씩 끊어 돌려라.
+- [2026-08-01][git] **200 파일 넘는 작업트리를 논리 커밋으로 가를 때는 pathspec 목록 파일 + `git add --pathspec-from-file` 이 유일하게 안전한 방법이다** — 커밋 전에 "모든 변경 경로가 정확히 한 목록에만 있는가"를 스크립트로 검증할 수 있다(누락·중복 0 확인 후 커밋 시작). 목록에 디렉터리를 쓰면 untracked 신규 파일까지 함께 잡힌다.
+- [2026-08-01][git] **한 파일이 여러 논리 단위를 동시에 담으면 파일 단위 분할로는 못 가른다** — 이번엔 `jotai/snowball/atoms/ui/index.ts`(프리필·공유실패·팔레트 게이트·라이트다크 4건)와 `router/routes.tsx`(/simulator·404·가계부 게이트 3건)가 그랬다. **중간 커밋이 개별로는 빌드되지 않는 것을 받아들이고**(브랜치 최종 상태만 verify 통과) 커밋 메시지에 "배선은 다음 커밋"이라고 명시하는 편이, 훅 스테이징으로 쪼개다 반쪽 상태를 만드는 것보다 낫다.
