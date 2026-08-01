@@ -11,8 +11,8 @@ import type {
 } from './PortfolioPage.types';
 // 다음 예상 지급일 타일(#7)은 정렬·묶기 규칙이 촘촘해 별도 파일로 뗐다 — 여기서 재-export 로
 // 기존 배럴 표면(`buildNextPayoutTile`)을 그대로 유지한다.
-import { buildNextPayoutTile } from './PortfolioPage.nextPayoutTile';
-export { buildNextPayoutTile } from './PortfolioPage.nextPayoutTile';
+import { buildNextPayoutDDay, buildNextPayoutTile } from './PortfolioPage.nextPayoutTile';
+export { buildNextPayoutDDay, buildNextPayoutTile } from './PortfolioPage.nextPayoutTile';
 
 /**
  * 화면 모델 조립 — **순수 함수만**. `Date.now()`·DOM·전역 상태를 읽지 않는다(전부 인자로 받는다).
@@ -46,6 +46,11 @@ export type PortfolioViewModelInput = {
    * 환율배 틀린 숫자가 오류 없이 그려진다.
    */
   formatUsdAmount: (usd: number) => string;
+  /**
+   * '오늘'. 히어로 D-Day 의 기준이고, **컨테이너가 마운트 시점에 한 번 고정한 값**이다
+   * (`Date.now()` 를 여기서 읽으면 렌더마다 답이 달라져 테스트가 결정적이지 않다).
+   */
+  today: Date;
   /** 시뮬레이터 프리필 state 가 만들어졌는가(= CTA 를 누를 수 있는가). */
   canSimulate: boolean;
   /** 합계에는 들었지만 시뮬레이터 유니버스 밖이라 **비중에서 빠지는** 종목 수. */
@@ -319,6 +324,12 @@ export const buildPortfolioViewModel = (input: PortfolioViewModelInput): Portfol
     isLoading,
     showEmptyState: !isLoading && items.length === 0,
     asOfLine: buildPortfolioAsOfLine(summary, fx),
+    /*
+     * 🔴 로딩 중에는 D-Day 를 그리지 않는다. 저장소를 읽는 동안 보유 목록은 비어 있어 결과가
+     * "지급 없음"과 구분되지 않는데, 히어로는 골격(스켈레톤)이 없는 자리라 **줄이 나타났다 사라진다**.
+     * 아직 모르는 것을 먼저 말하지 않는다.
+     */
+    dDay: isLoading ? null : buildNextPayoutDDay(summary, input.today),
     storageError: buildStorageError(status, input.writeError),
     fxError: fx.status === 'error' ? copy.error.fxFailed : null,
     heroTile,

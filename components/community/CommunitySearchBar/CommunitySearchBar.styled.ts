@@ -3,16 +3,21 @@ import { color, font, motion, radius, space } from '@/shared/styles';
 
 /**
  * 검색 폼 + 정밀 검색 트리거를 한 세트로 묶는 래퍼. 정밀 필터의 숫자 입력은 검색 `<form>` **바깥**에
- * 둔다(Enter가 텍스트-검색 submit을 트리거하지 않게). 반응형은 @media 대신 variant prop 분기:
- * 데스크톱(row)은 폼 옆 아이콘 트리거, 모바일(column)은 검색 input 아래 전체폭 버튼.
+ * 둔다(Enter가 텍스트-검색 submit을 트리거하지 않게).
+ *
+ * **한 줄 한 벌이다.** 예전에는 `variant` prop 으로 데스크톱(행)/모바일(열) 두 모양을 상호배타 렌더했는데,
+ * 그건 헤더 인라인 검색과 헤더 아래 펼침 바가 **서로 다른 인스턴스**였기 때문이다. 검색이 본문 툴바로
+ * 내려오면서 인스턴스는 하나가 됐고(2026-07-31), 모바일에서도 열(2줄)로 펴면 sticky 바가 화면의
+ * 두 배를 먹는다 → 전 폭에서 `[기준][입력][정밀]` 한 줄을 유지하고 입력만 늘었다 줄었다 한다.
+ * 좁은 폭 여유는 정밀 트리거를 아이콘 전용으로 두어 만든다(라벨은 aria-label 이 갖는다).
  */
-export const SearchCluster = styled.div<{ mobile: boolean }>`
+export const SearchCluster = styled.div`
   display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: ${space[2]};
   min-width: 0;
-  ${({ mobile }) =>
-    mobile
-      ? 'flex-direction: column; align-items: stretch; gap: ' + space[2] + '; width: 100%;'
-      : 'flex-direction: row; align-items: center; gap: ' + space[2] + ';'}
+  width: 100%;
 `;
 
 export const SearchForm = styled.form`

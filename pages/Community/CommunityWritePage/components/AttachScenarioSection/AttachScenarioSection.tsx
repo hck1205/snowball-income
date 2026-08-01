@@ -1,4 +1,5 @@
 import { COMMUNITY_COPY } from '@/shared/constants/community';
+import { SIMULATOR_PATH } from '@/shared/constants/routes';
 import { ToggleField } from '@/components/common';
 import { SimSummaryStats } from '@/components/community';
 import { EditorHint, FieldError } from '../../CommunityWritePage.styled';
@@ -83,7 +84,7 @@ export default function AttachScenarioSection({
                   <strong>{w.attachEmptyTitle}</strong>
                   <span>{w.attachEmptyBody}</span>
                 </AttachPreviewInfo>
-                <AttachEmptyCtaLink to="/">{w.attachEmptyCta}</AttachEmptyCtaLink>
+                <AttachEmptyCtaLink to={SIMULATOR_PATH}>{w.attachEmptyCta}</AttachEmptyCtaLink>
               </AttachEmpty>
             ) : null /* loading — 빈 상태 깜빡임 방지로 렌더 없음 */
           }

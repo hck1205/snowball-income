@@ -31,11 +31,25 @@ const copy = DIVIDEND_CALENDAR_COPY;
  * "그날 아무 일 없음"으로 오독된다. 대신 칩은 놓지 않는다(그 달로 이동했을 때 보여주는 게 정확하다).
  *
  * DOM은 **뷰포트 폭과 무관하게 동일하다** — 좁은 폭의 밀도 조절(칩 → 색점, 개수 배지)은 전부 CSS다.
+ *
+ * `isPreview` 는 **예시** 렌더다(종목 미선택 화면). 같은 표를 그대로 쓰되 칩을 흐린 장식으로 낮추고,
+ * 표의 이름·캡션이 "예시"임을 말한다 — 흐림은 시각 신호일 뿐이라 그것만으로는 계약이 성립하지 않는다.
  */
-export default function MonthCalendar({ weeks, monthLabel, labelledById, onDayJump }: MonthCalendarProps) {
+export default function MonthCalendar({
+  weeks,
+  monthLabel,
+  labelledById,
+  isPreview = false,
+  onDayJump
+}: MonthCalendarProps) {
   return (
-    <CalendarTable aria-labelledby={labelledById}>
-      <CalendarCaption>{copy.board.caption(monthLabel)}</CalendarCaption>
+    <CalendarTable
+      aria-labelledby={isPreview ? undefined : labelledById}
+      aria-label={isPreview ? copy.preview.tableLabel(monthLabel) : undefined}
+    >
+      <CalendarCaption>
+        {isPreview ? copy.preview.caption(monthLabel) : copy.board.caption(monthLabel)}
+      </CalendarCaption>
       <thead>
         <tr>
           {copy.board.weekdays.map((weekday, index) => (
@@ -76,23 +90,31 @@ export default function MonthCalendar({ weeks, monthLabel, labelledById, onDayJu
                   </DayHead>
 
                   {cell.items.length > 0 ? (
-                    <DayChipList>
+                    <DayChipList $preview={isPreview}>
                       {visible.map((item) => (
                         <DayChipItem key={item.ticker}>
-                          {/* 넓은 폭: 칩(버튼)이 hover/클릭으로 커스텀 툴팁을 연다 — 잘린 티커의 전체
-                              이름·예상 지급일을 말한다. 좁은 폭: 칩은 표시 전용(포인터 꺼짐, DayChipList)
-                              이라 칸 전체를 덮는 이동 버튼의 title이 대신 말한다. */}
-                          <Tooltip
-                            content={
-                              item.day === null
-                                ? copy.board.chipTooltipUndated(item.ticker)
-                                : copy.board.chipTooltip(item.ticker, cellMonth, item.day)
-                            }
-                          >
-                            <DayChip type="button">
+                          {/* 예시 칩은 버튼이 아니다 — 누를 실체(툴팁·아젠다)가 없는 컨트롤을
+                              키보드 순서에 세우면 탭 이동만 늘고 아무 일도 일어나지 않는다. */}
+                          {isPreview ? (
+                            <DayChip as="span">
                               <ChipLabel>{item.ticker}</ChipLabel>
                             </DayChip>
-                          </Tooltip>
+                          ) : (
+                            /* 넓은 폭: 칩(버튼)이 hover/클릭으로 커스텀 툴팁을 연다 — 잘린 티커의 전체
+                               이름·예상 지급일을 말한다. 좁은 폭: 칩은 표시 전용(포인터 꺼짐, DayChipList)
+                               이라 칸 전체를 덮는 이동 버튼의 title이 대신 말한다. */
+                            <Tooltip
+                              content={
+                                item.day === null
+                                  ? copy.board.chipTooltipUndated(item.ticker)
+                                  : copy.board.chipTooltip(item.ticker, cellMonth, item.day)
+                              }
+                            >
+                              <DayChip type="button">
+                                <ChipLabel>{item.ticker}</ChipLabel>
+                              </DayChip>
+                            </Tooltip>
+                          )}
                         </DayChipItem>
                       ))}
                     </DayChipList>

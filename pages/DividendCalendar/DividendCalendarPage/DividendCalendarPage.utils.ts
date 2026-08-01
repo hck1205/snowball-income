@@ -12,10 +12,16 @@ import type {
 const copy = DIVIDEND_CALENDAR_COPY;
 
 /**
- * 빈 상태에서 제안하는 시작 종목. 하드코딩하되 **데이터가 없으면 그 칩만 렌더에서 빠진다**
- * (`selectQuickPickOptions`) — 스냅샷이 바뀌어도 "선택은 되는데 달력엔 안 뜨는" 칩이 생기지 않는다.
+ * 빈 상태에서 제안하는 시작 종목이자, 격자에 깔리는 **예시 미리보기**의 종목이다.
+ * 두 목록을 같게 두는 이유: 칩을 누르면 방금 흐리게 보던 그 일정이 그 자리에서 선명해져야 한다
+ * ("무엇이 여기 나타날지"를 보여주는 것이 미리보기의 목적이라, 보여준 것과 다른 게 나오면 거짓말이 된다).
+ *
+ * ⚠ **스냅샷에 실제 예상 지급'일'(`estimatedPayDayByMonth`)이 있는 종목만 넣는다** — 예시라도
+ * 날짜를 지어내지 않는다. 지급'월'만 아는 종목(SCHD·O 등)은 격자에 놓일 날짜가 없어 미리보기가
+ * 텅 비므로 뺐다(선택 자체는 목록에서 그대로 된다). 하드코딩하되 데이터가 없어지면 그 칩만
+ * 렌더에서 빠진다(`selectQuickPickOptions`).
  */
-export const CALENDAR_QUICK_PICK_TICKERS: string[] = ['JEPI', 'KO', 'ABBV', 'SCHD', 'O', 'DGRO'];
+export const CALENDAR_QUICK_PICK_TICKERS: string[] = ['JEPI', 'DGRO', 'KO', 'ABBV'];
 
 /**
  * 로직 레이어(`../utils`)의 엔트리를 뷰 옵션으로 옮기는 **어댑터**.
@@ -81,6 +87,26 @@ export const buildDividendCalendarViewModel = ({
     .filter((row): row is ScheduleLegendRow => row !== null)
     .sort((left, right) => (left.ticker < right.ticker ? -1 : left.ticker > right.ticker ? 1 : 0));
 
+  /*
+   * 🔴 **표현 전용 미리보기다.** 여기서 만든 값은 화면에 흐리게 깔릴 뿐 `selected` 에도, 저장소에도,
+   * 주소에도 들어가지 않는다(선택은 사용자가 칩·목록을 눌렀을 때만 바뀐다).
+   *
+   * 선택이 하나라도 있으면 `null` — 예시가 실제 데이터를 밀어내는 일은 없다.
+   * 실제 달력과 **같은 순수 함수**(`buildMonthViewModel`)로 만든다: 예시 전용 날짜 생성기를 따로 두면
+   * 그 순간 스냅샷에 없는 날짜가 화면에 생긴다.
+   */
+  const previewMonth =
+    selected.length === 0
+      ? buildMonthViewModel({
+          year,
+          month,
+          today,
+          selected: CALENDAR_QUICK_PICK_TICKERS,
+          entries: universe,
+          resolveDay
+        })
+      : null;
+
   return {
     options,
     filtered,
@@ -92,6 +118,7 @@ export const buildDividendCalendarViewModel = ({
     legendRows,
     asOf,
     month: monthViewModel,
+    previewMonth,
     agendaDays: buildAgendaDays(monthViewModel),
     monthLabel: copy.nav.monthLabel(year, month)
   };

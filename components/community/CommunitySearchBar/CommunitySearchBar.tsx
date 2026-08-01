@@ -18,24 +18,18 @@ import {
   SearchInputWrap
 } from './CommunitySearchBar.styled';
 
-export type CommunitySearchBarProps = {
-  /** 모바일 오토포커스(펼침 시). */
-  autoFocus?: boolean;
-  /**
-   * 배치 컨텍스트. desktop(기본)=헤더 인라인(정밀 필터=앵커 팝오버),
-   * mobile=헤더 아래 펼침 바(정밀 필터=in-flow 인라인 패널·전체폭). 반응형은 이 prop으로 상호배타.
-   */
-  variant?: 'desktop' | 'mobile';
-};
-
 /**
- * 헤더 인라인 검색. URL(`?q=`, `?qf=`)이 유일한 진실 — 목록이 URL을 구독해 재요청한다.
+ * 갤러리 **본문 툴바**의 검색 줄. URL(`?q=`, `?qf=`)이 유일한 진실 — 목록이 URL을 구독해 재요청한다.
  * 입력은 300ms 디바운스 후 URL을 갱신하고, 엔터는 즉시 반영한다. 빈 입력이면 `q`를 제거한다.
  *
  * IME 조합 중에는 URL을 갱신하지 않는다(한글 조합이 깨지지 않게).
+ *
+ * **구(舊) 자리는 앱 헤더 가운데 슬롯이었다** — 워드마크·라우트 메뉴 6개·로그인·글쓰기·더보기와 한 줄을
+ * 다투다 1024px 에서 입력이 72px 로 찌그러지고 메뉴 3개가 가로 스크롤 뒤로 밀렸다(실측). 2026-07-31
+ * 사용자 지시로 본문 첫 줄로 내려왔다 — "← 목록"이 같은 이유로 `CommunityTopBar` 로 내려간 것과 같은 처방이다.
+ * 그래서 이 컴포넌트에는 더 이상 데스크톱/모바일 변형 prop 이 없다(인스턴스가 하나뿐이다).
  */
-export default function CommunitySearchBar({ autoFocus, variant = 'desktop' }: CommunitySearchBarProps) {
-  const isMobile = variant === 'mobile';
+export default function CommunitySearchBar() {
   const [searchParams, setSearchParams] = useSearchParams();
   const urlQuery = searchParams.get(COMMUNITY_QUERY_PARAM.query) ?? '';
   const urlFilter = searchParams.get(COMMUNITY_QUERY_PARAM.queryFilter) ?? DEFAULT_COMMUNITY_SEARCH_FILTER;
@@ -82,7 +76,7 @@ export default function CommunitySearchBar({ autoFocus, variant = 'desktop' }: C
   }, [value, filter]);
 
   return (
-    <SearchCluster mobile={isMobile}>
+    <SearchCluster>
       <SearchForm
         role="search"
         onSubmit={(event) => {
@@ -119,7 +113,6 @@ export default function CommunitySearchBar({ autoFocus, variant = 'desktop' }: C
             aria-label={COMMUNITY_COPY.gallery.searchAriaLabel}
             placeholder={COMMUNITY_COPY.gallery.searchPlaceholder}
             value={value}
-            autoFocus={autoFocus}
             onChange={(event) => setValue(event.target.value)}
             onCompositionStart={() => {
               composingRef.current = true;
@@ -131,7 +124,7 @@ export default function CommunitySearchBar({ autoFocus, variant = 'desktop' }: C
           />
         </SearchInputWrap>
       </SearchForm>
-      <PrecisionSearch layout={isMobile ? 'inline' : 'popover'} />
+      <PrecisionSearch />
     </SearchCluster>
   );
 }

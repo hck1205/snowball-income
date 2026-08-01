@@ -4,10 +4,12 @@ import { parseScenarioSimSummary } from '@/shared/lib/snowball';
 import { Banner, Button, Tabs } from '@/components/common';
 import {
   ClockIcon,
+  CommunitySearchBar,
   EmptyState,
   FlameIcon,
   GridIcon,
   ListIcon,
+  PencilIcon,
   PostCard,
   PostRow,
   UsersIcon
@@ -16,11 +18,13 @@ import type { CommunityGalleryViewProps } from './CommunityGalleryPage.types';
 import {
   BannerAction,
   CardGrid,
+  ControlActions,
   ControlBar,
   ErrorWrap,
   InlineList,
   InlineRetry,
   LoadStatus,
+  SearchRow,
   Sentinel,
   SkeletonCard,
   SkeletonLine,
@@ -103,6 +107,12 @@ export default function CommunityGalleryView({ viewModel }: CommunityGalleryView
 
   return (
     <section aria-label={g.mainLabel}>
+      {/* 검색은 본문 첫 줄이다 — 앱 헤더 가운데 슬롯에서 내려왔다(2026-07-31 사용자 지시).
+          정렬·뷰 토글과 같은 줄에 두지 않는 이유는 SearchRow 주석 참고. */}
+      <SearchRow>
+        <CommunitySearchBar />
+      </SearchRow>
+
       <ControlBar>
         <Tabs
           ariaLabel={g.sortAriaLabel}
@@ -113,26 +123,38 @@ export default function CommunityGalleryView({ viewModel }: CommunityGalleryView
             { id: 'popular', label: g.sortPopular, icon: <FlameIcon size={16} strokeWidth={1.8} /> }
           ]}
         />
-        <ViewToggle>
-          <ViewToggleButton
-            type="button"
-            active={viewType === 'card'}
-            aria-pressed={viewType === 'card'}
-            aria-label={g.viewCard}
-            onClick={() => onToggleView('card')}
+        <ControlActions>
+          <ViewToggle>
+            <ViewToggleButton
+              type="button"
+              active={viewType === 'card'}
+              aria-pressed={viewType === 'card'}
+              aria-label={g.viewCard}
+              onClick={() => onToggleView('card')}
+            >
+              <GridIcon size={16} strokeWidth={1.8} />
+            </ViewToggleButton>
+            <ViewToggleButton
+              type="button"
+              active={viewType === 'inline'}
+              aria-pressed={viewType === 'inline'}
+              aria-label={g.viewInline}
+              onClick={() => onToggleView('inline')}
+            >
+              <ListIcon size={16} strokeWidth={1.8} />
+            </ViewToggleButton>
+          </ViewToggle>
+          {/* 글쓰기는 헤더가 아니라 여기 있다 — 헤더는 전 라우트 공통이라 "무엇을 쓰는지"의 문맥이 없다.
+              게시판도 자기 본문 상단에 같은 버튼을 갖는다(CommunityBoardPage.view). */}
+          <Button
+            variant="primary"
+            size="sm"
+            startIcon={<PencilIcon size={16} strokeWidth={1.8} />}
+            onClick={onWrite}
           >
-            <GridIcon size={16} strokeWidth={1.8} />
-          </ViewToggleButton>
-          <ViewToggleButton
-            type="button"
-            active={viewType === 'inline'}
-            aria-pressed={viewType === 'inline'}
-            aria-label={g.viewInline}
-            onClick={() => onToggleView('inline')}
-          >
-            <ListIcon size={16} strokeWidth={1.8} />
-          </ViewToggleButton>
-        </ViewToggle>
+            {COMMUNITY_COPY.nav.write}
+          </Button>
+        </ControlActions>
       </ControlBar>
 
       {status === 'loading' ? (

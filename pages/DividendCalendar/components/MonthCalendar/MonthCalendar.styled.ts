@@ -138,7 +138,7 @@ export const DayNumber = styled.span<{ $muted: boolean }>`
  * 어느 폭에서든 티커 칩을 그대로 보여준다(좁으면 ellipsis로 줄인다 — 사용자 결정 2026-07-26,
  * 구 설계의 "점 축약"과 "모바일 전체 숨김+개수 배지"를 폐기). 전체 이름은 아젠다 목록·툴팁이 말한다.
  */
-export const DayChipList = styled.ul`
+export const DayChipList = styled.ul<{ $preview?: boolean }>`
   list-style: none;
   margin: ${space[1]} 0 0;
   padding: 0;
@@ -149,6 +149,20 @@ export const DayChipList = styled.ul`
      칩 영역 밖(칸의 나머지)은 여전히 이동 버튼이 받는다. */
   position: relative;
   z-index: 1;
+
+  /*
+   * 예시(미리보기) 칩 — 흐리게 깔아 "여기 이런 게 뜬다"만 말하고 실제 데이터와 무게를 겨루지 않는다.
+   * ⚠ 이 흐림은 **보조 신호일 뿐**이다. 예시라는 사실 자체는 라벨 텍스트와 표의 접근명이 말한다
+   *   (카피의 preview 묶음) — 색·투명도만으로 구분하면 고대비 모드와 스크린리더에서 통째로 사라진다.
+   */
+  ${({ $preview }) =>
+    $preview
+      ? `
+    opacity: 0.45;
+    filter: saturate(0.5);
+    pointer-events: none;
+  `
+      : ''}
 
   /* 좁은 폭의 칩은 표시 전용 — 포인터를 뚫어 칸 탭이 이동 버튼(아젠다 점프)에 가게 한다. */
   ${media.down('tabletSm')} {

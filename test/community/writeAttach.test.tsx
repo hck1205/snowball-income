@@ -340,7 +340,7 @@ describe('택1 피커 — 빈 상태', () => {
     await enableAttach();
 
     expect(screen.getByText('아직 첨부할 시뮬레이션이 없습니다')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: '시뮬레이터로 가기' })).toHaveAttribute('href', '/');
+    expect(screen.getByRole('link', { name: '시뮬레이터로 가기' })).toHaveAttribute('href', '/simulator');
     expect(screen.queryByRole('radiogroup')).not.toBeInTheDocument();
   });
 

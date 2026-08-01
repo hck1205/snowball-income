@@ -30,6 +30,7 @@ const loadingViewModel = buildPortfolioViewModel({
   fx: { status: 'loading', rate: null, asOf: null },
   writeError: null,
   formatUsdAmount: (usd: number) => `USD:${usd.toFixed(2)}`,
+  today: localDate(2026, 7, 27),
   canSimulate: false,
   simulationExcludedCount: 0,
   calendarTickerCount: 0,

@@ -1,10 +1,8 @@
 import styled from '@emotion/styled';
 import {
+  cardElevation,
   color,
-  elevation,
   font,
-  heroIconOpticalAlign,
-  heroTitleFontSize,
   iconFirstLineAlign,
   media,
   radius,
@@ -12,10 +10,13 @@ import {
 } from '@/shared/styles';
 
 /**
- * 이 파일의 히어로·타일 그리드·빈 상태·조건 요약·각주는 **배당 캘린더 페이지와 같은 모양**을
+ * 이 파일의 타일 그리드·빈 상태·조건 요약·각주는 **배당 캘린더 페이지와 같은 모양**을
  * 의도적으로 **복제**한 것이다. 페이지 간 styled 를 직접 import 하면 두 화면이 서로의 레이아웃 변경에
  * 묶이고(한쪽을 고치면 다른 쪽이 조용히 바뀐다) lazy 청크도 섞인다 — 캘린더가 세운 관례를 따른다.
  * 반대로 `StatTile`·`Banner`·`Button`·`Chip`·`InputField` 같은 **공용 프리미티브는 재사용**한다.
+ *
+ * ⚠ **히어로는 이 복제 규칙의 예외**다 — 두 페이지가 같은 자리에서 같은 것을 말해야 하는 유일한
+ *   블록이라 2026-07-31 에 공용 `PageHero` 한 벌로 수렴했다(아래 주석 참고).
  */
 
 export const PageStack = styled.div`
@@ -24,81 +25,13 @@ export const PageStack = styled.div`
   min-width: 0;
 `;
 
-/**
- * 히어로 면은 **누를 수 없는 정보 표면**이라 크롬을 전부 accent 축으로 둔다(테두리·바탕·배지).
- * 공용 `components/common/PageHero` 가 세운 규칙과 같다 — 브랜드는 액션(버튼·활성 탭·포커스)에만 남는다.
- * `::before` 오로라 리본만 브랜드 시그니처로 남겨 페이지가 어느 앱의 것인지는 계속 말한다.
+/*
+ * 히어로는 여기 없다 — 2026-07-31 에 **공용 `components/common/PageHero` 로 수렴**했다.
+ * 구 로컬 `PageHero`/`HeroTitleRow`/`HeroIconBadge`/`HeroTitle`/`HeroLede`/`AsOfLine` 은
+ * 각각 컴포넌트의 루트 / 내부 구조 / `icon` / `title`+`titleAs` / `lede` / `meta` 슬롯이 받는다.
+ * 페이지 얼굴색(그린)은 라우트가 발행하는 `--sb-page-hue` 가 준다(`shared/hooks/usePageHue`).
+ * 되살리지 마라 — 같은 심볼명을 export 하는 복제본은 import 경로로만 구분돼 grep 이 못 가른다.
  */
-export const PageHero = styled.header`
-  display: grid;
-  gap: ${space[3]};
-  padding: clamp(20px, 3vw, 32px);
-  border-radius: ${radius.xl};
-  border: 1px solid ${color.accentBorder};
-  background: ${color.accentSubtle};
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: 4px;
-    background: ${color.gradientAurora};
-  }
-`;
-
-export const HeroTitleRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: ${space[3]};
-  min-width: 0;
-`;
-
-export const HeroIconBadge = styled.span`
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: ${radius.md};
-  color: ${color.accentText};
-  background: ${color.surface};
-  border: 1px solid ${color.accentBorder};
-  ${heroIconOpticalAlign}
-`;
-
-/** 이 페이지의 유일한 `<h1>`. */
-export const HeroTitle = styled.h1`
-  margin: 0;
-  font-size: ${heroTitleFontSize};
-  font-weight: ${font.weight.extrabold};
-  letter-spacing: -0.03em;
-  line-height: ${font.leading.tight};
-  color: ${color.text};
-`;
-
-export const HeroLede = styled.p`
-  margin: 0;
-  width: 100%;
-  font-size: clamp(${font.size.base}, 2vw, ${font.size.lg});
-  color: ${color.textSecondary};
-  line-height: ${font.leading.snug};
-`;
-
-/** 시세 기준일 · 환율 기준. "무엇을 근거로 계산했나"를 첫 화면에서 밝힌다. */
-export const AsOfLine = styled.p`
-  margin: 0;
-  font-size: ${font.size.xs};
-    /*
-   * 히어로 면(accent-subtle) 위라 'text-muted' 를 쓰지 않는다 — velog 다크에서 4.04:1 로
-   * AA 미달이다(2026-07-31 실측). 위계는 크기(xs/sm)와 'text-secondary' 로 충분히 낮아진다.
-   * 가드: shared/styles/contrast.test.ts 의 [text-muted, accent-subtle] 쌍.
-   */
-  color: ${color.textSecondary};
-  ${font.numeric}
-`;
 
 /**
  * 라이브 리전은 **처음부터 끝까지 마운트 상태를 유지**한다. 시각적으로만 숨기고 텍스트만 바꾼다 —
@@ -116,24 +49,31 @@ export const LiveRegion = styled.p`
   border: 0;
 `;
 
-const cardSurface = `
+/**
+ * 카드의 **기하**만 담는다 — 배경·테두리·그림자(위계)는 `cardElevation` 이 층별로 준다.
+ * 예전에는 세 카드가 전부 `border` + `elevation[1]` 을 함께 갖고 있어서 **같은 무게**로 보였다.
+ */
+const cardGeometry = `
   min-width: 0;
   display: grid;
   gap: ${space[5]};
   align-content: start;
   padding: clamp(16px, 2.4vw, 28px);
-  border: 1px solid ${color.border};
   border-radius: ${radius.xl};
-  background: ${color.surface};
-  box-shadow: ${elevation[1]};
 `;
 
+/**
+ * 이 화면의 **주역 카드**(화면당 하나) — hero 타일(`emphasis="hero"`)을 가진 바로 그 카드다.
+ * 주역 카드와 hero 타일이 갈라지면 눈이 두 곳을 본다.
+ */
 export const SummaryCard = styled.section`
-  ${cardSurface}
+  ${cardGeometry}
+  ${cardElevation('raised')}
 `;
 
 export const HoldingsCard = styled.section`
-  ${cardSurface}
+  ${cardGeometry}
+  ${cardElevation('base')}
   gap: ${space[3]};
 `;
 
@@ -281,6 +221,21 @@ export const EmptyBody = styled.p`
   line-height: ${font.leading.snug};
 `;
 
+/**
+ * 가계부 진입 카드의 본문.
+ *
+ * 🔴 `Card` 의 `subtitle` 로 넘기지 마라 — `CardSubtitle` 은 12px/textMuted 캡션이라 두 줄짜리
+ * 설명문에는 너무 작다(`Card.styled.ts:102-108`). ⚠ `CardContainer` 는 grid 가 아니라 일반 블록이라
+ * (gap 없음) 본문과 버튼 사이 간격은 이 마진이 만든다.
+ */
+export const EntryBody = styled.p`
+  margin: 0 0 ${space[4]};
+  max-width: 52ch;
+  font-size: ${font.size.sm};
+  line-height: ${font.leading.normal};
+  color: ${color.textSecondary};
+`;
+
 export const QuickPickLabel = styled.p`
   margin: 0;
   font-size: ${font.size.xs};
@@ -338,24 +293,51 @@ export const UndoRow = styled.span`
  * 페이지의 다른 카드와 토큰을 공유하지 않아 완전히 독립적으로 잘라낼 수 있었다.
  */
 
-/** 각주 묶음 — 본문과 같은 무게로 나열되지 않게 한 덩어리로 눌러 둔다. */
-export const FootNoteCard = styled.footer`
-  display: grid;
-  gap: ${space[1]};
-  padding: ${space[3]} ${space[4]};
-  border-left: 2px solid ${color.border};
+/*
+ * 각주 묶음(구 `FootNoteCard`/`FootNoteTitle`/`FootNote`)은 **공용 `components/common/PageFooter` 로
+ * 수렴했다**(2026-07-31). 시뮬레이터·캘린더·티커 허브와 같은 자리·같은 모양이 되었고, 이 화면의
+ * 각주 문구는 그 컴포넌트의 `notes` 슬롯으로 **원문 그대로** 들어간다(면책 문구는 합치지 않는다).
+ * 다시 로컬로 복제하지 마라 — 히어로가 세 벌이었던 것과 같은 경로다.
+ */
+
+/**
+ * 히어로의 **다음 배당 D-Day** 한 줄. `PageHero` 의 `notice` 슬롯(= `<p role="note">`) 안에 들어가므로
+ * **인라인 요소만** 쓴다(문단 안에 블록을 넣으면 브라우저가 문단을 끊는다).
+ */
+export const DDayLine = styled.span`
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: ${space[2]};
+  min-width: 0;
 `;
 
-export const FootNoteTitle = styled.p`
-  margin: 0;
-  font-size: ${font.size.xs};
-  font-weight: ${font.weight.semibold};
+/**
+ * D-Day 수치.
+ *
+ * 🔴 **색을 넣지 않는다.** 이 앱에서 색이 붙은 숫자는 손익(빨강=상승/파랑=하락)을 뜻하는데
+ * 남은 일수는 손익이 아니다. 위계는 **데이터 서체 + 굵기 + 면색**으로만 만든다
+ * (`color.text` 는 검증된 중립 토큰이고, 면은 히어로 배경 위 `surfaceSunken` 이다).
+ */
+export const DDayValue = styled.strong`
+  padding: 2px ${space[2]};
+  border-radius: ${radius.sm};
+  background: ${color.surfaceSunken};
+  font-family: ${font.dataNumeric};
+  font-size: ${font.size.base};
+  font-weight: ${font.weight.bold};
+  color: ${color.text};
+  ${font.numeric}
+`;
+
+export const DDayTickers = styled.span`
   color: ${color.textSecondary};
 `;
 
-export const FootNote = styled.p`
-  margin: 0;
-  font-size: ${font.size['2xs']};
+/**
+ * 수치와 종목 사이의 가운뎃점. `aria-hidden` 으로 낭독에서 뺀다 — 스크린리더가 "가운뎃점"을 읽으면
+ * 짧은 문장 하나가 세 조각으로 끊긴다(요소 경계만으로도 이미 쉼이 생긴다).
+ */
+export const DDaySeparator = styled.span`
   color: ${color.textMuted};
-  line-height: ${font.leading.snug};
 `;

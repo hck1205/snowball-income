@@ -1,6 +1,6 @@
 import { useCallback, useId, useRef } from 'react';
-import { Info, Plus, Wallet } from 'lucide-react';
-import { Banner, Button, Chip, StatTile } from '@/components/common';
+import { Info, Plus, ReceiptText, Wallet } from 'lucide-react';
+import { Banner, Button, Card, Chip, PageFooter, PageHero, StatTile } from '@/components/common';
 import { PORTFOLIO_COPY } from '../copy';
 import { GoalCard, HoldingPicker, HoldingPickerDrawer, HoldingsTable, ManualTickerForm } from '../components';
 import type { ManualTickerSubmitResult } from '../components';
@@ -9,26 +9,22 @@ import type { PortfolioCtaModel, PortfolioViewProps } from './PortfolioPage.type
 import {
   ActionHint,
   ActionRow,
-  AsOfLine,
   CardHead,
   CardSubtitle,
   CardTitle,
+  DDayLine,
+  DDaySeparator,
+  DDayTickers,
+  DDayValue,
   EmptyBody,
   EmptyStateCard,
   EmptyTitle,
+  EntryBody,
   ExcludedNote,
-  FootNote,
-  FootNoteCard,
-  FootNoteTitle,
-  HeroIconBadge,
-  HeroLede,
   HeroSlot,
-  HeroTitle,
-  HeroTitleRow,
   HoldingsCard,
   LiveRegion,
   NoteLine,
-  PageHero,
   PageStack,
   QuickPickItem,
   QuickPickLabel,
@@ -75,7 +71,8 @@ export default function PortfolioPageView({
   onOpenTargetSetup,
   onCommitTarget,
   onOpenSimulator,
-  onAddHoldingFromGoal
+  onAddHoldingFromGoal,
+  onOpenLedger
 }: PortfolioViewProps) {
   const summaryTitleId = useId();
   const holdingsTitleId = useId();
@@ -207,16 +204,26 @@ export default function PortfolioPageView({
 
   return (
     <PageStack>
-      <PageHero>
-        <HeroTitleRow>
-          <HeroIconBadge>
-            <Wallet size={20} strokeWidth={1.8} aria-hidden focusable={false} />
-          </HeroIconBadge>
-          <HeroTitle>{copy.hero.title}</HeroTitle>
-        </HeroTitleRow>
-        <HeroLede>{copy.hero.lede}</HeroLede>
-        <AsOfLine>{viewModel.asOfLine}</AsOfLine>
-      </PageHero>
+      {/* 이 페이지의 유일한 `<h1>` — 헤더 워드마크가 h1 이 아닌 화면이라 제목을 올린다. */}
+      <PageHero
+        icon={<Wallet size={20} strokeWidth={1.8} aria-hidden focusable={false} />}
+        title={copy.hero.title}
+        titleAs="h1"
+        lede={copy.hero.lede}
+        /* 🔴 다음 배당 D-Day. `viewModel.dDay` 가 `null` 이면 **슬롯 자체를 넘기지 않는다** —
+           보유가 없거나 지급일을 모를 때 "D-—" 를 남기면 없는 입금을 기다리게 만든다.
+           날짜의 출처는 요약 타일 #7 과 **같은 지급 선택 함수**라 두 자리가 어긋날 수 없다. */
+        notice={
+          viewModel.dDay ? (
+            <DDayLine>
+              {viewModel.dDay.label} <DDayValue>{viewModel.dDay.value}</DDayValue>
+              <DDaySeparator aria-hidden>·</DDaySeparator>
+              <DDayTickers>{viewModel.dDay.tickers}</DDayTickers>
+            </DDayLine>
+          ) : undefined
+        }
+        meta={viewModel.asOfLine}
+      />
 
       <LiveRegion role="status" aria-live="polite">
         {liveMessage}
@@ -394,6 +401,26 @@ export default function PortfolioPageView({
         </>
       )}
 
+      {/* 가계부 진입 — 세 카드(보유 종목 → 목표 달성 → 지금 받는 배당) **뒤에** 붙는다.
+          그 순서는 사용자 확정이고 `test/portfolio/portfolioCardOrder.test.tsx` 가 DOM 순서로 잠근다.
+          `tone="wash"`(= base 위계 + 파스텔 면)라 화면당 주역 1개(요약 카드=raised) 규칙과 충돌하지 않는다.
+          🔴 버튼은 secondary — 이 화면의 primary 는 "시뮬레이터로 보내기"가 이미 갖고 있다. */}
+      {onOpenLedger ? (
+        <Card tone="wash" title={copy.ledgerEntry.title}>
+          <EntryBody>{copy.ledgerEntry.body}</EntryBody>
+          <ActionRow>
+            <Button
+              type="button"
+              variant="secondary"
+              startIcon={<ReceiptText size={16} strokeWidth={1.8} aria-hidden focusable={false} />}
+              onClick={onOpenLedger}
+            >
+              {copy.ledgerEntry.cta}
+            </Button>
+          </ActionRow>
+        </Card>
+      ) : null}
+
       <PortfolioAssumptions
         summaryLabel={viewModel.assumptions.summaryLabel}
         rows={viewModel.assumptions.rows}
@@ -405,14 +432,20 @@ export default function PortfolioPageView({
         goalConditionRows={goal?.conditionRows ?? []}
       />
 
-      <FootNoteCard>
-        <FootNoteTitle>{copy.footnote.title}</FootNoteTitle>
-        <FootNote>{copy.footnote.estimate}</FootNote>
-        <FootNote>{copy.footnote.schedule}</FootNote>
-        {/* 두 숫자의 계열이 다르다는 사실 — 목표 카드가 실제로 떠 있을 때만 말한다. */}
-        {goal ? <FootNote>{copy.footnote.goal}</FootNote> : null}
-        <FootNote>{copy.footnote.notAdvice}</FootNote>
-      </FootNoteCard>
+      {/* 각주 + 사이트 공통 고지 = 공용 푸터 한 벌(2026-07-31 수렴). 이 화면의 문구는 **원문 그대로**
+          `notes` 로 들어간다 — 면책 문구는 법적 성격이 있어 "비슷하니까" 합칠 수 없다.
+          ⚠ 단 "투자 자문이 아니며…" 한 줄은 `PageFooter` 의 사이트 공통 고지가 이미 같은 말을 한다
+          (2026-07-31 리뷰 m1: 알려진 중복이었고 여기서 닫았다) — 다시 넣지 마라. 남은 셋은
+          이 화면에서만 참인 문장이다(스냅샷 시세 · 예상 지급일 · 목표 카드의 계열 차이). */}
+      <PageFooter
+        notesTitle={copy.footnote.title}
+        notes={[
+          copy.footnote.estimate,
+          copy.footnote.schedule,
+          // 두 숫자의 계열이 다르다는 사실 — 목표 카드가 실제로 떠 있을 때만 말한다.
+          ...(goal ? [copy.footnote.goal] : [])
+        ]}
+      />
 
       {/* 패널은 항상 마운트된다(열림은 CSS) — 언마운트하면 검색어·스크롤이 매번 날아간다. */}
       <HoldingPickerDrawer

@@ -126,7 +126,7 @@ describe('기간 내 미도달 (D)', () => {
 
     await user.click(screen.getByRole('button', { name: copy.goal.status.changeConditions }));
 
-    expect(lastLocation.pathname).toBe('/');
+    expect(lastLocation.pathname).toBe('/simulator');
     // 프리필을 실으면 위 타일이 보여 준 ETA 의 근거 시나리오가 이동과 동시에 바뀐다.
     expect(lastLocation.state).toBeNull();
     expect(ctaEvents()).toContainEqual([
@@ -199,7 +199,7 @@ describe('기간 안에 도달 (E)', () => {
 
     await user.click(screen.getByRole('button', { name: copy.goal.editTarget }));
 
-    expect(lastLocation.pathname).toBe('/');
+    expect(lastLocation.pathname).toBe('/simulator');
     expect(lastLocation.state).toEqual(FOCUS_TARGET_MONTHLY_DIVIDEND_STATE);
     expect(ctaEvents()).toContainEqual([
       ANALYTICS_EVENT.CTA_CLICK,

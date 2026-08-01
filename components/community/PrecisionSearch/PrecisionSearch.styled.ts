@@ -1,6 +1,5 @@
 import styled from '@emotion/styled';
 import { color, font, motion, radius, shadow, space, zIndex } from '@/shared/styles';
-import type { PrecisionSearchLayout } from './PrecisionSearch.types';
 
 /**
  * 색 규율: 전부 기존 시맨틱 토큰(`var(--sb-*)`) — 새 hex 0. 상태(active·error·focus)는 전부
@@ -9,21 +8,24 @@ import type { PrecisionSearchLayout } from './PrecisionSearch.types';
  */
 
 /** 트리거+패널 루트(바깥클릭·Esc·Tab-out 감지 컨테이너). 팝오버는 이 루트에 absolute 앵커. */
-export const FilterRoot = styled.div<{ layout: PrecisionSearchLayout }>`
+export const FilterRoot = styled.div`
   position: relative;
   flex: 0 0 auto;
-  ${({ layout }) =>
-    layout === 'inline' ? 'display: block; width: 100%;' : 'display: inline-flex; align-items: center;'}
-`;
-
-/** 검색 컨트롤(FilterSelect/SearchInputWrap)과 같은 36px 규격 트리거. active·block은 prop 분기. */
-export const FilterTrigger = styled.button<{ active: boolean; block: boolean }>`
   display: inline-flex;
   align-items: center;
-  justify-content: ${({ block }) => (block ? 'flex-start' : 'center')};
+`;
+
+/**
+ * 검색 컨트롤(Select / SearchInputWrap)과 같은 36px 규격 트리거 — 전 폭에서 **아이콘 전용**이다.
+ * 라벨("정밀 검색")을 넣으면 390px 에서 검색 입력이 70px 더 줄어든다 → 라벨은 `aria-label` 이 갖고,
+ * 적용된 필터 수는 배지 + aria-label 이 함께 알린다(색·숫자 단독 아님).
+ */
+export const FilterTrigger = styled.button<{ active: boolean }>`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   gap: ${space[2]};
   height: 36px;
-  width: ${({ block }) => (block ? '100%' : 'auto')};
   padding: 0 ${space[3]};
   border-radius: ${radius.md};
   border: 1px solid ${({ active }) => (active ? color.brandBorder : color.borderStrong)};
@@ -48,12 +50,6 @@ export const FilterTrigger = styled.button<{ active: boolean; block: boolean }>`
   }
 `;
 
-/** 인라인(모바일) 전체폭 트리거의 라벨. 팝오버(아이콘 전용)에선 렌더하지 않는다. */
-export const TriggerLabel = styled.span`
-  flex: 1 1 auto;
-  text-align: left;
-`;
-
 /** 활성 필터 개수 배지 — brand 채움 위 라벨은 반드시 onBrand(하드코딩 흰색 금지). 상태 정본은 aria. */
 export const Badge = styled.span`
   display: inline-flex;
@@ -71,28 +67,24 @@ export const Badge = styled.span`
   ${font.numeric}
 `;
 
-/** 드롭다운 패널 — 팝오버(앵커 absolute)/인라인(in-flow)만 layout으로 분기. */
-export const Panel = styled.div<{ layout: PrecisionSearchLayout }>`
+/**
+ * 드롭다운 패널 — 트리거에 앵커된 absolute 팝오버 한 벌.
+ *
+ * 오른쪽 끝을 트리거에 맞추고(`right: 0`) 왼쪽으로 편다. 폭 상한을 `100vw − space[6]` 으로 묶어
+ * 모바일에서도 화면 밖으로 나가지 않는다. 갤러리 본문 조상에는 `overflow`/`contain` 이 없어
+ * 잘리지 않는다(실측) — 여기에 `Card`(`contain: layout paint style`)를 끼워 넣지 마라.
+ */
+export const Panel = styled.div`
+  position: absolute;
+  top: calc(100% + ${space[2]});
+  right: 0;
+  width: min(360px, calc(100vw - ${space[6]}));
+  z-index: ${zIndex.dropdown};
   background: ${color.surface};
   border: 1px solid ${color.border};
   border-radius: ${radius.lg};
   box-shadow: ${shadow.e3};
   padding: ${space[4]};
-
-  ${({ layout }) =>
-    layout === 'popover'
-      ? `
-    position: absolute;
-    top: calc(100% + ${space[2]});
-    right: 0;
-    width: min(360px, calc(100vw - ${space[6]}));
-    z-index: ${zIndex.dropdown};
-  `
-      : `
-    position: static;
-    margin-top: ${space[2]};
-    width: 100%;
-  `}
 `;
 
 export const PanelHeader = styled.div`

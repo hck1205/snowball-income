@@ -1,10 +1,9 @@
 import styled from '@emotion/styled';
 import {
+  cardElevation,
   color,
   elevation,
   font,
-  heroIconOpticalAlign,
-  heroTitleFontSize,
   media,
   motion,
   radius,
@@ -17,95 +16,16 @@ export const PageStack = styled.div`
   min-width: 0;
 `;
 
-/**
- * 히어로 면은 **누를 수 없는 정보 표면**이라 크롬을 전부 accent 축으로 둔다(테두리·바탕·배지).
- * 공용 `components/common/PageHero`·포트폴리오 히어로와 같은 규칙 — 브랜드는 액션에만 남는다.
- * `::before` 오로라 리본만 브랜드 시그니처로 남는다.
+/*
+ * 히어로는 여기 없다 — 2026-07-31 에 **공용 `components/common/PageHero` 로 수렴**했다.
+ * 구 로컬 `PageHero`/`HeroTitleRow`/`HeroIconBadge`/`HeroTitle`/`HeroLede`/`AsOfLine` 은
+ * 컴포넌트의 루트·내부 구조와 `icon`/`title`+`titleAs`/`lede`/`meta` 슬롯이 받는다.
+ * 페이지 얼굴색(틸)은 라우트가 발행하는 `--sb-page-hue` 가 준다(`shared/hooks/usePageHue`).
+ *
+ * ⚠ 구 `HeroDisclaimer`(예상 지급일 고지)는 잠시 `notice` 슬롯에 들어갔다가 **2026-07-31 에
+ * 페이지 하단 `FootNoteCard` 로 내려갔다** — 제목·리드·주의문 3줄·기준일을 한 면에 쌓자 히어로가
+ * 본문 3덩어리(222px)가 되어 각주처럼 읽혔다. 이 화면은 `notice` 슬롯을 쓰지 않는다.
  */
-export const PageHero = styled.header`
-  display: grid;
-  gap: ${space[3]};
-  padding: clamp(20px, 3vw, 32px);
-  border-radius: ${radius.xl};
-  border: 1px solid ${color.accentBorder};
-  background: ${color.accentSubtle};
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: 4px;
-    background: ${color.gradientAurora};
-  }
-`;
-
-/** 아이콘 배지 + 제목을 한 줄로(사용자 결정 2026-07-25 — 세로 스택이 히어로를 불필요하게 높였다). */
-export const HeroTitleRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: ${space[3]};
-  min-width: 0;
-`;
-
-export const HeroIconBadge = styled.span`
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: ${radius.md};
-  color: ${color.accentText};
-  background: ${color.surface};
-  border: 1px solid ${color.accentBorder};
-  ${heroIconOpticalAlign}
-`;
-
-export const HeroTitle = styled.h1`
-  margin: 0;
-  font-size: ${heroTitleFontSize};
-  font-weight: ${font.weight.extrabold};
-  letter-spacing: -0.03em;
-  line-height: ${font.leading.tight};
-  color: ${color.text};
-`;
-
-export const HeroLede = styled.p`
-  margin: 0;
-  /* 전폭 한 줄(사용자 결정 2026-07-25) — 56ch 제한이 히어로 안에서 조기 줄바꿈을 만들었다. */
-  width: 100%;
-  font-size: clamp(${font.size.base}, 2vw, ${font.size.lg});
-  color: ${color.textSecondary};
-  line-height: ${font.leading.snug};
-`;
-
-/** 예상 지급일 고지 — 별도 배너를 없애고 히어로 안에 흡수(사용자 결정 2026-07-25). */
-export const HeroDisclaimer = styled.p`
-  margin: 0;
-  width: 100%;
-  font-size: ${font.size.sm};
-    /*
-   * 히어로 면(accent-subtle) 위라 'text-muted' 를 쓰지 않는다 — velog 다크에서 4.04:1 로
-   * AA 미달이다(2026-07-31 실측). 위계는 크기(xs/sm)와 'text-secondary' 로 충분히 낮아진다.
-   * 가드: shared/styles/contrast.test.ts 의 [text-muted, accent-subtle] 쌍.
-   */
-  color: ${color.textSecondary};
-  line-height: ${font.leading.snug};
-`;
-
-export const AsOfLine = styled.p`
-  margin: 0;
-  font-size: ${font.size.xs};
-    /*
-   * 히어로 면(accent-subtle) 위라 'text-muted' 를 쓰지 않는다 — velog 다크에서 4.04:1 로
-   * AA 미달이다(2026-07-31 실측). 위계는 크기(xs/sm)와 'text-secondary' 로 충분히 낮아진다.
-   * 가드: shared/styles/contrast.test.ts 의 [text-muted, accent-subtle] 쌍.
-   */
-  color: ${color.textSecondary};
-  ${font.numeric}
-`;
 
 /**
  * 라이브 리전은 **처음부터 끝까지 마운트 상태를 유지**한다. 시각적으로만 숨기고 텍스트만 바꾼다 —
@@ -233,13 +153,10 @@ export const DetailCard = styled.section`
   box-shadow: ${elevation[1]};
 `;
 
-/** 각주 묶음 — 본문과 같은 무게로 나열되지 않게 한 덩어리로 눌러 둔다. */
-export const FootNoteCard = styled.footer`
-  display: grid;
-  gap: ${space[1]};
-  padding: ${space[3]} ${space[4]};
-  border-left: 2px solid ${color.border};
-`;
+/*
+ * 구 `FootNoteCard`(각주 묶음)도 공용 `PageFooter` 로 수렴했다 — 좌측 2px 레일이라는 이 모양이
+ * 그대로 정본이 되어 시뮬레이터·티커 허브까지 같은 자리·같은 무게를 갖는다(2026-07-31).
+ */
 
 /** 상세 카드의 머리 한 줄 — 왼쪽 제목, 오른쪽 미정 토글(있을 때만). */
 export const DetailHead = styled.div`
@@ -301,17 +218,65 @@ export const UndatedToggleButton = styled.button<{ $active: boolean }>`
 `;
 
 /**
- * 빈 상태도 하나의 화면이다 — 점선(미확정)에 틴트를 얹어 "여기서 시작하라"로 읽히게 한다.
- * 틴트는 **accent**다(포트폴리오 빈 상태와 같은 이유): 이 안에 서는 브랜드 액션이 바탕과 같은
- * 색이면 눌러야 할 것이 묻힌다.
+ * 예시 격자 + 안내 카드를 한 칸에 겹치는 틀.
+ *
+ * 좁은 폭에서는 **겹치지 않는다** — 카드 높이가 격자 높이(390px에서 351px)에 육박해 겹치면
+ * 격자를 통째로 덮는다. 그때는 카드가 먼저, 격자가 그 아래로 흐른다. DOM 순서가 곧 그 읽기 순서다.
+ */
+export const PreviewFrame = styled.div`
+  position: relative;
+  display: grid;
+  gap: ${space[3]};
+`;
+
+/**
+ * 안내 카드의 자리. 넓은 폭에서는 격자 **상단 1/3 지점**에 앵커한다 — 격자를 덮어 없애지 않고
+ * (위·아래 주가 그대로 읽힌다) 시선이 가장 먼저 닿는 곳에 선다.
+ */
+export const PreviewOverlay = styled.div`
+  ${media.up('tabletSm')} {
+    position: absolute;
+    top: 33%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(520px, 88%);
+    z-index: 2;
+  }
+`;
+
+/**
+ * 빈 상태도 하나의 화면이다. 예시 격자 **위에 뜨는** 카드라 반투명이면 아래 날짜와 글자가 겹쳐
+ * 둘 다 못 읽는다 — 불투명 면(`raised`)이 조건이다.
+ *
+ * 위계 수단은 하나만 쓴다(2026-07-31 카드 3단): 뜬 카드는 **그림자**, 테두리 없음.
+ * 구 점선 accent 틴트는 폐기했다 — 틴트 면 상한(≤2)을 히어로와 나눠 쓰던 자리이기도 하고,
+ * 흐린 예시 위에 옅은 틴트가 겹치면 두 층이 서로를 지운다.
  */
 export const EmptyStateCard = styled.div`
   display: grid;
   gap: ${space[3]};
   padding: clamp(20px, 3vw, 28px);
-  border: 1px dashed ${color.accentBorder};
   border-radius: ${radius.lg};
-  background: ${color.accentSubtle};
+  ${cardElevation('raised')}
+`;
+
+/**
+ * "예시 · 실제 데이터가 아닙니다" 라벨.
+ *
+ * 🔴 **색만으로 구분하지 않기 위한 장치다** — 흐린 칩은 시각 신호일 뿐이라 고대비 모드·스크린리더에
+ * 아무것도 전하지 못한다. 이 텍스트가 그 자리를 메운다(표 접근명·캡션이 같은 말을 한 번 더 한다).
+ * 지우지 마라: 지우는 순간 예시가 실제 지급 예정으로 읽힌다.
+ */
+export const PreviewBadge = styled.p`
+  justify-self: start;
+  margin: 0;
+  padding: ${space[1]} ${space[2]};
+  border-radius: ${radius.pill};
+  background: ${color.surfaceMuted};
+  font-size: ${font.size['2xs']};
+  font-weight: ${font.weight.semibold};
+  letter-spacing: 0.01em;
+  color: ${color.textSecondary};
 `;
 
 export const EmptyTitle = styled.p`
@@ -431,10 +396,8 @@ export const BoardHint = styled.p`
   }
 `;
 
-export const FootNote = styled.p`
-  margin: 0;
-  font-size: ${font.size.xs};
-  color: ${color.textMuted};
-  line-height: ${font.leading.snug};
-`;
+/*
+ * 구 `FootNote`(각주 한 줄)는 **공용 `components/common/PageFooter` 로 수렴**했다(2026-07-31).
+ * 이 화면의 각주 문구는 그 컴포넌트의 `notes` 슬롯으로 원문 그대로 들어간다 — 다시 복제하지 마라.
+ */
 

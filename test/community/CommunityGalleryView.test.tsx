@@ -71,8 +71,10 @@ describe('CommunityGalleryView — 상태별 표시', () => {
     const onWrite = vi.fn();
     renderView(baseVM({ status: 'empty', onWrite }));
 
-    expect(screen.getByText('아직 공유된 시나리오가 없습니다')).toBeInTheDocument();
-    await userEvent.click(screen.getByRole('button', { name: '글쓰기' }));
+    // 컨트롤 줄에도 같은 이름의 글쓰기가 있으므로(2026-07-31 헤더에서 내려옴) 빈 상태 카드 안으로 좁힌다.
+    // 게시판(CommunityBoardPage)도 상단 CTA + 빈 상태 CTA 로 같은 구성이다.
+    const emptyCard = screen.getByText('아직 공유된 시나리오가 없습니다').parentElement as HTMLElement;
+    await userEvent.click(within(emptyCard).getByRole('button', { name: '글쓰기' }));
     expect(onWrite).toHaveBeenCalledTimes(1);
   });
 

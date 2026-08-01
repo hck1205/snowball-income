@@ -14,6 +14,8 @@ import {
 import { computePortfolioSummary } from '@/shared/lib/portfolio';
 import { formatUSD } from '@/shared/utils';
 import { isCommunityEnabled } from '@/shared/lib/supabase';
+import { isGoogleSheetsEnabled } from '@/shared/lib/googleSheets';
+import { SIMULATOR_PATH } from '@/shared/constants/routes';
 import { PORTFOLIO_COPY } from '../copy';
 import { CloudSyncNotice, buildPortfolioGoalCardModel, resolvePortfolioGoalBasis } from '../components';
 import {
@@ -157,6 +159,8 @@ export default function PortfolioPage({ now: nowProp }: PortfolioPageProps = {})
         fx: { status: display.status, rate: display.rate, asOf: display.asOf },
         writeError,
         formatUsdAmount,
+        // 히어로 D-Day 의 '오늘' — 위에서 한 번 고정한 값을 그대로 내린다(순수 계층은 시계를 안 읽는다).
+        today: now,
         canSimulate: prefillState !== null,
         simulationExcludedCount,
         calendarTickerCount: calendarTickers.length,
@@ -170,6 +174,7 @@ export default function PortfolioPage({ now: nowProp }: PortfolioPageProps = {})
       display.status,
       formatUsdAmount,
       items,
+      now,
       pendingUndo,
       prefillState,
       simulationExcludedCount,
@@ -366,7 +371,7 @@ export default function PortfolioPage({ now: nowProp }: PortfolioPageProps = {})
     if (prefillState === null) return;
 
     trackEvent(ANALYTICS_EVENT.CTA_CLICK, { cta_name: 'portfolio_to_simulator', placement: 'portfolio_page' });
-    navigate('/', { state: prefillState });
+    navigate(SIMULATOR_PATH, { state: prefillState });
   }, [navigate, prefillState]);
 
   /**
@@ -378,13 +383,13 @@ export default function PortfolioPage({ now: nowProp }: PortfolioPageProps = {})
    */
   const handleOpenSimulator = useCallback(() => {
     trackEvent(ANALYTICS_EVENT.CTA_CLICK, { cta_name: 'goal_open_simulator', placement: 'portfolio_page' });
-    navigate('/');
+    navigate(SIMULATOR_PATH);
   }, [navigate]);
 
   /** [목표 수정] — 시뮬레이터로 이동한 뒤 목표 입력에 포커스를 요청한다(값 없음). */
   const handleOpenTargetSetup = useCallback(() => {
     trackEvent(ANALYTICS_EVENT.CTA_CLICK, { cta_name: 'goal_set_target', placement: 'portfolio_page' });
-    navigate('/', { state: FOCUS_TARGET_MONTHLY_DIVIDEND_STATE });
+    navigate(SIMULATOR_PATH, { state: FOCUS_TARGET_MONTHLY_DIVIDEND_STATE });
   }, [navigate]);
 
   /**
@@ -397,10 +402,19 @@ export default function PortfolioPage({ now: nowProp }: PortfolioPageProps = {})
   const handleCommitTarget = useCallback(
     (won: number) => {
       trackEvent(ANALYTICS_EVENT.CTA_CLICK, { cta_name: 'goal_set_target', placement: 'portfolio_page' });
-      navigate('/', { state: buildFocusTargetMonthlyDividendState(won) });
+      navigate(SIMULATOR_PATH, { state: buildFocusTargetMonthlyDividendState(won) });
     },
     [navigate]
   );
+
+  /**
+   * 가계부로 이동. 🔴 `isGoogleSheetsEnabled` 가 false 면 **핸들러 자체를 넘기지 않는다** — 뷰는
+   * 슬롯이 비면 카드를 그리지 않으므로 꺼진 배포에서는 진입점이 화면에 존재하지 않는다.
+   */
+  const handleOpenLedger = useCallback(() => {
+    trackEvent(ANALYTICS_EVENT.CTA_CLICK, { cta_name: 'portfolio_to_ledger', placement: 'portfolio_page' });
+    navigate('/ledger');
+  }, [navigate]);
 
   const handleOpenCalendar = useCallback(() => {
     trackEvent(ANALYTICS_EVENT.CTA_CLICK, { cta_name: 'portfolio_to_calendar', placement: 'portfolio_page' });
@@ -439,6 +453,7 @@ export default function PortfolioPage({ now: nowProp }: PortfolioPageProps = {})
         onCommitTarget={handleCommitTarget}
         onOpenSimulator={handleOpenSimulator}
         onAddHoldingFromGoal={handleAddHoldingFromGoal}
+        onOpenLedger={isGoogleSheetsEnabled ? handleOpenLedger : undefined}
       />
     </TickerPageShell>
   );
