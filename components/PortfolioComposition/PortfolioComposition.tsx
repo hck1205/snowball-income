@@ -100,6 +100,8 @@ function PortfolioCompositionComponent({
               <AllocationLegend>
                 {normalizedAllocation.map(({ profile, weight }, index) => {
                   const displayName = getTickerDisplayName(profile.ticker, profile.name);
+                  /* 파이 조각(theme.series)과 같은 인덱스 규칙(% 8) — 점·슬라이더 트랙이 한 값을 공유한다. */
+                  const seriesColor = CHART_SERIES_VARS[index % CHART_SERIES_VARS.length];
                   const selfFixed = Boolean(fixedByTickerId[profile.id]);
                   const isDisabled =
                     isLocked ||
@@ -109,11 +111,12 @@ function PortfolioCompositionComponent({
 
                   return (
                     <AllocationLegendItem key={profile.id}>
-                      {/* var(--sb-chart-series-N) — 파이 조각(theme.series)과 같은 인덱스 규칙(% 8), 프리셋 자동 추종 */}
-                      <AllocationColorDot color={CHART_SERIES_VARS[index % CHART_SERIES_VARS.length]} />
+                      {/* var(--sb-chart-series-N) — 프리셋·다크 전환을 리렌더 없이 따라간다 */}
+                      <AllocationColorDot color={seriesColor} />
                       <AllocationLegendName>{displayName}</AllocationLegendName>
                       <AllocationLegendSlider
                         type="range"
+                        $seriesColor={seriesColor}
                         min={0}
                         max={100}
                         step={1}

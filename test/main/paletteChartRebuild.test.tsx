@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { act, renderHook } from '@testing-library/react';
 import { Provider } from 'jotai/react';
 import { createStore } from 'jotai/vanilla';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { EChartsOption } from 'echarts';
 import {
   includedTickerIdsAtom,
@@ -25,6 +25,12 @@ import type { TickerProfile } from '@/shared/types/snowball';
  * 차트 옵션이 **새 프리셋의 chart-series 색으로** 다시 빌드되어야 한다
  * (chartTheme.ts 주석, useMainComputed의 useMemo 의존성 배선).
  *
+ * 🔓 2026-08-01 부터 색 프리셋은 화면에서 감춰져 팔레트가 기본값 하나로 고정된다 —
+ * 그 상태에서는 "전환"이 일어나지 않아 이 계약을 관측할 수 없다. 그렇다고 테스트를 지우면
+ * 감추기를 되돌리는 날 **차트 리빌드 배선이 끊긴 걸 아무도 모르게 된다**(이 배선은 그때
+ * 조용히 사라지기 가장 쉬운 종류다). 그래서 노출 목록만 원래대로 돌려놓은 세계를 목으로
+ * 재현해 계약을 계속 지킨다 — 되살릴 때 고칠 한 줄이 정확히 이 목이 하는 일이다.
+ *
  * 이 테스트는 실제 앱과 같은 배선을 재현한다:
  *  - globalStyles가 만드는 `:root[data-palette='<id>']` 변수 스코프를 <style>로 주입
  *    (jsdom은 속성 스코프 커스텀 프로퍼티 캐스케이드를 해석한다 — 사전 검증됨)
@@ -34,6 +40,15 @@ import type { TickerProfile } from '@/shared/types/snowball';
  * 검증 대상 색은 파이 조각 0의 `chart-series-0` — 4프리셋 모두 서로 다른 값이라
  * 전환이 실제로 반영됐는지 구분할 수 있다 (series-1(orange)은 전 프리셋 공통이라 부적합).
  */
+vi.mock('@/shared/constants', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/shared/constants')>();
+  return {
+    ...actual,
+    VISIBLE_PALETTE_PRESET_IDS: actual.PALETTE_PRESET_IDS,
+    isVisiblePalettePresetId: actual.isPalettePresetId,
+    toVisiblePalettePresetId: actual.normalizePalettePresetId
+  };
+});
 
 const seriesZero = (id: PalettePresetId): string => THEME_PRESETS[id].light['chart-series-0'];
 
