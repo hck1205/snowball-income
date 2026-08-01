@@ -3,6 +3,7 @@ import { ResultCaptureError } from './resultCaptureError';
 import {
   RESULT_CAPTURE_ROOT_ATTRIBUTE,
   captureElementToPng,
+  waitForAnimations,
   waitForElement,
   waitForFonts,
   waitForImages,
@@ -88,6 +89,18 @@ export const captureResultImage = async ({
   const fileName = buildResultCaptureFileName(scenarioName, capturedAt ?? new Date());
 
   await Promise.all([waitForImages(target), waitForFonts()]);
+  /*
+   * 🔴 **연출이 끝나기 전에는 찍지 않는다.** 첫 결과 등장 연출(W3)은 카드를 `opacity: 0` 에서
+   * 밀어 올리는데, 그 도중에 직렬화하면 카드가 투명한 채로 그림에 박힌다(실측: 잉크 1.05% ↔ 74.67%).
+   * 사용자가 결과를 보자마자 저장을 누르면 정확히 이 창에 들어간다.
+   *
+   * 복제 문서에서 `animation: none` 을 얹는 길도 있었지만 **버렸다**: ①결과 이미지의 래스터라이저는
+   * `modern-screenshot` 이라 `html2canvas` 의 `onclone` 이 애초에 돌지 않고(그 훅은 PDF 경로 전용)
+   * ②`backwards` fill 이 물고 있는 `opacity: 0` 을 선언 제거만으로 되돌릴 수 있는지가 래스터라이저
+   * 구현에 달려 있어 "고쳤다고 믿는데 안 고쳐진" 형태가 된다. 살아 있는 화면이 연출을 끝내면
+   * 계산값이 정의상 최종 상태라 이 대기는 래스터라이저와 무관하게 참이다.
+   */
+  await waitForAnimations(target);
   /*
    * 🔴 순서가 중요하다 — 폰트·이미지를 기다린 **뒤에** 높이 안정을 본다.
    * 폰트가 바뀌면 줄 수가 달라져 높이가 또 움직이기 때문이다.

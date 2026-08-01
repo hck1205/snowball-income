@@ -63,6 +63,45 @@ export const waitForFonts = async (timeoutMs = 3000): Promise<void> => {
 };
 
 /**
+ * 대상 안에서 **돌고 있는 애니메이션·전환이 끝날 때까지** 기다린다(상한 도달 시 그냥 반환).
+ *
+ * 🔴 이게 없으면 **연출 도중에 찍힌 그림이 통째로 비어 나온다.** 래스터라이저는 그 순간의
+ * 계산된 스타일을 복제본에 그대로 옮기는데, `animation-fill-mode: backwards` 를 쓰는 진입 연출은
+ * 지연 구간에서 계산값이 `opacity: 0` 이다 — 즉 "아직 안 나타난 카드"가 **투명한 채로 직렬화**된다.
+ *
+ * 실측(2026-07-31, 390px · 결과 그리드 8칸 · modern-screenshot):
+ * 진입 연출이 도는 중에 저장하면 PNG 의 잉크 픽셀이 **1.05%**(연출 후 대조군 74.67%)였다.
+ * 연출 길이를 3초로 늘리면 0.5% — 사실상 빈 그림이다.
+ *
+ * ⚠ **높이 대기(`waitForStableHeight`)로는 절대 못 잡는다.** 이 연출은 `opacity`/`transform` 만
+ * 바꾸고 둘 다 `scrollHeight` 에 영향이 없어서, 높이는 첫 프레임에 이미 안정돼 게이트가 열린다.
+ * 그래서 "대기를 다 했는데도 빈 그림"이라는 형태로 나타난다.
+ *
+ * 무한 반복 애니메이션(스켈레톤 셔머·스피너)은 **기다리지 않는다** — 끝나지 않으므로 상한까지
+ * 헛되이 붙잡을 뿐이다. `getAnimations` 가 없는 환경(jsdom)은 그냥 넘긴다.
+ */
+export const waitForAnimations = async (
+  host: HTMLElement,
+  { timeoutMs = 1500 }: { timeoutMs?: number } = {}
+): Promise<void> => {
+  if (typeof host.getAnimations !== 'function') return;
+
+  const finite = host.getAnimations({ subtree: true }).filter((animation) => {
+    const iterations = animation.effect?.getComputedTiming().iterations ?? 1;
+    return Number.isFinite(iterations);
+  });
+  if (finite.length === 0) return;
+
+  await Promise.race([
+    // 취소된 애니메이션의 `finished` 는 reject 한다 — 캡처를 그걸로 포기하지 않는다.
+    Promise.allSettled(finite.map((animation) => animation.finished)),
+    new Promise<void>((resolve) => {
+      setTimeout(resolve, timeoutMs);
+    })
+  ]);
+};
+
+/**
  * 요소의 높이가 **더 이상 변하지 않을 때까지** 기다린다(상한 도달 시 그냥 반환).
  *
  * 🔴 이걸 안 하면 결과물이 잘린다. 캡처 프레임은 갓 마운트된 **사본**이라, 그 안의 ECharts 는
