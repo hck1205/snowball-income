@@ -9,6 +9,7 @@
 import { DB_SHARE_KEY_PATTERN, fetchSharedSnapshotByKey, replaceMetaContent } from '@/shared/lib/og';
 import { buildOgShareText, summarizeSharedScenarioForOg, type OgCardModel } from '@/pages/Main/utils/ogCard';
 import { toNodeHandler } from '@/shared/lib/server';
+import { SIMULATOR_PATH } from '@/shared/constants/routes';
 
 /**
  * `/api/share-html?s=<key>` — DB key 공유 링크(`/?s=<key>`)의 진입 HTML.
@@ -20,18 +21,19 @@ import { toNodeHandler } from '@/shared/lib/server';
  * Edge 로 옮기는 것은 선택지가 아니다: Edge 번들러가 `@/` alias(tsconfig paths)를 해석하지 못한다.
  * 자세한 경위는 `@/shared/lib/server` 의 nodeHandler.ts 주석.
  *
- * middleware(Edge) 가 `?s=<key>` 요청을 여기로 **rewrite** 한다(브라우저 URL 은 `/?s=<key>` 그대로).
+ * middleware(Edge) 가 `?s=<key>` 요청을 여기로 **rewrite** 한다(브라우저 URL 은 요청 그대로 —
+ * 구 링크는 `/?s=<key>`, 신규 링크는 `/simulator?s=<key>`).
  * 무거운 조회·시뮬레이션 요약은 전부 이 Node 함수로 격리하고, middleware 는 rewrite(문자열 매칭 1개)만 한다.
  *
  * ## 왜 크롤러 전용 스텁이 아니라 index.html 셸인가
- * matcher='/' 는 실사용자 클릭도 잡는다. 그래서 반환 HTML 은 **여전히 dist/index.html 그 자체**여야 한다
+ * matcher(`/`·`/simulator`) 는 실사용자 클릭도 잡는다. 그래서 반환 HTML 은 **여전히 dist/index.html 그 자체**여야 한다
  * (OG 메타 content 만 다름). React 앱이 그대로 부팅해 클라이언트 `?s=` 복원 로직(트랙 E restore effect)이
  * 시나리오 탭을 이어서 복원한다. script/link 태그는 하나도 건드리지 않는다.
  *
  * ## 절대 5xx 를 내지 않는다
  * 크롤러(카카오톡·페이스북·트위터·네이버)는 미리보기 요청이 실패하면 카드를 **아예 포기**한다. 그래서 모든
  * 실패 경로(key 부재/만료/형식불일치/조회 실패/env 미설정)는 **메타 치환 없이 셸을 200 으로** 반환한다
- * (자연히 정적 기본 카드로 폴백). 셸 자체를 못 읽는 극단(자기 도메인 정적 파일 장애)만 302→'/'.
+ * (자연히 정적 기본 카드로 폴백). 셸 자체를 못 읽는 극단(자기 도메인 정적 파일 장애)만 302→`/simulator`.
  *
  * ## 불변식
  * - canonical / og:type / og:image:type·width·height / og:locale / og:site_name / twitter:card 는 **불변**.
@@ -49,18 +51,25 @@ const htmlResponse = (html: string, cache: string): Response =>
     headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': cache }
   });
 
-/** 시나리오 셸을 못 읽는 극단 폴백(5xx 금지) — 루트로 302(matcher='/' 라 `?s` 없는 '/' 는 재진입·루프 없음). */
-const redirectToRoot = (origin: string): Response =>
+/**
+ * 시나리오 셸을 못 읽는 극단 폴백(5xx 금지) — **시뮬레이터로** 302.
+ *
+ * 목적지가 matcher 안(`/simulator`)이지만 `s`·`share` 파라미터를 떼고 보내므로 middleware 는 즉시
+ * `next()` 한다 → 루프 없음. 랜딩이 `/` 를 가져간 뒤에도 이 폴백이 도구를 가리키게 하려고
+ * 루트가 아니라 경로 상수를 쓴다.
+ */
+const redirectToSimulator = (origin: string): Response =>
   new Response(null, {
     status: 302,
-    headers: { Location: new URL('/', origin).toString(), 'cache-control': CACHE_FALLBACK }
+    headers: { Location: new URL(SIMULATOR_PATH, origin).toString(), 'cache-control': CACHE_FALLBACK }
   });
 
 /** OG/트위터 메타 content 만 치환한다(불변식 태그는 손대지 않는다). */
 const applyShareMeta = (shell: string, key: string, origin: string, model: OgCardModel): string => {
   const { title, description, imageAlt } = buildOgShareText(model);
 
-  const shareUrl = new URL('/', origin);
+  // og:url 은 이 시나리오의 정본 주소 — 이전 후에도 유효한 `/simulator` 를 가리킨다(middleware 와 동일 규약).
+  const shareUrl = new URL(SIMULATOR_PATH, origin);
   shareUrl.searchParams.set('s', key);
   const imageUrl = new URL('/api/og', origin);
   imageUrl.searchParams.set('s', key);
@@ -84,14 +93,14 @@ export async function handler(request: Request): Promise<Response> {
   const { origin, searchParams } = new URL(request.url);
   const key = searchParams.get('s');
 
-  // 1) index.html 셸을 가져온다. matcher='/' 에 안 걸리는 경로라 middleware 재진입이 없다.
+  // 1) index.html 셸을 가져온다. matcher 에 안 걸리는 경로라 middleware 재진입이 없다.
   let shell: string;
   try {
     const response = await fetch(new URL('/index.html', origin));
-    if (!response.ok) return redirectToRoot(origin);
+    if (!response.ok) return redirectToSimulator(origin);
     shell = await response.text();
   } catch {
-    return redirectToRoot(origin);
+    return redirectToSimulator(origin);
   }
 
   // 2) key 형식이 아니면(방어) 무치환 셸 → 기본 카드. 앱은 그대로 부팅.

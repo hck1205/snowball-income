@@ -98,6 +98,18 @@ describe('api/ticker-html — 개별 티커(SCHD)', () => {
     expect(html).toContain('이 페이지는 정보 제공을 목적으로 하며 투자 자문이 아닙니다');
   });
 
+  /**
+   * 🔴 히어로 CTA 는 이 페이지의 **최종 목적지**이고, 그걸 읽는 것은 사용자가 아니라 크롤러다
+   * (앱 쪽 `TickerDetailPage.view.tsx` 의 `PrimaryCta` 와 한 쌍). 시뮬레이터 경로가 옮겨 갔을 때
+   * 여기만 `/` 로 남아도 화면·전 스위트가 그린이라 아무도 모른다 — 그래서 정확일치로 잠근다.
+   */
+  it('히어로 CTA 가 시뮬레이터를 가리킨다 (크롤러가 읽는 서버 HTML)', async () => {
+    stubFetchRoutes([indexHtmlRoute()]);
+    const html = await (await handler(apiRequest('/api/ticker-html', { name: 'schd' }))).text();
+
+    expect(html).toContain('<p class="hero-cta"><a href="/simulator">SCHD로 계산해 보기</a></p>');
+  });
+
   it('FinancialProduct + FAQPage JSON-LD 를 주입한다(파싱 가능한 유효 JSON)', async () => {
     stubFetchRoutes([indexHtmlRoute()]);
     const html = await (await handler(apiRequest('/api/ticker-html', { name: 'schd' }))).text();

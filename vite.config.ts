@@ -41,6 +41,12 @@ const stripTrailingSlash = (url: string) => url.replace(/\/+$/, '');
  */
 const ROUTES = [
   { path: '/', priority: '1.0', changefreq: 'weekly' },
+  /*
+   * 시뮬레이터의 새 주소. 지금은 `/` 와 같은 화면이라 둘 다 등재하되 **`/` 를 1.0 으로 남긴다** —
+   * 이전이 끝나기 전에 우선순위를 뒤집으면 색인이 두 번 흔들린다(랜딩 PR 에서 한 번에 정리).
+   * ⚠ `public/sitemap.xml` 은 존재하지 않는다. 이 배열이 정적 라우트 사이트맵의 **유일한 정본**이다.
+   */
+  { path: '/simulator', priority: '0.9', changefreq: 'weekly' },
   { path: '/community/portfolio', priority: '0.8', changefreq: 'daily' },
   { path: '/community/board', priority: '0.8', changefreq: 'daily' }
 ] as const;
