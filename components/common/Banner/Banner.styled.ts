@@ -5,28 +5,41 @@ import type { BannerTone } from './Banner.types';
 /**
  * 배너.
  *
- * 톤은 **좌측 액센트 바 + 아주 옅은 배경**으로만 말한다. 배경을 진하게 칠하면
- * 배너가 화면의 주인공이 되어버려서, 정작 주인공인 데이터를 밀어낸다.
- *
  * 본문에 `textMuted`를 쓰지 않는 이유: 옅은 톤 배경 위에서 대비가 AA에 못 미친다.
- * `textSecondary`를 쓴다.
- *
- * ⚠ `text-secondary on accent-subtle` 쌍은 아직 `shared/styles/contrast.test.ts` 의 순회 목록에
- * 없다(`brand-subtle` 쪽만 있다). 실측은 16테마 최저 6.47:1(velog/dark)로 AA 여유가 있지만,
- * **게이트가 없으므로** accent-subtle 을 손대는 사람이 이 배너를 못 본다 — 그 쌍을 목록에 넣는 것이
- * 다음 정리 항목이다.
+ * `textSecondary`를 쓴다(`text-secondary on surface`·`on warning-surface` 모두 게이트에 있다).
  */
 
 /**
+ * 🔴 **톤마다 표현이 다르다 — 실수가 아니다. `info`만 면(틴트)이 없다.**
+ *
+ * 규칙: **면은 강한 톤에만 준다.**
+ *  - `info`             → 중립 면(`surface`) + 1px `accent` 테두리 + 색 있는 아이콘
+ *  - `warning`/`danger` → 틴트 면 유지. 경고는 눈에 띄어야 하고, 한 화면에 여러 개 뜨지 않는다.
+ *
+ * 왜. `DESIGN.md` §2-6 이 "한 화면에 틴트 면 최대 2개"를 규칙으로 두는데, 안내 배너는 이 앱에서
+ * **가장 자주 뜨는 표면**이라 그것이 틴트를 먹는 순간 히어로·빈 상태 보드와 겹쳐 상한을 바로 넘긴다
+ * (실측 2026-07-31: `/dividend/portfolio` 1280px 에서 틴트 면 3~5개, `tools/dev/tintscan.mjs`).
+ * 각각은 옳은 선택인데 겹쳐 놓으면 하나의 큰 색 덩어리로 읽힌다 — 그래서 **가장 흔한 표면부터** 뺀다.
+ *
+ * 이 규칙의 **단일 지점은 이 파일이다.** 안내 표면을 새로 만들 때 자기 틴트를 선언하지 말고 `Banner`를
+ * 쓴다. (같은 규칙을 손으로 따르는 예외: `pages/Portfolio/components/GoalCard` 의 성공 상태 줄 —
+ * 배너가 아니라 카드 안 한 줄이라 부품을 공유하지 않는다. 표현 규칙만 같다.)
+ *
+ * 좌측 컬러 바(구 3px)는 없앴다 — 품질 기준이 "1px 초과 colored border-left 금지"다.
+ * 톤은 이제 **테두리 + 아이콘 색**이 말한다(색 단독 금지는 아이콘 모양·문장이 계속 지킨다).
+ *
  * `info` 가 브랜드가 아니라 액센트인 이유: 배너는 **누를 수 없는 정보 표면**이다.
  * 브랜드 축은 사용자가 누르는 것(주 버튼·활성 탭·선택 상태·포커스)에만 남기고, 크롬·정보·장식은
  * 액센트가 맡는다 — 두 축이 같은 색이면 화면에 "액션"이라는 신호가 사라진다.
  * `warning`/`danger` 가 이미 자기 상태색을 쓰므로 hover 도 같은 어법(중립 `surfaceHover`)으로 맞춘다.
+ *
+ * ⚠ 테두리는 `accentBorder`(1.44~2.70:1)가 아니라 **`accent`**(3:1 게이트 `['accent','surface']`)다.
+ * 틴트를 뺀 뒤에는 테두리가 톤을 말하는 **유일한 면 신호**라, 장식 경계의 플로어(1.25)로는 사라진다.
  */
 const TONE: Record<BannerTone, { border: string; bg: string; accent: string; hover: string }> = {
   info: {
-    border: color.accentBorder,
-    bg: color.accentSubtle,
+    border: color.accent,
+    bg: color.surface,
     accent: color.accent,
     hover: color.surfaceHover
   },
@@ -45,33 +58,31 @@ const TONE: Record<BannerTone, { border: string; bg: string; accent: string; hov
 };
 
 export const BannerRoot = styled.section<{ tone: BannerTone; align: 'start' | 'center' }>`
-  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: ${space[3]};
   align-items: ${({ align }) => align};
   padding: ${space[4]};
-  padding-left: ${space[5]};
   border: 1px solid ${({ tone }) => TONE[tone].border};
   border-radius: ${radius.md};
   background: ${({ tone }) => TONE[tone].bg};
   color: ${color.text};
   overflow: hidden;
 
-  /* 좌측 액센트 바 — 톤을 여기서만 강하게 말한다. */
-  &::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 3px;
-    background: ${({ tone }) => TONE[tone].accent};
+  /*
+   * 톤 아이콘 — 호출부가 넣은 lucide 아이콘은 'currentColor' 라 여기서 색을 준다.
+   * 버튼 안 아이콘은 제외한다(액션은 자기 색을 갖는다) — ':not()' 대신 더 구체적인 선택자로 되돌린다.
+   */
+  svg {
+    color: ${({ tone }) => TONE[tone].accent};
+  }
+
+  button svg {
+    color: inherit;
   }
 
   ${media.down('mobileWide')} {
     padding: ${space[3]};
-    padding-left: ${space[4]};
     gap: ${space[2]};
   }
 `;

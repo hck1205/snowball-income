@@ -110,11 +110,14 @@ velog에서 `gradient-aurora`는 "오로라"가 아니라 틸그린 duotone이�
 `useApplyPalettePreset`이 어트리뷰트로 반영한다. 첫 페인트 전에는 index.html의 인라인
 스크립트가 박는다(FOUC 방지). id 계약은 `@/shared/constants/palette`.
 
-**프리셋 추가 절차 (3줄)**
+**프리셋 추가 절차 (4줄)**
 1. `shared/constants/palette`의 `PALETTE_PRESET_IDS`에 id 추가 + index.html 인라인 스크립트의 유효값 목록·프리페인트 배경 갱신.
 2. `presets/`에 새 프리셋 파일(`<preset>.ts`)을 추가해 light/dark 전체 토큰 맵(키 집합은 기존과 동일해야 함 —
    테스트가 강제)을 정의하고, `presets/index.ts`의 `THEME_PRESETS`에 label·swatch와 함께 등록.
-3. `npx vitest run shared/styles` — 새 프리셋까지 자동 순회되는 대비·ΔE·키 동등성 전부 그린이어야 출시 가능.
+3. ⚠ **화면에 보이게 하려면 `VISIBLE_PALETTE_PRESET_IDS`에도 넣어야 한다** — 2026-08-01 부터 이 배열이
+   노출을 가르는 단일 게이트이고, 지금은 기본 팔레트 하나만 담고 있다(같은 파일의 주석에 되돌리기 체크리스트).
+   1·2번만 하면 토큰·대비 게이트는 살아나지만 어떤 화면에도 나타나지 않는다.
+4. `npx vitest run shared/styles` — 새 프리셋까지 자동 순회되는 대비·ΔE·키 동등성 전부 그린이어야 출시 가능.
 
 ### 색 램프 (primitive)
 
@@ -152,6 +155,9 @@ velog에서 `gradient-aurora`는 "오로라"가 아니라 틸그린 duotone이�
 | `color.accentAlt` | `#22a06b` | `#6ee7a0` | 오로라 green 표시 |
 | `color.accentAltText` | `#0f763a` | `#6ee7a0` | green 텍스트 (4.5:1 검증) |
 | `color.accentAltSubtle` / `accentAltBorder` | green 틴트 | green 틴트 | 배지/칩 서피스·경계 |
+| `color.identity` | `#0a6da3` | `#3ba5d3` | 아이덴티티 채움 (리본·아이콘 배지, **전 프리셋 공통** / 텍스트 금지) |
+| `color.identitySubtle` / `identityBorder` | `#eaf6fd` / `#aadcf2` | `#0d3d5a` / `#085a88` | 아이덴티티 틴트 면·경계 (히어로·빈 상태, **전 프리셋 공통**) |
+| `color.identityText` | `#085a88` | `#79c5e6` | 아이덴티티 면 위 라벨 (4.5:1 검증, **전 프리셋 공통**) |
 | `color.gradientAurora` | glacier→teal→violet | (밝은 stop) | 표시용 리본 |
 | `color.gradientCta` | 흰 라벨 4.5:1 stop | (동) | primary CTA 채움 |
 | `color.gradientHero` / `gradientHeroSoft` | `#dcebf6→#e6f5ef` / `#ecf4fa→#f1f9f6` | `#12283e→#10292f` / `#0f1e30→#0d1f28` | **면 배경 전용** 파스텔 히어로 (버튼·리본 금지) |
@@ -172,6 +178,11 @@ velog에서 `gradient-aurora`는 "오로라"가 아니라 틸그린 duotone이�
 
 > **다크에서 위계 만드는 법**: 그림자가 안 보이므로 **서피스가 밝아질수록 위로 뜬다**.
 > `sunken < base < raised`. 라이트에서는 그림자(`elevation`)가 그 역할을 한다.
+>
+> 이 3단을 카드에 배정하는 레시피가 `surfaces.ts` 의 **`cardElevation(tier)`** 다(배경·테두리·그림자를
+> 한 번에 낸다). 🔴 **한 면이 테두리와 그림자를 동시에 갖지 않는다** — 주역은 그림자, 본문은 테두리,
+> 부속은 면색. 카드 표면은 이 세 속성을 스스로 적지 말고 여기서 받는다
+> (가드: `test/shared/cardElevationHierarchy.test.ts`).
 
 ### 상승/하락은 왜 빨강/파랑인가 (의도적 결정)
 
@@ -233,7 +244,7 @@ weight: `regular 400` / `medium 500` / `semibold 600` / `bold 700` / `extrabold 
 | `ToggleField` | 라벨 줄 + `Toggle` + 도움말 | 설정 한 줄 |
 | `Chip` | `selected` `onClick` `onRemove` | 티커/프리셋 조각 |
 | `StatTile` | `emphasis: hero \| default`, `tone: neutral \| positive \| negative` | 지표 |
-| `Card` | `title` `subtitle` `titleRight` `elevation 1\|2\|3` | 카드 |
+| `Card` | `title` `subtitle` `titleRight` `tone: raised \| default \| sunken \| wash` | 카드 |
 | `Banner` | `info` `warning` `danger`, `onDismiss`, `role` | 공지/경고/에러 |
 | `Tabs` | `items` `activeId` `onChange` | 탭 |
 | `Modal` | `title` `actions` `onBackdropClick` | 모달 |

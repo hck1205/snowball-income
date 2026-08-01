@@ -36,7 +36,16 @@ export const BREAKPOINT = {
   /** 모바일 드로어 on/off 경계 */
   drawer: 960,
   /** 좌/우 2단 → 1단 전환 */
-  layout: 980
+  layout: 980,
+  /**
+   * 앱 헤더 1줄 ↔ 2줄 전환. **`media.up('headerStack')` = 1024px 이상 = 한 줄**이고,
+   * `media.down('headerStack')` = 1023px 이하 = 브랜드 줄 + 메뉴 줄 2단이다.
+   *
+   * 값이 유일하게 홀수인 이유: 이 경계만 "데스크톱 쪽 시작점(1024)"으로 정해졌다
+   * (내비 높이 상한 80px 규칙 — 두 줄 헤더는 데스크톱에서 117px 이었다).
+   * 나머지 키처럼 "작은 쪽의 max-width" 로 표현하면 1023 이 된다.
+   */
+  headerStack: 1023
 } as const;
 
 export type BreakpointKey = keyof typeof BREAKPOINT;
@@ -152,12 +161,39 @@ export const shadow = {
   e3: 'var(--sb-shadow-3)'
 } as const;
 
+/**
+ * 모션 토큰.
+ *
+ * ## 이징을 고르는 순서 (표준 — 새 전환을 쓸 때 여기서 고른다)
+ * | 상황 | 토큰 |
+ * |---|---|
+ * | 진입·퇴장(나타남/사라짐) | `ease` (ease-out 계열 — 빠르게 시작해 부드럽게 멈춘다) |
+ * | 화면 **안에서 이동**(자리 옮김·펼침) | `easeInOut` |
+ * | 호버·누름 같은 상태 피드백 | `ease` |
+ * | 사이드 드로어 | `easeDrawer` |
+ *
+ * ## 지속시간
+ * 누름 100–160ms · 팝오버 125–200ms · 드로어 200–500ms. **UI 전환은 300ms 미만**이 원칙이고
+ * `slow`(450ms)는 드로어/진행률처럼 거리를 실제로 이동하는 것에만 쓴다.
+ */
 export const motion = {
   fast: '150ms',
   base: '200ms',
   /** 오케스트레이션된 순간 전용(진행률 바 채움 등). 상태 피드백에는 fast/base를 쓴다. */
   slow: '450ms',
-  ease: 'cubic-bezier(0.2, 0, 0, 1)'
+  /**
+   * 퇴장 = 진입의 60%. 사라지는 것은 이미 사용자의 관심 밖이라 진입과 같은 시간을 쓰면 느리게 느껴진다.
+   * (`base` 200ms 진입 ↔ 이 값 120ms 퇴장.)
+   */
+  exit: '120ms',
+  ease: 'cubic-bezier(0.2, 0, 0, 1)',
+  /**
+   * 화면 **안에서 이동**하는 것 전용. 양끝이 느리고 가운데가 빠르다 —
+   * 나타나거나 사라지지 않고 자리만 옮기는 요소에 쓴다.
+   */
+  easeInOut: 'cubic-bezier(0.77, 0, 0.175, 1)',
+  /** 사이드 드로어 전용 곡선. 손가락이 놓은 듯 초반이 빠르고 끝이 길게 감속한다. */
+  easeDrawer: 'cubic-bezier(0.32, 0.72, 0, 1)'
 } as const;
 
 /** 터치 타겟 최소 44x44 (WCAG 2.5.5 / iOS HIG). */

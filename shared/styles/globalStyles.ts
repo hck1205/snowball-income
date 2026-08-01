@@ -15,7 +15,9 @@ import { font, motion } from './tokens';
  * chartTheme.ts 참고).
  *
  * 다크 블록은 `:root:not([data-theme='light'])`로 감싼다 — `data-theme="light"`를 박으면 OS가
- * 다크여도 현재 프리셋의 라이트로 강제할 수 있는 탈출구다(현재 소비처 없음, 향후 확장 대비 유지).
+ * 다크여도 현재 프리셋의 라이트로 강제할 수 있는 탈출구다. **헤더의 밝기 토글이 이 탈출구를 쓴다**
+ * (`components/ColorSchemeToggle` → `colorSchemeAtom` → `html[data-theme]`, 2026-08-01).
+ * 선호가 `system`이면 어트리뷰트가 **없고**, 그때만 위 `prefers-color-scheme` 블록이 산다.
  */
 
 /**
@@ -62,7 +64,7 @@ export const globalStyles = css`
     }
   }
 
-  /* 수동 토글 대비 (이번 범위에서는 토글 UI 없음) */
+  /* 수동 토글(헤더 밝기 버튼)이 박는 다크 — OS 설정보다 우선한다 */
   :root[data-theme='dark'] {
     ${toCssVars(DEFAULT_THEME_PRESET.dark)};
     color-scheme: dark;

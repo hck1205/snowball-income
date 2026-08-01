@@ -32,7 +32,6 @@ export {
   appHeaderHeight,
   headerControlsGrid,
   headerGlassSurface,
-  headerRowGap,
   headerSolidSurface
 } from './headerSurface';
 
@@ -44,12 +43,18 @@ export {
   sectionTitleFontSize
 } from './heroTitleRow';
 
+export { iconSwapIn } from './iconSwap';
+
+export { PAGE_HUE_TOKEN, PAGE_HUE_VAR, pageHue, pageHueMix } from './pageHue';
+export type { PageHueName } from './pageHue';
+
 export { pressable, pressableSubtle, pressTransition } from './pressable';
 
 export { hiddenScrollbar, subtleScrollbar } from './scrollbar';
 
 export {
   SEPARATE_SURFACE_PADDING,
+  cardElevation,
   hitArea,
   hitAreaWithin,
   innerRadius,
@@ -57,6 +62,7 @@ export {
   outerRadius,
   surface
 } from './surfaces';
+export type { SurfaceTier } from './surfaces';
 
 export {
   buildAxisStyle,

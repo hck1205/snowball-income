@@ -29,9 +29,18 @@ const REPO_ROOT = resolve(__dirname, '../..');
 
 const read = (path: string) => readFileSync(resolve(REPO_ROOT, path), 'utf-8');
 
-/** reduce 블록 하나를 통째로 떠낸다(중첩 없는 단순 블록 전제 — 이 레포의 모든 자리가 그렇다). */
-const reduceBlockOf = (source: string): string | null => {
-  const start = source.indexOf('@media (prefers-reduced-motion: reduce)');
+/**
+ * reduce 블록 하나를 통째로 떠낸다(중첩 없는 단순 블록 전제 — 이 레포의 모든 자리가 그렇다).
+ *
+ * ⚠ `anchor` 를 반드시 줘야 하는 파일이 있다. 한 파일에 **스피너와 스켈레톤이 함께** 사는 자리
+ * (커뮤니티 목록 두 페이지)에서는 첫 블록만 떠내면 스켈레톤 계약이 스피너 블록을 검사하게 되고,
+ * **그 반대쪽이 통째로 사라져도 초록**이다. 앵커는 그 자리의 키프레임 이름을 쓴다.
+ */
+const reduceBlockOf = (source: string, anchor?: string): string | null => {
+  const from = anchor === undefined ? 0 : source.indexOf(anchor);
+  if (from === -1) return null;
+
+  const start = source.indexOf('@media (prefers-reduced-motion: reduce)', from);
   if (start === -1) return null;
 
   const open = source.indexOf('{', start);
@@ -52,21 +61,49 @@ const reduceBlockOf = (source: string): string | null => {
 const SPINNERS = [
   {
     label: '클라우드 저장 중 배지',
-    file: 'components/CloudSyncIndicator/CloudSyncIndicator.styled.ts'
+    file: 'components/CloudSyncIndicator/CloudSyncIndicator.styled.ts',
+    anchor: undefined
   },
   {
     label: '더보기 메뉴의 PDF 생성 스피너',
-    file: 'components/HeaderOverflowMenu/HeaderOverflowMenu.styled.ts'
+    file: 'components/HeaderOverflowMenu/HeaderOverflowMenu.styled.ts',
+    anchor: undefined
+  },
+  {
+    label: '갤러리 더 불러오는 중 스피너',
+    file: 'pages/Community/CommunityGalleryPage/CommunityGalleryPage.styled.ts',
+    anchor: 'community-spin'
+  },
+  {
+    label: '게시판 더 불러오는 중 스피너',
+    file: 'pages/Community/CommunityBoardPage/CommunityBoardPage.styled.ts',
+    anchor: 'board-spin'
   }
 ] as const;
 
 /** "값이 아직 없다"를 말하는 자리 — 정지가 정답이다(정적 단서가 모양 자체에 있다). */
 const SKELETONS = [
-  { label: '환율 위젯', file: 'components/ExchangeRateWidget/ExchangeRateWidget.styled.ts' },
-  { label: '지수 스트립', file: 'components/MarketIndexStrip/MarketIndexStrip.styled.ts' },
+  { label: '환율 위젯', file: 'components/ExchangeRateWidget/ExchangeRateWidget.styled.ts', anchor: undefined },
+  { label: '지수 스트립', file: 'components/MarketIndexStrip/MarketIndexStrip.styled.ts', anchor: undefined },
   {
     label: '캘린더 날짜 칸',
-    file: 'pages/DividendCalendar/components/MonthCalendar/MonthCalendar.styled.ts'
+    file: 'pages/DividendCalendar/components/MonthCalendar/MonthCalendar.styled.ts',
+    anchor: undefined
+  },
+  {
+    label: '갤러리 목록 스켈레톤',
+    file: 'pages/Community/CommunityGalleryPage/CommunityGalleryPage.styled.ts',
+    anchor: 'community-shimmer'
+  },
+  {
+    label: '게시판 목록 스켈레톤',
+    file: 'pages/Community/CommunityBoardPage/CommunityBoardPage.styled.ts',
+    anchor: 'board-shimmer'
+  },
+  {
+    label: '시뮬레이터 결과 그리드 스켈레톤',
+    file: 'pages/Main/components/MainContentLoader/MainContentLoader.styled.ts',
+    anchor: 'main-content-shimmer'
   }
 ] as const;
 
@@ -80,8 +117,8 @@ describe('reduced-motion — 전역 리셋이 죽인 신호를 되찾는 자리'
     expect(block).toMatch(/animation-iteration-count:\s*1\s*!important/);
   });
 
-  it.each(SPINNERS)('$label 은 duration·iteration-count 를 !important 로 되찾는다', ({ file }) => {
-    const block = reduceBlockOf(read(file));
+  it.each(SPINNERS)('$label 은 duration·iteration-count 를 !important 로 되찾는다', ({ file, anchor }) => {
+    const block = reduceBlockOf(read(file), anchor);
 
     expect(block).not.toBeNull();
     // 이름만 바꾸면 여전히 0.01ms 1회로 끝난다 — 두 속성을 함께 회수해야 실제로 돈다.
@@ -89,9 +126,9 @@ describe('reduced-motion — 전역 리셋이 죽인 신호를 되찾는 자리'
     expect(block).toMatch(/animation-iteration-count:\s*infinite\s*!important/);
   });
 
-  it.each(SPINNERS)('$label 은 회전이 아니라 불투명도 펄스로 되찾는다 (전정계 안전)', ({ file }) => {
+  it.each(SPINNERS)('$label 은 회전이 아니라 불투명도 펄스로 되찾는다 (전정계 안전)', ({ file, anchor }) => {
     const source = read(file);
-    const block = reduceBlockOf(source);
+    const block = reduceBlockOf(source, anchor);
 
     // 되찾는 키프레임 이름이 실제로 그 파일에 정의돼 있고, 그 안에 rotate 가 없어야 한다.
     const name = /animation-name:\s*([\w-]+)/.exec(block ?? '')?.[1];
@@ -105,8 +142,8 @@ describe('reduced-motion — 전역 리셋이 죽인 신호를 되찾는 자리'
 });
 
 describe('reduced-motion — 일부러 정지시키는 자리(스켈레톤)', () => {
-  it.each(SKELETONS)('$label 스켈레톤은 되찾지 않는다 (모양 자체가 정적 단서)', ({ file }) => {
-    const block = reduceBlockOf(read(file));
+  it.each(SKELETONS)('$label 스켈레톤은 되찾지 않는다 (모양 자체가 정적 단서)', ({ file, anchor }) => {
+    const block = reduceBlockOf(read(file), anchor);
 
     expect(block).not.toBeNull();
     expect(block).toMatch(/animation:\s*none/);

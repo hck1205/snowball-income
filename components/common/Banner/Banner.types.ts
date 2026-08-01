@@ -1,9 +1,11 @@
 import type { ReactNode } from 'react';
 
 /**
- * info    — 중립 공지(브랜드 톤).
- * warning — 주의가 필요하지만 막지는 않음(예: 금융소득종합과세 임계 초과).
- * danger  — 잘못된 입력/에러.
+ * info    — 중립 공지. **면(틴트)이 없다** — 중립 배경 + 1px 액센트 테두리 + 색 아이콘.
+ * warning — 주의가 필요하지만 막지는 않음(예: 금융소득종합과세 임계 초과). 틴트 면.
+ * danger  — 잘못된 입력/에러. 틴트 면.
+ *
+ * 톤마다 표현이 갈리는 이유는 `Banner.styled.ts` 의 `TONE` 주석에 있다(한 화면의 틴트 면 상한).
  */
 export type BannerTone = 'info' | 'warning' | 'danger';
 

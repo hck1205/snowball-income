@@ -19,7 +19,6 @@ export type {
   ButtonProps,
   ButtonSize,
   ButtonVariant,
-  CardElevation,
   CardProps,
   ChipProps,
   ModalProps,

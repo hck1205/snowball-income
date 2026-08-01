@@ -29,6 +29,28 @@ describe('PageHero', () => {
     expect(screen.getByText('달러로 표시 중 · 1,382원 기준')).toBeInTheDocument();
   });
 
+  it('고지(notice)는 role="note" 로 리드와 근거 사이에 선다 — 구 캘린더 HeroDisclaimer 의 자리', () => {
+    render(
+      createElement(PageHero, {
+        title: '배당 지급 캘린더',
+        lede: '관심 종목을 고르면 이번 달 어느 날 배당이 들어오는지 보여줍니다.',
+        notice: '달력의 날짜는 과거 지급 이력에서 추정한 예상일입니다.',
+        meta: '데이터 기준일: 2026-07-29'
+      })
+    );
+
+    const note = screen.getByRole('note');
+    expect(note).toHaveTextContent('달력의 날짜는 과거 지급 이력에서 추정한 예상일입니다.');
+
+    // 읽는 순서: 리드 → 고지 → 근거. 근거가 고지보다 먼저 오면 "왜 예상인가"를 늦게 읽는다.
+    const paragraphs = Array.from(document.querySelectorAll('p'));
+    expect(paragraphs.map((p) => p.textContent)).toEqual([
+      '관심 종목을 고르면 이번 달 어느 날 배당이 들어오는지 보여줍니다.',
+      '달력의 날짜는 과거 지급 이력에서 추정한 예상일입니다.',
+      '데이터 기준일: 2026-07-29'
+    ]);
+  });
+
   it('리드·근거·액션은 값이 없으면 아예 그리지 않는다 — 빈 자리를 남기지 않는다', () => {
     const { container } = render(createElement(PageHero, { title: '배당 시뮬레이터' }));
 

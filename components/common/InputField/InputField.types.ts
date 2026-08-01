@@ -40,5 +40,13 @@ export type SelectFieldProps = {
   helpAriaLabel?: string;
   onHelpClick?: () => void;
   disabled?: boolean;
+  /**
+   * 셀렉트 아래 한 줄 보조 표기. `InputField` 의 `hint` 와 **같은 부품·같은 자리**를 쓴다
+   * (`FieldHint` + `aria-describedby`).
+   *
+   * 지금의 유일한 소비자는 "배당률은 있는데 주기가 '배당 없음'" 모순 안내다 — 선택지를 막지 않고
+   * 결과만 말한다. 빈 값/undefined 면 줄 자체를 렌더하지 않아 레이아웃이 흔들리지 않는다.
+   */
+  hint?: string;
   onChange: ChangeEventHandler<HTMLSelectElement>;
 };

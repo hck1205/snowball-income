@@ -46,9 +46,10 @@ export const SideDrawerDim = styled.div<{ $open: boolean; $dimBelow: SideDrawerD
   background: transparent;
   opacity: 0;
   visibility: hidden;
+  /* 드로어 계열은 전용 곡선('easeDrawer')을 쓴다 — 딤·스크림·패널이 한 몸으로 움직여야 한다. */
   transition:
-    opacity ${motion.base} ${motion.ease},
-    visibility ${motion.base} ${motion.ease};
+    opacity ${motion.base} ${motion.easeDrawer},
+    visibility ${motion.base} ${motion.easeDrawer};
 
   ${({ $open, $dimBelow }) =>
     $dimBelow === 'always'
@@ -73,8 +74,8 @@ export const SideDrawerScrim = styled.div<{ $open: boolean }>`
   /* 닫혀 있을 때 클릭을 삼키지 않게 하는 것은 opacity 가 아니라 visibility 다. */
   visibility: ${({ $open }) => ($open ? 'visible' : 'hidden')};
   transition:
-    opacity ${motion.base} ${motion.ease},
-    visibility ${motion.base} ${motion.ease};
+    opacity ${motion.base} ${motion.easeDrawer},
+    visibility ${motion.base} ${motion.easeDrawer};
 
   @media (prefers-reduced-motion: reduce) {
     transition: none;
@@ -103,9 +104,14 @@ export const SideDrawerPanel = styled.aside<{ $open: boolean; $side: SideDrawerS
   box-shadow: ${shadow.e3};
   transform: translateX(${({ $open, $side }) => ($open ? '0' : $side === 'left' ? '-100%' : '100%')});
   visibility: ${({ $open }) => ($open ? 'visible' : 'hidden')};
+  /*
+   * 열기·닫기가 **같은 전환 한 벌**을 공유한다 — 패널이 항상 마운트돼 있어서 닫힘도 애니메이션이다
+   * (조건부 마운트로 바꾸면 이 퇴장이 통째로 사라진다. 그 계약은 settingsDrawerAlwaysMounted 가 잠근다).
+   * 'visibility' 도 같은 시간으로 전환해야 슬라이드가 끝난 뒤에 사라진다 — 안 그러면 즉시 사라진다.
+   */
   transition:
-    transform ${motion.base} ${motion.ease},
-    visibility ${motion.base} ${motion.ease};
+    transform ${motion.base} ${motion.easeDrawer},
+    visibility ${motion.base} ${motion.easeDrawer};
 
   @media (prefers-reduced-motion: reduce) {
     transition: none;

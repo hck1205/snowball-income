@@ -1,6 +1,16 @@
+import { Check } from 'lucide-react';
 import type { StatTileProps } from './StatTile.types';
 import { clampProgress, formatProgressHint, toProgressPercent } from './StatTile.utils';
-import { ProgressFill, ProgressTrack, TileHint, TileLabel, TileLabelRow, TileRoot, TileValue } from './StatTile.styled';
+import {
+  ProgressFill,
+  ProgressTrack,
+  TileHint,
+  TileLabel,
+  TileLabelRow,
+  TileRoot,
+  TileStatusGlyph,
+  TileValue
+} from './StatTile.styled';
 
 /**
  * 지표 하나(라벨 / 값 / 보조설명 / 선택적 진행률).
@@ -19,13 +29,25 @@ export default function StatTile({
   tone = 'neutral',
   action,
   progress,
-  progressLabel
+  progressLabel,
+  status,
+  statusLabel,
+  statusEnter = false
 }: StatTileProps) {
   const clamped = progress === undefined ? undefined : clampProgress(progress);
 
   return (
-    <TileRoot emphasis={emphasis}>
+    <TileRoot emphasis={emphasis} status={status}>
       <TileLabelRow>
+        {/*
+         * 상태는 **면색·글리프·텍스트 셋으로** 말한다. 글리프에 접근명(`statusLabel`)을 붙여
+         * 색과 모션이 유일한 채널이 되지 않게 한다 — reduced-motion·색각 이상에서도 읽힌다.
+         */}
+        {status ? (
+          <TileStatusGlyph $enter={statusEnter} role="img" aria-label={statusLabel}>
+            <Check size={14} strokeWidth={1.8} aria-hidden focusable={false} />
+          </TileStatusGlyph>
+        ) : null}
         <TileLabel emphasis={emphasis}>{label}</TileLabel>
         {action}
       </TileLabelRow>

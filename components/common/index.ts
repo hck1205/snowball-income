@@ -5,7 +5,7 @@ export { default as Button } from './Button';
 export type { ButtonProps, ButtonSize, ButtonVariant } from './Button';
 
 export { default as Card } from './Card';
-export type { CardElevation, CardProps, CardTone } from './Card';
+export type { CardProps, CardTone } from './Card';
 
 export { ChartWrap } from './ChartWrap';
 
@@ -32,8 +32,11 @@ export { default as InputField } from './InputField';
 export { FrequencySelect } from './InputField';
 
 export { default as Modal } from './Modal';
-export { ModalActions, ModalBackdrop, ModalBody, ModalPanel, ModalTitle } from './Modal';
+export { MODAL_EXIT_MS, ModalActions, ModalBackdrop, ModalBody, ModalPanel, ModalTitle } from './Modal';
 export type { ModalProps } from './Modal';
+
+export { default as PageFooter } from './PageFooter';
+export type { PageFooterProps } from './PageFooter';
 
 export { default as PageHero } from './PageHero';
 export type { PageHeroProps, PageHeroTone } from './PageHero';
@@ -100,10 +103,7 @@ export {
   TickerGearButton,
   TickerGridWrap,
   TickerItemButton,
-  TickerList,
-  TickerQuickActionButton,
-  TickerQuickActionIcon,
-  TickerQuickActionRow
+  TickerList
 } from './TickerPicker';
 
 export { default as Tooltip } from './Tooltip';

@@ -5,6 +5,7 @@
  * 그 유도 과정을 JSDoc 에 남긴다. 값을 여기저기 손으로 적으면 반드시 어긋난다 — 실제로 어긋났다.
  */
 
+import { color, elevation } from './semantic';
 import { TOUCH_TARGET } from './tokens';
 
 /* -------------------------------------------------------------------------- */
@@ -53,6 +54,54 @@ export const surface = (outer: string, pad: string): string => `
  * Provider·부모 없이 단독 렌더되므로(그래서 CSS 변수를 쓴다) 폴백이 없으면 라운드가 사라진다.
  */
 export const nestedRadius = (fallback: string): string => `var(--sb-inner-radius, ${fallback})`;
+
+/* -------------------------------------------------------------------------- */
+/* 위계 (엘리베이션)                                                            */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * 면의 격. **화면 하나에 `raised` 는 하나뿐이다** — 둘이 되는 순간 어느 쪽도 주역이 아니다.
+ *
+ * - `raised` 주역 — 그 화면을 켠 이유(결과 요약·지금 받는 배당).
+ * - `base`   본문 — 차트·표·구성처럼 주역을 뒷받침하는 면.
+ * - `sunken` 부속 — "다른 가정"을 말하는 곁가지(전량 매도 시 세금).
+ */
+export type SurfaceTier = 'raised' | 'base' | 'sunken';
+
+/**
+ * 한 면의 **위계 선언 3종 세트**(배경·테두리·그림자)를 한 번에 낸다.
+ *
+ * 🔴 규칙은 하나다 — **테두리와 그림자를 동시에 선언하지 않는다.** 예전에는 모든 카드가
+ * `border: 1px` **와** `shadow.e1` 을 함께 갖고 있었는데, `e1`(오프셋 1px·불투명도 .05)은
+ * 흰 배경 위에서 사실상 보이지 않아 **실제로 위계를 만드는 건 테두리뿐**이었다. 테두리는
+ * 모든 카드가 똑같이 가지므로 결과 요약 카드와 곁가지 카드가 같은 무게로 보였다("유령 카드").
+ *
+ * 그래서 층마다 **딱 한 가지 수단**만 쓴다: 주역은 그림자, 본문은 테두리, 부속은 면색.
+ *
+ * ⚠ **다크에서는 그림자가 물리적으로 보이지 않는다.** 위계는 `surfaceRaised`(= surface 보다
+ * 밝은 면)가 만든다 — 라이트에서 `surfaceRaised` 는 `surface` 와 같은 값이라(전 프리셋)
+ * 라이트/다크에 분기가 필요 없다. 같은 선언이 모드에 따라 다른 수단으로 읽힌다.
+ *
+ * 주역의 그림자가 `e1` 이 아니라 `e2` 인 것도 같은 이유다 — `e1` 은 눈에 안 띈다.
+ */
+export const cardElevation = (tier: SurfaceTier): string =>
+  ({
+    raised: `
+  background: ${color.surfaceRaised};
+  border: none;
+  box-shadow: ${elevation[2]};
+`,
+    base: `
+  background: ${color.surface};
+  border: 1px solid ${color.border};
+  box-shadow: none;
+`,
+    sunken: `
+  background: ${color.surfaceSunken};
+  border: none;
+  box-shadow: none;
+`
+  })[tier];
 
 /* -------------------------------------------------------------------------- */
 /* 히트 영역                                                                    */

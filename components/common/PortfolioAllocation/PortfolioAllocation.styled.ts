@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, container, font, media, motion, radius, shadow, space } from '@/shared/styles';
+import { color, container, font, iconSwapIn, media, motion, radius, shadow, space } from '@/shared/styles';
 
 export const SelectedChipWrap = styled.div`
   display: flex;
@@ -79,19 +79,32 @@ export const AllocationLegendName = styled.span`
   text-overflow: ellipsis;
 `;
 
-export const AllocationLegendSlider = styled.input`
+/**
+ * 비중 슬라이더. **채워진 트랙 색 = 도넛 조각 색**(`$seriesColor` = `var(--sb-chart-series-N)`).
+ *
+ * 종전에는 전 행의 트랙이 똑같은 브랜드색이고 왼쪽 점만 색이 달라서, "이 슬라이더가 도넛의 어느
+ * 조각인가"가 화면에서 연결되지 않았다. 면적이 큰 트랙에 같은 색을 넣으면 그 대응이 즉시 읽힌다.
+ *
+ * 규율 셋:
+ *  - 색이 붙는 곳은 **트랙(면)과 손잡이뿐**이다. 비중 % 숫자에는 색을 넣지 않는다(데이터에 색 금지).
+ *  - **색이 유일한 단서가 아니다** — 같은 행에 티커명(AllocationLegendName)이 항상 함께 선다.
+ *  - 트랙 위에 텍스트를 얹지 않는다(8프리셋 × 라이트/다크에서 시리즈 색 명암이 갈린다).
+ *
+ * 색표를 여기서 따로 갖지 않는다 — 호출부가 캔버스(파이)와 **같은 인덱스 규칙**으로 넘긴다.
+ */
+export const AllocationLegendSlider = styled.input<{ $seriesColor: string }>`
   grid-area: slider;
   width: 100%;
   height: 8px;
   appearance: none;
   -webkit-appearance: none;
-  background: linear-gradient(
+  background: ${({ $seriesColor }) => `linear-gradient(
     to right,
-    ${color.brand} 0%,
-    ${color.brand} var(--slider-progress),
+    ${$seriesColor} 0%,
+    ${$seriesColor} var(--slider-progress),
     ${color.surfaceSunken} var(--slider-progress),
     ${color.surfaceSunken} 100%
-  );
+  )`};
   border: 1px solid ${color.border};
   border-radius: ${radius.pill};
   --slider-progress: 0%;
@@ -132,7 +145,7 @@ export const AllocationLegendSlider = styled.input`
     margin-top: -5px;
     border-radius: ${radius.pill};
     border: 2px solid ${color.surface};
-    background: ${color.brand};
+    background: ${({ $seriesColor }) => $seriesColor};
     box-shadow: ${shadow.e1};
   }
 
@@ -153,7 +166,7 @@ export const AllocationLegendSlider = styled.input`
     height: 16px;
     border-radius: ${radius.pill};
     border: 2px solid ${color.surface};
-    background: ${color.brand};
+    background: ${({ $seriesColor }) => $seriesColor};
     box-shadow: ${shadow.e1};
   }
 `;
@@ -219,8 +232,13 @@ export const AllocationHint = styled.p`
   color: ${color.textMuted};
   line-height: ${font.leading.normal};
 
+  /*
+   * 이 줄의 글리프는 사유가 바뀔 때마다 갈린다(잠금 Lock ↔ 한 칸만 조정 가능 Pin ↔ 단일 종목 Info).
+   * 글자는 그대로인데 아이콘만 바뀌면 눈치채기 어려워서, 새 글리프가 들어올 때만 한 번 커진다.
+   */
   svg {
     flex: 0 0 auto;
+    ${iconSwapIn}
   }
 `;
 
