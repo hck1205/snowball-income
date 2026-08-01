@@ -1,11 +1,13 @@
 # Snowball Income
 
 > 배당 재투자(스노우볼) 시뮬레이터. 배당주·ETF 포트폴리오의 장기 자산과 배당 현금흐름을 계산한다.
-> A dividend-reinvestment simulator for long-term income planning. Korean-language web app, no backend.
+> A dividend-reinvestment simulator for long-term income planning. Korean-language web app; calculations run
+> entirely in the browser.
 
 ## Summary
 - 사용자가 입력한 가정(배당률·배당 성장률·투자금·기간·세율)을 그대로 계산해 보여주는 결정론적 시뮬레이터다.
-- 모든 계산은 브라우저에서 수행된다. 서버·계정·수집되는 개인 데이터가 없다.
+- 모든 계산은 브라우저에서 수행되고, 입력값은 기본적으로 기기(IndexedDB)에만 저장된다. 계산에 로그인이 필요하지 않다.
+- 소셜 로그인(구글·카카오·네이버)으로 커뮤니티·클라우드 저장을 쓰면 그때만 데이터가 서버에 저장된다.
 - 예측이나 수익 보장이 아니며 투자 자문이 아니다. 가정이 바뀌면 결과는 크게 달라진다.
 
 ## Model (중요 — 2024 정합 모델 전환)
