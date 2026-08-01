@@ -1,3 +1,10 @@
+/**
+ * AI 인프라 ETF·개별주.
+ *
+ * ⚠ **AVGO·TSM·ASML·ETN·VRT 5종은 `semiconductorDividendGrowthPortfolio.ts` 도 이 정의를 참조한다**
+ * (그 파일 상단 주석 참조). 즉 여기 값을 고치면 두 프리셋에 동시에 반영된다 — 그게 의도다.
+ * 반도체 쪽만 다른 값을 주고 싶어지면 그건 "티커 하나에 정의 둘"로 되돌아가는 것이니 하지 마라.
+ */
 export const AI_INFRA_ETFS_AND_STOCKS = {
   SMH: {
     ticker: 'SMH',

@@ -109,7 +109,7 @@ QQQ, VUG, NOBL, CGDV, HDV, SMH, AIQ, JNJ, ENB, AVGO, NVDA, ADI, LRCX, KLAC, AMAT
 
 ### 그 밖의 주의사항
 - **비공식 API라 SLA가 없고 응답 형태가 예고 없이 바뀔 수 있다.** 방어는 zod → `ProviderError('malformed')` → "이전 값 유지"로 감쇠 (`yahooProvider.ts:113-121`).
-- **프리셋 파일 간 티커 키 중복 5건** — `AVGO·TSM·ASML·ETN·VRT`가 `semiconductorDividendGrowthPortfolio.ts`와 `aiInfraEtfsAndStocks.ts`에 모두 있다. `CURATED_DIVIDEND_UNIVERSE`는 스프레드 순서상 **뒤에 오는 `AI_INFRA_ETFS_AND_STOCKS`가 이긴다**(`shared/constants/presets/index.ts:38-49`). 수기 리베이스 시 **이기는 쪽 파일을 고쳐야** 효과가 있다(실측: AVGO는 semiconductor 1350이 아니라 aiInfra 1300이 유효).
+- ~~**프리셋 파일 간 티커 키 중복 5건**~~ → **2026-07-31 해소.** `AVGO·TSM·ASML·ETN·VRT`는 여전히 두 프리셋(`semiconductorDividendGrowthPortfolio.ts` · `aiInfraEtfsAndStocks.ts`)에 **키로는** 들어 있지만, 정의는 `aiInfraEtfsAndStocks.ts` **한 곳뿐**이고 반도체 쪽은 그 객체를 참조한다. 그래서 "스프레드 순서상 어느 쪽이 이기나"라는 질문 자체가 사라졌고, 수기 리베이스는 **아무 쪽 파일을 열어도 같은 정의로 이어진다**. 재발 방지 가드 = `test/presets/presetTickerSingleSource.test.ts`(중복 키는 반드시 같은 객체 참조). ⚠ 해소 전 두 정의는 값이 실제로 갈라져 있었다(예: `expectedTotalReturn` AVGO 15↔14 · TSM 13↔11 · ASML 14↔11 · ETN 13↔12 · VRT 16↔14, ASML `frequency` 는 `quarterly`↔`annual`) — 죽어 있던 쪽은 **반도체 파일**이다.
 - `scripts/tickerRefresh/partition.ts`(월~금 5버킷 분할)와 CLI의 `--bucket` 옵션은 **살아 있지만 현재 워크플로는 쓰지 않는다** — 주간 5버킷 → 월간 단발 + `--delay` 로 설계가 바뀐 잔재다. `partition.ts:12-15`의 "요일→버킷 매핑은 워크플로에 있다"는 주석은 **현행 워크플로와 어긋난다**(문서 드리프트).
 - 스냅샷 쓰기(`writeSnapshotFile`)는 **무검증 직렬화**다 — 불량 엔트리 하나가 다음 파스에서 스냅샷 **전체**를 EMPTY 폴백으로 떨어뜨린다(`snapshotIo.ts:34`, `shared/constants/marketData/index.ts:16-19`).
 
