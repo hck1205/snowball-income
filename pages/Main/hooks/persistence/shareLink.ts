@@ -421,27 +421,65 @@ const decodeV3Scenario = (parsed: SharedScenarioEnvelopeV3): PersistedScenarioSt
   );
 };
 
-export const decodeSharedScenario = (encoded: string): PersistedScenarioState | null => {
-  const decodedText = decompressFromEncodedURIComponent(encoded);
-  if (!decodedText) return null;
+/**
+ * 공유 코드 디코드 실패 사유. **사용자에게는 결과가 같지만(빈 시나리오) 계측은 갈린다.**
+ *  - `malformed`  — 문자열 단계에서 실패. 잘린 링크·손으로 자른 주소·lz-string이 아닌 값.
+ *  - `unsupported` — 압축·JSON 은 풀렸지만 봉투가 우리 스키마가 아님(미래 버전·변조·결손).
+ */
+export type ShareDecodeFailureReason = 'malformed' | 'unsupported';
+
+export type ShareDecodeResult =
+  | { ok: true; scenario: PersistedScenarioState }
+  | { ok: false; reason: ShareDecodeFailureReason };
+
+/**
+ * 공유 코드 → 시나리오. **이 함수가 공유 문자열 파싱의 유일한 경계이고, 절대 던지지 않는다.**
+ *
+ * 🔴 `decompressFromEncodedURIComponent` 는 순수 함수처럼 생겼지만 **던진다** — lz-string 1.5.0 은
+ * 사전에 없는 문자를 만나면 내부 `charAt` 을 undefined 에 호출해 TypeError 를 낸다(실측: `'zz'`·`'z'`·`'zzz'`.
+ * 반면 `'!!!not-lz-string!!!'` 처럼 우연히 사전 안에 드는 값은 조용히 null 을 돌려준다 —
+ * 그래서 "깨진 코드" 테스트가 있어도 던지는 입력을 안 고르면 이 구멍을 못 본다).
+ * 공유 링크는 메신저가 끝을 자르거나 사용자가 일부만 복사하기 쉬운 값이라, 여기서 새어 나간 예외는
+ * 렌더 트리 꼭대기(라우터 에러 화면)까지 올라가 **앱 전체를 대체한다**.
+ * 실패는 예외가 아니라 **값**으로 돌려주고, 화면은 그 값을 보고 안내를 띄운다.
+ */
+export const decodeSharedScenarioResult = (encoded: string): ShareDecodeResult => {
+  let decodedText: string | null;
+  try {
+    decodedText = decompressFromEncodedURIComponent(encoded);
+  } catch {
+    return { ok: false, reason: 'malformed' };
+  }
+  if (!decodedText) return { ok: false, reason: 'malformed' };
 
   let parsed: unknown;
   try {
     parsed = JSON.parse(decodedText);
   } catch {
-    return null;
+    return { ok: false, reason: 'malformed' };
   }
 
-  if (!isObject(parsed)) return null;
+  if (!isObject(parsed)) return { ok: false, reason: 'unsupported' };
   const envelope = parsed as SharedScenarioEnvelope;
+
+  let scenario: PersistedScenarioState | null = null;
   if (Number(envelope.v) === 1 && isObject((parsed as SharedScenarioEnvelopeV1).scenario)) {
-    return decodeV1Scenario(parsed as SharedScenarioEnvelopeV1);
+    scenario = decodeV1Scenario(parsed as SharedScenarioEnvelopeV1);
+  } else if (Number(envelope.v) === 2 && isObject((parsed as SharedScenarioEnvelopeV2).p)) {
+    scenario = decodeV2Scenario(parsed as SharedScenarioEnvelopeV2);
+  } else if (
+    Number(envelope.v) === 3 &&
+    isObject((parsed as SharedScenarioEnvelopeV3).p) &&
+    isObject((parsed as SharedScenarioEnvelopeV3).i)
+  ) {
+    scenario = decodeV3Scenario(parsed as SharedScenarioEnvelopeV3);
   }
-  if (Number(envelope.v) === 2 && isObject((parsed as SharedScenarioEnvelopeV2).p)) {
-    return decodeV2Scenario(parsed as SharedScenarioEnvelopeV2);
-  }
-  if (Number(envelope.v) === 3 && isObject((parsed as SharedScenarioEnvelopeV3).p) && isObject((parsed as SharedScenarioEnvelopeV3).i)) {
-    return decodeV3Scenario(parsed as SharedScenarioEnvelopeV3);
-  }
-  return null;
+
+  return scenario ? { ok: true, scenario } : { ok: false, reason: 'unsupported' };
+};
+
+/** 사유가 필요 없는 소비처(OG 카드 등)용 얇은 래퍼. 실패는 전부 `null`. */
+export const decodeSharedScenario = (encoded: string): PersistedScenarioState | null => {
+  const result = decodeSharedScenarioResult(encoded);
+  return result.ok ? result.scenario : null;
 };
