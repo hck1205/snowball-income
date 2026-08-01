@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, motion, radius, shadow, space, subtleScrollbar, zIndex } from '@/shared/styles';
+import { color, font, motion, radius, shadow, space, zIndex } from '@/shared/styles';
 
 /** 트리거 + 드롭다운을 묶는 기준점. 바깥 클릭 판정(rootRef)과 뱃지 위치의 기준이다. */
 export const MenuRoot = styled.div`
@@ -83,37 +83,12 @@ export const MenuItem = styled.button`
   }
 `;
 
-/** "테마" 디스클로저 라벨 — 남은 폭을 채워 캐럿을 우측으로 민다. */
-export const ThemeMenuLabel = styled.span`
-  flex: 1;
-  min-width: 0;
-`;
-
-/** 펼침 캐럿 — 펼쳐지면 180° 회전. */
-export const ThemeCaret = styled.span<{ open: boolean }>`
-  display: inline-flex;
-  align-items: center;
-  color: ${color.textMuted};
-  transition: transform ${motion.fast} ${motion.ease};
-  transform: rotate(${({ open }) => (open ? '180deg' : '0deg')});
-`;
-
-/**
- * 테마 옵션 패널 — 드롭다운 안에 인라인 radiogroup을 담는다(팝오버 중첩 회피).
- * 프리셋 8종이 길면 이 패널만 스크롤한다(드롭다운 전체가 아니라).
+/*
+ * 구 `ThemeMenuLabel` · `ThemeCaret` · `ThemePanel`(메뉴 안 테마 디스클로저)은 2026-07-31 에 삭제됐다 —
+ * 테마 스위처가 `AppHeader` 오른쪽 상시 노출로 승격하면서 이 메뉴에는 테마 항목 자체가 없다.
  */
-export const ThemePanel = styled.div`
-  max-height: min(50vh, 320px);
-  overflow-y: auto;
-  scrollbar-gutter: stable;
-  ${subtleScrollbar}
-  padding: 2px;
-`;
 
-/**
- * 메뉴 항목 라벨 — 남은 폭을 채워 우측 슬롯(스피너 등)을 끝으로 민다.
- * `ThemeMenuLabel`과 역할이 같지만 이름이 상태를 말하도록 분리해 둔다.
- */
+/** 메뉴 항목 라벨 — 남은 폭을 채워 우측 슬롯(스피너 등)을 끝으로 민다. */
 export const MenuItemLabel = styled.span`
   flex: 1;
   min-width: 0;

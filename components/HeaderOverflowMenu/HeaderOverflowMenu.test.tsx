@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { markTourSeen } from '@/components/TourGuide';
 import { TOUR_STORAGE_KEY } from '@/shared/constants';
 import { useTourLaunchRequestAtomValue } from '@/jotai';
@@ -72,26 +72,19 @@ describe('HeaderOverflowMenu', () => {
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
   });
 
-  it('테마 항목을 누르면 radiogroup이 메뉴 안에서 펼쳐지고, 선택해도 메뉴가 유지된다', () => {
+  /**
+   * 🔴 테마는 이 서랍에 없다(2026-07-31). 예전에는 `⋯` → "테마" → 패널로 **두 단계 아래**였고,
+   * 진입점이 라벨 없는 아이콘 하나뿐이라 8종 프리셋을 비교하려는 사용자가 도달하지 못했다.
+   * 지금 헤더 오른쪽에 상시 있는 것은 **화면 밝기 토글** 하나이고(AppHeader.test 가 잠근다),
+   * 색 프리셋 선택 자체가 2026-08-01 에 화면에서 감춰졌다.
+   * 여기로 되돌리면 같은 기능의 진입점이 둘이 된다.
+   */
+  it('테마 항목은 더 이상 이 메뉴에 없다 — 헤더 상시 노출로 승격됐다', () => {
     render(<HeaderOverflowMenu />);
     fireEvent.click(screen.getByRole('button', { name: '더보기' }));
 
-    const themeItem = screen.getByRole('menuitem', { name: '테마' });
-    expect(themeItem).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('menuitem', { name: '테마' })).not.toBeInTheDocument();
     expect(screen.queryByRole('radiogroup', { name: '테마 프리셋' })).not.toBeInTheDocument();
-
-    fireEvent.click(themeItem);
-
-    expect(themeItem).toHaveAttribute('aria-expanded', 'true');
-    const group = screen.getByRole('radiogroup', { name: '테마 프리셋' });
-    expect(group).toBeInTheDocument();
-
-    // 프리셋(radio)을 선택해도 메뉴는 닫히지 않는다(비교/전환 편의).
-    const radios = within(group).getAllByRole('radio');
-    fireEvent.click(radios[radios.length - 1]);
-
-    expect(screen.getByRole('menu')).toBeInTheDocument();
-    expect(screen.getByRole('radiogroup', { name: '테마 프리셋' })).toBeInTheDocument();
   });
 
   it('이미 튜토리얼을 본 사용자에게는 유도 점을 보여주지 않는다', () => {
@@ -101,7 +94,7 @@ describe('HeaderOverflowMenu', () => {
     expect(container.querySelector('[data-first-visit="true"]')).toBeNull();
   });
 
-  it('showTutorial={false}면 튜토리얼 항목·첫 방문 유도 점을 렌더하지 않는다 (앱 설치·테마만)', () => {
+  it('showTutorial={false}면 튜토리얼 항목·첫 방문 유도 점을 렌더하지 않는다 (앱 설치만)', () => {
     // localStorage는 beforeEach가 비워 tour-seen=false다 — 그럼에도 유도 점이 없어야 한다(튜토리얼 자체 스킵).
     const { container } = render(<HeaderOverflowMenu showTutorial={false} />);
 
@@ -110,10 +103,9 @@ describe('HeaderOverflowMenu', () => {
     fireEvent.click(screen.getByRole('button', { name: '더보기' }));
 
     expect(screen.getByRole('menu')).toBeInTheDocument();
-    // 튜토리얼 항목은 없고, 앱 설치·테마는 그대로 있다(커뮤니티 헤더 = 튜토리얼 제외 ⋯ 메뉴).
+    // 튜토리얼 항목은 없고, 앱 설치는 그대로 있다(커뮤니티 헤더 = 튜토리얼 제외 ⋯ 메뉴).
     expect(screen.queryByRole('menuitem', { name: '튜토리얼 보기' })).not.toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: '앱 설치' })).toBeInTheDocument();
-    expect(screen.getByRole('menuitem', { name: '테마' })).toBeInTheDocument();
   });
 
   it('설치 프롬프트가 없으면 앱 설치가 수동 설치 가이드 모달을 연다', () => {

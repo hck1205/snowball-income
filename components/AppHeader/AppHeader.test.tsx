@@ -76,16 +76,17 @@ describe('AppHeader — 전 페이지 공통 계약', () => {
     expect(within(banner).getByRole('button', { name: '더보기' })).toBeInTheDocument();
   });
 
-  it('커뮤니티가 꺼진 배포에선 로그인이 사라지고 더보기만 남는다 (테마 접근점은 항상 있다)', () => {
+  it('커뮤니티가 꺼진 배포에선 로그인이 사라지고 더보기·밝기 토글은 남는다', () => {
     communityEnabled = false;
     renderHeader();
 
     const banner = screen.getByRole('banner');
     expect(within(banner).queryByRole('button', { name: COMMUNITY_COPY.nav.login })).not.toBeInTheDocument();
     expect(within(banner).getByRole('button', { name: '더보기' })).toBeInTheDocument();
+    expect(within(banner).getByRole('button', { name: '다크 모드' })).toBeInTheDocument();
   });
 
-  it('기본 더보기 메뉴는 앱 설치·테마만 — 튜토리얼은 시뮬레이터 전용이라 없다', async () => {
+  it('기본 더보기 메뉴는 앱 설치뿐 — 튜토리얼은 시뮬레이터 전용, 테마는 헤더로 승격됐다', async () => {
     communityEnabled = false;
     const user = userEvent.setup();
     renderHeader();
@@ -93,8 +94,43 @@ describe('AppHeader — 전 페이지 공통 계약', () => {
     await user.click(screen.getByRole('button', { name: '더보기' }));
 
     expect(screen.getByRole('menuitem', { name: '앱 설치' })).toBeInTheDocument();
-    expect(screen.getByRole('menuitem', { name: '테마' })).toBeInTheDocument();
     expect(screen.queryByRole('menuitem', { name: '튜토리얼 보기' })).not.toBeInTheDocument();
+    // 🔴 테마는 이 서랍에 되돌아오면 안 된다 — 진입점이 둘이 되면 같은 기능이 두 곳에서 갈린다.
+    expect(screen.queryByRole('menuitem', { name: '테마' })).not.toBeInTheDocument();
+  });
+
+  /**
+   * 테마 축은 헤더에 **상시** 있어야 한다(F4, 2026-07-31). 다만 그 축이 2026-08-01 에
+   * "색 프리셋 8종"에서 **"라이트/다크 하나"** 로 줄었다 — 사용자가 화면을 보고 내린 결정이다.
+   * 여기서 잠그는 것은 ①어떤 화면에서든 헤더에서 한 번에 닿는다 ②상태가 색 아닌 단서로 전달된다
+   * ③고를 수 있는 것이 그 하나뿐이다(색 프리셋 진입점 0건).
+   */
+  it('밝기 토글이 헤더에 상시 있고, 상태를 색이 아닌 단서(aria-pressed)로 알린다', async () => {
+    communityEnabled = false;
+    const user = userEvent.setup();
+    renderHeader();
+
+    const banner = screen.getByRole('banner');
+    const toggle = within(banner).getByRole('button', { name: '다크 모드' });
+    expect(toggle).toHaveAttribute('aria-pressed', 'false');
+
+    await user.click(toggle);
+
+    expect(within(banner).getByRole('button', { name: '다크 모드' })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('🔒 헤더 어디에도 색 프리셋을 고르는 진입점이 없다', async () => {
+    communityEnabled = false;
+    const user = userEvent.setup();
+    renderHeader();
+
+    expect(screen.queryByRole('button', { name: /테마 프리셋/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('radiogroup', { name: '테마 프리셋' })).not.toBeInTheDocument();
+
+    // ⋯ 서랍을 열어도 마찬가지다(예전 진입점이 여기였다).
+    await user.click(screen.getByRole('button', { name: '더보기' }));
+    expect(screen.queryByRole('radiogroup', { name: '테마 프리셋' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('radio')).not.toBeInTheDocument();
   });
 
   it('overflowMenu 를 넘기면 기본 더보기 대신 그것을 그린다 (⋯ 가 두 개가 되지 않는다)', () => {
@@ -110,24 +146,22 @@ describe('AppHeader — 전 페이지 공통 계약', () => {
     expect(screen.getAllByRole('button', { name: '더보기' })).toHaveLength(1);
   });
 
-  it('status·center·actions·below 슬롯 내용을 모두 헤더 안에 렌더한다', () => {
+  // 구 `center`(갤러리 검색)·`below`(모바일 검색 펼침 바) 슬롯은 2026-07-31 에 삭제됐다 —
+  // 그 위젯들이 본문 툴바로 내려가 소비처가 0이 됐고, 남겨 두면 헤더 한 줄의 폭 경쟁이 재발한다.
+  it('status·actions 슬롯 내용을 헤더 안에 렌더한다', () => {
     communityEnabled = false;
     renderHeader({
       status: <span>저장 중</span>,
-      center: <span>검색</span>,
       actions: (
         <button type="button" aria-label="글쓰기">
           글쓰기
         </button>
-      ),
-      below: <span>모바일 검색 바</span>
+      )
     });
 
     const banner = screen.getByRole('banner');
     expect(within(banner).getByText('저장 중')).toBeInTheDocument();
-    expect(within(banner).getByText('검색')).toBeInTheDocument();
     expect(within(banner).getByRole('button', { name: '글쓰기' })).toBeInTheDocument();
-    expect(within(banner).getByText('모바일 검색 바')).toBeInTheDocument();
   });
 
   it('라우트 메뉴(주요 nav)를 항상 그린다 — 화면을 옮겨도 같은 자리에 있다', () => {

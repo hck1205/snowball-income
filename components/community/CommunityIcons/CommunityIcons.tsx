@@ -21,6 +21,7 @@ import {
   ListOrdered,
   MessageCircle,
   Minus,
+  ReceiptText,
   Redo2,
   Search,
   Share2,
@@ -138,6 +139,15 @@ export const CloseIcon = ({ size = 18, ...rest }: IconProps) => (
 /** 프로필 설정 진입(AuthControl 메뉴) — lucide `UserRound`. */
 export const UserRoundIcon = ({ size = 18, ...rest }: IconProps) => (
   <UserRound size={size} strokeWidth={LUCIDE_STROKE} aria-hidden focusable={false} {...rest} />
+);
+
+/**
+ * 가계부 진입(AuthControl 메뉴) — lucide `ReceiptText`.
+ * `Wallet` 은 `/dividend/portfolio` 히어로가 이미 쓰고 있어 재사용하지 않는다(두 화면이 같은 글리프면
+ * 메뉴에서 어디로 가는지 구분되지 않는다).
+ */
+export const ReceiptTextIcon = ({ size = 18, ...rest }: IconProps) => (
+  <ReceiptText size={size} strokeWidth={LUCIDE_STROKE} aria-hidden focusable={false} {...rest} />
 );
 
 /** 저장 성공 피드백 — lucide `CheckCircle2`. 색만으로 말하지 않기 위해 문장 옆에 병기한다. */

@@ -1,6 +1,6 @@
 import { Global } from '@emotion/react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { useApplyPalettePreset } from '@/jotai/snowball';
+import { useApplyColorScheme, useApplyPalettePreset } from '@/jotai/snowball';
 import { globalStyles } from '@/shared/styles';
 import { routes } from './routes';
 
@@ -10,6 +10,9 @@ export default function AppRouter() {
   // 선택된 팔레트 프리셋을 html[data-palette]로 반영 — globalStyles의
   // :root[data-palette='...'] 변수 스코프와 짝. 모든 라우트를 덮도록 루트에서 1회 배선한다.
   useApplyPalettePreset();
+  // 같은 이유로 화면 밝기 선호를 html[data-theme]로 반영한다 — globalStyles의
+  // :root[data-theme='light'|'dark'] 스코프와 짝(어트리뷰트 없음 = OS 설정을 따름).
+  useApplyColorScheme();
 
   return (
     <>

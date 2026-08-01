@@ -2,6 +2,7 @@ import { useInRouterContext } from 'react-router-dom';
 // per-icon named import(트리셰이킹) → 엔트리에는 이 아이콘들만 실린다(CommunityNavLink·ThemePresetSwitcher와 동일 패턴).
 import { BookOpen, CalendarDays, LayoutGrid, LineChart, MessageSquare, Wallet } from 'lucide-react';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
+import { SIMULATOR_PATH } from '@/shared/constants/routes';
 import { isCommunityEnabled } from '@/shared/lib/supabase';
 import {
   Brand,
@@ -22,7 +23,7 @@ const n = COMMUNITY_COPY.nav;
 /**
  * 전역 주요 nav — 모든 페이지 상단(시뮬레이터·커뮤니티 헤더)에 주입되는 공유 컴포넌트.
  *
- *   [워드마크 "스노우볼 인컴"] → `<Link to="/">`(홈)  +  라우트 링크: 시뮬레이터(/)·갤러리(/community)·게시판(/community/board)
+ *   [워드마크 "스노우볼 인컴"] → `<Link to="/">`(홈)  +  라우트 링크: 시뮬레이터(/simulator)·갤러리(/community)·게시판(/community/board)
  *
  * ⚠ 엔트리 번들 격리: 이 컴포넌트는 시뮬레이터 헤더를 통해 **엔트리 번들에 들어간다.** 그래서
  *   `@/components/community` 배럴·CommunityIcons·supabase-js·Tiptap을 끌어오는 모듈을 import하지 않는다.
@@ -30,7 +31,8 @@ const n = COMMUNITY_COPY.nav;
  *   커뮤니티 비활성 배포(isCommunityEnabled=false)에선 갤러리/게시판 링크를 렌더하지 않는다(앱은 그대로 동작).
  *
  * 활성 표시는 react-router `NavLink`가 담당한다(`aria-current="page"` + `.active`).
- * `/`만 `end`(exact) — 안 그러면 모든 경로에서 시뮬레이터가 활성이 된다.
+ * 시뮬레이터만 `end`(exact) — 워드마크가 가리키는 `/`(홈)와 구분하기 위해서다. 항목 수는 그대로
+ * 6개이고 목적지 문자열만 `/` → `/simulator` 로 옮겨 갔다(워드마크 `Brand to="/"` 는 그대로 둔다).
  * 갤러리(`/community/portfolio`)·게시판(`/community/board`)은 **`end` 없음**: 상세(`/portfolio/:id`)·
  * 글쓰기(`/portfolio/write`)·수정(`/portfolio/:id/edit`) 같은 하위 경로에서도 자기 섹션 탭이 활성으로 남는다
  * (routes.tsx의 자식 라우트 참고). 두 섹션은 형제 세그먼트라 서로를 활성화하지 않는다.
@@ -38,7 +40,7 @@ const n = COMMUNITY_COPY.nav;
 /** 라우트 링크 목록 — 윗줄(브랜드 옆)과 아랫줄(전용 스크롤 줄)이 공유하는 단일 정본. */
 const NavLinkItems = () => (
   <>
-    <NavItem to="/" end aria-label={n.simulator}>
+    <NavItem to={SIMULATOR_PATH} end aria-label={n.simulator}>
       <LineChart size={16} strokeWidth={1.8} aria-hidden focusable={false} />
       <NavLabel>{n.simulator}</NavLabel>
     </NavItem>
@@ -77,7 +79,10 @@ const NavLinkItems = () => (
 );
 
 /**
- * 헤더 2줄째 전용 — 가운데 정렬 + 가로 스크롤 메뉴 줄.
+ * 헤더 라우트 메뉴 줄 — 가운데 정렬 + 가로 스크롤.
+ *
+ * 자리는 폭에 따라 다르다(`AppHeader` 의 `NavSlot`): **≥1024 는 브랜드와 컨트롤 사이의 남는 폭**,
+ * **≤1023 은 아랫줄 전폭**. 어느 쪽이든 이 컴포넌트는 하나이고 마크업도 하나다.
  *
  * 가운데 정렬과 overflow 스크롤은 충돌한다(justify-content:center 는 넘친 왼쪽을 잘라 스크롤로도
  * 못 닿게 만든다). 그래서 스크롤 컨테이너 안에서 **margin-inline:auto** 로 중앙을 잡는다 —
@@ -114,14 +119,14 @@ export default function PrimaryNav({ brandAs = 'span', withLinks = true }: Prima
   // 프로덕션은 루트가 RouterProvider라 항상 아래 전체 nav를 렌더한다.
   if (!inRouter) {
     return (
-      <Nav aria-label={n.primaryLabel}>
+      <Nav aria-label={n.primaryLabel} $brandOnly={!withLinks}>
         <BrandFallback>{brandInner}</BrandFallback>
       </Nav>
     );
   }
 
   return (
-    <Nav aria-label={n.primaryLabel}>
+    <Nav aria-label={n.primaryLabel} $brandOnly={!withLinks}>
       <Brand to="/">{brandInner}</Brand>
 
       {withLinks ? (

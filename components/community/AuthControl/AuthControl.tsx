@@ -1,11 +1,13 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
+import { SIMULATOR_PATH } from '@/shared/constants/routes';
 import { useIsLoggedInAtomValue, useProfileAtomValue } from '@/jotai/community';
 import { Button } from '@/components/common';
 import { Avatar } from '@/components/community/Avatar';
 import { useCommunityAuth } from '@/components/community/CommunityAuthProvider';
-import { ChartIcon, ListIcon, UserRoundIcon } from '@/components/community/CommunityIcons';
+import { ChartIcon, ListIcon, ReceiptTextIcon, UserRoundIcon } from '@/components/community/CommunityIcons';
+import { isGoogleSheetsEnabled } from '@/shared/lib/googleSheets';
 import { AuthRoot, Menu, MenuHeader, MenuItem, SessionTrigger, TriggerName } from './AuthControl.styled';
 
 /**
@@ -91,12 +93,27 @@ export default function AuthControl() {
             <ListIcon size={16} strokeWidth={1.8} />
             {COMMUNITY_COPY.myPosts.menuItem}
           </MenuItem>
+          {/* 가계부 — 계정 관리 묶음 끝, 앱 이동(시뮬레이터로) 앞.
+              🔴 env 가 없으면 항목 자체가 없다. 헤더 nav 에는 넣지 않는다(7번째 금지). */}
+          {isGoogleSheetsEnabled ? (
+            <MenuItem
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setOpen(false);
+                navigate('/ledger');
+              }}
+            >
+              <ReceiptTextIcon size={16} strokeWidth={1.8} />
+              {COMMUNITY_COPY.ledger.menuItem}
+            </MenuItem>
+          ) : null}
           <MenuItem
             type="button"
             role="menuitem"
             onClick={() => {
               setOpen(false);
-              navigate('/');
+              navigate(SIMULATOR_PATH);
             }}
           >
             <ChartIcon size={16} strokeWidth={1.8} />

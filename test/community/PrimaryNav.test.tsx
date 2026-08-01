@@ -72,11 +72,24 @@ describe('PrimaryNav', () => {
 
   it('현재 라우트의 링크에 aria-current="page"를 준다 (시뮬레이터)', () => {
     communityEnabled = true;
-    renderAt('/');
+    renderAt('/simulator');
 
     expect(screen.getByRole('link', { name: '시뮬레이터' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: '포트폴리오 갤러리' })).not.toHaveAttribute('aria-current');
     expect(screen.getByRole('link', { name: '게시판' })).not.toHaveAttribute('aria-current');
+  });
+
+  /*
+   * 🔴 nav 의 시뮬레이터 목적지는 `/simulator` 다(2026-08-01 라우트 이전). 워드마크(`/`)와 **다른
+   * 주소**라는 것이 이 이전의 핵심이라, 목적지가 조용히 `/` 로 되돌아가면 여기서 잡는다.
+   * 항목 수는 늘지 않았다 — 목적지 문자열만 옮겨 갔다.
+   */
+  it('시뮬레이터 링크의 목적지는 /simulator 다 (워드마크의 홈과 다른 주소)', () => {
+    communityEnabled = true;
+    renderAt('/simulator');
+
+    expect(screen.getByRole('link', { name: '시뮬레이터' })).toHaveAttribute('href', '/simulator');
+    expect(screen.getByRole('link', { name: '스노우볼 인컴' })).toHaveAttribute('href', '/');
   });
 
   it('갤러리(/community/portfolio)에선 갤러리 링크만 활성 (시뮬레이터·게시판은 비활성)', () => {
@@ -107,7 +120,7 @@ describe('PrimaryNav', () => {
 
       expect(screen.getByRole('link', { name: '포트폴리오 갤러리' })).toHaveAttribute('aria-current', 'page');
       expect(screen.getByRole('link', { name: '게시판' })).not.toHaveAttribute('aria-current');
-      // '/'는 exact(end)라 어떤 하위 경로에서도 활성이 되지 않는다.
+      // 시뮬레이터는 exact(end)라 어떤 하위 경로에서도 활성이 되지 않는다.
       expect(screen.getByRole('link', { name: '시뮬레이터' })).not.toHaveAttribute('aria-current');
     }
   );

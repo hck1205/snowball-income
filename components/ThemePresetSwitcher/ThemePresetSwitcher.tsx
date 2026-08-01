@@ -2,7 +2,7 @@ import { memo, useCallback, useEffect, useId, useRef, useState } from 'react';
 import type { FocusEvent, KeyboardEvent } from 'react';
 // per-icon named import(트리셰이킹) — 엔트리에는 Palette/Check 두 아이콘만 실린다(CommunityNavLink와 동일 패턴).
 import { Check, Palette } from 'lucide-react';
-import { PALETTE_PRESET_IDS } from '@/shared/constants';
+import { VISIBLE_PALETTE_PRESET_IDS } from '@/shared/constants';
 import type { PalettePresetId } from '@/shared/constants';
 import { THEME_PRESETS } from '@/shared/styles';
 import { usePalettePresetAtomValue, useSetPalettePresetWrite } from '@/jotai';
@@ -25,6 +25,13 @@ import {
 
 /**
  * 테마 프리셋 스위처.
+ *
+ * 🔒 **2026-08-01 현재 이 컴포넌트를 그리는 화면은 없다 — 잠들어 있다(삭제 아님).**
+ * 사용자가 "옵션이 너무 많다, 라이트·다크 둘만"이라고 결정해 헤더의 자리는
+ * `components/ColorSchemeToggle` 이 가져갔다. 여기 코드·스타일·테스트를 지우지 않는 이유는
+ * 감추기를 한 줄로 되돌릴 수 있게 하기 위함이다(`VISIBLE_PALETTE_PRESET_IDS` + `AppHeader` 의 슬롯).
+ * 그래서 순회 대상도 `PALETTE_PRESET_IDS`(전체)가 아니라 **노출 목록**이다 — 다시 마운트되더라도
+ * 화면 노출 규칙과 어긋나지 않는다.
  *
  * - 선택 = 즉시 적용. 별도 미리보기/확정 단계가 없다 — 즉시 전환(CSS 변수 갈아끼움)이 곧 미리보기다.
  *   실제 반영(html[data-palette]·localStorage·차트 리빌드)은 atom 계층이 담당하므로
@@ -72,8 +79,9 @@ function PresetRadioGroup({ columns = 1 }: { columns?: 1 | 2 }) {
 
       event.preventDefault();
       const focusedIndex = optionRefs.current.findIndex((el) => el === document.activeElement);
-      const baseIndex = focusedIndex >= 0 ? focusedIndex : PALETTE_PRESET_IDS.indexOf(palette);
-      const nextIndex = (baseIndex + direction + PALETTE_PRESET_IDS.length) % PALETTE_PRESET_IDS.length;
+      const baseIndex = focusedIndex >= 0 ? focusedIndex : VISIBLE_PALETTE_PRESET_IDS.indexOf(palette);
+      const nextIndex =
+        (baseIndex + direction + VISIBLE_PALETTE_PRESET_IDS.length) % VISIBLE_PALETTE_PRESET_IDS.length;
       focusOption(optionRefs.current[nextIndex]);
     },
     [palette]
@@ -81,7 +89,7 @@ function PresetRadioGroup({ columns = 1 }: { columns?: 1 | 2 }) {
 
   return (
     <RadioGroupBox role="radiogroup" aria-label="테마 프리셋" columns={columns} onKeyDown={handleKeyDown}>
-      {PALETTE_PRESET_IDS.map((id, index) => {
+      {VISIBLE_PALETTE_PRESET_IDS.map((id, index) => {
         const preset = THEME_PRESETS[id];
         const selected = id === palette;
 

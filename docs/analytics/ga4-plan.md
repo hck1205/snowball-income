@@ -60,8 +60,12 @@
 | `has_account` | true | 최초 로그인 완료 시 |
 | `has_saved` | true | 최초 저장(로컬/클라우드) 시 |
 | `is_returning` | true | 2회차+ 방문(return_visit) 시 |
-| `preferred_theme` | preset_id | 테마 변경 시 |
+| `preferred_theme` | `light`\|`dark` (또는 색 프리셋 id) | 테마 변경 시 |
 | `community_active` | true | 최초 커뮤니티 참여(글/좋아요/댓글) 시 |
+
+> ⚠ `preferred_theme` 는 **두 축이 한 속성에 섞여** 들어온다(2026-08-01): 밝기 토글(`ColorSchemeToggle` → `light`/`dark`)과
+> 색 프리셋 스위처(`ThemePresetSwitcher` → `velog`·`grape`… preset_id). 색 프리셋은 현재 화면에서 감춰져 진입점이 0이라
+> 실제 유입값은 사실상 `light`/`dark` 뿐이다. 축을 판별자 파라미터로 쪼개는 택소노미 정리는 별건(백로그).
 
 ## 3. 이벤트 택소노미
 

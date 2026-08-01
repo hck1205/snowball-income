@@ -1,10 +1,11 @@
 import { memo, useEffect, useRef } from 'react';
 import { PrimaryNav, PrimaryNavLinks } from '@/components/PrimaryNav';
 import HeaderOverflowMenu from '@/components/HeaderOverflowMenu';
+import ColorSchemeToggle from '@/components/ColorSchemeToggle';
 import { AuthControl } from '@/components/community/AuthControl';
 import { isCommunityEnabled } from '@/shared/lib/supabase';
 import { publishHeaderHeight } from './AppHeader.utils';
-import { Actions, CenterSlot, ControlsRow, HeaderInner, HeaderRoot, LeadingSlot } from './AppHeader.styled';
+import { Actions, HeaderInner, HeaderRoot, LeadingSlot, NavSlot } from './AppHeader.styled';
 import type { AppHeaderProps } from './AppHeader.types';
 
 /** 앱 표준 좌우 여백 — `FeatureLayout`(시뮬레이터 본문)·티커 셸 본문과 같은 값. */
@@ -17,11 +18,24 @@ const DEFAULT_CONTENT_GUTTER = 'clamp(12px, 2vw, 20px)';
  * 로그인 버튼이 있다 없다 하고 여백·높이가 미묘하게 달랐다. 페이지별 차이는 **슬롯 prop 으로만**
  * 들어온다(`AppHeader.types.ts` 참고). 복제 재발은 `test/shared/appHeaderSingleSource.test.ts` 가 막는다.
  *
+ * 형태는 폭에 따라 둘뿐이다. **≥1024 는 한 줄**(브랜드 · 메뉴 · 컨트롤이 같은 줄, 높이 64px 대),
+ * **≤1023 은 두 줄**(브랜드 줄 + 전폭 가로 스크롤 메뉴 줄). 어느 쪽이든 DOM 은 하나이고
+ * 배치만 `headerControlsGrid` 의 grid-area 가 바꾼다 — 모드마다 다른 마크업을 만들지 마라.
+ *
  * 항상 그리는 것:
- *   - 워드마크(홈 링크) + 아랫줄 라우트 메뉴 — `PrimaryNav` / `PrimaryNavLinks`
+ *   - 워드마크(홈 링크) + 라우트 메뉴 — `PrimaryNav` / `PrimaryNavLinks`
+ *   - **화면 밝기 토글(라이트 ↔ 다크)** — 오른쪽 끝 아이콘 버튼. 2026-08-01 이전에는 같은 자리가
+ *     색 프리셋 8종 팝오버(`ThemePresetSwitcher`)였는데, 사용자가 화면을 보고 "옵션이 너무 많다,
+ *     라이트·다크 둘만" 이라고 결정해 **이 토글 하나로 줄였다**. 프리셋은 지운 게 아니라 화면에서만
+ *     감춘 것이고(노출 목록 = `shared/constants/palette` 의 `VISIBLE_PALETTE_PRESET_IDS`),
+ *     되살리려면 그 배열과 이 자리의 컴포넌트를 함께 되돌린다.
  *   - 로그인·프로필 — `AuthControl`. **커뮤니티가 꺼진 배포(`isCommunityEnabled=false`)에선 렌더하지 않는다**
  *     (세션·모달 배선이 없으므로). 이 게이트는 시뮬레이터 헤더의 현행 동작을 그대로 승계한 것이다.
- *   - 더보기(⋯) — 앱 설치 · 테마. 테마 접근점이라 로그인 여부와 무관하게 **항상** 있어야 한다.
+ *   - 더보기(⋯) — 앱 설치(+시뮬레이터에선 튜토리얼·PDF).
+ *
+ * ⚠ 구 슬롯 `center`(커뮤니티 갤러리 검색)·`below`(모바일 검색 펼침 바)는 **삭제됐다** —
+ * 2026-07-31 에 검색이 갤러리 본문 툴바로 내려가면서 소비처가 0이 됐고, 남겨 두면 "헤더 한 줄에
+ * 폭을 다투는 위젯을 얹는" 같은 실수를 다시 부른다. 페이지 위젯은 그 페이지 본문 첫 줄에 둔다.
  *
  * ⚠ 번들: `AuthControl`·`HeaderOverflowMenu` 는 시뮬레이터(`MainPage`, eager)가 이미 쓰고 있어
  * 엔트리 그래프에 있다. supabase-js SDK 는 `getSupabaseClient()` 의 **동적 import** 뒤에 있으므로
@@ -34,10 +48,8 @@ const DEFAULT_CONTENT_GUTTER = 'clamp(12px, 2vw, 20px)';
 function AppHeaderComponent({
   brandAs = 'span',
   status,
-  center,
   actions,
   overflowMenu,
-  below,
   contentGutter = DEFAULT_CONTENT_GUTTER
 }: AppHeaderProps) {
   const rootRef = useRef<HTMLElement>(null);
@@ -56,31 +68,35 @@ function AppHeaderComponent({
 
   return (
     <HeaderRoot ref={rootRef}>
+      {/* 슬롯 3개를 **DOM 순서대로** 놓는다: 브랜드 → 메뉴 → 컨트롤.
+          배치는 `headerControlsGrid` 의 grid-area 가 정한다(모드별 마크업 분기 없음).
+
+          ⚠ 이 순서는 **≥1024(한 줄)에 맞춘 것**이다 — 거기서는 탭 순서가 눈으로 보는 순서와 같다.
+          ≤1023 에서는 메뉴가 아랫줄로 내려가므로 탭이 브랜드 → (아랫줄)메뉴 → (윗줄)로그인·더보기로
+          한 번 되짚는다. 반대로 놓으면(컨트롤을 메뉴보다 앞에) 좁은 폭이 맞고 넓은 폭이 어긋난다 —
+          두 모드를 동시에 만족시키는 DOM 순서는 없고, **주 사용 폭인 데스크톱을 맞췄다.** */}
       <HeaderInner $gutter={contentGutter}>
-        {/* 1줄 — 좌: 브랜드(+상태) / 가운데: 페이지 확장 / 우: 액션 + 공용 컨트롤.
-            액션이 윗줄에 있는 건 사용자 결정이다(메뉴보다 먼저 닿아야 하는 컨트롤). */}
-        <ControlsRow>
-          <LeadingSlot>
-            <PrimaryNav brandAs={brandAs} withLinks={false} />
-            {status}
-          </LeadingSlot>
+        <LeadingSlot>
+          <PrimaryNav brandAs={brandAs} withLinks={false} />
+          {status}
+        </LeadingSlot>
 
-          {center ? <CenterSlot>{center}</CenterSlot> : null}
+        {/* 라우트 메뉴 — 넘치면 자기 안에서 가로 스크롤된다. 라벨은 어떤 폭에서도 유지(사용자 결정). */}
+        <NavSlot>
+          <PrimaryNavLinks />
+        </NavSlot>
 
-          <Actions>
-            {actions}
-            {isCommunityEnabled ? <AuthControl /> : null}
-            {/* 기본 더보기엔 튜토리얼이 없다 — 코치마크 투어는 시뮬레이터 화면 전용이라
-                다른 화면에서는 띄울 대상이 없다. 시뮬레이터는 자기 메뉴를 넘긴다. */}
-            {overflowMenu ?? <HeaderOverflowMenu showTutorial={false} />}
-          </Actions>
-        </ControlsRow>
-
-        {/* 2줄 — 라우트 메뉴. 가운데 정렬 + 넘치면 가로 스크롤, 라벨은 어떤 폭에서도 유지. */}
-        <PrimaryNavLinks />
+        <Actions>
+          {actions}
+          {isCommunityEnabled ? <AuthControl /> : null}
+          {/* 밝기 · 더보기는 둘 다 "환경 설정"이라 오른쪽 끝에 같은 규격(secondary·sm·iconOnly)으로 붙는다.
+              밝기가 먼저인 이유: 자주 쓰는 쪽을 가장자리 밖으로 밀지 않는다. */}
+          <ColorSchemeToggle />
+          {/* 기본 더보기엔 튜토리얼이 없다 — 코치마크 투어는 시뮬레이터 화면 전용이라
+              다른 화면에서는 띄울 대상이 없다. 시뮬레이터는 자기 메뉴를 넘긴다. */}
+          {overflowMenu ?? <HeaderOverflowMenu showTutorial={false} />}
+        </Actions>
       </HeaderInner>
-
-      {below}
     </HeaderRoot>
   );
 }

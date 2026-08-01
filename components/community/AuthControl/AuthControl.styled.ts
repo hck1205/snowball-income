@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, motion, radius, shadow, space, subtleScrollbar, zIndex } from '@/shared/styles';
+import { color, font, motion, radius, shadow, space, zIndex } from '@/shared/styles';
 
 export const AuthRoot = styled.div`
   position: relative;
@@ -119,28 +119,8 @@ export const MenuItem = styled.button`
   }
 `;
 
-/** "테마" 디스클로저 라벨 — 남은 폭을 채워 캐럿을 우측으로 민다. */
-export const ThemeMenuLabel = styled.span`
-  flex: 1;
-  min-width: 0;
-`;
-
-/** 펼침 캐럿 — 펼쳐지면 180° 회전. */
-export const ThemeCaret = styled.span<{ open: boolean }>`
-  display: inline-flex;
-  align-items: center;
-  color: ${color.textMuted};
-  transition: transform ${motion.fast} ${motion.ease};
-  transform: rotate(${({ open }) => (open ? '180deg' : '0deg')});
-`;
-
-/**
- * 테마 옵션 패널 — 드롭다운 안에 인라인 radiogroup을 담는다(팝오버 중첩 회피).
- * 8종이 길면 패널만 스크롤한다(드롭다운 전체가 아니라).
+/*
+ * 구 `ThemeMenuLabel` · `ThemeCaret` · `ThemePanel`(프로필 드롭다운 안 테마 디스클로저)은 삭제됐다.
+ * 테마 진입점은 오래전에 이 드롭다운을 떠났고(→ `⋯` 메뉴 → 2026-07-31 `AppHeader` 오른쪽 상시 노출),
+ * 이 스타일들만 호출부 0인 채로 남아 있었다. 테마는 로그인 여부와 무관한 기능이라 여기로 돌아오지 않는다.
  */
-export const ThemePanel = styled.div`
-  max-height: min(50vh, 320px);
-  overflow-y: auto;
-  scrollbar-gutter: stable;
-  ${subtleScrollbar}
-`;

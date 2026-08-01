@@ -60,7 +60,13 @@ export const ANALYTICS_EVENT = {
   INVESTMENT_SETTING_CHANGED: "investment_setting_changed",
   // 토글 상태 변경 이벤트. 용도: 간편/정밀, 그래프 모드 등 기능 선호도 분석.
   TOGGLE_CHANGED: "toggle_changed",
-  // 테마 프리셋 변경 이벤트(파라미터: preset_id). 용도: 프리셋별 선호도 분포, 기본 팔레트(velog) 유지율 분석.
+  // 테마 변경 이벤트(파라미터: preset_id). 용도: 테마 선호도 분포와 기본값 유지율 분석.
+  // ⚠ 2026-08-01 부터 이 이벤트로 들어오는 것은 **라이트/다크 전환뿐**이다(preset_id = 'light' | 'dark').
+  //   사용자 결정으로 색 프리셋 8종 선택 UI 를 화면에서 감췄기 때문이다(값·토큰은 살아 있고
+  //   노출 목록만 막았다 — shared/constants/palette 의 VISIBLE_PALETTE_PRESET_IDS).
+  //   이벤트명·파라미터명은 **일부러 그대로 둔다** — 이름을 바꾸면 그 이전 데이터와 시계열이 끊기고,
+  //   프리셋 선택을 되살리면 preset_id 에 다시 팔레트 id 가 실린다(과거 리포트가 그대로 유효해진다).
+  //   즉 이 필드는 "사용자가 고른 테마 식별자"로 읽으면 시점과 무관하게 맞다.
   THEME_PRESET_CHANGED: "theme_preset_changed",
   // 포트폴리오 비중 변경 이벤트. 용도: 평균 편입 비중, 고정 비율 사용 패턴, 리밸런싱 행동 분석.
   ALLOCATION_CHANGED: "allocation_changed",
@@ -343,7 +349,13 @@ export type AnalyticsUserProperties = {
   has_saved?: boolean;
   /** 2회차+ 방문 시 true. */
   is_returning?: boolean;
-  /** 현재 테마 프리셋 id. */
+  /**
+   * 사용자가 마지막으로 고른 테마 값.
+   *
+   * ⚠ **두 축이 한 속성에 섞여 들어온다**(2026-08-01): 색 프리셋 id(`'velog'`·`'grape'`…, `ThemePresetSwitcher`)와
+   * 밝기(`'light'`·`'dark'`, `ColorSchemeToggle`). 지금 화면에 있는 진입점은 밝기 토글 하나뿐이라
+   * 실제로 들어오는 값은 사실상 `'light'|'dark'` 다. 판별자 파라미터로 축을 쪼개는 택소노미 정리는 별건.
+   */
   preferred_theme?: string;
   /** 최초 커뮤니티 참여(글/좋아요/댓글) 시 true. */
   community_active?: boolean;
