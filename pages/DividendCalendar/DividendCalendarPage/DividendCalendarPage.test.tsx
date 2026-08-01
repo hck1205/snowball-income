@@ -142,11 +142,21 @@ describe('DividendCalendarPage — v2 월간 달력', () => {
     // 라이브 리전은 빈 선택 상태에서도 접근성 트리에 남아 있어야 이후 변경이 낭독된다.
     expect(screen.getByRole('status')).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 1, name: '배당 지급 캘린더' })).toBeInTheDocument();
-    // 달력 표는 선택이 없어도 항상 그린다(사용자 결정 2026-07-25) — 화면의 뼈대다.
-    // "지급이 없다"는 주장은 표가 아니라 빈 상태 안내가 하고, 칸에는 아무것도 놓이지 않는다.
-    const table = screen.getByRole('table', { name: '2026년 7월' });
+    /*
+     * 달력 표는 선택이 없어도 항상 그린다(사용자 결정 2026-07-25) — 화면의 뼈대다.
+     *
+     * 🔄 2026-07-31: 그 뼈대에 **예시 미리보기**를 깔았다(리모델 §4.A-3, 2안). 빈 칸 42개는
+     * "여기서 무엇을 보게 되는지"를 하나도 말하지 못했고 1280에서 문서의 43%를 먹었다.
+     * 그래서 이 자리의 표는 이제 **예시임을 이름으로 밝히는** 표다 — 구 단정("칸이 비어 있다")은
+     * 그 결정으로 대체됐다. 예시가 실제 선택으로 새지 않는다는 계약은
+     * `test/dividendCalendar/calendarEmptyPreview.test.tsx` 가 별도로 잠근다.
+     */
+    const table = screen.getByRole('table', { name: /예시 달력, 실제 데이터가 아닙니다$/ });
     expect(table).toBeInTheDocument();
-    expect(within(table).queryByText('JEPI')).not.toBeInTheDocument();
+    expect(screen.getByText('예시 · 실제 데이터가 아닙니다')).toBeInTheDocument();
+    // 실제 달('2026년 7월'로만 이름 붙는 표)은 이 상태에서 그리지 않는다 — 두 달력이 겹치면
+    // 어느 쪽이 사실인지 알 수 없다.
+    expect(screen.queryByRole('table', { name: '2026년 7월' })).not.toBeInTheDocument();
   });
 
   it('검색어로 결과 목록을 좁힌다', async () => {

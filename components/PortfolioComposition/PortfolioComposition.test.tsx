@@ -242,3 +242,45 @@ describe('PortfolioComposition — 회귀 안전망', () => {
     expect(screen.queryByRole('slider')).not.toBeInTheDocument();
   });
 });
+
+/**
+ * 슬라이더 트랙 색 ↔ 도넛 조각 색의 **연결**을 잠근다.
+ *
+ * 예전에는 트랙이 전 행 똑같은 브랜드색이라 "이 슬라이더가 도넛의 어느 조각인가"가 화면에서
+ * 연결되지 않았다. 브랜드색으로 되돌리면(또는 인덱스 규칙이 어긋나면) 이 테스트가 빨개진다.
+ *
+ * jsdom 은 레이아웃을 계산하지 않지만 **emotion 이 만든 선언값은 `getComputedStyle` 로 읽힌다**
+ * (className 기반 단정이 아니다). CSS 변수는 `var(--sb-…)` 문자열 그대로 나오는데, 그게 오히려
+ * 여기서 원하는 것이다 — 캔버스(파이)도 같은 `--sb-chart-series-N` 을 읽으므로 **변수 이름의
+ * 일치가 곧 색의 일치**다. 실제 렌더 색이 같은지는 `tools/dev` 의 실측이 따로 증명한다.
+ */
+describe('PortfolioComposition — 슬라이더 트랙 색 = 도넛 조각 색', () => {
+  const seriesVarOf = (element: Element) => {
+    const background = getComputedStyle(element).background || getComputedStyle(element).backgroundColor;
+    return /--sb-chart-series-\d+/.exec(background)?.[0] ?? null;
+  };
+
+  it('행마다 다른 시리즈 변수를 쓰고, 같은 행의 색 점과 트랙이 같은 변수를 공유한다', () => {
+    renderComposition([makeProfile('a', 'AAA'), makeProfile('b', 'BBB'), makeProfile('c', 'CCC')]);
+
+    const trackVars = ['AAA', 'BBB', 'CCC'].map((ticker) => seriesVarOf(sliderFor(ticker)));
+
+    // 인덱스 규칙(0,1,2…)이 캔버스 파이와 같다
+    expect(trackVars).toEqual(['--sb-chart-series-0', '--sb-chart-series-1', '--sb-chart-series-2']);
+
+    // 같은 행의 범례 점과 트랙이 한 값을 공유한다(둘이 갈리면 색이 두 개가 된다)
+    const dotVars = ['AAA', 'BBB', 'CCC'].map((ticker) => {
+      const row = sliderFor(ticker).closest('li');
+      return seriesVarOf(row!.firstElementChild!);
+    });
+    expect(dotVars).toEqual(trackVars);
+  });
+
+  it('색이 유일한 단서가 아니다 — 슬라이더 옆에 종목명이 함께 선다', () => {
+    renderComposition([makeProfile('a', 'AAA'), makeProfile('b', 'BBB')]);
+
+    for (const ticker of ['AAA', 'BBB']) {
+      expect(sliderFor(ticker).closest('li')).toHaveTextContent(ticker);
+    }
+  });
+});

@@ -7,3 +7,7 @@
  */
 export { useDrawerBackClose } from './useDrawerBackClose';
 export { useOverlayEscape } from './useOverlayEscape';
+export { useOverlayPresence } from './useOverlayPresence';
+export type { OverlayPhase, OverlayPresence } from './useOverlayPresence';
+export { applyPageHue, resolvePageHue, usePageHue } from './usePageHue';
+export type { ResolvedPageHue } from './usePageHue';

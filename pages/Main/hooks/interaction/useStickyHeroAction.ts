@@ -69,6 +69,7 @@ export function useStickyHeroAction() {
     if (!slot) return undefined;
 
     let frame = 0;
+    let settleFrame = 0;
     const schedule = () => {
       if (frame) return;
       frame = window.requestAnimationFrame(() => {
@@ -77,9 +78,27 @@ export function useStickyHeroAction() {
       });
     };
 
+    /*
+     * 폭이 바뀌면 **헤더 높이도 바뀐다**(1024 경계에서 한 줄 ↔ 두 줄, 65px ↔ 105px). 그런데 그 높이를
+     * 발행하는 것은 `AppHeader` 의 ResizeObserver 이고, 브라우저는 한 프레임 안에서 rAF 콜백을 먼저,
+     * ResizeObserver 콜백을 그 뒤에 돌린다 — 그래서 `resize` 직후 한 프레임만 보면 **낡은 헤더 높이**를
+     * 읽는다(실측: 390 → 1280 으로 되돌릴 때 버튼이 모바일 높이 기준인 119px 에 그대로 남았다).
+     * 다음 프레임에 한 번 더 맞춘다. 스크롤에는 걸지 않는다 — 그쪽은 헤더 높이가 안 변한다.
+     */
+    const scheduleAfterResize = () => {
+      schedule();
+      if (settleFrame) window.cancelAnimationFrame(settleFrame);
+      settleFrame = window.requestAnimationFrame(() => {
+        settleFrame = window.requestAnimationFrame(() => {
+          settleFrame = 0;
+          sync();
+        });
+      });
+    };
+
     sync();
     window.addEventListener('scroll', schedule, { passive: true });
-    window.addEventListener('resize', schedule);
+    window.addEventListener('resize', scheduleAfterResize);
 
     // 버튼 폭(라벨·폰트 로드)과 헤더 높이 변화도 따라간다.
     const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(schedule);
@@ -87,8 +106,9 @@ export function useStickyHeroAction() {
 
     return () => {
       if (frame) window.cancelAnimationFrame(frame);
+      if (settleFrame) window.cancelAnimationFrame(settleFrame);
       window.removeEventListener('scroll', schedule);
-      window.removeEventListener('resize', schedule);
+      window.removeEventListener('resize', scheduleAfterResize);
       observer?.disconnect();
     };
   }, [sync]);

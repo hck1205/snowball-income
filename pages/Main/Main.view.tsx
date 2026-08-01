@@ -10,9 +10,9 @@ import {
   useIsTickerModalOpenAtomValue,
   useSetIsConfigDrawerOpenWrite,
 } from "@/jotai";
+import { PageFooter } from "@/components/common";
 import HelpModal from "./components/HelpModal";
 import {
-  LandingDisclaimer,
   MainContentLoader,
   MainOverflowMenu,
   MainRightPanel,
@@ -160,7 +160,7 @@ function MainViewComponent({ viewModel }: MainViewProps) {
           {isPortfolioHydrated ? (
             <MainRightPanel configDrawerId={configDrawerId} />
           ) : (
-            <MainContentLoader label="결과를 불러오는 중…" minHeight="480px" />
+            <MainContentLoader label="결과를 불러오는 중…" minHeight="480px" variant="result" />
           )}
 
           <Suspense fallback={null}>
@@ -182,8 +182,10 @@ function MainViewComponent({ viewModel }: MainViewProps) {
         <MarketDataAsOf />
 
         {/* 리뷰어·사용자가 URL만 방문해도 콘텐츠 유형·비영리·비자문을 바로 알도록 상시 노출하는 고지.
-            ModelChangeNotice(임시·접힘·닫힘)와 달리 상호작용 없이 항상 보인다. */}
-        <LandingDisclaimer />
+            ModelChangeNotice(임시·접힘·닫힘)와 달리 상호작용 없이 항상 보인다.
+            2026-07-31: 구 로컬 `LandingDisclaimer` → 전 화면 공용 `PageFooter` 로 수렴(문구 동일).
+            `MarketDataAsOf` 도 `<footer>` 라 랜드마크가 겹치므로 접근명으로 구분한다. */}
+        <PageFooter aria-label="사이트 고지" />
       </FeatureLayout>
     </>
   );

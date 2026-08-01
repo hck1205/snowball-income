@@ -4,7 +4,6 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
 import PrecisionSearch from '@/components/community/PrecisionSearch';
-import type { PrecisionSearchLayout } from '@/components/community/PrecisionSearch';
 
 const g = COMMUNITY_COPY.gallery;
 
@@ -14,10 +13,10 @@ function LocationEcho() {
   return <output data-testid="search">{search}</output>;
 }
 
-const renderMenu = (initialEntry = '/community', layout: PrecisionSearchLayout = 'popover') =>
+const renderMenu = (initialEntry = '/community') =>
   render(
     <MemoryRouter initialEntries={[initialEntry]}>
-      <PrecisionSearch layout={layout} />
+      <PrecisionSearch />
       <LocationEcho />
     </MemoryRouter>
   );
@@ -119,13 +118,16 @@ describe('PrecisionSearch — 검증/배지', () => {
   });
 });
 
-describe('PrecisionSearch — 반응형 layout prop 구조 분기', () => {
-  it('inline(모바일)은 트리거에 라벨 텍스트를 노출하고, popover(데스크톱)는 아이콘 전용이다', () => {
-    const { unmount } = renderMenu('/community', 'inline');
-    expect(trigger()).toHaveTextContent(g.filterTitle);
-    unmount();
+describe('PrecisionSearch — 트리거는 전 폭에서 아이콘 전용이다', () => {
+  /**
+   * 구 `layout` prop(popover/inline)은 검색이 헤더 인라인 + 헤더 아래 펼침 바 **두 인스턴스**로
+   * 존재하던 시절의 분기였다. 본문 툴바 한 벌로 내려온 뒤에는 폭이 넉넉하지 않아 라벨을 넣으면
+   * 390px 에서 검색 입력이 그만큼 줄어든다 → 라벨은 접근명이 갖고 화면에는 아이콘만 둔다.
+   */
+  it('보이는 라벨 없이 접근명으로만 정체를 알린다', () => {
+    renderMenu();
 
-    renderMenu('/community', 'popover');
     expect(trigger()).not.toHaveTextContent(g.filterTitle);
+    expect(trigger()).toHaveAttribute('aria-label', expect.stringContaining(g.filterTriggerAria));
   });
 });

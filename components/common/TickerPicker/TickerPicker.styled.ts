@@ -1,94 +1,46 @@
 import styled from '@emotion/styled';
-import { color, font, media, motion, pressable, pressTransition, radius, shadow, space } from '@/shared/styles';
+import { color, font, motion, pressable, pressTransition, radius, space } from '@/shared/styles';
 
-/**
- * 퀵액션 툴바 — "데이터 저장"이 자동저장으로 대체돼 제거된 뒤 보이는 버튼은 [공유] 하나뿐이라 단일 열로
- * 전폭을 채운다. (Coffee는 display:none 이라 그리드 셀을 차지하지 않는다 → 공유가 전폭.)
+/*
+ * 여기 있던 `TickerQuickAction*`(전폭 공유 툴바)은 2026-07-31 에 삭제됐다 — 공유는 드로어 마지막
+ * "도구" 섹션으로 내려갔고 전폭을 쓰지 않는다(`SettingsToolsSection.styled.ts`).
  */
-export const TickerQuickActionRow = styled.div`
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: ${space[2]};
-  width: 100%;
-  margin-bottom: ${space[2]};
-`;
-
-export const TickerQuickActionButton = styled.button`
-  border: 1px solid ${color.border};
-  background: ${color.surfaceMuted};
-  color: ${color.textSecondary};
-  border-radius: ${radius.sm};
-  /* 전폭 단일 버튼(공유) — 아이콘을 세로로 쌓지 않고 가로로 나란히 둬 높이를 낮춘다. */
-  min-height: 38px;
-  padding: ${space[2]} ${space[3]};
-  display: inline-flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  gap: ${space[2]};
-  font-size: ${font.size.sm};
-  font-weight: ${font.weight.medium};
-  font-family: inherit;
-  line-height: 1.1;
-  cursor: pointer;
-  touch-action: manipulation;
-  transition: background-color ${motion.fast} ${motion.ease}, border-color ${motion.fast} ${motion.ease},
-    color ${motion.fast} ${motion.ease};
-
-  &:hover {
-    background: ${color.brandSubtle};
-    border-color: ${color.brandBorder};
-    color: ${color.brandText};
-  }
-`;
-
-export const TickerQuickActionIcon = styled.span`
-  width: 16px;
-  height: 16px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  svg {
-    width: 16px;
-    height: 16px;
-    stroke: currentColor;
-    fill: none;
-    stroke-width: 1.8;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-`;
 
 /**
- * 설정 드로어의 사실상 primary CTA — Button primary와 같은 오로라 CTA 리본 레시피를 쓴다.
- * hover는 색을 바꾸지 않고 background-position만 움직여 라벨 대비(전 stop 흰 라벨 ≥4.5:1)가 불변이다.
+ * 종목 섹션의 "추가" 버튼.
+ *
+ * 2026-07-31 강등: 종전에는 오로라 그라디언트 채움(`gradient-cta`)으로 드로어에서 **시각적으로 가장
+ * 강한 요소**였다 — 그런데 티커 생성은 드로어 안에서 가장 드물게 쓰는 동작이다(대개는 이미 만든
+ * 칩을 담고 뺀다). 지금은 담백한 외곽선 버튼이고, 강조는 hover 에서만 든다.
+ * 폭 100% 는 유지한다 — 400px 드로어에서 이 섹션의 유일한 액션이고, 칩 그리드와 좌우 끝선을 맞춘다.
+ *
+ * ⚠ 그라디언트 채움을 되살리지 마라. 이 화면에서 `gradient-cta` 를 쓰는 자리는 결과 쪽 주 액션이다.
  */
 export const TickerCreateButton = styled.button`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid transparent;
-  background-image: ${color.gradientCta};
-  background-size: 160% 160%;
-  background-position: 0% 0%;
-  color: ${color.onBrand};
+  gap: ${space[2]};
+  border: 1px solid ${color.border};
+  background: ${color.surfaceMuted};
+  color: ${color.textSecondary};
   border-radius: ${radius.sm};
-  min-height: 44px;
+  min-height: 40px;
   padding: ${space[2]} ${space[4]};
-  font-size: ${font.size.base};
-  font-weight: ${font.weight.semibold};
+  font-size: ${font.size.sm};
+  font-weight: ${font.weight.medium};
   font-family: inherit;
   cursor: pointer;
   width: 100%;
-  margin-bottom: ${space[3]};
+  margin-top: ${space[3]};
   touch-action: manipulation;
-  transition: background-position ${motion.base} ${motion.ease}, box-shadow ${motion.fast} ${motion.ease},
-    ${pressTransition};
+  transition: background-color ${motion.fast} ${motion.ease}, border-color ${motion.fast} ${motion.ease},
+    color ${motion.fast} ${motion.ease}, ${pressTransition};
 
   &:hover {
-    background-position: 100% 100%;
-    box-shadow: ${shadow.e2};
+    background: ${color.brandSubtle};
+    border-color: ${color.brandBorder};
+    color: ${color.brandText};
   }
 
   /*
@@ -97,10 +49,6 @@ export const TickerCreateButton = styled.button`
    * 44px 버튼에서 1px 은 지각 한계 아래였다 — 공용 'Button' 에서 고친 것과 같은 부류의 결함이다.
    */
   ${pressable}
-
-  ${media.down('drawer')} {
-    margin-bottom: ${space[5]};
-  }
 `;
 
 export const TickerGridWrap = styled.div`

@@ -46,6 +46,14 @@ export type DividendCalendarViewModel = {
   asOf: string | null;
   /** 표시 중인 달의 주 × 일 그리드(6주 고정). */
   month: MonthViewModel;
+  /**
+   * 🔴 **표현 전용** 예시 달력 — 선택이 0종일 때만 채워지고, 그 외에는 `null`.
+   *
+   * 빈 격자 42칸이 "여기서 무엇을 보게 되는지"를 하나도 말해 주지 못하던 것을 대신 말한다.
+   * 실제 상태가 아니다: `selected`·저장소·주소 어디에도 반영되지 않는다. 소비처는 이것을
+   * `month` 자리에 그리되 **예시임을 텍스트로 밝혀야 한다**(색·흐림만으로 구분 금지).
+   */
+  previewMonth: MonthViewModel | null;
   /** 표에서 밀도 때문에 잘린 정보의 원본(날짜순 목록). */
   agendaDays: AgendaDay[];
   /** '2026년 7월'. */

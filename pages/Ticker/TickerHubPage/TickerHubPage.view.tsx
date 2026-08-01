@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { PageFooter } from '@/components/common';
 import type { HubTickerCard, TickerHubViewProps } from './TickerHubPage.types';
 import {
   CardGrid,
@@ -101,6 +102,11 @@ export default function TickerHubView({ viewModel }: TickerHubViewProps) {
           </CategorySection>
         ))
       )}
+
+      {/* 다른 화면과 같은 자리·같은 모양의 공용 푸터(2026-07-31). 이 화면에는 자기 각주가 없어
+          사이트 공통 고지만 나간다 — 카드 숫자의 근거는 각 티커 상세가 자기 문장으로 말한다.
+          ⚠ 크롤러가 읽는 HTML 은 `server/handlers/TickerHtml` 이 따로 만든다(이 컴포넌트와 무관). */}
+      <PageFooter />
     </>
   );
 }

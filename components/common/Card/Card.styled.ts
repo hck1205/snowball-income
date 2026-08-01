@@ -1,14 +1,7 @@
 import styled from '@emotion/styled';
-import {
-  color,
-  elevation as elevationToken,
-  font,
-  outerRadius,
-  radius,
-  sectionTitleFontSize,
-  space
-} from '@/shared/styles';
-import type { CardElevation, CardTone } from './Card.types';
+import { cardElevation, color, font, outerRadius, radius, sectionTitleFontSize, space } from '@/shared/styles';
+import type { SurfaceTier } from '@/shared/styles';
+import type { CardTone } from './Card.types';
 
 /**
  * 공용 `Card` 의 패딩. **여기가 단일 원천이다** — 아래 바깥 반경이 이 값에서 역산되므로
@@ -29,26 +22,36 @@ const CARD_PADDING = 'clamp(16px, 1.8vw, 20px)';
 const CARD_RADIUS = outerRadius(radius.sm, CARD_PADDING);
 
 /**
- * `tone='default'` 일 때 나오는 CSS 는 tone 도입 **이전과 완전히 같다** — 기존 카드 수십 곳의
- * 회귀를 0으로 두기 위한 조건이다. 새 값은 `sunken` 분기에만 들어간다.
- * (새 prop 은 `$` 접두 transient 로 둔다 — `$` 가 없으면 DOM 으로 새는 사고가 반복됐다.)
+ * tone → 면의 격. `wash` 는 **본문 카드의 장식 변형**이라 위계상 `base` 이고 배경만 다르다.
+ * (3단의 정의와 "테두리·그림자 동시 선언 금지" 규칙은 `shared/styles/surfaces.ts` 가 소유한다.)
  */
-export const CardContainer = styled.section<{ elevation: CardElevation; $tone: CardTone }>`
+const TIER_BY_TONE: Record<CardTone, SurfaceTier> = {
+  default: 'base',
+  raised: 'raised',
+  sunken: 'sunken',
+  wash: 'base'
+};
+
+/**
+ * 위계 선언(배경·테두리·그림자)은 **`cardElevation` 한 곳에서만** 나온다 — 여기서 개별 속성을
+ * 다시 적으면 "테두리와 그림자를 동시에 갖는 카드"가 조용히 되살아난다.
+ *
+ * (transient prop 은 `$` 접두로 둔다 — `$` 가 없으면 DOM 으로 새는 사고가 반복됐다.)
+ */
+export const CardContainer = styled.section<{ $tone: CardTone }>`
+  ${({ $tone }) => cardElevation(TIER_BY_TONE[$tone])}
   /*
-   * wash = 장식 표면(빈 상태·프로모·CTA). gradient-hero-soft 를 그대로 쓴다 —
-   * 히어로와 같은 어휘라 화면이 따로 놀지 않고, **이미 8프리셋 × 라이트/다크 대비 검증을
-   * 통과한 값**이라 새 색을 지어내지 않아도 된다(contrast.test.ts 의 HERO_GRADIENTS).
+   * wash = 장식 표면(빈 상태·프로모·CTA). 위계는 본문 카드와 같고 **면색만** 바꾼다.
+   * gradient-hero-soft 를 그대로 쓴다 — 히어로와 같은 어휘라 화면이 따로 놀지 않고,
+   * **이미 8프리셋 × 라이트/다크 대비 검증을 통과한 값**이다(contrast.test.ts 의 HERO_GRADIENTS).
    */
-  background: ${({ $tone }) =>
-    $tone === 'sunken' ? color.surfaceSunken : $tone === 'wash' ? color.gradientHeroSoft : color.surface};
-  border: 1px solid ${color.border};
+  ${({ $tone }) => ($tone === 'wash' ? `background: ${color.gradientHeroSoft};` : '')}
   /*
    * sunken 은 '가라앉은 면' = 카드 위에 얹힌 **자식** 면이라 StatTile 과 같은 조(tile, 12px)로
    * 묶는다. 바깥 면만 패딩에서 역산한 큰 반경을 갖는다(위 CARD_RADIUS 주석).
    */
   border-radius: ${({ $tone }) => ($tone === 'sunken' ? radius.md : CARD_RADIUS)};
   padding: ${CARD_PADDING};
-  box-shadow: ${({ elevation, $tone }) => ($tone === 'sunken' ? 'none' : elevationToken[elevation])};
   color: ${color.text};
   min-width: 0;
   width: 100%;

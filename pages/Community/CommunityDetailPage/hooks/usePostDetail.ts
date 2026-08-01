@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { sanitizeScenarioState } from '@/jotai';
 import { ANALYTICS_EVENT, setUserProperties, track } from '@/shared/lib/analytics';
 import { encodeSharedScenario, SHARE_QUERY_PARAM, SHARED_SCENARIO_ID } from '@/pages/Main/hooks/persistence';
+import { SIMULATOR_PATH } from '@/shared/constants/routes';
 import {
   deletePost,
   fetchMyPostLikes,
@@ -191,7 +192,9 @@ export const usePostDetail = (
       })
     );
     if (!restored) return null;
-    return `/?${SHARE_QUERY_PARAM}=${encodeSharedScenario(restored)}`;
+    // 🔴 이 앱에서 **유일하게 경로가 하드코딩된 공유 링크 생산자**다(나머지는 window.location.href
+    //    베이스라 현재 경로를 따라간다). 경로 상수를 쓰지 않으면 갤러리 첨부 CTA 만 조용히 뒤처진다.
+    return `${SIMULATOR_PATH}?${SHARE_QUERY_PARAM}=${encodeSharedScenario(restored)}`;
   }, [post]);
 
   return {

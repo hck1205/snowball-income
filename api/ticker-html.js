@@ -6123,100 +6123,6 @@ var CORE_INDEX_ETFS = {
   }
 };
 
-// shared/constants/presets/semiconductorDividendGrowthPortfolio.ts
-var SEMICONDUCTOR_DIVIDEND_GROWTH_PORTFOLIO = {
-  AVGO: {
-    ticker: "AVGO",
-    name: "Broadcom Inc.",
-    initialPrice: 1350,
-    dividendYield: 1.5,
-    dividendGrowth: 12.5,
-    expectedTotalReturn: 14,
-    frequency: "quarterly"
-  },
-  TXN: {
-    ticker: "TXN",
-    name: "Texas Instruments Incorporated",
-    initialPrice: 190,
-    dividendYield: 3,
-    dividendGrowth: 8,
-    expectedTotalReturn: 11,
-    frequency: "quarterly"
-  },
-  ADI: {
-    ticker: "ADI",
-    name: "Analog Devices, Inc.",
-    initialPrice: 210,
-    dividendYield: 1.8,
-    dividendGrowth: 9.2,
-    expectedTotalReturn: 11,
-    frequency: "quarterly"
-  },
-  LRCX: {
-    ticker: "LRCX",
-    name: "Lam Research Corporation",
-    initialPrice: 900,
-    dividendYield: 1.2,
-    dividendGrowth: 11.8,
-    expectedTotalReturn: 13,
-    frequency: "quarterly"
-  },
-  KLAC: {
-    ticker: "KLAC",
-    name: "KLA Corporation",
-    initialPrice: 800,
-    dividendYield: 1.1,
-    dividendGrowth: 10.9,
-    expectedTotalReturn: 12,
-    frequency: "quarterly"
-  },
-  AMAT: {
-    ticker: "AMAT",
-    name: "Applied Materials, Inc.",
-    initialPrice: 220,
-    dividendYield: 0.9,
-    dividendGrowth: 11.1,
-    expectedTotalReturn: 12,
-    frequency: "quarterly"
-  },
-  TSM: {
-    ticker: "TSM",
-    name: "Taiwan Semiconductor Manufacturing Company",
-    initialPrice: 170,
-    dividendYield: 1.5,
-    dividendGrowth: 9.5,
-    expectedTotalReturn: 11,
-    frequency: "quarterly"
-  },
-  ASML: {
-    ticker: "ASML",
-    name: "ASML Holding N.V.",
-    initialPrice: 900,
-    dividendYield: 0.8,
-    dividendGrowth: 10.2,
-    expectedTotalReturn: 11,
-    frequency: "annual"
-  },
-  ETN: {
-    ticker: "ETN",
-    name: "Eaton Corporation plc",
-    initialPrice: 320,
-    dividendYield: 1.2,
-    dividendGrowth: 10.8,
-    expectedTotalReturn: 12,
-    frequency: "quarterly"
-  },
-  VRT: {
-    ticker: "VRT",
-    name: "Vertiv Holdings Co",
-    initialPrice: 80,
-    dividendYield: 0.2,
-    dividendGrowth: 13.8,
-    expectedTotalReturn: 14,
-    frequency: "quarterly"
-  }
-};
-
 // shared/constants/presets/aiInfraEtfsAndStocks.ts
 var AI_INFRA_ETFS_AND_STOCKS = {
   SMH: {
@@ -6336,6 +6242,60 @@ var AI_INFRA_ETFS_AND_STOCKS = {
     expectedTotalReturn: 10,
     frequency: "quarterly"
   }
+};
+
+// shared/constants/presets/semiconductorDividendGrowthPortfolio.ts
+var SEMICONDUCTOR_DIVIDEND_GROWTH_PORTFOLIO = {
+  AVGO: AI_INFRA_ETFS_AND_STOCKS.AVGO,
+  TXN: {
+    ticker: "TXN",
+    name: "Texas Instruments Incorporated",
+    initialPrice: 190,
+    dividendYield: 3,
+    dividendGrowth: 8,
+    expectedTotalReturn: 11,
+    frequency: "quarterly"
+  },
+  ADI: {
+    ticker: "ADI",
+    name: "Analog Devices, Inc.",
+    initialPrice: 210,
+    dividendYield: 1.8,
+    dividendGrowth: 9.2,
+    expectedTotalReturn: 11,
+    frequency: "quarterly"
+  },
+  LRCX: {
+    ticker: "LRCX",
+    name: "Lam Research Corporation",
+    initialPrice: 900,
+    dividendYield: 1.2,
+    dividendGrowth: 11.8,
+    expectedTotalReturn: 13,
+    frequency: "quarterly"
+  },
+  KLAC: {
+    ticker: "KLAC",
+    name: "KLA Corporation",
+    initialPrice: 800,
+    dividendYield: 1.1,
+    dividendGrowth: 10.9,
+    expectedTotalReturn: 12,
+    frequency: "quarterly"
+  },
+  AMAT: {
+    ticker: "AMAT",
+    name: "Applied Materials, Inc.",
+    initialPrice: 220,
+    dividendYield: 0.9,
+    dividendGrowth: 11.1,
+    expectedTotalReturn: 12,
+    frequency: "quarterly"
+  },
+  TSM: AI_INFRA_ETFS_AND_STOCKS.TSM,
+  ASML: AI_INFRA_ETFS_AND_STOCKS.ASML,
+  ETN: AI_INFRA_ETFS_AND_STOCKS.ETN,
+  VRT: AI_INFRA_ETFS_AND_STOCKS.VRT
 };
 
 // shared/constants/presets/index.ts
@@ -8121,6 +8081,9 @@ var findTickerContentBySlug = (slug) => {
 };
 var listTickerContentByCategory = (categoryId) => TICKER_CONTENT_LIST.filter((entry) => entry.categoryIds.includes(categoryId));
 
+// shared/constants/routes/index.ts
+var SIMULATOR_PATH = "/simulator";
+
 // server/handlers/TickerHtml/TickerHtml.ts
 var CACHE_TICKER = "public, max-age=0, s-maxage=86400, stale-while-revalidate=604800";
 var CACHE_NO_STORE = "no-store";
@@ -8186,7 +8149,7 @@ var renderRelatedTickers = (related) => {
   }).join("");
   return `<section id="related"><h2>\uAD00\uB828 \uD2F0\uCEE4</h2><ul>${items}</ul></section>`;
 };
-var renderHero = (content, facts) => `<h1>${escapeHtmlText(facts.ticker)} \u2014 ${escapeHtmlText(facts.koreanName)} (${escapeHtmlText(facts.englishName)})</h1><p class="hero-tagline">${renderText(content.heroTagline, facts)}</p><p class="hero-cta"><a href="/">${escapeHtmlText(facts.ticker)}\uB85C \uACC4\uC0B0\uD574 \uBCF4\uAE30</a></p>`;
+var renderHero = (content, facts) => `<h1>${escapeHtmlText(facts.ticker)} \u2014 ${escapeHtmlText(facts.koreanName)} (${escapeHtmlText(facts.englishName)})</h1><p class="hero-tagline">${renderText(content.heroTagline, facts)}</p><p class="hero-cta"><a href="${SIMULATOR_PATH}">${escapeHtmlText(facts.ticker)}\uB85C \uACC4\uC0B0\uD574 \uBCF4\uAE30</a></p>`;
 var buildFinancialProductSchema = (content, facts, canonical) => {
   const additionalProperty = [
     { "@type": "PropertyValue", name: "\uBC30\uB2F9\uB960(\uC138\uC804, \uBA85\uBAA9)", value: facts.dividendYieldDisplay },

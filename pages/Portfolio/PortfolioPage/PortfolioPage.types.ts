@@ -16,6 +16,21 @@ export type PortfolioTileModel = {
 };
 
 /**
+ * 히어로의 **다음 배당 D-Day**. 세 조각 전부 이미 포맷된 문자열이다.
+ *
+ * 🔴 이 모델이 `null` 이면 **줄 자체를 그리지 않는다** — 보유가 없거나 날짜를 모를 때 "D-—" 를
+ * 남기면, 있지도 않은 지급을 기다리게 만든다("— 단독 금지"의 연장).
+ */
+export type PortfolioDDayModel = {
+  /** 앞머리 문구. 오늘이 지급 예정일이면 문장 자체가 달라진다. */
+  label: string;
+  /** `D-12` · `D-DAY`. 🔴 **중립 토큰으로 그린다** — 손익색·accent 금지(숫자에 색 금지 규칙). */
+  value: string;
+  /** 그 날 함께 들어오는 종목("SCHD 외 2종"). 요약 타일과 같은 포맷터를 쓴다. */
+  tickers: string;
+};
+
+/**
  * 표의 행 모델은 `HoldingsTable` 이 소유한다(그 컴포넌트가 그리는 계약이므로) — 여기서는 재사용만 한다.
  * 페이지가 컴포넌트 타입을 쓰는 방향(페이지 → 컴포넌트)이라 순환이 생기지 않는다.
  */
@@ -44,6 +59,11 @@ export type PortfolioViewModel = {
   /** B — 보유 0종(로드 완료). 요약·목록 카드를 빈 상태가 **대체**한다(카드 안 카드 금지). */
   showEmptyState: boolean;
   asOfLine: string;
+  /**
+   * 히어로의 다음 배당 D-Day. **`null` 이면 렌더하지 않는다** — 보유 0종·지급일 미상·로딩 중이 전부
+   * 여기서 `null` 로 접힌다(뷰는 존재 여부만 본다).
+   */
+  dDay: PortfolioDDayModel | null;
   /** E·F — 저장소 실패. `role="alert"` 배너 문구. */
   storageError: string | null;
   /** G — 환율 실패. `role="status"` 배너 문구(달러로 계속 쓸 수 있으므로 낭독을 끊지 않는다). */
@@ -111,4 +131,9 @@ export type PortfolioViewProps = {
   onOpenSimulator: () => void;
   /** 목표 카드 기준 안내의 [종목 추가] — 같은 화면의 드로어를 연다(계측 이름만 다르다). */
   onAddHoldingFromGoal: () => void;
+  /**
+   * 가계부(`/ledger`)로 이동. **주지 않으면 진입 카드를 그리지 않는다** — 환경변수가 없어 가계부가
+   * 꺼진 배포에서는 이 슬롯 자체가 비어 있고, 화면에 "준비 중" 같은 흔적도 남지 않는다.
+   */
+  onOpenLedger?: () => void;
 };

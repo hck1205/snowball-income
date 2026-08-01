@@ -2,7 +2,7 @@ import { memo, useId, useMemo, useState } from 'react';
 import { buildScenarioSimSummary } from '@/shared/lib/snowball';
 import { ChevronDownIcon, SimSummaryStats } from '@/components/community';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
-import { usePalettePresetAtomValue } from '@/jotai';
+import { useEffectiveColorScheme, usePalettePresetAtomValue } from '@/jotai';
 import { ResponsiveEChart } from '@/components/common';
 import type { ScenarioPreviewProps } from './ScenarioPreview.types';
 import { buildAllocationSummaryText, buildPreviewNormalizedAllocation, buildPreviewPieOption } from './ScenarioPreview.utils';
@@ -31,13 +31,14 @@ function ScenarioPreviewComponent({ payload }: ScenarioPreviewProps) {
   const headerId = useId();
   const panelId = useId();
 
-  // 캔버스는 CSS 변수를 다시 읽지 않는다 — 팔레트 전환 시 파이 옵션을 다시 빌드하려 구독한다.
+  // 캔버스는 CSS 변수를 다시 읽지 않는다 — 테마 두 축(색 프리셋·밝기) 전환 시 파이 옵션을 다시 빌드하려 둘 다 구독한다.
   const palettePreset = usePalettePresetAtomValue();
+  const colorScheme = useEffectiveColorScheme();
   const summary = useMemo(() => buildScenarioSimSummary(payload), [payload]);
   const normalizedAllocation = useMemo(() => buildPreviewNormalizedAllocation(payload), [payload]);
   const pieOption = useMemo(
     () => (open ? buildPreviewPieOption(normalizedAllocation, summary?.finalMonthlyDividend ?? null) : null),
-    [open, normalizedAllocation, summary, palettePreset]
+    [open, normalizedAllocation, summary, palettePreset, colorScheme]
   );
 
   if (!summary && normalizedAllocation.length === 0) return null;

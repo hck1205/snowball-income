@@ -144,6 +144,24 @@ export const withDerivedTotalReturn = (draft: TickerDraft): TickerDraft => ({
   expectedTotalReturn: toExpectedTotalReturnPercent(draft.dividendYield, draft.dividendGrowth)
 });
 
+/**
+ * "배당률은 넣었는데 지급 주기가 `배당 없음`" 모순 안내.
+ *
+ * 계산은 이미 안전하다 — 주기가 `none` 이면 엔진이 배당을 한 푼도 만들지 않는다
+ * (`SnowballPayout`). 남은 문제는 **사용자가 그 사실을 모른 채 배당률만 보고 기대한다**는 것이다.
+ *
+ * 🔴 선택지를 막지 않는다. 무배당 종목(성장주)을 정직하게 담는 것이 이 옵션의 존재 이유이고,
+ *   배당률 입력칸에 옛 값이 남아 있는 것도 정상적인 편집 중간 상태다. 그래서 **금지가 아니라 고지**다.
+ *
+ * 값이 없으면 `undefined` 를 돌려 줄 자체를 감춘다(NaN = 아직 안 친 상태도 여기 포함된다).
+ */
+export const buildFrequencyMismatchHint = (draft: Pick<TickerDraft, 'dividendYield' | 'frequency'>): string | undefined => {
+  if (draft.frequency !== 'none') return undefined;
+  if (!Number.isFinite(draft.dividendYield) || draft.dividendYield <= 0) return undefined;
+
+  return "배당률이 입력돼 있지만 지급 주기가 '배당 없음'이라 배당이 계산되지 않습니다.";
+};
+
 /** 총수익률 분해 캡션. 값이 아직 비어 있으면 null 을 돌려 캡션을 감춘다. */
 export const toTotalReturnCaption = (draft: TickerDraft): string | null => {
   if (!Number.isFinite(draft.dividendYield) || !Number.isFinite(draft.dividendGrowth)) return null;

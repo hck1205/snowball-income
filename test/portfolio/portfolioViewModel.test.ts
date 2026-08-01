@@ -60,6 +60,7 @@ const buildModel = (
     fx: successFx,
     writeError: null,
     formatUsdAmount,
+    today,
     canSimulate: true,
     simulationExcludedCount: 0,
     calendarTickerCount: items.length,

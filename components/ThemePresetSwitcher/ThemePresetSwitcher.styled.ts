@@ -1,5 +1,16 @@
 import styled from '@emotion/styled';
-import { color, font, media, motion, radius, shadow, space, subtleScrollbar, zIndex } from '@/shared/styles';
+import {
+  color,
+  font,
+  iconSwapIn,
+  media,
+  motion,
+  radius,
+  shadow,
+  space,
+  subtleScrollbar,
+  zIndex
+} from '@/shared/styles';
 
 /**
  * 스와치 점의 실제 색(hex)은 여기에 없다 — 레지스트리(`THEME_PRESETS[..].swatch`) 값을
@@ -175,8 +186,10 @@ export const CheckSlot = styled.span`
   height: 16px;
   color: ${color.brand};
 
+  /* ✓ 는 선택이 옮겨갈 때만 새로 마운트된다 — 그 한 번을 작게·흐리게 시작해 시선을 데려온다. */
   svg {
     width: 16px;
     height: 16px;
+    ${iconSwapIn}
   }
 `;

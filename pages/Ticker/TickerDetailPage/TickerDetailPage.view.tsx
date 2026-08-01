@@ -1,4 +1,5 @@
 import { useCallback, type CSSProperties } from 'react';
+import { SIMULATOR_PATH } from '@/shared/constants/routes';
 import type { ResolvedSection, TickerDetailViewProps } from './TickerDetailPage.types';
 import { useInView, useScrollSpy } from './hooks';
 import { prefersReducedMotion } from './TickerDetailPage.utils';
@@ -145,7 +146,7 @@ export default function TickerDetailView({ viewModel }: TickerDetailViewProps) {
               HTML(server/handlers/TickerHtml)에도 같은 링크가 있어야 하므로 둘을 함께 고쳤다.
               ⚠ 티커 프리필은 아직 배선이 없다 — 시뮬레이터 루트로만 보낸다(별도 승인 사안).
             */}
-            <PrimaryCta to="/">{viewModel.ticker}로 계산해 보기</PrimaryCta>
+            <PrimaryCta to={SIMULATOR_PATH}>{viewModel.ticker}로 계산해 보기</PrimaryCta>
             <SecondaryCta to="/ticker/all">다른 티커 보기</SecondaryCta>
           </CtaRow>
         </HeroReveal>

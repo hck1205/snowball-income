@@ -124,12 +124,14 @@ describe('api/share-html — 성공 경로 (?s= 조회 성공)', () => {
     expect(readMetaContent(html, 'name', 'twitter:image:alt')).toBe(imageAlt);
   });
 
-  it('og:url 은 `?s=<key>` 를, og:image 는 `/api/og?s=<key>` 를 가리킨다', async () => {
+  it('og:url 은 `/simulator?s=<key>` 를, og:image 는 `/api/og?s=<key>` 를 가리킨다', async () => {
     setupSuccess();
 
     const html = await (await handler(apiRequest('/api/share-html', { s: VALID_KEY }))).text();
 
-    expect(readMetaContent(html, 'property', 'og:url')).toBe(`${TEST_ORIGIN}/?s=${VALID_KEY}`);
+    // 🔴 og:url 은 시나리오의 **정본 주소**다 — 루트가 아니라 시뮬레이터 경로.
+    //    (`/` 로 하드코딩된 상태로 되돌아가면 여기서 잡힌다. 상수 대신 리터럴로 적는 이유이기도 하다.)
+    expect(readMetaContent(html, 'property', 'og:url')).toBe(`${TEST_ORIGIN}/simulator?s=${VALID_KEY}`);
     expect(readMetaContent(html, 'property', 'og:image')).toBe(`${TEST_ORIGIN}/api/og?s=${VALID_KEY}`);
     expect(readMetaContent(html, 'name', 'twitter:image')).toBe(`${TEST_ORIGIN}/api/og?s=${VALID_KEY}`);
   });
@@ -272,14 +274,14 @@ describe('api/share-html — 절대 5xx 를 내지 않는다 (전부 200 + no-st
 });
 
 describe('api/share-html — 셸을 못 읽는 극단만 302', () => {
-  it('셸 fetch 가 !ok 면 루트로 302 한다 (5xx 아님)', async () => {
+  it('셸 fetch 가 !ok 면 시뮬레이터로 302 한다 (5xx 아님)', async () => {
     seedSupabaseRestEnv();
     stubFetchRoutes([indexHtmlRoute({ ok: false }), supabaseRpcRoute({ body: envelopeOf(buildScenario()) })]);
 
     const response = await handler(apiRequest('/api/share-html', { s: VALID_KEY }));
 
     expect(response.status).toBe(302);
-    expect(response.headers.get('location')).toBe(`${TEST_ORIGIN}/`);
+    expect(response.headers.get('location')).toBe(`${TEST_ORIGIN}/simulator`);
     expect(response.headers.get('cache-control')).toBe(CACHE_FALLBACK);
   });
 
@@ -290,7 +292,7 @@ describe('api/share-html — 셸을 못 읽는 극단만 302', () => {
     const response = await handler(apiRequest('/api/share-html', { s: VALID_KEY }));
 
     expect(response.status).toBe(302);
-    expect(response.headers.get('location')).toBe(`${TEST_ORIGIN}/`);
+    expect(response.headers.get('location')).toBe(`${TEST_ORIGIN}/simulator`);
   });
 
   it('셸은 자기 오리진에서 가져온다 (middleware matcher 재진입 없는 /index.html)', async () => {

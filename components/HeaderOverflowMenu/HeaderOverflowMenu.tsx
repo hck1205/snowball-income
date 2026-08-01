@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
-import { Check, ChevronDown, Download, FileText, GraduationCap, Loader2, MoreHorizontal, Palette } from 'lucide-react';
+import { Check, Download, FileText, GraduationCap, Loader2, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/common';
 import { isTourSeen } from '@/components/TourGuide';
-import ThemePresetSwitcher from '@/components/ThemePresetSwitcher';
 import { TOUR_STORAGE_KEY } from '@/shared/constants';
 import { useSetTourLaunchRequestWrite } from '@/jotai';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
@@ -16,10 +15,7 @@ import {
   MenuLiveStatus,
   MenuRoot,
   MenuSpinner,
-  NewDot,
-  ThemeCaret,
-  ThemeMenuLabel,
-  ThemePanel
+  NewDot
 } from './HeaderOverflowMenu.styled';
 import { detectInstallPlatform, isRunningStandalone } from './HeaderOverflowMenu.utils';
 import type { BeforeInstallPromptEvent, HeaderOverflowMenuProps, InstallPlatform } from './HeaderOverflowMenu.types';
@@ -35,9 +31,12 @@ export type { HeaderOverflowMenuPdfReport, HeaderOverflowMenuProps } from './Hea
  *       · `beforeinstallprompt`가 잡혀 있으면(Chrome/Edge) 네이티브 설치 프롬프트를 띄운다.
  *       · 아니면(iOS Safari·Firefox·미지원 데스크톱) 플랫폼별 **수동 설치 가이드 모달**을 연다.
  *       · 이미 설치(standalone)면 "설치됨"으로 비활성 표시한다.
- *   - **테마**: 디스클로저(aria-expanded/controls)를 누르면 `ThemePresetSwitcher variant="menu"`의
- *       radiogroup을 메뉴 안에서 인라인으로 편다. 선택해도 메뉴가 닫히지 않아 프리셋을 비교/전환할 수 있다.
- *       (테마 접근점은 로그인·커뮤니티 여부와 무관하게 항상 노출되는 이 메뉴에만 둔다.)
+ *
+ * ⚠ **테마는 여기 없다.** 2026-07-31 이전에는 `⋯` → "테마" → 패널로 두 단계 아래에 있었는데,
+ * 진입점이 라벨 없는 아이콘이라 프리셋을 직접 비교하려는 사용자가 도달하지 못했다. 지금 헤더
+ * 오른쪽에 상시 있는 것은 **화면 밝기 토글**(`ColorSchemeToggle`) 하나이고, 색 프리셋 선택은
+ * 2026-08-01 사용자 결정으로 화면에서 감춰졌다(`VISIBLE_PALETTE_PRESET_IDS`).
+ * 어느 쪽이든 **여기로 되돌리지 마라** — 진입점을 둘로 두면 같은 기능이 두 곳에서 갈린다.
  *
  * 첫 방문 유도 점은 `showTutorial && !hasSeenTour`일 때 트리거 모서리에 걸어, 신규 사용자가 튜토리얼을 발견하게 한다.
  * 드롭다운 개폐/포커스 관리는 AuthControl 드롭다운과 같은 메커니즘(바깥 pointerdown·Esc, role=menu)을 따른다.
@@ -50,7 +49,6 @@ export default function HeaderOverflowMenu({
   const bumpTourLaunch = useSetTourLaunchRequestWrite();
 
   const [open, setOpen] = useState(false);
-  const [themeOpen, setThemeOpen] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isStandalone, setIsStandalone] = useState(false);
   const [hasSeenTour, setHasSeenTour] = useState(true);
@@ -62,14 +60,8 @@ export default function HeaderOverflowMenu({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const guideCloseRef = useRef<HTMLButtonElement>(null);
   const menuId = useId();
-  const themePanelId = useId();
   const guideTitleId = useId();
   const pdfCaptionId = useId();
-
-  // 메뉴가 닫히면 테마 펼침도 접는다 — 다시 열 때 항상 접힌 상태로 시작한다.
-  useEffect(() => {
-    if (!open) setThemeOpen(false);
-  }, [open]);
 
   // 첫 페인트 이후에 읽는다 — 초기 state로 localStorage/matchMedia를 읽으면 하이드레이션 불일치 위험이 있다.
   // 튜토리얼을 숨긴 표면(showTutorial=false)에선 유도 점 자체가 없으므로 seen 여부를 읽지 않는다.
@@ -250,26 +242,6 @@ export default function HeaderOverflowMenu({
               앱 설치
             </MenuItem>
           )}
-          <MenuItem
-            type="button"
-            role="menuitem"
-            aria-haspopup="true"
-            aria-expanded={themeOpen}
-            aria-controls={themeOpen ? themePanelId : undefined}
-            onClick={() => setThemeOpen((prev) => !prev)}
-          >
-            <Palette size={16} strokeWidth={1.8} aria-hidden focusable={false} />
-            <ThemeMenuLabel>테마</ThemeMenuLabel>
-            <ThemeCaret open={themeOpen} aria-hidden="true">
-              <ChevronDown size={16} strokeWidth={1.8} focusable={false} />
-            </ThemeCaret>
-          </MenuItem>
-          {themeOpen ? (
-            <ThemePanel id={themePanelId}>
-              {/* 컴포넌트 자체 로직 재사용 — 메뉴 임베드 전용 변형(팝오버/드로어 래퍼·미디어 숨김 없음). */}
-              <ThemePresetSwitcher variant="menu" />
-            </ThemePanel>
-          ) : null}
         </Menu>
       ) : null}
 

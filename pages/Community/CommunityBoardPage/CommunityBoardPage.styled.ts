@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, media, radius, space } from '@/shared/styles';
+import { color, font, media, motion, radius, space } from '@/shared/styles';
 
 /** 게시판 헤더 — 제목/설명(좌) + 글쓰기 CTA(우). */
 export const BoardHeader = styled.div`
@@ -76,6 +76,26 @@ export const Spinner = styled.span`
       transform: rotate(360deg);
     }
   }
+
+  @keyframes board-busy-pulse {
+    50% {
+      opacity: 0.35;
+    }
+  }
+
+  /*
+   * 전역 리셋(globalStyles)이 'animation-duration: 0.01ms' 와 'animation-iteration-count: 1' 을
+   * '!important' 로 걸어 이 링을 **첫 프레임에서 얼려 버린다.** 멈춘 링은 "더 불러오는 중"이 아니라
+   * "여기서 끝"으로 읽힌다 — 로딩 표시가 정지 아이콘으로 굳으면 그건 거짓 상태다.
+   * 회전이 아니라 불투명도 펄스로 되찾는다(전정계 안전, CloudSyncIndicator 와 같은 처방).
+   * 옆 라벨('loadingMore')이 접근명 역할을 이미 하고 있어 색·모션이 유일한 채널은 아니다.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    animation-name: board-busy-pulse;
+    animation-timing-function: ${motion.ease};
+    animation-duration: 1.4s !important;
+    animation-iteration-count: infinite !important;
+  }
 `;
 
 export const InlineRetry = styled.button`
@@ -121,6 +141,15 @@ const shimmer = `
   @keyframes board-shimmer {
     0% { background-position: 100% 0; }
     100% { background-position: -100% 0; }
+  }
+
+  /*
+   * 스켈레톤은 **정지가 정답**이다(스피너와 반대). 스켈레톤이 말하는 것은 "이 자리에 올 값이 아직
+   * 없다"이고 그건 회색 막대의 *모양*이 통째로 말한다 — 되찾을 신호가 없으니 되찾지 않는다.
+   * 다만 전역 리셋이 남기는 "0.01ms 1회" 잔상 대신 명시적으로 끈다(선례 ExchangeRateWidget).
+   */
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
   }
 `;
 

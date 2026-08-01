@@ -10,7 +10,7 @@ import {
 } from '@/shared/constants/community';
 import { Button } from '@/components/common';
 import { AlertIcon, CloseIcon, FilterIcon } from '@/components/community/CommunityIcons';
-import type { FilterDraft, PrecisionSearchProps } from './PrecisionSearch.types';
+import type { FilterDraft } from './PrecisionSearch.types';
 import {
   draftToFilters,
   EMPTY_DRAFT,
@@ -37,8 +37,7 @@ import {
   RangeRow,
   RangeSep,
   RangeUnit,
-  Suffix,
-  TriggerLabel
+  Suffix
 } from './PrecisionSearch.styled';
 
 const g = COMMUNITY_COPY.gallery;
@@ -50,8 +49,10 @@ const g = COMMUNITY_COPY.gallery;
  * 2단계 커밋: 패널은 로컬 드래프트를 들고, "적용"이 드래프트→URL로 커밋한다(매 키입력 리페치 회피).
  * "초기화"는 필터 파라미터만 지우고 정렬·텍스트검색(sort/q/qf)은 보존한다.
  * 팝오버는 비모달(포커스 트랩 없음) — Esc·바깥클릭·Tab-out으로 닫는다(ThemePresetSwitcher 계약 재사용).
+ *
+ * 자리는 갤러리 본문 툴바의 검색 줄 오른쪽 끝이다(2026-07-31 이전에는 헤더 안이었다).
  */
-export default function PrecisionSearch({ layout = 'popover' }: PrecisionSearchProps) {
+export default function PrecisionSearch() {
   const [searchParams, setSearchParams] = useSearchParams();
   const committed = parseGalleryFilters(searchParams);
   const activeCount = countActiveFilters(committed);
@@ -134,12 +135,11 @@ export default function PrecisionSearch({ layout = 'popover' }: PrecisionSearchP
     activeCount > 0 ? `${g.filterTriggerAria}, ${g.filterActiveCountAria(activeCount)}` : g.filterTriggerAria;
 
   return (
-    <FilterRoot ref={rootRef} layout={layout} onKeyDown={handleKeyDown} onBlur={handleBlur}>
+    <FilterRoot ref={rootRef} onKeyDown={handleKeyDown} onBlur={handleBlur}>
       <FilterTrigger
         ref={triggerRef}
         type="button"
         active={activeCount > 0}
-        block={layout === 'inline'}
         aria-label={triggerAria}
         aria-haspopup="dialog"
         aria-expanded={open}
@@ -147,12 +147,11 @@ export default function PrecisionSearch({ layout = 'popover' }: PrecisionSearchP
         onClick={() => setOpen((prev) => !prev)}
       >
         <FilterIcon size={16} strokeWidth={1.8} />
-        {layout === 'inline' ? <TriggerLabel>{g.filterTitle}</TriggerLabel> : null}
         {activeCount > 0 ? <Badge aria-hidden="true">{activeCount}</Badge> : null}
       </FilterTrigger>
 
       {open ? (
-        <Panel layout={layout} role="dialog" aria-modal="false" aria-labelledby={titleId} id={panelId}>
+        <Panel role="dialog" aria-modal="false" aria-labelledby={titleId} id={panelId}>
           <PanelHeader>
             <PanelTitle id={titleId}>{g.filterTitle}</PanelTitle>
             <Button variant="ghost" size="sm" iconOnly aria-label={g.filterClose} onClick={() => setOpen(false)}>

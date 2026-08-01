@@ -7,6 +7,7 @@ import {
   decodeCompactPortfolio,
   decodeFrequency,
   decodeSharedScenario,
+  decodeSharedScenarioResult,
   decodeVisibleYearlySeriesMask,
   encodeFrequency,
   encodeSharedScenario,
@@ -614,5 +615,65 @@ describe('decodeSharedScenario 방어', () => {
     expect(decodeSharedScenario(compressToEncodedURIComponent(JSON.stringify({ v: 99, p: { t: [] } })))).toBeNull();
     expect(decodeSharedScenario(compressToEncodedURIComponent(JSON.stringify({ v: 3, p: { t: [] } })))).toBeNull();
     expect(decodeSharedScenario(compressToEncodedURIComponent(JSON.stringify([1, 2, 3])))).toBeNull();
+  });
+
+  /**
+   * 🔴 위 케이스들은 **전부 lz-string 이 조용히 null 을 돌려주는 입력**이라, 디코더가 던지는지
+   * 아닌지에 대해 아무것도 증명하지 못했다(감도 0). 아래가 진짜 던지던 입력이다:
+   * lz-string 1.5.0 은 사전 밖 문자를 만나면 내부에서 `undefined.charAt` 을 호출해 TypeError 를 낸다.
+   * 잘린 공유 링크 하나가 앱 전체를 라우터 에러 화면으로 바꾸던 실제 사고 재현이다(`/?share=zz`).
+   */
+  it('lz-string 이 던지는 코드에도 던지지 않고 null 을 돌려준다', () => {
+    const throwing = ['zz', 'z', 'zzz', 'ㅁㄴㅇㄹ', '￿￿'];
+    throwing.forEach((code) => {
+      expect(() => decodeSharedScenario(code)).not.toThrow();
+      expect(decodeSharedScenario(code)).toBeNull();
+    });
+  });
+
+  it('유효한 코드를 잘라 보내거나 뒤에 쓰레기를 붙여도 던지지 않는다(메신저·손복사 사고)', () => {
+    const valid = encodeSharedScenario(buildScenario());
+
+    // 앞 절반만 도착(메신저가 URL 끝을 자른 경우) — 길이별로 훑어 어느 절단에서도 안 죽는지 본다.
+    for (let length = 1; length < valid.length; length += 1) {
+      const truncated = valid.slice(0, length);
+      expect(() => decodeSharedScenario(truncated)).not.toThrow();
+    }
+
+    // 뒤에 쓰레기가 붙은 경우(주소 뒤에 텍스트가 이어 붙은 붙여넣기).
+    // lz-string 은 EOF 마커에서 멈추므로 **꼬리를 무시하고 정상 복원한다**(실측) — 실패가 아니다.
+    ['zzzz', ' 안녕하세요', '...', '%%%'].forEach((tail) => {
+      expect(() => decodeSharedScenario(`${valid}${tail}`)).not.toThrow();
+      expect(decodeSharedScenario(`${valid}${tail}`)?.portfolio.tickerProfiles).toHaveLength(2);
+    });
+
+    // 🔴 회귀 방어: 방어를 넣어도 **정상 링크는 그대로 열려야 한다**.
+    expect(decodeSharedScenario(valid)?.portfolio.tickerProfiles).toHaveLength(2);
+  });
+
+  it('실패 사유를 문자열 손상(malformed) ↔ 스키마 불일치(unsupported)로 구분한다', () => {
+    // ① 문자열 단계에서 실패 — 던지는 값도, 조용히 비는 값도 같은 사유로 모인다.
+    expect(decodeSharedScenarioResult('zz')).toEqual({ ok: false, reason: 'malformed' });
+    expect(decodeSharedScenarioResult('')).toEqual({ ok: false, reason: 'malformed' });
+    expect(decodeSharedScenarioResult(compressToEncodedURIComponent('not json'))).toEqual({
+      ok: false,
+      reason: 'malformed'
+    });
+
+    // ② 압축·JSON 은 풀렸지만 우리 봉투가 아님(미래 버전·변조·결손).
+    expect(decodeSharedScenarioResult(compressToEncodedURIComponent(JSON.stringify({ v: 99, p: { t: [] } })))).toEqual({
+      ok: false,
+      reason: 'unsupported'
+    });
+    expect(decodeSharedScenarioResult(compressToEncodedURIComponent(JSON.stringify([1, 2, 3])))).toEqual({
+      ok: false,
+      reason: 'unsupported'
+    });
+
+    // ③ 정상 코드는 ok:true 로 시나리오를 그대로 준다(래퍼와 같은 값).
+    const valid = encodeSharedScenario(buildScenario());
+    const result = decodeSharedScenarioResult(valid);
+    expect(result.ok).toBe(true);
+    expect(result.ok ? result.scenario : null).toEqual(decodeSharedScenario(valid));
   });
 });

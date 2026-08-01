@@ -1,27 +1,27 @@
 import styled from '@emotion/styled';
 import { Link, NavLink } from 'react-router-dom';
-import { color, font, media, radius, shadow, space, subtleScrollbar } from '@/shared/styles';
+import { color, font, media, pageHueMix, radius, shadow, space, subtleScrollbar } from '@/shared/styles';
 
 /**
- * 전역 nav 랜드마크 — 브랜드 링크 + 라우트 링크를 한 줄로. 좁아지면 라벨이 접혀 아이콘만 남는다.
+ * 전역 nav 랜드마크 — 브랜드 링크(+ 선택적으로 라우트 링크)를 한 줄로.
  *
- * 레이아웃 = **3컬럼 그리드 `1fr auto 1fr`**: 브랜드가 1열(좌측 고정), 라우트 링크가 2열(가운데),
- * 3열은 빈 채로 남겨 브랜드/우측 컨트롤의 폭 변화와 무관하게 메뉴가 **헤더 가로폭의 시각적 중앙**에
- * 고정된다(flex + margin auto 방식은 브랜드 폭에 따라 중앙이 흔들린다).
- * 두 헤더 모두 이 nav를 세로 스택(column, align-items:stretch)의 자식으로 두므로 nav가 헤더 폭을
- * 그대로 차지한다 — 그래서 grid 중앙이 곧 헤더 중앙이다.
+ * 앱 헤더(`AppHeader`)는 **브랜드만**(`withLinks={false}`) 넘긴다 — 라우트 링크는 헤더가 자기
+ * 그리드 트랙(`NavSlot`)에 따로 배치하기 때문이다. 그때 이 요소는 워드마크 딱 하나를 감싸는
+ * 껍데기이므로 **자기 콘텐츠 폭만** 차지해야 한다(`$brandOnly`).
  *
- * 좁은 화면(drawer↓)에선 가운데 정렬이 브랜드를 밀어 압박하므로 **기존 flex 흐름으로 폴백**한다.
+ * ⚠ 예전에는 여기가 항상 `1fr auto 1fr` 3컬럼이었고, 브랜드만 있어도 빈 트랙이 자리를 먹어
+ * 101px 워드마크가 **225px** 을 차지했다(실측). 한 줄 헤더에서는 그 124px 이 그대로 메뉴 폭을
+ * 깎는다 — 링크를 함께 그릴 때만 3컬럼을 쓴다.
  */
-export const Nav = styled.nav`
-  display: grid;
+export const Nav = styled.nav<{ $brandOnly?: boolean }>`
+  display: ${({ $brandOnly }) => ($brandOnly ? 'inline-flex' : 'grid')};
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  gap: ${space[3]};
+  gap: ${({ $brandOnly }) => ($brandOnly ? '0' : space[3])};
   min-width: 0;
 
   ${media.down('drawer')} {
-    display: flex;
+    display: ${({ $brandOnly }) => ($brandOnly ? 'inline-flex' : 'flex')};
     align-items: center;
   }
 `;
@@ -140,18 +140,26 @@ export const WordmarkIncome = styled.span`
 `;
 
 /**
- * 2줄째 메뉴 스크롤 컨테이너(nav 랜드마크). 스크롤바는 얇게 두되 없애지 않는다 —
+ * 라우트 메뉴 스크롤 컨테이너(nav 랜드마크). 스크롤바는 얇게 두되 없애지 않는다 —
  * 넘칠 수 있다는 사실 자체가 UI 정보다.
+ *
+ * 상하 여백은 모드에 따라 다르다. **한 줄 헤더(≥1024)에서는 이 패딩이 곧 헤더 높이**라
+ * 포커스 링이 살 최소치(4px)만 둔다. **두 줄(≤1023)에서는** 윗줄 컨트롤·헤더 하단 경계와
+ * 메뉴 줄 사이의 숨통이 필요해 한 단계 넓힌다(사용자 요청 2026-07-25).
+ * 좌우 2px 는 포커스 링이 스크롤 클리핑에 잘리지 않게 하는 최소값 그대로 둔다.
  */
 export const NavScroller = styled.nav`
   width: 100%;
   display: flex;
+  min-width: 0;
   overflow-x: auto;
-  /* 상하 여백 — 윗줄 컨트롤·헤더 하단 경계와 메뉴 줄 사이 숨통(사용자 요청 2026-07-25).
-     좌우 2px 는 포커스 링이 스크롤 클리핑에 잘리지 않게 하는 최소값 그대로 둔다. */
-  padding: ${space[2]} 2px;
+  padding: ${space[1]} 2px;
   -webkit-overflow-scrolling: touch;
   ${subtleScrollbar}
+
+  ${media.down('headerStack')} {
+    padding: ${space[2]} 2px;
+  }
 `;
 
 export const NavItems = styled.div<{ $scrollRow?: boolean }>`
@@ -159,11 +167,17 @@ export const NavItems = styled.div<{ $scrollRow?: boolean }>`
   align-items: center;
   /* 그리드 2열의 정중앙에 놓는다(Nav 주석 참고). drawer↓ flex 폴백에선 무시된다. */
   justify-self: center;
-  /* 라우트 링크 사이를 넉넉히 벌린다(요구사항 — 너무 붙어있지 않게). */
-  gap: ${space[4]};
+  /* 라우트 링크 사이 간격. 한 줄 헤더(≥1024)에서는 브랜드·컨트롤과 같은 줄을 나눠 쓰므로 8px 로
+     좁힌다 — 16px 이면 로그인한 사용자의 1024px 화면에서 메뉴가 곧바로 가로 스크롤로 밀린다(실측).
+     항목 안쪽 패딩(12px)은 그대로라 칩끼리 붙어 보이지는 않는다. */
+  gap: ${space[2]};
   min-width: 0;
 
-  /* 좁은 화면에선 넓은 간격이 브랜드/컨트롤을 밀어내므로 원래 간격으로 되돌린다. */
+  /* 두 줄 모드에서는 메뉴가 줄 전체를 쓰므로 원래의 넉넉한 간격으로 돌아간다. */
+  ${media.down('headerStack')} {
+    gap: ${space[4]};
+  }
+
   ${media.down('drawer')} {
     gap: ${space[3]};
   }
@@ -183,18 +197,40 @@ export const NavItems = styled.div<{ $scrollRow?: boolean }>`
 `;
 
 /**
- * ── 활성 표기 스타일(현재 페이지) — **A안: 브랜드 채움 pill** ────────────────────────────────
+ * 현재 라우트의 색(`--sb-page-hue`)을 헤더 표면 쪽으로 섞은 **장식용 파생값**.
+ * 값·폴백·비율 관례는 `shared/styles/pageHue.ts` 가 소유한다 — 변수가 없는 라우트에서는
+ * 브랜드 색으로 떨어져 현행 그대로 보인다. 55% 는 그 파일이 말하는 "경계" 대역이다.
+ */
+const navPageHueRing = pageHueMix(55);
+
+/**
+ * ── 활성 표기 스타일(현재 페이지) — **A안: 브랜드 채움 pill + 페이지 hue 헤일로** ──────────────
  *
- * 활성 표기를 한 블록에 모아 둔다(다른 안으로 갈아끼울 때 여기만 바꾸면 된다 — 대안 B/C는 핸드오프 참고).
+ * 활성 표기를 한 블록에 모아 둔다(다른 안으로 갈아끼울 때 여기만 바꾸면 된다).
  * A안 = 브랜드 색으로 꽉 채운 pill + 살짝 뜬 그림자. 라벨/아이콘은 반드시 `color.onBrand`
  * (브랜드 채움 위 라벨 규칙 — velog·sunset·ink 다크에서 흰색 하드코딩은 대비가 깨진다).
  * 아이콘은 `currentColor`(lucide 기본)라 색이 자동으로 따라온다.
+ *
+ * **페이지 hue 연동** — 라우트마다 `usePageHue` 가 `--sb-page-hue` 를 문서 루트에 발행한다
+ * (`/`=identity 쿨블루 · 포트폴리오=accentAlt 그린 · 캘린더=accent 틸 · 커뮤니티=brand).
+ * 활성 pill 은 그 색을 **헤일로(링)로만** 읽는다 — 그래서 히어로와 상단 내비가 같은 말을 한다.
+ * 변수가 없는 라우트·아직 안 붙은 화면에서는 `color.brand` 로 떨어져 현행 그대로 보인다.
+ *
+ * 🔴 **왜 채움이 아니라 링인가** — hue 로 pill 을 채우면 그 위 라벨의 대비가 검증 대상 밖으로 나간다.
+ * 특히 `/` 의 identity 채움은 **다크에서 흰 라벨 2.79:1** 이라고 semantic.ts 가 명시적으로 금지한다
+ * (`identity` 채움 위 텍스트 금지). 그래서 텍스트는 대비가 검증된 brand 채움 위에 그대로 두고,
+ * 텍스트가 얹히지 않는 링에만 hue 를 쓴다. 같은 이유로 링 색은 `color-mix` 파생이어도 안전하다
+ * (파생 면 위에는 아무 글자도 없다).
+ *
+ * ⚠ `box-shadow` 를 두 번 선언하는 것은 의도다 — `color-mix` 를 모르는 엔진에서 두 번째 선언이
+ * 통째로 무시되고 첫 줄(그림자만)이 남는다.
  */
 const navItemActiveStyle = `
   background: ${color.brand};
   color: ${color.onBrand};
   font-weight: ${font.weight.bold};
   box-shadow: ${shadow.e1};
+  box-shadow: 0 0 0 2px ${navPageHueRing}, ${shadow.e1};
 `;
 
 /**

@@ -281,6 +281,35 @@
           background: #0d0d0d;
         }
       }
+      /*
+        수동 다크(사용자가 헤더 토글로 고른 상태) — OS가 라이트여도 어둡게 시작한다.
+        위 블록과 값이 같지만 미디어 쿼리 안에 있어 합칠 수 없다. 이게 없으면 다크를 고른
+        사용자가 매번 흰 화면을 한 번 보고 들어온다(이 임계 CSS가 존재하는 이유 그 자체).
+      */
+      html[data-theme='dark'] {
+        background: #121212;
+      }
+      html[data-palette='forest'][data-theme='dark'] {
+        background: #0f1712;
+      }
+      html[data-palette='aurora'][data-theme='dark'] {
+        background: #0a1220;
+      }
+      html[data-palette='vivid'][data-theme='dark'] {
+        background: #101223;
+      }
+      html[data-palette='navy-gold'][data-theme='dark'] {
+        background: #0a0f1e;
+      }
+      html[data-palette='grape'][data-theme='dark'] {
+        background: #171126;
+      }
+      html[data-palette='sunset'][data-theme='dark'] {
+        background: #1e1410;
+      }
+      html[data-palette='ink'][data-theme='dark'] {
+        background: #0d0d0d;
+      }
       .js .app-shell-fallback {
         display: none;
       }
@@ -298,6 +327,15 @@
           if (['velog', 'forest', 'aurora', 'vivid', 'navy-gold', 'grape', 'sunset', 'ink'].indexOf(saved) !== -1) palette = saved;
         } catch (e) {}
         document.documentElement.setAttribute('data-palette', palette);
+      })();
+      // 저장된 화면 밝기(localStorage 'snowball:color-scheme')를 첫 페인트 전에 적용한다.
+      // 값이 없으면(=대부분의 사용자) 어트리뷰트를 붙이지 않는다 — 그 상태가 곧 "OS 설정을 따름"이다.
+      // ⚠ 유효값은 jotai/snowball/atoms/ui 의 ColorSchemePreference 와 동기.
+      (function () {
+        try {
+          var theme = localStorage.getItem('snowball:color-scheme');
+          if (theme === 'light' || theme === 'dark') document.documentElement.setAttribute('data-theme', theme);
+        } catch (e) {}
       })();
     </script>
   </head>

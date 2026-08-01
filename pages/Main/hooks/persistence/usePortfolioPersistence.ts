@@ -24,6 +24,9 @@ import {
   useSetVisibleYearlySeriesWrite,
   useSetWeightByTickerIdWrite,
   useSetYieldFormWrite,
+  useScenarioPrefillAtomValue,
+  useSetScenarioPrefillWrite,
+  useSetShareLinkFailureWrite,
   useShowPortfolioDividendCenterAtomValue,
   useShowQuickEstimateAtomValue,
   useShowSplitGraphsAtomValue,
@@ -45,8 +48,10 @@ import {
   getSupabaseClient
 } from '@/shared/lib/supabase';
 import { ANALYTICS_EVENT, setUserProperties, trackEvent } from '@/shared/lib/analytics';
+import { DEFAULT_PREFILL_PRESET_ID } from '@/pages/Main/utils';
+import { shouldRequestScenarioPrefill } from './scenarioPrefill';
 import { buildScenariosSnapshot, isSameScenarioContent, mergeSharedScenarioIntoTabs } from './scenarioSnapshot';
-import { decodeSharedScenario, encodeSharedScenario, SHARED_SCENARIO_ID, SHARE_LENGTH_LIMIT } from './shareLink';
+import { decodeSharedScenarioResult, encodeSharedScenario, SHARED_SCENARIO_ID, SHARE_LENGTH_LIMIT } from './shareLink';
 import {
   buildDbShareUrl,
   buildShareUrl,
@@ -86,6 +91,17 @@ export const usePortfolioPersistence = () => {
   const visibleYearlySeries = useVisibleYearlySeriesAtomValue();
   const scenarioTabs = useScenarioTabsAtomValue();
   const activeScenarioId = useActiveScenarioIdAtomValue();
+  /**
+   * 첫 방문 기본 시나리오(프리필) 상태. non-null 이면 **아무것도 저장하지 않는다** —
+   * 프리필은 앱이 대신 채운 화면이지 사용자가 만든 데이터가 아니다(아래 autosave effect·buildPayload).
+   */
+  const scenarioPrefill = useScenarioPrefillAtomValue();
+  const setScenarioPrefill = useSetScenarioPrefillWrite();
+  /**
+   * 공유 링크가 열리지 못한 이유를 화면에 넘기는 통로(우패널 `ShareLinkFailureNotice`).
+   * 무음 실패 금지 — 빈 시뮬레이터만 보여주면 "내 시나리오가 사라졌다"로 읽힌다.
+   */
+  const setShareLinkFailure = useSetShareLinkFailureWrite();
 
   const setTickerProfiles = useSetTickerProfilesWrite();
   const setIncludedTickerIds = useSetIncludedTickerIdsWrite();
@@ -126,6 +142,21 @@ export const usePortfolioPersistence = () => {
    * 언마운트 정리에서 이걸 호출해 "취소" 대신 **flush**한다(아래 언마운트 전용 effect).
    */
   const pendingAutosaveFlushRef = useRef<(() => void) | null>(null);
+  /**
+   * 하이드레이션이 실제로 읽어 온 워크스페이스. **프리필이 떠 있는 동안 `buildPayload()` 가 돌려주는 값**이라
+   * 클라우드 세션 동기화·재시도가 "아직 아무 일도 없었다"를 보게 된다(프리필이 클라우드로 새지 않는다).
+   * 프리필이 아닌 평상시에는 쓰이지 않는다.
+   */
+  const hydratedPayloadRef = useRef<PersistedAppStatePayload | null>(null);
+  /**
+   * 프리필 상태의 "의미있는" 직렬화. autosave effect 가 프리필 직후 **1회** 채우고, 이후 매 실행에서
+   * 현재 워크스페이스와 비교한다 — 같으면 저장 없음, 달라지면 그 순간이 **승격**이다
+   * (사용자가 무엇이든 바꿨다는 뜻). 어떤 위젯이 바꿨는지 알 필요가 없어 배선이 흩어지지 않는다.
+   */
+  const prefillSignatureRef = useRef<string | null>(null);
+  /** effect·`buildPayload` 가 최신 프리필 단계를 읽기 위한 거울(렌더 클로저가 아니라 ref 로 본다). */
+  const prefillStatusRef = useRef<'requested' | 'applied' | null>(null);
+  prefillStatusRef.current = scenarioPrefill?.status ?? null;
 
   /**
    * 세션 시작 로컬 autosave를 **1회만** 읽어 하이드레이션과 세션시작 클라우드 sync가 공유하는 캐시.
@@ -167,7 +198,7 @@ export const usePortfolioPersistence = () => {
       investmentSettings: buildInvestmentSettings()
     });
 
-  const buildPayload = (): PersistedAppStatePayload => {
+  const buildLivePayload = (): PersistedAppStatePayload => {
     const currentPortfolio = buildPortfolioState();
     const currentInvestmentSettings = buildInvestmentSettings();
     const { scenarios, activeScenarioId: persistedActiveScenarioId } = buildCurrentScenariosSnapshot();
@@ -179,6 +210,17 @@ export const usePortfolioPersistence = () => {
       activeScenarioId: persistedActiveScenarioId
     };
   };
+
+  /**
+   * 저장·동기화 계층이 보는 워크스페이스.
+   *
+   * 🔴 **프리필이 떠 있는 동안에는 하이드레이션 당시의 워크스페이스를 그대로 돌려준다** — 화면에는
+   * 추천 구성이 계산돼 있지만 저장소·클라우드 입장에서는 아직 아무 일도 없었다. 이 한 지점을
+   * 프리필 인지형으로 만들어 두면 클라우드 세션 동기화(`getCurrentPayload`)·저장 재시도가
+   * 각자 프리필을 따로 걸러 낼 필요가 없다(빠뜨릴 자리를 만들지 않는다).
+   */
+  const buildPayload = (): PersistedAppStatePayload =>
+    (prefillStatusRef.current !== null ? hydratedPayloadRef.current : null) ?? buildLivePayload();
 
   useEffect(() => {
     if (import.meta.env.MODE === 'test') {
@@ -203,6 +245,8 @@ export const usePortfolioPersistence = () => {
           return;
         }
 
+        // 프리필이 켜져 있는 동안 저장·동기화 계층이 보게 될 "저장된 워크스페이스"를 고정한다.
+        hydratedPayloadRef.current = result.payload;
         applyPersistedPayload(result.payload);
         const hasPortfolio = result.payload.scenarios.some((scenario) => scenario.portfolio.tickerProfiles.length > 0);
         if (hasPortfolio) {
@@ -212,6 +256,17 @@ export const usePortfolioPersistence = () => {
           });
           // 재방문 코호트(User Property). 저장된 포트폴리오가 있는 재방문자를 리텐션 분석용으로 태깅(멱등).
           setUserProperties({ is_returning: true, has_saved: true });
+        }
+
+        /*
+         * **첫 방문 기본 시나리오 요청.** 저장된 워크스페이스가 하나도 없을 때만 켠다 —
+         * 복원이 언제나 우선이고, 공유 링크(`?s=`/`?share=`)로 들어온 방문은 곧 그 시나리오가
+         * 적용되므로 프리필이 끼어들면 화면이 두 번 바뀐다.
+         * 여기서는 **어떤 구성을 열지(id)만** 발행하고, 실제 적용은 우패널이 한다(`usePortfolioPrefill`).
+         * 이 순서가 중요하다: 표식이 먼저 켜져 있어야 프리필이 만든 상태 변화가 저장 경로에 닿지 않는다.
+         */
+        if (shouldRequestScenarioPrefill(result.payload, window.location.href)) {
+          setScenarioPrefill({ presetId: DEFAULT_PREFILL_PRESET_ID, status: 'requested' });
         }
       } catch {
         // Keep current defaults/state when hydration fails.
@@ -289,6 +344,40 @@ export const usePortfolioPersistence = () => {
       return;
     }
 
+    /*
+     * 🔴 **프리필은 저장하지 않는다.** 화면에는 추천 구성이 계산돼 있지만 사용자는 아무것도 하지 않았다 —
+     * 여기서 한 번이라도 write 를 걸면 다음 방문에 "내가 만든 적 없는 포트폴리오"가 복원되고,
+     * 로그인 사용자라면 그것이 클라우드로 올라가 다른 기기까지 덮는다.
+     *
+     * 승격 판정은 **어떤 위젯이 바꿨는지가 아니라 워크스페이스가 달라졌는지**로 한다 — 프리필 직후의
+     * 의미있는 직렬화를 1회 기억해 두고, 그것과 달라지는 순간 프리필 표식을 내리고 평소 경로로 돌아간다.
+     * (뷰 토글만 만진 경우는 의미있는 값이 그대로라 여전히 저장하지 않는다 — 저장할 데이터가 없다.)
+     */
+    if (prefillStatusRef.current === 'requested') {
+      // 아직 프리필이 화면에 붙기 전이다. 저장도 하지 않고 **기준도 잡지 않는다** —
+      // 여기서 기준을 잡으면 비어 있던 상태가 기준이 되어, 프리필이 붙는 순간을 사용자 편집으로 오인한다.
+      pendingAutosaveFlushRef.current = null;
+      return;
+    }
+
+    if (prefillStatusRef.current === 'applied') {
+      const liveSignature = serializeMeaningfulPayload(buildLivePayload());
+      if (prefillSignatureRef.current === null) prefillSignatureRef.current = liveSignature;
+
+      if (prefillSignatureRef.current === liveSignature) {
+        // 대기 중이던 flush 도 비운다 — 언마운트 flush 가 이 가드를 우회하면 안 된다.
+        pendingAutosaveFlushRef.current = null;
+        return;
+      }
+
+      // 사용자가 무언가를 바꿨다 → 이제부터 평범한 워크스페이스다(배너도 함께 사라진다).
+      // ref 를 **먼저** 내린다: 아래 `save` 는 120ms 뒤에 돌면서 `buildPayload()` 로 ref 를 다시 읽는데,
+      // atom 쓰기가 반영되기 전이면 얼어붙은(비어 있던) payload 를 저장해 방금의 편집을 날린다.
+      prefillStatusRef.current = null;
+      prefillSignatureRef.current = null;
+      setScenarioPrefill(null);
+    }
+
     const save = ({ isUnmountFlush }: { isUnmountFlush: boolean }) => {
       pendingAutosaveFlushRef.current = null;
 
@@ -346,6 +435,10 @@ export const usePortfolioPersistence = () => {
     values.taxRate,
     scenarioTabs,
     activeScenarioId,
+    // 프리필 단계 전이(requested→applied→null)도 이 effect 를 다시 돌려야 한다 — 프리필이
+    // 중단된 경우(적용 대상 없음)엔 다른 의존성이 하나도 안 바뀌어 저장이 영영 잠긴 채로 남는다.
+    scenarioPrefill,
+    setScenarioPrefill,
     weightByTickerId
   ]);
 
@@ -502,6 +595,7 @@ export const usePortfolioPersistence = () => {
               operation: 'apply_share_link',
               reason: 'db_snapshot_missing'
             });
+            setShareLinkFailure('unavailable');
             cleanupQuery();
             return;
           }
@@ -514,6 +608,7 @@ export const usePortfolioPersistence = () => {
             operation: 'apply_share_link',
             reason: 'db_fetch_failed'
           });
+          setShareLinkFailure('unavailable');
           cleanupQuery();
         }
       };
@@ -525,17 +620,21 @@ export const usePortfolioPersistence = () => {
     }
 
     // 2) 구 lz-string 경로(?share=) — 동기 디코드. 신규 포맷이 없을 때만 탄다.
+    //    디코더는 던지지 않는다(잘린 링크 하나가 앱 전체를 라우터 에러 화면으로 바꾸던 자리다).
+    //    실패는 값으로 오고, 계측 라벨만 원인별로 갈린다: 문자열이 깨짐(decode_failed, 기존 라벨 유지)
+    //    vs 풀리긴 했으나 우리 스키마가 아님(schema_mismatch).
     if (shareCode) {
-      const sharedScenario = decodeSharedScenario(shareCode);
-      if (!sharedScenario) {
+      const decoded = decodeSharedScenarioResult(shareCode);
+      if (!decoded.ok) {
         trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
           operation: 'apply_share_link',
-          reason: 'decode_failed'
+          reason: decoded.reason === 'malformed' ? 'decode_failed' : 'schema_mismatch'
         });
+        setShareLinkFailure('invalid');
         cleanupQuery();
         return;
       }
-      applySharedScenario(sharedScenario);
+      applySharedScenario(decoded.scenario);
       cleanupQuery();
     }
 

@@ -6,15 +6,20 @@ import { useSetActiveHelpWrite } from '@/jotai';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import { TOUR_TARGET } from '@/shared/constants';
 import type { ResultSummaryCardProps } from './ResultSummaryCard.types';
-import { findTargetReachYearIndex } from './ResultSummaryCard.utils';
+import { findTargetReachYearIndex, useGoalReachCelebration } from './ResultSummaryCard.utils';
 import { HeroSlot, SummaryGrid } from './ResultSummaryCard.styled';
 
 /**
  * 결과 요약 카드 — 화면 첫 숫자.
  *
- * 카드 **제목이 없다**(`title`/`titleRight` 미전달 → `Card` 가 헤더 자체를 안 그린다). hero 숫자가
+ * 이 화면의 **주역 카드**(`tone="raised"`) — 시뮬레이터에서 유일하다. 나머지 결과 카드는 전부
+ * 본문(`default`)이고 "전량 매도한다면"만 부속(`sunken`)이다. 라이트에서는 그림자가, 다크에서는
+ * 밝은 면(`surfaceRaised`)이 그 격을 만든다.
+ *
+ * 카드 **제목이 없다**(`title` 미전달 — `titleRight` 만 있어 헤더는 토글만 그린다). hero 숫자가
  * 카드의 첫 요소가 되어야 하기 때문이고, 구 제목이 말하던 "간편/정밀"은 아래 조건 스트립의
- * 마지막 항목이 대신 말한다.
+ * 마지막 항목이 대신 말한다. 결과 영역에서 **제목 없는 카드는 이 하나뿐**이라 예외가 아니라
+ * 규칙으로 읽힌다 — 주역만 제목을 생략하고, 그 자리를 뜬 면이 대신 말한다.
  *
  * 목표는 여기서 **지표 한 칸**으로만 말한다. 도달 서사·진행률은 내 포트폴리오
  * (`/dividend/portfolio`)의 목표 달성 카드가 맡는다 — 같은 이야기를 두 화면이 하지 않는다.
@@ -51,11 +56,17 @@ function ResultSummaryCardComponent({
   const hasTarget = targetMonthlyDividend > 0;
   /* 도달 연도가 투자 몇 년차인지 — 목표 타일 hint용 표시 파생값(엔진 재계산 없음). */
   const yearsToReach = findTargetReachYearIndex(simulation.yearly, summary.targetMonthDividendReachedYear);
+  /*
+   * 목표 달성 = 목표를 세웠고(hasTarget) 도달 연도가 나왔을 때. 엔진 결과를 읽기만 한다.
+   * `isCelebrating` 은 **세션 중 미달성 → 달성으로 넘어간 그 한 번**만 참이다(리렌더로 재생 안 됨).
+   */
+  const isTargetReached = hasTarget && summary.targetMonthDividendReachedYear !== undefined;
+  const isCelebrating = useGoalReachCelebration(isTargetReached);
 
   return (
     /* 제목은 없고 우측 상단 토글만 있는 헤더 — `Card` 는 `titleRight` 만으로도 헤더를 그린다.
        hero 숫자가 곧 제목 역할을 하므로 글자 제목을 더하지 않는다(기존 결정 유지). */
-    <Card dataTour={TOUR_TARGET.simulationResult} titleRight={densityToggle}>
+    <Card tone="raised" dataTour={TOUR_TARGET.simulationResult} titleRight={densityToggle}>
       {showQuickEstimate ? (
         <SummaryGrid>
           <HeroSlot>
@@ -119,6 +130,19 @@ function ResultSummaryCardComponent({
                 : '목표 월배당'
             }
             value={hasTarget ? targetYearLabel(summary.targetMonthDividendReachedYear) : '미설정'}
+            /*
+             * 달성 순간의 유일한 연출. 색은 **타일 면과 체크 글리프만** 바뀌고 도달 연도 숫자는
+             * 계속 중립이다(숫자에 상태색 금지). 접근명이 붙어 색·모션 없이도 읽힌다.
+             */
+            status={isTargetReached ? 'success' : undefined}
+            /*
+             * 접근명이 **"달성"**(앞에 "목표"를 붙이지 않음)인 이유: 이 카드에는 "목표"라는 이름을
+             * 가진 그래픽이 존재하면 안 된다는 부재 계약이 있다(구 원형 게이지가 여기로 되살아나는
+             * 것을 막는 가드 — test/snowball/simulationResultTargetNarrativeRemoved.test.tsx).
+             * 낭독 순서상 바로 뒤에 "목표 월배당 도달 (…)" 라벨이 오므로 문맥은 온전하다.
+             */
+            statusLabel="달성"
+            statusEnter={isCelebrating}
             /*
              * "몇 년 뒤"는 값이 아니라 hint로 붙인다 — 값(TileValue)은 nowrap+ellipsis라
              * "2028년 (투자 3년차)"를 넣으면 잘린다.

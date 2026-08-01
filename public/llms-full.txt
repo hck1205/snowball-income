@@ -3,8 +3,9 @@
 ## Product Definition
 Snowball Income is a Korean-language, browser-only dividend-reinvestment simulator ("스노우볼" = snowball).
 Users describe a dividend portfolio and investment plan; the app projects long-term asset value and dividend
-cashflow, and reports when a target monthly dividend would be reached. There is no backend, no account, and no
-personal data collection — every calculation runs client-side.
+cashflow, and reports when a target monthly dividend would be reached. Every calculation runs client-side and
+inputs are stored on the device (IndexedDB) by default; no account is needed to use the calculator. Optional
+features (social sign-in, community posts, cloud save, server-backed share links) do store data on a server.
 
 It is a deterministic calculator over user-supplied assumptions. It is not a forecast, not a guarantee of returns,
 and not investment, tax, or legal advice.

@@ -6,6 +6,8 @@ import {
   heroTitleFontSize,
   iconOpticalAlign,
   media,
+  pageHue,
+  pageHueMix,
   radius,
   space
 } from '@/shared/styles';
@@ -26,42 +28,52 @@ const HERO_PADDING = 'clamp(20px, 3vw, 32px)';
  * 페이지 첫 화면. 전 페이지가 **같은 자리에서 같은 것**(무엇을 하는 화면인가 → 근거 → 액션)을 말하게 해
  * 사용자가 화면을 옮길 때 "어디를 봐야 하는지"를 다시 배우지 않게 한다.
  *
- * 상단 4px 리본은 두지 않는다 — 그라디언트 배경 자체가 이미 시그니처라 장식이 겹친다.
+ * ✅ **히어로는 이제 이 한 벌뿐이다(2026-07-31 수렴).** 구 페이지 로컬 히어로 2벌
+ * (`pages/Portfolio/PortfolioPage` · `pages/DividendCalendar/DividendCalendarPage` 이 각자 갖고 있던
+ * `PageHero`/`HeroTitleRow`/`HeroIconBadge`/`HeroTitle`/`HeroLede`/`AsOfLine`)은 이 컴포넌트로
+ * 흡수됐다 — 캘린더의 `HeroDisclaimer`(`role="note"`)는 아래 `HeroNotice` = `notice` 슬롯이 받는다.
+ * **다시 복제하지 마라**: 같은 심볼명을 export 하는 로컬 히어로는 import 경로로만 구분돼
+ * 심볼명 grep 이 여러 벌을 한꺼번에 잡는다(그게 3벌이 오래 살아남은 이유였다).
  *
- * ⚠ **이 파일은 지금 "3벌째 히어로"다(2026-07-28 시점).** 같은 구조의 **페이지 로컬 히어로가 2벌 더
- *   살아 있다**:
- *     - `pages/Portfolio/PortfolioPage/PortfolioPage.styled.ts:17-31`
- *     - `pages/DividendCalendar/DividendCalendarPage/DividendCalendarPage.styled.ts:10-24`
- *   셋 다 `PageHero`·`HeroTitleRow`·`HeroIconBadge`·`HeroTitle`·`HeroLede` 라는 **같은 심볼명**을
- *   export 한다 — **import 경로로만 구분된다**. 심볼명으로 grep 하면 세 벌이 한꺼번에 걸린다.
+ * ── 페이지 정체성 hue ──────────────────────────────────────────────────────────
+ * 이전에는 세 화면의 히어로가 **같은 배경·같은 테두리**라 탭을 옮겨도 화면이 바뀐 느낌이 없었다.
+ * 이제 히어로 크롬은 라우트가 발행하는 `--sb-page-hue`(`shared/hooks/usePageHue`)를 읽는다:
+ * **①상단 4px 리본 ②아이콘 배지 ③메타 줄 밑줄 ④테두리** 네 곳. 배경(`gradientHero`)은 전 페이지
+ * 공통으로 남겨 "같은 앱"을 유지하고, 색만 페이지마다 갈린다.
  *
- *   **시각이 갈린다**: 공용(이 파일) = `gradientHero` 배경 + 상단 리본 없음 /
- *   로컬 2벌 = `brandSubtle` 배경 + `::before` 4px `gradientAurora` 리본.
- *   이관 전까지 시뮬레이터와 나머지 두 화면의 **첫인상이 다르다**(알려진 상태, 버그 아님).
- *
- *   단 **제목 크기와 아이콘 세로 정렬만은 3벌이 공유**한다(`shared/styles/heroTitleRow.ts`) —
- *   여기서 갈리면 화면을 옮길 때마다 같은 요소가 다른 위치에 있는 것으로 보인다.
- *
- *   **지금 이관하지 마라 — 10단계(전면 페이지 리모델링) 소관이다.**
- *   이관 설계 힌트: 캘린더의 `HeroDisclaimer`(`DividendCalendarPage.styled.ts:69`, `role="note"`)는
- *   **`notice?: ReactNode` 옵셔널 슬롯 1개**로 흡수 가능하다(2026-07-28 리뷰 판정) — 로컬 히어로를
- *   남겨둘 이유로 쓰지 마라.
+ * 🔴 **hue 파생 면 위에 텍스트를 얹지 마라** — `color-mix` 결과는 대비 테스트가 못 보는 값이다.
+ *    제목·리드·메타는 전부 검증된 토큰 면(히어로 배경) 위의 `text`/`text-secondary` 다.
+ * 🔴 **hue 를 배지에 *솔리드*로 채우지 않는 이유**: hue 4종은 라이트/다크에서 명암이 **반대로**
+ *    간다(라이트 accent-alt `#26a14f` vs 다크 `#6ee7a0`). 흰 글리프를 얹으면 다크에서 1.3:1 로
+ *    사라진다. 그래서 "옅은 틴트 면 + hue 글리프" — 티커 상세의 `--tk-soft`/`--tk-text` 와 같은 처방.
  */
 export const HeroRoot = styled.header<{ $tone: PageHeroTone }>`
   display: grid;
   gap: ${space[3]};
   /* 좁은 폭에서 titleAction 이 흐름에서 빠져 제목 줄 오른쪽에 붙는다 — 그 좌표 기준. */
   position: relative;
+  /* 상단 리본이 둥근 모서리를 넘지 않게 자른다. position:fixed 자손(스티키 액션)은
+     transform 조상이 없으므로 이 클리핑에 걸리지 않는다(2026-07-31 실측으로 확인). */
+  overflow: hidden;
   padding: ${HERO_PADDING};
   /*
-   * 테두리도 아이콘 배지와 **같은 축**이다(아래 HeroIconBadge 주석: "브랜드는 장식에서 물러난다").
-   * 배지만 accent 이고 테두리는 brand 였을 때 같은 카드 안에서 두 축이 어긋나 보였다 —
-   * 히어로는 누를 수 없는 표면이므로 크롬 전체를 accent 로 통일한다.
+   * 테두리도 리본·배지와 **같은 축**(페이지 hue)이다. 예전에는 accent 고정이라 어느 화면에서나
+   * 같은 색이었고, 그래서 "탭을 옮겨도 같은 화면"으로 읽혔다. 경계는 텍스트가 아니므로
+   * hue 파생(color-mix)을 써도 대비 계약을 건드리지 않는다.
    */
-  border: 1px solid ${color.accentBorder};
+  border: 1px solid ${pageHueMix(38, 'transparent')};
   border-radius: ${radius.xl};
   background: ${({ $tone }) => ($tone === 'gradient' ? color.gradientHero : color.surface)};
   min-width: 0;
+
+  /* 페이지 얼굴색을 가장 크게 말하는 자리. 4px 은 구 로컬 히어로의 오로라 리본과 같은 두께다. */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 4px;
+    background: ${pageHue};
+  }
 `;
 
 export const HeroTitleRow = styled.div`
@@ -124,7 +136,8 @@ export const HeroTitleAction = styled.div`
 `;
 
 /**
- * 장식 배지. 브랜드 블루는 인터랙션(누를 수 있는 것)의 축이라 장식에서는 물러나고 accent 계열을 쓴다.
+ * 장식 배지. 페이지 hue 를 입는 세 자리 중 하나다 — 글리프는 `aria-hidden` 이라 **비텍스트**이고,
+ * 그래서 hue 파생 면을 써도 된다(위 HeroRoot 주석의 두 번째 🔴 참고).
  */
 export const HeroIconBadge = styled.span`
   display: inline-flex;
@@ -133,9 +146,9 @@ export const HeroIconBadge = styled.span`
   width: 36px;
   height: 36px;
   border-radius: ${radius.md};
-  background: ${color.surface};
-  border: 1px solid ${color.accentBorder};
-  color: ${color.accentText};
+  background: ${pageHueMix(14)};
+  border: 1px solid ${pageHueMix(38, 'transparent')};
+  color: ${pageHue};
   ${heroIconOpticalAlign}
 `;
 
@@ -166,15 +179,29 @@ export const HeroActions = styled.div`
   display: flex;
   align-items: center;
   gap: ${space[2]};
-  /* 넓은 폭에서는 제목과 같은 줄에 서므로 제목의 잉크 중심에 맞춘다(위 HeroTitleAction 과 같은 이유). */
-  ${iconOpticalAlign('display', heroTitleFontSize)}
+  flex: 0 0 auto;
+
+  /*
+   * 넓은 폭에서는 제목과 같은 줄에 서므로 제목의 잉크 중심에 맞춘다(위 HeroTitleAction 과 같은 이유).
+   *
+   * 🔴 보정 transform 은 **자식에게** 건다 — 이 박스 자신에 걸면 그 순간 이 요소가
+   * position:fixed 자손의 **컨테이닝 블록**이 된다(CSS Transforms L1, 이 레포의 backdrop-filter
+   * 함정과 같은 부류). 시뮬레이터 히어로의 "투자 설정" 버튼은 스크롤 시 fixed 로 승격돼 헤더 아래에
+   * 붙는데(useStickyHeroAction), 그 좌표가 뷰포트가 아니라 이 박스 기준이 되어 **화면 밖**으로
+   * 나가 있었다(2026-07-31 실측 @1280: 버튼 left 2043px, 문서 가로폭 2149px — 스크롤한 상태에서만
+   * 드러나는 가로 오버플로였다). 자식으로 옮기면 보이는 결과는 같고(모든 자식이 같은 만큼 올라간다)
+   * 컨테이닝 블록만 사라진다.
+   */
+  > * {
+    ${iconOpticalAlign('display', heroTitleFontSize)}
+  }
 
   ${media.down('mobileWide')} {
     width: 100%;
-    /* 제목 아래로 내려가 전폭을 쓰는 구간 — 더 이상 제목 줄이 아니므로 보정을 되돌린다. */
-    transform: none;
 
     > * {
+      /* 제목 아래로 내려가 전폭을 쓰는 구간 — 더 이상 제목 줄이 아니므로 보정을 되돌린다. */
+      transform: none;
       flex: 1 1 auto;
       justify-content: center;
     }
@@ -189,9 +216,33 @@ export const HeroLede = styled.p`
   color: ${color.textSecondary};
 `;
 
-/** 계산의 근거(기준일·환율). 숫자가 섞이므로 데이터 서체 + 자릿수 정렬. */
+/**
+ * 히어로 안의 **고지·주의**(예: 캘린더의 "예상 지급일" 안내). 구
+ * `DividendCalendarPage.styled.ts` 의 `HeroDisclaimer` 를 흡수한 자리다.
+ * 경고 배너가 아니라 본문이므로 면·색으로 강조하지 않고 크기로만 리드 아래에 둔다
+ * (`role="note"` 는 컴포넌트가 붙인다).
+ */
+export const HeroNotice = styled.p`
+  margin: 0;
+  width: 100%;
+  font-family: ${font.sans};
+  font-size: ${font.size.sm};
+  line-height: ${font.leading.snug};
+  color: ${color.textSecondary};
+`;
+
+/**
+ * 계산의 근거(기준일·환율). 숫자가 섞이므로 데이터 서체 + 자릿수 정렬.
+ *
+ * 페이지 hue 를 입는 세 번째 자리 — **글자 폭만큼의 밑줄**이다. 그래서 `justify-self: start`
+ * (grid item 은 기본이 stretch 라 두면 밑줄이 히어로 전폭을 가로질러 구분선처럼 보인다).
+ */
 export const HeroMeta = styled.p`
   margin: 0;
+  justify-self: start;
+  max-width: 100%;
+  padding-bottom: ${space[1]};
+  border-bottom: 2px solid ${pageHueMix(55, 'transparent')};
   font-family: ${font.dataNumeric};
   font-size: ${font.size.xs};
     /*

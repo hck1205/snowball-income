@@ -5,21 +5,31 @@ import userEvent from '@testing-library/user-event';
 import { Provider } from 'jotai/react';
 import { createStore } from 'jotai/vanilla';
 import { PALETTE_STORAGE_KEY } from '@/jotai';
-import { DEFAULT_PALETTE_PRESET_ID, PALETTE_PRESET_IDS } from '@/shared/constants';
+import { DEFAULT_PALETTE_PRESET_ID, VISIBLE_PALETTE_PRESET_IDS } from '@/shared/constants';
 import { THEME_PRESETS } from '@/shared/styles';
 import ThemePresetSwitcher from './ThemePresetSwitcher';
 import type { ThemePresetSwitcherVariant } from './ThemePresetSwitcher.types';
 
 /**
- * 프리셋 개수/이름을 하드코딩하지 않는다 — 계약은 "PALETTE_PRESET_IDS 순회"이므로
- * 레지스트리가 4종에서 8종으로 늘어나도 이 테스트는 그대로 유효해야 한다.
+ * 프리셋 개수/이름을 하드코딩하지 않는다 — 계약은 "**노출 목록** 순회"이므로 목록이
+ * 1종이든 8종이든 이 테스트는 그대로 유효해야 한다.
  * (순회 인덱스는 전부 기본 프리셋 위치 기준의 모듈러 연산으로 계산한다.)
+ *
+ * 🔒 2026-08-01 현재 노출 목록은 1종(기본 팔레트)이다 — 사용자가 "라이트·다크 둘만"을 요청해
+ * 색 프리셋 선택을 화면에서 감췄기 때문이다. 여러 항목이 있어야만 의미가 있는 케이스(선택 이동·
+ * 화살표 순회)는 `itMulti` 로 묶어 **목록이 1종인 동안만 건너뛴다** — 감추기를 되돌려
+ * `VISIBLE_PALETTE_PRESET_IDS` 가 다시 8종이 되면 그 케이스들이 자동으로 되살아난다.
+ * (테스트를 지우면 되살릴 때 방어선이 없다.)
  */
-const COUNT = PALETTE_PRESET_IDS.length;
-const DEFAULT_INDEX = PALETTE_PRESET_IDS.indexOf(DEFAULT_PALETTE_PRESET_ID);
-const idAt = (index: number) => PALETTE_PRESET_IDS[((index % COUNT) + COUNT) % COUNT];
+const IDS = VISIBLE_PALETTE_PRESET_IDS;
+const COUNT = IDS.length;
+const DEFAULT_INDEX = IDS.indexOf(DEFAULT_PALETTE_PRESET_ID);
+const idAt = (index: number) => IDS[((index % COUNT) + COUNT) % COUNT];
 const labelAt = (index: number) => THEME_PRESETS[idAt(index)].label;
 const DEFAULT_LABEL = labelAt(DEFAULT_INDEX);
+
+/** 노출 프리셋이 2종 이상일 때만 의미가 있는 케이스. */
+const itMulti = it.skipIf(COUNT < 2);
 
 /**
  * 팔레트 atom은 localStorage 연동 전역 atom이라, 테스트마다 새 store + 빈 localStorage로
@@ -39,7 +49,7 @@ beforeEach(() => {
 });
 
 describe('ThemePresetSwitcher (inline)', () => {
-  it('레지스트리의 모든 프리셋을 PALETTE_PRESET_IDS 순서로 렌더하고 기본 프리셋이 선택돼 있다', () => {
+  it('노출 목록의 프리셋만 그 순서로 렌더하고 기본 프리셋이 선택돼 있다', () => {
     renderSwitcher('inline');
 
     const group = screen.getByRole('radiogroup', { name: '테마 프리셋' });
@@ -47,16 +57,21 @@ describe('ThemePresetSwitcher (inline)', () => {
 
     const options = screen.getAllByRole('radio');
     expect(options).toHaveLength(COUNT);
-    expect(options.map((el) => el.textContent)).toEqual(PALETTE_PRESET_IDS.map((id) => THEME_PRESETS[id].label));
+    expect(options.map((el) => el.textContent)).toEqual(IDS.map((id) => THEME_PRESETS[id].label));
 
     expect(screen.getByRole('radio', { name: DEFAULT_LABEL })).toHaveAttribute('aria-checked', 'true');
+  });
+
+  itMulti('선택되지 않은 프리셋은 aria-checked=false 로 구분된다', () => {
+    renderSwitcher('inline');
+
     expect(screen.getByRole('radio', { name: labelAt(DEFAULT_INDEX + 1) })).toHaveAttribute('aria-checked', 'false');
   });
 
   it('선택 항목만 탭 순서에 들어간다 (roving tabindex)', () => {
     renderSwitcher('inline');
 
-    for (const id of PALETTE_PRESET_IDS) {
+    for (const id of IDS) {
       expect(screen.getByRole('radio', { name: THEME_PRESETS[id].label })).toHaveAttribute(
         'tabindex',
         id === DEFAULT_PALETTE_PRESET_ID ? '0' : '-1'
@@ -64,7 +79,7 @@ describe('ThemePresetSwitcher (inline)', () => {
     }
   });
 
-  it('옵션을 클릭하면 즉시 선택이 이동하고 localStorage에 저장된다', async () => {
+  itMulti('옵션을 클릭하면 즉시 선택이 이동하고 localStorage에 저장된다', async () => {
     const user = userEvent.setup();
     renderSwitcher('inline');
 
@@ -75,7 +90,7 @@ describe('ThemePresetSwitcher (inline)', () => {
     expect(window.localStorage.getItem(PALETTE_STORAGE_KEY)).toBe(idAt(DEFAULT_INDEX + 1));
   });
 
-  it('화살표 키는 포커스만 옮기고(순환), Space/Enter가 선택한다', async () => {
+  itMulti('화살표 키는 포커스만 옮기고(순환), Space/Enter가 선택한다', async () => {
     const user = userEvent.setup();
     renderSwitcher('inline');
 
@@ -146,7 +161,7 @@ describe('ThemePresetSwitcher (popover)', () => {
     expect(screen.getByRole('radio', { name: DEFAULT_LABEL })).toHaveFocus();
   });
 
-  it('팝오버에서 선택하면 즉시 적용되고 트리거 라벨(현재 프리셋)도 갱신된다', async () => {
+  itMulti('팝오버에서 선택하면 즉시 적용되고 트리거 라벨(현재 프리셋)도 갱신된다', async () => {
     const user = userEvent.setup();
     renderSwitcher();
 

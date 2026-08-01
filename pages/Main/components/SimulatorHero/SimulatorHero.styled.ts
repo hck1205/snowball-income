@@ -50,6 +50,17 @@ export const SettingsSlot = styled.div<{ $pinned: boolean }>`
     width: var(--pin-width);
     height: var(--pin-height);
 
+    /*
+     * 🔴 붙어 있는 동안에는 이 슬롯의 transform 을 없앤다. 히어로 액션 줄(HeroActions)이 자식에게
+     * 거는 제목 잉크 보정 translateY(-3px) 이 남아 있으면, **이 슬롯이 fixed 자손의 컨테이닝
+     * 블록**이 되어 아래 좌표가 뷰포트가 아니라 이 박스 기준으로 해석된다
+     * (2026-07-31 실측 @1280: 버튼이 화면 밖 left 2043px, 문서 가로폭 2149px — 스크롤해야만
+     * 드러나는 가로 오버플로였다). 특이도를 && 로 올려 HeroActions 의 자식 규칙을 확실히 이긴다.
+     */
+    && {
+      transform: none;
+    }
+
     > * {
       position: fixed;
       top: var(--pin-top);

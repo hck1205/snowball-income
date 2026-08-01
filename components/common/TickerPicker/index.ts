@@ -4,8 +4,5 @@ export {
   TickerGearButton,
   TickerGridWrap,
   TickerItemButton,
-  TickerList,
-  TickerQuickActionButton,
-  TickerQuickActionIcon,
-  TickerQuickActionRow
+  TickerList
 } from './TickerPicker.styled';

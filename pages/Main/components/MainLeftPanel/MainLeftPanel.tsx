@@ -2,10 +2,10 @@ import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import InvestmentSettings from "@/components/InvestmentSettings";
 import TickerCreation from "@/components/TickerCreation";
-import ExchangeRateWidget from "@/components/ExchangeRateWidget";
 import { CloudReconcileModal } from "@/components/CloudReconcileModal";
 import { previewBlend } from "@/jotai/snowball/cloud";
 import MainContentLoader from "@/pages/Main/components/MainContentLoader";
+import { DrawerResultStrip, SettingsToolsSection } from "./components";
 import {
   useDisplayCurrencyViewAtomValue,
   useIncludedTickerIdsAtomValue,
@@ -150,20 +150,26 @@ function MainLeftPanelComponent({
   }
 
   return (
+    /*
+     * 🔴 드로어 본문의 **섹션 순서는 사용 빈도 순**이다 — ①종목 ②투자 조건 ③계산 방식 ④도구.
+     *   종전 순서(공유 → 티커 생성 → 칩 → 환율 → 토글 → 조건 입력)는 정확히 그 반대였다:
+     *   시각적으로 가장 강한 두 요소(전폭 고스트 공유 · 전폭 그라디언트 CTA)가 가장 드물게 쓰는
+     *   동작이었고, 정작 자주 고치는 월적립·기간·세율은 스크롤 한참 아래에 있었다.
+     *   순서를 바꾸려면 `test/main/settingsDrawerSectionOrder.test.tsx` 가 먼저 묻는다.
+     *
+     *   맨 위 스트립은 섹션이 아니라 **결과의 사본**이다(드로어가 결과 hero 숫자를 100% 가린다).
+     */
     <>
+      <DrawerResultStrip />
       <TickerCreation
         tickerProfiles={tickerProfiles}
         includedTickerIds={includedTickerIds}
         onOpenCreate={openTickerModal}
-        onCreateShareLink={createShareLink}
         onTickerClick={handleTickerChipClick}
         onTickerPressStart={handleTickerPressStart}
         onTickerPressEnd={handleTickerPressEnd}
         onOpenEdit={openTickerEditModal}
       />
-      {/* 표시 전용 금일 원↔달러 환율(참고용). 계산 엔진과 분리 — 엔진에 아무것도 넘기지 않아
-          저장/공유/시뮬레이션 결과에 영향이 없다. 하이드레이션 게이트 이후에만 마운트된다. */}
-      <ExchangeRateWidget />
       <InvestmentSettings
         values={values}
         showQuickEstimate={showQuickEstimate}
@@ -178,6 +184,9 @@ function MainLeftPanelComponent({
         onHelpReinvestTiming={handleHelpReinvestTiming}
         onHelpDpsGrowthMode={handleHelpDpsGrowthMode}
       />
+      {/* ④ 도구 — 공유 + 표시 전용 환율 위젯. 드로어에서 가장 드물게 쓰는 것들이라 맨 아래다.
+          (환율은 계산 엔진과 분리 — 엔진에 아무것도 넘기지 않아 저장/공유/결과에 영향이 없다.) */}
+      <SettingsToolsSection onCreateShareLink={createShareLink} />
       {/* 충돌 화해 모달 — 전역 오버레이로 body에 포털. 닫기(Esc/바깥클릭)는 이연이다(무음 화해 금지).
           merge-base 덕분에 진짜 동시편집일 때만 세션당 1회 열린다(단방향 변경은 조용히 fast-forward). */}
       {isConflictModalOpen && summary && modalRoot

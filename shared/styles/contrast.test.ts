@@ -134,6 +134,18 @@ const TEXT_ON_SURFACE: ReadonlyArray<[string, string]> = [
    * 새 자리에 muted 를 쓰고 싶으면 이 쌍을 여기 되살려 **먼저 빨갛게 만든 뒤** 색을 정하라.
    */
   ['text-secondary', 'accent-subtle'],
+  /*
+   * 아이덴티티 면(identity-subtle) 위의 텍스트 — 전 프리셋 공통 토큰이라 값은 16테마가 같지만
+   * `surface` 는 프리셋마다 다르므로 identity-text on surface 는 실제로 갈린다.
+   *
+   * ⚠ `text-muted` 는 accent-subtle 과 같은 이유로 **일부러 뺐다** — 다크 identity 면 위에서
+   *   3.45:1(velog/dark, #868e96 on #0d3d5a)로 AA 미달이다. 그 면의 약한 위계는 크기와
+   *   `text-secondary`(최저 5.28, grape/dark)로 만든다.
+   */
+  ['identity-text', 'identity-subtle'],
+  ['identity-text', 'surface'],
+  ['text', 'identity-subtle'],
+  ['text-secondary', 'identity-subtle'],
   // 솔리드 브랜드 버튼: 라벨 대 배경 (velog 다크는 어두운 라벨 #121212 — 방향 무관하게 4.5:1)
   ['on-brand', 'brand'],
   // 상태 서피스 위의 상태 텍스트
@@ -141,6 +153,30 @@ const TEXT_ON_SURFACE: ReadonlyArray<[string, string]> = [
   ['danger', 'surface'],
   ['warning', 'warning-surface'],
   ['success', 'success-surface'],
+  /*
+   * 성공 **면 위의 본문**(2026-07-31, 리워크 F3-W1).
+   *
+   * ⚠ 지금 이 세 쌍을 소비하는 표면은 **없다** — 목표 월배당 도달 타일이 달성 순간 `success-surface`
+   * 로 바뀌던 것을 §2-6 틴트 상한 때문에 되돌렸기 때문이다(아래 `success on surface-muted` 참고).
+   * 그래도 **지우지 않는다**: 이 트리오는 "성공 틴트 면을 다시 만들면 그 위 본문 3단이 통과하는가"
+   * 의 플로어이고, 지우는 순간 다음 사람이 검증 없이 그 면을 되살릴 수 있다(`accent-subtle` ·
+   * `identity-subtle` 에서 muted 가 AA 미달이었던 전례가 정확히 그 사고였다).
+   * 여기가 빨개지면 면색이 아니라 **그 위 텍스트 위계**를 고쳐라(값에 색을 넣는 것은 금지).
+   */
+  ['text', 'success-surface'],
+  ['text-secondary', 'success-surface'],
+  ['text-muted', 'success-surface'],
+  /*
+   * 성공 상태 줄이 **중립 면 위로** 옮겨 왔다(2026-07-31, 틴트 면 상한 §2-6) — 면을 뺀 자리에서는
+   * 이 쌍이 유일한 색 신호이자 유일한 대비 근거다. `danger on surface` 가 이미 같은 이유로 있다.
+   * 실측 최저 5.22:1(navy-gold/light). 근거 pages/Portfolio/components/GoalCard/GoalCard.styled.ts.
+   *
+   * `surface-muted` 짝은 **결과 요약 카드의 목표 달성 타일**이다(StatTile status='success').
+   * 타일 면은 `surface-muted` 라 `surface` 검증만으로는 그 자리를 덮지 못한다 — 카드 안에 앉는
+   * 면이라 프리셋마다 `surface` 와 명도가 갈린다.
+   */
+  ['success', 'surface'],
+  ['success', 'surface-muted'],
   // 데이터 상승/하락 숫자는 카드 서피스 위에 올라간다
   ['data-positive', 'surface'],
   ['data-positive', 'surface-muted'],
@@ -173,6 +209,13 @@ const NON_TEXT: ReadonlyArray<[string, string]> = [
   // 액센트 표시색
   ['accent', 'surface'],
   ['accent-alt', 'surface'],
+  /*
+   * 아이덴티티 표시색 — 히어로 리본·아이콘 배지 채움. 놓이는 세 배경 전부를 본다.
+   * (텍스트를 이 채움 위에 올리는 것은 금지 — sharedTokens.ts 주석 참조. 그래서 4.5:1 쌍은 없다.)
+   */
+  ['identity', 'surface'],
+  ['identity', 'bg'],
+  ['identity', 'identity-subtle'],
   // 표시용 리본: 놓이는 세 배경(카드·hero 타일·진행률 트랙) 전부
   ['ribbon-stop-1', 'surface'],
   ['ribbon-stop-2', 'surface'],
@@ -195,6 +238,31 @@ const HERO_TEXTS = ['text', 'text-secondary', 'text-muted'] as const;
  * 실측 최저 16.0(velog/dark) — 여유 1.0을 남긴 값으로 못 박는다.
  */
 const MIN_ACCENT_SEPARATION = 15;
+
+/**
+ * 아이덴티티 틴트 면이 서피스와 **면으로 구분되는** 최소 지각 거리.
+ *
+ * 대비비로는 못 잡는 축이다(라이트 1.07~1.09:1 — 휘도는 거의 같고 색만 다르다).
+ * 하한 5의 근거: 실측 최저가 6.6(라이트 흰 서피스 6종, 다크 최저는 15.6/aurora)이고,
+ * ink 히어로가 "fill 단독으론 밴드가 안 보인다"로 1px border 를 강제당했을 때가 ΔE 2.8이었다.
+ * 즉 5는 "보이는 쪽"과 "안 보이는 쪽" 사이에 그은 선이다.
+ */
+const MIN_IDENTITY_SURFACE_DELTA_E = 5;
+
+/**
+ * 아이덴티티 1px 경계의 **장식 회귀 플로어**(3:1이 아니다).
+ *
+ * WCAG 1.4.11의 3:1은 "컴포넌트·상태를 식별하는 데 필요한" 경계에 걸린다 — 이 경계는
+ * 누를 수 없는 장식 면의 윤곽이고, 그 면의 정보는 안쪽 텍스트가 4.5:1로 따로 진다.
+ * 이 시스템의 모든 *-border 가 같은 급이다: border 1.18~1.48 · brand-border 1.31~3.34 ·
+ * accent-border 1.44~2.70 · identity-border 1.44~2.34(라이트 1.44~1.47/다크 2.16~2.34,
+ * identity-subtle 위 1.34/1.54). **3:1로 올리려면 brand[500] 급이 필요한데** 그러면 1px
+ * 경계가 표시색(identity, brand[600])만큼 진해져 액센트 틴트 패널들과 무게가 어긋난다.
+ *
+ * 대신 "경계가 사라지는" 회귀는 여기서 잡는다: 한 단계 옅은 brand[100]으로 바꾸면
+ * 흰 서피스 위 1.22, identity-subtle 위 1.11로 이 플로어에 걸린다.
+ */
+const IDENTITY_BORDER_FLOOR = 1.25;
 
 /**
  * brand ↔ accent 는 **역할이 다르므로 값도 달라야 한다**(brand = 액션·인터랙션, accent = 정보 크롬).
@@ -318,6 +386,27 @@ describe('디자인 토큰 대비 (WCAG AA)', () => {
 
       expect(ratio).toBeGreaterThan(1.05);
     });
+
+    it('아이덴티티 틴트 면은 서피스와 면으로 갈린다 (ΔE ≥ 5)', () => {
+      const distance = deltaE(theme['identity-subtle'], theme.surface);
+
+      expect(
+        distance,
+        `identity-subtle(${theme['identity-subtle']}) vs surface(${theme.surface}) = ΔE ${distance.toFixed(1)}`
+      ).toBeGreaterThanOrEqual(MIN_IDENTITY_SURFACE_DELTA_E);
+    });
+
+    it.each([['surface'], ['identity-subtle']] as const)(
+      '아이덴티티 경계는 %s 위에서 사라지지 않는다 (장식 플로어)',
+      (bg) => {
+        const ratio = roundRatio(contrastRatio(theme['identity-border'], theme[bg]));
+
+        expect(
+          ratio,
+          `identity-border(${theme['identity-border']}) on ${bg}(${theme[bg]}) = ${ratio}:1 (플로어 ${IDENTITY_BORDER_FLOOR})`
+        ).toBeGreaterThanOrEqual(IDENTITY_BORDER_FLOOR);
+      }
+    );
 
     /**
      * 히어로 면은 **그라데이션 문자열**이라 위 쌍 순회로는 못 잰다.

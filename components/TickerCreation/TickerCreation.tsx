@@ -1,10 +1,7 @@
-import { memo, useCallback, useEffect, useMemo, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { memo } from 'react';
 import { Card } from '@/components';
-import { ShareDialog, buildShareChannelUrl, type ShareChannelId } from '@/components/common';
 import { TOUR_TARGET } from '@/shared/constants';
 import { getTickerDisplayName } from '@/shared/utils';
-import { ANALYTICS_EVENT, track, trackEvent } from '@/shared/lib/analytics';
 import type { TickerCreationProps } from './TickerCreation.types';
 import {
   HintText,
@@ -12,196 +9,33 @@ import {
   TickerCreateButton,
   TickerGearButton,
   TickerGridWrap,
-  TickerQuickActionButton,
-  TickerQuickActionIcon,
-  TickerQuickActionRow,
   TickerItemButton,
   TickerList
 } from '@/components/common';
-import { ShareToast } from './TickerCreation.styled';
 
-type SecondaryActionKey = 'share' | 'coffee';
-
-/** 채널 인텐트에 함께 실어 보내는 제목. 링크가 무엇인지 한 줄로 말한다. */
-const SHARE_TITLE = '배당 재투자 시뮬레이션 결과';
-
-/** 채널 새 창이 브라우저 팝업 차단에 막혔을 때 — 아무 일도 안 일어난 것처럼 보이면 안 된다. */
-const POPUP_BLOCKED_MESSAGE = '브라우저가 새 창을 막았습니다. 팝업을 허용하거나 링크를 복사해 주세요.';
-
+/**
+ * 설정 드로어의 **첫 섹션 — 종목**. 담긴 티커 칩 목록과 "티커 생성"(추가) 하나만 있다.
+ *
+ * 2026-07-31 재배치: 공유 버튼과 환율 위젯은 여기서 나갔다(→ 드로어 마지막 "도구" 섹션).
+ * 이 카드는 이제 한 가지만 말한다 — 무엇을 담을 것인가.
+ *
+ * 순서도 뒤집혔다. **칩이 먼저, 추가 버튼이 그 다음**이다. 종전에는 전폭 그라디언트 CTA 가 목록 위에
+ * 앉아 드로어에서 가장 강한 요소였는데, 실제로 자주 하는 일은 "이미 만든 종목을 담고 빼는" 쪽이다.
+ * (버튼의 시각 강도도 그라디언트 채움 → 담백한 외곽선으로 내렸다. 자리와 강도를 함께 낮춘다.)
+ */
 function TickerCreationComponent({
   topContent,
   tickerProfiles,
   includedTickerIds,
   onOpenCreate,
-  onCreateShareLink,
   onTickerClick,
   onTickerPressStart,
   onTickerPressEnd,
   onOpenEdit
 }: TickerCreationProps) {
-  const modalRoot = typeof document !== 'undefined' ? document.body : null;
-  const [isSharing, setIsSharing] = useState(false);
-  const [shareResultMessage, setShareResultMessage] = useState('');
-  const [shareToastMessage, setShareToastMessage] = useState('');
-  /** 복사가 안 됐을 때만 세우는 공유 창 대상. 복사가 됐으면 토스트 한 줄로 끝난다(창을 띄우지 않는다). */
-  const [shareDialogUrl, setShareDialogUrl] = useState('');
-
-  useEffect(() => {
-    if (!shareToastMessage) return;
-    const timer = window.setTimeout(() => setShareToastMessage(''), 2200);
-    return () => window.clearTimeout(timer);
-  }, [shareToastMessage]);
-
-  const handleShareLink = useCallback(async () => {
-    if (isSharing) return;
-    setShareResultMessage('');
-    setIsSharing(true);
-    try {
-      const result = await onCreateShareLink();
-      if (!result.ok) {
-        setShareResultMessage(result.message);
-        return;
-      }
-      // 공유 링크 생성 성공 시에만 발화. copy_link=클립보드 복사, show_link=복사 실패로 URL 노출 폴백.
-      track(ANALYTICS_EVENT.SCENARIO_SHARED, { share_method: result.copied ? 'copy_link' : 'show_link' });
-      if (result.copied) {
-        setShareResultMessage('');
-        setShareToastMessage('공유 링크를 클립보드에 복사했습니다.');
-        return;
-      }
-      /*
-       * 클립보드가 막힌 환경(권한 거부·비보안 컨텍스트). 예전에는 긴 주소를 카드 안 한 줄 힌트로
-       * 뱉었는데, 그 자리는 설정 드로어 안이라 주소가 잘려 보이고 선택도 어려웠다. 공유 창이
-       * 주소를 읽기 전용 입력으로 보여 주고 다시 복사·채널 전송까지 그 자리에서 끝낸다.
-       */
-      setShareDialogUrl(result.url);
-    } catch {
-      setShareResultMessage('공유 링크 생성에 실패했습니다.');
-    } finally {
-      setIsSharing(false);
-    }
-  }, [isSharing, onCreateShareLink]);
-
-  const handleCopyShareDialogUrl = useCallback(async () => {
-    if (!shareDialogUrl) return;
-    try {
-      await navigator.clipboard.writeText(shareDialogUrl);
-      setShareToastMessage('공유 링크를 클립보드에 복사했습니다.');
-    } catch {
-      // 여전히 막혀 있다 — 창 안의 주소를 직접 선택해 복사하면 된다(무음 실패 금지).
-      setShareToastMessage('복사에 실패했습니다. 주소를 직접 선택해 복사해 주세요.');
-    }
-  }, [shareDialogUrl]);
-
-  const handleShareChannel = useCallback(
-    (channel: ShareChannelId) => {
-      const channelUrl = buildShareChannelUrl(channel, shareDialogUrl, SHARE_TITLE);
-      if (!channelUrl) return;
-
-      const opened = window.open(channelUrl, '_blank', 'noopener,noreferrer');
-      if (!opened) {
-        /*
-         * 팝업 차단(반환 null). 조용히 끝내면 버튼이 고장 난 것으로 보인다 — 사유를 말하고
-         * 공유 창은 **열어 둔다**(그 안의 링크 복사가 대안이다). 공유가 없었으니 계측도 없다.
-         */
-        setShareToastMessage(POPUP_BLOCKED_MESSAGE);
-        return;
-      }
-
-      track(ANALYTICS_EVENT.SCENARIO_SHARED, { share_method: channel });
-      setShareDialogUrl('');
-    },
-    [shareDialogUrl]
-  );
-
-  const handleSecondaryAction = useCallback(
-    (key: SecondaryActionKey) => {
-      trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
-        cta_name: `quick_action_${key}`,
-        placement: 'ticker_creation_quick_actions'
-      });
-      if (key === 'share') {
-        void handleShareLink();
-      }
-    },
-    [handleShareLink]
-  );
-
-  // "데이터 저장"은 자동저장(클라우드 동기화)으로 대체돼 제거됐고, Capture도 폐기됨. 남는 퀵액션: Share / Coffee(숨김).
-  const secondaryActions: Array<{ key: SecondaryActionKey; label: string; icon: JSX.Element }> = useMemo(
-    () => [
-      {
-        key: 'share',
-        label: '공유',
-        icon: (
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <circle cx="18" cy="5" r="2.5" />
-            <circle cx="6" cy="12" r="2.5" />
-            <circle cx="18" cy="19" r="2.5" />
-            <path d="M8.3 10.9 15.7 6.1" />
-            <path d="M8.3 13.1 15.7 17.9" />
-          </svg>
-        )
-      },
-      {
-        key: 'coffee',
-        label: 'Coffee',
-        icon: (
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M5 10h10v4a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4z" />
-            <path d="M15 11h2a2 2 0 1 1 0 4h-2" />
-            <path d="M8 6v2M11 6v2" />
-          </svg>
-        )
-      }
-    ],
-    []
-  );
-
   return (
-    <Card>
+    <Card title="종목">
       {topContent}
-      <TickerQuickActionRow data-tour={TOUR_TARGET.quickActions}>
-        {secondaryActions.map((action) => (
-          <TickerQuickActionButton
-            key={action.key}
-            type="button"
-            aria-label={action.label}
-            style={action.key === 'coffee' ? { display: 'none' } : undefined}
-            disabled={action.key === 'share' ? isSharing : false}
-            onClick={() => handleSecondaryAction(action.key)}
-          >
-            <TickerQuickActionIcon>{action.icon}</TickerQuickActionIcon>
-            <span>{action.label}</span>
-          </TickerQuickActionButton>
-        ))}
-      </TickerQuickActionRow>
-      {/* 공유 창은 스스로 body 로 포털한다 — 이 카드는 설정 드로어 안에 있어 여기 그리면 잘린다. */}
-      {shareDialogUrl ? (
-        <ShareDialog
-          url={shareDialogUrl}
-          onCopy={handleCopyShareDialogUrl}
-          onSelectChannel={handleShareChannel}
-          onClose={() => setShareDialogUrl('')}
-        />
-      ) : null}
-      {shareToastMessage && modalRoot
-        ? createPortal(
-            <ShareToast role="status" aria-live="polite">
-              {shareToastMessage}
-            </ShareToast>,
-            modalRoot
-          )
-        : null}
-      {shareResultMessage ? <HintText>{shareResultMessage}</HintText> : null}
-      <TickerCreateButton
-        type="button"
-        data-tour={TOUR_TARGET.tickerCreate}
-        aria-label="티커 생성 열기"
-        onClick={onOpenCreate}
-      >
-        티커 생성
-      </TickerCreateButton>
       {tickerProfiles.length === 0 ? (
         <HintText>아직 생성된 티커가 없습니다.</HintText>
       ) : (
@@ -252,6 +86,14 @@ function TickerCreationComponent({
           </TickerList>
         </TickerGridWrap>
       )}
+      <TickerCreateButton
+        type="button"
+        data-tour={TOUR_TARGET.tickerCreate}
+        aria-label="티커 생성 열기"
+        onClick={onOpenCreate}
+      >
+        티커 생성
+      </TickerCreateButton>
     </Card>
   );
 }

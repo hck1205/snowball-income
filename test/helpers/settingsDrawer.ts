@@ -10,8 +10,9 @@ type User = ReturnType<typeof userEvent.setup>;
  * 그래서 설정 폼을 만지는 모든 동선은 사용자와 똑같이 **"설정 열기"부터** 시작해야 하고,
  * 그 스텝을 빠뜨리면 `getByLabelText('월 적립')` 류가 "찾을 수 없다"로 죽는다.
  *
- * 이미 열려 있으면 아무것도 하지 않는다 — 티커 저장처럼 **드로어를 닫는 동작**(useTickerActions)
- * 뒤에 다시 부르는 호출부가 많아 멱등이어야 한다.
+ * 이미 열려 있으면 아무것도 하지 않는다(멱등) — 여러 동선이 안전하게 이 한 줄로 시작할 수 있게.
+ * ⚠ 2026-07-31 부터 **티커 저장·삭제는 드로어를 닫지 않는다**(`tickerSaveKeepsDrawerOpen.test.tsx`) —
+ *   그 뒤에 이 헬퍼를 다시 부르는 코드는 이제 아무 일도 하지 않는다.
  */
 export const openSettingsDrawer = async (user: User): Promise<void> => {
   /* 진입점은 히어로의 "투자 설정" 버튼 하나다(sticky 라 어느 스크롤 위치에서도 닿는다).

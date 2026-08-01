@@ -1,13 +1,11 @@
 /**
- * 갤러리 정밀 검색 드롭다운. 반응형은 @media가 아니라 **layout prop 구조 분기**로 팝오버/인라인을
- * 상호배타 렌더한다(jsdom @media 미평가 함정 회피 — 두 헤더 인스턴스가 이미 display:none으로 배타).
+ * 갤러리 정밀 검색 드롭다운.
+ *
+ * **구(舊) `layout` prop(팝오버/인라인)은 삭제됐다.** 그 분기는 검색 클러스터가 헤더 안 인라인과
+ * 헤더 아래 모바일 펼침 바 **두 인스턴스**로 존재하던 시절의 것이다 — 2026-07-31 에 검색이 갤러리
+ * 본문 툴바 한 벌로 내려오며 인스턴스가 하나가 되어 전 폭에서 앵커 팝오버를 쓴다.
+ * (본문 조상에 `overflow`/`contain` 이 없음을 실측으로 확인했다 — 공용 `Card` 안이었다면 잘렸을 것이다.)
  */
-export type PrecisionSearchLayout = 'popover' | 'inline';
-
-export type PrecisionSearchProps = {
-  /** popover(데스크톱 앵커 팝오버, 기본) | inline(태블릿↓ in-flow 전체폭). */
-  layout?: PrecisionSearchLayout;
-};
 
 /**
  * 패널 드래프트(2단계 커밋의 로컬 상태) — **표시 문자열**이다. 금액은 만원(천단위 콤마 가능),

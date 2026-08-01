@@ -6,6 +6,7 @@ import { next, rewrite } from '@vercel/functions';
 //   (api/* 는 @vercel/node 가 `@/` 를 resolve 하므로 배럴+alias 를 그대로 쓴다.)
 import { replaceMetaContent } from './shared/lib/og/metaHtml';
 import { DB_SHARE_KEY_PATTERN } from './shared/lib/og/shareKey';
+import { SIMULATOR_PATH } from './shared/constants/routes';
 
 /**
  * 공유 링크(`/?share=<코드>` 구 lz-string · `/?s=<key>` 신규 DB key)에 붙는 라우팅 미들웨어.
@@ -35,14 +36,26 @@ import { DB_SHARE_KEY_PATTERN } from './shared/lib/og/shareKey';
  * 나중에 og:title 에도 실제 숫자를 넣고 싶으면 이 요청을 `/api/share-html` 로 rewrite 하면 된다(확장 지점).
  *
  * ## 재귀 방지
- * `matcher: '/'` 는 **경로가 정확히 `/`** 일 때만 이 함수를 태운다. 아래에서 `/index.html` 을 fetch 하는데
- * 그 경로는 matcher 에 걸리지 않으므로 미들웨어가 다시 돌지 않는다(Vercel 의 508 INFINITE_LOOP_DETECTED 회피).
+ * matcher 는 **정확히 그 경로들**일 때만 이 함수를 태운다. 아래에서 `/index.html` 을, `?s=` 분기가
+ * `/api/share-html` 을 fetch/rewrite 하는데 둘 다 matcher 에 없으므로 미들웨어가 다시 돌지 않는다
+ * (Vercel 의 508 INFINITE_LOOP_DETECTED 회피). **matcher 에 새 경로를 넣을 때는 그 경로를 서버가
+ * fetch 하지 않는지 먼저 확인하라** — 계약은 `test/api/middlewareShareRouting.test.ts` 가 잠근다.
  * ⚠ 이 설계 때문에 `vercel.json` 에 `cleanUrls: true` 를 켜면 안 된다 — `/index.html` → `/` 로 308 되면서
  *   요청이 미들웨어로 되돌아와 무한 루프가 된다.
+ *
+ * ## 왜 `/simulator` 도 매칭하는가
+ * 시뮬레이터가 `/` 에서 `/simulator` 로 옮겨 가는 중이라 **새로 만들어지는 공유 링크는
+ * `/simulator?share=…`** 다. matcher 가 `/` 하나면 그 링크들의 OG 카드가 기본 카드로 폴백한다
+ * (카카오·페이스북 미리보기가 무의미해진다). 이미 배포된 `/?share=…` 링크는 `/` 가 계속 matcher 에
+ * 있으므로 영향이 없다. 두 경로 다 매칭하는 것이 이전 기간 내내 안전한 유일한 상태다.
  */
 export const config = {
   // 경로만 매칭한다(쿼리스트링은 matcher 문법에 존재하지 않는다) → share 여부는 아래 코드에서 판별.
-  matcher: '/'
+  // 🔴 `/` 를 빼지 마라 — 이미 배포된 공유 링크가 전부 그 경로다(사용자 자산).
+  // 🔴 여기만 **문자열 리터럴**이다. 빌드가 이 config 를 정적으로 읽어 라우팅 설정을 만들기 때문에
+  //    변수를 넣으면 조용히 무시될 수 있다(og:url 쪽은 런타임이라 상수를 그대로 쓴다).
+  //    `SIMULATOR_PATH` 와 어긋나지 않는지는 test/api/middlewareShareRouting.test.ts 가 잠근다.
+  matcher: ['/', '/simulator']
 };
 
 /** lz-string 의 compressToEncodedURIComponent 출력 문자셋. 이걸 벗어나면 우리 공유 코드가 아니다. */
@@ -54,7 +67,7 @@ export default async function middleware(request: Request): Promise<Response> {
   // ── 신규 `?s=<key>`(DB key) — 형식만 확인하고 api/share-html 로 rewrite. 조회·계산은 그 Node 함수 몫. ──
   const dbShareKey = url.searchParams.get('s');
   if (dbShareKey && DB_SHARE_KEY_PATTERN.test(dbShareKey)) {
-    // 경로가 `/api/share-html`(≠ '/') 이라 matcher 에 안 걸려 middleware 가 재진입하지 않는다(508 회피).
+    // 경로가 `/api/share-html` 이라 matcher(`/`·`/simulator`) 에 안 걸려 재진입하지 않는다(508 회피).
     const target = new URL('/api/share-html', url.origin);
     target.searchParams.set('s', dbShareKey);
     return rewrite(target.toString());
@@ -67,14 +80,16 @@ export default async function middleware(request: Request): Promise<Response> {
   if (!shareCode || !SHARE_CODE_PATTERN.test(shareCode)) return next();
 
   try {
-    // matcher('/') 에 걸리지 않는 경로라 미들웨어가 재진입하지 않는다.
+    // matcher(`/`·`/simulator`) 에 걸리지 않는 경로라 미들웨어가 재진입하지 않는다.
     const shell = await fetch(new URL('/index.html', url.origin));
     if (!shell.ok) return next();
 
     const ogImageUrl = new URL('/api/og', url.origin);
     ogImageUrl.searchParams.set('share', shareCode);
 
-    const shareUrl = new URL('/', url.origin);
+    // og:url 은 이 시나리오의 **정본 주소**다 → 이전 후에도 유효한 `/simulator` 를 가리킨다.
+    // (요청 경로를 그대로 되쓰면 구 링크의 카드가 나중에 랜딩을 가리키게 된다.)
+    const shareUrl = new URL(SIMULATOR_PATH, url.origin);
     shareUrl.searchParams.set('share', shareCode);
 
     let html = await shell.text();

@@ -74,6 +74,21 @@ export const color = {
   accentAltBorder: 'var(--sb-accent-alt-border)',
 
   /*
+   * 아이덴티티(쿨 블루 hue 200) — **전 프리셋 공통**. 워드마크와 같은 급의 "제품 자신"이라
+   * 스킨(프리셋)을 따라가지 않는다. 히어로 리본·아이콘 배지 채움(identity), 히어로/빈 상태
+   * 틴트 면(identitySubtle), 그 면의 1px 경계(identityBorder), 면 위 라벨(identityText).
+   *
+   * ⚠ identity 채움 위에 **텍스트 금지**(다크에서 흰 라벨 2.79:1). 아이콘·리본 같은 비텍스트만.
+   * ⚠ brand(액션·인터랙션 축)와 값이 겹칠 수 있지만 역할이 다르다 — 누를 수 있는 것에는
+   *   brand 를, "이 제품이다"라고 말하는 장식 면에는 identity 를 쓴다.
+   * 근거·실측 수치는 presets/sharedTokens.ts 의 IDENTITY_LIGHT/IDENTITY_DARK 주석.
+   */
+  identity: 'var(--sb-identity)',
+  identitySubtle: 'var(--sb-identity-subtle)',
+  identityBorder: 'var(--sb-identity-border)',
+  identityText: 'var(--sb-identity-text)',
+
+  /*
    * 워드마크("스노우볼 인컴") — 전 프리셋 공통. `background-clip: text` 전용이고
    * solid 는 그 폴백(@supports 미지원·forced-colors·print)이다. 다른 용도로 쓰지 마라.
    */

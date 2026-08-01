@@ -1,2 +1,2 @@
 export { default } from './MainContentLoader';
-export type { MainContentLoaderProps } from './MainContentLoader.types';
+export type { MainContentLoaderProps, MainContentLoaderVariant } from './MainContentLoader.types';

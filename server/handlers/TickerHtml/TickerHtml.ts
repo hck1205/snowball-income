@@ -31,6 +31,7 @@ import {
   type TickerEngineFacts,
   type TickerRelatedLink
 } from '@/shared/constants/tickers';
+import { SIMULATOR_PATH } from '@/shared/constants/routes';
 
 /**
  * `/api/ticker-html?name=<slug|all>` — 티커 SEO 랜딩(`/ticker/:name`)의 **진입 HTML**.
@@ -205,12 +206,14 @@ const renderRelatedTickers = (related: TickerRelatedLink[]): string => {
  * **크롤러는 여전히 막다른 길을 본다** — 이 핸들러가 그리는 HTML 이 검색엔진이 읽는 전부다.
  * 두 곳의 라벨·목적지를 같게 유지하라.
  *
- * ⚠ 티커를 시뮬레이터에 프리필하는 배선은 아직 없다 — 루트(`/`)로만 보낸다.
+ * ⚠ 티커를 시뮬레이터에 프리필하는 배선은 아직 없다 — 시뮬레이터(`/simulator`)로만 보낸다.
+ * 🔴 목적지는 `SIMULATOR_PATH` 다. 여기가 뒤처지면 11개 티커 페이지의 CTA 가 전부 엉뚱한 곳으로 가고,
+ *   그걸 보는 것은 사용자가 아니라 **크롤러**라 화면 확인으로는 절대 드러나지 않는다.
  */
 const renderHero = (content: TickerContent, facts: TickerEngineFacts): string =>
   `<h1>${escapeHtmlText(facts.ticker)} — ${escapeHtmlText(facts.koreanName)} (${escapeHtmlText(facts.englishName)})</h1>` +
   `<p class="hero-tagline">${renderText(content.heroTagline, facts)}</p>` +
-  `<p class="hero-cta"><a href="/">${escapeHtmlText(facts.ticker)}로 계산해 보기</a></p>`;
+  `<p class="hero-cta"><a href="${SIMULATOR_PATH}">${escapeHtmlText(facts.ticker)}로 계산해 보기</a></p>`;
 
 /**
  * `FinancialProduct` — 엔진 6필드(가격 제외 배당률·성장률·기대수익·주기)는 `additionalProperty` 로

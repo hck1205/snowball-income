@@ -55,7 +55,7 @@ describe('목표 카드 — 목표 미설정 상태의 값 선택', () => {
 
     await user.click(within(chips).getByRole('button', { name: formatTargetMonthlyDividendChipLabel(2_000_000) }));
 
-    expect(lastLocation.pathname).toBe('/');
+    expect(lastLocation.pathname).toBe('/simulator');
     expect(lastLocation.state).toEqual(buildFocusTargetMonthlyDividendState(2_000_000));
   });
 
@@ -74,7 +74,7 @@ describe('목표 카드 — 목표 미설정 상태의 값 선택', () => {
     await user.type(screen.getByRole('textbox', { name: copy.goal.setup.inputLabel }), '150');
     await user.click(screen.getByRole('button', { name: copy.goal.setup.submit }));
 
-    expect(lastLocation.pathname).toBe('/');
+    expect(lastLocation.pathname).toBe('/simulator');
     expect(lastLocation.state).toEqual(buildFocusTargetMonthlyDividendState(1_500_000));
   });
 

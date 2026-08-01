@@ -1,16 +1,22 @@
 import { memo } from 'react';
 import type { ReactNode } from 'react';
-import { ResultGrid, ResultGridCell } from '@/components/common';
+import { ResultGridCell } from '@/components/common';
 // 훅 배럴(`@/pages/Main/hooks`)이 아니라 `interaction` 폴더를 직접 가리킨다 — 상위 배럴은 페이지
 // 비즈니스 훅까지 끌고 와 `components → hooks → components` 순환이 될 수 있다. 마커 상수만 필요하다.
 import { RESULT_CAPTURE_ROOT_ATTRIBUTE } from '@/pages/Main/hooks/interaction';
 import type { MainResultGridProps } from './MainResultGrid.types';
+import { useFirstResultReveal } from './MainResultGrid.utils';
+import { RevealResultGrid } from './MainResultGrid.styled';
 
 type ResultCell = { key: string; span: number; node: ReactNode };
 
 /**
- * 결과 카드 **배치 전용** 컴포넌트. 데이터도, 상태도, 스타일도 갖지 않는다 —
- * 어떤 카드가 어떤 폭으로 어떤 순서에 오는가만 안다.
+ * 결과 카드 **배치 전용** 컴포넌트. 어떤 카드가 어떤 폭으로 어떤 순서에 오는가만 안다 —
+ * 데이터는 갖지 않는다.
+ *
+ * 예외 하나: **첫 결과가 처음 나타나는 순간의 진입 연출**(W3)을 여기서 켠다. 그 전이를 볼 수 있는
+ * 유일한 자리이기 때문이다 — 결과일 때와 빈 상태일 때 이 컴포넌트는 같은 자리의 같은 인스턴스라
+ * "빈 화면이 결과로 바뀌었다"를 자기 props 만으로 안다. 판정은 `MainResultGrid.utils.ts` 소유.
  *
  * 순서: 요약 → 배너 → **포트폴리오 구성 → 실지급 월별 배당 → 월 평균 배당** → 연도별
  *      → [자산 6 : 누적 6] → 투자 종료 후 → 전량 매도.
@@ -27,6 +33,7 @@ type ResultCell = { key: string; span: number; node: ReactNode };
  */
 function MainResultGridComponent({
   summary,
+  quickAdjust,
   financialIncomeBanner,
   monthlyAverageChart,
   composition,
@@ -40,6 +47,7 @@ function MainResultGridComponent({
 }: MainResultGridProps) {
   const layout: ResultCell[] = [
     { key: 'summary', span: 12, node: summary },
+    { key: 'quick-adjust', span: 12, node: quickAdjust },
     { key: 'financial-income', span: 12, node: financialIncomeBanner },
     { key: 'composition', span: 12, node: composition },
     { key: 'monthly-cashflow', span: 12, node: monthlyCashflow },
@@ -54,6 +62,13 @@ function MainResultGridComponent({
 
   const cells = layout.filter((cell) => Boolean(cell.node));
 
+  /*
+   * 결과가 실제로 있는가 = 빈 상태 보드만 있는 게 아닌가. 이 그리드는 결과일 때와 빈 상태일 때
+   * **같은 자리의 같은 컴포넌트**라 React 가 인스턴스를 재사용한다 — 그래서 훅이 전이를 볼 수 있다.
+   */
+  const hasResults = cells.some((cell) => cell.key !== 'empty-state');
+  const isRevealing = useFirstResultReveal(hasResults);
+
   if (cells.length === 0) return null;
 
   /*
@@ -65,13 +80,13 @@ function MainResultGridComponent({
    * `resultCapturePipeline` 주석). 래스터라이저가 브라우저라 사본이 필요 없다.
    */
   return (
-    <ResultGrid {...{ [RESULT_CAPTURE_ROOT_ATTRIBUTE]: '' }}>
+    <RevealResultGrid $reveal={isRevealing} {...{ [RESULT_CAPTURE_ROOT_ATTRIBUTE]: '' }}>
       {cells.map((cell) => (
         <ResultGridCell key={cell.key} $span={cell.span}>
           {cell.node}
         </ResultGridCell>
       ))}
-    </ResultGrid>
+    </RevealResultGrid>
   );
 }
 

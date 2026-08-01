@@ -14,7 +14,6 @@ import {
   useSetEditingTickerIdWrite,
   useSetFixedByTickerIdWrite,
   useSetIncludedTickerIdsWrite,
-  useSetIsConfigDrawerOpenWrite,
   useSetIsTickerModalOpenWrite,
   useSelectedPresetAtomValue,
   useSetSelectedPresetWrite,
@@ -70,7 +69,6 @@ export const useTickerActions = () => {
   const setIsTickerModalOpen = useSetIsTickerModalOpenWrite();
   const selectedPreset = useSelectedPresetAtomValue();
   const setSelectedPreset = useSetSelectedPresetWrite();
-  const setIsConfigDrawerOpen = useSetIsConfigDrawerOpenWrite();
 
   const applyTickerProfile = useCallback((profile: TickerDraft) => {
     setYieldFormValues((prev) => ({
@@ -180,7 +178,13 @@ export const useTickerActions = () => {
       });
     }
 
-    setIsConfigDrawerOpen(false);
+    /*
+     * 🔴 여기서 설정 드로어를 닫지 않는다(2026-07-31). 종전엔 `setIsConfigDrawerOpen(false)` 가 있었는데
+     *   그건 "드로어 = 화면을 덮는 모달"이던 시절의 전제였다. 드로어가 전 해상도 상시가 된 뒤로는
+     *   넓은 화면에서 "종목 3개 추가 = 드로어 3번 열기"가 됐다. 지금은 티커 모달만 닫히고 드로어는
+     *   그대로 남아, 방금 만든 칩이 종목 섹션에 나타나는 것을 그 자리에서 볼 수 있다.
+     *   (결과가 가려지는 문제는 드로어 최상단 결과 스트립이 대신 받는다.)
+     */
     closeTickerModal();
   }, [
     applyTickerProfile,
@@ -189,7 +193,6 @@ export const useTickerActions = () => {
     selectedTickerId,
     setFixedByTickerId,
     setIncludedTickerIds,
-    setIsConfigDrawerOpen,
     setSelectedTickerId,
     setTickerProfiles,
     setWeightByTickerId,
@@ -242,9 +245,9 @@ export const useTickerActions = () => {
       mode: tickerModalMode
     });
 
-    setIsConfigDrawerOpen(false);
+    /* 저장과 같은 이유로 드로어는 열어 둔다 — 지우고 나서 다른 종목을 이어 손보는 것이 자연스럽다. */
     closeTickerModal();
-  }, [closeTickerModal, editingTickerId, removeTicker, setIsConfigDrawerOpen, tickerModalMode]);
+  }, [closeTickerModal, editingTickerId, removeTicker, tickerModalMode]);
 
   const toggleIncludeTicker = useCallback((profile: TickerProfile) => {
     const isIncluded = includedTickerIds.includes(profile.id);

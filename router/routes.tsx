@@ -9,11 +9,24 @@ import {
   KAKAO_CALLBACK_PATH,
   NAVER_CALLBACK_PATH
 } from '@/shared/lib/supabase';
+import { isGoogleSheetsEnabled } from '@/shared/lib/googleSheets';
 import { applySeoRuntimeMetadata, sendPageView } from '@/shared/lib/analytics';
+import { usePageHue } from '@/shared/hooks';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
+import { SIMULATOR_PATH } from '@/shared/constants/routes';
 
-function AnalyticsLayout() {
+/**
+ * 모든 라우트를 덮는 **상시 마운트 레이아웃**. 라우트가 바뀔 때마다 일어나야 하는 문서 수준
+ * 부수효과를 여기 한 곳에 모은다 — 페이지가 각자 하면 lazy 청크가 뜨기 전 한 박자가 비고,
+ * 히어로가 없는 화면(커뮤니티)은 아예 빠진다.
+ *
+ *  - SEO 런타임 메타데이터 + GA4 page_view
+ *  - 페이지 정체성 hue(`--sb-page-hue`) — `shared/hooks/usePageHue` 참고
+ */
+function RootLayout() {
   const location = useLocation();
+
+  usePageHue();
 
   useEffect(() => {
     const page = {
@@ -68,6 +81,48 @@ const DividendCalendarPage = lazy(() => import('@/pages/DividendCalendar/Dividen
  * PrimaryNav 에는 경로 문자열과 아이콘만 추가되므로 이 lazy 경계가 유지된다.
  */
 const PortfolioPage = lazy(() => import('@/pages/Portfolio/PortfolioPage'));
+
+/**
+ * 404 — 어떤 라우트에도 맞지 않는 주소(`*`).
+ *
+ * 예전에는 이 자리가 `<Navigate to="/" replace />` 라 **잘못된 주소가 조용히 홈으로 갔다**. 그러면
+ * 오타·죽은 링크·없어진 페이지가 전부 "정상적으로 메인이 떴다"로 보이고, 사용자는 자기가 무엇을
+ * 잘못 요청했는지 알 수 없다(주소창 기록마저 홈으로 바뀐다). 이제 무엇을 요청했는지 보여 주고
+ * 갈 곳을 제시한다.
+ *
+ * ⚠ `/ticker/:name` 의 **콘텐츠 없는 티커**는 여기로 오지 않는다 — 그 라우트는 매칭에 성공하고
+ * `TickerDetailPage` 가 허브(`/ticker/all`)로 보낸다(서버가 200 무치환 셸을 주는 SEO 결정과 한 쌍이다,
+ * `server/handlers/TickerHtml/TickerHtml.ts` 주석). 그 경로를 404 로 바꾸지 마라.
+ */
+const NotFoundPage = lazy(() => import('@/pages/NotFound'));
+
+/**
+ * 가계부(`/ledger`) — 구글 시트 연동. 티커 랜딩과 같은 `lazy` 격리다.
+ *
+ * 🔴 `isGoogleSheetsEnabled`(= `VITE_GOOGLE_CLIENT_ID`·`VITE_GOOGLE_API_KEY`·
+ * `VITE_GOOGLE_PROJECT_NUMBER` 셋 다 있음)가 false 면 **배열이 비어 라우트가 존재하지 않는다** →
+ * 아래 `*` catch-all 이 받아 404 를 낸다. 홈으로 리다이렉트하지 않는다(확정 결정) — 없는 기능을
+ * "정상적으로 메인이 떴다"로 위장하지 않는다.
+ *
+ * 🔴 사이트맵에 넣지 않는다(`vite.config.ts` 의 ROUTES) — 로그인·동의가 필요한 화면이라 크롤러가
+ * 도달해도 빈손이다. 헤더 nav 에도 넣지 않는다(진입점은 포트폴리오 카드와 프로필 드롭다운 두 곳).
+ *
+ * GIS·Picker 스크립트는 이 lazy 청크 안에서만, 그것도 사용자가 버튼을 누른 뒤에 로드된다.
+ */
+const LedgerPage = lazy(() => import('@/pages/Ledger/LedgerPage'));
+
+const ledgerRoutes: RouteObject[] = isGoogleSheetsEnabled
+  ? [
+      {
+        path: '/ledger',
+        element: (
+          <Suspense fallback={null}>
+            <LedgerPage />
+          </Suspense>
+        )
+      }
+    ]
+  : [];
 
 const CommunityLayout = lazy(() => import('@/pages/Community/CommunityLayout'));
 const CommunityGalleryPage = lazy(() => import('@/pages/Community/CommunityGalleryPage'));
@@ -153,10 +208,26 @@ const communityRoutes: RouteObject[] = isCommunityEnabled
 
 export const routes: RouteObject[] = [
   {
-    element: <AnalyticsLayout />,
+    element: <RootLayout />,
     children: [
+      /**
+       * 시뮬레이터 — 지금은 `/` 와 `/simulator` **둘 다** 같은 화면을 그린다(이전 중간 상태).
+       *
+       * 왜 두 개인가: 내부 링크·og:url·사이트맵을 먼저 `/simulator` 로 옮기고, 이미 배포된 공유
+       * 링크(`/?share=…`·`/?s=…`)와 북마크는 `/` 에서 그대로 살려 둔다. 나중에 랜딩이 `/` 를
+       * 가져갈 때 이 `'/'` 항목만 교체하면 되고, 되돌릴 때도 그 한 줄만 되돌리면 된다
+       * (docs/simulator-route-migration-compat.md §10 P2·§11).
+       *
+       * 🔴 `MainPage` 는 **eager import 를 유지한다.** lazy 로 내리면 `AuthControl`·`HeaderOverflowMenu`
+       * 가 엔트리 그래프에서 빠지면서 헤더가 lazy 경계 뒤로 가는 **번들 토폴로지 변경**이 된다 —
+       * 그 판단은 랜딩 PR 에서 실측과 함께 한다.
+       */
       {
         path: '/',
+        element: <MainPage />
+      },
+      {
+        path: SIMULATOR_PATH,
         element: <MainPage />
       },
       {
@@ -191,12 +262,17 @@ export const routes: RouteObject[] = [
           </Suspense>
         )
       },
+      ...ledgerRoutes,
       ...naverCallbackRoute,
       ...kakaoCallbackRoute,
       ...communityRoutes,
       {
         path: '*',
-        element: <Navigate to="/" replace />
+        element: (
+          <Suspense fallback={null}>
+            <NotFoundPage />
+          </Suspense>
+        )
       }
     ]
   }

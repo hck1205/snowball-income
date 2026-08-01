@@ -1,6 +1,17 @@
 import type { Frequency } from '@/shared/types';
 import type { TickerDraft, TickerProfile } from '@/shared/types/snowball';
 
+/**
+ * **첫 방문 기본 시나리오**의 프리셋 id.
+ *
+ * 저장된 워크스페이스가 하나도 없을 때 이 구성을 **적용된 상태로** 열어, 첫 화면이 "13지선다"가 아니라
+ * "이미 돌아가는 화면"이 되게 한다. 저장은 하지 않는다(`usePortfolioPersistence` 의 프리필 가드).
+ *
+ * 여기(엔진 인접 유틸)에 두는 이유: 영속 계층이 **무엇을 열지**를 알아야 하는데, 그러자고 저장 훅이
+ * 프리셋 카드 컴포넌트 배럴을 import 하면 저장 코드가 화면 코드에 딸려 온다.
+ */
+export const DEFAULT_PREFILL_PRESET_ID = 'stable-dividend-growth';
+
 export type PortfolioPresetAllocation = {
   ticker: string;
   weight: number;

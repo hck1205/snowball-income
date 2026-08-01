@@ -3,7 +3,7 @@ import type { Frequency } from '@/shared/types';
 import { ModalCompactFormGrid } from '@/pages/Main/Main.shared.styled';
 // 부모 배럴(../../index.ts)을 경유하면 TickerModal ↔ 하위 컴포넌트 순환이 된다 — 상대 경로로 직접 가져온다.
 import { FieldWithCaption, ModalCaption } from '../../TickerModal.styled';
-import { parseNumericInputOrNaN, withDerivedTotalReturn } from '../../TickerModal.utils';
+import { buildFrequencyMismatchHint, parseNumericInputOrNaN, withDerivedTotalReturn } from '../../TickerModal.utils';
 import type { TickerDraftFormProps } from './TickerDraftForm.types';
 
 /**
@@ -90,9 +90,12 @@ function TickerDraftForm({
           />
           {totalReturnCaption ? <ModalCaption>{totalReturnCaption}</ModalCaption> : null}
         </FieldWithCaption>
+        {/* 모순 고지는 **편집 가능한 이 폼에만** 붙인다 — 프리셋 미리보기(PresetTickerPreview)는
+            읽기 전용이고 큐레이션된 데이터라 사용자가 만들 수 있는 조합이 아니다. */}
         <FrequencySelect
           label="배당 지급 주기"
           value={tickerDraft.frequency}
+          hint={buildFrequencyMismatchHint(tickerDraft)}
           onChange={(event) => onChangeDraft((prev) => ({ ...prev, frequency: event.target.value as Frequency }))}
         />
       </ModalCompactFormGrid>

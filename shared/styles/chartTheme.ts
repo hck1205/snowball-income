@@ -15,9 +15,9 @@ import { font } from './tokens';
  * 폴백은 프리셋 레지스트리에서 직접 가져온다. 예전엔 hex를 복사해 둬서 토큰을 바꿔도 폴백은
  * 옛날 색 그대로였다(테스트만 통과하는 유령 값).
  *
- * ⚠ 캔버스는 CSS 변수를 다시 읽지 않는다 — **프리셋(또는 OS 라이트/다크) 전환 시 차트 옵션을
- * 다시 빌드해야 한다.** 옵션을 만드는 useMemo 의존성에 `palettePresetAtom` 값을 넣는 것으로 해결한다
- * (useMainComputed / ChartPanel / MonthlyCashflow 참고).
+ * ⚠ 캔버스는 CSS 변수를 다시 읽지 않는다 — **테마 전환 시 차트 옵션을 다시 빌드해야 한다.**
+ * 테마는 **두 축**이므로 옵션 useMemo 의존성에 `palettePresetAtom` 값과 `useEffectiveColorScheme()`
+ * 결과를 **함께** 넣는다 (useMainComputed / ChartPanel / MonthlyCashflow / ScenarioPreview 참고).
  */
 
 const FALLBACK_TOKENS = DEFAULT_THEME_PRESET.light;
@@ -132,8 +132,8 @@ const toChartTheme = (tokens: ThemeTokens): ChartTheme => ({
  * 다크 모드 사용자도 종이/PDF에서는 라이트로 나가야 잉크와 가독성이 맞는다. 이때
  * `document.documentElement.dataset.theme = 'light'` 로 강제하면 두 가지가 깨진다:
  *  1. `:root` 스코프라 화면 전체가 번쩍인다(서브트리만 라이트로 못 만든다).
- *  2. 화면 차트 옵션의 useMemo는 `palettePresetAtom`에만 의존하므로 재빌드되지 않는다
- *     → 캔버스가 다크 색 그대로 남는다(팔레트 stale-by-one 사고와 같은 구조).
+ *  2. 화면 차트 옵션의 useMemo는 atom 값(팔레트·밝기 선호)에 의존하므로, DOM만 몰래 바꾸면
+ *     재빌드되지 않는다 → 캔버스가 다크 색 그대로 남는다(팔레트 stale-by-one 사고와 같은 구조).
  *
  * 그래서 DOM을 건드리지 않고 레지스트리에서 토큰을 **직접 읽는 순수 함수**로 만든다.
  * 알 수 없는 프리셋 id는 기본 프리셋 라이트로 폴백한다.

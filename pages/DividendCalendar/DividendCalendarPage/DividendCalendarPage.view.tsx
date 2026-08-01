@@ -1,6 +1,6 @@
 import { useId } from 'react';
 import { CalendarDays, ChevronRight, SlidersHorizontal } from 'lucide-react';
-import { Banner, Chip } from '@/components/common';
+import { Banner, Chip, PageFooter, PageHero } from '@/components/common';
 import { DIVIDEND_CALENDAR_COPY } from '../copy';
 import {
   AgendaList,
@@ -16,7 +16,6 @@ import { getCalendarMonthOf, shiftCalendarMonth } from '../utils';
 import type { DividendCalendarViewProps } from './DividendCalendarPage.types';
 import { selectQuickPickOptions } from './DividendCalendarPage.utils';
 import {
-  AsOfLine,
   BoardCard,
   BoardHead,
   BoardHint,
@@ -28,17 +27,12 @@ import {
   EmptyTitle,
   FilterButton,
   FilterCount,
-  FootNote,
-  FootNoteCard,
-  HeroDisclaimer,
-  HeroIconBadge,
-  HeroLede,
-  HeroTitle,
-  HeroTitleRow,
   LiveRegion,
   MonthSummaryLine,
-  PageHero,
   PageStack,
+  PreviewBadge,
+  PreviewFrame,
+  PreviewOverlay,
   QuickPickItem,
   QuickPickLabel,
   QuickPickList,
@@ -59,6 +53,10 @@ const copy = DIVIDEND_CALENDAR_COPY;
  * 지급월 데이터가 없어도 빈 달력이 화면의 뼈대로 남아 있어야 이 페이지가 무엇을 하는 곳인지 읽힌다.
  * 대신 "지급이 없다"는 주장은 표가 하지 않는다 — 요약 줄·빈 상태 안내·경고 배너가 말한다
  * (요약과 상세 목록은 여전히 `selectedWithData > 0` 일 때만 붙는다).
+ *
+ * 🔄 2026-07-31: 그 뼈대가 **비어 있기만 하던 것**을 고쳤다. 선택이 0종이면 같은 표에 대표 종목의
+ * 실제 예상 지급일을 흐리게 깔고(`previewMonth`, 표현 전용) 안내 카드를 그 위에 띄운다 —
+ * 회색 빈 칸 42개가 문서의 43%를 먹으면서 "여기서 무엇을 보게 되는지"는 한 글자도 말하지 않았다.
  *
  * 종목 선택은 **우측 드로어**로 빠졌다(사용자 결정 2026-07-25) — 달력이 본문 전폭을 쓰고,
  * 화면에 남는 것은 달력·상세·각주 세 층뿐이다. 다만 "지금 몇 종을 보고 있나"와 빈 상태 안내는
@@ -106,18 +104,20 @@ export default function DividendCalendarView({
 
   return (
     <PageStack>
-      <PageHero>
-        <HeroTitleRow>
-          <HeroIconBadge>
-            <CalendarDays size={20} strokeWidth={1.8} aria-hidden focusable={false} />
-          </HeroIconBadge>
-          <HeroTitle>{copy.hero.title}</HeroTitle>
-        </HeroTitleRow>
-        <HeroLede>{copy.hero.lede}</HeroLede>
-        {/* 예상 지급일 고지 — 별도 배너 대신 히어로에 흡수(제목이 곧 맥락이라 disclaimer.title은 생략). */}
-        <HeroDisclaimer role="note">{copy.disclaimer.body}</HeroDisclaimer>
-        <AsOfLine>{viewModel.asOf ? copy.hero.asOf(viewModel.asOf) : copy.hero.asOfUnknown}</AsOfLine>
-      </PageHero>
+      {/*
+        이 페이지의 유일한 `<h1>`.
+
+        ⚠ 예상 지급일 고지(`disclaimer.body`, 3줄)는 **히어로에서 뺐다** — 제목 + 리드 + 주의문 3줄 +
+        기준일까지 담자 히어로가 본문 3덩어리가 되어 각주로 읽혔다(1280에서 히어로 222px). 고지는
+        읽는 순간이 "달력을 본 뒤"라 페이지 하단 각주 묶음(`FootNoteCard`, `role="note"`)이 제자리다.
+      */}
+      <PageHero
+        icon={<CalendarDays size={20} strokeWidth={1.8} aria-hidden focusable={false} />}
+        title={copy.hero.title}
+        titleAs="h1"
+        lede={copy.hero.lede}
+        meta={viewModel.asOf ? copy.hero.asOf(viewModel.asOf) : copy.hero.asOfUnknown}
+      />
 
       <LiveRegion role="status" aria-live="polite">
         {liveMessage}
@@ -159,25 +159,48 @@ export default function DividendCalendarView({
           onToday={onToday}
         />
 
+        {/*
+          빈 상태 = **예시 격자 + 그 위에 뜬 안내 카드**.
+
+          구 화면은 "아직 선택한 종목이 없습니다" 카드와 **회색 빈 칸 42개**가 같은 말을 두 번 했고,
+          그 격자가 1280에서 문서의 43%·뷰포트의 76%를 먹었다. 이제 그 지면이 "고르면 이런 게 보인다"를
+          직접 보여준다(칩 4개 = 예시에 깔린 그 종목들이라, 누르면 흐린 것이 그 자리에서 선명해진다).
+
+          🔴 예시는 **표현 전용**이다 — `previewMonth` 는 선택·저장소·주소 어디에도 들어가지 않는다.
+        */}
         {showEmptyState ? (
-          <EmptyStateCard>
-            <EmptyTitle>{copy.empty.title}</EmptyTitle>
-            <EmptyBody>{copy.empty.body}</EmptyBody>
-            {quickPicks.length > 0 ? (
-              <>
-                <QuickPickLabel>{copy.empty.quickPickLabel}</QuickPickLabel>
-                <QuickPickList>
-                  {quickPicks.map((option) => (
-                    <QuickPickItem key={option.ticker}>
-                      <Chip title={option.koreanName} onClick={() => onToggleTicker(option.ticker)}>
-                        {option.ticker}
-                      </Chip>
-                    </QuickPickItem>
-                  ))}
-                </QuickPickList>
-              </>
+          <PreviewFrame>
+            <PreviewOverlay>
+              <EmptyStateCard>
+                <PreviewBadge>{copy.preview.label}</PreviewBadge>
+                <EmptyTitle>{copy.empty.title}</EmptyTitle>
+                <EmptyBody>{copy.empty.body}</EmptyBody>
+                {quickPicks.length > 0 ? (
+                  <>
+                    <QuickPickLabel>{copy.empty.quickPickLabel}</QuickPickLabel>
+                    <QuickPickList>
+                      {quickPicks.map((option) => (
+                        <QuickPickItem key={option.ticker}>
+                          <Chip title={option.koreanName} onClick={() => onToggleTicker(option.ticker)}>
+                            {option.ticker}
+                          </Chip>
+                        </QuickPickItem>
+                      ))}
+                    </QuickPickList>
+                  </>
+                ) : null}
+              </EmptyStateCard>
+            </PreviewOverlay>
+
+            {viewModel.previewMonth ? (
+              <MonthCalendar
+                weeks={viewModel.previewMonth.weeks}
+                monthLabel={monthLabel}
+                labelledById={monthTitleId}
+                isPreview
+              />
             ) : null}
-          </EmptyStateCard>
+          </PreviewFrame>
         ) : null}
 
         {showAllUnavailable ? (
@@ -196,7 +219,9 @@ export default function DividendCalendarView({
 
         {status === 'loading' ? <MonthCalendarSkeleton monthLabel={monthLabel} /> : null}
 
-        {isReady ? (
+        {/* 빈 상태에서는 위 `PreviewFrame` 안의 예시 표가 이 자리를 대신한다 — 표를 두 개 그리면
+            같은 달의 서로 다른 달력이 위아래로 겹쳐 어느 쪽이 사실인지 알 수 없게 된다. */}
+        {isReady && !showEmptyState ? (
           <MonthCalendar
             weeks={month.weeks}
             monthLabel={monthLabel}
@@ -241,10 +266,18 @@ export default function DividendCalendarView({
         </DetailCard>
       ) : null}
 
-      <FootNoteCard>
-        <FootNote>{copy.disclaimer.monthSource}</FootNote>
-        <FootNote>{copy.disclaimer.undatedNote}</FootNote>
-      </FootNoteCard>
+      {/* 각주 + 사이트 공통 고지 = 공용 푸터 한 벌(2026-07-31 수렴 — 구 로컬 `FootNoteCard`).
+          문구는 **원문 그대로**이고, 히어로 `notice` 슬롯에서 물려받은 `role="note"` 도 첫 줄에 그대로
+          남는다(자리만 바뀌고 의미는 그대로다). */}
+      <PageFooter
+        notes={[
+          <span key="body" role="note">
+            {copy.disclaimer.body}
+          </span>,
+          copy.disclaimer.monthSource,
+          copy.disclaimer.undatedNote
+        ]}
+      />
 
       <PickerDrawer
         id={drawerId}

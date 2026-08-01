@@ -1,6 +1,6 @@
 import styled from '@emotion/styled';
-import { color, font, motion, radius, space } from '@/shared/styles';
-import type { StatEmphasis, StatTone } from './StatTile.types';
+import { color, font, iconSwapIn, motion, radius, space } from '@/shared/styles';
+import type { StatEmphasis, StatStatus, StatTone } from './StatTile.types';
 
 /**
  * 지표 타일.
@@ -25,7 +25,7 @@ const TONE: Record<StatTone, string> = {
   negative: color.dataNegative
 };
 
-export const TileRoot = styled.div<{ emphasis: StatEmphasis }>`
+export const TileRoot = styled.div<{ emphasis: StatEmphasis; status?: StatStatus }>`
   position: relative;
   min-width: 0;
   display: grid;
@@ -37,7 +37,29 @@ export const TileRoot = styled.div<{ emphasis: StatEmphasis }>`
   border-radius: ${radius.md};
   background: ${({ emphasis }) => (emphasis === 'hero' ? color.accentSubtle : color.surfaceMuted)};
   padding: ${({ emphasis }) => (emphasis === 'hero' ? `${space[4]} ${space[4]} ${space[4]} ${space[5]}` : space[3])};
-  transition: border-color ${motion.fast} ${motion.ease};
+  /*
+   * 테두리를 전환 목록에 넣는다 — 상태('status')가 붙는 순간이 **이 타일의 유일한 연출**이라
+   * 그 250ms 가 통째로 스냅이면 아무도 못 본다. 250ms 는 UI 전환 상한(300ms) 아래다.
+   * reduced-motion 은 globalStyles 의 전역 규칙이 끈다(ProgressFill 과 같은 취급) —
+   * 여기 미디어 게이트를 또 두지 않는다. keyframes 를 갖는 hero 모션만 게이트가 필요하다.
+   */
+  transition: border-color 250ms ${motion.ease};
+
+  /*
+   * 달성 상태. **틴트 면을 주지 않는다** — 면색은 계속 중립(surface-muted)이고 1px success
+   * 테두리와 체크 글리프가 상태를 말한다. 이 화면(시뮬레이터 결과)에는 이미 히어로 그라디언트 ·
+   * hero 타일 액센트 · 종합과세 경고가 서 있어서, 여기 성공 틴트를 얹으면 §2-6 상한(2개)을
+   * 한 번에 두 칸 넘긴다 — Banner 의 info 톤과 목표 카드 성공 줄이 2026-07-31 에 같은
+   * 이유로 면을 버렸고 이 타일만 예외일 근거가 없다(약한 톤 = 중립 면 + 1px 톤 테두리).
+   * 값(TileValue)은 여전히 중립이다 — 숫자에 상태색을 넣지 않는다는 규칙은 예외가 없다.
+   * 대비: success × surface-muted 를 contrast.test 가 16조합에서 강제한다.
+   */
+  ${({ status }) =>
+    status === 'success'
+      ? `
+    border-color: ${color.success};
+  `
+      : ''}
 
   /* hero 타일의 좌측 오로라 리본 바 — 시그니처를 화면당 한 군데(주인공 지표)에만 쓴다. */
   ${({ emphasis }) =>
@@ -108,6 +130,27 @@ export const TileLabelRow = styled.span`
   gap: ${space[2]};
   min-width: 0;
   width: 100%;
+`;
+
+/**
+ * 상태 글리프(달성 ✓). 라벨 **왼쪽**에 앉아 "이 타일이 달라졌다"를 면색과 함께 말한다.
+ *
+ * `$enter` 일 때만 등장 모션이 돈다 — 이미 달성된 화면을 새로 고칠 때마다 재생되면
+ * 그건 축하가 아니라 소음이다. "처음 달성한 그 순간"의 판정은 호출부가 소유한다.
+ *
+ * 🔴 색은 **면과 이 글리프까지**다. 값(TileValue)에는 상태색이 닿지 않는다.
+ */
+export const TileStatusGlyph = styled.span<{ $enter: boolean }>`
+  display: inline-flex;
+  flex: 0 0 auto;
+  color: ${color.success};
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  ${({ $enter }) => ($enter ? iconSwapIn : '')}
 `;
 
 export const TileLabel = styled.span<{ emphasis: StatEmphasis }>`

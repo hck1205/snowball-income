@@ -21,8 +21,9 @@ import { color, media, shadow, space } from './tokens';
 export const APP_HEADER_HEIGHT_VAR = '--sb-app-header-h';
 
 /**
- * 위 변수를 CSS 길이로 쓰는 형태. 폴백 88px 은 "2줄 헤더의 데스크톱 자연 높이"로,
- * JS 가 아직 실측을 발행하지 못한 첫 페인트에서만 쓰인다.
+ * 위 변수를 CSS 길이로 쓰는 형태. 폴백 88px 은 **JS 가 아직 실측을 발행하지 못한 첫 페인트에서만**
+ * 쓰인다 — 실측치는 한 줄 모드(≥1024) 64px 대, 두 줄 모드(≤1023) 90px 대다. 그 사이의 보수적인
+ * 값을 남겨 둔다(작게 잡으면 sticky 요소가 헤더 뒤로 숨고, 크게 잡으면 빈 띠가 한 프레임 보인다).
  */
 export const appHeaderHeight = `var(${APP_HEADER_HEIGHT_VAR}, 88px)`;
 
@@ -64,46 +65,46 @@ export const headerGlassSurface = `
 `;
 
 /**
- * 헤더 두 줄(1줄=전역 nav, 2줄=컨트롤/검색) 사이의 **세로 간격**.
+ * 헤더 안쪽 레이아웃 — **한 장의 그리드가 두 모드를 다 그린다.**
  *
- * 두 헤더가 같은 값을 써야 "메뉴 ↔ 필터" 사이 리듬이 화면 간에 일치한다(시각 통일이 목표).
- * 소비처는 `HeaderInner`(세로 스택)의 gap으로만 쓴다 — 줄 안쪽 가로 gap은 각자 소유.
+ * 슬롯 3개는 이름(`grid-area`)으로 자리를 잡는다. 그래서 슬롯 내용이 화면마다 달라져도 나머지 자리가
+ * 밀리지 않는다 — 예전에 `1fr auto 1fr` 3컬럼에서 채움용 `Spacer` div 를 두던 이유가 이것이었다.
  *
- * 모바일(drawer↓)은 **항상 데스크톱보다 한 단계 좁게** 유지한다. 헤더는 `position: sticky`라 상시
- * 뷰포트를 차지하고, 좁은 화면에서는 아래로 모바일 검색 바가 한 줄 더 붙는 경우도 있어서다.
- * (space 스케일이 4px 단위라 "증가폭 절반"은 표현할 수 없다 — 대신 한 스텝 차이를 불변식으로 둔다.)
- */
-export const headerRowGap = `
-  gap: ${space[5]};
-
-  ${media.down('drawer')} {
-    gap: ${space[4]};
-  }
-`;
-
-/**
- * 헤더 2번째 줄(컨트롤) 레이아웃 — `PrimaryNav`의 `Nav`와 **동일한** 3컬럼 그리드.
+ *   ≥1024 (`media.up('headerStack')`) — **한 줄**
+ *     `brand │ nav(남는 폭 전부) │ actions`
+ *     내비 트랙만 `minmax(0, 1fr)` 이라 남는 폭을 전부 먹고, 넘치면 그 안에서 가로 스크롤된다
+ *     (문서가 넓어지지 않는다). 브랜드 줄 오른쪽 900px 이 빈 채로 남던 2줄 헤더의 낭비를 없앴다.
  *
- * 두 줄이 같은 트랙 구조(`1fr auto 1fr`)를 쓰기 때문에 2열의 중심 x좌표가 구조적으로 일치한다.
- * flex + `margin-left:auto` 방식은 좌/우 요소 폭에 따라 가운데가 흔들려(우측 액션 폭의 절반만큼
- * 왼쪽으로 밀림) 1줄째 메뉴와 중심선이 어긋났다 — 그 회귀를 막는 것이 이 레시피의 존재 이유다.
+ *   ≤1023 (`media.down('headerStack')`) — **두 줄**
+ *     `brand │ actions`
+ *     `nav ───── 전폭 ─────`
+ *     내비는 전폭 가로 스크롤 칩 줄이 된다. 좁은 폭에서 브랜드·컨트롤과 한 줄을 다투면 둘 다 진다.
  *
- * ⚠ 이 정렬은 헤더가 세로 스택(`flex-direction: column; align-items: stretch`)이라 두 줄 모두
- * 헤더 폭 전체를 차지하는 덕분에만 성립한다. 부모를 flex row로 되돌리면 조용히 무너진다.
+ * ⚠ 구 `center` 트랙(커뮤니티 갤러리 검색)은 **2026-07-31 에 삭제됐다.** 그 자리는 한 줄 모드에서
+ * 내비와 폭을 다퉈 1024px 갤러리에서 메뉴 6개 중 **3개가 스크롤 뒤로 밀리고** 검색 입력은 72px 이
+ * 됐다(실측). 검색이 본문 툴바로 내려가면서 그 트랙도 함께 없앴다 — 되살리지 마라.
  *
- * 좁은 화면(drawer↓)에선 `Nav`와 똑같이 **flex 흐름으로 폴백**한다(가운데 정렬이 좌우를 압박하므로).
- * 폴백에서 `grid-column`/`justify-self`는 무시되고 각 슬롯의 flex 규칙이 배치를 맡는다.
+ * 🔴 왜 flex 가 아니라 grid 인가 — flex 에서 `flex: 1` 슬롯의 중앙은 "컨테이너의 중앙"이 아니라
+ * "남은 공간의 중앙"이다. 예전 헤더의 가운데 검색이 우측 액션 폭의 절반만큼 왼쪽으로 밀려 있던
+ * 사용자 신고가 그 결과였다(2026-07-20). 트랙을 이름으로 고정하면 그 어긋남이 원리적으로 안 생긴다.
  *
- * gap은 헤더마다 리듬이 달라 소비처가 정한다.
+ * ⚠ 세로 간격은 **두 줄 모드에만** 있다(`row-gap`). 한 줄 모드에서 세로 여백을 더하려면
+ * `HeaderInner` 의 블록 패딩을 만져라 — 그것이 헤더 높이의 단일 조절점이다.
  */
 export const headerControlsGrid = `
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
   align-items: center;
   min-width: 0;
+  column-gap: ${space[3]};
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: 'brand nav actions';
 
-  ${media.down('drawer')} {
-    display: flex;
-    align-items: center;
+  ${media.down('headerStack')} {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'brand actions'
+      'nav nav';
+    column-gap: ${space[2]};
+    row-gap: ${space[2]};
   }
 `;

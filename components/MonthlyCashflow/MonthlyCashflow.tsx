@@ -4,7 +4,7 @@ import { ChartWrap, HintText } from '@/components/common';
 import { buildRecentCashflowBarOption } from '@/shared/lib/charts';
 import { SIMULATOR_COPY } from '@/shared/constants';
 import { formatKRW } from '@/shared/utils';
-import { usePalettePresetAtomValue } from '@/jotai';
+import { useEffectiveColorScheme, usePalettePresetAtomValue } from '@/jotai';
 import type { MonthlyCashflowProps } from './MonthlyCashflow.types';
 import { buildCalendarMonths, buildPayoutScheduleRows, resolveSelectedYear } from './MonthlyCashflow.utils';
 import { CashflowCalendar, CashflowControls, PayoutScheduleStrip } from './components';
@@ -27,8 +27,9 @@ function MonthlyCashflowComponent({
   const [viewMode, setViewMode] = useState<CashflowViewMode>('chart');
   const years = yearlyCashflowByTicker.years;
   const [selectedYear, setSelectedYear] = useState<number | null>(() => resolveSelectedYear(years, null));
-  /* 캔버스는 CSS 변수를 다시 읽지 않는다 — 팔레트 프리셋 전환 시 옵션을 다시 빌드해야 한다. */
+  /* 캔버스는 CSS 변수를 다시 읽지 않는다 — 테마 두 축(색 프리셋·밝기) 어느 쪽이 바뀌어도 옵션을 다시 빌드해야 한다. */
   const palettePreset = usePalettePresetAtomValue();
+  const colorScheme = useEffectiveColorScheme();
 
   useEffect(() => {
     setSelectedYear((prev) => resolveSelectedYear(years, prev));
@@ -39,7 +40,7 @@ function MonthlyCashflowComponent({
   /* 표시 통화도 팔레트와 같은 재빌드 트리거다 — 빠지면 이 차트만 옛 통화 라벨로 남는다. */
   const chartOption = useMemo(
     () => buildRecentCashflowBarOption(selectedYearData ?? { months: [], series: [] }, undefined, formatAmount),
-    [formatAmount, palettePreset, selectedYearData]
+    [colorScheme, formatAmount, palettePreset, selectedYearData]
   );
   const totalDividend = selectedYearData?.totalDividend ?? 0;
   const calendarMonths = useMemo(

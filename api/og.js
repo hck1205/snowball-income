@@ -7539,100 +7539,6 @@ var CORE_INDEX_ETFS = {
   }
 };
 
-// shared/constants/presets/semiconductorDividendGrowthPortfolio.ts
-var SEMICONDUCTOR_DIVIDEND_GROWTH_PORTFOLIO = {
-  AVGO: {
-    ticker: "AVGO",
-    name: "Broadcom Inc.",
-    initialPrice: 1350,
-    dividendYield: 1.5,
-    dividendGrowth: 12.5,
-    expectedTotalReturn: 14,
-    frequency: "quarterly"
-  },
-  TXN: {
-    ticker: "TXN",
-    name: "Texas Instruments Incorporated",
-    initialPrice: 190,
-    dividendYield: 3,
-    dividendGrowth: 8,
-    expectedTotalReturn: 11,
-    frequency: "quarterly"
-  },
-  ADI: {
-    ticker: "ADI",
-    name: "Analog Devices, Inc.",
-    initialPrice: 210,
-    dividendYield: 1.8,
-    dividendGrowth: 9.2,
-    expectedTotalReturn: 11,
-    frequency: "quarterly"
-  },
-  LRCX: {
-    ticker: "LRCX",
-    name: "Lam Research Corporation",
-    initialPrice: 900,
-    dividendYield: 1.2,
-    dividendGrowth: 11.8,
-    expectedTotalReturn: 13,
-    frequency: "quarterly"
-  },
-  KLAC: {
-    ticker: "KLAC",
-    name: "KLA Corporation",
-    initialPrice: 800,
-    dividendYield: 1.1,
-    dividendGrowth: 10.9,
-    expectedTotalReturn: 12,
-    frequency: "quarterly"
-  },
-  AMAT: {
-    ticker: "AMAT",
-    name: "Applied Materials, Inc.",
-    initialPrice: 220,
-    dividendYield: 0.9,
-    dividendGrowth: 11.1,
-    expectedTotalReturn: 12,
-    frequency: "quarterly"
-  },
-  TSM: {
-    ticker: "TSM",
-    name: "Taiwan Semiconductor Manufacturing Company",
-    initialPrice: 170,
-    dividendYield: 1.5,
-    dividendGrowth: 9.5,
-    expectedTotalReturn: 11,
-    frequency: "quarterly"
-  },
-  ASML: {
-    ticker: "ASML",
-    name: "ASML Holding N.V.",
-    initialPrice: 900,
-    dividendYield: 0.8,
-    dividendGrowth: 10.2,
-    expectedTotalReturn: 11,
-    frequency: "annual"
-  },
-  ETN: {
-    ticker: "ETN",
-    name: "Eaton Corporation plc",
-    initialPrice: 320,
-    dividendYield: 1.2,
-    dividendGrowth: 10.8,
-    expectedTotalReturn: 12,
-    frequency: "quarterly"
-  },
-  VRT: {
-    ticker: "VRT",
-    name: "Vertiv Holdings Co",
-    initialPrice: 80,
-    dividendYield: 0.2,
-    dividendGrowth: 13.8,
-    expectedTotalReturn: 14,
-    frequency: "quarterly"
-  }
-};
-
 // shared/constants/presets/aiInfraEtfsAndStocks.ts
 var AI_INFRA_ETFS_AND_STOCKS = {
   SMH: {
@@ -7752,6 +7658,60 @@ var AI_INFRA_ETFS_AND_STOCKS = {
     expectedTotalReturn: 10,
     frequency: "quarterly"
   }
+};
+
+// shared/constants/presets/semiconductorDividendGrowthPortfolio.ts
+var SEMICONDUCTOR_DIVIDEND_GROWTH_PORTFOLIO = {
+  AVGO: AI_INFRA_ETFS_AND_STOCKS.AVGO,
+  TXN: {
+    ticker: "TXN",
+    name: "Texas Instruments Incorporated",
+    initialPrice: 190,
+    dividendYield: 3,
+    dividendGrowth: 8,
+    expectedTotalReturn: 11,
+    frequency: "quarterly"
+  },
+  ADI: {
+    ticker: "ADI",
+    name: "Analog Devices, Inc.",
+    initialPrice: 210,
+    dividendYield: 1.8,
+    dividendGrowth: 9.2,
+    expectedTotalReturn: 11,
+    frequency: "quarterly"
+  },
+  LRCX: {
+    ticker: "LRCX",
+    name: "Lam Research Corporation",
+    initialPrice: 900,
+    dividendYield: 1.2,
+    dividendGrowth: 11.8,
+    expectedTotalReturn: 13,
+    frequency: "quarterly"
+  },
+  KLAC: {
+    ticker: "KLAC",
+    name: "KLA Corporation",
+    initialPrice: 800,
+    dividendYield: 1.1,
+    dividendGrowth: 10.9,
+    expectedTotalReturn: 12,
+    frequency: "quarterly"
+  },
+  AMAT: {
+    ticker: "AMAT",
+    name: "Applied Materials, Inc.",
+    initialPrice: 220,
+    dividendYield: 0.9,
+    dividendGrowth: 11.1,
+    expectedTotalReturn: 12,
+    frequency: "quarterly"
+  },
+  TSM: AI_INFRA_ETFS_AND_STOCKS.TSM,
+  ASML: AI_INFRA_ETFS_AND_STOCKS.ASML,
+  ETN: AI_INFRA_ETFS_AND_STOCKS.ETN,
+  VRT: AI_INFRA_ETFS_AND_STOCKS.VRT
 };
 
 // shared/constants/presets/index.ts
@@ -8000,6 +7960,9 @@ var PALETTE_PRESET_IDS = ["velog", "forest", "aurora", "vivid", "navy-gold", "gr
 var DEFAULT_PALETTE_PRESET_ID = "velog";
 var isPalettePresetId = (value) => typeof value === "string" && PALETTE_PRESET_IDS.includes(value);
 var normalizePalettePresetId = (value) => isPalettePresetId(value) ? value : DEFAULT_PALETTE_PRESET_ID;
+var VISIBLE_PALETTE_PRESET_IDS = [DEFAULT_PALETTE_PRESET_ID];
+var isVisiblePalettePresetId = (value) => typeof value === "string" && VISIBLE_PALETTE_PRESET_IDS.includes(value);
+var toVisiblePalettePresetId = (value) => isVisiblePalettePresetId(value) ? value : DEFAULT_PALETTE_PRESET_ID;
 
 // shared/styles/presets/chartSeriesTokens.ts
 var chartSeriesTokens = (series) => Object.fromEntries(series.map((hex, index) => [`chart-series-${index}`, hex]));
@@ -8026,6 +7989,18 @@ var WORDMARK_DARK = {
   "wordmark-snow-solid": brand2[400],
   "wordmark-income-solid": auroraTeal2[600]
 };
+var IDENTITY_LIGHT = {
+  identity: brand2[600],
+  "identity-subtle": brand2[50],
+  "identity-border": brand2[200],
+  "identity-text": brand2[700]
+};
+var IDENTITY_DARK = {
+  identity: brand2[400],
+  "identity-subtle": brand2[900],
+  "identity-border": brand2[700],
+  "identity-text": brand2[300]
+};
 var COMMON_LIGHT = {
   "data-positive": up2.light,
   "data-positive-surface": up2.soft,
@@ -8038,6 +8013,7 @@ var COMMON_LIGHT = {
   danger: danger2.light,
   "danger-surface": danger2.soft,
   "danger-border": danger2.softBorder,
+  ...IDENTITY_LIGHT,
   ...WORDMARK_LIGHT
 };
 var COMMON_DARK = {
@@ -8052,6 +8028,7 @@ var COMMON_DARK = {
   danger: danger2.dark,
   "danger-surface": danger2.softDark,
   "danger-border": danger2.softDarkBorder,
+  ...IDENTITY_DARK,
   ...WORDMARK_DARK
 };
 
@@ -9296,6 +9273,20 @@ var color = {
   accentAltSubtle: "var(--sb-accent-alt-subtle)",
   accentAltBorder: "var(--sb-accent-alt-border)",
   /*
+   * 아이덴티티(쿨 블루 hue 200) — **전 프리셋 공통**. 워드마크와 같은 급의 "제품 자신"이라
+   * 스킨(프리셋)을 따라가지 않는다. 히어로 리본·아이콘 배지 채움(identity), 히어로/빈 상태
+   * 틴트 면(identitySubtle), 그 면의 1px 경계(identityBorder), 면 위 라벨(identityText).
+   *
+   * ⚠ identity 채움 위에 **텍스트 금지**(다크에서 흰 라벨 2.79:1). 아이콘·리본 같은 비텍스트만.
+   * ⚠ brand(액션·인터랙션 축)와 값이 겹칠 수 있지만 역할이 다르다 — 누를 수 있는 것에는
+   *   brand 를, "이 제품이다"라고 말하는 장식 면에는 identity 를 쓴다.
+   * 근거·실측 수치는 presets/sharedTokens.ts 의 IDENTITY_LIGHT/IDENTITY_DARK 주석.
+   */
+  identity: "var(--sb-identity)",
+  identitySubtle: "var(--sb-identity-subtle)",
+  identityBorder: "var(--sb-identity-border)",
+  identityText: "var(--sb-identity-text)",
+  /*
    * 워드마크("스노우볼 인컴") — 전 프리셋 공통. `background-clip: text` 전용이고
    * solid 는 그 폴백(@supports 미지원·forced-colors·print)이다. 다른 용도로 쓰지 마라.
    */
@@ -9345,7 +9336,16 @@ var BREAKPOINT = {
   /** 모바일 드로어 on/off 경계 */
   drawer: 960,
   /** 좌/우 2단 → 1단 전환 */
-  layout: 980
+  layout: 980,
+  /**
+   * 앱 헤더 1줄 ↔ 2줄 전환. **`media.up('headerStack')` = 1024px 이상 = 한 줄**이고,
+   * `media.down('headerStack')` = 1023px 이하 = 브랜드 줄 + 메뉴 줄 2단이다.
+   *
+   * 값이 유일하게 홀수인 이유: 이 경계만 "데스크톱 쪽 시작점(1024)"으로 정해졌다
+   * (내비 높이 상한 80px 규칙 — 두 줄 헤더는 데스크톱에서 117px 이었다).
+   * 나머지 키처럼 "작은 쪽의 max-width" 로 표현하면 1023 이 된다.
+   */
+  headerStack: 1023
 };
 var media = {
   down: (key) => `@media (max-width: ${BREAKPOINT[key]}px)`,
@@ -9408,7 +9408,19 @@ var motion = {
   base: "200ms",
   /** 오케스트레이션된 순간 전용(진행률 바 채움 등). 상태 피드백에는 fast/base를 쓴다. */
   slow: "450ms",
-  ease: "cubic-bezier(0.2, 0, 0, 1)"
+  /**
+   * 퇴장 = 진입의 60%. 사라지는 것은 이미 사용자의 관심 밖이라 진입과 같은 시간을 쓰면 느리게 느껴진다.
+   * (`base` 200ms 진입 ↔ 이 값 120ms 퇴장.)
+   */
+  exit: "120ms",
+  ease: "cubic-bezier(0.2, 0, 0, 1)",
+  /**
+   * 화면 **안에서 이동**하는 것 전용. 양끝이 느리고 가운데가 빠르다 —
+   * 나타나거나 사라지지 않고 자리만 옮기는 요소에 쓴다.
+   */
+  easeInOut: "cubic-bezier(0.77, 0, 0.175, 1)",
+  /** 사이드 드로어 전용 곡선. 손가락이 놓은 듯 초반이 빠르고 끝이 길게 감속한다. */
+  easeDrawer: "cubic-bezier(0.32, 0.72, 0, 1)"
 };
 var CHART_SERIES_VARS = Array.from(
   { length: 8 },
@@ -10778,7 +10790,7 @@ var globalStyles = css`
     }
   }
 
-  /* 수동 토글 대비 (이번 범위에서는 토글 UI 없음) */
+  /* 수동 토글(헤더 밝기 버튼)이 박는 다크 — OS 설정보다 우선한다 */
   :root[data-theme='dark'] {
     ${toCssVars(DEFAULT_THEME_PRESET.dark)};
     color-scheme: dark;
@@ -10968,22 +10980,21 @@ var headerGlassSurface = `
     backdrop-filter: blur(14px) saturate(1.35);
   }
 `;
-var headerRowGap = `
-  gap: ${space[5]};
-
-  ${media.down("drawer")} {
-    gap: ${space[4]};
-  }
-`;
 var headerControlsGrid = `
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
   align-items: center;
   min-width: 0;
+  column-gap: ${space[3]};
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: 'brand nav actions';
 
-  ${media.down("drawer")} {
-    display: flex;
-    align-items: center;
+  ${media.down("headerStack")} {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'brand actions'
+      'nav nav';
+    column-gap: ${space[2]};
+    row-gap: ${space[2]};
   }
 `;
 
@@ -11005,6 +11016,16 @@ var iconOpticalAlign = (role, textFontSize) => {
 `;
 };
 var heroIconOpticalAlign = iconOpticalAlign("display", heroTitleFontSize);
+
+// shared/styles/pageHue.ts
+var PAGE_HUE_VAR = "--sb-page-hue";
+var PAGE_HUE_TOKEN = {
+  identity: color.identity,
+  accent: color.accent,
+  accentAlt: color.accentAlt,
+  brand: color.brand
+};
+var pageHue = `var(${PAGE_HUE_VAR}, ${color.brand})`;
 
 // shared/styles/scrollbar.ts
 var subtleScrollbar = `
@@ -11297,6 +11318,8 @@ var showSplitGraphsAtom = atomState(false);
 var showPortfolioDividendCenterAtom = atomState(true);
 var selectedPresetAtom = atomState("custom");
 var tourLaunchRequestAtom = atomState(0);
+var scenarioPrefillAtom = atomState(null);
+var shareLinkFailureAtom = atomState(null);
 var PALETTE_STORAGE_KEY = "snowball:palette";
 var paletteStorage = {
   getItem: (key, initialValue) => {
@@ -11341,10 +11364,63 @@ var applyPaletteToDocument = (palette2) => {
   document.documentElement.dataset.palette = palette2;
 };
 var palettePresetAtom = atom(
-  (get) => get(palettePresetStorageAtom),
+  (get) => toVisiblePalettePresetId(get(palettePresetStorageAtom)),
   (get, set, update) => {
     set(palettePresetStorageAtom, update);
-    applyPaletteToDocument(get(palettePresetStorageAtom));
+    applyPaletteToDocument(toVisiblePalettePresetId(get(palettePresetStorageAtom)));
+  }
+);
+var COLOR_SCHEME_STORAGE_KEY = "snowball:color-scheme";
+var DEFAULT_COLOR_SCHEME_PREFERENCE = "system";
+var normalizeColorSchemePreference = (value) => value === "light" || value === "dark" ? value : DEFAULT_COLOR_SCHEME_PREFERENCE;
+var colorSchemeStorage = {
+  getItem: (key, initialValue) => {
+    try {
+      const raw = window.localStorage.getItem(key);
+      return raw === null ? initialValue : normalizeColorSchemePreference(raw);
+    } catch {
+      return initialValue;
+    }
+  },
+  setItem: (key, value) => {
+    try {
+      window.localStorage.setItem(key, value);
+    } catch {
+    }
+  },
+  removeItem: (key) => {
+    try {
+      window.localStorage.removeItem(key);
+    } catch {
+    }
+  },
+  /** 다른 탭에서 밝기를 바꾸면 이 탭도 따라간다. */
+  subscribe: (key, callback) => {
+    const handler2 = (event) => {
+      if (event.key !== key) return;
+      if (event.storageArea !== null && event.storageArea !== window.localStorage) return;
+      callback(normalizeColorSchemePreference(event.newValue));
+    };
+    window.addEventListener("storage", handler2);
+    return () => window.removeEventListener("storage", handler2);
+  }
+};
+var colorSchemeStorageAtom = atomWithStorage(
+  COLOR_SCHEME_STORAGE_KEY,
+  DEFAULT_COLOR_SCHEME_PREFERENCE,
+  colorSchemeStorage,
+  { getOnInit: true }
+);
+var applyColorSchemeToDocument = (preference) => {
+  if (typeof document === "undefined") return;
+  if (preference === "system") delete document.documentElement.dataset.theme;
+  else document.documentElement.dataset.theme = preference;
+};
+var colorSchemeAtom = atom(
+  (get) => get(colorSchemeStorageAtom),
+  (get, set, update) => {
+    set(colorSchemeStorageAtom, update);
+    applyColorSchemeToDocument(get(colorSchemeStorageAtom));
   }
 );
 var DISPLAY_CURRENCY_STORAGE_KEY = "snowball:display-currency";
@@ -11913,27 +11989,35 @@ var decodeV3Scenario = (parsed) => {
     decodeCompactInvestmentSettingsV3(parsed.i)
   );
 };
-var decodeSharedScenario = (encoded) => {
-  const decodedText = (0, import_lz_string.decompressFromEncodedURIComponent)(encoded);
-  if (!decodedText) return null;
+var decodeSharedScenarioResult = (encoded) => {
+  let decodedText;
+  try {
+    decodedText = (0, import_lz_string.decompressFromEncodedURIComponent)(encoded);
+  } catch {
+    return { ok: false, reason: "malformed" };
+  }
+  if (!decodedText) return { ok: false, reason: "malformed" };
   let parsed;
   try {
     parsed = JSON.parse(decodedText);
   } catch {
-    return null;
+    return { ok: false, reason: "malformed" };
   }
-  if (!isObject(parsed)) return null;
+  if (!isObject(parsed)) return { ok: false, reason: "unsupported" };
   const envelope = parsed;
+  let scenario = null;
   if (Number(envelope.v) === 1 && isObject(parsed.scenario)) {
-    return decodeV1Scenario(parsed);
+    scenario = decodeV1Scenario(parsed);
+  } else if (Number(envelope.v) === 2 && isObject(parsed.p)) {
+    scenario = decodeV2Scenario(parsed);
+  } else if (Number(envelope.v) === 3 && isObject(parsed.p) && isObject(parsed.i)) {
+    scenario = decodeV3Scenario(parsed);
   }
-  if (Number(envelope.v) === 2 && isObject(parsed.p)) {
-    return decodeV2Scenario(parsed);
-  }
-  if (Number(envelope.v) === 3 && isObject(parsed.p) && isObject(parsed.i)) {
-    return decodeV3Scenario(parsed);
-  }
-  return null;
+  return scenario ? { ok: true, scenario } : { ok: false, reason: "unsupported" };
+};
+var decodeSharedScenario = (encoded) => {
+  const result = decodeSharedScenarioResult(encoded);
+  return result.ok ? result.scenario : null;
 };
 
 // pages/Main/utils/portfolio.ts

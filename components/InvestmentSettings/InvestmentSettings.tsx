@@ -49,8 +49,73 @@ function InvestmentSettingsComponent({
 
   return (
     <Card dataTour={TOUR_TARGET.investmentSettings}>
+      {/*
+       * 🔴 이 카드 안의 순서 = **② 투자 조건 → ③ 계산 방식**. 2026-07-31 에 뒤집었다.
+       *   종전엔 토글 4개가 맨 위에 있어서, 드로어를 열면 가장 먼저 닿는 것이 "빠른 추정 보기"·
+       *   "그래프 나누어 보기" 같은 **표시 옵션**이었고 정작 자주 고치는 금액·기간·세율은 그 아래였다.
+       *   구분선(`ConfigSectionDivider`)이 두 덩어리를 가른다.
+       */}
       <FormSection title="투자 설정">
         <ConfigFormGrid>
+          <ConfigInputGrid>
+            {/* 금액 필드는 **원화로 입력·저장**하고 달러는 아래 줄에 참고로만 병기한다
+                (이유는 InvestmentSettings.utils 의 buildAmountHint 주석). */}
+            <InputField
+              label="초기 투자금 (원)"
+              type="number"
+              min={0}
+              value={values.initialInvestment}
+              hint={buildAmountHint(values.initialInvestment, display)}
+              onChange={(event) => onSetField('initialInvestment', Number(event.target.value))}
+            />
+            <InputField
+              label="월 투자금 (원)"
+              type="number"
+              min={0}
+              value={values.monthlyContribution}
+              hint={buildAmountHint(values.monthlyContribution, display)}
+              onChange={(event) => onSetField('monthlyContribution', Number(event.target.value))}
+            />
+            <InputField
+              label="투자 기간 (연단위)"
+              type="number"
+              min={1}
+              max={60}
+              value={values.durationYears}
+              onChange={(event) => onSetField('durationYears', Number(event.target.value))}
+            />
+            <InputField
+              label="세율 (%)"
+              type="number"
+              min={0}
+              max={100}
+              step={0.1}
+              value={values.taxRate ?? ''}
+              onChange={(event) => {
+                const next = event.target.value;
+                onSetField('taxRate', next === '' ? undefined : Number(next));
+              }}
+            />
+            <InputField
+              /* 결과 카드의 "직접 입력" CTA가 이 필드를 지목한다 — 라벨 파생 id는 카피에 묶여 취약하다. */
+              id={TARGET_MONTHLY_DIVIDEND_INPUT_ID}
+              label="목표 월배당 (원)"
+              type="number"
+              min={0}
+              value={values.targetMonthlyDividend}
+              hint={buildAmountHint(values.targetMonthlyDividend, display)}
+              onChange={(event) => onSetField('targetMonthlyDividend', Number(event.target.value))}
+            />
+            <InputField
+              label="투자 시작 날짜"
+              type="date"
+              value={values.investmentStartDate}
+              onChange={(event) => onSetField('investmentStartDate', event.target.value)}
+            />
+          </ConfigInputGrid>
+          <ConfigSectionDivider aria-hidden="true" />
+          {/* ③ 계산 방식 — 값이 아니라 "어떻게 계산·표시할 것인가". 재투자 토글과 그 시점·성장 반영
+              셀렉트가 여기 함께 온다(토글이 셀렉트의 활성 여부를 정하므로 같은 덩어리여야 읽힌다). */}
           <ToggleField
             label="빠른 추정 보기"
             checked={showQuickEstimate}
@@ -102,59 +167,7 @@ function InvestmentSettingsComponent({
               />
             </ReinvestControls>
           </ReinvestRow>
-          {/* 배당 재투자 바로 아래(구분선 위) — 사용자 지정 자리. 위 토글들과 같은 `ToggleField` 라
-              라벨 줄·스위치 정렬이 그대로 이어지고, 구분선 아래 원화 고정 입력들과는 분리된다. */}
-          <CurrencyToggleField display={display} onChangeCurrency={onChangeCurrency} />
-          <ConfigSectionDivider aria-hidden="true" />
           <ConfigInputGrid>
-            {/* 금액 필드는 **원화로 입력·저장**하고 달러는 아래 줄에 참고로만 병기한다
-                (이유는 InvestmentSettings.utils 의 buildAmountHint 주석). */}
-            <InputField
-              label="초기 투자금 (원)"
-              type="number"
-              min={0}
-              value={values.initialInvestment}
-              hint={buildAmountHint(values.initialInvestment, display)}
-              onChange={(event) => onSetField('initialInvestment', Number(event.target.value))}
-            />
-            <InputField
-              label="월 투자금 (원)"
-              type="number"
-              min={0}
-              value={values.monthlyContribution}
-              hint={buildAmountHint(values.monthlyContribution, display)}
-              onChange={(event) => onSetField('monthlyContribution', Number(event.target.value))}
-            />
-            <InputField
-              label="투자 기간 (연단위)"
-              type="number"
-              min={1}
-              max={60}
-              value={values.durationYears}
-              onChange={(event) => onSetField('durationYears', Number(event.target.value))}
-            />
-            <InputField
-              label="세율 (%)"
-              type="number"
-              min={0}
-              max={100}
-              step={0.1}
-              value={values.taxRate ?? ''}
-              onChange={(event) => {
-                const next = event.target.value;
-                onSetField('taxRate', next === '' ? undefined : Number(next));
-              }}
-            />
-            <InputField
-              /* 결과 카드의 "직접 입력" CTA가 이 필드를 지목한다 — 라벨 파생 id는 카피에 묶여 취약하다. */
-              id={TARGET_MONTHLY_DIVIDEND_INPUT_ID}
-              label="목표 월배당 (원)"
-              type="number"
-              min={0}
-              value={values.targetMonthlyDividend}
-              hint={buildAmountHint(values.targetMonthlyDividend, display)}
-              onChange={(event) => onSetField('targetMonthlyDividend', Number(event.target.value))}
-            />
             <InlineField htmlFor="reinvest-timing">
               <InlineFieldHeader>
                 재투자 시점
@@ -190,13 +203,10 @@ function InvestmentSettingsComponent({
                 <option value="monthlySmooth">월 단위 스무딩</option>
               </Select>
             </InlineField>
-            <InputField
-              label="투자 시작 날짜"
-              type="date"
-              value={values.investmentStartDate}
-              onChange={(event) => onSetField('investmentStartDate', event.target.value)}
-            />
           </ConfigInputGrid>
+          {/* 표시 통화 — 값이 아니라 표시 방식이라 계산 방식 덩어리의 끝에 둔다. 위 토글들과 같은
+              `ToggleField` 라 라벨 줄·스위치 정렬이 그대로 이어진다. */}
+          <CurrencyToggleField display={display} onChangeCurrency={onChangeCurrency} />
         </ConfigFormGrid>
       </FormSection>
 
