@@ -51,7 +51,12 @@ export default defineConfig({
       TZ: 'Asia/Seoul',
       VITE_SUPABASE_URL: '',
       VITE_SUPABASE_ANON_KEY: '',
-      VITE_SUPABASE_PUBLISHABLE_KEY: ''
+      VITE_SUPABASE_PUBLISHABLE_KEY: '',
+      // 가계부(구글 시트)도 같은 이유로 고정한다 — 개발자가 로컬 .env 에 실제 키를 넣어 두면
+      // "꺼진 상태" 계약 테스트가 조용히 뒤집힌다. 켜진 경로는 readGoogleSheetsEnv 에 주입해 테스트한다.
+      VITE_GOOGLE_CLIENT_ID: '',
+      VITE_GOOGLE_API_KEY: '',
+      VITE_GOOGLE_PROJECT_NUMBER: ''
     }
   }
 });
