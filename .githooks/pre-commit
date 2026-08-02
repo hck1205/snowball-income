@@ -19,11 +19,20 @@ if command -v codegraph >/dev/null 2>&1; then
   codegraph sync >/dev/null 2>&1 || echo "[pre-commit] codegraph sync 실패(무시) — codegraph status로 확인" >&2
 fi
 
-# graphify 지식 그래프 갱신 — 설치돼 있을 때만. AST 재추출만 하므로 LLM/네트워크 비용 0.
-# 클러스터링·리포트(GRAPH_REPORT.md)까지 매 커밋 돌리면 느리니 여기선 그래프만 증분 갱신하고,
-# 리포트 재생성은 필요할 때 수동으로(`graphify cluster-only . --no-label`). 실패해도 커밋 안 막음.
-if command -v graphify >/dev/null 2>&1; then
-  graphify update . >/dev/null 2>&1 || echo "[pre-commit] graphify update 실패(무시) — graphify update . 로 확인" >&2
-fi
+# 🔴 graphify 는 여기서 뺐다 (2026-08-02 실측).
+#
+# 세 층의 커밋당 비용을 재 보니 이랬다:
+#     build-index      881 ms
+#     codegraph sync  1,484 ms
+#     graphify update 84,381 ms   ← 나머지 둘의 35배
+#
+# 게다가 그날 실행된 두 커밋에서 graphify 는 **둘 다 실패**했다("실패(무시)" 로그). 즉 매 커밋
+# 84초를 내고 산출물은 갱신되지 않는 상태였고, 커밋이 2분 타임아웃에 걸린 원인도 이것이었다.
+#
+# 그래서 훅에서 제거한다. 도구 자체는 그대로 쓸 수 있다 — 필요할 때 수동으로 돌려라:
+#     graphify update .                    # AST 재추출(증분)
+#     graphify cluster-only . --no-label   # 리포트 재생성
+# 되돌리려면 이 블록에 위 첫 줄을 다시 넣으면 된다. 다만 되돌리기 전에 **다시 재 보라** —
+# 84초가 커밋마다 나갈 만한 값을 하는지가 판단 기준이다.
 
 exit 0
