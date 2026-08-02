@@ -52,6 +52,24 @@ function RootLayout() {
     };
   }, [location.hash, location.pathname, location.search]);
 
+  /*
+   * 🔴 **라우트가 바뀌면 문서 맨 위에서 시작한다.** react-router 는 스크롤을 스스로 건드리지 않아서,
+   * 페이지 중간의 링크(티커 상세의 "함께 비교하면 좋은 티커" 등)를 누르면 **새 페이지가 그 스크롤
+   * 위치 그대로** 열린다 — 사용자에게는 "가운데부터 시작하는 화면"으로 보인다.
+   *
+   * ⚠ 세 가지를 일부러 좁혔다.
+   *  1) **`pathname` 이 바뀔 때만** 한다. 쿼리·해시만 바뀌는 것은 같은 화면 안의 상태 변화라
+   *     (종목 비교의 `?t=`, 캘린더의 월 이동) 그때 위로 튀면 방금 누른 자리를 잃는다.
+   *  2) **해시가 있으면 하지 않는다.** 티커 허브의 카테고리 바로가기(`#id`)가 앵커로 이동하는데
+   *     여기서 0 으로 덮으면 그 기능이 죽는다.
+   *  3) `behavior: 'auto'`(즉시). 라우트 전환에 부드러운 스크롤을 얹으면 새 화면이 그려지는 동안
+   *     화면이 흐르고, reduced-motion 사용자에게는 그 자체가 위반이다.
+   */
+  useEffect(() => {
+    if (location.hash) return;
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [location.pathname, location.hash]);
+
   return <Outlet />;
 }
 
@@ -71,6 +89,8 @@ function RootLayout() {
  */
 const TickerHubPage = lazy(() => import('@/pages/Ticker/TickerHubPage'));
 const TickerDetailPage = lazy(() => import('@/pages/Ticker/TickerDetailPage'));
+/* 종목 비교. `:name` 보다 먼저 등록해야 `/ticker/compare` 가 티커 이름으로 먹히지 않는다. */
+const TickerComparePage = lazy(() => import('@/pages/Ticker/TickerComparePage'));
 
 /**
  * 배당 지급 월 캘린더 — 티커 랜딩과 같은 `lazy` 격리.
@@ -277,6 +297,14 @@ export const routes: RouteObject[] = [
         element: (
           <Suspense fallback={null}>
             <TickerHubPage />
+          </Suspense>
+        )
+      },
+      {
+        path: '/ticker/compare',
+        element: (
+          <Suspense fallback={null}>
+            <TickerComparePage />
           </Suspense>
         )
       },

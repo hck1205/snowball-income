@@ -1,6 +1,6 @@
 import { useInRouterContext } from 'react-router-dom';
 // per-icon named import(트리셰이킹) → 엔트리에는 이 아이콘들만 실린다(CommunityNavLink·ThemePresetSwitcher와 동일 패턴).
-import { BookOpen, CalendarDays, LayoutGrid, LineChart, MessageSquare, ReceiptText, Wallet } from 'lucide-react';
+import { BookOpen, CalendarDays, LayoutGrid, LineChart, MessageSquare, ReceiptText, Scale, Wallet } from 'lucide-react';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
 import { SIMULATOR_PATH } from '@/shared/constants/routes';
 import { isGoogleSheetsEnabled } from '@/shared/lib/googleSheets';
@@ -37,7 +37,7 @@ const n = COMMUNITY_COPY.nav;
  * 활성 표시는 react-router `NavLink`가 담당한다(`aria-current="page"` + `.active`).
  * 시뮬레이터만 `end`(exact) — 워드마크가 가리키는 `/`(홈)와 구분하기 위해서다(목적지 문자열이
  * `/` → `/simulator` 로 옮겨 간 이전의 흔적. 워드마크 `Brand to="/"` 는 그대로 둔다).
- * 항목 수는 최대 7개다(2026-08-01 가계부 추가 — 두 env 플래그가 다 켜진 배포 기준).
+ * 항목 수는 최대 8개다(2026-08-02 종목 비교 추가 — 두 env 플래그가 다 켜진 배포 기준).
  * 갤러리(`/community/portfolio`)·게시판(`/community/board`)은 **`end` 없음**: 상세(`/portfolio/:id`)·
  * 글쓰기(`/portfolio/write`)·수정(`/portfolio/:id/edit`) 같은 하위 경로에서도 자기 섹션 탭이 활성으로 남는다
  * (routes.tsx의 자식 라우트 참고). 두 섹션은 형제 세그먼트라 서로를 활성화하지 않는다.
@@ -92,6 +92,15 @@ const NavLinkItems = () => (
     <NavItem to="/ticker/all" aria-label={n.tickers}>
       <BookOpen size={16} strokeWidth={1.8} aria-hidden focusable={false} />
       <NavLabel>{n.tickers}</NavLabel>
+    </NavItem>
+    {/* 종목 비교 — ETF 소개 **바로 뒤**. 둘은 "종목 정보"라는 한 축이고, 비교는 소개를 읽다가
+        "그래서 저것과 뭐가 다른가"로 이어지는 자리라 그 옆이 자연스럽다.
+        ⚠ 이 항목으로 nav 가 8개가 됐다. 좁은 폭에서는 `NavScroller` 가 가로 스크롤로 흡수하는데,
+        스크롤로 숨는 항목은 사용자에게 아무 신호를 주지 않는다(pitfalls 2026-07-31 실측).
+        더 늘릴 거면 그 전에 접기·묶기를 먼저 설계하라. */}
+    <NavItem to="/ticker/compare" aria-label={n.tickerCompare}>
+      <Scale size={16} strokeWidth={1.8} aria-hidden focusable={false} />
+      <NavLabel>{n.tickerCompare}</NavLabel>
     </NavItem>
   </>
 );
