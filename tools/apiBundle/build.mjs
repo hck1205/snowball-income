@@ -23,6 +23,27 @@
  *     비결정 요소를 절대 넣지 않는다.
  *   - ⚠ `.gitattributes` 의 `api/*.js -text` 가 함께 있어야 한다. `core.autocrlf=true` 인 Windows
  *     체크아웃에서 CRLF 로 변환되면 esbuild 의 LF 출력과 영원히 불일치한다.
+ *
+ * ## 🔴 2026-08-02 — 그 결정성 가정이 실제로 깨졌다. `npm run build` 는 이제 `--check` 가 아니라 재생성한다.
+ *
+ * 증상: Vercel(Linux) 빌드의 `api:check` 가 `api/og.js`·`api/ticker-html.js` 를 stale 로 판정해 배포가 실패했다.
+ * 같은 커밋을 Windows 에서 검증하면 통과한다 — 즉 **플랫폼 간 산출물 바이트가 갈린다.**
+ *
+ * 배제한 원인(전부 실측):
+ *   - node_modules 드리프트 → `npm ci --legacy-peer-deps` 후 재번들해도 커밋본과 **바이트 동일**
+ *   - esbuild 버전 → 설치본·락 모두 0.28.1
+ *   - CRLF → 산출물에 CR 0바이트, `.gitattributes` 적용 중
+ *   - `ticker:parse` 생성물 → 번들에 인라인되지 않는다(목록 심볼 탐색 0건)
+ *   - 대소문자 충돌 파일 · 비결정 정렬 → 없음
+ * 원인 미상이다. 지어내지 않고 그대로 적는다.
+ *
+ * 그래서 게이트를 바꿨다: 빌드가 **소스로부터 다시 만들고**(`api:bundle`) 그 결과를 배포한다.
+ * 배포되는 함수가 그 플랫폼에서 만들어진 것이라 "커밋본과 다르다"는 상태가 원천적으로 생기지 않는다.
+ * ⚠ 대가: **CI 가 더 이상 산출물 드리프트를 잡지 않는다.** 그 검사는 로컬 `npm run verify`(api:bundle →
+ *   api:check)와 커밋 전 `npm run api:check` 단독 실행에 남아 있다 — 배포 전에 그것을 돌려라.
+ * ⚠ 위 14~16행의 "산출물을 커밋해 두면 수집 순서 변수가 사라진다"는 근거는 **여전히 유효하다**.
+ *   커밋을 그만두는 것이 아니라, 빌드가 그 위에 덮어쓰는 것이다.
+ * 되돌리려면 package.json 의 `build` 에서 `api:bundle` 을 `api:check` 로 되돌리면 된다(한 단어).
  */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
