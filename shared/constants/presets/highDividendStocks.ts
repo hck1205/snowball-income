@@ -1,3 +1,7 @@
+/**
+ * 2026-08-02 확충분(MO·VZ·AMT): `initialPrice`·`dividendYield`·`frequency` 는 갱신 파이프라인과
+ * 같은 경로(Yahoo chart API → `scripts/tickerRefresh/derive`)로 2026-08-02 에 실측했다.
+ */
 export const HIGH_DIVIDEND_STOCKS = {
   O: {
     ticker: 'O',
@@ -42,6 +46,33 @@ export const HIGH_DIVIDEND_STOCKS = {
     dividendYield: 6.5,
     dividendGrowth: 1,
     expectedTotalReturn: 7.5,
+    frequency: 'quarterly' as const
+  },
+  MO: {
+    ticker: 'MO',
+    name: 'Altria Group',
+    initialPrice: 68.33,
+    dividendYield: 6.21,
+    dividendGrowth: 1.79,
+    expectedTotalReturn: 8,
+    frequency: 'quarterly' as const
+  },
+  VZ: {
+    ticker: 'VZ',
+    name: 'Verizon Communications',
+    initialPrice: 46.81,
+    dividendYield: 5.97,
+    dividendGrowth: 1.53,
+    expectedTotalReturn: 7.5,
+    frequency: 'quarterly' as const
+  },
+  AMT: {
+    ticker: 'AMT',
+    name: 'American Tower',
+    initialPrice: 173.36,
+    dividendYield: 4.03,
+    dividendGrowth: 4.97,
+    expectedTotalReturn: 9,
     frequency: 'quarterly' as const
   }
 } as const;

@@ -1,3 +1,7 @@
+/**
+ * 2026-08-02 확충분(VNQ): `initialPrice`·`dividendYield`·`frequency` 는 갱신 파이프라인과 같은
+ * 경로(Yahoo chart API → `scripts/tickerRefresh/derive`)로 2026-08-02 에 실측했다.
+ */
 export const REIT_ETFS = {
   SCHH: {
     ticker: 'SCHH',
@@ -15,6 +19,15 @@ export const REIT_ETFS = {
     dividendYield: 4.5,
     dividendGrowth: 3,
     expectedTotalReturn: 7.5,
+    frequency: 'quarterly' as const
+  },
+  VNQ: {
+    ticker: 'VNQ',
+    name: 'Vanguard Real Estate ETF',
+    initialPrice: 98.95,
+    dividendYield: 3.51,
+    dividendGrowth: 4.49,
+    expectedTotalReturn: 8,
     frequency: 'quarterly' as const
   }
 } as const;

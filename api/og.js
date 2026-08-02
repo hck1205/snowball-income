@@ -1725,8 +1725,8 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 3,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "3": 21,
         "6": 18,
@@ -2152,7 +2152,14 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 2,
+      estimatedPayDayByMonth: {
+        "3": 26,
+        "6": 25,
+        "9": 24,
+        "12": 24
+      }
     },
     SMH: {
       initialPrice: 529.6,
@@ -2202,12 +2209,19 @@ var marketData_generated_default = {
       frequency: "quarterly",
       observedDividendCagr: 6.16,
       payoutMonths: [
+        1,
         3,
         6,
-        9,
-        12
+        9
       ],
-      payoutMonthsSource: "ex"
+      exToPayLagDays: 6,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "1": 4,
+        "3": 12,
+        "6": 11,
+        "9": 19
+      }
     },
     T: {
       initialPrice: 24.13,
@@ -7215,6 +7229,33 @@ var US_HIGH_DIVIDEND_ETFS = {
     dividendGrowth: 4.2,
     expectedTotalReturn: 8,
     frequency: "quarterly"
+  },
+  SPHD: {
+    ticker: "SPHD",
+    name: "Invesco S&P 500 High Dividend Low Volatility ETF",
+    initialPrice: 52.35,
+    dividendYield: 4.56,
+    dividendGrowth: 3.44,
+    expectedTotalReturn: 8,
+    frequency: "monthly"
+  },
+  PEY: {
+    ticker: "PEY",
+    name: "Invesco High Yield Equity Dividend Achievers ETF",
+    initialPrice: 24.16,
+    dividendYield: 4.26,
+    dividendGrowth: 3.74,
+    expectedTotalReturn: 8,
+    frequency: "monthly"
+  },
+  FDL: {
+    ticker: "FDL",
+    name: "First Trust Morningstar Dividend Leaders Index Fund",
+    initialPrice: 51.48,
+    dividendYield: 3.59,
+    dividendGrowth: 4.91,
+    expectedTotalReturn: 8.5,
+    frequency: "quarterly"
   }
 };
 
@@ -7281,6 +7322,33 @@ var OPTION_INCOME_ETFS = {
     dividendYield: 9,
     dividendGrowth: -1.5,
     expectedTotalReturn: 7.5,
+    frequency: "monthly"
+  },
+  RYLD: {
+    ticker: "RYLD",
+    name: "Global X Russell 2000 Covered Call ETF",
+    initialPrice: 16.01,
+    dividendYield: 11.64,
+    dividendGrowth: -4.64,
+    expectedTotalReturn: 7,
+    frequency: "monthly"
+  },
+  SPYI: {
+    ticker: "SPYI",
+    name: "NEOS S&P 500 High Income ETF",
+    initialPrice: 52.86,
+    dividendYield: 11.94,
+    dividendGrowth: -3.44,
+    expectedTotalReturn: 8.5,
+    frequency: "monthly"
+  },
+  QQQI: {
+    ticker: "QQQI",
+    name: "NEOS Nasdaq-100 High Income ETF",
+    initialPrice: 53.04,
+    dividendYield: 14.38,
+    dividendGrowth: -5.38,
+    expectedTotalReturn: 9,
     frequency: "monthly"
   }
 };
@@ -7353,6 +7421,15 @@ var REIT_ETFS = {
     dividendGrowth: 3,
     expectedTotalReturn: 7.5,
     frequency: "quarterly"
+  },
+  VNQ: {
+    ticker: "VNQ",
+    name: "Vanguard Real Estate ETF",
+    initialPrice: 98.95,
+    dividendYield: 3.51,
+    dividendGrowth: 4.49,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
   }
 };
 
@@ -7402,6 +7479,132 @@ var DIVIDEND_GROWTH_STOCKS = {
     dividendGrowth: 6.3,
     expectedTotalReturn: 10,
     frequency: "quarterly"
+  },
+  PEP: {
+    ticker: "PEP",
+    name: "PepsiCo",
+    initialPrice: 139.56,
+    dividendYield: 4.12,
+    dividendGrowth: 4.38,
+    expectedTotalReturn: 8.5,
+    frequency: "quarterly"
+  },
+  MCD: {
+    ticker: "MCD",
+    name: "McDonald's",
+    initialPrice: 270.64,
+    dividendYield: 2.72,
+    dividendGrowth: 6.28,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  HD: {
+    ticker: "HD",
+    name: "The Home Depot",
+    initialPrice: 331.96,
+    dividendYield: 2.79,
+    dividendGrowth: 6.21,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  TGT: {
+    ticker: "TGT",
+    name: "Target",
+    initialPrice: 144.49,
+    dividendYield: 3.16,
+    dividendGrowth: 5.34,
+    expectedTotalReturn: 8.5,
+    frequency: "quarterly"
+  },
+  WMT: {
+    ticker: "WMT",
+    name: "Walmart",
+    initialPrice: 111.2,
+    dividendYield: 0.87,
+    dividendGrowth: 8.13,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  XOM: {
+    ticker: "XOM",
+    name: "Exxon Mobil",
+    initialPrice: 155.44,
+    dividendYield: 2.62,
+    dividendGrowth: 5.38,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  CVX: {
+    ticker: "CVX",
+    name: "Chevron",
+    initialPrice: 196.83,
+    dividendYield: 3.55,
+    dividendGrowth: 4.95,
+    expectedTotalReturn: 8.5,
+    frequency: "quarterly"
+  },
+  CAT: {
+    ticker: "CAT",
+    name: "Caterpillar",
+    initialPrice: 814.81,
+    dividendYield: 0.76,
+    dividendGrowth: 8.24,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  MMM: {
+    ticker: "MMM",
+    name: "3M",
+    initialPrice: 176.28,
+    dividendYield: 1.71,
+    dividendGrowth: 6.29,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  IBM: {
+    ticker: "IBM",
+    name: "International Business Machines",
+    initialPrice: 223.65,
+    dividendYield: 3.01,
+    dividendGrowth: 4.99,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  CSCO: {
+    ticker: "CSCO",
+    name: "Cisco Systems",
+    initialPrice: 115.99,
+    dividendYield: 1.43,
+    dividendGrowth: 7.07,
+    expectedTotalReturn: 8.5,
+    frequency: "quarterly"
+  },
+  AMGN: {
+    ticker: "AMGN",
+    name: "Amgen",
+    initialPrice: 385.16,
+    dividendYield: 2.54,
+    dividendGrowth: 6.46,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  UNH: {
+    ticker: "UNH",
+    name: "UnitedHealth Group",
+    initialPrice: 414.4,
+    dividendYield: 2.16,
+    dividendGrowth: 7.34,
+    expectedTotalReturn: 9.5,
+    frequency: "quarterly"
+  },
+  PLD: {
+    ticker: "PLD",
+    name: "Prologis",
+    initialPrice: 144.61,
+    dividendYield: 2.88,
+    dividendGrowth: 5.62,
+    expectedTotalReturn: 8.5,
+    frequency: "quarterly"
   }
 };
 
@@ -7450,6 +7653,33 @@ var HIGH_DIVIDEND_STOCKS = {
     dividendYield: 6.5,
     dividendGrowth: 1,
     expectedTotalReturn: 7.5,
+    frequency: "quarterly"
+  },
+  MO: {
+    ticker: "MO",
+    name: "Altria Group",
+    initialPrice: 68.33,
+    dividendYield: 6.21,
+    dividendGrowth: 1.79,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  VZ: {
+    ticker: "VZ",
+    name: "Verizon Communications",
+    initialPrice: 46.81,
+    dividendYield: 5.97,
+    dividendGrowth: 1.53,
+    expectedTotalReturn: 7.5,
+    frequency: "quarterly"
+  },
+  AMT: {
+    ticker: "AMT",
+    name: "American Tower",
+    initialPrice: 173.36,
+    dividendYield: 4.03,
+    dividendGrowth: 4.97,
+    expectedTotalReturn: 9,
     frequency: "quarterly"
   }
 };
@@ -7990,7 +8220,15 @@ var WORDMARK_DARK = {
   "wordmark-income-solid": auroraTeal2[600]
 };
 var IDENTITY_LIGHT = {
-  identity: brand2[600],
+  /*
+   * 🔴 `brand[600]` 이 아니다 — velog(기본 프리셋) 라이트의 `accent` 가 **같은 슬롯**(`brand[600]`)을
+   * 뽑아 두 토큰의 ΔE 가 **0.0** 이었다. 그러면 "페이지마다 얼굴색" 설계가 기본 화면에서 통째로
+   * no-op 이 되고, 랜딩이 파랑·초록 2색으로만 보인다(2026-08-01 랜딩 리워크에서 실측으로 재확인).
+   *
+   * `brand[700]` 은 ΔE 가 더 크지만(8.7 vs 6.1) 아래 `identity-text` 와 **같은 값이 되어**
+   * 채움과 라벨이 한 값으로 붕괴한다 — 역할 분리를 하려다 다른 역할을 붙이는 셈이라 기각했다.
+   */
+  identity: brand2[500],
   "identity-subtle": brand2[50],
   "identity-border": brand2[200],
   "identity-text": brand2[700]
@@ -11610,10 +11848,23 @@ var import_react5 = __toESM(require_react(), 1);
 // shared/lib/marketIndices/registry.ts
 var DEFINITIONS = [
   { symbol: "^GSPC", label: "S&P 500" },
+  /*
+   * ⚠ 짧은 이름(`shortLabel`)은 **없다.** 헤더 축소형 전용이었는데 2026-08-02 사용자 결정으로
+   * 헤더 배치가 최종 기각되면서 필드째 제거했다(근거는 `components/MarketIndexStrip/MarketIndexStrip.tsx`
+   * 상단 주석의 폭 실측). 좁은 표면이 다시 생기면 그때 축약 규칙부터 새로 정하라 —
+   * 소비처 없는 데이터를 남겨 두면 "그 배치가 아직 열려 있다"는 잘못된 신호가 된다.
+   */
   { symbol: "^IXIC", label: "\uB098\uC2A4\uB2E5 \uC885\uD569" },
   { symbol: "^KS11", label: "\uCF54\uC2A4\uD53C" },
   { symbol: "^KQ11", label: "\uCF54\uC2A4\uB2E5" },
-  { symbol: "^N225", label: "\uB2C8\uCF00\uC774225" }
+  { symbol: "^N225", label: "\uB2C8\uCF00\uC774225" },
+  /*
+   * 🔴 **환율이지 지수가 아니다**(2026-08-02 사용자 요청으로 이 스트립에 합류).
+   * 야후 chart API 는 `KRW=X` 로 원/달러를 같은 형태의 응답으로 준다 — 조회·파싱 경로를 그대로 쓴다.
+   * 다만 단위가 다르다: 지수는 "포인트", 이건 **원**이다. 스크린리더 낭독이 "1,436.60 포인트"가 되면
+   * 거짓이라 `unit` 을 따로 준다(화면은 원래 숫자만 보여주므로 시각 표시는 그대로다).
+   */
+  { symbol: "KRW=X", label: "\uC6D0/\uB2EC\uB7EC", unit: " \uC6D0" }
 ];
 var MARKET_INDEX_SYMBOLS = DEFINITIONS.map(
   (definition) => definition.symbol
