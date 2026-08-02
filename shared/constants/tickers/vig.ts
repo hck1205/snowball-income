@@ -10,8 +10,9 @@ import type { TickerContent } from './TickerContent.types';
  *   연속 배당 인상·상위 배당수익률 25% 제외·리츠 제외)은 2026년 7월 WebSearch로 교차 확인(S&P Dividend
  *   Growers Index Series Methodology 공식 문서 포함).
  * - 보유종목수(약 340종)·섹터 비중 순서는 2026년 7월 조사 시점 근사치이며 `reference.asOfNote`에 고지.
- * - 대표 보유 종목(topHoldings)은 SCHD와 동일한 이유로 비워 두었다 — 리밸런싱마다 바뀌고 이번 조사에서
- *   신뢰할 단일 현재값을 확인하지 못했다.
+ * - 대표 보유 종목(topHoldings)은 뱅가드 공식 보유 종목 데이터(investor.vanguard.com, 2026-08-02
+ *   조회, **기준일 2026-06-30**)의 상위 20종이다. ⚠ 뱅가드는 월간 공시라 이 목록의 기준일이 다른
+ *   발행사(일간 공시)보다 한 달가량 뒤처진다 — `asOfDate`가 그 차이를 스스로 밝힌다.
  */
 export const VIG_TICKER_CONTENT: TickerContent = {
   ticker: 'VIG',
@@ -145,8 +146,36 @@ export const VIG_TICKER_CONTENT: TickerContent = {
     holdingsCountApprox: 340,
     paymentMonthsNote: '연 4회 분기 지급',
     topSectors: ['정보기술', '금융', '헬스케어', '산업재'],
+    topHoldings: {
+      holdings: [
+        { symbol: 'AVGO', name: 'Broadcom Inc.', weightPercent: 4.53 },
+        { symbol: 'AAPL', name: 'Apple Inc.', weightPercent: 4.2 },
+        { symbol: 'LLY', name: 'Eli Lilly & Co.', weightPercent: 4.14 },
+        { symbol: 'JPM', name: 'JPMorgan Chase & Co.', weightPercent: 3.56 },
+        { symbol: 'MSFT', name: 'Microsoft Corp.', weightPercent: 3.51 },
+        { symbol: 'JNJ', name: 'Johnson & Johnson', weightPercent: 2.66 },
+        { symbol: 'LRCX', name: 'Lam Research Corp.', weightPercent: 2.36 },
+        { symbol: 'V', name: 'Visa Inc. Class A', weightPercent: 2.31 },
+        { symbol: 'WMT', name: 'Walmart Inc.', weightPercent: 2.16 },
+        { symbol: 'CAT', name: 'Caterpillar Inc.', weightPercent: 2.14 },
+        { symbol: 'CSCO', name: 'Cisco Systems Inc.', weightPercent: 2.02 },
+        { symbol: 'ABBV', name: 'AbbVie Inc.', weightPercent: 1.94 },
+        { symbol: 'COST', name: 'Costco Wholesale Corp.', weightPercent: 1.81 },
+        { symbol: 'MA', name: 'Mastercard Inc. Class A', weightPercent: 1.81 },
+        { symbol: 'KLAC', name: 'KLA Corp.', weightPercent: 1.72 },
+        { symbol: 'UNH', name: 'UnitedHealth Group Inc.', weightPercent: 1.65 },
+        { symbol: 'BAC', name: 'Bank of America Corp.', weightPercent: 1.62 },
+        { symbol: 'HD', name: 'Home Depot Inc.', weightPercent: 1.53 },
+        { symbol: 'PG', name: 'Procter & Gamble Co.', weightPercent: 1.49 },
+        { symbol: 'MRK', name: 'Merck & Co. Inc.', weightPercent: 1.38 }
+      ],
+      coveredWeightPercent: 48.54,
+      asOfDate: '2026-06-30',
+      sourceLabel: '뱅가드 공식 보유 종목 데이터(월간 공시)',
+      sourceUrl: 'https://investor.vanguard.com/investment-products/etfs/profile/vig'
+    },
     asOfNote:
-      '운용보수(0.04%)·상장연도(2006년)·추종지수·핵심 스크리닝 규칙(10년 이상 연속 배당 인상, 배당수익률 상위 25% 제외, 리츠 제외)은 S&P 공식 방법론 문서 등으로 안정적으로 확인된 사실입니다. 보유종목수(약 340종)·섹터 비중 순서는 2026년 7월 조사 시점 근사치이며 분기 리밸런싱에 따라 달라질 수 있습니다. 대표 보유 종목은 변동성이 커 이 페이지에서는 다루지 않았습니다. 배당률·배당성장률·기대수익률 등 계산에 쓰이는 값은 이 페이지가 아니라 시뮬레이터 계산 프리셋을 그대로 따릅니다.'
+      '운용보수(0.04%)·상장연도(2006년)·추종지수·핵심 스크리닝 규칙(10년 이상 연속 배당 인상, 배당수익률 상위 25% 제외, 리츠 제외)은 S&P 공식 방법론 문서 등으로 안정적으로 확인된 사실입니다. 보유종목수(약 340종)·섹터 비중 순서는 2026년 7월 조사 시점 근사치이며 분기 리밸런싱에 따라 달라질 수 있습니다. 대표 보유 종목과 비중은 뱅가드 공식 보유 종목 데이터(2026년 6월 30일 기준)에서 옮긴 값입니다. 뱅가드는 월간 공시라 다른 발행사보다 기준일이 늦고, 리밸런싱과 시세에 따라 계속 달라집니다. 배당률·배당성장률·기대수익률 등 계산에 쓰이는 값은 이 페이지가 아니라 시뮬레이터 계산 프리셋을 그대로 따릅니다.'
   },
   relatedTickers: [
     { ticker: 'SCHD', relationLabel: '재무건전성 스크리닝까지 더한 배당성장을 원한다면' },
@@ -163,5 +192,5 @@ export const VIG_TICKER_CONTENT: TickerContent = {
   },
   disclaimer:
     '이 페이지는 정보 제공을 목적으로 하며 투자 자문이 아닙니다. 배당률·주가·운용보수·세금 등은 시장 상황과 정책에 따라 변동될 수 있으며, 과거 성과가 미래 수익을 보장하지 않습니다. 투자 판단과 그 결과에 대한 책임은 투자자 본인에게 있습니다.',
-  contentUpdatedAt: '2026-07-23'
+  contentUpdatedAt: '2026-08-02'
 };

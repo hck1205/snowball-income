@@ -1,7 +1,7 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { resolveTickerEngineFacts } from '@/shared/constants/tickers';
+import { resolveTickerEngineFacts, TICKER_CONTENT_LIST } from '@/shared/constants/tickers';
 import TickerDetailPage from './TickerDetailPage';
 
 function renderAt(path: string) {
@@ -54,12 +54,18 @@ describe('TickerDetailPage', () => {
     expect(screen.getByRole('link', { name: /VIG/ })).toHaveAttribute('href', '/ticker/vig');
   });
 
+  /**
+   * 🔴 이 검사의 앵커는 "그 시점에 콘텐츠가 없는 관련 티커"라서, 그 티커에 페이지가 생기면 검사가
+   * 무의미해진다 — 실제로 두 번 옮겼다(SCHD→HDV→SDY). 2026-08-02 배치가 NOBL 페이지를 만들면서
+   * HDV→NOBL 이 링크로 승격돼 빨개졌다. 앵커를 옮길 때는 **레지스트리에 없는 심볼**을 골라야 하고,
+   * 아래 첫 단정이 그 전제를 먼저 확인하므로 DVY 페이지가 생기면 원인이 바로 드러난다.
+   */
   it('renders related tickers without content as plain text, not dead-end links', () => {
-    renderAt('/ticker/hdv');
-    // NOBL(배당귀족 ETF)은 이 레지스트리에 콘텐츠가 없으므로 링크가 아니라 텍스트로만 나온다
-    // (서버 렌더러와 일치 — SCHD의 관련 티커가 전부 콘텐츠를 갖게 되며 이 커버리지는 HDV로 옮겼다).
-    expect(screen.getByText('NOBL')).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: /NOBL/ })).toBeNull();
+    expect(TICKER_CONTENT_LIST.some((entry) => entry.ticker === 'DVY')).toBe(false);
+
+    renderAt('/ticker/sdy');
+    expect(screen.getByText('DVY')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /DVY/ })).toBeNull();
   });
 
   it('exposes exactly one h1 and it names the ticker', () => {

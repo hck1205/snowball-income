@@ -12,6 +12,8 @@ import type { TickerContent } from './TickerContent.types';
  * - 보유종목수(약 200종)는 2026년 7월 조사 시점 근사치.
  * - 섹터 비중 순서는 이번 조사에서 신뢰할 수치를 확인하지 못해 **의도적으로 비워 두었다**(대형 우량주
  *   비중이 크다는 정성적 서술만 본문에 남김). 대표 보유 종목(topHoldings)도 SCHD와 동일한 이유로 비움.
+ *   ⚠ 2026-08-02 재시도에서도 채우지 못했다 — 위즈덤트리(wisdomtree.com)가 **403**을 돌려준다.
+ *   2·3차 소스로 대체하지 않는다(출처 대조 불가). 발행사 경로가 열리면 그때 채운다.
  */
 export const DGRW_TICKER_CONTENT: TickerContent = {
   ticker: 'DGRW',

@@ -11,8 +11,11 @@ import type { TickerContent } from './TickerContent.types';
  *   확인되고 정확한 월은 미확정이었으나, ticker-data-curator 스팟체크(2026-07-23)에서 S&P Dow Jones
  *   Indices의 공식 방법론 문서(S&P High Dividend Indices Methodology — "rebalance semi-annually,
  *   effective after the close of the last business day of January and July")로 **1월·7월**임을
- *   확인해 본문·FAQ·reference에 반영했다. historicalDividendCagrPercent·topHoldings는 여전히 신뢰할
- *   단일 수치를 확인하지 못해 비워 두었다.
+ *   확인해 본문·FAQ·reference에 반영했다. historicalDividendCagrPercent는 여전히 신뢰할 단일 수치를
+ *   확인하지 못해 비워 두었다.
+ * - `topHoldings`는 SSGA 공식 일일 보유 종목 파일(holdings-daily-us-en-spyd.xlsx, 2026-08-02 내려받음,
+ *   기준일 2026-07-30)의 상위 20종이다. 동일가중 설계대로 최상위와 20위의 차이가 0.34%p에 불과하다 —
+ *   "무엇을 가장 많이 담았나"보다 "거의 똑같이 담았다"가 이 목록이 보여주는 사실이다.
  */
 export const SPYD_TICKER_CONTENT: TickerContent = {
   ticker: 'SPYD',
@@ -146,8 +149,36 @@ export const SPYD_TICKER_CONTENT: TickerContent = {
     holdingsCountApprox: 80,
     paymentMonthsNote: '연 4회 분기 지급',
     topSectors: ['부동산(리츠)', '필수소비재', '금융'],
+    topHoldings: {
+      holdings: [
+        { symbol: 'PSX', name: 'PHILLIPS 66', weightPercent: 1.71 },
+        { symbol: 'HPQ', name: 'HP INC', weightPercent: 1.58 },
+        { symbol: 'APA', name: 'APA CORP', weightPercent: 1.57 },
+        { symbol: 'TGT', name: 'TARGET CORP', weightPercent: 1.57 },
+        { symbol: 'VTRS', name: 'VIATRIS INC', weightPercent: 1.56 },
+        { symbol: 'EOG', name: 'EOG RESOURCES INC', weightPercent: 1.55 },
+        { symbol: 'HST', name: 'HOST HOTELS + RESORTS INC', weightPercent: 1.54 },
+        { symbol: 'IRM', name: 'IRON MOUNTAIN INC', weightPercent: 1.53 },
+        { symbol: 'BBY', name: 'BEST BUY CO INC', weightPercent: 1.52 },
+        { symbol: 'EIX', name: 'EDISON INTERNATIONAL', weightPercent: 1.5 },
+        { symbol: 'BEN', name: 'FRANKLIN RESOURCES INC', weightPercent: 1.5 },
+        { symbol: 'CVS', name: 'CVS HEALTH CORP', weightPercent: 1.48 },
+        { symbol: 'PFG', name: 'PRINCIPAL FINANCIAL GROUP', weightPercent: 1.44 },
+        { symbol: 'SPG', name: 'SIMON PROPERTY GROUP INC', weightPercent: 1.43 },
+        { symbol: 'DOC', name: 'HEALTHPEAK PROPERTIES INC', weightPercent: 1.42 },
+        { symbol: 'KIM', name: 'KIMCO REALTY CORP', weightPercent: 1.4 },
+        { symbol: 'FRT', name: 'FEDERAL REALTY INVS TRUST', weightPercent: 1.39 },
+        { symbol: 'SJM', name: 'JM SMUCKER CO/THE', weightPercent: 1.37 },
+        { symbol: 'ADM', name: 'ARCHER DANIELS MIDLAND CO', weightPercent: 1.37 },
+        { symbol: 'BMY', name: 'BRISTOL MYERS SQUIBB CO', weightPercent: 1.37 }
+      ],
+      coveredWeightPercent: 29.8,
+      asOfDate: '2026-07-30',
+      sourceLabel: '스테이트스트리트(SPDR) 공식 일일 보유 종목 파일',
+      sourceUrl: 'https://www.ssga.com/us/en/intermediary/funds/spdr-portfolio-sp-500-high-dividend-etf-spyd'
+    },
     asOfNote:
-      '운용보수(0.07%)·상장연도(2015년)·추종지수·구성 방식(S&P 500 내 배당수익률 상위 80종, 동일가중)은 안정적으로 확인된 사실입니다. 재편월은 S&P Dow Jones Indices 공식 방법론 문서로 매년 1월·7월(반기)임을 확인했습니다(ticker-data-curator, 2026-07-23 재확인 — 이전에는 "반기"까지만 표기했습니다). 상위 섹터(부동산·필수소비재·금융) 순서는 2026년 7월 조사 시점 근사치입니다. 대표 보유 종목은 반기마다 전면 교체될 수 있어 이 페이지에서는 다루지 않았습니다. 배당률·배당성장률·기대수익률 등 계산에 쓰이는 값은 이 페이지가 아니라 시뮬레이터 계산 프리셋을 그대로 따릅니다.'
+      '운용보수(0.07%)·상장연도(2015년)·추종지수·구성 방식(S&P 500 내 배당수익률 상위 80종, 동일가중)은 안정적으로 확인된 사실입니다. 재편월은 S&P Dow Jones Indices 공식 방법론 문서로 매년 1월·7월(반기)임을 확인했습니다(ticker-data-curator, 2026-07-23 재확인 — 이전에는 "반기"까지만 표기했습니다). 상위 섹터(부동산·필수소비재·금융) 순서는 2026년 7월 조사 시점 근사치입니다. 대표 보유 종목과 비중은 SSGA 공식 일일 보유 종목 파일(2026년 7월 30일 기준)에서 옮긴 값이며, 반기 재편 때 목록이 전면 교체될 수 있습니다. 배당률·배당성장률·기대수익률 등 계산에 쓰이는 값은 이 페이지가 아니라 시뮬레이터 계산 프리셋을 그대로 따릅니다.'
   },
   relatedTickers: [
     { ticker: 'VYM', relationLabel: '시가총액 가중의 더 넓은 분산을 원한다면' },
@@ -164,5 +195,5 @@ export const SPYD_TICKER_CONTENT: TickerContent = {
   },
   disclaimer:
     '이 페이지는 정보 제공을 목적으로 하며 투자 자문이 아닙니다. 배당률·주가·운용보수·세금 등은 시장 상황과 정책에 따라 변동될 수 있으며, 과거 성과가 미래 수익을 보장하지 않습니다. 투자 판단과 그 결과에 대한 책임은 투자자 본인에게 있습니다.',
-  contentUpdatedAt: '2026-07-23'
+  contentUpdatedAt: '2026-08-02'
 };

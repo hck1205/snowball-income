@@ -8,8 +8,11 @@ import type { TickerContent } from './TickerContent.types';
  * - `reference`의 정적 사실(운용보수 0.08%, 상장연도 2011년, 추종지수, 경제적 해자+재무건전성 스크리닝
  *   방식, 배당수익률 가중)은 2026년 7월 WebSearch로 확인(iShares 공식 팩트시트 포함).
  * - 보유종목수(약 75종)·상위 10종목 51% 집중·상위 섹터(에너지·헬스케어·필수소비재)는 2026년 7월
- *   조사 시점 근사치. 대표 보유 종목(topHoldings)은 SCHD와 동일한 이유로 비웠다(엑슨모빌·애브비 등
- *   상위 종목명은 확인했으나 비중이 리밸런싱마다 바뀌는 값이라 목록화하지 않았다).
+ *   조사 시점 근사치.
+ * - 대표 보유 종목(topHoldings)은 아이셰어즈 공식 일일 보유 종목 파일(latest-holdings.csv,
+ *   2026-08-02 내려받음, 기준일 2026-07-30)의 주식 라인 상위 20종이다. 같은 파일의 현금성 자산(0.42%)과
+ *   지수 선물(0.00%)은 제외했다. 이 파일의 상위 10종 합계가 51.49%로, 위 "상위 10종목 약 51%"
+ *   서술과 같은 원천에서 재확인됐다.
  */
 export const HDV_TICKER_CONTENT: TickerContent = {
   ticker: 'HDV',
@@ -143,8 +146,37 @@ export const HDV_TICKER_CONTENT: TickerContent = {
     holdingsCountApprox: 75,
     paymentMonthsNote: '연 4회 분기 지급',
     topSectors: ['에너지', '헬스케어', '필수소비재'],
+    topHoldings: {
+      holdings: [
+        { symbol: 'XOM', name: 'EXXONMOBIL HOLDINGS CORP', weightPercent: 7.96 },
+        { symbol: 'ABBV', name: 'ABBVIE INC', weightPercent: 6.32 },
+        { symbol: 'CVX', name: 'CHEVRON CORP', weightPercent: 5.99 },
+        { symbol: 'VZ', name: 'VERIZON COMMUNICATIONS INC', weightPercent: 5.43 },
+        { symbol: 'PG', name: 'PROCTER & GAMBLE', weightPercent: 4.5 },
+        { symbol: 'HD', name: 'HOME DEPOT INC', weightPercent: 4.47 },
+        { symbol: 'PM', name: 'PHILIP MORRIS INTERNATIONAL INC', weightPercent: 4.47 },
+        { symbol: 'PFE', name: 'PFIZER INC', weightPercent: 4.25 },
+        { symbol: 'KO', name: 'COCA-COLA', weightPercent: 4.13 },
+        { symbol: 'MRK', name: 'MERCK & CO INC', weightPercent: 3.97 },
+        { symbol: 'PEP', name: 'PEPSICO INC', weightPercent: 3.48 },
+        { symbol: 'MO', name: 'ALTRIA GROUP INC', weightPercent: 3.04 },
+        { symbol: 'AMGN', name: 'AMGEN INC', weightPercent: 2.72 },
+        { symbol: 'BMY', name: 'BRISTOL MYERS SQUIBB', weightPercent: 2.68 },
+        { symbol: 'ABT', name: 'ABBOTT LABORATORIES', weightPercent: 2.29 },
+        { symbol: 'MCD', name: 'MCDONALDS CORP', weightPercent: 2.29 },
+        { symbol: 'COP', name: 'CONOCOPHILLIPS', weightPercent: 1.84 },
+        { symbol: 'BX', name: 'BLACKSTONE INC', weightPercent: 1.75 },
+        { symbol: 'MDT', name: 'MEDTRONIC PLC', weightPercent: 1.73 },
+        { symbol: 'SO', name: 'SOUTHERN', weightPercent: 1.59 }
+      ],
+      coveredWeightPercent: 74.9,
+      asOfDate: '2026-07-30',
+      sourceLabel: '아이셰어즈(BlackRock) 공식 일일 보유 종목 파일',
+      sourceUrl: 'https://www.ishares.com/us/products/239563/ishares-core-high-dividend-etf',
+      excludedNote: '주식 보유분만 담았습니다. 같은 파일의 현금성 자산(0.42%)과 지수 선물(0.00%)은 제외했습니다.'
+    },
     asOfNote:
-      '운용보수(0.08%)·상장연도(2011년)·추종지수·스크리닝 방식(경제적 해자+재무 건전성, 배당수익률 가중)은 안정적으로 확인된 사실입니다. 보유종목수(약 75종)·상위 10종목 자산 비중(약 51%)·상위 섹터(에너지·헬스케어·필수소비재) 순서는 2026년 7월 조사 시점 근사치이며 리밸런싱에 따라 달라질 수 있습니다. 대표 보유 종목은 변동성이 커 이 페이지에서는 다루지 않았습니다. 배당률·배당성장률·기대수익률 등 계산에 쓰이는 값은 이 페이지가 아니라 시뮬레이터 계산 프리셋을 그대로 따릅니다.'
+      '운용보수(0.08%)·상장연도(2011년)·추종지수·스크리닝 방식(경제적 해자+재무 건전성, 배당수익률 가중)은 안정적으로 확인된 사실입니다. 보유종목수(약 75종)·상위 10종목 자산 비중(약 51%)·상위 섹터(에너지·헬스케어·필수소비재) 순서는 2026년 7월 조사 시점 근사치이며 리밸런싱에 따라 달라질 수 있습니다. 대표 보유 종목과 비중은 아이셰어즈 공식 일일 보유 종목 파일(2026년 7월 30일 기준)에서 옮긴 값이며, 리밸런싱과 일간 시세에 따라 계속 달라집니다. 배당률·배당성장률·기대수익률 등 계산에 쓰이는 값은 이 페이지가 아니라 시뮬레이터 계산 프리셋을 그대로 따릅니다.'
   },
   relatedTickers: [
     { ticker: 'SCHD', relationLabel: '재무건전성 스크리닝 방식의 배당성장을 원한다면' },
@@ -161,5 +193,5 @@ export const HDV_TICKER_CONTENT: TickerContent = {
   },
   disclaimer:
     '이 페이지는 정보 제공을 목적으로 하며 투자 자문이 아닙니다. 배당률·주가·운용보수·세금 등은 시장 상황과 정책에 따라 변동될 수 있으며, 과거 성과가 미래 수익을 보장하지 않습니다. 투자 판단과 그 결과에 대한 책임은 투자자 본인에게 있습니다.',
-  contentUpdatedAt: '2026-07-23'
+  contentUpdatedAt: '2026-08-02'
 };

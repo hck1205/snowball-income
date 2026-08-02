@@ -20,6 +20,8 @@ import type { TickerContent } from './TickerContent.types';
  *   정성적으로만 반영.
  * - `trackedIndex`는 액티브 운용 특성상 비웠다(JEPI와 동일한 이유 — 나스닥100은 성과 비교 기준일 뿐
  *   그대로 추종하는 지수가 아니다).
+ * - `topHoldings`는 **비워 둔다**(2026-08-02 조사) — 사유는 jepi.ts와 동일하다(발행사 상품 페이지가
+ *   보유 종목을 JS로만 그리고, 보유 목록에 ELN이 섞여 있다).
  */
 export const JEPQ_TICKER_CONTENT: TickerContent = {
   ticker: 'JEPQ',

@@ -12,7 +12,11 @@ import type { TickerContent } from './TickerContent.types';
  *   앞서 적어둔 "608~618종 소스 편차" 서술을 이 공식 수치로 교체했다. 상위 섹터(금융·정보기술·산업재·
  *   헬스케어) 순서도 같은 팩트시트의 Sector Diversification 표(금융 20.6%·기술 14.6%·산업재 14.4%·
  *   헬스케어 12.4%)로 재확인해 정정했다 — 스팟체크 전에는 헬스케어와 산업재 순서가 실제와 반대로
- *   적혀 있었다. 대표 보유 종목은 종목 수 자체가 많고 리밸런싱마다 바뀌어 SCHD와 동일한 이유로 비웠다.
+ *   적혀 있었다.
+ * - 대표 보유 종목(topHoldings)은 뱅가드 공식 보유 종목 데이터(investor.vanguard.com, 2026-08-02 조회,
+ *   **기준일 2026-06-30**)의 상위 20종이다. 같은 응답의 종목 수 605가 위 팩트시트 값과 일치해
+ *   `holdingsCountApprox`를 다시 확인해 주는 셈이 됐다. ⚠ 뱅가드는 월간 공시라 기준일이 일간 공시
+ *   발행사보다 늦다.
  */
 export const VYM_TICKER_CONTENT: TickerContent = {
   ticker: 'VYM',
@@ -146,8 +150,36 @@ export const VYM_TICKER_CONTENT: TickerContent = {
     holdingsCountApprox: 605,
     paymentMonthsNote: '연 4회 분기 지급',
     topSectors: ['금융', '정보기술', '산업재', '헬스케어'],
+    topHoldings: {
+      holdings: [
+        { symbol: 'AVGO', name: 'Broadcom Inc.', weightPercent: 7.29 },
+        { symbol: 'JPM', name: 'JPMorgan Chase & Co.', weightPercent: 3.38 },
+        { symbol: 'JNJ', name: 'Johnson & Johnson', weightPercent: 2.54 },
+        { symbol: 'XOM', name: 'Exxon Mobil Corp.', weightPercent: 2.36 },
+        { symbol: 'CAT', name: 'Caterpillar Inc.', weightPercent: 2.01 },
+        { symbol: 'CSCO', name: 'Cisco Systems Inc.', weightPercent: 1.92 },
+        { symbol: 'ABBV', name: 'AbbVie Inc.', weightPercent: 1.85 },
+        { symbol: 'BAC', name: 'Bank of America Corp.', weightPercent: 1.56 },
+        { symbol: 'UNH', name: 'UnitedHealth Group Inc.', weightPercent: 1.56 },
+        { symbol: 'HD', name: 'Home Depot Inc.', weightPercent: 1.46 },
+        { symbol: 'PG', name: 'Procter & Gamble Co.', weightPercent: 1.42 },
+        { symbol: 'MRK', name: 'Merck & Co. Inc.', weightPercent: 1.32 },
+        { symbol: 'KO', name: 'Coca-Cola Co.', weightPercent: 1.31 },
+        { symbol: 'CVX', name: 'Chevron Corp.', weightPercent: 1.28 },
+        { symbol: 'PM', name: 'Philip Morris International Inc.', weightPercent: 1.17 },
+        { symbol: 'GS', name: 'Goldman Sachs Group Inc.', weightPercent: 1.15 },
+        { symbol: 'TXN', name: 'Texas Instruments Inc.', weightPercent: 1.12 },
+        { symbol: 'IBM', name: 'International Business Machines Corp.', weightPercent: 1.1 },
+        { symbol: 'RTX', name: 'RTX Corp.', weightPercent: 1.06 },
+        { symbol: 'WFC', name: 'Wells Fargo & Co.', weightPercent: 1.05 }
+      ],
+      coveredWeightPercent: 37.91,
+      asOfDate: '2026-06-30',
+      sourceLabel: '뱅가드 공식 보유 종목 데이터(월간 공시)',
+      sourceUrl: 'https://investor.vanguard.com/investment-products/etfs/profile/vym'
+    },
     asOfNote:
-      '운용보수(0.04%)·상장연도(2006년)·추종지수·구성 방식(리츠 제외, 시가총액 가중, 반기(3월·9월) 재편)·보유종목수(605종)·상위 섹터 순서(금융·정보기술·산업재·헬스케어)는 뱅가드 공식 팩트시트(2026-06-30 기준)로 확인한 사실입니다. 보유종목수·섹터 비중은 반기 재편에 따라 달라질 수 있어 근사치로 표기했습니다. 대표 보유 종목은 변동성이 커 이 페이지에서는 다루지 않았습니다. 배당률·배당성장률·기대수익률 등 계산에 쓰이는 값은 이 페이지가 아니라 시뮬레이터 계산 프리셋을 그대로 따릅니다.'
+      '운용보수(0.04%)·상장연도(2006년)·추종지수·구성 방식(리츠 제외, 시가총액 가중, 반기(3월·9월) 재편)·보유종목수(605종)·상위 섹터 순서(금융·정보기술·산업재·헬스케어)는 뱅가드 공식 팩트시트(2026-06-30 기준)로 확인한 사실입니다. 보유종목수·섹터 비중은 반기 재편에 따라 달라질 수 있어 근사치로 표기했습니다. 대표 보유 종목과 비중은 뱅가드 공식 보유 종목 데이터(2026년 6월 30일 기준)에서 옮긴 값입니다. 뱅가드는 월간 공시라 다른 발행사보다 기준일이 늦고, 반기 재편과 시세에 따라 계속 달라집니다. 배당률·배당성장률·기대수익률 등 계산에 쓰이는 값은 이 페이지가 아니라 시뮬레이터 계산 프리셋을 그대로 따릅니다.'
   },
   relatedTickers: [
     { ticker: 'SCHD', relationLabel: '배당성장 이력을 우선하고 싶다면' },
@@ -164,5 +196,5 @@ export const VYM_TICKER_CONTENT: TickerContent = {
   },
   disclaimer:
     '이 페이지는 정보 제공을 목적으로 하며 투자 자문이 아닙니다. 배당률·주가·운용보수·세금 등은 시장 상황과 정책에 따라 변동될 수 있으며, 과거 성과가 미래 수익을 보장하지 않습니다. 투자 판단과 그 결과에 대한 책임은 투자자 본인에게 있습니다.',
-  contentUpdatedAt: '2026-07-23'
+  contentUpdatedAt: '2026-08-02'
 };
