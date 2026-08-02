@@ -19,6 +19,71 @@ const row = (issuer: string, cusip: string, value: number, prefix = ''): string 
 
 const doc = (...rows: string[]): string => `<?xml version="1.0"?><informationTable>${rows.join('')}</informationTable>`;
 
+/** 옵션 행. 공시의 `putCall` 값은 제출자마다 대소문자가 다르다(`Put`·`PUT`). */
+const optionRow = (issuer: string, cusip: string, value: number, putCall: string): string => `
+  <infoTable>
+    <nameOfIssuer>${issuer}</nameOfIssuer>
+    <cusip>${cusip}</cusip>
+    <value>${value}</value>
+    <putCall>${putCall}</putCall>
+  </infoTable>`;
+
+/**
+ * 🔴 **이 화면에서 방향을 뒤집을 수 있는 유일한 결함.**
+ *
+ * 2026-08-02 실측(마이클 버리 / Scion, 0001649339-25-000007): 8행 중 4행이 옵션이고 최대 항목인
+ * 팔란티어(66%)·엔비디아(13.5%)가 **풋**이었다. 그때 파서는 `putCall` 을 읽지 않아 화면이
+ * "최대 보유 종목 팔란티어"라고 그렸다 — 실제로는 *하락에 건 포지션*이다.
+ */
+describe('🔴 옵션(putCall) — 보유와 뒤섞이면 방향이 뒤집힌다', () => {
+  it('풋·콜을 주식과 다른 줄로 구분한다', () => {
+    const parsed = parse13fInfoTable(
+      doc(
+        optionRow('PALANTIR TECHNOLOGIES INC', '69608A108', 912_100_000, 'Put'),
+        optionRow('PFIZER INC', '717081103', 152_880_000, 'Call'),
+        row('SLM CORP', '78442P106', 13_287_895)
+      )
+    );
+
+    expect(parsed.holdings.map((holding) => holding.kind)).toEqual(['put', 'call', 'share']);
+  });
+
+  it('같은 종목의 주식과 풋을 한 줄로 합치지 않는다', () => {
+    const parsed = parse13fInfoTable(
+      doc(row('ACME', '111111111', 60_000_000), optionRow('ACME', '111111111', 90_000_000, 'Put'))
+    );
+
+    // 합쳐졌다면 한 줄에 1.5억이 됐을 것이다 — 그 순간 "보유"와 "하락 베팅"이 구분 불가능해진다.
+    expect(parsed.holdings).toHaveLength(2);
+    expect(parsed.holdings.map((holding) => [holding.kind, holding.valueUsd])).toEqual([
+      ['put', 90_000_000],
+      ['share', 60_000_000]
+    ]);
+  });
+
+  it('같은 종류끼리는 여전히 합친다 (버크셔의 애플 두 줄 문제는 그대로 해결된다)', () => {
+    const parsed = parse13fInfoTable(
+      doc(row('APPLE INC', '037833100', 50_000_000), row('APPLE INC', '037833100', 70_000_000))
+    );
+
+    expect(parsed.holdings).toHaveLength(1);
+    expect(parsed.holdings[0]?.valueUsd).toBe(120_000_000);
+    expect(parsed.holdings[0]?.kind).toBe('share');
+  });
+
+  it('대소문자가 달라도 같게 읽는다', () => {
+    const parsed = parse13fInfoTable(doc(optionRow('ACME', '111111111', 200_000_000, 'PUT')));
+
+    expect(parsed.holdings[0]?.kind).toBe('put');
+  });
+
+  it('putCall 태그가 없으면 주식이다 — 알 수 없다고 옵션으로 넘겨짚지 않는다', () => {
+    const parsed = parse13fInfoTable(doc(row('ACME', '111111111', 200_000_000)));
+
+    expect(parsed.holdings[0]?.kind).toBe('share');
+  });
+});
+
 describe('🔴 CUSIP 중복 합산 — 순위를 뒤집는 함정', () => {
   /*
    * 실측(버크셔 2026-03-31): 애플이 두 행으로 나뉘어 각각 7.8%·5.9% 로 보였고 1위가 아멕스였다.
@@ -165,6 +230,6 @@ describe('표시 보조', () => {
 
   it('🔴 합계가 0 이면 비중은 null 이다 — 0% 로 위장하지 않는다', () => {
     const empty = parse13fInfoTable(doc());
-    expect(weightPercent({ cusip: 'X', issuer: 'X', valueUsd: 0 }, empty)).toBeNull();
+    expect(weightPercent({ cusip: 'X', issuer: 'X', valueUsd: 0, kind: 'share' }, empty)).toBeNull();
   });
 });

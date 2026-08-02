@@ -4,6 +4,7 @@ import { TickerPageShell } from '../components';
 import { useDocumentMeta } from '../hooks';
 import { TICKER_COMPARE_COPY } from '../copy';
 import {
+  COMPARE_PRESETS,
   MAX_COMPARE_TICKERS,
   MIN_COMPARE_TICKERS,
   buildTickerCompareModel,
@@ -17,19 +18,6 @@ const copy = TICKER_COMPARE_COPY;
 
 /** 선택을 담는 쿼리 파라미터. 🔴 해시(`#`)를 쓰지 않는다(확정 결정 — 경로 기반 라우팅 유지). */
 const SELECTION_PARAM = 't';
-
-/**
- * 빈 상태에서 눌러 볼 수 있는 조합.
- *
- * 🔴 **두 조합의 성격이 서로 달라야** 예시가 설명을 대신한다:
- *  - 첫째는 성격이 다른 세 종목(배당성장 · 커버드콜 · 리츠) — 표의 "계산 가정" 행이 왜 갈리는지가 드러난다.
- *  - 둘째는 분기 지급 종목을 엇갈리게 모은 것 — 지급월 띠가 12칸을 채우는 장면이 바로 보인다.
- * ⚠ 유니버스에서 사라진 티커는 `normalizeCompareSelection` 이 조용히 걸러 낸다(빈 열이 생기지 않는다).
- */
-const SUGGESTIONS: readonly (readonly string[])[] = [
-  ['SCHD', 'JEPI', 'O'],
-  ['SCHD', 'VYM', 'DGRO']
-];
 
 /**
  * `/ticker/compare` — 종목 비교 컨테이너.
@@ -54,7 +42,7 @@ export default function TickerComparePage() {
       candidates: getCompareCandidates(),
       isAtLimit: model.columns.length >= MAX_COMPARE_TICKERS,
       hasEnough: model.columns.length >= MIN_COMPARE_TICKERS,
-      suggestions: SUGGESTIONS
+      suggestions: COMPARE_PRESETS
     };
   }, [selected]);
 

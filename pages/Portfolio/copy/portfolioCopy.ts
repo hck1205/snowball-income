@@ -20,14 +20,14 @@ const NOT_READY = '저장된 보유 목록을 아직 불러오는 중입니다. 
 
 export const PORTFOLIO_COPY = {
   meta: {
-    title: '내 포트폴리오 — 보유 종목으로 배당을 계산',
+    title: '나의 배당 포트폴리오 — 보유 종목으로 배당을 계산',
     description:
       '보유 종목과 수량만 넣으면 평가 금액·연 배당·월 배당·이번 달 예상 배당을 계산해 보여 줍니다. 계산은 브라우저 안에서만 이루어집니다.',
     pathname: '/dividend/portfolio'
   },
 
   hero: {
-    title: '내 포트폴리오',
+    title: '나의 배당 포트폴리오',
     lede: '종목과 보유 수량만 넣으면 지금 받는 배당이 얼마인지, 다음 배당은 언제인지 한 화면에서 확인할 수 있습니다.',
     asOfPrice: (date: string) => `시세 기준일 ${date}`,
     asOfFx: (rate: string, date: string) => `환율 $1 ≈ ${rate}원 · ${date} 기준`,

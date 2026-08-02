@@ -21,6 +21,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { INVESTORS } from './roster';
 import { parse13fInfoTable, topHoldings, weightPercent } from './parse13f';
+import type { PositionKind } from './parse13f';
 import { SecClient } from './sec';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
@@ -35,7 +36,17 @@ const SNAPSHOT_PATH = resolve(ROOT, 'shared/constants/investors/investorHoldings
  */
 const TOP_N = 25;
 
-type StoredHolding = { cusip: string; issuer: string; valueUsd: number; weightPercent: number | null };
+type StoredHolding = {
+  cusip: string;
+  issuer: string;
+  valueUsd: number;
+  weightPercent: number | null;
+  /**
+   * 🔴 포지션 종류(주식·풋·콜). 화면이 반드시 구분해 말해야 한다 —
+   * 풋은 보유가 아니라 하락 베팅이라, 빠뜨리면 방향이 정반대로 읽힌다(parse13f.ts 함정 5번).
+   */
+  kind: PositionKind;
+};
 type StoredInvestor = {
   cik: string;
   person: string;
@@ -126,7 +137,8 @@ for (const investor of INVESTORS) {
         cusip: holding.cusip,
         issuer: holding.issuer,
         valueUsd: holding.valueUsd,
-        weightPercent: weightPercent(holding, parsed)
+        weightPercent: weightPercent(holding, parsed),
+        kind: holding.kind
       }))
     });
 

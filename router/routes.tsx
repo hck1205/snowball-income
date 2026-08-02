@@ -91,6 +91,8 @@ const TickerHubPage = lazy(() => import('@/pages/Ticker/TickerHubPage'));
 const TickerDetailPage = lazy(() => import('@/pages/Ticker/TickerDetailPage'));
 /* 종목 비교. `:name` 보다 먼저 등록해야 `/ticker/compare` 가 티커 이름으로 먹히지 않는다. */
 const TickerComparePage = lazy(() => import('@/pages/Ticker/TickerComparePage'));
+/* 대가들의 포트폴리오 — 커밋된 13F 스냅샷을 읽는 정적 화면이라 조회가 없다. */
+const InvestorsPage = lazy(() => import('@/pages/Investors/InvestorsPage'));
 
 /**
  * 배당 지급 월 캘린더 — 티커 랜딩과 같은 `lazy` 격리.
@@ -297,6 +299,21 @@ export const routes: RouteObject[] = [
         element: (
           <Suspense fallback={null}>
             <TickerHubPage />
+          </Suspense>
+        )
+      },
+      {
+        /*
+         * 🔴 `/portfolio/` 아래 한 겹으로 둔다(2026-08-02 사용자 지시) — "누구의 포트폴리오인가"라는
+         * 축을 주소가 먼저 말한다. 다른 포트폴리오 화면(`/dividend/portfolio`·`/community/portfolio`)의
+         * 경로는 **건드리지 않았다**(같은 날 사용자 결정 — 이미 배포된 주소를 흔들지 않는다).
+         * ⚠ `/portfolio` 단독 라우트는 없다. 그건 nav 묶음의 이름일 뿐 목적지가 아니다.
+         * 옛 `/investors` 는 하루도 배포된 적이 없어(페이지가 미커밋 상태였다) 리다이렉트를 두지 않는다.
+         */
+        path: '/portfolio/investors',
+        element: (
+          <Suspense fallback={null}>
+            <InvestorsPage />
           </Suspense>
         )
       },

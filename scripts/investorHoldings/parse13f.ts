@@ -10,6 +10,13 @@
  *    (실측: 바우포스트 $5.1B 가 $0.0B 로, 듀케인 $3.4B 가 $0.0B 로 나왔다).
  * 3. **네임스페이스 접두사** — 제출자에 따라 `<ns1:infoTable>` 처럼 접두사가 붙는다.
  * 4. **HTML 엔티티** — `S&amp;P 500`, `Wells Fargo &amp; Co`.
+ * 5. **🔴 옵션이 주식과 같은 표에 실린다(`putCall`)** — 이게 가장 위험했다. 2026-08-02 실측:
+ *    마이클 버리(Scion)의 8행 중 **4행이 옵션**이고, 최대 항목인 팔란티어(66%)·엔비디아(13.5%)가
+ *    **풋(Put)** 이었다. 즉 *하락에 건 포지션*인데 우리 화면은 "최대 보유 종목"으로 그렸다 —
+ *    방향이 정반대로 뒤집힌 거짓이다. 그래서 합산 키를 CUSIP 단독이 아니라 **CUSIP + 포지션 종류**로
+ *    두고, 종류를 결과에 실어 화면이 반드시 구분해 말하게 한다.
+ *    ⚠ 옵션 행의 `value` 는 **기초자산 명목 금액**이라 같은 자본으로도 비중이 크게 잡힌다.
+ *      그 성질까지 여기서 보정하지 않는다(보정하면 공시와 다른 숫자가 된다) — 화면이 종류를 밝힌다.
  *
  * ⚠ 정보표 **파일명은 제출자마다 다르다**(`53405.xml` 같은 임의 이름). 파일 선택은 호출부의 몫이고
  *   이 파서는 XML 문자열만 받는다 — 그래서 순수하게 유지된다.
@@ -25,12 +32,23 @@
  */
 export const FILING_THRESHOLD_USD = 100_000_000;
 
+/**
+ * 포지션 종류.
+ *
+ * 🔴 `put` 은 **보유가 아니라 하락 베팅**이다. `share` 와 한 덩어리로 합치면 방향이 뒤집힌다.
+ * `call` 도 주식 보유가 아니다(권리일 뿐이고 만기가 있다).
+ * ⚠ 공시의 `putCall` 값은 대소문자가 제출자마다 다르다(`Put`·`PUT`) — 소문자로 정규화해 비교한다.
+ */
+export type PositionKind = 'share' | 'put' | 'call';
+
 export type Holding = {
   readonly cusip: string;
   /** 공시에 적힌 발행사 이름(엔티티 디코드 완료). 티커가 아니다 — 13F 는 티커를 주지 않는다. */
   readonly issuer: string;
   /** 미국 달러. 천 단위 신고분은 이미 보정됐다. */
   readonly valueUsd: number;
+  /** 🔴 화면이 **반드시** 구분해 말해야 하는 값. 기본값을 share 로 넘겨짚지 마라. */
+  readonly kind: PositionKind;
 };
 
 export type Parsed13F = {
@@ -69,23 +87,44 @@ const readTag = (block: string, name: string): string | null => {
  * 🔴 **파싱 결과가 0종목이면 그대로 0을 돌려준다.** 여기서 예외를 던지지 않는 이유는, "받아 왔는데
  * 비었다"와 "못 받아 왔다"를 호출부가 구분해서 다뤄야 하기 때문이다(빈 결과로 스냅샷을 덮어쓰면 안 된다).
  */
+const readKind = (block: string): PositionKind => {
+  const raw = (readTag(block, 'putCall') ?? '').trim().toLowerCase();
+  if (raw === 'put') return 'put';
+  if (raw === 'call') return 'call';
+  /* 🔴 알 수 없는 값을 옵션으로 넘겨짚지 않는다 — 태그 자체가 없는 행이 정상적인 주식 보유다. */
+  return 'share';
+};
+
 export const parse13fInfoTable = (xml: string): Parsed13F => {
   const blocks = [...xml.matchAll(/<(?:\w+:)?infoTable>([\s\S]*?)<\/(?:\w+:)?infoTable>/g)].map((match) => match[1]);
 
-  const byCusip = new Map<string, { cusip: string; issuer: string; valueUsd: number }>();
+  /*
+   * 🔴 합산 키가 **CUSIP + 종류**다. CUSIP 단독으로 합치면 같은 종목의 주식과 풋이 한 줄로 뭉쳐
+   * 방향이 사라진다(버리의 팔란티어 풋이 "보유 66%"가 됐던 그 결함).
+   * 형태별로 갈린 같은 종류의 행은 여전히 합쳐진다 — 버크셔의 애플 두 줄이 그 경우다.
+   */
+  const byKey = new Map<string, { cusip: string; issuer: string; valueUsd: number; kind: PositionKind }>();
   for (const block of blocks) {
     const cusip = readTag(block, 'cusip');
     if (!cusip) continue;
 
     const rawValue = Number(readTag(block, 'value') ?? 0);
     const value = Number.isFinite(rawValue) ? rawValue : 0;
-    const existing = byCusip.get(cusip);
+    const kind = readKind(block);
+    const key = `${cusip}:${kind}`;
+    const existing = byKey.get(key);
 
     if (existing) existing.valueUsd += value;
-    else byCusip.set(cusip, { cusip, issuer: decodeEntities(readTag(block, 'nameOfIssuer') ?? ''), valueUsd: value });
+    else
+      byKey.set(key, {
+        cusip,
+        issuer: decodeEntities(readTag(block, 'nameOfIssuer') ?? ''),
+        valueUsd: value,
+        kind
+      });
   }
 
-  const merged = [...byCusip.values()].sort((left, right) => right.valueUsd - left.valueUsd);
+  const merged = [...byKey.values()].sort((left, right) => right.valueUsd - left.valueUsd);
   const rawTotal = merged.reduce((sum, item) => sum + item.valueUsd, 0);
 
   /* 빈 결과에는 단위 판정을 하지 않는다 — 0 은 $100M 미만이지만 "천 단위"라는 뜻이 아니다. */
@@ -95,7 +134,8 @@ export const parse13fInfoTable = (xml: string): Parsed13F => {
   const holdings: Holding[] = merged.map((item) => ({
     cusip: item.cusip,
     issuer: item.issuer,
-    valueUsd: item.valueUsd * scale
+    valueUsd: item.valueUsd * scale,
+    kind: item.kind
   }));
 
   return {

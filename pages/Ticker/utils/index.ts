@@ -3,6 +3,7 @@
  * 화면(`TickerComparePage`)은 여기서 만든 모델을 그리기만 하고 계산하지 않는다.
  */
 export {
+  COMPARE_PRESETS,
   MAX_COMPARE_TICKERS,
   MIN_COMPARE_TICKERS,
   UNKNOWN_TEXT,
@@ -19,6 +20,7 @@ export type {
   CompareCell,
   CompareColumn,
   CompareMetricKey,
+  ComparePreset,
   CompareRow,
   PayoutCoverage,
   TickerCompareModel

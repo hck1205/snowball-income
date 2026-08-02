@@ -1,6 +1,8 @@
 // @vitest-environment node — DOM 을 쓰지 않는 순수 테스트 (기준: vitest.config.ts)
 import {
+  COMPARE_PRESETS,
   MAX_COMPARE_TICKERS,
+  MIN_COMPARE_TICKERS,
   UNKNOWN_TEXT,
   analyzePayoutCoverage,
   buildTickerCompareModel,
@@ -172,6 +174,62 @@ describe('표시 포맷', () => {
 
   it('빈 목록은 빈 문자열이다 (호출부가 그리지 않는다)', () => {
     expect(formatMonthList([])).toBe('');
+  });
+});
+
+/**
+ * 예시 조합은 **첫인상**이다. 처음 온 사람이 이 화면에서 처음 누르는 것이라, 여기서 빈 열이나
+ * "자료 없음"이 나오면 화면이 고장 난 것으로 읽힌다. 그리고 라벨이 사실과 어긋나면 그건 날조다.
+ */
+describe('예시 조합', () => {
+  it('모든 조합이 정규화를 그대로 통과한다 — 예시를 눌렀는데 열이 비지 않는다', () => {
+    for (const preset of COMPARE_PRESETS) {
+      const normalized = normalizeCompareSelection(preset.tickers);
+      // 유니버스에 없거나 중복이거나 상한을 넘으면 여기서 개수가 줄어든다.
+      expect(normalized, preset.id).toEqual([...preset.tickers]);
+      expect(normalized.length, preset.id).toBeGreaterThanOrEqual(MIN_COMPARE_TICKERS);
+      expect(normalized.length, preset.id).toBeLessThanOrEqual(MAX_COMPARE_TICKERS);
+    }
+  });
+
+  it('모든 조합이 지급월 스냅샷을 가진 종목으로만 이뤄진다 (예시에 "자료 없음" 금지)', () => {
+    const withSchedule = new Set(
+      getCompareCandidates()
+        .filter((candidate) => candidate.hasPayoutMonths)
+        .map((candidate) => candidate.ticker)
+    );
+
+    for (const preset of COMPARE_PRESETS) {
+      for (const ticker of preset.tickers) {
+        expect(withSchedule.has(ticker), `${preset.id} / ${ticker}`).toBe(true);
+      }
+    }
+  });
+
+  it('id 와 조합이 중복되지 않는다 — 같은 화면에 같은 예시가 두 번 뜨지 않는다', () => {
+    const ids = COMPARE_PRESETS.map((preset) => preset.id);
+    const combos = COMPARE_PRESETS.map((preset) => [...preset.tickers].sort().join(','));
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(new Set(combos).size).toBe(combos.length);
+  });
+
+  /**
+   * 🔴 이 조합의 라벨은 "매달 받기"라고 **주장**한다. 주장은 데이터가 져야 한다 —
+   * 스냅샷이 바뀌어 12칸이 깨지면 라벨이 거짓이 되므로, 라벨보다 이 테스트가 먼저 깨져야 한다.
+   */
+  it('"분기 3종을 엇갈려 매달 받기"는 실제로 12칸을 채운다', () => {
+    const preset = COMPARE_PRESETS.find((item) => item.id === 'quarterly-monthly');
+    expect(preset).toBeDefined();
+
+    const model = buildTickerCompareModel(preset!.tickers);
+    expect(model.coverage.gapMonths).toEqual([]);
+    expect(model.coverage.isEveryMonthCovered).toBe(true);
+    // 매월 지급 종목을 몰래 끼워 넣어 12칸을 채우는 것은 이 예시의 취지가 아니다.
+    expect(model.rows.find((row) => row.key === 'frequency')?.cells.map((cell) => cell.text)).toEqual([
+      '분기',
+      '분기',
+      '분기'
+    ]);
   });
 });
 

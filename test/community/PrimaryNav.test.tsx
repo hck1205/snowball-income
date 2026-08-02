@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
 /**
@@ -43,6 +43,16 @@ const renderAt = (path: string) =>
       <PrimaryNav />
     </MemoryRouter>
   );
+
+/**
+ * 포트폴리오 묶음 메뉴를 편다.
+ *
+ * 🔴 내 포트폴리오·대가들의 포트폴리오는 **접혀 있다**(2026-08-02) — nav 항목이 8개 상한에 닿아
+ * 같은 축 둘을 한 칸으로 묶었다. 그래서 이 둘은 **펼친 뒤에만** 링크로 존재한다.
+ */
+const openPortfolioMenu = () => {
+  fireEvent.click(screen.getByRole('button', { name: /포트폴리오/ }));
+};
 
 describe('PrimaryNav', () => {
   // 두 플래그는 테스트마다 명시하지만, 앞 테스트가 끈 값이 새는 일을 막으려 기본을 켜 둔다.
@@ -97,8 +107,9 @@ describe('PrimaryNav', () => {
     renderAt('/simulator');
 
     expect(screen.getByRole('link', { name: '시뮬레이터' })).toHaveAttribute('aria-current', 'page');
-    expect(screen.getByRole('link', { name: '포트폴리오 갤러리' })).not.toHaveAttribute('aria-current');
     expect(screen.getByRole('link', { name: '게시판' })).not.toHaveAttribute('aria-current');
+    // 갤러리는 묶음 안이라 트리거가 꺼져 있는 것으로 확인한다.
+    expect(screen.getByRole('button', { name: /포트폴리오/ })).not.toHaveAttribute('aria-current');
   });
 
   /*
@@ -114,9 +125,10 @@ describe('PrimaryNav', () => {
     expect(screen.getByRole('link', { name: '스노우볼 인컴' })).toHaveAttribute('href', '/');
   });
 
-  it('갤러리(/community/portfolio)에선 갤러리 링크만 활성 (시뮬레이터·게시판은 비활성)', () => {
+  it('갤러리(/community/portfolio)에선 묶음 안 갤러리 링크만 활성 (시뮬레이터·게시판은 비활성)', () => {
     communityEnabled = true;
     renderAt('/community/portfolio');
+    openPortfolioMenu();
 
     expect(screen.getByRole('link', { name: '포트폴리오 갤러리' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: '시뮬레이터' })).not.toHaveAttribute('aria-current');
@@ -128,9 +140,11 @@ describe('PrimaryNav', () => {
     renderAt('/community/board/write');
 
     expect(screen.getByRole('link', { name: '게시판' })).toHaveAttribute('aria-current', 'page');
-    // 형제 세그먼트라 갤러리는 게시판 하위에서 활성이 되지 않는다.
-    expect(screen.getByRole('link', { name: '포트폴리오 갤러리' })).not.toHaveAttribute('aria-current');
     expect(screen.getByRole('link', { name: '시뮬레이터' })).not.toHaveAttribute('aria-current');
+    // 형제 세그먼트라 갤러리(묶음 안)는 게시판 하위에서 활성이 되지 않는다 — 트리거부터 꺼져 있어야 한다.
+    expect(screen.getByRole('button', { name: /포트폴리오/ })).not.toHaveAttribute('aria-current');
+    openPortfolioMenu();
+    expect(screen.getByRole('link', { name: '포트폴리오 갤러리' })).not.toHaveAttribute('aria-current');
   });
 
   // 갤러리 하위 경로(상세·글쓰기·수정)에서도 섹션 탭이 유지돼야 한다 — routes.tsx의 portfolio 자식 라우트.
@@ -139,6 +153,10 @@ describe('PrimaryNav', () => {
     (path) => {
       communityEnabled = true;
       renderAt(path);
+
+      // 접힌 채로도 "이 묶음 안에 있다"가 읽혀야 한다 — 하위 경로에서도 마찬가지다.
+      expect(screen.getByRole('button', { name: /포트폴리오/ })).toHaveAttribute('aria-current', 'true');
+      openPortfolioMenu();
 
       expect(screen.getByRole('link', { name: '포트폴리오 갤러리' })).toHaveAttribute('aria-current', 'page');
       expect(screen.getByRole('link', { name: '게시판' })).not.toHaveAttribute('aria-current');
@@ -156,11 +174,13 @@ describe('PrimaryNav', () => {
     expect(current[0]).toHaveAccessibleName('게시판');
   });
 
-  it('내 포트폴리오(/dividend/portfolio)에선 그 링크만 활성이다', () => {
+  it('내 포트폴리오(/dividend/portfolio)에선 묶음 안 그 링크만 활성이다', () => {
     communityEnabled = true;
     renderAt('/dividend/portfolio');
+    openPortfolioMenu();
 
-    expect(screen.getByRole('link', { name: '내 포트폴리오' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: '나의 배당 포트폴리오' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: '대가들의 포트폴리오' })).not.toHaveAttribute('aria-current');
     // `/dividend/*` 형제 세그먼트끼리 서로를 활성화하면 사용자는 현재 위치를 잃는다.
     expect(screen.getByRole('link', { name: '배당 캘린더' })).not.toHaveAttribute('aria-current');
     expect(screen.getByRole('link', { name: '시뮬레이터' })).not.toHaveAttribute('aria-current');
@@ -172,37 +192,93 @@ describe('PrimaryNav', () => {
   it('배당 캘린더에선 내 포트폴리오 링크가 활성이 되지 않는다 (상호 배타)', () => {
     communityEnabled = true;
     renderAt('/dividend/calendar');
+    openPortfolioMenu();
 
     expect(screen.getByRole('link', { name: '배당 캘린더' })).toHaveAttribute('aria-current', 'page');
-    expect(screen.getByRole('link', { name: '내 포트폴리오' })).not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('link', { name: '나의 배당 포트폴리오' })).not.toHaveAttribute('aria-current');
+  });
+
+  /* ── 포트폴리오 묶음 메뉴 ──────────────────────────────────────────────────── */
+
+  it('묶음 트리거는 링크가 아니다 — 눌러도 이동하지 않고 메뉴만 연다', () => {
+    renderAt('/simulator');
+
+    const trigger = screen.getByRole('button', { name: /포트폴리오/ });
+    // 🔴 `/portfolio` 라우트는 없다. 링크로 만들면 없는 페이지를 가리킨다.
+    expect(trigger.tagName).toBe('BUTTON');
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('link', { name: '나의 배당 포트폴리오' })).not.toBeInTheDocument();
+
+    fireEvent.click(trigger);
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('link', { name: '나의 배당 포트폴리오' })).toHaveAttribute('href', '/dividend/portfolio');
+    expect(screen.getByRole('link', { name: '대가들의 포트폴리오' })).toHaveAttribute('href', '/portfolio/investors');
+  });
+
+  it('Escape 로 닫힌다 (열어 둔 메뉴가 화면에 남지 않는다)', () => {
+    renderAt('/simulator');
+    openPortfolioMenu();
+    expect(screen.getByRole('link', { name: '대가들의 포트폴리오' })).toBeInTheDocument();
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(screen.queryByRole('link', { name: '대가들의 포트폴리오' })).not.toBeInTheDocument();
+  });
+
+  /**
+   * 자식 라우트에 있으면 접혀 있어도 트리거가 그 사실을 말해야 한다 — 펼치지 않으면 현재 위치를
+   * 알 수 없는 메뉴는 묶은 대가만 치르고 얻는 것이 없다.
+   */
+  it('묶음 안 라우트(/portfolio/investors)에선 접힌 트리거가 현재 위치를 말한다', () => {
+    renderAt('/portfolio/investors');
+
+    const trigger = screen.getByRole('button', { name: /포트폴리오/ });
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    // 채움 pill 은 시각 신호일 뿐이다 — 펼치기 전에도 읽히는 신호가 있어야 한다.
+    expect(trigger).toHaveAttribute('aria-current', 'true');
+
+    openPortfolioMenu();
+    expect(screen.getByRole('link', { name: '대가들의 포트폴리오' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: '나의 배당 포트폴리오' })).not.toHaveAttribute('aria-current');
   });
 
   /*
    * 구 "목표 달성"(/dividend/goal) 항목은 내 포트폴리오 화면의 목표 카드로 흡수되면서 사라졌다 —
    * 같은 이야기를 두 항목이 하지 않는다.
    */
-  it('라우트 링크는 7개이고 시뮬레이터 → 내 포트폴리오 → 가계부 → 배당 캘린더 순이다', () => {
+  /**
+   * 🔴 **윗줄은 8칸이 상한이다.** 좁은 폭에서 넘치면 가로 스크롤로 숨는데, 스크롤로 숨는 항목은
+   * 사용자에게 아무 신호를 주지 않는다(2026-07-31 실측). 아홉 번째가 필요하면 새 칸이 아니라
+   * 묶음(`PortfolioNavMenu`)으로 접는 것이 2026-08-02 에 택한 길이다 — 이 개수 단정이 그 규칙을 잠근다.
+   * 포트폴리오 3종을 접고 나서 지금은 **7칸**이라 한 칸 여유가 있다.
+   */
+  it('윗줄은 7칸이고 시뮬레이터 → 포트폴리오(묶음) → 가계부 → 배당 캘린더 순이다', () => {
     communityEnabled = true;
     ledgerEnabled = true;
     renderAt('/dividend/portfolio');
 
-    // 라우트 링크만 aria-label을 갖는다(브랜드 링크는 워드마크 텍스트가 이름) — 순서 = 예상 관심도(확정 결정).
-    const names = screen
-      .getAllByRole('link')
-      .map((link) => link.getAttribute('aria-label'))
-      .filter((name): name is string => name !== null);
+    /*
+     * 한 칸은 링크(`a[aria-label]`)이거나 묶음 트리거(`button[aria-haspopup]`)다 — 둘을 **DOM 순서대로**
+     * 함께 읽어야 묶음이 어느 자리에 들어갔는지가 드러난다(링크만 세면 묶음 자리가 사라진다).
+     * 브랜드 링크는 aria-label 이 없어(워드마크 텍스트가 이름) 자연히 빠진다.
+     */
+    const nav = screen.getByRole('navigation', { name: '주요 메뉴' });
+    const slots = [...nav.querySelectorAll('a[aria-label], button[aria-expanded]')].map(
+      (element) => element.getAttribute('aria-label') ?? element.textContent
+    );
 
-    expect(names).toEqual([
+    expect(slots).toEqual([
       '시뮬레이터',
-      '내 포트폴리오',
+      /* 포트폴리오 묶음 — 나의 배당 포트폴리오·대가들의 포트폴리오·포트폴리오 갤러리 셋이 여기 접혀 있다. */
+      '포트폴리오',
       '가계부',
       '배당 캘린더',
-      '포트폴리오 갤러리',
       '게시판',
       'ETF 소개',
       /* 종목 비교(2026-08-02) — ETF 소개와 같은 "종목 정보" 축이라 그 바로 뒤다. */
       '종목 비교'
     ]);
+    expect(slots).toHaveLength(7);
+
     expect(screen.queryByRole('link', { name: '목표 달성' })).not.toBeInTheDocument();
   });
 
@@ -216,9 +292,11 @@ describe('PrimaryNav', () => {
     renderAt('/dividend/portfolio');
 
     expect(screen.queryByRole('link', { name: '가계부' })).not.toBeInTheDocument();
-    // 나머지 메뉴는 그대로 — 플래그가 다른 항목을 건드리지 않는다.
-    expect(screen.getByRole('link', { name: '내 포트폴리오' })).toBeInTheDocument();
+    // 나머지 메뉴는 그대로 — 플래그가 다른 항목을 건드리지 않는다(포트폴리오 둘은 묶음 안에 있다).
     expect(screen.getByRole('link', { name: 'ETF 소개' })).toBeInTheDocument();
+    openPortfolioMenu();
+    expect(screen.getByRole('link', { name: '나의 배당 포트폴리오' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '대가들의 포트폴리오' })).toBeInTheDocument();
   });
 
   it('가계부(/ledger)에선 그 링크만 활성이다', () => {
@@ -229,7 +307,10 @@ describe('PrimaryNav', () => {
     expect(screen.getByRole('link', { name: '가계부' })).toHaveAttribute('href', '/ledger');
     expect(screen.getByRole('link', { name: '가계부' })).toHaveAttribute('aria-current', 'page');
     // 같은 hue(accentAlt)를 공유해도 활성 표시는 서로 배타다 — 사용자는 현재 위치를 잃으면 안 된다.
-    expect(screen.getByRole('link', { name: '내 포트폴리오' })).not.toHaveAttribute('aria-current');
+    // 묶음 트리거도 꺼져 있어야 한다: 가계부는 그 묶음 밖이다.
+    expect(screen.getByRole('button', { name: /포트폴리오/ })).not.toHaveAttribute('aria-current');
+    openPortfolioMenu();
+    expect(screen.getByRole('link', { name: '나의 배당 포트폴리오' })).not.toHaveAttribute('aria-current');
 
     const current = screen.getAllByRole('link').filter((link) => link.getAttribute('aria-current') === 'page');
     expect(current).toHaveLength(1);
@@ -239,9 +320,12 @@ describe('PrimaryNav', () => {
     communityEnabled = false;
     renderAt('/dividend/portfolio');
 
-    expect(screen.getByRole('link', { name: '내 포트폴리오' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: '배당 캘린더' })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: '포트폴리오 갤러리' })).not.toBeInTheDocument();
+    // 포트폴리오 묶음은 커뮤니티 플래그와 무관하다 — 둘 다 커뮤니티 밖 화면이다.
+    openPortfolioMenu();
+    expect(screen.getByRole('link', { name: '나의 배당 포트폴리오' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: '대가들의 포트폴리오' })).toBeInTheDocument();
   });
 
   it('커뮤니티 비활성 배포에선 갤러리·게시판 링크를 렌더하지 않는다 (앱은 그대로 동작)', () => {

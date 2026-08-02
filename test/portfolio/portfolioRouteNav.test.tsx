@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { RouterProvider, createMemoryRouter } from 'react-router-dom';
 import { routes } from '@/router/routes';
 import { PORTFOLIO_COPY } from '@/pages/Portfolio/copy';
@@ -30,22 +30,36 @@ describe('/dividend/portfolio 라우트', () => {
     expect(await screen.findByRole('heading', { level: 1, name: PORTFOLIO_COPY.hero.title })).toBeInTheDocument();
   });
 
-  it('전역 nav 의 활성 항목은 정확히 하나이고 "내 포트폴리오"다', async () => {
+  /**
+   * 🔴 이 항목은 2026-08-02 부터 **포트폴리오 묶음 메뉴 안**에 있다 — 윗줄에 링크로 서 있지 않다.
+   * 그래서 접힌 상태의 신호는 트리거의 `aria-current="true"` 가 지고, 펼쳐야 링크가 나타난다.
+   */
+  it('전역 nav 에서 활성인 것은 포트폴리오 묶음 하나뿐이다', async () => {
     renderAt('/dividend/portfolio');
     await screen.findByRole('heading', { level: 1, name: PORTFOLIO_COPY.hero.title });
 
-    const active = screen.getAllByRole('link').filter((link) => link.getAttribute('aria-current') === 'page');
+    // 접힌 상태: 윗줄 링크 중 활성인 것은 없고, 묶음 트리거가 현재 위치를 말한다.
+    const activeLinks = screen.getAllByRole('link').filter((link) => link.getAttribute('aria-current') === 'page');
+    expect(activeLinks).toHaveLength(0);
 
-    expect(active).toHaveLength(1);
-    expect(active[0]).toHaveAttribute('aria-label', COMMUNITY_COPY.nav.myPortfolio);
+    const trigger = screen.getByRole('button', { name: new RegExp(COMMUNITY_COPY.nav.portfolioGroup) });
+    expect(trigger).toHaveAttribute('aria-current', 'true');
+
+    // 펼치면 그 안에서 활성은 정확히 하나다 — 형제끼리 서로를 활성화하지 않는다.
+    fireEvent.click(trigger);
+    const activeInMenu = screen.getAllByRole('link').filter((link) => link.getAttribute('aria-current') === 'page');
+    expect(activeInMenu).toHaveLength(1);
+    expect(activeInMenu[0]).toHaveAccessibleName(COMMUNITY_COPY.nav.myPortfolio);
   });
 
-  it('형제 화면(배당 캘린더)에서는 내 포트폴리오가 활성이 아니다', async () => {
+  it('형제 화면(배당 캘린더)에서는 포트폴리오 묶음이 활성이 아니다', async () => {
     renderAt('/dividend/calendar');
 
     const calendarNav = await screen.findByRole('link', { name: COMMUNITY_COPY.nav.dividendCalendar });
     expect(calendarNav).toHaveAttribute('aria-current', 'page');
-    expect(screen.getByRole('link', { name: COMMUNITY_COPY.nav.myPortfolio })).not.toHaveAttribute('aria-current');
+    expect(
+      screen.getByRole('button', { name: new RegExp(COMMUNITY_COPY.nav.portfolioGroup) })
+    ).not.toHaveAttribute('aria-current');
   });
 
   /*

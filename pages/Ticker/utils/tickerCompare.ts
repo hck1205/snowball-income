@@ -237,6 +237,44 @@ export const getCompareCandidates = (): readonly CompareCandidate[] =>
       hasPayoutMonths: normalizeMonths(MARKET_DATA.entries[ticker]?.payoutMonths).length > 0
     }));
 
+/* ── 예시 조합 ─────────────────────────────────────────────────────────────── */
+
+export type ComparePreset = {
+  /** URL·리스트 키. 티커 조합이 바뀌어도 유지되는 짧은 슬러그. */
+  readonly id: string;
+  /** 이 조합이 무엇을 보여주는지. 🔴 **사실 진술만** — "추천"·"최고"로 쓰지 마라. */
+  readonly label: string;
+  readonly tickers: readonly string[];
+};
+
+/**
+ * 빈 상태에서 눌러 볼 수 있는 예시 조합.
+ *
+ * 🔴 **라벨은 데이터가 뒷받침하는 만큼만 말한다.** 여기 문구는 전부 `MARKET_DATA` 스냅샷 실측으로
+ * 확인한 것이다(2026-08-02). 특히:
+ *  - `quarterly-monthly` 의 "매달"은 T[1,4,7,10] · JNJ[2,5,8,11] · SCHD[3,6,9,12] 가 **12칸을 정확히
+ *    채운다**는 실측이다 — `tickerCompare.test.ts` 가 이 주장을 잠근다. 데이터가 바뀌어 12칸이 깨지면
+ *    라벨이 거짓이 되므로 테스트가 먼저 깨진다.
+ *  - 이전 버전의 주석은 SCHD·VYM·DGRO 를 "분기 지급을 엇갈리게 모은 것"이라고 적었는데 **틀렸다**.
+ *    셋 다 [3,6,9,12] 라 겹친다(빈 달 8개). 그 역할은 위 조합이 진다.
+ *
+ * ⚠ 예시에 쓰는 티커는 **스냅샷이 있는 것만** 고른다. 스냅샷이 없으면(SPYI·PLD·XOM 등) 표가
+ *   "자료 없음"으로 열려 첫인상이 고장 난 화면이 된다 — 예시는 이 화면이 가장 잘 보이는 장면이어야 한다.
+ * ⚠ 유니버스에서 사라진 티커는 `normalizeCompareSelection` 이 조용히 걸러 낸다(빈 열이 생기지 않는다).
+ */
+export const COMPARE_PRESETS: readonly ComparePreset[] = [
+  { id: 'growth-big3', label: '배당성장 대표 3종', tickers: ['SCHD', 'VYM', 'DGRO'] },
+  { id: 'quarterly-monthly', label: '분기 3종을 엇갈려 매달 받기', tickers: ['T', 'JNJ', 'SCHD'] },
+  { id: 'covered-call', label: '월배당 커버드콜 3종', tickers: ['JEPI', 'JEPQ', 'QYLD'] },
+  { id: 'mixed-character', label: '성격이 다른 셋 — 배당성장·커버드콜·리츠', tickers: ['SCHD', 'JEPI', 'O'] },
+  { id: 'index-vs-dividend', label: '지수 ETF 와 배당 ETF', tickers: ['VOO', 'QQQ', 'SCHD'] },
+  { id: 'aristocrats', label: '배당귀족과 배당성장', tickers: ['NOBL', 'SDY', 'VIG', 'DGRW'] },
+  { id: 'high-yield', label: '고배당 ETF 4종', tickers: ['SPYD', 'HDV', 'DVY', 'IDV'] },
+  { id: 'international', label: '미국 밖 배당 ETF', tickers: ['VYMI', 'SCHY', 'IDV'] },
+  { id: 'covered-call-family', label: '커버드콜 형제 — 기초 지수만 다르다', tickers: ['QYLD', 'XYLD', 'JEPQ'] },
+  { id: 'monthly-income', label: '매달 들어오는 종목끼리', tickers: ['O', 'DIVO', 'JEPI'] }
+];
+
 /** 입력 티커를 유니버스에 있는 것만, 중복 없이, 상한까지 자른다. */
 export const normalizeCompareSelection = (tickers: readonly string[]): string[] => {
   const seen = new Set<string>();

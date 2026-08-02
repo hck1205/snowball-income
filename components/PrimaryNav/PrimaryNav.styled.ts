@@ -234,10 +234,12 @@ const navItemActiveStyle = `
 `;
 
 /**
- * 라우트 링크(NavLink). 활성 라우트에서 react-router가 `aria-current="page"`와 `.active`를 붙인다.
- * 좁은 화면(mobileWide↓)에선 라벨을 접어 아이콘 버튼이 된다 — 이름은 NavItem의 `aria-label`이 준다.
+ * nav 항목 한 칸의 생김새 — **링크(NavItem)와 드롭다운 트리거(NavMenuTrigger)가 공유한다.**
+ *
+ * 🔴 둘이 같은 줄에 나란히 서므로 여기 한 곳에서만 정한다. 복사해 두면 언젠가 한쪽만 고쳐져
+ * 같은 줄에서 높이·패딩이 어긋난다(그 어긋남은 스크린샷으로만 잡히고 테스트로는 안 잡힌다).
  */
-export const NavItem = styled(NavLink)`
+const navItemBaseStyle = `
   /* 활성 인디케이터(::after)를 쓰는 대안 안(B/C)을 위해 좌표계를 미리 잡아 둔다. */
   position: relative;
   display: inline-flex;
@@ -258,6 +260,24 @@ export const NavItem = styled(NavLink)`
     color: ${color.text};
   }
 
+  &:focus-visible {
+    outline: 2px solid ${color.focusRing};
+    outline-offset: 2px;
+  }
+
+  /* 좁은 폭: 라벨은 유지한 채(표시 결정) 패딩만 줄인다. 넘치면 스크롤 줄이 받는다. */
+  ${media.down('mobileWide')} {
+    padding: ${space[1]} ${space[2]};
+  }
+`;
+
+/**
+ * 라우트 링크(NavLink). 활성 라우트에서 react-router가 `aria-current="page"`와 `.active`를 붙인다.
+ * 좁은 화면(mobileWide↓)에선 라벨을 접어 아이콘 버튼이 된다 — 이름은 NavItem의 `aria-label`이 준다.
+ */
+export const NavItem = styled(NavLink)`
+  ${navItemBaseStyle}
+
   /* 활성(현재 페이지) — 위 navItemActiveStyle 한 블록이 정본. */
   &.active,
   &[aria-current='page'] {
@@ -270,15 +290,100 @@ export const NavItem = styled(NavLink)`
     background: ${color.brandHover};
     color: ${color.onBrand};
   }
+`;
+
+/* ── 묶음 메뉴(드롭다운) ───────────────────────────────────────────────────────
+ *
+ * nav 항목이 8개에 닿아 "더 늘리려면 접기·묶기를 먼저 설계하라"고 적어 둔 그 설계다
+ * (2026-08-02 사용자 결정 — 헤더는 2단 그대로 두고 묶음만 도입).
+ *
+ * 🔴 트리거는 **목적지가 아니다.** 눌러도 이동하지 않고 메뉴만 연다 — 그래서 `NavLink` 가 아니라
+ *   `button` 이고, 활성 표시도 react-router 가 아니라 호출부가 `$active` 로 넘긴다(자식 라우트 중
+ *   하나에 있으면 켠다). 링크로 만들면 "포트폴리오"라는 페이지가 있는 것처럼 읽힌다.
+ */
+
+export const NavMenuRoot = styled.div`
+  position: relative;
+  display: inline-flex;
+`;
+
+export const NavMenuTrigger = styled.button<{ $active: boolean }>`
+  ${navItemBaseStyle}
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+
+  ${({ $active }) =>
+    $active
+      ? `
+  ${navItemActiveStyle}
+  &:hover {
+    background: ${color.brandHover};
+    color: ${color.onBrand};
+  }`
+      : ''}
+`;
+
+/** 열림 상태를 방향으로도 말한다(색만으로 말하지 않는다). */
+export const NavMenuChevron = styled.span<{ $open: boolean }>`
+  display: inline-flex;
+  transition: transform 120ms ease;
+  transform: rotate(${({ $open }) => ($open ? '180deg' : '0deg')});
+`;
+
+/**
+ * 펼친 목록.
+ *
+ * 🔴 **트리거 옆에 절대배치하지 마라 — 잘린다.** nav 줄(`NavScroller`)은 `overflow-x: auto` 인데,
+ * CSS 는 한 축이 visible 이 아니면 **다른 축도 auto 로 계산한다**. 즉 세로로도 스크롤 컨테이너라
+ * 그 안의 팝오버는 줄 높이(약 40px)에서 잘린다. `overflow-y: visible` 을 덧붙여도 무시된다
+ * (그 조합 자체가 auto 로 계산된다 — 스펙이 그렇다).
+ *
+ * 그래서 이 메뉴는 **body 로 포털**되고 좌표는 트리거의 뷰포트 좌표(`position: fixed`)로 받는다.
+ * 위치는 호출부가 인라인 style 로 넘긴다 — 좌표마다 클래스를 새로 만들지 않기 위해서다.
+ */
+export const NavMenu = styled.div`
+  position: fixed;
+  z-index: 30;
+  display: grid;
+  gap: 2px;
+  min-width: 12rem;
+  padding: ${space[1]};
+  border: 1px solid ${color.border};
+  border-radius: ${radius.md};
+  background: ${color.surface};
+  box-shadow: ${shadow.e2};
+`;
+
+export const NavMenuItem = styled(NavLink)`
+  display: flex;
+  align-items: center;
+  gap: ${space[2]};
+  padding: ${space[2]};
+  border-radius: ${radius.sm};
+  color: ${color.textSecondary};
+  font-size: ${font.size.sm};
+  font-weight: ${font.weight.medium};
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:hover {
+    background: ${color.surfaceHover};
+    color: ${color.text};
+  }
+
+  /* 메뉴 안에서는 채움 pill 이 과하다 — 글자 굵기와 색으로만 현재 위치를 말한다. */
+  &.active,
+  &[aria-current='page'] {
+    background: ${color.accentSubtle};
+    color: ${color.accentText};
+    font-weight: ${font.weight.bold};
+  }
 
   &:focus-visible {
     outline: 2px solid ${color.focusRing};
-    outline-offset: 2px;
-  }
-
-  /* 좁은 폭: 라벨은 유지한 채(표시 결정) 패딩만 줄인다. 넘치면 스크롤 줄이 받는다. */
-  ${media.down('mobileWide')} {
-    padding: ${space[1]} ${space[2]};
+    outline-offset: -2px;
   }
 `;
 
