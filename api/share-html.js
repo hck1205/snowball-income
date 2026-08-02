@@ -8358,17 +8358,15 @@ var headerControlsGrid = `
   display: grid;
   align-items: center;
   min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'brand actions'
+    'nav nav';
   column-gap: ${space[3]};
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  grid-template-areas: 'brand nav actions';
+  row-gap: ${space[2]};
 
   ${media.down("headerStack")} {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-      'brand actions'
-      'nav nav';
     column-gap: ${space[2]};
-    row-gap: ${space[2]};
   }
 `;
 

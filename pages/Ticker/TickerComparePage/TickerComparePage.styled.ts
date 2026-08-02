@@ -133,18 +133,50 @@ export const ExtremeMark = styled.span`
   white-space: nowrap;
 `;
 
-/** 숫자의 출처 배지(실측·계산 가정·참고). 모양이 아니라 **글자**가 정보를 진다. */
-export const BasisBadge = styled.span`
+/**
+ * 숫자의 출처 배지(실측 · 참고 · 계산 가정).
+ *
+ * 🔴 **색은 거들 뿐, 정보는 글자가 진다**(색 단독 채널 금지). 회색조로 인쇄하거나 색을 못 보는
+ * 사용자에게도 "실측"·"계산 가정"이라는 **글자**와 **테두리 모양**(실선 ↔ 점선)이 남는다.
+ *
+ * 색 배정은 **신뢰도 순서**를 따른다 — 자의적 배색이 아니라 의미의 사다리다:
+ *  - `observed`(실측)     — 시장 데이터로 확인한 값. 실선 + accent 틴트로 **가장 또렷하게**.
+ *  - `reference`(참고)    — 실제 이력이지만 계산에 안 쓰는 값. 점선 + 중립. 조용히 둔다.
+ *  - `assumed`(계산 가정) — 우리가 정한 값. 점선 + **warning 틴트**로 "이건 관측이 아니다"를 색으로도 말한다.
+ *
+ * ⚠ 세 조합 모두 `shared/styles/contrast.test.ts` 가 **이미 검증하는 쌍**만 쓴다
+ *   (`accent-text/accent-subtle` · `text-secondary/surface-muted` · `warning/warning-surface`).
+ *   새 색을 만들지 마라 — 만들면 16테마(프리셋 8 × 라이트/다크) 대비를 전부 다시 재야 한다.
+ * ⚠ 손익색(dataPositive/dataNegative)은 쓰지 않는다. 배당률이 높은 것은 이익이 아니다.
+ */
+export const BasisBadge = styled.span<{ $basis: 'observed' | 'assumed' | 'reference' }>`
   display: inline-block;
   margin-left: ${space[1]};
   padding: 1px ${space[1]};
-  border: 1px dashed ${color.border};
   border-radius: ${radius.xs};
-  color: ${color.textMuted};
   font-family: ${font.sans};
   font-size: ${font.size['2xs']};
-  font-weight: ${font.weight.medium};
+  font-weight: ${font.weight.semibold};
   white-space: nowrap;
+
+  ${({ $basis }) => {
+    if ($basis === 'observed') {
+      return `
+  border: 1px solid ${color.accentBorder};
+  background: ${color.accentSubtle};
+  color: ${color.accentText};`;
+    }
+    if ($basis === 'assumed') {
+      return `
+  border: 1px dashed ${color.warning};
+  background: ${color.warningSurface};
+  color: ${color.warning};`;
+    }
+    return `
+  border: 1px dashed ${color.border};
+  background: ${color.surfaceMuted};
+  color: ${color.textSecondary};`;
+  }}
 `;
 
 /* ── 지급월 띠 ─────────────────────────────────────────────────────────────── */

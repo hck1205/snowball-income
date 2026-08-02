@@ -50,11 +50,23 @@ import { platform } from 'node:process';
 
 /* ── 계약 상수 ────────────────────────────────────────────────────────────── */
 
-/** 헤더가 한 줄로 서는 최소 폭. `shared/styles/tokens.ts` 의 BREAKPOINT.headerStack + 1 과 같다. */
+/**
+ * 헤더가 넓은 폭으로 서는 최소 폭. `shared/styles/tokens.ts` 의 BREAKPOINT.headerStack + 1 과 같다.
+ *
+ * 🔴 **2026-08-02 부터 헤더는 모든 폭에서 두 줄이다**(`brand │ actions` / `nav 전폭`). 예전에는
+ * ≥1024 가 한 줄(상한 80px)이었는데, 메뉴가 8개가 되면서 "남는 폭에 들어간다"는 전제가 깨졌다 —
+ * 1280 실측으로 브랜드↔컨트롤 트랙 902px 중 메뉴가 753px 을 썼고 ≤1024 에서는 스크롤 뒤로 숨었다.
+ * 사용자 결정으로 전폭 메뉴 줄을 주었고, 그 대가로 높이가 64 → 약 104px 이 됐다.
+ * 그래서 이 폭 이상에도 **두 줄 상한**을 적용한다. 되돌린다면 `shared/styles/headerSurface.ts` 의
+ * `headerControlsGrid` 와 **함께** 되돌려라(둘은 한 쌍이다).
+ */
 const SINGLE_ROW_MIN_WIDTH = 1024;
-/** 한 줄 모드의 절대 상한(px). 목표 대역은 64~72. */
-const SINGLE_ROW_MAX_HEIGHT = 80;
-/** 두 줄 모드의 절대 상한(px) — 개선 전 실측 121~127 에 대한 회귀 방지선. */
+/**
+ * 넓은 폭(두 줄) 상한(px). 브랜드 줄 + 메뉴 줄이라 좁은 폭과 같은 예산을 쓴다.
+ * ⚠ 이 값을 올리기 전에 실측하라 — 헤더가 높아진 만큼 모든 화면의 첫 화면이 줄어든다.
+ */
+const SINGLE_ROW_MAX_HEIGHT = 120;
+/** 좁은 폭 두 줄 모드의 절대 상한(px) — 개선 전 실측 121~127 에 대한 회귀 방지선. */
 const STACKED_MAX_HEIGHT = 120;
 /** 승격된 히어로 액션이 헤더 아래에 서는 간격(px). useStickyHeroAction 의 PIN_GAP. */
 const PIN_GAP = 8;

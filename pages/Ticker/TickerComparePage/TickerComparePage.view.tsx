@@ -142,8 +142,11 @@ export default function TickerCompareView({
                     <tr key={row.key}>
                       <MetricCell scope="row">
                         {row.label}
-                        {/* 🔴 숫자의 출처를 표에서 감추지 않는다 — 가정을 사실처럼 보이게 하지 않는다. */}
-                        <BasisBadge>{copy.basis[row.basis].label}</BasisBadge>
+                        {/* 🔴 숫자의 출처를 표에서 감추지 않는다 — 가정을 사실처럼 보이게 하지 않는다.
+                            색은 거들 뿐이고 정보는 글자가 진다(회색조에서도 "계산 가정"이 읽힌다). */}
+                        <BasisBadge $basis={row.basis} title={copy.basis[row.basis].description}>
+                          {copy.basis[row.basis].label}
+                        </BasisBadge>
                         {row.note ? <MetricNote>{row.note}</MetricNote> : null}
                       </MetricCell>
                       {row.cells.map((_, index) => (

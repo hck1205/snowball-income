@@ -30,20 +30,19 @@ export const HeaderRoot = styled.header`
  * 좌우 여백은 `contentGutter` 로 받는다. 그 페이지 **본문 컨테이너와 같은 값**이어야 헤더 콘텐츠와
  * 아래 패널들의 좌우 끝선이 정확히 맞는다(두 컨테이너의 max-width 가 1200 으로 같으므로).
  *
- * 🔴 **헤더 높이의 단일 조절점은 여기 블록 패딩이다.** 한 줄 모드의 목표는 64~72px, 상한 80px 이고
- * (내비 높이 상한 규칙 — 데스크톱 2줄 헤더는 117px 이었다) 실제 높이는
- * `내비 줄 40px + 블록 패딩 24px = 64px` 로 나온다. 값을 키우기 전에 `tools/dev/headerprobe.mjs`
- * 로 실측하라 — 이 숫자는 짐작이 아니라 측정으로 정한 것이고, 회귀도 그 스크립트가 잡는다.
+ * 🔴 **헤더 높이의 단일 조절점은 여기 블록 패딩이다.** 상한은 전 폭 120px 이다
+ * (2026-08-02 부터 헤더가 모든 폭에서 두 줄이 됐다 — `headerControlsGrid` 주석의 근거 참고).
+ * 값을 키우기 전에 `tools/dev/headerprobe.mjs` 로 실측하라 — 이 숫자는 짐작이 아니라 측정으로
+ * 정한 것이고, 회귀도 그 스크립트가 잡는다. 헤더가 높아진 만큼 모든 화면의 첫 화면이 줄어든다.
+ *
+ * ⚠ 넓은 폭에서 세로 패딩을 좁은 폭보다 **작게** 준다. 두 줄이 된 만큼 총 높이가 늘었으므로
+ * 여백까지 그대로 두면 헤더가 필요 이상으로 두꺼워진다.
  */
 export const HeaderInner = styled.div<{ $gutter: string }>`
   ${headerControlsGrid}
   max-width: 1200px;
   margin: 0 auto;
-  padding: ${space[3]} ${({ $gutter }) => $gutter};
-
-  ${media.down('headerStack')} {
-    padding: ${space[2]} ${({ $gutter }) => $gutter};
-  }
+  padding: ${space[2]} ${({ $gutter }) => $gutter};
 `;
 
 /**
