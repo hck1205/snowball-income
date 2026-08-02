@@ -62,6 +62,16 @@ describe('/ledger 색 규율(§3.4)', () => {
     expect(hits(/dataPositive|dataNegative/g)).toEqual([]);
   });
 
+  /**
+   * B-4 AC4-8 — 배당 카드에도 같은 규율이 적용된다. 토큰 이름(`dataPositive`)뿐 아니라 **DOM 에
+   * 찍히는 어트리뷰트 형태**(`data-positive`)와 값 방향 prop(`tone="positive"`)까지 막는다.
+   * 위 검사만으로는 `<StatTile tone="positive">` 같은 우회가 통과한다 — 그러면 배당만 색을 갖고
+   * "이건 이익"이라는 없는 의미가 생긴다.
+   */
+  it('🔴 손익 방향을 어트리뷰트·prop 으로도 넣지 않는다 (배당 카드 포함)', () => {
+    expect(hits(/data-positive|data-negative|tone=["']positive["']|tone=["']negative["']/g)).toEqual([]);
+  });
+
   it('🔴 하드코딩 hex 가 0개다 (토큰만 쓴다)', () => {
     expect(hits(/#[0-9a-fA-F]{3,8}\b/g)).toEqual([]);
   });
@@ -85,9 +95,148 @@ describe('/ledger 카피 규율', () => {
   });
 });
 
+/**
+ * B-1 AC1-7 — **탭 제목은 준PII 다.** 화면에 그리는 것 말고는 어디에도 남기지 않는다.
+ * (저장 페이로드에 실제로 무엇이 들어가는지는 `test/ledger/ledgerTabSwitch.test.tsx` 가 왕복으로 본다.
+ *  여기서는 "그런 경로를 만들 수 있는 코드가 아예 없다"를 소스에서 잠근다.)
+ */
+describe('/ledger 준PII 규율 — 탭 제목·시트 정보', () => {
+  /**
+   * 🔴 **가계부 데이터의 저장 창구는 데이터 계층 하나다.** 화면 계층이 스토리지를 직접 만지면
+   * 금액·분류·시트 정보가 로컬에 남는 경로가 열린다.
+   *
+   * ⚠ 선언된 예외 **2건**. 둘 다 "저장하는 값의 형태"를 아래에서 함께 잠근다 — 예외를 열되 넓히지 않는다.
+   *  1) B-4 배당 겹쳐 보기 토글(`ledgerDividend.ts`) — 값이 `'on' | 'off'` 닫힌 열거형뿐이다.
+   *  2) B-3 블렌딩 구성(`ledgerBlend.ts`) — 값이 화이트리스트 직렬화(`serializeLedgerBlendConfig`)의
+   *     결과뿐이고, 그 페이로드는 시트 ID·탭 ID·사용자 라벨만 담는다(가계부 행이 들어갈 자리가 없다).
+   *
+   * 데이터 계층(`shared/lib/googleSheets`)은 시트 **연결 정보**를 소유하는 곳이라 화면 취향 토글도,
+   * 화면이 만든 블렌딩 구성도 그쪽에 갈 자리가 아니다.
+   */
+  const DIVIDEND_OVERLAY_STORAGE = 'pages/Ledger/utils/ledgerDividend.ts';
+  const BLEND_CONFIG_STORAGE = 'pages/Ledger/utils/ledgerBlend.ts';
+
+  it('🔴 화면 계층에서 localStorage 를 만지는 파일은 선언된 예외 2개뿐이다', () => {
+    const files = [...new Set(hits(/localStorage|sessionStorage/g).map((hit) => hit.split(' :: ')[0]))].sort();
+    expect(files).toEqual([BLEND_CONFIG_STORAGE, DIVIDEND_OVERLAY_STORAGE].sort());
+  });
+
+  it('🔴 배당 토글이 저장하는 값은 닫힌 열거형뿐이다 (가계부 값이 들어갈 자리가 없다)', () => {
+    const file = FILES.find((entry) => entry.path === DIVIDEND_OVERLAY_STORAGE);
+    const setItems = [...(file?.source ?? '').matchAll(/setItem\(([^)]*)\)/g)].map((match) => match[1].trim());
+    // 호출부가 사라지면(=이름이 바뀌면) 이 가드는 아무것도 안 보게 된다 — 정확히 1건이어야 한다.
+    expect(setItems).toEqual(["LEDGER_DIVIDEND_OVERLAY_KEY, isOn ? 'on' : 'off'"]);
+  });
+
+  it('🔴 블렌딩 저장이 쓰는 것은 블렌딩 키 + 화이트리스트 직렬화 결과뿐이다', () => {
+    const file = FILES.find((entry) => entry.path === BLEND_CONFIG_STORAGE);
+    // ⚠ `[^)]*` 로는 안 된다 — 인자 안에 괄호가 있어 첫 `)` 에서 잘린다(문 끝 `);` 까지 최소 매칭).
+    const writes = [...(file?.source ?? '').matchAll(/\.(setItem|removeItem)\(([\s\S]*?)\);/g)].map(
+      (match) => `${match[1]}(${match[2].trim()})`
+    );
+    expect(writes).toEqual([
+      'setItem(LEDGER_BLEND_STORAGE_KEY, serializeLedgerBlendConfig(config))',
+      'removeItem(LEDGER_BLEND_STORAGE_KEY)'
+    ]);
+  });
+
+  /**
+   * 🔴 AC3-2 의 소스 쪽 절반 — **블렌딩 저장은 `snowball:ledger:links` 로 가는 길 자체가 없다.**
+   * (바이트 동일 왕복은 `ledgerBlend.test.ts` 가 실행으로 본다. 여기서는 그런 코드를 쓸 수 있는
+   *  경로가 아예 없음을 잠근다 — 링크 목록은 인자로만 들어온다.)
+   */
+  it('🔴 블렌딩 파일은 링크 저장소를 읽지도 쓰지도 않는다 (참조만 들고 있다)', () => {
+    const file = FILES.find((entry) => entry.path === BLEND_CONFIG_STORAGE);
+    expect(file).toBeDefined();
+    expect(file?.source).not.toMatch(/LEDGER_LINK_STORAGE_KEY|saveSheetLink|removeSheetLink|loadSheetLinks/);
+    // 대신 링크 목록은 **인자**로 받는다 — 이 함수가 사라지면 위 단정이 무의미해진다.
+    expect(file?.source).toContain('resolveLedgerBlendConfig');
+  });
+
+  it('🔴 GA 이벤트를 보내지 않는다 — 시트·탭 이름이 파라미터로 새는 유일한 경로다', () => {
+    expect(hits(/trackEvent|ANALYTICS_EVENT|gtag\(/g)).toEqual([]);
+  });
+
+  /**
+   * B-3 AC3-9 — 블렌딩 설정의 선택지는 **시트 주소를 폼 값으로만** 들고 있다(`spreadsheetId:sheetId`).
+   * 그 값이 화면 텍스트로 새면 사용자가 자기 시트 주소를 읽게 되고, 스크린샷·화면 공유로 그대로 나간다.
+   *
+   * ⚠ 사용자가 붙인 **라벨**은 이 규율의 대상이 아니다 — 그건 화면에 보이라고 사용자가 직접 지은
+   *   이름이다. 금지되는 것은 저장·GA·데이터 계층 에러 문구에 싣는 것이고, 그 문구들은
+   *   `LEDGER_ERROR_MESSAGE` 의 정적 문자열이라 값을 끼울 자리가 없다.
+   */
+  it('🔴 블렌딩 설정은 시트 주소(option.value)를 화면 텍스트로 그리지 않는다', () => {
+    const file = FILES.find((entry) => entry.path === 'pages/Ledger/components/LedgerBlendSetup/LedgerBlendSetup.tsx');
+    expect(file).toBeDefined();
+    /* JSX **텍스트 자리**(`>` 뒤)만 본다 — `value={option.value}` 는 폼 값이라 정상이다.
+       이름을 그리는 코드가 사라지면(=구조가 바뀌면) 아래 금지 단정이 무의미해진다. */
+    expect(file?.source).toMatch(/>\s*\{option\.name\}/);
+    expect(file?.source).not.toMatch(/>\s*\{option\.value\}/);
+  });
+
+  it('🔴 로컬 저장 호출(saveSheetLink)의 인자에 탭 제목(sheetTitle)이 없다', () => {
+    const calls = FILES.flatMap(({ path, source }) =>
+      [...source.matchAll(/saveSheetLink\(\{[\s\S]*?\}\)/g)].map((match) => ({ path, text: match[0] }))
+    );
+    // 호출부가 사라지면(=이름이 바뀌면) 이 가드는 아무것도 안 보게 된다 — 최소 1건은 잡혀야 한다.
+    expect(calls.length).toBeGreaterThan(0);
+    expect(calls.filter((call) => call.text.includes('sheetTitle')).map((call) => call.path)).toEqual([]);
+  });
+});
+
 describe('/ledger 숫자 포맷 규율(§7)', () => {
-  it('🔴 억/만 축약 포맷터와 달러 포맷터를 쓰지 않는다 — 원 단위 정확값이 정보다', () => {
-    expect(hits(/formatApproxKRW|formatSummaryKRW|formatUSD/g)).toEqual([]);
+  it('🔴 억/만 축약 포맷터를 쓰지 않는다 — 원 단위 정확값이 정보다', () => {
+    expect(hits(/formatApproxKRW|formatSummaryKRW|formatApproxUSD/g)).toEqual([]);
+  });
+
+  /**
+   * ⚠ 선언된 예외 **1건**: B-4 의 환율 미가용 폴백(`ledgerDividend.ts`).
+   *
+   * 이 규율의 대상은 **가계부 금액**이고 그것은 여전히 원 단위 정확값뿐이다. 배당은 포트폴리오
+   * 도메인의 값이라 원천이 USD 이고, 환율을 못 받았을 때 그 값을 **원화인 척 그리지 않으려면**
+   * 달러로 적어야 한다(날조 금지). 자체 달러 포맷터를 새로 만드는 대신 앱의 정본 포맷터를 쓴다 —
+   * 소액이 `$0` 으로 뭉개지지 않는 규칙이 거기 이미 들어 있다.
+   */
+  it('🔴 달러 포맷터를 쓰는 파일은 배당 환율 폴백 하나뿐이다', () => {
+    const files = [...new Set(hits(/formatUSD/g).map((hit) => hit.split(' :: ')[0]))];
+    expect(files).toEqual(['pages/Ledger/utils/ledgerDividend.ts']);
+  });
+});
+
+/**
+ * B-1 · B-3 — **탭 전환을 막는 판단은 화면에 하나뿐이다.**
+ *
+ * 탭 피커와 블렌딩의 "이 가계부에서 열기"는 둘 다 `connection.switchTab` 으로 끝난다. 판단을 두 벌로
+ * 만들면 한쪽만 고쳐지는 순간 다른 쪽이 우회로가 되고, 저장 실패 대기열의 재시도가 다른 탭에 행을
+ * **추가**한다(추가에는 행 참조가 없어 `guardRowRef` 가 못 막는다 · 2026-08-02 리뷰).
+ *
+ * ⚠ 행동은 `ledgerBlendHook.test.tsx` 와 `ledgerBlendView.test.tsx` 가 본다. 여기서는 두 소비자가
+ * **같은 값**을 받는다는 배선을 잠근다 — 값이 갈라진 두 번째 판단은 렌더로는 잡히지 않는다.
+ */
+describe('/ledger 탭 전환 차단 — 단일 출처', () => {
+  const CONTAINER = 'pages/Ledger/LedgerPage/LedgerPage.tsx';
+
+  it('🔴 컨테이너의 판단 호출은 정확히 1건이다', () => {
+    const file = FILES.find((entry) => entry.path === CONTAINER);
+    expect(file).toBeDefined();
+    expect([...(file?.source ?? '').matchAll(/tabSwitchBlockedReason\(/g)]).toHaveLength(1);
+  });
+
+  it('🔴 그 한 값을 탭 피커와 블렌딩이 함께 받는다', () => {
+    const file = FILES.find((entry) => entry.path === CONTAINER);
+    expect(file?.source).toMatch(/blockedReason:\s*tabSwitchBlocked\b/);
+    expect(file?.source).toMatch(/openBlockedReason:\s*tabSwitchBlocked\b/);
+  });
+
+  /**
+   * 🔴 블렌딩 훅은 쓰기 훅을 **모른다**. 알면 같은 규칙이 두 벌이 되고, 훅이 자기 판단을 갖는 순간
+   * 컨테이너가 넘긴 사유와 화면이 어긋난다.
+   */
+  it('🔴 블렌딩 훅은 쓰기 상태를 직접 들여다보지 않는다 (사유를 인자로만 받는다)', () => {
+    const file = FILES.find((entry) => entry.path === 'pages/Ledger/hooks/useLedgerBlend.ts');
+    expect(file).toBeDefined();
+    expect(file?.source).not.toMatch(/useLedgerWrite|partialFailure|rowFailures|tabSwitchBlockedReason/);
+    expect(file?.source).toContain('openBlockedReason');
   });
 });
 

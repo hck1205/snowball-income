@@ -7,7 +7,7 @@ import { baseViewModel, renderLedgerView, ZERO_SUMMARY } from './ledgerFixtures'
 /** §4.1 연결 전 · §4.2 열 매핑. */
 
 const disconnected = () =>
-  baseViewModel({ state: 'disconnected', rows: [], summary: ZERO_SUMMARY, sheetMetaLine: null, sheetUrl: null, sheetName: null });
+  baseViewModel({ state: 'disconnected', rows: [], summary: ZERO_SUMMARY, sheetUrl: null, sheetName: null });
 
 const mappingModel = (overrides: Partial<LedgerMappingModel> = {}): LedgerMappingModel => ({
   sheetName: '우리집 가계부',

@@ -94,7 +94,10 @@ export default function AuthControl() {
             {COMMUNITY_COPY.myPosts.menuItem}
           </MenuItem>
           {/* 가계부 — 계정 관리 묶음 끝, 앱 이동(시뮬레이터로) 앞.
-              🔴 env 가 없으면 항목 자체가 없다. 헤더 nav 에는 넣지 않는다(7번째 금지). */}
+              🔴 env 가 없으면 항목 자체가 없다(`isGoogleSheetsEnabled`).
+              ⚠ 2026-08-01 사용자 결정으로 **헤더 nav 에도 가계부 항목이 생겼다**(구 주석의 "7번째 금지"는
+              폐기). 지금은 진입점이 셋(헤더 nav · 포트폴리오 진입 카드 · 이 메뉴)이라 중복 정리는
+              별도 판단 대상이다 — 임의로 지우지 마라. */}
           {isGoogleSheetsEnabled ? (
             <MenuItem
               type="button"

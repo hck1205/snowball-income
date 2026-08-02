@@ -91,6 +91,7 @@ describe('진입점 ① 프로필 드롭다운', () => {
     renderAuthControl();
 
     await user.click(screen.getByRole('button', { name: /테스터/ }));
+    // 🔴 메뉴 항목은 '가계부' 그대로다 — 제품명은 **페이지 제목에만** 붙는다(2026-08-02 사용자 결정).
     await user.click(screen.getByRole('menuitem', { name: '가계부' }));
 
     expect(screen.getByText('가계부 화면')).toBeInTheDocument();
@@ -112,6 +113,7 @@ describe('진입점 ② /dividend/portfolio 카드', () => {
 
     expect(await screen.findByRole('heading', { name: '보유 종목' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '가계부 열기' })).not.toBeInTheDocument();
+    // 🔴 포트폴리오의 **진입 카드** 제목이다 — 제품명은 /ledger 페이지 제목에만 붙는다.
     expect(screen.queryByRole('heading', { name: '가계부' })).not.toBeInTheDocument();
   });
 

@@ -1,5 +1,14 @@
+export { useLedgerAppAuth } from './useLedgerAppAuth';
+export type { LedgerAppAuth } from './useLedgerAppAuth';
+
+export { useLedgerBlend } from './useLedgerBlend';
+export type { LedgerBlend } from './useLedgerBlend';
+
 export { useLedgerConnection } from './useLedgerConnection';
 export type { LedgerConnection } from './useLedgerConnection';
+
+export { FRESHNESS_RETRY_ID, FRESHNESS_THROTTLE_MS, shouldAutoRefresh, snapshotSignature, useLedgerFreshness } from './useLedgerFreshness';
+export type { LedgerFreshness } from './useLedgerFreshness';
 
 export { useLedgerMonth } from './useLedgerMonth';
 export type { LedgerMonth } from './useLedgerMonth';

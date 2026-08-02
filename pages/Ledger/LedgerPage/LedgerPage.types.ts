@@ -1,15 +1,22 @@
+import type { CommunityOAuthProvider } from '@/shared/lib/supabase';
 import type {
+  LedgerAppAuthGate,
+  LedgerBlendSourceKey,
+  LedgerBlendViewModel,
   LedgerConnectionState,
+  LedgerDividendModel,
   LedgerDraftForm,
   LedgerErrorModel,
   LedgerFieldId,
   LedgerFormModel,
+  LedgerFreshnessModel,
   LedgerMappingModel,
   LedgerMonthSummary,
   LedgerPartialFailureModel,
   LedgerPhase,
   LedgerRemoveTarget,
-  LedgerRowModel
+  LedgerRowModel,
+  LedgerTabPickerModel
 } from '../types';
 
 /**
@@ -19,15 +26,28 @@ import type {
  * 같은 모델을 쓰기 때문이다(그 파일 상단 주석 참고).
  */
 export type LedgerViewModel = {
+  /**
+   * 🔴 **앱 로그인 게이트 — `state`(구글 시트 연결)보다 앞선 다른 축이다.**
+   *
+   *  - `null`  = 이 배포에 앱 로그인 계층이 없다 → 게이트 없이 곧바로 시트 연결 화면.
+   *  - `isReady: false` = 세션 확인 중 → 게이트를 성급히 보여주지 않는다.
+   *  - `isLoggedIn: false` = 로그인 유도 화면(구글·네이버·카카오).
+   *  - `isLoggedIn: true`  = 제공자와 무관하게 시트 연결 흐름으로 간다.
+   */
+  appAuth: LedgerAppAuthGate | null;
+
   state: LedgerConnectionState;
   phase: LedgerPhase;
   /** `checking` 이 300ms 를 넘겼는가. 넘기기 전에는 스켈레톤을 그리지 않는다(깜빡임 방지). */
   showCheckingSkeleton: boolean;
-  /** 히어로 `meta` — 연결 전에는 `null`(없는 값에 "—" 를 남기지 않는다). */
-  sheetMetaLine: string | null;
   /** 새 탭으로 열 시트 주소. 연결 전에는 `null`. */
   sheetUrl: string | null;
   sheetName: string | null;
+  /**
+   * B-1 탭 선택. `null` 이면 고를 자리가 없다(연결 전 · 연결 정보를 아직 못 받았다).
+   * 🔴 탭 제목은 여기까지만 온다 — 저장·GA·에러 문구로 흘리지 않는다.
+   */
+  tabPicker: LedgerTabPickerModel | null;
 
   monthLabel: string;
   prevMonthLabel: string;
@@ -36,6 +56,27 @@ export type LedgerViewModel = {
   isCurrentMonth: boolean;
   /** §4.4 — 기록이 있는 가장 최근 달. 없으면 `null`(그 문장을 만들 수 없다). */
   latestMonthLabel: string | null;
+
+  /**
+   * B-2 신선도 — 목록 카드 헤더의 "언제 기준 · 새로고침". 🔴 연결 전에도 값은 있고(전부 비어 있고)
+   * 그리는 자리가 `connected` 안이라 화면에는 나오지 않는다.
+   */
+  freshness: LedgerFreshnessModel;
+
+  /**
+   * B-4 배당 겹쳐 보기 — 🔴 **요약 3숫자와 완전히 분리된 값**이다. `summary` 를 만드는 코드는 이
+   * 필드를 읽지 않고, 이 필드를 만드는 코드는 `summary` 에 아무것도 더하지 않는다(가계부 총합의
+   * 정의는 하나다). 토글이 꺼져 있어도 모델은 있고 `body` 만 `null` 이다.
+   */
+  dividend: LedgerDividendModel;
+
+  /**
+   * B-3 두 가계부 블렌딩. 🔴 **`isOn` 이면 단일 가계부 본문(요약·배당·목록·쓰기)이 통째로 대체된다** —
+   * 새 라우트를 만들지 않고 이 화면 안의 **보기 방식**으로 다룬다(연결 상태 기계와 같은 관례이고,
+   * 뒤로가기 스택을 오염시키지 않는다).
+   * 🔴 아래 `summary`·`rows` 는 **단일 가계부의 값 그대로**다 — 블렌딩 숫자가 여기 섞이지 않는다.
+   */
+  blend: LedgerBlendViewModel;
 
   summary: LedgerMonthSummary;
   rows: readonly LedgerRowModel[];
@@ -85,10 +126,33 @@ export type LedgerViewProps = {
   focusAfterRemoveId: string | null;
   onFocusAfterRemoveHandled: () => void;
 
+  /** 앱 로그인 시작(구글·네이버·카카오). 🔴 구글 시트 동의와 다른 층이다. */
+  onSignIn: (provider: CommunityOAuthProvider) => void;
+
   onPickExistingSheet: () => void;
   onCreateSheet: () => void;
   onMappingChange: (field: LedgerFieldId, letter: string | null) => void;
   onConfirmMapping: () => void;
+  /** 같은 파일의 다른 탭으로. 🔴 막혀 있을 때는 컨트롤이 비활성이라 호출되지 않는다. */
+  onSelectTab: (sheetId: number) => void;
+
+  /** B-4 배당 겹쳐 보기 토글. 🔴 시트에 아무것도 쓰지 않는다 — 화면 상태와 로컬 취향뿐이다. */
+  onToggleDividendOverlay: (isOn: boolean) => void;
+
+  /**
+   * B-3 블렌딩. 🔴 **쓰기 핸들러가 하나도 없다**(D3-4) — 블렌딩 뷰는 읽기 전용이고, 각 행의 수정은
+   * `onOpenBlendSource` 로 그 가계부의 단일 뷰에 가서 한다.
+   */
+  onToggleBlend: (isOn: boolean) => void;
+  onToggleBlendSetup: (isOpen: boolean) => void;
+  onChangeBlendSource: (source: LedgerBlendSourceKey, value: string) => void;
+  onChangeBlendLabel: (source: LedgerBlendSourceKey, label: string) => void;
+  onSubmitBlendSetup: () => void;
+  onClearBlend: () => void;
+  /** 사용자가 누르는 "다시 불러오기". 🔴 자동 재시도는 없다(429). */
+  onReloadBlend: () => void;
+  /** "이 가계부에서 열기" — 블렌딩을 끄고 그 가계부의 단일 뷰로 간다(AC3-6). */
+  onOpenBlendSource: (source: LedgerBlendSourceKey) => void;
 
   onPrevMonth: () => void;
   onNextMonth: () => void;

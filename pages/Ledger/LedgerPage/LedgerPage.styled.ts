@@ -97,6 +97,80 @@ export const SkeletonRow = styled.span`
   background: ${color.surfaceMuted};
 `;
 
+/* ── B-2 신선도(목록 카드 헤더) ───────────────────────────────────────────────── */
+
+/**
+ * "언제 기준인가 + 다시 읽기" 묶음. `Card` 의 `titleRight` 슬롯에 들어간다.
+ *
+ * 🔴 시각과 버튼을 **떼어 놓지 않는다** — 새로고침만 있으면 "왜 눌러야 하는지"를, 시각만 있으면
+ * "어떻게 최신으로 만드는지"를 잃는다. 좁은 폭에서는 `flex-wrap` 으로 두 줄이 되어도 붙어 있는다.
+ */
+export const FreshnessRow = styled.span`
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: ${space[2]};
+  min-width: 0;
+`;
+
+/** 🔴 데이터가 아니라 맥락이다 — 강조하지 않는다(숫자에 색을 쓰지 않는 규율의 연장). */
+export const ReadAtText = styled.span`
+  font-size: ${font.size.sm};
+  color: ${color.textMuted};
+  white-space: nowrap;
+`;
+
+/**
+ * 재조회 결과가 직전과 달랐다는 한 줄. 🔴 배너가 아니다 — 실패가 아니고 사용자가 할 일도 없다.
+ * 낭독은 페이지의 라이브 리전이 맡는다(여기에 `role` 을 또 붙이면 같은 말을 두 번 읽는다).
+ */
+export const FreshnessNotice = styled.p`
+  margin: 0 0 ${space[3]};
+  font-size: ${font.size.sm};
+  line-height: ${font.leading.snug};
+  color: ${color.textSecondary};
+`;
+
+/* ── B-3 블렌딩 진입·모드 줄 ─────────────────────────────────────────────────── */
+
+/**
+ * "한 가계부 ↔ 두 가계부"를 고르는 줄. 탭 줄(어느 장부) 바로 아래에 서는 **같은 축**이다 —
+ * 월 네비(어느 기간)보다 위에 있어야 "합쳐 보면 달도 바뀌나"라는 오해가 생기지 않는다.
+ *
+ * 🔴 새 라우트를 만들지 않는다(해시 라우팅도 금지). 블렌딩은 "페이지"가 아니라 **보기 방식**이고,
+ * 이 화면의 상태 기계(`LedgerConnectionState`)가 이미 라우트 대신 상태로 관리되는 관례를 따른다.
+ * ⚠ 탭 줄과 **같은 모양**(왼쪽 정렬 띠)이되 틴트로만 갈린다 — 축이 같으니 형태도 같아야 한다.
+ */
+export const BlendBar = styled.div`
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: ${space[2]} ${space[3]};
+  min-width: 0;
+  padding: ${space[2]} ${space[3]};
+  border: 1px solid ${color.accentBorder};
+  border-radius: ${radius.md};
+  background: ${color.accentSubtle};
+`;
+
+export const BlendBarText = styled.p`
+  margin: 0;
+  min-width: 0;
+  font-size: ${font.size.sm};
+  font-weight: ${font.weight.semibold};
+  color: ${color.text};
+`;
+
+export const BlendBarHint = styled.p`
+  margin: 0;
+  min-width: 0;
+  flex: 1 1 24ch;
+  font-size: ${font.size.sm};
+  line-height: ${font.leading.snug};
+  color: ${color.textSecondary};
+`;
+
 /* ── §4.4 이 달 기록 없음 ────────────────────────────────────────────────────── */
 
 /**
