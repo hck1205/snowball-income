@@ -114,17 +114,14 @@ describe('B-4 토글 저장 — 관용 파서 · 새 키 하나', () => {
     expect(readLedgerDividendOverlay()).toBe(false);
   });
 
-  it('🔴 시트 연결·블렌딩 키를 건드리지 않는다', () => {
+  it('🔴 시트 연결 키를 건드리지 않는다', () => {
     const links = '[{"spreadsheetId":"abc","sheetId":0,"mapping":{}}]';
-    const blend = '{"version":1}';
     window.localStorage.setItem('snowball:ledger:links', links);
-    window.localStorage.setItem('snowball:ledger:blend', blend);
 
     writeLedgerDividendOverlay(true);
     writeLedgerDividendOverlay(false);
 
     expect(window.localStorage.getItem('snowball:ledger:links')).toBe(links);
-    expect(window.localStorage.getItem('snowball:ledger:blend')).toBe(blend);
   });
 });
 

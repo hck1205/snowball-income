@@ -1,8 +1,6 @@
 import type { CommunityOAuthProvider } from '@/shared/lib/supabase';
 import type {
   LedgerAppAuthGate,
-  LedgerBlendSourceKey,
-  LedgerBlendViewModel,
   LedgerConnectionState,
   LedgerDividendModel,
   LedgerDraftForm,
@@ -70,13 +68,6 @@ export type LedgerViewModel = {
    */
   dividend: LedgerDividendModel;
 
-  /**
-   * B-3 두 가계부 블렌딩. 🔴 **`isOn` 이면 단일 가계부 본문(요약·배당·목록·쓰기)이 통째로 대체된다** —
-   * 새 라우트를 만들지 않고 이 화면 안의 **보기 방식**으로 다룬다(연결 상태 기계와 같은 관례이고,
-   * 뒤로가기 스택을 오염시키지 않는다).
-   * 🔴 아래 `summary`·`rows` 는 **단일 가계부의 값 그대로**다 — 블렌딩 숫자가 여기 섞이지 않는다.
-   */
-  blend: LedgerBlendViewModel;
 
   summary: LedgerMonthSummary;
   rows: readonly LedgerRowModel[];
@@ -138,21 +129,6 @@ export type LedgerViewProps = {
 
   /** B-4 배당 겹쳐 보기 토글. 🔴 시트에 아무것도 쓰지 않는다 — 화면 상태와 로컬 취향뿐이다. */
   onToggleDividendOverlay: (isOn: boolean) => void;
-
-  /**
-   * B-3 블렌딩. 🔴 **쓰기 핸들러가 하나도 없다**(D3-4) — 블렌딩 뷰는 읽기 전용이고, 각 행의 수정은
-   * `onOpenBlendSource` 로 그 가계부의 단일 뷰에 가서 한다.
-   */
-  onToggleBlend: (isOn: boolean) => void;
-  onToggleBlendSetup: (isOpen: boolean) => void;
-  onChangeBlendSource: (source: LedgerBlendSourceKey, value: string) => void;
-  onChangeBlendLabel: (source: LedgerBlendSourceKey, label: string) => void;
-  onSubmitBlendSetup: () => void;
-  onClearBlend: () => void;
-  /** 사용자가 누르는 "다시 불러오기". 🔴 자동 재시도는 없다(429). */
-  onReloadBlend: () => void;
-  /** "이 가계부에서 열기" — 블렌딩을 끄고 그 가계부의 단일 뷰로 간다(AC3-6). */
-  onOpenBlendSource: (source: LedgerBlendSourceKey) => void;
 
   onPrevMonth: () => void;
   onNextMonth: () => void;

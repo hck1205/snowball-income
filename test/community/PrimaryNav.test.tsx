@@ -199,7 +199,9 @@ describe('PrimaryNav', () => {
       '배당 캘린더',
       '포트폴리오 갤러리',
       '게시판',
-      'ETF 소개'
+      'ETF 소개',
+      /* 종목 비교(2026-08-02) — ETF 소개와 같은 "종목 정보" 축이라 그 바로 뒤다. */
+      '종목 비교'
     ]);
     expect(screen.queryByRole('link', { name: '목표 달성' })).not.toBeInTheDocument();
   });

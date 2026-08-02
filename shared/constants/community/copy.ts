@@ -29,6 +29,8 @@ export const COMMUNITY_COPY = {
     board: '게시판',
     /** 티커 SEO 소개 허브 링크(/ticker/all). 커뮤니티와 무관하게 항상 노출된다. */
     tickers: 'ETF 소개',
+    /** 종목 비교(/ticker/compare). ETF 소개와 같은 '종목 정보' 축이라 그 바로 뒤에 선다. */
+    tickerCompare: '종목 비교',
     /** 배당 지급 월 캘린더(/dividend/calendar). 시뮬 결과가 아니라 관측 지급월 기반 페이지다. */
     dividendCalendar: '배당 캘린더',
     /**

@@ -1,8 +1,4 @@
-export { LedgerBlendSetup } from './LedgerBlendSetup';
-export type { LedgerBlendSetupProps } from './LedgerBlendSetup';
 
-export { LedgerBlendView } from './LedgerBlendView';
-export type { LedgerBlendViewProps } from './LedgerBlendView';
 
 export { LedgerConnectPanel } from './LedgerConnectPanel';
 export type { LedgerConnectPanelProps } from './LedgerConnectPanel';

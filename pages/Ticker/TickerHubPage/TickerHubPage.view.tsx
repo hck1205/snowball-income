@@ -15,6 +15,7 @@ import {
   CategoryHeading,
   CategoryNav,
   CategoryNavLink,
+  CompareLink,
   CategorySection,
   EmptyState,
   HubHero,
@@ -58,6 +59,8 @@ export default function TickerHubView({ viewModel }: TickerHubViewProps) {
             ))}
           </CategoryNav>
         ) : null}
+        {/* 🔴 nav **밖** 형제다 — 안에 넣으면 카테고리 칩의 3색 순환(nth-of-type)이 어긋난다. */}
+        <CompareLink to="/ticker/compare">종목 비교하기</CompareLink>
       </HubHero>
 
       {categories.length === 0 ? (

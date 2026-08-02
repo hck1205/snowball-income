@@ -92,20 +92,6 @@ export const baseViewModel = (overrides: Partial<LedgerViewModel> = {}): LedgerV
   /* B-4 기본값 = **꺼짐**(확정 결정). 기존 화면 테스트는 배당 카드가 없던 시절의 화면을 그대로 본다. */
   dividend: { isOn: false, body: null },
 
-  /*
-   * B-3 기본값 = **링크 1개**(진입점 없음, AC3-1). 기존 화면 테스트는 블렌딩이 없던 시절의 화면을
-   * 그대로 본다 — 블렌딩을 검증하는 테스트가 이 값을 덮어 쓴다.
-   */
-  blend: {
-    isAvailable: false,
-    isOn: false,
-    hasConfig: false,
-    setup: null,
-    model: null,
-    openableSources: [],
-    openBlockedReason: null
-  },
-
   summary: SUMMARY_WITH_ROWS,
   rows: TWO_ROWS,
   isRefetching: false,
@@ -150,14 +136,6 @@ export const renderLedgerView = (
     onConfirmMapping: vi.fn(),
     onSelectTab: vi.fn(),
     onToggleDividendOverlay: vi.fn(),
-    onToggleBlend: vi.fn(),
-    onToggleBlendSetup: vi.fn(),
-    onChangeBlendSource: vi.fn(),
-    onChangeBlendLabel: vi.fn(),
-    onSubmitBlendSetup: vi.fn(),
-    onClearBlend: vi.fn(),
-    onReloadBlend: vi.fn(),
-    onOpenBlendSource: vi.fn(),
     onPrevMonth: vi.fn(),
     onNextMonth: vi.fn(),
     onThisMonth: vi.fn(),

@@ -72,6 +72,34 @@ export const CategoryNav = styled.nav`
 `;
 
 /**
+ * 종목 비교(`/ticker/compare`) 진입 링크.
+ *
+ * 🔴 **`CategoryNav` 안에 넣지 마라.** 아래 `CategoryNavLink` 의 3색 순환이 "이 nav 안의 유일한 `<a>`"
+ * 라는 전제로 `nth-of-type` 을 센다 — 링크를 하나 더 끼우는 순간 칩 색과 아래 섹션 레일 색의 맞물림이
+ * 조용히 어긋난다. 그래서 nav 밖 형제로 선다.
+ */
+export const CompareLink = styled(Link)`
+  display: inline-flex;
+  align-items: center;
+  gap: ${space[1]};
+  align-self: start;
+  margin-top: ${space[3]};
+  padding: ${space[1]} ${space[3]};
+  border: 1px solid ${color.border};
+  border-radius: ${radius.pill};
+  background: ${color.surface};
+  color: ${color.textSecondary};
+  font-size: ${font.size.sm};
+  font-weight: ${font.weight.semibold};
+  text-decoration: none;
+
+  &:hover {
+    background: ${color.surfaceHover};
+    color: ${color.text};
+  }
+`;
+
+/**
  * 카테고리 칩.
  *
  * 3색 순환을 칩에도 적용해 **히어로의 칩 색 = 아래 섹션 제목 레일 색 = 그 섹션의 종목 수 칩 색**
