@@ -131,6 +131,71 @@ describe('연결', () => {
     expect(result.value.link.createdByApp).toBe(false);
   });
 
+  /*
+   * B-1 — 연결 결과에 **탭 목록**이 실린다.
+   * 🔴 이게 없으면 화면이 탭 선택을 그리려고 `fetchSpreadsheetMeta` 를 한 번 더 부르게 되고,
+   *    연결마다 읽기 요청이 1회 늘어난다(429 예산). 두 분기 **모두** 실어야 한다 —
+   *    매핑이 필요한 탭으로 옮기는 도중에도 탭 목록은 화면에 남아 있어야 하기 때문이다.
+   */
+  it('연결 결과에 그 파일의 탭 목록이 함께 온다 (linked)', async () => {
+    const harness = createHarness();
+    harness.queues.meta.push({
+      payload: {
+        spreadsheetId: 'sheet-1',
+        sheets: [{ properties: { sheetId: 0, title: '가계부' } }, { properties: { sheetId: 7, title: '작년' } }]
+      }
+    });
+    harness.queues.headerGet.push({ payload: { values: [['날짜', '구분', '금액', '분류', '메모', '상태']] } });
+
+    const result = await connectSpreadsheet(harness.context, { spreadsheetId: 'sheet-1' });
+    if (!result.ok || result.value.status !== 'linked') throw new Error('연결되지 않았습니다');
+    expect(result.value.tabs).toEqual([
+      { sheetId: 0, title: '가계부' },
+      { sheetId: 7, title: '작년' }
+    ]);
+    // 메타는 **한 번만** 읽는다(탭 목록 때문에 요청이 늘지 않았다).
+    expect(harness.calls.filter((call) => call.kind === 'meta')).toHaveLength(1);
+  });
+
+  it('연결 결과에 그 파일의 탭 목록이 함께 온다 (저장된 매핑으로 바로 연결 — 탭 전환의 주 경로)', async () => {
+    const harness = createHarness();
+    const mapping: ColumnMapping = { date: 0, kind: 1, amount: 2, category: 3 };
+    harness.queues.meta.push({
+      payload: {
+        spreadsheetId: 'sheet-1',
+        sheets: [{ properties: { sheetId: 0, title: '가계부' } }, { properties: { sheetId: 7, title: '작년' } }]
+      }
+    });
+    harness.queues.headerGet.push({ payload: { values: [['일자', '수입/지출', '금액', '항목']] } });
+
+    const result = await connectSpreadsheet(harness.context, { spreadsheetId: 'sheet-1', sheetId: 7, mapping });
+    if (!result.ok || result.value.status !== 'linked') throw new Error('연결되지 않았습니다');
+    expect(result.value.link.sheetId).toBe(7);
+    expect(result.value.tabs).toEqual([
+      { sheetId: 0, title: '가계부' },
+      { sheetId: 7, title: '작년' }
+    ]);
+  });
+
+  it('연결 결과에 그 파일의 탭 목록이 함께 온다 (needs-mapping)', async () => {
+    const harness = createHarness();
+    harness.queues.meta.push({
+      payload: {
+        spreadsheetId: 'sheet-1',
+        sheets: [{ properties: { sheetId: 0, title: '가계부' } }, { properties: { sheetId: 7, title: '작년' } }]
+      }
+    });
+    harness.queues.headerGet.push({ payload: { values: [['일자', '수입/지출', '금액', '항목']] } });
+
+    const result = await connectSpreadsheet(harness.context, { spreadsheetId: 'sheet-1', sheetId: 7 });
+    if (!result.ok || result.value.status !== 'needs-mapping') throw new Error('매핑 요구가 아닙니다');
+    expect(result.value.sheetId).toBe(7);
+    expect(result.value.tabs).toEqual([
+      { sheetId: 0, title: '가계부' },
+      { sheetId: 7, title: '작년' }
+    ]);
+  });
+
   it('요청한 탭이 없으면 sheet-not-found 다', async () => {
     const harness = createHarness();
     harness.queues.meta.push({ payload: { spreadsheetId: 'sheet-1', sheets: [{ properties: { sheetId: 0, title: '가계부' } }] } });
@@ -338,6 +403,32 @@ describe('수정 (AC-W3 · AC-W6)', () => {
     expect(result.error.code).toBe('conflict');
     expect(result.error.fields).toEqual(['amount']);
     expect(harness.calls.some((call) => call.kind === 'valuesWrite')).toBe(false);
+  });
+
+  /*
+   * B-1 AC1-6 — 탭을 바꾸면 스냅샷이 통째로 새로 만들어진다. 그 **이전** 스냅샷의 행 참조로는
+   * 쓰기가 실행되지 않아야 한다(다른 탭의 같은 행 번호를 덮어쓰는 사고).
+   */
+  it('🔴 다른 스냅샷(=다른 탭)에서 만든 행 참조로는 쓰지 않는다', async () => {
+    const { harness, snapshot, entry } = await setup();
+
+    // 탭을 바꿔 새로 읽은 스냅샷(같은 행 번호, 다른 스냅샷 ID).
+    harness.queues.batchGet.push({ payload: valueRanges(SHEET_COLUMNS) });
+    const other = await readLedgerSnapshot(harness.context, LINK);
+    if (!other.ok) throw new Error('스냅샷 조회 실패');
+    expect(other.value.snapshotId).not.toBe(snapshot.snapshotId);
+
+    const before = harness.calls.length;
+    const result = await updateLedgerEntry(harness.context, {
+      link: LINK,
+      snapshot: other.value,
+      ref: entry.ref,
+      seen: entry.seen,
+      patch: { amount: 3000 }
+    });
+
+    expect(result.ok === false && result.error.code).toBe('stale-snapshot');
+    expect(harness.calls).toHaveLength(before);
   });
 
   it('값이 잘못된 수정은 네트워크를 쓰지 않는다', async () => {

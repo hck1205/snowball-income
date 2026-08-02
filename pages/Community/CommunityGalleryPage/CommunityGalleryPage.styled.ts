@@ -27,7 +27,11 @@ export const GalleryNotice = styled.div`
  * 안쪽 여백만큼 번지게 하지 않는 이유: 카드도 같은 컨테이너 폭 안에 있어 옆으로 새는 픽셀이 없다.
  */
 export const SearchRow = styled.div`
-  margin-bottom: ${space[3]};
+  /* 12px -> 20px (2026-08-02 사용자 지시). 검색 줄과 아래 정렬·뷰토글 줄이 붙어 보여
+     "한 덩어리 툴바"로 읽혔다 — 위 주석이 둘을 따로 세운 이유를 간격이 뒷받침하지 못했다.
+     ⚠ 좁은 폭(headerStack 이하)에서는 이 줄이 sticky 라 아래 여백을 0 으로 두고
+     ControlBar 의 padding-top 이 대신 벌린다. 그 분기의 0 을 되살리지 마라. */
+  margin-bottom: ${space[5]};
 
   ${media.down('headerStack')} {
     position: sticky;

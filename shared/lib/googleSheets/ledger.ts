@@ -18,7 +18,7 @@ import {
   buildAppSheetHeaderRow,
   matchesAppSheetHeaders
 } from './schema';
-import type { SheetsRequestContext } from './sheetsApi';
+import type { SheetTabMeta, SheetsRequestContext } from './sheetsApi';
 import {
   createSpreadsheet,
   deleteRow,
@@ -108,9 +108,15 @@ export const createLedgerSheet = async (
   });
 };
 
+/**
+ * ⚠ `tabs` 는 두 분기에 **똑같이** 실린다 — 연결 결과가 무엇이든 화면은 "이 파일에 어떤 탭이 있는가"를
+ * 알아야 탭 선택을 그릴 수 있고, 여기서 주지 않으면 UI 가 `fetchSpreadsheetMeta` 를 한 번 더 부른다
+ * (연결마다 요청 1회 추가 = 429 예산 낭비). **호출부는 이 목록을 저장하지 않는다** — 탭 제목은
+ * 준PII 라 로컬·GA·에러 문구에 남기지 않고 연결할 때마다 메타에서 다시 읽는다(`mapping.ts` 상단 규약).
+ */
 export type ConnectionOutcome =
   /** 그대로 쓸 수 있다(앱이 만든 스키마이거나, 호출부가 매핑을 줬다). */
-  | { readonly status: 'linked'; readonly link: SheetLink }
+  | { readonly status: 'linked'; readonly link: SheetLink; readonly tabs: readonly SheetTabMeta[] }
   /** 열 매핑이 필요하다. 헤더를 보여 주고 사용자가 고르게 한다. */
   | {
       readonly status: 'needs-mapping';
@@ -118,6 +124,7 @@ export type ConnectionOutcome =
       readonly sheetId: number;
       readonly sheetTitle: string;
       readonly headers: readonly string[];
+      readonly tabs: readonly SheetTabMeta[];
     };
 
 /**
@@ -156,7 +163,8 @@ export const connectSpreadsheet = async (
         sheetTitle: tab.title,
         mapping: params.mapping,
         createdByApp: matchesAppSheetHeaders(headers)
-      }
+      },
+      tabs: meta.value.tabs
     });
   }
 
@@ -169,7 +177,8 @@ export const connectSpreadsheet = async (
         sheetTitle: tab.title,
         mapping: APP_SHEET_MAPPING,
         createdByApp: true
-      }
+      },
+      tabs: meta.value.tabs
     });
   }
 
@@ -178,7 +187,8 @@ export const connectSpreadsheet = async (
     spreadsheetId: params.spreadsheetId,
     sheetId: tab.sheetId,
     sheetTitle: tab.title,
-    headers
+    headers,
+    tabs: meta.value.tabs
   });
 };
 

@@ -11,9 +11,11 @@ import {
 } from '@/shared/lib/supabase';
 import { isGoogleSheetsEnabled } from '@/shared/lib/googleSheets';
 import { applySeoRuntimeMetadata, sendPageView } from '@/shared/lib/analytics';
+import { syncFaqStructuredData } from '@/shared/lib/seo';
 import { usePageHue } from '@/shared/hooks';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
 import { SIMULATOR_PATH } from '@/shared/constants/routes';
+
 
 /**
  * 모든 라우트를 덮는 **상시 마운트 레이아웃**. 라우트가 바뀔 때마다 일어나야 하는 문서 수준
@@ -22,6 +24,7 @@ import { SIMULATOR_PATH } from '@/shared/constants/routes';
  *
  *  - SEO 런타임 메타데이터 + GA4 page_view
  *  - 페이지 정체성 hue(`--sb-page-hue`) — `shared/hooks/usePageHue` 참고
+ *  - 랜딩 전용 `FAQPage` JSON-LD 의 부착/제거 — `shared/lib/seo/faqStructuredData.ts` 참고
  */
 function RootLayout() {
   const location = useLocation();
@@ -36,6 +39,9 @@ function RootLayout() {
     };
 
     applySeoRuntimeMetadata(page);
+    // 🔴 페이지 수준 마크업을 전 라우트가 공유하는 셸에서 떼어 내는 **유일한 지점**.
+    //    되돌리려면 이 한 줄만 지운다(그 함수 주석의 근거·되돌리기 조건 참고).
+    syncFaqStructuredData(location.pathname);
 
     const raf = window.requestAnimationFrame(() => {
       sendPageView(page);
@@ -97,6 +103,30 @@ const PortfolioPage = lazy(() => import('@/pages/Portfolio/PortfolioPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFound'));
 
 /**
+ * 법무 고지문 — 개인정보처리방침(`/privacy`)·이용약관(`/terms`).
+ *
+ * 티커 랜딩과 같은 `lazy` 격리다. 두 문서는 본문이 길고(표 포함) 방문 빈도가 낮아 엔트리에 실을
+ * 이유가 없다. **배럴(`@/pages/Legal`)이 아니라 각 페이지 폴더를 직접** import 하는 이유: 배럴을
+ * lazy 하면 두 문서가 한 청크로 묶여 방침만 열어도 약관까지 내려받는다.
+ *
+ * 🔴 `noindex` 를 걸지 않는다. 구글 OAuth 동의 화면 심사가 개인정보처리방침 URL 에 접근할 수 있어야
+ * 하고, 색인을 막으면 그 검토가 막힌다(404 와 반대 결정이다 — `pages/NotFound` 의 `useNoIndex` 참고).
+ * 사이트맵 등재도 같은 이유다(`vite.config.ts` 의 ROUTES).
+ */
+const PrivacyPage = lazy(() => import('@/pages/Legal/PrivacyPage'));
+const TermsPage = lazy(() => import('@/pages/Legal/TermsPage'));
+
+/**
+ * 랜딩(`/`) — 배당을 처음 접하는 사람이 도착하는 정문. 404·법무 문서와 같은 `lazy` 격리다.
+ *
+ * 🔴 `MainPage` 의 **eager import 는 그대로 둔다.** lazy 로 내리면 `AuthControl`·`HeaderOverflowMenu`
+ * 가 엔트리 그래프에서 빠지면서 헤더가 lazy 경계 뒤로 가는 **번들 토폴로지 변경**이 된다 — 랜딩
+ * 방문자가 시뮬레이터를 내려받는 비용과 맞바꿀지는 실측과 함께 별도로 판단한다
+ * (docs/simulator-route-migration-compat.md §10 P3 의 ⚠ 항목).
+ */
+const LandingPage = lazy(() => import('@/pages/Landing/LandingPage'));
+
+/**
  * 가계부(`/ledger`) — 구글 시트 연동. 티커 랜딩과 같은 `lazy` 격리다.
  *
  * 🔴 `isGoogleSheetsEnabled`(= `VITE_GOOGLE_CLIENT_ID`·`VITE_GOOGLE_API_KEY`·
@@ -105,7 +135,14 @@ const NotFoundPage = lazy(() => import('@/pages/NotFound'));
  * "정상적으로 메인이 떴다"로 위장하지 않는다.
  *
  * 🔴 사이트맵에 넣지 않는다(`vite.config.ts` 의 ROUTES) — 로그인·동의가 필요한 화면이라 크롤러가
- * 도달해도 빈손이다. 헤더 nav 에도 넣지 않는다(진입점은 포트폴리오 카드와 프로필 드롭다운 두 곳).
+ * 도달해도 빈손이다.
+ *
+ * 진입점: ~~포트폴리오 카드와 프로필 드롭다운 두 곳(헤더 nav 에는 넣지 않는다 — 로그인·동의가
+ * 필요한 화면을 전역 메뉴에 올리면 대부분의 방문자에게 막힌 문이 된다)~~
+ * → **2026-08-01 사용자 결정으로 변경: 헤더 nav 에도 넣는다**(`components/PrimaryNav`, 내 포트폴리오
+ * 바로 뒤 7번째). 사이트맵 제외 근거는 그대로 유효하다 — 크롤러와 사용자 메뉴는 다른 이야기다.
+ * 🔴 nav 항목은 이 파일과 **같은 `isGoogleSheetsEnabled` 플래그**로 갈린다: 여기서 라우트가 사라지는데
+ * 메뉴만 남으면 404 로 가는 죽은 링크다. 한쪽만 고치지 마라.
  *
  * GIS·Picker 스크립트는 이 lazy 청크 안에서만, 그것도 사용자가 버튼을 누른 뒤에 로드된다.
  */
@@ -211,20 +248,25 @@ export const routes: RouteObject[] = [
     element: <RootLayout />,
     children: [
       /**
-       * 시뮬레이터 — 지금은 `/` 와 `/simulator` **둘 다** 같은 화면을 그린다(이전 중간 상태).
+       * `/` = 랜딩, `/simulator` = 시뮬레이터. **공유 링크는 `/simulator` 에만 붙는다.**
        *
-       * 왜 두 개인가: 내부 링크·og:url·사이트맵을 먼저 `/simulator` 로 옮기고, 이미 배포된 공유
-       * 링크(`/?share=…`·`/?s=…`)와 북마크는 `/` 에서 그대로 살려 둔다. 나중에 랜딩이 `/` 를
-       * 가져갈 때 이 `'/'` 항목만 교체하면 되고, 되돌릴 때도 그 한 줄만 되돌리면 된다
-       * (docs/simulator-route-migration-compat.md §10 P2·§11).
+       * 한때 `/` 가 `?share=`·`?s=`·`?sv=` 를 받아 `/simulator` 로 넘겼다. 2026-08-01 사용자 결정으로
+       * 걷어냈다 — 이전 주소로 배포된 공유 링크의 **실사용자가 없다고 확인**됐고, 없는 트래픽을 위해
+       * 루트에 분기를 두면 랜딩이 그려지기 전에 매번 쿼리를 파싱한다.
+       * ⚠ 그래서 **옛 `/?share=…` 링크는 이제 랜딩을 보여 준다**(시나리오가 열리지 않는다).
+       * 되살리려면 `resolveShareRedirectPath`(git 이력)와 그 소비처를 함께 되돌려야 한다.
        *
-       * 🔴 `MainPage` 는 **eager import 를 유지한다.** lazy 로 내리면 `AuthControl`·`HeaderOverflowMenu`
-       * 가 엔트리 그래프에서 빠지면서 헤더가 lazy 경계 뒤로 가는 **번들 토폴로지 변경**이 된다 —
-       * 그 판단은 랜딩 PR 에서 실측과 함께 한다.
+       * 🔴 **롤백은 이 `'/'` 항목의 element 를 `<MainPage />` 로 되돌리는 한 줄이다** — 그러면 랜딩만
+       * 사라지고 `/simulator`·내부 링크·테스트는 전부 유효한 P2 상태로 안전하게 돌아간다
+       * (docs/simulator-route-migration-compat.md §11).
        */
       {
         path: '/',
-        element: <MainPage />
+        element: (
+          <Suspense fallback={null}>
+            <LandingPage />
+          </Suspense>
+        )
       },
       {
         path: SIMULATOR_PATH,
@@ -259,6 +301,22 @@ export const routes: RouteObject[] = [
         element: (
           <Suspense fallback={null}>
             <PortfolioPage />
+          </Suspense>
+        )
+      },
+      {
+        path: '/privacy',
+        element: (
+          <Suspense fallback={null}>
+            <PrivacyPage />
+          </Suspense>
+        )
+      },
+      {
+        path: '/terms',
+        element: (
+          <Suspense fallback={null}>
+            <TermsPage />
           </Suspense>
         )
       },

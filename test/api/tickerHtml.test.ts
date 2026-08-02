@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { handler } from '@/server/handlers/TickerHtml';
+import { TICKER_CONTENT_LIST } from '@/shared/constants/tickers';
 import { apiRequest, buildIndexHtmlShell, indexHtmlRoute, indexHtmlThrowingRoute, stubFetchRoutes } from './apiHarness';
 
 /**
@@ -155,6 +156,100 @@ describe('api/ticker-html — 개별 티커(SCHD)', () => {
   });
 });
 
+/**
+ * 🔴 상위 보유 종목은 **서버 HTML 안에 텍스트로** 있어야 한다. 앱 화면의 파이 차트는 `<canvas>` 라
+ * 크롤러·AI 요약에게는 존재하지 않는 것과 같다 — 화면을 아무리 확인해도 이 손실은 안 보인다.
+ * 그래서 여기서 심볼·비중·합계·기준일·출처가 실제 문자열로 나오는지 못 박는다.
+ */
+describe('api/ticker-html — 상위 보유 종목 (크롤러가 읽는 표)', () => {
+  const holdingsOf = (ticker: string) => {
+    const content = TICKER_CONTENT_LIST.find((entry) => entry.ticker === ticker);
+    const topHoldings = content?.reference.topHoldings;
+    if (!topHoldings) throw new Error(`${ticker} 에 topHoldings 가 없다 — 이 테스트의 전제가 깨졌다`);
+    return topHoldings;
+  };
+
+  it('DGRO: 상위 20종의 티커·종목명·비중이 표로 들어간다', async () => {
+    stubFetchRoutes([indexHtmlRoute()]);
+    const html = await (await handler(apiRequest('/api/ticker-html', { name: 'dgro' }))).text();
+    const topHoldings = holdingsOf('DGRO');
+
+    expect(html).toContain('id="top-holdings"');
+    expect(html).toContain('<h2>상위 보유 종목</h2>');
+
+    // 데이터의 모든 행이 빠짐없이 HTML 에 있어야 한다(개수를 박지 않고 목록에서 파생).
+    topHoldings.holdings.forEach((holding) => {
+      expect(html).toContain(`<td>${holding.symbol}</td>`);
+      expect(html).toContain(`<td>${holding.weightPercent.toFixed(2)}%</td>`);
+    });
+    expect(html).toContain('JPMORGAN CHASE &amp; CO');
+  });
+
+  it('DGRO: 합계 행이 100%가 아님을 숫자로 말하고, 기준일·출처가 함께 나온다', async () => {
+    stubFetchRoutes([indexHtmlRoute()]);
+    const html = await (await handler(apiRequest('/api/ticker-html', { name: 'dgro' }))).text();
+    const topHoldings = holdingsOf('DGRO');
+    const covered = `${topHoldings.coveredWeightPercent.toFixed(2)}%`;
+
+    expect(topHoldings.coveredWeightPercent).toBeLessThan(100);
+    expect(html).toContain(`<td colspan="3">상위 ${topHoldings.holdings.length}종 합계</td><td>${covered}</td>`);
+    expect(html).toContain('나머지 보유 종목은 이 표에 들어 있지 않습니다');
+    expect(html).toContain(`기준일 ${topHoldings.asOfDate}`);
+    expect(html).toContain(topHoldings.sourceUrl);
+    expect(html).toContain(topHoldings.sourceLabel);
+  });
+
+  /**
+   * 커버드콜의 공시 목록에는 숏 콜옵션이 섞여 있다. 표에는 주식만 담기로 했으므로, **무엇을 왜 뺐는지**가
+   * 크롤러가 읽는 HTML 에도 나와야 한다 — 안 그러면 "이 ETF는 옵션을 안 쓴다"로 읽힌다.
+   */
+  it('QYLD: 옵션 포지션을 제외했다는 사실이 표와 함께 서버 HTML 에 나온다', async () => {
+    stubFetchRoutes([indexHtmlRoute()]);
+    const html = await (await handler(apiRequest('/api/ticker-html', { name: 'qyld' }))).text();
+    const topHoldings = holdingsOf('QYLD');
+
+    expect(html).toContain(topHoldings.excludedNote ?? '');
+    expect(html).toContain('콜옵션');
+    expect(html).toContain('<td>NVDA</td>');
+  });
+
+  it('SCHD: 보유 종목 데이터가 없는 티커는 섹션 자체가 없다 (빈 표 금지)', async () => {
+    stubFetchRoutes([indexHtmlRoute()]);
+    const html = await (await handler(apiRequest('/api/ticker-html', { name: 'schd' }))).text();
+
+    expect(TICKER_CONTENT_LIST.find((entry) => entry.ticker === 'SCHD')?.reference.topHoldings).toBeUndefined();
+    expect(html).not.toContain('id="top-holdings"');
+    expect(html).not.toContain('<h2>상위 보유 종목</h2>');
+  });
+
+  it('KO: 개별 종목은 구성 종목 개념이 없어 섹션이 없다', async () => {
+    stubFetchRoutes([indexHtmlRoute()]);
+    const html = await (await handler(apiRequest('/api/ticker-html', { name: 'ko' }))).text();
+
+    expect(html).not.toContain('id="top-holdings"');
+  });
+
+  it('JSON-LD 에는 종목 나열이 아니라 집계 한 줄만 싣는다', async () => {
+    stubFetchRoutes([indexHtmlRoute()]);
+    const html = await (await handler(apiRequest('/api/ticker-html', { name: 'dgro' }))).text();
+    const graphs = SCHD_JSON_LD(html);
+    const injected = graphs[graphs.length - 1] as Array<{ '@type': string }>;
+    const product = injected.find((entry) => entry['@type'] === 'FinancialProduct') as
+      | { additionalProperty: Array<{ name: string; value: string }> }
+      | undefined;
+    const topHoldings = holdingsOf('DGRO');
+
+    const summary = product?.additionalProperty.find((property) =>
+      property.name.startsWith(`상위 ${topHoldings.holdings.length}종`)
+    );
+    expect(summary?.value).toBe(`${topHoldings.coveredWeightPercent.toFixed(2)}% (${topHoldings.asOfDate} 기준)`);
+
+    // 개별 종목이 PropertyValue 로 펴지면 안 된다(구조화 데이터 남용 금지).
+    expect(product?.additionalProperty.some((property) => property.name === 'JPM')).toBe(false);
+    expect(product?.additionalProperty.length).toBeLessThan(12);
+  });
+});
+
 describe('api/ticker-html — 없는 티커 / 예외 (5xx 금지, DB 없음)', () => {
   it('콘텐츠가 없는 티커는 404 가 아니라 무치환 셸 200 + no-store', async () => {
     stubFetchRoutes([indexHtmlRoute()]);
@@ -258,12 +353,20 @@ describe('api/ticker-html — 2026-07-23 추가 10종 스모크', () => {
     expect(html).not.toMatch(/\{\{\s*\w+\s*\}\}/);
   });
 
-  it('HDV: 콘텐츠 없는 관련 티커(NOBL)는 10종 추가 후에도 여전히 텍스트로만, 링크가 아니다', async () => {
+  /**
+   * 🔴 이 검사의 앵커는 **"그 시점에 콘텐츠가 없는 관련 티커"** 라서, 그 티커에 페이지가 생기면
+   * 검사 자체가 무의미해진다(실제로 그렇게 됐다 — 2026-08-02 배치가 NOBL 페이지를 만들자 원래
+   * 앵커였던 HDV→NOBL 이 링크로 바뀌어 빨개졌다). 앵커를 옮길 때는 **레지스트리에 없는 심볼**을
+   * 골라야 한다 — 아래 `expect(...).toBe(false)` 가 그 전제를 먼저 단정하므로, 다음에 DVY 페이지가
+   * 생기면 "링크가 됐다"가 아니라 "앵커 전제가 깨졌다"로 먼저 빨개진다.
+   */
+  it('SDY: 콘텐츠 없는 관련 티커(DVY)는 링크가 아니라 텍스트로만 남는다', async () => {
     stubFetchRoutes([indexHtmlRoute()]);
-    const html = await (await handler(apiRequest('/api/ticker-html', { name: 'hdv' }))).text();
+    const html = await (await handler(apiRequest('/api/ticker-html', { name: 'sdy' }))).text();
 
-    expect(html).toContain('더 오랜 증가 이력에 방점을 두고 싶다면 — NOBL');
-    expect(html).not.toContain('href="/ticker/nobl"');
+    expect(TICKER_CONTENT_LIST.some((entry) => entry.ticker === 'DVY')).toBe(false);
+    expect(html).toContain('배당률 자체를 우선한 셀렉트 배당을 원한다면 — DVY');
+    expect(html).not.toContain('href="/ticker/dvy"');
   });
 
   it('JEPI: 액티브 운용이라 추종 지수 프로퍼티 없이도 FinancialProduct JSON-LD가 유효하다', async () => {
@@ -293,16 +396,19 @@ describe('api/ticker-html — 2026-07-23 추가 10종 스모크', () => {
     expect(product?.additionalProperty.some((p) => p.name === '운용보수(총보수)')).toBe(false);
   });
 
-  it('허브: SCHD + 신규 10종 = 11종 전부가 ItemList JSON-LD에 등장한다', async () => {
+  /**
+   * 개수를 박아 두면 티커를 추가할 때마다 이 줄만 고치게 되고, 그 사이 "레지스트리엔 있는데 허브엔
+   * 없는" 종목은 계속 통과한다. 그래서 **레지스트리에서 파생한 slug 집합과 양방향으로 비교**한다.
+   */
+  it('허브: 레지스트리의 모든 종목이 ItemList JSON-LD에 빠짐없이 등장한다', async () => {
     stubFetchRoutes([indexHtmlRoute()]);
     const html = await (await handler(apiRequest('/api/ticker-html', { name: 'all' }))).text();
     const graphs = SCHD_JSON_LD(html);
     const injected = graphs[graphs.length - 1] as { itemListElement: Array<{ url: string }> };
 
-    const slugs = ['schd', 'vig', 'dgro', 'dgrw', 'schy', 'hdv', 'vym', 'spyd', 'jepi', 'jepq', 'o'];
-    for (const slug of slugs) {
-      expect(injected.itemListElement.some((item) => item.url === `https://snowball.test/ticker/${slug}`)).toBe(true);
-    }
-    expect(injected.itemListElement).toHaveLength(11);
+    const expected = TICKER_CONTENT_LIST.map((content) => `https://snowball.test/ticker/${content.slug}`).sort();
+    const actual = injected.itemListElement.map((item) => item.url).sort();
+
+    expect(actual).toEqual(expected);
   });
 });

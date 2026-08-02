@@ -42,9 +42,17 @@ describe('PageHero', () => {
     const note = screen.getByRole('note');
     expect(note).toHaveTextContent('달력의 날짜는 과거 지급 이력에서 추정한 예상일입니다.');
 
-    // 읽는 순서: 리드 → 고지 → 근거. 근거가 고지보다 먼저 오면 "왜 예상인가"를 늦게 읽는다.
-    const paragraphs = Array.from(document.querySelectorAll('p'));
-    expect(paragraphs.map((p) => p.textContent)).toEqual([
+    /*
+     * 읽는 순서: 리드 → 고지 → 근거. 근거가 고지보다 먼저 오면 "왜 예상인가"를 늦게 읽는다.
+     *
+     * ⚠ **태그가 아니라 문서 순서를 본다.** 예전에는 `p` 셋을 세었는데, meta 슬롯은 2026-08-01 에
+     * `div` 가 됐다(랜딩이 그 슬롯에 폼·목록을 넣는다 — `p` 안이면 DOM 이 무효다). 태그를 세면
+     * 순서 계약이 아니라 구현 세부에 묶인다.
+     */
+    const heroChildren = Array.from(document.querySelectorAll('header > *'))
+      .map((node) => node.textContent ?? '')
+      .filter((text) => text.length > 0 && text !== '배당 지급 캘린더');
+    expect(heroChildren).toEqual([
       '관심 종목을 고르면 이번 달 어느 날 배당이 들어오는지 보여줍니다.',
       '달력의 날짜는 과거 지급 이력에서 추정한 예상일입니다.',
       '데이터 기준일: 2026-07-29'

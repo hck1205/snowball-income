@@ -27,12 +27,18 @@ const stringLeaves = (value: unknown): StringTree => {
 
 const EXPECTED: StringTree = {
   hero: {
-    title: '가계부',
+    // 메뉴는 '가계부' 그대로다 — 페이지 제목만 제품명을 붙인다(2026-08-02 사용자 결정).
+    title: 'Hippo 가계부',
     lede: '수입과 지출을 사용자의 구글 시트에 기록하고, 달마다 얼마를 벌고 썼는지 확인합니다.',
     scopeNotice: '이 앱은 사용자가 선택한 시트 1개만 읽고 씁니다. 다른 드라이브 파일에는 접근하지 않습니다.',
     addEntry: '항목 추가',
     openSheet: '시트에서 열기',
     openSheetAria: '연결된 구글 시트를 새 탭에서 열기'
+  },
+  signIn: {
+    checking: '로그인 상태를 확인하는 중입니다',
+    heading: '가계부를 열려면 먼저 로그인합니다',
+    body: '구글·네이버·카카오 중 어느 계정으로 로그인해도 됩니다. 로그인한 다음 단계에서 기록할 구글 시트를 고릅니다.'
   },
   connect: {
     heading: '가계부를 시작하는 방법을 고릅니다',
@@ -49,6 +55,8 @@ const EXPECTED: StringTree = {
       loading: '시트를 만드는 중입니다'
     },
     consentHint: '두 방법 모두 구글 로그인과 시트 접근 동의가 필요합니다. 동의는 구글 계정 설정에서 언제든 취소할 수 있습니다.',
+    separateConsentNote:
+      '앱 로그인은 사용자를 확인하는 절차이고 시트 접근은 별개의 구글 권한이라, 구글 계정으로 로그인했더라도 시트 접근 동의는 따로 받습니다.',
     popupBlocked: '브라우저가 팝업을 막아 구글 창을 열지 못했습니다. 이 사이트의 팝업을 허용한 뒤 다시 시도해 주세요.'
   },
   mapping: {
@@ -76,6 +84,14 @@ const EXPECTED: StringTree = {
     submit: '연결하기',
     reselect: '다른 시트 고르기'
   },
+  /* B-1 탭 선택 — 비활성 문구는 **막힌 이유 + 푸는 방법**을 함께 말해야 한다. */
+  tab: {
+    label: '탭',
+    switching: '탭을 여는 중입니다',
+    blockedByForm: '기록을 추가하거나 고치는 중에는 탭을 바꿀 수 없습니다. 저장하거나 취소한 뒤에 이동해 주세요.',
+    blockedByQueue:
+      '저장하지 못한 기록이 남아 있어 탭을 바꿀 수 없습니다. 지금 탭을 바꾸면 다시 시도할 때 다른 탭에 기록됩니다. 아래 목록에서 다시 저장한 뒤에 이동해 주세요.'
+  },
   month: {
     groupLabel: '월 이동'
   },
@@ -96,6 +112,86 @@ const EXPECTED: StringTree = {
     kindIncome: '수입',
     kindExpense: '지출',
     noMemo: ''
+  },
+  /* B-2 신선도 — 429 문구는 여기 없다(`error.rateLimited*` 를 그대로 쓴다). */
+  freshness: {
+    refresh: '새로고침',
+    updated: '시트 내용이 갱신되었습니다.'
+  },
+  /**
+   * B-4 배당 겹쳐 보기 — 🔴 **전 문장이 "예상"임을 말한다**(AC4-8). 앱은 사용자가 배당을 실제로
+   * 받았는지 알 수 없으므로 실수령처럼 쓰면 그 순간 거짓 고지가 된다.
+   * 🔴 `subtitle` 이 "합계에는 더하지 않습니다"를 상시로 말한다 — 이 한 줄이 이중 계상 오해를 막는다.
+   */
+  dividend: {
+    title: '배당 겹쳐 보기',
+    subtitle: '내 포트폴리오 기준 예상 배당입니다. 위 수입·지출 합계에는 더하지 않습니다.',
+    toggleAria: '배당 겹쳐 보기',
+    off: '켜면 이 달 예상 배당이 지출의 어디까지를 덮는지 함께 보여 줍니다.',
+    loading: '포트폴리오를 불러오는 중입니다.',
+    unavailable: '포트폴리오를 불러오지 못해 예상 배당을 계산할 수 없습니다.',
+    noHoldings: '내 포트폴리오에 종목과 보유 수량을 입력하면 이 달 예상 배당을 계산합니다.',
+    amountHint: '세후 · 원화 환산 · 지급월에 균등 분배한 추정치입니다.',
+    usdHint: '세후 · 달러 원값 · 지급월에 균등 분배한 추정치입니다.',
+    fxUnavailable: '환율을 불러오지 못해 원화 환산과 지출 커버율을 표시할 수 없습니다.',
+    coverageLabel: '지출 커버율',
+    coverageUnderOne: '1% 미만',
+    noExpense: '이 달에는 지출 기록이 없어 커버율을 계산하지 않습니다.',
+    coveredNone: '이 달 지출에서 예상 배당만으로 덮이는 분류는 없습니다.'
+  },
+  blend: {
+    open: '두 가계부 합쳐 보기',
+    openHint: '이 브라우저에 연결해 둔 가계부 두 개를 한 화면에서 합쳐 봅니다.',
+    active: '두 가계부를 합쳐 보고 있습니다',
+    exit: '한 가계부만 보기',
+    settings: '합칠 가계부 바꾸기',
+    currencyNote: '두 가계부는 같은 통화를 전제합니다. 통화가 서로 다르면 합계가 의미를 갖지 못합니다.',
+    setup: {
+      title: '합쳐 볼 두 가계부',
+      subtitle: '한 화면에서 볼 가계부 두 개를 고르고, 각각을 가리킬 이름을 붙입니다.',
+      pathNote: '같은 시트의 두 탭으로도, 서로 다른 시트로도 구성할 수 있습니다.',
+      privacyNote: '이 브라우저에 남는 것은 시트 주소·탭 번호와 여기서 붙인 이름뿐입니다. 기록한 값은 남지 않습니다.',
+      legendA: '첫 번째 가계부',
+      legendB: '두 번째 가계부',
+      pick: '가계부',
+      loadingNames: '가계부 이름을 불러오는 중입니다.',
+      label: '이 가계부를 부를 이름',
+      incomplete: '합쳐 볼 가계부를 두 개 골라 주세요.',
+      sameSource: '서로 다른 가계부를 골라 주세요. 같은 가계부를 두 번 고르면 모든 금액이 두 배가 됩니다.',
+      submit: '합쳐 보기',
+      cancel: '취소',
+      clear: '합쳐 보기 해제',
+      clearHint: '해제해도 각 가계부의 연결과 기록은 그대로 남습니다.'
+    },
+    view: {
+      title: '합친 거래 내역',
+      subtitle: '두 가계부의 이 달 기록을 날짜순으로 함께 보여 줍니다.',
+      columnSource: '가계부',
+      subtotalTitle: '가계부별 소계',
+      subtotalCaption: '두 가계부를 따로 센 수입·지출입니다. 위 합계는 이 둘을 더한 값입니다.',
+      loading: '두 가계부를 읽는 중입니다.',
+      readOnly: '합쳐 보기 화면에서는 기록을 고치지 않습니다. 고칠 기록은 그 가계부를 열어서 바꿉니다.',
+      openElsewhere:
+        '다른 시트에 있는 가계부는 이 화면에서 바로 열 수 없습니다. 시트를 다시 골라 연결하면 볼 수 있습니다.',
+      /* 🔴 차단 **사유**는 `tab.blockedBy*` 가 소유한다. 여기 있는 것은 이 화면에서의 나가는 길뿐이다. */
+      openBlockedHint: '한 가계부만 보기로 돌아가면 저장하지 못한 기록을 다시 저장할 수 있습니다.',
+      partialTitle: '두 가계부의 합계를 표시할 수 없습니다',
+      unavailableTitle: '두 가계부를 모두 불러오지 못했습니다',
+      retry: '다시 불러오기',
+      reason: {
+        network: '네트워크 문제로 시트를 읽지 못했습니다. 연결을 확인한 뒤 다시 시도해 주세요.',
+        permission: '이 시트를 읽을 권한이 없습니다. 시트를 다시 골라 연결해 주세요.',
+        apiDisabled:
+          'Google Cloud Console에서 이 프로젝트의 Google Sheets API를 사용 설정한 뒤 다시 시도해 주세요. 시트 자체의 권한 문제가 아닙니다.',
+        rateLimited: '짧은 시간에 요청이 많아 구글이 잠시 제한했습니다. 잠시 뒤에 다시 시도해 주세요.',
+        conflict: '시트를 읽는 동안 값이 바뀌었습니다. 다시 불러와 주세요.',
+        unknown: '시트를 읽지 못했습니다. 잠시 뒤에 다시 시도해 주세요.'
+      }
+    },
+    live: {
+      entered: '두 가계부를 합쳐 보고 있습니다.',
+      exited: '한 가계부만 보고 있습니다.'
+    }
   },
   emptyMonth: {
     titleCurrent: '이번 달 기록이 없습니다.',
@@ -164,6 +260,12 @@ const EXPECTED: StringTree = {
       title: '저장하지 못했습니다',
       body: '이 시트에 쓸 권한이 없습니다. 구글 시트에서 편집 권한을 확인해 주세요.'
     },
+    // 🔴 위 `permission` 과 반드시 다른 문구여야 한다 — 구글이 "프로젝트에서 API 가 꺼짐"과
+    //    "이 파일에 접근 불가"에 똑같이 403 을 주기 때문이다(2026-08-01 실제 오분류).
+    apiDisabled: {
+      title: '구글 시트 API가 켜져 있지 않습니다',
+      body: 'Google Cloud Console에서 이 프로젝트의 Google Sheets API를 사용 설정한 뒤 다시 시도해 주세요. 시트 자체의 권한 문제가 아닙니다.'
+    },
     rateLimited: {
       title: '요청이 잠시 제한되었습니다',
       body: '짧은 시간에 요청이 많아 구글이 잠시 제한했습니다. 잠시 뒤에 다시 시도해 주세요.'
@@ -203,11 +305,16 @@ const EXPECTED: StringTree = {
     removed: '기록을 삭제했습니다.',
     refreshed: '시트를 다시 읽었습니다.'
   },
+  privacy: {
+    title: '기록은 사용자의 구글 계정에만 남습니다',
+    where: '가계부 기록은 사용자의 구글 시트에 저장됩니다. 이 서비스의 서버는 금액·분류·메모를 저장하지 않으며, 전송받지도 않습니다.',
+    scope: '이 앱이 받는 권한은 사용자가 직접 고르거나 새로 만든 시트 1개에 대한 접근뿐입니다. 드라이브의 다른 파일은 목록조차 볼 수 없습니다.',
+    local: '이 브라우저에 남는 것은 시트 주소와 열 번호뿐입니다. 기록한 값 자체는 남지 않습니다.',
+    revoke: '허용한 권한은 구글 계정 설정에서 언제든 취소할 수 있습니다. 취소해도 시트와 기록은 사용자 드라이브에 그대로 남습니다.'
+  },
   footnote: {
     title: '이 화면에 대하여',
-    ownership: '가계부 기록은 사용자의 구글 시트에만 저장됩니다. 이 앱의 서버에는 남지 않습니다.',
-    order: '목록은 시트에 적힌 순서 그대로 보여 주며, 앱이 시트를 정렬하지 않습니다.',
-    consent: '구글 계정에 준 접근 권한은 구글 계정 설정에서 언제든 취소할 수 있습니다.'
+    order: '목록은 시트에 적힌 순서 그대로 보여 주며, 앱이 시트를 정렬하지 않습니다.'
   }
 };
 
@@ -236,13 +343,68 @@ describe('LEDGER_COPY — 문장을 만드는 카피', () => {
     );
   });
 
-  it('연결·매핑·히어로', () => {
-    expect(LEDGER_COPY.hero.meta('우리집 가계부', '09:30')).toBe('연결한 시트 우리집 가계부 · 09:30에 읽었습니다');
+  it('연결·매핑', () => {
     expect(LEDGER_COPY.mapping.sheetLine('우리집 가계부')).toBe('선택한 시트 우리집 가계부');
     expect(LEDGER_COPY.mapping.autoMatched(4)).toBe('머리글을 읽어 4개 항목을 자동으로 맞췄습니다. 다르면 직접 고쳐 주세요.');
     expect(LEDGER_COPY.mapping.columnOption('A', '사용일자')).toBe('A열 · 사용일자');
     expect(LEDGER_COPY.mapping.columnOption('B', '')).toBe('B열');
     expect(LEDGER_COPY.mapping.missing(['금액', '분류'])).toBe('아직 지정하지 않은 항목이 있습니다: 금액, 분류');
+  });
+
+  it('B-2 신선도 — 시각은 절대시각으로 말한다 ("3분 전" 류 상대시간 금지)', () => {
+    expect(LEDGER_COPY.freshness.readAt('09:30')).toBe('09:30 기준');
+  });
+
+  it('🔴 히어로에는 연결 요약(meta)이 없다 — 같은 사실을 탭 줄·목록 헤더와 세 번 말하지 않는다', () => {
+    expect('meta' in LEDGER_COPY.hero).toBe(false);
+  });
+
+  it('탭 — 탭이 하나면 이름만 말하고, 전환은 완료를 알린다', () => {
+    expect(LEDGER_COPY.tab.single('2026')).toBe('2026 탭을 보고 있습니다');
+    expect(LEDGER_COPY.tab.switched('2025')).toBe('2025 탭을 열었습니다.');
+  });
+
+  it('B-4 배당 — 달 이름과 숫자를 문장에 심는다', () => {
+    expect(LEDGER_COPY.dividend.amountLabel('2026년 8월')).toBe('2026년 8월 예상 배당');
+    expect(LEDGER_COPY.dividend.coverageHint('2026년 8월')).toBe('2026년 8월 지출 합계 대비 예상 배당의 비율입니다.');
+    expect(LEDGER_COPY.dividend.noPayout('2026년 8월')).toBe('2026년 8월에 지급이 예정된 보유 종목이 없습니다.');
+    expect(LEDGER_COPY.dividend.coveragePercent(17)).toBe('17%');
+    expect(LEDGER_COPY.dividend.covered(['통신비', '구독료'])).toBe('통신비 · 구독료 지출을 덮는 정도입니다.');
+    expect(LEDGER_COPY.dividend.unknownSchedule(3)).toBe('지급월을 알 수 없는 3종은 이 계산에 포함되지 않았습니다.');
+  });
+
+  /**
+   * B-3 블렌딩 — 🔴 **사용자가 붙인 라벨 뒤에 조사를 직접 붙이지 않는다.** 받침을 알 수 없어
+   * `{label}을(를)` 이 되기 때문에, 언제나 `{label} 가계부를` 처럼 명사를 끼워 조사를 그쪽에 건다.
+   */
+  it('B-3 블렌딩 — 라벨 뒤에는 언제나 명사("가계부")가 끼어 조사 문제가 생기지 않는다', () => {
+    expect(LEDGER_COPY.blend.view.failureTitle('민수')).toBe('민수 가계부를 불러오지 못했습니다');
+    expect(LEDGER_COPY.blend.view.partialBody('민수')).toBe(
+      '민수 가계부를 불러오지 못해 합계를 계산하지 않았습니다. 아래는 불러온 가계부 하나의 기록입니다.'
+    );
+    expect(LEDGER_COPY.blend.view.openSource('민수')).toBe('민수 가계부에서 열기');
+    expect(LEDGER_COPY.blend.view.unreadable('민수', 2)).toBe(
+      '민수 가계부에는 형식을 읽지 못한 기록이 2건 있습니다. 이 합계에 포함되지 않았습니다.'
+    );
+  });
+
+  it('B-3 블렌딩 — 합산 라벨이 "두 가계부"임을 말한다(단일 가계부 순액과 구분된다)', () => {
+    expect(LEDGER_COPY.blend.view.summaryNet('2026년 8월')).toBe('2026년 8월 두 가계부 순액');
+    expect(LEDGER_COPY.blend.view.summaryNet('2026년 8월')).not.toBe(LEDGER_COPY.summary.net('2026년 8월'));
+    expect(LEDGER_COPY.blend.view.caption('2026년 8월')).toBe('2026년 8월 두 가계부를 합친 수입·지출 기록');
+    expect(LEDGER_COPY.blend.view.emptyMonth('2026년 8월')).toBe('2026년 8월에 두 가계부 모두 기록이 없습니다.');
+  });
+
+  it('B-3 블렌딩 — 읽기 실패 문구가 저장 실패 문구를 재사용하지 않는다', () => {
+    for (const reason of Object.values(LEDGER_COPY.blend.view.reason)) {
+      expect(reason).not.toContain('저장');
+    }
+    expect(LEDGER_COPY.blend.view.reason.network).not.toBe(LEDGER_COPY.error.network.body);
+  });
+
+  it('B-3 블렌딩 — 라벨 입력 안내가 상한을 숫자로 말한다', () => {
+    expect(LEDGER_COPY.blend.setup.labelHint(20)).toBe('배지와 소계에 그대로 나옵니다. 20자까지 입력할 수 있습니다.');
+    expect(LEDGER_COPY.blend.setup.unnamedOption(2)).toBe('저장된 가계부 2');
   });
 
   it('빈 달', () => {

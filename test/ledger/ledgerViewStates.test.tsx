@@ -18,7 +18,7 @@ describe('/ledger — 연결 후 목록', () => {
   it('월 네비·주역 요약 카드·거래 내역 표가 함께 선다', () => {
     renderLedgerView(baseViewModel());
 
-    expect(screen.getByRole('heading', { level: 1, name: '가계부' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'Hippo 가계부' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: '2026년 8월' })).toBeInTheDocument();
 
     // 🔴 제목 없는 주역 카드는 월 제목을 자기 이름으로 삼는다(aria-labelledby).
@@ -86,7 +86,7 @@ describe('/ledger — 연결 후 목록', () => {
 
 describe('/ledger — 연결 전과 연결 후 0건은 다른 화면이다', () => {
   it('연결 전(disconnected)에는 월 네비도 요약 카드도 없다', () => {
-    renderLedgerView(baseViewModel({ state: 'disconnected', rows: [], summary: ZERO_SUMMARY, sheetMetaLine: null }));
+    renderLedgerView(baseViewModel({ state: 'disconnected', rows: [], summary: ZERO_SUMMARY }));
 
     expect(screen.getByRole('heading', { level: 2, name: '가계부를 시작하는 방법을 고릅니다' })).toBeInTheDocument();
     expect(screen.queryByRole('heading', { level: 2, name: '2026년 8월' })).not.toBeInTheDocument();
@@ -321,7 +321,7 @@ describe('/ledger — 부분 실패는 건별로 남는다(§4.8)', () => {
 
 describe('/ledger — 권한 거부 · 팝업 차단 · 생성 직후', () => {
   it('권한 거부는 연결 전 화면으로 복귀하고 배너 + 영향 없음 안내를 얹는다', () => {
-    renderLedgerView(baseViewModel({ state: 'denied', rows: [], summary: ZERO_SUMMARY, isDenied: true, sheetMetaLine: null }));
+    renderLedgerView(baseViewModel({ state: 'denied', rows: [], summary: ZERO_SUMMARY, isDenied: true }));
 
     expect(screen.getByText('시트 접근 권한이 없어 연결하지 못했습니다')).toBeInTheDocument();
     expect(
@@ -344,13 +344,25 @@ describe('/ledger — 권한 거부 · 팝업 차단 · 생성 직후', () => {
     ).toBeInTheDocument();
   });
 
-  it('시트 생성 직후 배너의 시트 이름 자체가 주소를 가진 링크다', () => {
+  /**
+   * 🔴 **여는 길은 이 카드에 하나뿐이다**(2026-08-01 사용자 결정).
+   *
+   * 예전에는 시트 이름 링크 + "구글 시트에서 열기" 버튼이 **둘 다** 있었고, 히어로에도 상시
+   * `시트에서 열기` 가 있어 같은 동작으로 가는 길이 한 화면에 셋이었다. 버튼 하나만 남겼다 —
+   * 이 카드는 생성 직후의 안내라 "지금 열어 본다"가 유일한 다음 행동이고, 눌러야 할 것처럼 보여야 한다.
+   *
+   * 그래서 **링크가 다시 생기면 이 테스트가 실패**한다(중복 복원을 막는 것이 이 단정의 목적이다).
+   */
+  it('시트 생성 직후 배너에서 여는 길은 버튼 하나뿐이다 (링크 중복 금지)', () => {
     renderLedgerView(baseViewModel({ showCreatedNotice: true, rows: [], summary: ZERO_SUMMARY }));
 
     expect(screen.getByText('가계부 시트를 만들었습니다')).toBeInTheDocument();
-    const link = screen.getByRole('link', { name: '새로 만든 구글 시트를 새 탭에서 열기' });
-    expect(link).toHaveAttribute('href', 'https://docs.google.com/spreadsheets/d/abc/edit');
-    expect(link).toHaveTextContent('우리집 가계부');
+    expect(
+      screen.getByRole('button', { name: '새로 만든 구글 시트를 새 탭에서 열기' })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: '새로 만든 구글 시트를 새 탭에서 열기' })
+    ).not.toBeInTheDocument();
     // 🔴 연결 전 화면으로 되돌리지 않는다 — 방금 만든 시트라 0건 화면이 온다.
     expect(screen.getByRole('heading', { level: 3, name: '이번 달 기록이 없습니다.' })).toBeInTheDocument();
   });

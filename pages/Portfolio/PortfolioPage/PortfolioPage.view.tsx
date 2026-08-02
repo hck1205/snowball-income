@@ -1,6 +1,7 @@
 import { useCallback, useId, useRef } from 'react';
 import { Info, Plus, ReceiptText, Wallet } from 'lucide-react';
 import { Banner, Button, Card, Chip, PageFooter, PageHero, StatTile } from '@/components/common';
+import MarketIndexStrip from '@/components/MarketIndexStrip';
 import { PORTFOLIO_COPY } from '../copy';
 import { GoalCard, HoldingPicker, HoldingPickerDrawer, HoldingsTable, ManualTickerForm } from '../components';
 import type { ManualTickerSubmitResult } from '../components';
@@ -204,6 +205,11 @@ export default function PortfolioPageView({
 
   return (
     <PageStack>
+      {/* 🔴 페이지 **맨 위**의 참고 시세(2026-08-02 사용자 결정). 헤더에 얹었다가 되돌린 자리다 —
+          헤더는 전 라우트에 상시 있어 시세가 필요 없는 화면(커뮤니티·티커 소개)까지 따라다녔다.
+          지금은 시세가 실제로 도움이 되는 세 화면(시뮬레이터·배당 캘린더·내 포트폴리오)만 갖는다. */}
+      <MarketIndexStrip />
+
       {/* 이 페이지의 유일한 `<h1>` — 헤더 워드마크가 h1 이 아닌 화면이라 제목을 올린다. */}
       <PageHero
         icon={<Wallet size={20} strokeWidth={1.8} aria-hidden focusable={false} />}

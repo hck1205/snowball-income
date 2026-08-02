@@ -19,6 +19,10 @@ import type { TickerContent } from './TickerContent.types';
  *   JP모건 공식 팩트시트(am.jpmorgan.com, 2026-06-30 기준 — Number of holdings 129, Sectors 표)로
  *   두 값 모두 확인해 채웠다. 액티브 펀드라도 발행사가 정기 팩트시트에 보유 종목 수·섹터 비중을 공개하면
  *   근거 있는 근사치로 반영할 수 있다는 사례다 — "액티브=구조 데이터 전부 비움"을 기계적으로 적용하지 말 것.
+ * - `topHoldings`는 **비워 둔다**(2026-08-02 조사). JP모건 상품 페이지는 상위 10종을 JS로만 그려
+ *   서버 응답에 수치가 없고, 기계로 읽을 수 있는 전체 보유 종목은 분기 공시 문서뿐이다. 게다가 이
+ *   펀드의 보유 목록에는 ELN(주식연계증권)이 섞여 있어 주식과 한 차트에 놓으면 오해를 만든다
+ *   — 커버드콜 ETF의 옵션 라인을 제외하는 규칙(qyld.ts)과 같은 취지다. JEPQ도 동일.
  */
 export const JEPI_TICKER_CONTENT: TickerContent = {
   ticker: 'JEPI',

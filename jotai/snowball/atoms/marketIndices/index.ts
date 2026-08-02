@@ -49,9 +49,11 @@ const REFRESH_MIN_INTERVAL_MS = 5 * 60 * 1000;
 /**
  * `/api/market-indices` 조회 드라이버 — **동시에 렌더되는 곳이 하나여야** 한다(둘 이상이면 중복 조회).
  *
- * ⚠ **현재 마운트 지점은 아직 없다.** 이 훅은 지수 스트립이 들어갈 랜딩에서 한 번 부르도록 준비만 해 둔
- * 상태다 — 표시 부품이 자기 안에서 부르지 말고, 그 부품을 놓는 **페이지**가 한 번만 부른다
- * (환율 `useFxRateSync` 와 같은 규약).
+ * ⚠ **마운트 지점은 세 화면의 컨테이너다**(2026-08-02): `pages/Main` · `pages/Portfolio/PortfolioPage` ·
+ * `pages/DividendCalendar/DividendCalendarPage`. 셋은 **서로 다른 라우트**라 동시에 살지 않으므로
+ * 중복 조회가 아니다 — 위험한 것은 *한 화면 안*의 둘째 마운트 지점이다. 표시 부품
+ * (`components/MarketIndexStrip`)이 자기 안에서 부르지 말고, 그 부품을 놓는 **페이지**가 한 번만 부른다
+ * (환율 `useFxRateSync` 와 같은 규약). 목록은 `test/shared/marketIndexStripPlacement.test.ts` 가 잠근다.
  *
  * 첫 조회는 마운트 시, 이후 탭 복귀 때 조용히 갱신한다(갱신은 loading 으로 되돌리지 않아 깜빡임이 없다).
  * 갱신이 실패하면 직전 성공값을 stale 로 유지한다. 값을 **구독하지 않고 쓰기만** 하므로 이 훅을 부르는

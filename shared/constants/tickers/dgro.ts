@@ -9,7 +9,9 @@ import type { TickerContent } from './TickerContent.types';
  *   증배·배당성향 75% 이하·이익성장 전망·상위 배당수익률 10% 제외, 배당 총액 가중 방식)은 2026년 7월
  *   WebSearch로 확인.
  * - 보유종목수(약 380종)·상위 섹터(금융·헬스케어)는 2026년 7월 조사 시점 근사치.
- * - 대표 보유 종목(topHoldings)은 SCHD와 동일한 이유로 비워 두었다.
+ * - 대표 보유 종목(topHoldings)은 아이셰어즈 공식 일일 보유 종목 파일(latest-holdings.csv,
+ *   2026-08-02 내려받음, 기준일 2026-07-30)의 주식 라인 상위 20종이다. 같은 파일의 현금성 자산(0.28%)과
+ *   지수 선물(0.00%)은 주식이 아니라 제외했다.
  */
 export const DGRO_TICKER_CONTENT: TickerContent = {
   ticker: 'DGRO',
@@ -143,8 +145,37 @@ export const DGRO_TICKER_CONTENT: TickerContent = {
     holdingsCountApprox: 380,
     paymentMonthsNote: '연 4회 분기 지급',
     topSectors: ['금융', '헬스케어'],
+    topHoldings: {
+      holdings: [
+        { symbol: 'JPM', name: 'JPMORGAN CHASE & CO', weightPercent: 3.15 },
+        { symbol: 'MSFT', name: 'MICROSOFT CORP', weightPercent: 3.14 },
+        { symbol: 'AAPL', name: 'APPLE INC', weightPercent: 3.08 },
+        { symbol: 'JNJ', name: 'JOHNSON & JOHNSON', weightPercent: 3.05 },
+        { symbol: 'ABBV', name: 'ABBVIE INC', weightPercent: 3.03 },
+        { symbol: 'XOM', name: 'EXXONMOBIL HOLDINGS CORP', weightPercent: 2.89 },
+        { symbol: 'AVGO', name: 'BROADCOM INC', weightPercent: 2.54 },
+        { symbol: 'PG', name: 'PROCTER & GAMBLE', weightPercent: 2.15 },
+        { symbol: 'PM', name: 'PHILIP MORRIS INTERNATIONAL INC', weightPercent: 2.14 },
+        { symbol: 'HD', name: 'HOME DEPOT INC', weightPercent: 2.14 },
+        { symbol: 'KO', name: 'COCA-COLA', weightPercent: 1.98 },
+        { symbol: 'MRK', name: 'MERCK & CO INC', weightPercent: 1.9 },
+        { symbol: 'BAC', name: 'BANK OF AMERICA CORP', weightPercent: 1.82 },
+        { symbol: 'UNH', name: 'UNITEDHEALTH GROUP INC', weightPercent: 1.78 },
+        { symbol: 'PEP', name: 'PEPSICO INC', weightPercent: 1.67 },
+        { symbol: 'AMGN', name: 'AMGEN INC', weightPercent: 1.3 },
+        { symbol: 'CSCO', name: 'CISCO SYSTEMS INC', weightPercent: 1.3 },
+        { symbol: 'WFC', name: 'WELLS FARGO', weightPercent: 1.25 },
+        { symbol: 'LLY', name: 'ELI LILLY', weightPercent: 1.19 },
+        { symbol: 'NEE', name: 'NEXTERA ENERGY INC', weightPercent: 1.16 }
+      ],
+      coveredWeightPercent: 42.66,
+      asOfDate: '2026-07-30',
+      sourceLabel: '아이셰어즈(BlackRock) 공식 일일 보유 종목 파일',
+      sourceUrl: 'https://www.ishares.com/us/products/264623/ishares-core-dividend-growth-etf',
+      excludedNote: '주식 보유분만 담았습니다. 같은 파일의 현금성 자산(0.28%)과 지수 선물(0.00%)은 제외했습니다.'
+    },
     asOfNote:
-      '운용보수(0.08%)·상장연도(2014년)·추종지수·4단계 스크리닝 규칙(5년 이상 증배, 배당성향 75% 이하, 이익성장 전망, 상위 배당수익률 10% 제외)·배당 총액 가중 방식은 안정적으로 확인된 사실입니다. 보유종목수(약 380종)·상위 섹터(금융·헬스케어) 순서는 2026년 7월 조사 시점 근사치이며 재편·리밸런싱에 따라 달라질 수 있습니다. 대표 보유 종목은 변동성이 커 이 페이지에서는 다루지 않았습니다. 배당률·배당성장률·기대수익률 등 계산에 쓰이는 값은 이 페이지가 아니라 시뮬레이터 계산 프리셋을 그대로 따릅니다.'
+      '운용보수(0.08%)·상장연도(2014년)·추종지수·4단계 스크리닝 규칙(5년 이상 증배, 배당성향 75% 이하, 이익성장 전망, 상위 배당수익률 10% 제외)·배당 총액 가중 방식은 안정적으로 확인된 사실입니다. 보유종목수(약 380종)·상위 섹터(금융·헬스케어) 순서는 2026년 7월 조사 시점 근사치이며 재편·리밸런싱에 따라 달라질 수 있습니다. 대표 보유 종목과 비중은 아이셰어즈 공식 일일 보유 종목 파일(2026년 7월 30일 기준)에서 옮긴 값이며, 리밸런싱과 일간 시세에 따라 계속 달라집니다. 배당률·배당성장률·기대수익률 등 계산에 쓰이는 값은 이 페이지가 아니라 시뮬레이터 계산 프리셋을 그대로 따릅니다.'
   },
   relatedTickers: [
     { ticker: 'SCHD', relationLabel: '재무건전성 점수까지 더한 배당성장을 원한다면' },
@@ -161,5 +192,5 @@ export const DGRO_TICKER_CONTENT: TickerContent = {
   },
   disclaimer:
     '이 페이지는 정보 제공을 목적으로 하며 투자 자문이 아닙니다. 배당률·주가·운용보수·세금 등은 시장 상황과 정책에 따라 변동될 수 있으며, 과거 성과가 미래 수익을 보장하지 않습니다. 투자 판단과 그 결과에 대한 책임은 투자자 본인에게 있습니다.',
-  contentUpdatedAt: '2026-07-23'
+  contentUpdatedAt: '2026-08-02'
 };

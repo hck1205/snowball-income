@@ -157,6 +157,7 @@ export const toColumnOptions = (headers: readonly string[]): { letter: string; h
 export const toFailureReason = (code: LedgerErrorCode): LedgerFailureReason => {
   if (code === 'network-error') return 'network';
   if (code === 'permission-denied') return 'permission';
+  if (code === 'api-disabled') return 'apiDisabled';
   if (code === 'rate-limited') return 'rateLimited';
   if (code === 'conflict' || code === 'stale-snapshot') return 'conflict';
   return 'unknown';
@@ -173,6 +174,7 @@ export const isExpiredCode = (code: LedgerErrorCode): boolean =>
 export const toErrorModel = (reason: LedgerFailureReason): LedgerErrorModel => {
   if (reason === 'network') return { ...copy.error.network, reason };
   if (reason === 'permission') return { ...copy.error.permission, reason };
+  if (reason === 'apiDisabled') return { ...copy.error.apiDisabled, reason };
   if (reason === 'rateLimited') return { ...copy.error.rateLimited, reason };
   if (reason === 'conflict') return { title: copy.conflict.title, body: copy.conflict.body, reason };
   return { ...copy.error.unknown, reason };

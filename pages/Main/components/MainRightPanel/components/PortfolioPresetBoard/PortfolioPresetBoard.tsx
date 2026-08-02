@@ -6,10 +6,11 @@ import {
   PRESET_ICON_BY_ID,
   PRESET_ICON_FALLBACK,
   PRESET_ICON_STROKE,
+  buildPresetMetrics,
+  groupPortfolioPresets,
   type PortfolioPresetGroupId,
   type PortfolioPresetPlaceholder
-} from './PortfolioPresetBoard.constants';
-import { buildPresetMetrics, groupPortfolioPresets } from './PortfolioPresetBoard.utils';
+} from '@/shared/constants/portfolioPresets';
 import {
   PortfolioPresetAppliedTag,
   PortfolioPresetCardButton,

@@ -34,12 +34,26 @@ description: >-
 - 액티브·개별종목이라 없는 필드(`trackedIndex`·`expenseRatioPercent`·`holdingsCountApprox`)는 **비운다** →
   JSON-LD의 `buildFinancialProductSchema`가 conditional spread로 해당 PropertyValue를 자동 생략(추가 분기 불필요, 확인만).
 
-### 2. registry 한 줄 + 배럴 한 줄
-- `registry.ts`의 `TICKER_CONTENT_REGISTRY`에 `<X>: <X>_TICKER_CONTENT,` 추가 + import 한 줄. `index.ts` 배럴에 한 줄.
-- 이게 전부다 — 페이지(`pages/Ticker`)·서버렌더(`server/handlers/TickerHtml`)·사이트맵(`vite.config.ts`가 `TICKER_CONTENT_LIST` 파생)·
-  JSON-LD·`/ticker/all` 허브·관련 링크는 **손대지 않는다**(레지스트리 순회로 자동).
+### 2. 등록은 **세 곳** (2026-08-02 정정 — 예전엔 두 곳이라고 적혀 있었다)
+- `registry.ts`의 `TICKER_CONTENT_REGISTRY`에 `<X>: <X>_TICKER_CONTENT,` 추가 + import 한 줄.
+- `shared/constants/tickers/index.ts` 배럴에 `export * from './<slug>';` 한 줄.
+- 🔴 `shared/constants/tickerPages/index.ts`의 `TICKER_PAGE_INDEX`에 `{ symbol, slug }` 한 줄
+  — 랜딩 검색이 보는 **의존성 0 경량 인덱스**(원본을 import 하면 첫인상 지면이 서사 수백 KB를 진다).
+  빼먹으면 `test/landing/tickerPageIndexParity.test.ts`가 양방향 1:1로 잡는다.
+- 그 밖에는 없다 — 페이지(`pages/Ticker`)·서버렌더(`server/handlers/TickerHtml`)·사이트맵(`vite.config.ts`가 `TICKER_CONTENT_LIST` 파생)·
+  JSON-LD·`/ticker/all` 허브·관련 링크·랜딩 `seeAll(n)` 문구는 **손대지 않는다**(전부 순회 파생).
+
+### 2.5 전제 확인 — 그 티커가 유니버스에 없으면 프리셋이 선행한다
+`PresetTickerKey`에 없으면 `shared/constants/presets/<카테고리>.ts`에 먼저 넣고
+`PRESET_TICKER_KOREAN_NAME_BY_TICKER`에 한글명을 추가한다(tsc가 강제). 가격·배당률·주기는 **지어내지 말고**
+레포의 프로바이더로 실측한다 — `ticker:refresh --only=`는 신규 티커를 거부하므로 `createYahooProvider()` +
+`derive`를 직접 부르는 임시 스크립트를 `vite-node`로 돌린다(pitfalls `[2026-08-02][data]`).
+`expectedTotalReturn`만 큐레이터의 **가정**이고 `dividendGrowth`는 거기서 파생된다(`dy + dg === etr`).
 
 ### 3. 숫자·카피 규율 — 여기가 진짜 리스크
+- 🔴 **후보 선정 = 출처 확보 가능성 확인이 먼저.** 발행사 페이지가 스크립트 렌더면(Invesco·Vanguard 상품 페이지 실측)
+  아무 수치도 못 얻는다. 기업 IR 보도자료 HTML·소형 발행사 페이지는 대체로 읽힌다. 확보 실패한 후보는
+  **유니버스에만 넣고 페이지는 만들지 않는다**(2026-08-02 SPHD 사례). 글부터 쓰면 절반을 버린다.
 - 🔴 **수치 날조 금지.** 변동성 큰 필드(`topHoldings`·리밸런싱 비중)는 신뢰할 단일 현재값을 못 얻으면 **비운다**.
   채우려면 `ticker-data-curator`가 발행사 공식 소스로 스팟체크(실측: VYM 605종·JEPI 129종 등 공식 팩트시트로 확정).
   "의도적으로 비웠다"는 확정 선언이 아니라 "그 시점에 확인 못 함" — 다음에 소스가 생기면 채운다.

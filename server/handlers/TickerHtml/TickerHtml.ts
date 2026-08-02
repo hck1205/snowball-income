@@ -29,7 +29,8 @@ import {
   type TickerContentSection,
   type TickerContentStat,
   type TickerEngineFacts,
-  type TickerRelatedLink
+  type TickerRelatedLink,
+  type TickerTopHoldings
 } from '@/shared/constants/tickers';
 import { SIMULATOR_PATH } from '@/shared/constants/routes';
 
@@ -172,6 +173,51 @@ const renderSection = (section: TickerContentSection, facts: TickerEngineFacts):
   return `<section id="${id}"><h2>${renderText(section.heading, facts)}</h2>${paragraphs}${bullets}${renderStat(section.stat, facts)}</section>`;
 };
 
+/** 비중 표기 통일 — 데이터가 소수점 둘째 자리까지라 표시도 거기에 맞춘다(`1.5` → `1.50%`). */
+const formatWeight = (weightPercent: number): string => `${weightPercent.toFixed(2)}%`;
+
+/**
+ * 상위 보유 종목 — **표(`<table>`)가 콘텐츠이고 차트는 장식이다.**
+ *
+ * 🔴 앱 화면의 파이 차트는 `<canvas>` 라 크롤러에게 **아무것도 아니다**. 이 페이지에 "무엇을 담고
+ * 있는가"를 검색엔진·AI 요약이 읽게 하려면 목록이 반드시 이 서버 HTML 안에 텍스트로 있어야 한다
+ * (`renderHero` 의 CTA 와 같은 논리 — 화면 확인으로는 절대 드러나지 않는 손실이다).
+ *
+ * 합계는 100%가 아니다. 그 사실을 `<tfoot>` 합계 행이 **숫자로 직접** 말하게 해서, 읽는 쪽이
+ * "나머지"를 스스로 추정하다 잘못 결론 내리는 일을 막는다.
+ */
+const renderTopHoldings = (topHoldings: TickerTopHoldings | undefined): string => {
+  if (!topHoldings || topHoldings.holdings.length === 0) return '';
+
+  const { holdings, coveredWeightPercent, asOfDate, sourceLabel, sourceUrl, excludedNote } = topHoldings;
+  const count = holdings.length;
+  const rows = holdings
+    .map(
+      (holding, index) =>
+        `<tr><td>${index + 1}</td><td>${escapeHtmlText(holding.symbol)}</td>` +
+        `<td>${escapeHtmlText(holding.name)}</td><td>${escapeHtmlText(formatWeight(holding.weightPercent))}</td></tr>`
+    )
+    .join('');
+
+  return (
+    '<section id="top-holdings">' +
+    '<h2>상위 보유 종목</h2>' +
+    `<p>비중이 큰 상위 ${count}종입니다. 이 ${count}종을 모두 더한 비중은 ` +
+    `${escapeHtmlText(formatWeight(coveredWeightPercent))}이며, 나머지 보유 종목은 이 표에 들어 있지 않습니다.</p>` +
+    (excludedNote ? `<p>${escapeHtmlText(excludedNote)}</p>` : '') +
+    '<table>' +
+    `<caption>상위 보유 종목 ${count}종 (기준일 ${escapeHtmlText(asOfDate)})</caption>` +
+    '<thead><tr><th>순위</th><th>티커</th><th>종목명</th><th>비중</th></tr></thead>' +
+    `<tbody>${rows}</tbody>` +
+    `<tfoot><tr><td colspan="3">상위 ${count}종 합계</td>` +
+    `<td>${escapeHtmlText(formatWeight(coveredWeightPercent))}</td></tr></tfoot>` +
+    '</table>' +
+    `<p>출처: <a href="${escapeHtmlAttribute(sourceUrl)}" rel="nofollow noopener">${escapeHtmlText(sourceLabel)}</a>` +
+    ` · 기준일 ${escapeHtmlText(asOfDate)}. 구성과 비중은 리밸런싱과 시세에 따라 계속 달라집니다.</p>` +
+    '</section>'
+  );
+};
+
 const renderFaqs = (faqs: TickerContentFaq[], facts: TickerEngineFacts): string => {
   if (faqs.length === 0) return '';
   const items = faqs
@@ -232,7 +278,22 @@ const buildFinancialProductSchema = (content: TickerContent, facts: TickerEngine
     ...(content.reference.inceptionYear !== undefined
       ? [{ '@type': 'PropertyValue', name: '상장연도', value: String(content.reference.inceptionYear) }]
       : []),
-    ...(content.reference.trackedIndex ? [{ '@type': 'PropertyValue', name: '추종 지수', value: content.reference.trackedIndex }] : [])
+    ...(content.reference.trackedIndex ? [{ '@type': 'PropertyValue', name: '추종 지수', value: content.reference.trackedIndex }] : []),
+    /*
+      상위 보유 종목은 **집계 한 줄만** 싣는다. schema.org 에는 펀드 구성종목을 담을 어휘가 없어서
+      20종을 각각 PropertyValue 로 펴면 기존 4~7개짜리 속성 목록이 종목 나열로 뒤덮인다(구조화
+      데이터 남용). 반면 "상위 N종이 전체의 몇 %인가 + 언제 기준인가"는 이 상품 자체의 성질이고
+      운용보수·상장연도와 같은 층위다. 사람이 읽는 전체 목록은 위 `renderTopHoldings` 의 표가 갖는다.
+    */
+    ...(content.reference.topHoldings
+      ? [
+          {
+            '@type': 'PropertyValue',
+            name: `상위 ${content.reference.topHoldings.holdings.length}종 비중 합계`,
+            value: `${formatWeight(content.reference.topHoldings.coveredWeightPercent)} (${content.reference.topHoldings.asOfDate} 기준)`
+          }
+        ]
+      : [])
   ];
 
   return {
@@ -272,6 +333,7 @@ const injectTickerBody = (shell: string, content: TickerContent, siteUrl: string
     '<article>' +
     renderHero(content, facts) +
     content.sections.map((section) => renderSection(section, facts)).join('') +
+    renderTopHoldings(content.reference.topHoldings) +
     renderFaqs(content.faqs, facts) +
     renderRelatedTickers(content.relatedTickers) +
     `<p class="disclaimer">${escapeHtmlText(content.disclaimer)}</p>` +

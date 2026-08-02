@@ -31,6 +31,61 @@ export const mapHttpStatusToErrorCode = (status: number): LedgerErrorCode => {
   return 'invalid-response';
 };
 
+/**
+ * 🔴 **403 은 서로 완전히 다른 세 상황에 똑같이 온다.** 상태 코드만 보면 전부 "이 시트에 권한이 없다"가
+ * 되는데, 실제로는 사용자가 앱 안에서 할 수 있는 일이 각각 다르다:
+ *
+ *  - `SERVICE_DISABLED` / `accessNotConfigured` — 클라우드 프로젝트에서 **Sheets API 가 꺼져 있다.**
+ *    시트를 다시 골라도 영원히 실패한다. 실제로 이 오분류가 났다(2026-08-01: 앱이 **방금 만든** 시트에
+ *    헤더를 쓰다 403 → "시트 편집 권한을 확인하세요"라고 안내해 사용자를 엉뚱한 곳으로 보냈다).
+ *  - `ACCESS_TOKEN_SCOPE_INSUFFICIENT` / `insufficientPermissions` — 동의 창에서 체크를 해제해
+ *    **스코프가 빠졌다.** 권한을 다시 받아야 한다.
+ *  - 그 외 — 진짜로 그 파일에 접근할 수 없다.
+ *
+ * 🔴 여기서 읽는 것은 **열거형 사유 문자열뿐**이다(`error.status`·`error.details[].reason`).
+ *    파일명·범위·시트 제목이 담기는 `error.message` 는 **읽지도 싣지도 않는다** — 이 파일 규율 2번.
+ */
+const FORBIDDEN_REASON_CODE: Readonly<Record<string, LedgerErrorCode>> = {
+  SERVICE_DISABLED: 'api-disabled',
+  accessNotConfigured: 'api-disabled',
+  ACCESS_TOKEN_SCOPE_INSUFFICIENT: 'not-authorized',
+  insufficientPermissions: 'not-authorized'
+};
+
+/** 403 본문에서 사유 열거형만 뽑아 코드를 좁힌다. 못 읽으면 기존 판정을 그대로 쓴다. */
+export const refineForbiddenErrorCode = (payload: unknown): LedgerErrorCode => {
+  const fallback: LedgerErrorCode = 'permission-denied';
+  if (!payload || typeof payload !== 'object') return fallback;
+  const error = (payload as Record<string, unknown>).error;
+  if (!error || typeof error !== 'object') return fallback;
+
+  const record = error as Record<string, unknown>;
+  const reasons: string[] = [];
+  if (typeof record.status === 'string') reasons.push(record.status);
+  if (Array.isArray(record.details)) {
+    for (const detail of record.details) {
+      if (detail && typeof detail === 'object') {
+        const reason = (detail as Record<string, unknown>).reason;
+        if (typeof reason === 'string') reasons.push(reason);
+      }
+    }
+  }
+  if (Array.isArray(record.errors)) {
+    for (const entry of record.errors) {
+      if (entry && typeof entry === 'object') {
+        const reason = (entry as Record<string, unknown>).reason;
+        if (typeof reason === 'string') reasons.push(reason);
+      }
+    }
+  }
+
+  for (const reason of reasons) {
+    const mapped = FORBIDDEN_REASON_CODE[reason];
+    if (mapped) return mapped;
+  }
+  return fallback;
+};
+
 const resolveFetch = (context: SheetsRequestContext): typeof fetch | null => {
   if (context.fetchImpl) return context.fetchImpl;
   if (typeof fetch === 'function') return fetch;
@@ -62,7 +117,18 @@ const request = async <T>(
   }
 
   if (!response.ok) {
-    // 본문은 읽지 않는다: 구글 오류 본문에 파일명·범위가 실릴 수 있어 그대로 두면 로그로 새어 나간다.
+    // 본문 전체를 메시지에 싣지 않는다: 구글 오류 본문에는 파일명·범위가 들어 있다(규율 2).
+    // 다만 403 만은 **열거형 사유**를 읽어 코드를 좁힌다 — 그러지 않으면 "프로젝트에서 API 가 꺼짐"이
+    // "이 시트에 권한이 없음"으로 둔갑해 사용자가 고칠 수 없는 곳을 보게 된다(`refineForbiddenErrorCode`).
+    if (response.status === 403) {
+      let payload: unknown = null;
+      try {
+        payload = await response.json();
+      } catch {
+        // 본문이 없거나 JSON 이 아니면 상태만으로 판정한다.
+      }
+      return ledgerErr(ledgerError(refineForbiddenErrorCode(payload)));
+    }
     return ledgerErr(ledgerError(mapHttpStatusToErrorCode(response.status)));
   }
 

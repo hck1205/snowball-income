@@ -29,5 +29,8 @@ export const SkipLink = styled.a`
 export const CommunityMain = styled.main`
   max-width: 1200px;
   margin: 0 auto;
-  padding: clamp(${space[4]}, 3vw, ${space[6]}) clamp(${space[3]}, 4vw, ${space[5]}) ${space[16]};
+  /* 🔴 세로 시작 여백은 TickerPageShell 의 ShellMain · 시뮬레이터 FeatureLayout 과 **같은 값이어야 한다**
+     (2026-08-02 실측: 이 값이 clamp(16px,3vw,24px) 이던 동안 1280 에서 본문 시작이 89px 대 113px 로
+     갈려 커뮤니티만 24px 위에서 시작했다). 라우트를 옮길 때 본문 시작선이 튀면 안 된다. */
+  padding: clamp(${space[5]}, 4vw, ${space[12]}) clamp(${space[3]}, 4vw, ${space[5]}) ${space[16]};
 `;

@@ -20,7 +20,15 @@
  *   3. 스크롤한 뒤에도 오버플로가 0 인가. 히어로의 "투자 설정" 버튼은 스크롤하면 `position: fixed`
  *      로 승격되는데, 조상에 transform 이 하나 생기면 그 버튼이 화면 밖(실측 x=2043px)으로 날아가
  *      **스크롤한 상태에서만 드러나는** 가로 오버플로가 된다. 로드 직후만 재면 못 잡는다.
- *   4. (`/` 한정) 승격된 버튼이 **헤더 바로 아래 8px** 에 붙어 있는가.
+ *   4. 승격된 버튼이 **헤더 바로 아래 8px** 에 붙어 있는가(승격 버튼이 서는 화면 = 시뮬레이터).
+ *      🔴 이 검사도 **대상 라우트에서 요소가 0건이면 실패**다(`SIMULATOR_ROUTES`). 예전에는 보이는
+ *      버튼만 훑는 `for` 문이라 승격이 사라지거나 셀렉터가 어긋나면 `pinned` 가 빈 배열이 되고
+ *      프로브는 그대로 초록이었다 — "새는 것이 없다"가 아니라 **"본 적이 없다"** 인데 로그가 둘을
+ *      구분해 주지 않았다. 5번과 같은 처방이고, `overflowprobe` 의 `MIN_INSPECTED_ELEMENTS` 와 같은 원리다.
+ *   5. (랜딩 `/` 한정) 시뮬레이터 CTA 가 **스크롤 0 상태에서 뷰포트 안에 완전히** 있는가.
+ *      🔴 이 검사는 **요소를 못 찾으면 실패**다. 4번이 "화면에 승격 버튼이 있으면 잰다"라서 랜딩에서
+ *      조용히 0건이 되어 통과하는 것과 같은 함정을 여기서 반복하지 않는다 — 앵커가 사라지면
+ *      "새는 것이 없다"가 아니라 "본 적이 없다"이고, 그건 통과가 아니다.
  *
  * ```sh
  * node tools/dev/headerprobe.mjs                          # 기본 라우트 × 기본 폭
@@ -50,6 +58,35 @@ const SINGLE_ROW_MAX_HEIGHT = 80;
 const STACKED_MAX_HEIGHT = 120;
 /** 승격된 히어로 액션이 헤더 아래에 서는 간격(px). useStickyHeroAction 의 PIN_GAP. */
 const PIN_GAP = 8;
+/**
+ * 승격된 히어로 액션(4번 검사)이 **반드시 있어야 하는** 라우트.
+ *
+ * 🔴 4번 검사는 "보이는 승격 버튼마다 간격을 잰다"라서 **요소가 0건이면 자동으로 통과**했다.
+ * `useStickyHeroAction` 승격이 사라지거나 `position: fixed` 버튼 셀렉터가 어긋나는 순간
+ * `pinned` 가 빈 배열이 되고 프로브는 30/30 초록을 낸다 — 게이트가 장식이 되는 전형
+ * (docs/simulator-route-migration-compat.md §8). 그래서 대상 라우트를 집합으로 못 박고,
+ * 거기서 0건이면 **통과가 아니라 실패**로 끝낸다.
+ *
+ * ⚠ 랜딩(`/`)·포트폴리오·캘린더 등에는 승격 버튼이 **없는 것이 정상**이라 여기 넣지 않는다.
+ *   반대로 새 화면에 승격 액션을 붙였다면 그 라우트를 여기에 추가하라 — 안 그러면 그 화면의
+ *   4번 검사는 영원히 "본 적이 없는" 상태로 초록이다.
+ */
+const SIMULATOR_ROUTES = new Set(['/simulator']);
+/**
+ * 그 라우트에서 "4번 검사를 실제로 했다"고 인정하는 최소 승격 액션 수.
+ * `overflowprobe` 의 `MIN_INSPECTED_ELEMENTS`(검사한 개수를 출력하고, 모자라면 실패)와 같은 어법.
+ * 시뮬레이터 히어로의 승격 액션은 "투자 설정" 하나뿐이므로 1이다.
+ */
+const MIN_PINNED_ACTIONS = 1;
+/**
+ * 랜딩 라우트 — 접힘 위 CTA(5번 검사)를 강제하는 대상.
+ *
+ * 시뮬레이터로 가는 1클릭이 첫 화면에 없으면, `/` 를 북마크했던 재방문자가 도구 대신 소개 문서를
+ * 만나 "내 데이터가 사라졌다"로 읽는다(docs/simulator-route-migration-compat.md §2).
+ */
+const LANDING_ROUTES = new Set(['/']);
+/** 랜딩 CTA 앵커. `pages/Landing` 이 CTA `id` 에서 파생해 심는다. */
+const LANDING_CTA_SELECTOR = '[data-landing-cta="simulator"]';
 
 /* ── 인자 ─────────────────────────────────────────────────────────────────── */
 
@@ -65,9 +102,9 @@ const WIDTHS = arg('widths', '1280,1024,900,760,390')
   .map((w) => Number(w.trim()))
   .filter(Boolean);
 /*
- * 🔴 `/simulator` 는 `/` 에 **더한** 것이다(대체가 아니다). 지금은 같은 화면이지만 `/` 가
- *   랜딩으로 바뀌는 순간, 시뮬레이터 전용 검사(승격된 히어로 액션 등)는 라우트로 게이트되지
- *   않아서 **조용히 0건이 되어 통과**한다 — 게이트가 장식이 되는 전형이다.
+ * 🔴 `/` 는 **랜딩**, `/simulator` 가 시뮬레이터다(2026-08-01 이전 완료). `/simulator` 를 빼면
+ *   시뮬레이터 전용 검사(승격된 히어로 액션 등)가 **조용히 0건이 되어 통과**한다 — 라우트로
+ *   게이트되지 않는 검사라 대상 화면이 목록에서 빠지는 순간 게이트가 장식이 된다.
  */
 const ROUTES = arg('routes', '/,/simulator,/dividend/portfolio,/dividend/calendar,/ticker/all,/community/portfolio')
   .split(',')
@@ -114,7 +151,11 @@ const launch = async () => {
     console.error('[headerprobe] 크롬/엣지를 찾지 못했다.');
     process.exit(1);
   }
-  const profile = resolve('node_modules/.cache/headerprobe-profile');
+  /*
+   * ⚠ 프로파일 경로에 **포트를 붙인다.** 한 프로파일은 한 크롬 인스턴스만 잠그므로 `--port` 만
+   * 나눠서는 병렬 트랙 중 뒤에 뜬 쪽이 'CDP 가 뜨지 않았다' 로 죽는다(overflowprobe 와 같은 어법).
+   */
+  const profile = resolve(`node_modules/.cache/headerprobe-profile-${PORT}`);
   mkdirSync(profile, { recursive: true });
   child = spawn(
     browser,
@@ -178,11 +219,24 @@ const MEASURE = `(() => {
   const doc = document.documentElement;
   const header = document.querySelector('header');
   const raw = getComputedStyle(doc).getPropertyValue('--sb-app-header-h').trim();
+  const cta = document.querySelector(${JSON.stringify(LANDING_CTA_SELECTOR)});
+  const ctaBox = cta ? cta.getBoundingClientRect() : null;
   return {
     published: Number.parseFloat(raw) || null,
     measured: header ? Math.round(header.getBoundingClientRect().height) : null,
     scrollWidth: doc.scrollWidth,
-    clientWidth: doc.clientWidth
+    clientWidth: doc.clientWidth,
+    scrollY: Math.round(window.scrollY),
+    viewportHeight: window.innerHeight,
+    viewportWidth: doc.clientWidth,
+    landingCta: ctaBox
+      ? {
+          top: Math.round(ctaBox.top),
+          bottom: Math.round(ctaBox.bottom),
+          left: Math.round(ctaBox.left),
+          right: Math.round(ctaBox.right)
+        }
+      : null
   };
 })()`;
 
@@ -212,7 +266,9 @@ const evaluate = async (expression) => {
 };
 
 console.log(`[headerprobe] ${mode} · ${BASE}`);
-console.log(`  계약: ≥${SINGLE_ROW_MIN_WIDTH}px 헤더 ≤${SINGLE_ROW_MAX_HEIGHT}px · 전 폭 가로 오버플로 0 · 승격 액션 간격 ${PIN_GAP}px`);
+console.log(
+  `  계약: ≥${SINGLE_ROW_MIN_WIDTH}px 헤더 ≤${SINGLE_ROW_MAX_HEIGHT}px · 전 폭 가로 오버플로 0 · 승격 액션 간격 ${PIN_GAP}px · 랜딩 CTA 접힘 위`
+);
 
 const failures = [];
 
@@ -227,6 +283,8 @@ for (const route of ROUTES) {
     await cdp.send('Page.navigate', { url: `${BASE}${route}` });
     await sleep(WAIT);
 
+    // 5번 검사는 "접힘 위"가 전제라 반드시 스크롤 0 에서 잰다(앞 라우트의 스크롤이 남지 않게).
+    await evaluate('window.scrollTo(0, 0)');
     const at = await evaluate(MEASURE);
     await evaluate('window.scrollTo(0, 900)');
     await sleep(500);
@@ -248,18 +306,53 @@ for (const route of ROUTES) {
     if (scrolled.scrollWidth > scrolled.clientWidth) {
       problems.push(`스크롤 뒤 가로 오버플로 ${scrolled.scrollWidth} > ${scrolled.clientWidth}`);
     }
+    /* 4. 승격된 히어로 액션 — 대상 라우트에서 **0건이면 실패**(5번과 대칭), 있으면 간격을 잰다. */
+    if (SIMULATOR_ROUTES.has(route) && scrolled.pinned.length < MIN_PINNED_ACTIONS) {
+      problems.push(
+        `승격된 히어로 액션이 ${scrolled.pinned.length}개뿐이다(기준 ${MIN_PINNED_ACTIONS}) — 이 라우트의 간격 검사는 ` +
+          `한 번도 검사된 적이 없다. useStickyHeroAction 승격이 사라졌는지, position:fixed 버튼 셀렉터가 바뀌었는지 확인하라`
+      );
+    }
     for (const pin of scrolled.pinned) {
       if (pin.gap !== PIN_GAP) problems.push(`승격 버튼 "${pin.name}" 이 헤더에서 ${pin.gap}px (기대 ${PIN_GAP}px)`);
+    }
+
+    /* 5. 랜딩의 시뮬레이터 CTA — 스크롤 0 에서 뷰포트 안에 **완전히** 들어와야 한다. */
+    if (LANDING_ROUTES.has(route)) {
+      if (!at.landingCta) {
+        // 🔴 "못 찾았다"는 통과가 아니다 — 앵커가 사라지면 이 게이트가 영구히 0건이 된다.
+        problems.push(`랜딩 CTA(${LANDING_CTA_SELECTOR})를 못 찾았다 — 검사가 0건이 되어 통과하는 것을 막는다`);
+      } else if (at.scrollY !== 0) {
+        problems.push(`랜딩 CTA 를 스크롤 ${at.scrollY}px 에서 쟀다(접힘 위 판정 불가)`);
+      } else {
+        const cta = at.landingCta;
+        if (cta.top < 0 || cta.bottom > at.viewportHeight) {
+          problems.push(`랜딩 CTA 가 접힘 아래 (top ${cta.top} · bottom ${cta.bottom} > 뷰포트 ${at.viewportHeight})`);
+        }
+        if (cta.left < 0 || cta.right > at.viewportWidth) {
+          problems.push(`랜딩 CTA 가 가로로 잘림 (left ${cta.left} · right ${cta.right} > ${at.viewportWidth})`);
+        }
+      }
     }
 
     const label = `${route.padEnd(22)} ${String(width).padStart(4)}px`;
     if (problems.length) {
       failures.push(`${label} — ${problems.join(' · ')}`);
-      console.log(`  ✗ ${label}  h=${at.published}px`);
+      console.log(`  ✗ ${label}  h=${at.published}px · 승격 ${scrolled.pinned.length}개`);
       for (const problem of problems) console.log(`      ${problem}`);
     } else {
-      const pinNote = scrolled.pinned.length ? ` · 승격 ${scrolled.pinned.length}개 +${PIN_GAP}px` : '';
-      console.log(`  ✓ ${label}  h=${at.published}px${pinNote}`);
+      /*
+       * 🔴 **무엇을 보았나의 증거.** 대상 라우트에서는 승격 액션 수를 0이어도 항상 적는다 —
+       * "간격이 어긋난 게 없다"와 "잴 것이 없었다"를 사람이 로그만 보고 구분할 수 있어야 한다
+       * (`overflowprobe` 가 `요소 N개 검사` 를 항상 찍는 것과 같은 이유).
+       */
+      const pinNote = SIMULATOR_ROUTES.has(route)
+        ? ` · 승격 ${scrolled.pinned.length}개 +${PIN_GAP}px`
+        : scrolled.pinned.length
+          ? ` · 승격 ${scrolled.pinned.length}개 +${PIN_GAP}px`
+          : '';
+      const ctaNote = at.landingCta ? ` · CTA 하단 ${at.landingCta.bottom}px/${at.viewportHeight}px` : '';
+      console.log(`  ✓ ${label}  h=${at.published}px${pinNote}${ctaNote}`);
     }
   }
 }

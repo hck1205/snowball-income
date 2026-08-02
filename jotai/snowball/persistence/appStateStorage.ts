@@ -6,6 +6,7 @@ import {
   PORTFOLIO_STATE_KEY,
   type PortfolioStoreRecord
 } from './appStateRecords';
+import { clearWorkspaceMarker, markWorkspaceStored } from './workspaceMarker';
 
 const PORTFOLIO_DB_NAME = 'snowball-income-db';
 const PORTFOLIO_DB_VERSION = 1;
@@ -123,6 +124,9 @@ export const writePersistedAppState = async (state: PersistedAppStatePayload): P
           };
         })
     );
+    // 저장이 **성공한 뒤에만** 마커를 남긴다(랜딩의 "이어서 계산하기" 판단용 부기값).
+    // 마커가 없던 기존 사용자도 다음 저장에서 자동 백필된다. 실패해도 저장은 이미 끝났다.
+    markWorkspaceStored();
   } catch (error) {
     warnPersistenceFailure('write', error);
     throw error;
@@ -147,6 +151,9 @@ export const recoverCorruptedPortfolioDb = async (): Promise<PortfolioDbRecovery
     request.onerror = () => resolve(false);
     request.onblocked = () => resolve(false);
   });
+
+  // 실제로 지워졌을 때만 마커를 거둔다 — blocked/실패면 데이터가 그대로 남아 있으므로 마커도 참이다.
+  if (deleted) clearWorkspaceMarker();
 
   return { deleted, backupJson };
 };

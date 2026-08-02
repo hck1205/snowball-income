@@ -128,6 +128,7 @@ export type LedgerErrorCode =
   | 'not-authorized'
   | 'auth-expired'
   | 'permission-denied'
+  | 'api-disabled'
   | 'sheet-not-found'
   | 'rate-limited'
   | 'server-error'
@@ -161,6 +162,8 @@ export const LEDGER_ERROR_MESSAGE: Readonly<Record<LedgerErrorCode, string>> = {
   'not-authorized': '구글 계정 접근 권한이 없습니다. 권한을 다시 허용해 주십시오.',
   'auth-expired': '접근 권한이 만료되었습니다. 권한을 다시 허용해 주십시오.',
   'permission-denied': '이 시트에 접근할 권한이 없습니다. 시트를 다시 선택해 주십시오.',
+  'api-disabled':
+    '구글 클라우드 프로젝트에서 Google Sheets API 가 켜져 있지 않습니다. 사용 설정한 뒤 다시 시도해 주십시오.',
   'sheet-not-found': '시트를 찾을 수 없습니다. 삭제되었거나 휴지통으로 이동했을 수 있습니다.',
   'rate-limited': '요청이 잠시 제한되었습니다. 잠시 후 다시 시도해 주십시오.',
   'server-error': '구글 시트 서버에서 오류가 발생했습니다. 잠시 후 다시 시도해 주십시오.',
@@ -177,6 +180,8 @@ const LEDGER_ERROR_RECOVERY: Readonly<Record<LedgerErrorCode, LedgerRecovery>> =
   'not-authorized': 'reauthorize',
   'auth-expired': 'reauthorize',
   'permission-denied': 'reconnect',
+  // 프로젝트 설정 문제라 사용자가 앱 안에서 할 수 있는 일이 없다 — 재시도·재선택 버튼을 주면 거짓 희망이다.
+  'api-disabled': 'none',
   'sheet-not-found': 'reconnect',
   'rate-limited': 'retry',
   'server-error': 'retry',

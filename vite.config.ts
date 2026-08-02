@@ -40,15 +40,26 @@ const stripTrailingSlash = (url: string) => url.replace(/\/+$/, '');
  * 갱신되며, 이 파일을 다시 손댈 필요가 없다.
  */
 const ROUTES = [
-  { path: '/', priority: '1.0', changefreq: 'weekly' },
   /*
-   * 시뮬레이터의 새 주소. 지금은 `/` 와 같은 화면이라 둘 다 등재하되 **`/` 를 1.0 으로 남긴다** —
-   * 이전이 끝나기 전에 우선순위를 뒤집으면 색인이 두 번 흔들린다(랜딩 PR 에서 한 번에 정리).
+   * `/` = 랜딩(2026-08-01 이전 완료). 1.0 을 **그대로 유지**한다 — 주소가 바뀐 것이 아니라 그 주소가
+   * 그리는 화면이 바뀐 것이라, 우선순위까지 함께 흔들면 색인이 두 번 출렁인다.
    * ⚠ `public/sitemap.xml` 은 존재하지 않는다. 이 배열이 정적 라우트 사이트맵의 **유일한 정본**이다.
    */
+  { path: '/', priority: '1.0', changefreq: 'weekly' },
+  /* 시뮬레이터. 랜딩보다 한 단계 낮은 0.9 로 고정(둘 다 색인 대상이고 내용이 다르다). */
   { path: '/simulator', priority: '0.9', changefreq: 'weekly' },
   { path: '/community/portfolio', priority: '0.8', changefreq: 'daily' },
-  { path: '/community/board', priority: '0.8', changefreq: 'daily' }
+  { path: '/community/board', priority: '0.8', changefreq: 'daily' },
+  /*
+   * 법무 고지문. **일부러 사이트맵에 넣는다** — 검색 유입을 노려서가 아니라 두 가지 이유다:
+   *   1) 구글 OAuth 동의 화면 심사가 개인정보처리방침 URL 에 접근할 수 있어야 한다. 색인 가능·발견
+   *      가능한 상태(`noindex` 없음 + 사이트맵 등재)가 그 검토를 막지 않는 가장 확실한 조합이다.
+   *   2) 두 문서는 푸터 링크로만 도달할 수 있어 크롤 깊이가 깊다. 사이트맵이 그 경로를 짧게 만든다.
+   * priority 를 최하위(0.2)로, changefreq 를 yearly 로 두는 이유: 개정이 드물고, 검색 결과에서
+   * 본문 페이지와 경쟁하면 안 된다.
+   */
+  { path: '/privacy', priority: '0.2', changefreq: 'yearly' },
+  { path: '/terms', priority: '0.2', changefreq: 'yearly' }
 ] as const;
 
 type SitemapRoute = { path: string; priority: string; changefreq: string };
@@ -279,13 +290,7 @@ const buildStaticExampleHtml = async (): Promise<string> => {
           실제 결과는 이 값과 다릅니다.
         </p>
 
-        <h2>자주 묻는 질문</h2>
-        <h3>배당 재투자(스노우볼) 효과란 무엇인가요?</h3>
-        <p>
-          받은 배당으로 같은 주식을 다시 사면 보유 주식 수가 늘고, 늘어난 주식이 다시 배당을 만듭니다. 이 과정이
-          반복되며 배당과 자산이 함께 불어나는 것을 눈덩이(스노우볼)에 빗대어 부릅니다. 이 앱은 매달 그 과정을
-          하나씩 계산해서 보여줍니다.
-        </p>
+        <h2>계산 방식에 대한 설명</h2>
         <h3>세금은 어떻게 반영되나요?</h3>
         <p>
           배당을 받을 때마다 배당소득세(기본 15.4%)를 뗀 금액을 재투자하거나 현금흐름으로 잡습니다. 전량 매도를

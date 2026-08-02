@@ -26,10 +26,24 @@ const snapshotBody = (overrides: Record<string, unknown> = {}) => ({
 });
 
 describe('marketIndices 레지스트리', () => {
-  it('심볼 목록과 표시 순서가 정의 배열과 같다', () => {
-    expect(MARKET_INDEX_SYMBOLS).toEqual(['^GSPC', '^IXIC', '^KS11', '^KQ11', '^N225']);
+  /**
+   * ⚠ **개수·전체 목록을 하드코딩하지 않는다** — 항목을 늘리는 것은 정상적인 확장이고(2026-08-02 `KRW=X`
+   * 합류), 그때마다 이 테스트가 빨개지면 "레지스트리를 고쳤으니 테스트도 고친다"는 무의미한 왕복만 남는다.
+   * 대신 **레지스트리에서 파생되지 않는 것**만 못 박는다: 지수 5종이 이 순서로 **앞쪽에** 있다는 것,
+   * 그리고 어떤 항목도 중복·빈 라벨이 아니라는 것.
+   */
+  const CORE_INDEX_SYMBOLS = ['^GSPC', '^IXIC', '^KS11', '^KQ11', '^N225'];
+
+  it('지수 5종이 정해진 표시 순서대로 목록 앞쪽에 있다', () => {
+    expect(MARKET_INDEX_SYMBOLS.slice(0, CORE_INDEX_SYMBOLS.length)).toEqual(CORE_INDEX_SYMBOLS);
     expect(MARKET_INDICES.map((definition) => definition.symbol)).toEqual([...MARKET_INDEX_SYMBOLS]);
+  });
+
+  it('모든 항목이 고유한 심볼과 비어 있지 않은 라벨을 갖는다', () => {
+    expect(new Set(MARKET_INDEX_SYMBOLS).size).toBe(MARKET_INDEX_SYMBOLS.length);
     expect(MARKET_INDICES.every((definition) => definition.label.length > 0)).toBe(true);
+    // `unit` 은 옵셔널이지만, 있다면 스크린리더가 읽을 실제 문자열이어야 한다(빈 문자열은 무음 결손).
+    expect(MARKET_INDICES.every((definition) => definition.unit === undefined || definition.unit.length > 0)).toBe(true);
   });
 
   it('모르는 심볼은 레지스트리 밖으로 판정한다', () => {
@@ -121,11 +135,15 @@ describe('parseMarketIndicesSnapshot', () => {
 
   it('requested 와 indices 의 차이로 부분 실패를 알 수 있다', () => {
     const parsed = parseMarketIndicesSnapshot(snapshotBody());
-    expect(parsed && findMissingSymbols(parsed)).toEqual(['^IXIC', '^KQ11', '^N225']);
-
-    const complete = parseMarketIndicesSnapshot(
-      snapshotBody({ requested: ['^GSPC', '^KS11'] })
+    // 기대값은 레지스트리에서 파생한다 — 지수를 늘려도 이 테스트가 낡지 않는다(개수 하드코딩 금지).
+    const present = ['^GSPC', '^KS11'];
+    expect(parsed && findMissingSymbols(parsed)).toEqual(
+      MARKET_INDEX_SYMBOLS.filter((symbol) => !present.includes(symbol))
     );
+    // 결손이 실제로 존재하는 상황인지 확인한다(레지스트리가 2종으로 줄면 이 테스트는 아무것도 안 본다).
+    expect(MARKET_INDEX_SYMBOLS.length).toBeGreaterThan(present.length);
+
+    const complete = parseMarketIndicesSnapshot(snapshotBody({ requested: present }));
     expect(complete && findMissingSymbols(complete)).toEqual([]);
   });
 

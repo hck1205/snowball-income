@@ -236,8 +236,19 @@ export const HeroNotice = styled.p`
  *
  * 페이지 hue 를 입는 세 번째 자리 — **글자 폭만큼의 밑줄**이다. 그래서 `justify-self: start`
  * (grid item 은 기본이 stretch 라 두면 밑줄이 히어로 전폭을 가로질러 구분선처럼 보인다).
+ *
+ * ⚠ **`p` 가 아니라 `div` 인 것은 의도다**(2026-08-01, 랜딩 트랙). `p` 의 콘텐츠 모델은 phrasing
+ * content 뿐이라 이 슬롯에 목록·폼을 넣으면 **DOM 이 무효**가 된다(브라우저 파서는 `p` 를
+ * 조기에 닫아 DOM 을 재구성한다). 그래서 법무 문서의 메타 목록은 `ul` 대신 `span` 으로 우회하고
+ * 있었다(`LegalDocument.styled.ts` MetaList). 시각 결과는 완전히 동일하다 — 이 요소는 grid item
+ * 이고 `margin: 0` 이라 `p` 기본 여백에 의존한 적이 없다.
+ *
+ * 🔴 그렇다고 **아무 덩어리나 담는 슬롯이 아니다.** 이 요소는 위의 밑줄·`justify-self: start`·
+ * 데이터 서체를 항상 갖는다. 자식에서 `border-bottom: none` 으로 그것을 취소할 수 없고
+ * (상속 속성이 아니다) 폭도 내용에 맞춰 줄어든다 — 랜딩이 검색 폼을 여기 넣었다가 두 증상을
+ * 모두 겪고 히어로 **밖 형제**로 내렸다(2026-08-01). 근거 pages/Landing/LandingPage/LandingPage.styled.ts.
  */
-export const HeroMeta = styled.p`
+export const HeroMeta = styled.div`
   margin: 0;
   justify-self: start;
   max-width: 100%;

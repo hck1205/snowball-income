@@ -117,7 +117,7 @@ for (let i = 0; i < argv.length; i += 1) {
  *   만약 이 코드가 열리지 않게 되면 그것 자체가 더 큰 회귀 신호다(가드는 '측정 불가'로 실패한다).
  */
 const GOAL_REACHED_SHARE =
-  '/?share=N4IgbiBcDMA0IAcqgC5QNrpAZQMIAkAREWAJgHZZoA6ANlgA5YBOagVivkAihwHZaQBdfgF94AS2QgAhlACMABgWKF8AEaylykAGMobDfAAmUEKTmlaAWjkyrMkiACmUU-ABms+AHN1c+AAtZNmoAFjEoXxAAK3D4AGsYkAAbBIBbBIA7BIB7BKRIciEhIA';
+  '/simulator?share=N4IgbiBcDMA0IAcqgC5QNrpAZQMIAkAREWAJgHZZoA6ANlgA5YBOagVivkAihwHZaQBdfgF94AS2QgAhlACMABgWKF8AEaylykAGMobDfAAmUEKTmlaAWjkyrMkiACmUU-ABms+AHN1c+AAtZNmoAFjEoXxAAK3D4AGsYkAAbBIBbBIA7BIB7BKRIciEhIA';
 
 /**
  * 기본 검사 대상. `/portfolio` 가 아니라 `/dividend/portfolio` 다(`*` 가 404 로 보낸다).
@@ -127,11 +127,30 @@ const GOAL_REACHED_SHARE =
  */
 const DEFAULT_SCENARIOS = [
   { route: '/dividend/portfolio' },
-  { route: '/' },
+  /* 🔴 시뮬레이터는 `/simulator` 다(2026-08-01 이전 완료). `/` 는 랜딩이라 여기서 재면 **다른 화면을
+     시뮬레이터의 기준선으로** 재게 된다 — 그래서 둘을 **각각** 잰다(아래 랜딩 항목). */
+  { route: '/simulator' },
+  {
+    route: '/',
+    label: '/ (랜딩)',
+    /*
+     * 🔴 **랜딩의 기준선 2 는 실측값이다**(2026-08-01, 1280·390 둘 다 2개 — 폭에 따라 뒤집히지 않는다).
+     * 내역: ①히어로 `header` gradient(rgb 222,236,246 → …) ②"앱에서 해보는 순서" 안내 블록
+     * gradient(rgb 237,245,250 → …). 전역 상한과 같은 값이라 `max` 를 생략해도 동작은 같지만,
+     * **재 봤다는 사실**을 남기려고 명시한다 — 목록에 없으면 세 번째 면이 생겨도 초록이었다.
+     *
+     * 랜딩은 이 앱에서 가장 큰 신규 지면이고 색을 얹고 싶은 유혹이 가장 큰 곳이다(FAQ 섹션 배경·
+     * 검색 패널 액센트 면 등). 🔴 3 으로 **올리지 마라** — `.claude/knowledge/decisions.md` 가
+     * "랜딩 틴트 면 정확히 2개"를 확정으로 적고 있고, 그 문장을 재는 유일한 도구가 이 항목이다.
+     */
+    max: 2
+  },
   { route: '/dividend/calendar' },
   {
+    /* 🔴 경로는 `/simulator?share=` 다 — 2026-08-01 에 `/` 의 리다이렉트를 걷어냈으므로 구 `/?share=`
+       로 두면 이 항목이 **랜딩을 재고** 목표 도달 화면은 아무도 안 재는 상태가 된다(그때도 초록이라 조용하다). */
     route: GOAL_REACHED_SHARE,
-    label: '/ (목표 도달 + 종합과세 경고)',
+    label: '/simulator?share=… (목표 도달 + 종합과세 경고)',
     /*
      * 🔴 3 은 **선재 부채**이고 이 시나리오의 기준선이다(2026-07-31 리뷰 B1 수리 시점 실측).
      * 내역: ①히어로 gradient-hero ②hero 타일 accent-subtle ③종합과세 warning 배너.
@@ -200,8 +219,13 @@ const launch = async () => {
     process.exit(1);
   }
 
-  // uiprobe 와 프로파일을 나눈다 — 두 도구를 동시에 돌려도 서로의 세션을 잠그지 않는다.
-  const profile = resolve('node_modules/.cache/tintscan-profile');
+  /*
+   * uiprobe 와 프로파일을 나눈다 — 두 도구를 동시에 돌려도 서로의 세션을 잠그지 않는다.
+   * ⚠ **포트까지 경로에 넣는다.** 한 프로파일은 한 크롬 인스턴스만 잠그므로, `--port` 만 나눠서는
+   *   병렬 트랙 중 뒤에 뜬 쪽이 'CDP 가 뜨지 않았다' 로 죽는다(스크립트 버그처럼 보인다).
+   *   overflowprobe 의 `overflowprobe-profile-${PORT}` 와 같은 어법이다.
+   */
+  const profile = resolve(`node_modules/.cache/tintscan-profile-${port}`);
   mkdirSync(profile, { recursive: true });
   child = spawn(
     browser,

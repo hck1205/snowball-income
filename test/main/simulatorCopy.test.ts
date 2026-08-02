@@ -29,6 +29,17 @@ describe('SIMULATOR_COPY — 확정 문자열', () => {
     expect(SIMULATOR_COPY.heroTitle).toBe('배당 시뮬레이터');
     expect(SIMULATOR_COPY.heroLede).toBe('포트폴리오와 투자 조건을 넣으면 장기 배당 현금흐름을 계산합니다.');
   });
+
+  /**
+   * 문서 메타 — `/` 가 시뮬레이터이던 시절 `index.html` 에서 회수한 문구다(지어낸 것이 아니다).
+   * 🔴 제목의 "배당 재투자 시뮬레이터"는 이 사이트의 주력 검색어라 축약 대상이 아니다.
+   */
+  it('문서 메타 제목·설명', () => {
+    expect(SIMULATOR_COPY.meta.title).toBe('배당 재투자 시뮬레이터 — 배당 계산기');
+    expect(SIMULATOR_COPY.meta.description).toBe(
+      'SCHD·JEPI 같은 배당주·ETF로 포트폴리오를 구성하고 배당 재투자 효과를 시뮬레이션합니다. 목표 월 배당 도달 시점, 세후 현금흐름, 전량 매도 시 양도세까지 계산합니다. 가정을 그대로 계산해 보여주는 도구이며 투자 자문이 아닙니다.'
+    );
+  });
 });
 
 /**
@@ -42,10 +53,42 @@ describe('SIMULATOR_COPY — 확정 문자열', () => {
 const BANNED_DIRECTIONS = ['좌측', '왼쪽', '우측', '오른쪽'];
 const BANNED_METAPHORS = ['눈덩이', '스노우볼'];
 
+/**
+ * 카피 트리의 **모든 문자열 잎**을 `경로: 문장` 으로 편다. 최상위 값만 훑으면 중첩된 묶음
+ * (`meta.title` 등)이 금지어 검사에서 통째로 빠진다 — 부재 계약은 늘어난 카피를 자동으로
+ * 덮어야 의미가 있다.
+ */
+const flattenCopy = (value: unknown, path = ''): [string, string][] => {
+  if (typeof value === 'string') return [[path, value]];
+  if (value && typeof value === 'object') {
+    return Object.entries(value).flatMap(([key, child]) =>
+      flattenCopy(child, path ? `${path}.${key}` : key)
+    );
+  }
+  return [];
+};
+
+const SIMULATOR_COPY_LEAVES = flattenCopy(SIMULATOR_COPY);
+
 describe('시뮬레이터 카피 — 금지 표현 부재', () => {
+  it('가드가 빈 목록을 훑고 통과하지 않는다', () => {
+    expect(SIMULATOR_COPY_LEAVES.length).toBeGreaterThanOrEqual(8);
+    expect(SIMULATOR_COPY_LEAVES.map(([path]) => path)).toContain('meta.description');
+  });
+
   it('SIMULATOR_COPY 에 방향어가 없다', () => {
-    const offenders = Object.entries(SIMULATOR_COPY).filter(([, text]) =>
+    const offenders = SIMULATOR_COPY_LEAVES.filter(([, text]) =>
       BANNED_DIRECTIONS.some((word) => text.includes(word))
+    );
+
+    expect(offenders).toEqual([]);
+  });
+
+  it('🔴 SIMULATOR_COPY 에 눈덩이/스노우볼 비유가 없다 — 문서 메타 포함', () => {
+    // 회수한 index.html 원문에는 "배당 재투자(스노우볼) 효과"가 있었다. 브랜드명 외 비유는 금지라
+    // 그 삽입구만 뺐고, 다시 들어오면 여기서 걸린다.
+    const offenders = SIMULATOR_COPY_LEAVES.filter(([, text]) =>
+      BANNED_METAPHORS.some((word) => text.includes(word))
     );
 
     expect(offenders).toEqual([]);

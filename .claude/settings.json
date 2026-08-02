@@ -11,6 +11,19 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/styled-backtick-check.mjs",
+            "timeout": 20,
+            "statusMessage": "styled 백틱 검사..."
+          }
+        ]
+      }
     ]
   }
 }

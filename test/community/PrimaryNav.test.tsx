@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
@@ -18,6 +18,22 @@ vi.mock('@/shared/lib/supabase', async (importOriginal) => {
   };
 });
 
+/**
+ * 가계부 링크도 같은 방식이다 — `isGoogleSheetsEnabled`(VITE_GOOGLE_* 셋 다 있음)가 false 면
+ * `router/routes.tsx` 의 `/ledger` 라우트가 아예 없어서 메뉴만 남으면 404 로 가는 죽은 링크가 된다.
+ * 테스트 env 는 비어 있어 기본이 false 다 — 켜진 동작을 보려면 여기서도 가변 게터로 목킹한다.
+ */
+let ledgerEnabled = true;
+vi.mock('@/shared/lib/googleSheets', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/shared/lib/googleSheets')>();
+  return {
+    ...actual,
+    get isGoogleSheetsEnabled() {
+      return ledgerEnabled;
+    }
+  };
+});
+
 // 목킹 이후에 import 해야 목이 적용된다.
 const { PrimaryNav } = await import('@/components/PrimaryNav');
 
@@ -29,6 +45,12 @@ const renderAt = (path: string) =>
   );
 
 describe('PrimaryNav', () => {
+  // 두 플래그는 테스트마다 명시하지만, 앞 테스트가 끈 값이 새는 일을 막으려 기본을 켜 둔다.
+  beforeEach(() => {
+    communityEnabled = true;
+    ledgerEnabled = true;
+  });
+
   it('워드마크는 홈(/)으로 가는 하나의 링크다', () => {
     communityEnabled = true;
     renderAt('/community');
@@ -159,8 +181,9 @@ describe('PrimaryNav', () => {
    * 구 "목표 달성"(/dividend/goal) 항목은 내 포트폴리오 화면의 목표 카드로 흡수되면서 사라졌다 —
    * 같은 이야기를 두 항목이 하지 않는다.
    */
-  it('라우트 링크는 6개이고 시뮬레이터 → 내 포트폴리오 → 배당 캘린더 순이다', () => {
+  it('라우트 링크는 7개이고 시뮬레이터 → 내 포트폴리오 → 가계부 → 배당 캘린더 순이다', () => {
     communityEnabled = true;
+    ledgerEnabled = true;
     renderAt('/dividend/portfolio');
 
     // 라우트 링크만 aria-label을 갖는다(브랜드 링크는 워드마크 텍스트가 이름) — 순서 = 예상 관심도(확정 결정).
@@ -172,12 +195,42 @@ describe('PrimaryNav', () => {
     expect(names).toEqual([
       '시뮬레이터',
       '내 포트폴리오',
+      '가계부',
       '배당 캘린더',
       '포트폴리오 갤러리',
       '게시판',
       'ETF 소개'
     ]);
     expect(screen.queryByRole('link', { name: '목표 달성' })).not.toBeInTheDocument();
+  });
+
+  /*
+   * 🔴 가계부 라우트(`/ledger`)는 `isGoogleSheetsEnabled` 가 false 면 존재하지 않는다(routes.tsx).
+   * 메뉴만 남으면 404 로 가는 죽은 링크라, 라우트와 **같은 플래그**로 갈리는지 양쪽 상태를 본다.
+   */
+  it('가계부 비활성 배포에선 가계부 링크를 렌더하지 않는다 (죽은 링크 금지)', () => {
+    communityEnabled = true;
+    ledgerEnabled = false;
+    renderAt('/dividend/portfolio');
+
+    expect(screen.queryByRole('link', { name: '가계부' })).not.toBeInTheDocument();
+    // 나머지 메뉴는 그대로 — 플래그가 다른 항목을 건드리지 않는다.
+    expect(screen.getByRole('link', { name: '내 포트폴리오' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'ETF 소개' })).toBeInTheDocument();
+  });
+
+  it('가계부(/ledger)에선 그 링크만 활성이다', () => {
+    communityEnabled = true;
+    ledgerEnabled = true;
+    renderAt('/ledger');
+
+    expect(screen.getByRole('link', { name: '가계부' })).toHaveAttribute('href', '/ledger');
+    expect(screen.getByRole('link', { name: '가계부' })).toHaveAttribute('aria-current', 'page');
+    // 같은 hue(accentAlt)를 공유해도 활성 표시는 서로 배타다 — 사용자는 현재 위치를 잃으면 안 된다.
+    expect(screen.getByRole('link', { name: '내 포트폴리오' })).not.toHaveAttribute('aria-current');
+
+    const current = screen.getAllByRole('link').filter((link) => link.getAttribute('aria-current') === 'page');
+    expect(current).toHaveLength(1);
   });
 
   it('커뮤니티 비활성 배포에서도 내 포트폴리오·배당 캘린더 링크는 남는다', () => {

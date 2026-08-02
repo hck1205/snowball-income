@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import type { PageFooterProps } from './PageFooter.types';
-import { FooterRoot, Note, NotesGroup, NotesTitle, SiteNotice } from './PageFooter.styled';
+import { FooterRoot, LegalLink, LegalLinks, Note, NotesGroup, NotesTitle, SiteNotice } from './PageFooter.styled';
 
 /**
  * 전 화면 공용 푸터 — **페이지별 각주 슬롯 + 사이트 공통 고지**.
@@ -14,11 +14,11 @@ import { FooterRoot, Note, NotesGroup, NotesTitle, SiteNotice } from './PageFoot
  * 계산한 예상일입니다" 같은 문장은 그 화면에서만 참이고, 면책 문구는 법적 성격이 있어 비슷하다는
  * 이유로 뭉뚱그릴 수 없다. 그래서 페이지 문구는 `notes` 슬롯으로 **원문 그대로** 들어온다.
  *
- * ## 법무 문서 링크 — 아직 없다
- * 개인정보처리방침·이용약관 초안은 작성됐지만 미확정 사실(리전·보존기간 등)이 본문에 남아 있어
- * **가계부 브랜치와 함께 보류**했다. 링크는 그 문서가 확정돼 라우트가 생길 때 붙인다 —
- * 없는 페이지로 가는 링크는 404 보다 나쁘다. `PageFooter.styled` 의 `LegalLinks`/`LegalLink` 는
- * 그때 쓰려고 남겨 둔 것이다.
+ * ## 법무 문서 링크
+ * 개인정보처리방침(`/privacy`)·이용약관(`/terms`)으로 가는 유일한 상시 진입점이다. 헤더 nav 에는
+ * 넣지 않는다 — 읽으러 오는 문서가 아니라 **필요할 때 찾을 수 있어야 하는** 문서라 자리는 푸터가 맞다.
+ * 두 문서는 소셜 로그인·커뮤니티·클라우드 저장을 쓰는 사용자에게 실제로 적용되고, 구글 OAuth 동의
+ * 화면 심사도 방침 URL 을 직접 연다.
  *
  * ⚠ **`react-router` 의 `Link` 가 아니라 평범한 `a` 다.** 이 컴포넌트는 `MainPage` 가 렌더하고,
  * `MainPage` 를 Router 없이 마운트하는 테스트가 수십 개 있다(test/main/*). `Link` 를 쓰면 공용
@@ -42,6 +42,15 @@ const CAPTURE_EXCLUDE = 'data-capture-exclude';
 const SITE_NOTICE =
   '무료 배당 재투자 시뮬레이션 계산기입니다. 입력한 가정을 계산해 보여줄 뿐, 투자 자문이 아니며 참고용입니다. 비영리 개인 프로젝트로 유료 기능·광고가 없습니다.';
 
+/**
+ * 법무 문서 링크. 경로는 `router/routes.tsx` 의 `/privacy`·`/terms` 와 짝이고,
+ * `PageFooter.test.ts` 가 이 href 계약을 지킨다(주소가 바뀌면 심사·고지 링크가 함께 죽는다).
+ */
+const LEGAL_LINKS = [
+  { href: '/privacy', label: '개인정보처리방침' },
+  { href: '/terms', label: '이용약관' }
+] as const;
+
 function PageFooterComponent({ notesTitle, notes, 'aria-label': ariaLabel = '사이트 고지' }: PageFooterProps) {
   const hasNotes = (notes?.length ?? 0) > 0;
 
@@ -59,6 +68,14 @@ function PageFooterComponent({ notesTitle, notes, 'aria-label': ariaLabel = '사
       ) : null}
 
       <SiteNotice>{SITE_NOTICE}</SiteNotice>
+
+      <LegalLinks aria-label="법적 고지 문서">
+        {LEGAL_LINKS.map(({ href, label }) => (
+          <LegalLink key={href} href={href}>
+            {label}
+          </LegalLink>
+        ))}
+      </LegalLinks>
     </FooterRoot>
   );
 }

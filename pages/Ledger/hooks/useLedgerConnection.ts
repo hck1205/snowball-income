@@ -12,7 +12,7 @@ import {
   saveSheetLink,
   suggestColumnMapping,
   validateColumnMapping,
-  APP_SHEET_TAB_TITLE
+  APP_SPREADSHEET_TITLE
 } from '@/shared/lib/googleSheets';
 import type {
   ColumnMapping,
@@ -20,6 +20,7 @@ import type {
   LedgerError,
   LedgerSnapshot,
   SheetLink,
+  SheetTabMeta,
   SheetsRequestContext,
   UnreadableRow
 } from '@/shared/lib/googleSheets';
@@ -61,6 +62,14 @@ export type LedgerConnection = {
   phase: LedgerPhase;
   showCheckingSkeleton: boolean;
   link: SheetLink | null;
+  /**
+   * 연결한 파일의 탭 목록. **메모리에만 산다** — 탭 제목은 준PII 라 로컬에 저장하지 않고,
+   * 연결(또는 탭 전환)할 때마다 `connectSpreadsheet` 응답에서 다시 받는다.
+   * 연결 전에는 빈 배열이다.
+   */
+  tabs: readonly SheetTabMeta[];
+  /** 탭을 바꾸는 중(연결 재수립 + 스냅샷 재조회). 그동안 탭 선택은 비활성이다. */
+  isTabSwitching: boolean;
   snapshot: LedgerSnapshot | null;
   readAt: Date | null;
   isFirstLoad: boolean;
@@ -83,6 +92,15 @@ export type LedgerConnection = {
 
   pickExistingSheet: () => void;
   createSheet: () => void;
+  /**
+   * 같은 파일의 다른 탭으로 옮긴다(B-1).
+   *
+   * 🔴 **호출부가 안전 조건을 먼저 확인한다** — 폼이 열려 있거나 저장 실패 대기열이 남아 있으면
+   * 부르지 마라. 대기열 재시도는 **그때의** `connection.link` 로 추가(append)하므로, 탭이 바뀐 뒤에
+   * 재시도하면 다른 탭에 행이 들어간다(`useLedgerWrite.runCreate`). 수정·삭제는 `guardRowRef` 가
+   * 옛 스냅샷 참조를 막지만 **추가에는 행 참조가 없어** 그 방어선이 없다.
+   */
+  switchTab: (sheetId: number) => void;
   changeMapping: (field: LedgerFieldId, letter: string | null) => void;
   confirmMapping: () => void;
   reconnect: (onRestored?: () => void) => void;
@@ -160,6 +178,8 @@ export function useLedgerConnection(): LedgerConnection {
   const [phase, setPhase] = useState<LedgerPhase>('idle');
   const [showCheckingSkeleton, setShowCheckingSkeleton] = useState(false);
   const [link, setLink] = useState<SheetLink | null>(null);
+  const [tabs, setTabs] = useState<readonly SheetTabMeta[]>([]);
+  const [isTabSwitching, setIsTabSwitching] = useState(false);
   const [snapshot, setSnapshot] = useState<LedgerSnapshot | null>(null);
   const [readAt, setReadAt] = useState<Date | null>(null);
   const [isFirstLoad, setIsFirstLoad] = useState(false);
@@ -245,9 +265,15 @@ export function useLedgerConnection(): LedgerConnection {
     [applyError, readContext]
   );
 
-  /** 연결 확정 — 로컬에 연결 정보를 남기고 첫 스냅샷을 읽는다. */
+  /**
+   * 연결 확정 — 로컬에 연결 정보를 남기고 첫 스냅샷을 읽는다.
+   *
+   * 🔴 저장 페이로드는 예나 지금이나 `spreadsheetId + sheetId + mapping + createdByApp` 뿐이다
+   * (탭 목록·탭 제목은 저장하지 않는다). `saveSheetLink` 는 **같은 파일의 같은 탭**만 덮어쓰므로,
+   * 탭을 옮기며 연결하면 항목이 하나씩 **늘어난다** — 예전 항목은 손대지 않는다.
+   */
   const finalize = useCallback(
-    async (nextLink: SheetLink, options: { created: boolean }) => {
+    async (nextLink: SheetLink, options: { created: boolean; tabs: readonly SheetTabMeta[] }) => {
       saveSheetLink({
         spreadsheetId: nextLink.spreadsheetId,
         sheetId: nextLink.sheetId,
@@ -257,6 +283,7 @@ export function useLedgerConnection(): LedgerConnection {
       storedLinksRef.current = loadSheetLinks();
 
       setLink(nextLink);
+      setTabs(options.tabs);
       setSession(null);
       setState('connected');
       setShowCreatedNotice(options.created);
@@ -321,10 +348,11 @@ export function useLedgerConnection(): LedgerConnection {
       }
 
       if (connected.value.status === 'linked') {
-        await finalize(connected.value.link, { created: false });
+        await finalize(connected.value.link, { created: false, tabs: connected.value.tabs });
         return;
       }
 
+      setTabs(connected.value.tabs);
       const suggestion = suggestColumnMapping(connected.value.headers);
       const draft = toMappingDraft(suggestion.mapping);
       setSession({
@@ -352,7 +380,9 @@ export function useLedgerConnection(): LedgerConnection {
       const context = await acquireToken();
       if (context === null) return;
 
-      const created = await createLedgerSheet(context, { title: APP_SHEET_TAB_TITLE });
+      // 🔴 파일 이름은 탭 제목과 다르다 — 드라이브에서 다른 문서들과 섞이므로 앱 이름이 앞에 붙는다
+      //    (`APP_SPREADSHEET_TITLE` 주석 참고). 탭 제목은 `createLedgerSheet` 안에서 따로 붙는다.
+      const created = await createLedgerSheet(context, { title: APP_SPREADSHEET_TITLE });
       if (!isMountedRef.current) return;
 
       if (!created.ok) {
@@ -360,7 +390,11 @@ export function useLedgerConnection(): LedgerConnection {
         applyError(created.error);
         return;
       }
-      await finalize(created.value, { created: true });
+      // 방금 만든 파일은 탭이 하나뿐이다 — 메타를 다시 읽지 않고 그 한 탭을 그대로 목록으로 쓴다.
+      await finalize(created.value, {
+        created: true,
+        tabs: [{ sheetId: created.value.sheetId, title: created.value.sheetTitle }]
+      });
     })();
   }, [acquireToken, applyError, finalize]);
 
@@ -460,9 +494,72 @@ export function useLedgerConnection(): LedgerConnection {
         setPhase('idle');
         return;
       }
-      await finalize(connected.value.link, { created: false });
+      await finalize(connected.value.link, { created: false, tabs: connected.value.tabs });
     })();
   }, [acquireToken, applyError, finalize, readContext, session]);
+
+  /* ── B-1 탭 전환 ─────────────────────────────────────────────────────────── */
+
+  /**
+   * 같은 파일의 다른 탭으로 옮긴다.
+   *
+   * 🔴 월 커서는 건드리지 않는다 — 두 탭에서 **같은 달**을 비교하는 것이 이 기능의 사용 흐름이다
+   * (`useLedgerMonth` 는 스냅샷이 바뀌어도 커서를 유지한다).
+   * ⚠ 저장된 매핑이 있으면 곧바로 `linked` 로 돌아와 스냅샷을 읽고, 없으면 **기존 매핑 세션**을
+   * 그대로 재사용한다(연결 흐름과 같은 화면 — 탭 전용 매핑 화면을 새로 만들지 않는다).
+   */
+  const switchTab = useCallback(
+    (sheetId: number) => {
+      if (link === null || link.sheetId === sheetId) return;
+
+      const context = readContext();
+      if (context === null) {
+        // 토큰이 없으면 읽을 수 없다 — 만료 배너가 재연결을 안내한다(여기서 팝업을 열지 않는다).
+        setIsExpired(true);
+        return;
+      }
+
+      setConnectError(null);
+      setIsTabSwitching(true);
+      const spreadsheetId = link.spreadsheetId;
+
+      void (async () => {
+        const stored = storedLinksRef.current.find(
+          (item) => item.spreadsheetId === spreadsheetId && item.sheetId === sheetId
+        );
+        const connected = await connectSpreadsheet(context, { spreadsheetId, sheetId, mapping: stored?.mapping });
+        if (!isMountedRef.current) return;
+
+        setIsTabSwitching(false);
+        if (!connected.ok) {
+          applyError(connected.error);
+          return;
+        }
+
+        if (connected.value.status === 'linked') {
+          await finalize(connected.value.link, { created: false, tabs: connected.value.tabs });
+          return;
+        }
+
+        setTabs(connected.value.tabs);
+        const suggestion = suggestColumnMapping(connected.value.headers);
+        setSession({
+          spreadsheetId: connected.value.spreadsheetId,
+          sheetId: connected.value.sheetId,
+          sheetTitle: connected.value.sheetTitle,
+          columns: toColumnOptions(connected.value.headers),
+          draft: toMappingDraft(suggestion.mapping),
+          matchedCount: Object.keys(suggestion.mapping).length,
+          previewRows: [],
+          allUnreadable: false,
+          isPreviewLoading: false
+        });
+        setState('mapping');
+        setPhase('idle');
+      })();
+    },
+    [applyError, finalize, link, readContext]
+  );
 
   /* ── §4.7 재연결 · §4.10 새로고침 ────────────────────────────────────────── */
 
@@ -517,6 +614,8 @@ export function useLedgerConnection(): LedgerConnection {
     // `checking` 을 벗어나면 늦게 도착한 타이머가 켜 놓은 값이 남아도 화면에는 나오지 않는다.
     showCheckingSkeleton: state === 'checking' && showCheckingSkeleton,
     link,
+    tabs,
+    isTabSwitching,
     snapshot,
     readAt,
     isFirstLoad,
@@ -534,6 +633,7 @@ export function useLedgerConnection(): LedgerConnection {
     markPopupBlocked,
     pickExistingSheet,
     createSheet,
+    switchTab,
     changeMapping,
     confirmMapping,
     reconnect,

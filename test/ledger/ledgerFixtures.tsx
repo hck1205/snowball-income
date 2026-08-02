@@ -59,12 +59,25 @@ export const TWO_ROWS: LedgerRowModel[] = [
 ];
 
 export const baseViewModel = (overrides: Partial<LedgerViewModel> = {}): LedgerViewModel => ({
+  /**
+   * 기본값은 **앱 로그인을 마친 사용자**다 — 기존 화면 상태 테스트가 전부 그 전제 위에 서 있다.
+   * 🔴 로그인 게이트 자체를 검증하는 테스트는 `ledgerAppSignIn.test.tsx` 가 이 값을 덮어 쓴다.
+   */
+  appAuth: { isReady: true, isLoggedIn: true },
+
   state: 'connected',
   phase: 'idle',
   showCheckingSkeleton: false,
-  sheetMetaLine: '연결한 시트 우리집 가계부 · 09:30에 읽었습니다',
   sheetUrl: 'https://docs.google.com/spreadsheets/d/abc/edit',
   sheetName: '우리집 가계부',
+  /* 기본값은 **탭 1개** — 기존 화면 테스트는 탭 선택이 없던 시절의 화면을 그대로 본다. */
+  tabPicker: {
+    options: [{ sheetId: 0, title: '우리집 가계부' }],
+    currentSheetId: 0,
+    currentTitle: '우리집 가계부',
+    blockedReason: null,
+    isSwitching: false
+  },
 
   monthLabel: '2026년 8월',
   prevMonthLabel: '2026년 7월',
@@ -72,6 +85,26 @@ export const baseViewModel = (overrides: Partial<LedgerViewModel> = {}): LedgerV
   thisMonthLabel: '2026년 8월',
   isCurrentMonth: true,
   latestMonthLabel: null,
+
+  /* B-2 기본값 = 한 번 읽었고, 다시 읽는 중이 아니며, 429 대기도 변경 안내도 없는 화면. */
+  freshness: { readAtText: '09:30 기준', isRefreshing: false, retrySeconds: null, hasUpdate: false },
+
+  /* B-4 기본값 = **꺼짐**(확정 결정). 기존 화면 테스트는 배당 카드가 없던 시절의 화면을 그대로 본다. */
+  dividend: { isOn: false, body: null },
+
+  /*
+   * B-3 기본값 = **링크 1개**(진입점 없음, AC3-1). 기존 화면 테스트는 블렌딩이 없던 시절의 화면을
+   * 그대로 본다 — 블렌딩을 검증하는 테스트가 이 값을 덮어 쓴다.
+   */
+  blend: {
+    isAvailable: false,
+    isOn: false,
+    hasConfig: false,
+    setup: null,
+    model: null,
+    openableSources: [],
+    openBlockedReason: null
+  },
 
   summary: SUMMARY_WITH_ROWS,
   rows: TWO_ROWS,
@@ -110,10 +143,21 @@ export const renderLedgerView = (
 ): { handlers: LedgerHandlers } & ReturnType<typeof render> => {
   const handlers = {
     onFocusAfterRemoveHandled: vi.fn(),
+    onSignIn: vi.fn(),
     onPickExistingSheet: vi.fn(),
     onCreateSheet: vi.fn(),
     onMappingChange: vi.fn(),
     onConfirmMapping: vi.fn(),
+    onSelectTab: vi.fn(),
+    onToggleDividendOverlay: vi.fn(),
+    onToggleBlend: vi.fn(),
+    onToggleBlendSetup: vi.fn(),
+    onChangeBlendSource: vi.fn(),
+    onChangeBlendLabel: vi.fn(),
+    onSubmitBlendSetup: vi.fn(),
+    onClearBlend: vi.fn(),
+    onReloadBlend: vi.fn(),
+    onOpenBlendSource: vi.fn(),
     onPrevMonth: vi.fn(),
     onNextMonth: vi.fn(),
     onThisMonth: vi.fn(),

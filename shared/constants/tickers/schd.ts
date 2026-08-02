@@ -12,6 +12,9 @@ import type { TickerContent } from './TickerContent.types';
  *   섹터 비중 순서)는 2026년 7월 조사 시점 기준이며 `reference.asOfNote`에 그대로 고지했다.
  * - 대표 보유 종목(top holdings)은 분기 리밸런싱마다 바뀌고 이번 조사에서 신뢰할 단일 현재값을
  *   확인하지 못해 **의도적으로 비워 두었다** — 채우려면 ticker-data-curator의 검증을 거칠 것.
+ *   ⚠ 2026-08-02 재시도에서도 채우지 못했다: 슈왑(schwabassetmanagement.com)이 상품 페이지·전체
+ *   보유 종목 경로 모두 **403**을 돌려준다. 발행사 공식 소스가 열리기 전까지는 계속 비워 둔다
+ *   (2·3차 소스로 채우면 그 순간 출처 대조가 불가능해진다). 같은 이유로 SCHY도 비어 있다.
  */
 export const SCHD_TICKER_CONTENT: TickerContent = {
   ticker: 'SCHD',

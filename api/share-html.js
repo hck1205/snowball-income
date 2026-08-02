@@ -5356,7 +5356,15 @@ var WORDMARK_DARK = {
   "wordmark-income-solid": auroraTeal2[600]
 };
 var IDENTITY_LIGHT = {
-  identity: brand2[600],
+  /*
+   * 🔴 `brand[600]` 이 아니다 — velog(기본 프리셋) 라이트의 `accent` 가 **같은 슬롯**(`brand[600]`)을
+   * 뽑아 두 토큰의 ΔE 가 **0.0** 이었다. 그러면 "페이지마다 얼굴색" 설계가 기본 화면에서 통째로
+   * no-op 이 되고, 랜딩이 파랑·초록 2색으로만 보인다(2026-08-01 랜딩 리워크에서 실측으로 재확인).
+   *
+   * `brand[700]` 은 ΔE 가 더 크지만(8.7 vs 6.1) 아래 `identity-text` 와 **같은 값이 되어**
+   * 채움과 라벨이 한 값으로 붕괴한다 — 역할 분리를 하려다 다른 역할을 붙이는 셈이라 기각했다.
+   */
+  identity: brand2[500],
   "identity-subtle": brand2[50],
   "identity-border": brand2[200],
   "identity-text": brand2[700]

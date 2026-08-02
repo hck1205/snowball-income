@@ -19,10 +19,23 @@
  */
 const DEFINITIONS = [
   { symbol: '^GSPC', label: 'S&P 500' },
+  /*
+   * ⚠ 짧은 이름(`shortLabel`)은 **없다.** 헤더 축소형 전용이었는데 2026-08-02 사용자 결정으로
+   * 헤더 배치가 최종 기각되면서 필드째 제거했다(근거는 `components/MarketIndexStrip/MarketIndexStrip.tsx`
+   * 상단 주석의 폭 실측). 좁은 표면이 다시 생기면 그때 축약 규칙부터 새로 정하라 —
+   * 소비처 없는 데이터를 남겨 두면 "그 배치가 아직 열려 있다"는 잘못된 신호가 된다.
+   */
   { symbol: '^IXIC', label: '나스닥 종합' },
   { symbol: '^KS11', label: '코스피' },
   { symbol: '^KQ11', label: '코스닥' },
-  { symbol: '^N225', label: '니케이225' }
+  { symbol: '^N225', label: '니케이225' },
+  /*
+   * 🔴 **환율이지 지수가 아니다**(2026-08-02 사용자 요청으로 이 스트립에 합류).
+   * 야후 chart API 는 `KRW=X` 로 원/달러를 같은 형태의 응답으로 준다 — 조회·파싱 경로를 그대로 쓴다.
+   * 다만 단위가 다르다: 지수는 "포인트", 이건 **원**이다. 스크린리더 낭독이 "1,436.60 포인트"가 되면
+   * 거짓이라 `unit` 을 따로 준다(화면은 원래 숫자만 보여주므로 시각 표시는 그대로다).
+   */
+  { symbol: 'KRW=X', label: '원/달러', unit: ' 원' }
 ] as const;
 
 /** 레지스트리가 다루는 심볼 유니온 — `DEFINITIONS` 에서 파생된다(한 줄 추가로 자동 확장). */
@@ -32,6 +45,11 @@ export type MarketIndexDefinition = {
   symbol: MarketIndexSymbol;
   /** 화면에 그대로 쓰는 표기. 통화·현재가는 upstream 이 주므로 여기 두지 않는다. */
   label: string;
+  /**
+   * **스크린리더에만** 붙는 단위. 없으면 기본값(`MARKET_INDEX_COPY.unit` = ' 포인트').
+   * 화면에는 어느 쪽도 표시하지 않는다 — 시각 표시는 숫자뿐이라는 규칙이 그대로다.
+   */
+  unit?: string;
 };
 
 /** 표시 순서를 포함한 전체 정의. */

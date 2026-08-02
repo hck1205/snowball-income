@@ -37,6 +37,23 @@
  * - **세로 오버플로.** 이 도구는 가로만 본다.
  * - **스크롤 컨테이너의 도달성.** 가로 스크롤러가 키보드로 조작 가능한지는 별개 문제다
  *   (Chrome 127+ 는 스크롤러를 기본 포커서블로 만든다 — 그 이전 브라우저에선 `tabindex="0"` 이 필요하다).
+ *   앱의 처방은 **`tabindex="0"` + `role="region"` + 접근명**으로 통일돼 있고, 그건 여기가 아니라
+ *   RTL 이 잠근다(test/dividendCalendar/calendarLegendTable.behavior.test.tsx · test/legal/legalTableScroller.test.tsx).
+ *
+ * ## 재기 전에 만드는 상태 (빈 화면을 재는 것은 통과가 아니다)
+ * - **보유 종목 시드**(IndexedDB) — `/dividend/portfolio` 용.
+ * - **캘린더 선택 시드**(IndexedDB) — 선택 0종이면 `/dividend/calendar` 는 상세 카드를 아예
+ *   그리지 않아 그 안의 표가 DOM 에 없다.
+ * - **접힌 `<details>` 전부 펼치기** — 기본 접힘인 표·목록은 스캔 시점에 존재하지 않는다.
+ *
+ * - **충분한 대기**(`--wait`, 기본 6,500ms — 라우트별 렌더 실측은 `DEFAULT_WAIT_MS` 주석). 짧으면
+ *   로딩 스켈레톤을 재고 "0건"이라 말한다. 그래서 스캔은 **검사한 요소 수를 항상 출력**하고,
+ *   비어 있으면 8초 더 기다렸다 다시 본 뒤 그래도 비면 **실패**한다(`MIN_INSPECTED_ELEMENTS`).
+ *   "0건"이 결함 없음인지 빈 화면인지 사람이 로그만 보고 구분할 수 있어야 한다.
+ *
+ * 🔴 위 둘이 없어서 2026-08-01 에 실제 결함을 놓쳤다: `/dividend/calendar` 의 지급 월 표가
+ * 카드를 뚫고 문서를 390 → 587 로 늘리고 있었는데 가드는 그 라우트를 "0건"으로 통과시켰다.
+ * **가드가 만들지 않은 상태는 가드가 본 적 없는 상태다.**
  *
  * ## 허용 목록 (의도적 가로 스크롤)
  * `INTENTIONAL_SCROLLERS` 에 **근거와 함께** 적혀 있다. 목록에 없는 새 스크롤 컨테이너가 나타나면
@@ -85,6 +102,86 @@ const OVERFLOW_TOLERANCE = 2;
 const OFFENDER_TOLERANCE = 1;
 
 /**
+ * 라우트 하나를 열고 스캔하기까지 기다리는 기본 시간(ms). **실측으로 정한 값이다 — 바꾸기 전에 아래를 읽어라.**
+ *
+ * ## 2026-08-01 실측 — "6.5초가 모자라다"는 제보는 재현되지 않았다
+ *
+ * 페이지 안에 MutationObserver 기록기를 심어(레이아웃을 강제하지 않는 지문만 기록) 콜드 vite dev
+ * 서버에서 라우트별 렌더 완료 시각을 쟀다. **최종 요소 수의 95% 도달** / **마지막 DOM 변화** 기준(ms):
+ *
+ * | 라우트                 | 390px 95%도달 | 390px 마지막변화 | 360px 95%도달 |
+ * |-----------------------|--------------|-----------------|--------------|
+ * | `/`                   | 2,273        | 3,163           | 1,535        |
+ * | `/simulator`          | 1,151        | 1,385           | 1,178        |
+ * | `/dividend/portfolio` | 1,856        | 1,932           | 1,054        |
+ * | `/dividend/calendar`  | 1,439        | 1,439           | 1,006        |
+ * | `/ticker/all`         |   771        |   931           |   718        |
+ * | `/community/portfolio`| 1,309        | 1,309           |   912        |
+ *
+ * 14초를 관찰해도 3.2초 이후로는 **DOM 이 한 번도 변하지 않았다.** 6,500ms 는 최악(3,163ms)의 2배다.
+ *
+ * 🔴 **관찰자 효과 주의(이 측정을 다시 할 사람에게).** 첫 시도는 CDP 로 100ms 마다 `innerText` 를 읽는
+ * 방식이었는데, 그 리플로 강제가 메인 스레드를 잡아먹어 같은 라우트가 **1.9초 → 6.9초**로 보였다.
+ * 그 수치를 믿고 기본값을 9,000ms 로 올릴 뻔했다 — **측정 도구가 만든 지연을 앱의 지연으로 읽지 마라.**
+ *
+ * 감도 확인도 했다: `--wait 3000` 으로 콜드 서버 + **CPU 14코어 점유** 상태에서 돌려도 12개 조합 전부
+ * 완성 화면(요소 500~1,348개)이 잡혔다 — 짧은 대기와 긴 대기의 결과가 같았다. 그래서 **올리지 않았다.**
+ * 대신 진짜 위험(대기가 모자라 빈 화면을 재고도 `✓ 0건`이라 말하는 것)은 값이 아니라 **구조**로 막는다:
+ * 스캔한 요소 수를 항상 출력하고, 비어 있으면 `RESCAN_WAIT_MS` 만큼 더 기다렸다가 한 번 더 본 뒤
+ * 그래도 비면 **실패**시킨다(`MIN_INSPECTED_ELEMENTS`). 이러면 느린 환경은 스스로 낫고, 정말 못 본
+ * 경우만 빨간불이 켜진다 — 매 실행에 30초를 더 내지 않고도 "눈 감기"가 불가능해진다.
+ */
+const DEFAULT_WAIT_MS = 6500;
+
+/**
+ * "이 페이지를 실제로 검사했다"고 인정하는 최소 요소 수.
+ *
+ * 대기가 모자라면 스캔 대상이 **로딩 스켈레톤**이고, 결함이 0건인 게 아니라 **볼 게 없었던 것**이다.
+ * 그런데 출력은 똑같이 `✓ 새는 요소 0` 이라 사람은 통과로 읽는다 — 가드가 장식이 되는 지점.
+ * 2026-08-01 실측(390px): 완성 화면은 500~1,348개(`/ticker/all` 500 이 최소), `/dividend/portfolio`
+ * 의 로딩 스켈레톤은 96개. 3배 이상 벌어져 있어 150 을 문턱으로 잡았다. 새 라우트가 정말로 150개
+ * 미만이면 그때 조정하라 — 다만 그 전에 "정말 다 그려진 화면인가"를 먼저 의심하라.
+ */
+const MIN_INSPECTED_ELEMENTS = 150;
+
+/**
+ * 빈 화면을 만났을 때 **한 번 더** 기다리는 시간(ms). 기본 대기(6.5초)를 더해 총 14.5초까지 준다.
+ * 콜드 서버·CPU 경합에서도 3.2초면 끝나는 화면이므로, 이걸 다 쓰고도 비어 있으면 대기 문제가 아니라
+ * dev 서버가 죽었거나 라우트가 사라진 것이다 — 그때는 조용히 통과시키지 말고 실패해야 한다.
+ */
+const RESCAN_WAIT_MS = 8000;
+
+/**
+ * 고정 대기가 끝난 뒤 **"DOM 이 아직 자라는 중인가"** 를 확인하는 폴링 간격(ms)과 그 상한(ms).
+ *
+ * ## 왜 필요한가 — 빈 화면만 막으면 절반만 막은 것이다 (2026-08-01 qa 실측)
+ *
+ * `MIN_INSPECTED_ELEMENTS`(150)는 **완전히 빈** 화면만 잡는다. 그런데 대기가 모자랄 때 훨씬 흔한
+ * 모습은 **절반쯤 그려진** 화면이고, 그건 문턱을 가볍게 넘어 `✓ 0건` 으로 통과한다.
+ * `--wait 800 --widths 390` 실측(콜드 vite dev, 5188):
+ *
+ * | 라우트                 | 800ms 에 검사된 요소 | 완성 화면 | 아코디언 |
+ * |-----------------------|--------------------|----------|---------|
+ * | `/`                   | **439** (32%)      | 1,348    | 0/0 → 1/1 |
+ * | `/simulator`          | **879** (65%)      | 1,348    | 0/0 → 1/1 |
+ * | `/community/portfolio`| **407** (59%)      |   694    | 0/0       |
+ *
+ * 셋 다 `✓ 새는 요소 0` 이었다. 🔴 특히 `아코디언 0/0` — 2026-08-01 에 197px 를 새게 했던 바로 그
+ * `<details>` 가 아직 DOM 에 없었는데 가드는 초록불을 켰다. **"덜 그려진 화면을 봤다"는 "안 본 것"이다.**
+ *
+ * 그래서 스캔 직전에 요소 수가 **더 이상 늘지 않는지** 한 번 확인한다. 자라는 중이면 멈출 때까지
+ * (최대 `GROWTH_MAX_EXTRA_MS`) 더 기다린다. 이미 다 그려진 정상 실행에서 드는 비용은 폴링 1회
+ * (라우트·폭 조합당 500ms, 12조합이면 약 6초)뿐이고, 느린 환경에서만 실제로 더 기다린다 —
+ * 모든 실행에 고정 대기를 얹는 것보다 싸고 정확하다.
+ *
+ * ⚠ 세는 값은 `querySelectorAll('*').length` 다. **레이아웃을 강제하지 않는 지표**를 일부러 골랐다 —
+ * `innerText`/`getBoundingClientRect` 를 폴링하면 그 리플로가 메인 스레드를 잡아 측정 자체가 렌더를
+ * 늦춘다(같은 라우트가 1.9초 → 6.9초로 보이는 관찰자 효과. `DEFAULT_WAIT_MS` 주석 참고).
+ */
+const GROWTH_POLL_MS = 500;
+const GROWTH_MAX_EXTRA_MS = 8000;
+
+/**
  * **의도적 가로 스크롤 허용 목록.** 각 항목은 "이 자리는 가로로 스크롤하는 것이 설계다"라는 근거다.
  * `match` 는 페이지 안에서 평가되는 CSS 선택자 — emotion 해시 클래스는 매 빌드 바뀌므로
  * **절대 쓰지 않고** 시맨틱 앵커(태그·역할·aria-label)로만 지목한다.
@@ -120,16 +217,25 @@ const WIDTHS = arg('widths', '390,360')
   .map((w) => Number(w.trim()))
   .filter(Boolean);
 /*
- * 🔴 `/simulator` 는 `/` 에 **더한** 것이다(대체가 아니다). 지금은 같은 화면이지만 `/` 가
- *   랜딩으로 바뀌는 순간, 시뮬레이터 전용 검사(승격된 히어로 액션 등)는 라우트로 게이트되지
- *   않아서 **조용히 0건이 되어 통과**한다 — 게이트가 장식이 되는 전형이다.
+ * 🔴 `/` 는 **랜딩**, `/simulator` 가 시뮬레이터다(2026-08-01 이전 완료). 둘 다 목록에 있어야 한다 —
+ *   `/simulator` 를 빼면 이 레포에서 가장 넓은 화면(결과 표·차트)을 한 번도 재지 않은 채 초록이 뜬다.
  */
-const ROUTES = arg('routes', '/,/simulator,/dividend/portfolio,/dividend/calendar,/ticker/all,/community/portfolio')
+/*
+ * 🔴 `/privacy` 는 **표 6개**(국외 이전 표는 7열, 셀 값이 긴 한글)를 가진 유일한 라우트다.
+ *   지금은 새지 않지만 그건 `TableScroller` 가 `Section`(grid)의 **직접 아이템**이라 자동 최소
+ *   크기가 0 으로 클램프되는 덕이다 — 그 배치가 한 겹만 깊어지면(래퍼 하나 추가) 캘린더의 지급 월
+ *   표가 문서를 390 → 587 로 늘렸던 것과 **같은 사고**가 난다. 우연히 맞은 상태를 가드 안으로 넣는다.
+ *   `/terms` 는 표가 0개라 뺐다(문단·목록뿐 — 라우트를 늘린 만큼 매 실행이 느려진다).
+ */
+const ROUTES = arg(
+  'routes',
+  '/,/simulator,/dividend/portfolio,/dividend/calendar,/ticker/all,/community/portfolio,/privacy'
+)
   .split(',')
   .map((r) => r.trim())
   .filter(Boolean);
 const PORT = Number(arg('port', '9346'));
-const WAIT = Number(arg('wait', '6500'));
+const WAIT = Number(arg('wait', String(DEFAULT_WAIT_MS)));
 const VERBOSE = flag('verbose');
 const MUTANT = flag('mutant');
 /** 보유 종목이 있는 상태로 `/dividend/portfolio` 를 재려면 켠다(기본 켜짐 — 빈 화면만 재는 것은 무의미). */
@@ -173,7 +279,12 @@ const launch = async () => {
     console.error('[overflowprobe] 크롬/엣지를 찾지 못했다.');
     process.exit(1);
   }
-  const profile = resolve('node_modules/.cache/overflowprobe-profile');
+  /*
+   * 🔴 프로파일 경로에 포트를 붙인다. `--port` 를 따로 줘도 **프로파일이 같으면 크롬이 뜨지 못한다**
+   * (한 프로파일은 한 인스턴스만 잠근다). 2026-08-01 에 병렬 트랙 둘이 동시에 이 도구를 돌렸을 때
+   * 뒤에 뜬 쪽이 `CDP 가 뜨지 않았다` 로 죽었다 — 스크립트 잘못처럼 보이지만 원인은 프로파일 충돌이다.
+   */
+  const profile = resolve(`node_modules/.cache/overflowprobe-profile-${PORT}`);
   mkdirSync(profile, { recursive: true });
   child = spawn(
     browser,
@@ -302,8 +413,11 @@ const buildScan = (allowlist, tolerance, offenderTolerance) => `(() => {
   const real = [];
   const scrollers = [];
   const seenScrollers = new Set();
+  /* 🔴 "무엇을 보았나"의 증거. 이 숫자가 작으면 결함 0건이 아니라 **볼 게 없었던 것**이다. */
+  let inspected = 0;
 
   for (const el of document.querySelectorAll('*')) {
+    inspected += 1;
     const over = el.scrollWidth - el.clientWidth;
     if (over < TOL) continue;
     const cs = getComputedStyle(el);
@@ -353,9 +467,28 @@ const buildScan = (allowlist, tolerance, offenderTolerance) => `(() => {
   scrollers.sort((a, b) => b.over - a.over);
   return {
     doc: { scroll: document.documentElement.scrollWidth, client: document.documentElement.clientWidth },
+    inspected,
     real,
     scrollers
   };
+})()`;
+
+/**
+ * 접힌 `<details>` 를 전부 펼친다.
+ *
+ * 🔴 이것이 없어서 **실제 결함을 놓쳤다**(2026-08-01). `/dividend/calendar` 의 "종목별 지급 월
+ * 표로 보기"는 기본이 접힘이라 스캔 시점의 DOM 에 표가 아예 없었고, 가드는 그 자리를 "0건"으로
+ * 통과시켰다. 펼치면 문서가 390 → 587 로 새고 있었다(197px). 접힘은 **초기 상태일 뿐 최종
+ * 상태가 아니다** — 사용자가 누르는 순간의 레이아웃도 가드의 사정 범위다.
+ *
+ * `open` 을 직접 세팅하는 이유: 좌표로 누르면 아코디언이 화면 밖에 있을 때 실패하고, 텍스트로
+ * 누르면 같은 글자를 가진 내비를 잡아 라우트를 갈아탄다(같은 날 실제로 겪은 오작동).
+ */
+const EXPAND_SCRIPT = `(() => {
+  const all = [...document.querySelectorAll('details')];
+  const opened = all.filter((d) => !d.open);
+  for (const d of opened) d.open = true;
+  return { total: all.length, opened: opened.length };
 })()`;
 
 /** 보유 종목 시드 — `/dividend/portfolio` 를 빈 상태로만 재는 것은 무의미하다. */
@@ -384,6 +517,29 @@ const SEED_SCRIPT = `(async () => {
       const db = open.result;
       const tx = db.transaction('holdings', 'readwrite');
       tx.objectStore('holdings').put(record, 'holdings');
+      tx.oncomplete = () => { db.close(); res(); };
+      tx.onerror = () => { db.close(); rej(tx.error); };
+    };
+  });
+
+  /*
+   * 🔴 캘린더 선택도 심는다. 선택이 0종이면 /dividend/calendar 는 상세 카드 자체를 렌더하지
+   * 않아(showCalendar = selectedWithData > 0) 그 안의 표는 DOM 에 없다 — 빈 화면만 재고
+   * "이 라우트 0건"이라고 말하는 상태였다(2026-08-01 사고).
+   * 스키마 근거: pages/DividendCalendar/utils/calendarStorage.ts (DB 'snowball-dividend-calendar' / store·key 'selection' / v1)
+   */
+  const calendarRecord = { v: 1, tickers: ['SCHD', 'JEPI', 'O', 'QYLD'], updatedAt: Date.now() };
+  await new Promise((res, rej) => {
+    const open = indexedDB.open('snowball-dividend-calendar', 1);
+    open.onupgradeneeded = () => {
+      const db = open.result;
+      if (!db.objectStoreNames.contains('selection')) db.createObjectStore('selection');
+    };
+    open.onerror = () => rej(open.error);
+    open.onsuccess = () => {
+      const db = open.result;
+      const tx = db.transaction('selection', 'readwrite');
+      tx.objectStore('selection').put(calendarRecord, 'selection');
       tx.oncomplete = () => { db.close(); res(); };
       tx.onerror = () => { db.close(); rej(tx.error); };
     };
@@ -440,7 +596,7 @@ if (SEED) {
   await sleep(1500);
   try {
     await evaluate(SEED_SCRIPT);
-    console.log('  시드: 보유 종목 5건 (SCHD·DGRO·JEPI·O·SCHY)');
+    console.log('  시드: 보유 종목 5건 (SCHD·DGRO·JEPI·O·SCHY) · 캘린더 선택 4종 (SCHD·JEPI·O·QYLD)');
   } catch (error) {
     console.log(`  시드 실패(무시하고 진행): ${String(error).slice(0, 120)}`);
   }
@@ -448,6 +604,32 @@ if (SEED) {
 
 const failures = [];
 let mutantFailures = 0;
+
+/**
+ * 요소 수가 멈출 때까지 기다린다. 반환값의 `stable: false` 는 상한을 다 쓰고도 계속 자랐다는 뜻 —
+ * 실패로 만들지는 않는다(그 화면도 스캔할 가치는 있다). 다만 로그로 남겨 사람이 알게 한다.
+ * 근거: `GROWTH_POLL_MS` 주석.
+ */
+const settleGrowth = async () => {
+  const count = async () => {
+    try {
+      return await evaluate(`document.querySelectorAll('*').length`);
+    } catch {
+      return 0; /* 내비게이션 중 — 다음 폴에서 다시 센다. */
+    }
+  };
+  let previous = await count();
+  let waited = 0;
+  while (waited < GROWTH_MAX_EXTRA_MS) {
+    await sleep(GROWTH_POLL_MS);
+    waited += GROWTH_POLL_MS;
+    const now = await count();
+    /* 2%(최소 2개) 이내 변동이면 멈춘 것으로 본다 — 툴팁 하나 붙었다 떨어지는 잡음까지 쫓지 않는다. */
+    if (now > 0 && Math.abs(now - previous) <= Math.max(2, previous * 0.02)) return { waited, count: now, stable: true };
+    previous = now;
+  }
+  return { waited, count: previous, stable: false };
+};
 
 for (const route of ROUTES) {
   for (const width of WIDTHS) {
@@ -460,11 +642,55 @@ for (const route of ROUTES) {
     await cdp.send('Page.navigate', { url: `${BASE}${route}` });
     await sleep(WAIT);
 
-    const scan = await evaluate(SCAN);
+    /* 🔴 아직 자라는 중인 DOM 을 재면 "덜 본 것"이다 — 멈출 때까지 기다린다. 근거 GROWTH_POLL_MS 주석. */
+    const growth = await settleGrowth();
+
+    /*
+     * 접힌 아코디언 안은 스캔에 잡히지 않는다 — 펼치고 레이아웃이 안정된 뒤에 잰다.
+     * 아직 내비게이션 중이면 `document.body` 가 null 이라 여기서 던진다(짧은 `--wait` 에서 실제로 겪었다).
+     * 그건 "결과 없음"으로 다루고 아래 재시도에 맡긴다 — 스크립트가 죽어서 남은 라우트를 통째로
+     * 건너뛰는 것이 가장 나쁜 결말이다.
+     */
+    const lookOnce = async () => {
+      try {
+        const opened = await evaluate(EXPAND_SCRIPT);
+        if (opened.opened > 0) await sleep(400);
+        return { expanded: opened, scan: await evaluate(SCAN) };
+      } catch {
+        return { expanded: { total: 0, opened: 0 }, scan: { doc: { scroll: 0, client: 0 }, inspected: 0, real: [], scrollers: [] } };
+      }
+    };
+
+    let { expanded, scan } = await lookOnce();
     const label = `${route.padEnd(24)} ${String(width).padStart(4)}px`;
+
+    /* 한 번의 폴로 끝났으면(=이미 멈춰 있었으면) 조용히 간다. 더 기다렸다면 그 사실을 남긴다. */
+    if (!growth.stable) {
+      console.log(`    … ${label} ${GROWTH_MAX_EXTRA_MS}ms 동안 DOM 이 계속 변했다 — 움직이는 화면을 잰 결과일 수 있다`);
+    } else if (growth.waited > GROWTH_POLL_MS) {
+      console.log(`    … ${label} 렌더가 아직 진행 중이어서 ${growth.waited}ms 더 기다렸다 (요소 ${growth.count}개에서 멈춤)`);
+    }
+
+    /*
+     * 🔴 빈 화면을 재고 "0건"이라 말하지 않는다. 느린 환경(콜드 청크·데이터 페치·CPU 경합)은
+     * 여기서 스스로 회복하고, 정말 못 본 경우만 아래 실패로 남는다. 매 실행에 대기를 더 얹는
+     * 대신 **필요할 때만** 더 기다리는 쪽을 골랐다 — 근거는 `DEFAULT_WAIT_MS` 주석의 실측.
+     */
+    if (scan.inspected < MIN_INSPECTED_ELEMENTS) {
+      console.log(`    … ${label} 요소 ${scan.inspected}개뿐 — ${RESCAN_WAIT_MS}ms 더 기다렸다 다시 본다`);
+      await sleep(RESCAN_WAIT_MS);
+      ({ expanded, scan } = await lookOnce());
+    }
 
     if (scan.doc.scroll > scan.doc.client) {
       failures.push(`${label} — 문서 가로 오버플로 ${scan.doc.scroll} > ${scan.doc.client}`);
+    }
+    /* 🔴 재시도까지 하고도 비어 있으면 "결함 0건"이 아니라 **검사 자체가 실패**한 것이다. */
+    if (scan.inspected < MIN_INSPECTED_ELEMENTS) {
+      failures.push(
+        `${label} — ${WAIT + RESCAN_WAIT_MS}ms 를 기다리고도 요소가 ${scan.inspected}개뿐이다(기준 ${MIN_INSPECTED_ELEMENTS}).` +
+          ` 이 라우트는 검사된 적이 없다 — dev 서버가 살아있는지, 라우트 경로가 아직 유효한지 확인하라.`
+      );
     }
     for (const hit of scan.real) {
       failures.push(
@@ -475,11 +701,17 @@ for (const route of ROUTES) {
     }
 
     const unknown = scan.scrollers.filter((s) => !s.why);
+    /* 검사한 요소 수를 항상 붙인다 — "0건"이 결함 없음인지 빈 화면인지 사람이 구분할 수 있어야 한다. */
+    const seen = `요소 ${scan.inspected}개 검사`;
     if (scan.real.length) {
-      console.log(`  ✗ ${label}  새는 요소 ${scan.real.length}개`);
+      console.log(`  ✗ ${label}  새는 요소 ${scan.real.length}개 · ${seen}`);
       for (const hit of scan.real) console.log(`      ${hit.el} +${hit.over}px ← ${hit.offenders[0]?.what}`);
     } else {
-      console.log(`  ✓ ${label}  새는 요소 0 · 의도적 스크롤 ${scan.scrollers.length}개(허용 ${scan.scrollers.length - unknown.length})`);
+      console.log(
+        `  ${scan.inspected < MIN_INSPECTED_ELEMENTS ? '✗' : '✓'} ${label}  새는 요소 0 · ${seen}` +
+          ` · 의도적 스크롤 ${scan.scrollers.length}개(허용 ${scan.scrollers.length - unknown.length})` +
+          ` · 아코디언 ${expanded.opened}/${expanded.total} 펼침`
+      );
     }
     if (VERBOSE || unknown.length) {
       for (const s of scan.scrollers) {

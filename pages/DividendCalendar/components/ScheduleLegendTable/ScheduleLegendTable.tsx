@@ -31,7 +31,20 @@ export default function ScheduleLegendTable({ rows }: ScheduleLegendTableProps) 
         <ChevronRight size={14} strokeWidth={1.8} aria-hidden focusable={false} />
         {copy.legend.summary}
       </LegendSummary>
-      <LegendScroll>
+      {/*
+       * 스크롤 상자에 **이름과 포커스**를 준다 — 좁은 폭에서는 이 표를 옆으로 밀어야만 12개월이 다 보인다.
+       *
+       * 🔴 `tabIndex={0}` 은 생략할 수 없다. Chrome 127+ 만 스크롤 컨테이너를 기본 포커서블로 만들고
+       * Safari 전 버전·구 Chrome 은 그렇지 않은데, 이 표 안에는 대화형 자손이 **하나도 없다**
+       * (`th`/`td` 와 점뿐). 그러면 키보드 전용 사용자는 320px 에서 344px 짜리 표의 220px 만 보고
+       * 나머지 4~6개월에 영영 닿지 못한다(WCAG 2.1.1). 근거는 우리 가드에도 적혀 있다 —
+       * tools/dev/overflowprobe.mjs 의 "이 도구가 보지 않는 것" 절.
+       *
+       * 이름 규칙은 형제인 법무 고지문 표(pages/Legal/.../LegalDocument.tsx)와 같다: 가로 스크롤 상자는
+       * `role="region"` + 접근명 + `tabIndex={0}`. 여기만 `aria-label` 인 이유는 이 표엔 보이는
+       * `<caption>` 이 없기 때문이다(제목 역할은 바깥 `summary` 가 한다).
+       */}
+      <LegendScroll tabIndex={0} role="region" aria-label={copy.legend.regionLabel}>
         <LegendTable>
           <thead>
             <tr>

@@ -1,3 +1,4 @@
+import { MARKET_INDICES } from '@/shared/lib/marketIndices';
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { Provider } from 'jotai/react';
@@ -26,23 +27,27 @@ const TITLE = '주요 지수';
  */
 const SNAPSHOT: MarketIndicesSnapshot = {
   asOf: '2026-07-27T21:05:00.000Z',
-  requested: ['^GSPC', '^IXIC', '^KS11', '^KQ11', '^N225'],
+  requested: ['^GSPC', '^IXIC', '^KS11', '^KQ11', '^N225', 'KRW=X'],
   indices: [
     { symbol: '^GSPC', price: 7419.65, previousClose: 7408.54, currency: 'USD' },
     { symbol: '^IXIC', price: 24953.08, previousClose: 25136.58, currency: 'USD' },
     { symbol: '^KS11', price: 6755.75, previousClose: 7097.12, currency: 'KRW' },
     { symbol: '^KQ11', price: 764.86, previousClose: 790.31, currency: 'KRW' },
-    { symbol: '^N225', price: 64931.19, previousClose: 64608.15, currency: 'JPY' }
+    { symbol: '^N225', price: 64931.19, previousClose: 64608.15, currency: 'JPY' },
+    // 지수가 아니라 환율(원/달러) — 스크린리더 단위가 '원' 인 유일한 항목이다.
+    { symbol: 'KRW=X', price: 1436.6, previousClose: 1420.6, currency: 'KRW' }
   ]
 };
 
-/** 스펙 §4.6 표 — 라벨/값/변동률/스크린리더 문장 5쌍. */
+/** 스펙 §4.6 표 — 라벨/값/변동률/스크린리더 문장. 레지스트리 순서와 같아야 한다. */
 const EXPECTED = [
   { label: 'S&P 500', value: '7,419.65', change: '+0.15%', aria: '전일 대비 0.15% 상승' },
   { label: '나스닥 종합', value: '24,953.08', change: '-0.73%', aria: '전일 대비 0.73% 하락' },
   { label: '코스피', value: '6,755.75', change: '-4.81%', aria: '전일 대비 4.81% 하락' },
   { label: '코스닥', value: '764.86', change: '-3.22%', aria: '전일 대비 3.22% 하락' },
-  { label: '니케이225', value: '64,931.19', change: '+0.50%', aria: '전일 대비 0.50% 상승' }
+  { label: '니케이225', value: '64,931.19', change: '+0.50%', aria: '전일 대비 0.50% 상승' },
+  // 환율이라 스크린리더 단위가 '원' 이다(나머지는 '포인트') — 그 계약은 아래 단위 테스트가 따로 잠근다.
+  { label: '원/달러', value: '1,436.60', change: '+1.13%', aria: '전일 대비 1.13% 상승' }
 ] as const;
 
 /**
@@ -76,11 +81,12 @@ describe('MarketIndexStrip — 주요 지수 스트립 (표시 전용)', () => {
     expect(strip()).not.toHaveTextContent('%');
   });
 
-  it('성공하면 지수 5종의 값과 전일 대비 변동률을 그리고 방향을 문장으로도 말한다', () => {
+  it('성공하면 레지스트리 전 항목의 값과 전일 대비 변동률을 그리고 방향을 문장으로도 말한다', () => {
     renderStrip({ status: 'success', snapshot: SNAPSHOT });
 
     expect(strip()).toHaveAttribute('aria-busy', 'false');
-    expect(screen.getAllByRole('listitem')).toHaveLength(5);
+    // 🔴 개수를 하드코딩하지 않는다 — 레지스트리에 한 줄 추가하면 자동으로 따라온다(2026-08-02 원/달러 합류).
+    expect(screen.getAllByRole('listitem')).toHaveLength(MARKET_INDICES.length);
 
     for (const { label, value, change, aria } of EXPECTED) {
       expect(screen.getByText(label)).toBeInTheDocument();
@@ -105,14 +111,33 @@ describe('MarketIndexStrip — 주요 지수 스트립 (표시 전용)', () => {
     renderStrip({ status: 'success', snapshot: partial });
 
     // 칸이 사라지면 다른 지수가 자리를 옮겨 "이 지수는 원래 없다"로 읽힌다.
-    expect(screen.getAllByRole('listitem')).toHaveLength(5);
+    // 🔴 개수를 하드코딩하지 않는다 — 레지스트리에 한 줄 추가하면 자동으로 따라온다(2026-08-02 원/달러 합류).
+    expect(screen.getAllByRole('listitem')).toHaveLength(MARKET_INDICES.length);
     expect(screen.getByText('코스닥')).toBeInTheDocument();
     expect(screen.getByText('니케이225')).toBeInTheDocument();
 
-    expect(screen.getAllByText('불러오지 못함')).toHaveLength(2);
-    expect(screen.getAllByText('시세를 불러오지 못했습니다')).toHaveLength(2);
+    // 결손 개수도 파생시킨다 — 앞의 3종만 받았으므로 나머지 전부가 결손이다.
+    const missingCount = MARKET_INDICES.length - 3;
+    expect(screen.getAllByText('불러오지 못함')).toHaveLength(missingCount);
+    expect(screen.getAllByText('시세를 불러오지 못했습니다')).toHaveLength(missingCount);
     // 받아온 지수는 그대로 보인다.
     expect(screen.getByText('6,755.75')).toBeInTheDocument();
+  });
+
+  /**
+   * 🔴 **단위는 항목마다 다르다.** 지수는 "포인트", 원/달러는 "원"이다.
+   * 전부 '포인트'로 낭독하면 환율이 "1,436.60 포인트"가 되어 **거짓**이 된다.
+   * 화면 표시는 어느 쪽도 숫자뿐이므로 이 계약은 **스크린리더 텍스트로만** 확인할 수 있다.
+   */
+  it('스크린리더 단위가 항목마다 맞다 — 지수는 포인트, 원/달러는 원', () => {
+    renderStrip({ status: 'success', snapshot: SNAPSHOT });
+
+    // ⚠ RTL 은 텍스트를 정규화해 앞뒤 공백을 지운다 — 선행 공백째로 찾으면 못 만난다(트리밍 후 비교).
+    const exact = (label: string) => (content: string) => content.trim() === label;
+
+    const pointUnits = screen.getAllByText(exact('포인트'));
+    expect(pointUnits).toHaveLength(MARKET_INDICES.filter((item) => item.unit === undefined).length);
+    expect(screen.getAllByText(exact('원'))).toHaveLength(1);
   });
 
   it('전일 종가만 없으면 값은 그대로 보이고 변동률만 "정보 없음"으로 비운다 (0% 위장 금지)', () => {
@@ -159,7 +184,51 @@ describe('MarketIndexStrip — 주요 지수 스트립 (표시 전용)', () => {
     expect(screen.getByRole('heading', { name: TITLE })).toBeInTheDocument();
     expect(screen.getByRole('list')).toBeInTheDocument();
     // 무엇 대비인지는 헤더가 한 번만 말한다(셀마다 라벨을 반복하지 않는다).
-    expect(strip()).toHaveTextContent('전일 대비 · 참고용 시세');
+    // 🔴 "실시간이 아닌" 이 문장에서 빠지면 이 화면은 지연된 값을 실시간 시세처럼 보이게 한다.
+    expect(strip()).toHaveTextContent('전일 대비 · 실시간이 아닌 참고용 시세');
+  });
+
+  /**
+   * 🔴 **색은 단독 채널이 될 수 없다.** 방향은 색 말고도 ①부호(+/-) ②모양(▲/▼) ③스크린리더 문장
+   * 셋으로 남는다. 여기서는 그중 **모양**을 잠근다.
+   *
+   * ⚠ 마크는 반드시 **형제 요소**다 — 변동률 텍스트 안에 넣으면 위 성공 테스트의 정확일치
+   * (`getByText('+0.15%').textContent === '+0.15%'`)가 깨지고, `::before content` 로 넣으면
+   * 통과는 하지만 복사·번역 경로에서 조용히 사라진다.
+   */
+  it('상승·하락에 방향 글리프(▲/▼)를 부호 옆에 세우되 변동률 텍스트는 오염시키지 않는다', () => {
+    renderStrip({ status: 'success', snapshot: SNAPSHOT });
+
+    const ups = EXPECTED.filter(({ change }) => change.startsWith('+'));
+    const downs = EXPECTED.filter(({ change }) => change.startsWith('-'));
+    expect(screen.getAllByText('▲')).toHaveLength(ups.length);
+    expect(screen.getAllByText('▼')).toHaveLength(downs.length);
+
+    for (const { change } of EXPECTED) {
+      const percent = screen.getByText(change);
+      // 마크는 변동률의 **형제**이고, 둘을 감싼 덩어리에서만 함께 읽힌다.
+      expect(percent.textContent).toBe(change);
+      expect(percent.parentElement?.textContent).toBe(
+        `${change.startsWith('+') ? '▲' : '▼'}${change}`
+      );
+    }
+  });
+
+  it('보합(0.00%)에는 방향 글리프를 그리지 않는다 — 있지도 않은 방향을 만들지 않는다', () => {
+    // S&P 만 현재가 = 전일 종가(완전 보합), 나머지는 그대로.
+    const flat: MarketIndicesSnapshot = {
+      ...SNAPSHOT,
+      indices: SNAPSHOT.indices.map((quote) =>
+        quote.symbol === '^GSPC' ? { ...quote, price: quote.previousClose as number } : quote
+      )
+    };
+    renderStrip({ status: 'success', snapshot: flat });
+
+    expect(screen.getByText('0.00%').parentElement?.textContent).toBe('0.00%');
+    expect(screen.getByText('전일 대비 변동 없음')).toBeInTheDocument();
+    // 보합이 된 S&P 만큼 상승 마크가 하나 줄어든다(니케이·원/달러는 그대로 상승).
+    const remainingUps = EXPECTED.filter(({ change }) => change.startsWith('+')).length - 1;
+    expect(screen.getAllByText('▲')).toHaveLength(remainingUps);
   });
 });
 

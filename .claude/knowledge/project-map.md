@@ -130,3 +130,12 @@
 - **`shared/styles/iconSwap.ts`의 `iconSwapIn`** — 토글되는 아이콘 등장 믹스인(`pressable` 과 같은 관례: 토큰 import 없이 CSS 변수 사용). 소비처 3곳 = `ThemePresetSwitcher` 선택 ✓ · `PortfolioAllocation` 힌트 글리프(잠금/고정/단일 사유 전환) · `StatTile` 상태 글리프. ⚠ 클라우드 저장 배지처럼 **고빈도로 상태가 도는 아이콘에는 쓰지 않는다**.
 - **`components/common/StatTile`의 `status`/`statusLabel`/`statusEnter`** — 타일 면 상태(현재 `'success'` 하나). `tone`(숫자 방향성)과 **다른 축**이고 값에는 닿지 않는다. `statusEnter` 는 "지금이 그 상태가 된 순간인가"이고 판정은 호출부가 소유한다(`useGoalReachCelebration`).
 - **1회성 연출 판정 훅 2개** — `components/ResultSummaryCard`의 `useGoalReachCelebration`(W1) · `pages/Main/components/MainResultGrid`의 `useFirstResultReveal`(W3). 둘 다 `.utils.ts` 에 산다(파일 세트에 `.hooks.ts` 가 없다 — `test/shared/structureRules.test.ts`). 가드 `test/main/wowMomentsOnce.test.tsx`.
+
+## 랜딩 페이지 `pages/Landing` (2026-08-01 — 트랙 ⑦/P3, **`/` 승격 완료**)
+- 구조: `LandingPage/`(컨테이너 ↔ `.view.tsx` 순수 뷰) · `components/`(LandingSection·LandingSearch·ConceptLadder·CompoundExplainer·PayoutRhythm·PresetBrowser·StartChecklist·LandingFaq) · `copy/landingCopy.ts`(**전 섹션 문장 + FAQ 8문항의 단일 지점**).
+- 컨테이너가 소유하는 것은 둘뿐이다: ①`hasStoredWorkspace()` 마커 읽기(`useState` 초기화 — 이펙트면 히어로가 한 프레임 흔들린다) ②CTA 라우팅·계측. **계산 엔진·폼 atom 을 건드리지 않는다.** (2026-08-02 이전에는 `useMarketIndicesSync()` 도 여기 있었다 — 아래 항목.)
+- `LandingSearch` 는 **자기완결형**(`useSearchParams` 직접 read/write) — `CommunitySearchBar`·`PrecisionSearch` 와 같은 모델이다. 스펙 §11 은 컨테이너가 `q` 를 쥐라고 적었지만, 이 화면에서 상태를 가진 부품이 이것 하나뿐이라 끌어올리면 컨테이너·타입·뷰 세 파일이 같이 커진다.
+- 🔴 **`MarketIndexStrip` 은 이제 랜딩에 없다**(2026-08-02 — decisions.md 「주요 지수 스트립의 자리」). 시세가 실제로 쓰이는 세 화면(시뮬레이터·내 포트폴리오·배당 캘린더)의 본문 맨 위로 갔고, 조회 드라이버도 그 세 컨테이너가 각자 부른다(서로 다른 라우트라 동시에 살지 않는다). 되돌리려면 `test/shared/marketIndexStripPlacement.test.ts` 부터 고쳐라. 배치 제약은 그대로 유효하다: 카드로 감싸지 않고(Root 가 투명, 셀이 각자 검증된 면을 갖는다) 자체 `<section>`+`<h2>` 가 있어 `LandingSection` 류로 감싸면 랜드마크가 이중이 된다.
+- 신규 공유 상수 2개: `shared/constants/portfolioPresets`(프리셋 13종 — 최상위 배럴 미연결) · `shared/constants/tickerPages`(경량 인덱스, **import 0건 리프**).
+- 🔴 `/` 는 `router/routes.tsx` 에서 **조건 없이 `LandingPage`** 다(2026-08-01 결정으로 `RootRoute` 공유 링크 분기 폐기 — decisions.md 참고. 옛 `/?share=` 는 랜딩에 착지한다). 임시 `/landing-preview` 라우트와 `usePageHue` 의 그 한 줄은 삭제됐다. **랜딩과 시뮬레이터는 같은 hue(identity)** 를 쓴다(정문 ↔ 그 문 안의 도구 — `usePageHue.utils.ts` 배정 주석에 근거).
+- 테스트: `test/landing/{landingHarness.tsx, landingStructure, landingSearch, landingDataDiscipline, tickerPageIndexParity}`.

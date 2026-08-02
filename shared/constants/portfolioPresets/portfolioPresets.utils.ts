@@ -4,7 +4,7 @@ import {
   PORTFOLIO_PRESET_VISIBLE_PER_GROUP,
   type PortfolioPresetGroup,
   type PortfolioPresetPlaceholder
-} from './PortfolioPresetBoard.constants';
+} from './portfolioPresets.constants';
 
 export type PortfolioPresetGroupSection = {
   group: PortfolioPresetGroup;
@@ -44,10 +44,17 @@ export const groupPortfolioPresets = (
   });
 };
 
-/** 프리셋 카드가 보여 주는 지표 2개. 나머지 조건은 적용 후 결과가 말한다(스펙표 금지). */
+/**
+ * 프리셋 카드가 보여 주는 지표.
+ *
+ * 🔴 **`expectedMonthlyDividend`("약 40~50만원")를 여기 넣지 마라** — 그 값은 엔진이 계산한 결과가
+ * 아니라 **손으로 적은 큐레이션 문구**다. 적용 전 카드에 얹으면 "이걸 고르면 월 40~50만원을 받는다"는
+ * **근거 없는 수익 약속**으로 읽힌다(2026-08-01 사용자 결정 — 랜딩에서 막은 규칙을 시뮬레이터에도 적용).
+ * 실제 숫자는 프리셋을 적용한 뒤 **결과 카드가 말한다**. 그게 유일하게 계산에서 나온 값이다.
+ *
+ * 남은 `investmentPeriod` 는 약속이 아니라 **그 구성이 전제하는 조건**이라 적용 전에도 참이다.
+ * 나머지 조건도 마찬가지로 적용 후 결과가 말한다(4행 스펙표로 되돌아가지 마라 — 13장이 다시 같은 모양이 된다).
+ */
 export const buildPresetMetrics = (
   preset: PortfolioPresetPlaceholder
-): { label: string; value: string }[] => [
-  { label: '목표 월배당', value: preset.expectedMonthlyDividend },
-  { label: '투자 기간', value: preset.investmentPeriod }
-];
+): { label: string; value: string }[] => [{ label: '투자 기간', value: preset.investmentPeriod }];

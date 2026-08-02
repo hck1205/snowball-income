@@ -10,6 +10,7 @@ import type { TickerContent } from './TickerContent.types';
  * - 보유종목수(약 130종)는 2026년 7월 조사 시점 실측치(지수명의 "100"과 실제 편입 종목 수가 다르다는
  *   점도 확인했다 — 본문에 그대로 반영). 대표 보유 종목(topHoldings)은 SCHD와 동일한 이유로 비웠다
  *   (조사 중 Wesfarmers·Unilever 등 상위 5종목 비중을 확인했으나 리밸런싱마다 바뀌는 값이라 제외).
+ *   ⚠ 2026-08-02 재시도에서도 채우지 못했다 — 슈왑(schwabassetmanagement.com)이 403이다(schd.ts 참고).
  * - 섹터 비중 순서는 국가·업종이 뒤섞여 이번 조사에서 신뢰할 순서를 확정하지 못해 비웠다.
  */
 export const SCHY_TICKER_CONTENT: TickerContent = {

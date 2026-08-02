@@ -1,7 +1,15 @@
 import { Button, Card, HintText } from '@/components/common';
 import { LEDGER_COPY } from '../../copy';
 import type { LedgerConnectPanelProps } from './LedgerConnectPanel.types';
-import { ChoiceBody, ConnectGrid, ConnectHeading, ConnectSection } from './LedgerConnectPanel.styled';
+import {
+  ChoiceBody,
+  ConnectGrid,
+  ConnectHeading,
+  ConnectSection,
+  PrivacyList,
+  PrivacyNote,
+  PrivacyTitle
+} from './LedgerConnectPanel.styled';
 
 const copy = LEDGER_COPY;
 
@@ -19,6 +27,7 @@ const copy = LEDGER_COPY;
 export default function LedgerConnectPanel({
   phase,
   headingId,
+  isAppSignedIn,
   onPickExistingSheet,
   onCreateSheet,
   registerPickButton
@@ -63,6 +72,23 @@ export default function LedgerConnectPanel({
       </ConnectGrid>
 
       <HintText>{copy.connect.consentHint}</HintText>
+      {/* 🔴 두 층의 관계를 말하는 문장은 화면 전체에서 이것 하나뿐이다(복제 금지). */}
+      {isAppSignedIn ? <HintText>{copy.connect.separateConsentNote}</HintText> : null}
+
+      {/*
+       * 🔴 **권한을 허용하기 전에** 읽히도록 선택지 아래에 세운다. 가계부는 소득·지출이라
+       * 이 앱에서 가장 민감한 데이터고, "무엇을 허용하는가"를 판단하는 순간이 바로 여기다.
+       * 문구의 정본은 `copy.privacy` 하나뿐이다 — 각주·히어로에 같은 말을 복제하지 마라.
+       */}
+      <PrivacyNote aria-labelledby="ledger-privacy-title">
+        <PrivacyTitle id="ledger-privacy-title">{copy.privacy.title}</PrivacyTitle>
+        <PrivacyList>
+          <li>{copy.privacy.where}</li>
+          <li>{copy.privacy.scope}</li>
+          <li>{copy.privacy.local}</li>
+          <li>{copy.privacy.revoke}</li>
+        </PrivacyList>
+      </PrivacyNote>
     </ConnectSection>
   );
 }

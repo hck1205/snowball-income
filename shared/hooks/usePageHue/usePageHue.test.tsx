@@ -155,12 +155,19 @@ describe('페이지 정체성 hue', () => {
       }
     }
 
-    expect(collisions).toEqual([
-      // velog(기본 프리셋)는 2026-07-31 에 accent 를 브랜드 램프(글레이셔 애저)로 옮겼는데,
-      // identity 도 같은 램프의 같은 단계(brand[600])다 → 시뮬레이터와 캘린더가 같은 얼굴색이 된다.
-      'velog/light: / ≡ /dividend/calendar (#0a6da3)',
-      // aurora 는 brand 자체가 그 램프라 시뮬레이터와 커뮤니티가 겹친다.
-      'aurora/light: / ≡ /community/portfolio (#0a6da3)'
-    ]);
+    /*
+     * 🔴 **0 이다. 여기에 항목을 다시 추가하지 마라.**
+     *
+     * 2026-07-31 실측 당시에는 두 건이 있었다 — velog/light 와 aurora/light 에서 `identity` 가
+     * `brand[600]` 이라 각각 accent·brand 와 **해석된 hex 가 같았다**(#0a6da3). 이름은 갈렸는데
+     * 화면은 한 색이라, "페이지마다 얼굴색"이 기본 프리셋에서 통째로 no-op 이었다.
+     *
+     * 2026-08-01 랜딩 리워크에서 "색이 2가지뿐"의 구조적 원인으로 재확인돼
+     * `sharedTokens.ts` 의 `identity` 를 `brand[600]` → **`brand[500]`** 으로 옮겨 해소했다
+     * (`brand[700]` 은 `identity-text` 와 값이 붕괴해 기각 — 그 파일 주석 참고).
+     *
+     * 늘어나면 회귀다. 어느 화면과 어느 화면이 같은 얼굴이 됐는지 실패 메시지가 그대로 말한다.
+     */
+    expect(collisions).toEqual([]);
   });
 });
