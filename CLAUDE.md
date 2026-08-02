@@ -146,9 +146,19 @@ retro에 근거를 남기고 스킬·이 표를 고쳐라.**
 
 ## 에이전트 팀 (orchestrator ↔ specialist)
 
-복잡한 다단계 작업은 **`orchestrator`** 가 분해 → 위임 → 검증 → 종합한다
-(`.claude/settings.json`의 UserPromptSubmit 훅이 프롬프트를 orchestrator로 라우팅한다.
-끄고 싶으면 그 `hooks` 블록을 지운다). 정의는 [.claude/agents/](.claude/agents/).
+🔴 **위임의 기본값은 "안 한다"다 (2026-08-02 사용자 결정).** 모든 프롬프트를 orchestrator로 보내던
+`UserPromptSubmit` 훅은 **제거했다** — 훅 파일도 스크립트도 없다. 되살리지 마라.
+
+**먼저 맨몸으로 시도한다.** 에이전트를 띄우기 전에 항상 "이거 그냥 하면 안 되나?"를 묻는다.
+위임은 셋 중 하나일 때만 — ①파일 경계가 실제로 갈리는 병렬 작업 ②머지 전 독립 리뷰·가드 설계
+③단일 컨텍스트를 넘는 규모. **공유 파일이 병목이면 위임은 손해다**(핸드오프 왕복만 는다).
+근거와 실측은 [dev-process §1-1](.claude/skills/dev-process/SKILL.md).
+
+에이전트 정의([.claude/agents/](.claude/agents/))와 Agent 툴은 그대로다 — 없어진 건 기본값이지 수단이 아니다.
+
+**요청이 들어오면 [docs/work-request-template.md](docs/work-request-template.md)의 네 칸(문제·판단기준·제약·기정사항)이
+채워져 있는지 먼저 본다.** 채워져 있으면 pm-po 단계를 건너뛰고 바로 착수한다. 비어 있고 그 빈칸이
+**결과를 갈라놓을 때만** 되묻는다 — 관례로 답할 수 있는 것은 정하고 진행하고, 무엇을 가정했는지 밝힌다.
 
 ### 팀 지식 기반 — 성장형 에이전트 (2026-07-17~)
 
