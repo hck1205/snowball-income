@@ -16,6 +16,16 @@ import snapshot from './investorHoldings.generated.json';
  * ⚠ 생성물이다. 손으로 고치지 마라 — `npx vite-node scripts/investorHoldings/cli.ts` 가 만든다.
  */
 
+/**
+ * 포지션 종류. 🔴 **`put` 은 보유가 아니라 하락 베팅이다.**
+ *
+ * 2026-08-02 실측: 마이클 버리의 신고분 중 최대 항목인 팔란티어(66%)·엔비디아(13.5%)가 풋이었다.
+ * 그때 화면은 이 값을 몰라 "최대 보유 종목"으로 그렸다 — 방향이 정반대인 거짓이었다.
+ * ⚠ 옛 스냅샷(이 필드가 없던 시절)을 위해 선택 필드로 두되, **없으면 주식으로 넘겨짚지 말고**
+ *   "알 수 없음"으로 다뤄라. 지금 커밋된 스냅샷은 전부 이 필드를 갖고 있다.
+ */
+export type PositionKind = 'share' | 'put' | 'call';
+
 /** 한 종목. 🔴 `cusip` 이 유일한 식별자다 — 13F 는 티커를 주지 않는다. */
 export type InvestorHolding = {
   readonly cusip: string;
@@ -24,6 +34,12 @@ export type InvestorHolding = {
   readonly valueUsd: number;
   /** 신고분 대비 비중(%). 합계가 0이면 `null` — 0% 로 위장하지 않는다. */
   readonly weightPercent: number | null;
+  /**
+   * 🔴 화면이 반드시 구분해 말해야 하는 값.
+   * ⚠ 옵션 행의 `valueUsd` 는 **기초자산 명목 금액**이라 같은 자본으로도 비중이 크게 잡힌다 —
+   *   비중만 보고 "가장 큰 확신"으로 읽으면 안 된다.
+   */
+  readonly kind?: PositionKind;
 };
 
 export type InvestorSnapshotEntry = {
@@ -52,9 +68,48 @@ export type InvestorSnapshot = {
 
 export const INVESTOR_SNAPSHOT = snapshot as InvestorSnapshot;
 
-/** 신고 규모 큰 순. 화면 기본 정렬 — 이름 순으로 두면 매번 같은 사람이 위에 온다. */
+/** 신고 규모 큰 순. 이름 순으로 두면 매번 같은 사람이 위에 온다. */
 export const INVESTORS_BY_SIZE: readonly InvestorSnapshotEntry[] = [...INVESTOR_SNAPSHOT.investors].sort(
   (left, right) => right.totalValueUsd - left.totalValueUsd
+);
+
+/**
+ * 화면 기본 정렬 — **이름이 널리 알려진 순**(2026-08-02 사용자 지시).
+ *
+ * 🔴 **이건 측정값이 아니라 편집 판단이다.** "언급량"을 세는 무료 데이터 출처가 없어서 손으로 정했다.
+ * 그러므로 이 순서를 "화제성 지표"라고 화면에 적지 마라 — 우리는 그 숫자를 갖고 있지 않다.
+ * 규모 순(`INVESTORS_BY_SIZE`)을 기본으로 두면 켄 피셔($294.9B)가 버핏보다 위에 오는데,
+ * 이 화면에 처음 온 사람이 찾는 이름은 그 순서가 아니다.
+ *
+ * ⚠ 여기 없는 CIK 는 목록 **뒤로** 밀린다(명단에 사람을 더해도 화면이 깨지지 않는다).
+ * ⚠ 순서를 바꿀 때는 근거를 남겨라. 근거 없는 재배치는 다음 사람이 되돌린다.
+ */
+const SPOTLIGHT_ORDER: readonly string[] = [
+  '0001067983', // 워런 버핏 — 이 주제에서 가장 먼저 찾는 이름
+  '0001649339', // 마이클 버리 — 빅쇼트, 그리고 최근 공시의 대형 풋 포지션으로 계속 회자
+  '0001697748', // 캐시 우드 — ARK
+  '0001336528', // 빌 애크먼 — 퍼싱스퀘어
+  '0001350694', // 레이 달리오 — 브리지워터
+  '0001166559', // 빌 게이츠 재단
+  '0001536411', // 스탠리 드러켄밀러
+  '0001656456', // 데이비드 테퍼
+  '0001061768', // 세스 클라만
+  '0001709323', // 리루
+  '0000850529', // 켄 피셔 — 규모는 1위지만 대중 인지도는 그보다 낮다
+  '0000915191', // 프렘 왓사
+  '0000783412' // 데일리 저널
+];
+
+export const INVESTORS_BY_SPOTLIGHT: readonly InvestorSnapshotEntry[] = [...INVESTOR_SNAPSHOT.investors].sort(
+  (left, right) => {
+    const leftRank = SPOTLIGHT_ORDER.indexOf(left.cik);
+    const rightRank = SPOTLIGHT_ORDER.indexOf(right.cik);
+    /* 목록에 없으면 맨 뒤로. 둘 다 없으면 규모 순으로 떨어뜨린다(임의 순서를 남기지 않는다). */
+    if (leftRank === -1 && rightRank === -1) return right.totalValueUsd - left.totalValueUsd;
+    if (leftRank === -1) return 1;
+    if (rightRank === -1) return -1;
+    return leftRank - rightRank;
+  }
 );
 
 export const findInvestor = (cik: string): InvestorSnapshotEntry | null =>

@@ -22,8 +22,12 @@ import {
   MonthTickers,
   PickerHint,
   PickerRow,
+  PickerStack,
   Stack,
+  SuggestionButton,
+  SuggestionLabel,
   SuggestionRow,
+  SuggestionTickers,
   Table,
   TableScroller,
   TickerName,
@@ -64,6 +68,7 @@ export default function TickerCompareView({
   onApplySuggestion
 }: TickerCompareViewProps) {
   const addSelectId = useId();
+  const hintId = useId();
   const { model, candidates, isAtLimit, hasEnough, suggestions } = viewModel;
   const selected = model.columns.map((column) => column.ticker);
   const selectedSet = new Set(selected);
@@ -79,27 +84,33 @@ export default function TickerCompareView({
       />
 
       <Card tone="default" title={copy.picker.title}>
-        <PickerRow>
-          {model.columns.map((column) => (
-            <Chip
-              key={column.ticker}
-              selected
-              onRemove={() => onRemove(column.ticker)}
-              removeAriaLabel={copy.picker.removeAria(column.ticker)}
-            >
-              {column.ticker}
-            </Chip>
-          ))}
+        <PickerStack>
+          {/* 고른 종목만 가로로 흐른다. 셀렉트·설명은 아래 줄을 각자 차지한다. */}
+          {model.columns.length > 0 ? (
+            <PickerRow>
+              {model.columns.map((column) => (
+                <Chip
+                  key={column.ticker}
+                  selected
+                  onRemove={() => onRemove(column.ticker)}
+                  removeAriaLabel={copy.picker.removeAria(column.ticker)}
+                >
+                  {column.ticker}
+                </Chip>
+              ))}
+            </PickerRow>
+          ) : null}
 
-          {/* 상한에 닿으면 컨트롤을 잠그고 **사유를 글로** 말한다 — 이유 없는 회색 컨트롤 금지. */}
+          {/* 전폭이라 긴 종목명이 잘리지 않는다.
+              상한에 닿으면 컨트롤을 잠그고 **사유를 아래 문장이** 말한다 — 이유 없는 회색 컨트롤 금지. */}
           <Select
             id={addSelectId}
             size="md"
-            width="auto"
-            minWidth="14rem"
+            width="full"
             value=""
             disabled={isAtLimit || options.length === 0}
             aria-label={copy.picker.addLabel}
+            aria-describedby={hintId}
             onChange={(event) => {
               const ticker = event.target.value;
               if (ticker) onAdd(ticker);
@@ -114,8 +125,8 @@ export default function TickerCompareView({
             ))}
           </Select>
 
-          <PickerHint>{isAtLimit ? copy.picker.atLimit : copy.picker.hint}</PickerHint>
-        </PickerRow>
+          <PickerHint id={hintId}>{isAtLimit ? copy.picker.atLimit : copy.picker.hint}</PickerHint>
+        </PickerStack>
       </Card>
 
       {hasEnough ? (
@@ -199,11 +210,21 @@ export default function TickerCompareView({
           <EmptyTitle>{copy.empty.title}</EmptyTitle>
           <EmptyBody>{copy.empty.body}</EmptyBody>
           <EmptyBody>{copy.empty.suggestionTitle}</EmptyBody>
+          {/*
+            🔴 티커만 나열하던 칩 줄을 **라벨 + 티커** 목록으로 바꿨다(2026-08-02 사용자 요청).
+            조합이 둘일 때는 "SCHD · JEPI · O" 만으로 충분했지만, 열 개가 되면 그 나열은 읽는 사람에게
+            아무 단서도 주지 않는다 — 무엇을 비교하는 조합인지가 고르는 근거다.
+          */}
           <SuggestionRow>
-            {suggestions.map((tickers) => (
-              <Chip key={tickers.join('-')} onClick={() => onApplySuggestion(tickers)}>
-                {tickers.join(' · ')}
-              </Chip>
+            {suggestions.map((preset) => (
+              <SuggestionButton
+                key={preset.id}
+                type="button"
+                onClick={() => onApplySuggestion(preset.tickers)}
+              >
+                <SuggestionLabel>{preset.label}</SuggestionLabel>
+                <SuggestionTickers>{preset.tickers.join(' · ')}</SuggestionTickers>
+              </SuggestionButton>
             ))}
           </SuggestionRow>
         </EmptyBlock>

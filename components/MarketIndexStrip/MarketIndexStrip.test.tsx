@@ -42,7 +42,7 @@ const SNAPSHOT: MarketIndicesSnapshot = {
 /** 스펙 §4.6 표 — 라벨/값/변동률/스크린리더 문장. 레지스트리 순서와 같아야 한다. */
 const EXPECTED = [
   { label: 'S&P 500', value: '7,419.65', change: '+0.15%', aria: '전일 대비 0.15% 상승' },
-  { label: '나스닥 종합', value: '24,953.08', change: '-0.73%', aria: '전일 대비 0.73% 하락' },
+  { label: '나스닥', value: '24,953.08', change: '-0.73%', aria: '전일 대비 0.73% 하락' },
   { label: '코스피', value: '6,755.75', change: '-4.81%', aria: '전일 대비 4.81% 하락' },
   { label: '코스닥', value: '764.86', change: '-3.22%', aria: '전일 대비 3.22% 하락' },
   { label: '니케이225', value: '64,931.19', change: '+0.50%', aria: '전일 대비 0.50% 상승' },
@@ -138,6 +138,25 @@ describe('MarketIndexStrip — 주요 지수 스트립 (표시 전용)', () => {
     const pointUnits = screen.getAllByText(exact('포인트'));
     expect(pointUnits).toHaveLength(MARKET_INDICES.filter((item) => item.unit === undefined).length);
     expect(screen.getAllByText(exact('원'))).toHaveLength(1);
+  });
+
+  /**
+   * 🔴 좁은 폭에서는 현재가가 `display: none` 이라 화면에 변동률만 남는다. 그때도 절대값을 볼 수 있게
+   * 셀 전체에 원문 툴팁(`title`)이 붙는다 — **숫자가 반드시 들어 있어야** 이 툴팁의 존재 이유가 성립한다.
+   *
+   * ⚠ 공용 `Tooltip` 을 쓰지 않는 이유를 여기서 함께 잠근다: 그 부품은 포커스 가능한 트리거를 요구하는데
+   *   이 스트립은 **포커서블 요소가 0개**인 것이 설계다(탭 순서 무영향). 나중에 누가 셀을 버튼으로 바꾸면
+   *   이 스트립이 놓인 화면마다 탭 정거장이 지수 수만큼 늘어난다 — 아래 두 번째 단언이 그걸 막는다.
+   */
+  it('셀 툴팁이 지수명·현재가·변동률을 다 담고, 그러느라 포커서블 요소를 만들지는 않는다', () => {
+    renderStrip({ status: 'success', snapshot: SNAPSHOT });
+
+    const kospi = screen.getByText('코스피').closest('li');
+    expect(kospi).toHaveAttribute('title', expect.stringContaining('6,755.75'));
+    expect(kospi?.getAttribute('title')).toContain('코스피');
+    expect(kospi?.getAttribute('title')).toContain('전일 대비');
+
+    expect(strip().querySelectorAll('a, button, input, select, textarea, [tabindex]')).toHaveLength(0);
   });
 
   it('전일 종가만 없으면 값은 그대로 보이고 변동률만 "정보 없음"으로 비운다 (0% 위장 금지)', () => {

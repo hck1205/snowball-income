@@ -1,4 +1,4 @@
-import type { CompareCandidate, TickerCompareModel } from '../utils';
+import type { CompareCandidate, ComparePreset, TickerCompareModel } from '../utils';
 
 /** 뷰가 그리는 데 필요한 전부. 계산은 `pages/Ticker/utils` 가 이미 끝냈다. */
 export type TickerCompareViewModel = {
@@ -9,8 +9,8 @@ export type TickerCompareViewModel = {
   readonly isAtLimit: boolean;
   /** 비교가 성립하는 최소 개수를 넘었는가. */
   readonly hasEnough: boolean;
-  /** 빈 상태에서 눌러 볼 수 있는 추천 조합. */
-  readonly suggestions: readonly (readonly string[])[];
+  /** 빈 상태에서 눌러 볼 수 있는 예시 조합(라벨 포함 — 티커만 나열하면 왜 그 조합인지 알 수 없다). */
+  readonly suggestions: readonly ComparePreset[];
 };
 
 export type TickerCompareViewProps = {

@@ -53,8 +53,24 @@ function IndexCell({ row, isLoading }: { row: MarketIndexRow; isLoading: boolean
     );
   }
 
+  /*
+   * 🔴 좁은 폭에서는 현재가가 `display: none` 이라 화면에 **변동률만** 남는다(Value 주석 참고).
+   * 그 상태에서도 절대값을 확인할 수 있게 셀 전체에 원문을 붙인다 — "S&P 500 7,489.72 포인트 · 전일 대비 …".
+   *
+   * ⚠ 왜 `title` 이고 공용 `Tooltip` 이 아닌가: `Tooltip` 은 **포커스 가능한 트리거**를 요구하는데,
+   *   이 스트립은 셀이 링크도 버튼도 아니라 **포커서블 요소가 0개**인 것이 설계다(파일 상단 주석).
+   *   툴팁을 위해 셀을 버튼으로 바꾸면 이 부품이 놓인 3개 화면마다 **탭 정거장이 6개** 늘어난다.
+   *   `title` 은 그 대가 없이 호버·롱프레스를 커버한다.
+   * ⚠ 스크린리더에는 이미 아래 `VisuallyHidden` 두 줄이 같은 내용을 말한다 — `title` 은 시각 사용자용
+   *   보조일 뿐이므로, 그 문장들을 지우고 `title` 로 대체하지 마라.
+   */
+  const fullText = [
+    `${row.label} ${formatIndexValue(row.price)}${row.unit}`,
+    row.change ? MARKET_INDEX_COPY.changeAria(row.change) : MARKET_INDEX_COPY.changeUnknown
+  ].join(' · ');
+
   return (
-    <Item>
+    <Item title={fullText}>
       <Name>{row.label}</Name>
       <Value>
         {formatIndexValue(row.price)}

@@ -173,7 +173,9 @@ describe('AppHeader — 전 페이지 공통 계약', () => {
       0
     );
     expect(within(banner).getByRole('link', { name: COMMUNITY_COPY.nav.simulator })).toBeInTheDocument();
-    expect(within(banner).getByRole('link', { name: COMMUNITY_COPY.nav.myPortfolio })).toBeInTheDocument();
     expect(within(banner).getByRole('link', { name: COMMUNITY_COPY.nav.dividendCalendar })).toBeInTheDocument();
+    /* 포트폴리오 둘(내·대가들)은 2026-08-02 부터 **묶음 메뉴 안**에 있다 — 헤더가 보장하는 것은
+       그 묶음 트리거가 자리에 있다는 것까지다(펼친 뒤 내용은 PrimaryNav.test.tsx 가 본다). */
+    expect(within(banner).getByRole('button', { name: new RegExp(COMMUNITY_COPY.nav.portfolioGroup) })).toBeInTheDocument();
   });
 });

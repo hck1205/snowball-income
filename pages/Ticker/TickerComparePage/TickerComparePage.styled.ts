@@ -17,6 +17,20 @@ export const Stack = styled.div`
 
 /* ── 선택 줄 ───────────────────────────────────────────────────────────────── */
 
+/**
+ * 선택 영역 세로 스택 — 칩 줄 / 셀렉트 / 설명 순이다.
+ *
+ * 셀렉트를 칩·설명과 **한 줄에 두지 않는다**(2026-08-02 사용자 지시). 한 줄이면 셋이 폭을 다퉈
+ * 셀렉트가 종목명을 못 담고, 칩이 늘어날수록 셀렉트가 밀려 어디 있는지 찾아야 한다.
+ * 세로로 쌓으면 셀렉트가 전폭을 받아 긴 종목명이 잘리지 않는다.
+ */
+export const PickerStack = styled.div`
+  display: grid;
+  gap: ${space[2]};
+  min-width: 0;
+`;
+
+/** 고른 종목 칩. 여기만 가로로 흐른다. */
 export const PickerRow = styled.div`
   display: flex;
   flex-wrap: wrap;
@@ -25,10 +39,10 @@ export const PickerRow = styled.div`
   min-width: 0;
 `;
 
+/** 셀렉트 아래 설명. 컨트롤 옆이 아니라 **밑**이라 읽는 순서가 "고른다 → 규칙을 안다"가 된다. */
 export const PickerHint = styled.p`
   margin: 0;
   min-width: 0;
-  flex: 1 1 20ch;
   color: ${color.textSecondary};
   font-size: ${font.size.sm};
   line-height: ${font.leading.snug};
@@ -269,10 +283,63 @@ export const EmptyBody = styled.p`
   line-height: ${font.leading.snug};
 `;
 
+/**
+ * 예시 조합 목록.
+ *
+ * 칩 한 줄이 아니라 **격자**다 — 조합이 열 개라 한 줄로 흐르면 어디서 끊기는지 알 수 없다.
+ * 좁은 폭에서는 한 칸, 넓어지면 최소 20rem 씩 나눠 가진다(라벨이 한 줄에 들어가는 최소 폭).
+ */
 export const SuggestionRow = styled.div`
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: ${space[2]};
+  width: 100%;
+
+  ${media.up('mobileWide')} {
+    grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  }
+`;
+
+/**
+ * 조합 하나를 누르는 버튼. 카드처럼 보이되 실제로 버튼이라 키보드로도 그대로 눌린다.
+ * ⚠ `EmptyBlock` 이 이미 점선 테두리라 여기는 **실선**으로 둔다 — 점선 안의 점선은 경계가 뭉갠다.
+ */
+export const SuggestionButton = styled.button`
+  display: grid;
+  gap: 2px;
+  justify-items: start;
+  padding: ${space[2]} ${space[3]};
+  border: 1px solid ${color.border};
+  border-radius: ${radius.sm};
+  background: ${color.surface};
+  text-align: left;
+  cursor: pointer;
+  min-width: 0;
+
+  &:hover {
+    border-color: ${color.accentBorder};
+    background: ${color.surfaceHover};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${color.focusRing};
+    outline-offset: 2px;
+  }
+`;
+
+/** 이 조합이 무엇을 보여주는지. 🔴 사실 진술만 — 고르는 근거는 여기 한 줄이 진다. */
+export const SuggestionLabel = styled.span`
+  color: ${color.text};
+  font-size: ${font.size.sm};
+  font-weight: ${font.weight.semibold};
+  line-height: ${font.leading.snug};
+`;
+
+export const SuggestionTickers = styled.span`
+  color: ${color.textSecondary};
+  font-family: ${font.dataNumeric};
+  font-size: ${font.size.xs};
+  ${font.numeric}
 `;
 
 export const FootNote = styled.p`

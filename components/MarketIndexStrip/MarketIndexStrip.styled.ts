@@ -145,9 +145,10 @@ export const Value = styled.span`
   color: ${color.text};
   font-family: ${font.dataNumeric};
   /* 한 줄 띠라 lg/bold 는 과하다 — 띠 높이가 카드 시절로 되돌아간다.
-     md(15px) → base(14px) → sm(13px) 로 두 단계 내렸다(2026-08-02 사용자 요청).
-     ⚠ 아래 ValueMuted 와 **같은 값을 유지**하라 — 갈리면 값 없는 칸에서 셀 높이가 흔들린다. */
-  font-size: ${font.size.sm};
+     md(15px) → base(14px) → sm(13px) → xs(12px) 로 세 단계 내렸다(2026-08-02 사용자 요청, 1px 씩).
+     ⚠ 아래 ValueMuted **그리고 Change·ChangeMuted 와 같은 값을 유지**하라 — 네 요소가 한 줄에
+       나란히 서므로 하나만 갈리면 값 없는 칸에서 셀 높이와 기준선이 흔들린다. */
+  font-size: ${font.size.xs};
   font-weight: ${font.weight.semibold};
   letter-spacing: -0.02em;
   white-space: nowrap;
@@ -170,7 +171,7 @@ export const Value = styled.span`
 export const ValueMuted = styled.span`
   color: ${color.textMuted};
   font-family: ${font.dataNumeric};
-  font-size: ${font.size.sm};
+  font-size: ${font.size.xs};
   font-weight: ${font.weight.semibold};
   letter-spacing: -0.02em;
   ${font.numeric}
@@ -232,7 +233,7 @@ export const ChangeMark = styled.span`
 export const Change = styled.span`
   color: inherit;
   font-family: ${font.dataNumeric};
-  font-size: ${font.size.sm};
+  font-size: ${font.size.xs};
   font-weight: ${font.weight.semibold};
   line-height: ${font.leading.tight};
   white-space: nowrap;
@@ -243,7 +244,7 @@ export const Change = styled.span`
 export const ChangeMuted = styled.span`
   overflow: hidden;
   color: ${color.textMuted};
-  font-size: ${font.size.sm};
+  font-size: ${font.size.xs};
   font-weight: ${font.weight.semibold};
   line-height: ${font.leading.tight};
   white-space: nowrap;
