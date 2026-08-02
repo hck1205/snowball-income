@@ -97,7 +97,10 @@ describe('filterCalendarUniverse', () => {
   });
 
   it('한글명으로도 찾는다', () => {
-    expect(filterCalendarUniverse(entries, '리얼티').map((item) => item.ticker)).toEqual(['O']);
+    // 2026-08-02 유니버스 확충으로 FRT(페더럴 리얼티 인베스트먼트 트러스트)가 추가되면서
+    // '리얼티' 부분일치가 O(리얼티 인컴)와 함께 FRT도 정당하게 잡는다 — 부분일치 기능이 맞게
+    // 동작한 결과이지 회귀가 아니다.
+    expect(filterCalendarUniverse(entries, '리얼티').map((item) => item.ticker)).toEqual(['FRT', 'O']);
   });
 
   it('영문명 부분일치도 지원한다', () => {

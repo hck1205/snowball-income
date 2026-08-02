@@ -16,6 +16,10 @@ import { HIGH_DIVIDEND_STOCKS } from './highDividendStocks';
 import { CORE_INDEX_ETFS } from './coreIndexEtfs';
 import { SEMICONDUCTOR_DIVIDEND_GROWTH_PORTFOLIO } from './semiconductorDividendGrowthPortfolio';
 import { AI_INFRA_ETFS_AND_STOCKS } from './aiInfraEtfsAndStocks';
+import { MEGA_CAP_GROWTH_STOCKS } from './megaCapGrowthStocks';
+import { FINANCIAL_DIVIDEND_STOCKS } from './financialDividendStocks';
+import { DIVIDEND_ARISTOCRAT_STOCKS } from './dividendAristocratStocks';
+import { GURU_HOLDING_STOCKS } from './guruHoldingStocks';
 
 export { US_DIVIDEND_GROWTH_ETFS } from './usDividendGrowthEtfs';
 export { US_HIGH_DIVIDEND_ETFS } from './usHighDividendEtfs';
@@ -27,6 +31,10 @@ export { HIGH_DIVIDEND_STOCKS } from './highDividendStocks';
 export { CORE_INDEX_ETFS } from './coreIndexEtfs';
 export { SEMICONDUCTOR_DIVIDEND_GROWTH_PORTFOLIO } from './semiconductorDividendGrowthPortfolio';
 export { AI_INFRA_ETFS_AND_STOCKS } from './aiInfraEtfsAndStocks';
+export { MEGA_CAP_GROWTH_STOCKS } from './megaCapGrowthStocks';
+export { FINANCIAL_DIVIDEND_STOCKS } from './financialDividendStocks';
+export { DIVIDEND_ARISTOCRAT_STOCKS } from './dividendAristocratStocks';
+export { GURU_HOLDING_STOCKS } from './guruHoldingStocks';
 
 /**
  * Hand-curated preset values. This is the source of truth for `name` and `expectedTotalReturn`,
@@ -45,7 +53,11 @@ export const CURATED_DIVIDEND_UNIVERSE = {
   ...DIVIDEND_GROWTH_STOCKS,
   ...HIGH_DIVIDEND_STOCKS,
   ...SEMICONDUCTOR_DIVIDEND_GROWTH_PORTFOLIO,
-  ...AI_INFRA_ETFS_AND_STOCKS
+  ...AI_INFRA_ETFS_AND_STOCKS,
+  ...MEGA_CAP_GROWTH_STOCKS,
+  ...FINANCIAL_DIVIDEND_STOCKS,
+  ...DIVIDEND_ARISTOCRAT_STOCKS,
+  ...GURU_HOLDING_STOCKS
 } as const;
 
 /** `dividendGrowth` is a derived number, so it widens away from the preset's literal type. */
@@ -231,7 +243,125 @@ export const PRESET_TICKER_KOREAN_NAME_BY_TICKER = {
   ETN: '이튼',
   VRT: '버티브 홀딩스',
   CEG: '컨스텔레이션 에너지',
-  NEE: '넥스트에라 에너지'
+  NEE: '넥스트에라 에너지',
+  // 2026-08-02 확충분 — 대형 성장주
+  AAPL: '애플',
+  MSFT: '마이크로소프트',
+  GOOGL: '알파벳',
+  AMZN: '아마존닷컴',
+  META: '메타 플랫폼스',
+  TSLA: '테슬라',
+  // 2026-08-02 확충분 — 금융
+  JPM: 'JP모건 체이스',
+  BAC: '뱅크 오브 아메리카',
+  WFC: '웰스 파고',
+  C: '씨티그룹',
+  MS: '모건 스탠리',
+  GS: '골드만삭스',
+  AXP: '아메리칸 익스프레스',
+  COF: '캐피털 원 파이낸셜',
+  ALLY: '앨리 파이낸셜',
+  USB: 'US뱅코프',
+  CB: '처브',
+  MCO: '무디스',
+  SPGI: 'S&P 글로벌',
+  V: '비자',
+  MA: '마스터카드',
+  AFL: '애플락',
+  TROW: 'T. 로우 프라이스',
+  BEN: '프랭클린 리소시스',
+  // 2026-08-02 확충분 — 배당귀족·배당킹
+  APD: '에어프로덕츠앤케미컬스',
+  AOS: 'A.O. 스미스',
+  ADM: '아처 대니얼스 미들랜드',
+  ATO: '애트모스 에너지',
+  ADP: '오토매틱 데이터 프로세싱',
+  BDX: '벡톤 디킨슨',
+  BRO: '브라운앤브라운',
+  CAH: '카디널 헬스',
+  CHRW: 'C.H. 로빈슨 월드와이드',
+  CHD: '처치앤드와이트',
+  CINF: '신시내티 파이낸셜',
+  CL: '콜게이트-팜올리브',
+  CLX: '클로락스',
+  CTAS: '신타스',
+  DOV: '도버',
+  ECL: '에코랩',
+  ED: '콘솔리데이티드 에디슨',
+  EMR: '에머슨 일렉트릭',
+  ESS: '에섹스 프로퍼티 트러스트',
+  EXPD: '익스피다이터스 인터내셔널',
+  FRT: '페더럴 리얼티 인베스트먼트 트러스트',
+  GD: '제너럴 다이내믹스',
+  GPC: '지뉴인 파츠',
+  GWW: 'W.W. 그레인저',
+  HRL: '호멜 푸즈',
+  ITW: '일리노이 툴 웍스',
+  KMB: '킴벌리-클라크',
+  LIN: '린데',
+  MDT: '메드트로닉',
+  MKC: '맥코믹',
+  NDSN: '노드슨',
+  PNR: '펜테어',
+  PPG: 'PPG 인더스트리스',
+  ROP: '로퍼 테크놀로지스',
+  SHW: '셔윈-윌리엄스',
+  SJM: 'J.M. 스머커',
+  SWK: '스탠리 블랙앤데커',
+  SYY: '시스코 코퍼레이션',
+  WST: '웨스트 파마슈티컬 서비스',
+  PH: '파커 하니핀',
+  // 2026-08-02 확충분 — 13F 대가 보유 개별주
+  OXY: '옥시덴탈 페트롤리엄',
+  KHC: '크래프트 하인즈',
+  KR: '크로거',
+  STZ: '컨스텔레이션 브랜즈',
+  DAL: '델타 항공',
+  SIRI: '시리우스XM 홀딩스',
+  NYT: '뉴욕타임스',
+  LEN: '레나',
+  M: '메이시스',
+  JEF: '제프리스 파이낸셜 그룹',
+  NUE: '뉴코어',
+  UNP: '유니언 퍼시픽',
+  DE: '디어',
+  WM: '웨이스트 매니지먼트',
+  CNI: '캐나디안 내셔널 철도',
+  PCAR: '팩카',
+  ELV: '엘레번스 헬스',
+  CVS: 'CVS 헬스',
+  MRK: '머크',
+  PFE: '화이자',
+  LLY: '일라이 릴리',
+  HUM: '휴매나',
+  ORCL: '오라클',
+  QCOM: '퀄컴',
+  TAP: '몰슨쿠어스 베버리지',
+  WEN: '웬디스',
+  RTX: 'RTX',
+  COST: '코스트코 홀세일',
+  FCX: '프리포트-맥모란',
+  APH: '앰페놀',
+  CSX: 'CSX',
+  NEM: '뉴몬트',
+  B: '배릭 마이닝',
+  GLW: '코닝',
+  WHR: '월풀',
+  BALL: '볼',
+  ET: '에너지 트랜스퍼',
+  MPLX: 'MPLX',
+  WTW: '윌리스 타워스 왓슨',
+  FERG: '퍼거슨 엔터프라이지스',
+  GM: '제너럴 모터스',
+  EWBC: '이스트 웨스트 뱅코프',
+  HRB: 'H&R 블록',
+  MSCI: 'MSCI',
+  SAP: 'SAP',
+  NVS: '노바티스',
+  AZN: '아스트라제네카',
+  BP: 'BP',
+  SHEL: '쉘',
+  JCI: '존슨 컨트롤스 인터내셔널'
 } as const satisfies Record<keyof typeof DIVIDEND_UNIVERSE, string>;
 
 export type PresetTickerKey = keyof typeof DIVIDEND_UNIVERSE;
