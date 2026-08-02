@@ -7944,6 +7944,1048 @@ var SEMICONDUCTOR_DIVIDEND_GROWTH_PORTFOLIO = {
   VRT: AI_INFRA_ETFS_AND_STOCKS.VRT
 };
 
+// shared/constants/presets/megaCapGrowthStocks.ts
+var MEGA_CAP_GROWTH_STOCKS = {
+  AAPL: {
+    ticker: "AAPL",
+    name: "Apple Inc.",
+    initialPrice: 308.91,
+    dividendYield: 0.34,
+    dividendGrowth: 10.66,
+    expectedTotalReturn: 11,
+    frequency: "quarterly"
+  },
+  MSFT: {
+    ticker: "MSFT",
+    name: "Microsoft Corporation",
+    initialPrice: 464.72,
+    dividendYield: 0.77,
+    dividendGrowth: 11.23,
+    expectedTotalReturn: 12,
+    frequency: "quarterly"
+  },
+  GOOGL: {
+    ticker: "GOOGL",
+    name: "Alphabet Inc.",
+    initialPrice: 356.13,
+    dividendYield: 0.24,
+    dividendGrowth: 11.76,
+    expectedTotalReturn: 12,
+    frequency: "quarterly"
+  },
+  AMZN: {
+    ticker: "AMZN",
+    name: "Amazon.com, Inc.",
+    initialPrice: 271.58,
+    dividendYield: 0,
+    dividendGrowth: 13,
+    expectedTotalReturn: 13,
+    frequency: "none"
+  },
+  META: {
+    ticker: "META",
+    name: "Meta Platforms, Inc.",
+    initialPrice: 556.71,
+    dividendYield: 0.38,
+    dividendGrowth: 12.62,
+    expectedTotalReturn: 13,
+    frequency: "quarterly"
+  },
+  TSLA: {
+    ticker: "TSLA",
+    name: "Tesla, Inc.",
+    initialPrice: 311.21,
+    dividendYield: 0,
+    dividendGrowth: 14,
+    expectedTotalReturn: 14,
+    frequency: "none"
+  }
+};
+
+// shared/constants/presets/financialDividendStocks.ts
+var FINANCIAL_DIVIDEND_STOCKS = {
+  JPM: {
+    ticker: "JPM",
+    name: "JPMorgan Chase & Co.",
+    initialPrice: 351.79,
+    dividendYield: 1.71,
+    dividendGrowth: 8.29,
+    expectedTotalReturn: 10,
+    frequency: "quarterly"
+  },
+  BAC: {
+    ticker: "BAC",
+    name: "Bank of America Corporation",
+    initialPrice: 61.95,
+    dividendYield: 1.81,
+    dividendGrowth: 7.69,
+    expectedTotalReturn: 9.5,
+    frequency: "quarterly"
+  },
+  WFC: {
+    ticker: "WFC",
+    name: "Wells Fargo & Company",
+    initialPrice: 86.45,
+    dividendYield: 2.08,
+    dividendGrowth: 7.42,
+    expectedTotalReturn: 9.5,
+    frequency: "quarterly"
+  },
+  C: {
+    ticker: "C",
+    name: "Citigroup Inc.",
+    initialPrice: 132.45,
+    dividendYield: 1.81,
+    dividendGrowth: 7.69,
+    expectedTotalReturn: 9.5,
+    frequency: "quarterly"
+  },
+  MS: {
+    ticker: "MS",
+    name: "Morgan Stanley",
+    initialPrice: 210.42,
+    dividendYield: 1.97,
+    dividendGrowth: 8.03,
+    expectedTotalReturn: 10,
+    frequency: "quarterly"
+  },
+  GS: {
+    ticker: "GS",
+    name: "The Goldman Sachs Group, Inc.",
+    initialPrice: 1018.38,
+    dividendYield: 1.67,
+    dividendGrowth: 8.33,
+    expectedTotalReturn: 10,
+    frequency: "quarterly"
+  },
+  AXP: {
+    ticker: "AXP",
+    name: "American Express Company",
+    initialPrice: 336.25,
+    dividendYield: 1.05,
+    dividendGrowth: 9.45,
+    expectedTotalReturn: 10.5,
+    frequency: "quarterly"
+  },
+  COF: {
+    ticker: "COF",
+    name: "Capital One Financial Corporation",
+    initialPrice: 209.01,
+    dividendYield: 1.44,
+    dividendGrowth: 8.06,
+    expectedTotalReturn: 9.5,
+    frequency: "quarterly"
+  },
+  ALLY: {
+    ticker: "ALLY",
+    name: "Ally Financial Inc.",
+    initialPrice: 43.33,
+    dividendYield: 2.77,
+    dividendGrowth: 6.23,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  USB: {
+    ticker: "USB",
+    name: "U.S. Bancorp",
+    initialPrice: 63.01,
+    dividendYield: 3.3,
+    dividendGrowth: 5.7,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  CB: {
+    ticker: "CB",
+    name: "Chubb Limited",
+    initialPrice: 350.68,
+    dividendYield: 0.57,
+    dividendGrowth: 8.43,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  MCO: {
+    ticker: "MCO",
+    name: "Moody's Corporation",
+    initialPrice: 478.38,
+    dividendYield: 0.82,
+    dividendGrowth: 11.18,
+    expectedTotalReturn: 12,
+    frequency: "quarterly"
+  },
+  SPGI: {
+    ticker: "SPGI",
+    name: "S&P Global Inc.",
+    initialPrice: 411.93,
+    dividendYield: 0.89,
+    dividendGrowth: 11.11,
+    expectedTotalReturn: 12,
+    frequency: "quarterly"
+  },
+  V: {
+    ticker: "V",
+    name: "Visa Inc.",
+    initialPrice: 366.13,
+    dividendYield: 0.71,
+    dividendGrowth: 12.29,
+    expectedTotalReturn: 13,
+    frequency: "quarterly"
+  },
+  MA: {
+    ticker: "MA",
+    name: "Mastercard Incorporated",
+    initialPrice: 573.1,
+    dividendYield: 0.59,
+    dividendGrowth: 12.41,
+    expectedTotalReturn: 13,
+    frequency: "quarterly"
+  },
+  AFL: {
+    ticker: "AFL",
+    name: "Aflac Incorporated",
+    initialPrice: 127.48,
+    dividendYield: 1.87,
+    dividendGrowth: 7.13,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  TROW: {
+    ticker: "TROW",
+    name: "T. Rowe Price Group, Inc.",
+    initialPrice: 111.75,
+    dividendYield: 4.6,
+    dividendGrowth: 3.9,
+    expectedTotalReturn: 8.5,
+    frequency: "quarterly"
+  },
+  BEN: {
+    ticker: "BEN",
+    name: "Franklin Resources, Inc.",
+    initialPrice: 33.86,
+    dividendYield: 3.87,
+    dividendGrowth: 4.13,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  }
+};
+
+// shared/constants/presets/dividendAristocratStocks.ts
+var DIVIDEND_ARISTOCRAT_STOCKS = {
+  APD: {
+    ticker: "APD",
+    name: "Air Products and Chemicals, Inc.",
+    initialPrice: 294.89,
+    dividendYield: 2.44,
+    dividendGrowth: 6.56,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  AOS: {
+    ticker: "AOS",
+    name: "A. O. Smith Corporation",
+    initialPrice: 60.13,
+    dividendYield: 2.39,
+    dividendGrowth: 6.11,
+    expectedTotalReturn: 8.5,
+    frequency: "quarterly"
+  },
+  ADM: {
+    ticker: "ADM",
+    name: "Archer-Daniels-Midland Company",
+    initialPrice: 79.27,
+    dividendYield: 2.6,
+    dividendGrowth: 5.4,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  ATO: {
+    ticker: "ATO",
+    name: "Atmos Energy Corporation",
+    initialPrice: 172.78,
+    dividendYield: 2.24,
+    dividendGrowth: 5.76,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  ADP: {
+    ticker: "ADP",
+    name: "Automatic Data Processing, Inc.",
+    initialPrice: 266.46,
+    dividendYield: 2.49,
+    dividendGrowth: 7.51,
+    expectedTotalReturn: 10,
+    frequency: "quarterly"
+  },
+  BDX: {
+    ticker: "BDX",
+    name: "Becton, Dickinson and Company",
+    initialPrice: 165.62,
+    dividendYield: 2.26,
+    dividendGrowth: 6.24,
+    expectedTotalReturn: 8.5,
+    frequency: "quarterly"
+  },
+  BRO: {
+    ticker: "BRO",
+    name: "Brown & Brown, Inc.",
+    initialPrice: 70.4,
+    dividendYield: 0.92,
+    dividendGrowth: 9.08,
+    expectedTotalReturn: 10,
+    frequency: "quarterly"
+  },
+  CAH: {
+    ticker: "CAH",
+    name: "Cardinal Health, Inc.",
+    initialPrice: 230.03,
+    dividendYield: 0.89,
+    dividendGrowth: 7.61,
+    expectedTotalReturn: 8.5,
+    frequency: "quarterly"
+  },
+  CHRW: {
+    ticker: "CHRW",
+    name: "C.H. Robinson Worldwide, Inc.",
+    initialPrice: 147.73,
+    dividendYield: 1.7,
+    dividendGrowth: 6.3,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  CHD: {
+    ticker: "CHD",
+    name: "Church & Dwight Co., Inc.",
+    initialPrice: 98.81,
+    dividendYield: 1.22,
+    dividendGrowth: 6.78,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  CINF: {
+    ticker: "CINF",
+    name: "Cincinnati Financial Corporation",
+    initialPrice: 177.68,
+    dividendYield: 2.04,
+    dividendGrowth: 5.96,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  CL: {
+    ticker: "CL",
+    name: "Colgate-Palmolive Company",
+    initialPrice: 91.3,
+    dividendYield: 2.3,
+    dividendGrowth: 5.7,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  CLX: {
+    ticker: "CLX",
+    name: "The Clorox Company",
+    initialPrice: 95.53,
+    dividendYield: 5.19,
+    dividendGrowth: 2.31,
+    expectedTotalReturn: 7.5,
+    frequency: "quarterly"
+  },
+  CTAS: {
+    ticker: "CTAS",
+    name: "Cintas Corporation",
+    initialPrice: 204.63,
+    dividendYield: 0.88,
+    dividendGrowth: 9.12,
+    expectedTotalReturn: 10,
+    frequency: "quarterly"
+  },
+  DOV: {
+    ticker: "DOV",
+    name: "Dover Corporation",
+    initialPrice: 204.62,
+    dividendYield: 1.02,
+    dividendGrowth: 7.98,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  ECL: {
+    ticker: "ECL",
+    name: "Ecolab Inc.",
+    initialPrice: 277.63,
+    dividendYield: 1.02,
+    dividendGrowth: 7.98,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  ED: {
+    ticker: "ED",
+    name: "Consolidated Edison, Inc.",
+    initialPrice: 108.85,
+    dividendYield: 3.19,
+    dividendGrowth: 3.81,
+    expectedTotalReturn: 7,
+    frequency: "quarterly"
+  },
+  EMR: {
+    ticker: "EMR",
+    name: "Emerson Electric Co.",
+    initialPrice: 149.82,
+    dividendYield: 1.46,
+    dividendGrowth: 7.04,
+    expectedTotalReturn: 8.5,
+    frequency: "quarterly"
+  },
+  ESS: {
+    ticker: "ESS",
+    name: "Essex Property Trust, Inc.",
+    initialPrice: 284.14,
+    dividendYield: 3.63,
+    dividendGrowth: 3.87,
+    expectedTotalReturn: 7.5,
+    frequency: "quarterly"
+  },
+  EXPD: {
+    ticker: "EXPD",
+    name: "Expeditors International of Washington, Inc.",
+    initialPrice: 167.89,
+    dividendYield: 0.94,
+    dividendGrowth: 7.56,
+    expectedTotalReturn: 8.5,
+    frequency: "semiannual"
+  },
+  FRT: {
+    ticker: "FRT",
+    name: "Federal Realty Investment Trust",
+    initialPrice: 124.09,
+    dividendYield: 3.64,
+    dividendGrowth: 3.86,
+    expectedTotalReturn: 7.5,
+    frequency: "quarterly"
+  },
+  GD: {
+    ticker: "GD",
+    name: "General Dynamics Corporation",
+    initialPrice: 383.42,
+    dividendYield: 1.61,
+    dividendGrowth: 7.39,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  GPC: {
+    ticker: "GPC",
+    name: "Genuine Parts Company",
+    initialPrice: 124.37,
+    dividendYield: 3.37,
+    dividendGrowth: 4.63,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  GWW: {
+    ticker: "GWW",
+    name: "W.W. Grainger, Inc.",
+    initialPrice: 1382.22,
+    dividendYield: 0.67,
+    dividendGrowth: 9.33,
+    expectedTotalReturn: 10,
+    frequency: "quarterly"
+  },
+  HRL: {
+    ticker: "HRL",
+    name: "Hormel Foods Corporation",
+    initialPrice: 25.01,
+    dividendYield: 4.67,
+    dividendGrowth: 2.33,
+    expectedTotalReturn: 7,
+    frequency: "quarterly"
+  },
+  ITW: {
+    ticker: "ITW",
+    name: "Illinois Tool Works Inc.",
+    initialPrice: 286.95,
+    dividendYield: 2.24,
+    dividendGrowth: 6.76,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  KMB: {
+    ticker: "KMB",
+    name: "Kimberly-Clark Corporation",
+    initialPrice: 109.31,
+    dividendYield: 4.65,
+    dividendGrowth: 2.35,
+    expectedTotalReturn: 7,
+    frequency: "quarterly"
+  },
+  LIN: {
+    ticker: "LIN",
+    name: "Linde plc",
+    initialPrice: 478.38,
+    dividendYield: 1.3,
+    dividendGrowth: 8.7,
+    expectedTotalReturn: 10,
+    frequency: "quarterly"
+  },
+  MDT: {
+    ticker: "MDT",
+    name: "Medtronic plc",
+    initialPrice: 85.39,
+    dividendYield: 3.34,
+    dividendGrowth: 5.16,
+    expectedTotalReturn: 8.5,
+    frequency: "quarterly"
+  },
+  MKC: {
+    ticker: "MKC",
+    name: "McCormick & Company, Incorporated",
+    initialPrice: 50.9,
+    dividendYield: 3.71,
+    dividendGrowth: 3.79,
+    expectedTotalReturn: 7.5,
+    frequency: "quarterly"
+  },
+  NDSN: {
+    ticker: "NDSN",
+    name: "Nordson Corporation",
+    initialPrice: 297.78,
+    dividendYield: 1.1,
+    dividendGrowth: 7.9,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  PNR: {
+    ticker: "PNR",
+    name: "Pentair plc",
+    initialPrice: 65.44,
+    dividendYield: 1.62,
+    dividendGrowth: 7.38,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  PPG: {
+    ticker: "PPG",
+    name: "PPG Industries, Inc.",
+    initialPrice: 110.52,
+    dividendYield: 2.57,
+    dividendGrowth: 5.93,
+    expectedTotalReturn: 8.5,
+    frequency: "quarterly"
+  },
+  ROP: {
+    ticker: "ROP",
+    name: "Roper Technologies, Inc.",
+    initialPrice: 391.97,
+    dividendYield: 0.91,
+    dividendGrowth: 9.59,
+    expectedTotalReturn: 10.5,
+    frequency: "quarterly"
+  },
+  SHW: {
+    ticker: "SHW",
+    name: "The Sherwin-Williams Company",
+    initialPrice: 340.85,
+    dividendYield: 0.93,
+    dividendGrowth: 9.57,
+    expectedTotalReturn: 10.5,
+    frequency: "quarterly"
+  },
+  SJM: {
+    ticker: "SJM",
+    name: "The J. M. Smucker Company",
+    initialPrice: 119.26,
+    dividendYield: 3.69,
+    dividendGrowth: 3.31,
+    expectedTotalReturn: 7,
+    frequency: "quarterly"
+  },
+  SWK: {
+    ticker: "SWK",
+    name: "Stanley Black & Decker, Inc.",
+    initialPrice: 94.58,
+    dividendYield: 3.51,
+    dividendGrowth: 4.49,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  SYY: {
+    ticker: "SYY",
+    name: "Sysco Corporation",
+    initialPrice: 85.24,
+    dividendYield: 2.55,
+    dividendGrowth: 5.95,
+    expectedTotalReturn: 8.5,
+    frequency: "quarterly"
+  },
+  WST: {
+    ticker: "WST",
+    name: "West Pharmaceutical Services, Inc.",
+    initialPrice: 340.96,
+    dividendYield: 0.26,
+    dividendGrowth: 9.24,
+    expectedTotalReturn: 9.5,
+    frequency: "quarterly"
+  },
+  PH: {
+    ticker: "PH",
+    name: "Parker-Hannifin Corporation",
+    initialPrice: 976.53,
+    dividendYield: 0.76,
+    dividendGrowth: 9.24,
+    expectedTotalReturn: 10,
+    frequency: "quarterly"
+  }
+};
+
+// shared/constants/presets/guruHoldingStocks.ts
+var GURU_HOLDING_STOCKS = {
+  OXY: {
+    ticker: "OXY",
+    name: "Occidental Petroleum Corporation",
+    initialPrice: 57.07,
+    dividendYield: 1.75,
+    dividendGrowth: 6.75,
+    expectedTotalReturn: 8.5,
+    frequency: "quarterly"
+  },
+  KHC: {
+    ticker: "KHC",
+    name: "The Kraft Heinz Company",
+    initialPrice: 25.85,
+    dividendYield: 6.19,
+    dividendGrowth: 1.31,
+    expectedTotalReturn: 7.5,
+    frequency: "quarterly"
+  },
+  KR: {
+    ticker: "KR",
+    name: "The Kroger Co.",
+    initialPrice: 57.74,
+    dividendYield: 2.42,
+    dividendGrowth: 5.58,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  STZ: {
+    ticker: "STZ",
+    name: "Constellation Brands, Inc.",
+    initialPrice: 130.23,
+    dividendYield: 3.15,
+    dividendGrowth: 5.35,
+    expectedTotalReturn: 8.5,
+    frequency: "quarterly"
+  },
+  DAL: {
+    ticker: "DAL",
+    name: "Delta Air Lines, Inc.",
+    initialPrice: 87.44,
+    dividendYield: 0.89,
+    dividendGrowth: 8.61,
+    expectedTotalReturn: 9.5,
+    frequency: "quarterly"
+  },
+  SIRI: {
+    ticker: "SIRI",
+    name: "Sirius XM Holdings Inc.",
+    initialPrice: 29.62,
+    dividendYield: 3.65,
+    dividendGrowth: 4.35,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  NYT: {
+    ticker: "NYT",
+    name: "The New York Times Company",
+    initialPrice: 74.89,
+    dividendYield: 1.09,
+    dividendGrowth: 7.91,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  LEN: {
+    ticker: "LEN",
+    name: "Lennar Corporation",
+    initialPrice: 82.35,
+    dividendYield: 2.43,
+    dividendGrowth: 7.07,
+    expectedTotalReturn: 9.5,
+    frequency: "quarterly"
+  },
+  M: {
+    ticker: "M",
+    name: "Macy\u2019s, Inc.",
+    initialPrice: 24.82,
+    dividendYield: 3.01,
+    dividendGrowth: 4.49,
+    expectedTotalReturn: 7.5,
+    frequency: "quarterly"
+  },
+  JEF: {
+    ticker: "JEF",
+    name: "Jefferies Financial Group Inc.",
+    initialPrice: 54.6,
+    dividendYield: 2.93,
+    dividendGrowth: 5.57,
+    expectedTotalReturn: 8.5,
+    frequency: "quarterly"
+  },
+  NUE: {
+    ticker: "NUE",
+    name: "Nucor Corporation",
+    initialPrice: 257.29,
+    dividendYield: 0.87,
+    dividendGrowth: 8.13,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  UNP: {
+    ticker: "UNP",
+    name: "Union Pacific Corporation",
+    initialPrice: 292.13,
+    dividendYield: 1.89,
+    dividendGrowth: 7.61,
+    expectedTotalReturn: 9.5,
+    frequency: "quarterly"
+  },
+  DE: {
+    ticker: "DE",
+    name: "Deere & Company",
+    initialPrice: 592.67,
+    dividendYield: 1.09,
+    dividendGrowth: 8.41,
+    expectedTotalReturn: 9.5,
+    frequency: "quarterly"
+  },
+  WM: {
+    ticker: "WM",
+    name: "Waste Management, Inc.",
+    initialPrice: 226.55,
+    dividendYield: 1.56,
+    dividendGrowth: 7.44,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  CNI: {
+    ticker: "CNI",
+    name: "Canadian National Railway Company",
+    initialPrice: 127.21,
+    dividendYield: 1.55,
+    dividendGrowth: 6.95,
+    expectedTotalReturn: 8.5,
+    frequency: "quarterly"
+  },
+  PCAR: {
+    ticker: "PCAR",
+    name: "PACCAR Inc",
+    initialPrice: 132.68,
+    dividendYield: 2.07,
+    dividendGrowth: 6.43,
+    expectedTotalReturn: 8.5,
+    frequency: "quarterly"
+  },
+  ELV: {
+    ticker: "ELV",
+    name: "Elevance Health, Inc.",
+    initialPrice: 375.84,
+    dividendYield: 1.83,
+    dividendGrowth: 7.17,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  CVS: {
+    ticker: "CVS",
+    name: "CVS Health Corporation",
+    initialPrice: 104.43,
+    dividendYield: 2.55,
+    dividendGrowth: 5.95,
+    expectedTotalReturn: 8.5,
+    frequency: "quarterly"
+  },
+  MRK: {
+    ticker: "MRK",
+    name: "Merck & Co., Inc.",
+    initialPrice: 130.2,
+    dividendYield: 2.58,
+    dividendGrowth: 5.92,
+    expectedTotalReturn: 8.5,
+    frequency: "quarterly"
+  },
+  PFE: {
+    ticker: "PFE",
+    name: "Pfizer Inc.",
+    initialPrice: 25.01,
+    dividendYield: 6.88,
+    dividendGrowth: 1.12,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  LLY: {
+    ticker: "LLY",
+    name: "Eli Lilly and Company",
+    initialPrice: 1148.84,
+    dividendYield: 0.56,
+    dividendGrowth: 12.44,
+    expectedTotalReturn: 13,
+    frequency: "quarterly"
+  },
+  HUM: {
+    ticker: "HUM",
+    name: "Humana Inc.",
+    initialPrice: 363.86,
+    dividendYield: 0.97,
+    dividendGrowth: 7.53,
+    expectedTotalReturn: 8.5,
+    frequency: "quarterly"
+  },
+  ORCL: {
+    ticker: "ORCL",
+    name: "Oracle Corporation",
+    initialPrice: 129.87,
+    dividendYield: 1.54,
+    dividendGrowth: 10.46,
+    expectedTotalReturn: 12,
+    frequency: "quarterly"
+  },
+  QCOM: {
+    ticker: "QCOM",
+    name: "QUALCOMM Incorporated",
+    initialPrice: 147.61,
+    dividendYield: 2.43,
+    dividendGrowth: 7.57,
+    expectedTotalReturn: 10,
+    frequency: "quarterly"
+  },
+  TAP: {
+    ticker: "TAP",
+    name: "Molson Coors Beverage Company",
+    initialPrice: 41.56,
+    dividendYield: 4.57,
+    dividendGrowth: 2.93,
+    expectedTotalReturn: 7.5,
+    frequency: "quarterly"
+  },
+  WEN: {
+    ticker: "WEN",
+    name: "The Wendy\u2019s Company",
+    initialPrice: 7.36,
+    dividendYield: 7.61,
+    dividendGrowth: 0.39,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  RTX: {
+    ticker: "RTX",
+    name: "RTX Corporation",
+    initialPrice: 215.22,
+    dividendYield: 1.29,
+    dividendGrowth: 8.21,
+    expectedTotalReturn: 9.5,
+    frequency: "quarterly"
+  },
+  COST: {
+    ticker: "COST",
+    name: "Costco Wholesale Corporation",
+    initialPrice: 951.89,
+    dividendYield: 0.58,
+    dividendGrowth: 10.42,
+    expectedTotalReturn: 11,
+    frequency: "quarterly"
+  },
+  FCX: {
+    ticker: "FCX",
+    name: "Freeport-McMoRan Inc.",
+    initialPrice: 62.63,
+    dividendYield: 0.96,
+    dividendGrowth: 8.54,
+    expectedTotalReturn: 9.5,
+    frequency: "quarterly"
+  },
+  APH: {
+    ticker: "APH",
+    name: "Amphenol Corporation",
+    initialPrice: 160.7,
+    dividendYield: 0.57,
+    dividendGrowth: 10.43,
+    expectedTotalReturn: 11,
+    frequency: "quarterly"
+  },
+  CSX: {
+    ticker: "CSX",
+    name: "CSX Corporation",
+    initialPrice: 50.4,
+    dividendYield: 1.07,
+    dividendGrowth: 7.93,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  NEM: {
+    ticker: "NEM",
+    name: "Newmont Corporation",
+    initialPrice: 93.71,
+    dividendYield: 1.09,
+    dividendGrowth: 8.41,
+    expectedTotalReturn: 9.5,
+    frequency: "quarterly"
+  },
+  B: {
+    ticker: "B",
+    name: "Barrick Mining Corporation",
+    initialPrice: 36.73,
+    dividendYield: 2.5,
+    dividendGrowth: 6.5,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  GLW: {
+    ticker: "GLW",
+    name: "Corning Incorporated",
+    initialPrice: 138.25,
+    dividendYield: 0.81,
+    dividendGrowth: 8.19,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  WHR: {
+    ticker: "WHR",
+    name: "Whirlpool Corporation",
+    initialPrice: 37.5,
+    dividendYield: 7.2,
+    dividendGrowth: 0.3,
+    expectedTotalReturn: 7.5,
+    frequency: "quarterly"
+  },
+  BALL: {
+    ticker: "BALL",
+    name: "Ball Corporation",
+    initialPrice: 64.9,
+    dividendYield: 1.23,
+    dividendGrowth: 7.77,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  ET: {
+    ticker: "ET",
+    name: "Energy Transfer LP",
+    initialPrice: 20.36,
+    dividendYield: 6.56,
+    dividendGrowth: 1.44,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  MPLX: {
+    ticker: "MPLX",
+    name: "MPLX LP",
+    initialPrice: 58.45,
+    dividendYield: 7.17,
+    dividendGrowth: 1.33,
+    expectedTotalReturn: 8.5,
+    frequency: "quarterly"
+  },
+  WTW: {
+    ticker: "WTW",
+    name: "Willis Towers Watson Public Limited Company",
+    initialPrice: 335.92,
+    dividendYield: 1.12,
+    dividendGrowth: 8.88,
+    expectedTotalReturn: 10,
+    frequency: "quarterly"
+  },
+  FERG: {
+    ticker: "FERG",
+    name: "Ferguson Enterprises Inc.",
+    initialPrice: 234.33,
+    dividendYield: 1.49,
+    dividendGrowth: 7.51,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  GM: {
+    ticker: "GM",
+    name: "General Motors Company",
+    initialPrice: 88.86,
+    dividendYield: 0.74,
+    dividendGrowth: 7.26,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  EWBC: {
+    ticker: "EWBC",
+    name: "East West Bancorp, Inc.",
+    initialPrice: 131,
+    dividendYield: 2.14,
+    dividendGrowth: 6.86,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  HRB: {
+    ticker: "HRB",
+    name: "H&R Block, Inc.",
+    initialPrice: 44.03,
+    dividendYield: 3.82,
+    dividendGrowth: 4.18,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  MSCI: {
+    ticker: "MSCI",
+    name: "MSCI Inc.",
+    initialPrice: 572.24,
+    dividendYield: 1.35,
+    dividendGrowth: 11.15,
+    expectedTotalReturn: 12.5,
+    frequency: "quarterly"
+  },
+  SAP: {
+    ticker: "SAP",
+    name: "SAP SE",
+    initialPrice: 183.62,
+    dividendYield: 1.6,
+    dividendGrowth: 9.4,
+    expectedTotalReturn: 11,
+    frequency: "annual"
+  },
+  NVS: {
+    ticker: "NVS",
+    name: "Novartis AG",
+    initialPrice: 156.15,
+    dividendYield: 3.06,
+    dividendGrowth: 5.94,
+    expectedTotalReturn: 9,
+    frequency: "annual"
+  },
+  AZN: {
+    ticker: "AZN",
+    name: "AstraZeneca PLC",
+    initialPrice: 169.64,
+    dividendYield: 1.88,
+    dividendGrowth: 8.12,
+    expectedTotalReturn: 10,
+    frequency: "semiannual"
+  },
+  BP: {
+    ticker: "BP",
+    name: "BP p.l.c.",
+    initialPrice: 45.22,
+    dividendYield: 4.41,
+    dividendGrowth: 3.59,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  SHEL: {
+    ticker: "SHEL",
+    name: "Shell plc",
+    initialPrice: 91.98,
+    dividendYield: 3.22,
+    dividendGrowth: 4.78,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  JCI: {
+    ticker: "JCI",
+    name: "Johnson Controls International plc",
+    initialPrice: 146.66,
+    dividendYield: 0.55,
+    dividendGrowth: 8.45,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  }
+};
+
 // shared/constants/presets/index.ts
 var CURATED_DIVIDEND_UNIVERSE = {
   ...CORE_INDEX_ETFS,
@@ -7955,7 +8997,11 @@ var CURATED_DIVIDEND_UNIVERSE = {
   ...DIVIDEND_GROWTH_STOCKS,
   ...HIGH_DIVIDEND_STOCKS,
   ...SEMICONDUCTOR_DIVIDEND_GROWTH_PORTFOLIO,
-  ...AI_INFRA_ETFS_AND_STOCKS
+  ...AI_INFRA_ETFS_AND_STOCKS,
+  ...MEGA_CAP_GROWTH_STOCKS,
+  ...FINANCIAL_DIVIDEND_STOCKS,
+  ...DIVIDEND_ARISTOCRAT_STOCKS,
+  ...GURU_HOLDING_STOCKS
 };
 var withCoherentDividendGrowth = (universe) => {
   const coherent = {};
@@ -11222,17 +12268,15 @@ var headerControlsGrid = `
   display: grid;
   align-items: center;
   min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'brand actions'
+    'nav nav';
   column-gap: ${space[3]};
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  grid-template-areas: 'brand nav actions';
+  row-gap: ${space[2]};
 
   ${media.down("headerStack")} {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-      'brand actions'
-      'nav nav';
     column-gap: ${space[2]};
-    row-gap: ${space[2]};
   }
 `;
 
