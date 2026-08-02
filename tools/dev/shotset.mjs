@@ -36,7 +36,8 @@ const WAIT = arg('wait', '2500');
 
 /** 찍을 라우트. 이름은 파일명이 된다. */
 const ROUTES = [
-  ['simulator', '/'],
+  ['landing', '/'],
+  ['simulator', '/simulator'],
   ['portfolio', '/dividend/portfolio'],
   ['calendar', '/dividend/calendar'],
   ['ticker-hub', '/ticker/all'],

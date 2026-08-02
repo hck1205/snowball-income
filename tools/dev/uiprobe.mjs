@@ -240,6 +240,15 @@ const OVERFLOW_EXPR = `(() => {
  *   - 스크린리더 전용 텍스트(clip/clip-path/1px/화면 밖) → 화면에 없는 좌표를 잡는다
  *   - 여러 줄 텍스트 → 규칙이 "중심 정렬"이 아니라 "첫 줄 정렬"이라 비교 자체가 무의미하다
  *   - 세로로 안 겹치는 형제 → 애초에 같은 줄이 아니다
+ *
+ * 🔴 **면을 가진 알약(칩·배지)은 "글자"가 아니라 "그림"으로 센다.** 2026-08-01 에 이 검사가 통째로
+ * 놓친 결함이 그것이다 — /ticker/all 의 카테고리 제목 옆 "N종" 칩이 4.0~4.3px 낮게 앉아 있었는데
+ * 검사는 ✓ 정상을 냈다. 이유 두 가지:
+ *   ① 칩은 글자를 품고 있어 `texts` 로 분류됐고, 이 검사는 **글자↔그림만** 비교한다(글자↔글자는 안 본다).
+ *   ② 그 행은 `align-items: baseline` 이라 애초에 훑는 대상이 아니었다.
+ * 사람 눈은 칩의 글자가 아니라 **칩의 면(상자)**을 보고 "가운데"를 판정하므로, 배경이나 테두리를
+ * 가진 자식은 글자를 품고 있어도 그림으로 돌린다. `baseline` 행도 훑되 거기서는 **칩만** 비교한다 —
+ * 맨 아이콘이 베이스라인에 걸리는 것은 대개 의도된 것이라 전부 재면 오탐이 쏟아진다.
  */
 const ALIGN_EXPR = `(() => {
   const ctx = document.createElement('canvas').getContext('2d');
@@ -304,17 +313,26 @@ const ALIGN_EXPR = `(() => {
     }
     return null;
   };
+  // 배경이나 테두리를 가진 자식 = 면을 가진 알약(칩·배지·버튼). 글자를 품고 있어도 그림으로 센다.
+  const boxed = (el) => {
+    const cs = getComputedStyle(el);
+    if (cs.backgroundColor !== 'rgba(0, 0, 0, 0)' || cs.backgroundImage !== 'none') return true;
+    return ['Top', 'Right', 'Bottom', 'Left'].some(
+      (side) => cs['border' + side + 'Width'] !== '0px' && cs['border' + side + 'Style'] !== 'none'
+    );
+  };
   const findings = [];
   const rows = [...document.querySelectorAll('*')].filter((el) => {
     const cs = getComputedStyle(el);
     return (
       (cs.display === 'flex' || cs.display === 'inline-flex') &&
-      cs.alignItems === 'center' &&
+      (cs.alignItems === 'center' || cs.alignItems === 'baseline') &&
       !cs.flexDirection.startsWith('column') &&
       !hiddenish(el)
     );
   });
   for (const row of rows) {
+    const baselineRow = getComputedStyle(row).alignItems === 'baseline';
     const texts = [];
     const graphics = [];
     for (const node of row.childNodes) {
@@ -328,6 +346,18 @@ const ALIGN_EXPR = `(() => {
       if (node.nodeType !== 1) continue;
       const cs = getComputedStyle(node);
       if (cs.position === 'absolute' || cs.position === 'fixed' || hiddenish(node)) continue;
+      // 면을 가진 알약이 먼저다 — 글자를 품고 있어도 사람은 그 면의 중심을 본다.
+      if (boxed(node)) {
+        const br = node.getBoundingClientRect();
+        if (br.width < 1 || br.height < 1) continue;
+        graphics.push({
+          rect: br,
+          chip: true,
+          tag: node.tagName.toLowerCase(),
+          cls: (node.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 16)
+        });
+        continue;
+      }
       const ink = firstInk(node, row);
       if (ink) {
         texts.push(ink);
@@ -337,10 +367,12 @@ const ALIGN_EXPR = `(() => {
       const target = svg ?? node;
       const r = target.getBoundingClientRect();
       if (r.width < 1 || r.height < 1) continue;
-      graphics.push({ rect: r, tag: target.tagName.toLowerCase(), cls: (target.getAttribute('class') || '').slice(0, 32) });
+      graphics.push({ rect: r, chip: false, tag: target.tagName.toLowerCase(), cls: (target.getAttribute('class') || '').slice(0, 32) });
     }
     for (const t of texts) {
       for (const g of graphics) {
+        // baseline 행에서 맨 아이콘이 베이스라인에 걸리는 것은 대개 의도된 것이다 — 칩만 본다.
+        if (baselineRow && !g.chip) continue;
         const overlap = Math.min(t.rect.bottom, g.rect.bottom) - Math.max(t.rect.top, g.rect.top);
         if (overlap < Math.min(t.rect.height, g.rect.height) * 0.4) continue; // 같은 줄이 아니다
         const delta = g.rect.top + g.rect.height / 2 - t.center;
@@ -349,7 +381,7 @@ const ALIGN_EXPR = `(() => {
           delta: Math.round(delta * 100) / 100,
           size: Math.round(t.size * 10) / 10,
           text: t.text,
-          graphic: g.tag + ' ' + Math.round(g.rect.height) + 'px ' + g.cls
+          graphic: (g.chip ? 'chip ' : '') + g.tag + ' ' + Math.round(g.rect.height) + 'px ' + g.cls
         });
       }
     }
