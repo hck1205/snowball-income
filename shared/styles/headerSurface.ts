@@ -70,15 +70,20 @@ export const headerGlassSurface = `
  * 슬롯 3개는 이름(`grid-area`)으로 자리를 잡는다. 그래서 슬롯 내용이 화면마다 달라져도 나머지 자리가
  * 밀리지 않는다 — 예전에 `1fr auto 1fr` 3컬럼에서 채움용 `Spacer` div 를 두던 이유가 이것이었다.
  *
- *   ≥1024 (`media.up('headerStack')`) — **한 줄**
- *     `brand │ nav(남는 폭 전부) │ actions`
- *     내비 트랙만 `minmax(0, 1fr)` 이라 남는 폭을 전부 먹고, 넘치면 그 안에서 가로 스크롤된다
- *     (문서가 넓어지지 않는다). 브랜드 줄 오른쪽 900px 이 빈 채로 남던 2줄 헤더의 낭비를 없앴다.
- *
- *   ≤1023 (`media.down('headerStack')`) — **두 줄**
+ *   **모든 폭에서 두 줄** (2026-08-02 사용자 결정)
  *     `brand │ actions`
  *     `nav ───── 전폭 ─────`
- *     내비는 전폭 가로 스크롤 칩 줄이 된다. 좁은 폭에서 브랜드·컨트롤과 한 줄을 다투면 둘 다 진다.
+ *
+ * 🔴 **한 줄 모드를 되살리지 마라.** 2026-07-29~08-02 동안은 ≥1024 에서 `brand │ nav │ actions` 한 줄이었다.
+ * 그 배치의 전제는 "메뉴가 남는 폭에 들어간다"였는데, 메뉴가 8개가 되면서 그 전제가 깨졌다 —
+ * 1280 실측으로 브랜드↔컨트롤 사이 트랙이 902px 인데 메뉴가 이미 753px 을 쓰고 있었고, ≤1024 에서는
+ * 넘쳐서 가로 스크롤 뒤로 숨었다. **스크롤로 숨는 메뉴는 사용자에게 아무 신호를 주지 않는다**
+ * (pitfalls 2026-07-31 NavScroller 실측). 전폭 줄을 주면 8개가 스크롤 없이 다 보인다.
+ *
+ * ⚠ 대가를 알고 고른 것이다: 헤더가 ≥1024 에서 **64px → 약 104px** 로 높아진다. 그만큼 첫 화면이
+ * 줄어든다. 되돌리려면 이 레시피를 `grid-template-columns: auto minmax(0, 1fr) auto` +
+ * `grid-template-areas: 'brand nav actions'` 로 되돌리고, `tools/dev/headerprobe.mjs` 의 높이 상한도
+ * 함께 되돌려라(둘은 한 쌍이다).
  *
  * ⚠ 구 `center` 트랙(커뮤니티 갤러리 검색)은 **2026-07-31 에 삭제됐다.** 그 자리는 한 줄 모드에서
  * 내비와 폭을 다퉈 1024px 갤러리에서 메뉴 6개 중 **3개가 스크롤 뒤로 밀리고** 검색 입력은 72px 이
@@ -95,16 +100,14 @@ export const headerControlsGrid = `
   display: grid;
   align-items: center;
   min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'brand actions'
+    'nav nav';
   column-gap: ${space[3]};
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  grid-template-areas: 'brand nav actions';
+  row-gap: ${space[2]};
 
   ${media.down('headerStack')} {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-      'brand actions'
-      'nav nav';
     column-gap: ${space[2]};
-    row-gap: ${space[2]};
   }
 `;
