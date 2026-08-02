@@ -71,12 +71,22 @@ temp/
 Thumbs.db
 Desktop.ini
 
-# ---- Claude Code ----
-# .claude/agents/, .claude/hooks/, .claude/settings.json 은 팀 공유(커밋 대상).
-# 개인 로컬 설정만 무시한다.
-.claude/settings.local.json
-# 에이전트 worktree 산출물 — .git/worktrees/ 에 등록되지만 내용은 각자 로컬(추적 대상 아님).
-.claude/worktrees/
+# ---- 문서 · 에이전트 설정 — 레포에 올리지 않고 로컬에서만 관리한다 ----
+# 2026-08-02 사용자 결정. 대상: 설계 문서·스펙·핸드오프(docs/) · 팀 지식·에이전트 정의·스킬·훅(.claude/)
+# · PR 초안(PR_DESCRIPTION.md).
+#
+# 왜: 이 저장소가 배포하는 것은 앱이고, 위 문서들은 **작업 과정의 기록**이다. 레포에 쌓이면 배포 diff 가
+# 문서로 덮여 실제 코드 변경을 읽기 어려워진다(2026-08-02 배포에서 196개 변경 중 문서가 16개였다).
+#
+# ⚠ 대가를 알고 선택한 것이다 — **새 클론·CI 에는 이 파일들이 없다.** 그 환경에서는 에이전트 팀과
+#   프로세스 스킬이 동작하지 않고, 팀 지식(pitfalls·decisions)도 따라오지 않는다.
+#   앱 빌드·테스트에는 영향이 없다: 테스트는 문서 경로를 **주석으로만** 언급하고 읽지 않는다(실측 확인).
+# ⚠ 되돌리려면 이 세 줄을 지우고 `git add -f docs .claude PR_DESCRIPTION.md` 하면 된다 —
+#   파일은 계속 디스크에 있으므로 내용이 사라지는 것이 아니다.
+docs/
+.claude/
+PR_DESCRIPTION.md
+
 .vercel
 .env*
 
