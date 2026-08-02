@@ -57,8 +57,8 @@
         9,
         12
       ],
-      "payoutMonthsSource": "pay",
       "exToPayLagDays": 21,
+      "payoutMonthsSource": "pay",
       "estimatedPayDayByMonth": {
         "3": 13,
         "6": 12,
@@ -77,11 +77,18 @@
       "frequency": "quarterly",
       "payoutMonths": [
         2,
-        4,
-        7,
-        10
+        5,
+        8,
+        11
       ],
-      "payoutMonthsSource": "ex"
+      "payoutMonthsSource": "pay",
+      "exToPayLagDays": 8,
+      "estimatedPayDayByMonth": {
+        "2": 18,
+        "5": 6,
+        "8": 7,
+        "11": 7
+      }
     },
     "AVGO": {
       "initialPrice": 389.28,
