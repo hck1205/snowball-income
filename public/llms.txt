@@ -1,4 +1,4 @@
-# Snowball Income
+# Hungry Hippo
 
 > 배당 재투자 시뮬레이터. 배당주·ETF 포트폴리오의 장기 자산과 배당 현금흐름을 계산한다.
 > A dividend-reinvestment simulator for long-term income planning. Korean-language web app; calculations run

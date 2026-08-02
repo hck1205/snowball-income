@@ -65,21 +65,21 @@ describe('PrimaryNav', () => {
     communityEnabled = true;
     renderAt('/community');
 
-    const brand = screen.getByRole('link', { name: '스노우볼 인컴' });
+    const brand = screen.getByRole('link', { name: 'Hungry Hippo' });
     expect(brand).toHaveAttribute('href', '/');
   });
 
   /*
-   * 워드마크는 "스노우볼"·"인컴" 두 색으로 나뉘어 렌더되지만 **읽히는 이름은 한 덩어리**여야 한다.
-   * 부분일치(/스노우볼/)로는 두 파트 사이 공백이 사라지는 회귀("스노우볼인컴")를 못 잡으므로 정확일치로 못 박는다.
+   * 워드마크는 "Hungry"·"Hippo" 두 색으로 나뉘어 렌더되지만 **읽히는 이름은 한 덩어리**여야 한다.
+   * 부분일치(/Hungry/)로는 두 파트 사이 공백이 사라지는 회귀("HungryHippo")를 못 잡으므로 정확일치로 못 박는다.
    */
-  it('워드마크는 두 색으로 쪼개져도 "스노우볼 인컴" 한 덩어리로 읽힌다', () => {
+  it('워드마크는 두 색으로 쪼개져도 "Hungry Hippo" 한 덩어리로 읽힌다', () => {
     communityEnabled = true;
     renderAt('/');
 
-    const brand = screen.getByRole('link', { name: '스노우볼 인컴' });
-    expect(brand).toHaveAccessibleName('스노우볼 인컴');
-    expect(brand.textContent).toBe('스노우볼 인컴');
+    const brand = screen.getByRole('link', { name: 'Hungry Hippo' });
+    expect(brand).toHaveAccessibleName('Hungry Hippo');
+    expect(brand.textContent).toBe('Hungry Hippo');
   });
 
   /*
@@ -94,12 +94,12 @@ describe('PrimaryNav', () => {
     communityEnabled = true;
     renderAt('/');
 
-    const brand = screen.getByRole('link', { name: '스노우볼 인컴' });
+    const brand = screen.getByRole('link', { name: 'Hungry Hippo' });
 
     expect(brand.querySelector('img')).toBeNull();
     expect(brand.querySelector('svg')).toBeNull();
     // 워드마크가 브랜드 링크의 유일한 내용이다 — 텍스트만 남는다.
-    expect(brand.textContent).toBe('스노우볼 인컴');
+    expect(brand.textContent).toBe('Hungry Hippo');
   });
 
   it('현재 라우트의 링크에 aria-current="page"를 준다 (시뮬레이터)', () => {
@@ -122,7 +122,7 @@ describe('PrimaryNav', () => {
     renderAt('/simulator');
 
     expect(screen.getByRole('link', { name: '시뮬레이터' })).toHaveAttribute('href', '/simulator');
-    expect(screen.getByRole('link', { name: '스노우볼 인컴' })).toHaveAttribute('href', '/');
+    expect(screen.getByRole('link', { name: 'Hungry Hippo' })).toHaveAttribute('href', '/');
   });
 
   it('갤러리(/community/portfolio)에선 묶음 안 갤러리 링크만 활성 (시뮬레이터·게시판은 비활성)', () => {
@@ -333,7 +333,7 @@ describe('PrimaryNav', () => {
     renderAt('/');
 
     // 브랜드(홈)와 시뮬레이터 링크는 그대로. 커뮤니티 링크만 사라진다.
-    expect(screen.getByRole('link', { name: '스노우볼 인컴' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Hungry Hippo' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: '시뮬레이터' })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: '포트폴리오 갤러리' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: '게시판' })).not.toBeInTheDocument();

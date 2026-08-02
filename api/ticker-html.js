@@ -12164,7 +12164,7 @@ var SIMULATOR_PATH = "/simulator";
 // server/handlers/TickerHtml/TickerHtml.ts
 var CACHE_TICKER = "public, max-age=0, s-maxage=86400, stale-while-revalidate=604800";
 var CACHE_NO_STORE = "no-store";
-var SITE_SUFFIX = "Snowball Income";
+var SITE_SUFFIX = "Hungry Hippo";
 var HUB_SLUG = "all";
 var HUB_PATH = `/ticker/${HUB_SLUG}`;
 var HUB_META_TITLE = "\uBC30\uB2F9 ETF\xB7\uC885\uBAA9 SEO \uC18C\uAC1C \uBAA8\uC74C \u2014 \uBC30\uB2F9\uB960\xB7\uBC30\uB2F9\uC131\uC7A5\xB7\uAD6C\uC131 \uD55C\uB208\uC5D0";

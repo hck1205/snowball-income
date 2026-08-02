@@ -9091,9 +9091,9 @@ var auroraGreen = {
   50: "#e7f5ef",
   /** 라이트 accent-alt-border(장식) — surface 위 1.57:1 */
   200: "#a7d9c4",
-  /** 다크 accent-alt(표시)·accent-alt-text — 다크 서피스 10.69:1. 워드마크 다크 "인컴" 끝 stop */
+  /** 다크 accent-alt(표시)·accent-alt-text — 다크 서피스 10.69:1. 워드마크 다크 뒷 낱말 끝 stop */
   400: "#6ee7a0",
-  /** 라이트 accent-alt(표시) — 라이트 surface 3.32:1(비텍스트). 워드마크 라이트 "인컴" 끝 stop */
+  /** 라이트 accent-alt(표시) — 라이트 surface 3.32:1(비텍스트). 워드마크 라이트 뒷 낱말 끝 stop */
   600: "#22a06b",
   /** 라이트 accent-alt-text — 흰 배경 5.71:1, accent-alt-subtle 위 5.09:1 */
   700: "#0f763a",
@@ -9285,6 +9285,12 @@ var IDENTITY_DARK = {
   "identity-border": brand2[700],
   "identity-text": brand2[300]
 };
+var BRAND_PANEL = {
+  panel: "#1b1e3a",
+  "on-panel": "#ffffff",
+  "on-panel-muted": "#b7b3e6",
+  "on-panel-gold": "#f6b34a"
+};
 var COMMON_LIGHT = {
   "data-positive": up2.light,
   "data-positive-surface": up2.soft,
@@ -9298,7 +9304,8 @@ var COMMON_LIGHT = {
   "danger-surface": danger2.soft,
   "danger-border": danger2.softBorder,
   ...IDENTITY_LIGHT,
-  ...WORDMARK_LIGHT
+  ...WORDMARK_LIGHT,
+  ...BRAND_PANEL
 };
 var COMMON_DARK = {
   "data-positive": up2.dark,
@@ -9313,7 +9320,9 @@ var COMMON_DARK = {
   "danger-surface": danger2.softDark,
   "danger-border": danger2.softDarkBorder,
   ...IDENTITY_DARK,
-  ...WORDMARK_DARK
+  ...WORDMARK_DARK,
+  /* 패널은 라이트/다크 같은 값이다 — 스스로 어두운 면이라 모드에 따라 뒤집을 것이 없다. */
+  ...BRAND_PANEL
 };
 
 // shared/styles/presets/aurora.ts
@@ -10571,7 +10580,17 @@ var color = {
   identityBorder: "var(--sb-identity-border)",
   identityText: "var(--sb-identity-text)",
   /*
-   * 워드마크("스노우볼 인컴") — 전 프리셋 공통. `background-clip: text` 전용이고
+   * 브랜드 패널 — 🔴 **금색이 합법인 유일한 조합**이다(2026-08-03 D3).
+   * 금색은 밝은 면 위에서 1.83:1 이라 `onPanelGold` 는 반드시 `panel` 면 위에서만 쓴다.
+   * 범용 `gold` 토큰은 일부러 없다 — 이름이 사용 조건을 강제한다(근거: presets/sharedTokens.ts).
+   */
+  panel: "var(--sb-panel)",
+  onPanel: "var(--sb-on-panel)",
+  onPanelMuted: "var(--sb-on-panel-muted)",
+  onPanelGold: "var(--sb-on-panel-gold)",
+  /*
+   * 워드마크("Hungry Hippo") — 전 프리셋 공통. 토큰 이름의 `snow`/`income` 은 구 제품명에서
+   * 온 식별자다(값·의미는 앞 낱말=브랜드 램프 / 뒷 낱말=틸→그린). `background-clip: text` 전용이고
    * solid 는 그 폴백(@supports 미지원·forced-colors·print)이다. 다른 용도로 쓰지 마라.
    */
   gradientWordmarkSnow: "var(--sb-gradient-wordmark-snow)",
@@ -13881,7 +13900,7 @@ var loadFonts = (origin) => {
   return fontsPromise;
 };
 var DEFAULT_HEADLINE = "\uBC30\uB2F9 \uC7AC\uD22C\uC790 \uC2DC\uBBAC\uB808\uC774\uD130";
-var DEFAULT_SUBLINE = "\uBC30\uB2F9\uC8FC\xB7ETF \uD3EC\uD2B8\uD3F4\uB9AC\uC624\uC758 \uC2A4\uB178\uC6B0\uBCFC \uD6A8\uACFC\uB97C \uACC4\uC0B0\uD569\uB2C8\uB2E4";
+var DEFAULT_SUBLINE = "\uBC30\uB2F9\uC8FC\xB7ETF \uD3EC\uD2B8\uD3F4\uB9AC\uC624\uC758 \uC7AC\uD22C\uC790 \uBCF5\uB9AC \uD6A8\uACFC\uB97C \uACC4\uC0B0\uD569\uB2C8\uB2E4";
 var StatCard = ({ label, value, hint }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
   "div",
   {
@@ -13933,7 +13952,7 @@ var Shell = ({ children }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
       /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between" }, children: [
         /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { display: "flex", alignItems: "center" }, children: [
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrandMark, {}),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { display: "flex", fontSize: 34, color: COLOR.surface, fontWeight: 700, marginLeft: 18 }, children: "Snowball Income" })
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { display: "flex", fontSize: 34, color: COLOR.surface, fontWeight: 700, marginLeft: 18 }, children: "Hungry Hippo" })
         ] }),
         /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { display: "flex", fontSize: 24, color: COLOR.brand100, fontWeight: 400 }, children: DEFAULT_HEADLINE })
       ] }),
@@ -13967,7 +13986,7 @@ var ScenarioCard = ({ model }) => {
 };
 var DefaultCard = () => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Shell, { children: [
   /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { display: "flex", flexDirection: "column" }, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { display: "flex", fontSize: 64, color: COLOR.surface, fontWeight: 700 }, children: "\uBC30\uB2F9 \uC7AC\uD22C\uC790 \uC2DC\uBBAC\uB808\uC774\uD130" }),
+    /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { display: "flex", fontSize: 64, color: COLOR.surface, fontWeight: 700 }, children: DEFAULT_HEADLINE }),
     /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { display: "flex", fontSize: 30, color: COLOR.brand100, fontWeight: 400, marginTop: 16 }, children: DEFAULT_SUBLINE })
   ] }),
   /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { display: "flex", width: "100%" }, children: [

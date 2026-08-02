@@ -14,10 +14,12 @@ export const LEDGER_COPY = {
      * 🔴 헤더 메뉴는 그대로 "가계부"다(`shared/constants/community/copy.ts` 의 `nav.ledger`).
      * 여기만 제품명을 붙인다 — 메뉴는 좁은 폭에서 다른 6개 항목과 폭을 다투고, 페이지 제목은
      * "지금 어느 서비스의 가계부인가"를 말해야 하는 자리라 역할이 다르다(2026-08-02 사용자 결정).
-     * ⚠ 제품 리브랜딩(→ Hungry Hippo)은 아직 코드 전반에 적용하지 않았다 — 이 제목과 시트 파일명
-     * (`APP_SPREADSHEET_TITLE`)만 새 이름을 쓰는 과도기다.
+     * 🔴 제품명은 **"Hungry Hippo"** 하나다(2026-08-03 확정) — 카피에서는 줄임말("Hippo")도 한글 음차도 쓰지
+     * 않는다(길이 상한이 강제되는 홈 화면 런처 라벨 `site.webmanifest` 의 `short_name` 만 별개다).
+     * 시트 파일명 `APP_SPREADSHEET_TITLE`("Hungry Hippo 가계부")과 **같은 표기**여야 한다: 사용자가 드라이브에서
+     * 보는 파일 이름과 앱 화면의 제목이 갈리면 "이 앱이 만든 파일"임을 알아볼 단서가 끊긴다.
      */
-    title: 'Hippo 가계부',
+    title: 'Hungry Hippo 가계부',
     lede: '수입과 지출을 사용자의 구글 시트에 기록하고, 달마다 얼마를 벌고 썼는지 확인합니다.',
     /** 🔴 상시 노출. 권한 범위를 화면에서 한 번만 말하는 자리다(`PageHero.notice` = `role="note"`). */
     scopeNotice: '이 앱은 사용자가 선택한 시트 1개만 읽고 씁니다. 다른 드라이브 파일에는 접근하지 않습니다.',

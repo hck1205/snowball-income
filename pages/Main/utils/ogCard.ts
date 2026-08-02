@@ -202,18 +202,18 @@ export const buildOgShareText = (model: OgCardModel): OgShareText => {
 
   let title: string;
   if (!hasDividendTarget(model)) {
-    title = `${model.durationYears}년 후 월 배당 ${monthly} 시뮬레이션 — Snowball Income`;
+    title = `${model.durationYears}년 후 월 배당 ${monthly} 시뮬레이션 — Hungry Hippo`;
   } else if (model.targetReachedYear !== null) {
-    title = `${model.durationYears}년 후 월 배당 ${monthly} · ${model.targetReachedYear}년 목표 달성 — Snowball Income`;
+    title = `${model.durationYears}년 후 월 배당 ${monthly} · ${model.targetReachedYear}년 목표 달성 — Hungry Hippo`;
   } else {
-    title = `${model.durationYears}년 후 월 배당 ${monthly} · 목표 미도달 — Snowball Income`;
+    title = `${model.durationYears}년 후 월 배당 ${monthly} · 목표 미도달 — Hungry Hippo`;
   }
 
   const description =
     `${holdingsLine} 포트폴리오, ${model.durationYears}년 후 예상 최종 자산 ${formatOgAmount(model.finalAssetValue)}. ` +
     '입력한 가정을 그대로 계산한 시뮬레이션이며 투자 자문이 아닙니다.';
 
-  const imageAlt = `${holdingsLine} · ${model.durationYears}년 후 월 배당 ${monthly} — Snowball Income 시뮬레이션 카드`;
+  const imageAlt = `${holdingsLine} · ${model.durationYears}년 후 월 배당 ${monthly} — Hungry Hippo 시뮬레이션 카드`;
 
   return { title, description, imageAlt };
 };

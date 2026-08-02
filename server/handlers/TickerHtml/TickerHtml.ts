@@ -90,7 +90,7 @@ const CACHE_TICKER = 'public, max-age=0, s-maxage=86400, stale-while-revalidate=
 const CACHE_NO_STORE = 'no-store';
 
 /** 상세 페이지 메타에 붙일 사이트 접미사 — index.html 기본 title 과 같은 브랜드 표기(PostHtml과 동일 관례). */
-const SITE_SUFFIX = 'Snowball Income';
+const SITE_SUFFIX = 'Hungry Hippo';
 
 /** `/ticker/all` 예약 슬러그. `PresetTickerKey`(실제 티커 심볼)와 충돌하지 않는다. */
 const HUB_SLUG = 'all';

@@ -29,10 +29,17 @@ import {
 
 const pad2 = (value: number): string => String(value).padStart(2, '0');
 
-/** `스노우볼결과_{시나리오명}_{YYYYMMDD}.png` — PDF 리포트 파일명 규칙과 같은 어휘를 쓴다. */
+/**
+ * `HungryHippo_결과_{시나리오명}_{YYYYMMDD}.png` — PDF 리포트 파일명 규칙과 같은 어휘를 쓴다
+ * (`buildPdfReportFileName`: `HungryHippo_리포트_…`). 두 다운로드가 한 제품에서 나온 것으로 읽혀야 하므로
+ * 브랜드 조각·구분자·날짜 형식을 같이 간다 — 한쪽만 고치면 저장함에서 남처럼 보인다.
+ *
+ * ⚠ 브랜드 조각은 **공백 없이** `HungryHippo` 로 붙인다(파일명의 공백은 메일 첨부·일부 브라우저·CLI에서
+ * 이름이 잘리는 원인). 시나리오 이름의 공백은 `sanitizeScenarioNameForFile` 이 `_` 로 바꾼다.
+ */
 export const buildResultCaptureFileName = (scenarioName: string, capturedAt: Date): string => {
   const stamp = `${capturedAt.getFullYear()}${pad2(capturedAt.getMonth() + 1)}${pad2(capturedAt.getDate())}`;
-  return `스노우볼결과_${sanitizeScenarioNameForFile(scenarioName)}_${stamp}.png`;
+  return `HungryHippo_결과_${sanitizeScenarioNameForFile(scenarioName)}_${stamp}.png`;
 };
 
 /** 지금 테마의 배경색. 캔버스는 CSS 변수를 모르므로 계산된 값을 읽어 넘겨야 한다. */

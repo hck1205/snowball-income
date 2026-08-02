@@ -110,7 +110,14 @@ describe('buildPreviewPieOption — 시뮬레이터 파이 빌더 재사용', ()
     expect(buildPreviewPieOption([], 1_000_000)).toBeNull();
   });
 
-  it('조각 색은 getChartTheme().series를 % 길이 인덱스로 매핑한다(캔버스=프리셋 시리즈)', () => {
+  /**
+   * 🔴 인덱스를 0,1,2 로 단정하지 않는다(2026-08-03 D4). 조각 색은 목록 순서가 아니라
+   * **종목 이름 해시 + 충돌 회피**로 정해진다 — 어느 슬롯이 나오는지는 구현 세부다.
+   * 여기서 지켜야 하는 계약은 둘이고 그건 그대로다:
+   *  ① 색이 **현재 프리셋의 시리즈 세트에서만** 나온다(캔버스가 팔레트 밖 색을 쓰지 않는다)
+   *  ② 조각끼리 **색이 겹치지 않는다**(겹치면 파이에서 두 종목이 한 덩어리로 보인다)
+   */
+  it('조각 색은 현재 프리셋의 시리즈 세트에서 겹치지 않게 배정된다(캔버스=프리셋 시리즈)', () => {
     const items = buildPreviewNormalizedAllocation(buildPayload([schd, jepi, vig], { t1: 50, t2: 30, t3: 20 }));
     const option = buildPreviewPieOption(items, 1_000_000);
     const series = Array.isArray(option?.series) ? option?.series[0] : option?.series;
@@ -118,7 +125,9 @@ describe('buildPreviewPieOption — 시뮬레이터 파이 빌더 재사용', ()
     const theme = getChartTheme();
 
     expect(data.map((slice) => slice.name)).toEqual(['슈드', '제피', 'VIG']);
-    expect(data.map((slice) => slice.itemStyle?.color)).toEqual([theme.series[0], theme.series[1], theme.series[2]]);
+    const colors = data.map((slice) => slice.itemStyle?.color);
+    for (const color of colors) expect(theme.series).toContain(color);
+    expect(new Set(colors).size).toBe(colors.length);
   });
 
   it('요약 월배당이 있으면 중앙 표시(graphic), 없으면 끈다', () => {

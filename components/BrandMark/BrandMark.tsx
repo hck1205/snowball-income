@@ -11,8 +11,15 @@ import type { BrandMarkProps } from './BrandMark.types';
  * `useId`: 한 화면에 마크가 여러 번 렌더돼도(헤더/드로어) gradient id가 충돌하지 않는다.
  * 콜론 등 특수문자는 `url(#…)` 참조에서 브라우저별로 깨질 수 있어 제거한다.
  *
- * `aria-hidden`: 옆에 워드마크("Snowball Income")가 텍스트로 있으므로 마크는 장식이다.
+ * `aria-hidden`: 옆에 워드마크가 텍스트로 있으므로 마크는 장식이다.
  * 스크린리더가 로고를 두 번 읽지 않게 한다.
+ *
+ * ⚠ **2026-08-03 현재 이 컴포넌트를 import 하는 곳이 없다**(자기 테스트와 `index.ts` 뿐 — 배럴에도
+ *   실려 있지 않다). 헤더는 "텍스트 워드마크 단독"이 확정 결정이고(2026-07-27), OG 카드는
+ *   `server/handlers/Og/Og.tsx` 가 **자기만의 로컬 `BrandMark`** 를 따로 갖고 있다.
+ * 🔴 리브랜딩(Hungry Hippo) 관점에서 이 그림은 **동심원 = 복리 은유**라 새 브랜드(하마·금화)와
+ *   맞지 않는다. 살릴 거면 마스코트 심볼(`components/common/BrandGlyph`)로 교체하고, 아니면
+ *   폴더째 지워라 — 지금은 어느 쪽도 결정되지 않아 **그대로 둔다**(지우는 것은 리네임 트랙의 일이 아니다).
  */
 export default function BrandMark({ size = 32 }: BrandMarkProps) {
   const gid = `sb-brand-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;

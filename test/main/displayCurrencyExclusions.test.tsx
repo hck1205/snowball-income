@@ -197,7 +197,7 @@ describe('OG 공유 텍스트는 통화 토글에 반응하지 않는다', () =>
     const after = buildOgShareText(model);
 
     expect(after).toEqual(before);
-    expect(after.title).toBe('20년 후 월 배당 350만 · 2038년 목표 달성 — Snowball Income');
+    expect(after.title).toBe('20년 후 월 배당 350만 · 2038년 목표 달성 — Hungry Hippo');
     expect(`${after.title}${after.description}${after.imageAlt}`).not.toContain('$');
   });
 });

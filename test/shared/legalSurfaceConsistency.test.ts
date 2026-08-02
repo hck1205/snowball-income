@@ -28,8 +28,11 @@ import { describe, expect, it } from 'vitest';
  *  ③-2 🔴 **배당 겹쳐 보기의 새 사실** — 포트폴리오 보유 기준 **예상**(추정) 배당을 화면에만 보여주고,
  *     시트에 기록하지 않으며, 가계부의 수입·지출 합계에도 포함하지 않는다(`pages/Ledger/utils/
  *     ledgerDividend.ts` 상단 주석). 날조 금지·손익 미반영 원칙이 AI 표면에도 반영돼야 한다.
- *  ④ **비유 금지** — "눈덩이·스노우볼"은 어떤 카피에도 쓰지 않는다(확정 결정). 브랜드명
- *     "Snowball Income"은 이름이라 예외지만, `배당 재투자(스노우볼)` 같은 **개념 설명 괄호**는 아니다.
+ *  ④ **비유 금지** — "눈덩이·스노우볼"은 어떤 카피에도 쓰지 않는다(확정 결정). ⚠ 한때 "브랜드명
+ *     `Snowball Income` 은 이름이라 예외"라는 단서가 있었지만 **그 예외는 사라졌다** — 제품명이
+ *     `Hungry Hippo` 로 바뀌었으므로(2026-08-03 확정 결정) 이 표면들에 남을 이유가 있는 눈덩이 표현은
+ *     이제 하나도 없다. 영문 잔재(`Snowball Income`)는 `test/seo/machineReadableSurfaces.test.ts` 의
+ *     `RETIRED_BRAND` 가 같은 파일들을 대상으로 잠그므로 여기서 중복하지 않는다.
  *     `copyTone.test.ts` 는 `.ts`/`.tsx` 만 훑어 이 세 파일을 보지 않는다 — 그래서 여기서 잠근다.
  */
 
@@ -106,7 +109,7 @@ const LEDGER_SURFACES = [
   }
 ] as const;
 
-/** 브랜드명(워드마크·타이틀 suffix)은 예외 — 금지 대상은 한글 비유다. */
+/** 한글 비유. 브랜드 예외는 없다(위 ④) — 제품명이 `Hungry Hippo` 라 눈덩이 표현이 남을 자리가 없다. */
 const FORBIDDEN_METAPHORS = [/스노우볼/, /눈덩이/] as const;
 
 /**

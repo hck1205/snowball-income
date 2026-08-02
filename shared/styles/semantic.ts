@@ -89,7 +89,18 @@ export const color = {
   identityText: 'var(--sb-identity-text)',
 
   /*
-   * 워드마크("스노우볼 인컴") — 전 프리셋 공통. `background-clip: text` 전용이고
+   * 브랜드 패널 — 🔴 **금색이 합법인 유일한 조합**이다(2026-08-03 D3).
+   * 금색은 밝은 면 위에서 1.83:1 이라 `onPanelGold` 는 반드시 `panel` 면 위에서만 쓴다.
+   * 범용 `gold` 토큰은 일부러 없다 — 이름이 사용 조건을 강제한다(근거: presets/sharedTokens.ts).
+   */
+  panel: 'var(--sb-panel)',
+  onPanel: 'var(--sb-on-panel)',
+  onPanelMuted: 'var(--sb-on-panel-muted)',
+  onPanelGold: 'var(--sb-on-panel-gold)',
+
+  /*
+   * 워드마크("Hungry Hippo") — 전 프리셋 공통. 토큰 이름의 `snow`/`income` 은 구 제품명에서
+   * 온 식별자다(값·의미는 앞 낱말=브랜드 램프 / 뒷 낱말=틸→그린). `background-clip: text` 전용이고
    * solid 는 그 폴백(@supports 미지원·forced-colors·print)이다. 다른 용도로 쓰지 마라.
    */
   gradientWordmarkSnow: 'var(--sb-gradient-wordmark-snow)',

@@ -1,7 +1,7 @@
-# Snowball Income — Full LLM Context
+# Hungry Hippo — Full LLM Context
 
 ## Product Definition
-Snowball Income is a Korean-language, browser-only dividend-reinvestment simulator.
+Hungry Hippo is a Korean-language, browser-only dividend-reinvestment simulator.
 Users describe a dividend portfolio and investment plan; the app projects long-term asset value and dividend
 cashflow, and reports when a target monthly dividend would be reached. Every calculation runs client-side and
 inputs are stored on the device (IndexedDB) by default; no account is needed to use the calculator. Optional

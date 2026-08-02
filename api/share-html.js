@@ -5186,9 +5186,9 @@ var auroraGreen = {
   50: "#e7f5ef",
   /** 라이트 accent-alt-border(장식) — surface 위 1.57:1 */
   200: "#a7d9c4",
-  /** 다크 accent-alt(표시)·accent-alt-text — 다크 서피스 10.69:1. 워드마크 다크 "인컴" 끝 stop */
+  /** 다크 accent-alt(표시)·accent-alt-text — 다크 서피스 10.69:1. 워드마크 다크 뒷 낱말 끝 stop */
   400: "#6ee7a0",
-  /** 라이트 accent-alt(표시) — 라이트 surface 3.32:1(비텍스트). 워드마크 라이트 "인컴" 끝 stop */
+  /** 라이트 accent-alt(표시) — 라이트 surface 3.32:1(비텍스트). 워드마크 라이트 뒷 낱말 끝 stop */
   600: "#22a06b",
   /** 라이트 accent-alt-text — 흰 배경 5.71:1, accent-alt-subtle 위 5.09:1 */
   700: "#0f763a",
@@ -5375,6 +5375,12 @@ var IDENTITY_DARK = {
   "identity-border": brand2[700],
   "identity-text": brand2[300]
 };
+var BRAND_PANEL = {
+  panel: "#1b1e3a",
+  "on-panel": "#ffffff",
+  "on-panel-muted": "#b7b3e6",
+  "on-panel-gold": "#f6b34a"
+};
 var COMMON_LIGHT = {
   "data-positive": up2.light,
   "data-positive-surface": up2.soft,
@@ -5388,7 +5394,8 @@ var COMMON_LIGHT = {
   "danger-surface": danger2.soft,
   "danger-border": danger2.softBorder,
   ...IDENTITY_LIGHT,
-  ...WORDMARK_LIGHT
+  ...WORDMARK_LIGHT,
+  ...BRAND_PANEL
 };
 var COMMON_DARK = {
   "data-positive": up2.dark,
@@ -5403,7 +5410,9 @@ var COMMON_DARK = {
   "danger-surface": danger2.softDark,
   "danger-border": danger2.softDarkBorder,
   ...IDENTITY_DARK,
-  ...WORDMARK_DARK
+  ...WORDMARK_DARK,
+  /* 패널은 라이트/다크 같은 값이다 — 스스로 어두운 면이라 모드에 따라 뒤집을 것이 없다. */
+  ...BRAND_PANEL
 };
 
 // shared/styles/presets/aurora.ts
@@ -6661,7 +6670,17 @@ var color = {
   identityBorder: "var(--sb-identity-border)",
   identityText: "var(--sb-identity-text)",
   /*
-   * 워드마크("스노우볼 인컴") — 전 프리셋 공통. `background-clip: text` 전용이고
+   * 브랜드 패널 — 🔴 **금색이 합법인 유일한 조합**이다(2026-08-03 D3).
+   * 금색은 밝은 면 위에서 1.83:1 이라 `onPanelGold` 는 반드시 `panel` 면 위에서만 쓴다.
+   * 범용 `gold` 토큰은 일부러 없다 — 이름이 사용 조건을 강제한다(근거: presets/sharedTokens.ts).
+   */
+  panel: "var(--sb-panel)",
+  onPanel: "var(--sb-on-panel)",
+  onPanelMuted: "var(--sb-on-panel-muted)",
+  onPanelGold: "var(--sb-on-panel-gold)",
+  /*
+   * 워드마크("Hungry Hippo") — 전 프리셋 공통. 토큰 이름의 `snow`/`income` 은 구 제품명에서
+   * 온 식별자다(값·의미는 앞 낱말=브랜드 램프 / 뒷 낱말=틸→그린). `background-clip: text` 전용이고
    * solid 는 그 폴백(@supports 미지원·forced-colors·print)이다. 다른 용도로 쓰지 마라.
    */
   gradientWordmarkSnow: "var(--sb-gradient-wordmark-snow)",
@@ -8751,14 +8770,14 @@ var buildOgShareText = (model) => {
   const holdingsLine = formatOgHoldingsLine(model.holdings, model.hiddenHoldingCount);
   let title;
   if (!hasDividendTarget(model)) {
-    title = `${model.durationYears}\uB144 \uD6C4 \uC6D4 \uBC30\uB2F9 ${monthly} \uC2DC\uBBAC\uB808\uC774\uC158 \u2014 Snowball Income`;
+    title = `${model.durationYears}\uB144 \uD6C4 \uC6D4 \uBC30\uB2F9 ${monthly} \uC2DC\uBBAC\uB808\uC774\uC158 \u2014 Hungry Hippo`;
   } else if (model.targetReachedYear !== null) {
-    title = `${model.durationYears}\uB144 \uD6C4 \uC6D4 \uBC30\uB2F9 ${monthly} \xB7 ${model.targetReachedYear}\uB144 \uBAA9\uD45C \uB2EC\uC131 \u2014 Snowball Income`;
+    title = `${model.durationYears}\uB144 \uD6C4 \uC6D4 \uBC30\uB2F9 ${monthly} \xB7 ${model.targetReachedYear}\uB144 \uBAA9\uD45C \uB2EC\uC131 \u2014 Hungry Hippo`;
   } else {
-    title = `${model.durationYears}\uB144 \uD6C4 \uC6D4 \uBC30\uB2F9 ${monthly} \xB7 \uBAA9\uD45C \uBBF8\uB3C4\uB2EC \u2014 Snowball Income`;
+    title = `${model.durationYears}\uB144 \uD6C4 \uC6D4 \uBC30\uB2F9 ${monthly} \xB7 \uBAA9\uD45C \uBBF8\uB3C4\uB2EC \u2014 Hungry Hippo`;
   }
   const description = `${holdingsLine} \uD3EC\uD2B8\uD3F4\uB9AC\uC624, ${model.durationYears}\uB144 \uD6C4 \uC608\uC0C1 \uCD5C\uC885 \uC790\uC0B0 ${formatOgAmount(model.finalAssetValue)}. \uC785\uB825\uD55C \uAC00\uC815\uC744 \uADF8\uB300\uB85C \uACC4\uC0B0\uD55C \uC2DC\uBBAC\uB808\uC774\uC158\uC774\uBA70 \uD22C\uC790 \uC790\uBB38\uC774 \uC544\uB2D9\uB2C8\uB2E4.`;
-  const imageAlt = `${holdingsLine} \xB7 ${model.durationYears}\uB144 \uD6C4 \uC6D4 \uBC30\uB2F9 ${monthly} \u2014 Snowball Income \uC2DC\uBBAC\uB808\uC774\uC158 \uCE74\uB4DC`;
+  const imageAlt = `${holdingsLine} \xB7 ${model.durationYears}\uB144 \uD6C4 \uC6D4 \uBC30\uB2F9 ${monthly} \u2014 Hungry Hippo \uC2DC\uBBAC\uB808\uC774\uC158 \uCE74\uB4DC`;
   return { title, description, imageAlt };
 };
 var summarizeSharedScenarioForOg = (scenario) => {

@@ -1,7 +1,13 @@
 # snowball-income — 프로젝트 가이드 (Claude Code)
 
-배당 재투자(스노우볼) 시뮬레이터. 사용자가 포트폴리오와 투자 조건을 입력하면 장기 배당 현금흐름과
+배당 재투자 시뮬레이터 **Hungry Hippo**. 사용자가 포트폴리오와 투자 조건을 입력하면 장기 배당 현금흐름과
 목표 달성 시점을 계산해 보여주는 **프론트엔드 전용 웹앱**이다. (백엔드 없음 — 모든 계산은 브라우저에서)
+
+> 🔴 제품명은 **영문 "Hungry Hippo" 하나**다(한글 음차 금지, 2026-08-03 확정). "눈덩이/스노우볼/snowball"
+> 비유는 **전 표면 완전 금지**이고 브랜드 예외 조항은 폐기됐다 — 같은 개념은 복리·시간·재투자로 푼다.
+> 위 제목의 `snowball-income` 과 아래 경로들의 `snowball`(`shared/lib/snowball/`·`jotai/snowball/`·
+> localStorage `snowball:` 접두사)은 **저장소·코드 식별자·사용자 데이터 키**라 브랜드가 아니다 — 바꾸지 마라.
+> 근거 [.claude/knowledge/decisions.md](.claude/knowledge/decisions.md) "리브랜딩" 섹션.
 
 ## 🔍 검색은 인덱스 먼저 (토큰 효율 필수 규칙)
 

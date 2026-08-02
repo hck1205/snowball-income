@@ -25,11 +25,11 @@ const SHELL_WITH_DESCRIPTION = `<!doctype html>
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <title>배당 재투자 시뮬레이터 - Snowball Income</title>
+    <title>배당 재투자 시뮬레이터 - Hungry Hippo</title>
     <meta name="description" content="기본 설명" />
     <link rel="canonical" href="https://snowball.test/" />
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Snowball Income" />
+    <meta property="og:site_name" content="Hungry Hippo" />
     <meta property="og:title" content="기본 제목" />
     <meta property="og:description" content="기본 og 설명" />
     <meta property="og:url" content="https://snowball.test/" />
@@ -60,12 +60,12 @@ describe('api/ticker-html — 개별 티커(SCHD)', () => {
     const html = await res.text();
 
     expect(res.status).toBe(200);
-    expect(html).toContain('SCHD 배당률·배당성장·구성 총정리 — 슈왑 미국 배당주 ETF - Snowball Income');
+    expect(html).toContain('SCHD 배당률·배당성장·구성 총정리 — 슈왑 미국 배당주 ETF - Hungry Hippo');
     expect(html).toMatch(/name="description"\s+content="SCHD\(슈왑 미국 배당주 ETF\)/);
     expect(html).toContain('href="https://snowball.test/ticker/schd"');
-    expect(html).toMatch(/property="og:title"\s+content="SCHD 배당률·배당성장·구성 총정리 — 슈왑 미국 배당주 ETF - Snowball Income"/);
+    expect(html).toMatch(/property="og:title"\s+content="SCHD 배당률·배당성장·구성 총정리 — 슈왑 미국 배당주 ETF - Hungry Hippo"/);
     expect(html).toContain('property="og:url" content="https://snowball.test/ticker/schd"');
-    expect(html).toContain('name="twitter:title" content="SCHD 배당률·배당성장·구성 총정리 — 슈왑 미국 배당주 ETF - Snowball Income"');
+    expect(html).toContain('name="twitter:title" content="SCHD 배당률·배당성장·구성 총정리 — 슈왑 미국 배당주 ETF - Hungry Hippo"');
   });
 
   it('불변식: og:type·site_name·twitter:card·이미지·script 는 건드리지 않는다', async () => {
@@ -73,7 +73,7 @@ describe('api/ticker-html — 개별 티커(SCHD)', () => {
     const html = await (await handler(apiRequest('/api/ticker-html', { name: 'schd' }))).text();
 
     expect(html).toContain('property="og:type" content="website"');
-    expect(html).toContain('property="og:site_name" content="Snowball Income"');
+    expect(html).toContain('property="og:site_name" content="Hungry Hippo"');
     expect(html).toContain('name="twitter:card" content="summary_large_image"');
     expect(html).toContain(`content="${'https://snowball.test/og-image.png'}"`);
     expect(html).toContain('<script type="module" crossorigin src="/assets/index-abc123.js"></script>');

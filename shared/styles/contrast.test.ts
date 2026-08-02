@@ -102,6 +102,16 @@ const worstGradientRatio = (foreground: string, gradient: string, samples = 9): 
 
 /** 각 서피스 위에 올라가는 본문 텍스트 조합. */
 const TEXT_ON_SURFACE: ReadonlyArray<[string, string]> = [
+  /*
+   * 🔴 **브랜드 패널** — 금색이 합법인 유일한 조합이다(2026-08-03 D3).
+   * 이 세 쌍이 이 레포에서 금색을 지키는 유일한 장치다. 금색은 밝은 면 위에서 1.83:1 이라
+   * `on-panel-gold` 를 `panel` 밖으로 꺼내는 순간 무조건 깨진다 — 그 사고를 여기서 잡는다.
+   * ⚠ 라이트/다크 같은 값이라 16테마 전부에서 같은 숫자가 나온다. 그게 정상이다.
+   */
+  ['on-panel', 'panel'],
+  ['on-panel-gold', 'panel'],
+  ['on-panel-muted', 'panel'],
+
   ['text', 'bg'],
   ['text', 'surface'],
   ['text', 'surface-raised'],

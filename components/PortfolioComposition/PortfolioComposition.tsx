@@ -3,6 +3,7 @@ import { Info, Lock, Pin, PinOff } from 'lucide-react';
 import { Card, Chip, ToggleField } from '@/components';
 import { ALLOCATION_COPY, SIMULATOR_COPY, TOUR_TARGET } from '@/shared/constants';
 import { CHART_SERIES_VARS } from '@/shared/styles';
+import { assignSeriesIndexes } from '@/shared/lib/tickerSeries';
 import { getTickerDisplayName } from '@/shared/utils';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import type { PortfolioCompositionProps } from './PortfolioComposition.types';
@@ -48,6 +49,15 @@ function PortfolioCompositionComponent({
       typeof window !== 'undefined' &&
       typeof window.matchMedia === 'function' &&
       window.matchMedia('(max-width: 960px)').matches
+  );
+
+  /*
+   * 종목 → 팔레트 인덱스. 🔴 파이 조각과 **같은 함수**를 부른다(근거는 아래 범례 주석).
+   * 순수·결정적이라 memo 로 감싸지 않아도 매 렌더 같은 값이고, 종목 8개 수준에서 비용도 없다.
+   */
+  const seriesIndexes = assignSeriesIndexes(
+    normalizedAllocation.map(({ profile }) => profile.ticker),
+    CHART_SERIES_VARS.length
   );
 
   // 비활성 사유는 우선순위로 하나만 노출한다(줄마다 반복 금지).
@@ -98,10 +108,18 @@ function PortfolioCompositionComponent({
                 <ResponsiveChart option={allocationPieOption} replaceMerge={['graphic']} />
               </ChartWrap>
               <AllocationLegend>
-                {normalizedAllocation.map(({ profile, weight }, index) => {
+                {normalizedAllocation.map(({ profile, weight }) => {
                   const displayName = getTickerDisplayName(profile.ticker, profile.name);
-                  /* 파이 조각(theme.series)과 같은 인덱스 규칙(% 8) — 점·슬라이더 트랙이 한 값을 공유한다. */
-                  const seriesColor = CHART_SERIES_VARS[index % CHART_SERIES_VARS.length];
+                  /*
+                   * 🔴 파이 조각(`pages/Main/utils/charts.ts`)과 **같은 배정**을 쓴다.
+                   * 종전엔 양쪽 다 `index % 8` 이라 우연히 맞았는데, 그건 두 곳이 **같은 순서**를
+                   * 받을 때만 성립하는 계약이었다(순서가 갈리면 조용히 어긋난다).
+                   * 지금은 둘 다 `assignSeriesIndexes` 를 각자 불러 같은 값을 얻는다 — 순수·결정적이라
+                   * 맵을 넘겨받을 필요가 없고, 순서가 달라져도 어긋나지 않는다.
+                   */
+                  const seriesColor = CHART_SERIES_VARS[
+                    (seriesIndexes.get(profile.ticker) ?? 0) % CHART_SERIES_VARS.length
+                  ];
                   const selfFixed = Boolean(fixedByTickerId[profile.id]);
                   const isDisabled =
                     isLocked ||

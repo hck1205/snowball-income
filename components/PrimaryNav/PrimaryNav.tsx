@@ -32,8 +32,8 @@ import {
   NavMenuItem,
   NavMenuRoot,
   NavMenuTrigger,
-  WordmarkIncome,
-  WordmarkSnow
+  WordmarkLead,
+  WordmarkTail
 } from './PrimaryNav.styled';
 import type { PrimaryNavProps } from './PrimaryNav.types';
 
@@ -174,7 +174,7 @@ function PortfolioNavMenu() {
 /**
  * 전역 주요 nav — 모든 페이지 상단(시뮬레이터·커뮤니티 헤더)에 주입되는 공유 컴포넌트.
  *
- *   [워드마크 "스노우볼 인컴"] → `<Link to="/">`(홈)  +  라우트 링크: 시뮬레이터(/simulator)·갤러리(/community)·게시판(/community/board)
+ *   [워드마크 "Hungry Hippo"] → `<Link to="/">`(홈)  +  라우트 링크: 시뮬레이터(/simulator)·갤러리(/community)·게시판(/community/board)
  *
  * ⚠ 엔트리 번들 격리: 이 컴포넌트는 시뮬레이터 헤더를 통해 **엔트리 번들에 들어간다.** 그래서
  *   `@/components/community` 배럴·CommunityIcons·supabase-js·Tiptap을 끌어오는 모듈을 import하지 않는다.
@@ -276,15 +276,16 @@ export function PrimaryNavLinks() {
 
 export default function PrimaryNav({ brandAs = 'span', withLinks = true }: PrimaryNavProps) {
   const inRouter = useInRouterContext();
-  // 워드마크("스노우볼 인컴")를 낱말 단위로 쪼개 두 색으로 그린다(2026-07-27 확정 — 심볼 아이콘 없이 텍스트 단독).
-  // 두 파트 사이의 **공백은 진짜 텍스트 노드**로 남긴다: 접근명이 "스노우볼 인컴" 한 덩어리로 읽혀야 한다
+  // 워드마크("Hungry Hippo")를 낱말 단위로 쪼개 두 색으로 그린다(2026-07-27 확정 — 심볼 아이콘 없이 텍스트 단독).
+  // 두 파트 사이의 **공백은 진짜 텍스트 노드**로 남긴다: 접근명이 "Hungry Hippo" 한 덩어리로 읽혀야 한다
   // (aria-hidden·이미지 치환 금지 — 브랜드명을 읽어줄 다른 요소가 이제 없다).
-  const [brandSnow, ...brandIncomeWords] = n.brand.split(' ');
+  // 낱말이 셋 이상이 되면 두 번째부터 전부 뒷 낱말로 묶인다 — 지금은 정확히 둘이다.
+  const [brandLead, ...brandTailWords] = n.brand.split(' ');
 
   const brandInner = (
     <BrandWordmark as={brandAs}>
-      <WordmarkSnow>{brandSnow}</WordmarkSnow>{' '}
-      <WordmarkIncome>{brandIncomeWords.join(' ')}</WordmarkIncome>
+      <WordmarkLead>{brandLead}</WordmarkLead>{' '}
+      <WordmarkTail>{brandTailWords.join(' ')}</WordmarkTail>
     </BrandWordmark>
   );
 

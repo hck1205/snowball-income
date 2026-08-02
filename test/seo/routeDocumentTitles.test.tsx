@@ -80,7 +80,7 @@ describe('문서 제목 — 라우트마다 다르다', () => {
     renderSimulator();
 
     expect(document.title).not.toBe(SHELL_TITLE);
-    expect(document.title).toBe(`${SIMULATOR_COPY.meta.title} - Snowball Income`);
+    expect(document.title).toBe(`${SIMULATOR_COPY.meta.title} - Hungry Hippo`);
   });
 
   it('제목에 이 사이트의 주력 키워드가 남아 있다', () => {

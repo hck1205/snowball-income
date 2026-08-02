@@ -48,10 +48,10 @@ import type { LegalDocumentModel } from '../components';
 const CONTACT_EMAIL = 'matteematics@gmail.com';
 
 export const TERMS_DOCUMENT: LegalDocumentModel = {
-  documentTitle: '이용약관 - Snowball Income',
+  documentTitle: '이용약관 - Hungry Hippo',
   title: '이용약관',
   lede:
-    'Snowball Income은 이용자가 입력한 가정을 계산해 보여주는 배당 재투자 시뮬레이터입니다. 이 약관은 서비스의 이용 조건과 절차, 이용자와 운영자의 권리·의무를 정합니다.',
+    'Hungry Hippo는 이용자가 입력한 가정을 계산해 보여주는 배당 재투자 시뮬레이터입니다. 이 약관은 서비스의 이용 조건과 절차, 이용자와 운영자의 권리·의무를 정합니다.',
   meta: ['[확인 필요: 시행일 — 실제 게시일로 확정]'],
   sections: [
     {
@@ -61,7 +61,7 @@ export const TERMS_DOCUMENT: LegalDocumentModel = {
         {
           kind: 'paragraph',
           text:
-            '이 약관은 Snowball Income(이하 "서비스")의 이용 조건과 절차, 이용자와 운영자의 권리·의무·책임 사항을 정하는 것을 목적으로 합니다.'
+            '이 약관은 Hungry Hippo(이하 "서비스")의 이용 조건과 절차, 이용자와 운영자의 권리·의무·책임 사항을 정하는 것을 목적으로 합니다.'
         }
       ]
     },

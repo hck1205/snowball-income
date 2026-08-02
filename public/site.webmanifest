@@ -1,6 +1,6 @@
 {
-  "name": "Snowball Income — 배당 재투자 시뮬레이터",
-  "short_name": "Snowball",
+  "name": "Hungry Hippo — 배당 재투자 시뮬레이터",
+  "short_name": "Hippo",
   "description": "배당주·ETF 포트폴리오의 배당 재투자 결과와 목표 월 배당 도달 시점을 계산하는 시뮬레이터",
   "lang": "ko-KR",
   "dir": "ltr",

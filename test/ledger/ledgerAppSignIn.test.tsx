@@ -29,7 +29,7 @@ describe('/ledger 앱 로그인 게이트 — 비로그인', () => {
   it('로그인 유도 화면이 서고, 구글·네이버·카카오 세 갈래를 모두 제시한다', () => {
     renderLedgerView(signedOut());
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Hippo 가계부' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'Hungry Hippo 가계부' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: '가계부를 열려면 먼저 로그인합니다' })).toBeInTheDocument();
     expect(
       screen.getByText(

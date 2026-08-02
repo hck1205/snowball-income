@@ -1,4 +1,4 @@
-# Snowball Income 디자인 시스템
+# Hungry Hippo 디자인 시스템
 
 새 화면을 만들 때 이 문서만 보고 일관되게 만들 수 있어야 한다.
 **규칙 하나만 기억하면 된다: 값을 직접 쓰지 말고 토큰을 쓴다.**
@@ -23,10 +23,10 @@ padding: ${space[4]};
 
 **글레이셔 애저(glacier azure, hue ~200)** + 오로라 리본(glacier→teal→violet).
 
-눈덩이(스노우볼) 메타포와 금융의 신뢰감이 만나는 지점으로 hue ~200을 골랐다.
+차가운 빙하의 인상과 금융의 신뢰감이 만나는 지점으로 hue ~200을 골랐다.
 순수 네이비는 은행 UI에서 너무 흔하고, 더 청록으로 가면 헬스케어처럼 읽힌다.
 
-**내러티브**: 스노우볼이 구르는 곳은 극지의 밤이다. 페이지 배경은 빙하(ice-white/polar-night)로
+**내러티브**: 극지의 밤. 페이지 배경은 빙하(ice-white/polar-night)로
 차분하게 두고, 배당이 쌓여 목표에 다가가는 지점에서만 오로라 리본이 빛난다.
 
 ### 오로라 시그니처 — 적용처는 이 여섯 곳뿐
@@ -126,7 +126,7 @@ velog에서 `gradient-aurora`는 "오로라"가 아니라 틸그린 duotone이�
 | `brand` 50–900 | 브랜드 애저 (오로라 리스타일에서 채도 증폭 — 구 500 대비 ΔE 7.8) |
 | `auroraTeal` 50–900 | 오로라 teal — 성장·복리 **크롬** (데이터 상승색 아님) |
 | `auroraViolet` 50–900 | 오로라 violet — **리본/CTA stop-3 전용** (구 accent-alt 역할은 auroraGreen으로 이관) |
-| `auroraGreen` 50–900 | 오로라 green — 목표·추천·프로모 **크롬** (600/400 = 워드마크 "인컴" 끝 stop) |
+| `auroraGreen` 50–900 | 오로라 green — 목표·추천·프로모 **크롬** (600/400 = 워드마크 뒷 낱말 끝 stop) |
 | `neutral` 0–950 | ice-white / polar-night — 파랑 틴트 쿨 슬레이트 |
 | `up` / `down` | 데이터 상승/하락 (**불변** — 오로라와 분리) |
 | `positive` / `warning` / `danger` | 상태 (**불변**) |
@@ -161,7 +161,7 @@ velog에서 `gradient-aurora`는 "오로라"가 아니라 틸그린 duotone이�
 | `color.gradientAurora` | glacier→teal→violet | (밝은 stop) | 표시용 리본 |
 | `color.gradientCta` | 흰 라벨 4.5:1 stop | (동) | primary CTA 채움 |
 | `color.gradientHero` / `gradientHeroSoft` | `#dcebf6→#e6f5ef` / `#ecf4fa→#f1f9f6` | `#12283e→#10292f` / `#0f1e30→#0d1f28` | **면 배경 전용** 파스텔 히어로 (버튼·리본 금지) |
-| `color.gradientWordmarkSnow` / `...Income` | `#3ba5d3→#79c5e6` / `#0d9488→#22a06b` | `#79c5e6→#aadcf2` / `#2dd4bf→#6ee7a0` | 워드마크 텍스트 그라데이션 (**전 프리셋 공통**) |
+| `color.gradientWordmarkSnow` / `...Income` (이름은 구 제품명 잔재인 식별자, 값은 워드마크 앞/뒷 낱말) | `#3ba5d3→#79c5e6` / `#0d9488→#22a06b` | `#79c5e6→#aadcf2` / `#2dd4bf→#6ee7a0` | 워드마크 텍스트 그라데이션 (**전 프리셋 공통**) |
 | `color.wordmarkSnowSolid` / `wordmarkIncomeSolid` | `#3ba5d3` / `#0d9488` | (라이트와 동일) | 워드마크 단색 폴백 |
 | `color.bgGlow` | radial×2+bg | (동) | body 배경 전용 |
 | `color.surfaceGlass` / `surfaceGlassFallback` | `rgba(255,255,255,0.78)` / `#ffffff` | `rgba(27,42,68,0.85)` / `#1b2a44` | 서리유리 (다크 알파 0.85 미만 금지) |

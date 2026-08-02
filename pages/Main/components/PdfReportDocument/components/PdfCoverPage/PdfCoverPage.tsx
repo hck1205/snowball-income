@@ -30,7 +30,7 @@ function PdfCoverPage({ report, title, generatedLabel, themeVars }: PdfCoverPage
       <CoverRibbon aria-hidden="true" />
       <BrandRow>
         <BrandIcon src="/app_icon.png" alt="" />
-        <BrandWordmark>스노우볼 인컴</BrandWordmark>
+        <BrandWordmark>Hungry Hippo</BrandWordmark>
       </BrandRow>
 
       <StackRow>

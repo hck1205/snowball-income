@@ -10,7 +10,7 @@ export type DocumentMetaInput = {
   pathname: string;
 };
 
-const SITE_SUFFIX = 'Snowball Income';
+const SITE_SUFFIX = 'Hungry Hippo';
 
 const setNamedMeta = (name: string, content: string): string | null => {
   const el = document.querySelector<HTMLMetaElement>(`meta[name="${name}"]`);

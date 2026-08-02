@@ -44,15 +44,15 @@ import { toNodeHandler } from '@/shared/lib/server';
 const LIST_META: Record<PublicPostKind, { title: string; description: string }> = {
   portfolio: {
     title: '포트폴리오 갤러리',
-    description: '스노우볼 인컴 커뮤니티에 공유된 배당 포트폴리오 시나리오 모음입니다. 월 배당·목표 달성 시점을 살펴보세요.'
+    description: 'Hungry Hippo 커뮤니티에 공유된 배당 포트폴리오 시나리오 모음입니다. 월 배당·목표 달성 시점을 살펴보세요.'
   },
   board: {
     title: '자유게시판',
-    description: '스노우볼 인컴 자유게시판의 최신 글 목록입니다.'
+    description: 'Hungry Hippo 자유게시판의 최신 글 목록입니다.'
   }
 };
 
-const SITE_SUFFIX = 'Snowball Income';
+const SITE_SUFFIX = 'Hungry Hippo';
 
 /**
  * 목록 성공 — 상세(300s)보다 짧은 60초 신선도. 새 글이 최대 1분 내 목록에 노출된다.

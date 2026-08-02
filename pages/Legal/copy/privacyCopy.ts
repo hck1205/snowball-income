@@ -46,10 +46,10 @@ import type { LegalDocumentModel } from '../components';
 const CONTACT_EMAIL = 'matteematics@gmail.com';
 
 export const PRIVACY_DOCUMENT: LegalDocumentModel = {
-  documentTitle: '개인정보처리방침 - Snowball Income',
+  documentTitle: '개인정보처리방침 - Hungry Hippo',
   title: '개인정보처리방침',
   lede:
-    'Snowball Income은 이용자의 개인정보를 소중히 다루며, 「개인정보 보호법」 등 관계 법령을 준수합니다. 이 방침은 서비스가 어떤 정보를 어떤 목적으로 처리하고 얼마나 보관하는지를 밝힙니다.',
+    'Hungry Hippo는 이용자의 개인정보를 소중히 다루며, 「개인정보 보호법」 등 관계 법령을 준수합니다. 이 방침은 서비스가 어떤 정보를 어떤 목적으로 처리하고 얼마나 보관하는지를 밝힙니다.',
   meta: ['[확인 필요: 시행일 — 실제 게시일로 확정]'],
   sections: [
     {

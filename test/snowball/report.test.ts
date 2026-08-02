@@ -219,7 +219,7 @@ describe('buildSnowballReport — 최종 자산 분해와 YoC', () => {
     expect(report.taxes.totalCostBasis).toBeCloseTo(report.outcome.totalContribution, 6);
   });
 
-  it('YoC는 투입원금 대비 세후 연 배당이며, 스노우볼에서 시간이 갈수록 오른다', () => {
+  it('YoC는 투입원금 대비 세후 연 배당이며, 재투자 복리에서 시간이 갈수록 오른다', () => {
     const report = buildSnowballReport(buildPayload([schd], { t1: 100 }))!;
     const { firstYearPercent, finalYearPercent, deltaPercentagePoints } = report.yieldOnCost;
 

@@ -43,7 +43,7 @@ const COPY = {
   lede: '주소가 바뀌었거나 입력하신 주소에 오타가 있을 수 있습니다. 아래에서 원하시는 화면으로 이동해 주세요.',
   requestedLabel: '요청하신 주소',
   destinationsTitle: '이곳으로 이동하실 수 있습니다',
-  documentTitle: '페이지를 찾을 수 없습니다 - Snowball Income',
+  documentTitle: '페이지를 찾을 수 없습니다 - Hungry Hippo',
   destinations: [
     {
       // 🔴 시뮬레이터의 주소는 `/simulator` 다(2026-08-01 이전). `/` 로 두면 404 에서 "배당 시뮬레이터"를

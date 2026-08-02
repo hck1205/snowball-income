@@ -28,7 +28,8 @@ const stringLeaves = (value: unknown): StringTree => {
 const EXPECTED: StringTree = {
   hero: {
     // 메뉴는 '가계부' 그대로다 — 페이지 제목만 제품명을 붙인다(2026-08-02 사용자 결정).
-    title: 'Hippo 가계부',
+    // 🔴 제품명은 "Hungry Hippo" 하나이고 시트 파일명(`APP_SPREADSHEET_TITLE`)과 같은 표기다 — 줄임말 금지.
+    title: 'Hungry Hippo 가계부',
     lede: '수입과 지출을 사용자의 구글 시트에 기록하고, 달마다 얼마를 벌고 썼는지 확인합니다.',
     scopeNotice: '이 앱은 사용자가 선택한 시트 1개만 읽고 씁니다. 다른 드라이브 파일에는 접근하지 않습니다.',
     addEntry: '항목 추가',
