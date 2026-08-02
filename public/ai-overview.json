@@ -2,17 +2,21 @@
   "name": "Snowball Income",
   "category": "Dividend Reinvestment Simulator",
   "language": "ko-KR",
-  "description": "배당주·ETF 포트폴리오의 배당 재투자(스노우볼) 효과를 시뮬레이션하고, 목표 월 배당 도달 시점과 세후 현금흐름을 계산하는 웹 앱. 계산은 브라우저에서 수행된다.",
+  "description": "배당주·ETF 포트폴리오의 배당 재투자 효과를 시뮬레이션하고, 목표 월 배당 도달 시점과 세후 현금흐름을 계산하는 웹 앱. 계산은 브라우저에서 수행된다.",
   "is_free": true,
-  "requires_account": "시뮬레이터·캘린더 등 계산 기능은 로그인 없이 쓴다. 커뮤니티와 클라우드 저장은 소셜 로그인(구글·카카오·네이버)이 필요하다.",
-  "collects_personal_data": "로그인·커뮤니티·클라우드 저장을 쓸 때만 수집한다. 계산 입력값은 기본적으로 기기(IndexedDB)에만 저장된다.",
+  "requires_account": "시뮬레이터·캘린더 등 계산 기능은 로그인 없이 쓴다. 커뮤니티, 클라우드 저장, 가계부는 소셜 로그인(구글·카카오·네이버)이 필요하다. 가계부는 비로그인 상태에서 화면 자체가 열리지 않는다.",
+  "collects_personal_data": "로그인·커뮤니티·클라우드 저장·가계부를 쓸 때만 수집한다. 수집 항목·보유 기간·국외 이전은 /privacy 참고. 계산 입력값은 기본적으로 기기(IndexedDB)에만 저장된다.",
+  "ledger": "가계부(/ledger)는 앱 로그인이 필요하다. 기록은 이용자 본인의 구글 스프레드시트에 저장되고 운영자의 서버·데이터베이스를 거치지 않으며, 로그인과 별개로 구글 계정의 접근 권한(drive.file) 허용이 필요하다. 가계부는 시트 두 개(또는 탭 두 개)를 합쳐 보는 블렌딩을 제공하며, 이때 연결하는 시트는 다른 사람이 공유해 준 시트일 수 있고 연결은 이용자의 선택이다. '배당 겹쳐 보기'는 포트폴리오 보유 기준 예상 배당을 화면에만 보여주며 시트에 기록하지 않고 가계부의 수입·지출 합계에도 포함하지 않는다.",
   "computation": "client-side (simulation runs entirely in the browser; serverless functions serve OG cards, sitemap, FX/index quotes, auth callbacks, and community data)",
   "entrypoints": {
-    "app": "/",
+    "landing": "/",
+    "simulator": "/simulator",
     "sitemap": "/sitemap.xml",
     "robots": "/robots.txt",
     "llms": "/llms.txt",
-    "llms_full": "/llms-full.txt"
+    "llms_full": "/llms-full.txt",
+    "privacy": "/privacy",
+    "terms": "/terms"
   },
   "growth_model": {
     "summary": "배당과 주가가 같은 속도로 함께 성장한다고 가정한다. 따라서 배당률은 기간 내내 일정하다.",

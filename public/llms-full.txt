@@ -1,11 +1,27 @@
 # Snowball Income — Full LLM Context
 
 ## Product Definition
-Snowball Income is a Korean-language, browser-only dividend-reinvestment simulator ("스노우볼" = snowball).
+Snowball Income is a Korean-language, browser-only dividend-reinvestment simulator.
 Users describe a dividend portfolio and investment plan; the app projects long-term asset value and dividend
 cashflow, and reports when a target monthly dividend would be reached. Every calculation runs client-side and
 inputs are stored on the device (IndexedDB) by default; no account is needed to use the calculator. Optional
-features (social sign-in, community posts, cloud save, server-backed share links) do store data on a server.
+features (social sign-in, community posts, cloud save, server-backed share links) do store data on a server —
+see `/privacy` for collected items, retention and cross-border transfer, and `/terms` for the terms of use.
+
+The ledger (가계부, `/ledger`) requires signing in to the app: signed-out visitors cannot even reach the
+sheet-connection screen, so using the ledger means creating an account (로그인 필요). Ledger entries themselves
+live in the user's own Google Sheet (구글 스프레드시트); no ledger entry is stored on our server or database.
+Connecting a sheet needs a separate Google authorization (`drive.file` scope only), independent of which social
+provider was used to sign in.
+
+The ledger also lets a user blend two sheets (or two tabs of one sheet) into a single view.
+That second ledger sheet may be one shared with the user by someone else (e.g. a partner); connecting a shared
+sheet to the ledger is the user's own action. Blended ledger content still flows only between the browser and
+Google — it never passes through our server or database.
+
+A separate, off-by-default overlay on the ledger shows an estimated dividend, computed from the user's portfolio
+holdings, against that month's ledger expenses. This ledger dividend overlay is display-only: it is never
+written back to the Google Sheet and is not included in the ledger's income/expense totals.
 
 It is a deterministic calculator over user-supplied assumptions. It is not a forecast, not a guarantee of returns,
 and not investment, tax, or legal advice.
@@ -99,15 +115,23 @@ charts (monthly dividend / asset value / cumulative dividend), and a post-invest
   backend is configured, server-backed `?s=<key>` (a short random key that resolves a saved payload). Both
   formats stay live at all times; `?s=` exists to keep link length bounded for large scenarios.
 - Onboarding tour and per-field help
+- Ledger (가계부, `/ledger`): income/expense rows kept in the user's own Google Sheet (구글 스프레드시트), never on
+  our server; requires app sign-in (로그인 필요) plus a `drive.file` authorization on the user's Google account.
+  Ledger extras: per-tab selection, blending two ledger sheets into one view (the second sheet may be shared by
+  someone else), and an off-by-default ledger dividend overlay (estimate only, screen-only, never written back)
 
 ## Machine-Readable Surfaces
 - `/llms.txt`: concise index for LLM crawlers
 - `/llms-full.txt`: expanded context for answer grounding
 - `/ai-overview.json`: structured machine-readable summary
-- JSON-LD in the root HTML: `WebSite` + `WebApplication` (no FAQPage/HowTo — the app has no visible FAQ
-  section or fixed step list, and marking up absent content would be false)
+- JSON-LD in the root HTML: `WebSite` + `WebApplication` + `FAQPage` (the landing has a visible FAQ section;
+  only the questions that are also visible in the static shell are marked up. No HowTo — there is no fixed
+  step list on screen, and marking up absent content would be false)
 
 ## Canonical Entry Points
-- `/`
+- `/` (landing — plain-language intro to stocks, ETFs, dividends, and reinvestment)
+- `/simulator` (the dividend reinvestment simulator itself)
+- `/privacy` (개인정보처리방침 — privacy policy)
+- `/terms` (이용약관 — terms of use)
 - `/sitemap.xml`
 - `/robots.txt`

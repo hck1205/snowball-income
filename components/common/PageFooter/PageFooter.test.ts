@@ -4,7 +4,7 @@ import { CAPTURE_EXCLUDE_ATTRIBUTE } from '@/pages/Main/hooks/interaction';
 import PageFooter from './PageFooter';
 
 /**
- * 공용 푸터의 세 계약.
+ * 공용 푸터의 네 계약.
  *
  * ① **상시 노출 고지** — 구 `pages/Main/components/LandingDisclaimer` 가 지키던 것을 그대로 승계한다
  *    (그 컴포넌트는 이 푸터로 수렴하며 삭제됐다). 네이버 재검수·일반 방문자가 URL 만 열어도
@@ -13,6 +13,10 @@ import PageFooter from './PageFooter';
  * ③ 🔴 **결과 이미지 저장에 끼지 않는다** — 캡처 파이프라인은 `data-capture-exclude` 가 붙은 요소를
  *    직렬화 단계에서 건너뛴다. 이 테스트는 푸터가 적어 둔 **리터럴**이 파이프라인의 상수와 같은지
  *    확인한다(푸터는 그 상수를 import 하지 않는다 — 공용 컴포넌트가 페이지를 역참조하지 않으려고).
+ * ④ 🔴 **법무 문서 링크의 href 계약** — `/privacy`·`/terms` 는 구글 OAuth 심사와 법적 고지가 실제로
+ *    여는 주소다. 주소가 바뀌거나 링크가 사라지면 화면상으로는 아무 일도 없어 보인다.
+ *    ⚠ Router 없이 렌더한다 — 이 푸터가 `react-router` 의 `Link` 로 바뀌면 여기서 먼저 터진다.
+ *    `MainPage` 를 Router 없이 마운트하는 테스트가 수십 개라 그 회귀를 이 파일이 앞에서 막는다.
  */
 describe('PageFooter', () => {
   it('클릭·펼치기 없이 사이트 공통 고지가 보인다', () => {
@@ -65,5 +69,12 @@ describe('PageFooter', () => {
     expect(footer.hasAttribute(CAPTURE_EXCLUDE_ATTRIBUTE)).toBe(true);
     // 마커 이름이 갈리면 푸터만 조용히 그림 안에 남는다 — 리터럴과 상수를 여기서 묶어 둔다.
     expect(CAPTURE_EXCLUDE_ATTRIBUTE).toBe('data-capture-exclude');
+  });
+
+  it('🔴 법무 문서로 가는 링크가 경로 기반 주소를 가리킨다', () => {
+    render(createElement(PageFooter));
+
+    expect(screen.getByRole('link', { name: '개인정보처리방침' })).toHaveAttribute('href', '/privacy');
+    expect(screen.getByRole('link', { name: '이용약관' })).toHaveAttribute('href', '/terms');
   });
 });
