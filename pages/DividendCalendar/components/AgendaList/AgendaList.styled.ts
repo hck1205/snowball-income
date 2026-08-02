@@ -24,12 +24,19 @@ export const AgendaDayList = styled.ol`
   margin: 0;
   padding: 0;
   display: grid;
-  gap: ${space[2]};
+  gap: ${space[3]};
 `;
 
 /**
- * 날짜 한 덩어리 — **카드가 아니라 엣지 그룹**이다(평탄화 2026-07-26). 왼쪽 브랜드 엣지가
- * "여기부터 이 날짜"를 말하고, 면·보더·그림자는 두르지 않는다.
+ * 날짜 한 덩어리.
+ *
+ * 🔴 **2026-08-02 사용자 지시로 리워크**했다 — 2026-07-26 의 "평탄화"(면·보더 없이 좌측 엣지만)를
+ * 이 블록에 한해 되돌린다. 평탄한 엣지 그룹은 날짜가 여럿일 때 **어디서 끊기는지**가 간격으로만
+ * 전달돼, 달력의 또렷한 칸들 바로 아래에서 목록이 미완성처럼 읽혔다.
+ *
+ * 면은 **중립 토큰(surfaceMuted)만** 쓴다 — 감싸는 DetailCard 가 surface 라 한 단계 가라앉은 면이
+ * "카드 안의 카드"가 아니라 **묶음 판**으로 읽히고, 중립이라 tintscan 의 틴트 면 예산에도 잡히지
+ * 않는다(tools/dev/tintscan.mjs 의 NEUTRAL_VARS). 색은 날짜 배지와 종목 색 막대가 진다.
  *
  * 달력 칸에서 눌러 들어오면 강조된다($highlighted). **면색 하나로는 부족하다** —
  * 다크 프리셋에서 brand-subtle과 surface 계열의 밝기 차가 작아 "어디로 왔는지"가 안 읽힌다.
@@ -38,8 +45,11 @@ export const AgendaDayList = styled.ol`
 export const AgendaDayItem = styled.li<{ $highlighted: boolean }>`
   display: grid;
   gap: ${space[2]};
-  padding: ${space[2]} ${space[2]} ${space[2]} ${space[3]};
-  border-radius: ${radius.sm};
+  padding: ${space[3]};
+  border: 1px solid ${color.border};
+  border-radius: ${radius.md};
+  background: ${color.surfaceMuted};
+  /* 좌측 브랜드 엣지는 유지한다 — 보더와 같은 자리에 겹쳐 "여기부터 이 날짜"를 계속 말한다. */
   box-shadow: inset 3px 0 0 ${color.brand};
   min-width: 0;
   transition:
@@ -76,17 +86,26 @@ export const AgendaDayLabel = styled.h4`
   font-weight: ${font.weight.semibold};
 `;
 
-/** 날짜 배지 — 브랜드 서피스 위 브랜드 텍스트(대비 검증 쌍). */
-/* 날짜 배지 — 흰 카드(surface) 위 브랜드 틴트라 날짜 줄이 카드 안에서 가장 먼저 읽힌다. */
+/**
+ * 날짜 배지 — 브랜드 서피스 위 브랜드 텍스트(대비 검증 쌍 `contrast.test.ts`).
+ *
+ * 2026-08-02 리워크: 알약을 한 단계 키웠다(2px/xs → 세로 6px·sm). 날짜 판이 면을 갖게 되면서
+ * 예전 크기로는 배지가 판 안에서 부유물처럼 떠 보였다 — 이 줄이 판의 **머리**라는 것을 크기가 말한다.
+ * ⚠ 폭이 180px 미만이라 tintscan 의 면 하한에 걸리지 않는다(그래서 브랜드 틴트를 써도 예산 밖이다).
+ * ⚠ 안의 날짜 문자열은 **한 텍스트 노드**여야 한다 — 쪼개면 "7월 4일 (토)" 를 통째로 찾는 단정이 깨진다.
+ */
 export const AgendaDateBadge = styled.span`
   display: inline-flex;
   align-items: center;
   gap: ${space[1]};
-  padding: 2px ${space[2]};
+  padding: ${space[1]} ${space[3]};
   border: 1px solid ${color.brandBorder};
   border-radius: ${radius.pill};
   background: ${color.brandSubtle};
   color: ${color.brandText};
+  font-size: ${font.size.sm};
+  font-weight: ${font.weight.bold};
+  letter-spacing: -0.01em;
   ${font.numeric}
 `;
 
@@ -98,14 +117,21 @@ export const AgendaItemList = styled.ul`
   gap: ${space[1]};
 `;
 
-/** 줄은 면을 갖지 않는다(평탄화) — hover 틴트만 잠깐 얹는다. 세로선 정렬은 고정폭 티커 열이 만든다. */
+/**
+ * 종목 한 줄 — 2026-08-02 리워크로 **자기 면을 갖는다**(surface).
+ *
+ * 날짜 판이 한 단계 가라앉은 면(surfaceMuted)이 되면서, 그 위의 줄은 떠오른 면(surface)이 되어
+ * 판↔줄의 위계가 명도로 읽힌다. 둘 다 **중립 토큰**이라 틴트 면 예산과 무관하다.
+ * 세로선 정렬은 여전히 고정폭 티커 열이 만든다.
+ */
 export const AgendaItem = styled.li`
   display: flex;
   align-items: center;
   gap: ${space[2]};
-  min-height: 32px;
+  min-height: 36px;
   padding: ${space[1]} ${space[2]};
   border-radius: ${radius.sm};
+  background: ${color.surface};
   font-size: ${font.size.xs};
   color: ${color.textSecondary};
   transition: background ${motion.fast} ${motion.ease};
@@ -115,13 +141,21 @@ export const AgendaItem = styled.li`
   }
 `;
 
-/** 티커 색 점 — 티커별 시리즈 색으로 목록 행을 구분한다(장식, aria-hidden). */
+/**
+ * 티커 색 표식 — 티커별 시리즈 색으로 목록 행을 구분한다(장식, aria-hidden).
+ *
+ * 2026-08-02 리워크: 8px 점 → **3×18px 세로 막대**. 점은 줄이 면을 갖게 되자 부스러기처럼 보였고,
+ * 막대는 줄의 왼쪽 끝을 따라 서서 **여러 줄이 쌓였을 때 색 띠가 세로로 정렬**된다 — 같은 종목이
+ * 여러 날에 걸쳐 나올 때 눈으로 잇기 쉬워진다.
+ * ⚠ 색은 인라인 style 로 들어온다(시리즈 CSS 변수) — 여기서 색을 정하지 마라.
+ * ⚠ 폭 3px 이라 tintscan 의 면 하한(180px) 밖이다.
+ */
 export const AgendaDot = styled.span`
   display: inline-block;
   flex: 0 0 auto;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+  width: 3px;
+  height: 18px;
+  border-radius: ${radius.pill};
 `;
 
 /**

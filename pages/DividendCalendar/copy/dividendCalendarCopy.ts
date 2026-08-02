@@ -156,6 +156,12 @@ export const DIVIDEND_CALENDAR_COPY = {
   },
   legend: {
     summary: '종목별 지급 월 표로 보기',
+    /**
+     * 가로 스크롤 영역의 접근명. 좁은 폭에서 이 표는 12개월 중 3개월만 보이므로 스크롤이 필수인데,
+     * 이름 없는 스크롤 상자는 스크린리더에서 "무엇을 미는 중인지" 알 수 없다.
+     * 여는 문구(`summary`)와 달리 동작이 아니라 **대상**을 가리키므로 "보기"를 뺐다.
+     */
+    regionLabel: '종목별 지급 월 표',
     tickerColumn: '종목',
     payingCell: (month: number) => `${month}월 지급`
   },

@@ -3,6 +3,7 @@ import { lazy, memo, Suspense, useCallback, useId, useRef, useState } from "reac
 import { FeatureLayout, MainContent, SkipLink } from "@/pages/Main/Main.shared.styled";
 import AppHeader from "@/components/AppHeader";
 import TourGuide from "@/components/TourGuide";
+import MarketIndexStrip from "@/components/MarketIndexStrip";
 import { CloudSyncIndicator } from "@/components/CloudSyncIndicator";
 import { isCommunityEnabled } from "@/shared/lib/supabase";
 import {
@@ -140,6 +141,10 @@ function MainViewComponent({ viewModel }: MainViewProps) {
       />
       <FeatureLayout>
         <MainContent id="main-content">
+          {/* 🔴 페이지 맨 위의 참고 시세 — 캘린더·내 포트폴리오와 같은 자리다(2026-08-02).
+              헤더에 얹었다가 되돌렸다: 헤더는 전 라우트에 상시 있어 시세가 필요 없는 화면까지 따라다녔다. */}
+          <MarketIndexStrip />
+
           <SimulatorHero
             drawerId={configDrawerId}
             isSettingsOpen={isConfigDrawerOpen}

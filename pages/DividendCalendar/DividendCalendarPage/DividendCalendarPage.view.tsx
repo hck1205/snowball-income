@@ -1,6 +1,7 @@
 import { useId } from 'react';
 import { CalendarDays, ChevronRight, SlidersHorizontal } from 'lucide-react';
 import { Banner, Chip, PageFooter, PageHero } from '@/components/common';
+import MarketIndexStrip from '@/components/MarketIndexStrip';
 import { DIVIDEND_CALENDAR_COPY } from '../copy';
 import {
   AgendaList,
@@ -104,6 +105,11 @@ export default function DividendCalendarView({
 
   return (
     <PageStack>
+      {/* 🔴 페이지 **맨 위**의 참고 시세(2026-08-02 사용자 결정). 헤더에 얹었다가 되돌린 자리다 —
+          헤더는 전 라우트에 상시 있어 시세가 필요 없는 화면(커뮤니티·티커 소개)까지 따라다녔다.
+          지금은 시세가 실제로 도움이 되는 세 화면(시뮬레이터·배당 캘린더·내 포트폴리오)만 갖는다. */}
+      <MarketIndexStrip />
+
       {/*
         이 페이지의 유일한 `<h1>`.
 

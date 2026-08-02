@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { TickerPageShell } from '@/pages/Ticker/components';
 import { useDocumentMeta } from '@/pages/Ticker/hooks';
 import { createResultAmountFormatter } from '@/pages/Main/utils';
-import { useDisplayCurrencyViewAtomValue, useFxRateSync, useFxRateValueAtomValue } from '@/jotai';
+import { useDisplayCurrencyViewAtomValue, useFxRateSync, useFxRateValueAtomValue, useMarketIndicesSync } from '@/jotai';
 import { ANALYTICS_EVENT, track, trackEvent } from '@/shared/lib/analytics';
 import {
   FOCUS_TARGET_MONTHLY_DIVIDEND_STATE,
@@ -52,6 +52,10 @@ const copy = PORTFOLIO_COPY;
  * **한 번만** 곱한다. 이 가드를 빼면 달러 숫자에 `₩`가 붙는다.
  */
 export default function PortfolioPage({ now: nowProp }: PortfolioPageProps = {}) {
+  /* 🔴 참고 시세 조회 드라이버 — 이 화면이 `MarketIndexStrip` 을 그리므로 여기서 한 번만 부른다.
+     부품 안에서 부르면 한 화면에 두 곳에 놓았을 때 중복 조회가 된다. */
+  useMarketIndicesSync();
+
   const navigate = useNavigate();
 
   /*

@@ -15,8 +15,15 @@ import { color, font, motion, radius, shadow, space, zIndex } from '@/shared/sty
  * 폭 제한은 여기 하나뿐이다 — 아래 `Article` 이 자기 max-width 를 또 갖고 있으면 둘이 갈라진다.
  */
 export const DetailShell = styled.div`
-  max-width: 760px;
-  margin: 0 auto;
+  /*
+   * 🔴 폭 제한을 두지 않는다 — 셸('CommunityMain')이 앱 공통 1160px 로 잡는다
+   * (2026-08-02 사용자 결정: 갤러리·게시판·상세·글쓰기가 같은 좌우 경계를 갖는다).
+   *
+   * ⚠ **글줄 길이는 별개 문제다.** 본문이 1160px 을 그대로 쓰면 한 줄이 140자에 가까워 눈이 다음 줄
+   * 첫 글자를 잃는다. 그래서 카드는 넓히되 **산문 본문만** 안에서 다시 좁힌다('PostBody' 참고).
+   */
+  width: 100%;
+  min-width: 0;
 `;
 
 export const Article = styled.article`

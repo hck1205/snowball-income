@@ -1,3 +1,4 @@
+import { useMarketIndicesSync } from '@/jotai';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { TickerPageShell } from '@/pages/Ticker/components';
 import { useDocumentMeta } from '@/pages/Ticker/hooks';
@@ -31,6 +32,10 @@ const copy = DIVIDEND_CALENDAR_COPY;
  * 이 화면은 시뮬레이션을 돌리지 않는다 — "언제 주는가"만 답한다.
  */
 export default function DividendCalendarPage({ today }: DividendCalendarPageProps = {}) {
+  /* 🔴 참고 시세 조회 드라이버 — 이 화면이 `MarketIndexStrip` 을 그리므로 여기서 한 번만 부른다.
+     부품 안에서 부르면 한 화면에 두 곳에 놓았을 때 중복 조회가 된다. */
+  useMarketIndicesSync();
+
   const universe = useMemo(() => getCalendarUniverse(), []);
   const resolvedToday = useRef(today ?? new Date()).current;
 

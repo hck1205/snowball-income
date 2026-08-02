@@ -6,10 +6,23 @@
 // shared/lib/marketIndices/registry.ts
 var DEFINITIONS = [
   { symbol: "^GSPC", label: "S&P 500" },
+  /*
+   * ⚠ 짧은 이름(`shortLabel`)은 **없다.** 헤더 축소형 전용이었는데 2026-08-02 사용자 결정으로
+   * 헤더 배치가 최종 기각되면서 필드째 제거했다(근거는 `components/MarketIndexStrip/MarketIndexStrip.tsx`
+   * 상단 주석의 폭 실측). 좁은 표면이 다시 생기면 그때 축약 규칙부터 새로 정하라 —
+   * 소비처 없는 데이터를 남겨 두면 "그 배치가 아직 열려 있다"는 잘못된 신호가 된다.
+   */
   { symbol: "^IXIC", label: "\uB098\uC2A4\uB2E5 \uC885\uD569" },
   { symbol: "^KS11", label: "\uCF54\uC2A4\uD53C" },
   { symbol: "^KQ11", label: "\uCF54\uC2A4\uB2E5" },
-  { symbol: "^N225", label: "\uB2C8\uCF00\uC774225" }
+  { symbol: "^N225", label: "\uB2C8\uCF00\uC774225" },
+  /*
+   * 🔴 **환율이지 지수가 아니다**(2026-08-02 사용자 요청으로 이 스트립에 합류).
+   * 야후 chart API 는 `KRW=X` 로 원/달러를 같은 형태의 응답으로 준다 — 조회·파싱 경로를 그대로 쓴다.
+   * 다만 단위가 다르다: 지수는 "포인트", 이건 **원**이다. 스크린리더 낭독이 "1,436.60 포인트"가 되면
+   * 거짓이라 `unit` 을 따로 준다(화면은 원래 숫자만 보여주므로 시각 표시는 그대로다).
+   */
+  { symbol: "KRW=X", label: "\uC6D0/\uB2EC\uB7EC", unit: " \uC6D0" }
 ];
 var MARKET_INDEX_SYMBOLS = DEFINITIONS.map(
   (definition) => definition.symbol
@@ -156,23 +169,37 @@ var toIsoFromUnixSeconds = (value) => {
   const parsed = new Date(value * 1e3);
   return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
 };
+var readPreviousClose = (result) => {
+  const indicators = asRecord(result.indicators);
+  const quoteSeries = Array.isArray(indicators?.quote) ? asRecord(indicators.quote[0]) : null;
+  const closes = Array.isArray(quoteSeries?.close) ? quoteSeries.close : null;
+  if (closes === null) return null;
+  for (let index = closes.length - 2; index >= 0; index -= 1) {
+    const close = closes[index];
+    if (isFinitePositive(close)) return close;
+  }
+  return null;
+};
 var readQuote = (symbol, data) => {
   const chart = asRecord(asRecord(data)?.chart);
   if (chart === null) return null;
   if (chart.error !== null && chart.error !== void 0) return null;
   if (!Array.isArray(chart.result)) return null;
-  const meta = asRecord(asRecord(chart.result[0])?.meta);
+  const result = asRecord(chart.result[0]);
+  if (result === null) return null;
+  const meta = asRecord(result.meta);
   if (meta === null) return null;
   if (!isFinitePositive(meta.regularMarketPrice)) return null;
   const quote = { symbol, price: meta.regularMarketPrice };
-  if (isFinitePositive(meta.chartPreviousClose)) quote.previousClose = meta.chartPreviousClose;
+  const previousClose = readPreviousClose(result);
+  if (previousClose !== null) quote.previousClose = previousClose;
   if (typeof meta.currency === "string" && meta.currency.length > 0) quote.currency = meta.currency;
   const asOf = toIsoFromUnixSeconds(meta.regularMarketTime);
   if (asOf !== null) quote.asOf = asOf;
   return quote;
 };
 var fetchQuote = async (symbol) => {
-  const url = `${CHART_BASE_URL}/${encodeURIComponent(symbol)}?range=2d&interval=1d`;
+  const url = `${CHART_BASE_URL}/${encodeURIComponent(symbol)}?range=5d&interval=1d`;
   try {
     const response = await fetch(url, {
       headers: { "user-agent": USER_AGENT, accept: "application/json" },

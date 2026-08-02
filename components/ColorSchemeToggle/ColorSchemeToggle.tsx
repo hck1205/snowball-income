@@ -1,4 +1,4 @@
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useState } from 'react';
 // per-icon named import(트리셰이킹) — 엔트리에는 Moon/Sun 두 아이콘만 실린다(PrimaryNav와 동일 패턴).
 import { Moon, Sun } from 'lucide-react';
 import { useEffectiveColorScheme, useSetColorSchemeWrite } from '@/jotai';
@@ -27,8 +27,16 @@ function ColorSchemeToggleComponent() {
   const setColorScheme = useSetColorSchemeWrite();
   const isDark = scheme === 'dark';
 
+  /*
+   * 🔴 **이 마운트에서 사용자가 실제로 눌렀는가.** 글리프 전환 애니메이션의 유일한 조건이다.
+   * 라우트를 옮기면 페이지가 자기 AppHeader 를 새로 그리므로 이 컴포넌트도 다시 마운트되고
+   * 이 값은 false 로 돌아간다 — 그래서 페이지 이동에서는 아이콘이 조용하다(2026-08-02 수정).
+   */
+  const [hasToggled, setHasToggled] = useState(false);
+
   const toggle = useCallback(() => {
     const next = isDark ? 'light' : 'dark';
+    setHasToggled(true);
     setColorScheme(next);
     /*
      * 계측 이벤트·파라미터는 프리셋 스위처 시절 그대로 쓴다(택소노미 단절 방지) —
@@ -40,7 +48,7 @@ function ColorSchemeToggleComponent() {
   }, [isDark, setColorScheme]);
 
   return (
-    <ToggleRoot>
+    <ToggleRoot $animateIcon={hasToggled}>
       <Button
         // 헤더 형제(더보기·로그인)와 같은 secondary 아이콘 버튼. 라벨이 없으므로 aria-label 필수.
         variant="secondary"

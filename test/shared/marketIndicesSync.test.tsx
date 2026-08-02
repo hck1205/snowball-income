@@ -1,3 +1,4 @@
+import { MARKET_INDICES } from '@/shared/lib/marketIndices';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { Provider } from 'jotai/react';
@@ -150,16 +151,18 @@ describe('useMarketIndicesSync — 조회 드라이버 배선', () => {
     expect(screen.getByRole('heading', { name: TITLE })).toBeInTheDocument();
   });
 
-  it('부분 실패(3/5) 응답이면 빠진 지수의 자리를 유지하고 결손을 말한다 — 전체 실패로 만들지 않는다', async () => {
+  it('부분 실패 응답이면 빠진 지수의 자리를 유지하고 결손을 말한다 — 전체 실패로 만들지 않는다', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => okResponse(PARTIAL_BODY)));
 
     renderStrip();
 
     await waitFor(() => expect(screen.getByText('6,755.75')).toBeInTheDocument());
 
-    expect(screen.getAllByRole('listitem')).toHaveLength(5);
-    expect(screen.getAllByText('불러오지 못함')).toHaveLength(2);
-    expect(screen.getAllByText('시세를 불러오지 못했습니다')).toHaveLength(2);
+    expect(screen.getAllByRole('listitem')).toHaveLength(MARKET_INDICES.length);
+    // 결손 개수도 파생시킨다 — 응답에 3종만 담겨 있으므로 나머지 전부가 결손이다.
+    const missingCount = MARKET_INDICES.length - 3;
+    expect(screen.getAllByText('불러오지 못함')).toHaveLength(missingCount);
+    expect(screen.getAllByText('시세를 불러오지 못했습니다')).toHaveLength(missingCount);
     // 🔴 날조 금지: 빠진 지수를 0 이나 0.00% 로 채우지 않는다.
     expect(strip()).not.toHaveTextContent('0.00%');
     expect(screen.queryByText('0.00')).not.toBeInTheDocument();

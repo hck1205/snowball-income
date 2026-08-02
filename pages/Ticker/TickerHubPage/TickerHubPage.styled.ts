@@ -1,6 +1,6 @@
 import styled from '@emotion/styled';
 import { Link } from 'react-router-dom';
-import { color, elevation, font, media, motion, radius, space } from '@/shared/styles';
+import { color, elevation, font, iconOpticalAlign, media, motion, radius, space } from '@/shared/styles';
 
 /**
  * 카테고리 색 순환 — 섹션 하나가 자기 색을 정하고, 그 안의 칩·제목 레일·종목 수 칩이 전부 이
@@ -142,12 +142,27 @@ export const CategorySection = styled.section`
   gap: ${space[4]};
 `;
 
+/**
+ * 카테고리 제목 크기. **아래 종목 수 칩의 광학 보정이 이 값을 기준으로 하므로 둘은 항상 같이
+ * 움직인다** — 크기만 바꾸고 보정을 두면 칩이 조용히 어긋난다.
+ */
+const CATEGORY_TITLE_SIZE = font.size['2xl'];
+
+/**
+ * 카테고리 제목 줄(제목 + 종목 수 칩).
+ *
+ * 🔴 정렬은 `baseline` 이 아니라 `center` + 잉크 보정이다. 칩은 글자가 아니라 **면을 가진 알약**이라
+ * 사람 눈은 칩의 *상자 중심*을 제목의 *잉크 중심*에 맞춘 것으로 읽는다. 베이스라인으로 맞추면
+ * 두 글자 크기(20px 제목 vs 13px 칩)의 잉크 높이 차 + 칩 패딩만큼 칩이 아래로 내려앉는다
+ * (실측 2026-08-01, 헤드리스 크롬 150: 칩 상자 중심이 제목 잉크 중심보다 **+4.0~4.3px 아래**,
+ * 1280px·390px 동일). 보정은 아래 CategoryCount 가 공용 유틸로 건다.
+ */
 export const CategoryHeading = styled.h2`
   margin: 0;
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: ${space[2]};
-  font-size: ${font.size['2xl']};
+  font-size: ${CATEGORY_TITLE_SIZE};
   font-weight: ${font.weight.bold};
   letter-spacing: -0.02em;
   color: ${color.text};
@@ -157,8 +172,15 @@ export const CategoryHeading = styled.h2`
   padding-left: calc(${RAIL} * 2.5);
 `;
 
-/** 종목 수 — 색 칩으로 올린다(섹션마다 색이 한 번 더 찍혀 목록에 리듬이 생긴다). */
+/**
+ * 종목 수 — 색 칩으로 올린다(섹션마다 색이 한 번 더 찍혀 목록에 리듬이 생긴다).
+ *
+ * 제목이 헤딩 서체(전역 h1~h6 이 font.display 를 건다)라 라인박스 중심이 잉크 중심보다 아래에 있다.
+ * 그 몫을 공용 유틸이 **제목 크기 기준으로** 되올린다 — 칩 자신의 em 으로 쓰면 안 된다(칩 13px vs
+ * 제목 20px). 정본과 근거는 shared/styles/heroTitleRow.ts.
+ */
 export const CategoryCount = styled.span`
+  ${iconOpticalAlign('display', CATEGORY_TITLE_SIZE)}
   padding: 2px ${space[2]};
   border-radius: ${radius.pill};
   background: color-mix(in srgb, var(${CAT_VAR}) 14%, ${color.surface});

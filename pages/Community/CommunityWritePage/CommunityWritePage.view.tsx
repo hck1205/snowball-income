@@ -13,7 +13,7 @@ import {
   WriteFormFields,
   WriteLoginGate
 } from './components';
-import { ActionBar, PageTitle, WriteForm } from './CommunityWritePage.styled';
+import { ActionBar, PageTitle, WriteForm, WriteShell } from './CommunityWritePage.styled';
 
 const w = COMMUNITY_COPY.write;
 
@@ -126,10 +126,15 @@ export default function CommunityWriteView({ viewModel }: CommunityWriteViewProp
 
   return (
     <>
-      <CommunityTopBar />
-      <PageTitle>{pageTitle}</PageTitle>
+      {/* 🔴 상단 바·제목·폼이 **같은 좌우 경계**를 갖는다 — 그전에는 "← 목록"만 전폭이라 왼쪽 끝에
+          혼자 붙어 제목 줄과 어긋나 보였다(2026-08-02 사용자 지적).
+          상세 페이지가 2026-07-28 에 `DetailShell` 로 해결한 것과 **같은 처방**이다.
+          ⚠ 확인 대화상자는 이 껍데기 **밖**이다 — 포털로 뜨는 오버레이라 폭 제한과 무관하다. */}
+      <WriteShell>
+        <CommunityTopBar />
+        <PageTitle>{pageTitle}</PageTitle>
 
-      <WriteForm
+        <WriteForm
         onSubmit={(event) => {
           event.preventDefault();
           void composer.submit();
@@ -178,7 +183,8 @@ export default function CommunityWriteView({ viewModel }: CommunityWriteViewProp
             {composer.mode === 'edit' ? w.submitEdit : w.submitNew}
           </Button>
         </ActionBar>
-      </WriteForm>
+        </WriteForm>
+      </WriteShell>
 
       {leaveOpen ? (
         <ConfirmDialog

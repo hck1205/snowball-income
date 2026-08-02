@@ -1,4 +1,5 @@
 import { MARKET_INDICES, computeIndexChange, type MarketIndicesSnapshot } from '@/shared/lib/marketIndices';
+import { MARKET_INDEX_COPY } from '@/shared/constants/marketIndex';
 import type { MarketIndexRow } from './MarketIndexStrip.types';
 
 /**
@@ -29,6 +30,8 @@ export const buildMarketIndexRows = (snapshot: MarketIndicesSnapshot | null): Ma
       symbol: definition.symbol,
       label: definition.label,
       price: quote ? quote.price : null,
-      change: quote ? computeIndexChange(quote.price, quote.previousClose) : null
+      change: quote ? computeIndexChange(quote.price, quote.previousClose) : null,
+      // 레지스트리가 항목별로 정한다 — 없으면 지수 기본 단위(' 포인트').
+      unit: definition.unit ?? MARKET_INDEX_COPY.unit
     };
   });

@@ -43,7 +43,11 @@ export const SkipLink = styled.a`
 export const FeatureLayout = styled.div`
   max-width: 1200px;
   margin: 0 auto;
-  padding: clamp(16px, 2.6vw, 28px) clamp(12px, 2vw, 20px) clamp(24px, 4vw, 48px);
+  /* 🔴 세로 시작 여백은 TickerPageShell 의 ShellMain 과 **같은 값이어야 한다**(2026-08-02 실측:
+     이 값이 clamp(16px,2.6vw,28px) 이던 동안 1280 에서 본문 시작이 93px 대 113px 로 갈려
+     시뮬레이터만 20px 위에서 시작했다). 좌우 값이 이미 같은 이유와 같다 — 라우트를 옮길 때
+     본문 경계가 눈에 띄게 움직이면 안 된다. 한쪽만 고치면 그 페이지만 어긋난다. */
+  padding: clamp(20px, 4vw, 48px) clamp(12px, 2vw, 20px) clamp(24px, 4vw, 48px);
   display: grid;
   gap: clamp(12px, 1.8vw, 20px);
   color: ${color.text};

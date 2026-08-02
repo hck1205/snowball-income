@@ -6,7 +6,7 @@ import { useSetActiveHelpWrite } from '@/jotai';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import { CAPITAL_GAINS_ANNUAL_DEDUCTION, OVERSEAS_CAPITAL_GAINS_TAX_RATE } from '@/shared/constants';
 import type { SaleTaxCardProps } from './SaleTaxCard.types';
-import { SummaryGrid, TaxAssumptionNote } from './SaleTaxCard.styled';
+import { SaleTaxTitleHelpButton, SummaryGrid, TaxAssumptionNote } from './SaleTaxCard.styled';
 import { toManWon } from './SaleTaxCard.utils';
 
 /** 부호 있는 값의 방향성(한국 증권 관례: 상승 적색 / 하락 청색). 0은 중립. */
@@ -38,13 +38,13 @@ function SaleTaxCardComponent({ summary, isResultCompact, formatResultAmount }: 
       tone="sunken"
       title="전량 매도한다면"
       titleRight={
-        <CompactSummaryHelpButton
+        <SaleTaxTitleHelpButton
           type="button"
           aria-label="전량 매도 시 예상 양도세 설명"
           onClick={openCapitalGainsTaxHelp}
         >
           ?
-        </CompactSummaryHelpButton>
+        </SaleTaxTitleHelpButton>
       }
     >
       <SummaryGrid>

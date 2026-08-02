@@ -23,8 +23,14 @@ import { toNodeHandler } from '@/shared/lib/server';
  * 이 값은 참고 시세라 시뮬레이션 계산에는 절대 들어가지 않는다.
  *
  * ## 데이터 소스 (2026-07 실호출 검증, 무키)
- * `query1.finance.yahoo.com/v8/finance/chart/<심볼>?range=2d&interval=1d` 의 `meta` 한 덩어리로
- * 현재가(`regularMarketPrice`)와 **전일 종가**(`chartPreviousClose`)를 함께 얻는다 — 심볼당 요청 1회면 된다.
+ * `query1.finance.yahoo.com/v8/finance/chart/<심볼>?range=5d&interval=1d` 로 심볼당 요청 1회.
+ * 현재가는 `meta.regularMarketPrice`, **전일 종가는 일별 종가 계열의 끝에서 두 번째**다.
+ * 🔴 `meta.chartPreviousClose` 를 쓰지 마라 — 그건 "**요청한 range 직전**"의 종가라 range 에 따라 값이 바뀐다
+ *    (`readPreviousClose` 주석의 2026-08-02 실측 표 참고).
+ *
+ * ⚠ `meta` 에 "전일 종가" 후보는 **`chartPreviousClose` 하나뿐**이다(2026-08-02 6심볼 전수 키 덤프 —
+ *    `previousClose`·`regularMarketPreviousClose` 는 chart 응답에 아예 없다. 그 이름들은 v7 `quote`/
+ *    `quoteSummary` 쪽 필드인데 그 둘은 이제 crumb 없이는 **401** 이라 쓸 수 없다).
  * ⚠ 브라우저 형태의 `User-Agent` 가 없으면 거부한다(scripts/tickerRefresh/provider/yahooProvider.ts 와 동일).
  * ⚠ 심볼의 `^` 는 URL 에서 `%5E` 로 인코딩해야 한다.
  * ⚠ **비공식 API 라 SLA 가 없고 응답 형태가 예고 없이 바뀔 수 있다** — 파싱은 전부 방어적으로,
@@ -82,6 +88,72 @@ const toIsoFromUnixSeconds = (value: unknown): string | null => {
 };
 
 /**
+ * 🔴 **전일 종가는 `meta.chartPreviousClose` 가 아니라 일별 종가 계열에서 뽑는다.**
+ *
+ * `chartPreviousClose` 는 "**요청한 range 가 시작되기 직전**의 종가"다 — 같은 심볼이라도 range 를 바꾸면
+ * 값이 바뀐다. 즉 그 필드 자체가 "전일"을 뜻하지 않는다. 2026-08-02 실측(같은 시각, range 만 교체):
+ *
+ * ```
+ *   심볼      range=1d   range=2d   range=5d   ← 진짜 직전 세션(7/30) 종가
+ *   ^GSPC     7437.63    7316.15    7411.98      7437.63
+ *   ^IXIC    25122.178  24442.94   24975.82     25122.18
+ *   ^KS11     5593.56    5663.24    6690.62      5593.56
+ *   ^KQ11      644.78     662.68     748.22       644.78
+ *   ^N225    61867.43   61867.43   64931.19     61867.43
+ *   KRW=X     1421.34    1442.28    1458.01      1420.60
+ * ```
+ * 구현이 쓰던 `range=2d` 열은 ^N225 를 빼면 전부 **하루를 건너뛴 값**이다(^N225 만 우연히 맞아, 다섯 중
+ * 하나가 맞는 바람에 결함이 더 늦게 드러났다). 화면 라벨은 "전일 대비"(`MARKET_INDEX_COPY.meta`)인데
+ * 실제로는 2거래일 대비였다 — **라벨과 계산이 달랐던 것**이 결함이다.
+ *
+ * 🔴 **틀렸다는 증명(독립 출처, 2026-07-31 한국 증시)**
+ * ```
+ *   코스피  6,595.45   전일 대비 +1,001pt = +17.91%  (사상 최대 상승률)   ← 화면은 +16.46% 로 표시
+ *   코스닥    719.76   전일 대비 +74.98pt = +11.63%  (역대 2위)          ← 화면은  +8.61% 로 표시
+ * ```
+ * (머니투데이 2026-07-31 보도. 우리 계산 6595.45/5593.56−1 = +17.909%, 719.76/644.78−1 = +11.628% 와 일치.)
+ *
+ * 🔴 **그래서 "비현실적 변동률이면 감춘다"는 크기 상한 가드를 두지 않는다.** 이 날 참값이 +17.91% 였고
+ * 결함값이 +16.46% 로 **참값보다 작았다** — 결함을 잡을 만큼 낮은 상한은 사상 최대 상승률이라는 사실을
+ * 먼저 지웠을 것이다. 크기로는 "틀림"과 "격변"을 가를 수 없다. 가드는 **크기가 아니라 날짜 짝짓기**에
+ * 걸어야 한다(그게 `test/api/marketIndices.test.ts` 의 실응답 픽스처 가드다).
+ *
+ * ## 뽑는 규칙
+ * 종가 배열의 **마지막 칸 바로 앞에서부터 뒤로 스캔**해 처음 만나는 유효 종가를 쓴다.
+ * - 마지막 칸은 언제나 **가장 최근 세션**이고 그 종가가 곧 `regularMarketPrice` 다(장중이면 진행 중 가격,
+ *   마감이면 그 세션 종가). 실측에서 6심볼 전부 마지막 칸 == `regularMarketPrice` 였다. 그래서 마지막을
+ *   그대로 쓰면 **자기 자신과 비교**해 항상 0.00% 가 된다 — 반드시 그 앞이다.
+ * - 중간의 `null`(휴장·결측)은 건너뛴다. 시장마다 거래일이 다른 문제(한국·일본·미국)가 이 방식이면
+ *   함께 해소된다 — 창을 넓혀도 "직전 유효 종가" 판정은 같다.
+ *
+ * ⚠ **`filter` 후 `[length - 2]` 로 하지 마라.** 겉보기엔 같지만 **마지막 칸이 `null` 인 순간**
+ * (장 시작 직후 진행 중 캔들에 종가가 아직 없는 형태) 걸러진 배열의 끝에서 두 번째가 **2세션 전**이 돼
+ * 방금 고친 결함이 무음으로 되살아난다. 뒤로 스캔하면 그 경우에도 직전 세션 종가를 준다.
+ * (이 형태는 2026-08-02 실측에선 관측되지 않았다 — 비공식 API 라 형태 변화에 방어적으로 간다.)
+ *
+ * ⚠ "마지막이 현재가와 같으면 하나 더 앞" 같은 **값 비교로 판정하지 마라** — 2026-08-02 실측에서
+ * `7489.72`(meta) 와 `7489.72021484375`(계열)처럼 **부동소수 표현이 미세하게 달라** 판정이 빗나갔고,
+ * 다섯 지수 전부 0.00% 로 찍혔다. 위치로 판정하는 것이 옳다.
+ *
+ * 🔗 **교차검증 오라클**: 같은 심볼을 `range=1d` 로 부르면 `meta.chartPreviousClose` 가 직전 세션 종가와
+ * 같다(위 표 1열 — 지수 5종은 소수점까지 일치, `KRW=X` 만 24시간 통화라 컷오프가 달라 0.05% 차이).
+ * 이 값이 여기서 뽑은 값과 어긋나면 upstream 형태가 바뀐 것이다.
+ */
+const readPreviousClose = (result: Record<string, unknown>): number | null => {
+  const indicators = asRecord(result.indicators);
+  const quoteSeries = Array.isArray(indicators?.quote) ? asRecord(indicators.quote[0]) : null;
+  const closes = Array.isArray(quoteSeries?.close) ? quoteSeries.close : null;
+  if (closes === null) return null;
+
+  // 마지막 칸(= 가장 최근 세션 = 현재가)은 건너뛰고, 그 앞에서부터 처음 만나는 유효 종가를 쓴다.
+  for (let index = closes.length - 2; index >= 0; index -= 1) {
+    const close: unknown = closes[index];
+    if (isFinitePositive(close)) return close;
+  }
+  return null;
+};
+
+/**
  * chart 응답에서 한 지수의 시세를 뽑는다. 현재가가 없으면 그 심볼은 실패로 친다.
  * 전일 종가·통화·시각은 **있을 때만** 싣는다(없으면 키 자체를 생략 — 변동률은 클라이언트가 생략한다).
  */
@@ -91,12 +163,15 @@ const readQuote = (symbol: MarketIndexSymbol, data: unknown): MarketIndexQuote |
   if (chart.error !== null && chart.error !== undefined) return null;
   if (!Array.isArray(chart.result)) return null;
 
-  const meta = asRecord(asRecord(chart.result[0])?.meta);
+  const result = asRecord(chart.result[0]);
+  if (result === null) return null;
+  const meta = asRecord(result.meta);
   if (meta === null) return null;
   if (!isFinitePositive(meta.regularMarketPrice)) return null;
 
   const quote: MarketIndexQuote = { symbol, price: meta.regularMarketPrice };
-  if (isFinitePositive(meta.chartPreviousClose)) quote.previousClose = meta.chartPreviousClose;
+  const previousClose = readPreviousClose(result);
+  if (previousClose !== null) quote.previousClose = previousClose;
   if (typeof meta.currency === 'string' && meta.currency.length > 0) quote.currency = meta.currency;
 
   const asOf = toIsoFromUnixSeconds(meta.regularMarketTime);
@@ -108,7 +183,10 @@ const readQuote = (symbol: MarketIndexSymbol, data: unknown): MarketIndexQuote |
 /** 심볼 하나를 조회한다. 네트워크 장애·비200·비JSON·형태 이상은 전부 `null`(그 심볼만 빠진다). */
 const fetchQuote = async (symbol: MarketIndexSymbol): Promise<MarketIndexQuote | null> => {
   // `^` 는 URL 예약문자가 아니지만 인코딩하지 않으면 upstream 이 심볼을 못 찾는다 → `%5E`.
-  const url = `${CHART_BASE_URL}/${encodeURIComponent(symbol)}?range=2d&interval=1d`;
+  // 🔴 `range=5d` — 2d 로는 휴장·시차가 낀 시장에서 **직전 유효 종가**가 창 밖으로 밀린다.
+  //    (한국·일본·미국의 거래일이 서로 다르다.) 5거래일이면 연휴가 껴도 직전 종가가 창 안에 남는다.
+  //    응답 크기 차이는 미미하고 요청 수는 그대로 심볼당 1회다.
+  const url = `${CHART_BASE_URL}/${encodeURIComponent(symbol)}?range=5d&interval=1d`;
 
   try {
     const response = await fetch(url, {

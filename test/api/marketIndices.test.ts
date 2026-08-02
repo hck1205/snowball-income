@@ -2,7 +2,7 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { afterEach, describe, expect, it } from 'vitest';
 import { handler } from '@/server/handlers/MarketIndices';
-import { MARKET_INDEX_SYMBOLS, type MarketIndexSymbol } from '@/shared/lib/marketIndices';
+import { computeIndexChange, MARKET_INDEX_SYMBOLS, type MarketIndexSymbol } from '@/shared/lib/marketIndices';
 import { apiRequest, restoreApiTestEnvironment, stubFetchRoutes, type FetchRoute } from './apiHarness';
 
 /**
@@ -18,10 +18,22 @@ const FIXTURE: Record<MarketIndexSymbol, { price: number; previousClose: number;
   '^IXIC': { price: 24953.08, previousClose: 25137.69, currency: 'USD' },
   '^KS11': { price: 6755.75, previousClose: 7096.89, currency: 'KRW' },
   '^KQ11': { price: 764.86, previousClose: 790.28, currency: 'KRW' },
-  '^N225': { price: 64931.19, previousClose: 64611.15, currency: 'JPY' }
+  '^N225': { price: 64931.19, previousClose: 64611.15, currency: 'JPY' },
+  // 지수가 아니라 환율이다(원/달러). 조회·파싱 경로는 같아서 픽스처도 같은 형태를 쓴다.
+  'KRW=X': { price: 1436.6, previousClose: 1420.6, currency: 'KRW' }
 };
 
 const MARKET_TIME_SECONDS = 1_785_000_000;
+
+/**
+ * 🔴 **전일 종가는 `indicators.quote[0].close` 의 끝에서 두 번째**다 — `meta.chartPreviousClose` 가 아니다.
+ *
+ * 실제 응답에서 `chartPreviousClose` 는 "요청 기간 **직전**"의 종가라 하루를 건너뛴다(2026-08-02 실측).
+ * 그래서 스텁도 프로덕션과 같은 모양을 준다: 계열 마지막 칸은 **현재 세션**(= 현재가), 그 앞이 전일 종가.
+ * `chartPreviousClose` 는 **일부러 엉뚱한 값**을 실어 둔다 — 핸들러가 실수로 그쪽을 다시 읽으면
+ * 기대값과 어긋나 테스트가 빨개진다(감도 유지).
+ */
+const WRONG_PREVIOUS_CLOSE = 1;
 
 const chartBody = (symbol: MarketIndexSymbol, overrides: Record<string, unknown> = {}) => ({
   chart: {
@@ -31,9 +43,12 @@ const chartBody = (symbol: MarketIndexSymbol, overrides: Record<string, unknown>
           currency: FIXTURE[symbol].currency,
           symbol,
           regularMarketPrice: FIXTURE[symbol].price,
-          chartPreviousClose: FIXTURE[symbol].previousClose,
+          chartPreviousClose: WRONG_PREVIOUS_CLOSE,
           regularMarketTime: MARKET_TIME_SECONDS,
           ...overrides
+        },
+        indicators: {
+          quote: [{ close: [FIXTURE[symbol].previousClose, FIXTURE[symbol].price] }]
         }
       }
     ],
@@ -72,7 +87,7 @@ type ResponseBody = {
 afterEach(restoreApiTestEnvironment);
 
 describe('api/market-indices', () => {
-  it('5심볼이 모두 성공하면 200 + 레지스트리 순서대로 5개를 싣는다', async () => {
+  it('전 심볼이 성공하면 200 + 레지스트리 순서 그대로 싣는다', async () => {
     stubFetchRoutes(allOkRoutes());
 
     const res = await handler(apiRequest('/api/market-indices'));
@@ -92,6 +107,54 @@ describe('api/market-indices', () => {
     expect(Number.isNaN(new Date(body.asOf).getTime())).toBe(false);
   });
 
+  /**
+   * 🔴 **레지스트리 전수 단정** — 위 테스트가 `indices[0]`(= `^GSPC`) 하나만 통째로 비교하기 때문에,
+   * 나머지 심볼의 `previousClose` 는 여기 오기 전까지 **아무도 보지 않았다.**
+   *
+   * 뮤테이션 실측(2026-08-02): 다음 둘이 55건 전원 초록으로 **생존**했다.
+   *   · `KRW=X`(2026-08-02 합류한 여섯 번째 심볼 = 지수가 아니라 환율) 만 `chartPreviousClose` 로 되돌리기
+   *   · `^N225` 만 전일 종가를 통째로 버리기(변동률이 화면에서 조용히 사라진다)
+   * 즉 "심볼 하나만 다른 규칙을 타는" 회귀에 감도가 0이었다 — 심볼이 늘어날 때 가장 나기 쉬운 형태다.
+   *
+   * 기대값은 **스텁이 실어 보낸 계열의 앞칸**이다(동어반복이 아니다 — 핸들러가 뒤칸·`meta` 를
+   * 고르면 값이 달라진다). `MARKET_INDEX_SYMBOLS` 에서 파생하므로 심볼을 늘리면 자동으로 덮인다.
+   */
+  it('요청한 모든 심볼이 자기 계열의 직전 세션 종가를 갖는다(한 심볼만 규칙이 갈리는 회귀 차단)', async () => {
+    stubFetchRoutes(allOkRoutes());
+
+    const res = await handler(apiRequest('/api/market-indices'));
+    const body = (await res.json()) as ResponseBody;
+
+    const actual = Object.fromEntries(body.indices.map((quote) => [quote.symbol, quote.previousClose]));
+    const expected = Object.fromEntries(
+      MARKET_INDEX_SYMBOLS.map((symbol) => [symbol, FIXTURE[symbol].previousClose])
+    );
+
+    expect(actual).toEqual(expected);
+    // `chartPreviousClose`(픽스처에 일부러 심어 둔 엉뚱한 값) 로 새는 심볼이 하나도 없다.
+    expect(body.indices.filter((quote) => quote.previousClose === WRONG_PREVIOUS_CLOSE)).toEqual([]);
+  });
+
+  /**
+   * 계열이 통째로 결측인 형태(상장폐지·데이터 공백)에서도 **가격은 살리고 전일 종가만 생략**한다.
+   * 위의 "계열에 값이 하나뿐" 케이스와 다른 모양이다 — 그쪽은 길이가 1, 이쪽은 유효값이 0 이다.
+   */
+  it('종가 계열이 전부 결측이어도 그 심볼만 previousClose 를 생략하고 가격은 싣는다', async () => {
+    const allNull = chartBody('^IXIC');
+    allNull.chart.result[0].indicators.quote[0].close = [null, null, null] as unknown as number[];
+    stubFetchRoutes(MARKET_INDEX_SYMBOLS.map((symbol) => (symbol === '^IXIC' ? okRoute(symbol, allNull) : okRoute(symbol))));
+
+    const res = await handler(apiRequest('/api/market-indices'));
+    const body = (await res.json()) as ResponseBody;
+    const nasdaq = body.indices.find((quote) => quote.symbol === '^IXIC');
+
+    expect(body.indices).toHaveLength(MARKET_INDEX_SYMBOLS.length);
+    expect(nasdaq?.price).toBe(FIXTURE['^IXIC'].price);
+    expect(nasdaq && 'previousClose' in nasdaq).toBe(false);
+    // 나머지 심볼은 영향을 받지 않는다.
+    expect(body.indices.find((quote) => quote.symbol === '^GSPC')?.previousClose).toBe(FIXTURE['^GSPC'].previousClose);
+  });
+
   it('완전 성공 응답에 15분/24시간 ISR 캐시 헤더를 붙인다', async () => {
     stubFetchRoutes(allOkRoutes());
 
@@ -109,10 +172,22 @@ describe('api/market-indices', () => {
 
     expect(stub.calls).toHaveLength(MARKET_INDEX_SYMBOLS.length);
     for (const call of stub.calls) {
-      expect(call.url).toContain('%5E');
+      // 🔴 원시 `^` 가 경로에 남으면 upstream 이 심볼을 못 찾는다 — 인코딩 여부는 **심볼마다** 다르다
+      //    (`KRW=X` 처럼 `^` 가 없는 심볼도 있다. 여기서 `%5E` 를 전 심볼에 요구하면 거짓 실패가 난다).
       expect(call.url).not.toMatch(/chart\/\^/);
-      expect(call.url).toContain('range=2d');
+      expect(call.url).toContain('range=5d');
+      /*
+       * 🔴 `interval=1d` 는 장식이 아니라 **`readPreviousClose` 규칙의 전제**다. 그 함수는 "계열의
+       * 마지막 칸 바로 앞"을 전일 종가로 삼는데, 그 위치가 '전날'을 뜻하는 것은 캔들이 일봉일 때뿐이다.
+       * `interval=1h` 로 바뀌면 같은 코드가 **1시간 전**과 비교하면서 화면 라벨은 계속 "전일 대비"다 —
+       * 2026-08-02 사고와 정확히 같은 종류(라벨과 계산이 다름)이고, 픽스처를 손으로 만드는 이 파일의
+       * 다른 어떤 단정도 그 회귀를 볼 수 없다(뮤테이션으로 실증: interval 만 바꾼 뮤턴트가 55건 전원 통과).
+       */
+      expect(call.url).toContain('interval=1d');
     }
+    // `^` 를 가진 심볼은 실제로 인코딩돼 나가야 한다.
+    const caretCalls = stub.calls.filter((call) => MARKET_INDEX_SYMBOLS.some((symbol) => symbol.startsWith('^') && call.url.includes(encodeURIComponent(symbol))));
+    expect(caretCalls.length).toBe(MARKET_INDEX_SYMBOLS.filter((symbol) => symbol.startsWith('^')).length);
   });
 
   it('upstream 요청에 브라우저 형태의 User-Agent 를 반드시 싣는다', async () => {
@@ -164,13 +239,17 @@ describe('api/market-indices', () => {
     expect(body.indices.map((quote) => quote.symbol)).toEqual(['^GSPC']);
   });
 
-  it('chartPreviousClose 가 없는 심볼은 previousClose 키 없이 실린다(전체 실패 아님)', async () => {
+  it('전일 종가를 못 구한 심볼은 previousClose 키 없이 실린다(전체 실패 아님)', async () => {
+    // 🔴 계열에 값이 하나뿐이면 "직전"이 없다 — 그때 키를 생략한다(0% 로 위장하지 않는다).
+    const singleClose = chartBody('^GSPC');
+    singleClose.chart.result[0].indicators.quote[0].close = [FIXTURE['^GSPC'].price];
     stubFetchRoutes([
-      okRoute('^GSPC', chartBody('^GSPC', { chartPreviousClose: null })),
+      okRoute('^GSPC', singleClose),
       okRoute('^IXIC'),
       okRoute('^KS11'),
       okRoute('^KQ11'),
-      okRoute('^N225')
+      okRoute('^N225'),
+      okRoute('KRW=X')
     ]);
 
     const res = await handler(apiRequest('/api/market-indices'));
@@ -180,7 +259,7 @@ describe('api/market-indices', () => {
     expect(res.status).toBe(200);
     expect(sp500?.price).toBe(7419.65);
     expect(sp500 && 'previousClose' in sp500).toBe(false);
-    expect(body.indices).toHaveLength(5);
+    expect(body.indices).toHaveLength(MARKET_INDEX_SYMBOLS.length);
   });
 
   it('regularMarketTime 이 없으면 asOf 키를 지어내지 않는다', async () => {
@@ -189,7 +268,8 @@ describe('api/market-indices', () => {
       okRoute('^IXIC'),
       okRoute('^KS11'),
       okRoute('^KQ11'),
-      okRoute('^N225')
+      okRoute('^N225'),
+      okRoute('KRW=X')
     ]);
 
     const res = await handler(apiRequest('/api/market-indices'));
@@ -209,6 +289,117 @@ describe('api/market-indices', () => {
     expect(res.headers.get('cache-control')).toBe('no-store');
     expect(body).toEqual({ error: 'market_indices_unavailable' });
     expect(body).not.toHaveProperty('indices');
+  });
+});
+
+/**
+ * 🔴 **실제로 났던 사고를 실응답으로 재현하는 가드.**
+ *
+ * 2026-08-02 랜딩에 코스피 **+16.46%**, 코스닥 **+8.61%** 이 "전일 대비"라는 라벨을 달고 찍혔다.
+ * 두 값 모두 **2거래일 전** 종가와 비교한 결과였다(`range=2d` + `meta.chartPreviousClose`).
+ * 독립 출처로 확인한 그날의 참값(머니투데이 2026-07-31 보도):
+ * ```
+ *   코스피 6,595.45  전일 대비 +1,001pt = +17.91%  (사상 최대 상승률)
+ *   코스닥   719.76  전일 대비 +74.98pt = +11.63%  (역대 상승률 2위)
+ * ```
+ * 아래 픽스처의 종가 계열·`chartPreviousClose` 는 **그날 실제 Yahoo 응답 그대로**다(부동소수 표현까지).
+ * 그래서 이 가드는 "구현이 다시 `chartPreviousClose` 를 읽는" 회귀를 **그 사고와 똑같은 숫자로** 잡는다.
+ *
+ * 🔴 **크기 상한 가드를 만들지 마라.** 그날 참값(+17.91%)이 결함값(+16.46%)보다 **컸다** — 결함을 잡을
+ * 만큼 낮은 상한은 사상 최대 상승률이라는 사실을 먼저 지웠을 것이다. 감시해야 할 것은 크기가 아니라
+ * **어느 날과 비교했는가**이고, 그것을 보는 게 이 파일이다.
+ */
+describe('전일 종가 = 직전 세션 (2026-07-31 실응답 회귀 가드)', () => {
+  /** 2026-08-02 실측 `range=5d&interval=1d` 응답의 일별 종가 계열(7/27~7/31). 값·정밀도 그대로. */
+  const REAL_CLOSES = {
+    '^KS11': [6755.75, 6023.66015625, 5663.240234375, 5593.56005859375, 6595.4501953125],
+    '^KQ11': [764.8599853515625, 705.8499755859375, 662.6799926757812, 644.780029296875, 719.760009765625]
+  } as const;
+
+  /** 같은 응답의 `meta` 실측값. `chartPreviousClose` 는 **`range=2d` 가 주던 7/29 종가**(= 사고의 원인). */
+  const REAL_META = {
+    '^KS11': { price: 6595.45, chartPreviousClose: 5663.24, previousSession: 5593.56005859375, twoSessions: 5663.240234375 },
+    '^KQ11': { price: 719.76, chartPreviousClose: 662.68, previousSession: 644.780029296875, twoSessions: 662.6799926757812 }
+  } as const;
+
+  /** 독립 출처로 확인한 그날의 참 등락률(소수 2자리). 우리 계산이 여기에 맞아야 한다. */
+  const CONFIRMED_PERCENT = { '^KS11': '+17.91', '^KQ11': '+11.63' } as const;
+
+  type GuardSymbol = keyof typeof REAL_CLOSES;
+  const GUARD_SYMBOLS = Object.keys(REAL_CLOSES) as GuardSymbol[];
+
+  const realBody = (symbol: GuardSymbol, closes: readonly (number | null)[] | undefined) => ({
+    chart: {
+      result: [
+        {
+          meta: {
+            currency: 'KRW',
+            symbol,
+            regularMarketPrice: REAL_META[symbol].price,
+            chartPreviousClose: REAL_META[symbol].chartPreviousClose,
+            regularMarketTime: MARKET_TIME_SECONDS
+          },
+          indicators: { quote: [{ close: [...(closes ?? REAL_CLOSES[symbol])] }] }
+        }
+      ],
+      error: null
+    }
+  });
+
+  /**
+   * 가드 대상 심볼만 실응답으로 바꾸고 나머지는 기본 픽스처로 채운 뒤(부분 실패로 새지 않게)
+   * 핸들러를 태워 그 심볼의 시세를 돌려준다.
+   */
+  const quoteOf = async (symbol: GuardSymbol, closes?: readonly (number | null)[]) => {
+    const routes: FetchRoute[] = MARKET_INDEX_SYMBOLS.map((candidate) =>
+      candidate === symbol ? okRoute(candidate, realBody(symbol, closes)) : okRoute(candidate)
+    );
+    stubFetchRoutes(routes);
+
+    const res = await handler(apiRequest('/api/market-indices'));
+    const body = (await res.json()) as ResponseBody;
+    return body.indices.find((quote) => quote.symbol === symbol);
+  };
+
+  it.each(GUARD_SYMBOLS)(
+    '%s — 전일 종가로 7/30(직전 세션)을 쓴다. 7/29(=chartPreviousClose)를 쓰면 빨개진다',
+    async (symbol) => {
+      const quote = await quoteOf(symbol);
+
+      expect(quote?.price).toBe(REAL_META[symbol].price);
+      expect(quote?.previousClose).toBe(REAL_META[symbol].previousSession);
+      // 🔴 사고 당시 값 — 이게 통과하면 "전일 대비" 라벨이 다시 거짓말이 된다.
+      expect(quote?.previousClose).not.toBe(REAL_META[symbol].twoSessions);
+      expect(quote?.previousClose).not.toBe(REAL_META[symbol].chartPreviousClose);
+      // 마지막 칸(= 현재가)을 그대로 쓰면 0.00% 가 된다.
+      expect(quote?.previousClose).not.toBe(REAL_CLOSES[symbol][REAL_CLOSES[symbol].length - 1]);
+    }
+  );
+
+  it.each(GUARD_SYMBOLS)('%s — 변동률이 독립 출처로 확인한 그날의 참값과 같다', async (symbol) => {
+    const quote = await quoteOf(symbol);
+    const change = computeIndexChange(quote!.price, quote!.previousClose);
+
+    expect(change?.direction).toBe('up');
+    expect(`+${change!.percent.toFixed(2)}`).toBe(CONFIRMED_PERCENT[symbol]);
+  });
+
+  /**
+   * 🔴 `filter(유효값).at(-2)` 로 구현하면 여기서 무너진다 — 진행 중 세션의 종가가 아직 `null` 일 때
+   * 걸러진 배열의 끝에서 두 번째가 **2세션 전**이 되어, 방금 고친 결함이 무음으로 되살아난다.
+   */
+  it.each(GUARD_SYMBOLS)('%s — 진행 중 세션의 종가가 null 이어도 직전 세션 종가를 준다', async (symbol) => {
+    const quote = await quoteOf(symbol, [...REAL_CLOSES[symbol].slice(0, -1), null]);
+
+    expect(quote?.previousClose).toBe(REAL_META[symbol].previousSession);
+    expect(quote?.previousClose).not.toBe(REAL_META[symbol].twoSessions);
+  });
+
+  /** 휴장(계열 중간의 `null`)은 건너뛴다 — 시장마다 거래일이 다른 문제가 여기서 갈린다. */
+  it('중간 휴장(null)은 건너뛰고 그 앞의 유효 종가를 직전 세션으로 본다', async () => {
+    const quote = await quoteOf('^KS11', [6755.75, 6023.66015625, 5593.56005859375, null, 6595.4501953125]);
+
+    expect(quote?.previousClose).toBe(5593.56005859375);
   });
 });
 
