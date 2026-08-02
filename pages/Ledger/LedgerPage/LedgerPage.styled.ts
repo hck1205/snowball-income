@@ -134,43 +134,6 @@ export const FreshnessNotice = styled.p`
 
 /* ── B-3 블렌딩 진입·모드 줄 ─────────────────────────────────────────────────── */
 
-/**
- * "한 가계부 ↔ 두 가계부"를 고르는 줄. 탭 줄(어느 장부) 바로 아래에 서는 **같은 축**이다 —
- * 월 네비(어느 기간)보다 위에 있어야 "합쳐 보면 달도 바뀌나"라는 오해가 생기지 않는다.
- *
- * 🔴 새 라우트를 만들지 않는다(해시 라우팅도 금지). 블렌딩은 "페이지"가 아니라 **보기 방식**이고,
- * 이 화면의 상태 기계(`LedgerConnectionState`)가 이미 라우트 대신 상태로 관리되는 관례를 따른다.
- * ⚠ 탭 줄과 **같은 모양**(왼쪽 정렬 띠)이되 틴트로만 갈린다 — 축이 같으니 형태도 같아야 한다.
- */
-export const BlendBar = styled.div`
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: ${space[2]} ${space[3]};
-  min-width: 0;
-  padding: ${space[2]} ${space[3]};
-  border: 1px solid ${color.accentBorder};
-  border-radius: ${radius.md};
-  background: ${color.accentSubtle};
-`;
-
-export const BlendBarText = styled.p`
-  margin: 0;
-  min-width: 0;
-  font-size: ${font.size.sm};
-  font-weight: ${font.weight.semibold};
-  color: ${color.text};
-`;
-
-export const BlendBarHint = styled.p`
-  margin: 0;
-  min-width: 0;
-  flex: 1 1 24ch;
-  font-size: ${font.size.sm};
-  line-height: ${font.leading.snug};
-  color: ${color.textSecondary};
-`;
-
 /* ── §4.4 이 달 기록 없음 ────────────────────────────────────────────────────── */
 
 /**

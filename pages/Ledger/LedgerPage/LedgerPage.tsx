@@ -6,7 +6,6 @@ import { tabSwitchBlockedReason } from '../components';
 import { LEDGER_COPY } from '../copy';
 import {
   useLedgerAppAuth,
-  useLedgerBlend,
   useLedgerConnection,
   useLedgerFreshness,
   useLedgerMonth,
@@ -99,12 +98,12 @@ function LedgerContent({ now: nowProp }: LedgerPageProps) {
   });
 
   /**
-   * 🔴 **탭 전환 차단 판단은 이 화면에 하나뿐이다.** 탭 피커의 비활성 사유와 블렌딩의 "이 가계부에서
-   * 열기" 차단이 **같은 값**을 쓴다 — 둘 다 결국 `connection.switchTab` 을 부르기 때문이다.
+   * 🔴 **탭 전환 차단 판단은 이 화면에 하나뿐이다.** 지금 소비처는 탭 피커의 비활성 사유 한 곳이다.
    *
-   * 판단을 두 벌로 만들면 한쪽만 고쳐지는 순간 다른 쪽이 우회로가 된다. 실제로 그랬다: 블렌딩 뷰의
-   * "열기"에 가드가 없어 대기열이 남은 채로 탭이 바뀌었고, 그 뒤 재시도가 **다른 탭에 행을 추가**했다
+   * 판단을 두 벌로 만들면 한쪽만 고쳐지는 순간 다른 쪽이 우회로가 된다. 실제로 그랬다 — 제거된 블렌딩
+   * 뷰의 "열기"에 가드가 없어 대기열이 남은 채 탭이 바뀌었고, 그 뒤 재시도가 **다른 탭에 행을 추가**했다
    * (추가에는 행 참조가 없어 `guardRowRef` 가 막지 못한다 · 2026-08-02 리뷰).
+   * ⚠ `switchTab` 을 부르는 새 호출부를 만들면 **반드시 이 값을 함께 넘겨라.**
    */
   const tabSwitchBlocked = useMemo(
     () =>
@@ -115,19 +114,6 @@ function LedgerContent({ now: nowProp }: LedgerPageProps) {
     [write.form, write.partialFailure]
   );
 
-  /**
-   * B-3 두 가계부 블렌딩 — 🔴 **읽기 전용 보기 방식**이다. 새 라우트를 만들지 않고(해시 라우팅도
-   * 금지) 이 화면 안에서 모드만 바꾼다. 월 커서는 단일 뷰의 것을 **그대로 이어받는다** — 모드를
-   * 바꿨다고 보던 달이 튀면 두 가계부를 비교하러 온 사용자가 길을 잃는다.
-   *
-   * ⚠ 이 훅은 자기 스냅샷을 따로 읽는다(진입 시 2회). `connection.snapshot` 은 단일 뷰의 것이라
-   * 여기 섞지 않는다 — 두 출처가 같은 규칙으로 읽혀야 소계와 합산이 서로를 검증한다.
-   */
-  const blend = useLedgerBlend({
-    connection,
-    cursor: month.cursor,
-    openBlockedReason: tabSwitchBlocked
-  });
 
   /**
    * 라이브 리전은 **화면당 하나**다. 월 이동과 쓰기 결과가 같은 자리를 쓰므로 마지막에 일어난 일이
@@ -150,12 +136,6 @@ function LedgerContent({ now: nowProp }: LedgerPageProps) {
     setLiveMessage(writeMessage);
   }, [writeMessage]);
 
-  /* 블렌딩 모드 전환. 🔴 라이브 리전은 하나라 월 이동·쓰기와 같은 자리를 쓴다(새로 만들지 않는다). */
-  const blendMessage = blend.liveMessage;
-  useEffect(() => {
-    if (blendMessage.length === 0) return;
-    setLiveMessage(blendMessage);
-  }, [blendMessage]);
 
   /* AC2-5 — 다시 읽은 결과가 직전과 다를 때만 알린다(같으면 아무 말도 하지 않는다). */
   const hasFreshUpdate = freshness.model.hasUpdate;
@@ -250,7 +230,7 @@ function LedgerContent({ now: nowProp }: LedgerPageProps) {
    * 아래 `viewModel.summary`(수입·지출·합계)에 배당을 더하지 않는다.
    *
    * 🔴 기본값은 **꺼짐**이고, 상태는 새 로컬 키 하나(`snowball:ledger:dividend-overlay`)에만 산다 —
-   * `snowball:ledger:links` 와 `snowball:ledger:blend` 는 건드리지 않는다. 불량 값은 조용히 꺼짐이다.
+   * `snowball:ledger:links` 는 건드리지 않는다. 불량 값은 조용히 꺼짐이다.
    */
   const [isDividendOverlayOn, setIsDividendOverlayOn] = useState(readLedgerDividendOverlay);
 
@@ -313,7 +293,6 @@ function LedgerContent({ now: nowProp }: LedgerPageProps) {
     tabPicker,
     freshness: freshness.model,
     dividend,
-    blend: blend.model,
 
     monthLabel: month.monthLabel,
     prevMonthLabel: month.prevMonthLabel,
@@ -357,14 +336,6 @@ function LedgerContent({ now: nowProp }: LedgerPageProps) {
       onConfirmMapping={connection.confirmMapping}
       onSelectTab={connection.switchTab}
       onToggleDividendOverlay={handleToggleDividendOverlay}
-      onToggleBlend={blend.toggle}
-      onToggleBlendSetup={blend.toggleSetup}
-      onChangeBlendSource={blend.changeSource}
-      onChangeBlendLabel={blend.changeLabel}
-      onSubmitBlendSetup={blend.submitSetup}
-      onClearBlend={blend.clear}
-      onReloadBlend={blend.reload}
-      onOpenBlendSource={blend.openSource}
       onPrevMonth={handlePrevMonth}
       onNextMonth={handleNextMonth}
       onThisMonth={handleThisMonth}

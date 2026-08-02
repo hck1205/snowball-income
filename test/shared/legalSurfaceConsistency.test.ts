@@ -25,11 +25,6 @@ import { describe, expect, it } from 'vitest';
  *     세 사실을 함께 본다: **로그인 필요 · 이용자 본인의 구글 시트 · 우리 서버 미경유**.
  *     ⚠ 이 검사는 **줄 단위**다 — 가계부 서술을 여러 줄로 쓸 때는 각 줄이 "가계부"(또는 `ledger`)를
  *     포함하게 두어라(영문 표면은 문단이 감기므로 특히). 줄이 길어지는 것보다 이 편이 낫다.
- *  ③-1 🔴 **가계부 블렌딩(두 가계부 합쳐보기)의 새 사실** — 2026-08-02 가계부 고도화가 만든 새 사실:
- *     블렌딩으로 연결하는 두 번째 시트는 **이용자 본인 소유가 아니라 다른 사람이 공유해 준 시트일 수
- *     있다**(`shared/lib/googleSheets/picker.ts:4-6` — `drive.file` + 피커는 소유 여부와 무관하게 접근권을
- *     준다). 그 사실과, 블렌딩도 서버를 거치지 않는다는 사실이 표면에 있어야 한다
- *     (`docs/ledger-advanced-spec-2026-08-02.md` §7 리스크 #6).
  *  ③-2 🔴 **배당 겹쳐 보기의 새 사실** — 포트폴리오 보유 기준 **예상**(추정) 배당을 화면에만 보여주고,
  *     시트에 기록하지 않으며, 가계부의 수입·지출 합계에도 포함하지 않는다(`pages/Ledger/utils/
  *     ledgerDividend.ts` 상단 주석). 날조 금지·손익 미반영 원칙이 AI 표면에도 반영돼야 한다.
@@ -81,8 +76,6 @@ const LEDGER_SURFACES = [
       { what: '로그인 필요', pattern: /로그인/ },
       { what: '이용자 본인의 구글 시트', pattern: /구글 스프레드시트/ },
       { what: '우리 서버 미경유', pattern: /서버|데이터베이스/ },
-      { what: '블렌딩(가계부 합쳐보기) 설명', pattern: /블렌딩/ },
-      { what: '블렌딩 시트가 타인 공유일 수 있음', pattern: /다른 사람이 공유해 준 시트/ },
       { what: '배당 겹쳐 보기 설명', pattern: /배당 겹쳐 보기/ },
       { what: '배당 겹쳐 보기가 가계부 합계에 미포함', pattern: /합계에도 포함하지 않/ }
     ]
@@ -95,8 +88,6 @@ const LEDGER_SURFACES = [
       { what: '로그인 필요', pattern: /로그인|sign-?in/i },
       { what: '이용자 본인의 구글 시트', pattern: /구글 스프레드시트|Google Sheet/i },
       { what: '우리 서버 미경유', pattern: /서버|server|database/i },
-      { what: '블렌딩(ledger 합쳐보기) 설명', pattern: /blend/i },
-      { what: '블렌딩 시트가 타인 공유일 수 있음', pattern: /shared with the user by someone else/i },
       { what: '배당 겹쳐 보기(추정치) 설명', pattern: /estimated dividend/i },
       { what: '배당 겹쳐 보기가 가계부 합계에 미포함', pattern: /not included in the ledger's income\/expense totals/i }
     ]
@@ -109,8 +100,6 @@ const LEDGER_SURFACES = [
       { what: '로그인 필요', pattern: /로그인/ },
       { what: '이용자 본인의 구글 시트', pattern: /구글 스프레드시트/ },
       { what: '우리 서버 미경유', pattern: /서버|데이터베이스/ },
-      { what: '블렌딩(가계부 합쳐보기) 설명', pattern: /블렌딩/ },
-      { what: '블렌딩 시트가 타인 공유일 수 있음', pattern: /다른 사람이 공유해 준 시트/ },
       { what: '배당 겹쳐 보기 설명', pattern: /배당 겹쳐 보기/ },
       { what: '배당 겹쳐 보기가 가계부 합계에 미포함', pattern: /합계에도 포함하지 않/ }
     ]

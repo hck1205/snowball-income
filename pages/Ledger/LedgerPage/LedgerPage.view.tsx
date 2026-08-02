@@ -4,8 +4,6 @@ import { Banner, Button, Card, HintText, MODAL_EXIT_MS, PageFooter, PageHero, St
 import { useOverlayPresence } from '@/shared/hooks';
 import { LEDGER_COPY } from '../copy';
 import {
-  LedgerBlendSetup,
-  LedgerBlendView,
   LedgerConnectPanel,
   LedgerDividendCard,
   LedgerFailureList,
@@ -23,9 +21,6 @@ import {
   ActionHint,
   ActionRow,
   BannerRow,
-  BlendBar,
-  BlendBarHint,
-  BlendBarText,
   CreatedActions,
   EmptyBlock,
   EmptyBody,
@@ -106,14 +101,6 @@ export default function LedgerPageView({
   onConfirmMapping,
   onSelectTab,
   onToggleDividendOverlay,
-  onToggleBlend,
-  onToggleBlendSetup,
-  onChangeBlendSource,
-  onChangeBlendLabel,
-  onSubmitBlendSetup,
-  onClearBlend,
-  onReloadBlend,
-  onOpenBlendSource,
   onPrevMonth,
   onNextMonth,
   onThisMonth,
@@ -190,18 +177,9 @@ export default function LedgerPageView({
   const hasRows = viewModel.rows.length > 0;
 
   /**
-   * B-3 — 블렌딩은 **라우트가 아니라 보기 방식**이다(해시 라우팅 금지 · 확정 결정). 켜져 있으면
-   * 아래 단일 가계부 본문(요약·배당·목록·저장 실패 목록)이 통째로 대체되고, 🔴 **쓰기 액션이 전부
-   * 사라진다**(D3-4) — 히어로의 "항목 추가"도 여기 걸린다.
    */
-  const blend = viewModel.blend;
-  const isBlending = blend.isOn;
 
   /* 구성이 없으면 먼저 고르게 하고, 있으면 곧바로 켠다 — 첫 진입에 빈 화면을 보여 주지 않는다. */
-  const handleOpenBlend = useCallback(() => {
-    if (blend.hasConfig) onToggleBlend(true);
-    else onToggleBlendSetup(true);
-  }, [blend.hasConfig, onToggleBlend, onToggleBlendSetup]);
 
   /*
    * 🔴 새로고침이 막히는 경우는 둘이고, **둘 다 사유 줄을 가리킨다**(무음 비활성 금지).
@@ -219,7 +197,7 @@ export default function LedgerPageView({
    */
   const heroActions = isConnected ? (
     <>
-      {hasRows && !isBlending ? (
+      {hasRows ? (
         <Button
           type="button"
           variant="primary"
@@ -447,55 +425,10 @@ export default function LedgerPageView({
             ⚠ 이 줄이 **연결 정보의 단일 출처**다(2026-08-02 B-2). 히어로 메타가 같은 제목을 한 번 더
             말하던 중복은 히어로 쪽을 없애 정리했고, "언제 기준"은 아래 목록 카드 헤더가 갖는다.
             여기에 읽은 시각·새로고침을 다시 얹지 마라 — 같은 사실이 또 두 곳이 된다.
-            ⚠ 블렌딩 중에는 그리지 않는다 — 그때 "어느 장부"는 아래 블렌딩 줄과 행 배지가 말한다.
           */}
-          {!isBlending && viewModel.tabPicker ? (
+          {viewModel.tabPicker ? (
             <LedgerTabPicker model={viewModel.tabPicker} onSelectTab={onSelectTab} />
           ) : null}
-
-          {/*
-            🔴 B-3 진입점 — **저장된 링크가 2개 이상일 때만** 존재한다(AC3-1). 1개 이하면 고를 것이
-            없으므로 이 줄 자체를 그리지 않는다(비활성 버튼으로 남기지 않는다 — 할 수 있는 일이 아니다).
-          */}
-          {blend.isAvailable ? (
-            <BlendBar>
-              {isBlending ? (
-                <>
-                  <BlendBarText>{copy.blend.active}</BlendBarText>
-                  <Button type="button" size="sm" variant="secondary" onClick={() => onToggleBlend(false)}>
-                    {copy.blend.exit}
-                  </Button>
-                  <Button type="button" size="sm" variant="ghost" onClick={() => onToggleBlendSetup(true)}>
-                    {copy.blend.settings}
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button type="button" size="sm" variant="secondary" onClick={handleOpenBlend}>
-                    {copy.blend.open}
-                  </Button>
-                  {blend.hasConfig ? (
-                    <Button type="button" size="sm" variant="ghost" onClick={() => onToggleBlendSetup(true)}>
-                      {copy.blend.settings}
-                    </Button>
-                  ) : (
-                    <BlendBarHint>{copy.blend.openHint}</BlendBarHint>
-                  )}
-                </>
-              )}
-            </BlendBar>
-          ) : null}
-
-          {blend.setup === null ? null : (
-            <LedgerBlendSetup
-              model={blend.setup}
-              onChangeSource={onChangeBlendSource}
-              onChangeLabel={onChangeBlendLabel}
-              onSubmit={onSubmitBlendSetup}
-              onCancel={() => onToggleBlendSetup(false)}
-              onClear={onClearBlend}
-            />
-          )}
 
           <LedgerMonthNav
             monthLabel={viewModel.monthLabel}
@@ -509,164 +442,128 @@ export default function LedgerPageView({
             onToday={onThisMonth}
           />
 
-          {isBlending && blend.model !== null ? (
-            <>
-              {/*
-                🔴 **합산 3숫자는 `ready` 갈래에만 존재한다**(AC3-5). 한쪽이라도 실패하면 `summary`
-                필드가 타입에 아예 없으므로 이 카드가 서지 않는다 — 0 이나 대시로 채워 "합계처럼
-                보이게" 만들지 마라. 그 상태의 설명은 아래 블렌딩 뷰가 문장으로 한다.
-              */}
-              {blend.model.body.kind === 'ready'
-                ? renderSummaryCard({
-                    labelledBy: monthTitleId,
-                    netLabel: copy.blend.view.summaryNet(viewModel.monthLabel),
-                    summary: blend.model.body.summary
-                  })
-                : null}
-              <LedgerBlendView
-                model={blend.model}
+          {/* 🔴 이 화면의 주역 카드. 제목이 없고, 월 제목이 그 이름이 된다. */}
+          {renderSummaryCard({
+            labelledBy: monthTitleId,
+            netLabel: copy.summary.net(viewModel.monthLabel),
+            summary: viewModel.summary,
+            isLoading: viewModel.isFirstLoad,
+            isBusy: viewModel.isRefetching
+          })}
+
+          {/*
+            🔴 B-4 — 배당은 **요약 카드 밖 형제**다(`Card` 안 `Card` 금지 · 주역 카드는 화면당 1개).
+            위 요약 3숫자(수입·지출·합계)에는 배당이 **한 번도 더해지지 않는다** — 더하면 "가계부
+            총합"의 정의가 둘이 되고, 사용자가 배당 입금을 시트에 이미 적어 뒀다면 이중 계상이 된다.
+          */}
+          <LedgerDividendCard
+            model={viewModel.dividend}
+            monthLabel={viewModel.monthLabel}
+            onToggle={onToggleDividendOverlay}
+          />
+
+          <Card
+            tone="default"
+            title={copy.list.title}
+            subtitle={hasRows ? copy.list.subtitle : undefined}
+            /*
+             * 🔴 B-2 — "언제 기준인가"와 "다시 읽기"는 **읽은 것 바로 옆**에 선다(D2-4).
+             * 시각은 아직 한 번도 못 읽었으면 그리지 않는다(없는 값에 "—" 를 남기지 않는다).
+             * 🔴 429 대기 중에는 버튼을 잠그고 아래 사유 줄을 가리킨다 — 연타를 유도하지 않는다.
+             */
+            titleRight={
+              <FreshnessRow>
+                {viewModel.freshness.readAtText ? (
+                  <ReadAtText>{viewModel.freshness.readAtText}</ReadAtText>
+                ) : null}
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  startIcon={<RotateCw size={16} strokeWidth={1.8} aria-hidden focusable={false} />}
+                  loading={viewModel.freshness.isRefreshing}
+                  disabled={isRefreshBlocked}
+                  aria-describedby={refreshBlockedHintId}
+                  onClick={onRefresh}
+                >
+                  {copy.freshness.refresh}
+                </Button>
+              </FreshnessRow>
+            }
+          >
+            {viewModel.freshness.retrySeconds === null ? null : (
+              <FreshnessNotice id={refreshHintId}>
+                {copy.error.rateLimitedCountdown(viewModel.freshness.retrySeconds)}
+              </FreshnessNotice>
+            )}
+
+            {/* 🔴 "달라졌다"까지만 말한다 — 어느 행이 어떻게 바뀌었는지는 확정할 수 없다(D2-3). */}
+            {viewModel.freshness.hasUpdate ? <FreshnessNotice>{copy.freshness.updated}</FreshnessNotice> : null}
+
+            {viewModel.isFirstLoad ? (
+              <SkeletonList aria-hidden>
+                {SKELETON_ROWS.map((row) => (
+                  <SkeletonRow key={row} />
+                ))}
+              </SkeletonList>
+            ) : hasRows ? (
+              <LedgerTable
+                rows={viewModel.rows}
                 monthLabel={viewModel.monthLabel}
-                openableSources={blend.openableSources}
-                /*
-                  🔴 "이 가계부에서 열기"는 결국 **탭 전환**이다 — 탭 피커를 막는 조건이 여기도 그대로
-                  걸린다(같은 판단의 값 하나를 컨테이너가 둘에 나눠 준다). 이 줄이 없으면 블렌딩이
-                  탭 전환 차단의 우회로가 되고, 저장 실패 대기열의 재시도가 다른 탭에 행을 추가한다.
-                */
-                openBlockedReason={blend.openBlockedReason}
-                onOpenSource={onOpenBlendSource}
-                onReload={onReloadBlend}
+                isWriteBlocked={viewModel.isExpired}
+                writeBlockedHintId={expiredHintId}
+                retryCountdowns={retryCountdowns}
+                onEdit={onOpenEditForm}
+                onRemove={onRequestRemove}
+                onRetry={onRetryRow}
+                registerRemoveButton={registerRemoveButton}
               />
-            </>
-          ) : null}
-
-          {isBlending ? null : (
-            <>
-            {/* 🔴 이 화면의 주역 카드. 제목이 없고, 월 제목이 그 이름이 된다. */}
-            {renderSummaryCard({
-              labelledBy: monthTitleId,
-              netLabel: copy.summary.net(viewModel.monthLabel),
-              summary: viewModel.summary,
-              isLoading: viewModel.isFirstLoad,
-              isBusy: viewModel.isRefetching
-            })}
-
-            {/*
-              🔴 B-4 — 배당은 **요약 카드 밖 형제**다(`Card` 안 `Card` 금지 · 주역 카드는 화면당 1개).
-              위 요약 3숫자(수입·지출·합계)에는 배당이 **한 번도 더해지지 않는다** — 더하면 "가계부
-              총합"의 정의가 둘이 되고, 사용자가 배당 입금을 시트에 이미 적어 뒀다면 이중 계상이 된다.
-              ⚠ 이 카드는 **단일 가계부 뷰 전용**이다. 두 가계부 블렌딩(B-3) 화면에는 V1 에서 넣지
-              마라 — "우리 가계" 지출에 "내 포트폴리오" 배당을 겹치면 귀속이 섞인다(배당은 한 사람 것).
-            */}
-            <LedgerDividendCard
-              model={viewModel.dividend}
-              monthLabel={viewModel.monthLabel}
-              onToggle={onToggleDividendOverlay}
-            />
-
-            <Card
-              tone="default"
-              title={copy.list.title}
-              subtitle={hasRows ? copy.list.subtitle : undefined}
-              /*
-               * 🔴 B-2 — "언제 기준인가"와 "다시 읽기"는 **읽은 것 바로 옆**에 선다(D2-4).
-               * 시각은 아직 한 번도 못 읽었으면 그리지 않는다(없는 값에 "—" 를 남기지 않는다).
-               * 🔴 429 대기 중에는 버튼을 잠그고 아래 사유 줄을 가리킨다 — 연타를 유도하지 않는다.
-               */
-              titleRight={
-                <FreshnessRow>
-                  {viewModel.freshness.readAtText ? (
-                    <ReadAtText>{viewModel.freshness.readAtText}</ReadAtText>
-                  ) : null}
+            ) : (
+              /* 🔴 연결 전과 다른 화면이다 — 월 네비와 요약 카드가 그대로 남아 "연결은 정상"을 증명한다. */
+              <EmptyBlock>
+                <EmptyTitle ref={listTitleRef} tabIndex={-1} id={listTitleId}>
+                  {viewModel.isCurrentMonth
+                    ? copy.emptyMonth.titleCurrent
+                    : copy.emptyMonth.titleOther(viewModel.monthLabel)}
+                </EmptyTitle>
+                <EmptyBody>
+                  {viewModel.latestMonthLabel
+                    ? copy.emptyMonth.latestElsewhere(viewModel.latestMonthLabel)
+                    : copy.emptyMonth.sheetEmpty}
+                </EmptyBody>
+                <ActionRow>
                   <Button
                     type="button"
-                    size="sm"
-                    variant="ghost"
-                    startIcon={<RotateCw size={16} strokeWidth={1.8} aria-hidden focusable={false} />}
-                    loading={viewModel.freshness.isRefreshing}
-                    disabled={isRefreshBlocked}
-                    aria-describedby={refreshBlockedHintId}
-                    onClick={onRefresh}
+                    variant="primary"
+                    disabled={viewModel.isExpired}
+                    aria-describedby={viewModel.isExpired ? expiredHintId : undefined}
+                    onClick={onOpenCreateForm}
                   >
-                    {copy.freshness.refresh}
+                    {copy.emptyMonth.add}
                   </Button>
-                </FreshnessRow>
-              }
-            >
-              {viewModel.freshness.retrySeconds === null ? null : (
-                <FreshnessNotice id={refreshHintId}>
-                  {copy.error.rateLimitedCountdown(viewModel.freshness.retrySeconds)}
-                </FreshnessNotice>
-              )}
-
-              {/* 🔴 "달라졌다"까지만 말한다 — 어느 행이 어떻게 바뀌었는지는 확정할 수 없다(D2-3). */}
-              {viewModel.freshness.hasUpdate ? <FreshnessNotice>{copy.freshness.updated}</FreshnessNotice> : null}
-
-              {viewModel.isFirstLoad ? (
-                <SkeletonList aria-hidden>
-                  {SKELETON_ROWS.map((row) => (
-                    <SkeletonRow key={row} />
-                  ))}
-                </SkeletonList>
-              ) : hasRows ? (
-                <LedgerTable
-                  rows={viewModel.rows}
-                  monthLabel={viewModel.monthLabel}
-                  isWriteBlocked={viewModel.isExpired}
-                  writeBlockedHintId={expiredHintId}
-                  retryCountdowns={retryCountdowns}
-                  onEdit={onOpenEditForm}
-                  onRemove={onRequestRemove}
-                  onRetry={onRetryRow}
-                  registerRemoveButton={registerRemoveButton}
-                />
-              ) : (
-                /* 🔴 연결 전과 다른 화면이다 — 월 네비와 요약 카드가 그대로 남아 "연결은 정상"을 증명한다. */
-                <EmptyBlock>
-                  <EmptyTitle ref={listTitleRef} tabIndex={-1} id={listTitleId}>
-                    {viewModel.isCurrentMonth
-                      ? copy.emptyMonth.titleCurrent
-                      : copy.emptyMonth.titleOther(viewModel.monthLabel)}
-                  </EmptyTitle>
-                  <EmptyBody>
-                    {viewModel.latestMonthLabel
-                      ? copy.emptyMonth.latestElsewhere(viewModel.latestMonthLabel)
-                      : copy.emptyMonth.sheetEmpty}
-                  </EmptyBody>
-                  <ActionRow>
-                    <Button
-                      type="button"
-                      variant="primary"
-                      disabled={viewModel.isExpired}
-                      aria-describedby={viewModel.isExpired ? expiredHintId : undefined}
-                      onClick={onOpenCreateForm}
-                    >
-                      {copy.emptyMonth.add}
+                  {viewModel.latestMonthLabel ? (
+                    <Button type="button" variant="secondary" onClick={onGoLatestMonth}>
+                      {copy.emptyMonth.goLatest(viewModel.latestMonthLabel)}
                     </Button>
-                    {viewModel.latestMonthLabel ? (
-                      <Button type="button" variant="secondary" onClick={onGoLatestMonth}>
-                        {copy.emptyMonth.goLatest(viewModel.latestMonthLabel)}
-                      </Button>
-                    ) : (
-                      <Button type="button" variant="secondary" onClick={onPrevMonth}>
-                        {copy.emptyMonth.prevMonth}
-                      </Button>
-                    )}
-                  </ActionRow>
-                </EmptyBlock>
-              )}
-            </Card>
+                  ) : (
+                    <Button type="button" variant="secondary" onClick={onPrevMonth}>
+                      {copy.emptyMonth.prevMonth}
+                    </Button>
+                  )}
+                </ActionRow>
+              </EmptyBlock>
+            )}
+          </Card>
 
-            {/* 🔴 요약 카드 **밖 형제**로 둔다(`Card` 안 `Card` 금지). */}
-            {viewModel.partialFailure ? (
-              <LedgerFailureList
-                model={viewModel.partialFailure}
-                retryCountdowns={retryCountdowns}
-                onRetry={onRetryRow}
-                onRetryAll={onRetryAll}
-              />
-            ) : null}
-            </>
-          )}
+          {/* 🔴 요약 카드 **밖 형제**로 둔다(`Card` 안 `Card` 금지). */}
+          {viewModel.partialFailure ? (
+            <LedgerFailureList
+              model={viewModel.partialFailure}
+              retryCountdowns={retryCountdowns}
+              onRetry={onRetryRow}
+              onRetryAll={onRetryAll}
+            />
+          ) : null}
         </>
       ) : null}
 

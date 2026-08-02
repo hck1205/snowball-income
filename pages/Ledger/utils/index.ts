@@ -35,39 +35,13 @@ export {
 } from './ledgerDividend';
 export type { LedgerDividendInput, LedgerExpenseCategoryTotal } from './ledgerDividend';
 
-export {
-  LEDGER_BLEND_CONFIG_KEYS,
-  LEDGER_BLEND_DEFAULT_LABEL,
-  LEDGER_BLEND_LABEL_MAX_LENGTH,
-  LEDGER_BLEND_SOURCE_FIELDS,
-  LEDGER_BLEND_SOURCE_KEYS,
-  LEDGER_BLEND_STORAGE_KEY,
-  LEDGER_BLEND_VERSION,
-  buildLedgerBlendModel,
-  clearLedgerBlendConfig,
-  createLedgerBlendConfig,
-  hasLedgerBlendLink,
-  isLedgerBlendAvailable,
-  labelsOfLedgerBlendConfig,
-  mergeLedgerBlendRows,
-  normalizeLedgerBlendLabel,
-  parseLedgerBlendConfig,
-  readLedgerBlendConfig,
-  resolveLedgerBlendConfig,
-  serializeLedgerBlendConfig,
-  sortLedgerBlendRows,
-  subtotalOfSource,
-  toBlendReadySource,
-  toStoredLedgerBlendConfig,
-  writeLedgerBlendConfig
-} from './ledgerBlend';
-export type {
-  LedgerBlendConfig,
-  LedgerBlendInput,
-  LedgerBlendSourceConfig,
-  LedgerBlendSourceDraft,
-  LedgerBlendSourceInput
-} from './ledgerBlend';
+/*
+ * 🔴 가계부 블렌딩(두 시트/탭을 앱이 합쳐 보여주기)은 **2026-08-02 사용자 결정으로 제거**했다.
+ * 되살리지 마라 — 사용자가 시트 안에서 탭으로 이미 할 수 있는 일이었다. 여러 장부를 탭으로 나누고
+ * 또 다른 탭에서 합계를 내는 것이 스프레드시트의 본래 강점이고, 앱이 그걸 다시 구현하면
+ * "어느 쪽이 진짜 합계인가"가 둘로 갈린다. 앱은 **파일 하나만 호출**하고 탭 전환만 제공한다.
+ * 탭 목록·전환은 그대로 남아 있다(LedgerTabPicker · useLedgerConnection.switchTab).
+ */
 
 export {
   LEDGER_AMOUNT_MAX,

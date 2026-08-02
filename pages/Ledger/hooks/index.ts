@@ -1,8 +1,6 @@
 export { useLedgerAppAuth } from './useLedgerAppAuth';
 export type { LedgerAppAuth } from './useLedgerAppAuth';
 
-export { useLedgerBlend } from './useLedgerBlend';
-export type { LedgerBlend } from './useLedgerBlend';
 
 export { useLedgerConnection } from './useLedgerConnection';
 export type { LedgerConnection } from './useLedgerConnection';

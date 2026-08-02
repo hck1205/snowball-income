@@ -139,60 +139,6 @@ const EXPECTED: StringTree = {
     noExpense: '이 달에는 지출 기록이 없어 커버율을 계산하지 않습니다.',
     coveredNone: '이 달 지출에서 예상 배당만으로 덮이는 분류는 없습니다.'
   },
-  blend: {
-    open: '두 가계부 합쳐 보기',
-    openHint: '이 브라우저에 연결해 둔 가계부 두 개를 한 화면에서 합쳐 봅니다.',
-    active: '두 가계부를 합쳐 보고 있습니다',
-    exit: '한 가계부만 보기',
-    settings: '합칠 가계부 바꾸기',
-    currencyNote: '두 가계부는 같은 통화를 전제합니다. 통화가 서로 다르면 합계가 의미를 갖지 못합니다.',
-    setup: {
-      title: '합쳐 볼 두 가계부',
-      subtitle: '한 화면에서 볼 가계부 두 개를 고르고, 각각을 가리킬 이름을 붙입니다.',
-      pathNote: '같은 시트의 두 탭으로도, 서로 다른 시트로도 구성할 수 있습니다.',
-      privacyNote: '이 브라우저에 남는 것은 시트 주소·탭 번호와 여기서 붙인 이름뿐입니다. 기록한 값은 남지 않습니다.',
-      legendA: '첫 번째 가계부',
-      legendB: '두 번째 가계부',
-      pick: '가계부',
-      loadingNames: '가계부 이름을 불러오는 중입니다.',
-      label: '이 가계부를 부를 이름',
-      incomplete: '합쳐 볼 가계부를 두 개 골라 주세요.',
-      sameSource: '서로 다른 가계부를 골라 주세요. 같은 가계부를 두 번 고르면 모든 금액이 두 배가 됩니다.',
-      submit: '합쳐 보기',
-      cancel: '취소',
-      clear: '합쳐 보기 해제',
-      clearHint: '해제해도 각 가계부의 연결과 기록은 그대로 남습니다.'
-    },
-    view: {
-      title: '합친 거래 내역',
-      subtitle: '두 가계부의 이 달 기록을 날짜순으로 함께 보여 줍니다.',
-      columnSource: '가계부',
-      subtotalTitle: '가계부별 소계',
-      subtotalCaption: '두 가계부를 따로 센 수입·지출입니다. 위 합계는 이 둘을 더한 값입니다.',
-      loading: '두 가계부를 읽는 중입니다.',
-      readOnly: '합쳐 보기 화면에서는 기록을 고치지 않습니다. 고칠 기록은 그 가계부를 열어서 바꿉니다.',
-      openElsewhere:
-        '다른 시트에 있는 가계부는 이 화면에서 바로 열 수 없습니다. 시트를 다시 골라 연결하면 볼 수 있습니다.',
-      /* 🔴 차단 **사유**는 `tab.blockedBy*` 가 소유한다. 여기 있는 것은 이 화면에서의 나가는 길뿐이다. */
-      openBlockedHint: '한 가계부만 보기로 돌아가면 저장하지 못한 기록을 다시 저장할 수 있습니다.',
-      partialTitle: '두 가계부의 합계를 표시할 수 없습니다',
-      unavailableTitle: '두 가계부를 모두 불러오지 못했습니다',
-      retry: '다시 불러오기',
-      reason: {
-        network: '네트워크 문제로 시트를 읽지 못했습니다. 연결을 확인한 뒤 다시 시도해 주세요.',
-        permission: '이 시트를 읽을 권한이 없습니다. 시트를 다시 골라 연결해 주세요.',
-        apiDisabled:
-          'Google Cloud Console에서 이 프로젝트의 Google Sheets API를 사용 설정한 뒤 다시 시도해 주세요. 시트 자체의 권한 문제가 아닙니다.',
-        rateLimited: '짧은 시간에 요청이 많아 구글이 잠시 제한했습니다. 잠시 뒤에 다시 시도해 주세요.',
-        conflict: '시트를 읽는 동안 값이 바뀌었습니다. 다시 불러와 주세요.',
-        unknown: '시트를 읽지 못했습니다. 잠시 뒤에 다시 시도해 주세요.'
-      }
-    },
-    live: {
-      entered: '두 가계부를 합쳐 보고 있습니다.',
-      exited: '한 가계부만 보고 있습니다.'
-    }
-  },
   emptyMonth: {
     titleCurrent: '이번 달 기록이 없습니다.',
     sheetEmpty: '시트에 아직 기록이 없습니다. 첫 항목을 추가하면 이 시트에 저장됩니다.',
@@ -371,40 +317,6 @@ describe('LEDGER_COPY — 문장을 만드는 카피', () => {
     expect(LEDGER_COPY.dividend.coveragePercent(17)).toBe('17%');
     expect(LEDGER_COPY.dividend.covered(['통신비', '구독료'])).toBe('통신비 · 구독료 지출을 덮는 정도입니다.');
     expect(LEDGER_COPY.dividend.unknownSchedule(3)).toBe('지급월을 알 수 없는 3종은 이 계산에 포함되지 않았습니다.');
-  });
-
-  /**
-   * B-3 블렌딩 — 🔴 **사용자가 붙인 라벨 뒤에 조사를 직접 붙이지 않는다.** 받침을 알 수 없어
-   * `{label}을(를)` 이 되기 때문에, 언제나 `{label} 가계부를` 처럼 명사를 끼워 조사를 그쪽에 건다.
-   */
-  it('B-3 블렌딩 — 라벨 뒤에는 언제나 명사("가계부")가 끼어 조사 문제가 생기지 않는다', () => {
-    expect(LEDGER_COPY.blend.view.failureTitle('민수')).toBe('민수 가계부를 불러오지 못했습니다');
-    expect(LEDGER_COPY.blend.view.partialBody('민수')).toBe(
-      '민수 가계부를 불러오지 못해 합계를 계산하지 않았습니다. 아래는 불러온 가계부 하나의 기록입니다.'
-    );
-    expect(LEDGER_COPY.blend.view.openSource('민수')).toBe('민수 가계부에서 열기');
-    expect(LEDGER_COPY.blend.view.unreadable('민수', 2)).toBe(
-      '민수 가계부에는 형식을 읽지 못한 기록이 2건 있습니다. 이 합계에 포함되지 않았습니다.'
-    );
-  });
-
-  it('B-3 블렌딩 — 합산 라벨이 "두 가계부"임을 말한다(단일 가계부 순액과 구분된다)', () => {
-    expect(LEDGER_COPY.blend.view.summaryNet('2026년 8월')).toBe('2026년 8월 두 가계부 순액');
-    expect(LEDGER_COPY.blend.view.summaryNet('2026년 8월')).not.toBe(LEDGER_COPY.summary.net('2026년 8월'));
-    expect(LEDGER_COPY.blend.view.caption('2026년 8월')).toBe('2026년 8월 두 가계부를 합친 수입·지출 기록');
-    expect(LEDGER_COPY.blend.view.emptyMonth('2026년 8월')).toBe('2026년 8월에 두 가계부 모두 기록이 없습니다.');
-  });
-
-  it('B-3 블렌딩 — 읽기 실패 문구가 저장 실패 문구를 재사용하지 않는다', () => {
-    for (const reason of Object.values(LEDGER_COPY.blend.view.reason)) {
-      expect(reason).not.toContain('저장');
-    }
-    expect(LEDGER_COPY.blend.view.reason.network).not.toBe(LEDGER_COPY.error.network.body);
-  });
-
-  it('B-3 블렌딩 — 라벨 입력 안내가 상한을 숫자로 말한다', () => {
-    expect(LEDGER_COPY.blend.setup.labelHint(20)).toBe('배지와 소계에 그대로 나옵니다. 20자까지 입력할 수 있습니다.');
-    expect(LEDGER_COPY.blend.setup.unnamedOption(2)).toBe('저장된 가계부 2');
   });
 
   it('빈 달', () => {
