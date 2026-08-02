@@ -24,11 +24,13 @@ import { describe, expect, it } from 'vitest';
  *   금지어를 적어야 한다).
  * - 제외: 개발자용 CLI(`tools/`·`scripts/`) — 사용자가 읽는 화면이 아니다.
  *
- * ## 예외 1 — 티커 FAQ의 `question`
- * `shared/constants/tickers/*`의 FAQ **질문**("SCHD 배당률은 얼마인가요?")은 앱이 사용자에게 하는
+ * ## 예외 1 — FAQ의 `question`
+ * FAQ **질문**("SCHD 배당률은 얼마인가요?", "이 사이트는 무료인가요?")은 앱이 사용자에게 하는
  * 말이 아니라 **사용자가 검색창에 치는 질문을 그대로 옮긴 것**이다(FAQPage 구조화 데이터의 질문 필드).
  * "얼마입니까?"로 바꾸면 검색 질의와 어긋나고 읽는 사람의 목소리도 아니게 된다. 그래서 `question:`
  * 값만 스캔에서 뺀다 — 같은 파일의 `answer`(앱의 목소리)는 **그대로 검사한다**.
+ * 대상은 티커 콘텐츠와 랜딩 FAQ 둘뿐이다(아래 `FAQ_QUESTION_DIRS`). 확인 모달의 `question:` 처럼
+ * 앱이 던지는 물음은 여기 들어오지 않는다.
  *
  * ## 예외 2 — 명사 화이트리스트
  * `개요`·`필요`는 어미가 아니라 명사다(`navLabel: '개요'`, `detailLabel: '확인 필요'`).
@@ -63,8 +65,11 @@ const stripComments = (source: string): string =>
 /** 티커 FAQ의 질문 필드(한 줄 문자열)만 지운다. 위 "예외 1" 참고. */
 const stripFaqQuestions = (source: string): string => source.replace(/^\s*question:\s*'[^\n]*$/gm, ' ');
 
-/** 예외는 티커 콘텐츠에만 준다 — 다른 곳의 `question:`(예: 확인 모달)은 앱의 목소리라 그대로 본다. */
-const TICKER_CONTENT_DIR = 'shared/constants/tickers/';
+/**
+ * 예외를 받는 곳 — **FAQPage 구조화 데이터로 색인되는 질문 목록**뿐이다.
+ * 다른 곳의 `question:`(예: 확인 모달)은 앱의 목소리라 그대로 본다.
+ */
+const FAQ_QUESTION_DIRS = ['shared/constants/tickers/', 'pages/Landing/copy/'];
 
 /**
  * 해요체 종결어미 후보. 어미 목록을 열거하지 않고 **"문장 끝에 오는 `요`/`죠`"** 를 통째로 잡는다 —
@@ -108,7 +113,8 @@ const FILES = ROOTS.flatMap((root) => collect(resolve(REPO_ROOT, root)))
   .map((file) => relative(REPO_ROOT, file).split(sep).join('/'))
   .map((path) => {
     const source = stripComments(readFileSync(resolve(REPO_ROOT, path), 'utf-8'));
-    return { path, source: path.startsWith(TICKER_CONTENT_DIR) ? stripFaqQuestions(source) : source };
+    const isFaqQuestionSource = FAQ_QUESTION_DIRS.some((dir) => path.startsWith(dir));
+    return { path, source: isFaqQuestionSource ? stripFaqQuestions(source) : source };
   });
 
 const HITS: Hit[] = FILES.flatMap(({ path, source }) => findInformal(source).map((text) => ({ path, text })));
@@ -169,7 +175,7 @@ describe('앱 카피 어미', () => {
     }
   });
 
-  it('티커 FAQ의 질문(사용자 목소리)만 예외로 빼고, 답변은 계속 검사한다', () => {
+  it('FAQ의 질문(사용자 목소리)만 예외로 빼고, 답변은 계속 검사한다', () => {
     const source = ["  question: 'SCHD 배당률은 얼마인가요?',", "  answer: '주가에 따라 달라져요.'"].join('\n');
     expect(findInformal(stripFaqQuestions(source))).toEqual(['달라져요']);
   });

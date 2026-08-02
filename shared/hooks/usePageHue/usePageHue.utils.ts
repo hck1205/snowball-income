@@ -5,11 +5,17 @@ import type { ResolvedPageHue } from './usePageHue.types';
  * ── 라우트 → 페이지 hue 매핑(정본) ──────────────────────────────────────────────
  *
  * 배정 근거(2026-07-31 확정):
- *  - `/`·`/simulator` 시뮬레이터 = **identity**(쿨 블루). "미래를 계산한다"가 이 제품의 아이덴티티
+ *  - `/simulator` 시뮬레이터 = **identity**(쿨 블루). "미래를 계산한다"가 이 제품의 아이덴티티
  *    축이고, 워드마크 첫 단어와 같은 색이다. identity 토큰은 스킨(프리셋)을 따라가지 않는다.
- *    🔴 **두 경로가 같은 화면이므로 같은 hue 여야 한다**(2026-08-01 이전 중간 상태). 새 경로만
- *    배정하고 `/` 를 지우면 지금 실사용 중인 루트가 얼굴색을 잃고, 반대로 `/simulator` 를
- *    빠뜨리면 **모든 테스트가 그린인 채로** 시뮬레이터가 폴백 색으로 떨어진다.
+ *    🔴 이 줄이 살아 있는지 확인하라 — 빠뜨리면 **모든 테스트가 그린인 채로** 시뮬레이터가
+ *    폴백 색으로 떨어진다.
+ *  - `/` 랜딩 = **identity**. 🔴 시뮬레이터와 **의도적으로 같은 색**이다(2026-08-01 랜딩 승격,
+ *    ui-ux-designer 판정). ①identity 는 섹션 색이 아니라 **전 프리셋 공통값**(스킨 미추종)인 제품
+ *    자신의 색이고 ②랜딩은 워드마크가 가리키는 **정문**, 시뮬레이터는 그 문 안의 도구라 한 축이다
+ *    (`/ledger`↔`/dividend/portfolio` 가 accentAlt 를 공유하는 것과 같은 근거). 차별화 손실도 0이다 —
+ *    랜딩에는 **활성 내비 알약이 없어서**(nav "시뮬레이터"는 `/simulator` 를 가리킨다) hue 소비처가
+ *    히어로 하나뿐이다. **새 hue 를 만들지 마라**(라우트별로 색이 갈리는지 재는 가드에 이 쌍을
+ *    넣지 않는 이유도 같다 — 갈리면 안 되는 쌍이다).
  *  - `/dividend/portfolio` = **accentAlt**(그린). 지금 자라고 있는 것.
  *  - `/ledger` = **accentAlt**. 🔴 포트폴리오와 **의도적으로 같은 색**이다 — 둘 다 "내가 직접 넣은
  *    실측 데이터"라는 한 축이고, 색이 갈리면 사용자가 두 화면을 다른 성격으로 읽는다.
@@ -24,6 +30,7 @@ import type { ResolvedPageHue } from './usePageHue.types';
  * `usePageHue.ts` 주석 참고.
  */
 export const resolvePageHue = (pathname: string): ResolvedPageHue => {
+  /* 랜딩(`/`) 과 시뮬레이터(`/simulator`) 는 같은 identity 를 쓴다 — 위 배정 근거 참고. */
   if (pathname === '/') return 'identity';
   if (pathname.startsWith('/simulator')) return 'identity';
   if (pathname.startsWith('/dividend/portfolio')) return 'accentAlt';

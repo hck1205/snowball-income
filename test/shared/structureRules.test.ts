@@ -61,8 +61,6 @@ const DECLARED_FILE_DEVIATIONS: Record<string, string> = {
     '같은 스타일 파일을 공유하는 로딩 골격. 본체와 한 세트라 폴더를 나누지 않았다.',
   'pages/Main/Main.shared.styled.ts':
     'Main 하위 컴포넌트들이 공유하는 스타일 조각의 재수출 지점(공용 Modal 스킨 등). 옮기면 호출부 import 가 전부 바뀐다.',
-  'pages/Main/components/MainRightPanel/components/PortfolioPresetBoard/PortfolioPresetBoard.constants.ts':
-    '이 보드에서만 쓰는 정적 표. shared/constants 로 올리면 쓰지도 않는 곳에서 번들에 실린다.',
   'pages/Portfolio/PortfolioPage/PortfolioPage.nextPayoutTile.ts':
     '다음 지급일 타일 전용 순수 함수 묶음. 규칙이 촘촘해 독립 서브모듈로 떼고 전용 테스트가 그 경계를 검증한다.'
 };

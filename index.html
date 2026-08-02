@@ -4,14 +4,20 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>배당 재투자 시뮬레이터 — 배당 계산기 - Snowball Income</title>
+    <!--
+      🔴 이 문서의 메타는 **랜딩(`/`)의 메타**다. 2026-08-01 이전까지 `/` 는 시뮬레이터였고
+      여기에도 시뮬레이터 문구가 박혀 있었다. 지금 `/` 는 배당을 처음 접하는 사람을 위한 소개
+      지면이고 시뮬레이터는 `/simulator` 다 — 문구의 정본은 `pages/Landing/copy/landingCopy.ts`.
+      ⚠ 랜딩은 `useDocumentMeta` 를 쓰지 않는다(정적 메타가 곧 이 페이지의 메타다).
+    -->
+    <title>배당 알아보기와 배당 계산기 - Snowball Income</title>
     <meta
       name="description"
-      content="SCHD·JEPI 같은 배당주·ETF로 포트폴리오를 구성하고 배당 재투자(스노우볼) 효과를 시뮬레이션합니다. 목표 월 배당 도달 시점, 세후 현금흐름, 전량 매도 시 양도세까지 계산합니다. 가정을 그대로 계산해 보여주는 도구이며 투자 자문이 아닙니다."
+      content="주식과 ETF가 무엇인지부터, 배당을 다시 넣으면 얼마가 되는지까지 한 화면에서 확인하실 수 있습니다. 종목별 배당 지급 월과 포트폴리오 구성 예시, 배당 계산기를 가입 없이 이용하실 수 있습니다. 입력한 가정을 그대로 계산해 보여주는 도구이며 투자 자문이 아닙니다."
     />
     <meta
       name="keywords"
-      content="배당 계산기, 배당 재투자 시뮬레이터, 배당금 계산기, 월 배당 목표, SCHD 배당 계산, 커버드콜 배당, 배당 성장률, 배당 포트폴리오, 스노우볼 투자"
+      content="배당, 배당주, 배당 ETF, 배당이란, ETF란, 배당 계산기, 배당 재투자 시뮬레이터, 배당금 계산기, 배당 지급월, 배당 성장률, 배당 포트폴리오"
     />
     <meta
       name="robots"
@@ -43,11 +49,11 @@
     <meta property="og:site_name" content="Snowball Income" />
     <meta
       property="og:title"
-      content="배당 재투자 시뮬레이터 — Snowball Income"
+      content="배당, 여기서부터 이해하고 계산합니다 — Snowball Income"
     />
     <meta
       property="og:description"
-      content="배당주·ETF 포트폴리오를 짜고 배당 재투자 효과와 목표 월 배당 도달 시점을 시뮬레이션합니다. 세후 현금흐름과 양도세 추정까지."
+      content="주식·ETF·배당의 기본부터 배당을 다시 넣었을 때의 계산까지. 가입 없이 이용하실 수 있는 배당 계산기입니다. 투자 자문이 아닙니다."
     />
     <meta id="og-url" property="og:url" content="%VITE_SITE_URL%/" />
     <meta property="og:image" content="%VITE_SITE_URL%/og-image.png" />
@@ -56,22 +62,22 @@
     <meta property="og:image:height" content="630" />
     <meta
       property="og:image:alt"
-      content="Snowball Income — 배당 재투자 시뮬레이터"
+      content="Snowball Income — 배당 알아보기와 배당 계산기"
     />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta
       name="twitter:title"
-      content="배당 재투자 시뮬레이터 — Snowball Income"
+      content="배당, 여기서부터 이해하고 계산합니다 — Snowball Income"
     />
     <meta
       name="twitter:description"
-      content="배당주·ETF 포트폴리오를 짜고 배당 재투자 효과와 목표 월 배당 도달 시점을 시뮬레이션합니다."
+      content="주식·ETF·배당의 기본부터 배당을 다시 넣었을 때의 계산까지. 가입 없이 이용하실 수 있는 배당 계산기입니다."
     />
     <meta name="twitter:image" content="%VITE_SITE_URL%/og-image.png" />
     <meta
       name="twitter:image:alt"
-      content="Snowball Income — 배당 재투자 시뮬레이터"
+      content="Snowball Income — 배당 알아보기와 배당 계산기"
     />
 
     <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -102,10 +108,32 @@
 
     <!--
       구조화 데이터 — 페이지에 실제로 존재하는 사실만 기술한다.
-      FAQPage/HowTo는 의도적으로 넣지 않았다: 앱에 눈에 보이는 FAQ 섹션도, 고정된 단계 목록도 없다.
-      (도움말은 클릭해야 열리는 모달, 투어는 뷰포트/상태에 따라 단계가 달라진다.)
-      보이지 않는 콘텐츠를 마크업하면 구글 구조화 데이터 정책 위반이다.
-      평점(aggregateRating)·리뷰도 실제 데이터가 없으므로 넣지 않는다.
+
+      🔴 **script 를 둘로 나눠 두었다: 사이트 수준(`#structured-data`) vs 페이지 수준(`#faq-structured-data`).**
+      이 셸은 SPA 의 **전 라우트가 공유**한다. `WebSite`·`WebApplication` 은 사이트 수준 엔티티라
+      어느 주소에서 읽혀도 참이지만, `FAQPage` 는 **`/` 한 페이지의 선언**이다. `/simulator`·
+      `/community/board`·`/ticker/schd` 처럼 그 FAQ 가 화면에 없는 주소의 DOM 에 남아 있으면
+      렌더링하는 검증 도구(리치 결과 테스트·Search Console)가 "보이지 않는 콘텐츠 마크업"으로
+      판정할 수 있고, 그러면 FAQ 리치 결과가 사이트 전체에서 무효화될 수 있다.
+      그래서 FAQ 는 **단독 script** 로 두고, 라우트가 `/` 가 아니면
+      `shared/lib/seo` 의 `syncFaqStructuredData` 가 노드를 통째로 떼어 낸다(호출 지점은
+      `router/routes.tsx` 의 `RootLayout` **한 곳뿐** — 되돌릴 때도 그 한 줄만 지운다).
+      ⚠ JS 를 실행하지 않는 크롤러는 이 제거를 보지 않지만, 그쪽에는 셸 본문의 FAQ 가 **함께**
+      내려가므로 "보이지 않는 콘텐츠"가 되지 않는다.
+
+      **FAQPage 는 2026-08-01 랜딩 이전과 함께 추가됐다.** 그전까지 넣지 않았던 이유("눈에 보이는
+      FAQ 섹션이 없다")가 해소됐기 때문이다 — 랜딩(`/`)에 실제 FAQ 섹션이 있고(`pages/Landing/
+      components/LandingFaq`), 아래 마크업한 문항은 **JS 를 실행하지 않는 크롤러에게도** 본문
+      (`.app-shell-fallback` 의 "자주 묻는 질문")에 그대로 보인다. 보이지 않는 콘텐츠를 마크업하는
+      것은 구글 구조화 데이터 정책 위반이다.
+
+      🔴 **문항은 `landingCopy.faq` 중 `needsApproval: false` 인 것만 싣는다.** JSON-LD 는 검색
+      결과에 그대로 인용되는 **공개 약속**이라, 사용자 승인 대기 중인 문항은 화면에만 두고 색인시키지
+      않는다. 승인되면 그 문항의 `needsApproval` 을 내리고 여기에 같은 문자열로 추가한다 —
+      두 곳이 어긋나면 `test/seo/landingFaqStructuredData.test.ts` 가 빨개진다.
+
+      HowTo 는 여전히 넣지 않는다(고정된 단계 목록이 화면에 없다). 평점(aggregateRating)·리뷰도
+      실제 데이터가 없으므로 넣지 않는다.
     -->
     <script id="structured-data" type="application/ld+json">
       {
@@ -117,12 +145,12 @@
             "url": "%VITE_SITE_URL%/",
             "name": "Snowball Income",
             "inLanguage": "ko-KR",
-            "description": "배당주·ETF 포트폴리오의 배당 재투자 결과를 시뮬레이션하는 웹 앱"
+            "description": "배당주·ETF의 기본 개념과 배당 재투자 계산을 함께 제공하는 웹 사이트"
           },
           {
             "@type": "WebApplication",
             "@id": "%VITE_SITE_URL%/#webapp",
-            "url": "%VITE_SITE_URL%/",
+            "url": "%VITE_SITE_URL%/simulator",
             "name": "Snowball Income",
             "applicationCategory": "FinanceApplication",
             "operatingSystem": "Web",
@@ -136,7 +164,7 @@
             },
             "description": "배당률·배당 성장률·투자 기간·세율 등 사용자가 입력한 가정을 바탕으로 배당 재투자에 따른 장기 자산과 배당 현금흐름을 계산하는 시뮬레이터입니다. 투자 자문이 아닙니다.",
             "featureList": [
-              "배당 재투자(스노우볼) 시뮬레이션",
+              "배당 재투자 시뮬레이션",
               "포트폴리오 비중 조절 및 비율 고정",
               "목표 월 배당 도달 시점 계산",
               "연도별 자산·배당 추이와 월별 실지급 배당",
@@ -145,6 +173,40 @@
               "브라우저 저장과 링크 공유"
             ],
             "isPartOf": { "@id": "%VITE_SITE_URL%/#website" }
+          }
+        ]
+      }
+    </script>
+
+    <!--
+      🔴 **랜딩(`/`) 전용 FAQPage — 다른 라우트에서는 `syncFaqStructuredData` 가 이 script 를 떼어 낸다.**
+      id(`faq-structured-data`)가 그 함수와의 계약이다. 바꾸려면 `shared/lib/seo/faqStructuredData.ts`
+      의 상수를 함께 고쳐라(`test/seo/faqStructuredDataScope.test.tsx` 가 둘을 함께 잠근다).
+    -->
+    <script id="faq-structured-data" type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "@id": "%VITE_SITE_URL%/#faq",
+        "url": "%VITE_SITE_URL%/",
+        "inLanguage": "ko-KR",
+        "isPartOf": { "@id": "%VITE_SITE_URL%/#website" },
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "계산 결과대로 배당을 받게 되나요?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "아닙니다. 결과는 입력하신 가정을 그대로 계산한 값입니다. 실제 배당은 회사와 운용사의 결정에 따라 줄어들거나 멈출 수 있고, 주가도 오르내립니다."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "투자 자문인가요?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "아닙니다. 특정 종목이나 상품의 매수를 권하지 않으며, 투자 판단과 그 결과에 대한 책임은 이용자 본인에게 있습니다."
+            }
           }
         ]
       }
@@ -347,52 +409,163 @@
     -->
     <div id="root">
       <div class="app-shell-fallback">
-        <h1>Snowball Income — 배당 재투자 시뮬레이터</h1>
+        <!--
+          🔴 본문은 **랜딩(`/`)의 내용**이고 문구의 정본은 `pages/Landing/copy/landingCopy.ts` 다.
+          문장을 고칠 일이 생기면 거기를 먼저 고치고 여기를 맞춰라(반대 방향 금지 — 화면에 안 보이는
+          쪽이 정본이 되면 둘이 조용히 갈라진다). "자주 묻는 질문" 2문항은 위 FAQPage JSON-LD 와
+          **문자 단위로 같아야** 하고 `test/seo/landingFaqStructuredData.test.ts` 가 그걸 잠근다.
+        -->
+        <h1>배당, 여기서부터 이해하고 계산합니다</h1>
         <p>
-          배당주·ETF로 포트폴리오를 구성하고, 받은 배당을 다시 투자했을 때
-          자산과 월 배당이 어떻게 불어나는지 시뮬레이션하는 무료 웹
-          계산기입니다. 초기 투자금·월 투자금·배당률·배당 성장률·투자
-          기간·세율을 입력하면 연도별 자산 추이, 세후 배당 현금흐름, 목표 월
-          배당 도달 시점을 계산해 보여줍니다.
+          주식과 ETF가 무엇인지부터, 배당을 다시 넣으면 얼마가 되는지까지 한
+          화면에서 확인하실 수 있습니다. 가입은 필요하지 않습니다.
         </p>
 
-        <h2>주요 기능</h2>
-        <ul>
-          <li>
-            배당 재투자(스노우볼) 효과 시뮬레이션 — 당월/익월 재투자 시점 선택
-          </li>
-          <li>여러 종목의 포트폴리오 비중 조절 및 특정 종목 비율 고정</li>
-          <li>목표 월 배당 도달 시점 계산</li>
-          <li>연도별 자산·배당 추이와 월별 실지급 배당 확인</li>
-          <li>배당소득세와 전량 매도 시 예상 양도소득세 추정</li>
-          <li>시나리오 탭으로 여러 전략을 나란히 비교, 링크로 공유</li>
-        </ul>
+        <h2>배당을 알기 전에, 세 단어</h2>
+        <h3>주식</h3>
+        <p>
+          주식은 회사의 지분입니다. 한 주를 사면 그 회사의 아주 작은 일부를 갖게
+          됩니다. 회사의 가치가 오르면 주가도 오르고, 내리면 주가도 함께
+          내립니다.
+        </p>
+        <h3>ETF</h3>
+        <p>
+          ETF는 여러 종목을 한 바구니에 담아 주식처럼 사고팔 수 있게 만든
+          상품입니다. 한 주만 사도 수십에서 수백 개 종목에 나눠 담는 효과가 있어,
+          한 회사에 문제가 생겨도 전체가 같은 폭으로 흔들리지는 않습니다.
+        </p>
+        <h3>배당주</h3>
+        <p>
+          배당은 회사가 번 이익의 일부를 주주에게 현금으로 나눠 주는 것입니다.
+          배당주와 배당 ETF는 그 지급을 오래 이어 온 종목을 모은 것입니다. 다만
+          배당은 약속이 아니라 회사의 결정이라, 줄어들거나 멈출 수 있습니다.
+        </p>
 
-        <h2>사용 방법</h2>
+        <h2>배당을 다시 넣으면 무엇이 달라지나</h2>
+        <p>
+          받은 배당으로 같은 종목을 다시 사면 보유 주식 수가 늘어납니다. 주식
+          수가 늘어난 만큼 다음 배당도 늘어나고, 그 배당으로 또 사면 주식 수가
+          다시 늘어납니다. 이 되풀이가 오래 이어질수록 새로 넣는 돈이 없어도
+          배당이 늘어나는 폭이 커집니다. 이것을 복리라고 부릅니다.
+        </p>
+        <p>
+          얼마나 늘어나는지는 배당률, 배당이 해마다 늘어나는 속도, 투자 기간,
+          세율에 따라 전부 달라집니다. 재투자는 자동으로 일어나지 않고, 배당을
+          받을 때마다 다시 사겠다고 결정해야 합니다.
+        </p>
+        <h3>계산에 필요한 값 네 가지</h3>
+        <ul>
+          <li>배당률</li>
+          <li>배당 성장률</li>
+          <li>투자 기간</li>
+          <li>배당소득세율</li>
+        </ul>
+        <p>
+          <a href="/simulator">배당 시뮬레이터에서 직접 계산해 보실 수 있습니다.</a>
+        </p>
+
+        <h2>배당이 들어오는 달은 종목마다 다릅니다</h2>
+        <p>
+          미국 배당 ETF는 대체로 세 달에 한 번, 일부는 매달 배당을 지급합니다.
+          지급하는 달이 서로 다른 종목을 함께 담으면 배당이 들어오는 달이
+          촘촘해집니다.
+        </p>
+        <p>
+          다만 배당을 자주 받는 것과 자산이 많이 늘어나는 것은 다른 이야기입니다.
+          어느 쪽을 원하시는지는 직접 계산해 보고 정하시는 편이 좋습니다.
+        </p>
+        <p>
+          <a href="/dividend/calendar">내 종목의 지급 예정일은 배당 캘린더에서 확인하실 수 있습니다.</a>
+        </p>
+
+        <h2>시작하기 전에</h2>
+        <h3>앱에서 해보는 순서</h3>
         <ol>
+          <!--
+            🔴 이 한 줄만 정본(`landingCopy.checklist.steps[0]`)과 글자가 다르다. 정본은 바로 위에
+            프리셋 섹션이 있는 화면을 전제로 "위 구성"이라고 쓰지만, 이 셸에는 그 섹션이 없어
+            가리킬 대상이 없다. **"추천"으로 바꾸지 마라 — 그건 투자 권유가 된다**
+            (`landingCopy.ts` 의 «"추천 종목"이라고 쓰면 투자 권유가 된다» 와 S6 리드 참고).
+            이 예외는 `test/seo/landingShellCopyParity.test.ts` 의 `DERIVED` 목록에 등록돼 있다.
+          -->
           <li>
-            추천 포트폴리오를 고르거나 티커를 직접 만들어 종목을 추가합니다.
+            관심 있는 종목을 고릅니다. 시뮬레이터의 예시 구성 중 하나를 골라도
+            되고, 직접 검색해 담아도 됩니다.
           </li>
-          <li>포트폴리오 구성에서 종목별 비중을 조절합니다.</li>
+          <li>매달 얼마를 몇 년 동안 넣을지, 세율은 얼마로 볼지 정합니다.</li>
           <li>
-            초기 투자금·월 투자금·투자 기간·세율 등 투자 설정을 입력합니다.
-          </li>
-          <li>
-            최종 자산, 월 배당, 목표 도달 시점 등 시뮬레이션 결과를 확인합니다.
+            자산과 월 배당이 해마다 어떻게 달라지는지 결과 화면에서 확인합니다.
           </li>
         </ol>
+        <p>
+          가입은 필요하지 않습니다. 입력하신 값은 사용하시는 기기에 저장되고,
+          원하실 때 링크로 공유하실 수 있습니다.
+        </p>
+        <h3>실제 투자 전에 스스로 확인할 것</h3>
+        <ul>
+          <li>해외 주식을 사려면 증권 계좌와 해외 주식 거래 신청이 필요합니다.</li>
+          <li>
+            원화를 달러로 바꾸는 과정과 환율 변동이 실제 결과에 영향을 줍니다.
+          </li>
+          <li>
+            배당에는 세금이 붙고, 금액이 커지면 금융소득종합과세 대상이 될 수
+            있습니다.
+          </li>
+          <li>
+            여기 숫자는 입력하신 가정을 계산한 결과일 뿐 수익을 보장하지 않으며,
+            원금 손실이 발생할 수 있습니다.
+          </li>
+        </ul>
 
         <!--
           아래 마커는 빌드 때 vite 플러그인(vite.config.ts의 buildStaticExampleHtml)이
-          **실제 엔진으로 계산한** 예시 + FAQ 로 치환한다. 숫자를 손으로 적지 않는 이유는 그게 지어낸 값이기 때문이다.
+          **실제 엔진으로 계산한** 예시 + 계산 방식 설명으로 치환한다. 숫자를 손으로 적지 않는 이유는
+          그게 지어낸 값이기 때문이다.
           치환이 실패해도 이 주석은 그냥 주석이라 HTML은 여전히 유효하다.
         -->
         <!--SNOWBALL_STATIC_EXAMPLE-->
 
+        <h2>자주 묻는 질문</h2>
+        <h3>계산 결과대로 배당을 받게 되나요?</h3>
+        <p>
+          아닙니다. 결과는 입력하신 가정을 그대로 계산한 값입니다. 실제 배당은
+          회사와 운용사의 결정에 따라 줄어들거나 멈출 수 있고, 주가도
+          오르내립니다.
+        </p>
+        <h3>투자 자문인가요?</h3>
+        <p>
+          아닙니다. 특정 종목이나 상품의 매수를 권하지 않으며, 투자 판단과 그
+          결과에 대한 책임은 이용자 본인에게 있습니다.
+        </p>
+
+        <!--
+          JS 를 실행하지 않는 크롤러(네이버 Yeti·Daumoa)에게는 이 목록이 사이트 안을 도는 **유일한
+          링크**다. 사이트맵만으로도 발견은 되지만, 내부 링크가 하나도 없는 문서는 크롤러에게
+          막다른 길로 보인다. 라벨은 헤더 내비(`shared/constants/community/copy.ts` 의 `nav`)와 맞춘다.
+        -->
+        <h2>이 사이트의 다른 화면</h2>
+        <ul>
+          <li>
+            <a href="/simulator">배당 시뮬레이터</a> — 투자 조건을 넣고 배당
+            재투자 결과를 계산합니다.
+          </li>
+          <li>
+            <a href="/dividend/portfolio">내 포트폴리오</a> — 보유 종목과 수량으로
+            지금 받는 배당을 계산합니다.
+          </li>
+          <li>
+            <a href="/dividend/calendar">배당 캘린더</a> — 종목별 배당 지급 월을
+            달력으로 봅니다.
+          </li>
+          <li>
+            <a href="/ticker/all">ETF 소개</a> — 배당 ETF·종목 소개 글을 모았습니다.
+          </li>
+        </ul>
+
         <p class="disclaimer">
-          이 앱은 입력한 가정을 그대로 계산해 보여주는 시뮬레이터입니다. 투자
-          자문이 아니며, 참고용으로만 사용해 주세요. 실제 수익률과 배당은 시장
-          상황에 따라 달라집니다.
+          이 사이트의 계산은 입력한 가정을 그대로 계산해 보여주는
+          시뮬레이터입니다. 투자 자문이 아니며, 참고용으로만 사용해 주세요. 실제
+          수익률과 배당은 시장 상황에 따라 달라집니다.
         </p>
         <noscript>
           <p class="disclaimer">

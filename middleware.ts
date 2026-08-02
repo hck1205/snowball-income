@@ -9,7 +9,8 @@ import { DB_SHARE_KEY_PATTERN } from './shared/lib/og/shareKey';
 import { SIMULATOR_PATH } from './shared/constants/routes';
 
 /**
- * 공유 링크(`/?share=<코드>` 구 lz-string · `/?s=<key>` 신규 DB key)에 붙는 라우팅 미들웨어.
+ * 공유 링크(`?share=<코드>` 구 lz-string · `?s=<key>` 신규 DB key)에 붙는 라우팅 미들웨어.
+ * 새 링크는 `/simulator` 에 붙고, 옛 링크는 `/` 에 붙어 있다 — matcher 가 둘 다 잡는 이유는 아래 참고.
  * 요청한 시나리오를 가리키는 OG 메타를 **HTML 에 미리 박아서** 내려준다.
  *
  * ## 두 공유 포맷 분기 (파라미터 이름으로 구분)
@@ -43,15 +44,19 @@ import { SIMULATOR_PATH } from './shared/constants/routes';
  * ⚠ 이 설계 때문에 `vercel.json` 에 `cleanUrls: true` 를 켜면 안 된다 — `/index.html` → `/` 로 308 되면서
  *   요청이 미들웨어로 되돌아와 무한 루프가 된다.
  *
- * ## 왜 `/simulator` 도 매칭하는가
- * 시뮬레이터가 `/` 에서 `/simulator` 로 옮겨 가는 중이라 **새로 만들어지는 공유 링크는
- * `/simulator?share=…`** 다. matcher 가 `/` 하나면 그 링크들의 OG 카드가 기본 카드로 폴백한다
- * (카카오·페이스북 미리보기가 무의미해진다). 이미 배포된 `/?share=…` 링크는 `/` 가 계속 matcher 에
- * 있으므로 영향이 없다. 두 경로 다 매칭하는 것이 이전 기간 내내 안전한 유일한 상태다.
+ * ## 왜 두 경로를 매칭하는가
+ * `/simulator` — **모든 공유 링크가 붙는 경로**다(`/simulator?share=…`·`?s=…`). 이게 빠지면 카카오·
+ * 페이스북·네이버 미리보기가 전부 기본 카드로 폴백한다.
+ * `/` — **랜딩 자신의 OG 때문**이다. 이 함수는 공유 파라미터가 없으면 아무것도 바꾸지 않고 `next()` 하므로
+ * (아래 early return), `/` 는 빌드된 `index.html` 의 기본 OG 를 그대로 받는다.
+ * ⚠ 2026-08-01 에 `/` 의 공유 링크 → 시뮬레이터 리다이렉트를 걷어냈다(`router/routes.tsx` 의 `'/'` 주석).
+ * 그래서 옛 `/?share=…` 는 **OG 카드는 여전히 시나리오 카드지만 착지 화면은 랜딩**이다 — 실사용자가
+ * 없다고 확인해 받아들인 대가다. 아래 구 `?share=` 처리 블록은 그 옛 링크의 미리보기용으로 남겨 둔다.
  */
 export const config = {
   // 경로만 매칭한다(쿼리스트링은 matcher 문법에 존재하지 않는다) → share 여부는 아래 코드에서 판별.
-  // 🔴 `/` 를 빼지 마라 — 이미 배포된 공유 링크가 전부 그 경로다(사용자 자산).
+  // 🔴 `/simulator` 를 빼지 마라 — 새로 만들어지는 공유 링크가 전부 그 경로다(사용자 자산).
+  //    `/` 는 랜딩 자신의 OG 를 위해 남는다(공유 파라미터가 없으면 이 함수는 그냥 next() 한다).
   // 🔴 여기만 **문자열 리터럴**이다. 빌드가 이 config 를 정적으로 읽어 라우팅 설정을 만들기 때문에
   //    변수를 넣으면 조용히 무시될 수 있다(og:url 쪽은 런타임이라 상수를 그대로 쓴다).
   //    `SIMULATOR_PATH` 와 어긋나지 않는지는 test/api/middlewareShareRouting.test.ts 가 잠근다.

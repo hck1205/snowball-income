@@ -7,7 +7,7 @@ import {
   buildPresetMetrics,
   groupPortfolioPresets,
   type PortfolioPresetPlaceholder
-} from '@/pages/Main/components/MainRightPanel/components';
+} from '@/shared/constants/portfolioPresets';
 
 /**
  * 🔴 **프리셋 성향 묶음은 데이터에서 파생된다.**
@@ -20,6 +20,11 @@ import {
  * 13장이 다시 전부 같은 모양이 된다(리워크 이전 상태).
  */
 
+/**
+ * ⚠ 데이터(`portfolioPresets.constants.ts`·`.utils.ts`)는 2026-08-01 에
+ * `shared/constants/portfolioPresets` 로 이사했지만 **컴포넌트는 그대로 이 자리에 있다** —
+ * 아래 fs 경로는 스캔 대상(`PortfolioPresetBoard.tsx`)의 경로라 바뀌지 않는다.
+ */
 const componentSource = (name: string): string => {
   const raw = readFileSync(
     resolve(
@@ -79,10 +84,22 @@ describe('프리셋 성향 묶음 — 데이터에서 파생된다', () => {
     expect(placed.map((preset) => preset.id)).toEqual(['orphan']);
   });
 
-  it('카드가 보여 주는 지표는 2개뿐이다 — 4행 스펙표로 되돌아가지 않는다', () => {
+  /**
+   * 🔴 **적용 전 카드에 "받게 될 금액"을 적지 않는다.**
+   *
+   * `expectedMonthlyDividend`("약 40~50만원")는 엔진이 계산한 값이 아니라 **손으로 적은 큐레이션 문구**다.
+   * 카드에 얹으면 "이걸 고르면 그만큼 받는다"는 근거 없는 수익 약속이 된다(2026-08-01 사용자 결정 —
+   * 랜딩에서 막은 규칙을 시뮬레이터에도 적용). 실제 숫자는 **적용 후 결과 카드**가 말한다.
+   *
+   * 동시에 4행 스펙표로 되돌아가는 것도 막는다 — 그러면 13장이 다시 전부 같은 모양이 된다.
+   */
+  it('적용 전 카드에 수익 약속을 적지 않는다 — 지표는 조건 하나뿐이다', () => {
     const metrics = buildPresetMetrics(PORTFOLIO_PRESET_PLACEHOLDERS[0]);
 
-    expect(metrics.map((metric) => metric.label)).toEqual(['목표 월배당', '투자 기간']);
+    expect(metrics.map((metric) => metric.label)).toEqual(['투자 기간']);
+    expect(metrics.map((metric) => metric.value)).not.toContain(
+      PORTFOLIO_PRESET_PLACEHOLDERS[0].expectedMonthlyDividend
+    );
   });
 
   it('컴포넌트가 프리셋·묶음 id 를 직접 나열하지 않는다', () => {

@@ -1,5 +1,16 @@
 import styled from '@emotion/styled';
-import { color, font, media, motion, pressableSubtle, pressTransition, radius, shadow, space } from '@/shared/styles';
+import {
+  color,
+  font,
+  iconOpticalAlign,
+  media,
+  motion,
+  pressableSubtle,
+  pressTransition,
+  radius,
+  shadow,
+  space
+} from '@/shared/styles';
 
 /**
  * 포트폴리오 프리셋 보드 스타일.
@@ -195,10 +206,15 @@ export const PortfolioPresetMetricValue = styled.dd`
 /**
  * "더 보기 / 접기" — 그룹 머리 **오른쪽 끝**에 서는 조용한 버튼(장식 없음).
  * 별도 줄을 쓰지 않는 이유: 그룹이 4개라 줄 하나가 곧 화면 네 줄이 된다.
+ *
+ * 세로 정렬은 **같은 줄의 톤 배지와 한 몸**이다 — 둘 다 그룹 이름(`h3`, 헤딩 서체)의 잉크 중심에
+ * 맞춰야 하고, 기준은 버튼 자신의 글자 크기(`xs`)가 아니라 **이름 크기**(`font.size.base`)다.
+ * 배지만 보정하고 이 버튼을 빼두면 한 줄 안에서 좌우 끝이 서로 다른 높이에 앉는다
+ * (실측 2026-08-01: 배지 보정 후에도 이 버튼만 **+2.13~2.23px** 낮게, 1280·390·320 전 폭).
  */
 export const PortfolioPresetMoreButton = styled.button`
   margin-left: auto;
-  flex: 0 0 auto;
+  ${iconOpticalAlign('display', font.size.base)}
   border: 1px solid ${color.border};
   border-radius: ${radius.pill};
   background: transparent;
@@ -243,12 +259,19 @@ export const PRESET_TONE_STYLE = {
 
 export type PresetTone = keyof typeof PRESET_TONE_STYLE;
 
-/** 그룹 머리의 톤 배지(24px) — 카드 배지보다 한 단계 작다. */
+/**
+ * 그룹 머리의 톤 배지(24px) — 카드 배지보다 한 단계 작다.
+ *
+ * 바로 오른쪽에 서는 그룹 이름은 `h3` = **헤딩 서체**(`font.display`)라 잉크 중심이 라인박스
+ * 중심보다 위에 있다. `align-items: center` 만으로는 배지가 이름보다 낮게 앉는다(실측 2026-08-01,
+ * 1280·1024·768·390·320 전 폭에서 **+2.13~2.23px**). 정본 유틸로 이름 크기(`font.size.base`)
+ * 기준 보정을 건다 — 배지 자신의 em 으로 계산하면 안 된다.
+ */
 export const PortfolioPresetGroupBadge = styled.span<{ tone: PresetTone }>`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 auto;
+  ${iconOpticalAlign('display', font.size.base)}
   width: 24px;
   height: 24px;
   border-radius: ${radius.sm};

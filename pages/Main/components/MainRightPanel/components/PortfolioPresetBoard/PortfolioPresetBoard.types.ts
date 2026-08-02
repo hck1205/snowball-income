@@ -1,4 +1,4 @@
-import type { PortfolioPresetPlaceholder } from './PortfolioPresetBoard.constants';
+import type { PortfolioPresetPlaceholder } from '@/shared/constants/portfolioPresets';
 
 /**
  * 보드가 서는 두 자리.
