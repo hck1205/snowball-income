@@ -81,8 +81,8 @@
         8,
         11
       ],
-      "payoutMonthsSource": "pay",
       "exToPayLagDays": 8,
+      "payoutMonthsSource": "pay",
       "estimatedPayDayByMonth": {
         "2": 18,
         "5": 6,
@@ -1053,12 +1053,19 @@
       "frequency": "quarterly",
       "observedDividendCagr": 10.18,
       "payoutMonths": [
-        2,
-        5,
-        8,
-        11
+        3,
+        6,
+        9,
+        12
       ],
-      "payoutMonthsSource": "ex"
+      "payoutMonthsSource": "pay",
+      "exToPayLagDays": 17,
+      "estimatedPayDayByMonth": {
+        "3": 6,
+        "6": 5,
+        "9": 5,
+        "12": 5
+      }
     },
     "VICI": {
       "initialPrice": 26.35,
