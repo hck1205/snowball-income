@@ -1,7 +1,7 @@
 // @vitest-environment node — DOM 을 쓰지 않는 순수 테스트 (기준: vitest.config.ts)
-import { readFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
-import { DATA_RADIUS, DATA_SURFACE, PICK, PICK_RADIUS, brandPanel, cardElevation, colorCap } from './index';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { join, relative, resolve, sep } from 'node:path';
+import { DATA_RADIUS, DATA_SURFACE, PICK, PICK_RADIUS, brandPanel, cardElevation, colorCap, topRail } from './index';
 
 /**
  * **면의 종류(SurfaceKind) 기하 계약.**
@@ -99,6 +99,100 @@ describe('pick 면의 위계 — 층마다 수단은 하나다', () => {
   /** e1(1px/0.05)은 흰 배경에서 보이지 않는다 — 테두리 없는 e1 카드는 base 보다 약해진다. */
   it('부상은 e1 이 아니라 e2 로 한다', () => {
     expect(cardElevation('pick')).not.toContain('--sb-shadow-1');
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/* 상단 리본이 둥근 모서리 밖으로 나가지 않는가 (소스 레벨)                        */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * 🔴 **둥근 카드의 상단 리본은 부모가 잘라야 한다.**
+ *
+ * 리본은 직사각형이고 카드는 라운드라, 모서리에서 카드 면은 안으로 휘는데 리본은 직진한다.
+ * 사용자가 실제로 신고한 결함이다(2026-08-03: "상단 카드에 범위가 벗어나는 버그").
+ *
+ * 왜 렌더 테스트로 못 잡나 — `test/shared/radiusShape.test.ts` 머리말과 같은 이유다. jsdom 은
+ * 레이아웃을 계산하지 않고, 실브라우저에서도 "의사요소가 부모 라운드를 넘었는가"를 읽을 API 가 없다.
+ * 사람 눈으로만 보이고 코드 리뷰로는 정상으로 읽힌다. 그래서 **소스로 잠근다.**
+ *
+ * 규칙: 한 styled 템플릿이 상단 리본(`inset: 0 0 auto 0`)을 그리고 **그 템플릿 자신이 반경을
+ * 선언**하면, 같은 템플릿에 `overflow: hidden`(또는 `clip`)이 있어야 한다.
+ *
+ * ⚠ 리본에 같은 반경을 주는 처방은 **대안이 아니다.** 4~6px 높이에서는 CSS 가 반경을 비례 축소해
+ *   (Backgrounds L3 §5.5) 카드 곡률과 어긋난 틈을 만든다 — radiusShape 가드가 그것을 따로 막는다.
+ * ⚠ 놓칠 수는 있어도(반경이 믹스인·상속으로 오는 경우) **없는 위반을 만들지는 않는다.**
+ *   가드로서 옳은 방향의 오차다.
+ */
+const STYLED_ROOTS = ['components', 'pages', 'shared'];
+
+const collectStyled = (dir: string, out: string[] = []): string[] => {
+  for (const entry of readdirSync(dir)) {
+    const full = join(dir, entry);
+    if (statSync(full).isDirectory()) {
+      if (entry === 'node_modules' || entry.startsWith('.')) continue;
+      collectStyled(full, out);
+    } else if (/\.styled\.ts$/.test(entry)) {
+      out.push(full);
+    }
+  }
+  return out;
+};
+
+/** `= styled…` 로 시작해 줄머리 백틱+세미콜론으로 끝나는 템플릿 하나. (이 레포의 표기 관례) */
+const STYLED_TEMPLATE = /=\s*styled[^`]*`([\s\S]*?)\n`;/g;
+
+/**
+ * 상단 리본의 서명. 손으로 적은 `inset: 0 0 auto 0` 과 **헬퍼 호출** 둘 다 잡아야 한다 —
+ * 헬퍼(`topRail()`)를 쓰면 그 문자열이 소스에 남지 않아 감사가 통째로 눈이 먼다
+ * (2026-08-03 뮤테이션 검증에서 실제로 그랬다: PageHero 의 overflow 를 지워도 통과했다).
+ */
+const TOP_RAIL = 'inset: 0 0 auto 0';
+const RAIL_SIGNATURES = [TOP_RAIL, 'topRail('] as const;
+
+const railScan = (): { rails: number; violations: string[] } => {
+  const violations: string[] = [];
+  let rails = 0;
+
+  for (const file of STYLED_ROOTS.flatMap((root) => collectStyled(resolve(REPO_ROOT, root)))) {
+    const path = relative(REPO_ROOT, file).split(sep).join('/');
+    const source = readFileSync(file, 'utf-8');
+
+    for (const match of source.matchAll(STYLED_TEMPLATE)) {
+      const body = match[1];
+      if (!RAIL_SIGNATURES.some((signature) => body.includes(signature))) continue;
+      rails += 1;
+
+      /* 부모 자신의 선언 = 중첩 의사요소 규칙 앞부분. 리본이 자기 반경을 갖는 경우와 구분한다. */
+      const pseudoAt = body.indexOf('::before');
+      const own = pseudoAt === -1 ? body : body.slice(0, pseudoAt);
+      if (!/(^|[\s;])border-radius:/.test(own)) continue;
+      if (/(^|[\s;])overflow:\s*(hidden|clip)/.test(own)) continue;
+
+      violations.push(path);
+    }
+  }
+
+  return { rails, violations };
+};
+
+const RAILS = railScan();
+
+describe('상단 리본 — 둥근 모서리 밖으로 나가지 않는다', () => {
+  it('감사 대상이 실제로 잡힌다 (정규식이 죽으면 아래 계약이 조용히 통과한다)', () => {
+    expect(RAILS.rails).toBeGreaterThanOrEqual(5);
+  });
+
+  it('반경을 가진 카드가 상단 리본을 그리면 overflow 로 자른다', () => {
+    expect(RAILS.violations).toEqual([]);
+  });
+
+  it('topRail 은 반경을 주지 않는다 — 자르는 것은 부모다', () => {
+    const css = topRail('4px');
+
+    expect(css).toContain(TOP_RAIL);
+    expect(css).toContain('height: 4px');
+    expect(css).toContain('border-radius: 0');
   });
 });
 

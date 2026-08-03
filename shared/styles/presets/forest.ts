@@ -4,7 +4,7 @@
 
 import type { ThemeTokens } from '../semantic';
 import { chartSeriesTokens, type ChartSeries } from './chartSeriesTokens';
-import { buildAuroraGradient, buildDuotoneGradient, buildHeroGradient } from './gradients';
+import { buildAuroraGradient, buildDuotoneGradient } from './gradients';
 import { COMMON_DARK, COMMON_LIGHT } from './sharedTokens';
 
 /**
@@ -29,14 +29,21 @@ const FOREST_CHART_SERIES: ChartSeries = [
  * #2b8052(4.87)까지만 밝힌다 — #2e8757은 4.45로 탈락(실측).
  */
 export const FOREST_LIGHT: ThemeTokens = {
-  bg: '#eef3ec',
+  /*
+   * 🔴 **순백 캔버스**(2026-08-03 사용자 결정 — "페이지 전체 배경색이 흰색"). 구 값 세이지 틴트(#eef3ec).
+   * bg = surface = surface-raised 가 전부 흰색이 되면서 **면색이 카드의 격을 말하지 못한다** —
+   * 그 일은 아래 `border`(헤어라인)·여백·그림자가 이어받았다. 프리셋의 얼굴색은
+   * 이제 경계·액센트·차트가 말한다 — 세이지는 `surface-hover` 와 brand 축에 그대로 남는다.
+   */
+  bg: '#ffffff',
   surface: '#ffffff',
   'surface-raised': '#ffffff',
   'surface-muted': '#f8faf7',
   'surface-sunken': '#e4ece1',
   'surface-hover': '#eef3ec',
 
-  border: '#d8e2d4',
+  /* 🔴 흰 캔버스의 주역. 구 값(#d8e2d4)은 흰 면 위 1.33:1 → 새 값 1.44:1. */
+  border: '#d0dacc',
   'border-strong': '#71836d',
 
   text: '#182218',
@@ -72,7 +79,8 @@ export const FOREST_LIGHT: ThemeTokens = {
 
   /* 그린 틴트 섀도 */
   'shadow-1': '0 1px 2px rgba(24, 40, 26, 0.06), 0 1px 3px rgba(24, 40, 26, 0.08)',
-  'shadow-2': '0 2px 4px rgba(24, 40, 26, 0.06), 0 4px 12px rgba(24, 40, 26, 0.10)',
+  /* ⚠ e2 만 올렸다 — raised 는 테두리 없이 이 그림자 하나로 선다(흰 캔버스에서 필수). */
+  'shadow-2': '0 1px 2px rgba(24, 40, 26, 0.05), 0 6px 18px rgba(24, 40, 26, 0.13)',
   'shadow-3': '0 2px 6px rgba(24, 40, 26, 0.08), 0 12px 32px rgba(24, 40, 26, 0.18)',
 
   'ribbon-stop-1': '#2f7d4f',
@@ -87,10 +95,11 @@ export const FOREST_LIGHT: ThemeTokens = {
   'gradient-aurora': buildAuroraGradient(['#2f7d4f', '#4c8b2e', '#7d5a3c']),
   'gradient-cta': buildDuotoneGradient('#2f7d4f', '#256540'),
   /* 히어로 면 — 최악 text-muted 4.81:1 / soft 5.16:1(실측). */
-  'gradient-hero': buildHeroGradient('#e1eef7', '#e6f5ef'),
-  'gradient-hero-soft': buildHeroGradient('#eef5fb', '#f1f9f6'),
-  'bg-glow':
-    'radial-gradient(1200px 640px at 16% -10%, rgba(47, 125, 79, 0.05), transparent 60%), radial-gradient(1000px 560px at 84% -12%, rgba(76, 139, 46, 0.04), transparent 55%), #eef3ec',
+  /* 히어로 면 — 단색(gradients.ts 머리말). hero = surface / soft = surface-muted. */
+  'gradient-hero': '#ffffff',
+  'gradient-hero-soft': '#f8faf7',
+  /* 🔴 상단 글로우를 걷었다 — 배경을 물들이면 그건 흰 배경이 아니다. 다크 글로우는 남긴다. */
+  'bg-glow': '#ffffff',
   'surface-glass': 'rgba(255, 255, 255, 0.8)',
   'surface-glass-fallback': '#ffffff',
 
@@ -160,8 +169,9 @@ export const FOREST_DARK: ThemeTokens = {
   'gradient-aurora': buildAuroraGradient(['#55c17e', '#8fd14f', '#c9a978']),
   'gradient-cta': buildDuotoneGradient('#2b8052', '#236a44'),
   /* 히어로 면 — 다크 최악 text-muted 5.25:1 / soft 5.86:1(실측). */
-  'gradient-hero': buildHeroGradient('#16292e', '#142e23'),
-  'gradient-hero-soft': buildHeroGradient('#132122', '#12241b'),
+  /* 히어로 면 — 라이트와 같은 처방(단색). 다크는 면 밝기 위계를 그대로 지킨다. */
+  'gradient-hero': '#18231b',
+  'gradient-hero-soft': '#1d2a20',
   /* 알파 0.10/0.08 상한 — 0.12/0.10에서 text-muted 4.35로 탈락(실측, 유일한 1차 실패). 올리지 마라. */
   'bg-glow':
     'radial-gradient(1100px 600px at 18% -10%, rgba(85, 193, 126, 0.10), transparent 60%), radial-gradient(900px 520px at 82% -14%, rgba(143, 209, 79, 0.08), transparent 55%), #0f1712',

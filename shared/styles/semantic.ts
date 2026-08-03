@@ -112,8 +112,14 @@ export const color = {
   gradientAurora: 'var(--sb-gradient-aurora)',
   gradientCta: 'var(--sb-gradient-cta)',
   /*
-   * 파스텔 히어로 — **면 배경 전용**(PageHero·EmptyState·프로모 카드). 버튼·리본에 금지.
-   * gradientCta(버튼 채움) / gradientAurora(리본·장식)와 교차 사용하지 않는 세 번째 계열이다.
+   * 히어로 면 — **면 배경 전용**(PageHero·EmptyState·프로모 카드). 버튼·리본에 금지.
+   *
+   * 🔴 **2026-08-03부터 그라데이션이 아니다.** 값은 단색이다 —
+   *   `gradientHero` = 그 테마의 `surface` · `gradientHeroSoft` = 그 테마의 `surface-muted`.
+   *   구 값(아이스블루 205° → 민트 158° 파스텔 램프)은 프리셋 hue 와 무관한 **옛 브랜드 잔재**였고
+   *   16테마 전역 대비 최악 지점을 만들고 있었다(근거·실측: presets/gradients.ts 머리말).
+   *   이름은 **역할**이라 그대로 둔다(이 폴더의 계약: "이름은 역할, 값은 프리셋") — 소비처 5곳은
+   *   한 줄도 고치지 않았다. 값이 다시 `linear-gradient` 가 되면 `contrast.test.ts` 가 빨개진다.
    */
   gradientHero: 'var(--sb-gradient-hero)',
   gradientHeroSoft: 'var(--sb-gradient-hero-soft)',

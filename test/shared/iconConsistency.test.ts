@@ -32,23 +32,28 @@ const STROKE_EXCEPTIONS: Readonly<Record<string, number>> = {
  * **lucide 아이콘이 아닌** `size` 소비자 — 이 감사의 대상이 아니다.
  *
  * 이 파일의 두 계약(계단 크기 · 굵기 명시)은 **lucide 라인 아이콘이 한 줄에 나란히 설 때**의
- * 일관성을 지키는 것이다. `BrandGlyph` 는 그 줄에 서지 않는다 —
- *   ① `fill="currentColor"` 기반 실루엣이라 **`strokeWidth` prop 자체가 없다**
- *      (`BrandGlyph.types.ts` 는 size·accent·title 만 받는다 — 굵기를 적으면 타입 에러다).
- *   ② 브랜드 마크의 크기는 아이콘 계단(12~24)이 아니라 **자리의 크기**를 따른다.
- *      빈 상태 마스코트 96 · 마무리 CTA 배지 32 · 히어로 배지 20 처럼.
+ * 일관성을 지키는 것이다. 브랜드 그림은 그 줄에 서지 않는다 —
+ *   ① 래스터(PNG)라 선이 없다. **`strokeWidth` prop 자체가 없어** 적으면 타입 에러다
+ *      (`BrandGlyph.types.ts` 는 size·accent·title, `HippoCoinScene.types.ts` 는 size·loading·label).
+ *   ② 크기가 아이콘 계단(12~24)이 아니라 **자리의 크기**를 따른다.
  *
  * 🔴 여기 이름을 추가하는 것은 **감사 회피**다. lucide 아이콘은 절대 넣지 마라.
- *   대신 아래 `BRAND_GLYPH_SIZES` 처럼 그 부품에 맞는 계약을 따로 걸어라.
+ *   추가하려면 그 부품의 계단을 아래처럼 **함께** 적어라 — 계단 없는 면제는 만들지 않는다.
  */
-const NON_LUCIDE_GLYPHS: ReadonlySet<string> = new Set(['BrandGlyph']);
-
-/**
- * 브랜드 마크가 서는 자리의 크기 — 아이콘 계단과 **별개의** 계단이다.
- * 16 파비콘 대체 · 20 헤더/히어로 배지 · 24 푸터 매스트헤드 · 28 PDF 표지 ·
- * 32 마무리 CTA 배지 · 96 빈 상태 마스코트.
- */
-const BRAND_GLYPH_SIZES: readonly number[] = [16, 20, 24, 28, 32, 96];
+const NON_LUCIDE_GLYPH_SIZES: Readonly<Record<string, readonly number[]>> = {
+  /*
+   * 브랜드 심볼(하마 마크)이 서는 자리들.
+   * 16 파비콘 대체 · 20 헤더/히어로 배지 · 24 푸터 매스트헤드 · 28 PDF 표지 · 32 카드 배지 · 96 빈 상태 마스코트.
+   */
+  BrandGlyph: [16, 20, 24, 28, 32, 96],
+  /*
+   * 하마 + 금화 **연출**. 심볼과 계단이 다른 이유: 이건 배지가 아니라 **무대**다 —
+   * 금화가 무대 오른쪽 위 밖으로 나가야 연출이 성립해서(HippoCoinScene.styled.ts SceneRoot),
+   * 배지 크기(20~32)로 줄이면 금화가 10px 짜리 점이 되어 무엇인지 읽히지 않는다.
+   * 88 랜딩 마무리 패널(앱에서 금화가 켜지는 단 한 자리) · 240 히어로급 · 280 최대.
+   */
+  HippoCoinScene: [88, 240, 280]
+};
 
 const collect = (dir: string, out: string[] = []): string[] => {
   for (const entry of readdirSync(dir)) {
@@ -73,8 +78,8 @@ const OPEN_TAG = /<([A-Z][A-Za-z0-9_]*)\b((?:[^<>{}]|\{[^{}]*\})*?)\/?>/g;
 
 type IconUse = { path: string; component: string; size: number; stroke: number | null };
 
-/** lucide 가 아닌 글리프 사용처 — 위 `NON_LUCIDE_GLYPHS` 가 걸러낸 것들. 별도 계약을 건다. */
-const BRAND_GLYPH_USES: { path: string; size: number }[] = [];
+/** lucide 가 아닌 글리프 사용처 — 위 맵이 걸러낸 것들. 부품마다 제 계단으로 검사한다. */
+const BRAND_GLYPH_USES: { path: string; component: string; size: number }[] = [];
 
 const ICON_USES: IconUse[] = FILES.flatMap(({ path, source }) => {
   const uses: IconUse[] = [];
@@ -82,8 +87,8 @@ const ICON_USES: IconUse[] = FILES.flatMap(({ path, source }) => {
     const [, component, attrs] = match;
     const size = attrs.match(/\bsize=\{(\d+)\}/);
     if (!size) continue;
-    if (NON_LUCIDE_GLYPHS.has(component)) {
-      BRAND_GLYPH_USES.push({ path, size: Number(size[1]) });
+    if (component in NON_LUCIDE_GLYPH_SIZES) {
+      BRAND_GLYPH_USES.push({ path, component, size: Number(size[1]) });
       continue;
     }
     /*
@@ -151,8 +156,8 @@ describe('아이콘 일관성', () => {
     expect(BRAND_GLYPH_USES.length).toBeGreaterThan(0);
 
     const offScale = BRAND_GLYPH_USES.filter(
-      (use) => !BRAND_GLYPH_SIZES.includes(use.size)
-    ).map((use) => `${use.path} <BrandGlyph size={${use.size}}>`);
+      (use) => !NON_LUCIDE_GLYPH_SIZES[use.component].includes(use.size)
+    ).map((use) => `${use.path} <${use.component} size={${use.size}}>`);
 
     expect(offScale).toEqual([]);
   });

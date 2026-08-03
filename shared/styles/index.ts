@@ -68,7 +68,8 @@ export {
   nestedRadius,
   outerRadius,
   pickLift,
-  surface
+  surface,
+  topRail
 } from './surfaces';
 export type { SurfaceKind, SurfaceTier } from './surfaces';
 

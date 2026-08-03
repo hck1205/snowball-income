@@ -4,7 +4,7 @@
 
 import type { ThemeTokens } from '../semantic';
 import { chartSeriesTokens, type ChartSeries } from './chartSeriesTokens';
-import { buildAuroraGradient, buildCtaGradient, buildHeroGradient } from './gradients';
+import { buildAuroraGradient, buildCtaGradient } from './gradients';
 import { COMMON_DARK, COMMON_LIGHT } from './sharedTokens';
 
 /** vivid: 시리즈 0 = 일렉트릭 블루(vs violet ΔE 39.94), green → 민트 #00997e(vs olive ΔE 66.16). */
@@ -28,15 +28,21 @@ const VIVID_CHART_SERIES: ChartSeries = [
  * 4.27:1로 탈락했다(실측). 현 값 기준 4.92:1.
  */
 export const VIVID_LIGHT: ThemeTokens = {
-  /* 라벤더 틴트 강화(구 #f5f7ff → #eef0ff) — border-strong on bg 3.56, 글로우 최악 4.72(실측). hover=bg 동기. */
-  bg: '#eef0ff',
+  /*
+   * 🔴 **순백 캔버스**(2026-08-03 사용자 결정 — "페이지 전체 배경색이 흰색"). 구 값 라벤더 틴트(#eef0ff).
+   * bg = surface = surface-raised 가 전부 흰색이 되면서 **면색이 카드의 격을 말하지 못한다** —
+   * 그 일은 아래 `border`(헤어라인)·여백·그림자가 이어받았다. 라벤더는 `surface-hover`·brand 축에 남는다.
+   * 부수 효과: border-strong on bg 3.56 · 글로우 최악 4.72 제약이 둘 다 풀렸다.
+   */
+  bg: '#ffffff',
   surface: '#ffffff',
   'surface-raised': '#ffffff',
   'surface-muted': '#fafbff',
   'surface-sunken': '#e9edfc',
   'surface-hover': '#eef0ff',
 
-  border: '#dbe1f5',
+  /* 🔴 흰 캔버스의 주역. 구 1.30:1 → 새 1.44:1. */
+  border: '#d1d7eb',
   'border-strong': '#737e9d',
 
   text: '#171c33',
@@ -69,7 +75,8 @@ export const VIVID_LIGHT: ThemeTokens = {
 
   /* 살짝 컬러 섀도 — 경쾌함의 디테일 */
   'shadow-1': '0 1px 2px rgba(23, 26, 51, 0.06), 0 1px 3px rgba(23, 26, 51, 0.08)',
-  'shadow-2': '0 2px 4px rgba(45, 91, 245, 0.06), 0 4px 12px rgba(23, 26, 51, 0.10)',
+  /* ⚠ e2 만 올렸다 — raised 는 테두리 없이 이 그림자 하나로 선다. */
+  'shadow-2': '0 1px 2px rgba(45, 91, 245, 0.06), 0 6px 18px rgba(23, 26, 51, 0.13)',
   'shadow-3': '0 4px 10px rgba(45, 91, 245, 0.08), 0 12px 32px rgba(23, 26, 51, 0.18)',
 
   'ribbon-stop-1': '#2d5bf5',
@@ -83,11 +90,12 @@ export const VIVID_LIGHT: ThemeTokens = {
   'gradient-aurora': buildAuroraGradient(['#2d5bf5', '#00997e', '#7c5cff']),
   'gradient-cta': buildCtaGradient(['#2d5bf5', '#007a64', '#5b3de6']),
   /* 히어로 면 — 채도 강한 프리셋이라 캐스트를 라이트 0.16/0.13 으로 잡았다. 최악 text-muted 4.98:1. */
-  'gradient-hero': buildHeroGradient('#dcebf6', '#e3f4ee'),
-  'gradient-hero-soft': buildHeroGradient('#ecf4fa', '#f0f9f6'),
+  /* 히어로 면 — 단색. hero = surface / soft = surface-muted. */
+  'gradient-hero': '#ffffff',
+  'gradient-hero-soft': '#fafbff',
   /* 단색층만 새 bg(#eef0ff)로 — 알파 0.07/0.06은 유지 가능(글로우 최악 4.72 실측) */
-  'bg-glow':
-    'radial-gradient(1200px 640px at 16% -10%, rgba(0, 201, 167, 0.07), transparent 60%), radial-gradient(1000px 560px at 84% -12%, rgba(124, 92, 255, 0.06), transparent 55%), #eef0ff',
+  /* 🔴 상단 글로우를 걷었다. 다크 글로우는 남긴다. */
+  'bg-glow': '#ffffff',
   'surface-glass': 'rgba(255, 255, 255, 0.8)',
   'surface-glass-fallback': '#ffffff',
 
@@ -157,8 +165,9 @@ export const VIVID_DARK: ThemeTokens = {
   'gradient-aurora': buildAuroraGradient(['#6a8aff', '#00c9a7', '#9d86ff']),
   'gradient-cta': buildCtaGradient(['#3d63f2', '#00806a', '#6a4df0']),
   /* 히어로 면 — 다크 최악 text-muted 5.43:1 / soft 6.10:1(실측). */
-  'gradient-hero': buildHeroGradient('#172840', '#162b33'),
-  'gradient-hero-soft': buildHeroGradient('#141e33', '#13202c'),
+  /* 히어로 면 — 단색. 다크는 면 밝기 위계를 지킨다. */
+  'gradient-hero': '#1a1e38',
+  'gradient-hero-soft': '#202544',
   /* 알파 0.12/0.10 상한 — 0.16에서 text-muted 4.27:1 탈락 실측. 올리지 마라. */
   'bg-glow':
     'radial-gradient(1100px 600px at 18% -10%, rgba(0, 201, 167, 0.12), transparent 60%), radial-gradient(900px 520px at 82% -14%, rgba(157, 134, 255, 0.10), transparent 55%), #101223',

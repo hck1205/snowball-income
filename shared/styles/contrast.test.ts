@@ -238,9 +238,26 @@ const NON_TEXT: ReadonlyArray<[string, string]> = [
   ['ribbon-stop-3', 'progress-track']
 ];
 
-/** 파스텔 히어로 면 — 이 위에 본문 3단 위계가 그대로 올라간다(PageHero·EmptyState·프로모 카드). */
+/**
+ * 히어로 면 — 이 위에 본문 3단 위계가 그대로 올라간다(PageHero·EmptyState·프로모 카드).
+ *
+ * ⚠ 2026-08-03부터 이 값들은 **단색**이다(아래 "히어로 면은 단색이다" 게이트가 잠근다).
+ * `worstGradientRatio` 는 stop 이 하나면 그 색의 대비를 그대로 쓰므로 이 순회는 그대로 산다 —
+ * 램프가 부활해도 **여기서 먼저 재고**, 단색 계약은 따로 잡는다(두 겹).
+ */
 const HERO_GRADIENTS = ['gradient-hero', 'gradient-hero-soft'] as const;
 const HERO_TEXTS = ['text', 'text-secondary', 'text-muted'] as const;
+
+/**
+ * 🔴 **라이트 경계선의 허용 대역**(흰 캔버스 전환의 핵심 수치).
+ *
+ * 하한 1.35: 이보다 옅으면 흰 면 위에서 카드 윤곽이 사라진다(구 값 velog 1.19 가 그랬다).
+ * 상한 1.60: 이보다 진하면 1px 카드 윤곽이 컨트롤 경계(`border-strong`, 3:1)와 무게가 겹쳐
+ *            "모든 것이 상자"인 화면이 된다.
+ * 현재 실측: velog 1.49 · aurora 1.45 · forest 1.44 · vivid 1.44 · navy-gold 1.44 ·
+ *            grape 1.44 · sunset 1.44 · ink 1.44.
+ */
+const LIGHT_BORDER_BAND = { min: 1.35, max: 1.6 } as const;
 
 /**
  * 두 액센트(teal ↔ green)가 하나로 뭉치지 않는 최소 지각 거리.
@@ -395,6 +412,67 @@ describe('디자인 토큰 대비 (WCAG AA)', () => {
       const ratio = contrastRatio(theme.border, theme.surface);
 
       expect(ratio).toBeGreaterThan(1.05);
+    });
+
+    /**
+     * 🔴 **흰 캔버스 계약**(2026-08-03 사용자 결정: "페이지 전체 배경색이 흰색").
+     *
+     * 라이트 `bg` 는 순백이다. 이 한 줄이 아래 두 게이트의 전제이기도 하다 —
+     * bg 가 다시 틴트로 돌아가면 border 를 1.45 로 올려 둔 근거가 사라진다.
+     * ⚠ 다크는 대상이 아니다. 어두운 캔버스에서 위계를 만드는 것은 여전히 면 밝기이고
+     *   (bg < sunken < surface < raised), "흰 배경"은 라이트 모드의 개념이다.
+     */
+    if (modeOf(themeName) === 'light') {
+      it('라이트 캔버스는 순백이다', () => {
+        expect(theme.bg, `bg(${theme.bg})`).toBe('#ffffff');
+      });
+
+      /**
+       * 🔴 **경계가 카드의 격을 말한다.**
+       *
+       * bg = surface = surface-raised 가 전부 흰색이라 면색은 더 이상 카드를 세우지 못한다.
+       * 구 값은 1.19~1.39:1 로 장식 수준이었고, 그 상태에서 bg 만 흰색으로 올리면 카드가
+       * 배경에 녹는다. 새 대역 1.44~1.49:1 은 **다크가 이미 쓰던 대역**(1.34~1.49)이고
+       * GitHub `#d0d7de`(1.45)와 같은 자리다.
+       *
+       * 상한 1.60 이 있는 이유: 더 올리면 1px 경계가 `border-strong`(컨트롤 경계, 3:1) 쪽으로
+       * 다가가 카드 윤곽이 입력칸보다 무거워진다 — 흰 캔버스의 이득이 거기서 사라진다.
+       */
+      it('라이트 경계선은 흰 캔버스 위에서 격을 말한다 (1.35~1.60:1)', () => {
+        const ratio = roundRatio(contrastRatio(theme.border, theme.surface));
+
+        expect(ratio, `border(${theme.border}) on surface(${theme.surface}) = ${ratio}:1`).toBeGreaterThanOrEqual(
+          LIGHT_BORDER_BAND.min
+        );
+        expect(ratio, `border(${theme.border}) on surface(${theme.surface}) = ${ratio}:1`).toBeLessThanOrEqual(
+          LIGHT_BORDER_BAND.max
+        );
+      });
+
+      /** 페이지 배경 글로우도 캔버스다 — 상단 640px 을 물들이면 그건 흰 배경이 아니다. */
+      it('라이트 페이지 글로우는 캔버스와 같은 단색이다', () => {
+        expect(theme['bg-glow'], `bg-glow(${theme['bg-glow']})`).toBe(theme.bg);
+      });
+    }
+
+    /**
+     * 🔴 **히어로 면은 더 이상 그라데이션이 아니다**(2026-08-03).
+     *
+     * 구 값(아이스블루 205° → 민트 158°)은 프리셋 hue 와 무관한 옛 브랜드 램프였다 —
+     * 선셋 프리셋의 히어로가 하늘색이었고, grape 도 마찬가지였다. 근거 전문은
+     * presets/gradients.ts 머리말. 토큰 **이름**은 역할이라 남기고 값만 단색으로 내렸다.
+     *
+     * 이 게이트가 지키는 것 둘:
+     *  ① 값에 `gradient(` 가 다시 들어오면 실패 — 램프 부활을 여기서 잡는다.
+     *  ② 값이 검증된 면 토큰과 **같은 문자열**이어야 한다 — 그래야 위 `text* on surface` /
+     *    `text* on surface-muted` 쌍이 히어로 위 본문 3단을 그대로 커버한다(별도 샘플링 불필요).
+     */
+    it.each([
+      ['gradient-hero', 'surface'],
+      ['gradient-hero-soft', 'surface-muted']
+    ] as const)('히어로 면 %s 는 단색이고 %s 와 같은 값이다', (heroKey, surfaceKey) => {
+      expect(theme[heroKey], `${heroKey}(${theme[heroKey]})`).not.toContain('gradient(');
+      expect(theme[heroKey], `${heroKey} 는 ${surfaceKey} 와 같은 값이어야 한다`).toBe(theme[surfaceKey]);
     });
 
     it('아이덴티티 틴트 면은 서피스와 면으로 갈린다 (ΔE ≥ 5)', () => {

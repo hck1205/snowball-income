@@ -4,7 +4,7 @@
 
 import type { ThemeTokens } from '../semantic';
 import { chartSeriesTokens, type ChartSeries } from './chartSeriesTokens';
-import { buildAuroraGradient, buildDuotoneGradient, buildHeroGradient } from './gradients';
+import { buildAuroraGradient, buildDuotoneGradient } from './gradients';
 import { COMMON_DARK, COMMON_LIGHT } from './sharedTokens';
 
 /**
@@ -29,15 +29,21 @@ const SUNSET_CHART_SERIES: ChartSeries = [
  * (#e05c2a도 3.66) velog 다크와 같은 어두운 라벨 반전(on-brand #1e1410, 7.77:1).
  */
 export const SUNSET_LIGHT: ThemeTokens = {
-  /* 웜 크림 */
-  bg: '#fbf1e8',
+  /*
+   * 🔴 **순백 캔버스**(2026-08-03 사용자 결정 — "페이지 전체 배경색이 흰색"). 구 값 웜 크림(#fbf1e8).
+   * bg = surface = surface-raised 가 전부 흰색이 되면서 **면색이 카드의 격을 말하지 못한다** —
+   * 그 일은 아래 `border`(헤어라인)·여백·그림자가 이어받았다. 웜 크림은 `surface-hover`·`surface-sunken` 과
+   * 코랄/앰버 축에 남는다.
+   */
+  bg: '#ffffff',
   surface: '#ffffff',
   'surface-raised': '#ffffff',
   'surface-muted': '#fdf8f3',
   'surface-sunken': '#f6e9dd',
   'surface-hover': '#fbf1e8',
 
-  border: '#f0dcc9',
+  /* 🔴 흰 캔버스의 주역. 구 1.33:1 → 새 1.44:1. */
+  border: '#e8d4c1',
   'border-strong': '#8a7a68',
 
   text: '#2b2118',
@@ -73,7 +79,8 @@ export const SUNSET_LIGHT: ThemeTokens = {
 
   /* 웜 섀도 */
   'shadow-1': '0 1px 2px rgba(58, 38, 20, 0.06), 0 1px 3px rgba(58, 38, 20, 0.08)',
-  'shadow-2': '0 2px 4px rgba(58, 38, 20, 0.06), 0 4px 12px rgba(58, 38, 20, 0.10)',
+  /* ⚠ e2 만 올렸다 — raised 는 테두리 없이 이 그림자 하나로 선다. */
+  'shadow-2': '0 1px 2px rgba(58, 38, 20, 0.05), 0 6px 18px rgba(58, 38, 20, 0.13)',
   'shadow-3': '0 2px 6px rgba(58, 38, 20, 0.08), 0 12px 32px rgba(58, 38, 20, 0.18)',
 
   'ribbon-stop-1': '#bc4c0f',
@@ -91,10 +98,14 @@ export const SUNSET_LIGHT: ThemeTokens = {
    * 히어로 면 — 8종 중 쿨 캐스트가 가장 약하다(0.10/0.08). 웜 크림이 정체성이라
    * 여기서 캐스트를 올리면 프리셋이 다른 프리셋처럼 보인다. 최악 text-muted 5.68:1.
    */
-  'gradient-hero': buildHeroGradient('#e9f3f9', '#eef8f5'),
-  'gradient-hero-soft': buildHeroGradient('#f3f8fc', '#f6fbf9'),
-  'bg-glow':
-    'radial-gradient(1200px 640px at 16% -10%, rgba(188, 76, 15, 0.05), transparent 60%), radial-gradient(1000px 560px at 84% -12%, rgba(201, 123, 6, 0.05), transparent 55%), #fbf1e8',
+  /*
+   * 히어로 면 — 단색. 구 값은 **노을 프리셋인데 하늘색**(#e9f3f9→#eef8f5)이었다 —
+   * grape 와 함께, 히어로 램프가 프리셋 축이 아니라 옛 브랜드 축이었다는 결정적 증거다.
+   */
+  'gradient-hero': '#ffffff',
+  'gradient-hero-soft': '#fdf8f3',
+  /* 🔴 상단 글로우를 걷었다. 다크 글로우는 남긴다. */
+  'bg-glow': '#ffffff',
   'surface-glass': 'rgba(255, 255, 255, 0.8)',
   'surface-glass-fallback': '#ffffff',
 
@@ -166,8 +177,9 @@ export const SUNSET_DARK: ThemeTokens = {
   /* 어두운 라벨(on-brand #1e1410) 전제의 밝은 CTA duotone */
   'gradient-cta': buildDuotoneGradient('#ff8a5c', '#f5b942'),
   /* 히어로 면 — 웜 다크 위 최소 캐스트. 최악 text-muted 5.42:1 / soft 5.91:1(실측). */
-  'gradient-hero': buildHeroGradient('#222429', '#21281e'),
-  'gradient-hero-soft': buildHeroGradient('#201d1e', '#201f18'),
+  /* 히어로 면 — 단색. 다크는 면 밝기 위계를 지킨다. */
+  'gradient-hero': '#2a1f19',
+  'gradient-hero-soft': '#30251e',
   /* 다크 글로우 알파 0.10/0.08 상한(사전 계산으로 0.12에서 감쇄). 글로우 최악 위 text-muted 4.63. */
   'bg-glow':
     'radial-gradient(1100px 600px at 18% -10%, rgba(255, 138, 92, 0.10), transparent 60%), radial-gradient(900px 520px at 82% -14%, rgba(245, 185, 66, 0.08), transparent 55%), #1e1410',

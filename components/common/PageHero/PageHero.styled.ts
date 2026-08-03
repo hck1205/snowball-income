@@ -9,7 +9,8 @@ import {
   pageHue,
   pageHueMix,
   radius,
-  space
+  space,
+  topRail
 } from '@/shared/styles';
 import type { PageHeroTone } from './PageHero.types';
 
@@ -21,8 +22,15 @@ import type { PageHeroTone } from './PageHero.types';
  * 즉 `radius.xl`(20px) 로 둥근 구간에 앉는다. 그래서 40px 액션 버튼이 히어로의 둥근 모서리를
  * 가로질러 4.6px 삐져나와 있었다(2026-07-30 실측, ≤640px). 두 자리에 손으로 적으면 어긋나므로
  * 한 곳에서 파생한다.
+ *
+ * 🔴 2026-08-03(흰 캔버스 전환)에 20~32 → **24~40** 으로 넓혔다. 히어로 배경이 파스텔 그라디언트에서
+ * 흰 면으로 바뀌면서 "여기가 도입부다"를 말하던 채널 하나가 사라졌다 — 그 몫을 **여백**이 받는다.
+ * 40px 상한은 이 레포에서 이미 검증된 최대 카드 패딩(티커 허브 `clamp(24px, 3vw, 40px)`)과 같다.
  */
-const HERO_PADDING = 'clamp(20px, 3vw, 32px)';
+const HERO_PADDING = 'clamp(24px, 3.4vw, 40px)';
+
+/** 상단 페이지-hue 리본 두께. 4px 은 구 로컬 히어로의 오로라 리본과 같다(면 하한 8px 미만 = 선). */
+const HERO_RAIL_HEIGHT = '4px';
 
 /**
  * 페이지 첫 화면. 전 페이지가 **같은 자리에서 같은 것**(무엇을 하는 화면인가 → 근거 → 액션)을 말하게 해
@@ -38,40 +46,57 @@ const HERO_PADDING = 'clamp(20px, 3vw, 32px)';
  * ── 페이지 정체성 hue ──────────────────────────────────────────────────────────
  * 이전에는 세 화면의 히어로가 **같은 배경·같은 테두리**라 탭을 옮겨도 화면이 바뀐 느낌이 없었다.
  * 이제 히어로 크롬은 라우트가 발행하는 `--sb-page-hue`(`shared/hooks/usePageHue`)를 읽는다:
- * **①상단 4px 리본 ②아이콘 배지 ③메타 줄 밑줄 ④테두리** 네 곳. 배경(`gradientHero`)은 전 페이지
- * 공통으로 남겨 "같은 앱"을 유지하고, 색만 페이지마다 갈린다.
+ * **①상단 4px 리본 ②아이콘 배지 ③메타 줄 밑줄 ④테두리** 네 곳.
  *
  * 🔴 **hue 파생 면 위에 텍스트를 얹지 마라** — `color-mix` 결과는 대비 테스트가 못 보는 값이다.
  *    제목·리드·메타는 전부 검증된 토큰 면(히어로 배경) 위의 `text`/`text-secondary` 다.
  * 🔴 **hue 를 배지에 *솔리드*로 채우지 않는 이유**: hue 4종은 라이트/다크에서 명암이 **반대로**
  *    간다(라이트 accent-alt `#26a14f` vs 다크 `#6ee7a0`). 흰 글리프를 얹으면 다크에서 1.3:1 로
  *    사라진다. 그래서 "옅은 틴트 면 + hue 글리프" — 티커 상세의 `--tk-soft`/`--tk-text` 와 같은 처방.
+ *
+ * ── 🔴 2026-08-03: 파스텔 배경을 걷었다 ────────────────────────────────────────
+ * 종전 배경 `gradientHero` 는 아이스블루→민트 파스텔 램프였다. 사용자 결정으로 그 램프가
+ * 없어지면서(근거: `shared/styles/presets/gradients.ts` 머리말) 히어로는 **흰 카드**가 된다.
+ * "여기가 도입부다"를 말하던 채널 하나가 사라졌으므로 나머지 셋을 그만큼 키웠다:
+ *   ① 여백    20~32 → **24~40px** (HERO_PADDING)
+ *   ② 리본    4px 그대로 — 이제 화면에서 유일하게 채도를 가진 히어로 요소라 무게가 커졌다
+ *   ③ 경계    hue 38% → **48%** (흰 면 위에서 38% 는 사라진다)
+ * ⚠ 구조는 그대로다 — 슬롯(icon·title·titleAction·actions·lede·notice·meta)은 하나도 안 바뀌었다.
  */
 export const HeroRoot = styled.header<{ $tone: PageHeroTone }>`
   display: grid;
   gap: ${space[3]};
   /* 좁은 폭에서 titleAction 이 흐름에서 빠져 제목 줄 오른쪽에 붙는다 — 그 좌표 기준. */
   position: relative;
-  /* 상단 리본이 둥근 모서리를 넘지 않게 자른다. position:fixed 자손(스티키 액션)은
-     transform 조상이 없으므로 이 클리핑에 걸리지 않는다(2026-07-31 실측으로 확인). */
+  /*
+   * 🔴 **상단 리본이 둥근 모서리를 넘지 않게 자르는 유일한 장치다. 지우지 마라.**
+   * 리본은 직사각형이고 이 카드는 radius.xl 이라, 이 한 줄이 없으면 모서리에서 4px 띠가
+   * 카드 밖으로 직진한다. 리본에 반경을 주는 처방은 4px 높이에서 **작동하지 않는다**
+   * (반경 축소 규칙 때문에 오히려 틈이 생긴다 — 근거는 shared/styles 의 topRail 주석).
+   * position:fixed 자손(스티키 액션)은 transform 조상이 없으므로 이 클리핑에 걸리지 않는다
+   * (2026-07-31 실측으로 확인).
+   */
   overflow: hidden;
   padding: ${HERO_PADDING};
   /*
    * 테두리도 리본·배지와 **같은 축**(페이지 hue)이다. 예전에는 accent 고정이라 어느 화면에서나
    * 같은 색이었고, 그래서 "탭을 옮겨도 같은 화면"으로 읽혔다. 경계는 텍스트가 아니므로
    * hue 파생(color-mix)을 써도 대비 계약을 건드리지 않는다.
+   *
+   * 🔴 38% → 48%(2026-08-03). 히어로 배경이 파스텔에서 흰 면으로 바뀌면서 이 1px 이 카드와
+   * 캔버스를 가르는 **유일한** 선이 됐다 — 38% 는 흰 면 위에서 중립 border 보다도 옅었다.
    */
-  border: 1px solid ${pageHueMix(38, 'transparent')};
+  border: 1px solid ${pageHueMix(48, 'transparent')};
   border-radius: ${radius.xl};
   background: ${({ $tone }) => ($tone === 'gradient' ? color.gradientHero : color.surface)};
   min-width: 0;
 
-  /* 페이지 얼굴색을 가장 크게 말하는 자리. 4px 은 구 로컬 히어로의 오로라 리본과 같은 두께다. */
+  /*
+   * 페이지 얼굴색을 가장 크게 말하는 자리. 반경은 주지 않는다 — 위 overflow 가 자른다.
+   * 선언은 topRail() 이 소유한다(레포 전체가 같은 처방을 쓰도록).
+   */
   &::before {
-    content: '';
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: 4px;
+    ${topRail(HERO_RAIL_HEIGHT)}
     background: ${pageHue};
   }
 `;

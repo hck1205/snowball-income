@@ -40,7 +40,8 @@ padding: ${space[4]};
 | 5 | 카드 hover 액센트 바 (프리셋·ScenarioCard·TourPopover) | `gradient-aurora` |
 | 6 | BrandMark(로고) | `--sb-ribbon-stop-1~3` |
 
-여기에 페이지 상단의 배경 글로우(`bg-glow`, body 한 곳)가 앰비언트로 깔린다.
+여기에 **다크에서만** 페이지 상단 배경 글로우(`bg-glow`, body 한 곳)가 앰비언트로 깔린다
+(라이트는 순백 캔버스라 글로우가 없다 — 2026-08-03).
 **이 목록 밖에 리본/글로우를 추가하지 마라** — 시그니처는 희소해야 시그니처다.
 작은 유틸리티 버튼·상태 토글은 솔리드 `color.brand`를 유지한다.
 
@@ -138,11 +139,11 @@ velog에서 `gradient-aurora`는 "오로라"가 아니라 틸그린 duotone이�
 
 | 토큰 | 라이트 | 다크 | 용도 |
 |---|---|---|---|
-| `color.bg` | `#e4f0fc` | `#0a1220` | 페이지 배경 (아이스블루 틴트 / polar-night) |
+| `color.bg` | `#ffffff` | `#0a1220` | 페이지 배경 — 🔴 **라이트는 전 프리셋 순백**(2026-08-03) |
 | `color.surface` | `#ffffff` | `#131f33` | 카드 |
 | `color.surfaceRaised` | `#ffffff` | `#1b2a44` | 떠 있는 것(모달) |
 | `color.surfaceSunken` | `#e6eef7` | `#0e1727` | 한 단계 내려간 영역 |
-| `color.border` | `#dbe6f0` | `#26354e` | 카드 윤곽(장식) |
+| `color.border` | `#cdd8e2` | `#26354e` | 🔴 카드 윤곽 — **흰 캔버스에서 격을 말하는 주역**(라이트 1.44~1.49:1) |
 | `color.borderStrong` | `#75859a` | `#5f7291` | **컨트롤 경계** (input/select) — 3:1 |
 | `color.text` | `#131f33` | `#e8eef8` | 본문 |
 | `color.textSecondary` | `#43556b` | `#a9b7cc` | 라벨 |
@@ -160,10 +161,10 @@ velog에서 `gradient-aurora`는 "오로라"가 아니라 틸그린 duotone이�
 | `color.identityText` | `#085a88` | `#79c5e6` | 아이덴티티 면 위 라벨 (4.5:1 검증, **전 프리셋 공통**) |
 | `color.gradientAurora` | glacier→teal→violet | (밝은 stop) | 표시용 리본 |
 | `color.gradientCta` | 흰 라벨 4.5:1 stop | (동) | primary CTA 채움 |
-| `color.gradientHero` / `gradientHeroSoft` | `#dcebf6→#e6f5ef` / `#ecf4fa→#f1f9f6` | `#12283e→#10292f` / `#0f1e30→#0d1f28` | **면 배경 전용** 파스텔 히어로 (버튼·리본 금지) |
+| `color.gradientHero` / `gradientHeroSoft` | `#ffffff` / `#f9fbfd` | `#131f33` / `#17253c` | **면 배경 전용** 히어로 — 🔴 **더 이상 그라데이션이 아니다**(= surface / surface-muted) |
 | `color.gradientWordmarkSnow` / `...Income` (이름은 구 제품명 잔재인 식별자, 값은 워드마크 앞/뒷 낱말) | `#3ba5d3→#79c5e6` / `#0d9488→#22a06b` | `#79c5e6→#aadcf2` / `#2dd4bf→#6ee7a0` | 워드마크 텍스트 그라데이션 (**전 프리셋 공통**) |
 | `color.wordmarkSnowSolid` / `wordmarkIncomeSolid` | `#3ba5d3` / `#0d9488` | (라이트와 동일) | 워드마크 단색 폴백 |
-| `color.bgGlow` | radial×2+bg | (동) | body 배경 전용 |
+| `color.bgGlow` | `#ffffff` | radial×2+bg | body 배경 전용 — 🔴 **라이트 글로우는 걷었다**(다크는 유지) |
 | `color.surfaceGlass` / `surfaceGlassFallback` | `rgba(255,255,255,0.78)` / `#ffffff` | `rgba(27,42,68,0.85)` / `#1b2a44` | 서리유리 (다크 알파 0.85 미만 금지) |
 | `color.progressTrack` | `#e6eef7` | `#0e1727` | 진행률 트랙 |
 | `color.dataPositive` | `#d92d20` | `#f4776a` | **상승** (불변) |
@@ -183,6 +184,48 @@ velog에서 `gradient-aurora`는 "오로라"가 아니라 틸그린 duotone이�
 > 한 번에 낸다). 🔴 **한 면이 테두리와 그림자를 동시에 갖지 않는다** — 주역은 그림자, 본문은 테두리,
 > 부속은 면색. 카드 표면은 이 세 속성을 스스로 적지 말고 여기서 받는다
 > (가드: `test/shared/cardElevationHierarchy.test.ts`).
+
+### 🔴 흰 캔버스 — 격을 말하는 채널 (2026-08-03)
+
+사용자 결정으로 **라이트 `bg` 가 전 프리셋 순백**이 됐다("페이지 전체 배경색이 흰색").
+그 한 줄이 시스템 전체를 바꾼다 — `bg = surface = surface-raised = #ffffff` 라서
+**면색이 더 이상 카드의 격을 말하지 못한다.**
+
+| | 종전 | 지금 |
+|---|---|---|
+| 카드를 세우는 것 | 흰 카드 vs 회색 배경(면색) | **1px 헤어라인 + 여백** |
+| 주역(raised) | `surface-raised` 면색 + 약한 e2 | `border: none` + **보이는 e2** |
+| 부속(sunken) | `surface-sunken` 면색 | 그대로 — 흰 캔버스에서 오히려 또렷해졌다 |
+
+실측(라이트, 8프리셋):
+
+```
+  bg = surface = surface-raised   #ffffff       (navy-gold 만 surface 아이보리 #fffcf5)
+  surface-muted   1.03~1.07:1     카드 '안'의 타일 — 속삭임. 🔴 더 어둡게 못 내린다
+                                  (공통 data-positive 가 ink 에서 4.50:1 knife-edge)
+  surface-sunken  1.11~1.25:1     들어간 자리(표 머리·코드·빈 상태) — 유일한 진짜 계단
+  border          1.44~1.49:1     🔴 새 주역. 구 값은 1.19~1.39(장식)
+                                  참고: 다크 border 는 원래 1.34~1.49 였다 — 라이트만 뒤처져 있었다
+```
+
+지키는 것: `contrast.test.ts` 의 **"라이트 캔버스는 순백이다"** · **"라이트 경계선은 흰 캔버스
+위에서 격을 말한다(1.35~1.60:1)"** · **"라이트 페이지 글로우는 캔버스와 같은 단색이다"**.
+
+#### 파스텔 히어로 램프를 걷었다
+
+`gradient-hero` / `gradient-hero-soft` 는 **더 이상 그라데이션이 아니다**(= 그 테마의 `surface` /
+`surface-muted`). 구 값(아이스블루 205° → 민트 158°)은 프리셋 hue 와 무관한 **옛 브랜드 잔재**였다 —
+선셋 프리셋의 히어로가 하늘색이었고 grape 도 마찬가지였다. 그 램프는 16테마 32그라디언트 중
+**전역 대비 최악 지점**(velog 다크 4.58:1)도 함께 갖고 있었다. 유도·근거 전문은
+`presets/gradients.ts` 머리말.
+
+유지한 그라디언트 3계열과 근거: `gradient-aurora`·`gradient-cta` 는 stop 이 **그 프리셋 자신의**
+brand/accent 램프에서 나오고 3~6px 선·작은 버튼에만 앉는다. `gradient-wordmark-*` 는 제품 이름
+그 자체이고 WCAG 1.4.3 이 로고 텍스트를 면제한다.
+
+🔴 **틴트 면 예산이 하나 풀렸다**(히어로가 더 이상 채도 면이 아니다 — 구 내역은 대개 ①히어로
+②푸터로 2/2 였다). 상한은 그대로 **2** 다. 자동으로 채우지 마라 — 흰 캔버스의 이득은 절제에서
+나온다. 쓸 거라면 화면당 딱 한 장, 그 화면을 켠 이유(결과 요약·마무리 CTA)에만.
 
 ### 상승/하락은 왜 빨강/파랑인가 (의도적 결정)
 
