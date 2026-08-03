@@ -3,56 +3,64 @@ import { render, screen } from '@testing-library/react';
 import { BrandGlyph } from './index';
 
 /**
- * 브랜드 심볼의 계약을 잠근다. 그림이 예쁜지는 여기서 못 재지만(그건 눈으로 본다),
- * **어디에 놓여도 깨지지 않는 성질** 셋은 잴 수 있다.
+ * 브랜드 심볼의 계약.
+ *
+ * 🔴 이 파일은 한 번 통째로 다시 쓰였다(2026-08-03). 종전에는 손으로 그린 **인라인 SVG** 를
+ * 검사했는데(viewBox 24 고정 · currentColor · circle 개수), 그 그림이 20~32px 에서 하마로
+ * 읽히지 않아 실제 자산(래스터)으로 갈아탔다. 그때 SVG 내부를 단정하던 검사들은 **낡은 기대값**이라
+ * 구현을 되돌리는 대신 계약을 다시 적었다 — 지금 잠그는 것은 "무엇으로 그리는가"가 아니라
+ * **"어디에 놓여도 깨지지 않는 성질"** 이다.
  */
 describe('BrandGlyph', () => {
   /**
-   * 🔴 이 레포는 하드코딩 hex 를 금지한다. 부품이 색을 스스로 정하면 프리셋 8종·다크 전환을
-   * 따라가지 못하고, 16테마 대비 검증 밖으로 나간다. 그래서 색은 전부 `currentColor` 다.
-   * ⚠ 예외는 눈의 흰자 하나뿐이고, 그것도 `var(--sb-surface)` 라 테마를 따라간다.
+   * 🔴 기본은 **장식**이다 — 옆에 워드마크나 제목이 이름을 말하므로 두 번 읽히면 소음이다.
+   * 그래서 이름으로 찾을 수 없어야 한다.
    */
-  it('색을 스스로 정하지 않는다 — 하드코딩 hex 가 없다', () => {
+  it('기본은 장식이라 접근성 트리에 이름이 없다', () => {
     const { container } = render(<BrandGlyph />);
-    const svg = container.querySelector('svg')!;
 
-    // 폴백 #fff 는 CSS 변수가 없을 때만 쓰이는 것이라 var() 안에 있어야 한다.
-    const hexOutsideVar = svg.outerHTML.replace(/var\([^)]*\)/g, '').match(/#[0-9a-f]{3,8}/gi);
-    expect(hexOutsideVar).toBeNull();
-    expect(svg.outerHTML).toContain('currentColor');
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    expect(container.querySelector('img')).toHaveAttribute('alt', '');
   });
 
-  /**
-   * 기본은 **장식**이다 — 옆에 워드마크 텍스트가 이름을 말하므로 두 번 읽히면 소음이다.
-   * 이름을 이 그림이 져야 하는 자리에서만 title 을 넘긴다.
-   */
-  it('기본은 장식이고, title 을 주면 이름을 진다', () => {
-    const { container, rerender } = render(<BrandGlyph />);
-    expect(container.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
+  it('title 을 주면 그때만 이름을 진다', () => {
+    render(<BrandGlyph title="Hungry Hippo" />);
 
-    rerender(<BrandGlyph title="Hungry Hippo" />);
     expect(screen.getByRole('img', { name: 'Hungry Hippo' })).toBeInTheDocument();
   });
 
-  /** viewBox 는 24 고정이다 — 호출부가 그 좌표계에 기대어 크기를 맞춘다. */
-  it('size 를 바꿔도 viewBox 는 24 로 고정이다', () => {
+  /** 무대가 정사각이라야 옆 글자와의 정렬이 흔들리지 않는다. */
+  it('size 가 무대의 가로·세로에 그대로 간다', () => {
     const { container } = render(<BrandGlyph size={48} />);
-    const svg = container.querySelector('svg')!;
+    const root = container.firstElementChild as HTMLElement;
 
-    expect(svg).toHaveAttribute('viewBox', '0 0 24 24');
-    expect(svg).toHaveAttribute('width', '48');
+    expect(root.style.width || getComputedStyle(root).width).toContain('48');
+    expect(container.querySelector('img')).toHaveAttribute('width', '48');
   });
 
   /**
-   * 🔴 금화는 **네이비 패널 위에서만** 켠다(밝은 면 위 금색 1.83:1). 기본이 꺼져 있어야
-   * "모르고 켜는" 사고가 안 난다 — 켜려면 호출부가 명시적으로 결정해야 한다.
+   * 🔴 금화는 **네이비 패널 위에서만** 켠다(밝은 면 위 금색 1.83:1).
+   * 기본이 꺼져 있어야 "모르고 켜는" 사고가 안 난다 — 켜려면 호출부가 명시적으로 결정해야 한다.
    */
-  it('금화는 기본으로 꺼져 있다', () => {
+  it('금화는 기본으로 꺼져 있고 accent 로만 켜진다', () => {
     const { container, rerender } = render(<BrandGlyph />);
-    const circles = () => container.querySelectorAll('circle').length;
-    const withoutAccent = circles();
+    const coins = () => [...container.querySelectorAll('img')].filter((img) => img.getAttribute('src')?.includes('coin'));
+
+    expect(coins()).toHaveLength(0);
 
     rerender(<BrandGlyph accent />);
-    expect(circles()).toBe(withoutAccent + 1);
+    expect(coins()).toHaveLength(1);
+    // 금화는 언제나 장식이다 — 하마가 이미 브랜드를 말한다.
+    expect(coins()[0]).toHaveAttribute('aria-hidden', 'true');
+  });
+
+  /**
+   * ⚠ 여러 자리에 동시에 나오므로 지연 로딩이 기본이어야 한다.
+   * 첫 화면에서 즉시 필요한 자리는 호출부가 아니라 **브라우저 우선순위**가 처리한다.
+   */
+  it('마크는 지연 로딩한다', () => {
+    const { container } = render(<BrandGlyph />);
+
+    expect(container.querySelector('img')).toHaveAttribute('loading', 'lazy');
   });
 });

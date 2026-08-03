@@ -3,6 +3,8 @@ export type { BannerProps, BannerTone } from './Banner';
 
 export { BrandGlyph } from './BrandGlyph';
 export type { BrandGlyphProps } from './BrandGlyph';
+export { HippoCoinScene } from './HippoCoinScene';
+export type { HippoCoinSceneProps } from './HippoCoinScene';
 
 export { default as Button } from './Button';
 export type { ButtonProps, ButtonSize, ButtonVariant } from './Button';

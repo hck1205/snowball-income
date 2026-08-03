@@ -88,6 +88,13 @@ function PageFooterComponent({ notesTitle, notes, 'aria-label': ariaLabel = '사
           {/* 브랜드 마크는 아이콘 계단이 아니라 **자리의 크기**를 따른다(iconConsistency 의
               BRAND_GLYPH_SIZES). 매스트헤드 워드마크 옆은 24 다. */}
           <BrandSymbol>
+            {/*
+              🔴 금화(accent)를 켜지 않는다. 이 자리는 24px 이고 금화는 그 46%(약 11px)라
+              **무엇인지 읽히지 않는 점 하나**가 된다 — 켜 보고 실측해서 내린 결정이다.
+              하마+금화는 "정말 특별한 곳 한두 군데"만이라는 지시(2026-08-03)이고, 그 자리는
+              240px 로 서는 **랜딩 히어로의 HippoCoinScene** 하나다.
+              ⚠ 여덟 군데에 흩어져 있던 accent 를 이번에 전부 걷어냈다 — 다시 늘리지 마라.
+            */}
             <BrandGlyph size={24} />
           </BrandSymbol>
           {BRAND_NAME}
