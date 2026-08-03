@@ -262,15 +262,8 @@ export default function TickerHubView({
 
             {/* 밀도를 사용자가 고른다 — 카드는 훑기에, 표는 비교에 낫다. */}
             <ViewToggle role="group" aria-label="보기 형태">
-              <ViewToggleButton
-                type="button"
-                $active={filters.view === 'grid'}
-                aria-pressed={filters.view === 'grid'}
-                onClick={() => onViewChange('grid')}
-              >
-                <LayoutGrid size={ICON.xs} strokeWidth={ICON.stroke} aria-hidden />
-                카드
-              </ViewToggleButton>
+              {/* 🔴 **표가 먼저**다 — 기본값이 표이므로(DEFAULT_HUB_FILTERS) 순서도 그것을 따른다.
+                  기본값과 첫 칸이 어긋나면 "지금 어느 쪽인지"를 매번 다시 읽어야 한다. */}
               <ViewToggleButton
                 type="button"
                 $active={filters.view === 'table'}
@@ -279,6 +272,15 @@ export default function TickerHubView({
               >
                 <Rows3 size={ICON.xs} strokeWidth={ICON.stroke} aria-hidden />
                 표
+              </ViewToggleButton>
+              <ViewToggleButton
+                type="button"
+                $active={filters.view === 'grid'}
+                aria-pressed={filters.view === 'grid'}
+                onClick={() => onViewChange('grid')}
+              >
+                <LayoutGrid size={ICON.xs} strokeWidth={ICON.stroke} aria-hidden />
+                카드
               </ViewToggleButton>
             </ViewToggle>
           </FilterRow>

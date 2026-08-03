@@ -1,11 +1,10 @@
 import { useId } from 'react';
 import { BookOpen, CalendarDays, HelpCircle, LayoutGrid, ListChecks, Repeat } from 'lucide-react';
 import { Button } from '@/components';
-import { BrandGlyph, PageFooter, PageHero } from '@/components/common';
+import { PageFooter, PageHero } from '@/components/common';
 import { PORTFOLIO_PRESET_PLACEHOLDERS } from '@/shared/constants/portfolioPresets';
-import { LANDING_CHAPTERS, LANDING_COPY, LANDING_HERO_CTAS, landingChapter } from '../copy';
+import { LANDING_COPY, LANDING_HERO_CTAS, landingChapter } from '../copy';
 import {
-  ChapterIndex,
   ClosingCta,
   CompoundExplainer,
   ConceptLadder,
@@ -20,7 +19,6 @@ import type { LandingPageViewProps } from './LandingPage.types';
 import {
   HeroBlock,
   HeroExtras,
-  HeroIndexSlot,
   LandingGroup,
   LandingStack,
   ResumeNotice,
@@ -78,13 +76,6 @@ export default function LandingPageView({ viewModel, onHeroCta, onResume }: Land
       {/* S1 — 히어로. 헤더 워드마크는 span 이므로(AppHeader 기본값) 이 제목이 문서의 유일한 h1 이다. */}
       <HeroBlock>
         <PageHero
-          /* 🔴 브랜드 마스코트가 이 앱에서 **처음 등장하는 자리**다(before 는 범용 새싹 아이콘이었다).
-             절제해서 쓴다 — 20px 라인아트 한 개이고, 색은 배지가 주는 페이지 hue(currentColor)를 따른다.
-             크게 쓰지 않는 이유: 히어로는 접힘 위 예산이 바이트 단위로 잡혀 있어(CTA 하단 239px)
-             240px 짜리 그림이 들어올 자리가 없다. 큰 마스코트는 마무리 패널이 가져간다.
-             ⚠ 배지는 span[aria-hidden] 하나여야 한다(landingHeroOverrideCoupling 이 잠근다) —
-                BrandGlyph 는 기본이 aria-hidden 인 svg 라 그 계약을 건드리지 않는다. */
-          icon={<BrandGlyph size={20} />}
           title={copy.hero.title}
           titleAs="h1"
           lede={copy.hero.lede}
@@ -115,10 +106,6 @@ export default function LandingPageView({ viewModel, onHeroCta, onResume }: Land
           ) : null}
         </HeroExtras>
 
-        {/* 🔴 히어로 묶음 안이지만 h2 를 갖지 않는다 — 이 묶음의 헤딩은 h1 하나뿐이어야 한다. */}
-        <HeroIndexSlot>
-          <ChapterIndex chapters={LANDING_CHAPTERS} />
-        </HeroIndexSlot>
       </HeroBlock>
 
       {/* G2 배우기 — 단어(S3) → 원리(S4) → 시간(S5). 이 순서가 이 페이지의 학습 경로다. */}

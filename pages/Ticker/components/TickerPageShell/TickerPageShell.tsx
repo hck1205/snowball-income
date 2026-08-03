@@ -1,4 +1,5 @@
 import AppHeader from '@/components/AppHeader';
+import { PageFooterSlotProvider } from '@/components/common';
 import { CommunityAuthProvider } from '@/components/community/CommunityAuthProvider';
 import { isCommunityEnabled } from '@/shared/lib/supabase';
 import type { TickerPageShellProps } from './TickerPageShell.types';
@@ -24,8 +25,16 @@ import { ShellMain, ShellRoot } from './TickerPageShell.styled';
 export default function TickerPageShell({ children }: TickerPageShellProps) {
   const shell = (
     <ShellRoot>
-      <AppHeader />
-      <ShellMain>{children}</ShellMain>
+      {/*
+        🔴 푸터는 이 Provider 가 children **뒤**에 여는 자리로 착지한다 — 즉 `AppHeader` 와 **같은 레벨**,
+        `<main>` 밖이다. 두 가지가 동시에 풀린다: ①`<footer>` 가 main 의 자손이면 contentinfo
+        랜드마크가 죽는다(8개 화면 전부 그랬다) ②ShellMain 이 max-width 1200 이라 그 안에서는
+        전폭 띠가 될 수 없다. 근거 전문은 `components/common/PageFooter/PageFooterSlot.tsx` 머리말.
+      */}
+      <PageFooterSlotProvider>
+        <AppHeader />
+        <ShellMain>{children}</ShellMain>
+      </PageFooterSlotProvider>
     </ShellRoot>
   );
 

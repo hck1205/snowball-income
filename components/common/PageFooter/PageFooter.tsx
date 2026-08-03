@@ -1,10 +1,10 @@
 import { memo } from 'react';
+import { createPortal } from 'react-dom';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
-import { BrandGlyph } from '../BrandGlyph';
+import { usePageFooterSlot } from '../PageFooterSlot';
 import type { PageFooterProps } from './PageFooter.types';
 import {
   BrandMark,
-  BrandSymbol,
   FooterMasthead,
   FooterRoot,
   LegalLink,
@@ -80,23 +80,18 @@ const BRAND_NAME = COMMUNITY_COPY.nav.brand;
 
 function PageFooterComponent({ notesTitle, notes, 'aria-label': ariaLabel = '사이트 고지' }: PageFooterProps) {
   const hasNotes = (notes?.length ?? 0) > 0;
+  /*
+   * 🔴 셸이 열어 준 자리로 **DOM 만** 옮긴다(`PageFooterSlot.tsx` 에 이유 전문).
+   * 요약: `<footer>` 가 `<main>` 의 자손이면 contentinfo 랜드마크가 죽고, 셸의 main 이
+   * max-width 1200 이라 전폭 띠도 될 수 없다. 각주는 뷰의 상태에서 나오므로 호출부는 그대로 둔다.
+   * ⚠ 슬롯이 없으면(시뮬레이터·커뮤니티·테스트) 제자리에 그린다 — 기능이 사라지지 않는다.
+   */
+  const slot = usePageFooterSlot();
 
-  return (
+  const tree = (
     <FooterRoot aria-label={ariaLabel} {...{ [CAPTURE_EXCLUDE]: '' }}>
       <FooterMasthead>
         <BrandMark>
-          {/* 브랜드 마크는 아이콘 계단이 아니라 **자리의 크기**를 따른다(iconConsistency 의
-              BRAND_GLYPH_SIZES). 매스트헤드 워드마크 옆은 24 다. */}
-          <BrandSymbol>
-            {/*
-              🔴 금화(accent)를 켜지 않는다. 이 자리는 24px 이고 금화는 그 46%(약 11px)라
-              **무엇인지 읽히지 않는 점 하나**가 된다 — 켜 보고 실측해서 내린 결정이다.
-              하마+금화는 "정말 특별한 곳 한두 군데"만이라는 지시(2026-08-03)이고, 그 자리는
-              240px 로 서는 **랜딩 히어로의 HippoCoinScene** 하나다.
-              ⚠ 여덟 군데에 흩어져 있던 accent 를 이번에 전부 걷어냈다 — 다시 늘리지 마라.
-            */}
-            <BrandGlyph size={24} />
-          </BrandSymbol>
           {BRAND_NAME}
         </BrandMark>
 
@@ -125,6 +120,8 @@ function PageFooterComponent({ notesTitle, notes, 'aria-label': ariaLabel = '사
       <SiteNotice>{SITE_NOTICE}</SiteNotice>
     </FooterRoot>
   );
+
+  return slot ? createPortal(tree, slot) : tree;
 }
 
 const PageFooter = memo(PageFooterComponent);

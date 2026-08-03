@@ -1,10 +1,18 @@
-import { FilePlus, FileSpreadsheet, KeyRound, LockKeyhole, ShieldCheck, Table2 } from 'lucide-react';
-import { BrandGlyph, Button, HintText, PickCard, PickCardGrid } from '@/components/common';
-import { LEDGER_COPY } from '../../copy';
-import { LedgerStepRail } from '../LedgerStepRail';
-import type { LedgerConnectPanelProps } from './LedgerConnectPanel.types';
+import {
+  FilePlus,
+  FileSpreadsheet,
+  KeyRound,
+  LockKeyhole,
+  ShieldCheck,
+  Table2,
+} from "lucide-react";
+import { Button, HintText, PickCard, PickCardGrid } from "@/components/common";
+import { LEDGER_COPY } from "../../copy";
+import { LedgerStepRail } from "../LedgerStepRail";
+import type { LedgerConnectPanelProps } from "./LedgerConnectPanel.types";
 import {
   ChoiceBody,
+  ChoiceTitle,
   ConnectHeading,
   ConnectSection,
   ConnectStage,
@@ -15,8 +23,7 @@ import {
   PrivacyTitle,
   StageDivider,
   StageLede,
-  StageMascot
-} from './LedgerConnectPanel.styled';
+} from "./LedgerConnectPanel.styled";
 
 const copy = LEDGER_COPY;
 
@@ -25,7 +32,7 @@ const PRIVACY_FACTS = [
   { text: copy.privacy.where, Glyph: FileSpreadsheet },
   { text: copy.privacy.scope, Glyph: LockKeyhole },
   { text: copy.privacy.local, Glyph: Table2 },
-  { text: copy.privacy.revoke, Glyph: KeyRound }
+  { text: copy.privacy.revoke, Glyph: KeyRound },
 ] as const;
 
 /**
@@ -48,18 +55,15 @@ export default function LedgerConnectPanel({
   isAppSignedIn,
   onPickExistingSheet,
   onCreateSheet,
-  registerPickButton
+  registerPickButton,
 }: LedgerConnectPanelProps) {
-  const isPicking = phase === 'picking';
-  const isCreating = phase === 'creating';
+  const isPicking = phase === "picking";
+  const isCreating = phase === "creating";
   const isBusy = isPicking || isCreating;
 
   return (
     <ConnectSection aria-labelledby={headingId}>
       <ConnectStage>
-        <StageMascot>
-          <BrandGlyph size={96} />
-        </StageMascot>
         <ConnectHeading id={headingId}>{copy.connect.heading}</ConnectHeading>
         <StageLede>{copy.connect.stageLede}</StageLede>
         <StageDivider aria-hidden />
@@ -70,12 +74,18 @@ export default function LedgerConnectPanel({
       <PickCardGrid minColumnWidth="260px">
         <PickCard
           titleAs="h2"
-          title={copy.connect.existing.title}
-          cap={{
-            kind: 'rail',
-            axis: 'accent',
-            glyph: <FileSpreadsheet size={20} strokeWidth={1.8} aria-hidden focusable={false} />
-          }}
+          /*
+            🔴 아이콘이 제목 **위**가 아니라 **같은 줄**에 선다(2026-08-03 사용자 지시).
+            종전에는 cap={{kind:"rail"}} 이 6px 레일 + 배지를 제목 위 블록으로 그려, 카드가 아이콘 줄과
+            제목 줄로 두 층이 됐다. 선택지가 둘뿐인 화면에서는 그 두 층이 카드 높이만 키웠다.
+            ⚠ PickCard 의 title 은 ReactNode 다 — 공용 부품을 고치지 않고 이 화면만 배치를 바꾼다.
+          */
+          title={
+            <ChoiceTitle>
+              <FileSpreadsheet size={20} strokeWidth={1.8} aria-hidden focusable={false} />
+              {copy.connect.existing.title}
+            </ChoiceTitle>
+          }
           actions={
             <Button
               type="button"
@@ -95,12 +105,18 @@ export default function LedgerConnectPanel({
 
         <PickCard
           titleAs="h2"
-          title={copy.connect.create.title}
-          cap={{
-            kind: 'rail',
-            axis: 'identity',
-            glyph: <FilePlus size={20} strokeWidth={1.8} aria-hidden focusable={false} />
-          }}
+          /*
+            🔴 아이콘이 제목 **위**가 아니라 **같은 줄**에 선다(2026-08-03 사용자 지시).
+            종전에는 cap={{kind:"rail"}} 이 6px 레일 + 배지를 제목 위 블록으로 그려, 카드가 아이콘 줄과
+            제목 줄로 두 층이 됐다. 선택지가 둘뿐인 화면에서는 그 두 층이 카드 높이만 키웠다.
+            ⚠ PickCard 의 title 은 ReactNode 다 — 공용 부품을 고치지 않고 이 화면만 배치를 바꾼다.
+          */
+          title={
+            <ChoiceTitle>
+              <FilePlus size={20} strokeWidth={1.8} aria-hidden focusable={false} />
+              {copy.connect.create.title}
+            </ChoiceTitle>
+          }
           actions={
             <Button
               type="button"
@@ -120,7 +136,9 @@ export default function LedgerConnectPanel({
 
       <HintText>{copy.connect.consentHint}</HintText>
       {/* 🔴 두 층의 관계를 말하는 문장은 화면 전체에서 이것 하나뿐이다(복제 금지). */}
-      {isAppSignedIn ? <HintText>{copy.connect.separateConsentNote}</HintText> : null}
+      {isAppSignedIn ? (
+        <HintText>{copy.connect.separateConsentNote}</HintText>
+      ) : null}
 
       {/*
        * 🔴 **권한을 허용하기 전에** 읽히도록 선택지 아래에 세운다. 가계부는 소득·지출이라
@@ -129,13 +147,25 @@ export default function LedgerConnectPanel({
        */}
       <PrivacyNote aria-labelledby="ledger-privacy-title">
         <PrivacyHead>
-          <ShieldCheck size={20} strokeWidth={1.8} aria-hidden focusable={false} />
-          <PrivacyTitle id="ledger-privacy-title">{copy.privacy.title}</PrivacyTitle>
+          <ShieldCheck
+            size={20}
+            strokeWidth={1.8}
+            aria-hidden
+            focusable={false}
+          />
+          <PrivacyTitle id="ledger-privacy-title">
+            {copy.privacy.title}
+          </PrivacyTitle>
         </PrivacyHead>
         <PrivacyGrid>
           {PRIVACY_FACTS.map(({ text, Glyph }) => (
             <PrivacyItem key={text}>
-              <Glyph size={16} strokeWidth={1.8} aria-hidden focusable={false} />
+              <Glyph
+                size={16}
+                strokeWidth={1.8}
+                aria-hidden
+                focusable={false}
+              />
               <span>{text}</span>
             </PrivacyItem>
           ))}

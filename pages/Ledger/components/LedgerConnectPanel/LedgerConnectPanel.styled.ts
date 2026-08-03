@@ -66,9 +66,16 @@ export const ConnectHeading = styled.h2`
 `;
 
 /** 무대의 리드 한 줄. 반전 면이라 `textSecondary` 가 아니라 `onPanelMuted` 를 쓴다. */
+/**
+ * 무대 리드. 🔴 `max-width: 46ch` 를 걷었다(2026-08-03 사용자 지시: "두 줄로 표기하지 말고 한 줄로,
+ * 작아지면 자연스럽게 linefeed"). 46ch 는 이 문장(41자)을 넓은 화면에서도 **강제로 두 줄**로 접었다 —
+ * 읽기 좋은 줄길이를 지키려던 값이 여기서는 짧은 한 문장을 쪼개는 역할만 했다.
+ * 이제 폭이 모자랄 때만 접힌다.
+ * ⚠ `word-break: keep-all` 이라 단어 중간에서 끊기지 않는다 — 접혀도 어절 경계다.
+ */
 export const StageLede = styled.p`
   margin: 0;
-  max-width: 46ch;
+  word-break: keep-all;
   font-size: ${font.size.lg};
   line-height: ${font.leading.normal};
   color: ${color.onPanelMuted};
@@ -171,5 +178,27 @@ export const PrivacyItem = styled.li`
   svg {
     margin-top: 2px;
     color: ${color.identityText};
+  }
+`;
+
+/**
+ * 선택 카드의 제목 줄 — **아이콘 + 글자가 한 줄**이다(2026-08-03 사용자 지시).
+ *
+ * 종전에는 PickCard 의 cap(레일 + 배지)이 제목 **위**에 블록으로 서서 카드가 두 층이 됐다.
+ * 선택지가 둘뿐인 화면에서 그 층은 정보를 더하지 않고 높이만 키웠다.
+ *
+ * ⚠ 아이콘이 줄어들지 않게 flex-shrink 0 이다 — 줄지 않아야 글자만 접힌다.
+ * ⚠ align-items 는 center 가 아니라 baseline 을 쓰지 않는다: 라인아트 아이콘의 시각 중심은
+ *   한글 라인박스 중심과 어긋나서, baseline 정렬이면 아이콘이 눈에 띄게 내려앉는다(이 레포 단골 결함).
+ */
+export const ChoiceTitle = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: ${space[2]};
+  min-width: 0;
+
+  svg {
+    flex: 0 0 auto;
+    color: ${color.brandText};
   }
 `;

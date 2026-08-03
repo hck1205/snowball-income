@@ -282,6 +282,12 @@ export default function PrimaryNav({ brandAs = 'span', withLinks = true }: Prima
   // 낱말이 셋 이상이 되면 두 번째부터 전부 뒷 낱말로 묶인다 — 지금은 정확히 둘이다.
   const [brandLead, ...brandTailWords] = n.brand.split(' ');
 
+  /*
+   * 🔴 로고(하마+금화)는 여기 없다 — **`AppHeader` 가 소유한다.**
+   * 헤더 격자에서 로고는 브랜드 글자 줄과 메뉴 줄을 **가로지르는 트랙**(grid-area: logo)에 서야 하는데,
+   * 그러려면 로고가 브랜드 슬롯 안이 아니라 격자의 직계 자식이어야 한다(2026-08-03 사용자 지시).
+   * ⚠ 그래서 이 워드마크는 글자 단독이다. 여기에 그림을 되돌리면 로고가 다시 윗줄에만 걸린다.
+   */
   const brandInner = (
     <BrandWordmark as={brandAs}>
       <WordmarkLead>{brandLead}</WordmarkLead>{' '}

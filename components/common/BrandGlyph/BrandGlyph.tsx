@@ -1,4 +1,3 @@
-import { BRAND_GLYPH_COPY } from './BrandGlyph.utils';
 import type { BrandGlyphProps } from './BrandGlyph.types';
 import { Coin, GlyphRoot, Mark } from './BrandGlyph.styled';
 
@@ -16,6 +15,11 @@ import { Coin, GlyphRoot, Mark } from './BrandGlyph.styled';
  * 🔴 그 대신 **어떤 면 위에도 얹히도록** 배경을 알파로 뚫어 두었다(네이비 패널·흰 면 양쪽 확인).
  * ⚠ 색을 바꿔야 하는 자리(예: 단색 실루엣이 필요한 인쇄)가 생기면 그때는 이 부품이 아니라
  *   **별도 실루엣 자산**을 만들어라. `filter` 로 억지로 물들이지 마라 — 3D 음영이 뭉개진다.
+ *
+ * ## 🔴 숨은 설명 span 을 걷었다 (2026-08-03)
+ * `hidden` 텍스트는 검색엔진이 신뢰하지 않으면서 `textContent` 는 오염시킨다 — 장식이 자기를
+ * 품은 요소의 텍스트에 끼어들면 계약 테스트가 그 요소를 이름으로 집을 수 없게 된다.
+ * 자세한 경위는 `HippoCoinScene.tsx` 의 같은 항목.
  *
  * ## 접근성
  * 기본은 **장식**(`alt=""`)이다. 옆에 워드마크나 제목이 이름을 말하므로 두 번 읽히면 소음이다.
@@ -52,7 +56,6 @@ export default function BrandGlyph({ size = 20, accent = false, title }: BrandGl
           draggable={false}
         />
       ) : null}
-      {title ? null : <span hidden>{BRAND_GLYPH_COPY.decorative}</span>}
     </GlyphRoot>
   );
 }

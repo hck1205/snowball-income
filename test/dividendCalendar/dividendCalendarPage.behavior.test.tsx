@@ -1,3 +1,18 @@
+
+/*
+ * 🔴 이 파일만 타임아웃을 올린다(기본 15s → 40s).
+ *
+ * 이 스위트는 레포에서 **가장 무거운 렌더**다 — 배당 캘린더 한 화면이 월 격자 + 일정 목록 +
+ * 종목 선택 + 범례를 한 번에 그리고, 각 테스트가 그걸 처음부터 다시 마운트한다.
+ * 단독 실행은 한 건당 약 5초로 여유가 있는데, 전체 스위트(341파일)를 병렬로 돌리면 CPU 를
+ * 나눠 쓰느라 같은 테스트가 15초를 넘긴다 — 실측: 단독 5.1s vs 전체 실행 중 파일 139s.
+ *
+ * 🔴 전역 testTimeout 을 올리지 마라. 그러면 **다른 테스트가 느려지는 것을 못 보게 된다** —
+ * 타임아웃은 이 레포에서 성능 회귀를 알려 주는 유일한 신호다. 무거운 파일만 국소적으로 푼다.
+ * ⚠ 이 값을 또 올려야 한다면 그건 타임아웃 문제가 아니라 **렌더가 더 무거워진 것**이다.
+ *   그때는 값을 올리지 말고 무엇이 무거워졌는지 먼저 재라.
+ */
+vi.setConfig({ testTimeout: 40_000 });
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
@@ -10,7 +25,7 @@ import {
   useNavigate,
   useNavigationType
 } from 'react-router-dom';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { DividendCalendarPage } from '@/pages/DividendCalendar';
 import { MAX_DAY_CHIPS } from '@/pages/DividendCalendar/components';
 import { routes } from '@/router/routes';

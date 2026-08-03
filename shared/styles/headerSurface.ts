@@ -123,10 +123,17 @@ export const headerControlsGrid = `
   display: grid;
   align-items: center;
   min-width: 0;
-  grid-template-columns: minmax(0, 1fr) auto;
+  /*
+   * 🔴 첫 트랙은 **로고 전용**이고 두 줄을 통째로 가로지른다(2026-08-03 사용자 지시:
+   * "윗줄 아랫줄을 병합한 크기 스페이스에 앱 아이콘을 위치시켜야 한다").
+   * 브랜드 글자 줄 옆에만 두면 아이콘이 헤더의 위쪽 절반에만 걸려 아래 메뉴 줄과 무관해 보인다 —
+   * 두 줄을 가로지르면 로고가 헤더 전체의 정체성 표식이 되고, 그만큼 크게 쓸 수 있다.
+   * ⚠ auto 다(고정폭 아님) — 로고 크기를 바꾸면 트랙이 따라 넓어져야 글자와의 간격이 유지된다.
+   */
+  grid-template-columns: auto minmax(0, 1fr) auto;
   grid-template-areas:
-    'brand actions'
-    'nav nav';
+    'logo brand actions'
+    'logo nav nav';
   column-gap: ${space[3]};
   row-gap: ${space[2]};
 

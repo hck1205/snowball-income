@@ -41,6 +41,8 @@ export { MODAL_EXIT_MS, ModalActions, ModalBackdrop, ModalBody, ModalPanel, Moda
 export type { ModalProps } from './Modal';
 
 export { default as PageFooter } from './PageFooter';
+export { PageFooterSlotProvider } from './PageFooterSlot';
+export type { PageFooterSlotProviderProps } from './PageFooterSlot';
 export type { PageFooterProps } from './PageFooter';
 
 export { default as PageHero } from './PageHero';

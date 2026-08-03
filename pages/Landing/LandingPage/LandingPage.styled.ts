@@ -112,13 +112,7 @@ export const HeroBlock = styled.div`
       font-size: ${LANDING_HERO_TITLE_FONT_SIZE};
     }
 
-    /* 3) 아이콘 배지의 잉크 보정을 새 제목 크기로 다시 계산한다. 히어로는 상한 30px 을 기준으로
-       -3px 을 걸어 두는데 제목이 44px 이면 필요한 값은 -4.4px 다(안 고치면 배지가 1.4px 낮다). */
-    > header > div:first-of-type > div:first-of-type > span[aria-hidden] {
-      transform: translateY(calc(${LANDING_HERO_TITLE_FONT_SIZE} * -0.1));
-    }
-
-    /* 4) CTA 는 더 이상 제목 줄이 아니다 — 제목 잉크 보정을 되돌리고 왼쪽에 붙인다. */
+    /* 3) CTA 는 더 이상 제목 줄이 아니다 — 제목 잉크 보정을 되돌리고 왼쪽에 붙인다. */
     > header > div:first-of-type > div + div {
       justify-content: flex-start;
     }

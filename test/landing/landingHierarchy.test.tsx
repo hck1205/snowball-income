@@ -19,11 +19,18 @@ import { renderLandingPage, setWorkspaceMarker, stubMarketIndicesFetch } from '.
 
 let restoreFetch: () => void;
 
-/** 스택은 클래스가 아니라 **푸터의 부모**로 찾는다(Emotion 내부 구현에 기대지 않는다). */
+/**
+ * 스택은 클래스가 아니라 **`<main>` 의 첫 자식**으로 찾는다(Emotion 내부 구현에 기대지 않는다).
+ *
+ * 🔴 2026-08-03 로 기준이 바뀌었다. 종전에는 "푸터의 부모"로 찾았는데, 푸터가 셸의 슬롯으로
+ * 옮겨가면서(`components/common/PageFooter/PageFooterSlot.tsx`) **더 이상 스택 안에 없다** —
+ * `<footer>` 가 `<main>` 의 자손이면 contentinfo 랜드마크가 죽고 전폭 띠도 될 수 없어서다.
+ * 그 상태로 옛 헬퍼를 두면 슬롯 div(자식 1개)를 스택으로 착각해 **엉뚱한 곳에서 실패**한다.
+ */
 const landingStack = (container: HTMLElement): HTMLElement => {
-  const footer = container.querySelector('footer');
-  if (!footer?.parentElement) throw new Error('푸터를 담은 랜딩 스택을 찾지 못했다');
-  return footer.parentElement;
+  const stack = container.querySelector('main')?.firstElementChild;
+  if (!(stack instanceof HTMLElement)) throw new Error('랜딩 스택을 찾지 못했다');
+  return stack;
 };
 
 const sectionTitlesOf = (node: Element): string[] =>
@@ -40,12 +47,24 @@ describe('랜딩 — 서사 묶음 구조', () => {
     setWorkspaceMarker(false);
   });
 
-  it('🔴 스택의 직계 자식은 섹션이 아니라 **묶음 4개 + 푸터**다', () => {
+  it('🔴 스택의 직계 자식은 섹션이 아니라 **묶음 4개**다', () => {
     const { container } = renderLandingPage();
     const children = [...landingStack(container).children];
 
-    expect(children).toHaveLength(5);
-    expect(children[4]?.tagName).toBe('FOOTER');
+    expect(children).toHaveLength(4);
+  });
+
+  /**
+   * 🔴 푸터는 스택 **밖**, `<main>` 밖이다. `<footer>` 가 main/section/article 의 자손이면
+   * `contentinfo` 랜드마크가 되지 않는다(HTML 명세) — 종전에는 8개 화면 전부 그 상태였다.
+   * 전폭 띠라는 모양도 여기서 나온다(셸의 main 은 max-width 1200 이다).
+   */
+  it('🔴 푸터는 main 밖에 선다 — contentinfo 랜드마크가 살아 있어야 한다', () => {
+    const { container } = renderLandingPage();
+    const footer = container.querySelector('footer');
+
+    expect(footer).not.toBeNull();
+    expect(footer?.closest('main')).toBeNull();
   });
 
   it('🔴 각 묶음의 구성원이 서사 순서 그대로다 — 히어로 / 배우기 3 / 고르기 2 / 참조와 마무리 2', () => {

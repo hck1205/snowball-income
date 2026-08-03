@@ -52,7 +52,11 @@ const NON_LUCIDE_GLYPH_SIZES: Readonly<Record<string, readonly number[]>> = {
    * 배지 크기(20~32)로 줄이면 금화가 10px 짜리 점이 되어 무엇인지 읽히지 않는다.
    * 88 랜딩 마무리 패널(앱에서 금화가 켜지는 단 한 자리) · 240 히어로급 · 280 최대.
    */
-  HippoCoinScene: [88, 240, 280]
+  /*
+   * 44 는 **헤더 로고** 자리다 — 헤더 두 줄을 가로지르는 트랙에 서므로 글자 높이가 아니라
+   * **두 줄의 높이**가 기준이다. 앱에서 로고가 서는 유일한 자리라 다른 크기로 복제되지 않는다.
+   */
+  HippoCoinScene: [44, 88, 240, 280]
 };
 
 const collect = (dir: string, out: string[] = []): string[] => {

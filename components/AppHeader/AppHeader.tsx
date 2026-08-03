@@ -5,7 +5,8 @@ import ColorSchemeToggle from '@/components/ColorSchemeToggle';
 import { AuthControl } from '@/components/community/AuthControl';
 import { isCommunityEnabled } from '@/shared/lib/supabase';
 import { publishHeaderHeight } from './AppHeader.utils';
-import { Actions, HeaderInner, HeaderRoot, LeadingSlot, NavSlot, UtilityGroup } from './AppHeader.styled';
+import { HippoCoinScene } from '@/components/common';
+import { Actions, HeaderInner, HeaderRoot, LeadingSlot, LogoSlot, NavSlot, UtilityGroup } from './AppHeader.styled';
 import type { AppHeaderProps } from './AppHeader.types';
 
 /** 앱 표준 좌우 여백 — `FeatureLayout`(시뮬레이터 본문)·티커 셸 본문과 같은 값. */
@@ -76,6 +77,20 @@ function AppHeaderComponent({
           한 번 되짚는다. 반대로 놓으면(컨트롤을 메뉴보다 앞에) 좁은 폭이 맞고 넓은 폭이 어긋난다 —
           두 모드를 동시에 만족시키는 DOM 순서는 없고, **주 사용 폭인 데스크톱을 맞췄다.** */}
       <HeaderInner $gutter={contentGutter}>
+        {/*
+          🔴 앱에서 로고가 서는 **유일한 자리**다(2026-08-03 사용자 지시: "Hungry Hippo 왼쪽에만").
+          카드·빈 상태 등 19곳에 흩어져 있던 심볼을 전부 걷고 여기 하나로 모았다.
+          하마+금화 연출을 쓰는 이유: 금화가 없으면 그냥 동물 그림이고, 있으면 "배당을 먹고 자란다"가
+          한 장으로 읽힌다.
+          ⚠ 격자에서 이 슬롯은 브랜드 줄과 메뉴 줄을 **가로지른다**(grid-area: logo). 그래서
+            브랜드 슬롯 안이 아니라 격자의 직계 자식이어야 한다 — PrimaryNav 안으로 되돌리지 마라.
+          ⚠ 장식이다 — 이름은 옆 워드마크가 진다. label 을 주면 접근명이 두 번 읽힌다.
+          ⚠ 첫 화면 상단이라 eager 다. 늦게 뜨면 브랜드가 깜빡인다.
+        */}
+        <LogoSlot>
+          <HippoCoinScene size={44} loading="eager" />
+        </LogoSlot>
+
         <LeadingSlot>
           <PrimaryNav brandAs={brandAs} withLinks={false} />
           {status}

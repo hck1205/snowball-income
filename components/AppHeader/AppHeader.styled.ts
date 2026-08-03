@@ -194,3 +194,23 @@ export const UtilityGroup = styled.div`
     border-left: 1px solid ${color.border};
   }
 `;
+
+/**
+ * 로고 자리 — **브랜드 줄과 메뉴 줄을 가로지르는 트랙**(2026-08-03 사용자 지시).
+ *
+ * 헤더는 전 폭에서 두 줄이다(브랜드·컨트롤 / 메뉴 전폭). 로고를 브랜드 슬롯 안에 두면 윗줄에만
+ * 걸려 아래 메뉴 줄과 무관해 보이고, 줄 높이에 갇혀 작게밖에 못 쓴다. 두 줄을 가로지르면
+ * 로고가 헤더 전체의 정체성 표식이 되고 44px 로 설 수 있다.
+ *
+ * ⚠ 금화는 무대 오른쪽 위 **밖으로** 나간다(HippoCoinScene 연출의 핵심).
+ *   overflow 를 자르지 마라 — 자르면 모서리에서 잘려 실수로 넘친 그림이 된다.
+ * ⚠ 세로 가운데 정렬이다. 두 줄의 중앙에 서야 어느 줄에도 종속돼 보이지 않는다.
+ */
+export const LogoSlot = styled.span`
+  grid-area: logo;
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  align-self: center;
+  margin-right: ${space[2]};
+`;

@@ -39,13 +39,17 @@ export const Hippo = styled.img`
  * 좌표 근거: 원본 하마의 주둥이가 상자의 약 70% 폭 · 25% 높이 지점에서 오른쪽 위를 향한다.
  * 금화를 그 연장선(우상단 바깥)에 두면 "보고 있다"가 성립한다.
  *
+ * ⚠ 2026-08-03 사용자 지시로 **살짝 더 밖으로** 옮겼다(top -6%→-11% · right -8%→-13%).
+ *   시선의 연장선을 유지한 채 거리만 늘린 것이다 — 두 값을 **같은 폭으로** 움직여야 대각선 각도가
+ *   보존된다. 한쪽만 키우면 하마가 금화를 빗겨 보는 그림이 된다.
+ *
  * ⚠ 애니메이션은 **거들 뿐**이다. 끄더라도(prefers-reduced-motion) 배치만으로 연출이 성립해야 한다 —
  *   움직임에 의미를 싣지 마라.
  */
 export const Coin = styled.img`
   position: absolute;
-  top: -6%;
-  right: -8%;
+  top: -11%;
+  right: -13%;
   width: 34%;
   height: auto;
   object-fit: contain;

@@ -1,4 +1,3 @@
-import { BRAND_SCENE_COPY } from './HippoCoinScene.utils';
 import type { HippoCoinSceneProps } from './HippoCoinScene.types';
 import { Coin, Hippo, SceneRoot } from './HippoCoinScene.styled';
 
@@ -12,6 +11,13 @@ import { Coin, Hippo, SceneRoot } from './HippoCoinScene.styled';
  * `assets/brand/app_icon.png`(원본) 의 하마는 **주둥이가 오른쪽 위로 열려 있다.** 그래서 금화는 반드시 오른쪽 위다 —
  * 왼쪽이나 아래에 두면 하마가 엉뚱한 데를 보는 그림이 되어 연출이 깨진다.
  * 🔴 자산을 교체할 때 하마의 방향이 바뀌면 **이 배치를 함께 바꿔라.**
+ *
+ * ## 🔴 숨은 설명 span 을 걷었다 (2026-08-03)
+ * 종전에는 label 이 없을 때 `<span hidden>금화를 올려다보는 아기 하마</span>` 를 함께 그렸다.
+ * 명분은 "크롤러용 대체 설명"이었는데 **둘 다 틀렸다**: 검색엔진은 hidden 텍스트를 신뢰하지 않고,
+ * `textContent` 에는 그대로 남아 이 부품을 품은 요소의 텍스트를 오염시킨다 — 실제로 헤더 브랜드
+ * 링크의 textContent 가 "금화를 올려다보는 아기 하마Hungry Hippo" 가 되어 계약 테스트가 깨졌다.
+ * 장식은 장식으로 끝나야 한다.
  *
  * ## 접근성
  * 🔴 **장식이다.** 이 그림이 없어도 화면의 정보는 하나도 줄지 않는다(옆의 제목·리드가 다 말한다).
@@ -47,7 +53,6 @@ export default function HippoCoinScene({ size = 240, loading = 'eager', label }:
         decoding="async"
         draggable={false}
       />
-      {label ? null : <span hidden>{BRAND_SCENE_COPY.decorative}</span>}
     </SceneRoot>
   );
 }

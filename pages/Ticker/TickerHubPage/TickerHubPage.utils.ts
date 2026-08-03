@@ -128,7 +128,12 @@ export const DEFAULT_HUB_FILTERS: HubFilterState = {
   query: '',
   frequency: 'all',
   sort: 'default',
-  view: 'grid'
+  /*
+   * 🔴 기본은 **표**다(2026-08-03 사용자 지시: "카드가 아니라 표가 default인게 더 좋다").
+   * 이 허브는 '고르는' 화면이 아니라 **비교해서 찾는** 화면이다 — 배당률·운용보수·주기를
+   * 나란히 훑는 일이 카드 격자보다 표에서 훨씬 빠르다. 카드 보기는 전환으로 남는다.
+   */
+  view: 'table'
 };
 
 /** 정렬 셀렉트의 선택지. 라벨이 곧 계약이라 뷰가 문자열을 손으로 적지 않는다. */

@@ -149,6 +149,14 @@ export const AgendaItem = styled.li`
   display: flex;
   align-items: center;
   gap: ${space[2]};
+  /*
+   * 🔴 이 줄이 없으면 종목명 ellipsis 가 **작동하지 않는다.** flex/grid 아이템의 기본
+   * min-width 는 auto — 즉 "내용보다 작아지지 않는다" 라서, 안쪽 이름 칸에 아무리
+   * text-overflow: ellipsis 를 걸어도 이 행 자체가 부풀어 열을 밀어낸다.
+   * (사용자 신고 2026-08-03: "DES 위즈덤트리 미국 소형주 배당 이 넘쳐서 나온다")
+   * ⚠ 지우지 마라 — 지우면 증상이 이름 칸이 아니라 **바깥 열**에서 나타나 원인을 찾기 어렵다.
+   */
+  min-width: 0;
   min-height: 36px;
   padding: ${space[1]} ${space[2]};
   border-radius: ${radius.sm};

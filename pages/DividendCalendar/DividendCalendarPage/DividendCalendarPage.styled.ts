@@ -422,7 +422,12 @@ export const Workbench = styled.div`
   align-items: start;
 
   ${media.up('layout')} {
-    grid-template-columns: minmax(0, 1fr) clamp(360px, 35vw, 500px);
+    /*
+     * 🔴 40 : 60 이다(2026-08-03 사용자 지시). 종전은 왼쪽 1fr + 오른쪽 clamp(360~500px) 라
+     * **폭에 따라 비율이 널뛰었다** — 1280 에서 약 62:38, 1920 에서 약 72:28 로 달력이 계속 좁아졌다.
+     * fr 두 개로 잡으면 어느 폭에서든 같은 비율이라 달력 칸이 일정하게 넓다.
+     */
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
   }
 `;
 
@@ -612,7 +617,12 @@ export const StartBench = styled.div`
   align-items: start;
 
   ${media.up('layout')} {
-    grid-template-columns: minmax(0, 1fr) clamp(360px, 35vw, 500px);
+    /*
+     * 🔴 40 : 60 이다(2026-08-03 사용자 지시). 종전은 왼쪽 1fr + 오른쪽 clamp(360~500px) 라
+     * **폭에 따라 비율이 널뛰었다** — 1280 에서 약 62:38, 1920 에서 약 72:28 로 달력이 계속 좁아졌다.
+     * fr 두 개로 잡으면 어느 폭에서든 같은 비율이라 달력 칸이 일정하게 넓다.
+     */
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
   }
 `;
 

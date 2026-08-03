@@ -1,11 +1,9 @@
-import { BrandGlyph } from '@/components/common';
 import type { FeedMastheadProps } from './FeedMasthead.types';
 import {
   MastheadAction,
   MastheadBody,
   MastheadEyebrow,
   MastheadLead,
-  MastheadMark,
   MastheadRoot,
   MastheadTitle
 } from './FeedMasthead.styled';
@@ -37,10 +35,6 @@ export default function FeedMasthead({
           {actionLabel}
         </MastheadAction>
       </MastheadBody>
-      <MastheadMark>
-        {/* 금화는 네이비 패널 위에서만 켠다(밝은 면 위 금색은 1.83:1). */}
-        <BrandGlyph size={96} />
-      </MastheadMark>
     </MastheadRoot>
   );
 }

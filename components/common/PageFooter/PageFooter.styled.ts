@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { PICK_RADIUS, brandPanel, color, font, iconOpticalAlign, space, surface } from '@/shared/styles';
+import { brandPanel, color, font, iconOpticalAlign, space } from '@/shared/styles';
 
 /**
  * 공용 페이지 푸터 — **브랜드 패널**.
@@ -28,15 +28,39 @@ import { PICK_RADIUS, brandPanel, color, font, iconOpticalAlign, space, surface 
  * 🔴 **금색을 이 패널 밖으로 꺼내지 마라.** 범용 `gold` 토큰은 일부러 존재하지 않고,
  * `shared/styles/contrast.test.ts` 가 그 사용을 잡는다.
  *
- * ⚠ 기하는 **카드**다(전폭 직각 띠가 아니다). 이 푸터는 페이지 스택의 마지막 형제로 들어가며
- * 좌우 여백을 부모가 이미 갖고 있어서, 직각 띠로 만들면 본문만 안쪽으로 들어간 어색한 면이 된다.
- * 반경은 `PICK_RADIUS`(brand 면의 반경)를 쓴다 — 이 면은 "읽는 면"이 아니라 브랜드가 말하는 면이다.
+ * ## 🔴 2026-08-03 — 반경 카드에서 **전폭 띠**로 (사용자 지시)
+ * 종전 주석은 "기하는 카드다(전폭 직각 띠가 아니다)"였고, 근거는 *"좌우 여백을 부모가 이미 갖고
+ * 있어서 직각 띠로 만들면 본문만 안쪽으로 들어간 어색한 면이 된다"* 였다. **그 전제가 틀렸다.**
+ * 전제가 성립하려면 푸터가 본문과 같은 폭 상자 안에 있어야 하는데, 지금은 셸이 푸터를
+ * `ShellMain`(max-width 1200) **밖**에서 렌더한다 — 부모가 좌우 여백을 갖고 있지 않다.
+ *
+ * 그래서 이 면은 뷰포트 전폭을 쓰고, **글의 폭만** 본문과 맞춘다. 실측(1280px):
+ * 종전 푸터 폭 1160 · x=53 · 반경 34px → 지금 폭은 뷰포트 전폭이고 글 상자는 그대로 1160 이다.
+ *
+ * ⚠ 폭을 맞추는 방식이 **패딩**이지 안쪽 래퍼가 아니다 — `padding-inline: max(게터, calc(50% - 580px))`.
+ *   래퍼를 하나 더 두면 `PageFooter.tsx` 의 DOM 계약(매스트헤드·각주·고지의 형제 관계)이 바뀌고
+ *   `PageFooter.test.ts` 가 그 구조를 잠그고 있다. 580 = 1160/2 이고, 1160 은 앱 공통 콘텐츠 폭
+ *   1200 에서 셸 좌우 패딩 20 을 뺀 값이다(`TickerPageShell.styled.ts` 머리말과 같은 출처).
+ *
+ * ⚠ **반경을 되살리지 마라.** 전폭 요소에 반경을 주면 좌우 끝이 화면 밖에서 잘려 위쪽 두 모서리만
+ *   둥근 기형이 된다. 위쪽만 둥글게 하는 것도 하지 마라 — 4~6px 대역이 아니라 34px 이라 눈에 띄게
+ *   "떠 있는 카드"로 읽히고, 그게 지금 걷어내는 모양이다.
  */
 export const FooterRoot = styled.footer`
   display: grid;
   gap: ${space[4]};
-  margin: 0;
-  ${surface(PICK_RADIUS, 'clamp(18px, 2.6vw, 26px)')}
+  /*
+   * 🔴 본문과 붙지 않게 띄운다. 실측(2026-08-03 /ticker/all): 앞 요소의 bottom 과 푸터의 top 이
+   * **정확히 0px** 이었다 — 사용자가 "Footer가 너무 content랑 붙어있다"고 지적한 그 값이다.
+   * 전폭 띠는 카드와 달리 좌우로 도망갈 여백이 없어서, 위쪽 간격이 유일한 분리 장치다.
+   */
+  margin: clamp(48px, 7vw, 88px) 0 0;
+  /*
+   * 세로 여백은 면의 것, 가로 여백은 **글 폭을 본문에 맞추는 장치**다(위 머리말 참고).
+   * max() 의 첫 항은 좁은 화면의 게터 — 셸의 좌우 패딩과 같은 clamp 라 경계가 어긋나지 않는다.
+   */
+  padding: clamp(28px, 3.4vw, 40px) max(clamp(12px, 2vw, 20px), calc(50% - 580px));
+  border-radius: 0;
   ${brandPanel()}
 `;
 

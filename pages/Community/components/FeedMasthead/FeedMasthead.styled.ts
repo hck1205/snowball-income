@@ -40,43 +40,21 @@ export const MastheadRoot = styled.section`
   isolation: isolate;
   overflow: hidden;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  /* 하마 자리를 걷었으므로 한 칸이다 — 빈 auto 칸을 남기면 오른쪽에 이유 없는 여백이 생긴다. */
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
   gap: clamp(${space[4]}, 3vw, ${space[10]});
   border-radius: ${PICK_RADIUS};
   padding: clamp(${space[6]}, 3.2vw, ${space[10]}) clamp(${space[5]}, 3.2vw, ${space[10]});
   margin-bottom: clamp(${space[5]}, 2.4vw, ${space[8]});
 
-  /* 모서리에서 잘려 나가는 금색 링 — 1px 선이라 색면 예산과 무관하다(L1). */
-  &::before {
-    content: '';
-    position: absolute;
-    right: -104px;
-    top: -128px;
-    width: 292px;
-    height: 292px;
-    border-radius: 50%;
-    border: 1px solid color-mix(in srgb, ${color.onPanelGold} 34%, transparent);
-    pointer-events: none;
-    z-index: -1;
-  }
-
-  &::after {
-    content: '';
-    position: absolute;
-    right: -46px;
-    bottom: -150px;
-    width: 232px;
-    height: 232px;
-    border-radius: 50%;
-    border: 1px solid color-mix(in srgb, ${color.onPanelGold} 18%, transparent);
-    pointer-events: none;
-    z-index: -1;
-  }
-
-  ${media.down('tabletSm')} {
-    grid-template-columns: minmax(0, 1fr);
-  }
+  /*
+   * 🔴 장식 원 두 개(금색 링)를 걷어냈다(2026-08-03 사용자 지시).
+   * 이 면은 이미 네이비 패널이라 브랜드가 충분히 말하고 있고, 링은 그 위에 얹힌 두 번째 발화였다.
+   * ⚠ 되살리지 마라 — 되살릴 거면 isolation · z-index -1 · overflow hidden 세 줄이 함께 필요하다
+   *   (링이 패널 밖으로 새지 않게 잡던 장치다).
+   * ⚠ 이 주석에 백틱을 쓰지 마라 — 템플릿이 그 자리에서 끊겨 앱이 부팅하지 않는다(방금 겪었다).
+   */
 `;
 
 export const MastheadBody = styled.div`

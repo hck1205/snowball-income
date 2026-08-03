@@ -17,6 +17,13 @@ const railInk = (tone: LedgerStepTone) => (tone === 'panel' ? color.onPanel : co
 const railMuted = (tone: LedgerStepTone) => (tone === 'panel' ? color.onPanelMuted : color.textMuted);
 const railAccent = (tone: LedgerStepTone) => (tone === 'panel' ? color.onPanelGold : color.brandText);
 
+/**
+ * 단계 줄. 🔴 **가로를 꽉 채운다**(2026-08-03 사용자 지시: "100% 넓게 펼쳐줘, 중간에 step이 더
+ * 들어갈지도 몰라"). 그래서 항목 사이를 `space-between` 이 아니라 **잇는 선이 늘어나서** 채운다 —
+ * space-between 은 항목 수가 바뀔 때마다 간격이 널뛰지만, 선이 늘어나면 단계가 셋이든 다섯이든
+ * 같은 리듬이 유지된다(단계 추가가 예고된 화면이라 이게 요구사항이다).
+ * ⚠ 그래서 `StepItem` 의 잇는 선은 고정폭이 아니라 남는 공간을 먹어야 한다 — 거기 주석 참고.
+ */
 export const StepRailRoot = styled.ol`
   display: flex;
   align-items: center;
@@ -25,6 +32,7 @@ export const StepRailRoot = styled.ol`
   margin: 0;
   padding: 0;
   list-style: none;
+  width: 100%;
   min-width: 0;
 `;
 

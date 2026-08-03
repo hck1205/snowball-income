@@ -1,6 +1,19 @@
 import { Global } from "@emotion/react";
-import { lazy, memo, Suspense, useCallback, useId, useRef, useState } from "react";
-import { FeatureLayout, MainContent, SkipLink } from "@/pages/Main/Main.shared.styled";
+import {
+  lazy,
+  memo,
+  Suspense,
+  useCallback,
+  useId,
+  useRef,
+  useState,
+} from "react";
+import {
+  FeatureLayout,
+  MainContent,
+  SkipLink,
+} from "@/pages/Main/Main.shared.styled";
+import { PageFooterSlotProvider } from "@/components/common";
 import AppHeader from "@/components/AppHeader";
 import TourGuide from "@/components/TourGuide";
 import MarketIndexStrip from "@/components/MarketIndexStrip";
@@ -51,8 +64,14 @@ function MainViewComponent({ viewModel }: MainViewProps) {
    * 모달 상태는 전부 jotai 원자에 있으므로(내부 useState 없음) 마운트 시점만 늦출 뿐 동작은 동일하다.
    */
   const isTickerModalOpen = useIsTickerModalOpenAtomValue();
-  const openConfigDrawer = useCallback(() => setIsConfigDrawerOpen(true), [setIsConfigDrawerOpen]);
-  const closeConfigDrawer = useCallback(() => setIsConfigDrawerOpen(false), [setIsConfigDrawerOpen]);
+  const openConfigDrawer = useCallback(
+    () => setIsConfigDrawerOpen(true),
+    [setIsConfigDrawerOpen],
+  );
+  const closeConfigDrawer = useCallback(
+    () => setIsConfigDrawerOpen(false),
+    [setIsConfigDrawerOpen],
+  );
 
   /**
    * 설정 드로어의 id. 여는 버튼 2자리(히어로 sticky 도크 · 조건 스트립)와 열리는 패널(`SettingsDrawer`)이
@@ -119,79 +138,93 @@ function MainViewComponent({ viewModel }: MainViewProps) {
           🔴 설정 드로어를 여는 버튼은 **헤더에 없다**(2026-07-29 사용자 결정) — 히어로의 "투자 설정"
           버튼과 역할이 겹쳤다. 그 버튼이 sticky라 스크롤 어디서든 닿으므로 진입 경로는 유지된다
           (`SimulatorHero`의 SettingsDock 주석 참고). 헤더로 되돌리지 말 것. */}
-      <AppHeader
-        brandAs="h1"
-        // 클라우드 저장 상태를 워드마크 오른쪽에 둔다. 저장 중/실패만 노출(평상시 숨김), 실패는 무음 금지.
-        status={
-          isCommunityEnabled ? (
-            <CloudSyncIndicator
-              variant="header"
-              onRetry={handleRetryCloudSave}
-              onResume={handleResumeConflict}
-            />
-          ) : null
-        }
-        /* 시뮬레이터만 "PDF 리포트 저장"과 튜토리얼이 붙은 자체 더보기를 쓴다 — 그 상태·동작은
+      {/*
+        🔴 푸터 착지점. 시뮬레이터는 자체 셸(FeatureLayout)을 쓰지만 **푸터 배치 규약은 공용**이다 —
+        `TickerPageShell` 과 같은 Provider 를 써서 푸터가 `FeatureLayout`(max-width 1200) **밖**,
+        헤더와 같은 층에 전폭으로 선다. 이걸 빼면 이 화면만 폭 1160 짜리 띠가 된다(사용자 신고 2026-08-03).
+      */}
+      <PageFooterSlotProvider>
+        <AppHeader
+          brandAs="h1"
+          // 클라우드 저장 상태를 워드마크 오른쪽에 둔다. 저장 중/실패만 노출(평상시 숨김), 실패는 무음 금지.
+          status={
+            isCommunityEnabled ? (
+              <CloudSyncIndicator
+                variant="header"
+                onRetry={handleRetryCloudSave}
+                onResume={handleResumeConflict}
+              />
+            ) : null
+          }
+          /* 시뮬레이터만 "PDF 리포트 저장"과 튜토리얼이 붙은 자체 더보기를 쓴다 — 그 상태·동작은
            MainOverflowMenu가 소유하고(HeaderOverflowMenu는 전 페이지 공유라 시뮬레이터 데이터에
            결합시키지 않는다), 구독은 불리언 2개로 좁혀져 있어 타건 리렌더가 헤더로 번지지 않는다. */
-        overflowMenu={<MainOverflowMenu />}
-        /* TourGuide는 코치마크 오버레이 전용이다 — 헤더 줄에는 아무것도 그리지 않고 포털로만 뜬다.
+          overflowMenu={<MainOverflowMenu />}
+          /* TourGuide는 코치마크 오버레이 전용이다 — 헤더 줄에는 아무것도 그리지 않고 포털로만 뜬다.
            실행 트리거는 더보기 메뉴가 소유한다(tourLaunchRequestAtom bump). */
-        actions={<TourGuide />}
-      />
-      <FeatureLayout>
-        <MainContent id="main-content">
-          {/* 🔴 페이지 맨 위의 참고 시세 — 캘린더·내 포트폴리오와 같은 자리다(2026-08-02).
+          actions={<TourGuide />}
+        />
+        <FeatureLayout>
+          <MainContent id="main-content">
+            {/* 🔴 페이지 맨 위의 참고 시세 — 캘린더·내 포트폴리오와 같은 자리다(2026-08-02).
               헤더에 얹었다가 되돌렸다: 헤더는 전 라우트에 상시 있어 시세가 필요 없는 화면까지 따라다녔다. */}
-          <MarketIndexStrip />
+            <MarketIndexStrip />
 
-          <SimulatorHero
-            drawerId={configDrawerId}
-            isSettingsOpen={isConfigDrawerOpen}
-            onOpenSettings={openConfigDrawer}
-          />
+            <SimulatorHero
+              drawerId={configDrawerId}
+              isSettingsOpen={isConfigDrawerOpen}
+              onOpenSettings={openConfigDrawer}
+            />
 
-          {/* 🔴 조건부 마운트로 바꾸지 마라 — 좌패널이 하이드레이션 트리거와 ref 배선 3종을 소유한다
+            {/* 🔴 조건부 마운트로 바꾸지 마라 — 좌패널이 하이드레이션 트리거와 ref 배선 3종을 소유한다
               (자세한 이유는 SettingsDrawer 주석). 드로어 패널은 항상 마운트되고 열림은 CSS가 정한다. */}
-          <SettingsDrawer
-            drawerId={configDrawerId}
-            isOpen={isConfigDrawerOpen}
-            onClose={closeConfigDrawer}
-            onHydratedChange={setIsPortfolioHydrated}
-            onRegisterRetryCloudSave={registerRetryCloudSave}
-            onRegisterResumeConflict={registerResumeConflict}
-          />
+            <SettingsDrawer
+              drawerId={configDrawerId}
+              isOpen={isConfigDrawerOpen}
+              onClose={closeConfigDrawer}
+              onHydratedChange={setIsPortfolioHydrated}
+              onRegisterRetryCloudSave={registerRetryCloudSave}
+              onRegisterResumeConflict={registerResumeConflict}
+            />
 
-          {isPortfolioHydrated ? (
-            <MainRightPanel configDrawerId={configDrawerId} />
-          ) : (
-            <MainContentLoader label="결과를 불러오는 중…" minHeight="480px" variant="result" />
-          )}
-
-          <Suspense fallback={null}>
-            {isTickerModalOpen && (
-              <TickerModal
-                onBackdropClick={handleBackdropClick}
-                onDelete={deleteTicker}
-                onClose={closeTickerModal}
-                onHelpExpectedTotalReturn={openHelpExpectedTotalReturn}
-                onSave={saveTicker}
+            {isPortfolioHydrated ? (
+              <MainRightPanel configDrawerId={configDrawerId} />
+            ) : (
+              <MainContentLoader
+                label="결과를 불러오는 중…"
+                minHeight="480px"
+                variant="result"
               />
             )}
 
-            <HelpModal onBackdropClick={handleBackdropClick} onClose={closeHelp} />
-          </Suspense>
-        </MainContent>
+            <Suspense fallback={null}>
+              {isTickerModalOpen && (
+                <TickerModal
+                  onBackdropClick={handleBackdropClick}
+                  onDelete={deleteTicker}
+                  onClose={closeTickerModal}
+                  onHelpExpectedTotalReturn={openHelpExpectedTotalReturn}
+                  onSave={saveTicker}
+                />
+              )}
 
-        {/* `<main>` 밖에 둔다 — `<footer>`는 main/section/article의 자손이면 contentinfo 랜드마크가 되지 않는다. */}
-        <MarketDataAsOf />
+              <HelpModal
+                onBackdropClick={handleBackdropClick}
+                onClose={closeHelp}
+              />
+            </Suspense>
+          </MainContent>
 
-        {/* 리뷰어·사용자가 URL만 방문해도 콘텐츠 유형·비영리·비자문을 바로 알도록 상시 노출하는 고지.
+          {/* `<main>` 밖에 둔다 — `<footer>`는 main/section/article의 자손이면 contentinfo 랜드마크가 되지 않는다. */}
+          <MarketDataAsOf />
+
+          {/* 리뷰어·사용자가 URL만 방문해도 콘텐츠 유형·비영리·비자문을 바로 알도록 상시 노출하는 고지.
             ModelChangeNotice(임시·접힘·닫힘)와 달리 상호작용 없이 항상 보인다.
             2026-07-31: 구 로컬 `LandingDisclaimer` → 전 화면 공용 `PageFooter` 로 수렴(문구 동일).
             `MarketDataAsOf` 도 `<footer>` 라 랜드마크가 겹치므로 접근명으로 구분한다. */}
-        <PageFooter aria-label="사이트 고지" />
-      </FeatureLayout>
+          <PageFooter aria-label="사이트 고지" />
+        </FeatureLayout>
+      </PageFooterSlotProvider>
     </>
   );
 }

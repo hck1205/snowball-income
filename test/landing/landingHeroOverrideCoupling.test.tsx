@@ -4,7 +4,6 @@ import { join } from 'node:path';
 import { render, screen } from '@testing-library/react';
 import { Sprout } from 'lucide-react';
 import { PageHero } from '@/components/common';
-import { heroIconOpticalAlign } from '@/shared/styles';
 import { LANDING_COPY } from '@/pages/Landing/copy';
 import { renderLandingPage, setWorkspaceMarker, stubMarketIndicesFetch } from './landingHarness';
 
@@ -44,7 +43,6 @@ const landingStyledSource = stripComments(readFileSync(LANDING_STYLED_PATH, 'utf
 const HERO_OVERRIDE_SELECTORS = [
   '> header > div:first-of-type',
   '> header h1',
-  '> header > div:first-of-type > div:first-of-type > span[aria-hidden]',
   '> header > div:first-of-type > div + div',
   '> header > div:first-of-type > div + div > *'
 ] as const;
@@ -55,29 +53,6 @@ const readHeroOverrideSelectors = (): string[] =>
     match[1].replace(/\s+/g, ' ').trim()
   );
 
-/**
- * `HeroBlock` 이 아이콘 배지에 다시 거는 잉크 보정 계수(예: `* -0.1` → 0.1).
- *
- * ⚠ 룰 본문을 `{ … }` 로 잘라내지 않는다 — 본문 안 템플릿 보간(`${…}`)의 닫는 중괄호가 먼저 잡혀
- * 값이 통째로 잘린다(실제로 그렇게 짰다가 NaN 을 봤다). 배지 선택자 **뒤쪽 구간**에서 첫 식만 읽는다.
- */
-const readLandingInkShift = (): number => {
-  const at = landingStyledSource.indexOf('span[aria-hidden]');
-  if (at < 0) return Number.NaN;
-
-  const raw = /translateY\(calc\([^*]*\*\s*(-?[\d.]+)\s*\)\)/.exec(
-    landingStyledSource.slice(at, at + 300)
-  )?.[1];
-
-  return raw === undefined ? Number.NaN : -Number(raw);
-};
-
-/** 정본(`shared/styles/heroTitleRow.ts`)이 내보내는 보정 계수 — 상수는 비공개라 산출물에서 읽는다. */
-const readCanonicalInkShift = (): number => {
-  const raw = /\*\s*(-?[\d.]+)\s*\)/.exec(heroIconOpticalAlign)?.[1];
-
-  return raw === undefined ? Number.NaN : -Number(raw);
-};
 
 /** 히어로를 감싼 `HeroBlock` — 선택자의 기준점이다. h1 에서 거슬러 올라가 잡는다(클래스명 사용 금지). */
 const getHeroBlock = (): HTMLElement => {
@@ -147,29 +122,30 @@ describe('랜딩 히어로 override — 선택자가 겨냥하는 DOM 이 그대
     const directDivs = [...titleRow.children].filter((child) => child.tagName === 'DIV');
     expect(directDivs).toHaveLength(2);
 
-    const actions = scoped(block, HERO_OVERRIDE_SELECTORS[3]);
+    const actions = scoped(block, HERO_OVERRIDE_SELECTORS[2]);
     expect(actions).toHaveLength(1);
     // 랜딩 히어로 CTA 2개가 전부 이 컨테이너 안에 있어야 "CTA 를 아랫줄로 내린다"는 룰이 유효하다.
     expect(actions[0].querySelectorAll('[data-landing-cta]')).toHaveLength(2);
 
     // 마지막 룰(`> *`)은 CTA 하나하나의 잉크 보정을 되돌린다 — 대상이 곧 CTA 개수다.
-    expect(scoped(block, HERO_OVERRIDE_SELECTORS[4])).toHaveLength(2);
+    expect(scoped(block, HERO_OVERRIDE_SELECTORS[3])).toHaveLength(2);
   });
 
   /**
-   * 🔴 아이콘 배지는 `span[aria-hidden]` **하나**여야 한다. 배지가 다른 요소(div·i)로 바뀌거나
-   * `aria-hidden` 이 빠지면 보정 룰이 죽어 배지가 제목보다 약 4px 낮게 앉는다(무음).
-   * `aria-hidden` 은 장식 배지라는 접근성 계약이기도 하다.
+   * 🔴 2026-08-03 로 계약이 뒤집혔다 — 랜딩 히어로에는 **아이콘 배지가 없다.**
+   * 사용자 지시로 로고가 서는 자리를 헤더 하나로 모으면서 히어로 제목 옆 심볼을 걷었다.
+   * 그와 함께 배지의 잉크 보정 룰(구 3번)도 걷었다 — 대상이 없는 룰은 조용히 썩는다.
+   * ⚠ 배지를 되살리려면 그 보정 룰도 함께 되살려라. 없으면 배지가 제목보다 약 1.4px 낮게 앉는다
+   *   (한글 라인박스 중심과 아이콘 시각 중심이 어긋나는 이 레포 단골 결함).
    */
-  it('제목 그룹의 아이콘 배지는 span[aria-hidden] 정확히 하나다', () => {
+  it('제목 그룹에 아이콘 배지가 없다 — 로고는 헤더 하나뿐이다', () => {
     renderLandingPage();
     const block = getHeroBlock();
 
-    const badges = scoped(block, HERO_OVERRIDE_SELECTORS[2]);
-    expect(badges).toHaveLength(1);
-    expect(badges[0].tagName).toBe('SPAN');
-    // 배지는 제목과 같은 그룹 안에 있어야 한다 — 그래야 `align-items: center` 보정이 의미를 갖는다.
-    expect(badges[0].parentElement?.querySelector('h1')).not.toBeNull();
+    const titleGroup = scoped(block, '> header > div:first-of-type > div:first-of-type')[0];
+    expect(titleGroup).toBeDefined();
+    expect(titleGroup.querySelectorAll('span[aria-hidden]')).toHaveLength(0);
+    expect(titleGroup.querySelector('h1')).not.toBeNull();
   });
 });
 
@@ -215,21 +191,9 @@ describe('PageHero 구조 계약 — 랜딩이 이 모양에 결합돼 있다', 
   });
 });
 
-describe('잉크 보정 계수 — 랜딩의 손 복제본이 정본과 같은가', () => {
-  /**
-   * 🔴 `HeroBlock` 은 제목을 44px 로 키우면서 배지 보정을 **직접 다시 계산**한다. 그 식의 계수
-   * `-0.1` 은 `shared/styles/heroTitleRow.ts` 의 `INK_ABOVE_LINE_BOX.display` 를 손으로 복제한 값이다.
-   * 정본이 0.1 → 0.08 로 바뀌면 랜딩만 낡아 배지가 약 0.9px 어긋난다 — 역시 무음이다.
-   *
-   * 정본 값을 직접 읽지 않고 `heroIconOpticalAlign`(정본의 산출물)에서 파싱하는 이유:
-   * `INK_ABOVE_LINE_BOX` 는 비공개 상수라 테스트를 위해 export 를 늘리지 않기 위해서다.
-   */
-  it('정본 계수는 0.1 이다 (2026-07-30 실측: font.display 평균 +0.100em)', () => {
-    // 이 리터럴이 빨개졌다면 정본이 바뀐 것이다 — 랜딩 쪽 -0.1 과 이 숫자를 **함께** 고쳐라.
-    expect(readCanonicalInkShift()).toBe(0.1);
-  });
-
-  it('랜딩이 쓰는 보정 계수가 정본과 같다', () => {
-    expect(readLandingInkShift()).toBe(readCanonicalInkShift());
-  });
-});
+/*
+ * 🔴 "잉크 보정 계수" 묶음을 걷었다(2026-08-03). 그 계수는 히어로 제목 옆 **아이콘 배지**를
+ * 제목 중심에 맞추려던 값인데, 사용자 지시로 배지 자체가 사라졌다(로고는 헤더 하나뿐).
+ * 대상이 없는 값을 계속 검사하면 테스트가 사실이 아닌 것을 지킨다.
+ * ⚠ 배지를 되살리면 `LandingPage.styled.ts` 의 보정 룰과 이 검사를 **함께** 되살려라.
+ */

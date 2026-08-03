@@ -1,3 +1,13 @@
+
+/*
+ * 🔴 이 파일만 타임아웃을 올린다(기본 15s → 40s). 근거는
+ * `test/dividendCalendar/dividendCalendarPage.behavior.test.tsx` 머리말과 같다 —
+ * 이 화면은 레포에서 가장 무거운 렌더라 전체 스위트 병렬 실행에서만 15s 를 넘긴다
+ * (실측: 단독 5.1s vs 전체 실행 중 파일 73s).
+ * 🔴 전역 testTimeout 을 올리지 마라 — 다른 테스트의 성능 회귀를 못 보게 된다.
+ */
+vi.setConfig({ testTimeout: 40_000 });
+import { vi } from 'vitest';
 import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, useLocation } from 'react-router-dom';

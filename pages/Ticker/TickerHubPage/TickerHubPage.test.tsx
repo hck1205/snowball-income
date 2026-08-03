@@ -11,6 +11,21 @@ function renderHub() {
   );
 }
 
+/**
+ * 🔴 카드 보기로 전환한 뒤 렌더한다.
+ *
+ * 2026-08-03 사용자 지시로 이 화면의 **기본 보기가 표**가 됐다(DEFAULT_HUB_FILTERS.view = 'table').
+ * 카드의 모양·라벨·틴트 클러스터 표식을 검사하는 테스트들은 카드가 화면에 있어야 성립하므로
+ * 여기서 한 번 전환한다 — 기본값을 되돌리는 것이 아니라 **그 보기를 켜서** 본다.
+ * ⚠ 기본값이 표라는 사실 자체는 아래 별도 테스트가 잠근다.
+ */
+async function renderHubAsCards() {
+  const user = userEvent.setup();
+  const rendered = renderHub();
+  await user.click(screen.getByRole('button', { name: '카드' }));
+  return rendered;
+}
+
 /** 카드/표 어느 보기에서도 티커로 가는 링크는 같은 수여야 한다 — 그 수를 세는 단일 헬퍼. */
 const tickerLinkCount = (container: HTMLElement): number =>
   container.querySelectorAll('a[href^="/ticker/"]:not([href="/ticker/compare"]):not([href="/ticker/all"])').length;
@@ -69,8 +84,8 @@ describe('TickerHubPage', () => {
     expect(nav.contains(compare)).toBe(false);
   });
 
-  it('marks each card grid as one tint cluster so the colour caps count as a single face', () => {
-    const { container } = renderHub();
+  it('marks each card grid as one tint cluster so the colour caps count as a single face', async () => {
+    const { container } = await renderHubAsCards();
 
     /*
      * 이 화면은 틴트 캡(48px)을 쓰는 유일한 라우트다. 2026-08-03 흰 캔버스 전환으로 캡의 면색이
@@ -86,8 +101,8 @@ describe('TickerHubPage', () => {
     }
   });
 
-  it('labels every card metric so a value never stands alone', () => {
-    renderHub();
+  it('labels every card metric so a value never stands alone', async () => {
+    await renderHubAsCards();
 
     const card = screen.getByRole('link', { name: /^SCHD/ }).closest('article');
     expect(card).not.toBeNull();
@@ -158,7 +173,7 @@ describe('TickerHubPage', () => {
 
   it('sorts by dividend yield on request', async () => {
     const user = userEvent.setup();
-    const { container } = renderHub();
+    const { container } = await renderHubAsCards();
 
     await user.selectOptions(screen.getByRole('combobox', { name: '정렬 기준' }), 'yield-desc');
 
@@ -180,5 +195,18 @@ describe('TickerHubPage', () => {
     expect(screen.getByText('수록 종목')).toBeInTheDocument();
     expect(screen.getByText('배당률 범위')).toBeInTheDocument();
     expect(screen.getByText('매월 지급')).toBeInTheDocument();
+  });
+
+  /**
+   * 🔴 기본 보기는 **표**다(2026-08-03 사용자 지시: "카드가 아니라 표가 default인게 더 좋다").
+   * 이 허브는 고르는 화면이 아니라 **비교해서 찾는** 화면이라, 배당률·운용보수·주기를 나란히
+   * 훑는 일이 카드 격자보다 표에서 빠르다. 값의 출처는 DEFAULT_HUB_FILTERS 하나다.
+   */
+  it('기본 보기는 표다 — 카드가 아니다', () => {
+    renderHub();
+
+    expect(screen.getByRole('button', { name: '표' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: '카드' })).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getAllByRole('table').length).toBeGreaterThan(0);
   });
 });
