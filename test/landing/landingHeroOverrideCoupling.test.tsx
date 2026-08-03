@@ -14,7 +14,8 @@ import { renderLandingPage, setWorkspaceMarker, stubMarketIndicesFetch } from '.
  *
  * 왜 존재하나: `pages/Landing/LandingPage/LandingPage.styled.ts` 의 `HeroBlock` 은
  * `components/common/PageHero` 의 **내부 DOM 을 바깥에서 자손 선택자로 겨냥해** 랜딩 히어로만
- * 제목 30→44px · CTA 아랫줄 배치로 바꾼다. 그 결합은 **타입도 렌더도 잡아 주지 않는다** —
+ * 제목 30→44px · CTA 아랫줄 배치 · **오른쪽 그림 lane 확보**(2026-08-04)로 바꾼다.
+ * 그 결합은 **타입도 렌더도 잡아 주지 않는다** —
  * 히어로가 슬롯을 하나 더 렌더하거나 요소 타입을 바꾸면 선택자가 그냥 **아무것도 고르지 않고**,
  * 랜딩 히어로는 에러 0건 · 실패 테스트 0건으로 조용히 옛 모습(30px · 우측 CTA)으로 되돌아간다.
  * 그 무음을 **소음으로 바꾸는 것**이 이 파일의 유일한 목적이다.
@@ -41,11 +42,25 @@ const landingStyledSource = stripComments(readFileSync(LANDING_STYLED_PATH, 'utf
  * 그래서 랜딩이 선택자를 바꾸면 첫 테스트가 먼저 빨개져 "DOM 단정도 같이 갱신하라"고 알린다.
  */
 const HERO_OVERRIDE_SELECTORS = [
+  '> header',
   '> header > div:first-of-type',
   '> header h1',
   '> header > div:first-of-type > div + div',
   '> header > div:first-of-type > div + div > *'
 ] as const;
+
+/**
+ * 같은 목록을 **이름으로** 꺼내 쓴다. 순서 비교(위 배열)와 DOM 단정(아래)이 같은 문자열을 쓰되,
+ * 단정 쪽은 인덱스에 매이지 않게 하기 위해서다 — 2026-08-04 에 맨 앞 룰(`> header`)이 하나 늘면서
+ * 인덱스가 통째로 밀렸고, 단정 세 개가 **엉뚱한 선택자를 실행하며** 빨개졌다.
+ */
+const SELECTOR = {
+  card: HERO_OVERRIDE_SELECTORS[0],
+  titleRow: HERO_OVERRIDE_SELECTORS[1],
+  title: HERO_OVERRIDE_SELECTORS[2],
+  actions: HERO_OVERRIDE_SELECTORS[3],
+  actionChildren: HERO_OVERRIDE_SELECTORS[4]
+} as const;
 
 /** 소스에 적힌 `> header …{` 룰을 등장 순서대로 뽑는다. */
 const readHeroOverrideSelectors = (): string[] =>
@@ -91,6 +106,30 @@ describe('랜딩 히어로 override — 선택자가 겨냥하는 DOM 이 그대
   });
 
   /**
+   * 🔴 **2026-08-04 신설.** 히어로 카드는 이제 그림(`HeroArt`)과 **같은 그리드 셀**을 나눠 쓴다 —
+   * `> header` 룰이 카드에 `grid-area: hero` 와 오른쪽 lane 패딩을 준다(그림이 앉을 자리를 비운다).
+   *
+   * 이 룰이 죽는 방식이 특히 조용하다: 히어로를 한 겹 감싸면 `> header` 가 매칭을 잃고,
+   * ① 카드가 area 를 못 받아 **세 번째 행**으로 밀려 그림과 겹치지 않게 되고
+   * ② padding-right 가 사라져 제목·리드가 그림 밑으로 흐른다.
+   * 둘 다 에러 0건이다. 그래서 "header 가 HeroBlock 의 **직계** 자식"을 여기서 단정한다.
+   */
+  it('히어로 카드(header)는 HeroBlock 의 직계 자식이다 — 그림 lane 규칙이 이 사실에 걸려 있다', () => {
+    renderLandingPage();
+    const block = getHeroBlock();
+
+    const headers = scoped(block, SELECTOR.card);
+    expect(headers).toHaveLength(1);
+    expect(headers[0].querySelector('h1')).not.toBeNull();
+
+    // 그림은 카드의 **형제**여야 한다 — 카드 자손이면 카드의 overflow:hidden 이 금화를 잘라
+    // "실수로 넘친 그림"이 된다(HippoCoinScene.styled.ts 의 무대 주석).
+    const artImages = [...block.querySelectorAll('img')];
+    expect(artImages.length).toBeGreaterThan(0);
+    expect(artImages.every((img) => img.closest('header') === null)).toBe(true);
+  });
+
+  /**
    * 🔴 `> header > div:first-of-type` 은 "**제목 줄이 header 의 첫 div**"를 전제한다.
    * 히어로 앞쪽에 div 슬롯이 하나만 끼면(예: 배너·브레드크럼) 이 전제가 깨지고 랜딩 히어로가
    * 통째로 원래 크기로 되돌아간다 — 화면은 멀쩡해 보이고 아무도 모른다.
@@ -99,11 +138,11 @@ describe('랜딩 히어로 override — 선택자가 겨냥하는 DOM 이 그대
     renderLandingPage();
     const block = getHeroBlock();
 
-    const titleRows = scoped(block, HERO_OVERRIDE_SELECTORS[0]);
+    const titleRows = scoped(block, SELECTOR.titleRow);
     expect(titleRows).toHaveLength(1);
     expect(titleRows[0].querySelector('h1')).not.toBeNull();
 
-    const titles = scoped(block, HERO_OVERRIDE_SELECTORS[1]);
+    const titles = scoped(block, SELECTOR.title);
     expect(titles).toHaveLength(1);
     expect(titles[0]).toHaveAccessibleName(LANDING_COPY.hero.title);
   });
@@ -118,17 +157,17 @@ describe('랜딩 히어로 override — 선택자가 겨냥하는 DOM 이 그대
     renderLandingPage();
     const block = getHeroBlock();
 
-    const titleRow = scoped(block, HERO_OVERRIDE_SELECTORS[0])[0];
+    const titleRow = scoped(block, SELECTOR.titleRow)[0];
     const directDivs = [...titleRow.children].filter((child) => child.tagName === 'DIV');
     expect(directDivs).toHaveLength(2);
 
-    const actions = scoped(block, HERO_OVERRIDE_SELECTORS[2]);
+    const actions = scoped(block, SELECTOR.actions);
     expect(actions).toHaveLength(1);
     // 랜딩 히어로 CTA 2개가 전부 이 컨테이너 안에 있어야 "CTA 를 아랫줄로 내린다"는 룰이 유효하다.
     expect(actions[0].querySelectorAll('[data-landing-cta]')).toHaveLength(2);
 
     // 마지막 룰(`> *`)은 CTA 하나하나의 잉크 보정을 되돌린다 — 대상이 곧 CTA 개수다.
-    expect(scoped(block, HERO_OVERRIDE_SELECTORS[3])).toHaveLength(2);
+    expect(scoped(block, SELECTOR.actionChildren)).toHaveLength(2);
   });
 
   /**

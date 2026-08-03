@@ -11,6 +11,10 @@
     },
     { "source": "/community/board/:id", "destination": "/api/post-html?kind=board&id=:id" },
     { "source": "/ticker/:name", "destination": "/api/ticker-html?name=:name" },
+    { "source": "/dividend/lists", "destination": "/api/dividend-list-html?list=hub" },
+    { "source": "/dividend/kings", "destination": "/api/dividend-list-html?list=kings" },
+    { "source": "/dividend/aristocrats", "destination": "/api/dividend-list-html?list=aristocrats" },
+    { "source": "/dividend/champions", "destination": "/api/dividend-list-html?list=champions" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
 

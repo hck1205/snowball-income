@@ -73,7 +73,7 @@ describe('랜딩 — 서사 묶음 구조', () => {
 
     // 🔴 주요 지수는 **이 페이지에 없다**(2026-08-02 — 시세가 쓰이는 세 화면 본문 맨 위로 옮겼다).
     //    히어로에는 제목만 남는다.
-    expect(sectionTitlesOf(hero)).toEqual(['배당, 여기서부터 이해하고 계산합니다']);
+    expect(sectionTitlesOf(hero)).toEqual(['배당으로 배당을 키우는 복리, 여기서 계산합니다']);
 
     expect(sectionTitlesOf(learn)).toEqual([
       '배당을 알기 전에, 세 단어',

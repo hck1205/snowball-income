@@ -88,6 +88,14 @@ export type { ResponsiveEChartProps } from './ResponsiveEChart';
 
 export { ResultGrid, ResultGridCell } from './ResultGrid';
 
+/**
+ * 🔴 2026-08-04 승격 — 원래 `pages/Community/CommunityDetailPage/components/` 에 있었다.
+ * 랜딩이 같은 장치를 요구했고 페이지 폴더끼리 직접 import 는 금지라, 두 벌로 복제하는 대신
+ * 재사용 레이어로 올렸다. 커뮤니티 상세는 이제 여기서 가져간다(사본 0).
+ */
+export { ScrollTopButton } from './ScrollTopButton';
+export type { ScrollTopButtonProps } from './ScrollTopButton';
+
 export { default as Select } from './Select';
 export type { SelectProps, SelectSize, SelectWidth } from './Select';
 

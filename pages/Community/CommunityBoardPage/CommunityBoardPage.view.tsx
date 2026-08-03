@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { COMMUNITY_COPY, POST_CATEGORY_IDS } from '@/shared/constants/community';
+import { COMMUNITY_COPY } from '@/shared/constants/community';
 import { parseScenarioSimSummary } from '@/shared/lib/snowball';
 import { Button } from '@/components/common';
 import { PencilIcon } from '@/components/community';
 import {
+  BoardCategoryFilter,
   FeedEmpty,
   FeedError,
   FeedMasthead,
@@ -12,24 +13,27 @@ import {
   PostFeedRow
 } from '@/pages/Community/components';
 import type { CommunityBoardViewProps } from './CommunityBoardPage.types';
-import {
-  BoardLegend,
-  BoardLegendItem,
-  BoardLegendLabel,
-  BoardList,
-  Sentinel
-} from './CommunityBoardPage.styled';
+import { BoardList, Sentinel } from './CommunityBoardPage.styled';
 
 const b = COMMUNITY_COPY.board;
 
 /** 머리 면 소제목. 갤러리와 같은 낱말을 써서 두 목록이 한 축(커뮤니티)임을 말한다. */
 const MASTHEAD_EYEBROW = '커뮤니티';
 
-/** 범례 라벨. 분류 낱말 자체는 글쓰기 드롭다운과 **같은 맵**을 쓴다(표기가 어긋나지 않게). */
-const LEGEND_LABEL = '글 종류';
-
 export default function CommunityBoardView({ viewModel }: CommunityBoardViewProps) {
-  const { items, status, reachedEnd, isLoadingMore, loadMoreError, loadMore, retry, onWrite } = viewModel;
+  const {
+    items,
+    status,
+    categories,
+    reachedEnd,
+    isLoadingMore,
+    loadMoreError,
+    loadMore,
+    retry,
+    toggleCategory,
+    clearCategories,
+    onWrite
+  } = viewModel;
 
   const sentinelRef = useRef<HTMLDivElement>(null);
 
@@ -67,13 +71,8 @@ export default function CommunityBoardView({ viewModel }: CommunityBoardViewProp
         onAction={onWrite}
       />
 
-      {/* 목록에 나타날 분류 배지를 미리 읽어 둔다(필터가 아니라 범례 — BoardLegend 주석). */}
-      <BoardLegend>
-        <BoardLegendLabel>{LEGEND_LABEL}</BoardLegendLabel>
-        {POST_CATEGORY_IDS.map((id) => (
-          <BoardLegendItem key={id}>{COMMUNITY_COPY.write.categoryLabels[id]}</BoardLegendItem>
-        ))}
-      </BoardLegend>
+      {/* 분류 줄 — 2026-08-04 부터 범례가 아니라 **필터**다(전체 + 5개 다중 토글). */}
+      <BoardCategoryFilter categories={categories} onToggle={toggleCategory} onSelectAll={clearCategories} />
 
       {status === 'loading' ? (
         <div aria-busy="true">
@@ -92,6 +91,19 @@ export default function CommunityBoardView({ viewModel }: CommunityBoardViewProp
           action={
             <Button variant="primary" onClick={onWrite}>
               {b.emptyCta}
+            </Button>
+          }
+        />
+      ) : null}
+
+      {/* 필터가 걸린 빈 목록에 "아직 글이 없습니다"를 띄우면 거짓말이 된다 — 되돌릴 길을 함께 준다. */}
+      {status === 'filteredEmpty' ? (
+        <FeedEmpty
+          title={b.filterEmptyTitle}
+          subtitle={b.filterEmptySubtitle}
+          action={
+            <Button variant="secondary" onClick={clearCategories}>
+              {b.filterEmptyCta}
             </Button>
           }
         />

@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { ArrowRight, ScrollText } from 'lucide-react';
-import { PageHero } from '@/components/common';
+import { PageFooter, PageHero } from '@/components/common';
 import { TickerPageShell } from '@/pages/Ticker/components';
 import { useReadingPosition } from '../../hooks';
 import { splitLegalHeading } from '../../utils';
@@ -40,10 +40,11 @@ import {
  * (`applySeoRuntimeMetadata`). 여기서는 브라우저 탭 제목만 마운트 동안 바꾸고 언마운트에서
  * 되돌린다 — 404 가 쓰는 것과 같은 방식이다.
  *
- * ## 공용 푸터를 두지 않는다
- * 공용 `PageFooter` 는 이 두 문서로 가는 **링크**를 갖고 있다. 문서 안에 다시 그 푸터를 그리면
- * 지금 보고 있는 페이지로 가는 링크가 자기 아래에 생긴다. 대신 문서 끝의 `LegalExitNav` 가
- * **형제 문서·첫 화면·문서 처음** 셋만 가리킨다(자기 자신을 가리키지 않는다).
+ * ## 🔴 공용 푸터를 둔다 (2026-08-04, 종전 판단을 뒤집었다)
+ * 종전에는 두지 않았다. 이유는 *"공용 `PageFooter` 가 이 두 문서로 가는 링크를 갖고 있어서,
+ * 문서 안에 그리면 지금 보고 있는 페이지로 가는 링크가 자기 아래에 생긴다"* 였다.
+ * 그 지적 자체는 지금도 맞다 — 다만 **대가가 더 컸다.** 이 두 화면만 페이지가 끝나는 표식 없이
+ * 끊기고, `contentinfo` 랜드마크도 없었다(실측: 21개 라우트 중 footer 0개인 곳 셋 중 둘).
  */
 export default function LegalDocument({ document: model, related }: LegalDocumentProps) {
   useEffect(() => {
@@ -114,6 +115,10 @@ export default function LegalDocument({ document: model, related }: LegalDocumen
             <LegalExitNav related={related} firstClauseId={sectionIds[0] ?? null} />
           </Article>
         </DocumentLayout>
+
+        {/* 자기 자신을 가리키는 링크가 푸터에 하나 생기지만, 그 값보다 "페이지가 여기서 끝난다"는
+            표식과 contentinfo 랜드마크가 크다(머리말 참고). 문서 안 이동은 위 LegalExitNav 가 맡는다. */}
+        <PageFooter />
       </PageRoot>
     </TickerPageShell>
   );

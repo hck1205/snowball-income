@@ -1,6 +1,6 @@
 import { useCallback, useId, useMemo, useState } from 'react';
 import { AlertTriangle, Users } from 'lucide-react';
-import { BrandGlyph, Button, PageHero, PickCard, SideDrawer } from '@/components/common';
+import { BrandGlyph, Button, PageFooter, PageHero, PickCard, SideDrawer } from '@/components/common';
 import { assignSeries } from '@/shared/lib/tickerSeries';
 import { CHART_SERIES_VARS, ICON, color } from '@/shared/styles';
 import { INVESTORS_COPY } from '../copy';
@@ -715,6 +715,11 @@ export default function InvestorsView({ viewModel }: InvestorsViewProps) {
       <FootNoteRow>
         <FootNote>{copy.footnote.disclaimer}</FootNote>
       </FootNoteRow>
+
+      {/* 🔴 이 화면에만 푸터가 없었다(2026-08-04 실측: 21개 라우트 중 여기만 근거 없는 결손).
+          사용자 지시 "모든 페이지에 footer가 존재하게 해줘" — 셸의 슬롯으로 착지하므로
+          여기 두어도 `<main>` 밖에 서고 contentinfo 랜드마크가 살아 있다. */}
+      <PageFooter />
     </Stack>
   );
 }

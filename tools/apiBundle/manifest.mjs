@@ -9,6 +9,7 @@
  */
 export const API_BUNDLES = [
   { entry: 'server/handlers/AccountDelete/AccountDelete.ts', out: 'api/account-delete.js' },
+  { entry: 'server/handlers/DividendListHtml/DividendListHtml.ts', out: 'api/dividend-list-html.js' },
   { entry: 'server/handlers/Fx/Fx.ts', out: 'api/fx.js' },
   { entry: 'server/handlers/KakaoAuth/KakaoAuth.ts', out: 'api/kakao-auth.js' },
   { entry: 'server/handlers/MarketIndices/MarketIndices.ts', out: 'api/market-indices.js' },

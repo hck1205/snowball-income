@@ -6,12 +6,13 @@ import {
   ShieldCheck,
   Table2,
 } from "lucide-react";
-import { Button, HintText, PickCard, PickCardGrid } from "@/components/common";
+import { Button, HintText, PickCard } from "@/components/common";
 import { LEDGER_COPY } from "../../copy";
 import { LedgerStepRail } from "../LedgerStepRail";
 import type { LedgerConnectPanelProps } from "./LedgerConnectPanel.types";
 import {
   ChoiceBody,
+  ChoiceGrid,
   ChoiceTitle,
   ConnectHeading,
   ConnectSection,
@@ -71,7 +72,7 @@ export default function LedgerConnectPanel({
         <LedgerStepRail current={1} tone="panel" />
       </ConnectStage>
 
-      <PickCardGrid minColumnWidth="260px">
+      <ChoiceGrid>
         <PickCard
           titleAs="h2"
           /*
@@ -132,7 +133,7 @@ export default function LedgerConnectPanel({
         >
           <ChoiceBody>{copy.connect.create.body}</ChoiceBody>
         </PickCard>
-      </PickCardGrid>
+      </ChoiceGrid>
 
       <HintText>{copy.connect.consentHint}</HintText>
       {/* 🔴 두 층의 관계를 말하는 문장은 화면 전체에서 이것 하나뿐이다(복제 금지). */}

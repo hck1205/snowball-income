@@ -14,7 +14,17 @@ import { applySeoRuntimeMetadata, sendPageView } from '@/shared/lib/analytics';
 import { syncFaqStructuredData } from '@/shared/lib/seo';
 import { usePageHue } from '@/shared/hooks';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
-import { SIMULATOR_PATH } from '@/shared/constants/routes';
+/*
+ * 🔴 배당 목록의 **경로만** 가져온다(`shared/constants/routes` = 의존성 0 리프). 목록 폴더
+ * (`shared/constants/dividendLists`)를 여기서 import 하면 200종 가까운 종목 데이터가 엔트리 번들에
+ * 실려 아래 lazy 격리가 그 자리에서 무효가 된다.
+ */
+import {
+  DIVIDEND_LIST_HUB_PATH,
+  DIVIDEND_LIST_IDS,
+  SIMULATOR_PATH,
+  dividendListPath
+} from '@/shared/constants/routes';
 
 
 /**
@@ -109,6 +119,20 @@ const DividendCalendarPage = lazy(() => import('@/pages/DividendCalendar/Dividen
  * PrimaryNav 에는 경로 문자열과 아이콘만 추가되므로 이 lazy 경계가 유지된다.
  */
 const PortfolioPage = lazy(() => import('@/pages/Portfolio/PortfolioPage'));
+
+/**
+ * 배당 연속 증배 목록(`/dividend/lists` 허브 + 배당킹·배당귀족·배당챔피언 3종) — 배당 캘린더와 같은
+ * `lazy` 격리다. 커밋된 목록 데이터를 읽는 정적 화면이라 조회가 없다.
+ *
+ * 🔴 **배럴(`@/pages/DividendList`)이 아니라 각 페이지 폴더를 직접** import 한다. 배럴을 lazy 하면
+ * 허브와 목록이 한 청크로 묶여 허브만 열어도 목록 셋의 문구·데이터를 전부 내려받는다(법무 문서 두
+ * 벌이 같은 이유로 폴더 직접 import 를 쓴다).
+ *
+ * 목록 3종은 **같은 컴포넌트**가 그린다 — 차이가 데이터와 문구뿐이라 `listId` prop 하나로 갈린다.
+ * 경로는 `/dividend/calendar`·`/dividend/portfolio` 와 같은 depth 를 지킨다.
+ */
+const DividendListHubPage = lazy(() => import('@/pages/DividendList/DividendListHubPage'));
+const DividendListPage = lazy(() => import('@/pages/DividendList/DividendListPage'));
 
 /**
  * 404 — 어떤 라우트에도 맞지 않는 주소(`*`).
@@ -349,6 +373,27 @@ export const routes: RouteObject[] = [
           </Suspense>
         )
       },
+      {
+        /*
+         * 배당 목록 허브. `/dividend/kings` 등 정적 세그먼트들과 형제라 순서 의존이 없다
+         * (`/dividend/:id` 같은 파라미터 라우트를 두지 않았다 — 목록은 셋으로 고정이고, 파라미터로
+         * 열어 두면 존재하지 않는 목록 주소가 200 으로 살아난다).
+         */
+        path: DIVIDEND_LIST_HUB_PATH,
+        element: (
+          <Suspense fallback={null}>
+            <DividendListHubPage />
+          </Suspense>
+        )
+      },
+      ...DIVIDEND_LIST_IDS.map((listId) => ({
+        path: dividendListPath(listId),
+        element: (
+          <Suspense fallback={null}>
+            <DividendListPage listId={listId} />
+          </Suspense>
+        )
+      })),
       {
         path: '/privacy',
         element: (

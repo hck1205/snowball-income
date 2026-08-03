@@ -1,20 +1,21 @@
 #!/usr/bin/env node
-// verify — 배포 전 통합 검증 게이트. **fail-fast 5단계**를 순서대로 돌려, 하나라도 깨지면
+// verify — 배포 전 통합 검증 게이트. **fail-fast 6단계**를 순서대로 돌려, 하나라도 깨지면
 // 거기서 멈추고 비0 exit 한다. `ship` 스킬(T4)과 `refresh-data`·`new-ticker-page` 도메인 스킬이
 // "격리 빌드 그린"을 확인하는 단일 진입점이다.
 //
-//   node tools/dev/verify.mjs              # 전체 5단계
+//   node tools/dev/verify.mjs              # 전체 6단계
 //   node tools/dev/verify.mjs --no-test    # 테스트 건너뛰기(빠른 타입·빌드 확인)
 //   node tools/dev/verify.mjs --no-build   # vite build 건너뛰기
 //   node tools/dev/verify.mjs --no-api     # api 번들/체크 건너뛰기(server/handlers 무변경일 때)
 //   node tools/dev/verify.mjs --plan       # 실행 없이 단계 계획만(dry-run)
 //
 // ## 단계 (순서 = fail-fast 순서)
-//   ① tsc -b tsconfig.build.json                 전체 타입체크(app+scripts+api, noUnusedLocals/Params)
-//   ② vitest run --exclude "**/.claude/**"       테스트 — .claude/ 제외로 worktree 중복 유령실패 차단
-//   ③ node tools/apiBundle/build.mjs             api/*.js 재생성(server/handlers 소스가 marketData 등을 임베드)
-//   ④ node tools/apiBundle/build.mjs --check     재생성 결과가 커밋본과 일치(드리프트 0)인지 확인
-//   ⑤ vite build                                 프로덕션 번들
+//   ① node tools/brand/check-brand-alpha.mjs     브랜드 래스터 알파·프레이밍(0.3초 — 가장 싸서 맨 앞)
+//   ② tsc -b tsconfig.build.json                 전체 타입체크(app+scripts+api, noUnusedLocals/Params)
+//   ③ vitest run --exclude "**/.claude/**"       테스트 — .claude/ 제외로 worktree 중복 유령실패 차단
+//   ④ node tools/apiBundle/build.mjs             api/*.js 재생성(server/handlers 소스가 marketData 등을 임베드)
+//   ⑤ node tools/apiBundle/build.mjs --check     재생성 결과가 커밋본과 일치(드리프트 0)인지 확인
+//   ⑥ vite build                                 프로덕션 번들
 //
 // ## 설계 원칙 (tools/indexer·tools/dev 관례)
 //   · 순수 Node ESM, **외부 의존성 0** — `node:` 빌트인만. standalone(다른 dev CLI에 의존하지 않는다).
@@ -106,6 +107,19 @@ function findNodeModulesRoot(start) {
 function buildSteps(opts, nmRoot) {
   const nm = (rel) => join(nmRoot, 'node_modules', rel);
   const all = [
+    {
+      /*
+       * 🔴 가장 싼 단계를 맨 앞에 둔다(0.3초). 여기 있는 이유는 순서가 아니라 **사고 이력**이다 —
+       * 브랜드 래스터의 알파가 통째로 망가진 자산이 15개 화면에 배포됐는데, 레포에 PNG 를 읽는
+       * 검사가 하나도 없어서 아무도 못 잡았다(2026-08-04). 타입도 테스트도 못 보는 종류의 회귀다.
+       */
+      key: 'brand:check',
+      label: 'brand:check (node tools/brand/check-brand-alpha.mjs)',
+      note: '브랜드 래스터 알파·프레이밍 회귀 0',
+      entry: join(ROOT, 'tools', 'brand', 'check-brand-alpha.mjs'),
+      args: [],
+      enabled: true,
+    },
     {
       key: 'tsc',
       label: 'tsc -b tsconfig.build.json',

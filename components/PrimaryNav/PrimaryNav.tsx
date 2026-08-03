@@ -6,16 +6,21 @@ import {
   BookOpen,
   CalendarDays,
   ChevronDown,
+  Crown,
+  Gem,
   LayoutGrid,
   LineChart,
+  ListOrdered,
+  Medal,
   MessageSquare,
   ReceiptText,
   Scale,
+  Trophy,
   Users,
   Wallet
 } from 'lucide-react';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
-import { SIMULATOR_PATH } from '@/shared/constants/routes';
+import { DIVIDEND_LIST_HUB_PATH, SIMULATOR_PATH, dividendListPath } from '@/shared/constants/routes';
 import { isGoogleSheetsEnabled } from '@/shared/lib/googleSheets';
 import { isCommunityEnabled } from '@/shared/lib/supabase';
 import {
@@ -54,15 +59,40 @@ const PORTFOLIO_GROUP_ITEMS = [
 ] as const;
 
 /**
- * 포트폴리오 묶음 메뉴 — nav 한 칸에 목적지 둘을 접는다.
+ * 배당 목록 묶음이 품는 목적지 — 허브 + 목록 3종.
+ *
+ * 왜 묶는가: 목록 셋을 nav 에 각각 올리면 항목이 8 → 11개가 되어 **상한(8)을 넘는다**(아래
+ * `NavLinkItems` 의 종목 비교 주석이 그 상한을 못 박았고, 2026-08-02 에 포트폴리오 3종이 같은 이유로
+ * 접혔다). 세 목록은 "몇 년 연속 배당을 늘렸는가"라는 **한 축**이라 묶는 값이 가장 크다.
+ *
+ * 순서는 **넓은 것 → 좁은 것**이 아니라 **비교 → 기간이 긴 순**이다: 허브에서 차이를 보고,
+ * 그다음 50년 → 25년(지수) → 25년(전체)로 내려간다.
+ *
+ * 🔴 경로는 `shared/constants/routes`(의존성 0 리프)에서 온다 — 여기서 목록 데이터 폴더를 import 하면
+ * 200종 가까운 종목 배열이 **엔트리 번들**에 실린다(이 컴포넌트는 시뮬레이터 헤더를 통해 엔트리다).
+ */
+const DIVIDEND_LIST_GROUP_ITEMS = [
+  { to: DIVIDEND_LIST_HUB_PATH, label: n.dividendListHub, Icon: ListOrdered },
+  { to: dividendListPath('kings'), label: n.dividendKings, Icon: Crown },
+  { to: dividendListPath('aristocrats'), label: n.dividendAristocrats, Icon: Gem },
+  { to: dividendListPath('champions'), label: n.dividendChampions, Icon: Medal }
+] as const;
+
+/**
+ * 묶음 메뉴 한 벌 — nav 한 칸에 목적지 여럿을 접는다.
  *
  * 왜 묶는가: nav 항목이 8개에 닿아 "더 늘릴 거면 접기·묶기를 먼저 설계하라"고 못 박아 뒀는데
  * (`NavLinkItems` 의 종목 비교 주석), 대가들의 포트폴리오가 아홉 번째였다. 내 포트폴리오와
  * 대가들의 포트폴리오는 **"누구의 포트폴리오인가"라는 한 축**이라 묶는 값이 가장 크다
  * (2026-08-02 사용자 결정 — 헤더는 2단 그대로, 묶음만 도입).
  *
- * 🔴 트리거는 **목적지가 아니다** — `/portfolio` 라우트는 없다. 눌러도 이동하지 않고 메뉴만 연다.
- * 개폐는 `HeaderOverflowMenu` 와 같은 메커니즘을 따른다(바깥 pointerdown · Esc · 트리거로 포커스 복귀).
+ * ⚠ 2026-08-04 에 배당 목록 묶음이 **두 번째 소비처**가 되면서 파라미터화했다. 개폐·포털·포커스
+ *   복귀 로직을 두 벌로 복제하면 한쪽만 고쳐지는 자리가 된다(이 레포가 헤더 4벌·드로어 3벌로
+ *   겪은 그 사고다). 바뀐 것은 **소유자뿐이고 동작·마크업·ARIA 는 그대로**다.
+ *
+ * 🔴 트리거는 **목적지가 아니다** — `/portfolio`·`/dividend` 라우트는 없다. 눌러도 이동하지 않고
+ * 메뉴만 연다. 개폐는 `HeaderOverflowMenu` 와 같은 메커니즘을 따른다(바깥 pointerdown · Esc ·
+ * 트리거로 포커스 복귀).
  *
  * 🔴 **`role="menu"`/`role="menuitem"` 을 붙이지 마라.** 두 가지가 깨진다:
  *  ① `menuitem` 은 `<a>` 의 암묵 role(link)을 **덮어써서** 링크가 링크로 안 읽힌다(실측: `getByRole('link')`
@@ -74,16 +104,26 @@ const PORTFOLIO_GROUP_ITEMS = [
  * ⚠ 목록은 **body 로 포털**한다. nav 줄이 `overflow-x: auto` 스크롤 컨테이너라 그 안에 두면
  *   세로로 잘리기 때문이다(근거는 `NavMenu` 주석). 그래서 좌표를 직접 재서 `fixed` 로 띄운다.
  */
-function PortfolioNavMenu() {
+type NavGroupItem = {
+  to: string;
+  label: string;
+  Icon: typeof Wallet;
+};
+
+type NavGroupMenuProps = {
+  label: string;
+  /** 트리거 왼쪽 글리프. 묶음이 무엇인지 한 눈에 말한다. */
+  Icon: typeof Wallet;
+  items: readonly NavGroupItem[];
+};
+
+function NavGroupMenu({ label, Icon: TriggerIcon, items }: NavGroupMenuProps) {
   const location = useLocation();
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuId = useId();
-
-  // 커뮤니티가 꺼진 배포에선 갤러리 항목이 통째로 빠진다 — 활성 판정도 남은 것들로만 한다.
-  const items = PORTFOLIO_GROUP_ITEMS.filter((item) => !item.communityOnly || isCommunityEnabled);
 
   const isActive = items.some(
     (item) => location.pathname === item.to || location.pathname.startsWith(`${item.to}/`)
@@ -147,8 +187,8 @@ function PortfolioNavMenu() {
         aria-controls={open ? menuId : undefined}
         onClick={() => setOpen((prev) => !prev)}
       >
-        <Wallet size={16} strokeWidth={1.8} aria-hidden focusable={false} />
-        <NavLabel>{n.portfolioGroup}</NavLabel>
+        <TriggerIcon size={16} strokeWidth={1.8} aria-hidden focusable={false} />
+        <NavLabel>{label}</NavLabel>
         <NavMenuChevron $open={open}>
           <ChevronDown size={14} strokeWidth={1.8} aria-hidden focusable={false} />
         </NavMenuChevron>
@@ -187,9 +227,11 @@ function PortfolioNavMenu() {
  * 활성 표시는 react-router `NavLink`가 담당한다(`aria-current="page"` + `.active`).
  * 시뮬레이터만 `end`(exact) — 워드마크가 가리키는 `/`(홈)와 구분하기 위해서다(목적지 문자열이
  * `/` → `/simulator` 로 옮겨 간 이전의 흔적. 워드마크 `Brand to="/"` 는 그대로 둔다).
- * 윗줄 항목 수는 **7개**다(두 env 플래그가 다 켜진 배포 기준). 2026-08-02 에 대가들의 포트폴리오가
+ * 윗줄 항목 수는 **8개**다(두 env 플래그가 다 켜진 배포 기준). 2026-08-02 에 대가들의 포트폴리오가
  * 아홉 번째가 될 뻔했는데, 포트폴리오 3종(내 배당 포트폴리오·대가들의 포트폴리오·갤러리)을
- * 한 칸으로 **묶어**(`PortfolioNavMenu`) 오히려 한 칸 줄었다.
+ * 한 칸으로 **묶어**(`NavGroupMenu`) 오히려 한 칸 줄었다. 2026-08-04 에 배당 목록 4종(허브 + 킹·귀족·
+ * 챔피언)이 같은 방식으로 한 칸을 차지해 8개가 됐다 — **여기가 상한이다.** 아홉 번째가 필요하면
+ * 새 칸이 아니라 또 하나의 묶음을 만들어라.
  * 갤러리(`/community/portfolio`)·게시판(`/community/board`)은 **`end` 없음**: 상세(`/portfolio/:id`)·
  * 글쓰기(`/portfolio/write`)·수정(`/portfolio/:id/edit`) 같은 하위 경로에서도 자기 섹션 탭이 활성으로 남는다
  * (routes.tsx의 자식 라우트 참고). 두 섹션은 형제 세그먼트라 서로를 활성화하지 않는다.
@@ -209,7 +251,12 @@ const NavLinkItems = () => (
         아이콘은 지갑(Wallet): Briefcase 는 클리셰이고 PieChart 는 시뮬레이터(LineChart)와 혼동된다.
         ⚠ 갤러리는 원래 커뮤니티 축(갤러리·게시판)에 있었는데 2026-08-02 사용자 지시로 이리 옮겼다 —
           사용자에게는 "포트폴리오를 보는 곳"이 한 군데인 편이 낫다는 판단이다. 게시판은 그대로 남는다. */}
-    <PortfolioNavMenu />
+    <NavGroupMenu
+      label={n.portfolioGroup}
+      Icon={Wallet}
+      /* 커뮤니티가 꺼진 배포에선 갤러리 항목이 통째로 빠진다 — 라우트 자체가 없어 죽은 링크가 된다. */
+      items={PORTFOLIO_GROUP_ITEMS.filter((item) => !item.communityOnly || isCommunityEnabled)}
+    />
     {/* 가계부 — 내 포트폴리오 **바로 뒤**. 둘은 "내가 직접 넣은 실측 데이터"라는 한 축이라
         페이지 hue 도 accentAlt 를 공유한다(usePageHue.utils.ts). 아이콘은 영수증(ReceiptText):
         Wallet 은 내 포트폴리오가, BookOpen 은 ETF 소개가 이미 쓴다(ledger UI 스펙 §아이콘과 동일 선택).
@@ -228,6 +275,12 @@ const NavLinkItems = () => (
       <CalendarDays size={16} strokeWidth={1.8} aria-hidden focusable={false} />
       <NavLabel>{n.dividendCalendar}</NavLabel>
     </NavItem>
+    {/* 배당 리스트 묶음 — 목록 비교(허브) + 배당킹 + 배당귀족 + 배당챔피언 넷(2026-08-04 신설).
+        배당 캘린더 **바로 뒤**: 둘 다 `/dividend/` 아래의 "배당 그 자체를 보는" 축이다.
+        아이콘은 트로피(Trophy) — 오래 이어 온 기록이라는 이 묶음의 성격을 말하고, nav 의 다른
+        아이콘(Wallet·CalendarDays·BookOpen·Scale·LineChart·ReceiptText)과 겹치지 않는다.
+        🔴 목록 3종을 각각 올리면 nav 가 11개가 되어 상한(8)을 넘는다 — 그래서 묶음이다. */}
+    <NavGroupMenu label={n.dividendListGroup} Icon={Trophy} items={DIVIDEND_LIST_GROUP_ITEMS} />
     {/* 갤러리(/community/portfolio)는 2026-08-02 부터 포트폴리오 묶음 안이다 — 윗줄에는 게시판만 남는다. */}
     {isCommunityEnabled ? (
       <NavItem to="/community/board" aria-label={n.board}>

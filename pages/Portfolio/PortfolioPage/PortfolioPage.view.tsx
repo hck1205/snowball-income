@@ -8,7 +8,6 @@ import {
   PageFooter,
   PageHero,
   PickCard,
-  PickCardGrid,
   StatTile
 } from '@/components/common';
 import { ICON } from '@/shared/styles';
@@ -45,6 +44,7 @@ import {
   EmptyTitle,
   EntryActions,
   EntryBody,
+  EntryGrid,
   EntryHint,
   ExcludedNote,
   FigureHint,
@@ -256,7 +256,7 @@ export default function PortfolioPageView({
    * (달력 버튼은 그때 비활성이지만 사유가 카드 안에 남는다 — 무음 비활성 금지).
    */
   const entryGrid = (
-    <PickCardGrid minColumnWidth="280px">
+    <EntryGrid>
       <PickCard
         title={copy.calendarEntry.title}
         titleAs="h2"
@@ -313,7 +313,7 @@ export default function PortfolioPageView({
           <EntryBody>{copy.ledgerEntry.body}</EntryBody>
         </PickCard>
       ) : null}
-    </PickCardGrid>
+    </EntryGrid>
   );
 
   return (

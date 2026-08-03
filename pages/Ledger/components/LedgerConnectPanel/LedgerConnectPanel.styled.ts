@@ -1,4 +1,5 @@
 import styled from '@emotion/styled';
+import { PickCardGrid } from '@/components/common';
 import { PICK_RADIUS, brandPanel, color, font, iconOpticalAlign, media, radius, space } from '@/shared/styles';
 
 /**
@@ -87,6 +88,40 @@ export const StageDivider = styled.span`
   width: 100%;
   height: 1px;
   background: color-mix(in srgb, ${color.onPanelGold} 28%, transparent);
+`;
+
+/**
+ * 선택 격자 — 두 선택지가 **폭을 절반씩** 나눠 갖는다(2026-08-04 사용자 지시).
+ *
+ * ## 왜 공용 격자를 그대로 두지 않았나 (1280px 실측)
+ * 공용 `PickCardGrid` 는 `auto-fill` 이라 열 수를 **폭이** 정한다. 이 패널 폭 1160px 이 열 최소폭
+ * 260px 로 잘려 `278px × 4칸` 이 됐고, 카드는 둘뿐이라 왼쪽 572px 만 쓰고 나머지가 빈 채로 남았다
+ * (1024px 에서도 314px × 3칸 중 두 칸). 2열로 못 박으면 1280px 에서 각 572px, 1024px 에서 각 477px 다.
+ *
+ * 🔴 이 화면의 핵심 규율인 **두 선택지의 동일한 무게**를 폭까지 확장한 것이다 — 같은 부품·같은
+ * 버튼 변형에 더해 이제 **같은 폭**이다. 열 수가 폭 따라 변하면 좁은 구간에서 한쪽만 접히는 순간이
+ * 생길 수 있는데, 고정 2열은 둘이 항상 함께 접히게 한다.
+ *
+ * ⚠ 공용 부품은 고치지 않는다 — 커뮤니티 갤러리·빈 상태 격자가 같은 부품을 auto-fill 로 쓴다.
+ *   styled() 로 감싸 넘긴 className 을 Emotion 이 부품 자체 스타일 **뒤**에 합치므로 여기 적은
+ *   열 규칙이 이긴다. 간격(PICK.gap)은 부품 것을 그대로 쓴다.
+ *
+ * ⚠ **선택지가 셋 이상이 되면 이 값을 다시 판정하라.** 지금은 "기존 시트 / 새로 만들기" 둘이
+ *   전부라 2열이 곧 50:50 이지만, 세 번째 선택지가 붙으면 셋째 장이 둘째 줄 왼쪽 절반에 홀로 선다.
+ *   그때의 선택지는 (a) 3열로 올리기 (b) 마지막 한 장에 `grid-column: 1 / -1` 로 전폭 주기 —
+ *   어느 쪽이든 "무게가 같다"는 위 규율을 깨지 않는 쪽을 고른다. 열 수를 auto-fill 로 되돌리지는
+ *   마라(그러면 1280px 에서 다시 빈 열이 생긴다).
+ *
+ * 접힘은 `mobileWide`(≤640px)에서 1열이다 — 아래 `PrivacyGrid` 가 접히는 경계와 같은 값이라
+ * 이 화면의 두 격자가 **한 폭에서 함께** 접힌다. 641px 에서 각 열이 302px 라 종전 auto-fill 이
+ * 요구하던 최소폭(260px)보다 넓다 — 어떤 폭에서도 카드가 지금보다 좁아지지 않는다.
+ */
+export const ChoiceGrid = styled(PickCardGrid)`
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  ${media.down('mobileWide')} {
+    grid-template-columns: minmax(0, 1fr);
+  }
 `;
 
 /**

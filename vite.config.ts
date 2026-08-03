@@ -59,7 +59,19 @@ const ROUTES = [
    * 본문 페이지와 경쟁하면 안 된다.
    */
   { path: '/privacy', priority: '0.2', changefreq: 'yearly' },
-  { path: '/terms', priority: '0.2', changefreq: 'yearly' }
+  { path: '/terms', priority: '0.2', changefreq: 'yearly' },
+  /*
+   * 배당 연속 증배 목록(허브 + 킹·귀족·챔피언). **크롤러가 읽는 본문은 서버가 낸다**
+   * (`server/handlers/DividendListHtml` — 앱의 표는 React 가 그려서 JS 없는 크롤러에겐 빈 셸이다).
+   * 여기에 하드코딩한 이유: 티커처럼 개수가 늘어나는 목록이 아니라 **셋으로 고정**이고, 목록 데이터
+   * 폴더를 config 에서 esbuild 로 불러오는 비용을 낼 이유가 없다(`loadTickerRoutes` 참고).
+   * 목록이 늘면 그때 파생으로 바꾼다.
+   * 허브가 0.6, 목록이 0.7 인 것은 의도다 — 검색 유입은 "배당킹 목록"처럼 목록 이름으로 들어온다.
+   */
+  { path: '/dividend/lists', priority: '0.6', changefreq: 'monthly' },
+  { path: '/dividend/kings', priority: '0.7', changefreq: 'monthly' },
+  { path: '/dividend/aristocrats', priority: '0.7', changefreq: 'monthly' },
+  { path: '/dividend/champions', priority: '0.7', changefreq: 'monthly' }
 ] as const;
 
 type SitemapRoute = { path: string; priority: string; changefreq: string };

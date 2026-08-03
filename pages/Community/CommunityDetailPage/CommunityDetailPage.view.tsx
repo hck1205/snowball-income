@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
 import { formatKRW } from '@/shared/utils/format';
-import { Banner, Button, ShareDialog } from '@/components/common';
+import { Banner, Button, ScrollTopButton, ShareDialog } from '@/components/common';
 import {
   Avatar,
   ConfirmDialog,
@@ -16,7 +16,7 @@ import {
 } from '@/components/community';
 import { RichTextContent } from '@/components/community/RichTextContent';
 import { CommunityTopBar, TopBarActions } from '@/pages/Community/components';
-import { CommentSection, ScenarioPreview, ScrollTopButton } from './components';
+import { CommentSection, ScenarioPreview } from './components';
 import type { CommunityDetailViewProps } from './CommunityDetailPage.types';
 import {
   ActionRail,

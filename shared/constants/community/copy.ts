@@ -66,6 +66,24 @@ export const COMMUNITY_COPY = {
      * ⚠ 환경변수가 없으면(가계부 비활성) 라우트 자체가 없으므로 이 항목도 렌더하지 않는다.
      */
     ledger: '가계부',
+    /**
+     * 배당 목록 묶음 메뉴(드롭다운) 이름 — 자식은 허브(`/dividend/lists`) + 배당킹·배당귀족·배당챔피언
+     * 셋이다. 🔴 **묶음이지 목적지가 아니다** — 눌러도 이동하지 않고 자식을 펼친다(`portfolioGroup` 과
+     * 같은 규칙). 목록 셋을 nav 에 각각 올리면 항목이 8 → 11개가 되어 상한(8)을 넘는다.
+     */
+    dividendListGroup: '배당 리스트',
+    /** 묶음 안 첫 항목 = 허브(`/dividend/lists`). 세 목록의 차이를 비교하는 화면이다. */
+    dividendListHub: '목록 비교',
+    /** 배당킹(/dividend/kings) — 연속 증배 50년 이상. */
+    dividendKings: '배당킹',
+    /**
+     * 배당귀족(/dividend/aristocrats) — S&P 500 소속 + 연속 증배 25년 이상.
+     * ⚠ 영문 상표명(Dividend Aristocrats)을 메뉴에 쓰지 않는다 — 그 낱말은 S&P Dow Jones Indices 의
+     *   상표라, 화면 카피는 한국어 서술어를 쓰고 영문 지수명은 출처 문장 안에서만 등장시킨다.
+     */
+    dividendAristocrats: '배당귀족',
+    /** 배당챔피언(/dividend/champions) — 지수 소속과 무관한 연속 증배 25~49년. */
+    dividendChampions: '배당챔피언',
     /** 상세/글쓰기 하위에서 목록으로 복귀하는 뒤로가기 라벨. */
     list: '목록'
   },
@@ -147,7 +165,18 @@ export const COMMUNITY_COPY = {
     emptyCta: '글쓰기',
     errorTitle: '게시판을 불러오지 못했습니다',
     errorBody: '잠시 후 다시 시도해주세요.',
-    retry: '다시 시도'
+    retry: '다시 시도',
+
+    // 글 분류 필터(2026-08-04 사용자 지시로 읽기 전용 범례 → 누를 수 있는 필터가 됐다).
+    // 🔴 낱말 '글 종류' 는 여기서 쓰지 않는다 — 라벨 줄 자체를 없애라는 지시였고, 분류 낱말은
+    //    칩이 스스로 말한다. (글쓰기 폼의 `write.fieldCategory` 는 드롭다운 라벨이라 그대로 산다.)
+    categoryFilterLabel: '글 분류 필터',
+    /** 필터 없음(=조건 없음). 여섯 번째 분류가 아니라 "전부 보기"라 짧은 낱말로 둔다. */
+    categoryAll: '전체',
+    // filteredEmpty 빈상태 — "아직 글이 없습니다"는 필터가 걸린 목록에서 거짓말이 된다.
+    filterEmptyTitle: '이 분류에는 아직 글이 없습니다',
+    filterEmptySubtitle: '다른 분류를 골라 보시거나 전체로 돌아가 주세요.',
+    filterEmptyCta: '전체 보기'
   },
   write: {
     titleNew: '시나리오 공유',

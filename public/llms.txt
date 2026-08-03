@@ -61,7 +61,7 @@
 - 결과는 시나리오 탐색용이며 예측의 정확성을 보장하지 않는다.
 
 ## URLs
-- Landing (배당 소개·시작 지면): `/`
+- Landing (배당 소개 + 배당을 다시 넣어 복리로 키웠을 때의 계산으로 들어가는 지면): `/`
 - Simulator (배당 재투자 계산): `/simulator`
 - Privacy policy (개인정보처리방침): `/privacy`
 - Terms of use (이용약관): `/terms`

@@ -10,10 +10,13 @@
       지면이고 시뮬레이터는 `/simulator` 다 — 문구의 정본은 `pages/Landing/copy/landingCopy.ts`.
       ⚠ 랜딩은 `useDocumentMeta` 를 쓰지 않는다(정적 메타가 곧 이 페이지의 메타다).
     -->
-    <title>배당 알아보기와 배당 계산기 - Hungry Hippo</title>
+    <!-- 🔴 2026-08-04: 랜딩 히어로 개정('배당으로 배당을 키우는 복리, 여기서 계산합니다')에 맞춰
+         title/description/OG/JSON-LD 를 **같은 말**로 맞췄다. 검색·공유·AI 답변이 각각 다른 소개를
+         내면 같은 지면이 셋으로 보인다. 정본은 `pages/Landing/copy/landingCopy.ts` 의 hero 다. -->
+    <title>배당 재투자 계산기와 배당 알아보기 - Hungry Hippo</title>
     <meta
       name="description"
-      content="주식과 ETF가 무엇인지부터, 배당을 다시 넣으면 얼마가 되는지까지 한 화면에서 확인하실 수 있습니다. 종목별 배당 지급 월과 포트폴리오 구성 예시, 배당 계산기를 가입 없이 이용하실 수 있습니다. 입력한 가정을 그대로 계산해 보여주는 도구이며 투자 자문이 아닙니다."
+      content="주식과 ETF가 무엇인지부터, 받은 배당을 다시 넣었을 때 자산과 월 배당이 해마다 어떻게 달라지는지까지 한 화면에서 확인하실 수 있습니다. 종목별 배당 지급 월과 포트폴리오 구성 예시, 배당 계산기를 가입 없이 이용하실 수 있습니다. 입력한 가정을 그대로 계산해 보여주는 도구이며 투자 자문이 아닙니다."
     />
     <meta
       name="keywords"
@@ -51,11 +54,11 @@
     <meta property="og:site_name" content="Hungry Hippo" />
     <meta
       property="og:title"
-      content="배당, 여기서부터 이해하고 계산합니다 — Hungry Hippo"
+      content="배당으로 배당을 키우는 복리, 여기서 계산합니다 — Hungry Hippo"
     />
     <meta
       property="og:description"
-      content="주식·ETF·배당의 기본부터 배당을 다시 넣었을 때의 계산까지. 가입 없이 이용하실 수 있는 배당 계산기입니다. 투자 자문이 아닙니다."
+      content="주식·ETF·배당의 기본부터, 받은 배당을 다시 넣어 복리로 키웠을 때의 계산까지. 가입 없이 이용하실 수 있는 배당 계산기입니다. 투자 자문이 아닙니다."
     />
     <meta id="og-url" property="og:url" content="%VITE_SITE_URL%/" />
     <meta property="og:image" content="%VITE_SITE_URL%/og-image.png" />
@@ -70,11 +73,11 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta
       name="twitter:title"
-      content="배당, 여기서부터 이해하고 계산합니다 — Hungry Hippo"
+      content="배당으로 배당을 키우는 복리, 여기서 계산합니다 — Hungry Hippo"
     />
     <meta
       name="twitter:description"
-      content="주식·ETF·배당의 기본부터 배당을 다시 넣었을 때의 계산까지. 가입 없이 이용하실 수 있는 배당 계산기입니다."
+      content="주식·ETF·배당의 기본부터, 받은 배당을 다시 넣어 복리로 키웠을 때의 계산까지. 가입 없이 이용하실 수 있는 배당 계산기입니다."
     />
     <meta name="twitter:image" content="%VITE_SITE_URL%/og-image.png" />
     <meta
@@ -147,7 +150,7 @@
             "url": "%VITE_SITE_URL%/",
             "name": "Hungry Hippo",
             "inLanguage": "ko-KR",
-            "description": "배당주·ETF의 기본 개념과 배당 재투자 계산을 함께 제공하는 웹 사이트"
+            "description": "배당주·ETF의 기본 개념과, 받은 배당을 다시 넣어 복리로 키웠을 때의 계산을 함께 제공하는 웹 사이트"
           },
           {
             "@type": "WebApplication",
@@ -405,10 +408,11 @@
           쪽이 정본이 되면 둘이 조용히 갈라진다). "자주 묻는 질문" 2문항은 위 FAQPage JSON-LD 와
           **문자 단위로 같아야** 하고 `test/seo/landingFaqStructuredData.test.ts` 가 그걸 잠근다.
         -->
-        <h1>배당, 여기서부터 이해하고 계산합니다</h1>
+        <h1>배당으로 배당을 키우는 복리, 여기서 계산합니다</h1>
         <p>
-          주식과 ETF가 무엇인지부터, 배당을 다시 넣으면 얼마가 되는지까지 한
-          화면에서 확인하실 수 있습니다. 가입은 필요하지 않습니다.
+          주식과 ETF가 무엇인지부터, 받은 배당을 다시 넣었을 때 자산과 월 배당이
+          해마다 어떻게 달라지는지까지 한 화면에서 확인하실 수 있습니다. 가입은
+          필요하지 않습니다.
         </p>
 
         <h2>배당을 알기 전에, 세 단어</h2>

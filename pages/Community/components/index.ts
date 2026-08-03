@@ -4,6 +4,9 @@ export type { CommunityTopBarProps } from './CommunityTopBar';
 /* ── 목록 두 화면(갤러리·게시판)이 공유하는 피드 어휘 ────────────────────────
  * 목록 전용이라 `components/community`(커뮤니티 전 화면 공용)가 아니라 여기 산다 —
  * 상세·글쓰기·프로필은 이 어휘를 쓰지 않는다. */
+export { BoardCategoryFilter } from './BoardCategoryFilter';
+export type { BoardCategoryFilterProps } from './BoardCategoryFilter';
+
 export { FeedMasthead } from './FeedMasthead';
 export type { FeedMastheadProps } from './FeedMasthead';
 

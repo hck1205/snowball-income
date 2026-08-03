@@ -13,6 +13,7 @@ import {
 import type { PostFeedRowProps } from './PostFeedRow.types';
 import {
   RowCategoryBadge,
+  RowHead,
   RowKicker,
   RowKickerDot,
   RowKickerMeta,
@@ -32,8 +33,8 @@ const { metaViews, metaLikes, metaComments } = COMMUNITY_COPY.gallery;
 /**
  * 목록 행 — 게시판 본문과 갤러리 "목록 보기"가 공유한다.
  *
- * 조판은 편집 지면의 순서를 따른다: **키커(분류·작성자·시간) → 표제 → 리드 → 숫자 스트립**,
- * 그리고 우측에 **계수 레일**(조회·댓글·좋아요 + 공유). 구조 근거는 styled 파일 머리말.
+ * 조판은 편집 지면의 순서를 따른다: **머리줄(분류·작성자·시간 + 우측 끝 공유) → 표제 → 리드 →
+ * 숫자 스트립 → 바닥 계수 줄**(조회·댓글·좋아요). 구조 근거는 styled 파일 머리말.
  *
  * 행 전체가 상세로 가는 링크다. 공유 버튼은 링크 안의 버튼이라 클릭 시 네비게이션을 막는다.
  */
@@ -51,7 +52,8 @@ export default function PostFeedRow({ item, simSummary }: PostFeedRowProps) {
 
   return (
     <RowLink to={detailPath}>
-      <RowMain>
+      {/* 머리줄 — 왼쪽 키커, 오른쪽 끝 공유. 공유가 여기 있어야 제목·요약과 겹칠 수가 없다. */}
+      <RowHead>
         <RowKicker>
           {showCategoryBadge ? (
             <RowCategoryBadge $emphasis={category === 'notice'}>
@@ -67,6 +69,18 @@ export default function PostFeedRow({ item, simSummary }: PostFeedRowProps) {
           </RowKickerMeta>
         </RowKicker>
 
+        <RowShareSlot>
+          <PostShareButton
+            postId={item.id}
+            kind={item.kind}
+            title={item.title}
+            url={buildPostShareUrl(detailPath)}
+            placement="feed"
+          />
+        </RowShareSlot>
+      </RowHead>
+
+      <RowMain>
         <RowTitle>{item.title}</RowTitle>
         {item.description ? <RowSummary>{item.description}</RowSummary> : null}
 
@@ -77,32 +91,24 @@ export default function PostFeedRow({ item, simSummary }: PostFeedRowProps) {
         ) : null}
       </RowMain>
 
+      {/* 계수 줄 — 카드 바닥 전폭. 아이콘 12 → 16, 숫자 12 → 14px 로 함께 올렸다(사용자 지시). */}
       <RowStatRail>
         {/* 아이콘만으로 의미 전달 금지 — 숨김 라벨을 병기해 "조회수 41"로 읽히게 한다. */}
         <RowStatCell>
-          <EyeIcon size={12} strokeWidth={1.8} />
+          <EyeIcon size={16} strokeWidth={1.8} />
           <VisuallyHidden>{metaViews}</VisuallyHidden>
           <RowStatValue>{formatCompactCount(item.view_count)}</RowStatValue>
         </RowStatCell>
         <RowStatCell>
-          <CommentIcon size={12} strokeWidth={1.8} />
+          <CommentIcon size={16} strokeWidth={1.8} />
           <VisuallyHidden>{metaComments}</VisuallyHidden>
           <RowStatValue>{formatCompactCount(item.comment_count)}</RowStatValue>
         </RowStatCell>
         <RowStatCell>
-          <HeartIcon size={12} strokeWidth={1.8} />
+          <HeartIcon size={16} strokeWidth={1.8} />
           <VisuallyHidden>{metaLikes}</VisuallyHidden>
           <RowStatValue>{formatCompactCount(item.like_count)}</RowStatValue>
         </RowStatCell>
-        <RowShareSlot>
-          <PostShareButton
-            postId={item.id}
-            kind={item.kind}
-            title={item.title}
-            url={buildPostShareUrl(detailPath)}
-            placement="feed"
-          />
-        </RowShareSlot>
       </RowStatRail>
     </RowLink>
   );

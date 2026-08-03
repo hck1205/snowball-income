@@ -1,46 +1,13 @@
 import styled from '@emotion/styled';
-import { color, font, radius, space } from '@/shared/styles';
+import { space } from '@/shared/styles';
 
-/**
- * 분류 안내 줄 — 목록 위에 서는 **읽기 전용 범례**다.
- *
- * 게시판 글은 분류(질문&고민·인사이트·건의사항·공지)를 갖지만, 예전 목록에서 그 사실은
- * 행 안의 작은 배지로만 드러났다 — 목록을 처음 보는 사람은 "여기 무엇을 쓰는 곳인가"를
- * 알 수 없었고, 그 답이 머리 면 리드 한 문장에만 있었다. 낱말을 목록 바로 위에 세워
- * 배지가 나타났을 때 그것이 무엇인지 이미 알고 있게 한다.
- *
- * 🔴 필터가 아니다(게시판은 평면 목록·최신순 단일 축이다). 그래서 버튼이 아니라 글이고,
- *    누를 수 있어 보이는 형태를 주지 않는다.
+/*
+ * 🔴 여기 있던 `BoardLegend`/`BoardLegendLabel`/`BoardLegendItem`(읽기 전용 범례)은 2026-08-04 에
+ * 지웠다. 그 주석은 "필터가 아니다 — 누를 수 있어 보이는 형태를 주지 않는다"였는데, 사용자 지시로
+ * 그 전제가 뒤집혔다(분류는 이제 누르는 것이고 '글 종류' 라벨 낱말은 없앤다).
+ * 대체물은 `pages/Community/components/BoardCategoryFilter` 다 — 줄의 껍데기(가로 나열·줄바꿈·
+ * 하단 헤어라인)까지 그 파일이 물려받았으므로 여기에 남은 것은 목록과 센티널뿐이다.
  */
-export const BoardLegend = styled.p`
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: ${space[2]};
-  margin: 0 0 clamp(${space[4]}, 2vw, ${space[6]});
-  padding-bottom: ${space[3]};
-  border-bottom: 1px solid ${color.border};
-  color: ${color.textMuted};
-  font-size: ${font.size.xs};
-`;
-
-export const BoardLegendLabel = styled.span`
-  color: ${color.textSecondary};
-  font-weight: ${font.weight.semibold};
-`;
-
-export const BoardLegendItem = styled.span`
-  display: inline-flex;
-  align-items: center;
-  padding: 2px ${space[2]};
-  border-radius: ${radius.pill};
-  border: 1px solid ${color.border};
-  background: ${color.surface};
-  color: ${color.textSecondary};
-  font-size: ${font.size['2xs']};
-  font-weight: ${font.weight.medium};
-  white-space: nowrap;
-`;
 
 /**
  * 글 목록.
