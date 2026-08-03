@@ -20,7 +20,7 @@ import type { ThemeTokens } from '@/shared/styles/semantic';
  *
  * ## 재는 세 자리 (전부 소스에 실재하는 조합만)
  *  1. `surface`        — 허브 카드 심볼 · 표의 티커 링크 · 상세 히어로 심볼 · 관련 티커 심볼
- *  2. `surface-sunken` — 허브 카드의 **중립 캡 판**(`--tk-cap-fill`, `TickerHubPage.styled.ts`)
+ *  2. `surface-sunken` — 허브 카드의 **중립 캡 판**(`--tk-cap-fill`, `TickerHubPage/styled/`)
  *  3. `--tk-active-bg` — 상세 히어로 캡 · 목차 활성 항목. `color-mix(--tk-text 16%, surface)` 라
  *     **잉크를 자기 면에 섞어 만든다** → 잉크가 진할수록 면도 진해져 대비가 같이 깎인다.
  *     이 앱에서 AA 여유가 가장 얇은 지점이고, 그래서 이 파일이 존재하는 가장 큰 이유다.
@@ -34,7 +34,7 @@ import type { ThemeTokens } from '@/shared/styles/semantic';
 const AA_TEXT = 4.5;
 
 /**
- * `--tk-soft` · `--tk-active-bg` 의 파생 비율(`TickerDetailPage.styled.ts` 의 `INK_WASH`).
+ * `--tk-soft` · `--tk-active-bg` 의 파생 비율(`TickerDetailPage/styled/accent.ts` 의 `INK_WASH`).
  * 아래 소스 대조 단정이 두 값이 갈리는 순간을 잡는다 — 갈리면 이 테스트가 **실제와 다른 색**을 잰다.
  */
 const INK_WASH_PERCENT = 12;
@@ -109,7 +109,7 @@ describe('티커 액센트 잉크 — 실제로 앉는 면 위에서 AA 를 지�
    */
   it('워시 비율이 소스(INK_WASH)와 갈리지 않는다', () => {
     const source = readFileSync(
-      resolve(__dirname, '../../pages/Ticker/TickerDetailPage/TickerDetailPage.styled.ts'),
+      resolve(__dirname, '../../pages/Ticker/TickerDetailPage/styled/accent.ts'),
       'utf-8'
     );
 

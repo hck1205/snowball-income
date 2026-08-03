@@ -63,8 +63,8 @@ export const media = {
  *  | `DataTable`의 TableWrap | `components/common/DataTable/DataTable.styled.ts:6` |
  *  | `PortfolioAllocation`의 범례 목록 | `components/common/PortfolioAllocation/PortfolioAllocation.styled.ts:29` |
  *  | `SideDrawerBody`(드로어 안 폼) | `components/common/SideDrawer/SideDrawer.styled.ts:179` |
- *  | 티커 상세 카드 | `pages/Ticker/TickerDetailPage/TickerDetailPage.styled.ts:199` |
- *  | 티커 허브 카드 | `pages/Ticker/TickerHubPage/TickerHubPage.styled.ts:114` |
+ *  | 티커 상세 카드 | `pages/Ticker/TickerDetailPage/styled/hero.ts` 의 Hero |
+ *  | 티커 허브 카드 | `pages/Ticker/TickerHubPage/styled/` 의 카드 모듈 |
  *
  * ⚠ `container-type`은 **레이아웃 컨테인먼트를 함께 적용**해 그 요소가 `position: fixed` 자손의
  * 컨테이닝 블록이 된다 — fixed 오버레이(드로어·토스트)를 품는 요소에는 켜지 말 것.

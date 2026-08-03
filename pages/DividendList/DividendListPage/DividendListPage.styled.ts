@@ -4,7 +4,7 @@ import { DATA_RADIUS, color, font, media, radius, space, surface } from '@/share
 
 /**
  * 이 화면이 세우는 면의 패딩. `surface()` 가 이 값에서 안쪽 라운드까지 파생하므로 상수로 둔다
- * (`TickerComparePage.styled.ts` 가 같은 이유로 같은 형태를 쓴다).
+ * (`TickerComparePage/styled/` 가 같은 이유로 같은 형태를 쓴다).
  */
 const PANEL_PAD = space[4];
 

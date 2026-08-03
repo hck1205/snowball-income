@@ -77,7 +77,7 @@ import {
   SectionTitle,
   SuccessText,
   TopBarSlot
-} from './CommunityProfilePage.styled';
+} from './styled';
 
 const p = COMMUNITY_COPY.profile;
 const m = COMMUNITY_COPY.myPosts;

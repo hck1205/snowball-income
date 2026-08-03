@@ -62,7 +62,7 @@ import {
   UnavailableList,
   UnavailableSummary,
   Workbench
-} from './DividendCalendarPage.styled';
+} from './styled';
 
 const copy = DIVIDEND_CALENDAR_COPY;
 

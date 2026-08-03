@@ -90,7 +90,7 @@ import {
   VerdictUnit,
   VerdictValue,
   VisuallyHidden
-} from './TickerComparePage.styled';
+} from './styled';
 
 const copy = TICKER_COMPARE_COPY;
 const layout = TICKER_COMPARE_LAYOUT_COPY;

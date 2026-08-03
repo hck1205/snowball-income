@@ -57,8 +57,8 @@ const templateBlock = (source: string, name: string): string => {
  */
 const CARD_SURFACES: { file: string; block: string; tier: SurfaceTier }[] = [
   // 공용 카드: tone → tier 매핑을 거치므로 리터럴 tier 대신 매핑 표를 따로 검사한다(아래 별도 케이스).
-  { file: 'pages/Portfolio/PortfolioPage/PortfolioPage.styled.ts', block: 'SummaryCard', tier: 'raised' },
-  { file: 'pages/Portfolio/PortfolioPage/PortfolioPage.styled.ts', block: 'HoldingsCard', tier: 'base' },
+  { file: 'pages/Portfolio/PortfolioPage/styled/cards.styled.ts', block: 'SummaryCard', tier: 'raised' },
+  { file: 'pages/Portfolio/PortfolioPage/styled/cards.styled.ts', block: 'HoldingsCard', tier: 'base' },
   { file: 'pages/Portfolio/components/GoalCard/GoalCard.styled.ts', block: 'CardRoot', tier: 'base' }
 ];
 
@@ -117,7 +117,7 @@ describe('카드 표면은 위계를 스스로 선언하지 않는다', () => {
   });
 
   it('포트폴리오 카드의 공통 기하 블록도 위계를 적지 않는다', () => {
-    const geometry = templateBlock(read('pages/Portfolio/PortfolioPage/PortfolioPage.styled.ts'), 'cardGeometry');
+    const geometry = templateBlock(read('pages/Portfolio/PortfolioPage/styled/cards.styled.ts'), 'cardGeometry');
 
     expect(geometry).not.toMatch(/\bborder:/);
     expect(geometry).not.toMatch(/\bbox-shadow:/);
@@ -181,6 +181,6 @@ describe('주역 카드는 화면당 하나다', () => {
       ({ path, source }) => path.startsWith('pages/Portfolio/') && source.includes("cardElevation('raised')")
     ).map(({ path }) => path);
 
-    expect(raisedSurfaces).toEqual(['pages/Portfolio/PortfolioPage/PortfolioPage.styled.ts']);
+    expect(raisedSurfaces).toEqual(['pages/Portfolio/PortfolioPage/styled/cards.styled.ts']);
   });
 });

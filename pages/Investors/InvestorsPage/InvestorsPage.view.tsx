@@ -115,7 +115,7 @@ import {
   Track,
   UnknownCell,
   VisuallyHidden
-} from './InvestorsPage.styled';
+} from './styled';
 
 const copy = INVESTORS_COPY;
 

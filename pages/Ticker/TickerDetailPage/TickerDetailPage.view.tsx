@@ -108,7 +108,7 @@ import {
   TocLabel,
   TocList,
   UpdatedAt
-} from './TickerDetailPage.styled';
+} from './styled';
 
 /**
  * 카테고리 → 글리프.

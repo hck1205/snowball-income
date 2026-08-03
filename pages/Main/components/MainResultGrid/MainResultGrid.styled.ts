@@ -17,7 +17,7 @@ import { color, font, iconOpticalAlign, media, motion, radius, space } from '@/s
  * ⚠ 결과 이미지 저장은 이 연출이 끝날 때까지 기다린다(`htmlCapture.ts` 의 `waitForAnimations`) —
  *   지연 구간의 계산값이 `opacity: 0` 이라 그대로 찍으면 카드가 투명한 채로 박힌다(실측 잉크 1.05%).
  *
- * 스태거 간격 80ms 는 이 레포의 유일한 선례(`TickerDetailPage.styled.ts`)와 같은 값이다.
+ * 스태거 간격 80ms 는 이 레포의 유일한 선례(`TickerDetailPage/styled/section.ts`)와 같은 값이다.
  * 총 260ms = 지연 160ms + 지속 100ms 로 UI 전환 상한(300ms) 아래에 둔다.
  *
  * 지연 구간이 셋뿐인 이유: 카드가 열 장이어도 80ms 씩 곱하면 마지막 카드가 800ms 뒤에 온다.

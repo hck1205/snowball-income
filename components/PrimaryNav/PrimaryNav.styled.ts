@@ -128,7 +128,7 @@ export const BrandWordmark = styled.span`
  *    15~17px 워드마크에서는 사실상 단색으로 읽힌다.
  *  - 반면 라이트에만 걸려면 이 앱의 모드 판정을 여기서 세 갈래로 복제해야 한다
  *    (`@media (prefers-color-scheme: dark)` + `:root[data-theme='light'] &` + `:root[data-theme='dark'] &`
- *    — TickerDetailPage.styled.ts 선례). 장식 한 줄 때문에 모드 판정이 한 곳 더 생기면 나중에 모드
+ *    — 티커 상세 styled/ 선례). 장식 한 줄 때문에 모드 판정이 한 곳 더 생기면 나중에 모드
  *    해석이 바뀔 때 여기만 조용히 뒤처진다. **이득(눈에 안 보이는 26%) < 비용(영구 분기 3개)** 이라
  *    전 테마 적용을 유지한다.
  */

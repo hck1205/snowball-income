@@ -80,7 +80,7 @@ import {
   SummaryCard,
   UndoRow,
   Workbench
-} from './PortfolioPage.styled';
+} from './styled';
 
 const copy = PORTFOLIO_COPY;
 

@@ -21,6 +21,10 @@ import type { ResolvedPageHue } from './usePageHue.types';
  *    실측 데이터"라는 한 축이고, 색이 갈리면 사용자가 두 화면을 다른 성격으로 읽는다.
  *    (라우트별로 색이 갈리는지 재는 가드에는 이 쌍을 넣지 않는다 — 갈리면 안 되는 쌍이다.)
  *  - `/dividend/calendar` = **accent**(틸). 흐름·일정.
+ *  - `/dividend/lists`·`/dividend/kings`·`/aristocrats`·`/champions` = **accent**. 🔴 배당 캘린더와
+ *    **의도적으로 같은 색**이다 — 셋 다 "내 것이 아니라 시장에 있는 배당 사실"을 읽는 축이고,
+ *    내 포트폴리오·가계부(accentAlt)와는 그 점이 갈린다. 색이 갈리면 사용자가 같은 성격의 화면을
+ *    다른 것으로 읽는다. (라우트별로 색이 갈리는지 재는 가드에 이 쌍을 넣지 마라 — 갈리면 안 된다.)
  *  - `/community/*` = **brand**. 사람이 모이는 곳 — 인터랙션 축과 같은 색이다.
  *  - `/ticker/*` = **배정하지 않는다**. 티커 화면은 이미 **티커별 액센트**(`--tk-from/--tk-to` →
  *    `--tk-text/--tk-soft/--tk-border`)라는 자기 색 체계를 갖는다. 여기에 페이지 hue 를 겹치면
@@ -36,6 +40,8 @@ export const resolvePageHue = (pathname: string): ResolvedPageHue => {
   if (pathname.startsWith('/dividend/portfolio')) return 'accentAlt';
   if (pathname.startsWith('/ledger')) return 'accentAlt';
   if (pathname.startsWith('/dividend/calendar')) return 'accent';
+  /* 배당 리스트 4종(허브 + 킹·귀족·챔피언). 위 배정 근거 참고 — 캘린더와 한 축이다. */
+  if (pathname.startsWith('/dividend/')) return 'accent';
   if (pathname.startsWith('/community')) return 'brand';
   // 티커 랜딩 + 미배정 라우트 — 폴백(brand)으로 둔다.
   return null;

@@ -243,7 +243,7 @@ export const HeroLede = styled.p`
 
 /**
  * 히어로 안의 **고지·주의**(예: 캘린더의 "예상 지급일" 안내). 구
- * `DividendCalendarPage.styled.ts` 의 `HeroDisclaimer` 를 흡수한 자리다.
+ * 배당 캘린더의 `HeroDisclaimer` 를 흡수한 자리다(그 스타일은 지금 `DividendCalendarPage/styled/` 에 산다).
  * 경고 배너가 아니라 본문이므로 면·색으로 강조하지 않고 크기로만 리드 아래에 둔다
  * (`role="note"` 는 컴포넌트가 붙인다).
  */

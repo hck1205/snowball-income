@@ -1,6 +1,6 @@
 // @vitest-environment node — DOM 을 쓰지 않는 순수 테스트 (기준: vitest.config.ts)
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { readFileSync, readdirSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 /**
@@ -38,17 +38,34 @@ import { describe, expect, it } from 'vitest';
  * ⚠ **1024px 미만에서는 안 붙는다** — 거기서는 가로 스크롤이 먼저다(좁은 폭에서 열이 잘리면
  *   비교 자체가 성립하지 않는다). 그 폭에서만 뜨는 ScrollHint 가 같은 판단의 다른 얼굴이다.
  */
-const STYLED = readFileSync(
-  resolve(__dirname, '../../pages/Ticker/TickerComparePage/TickerComparePage.styled.ts'),
-  'utf8'
-);
+/**
+ * 스타일은 `styled/` 폴더에 관심사별로 나뉘어 산다(2026-08-04 분할 — 값은 그대로 옮겼다).
+ * 이 가드가 보는 네 선언도 `table/frame.ts`·`table/head.ts`·`table/cells.ts` 로 갈렸으므로
+ * **폴더를 통째로 읽어** 파일 단위로 찾는다 — 파일 하나를 못 박아 두면 다음 분할에서 조용히 죽는다.
+ */
+const STYLED_DIR = resolve(__dirname, '../../pages/Ticker/TickerComparePage/styled');
 
-/** 선언 블록 하나를 이름으로 떼어 온다(다음 `export const` 직전까지). */
+const listStyleFiles = (dir: string): string[] =>
+  readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) return listStyleFiles(full);
+    return entry.isFile() && entry.name.endsWith('.ts') ? [full] : [];
+  });
+
+const STYLED_SOURCES = listStyleFiles(STYLED_DIR).map((file) => readFileSync(file, 'utf8'));
+
+/**
+ * 선언 블록 하나를 이름으로 떼어 온다(그 파일 안에서 다음 `export const` 직전까지).
+ * 🔴 파일을 이어 붙이지 않는다 — 이어 붙이면 각 파일의 마지막 선언이 다음 파일까지 삼켜
+ * "이 선언에 없는 속성"을 보는 계약(overflow-y 금지)이 엉뚱한 곳을 보게 된다.
+ */
 const blockOf = (name: string): string => {
-  const start = STYLED.indexOf(`export const ${name} = styled`);
-  expect(start, `${name} 선언을 찾지 못했다 — 이름이 바뀌었으면 이 테스트도 함께 고쳐라`).toBeGreaterThan(-1);
-  const next = STYLED.indexOf('export const ', start + 1);
-  return STYLED.slice(start, next === -1 ? undefined : next);
+  const source = STYLED_SOURCES.find((text) => text.includes(`export const ${name} = styled`));
+  expect(source, `${name} 선언을 찾지 못했다 — 이름이 바뀌었으면 이 테스트도 함께 고쳐라`).toBeDefined();
+  const text = source as string;
+  const start = text.indexOf(`export const ${name} = styled`);
+  const next = text.indexOf('export const ', start + 1);
+  return text.slice(start, next === -1 ? undefined : next);
 };
 
 describe('비교표 — 열 머리 고정', () => {

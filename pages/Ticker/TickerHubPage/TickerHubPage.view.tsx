@@ -96,7 +96,7 @@ import {
   TickerTable,
   ViewToggle,
   ViewToggleButton
-} from './TickerHubPage.styled';
+} from './styled';
 
 /**
  * 카테고리 → 글리프.
@@ -461,7 +461,7 @@ function CategorySectionView({
                   kind: 'tint',
                   axis: 'scoped',
                   /* 면은 중립 판(`--tk-cap-fill` = surface-sunken), 색은 잉크·글리프만 티커별이다.
-                     왜 면에서 색을 걷었는지는 TickerHubPage.styled.ts 의 CardScope 주석. */
+                     왜 면에서 색을 걷었는지는 styled/card.ts 의 CardScope 주석. */
                   scopedVar: '--tk-cap-fill',
                   scopedInkVar: '--tk-text',
                   height: 'sm',

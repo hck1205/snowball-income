@@ -20,7 +20,7 @@ import { color, font, media, radius, space } from '@/shared/styles';
  *
  * 그래서 **레일이 존재하는 구간에서만** 나란히 세운다. 여기서 미디어 쿼리가 정당한 이유:
  * 이 블록의 소비처는 요약 카드 **한 곳**이고, 요약 카드가 좁은 레일에 서는 조건은
- * `PortfolioPage.styled` 의 작업대 2열 전환과 **같은 경계**(`media.up('headerStack')` = 1024px)다.
+ * `PortfolioPage/styled` 의 작업대 2열 전환과 **같은 경계**(`media.up('headerStack')` = 1024px)다.
  * 1024px 미만은 1열이라 이 블록이 카드 전폭을 쓴다 — 두 상태가 폭으로 갈리지 않는다.
  * 🔴 요약 카드를 다른 곳에서도 쓰게 되면 이 전제가 깨진다. 그때는 컨테이너 쿼리로 옮겨라.
  */
