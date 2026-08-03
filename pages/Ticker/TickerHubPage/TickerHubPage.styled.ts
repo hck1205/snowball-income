@@ -37,20 +37,18 @@ import {
  *  · 주역 지표 하나 + 보조 지표 행들(`HeroMetric`) → 카드 안의 지표판이 같은 문법
  *  · 표 보기의 순위·티커·비중 표 → 상세의 `HoldingsTable` 과 같은 문법
  *
- * ## 틴트 면 예산 (tintscan: 화면당 2면) — 실측 기준선 2, 여유 0
- * 이 화면의 채도 면은 **정확히 둘**이고, 그중 하나는 이 화면 것이 아니다.
- *   ① 카드 컬러 캡 — 전 카드가 **같은 배경값**이라 클러스터가 1면으로 접는다(31 → 1, 실측)
- *   ② 공용 `PageFooter`(브랜드 패널) — 이 화면이 고를 수 없는, 페이지 공통으로 딸려오는 면
+ * ## 틴트 면 예산 (tintscan: 화면당 2면) — 실측 기준선 **1**, 여유 1(쓰지 않는다)
+ * 이 화면이 스스로 만드는 채도 면은 **0개**다. 하나 남은 면은 이 화면 것이 아니다.
+ *   ① 공용 `PageFooter`(브랜드 패널) — 이 화면이 고를 수 없는, 페이지 공통으로 딸려오는 면
  *
- * 🔴 그래서 이 파일이 새로 들이는 컨트롤(검색·주기 칩·정렬·보기 전환·색인 레일)은 **전부 중립 면**이다.
+ * 🔴 **남은 한 장을 쓰지 마라.** 흰 캔버스의 이득은 절제에서 나온다
+ * (`shared/styles/surfaces.ts` 머리말). 특히 카드 캡으로 되돌리지 마라 — 아래 `CardScope` 의
+ * `--tk-cap-fill` 주석이 그 자리를 왜 비웠는지 실측으로 적어 뒀다.
+ *
+ * 🔴 이 파일의 컨트롤(검색·주기 칩·정렬·보기 전환·색인 레일)도 **전부 중립 면**이다.
  * 색은 폭 180px 미만의 자리(칩·점·번호·귀)와 6px 이하의 줄(리본·레일)에만 싣는다 — 둘 다 면 판정
  * (폭 ≥180px · 높이 ≥8px · 비중립 배경)에 걸리지 않는다. 컨트롤 하나에 틴트 면을 깔고 싶어지면
- * 먼저 tintscan 을 돌려 3이 되는지 확인하라.
- *
- * 🔴 캡 색을 **티커마다 다르게 칠하지 않는 이유**도 여기 있다. tintscan 의 클러스터 접기는
- * "같은 표식값 **+ 같은 배경값**"일 때만 합친다. 27종에 각자의 틴트를 주면 27면으로 세어진다.
- * 그래서 **면은 공유하고, 티커의 색은 면이 아닌 곳**(상단 6px 리본 · 캡 안 잉크 · 심볼 글자 ·
- * 표 행의 3px 귀)에 싣는다.
+ * 먼저 tintscan 을 돌려 몇이 되는지 확인하라.
  */
 
 /* -------------------------------------------------------------------------- */
@@ -830,12 +828,17 @@ export const SectionCount = styled.span`
  *
  * 🔴 섹션 자체는 남는다 — 이 자리가 해시 앵커의 목적지라, 필터에 따라 섹션이 사라지면 색인 링크가
  * 조용히 아무 데도 못 간다. 초라해 보이지 않게 점선 테두리와 한 문장을 준다.
+ *
+ * ⚠ 점선 + `borderStrong` + `surfaceMuted` 는 이 앱이 "비어 있음"에 쓰는 **공통 어휘**다
+ * (`FeedStates.EmptyRoot` · 아래 `EmptyState`). 흰 캔버스에서는 면색(1.02~1.08:1)이 거의
+ * 아무 말도 못 하므로 격은 점선 경계(3.2~3.4:1)가 진다 — 그래서 `border` 가 아니라 `borderStrong` 이다.
  */
 export const SectionEmpty = styled.p`
   margin: 0;
   padding: ${space[4]};
   border-radius: ${radius.md};
-  border: 1px dashed ${color.border};
+  border: 1px dashed ${color.borderStrong};
+  background: ${color.surfaceMuted};
   color: ${color.textMuted};
   font-size: ${font.size.sm};
 `;
@@ -844,16 +847,6 @@ export const SectionEmpty = styled.p`
 /* 카드 — 고르는 면                                                             */
 /* -------------------------------------------------------------------------- */
 
-/**
- * 티커 하나의 **색 스코프**이자 격자 셀.
- *
- * 뷰가 인라인 스타일로 원시 액센트와 `assignSeries` 폴백을 얹고, 여기서 파생 변수를 만든다 —
- * 상세 페이지의 `AccentScope` 와 **같은 변수 이름**(`--tk-text`)이라 같은 티커가 두 화면에서
- * 같은 색으로 읽힌다.
- *
- * 🔴 `--tk-cap-fill` 만은 **티커와 무관한 공유 값**이다. 캡 배경이 카드마다 다르면 tintscan
- * 클러스터가 접지 못한다(파일 머리말의 예산 설명을 보라).
- */
 /**
  * 원시 액센트(`--tk-from/to/text-light/text-dark`) → **테마 인지 파생 변수**.
  *
@@ -888,14 +881,44 @@ const ACCENT_DERIVATION = `
   }
 `;
 
+/**
+ * 티커 하나의 **색 스코프**이자 격자 셀. 위 파생 블록에 캡의 면색 하나를 더한다.
+ *
+ * ── 🔴 2026-08-03 흰 캔버스: 캡 면색을 `brandSubtle` → `surfaceSunken` 으로 내렸다 ──
+ *
+ * 종전 캡은 **브랜드 민트 면**이었다. 흰 배경에서 이 면이 무너뜨린 것은 셋이다.
+ *  ① **색이 서로 싸운다.** 캡의 면은 brand hue 인데 그 위에 앉는 잉크(`--tk-text`)와 바로 위
+ *     6px 리본은 **티커 hue** 다 — VIG 크림슨 글자가 민트 면에, NOBL 퍼플이 민트 면에 앉았다
+ *     (실측 스크린샷). 카드 한 장이 두 색 축을 동시에 말하면 어느 쪽도 신호가 못 된다.
+ *  ② **48px × 27장이 같은 말을 반복한다.** 캡 라벨은 카테고리명인데, 그 카드는 이미 같은 이름의
+ *     섹션 제목 바로 아래 있다. 잉크는 최대인데 정보 증분이 0인 면이다.
+ *  ③ 흰 캔버스에서 카드의 격은 **경계·여백**이 말한다(`shared/styles/surfaces.ts`). 면색으로
+ *     말하는 장치를 카드 머리에만 남겨 두면 카드가 "민트 모자를 쓴 덩어리"로 읽힌다.
+ *
+ * 그래서 캡은 **중립 판(plate)** 이 됐다. 티커의 색은 리본·잉크·심볼 셋이 그대로 진다.
+ *
+ * 🔴 `surfaceMuted` 가 아니라 `surfaceSunken` 인 이유는 **8프리셋을 다 재 봤기 때문**이다.
+ *   muted 는 흰 면 위 1.02~1.08:1 이라 vivid(1.02)·grape(1.03)·sunset(1.04) 에서 판이 통째로
+ *   사라진다. sunken 은 1.11~1.22:1 로 8프리셋 전부에서 계단이 남는다.
+ * 🔴 이 자리에 `surfaceHover` 충돌은 없다 — 고르는 카드의 부상은 `pickLift`(테두리·그림자·이동)라
+ *   배경을 건드리지 않는다. (면을 sunken 으로 내리면 안 되는 곳은 **버튼을 품은 면**이다 —
+ *   velog 라이트에서 sunken 과 surface-hover 가 같은 값(#f1f3f5)이기 때문. `FeedStates` 참고.)
+ *
+ * 실측 대비(티커 27종 × 8프리셋 × 라이트/다크 최악값, `test/ticker/tickerAccentContrast.test.ts`):
+ * ```
+ *   라이트  캡 위 잉크  4.85:1 (grape · DGRW #24703f)   ← 구 brand-subtle 5.24
+ *   다크    캡 위 잉크  6.20:1 (sunset · VYM  #e0808f)  ← 구 brand-subtle 4.88  🔴 개선
+ * ```
+ * 즉 라이트는 여유 안에서 조금 내주고, **다크에서 가장 빠듯하던 지점이 사라졌다.**
+ */
 export const CardScope = styled.li`
   display: grid;
   min-width: 0;
 
   ${ACCENT_DERIVATION}
 
-  /* 전 카드가 같은 값을 낸다 — 클러스터가 1면으로 접는 조건. */
-  --tk-cap-fill: ${color.brandSubtle};
+  /* 🔴 중립 토큰이다 — tintscan 이 이 면을 세지 않는다(그래서 이 라우트의 채도 면은 푸터 1개뿐). */
+  --tk-cap-fill: ${color.surfaceSunken};
 `;
 
 /**
@@ -1237,7 +1260,13 @@ export const TableMuted = styled.span`
  * 여기서는 마스코트 + 무엇을 어떻게 바꾸면 되는지 + **바로 누를 수 있는 대안 티커 3종**을 준다.
  * 빈 화면이 막다른 길이 되지 않게 하는 것이 이 블록의 유일한 일이다.
  *
- * ⚠ 면은 중립이다(마스코트가 서는 브랜드 표면이지만 채도 면은 아니다) — 예산 여유가 0 이다.
+ * ⚠ 면은 중립이다(마스코트가 서는 브랜드 표면이지만 채도 면은 아니다).
+ *
+ * 🔴 면이 `surface` 가 아니라 `surfaceMuted` 인 이유: 흰 캔버스에서 `surface` 는 페이지 배경과
+ * **같은 값**이라 이 패널이 통째로 사라진다(구 회색 캔버스에서는 흰 카드가 곧 덩어리였다).
+ * 그리고 `surfaceSunken` 까지 내리지 않는 이유는 이 패널이 **버튼을 품기 때문**이다 — velog
+ * 라이트에서 sunken 과 `surfaceHover` 가 같은 값(#f1f3f5)이라 아래 조건 지우기·대안 칩이
+ * hover 피드백을 잃는다. 같은 판정을 `FeedStates.EmptyRoot` 가 먼저 실측으로 적어 뒀다.
  */
 export const EmptyState = styled.div`
   display: grid;
@@ -1246,7 +1275,7 @@ export const EmptyState = styled.div`
   padding: clamp(32px, 5vw, 56px) ${space[4]};
   border-radius: ${DATA_RADIUS};
   border: 1px dashed ${color.borderStrong};
-  background: ${color.surface};
+  background: ${color.surfaceMuted};
   text-align: center;
 `;
 

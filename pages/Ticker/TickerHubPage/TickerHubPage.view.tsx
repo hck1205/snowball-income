@@ -436,9 +436,11 @@ function CategorySectionView({
         <CategoryTable category={category} />
       ) : (
         /*
-         * 🔴 `cluster` 를 빼지 마라. 아래 카드의 컬러 캡은 tintscan 이 **면으로 세는** 크기라,
-         * 표식(data-tint-cluster="pick-grid")이 없으면 카드 장수만큼 면이 잡혀 이 라우트의
-         * 예산(화면당 2면)이 즉시 터진다. 값은 부품이 고정한다(라우트당 한 값만 허용).
+         * `cluster` 는 **서 있는 보험**이다. 2026-08-03 흰 캔버스 전환으로 카드 캡의 면색이
+         * 중립(`surfaceSunken`)이 되어 지금은 tintscan 이 이 캡들을 애초에 세지 않는다 —
+         * 즉 이 표식이 없어도 오늘의 예산은 터지지 않는다. 그래도 남겨 두는 이유는, 캡을 다시
+         * 채도로 되돌리는 순간(높이 48px 은 면 하한 8px 를 훌쩍 넘는다) 표식 없이는 카드
+         * 장수만큼 면이 잡혀 예산이 조용히 터지기 때문이다. 값은 부품이 고정한다(라우트당 한 값만).
          */
         <PickCardGrid as="ul" cluster minColumnWidth={CARD_MIN_WIDTH}>
           {category.matched.map((ticker) => (
@@ -456,7 +458,8 @@ function CategorySectionView({
                 cap={{
                   kind: 'tint',
                   axis: 'scoped',
-                  /* 면은 전 카드 공유(클러스터가 1면으로 접는 조건), 잉크만 티커별이다. */
+                  /* 면은 중립 판(`--tk-cap-fill` = surface-sunken), 색은 잉크·글리프만 티커별이다.
+                     왜 면에서 색을 걷었는지는 TickerHubPage.styled.ts 의 CardScope 주석. */
                   scopedVar: '--tk-cap-fill',
                   scopedInkVar: '--tk-text',
                   height: 'sm',

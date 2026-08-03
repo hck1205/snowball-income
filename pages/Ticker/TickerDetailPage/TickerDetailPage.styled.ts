@@ -32,8 +32,12 @@ import {
  * 개편 전 이 라우트는 **5면**이었다(실측 2026-08-03, 1280·390 동일):
  * 히어로 전면 틴트 1 + 섹션 `StatHighlight` 틴트 4. 상한의 2.5배다.
  * 개편 후는 정확히 둘이고, 그중 하나는 이 화면 것이 아니다.
- *   ① 히어로 캡 — 허브 카드의 컬러 캡과 **같은 축**(`--tk-active-bg` 면 + `--tk-text` 잉크).
- *      허브에서 카드를 눌러 들어온 사람이 같은 색을 다시 만난다.
+ *   ① 히어로 캡 — **이 티커 자신의 색**으로 칠한 면(`--tk-active-bg` 면 + `--tk-text` 잉크).
+ *      🔴 2026-08-03: 허브 카드 캡은 흰 캔버스 전환에서 중립 판이 됐다(`TickerHubPage.styled.ts`
+ *      의 CardScope 주석). 그래서 두 지면을 잇는 것은 이제 **면색이 아니라 잉크와 리본**이다 —
+ *      허브 카드의 심볼·캡 글자·6px 리본이 그대로 이 히어로의 심볼·캡 글자·6px 리본이 된다.
+ *      이 면을 남긴 이유는 개수다: 여기서는 **한 페이지에 한 장**이라 반복이 없고, 면색과 잉크가
+ *      같은 hue 라 서로 싸우지도 않는다(허브에서는 brand 민트 면 위에 티커 hue 잉크였다).
  *   ② 공용 `PageFooter`(브랜드 패널) — 페이지 공통으로 딸려오는 면.
  *
  * 🔴 그래서 **히어로 본체는 채도 면이 아니다.** 색은 상단 6px 티커 그라디언트 리본 · 캡 ·
@@ -53,6 +57,19 @@ const MEASURE = '68ch';
 /* -------------------------------------------------------------------------- */
 /* 액센트 스코프 + 리빌 공통                                                     */
 /* -------------------------------------------------------------------------- */
+
+/**
+ * 잉크를 자기 면에 섞는 비율. `--tk-soft`(아웃라인 버튼 hover)와 `--tk-active-bg`(히어로 캡 ·
+ * 목차 활성)가 **같은 값을 쓴다** — 두 자리 모두 그 면 위에 `--tk-text` 를 그대로 얹기 때문이다.
+ *
+ * 🔴 **이 숫자를 올리지 마라.** 자기 잉크를 섞은 면은 잉크가 진할수록 면도 진해져 **대비가 같이
+ * 깎인다.** 16% 였을 때 sunset 다크에서 VYM 잉크(#e0808f)가 **4.47:1** 로 AA(4.5)를 미달했다
+ * (2026-08-03, `test/ticker/tickerAccentContrast.test.ts` 를 새로 세우자마자 잡힌 실측 결함).
+ * 12% 로 내려 최악값이 **4.81:1** 이 됐고, 면 자체는 여전히 서피스 대비 1.18~1.25:1 로 판이 보인다
+ * (허브 카드의 중립 캡 `surface-sunken` 1.11~1.25 와 같은 대역이다 — 두 지면의 캡이 같은 무게로 앉는다).
+ * 실측 곡선: 8% → AA 5.15 / 면 1.11 · 12% → 4.81 / 1.18 · 14% → 4.65 / 1.22 · 16% → **4.47** / 1.25.
+ */
+const INK_WASH = '12%';
 
 /**
  * 티커별 액센트를 페이지 루트에 주입하는 스코프.
@@ -75,9 +92,10 @@ export const AccentScope = styled.div`
     --tk-text: var(--tk-text-light);
     --tk-gradient: linear-gradient(120deg, var(--tk-from), var(--tk-to));
     --tk-solid: var(--tk-from);
-    --tk-soft: color-mix(in srgb, var(--tk-text) 12%, ${color.surface});
+    --tk-soft: color-mix(in srgb, var(--tk-text) ${INK_WASH}, ${color.surface});
     --tk-border: color-mix(in srgb, var(--tk-text) 40%, transparent);
-    --tk-active-bg: color-mix(in srgb, var(--tk-text) 16%, ${color.surface});
+    /* 🔴 두 워시는 같은 비율을 쓴다 — 위 INK_WASH 주석의 실측(16% 는 AA 미달)이 그 이유다. */
+    --tk-active-bg: color-mix(in srgb, var(--tk-text) ${INK_WASH}, ${color.surface});
 
     /* 다크 서피스에서는 액센트 기준색을 밝은 쪽으로 — soft/border 는 --tk-text 참조라 자동 반영. */
     @media (prefers-color-scheme: dark) {
@@ -209,9 +227,16 @@ export const Hero = styled.section`
 /**
  * 히어로 캡 — 이 화면이 스스로 만드는 **유일한 채도 면**.
  *
- * 허브 카드의 컬러 캡과 같은 처방이다(면 `--tk-active-bg` · 잉크 `--tk-text`). 허브 격자에서
- * 카드를 눌러 들어온 사람이 상세 히어로에서 **같은 색**을 다시 만나게 하는 장치이자, 이 티커가
- * 어느 카테고리에 속하는지 첫 줄에서 말하는 자리다. 색이 단독 채널이 되지 않도록 글리프가 함께 선다.
+ * 이 티커가 어느 카테고리에 속하는지 첫 줄에서 말하는 자리다. 색이 단독 채널이 되지 않도록
+ * 글리프가 함께 선다.
+ *
+ * 🔴 면(`--tk-active-bg`)과 잉크(`--tk-text`)가 **같은 hue** 다 — 면은 잉크를 16% 섞어 만든다
+ * (`AccentScope`). 그래서 이 캡은 색이 하나뿐인 면이고, 그 점이 허브 카드 캡을 중립으로 내린
+ * 판단과 모순되지 않는다(거기서는 brand 민트 면 위에 티커 hue 잉크라 축이 둘이었다).
+ * 실측 대비 최악값은 4.79:1(navy-gold 라이트 · DGRW) — AA(4.5) 여유가 이 앱에서 가장 얇은
+ * 지점이라 `test/ticker/tickerAccentContrast.test.ts` 가 티커 27종 × 8프리셋으로 잠근다.
+ * 🔴 잉크를 더 옅게(밝게) 만들면 면도 함께 옅어지지만 대비는 **떨어진다** — 새 티커 액센트를
+ * 들일 때 그 테스트를 먼저 돌려라.
  */
 export const HeroCap = styled.div`
   display: flex;
@@ -1258,12 +1283,19 @@ export const FaqList = styled.div`
  *
  * 종전에는 항목마다 테두리 상자였다 — 8개가 세로로 쌓이면 상자 경계가 질문보다 강해 목록 전체가
  * 회색 격자로 읽혔다. 헤어라인 하나로 줄이면 질문 글자가 이 블록의 주인공이 된다.
+ *
+ * 🔴 펼친 항목의 면이 `surfaceMuted` → `surfaceSunken` 이다(2026-08-03 흰 캔버스). 이 목록은
+ * 카드 안이 아니라 **페이지 캔버스 위에 바로** 서는데, 캔버스가 흰색이 되면서 muted 는
+ * 1.02~1.08:1 이 됐다 — vivid·grape·sunset 에서는 펼친 항목의 면이 아예 없는 것과 같다.
+ * sunken(1.11~1.22:1)이 "열려서 들어간 자리"를 8프리셋 전부에서 만든다.
+ * ⚠ `summary` 는 컨트롤이지만 hover 가 **글자색만** 바꾸므로, sunken 과 `surfaceHover` 가 같은
+ *   값인 프리셋(velog 라이트)에서도 피드백이 겹치지 않는다.
  */
 export const FaqItem = styled.details`
   border-bottom: 1px solid ${color.border};
 
   &[open] {
-    background: ${color.surfaceMuted};
+    background: ${color.surfaceSunken};
   }
 `;
 

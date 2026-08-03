@@ -73,8 +73,10 @@ describe('TickerHubPage', () => {
     const { container } = renderHub();
 
     /*
-     * 이 화면은 컬러 캡을 쓰는 유일한 라우트다. 표식이 빠지면 tintscan 이 카드 장수만큼 면을 세어
-     * 예산(화면당 2면)을 즉시 초과한다 — 표식은 장식이 아니라 측정 계약이다.
+     * 이 화면은 틴트 캡(48px)을 쓰는 유일한 라우트다. 2026-08-03 흰 캔버스 전환으로 캡의 면색이
+     * 중립(surface-sunken)이 되어 **지금은** tintscan 이 세지 않지만, 표식은 남긴다 — 캡을 다시
+     * 채도로 되돌리는 순간 표식 없이는 카드 장수만큼 면이 잡혀 예산(화면당 2면)이 조용히 터진다.
+     * 표식은 장식이 아니라 측정 계약이고, 계약은 미리 서 있어야 값이 있다.
      */
     const grids = container.querySelectorAll('[data-tint-cluster]');
     expect(grids.length).toBeGreaterThan(0);

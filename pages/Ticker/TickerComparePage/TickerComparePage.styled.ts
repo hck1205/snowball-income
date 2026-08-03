@@ -1,6 +1,7 @@
 import styled from '@emotion/styled';
 import {
   DATA_RADIUS,
+  appHeaderHeight,
   PICK,
   PICK_RADIUS,
   cardElevation,
@@ -460,6 +461,36 @@ export const CoverageNote = styled.p`
 /**
  * 표가 좁은 폭에서 넘칠 때는 **가로 스크롤**로 흡수한다. 칸을 접거나 열을 감추면 비교가 깨진다 —
  * 비교표에서 열이 사라지는 것은 정보 손실이 아니라 **비교 자체의 실패**다.
+ *
+ * ## 🔴 가로 스크롤을 "필요한 폭에서만" 켠다 (2026-08-03)
+ * 스크롤 상자를 항상 켜 두면 **열 머리를 세로로 고정할 수 없다.** CSS 는 overflow 두 축을 따로
+ * 놀게 두지 않는다 — 한 축이 auto 면 나머지 visible 은 auto 로, clip 은 **hidden 으로 계산된다.**
+ * 실측으로 확인했다: overflow-x: auto 만 적은 상태의 computed overflowY 는 auto 였고,
+ * 회피하려고 overflow-y: clip 을 적었더니 computed 가 **hidden** 이 됐다(Chrome 150,
+ * CSS.supports('overflow-y','clip') === true 인데도). 어느 쪽이든 이 상자가 세로 스크롤포트가
+ * 되고, 그러면 자식의 position: sticky 는 **페이지가 아니라 이 상자**를 기준으로 잡는다 —
+ * 상자는 세로로 스크롤되지 않으니 머리가 영영 안 붙는다(실측 thTop -191px).
+ *
+ * 그래서 상자를 **없앨 수 있는 폭에서는 없앤다.** 이 표는 최대 4종목(MAX_COMPARE_TICKERS)이라
+ * 열이 다섯을 넘지 않는다. 넘침이 사라지는 임계를 재 보면(4종목 기준):
+ * ```
+ *   뷰포트   상자 폭   내용 폭   넘침
+ *    860      777       844      67px
+ *    900      816       844      28px
+ *    940      853       853       0     <- 여기서부터 안 넘친다
+ *   1280     1118      1118       0
+ * ```
+ * 경계는 임계(940)가 아니라 **`headerStack`(1024)** 을 쓴다. 이유 둘: ①84px 여유를 둬야 서체·
+ * 로케일·열 내용이 조금 길어져도 임계를 밟지 않는다 ②1024 는 앱 헤더가 **한 줄이 되는** 폭이다
+ * (그 아래는 2단이라 105~111px). 고정 머리가 붙을 자리를 정하는 값이 곧 헤더 높이라, 헤더가
+ * 두꺼워지는 구간에서 굳이 세로 예산을 더 깎지 않는다.
+ *
+ * ⚠ 그래서 **1024px 미만에서는 열 머리가 고정되지 않는다** — 거기서는 가로 스크롤이 먼저다
+ *   (좁은 폭에서 열이 잘리면 비교 자체가 성립하지 않는다). ScrollHint 가 그 폭에서만 뜨는 것도 같은 이유.
+ *
+ * ⚠ 그래서 `min-width: 560px` 를 낮추거나 열을 늘리면 **이 판단의 전제가 무너진다** —
+ *   1024px 이상에서 넘치기 시작하면 그 폭에서 **페이지 전체가 가로로 흔들린다**(이 레포 단골 결함).
+ *   바꾸려면 위 표를 `uiprobe` 로 다시 재고 경계를 옮겨라.
  */
 export const TableScroller = styled.div`
   overflow-x: auto;
@@ -467,6 +498,11 @@ export const TableScroller = styled.div`
   min-width: 0;
   /* 🔴 앱 공용 스크롤바 — 부품마다 다른 막대가 나오지 않게 한다(scrollbarStyle.test.ts 가 잠근다). */
   ${subtleScrollbar}
+
+  ${media.up('headerStack')} {
+    /* 스크롤포트를 해제한다 → 열 머리의 sticky 기준이 뷰포트가 되어 앱 헤더 밑에 붙는다. */
+    overflow: visible;
+  }
 `;
 
 export const ScrollHint = styled.p`
@@ -494,7 +530,9 @@ export const Table = styled.table`
 export const HeadCorner = styled.th`
   position: sticky;
   left: 0;
-  z-index: 1;
+  top: ${appHeaderHeight};
+  /* 양축 고정이라 표에서 가장 위층이다: 모서리(3) > 열 머리(2) > 항목 열(1). */
+  z-index: 3;
   width: ${METRIC_COLUMN_WIDTH};
   min-width: ${METRIC_COLUMN_WIDTH};
   padding: ${space[2]} ${space[3]} ${space[3]};
@@ -516,7 +554,17 @@ export const HeadCorner = styled.th`
  * 15px 세미볼드 검정이라 카드 제목보다도 약했다 — 비교의 주어가 화면에서 가장 조용했던 셈이다.
  */
 export const HeadCell = styled.th<{ $series: string }>`
-  position: relative;
+  /*
+   * 🔴 **relative 가 아니라 sticky 다** — 스크롤을 내려도 지금 무엇끼리 비교 중인지가 화면에
+   * 남아야 한다(사용자 요청 2026-08-03). 이 표는 행이 20줄 넘어서, 종전에는 아래로 내려가는 순간
+   * 열이 익명의 숫자 기둥이 됐다. top 은 앱 헤더 높이 변수를 그대로 쓴다 — 헤더가 sticky 라
+   * 상수로 적으면 헤더가 커지는 순간(모바일 2줄 등) 머리가 그 밑으로 파고든다.
+   * ⚠ sticky 도 positioned 라 아래 ::before 귀의 기준은 그대로다.
+   * ⚠ 배경(surface)을 지우지 마라 — 고정된 머리 밑으로 행이 비쳐 지나간다.
+   */
+  position: sticky;
+  top: ${appHeaderHeight};
+  z-index: 2;
   padding: ${space[4]} ${space[3]} ${space[3]};
   border-bottom: 2px solid ${color.borderStrong};
   background: ${color.surface};
@@ -739,9 +787,17 @@ export const ExtremeMark = styled.span`
  * 말한다 — 커뮤니티 피드·내가 쓴 글의 빈 상태와 같은 어휘여야 한 제품으로 읽힌다.
  * 실선 + 회색 배지였을 때는 위쪽 덱·아래 표와 같은 무게의 카드로 보여, 빈 상태라는 사실 자체가
  * 화면에서 읽히지 않았다.
- * ⚠ 저쪽 두 화면이 함께 까는 파스텔 워시(gradientHeroSoft)는 여기서 **뺀다** — 이 라우트의 색면
- * 예산은 히어로 + 공용 푸터로 이미 2/2 다(tintscan 실측). 어휘를 맞추는 값은 형태가 내고,
- * 면은 늘리지 않는다.
+ * ⚠ 저쪽 두 화면이 함께 까는 파스텔 워시는 여기서 **뺀다** — 채도 면은 늘리지 않는다.
+ *
+ * ── 🔴 2026-08-03 흰 캔버스: 면 `surface` → `surfaceMuted`, 점선 `border` → `borderStrong` ──
+ * 이 패널은 첫 화면 전체를 차지하는데, 흰 캔버스에서 `surface` 는 **페이지 배경과 같은 값**이라
+ * 면이 통째로 사라졌다(구 회색 캔버스에서는 흰 카드 자체가 덩어리였다). 남은 것은 1.49:1 짜리
+ * 점선 하나뿐이었고, 그건 "여기 뭔가 비어 있다"를 말하기엔 너무 조용하다.
+ * 그래서 이 앱이 "비어 있음"에 쓰는 **공통 어휘**로 맞춘다 — 점선 `borderStrong`(3.2~3.4:1) +
+ * `surfaceMuted` 속삭임 면(`FeedStates.EmptyRoot` · 허브의 `EmptyState` 와 같은 값).
+ * 🔴 `surfaceSunken` 까지 내리지 않는 이유도 저쪽과 같다: velog 라이트에서 sunken 은
+ * `surfaceHover` 와 같은 값이라, 이 어휘를 쓰는 다른 빈 상태 패널(버튼을 품는다)에서 hover 가 죽는다.
+ * 값을 자리마다 다르게 고르면 어휘가 아니게 되므로 여기서도 muted 로 통일한다.
  */
 export const EmptyBlock = styled.section`
   ${surface(PICK_RADIUS, EMPTY_PAD)}
@@ -749,8 +805,8 @@ export const EmptyBlock = styled.section`
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: ${space[3]} clamp(${space[4]}, 3vw, ${space[8]});
-  border: 1px dashed ${color.border};
-  background: ${color.surface};
+  border: 1px dashed ${color.borderStrong};
+  background: ${color.surfaceMuted};
   min-width: 0;
 
   ${media.down('tabletSm')} {
@@ -860,11 +916,21 @@ export const MiniTrack = styled.span`
   min-width: 0;
 `;
 
+/**
+ * 한 달 한 칸.
+ *
+ * 🔴 **안 주는 달의 칸이 보여야 이 트랙이 트랙이다.** 이 미리보기가 답하는 질문은 "몇 달이
+ * 비었나"인데, 빈 칸이 안 보이면 색칠된 칸만 떠 있는 점선이 되어 셀 수가 없다.
+ * 종전 `surfaceMuted` 는 흰 카드 면 위에서 1.02~1.08:1 이라(vivid 1.02 · grape 1.03 · sunset 1.04)
+ * 절반의 프리셋에서 칸이 통째로 사라졌다 — 실측 스크린샷에서 눈으로도 그랬다.
+ * `surfaceSunken` 은 1.11~1.22:1 로 8프리셋 전부에서 칸이 남는다(면 판정 하한 8px 밑의 6px 이라
+ * 예산과는 무관하고, 중립 토큰이라 tintscan 이 애초에 세지도 않는다).
+ */
 export const MiniCell = styled.span<{ $paid: boolean; $series: string }>`
   display: block;
   height: 6px;
   border-radius: ${radius.xs};
-  background: ${({ $paid, $series }) => ($paid ? $series : color.surfaceMuted)};
+  background: ${({ $paid, $series }) => ($paid ? $series : color.surfaceSunken)};
 `;
 
 export const MiniCaption = styled.span`

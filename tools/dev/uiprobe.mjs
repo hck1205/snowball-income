@@ -26,6 +26,9 @@
  *   --click <text>   보이는 글자로 버튼을 찾아 누른다(여러 번 지정 가능, 순서대로)
  *   --eval <expr>    페이지 안에서 평가할 식. 결과를 JSON 으로 출력
  *   --shot <path>    스크린샷 PNG 저장(폭마다 파일명에 폭이 붙는다)
+ *   --viewport       --shot 을 **보이는 화면만** 찍는다(기본은 전체 페이지).
+ *                    🔴 sticky·fixed 를 눈으로 확인하려면 반드시 이걸 켠다 — 전체 페이지 캡처는
+ *                    스크롤 위치를 무시하고 그리므로 고정된 요소가 **안 붙은 자리에 찍힌다.**
  *   --overflow       가로 오버플로 검사(scrollWidth > clientWidth) — 이 레포 단골 결함
  *   --align          한 줄 안 세로 정렬 검사(글자 잉크 중심 ↔ 아이콘·선·배지 중심) — 아래 참고
  *   --port <n>       CDP 포트. 기본 9222
@@ -46,6 +49,8 @@ let height = 900;
 let waitMs = null;
 let evalExpr = null;
 let shotPath = null;
+/** --shot 을 보이는 화면만 찍을지. sticky/fixed 확인용(전체 페이지 캡처는 고정 요소를 못 보여준다). */
+let viewportOnly = false;
 let checkOverflow = false;
 let checkAlign = false;
 let port = 9222;
@@ -61,6 +66,7 @@ for (let i = 0; i < argv.length; i += 1) {
   else if (arg === '--click') clicks.push(next());
   else if (arg === '--eval') evalExpr = next();
   else if (arg === '--shot') shotPath = next();
+  else if (arg === '--viewport') viewportOnly = true;
   else if (arg === '--overflow') checkOverflow = true;
   else if (arg === '--align') checkAlign = true;
   else if (arg === '--port') port = Number(next());
@@ -75,6 +81,7 @@ for (let i = 0; i < argv.length; i += 1) {
   --click <text>   보이는 글자로 버튼을 눌러 상태를 만든다(여러 번 가능)
   --eval <expr>    페이지에서 평가할 식 → JSON 출력
   --shot <path>    PNG 저장(폭마다 파일명에 폭이 붙는다) ← 눈으로 확인하는 용도
+  --viewport       --shot 을 보이는 화면만 찍는다 ← sticky/fixed 확인에는 필수
   --overflow       가로 오버플로 검사
   --align          한 줄 세로 정렬 검사(잉크 중심 ↔ 아이콘 중심)
   --keep           브라우저를 남긴다`);
@@ -450,7 +457,16 @@ for (const width of widths) {
   }
 
   if (shotPath) {
-    const shot = await cdp.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
+    /*
+     * 🔴 captureBeyondViewport 는 **스크롤을 무시하고 문서 전체를 다시 그린다.** 그래서
+     * position: sticky / fixed 요소는 '붙은 상태'가 아니라 원래 자리에 찍힌다 — 고정을 눈으로
+     * 확인하려던 캡처가 조용히 거짓을 보여 준다(2026-08-03 비교표 열 머리에서 실제로 겪었다).
+     * --viewport 를 주면 보이는 화면만 찍어 스크롤 상태 그대로가 남는다.
+     */
+    const shot = await cdp.send('Page.captureScreenshot', {
+      format: 'png',
+      captureBeyondViewport: !viewportOnly
+    });
     const target = widths.length > 1 ? shotPath.replace(/(\.png)?$/i, `.${width}.png`) : shotPath;
     mkdirSync(dirname(resolve(target)), { recursive: true });
     writeFileSync(resolve(target), Buffer.from(shot.data, 'base64'));
