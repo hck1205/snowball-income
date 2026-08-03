@@ -166,6 +166,15 @@ const buildRows = (
       quantityInput: item.quantityInput,
       marketValue: included ? formatUsdAmount(breakdown.valueUsd) : DASH,
       annualNet: included ? formatUsdAmount(breakdown.annualDividendAfterTaxUsd) : DASH,
+      /*
+       * 🔴 총액이 0 이면 `null` 이다 — 0 으로 나누면 `Infinity`/`NaN` 이 그대로 막대 폭·도넛 각도로
+       * 흘러 들어간다(둘 다 CSS 에서 조용히 무시돼 "왜 안 보이지"로만 드러난다).
+       * 계산에서 빠진 행도 `null` 이다: 금액 자리에 `—` 를 쓰면서 비중만 숫자를 주면 두 셀이 다른 말을 한다.
+       */
+      weightPercent:
+        included && breakdown && summary.totalValueUsd > 0
+          ? (breakdown.valueUsd / summary.totalValueUsd) * 100
+          : null,
       note: breakdown ? buildRowNote(breakdown) : null
     };
   });

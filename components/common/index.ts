@@ -1,6 +1,9 @@
 export { default as Banner } from './Banner';
 export type { BannerProps, BannerTone } from './Banner';
 
+export { BrandGlyph } from './BrandGlyph';
+export type { BrandGlyphProps } from './BrandGlyph';
+
 export { default as Button } from './Button';
 export type { ButtonProps, ButtonSize, ButtonVariant } from './Button';
 
@@ -40,6 +43,21 @@ export type { PageFooterProps } from './PageFooter';
 
 export { default as PageHero } from './PageHero';
 export type { PageHeroProps, PageHeroTone } from './PageHero';
+
+/**
+ * 고르는 면(brand)의 공용 카드. "여기서 무언가를 고르면 화면이 바뀌는가"가 참이면 이 카드고,
+ * 결과·차트·표처럼 **읽는 면**은 위의 `Card` 를 그대로 쓴다.
+ */
+export { PickCard, PickCardGrid } from './PickCard';
+export type {
+  PickCapAxis,
+  PickCapHeight,
+  PickCapKind,
+  PickCapPaint,
+  PickCardCap,
+  PickCardGridProps,
+  PickCardProps
+} from './PickCard';
 
 export {
   AllocationChartLayout,

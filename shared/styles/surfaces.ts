@@ -6,7 +6,7 @@
  */
 
 import { color, elevation } from './semantic';
-import { TOUCH_TARGET } from './tokens';
+import { DATA_SURFACE, PICK, TOUCH_TARGET, radius } from './tokens';
 
 /* -------------------------------------------------------------------------- */
 /* 동심 라운드                                                                  */
@@ -47,6 +47,51 @@ export const surface = (outer: string, pad: string): string => `
   --sb-inner-radius: ${innerRadius(outer, pad)};
 `;
 
+/* -------------------------------------------------------------------------- */
+/* 면의 종류 (SurfaceKind) — 격(tier)과 직교하는 두 번째 축                       */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * **면의 종류.** 판정 기준은 한 줄이다 — *"여기서 무언가를 고르면 화면이 바뀌는가."*
+ *
+ * | | `brand` (고르는 면) | `data` (읽는 면) |
+ * |---|---|---|
+ * | 어디 | 프리셋 카드·티커 허브 카드·비교 후보 칩·대가 카드·갤러리 카드·404 목적지 카드·랜딩 히어로·푸터·마무리 CTA·공유 카드 | 결과 요약·차트 카드·표·StatTile·캘린더 격자·PDF 본문 |
+ * | 허용 | 색면(L1·L2·화면당 1개의 L3)·`brandPanel()`·마스코트 | **L1(선·점·귀)만** — 채도면 금지 |
+ * | 반경 | `PICK_RADIUS` (30~34px) | `DATA_RADIUS` (24~28px) |
+ *
+ * 🔴 이 축은 **타입**이지 주석이 아니다. `data` 면에 채도면을 얹고 싶어지는 순간이 이 설계의 최대
+ * 오염 지점이고(특히 손익색을 카드에 칠하고 싶어질 때), 숫자의 신뢰감은 거기서 무너진다.
+ */
+export type SurfaceKind = 'brand' | 'data';
+
+/* -------------------------------------------------------------------------- */
+/* 두 면의 반경 — 차이가 눈에 보이는 신호가 되도록                                */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * **brand 면의 바깥 반경** = 안쪽 컨트롤(`radius.lg` 16px) + `PICK.pad`.
+ *
+ * 검산: 390px **30px**(16+14) · 800px **30px**(16+14) · 1280px **34px**(16+18).
+ * 같은 폭에서 `DATA_RADIUS`(24 · 24 · 28)와의 차이는 **전 구간 약 6px 로 일정**하다 — 즉 반경만으로는 두 면이
+ * 구분되지 않는다. 실제 신호는 **컬러 캡의 3변 bleed** 와 **hover 부상**이고, 반경은 그 둘을
+ * 거들 뿐이다. 이 사실을 알고도 반경을 나눠 두는 이유는 캡이 없는 pick 카드(글리프만 있는 카드)가
+ * 여전히 "고르는 면"으로 읽혀야 하기 때문이다.
+ *
+ * 상수 30px 이 아니라 `calc()` 인 이유는 위 `innerRadius` 주석과 같다 — 패딩이 `clamp()` 라
+ * 고정값은 한 뷰포트 폭에서만 동심이다.
+ */
+export const PICK_RADIUS = outerRadius(radius.lg, PICK.pad);
+
+/**
+ * **data 면의 바깥 반경** = 안쪽 컨트롤(`radius.sm` 8px) + `DATA_SURFACE.pad`. 24~28px.
+ *
+ * 공용 `Card` 가 자기 파일에서 같은 식을 계산하고 있다(`Card.styled.ts` 의 `CARD_RADIUS`).
+ * 값이 갈리지 않는지는 `shared/styles/geometry.test.ts` 가 소스로 대조한다 — 이 상수는
+ * **새 data 면**(공용 Card 를 쓰지 않는 표면)이 같은 대역에 앉게 하려고 있다.
+ */
+export const DATA_RADIUS = outerRadius(radius.sm, DATA_SURFACE.pad);
+
 /**
  * 표면 안쪽 자식의 라운드.
  *
@@ -65,8 +110,11 @@ export const nestedRadius = (fallback: string): string => `var(--sb-inner-radius
  * - `raised` 주역 — 그 화면을 켠 이유(결과 요약·지금 받는 배당).
  * - `base`   본문 — 차트·표·구성처럼 주역을 뒷받침하는 면.
  * - `sunken` 부속 — "다른 가정"을 말하는 곁가지(전량 매도 시 세금).
+ * - `pick`   고르는 카드 — 평상시에는 `base` 와 같은 수단(테두리)이고, **hover/focus 에서만**
+ *            테두리를 지우고 그림자로 갈아탄다. 즉 "누를 수 있음"을 정적 무게가 아니라
+ *            **상태 변화**로 말한다. 화면당 개수 제한이 없는 이유가 이것이다(주역과 경쟁하지 않는다).
  */
-export type SurfaceTier = 'raised' | 'base' | 'sunken';
+export type SurfaceTier = 'raised' | 'base' | 'sunken' | 'pick';
 
 /**
  * 한 면의 **위계 선언 3종 세트**(배경·테두리·그림자)를 한 번에 낸다.
@@ -100,8 +148,107 @@ export const cardElevation = (tier: SurfaceTier): string =>
   background: ${color.surfaceSunken};
   border: none;
   box-shadow: none;
+`,
+    /*
+     * 🔴 `border: none` + `e1` 이 아니다. `e1`(오프셋 1px·불투명도 .05)은 흰 배경에서 사실상
+     * 보이지 않는다 — 그게 이 파일이 "유령 카드"로 진단하고 주역을 `e2` 로 올린 바로 그 값이다.
+     * 테두리 없는 e1 카드는 `base` 보다 **약해진다**(고르는 카드가 본문 카드보다 뒤로 물러난다).
+     *
+     * 부상은 소비처(`PickCard.styled.ts`)가 hover/focus-visible 에서 선언한다:
+     *   border-color: transparent · box-shadow: elevation[2] · transform: translateY(-2px)
+     * → "테두리와 그림자를 동시에 쓰지 않는다"를 **한 시점 기준**으로 지킨다(테두리는 남아 있지만
+     *   투명하다 — 레이아웃이 1px 튀지 않게 하는 유일한 방법이다).
+     */
+    pick: `
+  background: ${color.surface};
+  border: 1px solid ${color.border};
+  box-shadow: none;
 `
   })[tier];
+
+/**
+ * **부상(hover/focus-visible) 선언** — `pick` 면이 눌릴 수 있음을 상태로 말하는 부분.
+ *
+ * 소비처가 손으로 적지 않게 여기에 둔다. `border-color: transparent` 인 이유는 위 `pick` 주석과
+ * 같다 — `border: none` 으로 지우면 1px 만큼 레이아웃이 튄다.
+ *
+ * ⚠ `transform` 을 쓰므로 이 선언을 받는 요소는 **스태킹 컨텍스트를 만든다**(`tokens.ts` zIndex 주석).
+ *   카드 안에 팝오버·드롭다운을 띄우지 마라 — 카드 밖으로 못 나간다.
+ */
+export const pickLift = `
+  border-color: transparent;
+  box-shadow: ${elevation[2]};
+  transform: translateY(-2px);
+`;
+
+/* -------------------------------------------------------------------------- */
+/* 컬러 캡 — brand 면의 머리에 앉는 색 띠                                        */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * 카드 머리의 **3변 bleed**. 패딩을 음수 마진으로 되돌려 좌·우·상 세 변에 딱 붙이고,
+ * 위쪽 두 모서리만 부모 반경을 따라간다.
+ *
+ * `- 1px` 인 이유: 부모가 1px 테두리를 가지므로(`cardElevation('pick')`) 안쪽 면의 반경은
+ * 테두리 두께만큼 작아야 한다. 같은 값을 쓰면 모서리에서 색이 테두리 바깥으로 비어져 나온다
+ * (실측 가능한 계단이 생긴다 — `border-box` 안쪽 곡률이 바깥보다 작기 때문).
+ *
+ * 🔴 캡의 **높이**는 여기서 정하지 않는다. 6px 레일이냐 48~88px 틴트 면이냐가 `tintscan` 의
+ * 면 판정(높이 ≥8px)을 가르는 지점이라, 소비처가 `PICK.railHeight` / `PICK.capHeight` 중
+ * 무엇을 골랐는지 코드에 드러나야 한다.
+ *
+ * @param outerR 부모(카드)의 바깥 반경. 보통 `PICK_RADIUS`.
+ * @param pad    부모의 패딩. 보통 `PICK.pad`.
+ */
+export const colorCap = (outerR: string, pad: string): string => `
+  margin: calc(-1 * ${pad}) calc(-1 * ${pad}) ${pad};
+  border-radius: calc(${outerR} - 1px) calc(${outerR} - 1px) 0 0;
+`;
+
+/* -------------------------------------------------------------------------- */
+/* 브랜드 패널 — 금색이 사는 유일한 자리                                          */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * **네이비 패널 한 겹.** 브랜드가 직접 말하는 반전 면(마무리 CTA·푸터·공유 카드).
+ *
+ * 🔴 **금색(`color.onPanelGold`)이 합법인 유일한 조합이다.** 밝은 면 위 금색은 **1.83:1** 로
+ * 죽는다 — 그래서 범용 `gold` 토큰은 일부러 존재하지 않고, 금색은 `on-panel-gold` 라는
+ * 이름으로만 있다. **이 믹스인이 깐 면 밖으로 금색을 꺼내지 마라.** `contrast.test.ts` 가 잡는다.
+ *
+ * 실측(라이트/다크 동일 — 반전 면이라 모드 불변):
+ * ```
+ *   on-panel        흰 글자   / panel   16.24:1  ✅ 제목·큰 숫자
+ *   on-panel-gold   금색      / panel    8.86:1  ✅ 액센트 텍스트·1px 선
+ *   on-panel-muted  연보라    / panel    8.20:1  ✅ 라벨·캡션
+ * ```
+ *
+ * 경계선을 다크에서만 그리는 이유: `panel` 과 라이트 `bg` 는 8프리셋 최저 12.4:1 이라 경계가
+ * 필요 없지만, 다크 `bg`(#121212) 와는 **1.18:1** 이라 패널이 배경에 잠긴다. 금색 28% 헤어라인이
+ * 그 경계를 만든다(금색/다크 bg = 10.24:1).
+ *
+ * ⚠ 이 믹스인은 **면색과 글자색만** 낸다. 반경·패딩은 소비처가 자기 기하로 정한다 —
+ * 푸터(전폭·직각)와 마무리 CTA(카드·큰 라운드)의 기하가 다르기 때문이다.
+ * ⚠ `SurfaceKind: 'brand'` 면에서만 부른다. data 면에 이 면을 깔면 어두운 면 위 숫자가 되어
+ * 앱의 나머지 표와 위계가 어긋난다.
+ */
+export const brandPanel = (): string => `
+  background: ${color.panel};
+  color: ${color.onPanel};
+  border: none;
+
+  @media (prefers-color-scheme: dark) {
+    border: 1px solid color-mix(in srgb, ${color.onPanelGold} 28%, transparent);
+  }
+
+  :root[data-theme='light'] & {
+    border: none;
+  }
+
+  :root[data-theme='dark'] & {
+    border: 1px solid color-mix(in srgb, ${color.onPanelGold} 28%, transparent);
+  }
+`;
 
 /* -------------------------------------------------------------------------- */
 /* 히트 영역                                                                    */

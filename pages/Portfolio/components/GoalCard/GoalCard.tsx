@@ -2,6 +2,7 @@ import { useId } from 'react';
 import { CircleCheck, Info, Target } from 'lucide-react';
 import { Button, StatTile } from '@/components/common';
 import { TARGET_MONTHLY_DIVIDEND_MAX_MAN_WON } from '@/shared/constants';
+import { ICON } from '@/shared/styles';
 import { PORTFOLIO_COPY } from '../../copy';
 import { GoalMeter } from '../GoalMeter';
 import { GoalSetupPanel } from '../GoalSetupPanel';
@@ -13,6 +14,9 @@ import {
   CardHead,
   CardRoot,
   CardTitle,
+  CardTitleBadge,
+  CardTitleGroup,
+  StateBadge,
   StatusLine,
   TileGrid
 } from './GoalCard.styled';
@@ -43,7 +47,28 @@ export default function GoalCard({
   return (
     <CardRoot aria-labelledby={titleId} aria-busy={model.isLoading || undefined}>
       <CardHead>
-        <CardTitle id={titleId}>{copy.goal.title}</CardTitle>
+        <CardTitleGroup>
+          <CardTitle id={titleId}>
+            <CardTitleBadge aria-hidden>
+              <Target size={ICON.md} strokeWidth={ICON.stroke} focusable={false} />
+            </CardTitleBadge>
+            {copy.goal.title}
+          </CardTitle>
+          {/*
+            훑어보는 눈을 위한 한 낱말. 아래 상태 줄이 근거 문장을 말하고, 여기서는 결론만 말한다.
+            🔴 색 단독 금지 — 배지에는 언제나 글자가 있다(회색조에서도 도달/진행 중이 갈린다).
+          */}
+          {statusLine ? (
+            <StateBadge tone={statusLine.tone}>
+              {statusLine.tone === 'success' ? (
+                <CircleCheck size={ICON.xs} strokeWidth={ICON.stroke} aria-hidden focusable={false} />
+              ) : (
+                <Target size={ICON.xs} strokeWidth={ICON.stroke} aria-hidden focusable={false} />
+              )}
+              {statusLine.tone === 'success' ? copy.goal.badge.reached : copy.goal.badge.inProgress}
+            </StateBadge>
+          ) : null}
+        </CardTitleGroup>
         {model.showEditTarget ? (
           <Button
             type="button"

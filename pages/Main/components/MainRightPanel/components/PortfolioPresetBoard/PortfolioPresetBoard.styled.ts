@@ -1,16 +1,5 @@
 import styled from '@emotion/styled';
-import {
-  color,
-  font,
-  iconOpticalAlign,
-  media,
-  motion,
-  pressableSubtle,
-  pressTransition,
-  radius,
-  shadow,
-  space
-} from '@/shared/styles';
+import { color, font, iconOpticalAlign, media, motion, PICK, radius, space } from '@/shared/styles';
 
 /**
  * 포트폴리오 프리셋 보드 스타일.
@@ -64,90 +53,38 @@ export const PortfolioPresetGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
   align-items: start;
-  gap: ${space[3]};
+  /* 🔴 간격은 PICK.gap 이다(clamp 12~16px) — 고르는 카드의 hover 부상 그림자(e2)는 blur 12px 라
+     그보다 좁으면 그림자가 이웃 카드를 침범한다. 값을 손으로 적지 마라(shared/styles/tokens.ts 소유). */
+  gap: ${PICK.gap};
 `;
 
 /**
- * 프리셋 카드(버튼). hover/focus 에서 좌측 오로라 리본이 켜지고 살짝 떠오른다.
- * 카드 전체가 버튼이라 커서·포커스 링이 카드 전체에 걸린다.
+ * 카드 **본문**의 세로 스택 — 훅 · coreType · 지표 2개.
+ *
+ * 🔴 카드 껍데기(면·라운드·6px 레일 캡·40px 글리프 배지·제목 크기·hover 부상·스트레치 버튼)는
+ * 이제 공용 `components/common/PickCard` 가 소유한다. 여기서 다시 그리지 마라 — 같은 모양의
+ * "고르는 카드"를 각자 복제해 온 것이 그 부품이 생긴 이유다(랜딩 PresetBrowser 가 같은 길을 갔다).
+ * 구 `PortfolioPresetCardButton`(테두리 + 좌측 3px 오로라 리본 + 누름 믹스인)은 그래서 사라졌다.
  */
-export const PortfolioPresetCardButton = styled.button`
-  position: relative;
+export const PortfolioPresetFacts = styled.div`
   display: grid;
   gap: ${space[2]};
   align-content: start;
-  width: 100%;
-  min-width: 0;
-  text-align: left;
-  border: 1px solid ${color.border};
-  border-radius: ${radius.md};
-  background: ${color.surface};
-  padding: ${space[4]};
-  padding-left: ${space[5]};
-  color: ${color.text};
-  font-family: inherit;
-  cursor: pointer;
-  overflow: hidden;
-  transition: border-color ${motion.fast} ${motion.ease}, box-shadow ${motion.fast} ${motion.ease},
-    transform ${motion.fast} ${motion.ease}, background-color ${motion.fast} ${motion.ease},
-    ${pressTransition};
-
-  /* 좌측 액센트 바 — 평소엔 투명, hover/focus 시 오로라 리본(표시용). */
-  &::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 3px;
-    background: transparent;
-    opacity: 0;
-    transition: opacity ${motion.fast} ${motion.ease};
-  }
-
-  &:hover,
-  &:focus-visible {
-    border-color: ${color.brandBorder};
-    background: ${color.surfaceHover};
-    box-shadow: ${shadow.e2};
-  }
-
-  /* 들어올림은 진짜 포인터에서만 — 터치는 탭 뒤 :hover 가 남아 카드가 들린 채로 굳는다. */
-  @media (hover: hover) and (pointer: fine) {
-    &:hover,
-    &:focus-visible {
-      transform: translateY(-1px);
-    }
-  }
-
-  &:hover::before,
-  &:focus-visible::before {
-    background: ${color.gradientAurora};
-    opacity: 1;
-  }
-
-  ${pressableSubtle}
-`;
-
-export const PortfolioPresetTitleRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: ${space[2]};
-`;
-
-export const PortfolioPresetTitle = styled.span`
-  font-size: ${font.size.base};
-  font-weight: ${font.weight.bold};
-  line-height: ${font.leading.tight};
-  color: ${color.text};
-  letter-spacing: -0.01em;
   min-width: 0;
 `;
 
-/** 지금 화면에 적용돼 있는 프리셋 표식(프리필 포함). 중립 면 + 중립 글자 — 숫자가 아니라 상태다. */
+/**
+ * 지금 화면에 적용돼 있는 프리셋 표식(프리필 포함). 중립 면 + 중립 글자 — 숫자가 아니라 상태다.
+ *
+ * `inline-flex` 인 이유: 이 태그는 `PickCard` 의 `titleRight` 슬롯(블록 컨테이너) 안에 산다.
+ * 기본 `inline` 으로 두면 세로 패딩이 라인박스를 늘리지 못해 태그가 슬롯 위로 2px 삐져나온다
+ * (실측 2026-08-03: 태그 22px / 슬롯 24px, 위쪽만 2px 어긋남). 구 배치의 잔재였던
+ * `flex: 0 0 auto` · `margin-left: auto` 는 지웠다 — 지금 부모는 flex 컨테이너가 아니라
+ * 두 선언 모두 아무 일도 하지 않았다(정렬은 `PickCardHead` 의 space-between 이 이미 한다).
+ */
 export const PortfolioPresetAppliedTag = styled.span`
-  flex: 0 0 auto;
-  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
   border-radius: ${radius.pill};
   background: ${color.surfaceSunken};
   color: ${color.textSecondary};
@@ -285,21 +222,8 @@ export const PortfolioPresetGroupBadge = styled.span<{ tone: PresetTone }>`
   }
 `;
 
-/** 카드 아이콘 배지 — 그룹 톤을 그대로 물려받아 "이 카드가 어느 묶음인지"를 색으로도 말한다. */
-export const PortfolioPresetIcon = styled.span<{ tone: PresetTone }>`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-  width: 30px;
-  height: 30px;
-  border-radius: ${radius.sm};
-  background: ${({ tone }) => PRESET_TONE_STYLE[tone].bg};
-  color: ${({ tone }) => PRESET_TONE_STYLE[tone].fg};
-
-  svg {
-    width: 18px;
-    height: 18px;
-    display: block;
-  }
-`;
+/*
+ * 구 `PortfolioPresetIcon`(카드 안 30px 톤 배지)은 없다 — 그 역할을 `PickCard` 의 캡 글리프
+ * 배지(40px)가 맡고, 색은 톤이 아니라 **캡 축**(PortfolioPresetBoard.utils.ts 의 PRESET_CAP_AXIS)이
+ * 정한다. 두 곳이 같은 색을 각자 계산하면 언젠가 갈린다.
+ */

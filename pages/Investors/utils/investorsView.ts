@@ -325,6 +325,16 @@ export const personColorVar = (person: string, seriesVars: readonly string[]): s
   return seriesVars[Math.abs(hash) % seriesVars.length] ?? seriesVars[0] ?? '';
 };
 
+/**
+ * `'var(--sb-chart-series-3)'` → `'--sb-chart-series-3'`.
+ *
+ * 공용 `PickCard` 의 `cap.scopedVar` 는 **변수 이름**을 요구한다(부품이 스스로 `var()` 로 감싼다).
+ * 반면 이 화면의 `personColorVar` 는 CSS 에 그대로 넣을 수 있는 **참조 표현식**을 준다 — 두 어법을
+ * 잇는 한 줄이다. 이미 이름 형태(`--x`)면 그대로 돌려준다.
+ */
+export const cssVarName = (value: string): string =>
+  value.startsWith('var(') ? value.slice(4, -1).trim() : value;
+
 /** 비교 화면으로 넘길 티커들. 매핑된 것만 — 없는 것을 넘기면 빈 열이 생긴다. */
 export const comparableTickers = (card: InvestorCardModel, limit: number): readonly string[] =>
   card.holdings

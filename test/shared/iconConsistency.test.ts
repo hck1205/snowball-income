@@ -28,6 +28,28 @@ const STROKE_EXCEPTIONS: Readonly<Record<string, number>> = {
   'components/ThemePresetSwitcher/ThemePresetSwitcher.tsx': 2.4
 };
 
+/**
+ * **lucide 아이콘이 아닌** `size` 소비자 — 이 감사의 대상이 아니다.
+ *
+ * 이 파일의 두 계약(계단 크기 · 굵기 명시)은 **lucide 라인 아이콘이 한 줄에 나란히 설 때**의
+ * 일관성을 지키는 것이다. `BrandGlyph` 는 그 줄에 서지 않는다 —
+ *   ① `fill="currentColor"` 기반 실루엣이라 **`strokeWidth` prop 자체가 없다**
+ *      (`BrandGlyph.types.ts` 는 size·accent·title 만 받는다 — 굵기를 적으면 타입 에러다).
+ *   ② 브랜드 마크의 크기는 아이콘 계단(12~24)이 아니라 **자리의 크기**를 따른다.
+ *      빈 상태 마스코트 96 · 마무리 CTA 배지 32 · 히어로 배지 20 처럼.
+ *
+ * 🔴 여기 이름을 추가하는 것은 **감사 회피**다. lucide 아이콘은 절대 넣지 마라.
+ *   대신 아래 `BRAND_GLYPH_SIZES` 처럼 그 부품에 맞는 계약을 따로 걸어라.
+ */
+const NON_LUCIDE_GLYPHS: ReadonlySet<string> = new Set(['BrandGlyph']);
+
+/**
+ * 브랜드 마크가 서는 자리의 크기 — 아이콘 계단과 **별개의** 계단이다.
+ * 16 파비콘 대체 · 20 헤더/히어로 배지 · 24 푸터 매스트헤드 · 28 PDF 표지 ·
+ * 32 마무리 CTA 배지 · 96 빈 상태 마스코트.
+ */
+const BRAND_GLYPH_SIZES: readonly number[] = [16, 20, 24, 28, 32, 96];
+
 const collect = (dir: string, out: string[] = []): string[] => {
   for (const entry of readdirSync(dir)) {
     const full = join(dir, entry);
@@ -51,12 +73,19 @@ const OPEN_TAG = /<([A-Z][A-Za-z0-9_]*)\b((?:[^<>{}]|\{[^{}]*\})*?)\/?>/g;
 
 type IconUse = { path: string; component: string; size: number; stroke: number | null };
 
+/** lucide 가 아닌 글리프 사용처 — 위 `NON_LUCIDE_GLYPHS` 가 걸러낸 것들. 별도 계약을 건다. */
+const BRAND_GLYPH_USES: { path: string; size: number }[] = [];
+
 const ICON_USES: IconUse[] = FILES.flatMap(({ path, source }) => {
   const uses: IconUse[] = [];
   for (const match of source.matchAll(OPEN_TAG)) {
     const [, component, attrs] = match;
     const size = attrs.match(/\bsize=\{(\d+)\}/);
     if (!size) continue;
+    if (NON_LUCIDE_GLYPHS.has(component)) {
+      BRAND_GLYPH_USES.push({ path, size: Number(size[1]) });
+      continue;
+    }
     /*
      * 스프레드(`{...GLYPH_PROPS}`)는 굵기를 대신 넣어 줄 수 있는데 소스만 봐서는 그 안을 못 본다.
      * 그런 자리는 감사 대상에서 뺀다 — 억지로 잡으려다 **중복 prop** 을 넣는 실수를 한 번 했다
@@ -115,5 +144,16 @@ describe('아이콘 일관성', () => {
     }).map((use) => `${use.path} <${use.component} strokeWidth={${use.stroke}}>`);
 
     expect(violations).toEqual([]);
+  });
+
+  it('브랜드 마크는 제 계단을 쓴다 — 아이콘 계단과 섞지 않는다', () => {
+    /* 정규식이 죽으면 아래 단정이 조용히 통과하므로 먼저 잡힌 것을 확인한다. */
+    expect(BRAND_GLYPH_USES.length).toBeGreaterThan(0);
+
+    const offScale = BRAND_GLYPH_USES.filter(
+      (use) => !BRAND_GLYPH_SIZES.includes(use.size)
+    ).map((use) => `${use.path} <BrandGlyph size={${use.size}}>`);
+
+    expect(offScale).toEqual([]);
   });
 });

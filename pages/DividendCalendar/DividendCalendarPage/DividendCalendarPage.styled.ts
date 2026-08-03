@@ -1,18 +1,95 @@
 import styled from '@emotion/styled';
 import {
+  DATA_RADIUS,
+  PICK_RADIUS,
   cardElevation,
   color,
   elevation,
   font,
   media,
   motion,
+  pageHue,
+  pageHueMix,
   radius,
   space
 } from '@/shared/styles';
 
+/**
+ * ── 이 화면의 면 배치 (SurfaceKind) ─────────────────────────────────────────────
+ *
+ * | 면 | 종류 | 처방 |
+ * |---|---|---|
+ * | 달력 보드 · 상세 카드 | **data**(읽는 면) | 중립 면 + `DATA_RADIUS`. 채도는 선·점(L1)에만 |
+ * | 빈 상태 안내 카드 | **brand**(고르는 면) | 이 화면의 **유일한** 색면 전환 + `PICK_RADIUS` |
+ *
+ * 🔴 색면 예산은 **히어로 + 빈 상태 카드 = 2** 다(라우트 기준선). 세 번째 틴트 면을 만들지 마라 —
+ * 카드 머리 띠가 중립 침강면(`surfaceSunken`)인 것이 그 이유다. 색을 쓰고 싶으면 면이 아니라
+ * **6px 이하의 줄**(`pageHueMix`)로 써라(틴트 판정 하한은 높이 8px 이다).
+ */
 export const PageStack = styled.div`
   display: grid;
   gap: clamp(16px, 3vw, 28px);
+  min-width: 0;
+`;
+
+/** 두 카드가 공유하는 패딩. 값이 갈리면 두 카드가 다른 부품처럼 보인다 — 한 자리에서 소유한다. */
+const SURFACE_PAD = 'clamp(16px, 2.4vw, 28px)';
+
+/**
+ * 카드 머리 **막대**. 카드 안쪽에 앉은 중립 침강면이고, 글리프 배지 + 이름 + 오른쪽 슬롯을 담는다.
+ *
+ * 🔴 3변 bleed(음수 마진으로 카드 세 변에 붙이기)를 **일부러 쓰지 않았다.** 두 가지가 걸린다:
+ *  ① 그러려면 위쪽 두 모서리만 둥근 비균일 반경이 필요한데, 이 파일에는 `LiveRegion` 의
+ *     `width: 1px` 이 있어 `test/shared/radiusShape.test.ts` 의 런 분할(중괄호 기준)에서 둘이
+ *     한 조각에 묶인다 — 가드를 우회하는 형태로 적는 대신 규칙에 맞는 모양을 골랐다.
+ *  ② bleed 를 깔끔히 자르려면 카드에 `overflow: hidden` 이 필요한데, 이 카드 안에는 날짜 칩
+ *     **툴팁**(절대 배치, 포털 아님)이 산다 — 가장자리 칸의 말풍선이 잘린다.
+ *
+ * 네 모서리 균일 반경이라 얇은 요소 규칙과도 무관하고, **중립 면**이라 틴트 예산과도 무관하다.
+ */
+const headBand = `
+  display: flex;
+  align-items: center;
+  gap: ${space[3]};
+  flex-wrap: wrap;
+  padding: ${space[2]} ${space[3]};
+  border: 1px solid ${color.border};
+  border-radius: ${radius.md};
+  background: ${color.surfaceSunken};
+`;
+
+/**
+ * 카드 머리의 **글리프 배지** — 이 화면이 처음 갖는 부품이다.
+ *
+ * 라우트 얼굴색(`--sb-page-hue`)에서 파생한 옅은 면 + 같은 hue 의 아이콘. 폭 36px 이라 틴트 면
+ * 판정(≥180px) 밖이고, 🔴 **파생 면 위에 텍스트를 얹지 않는다** — 여기 들어가는 것은 aria-hidden
+ * 아이콘뿐이고, 카드 이름은 옆의 중립색 글자가 말한다.
+ */
+export const SectionGlyph = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border-radius: ${radius.md};
+  border: 1px solid ${pageHueMix(38, 'transparent')};
+  background: ${pageHueMix(14)};
+  color: ${pageHue};
+`;
+
+/** 머리 띠의 이름 — 중립색 글자다(색은 글리프가 진다). */
+export const SectionLabel = styled.p`
+  margin: 0;
+  font-size: ${font.size.sm};
+  font-weight: ${font.weight.extrabold};
+  letter-spacing: -0.01em;
+  color: ${color.text};
+`;
+
+/** 머리 띠에서 오른쪽 끝으로 밀어 두는 슬롯(필터 버튼·토글). */
+export const HeadSpacer = styled.span`
+  flex: 1 1 auto;
   min-width: 0;
 `;
 
@@ -47,59 +124,78 @@ export const LiveRegion = styled.p`
  * 달력 표면. 종목 선택이 우측 드로어로 빠지면서(사용자 결정 2026-07-25) 달력이 본문 전폭을 쓴다.
  * 카드 한 장으로 묶어 히어로 다음 위계를 만든다 — 흰 배경에 표만 떠 있으면 화면이 미완성으로 읽힌다.
  */
+/**
+ * 달력 표면 = 이 화면의 **주역**이다. 그래서 위계 수단이 그림자다(`raised`) — 구 처방은
+ * 테두리 **와** e1 그림자를 함께 갖고 있었는데, 그러면 아래 상세 카드와 완전히 같은 무게로 보인다
+ * ("유령 카드"). 이제 두 카드는 주역=그림자 / 본문=테두리로 갈린다.
+ */
 export const BoardCard = styled.section`
   min-width: 0;
   display: grid;
   gap: ${space[4]};
   align-content: start;
-  padding: clamp(16px, 2.4vw, 28px);
-  border: 1px solid ${color.border};
-  border-radius: ${radius.xl};
-  background: ${color.surface};
-  box-shadow: ${elevation[1]};
+  padding: ${SURFACE_PAD};
+  border-radius: ${DATA_RADIUS};
+  ${cardElevation('raised')}
 `;
 
-/** 필터 진입 + 선택 요약 한 줄. 달력 위 첫 줄이라 "무엇을 보고 있는지"를 먼저 말한다. */
+/**
+ * 필터 진입 + 카드 이름 한 줄. 구 처방은 카드 안쪽에 떠 있는 버튼 하나뿐이라 달력이 "어디서
+ * 시작하는지"가 없었다 — 지금은 카드 세 변에 붙은 **머리 띠**가 그 자리를 만든다.
+ * 부모가 그림자 카드(테두리 없음)라 반경을 그대로 쓴다.
+ */
 export const BoardHead = styled.div`
-  display: flex;
-  align-items: center;
-  gap: ${space[3]};
-  flex-wrap: wrap;
-  padding-bottom: ${space[3]};
-  border-bottom: 1px solid ${color.border};
+  ${headBand}
 `;
 
-/** 드로어를 여는 주 진입점 — 브랜드 톤 솔리드로 "여기서 시작한다"를 말한다. */
+/**
+ * 드로어를 여는 주 진입점 — 이 화면에서 **유일한 솔리드 브랜드 면(L3)** 이다.
+ * "여기서 고르면 화면이 바뀐다"를 말하는 자리라 색면 사다리의 맨 위를 여기에 쓴다.
+ * 🔴 L3 는 화면당 하나다. 다른 곳에 brand 채움을 만들지 마라(미정 토글은 그래서 틴트로 내려갔다).
+ */
 export const FilterButton = styled.button`
   display: inline-flex;
   align-items: center;
   gap: ${space[2]};
   height: 40px;
   padding: 0 ${space[4]};
-  border: 1px solid ${color.brandBorder};
+  border: 1px solid transparent;
   border-radius: ${radius.pill};
-  background: ${color.brandSubtle};
-  color: ${color.brandText};
+  background: ${color.brand};
+  color: ${color.onBrand};
   font-family: inherit;
   font-size: ${font.size.sm};
   font-weight: ${font.weight.bold};
   cursor: pointer;
   transition:
     background ${motion.fast} ${motion.ease},
-    box-shadow ${motion.fast} ${motion.ease};
+    box-shadow ${motion.fast} ${motion.ease},
+    transform ${motion.fast} ${motion.ease};
 
   &:hover {
-    background: ${color.brandSubtleHover};
-    box-shadow: ${elevation[1]};
+    background: ${color.brandHover};
+    box-shadow: ${elevation[2]};
+    transform: translateY(-1px);
   }
 
   &:focus-visible {
     outline: 2px solid ${color.focusRing};
     outline-offset: 2px;
   }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: background ${motion.fast} ${motion.ease};
+
+    &:hover {
+      transform: none;
+    }
+  }
 `;
 
-/** 선택 수 배지. 숫자만으론 의미가 안 서므로 버튼 접근명(`picker.open`)이 문장으로 다시 말한다. */
+/**
+ * 선택 수 배지. 숫자만으론 의미가 안 서므로 버튼 접근명(`picker.open`)이 문장으로 다시 말한다.
+ * 솔리드 브랜드 면 위에 앉으므로 **반전**한다 — 검증 쌍(brand-text / surface)만 쓴다.
+ */
 export const FilterCount = styled.span`
   display: inline-flex;
   align-items: center;
@@ -108,33 +204,43 @@ export const FilterCount = styled.span`
   height: 20px;
   padding: 0 ${space[1]};
   border-radius: ${radius.pill};
-  background: ${color.brand};
-  color: ${color.onBrand};
+  background: ${color.surface};
+  color: ${color.brandText};
   font-size: ${font.size['2xs']};
   font-weight: ${font.weight.bold};
   ${font.numeric}
 `;
 
-/** 툴바와 달력 사이의 한 줄 요약 — "이 달에 몇 건이 잡혀 있나". */
+/**
+ * 툴바와 달력 사이의 한 줄 요약 — "이 달에 몇 건이 잡혀 있나".
+ * 왼쪽 4px 캡슐이 라우트 얼굴색을 한 번 더 찍는다(선이라 면 예산과 무관하다).
+ */
 export const MonthSummaryLine = styled.p`
+  display: flex;
+  align-items: center;
+  gap: ${space[2]};
   margin: 0;
   padding: ${space[2]} ${space[3]};
   border-radius: ${radius.md};
   background: ${color.surfaceMuted};
   font-size: ${font.size.xs};
-  font-weight: ${font.weight.medium};
+  font-weight: ${font.weight.semibold};
   color: ${color.textSecondary};
   ${font.numeric}
+
+  &::before {
+    content: '';
+    flex: 0 0 auto;
+    width: 4px;
+    height: 14px;
+    border-radius: ${radius.pill};
+    background: ${pageHue};
+  }
 `;
 
-/**
- * 달력 아래 상세 **구역 전체**(탭 컨트롤 + 패널 + 범례)를 담는 래퍼.
- *
- * 사용자 정정(2026-07-25): 배경이 필요한 건 안쪽 흰 박스가 아니라 **이 한 겹 밖 래퍼**다.
- * `surfaceMuted`는 페이지 바탕과 구분이 안 돼 "탭 영역이 하나의 구역"으로 읽히지 않았다 →
- * 히어로와 같은 **브랜드 틴트**로 올린다(같은 색 언어로 "이 페이지의 구역"임을 말한다).
- * 위계 규칙: **래퍼는 틴트(라이트=연브랜드/다크=어두운 브랜드), 안쪽 패널은 밝게**(surfaceRaised).
- * 대비는 검증 쌍만 사용 — text·text-secondary·brand-text / brand-subtle (shared/styles/contrast.test.ts).
+/*
+ * ⚠ 구 처방(2026-07-25 "래퍼를 브랜드 틴트로 올린다")은 **폐기됐다** — 아래 블록이 정본이다.
+ *   되살리지 마라: 이 화면의 틴트 예산 2개는 히어로와 공용 푸터 패널이 이미 쓰고 있다.
  */
 /**
  * 상세 영역의 **유일한** 박스(사용자 결정 2026-07-26 — "박스 안에 박스 안에 박스" 평탄화).
@@ -146,11 +252,9 @@ export const DetailCard = styled.section`
   display: grid;
   gap: ${space[4]};
   align-content: start;
-  padding: clamp(16px, 2.4vw, 28px);
-  border: 1px solid ${color.border};
-  border-radius: ${radius.xl};
-  background: ${color.surfaceRaised};
-  box-shadow: ${elevation[1]};
+  padding: ${SURFACE_PAD};
+  border-radius: ${DATA_RADIUS};
+  ${cardElevation('base')}
 `;
 
 /*
@@ -158,32 +262,18 @@ export const DetailCard = styled.section`
  * 그대로 정본이 되어 시뮬레이터·티커 허브까지 같은 자리·같은 무게를 갖는다(2026-07-31).
  */
 
-/** 상세 카드의 머리 한 줄 — 왼쪽 제목, 오른쪽 미정 토글(있을 때만). */
+/** 상세 카드의 머리 막대 — 달력 보드와 **같은 부품**이다(왼쪽 글리프+제목, 오른쪽 미정 토글). */
 export const DetailHead = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: ${space[2]};
-  flex-wrap: wrap;
+  ${headBand}
 `;
 
-/** 섹션의 유일한 라벨(사용자 결정 2026-07-26). 오로라 리본이 섹션 시작을 눈으로 찍는다. */
+/** 섹션의 유일한 라벨(사용자 결정 2026-07-26). 색은 옆의 글리프 배지가 진다. */
 export const DetailTitle = styled.h3`
   margin: 0;
-  display: flex;
-  align-items: center;
-  gap: ${space[2]};
   font-size: ${font.size.sm};
-  font-weight: ${font.weight.bold};
+  font-weight: ${font.weight.extrabold};
+  letter-spacing: -0.01em;
   color: ${color.text};
-
-  &::before {
-    content: '';
-    width: 4px;
-    height: 16px;
-    border-radius: ${radius.pill};
-    background: ${color.gradientAurora};
-  }
 `;
 
 /**
@@ -192,23 +282,29 @@ export const DetailTitle = styled.h3`
  * 탭 롤은 화살표 키 이동 계약을 동반하는데 이 화면은 그것을 구현하지 않는다.
  */
 export const UndatedToggleButton = styled.button<{ $active: boolean }>`
-  border: 1px solid ${({ $active }) => ($active ? color.brand : color.border)};
+  border: ${({ $active }) => ($active ? '2px' : '1px')} solid
+    ${({ $active }) => ($active ? color.brandBorder : color.border)};
   border-radius: ${radius.pill};
-  padding: ${space[1]} ${space[3]};
+  padding: ${({ $active }) => ($active ? `calc(${space[1]} - 1px) calc(${space[3]} - 1px)` : `${space[1]} ${space[3]}`)};
   font-family: inherit;
   font-size: ${font.size.xs};
-  font-weight: ${font.weight.semibold};
+  font-weight: ${({ $active }) => ($active ? font.weight.bold : font.weight.semibold)};
   cursor: pointer;
-  /* 눌린 상태는 **솔리드 브랜드** — on-brand/brand 는 전 팔레트 대비 검증 쌍이다. */
-  color: ${({ $active }) => ($active ? color.onBrand : color.textSecondary)};
-  background: ${({ $active }) => ($active ? color.brand : color.surface)};
+  /*
+   * 눌린 상태는 **틴트 + 2px 테두리 + 굵기**다(구 솔리드 브랜드에서 내렸다).
+   * 이 화면의 솔리드 브랜드 면(L3)은 종목 선택 버튼 하나뿐이라, 여기까지 채우면 "가장 강한 면"이
+   * 둘이 되어 어느 쪽도 주역이 아니게 된다. 상태는 색 말고도 두 채널이 더 말한다(테두리 두께·굵기).
+   * 대비는 검증 쌍만 — brand-text / brand-subtle.
+   */
+  color: ${({ $active }) => ($active ? color.brandText : color.textSecondary)};
+  background: ${({ $active }) => ($active ? color.brandSubtle : color.surface)};
   transition:
     background ${motion.fast} ${motion.ease},
     border-color ${motion.fast} ${motion.ease},
     color ${motion.fast} ${motion.ease};
 
   &:hover {
-    background: ${({ $active }) => ($active ? color.brandHover : color.surfaceHover)};
+    background: ${({ $active }) => ($active ? color.brandSubtleHover : color.surfaceHover)};
   }
 
   &:focus-visible {
@@ -253,11 +349,54 @@ export const PreviewOverlay = styled.div`
  * 흐린 예시 위에 옅은 틴트가 겹치면 두 층이 서로를 지운다.
  */
 export const EmptyStateCard = styled.div`
+  position: relative;
   display: grid;
   gap: ${space[3]};
   padding: clamp(20px, 3vw, 28px);
-  border-radius: ${radius.lg};
+  /* 고르는 면이므로 **brand 반경**(30~34px)이다 — 뒤에 깔린 data 면(24~28px)과 한 화면에 섞였을 때
+     반경이 "고르는 것 / 읽는 것"을 거드는 신호가 된다. */
+  border-radius: ${PICK_RADIUS};
   ${cardElevation('raised')}
+  /* 아래 레일을 카드 모서리에서 잘라낸다. 이 카드 안에는 툴팁·팝오버가 없으므로 안전하다
+     (달력 보드는 칩 툴팁 때문에 같은 수를 쓸 수 없다). */
+  overflow: hidden;
+
+  /*
+   * 🔴 **레일 캡**(6px). 이 카드는 이 화면의 유일한 "고르는 면"이지만 **면색을 쓰지 않는다** —
+   * 라우트의 색면 예산 2개가 히어로와 공용 푸터 패널로 이미 차 있기 때문이다(2026-08-03 실측:
+   * 틴트 면을 주면 390px 에서 3개가 된다). 높이 6px 은 면 판정 하한(8px) 바로 아래라 예산 밖이면서
+   * 저해상도에서도 색이 읽히는 값이다.
+   *
+   * ⚠ 반경을 **주지 않는다**. 6px 짜리 띠에 비균일 반경을 적으면 브라우저가 그려주지 않는다
+   * (test/shared/radiusShape.test.ts) — 부모의 overflow 로 자르는 것이 이 레포의 처방이다.
+   */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: ${color.gradientAurora};
+  }
+`;
+
+/**
+ * 빈 상태 카드의 얼굴 — 40px 글리프 배지.
+ *
+ * 폭 40px 이라 틴트 면 판정(≥180px) 밖이고, 대비는 검증 쌍(brand-text / brand-subtle)만 쓴다.
+ */
+export const EmptyGlyph = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: start;
+  width: 40px;
+  height: 40px;
+  border-radius: ${radius.md};
+  border: 1px solid ${color.brandBorder};
+  background: ${color.brandSubtle};
+  color: ${color.brandText};
 `;
 
 /**
@@ -308,11 +447,27 @@ export const QuickPickList = styled.ul`
   padding: 0;
   display: flex;
   flex-wrap: wrap;
+  gap: ${space[2]};
+`;
+
+/** 색 점 + 칩 한 벌. 폭이 180px 을 넘지 않으므로 여기서 색을 써도 면 예산과 무관하다. */
+export const QuickPickItem = styled.li`
+  display: inline-flex;
+  align-items: center;
   gap: ${space[1]};
 `;
 
-export const QuickPickItem = styled.li`
-  display: inline-flex;
+/**
+ * 추천 칩 앞의 종목 색 점 — **누르기 전에 이미 그 종목의 색을 보여 준다.**
+ * 아래 깔린 예시 달력의 같은 종목 칩이 같은 색 점을 달고 있어, 누르면 그 색이 그대로 선명해진다.
+ * 색은 인라인 style 로 들어온다(화면 전체가 공유하는 색 사전). 장식이라 aria-hidden 이다.
+ */
+export const QuickPickDot = styled.span`
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
 `;
 
 export const UnavailableDetails = styled.details`

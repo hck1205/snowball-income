@@ -1,6 +1,8 @@
-import { useId } from 'react';
+import { useId, useMemo } from 'react';
+import type { CSSProperties } from 'react';
 import { Trash2 } from 'lucide-react';
 import { Button, QuantityInput } from '@/components/common';
+import { assignSeries } from '@/shared/lib/tickerSeries';
 import { PORTFOLIO_COPY } from '../../copy';
 import { FreshnessBadge } from '../FreshnessBadge';
 import type { HoldingsTableProps } from './HoldingsTable.types';
@@ -9,10 +11,15 @@ import {
   QuantityCell,
   RowHeader,
   RowNote,
+  ShareFill,
+  ShareLine,
+  ShareTrack,
+  ShareValue,
   TD,
   TH,
   Table,
   TableWrap,
+  TickerEar,
   TickerLine,
   TickerName,
   TickerSymbol,
@@ -38,6 +45,13 @@ export default function HoldingsTable({
 }: HoldingsTableProps) {
   const noteIdPrefix = useId();
 
+  /*
+   * 🔴 색 배정은 **여기서 한 번** 한다(요약 카드의 도넛도 같은 함수를 각자 부른다).
+   * `assignSeries` 는 순수·결정적이고 내부에서 정렬하므로 두 호출부가 맵을 주고받지 않아도
+   * 같은 답을 낸다 — 그래서 페이지 모델에 색을 실어 나르는 배선을 만들지 않았다.
+   */
+  const seriesByTicker = useMemo(() => assignSeries(rows.map((row) => row.ticker)), [rows]);
+
   return (
     <TableWrap>
       <Table>
@@ -58,15 +72,28 @@ export default function HoldingsTable({
         <tbody>
           {rows.map((row) => {
             const noteId = row.note ? `${noteIdPrefix}-${row.ticker}` : undefined;
+            /* 연속값(색·폭)이라 클래스가 아니라 인라인 변수로 — 종목 수만큼 클래스가 불어나지 않게. */
+            const rowStyle = { '--sb-row-series': seriesByTicker.get(row.ticker) } as CSSProperties;
+            const share = row.weightPercent;
 
             return (
-              <tr key={row.ticker}>
+              <tr key={row.ticker} style={rowStyle}>
                 <RowHeader scope="row">
                   <TickerLine>
+                    <TickerEar aria-hidden />
                     <TickerSymbol>{row.ticker}</TickerSymbol>
                     {row.name ? <TickerName>{row.name}</TickerName> : null}
                     <FreshnessBadge tone={row.badge} />
                   </TickerLine>
+                  {/* 비중 — 막대는 장식이고 숫자가 사실을 말한다(색 단독 채널 금지). */}
+                  {share === null ? null : (
+                    <ShareLine>
+                      <ShareTrack aria-hidden>
+                        <ShareFill style={{ width: `${Math.min(100, share)}%` }} />
+                      </ShareTrack>
+                      <ShareValue>{copy.holdings.share(copy.summary.composition.percent(share))}</ShareValue>
+                    </ShareLine>
+                  )}
                   {/* 사유는 "아직 안 적었다"·"데이터가 없다"이지 에러가 아니다 — 중립 톤·role 없음. */}
                   {row.note ? <RowNote id={noteId}>{row.note}</RowNote> : null}
                 </RowHeader>

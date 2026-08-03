@@ -1,8 +1,10 @@
-import type { AgendaDay } from '../../utils';
+import type { AgendaDay, TickerSeriesResolver } from '../../utils';
 
 export type AgendaListProps = {
   /** 항목이 있는 날짜만, 날짜 오름차순. */
   days: AgendaDay[];
+  /** 화면 하나가 만든 색 사전(`tickerSeriesResolver`). 달력 칩·범례와 같은 값이어야 한다. */
+  seriesOf?: TickerSeriesResolver;
   /** 날짜는 없지만 그 달 지급 예정인 종목이 있는가 — 비었을 때 문구를 가른다. */
   hasUndated: boolean;
   /**

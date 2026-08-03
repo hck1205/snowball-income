@@ -154,6 +154,67 @@ export const space = SPACE_SCALE;
 
 export const radius = RADIUS_SCALE;
 
+/* -------------------------------------------------------------------------- */
+/* 면의 종류별 기하 — brand 면 / data 면                                         */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * **고르는 면(brand)** 의 기하. `SurfaceKind` 의 정의는 `shared/styles/surfaces.ts` 가 소유하고,
+ * 여기는 그 면이 쓰는 **치수**만 둔다(반경 파생은 `PICK_RADIUS` — 순환 import 를 피해 저쪽에 있다).
+ *
+ * 실측 기준(2026-08-03): 이 레포의 카드 패딩은 이미 다섯 종류였다 —
+ * 공용 Card 16~20 · GoalCard 16~28 · PageHero 20~32 · EmptyState 20~28 · TickerHub 24~40.
+ * 여섯 번째를 만드는 게 아니라, **고르는 카드가 공유할 한 벌**을 정한다.
+ */
+export const PICK = {
+  /**
+   * 공용 `Card`(16~20)보다 **2px 좁다.** 컬러 캡이 카드 머리의 세로를 먹으므로 바디를 그만큼 조여야
+   * 카드 전체 높이가 data 카드와 같은 대역에 남는다(격자에 두 종류가 섞이면 줄 높이가 어긋난다).
+   */
+  pad: 'clamp(14px, 1.6vw, 18px)',
+  /**
+   * 카드 사이 간격. **`space[3]`(12px 고정)보다 넓다** — 부상 그림자(`elevation[2]`, blur 12px)가
+   * 12px 간격에서는 옆 카드에 닿아 "카드가 서로를 더럽히는" 것으로 보인다. 현행 프리셋 보드가
+   * 정확히 그 상태다(2026-08-03 실측).
+   */
+  gap: 'clamp(12px, 1.4vw, 16px)',
+  /**
+   * 안쪽 컨트롤 반경 — brand 면의 바깥 반경은 여기서 역산된다(`PICK_RADIUS`).
+   * data 면(`DATA_SURFACE.radiusAnchor` = 8px)보다 **한 단 크다**: 같은 화면에 두 면이 섞였을 때
+   * 반경이 "고르는 것 / 읽는 것"을 거드는 신호가 되게 한다.
+   */
+  radiusAnchor: RADIUS_SCALE.lg,
+  /**
+   * 틴트 캡(`cap="tint"`)의 높이 3단. **8px 이상이므로 `tintscan` 이 면으로 센다** —
+   * 격자 부모에 `data-tint-cluster="pick-grid"` 를 달지 않으면 예산(화면당 2면)이 즉시 터진다.
+   */
+  capHeight: { sm: '48px', md: '64px', lg: '88px' },
+  /**
+   * 레일 캡(`cap="rail"`)의 두께.
+   *
+   * 🔴 **8px 이상으로 올리지 마라.** `tintscan` 의 면 하한이 높이 8px 이다 — 8px 이 되는 순간
+   * 이 띠는 "선"에서 "면"으로 바뀌어 라우트 예산을 먹는다. 6px 은 그 하한 바로 아래이면서
+   * 저해상도에서도 색이 읽히는 값이다(4px 오로라 리본은 색만 겨우 보인다).
+   */
+  railHeight: '6px',
+  /** 캡 안 글리프 배지 한 변. 폭 <180px 이라 그 자체로는 면으로 세어지지 않는다. */
+  glyphSize: '40px'
+} as const;
+
+/**
+ * **읽는 면(data)** 의 기하. 숫자가 사는 면이라 **여기 값은 바꾸지 않는다** — 이 대역은
+ * 공용 `Card` 가 이미 쓰고 있고, 개편의 목표는 data 면을 흔드는 게 아니라 brand 면을 세우는 것이다.
+ *
+ * 🔴 `pad` 는 `components/common/Card/Card.styled.ts` 의 `CARD_PADDING` 과 **같은 값이어야 한다.**
+ * 공용 Card 가 자기 파일에서 단일 원천으로 갖고 있으므로 여기서 가져다 쓰게 만들지 않았고
+ * (그 파일의 소유권을 빼앗지 않는다), 대신 `shared/styles/geometry.test.ts` 가 두 값을 대조한다.
+ * 이 상수는 **공용 Card 를 쓰지 않는 새 data 면**이 같은 대역에 앉게 하려고 있다.
+ */
+export const DATA_SURFACE = {
+  pad: 'clamp(16px, 1.8vw, 20px)',
+  radiusAnchor: RADIUS_SCALE.sm
+} as const;
+
 /** `elevation`의 별칭. 기존 호출부가 `shadow.e1`로 쓰고 있어 유지한다. */
 export const shadow = {
   e1: 'var(--sb-shadow-1)',

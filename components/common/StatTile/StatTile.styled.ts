@@ -8,14 +8,16 @@ import type { StatEmphasis, StatStatus, StatTone } from './StatTile.types';
  * 고치려는 문제: 예전에는 "최종 자산 가치"(사용자가 이 앱을 켠 이유)와 "누적 세금"(부연 정보)이
  * **완전히 같은 카드·같은 글자 크기**였다. 위계가 없으면 사용자는 매번 6개를 다 읽어야 한다.
  *
- * 위계를 만드는 수단(색이 아니라 **크기·무게·서피스**):
- *  - hero: 값 30~38px + 좌측 오로라 리본 + 액센트 틴트 면. 한눈에 먼저 잡힌다.
- *  - default: 값 16px. 조용히 뒤로 물러난다.
+ * 위계를 만드는 수단(색이 아니라 **크기·무게·기하**):
+ *  - hero: 값 28~44px + 좌측 오로라 리본 + 1px 액센트 테두리. 한눈에 먼저 잡힌다.
+ *  - default: 값 18px. 조용히 뒤로 물러난다.
  * 색은 방향성(상승/하락)에만 남겨둔다 — 색까지 위계에 쓰면 데이터의 색이 의미를 잃는다.
  *
- * hero 의 면·테두리·라벨이 **brand 가 아니라 accent** 인 이유: 타일은 누를 수 없는 표시 표면이다.
- * 브랜드 축은 액션(버튼·활성 탭·포커스)에만 남겨야 그 신호가 산다 — 결과 카드 안에서 hero 타일과
- * 주 버튼이 같은 색이면 어느 쪽이 "누르는 것"인지 화면이 말하지 못한다.
+ * 🔴 **hero 의 면은 중립이다** (2026-08-03 확정. 종전 accent-subtle 틴트 면을 내렸다.)
+ * 이 타일이 사는 곳은 결과 요약·티커 허브·커뮤니티 목록 같은 **읽는 면(data)** 이고, 그런 면에는
+ * 선·점·테두리 말고 채도면을 두지 않는다 — 숫자의 신뢰감이 거기서 무너진다. 시뮬레이터에서 이
+ * 타일이 반납한 색면 예산은 **활성 시나리오 탭의 솔리드**(고르는 자리)가 받았다: 총량 불변, 위치 이동.
+ * 남은 액센트는 1px 테두리와 4px 리본뿐이라 색면 예산에 잡히지 않는다(폭 180px·높이 8px 미만).
  * ⚠ **값(TileValue)은 여기 해당 없음** — 숫자에 accent·손익색을 쓰지 않는다는 규칙은 그대로다.
  */
 
@@ -35,7 +37,9 @@ export const TileRoot = styled.div<{ emphasis: StatEmphasis; status?: StatStatus
   /* 카드 안에 앉는 면(타일) = 동심 라운드의 '안쪽' 두 조 중 큰 쪽. 컨트롤(8px)과 달리 12px 이다.
      아래 리본·프로그레스의 pill 은 캡슐 형태 자체가 요건이라 이 결정과 무관하다(그대로 둔다). */
   border-radius: ${radius.md};
-  background: ${({ emphasis }) => (emphasis === 'hero' ? color.accentSubtle : color.surfaceMuted)};
+  /* 🔴 hero 도 중립 면이다 — 위 파일 주석의 "hero 의 면은 중립" 결정. 두 강조가 같은 면을 쓰고,
+     위계는 값 크기(28~44px vs 18px) · 액센트 테두리 · 리본 · 패딩이 만든다. */
+  background: ${color.surfaceMuted};
   padding: ${({ emphasis }) => (emphasis === 'hero' ? `${space[4]} ${space[4]} ${space[4]} ${space[5]}` : space[3])};
   /*
    * 테두리를 전환 목록에 넣는다 — 상태('status')가 붙는 순간이 **이 타일의 유일한 연출**이라
@@ -159,7 +163,12 @@ export const TileLabel = styled.span<{ emphasis: StatEmphasis }>`
   min-width: 0;
   font-size: ${({ emphasis }) => (emphasis === 'hero' ? font.size.sm : font.size.xs)};
   font-weight: ${({ emphasis }) => (emphasis === 'hero' ? font.weight.semibold : font.weight.medium)};
-  color: ${({ emphasis }) => (emphasis === 'hero' ? color.accentText : color.textMuted)};
+  /*
+   * hero 라벨이 accent-text 가 아니라 text 인 이유: 면이 중립(surface-muted)으로 내려오면서
+   * accent-text × surface-muted 는 contrast.test 가 재지 않는 조합이 된다. 검증된 쌍
+   * (text × surface-muted)으로 되돌리고, 강조는 굵기(semibold)와 크기(sm)가 맡는다.
+   */
+  color: ${({ emphasis }) => (emphasis === 'hero' ? color.text : color.textMuted)};
   line-height: ${font.leading.snug};
   white-space: nowrap;
   overflow: hidden;
@@ -182,6 +191,16 @@ export const TileValue = styled.p<{ emphasis: StatEmphasis; tone: StatTone }>`
   overflow: hidden;
   text-overflow: ellipsis;
   ${font.numeric};
+
+  /*
+   * 🔴 **값은 우측정렬한다** (tabular-nums 와 한 쌍). 타일은 대부분 1fr 격자에 나란히 서므로
+   * 좌측정렬이면 자릿수가 다른 값끼리 **마지막 자리가 어긋난다** — 금융 화면에서 안 맞는 숫자는
+   * 그 자체로 신뢰를 깎는다. 우측 끝을 맞춰야 등폭 숫자가 비로소 하나의 열로 읽힌다.
+   *
+   * hero 만 예외로 좌측이다: hero 는 격자 한 줄을 통째로 쓰는 **단독 값**이라 맞출 이웃이 없고,
+   * 우측으로 보내면 좌측 오로라 리본·라벨에서 카드 폭만큼 떨어져 한 덩어리로 안 읽힌다.
+   */
+  text-align: ${({ emphasis }) => (emphasis === 'hero' ? 'start' : 'end')};
 
   /* hero는 화면 폭에 따라 자란다. 좁은 화면에서 숫자가 잘리지 않도록 clamp(상한 44px). */
   font-size: ${({ emphasis }) => (emphasis === 'hero' ? `clamp(28px, 4vw, ${font.size['6xl']})` : font.size.lg)};
@@ -226,17 +245,19 @@ export const ProgressFill = styled.span`
   }
 `;
 
-export const TileHint = styled.p`
+export const TileHint = styled.p<{ emphasis: StatEmphasis }>`
   margin: 0;
   font-size: ${font.size.xs};
   font-weight: ${font.weight.medium};
   /*
-   * 'text-muted' 가 아닌 이유: hero 타일의 면이 'accent-subtle' 이라 muted 는 velog 다크에서
-   * 4.05:1 로 AA 미달이다(2026-07-31 실측. 종전 'brand-subtle' 면에서도 4.03:1 로 이미 미달이었다).
-   * 위계는 크기(xs)와 굵기로 이미 충분히 낮다 — 색까지 낮추면 못 읽는다.
-   * 근거·결정: shared/styles/contrast.test.ts 의 [text-muted, accent-subtle] 주석.
+   * 'text-muted' 가 아닌 이유: 이 크기대에서 muted 는 여러 프리셋의 다크 모드가 AA 를 못 넘긴다
+   * (2026-07-31 실측, velog 다크 4.05:1). 면이 중립으로 내려온 뒤에도 되돌리지 않는다 —
+   * 위계는 크기(xs)와 굵기로 이미 충분히 낮고, 색까지 낮추면 못 읽는다.
+   * 검증되는 쌍: shared/styles/contrast.test.ts 의 [text-secondary, surface-muted].
    */
   color: ${color.textSecondary};
+  /* 값과 같은 끝선에 선다 — 값만 우측이고 부연이 좌측이면 타일 안에 축이 둘 생긴다. */
+  text-align: ${({ emphasis }) => (emphasis === 'hero' ? 'start' : 'end')};
   line-height: ${font.leading.snug};
   /*
    * 힌트에도 숫자가 산다("투자 3년차", ETA 기간) — 그래서 값(TileValue)과 같은 규칙을 건다.

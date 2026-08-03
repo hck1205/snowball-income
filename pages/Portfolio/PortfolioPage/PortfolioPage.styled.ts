@@ -1,5 +1,8 @@
 import styled from '@emotion/styled';
 import {
+  DATA_RADIUS,
+  PICK,
+  PICK_RADIUS,
   cardElevation,
   color,
   font,
@@ -59,7 +62,12 @@ const cardGeometry = `
   gap: ${space[5]};
   align-content: start;
   padding: clamp(16px, 2.4vw, 28px);
-  border-radius: ${radius.xl};
+  /*
+   * **읽는 면(data)** 의 반경 24~28px. 고르는 면(brand — 빈 상태·가계부 진입 카드)의 30~34px 보다
+   * 한 단 작다. 반경만으로 두 면이 구분되지는 않지만(전 구간 차이 약 6px), 컬러 캡·부상과 함께
+   * "여기서 고르는가 / 읽는가"를 거든다. 근거는 shared/styles/surfaces.ts 의 PICK_RADIUS 주석.
+   */
+  border-radius: ${DATA_RADIUS};
 `;
 
 /**
@@ -85,23 +93,58 @@ export const CardHead = styled.div`
   flex-wrap: wrap;
 `;
 
-/** 섹션 제목 + 오로라 리본. */
+/** 제목 + 부가 배지를 한 덩어리로 묶는다(우측 액션 버튼과 갈라놓는다). */
+export const CardTitleGroup = styled.div`
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: ${space[2]};
+  min-width: 0;
+`;
+
+/**
+ * 섹션 제목 — 4px 오로라 리본에서 **아이콘 배지**로 바뀌었다(2026-08-03 개편).
+ *
+ * 리본은 세 카드가 전부 같은 그라데이션이라 "무슨 카드인가"를 말하지 못했다(똑같은 4px 줄이 셋).
+ * 배지는 카드마다 **다른 글리프**를 갖고, 한 변 30px 이라 `tintscan` 의 면 판정(폭 ≥180px) 밖이다.
+ */
 export const CardTitle = styled.h2`
   margin: 0;
   display: flex;
   align-items: center;
   gap: ${space[2]};
-  font-size: ${font.size.sm};
-  font-weight: ${font.weight.bold};
+  font-size: ${font.size.base};
+  font-weight: ${font.weight.extrabold};
+  letter-spacing: -0.01em;
   color: ${color.text};
+`;
 
-  &::before {
-    content: '';
-    width: 4px;
-    height: 16px;
-    border-radius: ${radius.pill};
-    background: ${color.gradientAurora};
-  }
+export const CardTitleBadge = styled.span`
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: ${radius.md};
+  background: ${color.identitySubtle};
+  color: ${color.identityText};
+`;
+
+/** 제목 옆 종수 배지("3종"). 숫자라 데이터 서체 + tabular 로 쓴다. */
+export const CountBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  padding: 2px ${space[2]};
+  border-radius: ${radius.pill};
+  border: 1px solid ${color.border};
+  background: ${color.surfaceSunken};
+  color: ${color.textSecondary};
+  font-family: ${font.dataNumeric};
+  font-size: ${font.size['2xs']};
+  font-weight: ${font.weight.bold};
+  white-space: nowrap;
+  ${font.numeric}
 `;
 
 /** 카드 제목 아래 한 줄(로컬 저장 고지). 제목과 경쟁하지 않게 한 단계 작고 흐리다. */
@@ -133,6 +176,16 @@ export const HeroSlot = styled.div`
   grid-column: 1 / -1;
   min-width: 0;
   display: grid;
+`;
+
+/**
+ * 요약 카드 안의 가름선 — 히어로 숫자 / 타일 / 비중 도넛이 **세 문단**임을 말한다.
+ * 카드를 더 쪼개지 않는 이유: 카드 안 카드 금지 규칙(그리고 화면당 주역 카드는 하나다).
+ */
+export const CardDivider = styled.hr`
+  margin: 0;
+  border: 0;
+  border-top: 1px solid ${color.border};
 `;
 
 /**
@@ -192,44 +245,82 @@ export const ActionHint = styled.p`
 `;
 
 /**
- * 빈 상태도 하나의 화면이다 — 점선(미확정)에 틴트를 얹어 "여기서 시작하라"로 읽히게 한다.
- * 틴트는 **accent**다: 이 카드 안에 브랜드 솔리드 CTA("종목 추가")가 서기 때문에, 바탕까지
- * 브랜드면 정작 눌러야 할 버튼이 같은 색 위에 묻힌다(면=크롬, 버튼=액션).
+ * 빈 상태도 하나의 화면이다 — 점선(미확정) + **상단 6px accent 레일**로 "여기서 시작하라"로 읽힌다.
+ *
+ * ## 2026-08-03 — 틴트 채움을 레일로 내렸다 (예산 거래다, 취향이 아니다)
+ * 이 카드는 `accentSubtle` 로 **전면을 채우고** 있었고, 1280px 에서 1160×406px 이라 `tintscan` 의
+ * 면 판정(폭 ≥180 **그리고** 높이 ≥8 + 비중립 배경)을 여유 있게 넘겼다. 그래서
+ * `/dividend/portfolio` 가 ①히어로 그라디언트 ②이 카드 ③브랜드 패널 푸터 = **3/2 로 초과**했다
+ * (2026-08-03 실측, 1280·390 양쪽).
+ *
+ * 랜딩의 "시작하기 전에" 카드가 같은 이유로 같은 수리를 이미 받았다(`StartChecklist.styled.ts`) —
+ * 상단 6px 줄은 높이 하한 8px 에 못 미쳐 **세어지지 않는다**. 색이 줄어든 것이 아니라 자리를 옮겼다:
+ * 여기서 색은 레일 · 96px 마스코트(identity) · 브랜드 솔리드 CTA 셋이 말한다. accent 축인 이유는
+ * 점선 테두리(`accentBorder`)가 이미 accent 라서다 — 한 카드 안에서 축이 갈리지 않는다.
+ *
+ * 🔴 배경을 다시 채우지 마라. 세 번째 면이 되는 순간 `tools/dev/tintscan.mjs` 가 exit 1 이다.
+ * (틴트는 brand 가 아니라 accent 였다 — 이 카드 안에 브랜드 솔리드 CTA "종목 추가"가 서기 때문에
+ *  바탕까지 브랜드면 정작 눌러야 할 버튼이 같은 색 위에 묻힌다. 레일도 같은 이유로 accent 다.)
  */
 export const EmptyStateCard = styled.section`
+  ${cardElevation('base')}
+  position: relative;
   display: grid;
+  justify-items: center;
+  text-align: center;
   gap: ${space[4]};
-  padding: clamp(20px, 3vw, 28px);
+  /* 레일이 위 두 모서리에서 잘리려면 필요하다. */
+  overflow: hidden;
+  padding: clamp(28px, 5vw, 48px) clamp(20px, 3vw, 28px);
   border: 1px dashed ${color.accentBorder};
-  border-radius: ${radius.xl};
-  background: ${color.accentSubtle};
+  /* 여기서 "시작"을 고르므로 brand 면의 큰 반경(30~34px)을 쓴다 — 읽는 카드(24~28)와 눈에 띄게 다르다. */
+  border-radius: ${PICK_RADIUS};
+
+  /* 상단 컬러 레일. 의사요소라 DOM 열거 대상이 아니고, 6px 은 면 하한(8px)에도 못 미친다. */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: ${PICK.railHeight};
+    background: ${color.accent};
+  }
+`;
+
+/**
+ * 빈 상태의 마스코트(96px). **빈 상태 세 곳에만** 사는 크기다 — 값이 있는 화면에 캐릭터를 세우면
+ * 숫자와 시선을 다툰다. `BrandGlyph` 는 `currentColor` 계약이라 색은 여기서 준다(`identity`).
+ */
+export const EmptyMascot = styled.div`
+  display: inline-flex;
+  color: ${color.identity};
 `;
 
 export const EmptyTitle = styled.h2`
   margin: 0;
-  font-size: ${font.size.lg};
+  font-size: ${font.size['2xl']};
   font-weight: ${font.weight.extrabold};
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
+  line-height: ${font.leading.tight};
   color: ${color.text};
 `;
 
 export const EmptyBody = styled.p`
   margin: 0;
   max-width: 52ch;
-  font-size: ${font.size.sm};
+  font-size: ${font.size.base};
   color: ${color.textSecondary};
-  line-height: ${font.leading.snug};
+  line-height: ${font.leading.normal};
 `;
 
 /**
  * 가계부 진입 카드의 본문.
  *
- * 🔴 `Card` 의 `subtitle` 로 넘기지 마라 — `CardSubtitle` 은 12px/textMuted 캡션이라 두 줄짜리
- * 설명문에는 너무 작다(`Card.styled.ts:102-108`). ⚠ `CardContainer` 는 grid 가 아니라 일반 블록이라
- * (gap 없음) 본문과 버튼 사이 간격은 이 마진이 만든다.
+ * 🔴 `PickCard` 의 `subtitle` 로 넘기지 마라 — 그 슬롯은 제목 바로 아래 붙는 짧은 캡션이라
+ * 두 줄짜리 설명문에는 너무 작다. ⚠ 마진은 0 이다: `PickCard` 의 바디/액션 간격은 그 부품이 낸다
+ * (여기서 또 마진을 주면 간격이 두 번 더해진다 — 종전 공용 `Card` 는 grid 가 아니라 필요했다).
  */
 export const EntryBody = styled.p`
-  margin: 0 0 ${space[4]};
+  margin: 0;
   max-width: 52ch;
   font-size: ${font.size.sm};
   line-height: ${font.leading.normal};

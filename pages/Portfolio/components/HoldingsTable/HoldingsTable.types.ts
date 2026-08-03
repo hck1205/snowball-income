@@ -11,6 +11,14 @@ export type PortfolioHoldingRowModel = {
   /** 계산에서 빠진 행은 금액 대신 `—`. */
   marketValue: string;
   annualNet: string;
+  /**
+   * 평가 금액 기준 비중(0~100). 계산에서 빠진 행·총액 0 이면 `null` 이다.
+   *
+   * 🔴 여기만 **포맷 전 숫자**다(다른 필드는 전부 문자열). 이 값이 표의 비중 막대 폭과 요약 카드의
+   * 도넛 각도를 동시에 만드는데, 두 자리가 각자 문자열을 되파싱하면 반올림이 갈려 "표는 42.1%인데
+   * 도넛은 42.0%" 같은 어긋남이 생긴다. **문자열은 표시 직전에** 만든다.
+   */
+  weightPercent: number | null;
   /** 왜 빠졌는지 한 줄. **에러가 아니다** — danger 색·`role="alert"` 를 쓰지 않는다. */
   note: string | null;
 };

@@ -1,5 +1,21 @@
 import styled from '@emotion/styled';
-import { color, font, media, motion, radius, space } from '@/shared/styles';
+import { color, font, media, motion, pageHue, pageHueMix, radius, space } from '@/shared/styles';
+
+/**
+ * ── 이 격자는 **읽는 면(data)** 이다 ─────────────────────────────────────────────
+ *
+ * 🔴 **42칸에 색면을 깔지 마라.** 구 처방은 지급일 칸을 `accentSubtle`, 오늘 칸을 `brandSubtle` 로
+ * 채웠다 — 한 화면에서 색면이 가장 많이 반복되는 자리였고, 그 결과 "무슨 색이 무슨 뜻인지"를
+ * 격자가 스스로 설명해야 했다. 지금은 세 가지가 각자 **다른 채널**로 말한다:
+ *
+ *  | 상태 | 채널 |
+ *  |---|---|
+ *  | 지급 있음 | ①칸 아래 3px 레일(색) ②칩(글자) ③칩 앞 색 점 — 세 겹이라 회색조에서도 읽힌다 |
+ *  | 오늘 | 2px `pageHue` **테두리 링**(면 채움 아님) + sr-only "오늘" + `aria-current` |
+ *  | 지난 날 | 중립 침강면(`surfaceSunken`) + 흐린 숫자 |
+ *
+ * 즉 채도는 **선·점**(L1)에만 남고 면은 전부 중립이다. 숫자의 신뢰감을 지키는 자리다.
+ */
 
 /** 시각적으로만 숨긴다 — 표의 목적·이월 날짜의 달을 AT에 남기는 텍스트다. */
 export const VisuallyHidden = styled.span`
@@ -21,6 +37,20 @@ export const CalendarTable = styled.table`
   border-spacing: ${space[1]};
 `;
 
+/**
+ * 요일 머리 줄을 하나의 **띠**로 묶는다. 42칸이 각자 떠 있는 카드라 머리 줄이 없으면 격자의
+ * 상단이 그냥 첫 주로 읽힌다 — 중립 침강면이라 색면 예산과 무관하고(틴트 아님), 요일 축이
+ * "이 표의 머리"임을 형태로 말한다.
+ */
+export const WeekdayRow = styled.tr`
+  th {
+    background: ${color.surfaceSunken};
+    /* 표가 border-spacing 으로 칸을 띄우므로 머리 칸도 각자 떠 있다 — 네 모서리 균일이 정답이다
+       (한쪽만 둥근 값은 이웃과 붙어 있을 때만 뜻이 있다). */
+    border-radius: ${radius.sm};
+  }
+`;
+
 export const CalendarCaption = styled.caption`
   position: absolute;
   width: 1px;
@@ -38,10 +68,10 @@ export const CalendarCaption = styled.caption`
  * 쓰는 색은 대비 검증 쌍(danger/surface, accent-text/surface)뿐이다.
  */
 export const WeekdayHead = styled.th<{ $weekday: number }>`
-  padding-bottom: ${space[2]};
+  padding: ${space[2]} 0;
   font-size: ${font.size.xs};
-  font-weight: ${font.weight.semibold};
-  letter-spacing: 0.02em;
+  font-weight: ${font.weight.bold};
+  letter-spacing: 0.06em;
   color: ${({ $weekday }) => {
     if ($weekday === 0) return color.danger;
     if ($weekday === 6) return color.accentText;
@@ -70,21 +100,36 @@ export const DayCellRoot = styled.td<{
   /* 격자선을 그리는 대신 칸을 카드처럼 띄운다(간격은 표의 border-spacing이 만든다). */
   border: 1px ${({ $inMonth }) => ($inMonth ? 'solid' : 'dashed')} ${color.border};
   border-color: ${({ $hasPayout, $inMonth, $today }) => {
-    if ($today) return color.brand;
-    if ($hasPayout && $inMonth) return color.accentBorder;
+    /* 오늘 칸의 테두리는 아래 링이 대신 그린다 — 두 겹이 겹치면 2px 링이 3px 로 보인다. */
+    if ($today) return 'transparent';
+    if ($hasPayout && $inMonth) return color.borderStrong;
     return color.border;
   }};
-  border-radius: ${radius.md};
-  height: 104px;
-  /* 지급이 있는 날은 액센트 틴트로 "여기 뭔가 있다"가 한눈에 스캔되게 한다(칩 텍스트가 내용을 말한다). */
-  background: ${({ $inMonth, $past, $hasPayout, $today }) => {
-    if ($today) return color.brandSubtle;
+  border-radius: ${radius.lg};
+  height: 112px;
+  /*
+   * 🔴 면은 **중립뿐이다.** 지급 여부를 면색으로 가르지 않는다(위 머리말 표 참고) —
+   * 색은 아래 3px 레일과 칩 앞 점에만 남는다.
+   */
+  background: ${({ $inMonth, $past }) => {
     if (!$inMonth) return 'transparent';
-    if ($hasPayout) return color.accentSubtle;
     if ($past) return color.surfaceSunken;
     return color.surface;
   }};
-  box-shadow: ${({ $today }) => ($today ? `inset 0 0 0 2px ${color.brand}` : 'none')};
+  /*
+   * 두 종류의 inset 그림자를 한 선언에 합친다:
+   *  ①오늘  = 2px pageHue **링**(네 변 · 원색). 면 채움이 아니라 테두리다.
+   *  ②지급일 = 칸 아래 3px **레일**(한 변 · 55% 로 흐림). 높이 3px 이라 틴트 면 판정(≥8px) 밖이다.
+   *
+   * ⚠ 둘 다 같은 hue 를 쓰므로 **모양과 농도로 갈라 둔다** — 링(사방·원색) vs 밑줄(한 변·연함).
+   *   같은 굵기·같은 농도로 두면 "오늘"과 "지급일"이 한눈에 구분되지 않는다(실측 확인 2026-08-03).
+   */
+  box-shadow: ${({ $today, $hasPayout, $inMonth }) => {
+    const layers: string[] = [];
+    if ($today) layers.push(`inset 0 0 0 2px ${pageHue}`);
+    if ($hasPayout && $inMonth) layers.push(`inset 0 -3px 0 ${pageHueMix(55, 'transparent')}`);
+    return layers.length > 0 ? layers.join(', ') : 'none';
+  }};
   /* 이월 칸만 살짝 물러나게 한다 — 이 달의 실제 정보(숫자·칩)는 절대 흐리지 않는다. */
   opacity: ${({ $inMonth }) => ($inMonth ? 1 : 0.75)};
   transition:
@@ -99,8 +144,8 @@ export const DayCellRoot = styled.td<{
   ${media.down('tabletSm')} {
     height: 72px;
     padding: ${space[1]};
-    /* 좁은 칸에 12px 라운드는 과하다 — 칸이 작아질수록 모서리도 각지게(실기기 피드백 2026-07-26). */
-    border-radius: ${radius.xs};
+    /* 좁은 칸에 16px 라운드는 과하다 — 칸이 작아질수록 모서리도 각지게(실기기 피드백 2026-07-26). */
+    border-radius: ${radius.sm};
   }
 
   ${media.down('mobile')} {
@@ -131,8 +176,9 @@ export const DayNumber = styled.span<{ $muted: boolean }>`
   }
 `;
 
-/* "오늘" 텍스트 배지는 전 폭에서 폐기됐다(사용자 결정 2026-07-26) — 시각 신호는 칸의 브랜드
-   보더 링+틴트가 전담하고, "오늘"이라는 말은 VisuallyHidden으로 접근성 트리에만 남긴다. */
+/* "오늘" 텍스트 배지는 전 폭에서 폐기됐다(사용자 결정 2026-07-26) — 시각 신호는 칸의 2px
+   pageHue **링**이 전담하고(2026-08-03 부터 면 채움은 없다), "오늘"이라는 말은
+   VisuallyHidden으로 접근성 트리에만 남긴다. */
 
 /**
  * 어느 폭에서든 티커 칩을 그대로 보여준다(좁으면 ellipsis로 줄인다 — 사용자 결정 2026-07-26,
@@ -176,8 +222,9 @@ export const DayChipItem = styled.li`
 `;
 
 /**
- * 틴트된 칸 위에서도 뜨는 흰 카드 칩. 텍스트가 티커를 말한다(색 점·개수 배지는 폐기 —
- * 사용자 결정 2026-07-26: 어느 폭에서든 티커 텍스트를 ellipsis로 보여준다).
+ * 중립 칸 위에 뜨는 흰 카드 칩. **텍스트가 티커를 말한다** — 앞에 붙는 색 점(`ChipDot`)은 장식이라
+ * 좁은 폭에서 가장 먼저 빠진다(개수 배지는 폐기 — 사용자 결정 2026-07-26: 어느 폭에서든 티커
+ * 텍스트를 ellipsis로 보여준다).
  * 버튼인 이유: hover + 클릭으로 커스텀 툴팁을 여는 트리거라 키보드 포커스가 필요하다.
  */
 export const DayChip = styled.button`
@@ -185,13 +232,16 @@ export const DayChip = styled.button`
   position: relative;
   display: inline-flex;
   align-items: center;
+  gap: 4px;
   max-width: 100%;
   min-width: 0;
-  padding: 1px ${space[1]};
+  padding: 1px ${space[2]} 1px ${space[1]};
   border: 1px solid ${color.border};
-  border-radius: ${radius.xs};
+  border-radius: ${radius.pill};
   font: inherit;
   font-size: ${font.size['2xs']};
+  /* 🔴 bold 로 올리지 마라 — 390px 칸에서 칩에 쓸 수 있는 폭이 35px 남짓이라 굵기 한 단이
+     보이는 글자 수를 깎는다. 칩의 무게는 알약 모양과 색 점이 이미 만든다. */
   font-weight: ${font.weight.semibold};
   color: ${color.text};
   background: ${color.surface};
@@ -203,9 +253,38 @@ export const DayChip = styled.button`
     outline-offset: 1px;
   }
 
+  /*
+   * 🔴 좁은 폭에서는 **글자가 이긴다**(사용자 결정 2026-07-26 — 어느 폭에서든 티커 텍스트를
+   * ellipsis 로 보여준다). 390px 에서 칩에 쓸 수 있는 폭은 35px 남짓이라, 색 점(6px)과 그 간격(4px)이
+   * 들어가면 티커가 **한 글자**까지 잘린다(실측 2026-08-03: "JEP" → "J"). 점은 장식이고 글자는
+   * 정보다 — 둘이 부딪히면 장식을 뺀다. 색 언어는 바로 아래 아젠다 목록이 그대로 잇는다.
+   */
   ${media.down('tabletSm')} {
     cursor: default;
+    gap: 0;
+    padding: 1px ${space[1]};
+
+    > span:first-of-type[aria-hidden='true'] {
+      display: none;
+    }
   }
+`;
+
+/**
+ * 칩 앞의 **종목 색 점**(장식, aria-hidden).
+ *
+ * 이 점 하나가 달력 칩 · 아젠다 막대 · 미정 칩 · 범례 표를 **한 색 언어**로 잇는다 — 같은 종목이
+ * 네 자리에서 같은 색이라, 달을 넘기며 눈으로 좇을 수 있다. 색은 인라인 style 로 들어온다
+ * (호출부가 화면 전체 집합으로 배정한 시리즈 변수) — 여기서 색을 정하지 마라.
+ *
+ * ⚠ 점은 **혼자 말하지 않는다.** 바로 옆 글자가 티커를 말하므로 색각이상·회색조에서도 정보가 남는다.
+ */
+export const ChipDot = styled.span`
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
 `;
 
 /** 칩 안의 티커 글자 — 칸 폭보다 길면 ellipsis로 줄인다(전체 이름은 툴팁·아젠다 목록이 말한다). */
@@ -243,7 +322,7 @@ export const DayJumpButton = styled.button`
   inset: 0;
   padding: 0;
   border: 0;
-  border-radius: ${radius.md};
+  border-radius: ${radius.lg};
   background: transparent;
   appearance: none;
   font: inherit;
@@ -252,7 +331,7 @@ export const DayJumpButton = styled.button`
   transition: box-shadow ${motion.fast} ${motion.ease};
 
   &:hover {
-    box-shadow: inset 0 0 0 2px ${color.brandBorder};
+    box-shadow: inset 0 0 0 2px ${pageHueMix(60, 'transparent')};
   }
 
   &:focus-visible {
@@ -260,9 +339,9 @@ export const DayJumpButton = styled.button`
     outline-offset: -2px;
   }
 
-  /* 칸의 좁은 폭 라운드(radius.xs)와 맞춘다 — 링이 모서리에서 칸 밖으로 비어져 보이지 않게. */
+  /* 칸의 좁은 폭 라운드(radius.sm)와 맞춘다 — 링이 모서리에서 칸 밖으로 비어져 보이지 않게. */
   ${media.down('tabletSm')} {
-    border-radius: ${radius.xs};
+    border-radius: ${radius.sm};
   }
 `;
 

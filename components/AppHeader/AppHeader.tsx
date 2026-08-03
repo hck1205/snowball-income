@@ -5,7 +5,7 @@ import ColorSchemeToggle from '@/components/ColorSchemeToggle';
 import { AuthControl } from '@/components/community/AuthControl';
 import { isCommunityEnabled } from '@/shared/lib/supabase';
 import { publishHeaderHeight } from './AppHeader.utils';
-import { Actions, HeaderInner, HeaderRoot, LeadingSlot, NavSlot } from './AppHeader.styled';
+import { Actions, HeaderInner, HeaderRoot, LeadingSlot, NavSlot, UtilityGroup } from './AppHeader.styled';
 import type { AppHeaderProps } from './AppHeader.types';
 
 /** 앱 표준 좌우 여백 — `FeatureLayout`(시뮬레이터 본문)·티커 셸 본문과 같은 값. */
@@ -89,12 +89,16 @@ function AppHeaderComponent({
         <Actions>
           {actions}
           {isCommunityEnabled ? <AuthControl /> : null}
-          {/* 밝기 · 더보기는 둘 다 "환경 설정"이라 오른쪽 끝에 같은 규격(secondary·sm·iconOnly)으로 붙는다.
-              밝기가 먼저인 이유: 자주 쓰는 쪽을 가장자리 밖으로 밀지 않는다. */}
-          <ColorSchemeToggle />
-          {/* 기본 더보기엔 튜토리얼이 없다 — 코치마크 투어는 시뮬레이터 화면 전용이라
-              다른 화면에서는 띄울 대상이 없다. 시뮬레이터는 자기 메뉴를 넘긴다. */}
-          {overflowMenu ?? <HeaderOverflowMenu showTutorial={false} />}
+          {/* 밝기 · 더보기는 둘 다 "환경 설정"이라 오른쪽 끝에 같은 규격(secondary·sm·iconOnly)으로 붙고,
+              2026-08-03 부터 한 묶음(UtilityGroup)으로 선 하나 뒤에 선다 — 페이지 액션·계정과 성격이
+              다르기 때문이다. 밝기가 먼저인 이유: 자주 쓰는 쪽을 가장자리 밖으로 밀지 않는다.
+              ⚠ 묶음은 배치만 바꾼다 — 두 진입점 모두 그대로 있다(AppHeader.test.tsx 가 세고 있다). */}
+          <UtilityGroup>
+            <ColorSchemeToggle />
+            {/* 기본 더보기엔 튜토리얼이 없다 — 코치마크 투어는 시뮬레이터 화면 전용이라
+                다른 화면에서는 띄울 대상이 없다. 시뮬레이터는 자기 메뉴를 넘긴다. */}
+            {overflowMenu ?? <HeaderOverflowMenu showTutorial={false} />}
+          </UtilityGroup>
         </Actions>
       </HeaderInner>
     </HeaderRoot>

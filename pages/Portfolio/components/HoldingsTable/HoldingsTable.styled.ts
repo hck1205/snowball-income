@@ -44,8 +44,22 @@ const stackedTable = `
     position: relative;
     padding: ${space[4]};
     border: 1px solid ${color.border};
-    border-radius: ${radius.md};
+    border-radius: ${radius.lg};
     background: ${color.surface};
+    /* 카드 모드에서는 왼쪽 귀가 카드 전체의 세로 변이 된다 — 표 모드의 짧은 귀와 같은 뜻이다. */
+    overflow: hidden;
+  }
+
+  /*
+   * 🔴 카드 왼쪽 변 전체가 그 종목의 색이다. 폭 3px 이라 tintscan 의 면 하한(180px)에 한참 못 미쳐
+   * 예산을 먹지 않는다 — L1(선·점·귀) 파생이고, 같은 사실은 행 안의 심볼 글자가 말한다.
+   */
+  tbody tr::after {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: var(--sb-row-series, ${color.border});
   }
 
   tbody tr:hover {
@@ -75,8 +89,12 @@ export const Table = styled.table`
     transition: background-color ${motion.fast} ${motion.ease};
   }
 
+  /*
+   * 호버 면도 **그 종목의 색**으로 물든다(6% 믹스). 색이 곧 그 종목이라는 약속을 상호작용까지
+   * 끌고 오는 자리다 — 6% 라 글자 대비는 중립 면과 사실상 같고, 변수가 없으면 종전 중립 호버로 떨어진다.
+   */
   tbody tr:hover {
-    background: ${color.surfaceHover};
+    background: color-mix(in srgb, var(--sb-row-series, transparent) 6%, ${color.surfaceHover});
   }
 
   ${container.down('tablet')} {
@@ -161,9 +179,26 @@ export const TickerLine = styled.span`
   min-width: 0;
 `;
 
+/**
+ * 🔴 **종목의 색 귀.** `assignSeries` 가 배정한 값이 이 3px 세로 막대 · 아래 비중 막대 · 요약 카드의
+ * 도넛 조각 **셋 모두**에 들어간다 — 같은 종목이 화면 어디서나 같은 색이라는 것이 이번 개편의 약속이다.
+ *
+ * 폭 3px 이라 `tintscan` 의 면 판정(폭 ≥180px)에 걸리지 않는다(L1 파생 — 개수 제한 없음).
+ * ⚠ 색은 결코 단독 채널이 아니다: 바로 오른쪽에 심볼 글자가 같은 종목을 말하고, 비중은 숫자로도 적힌다.
+ */
+export const TickerEar = styled.span`
+  flex: 0 0 auto;
+  width: 3px;
+  height: 18px;
+  border-radius: ${radius.pill};
+  background: var(--sb-row-series, ${color.border});
+`;
+
 export const TickerSymbol = styled.span`
-  font-size: ${font.size.sm};
-  font-weight: ${font.weight.bold};
+  font-size: ${font.size.base};
+  font-weight: ${font.weight.extrabold};
+  letter-spacing: -0.01em;
+  font-family: ${font.dataNumeric};
   color: ${color.text};
   ${font.numeric}
 `;
@@ -209,6 +244,47 @@ export const QuantityCell = styled(TD)`
  * 행 사유 한 줄. **에러가 아니다** — 색은 중립(textMuted)이고 문장이 상태를 말한다.
  * 표 모드에서는 행 이름 아래, 카드 모드에서는 전 폭이다.
  */
+/**
+ * 행의 비중 한 줄 — **막대 + 숫자**. 막대는 장식(`aria-hidden`)이고 숫자가 사실을 말한다.
+ *
+ * 높이 5px · 폭 88px 라 `tintscan` 의 면 판정(폭 ≥180 **AND** 높이 ≥8)을 두 축 모두에서 못 넘는다.
+ * 예산이 빠듯한 화면에서 색을 쓰는 유일한 합법 어법이 이것이다(레일 캡과 같은 원리).
+ */
+export const ShareLine = styled.span`
+  display: flex;
+  align-items: center;
+  gap: ${space[2]};
+  margin-top: ${space[1]};
+  min-width: 0;
+`;
+
+export const ShareTrack = styled.span`
+  flex: 0 0 auto;
+  display: block;
+  width: 88px;
+  height: 5px;
+  border-radius: ${radius.pill};
+  background: ${color.progressTrack};
+  overflow: hidden;
+`;
+
+export const ShareFill = styled.span`
+  display: block;
+  height: 100%;
+  min-width: 2px;
+  border-radius: ${radius.pill};
+  background: var(--sb-row-series, ${color.borderStrong});
+  transition: width ${motion.base} ${motion.ease};
+`;
+
+export const ShareValue = styled.span`
+  font-size: ${font.size['2xs']};
+  font-weight: ${font.weight.semibold};
+  color: ${color.textMuted};
+  white-space: nowrap;
+  ${font.numeric}
+`;
+
 export const RowNote = styled.span`
   display: block;
   margin-top: ${space[1]};

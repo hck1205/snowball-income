@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, iconOpticalAlign, motion, radius, space } from '@/shared/styles';
+import { color, font, iconOpticalAlign, motion, pageHue, pageHueMix, radius, space } from '@/shared/styles';
 
 /* 좌우 버튼·월 제목을 달력 폭의 정중앙에(사용자 결정 2026-07-25). "이번 달" 버튼은 흐름 그대로 우측. */
 export const ToolbarRoot = styled.div`
@@ -53,10 +53,12 @@ export const NavButton = styled.button`
     border-color ${motion.fast} ${motion.ease},
     color ${motion.fast} ${motion.ease};
 
+  /* 얼굴색을 따라간다 — 같은 부품이 라우트마다 다른 색으로 반응해 "여기가 어디인지"를 거든다.
+     파생 면이지만 위에 얹히는 것은 아이콘(비텍스트)뿐이라 대비 검증 밖으로 나가지 않는다. */
   &:hover {
-    background: ${color.brandSubtle};
-    border-color: ${color.brandBorder};
-    color: ${color.brandText};
+    background: ${pageHueMix(14)};
+    border-color: ${pageHueMix(45, 'transparent')};
+    color: ${pageHue};
   }
 
   &:focus-visible {

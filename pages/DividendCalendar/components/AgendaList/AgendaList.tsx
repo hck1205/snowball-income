@@ -29,7 +29,12 @@ const copy = DIVIDEND_CALENDAR_COPY;
  * 달력 칸을 누르면 여기 같은 날짜로 온다 — 그 착지점이 되기 위해 날짜 블록은 **항상**
  * id와 `tabIndex={-1}`(프로그램 포커스 전용)을 갖는다. 폭에 따라 DOM이 달라지면 안 되므로 조건부가 아니다.
  */
-export default function AgendaList({ days, hasUndated, highlightedDate = null }: AgendaListProps) {
+export default function AgendaList({
+  days,
+  hasUndated,
+  highlightedDate = null,
+  seriesOf = tickerSeriesVar
+}: AgendaListProps) {
   return (
     <AgendaRoot aria-label={copy.agenda.heading}>
       {days.length === 0 ? (
@@ -55,7 +60,7 @@ export default function AgendaList({ days, hasUndated, highlightedDate = null }:
               <AgendaItemList>
                 {day.items.map((item) => (
                   <AgendaItem key={item.ticker}>
-                    <AgendaDot aria-hidden style={{ background: tickerSeriesVar(item.ticker) }} />
+                    <AgendaDot aria-hidden style={{ background: seriesOf(item.ticker) }} />
                     <AgendaTicker>{item.ticker}</AgendaTicker>
                     <ScheduleSourceBadge source={item.source} />
                     <AgendaName>{item.koreanName}</AgendaName>

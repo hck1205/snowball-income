@@ -1,8 +1,8 @@
 import styled from '@emotion/styled';
-import { cardElevation, color, font, iconFirstLineAlign, media, radius, space } from '@/shared/styles';
+import { DATA_RADIUS, cardElevation, color, font, iconFirstLineAlign, media, radius, space } from '@/shared/styles';
 
 /**
- * 보유 목록 카드와 **같은 본문 면**(`cardElevation('base')` · radius.xl)이다. 주역은 이 화면에서
+ * 보유 목록 카드와 **같은 본문 면**(`cardElevation('base')` · `DATA_RADIUS`)이다. 주역은 이 화면에서
  * 요약 카드("지금 받는 배당") 하나뿐이라 목표 카드는 한 단계 아래에 선다 — 예전에는 세 카드가
  * 모두 테두리 + `elevation[1]` 을 함께 갖고 있어서 위계가 **내용물에만** 있었고, 훑어볼 때는
  * 셋이 같은 무게로 보였다.
@@ -11,14 +11,35 @@ import { cardElevation, color, font, iconFirstLineAlign, media, radius, space } 
  * 직접 import 하면 `페이지 → 컴포넌트 → 페이지` 순환이 생긴다(카피를 형제 폴더에 둔 이유와 같다).
  * 복제되는 것은 **기하**뿐이고 위계 선언은 `shared/styles` 한 곳에서 온다.
  */
+/**
+ * 🔴 **이 화면의 서사적 정점.** 세 카드 중 유일하게 **왼쪽 6px 세로 레일**을 갖는다 —
+ * 훑어보는 눈이 "여기가 목표 이야기"를 카드를 읽기 전에 잡게 하는 표식이다.
+ *
+ * 레일이 면 예산을 안 먹는 이유: `tintscan` 의 면 판정은 폭 ≥180px **AND** 높이 ≥8px 인데
+ * 이 띠는 폭 6px 이다(`PICK.railHeight` 와 같은 값·같은 논리 — 두께로 "선"에 남는다).
+ * 🔴 6px 을 두 자릿수로 키우지 마라. 색은 `accentAlt`(목표·추천 축)이고, 도달 여부는
+ * 색이 아니라 카드 머리의 배지와 상태 줄이 말한다.
+ */
 export const CardRoot = styled.section`
+  position: relative;
   min-width: 0;
   display: grid;
   gap: ${space[5]};
   align-content: start;
   padding: clamp(16px, 2.4vw, 28px);
-  border-radius: ${radius.xl};
+  padding-left: clamp(22px, 2.4vw, 34px);
+  /* 읽는 면(data)의 반경 — 페이지의 다른 두 카드와 같은 대역이다(cardGeometry 와 한 값). */
+  border-radius: ${DATA_RADIUS};
+  overflow: hidden;
   ${cardElevation('base')}
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 6px;
+    background: ${color.accentAlt};
+  }
 `;
 
 export const CardHead = styled.div`
@@ -29,22 +50,63 @@ export const CardHead = styled.div`
   flex-wrap: wrap;
 `;
 
-/** 섹션 제목 + 오로라 리본(요약·보유 카드와 같은 어법). */
+/** 제목 + 상태 배지를 한 덩어리로 묶는다(우측 액션 버튼과 갈라놓는다). */
+export const CardTitleGroup = styled.div`
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: ${space[2]};
+  min-width: 0;
+`;
+
+/**
+ * 섹션 제목 — 4px 오로라 리본에서 **아이콘 배지**로 바뀌었다(요약·보유 카드와 같은 어법).
+ * 배지 한 변 30px 이라 면으로 세어지지 않고, 카드마다 다른 아이콘이 "무슨 카드인가"를 글리프로 말한다.
+ */
 export const CardTitle = styled.h2`
   margin: 0;
   display: flex;
   align-items: center;
   gap: ${space[2]};
-  font-size: ${font.size.sm};
-  font-weight: ${font.weight.bold};
+  font-size: ${font.size.base};
+  font-weight: ${font.weight.extrabold};
+  letter-spacing: -0.01em;
   color: ${color.text};
+`;
 
-  &::before {
-    content: '';
-    width: 4px;
-    height: 16px;
-    border-radius: ${radius.pill};
-    background: ${color.gradientAurora};
+export const CardTitleBadge = styled.span`
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: ${radius.md};
+  background: ${color.identitySubtle};
+  color: ${color.identityText};
+`;
+
+/**
+ * 도달/미도달 **배지**. 상태 줄과 같은 사실을 한 낱말로 말한다 — 훑어보는 눈은 문장을 안 읽는다.
+ *
+ * 🔴 색은 거들 뿐이다: 배지에는 언제나 **글자**가 있고(`goal.badge.*`), 회색조에서도 테두리와
+ * 문구로 구분된다. 면(틴트)을 주지 않고 1px 테두리만 쓰는 이유는 `Banner`·`StatusLine` 이 세운
+ * 규칙과 같다 — 면은 강한 톤에만, 그리고 이 화면의 면 예산은 이미 히어로가 쓰고 있다.
+ */
+export const StateBadge = styled.span<{ tone: 'success' | 'warning' }>`
+  display: inline-flex;
+  align-items: center;
+  gap: ${space[1]};
+  padding: 2px ${space[2]};
+  border-radius: ${radius.pill};
+  border: 1px solid ${({ tone }) => (tone === 'success' ? color.success : color.warning)};
+  color: ${({ tone }) => (tone === 'success' ? color.success : color.warning)};
+  font-size: ${font.size['2xs']};
+  font-weight: ${font.weight.bold};
+  white-space: nowrap;
+
+  svg {
+    flex: 0 0 auto;
   }
 `;
 
@@ -114,10 +176,10 @@ export const BasisNoteText = styled.span`
 export const StatusLine = styled.p<{ tone: 'success' | 'warning' }>`
   margin: 0;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: ${space[2]};
-  padding: ${space[3]};
-  border-radius: ${radius.md};
+  padding: ${space[3]} ${space[4]};
+  border-radius: ${radius.lg};
   font-size: ${font.size.sm};
   font-weight: ${font.weight.semibold};
   line-height: ${font.leading.snug};

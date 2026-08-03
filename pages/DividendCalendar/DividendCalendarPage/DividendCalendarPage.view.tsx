@@ -1,5 +1,5 @@
 import { useId } from 'react';
-import { CalendarDays, ChevronRight, SlidersHorizontal } from 'lucide-react';
+import { CalendarDays, CalendarRange, ChevronRight, ListChecks, SlidersHorizontal } from 'lucide-react';
 import { Banner, Chip, PageFooter, PageHero } from '@/components/common';
 import MarketIndexStrip from '@/components/MarketIndexStrip';
 import { DIVIDEND_CALENDAR_COPY } from '../copy';
@@ -13,7 +13,7 @@ import {
   TickerPicker,
   UndatedSection
 } from '../components';
-import { getCalendarMonthOf, shiftCalendarMonth } from '../utils';
+import { getCalendarMonthOf, shiftCalendarMonth, tickerSeriesResolver } from '../utils';
 import type { DividendCalendarViewProps } from './DividendCalendarPage.types';
 import { selectQuickPickOptions } from './DividendCalendarPage.utils';
 import {
@@ -24,19 +24,24 @@ import {
   DetailHead,
   DetailTitle,
   EmptyBody,
+  EmptyGlyph,
   EmptyStateCard,
   EmptyTitle,
   FilterButton,
   FilterCount,
+  HeadSpacer,
   LiveRegion,
   MonthSummaryLine,
   PageStack,
   PreviewBadge,
   PreviewFrame,
   PreviewOverlay,
+  QuickPickDot,
   QuickPickItem,
   QuickPickLabel,
   QuickPickList,
+  SectionGlyph,
+  SectionLabel,
   UnavailableBody,
   UnavailableDetails,
   UndatedToggleButton,
@@ -100,6 +105,22 @@ export default function DividendCalendarView({
   const next = shiftCalendarMonth(current, 1);
   const todayMonth = getCalendarMonthOf(today);
   const undatedCount = month.undated.length;
+
+  /**
+   * 🔴 **이 화면의 색 사전은 하나다.** 달력 칩 점 · 아젠다 막대 · 미정 점 · 범례 표가 전부 이 함수를
+   * 받는다 — 부품이 각자 색을 정하면 2겹 배정(집합 내 충돌 회피)이 무너져 같은 화면에서 두 종목이
+   * 같은 색을 갖는다. 그러면 "이 색이 곧 그 종목"이라는 길찾기 단서가 거짓말이 된다.
+   *
+   * 배정 집합은 **지금 화면에 실제로 그려지는 종목**이다: 고른 게 있으면 선택 집합, 하나도 없으면
+   * 예시로 깔리는 추천 종목들. 예시 상태에서 추천 칩과 예시 격자의 같은 종목이 같은 색이어야
+   * "누르면 이게 선명해진다"가 성립한다.
+   *
+   * ⚠ `useMemo` 를 걸지 않는다 — 의존값 중 `quickPicks` 가 매 렌더 새 배열이라 캐시가 절대 맞지 않고,
+   * 배정 자체는 8종 이하의 순수 계산이다. "메모한 척"이 실제로 메모하지 않는 것이 더 나쁘다.
+   */
+  const seriesOf = tickerSeriesResolver(
+    selected.length > 0 ? selected : quickPicks.map((option) => option.ticker)
+  );
   // 미정이 0건이면 그 탭은 사라진다 — 사라진 탭이 선택돼 있으면 빈 화면이 되므로 목록으로 접어 읽는다.
   const activeDetailTab = detailTab === 'undated' && undatedCount === 0 ? 'agenda' : detailTab;
 
@@ -137,6 +158,13 @@ export default function DividendCalendarView({
 
       <BoardCard aria-labelledby={monthTitleId}>
         <BoardHead>
+          {/* 카드 머리 띠 — 글리프(라우트 얼굴색) + 이름 + 오른쪽 끝의 주 진입점.
+              글리프는 장식이라 aria-hidden 이고, 카드의 접근명은 여전히 월 제목(h2)이 준다. */}
+          <SectionGlyph aria-hidden>
+            <CalendarRange size={18} strokeWidth={1.8} focusable={false} />
+          </SectionGlyph>
+          <SectionLabel>{copy.board.sectionLabel}</SectionLabel>
+          <HeadSpacer />
           <FilterButton
             type="button"
             aria-label={copy.picker.open(selected.length)}
@@ -178,6 +206,9 @@ export default function DividendCalendarView({
           <PreviewFrame>
             <PreviewOverlay>
               <EmptyStateCard>
+                <EmptyGlyph aria-hidden>
+                  <CalendarDays size={20} strokeWidth={1.8} focusable={false} />
+                </EmptyGlyph>
                 <PreviewBadge>{copy.preview.label}</PreviewBadge>
                 <EmptyTitle>{copy.empty.title}</EmptyTitle>
                 <EmptyBody>{copy.empty.body}</EmptyBody>
@@ -187,6 +218,9 @@ export default function DividendCalendarView({
                     <QuickPickList>
                       {quickPicks.map((option) => (
                         <QuickPickItem key={option.ticker}>
+                          {/* 점은 칩 **밖**에 둔다 — 칩의 접근명은 티커 한 단어여야 한다(장식이 이름에 섞이면
+                              "SCHD 색 점" 같은 이름이 된다). 아래 예시 격자의 같은 종목이 같은 색을 단다. */}
+                          <QuickPickDot aria-hidden style={{ background: seriesOf(option.ticker) }} />
                           <Chip title={option.koreanName} onClick={() => onToggleTicker(option.ticker)}>
                             {option.ticker}
                           </Chip>
@@ -203,6 +237,7 @@ export default function DividendCalendarView({
                 weeks={viewModel.previewMonth.weeks}
                 monthLabel={monthLabel}
                 labelledById={monthTitleId}
+                seriesOf={seriesOf}
                 isPreview
               />
             ) : null}
@@ -232,6 +267,7 @@ export default function DividendCalendarView({
             weeks={month.weeks}
             monthLabel={monthLabel}
             labelledById={monthTitleId}
+            seriesOf={seriesOf}
             onDayJump={onDayJump}
           />
         ) : null}
@@ -246,7 +282,11 @@ export default function DividendCalendarView({
               미정 전환은 제목 오른쪽의 토글 하나 — "지급 일정 목록" 탭을 따로 두면 제목과 같은 말이
               두 번 보인다. 미정 0건이면 토글도 없다. */}
           <DetailHead>
+            <SectionGlyph aria-hidden>
+              <ListChecks size={18} strokeWidth={1.8} focusable={false} />
+            </SectionGlyph>
             <DetailTitle>{copy.agenda.heading}</DetailTitle>
+            <HeadSpacer />
             {undatedCount > 0 ? (
               <UndatedToggleButton
                 type="button"
@@ -260,15 +300,16 @@ export default function DividendCalendarView({
           </DetailHead>
 
           {activeDetailTab === 'undated' ? (
-            <UndatedSection items={month.undated} />
+            <UndatedSection items={month.undated} seriesOf={seriesOf} />
           ) : (
             <AgendaList
               days={viewModel.agendaDays}
               hasUndated={undatedCount > 0}
               highlightedDate={highlightedAgendaDate}
+              seriesOf={seriesOf}
             />
           )}
-          <ScheduleLegendTable rows={viewModel.legendRows} />
+          <ScheduleLegendTable rows={viewModel.legendRows} seriesOf={seriesOf} />
         </DetailCard>
       ) : null}
 

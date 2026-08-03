@@ -1,5 +1,6 @@
 import { useCallback, useId, useMemo, useState } from 'react';
 import { Card } from '@/components';
+import { PickCard } from '@/components/common';
 import { TOUR_TARGET } from '@/shared/constants';
 import {
   PORTFOLIO_PRESET_VISIBLE_PER_GROUP,
@@ -13,9 +14,9 @@ import {
 } from '@/shared/constants/portfolioPresets';
 import {
   PortfolioPresetAppliedTag,
-  PortfolioPresetCardButton,
   PortfolioPresetCore,
   PortfolioPresetDesc,
+  PortfolioPresetFacts,
   PortfolioPresetFallbackText,
   PortfolioPresetGrid,
   PortfolioPresetGroupBadge,
@@ -24,16 +25,14 @@ import {
   PortfolioPresetGroups,
   PortfolioPresetGroupSection,
   PortfolioPresetGroupTitle,
-  PortfolioPresetIcon,
   PortfolioPresetMetric,
   PortfolioPresetMetricLabel,
   PortfolioPresetMetrics,
   PortfolioPresetMetricValue,
   PortfolioPresetMoreButton,
-  PortfolioPresetTitle,
-  PortfolioPresetTitleRow,
   type PresetTone
 } from './PortfolioPresetBoard.styled';
+import { PRESET_CAP_AXIS } from './PortfolioPresetBoard.utils';
 import type { PortfolioPresetBoardProps } from './PortfolioPresetBoard.types';
 
 const BOARD_COPY = {
@@ -93,35 +92,51 @@ function PortfolioPresetBoard({
     );
   }
 
+  /**
+   * 카드 한 장. 껍데기(면·라운드 30~34px·6px 레일 캡·40px 글리프 배지·제목 크기·hover 부상)는
+   * 공용 `PickCard` 가 소유한다 — 이 화면은 **무엇을 담을지**만 정한다.
+   *
+   * 🔴 **6요소 전부 그대로다**: 아이콘(캡 글리프) · 제목 · [지금 적용됨] 태그 · 훅 · coreType ·
+   *    지표 2개. 하나라도 빠지면 "고르는 근거"가 카드 밖으로 나간다.
+   *
+   * `selected` 를 쓰지 않고 태그를 `titleRight` 로 넘기는 이유: 부품의 기본 배지는 "선택됨"이라고
+   * 말하는데, 이 화면에서 정확한 말은 **"지금 적용됨"**(고른 것이 이미 계산에 반영돼 있다)이다.
+   * 둘을 함께 켜면 같은 자리에 배지가 두 개 뜬다.
+   */
   const renderCard = (preset: PortfolioPresetPlaceholder, tone: PresetTone) => {
     const PresetIcon = PRESET_ICON_BY_ID[preset.id] ?? PRESET_ICON_FALLBACK;
     const isApplied = appliedPresetId === preset.id;
 
     return (
-      <PortfolioPresetCardButton
+      <PickCard
         key={preset.id}
-        type="button"
-        aria-label={`${preset.title} 구성 적용`}
+        /* h3(묶음) → h4(카드). 레벨을 건너뛰지 않는다. */
+        titleAs="h4"
+        title={preset.title}
+        ariaLabel={`${preset.title} 구성 적용`}
         onClick={() => onPresetSelect(preset)}
+        titleRight={isApplied ? <PortfolioPresetAppliedTag>지금 적용됨</PortfolioPresetAppliedTag> : null}
+        cap={{
+          ...PRESET_CAP_AXIS[tone],
+          kind: 'rail',
+          /* 🔴 글리프는 타입상 필수다 — 레일 색이 단독 채널이 되면 회색조에서 묶음이 사라진다.
+             프리셋마다 다른 모양이 색과 같은 것을 말한다. */
+          glyph: <PresetIcon size={20} strokeWidth={PRESET_ICON_STROKE} aria-hidden focusable={false} />
+        }}
       >
-        <PortfolioPresetTitleRow>
-          <PortfolioPresetIcon tone={tone}>
-            <PresetIcon size={18} strokeWidth={PRESET_ICON_STROKE} aria-hidden focusable={false} />
-          </PortfolioPresetIcon>
-          <PortfolioPresetTitle>{preset.title}</PortfolioPresetTitle>
-          {isApplied ? <PortfolioPresetAppliedTag>지금 적용됨</PortfolioPresetAppliedTag> : null}
-        </PortfolioPresetTitleRow>
-        <PortfolioPresetDesc>{preset.hook}</PortfolioPresetDesc>
-        <PortfolioPresetCore>{preset.coreType}</PortfolioPresetCore>
-        <PortfolioPresetMetrics>
-          {buildPresetMetrics(preset).map((metric) => (
-            <PortfolioPresetMetric key={metric.label}>
-              <PortfolioPresetMetricLabel>{metric.label}</PortfolioPresetMetricLabel>
-              <PortfolioPresetMetricValue>{metric.value}</PortfolioPresetMetricValue>
-            </PortfolioPresetMetric>
-          ))}
-        </PortfolioPresetMetrics>
-      </PortfolioPresetCardButton>
+        <PortfolioPresetFacts>
+          <PortfolioPresetDesc>{preset.hook}</PortfolioPresetDesc>
+          <PortfolioPresetCore>{preset.coreType}</PortfolioPresetCore>
+          <PortfolioPresetMetrics>
+            {buildPresetMetrics(preset).map((metric) => (
+              <PortfolioPresetMetric key={metric.label}>
+                <PortfolioPresetMetricLabel>{metric.label}</PortfolioPresetMetricLabel>
+                <PortfolioPresetMetricValue>{metric.value}</PortfolioPresetMetricValue>
+              </PortfolioPresetMetric>
+            ))}
+          </PortfolioPresetMetrics>
+        </PortfolioPresetFacts>
+      </PickCard>
     );
   };
 

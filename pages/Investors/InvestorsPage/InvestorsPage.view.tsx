@@ -1,13 +1,14 @@
 import { useId, useState } from 'react';
 import { AlertTriangle, Users } from 'lucide-react';
-import { Button, PageHero, SideDrawer, Tooltip } from '@/components/common';
-import { CHART_SERIES_VARS, color } from '@/shared/styles';
+import { Button, PageHero, PickCard, SideDrawer } from '@/components/common';
+import { CHART_SERIES_VARS, ICON, color } from '@/shared/styles';
 import { INVESTORS_COPY } from '../copy';
 import {
   DONUT_CIRCUMFERENCE,
   aggregateHoldings,
   buildDonutSlices,
   comparableTickers,
+  cssVarName,
   formatUsdCompact,
   monogram,
   personColorVar
@@ -18,51 +19,55 @@ import {
   AggregateBar,
   AggregateBlock,
   AggregateHead,
-  AggregateHeader,
-  AggregateHeading,
   AggregateList,
   AggregateMeta,
   AggregateName,
+  AggregateRank,
   AggregateRow,
-  AggregateSubtitle,
-  AggregateTitle,
   AggregateToggle,
   AggregateToggleButton,
   AggregateTrack,
-  Avatar,
-  CardActions,
   CardGrid,
-  CardHead,
+  CardItem,
   CompareLink,
   DelayBody,
   DelayHeadline,
+  DelayIcon,
   DelayNotice,
+  DelayText,
   Donut,
   DonutLayout,
   DonutLegend,
   DonutLegendItem,
   DonutNote,
+  DonutPanel,
   DrawerNote,
-  FirmName,
-  HeadText,
+  FootNote,
+  FootNoteBlock,
+  IssuerName,
   KindBadge,
+  KoreanName,
   LegendDot,
   LegendName,
   LegendValue,
-  FootNote,
-  InvestorCard,
   LimitsBlock,
+  LimitsIndex,
+  LimitsItem,
   LimitsList,
-  LimitsTitle,
+  MetaChip,
   MetaRow,
   MetaValue,
-  IssuerName,
-  KoreanName,
-  KindHelpButton,
-  PersonName,
+  Monogram,
+  OptionChip,
   PersonNote,
+  PersonsSection,
+  SectionHead,
+  SectionHeading,
+  SectionSubtitle,
+  SectionTitle,
   Stack,
   StaleBadge,
+  StaleLine,
   Table,
   TableScroller,
   Td,
@@ -157,10 +162,13 @@ function HoldingsTable({ card }: { card: InvestorCardModel }) {
 }
 
 /**
- * 대가들이 함께 담은 종목 — 화면 최상단의 가로 막대(2026-08-02 사용자 지시).
+ * 대가들이 함께 담은 종목 — 인물 카드 **위**의 가로 막대(2026-08-02 사용자 지시).
  *
- * 🔴 막대는 **신고 금액 합**이지 비중(%)의 합이 아니다. 그리고 **주식 보유분만** 센다 —
- * 근거는 `aggregateHoldings` 주석(풋을 보유로 세면 방향이 뒤집힌다).
+ * 🔴 막대는 **신고 금액 합**(또는 인원 수)이지 비중(%)의 합이 아니다. 그리고 **주식 보유분만**
+ * 센다 — 근거는 `aggregateHoldings` 주석(풋을 보유로 세면 방향이 뒤집힌다).
+ *
+ * 순위 숫자를 함께 세우는 이유: 막대 길이만으로는 3위와 4위가 눈으로 안 갈린다(정렬 기준을
+ * 바꿨을 때 순서가 실제로 바뀌었는지도 순위가 있어야 보인다).
  */
 function AggregateChart({ rows }: { rows: readonly AggregatedHolding[] }) {
   if (rows.length === 0) return <DonutNote>{copy.aggregate.empty}</DonutNote>;
@@ -169,6 +177,7 @@ function AggregateChart({ rows }: { rows: readonly AggregatedHolding[] }) {
     <AggregateList>
       {rows.map((row, index) => (
         <AggregateRow key={row.cusip}>
+          <AggregateRank aria-label={copy.aggregate.rankLabel(index + 1)}>{index + 1}</AggregateRank>
           <AggregateHead>
             <AggregateName>
               {row.label}
@@ -249,68 +258,105 @@ function HoldingsDonut({ card }: { card: InvestorCardModel }) {
   );
 }
 
+/**
+ * 인물 한 장 — **고르는 면(brand)** 이다. 공용 `PickCard` 로 그린다.
+ *
+ * ## 이 카드가 PickCard 인 이유
+ * 판정 기준은 한 줄이다: *"여기서 무언가를 고르면 화면이 바뀌는가."* 인물을 고르면 그 사람의 신고
+ * 보유가 옆 패널로 열린다 — 그래서 프리셋 카드·티커 허브 카드와 같은 급이다.
+ *
+ * ## 색을 다루는 방식
+ * - 인물 고유색(`personColorVar`, 이름 해시)은 카드 머리의 **6px 레일**이 말한다. 레일은 높이 6px
+ *   이라 틴트 면 예산에 세어지지 않는다(`tintscan` 하한 8px).
+ * - 🔴 **틴트 캡을 쓸 수 없다.** 캡을 면으로 올리면 인물마다 색이 달라 클러스터 접기(같은 배경값)가
+ *   먹지 않는다 — 카드 열세 장이 면 열세 개가 된다.
+ * - 모노그램 배지는 *시리즈 16% 틴트 면 + 중립 글자 + 시리즈 테두리* 다(`Monogram` 주석의 처방 교정).
+ *
+ * ## 🔴 드로어는 카드 **밖**에 있다
+ * `PickCard` 는 hover/focus 에서 `transform` 을 쓰므로 `position: fixed` 자손의 컨테이닝 블록이
+ * 된다. 드로어를 카드 안에 두면 열리는 순간 전폭 패널이 카드 좌표계에 갇힌다. 그래서 격자 칸
+ * (`CardItem`)이 카드와 드로어를 형제로 갖는다.
+ *
+ * ## 카드 안에 버튼을 넣는 자리
+ * 카드 전체를 덮는 스트레치 컨트롤 **위**로 뜨는 슬롯은 `titleRight` 와 `actions` 뿐이다.
+ * children 에 버튼을 넣으면 카드 클릭에 먹힌다 — 그래서 표 열기·비교 링크는 `actions` 에 있다.
+ */
 function InvestorEntry({ card }: { card: InvestorCardModel }) {
   const [isOpen, setIsOpen] = useState(false);
   const drawerId = useId();
   const tickers = comparableTickers(card, COMPARE_LIMIT);
   const hasOptions = card.holdings.some((row) => row.kind !== 'share');
+  const personColor = personColorVar(card.person, CHART_SERIES_VARS);
 
   return (
-    <InvestorCard>
-      <CardHead>
-        {/* ⚠ 사진이 아니라 이니셜 도형이다 — 사유는 Avatar 주석. */}
-        <Avatar $color={personColorVar(card.person, CHART_SERIES_VARS)} aria-hidden>
-          {monogram(card.person)}
-        </Avatar>
-        <HeadText>
-          <PersonName>{card.person}</PersonName>
-          <FirmName>{card.firm}</FirmName>
-        </HeadText>
-        {/* ⚠ "청산했다"가 아니라 "공시가 확인되지 않는다"까지만 말한다 — 아는 것이 거기까지다. */}
-        {card.isStale ? <StaleBadge>{copy.card.stale}</StaleBadge> : null}
-      </CardHead>
+    <CardItem>
+      <PickCard
+        as="div"
+        titleAs="h3"
+        title={card.person}
+        subtitle={card.firm}
+        ariaLabel={copy.card.openFor(card.person)}
+        onClick={() => setIsOpen(true)}
+        cap={{
+          kind: 'rail',
+          axis: 'scoped',
+          scopedVar: cssVarName(personColor),
+          /* ⚠ BrandGlyph 를 쓰지 않는다 — 여기서 글리프의 목적은 브랜드가 아니라 **인물 구분**이다. */
+          glyph: <Monogram $color={personColor}>{monogram(card.person)}</Monogram>
+        }}
+        /* ⚠ "청산했다"가 아니라 "공시가 확인되지 않는다"까지만 말한다 — 아는 것이 거기까지다.
+           배지는 색 신호만 지고, 문장은 아래 본문에 중립 텍스트로 그대로 남는다. */
+        titleRight={
+          card.isStale ? (
+            <StaleBadge>
+              <AlertTriangle size={ICON.xs} strokeWidth={ICON.stroke} aria-hidden focusable={false} />
+              {copy.card.staleBadge}
+            </StaleBadge>
+          ) : undefined
+        }
+        actions={
+          <>
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              aria-expanded={isOpen}
+              aria-controls={drawerId}
+              onClick={() => setIsOpen(true)}
+            >
+              {copy.card.open}
+            </Button>
 
-      <PersonNote>{card.note}</PersonNote>
+            {/* 매핑된 종목이 2개 이상일 때만 — 비교는 2종부터 성립한다. */}
+            {tickers.length >= 2 ? (
+              <CompareLink to={`/ticker/compare?t=${tickers.join(',')}`}>{copy.holdings.compareAction}</CompareLink>
+            ) : null}
+          </>
+        }
+      >
+        {/* 🔴 배지만 남기고 이 문장을 지우지 마라 — 배지는 색을, 이 줄은 사실을 진다. */}
+        {card.isStale ? <StaleLine>{copy.card.stale}</StaleLine> : null}
 
-      <MetaRow>
-        {/* 🔴 기준일은 인물마다 다르다. 전역 하나로 묶지 마라. */}
-        <span>{copy.card.asOf(card.reportDate)}</span>
-        <span>
-          {copy.card.totalValue('')}
-          <MetaValue>{formatUsdCompact(card.totalValueUsd)}</MetaValue>
-        </span>
-        <span>{copy.card.holdingCount(card.totalHoldingCount, card.holdings.length)}</span>
-        {/* 🔴 높이를 먹지 않는 자리에 둔다 — 문장으로 두면 이 카드만 길어져 2열 격자가 깨진다. */}
-        {hasOptions ? (
-          <Tooltip content={copy.kind.mixedNote}>
-            <KindHelpButton type="button" aria-label={copy.kind.mixedNoteLabel}>
-              ?
-            </KindHelpButton>
-          </Tooltip>
-        ) : null}
-      </MetaRow>
+        <PersonNote>{card.note}</PersonNote>
 
-      <HoldingsDonut card={card} />
+        <MetaRow>
+          {/* 🔴 기준일은 인물마다 다르다. 전역 하나로 묶지 마라. */}
+          <MetaChip>{copy.card.asOf(card.reportDate)}</MetaChip>
+          <MetaChip>
+            {copy.card.totalValue('')}
+            <MetaValue>{formatUsdCompact(card.totalValueUsd)}</MetaValue>
+          </MetaChip>
+          <MetaChip>{copy.card.holdingCount(card.totalHoldingCount, card.holdings.length)}</MetaChip>
+          {/* 🔴 옵션 혼재는 글자로 상시 노출한다 — 말풍선은 카드의 overflow 에 잘린다(카피 주석 참고). */}
+          {hasOptions ? <OptionChip title={copy.kind.mixedNote}>{copy.kind.mixedChip}</OptionChip> : null}
+        </MetaRow>
 
-      <CardActions>
-        <Button
-          type="button"
-          size="sm"
-          variant="secondary"
-          aria-expanded={isOpen}
-          aria-controls={drawerId}
-          onClick={() => setIsOpen(true)}
-        >
-          {copy.card.open}
-        </Button>
+        <DonutPanel>
+          <HoldingsDonut card={card} />
+        </DonutPanel>
+      </PickCard>
 
-        {/* 매핑된 종목이 2개 이상일 때만 — 비교는 2종부터 성립한다. */}
-        {tickers.length >= 2 ? (
-          <CompareLink to={`/ticker/compare?t=${tickers.join(',')}`}>{copy.holdings.compareAction}</CompareLink>
-        ) : null}
-      </CardActions>
-
-      {/* 🔴 드로어는 카드 높이를 건드리지 않는다 — 2열 격자가 흔들리지 않는 이유가 이것이다. */}
+      {/* 🔴 카드 밖이다 — 위 주석의 컨테이닝 블록 함정. */}
       <SideDrawer
         id={drawerId}
         side="right"
@@ -322,10 +368,10 @@ function InvestorEntry({ card }: { card: InvestorCardModel }) {
         dimBelow="always"
       >
         <HoldingsTable card={card} />
-        {/* 드로어 안은 폭·높이에 여유가 있어 문장 그대로 둔다 — 카드에서만 아이콘으로 접었다. */}
+        {/* 드로어 안은 폭·높이에 여유가 있어 문장 그대로 둔다 — 카드에서는 짧은 표시로 접었다. */}
         {hasOptions ? <DrawerNote>{copy.kind.mixedNote}</DrawerNote> : null}
       </SideDrawer>
-    </InvestorCard>
+    </CardItem>
   );
 }
 
@@ -337,10 +383,12 @@ export default function InvestorsView({ viewModel }: InvestorsViewProps) {
   return (
     <Stack>
       <PageHero
-        icon={<Users size={20} strokeWidth={1.8} aria-hidden focusable={false} />}
+        icon={<Users size={ICON.xl} strokeWidth={ICON.stroke} aria-hidden focusable={false} />}
         title={copy.hero.title}
         titleAs="h1"
         lede={copy.hero.lede}
+        /* 출처·수집일은 히어로의 근거 줄이 갖는다 — 각주 두 줄이 화면 맨 아래 회색으로 묻히던 자리다. */
+        meta={copy.footnote.source(viewModel.generatedAt)}
       />
 
       {/*
@@ -349,19 +397,30 @@ export default function InvestorsView({ viewModel }: InvestorsViewProps) {
         색은 거들 뿐이고, 굵은 제목 줄과 경고 아이콘이 회색조에서도 남는다.
       */}
       <DelayNotice>
-        <DelayHeadline>
-          <AlertTriangle size={16} strokeWidth={1.8} aria-hidden focusable={false} />
-          {copy.limits.delayHeadline}
-        </DelayHeadline>
-        <DelayBody>{copy.limits.delayBody}</DelayBody>
+        <DelayIcon aria-hidden>
+          <AlertTriangle size={ICON.xl} strokeWidth={ICON.stroke} focusable={false} />
+        </DelayIcon>
+        <DelayText>
+          <DelayHeadline>{copy.limits.delayHeadline}</DelayHeadline>
+          <DelayBody>{copy.limits.delayBody}</DelayBody>
+        </DelayText>
       </DelayNotice>
 
       {/* 🔴 접지 않는다 — 이 데이터의 성질이라 상시로 보여야 한다. */}
       <LimitsBlock aria-labelledby="investor-limits">
-        <LimitsTitle id="investor-limits">{copy.limits.title}</LimitsTitle>
+        <SectionHead>
+          <SectionHeading $axis="accent">
+            <SectionTitle id="investor-limits">{copy.limits.title}</SectionTitle>
+            <SectionSubtitle>{copy.limits.subtitle}</SectionSubtitle>
+          </SectionHeading>
+        </SectionHead>
+
         <LimitsList>
-          {copy.limits.items.map((item) => (
-            <li key={item}>{item}</li>
+          {copy.limits.items.map((item, index) => (
+            <LimitsItem key={item}>
+              <LimitsIndex aria-hidden>{index + 1}</LimitsIndex>
+              <span>{item}</span>
+            </LimitsItem>
           ))}
         </LimitsList>
       </LimitsBlock>
@@ -371,44 +430,55 @@ export default function InvestorsView({ viewModel }: InvestorsViewProps) {
         "이 사람들이 공통으로 담은 것"을 먼저 보는 것이 이 화면의 첫 질문이다.
       */}
       <AggregateBlock aria-labelledby="investor-aggregate">
-        <AggregateHeader>
-          <AggregateHeading>
-            <AggregateTitle id="investor-aggregate">{copy.aggregate.title}</AggregateTitle>
-            <AggregateSubtitle>{copy.aggregate.subtitle}</AggregateSubtitle>
-          </AggregateHeading>
+        <SectionHead>
+          <SectionHeading $axis="accentAlt">
+            <SectionTitle id="investor-aggregate">{copy.aggregate.title}</SectionTitle>
+            {/* 🔴 "주식만 세었다"는 사실을 제목 바로 밑에 둔다 — 각주로 내리면 아무도 안 읽는다. */}
+            <SectionSubtitle>{copy.aggregate.subtitle}</SectionSubtitle>
+          </SectionHeading>
 
           {/* 두 기준은 **다른 이야기**를 한다 — 하나를 다른 하나의 근사로 읽지 않게 이름을 그대로 쓴다. */}
           <AggregateToggle role="group" aria-label={copy.aggregate.sortLabel}>
-          <AggregateToggleButton
-            type="button"
-            $selected={sort === 'holders'}
-            aria-pressed={sort === 'holders'}
-            onClick={() => setSort('holders')}
-          >
-            {copy.aggregate.sortHolders}
-          </AggregateToggleButton>
-          <AggregateToggleButton
-            type="button"
-            $selected={sort === 'value'}
-            aria-pressed={sort === 'value'}
-            onClick={() => setSort('value')}
-          >
-            {copy.aggregate.sortValue}
-          </AggregateToggleButton>
+            <AggregateToggleButton
+              type="button"
+              $selected={sort === 'holders'}
+              aria-pressed={sort === 'holders'}
+              onClick={() => setSort('holders')}
+            >
+              {copy.aggregate.sortHolders}
+            </AggregateToggleButton>
+            <AggregateToggleButton
+              type="button"
+              $selected={sort === 'value'}
+              aria-pressed={sort === 'value'}
+              onClick={() => setSort('value')}
+            >
+              {copy.aggregate.sortValue}
+            </AggregateToggleButton>
           </AggregateToggle>
-        </AggregateHeader>
+        </SectionHead>
 
         <AggregateChart rows={aggregated} />
       </AggregateBlock>
 
-      <CardGrid>
-        {viewModel.cards.map((card) => (
-          <InvestorEntry key={card.cik} card={card} />
-        ))}
-      </CardGrid>
+      <PersonsSection aria-labelledby="investor-persons">
+        <SectionHead>
+          <SectionHeading $axis="brand">
+            <SectionTitle id="investor-persons">{copy.persons.title}</SectionTitle>
+            <SectionSubtitle>{copy.persons.subtitle}</SectionSubtitle>
+          </SectionHeading>
+        </SectionHead>
 
-      <FootNote>{copy.footnote.source(viewModel.generatedAt)}</FootNote>
-      <FootNote>{copy.footnote.disclaimer}</FootNote>
+        <CardGrid>
+          {viewModel.cards.map((card) => (
+            <InvestorEntry key={card.cik} card={card} />
+          ))}
+        </CardGrid>
+      </PersonsSection>
+
+      <FootNoteBlock>
+        <FootNote>{copy.footnote.disclaimer}</FootNote>
+      </FootNoteBlock>
     </Stack>
   );
 }

@@ -66,10 +66,10 @@ export default function StatTile({
             {/* 폭은 연속값이라 클래스가 아니라 style로 — 재계산마다 스타일시트가 불어나지 않게. */}
             <ProgressFill style={{ width: `${toProgressPercent(clamped)}%` }} />
           </ProgressTrack>
-          <TileHint>{formatProgressHint(clamped)}</TileHint>
+          <TileHint emphasis={emphasis}>{formatProgressHint(clamped)}</TileHint>
         </>
       ) : null}
-      {hint ? <TileHint>{hint}</TileHint> : null}
+      {hint ? <TileHint emphasis={emphasis}>{hint}</TileHint> : null}
     </TileRoot>
   );
 }

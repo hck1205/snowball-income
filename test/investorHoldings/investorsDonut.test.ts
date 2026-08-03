@@ -1,6 +1,6 @@
 // @vitest-environment node — DOM 을 쓰지 않는 순수 테스트 (기준: vitest.config.ts)
 import { describe, expect, it } from 'vitest';
-import { DONUT_CIRCUMFERENCE, buildDonutSlices, monogram, personColorVar } from '@/pages/Investors/utils';
+import { DONUT_CIRCUMFERENCE, buildDonutSlices, cssVarName, monogram, personColorVar } from '@/pages/Investors/utils';
 import type { InvestorHoldingRow } from '@/pages/Investors/utils';
 
 const SERIES = ['var(--a)', 'var(--b)', 'var(--c)'];
@@ -111,5 +111,28 @@ describe('아바타', () => {
 
   it('팔레트가 비어도 죽지 않는다', () => {
     expect(personColorVar('아무개', [])).toBe('');
+  });
+});
+
+/**
+ * `PickCard` 의 `cap.scopedVar` 는 **변수 이름**을 요구하고(부품이 스스로 `var()` 로 감싼다),
+ * 이 화면의 색 유틸은 **참조 표현식**을 준다. 그 사이를 잇는 한 줄이라 값 자체를 잠근다 —
+ * 여기가 틀리면 카드 머리의 레일이 `var(var(--x))` 가 되어 **색이 조용히 사라진다**.
+ */
+describe('CSS 변수 이름 뽑기', () => {
+  it('var() 를 벗겨 이름만 남긴다', () => {
+    expect(cssVarName('var(--sb-chart-series-3)')).toBe('--sb-chart-series-3');
+  });
+
+  it('이미 이름이면 그대로 둔다', () => {
+    expect(cssVarName('--sb-chart-series-0')).toBe('--sb-chart-series-0');
+  });
+
+  it('공백이 섞여도 이름만 남긴다', () => {
+    expect(cssVarName('var( --sb-chart-series-1 )')).toBe('--sb-chart-series-1');
+  });
+
+  it('팔레트가 비어 색이 없을 때(빈 문자열)도 죽지 않는다', () => {
+    expect(cssVarName('')).toBe('');
   });
 });

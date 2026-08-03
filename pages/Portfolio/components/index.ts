@@ -28,6 +28,9 @@ export type { HoldingPickerProps } from './HoldingPicker';
 export { HoldingPickerDrawer } from './HoldingPickerDrawer';
 export type { HoldingPickerDrawerProps } from './HoldingPickerDrawer';
 
+export { COMPOSITION_MAX_SLICES, HoldingsComposition, buildCompositionSlices, buildConicStops } from './HoldingsComposition';
+export type { CompositionSlice, HoldingsCompositionProps } from './HoldingsComposition';
+
 export { HoldingsTable } from './HoldingsTable';
 export type { HoldingsTableProps, PortfolioHoldingRowModel } from './HoldingsTable';
 

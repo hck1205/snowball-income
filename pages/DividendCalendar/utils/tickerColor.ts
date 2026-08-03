@@ -20,3 +20,19 @@ export const tickerSeriesVar = (ticker: string): string => seriesVarFor(ticker);
  */
 export const tickerSeriesMap = (tickers: readonly string[]): ReadonlyMap<string, string> =>
   assignSeries(tickers);
+
+/** 티커 하나를 색 변수로 바꾸는 함수. 부품들은 색 규칙이 아니라 **이 함수**를 받는다. */
+export type TickerSeriesResolver = (ticker: string) => string;
+
+/**
+ * 화면 하나가 쓸 **색 사전**을 만든다. 달력 칩·아젠다 막대·미정 점·범례 점이 전부 이 하나를 공유해야
+ * "같은 종목 = 같은 색"이 성립한다 — 부품마다 각자 `tickerSeriesVar` 를 부르면 2겹 배정이 무너져
+ * 같은 화면에서 두 종목이 같은 색을 갖는 순간이 생긴다(그러면 색이 길찾기 단서가 아니라 거짓말이 된다).
+ *
+ * 집합 밖 티커(예: 예시 미리보기가 잠깐 그리는 종목)는 1겹 해시로 떨어진다 — 없는 색을 지어내는 것보다
+ * 겹칠 수 있어도 **결정적인 값**을 주는 편이 낫다.
+ */
+export const tickerSeriesResolver = (tickers: readonly string[]): TickerSeriesResolver => {
+  const map = tickerSeriesMap(tickers);
+  return (ticker: string) => map.get(ticker) ?? seriesVarFor(ticker);
+};

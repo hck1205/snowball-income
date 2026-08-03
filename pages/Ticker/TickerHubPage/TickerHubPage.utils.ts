@@ -7,11 +7,13 @@ import {
   type TickerCategoryId,
   type TickerContent
 } from '@/shared/constants/tickers';
-import type { HubTickerCard, TickerHubViewModel } from './TickerHubPage.types';
+import { assignSeries } from '@/shared/lib/tickerSeries';
+import type { HubTickerCard, TickerHubSummary, TickerHubViewModel } from './TickerHubPage.types';
 
-const toCard = (content: TickerContent): HubTickerCard => {
+const toCard = (content: TickerContent, seriesVar: string): HubTickerCard => {
   const facts = resolveTickerEngineFacts(content.ticker);
   return {
+    seriesVar,
     ticker: content.ticker,
     slug: content.slug,
     koreanName: facts.koreanName,
@@ -41,12 +43,30 @@ export const buildTickerHubViewModel = (): TickerHubViewModel => {
   const categoryIds = Object.keys(TICKER_CATEGORY_LABEL) as TickerCategoryId[];
 
   const categories = categoryIds
-    .map((id) => ({
-      id,
-      label: TICKER_CATEGORY_LABEL[id],
-      tickers: listTickerContentByCategory(id).map(toCard)
-    }))
+    .map((id) => {
+      const contents = listTickerContentByCategory(id);
+      /*
+       * 폴백 색은 **카테고리 단위**로 배정한다 — 사용자가 한 번에 눈으로 훑는 덩어리가 격자 하나이고,
+       * 8색 팔레트로 27종 전체의 무충돌을 만들 수는 없기 때문이다(assignSeries 는 9번째부터 겹친다).
+       * 카테고리 안에서만 겹치지 않으면 "같은 줄에 같은 색이 둘"이라는 실제 혼동은 생기지 않는다.
+       */
+      const seriesByTicker = assignSeries(contents.map((content) => content.ticker));
+      return {
+        id,
+        label: TICKER_CATEGORY_LABEL[id],
+        tickers: contents.map((content) => toCard(content, seriesByTicker.get(content.ticker) ?? ''))
+      };
+    })
     .filter((category) => category.tickers.length > 0);
 
   return { categories, totalCount: TICKER_CONTENT_LIST.length };
 };
+
+/**
+ * 히어로 요약 수치. `totalCount` 는 레지스트리 전체(문서 제목이 쓰는 수)이고, 카테고리 수는
+ * **비어 있지 않은** 카테고리만 센다 — 화면에 서지 않는 칸을 세면 히어로가 거짓말을 한다.
+ */
+export const summarizeTickerHub = (viewModel: TickerHubViewModel): TickerHubSummary => ({
+  tickerCount: viewModel.totalCount,
+  categoryCount: viewModel.categories.length
+});

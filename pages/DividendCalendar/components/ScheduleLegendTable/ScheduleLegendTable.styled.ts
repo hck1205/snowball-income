@@ -2,7 +2,8 @@ import styled from '@emotion/styled';
 import { color, font, motion, radius, space, subtleScrollbar } from '@/shared/styles';
 
 /**
- * 브랜드 틴트 래퍼(`DetailCard`) 위에 놓이는 밝은 패널 — 아젠다·미정과 같은 표면 규칙.
+ * 중립 카드(`DetailCard`) 안에 놓이는 밝은 패널 — 아젠다·미정과 같은 표면 규칙.
+ * (구 설명의 "브랜드 틴트 래퍼"는 2026-07-26 평탄화로 사라졌다 — 부모는 중립 면이다.)
  *
  * 🔴 `min-width: 0` 이 없으면 표가 카드를 뚫고 문서 전체를 가로로 늘린다.
  * 부모 `DetailCard` 는 그리드고 이 요소가 그리드 아이템이다. 그리드 아이템의 자동 최소 크기는
@@ -178,11 +179,17 @@ export const LegendTickerText = styled.span`
   ${font.numeric}
 `;
 
-/** 지급 달 점. 미지급도 자리를 지켜 줄마다 12칸이 유지된다(세로 스캔이 가능해진다). */
+/**
+ * 지급 달 점. 미지급도 자리를 지켜 줄마다 12칸이 유지된다(세로 스캔이 가능해진다).
+ *
+ * 🔴 지급/미지급을 **색 하나로 가르지 않는다** — 지급은 꽉 찬 10px 원(색은 티커 시리즈),
+ * 미지급은 속이 빈 6px 링이다. 크기·채움·색 세 채널이 함께 말하므로 회색조로 인쇄해도 읽힌다.
+ */
 export const ScheduleDot = styled.span<{ $paying: boolean }>`
   display: inline-block;
-  width: 8px;
-  height: 8px;
+  width: ${({ $paying }) => ($paying ? '10px' : '6px')};
+  height: ${({ $paying }) => ($paying ? '10px' : '6px')};
   border-radius: 50%;
-  background: ${({ $paying }) => ($paying ? color.brand : color.border)};
+  background: ${({ $paying }) => ($paying ? color.brand : 'transparent')};
+  box-shadow: ${({ $paying }) => ($paying ? 'none' : `inset 0 0 0 1px ${color.borderStrong}`)};
 `;

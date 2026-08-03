@@ -1,23 +1,36 @@
 import { useCallback, useId, useRef } from 'react';
-import { Info, Plus, ReceiptText, Wallet } from 'lucide-react';
-import { Banner, Button, Card, Chip, PageFooter, PageHero, StatTile } from '@/components/common';
+import { CircleDollarSign, Info, LayoutList, Plus, ReceiptText, Wallet } from 'lucide-react';
+import { Banner, BrandGlyph, Button, Chip, PageFooter, PageHero, PickCard, StatTile } from '@/components/common';
+import { ICON } from '@/shared/styles';
 import MarketIndexStrip from '@/components/MarketIndexStrip';
 import { PORTFOLIO_COPY } from '../copy';
-import { GoalCard, HoldingPicker, HoldingPickerDrawer, HoldingsTable, ManualTickerForm } from '../components';
+import {
+  GoalCard,
+  HoldingPicker,
+  HoldingPickerDrawer,
+  HoldingsComposition,
+  HoldingsTable,
+  ManualTickerForm
+} from '../components';
 import type { ManualTickerSubmitResult } from '../components';
 import { PortfolioAssumptions } from './components';
 import type { PortfolioCtaModel, PortfolioViewProps } from './PortfolioPage.types';
 import {
   ActionHint,
   ActionRow,
+  CardDivider,
   CardHead,
   CardSubtitle,
   CardTitle,
+  CardTitleBadge,
+  CardTitleGroup,
+  CountBadge,
   DDayLine,
   DDaySeparator,
   DDayTickers,
   DDayValue,
   EmptyBody,
+  EmptyMascot,
   EmptyStateCard,
   EmptyTitle,
   EntryBody,
@@ -196,6 +209,12 @@ export default function PortfolioPageView({
       />
     );
 
+  /*
+   * 도넛을 그릴 조각이 실제로 있는가. 🔴 가름선은 **여기서** 판정한다 — 컴포넌트가 스스로 `null`
+   * 을 내는 것에만 기대면 조각이 없을 때 카드에 선만 하나 남는다(무엇을 가르는지 없는 선).
+   */
+  const showComposition = !viewModel.isLoading && viewModel.rows.some((row) => (row.weightPercent ?? 0) > 0);
+
   const hintIdByText = new Map<string, string>();
   for (const item of ctaItems) {
     if (item.cta.hint && !hintIdByText.has(item.cta.hint)) {
@@ -266,6 +285,11 @@ export default function PortfolioPageView({
       {viewModel.showEmptyState ? (
         <>
         <EmptyStateCard aria-labelledby={emptyTitleId}>
+          {/* 마스코트는 **빈 상태에만** 산다 — 값이 있는 화면에 캐릭터를 세우면 숫자와 시선을 다툰다.
+              장식이라 이름을 지지 않는다(`BrandGlyph` 기본이 `aria-hidden`). */}
+          <EmptyMascot>
+            <BrandGlyph size={96} />
+          </EmptyMascot>
           <EmptyTitle id={emptyTitleId}>{copy.empty.title}</EmptyTitle>
           <EmptyBody>{copy.empty.body}</EmptyBody>
 
@@ -306,7 +330,17 @@ export default function PortfolioPageView({
               회귀도 쉽다. ⚠ hero 타일(`emphasis="hero"`)은 여전히 요약 카드 하나만 갖는다(화면당 1개). */}
           <HoldingsCard aria-labelledby={holdingsTitleId} aria-busy={viewModel.isLoading || undefined}>
             <CardHead>
-              <CardTitle id={holdingsTitleId}>{copy.holdings.title}</CardTitle>
+              <CardTitleGroup>
+                <CardTitle id={holdingsTitleId}>
+                  <CardTitleBadge aria-hidden>
+                    <LayoutList size={ICON.md} strokeWidth={ICON.stroke} focusable={false} />
+                  </CardTitleBadge>
+                  {copy.holdings.title}
+                </CardTitle>
+                {viewModel.holdingsCount > 0 ? (
+                  <CountBadge>{copy.holdings.countBadge(viewModel.holdingsCount)}</CountBadge>
+                ) : null}
+              </CardTitleGroup>
               {/* 저장소를 읽는 동안에는 추가를 받지 않는다(훅이 거절한다) — 버튼도 그 사실을 보인다. */}
               <Button
                 type="button"
@@ -348,7 +382,12 @@ export default function PortfolioPageView({
 
           <SummaryCard aria-labelledby={summaryTitleId} aria-busy={viewModel.isLoading || undefined}>
             <CardHead>
-              <CardTitle id={summaryTitleId}>{copy.summary.title}</CardTitle>
+              <CardTitle id={summaryTitleId}>
+                <CardTitleBadge aria-hidden>
+                  <CircleDollarSign size={ICON.md} strokeWidth={ICON.stroke} focusable={false} />
+                </CardTitleBadge>
+                {copy.summary.title}
+              </CardTitle>
             </CardHead>
 
             <HeroSlot>
@@ -370,6 +409,16 @@ export default function PortfolioPageView({
                 />
               ))}
             </TileGrid>
+
+            {/* 🔴 비중 도넛 — 조각 색이 위 보유 표의 종목 귀와 **같은 값**(assignSeries)이다.
+                로딩 중에는 그리지 않는다(행이 비어 있어 0조각 도넛이 된다). 조각이 없으면
+                컴포넌트가 스스로 `null` 을 낸다 — 빈 원판은 "0%"로 읽혀 거짓말이 된다. */}
+            {showComposition ? (
+              <>
+                <CardDivider />
+                <HoldingsComposition rows={viewModel.rows} title={copy.summary.composition.title} />
+              </>
+            ) : null}
 
             {viewModel.showMonthlyVsThisMonthNote ? (
               <NoteLine>
@@ -409,22 +458,35 @@ export default function PortfolioPageView({
 
       {/* 가계부 진입 — 세 카드(보유 종목 → 목표 달성 → 지금 받는 배당) **뒤에** 붙는다.
           그 순서는 사용자 확정이고 `test/portfolio/portfolioCardOrder.test.tsx` 가 DOM 순서로 잠근다.
-          `tone="wash"`(= base 위계 + 파스텔 면)라 화면당 주역 1개(요약 카드=raised) 규칙과 충돌하지 않는다.
+
+          🔴 **여기만 brand 면(PickCard)이다** — 판정 기준 한 줄("여기서 무언가를 고르면 화면이
+          바뀌는가")에서 이 카드만 참이다(나머지 셋은 읽는 면이다). 캡은 `rail`(6px)이라 틴트 면
+          예산을 먹지 않는다 — 틴트 캡이면 이 화면의 세 번째 면이 되어 기준선 2를 깬다.
+          ⚠ 카드 자체에 `onClick` 을 주지 않는다: 안에 실제 버튼이 있어 버튼 안의 버튼이 된다.
+             진입점은 종전과 똑같이 **[가계부 열기] 버튼 하나**다.
           🔴 버튼은 secondary — 이 화면의 primary 는 "시뮬레이터로 보내기"가 이미 갖고 있다. */}
       {onOpenLedger ? (
-        <Card tone="wash" title={copy.ledgerEntry.title}>
-          <EntryBody>{copy.ledgerEntry.body}</EntryBody>
-          <ActionRow>
+        <PickCard
+          title={copy.ledgerEntry.title}
+          titleAs="h2"
+          cap={{
+            kind: 'rail',
+            axis: 'identity',
+            glyph: <ReceiptText size={ICON.xl} strokeWidth={ICON.stroke} aria-hidden focusable={false} />
+          }}
+          actions={
             <Button
               type="button"
               variant="secondary"
-              startIcon={<ReceiptText size={16} strokeWidth={1.8} aria-hidden focusable={false} />}
+              startIcon={<ReceiptText size={ICON.md} strokeWidth={ICON.stroke} aria-hidden focusable={false} />}
               onClick={onOpenLedger}
             >
               {copy.ledgerEntry.cta}
             </Button>
-          </ActionRow>
-        </Card>
+          }
+        >
+          <EntryBody>{copy.ledgerEntry.body}</EntryBody>
+        </PickCard>
       ) : null}
 
       <PortfolioAssumptions

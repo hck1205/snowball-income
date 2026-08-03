@@ -1,7 +1,7 @@
 import styled from '@emotion/styled';
 import { Link } from 'react-router-dom';
 import {
-  cardElevation,
+  PICK,
   color,
   font,
   iconOpticalAlign,
@@ -20,6 +20,7 @@ import type { PresetGroupTone } from './PresetBrowser.types';
  * 🔴 **카드는 링크가 아니다.** 프리셋 딥링크(카드 클릭 → 시뮬레이터 프리필)는 새 프리필 계약과
  * 하이드레이션 순서 검증이 필요한 별건이라, v1 은 섹션 끝 CTA 하나로 시뮬레이터에 보낸다.
  * 빈 포트폴리오로 도착하면 시뮬레이터가 자기 온보딩 프리셋 보드를 그대로 띄운다 — 착지가 정확하다.
+ * (그래서 `PickCard` 에 `to`/`onClick` 을 주지 않는다 — 부품은 "누를 수 없는 정보 카드"도 낸다.)
  */
 
 /** 그룹 배지 톤. 시뮬레이터 프리셋 보드와 같은 매핑이다(새로 만들 것이 없다). */
@@ -147,7 +148,13 @@ export const MoreButton = styled.button`
 export const PresetGrid = styled.ul`
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: clamp(12px, 2vw, 20px);
+  /*
+   * 🔴 간격은 PICK.gap 이다(clamp 12~16px) — 고르는 카드의 hover 부상 그림자(e2)는 blur 12px 라
+   * 그보다 좁으면 그림자가 이웃 카드를 침범한다. 값을 손으로 적지 마라(shared/styles/tokens.ts 소유).
+   * ⚠ 열 수는 그대로 2 다. 위 주석의 실측(3열이면 네 묶음 전부 오른쪽 한 칸이 빈다)이 여전히 유효하고,
+   *   PickCardGrid(auto-fill)로 갈아타면 그 판단이 뷰포트 폭에 따라 뒤집힌다.
+   */
+  gap: ${PICK.gap};
   margin: 0;
   padding: 0;
   list-style: none;
@@ -158,23 +165,18 @@ export const PresetGrid = styled.ul`
   }
 `;
 
-export const PresetCard = styled.li`
+/**
+ * 카드 **본문 한 벌**(훅 문장 → 비중 막대 → 비중 텍스트).
+ *
+ * 🔴 카드 껍데기는 이제 공용 `PickCard` 가 소유한다(면·라운드·레일 캡·글리프 배지·제목 크기).
+ * 여기 남은 것은 **이 화면만의 내용물**뿐이다 — 껍데기를 다시 그리면 같은 모양의 "고르는 카드"가
+ * 8번째로 복제된다(그게 `PickCard` 가 생긴 이유다).
+ */
+export const PresetFacts = styled.div`
   display: grid;
   gap: ${space[2]};
   align-content: start;
   min-width: 0;
-  padding: clamp(14px, 2vw, 20px);
-  border-radius: ${radius.lg};
-  ${cardElevation('base')}
-`;
-
-export const PresetTitle = styled.h4`
-  margin: 0;
-  font-family: ${font.display};
-  font-size: ${font.size.base};
-  font-weight: ${font.weight.bold};
-  color: ${color.text};
-  word-break: keep-all;
 `;
 
 export const PresetHook = styled.p`
@@ -239,21 +241,22 @@ export const BrowserCta = styled(Link)`
   display: inline-flex;
   align-items: center;
   gap: ${space[2]};
-  height: 40px;
-  padding: 0 ${space[4]};
-  border: 1px solid ${color.borderStrong};
-  border-radius: ${radius.sm};
-  background: ${color.surface};
+  height: 44px;
+  padding: 0 ${space[5]};
+  /* 고르는 면의 어휘를 따라 알약이다 — 카드가 30~34px 로 둥근 지면에서 8px 사각 버튼만 각져 있었다. */
+  border: 1px solid ${color.brandBorder};
+  border-radius: ${radius.pill};
+  background: ${color.brandSubtle};
   font-size: ${font.size.sm};
   font-weight: ${font.weight.semibold};
-  color: ${color.text};
+  /* brand-text / brand-subtle 은 contrast.test.ts 가 16테마 전부에서 재는 쌍이다(파생 면 아님). */
+  color: ${color.brandText};
   text-decoration: none;
   transition: background-color ${motion.fast} ${motion.ease}, border-color ${motion.fast} ${motion.ease},
     ${pressTransition};
   ${pressable}
 
   &:hover {
-    background: ${color.surfaceHover};
-    border-color: ${color.brandBorder};
+    background: ${color.brandSubtleHover};
   }
 `;

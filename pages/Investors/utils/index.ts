@@ -5,6 +5,7 @@ export {
   buildInvestorCard,
   buildInvestorCards,
   comparableTickers,
+  cssVarName,
   formatUsdCompact,
   monogram,
   personColorVar
