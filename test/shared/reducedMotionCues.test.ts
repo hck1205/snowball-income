@@ -70,14 +70,11 @@ const SPINNERS = [
     anchor: undefined
   },
   {
-    label: '갤러리 더 불러오는 중 스피너',
-    file: 'pages/Community/CommunityGalleryPage/CommunityGalleryPage.styled.ts',
-    anchor: 'community-spin'
-  },
-  {
-    label: '게시판 더 불러오는 중 스피너',
-    file: 'pages/Community/CommunityBoardPage/CommunityBoardPage.styled.ts',
-    anchor: 'board-spin'
+    // 갤러리·게시판이 **같은 꼬리 부품**(FeedTail)을 쓰게 되며 두 벌이던 스피너가 한 벌이 됐다
+    // (2026-08-03 목록 리워크). 자리는 옮겼지만 계약은 그대로다.
+    label: '커뮤니티 목록 더 불러오는 중 스피너',
+    file: 'pages/Community/components/FeedStates/FeedStates.styled.ts',
+    anchor: 'feed-tail-spin'
   }
 ] as const;
 
@@ -91,14 +88,10 @@ const SKELETONS = [
     anchor: undefined
   },
   {
-    label: '갤러리 목록 스켈레톤',
-    file: 'pages/Community/CommunityGalleryPage/CommunityGalleryPage.styled.ts',
-    anchor: 'community-shimmer'
-  },
-  {
-    label: '게시판 목록 스켈레톤',
-    file: 'pages/Community/CommunityBoardPage/CommunityBoardPage.styled.ts',
-    anchor: 'board-shimmer'
+    // 카드 스켈레톤·행 스켈레톤이 한 파일(FeedStates)로 합쳐졌다 — 두 목록이 같은 부품을 쓴다.
+    label: '커뮤니티 목록 스켈레톤',
+    file: 'pages/Community/components/FeedStates/FeedStates.styled.ts',
+    anchor: 'feed-skeleton-sweep'
   },
   {
     label: '시뮬레이터 결과 그리드 스켈레톤',

@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef } from 'react';
 import type { FormEvent, MouseEvent } from 'react';
+import { ArrowDownToLine, ArrowUpFromLine } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { Banner, Button, Modal } from '@/components/common';
 import { formatKRW } from '@/shared/utils';
@@ -183,7 +184,10 @@ export default function LedgerFormModal({
                     onChange={() => onChange({ kind: 'income' })}
                   />
                   {/* 선택 신호는 이 면에 얹힌다(`input:checked + span`) — 라벨이 아니다. */}
-                  <KindOptionFace>{copy.form.kindIncome}</KindOptionFace>
+                  <KindOptionFace>
+                    <ArrowDownToLine size={16} strokeWidth={1.8} aria-hidden focusable={false} />
+                    {copy.form.kindIncome}
+                  </KindOptionFace>
                 </KindOption>
                 <KindOption>
                   <input
@@ -193,7 +197,10 @@ export default function LedgerFormModal({
                     checked={model.draft.kind === 'expense'}
                     onChange={() => onChange({ kind: 'expense' })}
                   />
-                  <KindOptionFace>{copy.form.kindExpense}</KindOptionFace>
+                  <KindOptionFace>
+                    <ArrowUpFromLine size={16} strokeWidth={1.8} aria-hidden focusable={false} />
+                    {copy.form.kindExpense}
+                  </KindOptionFace>
                 </KindOption>
               </KindOptions>
             </KindFieldset>

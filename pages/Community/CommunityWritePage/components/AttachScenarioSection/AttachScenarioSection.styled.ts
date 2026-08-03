@@ -3,69 +3,71 @@ import { Link } from 'react-router-dom';
 import { color, font, motion, radius, space } from '@/shared/styles';
 
 /**
- * 첨부 섹션 조각 — `CommunityWritePage.styled.ts`에서 옮겨왔다(스타일 값 동일, 마크업/동작 변화 없음).
+ * 첨부 섹션 — 리워크에서 **인스펙터 타일**이 됐다(가라앉은 면 위, 폭 340px).
+ * 그전에는 폼 본문 흐름 안의 전폭 섹션이라 제목(lg/bold)이 본문 필드 라벨과 무게를 다퉜다.
+ * 지금은 타일 머리(작은 대문자급 라벨)와 토글이 한 줄을 나눠 쓴다.
  */
 
-/* ── 첨부 섹션 헤더 (제목 + "첨부" 토글) ──────────────────────────────────────
- * FormSection은 title 우측 슬롯을 지원하지 않아, 이 섹션만 헤더를 로컬로 조립한다.
- * 제목 타이포는 common FormSection.SectionTitle과 동일(lg/bold/tight/-0.01em). */
-export const AttachSection = styled.section`
-  display: grid;
-  gap: ${space[3]};
-`;
-
+/** 타일 머리 — 제목 + "첨부" 토글. FormSection 은 우측 슬롯이 없어 여기서 로컬로 조립한다. */
 export const AttachSectionHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: ${space[3]};
+  flex-wrap: wrap;
 `;
 
-export const AttachSectionTitle = styled.h3`
+export const AttachSectionTitle = styled.h2`
   margin: 0;
-  color: ${color.text};
-  font-size: ${font.size.lg};
+  color: ${color.textSecondary};
+  font-size: ${font.size.xs};
   font-weight: ${font.weight.bold};
-  line-height: ${font.leading.tight};
-  letter-spacing: -0.01em;
+  letter-spacing: 0.06em;
 `;
 
 /* 첨부 상태 — 프리뷰(ready/empty)와 첨부 카드가 이 컨테이너 안에서 교체된다.
- * aria-live가 동작하려면 상태가 **같은 부모** 안에서 갈려야 한다(부모째 갈아끼우지 말 것). */
+ * aria-live 가 동작하려면 상태가 **같은 부모** 안에서 갈려야 한다(부모째 갈아끼우지 말 것). */
 export const AttachStates = styled.div`
   display: grid;
-  gap: ${space[2]};
+  gap: ${space[3]};
+  min-width: 0;
 `;
 
-/* 첨부 카드 */
+/**
+ * 첨부할 시나리오가 없을 때. 점선 상자 + 안내 + 길(시뮬레이터로).
+ * 🔴 빈 상태가 초라하면 앱이 초라해 보인다 — 세로로 세우고 여백을 줘서 "잠시 비었다"가 아니라
+ * "여기서 다음에 할 일"로 읽히게 했다.
+ */
 export const AttachEmpty = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
+  justify-items: center;
   gap: ${space[3]};
-  flex-wrap: wrap;
-  padding: ${space[4]};
-  border-radius: ${radius.md};
-  border: 1px dashed ${color.border};
-  background: ${color.surfaceMuted};
+  padding: ${space[6]} ${space[4]};
+  border-radius: ${radius.lg};
+  border: 1px dashed ${color.borderStrong};
+  background: ${color.surface};
   color: ${color.textSecondary};
   font-size: ${font.size.sm};
+  text-align: center;
 `;
 
+/**
+ * 첨부됨(수정 모드의 외부 payload) 카드.
+ * 🔴 면색(brandSubtle)을 뺐다 — 이 화면의 틴트 면 예산은 없는 것이나 마찬가지고(글쓰기는 data 면),
+ * "붙어 있음"은 **테두리 2px + 상단 라벨**이라는 형태 채널이 이미 말한다.
+ */
 export const AttachCard = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: ${space[3]};
+  display: grid;
+  gap: ${space[2]};
   padding: ${space[4]};
-  border-radius: ${radius.md};
-  border: 1px solid ${color.brandBorder};
-  background: ${color.brandSubtle};
+  border-radius: ${radius.lg};
+  border: 2px solid ${color.brandBorder};
+  background: ${color.surface};
 `;
 
 export const AttachInfo = styled.div`
   display: grid;
-  gap: 2px;
+  gap: ${space[1]};
   min-width: 0;
 
   strong {
@@ -84,17 +86,16 @@ export const AttachInfo = styled.div`
   }
 `;
 
-/** 프리뷰(미첨부) 상태의 좌측 정보 블록 — 첨부 카드와 같은 요약 포맷을 쓴다. */
+/** 빈 상태의 안내 블록 — 제목 한 줄 + 설명 한 줄. */
 export const AttachPreviewInfo = styled.div`
   display: grid;
-  gap: 2px;
+  gap: ${space[1]};
   min-width: 0;
-  flex: 1 1 240px;
 
   strong {
     color: ${color.text};
-    font-size: ${font.size.sm};
-    font-weight: ${font.weight.semibold};
+    font-size: ${font.size.md};
+    font-weight: ${font.weight.bold};
   }
 
   span {
@@ -113,20 +114,20 @@ export const AttachedHint = styled.p`
 `;
 
 /**
- * 빈 상태의 "시뮬레이터로 가기" — 시맨틱 내비게이션이라 버튼이 아닌 `Link`.
+ * 빈 상태의 "시뮬레이터로 가기" — 시맨틱 내비게이션이라 버튼이 아닌 Link.
  * 시각은 공용 Button secondary sm과 동일 토큰(borderStrong/surface/text, 32px, radius.sm).
  */
 export const AttachEmptyCtaLink = styled(Link)`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 32px;
-  padding: 0 ${space[3]};
-  border-radius: ${radius.sm};
+  height: 34px;
+  padding: 0 ${space[4]};
+  border-radius: ${radius.pill};
   border: 1px solid ${color.borderStrong};
   background: ${color.surface};
   color: ${color.text};
-  font-size: ${font.size.xs};
+  font-size: ${font.size.sm};
   font-weight: ${font.weight.semibold};
   text-decoration: none;
   white-space: nowrap;
@@ -134,6 +135,12 @@ export const AttachEmptyCtaLink = styled(Link)`
 
   &:hover {
     background: ${color.surfaceHover};
-    border-color: ${color.brandBorder};
+    border-color: ${color.brand};
+    color: ${color.brand};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${color.focusRing};
+    outline-offset: 2px;
   }
 `;

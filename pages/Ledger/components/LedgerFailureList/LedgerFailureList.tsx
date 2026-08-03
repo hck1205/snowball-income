@@ -1,8 +1,10 @@
 import { useId } from 'react';
+import { RotateCcw, TriangleAlert } from 'lucide-react';
 import { Button, Card } from '@/components/common';
 import { LEDGER_COPY } from '../../copy';
 import type { LedgerFailureListProps } from './LedgerFailureList.types';
 import {
+  FailureBody,
   FailureItem,
   FailureItems,
   FailureLabel,
@@ -22,6 +24,9 @@ const copy = LEDGER_COPY;
  *
  * `Card tone="sunken"` = 부속 위계. 본 목록과 성격이 다른 **재시도 대기열**이라 한 단계 가라앉힌다.
  * 🔴 요약 카드 **밖 형제**로 둔다(`Card` 안 `Card` 금지).
+ *
+ * ⚠ 항목 안의 카드 면(`surface`)은 `Card` 안 `Card` 가 아니다 — 리스트 항목이지 카드 부품이 아니고,
+ * 가라앉은 면 위에서 각 건이 서로 갈려 보이게 하는 최소 수단이다.
  */
 export default function LedgerFailureList({ model, retryCountdowns, onRetry, onRetryAll }: LedgerFailureListProps) {
   const hintId = useId();
@@ -35,9 +40,12 @@ export default function LedgerFailureList({ model, retryCountdowns, onRetry, onR
 
           return (
             <FailureItem key={row.id}>
-              <FailureLabel>{copy.error.rowFailed}</FailureLabel>
-              <FailureSummary>{`${row.dateText} · ${kindText} · ${row.category} · ${row.amountText}`}</FailureSummary>
-              <FailureReason>{row.failure?.body}</FailureReason>
+              <TriangleAlert size={18} strokeWidth={1.8} aria-hidden focusable={false} />
+              <FailureBody>
+                <FailureLabel>{copy.error.rowFailed}</FailureLabel>
+                <FailureSummary>{`${row.dateText} · ${kindText} · ${row.category} · ${row.amountText}`}</FailureSummary>
+                <FailureReason>{row.failure?.body}</FailureReason>
+              </FailureBody>
               <Button
                 type="button"
                 size="sm"
@@ -57,6 +65,7 @@ export default function LedgerFailureList({ model, retryCountdowns, onRetry, onR
         <Button
           type="button"
           variant="secondary"
+          startIcon={<RotateCcw size={16} strokeWidth={1.8} aria-hidden focusable={false} />}
           disabled={model.isRetryAllBlocked}
           aria-describedby={model.isRetryAllBlocked ? hintId : undefined}
           onClick={onRetryAll}

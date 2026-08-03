@@ -124,4 +124,92 @@ describe('TickerDetailPage', () => {
     expect(section).not.toBeNull();
     expect(section).toHaveFocus();
   });
+
+  /**
+   * 🔴 목차는 **본문 장만이 아니라 페이지 전체**를 센다(2026-08-03 개편).
+   *
+   * 종전 목차는 서사 섹션만 담아 문서의 앞 60%만 가리켰고, 참고 지표·FAQ·관련 티커로 내려가면
+   * 활성 표시가 마지막 장에 멈춘 채였다. 이 검사가 그 뒤 절반을 잠근다 — 부록 항목이 목차에서
+   * 사라지면 실패한다.
+   */
+  it('lists the appendix blocks in the table of contents, not just the prose chapters', async () => {
+    const user = userEvent.setup();
+    renderAt('/ticker/schd');
+
+    const toc = screen.getByRole('navigation', { name: '이 페이지 목차' });
+    for (const label of ['참고 지표', '자주 묻는 질문', '다음에 볼 티커']) {
+      expect(within(toc).getByRole('button', { name: label })).toBeInTheDocument();
+    }
+
+    // 목차 항목은 실제 앵커로 이동한다(존재하지 않는 id 를 가리키면 눌러도 아무 일이 없다).
+    await user.click(within(toc).getByRole('button', { name: '자주 묻는 질문' }));
+    expect(document.getElementById('faq')).toHaveFocus();
+  });
+
+  /**
+   * 히어로 지표 4종은 **하나도 빠지지 않는다** — 배치만 "주역 하나 + 보조 셋"으로 갈렸다.
+   * 값이 아니라 개수를 지키는 검사다(엔진 값이 갱신돼도 이 검사는 그대로 유효하다).
+   */
+  it('keeps all four engine stats in the hero (one lead + three supporting)', () => {
+    const facts = resolveTickerEngineFacts('SCHD');
+    renderAt('/ticker/schd');
+
+    for (const label of [
+      '배당률(세전, 명목)',
+      '연 배당성장률(계산 가정)',
+      '기대 총수익률(가정)',
+      '배당 지급 주기'
+    ]) {
+      expect(screen.getAllByText(label).length).toBeGreaterThan(0);
+    }
+    expect(screen.getAllByText(facts.expectedTotalReturnDisplay).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(facts.frequencyLabel).length).toBeGreaterThan(0);
+  });
+
+  /**
+   * 상위 보유 종목은 **크롤러가 읽는 서버 HTML 에만** 있고 화면에는 없던 블록이다
+   * (`server/handlers/TickerHtml` 의 renderTopHoldings). 2026-08-03 개편에서 화면에도 들어왔다.
+   *
+   * 🔴 앵커 티커를 하드코딩하지 않는다 — `topHoldings` 가 채워진 첫 엔트리를 데이터에서 고른다
+   * (발행사 접근이 막혀 특정 티커가 비어도 이 파일을 고칠 일이 없어야 한다).
+   */
+  it('renders the top-holdings table for tickers that have issuer-disclosed holdings', () => {
+    const entry = TICKER_CONTENT_LIST.find((content) => content.reference.topHoldings !== undefined);
+    expect(entry).toBeDefined();
+    const topHoldings = entry!.reference.topHoldings!;
+
+    renderAt(`/ticker/${entry!.slug}`);
+
+    expect(screen.getByRole('heading', { name: '상위 보유 종목' })).toBeInTheDocument();
+    const table = screen.getByRole('table');
+    // 첫 행의 심볼과 출처 링크가 실제로 나온다(표만 있고 출처가 없으면 값의 근거가 사라진다).
+    expect(within(table).getByText(topHoldings.holdings[0]!.symbol)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: topHoldings.sourceLabel })).toHaveAttribute(
+      'href',
+      topHoldings.sourceUrl
+    );
+  });
+
+  it('omits the top-holdings block entirely when the issuer data is not filled in (SCHD)', () => {
+    const schd = TICKER_CONTENT_LIST.find((content) => content.ticker === 'SCHD');
+    // 전제: SCHD 는 변동성을 이유로 보유 종목을 일부러 비워 뒀다. 채워지면 이 검사의 대상이 바뀐다.
+    expect(schd?.reference.topHoldings).toBeUndefined();
+
+    renderAt('/ticker/schd');
+    expect(screen.queryByRole('heading', { name: '상위 보유 종목' })).toBeNull();
+    expect(screen.queryByRole('table')).toBeNull();
+  });
+
+  /** 콘텐츠가 없는 관련 티커는 링크가 아닐 뿐 아니라, **글자로** 그 사실을 말해야 한다(색 단독 금지). */
+  it('labels content-less related tickers in words, not only by styling', () => {
+    renderAt('/ticker/sdy');
+    expect(screen.getAllByText('소개 준비 중').length).toBeGreaterThan(0);
+  });
+
+  /** 이 지면의 법무 링크는 공용 푸터가 유일한 상시 진입점이다(개편 전에는 푸터 자체가 없었다). */
+  it('renders the shared site footer with the legal entry points', () => {
+    renderAt('/ticker/schd');
+    expect(screen.getByRole('link', { name: '개인정보처리방침' })).toHaveAttribute('href', '/privacy');
+    expect(screen.getByRole('link', { name: '이용약관' })).toHaveAttribute('href', '/terms');
+  });
 });

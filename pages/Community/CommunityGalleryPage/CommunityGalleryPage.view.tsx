@@ -1,66 +1,51 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
 import { parseScenarioSimSummary } from '@/shared/lib/snowball';
-import { Banner, Button, Tabs } from '@/components/common';
+import { Button, PickCardGrid, Tabs } from '@/components/common';
 import {
   ClockIcon,
   CommunitySearchBar,
-  EmptyState,
   FlameIcon,
   GridIcon,
   ListIcon,
-  PencilIcon,
-  PostCard,
-  PostRow,
-  UsersIcon
+  PencilIcon
 } from '@/components/community';
+import {
+  FeedCardSkeletons,
+  FeedEmpty,
+  FeedError,
+  FeedMasthead,
+  FeedRowSkeletons,
+  FeedTail,
+  PostFeedRow,
+  PostGalleryCard
+} from '@/pages/Community/components';
 import type { CommunityGalleryViewProps } from './CommunityGalleryPage.types';
 import {
-  BannerAction,
-  CardGrid,
-  ControlActions,
-  ControlBar,
-  ErrorWrap,
+  FeedDeck,
   InlineList,
-  InlineRetry,
-  LoadStatus,
   SearchRow,
   Sentinel,
-  SkeletonCard,
-  SkeletonLine,
-  SkeletonRow,
-  Spinner,
   ViewToggle,
-  ViewToggleButton
+  ViewToggleButton,
+  ViewToggleLabel
 } from './CommunityGalleryPage.styled';
 
 const g = COMMUNITY_COPY.gallery;
 
-const CardSkeletons = () => (
-  <CardGrid aria-hidden="true">
-    {Array.from({ length: 6 }).map((_, index) => (
-      <li key={index}>
-        <SkeletonCard>
-          <SkeletonLine w="40%" />
-          <SkeletonLine w="80%" h="18px" />
-          <SkeletonLine w="60%" />
-          <SkeletonLine w="50%" />
-        </SkeletonCard>
-      </li>
-    ))}
-  </CardGrid>
-);
-
-const RowSkeletons = () => (
-  <div aria-hidden="true">
-    {Array.from({ length: 8 }).map((_, index) => (
-      <SkeletonRow key={index}>
-        <SkeletonLine w="55%" />
-        <SkeletonLine w="20%" />
-      </SkeletonRow>
-    ))}
-  </div>
-);
+/**
+ * 머리 면 카피.
+ *
+ * `shared/constants/community/copy.ts` 가 아니라 여기 있는 이유: 이 세 문장은 **갤러리 목록
+ * 화면의 조판 요소**이고 다른 화면이 쓰지 않는다. 공용 카피 파일은 여러 화면이 동시에 고치는
+ * 자리라, 한 화면에서만 쓰는 문장을 거기 두면 충돌만 늘린다. 여러 화면이 같은 문장을 요구하는
+ * 순간 그때 공용으로 올린다.
+ */
+const MASTHEAD = {
+  eyebrow: '커뮤니티',
+  title: '포트폴리오 갤러리',
+  lead: '다른 투자자가 공유한 배당 포트폴리오와 시뮬레이션 결과를 살펴보십시오.'
+} as const;
 
 export default function CommunityGalleryView({ viewModel }: CommunityGalleryViewProps) {
   const {
@@ -107,13 +92,24 @@ export default function CommunityGalleryView({ viewModel }: CommunityGalleryView
 
   return (
     <section aria-label={g.mainLabel}>
+      {/* 화면의 이름·성격·주 행동. 글쓰기 CTA 가 헤더도 컨트롤 줄도 아닌 여기 있는 이유는
+          FeedMasthead 머리말 참고(문맥은 제목이 주고, 폭은 머리 면이 통째로 갖는다). */}
+      <FeedMasthead
+        eyebrow={MASTHEAD.eyebrow}
+        title={MASTHEAD.title}
+        lead={MASTHEAD.lead}
+        actionLabel={COMMUNITY_COPY.nav.write}
+        actionIcon={<PencilIcon size={16} strokeWidth={1.8} />}
+        onAction={onWrite}
+      />
+
       {/* 검색은 본문 첫 줄이다 — 앱 헤더 가운데 슬롯에서 내려왔다(2026-07-31 사용자 지시).
           정렬·뷰 토글과 같은 줄에 두지 않는 이유는 SearchRow 주석 참고. */}
       <SearchRow>
         <CommunitySearchBar />
       </SearchRow>
 
-      <ControlBar>
+      <FeedDeck>
         <Tabs
           ariaLabel={g.sortAriaLabel}
           activeId={sort}
@@ -123,60 +119,40 @@ export default function CommunityGalleryView({ viewModel }: CommunityGalleryView
             { id: 'popular', label: g.sortPopular, icon: <FlameIcon size={16} strokeWidth={1.8} /> }
           ]}
         />
-        <ControlActions>
-          <ViewToggle>
-            <ViewToggleButton
-              type="button"
-              active={viewType === 'card'}
-              aria-pressed={viewType === 'card'}
-              aria-label={g.viewCard}
-              onClick={() => onToggleView('card')}
-            >
-              <GridIcon size={16} strokeWidth={1.8} />
-            </ViewToggleButton>
-            <ViewToggleButton
-              type="button"
-              active={viewType === 'inline'}
-              aria-pressed={viewType === 'inline'}
-              aria-label={g.viewInline}
-              onClick={() => onToggleView('inline')}
-            >
-              <ListIcon size={16} strokeWidth={1.8} />
-            </ViewToggleButton>
-          </ViewToggle>
-          {/* 글쓰기는 헤더가 아니라 여기 있다 — 헤더는 전 라우트 공통이라 "무엇을 쓰는지"의 문맥이 없다.
-              게시판도 자기 본문 상단에 같은 버튼을 갖는다(CommunityBoardPage.view). */}
-          <Button
-            variant="primary"
-            size="sm"
-            startIcon={<PencilIcon size={16} strokeWidth={1.8} />}
-            onClick={onWrite}
+        <ViewToggle>
+          <ViewToggleButton
+            type="button"
+            active={viewType === 'card'}
+            aria-pressed={viewType === 'card'}
+            aria-label={g.viewCard}
+            onClick={() => onToggleView('card')}
           >
-            {COMMUNITY_COPY.nav.write}
-          </Button>
-        </ControlActions>
-      </ControlBar>
+            <GridIcon size={14} strokeWidth={1.8} />
+            <ViewToggleLabel>카드</ViewToggleLabel>
+          </ViewToggleButton>
+          <ViewToggleButton
+            type="button"
+            active={viewType === 'inline'}
+            aria-pressed={viewType === 'inline'}
+            aria-label={g.viewInline}
+            onClick={() => onToggleView('inline')}
+          >
+            <ListIcon size={14} strokeWidth={1.8} />
+            <ViewToggleLabel>목록</ViewToggleLabel>
+          </ViewToggleButton>
+        </ViewToggle>
+      </FeedDeck>
 
       {status === 'loading' ? (
-        <div aria-busy="true">{viewType === 'card' ? <CardSkeletons /> : <RowSkeletons />}</div>
+        <div aria-busy="true">{viewType === 'card' ? <FeedCardSkeletons /> : <FeedRowSkeletons />}</div>
       ) : null}
 
       {status === 'error' ? (
-        <ErrorWrap>
-          <Banner tone="danger" role="alert" title={g.errorTitle}>
-            {g.errorBody}
-            <BannerAction>
-              <Button variant="secondary" size="sm" onClick={retry}>
-                {g.retry}
-              </Button>
-            </BannerAction>
-          </Banner>
-        </ErrorWrap>
+        <FeedError title={g.errorTitle} body={g.errorBody} retryLabel={g.retry} onRetry={retry} />
       ) : null}
 
       {status === 'empty' ? (
-        <EmptyState
-          icon={<UsersIcon size={24} strokeWidth={1.8} />}
+        <FeedEmpty
           title={g.emptyTitle}
           subtitle={g.emptySubtitle}
           action={
@@ -188,7 +164,7 @@ export default function CommunityGalleryView({ viewModel }: CommunityGalleryView
       ) : null}
 
       {status === 'searchEmpty' ? (
-        <EmptyState
+        <FeedEmpty
           title={g.searchEmptyTitle(query)}
           subtitle={g.searchEmptySubtitle}
           action={
@@ -200,7 +176,7 @@ export default function CommunityGalleryView({ viewModel }: CommunityGalleryView
       ) : null}
 
       {status === 'filteredEmpty' ? (
-        <EmptyState
+        <FeedEmpty
           title={g.filterEmptyTitle}
           subtitle={g.filterEmptySubtitle}
           action={
@@ -214,41 +190,33 @@ export default function CommunityGalleryView({ viewModel }: CommunityGalleryView
       {status === 'ready' ? (
         <>
           {viewType === 'card' ? (
-            <CardGrid>
+            /* 고르는 카드의 격자 — 열 폭·간격·부상 여유를 공용 부품이 소유한다(손으로 적지 않는다). */
+            <PickCardGrid as="ul" minColumnWidth="300px">
               {parsedItems.map(({ item, simSummary }) => (
-                <li key={item.id}>
-                  <PostCard item={item} simSummary={simSummary} />
-                </li>
+                <PostGalleryCard key={item.id} item={item} simSummary={simSummary} />
               ))}
-            </CardGrid>
+            </PickCardGrid>
           ) : (
             <InlineList>
               {parsedItems.map(({ item, simSummary }) => (
                 <li key={item.id}>
-                  <PostRow item={item} simSummary={simSummary} />
+                  <PostFeedRow item={item} simSummary={simSummary} />
                 </li>
               ))}
             </InlineList>
           )}
 
           <Sentinel ref={sentinelRef} />
-          <LoadStatus role="status" aria-live="polite">
-            {loadMoreError ? (
-              <>
-                {COMMUNITY_COPY.common.genericError}{' '}
-                <InlineRetry type="button" onClick={retry}>
-                  {g.retry}
-                </InlineRetry>
-              </>
-            ) : isLoadingMore ? (
-              <>
-                <Spinner aria-hidden="true" />
-                {g.loadingMore}
-              </>
-            ) : reachedEnd ? (
-              g.reachedEnd
-            ) : null}
-          </LoadStatus>
+          <FeedTail
+            isLoadingMore={isLoadingMore}
+            loadMoreError={loadMoreError}
+            reachedEnd={reachedEnd}
+            loadingLabel={g.loadingMore}
+            endLabel={g.reachedEnd}
+            errorLabel={COMMUNITY_COPY.common.genericError}
+            retryLabel={g.retry}
+            onRetry={retry}
+          />
         </>
       ) : null}
     </section>

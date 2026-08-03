@@ -24,6 +24,9 @@ export type { LedgerSignInPanelProps } from './LedgerSignInPanel';
 export { LedgerRemoveDialog } from './LedgerRemoveDialog';
 export type { LedgerRemoveDialogProps } from './LedgerRemoveDialog';
 
+export { LedgerStepRail } from './LedgerStepRail';
+export type { LedgerStepRailProps, LedgerStepTone } from './LedgerStepRail';
+
 export { LedgerTable } from './LedgerTable';
 export type { LedgerTableProps } from './LedgerTable';
 

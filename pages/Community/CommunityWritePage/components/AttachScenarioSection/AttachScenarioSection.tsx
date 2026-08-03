@@ -2,7 +2,7 @@ import { COMMUNITY_COPY } from '@/shared/constants/community';
 import { SIMULATOR_PATH } from '@/shared/constants/routes';
 import { ToggleField } from '@/components/common';
 import { SimSummaryStats } from '@/components/community';
-import { EditorHint, FieldError } from '../../CommunityWritePage.styled';
+import { EditorHint, FieldError, InspectorSection } from '../../CommunityWritePage.styled';
 import { attachSummary } from '../../CommunityWritePage.utils';
 import { countIncludedTickers } from '../../hooks';
 import ScenarioPicker from '../ScenarioPicker';
@@ -13,7 +13,6 @@ import {
   AttachEmptyCtaLink,
   AttachInfo,
   AttachPreviewInfo,
-  AttachSection,
   AttachSectionHeader,
   AttachSectionTitle,
   AttachStates,
@@ -23,8 +22,8 @@ import {
 const w = COMMUNITY_COPY.write;
 
 /**
- * 시뮬레이션 첨부 섹션 — 헤더 "첨부" 토글로 활성/해제, 활성 시 1단계 택1 피커.
- * CommunityWritePage 뷰에서 조각만 분리했다 — 첨부 상태 배선(선택/해제 커밋)은 부모에 그대로 있다.
+ * 시뮬레이션 첨부 — 인스펙터 타일. 머리의 "첨부" 토글로 활성/해제, 활성 시 1단계 택1 피커.
+ * 첨부 상태 배선(선택/해제 커밋)은 부모에 그대로 있다.
  */
 export default function AttachScenarioSection({
   attachEnabled,
@@ -42,7 +41,7 @@ export default function AttachScenarioSection({
   const monthly = attachedPayload?.investmentSettings?.monthlyContribution ?? 0;
 
   return (
-    <AttachSection>
+    <InspectorSection>
       <AttachSectionHeader>
         <AttachSectionTitle>{w.fieldAttachment}</AttachSectionTitle>
         <ToggleField
@@ -91,6 +90,6 @@ export default function AttachScenarioSection({
         </AttachStates>
       ) : null}
       {error ? <FieldError>{error}</FieldError> : null}
-    </AttachSection>
+    </InspectorSection>
   );
 }

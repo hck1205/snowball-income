@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useId, useRef } from 'react';
-import { ReceiptText, RotateCw } from 'lucide-react';
-import { Banner, Button, Card, HintText, MODAL_EXIT_MS, PageFooter, PageHero, StatTile } from '@/components/common';
+import { ArrowDownToLine, ArrowUpFromLine, CalendarOff, Plus, ReceiptText, RefreshCw, RotateCw } from 'lucide-react';
+import { Banner, Button, Card, HintText, MODAL_EXIT_MS, PageFooter, PageHero } from '@/components/common';
 import { useOverlayPresence } from '@/shared/hooks';
 import { LEDGER_COPY } from '../copy';
 import {
@@ -20,35 +20,64 @@ import type { LedgerViewProps } from './LedgerPage.types';
 import {
   ActionHint,
   ActionRow,
+  AlertLane,
   BannerRow,
+  CountBadge,
   CreatedActions,
   EmptyBlock,
   EmptyBody,
+  EmptyGlyph,
   EmptyTitle,
+  FlowCell,
+  FlowCount,
+  FlowGrid,
+  FlowHead,
+  FlowValue,
   FreshnessNotice,
-  FreshnessRow,
-  HeroSlot,
-  ReadAtText,
+  LedgerColumn,
+  ListToolbar,
   LiveRegion,
   PageStack,
+  ReadAtText,
+  ScopePanel,
+  ScopeRail,
   SkeletonBar,
+  SkeletonCell,
   SkeletonList,
   SkeletonRow,
   SummaryCard,
-  TileGrid
+  SummaryHint,
+  SummaryLabel,
+  SummaryValue,
+  Workspace
 } from './LedgerPage.styled';
 
 const copy = LEDGER_COPY;
 
 const SKELETON_ROWS = [0, 1, 2];
 
+/** 목록 자리의 로딩 골격. 행 세 줄의 **모양**을 그대로 그린다(값이 올 자리를 미리 잡는다). */
+const renderSkeletonList = () => (
+  <SkeletonList aria-hidden>
+    {SKELETON_ROWS.map((row) => (
+      <SkeletonRow key={row}>
+        <SkeletonCell />
+      </SkeletonRow>
+    ))}
+  </SkeletonList>
+);
+
 /**
- * 월 요약(주역 카드). 🔴 **화면에 하나뿐인 `raised` 면**이라 단일 가계부와 블렌딩이 같은 부품을
- * 쓴다 — 두 벌로 복제하면 "주역 카드는 화면당 1개"가 소스에서 두 개가 되고, 위계 규율을 잠근
- * 가드(`cardElevation('raised')` 정확히 1건)가 무의미해진다.
+ * 월 요약(주역 카드). 🔴 **화면에 하나뿐인 `raised` 면**이다.
  *
- * 🔴 손익색을 쓰지 않는다(수입·지출은 P&L 이 아니다). 값이 아직 없으면 숫자를 지어내지 않고
- * 골격만 그린다.
+ * ## 구조 (2026-08-03 재설계)
+ * 예전에는 hero `StatTile` 하나 + 2열 타일 격자였다. 세 숫자가 같은 부품·같은 리듬으로 서서
+ * **"순액이 결론이고 수입·지출은 그 내역"이라는 관계가 화면에 없었다.** 지금은 3단이다 —
+ * 라벨 → 큰 순액 → 가로선 아래 내역 두 칸(방향 글리프 + 이름 + 건수 + 금액).
+ *
+ * 🔴 손익색을 쓰지 않는다(수입·지출은 P&L 이 아니다). 방향은 **글리프와 글자**가 말한다.
+ * 🔴 값이 아직 없으면 숫자를 지어내지 않고 골격만 그린다.
+ * 🔴 배당은 이 카드에 **한 번도 더해지지 않는다** — 형제 카드가 따로 말한다(B-4).
  */
 const renderSummaryCard = (params: {
   labelledBy: string;
@@ -58,34 +87,47 @@ const renderSummaryCard = (params: {
   isBusy?: boolean;
 }) => (
   <SummaryCard aria-labelledby={params.labelledBy} aria-busy={params.isBusy || undefined}>
-    <HeroSlot>
-      <StatTile
-        emphasis="hero"
-        label={params.netLabel}
-        value={params.isLoading ? <SkeletonBar /> : params.summary.netText}
-        hint={copy.summary.netHint}
-      />
-    </HeroSlot>
-    <TileGrid>
-      <StatTile
-        label={copy.summary.income}
-        value={params.isLoading ? <SkeletonBar /> : params.summary.incomeText}
-        hint={copy.summary.countHint(params.summary.incomeCount)}
-      />
-      <StatTile
-        label={copy.summary.expense}
-        value={params.isLoading ? <SkeletonBar /> : params.summary.expenseText}
-        hint={copy.summary.countHint(params.summary.expenseCount)}
-      />
-    </TileGrid>
+    <div>
+      <SummaryLabel>{params.netLabel}</SummaryLabel>
+      <SummaryValue>{params.isLoading ? <SkeletonBar /> : params.summary.netText}</SummaryValue>
+      <SummaryHint>{copy.summary.netHint}</SummaryHint>
+    </div>
+
+    <FlowGrid>
+      <FlowCell>
+        <FlowHead>
+          <ArrowDownToLine size={16} strokeWidth={1.8} aria-hidden focusable={false} />
+          {copy.summary.income}
+          <FlowCount>{copy.summary.countHint(params.summary.incomeCount)}</FlowCount>
+        </FlowHead>
+        <FlowValue>{params.isLoading ? <SkeletonBar /> : params.summary.incomeText}</FlowValue>
+      </FlowCell>
+
+      <FlowCell>
+        <FlowHead>
+          <ArrowUpFromLine size={16} strokeWidth={1.8} aria-hidden focusable={false} />
+          {copy.summary.expense}
+          <FlowCount>{copy.summary.countHint(params.summary.expenseCount)}</FlowCount>
+        </FlowHead>
+        <FlowValue>{params.isLoading ? <SkeletonBar /> : params.summary.expenseText}</FlowValue>
+      </FlowCell>
+    </FlowGrid>
   </SummaryCard>
 );
 
 /**
  * 순수 뷰 — 화면 모델을 그대로 그린다. 연결·조회·쓰기는 전부 컨테이너 소유다.
  *
+ * ## 레이아웃 (2026-08-03 재설계)
+ * 연결 후 화면은 **콘솔 2단**이다. 왼쪽 `ScopeRail` 이 "무엇을 보고 있는가"(장부 · 기간 · 그 달의
+ * 숫자 · 배당 겹침)를 sticky 로 들고, 오른쪽 `LedgerColumn` 이 "무엇이 적혀 있는가"(표 · 저장 실패
+ * 대기열)를 갖는다. 1023px 이하에서는 1열로 눕고 순서는 범위 → 요약 → 배당 → 내역 그대로다.
+ * 자세한 근거는 `LedgerPage.styled.ts` 머리말.
+ *
  * 🔴 배너 순서는 위에서 아래로 **만료 → 충돌 → 권한 거부 → 팝업 차단 → 생성 안내 → 연결 실패 →
  * 부분 실패**다. 만료가 가장 위인 이유: 더 근본적인 차단이고, 재연결이 충돌 재조회를 포함한다.
+ * 배너들은 `AlertLane` 한 띠에 묶인다 — 본문 간격(최대 28px)으로 흩어지면 여섯 종이 동시에 떴을 때
+ * 화면 절반이 배너가 되고 그중 무엇이 한 사건인지 읽히지 않는다.
  * 🔴 오류는 라이브 리전이 아니라 `Banner role="alert"` 가 낭독한다 — 두 곳에서 같은 실패를 말하지 않는다.
  * 🔴 스크롤 진입 애니메이션·페이지 로드 오케스트레이션 **없음**(확정 결정). 모션은 모달 진입/퇴장뿐이다.
  */
@@ -176,11 +218,6 @@ export default function LedgerPageView({
   const isConnected = viewModel.state === 'connected' && !isGated;
   const hasRows = viewModel.rows.length > 0;
 
-  /**
-   */
-
-  /* 구성이 없으면 먼저 고르게 하고, 있으면 곧바로 켠다 — 첫 진입에 빈 화면을 보여 주지 않는다. */
-
   /*
    * 🔴 새로고침이 막히는 경우는 둘이고, **둘 다 사유 줄을 가리킨다**(무음 비활성 금지).
    *  - 만료: 토큰이 없어 다시 읽을 수 없다. 누르면 아무 일도 안 나는 버튼을 남기지 않는다.
@@ -191,34 +228,38 @@ export default function LedgerPageView({
   const refreshBlockedHintId = viewModel.isExpired ? expiredHintId : isRateLimited ? refreshHintId : undefined;
 
   /**
-   * 히어로 액션 — 최대 2개.
-   * 🔴 0건 화면에서는 "항목 추가"를 히어로에 두지 않는다. 한 화면에 추가 버튼은 **항상 정확히 1개**이고,
-   * 그 상태에서는 빈 상태 블록이 그 버튼을 갖는다.
+   * 🔴 히어로 액션은 **하나**다(2026-08-03).
+   *
+   * `항목 추가` 는 목록 카드의 도구 줄로 내려갔다 — 쓰기 액션은 그 대상 옆에 서는 편이 낫고,
+   * 히어로는 "이 화면이 무엇인가"(제목 · 권한 고지)만 말한다. 0건 화면에서 추가 버튼이 화면에
+   * **정확히 하나**라는 규칙은 그대로다(그때는 빈 상태 블록이 갖는다).
    */
   const heroActions = isConnected ? (
-    <>
-      {hasRows ? (
-        <Button
-          type="button"
-          variant="primary"
-          disabled={viewModel.isExpired}
-          aria-describedby={viewModel.isExpired ? expiredHintId : undefined}
-          onClick={onOpenCreateForm}
-        >
-          {copy.hero.addEntry}
-        </Button>
-      ) : null}
-      <Button type="button" variant="secondary" aria-label={copy.hero.openSheetAria} onClick={onOpenSheet}>
-        {copy.hero.openSheet}
-      </Button>
-    </>
+    <Button type="button" variant="secondary" aria-label={copy.hero.openSheetAria} onClick={onOpenSheet}>
+      {copy.hero.openSheet}
+    </Button>
   ) : undefined;
+
+  /*
+   * 🔴 **연결 전에는 히어로가 `plain` 이다**(2026-08-03, tintscan 실측으로 잡은 초과).
+   *
+   * 미연결 화면에는 색면이 셋이 선다 — 히어로 그라디언트 + 네이비 무대(`ConnectStage`) + 네이비
+   * 각주(`PageFooter` 의 `brandPanel()`). 상한은 2 다. 무대는 이 화면의 첫인상이라 양보할 수 없고
+   * 각주는 전역 부품이므로, **그라디언트가 이미 다른 곳에 있을 때**를 위해 만들어진 `tone="plain"`
+   * 을 히어로에 준다(`PageHeroProps` 주석 그대로의 용도). 제목(h1)·리드·권한 고지·상단 4px hue
+   * 리본은 전부 그대로 남는다 — 사라지는 것은 배경 그라디언트 하나뿐이다.
+   *
+   * ⚠ 상한을 올려서 해결하지 마라. 세 번째 색면이 필요해 보이면 그건 무대나 각주 중 하나가
+   *   같은 말을 두 번 하고 있다는 신호다.
+   */
+  const isPickingSource = viewModel.state === 'disconnected' || viewModel.state === 'denied';
 
   const hero = (
     <PageHero
       icon={<ReceiptText size={20} strokeWidth={1.8} aria-hidden focusable={false} />}
       title={copy.hero.title}
       titleAs="h1"
+      tone={isPickingSource && !isGated ? 'plain' : 'gradient'}
       lede={copy.hero.lede}
       /* 🔴 상시 고지 — 권한 범위를 화면에서 한 번만 말하는 자리. */
       notice={copy.hero.scopeNotice}
@@ -248,11 +289,7 @@ export default function LedgerPageView({
         {isAuthChecking ? (
           /* "아직 모름" 구간 — 로그인 게이트를 성급히 보여주면 이미 로그인한 사용자가 깜빡인다. */
           <section aria-busy="true" aria-label={copy.signIn.checking}>
-            <SkeletonList aria-hidden>
-              {SKELETON_ROWS.map((row) => (
-                <SkeletonRow key={row} />
-              ))}
-            </SkeletonList>
+            {renderSkeletonList()}
           </section>
         ) : (
           <LedgerSignInPanel headingId={signInHeadingId} onSignIn={onSignIn} />
@@ -262,6 +299,16 @@ export default function LedgerPageView({
     );
   }
 
+  /* 경보 레인은 **내용이 있을 때만** 존재한다 — 빈 그리드가 남으면 본문 간격이 두 번 붙는다. */
+  const hasAlerts =
+    viewModel.isExpired ||
+    viewModel.isConflict ||
+    viewModel.isDenied ||
+    viewModel.isPopupBlocked ||
+    Boolean(viewModel.showCreatedNotice && viewModel.sheetUrl && viewModel.sheetName) ||
+    viewModel.connectError !== null ||
+    Boolean(viewModel.partialFailure?.hasBatchReport);
+
   return (
     <PageStack>
       {hero}
@@ -270,133 +317,134 @@ export default function LedgerPageView({
         {viewModel.liveMessage}
       </LiveRegion>
 
-      {/* 🔴 만료돼도 아래 목록·요약은 마지막으로 읽은 그대로 남는다(백지·흐림 금지). */}
-      {viewModel.isExpired ? (
-        <>
-          <Banner tone="warning" role="alert" title={copy.expired.bannerTitle}>
-            <BannerRow>
-              {copy.expired.bannerBody}
-              <Button
-                type="button"
-                size="sm"
-                variant="secondary"
-                loading={viewModel.isReconnecting}
-                onClick={onReconnect}
-              >
-                {copy.expired.reconnect}
-              </Button>
-            </BannerRow>
-          </Banner>
-          {/* 사유 줄은 화면에 **하나**다. 비활성 버튼들이 전부 이것을 가리킨다. */}
-          <ActionHint id={expiredHintId}>{copy.expired.writeBlockedHint}</ActionHint>
-        </>
-      ) : null}
+      {hasAlerts ? (
+        <AlertLane>
+          {/* 🔴 만료돼도 아래 목록·요약은 마지막으로 읽은 그대로 남는다(백지·흐림 금지). */}
+          {viewModel.isExpired ? (
+            <>
+              <Banner tone="warning" role="alert" title={copy.expired.bannerTitle}>
+                <BannerRow>
+                  {copy.expired.bannerBody}
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    loading={viewModel.isReconnecting}
+                    onClick={onReconnect}
+                  >
+                    {copy.expired.reconnect}
+                  </Button>
+                </BannerRow>
+              </Banner>
+              {/* 사유 줄은 화면에 **하나**다. 비활성 버튼들이 전부 이것을 가리킨다. */}
+              <ActionHint id={expiredHintId}>{copy.expired.writeBlockedHint}</ActionHint>
+            </>
+          ) : null}
 
-      {viewModel.isConflict ? (
-        <Banner tone="warning" role="alert" title={copy.conflict.title}>
-          <BannerRow>
-            {copy.conflict.body}
-            <Button
-              type="button"
-              size="sm"
-              variant="secondary"
-              loading={viewModel.phase === 'refreshing'}
-              onClick={onRefresh}
+          {viewModel.isConflict ? (
+            <Banner tone="warning" role="alert" title={copy.conflict.title}>
+              <BannerRow>
+                {copy.conflict.body}
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  loading={viewModel.phase === 'refreshing'}
+                  onClick={onRefresh}
+                >
+                  {copy.conflict.refresh}
+                </Button>
+              </BannerRow>
+            </Banner>
+          ) : null}
+
+          {/* 🔴 danger 가 아니다 — 사용자가 의도적으로 거부했을 수 있고 아무것도 망가지지 않았다. */}
+          {viewModel.isDenied ? (
+            <>
+              <Banner tone="warning" role="status" title={copy.denied.title}>
+                <BannerRow>
+                  {copy.denied.body}
+                  <Button type="button" size="sm" variant="secondary" onClick={onPickExistingSheet}>
+                    {copy.denied.retry}
+                  </Button>
+                </BannerRow>
+              </Banner>
+              <HintText>{copy.denied.unaffected}</HintText>
+            </>
+          ) : null}
+
+          {viewModel.isPopupBlocked ? (
+            <Banner tone="warning" role="alert">
+              {copy.connect.popupBlocked}
+            </Banner>
+          ) : null}
+
+          {viewModel.showCreatedNotice && viewModel.sheetUrl && viewModel.sheetName ? (
+            <Banner
+              tone="info"
+              role="status"
+              title={copy.created.title}
+              onDismiss={onDismissCreatedNotice}
+              dismissAriaLabel={copy.created.dismiss}
             >
-              {copy.conflict.refresh}
-            </Button>
-          </BannerRow>
-        </Banner>
-      ) : null}
+              {copy.created.body}
+              <CreatedActions>
+                {/*
+                 * 🔴 **버튼 하나만 남긴다**(2026-08-01 사용자 지적).
+                 *
+                 * 예전에는 시트 이름 링크 + "구글 시트에서 열기" 버튼이 한 카드에 둘 다 있었고, 히어로에도
+                 * 상시 `시트에서 열기` 가 있어 같은 동작으로 가는 길이 **한 화면에 셋**이었다
+                 * (`design-taste-frontend` CTA 중복 금지). 남길 하나로 **버튼**을 고른 이유: 이 카드는 방금
+                 * 만든 직후의 안내라 "지금 열어 본다"가 유일한 다음 행동이고, 그 행동은 눌러야 할 것처럼
+                 * 보여야 한다. 시트 이름은 위 `body` 문장과 탭 줄이 이미 말한다.
+                 * ⚠ 이름 링크를 다시 넣지 마라 — 같은 곳으로 가는 길이 둘이 된다.
+                 */}
+                <Button
+                  ref={sheetOpenRef}
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  aria-label={copy.created.openAria}
+                  onClick={onOpenSheet}
+                >
+                  {copy.created.open}
+                </Button>
+              </CreatedActions>
+            </Banner>
+          ) : null}
 
-      {/* 🔴 danger 가 아니다 — 사용자가 의도적으로 거부했을 수 있고 아무것도 망가지지 않았다. */}
-      {viewModel.isDenied ? (
-        <>
-          <Banner tone="warning" role="status" title={copy.denied.title}>
-            <BannerRow>
-              {copy.denied.body}
-              <Button type="button" size="sm" variant="secondary" onClick={onPickExistingSheet}>
-                {copy.denied.retry}
-              </Button>
-            </BannerRow>
-          </Banner>
-          <HintText>{copy.denied.unaffected}</HintText>
-        </>
-      ) : null}
+          {viewModel.connectError ? (
+            <Banner tone="danger" role="alert" title={viewModel.connectError.title}>
+              <BannerRow>
+                {viewModel.connectError.body}
+                <Button type="button" size="sm" variant="secondary" onClick={onPickExistingSheet}>
+                  {copy.error.retry}
+                </Button>
+              </BannerRow>
+            </Banner>
+          ) : null}
 
-      {viewModel.isPopupBlocked ? (
-        <Banner tone="warning" role="alert">
-          {copy.connect.popupBlocked}
-        </Banner>
-      ) : null}
-
-      {viewModel.showCreatedNotice && viewModel.sheetUrl && viewModel.sheetName ? (
-        <Banner
-          tone="info"
-          role="status"
-          title={copy.created.title}
-          onDismiss={onDismissCreatedNotice}
-          dismissAriaLabel={copy.created.dismiss}
-        >
-          {copy.created.body}
-          <CreatedActions>
-            {/*
-             * 🔴 **버튼 하나만 남긴다**(2026-08-01 사용자 지적).
-             *
-             * 예전에는 시트 이름 링크 + "구글 시트에서 열기" 버튼이 한 카드에 둘 다 있었고, 히어로에도
-             * 상시 `시트에서 열기` 가 있어 같은 동작으로 가는 길이 **한 화면에 셋**이었다
-             * (`design-taste-frontend` CTA 중복 금지). 남길 하나로 **버튼**을 고른 이유: 이 카드는 방금
-             * 만든 직후의 안내라 "지금 열어 본다"가 유일한 다음 행동이고, 그 행동은 눌러야 할 것처럼
-             * 보여야 한다. 시트 이름은 위 `body` 문장과 히어로 메타(`연결한 시트 …`)가 이미 말한다.
-             * ⚠ 이름 링크를 다시 넣지 마라 — 같은 곳으로 가는 길이 둘이 된다.
-             */}
-            <Button
-              ref={sheetOpenRef}
-              type="button"
-              size="sm"
-              variant="secondary"
-              aria-label={copy.created.openAria}
-              onClick={onOpenSheet}
+          {/* 🔴 "일부 실패했습니다" 가 아니라 `M건 / 전체 N건` 을 숫자로 말한다. */}
+          {viewModel.partialFailure?.hasBatchReport ? (
+            <Banner
+              tone="danger"
+              role="alert"
+              title={copy.error.partial.title(
+                viewModel.partialFailure.successCount,
+                viewModel.partialFailure.totalCount
+              )}
             >
-              {copy.created.open}
-            </Button>
-          </CreatedActions>
-        </Banner>
-      ) : null}
-
-      {viewModel.connectError ? (
-        <Banner tone="danger" role="alert" title={viewModel.connectError.title}>
-          <BannerRow>
-            {viewModel.connectError.body}
-            <Button type="button" size="sm" variant="secondary" onClick={onPickExistingSheet}>
-              {copy.error.retry}
-            </Button>
-          </BannerRow>
-        </Banner>
-      ) : null}
-
-      {/* 🔴 "일부 실패했습니다" 가 아니라 `M건 / 전체 N건` 을 숫자로 말한다. */}
-      {viewModel.partialFailure?.hasBatchReport ? (
-        <Banner
-          tone="danger"
-          role="alert"
-          title={copy.error.partial.title(viewModel.partialFailure.successCount, viewModel.partialFailure.totalCount)}
-        >
-          {copy.error.partial.body(viewModel.partialFailure.rows.length)}
-        </Banner>
+              {copy.error.partial.body(viewModel.partialFailure.rows.length)}
+            </Banner>
+          ) : null}
+        </AlertLane>
       ) : null}
 
       {viewModel.state === 'checking' && viewModel.showCheckingSkeleton ? (
-        <section aria-busy="true">
-          <SkeletonList aria-hidden>
-            {SKELETON_ROWS.map((row) => (
-              <SkeletonRow key={row} />
-            ))}
-          </SkeletonList>
-        </section>
+        <section aria-busy="true">{renderSkeletonList()}</section>
       ) : null}
 
-      {viewModel.state === 'disconnected' || viewModel.state === 'denied' ? (
+      {isPickingSource ? (
         <LedgerConnectPanel
           phase={viewModel.phase}
           headingId={connectHeadingId}
@@ -417,154 +465,185 @@ export default function LedgerPageView({
       ) : null}
 
       {isConnected ? (
-        <>
-          {/*
-            🔴 **연결 정보 영역**(어느 장부인가)은 월 네비(어느 기간인가)보다 위다 — 두 축을 같은 줄에
-            섞으면 "탭을 넘기면 달도 넘어가나"라는 오해가 생긴다. 탭이 하나뿐이면 이름만 말한다.
+        <Workspace>
+          <ScopeRail>
+            {/*
+              🔴 **연결 정보 영역**(어느 장부인가)은 월 네비(어느 기간인가)보다 위다 — 두 축을 같은 줄에
+              섞으면 "탭을 넘기면 달도 넘어가나"라는 오해가 생긴다. 탭이 하나뿐이면 이름만 말한다.
 
-            ⚠ 이 줄이 **연결 정보의 단일 출처**다(2026-08-02 B-2). 히어로 메타가 같은 제목을 한 번 더
-            말하던 중복은 히어로 쪽을 없애 정리했고, "언제 기준"은 아래 목록 카드 헤더가 갖는다.
-            여기에 읽은 시각·새로고침을 다시 얹지 마라 — 같은 사실이 또 두 곳이 된다.
-          */}
-          {viewModel.tabPicker ? (
-            <LedgerTabPicker model={viewModel.tabPicker} onSelectTab={onSelectTab} />
-          ) : null}
+              ⚠ 이 줄이 **연결 정보의 단일 출처**다(2026-08-02 B-2). 히어로 메타가 같은 제목을 한 번 더
+              말하던 중복은 히어로 쪽을 없애 정리했고, "언제 기준"은 아래 목록 카드 헤더가 갖는다.
+              여기에 읽은 시각·새로고침을 다시 얹지 마라 — 같은 사실이 또 두 곳이 된다.
 
-          <LedgerMonthNav
-            monthLabel={viewModel.monthLabel}
-            prevLabel={viewModel.prevMonthLabel}
-            nextLabel={viewModel.nextMonthLabel}
-            todayLabel={viewModel.thisMonthLabel}
-            isCurrentMonth={viewModel.isCurrentMonth}
-            titleId={monthTitleId}
-            onPrev={onPrevMonth}
-            onNext={onNextMonth}
-            onToday={onThisMonth}
-          />
+              ⚠ 두 컨트롤은 한 틀(`ScopePanel`)을 공유하지만 **한 컨트롤로 합치지 않는다**. 월 이동은
+              자기 `role="group"` 을 그대로 갖고, 탭 셀렉트는 그 밖에 선다.
+            */}
+            <ScopePanel>
+              {viewModel.tabPicker ? (
+                <LedgerTabPicker model={viewModel.tabPicker} onSelectTab={onSelectTab} />
+              ) : null}
 
-          {/* 🔴 이 화면의 주역 카드. 제목이 없고, 월 제목이 그 이름이 된다. */}
-          {renderSummaryCard({
-            labelledBy: monthTitleId,
-            netLabel: copy.summary.net(viewModel.monthLabel),
-            summary: viewModel.summary,
-            isLoading: viewModel.isFirstLoad,
-            isBusy: viewModel.isRefetching
-          })}
-
-          {/*
-            🔴 B-4 — 배당은 **요약 카드 밖 형제**다(`Card` 안 `Card` 금지 · 주역 카드는 화면당 1개).
-            위 요약 3숫자(수입·지출·합계)에는 배당이 **한 번도 더해지지 않는다** — 더하면 "가계부
-            총합"의 정의가 둘이 되고, 사용자가 배당 입금을 시트에 이미 적어 뒀다면 이중 계상이 된다.
-          */}
-          <LedgerDividendCard
-            model={viewModel.dividend}
-            monthLabel={viewModel.monthLabel}
-            onToggle={onToggleDividendOverlay}
-          />
-
-          <Card
-            tone="default"
-            title={copy.list.title}
-            subtitle={hasRows ? copy.list.subtitle : undefined}
-            /*
-             * 🔴 B-2 — "언제 기준인가"와 "다시 읽기"는 **읽은 것 바로 옆**에 선다(D2-4).
-             * 시각은 아직 한 번도 못 읽었으면 그리지 않는다(없는 값에 "—" 를 남기지 않는다).
-             * 🔴 429 대기 중에는 버튼을 잠그고 아래 사유 줄을 가리킨다 — 연타를 유도하지 않는다.
-             */
-            titleRight={
-              <FreshnessRow>
-                {viewModel.freshness.readAtText ? (
-                  <ReadAtText>{viewModel.freshness.readAtText}</ReadAtText>
-                ) : null}
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="ghost"
-                  startIcon={<RotateCw size={16} strokeWidth={1.8} aria-hidden focusable={false} />}
-                  loading={viewModel.freshness.isRefreshing}
-                  disabled={isRefreshBlocked}
-                  aria-describedby={refreshBlockedHintId}
-                  onClick={onRefresh}
-                >
-                  {copy.freshness.refresh}
-                </Button>
-              </FreshnessRow>
-            }
-          >
-            {viewModel.freshness.retrySeconds === null ? null : (
-              <FreshnessNotice id={refreshHintId}>
-                {copy.error.rateLimitedCountdown(viewModel.freshness.retrySeconds)}
-              </FreshnessNotice>
-            )}
-
-            {/* 🔴 "달라졌다"까지만 말한다 — 어느 행이 어떻게 바뀌었는지는 확정할 수 없다(D2-3). */}
-            {viewModel.freshness.hasUpdate ? <FreshnessNotice>{copy.freshness.updated}</FreshnessNotice> : null}
-
-            {viewModel.isFirstLoad ? (
-              <SkeletonList aria-hidden>
-                {SKELETON_ROWS.map((row) => (
-                  <SkeletonRow key={row} />
-                ))}
-              </SkeletonList>
-            ) : hasRows ? (
-              <LedgerTable
-                rows={viewModel.rows}
+              <LedgerMonthNav
                 monthLabel={viewModel.monthLabel}
-                isWriteBlocked={viewModel.isExpired}
-                writeBlockedHintId={expiredHintId}
-                retryCountdowns={retryCountdowns}
-                onEdit={onOpenEditForm}
-                onRemove={onRequestRemove}
-                onRetry={onRetryRow}
-                registerRemoveButton={registerRemoveButton}
+                prevLabel={viewModel.prevMonthLabel}
+                nextLabel={viewModel.nextMonthLabel}
+                todayLabel={viewModel.thisMonthLabel}
+                isCurrentMonth={viewModel.isCurrentMonth}
+                titleId={monthTitleId}
+                onPrev={onPrevMonth}
+                onNext={onNextMonth}
+                onToday={onThisMonth}
               />
-            ) : (
-              /* 🔴 연결 전과 다른 화면이다 — 월 네비와 요약 카드가 그대로 남아 "연결은 정상"을 증명한다. */
-              <EmptyBlock>
-                <EmptyTitle ref={listTitleRef} tabIndex={-1} id={listTitleId}>
-                  {viewModel.isCurrentMonth
-                    ? copy.emptyMonth.titleCurrent
-                    : copy.emptyMonth.titleOther(viewModel.monthLabel)}
-                </EmptyTitle>
-                <EmptyBody>
-                  {viewModel.latestMonthLabel
-                    ? copy.emptyMonth.latestElsewhere(viewModel.latestMonthLabel)
-                    : copy.emptyMonth.sheetEmpty}
-                </EmptyBody>
-                <ActionRow>
+            </ScopePanel>
+
+            {/* 🔴 이 화면의 주역 카드. 제목이 없고, 월 제목이 그 이름이 된다. */}
+            {renderSummaryCard({
+              labelledBy: monthTitleId,
+              netLabel: copy.summary.net(viewModel.monthLabel),
+              summary: viewModel.summary,
+              isLoading: viewModel.isFirstLoad,
+              isBusy: viewModel.isRefetching
+            })}
+
+            {/*
+              🔴 B-4 — 배당은 **요약 카드 밖 형제**다(`Card` 안 `Card` 금지 · 주역 카드는 화면당 1개).
+              위 요약 3숫자(수입·지출·합계)에는 배당이 **한 번도 더해지지 않는다** — 더하면 "가계부
+              총합"의 정의가 둘이 되고, 사용자가 배당 입금을 시트에 이미 적어 뒀다면 이중 계상이 된다.
+            */}
+            <LedgerDividendCard
+              model={viewModel.dividend}
+              monthLabel={viewModel.monthLabel}
+              onToggle={onToggleDividendOverlay}
+            />
+          </ScopeRail>
+
+          <LedgerColumn>
+            <Card
+              tone="default"
+              title={copy.list.title}
+              subtitle={hasRows ? copy.list.subtitle : undefined}
+              /*
+               * 🔴 B-2 — "언제 기준인가"와 "다시 읽기"는 **읽은 것 바로 옆**에 선다(D2-4).
+               * 시각은 아직 한 번도 못 읽었으면 그리지 않는다(없는 값에 "—" 를 남기지 않는다).
+               * 🔴 429 대기 중에는 버튼을 잠그고 아래 사유 줄을 가리킨다 — 연타를 유도하지 않는다.
+               * 🔴 `항목 추가` 는 0건일 때 여기 없다 — 그때는 빈 상태 블록이 그 버튼을 갖는다
+               *   (한 화면에 추가 버튼은 **항상 정확히 1개**).
+               */
+              titleRight={
+                <ListToolbar>
+                  {/* 제목은 `Card` 가 문자열로만 받는다 — 건수는 도구 줄 맨 앞에 세워 제목과 이웃하게 한다. */}
+                  {hasRows ? <CountBadge>{copy.summary.countHint(viewModel.rows.length)}</CountBadge> : null}
+                  {viewModel.freshness.readAtText ? (
+                    <ReadAtText>{viewModel.freshness.readAtText}</ReadAtText>
+                  ) : null}
                   <Button
                     type="button"
-                    variant="primary"
-                    disabled={viewModel.isExpired}
-                    aria-describedby={viewModel.isExpired ? expiredHintId : undefined}
-                    onClick={onOpenCreateForm}
+                    size="sm"
+                    variant="ghost"
+                    startIcon={<RotateCw size={16} strokeWidth={1.8} aria-hidden focusable={false} />}
+                    loading={viewModel.freshness.isRefreshing}
+                    disabled={isRefreshBlocked}
+                    aria-describedby={refreshBlockedHintId}
+                    onClick={onRefresh}
                   >
-                    {copy.emptyMonth.add}
+                    {copy.freshness.refresh}
                   </Button>
-                  {viewModel.latestMonthLabel ? (
-                    <Button type="button" variant="secondary" onClick={onGoLatestMonth}>
-                      {copy.emptyMonth.goLatest(viewModel.latestMonthLabel)}
+                  {hasRows ? (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="primary"
+                      startIcon={<Plus size={16} strokeWidth={1.8} aria-hidden focusable={false} />}
+                      disabled={viewModel.isExpired}
+                      aria-describedby={viewModel.isExpired ? expiredHintId : undefined}
+                      onClick={onOpenCreateForm}
+                    >
+                      {copy.hero.addEntry}
                     </Button>
-                  ) : (
-                    <Button type="button" variant="secondary" onClick={onPrevMonth}>
-                      {copy.emptyMonth.prevMonth}
-                    </Button>
-                  )}
-                </ActionRow>
-              </EmptyBlock>
-            )}
-          </Card>
+                  ) : null}
+                </ListToolbar>
+              }
+            >
+              {viewModel.freshness.retrySeconds === null ? null : (
+                <FreshnessNotice id={refreshHintId}>
+                  {copy.error.rateLimitedCountdown(viewModel.freshness.retrySeconds)}
+                </FreshnessNotice>
+              )}
 
-          {/* 🔴 요약 카드 **밖 형제**로 둔다(`Card` 안 `Card` 금지). */}
-          {viewModel.partialFailure ? (
-            <LedgerFailureList
-              model={viewModel.partialFailure}
-              retryCountdowns={retryCountdowns}
-              onRetry={onRetryRow}
-              onRetryAll={onRetryAll}
-            />
-          ) : null}
-        </>
+              {/* 🔴 "달라졌다"까지만 말한다 — 어느 행이 어떻게 바뀌었는지는 확정할 수 없다(D2-3). */}
+              {viewModel.freshness.hasUpdate ? (
+                <FreshnessNotice>
+                  <RefreshCw size={14} strokeWidth={1.8} aria-hidden focusable={false} />
+                  {copy.freshness.updated}
+                </FreshnessNotice>
+              ) : null}
+
+              {viewModel.isFirstLoad ? (
+                renderSkeletonList()
+              ) : hasRows ? (
+                <LedgerTable
+                  rows={viewModel.rows}
+                  monthLabel={viewModel.monthLabel}
+                  isWriteBlocked={viewModel.isExpired}
+                  writeBlockedHintId={expiredHintId}
+                  retryCountdowns={retryCountdowns}
+                  onEdit={onOpenEditForm}
+                  onRemove={onRequestRemove}
+                  onRetry={onRetryRow}
+                  registerRemoveButton={registerRemoveButton}
+                />
+              ) : (
+                /* 🔴 연결 전과 다른 화면이다 — 월 네비와 요약 카드가 그대로 남아 "연결은 정상"을 증명한다. */
+                <EmptyBlock>
+                  <EmptyGlyph aria-hidden>
+                    <CalendarOff size={24} strokeWidth={1.8} focusable={false} />
+                  </EmptyGlyph>
+                  <EmptyTitle ref={listTitleRef} tabIndex={-1} id={listTitleId}>
+                    {viewModel.isCurrentMonth
+                      ? copy.emptyMonth.titleCurrent
+                      : copy.emptyMonth.titleOther(viewModel.monthLabel)}
+                  </EmptyTitle>
+                  <EmptyBody>
+                    {viewModel.latestMonthLabel
+                      ? copy.emptyMonth.latestElsewhere(viewModel.latestMonthLabel)
+                      : copy.emptyMonth.sheetEmpty}
+                  </EmptyBody>
+                  <ActionRow>
+                    <Button
+                      type="button"
+                      variant="primary"
+                      startIcon={<Plus size={16} strokeWidth={1.8} aria-hidden focusable={false} />}
+                      disabled={viewModel.isExpired}
+                      aria-describedby={viewModel.isExpired ? expiredHintId : undefined}
+                      onClick={onOpenCreateForm}
+                    >
+                      {copy.emptyMonth.add}
+                    </Button>
+                    {viewModel.latestMonthLabel ? (
+                      <Button type="button" variant="secondary" onClick={onGoLatestMonth}>
+                        {copy.emptyMonth.goLatest(viewModel.latestMonthLabel)}
+                      </Button>
+                    ) : (
+                      <Button type="button" variant="secondary" onClick={onPrevMonth}>
+                        {copy.emptyMonth.prevMonth}
+                      </Button>
+                    )}
+                  </ActionRow>
+                </EmptyBlock>
+              )}
+            </Card>
+
+            {/* 🔴 요약 카드 **밖 형제**로 둔다(`Card` 안 `Card` 금지). */}
+            {viewModel.partialFailure ? (
+              <LedgerFailureList
+                model={viewModel.partialFailure}
+                retryCountdowns={retryCountdowns}
+                onRetry={onRetryRow}
+                onRetryAll={onRetryAll}
+              />
+            ) : null}
+          </LedgerColumn>
+        </Workspace>
       ) : null}
 
       {footer}

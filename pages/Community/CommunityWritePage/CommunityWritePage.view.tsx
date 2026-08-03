@@ -9,13 +9,27 @@ import type { CommunityWriteViewProps } from './CommunityWritePage.types';
 import type { ScenarioCandidate } from './hooks';
 import {
   AttachScenarioSection,
+  PostKindField,
   PublishSettingsSection,
   WriteFormFields,
-  WriteLoginGate
+  WriteLoginGate,
+  WriteSkeleton
 } from './components';
-import { ActionBar, PageTitle, WriteForm, WriteShell } from './CommunityWritePage.styled';
+import {
+  ActionBar,
+  CommandBar,
+  Inspector,
+  PageTitle,
+  Sheet,
+  WorkArea,
+  WriteForm,
+  WriteShell
+} from './CommunityWritePage.styled';
 
 const w = COMMUNITY_COPY.write;
+
+/** 인스펙터 칼럼(분류·첨부·공개범위)의 접근名. 셋 다 "글에 붙는 속성"이라 한 이름으로 묶는다. */
+const INSPECTOR_LABEL = '글 설정';
 
 export default function CommunityWriteView({ viewModel }: CommunityWriteViewProps) {
   const { composer, candidates, authReady, isLoggedIn, canChooseVisibility, categoryOptions, kind, listPath, onLogin } =
@@ -85,8 +99,13 @@ export default function CommunityWriteView({ viewModel }: CommunityWriteViewProp
   };
 
   // ── 게이트: 인증 확인 중 / 비로그인 / 수정 로드 상태 ──────────────────────────
+  /*
+   * 로딩은 "불러오는 중…" 한 줄이 아니라 **작업대의 자리**로 선다. 인증 확인은 매 방문마다
+   * 지나가는 상태라 사용자가 가장 자주 보는 첫 화면이었고, 한 줄짜리 빈 화면에서 2열 작업대로
+   * 바뀌는 순간 레이아웃이 통째로 튀었다.
+   */
   if (!authReady) {
-    return <EmptyState title="불러오는 중…" />;
+    return <WriteSkeleton />;
   }
 
   if (!isLoggedIn) {
@@ -94,7 +113,7 @@ export default function CommunityWriteView({ viewModel }: CommunityWriteViewProp
   }
 
   if (composer.mode === 'edit') {
-    if (composer.loadState === 'loading') return <EmptyState title="불러오는 중…" />;
+    if (composer.loadState === 'loading') return <WriteSkeleton label="글을 불러오는 중…" />;
     if (composer.loadState === 'forbidden')
       return <EmptyState title="이 글을 수정할 권한이 없습니다" subtitle={COMMUNITY_COPY.detail.notFoundTitle} />;
     if (composer.loadState === 'notfound')
@@ -124,65 +143,85 @@ export default function CommunityWriteView({ viewModel }: CommunityWriteViewProp
       ? w.titleEdit
       : w.titleNew;
 
+  /*
+   * 인스펙터 칼럼에 들어갈 것이 하나라도 있는가. 셋 다 조건부라 조합에 따라 비는 경우가 생기는데,
+   * 빈 칼럼을 렌더하면 340px 이 그냥 사라진 것처럼 보인다 — 그때는 시트가 전폭을 쓴다.
+   */
+  const hasInspector = composer.categoryAllowed || showAttachSection || canChooseVisibility;
+
   return (
     <>
-      {/* 🔴 상단 바·제목·폼이 **같은 좌우 경계**를 갖는다 — 그전에는 "← 목록"만 전폭이라 왼쪽 끝에
-          혼자 붙어 제목 줄과 어긋나 보였다(2026-08-02 사용자 지적).
-          상세 페이지가 2026-07-28 에 `DetailShell` 로 해결한 것과 **같은 처방**이다.
-          ⚠ 확인 대화상자는 이 껍데기 **밖**이다 — 포털로 뜨는 오버레이라 폭 제한과 무관하다. */}
       <WriteShell>
         <CommunityTopBar />
-        <PageTitle>{pageTitle}</PageTitle>
 
+        {/*
+         * 🔴 커맨드 바는 **form 안**이다 — submit 버튼이 폼 밖으로 나가면 Enter 제출이 끊긴다.
+         * 그리고 폼의 **직계 자식**이어야 sticky 가 산다(2열은 안쪽 WorkArea 가 만든다) —
+         * 격자 아이템이 되면 컨테이닝 블록이 자기 행뿐이라 붙어 있을 여백이 0 이 된다.
+         */}
         <WriteForm
-        onSubmit={(event) => {
-          event.preventDefault();
-          void composer.submit();
-        }}
-      >
-        {composer.submitError ? (
-          <Banner tone="danger" role="alert">
-            {w.saveFailed}
-          </Banner>
-        ) : null}
+          onSubmit={(event) => {
+            event.preventDefault();
+            void composer.submit();
+          }}
+        >
+          <CommandBar>
+            <PageTitle>{pageTitle}</PageTitle>
+            <ActionBar>
+              <Button variant="ghost" onClick={handleCancel} disabled={composer.submitting}>
+                {w.cancel}
+              </Button>
+              <Button type="submit" variant="primary" loading={composer.submitting} disabled={!composer.canSubmit}>
+                {composer.mode === 'edit' ? w.submitEdit : w.submitNew}
+              </Button>
+            </ActionBar>
+          </CommandBar>
 
-        <WriteFormFields composer={composer} isBoard={isBoard} categoryOptions={categoryOptions} />
+          <WorkArea hasSide={hasInspector}>
+            {/* 문서 시트 — 제목과 본문만. 이 화면에서 손이 가장 오래 머무는 곳이다. */}
+            <Sheet>
+              {composer.submitError ? (
+                <Banner tone="danger" role="alert">
+                  {w.saveFailed}
+                </Banner>
+              ) : null}
 
-        {/* 시뮬레이션 — 헤더 "첨부" 토글로 활성/해제, 활성 시 1단계 택1 피커.
-            자유게시판(kind='board')은 순수 텍스트 글이라 이 섹션 자체를 렌더하지 않는다. */}
-        {showAttachSection ? (
-          <AttachScenarioSection
-            attachEnabled={attachEnabled}
-            onToggleAttach={handleToggleAttach}
-            attachedPayload={composer.attachedPayload}
-            attachedCandidate={attachedCandidate}
-            attachedSimSummary={attachedSimSummary}
-            candidates={candidates}
-            onSelectScenario={handleAttachScenario}
-            error={composer.errors.attach}
-          />
-        ) : null}
+              <WriteFormFields composer={composer} isBoard={isBoard} />
+            </Sheet>
 
-        {/* 게시 설정 — 공개 범위만 남은 섹션이라, 그 유일한 필드가 숨겨질 때는 섹션(제목·테두리)을
-            통째로 렌더하지 않는다(빈 껍데기 금지). 갤러리는 항상 노출, 게시판은 운영자만.
-            숨겨진 경우 신규 글은 공개 고정, 수정 글은 서버에서 온 기존 값이 그대로 보존된다. */}
-        {canChooseVisibility ? (
-          <PublishSettingsSection isPublic={composer.isPublic} onIsPublicChange={composer.setIsPublic} />
-        ) : null}
+            {/* 인스펙터 — 글에 붙는 속성(분류·첨부·공개범위)이 한 칼럼에 모인다. */}
+            {hasInspector ? (
+              <Inspector aria-label={INSPECTOR_LABEL}>
+                {/* 글 종류 — 자유게시판 전용(갤러리는 분류 개념이 없어 미렌더).
+                    선택지 구성(공지=운영자 전용)은 컨테이너가 categoryOptions로 접어 내려준다. */}
+                {composer.categoryAllowed ? (
+                  <PostKindField value={composer.category} onChange={composer.setCategory} options={categoryOptions} />
+                ) : null}
 
-        <ActionBar>
-          <Button variant="ghost" onClick={handleCancel} disabled={composer.submitting}>
-            {w.cancel}
-          </Button>
-          <Button
-            type="submit"
-            variant="primary"
-            loading={composer.submitting}
-            disabled={!composer.canSubmit}
-          >
-            {composer.mode === 'edit' ? w.submitEdit : w.submitNew}
-          </Button>
-        </ActionBar>
+                {/* 시뮬레이션 — 헤더 "첨부" 토글로 활성/해제, 활성 시 1단계 택1 피커.
+                    자유게시판(kind='board')은 순수 텍스트 글이라 이 섹션 자체를 렌더하지 않는다. */}
+                {showAttachSection ? (
+                  <AttachScenarioSection
+                    attachEnabled={attachEnabled}
+                    onToggleAttach={handleToggleAttach}
+                    attachedPayload={composer.attachedPayload}
+                    attachedCandidate={attachedCandidate}
+                    attachedSimSummary={attachedSimSummary}
+                    candidates={candidates}
+                    onSelectScenario={handleAttachScenario}
+                    error={composer.errors.attach}
+                  />
+                ) : null}
+
+                {/* 게시 설정 — 공개 범위만 남은 섹션이라, 그 유일한 필드가 숨겨질 때는 섹션(제목·면)을
+                    통째로 렌더하지 않는다(빈 껍데기 금지). 갤러리는 항상 노출, 게시판은 운영자만.
+                    숨겨진 경우 신규 글은 공개 고정, 수정 글은 서버에서 온 기존 값이 그대로 보존된다. */}
+                {canChooseVisibility ? (
+                  <PublishSettingsSection isPublic={composer.isPublic} onIsPublicChange={composer.setIsPublic} />
+                ) : null}
+              </Inspector>
+            ) : null}
+          </WorkArea>
         </WriteForm>
       </WriteShell>
 

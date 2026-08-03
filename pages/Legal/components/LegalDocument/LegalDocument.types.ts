@@ -44,6 +44,28 @@ export type LegalDocumentModel = {
   sections: readonly LegalSection[];
 };
 
+/**
+ * 문서 끝에서 가리키는 **다른 법무 문서**.
+ *
+ * 이 두 화면은 공용 `PageFooter` 를 그리지 않는다(그 푸터가 바로 이 두 문서로 가는 링크를 갖고 있어
+ * 자기 자신으로 가는 링크가 생긴다). 그래서 다 읽은 사람에게는 **나갈 길이 헤더뿐**이었다.
+ * 문서 끝의 이 안내가 그 자리를 대신한다 — 자기 자신이 아니라 **형제 문서**를 가리키므로 자기 링크
+ * 문제도 생기지 않는다.
+ *
+ * 🔴 모델(`LegalDocumentModel`)이 아니라 **props** 로 받는다. 문서 내용이 아니라 화면 사이의 배치이고,
+ *    모델에 넣으면 카피 파일이 라우트 구조를 알게 된다(개정마다 링크를 함께 검수해야 한다).
+ */
+export type LegalRelatedDocument = {
+  /** 형제 문서의 경로. 예: `/terms`. */
+  to: string;
+  /** 형제 문서의 제목. 예: `이용약관`. */
+  title: string;
+  /** 그 문서가 무엇을 정하는지 한 줄. 법적 주장이 아니라 길 안내 문장이다. */
+  summary: string;
+};
+
 export type LegalDocumentProps = {
   document: LegalDocumentModel;
+  /** 없으면 문서 끝 안내에서 형제 문서 줄만 빠진다(홈으로 가는 길은 남는다). */
+  related?: LegalRelatedDocument;
 };

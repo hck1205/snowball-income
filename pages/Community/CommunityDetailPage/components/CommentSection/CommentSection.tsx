@@ -7,6 +7,7 @@ import type { UseComments } from '@/pages/Community/CommunityDetailPage/hooks';
 import {
   BannerAction,
   CommentActions,
+  CommentAvatar,
   CommentBody,
   CommentHead,
   CommentRoot,
@@ -15,6 +16,7 @@ import {
   ComposerBar,
   ComposerCounter,
   CommentTextarea,
+  DeletedBody,
   InlineAlert,
   LoadMoreWrap,
   LoadStatusText,
@@ -47,17 +49,6 @@ type SingleCommentProps = {
   onRequestDelete: (commentId: string) => void;
 };
 
-const CommentAuthorLine = ({ comment }: { comment: CommentWithAuthor }) => {
-  const name = comment.author?.display_name ?? '익명';
-  return (
-    <CommentHead>
-      <Avatar displayName={name} avatarUrl={comment.author?.avatar_url} size="sm" />
-      <b>{name}</b>
-      <RelativeTime iso={comment.created_at} />
-    </CommentHead>
-  );
-};
-
 const SingleComment = ({
   comment,
   comments,
@@ -70,18 +61,30 @@ const SingleComment = ({
   const isDeleted = comment.deleted_at !== null;
   const pending = comments.isPending(comment.id);
   const isMine = currentUserId !== null && comment.user_id === currentUserId;
+  const name = comment.author?.display_name ?? '익명';
 
   if (isDeleted) {
+    // 삭제된 댓글은 아바타가 없다 — 거터를 비워 두지 않고 두 칼럼을 통째로 쓴다.
     return (
       <CommentRoot>
-        <CommentBody deleted>{c.deletedPlaceholder}</CommentBody>
+        <DeletedBody deleted>{c.deletedPlaceholder}</DeletedBody>
       </CommentRoot>
     );
   }
 
+  /*
+   * 아바타 거터 격자 — 아바타가 왼쪽 칼럼에 서고 이름·본문·액션이 오른쪽 한 줄에 정렬된다.
+   * 그전에는 아바타가 이름과 같은 인라인 줄에 있어 본문·액션의 왼쪽 끝이 아바타와 어긋나 있었다.
+   */
   return (
     <CommentRoot pending={pending}>
-      <CommentAuthorLine comment={comment} />
+      <CommentAvatar>
+        <Avatar displayName={name} avatarUrl={comment.author?.avatar_url} size="md" />
+      </CommentAvatar>
+      <CommentHead>
+        <b>{name}</b>
+        <RelativeTime iso={comment.created_at} />
+      </CommentHead>
       <CommentBody>{comment.body}</CommentBody>
       <CommentActions>
         <LikeButton

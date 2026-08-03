@@ -3,5 +3,6 @@ export type {
   LegalBlock,
   LegalDocumentModel,
   LegalDocumentProps,
+  LegalRelatedDocument,
   LegalSection
 } from './LegalDocument.types';

@@ -1,4 +1,5 @@
-import type { CompareCandidate, ComparePreset, TickerCompareModel } from '../utils';
+import type { CompareCandidate, TickerCompareModel } from '../utils';
+import type { ComparePresetPreview } from './TickerComparePage.utils';
 
 /** 뷰가 그리는 데 필요한 전부. 계산은 `pages/Ticker/utils` 가 이미 끝냈다. */
 export type TickerCompareViewModel = {
@@ -9,8 +10,14 @@ export type TickerCompareViewModel = {
   readonly isAtLimit: boolean;
   /** 비교가 성립하는 최소 개수를 넘었는가. */
   readonly hasEnough: boolean;
-  /** 빈 상태에서 눌러 볼 수 있는 예시 조합(라벨 포함 — 티커만 나열하면 왜 그 조합인지 알 수 없다). */
-  readonly suggestions: readonly ComparePreset[];
+  /**
+   * 빈 상태에서 눌러 볼 수 있는 예시 조합.
+   *
+   * 라벨만 있던 종전(`ComparePreset`)에서 **1년 커버리지 미리보기**(`coveredCount`·`monthFlags`)와
+   * 카드 레일 색까지 담은 `ComparePresetPreview` 로 올라갔다 — 열 개 중 무엇을 누를지 정하는
+   * 근거가 라벨 한 줄뿐이면 목록이 길어질수록 아무 단서도 주지 못한다.
+   */
+  readonly suggestions: readonly ComparePresetPreview[];
 };
 
 export type TickerCompareViewProps = {
