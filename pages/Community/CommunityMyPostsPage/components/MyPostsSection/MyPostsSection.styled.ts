@@ -320,19 +320,32 @@ export const SkeletonCard = styled.div`
   }
 `;
 
+/**
+ * 자리표시 블록. 면은 `border` 다 — 흰 카드 위에서 `surfaceSunken` 은 1.11:1 이라 블록이
+ * 너무 얇았다(로딩 화면이 "빈 흰 카드"로 읽힌다). 1.49:1 로 올려 커뮤니티 스켈레톤 3종
+ * (목록·상세·글쓰기)과 같은 회색을 쓴다. 2026-08-03 흰 캔버스 전환.
+ */
 export const SkeletonBar = styled.span<{ w: string; h: string }>`
   display: block;
   width: ${({ w }) => w};
   height: ${({ h }) => h};
   border-radius: ${radius.sm};
-  background: ${color.surfaceSunken};
+  background: ${color.border};
 `;
 
 /* ── 빈 상태 ──────────────────────────────────────────────────────────────── */
 
 /**
- * 아직 아무 글도 없는 상태 = **고장이 아니라 시작 전**이다. 그래서 이 자리는 brand 면이고,
- * 마스코트가 사는 이 화면의 유일한 자리다(목록이 채워지면 사라진다).
+ * 아직 아무 글도 없는 상태 = **고장이 아니라 시작 전**이다. 마스코트가 사는 이 화면의 유일한
+ * 자리다(목록이 채워지면 사라진다).
+ *
+ * 🔴 2026-08-03: 배경이 `gradientHeroSoft` 였다. 옛 브랜드 램프가 철거되면서 그 토큰은
+ * `surfaceMuted` 와 **같은 단색**이 됐으므로(16테마 전부 일치) 역할을 그대로 말하는 이름으로
+ * 바꿨다 — "brand 면"이라던 옛 주석은 더 이상 사실이 아니다.
+ * 이 패널은 흰 `Section` 카드 **안**에 앉아 1.04:1 이라 면색으로는 서지 못한다. 그래서 격은
+ * 점선 `borderStrong`(3.3:1)이 진다 — 커뮤니티 피드 빈 상태(`FeedStates.EmptyRoot`)와 같은
+ * 어휘이고, 안에 버튼을 품는 패널이라 면을 `surfaceSunken` 까지 내리면 velog 라이트에서
+ * 버튼 hover(`surfaceHover`)와 값이 같아져 hover 가 사라진다(실측).
  */
 export const EmptyRoot = styled.div`
   display: grid;
@@ -341,8 +354,8 @@ export const EmptyRoot = styled.div`
   padding: clamp(${space[8]}, 7vw, ${space[16]}) ${space[5]};
   text-align: center;
   border-radius: ${PICK_RADIUS};
-  border: 1px dashed ${color.border};
-  background: ${color.gradientHeroSoft};
+  border: 1px dashed ${color.borderStrong};
+  background: ${color.surfaceMuted};
 `;
 
 /**

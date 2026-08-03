@@ -40,7 +40,7 @@ export default function LegalExitNav({ related, firstClauseId }: LegalExitNavPro
       <ExitHead>
         <ExitGlyph>
           {/* 금화는 네이비 패널 위에서만 켠다(밝은 면 위 금색은 대비가 나오지 않는다). */}
-          <BrandGlyph size={24} accent />
+          <BrandGlyph size={24} />
         </ExitGlyph>
         <ExitHeading id="legal-exit-heading">이어서 보실 곳</ExitHeading>
       </ExitHead>

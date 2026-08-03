@@ -4,8 +4,8 @@ import {
   DATA_RADIUS,
   PICK_RADIUS,
   brandPanel,
+  cardElevation,
   color,
-  elevation,
   font,
   heroTitleFontSize,
   media,
@@ -603,11 +603,14 @@ export const GateWrap = styled.div`
   margin: clamp(${space[6]}, 6vw, ${space[12]}) auto 0;
 `;
 
+/**
+ * 🔴 자매 게이트 셋(프로필·내가 쓴 글·글쓰기)과 같은 값. 2026-08-03 에 셋 다
+ * `border` + `elevation[2]` 동시 선언을 걷어내고 `raised` 한 수단으로 정리했다
+ * (근거는 `surfaces.ts` 의 cardElevation).
+ */
 export const GateCard = styled.div`
+  ${cardElevation('raised')}
   border-radius: ${PICK_RADIUS};
-  border: 1px solid ${color.border};
-  background: ${color.surface};
-  box-shadow: ${elevation[2]};
   overflow: hidden;
 `;
 
@@ -723,12 +726,13 @@ export const BootBody = styled.div`
   background: ${color.surface};
 `;
 
+/** 자리표시 블록 — 흰 `BootBody` 위에서 sunken(1.11)은 얇아 `border`(1.49)로 올렸다(자매 화면과 동일). */
 export const BootBar = styled.span<{ w: string; h: string }>`
   display: block;
   width: ${({ w }) => w};
   height: ${({ h }) => h};
   border-radius: ${radius.sm};
-  background: ${color.surfaceSunken};
+  background: ${color.border};
 `;
 
 export const BootStatus = styled.p`

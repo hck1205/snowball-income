@@ -20,10 +20,24 @@ import {
  * PICK.pad · 6px 레일)를 그대로 쓰고, 블록의 자리도 실제 카드와 맞춘다.
  */
 
+/*
+ * 🔴 2026-08-03 흰 캔버스 전환에 맞춰 **두 값을 다시 골랐다**(실측 근거 포함).
+ *
+ *  - 블록 면: `surfaceMuted` → `border`. 스켈레톤 카드는 흰 면이고 그 위에서 muted 는 **1.05:1**
+ *    이라 블록이 보이지 않았다(= 로딩 화면이 "빈 흰 카드"로 읽힌다). `border` 는 1.49:1 로,
+ *    이 파일이 6px 레일(`SkeletonRail`)에 이미 쓰고 있는 값이다 — 블록끼리 같은 회색을 쓴다.
+ *    🔴 `surfaceSunken`(1.11)은 답이 아니다: 블록 셋이 **`SkeletonTile` 안**에 앉는데 그 타일이
+ *    바로 sunken 이라 통째로 사라진다. `border` 는 sunken 타일 위에서도 1.34:1 로 남는다.
+ *  - 스윕: `surfaceHover` → `surface`. velog 라이트에서 hover 와 sunken 이 **같은 값**(#f1f3f5,
+ *    실측 대비 1.000)이 되어 스윕이 통째로 사라졌다(평평한 한 색 = 멈춘 스켈레톤).
+ *    `surface` 는 16테마 전부에서 `border` 와 값이 다르므로 어느 프리셋에서도 띠가 지나간다
+ *    (라이트는 밝은 하이라이트, 다크는 어두운 띠 — 다크 중립군에는 `border` 보다 밝으면서
+ *     블록으로 쓸 만한 토큰이 없다. 방향보다 "움직이는 것이 보인다"가 먼저다).
+ */
 const shimmer = `
   position: relative;
   overflow: hidden;
-  background: ${color.surfaceMuted};
+  background: ${color.border};
 
   &::after {
     content: '';
@@ -33,7 +47,7 @@ const shimmer = `
     background: linear-gradient(
       90deg,
       transparent 0%,
-      ${color.surfaceHover} 50%,
+      ${color.surface} 50%,
       transparent 100%
     );
     animation: feed-skeleton-sweep 1.6s ${motion.ease} infinite;
@@ -97,7 +111,11 @@ export const SkeletonGlyph = styled.span`
   ${shimmer}
 `;
 
-/** 카드 안의 숫자판 자리 — 실제 숫자판과 같은 높이(132px)를 확보해 도착 시 튀지 않게 한다. */
+/**
+ * 카드 안의 숫자판 자리 — 실제 숫자판과 같은 높이(132px)를 확보해 도착 시 튀지 않게 한다.
+ * 면색도 실제 `SimTile` 과 같은 `surfaceSunken` 이다(스켈레톤은 올 것의 모양이어야 한다).
+ * 이 타일 위에서도 블록이 보이는 것은 위 `shimmer` 가 블록 면을 `border` 로 잡기 때문이다.
+ */
 export const SkeletonTile = styled.span`
   display: flex;
   flex-direction: column;
@@ -171,21 +189,32 @@ export const SkeletonRowRail = styled.span`
  *
  * 예전 빈 상태는 48px 회색 원 아이콘 + 가운데 정렬 문단이라 "무언가 잘못됐다"에 가깝게 읽혔다.
  * 빈 화면은 고장이 아니라 **아직 시작 전**이다. 그래서 마스코트를 96px 로 세우고(브랜드 면에서만
- * 허용), 글은 왼쪽 정렬로 읽기 흐름을 만든다. 파스텔 워시(`gradientHeroSoft`)는 8프리셋 ×
- * 라이트/다크 대비 검증을 이미 통과한 값이라 새 색을 지어내지 않는다.
+ * 허용), 글은 왼쪽 정렬로 읽기 흐름을 만든다.
  *
- * ⚠ 이 면은 `tintscan` 이 면 1개로 센다 — 머리 면(1)과 합쳐 2, 상한 안이다.
- *   빈 상태와 목록은 상호배타라 셋이 동시에 서지 않는다.
+ * ── 🔴 2026-08-03 흰 캔버스 전환 — 이 면을 세우는 채널이 바뀌었다 ────────────────
+ * 종전 근거("파스텔 워시 `gradientHeroSoft`")는 **더 이상 사실이 아니다.** 그 토큰은 옛 브랜드
+ * 램프가 철거되면서 `surfaceMuted` 와 **같은 단색**이 됐다(16테마 전부 값이 일치). 그래서
+ *  ① 역할을 그대로 말하는 토큰(`surfaceMuted`)으로 바꿔 이름이 거짓말하지 않게 하고,
+ *  ② 흰 캔버스 위 1.04:1 인 면색 대신 **점선 경계를 `borderStrong`(3.3:1)으로 올려** 격을 맡겼다.
+ * 채우지 않고 두르는 쪽을 고른 이유는 이 패널이 **버튼을 품기 때문**이다 — 면을 `surfaceSunken`
+ * 까지 내리면 velog 라이트에서 공용 `Button secondary` 의 hover(`surfaceHover`)와 값이 같아져
+ * (둘 다 #f1f3f5) 빈 상태의 유일한 CTA 가 hover 피드백을 잃는다(실측).
+ * 점선 + `borderStrong` 은 이 레포가 "비어 있음 / 잠긴 자리"에 이미 쓰는 어휘다
+ * (`CommentSection.LoginPrompt` · `AttachScenarioSection.AttachEmpty`).
+ *
+ * ⚠ `tintscan` 은 이 면을 **더 이상 세지 않는다** — 배경이 중립 토큰 집합(surface-muted)이기
+ *   때문이다. 목록 화면의 색면 예산은 머리 면 1개뿐이고, 남은 1장은 **쓰지 않는다**
+ *   (흰 캔버스의 이득은 절제에서 나온다 — `shared/styles/surfaces.ts` 머리말).
  */
 export const EmptyRoot = styled.div`
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: clamp(${space[5]}, 3vw, ${space[10]});
-  border: 1px dashed ${color.border};
+  border: 1px dashed ${color.borderStrong};
   border-radius: ${PICK_RADIUS};
   padding: clamp(${space[8]}, 5vw, ${space[12]}) clamp(${space[5]}, 4vw, ${space[10]});
-  background: ${color.gradientHeroSoft};
+  background: ${color.surfaceMuted};
 
   ${media.down('tabletSm')} {
     grid-template-columns: minmax(0, 1fr);

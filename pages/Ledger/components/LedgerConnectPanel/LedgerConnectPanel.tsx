@@ -58,7 +58,7 @@ export default function LedgerConnectPanel({
     <ConnectSection aria-labelledby={headingId}>
       <ConnectStage>
         <StageMascot>
-          <BrandGlyph size={96} accent />
+          <BrandGlyph size={96} />
         </StageMascot>
         <ConnectHeading id={headingId}>{copy.connect.heading}</ConnectHeading>
         <StageLede>{copy.connect.stageLede}</StageLede>

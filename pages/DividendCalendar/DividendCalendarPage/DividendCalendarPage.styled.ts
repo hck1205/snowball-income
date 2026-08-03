@@ -1,6 +1,7 @@
 import styled from '@emotion/styled';
 import {
   DATA_RADIUS,
+  PICK,
   PICK_RADIUS,
   appHeaderHeight,
   cardElevation,
@@ -13,7 +14,8 @@ import {
   pageHueMix,
   radius,
   sectionTitleFontSize,
-  space
+  space,
+  topRail
 } from '@/shared/styles';
 
 /**
@@ -349,12 +351,17 @@ export const NextLeadCountdown = styled.span`
   }
 `;
 
-/** 이미 지난 일정·지급 없음처럼 "지금 기다릴 것이 없는" 상태의 카운트다운 자리. */
+/**
+ * 이미 지난 일정·지급 없음처럼 "지금 기다릴 것이 없는" 상태의 카운트다운 자리.
+ *
+ * 이 칩은 **침강면 판 위에** 앉는다 — 그래서 면은 판보다 밝아야 한다(가라앉은 자리에서 한 칸 올라온
+ * 알약). 구 `surfaceMuted` 는 판과 1.037:1 이라 알약 모양이 사라졌다. `surface` 로 올려 1.112:1.
+ */
 export const NextLeadNote = styled.span`
   justify-self: end;
   padding: ${space[1]} ${space[3]};
   border-radius: ${radius.pill};
-  background: ${color.surfaceMuted};
+  background: ${color.surface};
   font-size: ${font.size.xs};
   font-weight: ${font.weight.semibold};
   color: ${color.textSecondary};
@@ -507,11 +514,14 @@ export const CardTitle = styled.h3`
   color: ${color.text};
 `;
 
-/** 제목 옆 개수 — 제목과 같은 줄에서 "몇 건짜리 목록인가"를 먼저 말한다. */
+/**
+ * 제목 옆 개수 — 제목과 같은 줄에서 "몇 건짜리 목록인가"를 먼저 말한다.
+ * 흰 카드 위 알약이라 면은 침강면이다(muted 는 1.03:1 이라 알약이 아니라 그냥 글자가 된다).
+ */
 export const CardCount = styled.span`
   padding: 2px ${space[2]};
   border-radius: ${radius.pill};
-  background: ${color.surfaceMuted};
+  background: ${color.surfaceSunken};
   font-size: ${font.size['2xs']};
   font-weight: ${font.weight.bold};
   color: ${color.textSecondary};
@@ -621,18 +631,20 @@ export const StartCard = styled.div`
   padding: clamp(22px, 3vw, 32px);
   border-radius: ${PICK_RADIUS};
   ${cardElevation('raised')}
-  /* 아래 레일을 카드 모서리에서 잘라낸다. 이 카드 안에는 툴팁·팝오버가 없으므로 안전하다. */
+  /* 🔴 아래 레일을 카드 모서리에서 잘라내는 **유일한 장치**다. 이 카드 안에는 툴팁·팝오버가 없으므로
+     안전하다(지도 카드가 3변 bleed 를 포기한 이유가 그 반대 경우다 — 위 CardHead 주석). */
   overflow: hidden;
 
-  /* ⚠ 레일에 반경을 주지 않는다 — 6px 짜리 띠의 비균일 반경은 브라우저가 그려 주지 않는다
-     (test/shared/radiusShape.test.ts). 부모의 overflow 로 자르는 것이 이 레포의 처방이다. */
+  /*
+   * 상단 리본은 공용 topRail() 이 낸다(2026-08-03). 손으로 적던 top/left/right 를 헬퍼로 바꾼
+   * 이유는 모양이 아니라 **감사**다: 소스 레벨 리본 가드(shared/styles/geometry.test.ts)가 잡는
+   * 서명은 inset:0 0 auto 0 과 topRail( 둘뿐이라, 구 표기는 반경을 가진 이 카드에서 overflow 가
+   * 지워져도 조용히 통과했다. 이제는 문다.
+   * ⚠ 높이는 PICK.railHeight(6px) — 8px 이 되는 순간 tintscan 이 선이 아니라 면으로 세어 이 라우트의
+   *   틴트 예산을 먹는다. 올리지 마라.
+   */
   &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 6px;
+    ${topRail(PICK.railHeight)}
     background: ${color.gradientAurora};
   }
 `;
@@ -667,7 +679,9 @@ export const PreviewBadge = styled.p`
   padding: ${space[1]} ${space[3]};
   border: 1px dashed ${color.border};
   border-radius: ${radius.pill};
-  background: ${color.surfaceMuted};
+  /* 🔴 이 칩은 **놓치면 안 되는** 고지다(예시를 실제 지급으로 읽는 사고를 막는 유일한 텍스트).
+     흰 카드 위에서 muted(1.03:1)는 면이 없는 것과 같아 점선 하나에 전부를 걸고 있었다. */
+  background: ${color.surfaceSunken};
   font-size: ${font.size['2xs']};
   font-weight: ${font.weight.semibold};
   letter-spacing: 0.01em;
@@ -732,6 +746,10 @@ export const QuickPickDot = styled.span`
 /**
  * 예시 달력이 앉는 판. 실제 지도 카드와 **같은 기하**를 쓰되 한 겹 뒤로 물러난다 —
  * "여기 이런 것이 뜬다"는 자리 표시이지 읽을 데이터가 아니다.
+ *
+ * ⚠ 안의 달력이 스스로 침강면 판을 갖게 된 뒤(2026-08-03)로 이 판과 그 판은 **같은 색**이다.
+ * 일부러 그대로 뒀다 — 여기서 격을 말하는 것은 옆에 선 `StartCard`(raised)와의 차이이고,
+ * 예시 달력의 날짜 타일은 여전히 흰색이라 격자 구조는 실제 지도와 똑같이 읽힌다.
  */
 export const PreviewPane = styled.div`
   ${bodyCard}
@@ -802,10 +820,11 @@ export const UnavailableList = styled.ul`
   ${font.numeric}
 `;
 
+/** 흰 면 위 알약이라 침강면을 쓴다(muted 는 1.03:1 이라 칩 경계가 없다). */
 export const UnavailableItem = styled.li`
   padding: 2px ${space[2]};
   border-radius: ${radius.pill};
-  background: ${color.surfaceMuted};
+  background: ${color.surfaceSunken};
 `;
 
 /*

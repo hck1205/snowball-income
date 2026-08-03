@@ -174,7 +174,6 @@ export const RowSimStrip = styled.div`
   padding: ${space[3]} ${space[4]} ${space[3]} ${space[5]};
   border-radius: ${nestedRadius(radius.md)};
   background: ${color.surfaceSunken};
-  transition: background ${motion.base} ${motion.ease};
 
   &::before {
     content: '';
@@ -188,10 +187,12 @@ export const RowSimStrip = styled.div`
     transition: width ${motion.base} ${motion.ease};
   }
 
-  a:hover & {
-    background: ${color.surfaceMuted};
-  }
-
+  /*
+   * hover 의 수단은 **귀 두께 하나**다(행 자신은 pickLift 로 뜬다).
+   * 🔴 2026-08-03: 여기 있던 hover 면색(surfaceMuted)을 지웠다 — 행이 흰 면이 된 뒤 muted 는
+   *   그 위에서 1.04:1 이라 hover 하는 순간 숫자 스트립이 행에 녹아 사라졌다.
+   *   갤러리 카드(PostGalleryCard.SimTile)와 같은 판단이다 — 두 밀도가 같은 앱으로 읽혀야 한다.
+   */
   a:hover &::before {
     width: 6px;
   }

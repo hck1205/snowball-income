@@ -1,19 +1,32 @@
 import styled from '@emotion/styled';
-import { PICK, PICK_RADIUS, cardElevation, color, font, iconFirstLineAlign, media, space } from '@/shared/styles';
+import {
+  PICK,
+  PICK_RADIUS,
+  cardElevation,
+  color,
+  font,
+  iconFirstLineAlign,
+  media,
+  space,
+  topRail
+} from '@/shared/styles';
 
 /**
  * S7 "시작하기 전에" — **중립 면 + 상단 6px 레일**이다.
  *
  * ## 왜 wash 를 걷어냈나 — 예산 거래다, 취향이 아니다
  * `tintscan` 은 «폭 ≥180px **그리고** 높이 ≥8px + 비중립 배경» 을 틴트 면으로 세고, 랜딩의
- * 기준선은 **2**(확정 결정, 올릴 수 없다)다. 히어로 그라디언트가 ①, 푸터 브랜드 패널이 ②다.
- * 그래서 이 카드의 배경(면 ③이 될 값)을 **레일로 내렸다**: 상단 6px 컬러 줄은 높이 하한 8px 에
- * 못 미쳐 **세어지지 않는다**(4px 오로라 리본과 같은 취급).
+ * 기준선은 **2**(확정 결정, 올릴 수 없다)다. 지금 장부는 ① 마무리 CTA(brand-subtle)
+ * ② 푸터 브랜드 패널이다. 그래서 이 카드의 배경(면 ③이 될 값)을 **레일로 내렸다**: 상단 6px 컬러
+ * 줄은 높이 하한 8px 에 못 미쳐 **세어지지 않는다**(4px 오로라 리본과 같은 취급).
  *
  * 색이 줄어든 것이 아니라 **자리를 옮겼다** — 프리셋 카드가 같은 어휘의 레일 캡을 얻었고,
  * 이 카드도 그 어휘를 그대로 쓴다. accent 축인 이유는 장 배지·순서 번호·주의 글리프가 이미
  * 전부 accent 라서다(한 카드 안에서 축이 갈리지 않는다).
  *
+ * ⚠ 2026-08-03 흰 캔버스 전환으로 히어로가 면을 내놓아 예산 한 장이 풀렸지만, 그 한 장은
+ *   **마무리 CTA 가 가져갔다**(근거: `shared/styles/surfaces.ts` 머리말 — "그 화면을 켠 이유"에만).
+ *   이 카드는 문서 중간의 참고 카드라 그 자리가 아니다.
  * 🔴 배경을 다시 채우지 마라. 세 번째 면이 되는 순간 `tools/dev/tintscan.mjs` 의 `/` 항목이 exit 1 이다.
  * ⚠ 오른쪽 목록을 경고 배너(Banner tone='warning')로 만들지 마라 — 같은 이유로 면이 하나 더 는다.
  * 두 목록의 성격 차이는 **마크업과 눈썹 문구**가 말한다: 왼쪽은 순서 있는 목록(ol) "앱 안에서",
@@ -31,18 +44,19 @@ export const ChecklistCard = styled.div`
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: clamp(20px, 3vw, 40px);
   min-width: 0;
-  /* 레일이 3변으로 붙으려면 모서리에서 잘라야 한다. */
+  /* 🔴 레일이 3변으로 붙으려면 모서리에서 잘라야 한다 — 이 한 줄이 유일한 클리핑 장치다.
+     지우면 6px 띠가 34px 반경 모서리 밖으로 직진한다(리본에 반경을 주는 처방은 6px 높이에서
+     오히려 틈을 만든다 — 근거는 shared/styles 의 topRail 주석). */
   overflow: hidden;
   padding: clamp(24px, 3vw, 40px);
   /* 고르는 면(PickCard)과 같은 반경 대역 — 프리셋 카드 바로 다음에 오는 카드라 각이 갈리면 눈에 띈다. */
   border-radius: ${PICK_RADIUS};
 
-  /* 상단 컬러 레일. 의사요소라 DOM 열거 대상이 아니고, 6px 은 면 하한(8px)에도 못 미친다. */
+  /* 상단 컬러 레일. 의사요소라 DOM 열거 대상이 아니고, 6px 은 면 하한(8px)에도 못 미친다.
+     선언은 공용 topRail() 이 소유한다 — 레포 전체가 같은 처방을 쓰도록(손으로 적으면 반경·inset 이
+     자리마다 갈린다). 여기서 정하는 것은 높이와 색뿐이다. */
   &::before {
-    content: '';
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: ${PICK.railHeight};
+    ${topRail(PICK.railHeight)}
     background: ${color.accent};
   }
 

@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, media, motion, pageHue, pageHueMix, radius, space } from '@/shared/styles';
+import { color, font, media, motion, outerRadius, pageHue, pageHueMix, radius, space } from '@/shared/styles';
 
 /**
  * ── 이 격자는 **읽는 면(data)** 이다 ─────────────────────────────────────────────
@@ -12,9 +12,28 @@ import { color, font, media, motion, pageHue, pageHueMix, radius, space } from '
  *  |---|---|
  *  | 지급 있음 | ①칸 아래 3px 레일(색) ②칩(글자) ③칩 앞 색 점 — 세 겹이라 회색조에서도 읽힌다 |
  *  | 오늘 | 2px `pageHue` **테두리 링**(면 채움 아님) + sr-only "오늘" + `aria-current` |
- *  | 지난 날 | 중립 침강면(`surfaceSunken`) + 흐린 숫자 |
+ *  | 지난 날 | 판으로 **가라앉는다**(면 없음) + 흐린 숫자 |
  *
  * 즉 채도는 **선·점**(L1)에만 남고 면은 전부 중립이다. 숫자의 신뢰감을 지키는 자리다.
+ *
+ * ── 🔴 2026-08-03 흰 캔버스 전환 — **판 위의 타일**로 다시 세웠다 ────────────────────
+ *
+ * 라이트 `bg` 가 순백이 되면서 이 표를 담는 지도 카드도 `surface`(= 흰색)가 됐다. 그때까지 칸은
+ * "흰 카드 + 1px 테두리"였는데, 카드도 흰색이라 **칸의 면과 배경이 같은 값**이 된다 — 격자가
+ * 오로지 1px 헤어라인 하나에 매달렸고(실측 1.49:1), 지도 전체가 종이에 연필로 그은 선처럼 물러났다.
+ *
+ * 그래서 격을 말하는 채널을 하나 되돌린다: **표 자신이 침강면(판)이 되고 칸이 그 위의 흰 타일**이다.
+ * ```
+ *   판(CalendarTable)   surface-sunken  #f1f3f5   ← 이 달 전체
+ *   앞으로 올 날         surface         #ffffff   1.112:1 로 판 위에 뜬다
+ *   지난 날 · 이월       면 없음(투명)              판으로 가라앉는다
+ * ```
+ * 뒤집힌 것이 핵심이다 — 예전에는 "지난 날"이 침강면을 **가졌지만**, 이제는 침강면이 판의 기본값이라
+ * 지난 날은 **아무것도 안 하는 것으로** 물러난다. 남는 것은 여전히 두 채널이다(테두리 실선/점선 · 숫자 색).
+ *
+ * ⚠ 이 판은 `surface-sunken`(중립)이라 `tintscan` 의 틴트 면 예산과 무관하다(NEUTRAL_VARS).
+ * 🔴 판을 `surface-muted` 로 내리지 마라 — 흰 타일과의 대비가 1.03:1 이라 판이 보이지 않는다
+ *    (그 토큰은 더 어둡게 내릴 수도 없다 — `shared/styles/surfaces.ts` 머리말).
  */
 
 /** 시각적으로만 숨긴다 — 표의 목적·이월 날짜의 달을 AT에 남기는 텍스트다. */
@@ -63,24 +82,48 @@ export const CalendarTable = styled.table<{ $compact?: boolean }>`
   --cal-chip-border: ${({ $compact }) => ($compact ? 'transparent' : color.border)};
   --cal-chip-bg: ${({ $compact }) => ($compact ? 'transparent' : color.surface)};
   --cal-chip-gap: ${({ $compact }) => ($compact ? '3px' : '4px')};
+  /*
+   * 칸 사이 간격. 이 값 하나가 **칸과 칸 사이 · 판 가장자리와 칸 사이**를 동시에 정한다 —
+   * border-collapse 가 separate 이면 border-spacing 이 표 테두리와 가장자리 칸 사이에도 들어가기
+   * 때문이다(CSS Tables §17.6.1). 🔴 그래서 판에 padding 을 **따로 주지 마라**: 주는 순간
+   * 가장자리 여백만 두 배가 되어 판이 칸보다 크게 부풀어 보인다(실측 후 padding 을 도로 뺐다).
+   */
+  --cal-board-pad: ${({ $compact }) => ($compact ? '2px' : space[1])};
 
   width: 100%;
   table-layout: fixed;
   border-collapse: separate;
-  border-spacing: ${({ $compact }) => ($compact ? '2px' : space[1])};
+  border-spacing: var(--cal-board-pad);
+  /* 🔴 판. 위 머리말 참고 — 흰 카드 위 흰 칸이 1px 헤어라인 하나에 매달리지 않게 하는 유일한 장치다. */
+  background: ${color.surfaceSunken};
+  /* 판의 반경 = 칸의 반경 + 가장자리 여백. 동심이라 모서리에서 칸과 판의 곡률이 어긋나지 않는다. */
+  border-radius: ${outerRadius('var(--cal-cell-radius)', 'var(--cal-board-pad)')};
+
+  /*
+   * 🔴 좁은 폭의 칸 라운드도 **여기서** 정한다(2026-08-03 검증). 구 코드는 이 값을 소비처 두 곳
+   * (DayCellRoot · DayJumpButton)에 radius.sm 을 각각 손으로 적었는데, 그러면 위의 판 반경만
+   * 변수를 따라 넓은 폭 값(12px)에 머문다 — 실측 결과 390px 에서 판 14px vs
+   * 칸 8px+여백 2px = 10px 으로 **동심이 깨져** 모서리에서 판의 회색 띠만 굵어졌다(16배 확대 확인).
+   * 변수 하나만 갈아 끼우면 칸·덮개 버튼·판이 함께 따라온다 — 이 파일 머리말이 말하는
+   * "한 자리에서 선언하고 아래는 읽기만"이 바로 이 경우다.
+   */
+  ${media.down('tabletSm')} {
+    --cal-cell-radius: ${radius.sm};
+  }
 `;
 
 /**
- * 요일 머리 줄을 하나의 **띠**로 묶는다. 42칸이 각자 떠 있는 카드라 머리 줄이 없으면 격자의
- * 상단이 그냥 첫 주로 읽힌다 — 중립 침강면이라 색면 예산과 무관하고(틴트 아님), 요일 축이
- * "이 표의 머리"임을 형태로 말한다.
+ * 요일 머리 줄.
+ *
+ * 🔴 **면을 갖지 않는다**(2026-08-03). 구 처방은 여기에 침강면 띠를 깔아 "이 표의 머리"를 말했는데,
+ * 그건 42칸이 각자 흰 카드로 떠 있고 그 사이가 카드 면색이던 시절의 값이다. 이제는 **판 자신이
+ * 침강면**이라 같은 색을 한 번 더 칠하면 아무 일도 일어나지 않는다(1.00:1).
+ * 요일 축은 이제 반대로 읽힌다 — 아래 날짜 칸만 흰 타일로 떠 있으므로 **면이 없다는 사실**이
+ * "여기는 날짜가 아니다"를 말한다.
  */
 export const WeekdayRow = styled.tr`
   th {
-    background: ${color.surfaceSunken};
-    /* 표가 border-spacing 으로 칸을 띄우므로 머리 칸도 각자 떠 있다 — 네 모서리 균일이 정답이다
-       (한쪽만 둥근 값은 이웃과 붙어 있을 때만 뜻이 있다). */
-    border-radius: ${radius.sm};
+    background: transparent;
   }
 `;
 
@@ -143,12 +186,13 @@ export const DayCellRoot = styled.td<{
   /*
    * 🔴 면은 **중립뿐이다.** 지급 여부를 면색으로 가르지 않는다(위 머리말 표 참고) —
    * 색은 아래 3px 레일과 칩 앞 점에만 남는다.
+   *
+   * 흰 캔버스 전환(2026-08-03) 이후 **면을 갖는 칸은 "앞으로 올 날" 하나뿐이다.** 지난 날과 이월은
+   * 판(침강면) 위에 아무것도 칠하지 않아 그대로 가라앉는다 — 예전처럼 지난 날에 침강면을 칠하면
+   * 판과 같은 값이라 아무 일도 일어나지 않고, 대신 "앞으로 올 날"이 흰 타일로 떠오르는 것이
+   * 이 격자가 답해야 하는 질문("언제 들어오나")과 방향이 같다.
    */
-  background: ${({ $inMonth, $past }) => {
-    if (!$inMonth) return 'transparent';
-    if ($past) return color.surfaceSunken;
-    return color.surface;
-  }};
+  background: ${({ $inMonth, $past }) => ($inMonth && !$past ? color.surface : 'transparent')};
   /*
    * 두 종류의 inset 그림자를 한 선언에 합친다:
    *  ①오늘  = 2px pageHue **링**(네 변 · 원색). 면 채움이 아니라 테두리다.
@@ -174,11 +218,11 @@ export const DayCellRoot = styled.td<{
    * undefined, 브라우저가 무시한다. 375px 실기기에서 min-height 하한이 안 먹는 것 확인, 2026-07-26).
    * 대신 td의 height가 정확히 "최소 높이"로 동작한다(내용이 넘치면 늘어난다) — 그래서 height를 쓴다.
    */
+  /* 좁은 칸에 16px 라운드는 과하다 — 칸이 작아질수록 모서리도 각지게(실기기 피드백 2026-07-26).
+     그 값은 위 CalendarTable 이 --cal-cell-radius 로 내린다(판까지 함께 따라와야 동심이 유지된다). */
   ${media.down('tabletSm')} {
     height: 72px;
     padding: ${space[1]};
-    /* 좁은 칸에 16px 라운드는 과하다 — 칸이 작아질수록 모서리도 각지게(실기기 피드백 2026-07-26). */
-    border-radius: ${radius.sm};
   }
 
   ${media.down('mobile')} {
@@ -355,6 +399,7 @@ export const DayJumpButton = styled.button`
   inset: 0;
   padding: 0;
   border: 0;
+  /* 칸과 같은 라운드 — 좁은 폭 값까지 변수를 그대로 따라가므로 링이 모서리에서 칸 밖으로 비어지지 않는다. */
   border-radius: var(--cal-cell-radius);
   background: transparent;
   appearance: none;
@@ -372,10 +417,6 @@ export const DayJumpButton = styled.button`
     outline-offset: -2px;
   }
 
-  /* 칸의 좁은 폭 라운드(radius.sm)와 맞춘다 — 링이 모서리에서 칸 밖으로 비어져 보이지 않게. */
-  ${media.down('tabletSm')} {
-    border-radius: ${radius.sm};
-  }
 `;
 
 /**
@@ -391,7 +432,9 @@ export const SkeletonBlock = styled.span`
   height: 10px;
   margin-top: ${space[1]};
   border-radius: ${radius.xs};
-  background: ${color.surfaceMuted};
+  /* 🔴 surface-muted 로 되돌리지 마라 — 이 막대는 **흰 타일 위**에 앉는데 그 조합은 1.03:1 이라
+     로딩 자리표시가 통째로 안 보인다(그래서 "빈 칸"으로 읽힌다). 침강면이 최소한의 계단이다. */
+  background: ${color.surfaceSunken};
   animation: calendar-day-pulse 1.4s ${motion.ease} infinite;
 
   @keyframes calendar-day-pulse {

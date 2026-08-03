@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { DATA_RADIUS, color, font, radius, space } from '@/shared/styles';
+import { color, font, radius, space } from '@/shared/styles';
 
 /**
  * 하이드레이션 홀딩용 로더 컨테이너.
@@ -45,25 +45,33 @@ export const LoaderWrap = styled.div<{ minHeight?: string; $variant?: 'plain' | 
  * **곧 올 화면의 틀**. 2026-08-03 부터 결과 영역은 [머리(시나리오 탭) → 본문(카드)] 을 감싼
  * 보드 하나(`ResultBoard`)라, 스켈레톤도 그 틀을 그린다 — 로딩이 끝나는 순간 프레임이 새로
  * 그려지면 그건 스켈레톤이 아니라 그냥 다른 화면이다.
+ *
+ * 🔴 그래서 흰 캔버스 전환에서 보드가 프레임을 벗었을 때(2026-08-03, `ResultBoard.styled.ts` 의
+ * BoardRoot 주석) **여기도 같이 벗었다.** 목적지가 테두리 없는 문서인데 스켈레톤만 사각형을
+ * 그리면, 로딩이 끝나는 순간 프레임이 사라져 화면이 한 번 튄다.
  */
 export const SkeletonBoard = styled.div`
   display: grid;
   gap: 0;
   width: 100%;
   /* 🔴 목적지(ResultBoard.styled.ts 의 BoardRoot)와 **같은 기하·같은 채움**이어야 한다 —
-     테두리 1px · DATA_RADIUS · 배경 없음. 여기만 radius.lg(16) 나 채운 면을 쓰면 로딩이 끝나는
-     순간 프레임이 커지거나 색이 빠져서, 스켈레톤이 아니라 그냥 다른 화면이 된다. */
-  border: 1px solid ${color.border};
-  border-radius: ${DATA_RADIUS};
+     테두리 없음 · 배경 없음 · 좌우 패딩 없음. 여기만 프레임을 그리면 스켈레톤이 아니라 그냥
+     다른 화면이 된다. 목적지가 프레임을 되찾으면 이 값도 함께 되돌려라. */
+  border: 0;
   background: transparent;
 `;
 
-/** 보드 머리 — 탭 두어 개가 밑줄 위에 앉은 모양. */
+/**
+ * 보드 머리 — 탭 두어 개가 밑줄 위에 앉은 모양.
+ *
+ * 좌우 패딩이 0 인 것은 목적지(`ScenarioTabsRow`)와 같은 이유다 — 밑줄이 결과 영역의 봉합선이라
+ * 카드와 같은 끝선에서 시작해 같은 끝선에서 끝나야 한다.
+ */
 export const SkeletonTabsRow = styled.div`
   display: flex;
   align-items: flex-end;
   gap: ${space[2]};
-  padding: ${space[3]} ${space[4]} ${space[2]};
+  padding: ${space[3]} 0 ${space[2]};
   border-bottom: 1px solid ${color.border};
 `;
 
@@ -79,7 +87,8 @@ export const SkeletonStack = styled.div`
   display: grid;
   gap: clamp(12px, 1.8vw, 20px);
   width: 100%;
-  padding: ${space[4]};
+  /* 좌우 0 — 목적지 BoardBody 와 같은 끝선(위 SkeletonBoard 주석). */
+  padding: ${space[4]} 0 0;
 `;
 
 export const SkeletonCard = styled.div`

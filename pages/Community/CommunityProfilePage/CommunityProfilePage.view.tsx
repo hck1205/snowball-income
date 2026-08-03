@@ -134,7 +134,7 @@ export default function CommunityProfileView({ viewModel }: CommunityProfileView
         <GateCard>
           <GateHead>
             <GateGlyph>
-              <BrandGlyph size={32} accent />
+              <BrandGlyph size={32} />
             </GateGlyph>
             <GateTitle>{p.loginGateTitle}</GateTitle>
             <GateSubtitle>{p.loginGateSubtitle}</GateSubtitle>
@@ -172,7 +172,7 @@ export default function CommunityProfileView({ viewModel }: CommunityProfileView
       {/* ① 아이덴티티 레일 — 화면 제목(h1)과 자매 화면 전환을 함께 진다. */}
       <IdentityRail>
         <RailGlyph>
-          <BrandGlyph size={32} accent />
+          <BrandGlyph size={32} />
         </RailGlyph>
         <div>
           <RailEyebrow>{CONSOLE_LABEL}</RailEyebrow>

@@ -190,7 +190,15 @@ export const CommentActions = styled.div`
   gap: ${space[2]};
 `;
 
-/** 답글·삭제 — 좋아요 pill 옆에서 형태로 구분되게 테두리 없는 텍스트 칩. */
+/**
+ * 답글·삭제 — 좋아요 pill 옆에서 형태로 구분되게 테두리 없는 텍스트 칩.
+ *
+ * 🔴 hover 면은 `surface`(밝게)다. `surfaceHover` 가 아니다 — 이 칩은 `CommentsBand`
+ * (= `surfaceSunken`) 위에 앉는데, velog 라이트에서 `surface-hover` 와 `surface-sunken` 이
+ * **같은 값**(#f1f3f5)이라 hover 가 지면과 구분되지 않는다(2026-08-03 실측).
+ * 가라앉은 지면 위에서 hover 는 **떠오르는 방향**이 옳고, `surface` 는 16테마 전부에서
+ * `surfaceSunken` 보다 밝다(다크 #1e1e1e > #191919) — 어느 프리셋에서도 신호가 남는다.
+ */
 export const TextAction = styled.button`
   height: 30px;
   padding: 0 ${space[2]};
@@ -205,7 +213,7 @@ export const TextAction = styled.button`
 
   &:hover {
     color: ${color.text};
-    background: ${color.surfaceHover};
+    background: ${color.surface};
   }
 
   &:focus-visible {

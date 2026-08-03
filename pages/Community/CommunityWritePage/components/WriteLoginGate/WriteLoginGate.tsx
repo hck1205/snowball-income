@@ -37,7 +37,7 @@ export default function WriteLoginGate({ onLogin }: WriteLoginGateProps) {
       <GateCard>
         <GateHead>
           <GateGlyph>
-            <BrandGlyph size={32} accent />
+            <BrandGlyph size={32} />
           </GateGlyph>
           <GateTitle>{w.loginGateTitle}</GateTitle>
           <GateSubtitle>{w.loginGateSubtitle}</GateSubtitle>

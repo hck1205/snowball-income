@@ -2,8 +2,8 @@ import styled from '@emotion/styled';
 import {
   PICK_RADIUS,
   brandPanel,
+  cardElevation,
   color,
-  elevation,
   font,
   heroTitleFontSize,
   radius,
@@ -30,11 +30,16 @@ export const GateWrap = styled.div`
   margin: clamp(${space[6]}, 6vw, ${space[12]}) auto 0;
 `;
 
+/**
+ * 🔴 2026-08-03: `border` + `elevation[2]` 를 **동시에** 선언하고 있었다. `surfaces.ts` 의
+ * `cardElevation` 규칙("층마다 수단은 하나 — 주역은 그림자, 본문은 테두리")을 어긴 자리이고,
+ * 흰 캔버스에서는 그 위반이 실제로 보인다: 흰 배경 위 흰 카드에서 테두리와 그림자가 같은
+ * 윤곽을 두 번 그려 가장자리가 지저분해진다. 이 카드는 화면에 서 있는 **유일한 면**이므로
+ * 격은 `raised`(그림자)다 — 헬퍼를 그대로 부른다.
+ */
 export const GateCard = styled.div`
+  ${cardElevation('raised')}
   border-radius: ${PICK_RADIUS};
-  border: 1px solid ${color.border};
-  background: ${color.surface};
-  box-shadow: ${elevation[2]};
   overflow: hidden;
 `;
 

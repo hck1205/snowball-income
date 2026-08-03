@@ -376,8 +376,15 @@ export const SkeletonShell = styled.div`
 `;
 
 /**
- * 스켈레톤 한 조각. 중립 3색(sunken → hover → sunken)을 흐르게 해 "로딩 중"을 모션으로 말한다.
+ * 스켈레톤 한 조각. 중립 3색(border → surface → border)을 흐르게 해 "로딩 중"을 모션으로 말한다.
  * `prefers-reduced-motion` 에서는 흐름을 멈추고 면색만 남긴다(정보 손실 없음).
+ *
+ * 🔴 2026-08-03 흰 캔버스 전환에서 **두 stop 을 다시 골랐다.** 종전은 sunken → hover → sunken.
+ *  - 블록 면(sunken 1.11:1)은 흰 지면 위에서 너무 얇았다. `border`(1.49:1)로 올렸다 —
+ *    커뮤니티 목록 스켈레톤(`FeedStates.styled.ts`)과 같은 어휘다.
+ *  - 가운데 stop 이 `surfaceHover` 였는데 velog 라이트에서 `surface-hover` 와 `surface-sunken`
+ *    이 **같은 값**(#f1f3f5, 실측 대비 1.000)이 되어 **스윕이 통째로 사라졌다**(평평한 한 색 =
+ *    멈춘 스켈레톤 = "로딩 중"이 아니라 "여기까지"로 읽힌다).
  */
 export const SkeletonBar = styled.div<{ w: string; h: string }>`
   width: ${({ w }) => w};
@@ -386,16 +393,16 @@ export const SkeletonBar = styled.div<{ w: string; h: string }>`
   border-radius: ${radius.sm};
   background: linear-gradient(
     90deg,
-    ${color.surfaceSunken} 25%,
-    ${color.surfaceHover} 37%,
-    ${color.surfaceSunken} 63%
+    ${color.border} 25%,
+    ${color.surface} 37%,
+    ${color.border} 63%
   );
   background-size: 200% 100%;
   animation: ${shimmer} 1.4s ease-in-out infinite;
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
-    background: ${color.surfaceSunken};
+    background: ${color.border};
   }
 `;
 

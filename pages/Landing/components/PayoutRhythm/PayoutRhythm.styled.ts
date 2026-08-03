@@ -21,7 +21,7 @@ import { DATA_RADIUS, cardElevation, color, font, media, motion, radius, space }
  * 칸 폭은 25~67px 라 tintscan 의 면 하한(180px, tools/dev/tintscan.mjs:63,363)에 걸리지 않고,
  * 트랙(RhythmMonths)은 배경이 없어 스캐너의 대상 자체가 아니다(같은 파일 365-367).
  * 테두리는 backgroundColor/backgroundImage 만 보는 스캐너에 **애초에 안 잡힌다** — 이 섹션은 랜딩의
- * 틴트 면 2개(히어로 그라디언트 · 푸터 패널)에 세 번째를 더하지 않는다.
+ * 틴트 면 2개(마무리 CTA · 푸터 패널)에 세 번째를 더하지 않는다.
  */
 
 export const RhythmCard = styled.div`

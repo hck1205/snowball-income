@@ -67,6 +67,18 @@ const navButtonBase = `
   }
 `;
 
+/**
+ * 🔴 **hover 에서 면색을 바꾸지 않는다**(2026-08-03).
+ *
+ * 이 버튼은 **가라앉은 트레이 위의 흰 조각**이다. 그런데 velog 라이트에서
+ * `surface-hover` 와 `surface-sunken` 은 **같은 값**(#f1f3f5)이라, 예전 처방(`background:
+ * surface-hover`)은 hover 순간 버튼 면이 트레이와 정확히 같아졌다 — 대비 1.000:1, 즉
+ * "가리키면 버튼이 사라진다". 기본 프리셋에서만 나는 결함이라 더 나쁘다.
+ *
+ * 흰 캔버스 원칙대로 **한 층에는 수단 하나**를 쓴다 — 여기서는 면이 이미 최상단(흰색)이므로
+ * 남은 채널인 **경계와 글자색**이 상태를 말한다. 8프리셋 전부에서 성립하고
+ * (`border` → `border-strong` 은 라이트·다크 모두 명확한 한 칸), 토큰 값 변화에도 안 깨진다.
+ */
 export const NavButton = styled.button`
   ${navButtonBase}
   /* 제목(헤딩 서체)의 **잉크 중심**에 맞춘다 — 한글은 라인박스 중심이 잉크 중심보다 아래라
@@ -77,7 +89,6 @@ export const NavButton = styled.button`
   color: ${color.textSecondary};
 
   &:hover {
-    background: ${color.surfaceHover};
     border-color: ${color.borderStrong};
     color: ${color.text};
   }

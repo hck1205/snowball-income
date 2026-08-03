@@ -20,10 +20,35 @@ import {
  *  - 절 사이는 **테두리가 아니라 헤어라인 한 줄 + 큰 여백**으로 가른다.
  *  - 조항 번호는 제목 안에 묻지 않고 **왼쪽 기둥**(`CLAUSE_GUTTER`)에 세운다. 본문도 같은 기둥만큼
  *    들여써서, 스크롤 중 어느 위치에서도 "번호 열"이 하나의 세로선으로 읽힌다.
- *  - 면(sunken)을 갖는 것은 **표와 정의 목록뿐**이다 — 본문이 아니라 부속이라는 뜻을 형태로 말한다.
+ *  - 부속(표·정의 목록)만 **자기 상자**를 갖는다 — 본문이 아니라 부속이라는 뜻을 형태로 말한다.
  *
  * 타이포 대비도 다시 벌렸다. 이전에는 제목 14px / 본문 13px 로 **거의 같은 크기**여서 위계가 없었다.
  * 지금은 제목 18~24px(display) / 본문 15px / 캡션 12px 이고, 본문 행간은 1.6 → 1.8 이다.
+ *
+ * ## 🔴 2026-08-03 — 부속의 상자를 "면"에서 "경계"로 옮겼다 (흰 캔버스 전환)
+ * 종전에는 표와 정의 목록이 둘 다 `cardElevation('sunken')`(= `surface-sunken` 통면)이었다.
+ * 라이트 캔버스가 순백이 되면서 그 처방이 **표 안에서 무너졌다**(2026-08-03 브라우저 실측,
+ * `/privacy` velog 라이트):
+ *
+ * ```
+ *   상자(scroller)  surface-sunken  #f1f3f5
+ *   열 머리(th)     surface-muted   #f8f9fa   ← 상자보다 **밝다**. 위계가 뒤집혔다
+ *   얼룩 줄(even)   surface-hover   #f1f3f5   ← 상자와 **같은 값**. 대비 1.000:1 = 얼룩 소멸
+ * ```
+ *
+ * 원인은 하나다 — **상자가 면 사다리의 한 칸을 먹어 버린다.** 흰 캔버스의 중립 사다리는
+ * `surface`(흰) → `surface-muted` → `surface-sunken` 세 칸뿐인데 표는 세 칸을 다 쓴다
+ * (본문 줄 · 얼룩 줄 · 열 머리). 상자까지 면으로 세우면 남는 칸이 없다.
+ *
+ * 그래서 상자는 **1px 헤어라인**으로 서고(`cardElevation('base')`), 면은 상자 **안쪽**에만 쓴다.
+ * 이 앱의 흰 캔버스 원칙("격을 말하는 채널을 면색 → 경계·여백으로 옮긴다",
+ * `shared/styles/surfaces.ts` 머리말)을 부속에 그대로 적용한 것이다.
+ *
+ * 정의 목록도 같은 처방으로 맞췄다 — 같은 문서에서 나란히 서는 두 부속이 서로 다른 언어로
+ * 말하면 사용자는 그 차이를 "성격이 다른 블록"으로 잘못 읽는다.
+ *
+ * 🔴 상자를 다시 `sunken` 으로 되돌리지 마라. 되돌리는 순간 위 표의 세 값이 다시 두 칸으로
+ *    눌리고, 그때 잃는 것은 색이 아니라 **열 머리와 얼룩 줄이라는 두 개의 읽기 장치**다.
  */
 
 /** 번호 기둥의 폭. 본문 들여쓰기와 **같은 값**이어야 번호 열이 세로선으로 읽힌다. */
@@ -167,8 +192,11 @@ export const ListItem = styled.li`
 `;
 
 /**
- * 정의 목록(보호책임자·용어). 본문과 달리 **면을 갖는다** — "읽어 내려가는 글"이 아니라
+ * 정의 목록(보호책임자·용어). 본문과 달리 **자기 상자를 갖는다** — "읽어 내려가는 글"이 아니라
  * "찾아보는 값"이기 때문이다. 좁은 폭에서는 이름 위·값 아래 두 줄, 넓어지면 두 열이 된다.
+ *
+ * 상자는 면이 아니라 헤어라인이다(위 머리말의 2026-08-03 항 참고). 행 사이 구분선은 아래
+ * `DefinitionRow` 가 이미 갖고 있어, 흰 면 위에서도 "묶여 있는 값들"로 읽힌다.
  */
 export const DefinitionList = styled.dl`
   display: grid;
@@ -176,7 +204,7 @@ export const DefinitionList = styled.dl`
   max-width: ${PROSE_WIDTH};
   border-radius: ${radius.lg};
   overflow: hidden;
-  ${cardElevation('sunken')}
+  ${cardElevation('base')}
 `;
 
 export const DefinitionRow = styled.div`
@@ -227,7 +255,7 @@ export const DefinitionDescription = styled.dd`
 export const TableScroller = styled.div`
   overflow-x: auto;
   border-radius: ${radius.lg};
-  ${cardElevation('sunken')}
+  ${cardElevation('base')}
   ${subtleScrollbar}
 `;
 
@@ -249,10 +277,18 @@ export const TableCaption = styled.caption`
   color: ${color.text};
 `;
 
+/**
+ * 열 머리 — 표 안에서 **가장 가라앉은 칸**이다.
+ *
+ * 🔴 `surface-muted` 가 아니라 `surface-sunken` 이다(2026-08-03). 상자가 `sunken` 통면이던 시절에는
+ * 머리가 상자보다 **밝은** `muted` 여서 "들어간 자리"가 거꾸로 튀어나와 보였다. 상자가 흰 면이 된
+ * 지금은 사다리가 바로 선다: 본문 줄(흰) < 얼룩 줄(muted) < 열 머리(sunken).
+ * 8프리셋 라이트 전부에서 이 순서가 단조다(muted 가 sunken 보다 항상 밝다 — presets/*.ts 실측).
+ */
 export const TableHeaderCell = styled.th`
   padding: ${space[3]} ${space[4]};
   border-bottom: 1px solid ${color.borderStrong};
-  background: ${color.surfaceMuted};
+  background: ${color.surfaceSunken};
   text-align: left;
   white-space: nowrap;
   font-size: ${font.size.xs};
@@ -261,10 +297,17 @@ export const TableHeaderCell = styled.th`
   color: ${color.text};
 `;
 
-/** 얼룩 줄. 일곱 열짜리 표에서 가로로 눈이 미끄러지지 않게 하는 유일한 장치다(중립 면이라 색 예산 밖). */
+/**
+ * 얼룩 줄. 일곱 열짜리 표에서 가로로 눈이 미끄러지는 것을 막는 **두 번째** 장치다
+ * (첫 번째는 `TableCell` 의 행마다 1px 구분선 — 흰 면 위 1.44~1.49:1 로 이제 확실히 보인다).
+ *
+ * 🔴 `surface-hover` 가 아니라 `surface-muted` 다(2026-08-03). velog 라이트에서
+ * `surface-hover` 는 `surface-sunken` 과 **같은 값**(#f1f3f5)이라, 열 머리와 얼룩 줄이 한 색이 된다.
+ * `muted` 는 8프리셋 전부에서 흰 본문 줄과 sunken 머리 **사이**에 있는 유일한 칸이다.
+ */
 export const TableRow = styled.tr`
   &:nth-of-type(even) {
-    background: ${color.surfaceHover};
+    background: ${color.surfaceMuted};
   }
 `;
 

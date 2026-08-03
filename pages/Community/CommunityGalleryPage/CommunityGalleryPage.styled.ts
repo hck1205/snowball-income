@@ -70,6 +70,13 @@ export const FeedDeck = styled.div`
  * 활성 표시는 **면색이 아니라 부상**이다(밝은 알약 + e1). 폭이 180px 아래라 색을 써도 예산에
  * 걸리지는 않지만, 같은 화면의 정렬 탭이 이미 색으로 활성을 말하고 있어 두 컨트롤이 같은 말을
  * 하면 어느 쪽이 지금 축인지 흐려진다.
+ *
+ * 🔴 2026-08-03 흰 캔버스 전환 — **트랙을 `surfaceMuted` 에서 `surfaceSunken` 으로 내렸다.**
+ * 이 컨트롤은 "홈에 박힌 알약"이라 트랙이 알약보다 어두워야 성립하는데, 흰 알약 vs muted 트랙은
+ * **1.04:1**(실측)이라 홈이 없는 것과 같았다 — 남는 신호는 글자색뿐이고 그러면 "색이 유일한
+ * 채널"이 된다. sunken 으로 내리면 1.11:1 로 홈이 생기고, 알약의 `e1`(흰 면 위에서는 사실상
+ * 보이지 않는 그림자)에 기대지 않아도 된다. sunken 은 이 사다리에서 "들어간 자리"를 뜻하는
+ * 바로 그 토큰이다.
  */
 export const ViewToggle = styled.div`
   display: inline-flex;
@@ -78,7 +85,7 @@ export const ViewToggle = styled.div`
   padding: 3px;
   border-radius: ${radius.pill};
   border: 1px solid ${color.border};
-  background: ${color.surfaceMuted};
+  background: ${color.surfaceSunken};
 `;
 
 export const ViewToggleButton = styled.button<{ active: boolean }>`

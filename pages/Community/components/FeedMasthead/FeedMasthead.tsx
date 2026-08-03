@@ -39,7 +39,7 @@ export default function FeedMasthead({
       </MastheadBody>
       <MastheadMark>
         {/* 금화는 네이비 패널 위에서만 켠다(밝은 면 위 금색은 1.83:1). */}
-        <BrandGlyph size={96} accent />
+        <BrandGlyph size={96} />
       </MastheadMark>
     </MastheadRoot>
   );

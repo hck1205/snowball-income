@@ -159,10 +159,32 @@ export const Table = styled.table`
  * 🔴 **중립 침강 면 띠**(`surfaceSunken`)다 — 종전에는 본문과 같은 면 위 회색 글자 한 줄이라
  * "여기부터 데이터"라는 경계가 없었다. 면 토큰이 중립이라 `tintscan` 이 세지 않는다.
  * 대문자 트래킹 대신 자간만 벌린다(한글이 섞이므로 `text-transform` 은 쓸 수 없다).
+ *
+ * ## 2026-08-03 흰 캔버스 — 띠에 **닫는 선**을 붙였다 (실측으로 잡은 위계 역전)
+ * 캔버스가 순백이 되면서 카드 면과 표의 면이 같은 값(#ffffff)이 됐고, 격을 말하는 채널이
+ * 면색에서 경계로 옮겨갔다(`shared/styles/surfaces.ts` 머리말). 그 상태에서 이 표를 실측하니
+ * 가로선의 무게가 **거꾸로** 서 있었다:
+ * ```
+ *   카드 프레임        border  #ced4da  1.494:1
+ *   행 구분선          border  #ced4da  1.494:1
+ *   머리글 띠(면색만)  sunken  #f1f3f5  1.112:1   ← 표에서 가장 약한 가로 신호
+ * ```
+ * "여기부터 데이터"를 말해야 하는 줄이 데이터 행 사이의 줄보다 4배 약했다. 흰 배경이 이 값을
+ * 바꾼 것은 아니다(카드 면은 전에도 흰색이었다) — 바뀐 것은 **면색이 더 이상 위계를 말하지
+ * 않게 된 것**이고, 그래서 이 띠만 옛 채널에 홀로 남아 있었다.
+ *
+ * 지금은 **면색(띠) + 경계(닫는 선)** 를 함께 갖는다 → 선 하나뿐인 행 구분선보다 확실히 무겁다.
+ * 🔴 선을 `borderStrong`(3.32:1)으로 올리지 마라 — 그건 컨트롤 경계의 무게라 1px 표에서는
+ *    머리글이 카드 프레임을 이겨 버린다. 무게 차이는 색이 아니라 **면 + 선의 겹침**이 만든다.
+ *
+ * ⚠ 라운드는 **위쪽 두 모서리만** 남긴다. 아래 모서리까지 둥글면 닫는 선이 양 끝에서 8px 씩
+ *   말려 올라가 "탭"처럼 보이고, 선이 표 폭을 끝까지 긋지 못한다.
+ * ⚠ 카드 모드(≤820px)에서는 `thead` 가 통째로 숨으므로 이 선은 데스크톱 전용이다.
  */
 export const TH = styled.th<{ $align?: 'left' | 'right' }>`
   text-align: ${({ $align }) => $align ?? 'right'};
   background: ${color.surfaceSunken};
+  border-bottom: 1px solid ${color.border};
   padding: ${space[2]} ${space[3]};
   color: ${color.textSecondary};
   font-size: ${font.size['2xs']};
@@ -171,12 +193,12 @@ export const TH = styled.th<{ $align?: 'left' | 'right' }>`
   letter-spacing: 0.04em;
 
   &:first-of-type {
-    border-radius: ${radius.sm} 0 0 ${radius.sm};
+    border-radius: ${radius.sm} 0 0 0;
     padding-left: ${space[3]};
   }
 
   &:last-of-type {
-    border-radius: 0 ${radius.sm} ${radius.sm} 0;
+    border-radius: 0 ${radius.sm} 0 0;
   }
 `;
 

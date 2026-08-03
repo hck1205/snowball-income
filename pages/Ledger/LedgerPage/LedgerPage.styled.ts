@@ -29,8 +29,14 @@ import { appHeaderHeight, cardElevation, color, font, media, radius, space } fro
  * ## 색 규율(§3.4)
  * 금액 숫자는 전부 `color.text` 중립이다. 손익색(`dataPositive`/`dataNegative`)을 이 화면에서 쓰지
  * 않는다 — 수입·지출은 P&L 이 아니다. 구분은 아이콘 + 텍스트 칩이 말한다.
- * 🔴 연결 후 화면의 **틴트 면은 히어로 하나**다. 이 파일이 깔던 빈 상태 액센트 면은 2026-08-03 에
- * 중립(`surfaceSunken` + 파선)으로 내렸다 — 색은 "고르는 면"(연결 무대)이 갖는다.
+ * 🔴 연결 후 화면의 **틴트 면은 푸터 브랜드 패널 하나**다(2026-08-03 tintscan 실측 1/2).
+ * 히어로가 파스텔 램프에서 흰 면이 되면서 예산 한 장이 풀렸지만 **여기서 쓰지 않는다** — 가계부는
+ * 숫자를 읽는 화면이고, 색 면이 늘면 그 숫자가 뒤로 물러난다. 이 파일이 깔던 빈 상태 액센트 면은
+ * 중립(`surfaceSunken` + 파선)으로 내렸다 — 색은 "고르는 면"(미연결 무대)이 갖는다.
+ *
+ * ## 흰 캔버스에서의 면 (2026-08-03)
+ * 라이트 배경이 순백이 되면서 `surface-muted`(흰 면 위 1.05:1)는 **자리표시자로 못 쓴다** —
+ * 이 파일의 스켈레톤 3종을 `surface-sunken`(1.11:1)으로 올린 이유다. 그 근거는 `SkeletonBar` 주석.
  */
 
 export const PageStack = styled.div`
@@ -259,14 +265,21 @@ export const FlowValue = styled.p`
   ${font.numeric}
 `;
 
-/** 값이 오기 전 자리. 로딩임을 형태로 말한다(숫자를 지어내지 않는다). */
+/**
+ * 값이 오기 전 자리. 로딩임을 형태로 말한다(숫자를 지어내지 않는다).
+ *
+ * 🔴 면은 `surface-sunken` 이다(2026-08-03). 구 값 `surface-muted` 는 흰 카드 위에서 **1.05:1**
+ * (velog 라이트 실측)이라, 라이트 캔버스가 순백이 된 뒤로는 "값이 올 자리"가 사실상 보이지 않았다 —
+ * 즉 로딩 화면이 그냥 **빈 화면**으로 읽힌다. `sunken` 은 같은 조건에서 1.11:1 이고 8프리셋 전부에서
+ * 흰 면 위 가장 또렷한 중립 칸이다. 셔머 애니메이션을 추가하는 것으로 대신하지 마라(아래 주석 참고).
+ */
 export const SkeletonBar = styled.span`
   display: inline-block;
   width: 60%;
   min-width: 96px;
   height: 1em;
   border-radius: ${radius.sm};
-  background: ${color.surfaceMuted};
+  background: ${color.surfaceSunken};
 `;
 
 /**
@@ -292,13 +305,14 @@ export const SkeletonRow = styled.span`
   border-radius: ${radius.md};
   background: ${color.surface};
 
+  /* 면 근거는 위 SkeletonBar 주석 참고 — 흰 카드 위에서 muted 는 1.05:1 로 보이지 않는다. */
   &::before,
   &::after {
     content: '';
     display: block;
     height: 10px;
     border-radius: ${radius.xs};
-    background: ${color.surfaceMuted};
+    background: ${color.surfaceSunken};
   }
 
   ${media.down('mobileWide')} {
@@ -311,7 +325,7 @@ export const SkeletonCell = styled.span`
   display: block;
   height: 10px;
   border-radius: ${radius.xs};
-  background: ${color.surfaceMuted};
+  background: ${color.surfaceSunken};
 `;
 
 /* ── B-2 신선도(목록 카드 헤더) ───────────────────────────────────────────────── */

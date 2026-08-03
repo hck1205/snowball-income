@@ -34,9 +34,15 @@ export const AgendaDayList = styled.ol`
  * 이 블록에 한해 되돌린다. 평탄한 엣지 그룹은 날짜가 여럿일 때 **어디서 끊기는지**가 간격으로만
  * 전달돼, 달력의 또렷한 칸들 바로 아래에서 목록이 미완성처럼 읽혔다.
  *
- * 면은 **중립 토큰(surfaceMuted)만** 쓴다 — 감싸는 DetailCard 가 surface 라 한 단계 가라앉은 면이
- * "카드 안의 카드"가 아니라 **묶음 판**으로 읽히고, 중립이라 tintscan 의 틴트 면 예산에도 잡히지
- * 않는다(tools/dev/tintscan.mjs 의 NEUTRAL_VARS). 색은 날짜 배지와 종목 색 막대가 진다.
+ * 면은 **중립 토큰만** 쓴다 — 감싸는 카드가 surface 라 한 단계 가라앉은 면이 "카드 안의 카드"가
+ * 아니라 **묶음 판**으로 읽히고, 중립이라 tintscan 의 틴트 면 예산에도 잡히지 않는다
+ * (tools/dev/tintscan.mjs 의 NEUTRAL_VARS). 색은 날짜 배지와 종목 색 막대가 진다.
+ *
+ * 🔴 그 "한 단계"는 2026-08-03 까지 **거짓이었다.** 판이 `surfaceMuted`, 그 위 종목 줄이 `surface`
+ * 였는데 흰 캔버스 전환 이후 둘의 대비는 **1.034:1** 이다 — 판도 줄도 존재하지 않았고, 아래
+ * `AgendaItem` 이 말하는 "판↔줄의 위계가 명도로 읽힌다"는 문장만 남아 있었다. 실측 후 판을 `surfaceSunken`
+ * (1.112:1) 로 내려 그 문장을 사실로 만들었다. 🔴 muted 로 되돌리지 마라 — 그 토큰은 흰 면 위에서
+ * 속삭임이고 더 어둡게 내릴 수도 없다(`shared/styles/surfaces.ts` 머리말).
  *
  * 달력 칸에서 눌러 들어오면 강조된다($highlighted). **면색 하나로는 부족하다** —
  * 다크 프리셋에서 brand-subtle과 surface 계열의 밝기 차가 작아 "어디로 왔는지"가 안 읽힌다.
@@ -63,7 +69,7 @@ export const AgendaDayItem = styled.li<{ $highlighted: boolean }>`
   }
   border: 1px solid ${color.border};
   border-radius: ${radius.md};
-  background: ${color.surfaceMuted};
+  background: ${color.surfaceSunken};
   /* 좌측 브랜드 엣지는 유지한다 — 보더와 같은 자리에 겹쳐 "여기부터 이 날짜"를 계속 말한다. */
   box-shadow: inset 3px 0 0 ${color.brand};
   min-width: 0;
@@ -135,8 +141,8 @@ export const AgendaItemList = styled.ul`
 /**
  * 종목 한 줄 — 2026-08-02 리워크로 **자기 면을 갖는다**(surface).
  *
- * 날짜 판이 한 단계 가라앉은 면(surfaceMuted)이 되면서, 그 위의 줄은 떠오른 면(surface)이 되어
- * 판↔줄의 위계가 명도로 읽힌다. 둘 다 **중립 토큰**이라 틴트 면 예산과 무관하다.
+ * 날짜 판이 한 단계 가라앉은 면(surfaceSunken)이 되면서, 그 위의 줄은 떠오른 면(surface)이 되어
+ * 판↔줄의 위계가 명도로 읽힌다(실측 1.112:1). 둘 다 **중립 토큰**이라 틴트 면 예산과 무관하다.
  * 세로선 정렬은 여전히 고정폭 티커 열이 만든다.
  */
 export const AgendaItem = styled.li`
@@ -195,13 +201,16 @@ export const AgendaName = styled.span`
   text-overflow: ellipsis;
 `;
 
-/** 비어 있음도 하나의 상태다 — 점선 패널로 "자리는 있는데 내용이 없다"를 형태로 말한다. */
+/**
+ * 비어 있음도 하나의 상태다 — 점선 패널로 "자리는 있는데 내용이 없다"를 형태로 말한다.
+ * 면은 위 날짜 판과 같은 침강면이다(같은 자리에 번갈아 서므로 무게가 갈리면 안 된다).
+ */
 export const AgendaEmpty = styled.p`
   margin: 0;
   padding: ${space[4]};
   border: 1px dashed ${color.border};
   border-radius: ${radius.md};
-  background: ${color.surfaceMuted};
+  background: ${color.surfaceSunken};
   font-size: ${font.size.xs};
   color: ${color.textSecondary};
   line-height: ${font.leading.snug};

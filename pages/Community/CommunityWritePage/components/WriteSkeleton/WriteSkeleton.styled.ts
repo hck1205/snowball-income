@@ -16,8 +16,14 @@ const shimmer = keyframes`
 `;
 
 /**
- * 스켈레톤 한 조각. 중립 3색(sunken → hover → sunken)을 흐르게 해 "로딩 중"을 모션으로 말한다.
+ * 스켈레톤 한 조각. 중립 3색(border → surface → border)을 흐르게 해 "로딩 중"을 모션으로 말한다.
  * `prefers-reduced-motion` 에서는 흐름을 멈추고 면색만 남긴다(정보 손실 없음).
+ *
+ * 🔴 커뮤니티 스켈레톤 3종(목록·상세·글쓰기)이 **같은 두 stop** 을 쓴다 — 2026-08-03 흰 캔버스
+ * 전환에서 함께 다시 골랐다. 블록 면 sunken(1.11) → `border`(1.49)로 올렸고, 가운데 stop 은
+ * `surfaceHover` 를 버렸다(velog 라이트에서 sunken 과 같은 값이 되어 스윕이 평평해졌다).
+ * 🔴 이 조각은 흰 `Sheet` 와 가라앉은 `InspectorSection` **양쪽**에 앉는다 — `border` 는 두 지면
+ * 위에서 각각 1.49 / 1.34 로 남는 유일한 선택이다.
  */
 export const Bar = styled.div<{ w: string; h: string }>`
   width: ${({ w }) => w};
@@ -26,16 +32,16 @@ export const Bar = styled.div<{ w: string; h: string }>`
   border-radius: ${radius.sm};
   background: linear-gradient(
     90deg,
-    ${color.surfaceSunken} 25%,
-    ${color.surfaceHover} 37%,
-    ${color.surfaceSunken} 63%
+    ${color.border} 25%,
+    ${color.surface} 37%,
+    ${color.border} 63%
   );
   background-size: 200% 100%;
   animation: ${shimmer} 1.4s ease-in-out infinite;
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
-    background: ${color.surfaceSunken};
+    background: ${color.border};
   }
 `;
 

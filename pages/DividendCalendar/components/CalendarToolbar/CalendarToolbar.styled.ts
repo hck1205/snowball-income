@@ -104,10 +104,12 @@ export const TodayButton = styled.button`
     background: ${color.brandSubtleHover};
   }
 
-  /* 이미 이번 달이면 누를 이유가 없다 — 색을 빼서 "지금은 대상이 아님"을 말한다. */
+  /* 이미 이번 달이면 누를 이유가 없다 — 색을 빼서 "지금은 대상이 아님"을 말한다.
+     면은 침강면이다: 이 버튼은 흰 데크 위에 앉으므로 muted(1.03:1)로는 원형 자체가 사라져
+     "비활성"이 아니라 "없음"으로 읽힌다. 비활성도 보이는 상태여야 한다. */
   &:disabled {
     border-color: ${color.border};
-    background: ${color.surfaceMuted};
+    background: ${color.surfaceSunken};
     color: ${color.textMuted};
     cursor: default;
   }

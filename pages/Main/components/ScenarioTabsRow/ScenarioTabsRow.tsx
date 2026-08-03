@@ -1,9 +1,9 @@
 import { memo } from 'react';
 import type { ScenarioTabsRowProps } from './ScenarioTabsRow.types';
-import { TabsRowLabel, TabsRowRoot, TabsRowStrip } from './ScenarioTabsRow.styled';
+import { TabsRowRoot, TabsRowStrip } from './ScenarioTabsRow.styled';
 
 /**
- * 결과 보드의 **머리** — 이름표 + 시나리오 탭 스트립.
+ * 결과 보드의 **머리** — 시나리오 탭 스트립.
  *
  * 한때 여기에 "간략히" 토글과 "이미지 저장" 버튼이 함께 있었다. 둘 다 탭 스트립과 **가로를
  * 나눠 쓰는** 자리라 좁은 폭에서 이 줄이 가장 먼저 눌렸고(390px 에서 탭이 ~169px 로 압축),
@@ -21,8 +21,6 @@ import { TabsRowLabel, TabsRowRoot, TabsRowStrip } from './ScenarioTabsRow.style
 function ScenarioTabsRowComponent({ children }: ScenarioTabsRowProps) {
   return (
     <TabsRowRoot>
-      {/* 낭독 대상이 아니다 — 탭 스트립 자신이 `aria-label="시나리오 탭"` 으로 이미 이름을 갖는다. */}
-      <TabsRowLabel aria-hidden="true">시나리오</TabsRowLabel>
       <TabsRowStrip>{children}</TabsRowStrip>
     </TabsRowRoot>
   );

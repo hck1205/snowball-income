@@ -58,7 +58,6 @@ export const SimTile = styled.div`
   padding: ${space[3]} ${space[4]} ${space[3]} ${space[5]};
   border-radius: ${nestedRadius(radius.md)};
   background: ${color.surfaceSunken};
-  transition: background ${motion.base} ${motion.ease};
 
   &::before {
     content: '';
@@ -72,11 +71,15 @@ export const SimTile = styled.div`
     transition: width ${motion.base} ${motion.ease};
   }
 
-  /* 카드(=격자 안의 li)가 hover 되면 숫자판도 한 칸 살아난다. 카드 부상과 한 순간이다. */
-  li:hover & {
-    background: ${color.surfaceMuted};
-  }
-
+  /*
+   * 카드(=격자 안의 li)가 hover 되면 숫자판도 한 칸 살아난다 — **귀가 굵어지는 것 하나**로만.
+   *
+   * 🔴 2026-08-03: 여기에 있던 hover 면색(surfaceMuted)을 지웠다. 카드가 흰 면이 된 뒤
+   *   muted 는 그 위에서 **1.04:1** 이라, hover 하는 순간 숫자판이 카드에 녹아 사라진다
+   *   (= 가장 관심 있는 순간에 타일 경계를 잃는다). 면색을 더 어둡게 내리는 길도 막혀 있다
+   *   (surfaces.ts 머리말 — muted 는 ink 라이트에서 knife-edge 라 내릴 수 없다).
+   *   그래서 hover 의 수단은 카드 자신의 부상(pickLift)과 이 귀 두께, 둘로 정리했다.
+   */
   li:hover &::before {
     width: 6px;
   }

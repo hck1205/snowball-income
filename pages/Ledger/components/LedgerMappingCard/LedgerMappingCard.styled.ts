@@ -103,12 +103,16 @@ export const UnreadableText = styled.span`
   color: ${color.textMuted};
 `;
 
-/** 셀렉트 모양 스켈레톤(헤더를 읽는 동안). 🔴 셔머 없음 — 모양이 정적 단서다. */
+/**
+ * 셀렉트 모양 스켈레톤(헤더를 읽는 동안). 🔴 셔머 없음 — 모양이 정적 단서다.
+ * 면은 `surface-sunken`(2026-08-03) — 흰 카드 위에서 `surface-muted` 는 1.05:1 이라 44px 짜리
+ * 자리표시자가 통째로 안 보인다. 근거는 `LedgerPage.styled.ts` 의 `SkeletonBar` 주석.
+ */
 export const SelectSkeleton = styled.span`
   display: block;
   height: 44px;
   border-radius: ${radius.md};
-  background: ${color.surfaceMuted};
+  background: ${color.surfaceSunken};
 `;
 
 export const ActionRow = styled.div`

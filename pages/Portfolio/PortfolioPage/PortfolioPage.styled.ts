@@ -12,7 +12,8 @@ import {
   radius,
   sectionTitleFontSize,
   space,
-  subtleScrollbar
+  subtleScrollbar,
+  topRail
 } from '@/shared/styles';
 
 /**
@@ -188,12 +189,39 @@ export const MainColumn = styled.div`
 `;
 
 /**
+ * 레일이 **주역 카드의 그림자를 잘라먹지 않도록** 안쪽에 두는 여백(음수 마진으로 되돌린다).
+ *
+ * 🔴 2026-08-03 실측으로 잡은 결함이다. 흰 캔버스 전환 뒤 `/dividend/portfolio` 의 주역 카드
+ * (`SummaryCard` = `cardElevation('raised')`)가 **화면에서 통째로 사라져 있었다** — 네 변을
+ * 1px 씩 쓸어도 전부 `#ffffff`(1.000:1), 즉 경계가 물리적으로 없었다.
+ *
+ * 원인은 토큰이 아니라 **레이아웃**이다. `raised` 의 유일한 채널은 그림자인데(`surfaces.ts`:
+ * 층마다 수단은 하나 — 주역은 그림자, 테두리 없음), 그 카드를 담은 이 레일이 아래에서
+ * `overflow-y: auto` 로 **스크롤 컨테이너**가 된다. 스크롤 컨테이너는 패딩 박스 밖을 자르고,
+ * 레일의 폭·높이는 카드와 **정확히 같았다**(실측 884,527 329×751 두 박스 동일). 그림자가
+ * 스밀 자리가 0px 이라 그려지자마자 전부 잘려나갔다. 흰 배경이 만든 결함이 아니라, 흰 배경이
+ * **드러낸** 결함이다 — 종전에는 회색 캔버스(#f8f9fa) 위 흰 면이라 면색이 카드를 세워 줬다.
+ *
+ * 값: 라이트 `shadow-2` 최대치가 `0 6px 18px`(aurora·forest·grape·navyGold·sunset·vivid)이라
+ * 좌우 9px · 아래 15px · 위 3px 이 필요하다. 16px 이면 전 프리셋을 덮는다.
+ *
+ * ⚠ 이 여백은 **음수 마진으로 정확히 상쇄**해야 한다. 상쇄하지 않으면 카드가 32px 좁아져 위아래
+ *   히어로·진입 격자와 좌우 정렬이 깨진다. `top`(sticky 기준선)과 `max-height` 도 같은 양만큼
+ *   되돌려야 스크롤 개시 지점이 종전과 같다 — 아래 세 곳이 한 벌이다.
+ * ⚠ 2열 구간(≥1024px)에서 열 간 간격은 `clamp(16px, 2.4vw, 24px)` = 항상 24px 이므로(1024px 에서
+ *   2.4vw ≈ 24.6px) 왼쪽으로 번진 16px 는 본문 카드와 8px 여유를 두고 떨어진다 — 겹치지 않는다.
+ */
+const RAIL_SHADOW_GUTTER = '16px';
+
+/**
  * 답 레일. 2열 구간에서만 **스크롤을 따라온다** — 수량을 고치는 동안 그 결과(월 배당)가 화면에서
  * 사라지지 않게 하는 것이 이 레이아웃의 핵심 이득이다.
  *
  * 🔴 `max-height` + `overflow-y` 가 함께 있어야 한다. sticky 요소가 뷰포트보다 높으면 아래쪽이
  * **영원히 도달 불가**가 된다(그 안에 1급 CTA 가 있다). 짧은 화면에서는 레일 안에서 스크롤된다.
  * ⚠ `overflow` 는 `transform` 과 달리 fixed 자손의 컨테이닝 블록을 만들지 않는다 — 드로어는 안전하다.
+ * 🔴 그 `overflow-y` 가 주역 카드의 그림자를 자른다 — `RAIL_SHADOW_GUTTER` 주석을 반드시 읽어라.
+ *   패딩·음수 마진·`top`·`max-height` 네 줄은 한 벌이고, 하나만 지우면 카드가 다시 사라진다.
  */
 export const RailColumn = styled.div`
   display: grid;
@@ -203,9 +231,13 @@ export const RailColumn = styled.div`
 
   ${WORKBENCH_UP} {
     position: sticky;
-    top: calc(${appHeaderHeight} + ${space[3]});
-    max-height: calc(100vh - ${appHeaderHeight} - ${space[6]});
+    top: calc(${appHeaderHeight} + ${space[3]} - ${RAIL_SHADOW_GUTTER});
+    max-height: calc(
+      100vh - ${appHeaderHeight} - ${space[6]} + (${RAIL_SHADOW_GUTTER} * 2)
+    );
     overflow-y: auto;
+    padding: ${RAIL_SHADOW_GUTTER};
+    margin: calc(-1 * ${RAIL_SHADOW_GUTTER});
     ${subtleScrollbar}
   }
 `;
@@ -494,6 +526,12 @@ export const ActionHint = styled.p`
  *
  * 면은 중립이고 색은 상단 6px accent 레일 하나다(높이 6 < 면 하한 8 → 예산 무침범).
  * 🔴 배경을 채우지 마라 — 세 번째 면이 되는 순간 `tools/dev/tintscan.mjs` 가 exit 1 이다.
+ *
+ * 🔴 아래 `overflow: hidden` **이 레일을 자르는 유일한 장치다.** 지우면 6px 띠가 둥근 모서리
+ *    밖으로 나간다 — 이 레포에서 최소 세 번 재발한 결함이라 처방을 `topRail()` 한 곳으로 모았고
+ *    (`shared/styles/surfaces.ts`), `shared/styles/geometry.test.ts` 가 소스로 감시한다.
+ *    ⚠ 레일에 같은 반경을 주는 우회는 오답이다 — 6px 짜리 띠에서는 CSS 가 반경을 비례축소해
+ *      오히려 모서리에 틈이 생긴다(근거는 `topRail` 주석).
  */
 export const EmptyBoard = styled.section`
   ${cardElevation('base')}
@@ -510,10 +548,7 @@ export const EmptyBoard = styled.section`
   }
 
   &::before {
-    content: '';
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: ${PICK.railHeight};
+    ${topRail(PICK.railHeight)}
     background: ${color.accent};
   }
 `;
@@ -665,13 +700,21 @@ export const QuickPickBlock = styled.div`
 /* 로딩 — 값을 지어내지 않고 형태로만 말한다                                     */
 /* -------------------------------------------------------------------------- */
 
-/** 값이 오기 전 자리. */
+/**
+ * 값이 오기 전 자리.
+ *
+ * 🔴 면은 `surfaceSunken` 이다 — 구 값 `surfaceMuted` 는 **흰 카드 위 1.054:1** 이라
+ * 골격이 보이지 않았다(실측 2026-08-03). 보이지 않는 골격은 "로딩 중"이 아니라 "빈 화면"이다.
+ * `surfaceSunken`(1.112:1)은 흰 캔버스에서 면 사다리의 유일한 진짜 계단이고 tintscan 중립 토큰이다.
+ * ⚠ `surfaceMuted` 를 되돌리지 마라 — 그 토큰은 더 어둡게 내릴 수도 없다
+ *   (ink 라이트에서 공통 `data-positive` 가 그 면 위 4.50:1 knife-edge — presets/sharedTokens.ts).
+ */
 export const SkeletonBar = styled.span`
   display: inline-block;
   width: 96px;
   height: 1em;
   border-radius: ${radius.xs};
-  background: ${color.surfaceMuted};
+  background: ${color.surfaceSunken};
 `;
 
 /**
@@ -692,11 +735,12 @@ export const SkeletonRow = styled.span`
   border-bottom: 1px solid ${color.border};
 `;
 
+/** 위 `SkeletonBar` 와 같은 이유로 `surfaceSunken` 이다(구 `surfaceMuted` = 흰 카드 위 1.054:1). */
 export const SkeletonCell = styled.span`
   display: block;
   height: 12px;
   border-radius: ${radius.xs};
-  background: ${color.surfaceMuted};
+  background: ${color.surfaceSunken};
 `;
 
 /* -------------------------------------------------------------------------- */

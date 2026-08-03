@@ -79,7 +79,7 @@ export default function CommunityMyPostsView({ viewModel }: CommunityMyPostsView
         <GateCard>
           <GateHead>
             <GateGlyph>
-              <BrandGlyph size={32} accent />
+              <BrandGlyph size={32} />
             </GateGlyph>
             <GateTitle>{c.loginGateTitle}</GateTitle>
             <GateSubtitle>{c.loginGateSubtitle}</GateSubtitle>
@@ -113,7 +113,7 @@ export default function CommunityMyPostsView({ viewModel }: CommunityMyPostsView
 
       <IdentityRail>
         <RailGlyph>
-          <BrandGlyph size={32} accent />
+          <BrandGlyph size={32} />
         </RailGlyph>
         <div>
           <RailEyebrow>{CONSOLE_LABEL}</RailEyebrow>

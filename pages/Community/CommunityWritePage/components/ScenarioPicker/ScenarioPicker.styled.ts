@@ -62,8 +62,14 @@ export const ScenarioOption = styled.button`
   transition: background ${motion.fast} ${motion.ease}, border-color ${motion.fast} ${motion.ease},
     transform ${motion.fast} ${motion.ease};
 
+  /*
+   * 🔴 hover 는 **테두리만** 바꾼다. 여기 있던 면색 hover(surfaceHover)를 2026-08-03 에 지웠다 —
+   *   이 카드는 인스펙터 타일(surfaceSunken) 위에 앉는 흰 카드인데, velog 라이트에서
+   *   surface-hover 와 surface-sunken 이 같은 값(#f1f3f5)이 되어 **hover 하는 순간 카드가
+   *   패널에 잠겨 사라졌다**(실측). 2px 테두리가 border→borderStrong 으로 가는 변화는
+   *   1.49:1 → 3.3:1 이라 그 자체로 충분히 크다.
+   */
   &:hover {
-    background: ${color.surfaceHover};
     border-color: ${color.borderStrong};
   }
 
@@ -76,9 +82,22 @@ export const ScenarioOption = styled.button`
     background: ${color.surface};
   }
 
-  /* 비활성(무효 payload): 가라앉은 면 + dashed. 호버·선택 효과 무효. */
+  /*
+   * 비활성(무효 payload): **면을 비우고** dashed 로 말한다. 호버·선택 효과는 이 블록이
+   * 뒤에 와서 같은 특이도로 덮으므로 무효다(테두리색·transform 둘 다).
+   *
+   * 🔴 transparent 이지 surfaceSunken 이 아니다 — 다만 **지금 화면에서 픽셀은 같다.**
+   *   부모가 InspectorSection(= surfaceSunken)이라 투명은 그 색을 그대로 드러낸다(2026-08-03
+   *   실측). 바뀐 것은 값이 아니라 계약이다: 이 카드는 **자기 면을 주장하지 않는다.** 그래서
+   *   같은 부품이 흰 Sheet 위로 옮겨가도 "여긴 카드가 아니다"가 유지된다 — sunken 을 박아
+   *   두면 흰 지면 위에서 홀로 회색 상자가 되어 오히려 활성 카드보다 튄다.
+   *   격은 면색이 아니라 점선 2px + muted 글자 + 사유 문장, 세 채널이 진다
+   *   (같은 판단: CommentSection.styled.ts 의 DeletedBody).
+   * 🔴 점선을 borderStrong 으로 올리지 않는다 — 활성 카드의 실선이 border(sunken 위 1.34:1)
+   *   인데 비활성만 2.99:1 로 올리면 **못 고르는 카드가 고를 수 있는 카드보다 크게 말한다**.
+   */
   &[aria-disabled='true'] {
-    background: ${color.surfaceSunken};
+    background: transparent;
     color: ${color.textMuted};
     border-style: dashed;
     border-color: ${color.border};
