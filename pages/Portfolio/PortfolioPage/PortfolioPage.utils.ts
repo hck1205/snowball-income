@@ -268,7 +268,9 @@ const buildCtas = (
   };
 
   const calendarHint = (): string | null => {
-    if (!hasIncludedRows) return copy.cta.simulateDisabledEmpty;
+    // 🔴 달력의 사유는 **달력의 말**이어야 한다 — 종전에는 시뮬레이션 문장을 그대로 빌려 썼고,
+    //    두 버튼이 한 카드에 있어 뷰가 같은 문장을 한 번만 그리는 바람에 드러나지 않았을 뿐이다.
+    if (!hasIncludedRows) return copy.cta.calendarDisabledEmpty;
     if (calendarTickerCount === 0) return copy.cta.calendarDisabled;
 
     return calendarExcludedCount > 0 ? copy.cta.calendarManualExcluded : null;

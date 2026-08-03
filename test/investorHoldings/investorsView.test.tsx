@@ -71,7 +71,12 @@ describe('대가들의 포트폴리오 화면', () => {
     expect(screen.getByRole('heading', { level: 3 })).toHaveTextContent('워런 버핏');
     expect(screen.getByText('버크셔 해서웨이')).toBeInTheDocument();
     expect(screen.getByText('2026-03-31 기준')).toBeInTheDocument();
-    expect(screen.getByText('$263.1B')).toBeInTheDocument();
+    /*
+     * getAllBy 인 이유(2026-08-03 2차 개편): 신고 금액이 **두 곳**에 선다 — 카드 본문의 주인공
+     * 숫자와, 드로어 머리의 요약 3칸. 드로어는 닫혀 있어도 마운트되므로 DOM 에 둘 다 있다.
+     * 중복이 아니라 서로 다른 맥락이다(카드에서는 인물 비교용, 드로어에서는 표의 기준값).
+     */
+    expect(screen.getAllByText('$263.1B').length).toBeGreaterThan(0);
   });
 
   it('보유 표 드로어를 버튼으로 연다', () => {
@@ -152,6 +157,44 @@ describe('대가들의 포트폴리오 화면', () => {
     fireEvent.click(value);
     expect(value).toHaveAttribute('aria-pressed', 'true');
     expect(holders).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  /**
+   * 🔴 2026-08-03 2차 개편의 **핵심 구조 변경**을 잠근다.
+   *
+   * 그 전까지 합산 표와 인물 카드는 같은 화면에 있으면서 서로를 몰랐다 — "2명 보유"를 읽고도
+   * *누가* 담았는지 알려면 카드 열세 장을 눈으로 훑어야 했다. 이 다리가 사라지면 개편의 목적이
+   * 사라지므로 진입점 자체를 테스트가 지킨다.
+   */
+  it('합산 줄의 이니셜 칩이 그 인물의 보유 표를 연다 — 합산 ↔ 인물 카드의 다리', () => {
+    renderView([card(), card({ cik: '0002', person: '켄 피셔', firm: '피셔 인베스트먼츠' })]);
+
+    const chips = screen.getAllByRole('button', { name: '워런 버핏의 보유 종목 보기' });
+    expect(chips.length).toBeGreaterThan(0);
+
+    fireEvent.click(chips[0]!);
+
+    // 버핏 카드의 열기 버튼이 열림 상태가 된다(드로어는 인물 카드가 소유한다).
+    const opens = screen.getAllByRole('button', { name: '보유 종목 전체 보기' });
+    expect(opens.some((button) => button.getAttribute('aria-expanded') === 'true')).toBe(true);
+  });
+
+  it('한 번에 한 인물만 열린다 — 다른 카드를 열면 앞의 것이 닫힌다', () => {
+    renderView([card(), card({ cik: '0002', person: '켄 피셔', firm: '피셔 인베스트먼츠' })]);
+
+    fireEvent.click(screen.getByRole('button', { name: '워런 버핏의 보유 종목 전체 보기' }));
+    fireEvent.click(screen.getByRole('button', { name: '켄 피셔의 보유 종목 전체 보기' }));
+
+    const opens = screen.getAllByRole('button', { name: '보유 종목 전체 보기' });
+    expect(opens.filter((button) => button.getAttribute('aria-expanded') === 'true')).toHaveLength(1);
+  });
+
+  /** 🔴 가장 방치되기 쉬운 자리다. 수집이 실패했을 때 화면이 "고장"이 아니라 문장으로 말해야 한다. */
+  it('인물이 하나도 없으면 빈 상태를 말한다 — 히어로와 각주만 남기지 않는다', () => {
+    renderView([]);
+    expect(screen.getByText('표시할 공시 자료가 없습니다')).toBeInTheDocument();
+    // 고지는 빈 상태에서도 그대로 선다 — 자료의 성질은 자료 유무와 무관하다.
+    expect(screen.getByText('지금 보유가 아닙니다')).toBeInTheDocument();
   });
 
   it('출처·수집일과 면책 문구를 화면에 남긴다', () => {

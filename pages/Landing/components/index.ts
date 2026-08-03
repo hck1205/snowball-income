@@ -1,3 +1,5 @@
+export { default as ChapterIndex } from './ChapterIndex';
+export type { ChapterIndexProps } from './ChapterIndex';
 export { default as ClosingCta } from './ClosingCta';
 export { default as CompoundExplainer } from './CompoundExplainer';
 export { default as ConceptLadder } from './ConceptLadder';

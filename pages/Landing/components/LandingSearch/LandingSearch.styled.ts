@@ -1,6 +1,6 @@
 import styled from '@emotion/styled';
 import { Link } from 'react-router-dom';
-import { cardElevation, color, font, radius, space } from '@/shared/styles';
+import { DATA_RADIUS, cardElevation, color, font, motion, radius, space } from '@/shared/styles';
 
 /**
  * 히어로 **바로 아래**의 종목 검색(히어로 카드 안이 아니다 — `LandingPage.styled.ts` HeroExtras 참고).
@@ -54,17 +54,31 @@ export const SearchForm = styled.form`
 export const SearchInputWrap = styled.label`
   display: flex;
   align-items: center;
-  gap: ${space[2]};
-  height: 44px;
-  padding: 0 ${space[3]};
+  gap: ${space[3]};
+  /*
+   * 56px — before 44px. 이 입력은 히어로 바로 아래 **한 줄을 온전히 쓰는 요소**이고, 랜딩에서
+   * 히어로 CTA 다음으로 큰 컨트롤이다. 44px 이면 아래 차례 행(min-height 44px)과 같은 높이라
+   * "누르는 것"과 "읽는 것"이 같은 무게로 보였다.
+   */
+  height: 56px;
+  padding: 0 ${space[5]};
   /* 상자 전체가 텍스트 입력 자리임을 커서로도 말한다. */
   cursor: text;
-  border: 1px solid ${color.border};
-  border-radius: ${radius.lg};
+  border: 1px solid ${color.borderStrong};
+  /* 알약이다 — 고르는 면(카드 30~34px·CTA 알약)과 같은 어휘. 8px 사각 컨트롤만 각져 있으면 튄다. */
+  border-radius: ${radius.pill};
   background: ${color.surface};
   /* 히어로에 딸린 줄이므로 페이지 정체색을 **글리프 하나로** 받는다(돋보기 아이콘).
      면과 테두리는 중립을 유지한다 - 컨트롤 경계를 장식 플로어 토큰으로 바꾸지 않는다. */
   color: ${color.identityText};
+  transition: border-color ${motion.fast} ${motion.ease}, box-shadow ${motion.fast} ${motion.ease};
+
+  /* 🔴 포커스 표시는 **상자**가 진다. 안쪽 input 은 전역 포커스 링을 끄고 있어서(아래 주석의
+     사용자 결정) 이 선언이 없으면 키보드 사용자가 어디에 있는지 알 방법이 0 이 된다. */
+  &:focus-within {
+    border-color: ${color.identity};
+    box-shadow: ${color.focusShadow};
+  }
 
   svg {
     flex: none;
@@ -84,7 +98,8 @@ export const SearchInput = styled.input`
   border: 0;
   background: transparent;
   font-family: ${font.sans};
-  font-size: ${font.size.base};
+  /* 상자가 56px 로 커졌으므로 글자도 한 단 올린다 — 14px 이 56px 상자 안에 있으면 비어 보인다. */
+  font-size: ${font.size.lg};
   color: ${color.text};
 
   &::placeholder {
@@ -151,36 +166,55 @@ export const SearchStatus = styled.p`
      (있으나 없으나 **항상 같은 만큼** 차지한다는 것이 요점이다). */
 `;
 
+/**
+ * 결과 패널 — **빈 상태가 이 부품의 얼굴이다.**
+ *
+ * 이 앱의 소개 페이지는 11종뿐이라 "테슬라"·"카카오뱅크" 같은 검색은 **평범하게 자주** 무결과가
+ * 된다. 그때 화면이 초라하면 앱 전체가 초라해 보인다 — 그래서 무결과 경로도 결과 경로와 **같은
+ * 패널·같은 행 어휘**를 쓰고, 사유 문장 + 갈 곳 셋 + 다음 행동 힌트가 함께 선다.
+ *
+ * ⚠ 구조 계약: 폴백 제목(`ResultNote`)의 **부모**가 링크들을 담고 있어야 한다
+ * (`test/landing/landingSearch.test.tsx` 가 `getByText(fallbackTitle).parentElement` 로 패널을 잡는다).
+ * 제목만 따로 감싸지 마라.
+ */
 export const ResultPanel = styled.div`
   /* 결과 패널은 나타날 때만 존재하므로 자기 위 여백을 스스로 갖는다(SearchRoot 의 gap 은 0). */
-  margin-top: ${space[2]};
+  margin-top: ${space[3]};
   display: grid;
-  gap: ${space[2]};
+  gap: ${space[3]};
   /* 입력과 **같은 폭**이어야 한다 — 어긋나면 결과가 다른 블록처럼 읽힌다. */
   width: 100%;
-  padding: ${space[3]};
-  border-radius: ${radius.lg};
-  ${cardElevation('sunken')}
+  padding: clamp(16px, 2vw, 24px);
+  /* 읽는 면(data)의 반경 — 이 패널은 고르는 카드가 아니라 목록이다. */
+  border-radius: ${DATA_RADIUS};
+  ${cardElevation('base')}
 `;
 
 export const ResultList = styled.ul`
   display: grid;
-  gap: ${space[1]};
+  gap: 0;
   margin: 0;
   padding: 0;
   list-style: none;
 `;
 
-/** 행 높이 46px 균일 + gap 구분 — 배당 캘린더 검색 결과와 같은 관례(밀도보다 가독). */
+/** 행 높이 52px 균일 + 1px 룰 구분 — 목록은 줄이 있어야 목록으로 읽힌다(gap 만으로는 떠 있다). */
 export const ResultLink = styled(Link)`
   display: flex;
   align-items: center;
-  gap: ${space[3]};
-  min-height: 46px;
+  gap: ${space[4]};
+  min-height: 52px;
   padding: 0 ${space[3]};
+  margin: 0 -${space[3]};
   border-radius: ${radius.md};
   text-decoration: none;
   color: ${color.text};
+  transition: background-color ${motion.fast} ${motion.ease};
+
+  li + li > & {
+    border-top: 1px solid ${color.border};
+    border-radius: 0;
+  }
 
   &:hover {
     background: ${color.surfaceHover};
@@ -191,6 +225,10 @@ export const ResultLink = styled(Link)`
     margin-left: auto;
     color: ${color.textMuted};
   }
+
+  &:hover svg {
+    color: ${color.brand};
+  }
 `;
 
 /** 심볼 열 6ch 고정폭 — 이름 시작선이 행마다 흔들리지 않는다(캘린더 티커 열과 같은 규칙). */
@@ -198,30 +236,43 @@ export const ResultSymbol = styled.span`
   flex: 0 0 auto;
   width: 6ch;
   font-family: ${font.dataNumeric};
-  font-size: ${font.size.sm};
-  font-weight: ${font.weight.semibold};
+  font-size: ${font.size.lg};
+  font-weight: ${font.weight.bold};
+  letter-spacing: -0.01em;
   ${font.numeric}
 `;
 
 export const ResultName = styled.span`
   min-width: 0;
-  font-size: ${font.size.sm};
+  font-size: ${font.size.base};
   color: ${color.textSecondary};
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 `;
 
+/**
+ * 패널 안 안내 문장(폴백 제목 · 다음 행동 힌트).
+ * 🔴 이 요소의 **부모가 곧 패널**이어야 한다 — 위 ResultPanel 주석의 구조 계약.
+ */
 export const ResultNote = styled.p`
   margin: 0;
   font-family: ${font.sans};
-  font-size: ${font.size.xs};
+  font-size: ${font.size.sm};
+  font-weight: ${font.weight.semibold};
   line-height: ${font.leading.snug};
-  color: ${color.textSecondary};
+  color: ${color.text};
+
+  /* 두 번째 안내(다음 행동 힌트)는 제목이 아니라 각주다 — 같은 부품이 자리로 무게를 가른다. */
+  & ~ & {
+    font-weight: ${font.weight.regular};
+    color: ${color.textSecondary};
+  }
 `;
 
 export const ResultHubLink = styled(Link)`
   justify-self: start;
-  font-size: ${font.size.xs};
+  font-size: ${font.size.sm};
+  font-weight: ${font.weight.semibold};
   color: ${color.brand};
 `;

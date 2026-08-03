@@ -31,6 +31,27 @@ export type ScheduleLegendRow = {
   source: CalendarScheduleSource;
 };
 
+/**
+ * 표시 중인 달에서 **다음으로 들어올 지급 한 건**. 이 화면의 첫 문장이다.
+ *
+ * 🔴 금액 필드가 없는 것은 누락이 아니다 — 이 화면의 데이터에는 지급'액'이 없다(지급월과 예상
+ * 지급'일'뿐). 여기에 금액을 붙이려면 새 데이터가 먼저 있어야 한다.
+ */
+export type CalendarNextPayout = {
+  /** 'YYYY-MM-DD'. 달력 칸·아젠다 블록과 같은 앵커라 눌러서 그 날로 갈 수 있다. */
+  date: string;
+  month: number;
+  day: number;
+  /** 0=일 … 6=토. 카피의 요일 배열 인덱스. */
+  weekday: number;
+  /** 오늘로부터 남은 날(0 = 오늘). 이미 지난 지급이면 `null`. */
+  daysUntil: number | null;
+  /** 표시 중인 달의 지급이 전부 지났고, 이것이 그 마지막 건인가. */
+  isPast: boolean;
+  /** 그 날 지급 예정 종목(티커 오름차순). */
+  tickers: string[];
+};
+
 export type DividendCalendarViewModel = {
   /** 유니버스 전체(검색어 미적용), 티커 오름차순. */
   options: CalendarTickerOption[];
@@ -56,6 +77,8 @@ export type DividendCalendarViewModel = {
   previewMonth: MonthViewModel | null;
   /** 표에서 밀도 때문에 잘린 정보의 원본(날짜순 목록). */
   agendaDays: AgendaDay[];
+  /** 데크가 먼저 말하는 "다음은 언제인가". 날짜가 잡힌 지급이 하나도 없으면 `null`. */
+  nextPayout: CalendarNextPayout | null;
   /** '2026년 7월'. */
   monthLabel: string;
 };

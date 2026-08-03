@@ -2,6 +2,7 @@ import styled from '@emotion/styled';
 import {
   DATA_RADIUS,
   PICK_RADIUS,
+  appHeaderHeight,
   cardElevation,
   color,
   elevation,
@@ -11,98 +12,65 @@ import {
   pageHue,
   pageHueMix,
   radius,
+  sectionTitleFontSize,
   space
 } from '@/shared/styles';
 
 /**
- * ── 이 화면의 면 배치 (SurfaceKind) ─────────────────────────────────────────────
+ * ── 이 화면의 골격 (2026-08-03 2차 리워크) ────────────────────────────────────
+ *
+ * 🔴 **무엇이 바뀌었나 — 배치다.** 1차 리워크는 격자의 면 채움을 링·밑줄로 바꿨을 뿐 구성은
+ * 그대로였고, 실측하면 이랬다(1280px · 5종 선택):
+ *
+ * ```
+ *   히어로 174 · 달력 보드 978(문서의 45%) · 상세(목록+범례) 405 · 푸터 221   → 문서 2165px
+ * ```
+ *
+ * 즉 이 화면의 질문("이번 달 언제 들어오나")에 대한 **답은 스크롤 아래**에 있었고, 화면의 절반은
+ * 42칸짜리 격자가 먹고 있었다. 격자는 "언제"를 공간으로 보여 주지만 "무엇이 며칠에"는 목록만 말한다.
+ *
+ * 그래서 세 층으로 다시 짰다.
+ *
+ * ```
+ *  ┌ MonthDeck  (raised · 화면의 유일한 주역 면) ────────────────────────────┐
+ *  │  [◀] 2026년 7월(h2) [▶] [오늘]                       [종목 선택 ⑤]     │  조작 줄
+ *  │  ┌ NextLead (버튼 — 누르면 그 날 일정으로) ───────────────────────────┐ │
+ *  │  │ 다음 예상 지급          D-3                                       │ │  ← 이 화면의 답
+ *  │  │ 7월 28일 (화)   JEPI · KO                                         │ │
+ *  │  └───────────────────────────────────────────────────────────────────┘ │
+ *  │  2026년 7월 지급 예정 6건 · 날짜 미정 1종            (MonthSummaryLine) │  요약 한 줄
+ *  └─────────────────────────────────────────────────────────────────────────┘
+ *  ┌ Workbench (>980px 2열) ─────────────────────────────────────────────────┐
+ *  │  LedgerCard  (주역 열 · 넓다)        │  MapCard   (개관 열 · sticky)     │
+ *  │   지급 일정 / 날짜 미정 전환          │   월간 지급 지도(달력 격자)        │
+ *  │   날짜 블록 타임라인                  │   (13열 범례표는 폭이 필요해       │
+ *  │   연간 지급 리듬(범례 표)             │    왼쪽 열에 있다)                 │
+ *  └─────────────────────────────────────────────────────────────────────────┘
+ * ```
+ *
+ * **DOM 순서 = 목록 → 지도**다. 좁은 폭에서 답이 먼저 오고(달력을 626px 지나서야 목록이 나오던 것을
+ * 뒤집었다), 넓은 폭에서는 그 순서가 좌 → 우가 된다. 그래서 이동 버튼 카피에서 방향어("아래")를 뺐다.
+ *
+ * ── 면 배치 (SurfaceKind) ─────────────────────────────────────────────────────
  *
  * | 면 | 종류 | 처방 |
  * |---|---|---|
- * | 달력 보드 · 상세 카드 | **data**(읽는 면) | 중립 면 + `DATA_RADIUS`. 채도는 선·점(L1)에만 |
- * | 빈 상태 안내 카드 | **brand**(고르는 면) | 이 화면의 **유일한** 색면 전환 + `PICK_RADIUS` |
+ * | 데크 | **data** | `raised` — 화면에 하나뿐인 주역 면. 그 안의 NextLead 는 중립 침강면 |
+ * | 목록 카드 · 지도 카드 | **data** | `base`(테두리) + `DATA_RADIUS`. 채도는 선·점(L1)에만 |
+ * | 시작 카드(빈 상태) | **brand** | 이 화면의 유일한 "고르는 면" + `PICK_RADIUS` + 6px 레일 캡 |
  *
- * 🔴 색면 예산은 **히어로 + 빈 상태 카드 = 2** 다(라우트 기준선). 세 번째 틴트 면을 만들지 마라 —
- * 카드 머리 띠가 중립 침강면(`surfaceSunken`)인 것이 그 이유다. 색을 쓰고 싶으면 면이 아니라
- * **6px 이하의 줄**(`pageHueMix`)로 써라(틴트 판정 하한은 높이 8px 이다).
+ * 🔴 색면 예산은 **히어로 + 공용 푸터 패널 = 2**로 이미 차 있다(라우트 기준선). 위의 새 면은
+ * 전부 **중립 토큰**(surface / surfaceRaised / surfaceMuted / surfaceSunken)이라 예산 밖이다.
+ * 색을 쓰고 싶으면 면이 아니라 **6px 이하의 줄**(`pageHueMix`)이나 **180px 미만의 조각**으로 써라.
  */
 export const PageStack = styled.div`
   display: grid;
-  gap: clamp(16px, 3vw, 28px);
+  gap: clamp(16px, 2.4vw, 24px);
   min-width: 0;
 `;
 
-/** 두 카드가 공유하는 패딩. 값이 갈리면 두 카드가 다른 부품처럼 보인다 — 한 자리에서 소유한다. */
-const SURFACE_PAD = 'clamp(16px, 2.4vw, 28px)';
-
-/**
- * 카드 머리 **막대**. 카드 안쪽에 앉은 중립 침강면이고, 글리프 배지 + 이름 + 오른쪽 슬롯을 담는다.
- *
- * 🔴 3변 bleed(음수 마진으로 카드 세 변에 붙이기)를 **일부러 쓰지 않았다.** 두 가지가 걸린다:
- *  ① 그러려면 위쪽 두 모서리만 둥근 비균일 반경이 필요한데, 이 파일에는 `LiveRegion` 의
- *     `width: 1px` 이 있어 `test/shared/radiusShape.test.ts` 의 런 분할(중괄호 기준)에서 둘이
- *     한 조각에 묶인다 — 가드를 우회하는 형태로 적는 대신 규칙에 맞는 모양을 골랐다.
- *  ② bleed 를 깔끔히 자르려면 카드에 `overflow: hidden` 이 필요한데, 이 카드 안에는 날짜 칩
- *     **툴팁**(절대 배치, 포털 아님)이 산다 — 가장자리 칸의 말풍선이 잘린다.
- *
- * 네 모서리 균일 반경이라 얇은 요소 규칙과도 무관하고, **중립 면**이라 틴트 예산과도 무관하다.
- */
-const headBand = `
-  display: flex;
-  align-items: center;
-  gap: ${space[3]};
-  flex-wrap: wrap;
-  padding: ${space[2]} ${space[3]};
-  border: 1px solid ${color.border};
-  border-radius: ${radius.md};
-  background: ${color.surfaceSunken};
-`;
-
-/**
- * 카드 머리의 **글리프 배지** — 이 화면이 처음 갖는 부품이다.
- *
- * 라우트 얼굴색(`--sb-page-hue`)에서 파생한 옅은 면 + 같은 hue 의 아이콘. 폭 36px 이라 틴트 면
- * 판정(≥180px) 밖이고, 🔴 **파생 면 위에 텍스트를 얹지 않는다** — 여기 들어가는 것은 aria-hidden
- * 아이콘뿐이고, 카드 이름은 옆의 중립색 글자가 말한다.
- */
-export const SectionGlyph = styled.span`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-  width: 36px;
-  height: 36px;
-  border-radius: ${radius.md};
-  border: 1px solid ${pageHueMix(38, 'transparent')};
-  background: ${pageHueMix(14)};
-  color: ${pageHue};
-`;
-
-/** 머리 띠의 이름 — 중립색 글자다(색은 글리프가 진다). */
-export const SectionLabel = styled.p`
-  margin: 0;
-  font-size: ${font.size.sm};
-  font-weight: ${font.weight.extrabold};
-  letter-spacing: -0.01em;
-  color: ${color.text};
-`;
-
-/** 머리 띠에서 오른쪽 끝으로 밀어 두는 슬롯(필터 버튼·토글). */
-export const HeadSpacer = styled.span`
-  flex: 1 1 auto;
-  min-width: 0;
-`;
-
-/*
- * 히어로는 여기 없다 — 2026-07-31 에 **공용 `components/common/PageHero` 로 수렴**했다.
- * 구 로컬 `PageHero`/`HeroTitleRow`/`HeroIconBadge`/`HeroTitle`/`HeroLede`/`AsOfLine` 은
- * 컴포넌트의 루트·내부 구조와 `icon`/`title`+`titleAs`/`lede`/`meta` 슬롯이 받는다.
- * 페이지 얼굴색(틸)은 라우트가 발행하는 `--sb-page-hue` 가 준다(`shared/hooks/usePageHue`).
- *
- * ⚠ 구 `HeroDisclaimer`(예상 지급일 고지)는 잠시 `notice` 슬롯에 들어갔다가 **2026-07-31 에
- * 페이지 하단 `FootNoteCard` 로 내려갔다** — 제목·리드·주의문 3줄·기준일을 한 면에 쌓자 히어로가
- * 본문 3덩어리(222px)가 되어 각주처럼 읽혔다. 이 화면은 `notice` 슬롯을 쓰지 않는다.
- */
+/** 두 본문 카드가 공유하는 패딩. 값이 갈리면 두 열이 다른 부품처럼 보인다 — 한 자리에서 소유한다. */
+const SURFACE_PAD = 'clamp(16px, 2vw, 24px)';
 
 /**
  * 라이브 리전은 **처음부터 끝까지 마운트 상태를 유지**한다. 시각적으로만 숨기고 텍스트만 바꾼다 —
@@ -120,16 +88,15 @@ export const LiveRegion = styled.p`
   border: 0;
 `;
 
+/* -------------------------------------------------------------------------- */
+/* 1층 — 요약 데크                                                              */
+/* -------------------------------------------------------------------------- */
+
 /**
- * 달력 표면. 종목 선택이 우측 드로어로 빠지면서(사용자 결정 2026-07-25) 달력이 본문 전폭을 쓴다.
- * 카드 한 장으로 묶어 히어로 다음 위계를 만든다 — 흰 배경에 표만 떠 있으면 화면이 미완성으로 읽힌다.
+ * 화면의 **주역 면**. 위계 수단은 그림자 하나뿐이다(`raised`) — 아래 두 열은 테두리로 간다.
+ * 구 처방에서는 달력 보드가 이 자리를 차지했는데, 달력은 답이 아니라 지도다.
  */
-/**
- * 달력 표면 = 이 화면의 **주역**이다. 그래서 위계 수단이 그림자다(`raised`) — 구 처방은
- * 테두리 **와** e1 그림자를 함께 갖고 있었는데, 그러면 아래 상세 카드와 완전히 같은 무게로 보인다
- * ("유령 카드"). 이제 두 카드는 주역=그림자 / 본문=테두리로 갈린다.
- */
-export const BoardCard = styled.section`
+export const MonthDeck = styled.section`
   min-width: 0;
   display: grid;
   gap: ${space[4]};
@@ -140,18 +107,29 @@ export const BoardCard = styled.section`
 `;
 
 /**
- * 필터 진입 + 카드 이름 한 줄. 구 처방은 카드 안쪽에 떠 있는 버튼 하나뿐이라 달력이 "어디서
- * 시작하는지"가 없었다 — 지금은 카드 세 변에 붙은 **머리 띠**가 그 자리를 만든다.
- * 부모가 그림자 카드(테두리 없음)라 반경을 그대로 쓴다.
+ * 데크의 조작 줄 — 월 이동 묶음(왼쪽)과 종목 선택(오른쪽).
+ *
+ * 구 화면에서는 이 둘이 서로 다른 층에 있었다(선택은 카드 머리 띠, 월 이동은 그 아래 툴바).
+ * 조작은 한 줄에 모은다 — "무엇을 보는가(종목)"와 "언제를 보는가(달)"는 같은 종류의 결정이다.
  */
-export const BoardHead = styled.div`
-  ${headBand}
+export const DeckBar = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${space[3]};
+  flex-wrap: wrap;
+`;
+
+/** 조작 줄·카드 머리에서 오른쪽 끝으로 밀어 두는 슬롯. */
+export const HeadSpacer = styled.span`
+  flex: 1 1 auto;
+  min-width: 0;
 `;
 
 /**
  * 드로어를 여는 주 진입점 — 이 화면에서 **유일한 솔리드 브랜드 면(L3)** 이다.
  * "여기서 고르면 화면이 바뀐다"를 말하는 자리라 색면 사다리의 맨 위를 여기에 쓴다.
- * 🔴 L3 는 화면당 하나다. 다른 곳에 brand 채움을 만들지 마라(미정 토글은 그래서 틴트로 내려갔다).
+ * 🔴 L3 는 화면당 하나다. 다른 곳에 brand 채움을 만들지 마라.
+ * ⚠ 폭이 180px 미만이라 틴트 면 판정 밖이다.
  */
 export const FilterButton = styled.button`
   display: inline-flex;
@@ -190,6 +168,16 @@ export const FilterButton = styled.button`
       transform: none;
     }
   }
+
+  /*
+   * 좁은 폭에서는 **줄을 통째로 쓴다.** 그냥 두면 월 이동 묶음과 이 버튼이 한 줄을 억지로 나눠
+   * 갖다가 넘치는 쪽만 아래로 떨어져, 오른쪽 끝에 있던 버튼이 갑자기 왼쪽에 홀로 서는 어중간한
+   * 모양이 된다. 어차피 줄이 갈릴 폭이면 의도적으로 갈라 손가락이 닿는 폭을 준다.
+   */
+  ${media.down('mobileWide')} {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
 `;
 
 /**
@@ -212,17 +200,189 @@ export const FilterCount = styled.span`
 `;
 
 /**
- * 툴바와 달력 사이의 한 줄 요약 — "이 달에 몇 건이 잡혀 있나".
- * 왼쪽 4px 캡슐이 라우트 얼굴색을 한 번 더 찍는다(선이라 면 예산과 무관하다).
+ * **다음 예상 지급 판** — 이 화면의 답이 서는 자리.
+ *
+ * 버튼인 이유: 누르면 목록의 그 날짜 블록으로 간다(달력 칸을 찾아 누르지 않아도 된다).
+ * 접근명은 달력 칸의 이동 버튼과 **다른 문장**이다(`deck.jumpToDay`) — 같으면 한 화면에 같은 이름의
+ * 버튼이 둘이 되어 소리로 구분되지 않는다.
+ *
+ * 🔴 면은 **중립**이다(`surfaceSunken`). 폭이 데크 전폭이라 여기에 틴트를 깔면 라우트 색면 예산
+ * (히어로 + 푸터 패널로 이미 2)이 즉시 터진다. 색은 왼쪽 4px 레일과 종목 점만 진다.
+ */
+const leadPanel = `
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: ${space[2]} ${space[4]};
+  width: 100%;
+  padding: clamp(14px, 1.6vw, 20px) clamp(16px, 1.8vw, 22px);
+  padding-left: clamp(20px, 2.2vw, 28px);
+  border: 1px solid ${color.border};
+  border-radius: ${radius.lg};
+  background: ${color.surfaceSunken};
+  font-family: inherit;
+  text-align: left;
+  overflow: hidden;
+
+  /* 라우트 얼굴색 레일. 폭 4px 이라 면이 아니라 선이다(틴트 판정 하한은 높이 8px · 폭 180px). */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 4px;
+    background: ${pageHue};
+  }
+
+  ${media.down('mobileWide')} {
+    grid-template-columns: minmax(0, 1fr);
+  }
+`;
+
+export const NextLead = styled.button`
+  ${leadPanel}
+  cursor: pointer;
+  transition:
+    background ${motion.fast} ${motion.ease},
+    border-color ${motion.fast} ${motion.ease};
+
+  &:hover {
+    background: ${color.surfaceHover};
+    border-color: ${color.borderStrong};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${color.focusRing};
+    outline-offset: 2px;
+  }
+`;
+
+/** 버튼이 **아닌** 판(선택 0종·이 달 지급 없음). 같은 기하를 쓰되 누를 수 있는 척하지 않는다. */
+export const NextLeadStatic = styled.div`
+  ${leadPanel}
+`;
+
+/** 판의 왼쪽 — 라벨 → 날짜 → 종목 칩 순서. */
+export const NextLeadMain = styled.span`
+  display: grid;
+  gap: ${space[2]};
+  min-width: 0;
+`;
+
+/** "다음 예상 지급" — 작고 조용한 라벨이 큰 숫자에 이름을 준다. */
+export const NextLeadLabel = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: ${space[2]};
+  font-size: ${font.size['2xs']};
+  font-weight: ${font.weight.bold};
+  letter-spacing: 0.08em;
+  color: ${color.textMuted};
+`;
+
+/**
+ * 날짜 줄. 이 화면에서 **두 번째로 큰 글자**다(가장 큰 것은 오른쪽 카운트다운).
+ * 타이포 대비를 벌리는 자리라 굵기가 아니라 크기로 간다(헤딩 서체는 Bold 한 벌뿐).
+ */
+export const NextLeadDate = styled.span`
+  font-size: clamp(${font.size.xl}, 2.2vw, ${font.size['3xl']});
+  font-weight: ${font.weight.extrabold};
+  letter-spacing: -0.02em;
+  color: ${color.text};
+  ${font.numeric}
+`;
+
+/** 그 날 들어오는 종목 칩 줄. */
+export const NextLeadTickers = styled.span`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: ${space[1]};
+  min-width: 0;
+`;
+
+/**
+ * 종목 칩 — **버튼이 아니다**(누를 실체가 없고, 옆의 판 전체가 이미 눌린다).
+ * 색 점은 달력 칩·아젠다 막대·범례 점과 같은 사전에서 온다.
+ */
+export const NextLeadTicker = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: ${space[1]};
+  padding: 2px ${space[2]};
+  border: 1px solid ${color.border};
+  border-radius: ${radius.pill};
+  background: ${color.surface};
+  font-size: ${font.size.xs};
+  font-weight: ${font.weight.semibold};
+  color: ${color.text};
+  ${font.numeric}
+`;
+
+export const NextLeadDot = styled.span`
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+`;
+
+/**
+ * 카운트다운 — **이 화면의 주인공 숫자 한 곳**이다(`font.heroNumeric` 은 화면당 한 자리 규칙).
+ * 중립 면 위 중립 글자다: 파생 색(pageHue)은 대비 검증 밖이라 텍스트로 쓰지 않는다.
+ */
+export const NextLeadCountdown = styled.span`
+  justify-self: end;
+  font-family: ${font.heroNumeric};
+  font-size: clamp(${font.size['3xl']}, 4vw, ${font.size['6xl']});
+  font-weight: ${font.weight.extrabold};
+  line-height: 1;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+  color: ${color.text};
+  ${font.numeric}
+
+  ${media.down('mobileWide')} {
+    justify-self: start;
+  }
+`;
+
+/** 이미 지난 일정·지급 없음처럼 "지금 기다릴 것이 없는" 상태의 카운트다운 자리. */
+export const NextLeadNote = styled.span`
+  justify-self: end;
+  padding: ${space[1]} ${space[3]};
+  border-radius: ${radius.pill};
+  background: ${color.surfaceMuted};
+  font-size: ${font.size.xs};
+  font-weight: ${font.weight.semibold};
+  color: ${color.textSecondary};
+  white-space: nowrap;
+
+  ${media.down('mobileWide')} {
+    justify-self: start;
+  }
+`;
+
+/** 선택이 없을 때 판이 대신 하는 안내 한 줄. */
+export const NextLeadBody = styled.span`
+  font-size: ${font.size.sm};
+  color: ${color.textSecondary};
+  line-height: ${font.leading.snug};
+`;
+
+/**
+ * 데크의 마지막 줄 — 그 달의 집계를 **문장**으로 한 번 더 말한다.
+ *
+ * 위의 판이 "다음 한 건"만 말하므로 전체 건수는 여기서만 나온다(같은 사실을 두 무게로 적지 않는다).
+ * 왼쪽 4px 캡슐이 라우트 얼굴색을 찍는다(선이라 면 예산과 무관하다).
  */
 export const MonthSummaryLine = styled.p`
   display: flex;
   align-items: center;
   gap: ${space[2]};
   margin: 0;
-  padding: ${space[2]} ${space[3]};
-  border-radius: ${radius.md};
-  background: ${color.surfaceMuted};
   font-size: ${font.size.xs};
   font-weight: ${font.weight.semibold};
   color: ${color.textSecondary};
@@ -238,16 +398,29 @@ export const MonthSummaryLine = styled.p`
   }
 `;
 
-/*
- * ⚠ 구 처방(2026-07-25 "래퍼를 브랜드 틴트로 올린다")은 **폐기됐다** — 아래 블록이 정본이다.
- *   되살리지 마라: 이 화면의 틴트 예산 2개는 히어로와 공용 푸터 패널이 이미 쓰고 있다.
- */
+/* -------------------------------------------------------------------------- */
+/* 2층 — 작업대(목록 열 + 지도 열)                                              */
+/* -------------------------------------------------------------------------- */
+
 /**
- * 상세 영역의 **유일한** 박스(사용자 결정 2026-07-26 — "박스 안에 박스 안에 박스" 평탄화).
- * 안쪽(아젠다·미정)은 표면을 갖지 않는다 — 위계는 면이 아니라 제목·엣지·간격이 만든다.
- * 브랜드 틴트도 뺐다: 안쪽 표면이 사라지면 틴트는 배경이 아니라 본문색이 되어 버린다.
+ * **주역은 왼쪽 열이다.** 오른쪽 지도 열의 폭을 `clamp` 로 묶어 달력이 아무리 넓은 화면에서도
+ * 화면을 지배하지 못하게 한다 — 남는 폭은 전부 목록이 가져간다.
+ *
+ * 1열 전환은 `layout`(980px) — 이 레포의 좌/우 2단 경계다.
  */
-export const DetailCard = styled.section`
+export const Workbench = styled.div`
+  display: grid;
+  gap: clamp(16px, 1.8vw, 20px);
+  min-width: 0;
+  align-items: start;
+
+  ${media.up('layout')} {
+    grid-template-columns: minmax(0, 1fr) clamp(360px, 35vw, 500px);
+  }
+`;
+
+/** 목록 열(주역)과 지도 열이 공유하는 본문 카드. 위계 수단은 테두리 하나뿐이다. */
+const bodyCard = `
   min-width: 0;
   display: grid;
   gap: ${space[4]};
@@ -257,45 +430,113 @@ export const DetailCard = styled.section`
   ${cardElevation('base')}
 `;
 
-/*
- * 구 `FootNoteCard`(각주 묶음)도 공용 `PageFooter` 로 수렴했다 — 좌측 2px 레일이라는 이 모양이
- * 그대로 정본이 되어 시뮬레이터·티커 허브까지 같은 자리·같은 무게를 갖는다(2026-07-31).
- */
-
-/** 상세 카드의 머리 막대 — 달력 보드와 **같은 부품**이다(왼쪽 글리프+제목, 오른쪽 미정 토글). */
-export const DetailHead = styled.div`
-  ${headBand}
+export const LedgerCard = styled.section`
+  ${bodyCard}
 `;
 
-/** 섹션의 유일한 라벨(사용자 결정 2026-07-26). 색은 옆의 글리프 배지가 진다. */
-export const DetailTitle = styled.h3`
+/**
+ * 지도 열은 **따라붙는다**(sticky). 목록이 길어져도 달력이 화면에 남아 있어야 "이 달 어디쯤을
+ * 보고 있나"를 잃지 않는다. 1열에서는 그냥 흐른다(붙일 여백이 없다).
+ */
+export const MapCard = styled.section<{ $solo?: boolean }>`
+  ${bodyCard}
+
+  ${media.up('layout')} {
+    /* 🔴 solo = 옆에 목록이 없는 상태(고른 종목에 놓을 일정이 하나도 없을 때). 그때 이 카드는
+       작업대 밖에서 전폭으로 서고, 붙을 상대가 없으므로 sticky 도 끈다 — 혼자 있는 요소가
+       스크롤에 붙으면 "무엇을 따라다니는지"가 없어 그냥 안 움직이는 것처럼 읽힌다. */
+    position: ${({ $solo }) => ($solo ? 'static' : 'sticky')};
+    /*
+     * 🔴 붙는 기준은 **실측 헤더 높이**다 — appHeaderHeight (AppHeader 가 리사이즈마다 써 넣는
+     * CSS 변수). 상수를 적으면 안 된다: 앱 헤더는 그 자신이 sticky top 0 이고 1280 실측 97px 이라,
+     * 24px 같은 값으로 붙이면 카드 머리("월간 지급 지도")와 요일 줄이 헤더 뒤로 들어가 스크롤 중에
+     * 영영 안 보인다. 레포에 같은 처방이 이미 둘 있다
+     * (pages/Ledger/…/ScopeRail, pages/Portfolio/…/RailColumn).
+     *
+     * ⚠ Portfolio 레일과 달리 max-height + overflow-y 는 붙이지 않는다 — 이 카드 안에는 날짜 칩
+     *   **툴팁**(절대 배치, 포털 아님)이 살아서 스크롤 상자를 만들면 가장자리 칸의 말풍선이 잘린다
+     *   (같은 이유로 위 CardHead 에서 3변 bleed 도 포기했다).
+     */
+    top: calc(${appHeaderHeight} + ${space[3]});
+  }
+`;
+
+/**
+ * 카드 머리 — 글리프 배지 + 이름 + 오른쪽 슬롯.
+ *
+ * 🔴 3변 bleed(음수 마진으로 카드 세 변에 붙이기)를 **일부러 쓰지 않았다**: bleed 를 깔끔히
+ * 자르려면 카드에 `overflow: hidden` 이 필요한데, 지도 카드 안에는 날짜 칩 **툴팁**(절대 배치,
+ * 포털 아님)이 산다 — 가장자리 칸의 말풍선이 잘린다. 대신 아래 1px 구분선이 머리를 만든다.
+ */
+export const CardHead = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${space[3]};
+  flex-wrap: wrap;
+  padding-bottom: ${space[3]};
+  border-bottom: 1px solid ${color.border};
+`;
+
+/**
+ * 카드 머리의 **글리프 배지**. 라우트 얼굴색에서 파생한 옅은 면 + 같은 hue 의 아이콘.
+ * 폭 34px 이라 틴트 면 판정(≥180px) 밖이고, 🔴 **파생 면 위에 텍스트를 얹지 않는다** —
+ * 여기 들어가는 것은 aria-hidden 아이콘뿐이고, 카드 이름은 옆의 중립색 글자가 말한다.
+ */
+export const SectionGlyph = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border-radius: ${radius.md};
+  border: 1px solid ${pageHueMix(38, 'transparent')};
+  background: ${pageHueMix(14)};
+  color: ${pageHue};
+`;
+
+/**
+ * 열 제목(h3). 구 처방은 `font.size.sm`(13px) 이라 본문과 거의 같은 무게였다 —
+ * 공통 `sectionTitleFontSize`(16~18px)로 올려 제목·본문·캡션의 대비를 벌린다.
+ */
+export const CardTitle = styled.h3`
   margin: 0;
-  font-size: ${font.size.sm};
+  font-size: ${sectionTitleFontSize};
   font-weight: ${font.weight.extrabold};
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
   color: ${color.text};
+`;
+
+/** 제목 옆 개수 — 제목과 같은 줄에서 "몇 건짜리 목록인가"를 먼저 말한다. */
+export const CardCount = styled.span`
+  padding: 2px ${space[2]};
+  border-radius: ${radius.pill};
+  background: ${color.surfaceMuted};
+  font-size: ${font.size['2xs']};
+  font-weight: ${font.weight.bold};
+  color: ${color.textSecondary};
+  ${font.numeric}
 `;
 
 /**
  * 날짜 미정 보기 토글(구 2버튼 탭의 후신 — "지급 일정 목록" 탭은 제목과 중복이라 폐기).
- * `role="tab"` 대신 `aria-pressed` — 레포 관례(MonthlyCashflow의 ViewToggleGroup)이고,
- * 탭 롤은 화살표 키 이동 계약을 동반하는데 이 화면은 그것을 구현하지 않는다.
+ * `role="tab"` 대신 `aria-pressed` — 레포 관례이고, 탭 롤은 화살표 키 이동 계약을 동반하는데
+ * 이 화면은 그것을 구현하지 않는다.
+ *
+ * 눌린 상태는 **틴트 + 2px 테두리 + 굵기** 세 채널이다. 이 화면의 솔리드 브랜드 면(L3)은 종목 선택
+ * 버튼 하나뿐이라 여기까지 채우면 "가장 강한 면"이 둘이 되어 어느 쪽도 주역이 아니게 된다.
+ * ⚠ 폭 180px 미만이라 브랜드 틴트를 써도 면 예산 밖이다.
  */
 export const UndatedToggleButton = styled.button<{ $active: boolean }>`
   border: ${({ $active }) => ($active ? '2px' : '1px')} solid
     ${({ $active }) => ($active ? color.brandBorder : color.border)};
   border-radius: ${radius.pill};
-  padding: ${({ $active }) => ($active ? `calc(${space[1]} - 1px) calc(${space[3]} - 1px)` : `${space[1]} ${space[3]}`)};
+  padding: ${({ $active }) =>
+    $active ? `calc(${space[1]} - 1px) calc(${space[3]} - 1px)` : `${space[1]} ${space[3]}`};
   font-family: inherit;
   font-size: ${font.size.xs};
   font-weight: ${({ $active }) => ($active ? font.weight.bold : font.weight.semibold)};
   cursor: pointer;
-  /*
-   * 눌린 상태는 **틴트 + 2px 테두리 + 굵기**다(구 솔리드 브랜드에서 내렸다).
-   * 이 화면의 솔리드 브랜드 면(L3)은 종목 선택 버튼 하나뿐이라, 여기까지 채우면 "가장 강한 면"이
-   * 둘이 되어 어느 쪽도 주역이 아니게 된다. 상태는 색 말고도 두 채널이 더 말한다(테두리 두께·굵기).
-   * 대비는 검증 쌍만 — brand-text / brand-subtle.
-   */
   color: ${({ $active }) => ($active ? color.brandText : color.textSecondary)};
   background: ${({ $active }) => ($active ? color.brandSubtle : color.surface)};
   transition:
@@ -314,62 +555,77 @@ export const UndatedToggleButton = styled.button<{ $active: boolean }>`
 `;
 
 /**
- * 예시 격자 + 안내 카드를 한 칸에 겹치는 틀.
+ * 지도 카드 안의 **구역 이름**(연간 지급 리듬). 카드 제목(h3)보다 한 단 아래 무게로, 위에 실선을
+ * 그어 "여기서부터 다른 이야기"를 말한다 — 카드를 하나 더 만들면 오른쪽 열이 카드 탑이 된다.
  *
- * 좁은 폭에서는 **겹치지 않는다** — 카드 높이가 격자 높이(390px에서 351px)에 육박해 겹치면
- * 격자를 통째로 덮는다. 그때는 카드가 먼저, 격자가 그 아래로 흐른다. DOM 순서가 곧 그 읽기 순서다.
+ * 헤딩 태그로 올리지 않는다: 이 페이지의 헤딩 순서는 h1 히어로 → h2 월 → h3 카드 제목으로 이미
+ * 완결돼 있고, 바로 아래 `details`의 `summary`가 이 표의 접근성 진입점을 이미 갖고 있다.
  */
-export const PreviewFrame = styled.div`
-  position: relative;
-  display: grid;
-  gap: ${space[3]};
+export const MapZoneLabel = styled.p`
+  margin: ${space[1]} 0 0;
+  padding-top: ${space[4]};
+  border-top: 1px solid ${color.border};
+  font-size: ${font.size['2xs']};
+  font-weight: ${font.weight.bold};
+  letter-spacing: 0.08em;
+  color: ${color.textMuted};
 `;
 
 /**
- * 안내 카드의 자리. 넓은 폭에서는 격자 **상단 1/3 지점**에 앵커한다 — 격자를 덮어 없애지 않고
- * (위·아래 주가 그대로 읽힌다) 시선이 가장 먼저 닿는 곳에 선다.
+ * 달력 바로 아래 한 줄 힌트 — "날짜 칸을 누를 수 있다"는 것은 터치에서 보이지 않는다.
+ * 데스크톱에서는 커서와 호버 링이 이미 말하므로 좁은 폭에서만 띄운다.
  */
-export const PreviewOverlay = styled.div`
+export const BoardHint = styled.p`
+  margin: 0;
+  font-size: ${font.size.xs};
+  color: ${color.textMuted};
+  line-height: ${font.leading.snug};
+
   ${media.up('tabletSm')} {
-    position: absolute;
-    top: 33%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: min(520px, 88%);
-    z-index: 2;
+    display: none;
+  }
+`;
+
+/* -------------------------------------------------------------------------- */
+/* 빈 상태 — "고르는 면"이 화면의 절반을 갖는다                                   */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * 구 처방은 예시 격자 **위에 카드를 절대 배치로 띄웠다**(top 33%, 반투명 아님). 겹침은 두 층이 서로를
+ * 가리고, 좁은 폭에서는 겹치지 않게 다시 분기해야 했다. 이제는 겹치지 않는다 —
+ * **왼쪽에 고르는 카드, 오른쪽에 흐린 예시 달력**으로 나란히 선다(작업대와 같은 2열 골격).
+ */
+export const StartBench = styled.div`
+  display: grid;
+  gap: clamp(16px, 1.8vw, 20px);
+  min-width: 0;
+  align-items: start;
+
+  ${media.up('layout')} {
+    grid-template-columns: minmax(0, 1fr) clamp(360px, 35vw, 500px);
   }
 `;
 
 /**
- * 빈 상태도 하나의 화면이다. 예시 격자 **위에 뜨는** 카드라 반투명이면 아래 날짜와 글자가 겹쳐
- * 둘 다 못 읽는다 — 불투명 면(`raised`)이 조건이다.
+ * 빈 상태도 하나의 화면이다. 이 화면의 **유일한 "고르는 면"**(brand)이라 `PICK_RADIUS`(30~34px)를
+ * 쓴다 — 옆에 선 data 면(24~28px)과 반경이 갈려 "고르는 것 / 읽는 것"이 형태로 읽힌다.
  *
- * 위계 수단은 하나만 쓴다(2026-07-31 카드 3단): 뜬 카드는 **그림자**, 테두리 없음.
- * 구 점선 accent 틴트는 폐기했다 — 틴트 면 상한(≤2)을 히어로와 나눠 쓰던 자리이기도 하고,
- * 흐린 예시 위에 옅은 틴트가 겹치면 두 층이 서로를 지운다.
+ * 🔴 면색은 **쓰지 않는다.** 라우트의 색면 예산 2개가 히어로와 공용 푸터 패널로 이미 차 있다.
+ * 대신 **6px 레일 캡**을 쓴다(면 판정 하한 8px 바로 아래).
  */
-export const EmptyStateCard = styled.div`
+export const StartCard = styled.div`
   position: relative;
   display: grid;
-  gap: ${space[3]};
-  padding: clamp(20px, 3vw, 28px);
-  /* 고르는 면이므로 **brand 반경**(30~34px)이다 — 뒤에 깔린 data 면(24~28px)과 한 화면에 섞였을 때
-     반경이 "고르는 것 / 읽는 것"을 거드는 신호가 된다. */
+  gap: ${space[4]};
+  align-content: start;
+  padding: clamp(22px, 3vw, 32px);
   border-radius: ${PICK_RADIUS};
   ${cardElevation('raised')}
-  /* 아래 레일을 카드 모서리에서 잘라낸다. 이 카드 안에는 툴팁·팝오버가 없으므로 안전하다
-     (달력 보드는 칩 툴팁 때문에 같은 수를 쓸 수 없다). */
+  /* 아래 레일을 카드 모서리에서 잘라낸다. 이 카드 안에는 툴팁·팝오버가 없으므로 안전하다. */
   overflow: hidden;
 
-  /*
-   * 🔴 **레일 캡**(6px). 이 카드는 이 화면의 유일한 "고르는 면"이지만 **면색을 쓰지 않는다** —
-   * 라우트의 색면 예산 2개가 히어로와 공용 푸터 패널로 이미 차 있기 때문이다(2026-08-03 실측:
-   * 틴트 면을 주면 390px 에서 3개가 된다). 높이 6px 은 면 판정 하한(8px) 바로 아래라 예산 밖이면서
-   * 저해상도에서도 색이 읽히는 값이다.
-   *
-   * ⚠ 반경을 **주지 않는다**. 6px 짜리 띠에 비균일 반경을 적으면 브라우저가 그려주지 않는다
-   * (test/shared/radiusShape.test.ts) — 부모의 overflow 로 자르는 것이 이 레포의 처방이다.
-   */
+  /* ⚠ 레일에 반경을 주지 않는다 — 6px 짜리 띠의 비균일 반경은 브라우저가 그려 주지 않는다
+     (test/shared/radiusShape.test.ts). 부모의 overflow 로 자르는 것이 이 레포의 처방이다. */
   &::before {
     content: '';
     position: absolute;
@@ -382,18 +638,17 @@ export const EmptyStateCard = styled.div`
 `;
 
 /**
- * 빈 상태 카드의 얼굴 — 40px 글리프 배지.
- *
- * 폭 40px 이라 틴트 면 판정(≥180px) 밖이고, 대비는 검증 쌍(brand-text / brand-subtle)만 쓴다.
+ * 빈 상태 카드의 얼굴 — 48px 글리프 배지.
+ * 폭 48px 이라 틴트 면 판정(≥180px) 밖이고, 대비는 검증 쌍(brand-text / brand-subtle)만 쓴다.
  */
 export const EmptyGlyph = styled.span`
   display: inline-flex;
   align-items: center;
   justify-content: center;
   justify-self: start;
-  width: 40px;
-  height: 40px;
-  border-radius: ${radius.md};
+  width: 48px;
+  height: 48px;
+  border-radius: ${radius.lg};
   border: 1px solid ${color.brandBorder};
   background: ${color.brandSubtle};
   color: ${color.brandText};
@@ -409,7 +664,8 @@ export const EmptyGlyph = styled.span`
 export const PreviewBadge = styled.p`
   justify-self: start;
   margin: 0;
-  padding: ${space[1]} ${space[2]};
+  padding: ${space[1]} ${space[3]};
+  border: 1px dashed ${color.border};
   border-radius: ${radius.pill};
   background: ${color.surfaceMuted};
   font-size: ${font.size['2xs']};
@@ -418,27 +674,30 @@ export const PreviewBadge = styled.p`
   color: ${color.textSecondary};
 `;
 
+/** 고르는 면의 제목이라 본문과의 대비를 크게 벌린다(굵기가 아니라 크기로 — 헤딩 서체는 Bold 한 벌). */
 export const EmptyTitle = styled.p`
   margin: 0;
-  font-size: ${font.size.lg};
+  font-size: clamp(${font.size['2xl']}, 2.6vw, ${font.size['4xl']});
   font-weight: ${font.weight.extrabold};
-  letter-spacing: -0.01em;
+  letter-spacing: -0.03em;
+  line-height: ${font.leading.tight};
   color: ${color.text};
 `;
 
 export const EmptyBody = styled.p`
   margin: 0;
-  font-size: ${font.size.sm};
+  font-size: ${font.size.md};
   color: ${color.textSecondary};
   line-height: ${font.leading.snug};
-  max-width: 52ch;
+  max-width: 44ch;
 `;
 
 export const QuickPickLabel = styled.p`
   margin: 0;
-  font-size: ${font.size.xs};
-  font-weight: ${font.weight.semibold};
-  color: ${color.textSecondary};
+  font-size: ${font.size['2xs']};
+  font-weight: ${font.weight.bold};
+  letter-spacing: 0.08em;
+  color: ${color.textMuted};
 `;
 
 export const QuickPickList = styled.ul`
@@ -459,7 +718,7 @@ export const QuickPickItem = styled.li`
 
 /**
  * 추천 칩 앞의 종목 색 점 — **누르기 전에 이미 그 종목의 색을 보여 준다.**
- * 아래 깔린 예시 달력의 같은 종목 칩이 같은 색 점을 달고 있어, 누르면 그 색이 그대로 선명해진다.
+ * 옆에 깔린 예시 달력의 같은 종목 칩이 같은 색 점을 달고 있어, 누르면 그 색이 그대로 선명해진다.
  * 색은 인라인 style 로 들어온다(화면 전체가 공유하는 색 사전). 장식이라 aria-hidden 이다.
  */
 export const QuickPickDot = styled.span`
@@ -469,6 +728,19 @@ export const QuickPickDot = styled.span`
   height: 8px;
   border-radius: 50%;
 `;
+
+/**
+ * 예시 달력이 앉는 판. 실제 지도 카드와 **같은 기하**를 쓰되 한 겹 뒤로 물러난다 —
+ * "여기 이런 것이 뜬다"는 자리 표시이지 읽을 데이터가 아니다.
+ */
+export const PreviewPane = styled.div`
+  ${bodyCard}
+  background: ${color.surfaceSunken};
+`;
+
+/* -------------------------------------------------------------------------- */
+/* 드로어 안쪽 — 지급월 데이터가 없는 종목 접이식                                 */
+/* -------------------------------------------------------------------------- */
 
 export const UnavailableDetails = styled.details`
   flex: 0 0 auto;
@@ -536,23 +808,7 @@ export const UnavailableItem = styled.li`
   background: ${color.surfaceMuted};
 `;
 
-/**
- * 달력 바로 아래 한 줄 힌트 — "날짜 칸을 누를 수 있다"는 것은 터치에서 보이지 않는다.
- * 데스크톱에서는 커서와 호버 링이 이미 말하므로 좁은 폭에서만 띄운다.
- */
-export const BoardHint = styled.p`
-  margin: 0;
-  font-size: ${font.size.xs};
-  color: ${color.textMuted};
-  line-height: ${font.leading.snug};
-
-  ${media.up('tabletSm')} {
-    display: none;
-  }
-`;
-
 /*
- * 구 `FootNote`(각주 한 줄)는 **공용 `components/common/PageFooter` 로 수렴**했다(2026-07-31).
- * 이 화면의 각주 문구는 그 컴포넌트의 `notes` 슬롯으로 원문 그대로 들어간다 — 다시 복제하지 마라.
+ * 각주(`FootNoteCard`)와 히어로는 여기 없다 — 공용 `components/common/PageFooter` / `PageHero` 로
+ * 수렴했다(2026-07-31). 다시 복제하지 마라.
  */
-

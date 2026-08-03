@@ -17,56 +17,87 @@ import { getCalendarMonthOf, shiftCalendarMonth, tickerSeriesResolver } from '..
 import type { DividendCalendarViewProps } from './DividendCalendarPage.types';
 import { selectQuickPickOptions } from './DividendCalendarPage.utils';
 import {
-  BoardCard,
-  BoardHead,
   BoardHint,
-  DetailCard,
-  DetailHead,
-  DetailTitle,
+  CardCount,
+  CardHead,
+  CardTitle,
+  DeckBar,
   EmptyBody,
   EmptyGlyph,
-  EmptyStateCard,
   EmptyTitle,
   FilterButton,
   FilterCount,
   HeadSpacer,
+  LedgerCard,
   LiveRegion,
+  MapCard,
+  MapZoneLabel,
+  MonthDeck,
   MonthSummaryLine,
+  NextLead,
+  NextLeadBody,
+  NextLeadCountdown,
+  NextLeadDate,
+  NextLeadDot,
+  NextLeadLabel,
+  NextLeadMain,
+  NextLeadNote,
+  NextLeadStatic,
+  NextLeadTicker,
+  NextLeadTickers,
   PageStack,
   PreviewBadge,
-  PreviewFrame,
-  PreviewOverlay,
+  PreviewPane,
   QuickPickDot,
   QuickPickItem,
   QuickPickLabel,
   QuickPickList,
   SectionGlyph,
-  SectionLabel,
+  StartBench,
+  StartCard,
   UnavailableBody,
   UnavailableDetails,
   UndatedToggleButton,
   UnavailableItem,
   UnavailableList,
-  UnavailableSummary
+  UnavailableSummary,
+  Workbench
 } from './DividendCalendarPage.styled';
 
 const copy = DIVIDEND_CALENDAR_COPY;
 
+/** 데크 판이 칩으로 세우는 종목 수. 넘치면 "외 N종"으로 접는다(판은 한 건의 요약이지 목록이 아니다). */
+const DECK_TICKER_LIMIT = 4;
+
 /**
  * 순수 뷰 — 상태를 갖지 않고 props만 그린다.
  *
- * **월간 달력 표는 로딩만 아니면 항상 그린다**(사용자 결정 2026-07-25). 선택이 없거나 선택 종목에
- * 지급월 데이터가 없어도 빈 달력이 화면의 뼈대로 남아 있어야 이 페이지가 무엇을 하는 곳인지 읽힌다.
- * 대신 "지급이 없다"는 주장은 표가 하지 않는다 — 요약 줄·빈 상태 안내·경고 배너가 말한다
- * (요약과 상세 목록은 여전히 `selectedWithData > 0` 일 때만 붙는다).
+ * ── 2026-08-03 2차 리워크: **무엇이 먼저 오는가**를 다시 정했다 ──────────────────
  *
- * 🔄 2026-07-31: 그 뼈대가 **비어 있기만 하던 것**을 고쳤다. 선택이 0종이면 같은 표에 대표 종목의
- * 실제 예상 지급일을 흐리게 깔고(`previewMonth`, 표현 전용) 안내 카드를 그 위에 띄운다 —
- * 회색 빈 칸 42개가 문서의 43%를 먹으면서 "여기서 무엇을 보게 되는지"는 한 글자도 말하지 않았다.
+ * 1차 리워크는 42칸 격자의 면 채움을 링·밑줄로 바꿨을 뿐 구성은 그대로였다. 그런데 이 화면의
+ * 질문은 "이번 달 언제 들어오나"이고, 구 구성에서 그 답은 **달력 보드 978px 아래**에 있었다
+ * (1280 실측: 히어로 174 · 보드 978 · 상세 405 — 답이 스크롤 밖이었다).
  *
- * 종목 선택은 **우측 드로어**로 빠졌다(사용자 결정 2026-07-25) — 달력이 본문 전폭을 쓰고,
- * 화면에 남는 것은 달력·상세·각주 세 층뿐이다. 다만 "지금 몇 종을 보고 있나"와 빈 상태 안내는
- * 드로어 밖(달력 위)에 남는다: 드로어를 열지 않고도 상태를 알 수 있어야 한다.
+ * 그래서 세 층으로 다시 세웠다.
+ *
+ * ```
+ *  ① MonthDeck   — 조작(달 이동 + 종목 선택) · **다음 예상 지급 한 건** · 그 달 집계 한 줄
+ *  ② Workbench   — 좌: 지급 일정 목록(주역) / 우: 월간 지급 지도 + 연간 지급 리듬(sticky 개관)
+ *  ③ PageFooter  — 고지
+ * ```
+ *
+ * **DOM 순서 = 답 → 목록 → 지도**다. 달력은 이제 화면의 주인이 아니라 옆에 붙어 따라다니는
+ * 지도이고, 좁은 폭에서는 목록이 지도보다 **먼저** 온다.
+ *
+ * 🔴 **잃은 진입점은 하나도 없다.** 종목 선택 드로어·월 이동 3버튼·일자 점프·칩 툴팁·미정 토글·
+ * 범례 표·빠른 선택 칩·데이터 없는 종목 접이식이 전부 그대로 있고, **데크의 판 하나가 늘었다**
+ * (다음 지급일로 가는 지름길 — 달력 칸을 눈으로 찾지 않아도 된다).
+ *
+ * 종목 선택은 여전히 **우측 드로어**다(사용자 결정 2026-07-25). 다만 그 문을 여는 버튼은 달력
+ * 카드 머리가 아니라 **데크 조작 줄**로 올라왔다 — "무엇을 보는가"와 "언제를 보는가"는 같은 종류의
+ * 결정이라 한 줄에 선다.
+ *
+ * 🔴 예시 미리보기(`previewMonth`)는 **표현 전용**이다 — 선택·저장소·주소 어디에도 들어가지 않는다.
  */
 export default function DividendCalendarView({
   viewModel,
@@ -92,8 +123,10 @@ export default function DividendCalendarView({
 }: DividendCalendarViewProps) {
   const monthTitleId = useId();
   const drawerId = useId();
+  const ledgerTitleId = useId();
+  const mapTitleId = useId();
 
-  const { selected, selectedWithData, unavailable, month, monthLabel } = viewModel;
+  const { selected, selectedWithData, unavailable, month, monthLabel, nextPayout } = viewModel;
   const isReady = status === 'ready';
   const showEmptyState = isReady && selected.length === 0;
   const showAllUnavailable = isReady && selected.length > 0 && selectedWithData === 0;
@@ -107,9 +140,9 @@ export default function DividendCalendarView({
   const undatedCount = month.undated.length;
 
   /**
-   * 🔴 **이 화면의 색 사전은 하나다.** 달력 칩 점 · 아젠다 막대 · 미정 점 · 범례 표가 전부 이 함수를
-   * 받는다 — 부품이 각자 색을 정하면 2겹 배정(집합 내 충돌 회피)이 무너져 같은 화면에서 두 종목이
-   * 같은 색을 갖는다. 그러면 "이 색이 곧 그 종목"이라는 길찾기 단서가 거짓말이 된다.
+   * 🔴 **이 화면의 색 사전은 하나다.** 데크 칩 점 · 달력 칩 점 · 아젠다 막대 · 미정 점 · 범례 표가
+   * 전부 이 함수를 받는다 — 부품이 각자 색을 정하면 2겹 배정(집합 내 충돌 회피)이 무너져 같은
+   * 화면에서 두 종목이 같은 색을 갖는다. 그러면 "이 색이 곧 그 종목"이라는 길찾기 단서가 거짓말이 된다.
    *
    * 배정 집합은 **지금 화면에 실제로 그려지는 종목**이다: 고른 게 있으면 선택 집합, 하나도 없으면
    * 예시로 깔리는 추천 종목들. 예시 상태에서 추천 칩과 예시 격자의 같은 종목이 같은 색이어야
@@ -124,6 +157,79 @@ export default function DividendCalendarView({
   // 미정이 0건이면 그 탭은 사라진다 — 사라진 탭이 선택돼 있으면 빈 화면이 되므로 목록으로 접어 읽는다.
   const activeDetailTab = detailTab === 'undated' && undatedCount === 0 ? 'agenda' : detailTab;
 
+  const deckTickers = nextPayout ? nextPayout.tickers.slice(0, DECK_TICKER_LIMIT) : [];
+  const deckHiddenTickers = nextPayout ? nextPayout.tickers.length - deckTickers.length : 0;
+
+  /**
+   * 데크의 판. 세 갈래고, 셋 다 **같은 기하**를 쓴다 — 상태에 따라 자리가 사라지면 그 위아래가
+   * 매번 다른 높이로 뛴다.
+   *
+   * ⚠ 불러오는 중에는 아예 그리지 않는다. 아직 선택을 모르는 상태라 "이 달 예상 지급 없음"은
+   *   거짓이 될 수 있다(라이브 리전이 "불러오는 중"을 이미 말한다).
+   */
+  const renderNextLead = () => {
+    if (!isReady) return null;
+
+    if (selected.length === 0) {
+      return (
+        <NextLeadStatic>
+          <NextLeadMain>
+            <NextLeadLabel>{copy.deck.emptyLabel}</NextLeadLabel>
+            <NextLeadBody>{copy.deck.emptyLead}</NextLeadBody>
+          </NextLeadMain>
+        </NextLeadStatic>
+      );
+    }
+
+    if (!nextPayout) {
+      return (
+        <NextLeadStatic>
+          <NextLeadMain>
+            <NextLeadLabel>{copy.deck.noneLabel}</NextLeadLabel>
+            <NextLeadBody>{copy.deck.noneLead}</NextLeadBody>
+          </NextLeadMain>
+        </NextLeadStatic>
+      );
+    }
+
+    return (
+      <NextLead
+        type="button"
+        aria-label={copy.deck.jumpToDay(nextPayout.month, nextPayout.day)}
+        onClick={() => onDayJump(nextPayout.date)}
+      >
+        <NextLeadMain>
+          <NextLeadLabel>{nextPayout.isPast ? copy.deck.pastLabel : copy.deck.nextLabel}</NextLeadLabel>
+          <NextLeadDate>
+            {copy.deck.dateLine(nextPayout.month, nextPayout.day, copy.board.weekdays[nextPayout.weekday])}
+          </NextLeadDate>
+          <NextLeadTickers>
+            {deckTickers.map((ticker) => (
+              <NextLeadTicker key={ticker}>
+                {/* 점은 장식이다 — 티커 글자가 바로 옆에서 같은 말을 하므로 회색조에서도 읽힌다. */}
+                <NextLeadDot aria-hidden style={{ background: seriesOf(ticker) }} />
+                {ticker}
+              </NextLeadTicker>
+            ))}
+            {deckHiddenTickers > 0 ? (
+              <NextLeadTicker>{copy.deck.tickerMore(deckHiddenTickers)}</NextLeadTicker>
+            ) : null}
+          </NextLeadTickers>
+        </NextLeadMain>
+
+        {/* 🔴 큰 숫자는 **D-N 일 때만**이다. '오늘 지급 예정'·'지난 일정'은 문장이라 6xl 로 키우면
+            판을 넘치고, 무엇보다 셋을 같은 무게로 두면 "며칠 남았나"가 숫자로 안 읽힌다. */}
+        {nextPayout.daysUntil !== null && nextPayout.daysUntil > 0 ? (
+          <NextLeadCountdown>{copy.deck.countdown(nextPayout.daysUntil)}</NextLeadCountdown>
+        ) : (
+          <NextLeadNote>
+            {nextPayout.daysUntil === 0 ? copy.deck.countdown(0) : copy.deck.countdownPast}
+          </NextLeadNote>
+        )}
+      </NextLead>
+    );
+  };
+
   return (
     <PageStack>
       {/* 🔴 페이지 **맨 위**의 참고 시세(2026-08-02 사용자 결정). 헤더에 얹었다가 되돌린 자리다 —
@@ -136,7 +242,7 @@ export default function DividendCalendarView({
 
         ⚠ 예상 지급일 고지(`disclaimer.body`, 3줄)는 **히어로에서 뺐다** — 제목 + 리드 + 주의문 3줄 +
         기준일까지 담자 히어로가 본문 3덩어리가 되어 각주로 읽혔다(1280에서 히어로 222px). 고지는
-        읽는 순간이 "달력을 본 뒤"라 페이지 하단 각주 묶음(`FootNoteCard`, `role="note"`)이 제자리다.
+        읽는 순간이 "달력을 본 뒤"라 페이지 하단 각주 묶음(`PageFooter`, `role="note"`)이 제자리다.
       */}
       <PageHero
         icon={<CalendarDays size={20} strokeWidth={1.8} aria-hidden focusable={false} />}
@@ -156,14 +262,21 @@ export default function DividendCalendarView({
         </Banner>
       ) : null}
 
-      <BoardCard aria-labelledby={monthTitleId}>
-        <BoardHead>
-          {/* 카드 머리 띠 — 글리프(라우트 얼굴색) + 이름 + 오른쪽 끝의 주 진입점.
-              글리프는 장식이라 aria-hidden 이고, 카드의 접근명은 여전히 월 제목(h2)이 준다. */}
-          <SectionGlyph aria-hidden>
-            <CalendarRange size={18} strokeWidth={1.8} focusable={false} />
-          </SectionGlyph>
-          <SectionLabel>{copy.board.sectionLabel}</SectionLabel>
+      {/* ── ① 데크 — 조작과 답이 한 판에 ──────────────────────────────────────── */}
+      <MonthDeck aria-labelledby={monthTitleId}>
+        <DeckBar>
+          {/* 툴바는 표 바깥에 있다 — 월을 넘겨도 버튼이 리마운트되지 않아 포커스가 유지된다(연타 가능). */}
+          <CalendarToolbar
+            monthLabel={monthLabel}
+            prevLabel={copy.nav.monthLabel(prev.year, prev.month)}
+            nextLabel={copy.nav.monthLabel(next.year, next.month)}
+            todayLabel={copy.nav.monthLabel(todayMonth.year, todayMonth.month)}
+            isCurrentMonth={isCurrentMonth}
+            titleId={monthTitleId}
+            onPrev={onPrevMonth}
+            onNext={onNextMonth}
+            onToday={onToday}
+          />
           <HeadSpacer />
           <FilterButton
             type="button"
@@ -178,77 +291,9 @@ export default function DividendCalendarView({
           </FilterButton>
           {/* 별도의 "선택 N종" 텍스트는 두지 않는다(사용자 결정 2026-07-25 — 배지와 중복).
               개수는 배지가 눈으로, 버튼 접근명(`picker.open`)과 라이브 리전이 소리로 말한다. */}
-        </BoardHead>
+        </DeckBar>
 
-        {/* 툴바는 표 바깥에 둔다 — 월을 넘겨도 버튼이 리마운트되지 않아 포커스가 유지된다(연타 가능). */}
-        <CalendarToolbar
-          monthLabel={monthLabel}
-          prevLabel={copy.nav.monthLabel(prev.year, prev.month)}
-          nextLabel={copy.nav.monthLabel(next.year, next.month)}
-          todayLabel={copy.nav.monthLabel(todayMonth.year, todayMonth.month)}
-          isCurrentMonth={isCurrentMonth}
-          titleId={monthTitleId}
-          onPrev={onPrevMonth}
-          onNext={onNextMonth}
-          onToday={onToday}
-        />
-
-        {/*
-          빈 상태 = **예시 격자 + 그 위에 뜬 안내 카드**.
-
-          구 화면은 "아직 선택한 종목이 없습니다" 카드와 **회색 빈 칸 42개**가 같은 말을 두 번 했고,
-          그 격자가 1280에서 문서의 43%·뷰포트의 76%를 먹었다. 이제 그 지면이 "고르면 이런 게 보인다"를
-          직접 보여준다(칩 4개 = 예시에 깔린 그 종목들이라, 누르면 흐린 것이 그 자리에서 선명해진다).
-
-          🔴 예시는 **표현 전용**이다 — `previewMonth` 는 선택·저장소·주소 어디에도 들어가지 않는다.
-        */}
-        {showEmptyState ? (
-          <PreviewFrame>
-            <PreviewOverlay>
-              <EmptyStateCard>
-                <EmptyGlyph aria-hidden>
-                  <CalendarDays size={20} strokeWidth={1.8} focusable={false} />
-                </EmptyGlyph>
-                <PreviewBadge>{copy.preview.label}</PreviewBadge>
-                <EmptyTitle>{copy.empty.title}</EmptyTitle>
-                <EmptyBody>{copy.empty.body}</EmptyBody>
-                {quickPicks.length > 0 ? (
-                  <>
-                    <QuickPickLabel>{copy.empty.quickPickLabel}</QuickPickLabel>
-                    <QuickPickList>
-                      {quickPicks.map((option) => (
-                        <QuickPickItem key={option.ticker}>
-                          {/* 점은 칩 **밖**에 둔다 — 칩의 접근명은 티커 한 단어여야 한다(장식이 이름에 섞이면
-                              "SCHD 색 점" 같은 이름이 된다). 아래 예시 격자의 같은 종목이 같은 색을 단다. */}
-                          <QuickPickDot aria-hidden style={{ background: seriesOf(option.ticker) }} />
-                          <Chip title={option.koreanName} onClick={() => onToggleTicker(option.ticker)}>
-                            {option.ticker}
-                          </Chip>
-                        </QuickPickItem>
-                      ))}
-                    </QuickPickList>
-                  </>
-                ) : null}
-              </EmptyStateCard>
-            </PreviewOverlay>
-
-            {viewModel.previewMonth ? (
-              <MonthCalendar
-                weeks={viewModel.previewMonth.weeks}
-                monthLabel={monthLabel}
-                labelledById={monthTitleId}
-                seriesOf={seriesOf}
-                isPreview
-              />
-            ) : null}
-          </PreviewFrame>
-        ) : null}
-
-        {showAllUnavailable ? (
-          <Banner tone="warning" role="status">
-            {copy.empty.allUnavailable}
-          </Banner>
-        ) : null}
+        {renderNextLead()}
 
         {showCalendar ? (
           <MonthSummaryLine>
@@ -257,60 +302,165 @@ export default function DividendCalendarView({
               : copy.board.summary(monthLabel, month.datedCount, undatedCount)}
           </MonthSummaryLine>
         ) : null}
+      </MonthDeck>
 
-        {status === 'loading' ? <MonthCalendarSkeleton monthLabel={monthLabel} /> : null}
+      {showAllUnavailable ? (
+        <Banner tone="warning" role="status">
+          {copy.empty.allUnavailable}
+        </Banner>
+      ) : null}
 
-        {/* 빈 상태에서는 위 `PreviewFrame` 안의 예시 표가 이 자리를 대신한다 — 표를 두 개 그리면
-            같은 달의 서로 다른 달력이 위아래로 겹쳐 어느 쪽이 사실인지 알 수 없게 된다. */}
-        {isReady && !showEmptyState ? (
-          <MonthCalendar
-            weeks={month.weeks}
-            monthLabel={monthLabel}
-            labelledById={monthTitleId}
-            seriesOf={seriesOf}
-            onDayJump={onDayJump}
-          />
-        ) : null}
+      {status === 'loading' ? (
+        <PreviewPane>
+          <MonthCalendarSkeleton monthLabel={monthLabel} />
+        </PreviewPane>
+      ) : null}
 
-        {/* 누를 수 있는 날짜가 실제로 있을 때만 안내한다 — 없는 상호작용을 광고하지 않는다. */}
-        {showCalendar && month.datedCount > 0 ? <BoardHint>{copy.board.jumpHint}</BoardHint> : null}
-      </BoardCard>
+      {/*
+        ── 빈 상태 — 이 화면의 유일한 "고르는 면" ────────────────────────────────
 
-      {showCalendar ? (
-        <DetailCard>
-          {/* 섹션 라벨은 이 제목 **한 곳**이다(사용자 결정 2026-07-26 — 탭+제목 중복 정리의 최종형).
-              미정 전환은 제목 오른쪽의 토글 하나 — "지급 일정 목록" 탭을 따로 두면 제목과 같은 말이
-              두 번 보인다. 미정 0건이면 토글도 없다. */}
-          <DetailHead>
-            <SectionGlyph aria-hidden>
-              <ListChecks size={18} strokeWidth={1.8} focusable={false} />
-            </SectionGlyph>
-            <DetailTitle>{copy.agenda.heading}</DetailTitle>
-            <HeadSpacer />
-            {undatedCount > 0 ? (
-              <UndatedToggleButton
-                type="button"
-                $active={activeDetailTab === 'undated'}
-                aria-pressed={activeDetailTab === 'undated'}
-                onClick={() => onDetailTabChange(activeDetailTab === 'undated' ? 'agenda' : 'undated')}
-              >
-                {copy.detailTabs.undated(undatedCount)}
-              </UndatedToggleButton>
+        구 화면은 예시 격자 **위에** 안내 카드를 절대 배치로 띄웠다(두 층이 서로를 가렸다).
+        이제는 겹치지 않는다: 왼쪽에 고르는 카드(brand · 큰 반경 · 레일 캡), 오른쪽에 흐린 예시 달력.
+        작업대와 **같은 2열 골격**이라, 칩을 누르면 오른쪽의 흐린 것이 그 자리에서 선명해진다.
+      */}
+      {showEmptyState ? (
+        <StartBench>
+          <StartCard>
+            <EmptyGlyph aria-hidden>
+              <CalendarDays size={24} strokeWidth={1.8} focusable={false} />
+            </EmptyGlyph>
+            <PreviewBadge>{copy.preview.label}</PreviewBadge>
+            <EmptyTitle>{copy.empty.title}</EmptyTitle>
+            <EmptyBody>{copy.empty.body}</EmptyBody>
+            {quickPicks.length > 0 ? (
+              <>
+                <QuickPickLabel>{copy.empty.quickPickLabel}</QuickPickLabel>
+                <QuickPickList>
+                  {quickPicks.map((option) => (
+                    <QuickPickItem key={option.ticker}>
+                      {/* 점은 칩 **밖**에 둔다 — 칩의 접근명은 티커 한 단어여야 한다(장식이 이름에 섞이면
+                          "SCHD 색 점" 같은 이름이 된다). 옆의 예시 격자에서 같은 종목이 같은 색을 단다. */}
+                      <QuickPickDot aria-hidden style={{ background: seriesOf(option.ticker) }} />
+                      <Chip title={option.koreanName} onClick={() => onToggleTicker(option.ticker)}>
+                        {option.ticker}
+                      </Chip>
+                    </QuickPickItem>
+                  ))}
+                </QuickPickList>
+              </>
             ) : null}
-          </DetailHead>
+          </StartCard>
 
-          {activeDetailTab === 'undated' ? (
-            <UndatedSection items={month.undated} seriesOf={seriesOf} />
-          ) : (
-            <AgendaList
-              days={viewModel.agendaDays}
-              hasUndated={undatedCount > 0}
-              highlightedDate={highlightedAgendaDate}
+          {viewModel.previewMonth ? (
+            <PreviewPane>
+              <MonthCalendar
+                weeks={viewModel.previewMonth.weeks}
+                monthLabel={monthLabel}
+                labelledById={monthTitleId}
+                seriesOf={seriesOf}
+                compact
+                isPreview
+              />
+            </PreviewPane>
+          ) : null}
+        </StartBench>
+      ) : null}
+
+      {/* ── ② 작업대 — 주역은 왼쪽 목록, 달력은 따라붙는 지도 ────────────────── */}
+      {showCalendar ? (
+        <Workbench>
+          <LedgerCard aria-labelledby={ledgerTitleId}>
+            {/* 섹션 라벨은 이 제목 **한 곳**이다(사용자 결정 2026-07-26 — 탭+제목 중복 정리의 최종형).
+                미정 전환은 제목 오른쪽의 토글 하나 — 미정 0건이면 토글도 없다. */}
+            <CardHead>
+              <SectionGlyph aria-hidden>
+                <ListChecks size={18} strokeWidth={1.8} focusable={false} />
+              </SectionGlyph>
+              <CardTitle id={ledgerTitleId}>{copy.ledger.sectionLabel}</CardTitle>
+              {month.datedCount > 0 ? <CardCount>{copy.ledger.count(month.datedCount)}</CardCount> : null}
+              <HeadSpacer />
+              {undatedCount > 0 ? (
+                <UndatedToggleButton
+                  type="button"
+                  $active={activeDetailTab === 'undated'}
+                  aria-pressed={activeDetailTab === 'undated'}
+                  onClick={() => onDetailTabChange(activeDetailTab === 'undated' ? 'agenda' : 'undated')}
+                >
+                  {copy.detailTabs.undated(undatedCount)}
+                </UndatedToggleButton>
+              ) : null}
+            </CardHead>
+
+            {activeDetailTab === 'undated' ? (
+              <UndatedSection items={month.undated} seriesOf={seriesOf} />
+            ) : (
+              <AgendaList
+                days={viewModel.agendaDays}
+                hasUndated={undatedCount > 0}
+                highlightedDate={highlightedAgendaDate}
+                seriesOf={seriesOf}
+              />
+            )}
+
+            {/* 같은 데이터의 **전치**(종목 × 12개월). 달력이 "이 달에 누가"를 답하면 이쪽은
+                "이 종목이 언제"를 답한다. 훑어보기라는 성격은 지도 열과 같지만, 13열짜리 표는
+                460px 열에서 데스크톱에서도 가로 스크롤이 남는다 — **표가 요구하는 폭**이 배치를
+                정한다. 기본은 접혀 있다(네이티브 details, JS 상태 없음). */}
+            {viewModel.legendRows.length > 0 ? (
+              <>
+                <MapZoneLabel>{copy.ledger.legendLabel}</MapZoneLabel>
+                <ScheduleLegendTable rows={viewModel.legendRows} seriesOf={seriesOf} />
+              </>
+            ) : null}
+          </LedgerCard>
+
+          <MapCard aria-labelledby={mapTitleId}>
+            <CardHead>
+              <SectionGlyph aria-hidden>
+                <CalendarRange size={18} strokeWidth={1.8} focusable={false} />
+              </SectionGlyph>
+              <CardTitle id={mapTitleId}>{copy.board.sectionLabel}</CardTitle>
+            </CardHead>
+
+            <MonthCalendar
+              weeks={month.weeks}
+              monthLabel={monthLabel}
+              labelledById={monthTitleId}
               seriesOf={seriesOf}
+              compact
+              onDayJump={onDayJump}
             />
-          )}
-          <ScheduleLegendTable rows={viewModel.legendRows} seriesOf={seriesOf} />
-        </DetailCard>
+
+            {/* 누를 수 있는 날짜가 실제로 있을 때만 안내한다 — 없는 상호작용을 광고하지 않는다. */}
+            {month.datedCount > 0 ? <BoardHint>{copy.board.jumpHint}</BoardHint> : null}
+          </MapCard>
+        </Workbench>
+      ) : null}
+
+      {/*
+        고른 종목에 **놓을 일정이 하나도 없는** 경우(배당 없음·데이터 준비 중만 고른 상태).
+        위 경고 배너가 이유를 말하고, 달력은 **빈 채로 남는다** — 화면의 뼈대이자 "여기가 무엇을
+        하는 곳인지"를 계속 말하는 자리다(사용자 결정 2026-07-25).
+
+        🔴 지급 일정 목록은 그리지 않는다. 놓인 일정이 0건인데 목록을 세우면 "이 달에는 지급 예정이
+        없습니다"가 경고 배너와 같은 말을 두 번 하고, 원인(종목 자체에 일정이 없다)과 결과(이 달에
+        없다)가 뒤섞인다. 옆에 세울 목록이 없으므로 지도는 작업대 밖에서 전폭으로 선다.
+
+        🔴 여기서도 `compact` 다(2026-08-03 검증에서 고침). 이 상태의 격자는 **42칸이 전부 비어
+        있다** — 기본 밀도(칸 112px)로 세우면 1280에서 830px 짜리 백지가 화면을 덮어, 이 리워크가
+        걷어낸 바로 그 모양("달력이 화면을 지배한다")이 예외 상태에서 되살아난다. 놓인 것이 없는
+        격자일수록 자리를 적게 차지해야 경고 배너가 화면의 주인이 된다.
+      */}
+      {showAllUnavailable ? (
+        <MapCard $solo aria-labelledby={mapTitleId}>
+          <CardHead>
+            <SectionGlyph aria-hidden>
+              <CalendarRange size={18} strokeWidth={1.8} focusable={false} />
+            </SectionGlyph>
+            <CardTitle id={mapTitleId}>{copy.board.sectionLabel}</CardTitle>
+          </CardHead>
+          <MonthCalendar weeks={month.weeks} monthLabel={monthLabel} labelledById={monthTitleId} compact />
+        </MapCard>
       ) : null}
 
       {/* 각주 + 사이트 공통 고지 = 공용 푸터 한 벌(2026-07-31 수렴 — 구 로컬 `FootNoteCard`).

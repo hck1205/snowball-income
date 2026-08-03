@@ -30,11 +30,44 @@ export const VisuallyHidden = styled.span`
   border: 0;
 `;
 
-export const CalendarTable = styled.table`
+/**
+ * 표 루트가 이 격자의 **밀도 변수를 소유한다**.
+ *
+ * 🔴 밀도를 transient prop 으로 6개 부품에 각각 흘리지 않는 이유: 칸·숫자·칩·요일머리가 각자
+ * 분기를 들면 한 곳만 고쳤을 때 조용히 어긋난다. CSS 커스텀 속성은 DOM 을 타고 내려가므로
+ * **한 자리에서 선언하고 아래는 읽기만** 한다.
+ *
+ * `compact` 는 2026-08-03 리워크로 생겼다 — 이 달력은 이제 본문 전폭이 아니라 **개관 열**
+ * (360~500px) 안에 산다. 같은 112px 칸을 그대로 쓰면 6주 격자만 700px 을 넘어 sticky 지도가
+ * 뷰포트보다 커진다(따라붙는 의미가 사라진다). 좁은 뷰포트의 밀도는 여전히 아래 미디어 쿼리가
+ * 잡는다 — 그쪽이 나중에 선언되므로 이 변수를 이긴다.
+ *
+ * 🔴 아래 소비처는 `var(--x)` 를 **폴백 없이** 읽는다. 두 이유다:
+ *  ① 이 표가 유일한 조상이고 두 분기 모두 값을 전부 선언한다 — 폴백은 절대 쓰이지 않는 죽은 값이다.
+ *  ② `var(--r, 16px)` 의 쉼표는 소스 스캐너(test/shared/radiusShape.test.ts)에 **두 값**으로 읽혀
+ *     "얇은 요소의 비균일 반경"으로 오탐된다. 가드를 무디게 만드는 대신 죽은 폴백을 뺐다.
+ */
+export const CalendarTable = styled.table<{ $compact?: boolean }>`
+  --cal-cell-height: ${({ $compact }) => ($compact ? '64px' : '112px')};
+  --cal-cell-pad: ${({ $compact }) => ($compact ? '3px' : space[2])};
+  --cal-cell-radius: ${({ $compact }) => ($compact ? radius.md : radius.lg)};
+  --cal-day-size: ${({ $compact }) => ($compact ? font.size['2xs'] : font.size.xs)};
+  --cal-head-pad: ${({ $compact }) => ($compact ? space[1] : space[2])};
+  /*
+   * 좁은 열의 칩은 **껍데기를 벗는다**(테두리·면·좌우 패딩 0). 실측: 개관 열 430px 에서 칸 폭이
+   * 51px 이고 칩 껍데기가 12px 을 먹어 "SCHD" 가 "SC…" 로 잘렸다. 껍데기는 장식이고 글자는
+   * 정보다 — 부딪히면 장식을 뺀다. **색 점은 남긴다**: 그것이 목록·범례와 이 격자를 잇는 유일한
+   * 단서고, 옆의 글자가 언제나 같은 말을 하므로 색 단독 채널이 되지 않는다.
+   */
+  --cal-chip-pad: ${({ $compact }) => ($compact ? '0' : `1px ${space[2]} 1px ${space[1]}`)};
+  --cal-chip-border: ${({ $compact }) => ($compact ? 'transparent' : color.border)};
+  --cal-chip-bg: ${({ $compact }) => ($compact ? 'transparent' : color.surface)};
+  --cal-chip-gap: ${({ $compact }) => ($compact ? '3px' : '4px')};
+
   width: 100%;
   table-layout: fixed;
   border-collapse: separate;
-  border-spacing: ${space[1]};
+  border-spacing: ${({ $compact }) => ($compact ? '2px' : space[1])};
 `;
 
 /**
@@ -68,7 +101,7 @@ export const CalendarCaption = styled.caption`
  * 쓰는 색은 대비 검증 쌍(danger/surface, accent-text/surface)뿐이다.
  */
 export const WeekdayHead = styled.th<{ $weekday: number }>`
-  padding: ${space[2]} 0;
+  padding: var(--cal-head-pad) 0;
   font-size: ${font.size.xs};
   font-weight: ${font.weight.bold};
   letter-spacing: 0.06em;
@@ -96,7 +129,7 @@ export const DayCellRoot = styled.td<{
   /* 칸을 덮는 이동 버튼(DayJumpButton)의 컨테이닝 블록. */
   position: relative;
   vertical-align: top;
-  padding: ${space[2]};
+  padding: var(--cal-cell-pad);
   /* 격자선을 그리는 대신 칸을 카드처럼 띄운다(간격은 표의 border-spacing이 만든다). */
   border: 1px ${({ $inMonth }) => ($inMonth ? 'solid' : 'dashed')} ${color.border};
   border-color: ${({ $hasPayout, $inMonth, $today }) => {
@@ -105,8 +138,8 @@ export const DayCellRoot = styled.td<{
     if ($hasPayout && $inMonth) return color.borderStrong;
     return color.border;
   }};
-  border-radius: ${radius.lg};
-  height: 112px;
+  border-radius: var(--cal-cell-radius);
+  height: var(--cal-cell-height);
   /*
    * 🔴 면은 **중립뿐이다.** 지급 여부를 면색으로 가르지 않는다(위 머리말 표 참고) —
    * 색은 아래 3px 레일과 칩 앞 점에만 남는다.
@@ -166,7 +199,7 @@ export const DayHead = styled.div`
 
 /** 날짜 숫자에 accent 색 금지(숫자는 데이터다). */
 export const DayNumber = styled.span<{ $muted: boolean }>`
-  font-size: ${font.size.xs};
+  font-size: var(--cal-day-size);
   font-weight: ${font.weight.semibold};
   color: ${({ $muted }) => ($muted ? color.textMuted : color.text)};
   ${font.numeric}
@@ -232,11 +265,11 @@ export const DayChip = styled.button`
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--cal-chip-gap);
   max-width: 100%;
   min-width: 0;
-  padding: 1px ${space[2]} 1px ${space[1]};
-  border: 1px solid ${color.border};
+  padding: var(--cal-chip-pad);
+  border: 1px solid var(--cal-chip-border);
   border-radius: ${radius.pill};
   font: inherit;
   font-size: ${font.size['2xs']};
@@ -244,7 +277,7 @@ export const DayChip = styled.button`
      보이는 글자 수를 깎는다. 칩의 무게는 알약 모양과 색 점이 이미 만든다. */
   font-weight: ${font.weight.semibold};
   color: ${color.text};
-  background: ${color.surface};
+  background: var(--cal-chip-bg);
   cursor: pointer;
   ${font.numeric}
 
@@ -322,7 +355,7 @@ export const DayJumpButton = styled.button`
   inset: 0;
   padding: 0;
   border: 0;
-  border-radius: ${radius.lg};
+  border-radius: var(--cal-cell-radius);
   background: transparent;
   appearance: none;
   font: inherit;

@@ -274,10 +274,15 @@ describe('CTA 2종', () => {
   });
 
   /*
+   * 요약 카드의 **CTA 개수 상한**을 잠근다.
+   *
    * 구 세 번째 CTA "목표까지 얼마나 왔는지 보기"는 목적지(`/dividend/goal`)가 이 페이지의 목표 달성
-   * 카드로 흡수되면서 사라졌다 — 요약 카드에는 시뮬레이션·달력 둘만 남는다.
+   * 카드로 흡수되면서 사라졌고, 두 번째 CTA "지급일 달력에서 보기"는 **2026-08-03 리워크에서 진입
+   * 격자의 카드로 옮겨 갔다**(요약 카드가 좁은 답 레일에 서면서 1급 행동 하나만 남겼다).
+   * 🔴 진입점이 사라진 것이 아니다 — 라벨·핸들러·계측은 그대로고 자리만 바뀌었다.
+   * 바로 아래 케이스가 그 버튼이 여전히 화면에 있고 같은 곳으로 보내는지를 함께 지킨다.
    */
-  it('요약 카드의 CTA 는 시뮬레이션·달력 둘뿐이다', async () => {
+  it('요약 카드의 CTA 는 시뮬레이션 하나뿐이다', async () => {
     await writePortfolioRecord([{ ticker: 'SCHD', quantity: 10 }], 15.4);
     await renderPage(withFxRate());
     const summary = await screen.findByRole('region', { name: copy.summary.title });
@@ -286,6 +291,18 @@ describe('CTA 2종', () => {
       .getAllByRole('button')
       .map((button) => button.textContent);
 
-    expect(labels).toEqual([copy.cta.simulate, copy.cta.calendar]);
+    expect(labels).toEqual([copy.cta.simulate]);
+  });
+
+  /** 옮겨 간 진입점이 **요약 카드 밖에** 정확히 하나 있다(사라지지도, 둘로 늘지도 않았다). */
+  it('달력 진입 버튼은 요약 카드 밖에 하나 남는다', async () => {
+    await writePortfolioRecord([{ ticker: 'SCHD', quantity: 10 }], 15.4);
+    await renderPage(withFxRate());
+    const summary = await screen.findByRole('region', { name: copy.summary.title });
+
+    const calendarButtons = screen.getAllByRole('button', { name: copy.cta.calendar });
+
+    expect(calendarButtons).toHaveLength(1);
+    expect(summary).not.toContainElement(calendarButtons[0]);
   });
 });

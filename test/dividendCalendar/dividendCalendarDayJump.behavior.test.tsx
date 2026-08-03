@@ -35,8 +35,13 @@ const MONTH_LABEL = '2026년 7월';
  */
 const SELECTED = ['JEPI', 'KO', 'O'];
 
-/** 모바일에서만 보이는 발견 가능성 힌트 — 누를 칸이 실제로 있을 때만 붙는다. */
-const JUMP_HINT = '지급 예정이 있는 날짜를 누르면 아래 목록에서 그 날 일정을 볼 수 있습니다.';
+/**
+ * 모바일에서만 보이는 발견 가능성 힌트 — 누를 칸이 실제로 있을 때만 붙는다.
+ *
+ * ⚠ 방향어("아래")는 2026-08-03 리워크로 빠졌다: 목록이 좁은 폭에서는 지도 **위**, 넓은 폭에서는
+ *   **왼쪽**에 서면서 "아래"가 어느 폭에서도 참이 아니게 됐다. 이동 버튼 접근명도 같은 이유로 바뀌었다.
+ */
+const JUMP_HINT = '지급 예정이 있는 날짜를 누르면 지급 일정 목록에서 그 날 일정을 볼 수 있습니다.';
 
 const renderCalendar = async (tickers: string[] = SELECTED) => {
   const user = userEvent.setup();
@@ -126,10 +131,10 @@ const dayCell = (isoDate: string, label: string = MONTH_LABEL): HTMLElement => {
 };
 
 const jumpButtonName = (day: number, count: number, month: number = MONTH): string =>
-  `${month}월 ${day}일 지급 예정 ${count}종, 아래 지급 일정 목록에서 보기`;
+  `${month}월 ${day}일 지급 예정 ${count}종, 지급 일정 목록에서 보기`;
 
 const jumpButtons = () =>
-  screen.queryAllByRole('button', { name: /\d+월 \d+일 지급 예정 \d+종, 아래 지급 일정 목록에서 보기$/ });
+  screen.queryAllByRole('button', { name: /\d+월 \d+일 지급 예정 \d+종, 지급 일정 목록에서 보기$/ });
 
 const jumpButton = (day: number, tickers: string[] = SELECTED, month: number = MONTH) =>
   screen.getByRole('button', { name: jumpButtonName(day, tickersOnDay(tickers, day, month).length, month) });
@@ -454,7 +459,7 @@ describe('MonthCalendar — 이동 콜백이 없으면 버튼도 없다', () => 
   it('미배선으로 렌더하면 아젠다 이동 버튼이 생기지 않는다(칩 툴팁 버튼은 별개다)', () => {
     renderIsolated();
 
-    expect(screen.queryByRole('button', { name: /아래 지급 일정 목록에서 보기/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /지급 일정 목록에서 보기/ })).toBeNull();
     // 그래도 칸의 내용은 그대로다 — 칩(툴팁 트리거 버튼)은 이동 배선과 무관하게 존재한다.
     expect(within(dayCell('2026-07-04')).getByRole('button', { name: 'AAA' })).toBeInTheDocument();
   });
@@ -464,7 +469,7 @@ describe('MonthCalendar — 이동 콜백이 없으면 버튼도 없다', () => 
     const onDayJump = vi.fn();
     renderIsolated(onDayJump);
 
-    await user.click(screen.getByRole('button', { name: /아래 지급 일정 목록에서 보기/ }));
+    await user.click(screen.getByRole('button', { name: /지급 일정 목록에서 보기/ }));
 
     expect(onDayJump).toHaveBeenCalledTimes(1);
     expect(onDayJump).toHaveBeenCalledWith('2026-07-04');

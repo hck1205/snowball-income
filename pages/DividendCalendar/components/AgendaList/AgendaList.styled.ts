@@ -1,6 +1,6 @@
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
-import { color, font, motion, radius, space } from '@/shared/styles';
+import { color, font, media, motion, radius, space } from '@/shared/styles';
 
 /**
  * 색 사용 원칙(2026-07-25 사용자 피드백 — "너무 성의 없어 보인다"):
@@ -45,7 +45,22 @@ export const AgendaDayList = styled.ol`
 export const AgendaDayItem = styled.li<{ $highlighted: boolean }>`
   display: grid;
   gap: ${space[2]};
+  /*
+   * 🔴 2026-08-03 2차 리워크 — **타임라인 2열**.
+   *
+   * 이 목록은 이제 화면의 주역 열(680px 남짓)에 산다. 날짜 배지를 종목 줄 **위에** 쌓던 구 배치는
+   * 그 폭에서 오른쪽 절반이 통째로 비고, 날짜가 여럿일 때 눈이 매번 왼쪽 끝으로 되돌아와야 했다.
+   * 날짜를 고정폭 왼쪽 열로 세우면 세로로 날짜 축이 서고, 오른쪽이 그 날의 종목들을 받는다.
+   *
+   * 1열로 접는 폭에서는 원래대로 위아래로 쌓인다(고정 열을 만들 폭이 없다).
+   */
   padding: ${space[3]};
+
+  ${media.up('tabletSm')} {
+    grid-template-columns: minmax(0, 148px) minmax(0, 1fr);
+    align-items: start;
+    gap: ${space[3]};
+  }
   border: 1px solid ${color.border};
   border-radius: ${radius.md};
   background: ${color.surfaceMuted};
@@ -173,8 +188,10 @@ export const AgendaTicker = styled.strong`
 `;
 
 export const AgendaName = styled.span`
+  flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
+  white-space: nowrap;
   text-overflow: ellipsis;
 `;
 

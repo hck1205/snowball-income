@@ -62,8 +62,11 @@ export default function AgendaList({
                   <AgendaItem key={item.ticker}>
                     <AgendaDot aria-hidden style={{ background: seriesOf(item.ticker) }} />
                     <AgendaTicker>{item.ticker}</AgendaTicker>
-                    <ScheduleSourceBadge source={item.source} />
+                    {/* 이름이 남는 폭을 전부 먹고 근거 배지가 줄 끝에 선다 — 여러 줄이 쌓였을 때
+                        배지가 오른쪽에 세로로 정렬돼 "무엇이 추정인가"를 훑어서 읽을 수 있다.
+                        (구 순서는 티커 바로 뒤라 이름의 시작점이 종목마다 들쭉날쭉했다.) */}
                     <AgendaName>{item.koreanName}</AgendaName>
+                    <ScheduleSourceBadge source={item.source} />
                   </AgendaItem>
                 ))}
               </AgendaItemList>

@@ -22,6 +22,7 @@ import {
   GroupHint,
   GroupSection,
   GroupTitle,
+  GroupTitleRow,
   MoreButton,
   PresetFacts,
   PresetGrid,
@@ -78,21 +79,23 @@ export default function PresetBrowser() {
         return (
           <GroupSection key={group.id} aria-labelledby={headingId}>
             <GroupHead $tone={group.tone}>
-              <GroupBadge $tone={group.tone} aria-hidden>
-                <GroupIcon size={14} strokeWidth={PRESET_ICON_STROKE} aria-hidden focusable={false} />
-              </GroupBadge>
-              <GroupTitle id={headingId}>{group.label}</GroupTitle>
+              <GroupTitleRow>
+                <GroupBadge $tone={group.tone} aria-hidden>
+                  <GroupIcon size={16} strokeWidth={PRESET_ICON_STROKE} aria-hidden focusable={false} />
+                </GroupBadge>
+                <GroupTitle id={headingId}>{group.label}</GroupTitle>
+                {hidden.length > 0 ? (
+                  <MoreButton
+                    type="button"
+                    aria-expanded={isExpanded}
+                    aria-controls={panelId}
+                    onClick={() => toggle(group.id)}
+                  >
+                    {isExpanded ? copy.collapse : copy.more(group.label, hidden.length)}
+                  </MoreButton>
+                ) : null}
+              </GroupTitleRow>
               <GroupHint>{group.hint}</GroupHint>
-              {hidden.length > 0 ? (
-                <MoreButton
-                  type="button"
-                  aria-expanded={isExpanded}
-                  aria-controls={panelId}
-                  onClick={() => toggle(group.id)}
-                >
-                  {isExpanded ? copy.collapse : copy.more(group.label, hidden.length)}
-                </MoreButton>
-              ) : null}
             </GroupHead>
 
             <PresetGrid id={panelId}>

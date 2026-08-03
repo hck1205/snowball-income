@@ -51,6 +51,37 @@ export const LANDING_HERO_CTAS = [
 export type LandingHeroCta = (typeof LANDING_HERO_CTAS)[number];
 
 /**
+ * 이 지면의 **차례**(2026-08-03 2차 리워크).
+ *
+ * 랜딩은 6장짜리 안내서인데 before 에는 목차가 없었다 — 방문자는 4136px(실측 @1280) 짜리 문서를
+ * 스크롤로만 훑어야 했고, "이 화면이 무엇을 다루는가"는 끝까지 내려야 알 수 있었다. 이 배열이
+ * ①히어로 아래 차례 ②각 장의 번호 ③앵커 주소를 **한 출처에서** 낸다.
+ *
+ * 🔴 `anchorId` 는 **손으로 적은 안정 문자열**이다. `useId` 파생을 쓰면 `:r3:-concept` 처럼
+ * 콜론이 든 값이 주소창에 남고(렌더마다 달라진다) 북마크가 죽는다.
+ * 🔴 `ordinal` 은 장식이 아니라 **차례와 장 머리가 같은 값을 말한다**는 계약이다 — 두 곳이
+ * 갈라지면 목차가 거짓말을 한다. 그래서 두 화면이 같은 배열을 읽는다.
+ * ⚠ 순서는 `LandingPage.view.tsx` 의 섹션 순서와 같아야 한다(문서 순서 = 차례 순서).
+ */
+export const LANDING_CHAPTERS = [
+  { key: 'concept', anchorId: 'landing-concept', ordinal: '01', label: '주식 · ETF · 배당주' },
+  { key: 'compound', anchorId: 'landing-compound', ordinal: '02', label: '재투자와 복리' },
+  { key: 'payout', anchorId: 'landing-payout', ordinal: '03', label: '배당이 들어오는 달' },
+  { key: 'presets', anchorId: 'landing-presets', ordinal: '04', label: '많이 쓰는 구성' },
+  { key: 'checklist', anchorId: 'landing-checklist', ordinal: '05', label: '시작하기 전에' },
+  { key: 'faq', anchorId: 'landing-faq', ordinal: '06', label: '자주 묻는 질문' }
+] as const;
+
+export type LandingChapter = (typeof LANDING_CHAPTERS)[number];
+
+/** 장 키 → 차례 항목. 뷰가 섹션마다 번호·앵커를 손으로 적지 않게 한다(두 곳이 갈라질 여지 0). */
+export const landingChapter = (key: LandingChapter['key']): LandingChapter => {
+  const found = LANDING_CHAPTERS.find((chapter) => chapter.key === key);
+  if (!found) throw new Error(`랜딩 차례에 '${key}' 장이 없다`);
+  return found;
+};
+
+/**
  * S5 리듬 표가 실제로 그리는 종목.
  *
  * 🔴 **지급 월을 여기 적지 않는다.** 12칸은 `marketData` 스냅샷의 `payoutMonths` 를 **런타임에**
@@ -77,6 +108,15 @@ export const LANDING_COPY = {
      */
     resumeNotice: '이 브라우저에서 시뮬레이터를 열어 보신 적이 있습니다',
     resumeAction: '이어서 계산하기'
+  },
+
+  /**
+   * 차례 블록의 문구. 🔴 "목차"가 아니라 **"차례"** 다 — 이 지면은 문서이지 앱 메뉴가 아니고,
+   * 바로 위 히어로가 "여기서부터 이해하고 계산합니다"라고 말한 뒤에 오는 줄이다.
+   */
+  chapterIndex: {
+    eyebrow: '이 안내서가 다루는 것',
+    navLabel: '이 화면의 차례'
   },
 
   /** 검색 패널 — 상태별 문구. 무음 실패 금지: 결과가 없으면 **사유를 말한다**. */

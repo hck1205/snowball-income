@@ -60,53 +60,80 @@ export const GroupSection = styled.section`
   min-width: 0;
 `;
 
+/**
+ * 묶음 머리 — **2줄**이다(2026-08-03).
+ *
+ * before 는 [배지][이름][힌트][더 보기]가 한 줄에 다 있어서 14px 이름이 12px 힌트와 나란히 서고,
+ * 그 줄 전체가 카드 제목(16px)보다 작았다 — 묶음이 카드보다 가벼웠다. 지금은 이름 줄(20px)과
+ * 힌트 줄이 갈리고, 룰은 묶음 전체 아래로 내려온다.
+ */
 export const GroupHead = styled.div<{ $tone: PresetGroupTone }>`
+  display: grid;
+  gap: ${space[1]};
+  min-width: 0;
+  padding-bottom: ${space[3]};
+  border-bottom: 2px solid ${({ $tone }) => RULE[$tone]};
+`;
+
+export const GroupTitleRow = styled.div`
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: ${space[2]};
+  gap: ${space[3]};
   min-width: 0;
-  padding-bottom: ${space[2]};
-  border-bottom: 1px solid ${({ $tone }) => RULE[$tone]};
 `;
 
 export const GroupBadge = styled.span<{ $tone: PresetGroupTone }>`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: ${radius.sm};
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border-radius: ${radius.md};
   background: ${({ $tone }) => TONE[$tone].bg};
   color: ${({ $tone }) => TONE[$tone].fg};
   /* 오른쪽 그룹 이름이 헤딩 서체라 잉크 중심 보정을 받는다(이름 크기 기준). */
-  ${iconOpticalAlign('display', font.size.base)}
+  ${iconOpticalAlign('display', font.size['2xl'])}
 
   svg {
     display: block;
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
   }
 `;
 
 export const GroupTitle = styled.h3`
   margin: 0;
+  flex: 1 1 auto;
+  min-width: 0;
   font-family: ${font.display};
-  font-size: ${font.size.base};
+  /* 랜딩 h3 한 크기(20px) — ConceptTitle·ChecklistTitle 과 같은 단이다. */
+  font-size: ${font.size['2xl']};
   font-weight: ${font.weight.bold};
+  line-height: ${font.leading.snug};
+  letter-spacing: -0.02em;
   color: ${color.text};
 `;
 
 export const GroupHint = styled.span`
-  flex: 1 1 auto;
   min-width: 0;
-  font-size: ${font.size.xs};
+  font-size: ${font.size.sm};
+  line-height: ${font.leading.snug};
   color: ${color.textSecondary};
+  word-break: keep-all;
 `;
 
-/** 디스클로저 트리거. 펼침에 높이 애니메이션을 걸지 않는다 — 랜딩은 즉시 표시다. */
+/**
+ * 디스클로저 트리거. 펼침에 높이 애니메이션을 걸지 않는다 — 랜딩은 즉시 표시다.
+ *
+ * 🔴 잉크 보정을 **버튼도 받는다.** 같은 줄의 묶음 이름이 헤딩 서체(display)라 잉크 중심이 라인박스
+ * 중심보다 위에 있고, 보정 없이 두면 24px 알약이 이름보다 2.4px 낮게 앉는다(uiprobe --align 실측).
+ * 왼쪽 배지가 같은 보정을 받고 있으므로 배지·이름·버튼 셋이 한 선에 선다.
+ */
 export const MoreButton = styled.button`
   flex: 0 0 auto;
+  ${iconOpticalAlign('display', font.size['2xl'])}
   padding: ${space[1]} ${space[2]};
   border: 1px solid ${color.border};
   border-radius: ${radius.pill};

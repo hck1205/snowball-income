@@ -1,5 +1,15 @@
 import styled from '@emotion/styled';
-import { DATA_RADIUS, cardElevation, color, font, iconFirstLineAlign, media, radius, space } from '@/shared/styles';
+import {
+  DATA_RADIUS,
+  cardElevation,
+  color,
+  font,
+  iconFirstLineAlign,
+  media,
+  radius,
+  sectionTitleFontSize,
+  space
+} from '@/shared/styles';
 
 /**
  * 보유 목록 카드와 **같은 본문 면**(`cardElevation('base')` · `DATA_RADIUS`)이다. 주역은 이 화면에서
@@ -68,7 +78,9 @@ export const CardTitle = styled.h2`
   display: flex;
   align-items: center;
   gap: ${space[2]};
-  font-size: ${font.size.base};
+  /* 전 페이지 공통 규칙(2026-07-29) — 카드마다 다른 축소 곡선을 두지 않는다. 페이지의 다른
+     두 카드 제목과 **같은 함수**에서 나온다(구 고정 16px 은 그 규칙 밖에 있었다). */
+  font-size: ${sectionTitleFontSize};
   font-weight: ${font.weight.extrabold};
   letter-spacing: -0.01em;
   color: ${color.text};
@@ -164,14 +176,23 @@ export const BasisNoteText = styled.span`
  * 🔴 **두 톤의 표현이 다르다 — 실수가 아니다.** `components/common/Banner` 가 세운 규칙과 같다:
  * **면(틴트)은 강한 톤에만 준다.**
  *  - `success`(도달) → 중립 면(`surface`) + 1px `success` 테두리. 좋은 소식은 면을 차지할 이유가 없다.
- *  - `warning`(미도달) → 틴트 면 유지. 아직 할 일이 남았다는 신호라 눈에 띄어야 한다.
+ *  - `warning`(미도달) → 중립 면(`surface-muted`) + **3px** `warning` 왼쪽 선. 강조는 선 두께가
+ *    success(1px)의 3배라는 사실이 만든다.
  * 왜 이 카드까지: `DESIGN.md` §2-6 의 "한 화면에 틴트 면 최대 2개"는 **컴포넌트가 아니라 화면**에
- * 걸리는 상한이라, 배너만 고쳐도 이 줄이 히어로·빈 상태 보드와 겹치면 다시 넘는다
+ * 걸리는 상한이라, 배너만 고쳐도 이 줄이 히어로·푸터와 겹치면 다시 넘는다
  * (실측 도구 `tools/dev/tintscan.mjs`).
  * ⚠ 부품을 공유하지 않는 이유: 이건 배너가 아니라 카드 안 한 줄이다(role 없음 — 진입마다 낭독되면 소음).
  *
- * 대비가 검증된 쌍만 쓴다 — `success/surface`(최저 5.22:1) · `success/successSurface` ·
- * `warning/warningSurface`. 앞의 둘은 `shared/styles/contrast.test.ts` 의 순회 목록에 있다.
+ * ## 2026-08-03 — warning 틴트 면을 **중립 면 + 굵은 왼쪽 선**으로 내렸다
+ * 종전 `warningSurface` 면은 카드 전폭(1280px 기준 700px 대)이라 면 판정(폭 ≥180 AND 높이 ≥8)을
+ * 넘겼다. 이 화면의 예산 2 는 히어로와 푸터가 이미 다 쓰고 있어서 **미도달 상태가 곧 초과**였다
+ * (기본 tintscan 이 빈 상태만 재는 바람에 잡히지 않았다). 색은 사라지지 않았다 — 선·글자·아이콘
+ * 셋이 여전히 같은 사실을 말한다(색 단독 금지 유지).
+ *
+ * 대비: `success/surface`(최저 5.22:1)는 `shared/styles/contrast.test.ts` 순회 목록에 있다.
+ * ⚠ `warning on surface-muted` 는 그 목록에 **없는 쌍**이라 실측을 여기 남긴다 — 8프리셋 ×
+ * 라이트/다크 전수 **최저 4.88:1**(ink/light)로 AA 통과. 같은 조건에서 `warning on surface` 는 5.10,
+ * `warning on surface-sunken` 은 **4.18 로 미달**이라 쓰지 않았다(2026-08-03 실측).
  */
 export const StatusLine = styled.p<{ tone: 'success' | 'warning' }>`
   margin: 0;
@@ -185,7 +206,8 @@ export const StatusLine = styled.p<{ tone: 'success' | 'warning' }>`
   line-height: ${font.leading.snug};
   color: ${({ tone }) => (tone === 'success' ? color.success : color.warning)};
   border: 1px solid ${({ tone }) => (tone === 'success' ? color.success : 'transparent')};
-  background: ${({ tone }) => (tone === 'success' ? color.surface : color.warningSurface)};
+  border-left: ${({ tone }) => (tone === 'success' ? `1px solid ${color.success}` : `3px solid ${color.warning}`)};
+  background: ${({ tone }) => (tone === 'success' ? color.surface : color.surfaceMuted)};
 
   svg {
     flex: 0 0 auto;

@@ -207,6 +207,17 @@ export const buildDonutSlices = (
 
 /* ── 인물 전체 합산 ────────────────────────────────────────────────────────── */
 
+/**
+ * 합산 줄에 이름을 남기는 인물.
+ *
+ * 🔴 `cik` 을 함께 주는 이유는 화면이 **이 줄에서 그 사람의 카드로 건너뛰기** 때문이다
+ * (2026-08-03 2차 개편). 이름은 동명이인이 없다는 보장이 없으므로 식별자는 cik 이다.
+ */
+export type AggregateHolder = {
+  readonly cik: string;
+  readonly person: string;
+};
+
 /** 여러 인물이 함께 담은 종목 한 줄. */
 export type AggregatedHolding = {
   readonly cusip: string;
@@ -217,6 +228,13 @@ export type AggregatedHolding = {
   readonly totalValueUsd: number;
   /** 이 종목을 담은 인물 수. 규모가 큰 한 사람이 만든 1위와 여럿이 만든 1위를 가른다. */
   readonly holderCount: number;
+  /**
+   * 담은 인물들 — **카드 순서(스포트라이트 순)** 그대로다.
+   *
+   * 🔴 숫자만으로는 "여섯 명"이 누구인지 알 수 없어, 1차 개편까지 합산 표와 인물 카드는 같은
+   * 화면에 있으면서 서로를 몰랐다. 화면은 이 목록으로 이니셜 칩을 세우고 그 칩이 카드를 연다.
+   */
+  readonly holders: readonly AggregateHolder[];
   /** 최대값 대비 길이(0~1). 가로 막대가 그대로 쓴다. */
   readonly ratio: number;
 };
@@ -248,7 +266,12 @@ export const aggregateHoldings = (
   limit: number,
   sort: AggregateSort = 'holders'
 ): readonly AggregatedHolding[] => {
-  const byCusip = new Map<string, { row: InvestorHoldingRow; totalValueUsd: number; holders: Set<string> }>();
+  /* 🔴 Map 이다(Set 아님) — cik 으로 중복을 막으면서 **이름과 카드 순서를 함께** 보존한다.
+     화면이 이 목록으로 이니셜 칩을 세우므로 순서가 흔들리면 칩이 매 정렬마다 자리를 바꾼다. */
+  const byCusip = new Map<
+    string,
+    { row: InvestorHoldingRow; totalValueUsd: number; holders: Map<string, string> }
+  >();
 
   for (const card of cards) {
     for (const row of card.holdings) {
@@ -258,9 +281,13 @@ export const aggregateHoldings = (
       const existing = byCusip.get(row.cusip);
       if (existing) {
         existing.totalValueUsd += row.valueUsd;
-        existing.holders.add(card.cik);
+        existing.holders.set(card.cik, card.person);
       } else {
-        byCusip.set(row.cusip, { row, totalValueUsd: row.valueUsd, holders: new Set([card.cik]) });
+        byCusip.set(row.cusip, {
+          row,
+          totalValueUsd: row.valueUsd,
+          holders: new Map([[card.cik, card.person]])
+        });
       }
     }
   }
@@ -290,6 +317,7 @@ export const aggregateHoldings = (
       koreanName: item.row.koreanName,
       totalValueUsd: item.totalValueUsd,
       holderCount: item.holders.size,
+      holders: [...item.holders].map(([cik, person]) => ({ cik, person })),
       /* 최대값이 0이면 막대를 그리지 않는다 — 0으로 나눈 값을 1로 위장하지 않는다. */
       ratio: max > 0 ? measure / max : 0
     };

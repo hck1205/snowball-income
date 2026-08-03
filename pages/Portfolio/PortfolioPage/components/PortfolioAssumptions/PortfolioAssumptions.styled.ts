@@ -1,21 +1,37 @@
 import styled from '@emotion/styled';
 import { color, font, media, radius, space } from '@/shared/styles';
 
-/** 가정 요약 — 접힘. 면(surface)을 새로 만들지 않고 왼쪽 선 하나로 "부속 정보"임을 말한다. */
+/**
+ * 가정 요약 — 접힘.
+ *
+ * ## 2026-08-03 리워크 — "선 하나"에서 **접히는 면**으로
+ * 종전에는 왼쪽 2px 선 + 12px 회색 글자였다. 페이지 어디에도 속하지 않는 부유물처럼 보였고,
+ * 접을 수 있다는 사실도 브라우저 기본 삼각형 하나가 전부였다. 지금은 **중립 침강 면 한 겹**이라
+ * 위 카드들과 같은 형태 언어를 갖되(라운드·여백), 테두리 없이 면색만으로 한 단 낮게 앉는다.
+ * 색면 예산 무침범 — `surface-sunken` 은 tintscan 의 중립 토큰이다.
+ */
 export const AssumptionsDetails = styled.details`
-  border-left: 2px solid ${color.border};
-  padding: 0 0 0 ${space[4]};
+  min-width: 0;
+  border-radius: ${radius.lg};
+  background: ${color.surfaceSunken};
 `;
 
+/**
+ * 요약 줄 = **누를 수 있는 줄 전체**. 종전에는 글자 폭만 히트 영역이었다.
+ * 열림 상태는 삼각형(브라우저 기본 마커)이 말하고, 여기서는 여백·호버 면만 준다.
+ */
 export const AssumptionsSummary = styled.summary`
   cursor: pointer;
-  font-size: ${font.size.xs};
+  padding: ${space[3]} clamp(16px, 2vw, 20px);
+  border-radius: ${radius.lg};
+  font-size: ${font.size.sm};
   font-weight: ${font.weight.semibold};
   color: ${color.textSecondary};
-  border-radius: ${radius.xs};
+  list-style-position: inside;
 
   &:hover {
     color: ${color.text};
+    background: ${color.surfaceHover};
   }
 
   &:focus-visible {
@@ -26,8 +42,9 @@ export const AssumptionsSummary = styled.summary`
 
 export const AssumptionsBody = styled.div`
   display: grid;
-  gap: ${space[3]};
-  margin: ${space[3]} 0 0;
+  gap: ${space[4]};
+  margin: 0;
+  padding: 0 clamp(16px, 2vw, 20px) clamp(16px, 2vw, 20px);
 `;
 
 export const TaxFieldSlot = styled.div`

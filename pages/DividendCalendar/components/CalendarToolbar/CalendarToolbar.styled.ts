@@ -1,14 +1,24 @@
 import styled from '@emotion/styled';
 import { color, font, iconOpticalAlign, motion, pageHue, pageHueMix, radius, space } from '@/shared/styles';
 
-/* 좌우 버튼·월 제목을 달력 폭의 정중앙에(사용자 결정 2026-07-25). "이번 달" 버튼은 흐름 그대로 우측. */
+/**
+ * 월 이동 묶음.
+ *
+ * 🔴 **2026-08-03 2차 리워크로 정렬이 바뀌었다.** 구 처방은 "달력 폭의 정중앙"이었다
+ * (2026-07-25) — 툴바가 달력 카드의 전폭을 혼자 쓰던 시절의 값이다. 지금 이 묶음은 데크
+ * 조작 줄의 **왼쪽 항목**이고 같은 줄 오른쪽 끝에 종목 선택 버튼이 선다. 그 안에서 다시
+ * 가운데 정렬을 하면 묶음이 제 폭 안에서 떠 두 조작의 축이 어긋난다.
+ *
+ * 그래서 `justify-content` 는 시작 정렬이고, "이번 달" 버튼도 **흐름 안**(절대 배치 해제)이다 —
+ * 절대 배치는 부모가 전폭일 때만 뜻이 있었다.
+ */
 export const ToolbarRoot = styled.div`
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: ${space[2]};
   flex-wrap: wrap;
-  position: relative;
+  min-width: 0;
 `;
 
 /**
@@ -68,12 +78,15 @@ export const NavButton = styled.button`
 `;
 
 export const TodayButton = styled.button`
-  /* 절대 배치로 흐름에서 빼야 prev·제목·next 묶음이 진짜 정중앙에 온다 —
-     margin-left:auto 방식은 남는 공간을 한쪽만 흡수해 묶음을 왼쪽으로 밀어낸다. */
-  position: absolute;
-  right: 0;
+  /* 흐름 안의 마지막 항목이다(구 절대 배치는 툴바가 전폭이던 시절의 값 — 위 ToolbarRoot 주석 참고).
+     아이콘 전용이라 정사각으로 두어 옆의 원형 이동 버튼과 크기 축이 맞는다. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: ${space[1]};
+  width: 40px;
   height: 40px;
-  padding: 0 ${space[4]};
+  padding: 0;
   border: 1px solid ${color.brandBorder};
   border-radius: ${radius.pill};
   background: ${color.brandSubtle};

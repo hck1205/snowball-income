@@ -11,10 +11,162 @@ import { color, font, iconOpticalAlign, media, motion, PICK, radius, space } fro
  * 카드에 남은 숫자는 2개뿐이고, 나머지 조건은 **적용한 뒤 결과가** 말한다.
  */
 
+/* -------------------------------------------------------------------------- */
+/* 온보딩 머리 — 이 앱의 첫인상                                                   */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * 첫 진입(결과 0개)에서만 서는 머리. 2026-08-03 2차 리워크로 생겼다.
+ *
+ * 그전의 빈 상태는 `Card` 의 제목 한 줄 + 부제 한 줄이 전부였다 — 즉 **첫 화면의 위계가
+ * 카드 제목 크기(16~18px)에서 끝났다.** 이 앱을 처음 여는 사람이 보는 유일한 화면인데
+ * "무엇을 하는 곳인지"를 말할 자리가 없었다.
+ *
+ * 지금은 마스코트 · 큰 제목 · 리드 · **3단계 설명**이 선다. 마스코트(`BrandGlyph`)가 합법인
+ * 이유는 여기가 brand 면(고르는 면)이기 때문이다 — data 면(표·차트)에는 두지 않는다.
+ */
+export const PortfolioPresetIntro = styled.div`
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  column-gap: clamp(${space[3]}, 1.6vw, ${space[5]});
+  row-gap: ${space[4]};
+  margin-bottom: clamp(${space[5]}, 2.4vw, ${space[8]});
+
+  ${media.down('mobileWide')} {
+    grid-template-columns: minmax(0, 1fr);
+  }
+`;
+
+/**
+ * 마스코트 자리. 면이 아니라 **글리프**다 — 배경을 깔면 워시 카드 위에 색면이 하나 더 생겨
+ * 한 화면 틴트 예산을 먹는다. 색은 페이지 얼굴색(identity)을 그대로 받는다.
+ */
+export const PortfolioPresetIntroGlyph = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: ${color.identityText};
+
+  /* 크기는 호출부의 size prop 이 정한다(브랜드 마크 계단 96) — 여기서 다시 적으면 계단 감사가
+     보는 값과 화면의 값이 갈린다. 좁은 폭에서 카드 폭을 넘지 않게 상한만 건다. */
+  svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+`;
+
+export const PortfolioPresetIntroCopy = styled.div`
+  display: grid;
+  gap: ${space[2]};
+  min-width: 0;
+`;
+
+export const PortfolioPresetIntroEyebrow = styled.p`
+  margin: 0;
+  font-size: ${font.size['2xs']};
+  font-weight: ${font.weight.bold};
+  letter-spacing: 0.12em;
+  line-height: ${font.leading.snug};
+  color: ${color.identityText};
+`;
+
+/**
+ * 첫 화면의 제목. 카드 제목(16~18px)과 **명확히 다른 조**여야 한다 — 여기가 이 화면의 주역이다.
+ * `0.9rem + 1.5vw` → 355px 이하 20px(`2xl`), 780px 이상 26px 근처에서 상한 30px(`4xl`) 로 포화.
+ * `vw` 단독을 피하고 `rem` 을 섞는 이유는 히어로 제목과 같다(WCAG 1.4.4 확대 대응).
+ */
+export const PortfolioPresetIntroTitle = styled.h2`
+  margin: 0;
+  font-size: clamp(${font.size['2xl']}, calc(0.9rem + 1.5vw), ${font.size['4xl']});
+  font-weight: ${font.weight.bold};
+  line-height: ${font.leading.tight};
+  letter-spacing: -0.02em;
+  color: ${color.text};
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+`;
+
+export const PortfolioPresetIntroLede = styled.p`
+  margin: 0;
+  font-size: ${font.size.base};
+  line-height: ${font.leading.relaxed};
+  color: ${color.textSecondary};
+  word-break: keep-all;
+`;
+
+/**
+ * 3단계 설명. 순서가 있는 절차라 `ol` 이다 — 목록 표식은 지우고 **번호 배지**로 대신한다.
+ * 좁은 폭에서는 세로로 쌓인다(가로 3칸을 억지로 유지하면 한 칸이 한 글자 폭이 된다).
+ */
+export const PortfolioPresetSteps = styled.ol`
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: ${space[3]};
+  margin: ${space[2]} 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: sb-preset-step;
+
+  ${media.down('tabletSm')} {
+    grid-template-columns: minmax(0, 1fr);
+    gap: ${space[2]};
+  }
+`;
+
+/**
+ * 한 단계. 번호는 `::before` 카운터라 마크업이 숫자를 갖지 않는다(낭독은 `ol` 순서가 이미 한다).
+ * 배지는 **테두리 원**이다 — 채우면 그것만으로 색면 셋이 새로 생긴다.
+ */
+export const PortfolioPresetStep = styled.li`
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: ${space[2]};
+  counter-increment: sb-preset-step;
+  font-size: ${font.size.sm};
+  font-weight: ${font.weight.medium};
+  line-height: ${font.leading.snug};
+  color: ${color.textSecondary};
+  word-break: keep-all;
+
+  &::before {
+    content: counter(sb-preset-step);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border: 1px solid ${color.identityBorder};
+    border-radius: ${radius.pill};
+    font-family: ${font.dataNumeric};
+    ${font.numeric};
+    font-size: ${font.size['2xs']};
+    font-weight: ${font.weight.bold};
+    color: ${color.identityText};
+  }
+`;
+
 /** 그룹 섹션들의 세로 스택. `data-tour` 앵커가 붙는 요소이기도 하다. */
 export const PortfolioPresetGroups = styled.div`
   display: grid;
   gap: ${space[5]};
+`;
+
+/**
+ * 묶음 목록 위의 작은 구분 라벨 — "여기부터가 고르는 자리"를 한 줄로 말한다.
+ * 머리(제목·3단계)와 카드 격자 사이에 아무 표식이 없으면 두 덩어리가 한 문단으로 붙어 읽힌다.
+ */
+export const PortfolioPresetGroupsLead = styled.p`
+  margin: 0 0 ${space[4]};
+  padding-top: ${space[4]};
+  border-top: 1px solid ${color.border};
+  font-size: ${font.size['2xs']};
+  font-weight: ${font.weight.bold};
+  letter-spacing: 0.1em;
+  line-height: ${font.leading.snug};
+  color: ${color.textMuted};
 `;
 
 export const PortfolioPresetGroupSection = styled.section`

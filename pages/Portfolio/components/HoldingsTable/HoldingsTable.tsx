@@ -8,6 +8,7 @@ import { FreshnessBadge } from '../FreshnessBadge';
 import type { HoldingsTableProps } from './HoldingsTable.types';
 import {
   DeleteCell,
+  IncomeCell,
   QuantityCell,
   RowHeader,
   RowNote,
@@ -111,7 +112,9 @@ export default function HoldingsTable({
                 </QuantityCell>
 
                 <TD data-label={copy.holdings.columnMarketValue}>{row.marketValue}</TD>
-                <TD data-label={copy.holdings.columnAnnualNet}>{row.annualNet}</TD>
+                {/* 🔴 표에서 가장 진한 숫자 — 이 앱의 주제가 배당이라 표도 그렇게 읽혀야 한다.
+                    색이 아니라 굵기·잉크 농도로만 가른다(숫자에 색 금지). */}
+                <IncomeCell data-label={copy.holdings.columnAnnualNet}>{row.annualNet}</IncomeCell>
 
                 <DeleteCell>
                   <Button

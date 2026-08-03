@@ -1,4 +1,5 @@
 import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import TickerHubPage from './TickerHubPage';
 
@@ -10,21 +11,25 @@ function renderHub() {
   );
 }
 
+/** 카드/표 어느 보기에서도 티커로 가는 링크는 같은 수여야 한다 — 그 수를 세는 단일 헬퍼. */
+const tickerLinkCount = (container: HTMLElement): number =>
+  container.querySelectorAll('a[href^="/ticker/"]:not([href="/ticker/compare"]):not([href="/ticker/all"])').length;
+
 describe('TickerHubPage', () => {
   it('groups tickers under their category with a jump link', () => {
     renderHub();
 
-    // 카테고리 헤딩과 바로가기 내비가 함께 렌더된다.
+    // 카테고리 헤딩과 바로가기 색인이 함께 렌더된다.
     const nav = screen.getByRole('navigation', { name: '카테고리 바로가기' });
-    expect(within(nav).getByRole('link', { name: '배당성장 ETF' })).toHaveAttribute('href', '#dividend-growth');
+    expect(within(nav).getByRole('link', { name: /배당성장 ETF/ })).toHaveAttribute('href', '#dividend-growth');
     expect(screen.getByRole('heading', { name: /배당성장 ETF/ })).toBeInTheDocument();
   });
 
   it('renders each ticker as a card linking to its detail page', () => {
     renderHub();
 
-    // 카드의 접근 가능한 이름은 티커 심볼(CardTicker)로 시작한다 — `/^SCHD/`로 앵커링해야
-    // SCHY 카드(태그라인에 비교 대상으로 "SCHD"를 언급)와 혼동되지 않는다(2026-07-23 10종 추가 후 확인).
+    // 카드의 접근 가능한 이름은 티커 심볼(CardSymbol)로 시작한다 — `/^SCHD/`로 앵커링해야
+    // SCHY 카드(태그라인에 비교 대상으로 "SCHD"를 언급)와 혼동되지 않는다.
     const card = screen.getByRole('link', { name: /^SCHD/ });
     expect(card).toHaveAttribute('href', '/ticker/schd');
   });
@@ -79,14 +84,99 @@ describe('TickerHubPage', () => {
     }
   });
 
-  it('labels every card stat so a value never stands alone', () => {
+  it('labels every card metric so a value never stands alone', () => {
     renderHub();
 
     const card = screen.getByRole('link', { name: /^SCHD/ }).closest('article');
     expect(card).not.toBeNull();
 
-    // 배당률·지급은 모든 티커가 갖는다(운용보수는 값이 없으면 칸 자체가 빠진다).
+    // 배당률·지급은 모든 티커가 갖는다(운용보수는 값이 없으면 행 자체가 빠진다).
     expect(within(card as HTMLElement).getByText('배당률')).toBeInTheDocument();
     expect(within(card as HTMLElement).getByText('지급')).toBeInTheDocument();
+  });
+
+  it('narrows the list by search and says how many are left', async () => {
+    const user = userEvent.setup();
+    const { container } = renderHub();
+
+    const before = tickerLinkCount(container);
+    expect(before).toBeGreaterThan(20);
+
+    await user.type(screen.getByRole('searchbox', { name: '티커·종목명 검색' }), 'jepi');
+
+    // JEPI 만 남는다 — 빈 상태의 추천 칩(SCHD·JEPI·O)이 서지 않는 상태여야 한다.
+    expect(screen.getByRole('link', { name: /^JEPI/ })).toHaveAttribute('href', '/ticker/jepi');
+    expect(tickerLinkCount(container)).toBeLessThan(before);
+    expect(screen.getByRole('status')).toHaveTextContent('전체');
+  });
+
+  it('keeps every category section (and therefore every anchor) alive while filtered', async () => {
+    const user = userEvent.setup();
+    const { container } = renderHub();
+
+    await user.type(screen.getByRole('searchbox', { name: '티커·종목명 검색' }), 'jepi');
+
+    /*
+     * 🔴 필터가 걸려도 섹션은 사라지지 않는다 — 섹션 id 는 색인 앵커의 목적지다.
+     * 결과가 0인 칸은 한 줄 안내로 남는다(링크가 죽지 않게 하는 계약).
+     */
+    const nav = screen.getByRole('navigation', { name: '카테고리 바로가기' });
+    for (const anchor of within(nav).getAllByRole('link')) {
+      const href = anchor.getAttribute('href') ?? '';
+      expect(container.querySelector(`section${href}`)).not.toBeNull();
+    }
+  });
+
+  it('offers a way back when nothing matches', async () => {
+    const user = userEvent.setup();
+    renderHub();
+
+    await user.type(screen.getByRole('searchbox', { name: '티커·종목명 검색' }), 'zzzz없는티커');
+
+    expect(screen.getByText('조건에 맞는 티커가 없습니다')).toBeInTheDocument();
+
+    // 막다른 길로 두지 않는다 — 조건을 지우면 목록이 돌아온다.
+    await user.click(screen.getAllByRole('button', { name: /조건 지우기/ })[0]);
+    expect(screen.getByRole('link', { name: /^SCHD/ })).toBeInTheDocument();
+  });
+
+  it('keeps every detail entry point when the reader switches to the table view', async () => {
+    const user = userEvent.setup();
+    const { container } = renderHub();
+
+    const cardLinks = tickerLinkCount(container);
+
+    await user.click(screen.getByRole('button', { name: '표' }));
+
+    // 🔴 보기 전환은 표현만 바꾼다 — 진입점 수가 줄면 기능이 사라진 것이다.
+    expect(tickerLinkCount(container)).toBe(cardLinks);
+    expect(screen.getAllByRole('table').length).toBeGreaterThan(0);
+    expect(screen.getByRole('link', { name: 'SCHD' })).toHaveAttribute('href', '/ticker/schd');
+  });
+
+  it('sorts by dividend yield on request', async () => {
+    const user = userEvent.setup();
+    const { container } = renderHub();
+
+    await user.selectOptions(screen.getByRole('combobox', { name: '정렬 기준' }), 'yield-desc');
+
+    const firstSection = container.querySelector('section#dividend-growth');
+    const symbols = [...(firstSection?.querySelectorAll('h3') ?? [])].map((h) => h.textContent ?? '');
+    expect(symbols.length).toBeGreaterThan(1);
+
+    // 정렬 결과는 이름이 아니라 값의 순서로 검증한다 — 데이터가 갱신돼도 이 계약은 유지된다.
+    const yields = [...(firstSection?.querySelectorAll('dd') ?? [])]
+      .map((dd) => dd.textContent ?? '')
+      .filter((text) => text.endsWith('%'));
+    const parsed = symbols.map((_, index) => Number.parseFloat(yields[index * 2] ?? '0'));
+    for (let i = 1; i < parsed.length; i += 1) expect(parsed[i]).toBeLessThanOrEqual(parsed[i - 1]);
+  });
+
+  it('reports the library scope in the masthead spec strip', () => {
+    renderHub();
+
+    expect(screen.getByText('수록 종목')).toBeInTheDocument();
+    expect(screen.getByText('배당률 범위')).toBeInTheDocument();
+    expect(screen.getByText('매월 지급')).toBeInTheDocument();
   });
 });

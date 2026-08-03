@@ -4,9 +4,14 @@ import {
   LoaderLabel,
   LoaderSpinner,
   LoaderWrap,
+  SkeletonBand,
   SkeletonBar,
+  SkeletonBoard,
   SkeletonCard,
+  SkeletonPairRow,
+  SkeletonRail,
   SkeletonStack,
+  SkeletonTabsRow,
   SkeletonTileRow
 } from './MainContentLoader.styled';
 
@@ -29,29 +34,51 @@ function MainContentLoaderComponent({ label = '불러오는 중…', minHeight, 
         <>
           {/* 라벨을 먼저 둔다 — 스켈레톤 위에서 "무엇을 기다리는지"를 글자로 먼저 말한다. */}
           <LoaderLabel>{label}</LoaderLabel>
-          <SkeletonStack aria-hidden="true">
-            {/* 요약 카드: hero 숫자 한 줄 + 지표 타일 줄 */}
-            <SkeletonCard>
-              <SkeletonBar $w="42%" $h="34px" />
-              <SkeletonTileRow>
-                <SkeletonBar $h="46px" />
-                <SkeletonBar $h="46px" />
-                <SkeletonBar $h="46px" />
-              </SkeletonTileRow>
-            </SkeletonCard>
-            {/* 차트 카드: 제목 + 그래프 면 */}
-            <SkeletonCard>
-              <SkeletonBar $w="28%" />
-              <SkeletonBar $h="160px" />
-            </SkeletonCard>
-            {/* 표 카드: 제목 + 행 세 줄 */}
-            <SkeletonCard>
-              <SkeletonBar $w="22%" />
-              <SkeletonBar $h="18px" />
-              <SkeletonBar $h="18px" />
-              <SkeletonBar $h="18px" />
-            </SkeletonCard>
-          </SkeletonStack>
+          {/* 곧 올 화면과 **같은 틀**(보드 = 머리 + 본문). 로딩이 끝날 때 프레임이 새로 그려지지 않는다. */}
+          <SkeletonBoard aria-hidden="true">
+            <SkeletonTabsRow>
+              <SkeletonBar $w="96px" $h="28px" />
+              <SkeletonBar $w="72px" $h="24px" />
+            </SkeletonTabsRow>
+            <SkeletonStack>
+              {/* 요약 카드: hero 숫자 한 줄 + 지표 타일 줄 */}
+              <SkeletonCard>
+                <SkeletonBar $w="42%" $h="34px" />
+                <SkeletonTileRow>
+                  <SkeletonBar $h="46px" />
+                  <SkeletonBar $h="46px" />
+                  <SkeletonBar $h="46px" />
+                </SkeletonTileRow>
+              </SkeletonCard>
+              {/* 조작 레일(빠른 조정): 이름표 칸 + 슬라이더 칸 */}
+              <SkeletonRail>
+                <SkeletonBar $w="70%" $h="16px" />
+                <SkeletonBar $h="16px" />
+              </SkeletonRail>
+              {/* 막 머리띠: 표식 + 제목 + 룰 */}
+              <SkeletonBand>
+                <SkeletonBar $w="26px" $h="18px" />
+                <SkeletonBar $w="60%" $h="22px" />
+                <SkeletonBar $h="1px" />
+              </SkeletonBand>
+              {/* 차트 카드: 제목 + 그래프 면 */}
+              <SkeletonCard>
+                <SkeletonBar $w="28%" />
+                <SkeletonBar $h="160px" />
+              </SkeletonCard>
+              {/* 한 행을 나눠 쓰는 두 카드 */}
+              <SkeletonPairRow>
+                <SkeletonCard>
+                  <SkeletonBar $w="40%" />
+                  <SkeletonBar $h="120px" />
+                </SkeletonCard>
+                <SkeletonCard>
+                  <SkeletonBar $w="40%" />
+                  <SkeletonBar $h="120px" />
+                </SkeletonCard>
+              </SkeletonPairRow>
+            </SkeletonStack>
+          </SkeletonBoard>
         </>
       ) : (
         <>

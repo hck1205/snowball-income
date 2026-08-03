@@ -43,11 +43,13 @@ export default function MonthCalendar({
   monthLabel,
   labelledById,
   isPreview = false,
+  compact = false,
   seriesOf = tickerSeriesVar,
   onDayJump
 }: MonthCalendarProps) {
   return (
     <CalendarTable
+      $compact={compact}
       aria-labelledby={isPreview ? undefined : labelledById}
       aria-label={isPreview ? copy.preview.tableLabel(monthLabel) : undefined}
     >

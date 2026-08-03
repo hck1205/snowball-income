@@ -2,10 +2,22 @@ import styled from '@emotion/styled';
 import { color, font, media, radius, space } from '@/shared/styles';
 
 /**
- * 목표 미설정일 때 **hero 타일 자리**를 차지하는 안내 패널.
- * hero StatTile과 같은 면(accentSubtle)·같은 테두리(accentBorder)를 써서 "여기가 주인공 자리"라는
- * 위계를 유지한다(그리드에서 전 폭을 차지하는 것은 부모 레이아웃이 정한다).
- * ⚠ 이 두 값은 **hero StatTile 과 반드시 같이 움직인다** — 한쪽만 바꾸면 같은 자리에서 면이 갈린다.
+ * 목표 미설정일 때 **미터 자리**를 차지하는 안내 패널.
+ *
+ * ## 2026-08-03 — 틴트 면을 레일로 내렸다 (예산 거래다, 취향이 아니다)
+ * 종전에는 `accentSubtle` 로 **전면을 채우고** 있었다. 1280px 에서 폭 1,100px 대 · 높이 200px 대라
+ * `tintscan` 의 면 판정(폭 ≥180 **그리고** 높이 ≥8 + 비중립 배경)을 여유 있게 넘겼고, 목표 미설정
+ * 상태의 `/dividend/portfolio` 는 ①히어로 그라디언트 ②이 패널 ③브랜드 패널 푸터 = **3/2 로 초과**였다.
+ * 그 상태를 아무도 못 본 이유는 tintscan 이 기본으로 **빈 상태**(패널이 없는 화면)만 쟀기 때문이다.
+ *
+ * 지금은 **중립 침강 면 한 겹**이다. "여기가 주인공 자리"라는 신호는 색면이 아니라
+ * **카드 안에서 이 블록만 갖는 침강 면 + 제목 크기(h3)**가 만든다.
+ *
+ * 🔴 **왼쪽 색 레일을 여기 달지 마라(2026-08-03 검증에서 되돌린 자리).** 부모인 `GoalCard.CardRoot`
+ * 가 이미 왼쪽 6px `accentAlt` 레일을 갖는다 — 여기에 4px `accent` 레일을 더하면 카드 왼쪽에
+ * **31px 간격으로 색이 다른 세로 줄 두 개**가 서고(실측: x=53 초록 6px / x=84 파랑 4px),
+ * 같은 신호를 두 번 하면서 색끼리 부딪힌다. 목표 축의 색은 카드 레일 하나가 대표한다.
+ * 🔴 배경도 다시 채우지 마라 — `tools/dev/tintscan.mjs` 가 exit 1 이다.
  */
 export const SetupRoot = styled.div`
   min-width: 0;
@@ -14,9 +26,8 @@ export const SetupRoot = styled.div`
   align-content: start;
   justify-items: start;
   padding: clamp(16px, 2.4vw, ${space[6]});
-  border: 1px solid ${color.accentBorder};
-  border-radius: ${radius.md};
-  background: ${color.accentSubtle};
+  border-radius: ${radius.lg};
+  background: ${color.surfaceSunken};
 `;
 
 /**
