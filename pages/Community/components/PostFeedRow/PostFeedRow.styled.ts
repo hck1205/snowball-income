@@ -221,13 +221,22 @@ export const RowSimStrip = styled.div`
  * ⚠ 1,280px 에서 카드 폭이 1,160px 라 세 항목 사이가 400px 넘게 벌어진다. 그래도 흩어져 보이지
  *   않는 이유는 **헤어라인이 이 줄을 하나의 띠로 묶기 때문**이다 — border-top 을 지우지 마라.
  */
+/**
+ * 계수 줄 — 조회·댓글·좋아요를 **카드 좌측 하단**에 모은다(2026-08-04 사용자 지시).
+ *
+ * 🔴 `space-between` 을 되돌리지 마라. 셋을 전폭에 흩어 놓으면 숫자 사이 간격이 카드 폭을 따라
+ * 널뛰어(1160px 에서 약 520px, 390px 에서 약 90px) "세 값이 한 묶음"으로 안 읽힌다.
+ * 왼쪽에 붙이면 간격이 고정되고 시선이 한 번에 훑는다.
+ *
+ * ⚠ 공유 버튼은 여기 없다 — 목록에서 아예 뺐다(상세에만 둔다). 목록 행의 행동은 "열어 보기"
+ *   하나여야 하고, 링크 안에 다른 동작이 섞이면 어디를 눌러야 할지 매번 판단해야 한다.
+ */
 export const RowStatRail = styled.div`
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: ${space[5]};
   width: 100%;
   margin-top: ${space[1]};
-  /* 양옆 패딩(지시) — 위 12px 은 헤어라인과 숫자 사이 숨통. */
   padding: ${space[3]} ${space[4]} 0;
   border-top: 1px solid ${color.border};
 `;

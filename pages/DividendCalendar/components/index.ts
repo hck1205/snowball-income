@@ -7,6 +7,9 @@ export type { CalendarToolbarProps } from './CalendarToolbar';
 export { MonthCalendar, MonthCalendarSkeleton, MAX_DAY_CHIPS, splitDayChips } from './MonthCalendar';
 export type { MonthCalendarProps, MonthCalendarSkeletonProps } from './MonthCalendar';
 
+export { OverflowTooltip, isTextClipped } from './OverflowTooltip';
+export type { OverflowTooltipProps } from './OverflowTooltip';
+
 export { PickerDrawer } from './PickerDrawer';
 export type { PickerDrawerProps } from './PickerDrawer';
 

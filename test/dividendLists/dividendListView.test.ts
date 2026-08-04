@@ -4,18 +4,28 @@ import { DIVIDEND_LISTS } from '@/shared/constants/dividendLists';
 import type { DividendList, DividendListMember } from '@/shared/constants/dividendLists';
 import {
   DEFAULT_DIVIDEND_LIST_SORT,
+  DIVIDEND_LIST_GROWTH_STEPS,
+  DIVIDEND_LIST_YIELD_STEPS,
+  NO_DIVIDEND_LIST_FILTER,
   buildSectorFacets,
-  filterBySector,
+  countRowsHiddenByUnknown,
+  filterDividendListRows,
   formatStreakCriterion,
+  isDividendListFiltered,
   latestMeasuredAt,
   nextDividendListSort,
   sortDividendListRows,
   sortableDividendListKeys,
   toDividendListRow,
   toDividendListRows,
+  toggleDividendListSector,
   usesWikipediaSource
 } from '@/pages/DividendList/utils';
-import type { DividendListMemberLike, DividendListRow } from '@/pages/DividendList/utils';
+import type {
+  DividendListFilter,
+  DividendListMemberLike,
+  DividendListRow
+} from '@/pages/DividendList/utils';
 
 const row = (
   ticker: string,
@@ -31,7 +41,6 @@ const row = (
   yield: { known: false, reason: 'notMeasured' },
   streak: { known: true, kind: 'atLeast', text: '50년', qualifier: '이상', value: 50, source: null },
   growth: { known: false, reason: 'notMeasured' },
-  confirmedBy: ['테스트 자료'],
   measuredAt: null,
   tickerPagePath: null,
   ...overrides
@@ -218,9 +227,89 @@ describe('섹터 필터', () => {
     expect(facets.some((f) => f.label === null)).toBe(false);
   });
 
-  it('null 은 전체를 뜻한다', () => {
-    expect(filterBySector(ROWS, null)).toHaveLength(4);
-    expect(filterBySector(ROWS, 'consumerStaples').map((r) => r.ticker)).toEqual(['KO', 'PG']);
+});
+
+/**
+ * 세 축 필터(배당률 · 5년 배당성장 · 섹터).
+ *
+ * 잠그는 것:
+ *  ① 세 축은 **AND**, 섹터 축 안에서는 **OR**.
+ *  ② 🔴 값이 없는 줄은 "이상" 조건을 통과하지 못한다 — 모르는 값을 0 으로도 통과로도 읽지 않는다.
+ *  ③ 그렇게 빠진 줄의 수를 셀 수 있다(화면이 그 숫자를 말해야 조용히 사라지지 않는다).
+ *  ④ 눈금이 **실제 분포에 맞는다** — 세 목록 어디서도 눌렀을 때 표가 사라지지 않는다.
+ */
+describe('세 축 필터', () => {
+  const filterOf = (overrides: Partial<DividendListFilter> = {}): DividendListFilter => ({
+    ...NO_DIVIDEND_LIST_FILTER,
+    ...overrides
+  });
+  const tickersOf = (filter: DividendListFilter) =>
+    filterDividendListRows(METRIC_ROWS, filter).map((r) => r.ticker);
+
+  it('아무 축도 안 걸면 전부 남는다', () => {
+    expect(isDividendListFiltered(NO_DIVIDEND_LIST_FILTER)).toBe(false);
+    expect(tickersOf(NO_DIVIDEND_LIST_FILTER)).toEqual(METRIC_ROWS.map((r) => r.ticker));
+  });
+
+  it('🔴 "이상" 조건은 값이 낮은 줄과 **값이 없는 줄**을 함께 뺀다', () => {
+    // KO 2.44 · PG 3.01 남고, YORW 1.90(낮다)·WRB(값 없음)은 빠진다.
+    expect(tickersOf(filterOf({ minYieldPercent: 2 }))).toEqual(['KO', 'PG']);
+    // 성장 축도 같다 — PG 는 성장률이 없어 빠진다(0% 로 읽지 않는다).
+    expect(tickersOf(filterOf({ minGrowthPercent: 3 }))).toEqual(['KO', 'YORW']);
+  });
+
+  it('세 축은 AND 로 겹친다', () => {
+    expect(tickersOf(filterOf({ minYieldPercent: 2, sectors: ['consumerStaples'] }))).toEqual(['KO', 'PG']);
+    // 여기에 성장 축까지 얹으면 성장률이 없는 PG 가 빠진다.
+    expect(
+      tickersOf(filterOf({ minYieldPercent: 2, minGrowthPercent: 3, sectors: ['consumerStaples'] }))
+    ).toEqual(['KO']);
+  });
+
+  it('섹터는 여러 개를 고르면 OR 로 묶인다', () => {
+    expect(tickersOf(filterOf({ sectors: ['consumerStaples'] }))).toEqual(['KO', 'PG']);
+    expect(tickersOf(filterOf({ sectors: ['consumerStaples', 'financials'] }))).toEqual(['KO', 'PG', 'WRB']);
+    // 섹터를 모르는 줄은 어떤 섹터 칩에도 걸리지 않는다(자료의 구멍은 분류가 아니다).
+    expect(tickersOf(filterOf({ sectors: ['consumerStaples', 'financials'] }))).not.toContain('YORW');
+  });
+
+  it('🔴 값이 없어 빠진 줄을 셀 수 있다 — 조용히 사라지면 목록이 틀린 것으로 읽힌다', () => {
+    // 배당률 축만 켜면 값이 없는 WRB 한 줄. YORW 는 값이 있는데 낮아서 빠진 것이라 세지 않는다.
+    expect(countRowsHiddenByUnknown(METRIC_ROWS, filterOf({ minYieldPercent: 2 }))).toBe(1);
+    // 성장 축만 켜면 값이 없는 PG 한 줄.
+    expect(countRowsHiddenByUnknown(METRIC_ROWS, filterOf({ minGrowthPercent: 3 }))).toBe(1);
+    // 섹터로 이미 빠진 줄은 세지 않는다 — 세면 "값이 없어 제외됐다"는 숫자가 부풀려진다.
+    expect(
+      countRowsHiddenByUnknown(METRIC_ROWS, filterOf({ minYieldPercent: 2, sectors: ['consumerStaples'] }))
+    ).toBe(0);
+    // 축이 꺼져 있으면 값이 없어도 아무도 빠지지 않는다.
+    expect(countRowsHiddenByUnknown(METRIC_ROWS, NO_DIVIDEND_LIST_FILTER)).toBe(0);
+  });
+
+  it('섹터 토글은 켜고 끄며 **누른 순서를 보존한다**', () => {
+    const once = toggleDividendListSector([], 'utilities');
+    expect(once).toEqual(['utilities']);
+    const twice = toggleDividendListSector(once, 'financials');
+    expect(twice).toEqual(['utilities', 'financials']);
+    expect(toggleDividendListSector(twice, 'utilities')).toEqual(['financials']);
+  });
+
+  it('🔴 눈금은 실제 분포에 맞는다 — 어느 목록에서도 눌렀을 때 표가 사라지지 않는다', () => {
+    for (const list of Object.values(DIVIDEND_LISTS)) {
+      const rows = toDividendListRows(list);
+      for (const step of DIVIDEND_LIST_YIELD_STEPS) {
+        expect(filterDividendListRows(rows, filterOf({ minYieldPercent: step })).length).toBeGreaterThanOrEqual(3);
+      }
+      for (const step of DIVIDEND_LIST_GROWTH_STEPS) {
+        expect(filterDividendListRows(rows, filterOf({ minGrowthPercent: step })).length).toBeGreaterThanOrEqual(3);
+      }
+      // 가장 센 조합(배당률 최상단 + 성장 최상단)은 비어도 된다 — 그 상태를 화면이 감당해야 한다.
+      const strictest = filterOf({
+        minYieldPercent: DIVIDEND_LIST_YIELD_STEPS[DIVIDEND_LIST_YIELD_STEPS.length - 1],
+        minGrowthPercent: DIVIDEND_LIST_GROWTH_STEPS[DIVIDEND_LIST_GROWTH_STEPS.length - 1]
+      });
+      expect(filterDividendListRows(rows, strictest).length).toBeGreaterThanOrEqual(0);
+    }
   });
 });
 

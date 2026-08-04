@@ -1,8 +1,13 @@
 export {
   DEFAULT_DIVIDEND_LIST_SORT,
+  DIVIDEND_LIST_GROWTH_STEPS,
+  DIVIDEND_LIST_YIELD_STEPS,
+  NO_DIVIDEND_LIST_FILTER,
   buildSectorFacets,
-  filterBySector,
+  countRowsHiddenByUnknown,
+  filterDividendListRows,
   formatStreakCriterion,
+  isDividendListFiltered,
   latestMeasuredAt,
   nextDividendListSort,
   sortDividendListRows,
@@ -10,9 +15,11 @@ export {
   toDividendListRow,
   toDividendListRows,
   toDividendListSummary,
+  toggleDividendListSector,
   usesWikipediaSource
 } from './dividendListView';
 export type {
+  DividendListFilter,
   DividendListGrowthCell,
   DividendListMemberLike,
   DividendListMemberMetrics,

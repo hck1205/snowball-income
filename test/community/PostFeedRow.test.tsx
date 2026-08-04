@@ -97,10 +97,20 @@ describe('PostFeedRow — 키커와 계수 레일', () => {
     expect(screen.getByRole('link')).toHaveTextContent('익명');
   });
 
-  it('공유 버튼을 행 안에 둔다 — 목록에서 바로 공유할 수 있는 진입점이다', () => {
+  /**
+   * 🔴 2026-08-04 로 계약이 **뒤집혔다.** 종전 계약은 "공유 버튼을 행 안에 둔다" 였다.
+   *
+   * 사용자 지시로 목록에서 공유를 걷고 상세에만 뒀다. 근거: 목록 행의 행동은 "열어 보기" 하나여야
+   * 한다 — 행 전체가 상세로 가는 링크인데 그 안에 다른 동작이 섞이면 어디를 눌러야 할지 매번
+   * 판단해야 하고, 공유는 글을 읽은 뒤에 하는 일이라 상세가 맞는 자리다.
+   *
+   * ⚠ 그래서 이 테스트가 지키는 것은 "없음"이다. 되살리려면 행 링크와의 클릭 충돌 처리
+   *   (preventDefault + stopPropagation)를 함께 되살려야 한다.
+   */
+  it('공유 버튼을 행에 두지 않는다 — 목록의 행동은 열어 보기 하나다', () => {
     renderRow(item());
 
-    expect(screen.getByRole('button', { name: /공유/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /공유/ })).not.toBeInTheDocument();
   });
 });
 

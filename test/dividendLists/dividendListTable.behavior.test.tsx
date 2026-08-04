@@ -35,7 +35,6 @@ const row = (ticker: string, overrides: Partial<DividendListRow> = {}): Dividend
   yield: { known: true, text: '2.44%', value: 2.441 },
   streak: { known: true, kind: 'atLeast', text: '50년', qualifier: '이상', value: 50, source: null },
   growth: { known: true, text: '+4.46%', value: 4.46, direction: 'up' },
-  confirmedBy: ['테스트 자료'],
   measuredAt: '2026-08-04',
   tickerPagePath: null,
   ...overrides
@@ -197,8 +196,22 @@ describe('배당 목록 표의 네 필드', () => {
       copy.columnYield,
       copy.columnStreak,
       copy.columnGrowth,
-      copy.columnSector,
-      copy.columnConfirmedBy
+      copy.columnSector
     ]);
+  });
+
+  /**
+   * 🔴 "확인한 자료" 열 제거(2026-08-04)를 잠근다. 그 값은 한 목록 안에서 **전 종목 동일**이라
+   * (`withConfirmedBy` 가 목록 상수를 복사해 넣는다) 46~83줄을 같은 문자열로 채우던 열이었다.
+   * 같은 사실은 "출처와 기준일" 섹션이 목록당 한 번 말한다.
+   */
+  it('열은 여섯이고, 빈 표의 안내가 그 여섯 칸을 가득 채운다', () => {
+    render(<Harness rows={[]} />);
+    const table = screen.getByRole('table');
+    expect(within(table).getAllByRole('columnheader')).toHaveLength(6);
+
+    const emptyCell = within(table).getByText(copy.filteredEmpty);
+    // colSpan 이 열 수와 어긋나면 안내 문장이 한 칸에 갇혀 표가 기운다.
+    expect(emptyCell.getAttribute('colspan')).toBe('6');
   });
 });

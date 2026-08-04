@@ -148,9 +148,18 @@ export const BodyGrid = styled.div`
   grid-template-areas: 'body' 'rail';
   gap: ${space[6]};
 
-  ${media.up('layout')} {
-    grid-template-columns: 72px minmax(0, 1fr);
-    grid-template-areas: 'rail body';
+  /*
+   * 🔴 데스크톱에서도 **한 칸**이다. 반응 레일은 자리를 차지하지 않고 왼쪽 바깥으로 뜬다
+   * (ActionRail 주석 참고) — 그래야 본문이 레일 폭만큼 밀리지 않는다.
+   * 레일은 본문과 같은 칸에 겹쳐 앉은 뒤 음수 마진으로 왼쪽 바깥으로 나간다(ActionRail 참고).
+   * ⚠ 레일이 카드 바깥 왼쪽에 서므로 그 폭(72 + gap)만큼 **페이지 좌여백이 필요**하다.
+   *   실측: 1600px 에서 좌여백 213px(충분) · 1280px 에서 53px(부족). 그래서 이 배치는
+   *   좌여백이 확보되는 폭에서만 켠다 — 기준이 layout(980)이 아니라 outerRail(1384)인 이유다.
+   */
+
+  ${media.up('outerRail')} {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'body';
     gap: clamp(${space[6]}, 3vw, ${space[10]});
   }
 `;
@@ -178,15 +187,37 @@ export const ActionRail = styled.div`
   padding-top: ${space[5]};
   border-top: 1px solid ${color.border};
 
-  ${media.up('layout')} {
-    flex-direction: column;
-    align-items: stretch;
+  /*
+   * 🔴 데스크톱에서 **뜬다**(2026-08-04 사용자 지시: "like share 가 floating 으로 자리를 잡아야
+   * 하는데 지금은 그 영역만큼 컨텐츠가 오른쪽으로 밀렸다").
+   *
+   * 종전에는 BodyGrid 의 첫 칸(72px)을 차지해 본문을 그만큼 오른쪽으로 밀었다 —
+   * 실측 1280px: 본문 단락이 x=162 에서 시작(레일 72 + gap 40).
+   * absolute 로 띄우면 그 칸이 사라져 본문이 카드 왼쪽 끝에서 시작한다.
+   *
+   * ⚠ sticky 를 absolute 로 바꾸면 스크롤을 따라오지 않는다. 그래서 **자리는 absolute 로 잡되
+   *   안쪽 알약 묶음이 sticky** 다 — 레일 자체는 본문 높이만큼 늘어나 있고 그 안에서 붙어 다닌다.
+   * ⚠ 부모(BodyGrid)가 position: relative 여야 한다. 그쪽 주석 참고.
+   */
+  ${media.up('outerRail')} {
+    /*
+     * 🔴 본문과 **같은 격자 칸**에 앉힌 뒤 왼쪽 바깥으로 당긴다.
+     * 자기 칸(72px)을 갖지 않으므로 본문이 밀리지 않고, 그러면서도 flow 안에 남아 sticky 가 산다
+     * (absolute 로 띄우면 스크롤을 안 따라온다 — 이 레일의 존재 이유가 "긴 글 도중에도 손이 닿는 것"이다).
+     * ⚠ align-self: start + height: max-content 가 없으면 격자가 레일을 본문 높이만큼 늘려
+     *   sticky 가 움직일 구간이 사라진다.
+     */
+    grid-area: body;
     justify-self: start;
     align-self: start;
+    height: max-content;
+    margin-left: calc(-72px - clamp(${space[6]}, 3vw, ${space[10]}));
     position: sticky;
     /* 헤더 아래 한 칸. CSS 변수명을 직접 쓰지 않고 토큰 appHeaderHeight 를 쓴다 —
        AppHeader 가 실측해 발행하는 그 변수의 이름은 shared/styles 가 소유한다. */
     top: calc(${appHeaderHeight} + ${space[5]});
+    flex-direction: column;
+    align-items: center;
     width: 72px;
     padding-top: 0;
     border-top: none;
@@ -197,13 +228,19 @@ export const ActionRail = styled.div`
  * 레일 안 공유 버튼 — 데스크톱에서는 아이콘 위/라벨 아래의 **세로 칩**이 된다.
  * 좋아요(가로 pill)와 형태가 갈리지만, 둘 다 72px 폭에 정확히 앉는다.
  */
+/**
+ * 공유 — **아이콘 전용**이다(2026-08-04 사용자 지시로 "공유" 글자를 걷었다).
+ * 🔴 그래서 정사각이다. 글자를 뺐는데 좌우 패딩을 두면 폭만 72px 로 남아 옆의 좋아요(56px)와
+ *   무게가 갈린다(실측). 아이콘 크기도 LikeButton md 와 같은 `ICON.lg`(18) 를 쓴다.
+ * ⚠ 이름은 `aria-label` 이 진다 — 지우지 마라. 아이콘만 남은 버튼은 그것 말고 이름이 없다.
+ */
 export const ShareButton = styled.button`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: ${space[1]};
+  width: 36px;
   height: 36px;
-  padding: 0 ${space[3]};
+  padding: 0;
   border-radius: ${radius.pill};
   border: 1px solid ${color.borderStrong};
   background: ${color.surface};
@@ -232,15 +269,11 @@ export const ShareButton = styled.button`
     flex: 0 0 auto;
   }
 
-  ${media.up('layout')} {
-    flex-direction: column;
-    gap: 2px;
-    width: 100%;
-    height: auto;
-    padding: ${space[2]} 0;
-    border-radius: ${radius.lg};
-    font-size: ${font.size['2xs']};
-  }
+  /*
+   * 🔴 데스크톱에서 폭을 늘리지 않는다. 종전에는 여기서 width: 100% + 세로 스택 + 글자를 줘서
+   * 레일 폭(72px)만큼 벌어졌는데, 글자를 걷은 지금은 늘릴 이유가 없고 옆의 좋아요(56px)와
+   * 무게만 갈렸다(실측 72 vs 56). 두 버튼 다 36px 높이의 알약이라 같은 규격으로 둔다.
+   */
 `;
 
 /** 데스크톱 레일에서 좋아요 pill 을 칼럼 가운데로 세운다(가로 pill 이라 폭이 72px 보다 좁다). */
@@ -347,12 +380,46 @@ export const AttachStat = styled.div`
  * 카드가 아니라 **가라앉은 지면**이다. 본문(카드 없음)과 면색으로 갈려 "여기부터는 대화"가
  * 읽는 순간 전달된다. `cardElevation('sunken')` 과 같은 수단(면색 하나)이다. */
 
+/**
+ * 댓글 슬래브.
+ *
+ * 🔴 **본문 열에 맞춰 선다**(2026-08-04 사용자 지시: "좌우로 꽉차있다").
+ * 이 요소는 `BodyGrid` **밖**이라 그냥 두면 카드 전폭을 쓴다 — 실측(1280px): 본문 단락이 810px
+ * (x=162)인데 댓글은 1080px(x=93)로 양쪽 다 더 넓게 서서, 같은 글의 두 부분이 서로 다른 폭이었다.
+ * `BodyGrid` 와 **같은 격자**를 다시 깔아 두 번째 칸에 앉힌다 — 값을 손으로 베끼지 않고
+ * 같은 규칙을 쓰므로 레일 폭이 바뀌어도 따라간다.
+ *
+ * ⚠ 좁은 폭(`layout` 미만)에서는 `BodyGrid` 도 한 칸이므로 여기서도 격자를 걸지 않는다.
+ */
+/**
+ * 댓글 슬래브.
+ *
+ * 🔴 **본문과 같은 왼쪽 끝에서 시작한다** — 별도 보정을 두지 않는다(2026-08-04).
+ * 잠깐 `margin-left: calc(72px + gap)` 을 뒀던 적이 있는데, 그건 반응 레일이 격자의 첫 칸을
+ * 차지해 본문을 밀던 시절의 보정이었다. 레일이 카드 바깥으로 뜨면서 본문이 카드 왼쪽 끝에서
+ * 시작하게 됐고(실측 1280px: 본문 x 162 → 53), 그 보정이 남아 있으면 이번엔 댓글만 오른쪽으로
+ * 밀린다. 두 부분은 같은 글의 이어지는 면이라 왼쪽 끝이 같아야 한다.
+ *
+ * ⚠ 레일 배치를 되돌리면 이 보정도 함께 되살려야 한다 — 둘은 한 쌍이다.
+ */
 export const CommentsBand = styled.div`
-  border-radius: ${DATA_RADIUS};
-  background: ${color.surfaceSunken};
-  padding: clamp(${space[5]}, 4vw, ${space[10]});
+  /*
+   * 🔴 면(슬래브)을 걷고 **본문 흐름에 그대로 잇는다**(2026-08-04 사용자 지시:
+   * "content 글 위치에 맞게 align").
+   *
+   * 종전에는 'surfaceSunken' 배경 + 좌우 패딩 40px 짜리 판이었다. 그 패딩 때문에 댓글 제목이
+   * 본문보다 **40px 오른쪽**에서 시작했다(실측 1280px: 본문 x 53 · 댓글 x 93). 판을 유지한 채
+   * 맞추려면 음수 마진으로 판을 카드 밖으로 빼야 하는데, 그러면 판이 카드보다 넓어진다.
+   *
+   * 판이 없어도 손해가 없다 — 위쪽 헤어라인과 여백이 "여기서부터 댓글"을 충분히 말한다.
+   * 게다가 이 화면의 면 예산(tintscan)도 그만큼 가벼워진다.
+   * ⚠ 판을 되살리려면 좌우 패딩을 0 으로 두거나 본문 정렬을 함께 다시 재라 — 둘은 한 쌍이다.
+   */
+  margin-top: clamp(${space[8]}, 4vw, ${space[12]});
+  padding-top: clamp(${space[6]}, 3vw, ${space[10]});
+  border-top: 1px solid ${color.border};
 
-  /* CommentSection 루트가 갖고 있는 자체 상단 구분선은 슬래브 경계가 대신한다. */
+  /* 위 헤어라인이 경계를 말하므로 CommentSection 루트가 갖고 있는 자체 구분선은 접는다. */
   & > section {
     margin-top: 0;
     padding-top: 0;

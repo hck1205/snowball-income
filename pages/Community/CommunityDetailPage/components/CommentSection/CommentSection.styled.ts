@@ -75,14 +75,25 @@ export const CommentTextarea = styled.textarea`
   }
 `;
 
+/**
+ * 입력 아래 줄 — 글자수와 등록 버튼.
+ *
+ * 🔴 **입력칸과 같은 흰 면**이다(2026-08-04 사용자 지시). 종전에는 `surfaceSunken` 이라 한 카드가
+ * 위아래로 다른 색이었는데, 그러면 입력 패널이 두 부품처럼 보인다 — 실제로는 테두리 하나로 묶인
+ * 하나의 입력이다. 위 `Composer` 가 이미 테두리와 포커스 링을 갖고 있어 면색까지 갈릴 이유가 없다.
+ *
+ * 🔴 글자수는 **오른쪽 끝, 등록 버튼 바로 왼쪽**에 붙는다(사용자 지시). `space-between` 으로
+ * 양 끝에 흩으면 글자수가 입력칸 왼쪽 아래에 홀로 떠서 무엇의 개수인지 읽히지 않는다.
+ * 등록 옆에 두면 "지금 이만큼 썼고 여기서 낸다"가 한 시선에 들어온다.
+ */
 export const ComposerBar = styled.div`
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: ${space[2]};
+  justify-content: flex-end;
+  gap: ${space[3]};
   padding: ${space[2]} ${space[3]};
   border-top: 1px solid ${color.border};
-  background: ${color.surfaceSunken};
+  background: ${color.surface};
 `;
 
 export const ComposerCounter = styled.span`

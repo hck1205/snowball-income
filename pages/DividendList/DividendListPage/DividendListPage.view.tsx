@@ -1,29 +1,31 @@
 import { useMemo, useState } from 'react';
 import { Crown, Gem, Medal } from 'lucide-react';
-import { Chip, PageFooter, PageHero } from '@/components/common';
+import { PageFooter, PageHero } from '@/components/common';
 import { DIVIDEND_LIST_HUB_PATH } from '@/shared/constants/dividendLists';
-import type { DividendListId, DividendListSectorId } from '@/shared/constants/dividendLists';
+import type { DividendListId } from '@/shared/constants/dividendLists';
 import { ICON } from '@/shared/styles';
-import { DividendListTable } from '../components';
+import { DividendListFilters, DividendListTable } from '../components';
 import { DIVIDEND_LIST_COPY } from '../copy';
 import {
   DEFAULT_DIVIDEND_LIST_SORT,
+  NO_DIVIDEND_LIST_FILTER,
   buildSectorFacets,
-  filterBySector,
+  countRowsHiddenByUnknown,
+  filterDividendListRows,
   latestMeasuredAt,
   nextDividendListSort,
   sortDividendListRows,
   sortableDividendListKeys,
   usesWikipediaSource
 } from '../utils';
-import type { DividendListSort, DividendListSortKey } from '../utils';
+import type { DividendListFilter, DividendListSort, DividendListSortKey } from '../utils';
 import type { DividendListViewProps } from './DividendListPage.types';
 import {
   Body,
   CautionPanel,
   CriterionBadge,
-  FilterLabel,
-  FilterRow,
+  HeroBlock,
+  HeroMascot,
   HubLink,
   RelatedCard,
   RelatedGrid,
@@ -40,6 +42,7 @@ import {
   SourceRole,
   TableMeta
 } from './DividendListPage.styled';
+import type { MascotSide } from './DividendListPage.styled';
 
 const copy = DIVIDEND_LIST_COPY.page;
 
@@ -57,7 +60,34 @@ const LIST_ICON: Record<DividendListId, typeof Crown> = {
 };
 
 /**
- * 목록 화면의 뷰. 정렬·섹터 필터라는 **화면 안 상태**만 소유하고, 데이터는 컨테이너가 준다.
+ * 목록별 마스코트 그림.
+ *
+ * 🔴 **경로 문자열로 참조한다 — `import` 하지 마라.** 세 장을 import 하면 어느 목록을 열어도
+ * 셋이 전부 번들(또는 프리로드 대상)에 들어간다. 화면 하나가 받아야 하는 것은 자기 것 하나다
+ * (실측 파일 크기 246 · 267 · 295KB). `public/` 의 파일은 경로 그대로 서빙되므로 이게 유일한 참조 방법이다.
+ *
+ * ⚠ `loading` 은 **eager** 다. 이 그림은 스크롤 없이 보이는 자리에 있어(실측 2026-08-04: 그림 하단이
+ *   1280 에서 y=352 · 390 에서 y=328 — iOS Safari 최소 접힘 664 안) `lazy` 를 걸면 브라우저가 레이아웃 뒤로 미뤄
+ *   "히어로가 한 박자 늦게 채워지는" 결함만 얻는다. 대신 `decoding="async"` 로 디코딩은 메인
+ *   스레드에서 떼어내고, width/height 속성으로 자리를 미리 잡아 글자가 밀리지 않게 한다.
+ * ⚠ 크기는 원본 픽셀이다(세 장의 세로가 조금씩 다르다 — 비율 예약이 정확해야 한다).
+ *
+ * `side` 는 그림이 앉을 쪽이다(2026-08-04 사용자 지시: 킹 오른쪽 · 귀족 왼쪽[글은 오른쪽] · 챔피언 오른쪽).
+ * 🔴 이 값 하나가 **HeroBlock 의 패딩과 HeroMascot 의 정렬을 함께** 정한다 — 둘을 따로 적으면
+ *    한쪽만 고쳤을 때 그림이 글 위로 겹친다.
+ */
+const LIST_MASCOT: Record<
+  DividendListId,
+  { src: string; width: number; height: number; side: MascotSide }
+> = {
+  kings: { src: '/images/hippo_dividend_king.png', width: 440, height: 431, side: 'right' },
+  aristocrats: { src: '/images/hippo_dividend_noble.png', width: 440, height: 432, side: 'left' },
+  champions: { src: '/images/hippo_dividend_champ.png', width: 440, height: 414, side: 'right' }
+};
+
+/**
+ * 목록 화면의 뷰. 정렬·필터라는 **화면 안 상태**만 소유하고, 데이터는 컨테이너가 준다.
+ * (필터를 URL 에 싣지 않기로 한 근거는 `components/DividendListFilters` 머리말에 있다.)
  *
  * 🔴 히어로의 `titleAs` 는 `'h1'` 이다 — 이 셸의 워드마크는 `<span>` 이라(TickerPageShell) 문서에
  * `<h1>` 이 없으면 크롤러가 페이지 주제를 잃는다. 서버가 그리는 크롤러 HTML 도 같은 문장을 `<h1>`
@@ -66,35 +96,55 @@ const LIST_ICON: Record<DividendListId, typeof Crown> = {
 export default function DividendListView({ viewModel }: DividendListViewProps) {
   const { list, copy: listCopy, rows, criterion, others } = viewModel;
   const [sort, setSort] = useState<DividendListSort>(DEFAULT_DIVIDEND_LIST_SORT);
-  const [sector, setSector] = useState<DividendListSectorId | null>(null);
+  const [filter, setFilter] = useState<DividendListFilter>(NO_DIVIDEND_LIST_FILTER);
 
   const facets = useMemo(() => buildSectorFacets(rows), [rows]);
   const visibleRows = useMemo(
-    () => sortDividendListRows(filterBySector(rows, sector), sort),
-    [rows, sector, sort]
+    () => sortDividendListRows(filterDividendListRows(rows, filter), sort),
+    [rows, filter, sort]
   );
   /*
-   * 🔴 정렬 가능한 열은 **필터 전 전체 행**으로 정한다. 보이는 행으로 계산하면 섹터 칩을 누를 때마다
-   * 열 머리의 버튼이 사라졌다 나타나 표가 덜컹거린다(섹터로 좁히면 섹터 값이 한 종류가 되므로).
+   * 🔴 정렬 가능한 열은 **필터 전 전체 행**으로 정한다. 보이는 행으로 계산하면 칩을 누를 때마다
+   * 열 머리의 버튼이 사라졌다 나타나 표가 덜컹거린다(섹터로 좁히면 섹터 값이 한 종류가 되고,
+   * 배당률로 좁히면 남은 줄의 값이 우연히 같아질 수 있다).
    */
   const sortableKeys = useMemo(() => sortableDividendListKeys(rows, SORT_KEYS), [rows]);
   /* 배당률·성장률은 매일 움직이는 값이라 **기준일 없이 쓰지 않는다.** 실측이 없으면 줄 자체를 안 쓴다. */
   const measuredAt = useMemo(() => latestMeasuredAt(rows), [rows]);
+  /*
+   * 숫자 축 때문에 빠졌지만 값이 없어 판정 자체가 불가능했던 줄. 🔴 조용히 사라지면 사용자는
+   * 목록이 틀렸다고 읽는다 — 배당킹은 46종 중 4종, 배당챔피언은 83종 중 15종이 아직 지표가 없다.
+   */
+  const hiddenByUnknown = useMemo(() => countRowsHiddenByUnknown(rows, filter), [rows, filter]);
 
   const onSortChange = (key: DividendListSortKey) => setSort((prev) => nextDividendListSort(prev, key));
   const HeroIcon = LIST_ICON[list.id];
+  const mascot = LIST_MASCOT[list.id];
 
   return (
     <>
-      <PageHero
-        icon={<HeroIcon size={ICON.lg} strokeWidth={1.8} aria-hidden focusable={false} />}
-        title={listCopy.title}
-        titleAs="h1"
-        lede={listCopy.lede}
-        notice={criterion}
-        /* 기준일·종목 수는 히어로의 근거 슬롯. 이 두 숫자가 없으면 목록은 "언제 것인지 모를 목록"이다. */
-        meta={`${copy.asOfLabel} ${list.asOf} · ${copy.countLabel} ${list.members.length}${copy.countUnit}`}
-      />
+      <HeroBlock $side={mascot.side}>
+        <PageHero
+          icon={<HeroIcon size={ICON.lg} strokeWidth={1.8} aria-hidden focusable={false} />}
+          title={listCopy.title}
+          titleAs="h1"
+          lede={listCopy.lede}
+          notice={criterion}
+          /* 기준일·종목 수는 히어로의 근거 슬롯. 이 두 숫자가 없으면 목록은 "언제 것인지 모를 목록"이다. */
+          meta={`${copy.asOfLabel} ${list.asOf} · ${copy.countLabel} ${list.members.length}${copy.countUnit}`}
+        />
+        {/* 목록마다 다른 마스코트. 장식이라 alt 는 비운다 — 이름은 옆의 h1 이 이미 말한다. */}
+        <HeroMascot
+          $side={mascot.side}
+          src={mascot.src}
+          alt=""
+          width={mascot.width}
+          height={mascot.height}
+          loading="eager"
+          decoding="async"
+          draggable={false}
+        />
+      </HeroBlock>
 
       <Sections>
         <Section>
@@ -111,24 +161,19 @@ export default function DividendListView({ viewModel }: DividendListViewProps) {
 
         <Section>
           <SectionTitle>{copy.tableHeading}</SectionTitle>
-          <FilterRow role="group" aria-label={copy.sectorFilterLabel}>
-            <FilterLabel>{copy.sectorFilterLabel}</FilterLabel>
-            <Chip selected={sector === null} onClick={() => setSector(null)}>
-              {`${copy.sectorFilterAll} ${rows.length}`}
-            </Chip>
-            {facets.map((facet) => (
-              <Chip
-                key={facet.sector}
-                selected={sector === facet.sector}
-                onClick={() => setSector((prev) => (prev === facet.sector ? null : facet.sector))}
-              >
-                {`${facet.label} ${facet.count}`}
-              </Chip>
-            ))}
-          </FilterRow>
+          <DividendListFilters
+            facets={facets}
+            totalCount={rows.length}
+            filter={filter}
+            onChange={setFilter}
+          />
           <TableMeta>
             {`${visibleRows.length}${copy.countUnit} ${copy.filteredCountSuffix} · ${copy.sortHint}`}
             {measuredAt ? ` · ${copy.measuredAtLabel} ${measuredAt}` : ''}
+            {/* 값이 없어 빠진 줄은 **숫자로** 말한다. "왜 46종이 아니지"를 사용자가 혼자 풀게 두지 않는다. */}
+            {hiddenByUnknown > 0
+              ? ` · ${copy.filterUnknownExcludedPrefix}${hiddenByUnknown}${copy.filterUnknownExcludedSuffix}`
+              : ''}
           </TableMeta>
           <DividendListTable
             rows={visibleRows}

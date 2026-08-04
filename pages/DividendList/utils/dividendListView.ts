@@ -121,7 +121,13 @@ export type DividendListRow = {
   yield: DividendListNumberCell;
   streak: DividendListStreakCell;
   growth: DividendListGrowthCell;
-  confirmedBy: string[];
+  /*
+   * ⚠ `confirmedBy`(확인한 자료)는 **이 뷰모델에 없다**(2026-08-04 제거). 데이터에는 그대로 있지만
+   * 한 목록 안에서 값이 **전 종목 동일**하다 — `dividendLists.curated.ts` 의 `withConfirmedBy` 가
+   * 목록 상수 배열을 멤버마다 복사해 넣기 때문이다(킹 2종·귀족 2종·챔피언 1종). 표의 한 열을
+   * 46~83줄 내내 같은 문자열로 채우는 셈이라 열을 걷었고, 같은 사실은 "출처와 기준일" 섹션이
+   * 목록당 한 번 말한다. 되살리려면 값이 **종목마다 갈리는지** 먼저 확인하라.
+   */
   /** 이 줄의 숫자가 언제 기준인지. 없으면 `null`(있는 척하지 않는다). */
   measuredAt: string | null;
   /**
@@ -237,7 +243,6 @@ export const toDividendListRow = (
     yield: toYieldCell(member),
     streak: toStreakCell(member, list, currentYear),
     growth: toGrowthCell(member),
-    confirmedBy: member.confirmedBy,
     measuredAt: member.measuredAt ?? null,
     tickerPagePath: slug ? tickerPagePath(slug) : null
   };
@@ -355,6 +360,11 @@ export type SectorFacet = {
  *
  * ⚠ 섹터를 모르는 종목은 칩을 만들지 않는다 — "섹터 미상"이라는 칩은 분류가 아니라 우리 자료의 구멍이고,
  *   칩으로 세우면 그 구멍이 하나의 섹터처럼 읽힌다. 그 종목들은 표에서 "—" 로 남는다.
+ *
+ * 🔴 **개수는 언제나 목록 전체 기준이다**(다른 축이 걸려 있어도 안 줄어든다). 다른 축에 맞춰 다시
+ *   세면 칩을 누르지도 않았는데 숫자가 계속 흔들리고, 0 이 된 섹터 칩은 사라졌다 나타난다 —
+ *   정렬 가능한 열을 **필터 전 전체 행**으로 판정하는 것과 같은 이유다. 실제로 몇 종이 보이는지는
+ *   표 위의 "N종 표시 중" 한 줄이 말한다.
  */
 export const buildSectorFacets = (rows: readonly DividendListRow[]): SectorFacet[] => {
   const counts = new Map<DividendListSectorId, number>();
@@ -367,11 +377,129 @@ export const buildSectorFacets = (rows: readonly DividendListRow[]): SectorFacet
     .sort((left, right) => right.count - left.count || left.label.localeCompare(right.label, 'ko'));
 };
 
-/** `null` = 전체(필터 없음). 필터가 목록을 비우는 것과 목록 자체가 빈 것은 화면에서 다르게 말한다. */
-export const filterBySector = (
+/**
+ * 목록을 좁히는 **세 축**. 축끼리는 AND(배당률 ∧ 성장 ∧ 섹터), 섹터 축 **안에서는 OR** 이다.
+ *
+ * `null`·빈 배열이 곧 "이 축은 안 걸었다"이고, 별도의 on/off 플래그를 두지 않는다 —
+ * 게시판 분류 필터(`pages/Community/.../useBoard.ts`)가 쓰는 같은 규약이다. 플래그를 따로 두면
+ * "켜졌는데 값이 없는" 상태가 표현 가능해지고, 그 상태는 반드시 언젠가 실제로 생긴다.
+ */
+export type DividendListFilter = {
+  /** 이 값 **이상**인 줄만 남긴다(단위 %). */
+  minYieldPercent: number | null;
+  /** 이 값 **이상**인 줄만 남긴다(단위 %). */
+  minGrowthPercent: number | null;
+  /** 빈 배열 = 전체. 여럿이면 그중 하나라도 맞는 줄이 남는다. */
+  sectors: readonly DividendListSectorId[];
+};
+
+/** 아무 축도 걸지 않은 상태. 화면의 초기값이자 "전체 해제"가 되돌아가는 자리다. */
+export const NO_DIVIDEND_LIST_FILTER: DividendListFilter = {
+  minYieldPercent: null,
+  minGrowthPercent: null,
+  sectors: []
+};
+
+/**
+ * 배당률 눈금(%). 🔴 **분포를 실제로 재서 정했다** — 눈금이 분포와 어긋나면 누를 때마다 표가
+ * 통째로 비거나 하나도 안 줄어든다.
+ *
+ * 실측 2026-08-04 · 세 목록 198종 중 배당률이 있는 179종
+ * (`dividendLists.metrics.generated.json` 을 목록 멤버로 조인해 계산):
+ * ```
+ *   최소 0.25 · p25 1.33 · 중앙값 2.44 · p75 3.30 · p90 4.07 · 최대 6.38
+ *   눈금별 남는 종목 수      배당킹(46) · 배당귀족(69) · 배당챔피언(83)
+ *     2% 이상                  30          44           36
+ *     3% 이상                  12          22           19
+ *     4% 이상                   5           9            5
+ *     (5% 이상)                 1           3            3   ← 눈금으로 두지 않는다
+ * ```
+ * 세 눈금이 각각 중앙값·p75·p90 근처에 서고, 어느 목록에서도 5종 아래로 떨어지지 않는다.
+ * 5% 는 킹에서 1종만 남아 "눌렀더니 표가 사라지는" 눈금이라 뺐다.
+ */
+export const DIVIDEND_LIST_YIELD_STEPS = [2, 3, 4] as const;
+
+/**
+ * 5년 배당성장 눈금(%). 같은 방식으로 쟀다 — 성장률이 있는 173종 기준.
+ * ```
+ *   최소 0.50 · p25 3.98 · 중앙값 5.97 · p75 7.53 · p90 11.10 · 최대 15.90
+ *   눈금별 남는 종목 수      배당킹 · 배당귀족 · 배당챔피언
+ *      5% 이상                 25      43        40
+ *      8% 이상                  6      15        16
+ *     10% 이상                  4      10         9
+ * ```
+ * ⚠ 배당률과 눈금 숫자를 맞추지 마라(둘 다 %지만 분포가 다르다) — 성장의 중앙값은 배당률의 2.4배다.
+ */
+export const DIVIDEND_LIST_GROWTH_STEPS = [5, 8, 10] as const;
+
+const passesSector = (row: DividendListRow, filter: DividendListFilter): boolean =>
+  filter.sectors.length === 0 || (row.sector !== null && filter.sectors.includes(row.sector));
+
+/**
+ * 🔴 **값이 없는 줄은 "이상" 조건을 통과하지 못한다.** 모르는 값을 0 으로도, 통과로도 읽지 않는다
+ * (표가 빈칸을 "0" 으로 그리지 않는 것과 같은 규율). 대신 그렇게 빠진 줄이 몇 개인지
+ * `countRowsHiddenByUnknown` 이 세어 화면이 말한다 — 조용히 사라지면 사용자는 목록이 잘못됐다고 읽는다.
+ */
+const passesMin = (
+  cell: DividendListNumberCell | DividendListGrowthCell,
+  min: number | null
+): boolean => min === null || (cell.known && cell.value >= min);
+
+/** 값이 **있었다면** 통과했을지 알 수 없는 줄인가 — 그 축이 켜져 있고 그 줄의 값이 없을 때만 참. */
+const blockedByUnknown = (row: DividendListRow, filter: DividendListFilter): boolean =>
+  (filter.minYieldPercent !== null && !row.yield.known) ||
+  (filter.minGrowthPercent !== null && !row.growth.known);
+
+/** 아는 값만으로는 걸릴 이유가 없는 줄인가(모르는 값은 판단에서 뺀다). */
+const passesKnownPart = (
+  cell: DividendListNumberCell | DividendListGrowthCell,
+  min: number | null
+): boolean => min === null || !cell.known || cell.value >= min;
+
+/** 세 축을 한꺼번에 건다. 필터가 목록을 비우는 것과 목록 자체가 빈 것은 화면에서 다르게 말한다. */
+export const filterDividendListRows = (
   rows: readonly DividendListRow[],
-  sector: DividendListSectorId | null
-): DividendListRow[] => (sector === null ? [...rows] : rows.filter((row) => row.sector === sector));
+  filter: DividendListFilter
+): DividendListRow[] =>
+  rows.filter(
+    (row) =>
+      passesSector(row, filter) &&
+      passesMin(row.yield, filter.minYieldPercent) &&
+      passesMin(row.growth, filter.minGrowthPercent)
+  );
+
+/**
+ * 숫자 축 때문에 빠졌지만 **값만 있었다면 남았을지 모르는** 줄의 수.
+ *
+ * ⚠ 섹터로 이미 빠진 줄은 세지 않는다 — 그것까지 세면 "값이 없어 제외됐다"는 숫자가 부풀려진다.
+ * ⚠ 아는 값이 이미 눈금 아래인 줄도 세지 않는다(그 줄은 값이 있어도 어차피 빠진다).
+ * 실측 근거: 배당킹 46종 중 4종(MO·PH·RLI·TR), 배당챔피언 83종 중 15종에 아직 지표가 없다.
+ */
+export const countRowsHiddenByUnknown = (
+  rows: readonly DividendListRow[],
+  filter: DividendListFilter
+): number =>
+  rows.filter(
+    (row) =>
+      blockedByUnknown(row, filter) &&
+      passesSector(row, filter) &&
+      passesKnownPart(row.yield, filter.minYieldPercent) &&
+      passesKnownPart(row.growth, filter.minGrowthPercent)
+  ).length;
+
+/** 축이 하나라도 걸려 있는가. 화면은 이 값으로 "적용 중" 줄과 해제 버튼을 낸다. */
+export const isDividendListFiltered = (filter: DividendListFilter): boolean =>
+  filter.minYieldPercent !== null || filter.minGrowthPercent !== null || filter.sectors.length > 0;
+
+/**
+ * 섹터 하나를 켜고 끈다. **순서를 보존한다**(누른 순서대로 남는다) — 정렬해 다시 담으면
+ * 방금 누른 칩이 줄의 다른 자리로 튀어 사용자가 자기 조작을 잃는다.
+ */
+export const toggleDividendListSector = (
+  sectors: readonly DividendListSectorId[],
+  sector: DividendListSectorId
+): DividendListSectorId[] =>
+  sectors.includes(sector) ? sectors.filter((id) => id !== sector) : [...sectors, sector];
 
 /** 목록의 기준을 한 줄로. 상한이 있으면 구간으로 말한다(배당챔피언 25~49년). */
 export const formatStreakCriterion = (list: DividendList): string =>

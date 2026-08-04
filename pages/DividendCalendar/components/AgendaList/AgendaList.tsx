@@ -1,5 +1,6 @@
 import { DIVIDEND_CALENDAR_COPY } from '../../copy';
 import { agendaDayElementId, tickerSeriesVar } from '../../utils';
+import { OverflowTooltip } from '../OverflowTooltip';
 import { ScheduleSourceBadge } from '../ScheduleSourceBadge';
 import type { AgendaListProps } from './AgendaList.types';
 import {
@@ -12,6 +13,7 @@ import {
   AgendaItem,
   AgendaItemList,
   AgendaName,
+  AgendaNameSlot,
   AgendaRoot,
   AgendaTicker
 } from './AgendaList.styled';
@@ -61,11 +63,21 @@ export default function AgendaList({
                 {day.items.map((item) => (
                   <AgendaItem key={item.ticker}>
                     <AgendaDot aria-hidden style={{ background: seriesOf(item.ticker) }} />
+                    {/* 티커에는 툴팁을 달지 않는다 — 잘리지 않기 때문이다. 실측(2026-08-04, uiprobe):
+                        고정폭 열은 51.8px 이고 유니버스에서 가장 긴 심볼 GOOGL 이 48.8px 라 1280·390
+                        어느 폭에서도 넘치지 않는다(206종 중 5글자는 GOOGL 하나뿐). 안 잘리는 글자에
+                        툴팁을 다는 것은 소음이다. 더 긴 심볼이 유니버스에 들어오면 다시 재라. */}
                     <AgendaTicker>{item.ticker}</AgendaTicker>
                     {/* 이름이 남는 폭을 전부 먹고 근거 배지가 줄 끝에 선다 — 여러 줄이 쌓였을 때
                         배지가 오른쪽에 세로로 정렬돼 "무엇이 추정인가"를 훑어서 읽을 수 있다.
-                        (구 순서는 티커 바로 뒤라 이름의 시작점이 종목마다 들쭉날쭉했다.) */}
-                    <AgendaName>{item.koreanName}</AgendaName>
+                        (구 순서는 티커 바로 뒤라 이름의 시작점이 종목마다 들쭉날쭉했다.)
+                        이름은 이 열에서 자주 잘린다(1280 실측 133px 칸 / 161px 글자) — 잘린 경우에만
+                        OverflowTooltip 이 전체 이름을 hover·클릭·포커스로 열어 준다. */}
+                    <AgendaNameSlot>
+                      <OverflowTooltip text={item.koreanName}>
+                        <AgendaName />
+                      </OverflowTooltip>
+                    </AgendaNameSlot>
                     <ScheduleSourceBadge source={item.source} />
                   </AgendaItem>
                 ))}

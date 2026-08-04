@@ -3,7 +3,10 @@ import { createPortal } from 'react-dom';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
 import { ShareDialog } from '@/components/common';
 import { ShareIcon } from '@/components/community/CommunityIcons';
-import { usePostShare, type SharePlacement } from '@/components/community/hooks';
+import {
+  usePostShare,
+  type SharePlacement,
+} from '@/components/community/hooks';
 import { ShareIconButton, ShareToast } from './PostShareButton.styled';
 
 export type PostShareButtonProps = {
@@ -33,9 +36,23 @@ const d = COMMUNITY_COPY.detail;
  * 공유 창은 카드 안이 아니라 `document.body` 로 포털된다(`ShareDialog` 내부) — 카드에는 `overflow`·
  * 라운딩이 걸려 있어 카드 안에 그리면 잘린다.
  */
-export function PostShareButton({ postId, kind, title, url, placement, className }: PostShareButtonProps) {
-  const { shareToastMessage, shareTarget, isShareLinkCopied, sharePost, copyShareLink, shareToChannel, closeShare } =
-    usePostShare();
+export function PostShareButton({
+  postId,
+  kind,
+  title,
+  url,
+  placement,
+  className,
+}: PostShareButtonProps) {
+  const {
+    shareToastMessage,
+    shareTarget,
+    isShareLinkCopied,
+    sharePost,
+    copyShareLink,
+    shareToChannel,
+    closeShare,
+  } = usePostShare();
 
   const handleClick = useCallback(
     (event: MouseEvent<HTMLButtonElement>) => {
@@ -44,14 +61,19 @@ export function PostShareButton({ postId, kind, title, url, placement, className
       event.stopPropagation();
       void sharePost({ postId, kind, title, url, placement });
     },
-    [sharePost, postId, kind, title, url, placement]
+    [sharePost, postId, kind, title, url, placement],
   );
 
   const toastRoot = typeof document !== 'undefined' ? document.body : null;
 
   return (
     <>
-      <ShareIconButton type="button" className={className} aria-label={d.shareAria} onClick={handleClick}>
+      <ShareIconButton
+        type="button"
+        className={className}
+        aria-label={d.shareAria}
+        onClick={handleClick}
+      >
         <ShareIcon size={16} strokeWidth={1.8} />
       </ShareIconButton>
       {shareTarget ? (
@@ -68,7 +90,7 @@ export function PostShareButton({ postId, kind, title, url, placement, className
             <ShareToast role="status" aria-live="polite">
               {shareToastMessage}
             </ShareToast>,
-            toastRoot
+            toastRoot,
           )
         : null}
     </>

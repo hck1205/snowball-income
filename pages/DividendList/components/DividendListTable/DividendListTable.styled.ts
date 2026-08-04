@@ -15,7 +15,7 @@ import { color, container, font, media, motion, radius, space, subtleScrollbar }
  * 붙이려 하지 마라 — CSS 는 한 축이 `auto` 면 다른 축의 `visible` 을 `auto` 로 계산해서, sticky 가
  * 페이지가 아니라 이 상자를 기준으로 잡고 **영영 안 붙는다**(비교표에서 실측한 함정:
  * `test/ticker/tickerCompareStickyHead.test.ts` 머리말, 스크롤 후 머리 top −191px).
- * 이 표는 열이 일곱이라 넓은 폭에서도 가로 스크롤을 지울 수 없으므로 머리 고정을 아예 시도하지 않는다.
+ * 이 표는 좁은 폭에서 가로 스크롤이 남으므로 머리 고정을 아예 시도하지 않는다.
  */
 export const TableWrap = styled.div`
   overflow-x: auto;
@@ -65,24 +65,25 @@ const stackedTable = `
 `;
 
 /*
- * 🔴 `min-width` 는 열이 넷에서 **일곱**으로 늘며 640 → 900 으로 올렸다. 실측 근거
- * (2026-08-04 · Chrome · uiprobe, 표 폭을 직접 바꿔 가며 본문 행 높이를 잰 값):
+ * 🔴 `min-width` 이력: 열 넷 640 → 일곱 900 → **여섯 720**(2026-08-04, "확인한 자료" 열 제거).
+ *
+ * 실측 근거 (Chrome · uiprobe @1280, `max-content` 로 재 본 표의 **자연 폭**):
  * ```
- *   표 폭      줄바꿈된 본문 행 (배당킹 46줄 기준)
- *     860              46 / 46      ← 전 줄이 2줄로 접힌다
- *     880              46 / 46
- *     900               0 / 46      ← 여기서 딱 멈춘다
- *   자연 폭(무제한): 배당킹 881 · 배당챔피언 868 · 배당귀족 808
+ *   배당킹 611 · 배당귀족 617 · 배당챔피언 702      ← 열이 일곱일 때는 각각 881 · 808 · 868 이었다
  * ```
- * 세 목록의 자연 폭 최댓값(881)을 덮는 가장 가까운 값이 900 이다. 더 내리면 전 줄이 2줄이 되고,
- * 더 올리면 820~900 구간의 가로 스크롤만 길어진다.
- * ⚠ 이 값을 만지기 전에 `npm run uiprobe -- --url http://localhost:5173/dividend/kings
- *   --width 1280,390 --overflow` 로 다시 재라 — 한 줄이 두 줄이 되는 건 눈으로 잘 안 보인다.
+ * 720 은 최댓값 702 를 덮는 가장 가까운 값이다.
+ *
+ * ⚠ 이 값은 이제 **거의 발동하지 않는 바닥 가드**다. 표 모드는 컨테이너가 820 을 넘을 때만 존재하고
+ *   (그 이하는 아래 `stackedTable` 이 행 카드로 접으며 `min-width: 0` 으로 되돌린다), 자연 폭
+ *   최댓값 702 는 820 보다 작기 때문이다. 900 이던 시절에는 그 사이 구간이 통째로 가로 스크롤이었다 —
+ *   실측: 뷰포트 880(표 상자 830)에서 **70px** 이 옆으로 밀렸다. 열을 하나 걷어 그 구간이 사라졌다.
+ * ⚠ 열을 더하면 자연 폭이 다시 820 을 넘을 수 있다. 그때는 `npm run uiprobe -- --url
+ *   http://localhost:5173/dividend/champions --width 1280,880,390 --overflow` 로 다시 재라.
  */
 export const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
-  min-width: 900px;
+  min-width: 720px;
   font-size: ${font.size.sm};
 
   caption {
@@ -170,7 +171,9 @@ export const SortGlyph = styled.span<{ $active: boolean }>`
 /*
  * 🔴 라벨 칸이 `auto`(제 폭)이고 값 칸이 나머지를 먹는다. 반대로(라벨 1fr · 값 auto) 두면 값이
  * 제 최대폭을 먼저 가져가 라벨이 눌리고, 라벨을 nowrap 으로 지키면 이번엔 둘이 **겹쳐** 그려진다
- * (390px 실측: "확인한 자료" 위에 "stockanalysis.com" 이 올라탔다). 접혀야 하는 쪽은 값이다.
+ * (390px 실측: 지금은 없어진 "확인한 자료" 칸에서 "stockanalysis.com" 이 라벨 위로 올라탔다).
+ * ⚠ 그 열이 사라졌다고 이 규칙을 되돌리지 마라 — 종목명("West Pharmaceutical Services, I")이
+ *   같은 자리에서 같은 일을 한다. 접혀야 하는 쪽은 언제나 값이다.
  */
 const stackedCell = `
   display: grid;
@@ -198,9 +201,9 @@ const stackedCell = `
     font-size: ${font.size.xs};
     font-weight: ${font.weight.medium};
     /*
-     * 🔴 라벨은 절대 접지 않는다. 값 칸이 길면(확인한 자료 = "stockanalysis.com · DRiP Investing
-     * Resource Center") 1fr 라벨 칸이 먼저 눌려 390px 실측에서 "확인 / 한 자 / 료" 세 줄이 됐다.
-     * 접혀야 하는 건 라벨이 아니라 값이다 — 라벨은 그 줄이 무엇인지 말하는 유일한 단서다.
+     * 🔴 라벨은 절대 접지 않는다. 값 칸이 길면(옛 "확인한 자료" = "stockanalysis.com · DRiP
+     * Investing Resource Center") 1fr 라벨 칸이 먼저 눌려 390px 실측에서 "확인 / 한 자 / 료"
+     * 세 줄이 됐다. 접혀야 하는 건 라벨이 아니라 값이다 — 라벨은 그 줄이 무엇인지 말하는 유일한 단서다.
      */
     white-space: nowrap;
   }
@@ -330,12 +333,6 @@ export const SectorTag = styled.span`
   color: ${color.textSecondary};
   font-size: ${font.size.xs};
   white-space: nowrap;
-`;
-
-/** 어느 자료가 이 종목을 확인해 줬는지. 목록의 신뢰 근거라 표 안에 둔다(각주로 내리지 않는다). */
-export const ConfirmedBy = styled.span`
-  color: ${color.textMuted};
-  font-size: ${font.size.xs};
 `;
 
 export const EmptyRowCell = styled.td`

@@ -122,7 +122,6 @@ export const DIVIDEND_LIST_COPY = {
     columnStreak: '연속 증배',
     columnGrowth: '5년 배당성장',
     columnSector: '섹터',
-    columnConfirmedBy: '확인한 자료',
     sortHint: '열 제목을 누르면 정렬 순서가 바뀝니다.',
     sortAscLabel: '오름차순',
     sortDescLabel: '내림차순',
@@ -150,9 +149,27 @@ export const DIVIDEND_LIST_COPY = {
     streakExactTitle: '자료로 확인한 연속 증배 연수입니다.',
     /** 숫자의 기준일. 배당률·성장률은 매일 움직여서 날짜 없이 쓰면 "지금 값"으로 읽힌다. */
     measuredAtLabel: '지표 실측일',
-    sectorFilterLabel: '섹터로 좁히기',
-    sectorFilterAll: '전체',
-    filteredEmpty: '고른 섹터에 해당하는 종목이 없습니다.',
+
+    /* ── 세 축 필터 ─────────────────────────────────────────────────────────
+     * 🔴 축 이름은 **표의 열 이름과 같은 낱말**을 쓴다(배당률 · 5년 배당성장 · 섹터).
+     *   필터에서 "배당수익률", 표에서 "배당률" 처럼 갈리면 사용자는 둘이 같은 값인지 확인해야 한다.
+     */
+    filterHeading: '조건으로 좁히기',
+    /** 세 축이 함께 걸린다는 사실을 한 줄로. 이걸 안 쓰면 사용자는 축을 바꿀 때마다 앞 축이 풀린 줄 안다. */
+    filterHint: '세 조건은 함께 적용됩니다. 섹터는 여러 개를 고를 수 있습니다.',
+    filterAll: '전체',
+    /** "3% 이상" 의 뒷부분. 숫자는 눈금 상수(`DIVIDEND_LIST_YIELD_STEPS`)가 준다. */
+    filterAtLeastSuffix: '% 이상',
+    /** 지금 무엇이 걸려 있는지를 **글자로** 말하는 줄. 칩의 색·굵기만으로는 상태가 색 단독 채널이 된다. */
+    filterActiveLabel: '적용 중',
+    filterAxisSeparator: ' · ',
+    filterSectorSeparator: ', ',
+    filterReset: '필터 해제',
+    /** 값이 없어 빠진 줄 수. "값이 없는 4종은 이 조건에서 제외했습니다." 로 조립된다. */
+    filterUnknownExcludedPrefix: '값이 없는 ',
+    filterUnknownExcludedSuffix: '종은 이 조건에서 제외했습니다.',
+
+    filteredEmpty: '조건에 맞는 종목이 없습니다.',
     filteredCountSuffix: '종목 표시 중',
     tickerPageLinkTitle: '소개 페이지 열기',
     relatedHeading: '다른 목록',

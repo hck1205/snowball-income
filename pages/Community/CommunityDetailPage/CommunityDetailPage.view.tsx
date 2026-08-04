@@ -1,3 +1,4 @@
+import { ICON } from '@/shared/styles';
 import { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
@@ -253,9 +254,12 @@ export default function CommunityDetailView({ viewModel }: CommunityDetailViewPr
               />
             </RailLike>
             {canShare ? (
+              /* 🔴 아이콘 크기는 ICON.lg(18) 다 — 옆의 LikeButton 이 md 에서 쓰는 값과 **같은 값**이어야
+                 두 원이 한 줄에서 같은 무게로 선다(종전에는 16 이 하드코딩돼 하트보다 작았다).
+                 🔴 글자("공유")를 지웠다(2026-08-04 사용자 지시) — 이름은 aria-label 이 계속 진다.
+                 옆의 좋아요가 아이콘+숫자라 글자가 하나 더 붙으면 두 버튼의 폭이 갈린다. */
               <ShareButton type="button" aria-label={d.shareAria} onClick={onShare}>
-                <ShareIcon size={16} strokeWidth={1.8} />
-                {d.share}
+                <ShareIcon size={ICON.lg} strokeWidth={1.8} />
               </ShareButton>
             ) : null}
           </ActionRail>

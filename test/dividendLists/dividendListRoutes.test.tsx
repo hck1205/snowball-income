@@ -113,7 +113,7 @@ describe('배당 목록 라우트', () => {
     const table = await screen.findByRole('table');
     const total = within(table).getAllByRole('row').length - 1;
 
-    const group = await screen.findByRole('group', { name: DIVIDEND_LIST_COPY.page.sectorFilterLabel });
+    const group = await screen.findByRole('group', { name: DIVIDEND_LIST_COPY.page.columnSector });
     // 전체 칩 다음의 첫 섹터 칩 = 종목이 가장 많은 섹터.
     const [, firstSectorChip] = within(group).getAllByRole('button');
     await user.click(firstSectorChip);
@@ -121,5 +121,68 @@ describe('배당 목록 라우트', () => {
     const filtered = within(await screen.findByRole('table')).getAllByRole('row').length - 1;
     expect(filtered).toBeGreaterThan(0);
     expect(filtered).toBeLessThan(total);
+  });
+
+  /**
+   * 🔴 세 축(배당률·5년 배당성장·섹터)이 **동시에** 걸린다는 계약. 축을 바꿀 때 앞 축이 풀리면
+   * 사용자는 조합을 만들 수 없고, 이 화면의 존재 이유가 사라진다.
+   */
+  it('배당률·성장·섹터를 겹쳐 걸 수 있고, 걸린 조건이 글자로도 남는다', async () => {
+    const user = userEvent.setup();
+    const copy = DIVIDEND_LIST_COPY.page;
+    renderAt(dividendListPath('aristocrats'));
+
+    const bodyRows = async () =>
+      within(await screen.findByRole('table')).getAllByRole('row').length - 1;
+    const total = await bodyRows();
+
+    const yieldGroup = await screen.findByRole('group', { name: copy.columnYield });
+    await user.click(within(yieldGroup).getByRole('button', { name: `3${copy.filterAtLeastSuffix}` }));
+    const afterYield = await bodyRows();
+    expect(afterYield).toBeLessThan(total);
+
+    const growthGroup = await screen.findByRole('group', { name: copy.columnGrowth });
+    await user.click(within(growthGroup).getByRole('button', { name: `5${copy.filterAtLeastSuffix}` }));
+    const afterBoth = await bodyRows();
+    // 두 번째 축이 첫 축을 대체하지 않는다 — 더 좁아지거나 같아야 한다.
+    expect(afterBoth).toBeLessThanOrEqual(afterYield);
+    expect(afterBoth).toBeGreaterThan(0);
+
+    /* 🔴 상태가 색 단독 채널이 아니다 — "적용 중" 줄이 두 조건을 문장으로 다시 쓴다. */
+    expect(
+      screen.getByText(
+        `${copy.columnYield} 3${copy.filterAtLeastSuffix}${copy.filterAxisSeparator}${copy.columnGrowth} 5${copy.filterAtLeastSuffix}`
+      )
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: copy.filterReset }));
+    expect(await bodyRows()).toBe(total);
+  });
+
+  /**
+   * 0건이 되는 조합은 실제로 있다. 실측(2026-08-04 스냅샷): 배당률 4% 이상 + 5년 배당성장 8% 이상은
+   * 세 목록 모두 0종이다(킹 y4g5=1 · y4g8=0). 그때 화면이 죽지 않고 **되돌아갈 길**이 남아야 한다.
+   * ⚠ 데이터를 갱신해 이 조합이 더 이상 0 이 아니게 되면 다른 칸을 골라라 — 잠그는 것은 특정 숫자가
+   *   아니라 "빈 결과에도 안내와 해제가 있다"는 계약이다.
+   */
+  it('결과가 0건이어도 안내와 해제가 남는다', async () => {
+    const user = userEvent.setup();
+    const copy = DIVIDEND_LIST_COPY.page;
+    renderAt(dividendListPath('kings'));
+
+    const yieldGroup = await screen.findByRole('group', { name: copy.columnYield });
+    await user.click(within(yieldGroup).getByRole('button', { name: `4${copy.filterAtLeastSuffix}` }));
+    const growthGroup = await screen.findByRole('group', { name: copy.columnGrowth });
+    await user.click(within(growthGroup).getByRole('button', { name: `8${copy.filterAtLeastSuffix}` }));
+
+    const table = await screen.findByRole('table');
+    expect(within(table).getAllByRole('row')).toHaveLength(2); // 머리 + 안내 한 줄
+    expect(within(table).getByText(copy.filteredEmpty)).toBeInTheDocument();
+
+    const reset = screen.getByRole('button', { name: copy.filterReset });
+    await user.click(reset);
+    expect(within(await screen.findByRole('table')).getAllByRole('row').length - 1).toBe(
+      DIVIDEND_LISTS.kings.members.length
+    );
   });
 });

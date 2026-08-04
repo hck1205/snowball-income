@@ -5992,7 +5992,6 @@ var DIVIDEND_LIST_COPY = {
     columnStreak: "\uC5F0\uC18D \uC99D\uBC30",
     columnGrowth: "5\uB144 \uBC30\uB2F9\uC131\uC7A5",
     columnSector: "\uC139\uD130",
-    columnConfirmedBy: "\uD655\uC778\uD55C \uC790\uB8CC",
     sortHint: "\uC5F4 \uC81C\uBAA9\uC744 \uB204\uB974\uBA74 \uC815\uB82C \uC21C\uC11C\uAC00 \uBC14\uB01D\uB2C8\uB2E4.",
     sortAscLabel: "\uC624\uB984\uCC28\uC21C",
     sortDescLabel: "\uB0B4\uB9BC\uCC28\uC21C",
@@ -6018,9 +6017,25 @@ var DIVIDEND_LIST_COPY = {
     streakExactTitle: "\uC790\uB8CC\uB85C \uD655\uC778\uD55C \uC5F0\uC18D \uC99D\uBC30 \uC5F0\uC218\uC785\uB2C8\uB2E4.",
     /** 숫자의 기준일. 배당률·성장률은 매일 움직여서 날짜 없이 쓰면 "지금 값"으로 읽힌다. */
     measuredAtLabel: "\uC9C0\uD45C \uC2E4\uCE21\uC77C",
-    sectorFilterLabel: "\uC139\uD130\uB85C \uC881\uD788\uAE30",
-    sectorFilterAll: "\uC804\uCCB4",
-    filteredEmpty: "\uACE0\uB978 \uC139\uD130\uC5D0 \uD574\uB2F9\uD558\uB294 \uC885\uBAA9\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.",
+    /* ── 세 축 필터 ─────────────────────────────────────────────────────────
+     * 🔴 축 이름은 **표의 열 이름과 같은 낱말**을 쓴다(배당률 · 5년 배당성장 · 섹터).
+     *   필터에서 "배당수익률", 표에서 "배당률" 처럼 갈리면 사용자는 둘이 같은 값인지 확인해야 한다.
+     */
+    filterHeading: "\uC870\uAC74\uC73C\uB85C \uC881\uD788\uAE30",
+    /** 세 축이 함께 걸린다는 사실을 한 줄로. 이걸 안 쓰면 사용자는 축을 바꿀 때마다 앞 축이 풀린 줄 안다. */
+    filterHint: "\uC138 \uC870\uAC74\uC740 \uD568\uAED8 \uC801\uC6A9\uB429\uB2C8\uB2E4. \uC139\uD130\uB294 \uC5EC\uB7EC \uAC1C\uB97C \uACE0\uB97C \uC218 \uC788\uC2B5\uB2C8\uB2E4.",
+    filterAll: "\uC804\uCCB4",
+    /** "3% 이상" 의 뒷부분. 숫자는 눈금 상수(`DIVIDEND_LIST_YIELD_STEPS`)가 준다. */
+    filterAtLeastSuffix: "% \uC774\uC0C1",
+    /** 지금 무엇이 걸려 있는지를 **글자로** 말하는 줄. 칩의 색·굵기만으로는 상태가 색 단독 채널이 된다. */
+    filterActiveLabel: "\uC801\uC6A9 \uC911",
+    filterAxisSeparator: " \xB7 ",
+    filterSectorSeparator: ", ",
+    filterReset: "\uD544\uD130 \uD574\uC81C",
+    /** 값이 없어 빠진 줄 수. "값이 없는 4종은 이 조건에서 제외했습니다." 로 조립된다. */
+    filterUnknownExcludedPrefix: "\uAC12\uC774 \uC5C6\uB294 ",
+    filterUnknownExcludedSuffix: "\uC885\uC740 \uC774 \uC870\uAC74\uC5D0\uC11C \uC81C\uC678\uD588\uC2B5\uB2C8\uB2E4.",
+    filteredEmpty: "\uC870\uAC74\uC5D0 \uB9DE\uB294 \uC885\uBAA9\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.",
     filteredCountSuffix: "\uC885\uBAA9 \uD45C\uC2DC \uC911",
     tickerPageLinkTitle: "\uC18C\uAC1C \uD398\uC774\uC9C0 \uC5F4\uAE30",
     relatedHeading: "\uB2E4\uB978 \uBAA9\uB85D",

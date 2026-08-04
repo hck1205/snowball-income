@@ -2,7 +2,6 @@ import { DIVIDEND_LIST_COPY } from '../../copy';
 import type { DividendListRow, DividendListSortKey, DividendListUnknownReason } from '../../utils';
 import type { DividendListTableProps } from './DividendListTable.types';
 import {
-  ConfirmedBy,
   EmptyRowCell,
   GrowthValue,
   NumberCell,
@@ -27,6 +26,12 @@ const copy = DIVIDEND_LIST_COPY.page;
 /**
  * 열 정의. `key` 는 정렬 축이자 `data-label`(좁은 폭에서 행 카드의 라벨)의 출처다.
  * `numeric` 인 열은 넓은 폭에서 오른쪽 정렬한다(머리와 값이 같은 축에 선다).
+ *
+ * 🔴 **여기 있는 것이 표의 전부다**(2026-08-04). 종전에는 이 배열 밖에 "확인한 자료" 열이 하나 더
+ * 손으로 그려져 있었다 — 정렬 축이 아니라는 이유였는데, 그 탓에 "열이 몇 개인가"의 답이 두 곳으로
+ * 갈려 `colSpan`·`min-width` 가 조용히 어긋날 수 있었다. 그 열은 값이 목록 안에서 전 종목 동일해
+ * (46~83줄이 같은 문자열) 제거했고, 같은 사실은 "출처와 기준일" 섹션이 목록당 한 번 말한다.
+ * 새 열이 필요하면 **이 배열에만** 넣어라.
  */
 const COLUMNS: Array<{ key: DividendListSortKey; header: string; numeric: boolean }> = [
   { key: 'ticker', header: copy.columnTicker, numeric: false },
@@ -124,18 +129,12 @@ export default function DividendListTable({
                 </HeaderCell>
               );
             })}
-            <TH scope="col">
-              {/* 확인 자료 열은 정렬 축이 아니다 — 목록 전체가 같은 자료라 정렬해도 순서가 안 바뀐다. */}
-              <SortButton as="span" $active={false}>
-                {copy.columnConfirmedBy}
-              </SortButton>
-            </TH>
           </tr>
         </thead>
         <tbody>
           {rows.length === 0 ? (
             <tr>
-              <EmptyRowCell colSpan={COLUMNS.length + 1}>{copy.filteredEmpty}</EmptyRowCell>
+              <EmptyRowCell colSpan={COLUMNS.length}>{copy.filteredEmpty}</EmptyRowCell>
             </tr>
           ) : (
             rows.map((row) => (
@@ -170,9 +169,6 @@ export default function DividendListTable({
                   ) : (
                     <SectorTag>{row.sectorLabel}</SectorTag>
                   )}
-                </TD>
-                <TD data-label={copy.columnConfirmedBy}>
-                  <ConfirmedBy>{row.confirmedBy.join(' · ')}</ConfirmedBy>
                 </TD>
               </tr>
             ))

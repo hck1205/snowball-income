@@ -201,12 +201,42 @@ export const AgendaTicker = styled.strong`
   ${font.numeric}
 `;
 
+/**
+ * 이름의 **자리**. 이름 자체가 아니라 자리를 flex 아이템으로 세운다.
+ *
+ * 🔴 왜 한 겹을 더 두는가 — 이름이 실제로 잘렸을 때만 `OverflowTooltip` 이 툴팁 앵커
+ * (inline-flex span)로 이름을 감싼다. 그 앵커는 `flex-grow: 0` 이라 그냥 두면
+ * **감쌌을 때와 아닐 때 이름 칸의 폭이 달라진다.** 그러면 (a) 오른쪽 근거 배지가 좌우로 튀고
+ * (b) 잘림 판정이 자기 결과에 영향을 받아 감쌈↔풂이 반복될 수 있다.
+ * 슬롯이 두 경우의 상자를 **같게** 만들어 그 고리를 끊는다 — 지우지 마라.
+ */
+export const AgendaNameSlot = styled.span`
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+
+  /* 자식은 감싼 경우(툴팁 앵커)든 아닌 경우(이름)든 슬롯을 그대로 채운다. */
+  > * {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+`;
+
 export const AgendaName = styled.span`
   flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+
+  /*
+   * tabindex 는 **잘렸을 때만** 붙는다(OverflowTooltip). 즉 이 선택자는 "감춰진 글자가 있다"와
+   * 정확히 같은 뜻이라, 상태 플래그를 따로 흘려보내지 않고 속성 하나로 커서 힌트를 준다.
+   * 포커스 링은 전역 globalStyles 의 [tabindex]:not([tabindex='-1']) 규칙이 이미 그린다.
+   */
+  &[tabindex] {
+    cursor: help;
+  }
 `;
 
 /**
