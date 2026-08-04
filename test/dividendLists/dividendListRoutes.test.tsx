@@ -70,6 +70,18 @@ describe('배당 목록 라우트', () => {
     expect((await screen.findAllByText(new RegExp(countText))).length).toBeGreaterThan(0);
   });
 
+  it('🔴 위키피디아를 쓰는 목록은 CC BY-SA 4.0 고지를 화면에 둔다 — 링크만으로는 라이선스 의무를 못 지킨다', async () => {
+    renderAt(dividendListPath('aristocrats'));
+    // 문장 뒤에 라이선스 링크가 붙어 텍스트가 여러 노드로 갈린다 — 정규식이 아니라 포함 검사로 잡는다.
+    expect(
+      await screen.findByText((_, element) =>
+        (element?.textContent ?? '').startsWith(DIVIDEND_LIST_COPY.page.wikipediaLicenseNote)
+      )
+    ).toBeInTheDocument();
+    const license = await screen.findByRole('link', { name: DIVIDEND_LIST_COPY.page.wikipediaLicenseLinkLabel });
+    expect(license).toHaveAttribute('href', DIVIDEND_LIST_COPY.page.wikipediaLicenseUrl);
+  });
+
   it('연속 증배 연수를 적지 않는 이유가 화면에 있다', async () => {
     renderAt(dividendListPath('kings'));
     expect(

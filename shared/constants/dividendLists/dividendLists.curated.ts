@@ -25,8 +25,13 @@ import type { DividendList, DividendListId, DividendListMember } from './dividen
  * 3. `npm run dividend:lists -- --verify` 로 야후 전기간 배당이력 가드를 돌려 삭감 신고를 확인한다.
  * 4. `asOf` 와 각 출처의 `retrievedAt` 을 실제로 받은 날짜로 고친다. **여기를 안 고치면 화면이
  *    낡은 기준일을 사실처럼 말한다.**
+ * 5. 편입·제외가 있었으면 `KINGS_STREAK_FACTS` 도 함께 본다. ⚠ **연수는 안 고쳐도 된다** —
+ *    거기 적는 건 연수가 아니라 시작 연도의 원자료라 해가 바뀌어도 그대로다. 고칠 때는 그 종목이
+ *    그 사이에 증배를 했는지(= `마지막 증배 지급월`)만 다시 확인하면 된다.
  *
- * 🔴 연속 증배 "연수"는 종목별로 싣지 않는다 — 근거는 `dividendLists.types.ts` 머리말(실측 오차 16~52%).
+ * 🔴 연속 증배 "연수"는 **계산하지 않는다.** 종목별로 싣는 건 소스에서 인용한 **시작 연도**뿐이고
+ * 연수는 화면이 매년 다시 센다 — 근거는 `dividendLists.types.ts` 머리말(기계 계산 오차 16~52%)과
+ * `dividendLists.streak.ts`.
  */
 
 /** 큐레이션 멤버는 `confirmedBy` 를 목록 단위로 붙인다 — 46줄에 같은 배열을 46번 적지 않는다. */
@@ -63,19 +68,148 @@ const NAME_REPAIRS: Record<string, string> = {
 };
 
 /**
+ * 🔴 **연속 증배 시작 연도의 원자료.** 티커 → `[연속 증배 횟수, 그 마지막 증배가 실제로 지급된 달]`.
+ *
+ * ## 왜 시작 연도를 직접 적지 않고 이 둘을 적는가
+ * 세상의 소스는 **횟수**만 싣는다("64 consecutive years"). 시작 연도를 적는 곳은 사실상 없다.
+ * 그래서 시작 연도는 반드시 역산인데, **역산은 손으로 하면 반드시 틀린다**(46종 × 뺄셈).
+ * 그래서 여기엔 **실제로 본 두 값만** 남기고 뺄셈은 `streakStartYearOf` 가 한다. 값 검증도 쉬워진다 —
+ * 리뷰어는 소스 페이지의 숫자와 이 표의 숫자를 눈으로 맞춰 보면 된다.
+ *
+ * ## 두 값의 출처
+ * - **횟수**: stockanalysis.com 배당킹 목록의 `Years` 열, 2026-08-04 확인. 이 파일이 이미 배당킹
+ *   목록의 1차 소스로 쓰는 곳이다. 받아 온 54행이 **내림차순으로 정렬돼 있었고 그 단조성이 깨지지
+ *   않았다** — 표 파싱이 열을 밀어 읽으면 가장 먼저 무너지는 성질이라, 값 정합성의 1차 검산이 된다.
+ * - **마지막 증배 지급월**: 야후 chart 배당이력을 직접 훑어 "지급액이 계단식으로 올라 그 뒤로
+ *   유지되는" 가장 최근 지급의 UTC 연·월을 뽑았다(2026-08-04 실측, 46종 전수).
+ *
+ * ## 🔴 왜 "올해"가 아니라 "마지막 증배가 지급된 해"에서 빼는가
+ * 8월 기준으로 **기업마다 올해 증배를 이미 했는지가 다르다.** 여기 36종 중 12종은 아직 2026년
+ * 증배 전이었다(ADP·AWR·DOV·EMR·FRT·NDSN·NWN·PPG·RPM·SCL·SWK·TNC — 전부 하반기 증배 기업).
+ * 그 12종에서 `2026 − 횟수 + 1` 로 세면 시작 연도가 **한 해씩 앞으로 밀린다.**
+ * 실측으로 확인한 사례: EMR 은 2025-11 지급부터 0.5275→0.555 로 올랐고 횟수는 69다.
+ * `2025 − 69 + 1 = 1957`. 두 번째 소스도 같은 해를 가리킨다 — 2025-12-26 시점 목록은 EMR 을 68회로
+ * 실었고 그때의 마지막 증배는 2024년이라 `2024 − 68 + 1 = 1957` 로 **같은 값**이다.
+ * 반면 올해에서 빼면 1958 이 나와 두 소스 어느 쪽과도 맞지 않는다.
+ *
+ * ## 채택 기준 — 46종 중 36종만 채웠다 (빠진 10종은 아래 주석)
+ * 1. stockanalysis 의 횟수를 **두 번째 소스**(dividendvaluebuilder.com 배당킹 목록, 2025-12-26)와
+ *    맞춰 본다. 두 소스는 8개월 차이라 stockanalysis 가 0~2 더 큰 것이 정상이고, 그 범위 안이면
+ *    **두 소스가 도출하는 시작 연도가 대수적으로 같다**(늦은 소스는 횟수도 기준 증배도 함께 밀린다).
+ *    반대로 오래된 소스가 **더 큰** 횟수를 실었다면 그건 시차가 아니라 진짜 불일치다.
+ * 2. 야후 지급이력에서 최근 구간에 **삭감이 없어야** 한다(연도별 최빈 지급액 기준).
+ * 3. 역산한 시작 연도가 야후가 보여 주는 **첫 배당보다 앞서면 안 된다**(이력이 잘리지 않은 종목에서만
+ *    의미 있는 검산이다 — 대부분은 1982~1990에서 잘려 있어 이 검산이 작동하지 않는다).
+ */
+const KINGS_STREAK_FACTS: Record<string, readonly [increases: number, latestRaisePaidAt: string]> = {
+  ABM: [59, '2026-01'],
+  ADM: [53, '2026-02'],
+  ADP: [51, '2025-12'],
+  AWR: [72, '2025-08'],
+  BDX: [54, '2026-03'],
+  BKH: [55, '2026-02'],
+  CINF: [65, '2026-03'],
+  CL: [63, '2026-04'],
+  CWT: [59, '2026-02'],
+  DOV: [71, '2025-08'],
+  ED: [53, '2026-02'],
+  EMR: [69, '2025-11'],
+  FRT: [59, '2025-10'],
+  FUL: [57, '2026-04'],
+  GPC: [70, '2026-03'],
+  GWW: [55, '2026-05'],
+  HRL: [60, '2026-01'],
+  JNJ: [64, '2026-05'],
+  KMB: [54, '2026-03'],
+  KO: [64, '2026-03'],
+  MSA: [56, '2026-05'],
+  NDSN: [63, '2025-09'],
+  NFG: [56, '2026-06'],
+  NWN: [71, '2025-10'],
+  PEP: [54, '2026-06'],
+  PG: [70, '2026-04'],
+  PH: [70, '2026-05'],
+  PPG: [55, '2025-08'],
+  RPM: [53, '2025-10'],
+  SCL: [58, '2025-11'],
+  SPGI: [53, '2026-02'],
+  SWK: [59, '2025-09'],
+  SYY: [57, '2026-07'],
+  TNC: [54, '2025-11'],
+  UVV: [56, '2026-07'],
+  WMT: [53, '2026-03']
+};
+
+/**
+ * 🔴 **일부러 비운 배당킹 10종.** 다음 리뷰에서 "왜 안 채웠지?"로 되돌아오지 않게 근거를 남긴다.
+ * 비어 있어도 화면은 "50년 이상"으로 말하므로 빈칸이 되지 않는다.
+ *
+ * | 티커 | 왜 못 채웠나 (전부 2026-08-04 실측) |
+ * |---|---|
+ * | LOW  | 두 소스가 54 vs 63 으로 **9년** 다르다. 63은 "1961년 상장 이래 매분기 배당을 **지급**"과 |
+ * |      | 연속 **증배**를 섞은 값으로 보이지만, 어느 쪽이 맞는지 우리가 판정할 근거가 없다. |
+ * | ITW  | 56 vs 62 로 **6년** 차이. 위와 같은 형태로 의심되나 확인 불가. |
+ * | TGT  | 55 vs 58 로 **3년** 차이. |
+ * | TR   | 57 vs 59 로 **2년** 차이. 매년 3% 주식배당을 섞어 지급해 현금 배당 이력만으로는 못 가른다. |
+ * | MCD  | 역산하면 1975년 시작인데 **야후 이력의 첫 배당이 1976년**이다(1976은 잘린 구간이 아니라 |
+ * |      | 실제 첫 배당). 시작이 첫 배당보다 앞설 수 없으므로 횟수 쪽이 틀렸다. 다른 소스는 이 종목을 |
+ * |      | 배당킹이 아니라 "49년 연속 배당챔피언"으로 싣는다 — 판단이 갈리는 자리다. |
+ * | RLI  | 최신 회차가 특별배당(0.16 → 2.18)이라 "계단식 상승" 탐지가 오염된다. 기준 증배 시점을 |
+ * |      | 기계가 못 고른다(같은 이유로 후보 유니버스에서도 지표가 비어 있다). |
+ * | MO   | 야후 실측상 최빈 지급액이 2007년 0.80→0.75, 2008년 0.75→0.32 로 **줄었다**(크래프트·PMI |
+ * |      | 분사). 기업행위 조정 전 원자료라 "삭감 없음" 검산을 통과하지 못한다. |
+ * | NUE  | 같은 검산에서 2008년 0.61→0.52, 2009년 0.52→0.35 로 줄었다(특별·추가 지급이 섞인 해). |
+ * | CBSH | 매년 5% 주식배당을 해 소급조정된 현금액이 2011년에 0.14427→0.1412 로 줄어 보인다. |
+ * | MGEE | dividendvaluebuilder 목록에 없어 **두 번째 소스가 아예 없다.** 한 소스만으로는 쓰지 않는다. |
+ */
+export const KINGS_STREAK_UNRESOLVED = [
+  'CBSH',
+  'ITW',
+  'LOW',
+  'MCD',
+  'MGEE',
+  'MO',
+  'NUE',
+  'RLI',
+  'TGT',
+  'TR'
+] as const;
+
+/**
+ * 시작 연도 = `마지막 증배가 지급된 해 − 증배 횟수 + 1`.
+ * `+1` 은 첫 증배 연도가 1년째이기 때문이다(1963년 시작 · 64회 → 마지막 증배는 2026년).
+ */
+const streakStartYearOf = ([increases, latestRaisePaidAt]: readonly [number, string]): number =>
+  Number(latestRaisePaidAt.slice(0, 4)) - increases + 1;
+
+/** 값 옆에 붙는 출처 — 리뷰어가 되짚을 수 있게 **두 입력값을 그대로** 담는다. */
+const streakSourceOf = ([increases, latestRaisePaidAt]: readonly [number, string]): string =>
+  `stockanalysis.com 연속 증배 ${increases}회(2026-08-04 확인) · 야후 실측 최근 증배 지급 ${latestRaisePaidAt}`;
+
+/**
  * @param repairNames dripinvesting 에서 온 목록(배당킹·배당챔피언)만 `true`. 배당귀족은 위키피디아
  *   표기를 그대로 쓰므로 손대지 않는다 — 손대면 자동 수집본(같은 위키 표기)과 폴백이 어긋난다.
+ * @param streakFacts 시작 연도를 채울 종목의 원자료. 표에 없는 종목은 **필드 자체를 안 붙인다**
+ *   (`undefined` 를 넣지 않는다 — `exactOptionalPropertyTypes` 여부와 무관하게 "없음"이 한 형태여야
+ *   화면·스키마가 같은 판단을 한다).
  */
 const withConfirmedBy = (
   members: readonly CuratedMember[],
   confirmedBy: readonly string[],
-  repairNames = false
+  repairNames = false,
+  streakFacts: Record<string, readonly [number, string]> = {}
 ): DividendListMember[] =>
-  members.map((member) => ({
-    ...member,
-    name: (repairNames ? NAME_REPAIRS[member.ticker] : undefined) ?? member.name,
-    confirmedBy: [...confirmedBy]
-  }));
+  members.map((member) => {
+    const facts = streakFacts[member.ticker];
+    return {
+      ...member,
+      name: (repairNames ? NAME_REPAIRS[member.ticker] : undefined) ?? member.name,
+      confirmedBy: [...confirmedBy],
+      ...(facts === undefined
+        ? {}
+        : { streakStartYear: streakStartYearOf(facts), streakSource: streakSourceOf(facts) })
+    };
+  });
 
 const KINGS_CONFIRMED_BY = ['stockanalysis.com', 'DRiP Investing Resource Center'] as const;
 const ARISTOCRATS_CONFIRMED_BY = ['ProShares NOBL 보유내역', 'Wikipedia'] as const;
@@ -340,8 +474,8 @@ export const CURATED_DIVIDEND_LISTS: Record<DividendListId, DividendList> = {
       }
     ],
     coverageNote:
-      '배당킹에는 단일 권위 소스가 없습니다. 두 소스가 각각 54종·47종을 실었고, 이 목록은 둘 다 실은 46종만 담았습니다. 한쪽에만 있는 9종은 판단이 갈려 제외했습니다.',
-    members: withConfirmedBy(KINGS_MEMBERS, KINGS_CONFIRMED_BY, true)
+      '배당킹에는 단일 권위 소스가 없습니다. 두 소스가 각각 54종·47종을 실었고, 이 목록은 둘 다 실은 46종만 담았습니다. 한쪽에만 있는 9종은 판단이 갈려 제외했습니다. 연속 증배가 시작된 해는 두 소스의 증배 횟수가 서로 어긋나지 않고 배당 이력에도 삭감이 없는 36종만 적었고, 나머지 10종은 목록의 기준인 50년 이상으로만 표시합니다.',
+    members: withConfirmedBy(KINGS_MEMBERS, KINGS_CONFIRMED_BY, true, KINGS_STREAK_FACTS)
   },
   aristocrats: {
     id: 'aristocrats',

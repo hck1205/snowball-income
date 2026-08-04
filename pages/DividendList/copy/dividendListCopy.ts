@@ -1,4 +1,5 @@
 import type { DividendListId } from '@/shared/constants/dividendLists';
+import type { DividendListUnknownReason } from '../utils';
 
 /** 목록 하나가 화면에서 쓰는 문구 묶음. 세 목록이 같은 모양을 갖는다. */
 export type DividendListPageCopy = {
@@ -19,7 +20,8 @@ export type DividendListPageCopy = {
  *  - 투자권유 금지. "유망하다·안전하다·사야 한다"를 쓰지 않는다. 약속형("~받게 됩니다") 금지 —
  *    조건부·설명형만 쓴다. 연속 증배 이력은 미래 배당을 보장하지 않으며, 그 사실을 각 페이지가 말한다.
  *  - **지어낸 숫자 0.** 종목 수는 데이터에서 세어 넣고, 기준일은 데이터의 `asOf` 를 그대로 쓴다.
- *  - 연속 증배 "연수"를 종목별 숫자로 쓰지 않는다(근거: `shared/constants/dividendLists` 타입 머리말).
+ *  - 연속 증배 "연수"는 **목록 기준이 보장하는 하한·구간**으로만 쓴다. 종목별 정확값은 계산이
+ *    불가능하다(근거: `shared/constants/dividendLists` 타입 머리말) — 표도 그 둘을 눈으로 구분해 그린다.
  *  - "눈덩이/스노우볼" 비유 전 표면 금지. 같은 개념은 복리·시간·재투자로 푼다.
  *  - `Dividend Aristocrats` 는 S&P Dow Jones Indices 의 **상표**다. 제목·본문은 한국어 서술어
  *    (배당귀족)를 쓰고, 영문 지수명은 출처를 밝히는 문장 안에서만 등장시킨다.
@@ -95,10 +97,13 @@ export const DIVIDEND_LIST_COPY = {
   page: {
     definitionHeading: '무엇이 이 목록인가',
     criterionHeading: '기준',
-    /** 🔴 이 문단이 "왜 연수 열이 없는가"에 답한다. 지우면 사용자는 우리가 빠뜨렸다고 읽는다. */
-    streakHeading: '연속 증배 연수를 종목마다 적지 않은 이유',
+    /**
+     * 🔴 이 문단이 "표의 연속 증배 열은 왜 정확한 연수가 아닌가"에 답한다. 지우면 사용자는
+     * "50년 이상"을 우리가 종목마다 직접 센 값으로 읽는다.
+     */
+    streakHeading: '연속 증배 연수에 "이상"이 붙는 이유',
     streakBody:
-      '무료로 확인할 수 있는 자료들이 같은 종목에 서로 다른 연수를 적고 있으며, 배당 이력만으로 다시 계산해도 분할·합병·지급 주기 변경 때문에 어긋납니다. 확인할 수 없는 숫자를 적는 대신 목록의 기준만 밝힙니다.',
+      '무료로 확인할 수 있는 자료들이 같은 종목에 서로 다른 연수를 적고 있으며, 배당 이력만으로 다시 계산해도 분할·합병·지급 주기 변경 때문에 어긋납니다. 그래서 증배가 시작된 해를 확인한 종목만 연수를 그대로 적고, 확인하지 못한 종목은 목록의 기준이 보장하는 하한을 "이상"으로 표기합니다. 표에서 두 표기는 서로 다른 모양으로 그려집니다.',
     tableHeading: '종목',
     tableCaptionSuffix: '종목 목록',
     sourceHeading: '출처와 기준일',
@@ -112,11 +117,39 @@ export const DIVIDEND_LIST_COPY = {
     coverageHeading: '수록 범위',
     columnTicker: '티커',
     columnName: '종목명',
+    /** 선행 배당률 — 최신 1회 지급액 × 연 지급횟수 ÷ 현재가. 열 이름이 그 정의를 다 담을 수 없어 각주로 푼다. */
+    columnYield: '배당률',
+    columnStreak: '연속 증배',
+    columnGrowth: '5년 배당성장',
     columnSector: '섹터',
     columnConfirmedBy: '확인한 자료',
     sortHint: '열 제목을 누르면 정렬 순서가 바뀝니다.',
     sortAscLabel: '오름차순',
     sortDescLabel: '내림차순',
+    /**
+     * 정렬 축이 아닌 열의 이유. 목록 하나 안에서 값이 전부 같은 열은 눌러도 순서가 안 바뀐다 —
+     * 그 사실을 말하지 않으면 사용자는 버튼이 고장 났다고 읽는다.
+     */
+    sortUnavailableLabel: '이 목록에서는 값이 모두 같아 정렬해도 순서가 바뀌지 않습니다.',
+
+    /** 🔴 값이 없는 칸의 단 하나의 표기. 0 도 "없음"도 아니라는 것을 기호와 문장이 함께 말한다. */
+    unknownMark: '—',
+    /**
+     * 빈칸의 이유. `utils` 의 `DividendListUnknownReason` 과 키가 1:1 이다 — 새 이유가 생기면
+     * 타입이 여기 문장을 강제한다(문장 없는 빈칸이 새로 생길 수 없다).
+     */
+    unknownReason: {
+      growthHistory: '배당 이력이 완결된 6개 연도에 못 미쳐 5년 성장률을 계산하지 않았습니다.',
+      irregularPayout: '특별배당이나 지급 주기 변경이 섞여 정기 배당을 가려내지 못했습니다.',
+      sectorSource: '이 종목의 섹터를 밝힌 자료가 없어 비워 두었습니다.',
+      notMeasured: '이 목록에는 아직 실측 지표를 붙이지 않았습니다.'
+    } satisfies Record<DividendListUnknownReason, string>,
+
+    /** 하한 표기에 붙는 설명. 정확값과 구분되게 그리는 것만으로는 "왜"를 말할 수 없다. */
+    streakBoundTitle: '목록의 기준이 보장하는 하한입니다. 종목별 정확한 연수가 아닙니다.',
+    streakExactTitle: '자료로 확인한 연속 증배 연수입니다.',
+    /** 숫자의 기준일. 배당률·성장률은 매일 움직여서 날짜 없이 쓰면 "지금 값"으로 읽힌다. */
+    measuredAtLabel: '지표 실측일',
     sectorFilterLabel: '섹터로 좁히기',
     sectorFilterAll: '전체',
     filteredEmpty: '고른 섹터에 해당하는 종목이 없습니다.',
@@ -134,7 +167,20 @@ export const DIVIDEND_LIST_COPY = {
     footerNotesTitle: '이 목록에 대해',
     footerNotes: [
       '연속 증배 이력은 과거의 기록이며 앞으로의 배당을 보장하지 않습니다.',
-      '목록은 표기된 기준일의 공개 자료를 정리한 것이고, 배당 정책은 기업의 결정에 따라 달라질 수 있습니다.'
-    ]
+      '목록은 표기된 기준일의 공개 자료를 정리한 것이고, 배당 정책은 기업의 결정에 따라 달라질 수 있습니다.',
+      '배당률은 가장 최근 1회 지급액에 그 종목의 연 지급 횟수를 곱해 현재가로 나눈 값입니다. 지난 1년 동안 실제로 지급된 금액의 합이 아닙니다.',
+      '5년 배당성장은 최근 5년간 정기 배당의 연평균 증가율입니다. 특별배당은 빼고 계산하며, 완결된 6개 연도의 이력이 없으면 "—"로 둡니다.',
+      '연속 증배 열의 "이상"은 목록의 기준이 보장하는 하한이라는 뜻이며, 종목별로 실제 확인한 연수가 아닙니다. "이상" 없이 적힌 연수는 증배가 시작된 해를 확인한 종목이며, 해가 바뀌면 다시 셉니다.'
+    ],
+
+    /**
+     * 🔴 위키피디아 자료를 쓰는 목록에만 붙는 줄. 위키피디아 본문은 **CC BY-SA 4.0** 이라
+     * 출처 표기가 라이선스상의 **의무**다 — 링크만으로는 부족해서 라이선스 이름을 화면이 말한다.
+     * (이 목록의 섹터 분류가 위키피디아 구성종목 표에서 왔다.)
+     */
+    wikipediaLicenseNote:
+      '위키피디아에서 가져온 내용(구성종목·섹터 분류)은 CC BY-SA 4.0 라이선스를 따릅니다.',
+    wikipediaLicenseLinkLabel: 'CC BY-SA 4.0',
+    wikipediaLicenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/deed.ko'
   }
 } as const;

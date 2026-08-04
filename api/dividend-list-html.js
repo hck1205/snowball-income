@@ -877,6 +877,482 @@ var dividendLists_generated_default = {
   }
 };
 
+// shared/constants/dividendLists/dividendLists.metrics.generated.json
+var dividendLists_metrics_generated_default = {
+  asOf: "2026-08-04",
+  note: "\uC218\uC9D1\uAE30(npm run dividend:universe)\uAC00 \uC720\uB2C8\uBC84\uC2A4 \uC0B0\uCD9C\uBB3C\uC5D0\uC11C \uBAA9\uB85D \uC218\uB85D \uC885\uBAA9\uB9CC \uCD94\uB824 \uC4F4\uB2E4. \uC190\uC73C\uB85C \uACE0\uCE58\uC9C0 \uB9C8\uB77C.",
+  metrics: {
+    ABBV: {
+      forwardYieldPercent: 2.8233,
+      fiveYearGrowthPercent: 6.8052
+    },
+    ABM: {
+      forwardYieldPercent: 2.38,
+      fiveYearGrowthPercent: 7.4521
+    },
+    ABT: {
+      forwardYieldPercent: 2.3525,
+      fiveYearGrowthPercent: 10.385
+    },
+    ADM: {
+      forwardYieldPercent: 2.6646,
+      fiveYearGrowthPercent: 7.2145
+    },
+    ADP: {
+      forwardYieldPercent: 2.5206,
+      fiveYearGrowthPercent: 11.0953
+    },
+    AFL: {
+      forwardYieldPercent: 1.9257,
+      fiveYearGrowthPercent: 15.6789
+    },
+    ALB: {
+      forwardYieldPercent: 1.3647,
+      fiveYearGrowthPercent: 1.018
+    },
+    ALRS: {
+      forwardYieldPercent: 2.5791,
+      fiveYearGrowthPercent: 6.961
+    },
+    AMCR: {
+      forwardYieldPercent: 5.6497,
+      fiveYearGrowthPercent: null
+    },
+    ANDE: {
+      forwardYieldPercent: 1.1451,
+      fiveYearGrowthPercent: 2.1879
+    },
+    AOS: {
+      forwardYieldPercent: 2.3712,
+      fiveYearGrowthPercent: 7.2145
+    },
+    APD: {
+      forwardYieldPercent: 2.4715,
+      fiveYearGrowthPercent: 5.9619
+    },
+    ATO: {
+      forwardYieldPercent: 2.3136,
+      fiveYearGrowthPercent: 8.6351
+    },
+    ATR: {
+      forwardYieldPercent: 1.4038,
+      fiveYearGrowthPercent: 4.564
+    },
+    AWR: {
+      forwardYieldPercent: 2.3788,
+      fiveYearGrowthPercent: 8.8472
+    },
+    BANF: {
+      forwardYieldPercent: 1.7193,
+      fiveYearGrowthPercent: 7.528
+    },
+    BDX: {
+      forwardYieldPercent: 2.4675,
+      fiveYearGrowthPercent: 6.1759
+    },
+    BEN: {
+      forwardYieldPercent: 3.7457,
+      fiveYearGrowthPercent: 3.4564
+    },
+    "BF.B": {
+      forwardYieldPercent: 3.3225,
+      fiveYearGrowthPercent: 5.4618
+    },
+    BKH: {
+      forwardYieldPercent: 3.9478,
+      fiveYearGrowthPercent: 4.7897
+    },
+    BMI: {
+      forwardYieldPercent: 1.1683,
+      fiveYearGrowthPercent: 14.8698
+    },
+    BRC: {
+      forwardYieldPercent: 1.0205,
+      fiveYearGrowthPercent: 1.9415
+    },
+    BRO: {
+      forwardYieldPercent: 0.9195,
+      fiveYearGrowthPercent: 12.03
+    },
+    CAH: {
+      forwardYieldPercent: 0.8761,
+      fiveYearGrowthPercent: 0.8098
+    },
+    CASY: {
+      forwardYieldPercent: 0.3022,
+      fiveYearGrowthPercent: 9.3362
+    },
+    CAT: {
+      forwardYieldPercent: 0.7855,
+      fiveYearGrowthPercent: 6.482
+    },
+    CB: {
+      forwardYieldPercent: 1.1716,
+      fiveYearGrowthPercent: null
+    },
+    CBSH: {
+      forwardYieldPercent: 1.8435,
+      fiveYearGrowthPercent: 4.3627
+    },
+    CBU: {
+      forwardYieldPercent: 2.8254,
+      fiveYearGrowthPercent: 2.3281
+    },
+    CFR: {
+      forwardYieldPercent: 2.4387,
+      fiveYearGrowthPercent: 7.0899
+    },
+    CHD: {
+      forwardYieldPercent: 1.2319,
+      fiveYearGrowthPercent: 4.2131
+    },
+    CHRW: {
+      forwardYieldPercent: 1.7143,
+      fiveYearGrowthPercent: 3.9835
+    },
+    CINF: {
+      forwardYieldPercent: 2.112,
+      fiveYearGrowthPercent: 7.7144
+    },
+    CL: {
+      forwardYieldPercent: 2.3587,
+      fiveYearGrowthPercent: 3.3975
+    },
+    CLX: {
+      forwardYieldPercent: 5.0478,
+      fiveYearGrowthPercent: 2.8515
+    },
+    CSL: {
+      forwardYieldPercent: 1.1832,
+      fiveYearGrowthPercent: 14.8698
+    },
+    CTAS: {
+      forwardYieldPercent: 0.8823,
+      fiveYearGrowthPercent: null
+    },
+    CTBI: {
+      forwardYieldPercent: 2.6859,
+      fiveYearGrowthPercent: 4.3429
+    },
+    CVX: {
+      forwardYieldPercent: 3.6857,
+      fiveYearGrowthPercent: 5.7989
+    },
+    CWT: {
+      forwardYieldPercent: 2.7136,
+      fiveYearGrowthPercent: 7.0899
+    },
+    DCI: {
+      forwardYieldPercent: 1.3331,
+      fiveYearGrowthPercent: 7.3941
+    },
+    DOV: {
+      forwardYieldPercent: 1.0111,
+      fiveYearGrowthPercent: 1.0002
+    },
+    ECL: {
+      forwardYieldPercent: 1.045,
+      fiveYearGrowthPercent: 6.6997
+    },
+    ED: {
+      forwardYieldPercent: 3.2904,
+      fiveYearGrowthPercent: 2.1296
+    },
+    EMR: {
+      forwardYieldPercent: 1.4336,
+      fiveYearGrowthPercent: 1.0957
+    },
+    ERIE: {
+      forwardYieldPercent: 2.4707,
+      fiveYearGrowthPercent: 7.1818
+    },
+    ES: {
+      forwardYieldPercent: 4.3808,
+      fiveYearGrowthPercent: 5.8009
+    },
+    ESS: {
+      forwardYieldPercent: 3.6239,
+      fiveYearGrowthPercent: 4.3416
+    },
+    EXPD: {
+      forwardYieldPercent: 0.9496,
+      fiveYearGrowthPercent: 8.1677
+    },
+    FAST: {
+      forwardYieldPercent: 2.1617,
+      fiveYearGrowthPercent: 11.9702
+    },
+    FDS: {
+      forwardYieldPercent: 1.7206,
+      fiveYearGrowthPercent: 7.3941
+    },
+    FELE: {
+      forwardYieldPercent: 1.0471,
+      fiveYearGrowthPercent: 11.3225
+    },
+    FRT: {
+      forwardYieldPercent: 3.6555,
+      fiveYearGrowthPercent: 0.9347
+    },
+    FUL: {
+      forwardYieldPercent: 1.719,
+      fiveYearGrowthPercent: 7.591
+    },
+    GD: {
+      forwardYieldPercent: 1.663,
+      fiveYearGrowthPercent: 6.3995
+    },
+    GGG: {
+      forwardYieldPercent: 1.4695,
+      fiveYearGrowthPercent: 9.4609
+    },
+    GPC: {
+      forwardYieldPercent: 3.3084,
+      fiveYearGrowthPercent: 5.4489
+    },
+    GWW: {
+      forwardYieldPercent: 0.7263,
+      fiveYearGrowthPercent: 9.4332
+    },
+    HRL: {
+      forwardYieldPercent: 4.6453,
+      fiveYearGrowthPercent: 4.474
+    },
+    HTO: {
+      forwardYieldPercent: 2.8815,
+      fiveYearGrowthPercent: 5.5893
+    },
+    IBM: {
+      forwardYieldPercent: 2.9871,
+      fiveYearGrowthPercent: 1.5151
+    },
+    ITW: {
+      forwardYieldPercent: 2.2323,
+      fiveYearGrowthPercent: 6.9896
+    },
+    JKHY: {
+      forwardYieldPercent: 1.5588,
+      fiveYearGrowthPercent: 6.1676
+    },
+    JNJ: {
+      forwardYieldPercent: 2.1068,
+      fiveYearGrowthPercent: 5.1779
+    },
+    KMB: {
+      forwardYieldPercent: 4.7601,
+      fiveYearGrowthPercent: 3.3231
+    },
+    KO: {
+      forwardYieldPercent: 2.4407,
+      fiveYearGrowthPercent: 4.4617
+    },
+    KVUE: {
+      forwardYieldPercent: 4.3766,
+      fiveYearGrowthPercent: null
+    },
+    LECO: {
+      forwardYieldPercent: 1.18,
+      fiveYearGrowthPercent: 8.8862
+    },
+    LIN: {
+      forwardYieldPercent: 1.3321,
+      fiveYearGrowthPercent: 9.268
+    },
+    LOW: {
+      forwardYieldPercent: 2.3578,
+      fiveYearGrowthPercent: 15.8956
+    },
+    MATW: {
+      forwardYieldPercent: 3.6338,
+      fiveYearGrowthPercent: 3.5486
+    },
+    MCD: {
+      forwardYieldPercent: 2.8051,
+      fiveYearGrowthPercent: 7.2044
+    },
+    MDT: {
+      forwardYieldPercent: 3.3226,
+      fiveYearGrowthPercent: 4.1277
+    },
+    MGEE: {
+      forwardYieldPercent: 2.375,
+      fiveYearGrowthPercent: 4.9754
+    },
+    MGRC: {
+      forwardYieldPercent: 1.6547,
+      fiveYearGrowthPercent: 2.9197
+    },
+    MKC: {
+      forwardYieldPercent: 3.7267,
+      fiveYearGrowthPercent: 7.7383
+    },
+    MSA: {
+      forwardYieldPercent: 1.1223,
+      fiveYearGrowthPercent: 4.2705
+    },
+    MZTI: {
+      forwardYieldPercent: 3.6117,
+      fiveYearGrowthPercent: 6.298
+    },
+    NDSN: {
+      forwardYieldPercent: 1.0839,
+      fiveYearGrowthPercent: 15.4681
+    },
+    NEE: {
+      forwardYieldPercent: 2.8793,
+      fiveYearGrowthPercent: 10.1293
+    },
+    NFG: {
+      forwardYieldPercent: 2.6825,
+      fiveYearGrowthPercent: 3.7525
+    },
+    NJR: {
+      forwardYieldPercent: 3.2713,
+      fiveYearGrowthPercent: 7.531
+    },
+    NNN: {
+      forwardYieldPercent: 5.2222,
+      fiveYearGrowthPercent: 2.4057
+    },
+    NUE: {
+      forwardYieldPercent: 0.8573,
+      fiveYearGrowthPercent: 6.4171
+    },
+    NWN: {
+      forwardYieldPercent: 4.0302,
+      fiveYearGrowthPercent: 0.4971
+    },
+    O: {
+      forwardYieldPercent: 5.1229,
+      fiveYearGrowthPercent: 3.4769
+    },
+    ORI: {
+      forwardYieldPercent: 2.9079,
+      fiveYearGrowthPercent: 6.6684
+    },
+    OZK: {
+      forwardYieldPercent: 3.7109,
+      fiveYearGrowthPercent: 10.0665
+    },
+    PB: {
+      forwardYieldPercent: 3.1894,
+      fiveYearGrowthPercent: 4.7452
+    },
+    PEP: {
+      forwardYieldPercent: 4.2398,
+      fiveYearGrowthPercent: 6.8233
+    },
+    PG: {
+      forwardYieldPercent: 3.0048,
+      fiveYearGrowthPercent: 5.9692
+    },
+    PII: {
+      forwardYieldPercent: 3.8505,
+      fiveYearGrowthPercent: 1.5633
+    },
+    PNR: {
+      forwardYieldPercent: 1.6103,
+      fiveYearGrowthPercent: 5.6422
+    },
+    PPG: {
+      forwardYieldPercent: 2.491,
+      fiveYearGrowthPercent: 5.9224
+    },
+    RNR: {
+      forwardYieldPercent: 0.5103,
+      fiveYearGrowthPercent: 2.7066
+    },
+    ROP: {
+      forwardYieldPercent: 0.9272,
+      fiveYearGrowthPercent: 9.9683
+    },
+    RPM: {
+      forwardYieldPercent: 1.9374,
+      fiveYearGrowthPercent: 7.2145
+    },
+    SCL: {
+      forwardYieldPercent: 2.4917,
+      fiveYearGrowthPercent: 6.961
+    },
+    SEIC: {
+      forwardYieldPercent: 0.9982,
+      fiveYearGrowthPercent: 6.961
+    },
+    SHW: {
+      forwardYieldPercent: 0.9034,
+      fiveYearGrowthPercent: 12.0801
+    },
+    SJM: {
+      forwardYieldPercent: 3.7447,
+      fiveYearGrowthPercent: 4.1809
+    },
+    SON: {
+      forwardYieldPercent: 3.8284,
+      fiveYearGrowthPercent: 4.2705
+    },
+    SPGI: {
+      forwardYieldPercent: 0.8819,
+      fiveYearGrowthPercent: 7.4582
+    },
+    SWK: {
+      forwardYieldPercent: 3.384,
+      fiveYearGrowthPercent: 3.5125
+    },
+    SYY: {
+      forwardYieldPercent: 2.5888,
+      fiveYearGrowthPercent: 2.5349
+    },
+    TGT: {
+      forwardYieldPercent: 3.0532,
+      fiveYearGrowthPercent: 11.1565
+    },
+    TMP: {
+      forwardYieldPercent: 2.6556,
+      fiveYearGrowthPercent: 3.5804
+    },
+    TNC: {
+      forwardYieldPercent: 1.4449,
+      fiveYearGrowthPercent: 6.0425
+    },
+    TROW: {
+      forwardYieldPercent: 4.5811,
+      fiveYearGrowthPercent: 7.1303
+    },
+    UMBF: {
+      forwardYieldPercent: 1.1697,
+      fiveYearGrowthPercent: 5.23
+    },
+    UVV: {
+      forwardYieldPercent: 6.3809,
+      fiveYearGrowthPercent: 1.2825
+    },
+    WLY: {
+      forwardYieldPercent: 2.693,
+      fiveYearGrowthPercent: 0.7195
+    },
+    WMT: {
+      forwardYieldPercent: 0.896,
+      fiveYearGrowthPercent: 5.4773
+    },
+    WST: {
+      forwardYieldPercent: 0.2529,
+      fiveYearGrowthPercent: 5.5893
+    },
+    WTRG: {
+      forwardYieldPercent: 3.5379,
+      fiveYearGrowthPercent: 6.8564
+    },
+    XOM: {
+      forwardYieldPercent: 2.657,
+      fiveYearGrowthPercent: 2.6179
+    },
+    YORW: {
+      forwardYieldPercent: 2.9601,
+      fiveYearGrowthPercent: 4.0002
+    }
+  }
+};
+
 // shared/constants/dividendLists/dividendLists.curated.ts
 var NAME_REPAIRS = {
   APD: "Air Products and Chemicals, Inc.",
@@ -894,11 +1370,55 @@ var NAME_REPAIRS = {
   MATW: "Matthews International Corporation",
   MKC: "McCormick & Company, Incorporated"
 };
-var withConfirmedBy = (members, confirmedBy, repairNames = false) => members.map((member) => ({
-  ...member,
-  name: (repairNames ? NAME_REPAIRS[member.ticker] : void 0) ?? member.name,
-  confirmedBy: [...confirmedBy]
-}));
+var KINGS_STREAK_FACTS = {
+  ABM: [59, "2026-01"],
+  ADM: [53, "2026-02"],
+  ADP: [51, "2025-12"],
+  AWR: [72, "2025-08"],
+  BDX: [54, "2026-03"],
+  BKH: [55, "2026-02"],
+  CINF: [65, "2026-03"],
+  CL: [63, "2026-04"],
+  CWT: [59, "2026-02"],
+  DOV: [71, "2025-08"],
+  ED: [53, "2026-02"],
+  EMR: [69, "2025-11"],
+  FRT: [59, "2025-10"],
+  FUL: [57, "2026-04"],
+  GPC: [70, "2026-03"],
+  GWW: [55, "2026-05"],
+  HRL: [60, "2026-01"],
+  JNJ: [64, "2026-05"],
+  KMB: [54, "2026-03"],
+  KO: [64, "2026-03"],
+  MSA: [56, "2026-05"],
+  NDSN: [63, "2025-09"],
+  NFG: [56, "2026-06"],
+  NWN: [71, "2025-10"],
+  PEP: [54, "2026-06"],
+  PG: [70, "2026-04"],
+  PH: [70, "2026-05"],
+  PPG: [55, "2025-08"],
+  RPM: [53, "2025-10"],
+  SCL: [58, "2025-11"],
+  SPGI: [53, "2026-02"],
+  SWK: [59, "2025-09"],
+  SYY: [57, "2026-07"],
+  TNC: [54, "2025-11"],
+  UVV: [56, "2026-07"],
+  WMT: [53, "2026-03"]
+};
+var streakStartYearOf = ([increases, latestRaisePaidAt]) => Number(latestRaisePaidAt.slice(0, 4)) - increases + 1;
+var streakSourceOf = ([increases, latestRaisePaidAt]) => `stockanalysis.com \uC5F0\uC18D \uC99D\uBC30 ${increases}\uD68C(2026-08-04 \uD655\uC778) \xB7 \uC57C\uD6C4 \uC2E4\uCE21 \uCD5C\uADFC \uC99D\uBC30 \uC9C0\uAE09 ${latestRaisePaidAt}`;
+var withConfirmedBy = (members, confirmedBy, repairNames = false, streakFacts = {}) => members.map((member) => {
+  const facts = streakFacts[member.ticker];
+  return {
+    ...member,
+    name: (repairNames ? NAME_REPAIRS[member.ticker] : void 0) ?? member.name,
+    confirmedBy: [...confirmedBy],
+    ...facts === void 0 ? {} : { streakStartYear: streakStartYearOf(facts), streakSource: streakSourceOf(facts) }
+  };
+});
 var KINGS_CONFIRMED_BY = ["stockanalysis.com", "DRiP Investing Resource Center"];
 var ARISTOCRATS_CONFIRMED_BY = ["ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED", "Wikipedia"];
 var CHAMPIONS_CONFIRMED_BY = ["DRiP Investing Resource Center"];
@@ -1125,8 +1645,8 @@ var CURATED_DIVIDEND_LISTS = {
         retrievedAt: "2026-08-03"
       }
     ],
-    coverageNote: "\uBC30\uB2F9\uD0B9\uC5D0\uB294 \uB2E8\uC77C \uAD8C\uC704 \uC18C\uC2A4\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4. \uB450 \uC18C\uC2A4\uAC00 \uAC01\uAC01 54\uC885\xB747\uC885\uC744 \uC2E4\uC5C8\uACE0, \uC774 \uBAA9\uB85D\uC740 \uB458 \uB2E4 \uC2E4\uC740 46\uC885\uB9CC \uB2F4\uC558\uC2B5\uB2C8\uB2E4. \uD55C\uCABD\uC5D0\uB9CC \uC788\uB294 9\uC885\uC740 \uD310\uB2E8\uC774 \uAC08\uB824 \uC81C\uC678\uD588\uC2B5\uB2C8\uB2E4.",
-    members: withConfirmedBy(KINGS_MEMBERS, KINGS_CONFIRMED_BY, true)
+    coverageNote: "\uBC30\uB2F9\uD0B9\uC5D0\uB294 \uB2E8\uC77C \uAD8C\uC704 \uC18C\uC2A4\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4. \uB450 \uC18C\uC2A4\uAC00 \uAC01\uAC01 54\uC885\xB747\uC885\uC744 \uC2E4\uC5C8\uACE0, \uC774 \uBAA9\uB85D\uC740 \uB458 \uB2E4 \uC2E4\uC740 46\uC885\uB9CC \uB2F4\uC558\uC2B5\uB2C8\uB2E4. \uD55C\uCABD\uC5D0\uB9CC \uC788\uB294 9\uC885\uC740 \uD310\uB2E8\uC774 \uAC08\uB824 \uC81C\uC678\uD588\uC2B5\uB2C8\uB2E4. \uC5F0\uC18D \uC99D\uBC30\uAC00 \uC2DC\uC791\uB41C \uD574\uB294 \uB450 \uC18C\uC2A4\uC758 \uC99D\uBC30 \uD69F\uC218\uAC00 \uC11C\uB85C \uC5B4\uAE0B\uB098\uC9C0 \uC54A\uACE0 \uBC30\uB2F9 \uC774\uB825\uC5D0\uB3C4 \uC0AD\uAC10\uC774 \uC5C6\uB294 36\uC885\uB9CC \uC801\uC5C8\uACE0, \uB098\uBA38\uC9C0 10\uC885\uC740 \uBAA9\uB85D\uC758 \uAE30\uC900\uC778 50\uB144 \uC774\uC0C1\uC73C\uB85C\uB9CC \uD45C\uC2DC\uD569\uB2C8\uB2E4.",
+    members: withConfirmedBy(KINGS_MEMBERS, KINGS_CONFIRMED_BY, true, KINGS_STREAK_FACTS)
   },
   aristocrats: {
     id: "aristocrats",
@@ -5235,14 +5755,21 @@ var dividendListSourceSchema = external_exports.object({
   role: external_exports.enum(["primary", "crosscheck"]),
   retrievedAt: isoDate
 });
+var MAX_STREAK_START_YEAR = (/* @__PURE__ */ new Date()).getUTCFullYear();
+var MIN_STREAK_START_YEAR = 1900;
 var dividendListMemberSchema = external_exports.object({
   ticker: tickerSchema,
   name: external_exports.string().min(1),
   sector: external_exports.enum(DIVIDEND_LIST_SECTOR_IDS),
   sourceSectorLabel: external_exports.string().min(1),
   /** 최소 1개 — 아무도 확인해 주지 않은 종목은 목록에 실을 수 없다. */
-  confirmedBy: external_exports.array(external_exports.string().min(1)).min(1)
-});
+  confirmedBy: external_exports.array(external_exports.string().min(1)).min(1),
+  streakStartYear: external_exports.number().int().min(MIN_STREAK_START_YEAR, `\uC5F0\uC18D \uC99D\uBC30 \uC2DC\uC791 \uC5F0\uB3C4\uB294 ${MIN_STREAK_START_YEAR}\uB144 \uC774\uD6C4\uC5EC\uC57C \uD55C\uB2E4`).max(MAX_STREAK_START_YEAR, "\uC5F0\uC18D \uC99D\uBC30 \uC2DC\uC791 \uC5F0\uB3C4\uB294 \uBBF8\uB798\uC77C \uC218 \uC5C6\uB2E4").optional(),
+  streakSource: external_exports.string().min(1).optional()
+}).refine(
+  (member) => member.streakStartYear === void 0 === (member.streakSource === void 0),
+  { message: "streakStartYear \uC640 streakSource \uB294 \uB458 \uB2E4 \uC788\uAC70\uB098 \uB458 \uB2E4 \uC5C6\uC5B4\uC57C \uD55C\uB2E4", path: ["streakSource"] }
+);
 var dividendListSchema = external_exports.object({
   id: external_exports.enum(DIVIDEND_LIST_IDS),
   minimumStreakYears: external_exports.number().int().min(1).max(200),
@@ -5275,6 +5802,74 @@ var dividendListsSnapshotSchema = external_exports.object({
   verification: dividendListsVerificationSchema.optional()
 });
 
+// shared/constants/dividendLists/dividendLists.universe.types.ts
+var DIVIDEND_UNIVERSE_SOURCE_ETFS = ["NOBL", "SDY", "REGL", "SMDV"];
+
+// shared/constants/dividendLists/dividendLists.universe.schema.ts
+var isoDate2 = external_exports.string().regex(/^\d{4}-\d{2}-\d{2}$/, "\uB0A0\uC9DC\uB294 YYYY-MM-DD \uC5EC\uC57C \uD55C\uB2E4");
+var tickerSchema2 = external_exports.string().regex(/^[A-Z]{1,5}(\.[A-Z])?$/, "\uD2F0\uCEE4\uB294 \uB300\uBB38\uC790\uC640 \uD074\uB798\uC2A4 \uC811\uBBF8\uC0AC(.B)\uB9CC \uD5C8\uC6A9\uD55C\uB2E4");
+var MAX_PLAUSIBLE_YIELD_PERCENT = 20;
+var cutSchema = external_exports.object({
+  fromYear: external_exports.number().int().min(1900).max(2200),
+  toYear: external_exports.number().int().min(1900).max(2200),
+  fromRate: external_exports.number().nonnegative(),
+  toRate: external_exports.number().nonnegative()
+});
+var dividendUniverseMetricsSchema = external_exports.object({
+  price: external_exports.number().positive("\uAC00\uACA9\uC740 0\uBCF4\uB2E4 \uCEE4\uC57C \uD55C\uB2E4 \u2014 0\uC774\uBA74 \uBC30\uB2F9\uB960\uC774 \uBB34\uD55C\uB300\uAC00 \uB41C\uB2E4"),
+  currency: external_exports.string().min(1).nullable(),
+  latestDividend: external_exports.number().positive(),
+  latestDividendDate: isoDate2,
+  /** 연 1회(연배당)~52회(주배당) 밖의 값은 주기 계산이 깨진 것이다. */
+  paymentsPerYear: external_exports.number().int().min(1).max(52),
+  forwardAnnualDividend: external_exports.number().positive(),
+  forwardYieldPercent: external_exports.number().positive().max(MAX_PLAUSIBLE_YIELD_PERCENT),
+  /** 성장률은 음수일 수 있다(삭감). 계산 불가는 `null` — 0 으로 대체하지 않는다(뜻이 다르다). */
+  fiveYearGrowthPercent: external_exports.number().nullable(),
+  recentCut: cutSchema.nullable(),
+  firstDividendYear: external_exports.number().int().min(1900).max(2200),
+  measuredAt: isoDate2
+});
+var dividendUniverseIssueSchema = external_exports.object({
+  ticker: tickerSchema2,
+  kind: external_exports.enum([
+    "fetchFailed",
+    "metricsUnavailable",
+    "abnormalLatestPayment",
+    "staleDividend",
+    "implausibleYield",
+    "streakContradiction",
+    "growthUnavailable",
+    "sectorMissing"
+  ]),
+  detail: external_exports.string().min(1),
+  blocking: external_exports.boolean()
+});
+var dividendUniverseEntrySchema = external_exports.object({
+  ticker: tickerSchema2,
+  name: external_exports.string().min(1, "\uC774\uB984 \uC5C6\uB294 \uC885\uBAA9\uC740 \uC2E4\uC744 \uC218 \uC5C6\uB2E4"),
+  sector: external_exports.enum(DIVIDEND_LIST_SECTOR_IDS).nullable(),
+  sourceSectorLabel: external_exports.string().min(1).nullable(),
+  /** 🔴 최소 1개 — 어느 ETF 에도 없는 종목은 후보가 될 이유가 없다. */
+  sourceEtfs: external_exports.array(external_exports.enum(DIVIDEND_UNIVERSE_SOURCE_ETFS)).min(1),
+  minimumStreakYears: external_exports.number().int().min(1).max(200),
+  metrics: dividendUniverseMetricsSchema.nullable()
+});
+var dividendUniverseSnapshotSchema = external_exports.object({
+  asOf: isoDate2,
+  sourceAsOf: external_exports.object({ proShares: isoDate2.nullable(), sdy: isoDate2.nullable() }),
+  memberCountByEtf: external_exports.record(external_exports.enum(DIVIDEND_UNIVERSE_SOURCE_ETFS), external_exports.number().int().min(1)),
+  /** 🔴 빈 유니버스를 통과시키지 않는다 — 절반쯤 실패한 수집이 0종을 쓰고 지나가면 아무도 모른다. */
+  entries: external_exports.array(dividendUniverseEntrySchema).min(1),
+  issues: external_exports.array(dividendUniverseIssueSchema),
+  coverage: external_exports.object({
+    total: external_exports.number().int().min(1),
+    withMetrics: external_exports.number().int().min(0),
+    withSector: external_exports.number().int().min(0),
+    withGrowth: external_exports.number().int().min(0)
+  })
+});
+
 // shared/constants/dividendLists/index.ts
 var EMPTY_DIVIDEND_LISTS_SNAPSHOT = {
   asOf: null,
@@ -5297,7 +5892,18 @@ var overlay = () => {
   }
   return merged;
 };
-var DIVIDEND_LISTS = overlay();
+var METRICS = dividendLists_metrics_generated_default.metrics ?? {};
+var withMetrics = (list) => ({
+  ...list,
+  members: list.members.map((member) => {
+    const m = METRICS[member.ticker];
+    if (!m) return member;
+    return { ...member, forwardYieldPercent: m.forwardYieldPercent, fiveYearGrowthPercent: m.fiveYearGrowthPercent };
+  })
+});
+var DIVIDEND_LISTS = Object.fromEntries(
+  DIVIDEND_LIST_IDS.map((id) => [id, withMetrics(overlay()[id])])
+);
 var DIVIDEND_LIST_ALL = DIVIDEND_LIST_IDS.map((id) => DIVIDEND_LISTS[id]);
 var toDividendListId = (raw) => {
   const found = DIVIDEND_LIST_IDS.find((id) => id === raw?.trim().toLowerCase());
@@ -5362,9 +5968,12 @@ var DIVIDEND_LIST_COPY = {
   page: {
     definitionHeading: "\uBB34\uC5C7\uC774 \uC774 \uBAA9\uB85D\uC778\uAC00",
     criterionHeading: "\uAE30\uC900",
-    /** 🔴 이 문단이 "왜 연수 열이 없는가"에 답한다. 지우면 사용자는 우리가 빠뜨렸다고 읽는다. */
-    streakHeading: "\uC5F0\uC18D \uC99D\uBC30 \uC5F0\uC218\uB97C \uC885\uBAA9\uB9C8\uB2E4 \uC801\uC9C0 \uC54A\uC740 \uC774\uC720",
-    streakBody: "\uBB34\uB8CC\uB85C \uD655\uC778\uD560 \uC218 \uC788\uB294 \uC790\uB8CC\uB4E4\uC774 \uAC19\uC740 \uC885\uBAA9\uC5D0 \uC11C\uB85C \uB2E4\uB978 \uC5F0\uC218\uB97C \uC801\uACE0 \uC788\uC73C\uBA70, \uBC30\uB2F9 \uC774\uB825\uB9CC\uC73C\uB85C \uB2E4\uC2DC \uACC4\uC0B0\uD574\uB3C4 \uBD84\uD560\xB7\uD569\uBCD1\xB7\uC9C0\uAE09 \uC8FC\uAE30 \uBCC0\uACBD \uB54C\uBB38\uC5D0 \uC5B4\uAE0B\uB0A9\uB2C8\uB2E4. \uD655\uC778\uD560 \uC218 \uC5C6\uB294 \uC22B\uC790\uB97C \uC801\uB294 \uB300\uC2E0 \uBAA9\uB85D\uC758 \uAE30\uC900\uB9CC \uBC1D\uD799\uB2C8\uB2E4.",
+    /**
+     * 🔴 이 문단이 "표의 연속 증배 열은 왜 정확한 연수가 아닌가"에 답한다. 지우면 사용자는
+     * "50년 이상"을 우리가 종목마다 직접 센 값으로 읽는다.
+     */
+    streakHeading: '\uC5F0\uC18D \uC99D\uBC30 \uC5F0\uC218\uC5D0 "\uC774\uC0C1"\uC774 \uBD99\uB294 \uC774\uC720',
+    streakBody: '\uBB34\uB8CC\uB85C \uD655\uC778\uD560 \uC218 \uC788\uB294 \uC790\uB8CC\uB4E4\uC774 \uAC19\uC740 \uC885\uBAA9\uC5D0 \uC11C\uB85C \uB2E4\uB978 \uC5F0\uC218\uB97C \uC801\uACE0 \uC788\uC73C\uBA70, \uBC30\uB2F9 \uC774\uB825\uB9CC\uC73C\uB85C \uB2E4\uC2DC \uACC4\uC0B0\uD574\uB3C4 \uBD84\uD560\xB7\uD569\uBCD1\xB7\uC9C0\uAE09 \uC8FC\uAE30 \uBCC0\uACBD \uB54C\uBB38\uC5D0 \uC5B4\uAE0B\uB0A9\uB2C8\uB2E4. \uADF8\uB798\uC11C \uC99D\uBC30\uAC00 \uC2DC\uC791\uB41C \uD574\uB97C \uD655\uC778\uD55C \uC885\uBAA9\uB9CC \uC5F0\uC218\uB97C \uADF8\uB300\uB85C \uC801\uACE0, \uD655\uC778\uD558\uC9C0 \uBABB\uD55C \uC885\uBAA9\uC740 \uBAA9\uB85D\uC758 \uAE30\uC900\uC774 \uBCF4\uC7A5\uD558\uB294 \uD558\uD55C\uC744 "\uC774\uC0C1"\uC73C\uB85C \uD45C\uAE30\uD569\uB2C8\uB2E4. \uD45C\uC5D0\uC11C \uB450 \uD45C\uAE30\uB294 \uC11C\uB85C \uB2E4\uB978 \uBAA8\uC591\uC73C\uB85C \uADF8\uB824\uC9D1\uB2C8\uB2E4.',
     tableHeading: "\uC885\uBAA9",
     tableCaptionSuffix: "\uC885\uBAA9 \uBAA9\uB85D",
     sourceHeading: "\uCD9C\uCC98\uC640 \uAE30\uC900\uC77C",
@@ -5378,11 +5987,37 @@ var DIVIDEND_LIST_COPY = {
     coverageHeading: "\uC218\uB85D \uBC94\uC704",
     columnTicker: "\uD2F0\uCEE4",
     columnName: "\uC885\uBAA9\uBA85",
+    /** 선행 배당률 — 최신 1회 지급액 × 연 지급횟수 ÷ 현재가. 열 이름이 그 정의를 다 담을 수 없어 각주로 푼다. */
+    columnYield: "\uBC30\uB2F9\uB960",
+    columnStreak: "\uC5F0\uC18D \uC99D\uBC30",
+    columnGrowth: "5\uB144 \uBC30\uB2F9\uC131\uC7A5",
     columnSector: "\uC139\uD130",
     columnConfirmedBy: "\uD655\uC778\uD55C \uC790\uB8CC",
     sortHint: "\uC5F4 \uC81C\uBAA9\uC744 \uB204\uB974\uBA74 \uC815\uB82C \uC21C\uC11C\uAC00 \uBC14\uB01D\uB2C8\uB2E4.",
     sortAscLabel: "\uC624\uB984\uCC28\uC21C",
     sortDescLabel: "\uB0B4\uB9BC\uCC28\uC21C",
+    /**
+     * 정렬 축이 아닌 열의 이유. 목록 하나 안에서 값이 전부 같은 열은 눌러도 순서가 안 바뀐다 —
+     * 그 사실을 말하지 않으면 사용자는 버튼이 고장 났다고 읽는다.
+     */
+    sortUnavailableLabel: "\uC774 \uBAA9\uB85D\uC5D0\uC11C\uB294 \uAC12\uC774 \uBAA8\uB450 \uAC19\uC544 \uC815\uB82C\uD574\uB3C4 \uC21C\uC11C\uAC00 \uBC14\uB00C\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.",
+    /** 🔴 값이 없는 칸의 단 하나의 표기. 0 도 "없음"도 아니라는 것을 기호와 문장이 함께 말한다. */
+    unknownMark: "\u2014",
+    /**
+     * 빈칸의 이유. `utils` 의 `DividendListUnknownReason` 과 키가 1:1 이다 — 새 이유가 생기면
+     * 타입이 여기 문장을 강제한다(문장 없는 빈칸이 새로 생길 수 없다).
+     */
+    unknownReason: {
+      growthHistory: "\uBC30\uB2F9 \uC774\uB825\uC774 \uC644\uACB0\uB41C 6\uAC1C \uC5F0\uB3C4\uC5D0 \uBABB \uBBF8\uCCD0 5\uB144 \uC131\uC7A5\uB960\uC744 \uACC4\uC0B0\uD558\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4.",
+      irregularPayout: "\uD2B9\uBCC4\uBC30\uB2F9\uC774\uB098 \uC9C0\uAE09 \uC8FC\uAE30 \uBCC0\uACBD\uC774 \uC11E\uC5EC \uC815\uAE30 \uBC30\uB2F9\uC744 \uAC00\uB824\uB0B4\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.",
+      sectorSource: "\uC774 \uC885\uBAA9\uC758 \uC139\uD130\uB97C \uBC1D\uD78C \uC790\uB8CC\uAC00 \uC5C6\uC5B4 \uBE44\uC6CC \uB450\uC5C8\uC2B5\uB2C8\uB2E4.",
+      notMeasured: "\uC774 \uBAA9\uB85D\uC5D0\uB294 \uC544\uC9C1 \uC2E4\uCE21 \uC9C0\uD45C\uB97C \uBD99\uC774\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4."
+    },
+    /** 하한 표기에 붙는 설명. 정확값과 구분되게 그리는 것만으로는 "왜"를 말할 수 없다. */
+    streakBoundTitle: "\uBAA9\uB85D\uC758 \uAE30\uC900\uC774 \uBCF4\uC7A5\uD558\uB294 \uD558\uD55C\uC785\uB2C8\uB2E4. \uC885\uBAA9\uBCC4 \uC815\uD655\uD55C \uC5F0\uC218\uAC00 \uC544\uB2D9\uB2C8\uB2E4.",
+    streakExactTitle: "\uC790\uB8CC\uB85C \uD655\uC778\uD55C \uC5F0\uC18D \uC99D\uBC30 \uC5F0\uC218\uC785\uB2C8\uB2E4.",
+    /** 숫자의 기준일. 배당률·성장률은 매일 움직여서 날짜 없이 쓰면 "지금 값"으로 읽힌다. */
+    measuredAtLabel: "\uC9C0\uD45C \uC2E4\uCE21\uC77C",
     sectorFilterLabel: "\uC139\uD130\uB85C \uC881\uD788\uAE30",
     sectorFilterAll: "\uC804\uCCB4",
     filteredEmpty: "\uACE0\uB978 \uC139\uD130\uC5D0 \uD574\uB2F9\uD558\uB294 \uC885\uBAA9\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.",
@@ -5400,8 +6035,19 @@ var DIVIDEND_LIST_COPY = {
     footerNotesTitle: "\uC774 \uBAA9\uB85D\uC5D0 \uB300\uD574",
     footerNotes: [
       "\uC5F0\uC18D \uC99D\uBC30 \uC774\uB825\uC740 \uACFC\uAC70\uC758 \uAE30\uB85D\uC774\uBA70 \uC55E\uC73C\uB85C\uC758 \uBC30\uB2F9\uC744 \uBCF4\uC7A5\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.",
-      "\uBAA9\uB85D\uC740 \uD45C\uAE30\uB41C \uAE30\uC900\uC77C\uC758 \uACF5\uAC1C \uC790\uB8CC\uB97C \uC815\uB9AC\uD55C \uAC83\uC774\uACE0, \uBC30\uB2F9 \uC815\uCC45\uC740 \uAE30\uC5C5\uC758 \uACB0\uC815\uC5D0 \uB530\uB77C \uB2EC\uB77C\uC9C8 \uC218 \uC788\uC2B5\uB2C8\uB2E4."
-    ]
+      "\uBAA9\uB85D\uC740 \uD45C\uAE30\uB41C \uAE30\uC900\uC77C\uC758 \uACF5\uAC1C \uC790\uB8CC\uB97C \uC815\uB9AC\uD55C \uAC83\uC774\uACE0, \uBC30\uB2F9 \uC815\uCC45\uC740 \uAE30\uC5C5\uC758 \uACB0\uC815\uC5D0 \uB530\uB77C \uB2EC\uB77C\uC9C8 \uC218 \uC788\uC2B5\uB2C8\uB2E4.",
+      "\uBC30\uB2F9\uB960\uC740 \uAC00\uC7A5 \uCD5C\uADFC 1\uD68C \uC9C0\uAE09\uC561\uC5D0 \uADF8 \uC885\uBAA9\uC758 \uC5F0 \uC9C0\uAE09 \uD69F\uC218\uB97C \uACF1\uD574 \uD604\uC7AC\uAC00\uB85C \uB098\uB208 \uAC12\uC785\uB2C8\uB2E4. \uC9C0\uB09C 1\uB144 \uB3D9\uC548 \uC2E4\uC81C\uB85C \uC9C0\uAE09\uB41C \uAE08\uC561\uC758 \uD569\uC774 \uC544\uB2D9\uB2C8\uB2E4.",
+      '5\uB144 \uBC30\uB2F9\uC131\uC7A5\uC740 \uCD5C\uADFC 5\uB144\uAC04 \uC815\uAE30 \uBC30\uB2F9\uC758 \uC5F0\uD3C9\uADE0 \uC99D\uAC00\uC728\uC785\uB2C8\uB2E4. \uD2B9\uBCC4\uBC30\uB2F9\uC740 \uBE7C\uACE0 \uACC4\uC0B0\uD558\uBA70, \uC644\uACB0\uB41C 6\uAC1C \uC5F0\uB3C4\uC758 \uC774\uB825\uC774 \uC5C6\uC73C\uBA74 "\u2014"\uB85C \uB461\uB2C8\uB2E4.',
+      '\uC5F0\uC18D \uC99D\uBC30 \uC5F4\uC758 "\uC774\uC0C1"\uC740 \uBAA9\uB85D\uC758 \uAE30\uC900\uC774 \uBCF4\uC7A5\uD558\uB294 \uD558\uD55C\uC774\uB77C\uB294 \uB73B\uC774\uBA70, \uC885\uBAA9\uBCC4\uB85C \uC2E4\uC81C \uD655\uC778\uD55C \uC5F0\uC218\uAC00 \uC544\uB2D9\uB2C8\uB2E4. "\uC774\uC0C1" \uC5C6\uC774 \uC801\uD78C \uC5F0\uC218\uB294 \uC99D\uBC30\uAC00 \uC2DC\uC791\uB41C \uD574\uB97C \uD655\uC778\uD55C \uC885\uBAA9\uC774\uBA70, \uD574\uAC00 \uBC14\uB00C\uBA74 \uB2E4\uC2DC \uC149\uB2C8\uB2E4.'
+    ],
+    /**
+     * 🔴 위키피디아 자료를 쓰는 목록에만 붙는 줄. 위키피디아 본문은 **CC BY-SA 4.0** 이라
+     * 출처 표기가 라이선스상의 **의무**다 — 링크만으로는 부족해서 라이선스 이름을 화면이 말한다.
+     * (이 목록의 섹터 분류가 위키피디아 구성종목 표에서 왔다.)
+     */
+    wikipediaLicenseNote: "\uC704\uD0A4\uD53C\uB514\uC544\uC5D0\uC11C \uAC00\uC838\uC628 \uB0B4\uC6A9(\uAD6C\uC131\uC885\uBAA9\xB7\uC139\uD130 \uBD84\uB958)\uC740 CC BY-SA 4.0 \uB77C\uC774\uC120\uC2A4\uB97C \uB530\uB985\uB2C8\uB2E4.",
+    wikipediaLicenseLinkLabel: "CC BY-SA 4.0",
+    wikipediaLicenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/deed.ko"
   }
 };
 

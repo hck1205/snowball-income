@@ -3,7 +3,7 @@ import { TickerPageShell } from '@/pages/Ticker/components';
 import { useDocumentMeta } from '@/pages/Ticker/hooks';
 import { DIVIDEND_LIST_ALL, DIVIDEND_LISTS, dividendListPath } from '@/shared/constants/dividendLists';
 import { DIVIDEND_LIST_COPY } from '../copy';
-import { formatStreakCriterion, toDividendListRow, toDividendListSummary } from '../utils';
+import { formatStreakCriterion, toDividendListRows, toDividendListSummary } from '../utils';
 import DividendListView from './DividendListPage.view';
 import type { DividendListPageProps, DividendListViewModel } from './DividendListPage.types';
 
@@ -26,7 +26,8 @@ export default function DividendListPage({ listId }: DividendListPageProps) {
     () => ({
       list,
       copy: listCopy,
-      rows: list.members.map(toDividendListRow),
+      /* 행은 목록을 함께 넘겨 만든다 — 연속 증배 하한("50년 이상")은 종목이 아니라 **목록의 기준**이 준다. */
+      rows: toDividendListRows(list),
       criterion: formatStreakCriterion(list),
       others: DIVIDEND_LIST_ALL.filter((other) => other.id !== listId).map(toDividendListSummary)
     }),

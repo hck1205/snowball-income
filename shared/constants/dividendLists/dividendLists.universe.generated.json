@@ -1,0 +1,6320 @@
+{
+  "asOf": "2026-08-04",
+  "sourceAsOf": {
+    "proShares": "2026-07-31",
+    "sdy": "2026-07-31"
+  },
+  "memberCountByEtf": {
+    "NOBL": 69,
+    "SDY": 155,
+    "SMDV": 100,
+    "REGL": 65
+  },
+  "entries": [
+    {
+      "ticker": "ABBV",
+      "name": "AbbVie",
+      "sector": "healthCare",
+      "sourceSectorLabel": "Health Care",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 245.1,
+        "currency": "USD",
+        "latestDividend": 1.73,
+        "latestDividendDate": "2026-07-15",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 6.92,
+        "forwardYieldPercent": 2.8233374133006937,
+        "fiveYearGrowthPercent": 6.8051927565147885,
+        "recentCut": null,
+        "firstDividendYear": 2013,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "ABM",
+      "name": "ABM Industries, Inc.",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "SDY",
+        "SMDV"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 48.74,
+        "currency": "USD",
+        "latestDividend": 0.29,
+        "latestDividendDate": "2026-07-02",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.16,
+        "forwardYieldPercent": 2.3799753795650385,
+        "fiveYearGrowthPercent": 7.4520805832128945,
+        "recentCut": null,
+        "firstDividendYear": 1985,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "ABT",
+      "name": "Abbott Laboratories",
+      "sector": "healthCare",
+      "sourceSectorLabel": "Health Care",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 107.12,
+        "currency": "USD",
+        "latestDividend": 0.63,
+        "latestDividendDate": "2026-07-15",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.52,
+        "forwardYieldPercent": 2.3525018670649738,
+        "fiveYearGrowthPercent": 10.384959381787073,
+        "recentCut": null,
+        "firstDividendYear": 1983,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "ACN",
+      "name": "Accenture",
+      "sector": "informationTechnology",
+      "sourceSectorLabel": "Information Technology",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 165.76,
+        "currency": "USD",
+        "latestDividend": 1.63,
+        "latestDividendDate": "2026-07-09",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 6.52,
+        "forwardYieldPercent": 3.933397683397683,
+        "fiveYearGrowthPercent": 13.09264089979596,
+        "recentCut": null,
+        "firstDividendYear": 2005,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "ADI",
+      "name": "Analog Devices",
+      "sector": "informationTechnology",
+      "sourceSectorLabel": "Information Technology",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 361.88,
+        "currency": "USD",
+        "latestDividend": 1.1,
+        "latestDividendDate": "2026-06-02",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 4.4,
+        "forwardYieldPercent": 1.2158726649718141,
+        "fiveYearGrowthPercent": 9.811721768013415,
+        "recentCut": null,
+        "firstDividendYear": 2003,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "ADM",
+      "name": "Archer Daniels Midland",
+      "sector": "consumerStaples",
+      "sourceSectorLabel": "Consumer Staples",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 78.06,
+        "currency": "USD",
+        "latestDividend": 0.52,
+        "latestDividendDate": "2026-05-20",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.08,
+        "forwardYieldPercent": 2.6646169613118116,
+        "fiveYearGrowthPercent": 7.214502590085092,
+        "recentCut": null,
+        "firstDividendYear": 1983,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "ADP",
+      "name": "Automatic Data Processing",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 269.78,
+        "currency": "USD",
+        "latestDividend": 1.7,
+        "latestDividendDate": "2026-06-12",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 6.8,
+        "forwardYieldPercent": 2.520572318185188,
+        "fiveYearGrowthPercent": 11.09534595426207,
+        "recentCut": null,
+        "firstDividendYear": 1983,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "AFG",
+      "name": "American Financial Group",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SDY",
+        "REGL"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 141.92,
+        "currency": "USD",
+        "latestDividend": 0.88,
+        "latestDividendDate": "2026-07-15",
+        "paymentsPerYear": 6,
+        "forwardAnnualDividend": 5.28,
+        "forwardYieldPercent": 3.720405862457723,
+        "fiveYearGrowthPercent": 12.195514544619957,
+        "recentCut": null,
+        "firstDividendYear": 1986,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "AFL",
+      "name": "Aflac",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 126.71,
+        "currency": "USD",
+        "latestDividend": 0.61,
+        "latestDividendDate": "2026-05-20",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.44,
+        "forwardYieldPercent": 1.9256570120748167,
+        "fiveYearGrowthPercent": 15.678857972406712,
+        "recentCut": null,
+        "firstDividendYear": 1984,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "AGM",
+      "name": "Federal Agricultural Mortgage Corporation",
+      "sector": null,
+      "sourceSectorLabel": null,
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 237.96,
+        "currency": "USD",
+        "latestDividend": 1.6,
+        "latestDividendDate": "2026-06-15",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 6.4,
+        "forwardYieldPercent": 2.689527651706169,
+        "fiveYearGrowthPercent": 13.396657763302722,
+        "recentCut": null,
+        "firstDividendYear": 2004,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "AIT",
+      "name": "Applied Industrial Technologies",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "REGL"
+      ],
+      "minimumStreakYears": 15,
+      "metrics": {
+        "price": 351.9,
+        "currency": "USD",
+        "latestDividend": 0.51,
+        "latestDividendDate": "2026-05-15",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.04,
+        "forwardYieldPercent": 0.5797101449275363,
+        "fiveYearGrowthPercent": 7.528000640556964,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "AIZ",
+      "name": "Assurant",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 282.39,
+        "currency": "USD",
+        "latestDividend": 0.88,
+        "latestDividendDate": "2026-06-08",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 3.52,
+        "forwardYieldPercent": 1.2465030631396297,
+        "fiveYearGrowthPercent": 4.893816562469966,
+        "recentCut": null,
+        "firstDividendYear": 2004,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "ALB",
+      "name": "Albemarle Corporation",
+      "sector": "materials",
+      "sourceSectorLabel": "Materials",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 118.71,
+        "currency": "USD",
+        "latestDividend": 0.405,
+        "latestDividendDate": "2026-06-12",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.62,
+        "forwardYieldPercent": 1.364670204700531,
+        "fiveYearGrowthPercent": 1.0180215943888626,
+        "recentCut": null,
+        "firstDividendYear": 1994,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "ALG",
+      "name": "Alamo Group",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 163.93,
+        "currency": "USD",
+        "latestDividend": 0.34,
+        "latestDividendDate": "2026-07-16",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.36,
+        "forwardYieldPercent": 0.8296223998047948,
+        "fiveYearGrowthPercent": 18.204927370905,
+        "recentCut": null,
+        "firstDividendYear": 1993,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "ALRS",
+      "name": "Alerus Financial Corporation",
+      "sector": null,
+      "sourceSectorLabel": null,
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 34.12,
+        "currency": "USD",
+        "latestDividend": 0.22,
+        "latestDividendDate": "2026-06-26",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 0.88,
+        "forwardYieldPercent": 2.5791324736225087,
+        "fiveYearGrowthPercent": 6.9610375725068785,
+        "recentCut": null,
+        "firstDividendYear": 2003,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "AMCR",
+      "name": "Amcor",
+      "sector": "materials",
+      "sourceSectorLabel": "Materials",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 46.02,
+        "currency": "USD",
+        "latestDividend": 0.65,
+        "latestDividendDate": "2026-05-28",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.6,
+        "forwardYieldPercent": 5.649717514124294,
+        "fiveYearGrowthPercent": null,
+        "recentCut": null,
+        "firstDividendYear": 2014,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "AMP",
+      "name": "Ameriprise Financial",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 552.07,
+        "currency": "USD",
+        "latestDividend": 1.7,
+        "latestDividendDate": "2026-05-04",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 6.8,
+        "forwardYieldPercent": 1.2317278605973878,
+        "fiveYearGrowthPercent": 8.997698704834534,
+        "recentCut": null,
+        "firstDividendYear": 2005,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "AMSF",
+      "name": "Amerisafe, Inc.",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 30.18,
+        "currency": "USD",
+        "latestDividend": 0.41,
+        "latestDividendDate": "2026-06-12",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.64,
+        "forwardYieldPercent": 5.4340622929092115,
+        "fiveYearGrowthPercent": 7.631692251481081,
+        "recentCut": null,
+        "firstDividendYear": 2013,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "ANDE",
+      "name": "The Andersons, Inc.",
+      "sector": "consumerStaples",
+      "sourceSectorLabel": "Consumer Staples",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 69.86,
+        "currency": "USD",
+        "latestDividend": 0.2,
+        "latestDividendDate": "2026-07-01",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 0.8,
+        "forwardYieldPercent": 1.145147437732608,
+        "fiveYearGrowthPercent": 2.1878619308387304,
+        "recentCut": null,
+        "firstDividendYear": 1996,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "AOS",
+      "name": "A. O. Smith",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 60.73,
+        "currency": "USD",
+        "latestDividend": 0.36,
+        "latestDividendDate": "2026-07-31",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.44,
+        "forwardYieldPercent": 2.371150996212745,
+        "fiveYearGrowthPercent": 7.214502590085092,
+        "recentCut": null,
+        "firstDividendYear": 1986,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "APD",
+      "name": "Air Products",
+      "sector": "materials",
+      "sourceSectorLabel": "Materials",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 292.94,
+        "currency": "USD",
+        "latestDividend": 1.81,
+        "latestDividendDate": "2026-07-01",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 7.24,
+        "forwardYieldPercent": 2.4714958694613234,
+        "fiveYearGrowthPercent": 5.961877920522696,
+        "recentCut": null,
+        "firstDividendYear": 1983,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "APOG",
+      "name": "Apogee Enterprises, Inc.",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 41.97,
+        "currency": "USD",
+        "latestDividend": 0.27,
+        "latestDividendDate": "2026-07-14",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.08,
+        "forwardYieldPercent": 2.5732666190135816,
+        "fiveYearGrowthPercent": 6.699675773069802,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "ASB",
+      "name": "Associated Bank",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 31.4,
+        "currency": "USD",
+        "latestDividend": 0.24,
+        "latestDividendDate": "2026-06-01",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 0.96,
+        "forwardYieldPercent": 3.0573248407643314,
+        "fiveYearGrowthPercent": 5.024607263868264,
+        "recentCut": null,
+        "firstDividendYear": 1986,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "ATO",
+      "name": "Atmos Energy",
+      "sector": "utilities",
+      "sourceSectorLabel": "Utilities",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 172.89,
+        "currency": "USD",
+        "latestDividend": 1,
+        "latestDividendDate": "2026-05-26",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 4,
+        "forwardYieldPercent": 2.3136098097055933,
+        "fiveYearGrowthPercent": 8.635128294875848,
+        "recentCut": null,
+        "firstDividendYear": 1989,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "ATR",
+      "name": "AptarGroup",
+      "sector": "materials",
+      "sourceSectorLabel": "Materials",
+      "sourceEtfs": [
+        "SDY",
+        "REGL"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 136.77,
+        "currency": "USD",
+        "latestDividend": 0.48,
+        "latestDividendDate": "2026-07-30",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.92,
+        "forwardYieldPercent": 1.4038166264531695,
+        "fiveYearGrowthPercent": 4.563955259127317,
+        "recentCut": null,
+        "firstDividendYear": 1993,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "AUB",
+      "name": "Atlantic Union Bankshares, Corp.",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 42.77,
+        "currency": "USD",
+        "latestDividend": 0.37,
+        "latestDividendDate": "2026-05-22",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.48,
+        "forwardYieldPercent": 3.460369417816226,
+        "fiveYearGrowthPercent": 6.342724238285391,
+        "recentCut": null,
+        "firstDividendYear": 1994,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "AVA",
+      "name": "Avista Corporation",
+      "sector": "utilities",
+      "sourceSectorLabel": "Utilities",
+      "sourceEtfs": [
+        "SDY",
+        "SMDV"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 39.55,
+        "currency": "USD",
+        "latestDividend": 0.493,
+        "latestDividendDate": "2026-05-19",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.972,
+        "forwardYieldPercent": 4.986093552465235,
+        "fiveYearGrowthPercent": 3.8838918325118765,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "AVNT",
+      "name": "Avient",
+      "sector": "materials",
+      "sourceSectorLabel": "Materials",
+      "sourceEtfs": [
+        "REGL",
+        "SMDV"
+      ],
+      "minimumStreakYears": 15,
+      "metrics": {
+        "price": 37.39,
+        "currency": "USD",
+        "latestDividend": 0.275,
+        "latestDividendDate": "2026-06-18",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.1,
+        "forwardYieldPercent": 2.9419630917357584,
+        "fiveYearGrowthPercent": 5.870154107037795,
+        "recentCut": null,
+        "firstDividendYear": 2000,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "AWR",
+      "name": "American States Water Company",
+      "sector": "utilities",
+      "sourceSectorLabel": "Utilities",
+      "sourceEtfs": [
+        "SDY",
+        "SMDV"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 84.75,
+        "currency": "USD",
+        "latestDividend": 0.504,
+        "latestDividendDate": "2026-05-18",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.016,
+        "forwardYieldPercent": 2.3787610619469026,
+        "fiveYearGrowthPercent": 8.847188420259112,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "BANF",
+      "name": "Bancfirst Corp",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 114,
+        "currency": "USD",
+        "latestDividend": 0.49,
+        "latestDividendDate": "2026-06-30",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.96,
+        "forwardYieldPercent": 1.719298245614035,
+        "fiveYearGrowthPercent": 7.528000640556964,
+        "recentCut": null,
+        "firstDividendYear": 1991,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "BBY",
+      "name": "Best Buy",
+      "sector": "consumerDiscretionary",
+      "sourceSectorLabel": "Consumer Discretionary",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 85.25,
+        "currency": "USD",
+        "latestDividend": 0.96,
+        "latestDividendDate": "2026-06-18",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 3.84,
+        "forwardYieldPercent": 4.504398826979472,
+        "fiveYearGrowthPercent": 11.550670014054099,
+        "recentCut": null,
+        "firstDividendYear": 2003,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "BCPC",
+      "name": "Balchem Corporation",
+      "sector": "materials",
+      "sourceSectorLabel": "Materials",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 173.57,
+        "currency": "USD",
+        "latestDividend": 0.96,
+        "latestDividendDate": "2025-12-23",
+        "paymentsPerYear": 1,
+        "forwardAnnualDividend": 0.96,
+        "forwardYieldPercent": 0.553090971942156,
+        "fiveYearGrowthPercent": 10.603443372707044,
+        "recentCut": null,
+        "firstDividendYear": 1988,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "BDX",
+      "name": "Becton Dickinson",
+      "sector": "healthCare",
+      "sourceSectorLabel": "Health Care",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 170.21,
+        "currency": "USD",
+        "latestDividend": 1.05,
+        "latestDividendDate": "2026-06-09",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 4.2,
+        "forwardYieldPercent": 2.4675400975265847,
+        "fiveYearGrowthPercent": 6.175921278168928,
+        "recentCut": null,
+        "firstDividendYear": 1973,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "BEN",
+      "name": "Franklin Resources",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 35.24,
+        "currency": "USD",
+        "latestDividend": 0.33,
+        "latestDividendDate": "2026-06-29",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.32,
+        "forwardYieldPercent": 3.745743473325766,
+        "fiveYearGrowthPercent": 3.4563715943573214,
+        "recentCut": null,
+        "firstDividendYear": 1985,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "BF.B",
+      "name": "Brown–Forman",
+      "sector": "consumerStaples",
+      "sourceSectorLabel": "Consumer Staples",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 27.81,
+        "currency": "USD",
+        "latestDividend": 0.231,
+        "latestDividendDate": "2026-06-10",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 0.924,
+        "forwardYieldPercent": 3.322545846817692,
+        "fiveYearGrowthPercent": 5.4618345495144105,
+        "recentCut": null,
+        "firstDividendYear": 1985,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "BHB",
+      "name": "Bar Harbor Bankshares",
+      "sector": null,
+      "sourceSectorLabel": null,
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 40.29,
+        "currency": "USD",
+        "latestDividend": 0.34,
+        "latestDividendDate": "2026-05-21",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.36,
+        "forwardYieldPercent": 3.375527426160338,
+        "fiveYearGrowthPercent": 7.781806771272581,
+        "recentCut": null,
+        "firstDividendYear": 1997,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "BKH",
+      "name": "Black Hills Corporation",
+      "sector": "utilities",
+      "sourceSectorLabel": "Utilities",
+      "sourceEtfs": [
+        "SDY",
+        "REGL",
+        "SMDV"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 71.23,
+        "currency": "USD",
+        "latestDividend": 0.703,
+        "latestDividendDate": "2026-05-15",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.812,
+        "forwardYieldPercent": 3.9477748139828717,
+        "fiveYearGrowthPercent": 4.789696563246326,
+        "recentCut": null,
+        "firstDividendYear": 1986,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "BMI",
+      "name": "Badger Meter, Inc.",
+      "sector": "informationTechnology",
+      "sourceSectorLabel": "Information Technology",
+      "sourceEtfs": [
+        "SDY",
+        "SMDV"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 136.95,
+        "currency": "USD",
+        "latestDividend": 0.4,
+        "latestDividendDate": "2026-05-22",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.6,
+        "forwardYieldPercent": 1.168309602044542,
+        "fiveYearGrowthPercent": 14.869835499703509,
+        "recentCut": null,
+        "firstDividendYear": 1990,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "BRC",
+      "name": "Brady Corporation",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 96.03,
+        "currency": "USD",
+        "latestDividend": 0.245,
+        "latestDividendDate": "2026-07-10",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 0.98,
+        "forwardYieldPercent": 1.0205144225762783,
+        "fiveYearGrowthPercent": 1.9414835626552218,
+        "recentCut": null,
+        "firstDividendYear": 1992,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "BRO",
+      "name": "Brown & Brown",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 71.78,
+        "currency": "USD",
+        "latestDividend": 0.165,
+        "latestDividendDate": "2026-05-11",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 0.66,
+        "forwardYieldPercent": 0.919476177208136,
+        "fiveYearGrowthPercent": 12.030033714161736,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "BUSE",
+      "name": "First Busey Corporation",
+      "sector": null,
+      "sourceSectorLabel": null,
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 31.27,
+        "currency": "USD",
+        "latestDividend": 0.26,
+        "latestDividendDate": "2026-07-24",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.04,
+        "forwardYieldPercent": 3.3258714422769433,
+        "fiveYearGrowthPercent": 2.589630491023409,
+        "recentCut": null,
+        "firstDividendYear": 1998,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "CAH",
+      "name": "Cardinal Health",
+      "sector": "healthCare",
+      "sourceSectorLabel": "Health Care",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 235.6,
+        "currency": "USD",
+        "latestDividend": 0.516,
+        "latestDividendDate": "2026-07-01",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.064,
+        "forwardYieldPercent": 0.8760611205432938,
+        "fiveYearGrowthPercent": 0.8098223728997489,
+        "recentCut": null,
+        "firstDividendYear": 1986,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "CASS",
+      "name": "Cass Information Systems, Inc.",
+      "sector": null,
+      "sourceSectorLabel": null,
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 56.51,
+        "currency": "USD",
+        "latestDividend": 0.32,
+        "latestDividendDate": "2026-06-05",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.28,
+        "forwardYieldPercent": 2.2650858255176076,
+        "fiveYearGrowthPercent": 2.8015317995883304,
+        "recentCut": null,
+        "firstDividendYear": 1996,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "CASY",
+      "name": "Casey's",
+      "sector": "consumerStaples",
+      "sourceSectorLabel": "Consumer Staples",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 860.37,
+        "currency": "USD",
+        "latestDividend": 0.65,
+        "latestDividendDate": "2026-07-31",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.6,
+        "forwardYieldPercent": 0.30219556702348993,
+        "fiveYearGrowthPercent": 9.336207394327811,
+        "recentCut": null,
+        "firstDividendYear": 1990,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "CAT",
+      "name": "Caterpillar Inc.",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 830.03,
+        "currency": "USD",
+        "latestDividend": 1.63,
+        "latestDividendDate": "2026-07-20",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 6.52,
+        "forwardYieldPercent": 0.7855137766104839,
+        "fiveYearGrowthPercent": 6.482043619009503,
+        "recentCut": null,
+        "firstDividendYear": 1962,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "CB",
+      "name": "Chubb Limited",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 348.23,
+        "currency": "USD",
+        "latestDividend": 1.02,
+        "latestDividendDate": "2026-06-12",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 4.08,
+        "forwardYieldPercent": 1.171639433707607,
+        "fiveYearGrowthPercent": null,
+        "recentCut": null,
+        "firstDividendYear": 1993,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "CBSH",
+      "name": "Commerce Bancshares",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SDY",
+        "REGL"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 59.67,
+        "currency": "USD",
+        "latestDividend": 0.275,
+        "latestDividendDate": "2026-06-05",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.1,
+        "forwardYieldPercent": 1.843472431707726,
+        "fiveYearGrowthPercent": 4.362705881874529,
+        "recentCut": null,
+        "firstDividendYear": 1986,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "CBT",
+      "name": "Cabot Corp",
+      "sector": "materials",
+      "sourceSectorLabel": "Materials",
+      "sourceEtfs": [
+        "REGL"
+      ],
+      "minimumStreakYears": 15,
+      "metrics": {
+        "price": 89.58,
+        "currency": "USD",
+        "latestDividend": 0.473,
+        "latestDividendDate": "2026-05-29",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.892,
+        "forwardYieldPercent": 2.112078588970752,
+        "fiveYearGrowthPercent": 5.154749679728043,
+        "recentCut": null,
+        "firstDividendYear": 1985,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "CBU",
+      "name": "Community Bank System, Inc.",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 66.54,
+        "currency": "USD",
+        "latestDividend": 0.47,
+        "latestDividendDate": "2026-06-15",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.88,
+        "forwardYieldPercent": 2.8253681995792,
+        "fiveYearGrowthPercent": 2.328072821538041,
+        "recentCut": null,
+        "firstDividendYear": 1991,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "CFR",
+      "name": "Frost Bank",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SDY",
+        "REGL"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 168.94,
+        "currency": "USD",
+        "latestDividend": 1.03,
+        "latestDividendDate": "2026-05-29",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 4.12,
+        "forwardYieldPercent": 2.438735645791405,
+        "fiveYearGrowthPercent": 7.0898549322000015,
+        "recentCut": null,
+        "firstDividendYear": 1994,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "CHCT",
+      "name": "Community Healthcare Trust Incorporated",
+      "sector": null,
+      "sourceSectorLabel": null,
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 18.26,
+        "currency": "USD",
+        "latestDividend": 0.48,
+        "latestDividendDate": "2026-05-11",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.92,
+        "forwardYieldPercent": 10.514786418400874,
+        "fiveYearGrowthPercent": 2.285462741040356,
+        "recentCut": null,
+        "firstDividendYear": 2015,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "CHD",
+      "name": "Church & Dwight",
+      "sector": "consumerStaples",
+      "sourceSectorLabel": "Consumer Staples",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 100.01,
+        "currency": "USD",
+        "latestDividend": 0.308,
+        "latestDividendDate": "2026-05-15",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.232,
+        "forwardYieldPercent": 1.231876812318768,
+        "fiveYearGrowthPercent": 4.21306158714021,
+        "recentCut": null,
+        "firstDividendYear": 1990,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "CHDN",
+      "name": "Churchill Downs Inc.",
+      "sector": "consumerDiscretionary",
+      "sourceSectorLabel": "Consumer Discretionary",
+      "sourceEtfs": [
+        "REGL"
+      ],
+      "minimumStreakYears": 15,
+      "metrics": {
+        "price": 83.47,
+        "currency": "USD",
+        "latestDividend": 0.438,
+        "latestDividendDate": "2025-12-05",
+        "paymentsPerYear": 1,
+        "forwardAnnualDividend": 0.438,
+        "forwardYieldPercent": 0.5247394273391638,
+        "fiveYearGrowthPercent": 7.088477535289894,
+        "recentCut": null,
+        "firstDividendYear": 1993,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "CHE",
+      "name": "Chemed Corp.",
+      "sector": "healthCare",
+      "sourceSectorLabel": "Health Care",
+      "sourceEtfs": [
+        "REGL"
+      ],
+      "minimumStreakYears": 15,
+      "metrics": {
+        "price": 540.57,
+        "currency": "USD",
+        "latestDividend": 0.6,
+        "latestDividendDate": "2026-05-28",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.4,
+        "forwardYieldPercent": 0.4439758033187191,
+        "fiveYearGrowthPercent": 9.336207394327811,
+        "recentCut": null,
+        "firstDividendYear": 1988,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "CHRW",
+      "name": "C.H. Robinson",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 147,
+        "currency": "USD",
+        "latestDividend": 0.63,
+        "latestDividendDate": "2026-06-05",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.52,
+        "forwardYieldPercent": 1.7142857142857144,
+        "fiveYearGrowthPercent": 3.9834691942561395,
+        "recentCut": null,
+        "firstDividendYear": 1997,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "CINF",
+      "name": "Cincinnati Financial",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 178.03,
+        "currency": "USD",
+        "latestDividend": 0.94,
+        "latestDividendDate": "2026-06-23",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 3.76,
+        "forwardYieldPercent": 2.1120035948997358,
+        "fiveYearGrowthPercent": 7.714358779274311,
+        "recentCut": null,
+        "firstDividendYear": 1986,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "CL",
+      "name": "Colgate-Palmolive",
+      "sector": "consumerStaples",
+      "sourceSectorLabel": "Consumer Staples",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 89.88,
+        "currency": "USD",
+        "latestDividend": 0.53,
+        "latestDividendDate": "2026-07-20",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.12,
+        "forwardYieldPercent": 2.3587004895416115,
+        "fiveYearGrowthPercent": 3.3975226531950176,
+        "recentCut": null,
+        "firstDividendYear": 1973,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "CLX",
+      "name": "Clorox",
+      "sector": "consumerStaples",
+      "sourceSectorLabel": "Consumer Staples",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 98.26,
+        "currency": "USD",
+        "latestDividend": 1.24,
+        "latestDividendDate": "2026-04-22",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 4.96,
+        "forwardYieldPercent": 5.0478322817016075,
+        "fiveYearGrowthPercent": 2.851538648883478,
+        "recentCut": null,
+        "firstDividendYear": 1983,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "CMI",
+      "name": "Cummins",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 648.85,
+        "currency": "USD",
+        "latestDividend": 2,
+        "latestDividendDate": "2026-05-22",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 8,
+        "forwardYieldPercent": 1.2329506049163905,
+        "fiveYearGrowthPercent": 6.780939900647831,
+        "recentCut": null,
+        "firstDividendYear": 1973,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "CNS",
+      "name": "Cohen & Steers, Inc.",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 84.63,
+        "currency": "USD",
+        "latestDividend": 0.67,
+        "latestDividendDate": "2026-05-11",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.68,
+        "forwardYieldPercent": 3.166725747370909,
+        "fiveYearGrowthPercent": 9.714850709074053,
+        "recentCut": null,
+        "firstDividendYear": 2004,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "COR",
+      "name": "Cencora",
+      "sector": "healthCare",
+      "sourceSectorLabel": "Health Care",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 308.37,
+        "currency": "USD",
+        "latestDividend": 0.6,
+        "latestDividendDate": "2026-05-15",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.4,
+        "forwardYieldPercent": 0.7782858254694036,
+        "fiveYearGrowthPercent": null,
+        "recentCut": null,
+        "firstDividendYear": 2001,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "COST",
+      "name": "Costco",
+      "sector": "consumerStaples",
+      "sourceSectorLabel": "Consumer Staples",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 954.08,
+        "currency": "USD",
+        "latestDividend": 1.47,
+        "latestDividendDate": "2026-07-24",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 5.88,
+        "forwardYieldPercent": 0.6163005198725474,
+        "fiveYearGrowthPercent": 13.179836563100178,
+        "recentCut": null,
+        "firstDividendYear": 2004,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "CPK",
+      "name": "Chesapeake Utilities Corp.",
+      "sector": "utilities",
+      "sourceSectorLabel": "Utilities",
+      "sourceEtfs": [
+        "SDY",
+        "SMDV"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 133.86,
+        "currency": "USD",
+        "latestDividend": 0.735,
+        "latestDividendDate": "2026-06-15",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.94,
+        "forwardYieldPercent": 2.196324518153294,
+        "fiveYearGrowthPercent": 9.256574238147586,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "CRAI",
+      "name": "CRA International, Inc.",
+      "sector": null,
+      "sourceSectorLabel": null,
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 180.23,
+        "currency": "USD",
+        "latestDividend": 0.57,
+        "latestDividendDate": "2026-05-26",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.28,
+        "forwardYieldPercent": 1.2650502136159352,
+        "fiveYearGrowthPercent": 16.330514481696824,
+        "recentCut": null,
+        "firstDividendYear": 2016,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "CSL",
+      "name": "Carlisle Companies",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "SDY",
+        "REGL"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 371.86,
+        "currency": "USD",
+        "latestDividend": 1.1,
+        "latestDividendDate": "2026-05-18",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 4.4,
+        "forwardYieldPercent": 1.1832410046791804,
+        "fiveYearGrowthPercent": 14.869835499703509,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "CSX",
+      "name": "CSX Corporation",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 49.83,
+        "currency": "USD",
+        "latestDividend": 0.14,
+        "latestDividendDate": "2026-05-29",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 0.56,
+        "forwardYieldPercent": 1.1238209913706605,
+        "fiveYearGrowthPercent": 8.447093699056897,
+        "recentCut": null,
+        "firstDividendYear": 1981,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "CTAS",
+      "name": "Cintas",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 204.01,
+        "currency": "USD",
+        "latestDividend": 0.45,
+        "latestDividendDate": "2026-05-15",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.8,
+        "forwardYieldPercent": 0.8823096907014362,
+        "fiveYearGrowthPercent": null,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "CTBI",
+      "name": "Community Trust Bancorp, Inc.",
+      "sector": null,
+      "sourceSectorLabel": null,
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 78.93,
+        "currency": "USD",
+        "latestDividend": 0.53,
+        "latestDividendDate": "2026-06-15",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.12,
+        "forwardYieldPercent": 2.6859242366653997,
+        "fiveYearGrowthPercent": 4.342887836291864,
+        "recentCut": null,
+        "firstDividendYear": 1988,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "CTRE",
+      "name": "CareTrust REIT",
+      "sector": "realEstate",
+      "sourceSectorLabel": "Real Estate",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 41.22,
+        "currency": "USD",
+        "latestDividend": 0.39,
+        "latestDividendDate": "2026-06-30",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.56,
+        "forwardYieldPercent": 3.7845705967976713,
+        "fiveYearGrowthPercent": 6.0280952775362495,
+        "recentCut": null,
+        "firstDividendYear": 2014,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "CUBE",
+      "name": "CubeSmart",
+      "sector": "realEstate",
+      "sourceSectorLabel": "Real Estate",
+      "sourceEtfs": [
+        "REGL"
+      ],
+      "minimumStreakYears": 15,
+      "metrics": {
+        "price": 41.84,
+        "currency": "USD",
+        "latestDividend": 0.53,
+        "latestDividendDate": "2026-07-01",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.12,
+        "forwardYieldPercent": 5.066921606118547,
+        "fiveYearGrowthPercent": 9.521121099648798,
+        "recentCut": null,
+        "firstDividendYear": 2005,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "CVX",
+      "name": "Chevron Corporation",
+      "sector": "energy",
+      "sourceSectorLabel": "Energy",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 193.18,
+        "currency": "USD",
+        "latestDividend": 1.78,
+        "latestDividendDate": "2026-05-19",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 7.12,
+        "forwardYieldPercent": 3.6856817475929184,
+        "fiveYearGrowthPercent": 5.79893110716263,
+        "recentCut": null,
+        "firstDividendYear": 1962,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "CWT",
+      "name": "California Water Service Group",
+      "sector": "utilities",
+      "sourceSectorLabel": "Utilities",
+      "sourceEtfs": [
+        "SDY",
+        "SMDV"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 49.38,
+        "currency": "USD",
+        "latestDividend": 0.335,
+        "latestDividendDate": "2026-05-11",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.34,
+        "forwardYieldPercent": 2.713649250708789,
+        "fiveYearGrowthPercent": 7.0898549322000015,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "DCI",
+      "name": "Donaldson Company",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "SDY",
+        "REGL"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 96.02,
+        "currency": "USD",
+        "latestDividend": 0.32,
+        "latestDividendDate": "2026-06-15",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.28,
+        "forwardYieldPercent": 1.333055613413872,
+        "fiveYearGrowthPercent": 7.394092378577932,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "DOV",
+      "name": "Dover Corporation",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 205.72,
+        "currency": "USD",
+        "latestDividend": 0.52,
+        "latestDividendDate": "2026-05-29",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.08,
+        "forwardYieldPercent": 1.0110830254715149,
+        "fiveYearGrowthPercent": 1.0001990771193014,
+        "recentCut": null,
+        "firstDividendYear": 1982,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "DTM",
+      "name": "DT Midstream",
+      "sector": "energy",
+      "sourceSectorLabel": "Energy",
+      "sourceEtfs": [
+        "REGL"
+      ],
+      "minimumStreakYears": 15,
+      "metrics": {
+        "price": 135.33,
+        "currency": "USD",
+        "latestDividend": 0.88,
+        "latestDividendDate": "2026-06-15",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 3.52,
+        "forwardYieldPercent": 2.6010492869282493,
+        "fiveYearGrowthPercent": null,
+        "recentCut": null,
+        "firstDividendYear": 2021,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "ECL",
+      "name": "Ecolab",
+      "sector": "materials",
+      "sourceSectorLabel": "Materials",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 279.43,
+        "currency": "USD",
+        "latestDividend": 0.73,
+        "latestDividendDate": "2026-06-16",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.92,
+        "forwardYieldPercent": 1.0449844325949253,
+        "fiveYearGrowthPercent": 6.699675773069802,
+        "recentCut": null,
+        "firstDividendYear": 1986,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "ED",
+      "name": "Consolidated Edison",
+      "sector": "utilities",
+      "sourceSectorLabel": "Utilities",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 107.95,
+        "currency": "USD",
+        "latestDividend": 0.888,
+        "latestDividendDate": "2026-05-13",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 3.552,
+        "forwardYieldPercent": 3.2904122278832793,
+        "fiveYearGrowthPercent": 2.1295687600135116,
+        "recentCut": null,
+        "firstDividendYear": 1962,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "EGP",
+      "name": "EastGroup Properties",
+      "sector": "realEstate",
+      "sourceSectorLabel": "Real Estate",
+      "sourceEtfs": [
+        "REGL"
+      ],
+      "minimumStreakYears": 15,
+      "metrics": {
+        "price": 208.48,
+        "currency": "USD",
+        "latestDividend": 1.55,
+        "latestDividendDate": "2026-06-30",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 6.2,
+        "forwardYieldPercent": 2.9739063699155794,
+        "fiveYearGrowthPercent": 13.29568106011707,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "EIG",
+      "name": "Employers Holdings, Inc.",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 50.65,
+        "currency": "USD",
+        "latestDividend": 0.34,
+        "latestDividendDate": "2026-05-13",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.36,
+        "forwardYieldPercent": 2.685093780848964,
+        "fiveYearGrowthPercent": 5.061112176150684,
+        "recentCut": null,
+        "firstDividendYear": 2007,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "EIX",
+      "name": "Edison International",
+      "sector": "utilities",
+      "sourceSectorLabel": "Utilities",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 71.46,
+        "currency": "USD",
+        "latestDividend": 0.878,
+        "latestDividendDate": "2026-07-07",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 3.512,
+        "forwardYieldPercent": 4.914637559473832,
+        "fiveYearGrowthPercent": 5.351793066568655,
+        "recentCut": null,
+        "firstDividendYear": 1973,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "ELS",
+      "name": "Equity Lifestyle Properties",
+      "sector": "realEstate",
+      "sourceSectorLabel": "Real Estate",
+      "sourceEtfs": [
+        "SDY",
+        "REGL"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 65.67,
+        "currency": "USD",
+        "latestDividend": 0.543,
+        "latestDividendDate": "2026-06-26",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.172,
+        "forwardYieldPercent": 3.3074463225216997,
+        "fiveYearGrowthPercent": 8.468247099429128,
+        "recentCut": null,
+        "firstDividendYear": 1993,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "EMR",
+      "name": "Emerson Electric",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 154.85,
+        "currency": "USD",
+        "latestDividend": 0.555,
+        "latestDividendDate": "2026-05-15",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.22,
+        "forwardYieldPercent": 1.4336454633516307,
+        "fiveYearGrowthPercent": 1.0957232590283805,
+        "recentCut": null,
+        "firstDividendYear": 1972,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "ENSG",
+      "name": "Ensign Group",
+      "sector": "healthCare",
+      "sourceSectorLabel": "Health Care",
+      "sourceEtfs": [
+        "REGL"
+      ],
+      "minimumStreakYears": 15,
+      "metrics": {
+        "price": 177.23,
+        "currency": "USD",
+        "latestDividend": 0.065,
+        "latestDividendDate": "2026-06-30",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 0.26,
+        "forwardYieldPercent": 0.14670202561643064,
+        "fiveYearGrowthPercent": 4.730724775551032,
+        "recentCut": null,
+        "firstDividendYear": 2007,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "ERIE",
+      "name": "Erie Indemnity",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 236.86,
+        "currency": "USD",
+        "latestDividend": 1.463,
+        "latestDividendDate": "2026-07-07",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 5.852,
+        "forwardYieldPercent": 2.4706577725238534,
+        "fiveYearGrowthPercent": 7.181805266957131,
+        "recentCut": null,
+        "firstDividendYear": 1996,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "ES",
+      "name": "Eversource Energy",
+      "sector": "utilities",
+      "sourceSectorLabel": "Utilities",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 71.95,
+        "currency": "USD",
+        "latestDividend": 0.788,
+        "latestDividendDate": "2026-05-18",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 3.152,
+        "forwardYieldPercent": 4.380820013898541,
+        "fiveYearGrowthPercent": 5.800891726323898,
+        "recentCut": null,
+        "firstDividendYear": 1984,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "ESS",
+      "name": "Essex Property Trust",
+      "sector": "realEstate",
+      "sourceSectorLabel": "Real Estate",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 285.88,
+        "currency": "USD",
+        "latestDividend": 2.59,
+        "latestDividendDate": "2026-06-30",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 10.36,
+        "forwardYieldPercent": 3.623898139079334,
+        "fiveYearGrowthPercent": 4.341605767379386,
+        "recentCut": null,
+        "firstDividendYear": 1995,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "EVR",
+      "name": "Evercore",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "REGL"
+      ],
+      "minimumStreakYears": 15,
+      "metrics": {
+        "price": 318.34,
+        "currency": "USD",
+        "latestDividend": 0.89,
+        "latestDividendDate": "2026-05-29",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 3.56,
+        "forwardYieldPercent": 1.1183011874096878,
+        "fiveYearGrowthPercent": 7.688730806165611,
+        "recentCut": null,
+        "firstDividendYear": 2007,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "EVRG",
+      "name": "Evergy",
+      "sector": "utilities",
+      "sourceSectorLabel": "Utilities",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 83.23,
+        "currency": "USD",
+        "latestDividend": 0.695,
+        "latestDividendDate": "2026-05-22",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.78,
+        "forwardYieldPercent": 3.3401417758019942,
+        "fiveYearGrowthPercent": 5.754052091282724,
+        "recentCut": null,
+        "firstDividendYear": 1973,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "EXPD",
+      "name": "Expeditors International",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 170.59,
+        "currency": "USD",
+        "latestDividend": 0.81,
+        "latestDividendDate": "2026-06-01",
+        "paymentsPerYear": 2,
+        "forwardAnnualDividend": 1.62,
+        "forwardYieldPercent": 0.9496453484963949,
+        "fiveYearGrowthPercent": 8.16767036783399,
+        "recentCut": null,
+        "firstDividendYear": 1993,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "EXPO",
+      "name": "Exponent, Inc.",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 68.27,
+        "currency": "USD",
+        "latestDividend": 0.31,
+        "latestDividendDate": "2026-06-05",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.24,
+        "forwardYieldPercent": 1.8163175626190127,
+        "fiveYearGrowthPercent": 9.565425774785385,
+        "recentCut": null,
+        "firstDividendYear": 2013,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "FAF",
+      "name": "First American Financial Corporation",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "REGL"
+      ],
+      "minimumStreakYears": 15,
+      "metrics": {
+        "price": 75.4,
+        "currency": "USD",
+        "latestDividend": 0.55,
+        "latestDividendDate": "2026-06-08",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.2,
+        "forwardYieldPercent": 2.9177718832891246,
+        "fiveYearGrowthPercent": 4.180926810264429,
+        "recentCut": null,
+        "firstDividendYear": 2010,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "FAST",
+      "name": "Fastenal",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 48.11,
+        "currency": "USD",
+        "latestDividend": 0.26,
+        "latestDividendDate": "2026-07-28",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.04,
+        "forwardYieldPercent": 2.1617127416337563,
+        "fiveYearGrowthPercent": 11.970220528043152,
+        "recentCut": null,
+        "firstDividendYear": 1991,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "FCPT",
+      "name": "Four Corners Property Trust, Inc.",
+      "sector": "realEstate",
+      "sourceSectorLabel": "Real Estate",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": null
+    },
+    {
+      "ticker": "FDS",
+      "name": "FactSet",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 269.68,
+        "currency": "USD",
+        "latestDividend": 1.16,
+        "latestDividendDate": "2026-05-29",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 4.64,
+        "forwardYieldPercent": 1.7205576980124588,
+        "fiveYearGrowthPercent": 7.394092378577932,
+        "recentCut": null,
+        "firstDividendYear": 1999,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "FELE",
+      "name": "Franklin Electric",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "SDY",
+        "SMDV"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 106.96,
+        "currency": "USD",
+        "latestDividend": 0.28,
+        "latestDividendDate": "2026-05-07",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.12,
+        "forwardYieldPercent": 1.0471204188481678,
+        "fiveYearGrowthPercent": 11.322470345537216,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "FFIN",
+      "name": "First Financial Bankshares",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "REGL"
+      ],
+      "minimumStreakYears": 15,
+      "metrics": {
+        "price": 35.42,
+        "currency": "USD",
+        "latestDividend": 0.22,
+        "latestDividendDate": "2026-06-12",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 0.88,
+        "forwardYieldPercent": 2.484472049689441,
+        "fiveYearGrowthPercent": 7.8852443962371455,
+        "recentCut": null,
+        "firstDividendYear": 1993,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "FRME",
+      "name": "First Merchants Corporation",
+      "sector": null,
+      "sourceSectorLabel": null,
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 43.63,
+        "currency": "USD",
+        "latestDividend": 0.37,
+        "latestDividendDate": "2026-06-05",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.48,
+        "forwardYieldPercent": 3.3921613568645426,
+        "fiveYearGrowthPercent": 6.724918187953888,
+        "recentCut": null,
+        "firstDividendYear": 1989,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "FRT",
+      "name": "Federal Realty Investment Trust",
+      "sector": "realEstate",
+      "sourceSectorLabel": "Real Estate",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 123.65,
+        "currency": "USD",
+        "latestDividend": 1.13,
+        "latestDividendDate": "2026-07-01",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 4.52,
+        "forwardYieldPercent": 3.6554791750909823,
+        "fiveYearGrowthPercent": 0.9347419909568888,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "FUL",
+      "name": "H.B. Fuller Company",
+      "sector": "materials",
+      "sourceSectorLabel": "Materials",
+      "sourceEtfs": [
+        "SDY",
+        "SMDV"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 57.01,
+        "currency": "USD",
+        "latestDividend": 0.245,
+        "latestDividendDate": "2026-07-30",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 0.98,
+        "forwardYieldPercent": 1.7189966672513595,
+        "fiveYearGrowthPercent": 7.591026634030995,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "FULT",
+      "name": "Fulton Financial Corporation",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 24.63,
+        "currency": "USD",
+        "latestDividend": 0.19,
+        "latestDividendDate": "2026-07-01",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 0.76,
+        "forwardYieldPercent": 3.0856678846934638,
+        "fiveYearGrowthPercent": 6.724918187953888,
+        "recentCut": null,
+        "firstDividendYear": 1986,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "GATX",
+      "name": "GATX",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "REGL",
+        "SMDV"
+      ],
+      "minimumStreakYears": 15,
+      "metrics": {
+        "price": 180.39,
+        "currency": "USD",
+        "latestDividend": 0.66,
+        "latestDividendDate": "2026-06-15",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.64,
+        "forwardYieldPercent": 1.4634957591884252,
+        "fiveYearGrowthPercent": 4.910201101938982,
+        "recentCut": null,
+        "firstDividendYear": 1982,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "GD",
+      "name": "General Dynamics",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 382.43,
+        "currency": "USD",
+        "latestDividend": 1.59,
+        "latestDividendDate": "2026-07-02",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 6.36,
+        "forwardYieldPercent": 1.6630494469576131,
+        "fiveYearGrowthPercent": 6.399531281508364,
+        "recentCut": null,
+        "firstDividendYear": 1965,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "GFF",
+      "name": "Griffon Corporation",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 89.41,
+        "currency": "USD",
+        "latestDividend": 0.22,
+        "latestDividendDate": "2026-05-29",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 0.88,
+        "forwardYieldPercent": 0.9842299519069456,
+        "fiveYearGrowthPercent": 19.13578981670916,
+        "recentCut": null,
+        "firstDividendYear": 2011,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "GGG",
+      "name": "Graco Inc.",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "SDY",
+        "REGL"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 80.3,
+        "currency": "USD",
+        "latestDividend": 0.295,
+        "latestDividendDate": "2026-07-20",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.18,
+        "forwardYieldPercent": 1.469489414694894,
+        "fiveYearGrowthPercent": 9.460878422315755,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "GIC",
+      "name": "Global Industrial Company",
+      "sector": null,
+      "sourceSectorLabel": null,
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 36.43,
+        "currency": "USD",
+        "latestDividend": 0.28,
+        "latestDividendDate": "2026-05-18",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.12,
+        "forwardYieldPercent": 3.0743892396376618,
+        "fiveYearGrowthPercent": 13.179836563100178,
+        "recentCut": null,
+        "firstDividendYear": 2007,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "GL",
+      "name": "Globe Life",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 184.09,
+        "currency": "USD",
+        "latestDividend": 0.33,
+        "latestDividendDate": "2026-07-06",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.32,
+        "forwardYieldPercent": 0.7170405779781629,
+        "fiveYearGrowthPercent": 7.508099102891208,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "GOLF",
+      "name": "Acushnet Company",
+      "sector": "consumerDiscretionary",
+      "sourceSectorLabel": "Consumer Discretionary",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 102.19,
+        "currency": "USD",
+        "latestDividend": 0.255,
+        "latestDividendDate": "2026-06-05",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.02,
+        "forwardYieldPercent": 0.9981407182698896,
+        "fiveYearGrowthPercent": 8.679400183142283,
+        "recentCut": null,
+        "firstDividendYear": 2017,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "GPC",
+      "name": "Genuine Parts Company",
+      "sector": "consumerDiscretionary",
+      "sourceSectorLabel": "Consumer Discretionary",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 128.52,
+        "currency": "USD",
+        "latestDividend": 1.063,
+        "latestDividendDate": "2026-06-05",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 4.252,
+        "forwardYieldPercent": 3.3084344849050726,
+        "fiveYearGrowthPercent": 5.4488934362653785,
+        "recentCut": null,
+        "firstDividendYear": 1983,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "GRC",
+      "name": "The Gorman-Rupp Company",
+      "sector": null,
+      "sourceSectorLabel": null,
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 82.8,
+        "currency": "USD",
+        "latestDividend": 0.19,
+        "latestDividendDate": "2026-05-15",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 0.76,
+        "forwardYieldPercent": 0.9178743961352657,
+        "fiveYearGrowthPercent": 4.99309672496191,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "GTY",
+      "name": "Getty Realty Corp.",
+      "sector": "realEstate",
+      "sourceSectorLabel": "Real Estate",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 33.95,
+        "currency": "USD",
+        "latestDividend": 0.485,
+        "latestDividendDate": "2026-06-25",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.94,
+        "forwardYieldPercent": 5.7142857142857135,
+        "fiveYearGrowthPercent": 4.900903024942593,
+        "recentCut": null,
+        "firstDividendYear": 1986,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "GWW",
+      "name": "W. W. Grainger",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 1371.25,
+        "currency": "USD",
+        "latestDividend": 2.49,
+        "latestDividendDate": "2026-05-11",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 9.96,
+        "forwardYieldPercent": 0.7263445761166819,
+        "fiveYearGrowthPercent": 9.43322281534289,
+        "recentCut": null,
+        "firstDividendYear": 1985,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "HASI",
+      "name": "Hannon Armstrong Sustainable Infrastructure Capital, Inc.",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 38.58,
+        "currency": "USD",
+        "latestDividend": 0.425,
+        "latestDividendDate": "2026-07-02",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.7,
+        "forwardYieldPercent": 4.406428201140487,
+        "fiveYearGrowthPercent": 4.316756381013498,
+        "recentCut": null,
+        "firstDividendYear": 2013,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "HFWA",
+      "name": "Heritage Financial Corporation",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 30.01,
+        "currency": "USD",
+        "latestDividend": 0.24,
+        "latestDividendDate": "2026-05-06",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 0.96,
+        "forwardYieldPercent": 3.19893368877041,
+        "fiveYearGrowthPercent": 3.713728933664817,
+        "recentCut": null,
+        "firstDividendYear": 1998,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "HMN",
+      "name": "Horace Mann Educators Corporation",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 51.81,
+        "currency": "USD",
+        "latestDividend": 0.36,
+        "latestDividendDate": "2026-06-15",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.44,
+        "forwardYieldPercent": 2.7793862188766645,
+        "fiveYearGrowthPercent": 3.131030647754507,
+        "recentCut": null,
+        "firstDividendYear": 1992,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "HNI",
+      "name": "HNI Corporation",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 47.65,
+        "currency": "USD",
+        "latestDividend": 0.35,
+        "latestDividendDate": "2026-05-29",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.4,
+        "forwardYieldPercent": 2.9380902413431267,
+        "fiveYearGrowthPercent": 2.196451311638481,
+        "recentCut": null,
+        "firstDividendYear": 1990,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "HOMB",
+      "name": "Home BancShares",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "REGL",
+        "SMDV"
+      ],
+      "minimumStreakYears": 15,
+      "metrics": {
+        "price": 31.28,
+        "currency": "USD",
+        "latestDividend": 0.21,
+        "latestDividendDate": "2026-05-13",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 0.84,
+        "forwardYieldPercent": 2.6854219948849103,
+        "fiveYearGrowthPercent": 8.997698704834534,
+        "recentCut": null,
+        "firstDividendYear": 2006,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "HRL",
+      "name": "Hormel Foods",
+      "sector": "consumerStaples",
+      "sourceSectorLabel": "Consumer Staples",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 25.23,
+        "currency": "USD",
+        "latestDividend": 0.293,
+        "latestDividendDate": "2026-07-13",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.172,
+        "forwardYieldPercent": 4.645263575108997,
+        "fiveYearGrowthPercent": 4.474046308188906,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "HTO",
+      "name": "H2O America",
+      "sector": "utilities",
+      "sourceSectorLabel": "Utilities",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 61.08,
+        "currency": "USD",
+        "latestDividend": 0.44,
+        "latestDividendDate": "2026-05-11",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.76,
+        "forwardYieldPercent": 2.881466928618206,
+        "fiveYearGrowthPercent": 5.589288248337687,
+        "recentCut": null,
+        "firstDividendYear": 1980,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "HWKN",
+      "name": "Hawkins, Inc.",
+      "sector": "materials",
+      "sourceSectorLabel": "Materials",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 132.08,
+        "currency": "USD",
+        "latestDividend": 0.19,
+        "latestDividendDate": "2026-05-29",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 0.76,
+        "forwardYieldPercent": 0.5754088431253785,
+        "fiveYearGrowthPercent": 9.091098755138827,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "HY",
+      "name": "Hyster-Yale, Inc.",
+      "sector": null,
+      "sourceSectorLabel": null,
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 35.06,
+        "currency": "USD",
+        "latestDividend": 0.365,
+        "latestDividendDate": "2026-06-01",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.46,
+        "forwardYieldPercent": 4.1642897889332575,
+        "fiveYearGrowthPercent": 2.512087219852699,
+        "recentCut": null,
+        "firstDividendYear": 2012,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "IBCP",
+      "name": "Independent Bank Corporation",
+      "sector": null,
+      "sourceSectorLabel": null,
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 38.48,
+        "currency": "USD",
+        "latestDividend": 0.28,
+        "latestDividendDate": "2026-05-04",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.12,
+        "forwardYieldPercent": 2.910602910602911,
+        "fiveYearGrowthPercent": 5.387395206178347,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "IBM",
+      "name": "IBM",
+      "sector": "informationTechnology",
+      "sourceSectorLabel": "Information Technology",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 226.31,
+        "currency": "USD",
+        "latestDividend": 1.69,
+        "latestDividendDate": "2026-05-08",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 6.76,
+        "forwardYieldPercent": 2.987053157173788,
+        "fiveYearGrowthPercent": 1.5151111904639025,
+        "recentCut": null,
+        "firstDividendYear": 1962,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "IBOC",
+      "name": "Intl Bancshares Corp",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "REGL"
+      ],
+      "minimumStreakYears": 15,
+      "metrics": {
+        "price": 76.22,
+        "currency": "USD",
+        "latestDividend": 0.73,
+        "latestDividendDate": "2026-02-13",
+        "paymentsPerYear": 2,
+        "forwardAnnualDividend": 1.46,
+        "forwardYieldPercent": 1.9155077407504593,
+        "fiveYearGrowthPercent": 4.941452284458392,
+        "recentCut": null,
+        "firstDividendYear": 1996,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "IDA",
+      "name": "Idacorp",
+      "sector": "utilities",
+      "sourceSectorLabel": "Utilities",
+      "sourceEtfs": [
+        "REGL"
+      ],
+      "minimumStreakYears": 15,
+      "metrics": {
+        "price": 143.79,
+        "currency": "USD",
+        "latestDividend": 0.88,
+        "latestDividendDate": "2026-05-05",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 3.52,
+        "forwardYieldPercent": 2.4480144655400236,
+        "fiveYearGrowthPercent": 5.119849323654324,
+        "recentCut": null,
+        "firstDividendYear": 1973,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "INDB",
+      "name": "Independent Bank Corp.",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 85,
+        "currency": "USD",
+        "latestDividend": 0.64,
+        "latestDividendDate": "2026-06-29",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.56,
+        "forwardYieldPercent": 3.011764705882353,
+        "fiveYearGrowthPercent": 5.103901130952315,
+        "recentCut": null,
+        "firstDividendYear": 1986,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "INGR",
+      "name": "Ingredion",
+      "sector": "consumerStaples",
+      "sourceSectorLabel": "Consumer Staples",
+      "sourceEtfs": [
+        "REGL"
+      ],
+      "minimumStreakYears": 15,
+      "metrics": {
+        "price": 100.42,
+        "currency": "USD",
+        "latestDividend": 0.82,
+        "latestDividendDate": "2026-07-01",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 3.28,
+        "forwardYieldPercent": 3.2662816172077274,
+        "fiveYearGrowthPercent": 4.893816562469966,
+        "recentCut": null,
+        "firstDividendYear": 1998,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "IOSP",
+      "name": "Innospec, Inc.",
+      "sector": "materials",
+      "sourceSectorLabel": "Materials",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 85.48,
+        "currency": "USD",
+        "latestDividend": 0.92,
+        "latestDividendDate": "2026-05-19",
+        "paymentsPerYear": 2,
+        "forwardAnnualDividend": 1.84,
+        "forwardYieldPercent": 2.152550304164717,
+        "fiveYearGrowthPercent": 10.066508085209659,
+        "recentCut": null,
+        "firstDividendYear": 2002,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "ITW",
+      "name": "Illinois Tool Works",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 288.49,
+        "currency": "USD",
+        "latestDividend": 1.61,
+        "latestDividendDate": "2026-06-30",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 6.44,
+        "forwardYieldPercent": 2.2323130784429273,
+        "fiveYearGrowthPercent": 6.989583356549334,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "JBHT",
+      "name": "J.B. Hunt",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 266.91,
+        "currency": "USD",
+        "latestDividend": 0.45,
+        "latestDividendDate": "2026-05-08",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.8,
+        "forwardYieldPercent": 0.674384624030572,
+        "fiveYearGrowthPercent": 10.25994778190622,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "JJSF",
+      "name": "J&J Snack Foods Corp.",
+      "sector": "consumerStaples",
+      "sourceSectorLabel": "Consumer Staples",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 79.02,
+        "currency": "USD",
+        "latestDividend": 0.8,
+        "latestDividendDate": "2026-06-16",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 3.2,
+        "forwardYieldPercent": 4.049607694254619,
+        "fiveYearGrowthPercent": 6.288273250054988,
+        "recentCut": null,
+        "firstDividendYear": 2004,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "JKHY",
+      "name": "Jack Henry & Associates",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 156.53,
+        "currency": "USD",
+        "latestDividend": 0.61,
+        "latestDividendDate": "2026-06-01",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.44,
+        "forwardYieldPercent": 1.558806618539577,
+        "fiveYearGrowthPercent": 6.167577433485083,
+        "recentCut": null,
+        "firstDividendYear": 1991,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "JNJ",
+      "name": "Johnson & Johnson",
+      "sector": "healthCare",
+      "sourceSectorLabel": "Health Care",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 254.41,
+        "currency": "USD",
+        "latestDividend": 1.34,
+        "latestDividendDate": "2026-05-26",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 5.36,
+        "forwardYieldPercent": 2.106835423135883,
+        "fiveYearGrowthPercent": 5.177875863992543,
+        "recentCut": null,
+        "firstDividendYear": 1962,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "KAI",
+      "name": "Kadant Inc.",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 324.56,
+        "currency": "USD",
+        "latestDividend": 0.36,
+        "latestDividendDate": "2026-07-16",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.44,
+        "forwardYieldPercent": 0.44367759428148873,
+        "fiveYearGrowthPercent": 7.214502590085092,
+        "recentCut": null,
+        "firstDividendYear": 2013,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "KMB",
+      "name": "Kimberly-Clark",
+      "sector": "consumerStaples",
+      "sourceSectorLabel": "Consumer Staples",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 107.56,
+        "currency": "USD",
+        "latestDividend": 1.28,
+        "latestDividendDate": "2026-06-05",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 5.12,
+        "forwardYieldPercent": 4.76013387876534,
+        "fiveYearGrowthPercent": 3.3230823149103417,
+        "recentCut": null,
+        "firstDividendYear": 1985,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "KO",
+      "name": "Coca-Cola Company (The)",
+      "sector": "consumerStaples",
+      "sourceSectorLabel": "Consumer Staples",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 86.86,
+        "currency": "USD",
+        "latestDividend": 0.53,
+        "latestDividendDate": "2026-06-15",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.12,
+        "forwardYieldPercent": 2.4407091871977897,
+        "fiveYearGrowthPercent": 4.4617420086995985,
+        "recentCut": null,
+        "firstDividendYear": 1962,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "KVUE",
+      "name": "Kenvue",
+      "sector": "consumerStaples",
+      "sourceSectorLabel": "Consumer Staples",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 19.01,
+        "currency": "USD",
+        "latestDividend": 0.208,
+        "latestDividendDate": "2026-05-13",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 0.832,
+        "forwardYieldPercent": 4.376643871646501,
+        "fiveYearGrowthPercent": null,
+        "recentCut": null,
+        "firstDividendYear": 2023,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "KWR",
+      "name": "Quaker Chemical Corporation",
+      "sector": "materials",
+      "sourceSectorLabel": "Materials",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 167.81,
+        "currency": "USD",
+        "latestDividend": 0.508,
+        "latestDividendDate": "2026-07-17",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.032,
+        "forwardYieldPercent": 1.21089327215303,
+        "fiveYearGrowthPercent": 4.726406516979642,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "LAD",
+      "name": "Lithia Motors",
+      "sector": "consumerDiscretionary",
+      "sourceSectorLabel": "Consumer Discretionary",
+      "sourceEtfs": [
+        "REGL"
+      ],
+      "minimumStreakYears": 15,
+      "metrics": {
+        "price": 377.91,
+        "currency": "USD",
+        "latestDividend": 0.57,
+        "latestDividendDate": "2026-05-08",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.28,
+        "forwardYieldPercent": 0.6033182503770739,
+        "fiveYearGrowthPercent": 12.888132073019754,
+        "recentCut": null,
+        "firstDividendYear": 2003,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "LECO",
+      "name": "Lincoln Electric",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "SDY",
+        "REGL"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 267.79,
+        "currency": "USD",
+        "latestDividend": 0.79,
+        "latestDividendDate": "2026-06-30",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 3.16,
+        "forwardYieldPercent": 1.1800291273012435,
+        "fiveYearGrowthPercent": 8.88624888199654,
+        "recentCut": null,
+        "firstDividendYear": 1995,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "LFUS",
+      "name": "Littelfuse",
+      "sector": "informationTechnology",
+      "sourceSectorLabel": "Information Technology",
+      "sourceEtfs": [
+        "REGL"
+      ],
+      "minimumStreakYears": 15,
+      "metrics": {
+        "price": 445.2,
+        "currency": "USD",
+        "latestDividend": 0.75,
+        "latestDividendDate": "2026-05-21",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 3,
+        "forwardYieldPercent": 0.6738544474393532,
+        "fiveYearGrowthPercent": 7.8378847447948985,
+        "recentCut": null,
+        "firstDividendYear": 2010,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "LHX",
+      "name": "L3Harris",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 277.86,
+        "currency": "USD",
+        "latestDividend": 1.25,
+        "latestDividendDate": "2026-06-05",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 5,
+        "forwardYieldPercent": 1.7994673576621318,
+        "fiveYearGrowthPercent": 7.140202794100703,
+        "recentCut": null,
+        "firstDividendYear": 1982,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "LIN",
+      "name": "Linde plc",
+      "sector": "materials",
+      "sourceSectorLabel": "Materials",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 480.46,
+        "currency": "USD",
+        "latestDividend": 1.6,
+        "latestDividendDate": "2026-06-04",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 6.4,
+        "forwardYieldPercent": 1.3320567789202016,
+        "fiveYearGrowthPercent": 9.26800010017903,
+        "recentCut": null,
+        "firstDividendYear": 1992,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "LKFN",
+      "name": "Lakeland Financial",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 62.91,
+        "currency": "USD",
+        "latestDividend": 0.52,
+        "latestDividendDate": "2026-07-24",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.08,
+        "forwardYieldPercent": 3.306310602447942,
+        "fiveYearGrowthPercent": 10.756634324829006,
+        "recentCut": null,
+        "firstDividendYear": 1997,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "LMAT",
+      "name": "LeMaitre Vascular",
+      "sector": "healthCare",
+      "sourceSectorLabel": "Health Care",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 103.61,
+        "currency": "USD",
+        "latestDividend": 0.25,
+        "latestDividendDate": "2026-05-21",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1,
+        "forwardYieldPercent": 0.9651578033008398,
+        "fiveYearGrowthPercent": 16.054311135316702,
+        "recentCut": null,
+        "firstDividendYear": 2011,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "LMT",
+      "name": "Lockheed Martin",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 586.29,
+        "currency": "USD",
+        "latestDividend": 3.45,
+        "latestDividendDate": "2026-06-01",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 13.8,
+        "forwardYieldPercent": 2.353783963567518,
+        "fiveYearGrowthPercent": 6.576275663547415,
+        "recentCut": null,
+        "firstDividendYear": 1962,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "LNN",
+      "name": "Lindsay Corporation",
+      "sector": "materials",
+      "sourceSectorLabel": "Materials",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 113.19,
+        "currency": "USD",
+        "latestDividend": 0.37,
+        "latestDividendDate": "2026-05-15",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.48,
+        "forwardYieldPercent": 1.3075360014135524,
+        "fiveYearGrowthPercent": 2.3836255539609663,
+        "recentCut": null,
+        "firstDividendYear": 1996,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "LNT",
+      "name": "Alliant Energy",
+      "sector": "utilities",
+      "sourceSectorLabel": "Utilities",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 71.27,
+        "currency": "USD",
+        "latestDividend": 0.535,
+        "latestDividendDate": "2026-07-31",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.14,
+        "forwardYieldPercent": 3.002665918338712,
+        "fiveYearGrowthPercent": 5.9363175944590285,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "LOW",
+      "name": "Lowe's",
+      "sector": "consumerDiscretionary",
+      "sourceSectorLabel": "Consumer Discretionary",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 212.06,
+        "currency": "USD",
+        "latestDividend": 1.25,
+        "latestDividendDate": "2026-07-22",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 5,
+        "forwardYieldPercent": 2.3578232575686124,
+        "fiveYearGrowthPercent": 15.895621875417865,
+        "recentCut": null,
+        "firstDividendYear": 1985,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "MATW",
+      "name": "Matthews International Corporation",
+      "sector": "consumerDiscretionary",
+      "sourceSectorLabel": "Consumer Discretionary",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 28.07,
+        "currency": "USD",
+        "latestDividend": 0.255,
+        "latestDividendDate": "2026-05-11",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.02,
+        "forwardYieldPercent": 3.633772711079444,
+        "fiveYearGrowthPercent": 3.548578845590522,
+        "recentCut": null,
+        "firstDividendYear": 1994,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "MATX",
+      "name": "Matson, Inc.",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 207.45,
+        "currency": "USD",
+        "latestDividend": 0.36,
+        "latestDividendDate": "2026-05-07",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.44,
+        "forwardYieldPercent": 0.6941431670281997,
+        "fiveYearGrowthPercent": 9.096607850144967,
+        "recentCut": null,
+        "firstDividendYear": 1988,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "MBGL",
+      "name": "Mobility Global, Inc.",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": null
+    },
+    {
+      "ticker": "MCD",
+      "name": "McDonald's",
+      "sector": "consumerDiscretionary",
+      "sourceSectorLabel": "Consumer Discretionary",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 265.23,
+        "currency": "USD",
+        "latestDividend": 1.86,
+        "latestDividendDate": "2026-06-02",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 7.44,
+        "forwardYieldPercent": 2.8051125438298836,
+        "fiveYearGrowthPercent": 7.2044099133939055,
+        "recentCut": null,
+        "firstDividendYear": 1976,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "MCHP",
+      "name": "Microchip Technology",
+      "sector": "informationTechnology",
+      "sourceSectorLabel": "Information Technology",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 75.22,
+        "currency": "USD",
+        "latestDividend": 0.455,
+        "latestDividendDate": "2026-05-22",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.82,
+        "forwardYieldPercent": 2.419569263493752,
+        "fiveYearGrowthPercent": 19.850186651669844,
+        "recentCut": null,
+        "firstDividendYear": 2002,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "MDT",
+      "name": "Medtronic",
+      "sector": "healthCare",
+      "sourceSectorLabel": "Health Care",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 86.68,
+        "currency": "USD",
+        "latestDividend": 0.72,
+        "latestDividendDate": "2026-06-26",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.88,
+        "forwardYieldPercent": 3.3225657591139823,
+        "fiveYearGrowthPercent": 4.127650931301274,
+        "recentCut": null,
+        "firstDividendYear": 1982,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "MGEE",
+      "name": "MGE Energy, Inc.",
+      "sector": "utilities",
+      "sourceSectorLabel": "Utilities",
+      "sourceEtfs": [
+        "SDY",
+        "SMDV"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 80,
+        "currency": "USD",
+        "latestDividend": 0.475,
+        "latestDividendDate": "2026-06-01",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.9,
+        "forwardYieldPercent": 2.375,
+        "fiveYearGrowthPercent": 4.97540568549435,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "MGRC",
+      "name": "McGrath RentCorp",
+      "sector": null,
+      "sourceSectorLabel": null,
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 119.66,
+        "currency": "USD",
+        "latestDividend": 0.495,
+        "latestDividendDate": "2026-07-17",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.98,
+        "forwardYieldPercent": 1.6546882834698313,
+        "fiveYearGrowthPercent": 2.9196947918678884,
+        "recentCut": null,
+        "firstDividendYear": 1990,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "MKC",
+      "name": "McCormick & Company",
+      "sector": "consumerStaples",
+      "sourceSectorLabel": "Consumer Staples",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 51.52,
+        "currency": "USD",
+        "latestDividend": 0.48,
+        "latestDividendDate": "2026-07-06",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.92,
+        "forwardYieldPercent": 3.726708074534161,
+        "fiveYearGrowthPercent": 7.738311274144394,
+        "recentCut": null,
+        "firstDividendYear": 1986,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "MSA",
+      "name": "MSA Safety",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "SDY",
+        "REGL"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 192.46,
+        "currency": "USD",
+        "latestDividend": 0.54,
+        "latestDividendDate": "2026-05-15",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.16,
+        "forwardYieldPercent": 1.1223111295853685,
+        "fiveYearGrowthPercent": 4.270506415417863,
+        "recentCut": null,
+        "firstDividendYear": 1990,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "MSBI",
+      "name": "Midland States Bancorp, Inc.",
+      "sector": null,
+      "sourceSectorLabel": null,
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 34.24,
+        "currency": "USD",
+        "latestDividend": 0.32,
+        "latestDividendDate": "2026-05-15",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.28,
+        "forwardYieldPercent": 3.7383177570093453,
+        "fiveYearGrowthPercent": 2.9545109465493713,
+        "recentCut": null,
+        "firstDividendYear": 2016,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "MSEX",
+      "name": "Middlesex Water Company",
+      "sector": "utilities",
+      "sourceSectorLabel": "Utilities",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 56.85,
+        "currency": "USD",
+        "latestDividend": 0.36,
+        "latestDividendDate": "2026-05-15",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.44,
+        "forwardYieldPercent": 2.5329815303430077,
+        "fiveYearGrowthPercent": 5.839502638636529,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "MSFT",
+      "name": "Microsoft",
+      "sector": "informationTechnology",
+      "sourceSectorLabel": "Information Technology",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 487.65,
+        "currency": "USD",
+        "latestDividend": 0.91,
+        "latestDividendDate": "2026-05-21",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 3.64,
+        "forwardYieldPercent": 0.7464369937455142,
+        "fiveYearGrowthPercent": 10.230450734403206,
+        "recentCut": null,
+        "firstDividendYear": 2003,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "MTRN",
+      "name": "Materion Corp.",
+      "sector": "materials",
+      "sourceSectorLabel": "Materials",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 213.73,
+        "currency": "USD",
+        "latestDividend": 0.145,
+        "latestDividendDate": "2026-05-28",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 0.58,
+        "forwardYieldPercent": 0.27137042062415195,
+        "fiveYearGrowthPercent": 4.012620718096094,
+        "recentCut": null,
+        "firstDividendYear": 1986,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "MWA",
+      "name": "Mueller Water Products",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 25.79,
+        "currency": "USD",
+        "latestDividend": 0.07,
+        "latestDividendDate": "2026-05-11",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 0.28,
+        "forwardYieldPercent": 1.0856921287320667,
+        "fiveYearGrowthPercent": 4.799638992804445,
+        "recentCut": null,
+        "firstDividendYear": 2006,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "MZTI",
+      "name": "The Marzetti Company",
+      "sector": "consumerStaples",
+      "sourceSectorLabel": "Consumer Staples",
+      "sourceEtfs": [
+        "SDY",
+        "REGL",
+        "SMDV"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 110.75,
+        "currency": "USD",
+        "latestDividend": 1,
+        "latestDividendDate": "2026-06-05",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 4,
+        "forwardYieldPercent": 3.611738148984198,
+        "fiveYearGrowthPercent": 6.298004826234438,
+        "recentCut": null,
+        "firstDividendYear": 1986,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "NBTB",
+      "name": "NBT Bancorp, Inc.",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 52.91,
+        "currency": "USD",
+        "latestDividend": 0.37,
+        "latestDividendDate": "2026-06-01",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.48,
+        "forwardYieldPercent": 2.797202797202797,
+        "fiveYearGrowthPercent": 4.718407860618323,
+        "recentCut": null,
+        "firstDividendYear": 1992,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "NDSN",
+      "name": "Nordson Corporation",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 302.62,
+        "currency": "USD",
+        "latestDividend": 0.82,
+        "latestDividendDate": "2026-06-18",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 3.28,
+        "forwardYieldPercent": 1.0838675566717335,
+        "fiveYearGrowthPercent": 15.468148270605052,
+        "recentCut": null,
+        "firstDividendYear": 1986,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "NEE",
+      "name": "NextEra Energy",
+      "sector": "utilities",
+      "sourceSectorLabel": "Utilities",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 86.55,
+        "currency": "USD",
+        "latestDividend": 0.623,
+        "latestDividendDate": "2026-06-05",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.492,
+        "forwardYieldPercent": 2.8792605430387064,
+        "fiveYearGrowthPercent": 10.129331475495595,
+        "recentCut": null,
+        "firstDividendYear": 1983,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "NFG",
+      "name": "National Fuel Gas",
+      "sector": "utilities",
+      "sourceSectorLabel": "Utilities",
+      "sourceEtfs": [
+        "SDY",
+        "REGL"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 82.76,
+        "currency": "USD",
+        "latestDividend": 0.555,
+        "latestDividendDate": "2026-06-30",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.22,
+        "forwardYieldPercent": 2.6824552924117935,
+        "fiveYearGrowthPercent": 3.752543962849475,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "NJR",
+      "name": "New Jersey Resources",
+      "sector": "utilities",
+      "sourceSectorLabel": "Utilities",
+      "sourceEtfs": [
+        "SDY",
+        "REGL",
+        "SMDV"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 58.08,
+        "currency": "USD",
+        "latestDividend": 0.475,
+        "latestDividendDate": "2026-06-10",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.9,
+        "forwardYieldPercent": 3.271349862258953,
+        "fiveYearGrowthPercent": 7.530987778396425,
+        "recentCut": null,
+        "firstDividendYear": 1986,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "NKE",
+      "name": "Nike, Inc.",
+      "sector": "consumerDiscretionary",
+      "sourceSectorLabel": "Consumer Discretionary",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 42.64,
+        "currency": "USD",
+        "latestDividend": 0.41,
+        "latestDividendDate": "2026-06-01",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.64,
+        "forwardYieldPercent": 3.846153846153846,
+        "fiveYearGrowthPercent": 10.300830235778413,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "NNN",
+      "name": "NNN Reit",
+      "sector": "realEstate",
+      "sourceSectorLabel": "Real Estate",
+      "sourceEtfs": [
+        "SDY",
+        "REGL"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 47.49,
+        "currency": "USD",
+        "latestDividend": 0.62,
+        "latestDividendDate": "2026-07-31",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.48,
+        "forwardYieldPercent": 5.222152032006738,
+        "fiveYearGrowthPercent": 2.4057052682322944,
+        "recentCut": null,
+        "firstDividendYear": 1990,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "NOC",
+      "name": "Northrop Grumman",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 548.47,
+        "currency": "USD",
+        "latestDividend": 2.47,
+        "latestDividendDate": "2026-06-01",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 9.88,
+        "forwardYieldPercent": 1.801374733349135,
+        "fiveYearGrowthPercent": 9.761187130052008,
+        "recentCut": null,
+        "firstDividendYear": 1982,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "NPO",
+      "name": "EnPro Industries, Inc.",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 334.11,
+        "currency": "USD",
+        "latestDividend": 0.32,
+        "latestDividendDate": "2026-06-03",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.28,
+        "forwardYieldPercent": 0.38310735985154587,
+        "fiveYearGrowthPercent": 3.580420358021419,
+        "recentCut": null,
+        "firstDividendYear": 2015,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "NUE",
+      "name": "Nucor",
+      "sector": "materials",
+      "sourceSectorLabel": "Materials",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 261.28,
+        "currency": "USD",
+        "latestDividend": 0.56,
+        "latestDividendDate": "2026-06-30",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.24,
+        "forwardYieldPercent": 0.8573178199632581,
+        "fiveYearGrowthPercent": 6.417126706859877,
+        "recentCut": null,
+        "firstDividendYear": 1983,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "NWE",
+      "name": "NorthWestern Energy",
+      "sector": "utilities",
+      "sourceSectorLabel": "Utilities",
+      "sourceEtfs": [
+        "REGL",
+        "SMDV"
+      ],
+      "minimumStreakYears": 15,
+      "metrics": {
+        "price": 68.9,
+        "currency": "USD",
+        "latestDividend": 0.67,
+        "latestDividendDate": "2026-06-15",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.68,
+        "forwardYieldPercent": 3.8896952104499274,
+        "fiveYearGrowthPercent": 1.9244876491456564,
+        "recentCut": null,
+        "firstDividendYear": 2008,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "NWN",
+      "name": "NW Natural",
+      "sector": "utilities",
+      "sourceSectorLabel": "Utilities",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 48.93,
+        "currency": "USD",
+        "latestDividend": 0.493,
+        "latestDividendDate": "2026-07-31",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.972,
+        "forwardYieldPercent": 4.030247292049867,
+        "fiveYearGrowthPercent": 0.4971247573964499,
+        "recentCut": null,
+        "firstDividendYear": 1990,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "NXRT",
+      "name": "NexPoint Residential Trust, Inc.",
+      "sector": "realEstate",
+      "sourceSectorLabel": "Real Estate",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 25.91,
+        "currency": "USD",
+        "latestDividend": 0.53,
+        "latestDividendDate": "2026-06-15",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.12,
+        "forwardYieldPercent": 8.182169046700116,
+        "fiveYearGrowthPercent": 10.256745157647828,
+        "recentCut": null,
+        "firstDividendYear": 2015,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "O",
+      "name": "Realty Income",
+      "sector": "realEstate",
+      "sourceSectorLabel": "Real Estate",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 63.48,
+        "currency": "USD",
+        "latestDividend": 0.271,
+        "latestDividendDate": "2026-07-31",
+        "paymentsPerYear": 12,
+        "forwardAnnualDividend": 3.2520000000000002,
+        "forwardYieldPercent": 5.122873345935728,
+        "fiveYearGrowthPercent": 3.476872781650542,
+        "recentCut": null,
+        "firstDividendYear": 1994,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "ODC",
+      "name": "Oil-Dri Corporation of America",
+      "sector": null,
+      "sourceSectorLabel": null,
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 97.65,
+        "currency": "USD",
+        "latestDividend": 0.205,
+        "latestDividendDate": "2026-05-08",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 0.82,
+        "forwardYieldPercent": 0.8397337429595493,
+        "fiveYearGrowthPercent": 4.396114979019283,
+        "recentCut": null,
+        "firstDividendYear": 1986,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "OGE",
+      "name": "OGE Energy",
+      "sector": "utilities",
+      "sourceSectorLabel": "Utilities",
+      "sourceEtfs": [
+        "REGL"
+      ],
+      "minimumStreakYears": 15,
+      "metrics": {
+        "price": 47.37,
+        "currency": "USD",
+        "latestDividend": 0.425,
+        "latestDividendDate": "2026-07-06",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.7,
+        "forwardYieldPercent": 3.5887692632467805,
+        "fiveYearGrowthPercent": 1.6459487920844396,
+        "recentCut": null,
+        "firstDividendYear": 1973,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "OGS",
+      "name": "One Gas",
+      "sector": "utilities",
+      "sourceSectorLabel": "Utilities",
+      "sourceEtfs": [
+        "SDY",
+        "REGL",
+        "SMDV"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 78.4,
+        "currency": "USD",
+        "latestDividend": 0.68,
+        "latestDividendDate": "2026-05-18",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.72,
+        "forwardYieldPercent": 3.4693877551020407,
+        "fiveYearGrowthPercent": 4.408584653882852,
+        "recentCut": null,
+        "firstDividendYear": 2014,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "ORI",
+      "name": "Old Republic International",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SDY",
+        "REGL"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 43.33,
+        "currency": "USD",
+        "latestDividend": 0.315,
+        "latestDividendDate": "2026-06-05",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.26,
+        "forwardYieldPercent": 2.9079159935379644,
+        "fiveYearGrowthPercent": 6.668390127527379,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "ORRF",
+      "name": "Orrstown Financial Services, Inc.",
+      "sector": null,
+      "sourceSectorLabel": null,
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 43.7,
+        "currency": "USD",
+        "latestDividend": 0.3,
+        "latestDividendDate": "2026-05-05",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.2,
+        "forwardYieldPercent": 2.745995423340961,
+        "fiveYearGrowthPercent": 8.869163325077611,
+        "recentCut": null,
+        "firstDividendYear": 1999,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "OTTR",
+      "name": "Otter Tail Corporation",
+      "sector": "utilities",
+      "sourceSectorLabel": "Utilities",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 90.16,
+        "currency": "USD",
+        "latestDividend": 0.578,
+        "latestDividendDate": "2026-05-15",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.312,
+        "forwardYieldPercent": 2.56433007985803,
+        "fiveYearGrowthPercent": 7.2485713934655305,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "OZK",
+      "name": "Bank OZK",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SDY",
+        "REGL"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 51.74,
+        "currency": "USD",
+        "latestDividend": 0.48,
+        "latestDividendDate": "2026-07-13",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.92,
+        "forwardYieldPercent": 3.710862002319289,
+        "fiveYearGrowthPercent": 10.066508085209659,
+        "recentCut": null,
+        "firstDividendYear": 1998,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "PB",
+      "name": "Prosperity Bancshares",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SDY",
+        "REGL"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 75.25,
+        "currency": "USD",
+        "latestDividend": 0.6,
+        "latestDividendDate": "2026-06-15",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.4,
+        "forwardYieldPercent": 3.189368770764119,
+        "fiveYearGrowthPercent": 4.745176373283,
+        "recentCut": null,
+        "firstDividendYear": 1999,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "PEBO",
+      "name": "Peoples Bancorp Inc.",
+      "sector": null,
+      "sourceSectorLabel": null,
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 41.74,
+        "currency": "USD",
+        "latestDividend": 0.42,
+        "latestDividendDate": "2026-05-04",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.68,
+        "forwardYieldPercent": 4.024916147580258,
+        "fiveYearGrowthPercent": 3.8152102716594083,
+        "recentCut": null,
+        "firstDividendYear": 1993,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "PEP",
+      "name": "PepsiCo",
+      "sector": "consumerStaples",
+      "sourceSectorLabel": "Consumer Staples",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 139.63,
+        "currency": "USD",
+        "latestDividend": 1.48,
+        "latestDividendDate": "2026-06-05",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 5.92,
+        "forwardYieldPercent": 4.239776552316838,
+        "fiveYearGrowthPercent": 6.82326633892727,
+        "recentCut": null,
+        "firstDividendYear": 1972,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "PFBC",
+      "name": "Preferred Bank",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 106.1,
+        "currency": "USD",
+        "latestDividend": 0.8,
+        "latestDividendDate": "2026-07-07",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 3.2,
+        "forwardYieldPercent": 3.0160226201696516,
+        "fiveYearGrowthPercent": 20.11244339814313,
+        "recentCut": null,
+        "firstDividendYear": 2001,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "PG",
+      "name": "Procter & Gamble",
+      "sector": "consumerStaples",
+      "sourceSectorLabel": "Consumer Staples",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 144.97,
+        "currency": "USD",
+        "latestDividend": 1.089,
+        "latestDividendDate": "2026-07-24",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 4.356,
+        "forwardYieldPercent": 3.0047596054356074,
+        "fiveYearGrowthPercent": 5.969210995022167,
+        "recentCut": null,
+        "firstDividendYear": 1962,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "PII",
+      "name": "Polaris",
+      "sector": "consumerDiscretionary",
+      "sourceSectorLabel": "Consumer Discretionary",
+      "sourceEtfs": [
+        "SDY",
+        "REGL",
+        "SMDV"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 70.64,
+        "currency": "USD",
+        "latestDividend": 0.68,
+        "latestDividendDate": "2026-06-01",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.72,
+        "forwardYieldPercent": 3.8505096262740657,
+        "fiveYearGrowthPercent": 1.5632576929179187,
+        "recentCut": null,
+        "firstDividendYear": 1989,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "PNR",
+      "name": "Pentair",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 67.07,
+        "currency": "USD",
+        "latestDividend": 0.27,
+        "latestDividendDate": "2026-07-24",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.08,
+        "forwardYieldPercent": 1.6102579394662295,
+        "fiveYearGrowthPercent": 5.642162229904302,
+        "recentCut": null,
+        "firstDividendYear": 1990,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "POR",
+      "name": "Portland General Electric",
+      "sector": "utilities",
+      "sourceSectorLabel": "Utilities",
+      "sourceEtfs": [
+        "REGL",
+        "SMDV"
+      ],
+      "minimumStreakYears": 15,
+      "metrics": {
+        "price": 50.15,
+        "currency": "USD",
+        "latestDividend": 0.551,
+        "latestDividendDate": "2026-06-25",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.204,
+        "forwardYieldPercent": 4.39481555333998,
+        "fiveYearGrowthPercent": 6.399531281508364,
+        "recentCut": null,
+        "firstDividendYear": 2006,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "POWI",
+      "name": "Power Integrations",
+      "sector": "informationTechnology",
+      "sourceSectorLabel": "Information Technology",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 60.4,
+        "currency": "USD",
+        "latestDividend": 0.215,
+        "latestDividendDate": "2026-05-29",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 0.86,
+        "forwardYieldPercent": 1.423841059602649,
+        "fiveYearGrowthPercent": 13.80604263098537,
+        "recentCut": null,
+        "firstDividendYear": 2008,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "PPG",
+      "name": "PPG Industries",
+      "sector": "materials",
+      "sourceSectorLabel": "Materials",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 114.01,
+        "currency": "USD",
+        "latestDividend": 0.71,
+        "latestDividendDate": "2026-05-11",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.84,
+        "forwardYieldPercent": 2.4910095605648626,
+        "fiveYearGrowthPercent": 5.922384104881218,
+        "recentCut": null,
+        "firstDividendYear": 1983,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "PRGO",
+      "name": "Perrigo",
+      "sector": "healthCare",
+      "sourceSectorLabel": "Health Care",
+      "sourceEtfs": [
+        "SDY",
+        "SMDV"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 10.68,
+        "currency": "USD",
+        "latestDividend": 0.29,
+        "latestDividendDate": "2026-05-29",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.16,
+        "forwardYieldPercent": 10.861423220973784,
+        "fiveYearGrowthPercent": 5.206626739843068,
+        "recentCut": null,
+        "firstDividendYear": 2003,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "PRI",
+      "name": "Primerica",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "REGL"
+      ],
+      "minimumStreakYears": 15,
+      "metrics": {
+        "price": 317.25,
+        "currency": "USD",
+        "latestDividend": 1.2,
+        "latestDividendDate": "2026-05-21",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 4.8,
+        "forwardYieldPercent": 1.5130023640661938,
+        "fiveYearGrowthPercent": 21.05832751075947,
+        "recentCut": null,
+        "firstDividendYear": 2010,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "QCOM",
+      "name": "Qualcomm",
+      "sector": "informationTechnology",
+      "sourceSectorLabel": "Information Technology",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 151.57,
+        "currency": "USD",
+        "latestDividend": 0.92,
+        "latestDividendDate": "2026-06-04",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 3.68,
+        "forwardYieldPercent": 2.4279210925644916,
+        "fiveYearGrowthPercent": 6.48669054754929,
+        "recentCut": null,
+        "firstDividendYear": 1998,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "R",
+      "name": "Ryder",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "SDY",
+        "REGL"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 262.36,
+        "currency": "USD",
+        "latestDividend": 0.91,
+        "latestDividendDate": "2026-05-18",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 3.64,
+        "forwardYieldPercent": 1.3874066168623265,
+        "fiveYearGrowthPercent": 7.661245164297736,
+        "recentCut": null,
+        "firstDividendYear": 1980,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "RBA",
+      "name": "RB Global",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "SDY",
+        "REGL"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 112.22,
+        "currency": "USD",
+        "latestDividend": 0.31,
+        "latestDividendDate": "2026-05-27",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.24,
+        "forwardYieldPercent": 1.1049723756906076,
+        "fiveYearGrowthPercent": null,
+        "recentCut": null,
+        "firstDividendYear": 2003,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "RGA",
+      "name": "Reinsurance Group of America",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "REGL"
+      ],
+      "minimumStreakYears": 15,
+      "metrics": {
+        "price": 236.37,
+        "currency": "USD",
+        "latestDividend": 0.93,
+        "latestDividendDate": "2026-05-19",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 3.72,
+        "forwardYieldPercent": 1.5738037822058637,
+        "fiveYearGrowthPercent": 4.9200269147087194,
+        "recentCut": null,
+        "firstDividendYear": 2008,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "RGLD",
+      "name": "Royal Gold",
+      "sector": "materials",
+      "sourceSectorLabel": "Materials",
+      "sourceEtfs": [
+        "SDY",
+        "REGL"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 202.04,
+        "currency": "USD",
+        "latestDividend": 0.475,
+        "latestDividendDate": "2026-07-02",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.9,
+        "forwardYieldPercent": 0.9404078400316769,
+        "fiveYearGrowthPercent": 9.953965407958165,
+        "recentCut": null,
+        "firstDividendYear": 2000,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "RHI",
+      "name": "Robert Half",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 38.73,
+        "currency": "USD",
+        "latestDividend": 0.59,
+        "latestDividendDate": "2026-05-22",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.36,
+        "forwardYieldPercent": 6.093467596178673,
+        "fiveYearGrowthPercent": 11.654085522403058,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "RLI",
+      "name": "RLI Corp.",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SDY",
+        "REGL"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": null
+    },
+    {
+      "ticker": "RNR",
+      "name": "RenaissanceRe",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SDY",
+        "REGL"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 321.37,
+        "currency": "USD",
+        "latestDividend": 0.41,
+        "latestDividendDate": "2026-06-15",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.64,
+        "forwardYieldPercent": 0.5103152129943678,
+        "fiveYearGrowthPercent": 2.7066087089351765,
+        "recentCut": null,
+        "firstDividendYear": 1996,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "ROP",
+      "name": "Roper Technologies",
+      "sector": "informationTechnology",
+      "sourceSectorLabel": "Information Technology",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 392.57,
+        "currency": "USD",
+        "latestDividend": 0.91,
+        "latestDividendDate": "2026-07-08",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 3.64,
+        "forwardYieldPercent": 0.9272231703899942,
+        "fiveYearGrowthPercent": 9.96825070990952,
+        "recentCut": null,
+        "firstDividendYear": 1992,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "RPM",
+      "name": "RPM International",
+      "sector": "materials",
+      "sourceSectorLabel": "Materials",
+      "sourceEtfs": [
+        "SDY",
+        "REGL"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 111.49,
+        "currency": "USD",
+        "latestDividend": 0.54,
+        "latestDividendDate": "2026-07-14",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.16,
+        "forwardYieldPercent": 1.9373934882052204,
+        "fiveYearGrowthPercent": 7.214502590085092,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "RS",
+      "name": "Reliance, Inc.",
+      "sector": "materials",
+      "sourceSectorLabel": "Materials",
+      "sourceEtfs": [
+        "REGL"
+      ],
+      "minimumStreakYears": 15,
+      "metrics": {
+        "price": 409.39,
+        "currency": "USD",
+        "latestDividend": 1.25,
+        "latestDividendDate": "2026-05-22",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 5,
+        "forwardYieldPercent": 1.2213292948044652,
+        "fiveYearGrowthPercent": 13.935810405670246,
+        "recentCut": null,
+        "firstDividendYear": 1994,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "RSG",
+      "name": "Republic Services",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 209.62,
+        "currency": "USD",
+        "latestDividend": 0.625,
+        "latestDividendDate": "2026-07-02",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.5,
+        "forwardYieldPercent": 1.192634290621124,
+        "fiveYearGrowthPercent": 7.447074196358794,
+        "recentCut": null,
+        "firstDividendYear": 2003,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "SAH",
+      "name": "Sonic Automotive, Inc.",
+      "sector": "consumerDiscretionary",
+      "sourceSectorLabel": "Consumer Discretionary",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 87.23,
+        "currency": "USD",
+        "latestDividend": 0.41,
+        "latestDividendDate": "2026-06-15",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.64,
+        "forwardYieldPercent": 1.880087125988765,
+        "fiveYearGrowthPercent": 28.473515712343932,
+        "recentCut": null,
+        "firstDividendYear": 2003,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "SCI",
+      "name": "Service Corp Intl",
+      "sector": "consumerDiscretionary",
+      "sourceSectorLabel": "Consumer Discretionary",
+      "sourceEtfs": [
+        "REGL"
+      ],
+      "minimumStreakYears": 15,
+      "metrics": {
+        "price": 85.93,
+        "currency": "USD",
+        "latestDividend": 0.36,
+        "latestDividendDate": "2026-06-15",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.44,
+        "forwardYieldPercent": 1.6757826137553822,
+        "fiveYearGrowthPercent": 10.98883056567086,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "SCL",
+      "name": "Stepan Company",
+      "sector": "materials",
+      "sourceSectorLabel": "Materials",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 63.41,
+        "currency": "USD",
+        "latestDividend": 0.395,
+        "latestDividendDate": "2026-06-01",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.58,
+        "forwardYieldPercent": 2.491720548809336,
+        "fiveYearGrowthPercent": 6.9610375725068785,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "SEIC",
+      "name": "SEI Investments Company",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SDY",
+        "REGL"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 104.19,
+        "currency": "USD",
+        "latestDividend": 0.52,
+        "latestDividendDate": "2026-06-08",
+        "paymentsPerYear": 2,
+        "forwardAnnualDividend": 1.04,
+        "forwardYieldPercent": 0.9981764084844994,
+        "fiveYearGrowthPercent": 6.9610375725068785,
+        "recentCut": null,
+        "firstDividendYear": 1988,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "SFNC",
+      "name": "Simmons First National Corporation",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 23.86,
+        "currency": "USD",
+        "latestDividend": 0.215,
+        "latestDividendDate": "2026-06-15",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 0.86,
+        "forwardYieldPercent": 3.604358759430008,
+        "fiveYearGrowthPercent": 4.613115579519111,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "SHOE",
+      "name": "Shoe Station Group Inc.",
+      "sector": null,
+      "sourceSectorLabel": null,
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 15.42,
+        "currency": "USD",
+        "latestDividend": 0.17,
+        "latestDividendDate": "2026-07-06",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 0.68,
+        "forwardYieldPercent": 4.409857328145266,
+        "fiveYearGrowthPercent": 28.688715437719956,
+        "recentCut": null,
+        "firstDividendYear": 2012,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "SHW",
+      "name": "Sherwin-Williams",
+      "sector": "materials",
+      "sourceSectorLabel": "Materials",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 354.22,
+        "currency": "USD",
+        "latestDividend": 0.8,
+        "latestDividendDate": "2026-05-22",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 3.2,
+        "forwardYieldPercent": 0.9033933713511377,
+        "fiveYearGrowthPercent": 12.080134825877398,
+        "recentCut": null,
+        "firstDividendYear": 1985,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "SJM",
+      "name": "J.M. Smucker Company (The)",
+      "sector": "consumerStaples",
+      "sourceSectorLabel": "Consumer Staples",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 117.5,
+        "currency": "USD",
+        "latestDividend": 1.1,
+        "latestDividendDate": "2026-05-15",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 4.4,
+        "forwardYieldPercent": 3.74468085106383,
+        "fiveYearGrowthPercent": 4.180926810264429,
+        "recentCut": null,
+        "firstDividendYear": 2000,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "SLGN",
+      "name": "Silgan Holdings",
+      "sector": "materials",
+      "sourceSectorLabel": "Materials",
+      "sourceEtfs": [
+        "SDY",
+        "REGL"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 41.37,
+        "currency": "USD",
+        "latestDividend": 0.21,
+        "latestDividendDate": "2026-06-01",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 0.84,
+        "forwardYieldPercent": 2.0304568527918785,
+        "fiveYearGrowthPercent": 10.756634324829006,
+        "recentCut": null,
+        "firstDividendYear": 2004,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "SO",
+      "name": "Southern Company",
+      "sector": "utilities",
+      "sourceSectorLabel": "Utilities",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 92.94,
+        "currency": "USD",
+        "latestDividend": 0.76,
+        "latestDividendDate": "2026-05-18",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 3.04,
+        "forwardYieldPercent": 3.270927480094685,
+        "fiveYearGrowthPercent": 2.9462068239258565,
+        "recentCut": null,
+        "firstDividendYear": 1982,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "SON",
+      "name": "Sonoco",
+      "sector": "materials",
+      "sourceSectorLabel": "Materials",
+      "sourceEtfs": [
+        "SDY",
+        "REGL"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 56.42,
+        "currency": "USD",
+        "latestDividend": 0.54,
+        "latestDividendDate": "2026-05-08",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.16,
+        "forwardYieldPercent": 3.8284296348812483,
+        "fiveYearGrowthPercent": 4.270506415417863,
+        "recentCut": null,
+        "firstDividendYear": 1990,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "SPGI",
+      "name": "S&P Global",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 416.25,
+        "currency": "USD",
+        "latestDividend": 0.917692,
+        "latestDividendDate": "2026-05-29",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 3.670768,
+        "forwardYieldPercent": 0.8818661861861862,
+        "fiveYearGrowthPercent": 7.458150553823173,
+        "recentCut": null,
+        "firstDividendYear": 1985,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "SR",
+      "name": "Spire",
+      "sector": "utilities",
+      "sourceSectorLabel": "Utilities",
+      "sourceEtfs": [
+        "SDY",
+        "REGL",
+        "SMDV"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 80.09,
+        "currency": "USD",
+        "latestDividend": 0.825,
+        "latestDividendDate": "2026-06-11",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 3.3,
+        "forwardYieldPercent": 4.120364589836434,
+        "fiveYearGrowthPercent": 4.7312584434531235,
+        "recentCut": null,
+        "firstDividendYear": 1973,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "STAG",
+      "name": "STAG Industrial",
+      "sector": "realEstate",
+      "sourceSectorLabel": "Real Estate",
+      "sourceEtfs": [
+        "REGL"
+      ],
+      "minimumStreakYears": 15,
+      "metrics": null
+    },
+    {
+      "ticker": "STBA",
+      "name": "S&T Bancorp, Inc.",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 52.38,
+        "currency": "USD",
+        "latestDividend": 0.37,
+        "latestDividendDate": "2026-05-14",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.48,
+        "forwardYieldPercent": 2.8255059182894233,
+        "fiveYearGrowthPercent": 3.9594988207552584,
+        "recentCut": null,
+        "firstDividendYear": 1992,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "STE",
+      "name": "Steris",
+      "sector": "healthCare",
+      "sourceSectorLabel": "Health Care",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 232.64,
+        "currency": "USD",
+        "latestDividend": 0.63,
+        "latestDividendDate": "2026-06-08",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.52,
+        "forwardYieldPercent": 1.0832187070151307,
+        "fiveYearGrowthPercent": 9.027141631525293,
+        "recentCut": null,
+        "firstDividendYear": 2005,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "SWK",
+      "name": "Stanley Black & Decker",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 98.11,
+        "currency": "USD",
+        "latestDividend": 0.83,
+        "latestDividendDate": "2026-06-08",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 3.32,
+        "forwardYieldPercent": 3.3839567832025277,
+        "fiveYearGrowthPercent": 3.5125368671915957,
+        "recentCut": null,
+        "firstDividendYear": 1985,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "SXI",
+      "name": "Standex International Corporation",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 311.96,
+        "currency": "USD",
+        "latestDividend": 0.34,
+        "latestDividendDate": "2026-05-08",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.36,
+        "forwardYieldPercent": 0.43595332734966025,
+        "fiveYearGrowthPercent": 7.781806771272581,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "SYY",
+      "name": "Sysco",
+      "sector": "consumerStaples",
+      "sourceSectorLabel": "Consumer Staples",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 84.98,
+        "currency": "USD",
+        "latestDividend": 0.55,
+        "latestDividendDate": "2026-07-02",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.2,
+        "forwardYieldPercent": 2.588844433984467,
+        "fiveYearGrowthPercent": 2.534857565773274,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "TGT",
+      "name": "Target Corporation",
+      "sector": "consumerStaples",
+      "sourceSectorLabel": "Consumer Staples",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 149.35,
+        "currency": "USD",
+        "latestDividend": 1.14,
+        "latestDividendDate": "2026-05-13",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 4.56,
+        "forwardYieldPercent": 3.053230666220288,
+        "fiveYearGrowthPercent": 11.15648817398467,
+        "recentCut": null,
+        "firstDividendYear": 1983,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "THG",
+      "name": "Hanover Insurance",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SDY",
+        "REGL"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 232.33,
+        "currency": "USD",
+        "latestDividend": 0.95,
+        "latestDividendDate": "2026-06-12",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 3.8,
+        "forwardYieldPercent": 1.635604528042009,
+        "fiveYearGrowthPercent": 6.724918187953888,
+        "recentCut": null,
+        "firstDividendYear": 1996,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "THO",
+      "name": "Thor Industries",
+      "sector": "consumerDiscretionary",
+      "sourceSectorLabel": "Consumer Discretionary",
+      "sourceEtfs": [
+        "REGL"
+      ],
+      "minimumStreakYears": 15,
+      "metrics": {
+        "price": 77.51,
+        "currency": "USD",
+        "latestDividend": 0.52,
+        "latestDividendDate": "2026-07-01",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.08,
+        "forwardYieldPercent": 2.6835247064894854,
+        "fiveYearGrowthPercent": 4.563955259127317,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "TMP",
+      "name": "Tompkins Financial Corporation",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 100.92,
+        "currency": "USD",
+        "latestDividend": 0.67,
+        "latestDividendDate": "2026-05-08",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.68,
+        "forwardYieldPercent": 2.6555687673404678,
+        "fiveYearGrowthPercent": 3.580420358021419,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "TNC",
+      "name": "Tennant Company",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 85.82,
+        "currency": "USD",
+        "latestDividend": 0.31,
+        "latestDividendDate": "2026-05-29",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.24,
+        "forwardYieldPercent": 1.444884642274528,
+        "fiveYearGrowthPercent": 6.042477819475911,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "TPL",
+      "name": "Texas Pacific Land Corporation",
+      "sector": "energy",
+      "sourceSectorLabel": "Energy",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 406.15,
+        "currency": "USD",
+        "latestDividend": 0.6,
+        "latestDividendDate": "2026-06-01",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.4,
+        "forwardYieldPercent": 0.5909146866921089,
+        "fiveYearGrowthPercent": null,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "TRN",
+      "name": "Trinity Industries, Inc.",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 31.34,
+        "currency": "USD",
+        "latestDividend": 0.31,
+        "latestDividendDate": "2026-07-15",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.24,
+        "forwardYieldPercent": 3.956604977664327,
+        "fiveYearGrowthPercent": 9.565425774785385,
+        "recentCut": null,
+        "firstDividendYear": 1973,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "TRNO",
+      "name": "Terreno Realty Corporation",
+      "sector": "realEstate",
+      "sourceSectorLabel": "Real Estate",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 71.7,
+        "currency": "USD",
+        "latestDividend": 0.52,
+        "latestDividendDate": "2026-06-26",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.08,
+        "forwardYieldPercent": 2.900976290097629,
+        "fiveYearGrowthPercent": 12.659148174514279,
+        "recentCut": null,
+        "firstDividendYear": 2011,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "TROW",
+      "name": "T. Rowe Price",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 113.51,
+        "currency": "USD",
+        "latestDividend": 1.3,
+        "latestDividendDate": "2026-06-15",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 5.2,
+        "forwardYieldPercent": 4.581094176724518,
+        "fiveYearGrowthPercent": 7.1302805673335135,
+        "recentCut": null,
+        "firstDividendYear": 1986,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "TRV",
+      "name": "Travelers Companies (The)",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 373.82,
+        "currency": "USD",
+        "latestDividend": 1.25,
+        "latestDividendDate": "2026-06-10",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 5,
+        "forwardYieldPercent": 1.3375421325771761,
+        "fiveYearGrowthPercent": 5.291848906511043,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "TTC",
+      "name": "Toro",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "SDY",
+        "REGL"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 95.18,
+        "currency": "USD",
+        "latestDividend": 0.39,
+        "latestDividendDate": "2026-06-16",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.56,
+        "forwardYieldPercent": 1.6389997898718218,
+        "fiveYearGrowthPercent": 8.73483945710749,
+        "recentCut": null,
+        "firstDividendYear": 1986,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "TXN",
+      "name": "Texas Instruments",
+      "sector": "informationTechnology",
+      "sourceSectorLabel": "Information Technology",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 269.04,
+        "currency": "USD",
+        "latestDividend": 1.42,
+        "latestDividendDate": "2026-07-31",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 5.68,
+        "forwardYieldPercent": 2.1112102289622356,
+        "fiveYearGrowthPercent": 8.60736567221123,
+        "recentCut": null,
+        "firstDividendYear": 1972,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "TXNM",
+      "name": "TXNM Energy",
+      "sector": "utilities",
+      "sourceSectorLabel": "Utilities",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 57.6,
+        "currency": "USD",
+        "latestDividend": 0.423,
+        "latestDividendDate": "2026-04-27",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.692,
+        "forwardYieldPercent": 2.9375,
+        "fiveYearGrowthPercent": 5.784463865939604,
+        "recentCut": null,
+        "firstDividendYear": 1984,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "UBSI",
+      "name": "United Bankshares",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SDY",
+        "REGL",
+        "SMDV"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 48.91,
+        "currency": "USD",
+        "latestDividend": 0.38,
+        "latestDividendDate": "2026-06-12",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.52,
+        "forwardYieldPercent": 3.1077489265998777,
+        "fiveYearGrowthPercent": 1.11759598354646,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "UCB",
+      "name": "United Community Banks, Inc.",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 35.83,
+        "currency": "USD",
+        "latestDividend": 0.25,
+        "latestDividendDate": "2026-06-15",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1,
+        "forwardYieldPercent": 2.790957298353335,
+        "fiveYearGrowthPercent": 5.922384104881218,
+        "recentCut": null,
+        "firstDividendYear": 2002,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "UMBF",
+      "name": "UMB Financial Corp.",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SDY",
+        "REGL"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 147.04,
+        "currency": "USD",
+        "latestDividend": 0.43,
+        "latestDividendDate": "2026-06-10",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.72,
+        "forwardYieldPercent": 1.1697497279651796,
+        "fiveYearGrowthPercent": 5.2300215891077695,
+        "recentCut": null,
+        "firstDividendYear": 1986,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "UNM",
+      "name": "Unum",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "REGL"
+      ],
+      "minimumStreakYears": 15,
+      "metrics": {
+        "price": 90.11,
+        "currency": "USD",
+        "latestDividend": 0.505,
+        "latestDividendDate": "2026-07-24",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.02,
+        "forwardYieldPercent": 2.2417045832870937,
+        "fiveYearGrowthPercent": 8.063961960040022,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "UTL",
+      "name": "Unitil Corporation",
+      "sector": "utilities",
+      "sourceSectorLabel": "Utilities",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 53.51,
+        "currency": "USD",
+        "latestDividend": 0.475,
+        "latestDividendDate": "2026-05-14",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.9,
+        "forwardYieldPercent": 3.5507381797794806,
+        "fiveYearGrowthPercent": 3.713728933664817,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "UVV",
+      "name": "Universal Corporation",
+      "sector": "consumerStaples",
+      "sourceSectorLabel": "Consumer Staples",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 52.03,
+        "currency": "USD",
+        "latestDividend": 0.83,
+        "latestDividendDate": "2026-07-13",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 3.32,
+        "forwardYieldPercent": 6.38093407649433,
+        "fiveYearGrowthPercent": 1.2824702968712964,
+        "recentCut": null,
+        "firstDividendYear": 1986,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "VZ",
+      "name": "Verizon",
+      "sector": "communicationServices",
+      "sourceSectorLabel": "Communication Services",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 47.36,
+        "currency": "USD",
+        "latestDividend": 0.708,
+        "latestDividendDate": "2026-07-10",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.832,
+        "forwardYieldPercent": 5.97972972972973,
+        "fiveYearGrowthPercent": 1.9696469436327746,
+        "recentCut": null,
+        "firstDividendYear": 1984,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "WAFD",
+      "name": "WaFd, Inc.",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 37.36,
+        "currency": "USD",
+        "latestDividend": 0.27,
+        "latestDividendDate": "2026-05-22",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.08,
+        "forwardYieldPercent": 2.8907922912205573,
+        "fiveYearGrowthPercent": 4.180926810264429,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "WDFC",
+      "name": "WD-40 Company",
+      "sector": "consumerStaples",
+      "sourceSectorLabel": "Consumer Staples",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 227.29,
+        "currency": "USD",
+        "latestDividend": 1.02,
+        "latestDividendDate": "2026-07-17",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 4.08,
+        "forwardYieldPercent": 1.795063575168287,
+        "fiveYearGrowthPercent": 7.006611103141647,
+        "recentCut": null,
+        "firstDividendYear": 1990,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "WEC",
+      "name": "WEC Energy Group",
+      "sector": "utilities",
+      "sourceSectorLabel": "Utilities",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 109.28,
+        "currency": "USD",
+        "latestDividend": 0.953,
+        "latestDividendDate": "2026-05-14",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 3.812,
+        "forwardYieldPercent": 3.4882869692532936,
+        "fiveYearGrowthPercent": 7.124682997948595,
+        "recentCut": null,
+        "firstDividendYear": 1986,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "WLK",
+      "name": "Westlake Corporation",
+      "sector": "materials",
+      "sourceSectorLabel": "Materials",
+      "sourceEtfs": [
+        "SDY",
+        "REGL"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 69.89,
+        "currency": "USD",
+        "latestDividend": 0.53,
+        "latestDividendDate": "2026-05-27",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.12,
+        "forwardYieldPercent": 3.033338102732866,
+        "fiveYearGrowthPercent": 14.826125503976373,
+        "recentCut": null,
+        "firstDividendYear": 2004,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "WLY",
+      "name": "John Wiley & Sons",
+      "sector": "communicationServices",
+      "sourceSectorLabel": "Communication Services",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 53.1,
+        "currency": "USD",
+        "latestDividend": 0.3575,
+        "latestDividendDate": "2026-07-07",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.43,
+        "forwardYieldPercent": 2.693032015065913,
+        "fiveYearGrowthPercent": 0.7194986781870805,
+        "recentCut": null,
+        "firstDividendYear": 1984,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "WM",
+      "name": "Waste Management",
+      "sector": "industrials",
+      "sourceSectorLabel": "Industrials",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 226.43,
+        "currency": "USD",
+        "latestDividend": 0.945,
+        "latestDividendDate": "2026-06-05",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 3.78,
+        "forwardYieldPercent": 1.669390098485183,
+        "fiveYearGrowthPercent": 8.645436537245299,
+        "recentCut": null,
+        "firstDividendYear": 1998,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "WMT",
+      "name": "Walmart",
+      "sector": "consumerStaples",
+      "sourceSectorLabel": "Consumer Staples",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 110.71,
+        "currency": "USD",
+        "latestDividend": 0.248,
+        "latestDividendDate": "2026-05-08",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 0.992,
+        "forwardYieldPercent": 0.8960346852136212,
+        "fiveYearGrowthPercent": 5.4773163227226584,
+        "recentCut": null,
+        "firstDividendYear": 1974,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "WRB",
+      "name": "W. R. Berkley Corporation",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": null
+    },
+    {
+      "ticker": "WSBC",
+      "name": "WesBanco",
+      "sector": "financials",
+      "sourceSectorLabel": "Financials",
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 41.81,
+        "currency": "USD",
+        "latestDividend": 0.38,
+        "latestDividendDate": "2026-06-05",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.52,
+        "forwardYieldPercent": 3.6354939009806264,
+        "fiveYearGrowthPercent": 2.9462068239258565,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "WST",
+      "name": "West Pharmaceutical Services",
+      "sector": "healthCare",
+      "sourceSectorLabel": "Health Care",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 347.94,
+        "currency": "USD",
+        "latestDividend": 0.22,
+        "latestDividendDate": "2026-07-29",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 0.88,
+        "forwardYieldPercent": 0.2529171696269472,
+        "fiveYearGrowthPercent": 5.589288248337687,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "WTRG",
+      "name": "Essential Utilities",
+      "sector": "utilities",
+      "sourceSectorLabel": "Utilities",
+      "sourceEtfs": [
+        "SDY",
+        "REGL"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 38.78,
+        "currency": "USD",
+        "latestDividend": 0.343,
+        "latestDividendDate": "2026-05-12",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 1.372,
+        "forwardYieldPercent": 3.537906137184116,
+        "fiveYearGrowthPercent": 6.8563532147040585,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "XEL",
+      "name": "Xcel Energy",
+      "sector": "utilities",
+      "sourceSectorLabel": "Utilities",
+      "sourceEtfs": [
+        "SDY"
+      ],
+      "minimumStreakYears": 20,
+      "metrics": {
+        "price": 77.69,
+        "currency": "USD",
+        "latestDividend": 0.593,
+        "latestDividendDate": "2026-06-15",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 2.372,
+        "forwardYieldPercent": 3.0531599948513324,
+        "fiveYearGrowthPercent": 5.79893110716263,
+        "recentCut": null,
+        "firstDividendYear": 1973,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "XOM",
+      "name": "ExxonMobil",
+      "sector": "energy",
+      "sourceSectorLabel": "Energy",
+      "sourceEtfs": [
+        "NOBL",
+        "SDY"
+      ],
+      "minimumStreakYears": 25,
+      "metrics": {
+        "price": 155.06,
+        "currency": "USD",
+        "latestDividend": 1.03,
+        "latestDividendDate": "2026-05-15",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 4.12,
+        "forwardYieldPercent": 2.6570359860699084,
+        "fiveYearGrowthPercent": 2.6179154775372693,
+        "recentCut": null,
+        "firstDividendYear": 1962,
+        "measuredAt": "2026-08-04"
+      }
+    },
+    {
+      "ticker": "YORW",
+      "name": "The York Water Company",
+      "sector": null,
+      "sourceSectorLabel": null,
+      "sourceEtfs": [
+        "SMDV"
+      ],
+      "minimumStreakYears": 10,
+      "metrics": {
+        "price": 30.81,
+        "currency": "USD",
+        "latestDividend": 0.228,
+        "latestDividendDate": "2026-06-30",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 0.912,
+        "forwardYieldPercent": 2.960077896786758,
+        "fiveYearGrowthPercent": 4.000235313991807,
+        "recentCut": null,
+        "firstDividendYear": 2000,
+        "measuredAt": "2026-08-04"
+      }
+    }
+  ],
+  "issues": [
+    {
+      "ticker": "AGM",
+      "kind": "sectorMissing",
+      "detail": "위키피디아·SDY 어느 쪽에도 섹터가 없다 — 사람이 채워야 한다",
+      "blocking": false
+    },
+    {
+      "ticker": "ALRS",
+      "kind": "sectorMissing",
+      "detail": "위키피디아·SDY 어느 쪽에도 섹터가 없다 — 사람이 채워야 한다",
+      "blocking": false
+    },
+    {
+      "ticker": "AMCR",
+      "kind": "growthUnavailable",
+      "detail": "2020년과 2025년을 비교할 수 없어 5년 성장률을 낼 수 없다(완결 6개 연도가 없거나, 그 사이에 지급 빈도 체계가 바뀌었다)",
+      "blocking": false
+    },
+    {
+      "ticker": "BHB",
+      "kind": "sectorMissing",
+      "detail": "위키피디아·SDY 어느 쪽에도 섹터가 없다 — 사람이 채워야 한다",
+      "blocking": false
+    },
+    {
+      "ticker": "BUSE",
+      "kind": "sectorMissing",
+      "detail": "위키피디아·SDY 어느 쪽에도 섹터가 없다 — 사람이 채워야 한다",
+      "blocking": false
+    },
+    {
+      "ticker": "CASS",
+      "kind": "sectorMissing",
+      "detail": "위키피디아·SDY 어느 쪽에도 섹터가 없다 — 사람이 채워야 한다",
+      "blocking": false
+    },
+    {
+      "ticker": "CB",
+      "kind": "growthUnavailable",
+      "detail": "2020년과 2025년을 비교할 수 없어 5년 성장률을 낼 수 없다(완결 6개 연도가 없거나, 그 사이에 지급 빈도 체계가 바뀌었다)",
+      "blocking": false
+    },
+    {
+      "ticker": "CHCT",
+      "kind": "sectorMissing",
+      "detail": "위키피디아·SDY 어느 쪽에도 섹터가 없다 — 사람이 채워야 한다",
+      "blocking": false
+    },
+    {
+      "ticker": "COR",
+      "kind": "growthUnavailable",
+      "detail": "2020년과 2025년을 비교할 수 없어 5년 성장률을 낼 수 없다(완결 6개 연도가 없거나, 그 사이에 지급 빈도 체계가 바뀌었다)",
+      "blocking": false
+    },
+    {
+      "ticker": "CRAI",
+      "kind": "sectorMissing",
+      "detail": "위키피디아·SDY 어느 쪽에도 섹터가 없다 — 사람이 채워야 한다",
+      "blocking": false
+    },
+    {
+      "ticker": "CTAS",
+      "kind": "growthUnavailable",
+      "detail": "2020년과 2025년을 비교할 수 없어 5년 성장률을 낼 수 없다(완결 6개 연도가 없거나, 그 사이에 지급 빈도 체계가 바뀌었다)",
+      "blocking": false
+    },
+    {
+      "ticker": "CTBI",
+      "kind": "sectorMissing",
+      "detail": "위키피디아·SDY 어느 쪽에도 섹터가 없다 — 사람이 채워야 한다",
+      "blocking": false
+    },
+    {
+      "ticker": "DTM",
+      "kind": "growthUnavailable",
+      "detail": "2020년과 2025년을 비교할 수 없어 5년 성장률을 낼 수 없다(완결 6개 연도가 없거나, 그 사이에 지급 빈도 체계가 바뀌었다)",
+      "blocking": false
+    },
+    {
+      "ticker": "FCPT",
+      "kind": "abnormalLatestPayment",
+      "detail": "최신 지급액 0.122(2026-07-31)가 최근 지급 대비 이상치다 (특별배당 또는 지급주기 변경) — 선행 배당률을 계산하지 않는다",
+      "blocking": true
+    },
+    {
+      "ticker": "FRME",
+      "kind": "sectorMissing",
+      "detail": "위키피디아·SDY 어느 쪽에도 섹터가 없다 — 사람이 채워야 한다",
+      "blocking": false
+    },
+    {
+      "ticker": "GIC",
+      "kind": "sectorMissing",
+      "detail": "위키피디아·SDY 어느 쪽에도 섹터가 없다 — 사람이 채워야 한다",
+      "blocking": false
+    },
+    {
+      "ticker": "GRC",
+      "kind": "sectorMissing",
+      "detail": "위키피디아·SDY 어느 쪽에도 섹터가 없다 — 사람이 채워야 한다",
+      "blocking": false
+    },
+    {
+      "ticker": "HY",
+      "kind": "sectorMissing",
+      "detail": "위키피디아·SDY 어느 쪽에도 섹터가 없다 — 사람이 채워야 한다",
+      "blocking": false
+    },
+    {
+      "ticker": "IBCP",
+      "kind": "sectorMissing",
+      "detail": "위키피디아·SDY 어느 쪽에도 섹터가 없다 — 사람이 채워야 한다",
+      "blocking": false
+    },
+    {
+      "ticker": "KVUE",
+      "kind": "growthUnavailable",
+      "detail": "2020년과 2025년을 비교할 수 없어 5년 성장률을 낼 수 없다(완결 6개 연도가 없거나, 그 사이에 지급 빈도 체계가 바뀌었다)",
+      "blocking": false
+    },
+    {
+      "ticker": "MBGL",
+      "kind": "metricsUnavailable",
+      "detail": "배당 이벤트가 하나도 없다",
+      "blocking": true
+    },
+    {
+      "ticker": "MBGL",
+      "kind": "growthUnavailable",
+      "detail": "2020년과 2025년을 비교할 수 없어 5년 성장률을 낼 수 없다(완결 6개 연도가 없거나, 그 사이에 지급 빈도 체계가 바뀌었다)",
+      "blocking": false
+    },
+    {
+      "ticker": "MGRC",
+      "kind": "sectorMissing",
+      "detail": "위키피디아·SDY 어느 쪽에도 섹터가 없다 — 사람이 채워야 한다",
+      "blocking": false
+    },
+    {
+      "ticker": "MSBI",
+      "kind": "sectorMissing",
+      "detail": "위키피디아·SDY 어느 쪽에도 섹터가 없다 — 사람이 채워야 한다",
+      "blocking": false
+    },
+    {
+      "ticker": "ODC",
+      "kind": "sectorMissing",
+      "detail": "위키피디아·SDY 어느 쪽에도 섹터가 없다 — 사람이 채워야 한다",
+      "blocking": false
+    },
+    {
+      "ticker": "ORRF",
+      "kind": "sectorMissing",
+      "detail": "위키피디아·SDY 어느 쪽에도 섹터가 없다 — 사람이 채워야 한다",
+      "blocking": false
+    },
+    {
+      "ticker": "PEBO",
+      "kind": "sectorMissing",
+      "detail": "위키피디아·SDY 어느 쪽에도 섹터가 없다 — 사람이 채워야 한다",
+      "blocking": false
+    },
+    {
+      "ticker": "RBA",
+      "kind": "growthUnavailable",
+      "detail": "2020년과 2025년을 비교할 수 없어 5년 성장률을 낼 수 없다(완결 6개 연도가 없거나, 그 사이에 지급 빈도 체계가 바뀌었다)",
+      "blocking": false
+    },
+    {
+      "ticker": "RLI",
+      "kind": "abnormalLatestPayment",
+      "detail": "최신 지급액 2.18(2026-05-29)가 최근 지급 대비 이상치다 (특별배당 또는 지급주기 변경) — 선행 배당률을 계산하지 않는다",
+      "blocking": true
+    },
+    {
+      "ticker": "SHOE",
+      "kind": "sectorMissing",
+      "detail": "위키피디아·SDY 어느 쪽에도 섹터가 없다 — 사람이 채워야 한다",
+      "blocking": false
+    },
+    {
+      "ticker": "STAG",
+      "kind": "abnormalLatestPayment",
+      "detail": "최신 지급액 0.388(2026-06-30)가 최근 지급 대비 이상치다 (특별배당 또는 지급주기 변경) — 선행 배당률을 계산하지 않는다",
+      "blocking": true
+    },
+    {
+      "ticker": "TPL",
+      "kind": "growthUnavailable",
+      "detail": "2020년과 2025년을 비교할 수 없어 5년 성장률을 낼 수 없다(완결 6개 연도가 없거나, 그 사이에 지급 빈도 체계가 바뀌었다)",
+      "blocking": false
+    },
+    {
+      "ticker": "WRB",
+      "kind": "streakContradiction",
+      "detail": "SDY 편입(연속 증배 하한 20년)인데 1회 지급액이 줄었다(2023년 0.4067 → 2024년 0.0733). 편입 사실과 배당이력 중 하나가 틀렸다.",
+      "blocking": true
+    },
+    {
+      "ticker": "YORW",
+      "kind": "sectorMissing",
+      "detail": "위키피디아·SDY 어느 쪽에도 섹터가 없다 — 사람이 채워야 한다",
+      "blocking": false
+    }
+  ],
+  "coverage": {
+    "total": 262,
+    "withMetrics": 257,
+    "withSector": 242,
+    "withGrowth": 249
+  }
+}

@@ -131,6 +131,17 @@ export const SourceDate = styled.span`
   font-size: ${font.size.xs};
 `;
 
+/**
+ * 출처 목록 아래의 한 줄. 지금은 위키피디아 CC BY-SA 4.0 표기가 여기 산다 —
+ * 라이선스 고지는 "자료 하나"가 아니라 목록 전체에 걸리는 조건이라 `<ul>` 항목이 아니다.
+ */
+export const SourceNote = styled.p`
+  margin: ${space[3]} 0 0;
+  color: ${color.textMuted};
+  font-size: ${font.size.xs};
+  line-height: ${font.leading.normal};
+`;
+
 /** 다른 목록으로 가는 카드 줄. 세 목록이 서로를 알고 있어야 하나만 보고 나가지 않는다. */
 export const RelatedGrid = styled.nav`
   display: grid;

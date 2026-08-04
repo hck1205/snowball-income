@@ -10,8 +10,11 @@ import {
   DEFAULT_DIVIDEND_LIST_SORT,
   buildSectorFacets,
   filterBySector,
+  latestMeasuredAt,
   nextDividendListSort,
-  sortDividendListRows
+  sortDividendListRows,
+  sortableDividendListKeys,
+  usesWikipediaSource
 } from '../utils';
 import type { DividendListSort, DividendListSortKey } from '../utils';
 import type { DividendListViewProps } from './DividendListPage.types';
@@ -33,11 +36,15 @@ import {
   SourceItem,
   SourceLink,
   SourceList,
+  SourceNote,
   SourceRole,
   TableMeta
 } from './DividendListPage.styled';
 
 const copy = DIVIDEND_LIST_COPY.page;
+
+/** 정렬 축 후보. 순서는 표의 열 순서와 같다(어느 열이 실제로 정렬 가능한지는 데이터가 정한다). */
+const SORT_KEYS: DividendListSortKey[] = ['ticker', 'name', 'yield', 'streak', 'growth', 'sector'];
 
 /**
  * 목록별 히어로 글리프. 🔴 nav 묶음 메뉴(`components/PrimaryNav`)와 **같은 아이콘**을 쓴다 —
@@ -66,6 +73,13 @@ export default function DividendListView({ viewModel }: DividendListViewProps) {
     () => sortDividendListRows(filterBySector(rows, sector), sort),
     [rows, sector, sort]
   );
+  /*
+   * 🔴 정렬 가능한 열은 **필터 전 전체 행**으로 정한다. 보이는 행으로 계산하면 섹터 칩을 누를 때마다
+   * 열 머리의 버튼이 사라졌다 나타나 표가 덜컹거린다(섹터로 좁히면 섹터 값이 한 종류가 되므로).
+   */
+  const sortableKeys = useMemo(() => sortableDividendListKeys(rows, SORT_KEYS), [rows]);
+  /* 배당률·성장률은 매일 움직이는 값이라 **기준일 없이 쓰지 않는다.** 실측이 없으면 줄 자체를 안 쓴다. */
+  const measuredAt = useMemo(() => latestMeasuredAt(rows), [rows]);
 
   const onSortChange = (key: DividendListSortKey) => setSort((prev) => nextDividendListSort(prev, key));
   const HeroIcon = LIST_ICON[list.id];
@@ -114,12 +128,14 @@ export default function DividendListView({ viewModel }: DividendListViewProps) {
           </FilterRow>
           <TableMeta>
             {`${visibleRows.length}${copy.countUnit} ${copy.filteredCountSuffix} · ${copy.sortHint}`}
+            {measuredAt ? ` · ${copy.measuredAtLabel} ${measuredAt}` : ''}
           </TableMeta>
           <DividendListTable
             rows={visibleRows}
             caption={`${listCopy.title} ${copy.tableCaptionSuffix} (${copy.asOfLabel} ${list.asOf})`}
             sort={sort}
             onSortChange={onSortChange}
+            sortableKeys={sortableKeys}
           />
         </Section>
 
@@ -139,6 +155,20 @@ export default function DividendListView({ viewModel }: DividendListViewProps) {
               </SourceItem>
             ))}
           </SourceList>
+          {/* 🔴 위키피디아 본문은 CC BY-SA 4.0 이라 **출처 표기가 라이선스상의 의무**다.
+              링크만으로는 부족해 라이선스 이름을 화면이 직접 말하고, 라이선스 전문으로도 링크한다. */}
+          {usesWikipediaSource(list) ? (
+            <SourceNote>
+              {copy.wikipediaLicenseNote}{' '}
+              <SourceLink
+                href={copy.wikipediaLicenseUrl}
+                target="_blank"
+                rel="nofollow noopener noreferrer"
+              >
+                {copy.wikipediaLicenseLinkLabel}
+              </SourceLink>
+            </SourceNote>
+          ) : null}
           <SectionTitle as="h3">{copy.coverageHeading}</SectionTitle>
           <Body>{list.coverageNote}</Body>
         </Section>
