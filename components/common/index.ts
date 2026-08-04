@@ -21,6 +21,23 @@ export { CompactSummaryHelpButton } from './CompactSummaryHelpButton';
 
 export { ConfigFormGrid, ConfigInputGrid, ConfigSectionDivider } from './ConfigForm';
 
+/**
+ * 자료형 화면(국회의원 거래·국민연금·증시 캘린더)이 공유하는 섹션 조판.
+ * 표 자체는 `DataTable` 이, 그 표를 둘러싼 단락은 이쪽이 그린다.
+ */
+export {
+  DataSection,
+  NoteList,
+  SectionLink,
+  SectionMeta,
+  SectionStack,
+  SectionSubtitle,
+  SectionTitle,
+  SummaryGrid,
+  splitEmphasis
+} from './DataSection';
+export type { DataSectionProps, NoteChunk, NoteListProps } from './DataSection';
+
 export { default as DataTable } from './DataTable';
 
 export { ErrorBox } from './ErrorBox';

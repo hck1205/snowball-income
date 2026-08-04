@@ -91,6 +91,46 @@ export class SecClient {
   }
 
   /**
+   * 최신 **두 분기**의 13F 를 최신순으로 돌려준다. 하나뿐이면 길이 1, 없으면 빈 배열.
+   *
+   * 왜 있나: "지금 무엇을 들고 있나"보다 "직전 분기 대비 무엇이 바뀌었나"가 읽을 값이 훨씬 크다.
+   * 그 비교에는 두 장이 필요하다(`scripts/npsPortfolio`).
+   *
+   * 🔴 **같은 분기의 정정본은 하나로 접는다.** `13F-HR/A` 가 원본과 같은 `reportDate` 로 나오므로,
+   * 접지 않으면 "최신 두 분기"가 실제로는 **같은 분기 두 장**이 되어 변동이 전부 0 으로 나온다.
+   * 목록은 최신 제출순이라 각 분기의 첫 번째 것(= 가장 나중 제출 = 정정본)이 이긴다.
+   */
+  async findLatestTwo13F(cik: string): Promise<FilingRef[]> {
+    const response = await this.request(`https://data.sec.gov/submissions/CIK${cik}.json`);
+    const payload = (await response.json()) as {
+      name?: string;
+      filings?: { recent?: { form?: string[]; accessionNumber?: string[]; reportDate?: string[]; filingDate?: string[] } };
+    };
+
+    const recent = payload.filings?.recent;
+    if (!recent?.form) return [];
+
+    const byQuarter = new Map<string, FilingRef>();
+    for (let index = 0; index < recent.form.length; index += 1) {
+      const form = recent.form[index];
+      if (form !== '13F-HR' && form !== '13F-HR/A') continue;
+
+      const reportDate = recent.reportDate?.[index] ?? '';
+      const accessionNumber = recent.accessionNumber?.[index] ?? '';
+      if (!reportDate || !accessionNumber || byQuarter.has(reportDate)) continue;
+
+      byQuarter.set(reportDate, {
+        accessionNumber,
+        reportDate,
+        filingDate: recent.filingDate?.[index] ?? '',
+        registrantName: payload.name ?? ''
+      });
+    }
+
+    return [...byQuarter.values()].sort((left, right) => right.reportDate.localeCompare(left.reportDate)).slice(0, 2);
+  }
+
+  /**
    * 그 공시의 **정보표 XML** 을 받는다.
    *
    * ⚠ 정보표 파일명은 제출자마다 다르다(`53405.xml` 처럼 임의다). 그래서 색인을 먼저 읽고

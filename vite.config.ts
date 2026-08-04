@@ -71,7 +71,20 @@ const ROUTES = [
   { path: '/dividend/lists', priority: '0.6', changefreq: 'monthly' },
   { path: '/dividend/kings', priority: '0.7', changefreq: 'monthly' },
   { path: '/dividend/aristocrats', priority: '0.7', changefreq: 'monthly' },
-  { path: '/dividend/champions', priority: '0.7', changefreq: 'monthly' }
+  { path: '/dividend/champions', priority: '0.7', changefreq: 'monthly' },
+  /*
+   * 자료형 화면 셋(2026-08-04 신설).
+   *
+   * ⚠ **크롤러가 읽는 본문은 아직 없다.** 배당 목록과 달리 서버 렌더 핸들러를 두지 않아서,
+   *   JS 를 실행하지 않는 크롤러에게는 빈 셸이다. 그래도 사이트맵에는 넣는다 — 구글은 JS 를
+   *   실행하고, 등재해 두면 발견까지의 시간이 줄어든다. 검색 유입이 실제로 붙으면 그때
+   *   `server/handlers/DividendListHtml` 과 같은 방식으로 서버 본문을 붙인다(핸드오프에 남김).
+   * changefreq 가 서로 다른 것은 실제 갱신 주기가 달라서다: 증시 캘린더는 주 1회 수집,
+   * 국회 거래는 주 1회, 국민연금은 분기 1회(13F 는 분기 데이터다).
+   */
+  { path: '/market/us-calendar', priority: '0.7', changefreq: 'weekly' },
+  { path: '/portfolio/congress', priority: '0.6', changefreq: 'weekly' },
+  { path: '/portfolio/nps', priority: '0.6', changefreq: 'monthly' }
 ] as const;
 
 type SitemapRoute = { path: string; priority: string; changefreq: string };

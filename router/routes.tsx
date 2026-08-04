@@ -105,6 +105,26 @@ const TickerComparePage = lazy(() => import('@/pages/Ticker/TickerComparePage'))
 const InvestorsPage = lazy(() => import('@/pages/Investors/InvestorsPage'));
 
 /**
+ * `/portfolio/` 아래 두 자매 화면(2026-08-04 신설) — **대가들의 포트폴리오와 같은 축**이다.
+ * "누구의 포트폴리오인가"라는 질문에 사람(대가)·기관(국민연금)·정치인(하원)이 각각 답한다.
+ *
+ * 셋 다 커밋된 스냅샷을 읽는 정적 화면이라 조회가 없고, 각자 `lazy` 로 격리한다 —
+ * 배럴(`@/pages/Congress`)이 아니라 페이지 폴더를 직접 import 하는 이유는 배당 목록과 같다:
+ * 배럴을 lazy 하면 한 화면만 열어도 형제 화면의 데이터·문구까지 내려받는다.
+ * 두 스냅샷은 각각 40KB·70KB 라 엔트리에 실리면 그대로 첫인상 비용이 된다.
+ */
+const CongressPage = lazy(() => import('@/pages/Congress/CongressPage'));
+const NpsPage = lazy(() => import('@/pages/Nps/NpsPage'));
+
+/**
+ * 미국 증시 캘린더(`/market/us-calendar`) — 배당 캘린더와 같은 `lazy` 격리.
+ *
+ * 🔴 `/dividend/calendar` 밑에 두지 않은 이유: 그 화면은 **내가 고른 종목의 배당 지급일**을 그리고,
+ * 이 화면은 **시장 전체의 개폐장·발표 일정**을 그린다. 축이 달라서 주소도 갈랐다.
+ */
+const MarketCalendarPage = lazy(() => import('@/pages/MarketCalendar/MarketCalendarPage'));
+
+/**
  * 배당 지급 월 캘린더 — 티커 랜딩과 같은 `lazy` 격리.
  *
  * 시뮬레이터를 거치지 않는 독립 도구라 엔트리에 실을 이유가 없다. `PrimaryNav` 링크와 사이트맵
@@ -338,6 +358,32 @@ export const routes: RouteObject[] = [
         element: (
           <Suspense fallback={null}>
             <InvestorsPage />
+          </Suspense>
+        )
+      },
+      {
+        /* 국회의원 주식 거래 — `/portfolio/investors` 의 형제(정적 세그먼트라 순서 의존이 없다). */
+        path: '/portfolio/congress',
+        element: (
+          <Suspense fallback={null}>
+            <CongressPage />
+          </Suspense>
+        )
+      },
+      {
+        /* 국민연금 포트폴리오 — 같은 축의 세 번째 화면. */
+        path: '/portfolio/nps',
+        element: (
+          <Suspense fallback={null}>
+            <NpsPage />
+          </Suspense>
+        )
+      },
+      {
+        path: '/market/us-calendar',
+        element: (
+          <Suspense fallback={null}>
+            <MarketCalendarPage />
           </Suspense>
         )
       },

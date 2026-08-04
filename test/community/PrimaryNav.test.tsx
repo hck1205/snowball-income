@@ -54,6 +54,14 @@ const openPortfolioMenu = () => {
   fireEvent.click(screen.getByRole('button', { name: /포트폴리오/ }));
 };
 
+/**
+ * 캘린더 묶음을 편다(2026-08-04 신설). 배당 캘린더가 이 안으로 들어가서, 그 링크를 보려면
+ * 먼저 열어야 한다 — 접힌 상태에서 `getByRole('link', {name: '배당 캘린더'})` 는 없다.
+ */
+const openCalendarMenu = () => {
+  fireEvent.click(screen.getByRole('button', { name: /^캘린더/ }));
+};
+
 describe('PrimaryNav', () => {
   // 두 플래그는 테스트마다 명시하지만, 앞 테스트가 끈 값이 새는 일을 막으려 기본을 켜 둔다.
   beforeEach(() => {
@@ -185,9 +193,12 @@ describe('PrimaryNav', () => {
 
     expect(screen.getByRole('link', { name: '나의 배당 포트폴리오' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: '대가들의 포트폴리오' })).not.toHaveAttribute('aria-current');
-    // `/dividend/*` 형제 세그먼트끼리 서로를 활성화하면 사용자는 현재 위치를 잃는다.
-    expect(screen.getByRole('link', { name: '배당 캘린더' })).not.toHaveAttribute('aria-current');
     expect(screen.getByRole('link', { name: '시뮬레이터' })).not.toHaveAttribute('aria-current');
+    // `/dividend/*` 형제 세그먼트끼리 서로를 활성화하면 사용자는 현재 위치를 잃는다.
+    // ⚠ 배당 캘린더는 2026-08-04 부터 캘린더 묶음 안이라 열어야 보인다.
+    expect(screen.getByRole('button', { name: /^캘린더/ })).not.toHaveAttribute('aria-current');
+    openCalendarMenu();
+    expect(screen.getByRole('link', { name: '배당 캘린더' })).not.toHaveAttribute('aria-current');
 
     const current = screen.getAllByRole('link').filter((link) => link.getAttribute('aria-current') === 'page');
     expect(current).toHaveLength(1);
@@ -196,10 +207,47 @@ describe('PrimaryNav', () => {
   it('배당 캘린더에선 내 포트폴리오 링크가 활성이 되지 않는다 (상호 배타)', () => {
     communityEnabled = true;
     renderAt('/dividend/calendar');
+
+    // 접힌 채로도 "이 묶음 안에 있다"가 읽혀야 한다.
+    expect(screen.getByRole('button', { name: /^캘린더/ })).toHaveAttribute('aria-current', 'true');
+    openCalendarMenu();
+    expect(screen.getByRole('link', { name: '배당 캘린더' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: '미국 증시 캘린더' })).not.toHaveAttribute('aria-current');
+
+    openPortfolioMenu();
+    expect(screen.getByRole('link', { name: '나의 배당 포트폴리오' })).not.toHaveAttribute('aria-current');
+  });
+
+  /**
+   * 캘린더 묶음의 두 번째 화면. 🔴 형제끼리 서로를 활성화하면 사용자는 현재 위치를 잃는다 —
+   * `/dividend/calendar` 와 `/market/us-calendar` 는 접두사부터 다른 남남이다.
+   */
+  it('미국 증시 캘린더(/market/us-calendar)에선 그 링크만 활성이다', () => {
+    communityEnabled = true;
+    renderAt('/market/us-calendar');
+
+    expect(screen.getByRole('button', { name: /^캘린더/ })).toHaveAttribute('aria-current', 'true');
+    openCalendarMenu();
+    expect(screen.getByRole('link', { name: '미국 증시 캘린더' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: '배당 캘린더' })).not.toHaveAttribute('aria-current');
+  });
+
+  /** 포트폴리오 묶음에 2026-08-04 에 합류한 두 화면 — 묶음 트리거가 그 사실을 말해야 한다. */
+  it.each([
+    ['/portfolio/nps', '국민연금 (미국 주식)'],
+    ['/portfolio/congress', '국회의원 주식 거래']
+  ])('%s 에선 묶음 안 그 링크만 활성이다', (path, label) => {
+    communityEnabled = true;
+    renderAt(path);
+
+    expect(screen.getByRole('button', { name: /포트폴리오/ })).toHaveAttribute('aria-current', 'true');
     openPortfolioMenu();
 
-    expect(screen.getByRole('link', { name: '배당 캘린더' })).toHaveAttribute('aria-current', 'page');
-    expect(screen.getByRole('link', { name: '나의 배당 포트폴리오' })).not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('link', { name: label })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: '대가들의 포트폴리오' })).not.toHaveAttribute('aria-current');
+
+    const current = screen.getAllByRole('link').filter((link) => link.getAttribute('aria-current') === 'page');
+    expect(current).toHaveLength(1);
   });
 
   /* ── 포트폴리오 묶음 메뉴 ──────────────────────────────────────────────────── */
@@ -256,7 +304,7 @@ describe('PrimaryNav', () => {
    * 포트폴리오 3종을 접어 7칸이 됐고, 2026-08-04 에 배당 목록 4종(허브 + 킹·귀족·챔피언)이 **한 칸**으로
    * 합류해 지금은 **8칸 = 상한**이다. 다음 기능은 반드시 묶음이어야 한다.
    */
-  it('윗줄은 8칸이고 시뮬레이터 → 포트폴리오(묶음) → 가계부 → 배당 캘린더 → 배당 리스트(묶음) 순이다', () => {
+  it('윗줄은 8칸이고 시뮬레이터 → 포트폴리오(묶음) → 가계부 → 캘린더(묶음) → 배당 리스트(묶음) 순이다', () => {
     communityEnabled = true;
     ledgerEnabled = true;
     renderAt('/dividend/portfolio');
@@ -276,9 +324,11 @@ describe('PrimaryNav', () => {
       /* 포트폴리오 묶음 — 나의 배당 포트폴리오·대가들의 포트폴리오·포트폴리오 갤러리 셋이 여기 접혀 있다. */
       '포트폴리오',
       '가계부',
-      '배당 캘린더',
+      /* 캘린더 묶음(2026-08-04) — 배당 캘린더 + 미국 증시 캘린더 둘이 여기 접혔다.
+         증시 캘린더가 아홉 번째 칸이 될 뻔한 것을 이 묶음이 흡수했다. */
+      '캘린더',
       /* 배당 리스트 묶음(2026-08-04) — 목록 비교(허브)·배당킹·배당귀족·배당챔피언 넷이 여기 접혀 있다.
-         배당 캘린더 바로 뒤: 둘 다 `/dividend/` 아래의 "배당 그 자체를 보는" 축이다. */
+         캘린더 바로 뒤: 둘 다 "배당 그 자체를 보는" 축이다. */
       '배당 리스트',
       '게시판',
       'ETF 소개',
@@ -328,6 +378,7 @@ describe('PrimaryNav', () => {
     communityEnabled = false;
     renderAt('/dividend/portfolio');
 
+    openCalendarMenu();
     expect(screen.getByRole('link', { name: '배당 캘린더' })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: '포트폴리오 갤러리' })).not.toBeInTheDocument();
     // 포트폴리오 묶음은 커뮤니티 플래그와 무관하다 — 둘 다 커뮤니티 밖 화면이다.

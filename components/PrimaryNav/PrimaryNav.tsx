@@ -5,14 +5,17 @@ import { useInRouterContext, useLocation } from 'react-router-dom';
 import {
   BookOpen,
   CalendarDays,
+  CalendarRange,
   ChevronDown,
   Crown,
   Gem,
+  Landmark,
   LayoutGrid,
   LineChart,
   ListOrdered,
   Medal,
   MessageSquare,
+  PiggyBank,
   ReceiptText,
   Scale,
   Trophy,
@@ -55,7 +58,25 @@ const n = COMMUNITY_COPY.nav;
 const PORTFOLIO_GROUP_ITEMS = [
   { to: '/dividend/portfolio', label: n.myPortfolio, Icon: Wallet, communityOnly: false },
   { to: '/portfolio/investors', label: n.investors, Icon: Users, communityOnly: false },
+  /* 2026-08-04 합류. 셋 다 "누구의 포트폴리오인가"라는 한 축이라 같은 묶음에 선다 —
+     사람(대가) → 기관(국민연금) → 정치인(하원). 순서는 익숙한 것에서 낯선 것으로. */
+  { to: '/portfolio/nps', label: n.npsPortfolio, Icon: PiggyBank, communityOnly: false },
+  { to: '/portfolio/congress', label: n.congressTrades, Icon: Landmark, communityOnly: false },
   { to: '/community/portfolio', label: n.gallery, Icon: LayoutGrid, communityOnly: true }
+] as const;
+
+/**
+ * 캘린더 묶음 — 배당 캘린더 + 미국 증시 캘린더(2026-08-04 신설).
+ *
+ * 왜 묶는가: 증시 캘린더가 **아홉 번째** nav 항목이 될 뻔했다(상한 8). 배당 캘린더는 이미 윗줄에
+ * 혼자 서 있었고, 두 화면 다 "언제"를 묻는 한 축이라 묶는 값이 가장 컸다 — 묶어서 8을 지켰다.
+ *
+ * 순서는 **내 것 → 시장 것**이다. 배당 캘린더는 내가 고른 종목의 지급일이고, 증시 캘린더는
+ * 시장 전체의 개폐장·발표 일정이다.
+ */
+const CALENDAR_GROUP_ITEMS = [
+  { to: '/dividend/calendar', label: n.dividendCalendar, Icon: CalendarDays },
+  { to: '/market/us-calendar', label: n.marketCalendar, Icon: CalendarRange }
 ] as const;
 
 /**
@@ -269,12 +290,11 @@ const NavLinkItems = () => (
         <NavLabel>{n.ledger}</NavLabel>
       </NavItem>
     ) : null}
-    {/* 배당 캘린더 — 커뮤니티 여부와 무관(marketData 기반 정적 페이지). 페이지는 lazy 청크라
-        이 링크(경로 문자열)로 엔트리 번들이 커지지 않는다(티커 허브와 동일 논리). */}
-    <NavItem to="/dividend/calendar" aria-label={n.dividendCalendar}>
-      <CalendarDays size={16} strokeWidth={1.8} aria-hidden focusable={false} />
-      <NavLabel>{n.dividendCalendar}</NavLabel>
-    </NavItem>
+    {/* 캘린더 묶음 — 배당 캘린더 + 미국 증시 캘린더(2026-08-04). 둘 다 커뮤니티 여부와 무관한
+        정적 페이지이고 lazy 청크라, 이 링크(경로 문자열)로 엔트리 번들이 커지지 않는다.
+        🔴 배당 캘린더가 여기로 접히면서 윗줄 항목 수는 8 그대로다 — 증시 캘린더가 아홉 번째가
+        될 뻔한 것을 묶음으로 흡수했다(아래 종목 비교 주석의 상한 규칙). */}
+    <NavGroupMenu label={n.calendarGroup} Icon={CalendarDays} items={CALENDAR_GROUP_ITEMS} />
     {/* 배당 리스트 묶음 — 목록 비교(허브) + 배당킹 + 배당귀족 + 배당챔피언 넷(2026-08-04 신설).
         배당 캘린더 **바로 뒤**: 둘 다 `/dividend/` 아래의 "배당 그 자체를 보는" 축이다.
         아이콘은 트로피(Trophy) — 오래 이어 온 기록이라는 이 묶음의 성격을 말하고, nav 의 다른

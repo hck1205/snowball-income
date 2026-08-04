@@ -55,8 +55,18 @@ describe('/dividend/portfolio 라우트', () => {
   it('형제 화면(배당 캘린더)에서는 포트폴리오 묶음이 활성이 아니다', async () => {
     renderAt('/dividend/calendar');
 
-    const calendarNav = await screen.findByRole('link', { name: COMMUNITY_COPY.nav.dividendCalendar });
-    expect(calendarNav).toHaveAttribute('aria-current', 'page');
+    /* ⚠ 배당 캘린더는 2026-08-04 부터 **캘린더 묶음 안**이다 — 링크를 보려면 먼저 펼쳐야 한다.
+       접힌 트리거가 "이 묶음 안에 있다"를 말하는지도 함께 본다. */
+    const calendarTrigger = await screen.findByRole('button', {
+      name: new RegExp(`^${COMMUNITY_COPY.nav.calendarGroup}`)
+    });
+    expect(calendarTrigger).toHaveAttribute('aria-current', 'true');
+    fireEvent.click(calendarTrigger);
+
+    expect(screen.getByRole('link', { name: COMMUNITY_COPY.nav.dividendCalendar })).toHaveAttribute(
+      'aria-current',
+      'page'
+    );
     expect(
       screen.getByRole('button', { name: new RegExp(COMMUNITY_COPY.nav.portfolioGroup) })
     ).not.toHaveAttribute('aria-current');
