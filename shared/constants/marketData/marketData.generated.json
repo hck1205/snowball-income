@@ -1198,7 +1198,14 @@
         9,
         12
       ],
-      "payoutMonthsSource": "ex"
+      "payoutMonthsSource": "pay",
+      "exToPayLagDays": 4,
+      "estimatedPayDayByMonth": {
+        "3": 24,
+        "6": 24,
+        "9": 23,
+        "12": 23
+      }
     },
     "VYM": {
       "initialPrice": 161.96,
@@ -1252,8 +1259,8 @@
         11,
         12
       ],
-      "payoutMonthsSource": "pay",
       "exToPayLagDays": 3,
+      "payoutMonthsSource": "pay",
       "estimatedPayDayByMonth": {
         "1": 18,
         "2": 27,
