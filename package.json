@@ -26,6 +26,7 @@
     "dividend:universe": "vite-node scripts/dividendLists/universeCli.ts --",
     "nps:portfolio": "vite-node scripts/npsPortfolio/cli.ts --",
     "congress:trades": "python tools/congressTrades/harvest.py",
+    "korea:assembly": "python tools/koreaAssembly/harvest.py",
     "market:calendar": "vite-node scripts/marketCalendar/cli.ts --",
     "dividend:universe:diff": "vite-node scripts/dividendLists/membershipDiffCli.ts --",
     "uiprobe": "node tools/dev/uiprobe.mjs",

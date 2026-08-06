@@ -18,6 +18,8 @@ export {
   toggleDividendListSector,
   usesWikipediaSource
 } from './dividendListView';
+export { DIVIDEND_LIST_MASCOT } from './dividendListMascot';
+export type { DividendListMascot } from './dividendListMascot';
 export type {
   DividendListFilter,
   DividendListGrowthCell,

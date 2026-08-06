@@ -15,6 +15,7 @@ import {
   ListOrdered,
   Medal,
   MessageSquare,
+  MessagesSquare,
   PiggyBank,
   ReceiptText,
   Scale,
@@ -62,7 +63,15 @@ const PORTFOLIO_GROUP_ITEMS = [
      사람(대가) → 기관(국민연금) → 정치인(하원). 순서는 익숙한 것에서 낯선 것으로. */
   { to: '/portfolio/nps', label: n.npsPortfolio, Icon: PiggyBank, communityOnly: false },
   { to: '/portfolio/congress', label: n.congressTrades, Icon: Landmark, communityOnly: false },
-  { to: '/community/portfolio', label: n.gallery, Icon: LayoutGrid, communityOnly: true }
+  /* 2026-08-05 합류. 미국 화면 바로 뒤에 둔다 — 같은 '정치인' 축이고, 둘을 나란히 놓아야
+     "거래(미국) / 보유(한국)"라는 성격 차이가 이름만으로도 눈에 들어온다. */
+  { to: '/portfolio/korea-assembly', label: n.koreaAssemblyStocks, Icon: Landmark, communityOnly: false },
+  /*
+   * 🔴 갤러리는 2026-08-05 에 **커뮤니티 묶음으로 옮겼다**(사용자 지시). 2026-08-02 에는 "포트폴리오를
+   * 보는 곳이 한 군데인 편이 낫다"는 이유로 여기 들어왔지만, 그 뒤 이 묶음이 다섯으로 불어나면서
+   * 축이 갈렸다 — 나머지 넷은 **공시로 만든 자료**이고 갤러리는 **사용자가 쓴 글**이다.
+   * 성격이 다른 하나가 섞여 있으면 묶음 이름이 무엇을 뜻하는지 흐려진다.
+   */
 ] as const;
 
 /**
@@ -97,6 +106,24 @@ const DIVIDEND_LIST_GROUP_ITEMS = [
   { to: dividendListPath('kings'), label: n.dividendKings, Icon: Crown },
   { to: dividendListPath('aristocrats'), label: n.dividendAristocrats, Icon: Gem },
   { to: dividendListPath('champions'), label: n.dividendChampions, Icon: Medal }
+] as const;
+
+/**
+ * 커뮤니티 묶음 — 포트폴리오 갤러리 + 게시판(2026-08-05 신설, 사용자 지시).
+ *
+ * 왜 묶는가: 포트폴리오 묶음이 다섯으로 불어나면서 그 안의 갤러리만 성격이 달랐다(나머지는 공시
+ * 자료, 갤러리는 사용자 글). 갤러리를 게시판 옆으로 옮기면 **"사람이 쓴 것"이 한 칸에 모인다.**
+ * 윗줄 항목 수는 그대로다 — 게시판이 단독 항목에서 이 묶음 안으로 들어가고 묶음이 그 자리를 받는다.
+ *
+ * 🔴 순서는 **갤러리가 1번**이다(사용자 지시). 갤러리가 이 앱의 얼굴에 가까운 콘텐츠이고,
+ * 게시판은 그다음이다.
+ *
+ * ⚠ 묶음 아이콘은 말풍선 **둘**(MessagesSquare), 자식 게시판은 말풍선 **하나**(MessageSquare)다 —
+ *   2026-08-05 에 둘이 같은 글리프라 부모·자식이 같은 것으로 읽힌다는 지적을 받고 갈랐다.
+ */
+const COMMUNITY_GROUP_ITEMS = [
+  { to: '/community/portfolio', label: n.gallery, Icon: LayoutGrid },
+  { to: '/community/board', label: n.board, Icon: MessageSquare }
 ] as const;
 
 /**
@@ -301,12 +328,10 @@ const NavLinkItems = () => (
         아이콘(Wallet·CalendarDays·BookOpen·Scale·LineChart·ReceiptText)과 겹치지 않는다.
         🔴 목록 3종을 각각 올리면 nav 가 11개가 되어 상한(8)을 넘는다 — 그래서 묶음이다. */}
     <NavGroupMenu label={n.dividendListGroup} Icon={Trophy} items={DIVIDEND_LIST_GROUP_ITEMS} />
-    {/* 갤러리(/community/portfolio)는 2026-08-02 부터 포트폴리오 묶음 안이다 — 윗줄에는 게시판만 남는다. */}
+    {/* 커뮤니티 묶음(2026-08-05) — 포트폴리오 갤러리 + 게시판. 둘 다 **사용자가 쓴 것**이라 한 축이다.
+        🔴 커뮤니티가 꺼진 배포에서는 묶음째 사라진다(안에 든 두 목적지가 모두 커뮤니티 전용이다). */}
     {isCommunityEnabled ? (
-      <NavItem to="/community/board" aria-label={n.board}>
-        <MessageSquare size={16} strokeWidth={1.8} aria-hidden focusable={false} />
-        <NavLabel>{n.board}</NavLabel>
-      </NavItem>
+      <NavGroupMenu label={n.communityGroup} Icon={MessagesSquare} items={COMMUNITY_GROUP_ITEMS} />
     ) : null}
     <NavItem to="/ticker/all" aria-label={n.tickers}>
       <BookOpen size={16} strokeWidth={1.8} aria-hidden focusable={false} />
@@ -326,14 +351,19 @@ const NavLinkItems = () => (
 );
 
 /**
- * 헤더 라우트 메뉴 줄 — 가운데 정렬 + 가로 스크롤.
+ * 헤더 라우트 메뉴 줄 — **워드마크와 같은 시작선 + 남는 폭을 항목 사이로 균등 분배** + 가로 스크롤.
  *
  * 자리는 폭에 따라 다르다(`AppHeader` 의 `NavSlot`): **≥1024 는 브랜드와 컨트롤 사이의 남는 폭**,
  * **≤1023 은 아랫줄 전폭**. 어느 쪽이든 이 컴포넌트는 하나이고 마크업도 하나다.
  *
- * 가운데 정렬과 overflow 스크롤은 충돌한다(justify-content:center 는 넘친 왼쪽을 잘라 스크롤로도
- * 못 닿게 만든다). 그래서 스크롤 컨테이너 안에서 **margin-inline:auto** 로 중앙을 잡는다 —
- * 공간이 남으면 정중앙, 넘치면 자연스럽게 좌측부터 스크롤된다.
+ * 🔴 2026-08-05 사용자 지시로 **가운데 정렬(margin-inline:auto)을 걷어냈다.** 종전에는 메뉴 덩어리가
+ * 줄 한가운데 뭉쳐 있어서, 바로 위 "Hungry Hippo" 워드마크와 시작선이 어긋나고 양옆에 큰 빈 폭이
+ * 남았다. 지금은 첫 항목이 워드마크와 같은 x 에서 시작하고(NavScroller 의 음수 마진), 남는 폭은
+ * `space-between` 이 항목 사이로 **똑같이** 나눠 준다.
+ *
+ * ⚠ 정렬과 overflow 스크롤은 충돌할 수 있다 — `justify-content: center` 는 넘친 왼쪽을 잘라
+ *   스크롤로도 못 닿게 만든다. `space-between` 은 그 함정이 없다(넘치면 간격이 gap 최솟값으로
+ *   수렴하고 줄은 왼쪽부터 스크롤된다).
  */
 export function PrimaryNavLinks() {
   const inRouter = useInRouterContext();

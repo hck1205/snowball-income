@@ -12,7 +12,7 @@ import {
   space,
   topRail
 } from '@/shared/styles';
-import type { PageHeroTone } from './PageHero.types';
+import type { PageHeroMascotSize, PageHeroTone } from './PageHero.types';
 
 /**
  * 히어로 안쪽 여백.
@@ -63,7 +63,24 @@ const HERO_RAIL_HEIGHT = '4px';
  *   ③ 경계    hue 38% → **48%** (흰 면 위에서 38% 는 사라진다)
  * ⚠ 구조는 그대로다 — 슬롯(icon·title·titleAction·actions·lede·notice·meta)은 하나도 안 바뀌었다.
  */
-export const HeroRoot = styled.header<{ $tone: PageHeroTone }>`
+/**
+ * 마스코트가 차지하는 폭. 히어로 오른쪽에 이만큼을 **비워 두고** 그 자리에 그림을 놓는다.
+ *
+ * 🔴 겹치지 않고 **자리를 비운다.** 히어로의 제목·리드는 페이지마다 길이가 다르고 한국어는
+ * 줄바꿈이 늦다 — 그림을 위에 얹는 방식이면 어느 페이지에서 언젠가 글자를 덮는다.
+ */
+const HERO_MASCOT_WIDTH: Record<PageHeroMascotSize, string> = {
+  /** 아래에 바로 다른 블록이 붙는 화면(종목 비교의 선택 덱 등) — 그림이 그 블록과 다투지 않는다. */
+  sm: 'clamp(88px, 11vw, 140px)',
+  md: 'clamp(112px, 14vw, 176px)',
+  /** 리드가 짧아 히어로 오른쪽이 크게 비는 화면(가계부). 여기서는 작으면 오히려 허전하다. */
+  lg: 'clamp(168px, 21vw, 280px)'
+};
+
+export const HeroRoot = styled.header<{
+  $tone: PageHeroTone;
+  $mascotSize?: PageHeroMascotSize;
+}>`
   display: grid;
   gap: ${space[3]};
   /* 좁은 폭에서 titleAction 이 흐름에서 빠져 제목 줄 오른쪽에 붙는다 — 그 좌표 기준. */
@@ -98,6 +115,71 @@ export const HeroRoot = styled.header<{ $tone: PageHeroTone }>`
   &::before {
     ${topRail(HERO_RAIL_HEIGHT)}
     background: ${pageHue};
+  }
+
+  /* 마스코트가 설 자리를 오른쪽에 비운다(그림은 아래 HeroMascot 이 절대배치로 그 안에 선다).
+     ⚠ 좁은 폭에서는 그림 자체를 그리지 않으므로 여백도 돌려준다 — 안 그러면 글자만 좁아진다. */
+  ${({ $mascotSize }) =>
+    $mascotSize
+      ? `
+  padding-right: calc(${HERO_PADDING} + ${HERO_MASCOT_WIDTH[$mascotSize]});
+  /*
+   * 🔴 **그림이 설 세로도 함께 확보한다**(2026-08-05). 히어로는 overflow: hidden 이라 카드보다 큰
+   * 그림은 넘치는 게 아니라 잘리고, 잘리지 않게 상한을 걸면 이번엔 그림이 작아진다 — 제목·리드가
+   * 짧은 화면(종목 비교)에서 정확히 그 두 증상이 차례로 났다. 그래서 마스코트를 쓰는 히어로는
+   * 그림이 들어갈 만큼 **최소 높이**를 갖는다. 정사각 자산 기준이라 폭과 같은 값을 쓴다.
+   * ⚠ 이 최소 높이는 그 페이지의 첫 화면을 그만큼 먹는다. 마스코트를 아무 데나 붙이지 마라.
+   */
+  min-height: calc(${HERO_MASCOT_WIDTH[$mascotSize]} + ${space[4]});
+
+  ${media.down('mobileWide')} {
+    padding-right: ${HERO_PADDING};
+    min-height: 0;
+  }
+`
+      : ''}
+`;
+
+/**
+ * 히어로의 **마스코트** — 이 화면이 무엇을 하는 곳인지 그림 한 장으로 거드는 자리(2026-08-05 신설).
+ *
+ * 🔴 **장식이다**(`alt=""`, PageHero 가 강제한다). 페이지의 정보는 제목·리드가 전부 진다.
+ * 🔴 자리는 히어로가 `padding-right` 로 비워 둔 레인 안이다 — 글자 위로 넘어오지 않는다.
+ * ⚠ 오른쪽 아래에 바닥을 맞춘다. 하마 자산들은 모두 바닥에 앉은 구도라, 세로 중앙에 띄우면
+ *   허공에 뜬 것처럼 보인다.
+ * ⚠ 좁은 폭에서는 **사라진다**. 첫 화면 세로를 마스코트에 내줄 수 없다(헤더가 이미 105px 이다).
+ * ⚠ 히어로는 `overflow: hidden` 이라 이 그림은 카드 밖으로 나갈 수 없다 — 자산의 여백까지 포함해
+ *   자리를 잡아야 한다. 밖으로 삐져나오는 연출이 필요하면 히어로가 아니라 그 페이지가 소유해라.
+ */
+export const HeroMascot = styled.img<{ $size: PageHeroMascotSize }>`
+  position: absolute;
+  right: ${HERO_PADDING};
+  bottom: 0;
+  /*
+   * 🔴 **폭만 정하고 높이는 원본 비율에 맡긴다**(2026-08-05 사용자 지시: 비율이 맞게 줄어들 것).
+   * aspect-ratio 를 박아 두면 정사각이 아닌 자산이 들어온 날 레터박스(혹은 잘림)가 생기고,
+   * 그 어긋남은 "그림이 이상하다"로만 보고되어 원인을 찾기 어렵다. 이 요소는 절대배치라
+   * 높이가 흔들려도 **레이아웃을 밀지 않는다** — 비율을 지키는 쪽이 언제나 이득이다.
+   * 🔴 폭 3단은 히어로의 padding-right 와 **같은 표에서** 나온다(HERO_MASCOT_WIDTH). 두 곳에
+   *   따로 적으면 그림이 글자 위로 올라오는 날이 온다.
+   */
+  width: ${({ $size }) => HERO_MASCOT_WIDTH[$size]};
+  height: auto;
+  /*
+   * 🔴 **히어로보다 커지지 않는다**(2026-08-05: 가계부에서 그림 위쪽이 잘려 나갔다).
+   * 히어로는 상단 hue 리본을 둥근 모서리 안에 가두려고 overflow: hidden 이라, 카드보다 큰 그림은
+   * 밖으로 넘치는 게 아니라 **잘린다**. 그래서 폭(3단)은 희망 크기이고, 실제 크기는 이 상한이
+   * 결정한다 — 히어로가 짧은 페이지에서는 그림도 그만큼 작아진다.
+   * ⚠ object-fit: contain 과 **함께**여야 한다. 상한만 걸면 이미지가 눌려 비율이 깨진다.
+   */
+  max-height: calc(100% - ${space[2]});
+  object-fit: contain;
+  object-position: bottom center;
+  pointer-events: none;
+  user-select: none;
+
+  ${media.down('mobileWide')} {
+    display: none;
   }
 `;
 

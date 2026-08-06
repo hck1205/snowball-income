@@ -1,6 +1,6 @@
 import styled from '@emotion/styled';
 import { Link } from 'react-router-dom';
-import { DATA_RADIUS, color, font, media, radius, space, surface } from '@/shared/styles';
+import { DATA_RADIUS, color, font, media, pageHue, pageHueMix, radius, space, surface, topRail } from '@/shared/styles';
 
 /**
  * 이 화면이 세우는 면의 패딩. `surface()` 가 이 값에서 안쪽 라운드까지 파생하므로 상수로 둔다
@@ -67,46 +67,131 @@ export const CautionPanel = styled.div`
 `;
 
 /**
- * 마스코트가 앉을 **폭**. 상한 168px 은 히어로 카드 안쪽에서 제목·리드가 쓸 폭을 남기고,
- * 하한 88px 은 390px 에서 캐릭터의 얼굴이 알아볼 수 있는 최소치다(그 아래로는 보라색 덩어리가 된다).
+ * 마스코트가 앉을 **폭**.
+ *
+ * 🔴 2026-08-05 에 키웠다(88~168 → **112~236**, 사용자 지시 "이미지도 좀 더 확대"). 종전 크기는
+ * 카드 구석의 작은 아이콘처럼 보여 제목과 한 장면을 이루지 못했다. 상한 236px 은 1280 에서
+ * 제목·리드가 쓸 폭(약 700px)을 남기는 선이고, 하한 112px 은 390 에서 캐릭터의 얼굴이 뭉개지지
+ * 않는 최소치다.
  */
-const MASCOT_WIDTH = 'clamp(88px, 12vw, 168px)';
+const MASCOT_WIDTH = 'clamp(112px, 17vw, 236px)';
 
 /** 카드 테두리와의 거리. 그림의 발끝·오른팔이 둥근 모서리에 닿지 않을 만큼만. */
-const MASCOT_INSET = 'clamp(6px, 1vw, 14px)';
+const MASCOT_INSET = 'clamp(14px, 2vw, 32px)';
+
+/** 상단 hue 리본 두께. PageHero 의 것과 같은 값이다(같은 신호라 굵기가 갈리면 안 된다). */
+const HERO_RAIL_HEIGHT = '4px';
 
 /**
- * 히어로 + 마스코트 한 덩어리.
+ * 히어로 두 열 — **그림(맨 왼쪽) + 글(그 뒤)**.
  *
- * ## 🔴 그림을 히어로 **안**이 아니라 같은 그리드 셀의 형제로 두는 이유
- * `PageHero` 는 앱의 유일한 히어로이고 슬롯이 정해져 있다(icon·title·actions·lede·notice·meta).
- * 그림을 `actions` 에 넣으면 좁은 폭에서 그 슬롯이 **제목 아래 전폭**으로 내려가(`PageHero.styled`
- * HeroActions) 그림이 본문을 그만큼 밀어낸다. 형제로 두고 같은 셀에 겹치면 카드 오른쪽의
- * 원래 비어 있던 자리를 쓰므로 **세로로 아무것도 밀지 않는다.** 랜딩 히어로가 같은 처방을 쓴다
- * (`pages/Landing/LandingPage/LandingPage.styled.ts` 의 HeroArt).
+ * 🔴 세 목록이 **전부 같은 배치**다(2026-08-06 사용자 지시: 그림을 맨 좌측, 텍스트를 그 뒤로).
+ * 종전에는 목록마다 좌우를 갈랐고(킹·챔피언 오른쪽 / 귀족 왼쪽) 글이 남는 폭을 다 먹어, 글과 그림
+ * 사이에 빈 폭이 넓게 남았다 — 둘이 한 장면으로 읽히지 않았다.
  *
- * ## 자리를 겹치되 **비워 준다**
- * 겹치기만 하면 제목·리드가 그림 밑으로 흐른다(리드에는 max-width 가 없다). 그래서 카드에
- * 그림 폭만큼 오른쪽 패딩을 준다 — 절대배치로는 이 "자리 비우기"를 할 수 없다.
+ * ⚠ 글 열 상한(68ch)이 없으면 리드가 긴 목록에서 글이 카드 끝까지 늘어난다(이 레포가 본문에 쓰는
+ *   읽는 폭과 같은 대역이다).
+ * ⚠ 문자열을 **밖에서** 조립한다 — styled 템플릿 안 중첩 템플릿 리터럴은 백틱 가드가 문맥을 닫지 못한다.
  */
+const HERO_COLUMNS = 'auto minmax(0, min(68ch, 100%))';
+
 /**
- * 그림이 앉는 쪽. 목록마다 다르다(2026-08-04 사용자 지시: 킹·챔피언은 그림이 오른쪽,
- * 귀족은 그림이 왼쪽이고 글이 오른쪽). 셋 다 같은 쪽이면 세 화면이 한 장처럼 보인다 —
- * 좌우를 갈라 두면 목록을 옮겨 다닐 때 **화면이 바뀌었다는 신호**가 시각적으로 남는다.
+ * 히어로 + 마스코트 한 덩어리 — **허브(`/dividend/lists`)의 소개 블록과 같은 배치**
+ * (2026-08-06 사용자 지시: "목록 페이지 스타일의 이미지·텍스트 배치로").
+ *
+ * ## 무엇이 바뀌었나 — 겹침 → **진짜 두 열**
+ * 종전에는 그림과 히어로가 **같은 그리드 셀**에 겹쳐 있었고, 글이 그림 밑으로 흐르지 않도록 카드에
+ * 그림 폭만큼 패딩을 줘서 자리를 비웠다. 그 방식은 두 가지를 낳았다: ①글 덩어리가 남는 여백 속에
+ * 어정쩡하게 떠서 "정렬을 뒤집는" 보정이 또 필요했고(귀족의 우측 정렬) ②그림은 카드 바닥에 붙고
+ * 글은 위에 있어 **둘의 시선 높이가 어긋났다.**
+ *
+ * 지금은 허브와 같다 — 그림과 글이 **각자의 열**을 갖고 세로 가운데에서 마주 본다. 패딩으로 자리를
+ * 비울 일도, 정렬을 뒤집을 일도 없다(열의 경계가 그 일을 한다).
+ *
+ * ⚠ 그림은 **항상 맨 왼쪽**이고 글이 그 뒤다(2026-08-06). 종전에는 목록마다 좌우를 갈랐는데,
+ *   그 배치는 글과 그림 사이에 빈 폭을 만들었다 — 지금은 셋 다 같은 배치이고 리듬은 그림이 만든다.
+ * ⚠ 좁은 폭에서는 한 열로 접히고 그림이 아래로 내려간다. 그 폭에서 그림을 위에 두면 첫 화면이
+ *   전부 그림이 된다.
  */
-export type MascotSide = 'left' | 'right';
-
-/** 그림이 비켜 준 자리. 글은 그림 반대쪽 패딩만 받는다 — 양쪽을 다 주면 글 폭이 두 번 깎인다. */
-const MASCOT_GUTTER = `calc(${MASCOT_WIDTH} + ${MASCOT_INSET} + clamp(12px, 1.6vw, 24px))`;
-
-export const HeroBlock = styled.div<{ $side: MascotSide }>`
+export const HeroBlock = styled.div`
   display: grid;
-  grid-template-areas: 'hero';
+  align-items: center;
+  gap: clamp(12px, 2vw, 28px);
   min-width: 0;
+  position: relative;
+  isolation: isolate;
+  border-radius: ${radius.xl};
+  /* 🔴 상단 리본(아래 ::after)이 둥근 모서리를 넘지 않게 자른다. 반경과 **같은 자리**에 적는다 —
+     geometry 가드가 부모 자신의 선언부에서 이 짝을 찾는다(리본만 있고 자르지 않으면 red). */
+  overflow: hidden;
+
+  /*
+   * 🔴 **좁은 폭에서도 두 열을 유지한다**(2026-08-06 사용자 지시: 화면이 작아지면 그림이 아래로
+   * 내려가는데 그러지 않게). 종전에는 tablet 아래에서 한 열로 접혀 그림이 글 밑으로 갔다 —
+   * 그러면 첫 화면의 절반이 그림이 되고, 제목이 접힘 아래로 밀린다.
+   * 대신 **그림이 줄어든다**(아래 HeroMascot 의 폭이 vw 를 따라간다). 자리가 바뀌는 대신
+   * 크기가 바뀌는 쪽이 이 히어로에서는 맞다 — 배치가 폭마다 달라지면 같은 화면으로 안 읽힌다.
+   */
+  grid-template-columns: ${HERO_COLUMNS};
+  /* 두 열을 **왼쪽으로 몰아** 붙인다 — 남는 폭은 오른쪽에 남기고 글·그림은 붙어 있게 한다. */
+  justify-content: start;
+
+  /*
+   * 🔴 **그림 뒤의 후광**(2026-08-05 사용자 지시: "타이틀과 어우러지게").
+   *
+   * 그전에는 흰 카드 위에 그림이 **붙여 놓은 스티커**처럼 떠 있었다 — 캐릭터의 보라색이 카드의
+   * 흰 면과 아무 접점 없이 끝나서다. 그림이 앉는 쪽에만 페이지 hue 를 아주 옅게 깔면 캐릭터의
+   * 색이 면으로 번져 나가며 제목과 같은 판 위에 있는 것으로 읽힌다.
+   *
+   * ⚠ **글자 쪽에는 번지지 않는다.** 후광은 그림 쪽 45% 안에서 끝나고 제목·리드가 앉는 자리는
+   *   원래의 검증된 면 그대로다 — pageHue.ts 가 못 박은 규율(색 혼합 면 위에 텍스트 금지)을
+   *   지키는 방법이다. 대비 테스트가 보는 조합이 달라지지 않는다.
+   * ⚠ z-index: -1 + 부모 isolation: isolate — 후광이 카드 배경 **아래**로 가되 페이지의 다른
+   *   쌓임 맥락으로 새지 않는다.
+   */
+  &::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+      110% 90% at 16% 82%,
+      ${pageHueMix(22)} 0%,
+      ${pageHueMix(8)} 38%,
+      transparent 62%
+    );
+  }
+
+  /*
+   * 🔴 **상단 hue 리본은 이제 블록이 그린다**(2026-08-06). 열이 갈리면서 히어로가 한쪽 열만
+   * 차지하게 됐고, 그러자 PageHero 가 그리던 리본이 **글자 열 위에서만** 시작해 그림과 끊겨
+   * 보였다("여기가 도입부"라는 신호가 절반만 그어진 셈이다). 리본을 블록으로 올려 두 열을
+   * 가로지르게 하고, 히어로 자신의 리본은 아래에서 끈다 — 같은 선이 두 번 그려지지 않는다.
+   * ⚠ 리본은 직사각형이라 둥근 모서리를 넘는다. 자르는 것은 이 블록의 overflow 다(위 선언).
+   */
+  &::after {
+    ${topRail(HERO_RAIL_HEIGHT)}
+    background: ${pageHue};
+  }
 
   > header {
-    grid-area: hero;
-    ${({ $side }) => ($side === 'left' ? `padding-left: ${MASCOT_GUTTER};` : `padding-right: ${MASCOT_GUTTER};`)}
+    /*
+     * 카드의 불투명 흰 면을 **걷어 낸다** — 그래야 위 후광이 제목 뒤까지 하나의 판으로 이어진다.
+     * (면을 남기면 카드 안은 희고 바깥만 물들어 오히려 두 겹으로 갈라 보인다.)
+     */
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+
+    /* 리본은 위에서 블록이 그린다 — 여기 것을 켜 두면 짧은 선이 한 번 더 그어진다. */
+    &::before {
+      display: none;
+    }
+
+    /* 글은 두 번째 열이다. 🔴 DOM 순서는 글 → 그림 그대로 둔다 — 장식이 낭독 순서를 앞서지 않게. */
+    grid-column: 2;
+    grid-row: 1;
   }
 `;
 
@@ -119,30 +204,29 @@ export const HeroBlock = styled.div<{ $side: MascotSide }>`
  *    누르는 것도 아니다(랜딩 히어로에서 그림이 CTA 를 먹었던 실측 사고와 같은 처방).
  * ⚠ `width`/`height` 속성은 **원본 픽셀**을 그대로 준다 — 실제 폭은 CSS 가 정하지만, 두 값이 있어야
  *   브라우저가 비율대로 자리를 미리 잡아 이미지가 도착할 때 글자가 튀지 않는다(CLS).
- * ⚠ 바닥에 붙인다: 세 그림 모두 **서 있는 전신** 캐릭터라 카드 아래 선에 발이 닿아야 떠 보이지 않는다.
- * ⚠ `$side` 는 위 HeroBlock 의 패딩과 **반드시 같은 값**이어야 한다. 어긋나면 그림이 글 위에 겹친다 —
- *   그래서 둘 다 뷰가 한 곳(LIST_MASCOT)에서 읽은 같은 값을 받는다.
+ * ⚠ 세로 가운데다(종전에는 카드 바닥에 붙였다). 열이 갈린 뒤로는 글과 눈높이를 맞추는 쪽이 맞다.
  */
-export const HeroMascot = styled.img<{ $side: MascotSide }>`
-  grid-area: hero;
+export const HeroMascot = styled.img`
   /*
-   * 🔴 **이 한 줄이 없으면 그림이 안 보인다.** 실측(2026-08-04 @1280,
-   * document.elementFromPoint(1100, 300) → HEADER): 히어로 카드(HeroRoot)는 position: relative 라
-   * **위치 지정 요소**이고, CSS 페인트 순서상 위치 지정 요소는 정적 요소보다 **나중에** 그려진다.
-   * 그래서 DOM 상 뒤에 있는 이 그림이 카드의 불투명 배경 밑으로 깔렸다(이미지는 정상 로드된
-   * 상태였다 — complete: true · naturalWidth: 440). 여기에 position 을 주면 그림이 같은 페인트
-   * 단계로 올라오고, 그 안에서는 DOM 순서가 이겨서 카드 위에 선다.
-   * z-index 는 주지 않는다 — 필요 없고, 주면 이 자리에 쓸데없는 쌓임 맥락이 생긴다.
+   * 🔴 겹침이 아니라 **자기 열**에 선다(2026-08-06). 종전에는 히어로와 같은 그리드 셀에 얹혀 있어서
+   * position: relative 로 페인트 단계를 끌어올려야 카드 배경 위로 나왔다(2026-08-04 실측 사고).
+   * 열이 갈린 지금은 그 보정이 필요 없다 — 겹치는 것이 없으므로 쌓임을 만들 이유도 없다.
    */
-  position: relative;
-  ${({ $side }) => ($side === 'left' ? 'justify-self: start;' : 'justify-self: end;')}
-  align-self: end;
-  width: ${MASCOT_WIDTH};
+  /* 맨 왼쪽 열. DOM 상 뒤에 있지만 자리는 앞이다(위 header 규칙과 한 벌). */
+  grid-column: 1;
+  grid-row: 1;
+  justify-self: start;
+  /* 세로 가운데 — 글과 눈높이를 맞춘다(허브 소개 블록과 같은 규율). */
+  align-self: center;
+  width: 100%;
+  max-width: ${MASCOT_WIDTH};
   height: auto;
-  ${({ $side }) =>
-    $side === 'left'
-      ? `margin: 0 0 ${MASCOT_INSET} ${MASCOT_INSET};`
-      : `margin: 0 ${MASCOT_INSET} ${MASCOT_INSET} 0;`}
+  /*
+   * 🔴 **왼쪽 끝에서 살짝 띄운다**(2026-08-06 사용자 지시). 여백이 없으면 캐릭터의 팔·발이 카드의
+   * 둥근 모서리에 닿아 "잘린 것"처럼 보인다. 오른쪽(글자 쪽)은 열 사이 gap 이 이미 벌려 주므로
+   * **왼쪽 한 변에만** 준다 — 양쪽에 주면 그림이 그만큼 작아진다.
+   */
+  margin: ${MASCOT_INSET} 0 ${MASCOT_INSET} ${MASCOT_INSET};
   pointer-events: none;
 `;
 

@@ -193,6 +193,13 @@ export const NavScroller = styled.nav`
   min-width: 0;
   overflow-x: auto;
   padding: ${space[1]} 2px;
+  /*
+   * 🔴 좌우 2px 은 **포커스 링 자리**이지 여백이 아니다(스크롤 클리핑에 링이 잘리는 것을 막는다).
+   * 같은 값만큼 음수 마진으로 되돌려, 링 자리는 지키면서 **항목의 시작선은 워드마크와 같은 x** 가
+   * 되게 한다(2026-08-05 사용자 지시: "메뉴가 Hungry Hippo 와 같은 start 에서 나열되게").
+   * ⚠ 패딩을 0 으로 없애는 방식으로 하지 마라 — 그러면 첫·마지막 항목의 포커스 링이 잘린다.
+   */
+  margin-inline: -2px;
   -webkit-overflow-scrolling: touch;
   ${subtleScrollbar}
 
@@ -225,11 +232,21 @@ export const NavItems = styled.div<{ $scrollRow?: boolean }>`
     gap: ${space[1]};
   }
 
-  /* 스크롤 줄 모드: 남으면 정중앙(margin auto), 넘치면 좌측부터 스크롤(NavScroller 주석 참고). */
+  /*
+   * 스크롤 줄 모드(헤더 메뉴 줄) — **줄 전폭을 쓰고 남는 폭을 항목 사이로 균등 분배**한다.
+   *
+   * 🔴 종전의 가운데 뭉침(margin-inline: auto)을 2026-08-05 사용자 지시로 걷어냈다. 첫 항목이
+   * 워드마크와 같은 x 에서 시작하고 마지막 항목이 줄 끝에 닿는다 — 헤더 두 줄의 좌우 끝선이 맞는다.
+   * ⚠ width: 100% 는 **필수**다. 이것이 없으면 inline-flex 가 내용 폭으로 줄어들어
+   *   space-between 이 나눌 남는 폭 자체가 생기지 않는다(간격이 gap 그대로 붙어 버린다).
+   * ⚠ 항목이 줄보다 넓어지면 간격은 gap 최솟값으로 수렴하고 줄은 왼쪽부터 스크롤된다 —
+   *   center 정렬과 달리 넘친 항목이 스크롤로 못 닿는 자리로 잘려 나가지 않는다.
+   */
   ${({ $scrollRow }) =>
     $scrollRow
       ? `
-    margin-inline: auto;
+    width: 100%;
+    justify-content: space-between;
     flex-wrap: nowrap;
   `
       : ''}

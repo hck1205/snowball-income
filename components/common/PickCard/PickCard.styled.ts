@@ -16,7 +16,7 @@ import {
   radius,
   space
 } from '@/shared/styles';
-import type { PickCapHeight } from './PickCard.types';
+import type { PickCapGlyphShape, PickCapGlyphSize, PickCapHeight } from './PickCard.types';
 
 /** 캡의 3변 bleed — 카드 반경·패딩에서 파생한다(손으로 적으면 반드시 어긋난다). */
 const CAP_BLEED = colorCap(PICK_RADIUS, PICK.pad);
@@ -34,7 +34,13 @@ const CAP_BLEED = colorCap(PICK_RADIUS, PICK.pad);
  * ⚠ hover 에서 `transform` 을 쓰므로 이 면은 **스태킹 컨텍스트**를 만든다. 카드 안에서 밖으로 나가는
  * 팝오버·드롭다운을 띄우지 마라.
  */
-export const PickCardRoot = styled.article<{ $selected: boolean; $disabled: boolean; $interactive: boolean }>`
+export const PickCardRoot = styled.article<{
+  $selected: boolean;
+  $disabled: boolean;
+  $interactive: boolean;
+  /** 레일 캡의 글리프를 제목과 **같은 줄**에 세운다(사진 글리프 전용 — PickCard.types 의 glyphInline). */
+  $capInline?: boolean;
+}>`
   ${cardElevation('pick')}
   position: relative;
   display: flex;
@@ -88,6 +94,29 @@ export const PickCardRoot = styled.article<{ $selected: boolean; $disabled: bool
   cursor: not-allowed;
 `
       : ''}
+
+  /*
+   * **인라인 캡** — 글리프(사진)와 제목을 한 줄에 세운다.
+   *
+   * 🔴 자식 **순서**에 기대는 배치다. 레일 캡의 DOM 은 [레일] [글리프 배지] [머리] [본문] [액션] 이고,
+   * 라벨이 끼면 한 칸씩 밀린다 — 그래서 부품이 label 이 없을 때만 이 모드를 켠다(PickCard.tsx).
+   * 순서를 바꾸는 변경을 하려면 이 규칙도 함께 고쳐야 한다.
+   * ⚠ 레일은 3변으로 bleed 하는 띠라 반드시 **전 열**을 가로질러야 한다(한 열에 가두면 반쪽만 그어진다).
+   */
+  ${({ $capInline }) =>
+    $capInline
+      ? `
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: ${space[3]};
+
+  > *:nth-child(1) { grid-column: 1 / -1; }
+  > *:nth-child(2) { grid-column: 1; margin-bottom: 0; }
+  > *:nth-child(3) { grid-column: 2; }
+  > *:nth-child(n + 4) { grid-column: 1 / -1; }
+`
+      : ''}
 `;
 
 /**
@@ -129,15 +158,31 @@ export const PickCardTintCap = styled.div<{ $fill: string; $ink: string; $edge: 
 /**
  * 레일 캡의 글리프 배지. 40px 짜리 작은 면이라 `tintscan` 의 폭 하한(180px)에 걸리지 않는다 —
  * 즉 **색을 예산 없이 쓸 수 있는 자리**다. 색면 사다리의 L1(파생 귀)에 해당한다.
+ *
+ * `$size: 'lg'`(112px)는 **사진 글리프 전용**이다(대가 화면의 인물 사진). 폭은 여전히 180px
+ * 아래라 예산 밖에 남는다 — 그 상한의 근거는 `PICK.glyphSizeLg` 주석에 있다.
+ * ⚠ 반경도 함께 한 단 키운다. 40px 에 맞춘 `radius.md` 를 112px 에 그대로 쓰면 모서리가
+ *   거의 직각으로 읽혀 같은 화면의 다른 둥근 면들과 어긋난다.
  */
-export const PickCardGlyphBadge = styled.span<{ $ink: string }>`
+/**
+ * 글리프 배지.
+ *
+ * ⚠ 반경은 `$shape` 가 정한다 — `circle` 은 **사람 얼굴 전용**이다(타입 주석의 근거). 자식(사진·
+ * 이니셜)이 `border-radius: inherit` 로 따라오므로 여기 한 곳만 바꾸면 안쪽까지 함께 둥글어진다.
+ */
+export const PickCardGlyphBadge = styled.span<{
+  $ink: string;
+  $size: PickCapGlyphSize;
+  $shape: PickCapGlyphShape;
+}>`
   display: grid;
   place-items: center;
   flex: 0 0 auto;
-  width: ${PICK.glyphSize};
-  height: ${PICK.glyphSize};
+  width: ${({ $size }) => ($size === 'lg' ? PICK.glyphSizeLg : PICK.glyphSize)};
+  height: ${({ $size }) => ($size === 'lg' ? PICK.glyphSizeLg : PICK.glyphSize)};
   margin-bottom: ${space[3]};
-  border-radius: ${radius.md};
+  border-radius: ${({ $size, $shape }) =>
+    $shape === 'circle' ? radius.pill : $size === 'lg' ? radius.lg : radius.md};
   color: ${({ $ink }) => $ink};
   background: color-mix(in srgb, ${({ $ink }) => $ink} 12%, ${color.surface});
 `;

@@ -153,9 +153,16 @@ export const buildNextPayoutDDay = (summary: PortfolioSummary, today: Date): Por
 
   if (daysUntil < 0) return null;
 
+  /* 종목 나열은 요약 타일과 **같은 규칙**을 쓰고("DES 외 2종"), 그 결과를 문장이 감싼다.
+     🔴 두 줄이 같은 지급을 말하므로 종목 표기도 한 곳(tickerSummary)에서만 정해진다. */
+  const tickerSummary = copy.summary.tiles.tickerSummary(selected.firstTicker, selected.sharing);
+
   return {
     label: daysUntil === 0 ? copy.hero.dDay.todayLabel : copy.hero.dDay.label,
     value: daysUntil === 0 ? copy.hero.dDay.todayValue : copy.hero.dDay.value(daysUntil),
-    tickers: copy.summary.tiles.tickerSummary(selected.firstTicker, selected.sharing)
+    tickers:
+      daysUntil === 0
+        ? copy.hero.dDay.todayTickerLine(tickerSummary)
+        : copy.hero.dDay.tickerLine(tickerSummary)
   };
 };

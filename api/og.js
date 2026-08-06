@@ -8986,6 +8986,118 @@ var GURU_HOLDING_STOCKS = {
   }
 };
 
+// shared/constants/presets/koreanDividendTickers.ts
+var KOREAN_DIVIDEND_TICKERS = {
+  "458730.KS": {
+    ticker: "458730.KS",
+    name: "TIGER \uBBF8\uAD6D\uBC30\uB2F9\uB2E4\uC6B0\uC874\uC2A4",
+    initialPrice: 15175,
+    dividendYield: 2.89,
+    dividendGrowth: 5.61,
+    expectedTotalReturn: 8.5,
+    frequency: "monthly"
+  },
+  "402970.KS": {
+    ticker: "402970.KS",
+    name: "ACE \uBBF8\uAD6D\uBC30\uB2F9\uB2E4\uC6B0\uC874\uC2A4",
+    initialPrice: 15460,
+    dividendYield: 2.88,
+    dividendGrowth: 5.62,
+    expectedTotalReturn: 8.5,
+    frequency: "monthly"
+  },
+  "483290.KS": {
+    ticker: "483290.KS",
+    name: "KODEX \uBBF8\uAD6D\uBC30\uB2F9\uB2E4\uC6B0\uC874\uC2A4\uD0C0\uAC9F\uCEE4\uBC84\uB4DC\uCF5C",
+    initialPrice: 10470,
+    dividendYield: 11.8,
+    dividendGrowth: -3.3,
+    expectedTotalReturn: 8.5,
+    frequency: "monthly"
+  },
+  "161510.KS": {
+    ticker: "161510.KS",
+    name: "PLUS \uACE0\uBC30\uB2F9\uC8FC",
+    initialPrice: 24960,
+    dividendYield: 4.04,
+    dividendGrowth: 3.46,
+    expectedTotalReturn: 7.5,
+    frequency: "monthly"
+  },
+  "279530.KS": {
+    ticker: "279530.KS",
+    name: "KODEX \uACE0\uBC30\uB2F9",
+    initialPrice: 17390,
+    dividendYield: 4.09,
+    dividendGrowth: 3.41,
+    expectedTotalReturn: 7.5,
+    frequency: "monthly"
+  },
+  "104530.KS": {
+    ticker: "104530.KS",
+    name: "KOSEF \uACE0\uBC30\uB2F9",
+    initialPrice: 17725,
+    dividendYield: 4.15,
+    dividendGrowth: 3.35,
+    expectedTotalReturn: 7.5,
+    frequency: "monthly"
+  },
+  "210780.KS": {
+    ticker: "210780.KS",
+    name: "TIGER \uCF54\uC2A4\uD53C\uACE0\uBC30\uB2F9",
+    initialPrice: 23010,
+    dividendYield: 4.78,
+    dividendGrowth: 2.72,
+    expectedTotalReturn: 7.5,
+    frequency: "quarterly"
+  },
+  "211560.KS": {
+    ticker: "211560.KS",
+    name: "TIGER \uBC30\uB2F9\uC131\uC7A5",
+    initialPrice: 35300,
+    dividendYield: 2.57,
+    dividendGrowth: 5.43,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  "088980.KS": {
+    ticker: "088980.KS",
+    name: "\uB9E5\uCFFC\uB9AC\uC778\uD504\uB77C",
+    initialPrice: 10020,
+    dividendYield: 7.29,
+    dividendGrowth: -0.29,
+    expectedTotalReturn: 7,
+    frequency: "semiannual"
+  },
+  "033780.KS": {
+    ticker: "033780.KS",
+    name: "KT&G",
+    initialPrice: 181300,
+    dividendYield: 3.31,
+    dividendGrowth: 3.69,
+    expectedTotalReturn: 7,
+    frequency: "semiannual"
+  },
+  "316140.KS": {
+    ticker: "316140.KS",
+    name: "\uC6B0\uB9AC\uAE08\uC735\uC9C0\uC8FC",
+    initialPrice: 33600,
+    dividendYield: 4.11,
+    dividendGrowth: 2.89,
+    expectedTotalReturn: 7,
+    frequency: "quarterly"
+  },
+  "105560.KS": {
+    ticker: "105560.KS",
+    name: "KB\uAE08\uC735",
+    initialPrice: 170500,
+    dividendYield: 3.37,
+    dividendGrowth: 3.63,
+    expectedTotalReturn: 7,
+    frequency: "quarterly"
+  }
+};
+
 // shared/constants/presets/index.ts
 var CURATED_DIVIDEND_UNIVERSE = {
   ...CORE_INDEX_ETFS,
@@ -9001,7 +9113,10 @@ var CURATED_DIVIDEND_UNIVERSE = {
   ...MEGA_CAP_GROWTH_STOCKS,
   ...FINANCIAL_DIVIDEND_STOCKS,
   ...DIVIDEND_ARISTOCRAT_STOCKS,
-  ...GURU_HOLDING_STOCKS
+  ...GURU_HOLDING_STOCKS,
+  /* 한국 상장 12종(2026-08-06). 티커 키가 '458730.KS' 처럼 점을 포함하는 유일한 묶음이다 —
+     야후 심볼을 그대로 쓴다(접미사를 큐레이션에 못 박는 이유는 그 파일 머리말). */
+  ...KOREAN_DIVIDEND_TICKERS
 };
 var withCoherentDividendGrowth = (universe) => {
   const coherent = {};
@@ -10858,7 +10973,18 @@ var PICK = {
    */
   railHeight: "6px",
   /** 캡 안 글리프 배지 한 변. 폭 <180px 이라 그 자체로는 면으로 세어지지 않는다. */
-  glyphSize: "40px"
+  glyphSize: "40px",
+  /**
+   * 큰 글리프 한 변 — **글리프가 아이콘이 아니라 사진일 때**만 쓴다(`cap.glyphSize: 'lg'`).
+   *
+   * 왜 따로 두는가: 40px 은 선 아이콘·이니셜의 크기다. 같은 자리에 인물 사진을 넣으면 얼굴이
+   * 무엇인지 알아볼 수 없어 사진을 쓴 의미가 사라진다(2026-08-05 대가 화면 실측 → 사용자 지시로 확대).
+   *
+   * 🔴 **180px 미만을 유지하라.** 그 이상은 `tintscan` 이 이 배지를 색면으로 세기 시작해 라우트
+   * 예산(화면당 2면)을 먹는다 — 배지는 `color-mix` 배경을 깔고 있어 판정 대상이 된다.
+   * ⚠ 카드 최소 열 폭(260px)의 절반을 넘기지 마라. 넘기면 좁은 폭에서 사진이 카드를 지배한다.
+   */
+  glyphSizeLg: "128px"
 };
 var DATA_SURFACE = {
   pad: "clamp(16px, 1.8vw, 20px)",
@@ -12464,8 +12590,30 @@ var headerControlsGrid = `
   column-gap: ${space[3]};
   row-gap: ${space[2]};
 
+  /*
+   * \u{1F534} **\uBAA8\uBC14\uC77C(\u2264640)\uC5D0\uC11C\uB294 \uB85C\uACE0\uAC00 \uB450 \uC904\uC744 \uAC00\uB85C\uC9C0\uB974\uC9C0 \uC54A\uB294\uB2E4**(2026-08-06 \uC0AC\uC6A9\uC790 \uC9C0\uC2DC: \uC378\uB124\uC77C\uC744
+   * \uC6CC\uB4DC\uB9C8\uD06C \uBC14\uB85C \uC67C\uCABD\uC5D0 \uBD99\uC5EC \uBA54\uB274 \uC601\uC5ED\uC744 \uB113\uAC8C \uC368\uB77C).
+   *
+   * \uC65C \uD3ED\uC5D0 \uB530\uB77C \uAC08\uB9AC\uB098: \uB85C\uACE0 \uD2B8\uB799\uC740 auto \uB77C \uADF8\uB9BC \uD3ED\uB9CC\uD07C **\uCCAB \uC5F4\uC744 \uD1B5\uC9F8\uB85C \uBA39\uB294\uB2E4**. \uB113\uC740 \uD654\uBA74\uC5D0\uC11C\uB294
+   * \uB0A8\uB294 \uD3ED\uC774 \uB9CE\uC544 \uADF8 \uB300\uAC00\uAC00 \uBCF4\uC774\uC9C0 \uC54A\uC9C0\uB9CC, 390px \uC5D0\uC11C\uB294 \uBA54\uB274 \uC904\uC774 \uC4F8 \uC218 \uC788\uB294 \uD3ED\uC774 \uADF8\uB9CC\uD07C \uC904\uC5B4
+   * \uBA54\uB274\uAC00 \uAC00\uB85C \uC2A4\uD06C\uB864 \uB4A4\uB85C \uBC00\uB9B0\uB2E4 \u2014 **\uC2A4\uD06C\uB864\uB85C \uC228\uB294 \uBA54\uB274\uB294 \uC0AC\uC6A9\uC790\uC5D0\uAC8C \uC544\uBB34 \uC2E0\uD638\uB97C \uC8FC\uC9C0 \uC54A\uB294\uB2E4**
+   * (\uC704 \uD55C \uC904 \uBAA8\uB4DC\uB97C \uBC84\uB9B0 \uAC83\uACFC \uC815\uD655\uD788 \uAC19\uC740 \uC774\uC720\uB2E4).
+   * \uADF8\uB798\uC11C \uC774 \uAD6C\uAC04\uC5D0\uC11C\uB294 \uB85C\uACE0\uB97C \uBE0C\uB79C\uB4DC \uC904\uC5D0\uB9CC \uB450\uACE0, \uBA54\uB274 \uC904\uC5D0 **\uC804\uD3ED**\uC744 \uC900\uB2E4.
+   *
+   * \u{1F534} \uACBD\uACC4\uAC00 headerStack(1023)\uC774 \uC544\uB2C8\uB77C **mobileWide(640)** \uC778 \uAC83\uC740 \uC758\uB3C4\uB2E4. 640~1023 \uAD6C\uAC04\uC740 \uAC00\uB85C\uAC00
+   * \uB109\uB109\uD574 \uBA54\uB274\uAC00 \uC774\uBBF8 \uB2E4 \uBCF4\uC774\uBBC0\uB85C, \uAC70\uAE30\uC11C \uBC30\uCE58\uB97C \uBC14\uAFB8\uBA74 \uC5BB\uB294 \uAC83 \uC5C6\uC774 \uB85C\uACE0\uB9CC \uC791\uC544\uC9C4\uB2E4.
+   * \u26A0 \uC774 \uBC30\uCE58\uC5D0\uC11C\uB294 \uB85C\uACE0\uAC00 **\uBE0C\uB79C\uB4DC \uC904 \uB192\uC774\uB97C \uADF8\uB300\uB85C \uBC00\uC5B4 \uC62C\uB9B0\uB2E4**(\uAC00\uB85C\uC9C0\uB97C \uB54C\uB294 \uB0A8\uB294 \uC138\uB85C\uB97C \uC4F8
+   *   \uBFD0\uC774\uC5C8\uB2E4). \uADF8\uB798\uC11C BrandHippo \uAC00 \uAC19\uC740 \uAD6C\uAC04\uC5D0\uC11C \uD06C\uAE30\uB97C \uD55C \uB2E8 \uB354 \uC904\uC778\uB2E4 \u2014 \uB458\uC740 \uD55C \uC30D\uC774\uB2E4.
+   *   \uC2E4\uCE21: \uB85C\uACE0 64px \uADF8\uB300\uB85C \uB450\uBA74 390px \uD5E4\uB354\uAC00 120 \u2192 143px \uC774 \uB410\uB2E4(\uACC4\uC57D \uC0C1\uD55C 120px \uCD08\uACFC).
+   */
   ${media.down("headerStack")} {
     column-gap: ${space[2]};
+  }
+
+  ${media.down("mobileWide")} {
+    grid-template-areas:
+      'logo brand actions'
+      'nav nav nav';
   }
 `;
 

@@ -42,7 +42,15 @@ export const LiveRegion = styled.p`
  * 2열 작업대. 왼쪽이 **일하는 곳**(보유 표 · 목표), 오른쪽이 **답**(지금 받는 배당)이다.
  *
  * 레일 폭이 `clamp` 인 이유: 고정폭이면 1024px 에서 표가 남는 폭 600px 로 눌리고 1440px 에서는
- * 레일만 허전해진다. 26vw 는 1280 에서 333px · 1440 에서 374px 로 도넛(148) + 범례가 겨우 서는 대역이다.
+ * 레일만 허전해진다.
+ *
+ * 🔴 2026-08-05 사용자 지시로 **한 단 넓혔다**(26vw/300~380 → 32vw/340~460). 이 열은 이 화면의
+ * **답**이 사는 자리다 — 좁을수록 큰 숫자가 줄바꿈되고, 지표 목록의 라벨과 값이 서로 밀어낸다.
+ * 실측 기준: 1280 에서 333 → 410px · 1440 에서 374 → 460px.
+ * ⚠ 왼쪽 표가 그만큼 좁아진다. 1280 기준 본문 열은 803 → 726px 이고, 보유 표는 4열이라 이 폭에서
+ *   아직 여유가 있다(종목명이 두 줄로 접히기 시작하는 지점은 640px 대다).
+ * ⚠ 하한(340px)을 더 내리지 마라 — 이 카드 안 마스코트가 서는 자리(HeroSlot 의 마스코트 레인)를
+ *   빼고 나면 큰 숫자가 설 폭이 사라진다.
  */
 export const Workbench = styled.div`
   display: grid;
@@ -51,7 +59,7 @@ export const Workbench = styled.div`
   align-items: start;
 
   ${WORKBENCH_UP} {
-    grid-template-columns: minmax(0, 1fr) clamp(300px, 26vw, 380px);
+    grid-template-columns: minmax(0, 1fr) clamp(340px, 32vw, 460px);
   }
 `;
 

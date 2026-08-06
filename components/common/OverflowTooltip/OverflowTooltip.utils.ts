@@ -6,13 +6,19 @@
  */
 
 /**
- * 렌더된 요소가 잘렸는가. `scrollWidth`(내용 폭) > `clientWidth`(상자 폭).
+ * 렌더된 요소가 잘렸는가.
+ *
+ * **두 방향을 다 본다** — 앱에 줄임이 두 종류 있기 때문이다:
+ *  ① 한 줄 말줄임(`text-overflow: ellipsis`) → 가로로 넘친다(`scrollWidth > clientWidth`).
+ *  ② 여러 줄 자름(`-webkit-line-clamp`)      → 세로로 넘친다(`scrollHeight > clientHeight`).
+ * 가로만 재면 ②가 걸리는 카드·표(종목 이름·게시글 요약)가 조용히 툴팁 없이 잘린다.
  *
  * 🔴 **1px 여유를 둔다.** 두 값은 정수로 반올림된 값이라 서브픽셀 레이아웃에서
  * (예: 133.4px 상자 안 133.2px 글자) 잘리지 않았는데도 1 차이가 난다. 그대로 비교하면
  * 멀쩡한 이름에까지 툴팁이 붙어 **같은 글자를 두 번 보여주는 소음**이 된다.
  */
-export const isTextClipped = (element: HTMLElement): boolean => element.scrollWidth - element.clientWidth > 1;
+export const isTextClipped = (element: HTMLElement): boolean =>
+  element.scrollWidth - element.clientWidth > 1 || element.scrollHeight - element.clientHeight > 1;
 
 type WidthListener = () => void;
 

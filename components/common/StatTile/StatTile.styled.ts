@@ -27,11 +27,19 @@ const TONE: Record<StatTone, string> = {
   negative: color.dataNegative
 };
 
+/**
+ * **값이 크게 서는 단계인가**(hero · lead).
+ *
+ * 🔴 시그니처(리본 · 액센트 테두리 · hero 서체)와 **크기**를 가르는 축이다. `lead` 는 크기만
+ * hero 를 따라가고 시그니처는 받지 않는다 — 근거는 `StatTile.types.ts` 의 emphasis 주석.
+ */
+const isBig = (emphasis: StatEmphasis): boolean => emphasis !== 'default';
+
 export const TileRoot = styled.div<{ emphasis: StatEmphasis; status?: StatStatus }>`
   position: relative;
   min-width: 0;
   display: grid;
-  gap: ${({ emphasis }) => (emphasis === 'hero' ? space[1] : '2px')};
+  gap: ${({ emphasis }) => (isBig(emphasis) ? space[1] : '2px')};
   align-content: start;
   border: 1px solid ${({ emphasis }) => (emphasis === 'hero' ? color.accentBorder : color.border)};
   /* 카드 안에 앉는 면(타일) = 동심 라운드의 '안쪽' 두 조 중 큰 쪽. 컨트롤(8px)과 달리 12px 이다.
@@ -40,7 +48,12 @@ export const TileRoot = styled.div<{ emphasis: StatEmphasis; status?: StatStatus
   /* 🔴 hero 도 중립 면이다 — 위 파일 주석의 "hero 의 면은 중립" 결정. 두 강조가 같은 면을 쓰고,
      위계는 값 크기(28~44px vs 18px) · 액센트 테두리 · 리본 · 패딩이 만든다. */
   background: ${color.surfaceMuted};
-  padding: ${({ emphasis }) => (emphasis === 'hero' ? `${space[4]} ${space[4]} ${space[4]} ${space[5]}` : space[3])};
+  padding: ${({ emphasis }) =>
+    emphasis === 'hero'
+      ? `${space[4]} ${space[4]} ${space[4]} ${space[5]}`
+      : emphasis === 'lead'
+        ? space[4]
+        : space[3]};
   /*
    * 테두리를 전환 목록에 넣는다 — 상태('status')가 붙는 순간이 **이 타일의 유일한 연출**이라
    * 그 250ms 가 통째로 스냅이면 아무도 못 본다. 250ms 는 UI 전환 상한(300ms) 아래다.
@@ -161,14 +174,14 @@ export const TileLabel = styled.span<{ emphasis: StatEmphasis }>`
   display: block;
   flex: 1 1 auto;
   min-width: 0;
-  font-size: ${({ emphasis }) => (emphasis === 'hero' ? font.size.sm : font.size.xs)};
-  font-weight: ${({ emphasis }) => (emphasis === 'hero' ? font.weight.semibold : font.weight.medium)};
+  font-size: ${({ emphasis }) => (isBig(emphasis) ? font.size.sm : font.size.xs)};
+  font-weight: ${({ emphasis }) => (isBig(emphasis) ? font.weight.semibold : font.weight.medium)};
   /*
    * hero 라벨이 accent-text 가 아니라 text 인 이유: 면이 중립(surface-muted)으로 내려오면서
    * accent-text × surface-muted 는 contrast.test 가 재지 않는 조합이 된다. 검증된 쌍
    * (text × surface-muted)으로 되돌리고, 강조는 굵기(semibold)와 크기(sm)가 맡는다.
    */
-  color: ${({ emphasis }) => (emphasis === 'hero' ? color.text : color.textMuted)};
+  color: ${({ emphasis }) => (isBig(emphasis) ? color.text : color.textMuted)};
   line-height: ${font.leading.snug};
   white-space: nowrap;
   overflow: hidden;
@@ -197,13 +210,22 @@ export const TileValue = styled.p<{ emphasis: StatEmphasis; tone: StatTone }>`
    * 좌측정렬이면 자릿수가 다른 값끼리 **마지막 자리가 어긋난다** — 금융 화면에서 안 맞는 숫자는
    * 그 자체로 신뢰를 깎는다. 우측 끝을 맞춰야 등폭 숫자가 비로소 하나의 열로 읽힌다.
    *
-   * hero 만 예외로 좌측이다: hero 는 격자 한 줄을 통째로 쓰는 **단독 값**이라 맞출 이웃이 없고,
-   * 우측으로 보내면 좌측 오로라 리본·라벨에서 카드 폭만큼 떨어져 한 덩어리로 안 읽힌다.
+   * hero·lead 는 예외로 좌측이다: 값이 라벨 바로 아래 큰 글자로 서는 형태라 맞출 이웃이 없고,
+   * 우측으로 보내면 라벨(과 hero 의 오로라 리본)에서 카드 폭만큼 떨어져 한 덩어리로 안 읽힌다.
    */
-  text-align: ${({ emphasis }) => (emphasis === 'hero' ? 'start' : 'end')};
+  text-align: ${({ emphasis }) => (isBig(emphasis) ? 'start' : 'end')};
 
-  /* hero는 화면 폭에 따라 자란다. 좁은 화면에서 숫자가 잘리지 않도록 clamp(상한 44px). */
-  font-size: ${({ emphasis }) => (emphasis === 'hero' ? `clamp(28px, 4vw, ${font.size['6xl']})` : font.size.lg)};
+  /*
+   * hero·lead 는 화면 폭에 따라 자란다. 좁은 화면에서 숫자가 잘리지 않도록 clamp.
+   * ⚠ lead 의 상한이 한 단 낮다 — 같은 줄에 hero 가 함께 서면 둘의 크기가 같아져 주역이 사라진다.
+   *   국민연금 요약이 정확히 그 배치다(신고 총액 hero + 나머지 셋 lead).
+   */
+  font-size: ${({ emphasis }) =>
+    emphasis === 'hero'
+      ? `clamp(28px, 4vw, ${font.size['6xl']})`
+      : emphasis === 'lead'
+        ? `clamp(22px, 2.6vw, ${font.size['4xl']})`
+        : font.size.lg};
 `;
 
 /**
@@ -257,7 +279,7 @@ export const TileHint = styled.p<{ emphasis: StatEmphasis }>`
    */
   color: ${color.textSecondary};
   /* 값과 같은 끝선에 선다 — 값만 우측이고 부연이 좌측이면 타일 안에 축이 둘 생긴다. */
-  text-align: ${({ emphasis }) => (emphasis === 'hero' ? 'start' : 'end')};
+  text-align: ${({ emphasis }) => (isBig(emphasis) ? 'start' : 'end')};
   line-height: ${font.leading.snug};
   /*
    * 힌트에도 숫자가 산다("투자 3년차", ETA 기간) — 그래서 값(TileValue)과 같은 규칙을 건다.

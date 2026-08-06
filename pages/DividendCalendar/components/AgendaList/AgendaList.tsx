@@ -1,6 +1,6 @@
 import { DIVIDEND_CALENDAR_COPY } from '../../copy';
 import { agendaDayElementId, tickerSeriesVar } from '../../utils';
-import { OverflowTooltip } from '../OverflowTooltip';
+import { OverflowTooltip } from '@/components/common';
 import { ScheduleSourceBadge } from '../ScheduleSourceBadge';
 import type { AgendaListProps } from './AgendaList.types';
 import {

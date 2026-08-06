@@ -3,6 +3,9 @@ import type { ReactNode } from 'react';
 /** `gradient` = 페이지 첫인상용 시그니처 배경. `plain` = 그라디언트가 이미 다른 곳에 있을 때. */
 export type PageHeroTone = 'gradient' | 'plain';
 
+/** 마스코트 크기 3단. 폭만 정하고 높이는 **원본 비율**이 정한다(PageHero.styled 의 HeroMascot). */
+export type PageHeroMascotSize = 'sm' | 'md' | 'lg';
+
 export type PageHeroProps = {
   /** 장식 글리프(lucide 등). 배지 안에서 `aria-hidden` 처리되므로 의미를 싣지 마라. */
   icon?: ReactNode;
@@ -34,4 +37,24 @@ export type PageHeroProps = {
    */
   titleAction?: ReactNode;
   tone?: PageHeroTone;
+  /**
+   * 히어로 오른쪽에 서는 **마스코트 그림 파일 경로**(2026-08-05 사용자 지시로 신설).
+   *
+   * 왜 ReactNode 가 아니라 경로인가: 이 슬롯이 받는 것은 **언제나 장식용 하마 한 장**이다.
+   * 노드를 받으면 호출부마다 크기·alt·loading 을 각자 정하게 되고, 그 순간 다섯 페이지의 마스코트가
+   * 다섯 가지 크기로 갈린다(이 레포가 히어로 3벌·하마 자산 2벌로 이미 겪은 실패다).
+   *
+   * 🔴 **장식이다.** 부품이 `alt=""` 로 그린다 — 그림이 없어도 화면의 정보는 줄지 않는다.
+   *   설명을 붙여야 할 것 같으면 그건 마스코트가 아니라 콘텐츠이고, 히어로 밖에 두어야 한다.
+   * ⚠ 좁은 폭(mobileWide↓)에서는 **그리지 않는다** — 첫 화면 세로가 이 앱에서 가장 비싼 자원이다.
+   */
+  mascot?: string;
+  /**
+   * 마스코트 크기. 기본 `md`.
+   *
+   * 페이지마다 히어로가 가진 **빈 오른쪽 폭**이 다르기 때문에 한 값으로는 안 된다(2026-08-05 실측:
+   * 가계부는 리드가 짧아 크게 세워야 허전하지 않고, 종목 비교는 선택 덱이 바로 아래 붙어 같은
+   * 크기가 과했다). 🔴 자유 수치가 아니라 **3단**인 이유는 그 순간 페이지마다 제각각이 되기 때문이다.
+   */
+  mascotSize?: PageHeroMascotSize;
 };

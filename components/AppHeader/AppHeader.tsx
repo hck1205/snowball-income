@@ -1,12 +1,22 @@
 import { memo, useEffect, useRef } from 'react';
+import { useInRouterContext } from 'react-router-dom';
 import { PrimaryNav, PrimaryNavLinks } from '@/components/PrimaryNav';
 import HeaderOverflowMenu from '@/components/HeaderOverflowMenu';
 import ColorSchemeToggle from '@/components/ColorSchemeToggle';
 import { AuthControl } from '@/components/community/AuthControl';
 import { isCommunityEnabled } from '@/shared/lib/supabase';
 import { publishHeaderHeight } from './AppHeader.utils';
-import { HippoCoinScene } from '@/components/common';
-import { Actions, HeaderInner, HeaderRoot, LeadingSlot, LogoSlot, NavSlot, UtilityGroup } from './AppHeader.styled';
+import {
+  Actions,
+  BrandHippo,
+  HeaderInner,
+  HeaderRoot,
+  LeadingSlot,
+  LogoSlot,
+  LogoSlotStatic,
+  NavSlot,
+  UtilityGroup
+} from './AppHeader.styled';
 import type { AppHeaderProps } from './AppHeader.types';
 
 /** 앱 표준 좌우 여백 — `FeatureLayout`(시뮬레이터 본문)·티커 셸 본문과 같은 값. */
@@ -54,6 +64,20 @@ function AppHeaderComponent({
   contentGutter = DEFAULT_CONTENT_GUTTER
 }: AppHeaderProps) {
   const rootRef = useRef<HTMLElement>(null);
+  const inRouter = useInRouterContext();
+
+  /* 로고 그림 한 벌 — 링크판·정적판이 **같은 그림**을 쓰도록 여기서 한 번만 만든다. */
+  const logo = (
+    <BrandHippo
+      src="/images/hippo/hippo_hugging_coin.png"
+      alt=""
+      width={88}
+      height={88}
+      loading="eager"
+      decoding="async"
+      draggable={false}
+    />
+  );
 
   /* 헤더 높이를 CSS 변수로 발행한다(아래에 붙는 sticky 요소들이 쓴다). 폰트 로드·상태 배지 등장으로
      높이가 바뀌므로 마운트 1회가 아니라 ResizeObserver 로 계속 따라간다. */
@@ -80,16 +104,26 @@ function AppHeaderComponent({
         {/*
           🔴 앱에서 로고가 서는 **유일한 자리**다(2026-08-03 사용자 지시: "Hungry Hippo 왼쪽에만").
           카드·빈 상태 등 19곳에 흩어져 있던 심볼을 전부 걷고 여기 하나로 모았다.
-          하마+금화 연출을 쓰는 이유: 금화가 없으면 그냥 동물 그림이고, 있으면 "배당을 먹고 자란다"가
+          하마+금화를 쓰는 이유: 금화가 없으면 그냥 동물 그림이고, 있으면 "배당을 먹고 자란다"가
           한 장으로 읽힌다.
+          🔴 2026-08-05 사용자 지시로 **한 장짜리 자산(`hippo_hugging_coin.png`)으로 바꾸고 44 → 88px 로
+            키웠다.** 겹침 연출(`HippoCoinScene`)이 하던 일을 그림 자체가 하고 있고, 덤으로 824KB →
+            159KB 가 됐다. 크기는 headerprobe 실측으로 정했다(헤더 105px / 상한 120px) — 근거 수치와
+            "더 키우기 전에 재라"는 조건은 `AppHeader.styled.ts` 의 `BrandHippo` 주석.
           ⚠ 격자에서 이 슬롯은 브랜드 줄과 메뉴 줄을 **가로지른다**(grid-area: logo). 그래서
             브랜드 슬롯 안이 아니라 격자의 직계 자식이어야 한다 — PrimaryNav 안으로 되돌리지 마라.
           ⚠ 장식이다 — 이름은 옆 워드마크가 진다. label 을 주면 접근명이 두 번 읽힌다.
           ⚠ 첫 화면 상단이라 eager 다. 늦게 뜨면 브랜드가 깜빡인다.
         */}
-        <LogoSlot>
-          <HippoCoinScene size={44} loading="eager" />
-        </LogoSlot>
+        {/* 🔴 링크지만 접근성 트리에서는 감춘다 — 옆 워드마크가 이미 홈 링크다(LogoSlot 주석).
+            ⚠ 라우터가 없는 렌더에서는 링크가 죽으므로 정적 슬롯으로 떨어진다(PrimaryNav 와 같은 방어). */}
+        {inRouter ? (
+          <LogoSlot to="/" aria-hidden tabIndex={-1}>
+            {logo}
+          </LogoSlot>
+        ) : (
+          <LogoSlotStatic aria-hidden>{logo}</LogoSlotStatic>
+        )}
 
         <LeadingSlot>
           <PrimaryNav brandAs={brandAs} withLinks={false} />

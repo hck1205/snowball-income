@@ -7,6 +7,7 @@ import { ICON } from '@/shared/styles';
 import { DividendListFilters, DividendListTable } from '../components';
 import { DIVIDEND_LIST_COPY } from '../copy';
 import {
+  DIVIDEND_LIST_MASCOT,
   DEFAULT_DIVIDEND_LIST_SORT,
   NO_DIVIDEND_LIST_FILTER,
   buildSectorFacets,
@@ -42,7 +43,6 @@ import {
   SourceRole,
   TableMeta
 } from './DividendListPage.styled';
-import type { MascotSide } from './DividendListPage.styled';
 
 const copy = DIVIDEND_LIST_COPY.page;
 
@@ -76,14 +76,6 @@ const LIST_ICON: Record<DividendListId, typeof Crown> = {
  * 🔴 이 값 하나가 **HeroBlock 의 패딩과 HeroMascot 의 정렬을 함께** 정한다 — 둘을 따로 적으면
  *    한쪽만 고쳤을 때 그림이 글 위로 겹친다.
  */
-const LIST_MASCOT: Record<
-  DividendListId,
-  { src: string; width: number; height: number; side: MascotSide }
-> = {
-  kings: { src: '/images/hippo_dividend_king.png', width: 440, height: 431, side: 'right' },
-  aristocrats: { src: '/images/hippo_dividend_noble.png', width: 440, height: 432, side: 'left' },
-  champions: { src: '/images/hippo_dividend_champ.png', width: 440, height: 414, side: 'right' }
-};
 
 /**
  * 목록 화면의 뷰. 정렬·필터라는 **화면 안 상태**만 소유하고, 데이터는 컨테이너가 준다.
@@ -119,11 +111,11 @@ export default function DividendListView({ viewModel }: DividendListViewProps) {
 
   const onSortChange = (key: DividendListSortKey) => setSort((prev) => nextDividendListSort(prev, key));
   const HeroIcon = LIST_ICON[list.id];
-  const mascot = LIST_MASCOT[list.id];
+  const mascot = DIVIDEND_LIST_MASCOT[list.id];
 
   return (
     <>
-      <HeroBlock $side={mascot.side}>
+      <HeroBlock>
         <PageHero
           icon={<HeroIcon size={ICON.lg} strokeWidth={1.8} aria-hidden focusable={false} />}
           title={listCopy.title}
@@ -135,7 +127,6 @@ export default function DividendListView({ viewModel }: DividendListViewProps) {
         />
         {/* 목록마다 다른 마스코트. 장식이라 alt 는 비운다 — 이름은 옆의 h1 이 이미 말한다. */}
         <HeroMascot
-          $side={mascot.side}
           src={mascot.src}
           alt=""
           width={mascot.width}

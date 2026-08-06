@@ -79,6 +79,17 @@ export const Table = styled.table`
 
 export const TH = styled.th`
   text-align: right;
+
+  /*
+   * 🔴 **첫 열만 왼쪽이다**(2026-08-05 사용자 지적: "왜 리스트가 오른쪽으로 정렬되어 있는지").
+   * 이 표들의 첫 열은 언제나 이름(종목·의원·발행사)이고 나머지는 숫자다. 전부 오른쪽으로 밀면
+   * 숫자 기둥은 잘 맞는 대신 **이름이 오른쪽 끝에 매달려** 목록 전체가 오른쪽으로 쏠려 보인다.
+   * 이름은 왼쪽에서 시작해야 눈이 세로로 훑을 수 있다.
+   * ⚠ 좁은 폭(스택 레이아웃)에는 걸지 않는다 — 거기서는 각 셀이 "라벨 | 값" 2단이라 이미 맞다.
+   */
+  &:first-of-type {
+    text-align: left;
+  }
   border-bottom: 1px solid ${color.borderStrong};
   padding: ${space[2]} ${space[2]} ${space[2]};
   color: ${color.textMuted};
@@ -120,6 +131,11 @@ const stackedCell = `
 
 export const TD = styled.td`
   text-align: right;
+
+  /* 🔴 첫 열(이름)만 왼쪽 — 근거는 위 TH 주석. 머리와 값이 같은 규칙을 써야 열이 어긋나지 않는다. */
+  &:first-of-type {
+    text-align: left;
+  }
   border-bottom: 1px solid ${color.border};
   padding: ${space[2]};
   color: ${color.text};
@@ -139,11 +155,44 @@ export const TD = styled.td`
   font-family: ${font.dataNumeric};
   ${font.numeric};
 
+  /*
+   * **합쳐진 칸**(column.mergeKey 로 rowSpan 이 붙은 날짜 열 등).
+   *
+   * 🔴 세로 가운데에 세운다 — 여러 줄을 덮는 칸이 위에 붙어 있으면 그 칸이 첫 줄에만 해당하는
+   *   값으로 읽힌다. 가운데에 서야 "이 덩어리 전체의 값"이 된다(2026-08-05 사용자 지시).
+   * ⚠ 가로 정렬은 그대로 첫 열 규칙을 따른다 — 병합됐다고 정렬까지 바꾸면 열이 어긋나 보인다.
+   */
+  &[data-merged='true'] {
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+
+  /*
+   * 🔴 **병합에 덮인 줄의 되풀이 칸.** 넓은 폭에서는 위 칸이 rowSpan 으로 덮고 있으므로 그리지
+   * 않는다(display:none 이라 표의 칸 수 계산에서도 빠진다 — 여기서 visibility 를 쓰면 열이 하나
+   * 더 있는 표가 되어 전부 어긋난다).
+   * 좁은 폭에서 표가 **카드로 접히면** 이야기가 달라진다: 카드 한 장이 한 행이라 rowSpan 이
+   * 시각적으로 아무 일도 하지 않고, 그대로 두면 둘째 줄부터 **날짜가 사라진 카드**가 된다.
+   * 그래서 그 폭에서만 이 칸을 되살린다 — 병합은 화면을 정리하려고 넣은 것이지 정보를 지우려고
+   * 넣은 것이 아니다.
+   */
+  &[data-merge-repeat='true'] {
+    display: none;
+  }
+
   ${container.down('tablet')} {
     ${stackedCell};
+
+    &[data-merge-repeat='true'] {
+      ${stackedCell};
+    }
   }
 
   ${media.down('tablet')} {
     ${stackedCell};
+
+    &[data-merge-repeat='true'] {
+      ${stackedCell};
+    }
   }
 `;

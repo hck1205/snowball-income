@@ -20,7 +20,7 @@ import type { CommunityTopBarProps } from './CommunityTopBar.types';
  * 목록 화면(갤러리/게시판 인덱스)에서는 아무것도 렌더하지 않는다 — 자기 자신으로 돌아가는 링크는
  * 소음이다. 어느 섹션의 목록으로 돌아가는지는 현재 경로가 정한다.
  */
-export default function CommunityTopBar({ actions }: CommunityTopBarProps) {
+export default function CommunityTopBar({ actions, sticky = false }: CommunityTopBarProps) {
   // ⚠ 두 `useMatch` 를 `||` 로 한 식에 묶지 말 것 — 단축 평가로 뒤 훅이 호출되지 않으면 조건부 훅이 된다
   //   (CommunityHeader 가 같은 함정을 주석으로 남겨 뒀다).
   const isGalleryIndex = Boolean(useMatch({ path: '/community/portfolio', end: true }));
@@ -34,7 +34,7 @@ export default function CommunityTopBar({ actions }: CommunityTopBarProps) {
   const listPath = inBoard ? '/community/board' : '/community/portfolio';
 
   return (
-    <TopBarRow>
+    <TopBarRow $sticky={sticky}>
       {/* 테두리 있는 중립 버튼(secondary) — 텍스트 링크처럼 보이지 않게(사용자 요청 2026-07-28). */}
       <Button
         variant="secondary"

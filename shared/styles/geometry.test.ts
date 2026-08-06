@@ -80,6 +80,18 @@ describe('컬러 캡 — tintscan 의 면 하한(8px)을 넘지 않는다', () =
     expect(Number(PICK.glyphSize.replace('px', ''))).toBeLessThan(180);
   });
 
+  /**
+   * 사진 글리프용 큰 배지도 **같은 하한 아래**여야 한다. 이 값은 "사진이 잘 보이게" 키우다가
+   * 가장 쉽게 넘길 수 있는 숫자라, 카드 최소 열 폭(260px)의 절반이라는 상한도 함께 잠근다.
+   */
+  it('큰 글리프 배지(사진용)도 180px 아래이고 카드 최소 열 폭의 절반을 넘지 않는다', () => {
+    const large = Number(PICK.glyphSizeLg.replace('px', ''));
+
+    expect(large).toBeGreaterThan(Number(PICK.glyphSize.replace('px', '')));
+    expect(large).toBeLessThan(180);
+    expect(large).toBeLessThanOrEqual(260 / 2);
+  });
+
   it('캡은 3변으로 bleed 하고 위쪽 두 모서리만 부모 반경을 따른다', () => {
     const css = colorCap('30px', '16px');
 

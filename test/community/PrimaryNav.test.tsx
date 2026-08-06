@@ -58,6 +58,14 @@ const openPortfolioMenu = () => {
  * 캘린더 묶음을 편다(2026-08-04 신설). 배당 캘린더가 이 안으로 들어가서, 그 링크를 보려면
  * 먼저 열어야 한다 — 접힌 상태에서 `getByRole('link', {name: '배당 캘린더'})` 는 없다.
  */
+/**
+ * 커뮤니티 묶음을 편다(2026-08-05 신설). 갤러리·게시판이 이 안으로 들어가서, 두 링크를 보려면
+ * 먼저 열어야 한다 — 접힌 상태에서 getByRole('link', {name: '게시판'}) 은 없다.
+ */
+const openCommunityMenu = () => {
+  fireEvent.click(screen.getByRole('button', { name: /커뮤니티/ }));
+};
+
 const openCalendarMenu = () => {
   fireEvent.click(screen.getByRole('button', { name: /^캘린더/ }));
 };
@@ -119,6 +127,7 @@ describe('PrimaryNav', () => {
     renderAt('/simulator');
 
     expect(screen.getByRole('link', { name: '시뮬레이터' })).toHaveAttribute('aria-current', 'page');
+    openCommunityMenu();
     expect(screen.getByRole('link', { name: '게시판' })).not.toHaveAttribute('aria-current');
     // 갤러리는 묶음 안이라 트리거가 꺼져 있는 것으로 확인한다.
     expect(screen.getByRole('button', { name: /포트폴리오/ })).not.toHaveAttribute('aria-current');
@@ -140,7 +149,7 @@ describe('PrimaryNav', () => {
   it('갤러리(/community/portfolio)에선 묶음 안 갤러리 링크만 활성 (시뮬레이터·게시판은 비활성)', () => {
     communityEnabled = true;
     renderAt('/community/portfolio');
-    openPortfolioMenu();
+    openCommunityMenu();
 
     expect(screen.getByRole('link', { name: '포트폴리오 갤러리' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: '시뮬레이터' })).not.toHaveAttribute('aria-current');
@@ -151,11 +160,10 @@ describe('PrimaryNav', () => {
     communityEnabled = true;
     renderAt('/community/board/write');
 
+    openCommunityMenu();
     expect(screen.getByRole('link', { name: '게시판' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: '시뮬레이터' })).not.toHaveAttribute('aria-current');
-    // 형제 세그먼트라 갤러리(묶음 안)는 게시판 하위에서 활성이 되지 않는다 — 트리거부터 꺼져 있어야 한다.
-    expect(screen.getByRole('button', { name: /포트폴리오/ })).not.toHaveAttribute('aria-current');
-    openPortfolioMenu();
+    // 형제 세그먼트라 갤러리는 게시판 하위에서 활성이 되지 않는다.
     expect(screen.getByRole('link', { name: '포트폴리오 갤러리' })).not.toHaveAttribute('aria-current');
   });
 
@@ -167,8 +175,8 @@ describe('PrimaryNav', () => {
       renderAt(path);
 
       // 접힌 채로도 "이 묶음 안에 있다"가 읽혀야 한다 — 하위 경로에서도 마찬가지다.
-      expect(screen.getByRole('button', { name: /포트폴리오/ })).toHaveAttribute('aria-current', 'true');
-      openPortfolioMenu();
+      expect(screen.getByRole('button', { name: /커뮤니티/ })).toHaveAttribute('aria-current', 'true');
+      openCommunityMenu();
 
       expect(screen.getByRole('link', { name: '포트폴리오 갤러리' })).toHaveAttribute('aria-current', 'page');
       expect(screen.getByRole('link', { name: '게시판' })).not.toHaveAttribute('aria-current');
@@ -181,6 +189,7 @@ describe('PrimaryNav', () => {
     communityEnabled = true;
     renderAt('/community/board/42');
 
+    openCommunityMenu();
     const current = screen.getAllByRole('link').filter((link) => link.getAttribute('aria-current') === 'page');
     expect(current).toHaveLength(1);
     expect(current[0]).toHaveAccessibleName('게시판');
@@ -232,10 +241,14 @@ describe('PrimaryNav', () => {
     expect(screen.getByRole('link', { name: '배당 캘린더' })).not.toHaveAttribute('aria-current');
   });
 
-  /** 포트폴리오 묶음에 2026-08-04 에 합류한 두 화면 — 묶음 트리거가 그 사실을 말해야 한다. */
+  /**
+   * 포트폴리오 묶음에 뒤늦게 합류한 화면들 — 묶음 트리거가 그 사실을 말해야 한다.
+   * 🔴 미국/한국 두 의원 화면의 이름이 **서로 달라야** 한다. 같은 이름이면 사용자에게 한 화면이다.
+   */
   it.each([
     ['/portfolio/nps', '국민연금 (미국 주식)'],
-    ['/portfolio/congress', '국회의원 주식 거래']
+    ['/portfolio/congress', '미국 의원 주식 거래'],
+    ['/portfolio/korea-assembly', '한국 의원 주식 보유']
   ])('%s 에선 묶음 안 그 링크만 활성이다', (path, label) => {
     communityEnabled = true;
     renderAt(path);
@@ -304,7 +317,7 @@ describe('PrimaryNav', () => {
    * 포트폴리오 3종을 접어 7칸이 됐고, 2026-08-04 에 배당 목록 4종(허브 + 킹·귀족·챔피언)이 **한 칸**으로
    * 합류해 지금은 **8칸 = 상한**이다. 다음 기능은 반드시 묶음이어야 한다.
    */
-  it('윗줄은 8칸이고 시뮬레이터 → 포트폴리오(묶음) → 가계부 → 캘린더(묶음) → 배당 리스트(묶음) 순이다', () => {
+  it('윗줄은 8칸이고 시뮬레이터 → 포트폴리오(묶음) → 가계부 → 캘린더(묶음) → 배당 종목(묶음) → 커뮤니티(묶음) 순이다', () => {
     communityEnabled = true;
     ledgerEnabled = true;
     renderAt('/dividend/portfolio');
@@ -321,7 +334,8 @@ describe('PrimaryNav', () => {
 
     expect(slots).toEqual([
       '시뮬레이터',
-      /* 포트폴리오 묶음 — 나의 배당 포트폴리오·대가들의 포트폴리오·포트폴리오 갤러리 셋이 여기 접혀 있다. */
+      /* 포트폴리오 묶음 — 나의 배당 포트폴리오·대가들·국민연금·미국 의원·한국 의원 다섯이 접혀 있다.
+         🔴 갤러리는 2026-08-05 에 커뮤니티 묶음으로 옮겼다(공시 자료 넷과 성격이 달랐다). */
       '포트폴리오',
       '가계부',
       /* 캘린더 묶음(2026-08-04) — 배당 캘린더 + 미국 증시 캘린더 둘이 여기 접혔다.
@@ -329,8 +343,10 @@ describe('PrimaryNav', () => {
       '캘린더',
       /* 배당 리스트 묶음(2026-08-04) — 목록 비교(허브)·배당킹·배당귀족·배당챔피언 넷이 여기 접혀 있다.
          캘린더 바로 뒤: 둘 다 "배당 그 자체를 보는" 축이다. */
-      '배당 리스트',
-      '게시판',
+      '배당 종목',
+      /* 커뮤니티 묶음(2026-08-05) — 포트폴리오 갤러리·게시판 둘이 여기 접혀 있다. 게시판이 단독
+         칸이던 자리를 이 묶음이 그대로 받았다(칸 수는 8 그대로). */
+      '커뮤니티',
       'ETF 소개',
       /* 종목 비교(2026-08-02) — ETF 소개와 같은 "종목 정보" 축이라 그 바로 뒤다. */
       '종목 비교'

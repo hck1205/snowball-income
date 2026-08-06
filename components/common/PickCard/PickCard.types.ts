@@ -21,6 +21,26 @@ export type PickCapAxis = 'brand' | 'accent' | 'accentAlt' | 'identity' | 'scope
 /** 틴트 캡의 높이 3단 (`PICK.capHeight`). 레일 캡에서는 무시된다. */
 export type PickCapHeight = 'sm' | 'md' | 'lg';
 
+/**
+ * 레일 캡 글리프 배지의 크기. 기본 `md`(40px, `PICK.glyphSize`).
+ *
+ * `lg`(112px, `PICK.glyphSizeLg`)는 **글리프가 사진일 때만** 쓴다 — 40px 짜리 얼굴은 누구인지
+ * 알아볼 수 없어 사진을 쓴 의미가 사라진다. 아이콘·이니셜은 그대로 `md` 다(선 아이콘을 112px 로
+ * 키우면 카드 머리가 아이콘 전시장이 된다).
+ * ⚠ 틴트 캡에서는 무시된다 — 그쪽 글리프는 캡 높이가 이미 크기를 정한다.
+ */
+export type PickCapGlyphSize = 'md' | 'lg';
+
+/**
+ * 레일 캡 글리프 배지의 **윤곽**. 기본 `rounded`(둥근 사각).
+ *
+ * `circle` 은 **글리프가 사람 얼굴일 때** 쓴다(2026-08-06 사용자 지시, 대가 카드). 인물 사진은
+ * 원형이 관례이고 — 프로필이라는 뜻 자체가 모양에 실려 있다 — 사각 크롭은 배경과 어깨가 함께
+ * 잘려 들어와 얼굴이 덜 도드라진다. 아이콘·로고는 그대로 `rounded` 다(원 안의 선 아이콘은
+ * 여백이 어색하게 남는다).
+ */
+export type PickCapGlyphShape = 'rounded' | 'circle';
+
 export type PickCardCap = {
   kind: PickCapKind;
   axis: PickCapAxis;
@@ -43,6 +63,21 @@ export type PickCardCap = {
   label?: ReactNode;
   /** 틴트 캡 높이. 기본 `md`(64px). */
   height?: PickCapHeight;
+  /** 레일 캡 글리프 배지 크기. 기본 `md`(40px). 사진 글리프만 `lg`. */
+  glyphSize?: PickCapGlyphSize;
+  /** 레일 캡 글리프 배지 윤곽. 기본 `rounded`. 사람 얼굴만 `circle`. */
+  glyphShape?: PickCapGlyphShape;
+  /**
+   * 글리프를 제목 **위**가 아니라 **같은 줄 왼쪽**에 세운다(2026-08-06 사용자 지시, 대가 카드).
+   *
+   * 왜 옵션인가: 아이콘 글리프는 위에 쌓는 편이 맞다(작아서 제목 옆에 두면 장식으로도 안 읽힌다).
+   * 반면 **사진**은 이름과 한 줄에 있어야 "이 얼굴이 이 사람"이 한 번에 읽히고, 카드도 그만큼 짧아진다.
+   *
+   * 🔴 **DOM 계약**: `kind: 'rail'` 이고 `label` 이 없을 때만 켜진다. 레일 캡의 자식 순서
+   * (레일 → 글리프 → 머리 → 본문 → 액션)에 기대어 배치하기 때문에, 라벨이 끼면 한 칸씩 밀린다.
+   * 부품이 그 조건을 스스로 확인하고 아니면 조용히 기본(쌓기)으로 떨어진다.
+   */
+  glyphInline?: boolean;
 };
 
 export type PickCardProps = {

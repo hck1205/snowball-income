@@ -52,6 +52,7 @@ import {
   FigureRow,
   FigureTerm,
   FigureValue,
+  HeroMascot,
   HeroSlot,
   HoldingsCard,
   LiveRegion,
@@ -518,6 +519,19 @@ export default function PortfolioPageView({
                   value={viewModel.isLoading ? <SkeletonBar /> : viewModel.heroTile.value}
                   hint={viewModel.heroTile.hint}
                 />
+                {/* 선글라스 낀 하마 — "내 배당은 이렇게 들어오고 있다"(2026-08-05 사용자 지시).
+                    🔴 장식이라 alt 는 빈 문자열이다. 자리·겹침 규칙은 HeroMascot 주석에 있다.
+                    ⚠ 불러오는 중(골격)에는 그리지 않는다 — 값이 없는데 자랑하는 그림만 떠 있으면
+                      "무엇을" 자랑하는지 모르는 화면이 된다. */}
+                {viewModel.isLoading ? null : (
+                  <HeroMascot
+                    src="/images/hippo/hippo_sun_glasses.png"
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    draggable={false}
+                  />
+                )}
               </HeroSlot>
 
               {/* 🔴 종전 5칸 타일 격자를 정의 목록으로 내렸다 — 지표 다섯이 hero 와 같은 무게로

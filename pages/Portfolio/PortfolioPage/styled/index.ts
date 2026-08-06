@@ -72,6 +72,7 @@ export {
 
 export {
   HeroSlot,
+  HeroMascot,
   FigureList,
   FigureRow,
   FigureTerm,

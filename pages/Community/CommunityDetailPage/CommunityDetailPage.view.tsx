@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
 import { formatKRW } from '@/shared/utils/format';
-import { Banner, Button, ScrollTopButton, ShareDialog } from '@/components/common';
+import { Banner, Button, ShareDialog } from '@/components/common';
 import {
   Avatar,
   ConfirmDialog,
@@ -145,6 +145,9 @@ export default function CommunityDetailView({ viewModel }: CommunityDetailViewPr
        * 🔴 노출 조건(`detail.isOwner`)과 삭제 확인 다이얼로그는 그대로다 — 남의 글에서 보이면 결함이다.
        */}
       <CommunityTopBar
+        /* 🔴 상세에서만 따라온다 — 글이 길어 목록·수정·삭제가 화면 밖으로 나가던 자리다.
+           글쓰기 화면은 자기 커맨드 바가 이미 같은 기준선에 붙어 있어 켜지 않는다. */
+        sticky
         actions={
           detail.isOwner ? (
             <TopBarActions>
@@ -313,7 +316,6 @@ export default function CommunityDetailView({ viewModel }: CommunityDetailViewPr
        * `Article` 밖에 두는 이유: fixed 요소는 조상이 transform/containment 를 얻는 순간 그 안에
        * 갇힌다 — 본문 바깥, 페이지 스택 바로 아래가 가장 안전한 자리다.
        */}
-      <ScrollTopButton focusRef={titleRef} />
     </DetailShell>
   );
 }

@@ -40,6 +40,8 @@ import {
  * - `cap.glyph` 는 **필수**다 — 색이 단독 채널이 되는 순간 회색조·색각이상에서 카드가 구분되지 않는다.
  * - `cap.kind` 가 예산을 가른다: `rail`(6px, 면으로 안 세어짐) vs `tint`(48~88px, 세어짐).
  *   틴트 캡을 쓰는 격자는 `PickCardGrid cluster` 로 감싸라.
+ * - `cap.glyphSize: 'lg'` 는 **글리프가 사진일 때만**이다(대가 화면의 인물 사진). 아이콘·이니셜은
+ *   40px 그대로 둔다 — 근거는 `PickCard.types.ts` 의 `PickCapGlyphSize` 주석.
  *
  * ## 카드 전체를 누르게 만드는 방식
  * `to` / `href` / `onClick` 중 하나를 주면 제목을 감싼 컨트롤이 의사요소로 카드 전체를 덮는다.
@@ -124,6 +126,9 @@ export default function PickCard({
       $selected={selected}
       $disabled={disabled}
       $interactive={interactive}
+      /* 🔴 인라인 캡은 **레일 캡 + 라벨 없음**일 때만 켠다 — 배치가 자식 순서에 기대기 때문이다
+         (근거는 PickCard.styled 의 인라인 캡 블록 주석). 조건이 아니면 조용히 기본(쌓기)이다. */
+      $capInline={cap?.kind === 'rail' && Boolean(cap.glyphInline) && !cap.label}
     >
       {cap ? <PickCardCapView cap={cap} /> : null}
 
@@ -162,7 +167,12 @@ function PickCardCapView({ cap }: { cap: PickCardCap }) {
     return (
       <>
         <PickCardRail $rail={paint.rail} aria-hidden />
-        <PickCardGlyphBadge $ink={paint.ink} aria-hidden>
+        <PickCardGlyphBadge
+          $ink={paint.ink}
+          $size={cap.glyphSize ?? 'md'}
+          $shape={cap.glyphShape ?? 'rounded'}
+          aria-hidden
+        >
           {cap.glyph}
         </PickCardGlyphBadge>
         {cap.label ? <PickCardCapLabel>{cap.label}</PickCardCapLabel> : null}
