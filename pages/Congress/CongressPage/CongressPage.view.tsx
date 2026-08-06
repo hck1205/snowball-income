@@ -1,13 +1,14 @@
+import { useMemo, useState } from 'react';
 import { Landmark } from 'lucide-react';
 import {
   DataSection,
   DataTable,
   NoteList,
+  OverflowTooltip,
   PageHero,
   SectionLink,
   SectionMeta,
   SectionStack,
-  SectionSubtitle,
   StatTile,
   SummaryGrid
 } from '@/components/common';
@@ -19,9 +20,10 @@ import type {
   CongressTickerRow
 } from '@/shared/constants/congressTrades';
 import { CONGRESS_COPY } from '../copy';
-import { formatDistrict, formatTradeDate, formatUsdRange } from '../utils';
+import { TICKER_ROWS, formatDistrict, formatTradeDate, formatUsdRange, sortTickersBy } from '../utils';
+import type { CongressTickerAxis } from '../utils';
 import type { CongressViewProps } from './CongressPage.types';
-import { CheckedList, KoreaBody } from './styled';
+import { AxisButton, AxisLabel, AxisRow, KoreaBody, KoreaLink } from './styled';
 import {
   ActionBadge,
   District,
@@ -61,7 +63,16 @@ const TICKER_COLUMNS = [
     header: copy.tickers.columnTicker,
     render: (row: CongressTickerRow) => <TickerCell ticker={row.ticker} />
   },
-  { key: 'name', header: copy.tickers.columnName, render: (row: CongressTickerRow) => <Wrapped>{row.name}</Wrapped> },
+  {
+    key: 'name',
+    header: copy.tickers.columnName,
+    /* 발행사 이름은 길다("Meta Platforms, Inc. - Class A Common Stock") — 잘렸을 때만 전체를 띄운다. */
+    render: (row: CongressTickerRow) => (
+      <OverflowTooltip text={row.name}>
+        <Wrapped />
+      </OverflowTooltip>
+    )
+  },
   { key: 'buys', header: copy.tickers.columnBuys, render: (row: CongressTickerRow) => <Num>{countLabel(row.buys)}</Num> },
   { key: 'sells', header: copy.tickers.columnSells, render: (row: CongressTickerRow) => <Num>{countLabel(row.sells)}</Num> },
   {
@@ -108,7 +119,19 @@ const MEMBER_COLUMNS = [
 ];
 
 const RECENT_COLUMNS = [
-  { key: 'date', header: copy.recent.columnDate, render: (row: CongressRecentTrade) => formatTradeDate(row.date) },
+  {
+    key: 'date',
+    header: copy.recent.columnDate,
+    render: (row: CongressRecentTrade) => formatTradeDate(row.date),
+    /*
+     * 🔴 **같은 날짜는 한 칸으로 합친다**(2026-08-06 사용자 지시 — 증시 캘린더와 같은 처방).
+     * 한 의원이 하루에 여러 종목을 신고하는 일이 흔해서(실측: 최근 120건 중 7/31 다섯 줄·7/30 여섯 줄)
+     * 합치기 전에는 같은 날짜가 대여섯 줄씩 반복돼 "며칠에 무슨 일이 있었나"를 눈으로 셀 수 없었다.
+     * ⚠ 이 병합은 **행이 날짜순일 때만** 옳다. 스냅샷의 recent 는 거래일 내림차순으로 생성된다
+     *   (실측 확인) — 정렬을 흐트러뜨리면 같은 날짜가 표에 여러 덩어리로 나뉜다.
+     */
+    mergeKey: (row: CongressRecentTrade) => row.date
+  },
   {
     key: 'member',
     header: copy.recent.columnMember,
@@ -139,9 +162,18 @@ const RECENT_COLUMNS = [
  * 한계를 표 뒤로 미루면 아무도 안 읽는다. 숫자를 보기 전에 "이 숫자가 무엇인지"를 먼저 읽게 둔다.
  */
 export default function CongressView({ viewModel }: CongressViewProps) {
-  const { snapshot, tickers, members, recent } = viewModel;
+  const { snapshot, members, recent } = viewModel;
   const { coverage, window } = snapshot;
   const windowLabel = `${window.start} ~ ${window.end}`;
+
+  /*
+   * 🔴 종목 표의 축(거래 건수 ↔ 신고 금액). 기본은 건수다 — 이 화면은 "무엇이 자주 오르내렸나"를
+   * 먼저 말하는 화면이고, 금액은 구간이라 정확도가 한 단계 낮다.
+   * ⚠ 정렬은 **스냅샷 전체**에서 한 뒤 잘라 낸다. 잘라 놓고 정렬하면 "금액 상위"가 사실은
+   *   "건수 상위 20 안에서의 금액 상위"가 된다.
+   */
+  const [axis, setAxis] = useState<CongressTickerAxis>('count');
+  const tickers = useMemo(() => sortTickersBy(snapshot.topTickers, axis, TICKER_ROWS), [snapshot, axis]);
 
   return (
     <>
@@ -182,9 +214,28 @@ export default function CongressView({ viewModel }: CongressViewProps) {
 
         <DataSection
           title={copy.tickers.heading}
-          subtitle={copy.tickers.subtitle}
+          subtitle={axis === 'amount' ? copy.tickers.subtitleByAmount : copy.tickers.subtitle}
           meta={`${tickers.length}종 · ${windowLabel}`}
         >
+          <AxisRow>
+            <AxisLabel>{copy.tickers.axisLabel}</AxisLabel>
+            <AxisButton
+              type="button"
+              $active={axis === 'count'}
+              aria-pressed={axis === 'count'}
+              onClick={() => setAxis('count')}
+            >
+              {copy.tickers.axisCount}
+            </AxisButton>
+            <AxisButton
+              type="button"
+              $active={axis === 'amount'}
+              aria-pressed={axis === 'amount'}
+              onClick={() => setAxis('amount')}
+            >
+              {copy.tickers.axisAmount}
+            </AxisButton>
+          </AxisRow>
           <DataTable columns={TICKER_COLUMNS} rows={[...tickers]} />
         </DataSection>
 
@@ -201,22 +252,7 @@ export default function CongressView({ viewModel }: CongressViewProps) {
           title={copy.korea.heading}
           lead={<KoreaBody>{copy.korea.body}</KoreaBody>}
           items={[]}
-          footer={
-            <>
-              <SectionSubtitle as="p">{copy.korea.checkedLabel}</SectionSubtitle>
-              <CheckedList>
-                {copy.korea.checked.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </CheckedList>
-              <SectionMeta>
-                <span>{copy.korea.sourceLabel}</span>
-                <SectionLink href={copy.korea.sourceUrl} target="_blank" rel="noreferrer noopener">
-                  {copy.korea.sourceName}
-                </SectionLink>
-              </SectionMeta>
-            </>
-          }
+          footer={<KoreaLink to={copy.korea.linkTo}>{copy.korea.linkLabel}</KoreaLink>}
         />
 
         <DataSection title={copy.source.heading}>

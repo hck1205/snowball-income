@@ -35,13 +35,36 @@ export const buildNpsViewModel = (snapshot: NpsPortfolioSnapshot = NPS_PORTFOLIO
 /**
  * 달러를 한국어 자릿수로 줄인다.
  *
+ * 🔴 **한국어 자릿수는 만·억·조다**(2026-08-05 수정). 종전에는 영어 자릿수를 그대로 옮겨
+ * "132십억 달러"라고 적었는데, 그건 한국어에 없는 단위다 — 읽는 사람은 132를 1,320억으로
+ * 머릿속에서 다시 환산해야 했고, 그 순간 숫자가 "대충 큰 값"이 되어 버렸다. 지금은 억·조로 적는다:
+ * ```
+ *   132,000,000,000  → 1,320억 달러
+ *   1,320,000,000,000 → 1조 3,200억 달러
+ *   45,000,000        → 4,500만 달러
+ * ```
  * ⚠ 원화로 환산하지 않는다 — 공시 시점 환율을 알 수 없어서, 환산하는 순간 "언제 환율인가"라는
  *   답할 수 없는 질문이 생긴다(국회의원 화면과 같은 규율).
+ * ⚠ 조 단위에서 억이 0 이면 "1조 달러"로 끝낸다 — "1조 0억"은 사람이 쓰지 않는 말이다.
  */
 export const formatUsdShort = (value: number): string => {
   if (!Number.isFinite(value)) return '—';
-  if (value >= 1e9) return `${(value / 1e9).toFixed(value >= 1e10 ? 0 : 1)}십억 달러`;
-  if (value >= 1e6) return `${Math.round(value / 1e6)}백만 달러`;
+
+  const TRILLION_KO = 1e12; // 1조
+  const HUNDRED_MILLION_KO = 1e8; // 1억
+  const TEN_THOUSAND_KO = 1e4; // 1만
+
+  if (value >= TRILLION_KO) {
+    const jo = Math.floor(value / TRILLION_KO);
+    const eok = Math.round((value % TRILLION_KO) / HUNDRED_MILLION_KO);
+    return eok > 0 ? `${jo}조 ${eok.toLocaleString('ko-KR')}억 달러` : `${jo}조 달러`;
+  }
+  if (value >= HUNDRED_MILLION_KO) {
+    return `${Math.round(value / HUNDRED_MILLION_KO).toLocaleString('ko-KR')}억 달러`;
+  }
+  if (value >= TEN_THOUSAND_KO) {
+    return `${Math.round(value / TEN_THOUSAND_KO).toLocaleString('ko-KR')}만 달러`;
+  }
   return `${Math.round(value).toLocaleString('ko-KR')}달러`;
 };
 

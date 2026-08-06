@@ -172,6 +172,18 @@ const compareByDateTime = (left: UpcomingItem, right: UpcomingItem): number =>
   left.date.localeCompare(right.date) || (left.timeEt ?? '').localeCompare(right.timeEt ?? '');
 
 /**
+ * FOMC 한 회차를 **화면 문장**으로 옮긴다 — 라벨과 발표 시각(ET).
+ *
+ * 🔴 두 표면(다가오는 일정 · 날짜 드로어)이 같은 회의를 말하므로 문장을 한 곳에서 만든다.
+ * 각자 조립하면 한쪽만 "경제전망 발표"를 빠뜨리는 날이 온다.
+ * ⚠ 시각은 **성명 발표 시각**(FOMC_STATEMENT_ET)이지 회의 시작 시각이 아니다.
+ */
+export const describeFomc = (meeting: FomcMeeting): { labelKo: string; timeEt: string } => ({
+  labelKo: meeting.withProjections ? 'FOMC 금리 결정 · 경제전망 발표' : 'FOMC 금리 결정',
+  timeEt: FOMC_STATEMENT_ET
+});
+
+/**
  * 오늘 이후의 주요 일정을 한 줄로 합친다 — FOMC · 경제지표 · 휴장 · 조기폐장.
  *
  * 🔴 실적 발표는 **넣지 않는다.** 하루에 수십 건이라 이 목록을 통째로 덮어 버린다. 실적은 달력
@@ -191,12 +203,13 @@ export const buildUpcoming = (today: Date, limit: number): UpcomingItem[] => {
 
   for (const meeting of FOMC_MEETINGS) {
     if (meeting.decisionDate < from) continue;
+    const fomc = describeFomc(meeting);
     items.push({
       date: meeting.decisionDate,
       kind: 'fomc',
-      labelKo: meeting.withProjections ? 'FOMC 금리 결정 · 경제전망 발표' : 'FOMC 금리 결정',
-      timeEt: FOMC_STATEMENT_ET,
-      timeKst: withKst(meeting.decisionDate, FOMC_STATEMENT_ET),
+      labelKo: fomc.labelKo,
+      timeEt: fomc.timeEt,
+      timeKst: withKst(meeting.decisionDate, fomc.timeEt),
       major: true
     });
   }

@@ -1,14 +1,17 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Button } from '@/components/common';
+import { Button, OverflowTooltip } from '@/components/common';
 import { MARKET_CALENDAR_COPY } from '../../copy';
 import type { MonthGridProps } from './MonthGrid.types';
 import {
   CalendarRoot,
+  Chip,
+  ChipLabel,
+  ChipList,
+  ChipMore,
   DayCell,
   DayLabel,
   DayNumber,
   Dot,
-  DotRow,
   Grid,
   Legend,
   LegendItem,
@@ -19,7 +22,7 @@ import {
   WeekdayCell,
   WeekdayRow
 } from './MonthGrid.styled';
-import { dotsOf, labelOf, summaryOf, toneOf } from './MonthGrid.utils';
+import { chipsOf, labelOf, splitDayChips, summaryOf, toneOf } from './MonthGrid.utils';
 
 const copy = MARKET_CALENDAR_COPY.month;
 
@@ -39,7 +42,14 @@ const isWeekendIndex = (index: number): boolean => index === 0 || index === 6;
  *  ② 칸 전체에 `title` 로 그 날의 일정 요약이 붙는다.
  *  ③ 아래 범례가 면색·점색과 이름을 짝지어 보여 준다.
  */
-export default function MonthGrid({ month, onShift, onReset, canReset }: MonthGridProps) {
+export default function MonthGrid({
+  month,
+  onShift,
+  onReset,
+  canReset,
+  onSelectDay,
+  selectedDate
+}: MonthGridProps) {
   return (
     <CalendarRoot>
       <Toolbar>
@@ -79,27 +89,40 @@ export default function MonthGrid({ month, onShift, onReset, canReset }: MonthGr
 
       <Grid>
         {month.weeks.flat().map((cell, index) => {
-          const dots = dotsOf(cell);
+          const { visible, hiddenCount } = splitDayChips(chipsOf(cell));
           const label = labelOf(cell);
           return (
             <DayCell
               key={cell.date}
+              type="button"
               $tone={toneOf(cell)}
               $inMonth={cell.inMonth}
               $today={cell.isToday}
               title={summaryOf(cell)}
+              /* 🔴 접근명은 **날짜와 그날의 요약**이다 — 숫자만 읽어 주면 "12"가 무슨 뜻인지 모른다.
+                 title 과 같은 문장을 쓴다(둘이 갈리면 마우스 사용자와 스크린리더 사용자가 다른 말을 듣는다). */
+              aria-label={summaryOf(cell)}
+              aria-pressed={selectedDate === cell.date}
+              onClick={() => onSelectDay(cell.date)}
             >
               {/* `<time>` 이 칸의 날짜를 기계에도 사람에게도 같은 값으로 말한다. */}
               <time dateTime={cell.date}>
                 <DayNumber $weekend={isWeekendIndex(index % 7)}>{cell.day}</DayNumber>
               </time>
               {label ? <DayLabel>{label}</DayLabel> : null}
-              {dots.length > 0 ? (
-                <DotRow>
-                  {dots.map((kind) => (
-                    <Dot key={kind} $kind={kind} />
+              {visible.length > 0 ? (
+                <ChipList>
+                  {visible.map((chip) => (
+                    <Chip key={chip.key}>
+                      <Dot $kind={chip.kind} aria-hidden />
+                      {/* 지표 이름은 칸 폭을 넘기 쉽다 — 실제로 잘렸을 때만 전체 이름을 띄운다. */}
+                      <OverflowTooltip text={chip.label}>
+                        <ChipLabel />
+                      </OverflowTooltip>
+                    </Chip>
                   ))}
-                </DotRow>
+                  {hiddenCount > 0 ? <ChipMore>{copy.moreEvents(hiddenCount)}</ChipMore> : null}
+                </ChipList>
               ) : null}
             </DayCell>
           );

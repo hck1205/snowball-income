@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, media, radius, space } from '@/shared/styles';
+import { color, font, media, motion, radius, space } from '@/shared/styles';
 
 /**
  * 월간 달력 격자.
@@ -88,7 +88,22 @@ const TONE_BACKGROUND: Record<CellTone, string> = {
  * ⚠ `min-height` 로 높이를 잡는다 — 6주 고정 격자에서 내용이 있는 칸만 커지면 표가 덜컹거린다.
  *   좁은 폭에서는 내용을 줄이므로 높이도 함께 준다.
  */
-export const DayCell = styled.div<{ $tone: CellTone; $inMonth: boolean; $today: boolean }>`
+/**
+ * 달력 한 칸 — **버튼이다**(2026-08-05 사용자 지시: 날짜를 누르면 그날 일정을 드로어로).
+ *
+ * 🔴 `div` 가 아니라 `button` 인 이유: 이 칸은 누르면 화면이 바뀐다. div 에 onClick 을 얹으면
+ * 키보드로 닿지 않고(포커스 불가) 스크린리더도 "누를 수 있는 것"으로 읽지 않는다.
+ * ⚠ 버튼 기본 스타일(가운데 정렬·회색 면·테두리)은 전부 되돌려야 한다 — 아래 선언들이 그 일을 한다.
+ * ⚠ 칸 안에 또 다른 버튼을 넣지 마라(버튼 안의 버튼은 유효하지 않은 HTML). 지금 칸 안은 전부 텍스트다.
+ */
+export const DayCell = styled.button<{ $tone: CellTone; $inMonth: boolean; $today: boolean }>`
+  /* 버튼 기본값 되돌리기 — 이 요소의 모양은 아래 선언들이 전부 정한다. */
+  appearance: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+
   display: grid;
   align-content: start;
   gap: 2px;
@@ -101,6 +116,30 @@ export const DayCell = styled.div<{ $tone: CellTone; $inMonth: boolean; $today: 
   background: ${({ $tone }) => TONE_BACKGROUND[$tone]};
   opacity: ${({ $inMonth }) => ($inMonth ? 1 : 0.4)};
   min-width: 0;
+
+  transition:
+    border-color ${motion.fast} ${motion.ease},
+    box-shadow ${motion.fast} ${motion.ease},
+    transform ${motion.fast} ${motion.ease};
+
+  /* 누를 수 있다는 사실을 **형태 변화**로 말한다(면색을 바꾸면 그 날의 상태색과 충돌한다). */
+  &:hover {
+    border-color: ${color.brandBorder};
+    transform: translateY(-1px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${color.focusRing};
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+
+    &:hover {
+      transform: none;
+    }
+  }
 
   ${media.down('mobileWide')} {
     min-height: 56px;
@@ -127,12 +166,86 @@ export const DayLabel = styled.span`
   }
 `;
 
-/** 일정이 걸린 날의 점 줄. 좁은 폭에서는 이것만 남는다. */
+/** 일정이 걸린 날의 점 줄. 범례에서만 쓴다(칸은 `ChipList` 를 그린다). */
 export const DotRow = styled.span`
   display: flex;
   flex-wrap: wrap;
   gap: 3px;
   margin-top: 2px;
+`;
+
+/**
+ * 칸 안의 일정 칩 목록.
+ *
+ * 🔴 **한 줄에 하나씩 세운다**(세로). 배당 캘린더는 티커라 가로로 흘려도 읽히지만, 여기는
+ * "근원 소비자물가지수" 같은 이름이 섞여서 가로로 흘리면 전부 두세 글자만 남는다.
+ * 세로로 세우면 각 칩이 칸 너비를 통째로 쓴다.
+ */
+export const ChipList = styled.span`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  margin-top: 2px;
+  min-width: 0;
+  max-width: 100%;
+
+  /* 좁은 폭에서는 글자를 감추고 점만 남긴다 — 그때 세로로 쌓으면 칸이 길어지므로 다시 가로로. */
+  ${media.down('mobileWide')} {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 3px;
+  }
+`;
+
+/**
+ * 일정 칩 하나 — **점 + 글자**.
+ *
+ * 🔴 점이 색 단독 채널이던 자리를 이 글자가 메운다. 색각 이상·흑백에서도 "FOMC"·"CPI"·"AMD"는
+ * 그대로 읽힌다(칸 전체 `title` 은 그대로 남아 접힌 것까지 말한다).
+ * ⚠ 좁은 폭에서는 테두리·여백을 지워 **예전의 점 줄과 같은 모습**으로 되돌아간다 — DOM 은 하나다
+ *   (폭에 따라 다른 것을 렌더하면 jsdom 테스트가 두 변형을 동시에 본다 — 배당 캘린더의 교훈).
+ */
+export const Chip = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  max-width: 100%;
+  min-width: 0;
+  padding: 0 3px;
+  border: 1px solid ${color.border};
+  border-radius: ${radius.sm};
+  color: ${color.textSecondary};
+  font-size: ${font.size['2xs']};
+  line-height: 1.5;
+
+  ${media.down('mobileWide')} {
+    padding: 0;
+    border-color: transparent;
+  }
+`;
+
+/** 칩 안의 글자. 넘치면 말줄임 — 원문은 칸 전체 `title` 이 갖고 있다. */
+export const ChipLabel = styled.span`
+  overflow: hidden;
+  min-width: 0;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  ${media.down('mobileWide')} {
+    display: none;
+  }
+`;
+
+/** 접힌 일정 수(`+3`). 🔴 접혔다는 사실을 숨기지 않는 것이 이 조각의 존재 이유다. */
+export const ChipMore = styled.span`
+  color: ${color.textMuted};
+  font-size: ${font.size['2xs']};
+  font-variant-numeric: tabular-nums;
+
+  ${media.down('mobileWide')} {
+    display: none;
+  }
 `;
 
 export type DotKind = 'fomc' | 'economic' | 'earnings';

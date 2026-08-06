@@ -51,9 +51,44 @@ export const CardItem = styled.li`
 `;
 
 /**
- * 인물 모노그램 — `PickCard` 의 40px 글리프 배지 안을 **가득** 채운다.
+ * 등장 연출 껍질 — 카드가 **오른쪽에서 왼쪽으로** 밀려 들어오며 나타난다(2026-08-05 사용자 지시).
  *
- * ⚠ 사진이 아니다. 실존 인물 사진은 대부분 저작권이 있어 13명을 자유 라이선스로 채울 수 없다.
+ * 🔴 **카드만 감싼다. 드로어는 이 밖에 남는다.** 이 요소는 transform 을 쓰므로 `position: fixed`
+ * 자손의 컨테이닝 블록이 된다 — 드로어를 안에 넣으면 열리는 순간 전폭 패널이 카드 좌표계에
+ * 갇힌다(CardItem 주석이 말하는 바로 그 함정이다).
+ * 🔴 끝 상태는 `transform: none` 이다(`translateX(0)` 이 아니라). 0 으로 두면 연출이 끝난 뒤에도
+ *   스태킹 컨텍스트가 영구히 남는다.
+ * ⚠ 시작 상태가 `opacity: 0` 이므로 **켜지지 않으면 카드가 영영 안 보인다.** 그래서 훅은
+ *   IntersectionObserver 가 없거나 움직임 축소 설정이면 처음부터 켠 상태로 시작한다
+ *   (`useRevealOnScroll` 주석). 이 두 규칙은 한 벌이다.
+ * ⚠ 지연은 **같은 줄 안에서만** 계단을 만든다(호출부가 index % 열수 로 준다). 카드 번호에 비례해
+ *   지연을 주면 열세 번째 카드가 1초 뒤에 뜬다.
+ */
+export const CardReveal = styled.div<{ $shown: boolean; $delay: number }>`
+  display: grid;
+  min-width: 0;
+  opacity: ${({ $shown }) => ($shown ? 1 : 0)};
+  transform: ${({ $shown }) => ($shown ? 'none' : 'translateX(32px)')};
+  transition:
+    opacity 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: ${({ $delay }) => $delay}ms;
+
+  @media (prefers-reduced-motion: reduce) {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+`;
+
+/**
+ * 인물 모노그램 — `PickCard` 의 글리프 배지 안을 **가득** 채운다.
+ *
+ * 🔴 이제 이 자리는 **사진 자리**이고(112px, `cap.glyphSize: 'lg'`) 모노그램은 사진이 없는
+ *    사람에게만 떨어지는 폴백이다. 그래서 글자도 그 크기에 맞춰 `3xl` 로 선다 — 112px 면 안의
+ *    14px 이니셜은 "빈 상자에 먼지가 앉은" 것으로 보인다(2026-08-05 확대와 함께 조정).
+ * ⚠ 폴백을 지우지 마라. 명단은 코드가 아니라 데이터(`roster.ts`)라 사진 없는 사람이 언제든
+ *   들어온다 — 그때 깨진 이미지가 아니라 이니셜이 떠야 한다.
  * 🔴 면은 16% 틴트 · 글자는 중립 `text` · 테두리만 시리즈 솔리드다 — 시리즈 색은 비텍스트 3:1
  *    로만 검증된 색이라 그 위의 텍스트는 대비 계약 밖이다(`contrast.test.ts`).
  */
@@ -66,9 +101,26 @@ export const Monogram = styled.span<{ $color: string }>`
   border: 1px solid ${({ $color }) => $color};
   background: color-mix(in srgb, ${({ $color }) => $color} 16%, ${color.surface});
   color: ${color.text};
-  font-size: ${font.size.sm};
+  font-size: ${font.size['3xl']};
   font-weight: ${font.weight.bold};
   letter-spacing: -0.02em;
+`;
+
+/**
+ * 오래된 자료 표시 한 덩어리 — **배지 + 문장**.
+ *
+ * 🔴 자리는 카드 본문의 **맨 위**, 곧 이름·회사명 바로 아래다(2026-08-06 사용자 지시). 종전에는
+ * 배지가 `titleRight` 로 제목 줄 오른쪽 끝에 떨어져 있었는데, 사진이 112px 로 커지면서 그 자리가
+ * 카드 머리의 반대쪽 끝이 되어 "누구 이야기인지"와 멀어졌다.
+ * ⚠ `PickCardBody` 는 격자가 아니라 블록이라 자식 사이 간격이 자동으로 생기지 않는다 —
+ *   이 덩어리가 자기 아래 여백을 직접 진다.
+ */
+export const StaleNotice = styled.div`
+  display: grid;
+  justify-items: start;
+  gap: ${space[1]};
+  margin-bottom: ${space[2]};
+  min-width: 0;
 `;
 
 /**
@@ -175,4 +227,28 @@ export const OptionChip = styled.span`
   font-size: ${font.size['2xs']};
   font-weight: ${font.weight.bold};
   white-space: nowrap;
+`;
+
+/**
+ * 인물 사진(2026-08-05 사용자가 public/images/investors/ 에 올림).
+ *
+ * 🔴 크기는 **부모(글리프 배지)가 정한다** — 이 요소는 100%/100% 로 따라갈 뿐이다. 그래서 확대는
+ *    여기가 아니라 호출부의 `cap.glyphSize` 에서 한다(현재 `lg` = 112px). 여기에 px 을 적으면
+ *    배지와 사진이 각자 크기를 갖게 되어 둘이 어긋나는 날이 온다.
+ * 🔴 모노그램 자리를 **그대로** 채운다 — 같은 크기·같은 둥근 모서리라, 사진이 있는 사람과 없는
+ *    사람이 섞여도 카드 머리 줄의 높이가 흔들리지 않는다.
+ * ⚠ object-fit: cover — 원본 비율이 제각각이라 그대로 늘리면 얼굴이 찌그러진다.
+ *   위쪽을 살짝 우선한다(`50% 35%`): 인물 사진은 얼굴이 가운데보다 **위**에 오는 구도가 많아
+ *   정중앙 크롭은 이마를 자르고 턱 아래 여백을 남긴다(현재 자산 13장 실측 구도 기준).
+ * ⚠ 테두리는 인물 색을 그대로 쓴다. 그래야 사진으로 바뀌어도 "이 사람의 색"이라는 단서가 남는다.
+ */
+export const Avatar = styled.img<{ $color: string }>`
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  border: 1px solid ${({ $color }) => $color};
+  object-fit: cover;
+  object-position: 50% 35%;
+  background: ${color.surfaceMuted};
 `;

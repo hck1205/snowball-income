@@ -16,5 +16,6 @@ export type {
   AggregatedHolding,
   DonutSlice,
   InvestorCardModel,
-  InvestorHoldingRow
+  InvestorHoldingRow,
+  PersonColor
 } from './investorsView';

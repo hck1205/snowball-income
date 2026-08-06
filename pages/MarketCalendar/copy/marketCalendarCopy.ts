@@ -41,13 +41,45 @@ export const MARKET_CALENDAR_COPY = {
     legendEarly: '조기 폐장',
     legendEvent: '주요 발표',
     legendEarnings: '실적 발표',
+    /**
+     * 칸에 다 못 담은 일정 수.
+     * 🔴 접힌 것을 숫자로라도 말한다 — 안 그러면 그 칸은 "일정이 둘뿐"이라고 거짓말한다.
+     */
+    moreEvents: (count: number) => `+${count}건 더`,
     summary: (holidays: number, early: number) =>
       holidays === 0 && early === 0
         ? '이 달에는 휴장일이 없습니다.'
         : `휴장 ${holidays}일 · 조기 폐장 ${early}일`,
     notCurated: '이 달은 아직 확정된 휴장일 자료가 없습니다.',
     /** 🔴 "일정 없음"이 아니라 "아직 알려지지 않음"이다 — 둘을 같은 말로 쓰면 거짓이 된다. */
-    beyondRange: '이 시기의 발표 일정은 아직 공개되지 않았습니다.'
+    beyondRange: '이 시기의 발표 일정은 아직 공개되지 않았습니다.',
+    /** 칸이 눌린다는 것을 격자 위에서 한 번 말한다(칸마다 적으면 42번 반복된다). */
+    dayHint: '날짜를 누르면 그날 일정을 전부 볼 수 있습니다.'
+  },
+
+  /**
+   * 날짜 칸을 눌렀을 때 열리는 드로어(2026-08-05 신설, 사용자 지시).
+   *
+   * 🔴 달력 칸은 좁아서 일정을 **접는다**("+2건 더"). 접힌 것을 펴 보는 자리가 없으면 그 칸은
+   * 사용자에게 "무언가 더 있다"만 말하고 끝난다. 이 드로어가 그 답이다.
+   * ⚠ 없는 것은 없다고 말한다 — 일정이 없는 날에도 열리고, 그때는 "표시할 일정이 없다"고 적는다.
+   *   큐레이션 구간 밖이면 그것은 "없다"가 아니라 **"아직 모른다"** 라서 문장이 다르다.
+   */
+  day: {
+    closeLabel: '닫기',
+    /** 드로어 제목 — 날짜와 요일. 어느 날을 보고 있는지가 제목이어야 한다. */
+    title: (month: number, day: number, weekday: string) => `${month}월 ${day}일 (${weekday})`,
+    statusHeading: '거래',
+    sessionLabel: '정규장',
+    fomcHeading: 'FOMC',
+    fomcNote: '성명서는 회의 마지막 날 발표됩니다.',
+    economicHeading: '주요 발표',
+    earningsHeading: '실적 발표',
+    majorTag: '주요',
+    empty: '이 날에는 표시할 일정이 없습니다.',
+    unknown: '이 날의 자료는 아직 수집 구간 밖입니다.',
+    /** 이 앱에 소개 페이지가 있는 종목만 링크가 된다. */
+    tickerLinkHint: '종목 이름을 누르면 소개 페이지로 이동합니다.'
   },
 
   upcoming: {

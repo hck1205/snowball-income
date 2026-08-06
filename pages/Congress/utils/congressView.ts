@@ -32,6 +32,33 @@ export const buildCongressViewModel = (snapshot: CongressTradesSnapshot): Congre
   recent: snapshot.recent.slice(0, RECENT_ROWS)
 });
 
+/** 종목 표를 세우는 축. 거래가 잦은 것과 돈이 큰 것은 **다른 종목**이라 둘 다 필요하다. */
+export type CongressTickerAxis = 'count' | 'amount';
+
+/**
+ * 축을 골라 종목 상위 N 을 낸다.
+ *
+ * 🔴 **금액 축은 하한(minUsd)으로 센다.** 상한은 최상단 구간("5,000만 달러 초과")이 섞이면
+ * `null` 이라 정렬 키가 될 수 없다. 하한은 언제나 있고, "적어도 이만큼"이라는 뜻이라
+ * 과장하지 않는 방향으로만 틀린다.
+ *
+ * ⚠ 스냅샷은 **두 축의 상위를 합집합으로** 갖고 있다(`tools/congressTrades/harvest.py`). 건수
+ *   상위만 저장하던 시절에는 이 함수가 "그 안에서의 금액 순"밖에 못 냈다 — 거래는 3건인데
+ *   5백만 달러가 넘는 종목(실측 AESI)이 통째로 빠진 채 "금액 상위"라고 말하게 된다.
+ */
+export const sortTickersBy = (
+  tickers: readonly CongressTickerRow[],
+  axis: CongressTickerAxis,
+  limit: number = TICKER_ROWS
+): readonly CongressTickerRow[] =>
+  [...tickers]
+    .sort((left, right) =>
+      axis === 'amount'
+        ? right.minUsd - left.minUsd || right.memberCount - left.memberCount
+        : right.buys + right.sells - (left.buys + left.sells) || right.memberCount - left.memberCount
+    )
+    .slice(0, limit);
+
 /**
  * 달러 금액을 한국어 자릿수로 줄인다(만·억 단위가 아니라 **달러 그대로**의 천·백만 단위).
  *

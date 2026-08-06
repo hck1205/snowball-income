@@ -285,7 +285,15 @@ def aggregate(filings, stats, *, months: int, today: dt.date, top_tickers: int, 
             for k, v in by_ticker.items()
         ),
         key=lambda r: (-(r["buys"] + r["sells"]), -r["memberCount"], r["ticker"]),
-    )[:top_tickers]
+    )
+
+    # 🔴 **두 축의 상위를 합집합으로 남긴다**(2026-08-05). 화면이 "건수 순 / 금액 순"을 전환하는데,
+    # 건수 상위 N 만 저장하면 금액 순 화면이 **그 N 안에서만** 줄을 세운다 — 거래는 적지만 금액이
+    # 큰 종목(한 번에 수백만 달러)이 통째로 빠진 채 "금액 상위"라고 말하게 된다.
+    # 금액 정렬은 하한(minUsd)으로 한다: 상한은 최상단 구간이 섞이면 `None` 이라 축이 될 수 없다.
+    by_amount = sorted(ticker_rows, key=lambda r: (-r["minUsd"], r["ticker"]))[:top_tickers]
+    keep = {r["ticker"] for r in ticker_rows[:top_tickers]} | {r["ticker"] for r in by_amount}
+    ticker_rows = [r for r in ticker_rows if r["ticker"] in keep]
 
     member_rows = sorted(
         (

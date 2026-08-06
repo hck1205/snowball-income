@@ -369,3 +369,16 @@ export const comparableTickers = (card: InvestorCardModel, limit: number): reado
     .map((row) => row.ticker)
     .filter((ticker): ticker is string => ticker !== null)
     .slice(0, Math.max(0, limit));
+
+/**
+ * 인물 이름 → 고유색.
+ *
+ * 🔴 **한 함수로 묶는 이유는 색이 이 화면의 길찾기 단서이기 때문이다**(2026-08-03 2차 개편).
+ * 합산 줄의 칩과 그 사람 카드 머리의 6px 레일이 **같은 색**이어야 "이 칩이 저 카드"로 읽힌다.
+ * 두 자리가 각자 색을 계산하면 언젠가 반드시 갈린다.
+ *
+ * ⚠ 타입이 화면(뷰)이 아니라 여기 사는 이유: 2026-08-06 에 뷰를 컴포넌트로 쪼개면서 합의 보드와
+ *   인물 카드가 **둘 다** 이 시그니처를 받게 됐다. 한쪽 파일에 두면 다른 쪽이 그 파일을 import 하게 되고,
+ *   그 순간 두 컴포넌트가 서로를 알게 된다(서로 몰라야 따로 옮길 수 있다).
+ */
+export type PersonColor = (person: string) => string;

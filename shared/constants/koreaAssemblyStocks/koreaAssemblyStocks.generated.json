@@ -1,0 +1,1726 @@
+{
+  "generatedAt": "2026-08-05",
+  "source": "국회공보 제2026-54호(정기재산공개) — 국회사무처 · 국회공직자윤리위원회",
+  "sourceUrl": "https://www.assembly.go.kr/portal/cnts/cntsNamgzn/gongbo.do?cntsDivCd=NAMGZN&pdfClsCd=CPR&menuNo=601019",
+  "issueNo": "2026-54",
+  "issueTitle": "국회공보 제2026-54호(정기재산공개)",
+  "publishedAt": "2026-03-26",
+  "asOfDate": "2025-12-31",
+  "coverage": {
+    "peopleTotal": 330,
+    "membersTotal": 287,
+    "membersWithStocks": 135,
+    "holdings": 1273,
+    "issuers": 656,
+    "fullySold": 451
+  },
+  "topIssuers": [
+    {
+      "issuer": "삼성전자",
+      "ticker": null,
+      "memberCount": 42,
+      "shares": 104846.0,
+      "members": [
+        "강경숙",
+        "고동진",
+        "권영진",
+        "권칠승",
+        "김건",
+        "김남근"
+      ]
+    },
+    {
+      "issuer": "엔비디아",
+      "ticker": "NVDA",
+      "memberCount": 38,
+      "shares": 3338.248632,
+      "members": [
+        "강경숙",
+        "강명구",
+        "권칠승",
+        "김건",
+        "김미애",
+        "김소희"
+      ]
+    },
+    {
+      "issuer": "테슬라",
+      "ticker": "TSLA",
+      "memberCount": 32,
+      "shares": 1083.789999,
+      "members": [
+        "강경숙",
+        "김건",
+        "김성회",
+        "김영환",
+        "김은혜",
+        "김재섭"
+      ]
+    },
+    {
+      "issuer": "애플",
+      "ticker": "AAPL",
+      "memberCount": 27,
+      "shares": 499.863408,
+      "members": [
+        "김소희",
+        "김영환",
+        "김재섭",
+        "김준혁",
+        "김현정",
+        "문금주"
+      ]
+    },
+    {
+      "issuer": "카카오",
+      "ticker": null,
+      "memberCount": 18,
+      "shares": 1887.0,
+      "members": [
+        "김문수",
+        "김소희",
+        "김윤",
+        "나경원",
+        "박정하",
+        "박충권"
+      ]
+    },
+    {
+      "issuer": "SK하이닉스",
+      "ticker": null,
+      "memberCount": 16,
+      "shares": 440.0,
+      "members": [
+        "강경숙",
+        "곽상언",
+        "권칠승",
+        "김건",
+        "김남근",
+        "김소희"
+      ]
+    },
+    {
+      "issuer": "마이크로소프트",
+      "ticker": "MSFT",
+      "memberCount": 16,
+      "shares": 307.874724,
+      "members": [
+        "권향엽",
+        "김건",
+        "문금주",
+        "문대림",
+        "문진석",
+        "민형배"
+      ]
+    },
+    {
+      "issuer": "알파벳 A",
+      "ticker": "GOOGL",
+      "memberCount": 16,
+      "shares": 259.558741,
+      "members": [
+        "김건",
+        "김미애",
+        "김성회",
+        "김주영",
+        "문정복",
+        "박덕흠"
+      ]
+    },
+    {
+      "issuer": "팔란티어테크",
+      "ticker": "PLTR",
+      "memberCount": 15,
+      "shares": 2099.0,
+      "members": [
+        "강명구",
+        "김소희",
+        "김윤",
+        "김은혜",
+        "김재섭",
+        "문진석"
+      ]
+    },
+    {
+      "issuer": "브로드컴",
+      "ticker": "AVGO",
+      "memberCount": 13,
+      "shares": 988.253612,
+      "members": [
+        "강경숙",
+        "고동진",
+        "김건",
+        "김은혜",
+        "문금주",
+        "민형배"
+      ]
+    },
+    {
+      "issuer": "NAVER",
+      "ticker": null,
+      "memberCount": 13,
+      "shares": 565.0,
+      "members": [
+        "곽상언",
+        "김건",
+        "김남근",
+        "김용태",
+        "나경원",
+        "박충권"
+      ]
+    },
+    {
+      "issuer": "아이온큐",
+      "ticker": null,
+      "memberCount": 12,
+      "shares": 880.0,
+      "members": [
+        "김건",
+        "김소희",
+        "김윤",
+        "김은혜",
+        "문정복",
+        "민형배"
+      ]
+    },
+    {
+      "issuer": "두산에너빌리티",
+      "ticker": null,
+      "memberCount": 12,
+      "shares": 486.0,
+      "members": [
+        "강경숙",
+        "곽상언",
+        "김건",
+        "김소희",
+        "문대림",
+        "박균택"
+      ]
+    },
+    {
+      "issuer": "현대차",
+      "ticker": null,
+      "memberCount": 10,
+      "shares": 215.0,
+      "members": [
+        "강경숙",
+        "권칠승",
+        "문대림",
+        "민형배",
+        "박희승",
+        "안도걸"
+      ]
+    },
+    {
+      "issuer": "코카콜라",
+      "ticker": "KO",
+      "memberCount": 7,
+      "shares": 481.284696,
+      "members": [
+        "박수영",
+        "박충권",
+        "백종헌",
+        "서지영",
+        "안도걸",
+        "유용원"
+      ]
+    },
+    {
+      "issuer": "ALPHABETINC",
+      "ticker": null,
+      "memberCount": 7,
+      "shares": 183.0,
+      "members": [
+        "김재섭",
+        "문진석",
+        "박수영",
+        "박정훈",
+        "서지영",
+        "조인철"
+      ]
+    },
+    {
+      "issuer": "LG에너지솔루션",
+      "ticker": null,
+      "memberCount": 7,
+      "shares": 73.0,
+      "members": [
+        "김영환",
+        "김재섭",
+        "박정하",
+        "안도걸",
+        "이강일",
+        "한병도"
+      ]
+    },
+    {
+      "issuer": "뉴스케일파워",
+      "ticker": null,
+      "memberCount": 6,
+      "shares": 697.0,
+      "members": [
+        "김은혜",
+        "민형배",
+        "박희승",
+        "안도걸",
+        "양문석",
+        "임미애"
+      ]
+    },
+    {
+      "issuer": "오라클",
+      "ticker": "ORCL",
+      "memberCount": 6,
+      "shares": 510.00029,
+      "members": [
+        "권칠승",
+        "김윤",
+        "문대림",
+        "문정복",
+        "양문석",
+        "윤상현"
+      ]
+    },
+    {
+      "issuer": "셀트리온",
+      "ticker": null,
+      "memberCount": 6,
+      "shares": 224.0,
+      "members": [
+        "김문수",
+        "나경원",
+        "박균택",
+        "박정하",
+        "박희승",
+        "안도걸"
+      ]
+    },
+    {
+      "issuer": "로켓랩",
+      "ticker": null,
+      "memberCount": 5,
+      "shares": 3861.0,
+      "members": [
+        "박정훈",
+        "안도걸",
+        "양문석",
+        "윤상현",
+        "한민수"
+      ]
+    },
+    {
+      "issuer": "조비에비에이션",
+      "ticker": null,
+      "memberCount": 5,
+      "shares": 2447.0,
+      "members": [
+        "강명구",
+        "박선원",
+        "박성준",
+        "안도걸",
+        "안상훈"
+      ]
+    },
+    {
+      "issuer": "템퍼스AI",
+      "ticker": null,
+      "memberCount": 5,
+      "shares": 881.0,
+      "members": [
+        "강명구",
+        "김은혜",
+        "민형배",
+        "박정훈",
+        "안도걸"
+      ]
+    },
+    {
+      "issuer": "카카오뱅크",
+      "ticker": null,
+      "memberCount": 5,
+      "shares": 728.0,
+      "members": [
+        "박정하",
+        "성일종",
+        "신동욱",
+        "주진우",
+        "한병도"
+      ]
+    },
+    {
+      "issuer": "SK아이이테크놀로지",
+      "ticker": null,
+      "memberCount": 5,
+      "shares": 191.0,
+      "members": [
+        "김병기",
+        "박정하",
+        "박희승",
+        "윤상현",
+        "황정아"
+      ]
+    },
+    {
+      "issuer": "SK텔레콤",
+      "ticker": null,
+      "memberCount": 5,
+      "shares": 93.0,
+      "members": [
+        "권칠승",
+        "박주민",
+        "송석준",
+        "신동욱",
+        "이종배"
+      ]
+    },
+    {
+      "issuer": "한화오션",
+      "ticker": null,
+      "memberCount": 4,
+      "shares": 870.0,
+      "members": [
+        "박해철",
+        "이강일",
+        "정성국",
+        "최민희"
+      ]
+    },
+    {
+      "issuer": "리게티컴퓨팅",
+      "ticker": null,
+      "memberCount": 4,
+      "shares": 579.0,
+      "members": [
+        "김건",
+        "문정복",
+        "박선원",
+        "박해철"
+      ]
+    },
+    {
+      "issuer": "알테오젠",
+      "ticker": null,
+      "memberCount": 4,
+      "shares": 520.0,
+      "members": [
+        "김은혜",
+        "맹성규",
+        "문대림",
+        "천준호"
+      ]
+    },
+    {
+      "issuer": "우리금융지주",
+      "ticker": null,
+      "memberCount": 4,
+      "shares": 488.0,
+      "members": [
+        "강민국",
+        "김건",
+        "양문석",
+        "유용원"
+      ]
+    },
+    {
+      "issuer": "삼성증권",
+      "ticker": null,
+      "memberCount": 4,
+      "shares": 387.0,
+      "members": [
+        "강민국",
+        "김건",
+        "유용원",
+        "이해식"
+      ]
+    },
+    {
+      "issuer": "LG씨엔에스",
+      "ticker": null,
+      "memberCount": 4,
+      "shares": 385.0,
+      "members": [
+        "김은혜",
+        "박정하",
+        "이용선",
+        "한기호"
+      ]
+    },
+    {
+      "issuer": "대한항공",
+      "ticker": null,
+      "memberCount": 4,
+      "shares": 218.0,
+      "members": [
+        "권영진",
+        "김문수",
+        "박충권",
+        "소병훈"
+      ]
+    },
+    {
+      "issuer": "두산로보틱스",
+      "ticker": null,
+      "memberCount": 4,
+      "shares": 215.0,
+      "members": [
+        "강경숙",
+        "김재섭",
+        "맹성규",
+        "이정헌"
+      ]
+    },
+    {
+      "issuer": "현대로템",
+      "ticker": null,
+      "memberCount": 4,
+      "shares": 185.0,
+      "members": [
+        "강경숙",
+        "안상훈",
+        "양문석",
+        "유상범"
+      ]
+    },
+    {
+      "issuer": "삼성전자우",
+      "ticker": null,
+      "memberCount": 4,
+      "shares": 172.0,
+      "members": [
+        "안호영",
+        "유용원",
+        "정청래",
+        "한병도"
+      ]
+    },
+    {
+      "issuer": "LG전자",
+      "ticker": null,
+      "memberCount": 4,
+      "shares": 143.0,
+      "members": [
+        "김남근",
+        "나경원",
+        "박희승",
+        "정청래"
+      ]
+    },
+    {
+      "issuer": "나이키",
+      "ticker": "NKE",
+      "memberCount": 4,
+      "shares": 135.0,
+      "members": [
+        "문진석",
+        "서미화",
+        "소병훈",
+        "정동만"
+      ]
+    },
+    {
+      "issuer": "기아",
+      "ticker": null,
+      "memberCount": 4,
+      "shares": 117.0,
+      "members": [
+        "강민국",
+        "김남근",
+        "이용선",
+        "진성준"
+      ]
+    },
+    {
+      "issuer": "아마존닷컴",
+      "ticker": "AMZN",
+      "memberCount": 4,
+      "shares": 95.0,
+      "members": [
+        "강경숙",
+        "권칠승",
+        "김건",
+        "정연욱"
+      ]
+    },
+    {
+      "issuer": "TSMC(ADR)",
+      "ticker": "TSM",
+      "memberCount": 4,
+      "shares": 73.0,
+      "members": [
+        "강경숙",
+        "김건",
+        "민형배",
+        "박선원"
+      ]
+    },
+    {
+      "issuer": "리얼티인컴",
+      "ticker": "O",
+      "memberCount": 4,
+      "shares": 63.945014,
+      "members": [
+        "강민국",
+        "곽규택",
+        "권향엽",
+        "이용선"
+      ]
+    },
+    {
+      "issuer": "마이크론테크놀로지",
+      "ticker": null,
+      "memberCount": 4,
+      "shares": 60.0,
+      "members": [
+        "강경숙",
+        "김건",
+        "양문석",
+        "윤상현"
+      ]
+    },
+    {
+      "issuer": "한화에어로스페이스",
+      "ticker": null,
+      "memberCount": 4,
+      "shares": 41.0,
+      "members": [
+        "민형배",
+        "박덕흠",
+        "양문석",
+        "조인철"
+      ]
+    },
+    {
+      "issuer": "메타",
+      "ticker": null,
+      "memberCount": 4,
+      "shares": 18.0,
+      "members": [
+        "김건",
+        "민형배",
+        "안도걸",
+        "양문석"
+      ]
+    },
+    {
+      "issuer": "삼성중공업",
+      "ticker": null,
+      "memberCount": 3,
+      "shares": 1349.0,
+      "members": [
+        "양문석",
+        "유상범",
+        "정성국"
+      ]
+    },
+    {
+      "issuer": "대한해운",
+      "ticker": null,
+      "memberCount": 3,
+      "shares": 1242.0,
+      "members": [
+        "김남근",
+        "윤종군",
+        "이건태"
+      ]
+    },
+    {
+      "issuer": "자이에스앤디",
+      "ticker": null,
+      "memberCount": 3,
+      "shares": 770.0,
+      "members": [
+        "우재준",
+        "장동혁",
+        "진성준"
+      ]
+    },
+    {
+      "issuer": "루멘텀홀딩스",
+      "ticker": null,
+      "memberCount": 3,
+      "shares": 428.0,
+      "members": [
+        "강경숙",
+        "양문석",
+        "윤상현"
+      ]
+    },
+    {
+      "issuer": "SK바이오사이언스",
+      "ticker": null,
+      "memberCount": 3,
+      "shares": 273.0,
+      "members": [
+        "박정하",
+        "한기호",
+        "한병도"
+      ]
+    },
+    {
+      "issuer": "삼성물산",
+      "ticker": null,
+      "memberCount": 3,
+      "shares": 255.0,
+      "members": [
+        "김소희",
+        "소병훈",
+        "주진우"
+      ]
+    },
+    {
+      "issuer": "호텔신라",
+      "ticker": null,
+      "memberCount": 3,
+      "shares": 220.0,
+      "members": [
+        "김용태",
+        "김윤",
+        "박덕흠"
+      ]
+    },
+    {
+      "issuer": "하이브",
+      "ticker": null,
+      "memberCount": 3,
+      "shares": 181.0,
+      "members": [
+        "김남근",
+        "박덕흠",
+        "박정하"
+      ]
+    },
+    {
+      "issuer": "알파벳 C",
+      "ticker": "GOOG",
+      "memberCount": 3,
+      "shares": 174.0,
+      "members": [
+        "민형배",
+        "이인선",
+        "최수진"
+      ]
+    },
+    {
+      "issuer": "나이키B",
+      "ticker": null,
+      "memberCount": 3,
+      "shares": 132.009991,
+      "members": [
+        "강경숙",
+        "김재섭",
+        "소병훈"
+      ]
+    },
+    {
+      "issuer": "아이렌",
+      "ticker": null,
+      "memberCount": 3,
+      "shares": 117.435931,
+      "members": [
+        "김주영",
+        "안도걸",
+        "이강일"
+      ]
+    },
+    {
+      "issuer": "AT&T",
+      "ticker": null,
+      "memberCount": 3,
+      "shares": 104.0,
+      "members": [
+        "강민국",
+        "어기구",
+        "정성국"
+      ]
+    },
+    {
+      "issuer": "MP머티리얼스",
+      "ticker": null,
+      "memberCount": 3,
+      "shares": 92.0,
+      "members": [
+        "김은혜",
+        "민형배",
+        "박덕흠"
+      ]
+    },
+    {
+      "issuer": "현대건설",
+      "ticker": null,
+      "memberCount": 3,
+      "shares": 89.0,
+      "members": [
+        "강경숙",
+        "김영진",
+        "송석준"
+      ]
+    },
+    {
+      "issuer": "메타플랫폼스",
+      "ticker": "META",
+      "memberCount": 3,
+      "shares": 68.0,
+      "members": [
+        "박수영",
+        "조인철",
+        "한지아"
+      ]
+    }
+  ],
+  "topMembers": [
+    {
+      "name": "김남근",
+      "position": "국회의원",
+      "issuerCount": 92,
+      "relations": [
+        "배우자",
+        "본인",
+        "장녀"
+      ],
+      "topIssuers": [
+        "신한제16호스팩",
+        "미래에셋비전스팩7호",
+        "DB금융스팩12호",
+        "에이치엠씨제7호스팩",
+        "신한제15호스팩"
+      ]
+    },
+    {
+      "name": "강경숙",
+      "position": "국회의원",
+      "issuerCount": 36,
+      "relations": [
+        "배우자"
+      ],
+      "topIssuers": [
+        "삼성전자",
+        "슈어소프트테크",
+        "두산에너빌리티",
+        "한라캐스트",
+        "시스코시스템즈"
+      ]
+    },
+    {
+      "name": "최수진",
+      "position": "국회의원",
+      "issuerCount": 35,
+      "relations": [
+        "본인",
+        "부"
+      ],
+      "topIssuers": [
+        "티쓰리",
+        "삼성전자",
+        "스틱인베스트먼트",
+        "JB금융지주",
+        "현대지에프홀딩스"
+      ]
+    },
+    {
+      "name": "안도걸",
+      "position": "국회의원",
+      "issuerCount": 33,
+      "relations": [
+        "배우자",
+        "장남",
+        "차남"
+      ],
+      "topIssuers": [
+        "스텔로직",
+        "조비에비에이션",
+        "T-Rex2XLongMSTRDailyTargetETF",
+        "뉴스케일파워",
+        "로켓랩"
+      ]
+    },
+    {
+      "name": "양문석",
+      "position": "국회의원",
+      "issuerCount": 32,
+      "relations": [
+        "배우자",
+        "본인",
+        "장녀"
+      ],
+      "topIssuers": [
+        "삼성중공업",
+        "아이엠금융지주",
+        "BNK금융지주",
+        "테라울프",
+        "우리금융지주"
+      ]
+    },
+    {
+      "name": "민형배",
+      "position": "국회의원",
+      "issuerCount": 31,
+      "relations": [
+        "배우자",
+        "장녀"
+      ],
+      "topIssuers": [
+        "엔비디아",
+        "아처에비에이션",
+        "팔란티어테크",
+        "삼성전자",
+        "폭스콘산업인터넷"
+      ]
+    },
+    {
+      "name": "김건",
+      "position": "국회의원",
+      "issuerCount": 30,
+      "relations": [
+        "배우자"
+      ],
+      "topIssuers": [
+        "BYD",
+        "ESS테크",
+        "넷스코프",
+        "하나금융지주",
+        "메리츠금융지주"
+      ]
+    },
+    {
+      "name": "박정하",
+      "position": "국회의원",
+      "issuerCount": 28,
+      "relations": [
+        "배우자",
+        "장남"
+      ],
+      "topIssuers": [
+        "코스나인",
+        "하이브",
+        "스트라타시스",
+        "미래에셋글로벌리츠",
+        "삼성전자"
+      ]
+    },
+    {
+      "name": "소병훈",
+      "position": "국회의원",
+      "issuerCount": 25,
+      "relations": [
+        "배우자",
+        "본인",
+        "장녀",
+        "차녀"
+      ],
+      "topIssuers": [
+        "디지털대성",
+        "아틀란틱네비게이션홀딩스",
+        "회채홀딩스",
+        "화신자동차",
+        "퍼시픽센추리"
+      ]
+    },
+    {
+      "name": "김소희",
+      "position": "국회의원",
+      "issuerCount": 24,
+      "relations": [
+        "본인"
+      ],
+      "topIssuers": [
+        "지리자동차",
+        "한온시스템",
+        "환인제약",
+        "이랜텍",
+        "소파이테크놀로지스"
+      ]
+    },
+    {
+      "name": "유상범",
+      "position": "국회의원",
+      "issuerCount": 24,
+      "relations": [
+        "배우자"
+      ],
+      "topIssuers": [
+        "아이큐어",
+        "삼성중공업",
+        "알체라",
+        "아미코젠",
+        "에스씨엠생명과학"
+      ]
+    },
+    {
+      "name": "권칠승",
+      "position": "국회의원",
+      "issuerCount": 20,
+      "relations": [
+        "배우자",
+        "본인"
+      ],
+      "topIssuers": [
+        "우버",
+        "데스티니테크100",
+        "오라클",
+        "SUPERMICROCOMPUTERINC",
+        "CIRCLEINTERNETGROUPINC."
+      ]
+    },
+    {
+      "name": "김은혜",
+      "position": "국회의원",
+      "issuerCount": 20,
+      "relations": [
+        "배우자"
+      ],
+      "topIssuers": [
+        "태광",
+        "보로노이",
+        "뉴스케일파워",
+        "알테오젠",
+        "리가켐바이오"
+      ]
+    },
+    {
+      "name": "박덕흠",
+      "position": "국회의원",
+      "issuerCount": 20,
+      "relations": [
+        "배우자"
+      ],
+      "topIssuers": [
+        "CTG면세점",
+        "샤오미그룹",
+        "엔비디아",
+        "호텔신라",
+        "삼성전자"
+      ]
+    },
+    {
+      "name": "이용선",
+      "position": "국회의원",
+      "issuerCount": 19,
+      "relations": [
+        "배우자",
+        "장남",
+        "차남"
+      ],
+      "topIssuers": [
+        "휴메딕스",
+        "삼성전자",
+        "쿠콘",
+        "LG씨엔에스",
+        "기아"
+      ]
+    },
+    {
+      "name": "한민수",
+      "position": "국회의원",
+      "issuerCount": 19,
+      "relations": [
+        "배우자",
+        "장남",
+        "차녀"
+      ],
+      "topIssuers": [
+        "테슬라",
+        "C3.ai",
+        "아이온큐",
+        "세바",
+        "한미반도체"
+      ]
+    },
+    {
+      "name": "박정훈",
+      "position": "국회의원",
+      "issuerCount": 17,
+      "relations": [
+        "배우자",
+        "본인",
+        "장녀",
+        "차남"
+      ],
+      "topIssuers": [
+        "AST스페이스모바일",
+        "템퍼스AI",
+        "팔란티어테크",
+        "DFCDLYRKLBETF",
+        "로켓랩"
+      ]
+    },
+    {
+      "name": "김재섭",
+      "position": "국회의원",
+      "issuerCount": 16,
+      "relations": [
+        "모",
+        "본인"
+      ],
+      "topIssuers": [
+        "플럭스파워홀딩스",
+        "웹젠",
+        "삼성전자",
+        "ALPHABETINC",
+        "LG에너지솔루션"
+      ]
+    },
+    {
+      "name": "손명수",
+      "position": "국회의원",
+      "issuerCount": 16,
+      "relations": [
+        "본인"
+      ],
+      "topIssuers": [
+        "예스티",
+        "JobyAviation",
+        "에스티큐브",
+        "케이엔솔",
+        "NuscalePower"
+      ]
+    },
+    {
+      "name": "한병도",
+      "position": "국회의원",
+      "issuerCount": 16,
+      "relations": [
+        "배우자"
+      ],
+      "topIssuers": [
+        "[000063]ZTE",
+        "알리바바그룹홀딩스",
+        "리파인",
+        "삼성전자우",
+        "LG전자우"
+      ]
+    },
+    {
+      "name": "김윤",
+      "position": "국회의원",
+      "issuerCount": 15,
+      "relations": [
+        "배우자",
+        "본인",
+        "장녀"
+      ],
+      "topIssuers": [
+        "BGF에코머티리얼즈",
+        "신세계인터내셔날",
+        "원준",
+        "제이오",
+        "서진시스템"
+      ]
+    },
+    {
+      "name": "박희승",
+      "position": "국회의원",
+      "issuerCount": 15,
+      "relations": [
+        "배우자",
+        "장남"
+      ],
+      "topIssuers": [
+        "하이퍼코퍼레이션",
+        "캡티비전",
+        "신성이엔지",
+        "한화엔진",
+        "LG전자"
+      ]
+    },
+    {
+      "name": "유용원",
+      "position": "국회의원",
+      "issuerCount": 15,
+      "relations": [
+        "배우자",
+        "본인",
+        "차남"
+      ],
+      "topIssuers": [
+        "NH투자증권",
+        "아르킷퀀텀",
+        "카카오",
+        "우리금융지주",
+        "코카콜라"
+      ]
+    },
+    {
+      "name": "한지아",
+      "position": "국회의원",
+      "issuerCount": 15,
+      "relations": [
+        "배우자",
+        "장남",
+        "장녀"
+      ],
+      "topIssuers": [
+        "엔비디아",
+        "한화갤러리아",
+        "한화솔루션",
+        "마이크로소프트",
+        "월트디즈니"
+      ]
+    },
+    {
+      "name": "성일종",
+      "position": "국회의원",
+      "issuerCount": 14,
+      "relations": [
+        "배우자",
+        "본인"
+      ],
+      "topIssuers": [
+        "미쯔비시UFJ파이낸셜",
+        "NEC",
+        "TDK",
+        "마루베니",
+        "미쓰비시"
+      ]
+    },
+    {
+      "name": "송석준",
+      "position": "국회의원",
+      "issuerCount": 14,
+      "relations": [
+        "배우자",
+        "본인"
+      ],
+      "topIssuers": [
+        "이미지스테크놀로지",
+        "LG유플러스",
+        "차바이오텍",
+        "NAVER",
+        "HL만도"
+      ]
+    },
+    {
+      "name": "윤상현",
+      "position": "국회의원",
+      "issuerCount": 14,
+      "relations": [
+        "배우자",
+        "본인",
+        "삼녀"
+      ],
+      "topIssuers": [
+        "삼성전자",
+        "테라울프",
+        "로켓랩",
+        "팔란티어테크",
+        "오라클"
+      ]
+    },
+    {
+      "name": "조인철",
+      "position": "국회의원",
+      "issuerCount": 14,
+      "relations": [
+        "배우자"
+      ],
+      "topIssuers": [
+        "SMIC",
+        "XPENG-W",
+        "엔비디아",
+        "MPMATERIALSCORP",
+        "팔란티어테크"
+      ]
+    },
+    {
+      "name": "주진우",
+      "position": "국회의원",
+      "issuerCount": 14,
+      "relations": [
+        "배우자",
+        "본인"
+      ],
+      "topIssuers": [
+        "DB",
+        "메디아나",
+        "디오",
+        "한국조선해양",
+        "HD현대"
+      ]
+    },
+    {
+      "name": "박해철",
+      "position": "국회의원",
+      "issuerCount": 13,
+      "relations": [
+        "장남"
+      ],
+      "topIssuers": [
+        "빔테라퓨틱스",
+        "샤오펑ADR",
+        "리게티컴퓨팅",
+        "재즈파마슈티컬스",
+        "엔비디아"
+      ]
+    },
+    {
+      "name": "정성국",
+      "position": "국회의원",
+      "issuerCount": 13,
+      "relations": [
+        "장남",
+        "장녀"
+      ],
+      "topIssuers": [
+        "메이시스",
+        "EPR프라퍼티스",
+        "콜스",
+        "사이먼프라퍼티그룹",
+        "빅베어AI홀딩스"
+      ]
+    },
+    {
+      "name": "김용태",
+      "position": "국회의원",
+      "issuerCount": 12,
+      "relations": [
+        "모"
+      ],
+      "topIssuers": [
+        "비유테크놀러지",
+        "LB세미콘",
+        "아이티엠반도체",
+        "모더나",
+        "GS건설"
+      ]
+    },
+    {
+      "name": "문금주",
+      "position": "국회의원",
+      "issuerCount": 12,
+      "relations": [
+        "배우자",
+        "본인"
+      ],
+      "topIssuers": [
+        "삼성전자",
+        "웨스턴유니온",
+        "이녹스첨단소재",
+        "한화갤러리아",
+        "한화솔루션"
+      ]
+    },
+    {
+      "name": "박균택",
+      "position": "국회의원",
+      "issuerCount": 12,
+      "relations": [
+        "차녀"
+      ],
+      "topIssuers": [
+        "티웨이항공",
+        "셀트리온",
+        "휴온스",
+        "신성델타테크",
+        "동화약품"
+      ]
+    },
+    {
+      "name": "서지영",
+      "position": "국회의원",
+      "issuerCount": 12,
+      "relations": [
+        "모",
+        "장남",
+        "차남"
+      ],
+      "topIssuers": [
+        "HMM",
+        "현대제철",
+        "엔비디아",
+        "JOBYAVIATIONINC",
+        "힘스앤허스헬스"
+      ]
+    },
+    {
+      "name": "권향엽",
+      "position": "국회의원",
+      "issuerCount": 11,
+      "relations": [
+        "배우자",
+        "장남"
+      ],
+      "topIssuers": [
+        "나라스페이스테크놀로지",
+        "리얼티인컴",
+        "나이키 B",
+        "UBSGROUPNORD",
+        "CNSTLNENRGYORD"
+      ]
+    },
+    {
+      "name": "문정복",
+      "position": "국회의원",
+      "issuerCount": 11,
+      "relations": [
+        "장녀"
+      ],
+      "topIssuers": [
+        "오름테라퓨틱",
+        "마라홀딩스",
+        "미스터블루",
+        "HD현대마린엔진",
+        "삼성전자"
+      ]
+    },
+    {
+      "name": "박충권",
+      "position": "국회의원",
+      "issuerCount": 11,
+      "relations": [
+        "배우자"
+      ],
+      "topIssuers": [
+        "SK하이닉스",
+        "파라다이스",
+        "대한항공",
+        "신흥에스이씨",
+        "카카오"
+      ]
+    },
+    {
+      "name": "신동욱",
+      "position": "국회의원",
+      "issuerCount": 11,
+      "relations": [
+        "배우자",
+        "본인",
+        "장남"
+      ],
+      "topIssuers": [
+        "제넥신",
+        "알루코",
+        "젬백스링크",
+        "맥쿼리한국인프라투융자회사",
+        "카카오뱅크"
+      ]
+    },
+    {
+      "name": "이강일",
+      "position": "국회의원",
+      "issuerCount": 11,
+      "relations": [
+        "장녀",
+        "차녀"
+      ],
+      "topIssuers": [
+        "MICROBOTMEDICALINC",
+        "두산에너빌리티",
+        "한화오션",
+        "네비우스그룹",
+        "아이렌"
+      ]
+    },
+    {
+      "name": "정동만",
+      "position": "국회의원",
+      "issuerCount": 11,
+      "relations": [
+        "장남"
+      ],
+      "topIssuers": [
+        "나이키",
+        "AMC엔터테인먼트홀딩스",
+        "엔비디아",
+        "게임스탑",
+        "팔란티어테크"
+      ]
+    },
+    {
+      "name": "박수영",
+      "position": "국회의원",
+      "issuerCount": 10,
+      "relations": [
+        "차남"
+      ],
+      "topIssuers": [
+        "INTELCORP",
+        "애플",
+        "ALPHABETINC",
+        "코카콜라",
+        "삼성전자"
+      ]
+    },
+    {
+      "name": "정연욱",
+      "position": "국회의원",
+      "issuerCount": 10,
+      "relations": [
+        "배우자",
+        "본인"
+      ],
+      "topIssuers": [
+        "엔비디아",
+        "마이크로소프트",
+        "알파벳 A",
+        "아마존닷컴",
+        "팔란티어테크"
+      ]
+    },
+    {
+      "name": "진성준",
+      "position": "국회의원",
+      "issuerCount": 9,
+      "relations": [
+        "배우자",
+        "장남"
+      ],
+      "topIssuers": [
+        "자이에스앤디",
+        "카카오",
+        "기아",
+        "마이크로소프트",
+        "아처대니얼스미들랜드"
+      ]
+    },
+    {
+      "name": "김문수",
+      "position": "국회의원",
+      "issuerCount": 8,
+      "relations": [
+        "배우자"
+      ],
+      "topIssuers": [
+        "삼성전자",
+        "대한항공",
+        "센코",
+        "남선알미늄",
+        "에이텍"
+      ]
+    },
+    {
+      "name": "나경원",
+      "position": "국회의원",
+      "issuerCount": 8,
+      "relations": [
+        "장남"
+      ],
+      "topIssuers": [
+        "카카오",
+        "한국콜마",
+        "LG전자",
+        "넷마블",
+        "아모레퍼시픽"
+      ]
+    },
+    {
+      "name": "염태영",
+      "position": "국회의원",
+      "issuerCount": 8,
+      "relations": [
+        "배우자"
+      ],
+      "topIssuers": [
+        "KG케미칼",
+        "더네이쳐홀딩스",
+        "JW생명과학",
+        "에스에프에이",
+        "인선이엔티"
+      ]
+    },
+    {
+      "name": "박선원",
+      "position": "국회의원",
+      "issuerCount": 7,
+      "relations": [
+        "배우자",
+        "본인"
+      ],
+      "topIssuers": [
+        "[600111]북방희토",
+        "리게티컴퓨팅",
+        "현대바이오",
+        "삼성전자",
+        "조비에비에이션"
+      ]
+    },
+    {
+      "name": "이주영",
+      "position": "국회의원",
+      "issuerCount": 7,
+      "relations": [
+        "본인",
+        "장남",
+        "장녀",
+        "차남"
+      ],
+      "topIssuers": [
+        "엔비디아",
+        "테슬라",
+        "코카콜라",
+        "AT&TINC",
+        "JOHNSON&JOHNSON"
+      ]
+    },
+    {
+      "name": "한기호",
+      "position": "국회의원",
+      "issuerCount": 7,
+      "relations": [
+        "배우자",
+        "본인"
+      ],
+      "topIssuers": [
+        "SK바이오사이언스",
+        "카카오",
+        "LG씨엔에스",
+        "엔비디아",
+        "애플"
+      ]
+    },
+    {
+      "name": "강민국",
+      "position": "국회의원",
+      "issuerCount": 6,
+      "relations": [
+        "장녀"
+      ],
+      "topIssuers": [
+        "삼성증권",
+        "AGNCINVESTMENT",
+        "우리금융지주",
+        "AT&T",
+        "리얼티인컴"
+      ]
+    },
+    {
+      "name": "권영진",
+      "position": "국회의원",
+      "issuerCount": 6,
+      "relations": [
+        "배우자",
+        "본인"
+      ],
+      "topIssuers": [
+        "대창솔루션",
+        "씨아이에스",
+        "삼성전자",
+        "엘앤에프",
+        "하나투어"
+      ]
+    },
+    {
+      "name": "김기웅",
+      "position": "국회의원",
+      "issuerCount": 6,
+      "relations": [
+        "차남"
+      ],
+      "topIssuers": [
+        "데니슨마인스",
+        "울트라클린홀딩스",
+        "크리스퍼테라퓨틱스",
+        "록히드마틴",
+        "셰브론"
+      ]
+    },
+    {
+      "name": "김성회",
+      "position": "국회의원",
+      "issuerCount": 6,
+      "relations": [
+        "배우자"
+      ],
+      "topIssuers": [
+        "테슬라",
+        "오픈도어테크놀로지스",
+        "알파벳 A",
+        "OPENDOORTECHNOLOSRSAEQYWARRANT",
+        "OPENDOORTECHNOLOSRSKEQYWARRANT"
+      ]
+    },
+    {
+      "name": "김준혁",
+      "position": "국회의원",
+      "issuerCount": 6,
+      "relations": [
+        "모",
+        "배우자",
+        "본인",
+        "장남"
+      ],
+      "topIssuers": [
+        "티로보틱스",
+        "엘에스마린솔루션",
+        "삼성전자",
+        "엔비디아",
+        "테슬라"
+      ]
+    },
+    {
+      "name": "문대림",
+      "position": "국회의원",
+      "issuerCount": 6,
+      "relations": [
+        "배우자",
+        "차남"
+      ],
+      "topIssuers": [
+        "알테오젠",
+        "두산에너빌리티",
+        "마이크로소프트",
+        "현대차",
+        "테슬라"
+      ]
+    },
+    {
+      "name": "문진석",
+      "position": "국회의원",
+      "issuerCount": 6,
+      "relations": [
+        "장남"
+      ],
+      "topIssuers": [
+        "케이피엠테크",
+        "나이키",
+        "엔비디아",
+        "ALPHABETINC",
+        "마이크로소프트"
+      ]
+    },
+    {
+      "name": "서미화",
+      "position": "국회의원",
+      "issuerCount": 6,
+      "relations": [
+        "배우자",
+        "장녀"
+      ],
+      "topIssuers": [
+        "휴맥스",
+        "테슬라",
+        "엔비디아",
+        "애플",
+        "마이크로소프트"
+      ]
+    },
+    {
+      "name": "안상훈",
+      "position": "국회의원",
+      "issuerCount": 6,
+      "relations": [
+        "배우자"
+      ],
+      "topIssuers": [
+        "조비에비에이션",
+        "화이자",
+        "두산에너빌리티",
+        "현대로템",
+        "로빈후드"
+      ]
+    },
+    {
+      "name": "어기구",
+      "position": "국회의원",
+      "issuerCount": 6,
+      "relations": [
+        "장남"
+      ],
+      "topIssuers": [
+        "AT&T",
+        "삼성전자",
+        "WarnerBrosDis",
+        "NAVER",
+        "DigitalOceanHldg"
+      ]
+    }
+  ]
+}

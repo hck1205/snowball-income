@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import { CalendarRange } from 'lucide-react';
 import {
   DataSection,
@@ -14,7 +14,7 @@ import {
 import { ICON } from '@/shared/styles';
 import type { MarketEarlyClose, MarketHoliday } from '@/shared/constants/marketCalendar';
 import { MARKET_CALENDAR_COPY } from '../copy';
-import { MonthGrid } from '../components';
+import { DayDrawer, MonthGrid } from '../components';
 import {
   buildMarketMonth,
   buildTodayStatus,
@@ -40,7 +40,13 @@ const UPCOMING_COLUMNS = [
   {
     key: 'date',
     header: copy.upcoming.columnDate,
-    render: (row: UpcomingItem) => `${formatMonthDay(row.date)} (${formatWeekday(row.date)})`
+    render: (row: UpcomingItem) => `${formatMonthDay(row.date)} (${formatWeekday(row.date)})`,
+    /*
+     * 🔴 **같은 날짜는 한 칸으로 합친다**(2026-08-05 사용자 지시). 하루에 지표가 셋씩 걸리는 날이
+     * 흔해서, 합치기 전에는 같은 날짜가 세 줄에 반복돼 눈이 "며칠에 무엇이 있나"를 세기 어려웠다.
+     * ⚠ 이 병합은 **행이 날짜순일 때만** 옳다. `buildUpcoming` 이 날짜·시각 순으로 정렬해 돌려준다.
+     */
+    mergeKey: (row: UpcomingItem) => row.date
   },
   { key: 'event', header: copy.upcoming.columnEvent, render: (row: UpcomingItem) => row.labelKo },
   {
@@ -66,12 +72,26 @@ export default function MarketCalendarView({ viewModel }: MarketCalendarViewProp
   const { today, snapshot, closures, earnings, year: thisYear } = viewModel;
 
   const [cursor, setCursor] = useState(() => ({ year: today.getFullYear(), month: today.getMonth() + 1 }));
+  /**
+   * 드로어가 보고 있는 날(`YYYY-MM-DD`). 닫혀 있으면 `null`.
+   *
+   * 🔴 **날짜 문자열**을 상태로 둔다(칸 객체가 아니라). 달을 옮기면 칸 객체는 새로 만들어지므로,
+   * 객체를 들고 있으면 이전 달의 낡은 칸을 계속 그리게 된다. 문자열을 두고 지금 달에서 다시 찾는다.
+   */
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const dayDrawerId = useId();
 
   const month = useMemo(() => buildMarketMonth({ ...cursor, today }), [cursor, today]);
   const upcoming = useMemo(() => buildUpcoming(today, UPCOMING_ROWS), [today]);
   const status = useMemo(() => buildTodayStatus(today), [today]);
 
   const isThisMonth = cursor.year === today.getFullYear() && cursor.month === today.getMonth() + 1;
+
+  /* 지금 달의 칸에서 고른 날짜를 찾는다. 달을 옮겨 그 날짜가 사라지면 `null` — 드로어도 닫힌다. */
+  const selectedCell = useMemo(
+    () => (selectedDate ? (month.weeks.flat().find((cell) => cell.date === selectedDate) ?? null) : null),
+    [month, selectedDate]
+  );
 
   const holidayColumns = [
     {
@@ -143,7 +163,11 @@ export default function MarketCalendarView({ viewModel }: MarketCalendarViewProp
             onShift={(delta) => setCursor((prev) => shiftMonth(prev.year, prev.month, delta))}
             onReset={() => setCursor({ year: today.getFullYear(), month: today.getMonth() + 1 })}
             canReset={!isThisMonth}
+            onSelectDay={setSelectedDate}
+            selectedDate={selectedDate}
           />
+          {/* 칸이 눌린다는 사실을 격자 아래에서 한 번만 말한다(칸마다 적으면 42번 반복된다). */}
+          <MonthNote>{copy.month.dayHint}</MonthNote>
           <MonthNote>
             {month.curated ? copy.month.summary(month.holidayCount, month.earlyCloseCount) : copy.month.notCurated}
           </MonthNote>
@@ -151,6 +175,13 @@ export default function MarketCalendarView({ viewModel }: MarketCalendarViewProp
           {`${month.year}-${String(month.month).padStart(2, '0')}-01` > snapshot.rangeEnd ? (
             <MonthNote>{copy.month.beyondRange}</MonthNote>
           ) : null}
+          {/* 하루치 상세 — 달력 칸이 접은 것(+N건 더)을 펴 보는 자리. 달력 바로 아래에 산다. */}
+          <DayDrawer
+            id={dayDrawerId}
+            isOpen={selectedCell !== null}
+            cell={selectedCell}
+            onClose={() => setSelectedDate(null)}
+          />
         </DataSection>
 
         <DataSection title={copy.upcoming.heading} subtitle={copy.upcoming.subtitle}>
@@ -173,7 +204,14 @@ export default function MarketCalendarView({ viewModel }: MarketCalendarViewProp
                   key: 'date',
                   header: copy.earnings.columnDate,
                   render: (row: (typeof earnings)[number]) =>
-                    `${formatMonthDay(row.date)} (${formatWeekday(row.date)})`
+                    `${formatMonthDay(row.date)} (${formatWeekday(row.date)})`,
+                  /*
+                   * 🔴 실적 표야말로 병합이 필요한 자리다 — 하루에 수십 건이 몰려서, 합치기 전에는
+                   * 같은 날짜가 스무 줄 넘게 되풀이됐다(2026-08-06 사용자 지시로 확대 적용).
+                   * ⚠ 병합은 **연속한 것만** 합치므로 행이 날짜순이어야 한다. 이 배열은 컨테이너가
+                   *   날짜·세션 순으로 정렬해 넘긴다.
+                   */
+                  mergeKey: (row: (typeof earnings)[number]) => row.date
                 },
                 {
                   key: 'ticker',

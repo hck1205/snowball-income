@@ -5,6 +5,7 @@ import { routes } from '@/router/routes';
 import { CONGRESS_COPY } from '@/pages/Congress/copy';
 import { NPS_COPY } from '@/pages/Nps/copy';
 import { MARKET_CALENDAR_COPY } from '@/pages/MarketCalendar/copy';
+import { KOREA_ASSEMBLY_COPY } from '@/pages/KoreaAssembly/copy';
 
 /**
  * 2026-08-04 에 붙은 자료형 화면 셋의 **라우트 계약**.
@@ -39,6 +40,13 @@ const CASES = [
     title: MARKET_CALENDAR_COPY.hero.title,
     limitsHeading: MARKET_CALENDAR_COPY.limits.heading,
     firstTableHeading: MARKET_CALENDAR_COPY.month.heading
+  },
+  {
+    /* 2026-08-05 합류. 같은 세 계약을 그대로 받는다 — 자료의 한계가 본문만큼 중요한 화면이라서다. */
+    path: '/portfolio/korea-assembly',
+    title: KOREA_ASSEMBLY_COPY.hero.title,
+    limitsHeading: KOREA_ASSEMBLY_COPY.limits.heading,
+    firstTableHeading: KOREA_ASSEMBLY_COPY.issuers.heading
   }
 ] as const;
 
@@ -68,13 +76,17 @@ describe('자료형 화면 라우트', () => {
     expect(link).toHaveAttribute('href', expect.stringContaining('disclosures-clerk.house.gov'));
   });
 
-  /** 🔴 한국 자료가 없다는 사실 자체가 이 화면의 내용이다 — 조용히 빠지면 "빠뜨렸다"로 읽힌다. */
-  it('국회의원 화면이 대한민국 국회 자료의 상태를 밝힌다', async () => {
+  /**
+   * 🔴 두 자료의 성격이 다르다는 사실 자체가 이 화면의 내용이다.
+   * 2026-08-05 에 한국 화면이 생기면서 "자료가 없다"에서 "따로 있다"로 바뀌었고, 이 테스트는
+   * 미국 화면이 **그 사실을 말하고 실제로 건너갈 수 있는지**를 잠근다.
+   */
+  it('국회의원 화면이 대한민국 국회 자료로 건너가는 길을 준다', async () => {
     renderAt('/portfolio/congress');
     expect(await screen.findByRole('heading', { name: CONGRESS_COPY.korea.heading })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: CONGRESS_COPY.korea.sourceName })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: CONGRESS_COPY.korea.linkLabel })).toHaveAttribute(
       'href',
-      CONGRESS_COPY.korea.sourceUrl
+      CONGRESS_COPY.korea.linkTo
     );
   });
 

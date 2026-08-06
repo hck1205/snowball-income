@@ -1,8 +1,9 @@
-import { PiggyBank } from 'lucide-react';
+import { MinusCircle, PiggyBank, PlusCircle } from 'lucide-react';
 import {
   DataSection,
   DataTable,
   NoteList,
+  OverflowTooltip,
   PageHero,
   SectionLink,
   SectionMeta,
@@ -26,8 +27,11 @@ import {
   EmptyNote,
   Issuer,
   MoveColumn,
+  MoveCount,
   MoveGrid,
+  MoveHead,
   MoveHeading,
+  MoveIssuerCell,
   NewBadge,
   Num,
   ReclassMark
@@ -39,7 +43,13 @@ const HOLDING_COLUMNS = [
   {
     key: 'issuer',
     header: copy.holdings.columnIssuer,
-    render: (row: NpsHolding) => <Issuer>{formatIssuer(row.issuer)}</Issuer>
+    /* 이름이 두 줄을 넘겨 잘리면 그때만 전체 이름을 툴팁으로 연다(2026-08-05 사용자 지시).
+       ⚠ 잘리지 않은 이름에는 툴팁이 붙지 않는다 — 안 그러면 표 전체가 마우스만 올려도 반응한다. */
+    render: (row: NpsHolding) => (
+      <OverflowTooltip text={formatIssuer(row.issuer)}>
+        <Issuer />
+      </OverflowTooltip>
+    )
   },
   { key: 'value', header: copy.holdings.columnValue, render: (row: NpsHolding) => <Num>{formatUsdShort(row.valueUsd)}</Num> },
   { key: 'weight', header: copy.holdings.columnWeight, render: (row: NpsHolding) => <Num>{formatWeight(row.weightPercent)}</Num> },
@@ -75,12 +85,15 @@ export default function NpsView({ viewModel }: NpsViewProps) {
       key: 'issuer',
       header: copy.moves.columnIssuer,
       render: (row: NpsMove) => (
-        <Issuer>
-          {formatIssuer(row.issuer)}
+        <MoveIssuerCell>
+          <OverflowTooltip text={formatIssuer(row.issuer)}>
+            <Issuer />
+          </OverflowTooltip>
+          {/* 재편입 표시는 툴팁 **밖**이다 — 툴팁 자식은 텍스트 하나여야 잘림 측정이 정확하다. */}
           {reclassified.has(row.issuer) ? (
             <ReclassMark title={copy.moves.reclassifiedNote}>재편입</ReclassMark>
           ) : null}
-        </Issuer>
+        </MoveIssuerCell>
       )
     },
     { key: 'value', header: copy.moves.columnValue, render: (row: NpsMove) => <Num>{formatUsdShort(row.valueUsd)}</Num> }
@@ -110,13 +123,23 @@ export default function NpsView({ viewModel }: NpsViewProps) {
                   : undefined
               }
             />
+            {/*
+              🔴 나머지 셋은 `lead` 다(2026-08-06 사용자 지시: 신고 총액처럼 값이 크게 보이고 설명이
+              그 아래 붙는 형태로 통일). 종전에는 `default` 라 값이 18px 우측정렬이어서, 같은 줄의
+              신고 총액과 **다른 종류의 칸**처럼 읽혔다.
+              ⚠ 넷을 전부 `hero` 로 올리지 않는다 — 좌측 오로라 리본은 화면당 한 군데여야 뜻이 있고,
+                넷이 같은 크기가 되면 "이 화면의 주역"이 사라진다. `lead` 는 크기만 따라간다.
+            */}
             <StatTile
               label={copy.summary.holdings}
               value={`${snapshot.totalHoldingCount.toLocaleString('ko-KR')}${copy.summary.holdingsUnit}`}
+              emphasis="lead"
+              hint={copy.summary.holdingsHint}
             />
             <StatTile
               label={copy.summary.change}
               value={formatChangePercent(totalChangePercent)}
+              emphasis="lead"
               tone={
                 changeDirection(totalChangePercent) === 'up'
                   ? 'positive'
@@ -126,7 +149,13 @@ export default function NpsView({ viewModel }: NpsViewProps) {
               }
               hint={copy.summary.changeHint}
             />
-            <StatTile label={copy.summary.reportDate} value={snapshot.reportDate} />
+            {/* 🔴 종전의 "기준일" 칸을 대신한다 — 그 값은 히어로가 이미 두 번 말한다(copy 주석 참고). */}
+            <StatTile
+              label={copy.summary.moves}
+              value={copy.summary.movesValue(opened.length, closed.length)}
+              emphasis="lead"
+              hint={copy.summary.movesHint}
+            />
           </SummaryGrid>
         </DataSection>
 
@@ -147,16 +176,29 @@ export default function NpsView({ viewModel }: NpsViewProps) {
           meta={snapshot.previousReportDate ? undefined : copy.moves.noComparison}
         >
           <MoveGrid>
-            <MoveColumn>
-              <MoveHeading>{copy.moves.openedHeading}</MoveHeading>
+            {/* 🔴 방향은 **아이콘 + 글자**가 진다(면색이 아니라) — 이 화면에서 색은 손익을 뜻한다. */}
+            <MoveColumn aria-labelledby="nps-moves-opened">
+              <MoveHead>
+                <MoveHeading id="nps-moves-opened">
+                  <PlusCircle size={ICON.sm} strokeWidth={1.8} aria-hidden focusable={false} />
+                  {copy.moves.openedHeading}
+                </MoveHeading>
+                <MoveCount>{`${opened.length}${copy.summary.holdingsUnit}`}</MoveCount>
+              </MoveHead>
               {opened.length > 0 ? (
                 <DataTable columns={moveColumns} rows={[...opened]} />
               ) : (
                 <EmptyNote>{copy.moves.emptyOpened}</EmptyNote>
               )}
             </MoveColumn>
-            <MoveColumn>
-              <MoveHeading>{copy.moves.closedHeading}</MoveHeading>
+            <MoveColumn aria-labelledby="nps-moves-closed">
+              <MoveHead>
+                <MoveHeading id="nps-moves-closed">
+                  <MinusCircle size={ICON.sm} strokeWidth={1.8} aria-hidden focusable={false} />
+                  {copy.moves.closedHeading}
+                </MoveHeading>
+                <MoveCount>{`${closed.length}${copy.summary.holdingsUnit}`}</MoveCount>
+              </MoveHead>
               {closed.length > 0 ? (
                 <DataTable columns={moveColumns} rows={[...closed]} />
               ) : (
