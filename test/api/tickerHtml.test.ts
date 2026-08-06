@@ -1,5 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { handler } from '@/server/handlers/TickerHtml';
+import { renderRelatedTickers } from '@/server/handlers/TickerHtml/TickerHtml';
+import { DIVIDEND_UNIVERSE } from '@/shared/constants/presets';
+import type { PresetTickerKey } from '@/shared/constants/presets';
 import { TICKER_CONTENT_LIST } from '@/shared/constants/tickers';
 import { apiRequest, buildIndexHtmlShell, indexHtmlRoute, indexHtmlThrowingRoute, stubFetchRoutes } from './apiHarness';
 
@@ -9,6 +12,20 @@ import { apiRequest, buildIndexHtmlShell, indexHtmlRoute, indexHtmlThrowingRoute
  * `PostHtml`과 달리 DB 조회가 없다(`shared/constants/tickers`는 코드에 커밋된 정적 데이터) — 그래서
  * 스텁할 외부 I/O는 `/index.html` 셸 fetch 하나뿐이다.
  */
+
+/**
+ * 🔴 **앵커를 런타임에 고른다.** 종전에는 "콘텐츠 페이지가 없는 티커"를 소스에 상수로 적었는데
+ * (SCHD→HDV→SDY→DVY→AMGN), 티커 페이지가 늘 때마다 그 상수에 페이지가 생겨 테스트가 깨졌다 —
+ * 2026-08-06 하루에만 두 번 깨졌다. 유니버스에서 아직 페이지가 없는 티커를 **그때그때 계산**하면
+ * 데이터가 어떻게 차오르든 유효하고, 전부 페이지를 갖는 날에는 명확한 메시지로 멈춘다.
+ */
+const tickerWithoutContentPage = (): PresetTickerKey => {
+  const covered = new Set<string>(TICKER_CONTENT_LIST.map((entry) => entry.ticker));
+  /* 🔴 키 유니온으로 좁혀 돌려준다 — 호출부가 프리셋 조회에 그대로 넘기므로 string 이면 타입이 막힌다. */
+  const orphan = (Object.keys(DIVIDEND_UNIVERSE) as PresetTickerKey[]).find((ticker) => !covered.has(ticker));
+  if (!orphan) throw new Error('픽스처 전제: 콘텐츠 페이지가 없는 유니버스 티커가 하나는 남아 있다');
+  return orphan;
+};
 
 const SCHD_JSON_LD = (html: string): unknown[] => {
   const matches = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)];
@@ -354,19 +371,35 @@ describe('api/ticker-html — 2026-07-23 추가 10종 스모크', () => {
   });
 
   /**
-   * 🔴 이 검사의 앵커는 **"그 시점에 콘텐츠가 없는 관련 티커"** 라서, 그 티커에 페이지가 생기면
-   * 검사 자체가 무의미해진다(실제로 그렇게 됐다 — 2026-08-02 배치가 NOBL 페이지를 만들자 원래
-   * 앵커였던 HDV→NOBL 이 링크로 바뀌어 빨개졌다). 앵커를 옮길 때는 **레지스트리에 없는 심볼**을
-   * 골라야 한다 — 아래 `expect(...).toBe(false)` 가 그 전제를 먼저 단정하므로, 다음에 DVY 페이지가
-   * 생기면 "링크가 됐다"가 아니라 "앵커 전제가 깨졌다"로 먼저 빨개진다.
+   * 🔴 **앵커를 데이터에서 뗐다**(2026-08-06). 이 검사는 "그 시점에 콘텐츠가 없는 관련 티커"를 실제
+   * 데이터에서 골라 썼고 그 티커에 페이지가 생길 때마다 옮겨야 했다(HDV→NOBL→DVY). 티커가 27 →
+   * 59종이 되면서 **관련 티커로 언급된 심볼이 전부 페이지를 갖게 돼** 앵커 자체가 사라졌다.
+   *
+   * 그래서 이제 두 가지를 나눠 본다:
+   *  ① 콘텐츠가 **있는** 관련 티커는 링크로 승격된다(아래 DVY — 실제 데이터로 확인 가능)
+   *  ② 콘텐츠가 **없는** 심볼의 게이팅은 렌더러에 직접 물어본다(데이터와 무관)
    */
-  it('SDY: 콘텐츠 없는 관련 티커(DVY)는 링크가 아니라 텍스트로만 남는다', async () => {
+  it('SDY: 콘텐츠가 생긴 관련 티커(DVY)는 링크로 승격된다', async () => {
     stubFetchRoutes([indexHtmlRoute()]);
     const html = await (await handler(apiRequest('/api/ticker-html', { name: 'sdy' }))).text();
 
-    expect(TICKER_CONTENT_LIST.some((entry) => entry.ticker === 'DVY')).toBe(false);
-    expect(html).toContain('배당률 자체를 우선한 셀렉트 배당을 원한다면 — DVY');
-    expect(html).not.toContain('href="/ticker/dvy"');
+    expect(TICKER_CONTENT_LIST.some((entry) => entry.ticker === 'DVY')).toBe(true);
+    expect(html).toContain('배당률 자체를 우선한 셀렉트 배당을 원한다면');
+    expect(html).toContain('href="/ticker/dvy"');
+  });
+
+  /**
+   * 게이팅 자체 — **레지스트리에 없는 심볼은 링크가 되지 않는다.** 데이터가 어떻게 차오르든
+   * 이 단정은 유효하다(위 주석의 ②).
+   */
+  it('레지스트리에 없는 관련 티커는 링크가 되지 않는다 (게이팅은 데이터 비의존)', () => {
+    const orphan = tickerWithoutContentPage();
+    expect(TICKER_CONTENT_LIST.some((entry) => entry.ticker === orphan)).toBe(false);
+
+    const html = renderRelatedTickers([{ ticker: orphan, relationLabel: '콘텐츠가 없는 관련 티커' }]);
+
+    expect(html).toContain(orphan);
+    expect(html).not.toContain(`href="/ticker/${orphan.toLowerCase()}"`);
   });
 
   it('JEPI: 액티브 운용이라 추종 지수 프로퍼티 없이도 FinancialProduct JSON-LD가 유효하다', async () => {

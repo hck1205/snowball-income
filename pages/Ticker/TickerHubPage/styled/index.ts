@@ -58,8 +58,9 @@ export {
   LibrarySpecLabel,
   LibrarySpecValue,
   Masthead,
-  MastheadEyebrow,
+
   MastheadLede,
+  MastheadMascot,
   MastheadTitle
 } from './masthead';
 

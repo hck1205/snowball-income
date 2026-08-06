@@ -182,6 +182,10 @@ export default function TickerCompareView({
         title={copy.hero.title}
         titleAs="h1"
         lede={copy.hero.lede}
+        /* 비교는 "어디로 갈지 고르는" 화면이라 지도를 든 하마다(2026-08-05 사용자 지시).
+           ⚠ 크기는 sm → md 로 되돌렸다. 이 히어로는 제목·리드뿐이라 세로가 짧고, sm 에서는
+             그림이 눈에 띄지 않았다(히어로가 min-height 로 자리를 만들어 준다). */
+        mascot="/images/hippo/hippo_map.png"
       />
 
       {/*

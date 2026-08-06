@@ -1,8 +1,27 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { DIVIDEND_UNIVERSE } from '@/shared/constants/presets';
+import type { PresetTickerKey } from '@/shared/constants/presets';
 import { resolveTickerEngineFacts, TICKER_CONTENT_LIST } from '@/shared/constants/tickers';
 import TickerDetailPage from './TickerDetailPage';
+import { buildTickerDetailViewModel } from './TickerDetailPage.utils';
+
+/**
+ * 🔴 **앵커를 런타임에 고른다.** 종전에는 "콘텐츠 페이지가 없는 티커"를 소스에 상수로 적었는데
+ * (SCHD→HDV→SDY→DVY→AMGN), 티커 페이지가 늘 때마다 그 상수에 페이지가 생겨 테스트가 깨졌다 —
+ * 2026-08-06 하루에만 두 번 깨졌다. 유니버스에서 아직 페이지가 없는 티커를 **그때그때 계산**하면
+ * 데이터가 어떻게 차오르든 유효하고, 전부 페이지를 갖는 날에는 명확한 메시지로 멈춘다.
+ */
+const tickerWithoutContentPage = (): PresetTickerKey => {
+  const covered = new Set<string>(TICKER_CONTENT_LIST.map((entry) => entry.ticker));
+  /* 🔴 키 유니온으로 좁혀 돌려준다 — 호출부가 프리셋 조회에 그대로 넘기므로 string 이면 타입이 막힌다. */
+  const orphan = (Object.keys(DIVIDEND_UNIVERSE) as PresetTickerKey[]).find((ticker) => !covered.has(ticker));
+  if (!orphan) throw new Error('픽스처 전제: 콘텐츠 페이지가 없는 유니버스 티커가 하나는 남아 있다');
+  return orphan;
+};
 
 function renderAt(path: string) {
   return render(
@@ -55,17 +74,36 @@ describe('TickerDetailPage', () => {
   });
 
   /**
-   * 🔴 이 검사의 앵커는 "그 시점에 콘텐츠가 없는 관련 티커"라서, 그 티커에 페이지가 생기면 검사가
-   * 무의미해진다 — 실제로 두 번 옮겼다(SCHD→HDV→SDY). 2026-08-02 배치가 NOBL 페이지를 만들면서
-   * HDV→NOBL 이 링크로 승격돼 빨개졌다. 앵커를 옮길 때는 **레지스트리에 없는 심볼**을 골라야 하고,
-   * 아래 첫 단정이 그 전제를 먼저 확인하므로 DVY 페이지가 생기면 원인이 바로 드러난다.
+   * 🔴 **앵커를 데이터에서 뗐다**(2026-08-06). 이 검사는 원래 "그 시점에 콘텐츠가 없는 관련 티커"를
+   * 실제 데이터에서 골라 썼고, 그 티커에 페이지가 생길 때마다 옮겨야 했다(SCHD→HDV→SDY→DVY).
+   * 2026-08-06 에 티커가 27 → 59종이 되면서 **관련 티커로 언급된 심볼이 전부 페이지를 갖게 됐다** —
+   * 즉 실제 데이터에는 앵커가 더 이상 없고, 앞으로도 생기지 않을 가능성이 높다.
+   *
+   * 그래서 게이팅을 **뷰모델 층에서** 단정한다. 이쪽이 원래 검사하려던 것에 더 가깝기도 하다:
+   * "레지스트리에 없는 심볼은 `hasContent: false` 로 내려온다"가 규칙이고, 화면의 비링크 카드는
+   * 그 값의 결과일 뿐이다. 데이터가 어떻게 차오르든 이 단정은 계속 유효하다.
    */
-  it('renders related tickers without content as plain text, not dead-end links', () => {
-    expect(TICKER_CONTENT_LIST.some((entry) => entry.ticker === 'DVY')).toBe(false);
+  it('marks related tickers without a content page as hasContent: false (gate is data-independent)', () => {
+    /* 유니버스에는 있고 페이지는 없는 티커 — 상수로 적지 않는다(위 헬퍼 주석). */
+    const anchor = tickerWithoutContentPage();
+    expect(TICKER_CONTENT_LIST.some((entry) => entry.ticker === anchor)).toBe(false);
 
-    renderAt('/ticker/sdy');
-    expect(screen.getByText('DVY')).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: /DVY/ })).toBeNull();
+    const base = TICKER_CONTENT_LIST.find((entry) => entry.ticker === 'SCHD');
+    if (!base) throw new Error('픽스처 전제: SCHD 콘텐츠는 항상 있다');
+
+    const viewModel = buildTickerDetailViewModel({
+      ...base,
+      relatedTickers: [
+        { ticker: 'VIG', relationLabel: '콘텐츠가 있는 관련 티커' },
+        { ticker: anchor, relationLabel: '콘텐츠가 없는 관련 티커' }
+      ]
+    });
+
+    const withContent = viewModel.relatedTickers.find((related) => related.ticker === 'VIG');
+    const withoutContent = viewModel.relatedTickers.find((related) => related.ticker === anchor);
+
+    expect(withContent?.hasContent).toBe(true);
+    expect(withoutContent?.hasContent).toBe(false);
   });
 
   it('exposes exactly one h1 and it names the ticker', () => {
@@ -200,10 +238,23 @@ describe('TickerDetailPage', () => {
     expect(screen.queryByRole('table')).toBeNull();
   });
 
-  /** 콘텐츠가 없는 관련 티커는 링크가 아닐 뿐 아니라, **글자로** 그 사실을 말해야 한다(색 단독 금지). */
-  it('labels content-less related tickers in words, not only by styling', () => {
-    renderAt('/ticker/sdy');
-    expect(screen.getAllByText('소개 준비 중').length).toBeGreaterThan(0);
+  /**
+   * 콘텐츠가 없는 관련 티커는 링크가 아닐 뿐 아니라 **글자로** 그 사실을 말해야 한다(색 단독 금지).
+   *
+   * ⚠ 위 게이트 테스트와 같은 이유로 **실제 데이터에는 더 이상 앵커가 없다**(2026-08-06: 관련
+   *   티커로 언급된 심볼이 전부 페이지를 가졌다). 그래서 화면을 렌더해 확인하는 대신 뷰가 그리는
+   *   문구가 살아 있는지를 소스로 잠근다 — 이 배지를 지우면 "색만으로 말하는 카드"가 되므로,
+   *   문구가 사라지는 변경이 이 테스트에서 먼저 걸린다.
+   */
+  it('keeps the words-not-color label for content-less related tickers', () => {
+    const view = readFileSync(
+      resolve(__dirname, 'TickerDetailPage.view.tsx'),
+      'utf-8'
+    );
+
+    expect(view).toContain('소개 준비 중');
+    /* 배지는 반드시 **비링크 카드 쪽**에 붙어 있어야 한다 — 링크 카드에 붙으면 뜻이 뒤집힌다. */
+    expect(view).toMatch(/RelatedStaticCard[\s\S]*?소개 준비 중/);
   });
 
   /** 이 지면의 법무 링크는 공용 푸터가 유일한 상시 진입점이다(개편 전에는 푸터 자체가 없었다). */

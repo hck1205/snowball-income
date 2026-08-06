@@ -102,14 +102,27 @@ export const SectionGlyph = styled.span`
   color: var(${CAT_VAR});
 `;
 
-/** 섹션 종목 수 — 값은 중립색이다(색은 칩의 테두리·앞 글리프 같은 크롬에만). */
+/**
+ * 섹션 종목 수 — 값은 중립색이다(색은 칩의 테두리·앞 글리프 같은 크롬에만).
+ *
+ * 🔴 **잉크 보정(`iconOpticalAlign`)을 걸지 않는다**(2026-08-06 사용자 지시: 세로 가운데로 맞춰라).
+ * 그 보정은 **글리프 전용**이다 — 선 아이콘은 자기 텍스트가 없어 라인박스 중심과 잉크 중심의
+ * 어긋남을 스스로 못 메운다. 반면 이 칩은 **자기 글자를 가진 상자**라, 안쪽은 자기 라인박스가
+ * 이미 가운데를 맞추고 바깥쪽은 부모의 `align-items: center` 가 상자를 맞춘다. 거기에 아이콘 보정을
+ * 더하면 **두 번 보정**돼 칩만 3px 떠오른다(실측: 제목 중심 613 vs 칩 중심 610).
+ *
+ * ⚠ 위 `SectionGlyph` 는 보정을 그대로 둔다 — 그쪽은 글자가 없는 진짜 글리프다. 둘을 같이 고치지 마라.
+ */
 export const SectionCount = styled.span`
-  ${iconOpticalAlign('display', SECTION_TITLE_SIZE)}
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
   padding: 2px ${space[2]};
   border-radius: ${radius.pill};
   border: 1px solid color-mix(in srgb, var(${CAT_VAR}) 32%, transparent);
   font-size: ${font.size.sm};
   font-weight: ${font.weight.bold};
+  line-height: ${font.leading.snug};
   color: ${color.text};
   ${font.numeric};
 `;

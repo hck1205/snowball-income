@@ -21,6 +21,35 @@ export const Masthead = styled.header`
   padding: clamp(28px, 4vw, 52px) 0 clamp(24px, 3vw, 36px);
   border-bottom: 1px solid ${color.border};
 
+  /* 마스코트가 설 자리(오른쪽). 좁은 폭에서는 그림을 그리지 않으므로 여백도 돌려준다. */
+  ${media.up('tablet')} {
+    padding-right: clamp(180px, 22vw, 300px);
+  }
+`;
+
+/**
+ * 라이브러리의 마스코트 — **상자를 열어 종목을 꺼내는 하마**(2026-08-05 사용자 지시).
+ *
+ * 이 화면은 "정리해 둔 것을 꺼내 보는 곳"이라 그림도 상자다. 매스트헤드는 카드가 아니라 편집면이고
+ * overflow 를 자르지 않으므로, 여기서는 히어로(PageHero)와 달리 크기 상한이 필요 없다.
+ *
+ * 🔴 **장식이다**(`alt=""`) — 제목이 이미 이 화면의 이름을 말한다.
+ * ⚠ 오른쪽 아래 기준. 스펙 줄(수록 종목·카테고리…)과 같은 바닥선에 서야 머리 전체가 한 덩어리로 읽힌다.
+ * ⚠ 820px 아래에서는 그리지 않는다 — 그 폭에서는 제목·리드가 전폭을 써야 한다.
+ */
+export const MastheadMascot = styled.img`
+  position: absolute;
+  right: 0;
+  bottom: clamp(16px, 2vw, 28px);
+  width: clamp(150px, 19vw, 260px);
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+
+  ${media.down('tablet')} {
+    display: none;
+  }
+
   /* ⚠ 얇은 막대(6px)라 반경을 주지 않는다(radiusShape 가드 §②). 면이 아니라 이 앱의 시그니처 선이다. */
   &::before {
     content: '';
@@ -30,25 +59,6 @@ export const Masthead = styled.header`
     border-radius: ${radius.pill};
     background: ${color.gradientAurora};
   }
-`;
-
-/**
- * 머리말 칩. 폭이 짧아(<180px) 틴트 면으로 세어지지 않는다 — 색면 사다리 L1 이라 예산 밖이다.
- */
-export const MastheadEyebrow = styled.p`
-  justify-self: start;
-  margin: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px ${space[3]};
-  border-radius: ${radius.pill};
-  background: ${color.brandSubtle};
-  border: 1px solid ${color.brandBorder};
-  color: ${color.brandText};
-  font-size: ${font.size.xs};
-  font-weight: ${font.weight.bold};
-  letter-spacing: 0.02em;
 `;
 
 /**

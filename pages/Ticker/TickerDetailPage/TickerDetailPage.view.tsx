@@ -13,9 +13,10 @@ import {
 import { Fragment, useCallback, useMemo, type CSSProperties } from 'react';
 import { PageFooter, PickCardGrid } from '@/components/common';
 import { SIMULATOR_PATH } from '@/shared/constants/routes';
+import { useScrollSpy } from '@/shared/hooks';
 import { ICON } from '@/shared/styles';
 import type { ResolvedRelatedTicker, ResolvedSection, TickerDetailViewProps } from './TickerDetailPage.types';
-import { useInView, useScrollSpy } from './hooks';
+import { useInView } from './hooks';
 import { prefersReducedMotion } from './TickerDetailPage.utils';
 import {
   AccentScope,

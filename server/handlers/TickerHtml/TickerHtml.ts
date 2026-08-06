@@ -230,8 +230,12 @@ const renderFaqs = (faqs: TickerContentFaq[], facts: TickerEngineFacts): string 
  * 관련 티커는 자신도 SEO 콘텐츠가 있을 때만 링크로 걷는다(`findTickerContentBySlug`) — 레지스트리는
  * 부분집합이라 없는 페이지로 링크하면 무치환 셸로 떨어지는 저품질 링크가 된다(registry.ts 주석 근거).
  * 콘텐츠가 아직 없으면 링크 없이 텍스트로만 남긴다.
+ *
+ * ⚠ **테스트를 위해 export 한다**(2026-08-06). 이 게이팅을 실제 데이터로 확인하려면 "콘텐츠가 없는
+ * 관련 티커"가 데이터에 있어야 하는데, 티커가 59종이 되면서 그런 앵커가 사라졌다. 렌더러에 직접
+ * 물어보는 편이 데이터가 차오르는 것과 무관하게 규칙을 잠근다(test/api/tickerHtml.test.ts).
  */
-const renderRelatedTickers = (related: TickerRelatedLink[]): string => {
+export const renderRelatedTickers = (related: TickerRelatedLink[]): string => {
   if (related.length === 0) return '';
   const items = related
     .map((link) => {

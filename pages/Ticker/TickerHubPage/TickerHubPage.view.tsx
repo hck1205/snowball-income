@@ -63,8 +63,8 @@ import {
   LibrarySpecLabel,
   LibrarySpecValue,
   Masthead,
-  MastheadEyebrow,
   MastheadLede,
+  MastheadMascot,
   MastheadTitle,
   RailDivider,
   RailGroupLabel,
@@ -171,11 +171,12 @@ export default function TickerHubView({
     <>
       {/* ── 매스트헤드: 카드가 아니라 편집면. 상단 오로라 줄 ~ 하단 헤어라인 사이가 지면 머리다. ── */}
       <Masthead>
-        <MastheadEyebrow>
-          <BrandGlyph size={16} />
-          ETF 라이브러리
-        </MastheadEyebrow>
+        {/* 🔴 "ETF 라이브러리" 아이브로우를 걷었다(2026-08-06 사용자 지시). 바로 아래 제목이
+            "배당 ETF·종목 티커 정리"라 같은 말을 두 번 하고 있었고, 브랜드 글리프는 헤더 워드마크와
+            겹쳤다 — 지면 머리에서 가장 먼저 읽혀야 할 것은 제목이다. */}
         <MastheadTitle>배당 ETF·종목 티커 정리</MastheadTitle>
+        {/* 정리해 둔 상자를 여는 하마 — 장식이라 이름을 갖지 않는다(2026-08-05 사용자 지시). */}
+        <MastheadMascot src="/images/hippo/hippo_box.png" alt="" loading="lazy" decoding="async" draggable={false} />
         <MastheadLede>
           {/* ⚠ "왼쪽" 처럼 **자리를 가리키는 말**을 쓰지 마라 — 좁은 화면에서 레일은 위쪽 블록이 된다. */}
           배당률·배당성장·운용보수·구성 기준을 티커별로 정리했습니다. 검색과 필터로 후보를 좁힌 뒤, 관심 있는 티커를 골라
