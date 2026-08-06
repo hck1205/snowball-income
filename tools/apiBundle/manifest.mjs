@@ -10,8 +10,10 @@
  * 🔴 **이 목록의 길이가 곧 서버리스 함수 개수이고, 상한이 12개다**(Vercel Hobby).
  * 2026-08-07 에 13개로 늘렸다가 배포가 죽었다 — 빌드는 통과하고 "Deploying outputs" 에서
  * `exceeded_serverless_functions_per_deployment` 로 실패한다(빌드 로그에는 이유가 안 남는다).
- * 새 핸들러를 더하기 전에 **먼저 세라.** 지금 11개다.
- * 지면이 하나 더 필요하면 새 파일을 만들지 말고 `SeoHtml`(정적 콘텐츠 렌더러 묶음)에 얹는 편이 싸다.
+ * 새 핸들러를 더하기 전에 **먼저 세라.** 지금 12개 — **여유가 0이다.**
+ * 지면이 하나 더 필요하면 새 파일을 만들지 말고 `SeoHtml`(정적 콘텐츠 렌더러 묶음)에 얹어라.
+ * JSON 응답이 하나 더 필요하면 `Fx`·`MarketIndices`·`Unfurl` 을 프록시 묶음으로 합치는 것이
+ * 다음 수순이다(같은 패턴 — 근거는 SeoHtml.ts 머리말).
  */
 export const API_BUNDLES = [
   { entry: 'server/handlers/AccountDelete/AccountDelete.ts', out: 'api/account-delete.js' },
@@ -25,7 +27,9 @@ export const API_BUNDLES = [
   /* 티커 상세 · 배당 목록 · 가이드 **셋을 한 함수로** 모은 진입점 — 근거는 SeoHtml.ts 머리말. */
   { entry: 'server/handlers/SeoHtml/SeoHtml.ts', out: 'api/seo-html.js' },
   { entry: 'server/handlers/ShareHtml/ShareHtml.ts', out: 'api/share-html.js' },
-  { entry: 'server/handlers/Sitemap/Sitemap.ts', out: 'api/sitemap.js' }
+  { entry: 'server/handlers/Sitemap/Sitemap.ts', out: 'api/sitemap.js' },
+  /* 링크 미리보기 — 남의 페이지에서 제목·요약·썸네일만 뽑는다. SSRF 가드가 그 파일의 본체다. */
+  { entry: 'server/handlers/Unfurl/Unfurl.ts', out: 'api/unfurl.js' }
 ];
 
 /**

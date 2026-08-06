@@ -34,6 +34,8 @@ export const COMMUNITY_COPY = {
     gallery: '포트폴리오 갤러리',
     /** 자유게시판 링크(/community/board). */
     board: '게시판',
+    /** 미디어 뉴스(/community/news) — 커뮤니티 묶음 안, 게시판 다음 자리. */
+    news: '미디어 뉴스',
     /** 티커 SEO 소개 허브 링크(/ticker/all). 커뮤니티와 무관하게 항상 노출된다. */
     tickers: 'ETF 소개',
     /** 종목 비교(/ticker/compare). ETF 소개와 같은 '종목 정보' 축이라 그 바로 뒤에 선다. */
@@ -222,6 +224,53 @@ export const COMMUNITY_COPY = {
     filterEmptyTitle: '이 분류에는 아직 글이 없습니다',
     filterEmptySubtitle: '다른 분류를 골라 보시거나 전체로 돌아가 주세요.',
     filterEmptyCta: '전체 보기'
+  },
+
+  /**
+   * 미디어 뉴스(`/community/news`) — **바깥 글로 가는 링크가 본체**인 목록.
+   *
+   * 🔴 카피가 지는 책임 하나: 이 화면은 **남의 글을 모으는 곳**이지 우리가 쓴 글이 아니라는 것을
+   * 사용자가 알아야 한다. 그래서 제목·리드·빈상태가 전부 "링크"·"원문"이라는 낱말을 쓴다.
+   * ⚠ 뉴스 제목을 우리가 고쳐 쓰지 않는다 — 원문 제목 그대로다(`api/unfurl` 이 뽑아 온다).
+   */
+  news: {
+    mainLabel: '미디어 뉴스',
+    title: '미디어 뉴스',
+    subtitle: '주식·경제 이야기를 담은 바깥 글과 영상을 모읍니다. 카드를 누르면 원문으로 갑니다.',
+    write: '링크 공유',
+    loadingMore: '더 불러오는 중…',
+    reachedEnd: '마지막 글입니다',
+    emptyTitle: '아직 공유된 링크가 없습니다',
+    emptySubtitle: '읽을 만한 기사나 영상을 처음으로 남겨 주세요.',
+    emptyCta: '링크 공유',
+    errorTitle: '목록을 불러오지 못했습니다',
+    errorBody: '잠시 후 다시 시도해주세요.',
+    retry: '다시 시도',
+    /** 카드에서 원문으로 나가는 표시. 새 창으로 열린다는 사실을 낱말이 진다. */
+    openOriginal: '원문 보기',
+
+    /* ── 링크 공유 화면 ─────────────────────────────────────────────── */
+    composeTitle: '링크 공유',
+    composeLead: '주소를 붙여 넣으면 제목과 요약을 자동으로 가져옵니다.',
+    urlLabel: '링크 주소',
+    urlPlaceholder: 'https://…',
+    fetchAction: '미리 보기 가져오기',
+    fetching: '가져오는 중…',
+    /** 🔴 실패는 조용하면 안 된다 — 무엇을 해야 하는지까지 말한다. */
+    fetchFailed: '이 주소에서 정보를 읽지 못했습니다. 주소를 다시 확인하시거나 제목을 직접 적어 주세요.',
+    invalidUrl: 'http 또는 https 로 시작하는 주소를 넣어 주세요.',
+    titleLabel: '제목',
+    titlePlaceholder: '원문 제목',
+    commentLabel: '한 줄 감상',
+    commentPlaceholder: '이 글을 왜 공유하시는지 한 줄로 적어 주세요. (선택)',
+    submit: '공유하기',
+    submitting: '올리는 중…',
+    submitFailed: '올리지 못했습니다. 잠시 후 다시 시도해 주세요.',
+    /**
+     * 🔴 저작권 고지. 지우지 마라 — 이 화면이 원문을 복제하는 곳이 아니라는 약속이고,
+     * 사용자가 본문을 통째로 붙여 넣지 않게 하는 유일한 장치다.
+     */
+    copyrightNote: '원문 전체를 옮겨 적지 마세요. 제목·요약과 링크만 저장되며, 카드는 원문으로 연결됩니다.'
   },
   write: {
     titleNew: '시나리오 공유',

@@ -24,7 +24,13 @@ export default function CommunityDetailPage({ kind = 'portfolio' }: CommunityDet
   const isLoggedIn = useIsLoggedInAtomValue();
   const session = useSessionAtomValue();
   const { openLoginPrompt } = useCommunityAuth();
-  const sectionBase = kind === 'board' ? '/community/board' : '/community/portfolio';
+  /*
+   * 이 글이 속한 목록의 경로 — "목록으로" 와 "수정" 이 여기서 갈린다.
+   * ⚠ 표를 쓰지 않고 삼항으로 두는 이유: kind 는 세 값뿐이고, 값이 하나 더 늘 때 여기서
+   *   컴파일이 깨지는 편이 낫다(조용히 갤러리로 떨어지는 것보다).
+   */
+  const sectionBase =
+    kind === 'board' ? '/community/board' : kind === 'news' ? '/community/news' : '/community/portfolio';
 
   const onRequireLogin = useCallback(() => openLoginPrompt(), [openLoginPrompt]);
 
