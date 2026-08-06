@@ -1,8 +1,15 @@
+import { LockKeyhole } from 'lucide-react';
 import { SocialLoginButton } from '@/components/community/SocialLoginButton';
 import { isNaverEnabled } from '@/shared/lib/supabase';
 import { LEDGER_COPY } from '../../copy';
 import type { LedgerSignInPanelProps } from './LedgerSignInPanel.types';
-import { SignInBody, SignInButtons, SignInHeading, SignInSection } from './LedgerSignInPanel.styled';
+import {
+  SignInBody,
+  SignInButtons,
+  SignInGlyph,
+  SignInHeading,
+  SignInSection
+} from './LedgerSignInPanel.styled';
 
 const copy = LEDGER_COPY;
 
@@ -15,10 +22,16 @@ const copy = LEDGER_COPY;
  *
  * 🔴 어느 제공자로 로그인하든 다음 단계는 같다. 구글 시트 접근은 **앱 로그인과 다른 층**이라
  * 네이버·카카오 사용자도 로그인을 갈아탈 필요가 없다(`LedgerAppAuthGate` 주석).
+ *
+ * ⚠ 이 관문은 **연결 무대보다 가볍게** 선다(styled 파일 머리말) — 두 관문이 같은 무게로 서면
+ * "로그인했는데 왜 또 동의인가"라는 이 화면 최대의 혼란이 더 커진다.
  */
 export default function LedgerSignInPanel({ headingId, onSignIn }: LedgerSignInPanelProps) {
   return (
     <SignInSection aria-labelledby={headingId}>
+      <SignInGlyph aria-hidden>
+        <LockKeyhole size={24} strokeWidth={1.8} focusable={false} />
+      </SignInGlyph>
       <SignInHeading id={headingId}>{copy.signIn.heading}</SignInHeading>
       <SignInBody>{copy.signIn.body}</SignInBody>
       <SignInButtons>

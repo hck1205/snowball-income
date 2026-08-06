@@ -33,7 +33,8 @@ export const TRACKS = [
       /^pages\/Ticker\//,
       /^shared\/constants\/tickers\//,
       /^server\/handlers\/TickerHtml\//,
-      /^api\/ticker-html\.js$/,
+      /* 티커·배당목록·가이드가 한 함수로 합쳐졌다 — 근거는 server/handlers/SeoHtml/SeoHtml.ts */
+      /^api\/seo-html\.js$/,
       /^test\/api\/tickerHtml/,
     ],
   },

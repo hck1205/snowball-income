@@ -166,6 +166,15 @@ const buildRows = (
       quantityInput: item.quantityInput,
       marketValue: included ? formatUsdAmount(breakdown.valueUsd) : DASH,
       annualNet: included ? formatUsdAmount(breakdown.annualDividendAfterTaxUsd) : DASH,
+      /*
+       * 🔴 총액이 0 이면 `null` 이다 — 0 으로 나누면 `Infinity`/`NaN` 이 그대로 막대 폭·도넛 각도로
+       * 흘러 들어간다(둘 다 CSS 에서 조용히 무시돼 "왜 안 보이지"로만 드러난다).
+       * 계산에서 빠진 행도 `null` 이다: 금액 자리에 `—` 를 쓰면서 비중만 숫자를 주면 두 셀이 다른 말을 한다.
+       */
+      weightPercent:
+        included && breakdown && summary.totalValueUsd > 0
+          ? (breakdown.valueUsd / summary.totalValueUsd) * 100
+          : null,
       note: breakdown ? buildRowNote(breakdown) : null
     };
   });
@@ -259,7 +268,9 @@ const buildCtas = (
   };
 
   const calendarHint = (): string | null => {
-    if (!hasIncludedRows) return copy.cta.simulateDisabledEmpty;
+    // 🔴 달력의 사유는 **달력의 말**이어야 한다 — 종전에는 시뮬레이션 문장을 그대로 빌려 썼고,
+    //    두 버튼이 한 카드에 있어 뷰가 같은 문장을 한 번만 그리는 바람에 드러나지 않았을 뿐이다.
+    if (!hasIncludedRows) return copy.cta.calendarDisabledEmpty;
     if (calendarTickerCount === 0) return copy.cta.calendarDisabled;
 
     return calendarExcludedCount > 0 ? copy.cta.calendarManualExcluded : null;

@@ -28,6 +28,37 @@ const STROKE_EXCEPTIONS: Readonly<Record<string, number>> = {
   'components/ThemePresetSwitcher/ThemePresetSwitcher.tsx': 2.4
 };
 
+/**
+ * **lucide 아이콘이 아닌** `size` 소비자 — 이 감사의 대상이 아니다.
+ *
+ * 이 파일의 두 계약(계단 크기 · 굵기 명시)은 **lucide 라인 아이콘이 한 줄에 나란히 설 때**의
+ * 일관성을 지키는 것이다. 브랜드 그림은 그 줄에 서지 않는다 —
+ *   ① 래스터(PNG)라 선이 없다. **`strokeWidth` prop 자체가 없어** 적으면 타입 에러다
+ *      (`BrandGlyph.types.ts` 는 size·accent·title, `HippoCoinScene.types.ts` 는 size·loading·label).
+ *   ② 크기가 아이콘 계단(12~24)이 아니라 **자리의 크기**를 따른다.
+ *
+ * 🔴 여기 이름을 추가하는 것은 **감사 회피**다. lucide 아이콘은 절대 넣지 마라.
+ *   추가하려면 그 부품의 계단을 아래처럼 **함께** 적어라 — 계단 없는 면제는 만들지 않는다.
+ */
+const NON_LUCIDE_GLYPH_SIZES: Readonly<Record<string, readonly number[]>> = {
+  /*
+   * 브랜드 심볼(하마 마크)이 서는 자리들.
+   * 16 파비콘 대체 · 20 헤더/히어로 배지 · 24 푸터 매스트헤드 · 28 PDF 표지 · 32 카드 배지 · 96 빈 상태 마스코트.
+   */
+  BrandGlyph: [16, 20, 24, 28, 32, 96],
+  /*
+   * 하마 + 금화 **연출**. 심볼과 계단이 다른 이유: 이건 배지가 아니라 **무대**다 —
+   * 금화가 무대 오른쪽 위 밖으로 나가야 연출이 성립해서(HippoCoinScene.styled.ts SceneRoot),
+   * 배지 크기(20~32)로 줄이면 금화가 10px 짜리 점이 되어 무엇인지 읽히지 않는다.
+   * 88 랜딩 마무리 패널(앱에서 금화가 켜지는 단 한 자리) · 240 히어로급 · 280 최대.
+   */
+  /*
+   * 44 는 **헤더 로고** 자리다 — 헤더 두 줄을 가로지르는 트랙에 서므로 글자 높이가 아니라
+   * **두 줄의 높이**가 기준이다. 앱에서 로고가 서는 유일한 자리라 다른 크기로 복제되지 않는다.
+   */
+  HippoCoinScene: [44, 88, 240, 280]
+};
+
 const collect = (dir: string, out: string[] = []): string[] => {
   for (const entry of readdirSync(dir)) {
     const full = join(dir, entry);
@@ -51,12 +82,19 @@ const OPEN_TAG = /<([A-Z][A-Za-z0-9_]*)\b((?:[^<>{}]|\{[^{}]*\})*?)\/?>/g;
 
 type IconUse = { path: string; component: string; size: number; stroke: number | null };
 
+/** lucide 가 아닌 글리프 사용처 — 위 맵이 걸러낸 것들. 부품마다 제 계단으로 검사한다. */
+const BRAND_GLYPH_USES: { path: string; component: string; size: number }[] = [];
+
 const ICON_USES: IconUse[] = FILES.flatMap(({ path, source }) => {
   const uses: IconUse[] = [];
   for (const match of source.matchAll(OPEN_TAG)) {
     const [, component, attrs] = match;
     const size = attrs.match(/\bsize=\{(\d+)\}/);
     if (!size) continue;
+    if (component in NON_LUCIDE_GLYPH_SIZES) {
+      BRAND_GLYPH_USES.push({ path, component, size: Number(size[1]) });
+      continue;
+    }
     /*
      * 스프레드(`{...GLYPH_PROPS}`)는 굵기를 대신 넣어 줄 수 있는데 소스만 봐서는 그 안을 못 본다.
      * 그런 자리는 감사 대상에서 뺀다 — 억지로 잡으려다 **중복 prop** 을 넣는 실수를 한 번 했다
@@ -115,5 +153,16 @@ describe('아이콘 일관성', () => {
     }).map((use) => `${use.path} <${use.component} strokeWidth={${use.stroke}}>`);
 
     expect(violations).toEqual([]);
+  });
+
+  it('브랜드 마크는 제 계단을 쓴다 — 아이콘 계단과 섞지 않는다', () => {
+    /* 정규식이 죽으면 아래 단정이 조용히 통과하므로 먼저 잡힌 것을 확인한다. */
+    expect(BRAND_GLYPH_USES.length).toBeGreaterThan(0);
+
+    const offScale = BRAND_GLYPH_USES.filter(
+      (use) => !NON_LUCIDE_GLYPH_SIZES[use.component].includes(use.size)
+    ).map((use) => `${use.path} <${use.component} size={${use.size}}>`);
+
+    expect(offScale).toEqual([]);
   });
 });

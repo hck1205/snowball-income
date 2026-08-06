@@ -207,6 +207,17 @@ export const buildDonutSlices = (
 
 /* ── 인물 전체 합산 ────────────────────────────────────────────────────────── */
 
+/**
+ * 합산 줄에 이름을 남기는 인물.
+ *
+ * 🔴 `cik` 을 함께 주는 이유는 화면이 **이 줄에서 그 사람의 카드로 건너뛰기** 때문이다
+ * (2026-08-03 2차 개편). 이름은 동명이인이 없다는 보장이 없으므로 식별자는 cik 이다.
+ */
+export type AggregateHolder = {
+  readonly cik: string;
+  readonly person: string;
+};
+
 /** 여러 인물이 함께 담은 종목 한 줄. */
 export type AggregatedHolding = {
   readonly cusip: string;
@@ -217,6 +228,13 @@ export type AggregatedHolding = {
   readonly totalValueUsd: number;
   /** 이 종목을 담은 인물 수. 규모가 큰 한 사람이 만든 1위와 여럿이 만든 1위를 가른다. */
   readonly holderCount: number;
+  /**
+   * 담은 인물들 — **카드 순서(스포트라이트 순)** 그대로다.
+   *
+   * 🔴 숫자만으로는 "여섯 명"이 누구인지 알 수 없어, 1차 개편까지 합산 표와 인물 카드는 같은
+   * 화면에 있으면서 서로를 몰랐다. 화면은 이 목록으로 이니셜 칩을 세우고 그 칩이 카드를 연다.
+   */
+  readonly holders: readonly AggregateHolder[];
   /** 최대값 대비 길이(0~1). 가로 막대가 그대로 쓴다. */
   readonly ratio: number;
 };
@@ -248,7 +266,12 @@ export const aggregateHoldings = (
   limit: number,
   sort: AggregateSort = 'holders'
 ): readonly AggregatedHolding[] => {
-  const byCusip = new Map<string, { row: InvestorHoldingRow; totalValueUsd: number; holders: Set<string> }>();
+  /* 🔴 Map 이다(Set 아님) — cik 으로 중복을 막으면서 **이름과 카드 순서를 함께** 보존한다.
+     화면이 이 목록으로 이니셜 칩을 세우므로 순서가 흔들리면 칩이 매 정렬마다 자리를 바꾼다. */
+  const byCusip = new Map<
+    string,
+    { row: InvestorHoldingRow; totalValueUsd: number; holders: Map<string, string> }
+  >();
 
   for (const card of cards) {
     for (const row of card.holdings) {
@@ -258,9 +281,13 @@ export const aggregateHoldings = (
       const existing = byCusip.get(row.cusip);
       if (existing) {
         existing.totalValueUsd += row.valueUsd;
-        existing.holders.add(card.cik);
+        existing.holders.set(card.cik, card.person);
       } else {
-        byCusip.set(row.cusip, { row, totalValueUsd: row.valueUsd, holders: new Set([card.cik]) });
+        byCusip.set(row.cusip, {
+          row,
+          totalValueUsd: row.valueUsd,
+          holders: new Map([[card.cik, card.person]])
+        });
       }
     }
   }
@@ -290,6 +317,7 @@ export const aggregateHoldings = (
       koreanName: item.row.koreanName,
       totalValueUsd: item.totalValueUsd,
       holderCount: item.holders.size,
+      holders: [...item.holders].map(([cik, person]) => ({ cik, person })),
       /* 최대값이 0이면 막대를 그리지 않는다 — 0으로 나눈 값을 1로 위장하지 않는다. */
       ratio: max > 0 ? measure / max : 0
     };
@@ -325,9 +353,32 @@ export const personColorVar = (person: string, seriesVars: readonly string[]): s
   return seriesVars[Math.abs(hash) % seriesVars.length] ?? seriesVars[0] ?? '';
 };
 
+/**
+ * `'var(--sb-chart-series-3)'` → `'--sb-chart-series-3'`.
+ *
+ * 공용 `PickCard` 의 `cap.scopedVar` 는 **변수 이름**을 요구한다(부품이 스스로 `var()` 로 감싼다).
+ * 반면 이 화면의 `personColorVar` 는 CSS 에 그대로 넣을 수 있는 **참조 표현식**을 준다 — 두 어법을
+ * 잇는 한 줄이다. 이미 이름 형태(`--x`)면 그대로 돌려준다.
+ */
+export const cssVarName = (value: string): string =>
+  value.startsWith('var(') ? value.slice(4, -1).trim() : value;
+
 /** 비교 화면으로 넘길 티커들. 매핑된 것만 — 없는 것을 넘기면 빈 열이 생긴다. */
 export const comparableTickers = (card: InvestorCardModel, limit: number): readonly string[] =>
   card.holdings
     .map((row) => row.ticker)
     .filter((ticker): ticker is string => ticker !== null)
     .slice(0, Math.max(0, limit));
+
+/**
+ * 인물 이름 → 고유색.
+ *
+ * 🔴 **한 함수로 묶는 이유는 색이 이 화면의 길찾기 단서이기 때문이다**(2026-08-03 2차 개편).
+ * 합산 줄의 칩과 그 사람 카드 머리의 6px 레일이 **같은 색**이어야 "이 칩이 저 카드"로 읽힌다.
+ * 두 자리가 각자 색을 계산하면 언젠가 반드시 갈린다.
+ *
+ * ⚠ 타입이 화면(뷰)이 아니라 여기 사는 이유: 2026-08-06 에 뷰를 컴포넌트로 쪼개면서 합의 보드와
+ *   인물 카드가 **둘 다** 이 시그니처를 받게 됐다. 한쪽 파일에 두면 다른 쪽이 그 파일을 import 하게 되고,
+ *   그 순간 두 컴포넌트가 서로를 알게 된다(서로 몰라야 따로 옮길 수 있다).
+ */
+export type PersonColor = (person: string) => string;

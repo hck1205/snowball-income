@@ -293,10 +293,15 @@ describe('PDF 리포트 — 파일명 정제', () => {
     expect(sanitizeScenarioNameForFile('///')).toBe('내포트폴리오');
   });
 
-  it('파일명은 스노우볼리포트_이름_YYYYMMDD.pdf 형식이다', () => {
+  it('파일명은 HungryHippo_리포트_이름_YYYYMMDD.pdf 형식이다', () => {
     expect(buildPdfReportFileName('내 포트폴리오', new Date(2026, 6, 20, 14, 32))).toBe(
-      '스노우볼리포트_내_포트폴리오_20260720.pdf'
+      'HungryHippo_리포트_내_포트폴리오_20260720.pdf'
     );
+  });
+
+  /** 🔴 파일명에 공백이 섞이면 다운로드 환경에 따라 이름이 깨진다 — 브랜드 조각까지 포함해 잠근다. */
+  it('파일명에 공백이 없다', () => {
+    expect(buildPdfReportFileName('내 배당 포트폴리오', new Date(2026, 6, 20))).not.toMatch(/\s/);
   });
 });
 

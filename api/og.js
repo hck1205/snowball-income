@@ -1228,12 +1228,12 @@ var TARGET_MONTHLY_DIVIDEND_MAX_MAN_WON = TARGET_MONTHLY_DIVIDEND_MAX / 1e4;
 
 // shared/constants/marketData/marketData.generated.json
 var marketData_generated_default = {
-  asOf: "2026-07-29",
+  asOf: "2026-08-01",
   source: "yahoo",
   entries: {
     ABBV: {
-      initialPrice: 259.36,
-      dividendYield: 2.63,
+      initialPrice: 250.94,
+      dividendYield: 2.72,
       frequency: "quarterly",
       observedDividendCagr: 6.81,
       payoutMonths: [
@@ -1252,7 +1252,7 @@ var marketData_generated_default = {
       }
     },
     ADI: {
-      initialPrice: 365.83,
+      initialPrice: 367.41,
       dividendYield: 1.14,
       frequency: "quarterly",
       observedDividendCagr: 9.81,
@@ -1265,7 +1265,7 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     AIQ: {
-      initialPrice: 57.24,
+      initialPrice: 58.89,
       dividendYield: 0.08,
       frequency: "semiannual",
       observedDividendCagr: -7.26,
@@ -1276,38 +1276,52 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     AMAT: {
-      initialPrice: 476.46,
-      dividendYield: 0.4,
+      initialPrice: 507.67,
+      dividendYield: 0.38,
       frequency: "quarterly",
       observedDividendCagr: 15.39,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      exToPayLagDays: 21,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "3": 13,
+        "6": 12,
+        "9": 12,
+        "12": 12
+      }
+    },
+    ANET: {
+      initialPrice: 180.35,
+      dividendYield: 0,
+      frequency: "quarterly"
+    },
+    ASML: {
+      initialPrice: 1629,
+      dividendYield: 0.56,
+      frequency: "quarterly",
       payoutMonths: [
         2,
         5,
         8,
         11
       ],
-      payoutMonthsSource: "ex"
-    },
-    ANET: {
-      initialPrice: 173.99,
-      dividendYield: 0,
-      frequency: "quarterly"
-    },
-    ASML: {
-      initialPrice: 1582.95,
-      dividendYield: 0.57,
-      frequency: "quarterly",
-      payoutMonths: [
-        2,
-        4,
-        7,
-        10
-      ],
-      payoutMonthsSource: "ex"
+      exToPayLagDays: 8,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "2": 18,
+        "5": 6,
+        "8": 7,
+        "11": 7
+      }
     },
     AVGO: {
-      initialPrice: 380.91,
-      dividendYield: 0.67,
+      initialPrice: 389.28,
+      dividendYield: 0.65,
       frequency: "quarterly",
       observedDividendCagr: 12.63,
       payoutMonths: [
@@ -1319,8 +1333,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     CEG: {
-      initialPrice: 274.35,
-      dividendYield: 0.59,
+      initialPrice: 262.75,
+      dividendYield: 0.62,
       frequency: "quarterly",
       payoutMonths: [
         3,
@@ -1338,8 +1352,8 @@ var marketData_generated_default = {
       }
     },
     CGDV: {
-      initialPrice: 49.11,
-      dividendYield: 1.19,
+      initialPrice: 49.54,
+      dividendYield: 1.18,
       frequency: "quarterly",
       payoutMonths: [
         3,
@@ -1350,8 +1364,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     DES: {
-      initialPrice: 40.78,
-      dividendYield: 2.25,
+      initialPrice: 40.62,
+      dividendYield: 2.26,
       frequency: "monthly",
       observedDividendCagr: 5.47,
       payoutMonths: [
@@ -1386,8 +1400,8 @@ var marketData_generated_default = {
       }
     },
     DGRO: {
-      initialPrice: 77.84,
-      dividendYield: 1.9,
+      initialPrice: 78.01,
+      dividendYield: 1.89,
       frequency: "quarterly",
       observedDividendCagr: 7.09,
       payoutMonths: [
@@ -1406,7 +1420,7 @@ var marketData_generated_default = {
       }
     },
     DGRW: {
-      initialPrice: 95.44,
+      initialPrice: 96.46,
       dividendYield: 1.28,
       frequency: "monthly",
       observedDividendCagr: 4.4,
@@ -1442,8 +1456,8 @@ var marketData_generated_default = {
       }
     },
     DHS: {
-      initialPrice: 117.55,
-      dividendYield: 3.08,
+      initialPrice: 116.59,
+      dividendYield: 3.19,
       frequency: "monthly",
       observedDividendCagr: 3.32,
       payoutMonths: [
@@ -1478,8 +1492,8 @@ var marketData_generated_default = {
       }
     },
     DIA: {
-      initialPrice: 518.76,
-      dividendYield: 1.38,
+      initialPrice: 524.32,
+      dividendYield: 1.37,
       frequency: "monthly",
       observedDividendCagr: 3.73,
       payoutMonths: [
@@ -1514,8 +1528,8 @@ var marketData_generated_default = {
       }
     },
     DIVO: {
-      initialPrice: 46.67,
-      dividendYield: 6.36,
+      initialPrice: 46.89,
+      dividendYield: 6.37,
       frequency: "monthly",
       observedDividendCagr: 12.25,
       payoutMonths: [
@@ -1550,7 +1564,7 @@ var marketData_generated_default = {
       }
     },
     DLN: {
-      initialPrice: 98.35,
+      initialPrice: 98.57,
       dividendYield: 1.75,
       frequency: "monthly",
       observedDividendCagr: 3.21,
@@ -1586,8 +1600,8 @@ var marketData_generated_default = {
       }
     },
     DON: {
-      initialPrice: 57.55,
-      dividendYield: 2.22,
+      initialPrice: 57.52,
+      dividendYield: 2.3,
       frequency: "monthly",
       observedDividendCagr: 6.24,
       payoutMonths: [
@@ -1622,8 +1636,8 @@ var marketData_generated_default = {
       }
     },
     DVY: {
-      initialPrice: 162.99,
-      dividendYield: 3.23,
+      initialPrice: 161.21,
+      dividendYield: 3.26,
       frequency: "quarterly",
       observedDividendCagr: 7.86,
       payoutMonths: [
@@ -1642,8 +1656,8 @@ var marketData_generated_default = {
       }
     },
     DWX: {
-      initialPrice: 47.11,
-      dividendYield: 4.17,
+      initialPrice: 47.88,
+      dividendYield: 4.1,
       frequency: "quarterly",
       observedDividendCagr: 6.78,
       payoutMonths: [
@@ -1662,8 +1676,8 @@ var marketData_generated_default = {
       }
     },
     ENB: {
-      initialPrice: 55.25,
-      dividendYield: 3.8,
+      initialPrice: 54.46,
+      dividendYield: 3.86,
       frequency: "quarterly",
       observedDividendCagr: -3.39,
       payoutMonths: [
@@ -1675,8 +1689,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     ETN: {
-      initialPrice: 404.07,
-      dividendYield: 1.06,
+      initialPrice: 415.2,
+      dividendYield: 1.03,
       frequency: "quarterly",
       observedDividendCagr: 12.95,
       payoutMonths: [
@@ -1695,8 +1709,8 @@ var marketData_generated_default = {
       }
     },
     FDVV: {
-      initialPrice: 62.4,
-      dividendYield: 2.77,
+      initialPrice: 62.56,
+      dividendYield: 2.76,
       frequency: "quarterly",
       observedDividendCagr: 9.8,
       payoutMonths: [
@@ -1715,8 +1729,8 @@ var marketData_generated_default = {
       }
     },
     HDV: {
-      initialPrice: 29.14,
-      dividendYield: 3.02,
+      initialPrice: 28.73,
+      dividendYield: 3.07,
       frequency: "quarterly",
       observedDividendCagr: 1.86,
       payoutMonths: [
@@ -1735,8 +1749,8 @@ var marketData_generated_default = {
       }
     },
     IDV: {
-      initialPrice: 43.18,
-      dividendYield: 5.27,
+      initialPrice: 44.38,
+      dividendYield: 5.13,
       frequency: "quarterly",
       observedDividendCagr: 3.87,
       payoutMonths: [
@@ -1755,8 +1769,8 @@ var marketData_generated_default = {
       }
     },
     IDVO: {
-      initialPrice: 42.26,
-      dividendYield: 5.63,
+      initialPrice: 42.67,
+      dividendYield: 5.67,
       frequency: "monthly",
       payoutMonths: [
         1,
@@ -1790,8 +1804,8 @@ var marketData_generated_default = {
       }
     },
     IVV: {
-      initialPrice: 742.36,
-      dividendYield: 1.1,
+      initialPrice: 750.32,
+      dividendYield: 1.09,
       frequency: "quarterly",
       observedDividendCagr: 6.36,
       payoutMonths: [
@@ -1810,8 +1824,8 @@ var marketData_generated_default = {
       }
     },
     JEPI: {
-      initialPrice: 56.8,
-      dividendYield: 8.05,
+      initialPrice: 57.43,
+      dividendYield: 7.34,
       frequency: "monthly",
       payoutMonths: [
         1,
@@ -1845,8 +1859,8 @@ var marketData_generated_default = {
       }
     },
     JEPQ: {
-      initialPrice: 57.96,
-      dividendYield: 10.81,
+      initialPrice: 58.25,
+      dividendYield: 9.99,
       frequency: "monthly",
       payoutMonths: [
         1,
@@ -1880,8 +1894,8 @@ var marketData_generated_default = {
       }
     },
     JNJ: {
-      initialPrice: 266.73,
-      dividendYield: 1.96,
+      initialPrice: 256.35,
+      dividendYield: 2.04,
       frequency: "quarterly",
       observedDividendCagr: 5.25,
       payoutMonths: [
@@ -1893,8 +1907,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     KLAC: {
-      initialPrice: 190.8,
-      dividendYield: 0.42,
+      initialPrice: 182.82,
+      dividendYield: 0.44,
       frequency: "quarterly",
       observedDividendCagr: 16.15,
       payoutMonths: [
@@ -1906,8 +1920,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     KO: {
-      initialPrice: 82.25,
-      dividendYield: 2.53,
+      initialPrice: 87.59,
+      dividendYield: 2.37,
       frequency: "quarterly",
       observedDividendCagr: 4.46,
       payoutMonths: [
@@ -1926,8 +1940,8 @@ var marketData_generated_default = {
       }
     },
     LOW: {
-      initialPrice: 207.64,
-      dividendYield: 2.34,
+      initialPrice: 207.81,
+      dividendYield: 2.33,
       frequency: "quarterly",
       observedDividendCagr: 15.87,
       payoutMonths: [
@@ -1939,8 +1953,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     LRCX: {
-      initialPrice: 269.61,
-      dividendYield: 0.39,
+      initialPrice: 293.02,
+      dividendYield: 0.35,
       frequency: "quarterly",
       observedDividendCagr: 14.87,
       payoutMonths: [
@@ -1952,8 +1966,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     NEE: {
-      initialPrice: 89.78,
-      dividendYield: 2.65,
+      initialPrice: 86.92,
+      dividendYield: 2.74,
       frequency: "quarterly",
       observedDividendCagr: 10.13,
       payoutMonths: [
@@ -1965,8 +1979,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     NOBL: {
-      initialPrice: 58.43,
-      dividendYield: 1.99,
+      initialPrice: 57.08,
+      dividendYield: 2.04,
       frequency: "quarterly",
       observedDividendCagr: 5.44,
       payoutMonths: [
@@ -1978,7 +1992,7 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     NVDA: {
-      initialPrice: 197.01,
+      initialPrice: 200.75,
       dividendYield: 0.14,
       frequency: "quarterly",
       observedDividendCagr: 20.11,
@@ -1991,8 +2005,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     O: {
-      initialPrice: 65.6,
-      dividendYield: 4.94,
+      initialPrice: 63.87,
+      dividendYield: 5.08,
       frequency: "monthly",
       observedDividendCagr: 5.13,
       payoutMonths: [
@@ -2012,8 +2026,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     PG: {
-      initialPrice: 147.41,
-      dividendYield: 2.91,
+      initialPrice: 144.49,
+      dividendYield: 2.97,
       frequency: "quarterly",
       observedDividendCagr: 6.02,
       payoutMonths: [
@@ -2025,8 +2039,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     QDVO: {
-      initialPrice: 29.11,
-      dividendYield: 10.74,
+      initialPrice: 28.96,
+      dividendYield: 10.97,
       frequency: "monthly",
       payoutMonths: [
         1,
@@ -2045,8 +2059,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     QQQ: {
-      initialPrice: 675.49,
-      dividendYield: 0.45,
+      initialPrice: 687.99,
+      dividendYield: 0.44,
       frequency: "quarterly",
       payoutMonths: [
         3,
@@ -2057,8 +2071,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     QYLD: {
-      initialPrice: 17.56,
-      dividendYield: 12.02,
+      initialPrice: 17.74,
+      dividendYield: 11.9,
       frequency: "monthly",
       observedDividendCagr: -4.33,
       payoutMonths: [
@@ -2078,8 +2092,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     RDVY: {
-      initialPrice: 79.98,
-      dividendYield: 0.85,
+      initialPrice: 81.09,
+      dividendYield: 0.83,
       frequency: "quarterly",
       observedDividendCagr: 4.81,
       payoutMonths: [
@@ -2091,8 +2105,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     SCHD: {
-      initialPrice: 33.29,
-      dividendYield: 3.15,
+      initialPrice: 33.47,
+      dividendYield: 3.13,
       frequency: "quarterly",
       observedDividendCagr: 9.13,
       payoutMonths: [
@@ -2104,8 +2118,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     SCHH: {
-      initialPrice: 24.86,
-      dividendYield: 2.66,
+      initialPrice: 24.28,
+      dividendYield: 2.72,
       frequency: "quarterly",
       observedDividendCagr: 3.19,
       payoutMonths: [
@@ -2117,8 +2131,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     SCHY: {
-      initialPrice: 32.41,
-      dividendYield: 3.42,
+      initialPrice: 33.36,
+      dividendYield: 3.32,
       frequency: "quarterly",
       payoutMonths: [
         3,
@@ -2129,8 +2143,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     SDVY: {
-      initialPrice: 43.28,
-      dividendYield: 0.96,
+      initialPrice: 43.78,
+      dividendYield: 0.95,
       frequency: "quarterly",
       observedDividendCagr: 7.42,
       payoutMonths: [
@@ -2142,8 +2156,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     SDY: {
-      initialPrice: 155.73,
-      dividendYield: 2.4,
+      initialPrice: 155,
+      dividendYield: 2.41,
       frequency: "quarterly",
       observedDividendCagr: 3.75,
       payoutMonths: [
@@ -2152,8 +2166,8 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 2,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "3": 26,
         "6": 25,
@@ -2162,8 +2176,8 @@ var marketData_generated_default = {
       }
     },
     SMH: {
-      initialPrice: 529.6,
-      dividendYield: 0.21,
+      initialPrice: 540.53,
+      dividendYield: 0.2,
       frequency: "semiannual",
       payoutMonths: [
         12
@@ -2171,8 +2185,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     SPY: {
-      initialPrice: 738.93,
-      dividendYield: 1.02,
+      initialPrice: 747.03,
+      dividendYield: 1.01,
       frequency: "quarterly",
       observedDividendCagr: 5.05,
       payoutMonths: [
@@ -2191,8 +2205,8 @@ var marketData_generated_default = {
       }
     },
     SPYD: {
-      initialPrice: 49.75,
-      dividendYield: 4.08,
+      initialPrice: 49.5,
+      dividendYield: 4.1,
       frequency: "quarterly",
       observedDividendCagr: 3.69,
       payoutMonths: [
@@ -2204,8 +2218,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     SRVR: {
-      initialPrice: 31.47,
-      dividendYield: 2.76,
+      initialPrice: 30.87,
+      dividendYield: 2.81,
       frequency: "quarterly",
       observedDividendCagr: 6.16,
       payoutMonths: [
@@ -2224,8 +2238,8 @@ var marketData_generated_default = {
       }
     },
     T: {
-      initialPrice: 24.13,
-      dividendYield: 4.61,
+      initialPrice: 23.25,
+      dividendYield: 4.78,
       frequency: "quarterly",
       observedDividendCagr: -11.77,
       payoutMonths: [
@@ -2237,8 +2251,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     TSM: {
-      initialPrice: 392.31,
-      dividendYield: 0.91,
+      initialPrice: 404.25,
+      dividendYield: 0.88,
       frequency: "quarterly",
       observedDividendCagr: 12.84,
       payoutMonths: [
@@ -2250,8 +2264,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     TXN: {
-      initialPrice: 279.58,
-      dividendYield: 2.01,
+      initialPrice: 275.74,
+      dividendYield: 2.06,
       frequency: "quarterly",
       observedDividendCagr: 8.13,
       payoutMonths: [
@@ -2263,21 +2277,28 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     UPS: {
-      initialPrice: 114.79,
-      dividendYield: 5.71,
+      initialPrice: 104.22,
+      dividendYield: 6.29,
       frequency: "quarterly",
       observedDividendCagr: 10.18,
       payoutMonths: [
-        2,
-        5,
-        8,
-        11
+        3,
+        6,
+        9,
+        12
       ],
-      payoutMonthsSource: "ex"
+      exToPayLagDays: 17,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "3": 6,
+        "6": 5,
+        "9": 5,
+        "12": 5
+      }
     },
     VICI: {
-      initialPrice: 26.73,
-      dividendYield: 6.73,
+      initialPrice: 26.35,
+      dividendYield: 6.83,
       frequency: "quarterly",
       observedDividendCagr: 7.05,
       payoutMonths: [
@@ -2289,7 +2310,7 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     VIG: {
-      initialPrice: 238.65,
+      initialPrice: 239.17,
       dividendYield: 1.5,
       frequency: "quarterly",
       observedDividendCagr: 9.15,
@@ -2309,8 +2330,8 @@ var marketData_generated_default = {
       }
     },
     VIGI: {
-      initialPrice: 95.16,
-      dividendYield: 2.1,
+      initialPrice: 97.24,
+      dividendYield: 2.05,
       frequency: "quarterly",
       observedDividendCagr: 13.32,
       payoutMonths: [
@@ -2322,8 +2343,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     VNQI: {
-      initialPrice: 45.3,
-      dividendYield: 4.76,
+      initialPrice: 46.03,
+      dividendYield: 4.68,
       frequency: "semiannual",
       observedDividendCagr: -14.54,
       payoutMonths: [
@@ -2332,8 +2353,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     VOO: {
-      initialPrice: 679.14,
-      dividendYield: 1.08,
+      initialPrice: 686.65,
+      dividendYield: 1.07,
       frequency: "quarterly",
       observedDividendCagr: 5.91,
       payoutMonths: [
@@ -2345,8 +2366,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     VRT: {
-      initialPrice: 269.56,
-      dividendYield: 0.08,
+      initialPrice: 241.57,
+      dividendYield: 0.09,
       frequency: "quarterly",
       payoutMonths: [
         3,
@@ -2357,8 +2378,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     VT: {
-      initialPrice: 154.2,
-      dividendYield: 1.61,
+      initialPrice: 155.86,
+      dividendYield: 1.59,
       frequency: "quarterly",
       observedDividendCagr: 10.87,
       payoutMonths: [
@@ -2370,8 +2391,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     VTI: {
-      initialPrice: 364.8,
-      dividendYield: 1.07,
+      initialPrice: 368.21,
+      dividendYield: 1.06,
       frequency: "quarterly",
       observedDividendCagr: 6.28,
       payoutMonths: [
@@ -2383,8 +2404,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     VUG: {
-      initialPrice: 83.33,
-      dividendYield: 0.41,
+      initialPrice: 85.2,
+      dividendYield: 0.4,
       frequency: "quarterly",
       observedDividendCagr: 3.6,
       payoutMonths: [
@@ -2396,8 +2417,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     VXUS: {
-      initialPrice: 83.4,
-      dividendYield: 2.62,
+      initialPrice: 84.59,
+      dividendYield: 2.59,
       frequency: "quarterly",
       observedDividendCagr: 13.26,
       payoutMonths: [
@@ -2406,10 +2427,17 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 4,
+      estimatedPayDayByMonth: {
+        "3": 24,
+        "6": 24,
+        "9": 23,
+        "12": 23
+      }
     },
     VYM: {
-      initialPrice: 162.23,
+      initialPrice: 161.96,
       dividendYield: 2.24,
       frequency: "quarterly",
       observedDividendCagr: 3.8,
@@ -2422,8 +2450,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     VYMI: {
-      initialPrice: 101.64,
-      dividendYield: 3.55,
+      initialPrice: 103.56,
+      dividendYield: 3.48,
       frequency: "quarterly",
       observedDividendCagr: 11.09,
       payoutMonths: [
@@ -2442,8 +2470,8 @@ var marketData_generated_default = {
       }
     },
     XYLD: {
-      initialPrice: 40.76,
-      dividendYield: 10.63,
+      initialPrice: 41.17,
+      dividendYield: 10.53,
       frequency: "monthly",
       observedDividendCagr: 3.02,
       payoutMonths: [
@@ -2460,7 +2488,22 @@ var marketData_generated_default = {
         11,
         12
       ],
-      payoutMonthsSource: "ex"
+      exToPayLagDays: 3,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "1": 18,
+        "2": 27,
+        "3": 26,
+        "4": 28,
+        "5": 27,
+        "6": 28,
+        "7": 26,
+        "8": 26,
+        "9": 29,
+        "10": 28,
+        "11": 27,
+        "12": 16
+      }
     }
   }
 };
@@ -8986,6 +9029,118 @@ var GURU_HOLDING_STOCKS = {
   }
 };
 
+// shared/constants/presets/koreanDividendTickers.ts
+var KOREAN_DIVIDEND_TICKERS = {
+  "458730.KS": {
+    ticker: "458730.KS",
+    name: "TIGER \uBBF8\uAD6D\uBC30\uB2F9\uB2E4\uC6B0\uC874\uC2A4",
+    initialPrice: 15175,
+    dividendYield: 2.89,
+    dividendGrowth: 5.61,
+    expectedTotalReturn: 8.5,
+    frequency: "monthly"
+  },
+  "402970.KS": {
+    ticker: "402970.KS",
+    name: "ACE \uBBF8\uAD6D\uBC30\uB2F9\uB2E4\uC6B0\uC874\uC2A4",
+    initialPrice: 15460,
+    dividendYield: 2.88,
+    dividendGrowth: 5.62,
+    expectedTotalReturn: 8.5,
+    frequency: "monthly"
+  },
+  "483290.KS": {
+    ticker: "483290.KS",
+    name: "KODEX \uBBF8\uAD6D\uBC30\uB2F9\uB2E4\uC6B0\uC874\uC2A4\uD0C0\uAC9F\uCEE4\uBC84\uB4DC\uCF5C",
+    initialPrice: 10470,
+    dividendYield: 11.8,
+    dividendGrowth: -3.3,
+    expectedTotalReturn: 8.5,
+    frequency: "monthly"
+  },
+  "161510.KS": {
+    ticker: "161510.KS",
+    name: "PLUS \uACE0\uBC30\uB2F9\uC8FC",
+    initialPrice: 24960,
+    dividendYield: 4.04,
+    dividendGrowth: 3.46,
+    expectedTotalReturn: 7.5,
+    frequency: "monthly"
+  },
+  "279530.KS": {
+    ticker: "279530.KS",
+    name: "KODEX \uACE0\uBC30\uB2F9",
+    initialPrice: 17390,
+    dividendYield: 4.09,
+    dividendGrowth: 3.41,
+    expectedTotalReturn: 7.5,
+    frequency: "monthly"
+  },
+  "104530.KS": {
+    ticker: "104530.KS",
+    name: "KOSEF \uACE0\uBC30\uB2F9",
+    initialPrice: 17725,
+    dividendYield: 4.15,
+    dividendGrowth: 3.35,
+    expectedTotalReturn: 7.5,
+    frequency: "monthly"
+  },
+  "210780.KS": {
+    ticker: "210780.KS",
+    name: "TIGER \uCF54\uC2A4\uD53C\uACE0\uBC30\uB2F9",
+    initialPrice: 23010,
+    dividendYield: 4.78,
+    dividendGrowth: 2.72,
+    expectedTotalReturn: 7.5,
+    frequency: "quarterly"
+  },
+  "211560.KS": {
+    ticker: "211560.KS",
+    name: "TIGER \uBC30\uB2F9\uC131\uC7A5",
+    initialPrice: 35300,
+    dividendYield: 2.57,
+    dividendGrowth: 5.43,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  "088980.KS": {
+    ticker: "088980.KS",
+    name: "\uB9E5\uCFFC\uB9AC\uC778\uD504\uB77C",
+    initialPrice: 10020,
+    dividendYield: 7.29,
+    dividendGrowth: -0.29,
+    expectedTotalReturn: 7,
+    frequency: "semiannual"
+  },
+  "033780.KS": {
+    ticker: "033780.KS",
+    name: "KT&G",
+    initialPrice: 181300,
+    dividendYield: 3.31,
+    dividendGrowth: 3.69,
+    expectedTotalReturn: 7,
+    frequency: "semiannual"
+  },
+  "316140.KS": {
+    ticker: "316140.KS",
+    name: "\uC6B0\uB9AC\uAE08\uC735\uC9C0\uC8FC",
+    initialPrice: 33600,
+    dividendYield: 4.11,
+    dividendGrowth: 2.89,
+    expectedTotalReturn: 7,
+    frequency: "quarterly"
+  },
+  "105560.KS": {
+    ticker: "105560.KS",
+    name: "KB\uAE08\uC735",
+    initialPrice: 170500,
+    dividendYield: 3.37,
+    dividendGrowth: 3.63,
+    expectedTotalReturn: 7,
+    frequency: "quarterly"
+  }
+};
+
 // shared/constants/presets/index.ts
 var CURATED_DIVIDEND_UNIVERSE = {
   ...CORE_INDEX_ETFS,
@@ -9001,7 +9156,10 @@ var CURATED_DIVIDEND_UNIVERSE = {
   ...MEGA_CAP_GROWTH_STOCKS,
   ...FINANCIAL_DIVIDEND_STOCKS,
   ...DIVIDEND_ARISTOCRAT_STOCKS,
-  ...GURU_HOLDING_STOCKS
+  ...GURU_HOLDING_STOCKS,
+  /* 한국 상장 12종(2026-08-06). 티커 키가 '458730.KS' 처럼 점을 포함하는 유일한 묶음이다 —
+     야후 심볼을 그대로 쓴다(접미사를 큐레이션에 못 박는 이유는 그 파일 머리말). */
+  ...KOREAN_DIVIDEND_TICKERS
 };
 var withCoherentDividendGrowth = (universe) => {
   const coherent = {};
@@ -9091,9 +9249,9 @@ var auroraGreen = {
   50: "#e7f5ef",
   /** 라이트 accent-alt-border(장식) — surface 위 1.57:1 */
   200: "#a7d9c4",
-  /** 다크 accent-alt(표시)·accent-alt-text — 다크 서피스 10.69:1. 워드마크 다크 "인컴" 끝 stop */
+  /** 다크 accent-alt(표시)·accent-alt-text — 다크 서피스 10.69:1. 워드마크 다크 뒷 낱말 끝 stop */
   400: "#6ee7a0",
-  /** 라이트 accent-alt(표시) — 라이트 surface 3.32:1(비텍스트). 워드마크 라이트 "인컴" 끝 stop */
+  /** 라이트 accent-alt(표시) — 라이트 surface 3.32:1(비텍스트). 워드마크 라이트 뒷 낱말 끝 stop */
   600: "#22a06b",
   /** 라이트 accent-alt-text — 흰 배경 5.71:1, accent-alt-subtle 위 5.09:1 */
   700: "#0f763a",
@@ -9108,8 +9266,16 @@ var neutral = {
   /** ice-white — 라이트 bg·surface-hover */
   50: "#edf4fa",
   100: "#e6eef7",
-  /** 라이트 border(장식) — surface 대비 1.26:1 (>1.05) */
-  150: "#dbe6f0",
+  /**
+   * 라이트 border. 🔴 **더 이상 장식이 아니다**(2026-08-03, 흰 캔버스 전환).
+   *
+   * 라이트 `bg` 가 전 프리셋 순백이 되면서 `bg = surface = surface-raised` 가 전부 `#ffffff` 다 —
+   * 면색이 더는 카드의 격을 말하지 못하고, **1px 경계가 그 일을 이어받았다.** 구 값(#dbe6f0)은
+   * 흰 면 위 1.27:1 로 사실상 안 보였다. 새 값은 **1.45:1**(GitHub `#d0d7de` 1.45 와 같은 대역).
+   * 참고: 이 시스템의 **다크** border 는 이미 1.34~1.49 였다 — 라이트만 뒤처져 있었던 것이다.
+   * 하한은 `contrast.test.ts` 의 "라이트 경계선은 흰 캔버스 위에서 격을 말한다" 가 잠근다.
+   */
+  150: "#cdd8e2",
   200: "#cfdcea",
   300: "#b7c7d9",
   400: "#91a2b6",
@@ -9248,7 +9414,6 @@ var buildAuroraGradient = ([stop1, stop2, stop3]) => `linear-gradient(135deg, ${
 var buildCtaGradient = ([stop1, stop2, stop3]) => `linear-gradient(135deg, ${stop1} 0%, ${stop2} 55%, ${stop3} 100%)`;
 var buildDuotoneGradient = (from2, to) => `linear-gradient(135deg, ${from2} 0%, ${to} 100%)`;
 var buildWordmarkGradient = (from2, to) => `linear-gradient(100deg, ${from2} 0%, ${to} 100%)`;
-var buildHeroGradient = (from2, to) => `linear-gradient(135deg, ${from2} 0%, ${to} 100%)`;
 
 // shared/styles/presets/sharedTokens.ts
 var { brand: brand2, auroraTeal: auroraTeal2, auroraGreen: auroraGreen2, up: up2, down: down2, positive: positive2, warning: warning2, danger: danger2 } = palette;
@@ -9285,6 +9450,12 @@ var IDENTITY_DARK = {
   "identity-border": brand2[700],
   "identity-text": brand2[300]
 };
+var BRAND_PANEL = {
+  panel: "#1b1e3a",
+  "on-panel": "#ffffff",
+  "on-panel-muted": "#b7b3e6",
+  "on-panel-gold": "#f6b34a"
+};
 var COMMON_LIGHT = {
   "data-positive": up2.light,
   "data-positive-surface": up2.soft,
@@ -9298,7 +9469,8 @@ var COMMON_LIGHT = {
   "danger-surface": danger2.soft,
   "danger-border": danger2.softBorder,
   ...IDENTITY_LIGHT,
-  ...WORDMARK_LIGHT
+  ...WORDMARK_LIGHT,
+  ...BRAND_PANEL
 };
 var COMMON_DARK = {
   "data-positive": up2.dark,
@@ -9313,7 +9485,9 @@ var COMMON_DARK = {
   "danger-surface": danger2.softDark,
   "danger-border": danger2.softDarkBorder,
   ...IDENTITY_DARK,
-  ...WORDMARK_DARK
+  ...WORDMARK_DARK,
+  /* 패널은 라이트/다크 같은 값이다 — 스스로 어두운 면이라 모드에 따라 뒤집을 것이 없다. */
+  ...BRAND_PANEL
 };
 
 // shared/styles/presets/aurora.ts
@@ -9343,17 +9517,20 @@ var AURORA_DARK_CTA = [brand3[500], auroraTeal3[650], auroraViolet2[550]];
 var AURORA_LIGHT = {
   /* 서피스 — 낮은 곳(sunken) → 기본(base) → 떠 있는 곳(raised) */
   /*
-   * 아이스블루 틴트 강화(구 neutral[50] #edf4fa → #e4f0fc, B-R 채널차 13→24).
-   * 명도가 아니라 채도로 색을 준다 — 더 어둡게 내리면 border-strong 3:1(현 3.25)과
-   * 글로우 최악 지점 4.5:1이 연쇄로 무너진다(실측). surface-hover는 bg와 동기(설계 관례).
+   * 🔴 **순백 캔버스**(2026-08-03 사용자 결정). 구 값은 아이스블루 틴트(#e4f0fc)였다.
+   * 프리셋의 얼굴색은 이제 캔버스가 아니라 **경계·액센트·차트**가 말한다 — 아이스블루는
+   * `surface-hover`(아래)와 `brand`·`accent` 축에 그대로 남는다.
+   * 부수 효과: 이 프리셋에서 가장 빠듯하던 `border-strong on bg`(3.25:1)와 글로우 최악 지점
+   * 4.5:1 제약이 **함께 풀렸다** — 흰 배경은 그 위 모든 어두운 잉크의 대비를 올린다.
    */
-  bg: "#e4f0fc",
+  bg: neutral2[0],
   surface: neutral2[0],
   "surface-raised": neutral2[0],
   "surface-muted": neutral2[25],
   "surface-sunken": neutral2[100],
+  /* 아이스블루는 여기 남는다 — 흰 서피스 위 1.15:1 이라 hover 가 오히려 또렷해졌다. */
   "surface-hover": "#e4f0fc",
-  /* 경계 — border는 장식(카드 윤곽), border-strong은 컨트롤 경계(3:1 필요) */
+  /* 🔴 경계 — border 는 이제 **카드의 격을 말하는 주역**이다(primitives.ts neutral[150] 주석). */
   border: neutral2[150],
   "border-strong": neutral2[450],
   /* 텍스트 — 3단 위계. 셋 다 모든 서피스 위에서 4.5:1을 넘긴다. */
@@ -9389,7 +9566,8 @@ var AURORA_LIGHT = {
   "focus-shadow": "rgba(12, 124, 179, 0.28)",
   /* 엘리베이션 — 라이트는 그림자가 위계를 만든다. 틴트는 polar-night 계열(쿨). */
   "shadow-1": "0 1px 2px rgba(13, 32, 58, 0.05), 0 1px 3px rgba(13, 32, 58, 0.07)",
-  "shadow-2": "0 2px 4px rgba(13, 32, 58, 0.05), 0 4px 12px rgba(13, 32, 58, 0.09)",
+  /* ⚠ e2 만 올렸다 — `cardElevation('raised')` 는 테두리 없이 이 그림자 하나로 주역을 세운다. */
+  "shadow-2": "0 1px 2px rgba(13, 32, 58, 0.05), 0 6px 18px rgba(13, 32, 58, 0.13)",
   "shadow-3": "0 2px 6px rgba(13, 32, 58, 0.07), 0 12px 32px rgba(13, 32, 58, 0.16)",
   /* 시그니처 — 스칼라 stop (대비 검증 가능해야 하므로 순수 hex) */
   "ribbon-stop-1": AURORA_LIGHT_RIBBON[0],
@@ -9403,15 +9581,16 @@ var AURORA_LIGHT = {
   /* 시그니처 — CSS 값 문자열 (위 스칼라에서 조립) */
   "gradient-aurora": buildAuroraGradient(AURORA_LIGHT_RIBBON),
   "gradient-cta": buildCtaGradient(AURORA_LIGHT_CTA),
-  /* 히어로 면 — 라이트는 blue stop(t=0)이 최악 지점. text-muted 4.86:1 / soft 5.32:1(실측). */
-  "gradient-hero": buildHeroGradient("#dcebf6", "#e6f5ef"),
-  "gradient-hero-soft": buildHeroGradient("#ecf4fa", "#f1f9f6"),
+  /* 히어로 면 — 단색(gradients.ts 머리말 참고). hero = surface / soft = surface-muted. */
+  "gradient-hero": neutral2[0],
+  "gradient-hero-soft": neutral2[25],
   /*
-   * 페이지 상단 오로라 글로우 — body 배경. 마지막 레이어가 bg 단색이라 폴백 겸용.
-   * 알파 상한 0.05/0.04 — bg 틴트 강화(#e4f0fc)의 필수 연쇄 감쇄다. 구 0.06/0.05를 유지하면
-   * 두 radial 완전 중첩 최악 지점에서 text-muted가 ~4.37로 탈락(실측). 현 최악 #d5e5f5 위 4.61:1.
+   * 🔴 페이지 상단 오로라 글로우를 **걷었다**(2026-08-03). 사용자 지시는 "페이지 전체 배경색이
+   * 흰색"이고, 두 radial 이 상단 640px 을 물들이면 그건 흰 배경이 아니다. 이 글로우가 만들던
+   * 최악 지점(#d5e5f5 위 text-muted 4.61:1)도 함께 사라진다.
+   * ⚠ 다크 글로우는 남긴다 — 어두운 캔버스는 완전히 평평하면 깊이가 죽는다(아래 DARK 참고).
    */
-  "bg-glow": "radial-gradient(1200px 640px at 16% -10%, rgba(13, 148, 136, 0.05), transparent 60%), radial-gradient(1000px 560px at 84% -12%, rgba(109, 90, 230, 0.04), transparent 55%), #e4f0fc",
+  "bg-glow": neutral2[0],
   /* 서리유리 — 모달 등 raised 서피스. 알파 0.78은 최악 배경(오버레이+최암부) 합성 검증값. */
   "surface-glass": "rgba(255, 255, 255, 0.78)",
   /* 서리유리 불투명 폴백 (backdrop-filter 미지원 브라우저) */
@@ -9486,9 +9665,9 @@ var AURORA_DARK = {
   /* 시그니처 — CSS 값 문자열 (위 스칼라에서 조립) */
   "gradient-aurora": buildAuroraGradient(AURORA_DARK_RIBBON),
   "gradient-cta": buildCtaGradient(AURORA_DARK_CTA),
-  /* 히어로 면 — 다크는 green stop 근처(t≈0.75~1)가 최악. text-muted 5.63:1 / soft 6.30:1(실측). */
-  "gradient-hero": buildHeroGradient("#12283e", "#10292f"),
-  "gradient-hero-soft": buildHeroGradient("#0f1e30", "#0d1f28"),
+  /* 히어로 면 — 라이트와 같은 처방(단색). 다크는 흰 캔버스로 가지 않고 면 밝기 위계를 지킨다. */
+  "gradient-hero": neutral2[900],
+  "gradient-hero-soft": "#17253c",
   /* 다크 글로우 — 뚜렷하되 절제. 알파 상한 0.14/0.12 (최악 지점 text-muted 4.57:1 실측). */
   "bg-glow": `radial-gradient(1100px 600px at 18% -10%, rgba(45, 212, 191, 0.14), transparent 60%), radial-gradient(900px 520px at 82% -14%, rgba(129, 140, 248, 0.12), transparent 55%), ${neutral2[950]}`,
   /*
@@ -9518,13 +9697,20 @@ var FOREST_CHART_SERIES = [
   "#6b7785"
 ];
 var FOREST_LIGHT = {
-  bg: "#eef3ec",
+  /*
+   * 🔴 **순백 캔버스**(2026-08-03 사용자 결정 — "페이지 전체 배경색이 흰색"). 구 값 세이지 틴트(#eef3ec).
+   * bg = surface = surface-raised 가 전부 흰색이 되면서 **면색이 카드의 격을 말하지 못한다** —
+   * 그 일은 아래 `border`(헤어라인)·여백·그림자가 이어받았다. 프리셋의 얼굴색은
+   * 이제 경계·액센트·차트가 말한다 — 세이지는 `surface-hover` 와 brand 축에 그대로 남는다.
+   */
+  bg: "#ffffff",
   surface: "#ffffff",
   "surface-raised": "#ffffff",
   "surface-muted": "#f8faf7",
   "surface-sunken": "#e4ece1",
   "surface-hover": "#eef3ec",
-  border: "#d8e2d4",
+  /* 🔴 흰 캔버스의 주역. 구 값(#d8e2d4)은 흰 면 위 1.33:1 → 새 값 1.44:1. */
+  border: "#d0dacc",
   "border-strong": "#71836d",
   text: "#182218",
   "text-secondary": "#435449",
@@ -9554,7 +9740,8 @@ var FOREST_LIGHT = {
   "focus-shadow": "rgba(47, 125, 79, 0.25)",
   /* 그린 틴트 섀도 */
   "shadow-1": "0 1px 2px rgba(24, 40, 26, 0.06), 0 1px 3px rgba(24, 40, 26, 0.08)",
-  "shadow-2": "0 2px 4px rgba(24, 40, 26, 0.06), 0 4px 12px rgba(24, 40, 26, 0.10)",
+  /* ⚠ e2 만 올렸다 — raised 는 테두리 없이 이 그림자 하나로 선다(흰 캔버스에서 필수). */
+  "shadow-2": "0 1px 2px rgba(24, 40, 26, 0.05), 0 6px 18px rgba(24, 40, 26, 0.13)",
   "shadow-3": "0 2px 6px rgba(24, 40, 26, 0.08), 0 12px 32px rgba(24, 40, 26, 0.18)",
   "ribbon-stop-1": "#2f7d4f",
   "ribbon-stop-2": "#4c8b2e",
@@ -9567,9 +9754,11 @@ var FOREST_LIGHT = {
   "gradient-aurora": buildAuroraGradient(["#2f7d4f", "#4c8b2e", "#7d5a3c"]),
   "gradient-cta": buildDuotoneGradient("#2f7d4f", "#256540"),
   /* 히어로 면 — 최악 text-muted 4.81:1 / soft 5.16:1(실측). */
-  "gradient-hero": buildHeroGradient("#e1eef7", "#e6f5ef"),
-  "gradient-hero-soft": buildHeroGradient("#eef5fb", "#f1f9f6"),
-  "bg-glow": "radial-gradient(1200px 640px at 16% -10%, rgba(47, 125, 79, 0.05), transparent 60%), radial-gradient(1000px 560px at 84% -12%, rgba(76, 139, 46, 0.04), transparent 55%), #eef3ec",
+  /* 히어로 면 — 단색(gradients.ts 머리말). hero = surface / soft = surface-muted. */
+  "gradient-hero": "#ffffff",
+  "gradient-hero-soft": "#f8faf7",
+  /* 🔴 상단 글로우를 걷었다 — 배경을 물들이면 그건 흰 배경이 아니다. 다크 글로우는 남긴다. */
+  "bg-glow": "#ffffff",
   "surface-glass": "rgba(255, 255, 255, 0.8)",
   "surface-glass-fallback": "#ffffff",
   "chart-axis-line": "#d3ded0",
@@ -9626,8 +9815,9 @@ var FOREST_DARK = {
   "gradient-aurora": buildAuroraGradient(["#55c17e", "#8fd14f", "#c9a978"]),
   "gradient-cta": buildDuotoneGradient("#2b8052", "#236a44"),
   /* 히어로 면 — 다크 최악 text-muted 5.25:1 / soft 5.86:1(실측). */
-  "gradient-hero": buildHeroGradient("#16292e", "#142e23"),
-  "gradient-hero-soft": buildHeroGradient("#132122", "#12241b"),
+  /* 히어로 면 — 라이트와 같은 처방(단색). 다크는 면 밝기 위계를 그대로 지킨다. */
+  "gradient-hero": "#18231b",
+  "gradient-hero-soft": "#1d2a20",
   /* 알파 0.10/0.08 상한 — 0.12/0.10에서 text-muted 4.35로 탈락(실측, 유일한 1차 실패). 올리지 마라. */
   "bg-glow": "radial-gradient(1100px 600px at 18% -10%, rgba(85, 193, 126, 0.10), transparent 60%), radial-gradient(900px 520px at 82% -14%, rgba(143, 209, 79, 0.08), transparent 55%), #0f1712",
   "surface-glass": "rgba(35, 50, 39, 0.85)",
@@ -9652,13 +9842,19 @@ var GRAPE_CHART_SERIES = [
   "#6b7785"
 ];
 var GRAPE_LIGHT = {
-  bg: "#f3effa",
+  /*
+   * 🔴 **순백 캔버스**(2026-08-03 사용자 결정 — "페이지 전체 배경색이 흰색"). 구 값 라일락 틴트(#f3effa).
+   * bg = surface = surface-raised 가 전부 흰색이 되면서 **면색이 카드의 격을 말하지 못한다** —
+   * 그 일은 아래 `border`(헤어라인)·여백·그림자가 이어받았다. 라일락은 `surface-hover`·brand 축에 남는다.
+   */
+  bg: "#ffffff",
   surface: "#ffffff",
   "surface-raised": "#ffffff",
   "surface-muted": "#faf8fd",
   "surface-sunken": "#eae3f5",
   "surface-hover": "#f3effa",
-  border: "#e0d7ef",
+  /* 🔴 흰 캔버스의 주역. 구 1.39:1 → 새 1.44:1. */
+  border: "#dcd3eb",
   "border-strong": "#7f7694",
   text: "#221c33",
   "text-secondary": "#4f4768",
@@ -9687,7 +9883,8 @@ var GRAPE_LIGHT = {
   "focus-shadow": "rgba(112, 72, 200, 0.25)",
   /* 퍼플 틴트 섀도 */
   "shadow-1": "0 1px 2px rgba(34, 24, 58, 0.06), 0 1px 3px rgba(34, 24, 58, 0.08)",
-  "shadow-2": "0 2px 4px rgba(34, 24, 58, 0.06), 0 4px 12px rgba(34, 24, 58, 0.10)",
+  /* ⚠ e2 만 올렸다 — raised 는 테두리 없이 이 그림자 하나로 선다. */
+  "shadow-2": "0 1px 2px rgba(34, 24, 58, 0.05), 0 6px 18px rgba(34, 24, 58, 0.13)",
   "shadow-3": "0 2px 6px rgba(34, 24, 58, 0.08), 0 12px 32px rgba(34, 24, 58, 0.18)",
   "ribbon-stop-1": "#7048c8",
   "ribbon-stop-2": "#a136b8",
@@ -9699,9 +9896,14 @@ var GRAPE_LIGHT = {
   "gradient-aurora": buildAuroraGradient(["#7048c8", "#a136b8", "#4956d4"]),
   "gradient-cta": buildDuotoneGradient("#7048c8", "#5c39ab"),
   /* 히어로 면 — 최악 text-muted 5.27:1 / soft 5.75:1(실측). */
-  "gradient-hero": buildHeroGradient("#deecf6", "#e6f5ef"),
-  "gradient-hero-soft": buildHeroGradient("#edf5fa", "#f1f9f6"),
-  "bg-glow": "radial-gradient(1200px 640px at 16% -10%, rgba(112, 72, 200, 0.05), transparent 60%), radial-gradient(1000px 560px at 84% -12%, rgba(161, 54, 184, 0.05), transparent 55%), #f3effa",
+  /*
+   * 히어로 면 — 단색. 구 값은 **이 프리셋에 없는 색**이었다(퍼플 프리셋인데 히어로만
+   * 아이스블루→민트). 옛 브랜드 램프였다는 가장 알기 쉬운 증거다.
+   */
+  "gradient-hero": "#ffffff",
+  "gradient-hero-soft": "#faf8fd",
+  /* 🔴 상단 글로우를 걷었다. 다크 글로우는 남긴다. */
+  "bg-glow": "#ffffff",
   "surface-glass": "rgba(255, 255, 255, 0.8)",
   "surface-glass-fallback": "#ffffff",
   "chart-axis-line": "#ddd3ee",
@@ -9758,8 +9960,9 @@ var GRAPE_DARK = {
   "gradient-aurora": buildAuroraGradient(["#a184f2", "#d478e8", "#8f9bff"]),
   "gradient-cta": buildDuotoneGradient("#7a53da", "#6845c6"),
   /* 히어로 면 — 다크 최악 text-muted 5.00:1 / soft 5.58:1(실측). velog 다크 다음으로 얇다. */
-  "gradient-hero": buildHeroGradient("#1d2541", "#1b2934"),
-  "gradient-hero-soft": buildHeroGradient("#1a1c35", "#191e2e"),
+  /* 히어로 면 — 단색. 다크는 면 밝기 위계를 지킨다. */
+  "gradient-hero": "#221a3a",
+  "gradient-hero-soft": "#281f45",
   /* 다크 글로우 알파 0.10/0.08 상한(사전 계산으로 0.12에서 감쇄) */
   "bg-glow": "radial-gradient(1100px 600px at 18% -10%, rgba(161, 132, 242, 0.10), transparent 60%), radial-gradient(900px 520px at 82% -14%, rgba(212, 120, 232, 0.08), transparent 55%), #171126",
   "surface-glass": "rgba(47, 37, 81, 0.85)",
@@ -9774,14 +9977,20 @@ var GRAPE_DARK = {
 
 // shared/styles/presets/ink.ts
 var INK_LIGHT = {
-  /* 무틴트 — 정체성 */
-  bg: "#f1f1f1",
+  /*
+   * 🔴 **순백 캔버스**(2026-08-03 사용자 결정 — "페이지 전체 배경색이 흰색"). 구 값 연회색(#f1f1f1).
+   * bg = surface = surface-raised 가 전부 흰색이 되면서 **면색이 카드의 격을 말하지 못한다** —
+   * 그 일은 아래 `border`(헤어라인)·여백·그림자가 이어받았다. 무채 규율은 그대로다 — 오히려 순백이
+   * 이 프리셋의 '흑백 신문' 성격에 가장 가깝다.
+   */
+  bg: "#ffffff",
   surface: "#ffffff",
   "surface-raised": "#ffffff",
   "surface-muted": "#f7f7f7",
   "surface-sunken": "#e8e8e8",
   "surface-hover": "#f1f1f1",
-  border: "#dcdcdc",
+  /* 🔴 흰 캔버스의 주역. 구 1.37:1 → 새 1.44:1. */
+  border: "#d7d7d7",
   "border-strong": "#767676",
   text: "#111111",
   "text-secondary": "#3d3d3d",
@@ -9812,7 +10021,8 @@ var INK_LIGHT = {
   "focus-shadow": "rgba(17, 17, 17, 0.22)",
   /* 무채 섀도 — velog 라이트 3종 재사용 */
   "shadow-1": "0 1px 3px rgba(0, 0, 0, 0.05)",
-  "shadow-2": "0 2px 8px rgba(0, 0, 0, 0.06)",
+  /* ⚠ e2 만 올렸다 — raised 는 테두리 없이 이 그림자 하나로 선다. */
+  "shadow-2": "0 1px 2px rgba(0, 0, 0, 0.04), 0 6px 16px rgba(0, 0, 0, 0.10)",
   "shadow-3": "0 8px 24px rgba(0, 0, 0, 0.12)",
   "ribbon-stop-1": "#1a1a1a",
   "ribbon-stop-2": "#444444",
@@ -9830,10 +10040,12 @@ var INK_LIGHT = {
    * 대가로 bg 와의 ΔE 가 2.8 밖에 안 되니 **밴드를 fill 단독으로 세우지 말고**
    * 1px `color.border` + radius 로 경계를 함께 그려라. 최악 text-muted 5.76:1.
    */
-  "gradient-hero": buildHeroGradient("#e9e9e9", "#f4f4f4"),
-  "gradient-hero-soft": buildHeroGradient("#f7f7f7", "#fcfcfc"),
+  /* 히어로 면 — 단색. hero = surface / soft = surface-muted. */
+  "gradient-hero": "#ffffff",
+  "gradient-hero-soft": "#f7f7f7",
   /* 글로우 없음 = 단색 */
-  "bg-glow": "#f1f1f1",
+  /* 글로우 없음 = 단색(역할: 페이지 배경). 라이트는 순백. */
+  "bg-glow": "#ffffff",
   "surface-glass": "rgba(255, 255, 255, 0.92)",
   "surface-glass-fallback": "#ffffff",
   "chart-axis-line": "#d9d9d9",
@@ -9892,8 +10104,9 @@ var INK_DARK = {
   "gradient-aurora": buildAuroraGradient(["#f2f2f2", "#d4d4d4", "#a3a3a3"]),
   "gradient-cta": buildDuotoneGradient("#f2f2f2", "#dedede"),
   /* 히어로 면 — 라이트와 같이 캐스트 0. bg 와 ΔE 3.6 이라 경계선 필수. 최악 text-muted 5.59:1. */
-  "gradient-hero": buildHeroGradient("#161616", "#101010"),
-  "gradient-hero-soft": buildHeroGradient("#141414", "#191919"),
+  /* 히어로 면 — 단색. 다크는 면 밝기 위계를 지킨다. */
+  "gradient-hero": "#1a1a1a",
+  "gradient-hero-soft": "#202020",
   "bg-glow": "#0d0d0d",
   "surface-glass": "rgba(38, 38, 38, 0.92)",
   "surface-glass-fallback": "#262626",
@@ -9918,16 +10131,21 @@ var NAVY_GOLD_CHART_SERIES = [
 ];
 var NAVY_GOLD_LIGHT = {
   /*
-   * 아이보리→크림 골드 틴트 강화(구 #f7f4ec → #f5efdd) — border-strong on bg 4.08,
-   * 글로우 최악 4.52(8종 중 가장 타이트 — 실측). 더 진하게 하려면 text-muted부터 어둡게. hover=bg 동기.
+   * 🔴 **순백 캔버스**(2026-08-03 사용자 결정 — "페이지 전체 배경색이 흰색"). 구 값 크림 골드 틴트(#f5efdd).
+   * bg = surface = surface-raised 가 전부 흰색이 되면서 **면색이 카드의 격을 말하지 못한다** —
+   * 그 일은 아래 `border`(헤어라인)·여백·그림자가 이어받았다. 이 프리셋만은 `surface` 가
+   * 아이보리(#fffcf5)로 남는다 — 순백 캔버스 위 크림 카드라, 면색이 **아직 한 칸 말한다**
+   * (1.03:1). 그 한 칸이 크림의 정체성이고, 격은 여전히 경계가 진다.
+   * 부수 효과: 8종 중 가장 타이트하던 글로우 최악 지점(4.52:1) 제약이 통째로 사라졌다.
    */
-  bg: "#f5efdd",
+  bg: "#ffffff",
   surface: "#fffcf5",
   "surface-raised": "#fffcf5",
   "surface-muted": "#fbf9f2",
   "surface-sunken": "#efeadd",
   "surface-hover": "#f5efdd",
-  border: "#e3dcc9",
+  /* 🔴 흰 캔버스의 주역. 구 1.34:1(아이보리 위) → 새 1.44:1. */
+  border: "#dbd4c0",
   "border-strong": "#7c7360",
   text: "#1f2430",
   "text-secondary": "#475063",
@@ -9957,7 +10175,8 @@ var NAVY_GOLD_LIGHT = {
   "focus-shadow": "rgba(31, 58, 104, 0.22)",
   /* 웜 섀도 — 아이보리 지면과 어울리는 갈색 틴트 */
   "shadow-1": "0 1px 2px rgba(46, 40, 24, 0.06), 0 1px 3px rgba(46, 40, 24, 0.08)",
-  "shadow-2": "0 2px 4px rgba(46, 40, 24, 0.06), 0 4px 12px rgba(46, 40, 24, 0.10)",
+  /* ⚠ e2 만 올렸다 — raised 는 테두리 없이 이 그림자 하나로 선다. */
+  "shadow-2": "0 1px 2px rgba(46, 40, 24, 0.05), 0 6px 18px rgba(46, 40, 24, 0.13)",
   "shadow-3": "0 2px 6px rgba(46, 40, 24, 0.08), 0 12px 32px rgba(46, 40, 24, 0.18)",
   "ribbon-stop-1": "#1f3a68",
   "ribbon-stop-2": "#a07617",
@@ -9973,10 +10192,12 @@ var NAVY_GOLD_LIGHT = {
    * 히어로 면 — 웜(아이보리) 프리셋이라 쿨 캐스트를 0.12/0.09 로 낮췄다("차가운 빛"이 스민 정도).
    * brand 자체가 네이비(쿨)라 블루 캐스트가 정체성과 충돌하지 않는다. 최악 text-muted 5.07:1.
    */
-  "gradient-hero": buildHeroGradient("#e5edef", "#ecf5ea"),
-  "gradient-hero-soft": buildHeroGradient("#f1f4f2", "#f5f8ef"),
+  /* 히어로 면 — 단색. hero = surface(아이보리) / soft = surface-muted. */
+  "gradient-hero": "#fffcf5",
+  "gradient-hero-soft": "#fbf9f2",
   /* 단색층만 새 bg(#f5efdd)로 — 알파 0.06/0.05 유지(글로우 최악 4.52 실측, 상한) */
-  "bg-glow": "radial-gradient(1200px 640px at 16% -10%, rgba(160, 118, 23, 0.06), transparent 60%), radial-gradient(1000px 560px at 84% -12%, rgba(31, 58, 104, 0.05), transparent 55%), #f5efdd",
+  /* 🔴 상단 글로우를 걷었다. 다크 글로우는 남긴다. */
+  "bg-glow": "#ffffff",
   "surface-glass": "rgba(255, 252, 245, 0.8)",
   "surface-glass-fallback": "#fffcf5",
   "chart-axis-line": "#ded6c1",
@@ -10033,8 +10254,9 @@ var NAVY_GOLD_DARK = {
   "gradient-aurora": buildAuroraGradient(["#6f8fc7", "#d8b04a", "#cf8fa4"]),
   "gradient-cta": buildDuotoneGradient("#4d6ca4", "#3a5488"),
   /* 히어로 면 — 다크 최악 text-muted 5.40:1 / soft 5.93:1(실측). */
-  "gradient-hero": buildHeroGradient("#112338", "#10252c"),
-  "gradient-hero-soft": buildHeroGradient("#0e1a2d", "#0d1b26"),
+  /* 히어로 면 — 단색. 다크는 면 밝기 위계를 지킨다. */
+  "gradient-hero": "#141b30",
+  "gradient-hero-soft": "#182138",
   "bg-glow": "radial-gradient(1100px 600px at 18% -10%, rgba(216, 176, 74, 0.10), transparent 60%), radial-gradient(900px 520px at 82% -14%, rgba(111, 143, 199, 0.10), transparent 55%), #0a0f1e",
   "surface-glass": "rgba(31, 41, 66, 0.85)",
   "surface-glass-fallback": "#1f2942",
@@ -10058,14 +10280,20 @@ var SUNSET_CHART_SERIES = [
   "#6b7785"
 ];
 var SUNSET_LIGHT = {
-  /* 웜 크림 */
-  bg: "#fbf1e8",
+  /*
+   * 🔴 **순백 캔버스**(2026-08-03 사용자 결정 — "페이지 전체 배경색이 흰색"). 구 값 웜 크림(#fbf1e8).
+   * bg = surface = surface-raised 가 전부 흰색이 되면서 **면색이 카드의 격을 말하지 못한다** —
+   * 그 일은 아래 `border`(헤어라인)·여백·그림자가 이어받았다. 웜 크림은 `surface-hover`·`surface-sunken` 과
+   * 코랄/앰버 축에 남는다.
+   */
+  bg: "#ffffff",
   surface: "#ffffff",
   "surface-raised": "#ffffff",
   "surface-muted": "#fdf8f3",
   "surface-sunken": "#f6e9dd",
   "surface-hover": "#fbf1e8",
-  border: "#f0dcc9",
+  /* 🔴 흰 캔버스의 주역. 구 1.33:1 → 새 1.44:1. */
+  border: "#e8d4c1",
   "border-strong": "#8a7a68",
   text: "#2b2118",
   "text-secondary": "#5c4c3d",
@@ -10095,7 +10323,8 @@ var SUNSET_LIGHT = {
   "focus-shadow": "rgba(188, 76, 15, 0.25)",
   /* 웜 섀도 */
   "shadow-1": "0 1px 2px rgba(58, 38, 20, 0.06), 0 1px 3px rgba(58, 38, 20, 0.08)",
-  "shadow-2": "0 2px 4px rgba(58, 38, 20, 0.06), 0 4px 12px rgba(58, 38, 20, 0.10)",
+  /* ⚠ e2 만 올렸다 — raised 는 테두리 없이 이 그림자 하나로 선다. */
+  "shadow-2": "0 1px 2px rgba(58, 38, 20, 0.05), 0 6px 18px rgba(58, 38, 20, 0.13)",
   "shadow-3": "0 2px 6px rgba(58, 38, 20, 0.08), 0 12px 32px rgba(58, 38, 20, 0.18)",
   "ribbon-stop-1": "#bc4c0f",
   "ribbon-stop-2": "#b06a05",
@@ -10111,9 +10340,14 @@ var SUNSET_LIGHT = {
    * 히어로 면 — 8종 중 쿨 캐스트가 가장 약하다(0.10/0.08). 웜 크림이 정체성이라
    * 여기서 캐스트를 올리면 프리셋이 다른 프리셋처럼 보인다. 최악 text-muted 5.68:1.
    */
-  "gradient-hero": buildHeroGradient("#e9f3f9", "#eef8f5"),
-  "gradient-hero-soft": buildHeroGradient("#f3f8fc", "#f6fbf9"),
-  "bg-glow": "radial-gradient(1200px 640px at 16% -10%, rgba(188, 76, 15, 0.05), transparent 60%), radial-gradient(1000px 560px at 84% -12%, rgba(201, 123, 6, 0.05), transparent 55%), #fbf1e8",
+  /*
+   * 히어로 면 — 단색. 구 값은 **노을 프리셋인데 하늘색**(#e9f3f9→#eef8f5)이었다 —
+   * grape 와 함께, 히어로 램프가 프리셋 축이 아니라 옛 브랜드 축이었다는 결정적 증거다.
+   */
+  "gradient-hero": "#ffffff",
+  "gradient-hero-soft": "#fdf8f3",
+  /* 🔴 상단 글로우를 걷었다. 다크 글로우는 남긴다. */
+  "bg-glow": "#ffffff",
   "surface-glass": "rgba(255, 255, 255, 0.8)",
   "surface-glass-fallback": "#ffffff",
   "chart-axis-line": "#ecdcc8",
@@ -10172,8 +10406,9 @@ var SUNSET_DARK = {
   /* 어두운 라벨(on-brand #1e1410) 전제의 밝은 CTA duotone */
   "gradient-cta": buildDuotoneGradient("#ff8a5c", "#f5b942"),
   /* 히어로 면 — 웜 다크 위 최소 캐스트. 최악 text-muted 5.42:1 / soft 5.91:1(실측). */
-  "gradient-hero": buildHeroGradient("#222429", "#21281e"),
-  "gradient-hero-soft": buildHeroGradient("#201d1e", "#201f18"),
+  /* 히어로 면 — 단색. 다크는 면 밝기 위계를 지킨다. */
+  "gradient-hero": "#2a1f19",
+  "gradient-hero-soft": "#30251e",
   /* 다크 글로우 알파 0.10/0.08 상한(사전 계산으로 0.12에서 감쇄). 글로우 최악 위 text-muted 4.63. */
   "bg-glow": "radial-gradient(1100px 600px at 18% -10%, rgba(255, 138, 92, 0.10), transparent 60%), radial-gradient(900px 520px at 82% -14%, rgba(245, 185, 66, 0.08), transparent 55%), #1e1410",
   "surface-glass": "rgba(55, 43, 35, 0.85)",
@@ -10200,16 +10435,28 @@ var VELOG_CHART_SERIES = [
 ];
 var VELOG_LIGHT = {
   /*
-   * 의도적 무틴트 — 라이트 bg 틴트 강화(2차 배리에이션)에서 velog만 제외했다.
-   * open-color gray-0(#f8f9fa) 참조 충실성이 이 프리셋의 정체성이다. 틴트를 넣지 마라.
+   * 🔴 **순백 캔버스**(2026-08-03 사용자 결정). 구 값은 open-color gray-0(#f8f9fa)이었다.
+   * bg 를 흰색으로 올리면 bg = surface = surface-raised 가 전부 #ffffff 가 되어 **면색이
+   * 더는 카드의 격을 말하지 못한다.** 격은 아래 `border`(헤어라인)·여백·그림자로 옮겼다.
+   * (구 대비는 어차피 흰 카드 vs #f8f9fa = **1.05:1** 이라, 실제로 카드를 세우던 것은
+   *  이미 경계였다. 이 변경은 그 사실을 값에 반영한 것이다.)
+   * 틴트를 넣지 마라 — 무틴트 캔버스가 이 프리셋의 정체성이고, 이제 전 프리셋 공통이다.
    */
-  bg: "#f8f9fa",
+  bg: "#ffffff",
   surface: "#ffffff",
   "surface-raised": "#ffffff",
+  /* 카드 **안**의 타일. bg 와 같은 값이던 것이 bg 가 흰색이 되면서 처음으로 한 칸이 됐다. */
   "surface-muted": "#f8f9fa",
+  /* 들어간 자리(표 머리·코드·빈 상태). 흰 면 위 1.11:1 — 사다리의 유일한 '진짜' 계단이다. */
   "surface-sunken": "#f1f3f5",
-  "surface-hover": "#f8f9fa",
-  border: "#e9ecef",
+  /* 구 값(#f8f9fa)은 흰 서피스 위 1.05:1 로 hover 가 안 보였다 → gray-1(1.11:1). */
+  "surface-hover": "#f1f3f5",
+  /*
+   * 🔴 흰 캔버스의 **주역**. 구 값 gray-2(#e9ecef)는 흰 면 위 1.19:1 로 장식이었다.
+   * open-color gray-4 = 1.49:1 (GitHub `#d0d7de` 1.45 와 같은 대역) — 팔레트 충실성을 지키면서
+   * 경계가 격을 말할 수 있는 유일한 슬롯이다(gray-3 #dee2e6 은 1.30 으로 여전히 약하다).
+   */
+  border: "#ced4da",
   "border-strong": "#868e96",
   text: "#212529",
   "text-secondary": "#495057",
@@ -10235,9 +10482,14 @@ var VELOG_LIGHT = {
   overlay: "rgba(33, 37, 41, 0.5)",
   "focus-ring": "#099268",
   "focus-shadow": "rgba(9, 146, 104, 0.22)",
-  /* 플랫 그림자 — 은은하게. velog다움은 그림자 절제가 만든다. */
+  /*
+   * 플랫 그림자 — 은은하게. velog다움은 그림자 절제가 만든다.
+   * ⚠ `shadow-2` 만 올렸다(2026-08-03). `cardElevation('raised')` 는 **테두리 없이 그림자 하나**로
+   *   주역을 세우는데, 흰 캔버스 위 흰 카드에서 구 값(0.06 단일 레이어)은 보이지 않았다 —
+   *   즉 주역 카드가 통째로 사라진다. e1/e3 는 건드리지 않아 '절제' 성격은 유지된다.
+   */
   "shadow-1": "0 1px 3px rgba(0, 0, 0, 0.05)",
-  "shadow-2": "0 2px 8px rgba(0, 0, 0, 0.06)",
+  "shadow-2": "0 1px 2px rgba(0, 0, 0, 0.04), 0 6px 16px rgba(0, 0, 0, 0.10)",
   "shadow-3": "0 8px 24px rgba(0, 0, 0, 0.12)",
   "ribbon-stop-1": "#087f5b",
   "ribbon-stop-2": "#099268",
@@ -10249,11 +10501,16 @@ var VELOG_LIGHT = {
   /* 시그니처는 duotone — 그라데이션이 거의 안 보이는 것이 velog다움 */
   "gradient-aurora": buildDuotoneGradient("#087f5b", "#099268"),
   "gradient-cta": buildDuotoneGradient("#087f5b", "#066649"),
-  /* 히어로 면 — 라이트 최악 지점(blue stop) text-muted 4.63:1 / soft 5.05:1(실측). */
-  "gradient-hero": buildHeroGradient("#deecf6", "#e6f5ef"),
-  "gradient-hero-soft": buildHeroGradient("#edf5fa", "#f1f9f6"),
-  /* 글로우 없음 = 단색 (역할: 페이지 배경) */
-  "bg-glow": "#f8f9fa",
+  /*
+   * 히어로 면 — **단색이다**(2026-08-03). 구 값은 `#deecf6→#e6f5ef` 아이스블루→민트 램프였다.
+   * 이 프리셋의 hue(틸)와 무관한 옛 브랜드 잔재였고, 라이트 최악 지점 text-muted 4.63:1 로
+   * AA 여유도 가장 얇았다. 이제 hero = surface(카드 면) / soft = surface-muted(옅은 워시).
+   * 그 위 텍스트 3단은 기존 `text* on surface` / `text* on surface-muted` 쌍이 이미 재고 있다.
+   */
+  "gradient-hero": "#ffffff",
+  "gradient-hero-soft": "#f8f9fa",
+  /* 글로우 없음 = 단색 (역할: 페이지 배경). 라이트는 순백. */
+  "bg-glow": "#ffffff",
   /* 사실상 불투명한 유리 */
   "surface-glass": "rgba(255, 255, 255, 0.96)",
   "surface-glass-fallback": "#ffffff",
@@ -10318,11 +10575,14 @@ var VELOG_DARK = {
   "gradient-aurora": buildDuotoneGradient("#20c997", "#12b886"),
   "gradient-cta": buildDuotoneGradient("#20c997", "#12b886"),
   /*
-   * 🔴 knife-edge — 다크 히어로 최악 지점(t≈0.88) text-muted 4.58:1. 16테마 32그라디언트 중 전역 최저다.
-   * 이 두 stop 을 더 밝게 올리거나 text-muted(#868e96)를 더 어둡게 내리면 즉시 AA 탈락한다.
+   * ✅ 구 knife-edge 가 여기서 **사라졌다**. 종전 두 stop(#192630→#172923)은 최악 지점 t≈0.88 에서
+   * text-muted 4.58:1 — 16테마 32그라디언트 중 전역 최저였다. 라이트와 같은 처방(hero=surface /
+   * soft=surface-muted)으로 바꾸면서 그 자리가 검증된 토큰 면이 됐다.
+   * ⚠ 다크는 **흰 배경으로 가지 않는다** — 어두운 캔버스에서 위계를 만드는 것은 여전히 면 밝기다
+   *   (bg #121212 < surface #1e1e1e < raised #2a2a2a). 흰 캔버스 전환은 라이트만의 결정이다.
    */
-  "gradient-hero": buildHeroGradient("#192630", "#172923"),
-  "gradient-hero-soft": buildHeroGradient("#161d23", "#151f1b"),
+  "gradient-hero": "#1e1e1e",
+  "gradient-hero-soft": "#242424",
   "bg-glow": "#121212",
   "surface-glass": "rgba(30, 30, 30, 0.96)",
   "surface-glass-fallback": "#1e1e1e",
@@ -10346,14 +10606,20 @@ var VIVID_CHART_SERIES = [
   "#6b7785"
 ];
 var VIVID_LIGHT = {
-  /* 라벤더 틴트 강화(구 #f5f7ff → #eef0ff) — border-strong on bg 3.56, 글로우 최악 4.72(실측). hover=bg 동기. */
-  bg: "#eef0ff",
+  /*
+   * 🔴 **순백 캔버스**(2026-08-03 사용자 결정 — "페이지 전체 배경색이 흰색"). 구 값 라벤더 틴트(#eef0ff).
+   * bg = surface = surface-raised 가 전부 흰색이 되면서 **면색이 카드의 격을 말하지 못한다** —
+   * 그 일은 아래 `border`(헤어라인)·여백·그림자가 이어받았다. 라벤더는 `surface-hover`·brand 축에 남는다.
+   * 부수 효과: border-strong on bg 3.56 · 글로우 최악 4.72 제약이 둘 다 풀렸다.
+   */
+  bg: "#ffffff",
   surface: "#ffffff",
   "surface-raised": "#ffffff",
   "surface-muted": "#fafbff",
   "surface-sunken": "#e9edfc",
   "surface-hover": "#eef0ff",
-  border: "#dbe1f5",
+  /* 🔴 흰 캔버스의 주역. 구 1.30:1 → 새 1.44:1. */
+  border: "#d1d7eb",
   "border-strong": "#737e9d",
   text: "#171c33",
   "text-secondary": "#454f6e",
@@ -10380,7 +10646,8 @@ var VIVID_LIGHT = {
   "focus-shadow": "rgba(45, 91, 245, 0.25)",
   /* 살짝 컬러 섀도 — 경쾌함의 디테일 */
   "shadow-1": "0 1px 2px rgba(23, 26, 51, 0.06), 0 1px 3px rgba(23, 26, 51, 0.08)",
-  "shadow-2": "0 2px 4px rgba(45, 91, 245, 0.06), 0 4px 12px rgba(23, 26, 51, 0.10)",
+  /* ⚠ e2 만 올렸다 — raised 는 테두리 없이 이 그림자 하나로 선다. */
+  "shadow-2": "0 1px 2px rgba(45, 91, 245, 0.06), 0 6px 18px rgba(23, 26, 51, 0.13)",
   "shadow-3": "0 4px 10px rgba(45, 91, 245, 0.08), 0 12px 32px rgba(23, 26, 51, 0.18)",
   "ribbon-stop-1": "#2d5bf5",
   "ribbon-stop-2": "#00997e",
@@ -10392,10 +10659,12 @@ var VIVID_LIGHT = {
   "gradient-aurora": buildAuroraGradient(["#2d5bf5", "#00997e", "#7c5cff"]),
   "gradient-cta": buildCtaGradient(["#2d5bf5", "#007a64", "#5b3de6"]),
   /* 히어로 면 — 채도 강한 프리셋이라 캐스트를 라이트 0.16/0.13 으로 잡았다. 최악 text-muted 4.98:1. */
-  "gradient-hero": buildHeroGradient("#dcebf6", "#e3f4ee"),
-  "gradient-hero-soft": buildHeroGradient("#ecf4fa", "#f0f9f6"),
+  /* 히어로 면 — 단색. hero = surface / soft = surface-muted. */
+  "gradient-hero": "#ffffff",
+  "gradient-hero-soft": "#fafbff",
   /* 단색층만 새 bg(#eef0ff)로 — 알파 0.07/0.06은 유지 가능(글로우 최악 4.72 실측) */
-  "bg-glow": "radial-gradient(1200px 640px at 16% -10%, rgba(0, 201, 167, 0.07), transparent 60%), radial-gradient(1000px 560px at 84% -12%, rgba(124, 92, 255, 0.06), transparent 55%), #eef0ff",
+  /* 🔴 상단 글로우를 걷었다. 다크 글로우는 남긴다. */
+  "bg-glow": "#ffffff",
   "surface-glass": "rgba(255, 255, 255, 0.8)",
   "surface-glass-fallback": "#ffffff",
   "chart-axis-line": "#d6ddf2",
@@ -10452,8 +10721,9 @@ var VIVID_DARK = {
   "gradient-aurora": buildAuroraGradient(["#6a8aff", "#00c9a7", "#9d86ff"]),
   "gradient-cta": buildCtaGradient(["#3d63f2", "#00806a", "#6a4df0"]),
   /* 히어로 면 — 다크 최악 text-muted 5.43:1 / soft 6.10:1(실측). */
-  "gradient-hero": buildHeroGradient("#172840", "#162b33"),
-  "gradient-hero-soft": buildHeroGradient("#141e33", "#13202c"),
+  /* 히어로 면 — 단색. 다크는 면 밝기 위계를 지킨다. */
+  "gradient-hero": "#1a1e38",
+  "gradient-hero-soft": "#202544",
   /* 알파 0.12/0.10 상한 — 0.16에서 text-muted 4.27:1 탈락 실측. 올리지 마라. */
   "bg-glow": "radial-gradient(1100px 600px at 18% -10%, rgba(0, 201, 167, 0.12), transparent 60%), radial-gradient(900px 520px at 82% -14%, rgba(157, 134, 255, 0.10), transparent 55%), #101223",
   "surface-glass": "rgba(38, 43, 79, 0.85)",
@@ -10571,7 +10841,17 @@ var color = {
   identityBorder: "var(--sb-identity-border)",
   identityText: "var(--sb-identity-text)",
   /*
-   * 워드마크("스노우볼 인컴") — 전 프리셋 공통. `background-clip: text` 전용이고
+   * 브랜드 패널 — 🔴 **금색이 합법인 유일한 조합**이다(2026-08-03 D3).
+   * 금색은 밝은 면 위에서 1.83:1 이라 `onPanelGold` 는 반드시 `panel` 면 위에서만 쓴다.
+   * 범용 `gold` 토큰은 일부러 없다 — 이름이 사용 조건을 강제한다(근거: presets/sharedTokens.ts).
+   */
+  panel: "var(--sb-panel)",
+  onPanel: "var(--sb-on-panel)",
+  onPanelMuted: "var(--sb-on-panel-muted)",
+  onPanelGold: "var(--sb-on-panel-gold)",
+  /*
+   * 워드마크("Hungry Hippo") — 전 프리셋 공통. 토큰 이름의 `snow`/`income` 은 구 제품명에서
+   * 온 식별자다(값·의미는 앞 낱말=브랜드 램프 / 뒷 낱말=틸→그린). `background-clip: text` 전용이고
    * solid 는 그 폴백(@supports 미지원·forced-colors·print)이다. 다른 용도로 쓰지 마라.
    */
   gradientWordmarkSnow: "var(--sb-gradient-wordmark-snow)",
@@ -10582,8 +10862,14 @@ var color = {
   gradientAurora: "var(--sb-gradient-aurora)",
   gradientCta: "var(--sb-gradient-cta)",
   /*
-   * 파스텔 히어로 — **면 배경 전용**(PageHero·EmptyState·프로모 카드). 버튼·리본에 금지.
-   * gradientCta(버튼 채움) / gradientAurora(리본·장식)와 교차 사용하지 않는 세 번째 계열이다.
+   * 히어로 면 — **면 배경 전용**(PageHero·EmptyState·프로모 카드). 버튼·리본에 금지.
+   *
+   * 🔴 **2026-08-03부터 그라데이션이 아니다.** 값은 단색이다 —
+   *   `gradientHero` = 그 테마의 `surface` · `gradientHeroSoft` = 그 테마의 `surface-muted`.
+   *   구 값(아이스블루 205° → 민트 158° 파스텔 램프)은 프리셋 hue 와 무관한 **옛 브랜드 잔재**였고
+   *   16테마 전역 대비 최악 지점을 만들고 있었다(근거·실측: presets/gradients.ts 머리말).
+   *   이름은 **역할**이라 그대로 둔다(이 폴더의 계약: "이름은 역할, 값은 프리셋") — 소비처 5곳은
+   *   한 줄도 고치지 않았다. 값이 다시 `linear-gradient` 가 되면 `contrast.test.ts` 가 빨개진다.
    */
   gradientHero: "var(--sb-gradient-hero)",
   gradientHeroSoft: "var(--sb-gradient-hero-soft)",
@@ -10605,6 +10891,11 @@ var color = {
   overlay: "var(--sb-overlay)",
   focusRing: "var(--sb-focus-ring)",
   focusShadow: "var(--sb-focus-shadow)"
+};
+var elevation = {
+  1: "var(--sb-shadow-1)",
+  2: "var(--sb-shadow-2)",
+  3: "var(--sb-shadow-3)"
 };
 
 // shared/styles/tokens.ts
@@ -10629,7 +10920,18 @@ var BREAKPOINT = {
    * (내비 높이 상한 80px 규칙 — 두 줄 헤더는 데스크톱에서 117px 이었다).
    * 나머지 키처럼 "작은 쪽의 max-width" 로 표현하면 1023 이 된다.
    */
-  headerStack: 1023
+  headerStack: 1023,
+  /**
+   * **바깥 여백에 무언가를 세울 수 있는 폭.** `media.up('outerRail')` = 1384px 이상.
+   *
+   * 근거(실측): 본문 카드는 max-width 1200 에 좌우 여백 20 이라 실폭 1160 이다. 커뮤니티 상세의
+   * 반응 레일은 72px + gap(최대 40) = **112px** 을 카드 왼쪽 **바깥**에 요구한다.
+   * 좌여백 = (뷰포트 − 1160) / 2 이므로 112px 을 확보하려면 1160 + 224 = **1384** 가 필요하다.
+   * 실측: 1600px 에서 좌여백 213px(충분) · 1280px 에서 53px(부족 — 레일이 x=-39 로 화면 밖으로 나갔다).
+   *
+   * ⚠ 이 값은 카드 폭(1200)에 묶여 있다. 콘텐츠 폭을 바꾸면 여기도 함께 다시 계산하라.
+   */
+  outerRail: 1383
 };
 var media = {
   down: (key) => `@media (max-width: ${BREAKPOINT[key]}px)`,
@@ -10682,6 +10984,55 @@ var font = {
 };
 var space = SPACE_SCALE;
 var radius = RADIUS_SCALE;
+var PICK = {
+  /**
+   * 공용 `Card`(16~20)보다 **2px 좁다.** 컬러 캡이 카드 머리의 세로를 먹으므로 바디를 그만큼 조여야
+   * 카드 전체 높이가 data 카드와 같은 대역에 남는다(격자에 두 종류가 섞이면 줄 높이가 어긋난다).
+   */
+  pad: "clamp(14px, 1.6vw, 18px)",
+  /**
+   * 카드 사이 간격. **`space[3]`(12px 고정)보다 넓다** — 부상 그림자(`elevation[2]`, blur 12px)가
+   * 12px 간격에서는 옆 카드에 닿아 "카드가 서로를 더럽히는" 것으로 보인다. 현행 프리셋 보드가
+   * 정확히 그 상태다(2026-08-03 실측).
+   */
+  gap: "clamp(12px, 1.4vw, 16px)",
+  /**
+   * 안쪽 컨트롤 반경 — brand 면의 바깥 반경은 여기서 역산된다(`PICK_RADIUS`).
+   * data 면(`DATA_SURFACE.radiusAnchor` = 8px)보다 **한 단 크다**: 같은 화면에 두 면이 섞였을 때
+   * 반경이 "고르는 것 / 읽는 것"을 거드는 신호가 되게 한다.
+   */
+  radiusAnchor: RADIUS_SCALE.lg,
+  /**
+   * 틴트 캡(`cap="tint"`)의 높이 3단. **8px 이상이므로 `tintscan` 이 면으로 센다** —
+   * 격자 부모에 `data-tint-cluster="pick-grid"` 를 달지 않으면 예산(화면당 2면)이 즉시 터진다.
+   */
+  capHeight: { sm: "48px", md: "64px", lg: "88px" },
+  /**
+   * 레일 캡(`cap="rail"`)의 두께.
+   *
+   * 🔴 **8px 이상으로 올리지 마라.** `tintscan` 의 면 하한이 높이 8px 이다 — 8px 이 되는 순간
+   * 이 띠는 "선"에서 "면"으로 바뀌어 라우트 예산을 먹는다. 6px 은 그 하한 바로 아래이면서
+   * 저해상도에서도 색이 읽히는 값이다(4px 오로라 리본은 색만 겨우 보인다).
+   */
+  railHeight: "6px",
+  /** 캡 안 글리프 배지 한 변. 폭 <180px 이라 그 자체로는 면으로 세어지지 않는다. */
+  glyphSize: "40px",
+  /**
+   * 큰 글리프 한 변 — **글리프가 아이콘이 아니라 사진일 때**만 쓴다(`cap.glyphSize: 'lg'`).
+   *
+   * 왜 따로 두는가: 40px 은 선 아이콘·이니셜의 크기다. 같은 자리에 인물 사진을 넣으면 얼굴이
+   * 무엇인지 알아볼 수 없어 사진을 쓴 의미가 사라진다(2026-08-05 대가 화면 실측 → 사용자 지시로 확대).
+   *
+   * 🔴 **180px 미만을 유지하라.** 그 이상은 `tintscan` 이 이 배지를 색면으로 세기 시작해 라우트
+   * 예산(화면당 2면)을 먹는다 — 배지는 `color-mix` 배경을 깔고 있어 판정 대상이 된다.
+   * ⚠ 카드 최소 열 폭(260px)의 절반을 넘기지 마라. 넘기면 좁은 폭에서 사진이 카드를 지배한다.
+   */
+  glyphSizeLg: "128px"
+};
+var DATA_SURFACE = {
+  pad: "clamp(16px, 1.8vw, 20px)",
+  radiusAnchor: RADIUS_SCALE.sm
+};
 var shadow = {
   e1: "var(--sb-shadow-1)",
   e2: "var(--sb-shadow-2)",
@@ -12252,14 +12603,14 @@ var globalStyles = css`
 var APP_HEADER_HEIGHT_VAR = "--sb-app-header-h";
 var appHeaderHeight = `var(${APP_HEADER_HEIGHT_VAR}, 88px)`;
 var headerSolidSurface = `
-  background: linear-gradient(180deg, ${color.brandSubtle}, ${color.surfaceGlassFallback} 68%);
+  background: ${color.surfaceGlassFallback};
   box-shadow: ${shadow.e1};
 `;
 var headerGlassSurface = `
   ${headerSolidSurface}
 
   @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
-    background: linear-gradient(180deg, ${color.brandSubtle}, ${color.surfaceGlass} 68%);
+    background: ${color.surfaceGlass};
     -webkit-backdrop-filter: blur(14px) saturate(1.35);
     backdrop-filter: blur(14px) saturate(1.35);
   }
@@ -12268,21 +12619,51 @@ var headerControlsGrid = `
   display: grid;
   align-items: center;
   min-width: 0;
-  grid-template-columns: minmax(0, 1fr) auto;
+  /*
+   * \u{1F534} \uCCAB \uD2B8\uB799\uC740 **\uB85C\uACE0 \uC804\uC6A9**\uC774\uACE0 \uB450 \uC904\uC744 \uD1B5\uC9F8\uB85C \uAC00\uB85C\uC9C0\uB978\uB2E4(2026-08-03 \uC0AC\uC6A9\uC790 \uC9C0\uC2DC:
+   * "\uC717\uC904 \uC544\uB7AB\uC904\uC744 \uBCD1\uD569\uD55C \uD06C\uAE30 \uC2A4\uD398\uC774\uC2A4\uC5D0 \uC571 \uC544\uC774\uCF58\uC744 \uC704\uCE58\uC2DC\uCF1C\uC57C \uD55C\uB2E4").
+   * \uBE0C\uB79C\uB4DC \uAE00\uC790 \uC904 \uC606\uC5D0\uB9CC \uB450\uBA74 \uC544\uC774\uCF58\uC774 \uD5E4\uB354\uC758 \uC704\uCABD \uC808\uBC18\uC5D0\uB9CC \uAC78\uB824 \uC544\uB798 \uBA54\uB274 \uC904\uACFC \uBB34\uAD00\uD574 \uBCF4\uC778\uB2E4 \u2014
+   * \uB450 \uC904\uC744 \uAC00\uB85C\uC9C0\uB974\uBA74 \uB85C\uACE0\uAC00 \uD5E4\uB354 \uC804\uCCB4\uC758 \uC815\uCCB4\uC131 \uD45C\uC2DD\uC774 \uB418\uACE0, \uADF8\uB9CC\uD07C \uD06C\uAC8C \uC4F8 \uC218 \uC788\uB2E4.
+   * \u26A0 auto \uB2E4(\uACE0\uC815\uD3ED \uC544\uB2D8) \u2014 \uB85C\uACE0 \uD06C\uAE30\uB97C \uBC14\uAFB8\uBA74 \uD2B8\uB799\uC774 \uB530\uB77C \uB113\uC5B4\uC838\uC57C \uAE00\uC790\uC640\uC758 \uAC04\uACA9\uC774 \uC720\uC9C0\uB41C\uB2E4.
+   */
+  grid-template-columns: auto minmax(0, 1fr) auto;
   grid-template-areas:
-    'brand actions'
-    'nav nav';
+    'logo brand actions'
+    'logo nav nav';
   column-gap: ${space[3]};
   row-gap: ${space[2]};
 
+  /*
+   * \u{1F534} **\uBAA8\uBC14\uC77C(\u2264640)\uC5D0\uC11C\uB294 \uB85C\uACE0\uAC00 \uB450 \uC904\uC744 \uAC00\uB85C\uC9C0\uB974\uC9C0 \uC54A\uB294\uB2E4**(2026-08-06 \uC0AC\uC6A9\uC790 \uC9C0\uC2DC: \uC378\uB124\uC77C\uC744
+   * \uC6CC\uB4DC\uB9C8\uD06C \uBC14\uB85C \uC67C\uCABD\uC5D0 \uBD99\uC5EC \uBA54\uB274 \uC601\uC5ED\uC744 \uB113\uAC8C \uC368\uB77C).
+   *
+   * \uC65C \uD3ED\uC5D0 \uB530\uB77C \uAC08\uB9AC\uB098: \uB85C\uACE0 \uD2B8\uB799\uC740 auto \uB77C \uADF8\uB9BC \uD3ED\uB9CC\uD07C **\uCCAB \uC5F4\uC744 \uD1B5\uC9F8\uB85C \uBA39\uB294\uB2E4**. \uB113\uC740 \uD654\uBA74\uC5D0\uC11C\uB294
+   * \uB0A8\uB294 \uD3ED\uC774 \uB9CE\uC544 \uADF8 \uB300\uAC00\uAC00 \uBCF4\uC774\uC9C0 \uC54A\uC9C0\uB9CC, 390px \uC5D0\uC11C\uB294 \uBA54\uB274 \uC904\uC774 \uC4F8 \uC218 \uC788\uB294 \uD3ED\uC774 \uADF8\uB9CC\uD07C \uC904\uC5B4
+   * \uBA54\uB274\uAC00 \uAC00\uB85C \uC2A4\uD06C\uB864 \uB4A4\uB85C \uBC00\uB9B0\uB2E4 \u2014 **\uC2A4\uD06C\uB864\uB85C \uC228\uB294 \uBA54\uB274\uB294 \uC0AC\uC6A9\uC790\uC5D0\uAC8C \uC544\uBB34 \uC2E0\uD638\uB97C \uC8FC\uC9C0 \uC54A\uB294\uB2E4**
+   * (\uC704 \uD55C \uC904 \uBAA8\uB4DC\uB97C \uBC84\uB9B0 \uAC83\uACFC \uC815\uD655\uD788 \uAC19\uC740 \uC774\uC720\uB2E4).
+   * \uADF8\uB798\uC11C \uC774 \uAD6C\uAC04\uC5D0\uC11C\uB294 \uB85C\uACE0\uB97C \uBE0C\uB79C\uB4DC \uC904\uC5D0\uB9CC \uB450\uACE0, \uBA54\uB274 \uC904\uC5D0 **\uC804\uD3ED**\uC744 \uC900\uB2E4.
+   *
+   * \u{1F534} \uACBD\uACC4\uAC00 headerStack(1023)\uC774 \uC544\uB2C8\uB77C **mobileWide(640)** \uC778 \uAC83\uC740 \uC758\uB3C4\uB2E4. 640~1023 \uAD6C\uAC04\uC740 \uAC00\uB85C\uAC00
+   * \uB109\uB109\uD574 \uBA54\uB274\uAC00 \uC774\uBBF8 \uB2E4 \uBCF4\uC774\uBBC0\uB85C, \uAC70\uAE30\uC11C \uBC30\uCE58\uB97C \uBC14\uAFB8\uBA74 \uC5BB\uB294 \uAC83 \uC5C6\uC774 \uB85C\uACE0\uB9CC \uC791\uC544\uC9C4\uB2E4.
+   * \u26A0 \uC774 \uBC30\uCE58\uC5D0\uC11C\uB294 \uB85C\uACE0\uAC00 **\uBE0C\uB79C\uB4DC \uC904 \uB192\uC774\uB97C \uADF8\uB300\uB85C \uBC00\uC5B4 \uC62C\uB9B0\uB2E4**(\uAC00\uB85C\uC9C0\uB97C \uB54C\uB294 \uB0A8\uB294 \uC138\uB85C\uB97C \uC4F8
+   *   \uBFD0\uC774\uC5C8\uB2E4). \uADF8\uB798\uC11C BrandHippo \uAC00 \uAC19\uC740 \uAD6C\uAC04\uC5D0\uC11C \uD06C\uAE30\uB97C \uD55C \uB2E8 \uB354 \uC904\uC778\uB2E4 \u2014 \uB458\uC740 \uD55C \uC30D\uC774\uB2E4.
+   *   \uC2E4\uCE21: \uB85C\uACE0 64px \uADF8\uB300\uB85C \uB450\uBA74 390px \uD5E4\uB354\uAC00 120 \u2192 143px \uC774 \uB410\uB2E4(\uACC4\uC57D \uC0C1\uD55C 120px \uCD08\uACFC).
+   */
   ${media.down("headerStack")} {
     column-gap: ${space[2]};
+  }
+
+  ${media.down("mobileWide")} {
+    grid-template-areas:
+      'logo brand actions'
+      'nav nav nav';
   }
 `;
 
 // shared/styles/heroTitleRow.ts
 var heroTitleFontSize = `clamp(${font.size["2xl"]}, calc(0.9rem + 1.8vw), ${font.size["4xl"]})`;
 var sectionTitleFontSize = `clamp(${font.size.lg}, calc(0.86rem + 0.56vw), ${font.size.xl})`;
+var pickTitleFontSize = `clamp(${font.size.lg}, calc(0.8rem + 0.9vw), ${font.size["2xl"]})`;
 var INK_ABOVE_LINE_BOX = {
   display: 0.1,
   sans: 0,
@@ -12352,6 +12733,16 @@ var subtleScrollbar = `
     scrollbar-width: thin;
     scrollbar-color: ${color.border} transparent;
   }
+`;
+
+// shared/styles/surfaces.ts
+var outerRadius = (inner, pad) => `calc(${inner} + ${pad})`;
+var PICK_RADIUS = outerRadius(radius.lg, PICK.pad);
+var DATA_RADIUS = outerRadius(radius.sm, DATA_SURFACE.pad);
+var pickLift = `
+  border-color: transparent;
+  box-shadow: ${elevation[2]};
+  transform: translateY(-2px);
 `;
 
 // shared/styles/chartTheme.ts
@@ -13881,7 +14272,7 @@ var loadFonts = (origin) => {
   return fontsPromise;
 };
 var DEFAULT_HEADLINE = "\uBC30\uB2F9 \uC7AC\uD22C\uC790 \uC2DC\uBBAC\uB808\uC774\uD130";
-var DEFAULT_SUBLINE = "\uBC30\uB2F9\uC8FC\xB7ETF \uD3EC\uD2B8\uD3F4\uB9AC\uC624\uC758 \uC2A4\uB178\uC6B0\uBCFC \uD6A8\uACFC\uB97C \uACC4\uC0B0\uD569\uB2C8\uB2E4";
+var DEFAULT_SUBLINE = "\uBC30\uB2F9\uC8FC\xB7ETF \uD3EC\uD2B8\uD3F4\uB9AC\uC624\uC758 \uC7AC\uD22C\uC790 \uBCF5\uB9AC \uD6A8\uACFC\uB97C \uACC4\uC0B0\uD569\uB2C8\uB2E4";
 var StatCard = ({ label, value, hint }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
   "div",
   {
@@ -13933,7 +14324,7 @@ var Shell = ({ children }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
       /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between" }, children: [
         /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { display: "flex", alignItems: "center" }, children: [
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrandMark, {}),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { display: "flex", fontSize: 34, color: COLOR.surface, fontWeight: 700, marginLeft: 18 }, children: "Snowball Income" })
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { display: "flex", fontSize: 34, color: COLOR.surface, fontWeight: 700, marginLeft: 18 }, children: "Hungry Hippo" })
         ] }),
         /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { display: "flex", fontSize: 24, color: COLOR.brand100, fontWeight: 400 }, children: DEFAULT_HEADLINE })
       ] }),
@@ -13967,7 +14358,7 @@ var ScenarioCard = ({ model }) => {
 };
 var DefaultCard = () => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Shell, { children: [
   /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { display: "flex", flexDirection: "column" }, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { display: "flex", fontSize: 64, color: COLOR.surface, fontWeight: 700 }, children: "\uBC30\uB2F9 \uC7AC\uD22C\uC790 \uC2DC\uBBAC\uB808\uC774\uD130" }),
+    /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { display: "flex", fontSize: 64, color: COLOR.surface, fontWeight: 700 }, children: DEFAULT_HEADLINE }),
     /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { display: "flex", fontSize: 30, color: COLOR.brand100, fontWeight: 400, marginTop: 16 }, children: DEFAULT_SUBLINE })
   ] }),
   /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { display: "flex", width: "100%" }, children: [

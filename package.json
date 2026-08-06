@@ -22,11 +22,20 @@
     "verify": "node tools/dev/verify.mjs",
     "hooks:install": "git config core.hooksPath .githooks",
     "ticker:paydates": "vite-node scripts/tickerRefresh/payDatesCli.ts --",
+    "dividend:lists": "vite-node scripts/dividendLists/cli.ts --",
+    "dividend:universe": "vite-node scripts/dividendLists/universeCli.ts --",
+    "nps:portfolio": "vite-node scripts/npsPortfolio/cli.ts --",
+    "congress:trades": "python tools/congressTrades/harvest.py",
+    "korea:assembly": "python tools/koreaAssembly/harvest.py",
+    "market:calendar": "vite-node scripts/marketCalendar/cli.ts --",
+    "dividend:universe:diff": "vite-node scripts/dividendLists/membershipDiffCli.ts --",
     "uiprobe": "node tools/dev/uiprobe.mjs",
     "tintscan": "node tools/dev/tintscan.mjs",
     "headerprobe": "node tools/dev/headerprobe.mjs",
     "overflowprobe": "node tools/dev/overflowprobe.mjs",
-    "archclip": "node tools/dev/archclip.mjs"
+    "archclip": "node tools/dev/archclip.mjs",
+    "brand:assets": "python tools/brand/rebuild-brand-assets.py",
+    "brand:check": "node tools/brand/check-brand-alpha.mjs"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

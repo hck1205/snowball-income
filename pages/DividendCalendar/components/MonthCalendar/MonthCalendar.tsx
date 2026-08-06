@@ -1,10 +1,12 @@
 import { Tooltip } from '@/components/common';
 import { DIVIDEND_CALENDAR_COPY } from '../../copy';
+import { tickerSeriesVar } from '../../utils';
 import type { MonthCalendarProps } from './MonthCalendar.types';
 import { splitDayChips } from './MonthCalendar.utils';
 import {
   CalendarCaption,
   CalendarTable,
+  ChipDot,
   ChipLabel,
   DayCellRoot,
   DayChip,
@@ -15,7 +17,8 @@ import {
   DayNumber,
   MoreCount,
   VisuallyHidden,
-  WeekdayHead
+  WeekdayHead,
+  WeekdayRow
 } from './MonthCalendar.styled';
 
 const copy = DIVIDEND_CALENDAR_COPY;
@@ -40,10 +43,13 @@ export default function MonthCalendar({
   monthLabel,
   labelledById,
   isPreview = false,
+  compact = false,
+  seriesOf = tickerSeriesVar,
   onDayJump
 }: MonthCalendarProps) {
   return (
     <CalendarTable
+      $compact={compact}
       aria-labelledby={isPreview ? undefined : labelledById}
       aria-label={isPreview ? copy.preview.tableLabel(monthLabel) : undefined}
     >
@@ -51,13 +57,13 @@ export default function MonthCalendar({
         {isPreview ? copy.preview.caption(monthLabel) : copy.board.caption(monthLabel)}
       </CalendarCaption>
       <thead>
-        <tr>
+        <WeekdayRow>
           {copy.board.weekdays.map((weekday, index) => (
             <WeekdayHead key={weekday} scope="col" $weekday={index}>
               <abbr title={copy.board.weekdayFull[index]}>{weekday}</abbr>
             </WeekdayHead>
           ))}
-        </tr>
+        </WeekdayRow>
       </thead>
       <tbody>
         {weeks.map((week) => (
@@ -84,8 +90,8 @@ export default function MonthCalendar({
                         {cell.day}
                       </time>
                     </DayNumber>
-                    {/* "오늘"의 시각 신호는 칸 보더 링+틴트가 전담한다(사용자 결정 2026-07-26) —
-                        말은 접근성 트리에 남긴다(aria-current="date"와 함께). */}
+                    {/* "오늘"의 시각 신호는 칸의 2px pageHue 링이 전담한다(사용자 결정 2026-07-26,
+                        면 채움은 2026-08-03 에 제거) — 말은 접근성 트리에 남긴다(aria-current="date"와 함께). */}
                     {cell.isToday ? <VisuallyHidden>{copy.board.today}</VisuallyHidden> : null}
                   </DayHead>
 
@@ -97,6 +103,7 @@ export default function MonthCalendar({
                               키보드 순서에 세우면 탭 이동만 늘고 아무 일도 일어나지 않는다. */}
                           {isPreview ? (
                             <DayChip as="span">
+                              <ChipDot aria-hidden style={{ background: seriesOf(item.ticker) }} />
                               <ChipLabel>{item.ticker}</ChipLabel>
                             </DayChip>
                           ) : (
@@ -111,6 +118,7 @@ export default function MonthCalendar({
                               }
                             >
                               <DayChip type="button">
+                                <ChipDot aria-hidden style={{ background: seriesOf(item.ticker) }} />
                                 <ChipLabel>{item.ticker}</ChipLabel>
                               </DayChip>
                             </Tooltip>

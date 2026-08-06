@@ -28,9 +28,28 @@ export const APP_HEADER_HEIGHT_VAR = '--sb-app-header-h';
 export const appHeaderHeight = `var(${APP_HEADER_HEIGHT_VAR}, 88px)`;
 
 /**
- * 상단 브랜드 틴트 서피스(불투명) — 글래스의 **폴백/기반 레이어**.
+ * 상단 헤더 서피스(불투명) — 글래스의 **폴백/기반 레이어**.
  *
- * 무채색 대신 은은한 brand 색조를 위→아래로 흘린다. 전부 테마 토큰이라 팔레트/다크 정합이 유지된다.
+ * ## 🔴 2026-08-03 — 브랜드 틴트 램프를 걷었다(흰 캔버스 전환)
+ * 구 값은 `linear-gradient(180deg, brand-subtle, surface-glass-fallback 68%)` 였다.
+ * 라이트 캔버스가 `#f8f9fa` 에서 **순백**으로 올라가면서 그 램프는 세 가지 이유로 근거를 잃었다.
+ *
+ *  1. **끝 stop 이 캔버스와 같은 색이 됐다.** 램프의 68~100% 구간은 `surface-glass-fallback`
+ *     (= 라이트 전 프리셋 흰색/아이보리)이고 페이지 배경도 그 값이다. 즉 헤더 아래 3분의 1은
+ *     자기 면이 없었고, 헤더를 세우던 것은 이미 `border-bottom`(`border-strong`) 한 줄이었다.
+ *     ⇒ 램프를 지워도 잃는 경계가 없다. 실제로 격을 말하는 채널은 **경계**다
+ *     (velog 라이트 실측: border-strong `#868e96` on `#ffffff` = **3.32:1**).
+ *  2. **화면 맨 위에서 두 색이 동시에 말했다.** 위 3px 은 라우트 정체성(`--sb-page-hue`),
+ *     그 아래 60여 px 은 프리셋 brand 틴트다. 두 값이 서로 무관하다 —
+ *     실측(2026-08-03, uiprobe): `/simulator` 는 hue `#0c7cb3`(애저) 리본이 `#e6fcf5`(민트) 위에
+ *     앉는다. 정체성을 말하는 장치가 둘이면 사용자는 어느 쪽이 "지금 화면"인지 배우지 못한다.
+ *     ⇒ 이제 **리본 하나만** 말한다.
+ *  3. 히어로 파스텔 램프가 사라진 뒤 이것이 앱에 남은 **마지막 세로 파스텔 램프**였고,
+ *     전 라우트 상시 크롬이라 가장 눈에 많이 띄는 자리였다(2026-08-03 사용자 결정: 옛 브랜드
+ *     그라데이션을 고수하지 않는다).
+ *
+ * 🔴 **여기에 브랜드 틴트를 되돌리지 마라.** 되돌리려면 상단 hue 리본을 먼저 없애야 한다 —
+ * 둘은 같은 자리에서 같은 말을 하는 두 장치라 공존하면 다시 2번 문제로 돌아간다.
  *
  * ⚠ **여기에 `backdrop-filter`를 넣지 말 것** — 이 변형의 존재 이유가 "블러 없는 안전판"이다.
  * `backdrop-filter`가 `none`이 아닌 요소는 `filter`/`transform`과 마찬가지로
@@ -39,7 +58,7 @@ export const appHeaderHeight = `var(${APP_HEADER_HEIGHT_VAR}, 88px)`;
  * 층위 규칙은 `tokens.ts`의 `zIndex` 주석 참고.
  */
 export const headerSolidSurface = `
-  background: linear-gradient(180deg, ${color.brandSubtle}, ${color.surfaceGlassFallback} 68%);
+  background: ${color.surfaceGlassFallback};
   box-shadow: ${shadow.e1};
 `;
 
@@ -53,12 +72,16 @@ export const headerSolidSurface = `
  *    밀려난다. 시뮬레이터 헤더는 드로어 토글을 헤더 밖 본문 흐름으로 옮겨 이 조건을 만들었다.
  * 2. **자체 `z-index`로 층위를 확정할 것**(`zIndex.headerSurface`). 블러가 만드는 스태킹 컨텍스트에
  *    헤더 안 팝오버(`z-index: dropdown`)가 갇히므로, 헤더 자신이 dropdown보다 높은 층에 서야 한다.
+ *
+ * ⚠ 램프를 걷으면서 헤더 **전체**가 반투명 글래스가 됐다(구조상 위 68%는 불투명 hex 였다).
+ *   실질 변화는 브랜드 줄뿐이다 — 메뉴 줄은 원래 램프의 68% 이후 구간이라 이미 글래스였다.
+ *   불투명도는 프리셋이 정한다(velog 0.96 · ink 0.92 · 나머지 0.78~0.85).
  */
 export const headerGlassSurface = `
   ${headerSolidSurface}
 
   @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
-    background: linear-gradient(180deg, ${color.brandSubtle}, ${color.surfaceGlass} 68%);
+    background: ${color.surfaceGlass};
     -webkit-backdrop-filter: blur(14px) saturate(1.35);
     backdrop-filter: blur(14px) saturate(1.35);
   }
@@ -100,14 +123,43 @@ export const headerControlsGrid = `
   display: grid;
   align-items: center;
   min-width: 0;
-  grid-template-columns: minmax(0, 1fr) auto;
+  /*
+   * 🔴 첫 트랙은 **로고 전용**이고 두 줄을 통째로 가로지른다(2026-08-03 사용자 지시:
+   * "윗줄 아랫줄을 병합한 크기 스페이스에 앱 아이콘을 위치시켜야 한다").
+   * 브랜드 글자 줄 옆에만 두면 아이콘이 헤더의 위쪽 절반에만 걸려 아래 메뉴 줄과 무관해 보인다 —
+   * 두 줄을 가로지르면 로고가 헤더 전체의 정체성 표식이 되고, 그만큼 크게 쓸 수 있다.
+   * ⚠ auto 다(고정폭 아님) — 로고 크기를 바꾸면 트랙이 따라 넓어져야 글자와의 간격이 유지된다.
+   */
+  grid-template-columns: auto minmax(0, 1fr) auto;
   grid-template-areas:
-    'brand actions'
-    'nav nav';
+    'logo brand actions'
+    'logo nav nav';
   column-gap: ${space[3]};
   row-gap: ${space[2]};
 
+  /*
+   * 🔴 **모바일(≤640)에서는 로고가 두 줄을 가로지르지 않는다**(2026-08-06 사용자 지시: 썸네일을
+   * 워드마크 바로 왼쪽에 붙여 메뉴 영역을 넓게 써라).
+   *
+   * 왜 폭에 따라 갈리나: 로고 트랙은 auto 라 그림 폭만큼 **첫 열을 통째로 먹는다**. 넓은 화면에서는
+   * 남는 폭이 많아 그 대가가 보이지 않지만, 390px 에서는 메뉴 줄이 쓸 수 있는 폭이 그만큼 줄어
+   * 메뉴가 가로 스크롤 뒤로 밀린다 — **스크롤로 숨는 메뉴는 사용자에게 아무 신호를 주지 않는다**
+   * (위 한 줄 모드를 버린 것과 정확히 같은 이유다).
+   * 그래서 이 구간에서는 로고를 브랜드 줄에만 두고, 메뉴 줄에 **전폭**을 준다.
+   *
+   * 🔴 경계가 headerStack(1023)이 아니라 **mobileWide(640)** 인 것은 의도다. 640~1023 구간은 가로가
+   * 넉넉해 메뉴가 이미 다 보이므로, 거기서 배치를 바꾸면 얻는 것 없이 로고만 작아진다.
+   * ⚠ 이 배치에서는 로고가 **브랜드 줄 높이를 그대로 밀어 올린다**(가로지를 때는 남는 세로를 쓸
+   *   뿐이었다). 그래서 BrandHippo 가 같은 구간에서 크기를 한 단 더 줄인다 — 둘은 한 쌍이다.
+   *   실측: 로고 64px 그대로 두면 390px 헤더가 120 → 143px 이 됐다(계약 상한 120px 초과).
+   */
   ${media.down('headerStack')} {
     column-gap: ${space[2]};
+  }
+
+  ${media.down('mobileWide')} {
+    grid-template-areas:
+      'logo brand actions'
+      'nav nav nav';
   }
 `;

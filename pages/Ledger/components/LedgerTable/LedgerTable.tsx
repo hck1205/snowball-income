@@ -1,11 +1,12 @@
-import { ArrowDownToLine, ArrowUpFromLine, Pencil, Trash2 } from 'lucide-react';
+import { ArrowDownToLine, ArrowUpFromLine, Pencil, TriangleAlert, Trash2 } from 'lucide-react';
 import { Button, Chip } from '@/components/common';
 import { LEDGER_COPY } from '../../copy';
 import type { LedgerTableProps } from './LedgerTable.types';
 import {
   ActionCell,
   AmountText,
-  EllipsisText,
+  CategoryText,
+  DetailCell,
   KindChipInner,
   MemoText,
   RowActions,
@@ -13,6 +14,7 @@ import {
   RowErrorCell,
   RowErrorLabel,
   RowErrorReason,
+  RowErrorText,
   RowHeader,
   TD,
   TH,
@@ -23,8 +25,12 @@ import {
 
 const copy = LEDGER_COPY;
 
-/** 표 모드에서 실패 줄이 전폭을 차지하게 하는 열 수(날짜·구분·분류·금액·메모·작업). */
-const COLUMN_COUNT = 6;
+/**
+ * 표 모드에서 실패 줄이 전폭을 차지하게 하는 열 수.
+ * 🔴 열 구성이 바뀌면 **여기도 함께 고쳐라** — 어긋나면 실패 줄이 표 밖으로 삐져나온다.
+ * 지금은 날짜 · 내역 · 구분 · 금액 · 작업 **5열**이다(2026-08-03, 분류와 메모를 한 칸으로 합쳤다).
+ */
+const COLUMN_COUNT = 5;
 
 /**
  * 거래 내역 표.
@@ -37,6 +43,11 @@ const COLUMN_COUNT = 6;
  *
  * 🔴 개별 `RowError` 에는 `role` 을 주지 않는다 — 10건 실패에서 10번 끼어든다. 낭독은 목록 위
  * 요약 배너(`role="alert"`) 한 번이면 충분하다.
+ *
+ * ## 열 구성 (2026-08-03)
+ * 분류와 메모가 각자 한 열을 갖던 것을 **"내역" 한 칸의 두 줄**로 합쳤다. 메모의 열 이름은 사라진
+ * 것이 아니라 `VisuallyHidden` 으로 옮겨 갔다 — 화면에서는 두 번째 줄이라는 위치가 이미 말하고,
+ * 스크린리더에는 그대로 남는다.
  */
 export default function LedgerTable({
   rows,
@@ -59,15 +70,12 @@ export default function LedgerTable({
               {copy.list.columnDate}
             </TH>
             <TH scope="col" $align="left">
-              {copy.list.columnKind}
-            </TH>
-            <TH scope="col" $align="left">
               {copy.list.columnCategory}
             </TH>
-            <TH scope="col">{copy.list.columnAmount}</TH>
             <TH scope="col" $align="left">
-              {copy.list.columnMemo}
+              {copy.list.columnKind}
             </TH>
+            <TH scope="col">{copy.list.columnAmount}</TH>
             <TH scope="col">
               {/* 작업 열 머리는 시각 라벨이 없다 — 접근성 트리에만 남긴다. */}
               <VisuallyHidden>{copy.list.columnActions}</VisuallyHidden>
@@ -86,7 +94,24 @@ export default function LedgerTable({
                 <RowHeader scope="row">
                   <time dateTime={row.dateISO}>{row.dateText}</time>
                 </RowHeader>
-                <TD $align="left" data-label={copy.list.columnKind}>
+
+                <TD $align="left" $area="detail" data-label={copy.list.columnCategory}>
+                  <DetailCell>
+                    <CategoryText title={row.category}>{row.category}</CategoryText>
+                    {/* 비었으면 요소 자체를 만들지 않는다 — 🔴 "—" 를 넣지 마라. */}
+                    {row.memo ? (
+                      <>
+                        {/* 메모의 열 이름은 사라지지 않았다 — 화면에서만 빠지고 접근성 트리에는 남는다.
+                            🔴 라벨을 `MemoText` **안**에 넣지 마라: 그러면 그 요소의 텍스트가
+                            "메모점심"이 되어 메모 원문으로 조회할 수 없다. */}
+                        <VisuallyHidden>{copy.list.columnMemo}</VisuallyHidden>
+                        <MemoText title={row.memo}>{row.memo}</MemoText>
+                      </>
+                    ) : null}
+                  </DetailCell>
+                </TD>
+
+                <TD $align="left" $area="kind" data-label={copy.list.columnKind}>
                   <Chip variant="neutral">
                     <KindChipInner>
                       {row.kind === 'income' ? (
@@ -98,17 +123,12 @@ export default function LedgerTable({
                     </KindChipInner>
                   </Chip>
                 </TD>
-                <TD $align="left" data-label={copy.list.columnCategory}>
-                  <EllipsisText title={row.category}>{row.category}</EllipsisText>
-                </TD>
-                <TD data-label={copy.list.columnAmount}>
+
+                <TD $area="amount" data-label={copy.list.columnAmount}>
                   {/* 🔴 부호 없는 절대값. 방향은 구분 칩이 말한다. */}
                   <AmountText>{row.amountText}</AmountText>
                 </TD>
-                <TD $align="left" data-label={copy.list.columnMemo}>
-                  {/* 비었으면 셀을 비운다 — 🔴 "—" 를 넣지 마라. */}
-                  <MemoText title={row.memo || undefined}>{row.memo || copy.list.noMemo}</MemoText>
-                </TD>
+
                 <ActionCell>
                   <RowActions>
                     <Button
@@ -144,9 +164,12 @@ export default function LedgerTable({
                 <tr>
                   <RowErrorCell colSpan={COLUMN_COUNT}>
                     <RowError>
-                      {/* 🔴 색이 아니라 이 텍스트가 1차 채널이다. */}
-                      <RowErrorLabel>{copy.error.rowFailed}</RowErrorLabel>
-                      <RowErrorReason>{row.failure.body}</RowErrorReason>
+                      <TriangleAlert size={18} strokeWidth={1.8} aria-hidden focusable={false} />
+                      <RowErrorText>
+                        {/* 🔴 색이 아니라 이 텍스트가 1차 채널이다. */}
+                        <RowErrorLabel>{copy.error.rowFailed}</RowErrorLabel>
+                        <RowErrorReason>{row.failure.body}</RowErrorReason>
+                      </RowErrorText>
                       <Button
                         type="button"
                         size="sm"

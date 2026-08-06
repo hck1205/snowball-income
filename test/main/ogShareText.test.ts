@@ -44,18 +44,18 @@ describe('hasDividendTarget', () => {
 describe('buildOgShareText — og:title 3분기', () => {
   it('목표 있음 + 도달: 도달 연도 + "목표 달성"', () => {
     const { title } = buildOgShareText(baseModel({ targetMonthlyDividend: 2_000_000, targetReachedYear: 2038 }));
-    expect(title).toBe('20년 후 월 배당 350만 · 2038년 목표 달성 — Snowball Income');
+    expect(title).toBe('20년 후 월 배당 350만 · 2038년 목표 달성 — Hungry Hippo');
   });
 
   it('목표 있음 + 미도달: "목표 미도달"', () => {
     const { title } = buildOgShareText(baseModel({ targetMonthlyDividend: 2_000_000, targetReachedYear: null }));
-    expect(title).toBe('20년 후 월 배당 350만 · 목표 미도달 — Snowball Income');
+    expect(title).toBe('20년 후 월 배당 350만 · 목표 미도달 — Hungry Hippo');
   });
 
   it('목표 없음(<=0): 달성/미도달 문구를 붙이지 않는다 — findTargetYear(rows,0) 오해 가드', () => {
     // ⚠ 목표 0 이어도 targetReachedYear 는 (1년차를 잡아) 값이 채워질 수 있다. 그래도 "목표" 문구는 금지.
     const { title } = buildOgShareText(baseModel({ targetMonthlyDividend: 0, targetReachedYear: 2025 }));
-    expect(title).toBe('20년 후 월 배당 350만 시뮬레이션 — Snowball Income');
+    expect(title).toBe('20년 후 월 배당 350만 시뮬레이션 — Hungry Hippo');
     expect(title).not.toContain('목표');
   });
 });
@@ -71,7 +71,7 @@ describe('buildOgShareText — description / imageAlt', () => {
 
   it('image:alt 는 종목·기간·월 배당을 요약한다', () => {
     const { imageAlt } = buildOgShareText(baseModel());
-    expect(imageAlt).toBe('SCHD 60% · JEPI 40% · 20년 후 월 배당 350만 — Snowball Income 시뮬레이션 카드');
+    expect(imageAlt).toBe('SCHD 60% · JEPI 40% · 20년 후 월 배당 350만 — Hungry Hippo 시뮬레이션 카드');
   });
 
   it('접힌 종목은 "외 N개"로, 금액은 카드 포맷터와 동일 축약을 쓴다', () => {

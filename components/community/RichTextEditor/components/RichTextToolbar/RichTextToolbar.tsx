@@ -36,8 +36,13 @@ const isSafeUrl = (url: string) => /^https?:\/\//i.test(url.trim());
  * 본문 리치 에디터 툴바 + 링크 팝오버.
  *
  * 그룹 구성: 글자 서식(굵게/기울임/밑줄/취소선/인라인 코드) · 문단(H2·H3/인용/코드 블록) ·
- * 목록(글머리/번호) · 삽입(링크/표) · 이력(실행 취소/다시 실행).
+ * 목록(글머리/번호) · 삽입(링크/구분선/표) · 이력(실행 취소/다시 실행).
  * 표 조작(행·열 추가/삭제, 표 삭제)은 **커서가 표 안일 때만** 나타나는 컨텍스트 행이다.
+ *
+ * 🔴 버튼은 **하나도 줄지 않았다**(2026-08-03 리워크). 바뀐 것은 묶는 방식이다 —
+ * 그룹 사이 세로 구분선(장식 span)을 걷어내고, 각 `ToolbarGroup` 이 **자기 면(세그먼트 타일)** 을
+ * 갖게 했다. 좁은 화면에서 줄이 바뀌어도 묶음이 통째로 넘어가 구조가 유지된다.
+ * 표 조작 행 안의 구분선은 남긴다 — 거기서는 파괴적 액션(표 삭제)을 갈라내는 **의미**를 진다.
  *
  * 활성/가능 상태(`state`)는 부모(`RichTextEditorBody`)의 `useEditorState`가 만들어 내려준다 —
  * 이 컴포넌트는 그 결과를 그대로 렌더에만 쓴다(훅 개수 고정 불변식은 `RichTextEditor.tsx` 상단 ⚠ 참고).
@@ -112,7 +117,6 @@ const RichTextToolbar = ({ editor, state }: RichTextToolbarProps) => {
         </ToolButton>
       </ToolbarGroup>
 
-      <ToolbarDivider aria-hidden="true" />
 
       <ToolbarGroup role="group" aria-label={c.toolbarGroupBlock}>
         <ToolButton
@@ -149,7 +153,6 @@ const RichTextToolbar = ({ editor, state }: RichTextToolbarProps) => {
         </ToolButton>
       </ToolbarGroup>
 
-      <ToolbarDivider aria-hidden="true" />
 
       <ToolbarGroup role="group" aria-label={c.toolbarGroupList}>
         <ToolButton
@@ -170,7 +173,6 @@ const RichTextToolbar = ({ editor, state }: RichTextToolbarProps) => {
         </ToolButton>
       </ToolbarGroup>
 
-      <ToolbarDivider aria-hidden="true" />
 
       <ToolbarGroup role="group" aria-label={c.toolbarGroupInsert}>
         <LinkPopover>
@@ -216,7 +218,6 @@ const RichTextToolbar = ({ editor, state }: RichTextToolbarProps) => {
         </ToolButton>
       </ToolbarGroup>
 
-      <ToolbarDivider aria-hidden="true" />
 
       <ToolbarGroup role="group" aria-label={c.toolbarGroupHistory}>
         <ToolButton

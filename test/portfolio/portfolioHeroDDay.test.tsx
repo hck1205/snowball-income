@@ -68,7 +68,11 @@ describe('내 포트폴리오 — 다음 배당 D-Day', () => {
 
     expect(within(note).getByText(copy.hero.dDay.value(daysUntil))).toBeInTheDocument();
     expect(note).toHaveTextContent(copy.hero.dDay.label);
-    expect(within(note).getByText(copy.summary.tiles.tickerSummary(DATED, 1))).toBeInTheDocument();
+    /* 세 번째 줄은 종목 코드 단독이 아니라 **문장**이다(2026-08-05 카피 개편) — 그 안에 종목이
+       들어 있는지까지 본다. 종목 나열 규칙 자체는 요약 타일과 같은 함수가 소유한다. */
+    expect(
+      within(note).getByText(copy.hero.dDay.tickerLine(copy.summary.tiles.tickerSummary(DATED, 1)))
+    ).toBeInTheDocument();
   });
 
   it('D-Day 가 가리키는 날짜는 요약 타일의 예상 지급일과 같다', async () => {

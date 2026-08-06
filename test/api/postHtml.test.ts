@@ -11,11 +11,11 @@ import { handler } from '@/server/handlers/PostHtml';
 const SHELL = `<!doctype html>
 <html lang="ko">
   <head>
-    <title>배당 재투자 시뮬레이터 - Snowball Income</title>
+    <title>배당 재투자 시뮬레이터 - Hungry Hippo</title>
     <meta name="description" content="기본 설명" />
     <link id="canonical-link" rel="canonical" href="https://snowball.test/" />
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Snowball Income" />
+    <meta property="og:site_name" content="Hungry Hippo" />
     <meta
       property="og:title"
       content="기본 제목"
@@ -88,12 +88,12 @@ describe('api/post-html — 공개 글', () => {
     const html = await res.text();
 
     expect(res.status).toBe(200);
-    expect(html).toContain('<title>내 배당 포트폴리오 - Snowball Income</title>');
+    expect(html).toContain('<title>내 배당 포트폴리오 - Hungry Hippo</title>');
     expect(html).toContain('content="월 300만원 목표로 굴리는 중"');
     expect(html).toContain(`href="https://snowball.test/community/board/${POST_ID}"`);
     expect(html).toContain(`content="https://snowball.test/community/board/${POST_ID}"`);
-    expect(html).toMatch(/property="og:title"\s+content="내 배당 포트폴리오 - Snowball Income"/);
-    expect(html).toContain('name="twitter:title" content="내 배당 포트폴리오 - Snowball Income"');
+    expect(html).toMatch(/property="og:title"\s+content="내 배당 포트폴리오 - Hungry Hippo"/);
+    expect(html).toContain('name="twitter:title" content="내 배당 포트폴리오 - Hungry Hippo"');
   });
 
   it('불변식: og:type·site_name·twitter:card·이미지는 건드리지 않는다 (본문·script 도 그대로)', async () => {
@@ -101,7 +101,7 @@ describe('api/post-html — 공개 글', () => {
     const html = await (await call(`kind=board&id=${POST_ID}`)).text();
 
     expect(html).toContain('property="og:type" content="website"');
-    expect(html).toContain('property="og:site_name" content="Snowball Income"');
+    expect(html).toContain('property="og:site_name" content="Hungry Hippo"');
     expect(html).toContain('name="twitter:card" content="summary_large_image"');
     expect(html).toContain('property="og:image" content="https://snowball.test/og-image.png"');
     expect(html).toContain('property="og:image:alt" content="기본 alt"');
@@ -125,7 +125,7 @@ describe('api/post-html — 공개 글', () => {
     stubFetch({ rows: [publicRow({ title: '<script>&"위험"', description: 'a & b' })] });
     const html = await (await call(`kind=board&id=${POST_ID}`)).text();
 
-    expect(html).toContain('<title>&lt;script&gt;&amp;"위험" - Snowball Income</title>');
+    expect(html).toContain('<title>&lt;script&gt;&amp;"위험" - Hungry Hippo</title>');
     expect(html).toContain('content="a &amp; b"');
     expect(html).not.toContain('<script>&"위험"');
   });
@@ -174,7 +174,7 @@ describe('api/post-html — 실패 종류 구분', () => {
 
     expect(res.status).toBe(200);
     expect(res.headers.get('cache-control')).toBe('no-store');
-    expect(await res.text()).toContain('<title>배당 재투자 시뮬레이터 - Snowball Income</title>');
+    expect(await res.text()).toContain('<title>배당 재투자 시뮬레이터 - Hungry Hippo</title>');
   });
 
   it('네트워크 예외도 무치환 셸 200 이다 (5xx 를 내지 않는다)', async () => {

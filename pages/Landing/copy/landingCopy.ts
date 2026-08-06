@@ -7,8 +7,9 @@ import { SIMULATOR_PATH } from '@/shared/constants/routes';
  * "무엇이 바뀌었나"가 안 읽힌다. FAQ 는 다음 트랙에서 `FAQPage` JSON-LD 로 색인될 예정이라 특히 그렇다.
  *
  * ── 이 지면의 카피 규율 (어기면 되돌려라) ─────────────────────────────────────────
- *  1. 🔴 **"눈덩이 / 스노우볼" 비유 금지**(decisions.md `[2026-07-22][copy]`). 브랜드명 suffix 만 예외.
- *     같은 개념은 **복리 · 시간 · 재투자**라는 직접적인 말로 푼다.
+ *  1. 🔴 **"눈덩이 / 스노우볼" 비유 금지 — 예외 없음**(decisions.md `[2026-07-22][copy]` + 2026-08-03 개정).
+ *     "브랜드명 suffix 는 예외" 조항은 폐기됐다(제품명이 구 이름이던 시절의 것). 제품명은 영문
+ *     **Hungry Hippo** 하나이고, 같은 개념은 **복리 · 시간 · 재투자**라는 직접적인 말로 푼다.
  *  2. 🔴 **투자 권유 금지.** 문장은 조건부·예시형("~라고 가정하면 이렇게 계산됩니다")이고 약속형
  *     ("~를 받게 됩니다")을 쓰지 않는다. 특정 증권사·상품·매수 시점 언급 0, 외부 금융사 링크 0.
  *  3. 🔴 **지어낸 숫자 0.** 화면의 수치는 전부 실데이터에서 온다 — 지수(API) · 지급 월
@@ -50,6 +51,43 @@ export const LANDING_HERO_CTAS = [
 export type LandingHeroCta = (typeof LANDING_HERO_CTAS)[number];
 
 /**
+ * 이 지면의 **차례**(2026-08-03 2차 리워크).
+ *
+ * 랜딩은 6장짜리 안내서인데 before 에는 목차가 없었다 — 방문자는 4136px(실측 @1280) 짜리 문서를
+ * 스크롤로만 훑어야 했고, "이 화면이 무엇을 다루는가"는 끝까지 내려야 알 수 있었다. 이 배열이
+ * ①히어로 아래 차례 ②각 장의 번호 ③앵커 주소를 **한 출처에서** 낸다.
+ *
+ * 🔴 `anchorId` 는 **손으로 적은 안정 문자열**이다. `useId` 파생을 쓰면 `:r3:-concept` 처럼
+ * 콜론이 든 값이 주소창에 남고(렌더마다 달라진다) 북마크가 죽는다.
+ * 🔴 `ordinal` 은 장식이 아니라 **차례와 장 머리가 같은 값을 말한다**는 계약이다 — 두 곳이
+ * 갈라지면 목차가 거짓말을 한다. 그래서 두 화면이 같은 배열을 읽는다.
+ * ⚠ 순서는 `LandingPage.view.tsx` 의 섹션 순서와 같아야 한다(문서 순서 = 차례 순서).
+ */
+export const LANDING_CHAPTERS = [
+  /*
+   * 🔴 **처음 온 사람의 길**이 1장이다(2026-08-06 사용자 지시). 종전 1장은 '주식·ETF·배당주'
+   * 낱말 풀이였는데, 그 앞에 "계좌는 어떻게 여나 / 투자는 어떻게 시작하나"가 통째로 비어 있었다.
+   * 개념을 모르는 사람이 계산기 앞에 서는 일을 막는 것이 이 장의 목적이다.
+   */
+  { key: 'start', anchorId: 'landing-start', ordinal: '01', label: '처음이라면 여기부터' },
+  { key: 'concept', anchorId: 'landing-concept', ordinal: '02', label: '주식 · ETF · 배당주' },
+  { key: 'compound', anchorId: 'landing-compound', ordinal: '03', label: '재투자와 복리' },
+  { key: 'payout', anchorId: 'landing-payout', ordinal: '04', label: '배당이 들어오는 달' },
+  { key: 'presets', anchorId: 'landing-presets', ordinal: '05', label: '많이 쓰는 구성' },
+  { key: 'checklist', anchorId: 'landing-checklist', ordinal: '06', label: '시작하기 전에' },
+  { key: 'faq', anchorId: 'landing-faq', ordinal: '07', label: '자주 묻는 질문' }
+] as const;
+
+export type LandingChapter = (typeof LANDING_CHAPTERS)[number];
+
+/** 장 키 → 차례 항목. 뷰가 섹션마다 번호·앵커를 손으로 적지 않게 한다(두 곳이 갈라질 여지 0). */
+export const landingChapter = (key: LandingChapter['key']): LandingChapter => {
+  const found = LANDING_CHAPTERS.find((chapter) => chapter.key === key);
+  if (!found) throw new Error(`랜딩 차례에 '${key}' 장이 없다`);
+  return found;
+};
+
+/**
  * S5 리듬 표가 실제로 그리는 종목.
  *
  * 🔴 **지급 월을 여기 적지 않는다.** 12칸은 `marketData` 스냅샷의 `payoutMonths` 를 **런타임에**
@@ -61,8 +99,32 @@ export const LANDING_PAYOUT_RHYTHM_TICKERS = ['SCHD', 'VIG', 'O'] as const;
 
 export const LANDING_COPY = {
   hero: {
-    title: '배당, 여기서부터 이해하고 계산합니다',
-    lede: '주식과 ETF가 무엇인지부터, 배당을 다시 넣으면 얼마가 되는지까지 한 화면에서 확인하실 수 있습니다. 가입은 필요하지 않습니다.',
+    /*
+     * 🔴 2026-08-04 개정 — 종전 '배당, 여기서부터 이해하고 계산합니다'.
+     *
+     * 사용자 지시: "배당으로 복리로 키워 나간다는 느낌". 종전 제목은 **입구 안내**("여기서부터")라
+     * 이 지면이 무엇을 하는 곳인지는 말했지만 **왜 하는가**는 말하지 않았다. 이 화면의 본론 두 장이
+     * 복리(S4)와 구성 고르기(S6)인데 정문이 그 서사를 한 글자도 예고하지 않았다.
+     *
+     * 낱말 선택의 근거:
+     *  · **'배당으로 배당을 키우는'** — 재투자를 **사용자가 하는 행동**으로 쓴다. 자산이 저절로
+     *    불어난다는 서술("배당이 배당을 낳는")은 약속형에 가까워 쓰지 않았다.
+     *  · **'복리'** — 이 개념의 정본 낱말이다. 🔴 눈덩이/스노우볼 비유는 전 표면 금지이고,
+     *    같은 개념은 복리·시간·재투자로 푼다(위 규율 1).
+     *  · **'계산합니다'** — 🔴 이 두 글자를 빼지 마라. 제목에서 서비스의 정체(계산 도구)가 사라지면
+     *    첫 화면에는 느낌만 남는다. 리드가 보충하지만 h1 은 검색·공유·스크린리더가 **단독으로** 읽는다.
+     *
+     * ⚠ 이 문자열은 세 곳이 함께 따라온다: `index.html` 의 og:title·twitter:title·정적 셸 h1
+     * (`test/seo/landingShellCopyParity.test.ts` 가 문자 단위로 잠근다)과 `test/landing/landingHierarchy`.
+     */
+    title: '배당으로 배당을 키우는 복리, 여기서 계산합니다',
+    /*
+     * 리드가 **무슨 서비스인지**를 마저 말한다 — 입력(주식·ETF 개념)부터 출력(자산·월 배당의
+     * 해마다 변화)까지. '자산과 월 배당'은 지어낸 문구가 아니라 시뮬레이터가 실제로 내는 두 축이다
+     * (`shared/lib/snowball/SnowballSimulation.ts` 의 결과 필드). 조건부 서술('넣었을 때')이라
+     * 약속형이 아니고, 숫자는 한 글자도 없다.
+     */
+    lede: '주식과 ETF가 무엇인지부터, 받은 배당을 다시 넣었을 때 자산과 월 배당이 해마다 어떻게 달라지는지까지 한 화면에서 확인하실 수 있습니다. 가입은 필요하지 않습니다.',
     searchLabel: '종목 검색',
     searchPlaceholder: 'SCHD, JEPI 같은 종목을 검색해 보세요',
     /*
@@ -76,6 +138,18 @@ export const LANDING_COPY = {
      */
     resumeNotice: '이 브라우저에서 시뮬레이터를 열어 보신 적이 있습니다',
     resumeAction: '이어서 계산하기'
+  },
+
+  /**
+   * 차례 블록의 문구. 🔴 "목차"가 아니라 **"차례"** 다 — 이 지면은 문서이지 앱 메뉴가 아니다.
+   *
+   * ⚠ 2026-08-04 현재 **화면에 그려지지 않는다** — 사용자 지시로 히어로 아래 차례 블록을 걷었고
+   * 그 자리는 "맨 위로" 버튼이 대신한다. 부품(`components/ChapterIndex`)과 이 문구는 남아 있지만
+   * 소비처가 0이다. 되살릴 때 히어로 문구를 인용하지 마라 — 그 결합이 이번 개정에서 낡았다.
+   */
+  chapterIndex: {
+    eyebrow: '이 안내서가 다루는 것',
+    navLabel: '이 화면의 차례'
   },
 
   /** 검색 패널 — 상태별 문구. 무음 실패 금지: 결과가 없으면 **사유를 말한다**. */
@@ -93,6 +167,21 @@ export const LANDING_COPY = {
    * 그리고 있어 원문자를 넣으면 24px 배지 안의 12px "원 안의 원"이 되어 숫자가 읽히지 않는다
    * (2.2배 확대 캡처로 확인). 순서 자체는 내용이라(주식을 모르면 ETF 를 설명할 수 없다) 지우지 않는다.
    */
+  /**
+   * 처음 온 사람이 밟는 길(2026-08-06 신설).
+   *
+   * 🔴 걸음의 **제목·설명은 여기 적지 않는다** — `GUIDE_START_PATH` 의 가이드가 자기 제목을 갖고
+   * 있고, 랜딩은 그것을 그대로 그린다. 두 곳에 적으면 가이드를 고칠 때 랜딩이 낡는다.
+   */
+  startPath: {
+    title: '처음이라면 여기부터',
+    lede: '계좌를 여는 일부터 계산까지, 순서대로 읽으실 수 있습니다. 각 걸음은 3분 안팎이면 읽힙니다.',
+    readAction: '읽기',
+    finalTitle: '내 조건으로 계산하기',
+    finalLede: '위 내용을 읽으셨다면, 매달 넣을 금액과 기간을 넣어 배당이 어떻게 쌓이는지 확인하실 수 있습니다.',
+    finalAction: '계산하기'
+  },
+
   concept: {
     title: '배당을 알기 전에, 세 단어',
     items: [

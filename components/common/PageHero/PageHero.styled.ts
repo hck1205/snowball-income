@@ -9,9 +9,10 @@ import {
   pageHue,
   pageHueMix,
   radius,
-  space
+  space,
+  topRail
 } from '@/shared/styles';
-import type { PageHeroTone } from './PageHero.types';
+import type { PageHeroMascotSize, PageHeroTone } from './PageHero.types';
 
 /**
  * 히어로 안쪽 여백.
@@ -21,8 +22,15 @@ import type { PageHeroTone } from './PageHero.types';
  * 즉 `radius.xl`(20px) 로 둥근 구간에 앉는다. 그래서 40px 액션 버튼이 히어로의 둥근 모서리를
  * 가로질러 4.6px 삐져나와 있었다(2026-07-30 실측, ≤640px). 두 자리에 손으로 적으면 어긋나므로
  * 한 곳에서 파생한다.
+ *
+ * 🔴 2026-08-03(흰 캔버스 전환)에 20~32 → **24~40** 으로 넓혔다. 히어로 배경이 파스텔 그라디언트에서
+ * 흰 면으로 바뀌면서 "여기가 도입부다"를 말하던 채널 하나가 사라졌다 — 그 몫을 **여백**이 받는다.
+ * 40px 상한은 이 레포에서 이미 검증된 최대 카드 패딩(티커 허브 `clamp(24px, 3vw, 40px)`)과 같다.
  */
-const HERO_PADDING = 'clamp(20px, 3vw, 32px)';
+const HERO_PADDING = 'clamp(24px, 3.4vw, 40px)';
+
+/** 상단 페이지-hue 리본 두께. 4px 은 구 로컬 히어로의 오로라 리본과 같다(면 하한 8px 미만 = 선). */
+const HERO_RAIL_HEIGHT = '4px';
 
 /**
  * 페이지 첫 화면. 전 페이지가 **같은 자리에서 같은 것**(무엇을 하는 화면인가 → 근거 → 액션)을 말하게 해
@@ -38,41 +46,140 @@ const HERO_PADDING = 'clamp(20px, 3vw, 32px)';
  * ── 페이지 정체성 hue ──────────────────────────────────────────────────────────
  * 이전에는 세 화면의 히어로가 **같은 배경·같은 테두리**라 탭을 옮겨도 화면이 바뀐 느낌이 없었다.
  * 이제 히어로 크롬은 라우트가 발행하는 `--sb-page-hue`(`shared/hooks/usePageHue`)를 읽는다:
- * **①상단 4px 리본 ②아이콘 배지 ③메타 줄 밑줄 ④테두리** 네 곳. 배경(`gradientHero`)은 전 페이지
- * 공통으로 남겨 "같은 앱"을 유지하고, 색만 페이지마다 갈린다.
+ * **①상단 4px 리본 ②아이콘 배지 ③메타 줄 밑줄 ④테두리** 네 곳.
  *
  * 🔴 **hue 파생 면 위에 텍스트를 얹지 마라** — `color-mix` 결과는 대비 테스트가 못 보는 값이다.
  *    제목·리드·메타는 전부 검증된 토큰 면(히어로 배경) 위의 `text`/`text-secondary` 다.
  * 🔴 **hue 를 배지에 *솔리드*로 채우지 않는 이유**: hue 4종은 라이트/다크에서 명암이 **반대로**
  *    간다(라이트 accent-alt `#26a14f` vs 다크 `#6ee7a0`). 흰 글리프를 얹으면 다크에서 1.3:1 로
  *    사라진다. 그래서 "옅은 틴트 면 + hue 글리프" — 티커 상세의 `--tk-soft`/`--tk-text` 와 같은 처방.
+ *
+ * ── 🔴 2026-08-03: 파스텔 배경을 걷었다 ────────────────────────────────────────
+ * 종전 배경 `gradientHero` 는 아이스블루→민트 파스텔 램프였다. 사용자 결정으로 그 램프가
+ * 없어지면서(근거: `shared/styles/presets/gradients.ts` 머리말) 히어로는 **흰 카드**가 된다.
+ * "여기가 도입부다"를 말하던 채널 하나가 사라졌으므로 나머지 셋을 그만큼 키웠다:
+ *   ① 여백    20~32 → **24~40px** (HERO_PADDING)
+ *   ② 리본    4px 그대로 — 이제 화면에서 유일하게 채도를 가진 히어로 요소라 무게가 커졌다
+ *   ③ 경계    hue 38% → **48%** (흰 면 위에서 38% 는 사라진다)
+ * ⚠ 구조는 그대로다 — 슬롯(icon·title·titleAction·actions·lede·notice·meta)은 하나도 안 바뀌었다.
  */
-export const HeroRoot = styled.header<{ $tone: PageHeroTone }>`
+/**
+ * 마스코트가 차지하는 폭. 히어로 오른쪽에 이만큼을 **비워 두고** 그 자리에 그림을 놓는다.
+ *
+ * 🔴 겹치지 않고 **자리를 비운다.** 히어로의 제목·리드는 페이지마다 길이가 다르고 한국어는
+ * 줄바꿈이 늦다 — 그림을 위에 얹는 방식이면 어느 페이지에서 언젠가 글자를 덮는다.
+ */
+const HERO_MASCOT_WIDTH: Record<PageHeroMascotSize, string> = {
+  /** 아래에 바로 다른 블록이 붙는 화면(종목 비교의 선택 덱 등) — 그림이 그 블록과 다투지 않는다. */
+  sm: 'clamp(88px, 11vw, 140px)',
+  md: 'clamp(112px, 14vw, 176px)',
+  /** 리드가 짧아 히어로 오른쪽이 크게 비는 화면(가계부). 여기서는 작으면 오히려 허전하다. */
+  lg: 'clamp(168px, 21vw, 280px)'
+};
+
+export const HeroRoot = styled.header<{
+  $tone: PageHeroTone;
+  $mascotSize?: PageHeroMascotSize;
+}>`
   display: grid;
   gap: ${space[3]};
   /* 좁은 폭에서 titleAction 이 흐름에서 빠져 제목 줄 오른쪽에 붙는다 — 그 좌표 기준. */
   position: relative;
-  /* 상단 리본이 둥근 모서리를 넘지 않게 자른다. position:fixed 자손(스티키 액션)은
-     transform 조상이 없으므로 이 클리핑에 걸리지 않는다(2026-07-31 실측으로 확인). */
+  /*
+   * 🔴 **상단 리본이 둥근 모서리를 넘지 않게 자르는 유일한 장치다. 지우지 마라.**
+   * 리본은 직사각형이고 이 카드는 radius.xl 이라, 이 한 줄이 없으면 모서리에서 4px 띠가
+   * 카드 밖으로 직진한다. 리본에 반경을 주는 처방은 4px 높이에서 **작동하지 않는다**
+   * (반경 축소 규칙 때문에 오히려 틈이 생긴다 — 근거는 shared/styles 의 topRail 주석).
+   * position:fixed 자손(스티키 액션)은 transform 조상이 없으므로 이 클리핑에 걸리지 않는다
+   * (2026-07-31 실측으로 확인).
+   */
   overflow: hidden;
   padding: ${HERO_PADDING};
   /*
    * 테두리도 리본·배지와 **같은 축**(페이지 hue)이다. 예전에는 accent 고정이라 어느 화면에서나
    * 같은 색이었고, 그래서 "탭을 옮겨도 같은 화면"으로 읽혔다. 경계는 텍스트가 아니므로
    * hue 파생(color-mix)을 써도 대비 계약을 건드리지 않는다.
+   *
+   * 🔴 38% → 48%(2026-08-03). 히어로 배경이 파스텔에서 흰 면으로 바뀌면서 이 1px 이 카드와
+   * 캔버스를 가르는 **유일한** 선이 됐다 — 38% 는 흰 면 위에서 중립 border 보다도 옅었다.
    */
-  border: 1px solid ${pageHueMix(38, 'transparent')};
+  border: 1px solid ${pageHueMix(48, 'transparent')};
   border-radius: ${radius.xl};
   background: ${({ $tone }) => ($tone === 'gradient' ? color.gradientHero : color.surface)};
   min-width: 0;
 
-  /* 페이지 얼굴색을 가장 크게 말하는 자리. 4px 은 구 로컬 히어로의 오로라 리본과 같은 두께다. */
+  /*
+   * 페이지 얼굴색을 가장 크게 말하는 자리. 반경은 주지 않는다 — 위 overflow 가 자른다.
+   * 선언은 topRail() 이 소유한다(레포 전체가 같은 처방을 쓰도록).
+   */
   &::before {
-    content: '';
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: 4px;
+    ${topRail(HERO_RAIL_HEIGHT)}
     background: ${pageHue};
+  }
+
+  /* 마스코트가 설 자리를 오른쪽에 비운다(그림은 아래 HeroMascot 이 절대배치로 그 안에 선다).
+     ⚠ 좁은 폭에서는 그림 자체를 그리지 않으므로 여백도 돌려준다 — 안 그러면 글자만 좁아진다. */
+  ${({ $mascotSize }) =>
+    $mascotSize
+      ? `
+  padding-right: calc(${HERO_PADDING} + ${HERO_MASCOT_WIDTH[$mascotSize]});
+  /*
+   * 🔴 **그림이 설 세로도 함께 확보한다**(2026-08-05). 히어로는 overflow: hidden 이라 카드보다 큰
+   * 그림은 넘치는 게 아니라 잘리고, 잘리지 않게 상한을 걸면 이번엔 그림이 작아진다 — 제목·리드가
+   * 짧은 화면(종목 비교)에서 정확히 그 두 증상이 차례로 났다. 그래서 마스코트를 쓰는 히어로는
+   * 그림이 들어갈 만큼 **최소 높이**를 갖는다. 정사각 자산 기준이라 폭과 같은 값을 쓴다.
+   * ⚠ 이 최소 높이는 그 페이지의 첫 화면을 그만큼 먹는다. 마스코트를 아무 데나 붙이지 마라.
+   */
+  min-height: calc(${HERO_MASCOT_WIDTH[$mascotSize]} + ${space[4]});
+
+  ${media.down('mobileWide')} {
+    padding-right: ${HERO_PADDING};
+    min-height: 0;
+  }
+`
+      : ''}
+`;
+
+/**
+ * 히어로의 **마스코트** — 이 화면이 무엇을 하는 곳인지 그림 한 장으로 거드는 자리(2026-08-05 신설).
+ *
+ * 🔴 **장식이다**(`alt=""`, PageHero 가 강제한다). 페이지의 정보는 제목·리드가 전부 진다.
+ * 🔴 자리는 히어로가 `padding-right` 로 비워 둔 레인 안이다 — 글자 위로 넘어오지 않는다.
+ * ⚠ 오른쪽 아래에 바닥을 맞춘다. 하마 자산들은 모두 바닥에 앉은 구도라, 세로 중앙에 띄우면
+ *   허공에 뜬 것처럼 보인다.
+ * ⚠ 좁은 폭에서는 **사라진다**. 첫 화면 세로를 마스코트에 내줄 수 없다(헤더가 이미 105px 이다).
+ * ⚠ 히어로는 `overflow: hidden` 이라 이 그림은 카드 밖으로 나갈 수 없다 — 자산의 여백까지 포함해
+ *   자리를 잡아야 한다. 밖으로 삐져나오는 연출이 필요하면 히어로가 아니라 그 페이지가 소유해라.
+ */
+export const HeroMascot = styled.img<{ $size: PageHeroMascotSize }>`
+  position: absolute;
+  right: ${HERO_PADDING};
+  bottom: 0;
+  /*
+   * 🔴 **폭만 정하고 높이는 원본 비율에 맡긴다**(2026-08-05 사용자 지시: 비율이 맞게 줄어들 것).
+   * aspect-ratio 를 박아 두면 정사각이 아닌 자산이 들어온 날 레터박스(혹은 잘림)가 생기고,
+   * 그 어긋남은 "그림이 이상하다"로만 보고되어 원인을 찾기 어렵다. 이 요소는 절대배치라
+   * 높이가 흔들려도 **레이아웃을 밀지 않는다** — 비율을 지키는 쪽이 언제나 이득이다.
+   * 🔴 폭 3단은 히어로의 padding-right 와 **같은 표에서** 나온다(HERO_MASCOT_WIDTH). 두 곳에
+   *   따로 적으면 그림이 글자 위로 올라오는 날이 온다.
+   */
+  width: ${({ $size }) => HERO_MASCOT_WIDTH[$size]};
+  height: auto;
+  /*
+   * 🔴 **히어로보다 커지지 않는다**(2026-08-05: 가계부에서 그림 위쪽이 잘려 나갔다).
+   * 히어로는 상단 hue 리본을 둥근 모서리 안에 가두려고 overflow: hidden 이라, 카드보다 큰 그림은
+   * 밖으로 넘치는 게 아니라 **잘린다**. 그래서 폭(3단)은 희망 크기이고, 실제 크기는 이 상한이
+   * 결정한다 — 히어로가 짧은 페이지에서는 그림도 그만큼 작아진다.
+   * ⚠ object-fit: contain 과 **함께**여야 한다. 상한만 걸면 이미지가 눌려 비율이 깨진다.
+   */
+  max-height: calc(100% - ${space[2]});
+  object-fit: contain;
+  object-position: bottom center;
+  pointer-events: none;
+  user-select: none;
+
+  ${media.down('mobileWide')} {
+    display: none;
   }
 `;
 
@@ -218,7 +325,7 @@ export const HeroLede = styled.p`
 
 /**
  * 히어로 안의 **고지·주의**(예: 캘린더의 "예상 지급일" 안내). 구
- * `DividendCalendarPage.styled.ts` 의 `HeroDisclaimer` 를 흡수한 자리다.
+ * 배당 캘린더의 `HeroDisclaimer` 를 흡수한 자리다(그 스타일은 지금 `DividendCalendarPage/styled/` 에 산다).
  * 경고 배너가 아니라 본문이므로 면·색으로 강조하지 않고 크기로만 리드 아래에 둔다
  * (`role="note"` 는 컴포넌트가 붙인다).
  */

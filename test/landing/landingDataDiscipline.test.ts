@@ -81,7 +81,7 @@ describe('랜딩 데이터 규율', () => {
     expect(offenders).toEqual([]);
   });
 
-  /** 🔴 "눈덩이/스노우볼" 비유 전면 금지(브랜드명 suffix 만 예외 — 랜딩 카피엔 그 suffix 도 없다). */
+  /** 🔴 "눈덩이/스노우볼" 비유 전면 금지 — 예외 없음(구 "브랜드명 suffix 는 예외" 조항은 2026-08-03 폐기). */
   it('금지된 비유가 카피에 없다', () => {
     const flat = JSON.stringify(LANDING_COPY);
 

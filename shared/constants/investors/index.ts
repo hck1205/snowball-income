@@ -86,7 +86,6 @@ export const INVESTORS_BY_SIZE: readonly InvestorSnapshotEntry[] = [...INVESTOR_
  */
 const SPOTLIGHT_ORDER: readonly string[] = [
   '0001067983', // 워런 버핏 — 이 주제에서 가장 먼저 찾는 이름
-  '0001649339', // 마이클 버리 — 빅쇼트, 그리고 최근 공시의 대형 풋 포지션으로 계속 회자
   '0001697748', // 캐시 우드 — ARK
   '0001336528', // 빌 애크먼 — 퍼싱스퀘어
   '0001350694', // 레이 달리오 — 브리지워터
@@ -97,7 +96,13 @@ const SPOTLIGHT_ORDER: readonly string[] = [
   '0001709323', // 리루
   '0000850529', // 켄 피셔 — 규모는 1위지만 대중 인지도는 그보다 낮다
   '0000915191', // 프렘 왓사
-  '0000783412' // 데일리 저널
+  '0000783412', // 데일리 저널
+  /*
+   * 🔴 마이클 버리는 **맨 뒤**다(2026-08-06 사용자 지시). 인지도로는 앞자리였지만, 이 화면에서
+   * 그의 카드만 성격이 다르다 — 신고가 2025-09-30 에서 멈춰 "공시 오래됨" 배지를 달고 있고
+   * 보유 구성도 풋 위주라, 앞에 두면 화면 전체가 그 예외를 기준으로 읽힌다.
+   */
+  '0001649339' // 마이클 버리
 ];
 
 export const INVESTORS_BY_SPOTLIGHT: readonly InvestorSnapshotEntry[] = [...INVESTOR_SNAPSHOT.investors].sort(
@@ -139,3 +144,36 @@ export const isReportStale = (entry: InvestorSnapshotEntry, today: Date): boolea
   const days = daysSinceReport(entry, today);
   return days !== null && days > STALE_REPORT_DAYS;
 };
+
+/**
+ * 인물 사진(2026-08-05 사용자가 `public/images/investors/` 에 올림).
+ *
+ * 🔴 **CIK 로 명시해 적는다.** 이름에서 파일명을 조립하는 방법(공백 제거)도 되지만, 그러면
+ * 파일 하나만 이름이 바뀌어도 조용히 깨진 이미지가 뜬다 — 어느 인물에 사진이 있는지는
+ * 이 표가 유일한 답이고, 없으면 화면이 모노그램으로 되돌아간다.
+ *
+ * ⚠ **데일리 저널(0000783412)만 이름과 파일이 어긋난다.** 명단의 이름은 회사(데일리 저널)이지만
+ *   사진은 그 회사를 이끌던 **찰리 멍거**다(2026-08-05 사용자 지시, 파일도 `찰리멍거.png`).
+ *   회사 로고 대신 사람 얼굴을 쓰는 이유는 이 화면의 다른 열두 장이 전부 얼굴이라, 한 장만
+ *   로고면 격자에서 그 카드가 "빈 자리"처럼 읽히기 때문이다. 카드 제목·설명은 그대로 회사를
+ *   말한다(`roster.ts` 의 note 가 "찰리 멍거가 이끌던 회사"라고 이미 잇고 있다).
+ */
+export const INVESTOR_AVATAR_BY_CIK: Readonly<Record<string, string>> = {
+  '0001067983': '/images/investors/warren-buffett.png',
+  '0000850529': '/images/investors/ken-fisher.png',
+  '0001166559': '/images/investors/bill-gates.png',
+  '0001350694': '/images/investors/ray-dalio.png',
+  '0001336528': '/images/investors/bill-ackman.png',
+  '0001697748': '/images/investors/cathie-wood.png',
+  '0001656456': '/images/investors/david-tepper.png',
+  '0001061768': '/images/investors/seth-klarman.png',
+  '0001536411': '/images/investors/stanley-druckenmiller.png',
+  '0001649339': '/images/investors/michael-burry.png',
+  '0001709323': '/images/investors/li-lu.png',
+  '0000915191': '/images/investors/prem-watsa.png',
+  /* 데일리 저널 = 찰리 멍거 얼굴. 위 머리말의 "이름과 파일이 어긋나는 유일한 줄"이 이것이다. */
+  '0000783412': '/images/investors/charlie-munger.png'
+};
+
+/** 사진 경로. 없으면 `null` — 호출부는 그때 모노그램으로 되돌아간다. */
+export const investorAvatar = (cik: string): string | null => INVESTOR_AVATAR_BY_CIK[cik] ?? null;

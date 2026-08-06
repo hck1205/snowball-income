@@ -9,7 +9,14 @@ import { color } from '@/shared/styles';
  * 자기 높이를 실측해 `--sb-app-header-h` 로 발행한다(`shared/styles` 의 `appHeaderHeight`).
  */
 export const ShellRoot = styled.div`
-  min-height: 100%;
+  /*
+   * 🔴 100dvh 다(100% 아님). min-height: 100% 는 **부모가 높이를 가질 때만** 뜻이 있는데 이 셸의
+   * 조상들은 높이를 정하지 않는다 — 그래서 내용이 짧은 화면(가계부 시작 화면 등)에서 셸이
+   * 내용 높이로 줄고 푸터가 **화면 중간에** 떴다(사용자 신고 2026-08-03).
+   * dvh 를 쓰는 이유는 모바일 주소창이 접히고 펴질 때 vh 가 튀기 때문이다.
+   * ⚠ 이 값만으로는 부족하다 — 본문(ShellMain)이 남는 공간을 먹어야(flex: 1) 푸터가 바닥에 붙는다.
+   */
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   color: ${color.text};

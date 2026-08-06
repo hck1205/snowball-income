@@ -1,12 +1,15 @@
 import { useCallback, useId, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
-import { Card } from '@/components';
 import { CAPTURE_EXCLUDE_ATTRIBUTE } from '@/pages/Main/hooks/interaction';
 import {
+  QuickAdjustEyebrow,
   QuickAdjustGrid,
   QuickAdjustHead,
   QuickAdjustItem,
   QuickAdjustLabel,
+  QuickAdjustLegend,
+  QuickAdjustNote,
+  QuickAdjustRail,
   QuickAdjustSlider,
   QuickAdjustValue
 } from './QuickAdjustBar.styled';
@@ -26,6 +29,9 @@ import { resolveQuickAdjustFields, toTrackProgressPercent } from './QuickAdjustB
  *    자동저장·클라우드 동기화·계측이 갈라지지 않는다(퍼널이 두 갈래가 되면 비교가 불가능해진다).
  *
  * 결과 이미지 저장에서는 제외한다(`data-capture-exclude`) — 그림 속에서 누를 수 없는 슬라이더는 미끼다.
+ *
+ * ③ **껍데기는 카드가 아니라 레일이다**(2026-08-03 2차 리워크). 이건 데이터가 아니라 조작 장치라
+ *    요약 카드와 같은 무게로 서면 안 된다 — 형태·근거는 `QuickAdjustBar.styled.ts` 가 소유한다.
  */
 export default function QuickAdjustBar({ values, onSetField }: QuickAdjustBarProps) {
   const idPrefix = useId();
@@ -54,48 +60,51 @@ export default function QuickAdjustBar({ values, onSetField }: QuickAdjustBarPro
   }, [onSetField, values]);
 
   return (
-    <div {...{ [CAPTURE_EXCLUDE_ATTRIBUTE]: '' }}>
-      <Card title="빠른 조정" subtitle="자주 바꾸는 세 가지입니다. 나머지 조건은 투자 설정에서 바꿉니다.">
-        <QuickAdjustGrid>
-          {fields.map((field) => {
-            const shown = draft?.key === field.key ? draft.value : values[field.key];
-            const inputId = `${idPrefix}-${field.key}`;
+    /* 🔴 카드가 아니라 **조작 레일**이다 — 왜 그런지는 `QuickAdjustBar.styled.ts` 의 주석이 소유한다. */
+    <QuickAdjustRail {...{ [CAPTURE_EXCLUDE_ATTRIBUTE]: '' }}>
+      <QuickAdjustLegend>
+        <QuickAdjustEyebrow>빠른 조정</QuickAdjustEyebrow>
+        <QuickAdjustNote>나머지 조건은 투자 설정에서 바꿉니다.</QuickAdjustNote>
+      </QuickAdjustLegend>
+      <QuickAdjustGrid>
+        {fields.map((field) => {
+          const shown = draft?.key === field.key ? draft.value : values[field.key];
+          const inputId = `${idPrefix}-${field.key}`;
 
-            return (
-              <QuickAdjustItem key={field.key}>
-                <QuickAdjustHead>
-                  <QuickAdjustLabel htmlFor={inputId}>{field.label}</QuickAdjustLabel>
-                  {/*
-                   * 값은 **눈으로만** 읽는다. 낭독은 슬라이더의 `aria-valuetext` 가 맡는다 —
-                   * 여기에 라이브 리전(`output` 의 기본 role='status')을 두면 드래그 한 번에
-                   * 같은 값이 두 번씩, 수십~수백 발 발화한다.
-                   */}
-                  <QuickAdjustValue aria-hidden="true">{field.format(shown)}</QuickAdjustValue>
-                </QuickAdjustHead>
-                <QuickAdjustSlider
-                  id={inputId}
-                  type="range"
-                  min={field.min}
-                  max={field.max}
-                  step={field.step}
-                  value={shown}
-                  aria-label={field.label}
-                  aria-valuetext={field.format(shown)}
-                  style={
-                    {
-                      '--quick-progress': `${toTrackProgressPercent(shown, field.min, field.max)}%`
-                    } as CSSProperties
-                  }
-                  onChange={(event) => handleDraft(field.key, event.target.value)}
-                  onPointerUp={commit}
-                  onKeyUp={commit}
-                  onBlur={commit}
-                />
-              </QuickAdjustItem>
-            );
-          })}
-        </QuickAdjustGrid>
-      </Card>
-    </div>
+          return (
+            <QuickAdjustItem key={field.key}>
+              <QuickAdjustHead>
+                <QuickAdjustLabel htmlFor={inputId}>{field.label}</QuickAdjustLabel>
+                {/*
+                 * 값은 **눈으로만** 읽는다. 낭독은 슬라이더의 `aria-valuetext` 가 맡는다 —
+                 * 여기에 라이브 리전(`output` 의 기본 role='status')을 두면 드래그 한 번에
+                 * 같은 값이 두 번씩, 수십~수백 발 발화한다.
+                 */}
+                <QuickAdjustValue aria-hidden="true">{field.format(shown)}</QuickAdjustValue>
+              </QuickAdjustHead>
+              <QuickAdjustSlider
+                id={inputId}
+                type="range"
+                min={field.min}
+                max={field.max}
+                step={field.step}
+                value={shown}
+                aria-label={field.label}
+                aria-valuetext={field.format(shown)}
+                style={
+                  {
+                    '--quick-progress': `${toTrackProgressPercent(shown, field.min, field.max)}%`
+                  } as CSSProperties
+                }
+                onChange={(event) => handleDraft(field.key, event.target.value)}
+                onPointerUp={commit}
+                onKeyUp={commit}
+                onBlur={commit}
+              />
+            </QuickAdjustItem>
+          );
+        })}
+      </QuickAdjustGrid>
+    </QuickAdjustRail>
   );
 }

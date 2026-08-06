@@ -62,14 +62,24 @@ const collect = (dir: string, out: string[] = []): string[] => {
 const stripComments = (source: string): string =>
   source.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1');
 
-/** 티커 FAQ의 질문 필드(한 줄 문자열)만 지운다. 위 "예외 1" 참고. */
-const stripFaqQuestions = (source: string): string => source.replace(/^\s*question:\s*'[^\n]*$/gm, ' ');
+/**
+ * 티커 FAQ의 질문 필드(한 줄 문자열)만 지운다. 위 "예외 1" 참고.
+ *
+ * ⚠ **따옴표 두 종류를 다 받는다.** 종전에는 홑따옴표만 봤는데, 종목 이름에 아포스트로피가 들어가면
+ *   (McDonald's) 소스가 겹따옴표로 적힐 수밖에 없어 그 줄이 예외에서 빠졌다 — 그러면 "질문은
+ *   사용자의 목소리라 예외"라는 규칙이 **파일 이름에 따라 갈리는** 이상한 규칙이 된다(2026-08-06).
+ */
+const stripFaqQuestions = (source: string): string =>
+  source.replace(/^\s*question:\s*['"][^\n]*$/gm, ' ');
 
 /**
  * 예외를 받는 곳 — **FAQPage 구조화 데이터로 색인되는 질문 목록**뿐이다.
  * 다른 곳의 `question:`(예: 확인 모달)은 앱의 목소리라 그대로 본다.
+ *
+ * ⚠ 2026-08-06 에 검색어 랜딩(`shared/constants/guides/`)이 합류했다. 같은 이유다 — 그 질문들은
+ *   사람이 검색창에 치는 말("배당금은 언제 들어오나요?")이고, 답변은 그대로 격식체 검사를 받는다.
  */
-const FAQ_QUESTION_DIRS = ['shared/constants/tickers/', 'pages/Landing/copy/'];
+const FAQ_QUESTION_DIRS = ['shared/constants/tickers/', 'pages/Landing/copy/', 'shared/constants/guides/'];
 
 /**
  * 해요체 종결어미 후보. 어미 목록을 열거하지 않고 **"문장 끝에 오는 `요`/`죠`"** 를 통째로 잡는다 —
@@ -84,7 +94,12 @@ const FAQ_QUESTION_DIRS = ['shared/constants/tickers/', 'pages/Landing/copy/'];
 const SENTENCE_FINAL_YO = /[가-힣]*[가-힣](?:요|죠)(?=[.?!…'"`<\n]|[ \t]*[·—]|$)/g;
 
 /** 어미가 아니라 명사인 낱말. 새로 걸리면 **명사임이 분명할 때만** 추가한다. */
-const NOUN_ALLOWLIST = new Set(['개요', '필요']);
+/**
+ * 요로 끝나지만 **명사**인 낱말. 탐지기가 해요체로 오인하지 않도록 예외로 둔다.
+ * ⚠ 여기에 낱말을 더할 때는 그것이 정말 명사인지 확인해라 — 어미를 하나 흘려보내면 탐지기가
+ *   지키려던 계약이 그만큼 헐거워진다("주요"는 2026-08-05 증시 캘린더의 지표 배지에서 나왔다).
+ */
+const NOUN_ALLOWLIST = new Set(['개요', '필요', '주요']);
 
 /**
  * 통과시킬 것.

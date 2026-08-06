@@ -22,7 +22,10 @@ const MONTHS: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
  * 선택 종목 × 12개월 점 표. 달력이 "이 달에 누가 주나"를 답한다면 이 표는 "이 종목이 언제 주나"를
  * 답한다 — 같은 데이터의 전치(transpose)라 기본은 접어 둔다(네이티브 `details`, JS 상태 없음).
  */
-export default function ScheduleLegendTable({ rows }: ScheduleLegendTableProps) {
+export default function ScheduleLegendTable({
+  rows,
+  seriesOf = tickerSeriesVar
+}: ScheduleLegendTableProps) {
   if (rows.length === 0) return null;
 
   return (
@@ -70,11 +73,12 @@ export default function ScheduleLegendTable({ rows }: ScheduleLegendTableProps) 
 
                   return (
                     <td key={month} aria-label={paying ? copy.legend.payingCell(month) : undefined}>
-                      {/* 지급 달 점은 달력 칩·아젠다와 같은 티커 색이다 — 세 화면이 한 색으로 이어진다. */}
+                      {/* 지급 달 점은 달력 칩·아젠다와 같은 티커 색이다 — 네 자리가 한 색으로 이어진다.
+                          미지급 칸은 **속이 빈 링**이라 색이 아니라 모양이 먼저 가른다. */}
                       <ScheduleDot
                         $paying={paying}
                         aria-hidden={paying ? undefined : true}
-                        style={paying ? { background: tickerSeriesVar(row.ticker) } : undefined}
+                        style={paying ? { background: seriesOf(row.ticker) } : undefined}
                       />
                     </td>
                   );

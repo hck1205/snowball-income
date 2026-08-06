@@ -28,7 +28,8 @@ const stringLeaves = (value: unknown): StringTree => {
 const EXPECTED: StringTree = {
   hero: {
     // 메뉴는 '가계부' 그대로다 — 페이지 제목만 제품명을 붙인다(2026-08-02 사용자 결정).
-    title: 'Hippo 가계부',
+    // 🔴 제품명은 "Hungry Hippo" 하나이고 시트 파일명(`APP_SPREADSHEET_TITLE`)과 같은 표기다 — 줄임말 금지.
+    title: 'Hungry Hippo 가계부',
     lede: '수입과 지출을 사용자의 구글 시트에 기록하고, 달마다 얼마를 벌고 썼는지 확인합니다.',
     scopeNotice: '이 앱은 사용자가 선택한 시트 1개만 읽고 씁니다. 다른 드라이브 파일에는 접근하지 않습니다.',
     addEntry: '항목 추가',
@@ -42,6 +43,15 @@ const EXPECTED: StringTree = {
   },
   connect: {
     heading: '가계부를 시작하는 방법을 고릅니다',
+    // 연결 무대(네이비 면)의 리드 한 줄 — 🔴 `privacy` 네 문장을 요약하지 않는다(단일 출처 유지).
+    stageLede: '구글 시트를 연결하면 달마다의 수입과 지출을 이 화면에서 확인할 수 있습니다.',
+    stepsLabel: '연결 절차',
+    // 🔴 연결 화면과 열 지정 화면이 **같은 값**을 쓴다 — 두 화면이 한 흐름임을 화면이 말한다.
+    steps: {
+      pick: '시트 고르기',
+      map: '열 지정',
+      record: '기록 시작'
+    },
     existing: {
       title: '이미 쓰는 시트 연결하기',
       body: '구글 드라이브에서 가계부로 쓰던 시트를 고릅니다. 다음 단계에서 어느 열이 날짜·구분·금액·분류인지 지정합니다.',

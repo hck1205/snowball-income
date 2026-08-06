@@ -29,3 +29,22 @@
  * 사유·되살리는 법은 `router/routes.tsx` 의 `'/'` 라우트 주석.
  */
 export const SIMULATOR_PATH = '/simulator';
+
+/**
+ * 배당 연속 증배 목록의 식별자 — 라우트 마지막 세그먼트와 **같은 문자열**이다. 순서 = 화면 노출 순서.
+ *
+ * 🔴 목록 데이터(`shared/constants/dividendLists`)가 아니라 여기 사는 이유: 그 폴더는 200종 가까운
+ * 종목 배열과 생성물 JSON 을 안고 있어서, 라우터·전역 nav·사이트맵처럼 **경로 문자열만 필요한 곳**이
+ * 그 폴더를 import 하면 목록 전체가 엔트리 번들에 실린다(lazy 격리가 그 자리에서 무효가 된다).
+ * `shared/constants/tickerPages` 가 같은 이유로 존재하는 경량 인덱스다.
+ * 목록 폴더는 이 값을 **역으로 재export** 하므로 정본은 하나다.
+ */
+export const DIVIDEND_LIST_IDS = ['kings', 'aristocrats', 'champions'] as const;
+
+export type DividendListId = (typeof DIVIDEND_LIST_IDS)[number];
+
+/** 목록 허브(`/dividend/lists`). `/dividend/calendar`·`/dividend/portfolio` 와 같은 depth 다. */
+export const DIVIDEND_LIST_HUB_PATH = '/dividend/lists';
+
+/** 목록 상세 경로. 문자열을 조립하는 곳(라우터·nav·사이트맵·크롤러 HTML)을 한 군데로 모은다. */
+export const dividendListPath = (id: DividendListId): string => `/dividend/${id}`;

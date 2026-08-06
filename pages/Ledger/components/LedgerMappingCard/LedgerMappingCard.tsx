@@ -1,17 +1,31 @@
 import { useId } from 'react';
-import { Banner, Button, Card, Chip, DataTable, HintText, InlineField, InlineFieldHeader, Select } from '@/components/common';
+import { FileSpreadsheet, TableProperties } from 'lucide-react';
+import {
+  Banner,
+  Button,
+  Card,
+  Chip,
+  DataTable,
+  HintText,
+  InlineField,
+  InlineFieldHeader,
+  Select
+} from '@/components/common';
 import { LEDGER_MAPPING_FIELDS } from '../../types';
 import type { LedgerPreviewRow } from '../../types';
 import { LEDGER_COPY } from '../../copy';
+import { LedgerStepRail } from '../LedgerStepRail';
 import type { LedgerMappingCardProps } from './LedgerMappingCard.types';
 import {
   ActionHint,
   ActionRow,
   MappingBlock,
   MappingGrid,
-  PreviewBlock,
+  MappingHead,
+  PreviewFrame,
   PreviewTitle,
   SelectSkeleton,
+  SheetLine,
   UnreadableText
 } from './LedgerMappingCard.styled';
 
@@ -34,6 +48,11 @@ const PREVIEW_HEADERS = [
  * 🔴 `aria-invalid` 는 쓰지 않는다 — 아직 "틀린 값"이 아니라 "고르지 않은 값"이다.
  * ⚠ 라벨-입력은 **명시적** `htmlFor`/`id` 로 짝짓는다(암시적 중첩에만 기대지 않는다). "필수" 칩이
  * 라벨 안에 있어 접근명이 `"금액 필수"` 로 읽히는 것은 의도다.
+ *
+ * ## 머리말이 하는 일 (2026-08-03)
+ * 이 화면은 사용자가 시트를 고른 **직후** 갑자기 나타난다. 그래서 카드의 첫 블록이
+ * **연결 화면과 같은 절차 표시줄**(2단계 활성)과 고른 시트 이름을 먼저 말한다 — "이건 아까 그
+ * 흐름의 다음 칸이고, 나는 이 파일을 고른 것"이 화면에 남아야 낯선 셀렉트 다섯 개가 이해된다.
  */
 export default function LedgerMappingCard({
   model,
@@ -61,16 +80,21 @@ export default function LedgerMappingCard({
 
   return (
     <Card tone="default" title={copy.mapping.title} subtitle={copy.mapping.subtitle}>
-      <HintText>{copy.mapping.sheetLine(model.sheetName)}</HintText>
+      <MappingHead>
+        {/* 🔴 연결 화면과 **같은 부품·같은 라벨**이다 — 두 화면이 한 흐름임을 여기서 증명한다. */}
+        <LedgerStepRail current={2} />
+        <SheetLine>
+          <FileSpreadsheet size={16} strokeWidth={1.8} aria-hidden focusable={false} />
+          {copy.mapping.sheetLine(model.sheetName)}
+        </SheetLine>
+      </MappingHead>
 
       <MappingBlock>
         {/* info 는 틴트 면이 없는 톤이다 — 이 화면의 틴트 상한을 지킨다. */}
         <Banner tone="info" role="status">
           {model.matchedCount > 0 ? copy.mapping.autoMatched(model.matchedCount) : copy.mapping.autoMatchedNone}
         </Banner>
-      </MappingBlock>
 
-      <MappingBlock>
         <MappingGrid aria-busy={model.isPreviewLoading || undefined}>
           {LEDGER_MAPPING_FIELDS.map((field) => {
             const selectId = `${idPrefix}-${field.id}`;
@@ -104,25 +128,30 @@ export default function LedgerMappingCard({
         </MappingGrid>
       </MappingBlock>
 
-      <PreviewBlock aria-labelledby={previewTitleId}>
-        <PreviewTitle id={previewTitleId}>{copy.mapping.preview.title}</PreviewTitle>
-        <HintText>{copy.mapping.preview.body}</HintText>
+      <MappingBlock aria-labelledby={previewTitleId}>
+        <PreviewFrame>
+          <PreviewTitle id={previewTitleId}>
+            <TableProperties size={16} strokeWidth={1.8} aria-hidden focusable={false} />
+            {copy.mapping.preview.title}
+          </PreviewTitle>
+          <HintText>{copy.mapping.preview.body}</HintText>
 
-        {/* 전 행 파싱 실패는 알리되 **제출을 막지 않는다** — 헤더 행만 있는 시트를 연결할 수 있다. */}
-        {model.allUnreadable ? (
-          <Banner tone="warning" role="status">
-            {copy.mapping.preview.allUnreadable}
-          </Banner>
-        ) : null}
+          {/* 전 행 파싱 실패는 알리되 **제출을 막지 않는다** — 헤더 행만 있는 시트를 연결할 수 있다. */}
+          {model.allUnreadable ? (
+            <Banner tone="warning" role="status">
+              {copy.mapping.preview.allUnreadable}
+            </Banner>
+          ) : null}
 
-        {model.canPreview && model.previewRows.length > 0 ? (
-          // 🔴 `caption` 이 표의 이름이다. `aria-label` 을 덧붙이지 마라(label 이 이겨서 caption 이 죽는다).
-          <DataTable caption={copy.mapping.preview.caption} columns={previewColumns} rows={[...model.previewRows]} />
-        ) : (
-          // 행이 0이면 빈 표를 그리지 않는다.
-          <HintText>{copy.mapping.preview.noRows}</HintText>
-        )}
-      </PreviewBlock>
+          {model.canPreview && model.previewRows.length > 0 ? (
+            // 🔴 `caption` 이 표의 이름이다. `aria-label` 을 덧붙이지 마라(label 이 이겨서 caption 이 죽는다).
+            <DataTable caption={copy.mapping.preview.caption} columns={previewColumns} rows={[...model.previewRows]} />
+          ) : (
+            // 행이 0이면 빈 표를 그리지 않는다.
+            <HintText>{copy.mapping.preview.noRows}</HintText>
+          )}
+        </PreviewFrame>
+      </MappingBlock>
 
       {hasMissing ? <ActionHint id={missingHintId}>{copy.mapping.missing([...model.missingNames])}</ActionHint> : null}
 

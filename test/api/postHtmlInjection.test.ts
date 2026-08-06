@@ -11,7 +11,7 @@ import { handler as postListHandler } from '@/server/handlers/PostList';
 const POST_ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
 
 const bodyOf = (root: string) =>
-  `<!doctype html><html lang="ko"><head><title>배당 재투자 시뮬레이터 - Snowball Income</title>` +
+  `<!doctype html><html lang="ko"><head><title>배당 재투자 시뮬레이터 - Hungry Hippo</title>` +
   `<meta name="description" content="기본 설명" /><link rel="canonical" href="https://snowball.test/" />` +
   `<meta property="og:title" content="기본 제목" /><meta property="og:description" content="d" />` +
   `<meta property="og:url" content="https://snowball.test/" /><meta name="twitter:title" content="t" />` +

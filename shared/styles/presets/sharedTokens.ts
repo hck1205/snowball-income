@@ -13,12 +13,15 @@ import { buildWordmarkGradient } from './gradients';
 const { brand, auroraTeal, auroraGreen, up, down, positive, warning, danger } = palette;
 
 /**
- * 워드마크("스노우볼 인컴")도 **전 프리셋 공통**이다 — 프리셋은 사용자가 고르는 피부고
+ * 워드마크("Hungry Hippo")도 **전 프리셋 공통**이다 — 프리셋은 사용자가 고르는 피부고
  * 워드마크는 제품의 이름이라, 스킨을 따라 색이 바뀌면 안 된다. 더 실제적인 이유:
  * OG 이미지·파비콘·webmanifest는 `data-palette`를 모르는 표면이라 프리셋별로 갈리면
  * **어떤 값을 구울지 결정 불가**가 된다.
  *
- * 2색 구성: "스노우볼" = 브랜드 램프(아이스블루), "인컴" = 틸→그린(액센트 축).
+ * 2색 구성: 앞 낱말("Hungry") = 브랜드 램프(아이스블루), 뒷 낱말("Hippo") = 틸→그린(액센트 축).
+ * ⚠ 토큰 이름의 `snow`/`income` 은 구 제품명에서 온 **식별자**다(`gradient-wordmark-snow` 등).
+ * 값과 의미는 위 2색 구성이 정본이고, 이름 정리는 CSS 변수·8프리셋·대비 테스트를 함께 옮기는
+ * 별건이라 여기서 하지 않는다.
  * 단색 폴백(`wordmark-*-solid`)은 **라이트/다크 동일 1쌍** — 다크 헤더 위에서도
  * 3.57~5.14:1로 살아 있어 테마별로 가를 이유가 없고, 표면마다 브랜드 색이 갈리지 않는다.
  * 소비처에서 `background-clip: text`를 쓸 때 폴백(@supports·forced-colors·print)을 반드시 깔 것.
@@ -97,6 +100,47 @@ const IDENTITY_DARK: ThemeTokens = {
 };
 
 /**
+ * 🔴 **브랜드 패널 — 금색이 합법적으로 사는 유일한 자리**(2026-08-03, D3 승인).
+ *
+ * ## 왜 이 4토큰이 필요한가
+ * Hungry Hippo 의 브랜드 금색(#F6B34A, 코인)은 **밝은 면 위에서 쓸 수 없다.** 실측:
+ * ```
+ *   금색 글자 / 흰 배경        1.83:1  ❌
+ *   금색 면  + 흰 글자         1.83:1  ❌
+ *   금색 면  + 네이비 글자      8.86:1  ✅
+ * ```
+ * 즉 금색을 화면에 등장시키는 방법은 **어두운 네이비 면을 깔고 그 위에 올리는 것** 하나뿐이다.
+ * 이 4토큰이 없으면 브랜드 금색은 로고 이미지 안에만 남고 앱 화면에서 완전히 사라진다.
+ *
+ * ## 전 프리셋 공통인 이유
+ * `identity` 4토큰과 **같은 논리**다 — 프리셋은 사용자가 고르는 피부이고 이건 제품 자신이다.
+ * ⚠ ink(무채) 프리셋도 예외가 아니다. 그 규율은 **accent 축**의 것이고, 워드마크·identity 가 이미
+ *   같은 예외에 서 있다(위 IDENTITY 주석). 브랜드 패널은 "스킨"이 아니라 "이름표"다.
+ *
+ * ## 실측 (셋 다 AA 본문 4.5:1 통과)
+ * ```
+ *   on-panel        흰 글자   / panel   16.24:1
+ *   on-panel-gold   금색      / panel    8.86:1
+ *   on-panel-muted  연보라    / panel    8.20:1
+ * ```
+ * 라이트/다크가 **같은 값**이다 — 패널은 스스로 어두운 면이라 모드에 따라 뒤집을 것이 없다.
+ * (워드마크 단색 폴백이 라이트/다크 동일 1쌍인 것과 같은 이유.)
+ *
+ * ## 🔴 하지 말 것
+ * - **범용 `gold` 토큰을 만들지 마라.** 만드는 순간 누군가 흰 배경 위에 쓴다(1.83:1).
+ *   금색은 `on-panel-gold` 라는 이름으로만 존재한다 — 이름이 사용 조건을 강제한다.
+ * - **`panel` 을 데이터 표면에 깔지 마라.** 어두운 면 위 숫자는 이 앱의 나머지 표와 위계가 어긋난다.
+ *   패널이 사는 곳은 브랜드 표면이다: 푸터 · 마무리 CTA · 공유/OG 카드 · 로고 락업.
+ * - `warning` 에 금색을 쓰지 마라. 경고 자리는 전부 **글자가 얹히는 면**이라 즉시 깨진다.
+ */
+const BRAND_PANEL: ThemeTokens = {
+  panel: '#1b1e3a',
+  'on-panel': '#ffffff',
+  'on-panel-muted': '#b7b3e6',
+  'on-panel-gold': '#f6b34a'
+};
+
+/**
  * up/down(상승 적색/하락 청색)·success/warning/danger는 **전 프리셋 공통 동일값**이다.
  * 숫자 옆의 색은 학습된 반사신경이라 프리셋이 바꾸면 오독을 유발한다.
  *
@@ -118,7 +162,8 @@ export const COMMON_LIGHT: ThemeTokens = {
   'danger-border': danger.softBorder,
 
   ...IDENTITY_LIGHT,
-  ...WORDMARK_LIGHT
+  ...WORDMARK_LIGHT,
+  ...BRAND_PANEL
 };
 
 export const COMMON_DARK: ThemeTokens = {
@@ -135,5 +180,7 @@ export const COMMON_DARK: ThemeTokens = {
   'danger-border': danger.softDarkBorder,
 
   ...IDENTITY_DARK,
-  ...WORDMARK_DARK
+  ...WORDMARK_DARK,
+  /* 패널은 라이트/다크 같은 값이다 — 스스로 어두운 면이라 모드에 따라 뒤집을 것이 없다. */
+  ...BRAND_PANEL
 };

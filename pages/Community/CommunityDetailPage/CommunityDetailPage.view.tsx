@@ -1,3 +1,4 @@
+import { ICON } from '@/shared/styles';
 import { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
@@ -16,28 +17,44 @@ import {
 } from '@/components/community';
 import { RichTextContent } from '@/components/community/RichTextContent';
 import { CommunityTopBar, TopBarActions } from '@/pages/Community/components';
-import { CommentSection, ScenarioPreview, ScrollTopButton } from './components';
+import { CommentSection, ScenarioPreview } from './components';
 import type { CommunityDetailViewProps } from './CommunityDetailPage.types';
 import {
+  ActionRail,
   Article,
-  AttachCta,
-  AttachCtaInfo,
-  AttachUnit,
+  AttachAction,
+  AttachCard,
+  AttachHead,
+  AttachRail,
+  AttachStat,
+  AttachStats,
+  AttachTitle,
+  AuthorName,
   BannerAction,
-  CommentsCard,
-  DetailHeader,
+  BodyColumn,
+  BodyGrid,
+  Byline,
+  BylineAvatar,
+  BylineMeta,
+  CommentsBand,
   DetailShell,
   Dot,
-  LikeRow,
-  MetaRow,
-  PostCard,
+  Kicker,
+  Masthead,
+  RailLike,
   ShareButton,
   ShareToast,
+  SkeletonBar,
+  SkeletonLines,
+  SkeletonShell,
   StateWrap,
   Title
 } from './CommunityDetailPage.styled';
 
 const d = COMMUNITY_COPY.detail;
+
+/** 첨부 조건 3칸의 라벨. 그전에는 " · " 로 이어 붙인 한 줄 회색 텍스트였다. */
+const ATTACH_STAT_LABELS = { ticker: '보유 티커', initial: '초기 투자금', monthly: '월 적립액' } as const;
 
 export default function CommunityDetailView({ viewModel }: CommunityDetailViewProps) {
   const {
@@ -64,8 +81,25 @@ export default function CommunityDetailView({ viewModel }: CommunityDetailViewPr
   const titleRef = useRef<HTMLHeadingElement>(null);
   const toastRoot = typeof document !== 'undefined' ? document.body : null;
 
+  /*
+   * 로딩은 **들어올 글의 모양**으로 자리를 잡는다(머리글 한 줄 + 제목 두 줄 + 본문 네 줄).
+   * 그전에는 "불러오는 중…" 한 줄이 화면 전체를 대신해, 로드가 끝나는 순간 레이아웃이 통째로 튀었다.
+   */
   if (detail.status === 'loading') {
-    return <EmptyState title="불러오는 중…" />;
+    return (
+      <SkeletonShell aria-busy="true" aria-label="불러오는 중">
+        <SkeletonBar w="48px" h="6px" />
+        <SkeletonBar w="min(100%, 620px)" h="40px" />
+        <SkeletonBar w="min(70%, 420px)" h="40px" />
+        <SkeletonBar w="220px" h="20px" />
+        <SkeletonLines>
+          <SkeletonBar w="100%" h="14px" />
+          <SkeletonBar w="96%" h="14px" />
+          <SkeletonBar w="99%" h="14px" />
+          <SkeletonBar w="62%" h="14px" />
+        </SkeletonLines>
+      </SkeletonShell>
+    );
   }
 
   if (detail.status === 'notfound') {
@@ -108,10 +142,12 @@ export default function CommunityDetailView({ viewModel }: CommunityDetailViewPr
     <DetailShell>
       {/*
        * 본문 첫 줄 = [← 목록] ↔ [수정][삭제] (2026-07-28 사용자 결정 — 게시판·갤러리 상세 공통).
-       * 수정·삭제는 예전에 제목 오른쪽에 붙어 있어 긴 제목과 폭을 다퉜다.
        * 🔴 노출 조건(`detail.isOwner`)과 삭제 확인 다이얼로그는 그대로다 — 남의 글에서 보이면 결함이다.
        */}
       <CommunityTopBar
+        /* 🔴 상세에서만 따라온다 — 글이 길어 목록·수정·삭제가 화면 밖으로 나가던 자리다.
+           글쓰기 화면은 자기 커맨드 바가 이미 같은 기준선에 붙어 있어 켜지 않는다. */
+        sticky
         actions={
           detail.isOwner ? (
             <TopBarActions>
@@ -138,71 +174,108 @@ export default function CommunityDetailView({ viewModel }: CommunityDetailViewPr
           ) : null
         }
       />
+
+      {/* 🔴 `Article` 은 상단 바와 같은 부모(DetailShell)의 직계 자식이어야 한다 — 좌우 경계 정합 계약. */}
       <Article aria-label={d.mainLabel}>
-          <PostCard>
-            <DetailHeader>
-              {/*
-               * `tabIndex={-1}` 은 "맨 위로" 버튼이 포커스를 넘길 자리를 만들기 위한 것이다(탭 순서
-               * 에는 들어가지 않는다). 전역 포커스 링은 `[tabindex='-1']` 을 일부러 제외하므로
-               * 클릭으로 제목을 눌러도 테두리가 생기지 않는다.
-               */}
-              <Title ref={titleRef} tabIndex={-1}>
-                {post.title}
-              </Title>
-              <MetaRow>
-                <Avatar displayName={authorName} avatarUrl={post.author?.avatar_url} size="sm" />
-                <b>{authorName}</b>
-                <Dot aria-hidden="true">·</Dot>
-                <RelativeTime iso={post.created_at} />
-                <Dot aria-hidden="true">·</Dot>
-                <span className="views">
-                  {COMMUNITY_COPY.gallery.metaViews} {detail.viewCount}
-                </span>
-              </MetaRow>
-            </DetailHeader>
+        {/*
+         * 머리글. 카드를 벗기고 제목을 화면에서 가장 큰 타이포로 올렸다.
+         * 작성자·시간·조회수는 아바타 거터 오른쪽 두 줄로 접어 제목과 무게를 다투지 않게 한다.
+         */}
+        <Masthead>
+          <Kicker aria-hidden="true" />
+          {/*
+           * `tabIndex={-1}` 은 "맨 위로" 버튼이 포커스를 넘길 자리다(탭 순서에는 들어가지 않는다).
+           * 전역 포커스 링은 `[tabindex='-1']` 을 일부러 제외한다.
+           */}
+          <Title ref={titleRef} tabIndex={-1}>
+            {post.title}
+          </Title>
+          <Byline>
+            <BylineAvatar>
+              <Avatar displayName={authorName} avatarUrl={post.author?.avatar_url} size="md" />
+            </BylineAvatar>
+            <AuthorName>{authorName}</AuthorName>
+            <BylineMeta>
+              <RelativeTime iso={post.created_at} />
+              <Dot aria-hidden="true">·</Dot>
+              <span className="views">
+                {COMMUNITY_COPY.gallery.metaViews} {detail.viewCount}
+              </span>
+            </BylineMeta>
+          </Byline>
+        </Masthead>
 
-          {post.body ? <RichTextContent html={post.body} /> : null}
+        {/*
+         * 🔴 DOM 순서는 [본문][레일] 이다 — 모바일에서는 이 순서 그대로 흐르고(기존 배치와 동일),
+         * 데스크톱에서만 grid-template-areas 가 레일을 본문 왼쪽으로 옮겨 sticky 로 세운다.
+         */}
+        <BodyGrid>
+          <BodyColumn>
+            {post.body ? <RichTextContent html={post.body} /> : null}
 
-          {post.payload && detail.openInSimulatorHref ? (
-            <AttachUnit>
-              <AttachCta>
-                <AttachCtaInfo>
-                  <strong>{d.attachCtaTitle}</strong>
-                  <span>{`티커 ${ticker}개 · 초기 ${formatKRW(initial)} · 월 ${formatKRW(monthly)}`}</span>
-                </AttachCtaInfo>
-                <Button variant="primary" onClick={onOpenInSimulator}>
-                  {d.attachCtaButton}
-                </Button>
-              </AttachCta>
-              <ScenarioPreview payload={post.payload} />
-            </AttachUnit>
-          ) : null}
+            {post.payload && detail.openInSimulatorHref ? (
+              <AttachCard aria-label={d.attachCtaTitle}>
+                <AttachRail aria-hidden="true" />
+                <AttachHead>
+                  <AttachTitle>{d.attachCtaTitle}</AttachTitle>
+                  {/* 래퍼가 하는 일은 하나 — 헤딩 서체의 잉크 중심에 버튼을 맞추는 광학 보정이다. */}
+                  <AttachAction>
+                    <Button variant="primary" onClick={onOpenInSimulator}>
+                      {d.attachCtaButton}
+                    </Button>
+                  </AttachAction>
+                </AttachHead>
+                {/* 조건 3종을 라벨/값 격자로 세운다 — 이 글이 다루는 전제이므로 읽히는 무게를 올렸다. */}
+                <AttachStats>
+                  <AttachStat>
+                    <dt>{ATTACH_STAT_LABELS.ticker}</dt>
+                    <dd>{`${ticker}종목`}</dd>
+                  </AttachStat>
+                  <AttachStat>
+                    <dt>{ATTACH_STAT_LABELS.initial}</dt>
+                    <dd>{formatKRW(initial)}</dd>
+                  </AttachStat>
+                  <AttachStat>
+                    <dt>{ATTACH_STAT_LABELS.monthly}</dt>
+                    <dd>{formatKRW(monthly)}</dd>
+                  </AttachStat>
+                </AttachStats>
+                <ScenarioPreview payload={post.payload} />
+              </AttachCard>
+            ) : null}
+          </BodyColumn>
 
-          <LikeRow>
-            <LikeButton
-              size="md"
-              liked={detail.liked}
-              count={detail.likeCount}
-              disabled={detail.likePending}
-              onToggle={detail.toggleLike}
-            />
+          {/* 반응 레일 — 데스크톱에서는 본문 왼쪽에 서서 따라 내려온다(긴 글 도중에도 손이 닿는다). */}
+          <ActionRail>
+            <RailLike>
+              <LikeButton
+                size="md"
+                liked={detail.liked}
+                count={detail.likeCount}
+                disabled={detail.likePending}
+                onToggle={detail.toggleLike}
+              />
+            </RailLike>
             {canShare ? (
+              /* 🔴 아이콘 크기는 ICON.lg(18) 다 — 옆의 LikeButton 이 md 에서 쓰는 값과 **같은 값**이어야
+                 두 원이 한 줄에서 같은 무게로 선다(종전에는 16 이 하드코딩돼 하트보다 작았다).
+                 🔴 글자("공유")를 지웠다(2026-08-04 사용자 지시) — 이름은 aria-label 이 계속 진다.
+                 옆의 좋아요가 아이콘+숫자라 글자가 하나 더 붙으면 두 버튼의 폭이 갈린다. */
               <ShareButton type="button" aria-label={d.shareAria} onClick={onShare}>
-                <ShareIcon size={16} strokeWidth={1.8} />
-                {d.share}
+                <ShareIcon size={ICON.lg} strokeWidth={1.8} />
               </ShareButton>
             ) : null}
-          </LikeRow>
-        </PostCard>
+          </ActionRail>
+        </BodyGrid>
 
-        <CommentsCard>
+        <CommentsBand>
           <CommentSection
             comments={comments}
             isLoggedIn={isLoggedIn}
             currentUserId={currentUserId}
             onRequireLogin={onRequireLogin}
           />
-        </CommentsCard>
+        </CommentsBand>
 
         {deleteOpen ? (
           <ConfirmDialog
@@ -217,7 +290,7 @@ export default function CommunityDetailView({ viewModel }: CommunityDetailViewPr
           />
         ) : null}
 
-        {/* 데스크톱 공유 창 — 자기 자신을 body 로 포털한다(상세 본문 카드에 잘리지 않게). */}
+        {/* 데스크톱 공유 창 — 자기 자신을 body 로 포털한다(상세 본문에 잘리지 않게). */}
         {shareTarget ? (
           <ShareDialog
             url={shareTarget.url}
@@ -241,9 +314,8 @@ export default function CommunityDetailView({ viewModel }: CommunityDetailViewPr
       {/*
        * 본문·댓글을 다 내려간 뒤 위로 돌아가는 길. 임계(뷰포트 1개분) 아래에서는 렌더되지 않는다.
        * `Article` 밖에 두는 이유: fixed 요소는 조상이 transform/containment 를 얻는 순간 그 안에
-       * 갇힌다 — 본문 카드 바깥, 페이지 스택 바로 아래가 가장 안전한 자리다.
+       * 갇힌다 — 본문 바깥, 페이지 스택 바로 아래가 가장 안전한 자리다.
        */}
-      <ScrollTopButton focusRef={titleRef} />
     </DetailShell>
   );
 }

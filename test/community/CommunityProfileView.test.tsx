@@ -205,4 +205,41 @@ describe('CommunityProfileView — 회원 탈퇴 아코디언', () => {
     renderView(makeVM({ deletion: deletion({ open: true }) }));
     expect(screen.getByRole('dialog', { name: p.deleteTitle })).toBeInTheDocument();
   });
+
+  /*
+   * 무엇이 사라지는지를 **다이얼로그 전에** 읽게 한다. 예전에는 펼쳐도 버튼 하나뿐이라
+   * 삭제 범위를 다이얼로그에서야 처음 봤다 — 되돌릴 수 없는 동작에서 가장 나쁜 순서다.
+   */
+  it('펼친 패널이 삭제 범위와 되돌릴 수 없다는 사실을 함께 보여준다', async () => {
+    const user = userEvent.setup();
+    renderView(makeVM());
+
+    await user.click(screen.getByRole('button', { expanded: false }));
+    const region = screen.getByRole('region', { name: /회원 탈퇴/ });
+
+    expect(within(region).getByText(p.deleteScopeIntro)).toBeInTheDocument();
+    p.deleteScopeItems.forEach((item) => {
+      expect(within(region).getByText(item)).toBeInTheDocument();
+    });
+    expect(within(region).getByText(p.deleteIrreversible)).toBeInTheDocument();
+  });
+});
+
+/*
+ * 계정 콘솔 레일 — 프로필 설정과 "내가 쓴 글"은 성격이 같은 형제인데도 예전에는 서로를 몰랐다.
+ */
+describe('CommunityProfileView — 계정 콘솔 레일', () => {
+  it('현재 화면을 aria-current 로 알리고, 내가 쓴 글로 가는 길을 연다', () => {
+    renderView(makeVM());
+    expect(screen.getByRole('link', { name: p.menuItem })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: COMMUNITY_COPY.myPosts.menuItem })).toHaveAttribute(
+      'href',
+      '/community/my-posts'
+    );
+  });
+
+  it('입력한 닉네임이 표시 이름 미리보기에 그대로 비친다', () => {
+    renderView(makeVM({ nickname: nickname({ value: '배당하마' }) }));
+    expect(screen.getByText('배당하마')).toBeInTheDocument();
+  });
 });

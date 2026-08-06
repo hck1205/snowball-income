@@ -104,9 +104,12 @@ const loadFonts = (origin: string): Promise<LoadedFont[]> => {
   return fontsPromise;
 };
 
-/** 공유 코드가 없거나/깨졌을 때 그리는 브랜드 기본 카드용 문구. */
+/**
+ * 제품 한 줄 소개. 모든 카드의 셸 우상단 태그라인이자, 공유 코드가 없거나/깨졌을 때 그리는
+ * 기본 카드의 헤드라인이다 — **한 곳에서만 고친다**(같은 문구를 두 번 적으면 리브랜딩 때 한쪽만 바뀐다).
+ */
 const DEFAULT_HEADLINE = '배당 재투자 시뮬레이터';
-const DEFAULT_SUBLINE = '배당주·ETF 포트폴리오의 스노우볼 효과를 계산합니다';
+const DEFAULT_SUBLINE = '배당주·ETF 포트폴리오의 재투자 복리 효과를 계산합니다';
 
 const StatCard = ({ label, value, hint }: { label: string; value: string; hint: string }) => (
   <div
@@ -127,7 +130,14 @@ const StatCard = ({ label, value, hint }: { label: string; value: string; hint: 
   </div>
 );
 
-/** 브랜드 마크 — 눈덩이(스노우볼). 외부 이미지를 받지 않도록 도형으로만 그린다. */
+/**
+ * 브랜드 마크 — 외부 이미지를 받지 않도록 도형으로만 그린다(Satori 는 원격 이미지를 받아야 해서
+ * 콜드 스타트와 실패 경로가 늘어난다).
+ *
+ * ⚠ **에셋 교체 대기.** 이 도형은 구 브랜드 모티프를 그린 것이라 현재 브랜드(Hungry Hippo)와 맞지 않는다.
+ * 마스코트/심볼 SVG 가 확정되면 그 에셋으로 교체한다 — 여기서 임의로 다시 그리지 마라(잘못 그린 마스코트는
+ * 중립 도형보다 나쁘다).
+ */
 const BrandMark = () => (
   <div
     style={{
@@ -162,7 +172,7 @@ const Shell = ({ children }: { children: React.ReactNode }) => (
       <div style={{ display: 'flex', alignItems: 'center' }}>
         <BrandMark />
         <div style={{ display: 'flex', fontSize: 34, color: COLOR.surface, fontWeight: 700, marginLeft: 18 }}>
-          Snowball Income
+          Hungry Hippo
         </div>
       </div>
       <div style={{ display: 'flex', fontSize: 24, color: COLOR.brand100, fontWeight: 400 }}>{DEFAULT_HEADLINE}</div>
@@ -224,7 +234,7 @@ const ScenarioCard = ({ model }: { model: OgCardModel }) => {
 const DefaultCard = () => (
   <Shell>
     <div style={{ display: 'flex', flexDirection: 'column' }}>
-      <div style={{ display: 'flex', fontSize: 64, color: COLOR.surface, fontWeight: 700 }}>배당 재투자 시뮬레이터</div>
+      <div style={{ display: 'flex', fontSize: 64, color: COLOR.surface, fontWeight: 700 }}>{DEFAULT_HEADLINE}</div>
       <div style={{ display: 'flex', fontSize: 30, color: COLOR.brand100, fontWeight: 400, marginTop: 16 }}>
         {DEFAULT_SUBLINE}
       </div>

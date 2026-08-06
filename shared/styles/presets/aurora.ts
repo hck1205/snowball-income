@@ -5,7 +5,7 @@
 import { palette } from '../primitives';
 import type { ThemeTokens } from '../semantic';
 import { chartSeriesTokens, type ChartSeries } from './chartSeriesTokens';
-import { buildAuroraGradient, buildCtaGradient, buildHeroGradient, type GradientStops } from './gradients';
+import { buildAuroraGradient, buildCtaGradient, type GradientStops } from './gradients';
 import { COMMON_DARK, COMMON_LIGHT } from './sharedTokens';
 
 const { brand, auroraTeal, auroraViolet, auroraGreen, neutral } = palette;
@@ -41,18 +41,21 @@ const AURORA_DARK_CTA: GradientStops = [brand[500], auroraTeal[650], auroraViole
 export const AURORA_LIGHT: ThemeTokens = {
   /* 서피스 — 낮은 곳(sunken) → 기본(base) → 떠 있는 곳(raised) */
   /*
-   * 아이스블루 틴트 강화(구 neutral[50] #edf4fa → #e4f0fc, B-R 채널차 13→24).
-   * 명도가 아니라 채도로 색을 준다 — 더 어둡게 내리면 border-strong 3:1(현 3.25)과
-   * 글로우 최악 지점 4.5:1이 연쇄로 무너진다(실측). surface-hover는 bg와 동기(설계 관례).
+   * 🔴 **순백 캔버스**(2026-08-03 사용자 결정). 구 값은 아이스블루 틴트(#e4f0fc)였다.
+   * 프리셋의 얼굴색은 이제 캔버스가 아니라 **경계·액센트·차트**가 말한다 — 아이스블루는
+   * `surface-hover`(아래)와 `brand`·`accent` 축에 그대로 남는다.
+   * 부수 효과: 이 프리셋에서 가장 빠듯하던 `border-strong on bg`(3.25:1)와 글로우 최악 지점
+   * 4.5:1 제약이 **함께 풀렸다** — 흰 배경은 그 위 모든 어두운 잉크의 대비를 올린다.
    */
-  bg: '#e4f0fc',
+  bg: neutral[0],
   surface: neutral[0],
   'surface-raised': neutral[0],
   'surface-muted': neutral[25],
   'surface-sunken': neutral[100],
+  /* 아이스블루는 여기 남는다 — 흰 서피스 위 1.15:1 이라 hover 가 오히려 또렷해졌다. */
   'surface-hover': '#e4f0fc',
 
-  /* 경계 — border는 장식(카드 윤곽), border-strong은 컨트롤 경계(3:1 필요) */
+  /* 🔴 경계 — border 는 이제 **카드의 격을 말하는 주역**이다(primitives.ts neutral[150] 주석). */
   border: neutral[150],
   'border-strong': neutral[450],
 
@@ -94,7 +97,8 @@ export const AURORA_LIGHT: ThemeTokens = {
 
   /* 엘리베이션 — 라이트는 그림자가 위계를 만든다. 틴트는 polar-night 계열(쿨). */
   'shadow-1': '0 1px 2px rgba(13, 32, 58, 0.05), 0 1px 3px rgba(13, 32, 58, 0.07)',
-  'shadow-2': '0 2px 4px rgba(13, 32, 58, 0.05), 0 4px 12px rgba(13, 32, 58, 0.09)',
+  /* ⚠ e2 만 올렸다 — `cardElevation('raised')` 는 테두리 없이 이 그림자 하나로 주역을 세운다. */
+  'shadow-2': '0 1px 2px rgba(13, 32, 58, 0.05), 0 6px 18px rgba(13, 32, 58, 0.13)',
   'shadow-3': '0 2px 6px rgba(13, 32, 58, 0.07), 0 12px 32px rgba(13, 32, 58, 0.16)',
 
   /* 시그니처 — 스칼라 stop (대비 검증 가능해야 하므로 순수 hex) */
@@ -110,16 +114,16 @@ export const AURORA_LIGHT: ThemeTokens = {
   /* 시그니처 — CSS 값 문자열 (위 스칼라에서 조립) */
   'gradient-aurora': buildAuroraGradient(AURORA_LIGHT_RIBBON),
   'gradient-cta': buildCtaGradient(AURORA_LIGHT_CTA),
-  /* 히어로 면 — 라이트는 blue stop(t=0)이 최악 지점. text-muted 4.86:1 / soft 5.32:1(실측). */
-  'gradient-hero': buildHeroGradient('#dcebf6', '#e6f5ef'),
-  'gradient-hero-soft': buildHeroGradient('#ecf4fa', '#f1f9f6'),
+  /* 히어로 면 — 단색(gradients.ts 머리말 참고). hero = surface / soft = surface-muted. */
+  'gradient-hero': neutral[0],
+  'gradient-hero-soft': neutral[25],
   /*
-   * 페이지 상단 오로라 글로우 — body 배경. 마지막 레이어가 bg 단색이라 폴백 겸용.
-   * 알파 상한 0.05/0.04 — bg 틴트 강화(#e4f0fc)의 필수 연쇄 감쇄다. 구 0.06/0.05를 유지하면
-   * 두 radial 완전 중첩 최악 지점에서 text-muted가 ~4.37로 탈락(실측). 현 최악 #d5e5f5 위 4.61:1.
+   * 🔴 페이지 상단 오로라 글로우를 **걷었다**(2026-08-03). 사용자 지시는 "페이지 전체 배경색이
+   * 흰색"이고, 두 radial 이 상단 640px 을 물들이면 그건 흰 배경이 아니다. 이 글로우가 만들던
+   * 최악 지점(#d5e5f5 위 text-muted 4.61:1)도 함께 사라진다.
+   * ⚠ 다크 글로우는 남긴다 — 어두운 캔버스는 완전히 평평하면 깊이가 죽는다(아래 DARK 참고).
    */
-  'bg-glow':
-    'radial-gradient(1200px 640px at 16% -10%, rgba(13, 148, 136, 0.05), transparent 60%), radial-gradient(1000px 560px at 84% -12%, rgba(109, 90, 230, 0.04), transparent 55%), #e4f0fc',
+  'bg-glow': neutral[0],
   /* 서리유리 — 모달 등 raised 서피스. 알파 0.78은 최악 배경(오버레이+최암부) 합성 검증값. */
   'surface-glass': 'rgba(255, 255, 255, 0.78)',
   /* 서리유리 불투명 폴백 (backdrop-filter 미지원 브라우저) */
@@ -207,9 +211,9 @@ export const AURORA_DARK: ThemeTokens = {
   /* 시그니처 — CSS 값 문자열 (위 스칼라에서 조립) */
   'gradient-aurora': buildAuroraGradient(AURORA_DARK_RIBBON),
   'gradient-cta': buildCtaGradient(AURORA_DARK_CTA),
-  /* 히어로 면 — 다크는 green stop 근처(t≈0.75~1)가 최악. text-muted 5.63:1 / soft 6.30:1(실측). */
-  'gradient-hero': buildHeroGradient('#12283e', '#10292f'),
-  'gradient-hero-soft': buildHeroGradient('#0f1e30', '#0d1f28'),
+  /* 히어로 면 — 라이트와 같은 처방(단색). 다크는 흰 캔버스로 가지 않고 면 밝기 위계를 지킨다. */
+  'gradient-hero': neutral[900],
+  'gradient-hero-soft': '#17253c',
   /* 다크 글로우 — 뚜렷하되 절제. 알파 상한 0.14/0.12 (최악 지점 text-muted 4.57:1 실측). */
   'bg-glow': `radial-gradient(1100px 600px at 18% -10%, rgba(45, 212, 191, 0.14), transparent 60%), radial-gradient(900px 520px at 82% -14%, rgba(129, 140, 248, 0.12), transparent 55%), ${neutral[950]}`,
   /*

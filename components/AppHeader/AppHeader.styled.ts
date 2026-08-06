@@ -1,5 +1,28 @@
 import styled from '@emotion/styled';
-import { color, headerControlsGrid, headerGlassSurface, media, space, zIndex } from '@/shared/styles';
+import { Link } from 'react-router-dom';
+import {
+  color,
+  headerControlsGrid,
+  headerGlassSurface,
+  media,
+  pageHue,
+  pageHueMix,
+  radius,
+  space,
+  zIndex
+} from '@/shared/styles';
+
+/**
+ * 화면 맨 위 **정체성 레일**의 두께.
+ *
+ * 3px 인 이유는 둘이다. ①`tintscan` 의 면 판정(폭 ≥180 **AND 높이 ≥8**)에 걸리지 않는다 —
+ * 헤더는 애초에 스코프 밖이지만, 같은 장치를 본문으로 옮기고 싶어질 때를 위해 값 자체를 안전한 대역에
+ * 둔다. ②`HeaderInner` 의 블록 패딩(8px)보다 얇아 **어떤 글자도 덮지 않는다**.
+ *
+ * 🔴 8px 이상으로 올리지 마라. 그 순간 이것은 "선"이 아니라 "면"이 되고, 앱의 모든 화면에 상수로
+ * 얹히는 색 면이 하나 생긴다.
+ */
+const HUE_RAIL_HEIGHT = '3px';
 
 /**
  * 앱 전역 헤더 — 화면 최상단 전폭 sticky 글래스 바. 아래 hairline 하나로만 콘텐츠와 분리한다(카드 아님).
@@ -21,6 +44,31 @@ export const HeaderRoot = styled.header`
   z-index: ${zIndex.headerSurface};
   ${headerGlassSurface}
   border-bottom: 1px solid ${color.borderStrong};
+
+  /*
+   * 화면 맨 위 정체성 레일 — 이 앱에서 "지금 어느 섹션인가"를 **글자를 읽기 전에** 말하는 유일한 장치다.
+   *
+   * 색은 페이지 hue 변수 하나(usePageHue 가 라우트마다 발행)를 읽으므로 헤더 활성 알약과 히어로가
+   * 항상 같은 말을 한다 — 헤더가 자기 색표를 갖지 않는 것이 요점이다.
+   *
+   * 🔴 절대 배치라 **헤더 높이에 1px 도 더하지 않는다**(상한 120px, tools/dev/headerprobe.mjs).
+   * 흐름에 넣으면 모든 화면의 첫 화면이 그만큼 줄어든다.
+   * ⚠ 이 헤더는 backdrop-filter 로 스태킹 컨텍스트를 만들므로 이 의사요소는 헤더 밖으로 새지 않는다.
+   *   pointer-events 를 끄는 이유는 레일이 브랜드 링크 상단 히트 영역을 가로채지 않게 하기 위해서다.
+   */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: ${HUE_RAIL_HEIGHT};
+    background: linear-gradient(
+      90deg,
+      ${pageHue} 0%,
+      ${pageHueMix(58, 'transparent')} 44%,
+      ${pageHueMix(14, 'transparent')} 100%
+    );
+    pointer-events: none;
+  }
 `;
 
 /**
@@ -75,8 +123,22 @@ export const LeadingSlot = styled.div`
  */
 export const NavSlot = styled.div`
   grid-area: nav;
+  position: relative;
   display: flex;
   min-width: 0;
+
+  /*
+   * 🔴 **매스트헤드 구분선을 걷어냈다**(2026-08-05 사용자 지시).
+   *
+   * 그 선은 2026-08-02 에 "브랜드 줄 / 메뉴 줄"을 두 층으로 가르려고 넣은 것이었다. 같은 날
+   * 메뉴 줄이 **워드마크와 같은 시작선에서 전폭으로 펼쳐지도록** 바뀌면서 전제가 사라졌다 —
+   * 두 줄이 같은 왼쪽 끝을 쓰고 큰 로고가 두 줄을 통째로 안고 있어 헤더는 이미 한 덩어리로 읽힌다.
+   * 선까지 있으면 로고가 그 선에 꿰인 것처럼 보인다.
+   *
+   * ⚠ 헤더 **아래쪽 hairline**(HeaderRoot 의 border-bottom)은 다른 물건이라 그대로 둔다 — 그것은
+   *   층을 가르는 선이 아니라 헤더와 본문의 경계이고, 글래스 표면이라 그 선이 없으면 스크롤 중에
+   *   헤더의 끝이 사라진다.
+   */
 `;
 
 /**
@@ -102,5 +164,127 @@ export const Actions = styled.div`
 
   ${media.down('drawer')} {
     align-self: flex-start;
+  }
+`;
+
+/**
+ * 환경 설정 묶음(밝기 토글 · 더보기).
+ *
+ * 페이지 액션·로그인과 **같은 줄에 있지만 성격이 다르다** — 앞의 둘은 "이 화면에서 할 일"이고
+ * 이 둘은 "앱을 어떻게 볼 것인가"다. 묶어 두면 좁은 폭에서 줄바꿈이 일어나도 두 개가 함께 움직여
+ * 밝기 토글만 혼자 아랫줄로 떨어지는 일이 없다.
+ *
+ * 구분선은 640px 이상에서만 긋는다. 좁은 폭에서는 간격 자체가 4px 이라 선을 넣으면 버튼 사이가
+ * 붙어 보이고, 그 폭에서는 애초에 왼쪽에 놓일 형제가 로그인 하나뿐이라 나눌 것이 없다.
+ */
+export const UtilityGroup = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: ${space[1]};
+  flex: 0 0 auto;
+
+  ${media.up('mobileWide')} {
+    gap: ${space[2]};
+    padding-left: ${space[3]};
+    border-left: 1px solid ${color.border};
+  }
+`;
+
+/**
+ * 로고 자리 — **브랜드 줄과 메뉴 줄을 가로지르는 트랙**(2026-08-03 사용자 지시).
+ *
+ * 헤더는 전 폭에서 두 줄이다(브랜드·컨트롤 / 메뉴 전폭). 로고를 브랜드 슬롯 안에 두면 윗줄에만
+ * 걸려 아래 메뉴 줄과 무관해 보이고, 줄 높이에 갇혀 작게밖에 못 쓴다. 두 줄을 가로지르면
+ * 로고가 헤더 전체의 정체성 표식이 되고 크게 설 수 있다.
+ *
+ * 🔴 **로고가 헤더를 밀어 올리지 않는다.** 두 줄의 합이 로고보다 높은 동안 이 슬롯은 남는 세로를
+ * 쓸 뿐이다(그래서 확대가 공짜였다). 로고를 더 키우려면 먼저 `tools/dev/headerprobe.mjs` 로
+ * 재고, 상한 120px 을 넘지 않는지 확인해라 — 헤더가 높아진 만큼 모든 화면의 첫 화면이 줄어든다.
+ * ⚠ 세로 가운데 정렬이다. 두 줄의 중앙에 서야 어느 줄에도 종속돼 보이지 않는다.
+ */
+/**
+ * 🔴 **로고는 링크다**(2026-08-05 사용자 지시: 눌러서 시작 화면으로).
+ *
+ * 접근성: 바로 옆 워드마크가 **이미 홈으로 가는 링크**다. 그래서 이 링크는 접근성 트리에서
+ * 감춘다(`aria-hidden` + `tabIndex={-1}`, 호출부 지정) — 그러지 않으면 스크린리더 사용자는
+ * 같은 곳으로 가는 링크를 연달아 두 번 듣고, 탭 이동도 한 번 더 걸린다. 마우스·터치 사용자에게는
+ * 큰 그림이 곧 히트 영역이라는 기대가 그대로 충족된다.
+ * ⚠ 그래서 이 링크에 라벨을 붙이지 마라 — 붙이는 순간 위의 이유가 무너진다.
+ */
+const logoSlotStyle = `
+  grid-area: logo;
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  align-self: center;
+  margin-right: ${space[2]};
+  border-radius: ${radius.md};
+  /* 장식 링크라 밑줄·색을 갖지 않는다 — 그림 자체가 브랜드다. */
+  color: inherit;
+  text-decoration: none;
+`;
+
+export const LogoSlot = styled(Link)`
+  ${logoSlotStyle}
+`;
+
+/**
+ * Router 컨텍스트가 **없는** 렌더용 폴백(일부 단위 테스트·비라우터 임베드).
+ *
+ * 🔴 `Link` 는 라우터가 없으면 렌더 단계에서 죽는다 — `PrimaryNav` 가 브랜드 워드마크에 이미
+ * 같은 방어를 갖고 있고(그 파일의 `inRouter` 분기), 로고도 링크가 된 이상 같은 방어가 필요하다.
+ * 모양은 링크판과 **완전히 같다**(같은 스타일 문자열을 공유한다) — 두 벌로 갈리면 언젠가 어긋난다.
+ */
+export const LogoSlotStatic = styled.span`
+  ${logoSlotStyle}
+`;
+
+/**
+ * 헤더 로고 그림 — **금화를 안은 아기 하마**(2026-08-05 사용자 지시로 교체·확대).
+ *
+ * ## 무엇이 바뀌었나
+ * 종전에는 `HippoCoinScene`(하마 `hippo.png` + 금화 `coin.png` 를 겹쳐 "금화를 올려다본다"를
+ * 만드는 44px 무대)였다. 지금은 **한 장짜리 자산**이다 — 그림 안에서 하마가 이미 금화를 안고
+ * 있어 두 장을 겹칠 이유가 없다.
+ *
+ * ## 🔴 이 교체는 첫 페인트에 이득이다 (지우지 말고 근거로 남긴다)
+ * 종전 두 장은 합쳐 **824KB**(hippo.png 515KB + coin.png 309KB)였고 헤더는 eager 라 전 화면이
+ * 그 값을 물었다. 이 자산은 **159KB** 한 장이다(1024², 실측). 로고를 44 → 72px 로 키우면서
+ * 오히려 가벼워졌다.
+ *
+ * ## 크기 — 88px (좁은 폭 64px). **실측으로 정한 값이다**
+ * 44 → 72 → 88 로 두 번 키우며 매번 `tools/dev/headerprobe.mjs` 로 헤더 높이를 쟀다(2026-08-05):
+ * ```
+ *   로고 72px → 헤더 97px  (1280·1024)
+ *   로고 88px → 헤더 105px (1280·1024) · 111px (900 이하)
+ *   계약 상한 120px  → 남은 여유 15px
+ * ```
+ * 🔴 **여기서 더 키우려면 반드시 다시 재라.** 로고가 두 줄을 가로지르는 동안은 남는 세로를 쓸
+ * 뿐이지만, 줄 높이를 넘어서는 순간부터는 **키운 만큼 헤더가 두꺼워지고 모든 화면의 첫 화면이
+ * 그만큼 줄어든다**(72 → 88 구간에서 이미 +8px 을 지불했다). 100px 부근이 상한선이다.
+ * ⚠ 좁은 폭(≤640)에서는 로고가 브랜드 이름·컨트롤과 가로 폭을 다툰다 — 그래서 한 단 줄인다.
+ *   그 폭의 헤더 높이(111px)는 로고가 아니라 두 줄이 만드는 값이라 64px 은 공짜였다(실측).
+ *
+ * ⚠ 첫 화면 상단이라 **eager** 다(호출부 지정). lazy 로 바꾸면 브랜드가 한 박자 늦게 뜬다.
+ * ⚠ 장식이다 — 이름은 옆 워드마크가 진다(`alt=""`).
+ */
+export const BrandHippo = styled.img`
+  display: block;
+  width: 88px;
+  height: 88px;
+  object-fit: contain;
+  /* 하마가 물에 앉아 있는 구도라 아래를 기준으로 맞춘다(위를 맞추면 물웅덩이가 잘린 듯 뜬다). */
+  object-position: bottom center;
+
+  /*
+   * 🔴 모바일(≤640)에서 한 단 더 줄인다 — 이 구간부터 로고가 **브랜드 줄 안에** 서기 때문이다
+   * (2026-08-06, headerControlsGrid 의 mobileWide 분기와 한 쌍). 두 줄을 가로지를 때는 남는 세로를
+   * 쓸 뿐이라 64px 이 공짜였지만, 한 줄 안에 들어오면 **그 줄 높이가 곧 그림 높이**가 된다.
+   * 실측(390px): 64px 이면 헤더 143px(계약 상한 120px 초과) · 44px → 123px · 40px → 119px.
+   * ⚠ 더 키우려면 반드시 다시 재라. 이 구간의 헤더 높이는 이제 로고가 **직접** 정한다.
+   */
+  ${media.down('mobileWide')} {
+    width: 40px;
+    height: 40px;
   }
 `;

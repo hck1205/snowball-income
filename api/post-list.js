@@ -202,14 +202,14 @@ var toNodeHandler = (webHandler) => {
 var LIST_META = {
   portfolio: {
     title: "\uD3EC\uD2B8\uD3F4\uB9AC\uC624 \uAC24\uB7EC\uB9AC",
-    description: "\uC2A4\uB178\uC6B0\uBCFC \uC778\uCEF4 \uCEE4\uBBA4\uB2C8\uD2F0\uC5D0 \uACF5\uC720\uB41C \uBC30\uB2F9 \uD3EC\uD2B8\uD3F4\uB9AC\uC624 \uC2DC\uB098\uB9AC\uC624 \uBAA8\uC74C\uC785\uB2C8\uB2E4. \uC6D4 \uBC30\uB2F9\xB7\uBAA9\uD45C \uB2EC\uC131 \uC2DC\uC810\uC744 \uC0B4\uD3B4\uBCF4\uC138\uC694."
+    description: "Hungry Hippo \uCEE4\uBBA4\uB2C8\uD2F0\uC5D0 \uACF5\uC720\uB41C \uBC30\uB2F9 \uD3EC\uD2B8\uD3F4\uB9AC\uC624 \uC2DC\uB098\uB9AC\uC624 \uBAA8\uC74C\uC785\uB2C8\uB2E4. \uC6D4 \uBC30\uB2F9\xB7\uBAA9\uD45C \uB2EC\uC131 \uC2DC\uC810\uC744 \uC0B4\uD3B4\uBCF4\uC138\uC694."
   },
   board: {
     title: "\uC790\uC720\uAC8C\uC2DC\uD310",
-    description: "\uC2A4\uB178\uC6B0\uBCFC \uC778\uCEF4 \uC790\uC720\uAC8C\uC2DC\uD310\uC758 \uCD5C\uC2E0 \uAE00 \uBAA9\uB85D\uC785\uB2C8\uB2E4."
+    description: "Hungry Hippo \uC790\uC720\uAC8C\uC2DC\uD310\uC758 \uCD5C\uC2E0 \uAE00 \uBAA9\uB85D\uC785\uB2C8\uB2E4."
   }
 };
-var SITE_SUFFIX = "Snowball Income";
+var SITE_SUFFIX = "Hungry Hippo";
 var CACHE_LIST = "public, max-age=0, s-maxage=60, stale-while-revalidate=3600";
 var CACHE_NO_STORE = "no-store";
 var htmlResponse = (html, status, cache) => new Response(html, {

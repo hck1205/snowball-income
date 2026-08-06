@@ -166,6 +166,14 @@ describe('/ledger — 삭제 확인(§4.6)', () => {
     expect(within(dialog).getByText('이 기록을 삭제합니다')).toBeInTheDocument();
     expect(within(dialog).getByText('아래 기록을 시트에서 지웁니다. 되돌릴 수 없습니다.')).toBeInTheDocument();
 
+    /*
+     * 🔴 **금액은 정의 목록 밖의 큰 숫자다**(2026-08-03 재설계). 파괴적 확인에서 사용자가 실제로
+     * 대조하는 값이라 목록의 네 번째 줄이 아니라 맨 위에 선다. 단정을 마크업에 맞춰 옮기되
+     * **네 사실이 전부 있다**는 계약은 그대로 잠근다 — 하나라도 빠지면 아래 두 줄이 실패한다.
+     */
+    expect(within(dialog).getByText('금액')).toBeInTheDocument();
+    expect(within(dialog).getByText('₩12,000')).toBeInTheDocument();
+
     const terms = within(dialog)
       .getAllByRole('term')
       .map((node) => node.textContent);
@@ -173,8 +181,8 @@ describe('/ledger — 삭제 확인(§4.6)', () => {
       .getAllByRole('definition')
       .map((node) => node.textContent);
 
-    expect(terms).toEqual(['날짜', '구분', '분류', '금액']);
-    expect(definitions).toEqual(['8월 3일 (월)', '지출', '식비', '₩12,000']);
+    expect(terms).toEqual(['날짜', '구분', '분류']);
+    expect(definitions).toEqual(['8월 3일 (월)', '지출', '식비']);
   });
 
   it('🔴 [red] 삭제 확인 모달도 제목을 접근명으로 갖는다', () => {

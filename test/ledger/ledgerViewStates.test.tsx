@@ -18,7 +18,7 @@ describe('/ledger — 연결 후 목록', () => {
   it('월 네비·주역 요약 카드·거래 내역 표가 함께 선다', () => {
     renderLedgerView(baseViewModel());
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Hippo 가계부' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'Hungry Hippo 가계부' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: '2026년 8월' })).toBeInTheDocument();
 
     // 🔴 제목 없는 주역 카드는 월 제목을 자기 이름으로 삼는다(aria-labelledby).

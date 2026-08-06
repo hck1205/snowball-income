@@ -5,7 +5,7 @@
 import type { ThemeTokens } from '../semantic';
 import { AURORA_CHART_SERIES } from './aurora';
 import { chartSeriesTokens } from './chartSeriesTokens';
-import { buildAuroraGradient, buildDuotoneGradient, buildHeroGradient } from './gradients';
+import { buildAuroraGradient, buildDuotoneGradient } from './gradients';
 import { COMMON_DARK, COMMON_LIGHT } from './sharedTokens';
 
 /*
@@ -26,15 +26,21 @@ import { COMMON_DARK, COMMON_LIGHT } from './sharedTokens';
  * (2026-07-28). 그래서 `Chip variant='accentAlt'` 같은 소비처는 ink 에서만 회색으로 보인다 — 의도다.
  */
 export const INK_LIGHT: ThemeTokens = {
-  /* 무틴트 — 정체성 */
-  bg: '#f1f1f1',
+  /*
+   * 🔴 **순백 캔버스**(2026-08-03 사용자 결정 — "페이지 전체 배경색이 흰색"). 구 값 연회색(#f1f1f1).
+   * bg = surface = surface-raised 가 전부 흰색이 되면서 **면색이 카드의 격을 말하지 못한다** —
+   * 그 일은 아래 `border`(헤어라인)·여백·그림자가 이어받았다. 무채 규율은 그대로다 — 오히려 순백이
+   * 이 프리셋의 '흑백 신문' 성격에 가장 가깝다.
+   */
+  bg: '#ffffff',
   surface: '#ffffff',
   'surface-raised': '#ffffff',
   'surface-muted': '#f7f7f7',
   'surface-sunken': '#e8e8e8',
   'surface-hover': '#f1f1f1',
 
-  border: '#dcdcdc',
+  /* 🔴 흰 캔버스의 주역. 구 1.37:1 → 새 1.44:1. */
+  border: '#d7d7d7',
   'border-strong': '#767676',
 
   text: '#111111',
@@ -71,7 +77,8 @@ export const INK_LIGHT: ThemeTokens = {
 
   /* 무채 섀도 — velog 라이트 3종 재사용 */
   'shadow-1': '0 1px 3px rgba(0, 0, 0, 0.05)',
-  'shadow-2': '0 2px 8px rgba(0, 0, 0, 0.06)',
+  /* ⚠ e2 만 올렸다 — raised 는 테두리 없이 이 그림자 하나로 선다. */
+  'shadow-2': '0 1px 2px rgba(0, 0, 0, 0.04), 0 6px 16px rgba(0, 0, 0, 0.10)',
   'shadow-3': '0 8px 24px rgba(0, 0, 0, 0.12)',
 
   'ribbon-stop-1': '#1a1a1a',
@@ -91,10 +98,12 @@ export const INK_LIGHT: ThemeTokens = {
    * 대가로 bg 와의 ΔE 가 2.8 밖에 안 되니 **밴드를 fill 단독으로 세우지 말고**
    * 1px `color.border` + radius 로 경계를 함께 그려라. 최악 text-muted 5.76:1.
    */
-  'gradient-hero': buildHeroGradient('#e9e9e9', '#f4f4f4'),
-  'gradient-hero-soft': buildHeroGradient('#f7f7f7', '#fcfcfc'),
+  /* 히어로 면 — 단색. hero = surface / soft = surface-muted. */
+  'gradient-hero': '#ffffff',
+  'gradient-hero-soft': '#f7f7f7',
   /* 글로우 없음 = 단색 */
-  'bg-glow': '#f1f1f1',
+  /* 글로우 없음 = 단색(역할: 페이지 배경). 라이트는 순백. */
+  'bg-glow': '#ffffff',
   'surface-glass': 'rgba(255, 255, 255, 0.92)',
   'surface-glass-fallback': '#ffffff',
 
@@ -166,8 +175,9 @@ export const INK_DARK: ThemeTokens = {
   'gradient-aurora': buildAuroraGradient(['#f2f2f2', '#d4d4d4', '#a3a3a3']),
   'gradient-cta': buildDuotoneGradient('#f2f2f2', '#dedede'),
   /* 히어로 면 — 라이트와 같이 캐스트 0. bg 와 ΔE 3.6 이라 경계선 필수. 최악 text-muted 5.59:1. */
-  'gradient-hero': buildHeroGradient('#161616', '#101010'),
-  'gradient-hero-soft': buildHeroGradient('#141414', '#191919'),
+  /* 히어로 면 — 단색. 다크는 면 밝기 위계를 지킨다. */
+  'gradient-hero': '#1a1a1a',
+  'gradient-hero-soft': '#202020',
   'bg-glow': '#0d0d0d',
   'surface-glass': 'rgba(38, 38, 38, 0.92)',
   'surface-glass-fallback': '#262626',

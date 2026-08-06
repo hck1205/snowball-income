@@ -113,10 +113,24 @@ describe('MyPostsSectionView — 표시 계약', () => {
     expect(within(section).getByText(m.hint)).toBeInTheDocument();
   });
 
-  it('글이 없으면 빈 상태를 보여준다', () => {
+  it('글이 없으면 빈 상태를 보여주고, 첫 글을 쓸 두 갈래를 제시한다', () => {
     renderView({ status: 'empty', retry: vi.fn(), items: [] });
     expect(screen.getByText(m.emptyTitle)).toBeInTheDocument();
-    expect(screen.queryAllByRole('link')).toHaveLength(0);
+    // 글 목록 자체는 없다 — 이것이 "빈 상태"의 정의다.
+    expect(screen.queryByRole('list')).toBeNull();
+    /*
+     * 빈 상태는 막다른 골목이 아니라 **시작 지점**이다. 구 화면은 안내 문장만 두고 끝나
+     * "그래서 어디서 쓰나"를 사용자가 헤더로 되돌아가 찾아야 했다 — 그래서 다음 행동을 여기 둔다.
+     * (구 테스트가 링크 0개를 요구했던 것은 "글 행이 없다"를 재려던 것이지 CTA 금지가 아니었다.)
+     */
+    expect(screen.getByRole('link', { name: /갤러리에 글 쓰기/ })).toHaveAttribute(
+      'href',
+      '/community/portfolio/write'
+    );
+    expect(screen.getByRole('link', { name: /게시판에 글 쓰기/ })).toHaveAttribute(
+      'href',
+      '/community/board/write'
+    );
   });
 
   it('불러오기에 실패하면 사유를 알리고 다시 시도할 수 있다', async () => {
@@ -132,6 +146,27 @@ describe('MyPostsSectionView — 표시 계약', () => {
   it('불러오는 중에는 진행 상태를 알린다', () => {
     renderView({ status: 'loading', retry: vi.fn(), items: [] });
     expect(screen.getByRole('status')).toHaveTextContent(m.listLoading);
+  });
+
+  /*
+   * 공개 범위 필터 — 이 화면의 존재 이유(비공개 글을 볼 유일한 곳)를 컨트롤로 만든 것이다.
+   * 목록 **밖**에 서므로 목록 안에는 여전히 버튼이 없다(위 계약과 충돌하지 않는다).
+   */
+  it('공개 범위를 골라 목록을 좁힐 수 있다 — 비공개만 남긴다', async () => {
+    const user = userEvent.setup();
+    renderView({
+      status: 'ready',
+      retry: vi.fn(),
+      items: [
+        makePost({ id: 'p1', title: '비공개 포트폴리오', is_public: false }),
+        makePost({ id: 'p2', title: '공개한 글', is_public: true })
+      ]
+    });
+
+    await user.click(screen.getByRole('button', { name: new RegExp(m.visibilityPrivate) }));
+
+    expect(screen.getByRole('link', { name: /비공개 포트폴리오/ })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /공개한 글/ })).toBeNull();
   });
 });
 
@@ -154,6 +189,19 @@ describe('CommunityMyPostsView — 독립 화면 게이트', () => {
     renderPage();
     expect(screen.getByRole('heading', { level: 1, name: m.title })).toBeInTheDocument();
     expect(screen.getByRole('region', { name: m.sectionLabel })).toBeInTheDocument();
+  });
+
+  /*
+   * 계정 콘솔 레일 — 프로필 설정과 이 화면은 성격이 같은 형제인데도 예전에는 서로를 몰라
+   * 헤더 드롭다운을 거쳐야만 오갈 수 있었다. 레일이 그 왕복을 없앤다.
+   */
+  it('좌측 레일이 프로필 설정으로 가는 길을 열어 두고, 현재 화면을 aria-current 로 알린다', () => {
+    renderPage();
+    expect(screen.getByRole('link', { name: COMMUNITY_COPY.profile.menuItem })).toHaveAttribute(
+      'href',
+      '/community/profile'
+    );
+    expect(screen.getByRole('link', { name: m.menuItem })).toHaveAttribute('aria-current', 'page');
   });
 
   it('세션 확인 전에는 게이트 대신 로딩만 보여준다 (성급한 로그인 유도 금지)', () => {

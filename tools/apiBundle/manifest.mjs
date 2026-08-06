@@ -6,6 +6,12 @@
  *
  * ⚠ 여기에 항목을 추가/삭제하면 `api/` 의 산출물도 함께 커밋해야 한다 — 빌드의 신선도 검사가
  *   **누락된 파일과 남아 있는 파일 양쪽을** 잡는다(tools/apiBundle/build.mjs).
+ *
+ * 🔴 **이 목록의 길이가 곧 서버리스 함수 개수이고, 상한이 12개다**(Vercel Hobby).
+ * 2026-08-07 에 13개로 늘렸다가 배포가 죽었다 — 빌드는 통과하고 "Deploying outputs" 에서
+ * `exceeded_serverless_functions_per_deployment` 로 실패한다(빌드 로그에는 이유가 안 남는다).
+ * 새 핸들러를 더하기 전에 **먼저 세라.** 지금 11개다.
+ * 지면이 하나 더 필요하면 새 파일을 만들지 말고 `SeoHtml`(정적 콘텐츠 렌더러 묶음)에 얹는 편이 싸다.
  */
 export const API_BUNDLES = [
   { entry: 'server/handlers/AccountDelete/AccountDelete.ts', out: 'api/account-delete.js' },
@@ -16,9 +22,10 @@ export const API_BUNDLES = [
   { entry: 'server/handlers/Og/Og.tsx', out: 'api/og.js' },
   { entry: 'server/handlers/PostHtml/PostHtml.ts', out: 'api/post-html.js' },
   { entry: 'server/handlers/PostList/PostList.ts', out: 'api/post-list.js' },
+  /* 티커 상세 · 배당 목록 · 가이드 **셋을 한 함수로** 모은 진입점 — 근거는 SeoHtml.ts 머리말. */
+  { entry: 'server/handlers/SeoHtml/SeoHtml.ts', out: 'api/seo-html.js' },
   { entry: 'server/handlers/ShareHtml/ShareHtml.ts', out: 'api/share-html.js' },
-  { entry: 'server/handlers/Sitemap/Sitemap.ts', out: 'api/sitemap.js' },
-  { entry: 'server/handlers/TickerHtml/TickerHtml.ts', out: 'api/ticker-html.js' }
+  { entry: 'server/handlers/Sitemap/Sitemap.ts', out: 'api/sitemap.js' }
 ];
 
 /**

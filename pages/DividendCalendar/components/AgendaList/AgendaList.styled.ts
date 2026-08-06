@@ -1,6 +1,6 @@
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
-import { color, font, motion, radius, space } from '@/shared/styles';
+import { color, font, media, motion, radius, space } from '@/shared/styles';
 
 /**
  * 색 사용 원칙(2026-07-25 사용자 피드백 — "너무 성의 없어 보인다"):
@@ -34,9 +34,15 @@ export const AgendaDayList = styled.ol`
  * 이 블록에 한해 되돌린다. 평탄한 엣지 그룹은 날짜가 여럿일 때 **어디서 끊기는지**가 간격으로만
  * 전달돼, 달력의 또렷한 칸들 바로 아래에서 목록이 미완성처럼 읽혔다.
  *
- * 면은 **중립 토큰(surfaceMuted)만** 쓴다 — 감싸는 DetailCard 가 surface 라 한 단계 가라앉은 면이
- * "카드 안의 카드"가 아니라 **묶음 판**으로 읽히고, 중립이라 tintscan 의 틴트 면 예산에도 잡히지
- * 않는다(tools/dev/tintscan.mjs 의 NEUTRAL_VARS). 색은 날짜 배지와 종목 색 막대가 진다.
+ * 면은 **중립 토큰만** 쓴다 — 감싸는 카드가 surface 라 한 단계 가라앉은 면이 "카드 안의 카드"가
+ * 아니라 **묶음 판**으로 읽히고, 중립이라 tintscan 의 틴트 면 예산에도 잡히지 않는다
+ * (tools/dev/tintscan.mjs 의 NEUTRAL_VARS). 색은 날짜 배지와 종목 색 막대가 진다.
+ *
+ * 🔴 그 "한 단계"는 2026-08-03 까지 **거짓이었다.** 판이 `surfaceMuted`, 그 위 종목 줄이 `surface`
+ * 였는데 흰 캔버스 전환 이후 둘의 대비는 **1.034:1** 이다 — 판도 줄도 존재하지 않았고, 아래
+ * `AgendaItem` 이 말하는 "판↔줄의 위계가 명도로 읽힌다"는 문장만 남아 있었다. 실측 후 판을 `surfaceSunken`
+ * (1.112:1) 로 내려 그 문장을 사실로 만들었다. 🔴 muted 로 되돌리지 마라 — 그 토큰은 흰 면 위에서
+ * 속삭임이고 더 어둡게 내릴 수도 없다(`shared/styles/surfaces.ts` 머리말).
  *
  * 달력 칸에서 눌러 들어오면 강조된다($highlighted). **면색 하나로는 부족하다** —
  * 다크 프리셋에서 brand-subtle과 surface 계열의 밝기 차가 작아 "어디로 왔는지"가 안 읽힌다.
@@ -45,10 +51,25 @@ export const AgendaDayList = styled.ol`
 export const AgendaDayItem = styled.li<{ $highlighted: boolean }>`
   display: grid;
   gap: ${space[2]};
+  /*
+   * 🔴 2026-08-03 2차 리워크 — **타임라인 2열**.
+   *
+   * 이 목록은 이제 화면의 주역 열(680px 남짓)에 산다. 날짜 배지를 종목 줄 **위에** 쌓던 구 배치는
+   * 그 폭에서 오른쪽 절반이 통째로 비고, 날짜가 여럿일 때 눈이 매번 왼쪽 끝으로 되돌아와야 했다.
+   * 날짜를 고정폭 왼쪽 열로 세우면 세로로 날짜 축이 서고, 오른쪽이 그 날의 종목들을 받는다.
+   *
+   * 1열로 접는 폭에서는 원래대로 위아래로 쌓인다(고정 열을 만들 폭이 없다).
+   */
   padding: ${space[3]};
+
+  ${media.up('tabletSm')} {
+    grid-template-columns: minmax(0, 148px) minmax(0, 1fr);
+    align-items: start;
+    gap: ${space[3]};
+  }
   border: 1px solid ${color.border};
   border-radius: ${radius.md};
-  background: ${color.surfaceMuted};
+  background: ${color.surfaceSunken};
   /* 좌측 브랜드 엣지는 유지한다 — 보더와 같은 자리에 겹쳐 "여기부터 이 날짜"를 계속 말한다. */
   box-shadow: inset 3px 0 0 ${color.brand};
   min-width: 0;
@@ -120,14 +141,22 @@ export const AgendaItemList = styled.ul`
 /**
  * 종목 한 줄 — 2026-08-02 리워크로 **자기 면을 갖는다**(surface).
  *
- * 날짜 판이 한 단계 가라앉은 면(surfaceMuted)이 되면서, 그 위의 줄은 떠오른 면(surface)이 되어
- * 판↔줄의 위계가 명도로 읽힌다. 둘 다 **중립 토큰**이라 틴트 면 예산과 무관하다.
+ * 날짜 판이 한 단계 가라앉은 면(surfaceSunken)이 되면서, 그 위의 줄은 떠오른 면(surface)이 되어
+ * 판↔줄의 위계가 명도로 읽힌다(실측 1.112:1). 둘 다 **중립 토큰**이라 틴트 면 예산과 무관하다.
  * 세로선 정렬은 여전히 고정폭 티커 열이 만든다.
  */
 export const AgendaItem = styled.li`
   display: flex;
   align-items: center;
   gap: ${space[2]};
+  /*
+   * 🔴 이 줄이 없으면 종목명 ellipsis 가 **작동하지 않는다.** flex/grid 아이템의 기본
+   * min-width 는 auto — 즉 "내용보다 작아지지 않는다" 라서, 안쪽 이름 칸에 아무리
+   * text-overflow: ellipsis 를 걸어도 이 행 자체가 부풀어 열을 밀어낸다.
+   * (사용자 신고 2026-08-03: "DES 위즈덤트리 미국 소형주 배당 이 넘쳐서 나온다")
+   * ⚠ 지우지 마라 — 지우면 증상이 이름 칸이 아니라 **바깥 열**에서 나타나 원인을 찾기 어렵다.
+   */
+  min-width: 0;
   min-height: 36px;
   padding: ${space[1]} ${space[2]};
   border-radius: ${radius.sm};
@@ -172,19 +201,54 @@ export const AgendaTicker = styled.strong`
   ${font.numeric}
 `;
 
-export const AgendaName = styled.span`
+/**
+ * 이름의 **자리**. 이름 자체가 아니라 자리를 flex 아이템으로 세운다.
+ *
+ * 🔴 왜 한 겹을 더 두는가 — 이름이 실제로 잘렸을 때만 `OverflowTooltip` 이 툴팁 앵커
+ * (inline-flex span)로 이름을 감싼다. 그 앵커는 `flex-grow: 0` 이라 그냥 두면
+ * **감쌌을 때와 아닐 때 이름 칸의 폭이 달라진다.** 그러면 (a) 오른쪽 근거 배지가 좌우로 튀고
+ * (b) 잘림 판정이 자기 결과에 영향을 받아 감쌈↔풂이 반복될 수 있다.
+ * 슬롯이 두 경우의 상자를 **같게** 만들어 그 고리를 끊는다 — 지우지 마라.
+ */
+export const AgendaNameSlot = styled.span`
+  display: flex;
+  flex: 1 1 auto;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+
+  /* 자식은 감싼 경우(툴팁 앵커)든 아닌 경우(이름)든 슬롯을 그대로 채운다. */
+  > * {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
 `;
 
-/** 비어 있음도 하나의 상태다 — 점선 패널로 "자리는 있는데 내용이 없다"를 형태로 말한다. */
+export const AgendaName = styled.span`
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  /*
+   * tabindex 는 **잘렸을 때만** 붙는다(OverflowTooltip). 즉 이 선택자는 "감춰진 글자가 있다"와
+   * 정확히 같은 뜻이라, 상태 플래그를 따로 흘려보내지 않고 속성 하나로 커서 힌트를 준다.
+   * 포커스 링은 전역 globalStyles 의 [tabindex]:not([tabindex='-1']) 규칙이 이미 그린다.
+   */
+  &[tabindex] {
+    cursor: help;
+  }
+`;
+
+/**
+ * 비어 있음도 하나의 상태다 — 점선 패널로 "자리는 있는데 내용이 없다"를 형태로 말한다.
+ * 면은 위 날짜 판과 같은 침강면이다(같은 자리에 번갈아 서므로 무게가 갈리면 안 된다).
+ */
 export const AgendaEmpty = styled.p`
   margin: 0;
   padding: ${space[4]};
   border: 1px dashed ${color.border};
   border-radius: ${radius.md};
-  background: ${color.surfaceMuted};
+  background: ${color.surfaceSunken};
   font-size: ${font.size.xs};
   color: ${color.textSecondary};
   line-height: ${font.leading.snug};

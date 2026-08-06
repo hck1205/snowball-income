@@ -265,8 +265,16 @@ describe('PortfolioComposition — 슬라이더 트랙 색 = 도넛 조각 색',
 
     const trackVars = ['AAA', 'BBB', 'CCC'].map((ticker) => seriesVarOf(sliderFor(ticker)));
 
-    // 인덱스 규칙(0,1,2…)이 캔버스 파이와 같다
-    expect(trackVars).toEqual(['--sb-chart-series-0', '--sb-chart-series-1', '--sb-chart-series-2']);
+    /*
+     * 🔴 **인덱스를 0,1,2 로 단정하지 않는다**(2026-08-03 D4). 배정이 목록 순서가 아니라
+     * 종목 이름 해시 + 충돌 회피로 바뀌었으므로 어떤 번호가 나오는지는 구현 세부다.
+     * 이 테스트가 지켜야 하는 계약은 두 가지이고, 그 둘은 그대로다:
+     *  ① 행마다 **서로 다른** 변수를 쓴다(같으면 슬라이더가 어느 조각인지 구분이 안 된다)
+     *  ② 같은 행의 색 점과 트랙이 **한 값**을 공유한다
+     * 번호를 고정하면 종목을 하나 더 추가하는 것만으로 빨개진다 — 그건 회귀가 아니라 정상 동작이다.
+     */
+    for (const variable of trackVars) expect(variable).toMatch(/^--sb-chart-series-\d+$/);
+    expect(new Set(trackVars).size).toBe(trackVars.length);
 
     // 같은 행의 범례 점과 트랙이 한 값을 공유한다(둘이 갈리면 색이 두 개가 된다)
     const dotVars = ['AAA', 'BBB', 'CCC'].map((ticker) => {

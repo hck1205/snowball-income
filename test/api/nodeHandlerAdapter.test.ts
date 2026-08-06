@@ -147,7 +147,7 @@ describe('toNodeHandler — 상태 코드와 헤더를 그대로 전달한다', 
 describe('toNodeHandler — 본문 전달 (텍스트 / 바이너리)', () => {
   it('텍스트 본문이 온전히 전달된다', async () => {
     const res = createResponseSpy();
-    const html = '<html lang="ko"><meta property="og:title" content="스노우볼 · 배당 시뮬레이션" /></html>';
+    const html = '<html lang="ko"><meta property="og:title" content="Hungry Hippo · 배당 시뮬레이션" /></html>';
     await toNodeHandler(async () => new Response(html))(nodeRequest(), res);
 
     expect(res.text()).toBe(html);

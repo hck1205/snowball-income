@@ -25,7 +25,7 @@ const copy = DIVIDEND_CALENDAR_COPY;
  * 0건이면 섹션 자체를 렌더하지 않는다(빈 제목만 남기지 않는다). 칩마다 "날짜 미정"을 반복하지
  * 않고 섹션 제목이 컨텍스트를 준다 — 개별 배지는 지급'월'의 출처(실측/추정)를 계속 말한다.
  */
-export default function UndatedSection({ items }: UndatedSectionProps) {
+export default function UndatedSection({ items, seriesOf = tickerSeriesVar }: UndatedSectionProps) {
   const headingId = useId();
 
   if (items.length === 0) return null;
@@ -41,7 +41,7 @@ export default function UndatedSection({ items }: UndatedSectionProps) {
       <UndatedList>
         {items.map((item) => (
           <UndatedItem key={item.ticker}>
-            <UndatedDot aria-hidden style={{ background: tickerSeriesVar(item.ticker) }} />
+            <UndatedDot aria-hidden style={{ background: seriesOf(item.ticker) }} />
             <UndatedTicker>{item.ticker}</UndatedTicker>
             <ScheduleSourceBadge source={item.source} />
             <UndatedName>{item.koreanName}</UndatedName>

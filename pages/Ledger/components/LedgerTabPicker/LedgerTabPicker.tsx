@@ -1,8 +1,16 @@
 import { useId } from 'react';
+import { FileSpreadsheet } from 'lucide-react';
 import { HintText, Select } from '@/components/common';
 import { LEDGER_COPY } from '../../copy';
 import type { LedgerTabPickerProps } from './LedgerTabPicker.types';
-import { PickerBlock, PickerLabel, PickerName, PickerRow, PickerStatus } from './LedgerTabPicker.styled';
+import {
+  PickerAxis,
+  PickerBlock,
+  PickerLabel,
+  PickerName,
+  PickerRow,
+  PickerStatus
+} from './LedgerTabPicker.styled';
 
 const copy = LEDGER_COPY;
 
@@ -15,6 +23,9 @@ const copy = LEDGER_COPY;
  * 항목이 스크롤 뒤로 숨고 그 사실을 알릴 방법이 없다(헤더 NavScroller 에서 실측된 사고다).
  * 🔴 **무음 비활성 금지**: 막혀 있으면 언제나 사유 문장이 함께 서고, 컨트롤이 `aria-describedby` 로
  * 그것을 가리킨다(`LedgerMappingCard` 와 같은 처방).
+ *
+ * ⚠ 2026-08-03 — 라벨을 컨트롤 **위**로 올렸다. 이 줄은 280px 짜리 범위 레일 안에 사는데,
+ * 가로 배치에서는 셀렉트가 12ch 로 눌려 탭 제목이 잘렸다.
  */
 export default function LedgerTabPicker({ model, onSelectTab }: LedgerTabPickerProps) {
   const idPrefix = useId();
@@ -25,9 +36,11 @@ export default function LedgerTabPicker({ model, onSelectTab }: LedgerTabPickerP
   if (model.options.length <= 1) {
     return (
       <PickerBlock>
-        <PickerRow>
-          <PickerName>{copy.tab.single(model.currentTitle)}</PickerName>
-        </PickerRow>
+        <PickerAxis>
+          <FileSpreadsheet size={14} strokeWidth={1.8} aria-hidden focusable={false} />
+          {copy.tab.label}
+        </PickerAxis>
+        <PickerName>{copy.tab.single(model.currentTitle)}</PickerName>
       </PickerBlock>
     );
   }
@@ -40,8 +53,7 @@ export default function LedgerTabPicker({ model, onSelectTab }: LedgerTabPickerP
         <Select
           id={selectId}
           size="md"
-          width="auto"
-          minWidth="12ch"
+          width="full"
           value={String(model.currentSheetId)}
           disabled={isBlocked || model.isSwitching}
           aria-describedby={isBlocked ? hintId : undefined}

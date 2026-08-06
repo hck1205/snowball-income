@@ -12,7 +12,11 @@ import {
   useApplyPalettePreset
 } from '@/jotai';
 import { useMainComputed } from '@/pages/Main/hooks';
-import { THEME_PRESETS } from '@/shared/styles';
+import { CHART_SERIES_VARS, THEME_PRESETS } from '@/shared/styles';
+import { assignSeriesIndexes } from '@/shared/lib/tickerSeries';
+
+/** 팔레트 슬롯 수 — 앱과 같은 값을 쓴다(테스트가 자기 숫자를 갖지 않는다). */
+const PALETTE_SIZE = CHART_SERIES_VARS.length;
 import { PALETTE_PRESET_IDS } from '@/shared/constants';
 import type { PalettePresetId, YearlySeriesKey } from '@/shared/constants';
 import type { YieldFormValues } from '@/shared/types';
@@ -50,7 +54,25 @@ vi.mock('@/shared/constants', async (importOriginal) => {
   };
 });
 
-const seriesZero = (id: PalettePresetId): string => THEME_PRESETS[id].light['chart-series-0'];
+/**
+ * 이 화면이 그리는 유일한 종목(SCHD)에 **실제로 배정되는** 시리즈 슬롯.
+ *
+ * 🔴 0 을 하드코딩하지 않는다(2026-08-03 D4). 조각 색은 이제 목록 순서가 아니라
+ * 종목 이름 해시 + 충돌 회피로 정해지므로, 어느 번호가 나오는지는 구현 세부다.
+ * 여기서 지키려는 계약은 **"프리셋을 바꾸면 새 프리셋 색으로 리빌드된다"** 이지
+ * "0번 슬롯을 쓴다"가 아니다 — 번호를 고정하면 종목명만 바뀌어도 빨개진다.
+ */
+const SLOT = assignSeriesIndexes(['SCHD'], PALETTE_SIZE).get('SCHD')!;
+
+const seriesColor = (id: PalettePresetId): string =>
+  THEME_PRESETS[id].light[`chart-series-${SLOT}`] as string;
+
+/** 프리셋 하나의 시리즈 변수 8개를 전부 선언한다. */
+const slotVars = (id: PalettePresetId): string =>
+  Array.from(
+    { length: PALETTE_SIZE },
+    (_, index) => `--sb-chart-series-${index}: ${THEME_PRESETS[id].light[`chart-series-${index}`]};`
+  ).join(' ');
 
 const profile: TickerProfile = {
   id: 'ticker-1',
@@ -90,7 +112,7 @@ const visibleYearlySeries: Record<YearlySeriesKey, boolean> = {
   cumulativeDividend: false
 };
 
-/** 파이 옵션에서 조각 0의 색을 꺼낸다 (data[0].itemStyle.color = theme.series[0]). */
+/** 파이 옵션에서 조각 0의 색을 꺼낸다 (data[0] = 이 화면의 유일한 종목). */
 const sliceZeroColor = (option: EChartsOption | null): string | undefined => {
   const series = option?.series;
   const pie = Array.isArray(series) ? series[0] : series;
@@ -108,8 +130,9 @@ describe('프리셋 전환 → 차트 옵션 리빌드', () => {
     // globalStyles의 프리셋 스코프 축약판 — 속성 없음(no-JS 폴백) = 기본 프리셋(velog).
     styleEl = document.createElement('style');
     styleEl.textContent = [
-      `:root { --sb-chart-series-0: ${seriesZero('velog')}; }`,
-      ...PALETTE_PRESET_IDS.map((id) => `:root[data-palette='${id}'] { --sb-chart-series-0: ${seriesZero(id)}; }`)
+      /* 배정 슬롯이 0 이 아닐 수 있으므로 **8개 전부** 정의한다 — 하나만 두면 슬롯이 바뀔 때 조용히 빈다. */
+      `:root { ${slotVars('velog')} }`,
+      ...PALETTE_PRESET_IDS.map((id) => `:root[data-palette='${id}'] { ${slotVars(id)} }`)
     ].join('\n');
     document.head.appendChild(styleEl);
   });
@@ -150,7 +173,7 @@ describe('프리셋 전환 → 차트 옵션 리빌드', () => {
 
     // 초기: 기본 프리셋(velog)의 시리즈 색.
     expect(document.documentElement.getAttribute('data-palette')).toBe('velog');
-    expect(sliceZeroColor(result.current.allocationPieOption)).toBe(seriesZero('velog'));
+    expect(sliceZeroColor(result.current.allocationPieOption)).toBe(seriesColor('velog'));
 
     // 사용자 행동: 스위처가 하는 일 = palettePresetAtom 쓰기 (DOM 조작 없음 — ThemePresetSwitcher 참고).
     act(() => {
@@ -159,6 +182,6 @@ describe('프리셋 전환 → 차트 옵션 리빌드', () => {
 
     // 반영: html[data-palette] 갱신 + 차트 옵션이 새 프리셋 색으로 리빌드.
     expect(document.documentElement.getAttribute('data-palette')).toBe('aurora');
-    expect(sliceZeroColor(result.current.allocationPieOption)).toBe(seriesZero('aurora'));
+    expect(sliceZeroColor(result.current.allocationPieOption)).toBe(seriesColor('aurora'));
   });
 });

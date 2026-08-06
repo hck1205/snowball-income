@@ -5,7 +5,15 @@ import { Banner, Button, Modal } from '@/components/common';
 import { LEDGER_COPY } from '../../copy';
 import { useLedgerOverlay } from '../../hooks';
 import type { LedgerRemoveDialogProps } from './LedgerRemoveDialog.types';
-import { AmountValue, BannerRow, DialogBody, TargetList } from './LedgerRemoveDialog.styled';
+import {
+  AmountValue,
+  BannerRow,
+  DialogBody,
+  TargetAmountLabel,
+  TargetAmountRow,
+  TargetCard,
+  TargetList
+} from './LedgerRemoveDialog.styled';
 
 const copy = LEDGER_COPY;
 
@@ -88,18 +96,24 @@ export default function LedgerRemoveDialog({
 
         <DialogBody>{copy.remove.body}</DialogBody>
 
-        <TargetList>
-          <dt>{copy.remove.fieldDate}</dt>
-          <dd>{target.dateText}</dd>
-          <dt>{copy.remove.fieldKind}</dt>
-          <dd>{target.kindText}</dd>
-          <dt>{copy.remove.fieldCategory}</dt>
-          <dd>{target.category}</dd>
-          <dt>{copy.remove.fieldAmount}</dt>
-          <dd>
+        {/*
+          🔴 금액이 맨 위 큰 숫자다 — 파괴적 확인에서 사용자가 실제로 대조하는 값이기 때문이다.
+          나머지 세 사실은 그 아래 정의 목록으로 남는다(무엇을 지우는지 화면이 전부 말한다).
+        */}
+        <TargetCard>
+          <TargetAmountRow>
+            <TargetAmountLabel>{copy.remove.fieldAmount}</TargetAmountLabel>
             <AmountValue>{target.amountText}</AmountValue>
-          </dd>
-        </TargetList>
+          </TargetAmountRow>
+          <TargetList>
+            <dt>{copy.remove.fieldDate}</dt>
+            <dd>{target.dateText}</dd>
+            <dt>{copy.remove.fieldKind}</dt>
+            <dd>{target.kindText}</dd>
+            <dt>{copy.remove.fieldCategory}</dt>
+            <dd>{target.category}</dd>
+          </TargetList>
+        </TargetCard>
       </Modal>
     </div>,
     document.body

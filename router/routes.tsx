@@ -1,6 +1,7 @@
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect, useRef } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import type { RouteObject } from 'react-router-dom';
+import { ScrollTopButton } from '@/components/common';
 import { MainPage } from '@/pages';
 import {
   isCommunityEnabled,
@@ -14,7 +15,17 @@ import { applySeoRuntimeMetadata, sendPageView } from '@/shared/lib/analytics';
 import { syncFaqStructuredData } from '@/shared/lib/seo';
 import { usePageHue } from '@/shared/hooks';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
-import { SIMULATOR_PATH } from '@/shared/constants/routes';
+/*
+ * 🔴 배당 목록의 **경로만** 가져온다(`shared/constants/routes` = 의존성 0 리프). 목록 폴더
+ * (`shared/constants/dividendLists`)를 여기서 import 하면 200종 가까운 종목 데이터가 엔트리 번들에
+ * 실려 아래 lazy 격리가 그 자리에서 무효가 된다.
+ */
+import {
+  DIVIDEND_LIST_HUB_PATH,
+  DIVIDEND_LIST_IDS,
+  SIMULATOR_PATH,
+  dividendListPath
+} from '@/shared/constants/routes';
 
 
 /**
@@ -28,6 +39,7 @@ import { SIMULATOR_PATH } from '@/shared/constants/routes';
  */
 function RootLayout() {
   const location = useLocation();
+  const topAnchorRef = useRef<HTMLDivElement>(null);
 
   usePageHue();
 
@@ -70,7 +82,23 @@ function RootLayout() {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
   }, [location.pathname, location.hash]);
 
-  return <Outlet />;
+  /*
+   * 🔴 **"맨 위로"는 전 라우트가 공유한다**(2026-08-06 사용자 지시: 모든 페이지에 붙여 달라).
+   * 종전에는 랜딩과 커뮤니티 상세 두 곳이 각자 렌더했는데, 긴 화면은 그 둘만이 아니다
+   * (티커 상세·배당 목록·가이드·국민연금 전부 스크롤이 길다). 셸이 한 번 그리면 화면마다
+   * 붙이는 것을 잊을 일이 없다.
+   *
+   * ⚠ 버튼은 이동 뒤 스스로 사라지므로 **포커스를 넘길 곳**이 필요하다(그 부품이 prop 으로 강제한다).
+   *   라우트마다 제목의 자리가 달라서 셸에서는 문서 맨 위의 빈 앵커를 쓴다 — 화면에 아무것도
+   *   그리지 않지만 `tabIndex={-1}` 이라 포커스는 받는다.
+   */
+  return (
+    <>
+      <div ref={topAnchorRef} tabIndex={-1} />
+      <Outlet />
+      <ScrollTopButton focusRef={topAnchorRef} />
+    </>
+  );
 }
 
 /**
@@ -95,6 +123,32 @@ const TickerComparePage = lazy(() => import('@/pages/Ticker/TickerComparePage'))
 const InvestorsPage = lazy(() => import('@/pages/Investors/InvestorsPage'));
 
 /**
+ * `/portfolio/` 아래 두 자매 화면(2026-08-04 신설) — **대가들의 포트폴리오와 같은 축**이다.
+ * "누구의 포트폴리오인가"라는 질문에 사람(대가)·기관(국민연금)·정치인(하원)이 각각 답한다.
+ *
+ * 셋 다 커밋된 스냅샷을 읽는 정적 화면이라 조회가 없고, 각자 `lazy` 로 격리한다 —
+ * 배럴(`@/pages/Congress`)이 아니라 페이지 폴더를 직접 import 하는 이유는 배당 목록과 같다:
+ * 배럴을 lazy 하면 한 화면만 열어도 형제 화면의 데이터·문구까지 내려받는다.
+ * 두 스냅샷은 각각 40KB·70KB 라 엔트리에 실리면 그대로 첫인상 비용이 된다.
+ */
+const CongressPage = lazy(() => import('@/pages/Congress/CongressPage'));
+const KoreaAssemblyPage = lazy(() => import('@/pages/KoreaAssembly/KoreaAssemblyPage'));
+const NpsPage = lazy(() => import('@/pages/Nps/NpsPage'));
+/**
+ * 검색어 랜딩(`/guide/:slug`). 콘텐츠가 문자열뿐이라 가벼운데도 lazy 로 두는 이유는 **첫 화면 비용**
+ * 때문이다 — 시뮬레이터로 들어온 사람에게 가이드 본문을 실어 줄 이유가 없다.
+ */
+const GuidePage = lazy(() => import('@/pages/Guide/GuidePage'));
+
+/**
+ * 미국 증시 캘린더(`/market/us-calendar`) — 배당 캘린더와 같은 `lazy` 격리.
+ *
+ * 🔴 `/dividend/calendar` 밑에 두지 않은 이유: 그 화면은 **내가 고른 종목의 배당 지급일**을 그리고,
+ * 이 화면은 **시장 전체의 개폐장·발표 일정**을 그린다. 축이 달라서 주소도 갈랐다.
+ */
+const MarketCalendarPage = lazy(() => import('@/pages/MarketCalendar/MarketCalendarPage'));
+
+/**
  * 배당 지급 월 캘린더 — 티커 랜딩과 같은 `lazy` 격리.
  *
  * 시뮬레이터를 거치지 않는 독립 도구라 엔트리에 실을 이유가 없다. `PrimaryNav` 링크와 사이트맵
@@ -109,6 +163,20 @@ const DividendCalendarPage = lazy(() => import('@/pages/DividendCalendar/Dividen
  * PrimaryNav 에는 경로 문자열과 아이콘만 추가되므로 이 lazy 경계가 유지된다.
  */
 const PortfolioPage = lazy(() => import('@/pages/Portfolio/PortfolioPage'));
+
+/**
+ * 배당 연속 증배 목록(`/dividend/lists` 허브 + 배당킹·배당귀족·배당챔피언 3종) — 배당 캘린더와 같은
+ * `lazy` 격리다. 커밋된 목록 데이터를 읽는 정적 화면이라 조회가 없다.
+ *
+ * 🔴 **배럴(`@/pages/DividendList`)이 아니라 각 페이지 폴더를 직접** import 한다. 배럴을 lazy 하면
+ * 허브와 목록이 한 청크로 묶여 허브만 열어도 목록 셋의 문구·데이터를 전부 내려받는다(법무 문서 두
+ * 벌이 같은 이유로 폴더 직접 import 를 쓴다).
+ *
+ * 목록 3종은 **같은 컴포넌트**가 그린다 — 차이가 데이터와 문구뿐이라 `listId` prop 하나로 갈린다.
+ * 경로는 `/dividend/calendar`·`/dividend/portfolio` 와 같은 depth 를 지킨다.
+ */
+const DividendListHubPage = lazy(() => import('@/pages/DividendList/DividendListHubPage'));
+const DividendListPage = lazy(() => import('@/pages/DividendList/DividendListPage'));
 
 /**
  * 404 — 어떤 라우트에도 맞지 않는 주소(`*`).
@@ -295,6 +363,21 @@ export const routes: RouteObject[] = [
         element: <MainPage />
       },
       {
+        /*
+         * 검색어 랜딩 — "배당금 계산기"·"월 배당 100만원" 처럼 **사람이 검색창에 치는 말**에 1:1로
+         * 맞는 페이지다(docs/site-assessment-2026-08-06.md P0-③). 콘텐츠는 전부
+         * `shared/constants/guides` 에 있고, 새 가이드는 그 레지스트리에 한 줄이면 여기 자동으로 붙는다.
+         * ⚠ 크롤러 HTML(`api/guide-html.js`)이 같은 콘텐츠를 서버에서 그린다 — vercel.json 의 rewrite 와
+         *   이 라우트는 **한 벌**이라 한쪽만 바꾸면 색인과 화면이 갈린다.
+         */
+        path: '/guide/:slug',
+        element: (
+          <Suspense fallback={null}>
+            <GuidePage />
+          </Suspense>
+        )
+      },
+      {
         path: '/ticker/all',
         element: (
           <Suspense fallback={null}>
@@ -314,6 +397,45 @@ export const routes: RouteObject[] = [
         element: (
           <Suspense fallback={null}>
             <InvestorsPage />
+          </Suspense>
+        )
+      },
+      {
+        /* 국회의원 주식 거래 — `/portfolio/investors` 의 형제(정적 세그먼트라 순서 의존이 없다). */
+        path: '/portfolio/congress',
+        element: (
+          <Suspense fallback={null}>
+            <CongressPage />
+          </Suspense>
+        )
+      },
+      {
+        /*
+         * 대한민국 국회의원 주식 보유 — 미국 화면(`/portfolio/congress`)의 형제.
+         * 🔴 **한 화면에 합치지 않았다.** 국회공보의 정기재산변동신고는 연 1회 보유 스냅샷이고
+         * 미 하원 PTR 은 거래 기록이라, 같은 표에 놓으면 어느 쪽도 참이 아닌 숫자가 나온다.
+         */
+        path: '/portfolio/korea-assembly',
+        element: (
+          <Suspense fallback={null}>
+            <KoreaAssemblyPage />
+          </Suspense>
+        )
+      },
+      {
+        /* 국민연금 포트폴리오 — 같은 축의 세 번째 화면. */
+        path: '/portfolio/nps',
+        element: (
+          <Suspense fallback={null}>
+            <NpsPage />
+          </Suspense>
+        )
+      },
+      {
+        path: '/market/us-calendar',
+        element: (
+          <Suspense fallback={null}>
+            <MarketCalendarPage />
           </Suspense>
         )
       },
@@ -349,6 +471,27 @@ export const routes: RouteObject[] = [
           </Suspense>
         )
       },
+      {
+        /*
+         * 배당 목록 허브. `/dividend/kings` 등 정적 세그먼트들과 형제라 순서 의존이 없다
+         * (`/dividend/:id` 같은 파라미터 라우트를 두지 않았다 — 목록은 셋으로 고정이고, 파라미터로
+         * 열어 두면 존재하지 않는 목록 주소가 200 으로 살아난다).
+         */
+        path: DIVIDEND_LIST_HUB_PATH,
+        element: (
+          <Suspense fallback={null}>
+            <DividendListHubPage />
+          </Suspense>
+        )
+      },
+      ...DIVIDEND_LIST_IDS.map((listId) => ({
+        path: dividendListPath(listId),
+        element: (
+          <Suspense fallback={null}>
+            <DividendListPage listId={listId} />
+          </Suspense>
+        )
+      })),
       {
         path: '/privacy',
         element: (

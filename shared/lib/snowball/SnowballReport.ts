@@ -121,7 +121,7 @@ export type SnowballReportComposition = {
 /**
  * YoC(Yield on Cost) = 그 해의 **세후** 연 배당 ÷ 그 시점까지의 누적 투입 원금.
  *
- * 스노우볼의 핵심 지표다: 같은 원금이 해가 갈수록 더 큰 배당을 낳는다는 것을 한 숫자로 보여준다.
+ * 배당 재투자 복리의 핵심 지표다: 같은 원금이 해가 갈수록 더 큰 배당을 낳는다는 것을 한 숫자로 보여준다.
  * 명목 배당률(`weightedAverageDividendYieldPercent`)과 달리 세후·재투자 효과가 모두 반영된 실측값이라
  * 두 값을 직접 비교하면 안 된다.
  */

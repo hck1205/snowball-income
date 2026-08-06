@@ -53,7 +53,7 @@ const captureButton = () => screen.getByRole('button', { name: '결과를 이미
 
 beforeEach(() => {
   captureResultImage.mockReset();
-  captureResultImage.mockResolvedValue('스노우볼결과_내_배당_계획_20260729.png');
+  captureResultImage.mockResolvedValue('HungryHippo_결과_내_배당_계획_20260729.png');
 });
 
 describe('결과 이미지 저장 — 버튼', () => {

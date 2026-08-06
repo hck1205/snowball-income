@@ -3,6 +3,13 @@ name: Refresh ticker market data
 # Once a month, refresh the WHOLE ticker universe from Yahoo Finance (unofficial, keyless) and
 # auto-merge the result to main (= production deploy via Vercel).
 #
+# Korean listings (2026-08-06): the universe now also holds `.KS` symbols (e.g. `458730.KS`). They ride
+# this exact pipeline - Yahoo's chart endpoint serves them with the same shape and the outlier guards are
+# relative (percent-based), so KRW magnitudes need no special casing. Verified by a dry run on 458730.KS.
+# The trading-venue suffix is curated, never inferred: Yahoo answers 200 for a WRONG suffix too
+# (005930.KQ returns Samsung's price under a garbage name), so a typo would not surface here. New Korean
+# symbols must be probed first with `node scripts/koreaTickers/probe.mjs <symbol>`.
+#
 # Rate-limit note: Yahoo's chart endpoint has no documented limit, so refreshing ~68 tickers in one
 # monthly run could burst the runner's IP. Instead of splitting the work across weekdays (the old
 # design), we keep a single monthly run but space the requests out with `--delay` so the fetches

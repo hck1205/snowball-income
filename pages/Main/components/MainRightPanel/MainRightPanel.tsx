@@ -60,6 +60,7 @@ import { useMainComputed, useScenarioTabs, useSnowballForm, useTickerActions } f
 // 형제 폴더 직접 참조 — 상위 배럴(@/pages/Main/components)은 이 파일 자신도 재수출해 import 순환이 된다.
 import { ChartPanel } from '../ChartPanel';
 import MainResultGrid from '../MainResultGrid';
+import ResultBoard from '../ResultBoard';
 import ScenarioTabsRow from '../ScenarioTabsRow';
 import SettingsEntryButton from '../SettingsEntryButton';
 import { createResultAmountFormatter, formatPercent, targetYearLabel } from '@/pages/Main/utils';
@@ -353,182 +354,196 @@ function MainRightPanelComponent({ configDrawerId }: MainRightPanelProps) {
         </>
       ) : null}
 
-      {/* 탭 줄은 이제 탭 스트립만 소유한다 — "간략히" 토글은 2026-07-29 에 결과 요약 카드
-          우측 상단으로 옮겼다(탭 스트립과 가로를 나눠 써서 좁은 폭에서 가장 먼저 눌렸다). */}
-      <ScenarioTabsRow>
-        <ScenarioTabs
-          tabs={tabs}
-          activeScenarioId={activeScenarioId}
-          editingTabId={editingTabId}
-          editingTabName={editingTabName}
-          editingTabWidth={editingTabWidth}
-          draggingTabId={draggingTabId}
-          dragOverTabId={dragOverTabId}
-          dragJustFinishedRef={dragJustFinishedRef}
-          canCreateTab={canCreateTab}
-          canDeleteTab={canDeleteTab}
-          requiresLoginToCreateTab={requiresLoginToCreateTab}
-          setEditingTabName={setEditingTabName}
-          setDraggingTabId={setDraggingTabId}
-          setDragOverTabId={setDragOverTabId}
-          commitRenameMode={commitRenameMode}
-          cancelRenameMode={cancelRenameMode}
-          startRenameMode={startRenameMode}
-          openDeleteModal={openDeleteModal}
-          selectScenarioTab={selectScenarioTab}
-          reorderScenarioTabs={reorderScenarioTabs}
-          showHoverTooltip={showHoverTooltip}
-          hideHoverTooltip={hideHoverTooltip}
-          onCreateTab={handleCreateTab}
-          openScenarioTabsHelp={openScenarioTabsHelp}
-        />
-      </ScenarioTabsRow>
+      {/*
+        🔴 결과 영역은 **보드 하나**다(2026-08-03 2차 리워크). 예전에는 [탭 줄] · [알림] · [결과 격자]가
+        페이지 배경 위의 형제 셋이었고, 탭이 무엇을 전환하는지·결과가 어디까지인지 화면이 말하지
+        않았다. 지금은 머리(탭) → 알림 → 본문(격자) 이 한 틀 안에 있다.
 
-      {/* 공유 링크가 열리지 못한 이유. 프리필 안내보다 **위**다 — 링크를 타고 온 사람에게는
-          "이 화면이 당신이 열려던 것이 아니다"가 먼저 와야 한다. 실패했을 때만 렌더된다. */}
-      <ShareLinkFailureNotice />
+        캡처 계약은 그대로다: 이미지에 찍히는 것은 본문 안쪽의 격자뿐이고 탭·알림은 밖이다.
+      */}
+      <ResultBoard
+        header={
+          /* 탭 줄은 탭 스트립만 소유한다 — "간략히" 토글은 2026-07-29 에 결과 요약 카드
+             우측 상단으로 옮겼다(탭 스트립과 가로를 나눠 써서 좁은 폭에서 가장 먼저 눌렸다). */
+          <ScenarioTabsRow>
+            <ScenarioTabs
+              tabs={tabs}
+              activeScenarioId={activeScenarioId}
+              editingTabId={editingTabId}
+              editingTabName={editingTabName}
+              editingTabWidth={editingTabWidth}
+              draggingTabId={draggingTabId}
+              dragOverTabId={dragOverTabId}
+              dragJustFinishedRef={dragJustFinishedRef}
+              canCreateTab={canCreateTab}
+              canDeleteTab={canDeleteTab}
+              requiresLoginToCreateTab={requiresLoginToCreateTab}
+              setEditingTabName={setEditingTabName}
+              setDraggingTabId={setDraggingTabId}
+              setDragOverTabId={setDragOverTabId}
+              commitRenameMode={commitRenameMode}
+              cancelRenameMode={cancelRenameMode}
+              startRenameMode={startRenameMode}
+              openDeleteModal={openDeleteModal}
+              selectScenarioTab={selectScenarioTab}
+              reorderScenarioTabs={reorderScenarioTabs}
+              showHoverTooltip={showHoverTooltip}
+              hideHoverTooltip={hideHoverTooltip}
+              onCreateTab={handleCreateTab}
+              openScenarioTabsHelp={openScenarioTabsHelp}
+            />
+          </ScenarioTabsRow>
+        }
+        notices={
+          <>
+            {/* 공유 링크가 열리지 못한 이유. 프리필 안내보다 **위**다 — 링크를 타고 온 사람에게는
+                "이 화면이 당신이 열려던 것이 아니다"가 먼저 와야 한다. 실패했을 때만 렌더된다. */}
+            <ShareLinkFailureNotice />
 
-      {/* 첫 방문 프리필 안내. 결과 그리드 **밖**(형제)이라 결과 이미지 캡처에 들어가지 않고,
-          시나리오 탭 줄과 결과 사이에 서서 "이 숫자가 어디서 왔는지"를 결과보다 먼저 말한다. */}
-      <ScenarioPrefillNotice />
-
-      {/* 카드의 **폭·순서는 전부 MainResultGrid가 정한다** — 이 파일은 무엇을 넘길지만 고른다. */}
-      {simulation ? (
-        <MainResultGrid
-          summary={
-            <ResultSummaryCard
-              simulation={simulation}
-              showQuickEstimate={showQuickEstimate}
-              isResultCompact={isResultCompact}
-              /* 결과 밀도 토글 — 카드 우측 상단. 한 줄 배치(라벨 좌·스위치 우)가 기본이다. */
-              densityToggle={
-                <ToggleField
-                  label="간략히"
-                  accessibleName="결과 간략히 보기"
-                  checked={isResultCompact}
-                  onChange={handleToggleCompact}
-                />
-              }
-              targetMonthlyDividend={values.targetMonthlyDividend}
-              formatResultAmount={formatResultAmount}
-              formatPercent={formatPercent}
-              targetYearLabel={targetYearLabel}
-              condition={conditionItems}
-              conditionAction={
-                <SettingsEntryButton
-                  variant="inline"
-                  drawerId={configDrawerId}
-                  isOpen={isConfigDrawerOpen}
-                  onOpen={openConfigDrawer}
-                />
-              }
-            />
-          }
-          quickAdjust={
-            <QuickAdjustBar
-              values={{
-                monthlyContribution: values.monthlyContribution,
-                durationYears: values.durationYears,
-                targetMonthlyDividend: values.targetMonthlyDividend
-              }}
-              onSetField={setField}
-            />
-          }
-          financialIncomeBanner={
-            simulation.summary.financialIncomeThresholdYear === undefined ? null : (
-              <FinancialIncomeNotice thresholdYear={simulation.summary.financialIncomeThresholdYear} />
-            )
-          }
-          monthlyAverageChart={
-            showMonthlyAverageChart ? (
-              <ChartPanel
-                {...seriesChartProps}
-                title="월 평균 배당"
-                getYValue={getMonthlyDividend}
-                referenceLine={monthlyDividendReferenceLine}
-                reachMarker={monthlyDividendReachMarker}
-              />
-            ) : null
-          }
-          composition={
-            <PortfolioComposition
-              includedProfiles={includedProfiles}
-              normalizedAllocation={normalizedAllocation}
-              allocationPieOption={allocationPieOption}
-              allocationPercentByTickerId={allocationPercentByTickerId}
-              fixedByTickerId={fixedByTickerId}
-              adjustableTickerCount={adjustableTickerCount}
-              onSetTickerWeight={setTickerWeight}
-              onToggleTickerFixed={toggleTickerFixed}
-              onClearAllFixed={clearAllFixed}
-              onRemoveIncludedTicker={removeIncludedTicker}
-              chartLabelSuffix={chartLabelSuffix}
-              ResponsiveChart={ResponsiveEChart}
-            />
-          }
-          monthlyCashflow={
-            <MonthlyCashflow
-              chartOption={recentCashflowBarOption}
-              yearlyCashflowByTicker={yearlyCashflowByTicker}
-              hasData={hasGraphData}
-              emptyMessage={emptyGraphMessage}
-              formatAmount={formatChartValue}
-              chartLabelSuffix={chartLabelSuffix}
-              scheduleTickers={scheduleTickers}
-              ResponsiveChart={ResponsiveEChart}
-            />
-          }
-          yearlyResult={
-            <YearlyResult
-              items={yearlySeriesItems}
-              isFillOn={isYearlyAreaFillOn}
-              onToggleFill={setIsYearlyAreaFillOn}
-              chartOption={yearlyResultBarOption}
-              hasData={hasGraphData}
-              emptyMessage={emptyGraphMessage}
-              chartLabelSuffix={chartLabelSuffix}
-              ResponsiveChart={ResponsiveEChart}
-            />
-          }
-          assetValueChart={
-            showSplitGraphs ? <ChartPanel {...seriesChartProps} title="자산 가치" getYValue={getAssetValue} /> : null
-          }
-          cumulativeDividendChart={
-            showSplitGraphs ? (
-              <ChartPanel {...seriesChartProps} title="누적 배당" getYValue={getCumulativeDividend} />
-            ) : null
-          }
-          postInvestmentProjection={
-            <PostInvestmentProjectionPanel
-              title={postInvestmentChartTitle}
-              rows={postInvestmentDividendProjectionRows}
-              hasData={hasGraphData && postInvestmentDividendProjectionRows.length > 0}
-              emptyMessage={emptyGraphMessage}
-              projectionYears={postInvestmentProjectionYears}
-              onProjectionYearsChange={setPostInvestmentProjectionYears}
-              isAssetView={isPostInvestmentAssetView}
-              onAssetViewChange={setIsPostInvestmentAssetView}
-              yAxisLabelFormatter={formatChartValue}
-              chartLabelSuffix={chartLabelSuffix}
-            />
-          }
-          saleTax={
-            showSaleTaxCard ? (
-              <SaleTaxCard
-                summary={simulation.summary}
+            {/* 첫 방문 프리필 안내. 결과 격자 **밖**이라 결과 이미지 캡처에 들어가지 않고,
+                시나리오 탭 줄과 결과 사이에 서서 "이 숫자가 어디서 왔는지"를 결과보다 먼저 말한다. */}
+            <ScenarioPrefillNotice />
+          </>
+        }
+      >
+        {/* 카드의 **폭·순서·막 구분은 전부 MainResultGrid가 정한다** — 이 파일은 무엇을 넘길지만 고른다. */}
+        {simulation ? (
+          <MainResultGrid
+            summary={
+              <ResultSummaryCard
+                simulation={simulation}
+                showQuickEstimate={showQuickEstimate}
                 isResultCompact={isResultCompact}
+                /* 결과 밀도 토글 — 카드 우측 상단. 한 줄 배치(라벨 좌·스위치 우)가 기본이다. */
+                densityToggle={
+                  <ToggleField
+                    label="간략히"
+                    accessibleName="결과 간략히 보기"
+                    checked={isResultCompact}
+                    onChange={handleToggleCompact}
+                  />
+                }
+                targetMonthlyDividend={values.targetMonthlyDividend}
                 formatResultAmount={formatResultAmount}
+                formatPercent={formatPercent}
+                targetYearLabel={targetYearLabel}
+                condition={conditionItems}
+                conditionAction={
+                  <SettingsEntryButton
+                    variant="inline"
+                    drawerId={configDrawerId}
+                    isOpen={isConfigDrawerOpen}
+                    onOpen={openConfigDrawer}
+                  />
+                }
               />
-            ) : null
-          }
-        />
-      ) : (
-        <MainResultGrid
-          emptyState={
-            <PortfolioPresetBoard isPortfolioEmpty={includedProfiles.length === 0} onPresetSelect={requestApply} />
-          }
-        />
-      )}
+            }
+            quickAdjust={
+              <QuickAdjustBar
+                values={{
+                  monthlyContribution: values.monthlyContribution,
+                  durationYears: values.durationYears,
+                  targetMonthlyDividend: values.targetMonthlyDividend
+                }}
+                onSetField={setField}
+              />
+            }
+            financialIncomeBanner={
+              simulation.summary.financialIncomeThresholdYear === undefined ? null : (
+                <FinancialIncomeNotice thresholdYear={simulation.summary.financialIncomeThresholdYear} />
+              )
+            }
+            monthlyAverageChart={
+              showMonthlyAverageChart ? (
+                <ChartPanel
+                  {...seriesChartProps}
+                  title="월 평균 배당"
+                  getYValue={getMonthlyDividend}
+                  referenceLine={monthlyDividendReferenceLine}
+                  reachMarker={monthlyDividendReachMarker}
+                />
+              ) : null
+            }
+            composition={
+              <PortfolioComposition
+                includedProfiles={includedProfiles}
+                normalizedAllocation={normalizedAllocation}
+                allocationPieOption={allocationPieOption}
+                allocationPercentByTickerId={allocationPercentByTickerId}
+                fixedByTickerId={fixedByTickerId}
+                adjustableTickerCount={adjustableTickerCount}
+                onSetTickerWeight={setTickerWeight}
+                onToggleTickerFixed={toggleTickerFixed}
+                onClearAllFixed={clearAllFixed}
+                onRemoveIncludedTicker={removeIncludedTicker}
+                chartLabelSuffix={chartLabelSuffix}
+                ResponsiveChart={ResponsiveEChart}
+              />
+            }
+            monthlyCashflow={
+              <MonthlyCashflow
+                chartOption={recentCashflowBarOption}
+                yearlyCashflowByTicker={yearlyCashflowByTicker}
+                hasData={hasGraphData}
+                emptyMessage={emptyGraphMessage}
+                formatAmount={formatChartValue}
+                chartLabelSuffix={chartLabelSuffix}
+                scheduleTickers={scheduleTickers}
+                ResponsiveChart={ResponsiveEChart}
+              />
+            }
+            yearlyResult={
+              <YearlyResult
+                items={yearlySeriesItems}
+                isFillOn={isYearlyAreaFillOn}
+                onToggleFill={setIsYearlyAreaFillOn}
+                chartOption={yearlyResultBarOption}
+                hasData={hasGraphData}
+                emptyMessage={emptyGraphMessage}
+                chartLabelSuffix={chartLabelSuffix}
+                ResponsiveChart={ResponsiveEChart}
+              />
+            }
+            assetValueChart={
+              showSplitGraphs ? <ChartPanel {...seriesChartProps} title="자산 가치" getYValue={getAssetValue} /> : null
+            }
+            cumulativeDividendChart={
+              showSplitGraphs ? (
+                <ChartPanel {...seriesChartProps} title="누적 배당" getYValue={getCumulativeDividend} />
+              ) : null
+            }
+            postInvestmentProjection={
+              <PostInvestmentProjectionPanel
+                title={postInvestmentChartTitle}
+                rows={postInvestmentDividendProjectionRows}
+                hasData={hasGraphData && postInvestmentDividendProjectionRows.length > 0}
+                emptyMessage={emptyGraphMessage}
+                projectionYears={postInvestmentProjectionYears}
+                onProjectionYearsChange={setPostInvestmentProjectionYears}
+                isAssetView={isPostInvestmentAssetView}
+                onAssetViewChange={setIsPostInvestmentAssetView}
+                yAxisLabelFormatter={formatChartValue}
+                chartLabelSuffix={chartLabelSuffix}
+              />
+            }
+            saleTax={
+              showSaleTaxCard ? (
+                <SaleTaxCard
+                  summary={simulation.summary}
+                  isResultCompact={isResultCompact}
+                  formatResultAmount={formatResultAmount}
+                />
+              ) : null
+            }
+          />
+        ) : (
+          <MainResultGrid
+            emptyState={
+              <PortfolioPresetBoard isPortfolioEmpty={includedProfiles.length === 0} onPresetSelect={requestApply} />
+            }
+          />
+        )}
+      </ResultBoard>
 
       {/*
         🔴 결과 그리드의 **형제**다 — 캡처 루트(`ResultGrid`) 안에 넣으면 결과 이미지에 프리셋 13장이
@@ -561,7 +576,12 @@ function MainRightPanelComponent({ configDrawerId }: MainRightPanelProps) {
       ) : null}
       {hoverTooltip && modalRoot
         ? createPortal(
-            <ScenarioTabTooltip style={{ left: `${hoverTooltip.x + 10}px`, top: `${hoverTooltip.y + 14}px` }}>
+            <ScenarioTabTooltip
+              style={{
+                left: `${hoverTooltip.x + 10}px`,
+                top: `${hoverTooltip.y + 14}px`
+              }}
+            >
               {hoverTooltip.text}
             </ScenarioTabTooltip>,
             modalRoot

@@ -55,7 +55,13 @@ export const UndatedList = styled.ul`
   gap: ${space[2]};
 `;
 
-/** 한 종목 = 점선 칩. 날짜 칸에 놓을 수 없다는 사실이 모양에서도 읽힌다. */
+/**
+ * 한 종목 = 점선 칩. 날짜 칸에 놓을 수 없다는 사실이 모양에서도 읽힌다.
+ *
+ * 면은 침강면이다 — 이 칩은 흰 카드 위에 앉는데 구 `surfaceMuted` 는 그 위에서 1.03:1 이라
+ * 칩이 "면 없는 점선 테두리"가 됐다. 아래 `UndatedDot` 의 링 색도 **반드시 같이** 따라간다
+ * (링은 칩 배경을 흉내 내 점을 도려내는 장치라, 색이 갈리면 점 둘레에 밝은 후광이 생긴다).
+ */
 export const UndatedItem = styled.li`
   display: flex;
   align-items: center;
@@ -64,7 +70,7 @@ export const UndatedItem = styled.li`
   padding: ${space[1]} ${space[3]};
   border: 1px dashed ${color.border};
   border-radius: ${radius.pill};
-  background: ${color.surfaceMuted};
+  background: ${color.surfaceSunken};
   font-size: ${font.size.xs};
   color: ${color.textSecondary};
   transition: border-color ${motion.fast} ${motion.ease};
@@ -82,7 +88,7 @@ export const UndatedDot = styled.span`
   height: 8px;
   border-radius: 50%;
   /* 링은 점이 놓인 칩의 배경색과 같아야 또렷하다. */
-  box-shadow: 0 0 0 2px ${color.surfaceMuted};
+  box-shadow: 0 0 0 2px ${color.surfaceSunken};
 `;
 
 /** 아젠다와 같은 고정폭 티커 열 — 칩이 나란히 놓여도 배지 시작선이 흔들리지 않는다. */

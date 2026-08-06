@@ -29,3 +29,10 @@ export const CAPITAL_GAINS_ANNUAL_DEDUCTION = 2_500_000;
  * 앱은 사용자의 다른 소득을 알 수 없으므로 **세율을 자동으로 바꾸지 않고 초과 사실만 알린다**.
  */
 export const FINANCIAL_INCOME_TAX_THRESHOLD = 20_000_000;
+
+export {
+  KOREAN_DIVIDEND_TAX_RATE,
+  KOREAN_TICKER_TAX_CATEGORY,
+  isKoreanListedTicker
+} from './koreanTaxCategory';
+export type { KoreanTaxCategory } from './koreanTaxCategory';

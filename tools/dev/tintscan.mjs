@@ -27,6 +27,10 @@
  * 스코프(`--scope`, 기본 `main`) 안에서 아래를 **전부** 만족하는 엘리먼트 하나 = 면 하나.
  *  1. 실제로 보인다(`display`/`visibility`/`opacity` + 면적).
  *  2. 폭 ≥ `--min-width`(기본 180px), 높이 ≥ `--min-height`(기본 8px).
+ *  2-1. **클러스터 옵트인**(2026-08-03, D1 승인): 격자 부모가 `data-tint-cluster="<값>"` 을 내면
+ *       그 안의 **같은 배경값을 가진 동형 형제들은 합쳐서 1면**으로 센다. 카드 6장의 컬러 캡이
+ *       사람 눈에는 하나의 색 덩어리이기 때문이다. 🔴 상한은 올리지 않았다 — 세는 방법만 바뀐다.
+ *       ⚠ 라우트당 표식은 **한 값**만 허용한다(다양성 자체가 우회 수단이라 집계 단계가 막는다).
  *     ⚠ 높이 하한이 8px 인 이유: **10px 짜리 진행바도 눈에는 색 면**이다(위 5개 중 하나였다).
  *     4px 짜리 오로라 리본은 여기서 빠진다 — 그건 "면"이 아니라 선이고, 리본은 이 앱의 시그니처다.
  *  3. 배경이 중립이 아니다 = `background-image !== none`(그라디언트) **또는** `background-color` 가
@@ -152,11 +156,18 @@ const DEFAULT_SCENARIOS = [
     route: GOAL_REACHED_SHARE,
     label: '/simulator?share=… (목표 도달 + 종합과세 경고)',
     /*
-     * 🔴 3 은 **선재 부채**이고 이 시나리오의 기준선이다(2026-07-31 리뷰 B1 수리 시점 실측).
-     * 내역: ①히어로 gradient-hero ②hero 타일 accent-subtle ③종합과세 warning 배너.
+     * 🔴 3 은 이 시나리오의 기준선이다(2026-07-31 리뷰 B1 수리 시점 실측).
+     * 구 내역: ①히어로 gradient-hero ②hero 타일 accent-subtle ③종합과세 warning 배너.
+     *
+     * 2026-08-03 (D2 승인) — **면 하나가 자리를 옮겼다.** hero 타일의 accent-subtle 을 중립으로
+     * 내리고, 그 예산을 **활성 시나리오 탭의 brand 솔리드**가 받았다("색은 고르는 자리에,
+     * 숫자 자리는 조용히"). 그래서 새 내역은 ①히어로 gradient-hero ②활성 시나리오 탭 솔리드
+     * ③종합과세 warning 배너 = **최대 3** 이다. 기준선은 올리지 않았다.
+     * ⚠ 탭은 이름 길이만큼만 넓어서 하한(폭 180px)에 못 미치는 경우가 잦다 — 그럴 때 결과는
+     *   2로 **내려간다**. 그건 위반이 아니라 이 이동이 의도한 방향이다.
+     *
      * 여기서 4가 나오면 **새로 생긴 면**이라는 뜻이다 — 그게 이 항목을 넣은 이유다.
-     * 2로 내리려면 hero 타일의 액센트 면을 중립으로 내려야 하는데 그건 결과 카드의 주인공
-     * 표시를 약화시키는 결정이라 **사용자 결정 대기**다. 임의로 3→4 로 올리지 마라.
+     * 임의로 3→4 로 올리지 마라. 내리는 방향만 허용한다.
      */
     max: 3
   }
@@ -371,9 +382,27 @@ const scanExpr = (options) => `(async () => {
     // 조상 면을 거의 그대로 덮으면 같은 면이다(래퍼/채움) — 두 번 세지 않는다.
     if (parentFace && area >= parentFace.area * 0.9) continue;
 
+    /*
+     * 🔴 **클러스터 옵트인(D1, 2026-08-03 사용자 승인)** — 같은 격자 안의 **동형 형제 캡들은 합쳐서 1면**이다.
+     *
+     * 왜 필요한가: 개편안이 "고르는 면"(프리셋 카드·티커 허브 카드)에 컬러 캡을 두르는데, 카드 6장이면
+     * 면이 6개로 세어져 상한 2를 즉시 깬다. 그런데 사람 눈에 그건 **하나의 색 덩어리**다 — 같은 값이
+     * 반복되는 격자는 "면 여섯 개"가 아니라 "카드 목록 하나"로 읽힌다.
+     *
+     * 🔴 **상한은 한 줄도 올리지 않았다.** 바뀐 것은 세는 방법뿐이다. 그리고 **옵트인**이라
+     *   조용한 예외가 아니다 — 표식이 없으면 종전대로 하나씩 세어진다.
+     * ⚠ 표식은 격자 **부모**가 낸다(data-tint-cluster="pick-grid"). 자식마다 붙이면 의미가 없다.
+     * ⚠ 이 블록은 템플릿 리터럴 안이다 — **주석에 백틱을 쓰지 마라.** 문자열이 그 자리에서 끊긴다.
+     * ⚠ 라우트당 **한 값만** 허용한다 — 값을 여러 개 만들면 "묶어서 세기"를 상한 우회로 쓸 수 있다.
+     *   그 검사는 아래 집계 단계가 한다.
+     */
+    const cluster = el.closest('[data-tint-cluster]');
+    const clusterKey = cluster ? cluster.getAttribute('data-tint-cluster') : null;
+
     faces.push({
       el,
       area,
+      clusterKey,
       selector: label(el),
       width: Math.round(rect.width),
       height: Math.round(rect.height),
@@ -383,10 +412,35 @@ const scanExpr = (options) => `(async () => {
     });
   }
 
+  /*
+   * 클러스터 접기 — 같은 표식값 + **같은 배경값**이면 한 면으로 접는다.
+   * 🔴 배경값까지 같아야 하는 이유: 표식 하나로 서로 다른 색면을 무제한 숨길 수 있으면 그건 우회다.
+   *   색이 다르면 눈에도 다른 덩어리라 따로 세는 것이 맞다.
+   */
+  const collapsed = [];
+  const seenCluster = new Set();
+  for (const face of faces) {
+    if (face.clusterKey) {
+      const key = face.clusterKey + '|' + face.background;
+      if (seenCluster.has(key)) {
+        collapsed[collapsed.length - 1].mergedCount += 1;
+        continue;
+      }
+      seenCluster.add(key);
+      collapsed.push({ ...face, mergedCount: 1 });
+      continue;
+    }
+    collapsed.push({ ...face, mergedCount: 1 });
+  }
+
+  const clusterKeys = [...new Set(faces.map((f) => f.clusterKey).filter(Boolean))];
+
   return {
     scope: OPT.scope,
-    count: faces.length,
-    faces: faces.map(({ el, area, ...rest }) => rest)
+    count: collapsed.length,
+    rawCount: faces.length,
+    clusterKeys,
+    faces: collapsed.map(({ el, area, ...rest }) => rest)
   };
 })()`;
 
@@ -492,10 +546,13 @@ if (asJson) {
     // 기준선이 전역 상한보다 높으면 그 사실을 매 줄에 적는다 — 조용한 예외는 곧 잊힌 예외다.
     const debt = entry.limit > max ? ` (기준선 ${entry.limit} · 선재 부채)` : '';
     const trail = entry.clicked.length > 0 ? `  [${entry.clicked.join(' · ')}]` : '';
-    console.log(`  ${String(entry.width).padStart(4)}px  ${mark} ${String(entry.count).padStart(2)}개  ${entry.label}${debt}${trail}`);
+    /* 클러스터로 접힌 만큼을 **매 줄에 적는다** — 접었다는 사실이 안 보이면 그게 조용한 예외다. */
+    const folded = entry.rawCount > entry.count ? ` (클러스터로 ${entry.rawCount}→${entry.count} 접힘)` : '';
+    console.log(`  ${String(entry.width).padStart(4)}px  ${mark} ${String(entry.count).padStart(2)}개  ${entry.label}${debt}${folded}${trail}`);
     for (const face of entry.faces) {
+      const merged = face.mergedCount > 1 ? `  ×${face.mergedCount}(클러스터 ${face.clusterKey})` : '';
       console.log(
-        `           y=${String(face.top).padStart(5)}  ${face.width}×${face.height}  ${face.selector}  ${face.background}  "${face.text}"`
+        `           y=${String(face.top).padStart(5)}  ${face.width}×${face.height}  ${face.selector}  ${face.background}  "${face.text}"${merged}`
       );
     }
   }
@@ -505,6 +562,21 @@ if (asJson) {
 const unmeasured = report.filter((entry) => entry.count === null);
 if (unmeasured.length > 0) {
   console.error(`[tintscan] 측정 불가 ${unmeasured.length}건 — ${unmeasured.map((e) => e.label).join(', ')}`);
+  process.exit(1);
+}
+
+/*
+ * 🔴 **라우트당 클러스터 표식은 한 값뿐이다.**
+ * 값을 여러 개 만들면 "묶어서 세기"가 상한 우회 수단이 된다 — 격자마다 다른 이름을 붙이면
+ * 면 N개가 전부 1개씩으로 접힌다. 그래서 표식의 **다양성 자체**를 여기서 막는다.
+ * (같은 값 안에서 배경색이 다르면 접히지 않는 것은 수집기 쪽 규칙이다.)
+ */
+const multiCluster = report.filter((entry) => (entry.clusterKeys?.length ?? 0) > 1);
+if (multiCluster.length > 0) {
+  console.error(
+    `[tintscan] 클러스터 표식 남용 ${multiCluster.length}건 — 라우트당 한 값만 허용한다: ` +
+      multiCluster.map((e) => `${e.label} @${e.width}px [${e.clusterKeys.join(', ')}]`).join(', ')
+  );
   process.exit(1);
 }
 

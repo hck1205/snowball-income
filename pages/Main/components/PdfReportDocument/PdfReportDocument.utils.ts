@@ -63,10 +63,16 @@ export const sanitizeScenarioNameForFile = (rawName: string): string => {
 
 const pad2 = (value: number): string => String(value).padStart(2, '0');
 
-/** `스노우볼리포트_{시나리오명}_{YYYYMMDD}.pdf` */
+/**
+ * `HungryHippo_리포트_{시나리오명}_{YYYYMMDD}.pdf`
+ *
+ * ⚠ 브랜드 조각은 **공백 없이** `HungryHippo` 로 붙인다 — 파일명의 공백은 다운로드 환경(메일 첨부·
+ * 일부 브라우저·CLI)에서 이름이 잘리거나 인용부호가 끼는 원인이 된다. 시나리오 이름의 공백도
+ * `sanitizeScenarioNameForFile` 이 `_` 로 바꾼다.
+ */
 export const buildPdfReportFileName = (scenarioName: string, generatedAt: Date): string => {
   const stamp = `${generatedAt.getFullYear()}${pad2(generatedAt.getMonth() + 1)}${pad2(generatedAt.getDate())}`;
-  return `스노우볼리포트_${sanitizeScenarioNameForFile(scenarioName)}_${stamp}.pdf`;
+  return `HungryHippo_리포트_${sanitizeScenarioNameForFile(scenarioName)}_${stamp}.pdf`;
 };
 
 /** `2026년 7월 20일 14:32 생성` */

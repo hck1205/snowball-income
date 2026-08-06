@@ -56,15 +56,41 @@ export const BrandFallback = styled.span`
 `;
 
 /**
- * 브랜드 워드마크("스노우볼 인컴") — **심볼 아이콘 없이 텍스트 단독**(2026-07-27 확정).
+ * 브랜드 워드마크("Hungry Hippo") — **심볼 아이콘 없이 텍스트 단독**(2026-07-27 확정).
  * `as='h1'`(시뮬레이터)이면 랜드마크 제목을 겸하므로 margin을 0으로 리셋한다.
  *
- * 크기는 폭 예산으로 정했다(한글 표기는 영문 2줄보다 가로로 길다):
- * Gmarket Sans Bold 의 한글 한 글자 = 0.962em, 공백 = 0.28em → "스노우볼 인컴" = 6.052em,
- * 자간 -0.02em × 7자 = -0.14em → **5.912em**.
- *  - 17px → 100.5px  (구 워드마크 블록 = 로고 28 + gap 8 + "Snowball" 4.2223em×13px 54.9 ≈ 90.9px)
- *  - 15px →  88.7px  → 좁은 폭에서는 구 블록보다 **좁다**(폭 회귀 없음).
- * 그래서 mobileWide↓에서만 15px로 내린다 — 이 구간이 헤더(브랜드+토글+우측 컨트롤)가 가장 빡빡하다.
+ * ── 폭 실측 (2026-08-03, `tools/fonts/.cache/GmarketSansBold.otf` 의 hmtx 직접 읽음, unitsPerEm 1000.
+ *    캐시가 없으면 `node tools/fonts/build.mjs` 가 원본을 다시 받아 그 자리에 둔다) ──
+ * 라틴은 글자마다 자폭이 다르므로 "한 글자 = n em" 으로 곱할 수 없다. 12자 합산:
+ *   H .868 · u .696 · n .691 · g .735 · r .506 · y .653 · ␠ .280 · H .868 · i .312 · p .735 · p .735 · o .696
+ *   = **7.775em**, 자간 -0.02em × 12자 = -0.24em → **7.535em**
+ *  - 17px → **128.1px**
+ *  - 15px → **113.0px**
+ *
+ * 🔴 **폭이 줄지 않고 늘었다.** 구 한글 표기("스노우볼 인컴" = 한글 0.962em×6 + 공백 0.28em = 6.052em,
+ * 자간 -0.14em → 5.912em → 17px 100.5px · 15px 88.7px)보다 **+27.6px / +24.3px** 다. 라틴 소문자 한 자는
+ * 한글보다 좁지만 12자 대 7자라 자수가 이긴다.
+ *
+ * 그럼에도 크기를 줄이지 않는다 — **이 JSDoc 이 원래 지키던 예산이 이미 사라졌기 때문**이다.
+ * 그 예산은 `brand │ nav │ actions` **한 줄 헤더** 전제였는데, 2026-08-02 에 헤더가 모든 폭에서
+ * 두 줄이 됐다(`shared/styles/headerSurface.ts` 의 헤더 그리드 레시피 — 이름을 그대로 적지 않는 이유는
+ * `test/shared/appHeaderSingleSource.test.ts` 가 그 식별자의 등장 파일을 소스 문자열로 세기 때문이다).
+ * 지금 브랜드 줄은 `minmax(0, 1fr) auto` 로 **브랜드와 우측 컨트롤 둘뿐**이라 nav 8칸과 폭을 다투지 않는다.
+ * 가장 좁은 실사용 폭 360px 개략 산식: 거터 12px×2 → 안쪽 336, 우측 컨트롤 묶음 ≈136, 컬럼 갭 8
+ * → 브랜드 트랙 ≈192px 에 128.1px 이 들어간다. (≈136 은 추정이다 — 확정은 `npm run headerprobe` 실측.)
+ *
+ * ── 크기를 키우지 않은 근거 ──
+ * 같은 font-size 에서 라틴은 한글보다 **작게 읽힌다**: OS/2 capHeight 0.700em · xHeight 0.500em 인데
+ * 한글 잉크는 약 0.80em 이다(`shared/styles/heroTitleRow.ts` 가 실측한 display 잉크중심 +0.100em →
+ * 라인박스 중심 0.30em + 0.10 = 0.40em 이 잉크 중심이고 한글은 디센더가 사실상 없으므로 0~0.80em).
+ * 17px 에서 cap 11.9px vs 구 한글 잉크 13.6px → **약 13% 작아 보인다.**
+ * 광학 패리티는 17 × 0.80 / 0.70 ≈ **19px**(폭 143.2px)인데, 그건 폭을 한 번 더 +15px 늘리는 결정이라
+ * 계산이 아니라 실브라우저 실측으로 정할 값이다. 올릴 거면 `npm run headerprobe` 를 먼저 돌려라 —
+ * 필요한 산수는 여기 다 남겨 뒀다.
+ *
+ * mobileWide↓ 15px 단계는 이제 **폭 계산의 결과가 아니라 여유 마진**이다(192px 트랙에 113.0px).
+ * 브랜드 줄에는 클라우드 동기화 배지가 함께 서고(`AppHeader.styled.ts` 의 `LeadingSlot`),
+ * 그게 줄바꿈하면 헤더가 높아진다 — 가장 좁은 구간에서만 한 단계 낮춰 그 여지를 남긴다.
  */
 export const BrandWordmark = styled.span`
   margin: 0;
@@ -82,7 +108,7 @@ export const BrandWordmark = styled.span`
 `;
 
 /**
- * 워드마크 두 파트("스노우볼"·"인컴")가 **공유하는 단일 헬퍼**. 그라디언트 텍스트는
+ * 워드마크 두 파트(앞 낱말 "Hungry" · 뒷 낱말 "Hippo")가 **공유하는 단일 헬퍼**. 그라디언트 텍스트는
  * 세 환경에서 글자를 통째로 지우므로 폴백 3종이 한 세트다 — 회귀 시 여기 한 곳만 고친다.
  *
  *  ① `background-clip: text` 미지원 → 단색
@@ -95,14 +121,14 @@ export const BrandWordmark = styled.span`
  *
  * **이 레버는 라이트를 위한 것인데 전 테마에 건다 — 일부러 그렇게 뒀다.**
  *  - 라이트는 밝은 끝이 최악 지점이라 이득이 실측된다: 헤더 표면 위 끝 stop 1.57~1.79 → 1.72~1.97.
- *  - 다크는 두 낱말 모두 램프가 뒤집혀 **최악 지점이 x=0의 첫 stop**이고(전 프리셋 최저: 스노우볼
- *    brand300 6.98 / 인컴 teal400 7.19), 그 픽셀은 background-size와 무관하게 항상 렌더된다 →
+ *  - 다크는 두 낱말 모두 램프가 뒤집혀 **최악 지점이 x=0의 첫 stop**이고(전 프리셋 최저: 앞 낱말
+ *    brand300 6.98 / 뒷 낱말 teal400 7.19), 그 픽셀은 background-size와 무관하게 항상 렌더된다 →
  *    다크 최저는 레버 유무와 동일하다(플로어 6.9). 레버가 깎는 건 밝은 끝(9.26 → 8.66)뿐이라
  *    **대비 손실이 아니라 램프 폭 26% 압축**이고, 두 stop이 한 칸 차이(#79c5e6→#aadcf2)라
  *    15~17px 워드마크에서는 사실상 단색으로 읽힌다.
  *  - 반면 라이트에만 걸려면 이 앱의 모드 판정을 여기서 세 갈래로 복제해야 한다
  *    (`@media (prefers-color-scheme: dark)` + `:root[data-theme='light'] &` + `:root[data-theme='dark'] &`
- *    — TickerDetailPage.styled.ts 선례). 장식 한 줄 때문에 모드 판정이 한 곳 더 생기면 나중에 모드
+ *    — 티커 상세 styled/ 선례). 장식 한 줄 때문에 모드 판정이 한 곳 더 생기면 나중에 모드
  *    해석이 바뀔 때 여기만 조용히 뒤처진다. **이득(눈에 안 보이는 26%) < 비용(영구 분기 3개)** 이라
  *    전 테마 적용을 유지한다.
  */
@@ -129,13 +155,26 @@ const wordmarkGradientText = (gradient: string, solid: string) => `
   }
 `;
 
-/** 워드마크 앞 낱말 — 아이스 블루 램프. */
-export const WordmarkSnow = styled.span`
+/**
+ * 워드마크 앞 낱말("Hungry") — 아이스 블루 램프.
+ *
+ * 이름은 2026-08-03 브랜드 교체 때 `WordmarkSnow` → `WordmarkLead` 로 바꿨다. 구 이름은 옛 제품명의
+ * 첫 낱말("스노우볼")을 그대로 딴 것이라 새 이름에서는 아무것도 가리키지 않고, 레포의 "눈덩이/스노우볼
+ * 비유 전 표면 금지" 규칙과도 어긋난다. 계산 엔진 식별자(`SnowballSimulation` 등)처럼 **보호되는
+ * 이름이 아니다** — 순수 표현 계층이고 쓰는 곳이 이 파일과 `PrimaryNav.tsx` 둘뿐이라 diff 도 6줄이다.
+ *
+ * ⚠ 색 토큰(`color.gradientWordmarkSnow` · `wordmarkSnowSolid`)은 이름을 **일부러 그대로 뒀다**
+ *   (2026-08-03 최종 스윕 판단). 여기 styled 심볼과 달리 그쪽은 CSS 변수명(`--sb-gradient-wordmark-snow`)
+ *   까지 딸려 있어 8프리셋 × light/dark 토큰 맵과 `contrast.test.ts` 의 키 동등성 검사가 함께 움직여야 한다 —
+ *   순수 식별자라 사용자에게 보이지 않는데 diff 만 커진다. 대신 `shared/styles/semantic.ts` ·
+ *   `presets/sharedTokens.ts` 주석에 "이름은 구 제품명 잔재, 값은 앞/뒷 낱말"이라고 명시해 뒀다.
+ */
+export const WordmarkLead = styled.span`
   ${wordmarkGradientText(color.gradientWordmarkSnow, color.wordmarkSnowSolid)}
 `;
 
-/** 워드마크 뒤 낱말 — 틸→그린(액센트 축). */
-export const WordmarkIncome = styled.span`
+/** 워드마크 뒤 낱말("Hippo") — 틸→그린(액센트 축). 이름 근거는 위 `WordmarkLead` 참고. */
+export const WordmarkTail = styled.span`
   ${wordmarkGradientText(color.gradientWordmarkIncome, color.wordmarkIncomeSolid)}
 `;
 
@@ -154,6 +193,13 @@ export const NavScroller = styled.nav`
   min-width: 0;
   overflow-x: auto;
   padding: ${space[1]} 2px;
+  /*
+   * 🔴 좌우 2px 은 **포커스 링 자리**이지 여백이 아니다(스크롤 클리핑에 링이 잘리는 것을 막는다).
+   * 같은 값만큼 음수 마진으로 되돌려, 링 자리는 지키면서 **항목의 시작선은 워드마크와 같은 x** 가
+   * 되게 한다(2026-08-05 사용자 지시: "메뉴가 Hungry Hippo 와 같은 start 에서 나열되게").
+   * ⚠ 패딩을 0 으로 없애는 방식으로 하지 마라 — 그러면 첫·마지막 항목의 포커스 링이 잘린다.
+   */
+  margin-inline: -2px;
   -webkit-overflow-scrolling: touch;
   ${subtleScrollbar}
 
@@ -186,11 +232,21 @@ export const NavItems = styled.div<{ $scrollRow?: boolean }>`
     gap: ${space[1]};
   }
 
-  /* 스크롤 줄 모드: 남으면 정중앙(margin auto), 넘치면 좌측부터 스크롤(NavScroller 주석 참고). */
+  /*
+   * 스크롤 줄 모드(헤더 메뉴 줄) — **줄 전폭을 쓰고 남는 폭을 항목 사이로 균등 분배**한다.
+   *
+   * 🔴 종전의 가운데 뭉침(margin-inline: auto)을 2026-08-05 사용자 지시로 걷어냈다. 첫 항목이
+   * 워드마크와 같은 x 에서 시작하고 마지막 항목이 줄 끝에 닿는다 — 헤더 두 줄의 좌우 끝선이 맞는다.
+   * ⚠ width: 100% 는 **필수**다. 이것이 없으면 inline-flex 가 내용 폭으로 줄어들어
+   *   space-between 이 나눌 남는 폭 자체가 생기지 않는다(간격이 gap 그대로 붙어 버린다).
+   * ⚠ 항목이 줄보다 넓어지면 간격은 gap 최솟값으로 수렴하고 줄은 왼쪽부터 스크롤된다 —
+   *   center 정렬과 달리 넘친 항목이 스크롤로 못 닿는 자리로 잘려 나가지 않는다.
+   */
   ${({ $scrollRow }) =>
     $scrollRow
       ? `
-    margin-inline: auto;
+    width: 100%;
+    justify-content: space-between;
     flex-wrap: nowrap;
   `
       : ''}

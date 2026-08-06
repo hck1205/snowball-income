@@ -4,7 +4,7 @@
 
 import type { ThemeTokens } from '../semantic';
 import { chartSeriesTokens, type ChartSeries } from './chartSeriesTokens';
-import { buildAuroraGradient, buildDuotoneGradient, buildHeroGradient } from './gradients';
+import { buildAuroraGradient, buildDuotoneGradient } from './gradients';
 import { COMMON_DARK, COMMON_LIGHT } from './sharedTokens';
 
 /**
@@ -28,14 +28,20 @@ const GRAPE_CHART_SERIES: ChartSeries = [
  * #8a68e8은 라벨 4.01로 탈락(실측). knife-edge라 더 어둡게 조정 금지.
  */
 export const GRAPE_LIGHT: ThemeTokens = {
-  bg: '#f3effa',
+  /*
+   * 🔴 **순백 캔버스**(2026-08-03 사용자 결정 — "페이지 전체 배경색이 흰색"). 구 값 라일락 틴트(#f3effa).
+   * bg = surface = surface-raised 가 전부 흰색이 되면서 **면색이 카드의 격을 말하지 못한다** —
+   * 그 일은 아래 `border`(헤어라인)·여백·그림자가 이어받았다. 라일락은 `surface-hover`·brand 축에 남는다.
+   */
+  bg: '#ffffff',
   surface: '#ffffff',
   'surface-raised': '#ffffff',
   'surface-muted': '#faf8fd',
   'surface-sunken': '#eae3f5',
   'surface-hover': '#f3effa',
 
-  border: '#e0d7ef',
+  /* 🔴 흰 캔버스의 주역. 구 1.39:1 → 새 1.44:1. */
+  border: '#dcd3eb',
   'border-strong': '#7f7694',
 
   text: '#221c33',
@@ -70,7 +76,8 @@ export const GRAPE_LIGHT: ThemeTokens = {
 
   /* 퍼플 틴트 섀도 */
   'shadow-1': '0 1px 2px rgba(34, 24, 58, 0.06), 0 1px 3px rgba(34, 24, 58, 0.08)',
-  'shadow-2': '0 2px 4px rgba(34, 24, 58, 0.06), 0 4px 12px rgba(34, 24, 58, 0.10)',
+  /* ⚠ e2 만 올렸다 — raised 는 테두리 없이 이 그림자 하나로 선다. */
+  'shadow-2': '0 1px 2px rgba(34, 24, 58, 0.05), 0 6px 18px rgba(34, 24, 58, 0.13)',
   'shadow-3': '0 2px 6px rgba(34, 24, 58, 0.08), 0 12px 32px rgba(34, 24, 58, 0.18)',
 
   'ribbon-stop-1': '#7048c8',
@@ -84,10 +91,14 @@ export const GRAPE_LIGHT: ThemeTokens = {
   'gradient-aurora': buildAuroraGradient(['#7048c8', '#a136b8', '#4956d4']),
   'gradient-cta': buildDuotoneGradient('#7048c8', '#5c39ab'),
   /* 히어로 면 — 최악 text-muted 5.27:1 / soft 5.75:1(실측). */
-  'gradient-hero': buildHeroGradient('#deecf6', '#e6f5ef'),
-  'gradient-hero-soft': buildHeroGradient('#edf5fa', '#f1f9f6'),
-  'bg-glow':
-    'radial-gradient(1200px 640px at 16% -10%, rgba(112, 72, 200, 0.05), transparent 60%), radial-gradient(1000px 560px at 84% -12%, rgba(161, 54, 184, 0.05), transparent 55%), #f3effa',
+  /*
+   * 히어로 면 — 단색. 구 값은 **이 프리셋에 없는 색**이었다(퍼플 프리셋인데 히어로만
+   * 아이스블루→민트). 옛 브랜드 램프였다는 가장 알기 쉬운 증거다.
+   */
+  'gradient-hero': '#ffffff',
+  'gradient-hero-soft': '#faf8fd',
+  /* 🔴 상단 글로우를 걷었다. 다크 글로우는 남긴다. */
+  'bg-glow': '#ffffff',
   'surface-glass': 'rgba(255, 255, 255, 0.8)',
   'surface-glass-fallback': '#ffffff',
 
@@ -157,8 +168,9 @@ export const GRAPE_DARK: ThemeTokens = {
   'gradient-aurora': buildAuroraGradient(['#a184f2', '#d478e8', '#8f9bff']),
   'gradient-cta': buildDuotoneGradient('#7a53da', '#6845c6'),
   /* 히어로 면 — 다크 최악 text-muted 5.00:1 / soft 5.58:1(실측). velog 다크 다음으로 얇다. */
-  'gradient-hero': buildHeroGradient('#1d2541', '#1b2934'),
-  'gradient-hero-soft': buildHeroGradient('#1a1c35', '#191e2e'),
+  /* 히어로 면 — 단색. 다크는 면 밝기 위계를 지킨다. */
+  'gradient-hero': '#221a3a',
+  'gradient-hero-soft': '#281f45',
   /* 다크 글로우 알파 0.10/0.08 상한(사전 계산으로 0.12에서 감쇄) */
   'bg-glow':
     'radial-gradient(1100px 600px at 18% -10%, rgba(161, 132, 242, 0.10), transparent 60%), radial-gradient(900px 520px at 82% -14%, rgba(212, 120, 232, 0.08), transparent 55%), #171126',

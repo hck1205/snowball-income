@@ -75,12 +75,12 @@ const CACHE_POST = 'public, max-age=0, s-maxage=300, stale-while-revalidate=6048
 const CACHE_NO_STORE = 'no-store';
 
 /** 상세 페이지 메타에 붙일 사이트 접미사 — index.html 의 기본 title 과 같은 브랜드 표기. */
-const SITE_SUFFIX = 'Snowball Income';
+const SITE_SUFFIX = 'Hungry Hippo';
 
 /** description 이 없는 글(첨부만 있는 포트폴리오 등)의 기본 설명. 종류별로 문맥이 다르다. */
 const FALLBACK_DESCRIPTION: Record<PublicPostKind, string> = {
-  portfolio: '스노우볼 인컴 커뮤니티에 공유된 배당 포트폴리오 시나리오입니다. 월 배당·목표 달성 시점을 확인해 보세요.',
-  board: '스노우볼 인컴 자유게시판에 올라온 글입니다.'
+  portfolio: 'Hungry Hippo 커뮤니티에 공유된 배당 포트폴리오 시나리오입니다. 월 배당·목표 달성 시점을 확인해 보세요.',
+  board: 'Hungry Hippo 자유게시판에 올라온 글입니다.'
 };
 
 const htmlResponse = (html: string, status: number, cache: string): Response =>

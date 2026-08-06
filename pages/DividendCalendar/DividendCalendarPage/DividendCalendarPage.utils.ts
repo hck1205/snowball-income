@@ -1,9 +1,16 @@
-import { buildAgendaDays, buildMonthViewModel, filterCalendarUniverse, isSchedulableState } from '../utils';
-import type { CalendarTickerEntry, ExpectedPayoutDayResolver } from '../utils';
+import {
+  buildAgendaDays,
+  buildMonthViewModel,
+  filterCalendarUniverse,
+  formatCalendarDate,
+  isSchedulableState
+} from '../utils';
+import type { AgendaDay, CalendarTickerEntry, ExpectedPayoutDayResolver } from '../utils';
 import { DIVIDEND_CALENDAR_COPY } from '../copy';
 import type {
   CalendarLastAction,
   CalendarLoadStatus,
+  CalendarNextPayout,
   CalendarTickerOption,
   DividendCalendarViewModel,
   ScheduleLegendRow
@@ -37,6 +44,56 @@ export const toCalendarTickerOption = (entry: CalendarTickerEntry): CalendarTick
   months: entry.payoutMonths ? [...entry.payoutMonths] : [],
   source: entry.hasSchedule ? (entry.source ?? 'ex') : entry.isNonDividend ? 'nonDividend' : null
 });
+
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+/**
+ * 로컬 자정 기준 날짜 차이. 🔴 `Date.getTime()` 차이를 그대로 나누지 않는다 — 시각이 섞이면
+ * "오늘 23시 → 내일 01시"가 0일이 되고, DST 가 있는 지역에서는 23/25시간짜리 하루가 생긴다.
+ * 두 값을 **로컬 자정으로 눌러서** 뺀 뒤 반올림하면 두 함정이 함께 사라진다.
+ */
+const daysBetween = (from: Date, to: Date): number => {
+  const fromMidnight = new Date(from.getFullYear(), from.getMonth(), from.getDate()).getTime();
+  const toMidnight = new Date(to.getFullYear(), to.getMonth(), to.getDate()).getTime();
+
+  return Math.round((toMidnight - fromMidnight) / MS_PER_DAY);
+};
+
+/**
+ * **이 화면이 가장 먼저 답해야 하는 사실** — "다음은 언제인가".
+ *
+ * 근거는 이미 계산된 아젠다(그 달의 날짜순 지급 목록)뿐이다. 별도 데이터 소스를 만들지 않는다:
+ * 달력·목록·데크가 서로 다른 계산을 하면 같은 화면이 세 가지 날짜를 말하게 된다.
+ *
+ * - 오늘 이후(오늘 포함)의 첫 지급이 있으면 그것이 답이다(`isPast: false`, `daysUntil >= 0`).
+ * - 다 지났으면 **마지막 지급**을 돌려주고 지났다는 사실을 표시한다(`isPast: true`) —
+ *   "없음"으로 뭉개면 지난 달을 열어 본 사람에게 화면이 텅 빈다.
+ * - 그 달에 날짜가 잡힌 지급이 하나도 없으면 `null`(날짜 미정만 있는 달도 여기 해당한다).
+ *
+ * ⚠ 범위는 **표시 중인 달**이다. 달을 넘기면 그 달 기준으로 다시 계산된다 — 데크 위의 월 제목이
+ *   그 범위를 말하므로 문구에 달 이름을 다시 넣지 않는다.
+ */
+export const selectNextPayout = (agendaDays: AgendaDay[], today: Date): CalendarNextPayout | null => {
+  if (agendaDays.length === 0) return null;
+
+  const todayDate = formatCalendarDate(today.getFullYear(), today.getMonth() + 1, today.getDate());
+  const upcoming = agendaDays.find((day) => day.date >= todayDate);
+  const target = upcoming ?? agendaDays[agendaDays.length - 1];
+  const isPast = upcoming === undefined;
+  /* 🔴 연도는 **`date` 문자열에서** 읽는다. `today.getFullYear()` 를 쓰면 2026년 12월에 2027년 1월을
+     펼쳤을 때 D-day 가 한 해(365일)만큼 틀린다 — 눈으로는 그럴듯한 숫자라 조용히 지나간다. */
+  const targetDate = new Date(Number(target.date.slice(0, 4)), target.month - 1, target.day);
+
+  return {
+    date: target.date,
+    month: target.month,
+    day: target.day,
+    weekday: target.weekday,
+    isPast,
+    daysUntil: isPast ? null : daysBetween(today, targetDate),
+    tickers: target.items.map((item) => item.ticker)
+  };
+};
 
 const toLegendRow = (option: CalendarTickerOption): ScheduleLegendRow | null =>
   isSchedulableState(option.source) ? { ...option, source: option.source } : null;
@@ -107,6 +164,8 @@ export const buildDividendCalendarViewModel = ({
         })
       : null;
 
+  const agendaDays = buildAgendaDays(monthViewModel);
+
   return {
     options,
     filtered,
@@ -119,7 +178,9 @@ export const buildDividendCalendarViewModel = ({
     asOf,
     month: monthViewModel,
     previewMonth,
-    agendaDays: buildAgendaDays(monthViewModel),
+    agendaDays,
+    /* 데크가 읽는 "다음은 언제인가". 아젠다와 **같은 배열**에서 뽑으므로 둘이 어긋날 수 없다. */
+    nextPayout: selectNextPayout(agendaDays, today),
     monthLabel: copy.nav.monthLabel(year, month)
   };
 };

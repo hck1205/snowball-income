@@ -1,0 +1,718 @@
+{
+  "asOf": "2026-08-03",
+  "source": "proshares-nobl+wikipedia",
+  "lists": {
+    "aristocrats": {
+      "id": "aristocrats",
+      "minimumStreakYears": 25,
+      "asOf": "2026-08-03",
+      "sources": [
+        {
+          "label": "ProShares NOBL 보유내역",
+          "url": "https://accounts.profunds.com/etfdata/psdlyhld.csv",
+          "role": "primary",
+          "retrievedAt": "2026-08-03"
+        },
+        {
+          "label": "Wikipedia",
+          "url": "https://en.wikipedia.org/wiki/S%26P_500_Dividend_Aristocrats",
+          "role": "crosscheck",
+          "retrievedAt": "2026-08-03"
+        }
+      ],
+      "coverageNote": "S&P 500 배당귀족 지수를 추종하는 ETF(NOBL)의 보유내역에서 편입 종목을 확인하고, 위키피디아 구성종목 표와 대조했습니다. 두 소스는 69종에서 일치했습니다.",
+      "members": [
+        {
+          "ticker": "ABBV",
+          "name": "AbbVie",
+          "sector": "healthCare",
+          "sourceSectorLabel": "Health Care",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "ABT",
+          "name": "Abbott Laboratories",
+          "sector": "healthCare",
+          "sourceSectorLabel": "Health Care",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "ADM",
+          "name": "Archer-Daniels-Midland Co",
+          "sector": "consumerStaples",
+          "sourceSectorLabel": "Consumer Staples",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "ADP",
+          "name": "Automatic Data Processing",
+          "sector": "informationTechnology",
+          "sourceSectorLabel": "Information Technology",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "AFL",
+          "name": "AFLAC",
+          "sector": "financials",
+          "sourceSectorLabel": "Financials",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "ALB",
+          "name": "Albemarle Corporation",
+          "sector": "materials",
+          "sourceSectorLabel": "Materials",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "AMCR",
+          "name": "Amcor",
+          "sector": "materials",
+          "sourceSectorLabel": "Materials",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "AOS",
+          "name": "A.O. Smith",
+          "sector": "industrials",
+          "sourceSectorLabel": "Industrials",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "APD",
+          "name": "Air Products & Chemicals",
+          "sector": "materials",
+          "sourceSectorLabel": "Materials",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "ATO",
+          "name": "Atmos Energy Corp",
+          "sector": "utilities",
+          "sourceSectorLabel": "Utilities",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "BDX",
+          "name": "Becton Dickinson & Co",
+          "sector": "healthCare",
+          "sourceSectorLabel": "Health Care",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "BEN",
+          "name": "Franklin Resources Inc",
+          "sector": "financials",
+          "sourceSectorLabel": "Financials",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "BF.B",
+          "name": "Brown–Forman (class B)",
+          "sector": "consumerStaples",
+          "sourceSectorLabel": "Consumer Staples",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "BRO",
+          "name": "Brown & Brown Inc.",
+          "sector": "financials",
+          "sourceSectorLabel": "Financials",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "CAH",
+          "name": "Cardinal Health Inc",
+          "sector": "healthCare",
+          "sourceSectorLabel": "Health Care",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "CAT",
+          "name": "Caterpillar Inc",
+          "sector": "industrials",
+          "sourceSectorLabel": "Industrials",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "CB",
+          "name": "Chubb Limited",
+          "sector": "financials",
+          "sourceSectorLabel": "Financials",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "CHD",
+          "name": "Church & Dwight",
+          "sector": "consumerStaples",
+          "sourceSectorLabel": "Consumer Staples",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "CHRW",
+          "name": "C.H. Robinson",
+          "sector": "industrials",
+          "sourceSectorLabel": "Industrials",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "CINF",
+          "name": "Cincinnati Financial Corp",
+          "sector": "financials",
+          "sourceSectorLabel": "Financials",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "CL",
+          "name": "Colgate-Palmolive",
+          "sector": "consumerStaples",
+          "sourceSectorLabel": "Consumer Staples",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "CLX",
+          "name": "Clorox",
+          "sector": "consumerStaples",
+          "sourceSectorLabel": "Consumer Staples",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "CTAS",
+          "name": "Cintas Corp",
+          "sector": "industrials",
+          "sourceSectorLabel": "Industrials",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "CVX",
+          "name": "Chevron Corp",
+          "sector": "energy",
+          "sourceSectorLabel": "Energy",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "DOV",
+          "name": "Dover Corp",
+          "sector": "industrials",
+          "sourceSectorLabel": "Industrials",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "ECL",
+          "name": "Ecolab Inc",
+          "sector": "materials",
+          "sourceSectorLabel": "Materials",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "ED",
+          "name": "Consolidated Edison Inc",
+          "sector": "utilities",
+          "sourceSectorLabel": "Utilities",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "EMR",
+          "name": "Emerson Electric",
+          "sector": "industrials",
+          "sourceSectorLabel": "Industrials",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "ERIE",
+          "name": "Erie Indemnity",
+          "sector": "financials",
+          "sourceSectorLabel": "Financials",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "ES",
+          "name": "Eversource Energy",
+          "sector": "utilities",
+          "sourceSectorLabel": "Utilities",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "ESS",
+          "name": "Essex Property Trust",
+          "sector": "realEstate",
+          "sourceSectorLabel": "Real Estate",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "EXPD",
+          "name": "Expeditors International of Washington",
+          "sector": "industrials",
+          "sourceSectorLabel": "Industrials",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "FAST",
+          "name": "Fastenal",
+          "sector": "industrials",
+          "sourceSectorLabel": "Industrials",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "FDS",
+          "name": "FactSet Research Systems",
+          "sector": "financials",
+          "sourceSectorLabel": "Financials",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "FRT",
+          "name": "Federal Realty Investment Trust",
+          "sector": "realEstate",
+          "sourceSectorLabel": "Real Estate",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "GD",
+          "name": "General Dynamics",
+          "sector": "industrials",
+          "sourceSectorLabel": "Industrials",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "GPC",
+          "name": "Genuine Parts Company",
+          "sector": "consumerDiscretionary",
+          "sourceSectorLabel": "Consumer Discretionary",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "GWW",
+          "name": "W. W. Grainger",
+          "sector": "industrials",
+          "sourceSectorLabel": "Industrials",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "HRL",
+          "name": "Hormel Foods Corp",
+          "sector": "consumerStaples",
+          "sourceSectorLabel": "Consumer Staples",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "IBM",
+          "name": "IBM",
+          "sector": "informationTechnology",
+          "sourceSectorLabel": "Information Technology",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "ITW",
+          "name": "Illinois Tool Works",
+          "sector": "industrials",
+          "sourceSectorLabel": "Industrials",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "JNJ",
+          "name": "Johnson & Johnson",
+          "sector": "healthCare",
+          "sourceSectorLabel": "Health Care",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "KMB",
+          "name": "Kimberly-Clark",
+          "sector": "consumerStaples",
+          "sourceSectorLabel": "Consumer Staples",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "KO",
+          "name": "Coca-Cola Co",
+          "sector": "consumerStaples",
+          "sourceSectorLabel": "Consumer Staples",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "KVUE",
+          "name": "Kenvue, Inc.",
+          "sector": "consumerStaples",
+          "sourceSectorLabel": "Consumer Staples",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "LIN",
+          "name": "Linde plc",
+          "sector": "materials",
+          "sourceSectorLabel": "Materials",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "LOW",
+          "name": "Lowe's",
+          "sector": "consumerDiscretionary",
+          "sourceSectorLabel": "Consumer Discretionary",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "MCD",
+          "name": "McDonald's Corp",
+          "sector": "consumerDiscretionary",
+          "sourceSectorLabel": "Consumer Discretionary",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "MDT",
+          "name": "Medtronic plc",
+          "sector": "healthCare",
+          "sourceSectorLabel": "Health Care",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "MKC",
+          "name": "McCormick & Company",
+          "sector": "consumerStaples",
+          "sourceSectorLabel": "Consumer Staples",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "NDSN",
+          "name": "Nordson Corp",
+          "sector": "industrials",
+          "sourceSectorLabel": "Industrials",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "NEE",
+          "name": "NextEra Energy",
+          "sector": "utilities",
+          "sourceSectorLabel": "Utilities",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "NUE",
+          "name": "Nucor Corp",
+          "sector": "materials",
+          "sourceSectorLabel": "Materials",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "O",
+          "name": "Realty Income",
+          "sector": "realEstate",
+          "sourceSectorLabel": "Real Estate",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "PEP",
+          "name": "PepsiCo",
+          "sector": "consumerStaples",
+          "sourceSectorLabel": "Consumer Staples",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "PG",
+          "name": "Procter & Gamble",
+          "sector": "consumerStaples",
+          "sourceSectorLabel": "Consumer Staples",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "PNR",
+          "name": "Pentair",
+          "sector": "industrials",
+          "sourceSectorLabel": "Industrials",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "PPG",
+          "name": "PPG Industries",
+          "sector": "materials",
+          "sourceSectorLabel": "Materials",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "ROP",
+          "name": "Roper Technologies",
+          "sector": "industrials",
+          "sourceSectorLabel": "Industrials",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "SHW",
+          "name": "Sherwin-Williams",
+          "sector": "materials",
+          "sourceSectorLabel": "Materials",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "SJM",
+          "name": "The J. M. Smucker Company",
+          "sector": "consumerStaples",
+          "sourceSectorLabel": "Consumer Staples",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "SPGI",
+          "name": "S&P Global Inc",
+          "sector": "financials",
+          "sourceSectorLabel": "Financials",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "SWK",
+          "name": "Stanley Black & Decker",
+          "sector": "industrials",
+          "sourceSectorLabel": "Industrials",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "SYY",
+          "name": "Sysco Corp",
+          "sector": "consumerStaples",
+          "sourceSectorLabel": "Consumer Staples",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "TGT",
+          "name": "Target Corp",
+          "sector": "consumerDiscretionary",
+          "sourceSectorLabel": "Consumer Discretionary",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "TROW",
+          "name": "T Rowe Price Group Inc",
+          "sector": "financials",
+          "sourceSectorLabel": "Financials",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "WMT",
+          "name": "Walmart Inc.",
+          "sector": "consumerStaples",
+          "sourceSectorLabel": "Consumer Staples",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "WST",
+          "name": "West Pharmaceutical Services",
+          "sector": "healthCare",
+          "sourceSectorLabel": "Health Care",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        },
+        {
+          "ticker": "XOM",
+          "name": "Exxon Mobil Corp",
+          "sector": "energy",
+          "sourceSectorLabel": "Energy",
+          "confirmedBy": [
+            "ProShares NOBL 보유내역",
+            "Wikipedia"
+          ]
+        }
+      ]
+    }
+  }
+}

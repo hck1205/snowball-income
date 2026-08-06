@@ -20,6 +20,7 @@ import { MEGA_CAP_GROWTH_STOCKS } from './megaCapGrowthStocks';
 import { FINANCIAL_DIVIDEND_STOCKS } from './financialDividendStocks';
 import { DIVIDEND_ARISTOCRAT_STOCKS } from './dividendAristocratStocks';
 import { GURU_HOLDING_STOCKS } from './guruHoldingStocks';
+import { KOREAN_DIVIDEND_TICKERS } from './koreanDividendTickers';
 
 export { US_DIVIDEND_GROWTH_ETFS } from './usDividendGrowthEtfs';
 export { US_HIGH_DIVIDEND_ETFS } from './usHighDividendEtfs';
@@ -35,6 +36,7 @@ export { MEGA_CAP_GROWTH_STOCKS } from './megaCapGrowthStocks';
 export { FINANCIAL_DIVIDEND_STOCKS } from './financialDividendStocks';
 export { DIVIDEND_ARISTOCRAT_STOCKS } from './dividendAristocratStocks';
 export { GURU_HOLDING_STOCKS } from './guruHoldingStocks';
+export { KOREAN_DIVIDEND_TICKERS } from './koreanDividendTickers';
 
 /**
  * Hand-curated preset values. This is the source of truth for `name` and `expectedTotalReturn`,
@@ -57,7 +59,10 @@ export const CURATED_DIVIDEND_UNIVERSE = {
   ...MEGA_CAP_GROWTH_STOCKS,
   ...FINANCIAL_DIVIDEND_STOCKS,
   ...DIVIDEND_ARISTOCRAT_STOCKS,
-  ...GURU_HOLDING_STOCKS
+  ...GURU_HOLDING_STOCKS,
+  /* 한국 상장 12종(2026-08-06). 티커 키가 '458730.KS' 처럼 점을 포함하는 유일한 묶음이다 —
+     야후 심볼을 그대로 쓴다(접미사를 큐레이션에 못 박는 이유는 그 파일 머리말). */
+  ...KOREAN_DIVIDEND_TICKERS
 } as const;
 
 /** `dividendGrowth` is a derived number, so it widens away from the preset's literal type. */
@@ -361,7 +366,26 @@ export const PRESET_TICKER_KOREAN_NAME_BY_TICKER = {
   AZN: '아스트라제네카',
   BP: 'BP',
   SHEL: '쉘',
-  JCI: '존슨 컨트롤스 인터내셔널'
+  JCI: '존슨 컨트롤스 인터내셔널',
+
+  /*
+   * 한국 상장 12종(2026-08-06). 🔴 위 미국 종목과 달리 **`name` 과 같은 문자열**이다 — 국내 종목은
+   * 공식 명칭 자체가 한국어라 "영문명 → 한글명" 번역이 존재하지 않는다. 그래도 이 표는 채운다:
+   * 이 맵은 화면이 한글명을 찾는 **유일한 경로**이고, 비면 그 종목만 이름 없이 뜬다
+   * (타입이 유니버스 전 종목을 강제하는 이유이기도 하다).
+   */
+  '458730.KS': 'TIGER 미국배당다우존스',
+  '402970.KS': 'ACE 미국배당다우존스',
+  '483290.KS': 'KODEX 미국배당다우존스타겟커버드콜',
+  '161510.KS': 'PLUS 고배당주',
+  '279530.KS': 'KODEX 고배당',
+  '104530.KS': 'KOSEF 고배당',
+  '210780.KS': 'TIGER 코스피고배당',
+  '211560.KS': 'TIGER 배당성장',
+  '088980.KS': '맥쿼리인프라',
+  '033780.KS': 'KT&G',
+  '316140.KS': '우리금융지주',
+  '105560.KS': 'KB금융'
 } as const satisfies Record<keyof typeof DIVIDEND_UNIVERSE, string>;
 
 export type PresetTickerKey = keyof typeof DIVIDEND_UNIVERSE;

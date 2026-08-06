@@ -1,6 +1,20 @@
 import { memo } from 'react';
+import { createPortal } from 'react-dom';
+import { COMMUNITY_COPY } from '@/shared/constants/community';
+import { usePageFooterSlot } from '../PageFooterSlot';
 import type { PageFooterProps } from './PageFooter.types';
-import { FooterRoot, LegalLink, LegalLinks, Note, NotesGroup, NotesTitle, SiteNotice } from './PageFooter.styled';
+import {
+  BrandMark,
+  FooterMasthead,
+  FooterRoot,
+  LegalLink,
+  LegalLinks,
+  Note,
+  NotesGroup,
+  NotesTitle,
+  PanelRule,
+  SiteNotice
+} from './PageFooter.styled';
 
 /**
  * 전 화면 공용 푸터 — **페이지별 각주 슬롯 + 사이트 공통 고지**.
@@ -25,6 +39,12 @@ import { FooterRoot, LegalLink, LegalLinks, Note, NotesGroup, NotesTitle, SiteNo
  * 컴포넌트 하나가 그 전부에 Router 컨텍스트를 요구하게 된다. 법무 문서는 **읽고 돌아가는 종착지**라
  * 전체 문서 로드가 손해도 아니다. 경로 기반 주소는 그대로이므로(해시 라우팅 아님) 크롤러·OAuth 심사가
  * 보는 URL 도 동일하다.
+ *
+ * ## 브랜드 패널 (2026-08-03)
+ * 이 푸터는 **매 화면 하단에 서는 유일한 브랜드 면**이다. 라이트 테마의 제품 화면에는 금색이 한
+ * 픽셀도 없었는데(밝은 면 위 금색은 1.83:1), 금색이 합법인 유일한 조합이 네이비 패널 위다.
+ * 그래서 심볼(하마)·법무 링크·구분선이 금색으로 여기 산다 — 모양·대비 근거는 `PageFooter.styled.ts`.
+ * 🔴 금색을 이 패널 밖으로 꺼내지 마라.
  *
  * ## 캡처 제외
  * 결과 이미지 저장(캡처 루트 `ResultGrid`)과 PDF 리포트는 각자 자기 루트만 찍으므로 이 푸터는
@@ -51,11 +71,41 @@ const LEGAL_LINKS = [
   { href: '/terms', label: '이용약관' }
 ] as const;
 
+/**
+ * 제품명. 🔴 **링크로 만들지 않는다** — 브랜드 링크는 헤더 워드마크 하나뿐이라는 계약이 있고
+ * (`test/community/PrimaryNav.test.tsx`), 같은 접근명을 가진 링크가 둘이 되면 그 계약이 모호해진다.
+ * 값은 내비 워드마크와 **같은 출처**를 쓴다 — 제품명이 두 곳에서 갈리지 않게.
+ */
+const BRAND_NAME = COMMUNITY_COPY.nav.brand;
+
 function PageFooterComponent({ notesTitle, notes, 'aria-label': ariaLabel = '사이트 고지' }: PageFooterProps) {
   const hasNotes = (notes?.length ?? 0) > 0;
+  /*
+   * 🔴 셸이 열어 준 자리로 **DOM 만** 옮긴다(`PageFooterSlot.tsx` 에 이유 전문).
+   * 요약: `<footer>` 가 `<main>` 의 자손이면 contentinfo 랜드마크가 죽고, 셸의 main 이
+   * max-width 1200 이라 전폭 띠도 될 수 없다. 각주는 뷰의 상태에서 나오므로 호출부는 그대로 둔다.
+   * ⚠ 슬롯이 없으면(시뮬레이터·커뮤니티·테스트) 제자리에 그린다 — 기능이 사라지지 않는다.
+   */
+  const slot = usePageFooterSlot();
 
-  return (
+  const tree = (
     <FooterRoot aria-label={ariaLabel} {...{ [CAPTURE_EXCLUDE]: '' }}>
+      <FooterMasthead>
+        <BrandMark>
+          {BRAND_NAME}
+        </BrandMark>
+
+        <LegalLinks aria-label="법적 고지 문서">
+          {LEGAL_LINKS.map(({ href, label }) => (
+            <LegalLink key={href} href={href}>
+              {label}
+            </LegalLink>
+          ))}
+        </LegalLinks>
+      </FooterMasthead>
+
+      <PanelRule aria-hidden />
+
       {hasNotes ? (
         <NotesGroup>
           {notesTitle ? <NotesTitle>{notesTitle}</NotesTitle> : null}
@@ -68,16 +118,10 @@ function PageFooterComponent({ notesTitle, notes, 'aria-label': ariaLabel = '사
       ) : null}
 
       <SiteNotice>{SITE_NOTICE}</SiteNotice>
-
-      <LegalLinks aria-label="법적 고지 문서">
-        {LEGAL_LINKS.map(({ href, label }) => (
-          <LegalLink key={href} href={href}>
-            {label}
-          </LegalLink>
-        ))}
-      </LegalLinks>
     </FooterRoot>
   );
+
+  return slot ? createPortal(tree, slot) : tree;
 }
 
 const PageFooter = memo(PageFooterComponent);

@@ -35,7 +35,7 @@ describe('랜딩 — 문서 구조', () => {
     expect(h1s[0]).toHaveAccessibleName(LANDING_COPY.hero.title);
   });
 
-  it('8섹션이 전부 서고, 순서가 서사 순서와 같다', () => {
+  it('7섹션이 전부 서고, 순서가 서사 순서와 같다', () => {
     renderLandingPage();
 
     // 🔴 **주요 지수는 이제 이 페이지에 없다**(2026-08-02). 앱 헤더로 옮기는 안이 먼저 시도됐다가
@@ -43,6 +43,9 @@ describe('랜딩 — 문서 구조', () => {
     //    배당 캘린더). 랜딩 본문은 서사에만 집중한다. 경위·실측은 `MarketIndexStrip.tsx` 상단 주석,
     //    자리 계약은 `test/shared/marketIndexStripPlacement.test.ts`.
     const expected = [
+      /* 🔴 2026-08-06 합류 — 처음 온 사람의 길. **맨 앞이 아니면 뜻이 없다**(아래 장들이 전부
+         "배당을 안다"를 전제로 서 있어서, 그 전제를 만드는 장이 뒤로 가면 읽는 순서가 뒤집힌다). */
+      LANDING_COPY.startPath.title,
       LANDING_COPY.concept.title,
       LANDING_COPY.compound.title,
       LANDING_COPY.payout.title,

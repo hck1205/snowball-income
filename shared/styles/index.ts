@@ -3,7 +3,9 @@ export {
   CHART_SERIES,
   CHART_SERIES_VARS,
   DARK_THEME,
+  DATA_SURFACE,
   LIGHT_THEME,
+  PICK,
   TOUCH_TARGET,
   color,
   container,
@@ -40,6 +42,7 @@ export {
   heroTitleFontSize,
   iconFirstLineAlign,
   iconOpticalAlign,
+  pickTitleFontSize,
   sectionTitleFontSize
 } from './heroTitleRow';
 
@@ -53,16 +56,22 @@ export { pressable, pressableSubtle, pressTransition } from './pressable';
 export { hiddenScrollbar, subtleScrollbar } from './scrollbar';
 
 export {
+  DATA_RADIUS,
+  PICK_RADIUS,
   SEPARATE_SURFACE_PADDING,
+  brandPanel,
   cardElevation,
+  colorCap,
   hitArea,
   hitAreaWithin,
   innerRadius,
   nestedRadius,
   outerRadius,
-  surface
+  pickLift,
+  surface,
+  topRail
 } from './surfaces';
-export type { SurfaceTier } from './surfaces';
+export type { SurfaceKind, SurfaceTier } from './surfaces';
 
 export {
   buildAxisStyle,

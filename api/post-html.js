@@ -1823,10 +1823,10 @@ var sanitizePostBody = (html2) => {
 // server/handlers/PostHtml/PostHtml.ts
 var CACHE_POST = "public, max-age=0, s-maxage=300, stale-while-revalidate=604800";
 var CACHE_NO_STORE = "no-store";
-var SITE_SUFFIX = "Snowball Income";
+var SITE_SUFFIX = "Hungry Hippo";
 var FALLBACK_DESCRIPTION = {
-  portfolio: "\uC2A4\uB178\uC6B0\uBCFC \uC778\uCEF4 \uCEE4\uBBA4\uB2C8\uD2F0\uC5D0 \uACF5\uC720\uB41C \uBC30\uB2F9 \uD3EC\uD2B8\uD3F4\uB9AC\uC624 \uC2DC\uB098\uB9AC\uC624\uC785\uB2C8\uB2E4. \uC6D4 \uBC30\uB2F9\xB7\uBAA9\uD45C \uB2EC\uC131 \uC2DC\uC810\uC744 \uD655\uC778\uD574 \uBCF4\uC138\uC694.",
-  board: "\uC2A4\uB178\uC6B0\uBCFC \uC778\uCEF4 \uC790\uC720\uAC8C\uC2DC\uD310\uC5D0 \uC62C\uB77C\uC628 \uAE00\uC785\uB2C8\uB2E4."
+  portfolio: "Hungry Hippo \uCEE4\uBBA4\uB2C8\uD2F0\uC5D0 \uACF5\uC720\uB41C \uBC30\uB2F9 \uD3EC\uD2B8\uD3F4\uB9AC\uC624 \uC2DC\uB098\uB9AC\uC624\uC785\uB2C8\uB2E4. \uC6D4 \uBC30\uB2F9\xB7\uBAA9\uD45C \uB2EC\uC131 \uC2DC\uC810\uC744 \uD655\uC778\uD574 \uBCF4\uC138\uC694.",
+  board: "Hungry Hippo \uC790\uC720\uAC8C\uC2DC\uD310\uC5D0 \uC62C\uB77C\uC628 \uAE00\uC785\uB2C8\uB2E4."
 };
 var htmlResponse = (html2, status, cache) => new Response(html2, {
   status,

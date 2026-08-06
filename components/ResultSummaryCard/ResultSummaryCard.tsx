@@ -7,7 +7,7 @@ import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import { TOUR_TARGET } from '@/shared/constants';
 import type { ResultSummaryCardProps } from './ResultSummaryCard.types';
 import { findTargetReachYearIndex, useGoalReachCelebration } from './ResultSummaryCard.utils';
-import { HeroSlot, SummaryGrid } from './ResultSummaryCard.styled';
+import { HeroSlot, SummaryCardShell, SummaryGrid } from './ResultSummaryCard.styled';
 
 /**
  * 결과 요약 카드 — 화면 첫 숫자.
@@ -64,96 +64,99 @@ function ResultSummaryCardComponent({
   const isCelebrating = useGoalReachCelebration(isTargetReached);
 
   return (
-    /* 제목은 없고 우측 상단 토글만 있는 헤더 — `Card` 는 `titleRight` 만으로도 헤더를 그린다.
+    /* 껍데기는 좌측 6px 얼굴색 레일만 소유한다 — 카드의 위계 선언(면·그림자)에는 손대지 않는다.
+       카드에는 제목이 없고 우측 상단 토글만 있다 — `Card` 는 `titleRight` 만으로도 헤더를 그린다.
        hero 숫자가 곧 제목 역할을 하므로 글자 제목을 더하지 않는다(기존 결정 유지). */
-    <Card tone="raised" dataTour={TOUR_TARGET.simulationResult} titleRight={densityToggle}>
-      {showQuickEstimate ? (
-        <SummaryGrid>
-          <HeroSlot>
+    <SummaryCardShell>
+      <Card tone="raised" dataTour={TOUR_TARGET.simulationResult} titleRight={densityToggle}>
+        {showQuickEstimate ? (
+          <SummaryGrid>
+            <HeroSlot>
+              <StatTile
+                emphasis="hero"
+                label="최종 자산 추정"
+                value={formatResultAmount(simulation.quickEstimate.endValue, isResultCompact)}
+              />
+            </HeroSlot>
             <StatTile
-              emphasis="hero"
-              label="최종 자산 추정"
-              value={formatResultAmount(simulation.quickEstimate.endValue, isResultCompact)}
+              label="연 배당 추정(세후)"
+              value={formatResultAmount(simulation.quickEstimate.annualDividendApprox, isResultCompact)}
             />
-          </HeroSlot>
-          <StatTile
-            label="연 배당 추정(세후)"
-            value={formatResultAmount(simulation.quickEstimate.annualDividendApprox, isResultCompact)}
-          />
-          <StatTile
-            label="월 배당 추정(세후)"
-            value={formatResultAmount(simulation.quickEstimate.monthlyDividendApprox, isResultCompact)}
-          />
-          <StatTile
-            label="종료 시점 배당률(가격 기준)"
-            value={formatPercent(simulation.quickEstimate.yieldOnPriceAtEnd)}
-          />
-        </SummaryGrid>
-      ) : (
-        <SummaryGrid>
-          {/* 사용자가 이 앱을 켠 이유. 유일한 hero 지표다. */}
-          <HeroSlot>
             <StatTile
-              emphasis="hero"
-              label="최종 자산 가치"
-              value={formatResultAmount(summary.finalAssetValue, isResultCompact)}
+              label="월 배당 추정(세후)"
+              value={formatResultAmount(simulation.quickEstimate.monthlyDividendApprox, isResultCompact)}
             />
-          </HeroSlot>
-          <StatTile
-            label="월배당(월평균: 연/12)"
-            value={formatResultAmount(summary.finalMonthlyAverageDividend, isResultCompact)}
-            action={
-              <CompactSummaryHelpButton type="button" aria-label="월배당 설명" onClick={openMonthlyAverageDividendHelp}>
-                ?
-              </CompactSummaryHelpButton>
-            }
-          />
-          <StatTile
-            label="최근 실지급 배당"
-            value={formatResultAmount(summary.finalPayoutMonthDividend, isResultCompact)}
-            action={
-              <CompactSummaryHelpButton
-                type="button"
-                aria-label="최근 실지급 배당 설명"
-                onClick={openRecentPayoutMonthDividendHelp}
-              >
-                ?
-              </CompactSummaryHelpButton>
-            }
-          />
-          <StatTile label="누적 순배당" value={formatResultAmount(summary.totalNetDividend, isResultCompact)} />
-          <StatTile label="누적 세금" value={formatResultAmount(summary.totalTaxPaid, isResultCompact)} />
-          <StatTile
-            label={
-              hasTarget
-                ? `목표 월배당 도달 (${formatResultAmount(targetMonthlyDividend, isResultCompact)})`
-                : '목표 월배당'
-            }
-            value={hasTarget ? targetYearLabel(summary.targetMonthDividendReachedYear) : '미설정'}
-            /*
-             * 달성 순간의 유일한 연출. 색은 **타일 면과 체크 글리프만** 바뀌고 도달 연도 숫자는
-             * 계속 중립이다(숫자에 상태색 금지). 접근명이 붙어 색·모션 없이도 읽힌다.
-             */
-            status={isTargetReached ? 'success' : undefined}
-            /*
-             * 접근명이 **"달성"**(앞에 "목표"를 붙이지 않음)인 이유: 이 카드에는 "목표"라는 이름을
-             * 가진 그래픽이 존재하면 안 된다는 부재 계약이 있다(구 원형 게이지가 여기로 되살아나는
-             * 것을 막는 가드 — test/snowball/simulationResultTargetNarrativeRemoved.test.tsx).
-             * 낭독 순서상 바로 뒤에 "목표 월배당 도달 (…)" 라벨이 오므로 문맥은 온전하다.
-             */
-            statusLabel="달성"
-            statusEnter={isCelebrating}
-            /*
-             * "몇 년 뒤"는 값이 아니라 hint로 붙인다 — 값(TileValue)은 nowrap+ellipsis라
-             * "2028년 (투자 3년차)"를 넣으면 잘린다.
-             */
-            hint={hasTarget && yearsToReach !== undefined ? `투자 ${yearsToReach}년차` : undefined}
-          />
-        </SummaryGrid>
-      )}
+            <StatTile
+              label="종료 시점 배당률(가격 기준)"
+              value={formatPercent(simulation.quickEstimate.yieldOnPriceAtEnd)}
+            />
+          </SummaryGrid>
+        ) : (
+          <SummaryGrid>
+            {/* 사용자가 이 앱을 켠 이유. 유일한 hero 지표다. */}
+            <HeroSlot>
+              <StatTile
+                emphasis="hero"
+                label="최종 자산 가치"
+                value={formatResultAmount(summary.finalAssetValue, isResultCompact)}
+              />
+            </HeroSlot>
+            <StatTile
+              label="월배당(월평균: 연/12)"
+              value={formatResultAmount(summary.finalMonthlyAverageDividend, isResultCompact)}
+              action={
+                <CompactSummaryHelpButton type="button" aria-label="월배당 설명" onClick={openMonthlyAverageDividendHelp}>
+                  ?
+                </CompactSummaryHelpButton>
+              }
+            />
+            <StatTile
+              label="최근 실지급 배당"
+              value={formatResultAmount(summary.finalPayoutMonthDividend, isResultCompact)}
+              action={
+                <CompactSummaryHelpButton
+                  type="button"
+                  aria-label="최근 실지급 배당 설명"
+                  onClick={openRecentPayoutMonthDividendHelp}
+                >
+                  ?
+                </CompactSummaryHelpButton>
+              }
+            />
+            <StatTile label="누적 순배당" value={formatResultAmount(summary.totalNetDividend, isResultCompact)} />
+            <StatTile label="누적 세금" value={formatResultAmount(summary.totalTaxPaid, isResultCompact)} />
+            <StatTile
+              label={
+                hasTarget
+                  ? `목표 월배당 도달 (${formatResultAmount(targetMonthlyDividend, isResultCompact)})`
+                  : '목표 월배당'
+              }
+              value={hasTarget ? targetYearLabel(summary.targetMonthDividendReachedYear) : '미설정'}
+              /*
+               * 달성 순간의 유일한 연출. 색은 **타일 면과 체크 글리프만** 바뀌고 도달 연도 숫자는
+               * 계속 중립이다(숫자에 상태색 금지). 접근명이 붙어 색·모션 없이도 읽힌다.
+               */
+              status={isTargetReached ? 'success' : undefined}
+              /*
+               * 접근명이 **"달성"**(앞에 "목표"를 붙이지 않음)인 이유: 이 카드에는 "목표"라는 이름을
+               * 가진 그래픽이 존재하면 안 된다는 부재 계약이 있다(구 원형 게이지가 여기로 되살아나는
+               * 것을 막는 가드 — test/snowball/simulationResultTargetNarrativeRemoved.test.tsx).
+               * 낭독 순서상 바로 뒤에 "목표 월배당 도달 (…)" 라벨이 오므로 문맥은 온전하다.
+               */
+              statusLabel="달성"
+              statusEnter={isCelebrating}
+              /*
+               * "몇 년 뒤"는 값이 아니라 hint로 붙인다 — 값(TileValue)은 nowrap+ellipsis라
+               * "2028년 (투자 3년차)"를 넣으면 잘린다.
+               */
+              hint={hasTarget && yearsToReach !== undefined ? `투자 ${yearsToReach}년차` : undefined}
+            />
+          </SummaryGrid>
+        )}
 
-      <ConditionStrip items={condition} action={conditionAction} />
-    </Card>
+        <ConditionStrip items={condition} action={conditionAction} />
+      </Card>
+    </SummaryCardShell>
   );
 }
 

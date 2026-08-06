@@ -4,7 +4,8 @@ import {
   CalendarTable,
   DayCellRoot,
   SkeletonBlock,
-  WeekdayHead
+  WeekdayHead,
+  WeekdayRow
 } from './MonthCalendar.styled';
 
 const copy = DIVIDEND_CALENDAR_COPY;
@@ -25,13 +26,13 @@ export default function MonthCalendarSkeleton({ monthLabel }: MonthCalendarSkele
     <CalendarTable aria-hidden>
       <CalendarCaption>{copy.board.caption(monthLabel)}</CalendarCaption>
       <thead>
-        <tr>
+        <WeekdayRow>
           {copy.board.weekdays.map((weekday, index) => (
             <WeekdayHead key={weekday} scope="col" $weekday={index}>
               {weekday}
             </WeekdayHead>
           ))}
-        </tr>
+        </WeekdayRow>
       </thead>
       <tbody>
         {WEEKS.map((week) => (

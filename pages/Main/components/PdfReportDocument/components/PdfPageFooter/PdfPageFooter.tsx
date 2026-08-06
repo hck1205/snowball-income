@@ -6,7 +6,7 @@ import type { PdfPageFooterProps } from './PdfPageFooter.types';
 function PdfPageFooter({ title, label }: PdfPageFooterProps) {
   return (
     <Footer>
-      <span>스노우볼 인컴 · {title}</span>
+      <span>Hungry Hippo · {title}</span>
       <span>{label}</span>
     </Footer>
   );

@@ -42,17 +42,53 @@ export const LoaderWrap = styled.div<{ minHeight?: string; $variant?: 'plain' | 
 /* -------------------------------------------------------------------------- */
 
 /**
- * **곧 올 화면의 모양**을 미리 그리는 껍데기. 회전하는 원은 "기다려라"까지만 말하지만
- * 스켈레톤은 "요약 카드 하나, 차트 하나, 표 하나가 온다"를 말한다.
+ * **곧 올 화면의 틀**. 2026-08-03 부터 결과 영역은 [머리(시나리오 탭) → 본문(카드)] 을 감싼
+ * 보드 하나(`ResultBoard`)라, 스켈레톤도 그 틀을 그린다 — 로딩이 끝나는 순간 프레임이 새로
+ * 그려지면 그건 스켈레톤이 아니라 그냥 다른 화면이다.
  *
- * 껍데기는 실제 결과 그리드처럼 **세로로 쌓인 전 폭 카드**다(`MainResultGrid` 의 12열 배치는
- * 좁은 폭에서 1열로 접히고, 넓은 폭에서도 결과 카드는 대부분 12칸이다).
- * 여기서 굳이 12열 그리드를 흉내내면 실제 배치가 바뀔 때마다 두 곳을 함께 고쳐야 한다.
+ * 🔴 그래서 흰 캔버스 전환에서 보드가 프레임을 벗었을 때(2026-08-03, `ResultBoard.styled.ts` 의
+ * BoardRoot 주석) **여기도 같이 벗었다.** 목적지가 테두리 없는 문서인데 스켈레톤만 사각형을
+ * 그리면, 로딩이 끝나는 순간 프레임이 사라져 화면이 한 번 튄다.
+ */
+export const SkeletonBoard = styled.div`
+  display: grid;
+  gap: 0;
+  width: 100%;
+  /* 🔴 목적지(ResultBoard.styled.ts 의 BoardRoot)와 **같은 기하·같은 채움**이어야 한다 —
+     테두리 없음 · 배경 없음 · 좌우 패딩 없음. 여기만 프레임을 그리면 스켈레톤이 아니라 그냥
+     다른 화면이 된다. 목적지가 프레임을 되찾으면 이 값도 함께 되돌려라. */
+  border: 0;
+  background: transparent;
+`;
+
+/**
+ * 보드 머리 — 탭 두어 개가 밑줄 위에 앉은 모양.
+ *
+ * 좌우 패딩이 0 인 것은 목적지(`ScenarioTabsRow`)와 같은 이유다 — 밑줄이 결과 영역의 봉합선이라
+ * 카드와 같은 끝선에서 시작해 같은 끝선에서 끝나야 한다.
+ */
+export const SkeletonTabsRow = styled.div`
+  display: flex;
+  align-items: flex-end;
+  gap: ${space[2]};
+  padding: ${space[3]} 0 ${space[2]};
+  border-bottom: 1px solid ${color.border};
+`;
+
+/**
+ * **곧 올 화면의 모양**을 미리 그리는 껍데기. 회전하는 원은 "기다려라"까지만 말하지만
+ * 스켈레톤은 "요약 카드 하나, 조정 레일 하나, 막 하나, 차트 두 장이 온다"를 말한다.
+ *
+ * 세로로 쌓인 전 폭 카드가 기본이다(`MainResultGrid` 의 12열 배치는 좁은 폭에서 1열로 접히고,
+ * 넓은 폭에서도 결과 카드는 대부분 12칸이다). 12열 격자를 통째로 흉내내면 실제 배치가 바뀔 때마다
+ * 두 곳을 함께 고쳐야 한다 — **행 하나(6:6 페어)만** 예외로 그린다.
  */
 export const SkeletonStack = styled.div`
   display: grid;
   gap: clamp(12px, 1.8vw, 20px);
   width: 100%;
+  /* 좌우 0 — 목적지 BoardBody 와 같은 끝선(위 SkeletonBoard 주석). */
+  padding: ${space[4]} 0 0;
 `;
 
 export const SkeletonCard = styled.div`
@@ -62,6 +98,37 @@ export const SkeletonCard = styled.div`
   border: 1px solid ${color.border};
   border-radius: ${radius.lg};
   background: ${color.surface};
+`;
+
+/**
+ * 조작 레일(빠른 조정)의 자리. 카드보다 낮고 가로로 긴 형태라 **카드가 아님**이 모양으로 보인다 —
+ * 실제 화면의 위계를 스켈레톤이 미리 예고한다.
+ */
+export const SkeletonRail = styled.div`
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
+  align-items: center;
+  gap: ${space[4]};
+  padding: ${space[3]} ${space[4]};
+  border: 1px solid ${color.border};
+  border-radius: ${radius.lg};
+  background: ${color.surface};
+`;
+
+/** 막 머리띠의 자리 — 표식 + 제목 + 룰. 결과가 "장이 있는 문서"임을 로딩 중에도 말한다. */
+export const SkeletonBand = styled.div`
+  display: grid;
+  grid-template-columns: auto minmax(0, 6fr) minmax(0, 5fr);
+  align-items: center;
+  gap: ${space[3]};
+  padding-top: ${space[2]};
+`;
+
+/** 한 행을 나눠 쓰는 두 카드(자산 : 누적)의 자리. */
+export const SkeletonPairRow = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: clamp(12px, 1.8vw, 20px);
 `;
 
 /** 요약 카드 안 지표 타일 줄 — 실제 `SummaryGrid` 와 같은 auto-fit 규칙. */
@@ -83,12 +150,7 @@ export const SkeletonBar = styled.div<{ $w?: string; $h?: string }>`
   width: ${({ $w }) => $w ?? '100%'};
   height: ${({ $h }) => $h ?? '14px'};
   border-radius: ${radius.xs};
-  background: linear-gradient(
-    90deg,
-    ${color.surfaceMuted} 25%,
-    ${color.surfaceHover} 37%,
-    ${color.surfaceMuted} 63%
-  );
+  background: linear-gradient(90deg, ${color.surfaceMuted} 25%, ${color.surfaceHover} 37%, ${color.surfaceMuted} 63%);
   background-size: 400% 100%;
   animation: main-content-shimmer 1.4s ease infinite;
 

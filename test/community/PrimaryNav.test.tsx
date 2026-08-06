@@ -54,6 +54,22 @@ const openPortfolioMenu = () => {
   fireEvent.click(screen.getByRole('button', { name: /포트폴리오/ }));
 };
 
+/**
+ * 캘린더 묶음을 편다(2026-08-04 신설). 배당 캘린더가 이 안으로 들어가서, 그 링크를 보려면
+ * 먼저 열어야 한다 — 접힌 상태에서 `getByRole('link', {name: '배당 캘린더'})` 는 없다.
+ */
+/**
+ * 커뮤니티 묶음을 편다(2026-08-05 신설). 갤러리·게시판이 이 안으로 들어가서, 두 링크를 보려면
+ * 먼저 열어야 한다 — 접힌 상태에서 getByRole('link', {name: '게시판'}) 은 없다.
+ */
+const openCommunityMenu = () => {
+  fireEvent.click(screen.getByRole('button', { name: /커뮤니티/ }));
+};
+
+const openCalendarMenu = () => {
+  fireEvent.click(screen.getByRole('button', { name: /^캘린더/ }));
+};
+
 describe('PrimaryNav', () => {
   // 두 플래그는 테스트마다 명시하지만, 앞 테스트가 끈 값이 새는 일을 막으려 기본을 켜 둔다.
   beforeEach(() => {
@@ -65,41 +81,45 @@ describe('PrimaryNav', () => {
     communityEnabled = true;
     renderAt('/community');
 
-    const brand = screen.getByRole('link', { name: '스노우볼 인컴' });
+    const brand = screen.getByRole('link', { name: 'Hungry Hippo' });
     expect(brand).toHaveAttribute('href', '/');
   });
 
   /*
-   * 워드마크는 "스노우볼"·"인컴" 두 색으로 나뉘어 렌더되지만 **읽히는 이름은 한 덩어리**여야 한다.
-   * 부분일치(/스노우볼/)로는 두 파트 사이 공백이 사라지는 회귀("스노우볼인컴")를 못 잡으므로 정확일치로 못 박는다.
+   * 워드마크는 "Hungry"·"Hippo" 두 색으로 나뉘어 렌더되지만 **읽히는 이름은 한 덩어리**여야 한다.
+   * 부분일치(/Hungry/)로는 두 파트 사이 공백이 사라지는 회귀("HungryHippo")를 못 잡으므로 정확일치로 못 박는다.
    */
-  it('워드마크는 두 색으로 쪼개져도 "스노우볼 인컴" 한 덩어리로 읽힌다', () => {
+  it('워드마크는 두 색으로 쪼개져도 "Hungry Hippo" 한 덩어리로 읽힌다', () => {
     communityEnabled = true;
     renderAt('/');
 
-    const brand = screen.getByRole('link', { name: '스노우볼 인컴' });
-    expect(brand).toHaveAccessibleName('스노우볼 인컴');
-    expect(brand.textContent).toBe('스노우볼 인컴');
+    const brand = screen.getByRole('link', { name: 'Hungry Hippo' });
+    expect(brand).toHaveAccessibleName('Hungry Hippo');
+    expect(brand.textContent).toBe('Hungry Hippo');
   });
 
   /*
-   * 아이콘이 사라졌으므로 브랜드명을 읽어줄 요소는 워드마크 텍스트뿐이다(장식 이미지도 남기지 않는다).
+   * 🔴 2026-08-03: 로고는 **브랜드 링크 안이 아니라 헤더가 소유한다.**
    *
-   * ⚠ `img` 만 보면 안 된다 — 이 레포의 아이콘은 거의 전부 **lucide-react 인라인 `<svg>`** 다.
-   *   실제 뮤테이션에서 브랜드 블록에 `<LineChart/>` 를 되살렸을 때 `img` 단정만으로는 무음 통과했다.
-   *   그래서 브랜드 링크 **안쪽**에 그래픽 요소가 하나도 없음을 본다(라우트 링크의 아이콘은 정상이므로
-   *   nav 전체가 아니라 브랜드 링크로 범위를 좁힌다).
+   * 종전 계약은 *"브랜드 영역은 텍스트 워드마크 단독이다"* 였고 그 이유는 심볼이 앱 곳곳(19곳)에
+   * 흩어져 있어서였다. 사용자 지시로 그 19곳을 전부 걷고 로고를 **헤더 하나**로 모았는데
+   * ("Hungry Hippo 왼쪽에만"), 그 로고는 헤더 격자에서 브랜드 줄과 메뉴 줄을 **가로지르는**
+   * 트랙에 서야 한다("윗줄 아랫줄을 병합한 크기 스페이스"). 가로지르려면 격자의 직계 자식이어야
+   * 하므로 브랜드 링크 **밖**이다 — `AppHeader` 의 LogoSlot 이 소유한다.
+   *
+   * 🔴 그래서 이 링크 안은 여전히 글자뿐이고, 그 사실이 계약이다:
+   * `getByRole('link', {name: 'Hungry Hippo'})` 로 브랜드를 집는 테스트가 십수 개다.
+   * 여기에 그림이 들어오면 접근명이 오염되어 그 전부가 무너진다.
    */
-  it('브랜드 영역은 텍스트 워드마크 단독이다 (img·svg 어떤 심볼 아이콘도 없음)', () => {
+  it('브랜드 링크는 글자뿐이다 — 로고는 헤더가 따로 소유한다', () => {
     communityEnabled = true;
     renderAt('/');
 
-    const brand = screen.getByRole('link', { name: '스노우볼 인컴' });
+    const brand = screen.getByRole('link', { name: 'Hungry Hippo' });
 
     expect(brand.querySelector('img')).toBeNull();
     expect(brand.querySelector('svg')).toBeNull();
-    // 워드마크가 브랜드 링크의 유일한 내용이다 — 텍스트만 남는다.
-    expect(brand.textContent).toBe('스노우볼 인컴');
+    expect(brand.textContent).toBe('Hungry Hippo');
   });
 
   it('현재 라우트의 링크에 aria-current="page"를 준다 (시뮬레이터)', () => {
@@ -107,6 +127,7 @@ describe('PrimaryNav', () => {
     renderAt('/simulator');
 
     expect(screen.getByRole('link', { name: '시뮬레이터' })).toHaveAttribute('aria-current', 'page');
+    openCommunityMenu();
     expect(screen.getByRole('link', { name: '게시판' })).not.toHaveAttribute('aria-current');
     // 갤러리는 묶음 안이라 트리거가 꺼져 있는 것으로 확인한다.
     expect(screen.getByRole('button', { name: /포트폴리오/ })).not.toHaveAttribute('aria-current');
@@ -122,13 +143,13 @@ describe('PrimaryNav', () => {
     renderAt('/simulator');
 
     expect(screen.getByRole('link', { name: '시뮬레이터' })).toHaveAttribute('href', '/simulator');
-    expect(screen.getByRole('link', { name: '스노우볼 인컴' })).toHaveAttribute('href', '/');
+    expect(screen.getByRole('link', { name: 'Hungry Hippo' })).toHaveAttribute('href', '/');
   });
 
   it('갤러리(/community/portfolio)에선 묶음 안 갤러리 링크만 활성 (시뮬레이터·게시판은 비활성)', () => {
     communityEnabled = true;
     renderAt('/community/portfolio');
-    openPortfolioMenu();
+    openCommunityMenu();
 
     expect(screen.getByRole('link', { name: '포트폴리오 갤러리' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: '시뮬레이터' })).not.toHaveAttribute('aria-current');
@@ -139,11 +160,10 @@ describe('PrimaryNav', () => {
     communityEnabled = true;
     renderAt('/community/board/write');
 
+    openCommunityMenu();
     expect(screen.getByRole('link', { name: '게시판' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: '시뮬레이터' })).not.toHaveAttribute('aria-current');
-    // 형제 세그먼트라 갤러리(묶음 안)는 게시판 하위에서 활성이 되지 않는다 — 트리거부터 꺼져 있어야 한다.
-    expect(screen.getByRole('button', { name: /포트폴리오/ })).not.toHaveAttribute('aria-current');
-    openPortfolioMenu();
+    // 형제 세그먼트라 갤러리는 게시판 하위에서 활성이 되지 않는다.
     expect(screen.getByRole('link', { name: '포트폴리오 갤러리' })).not.toHaveAttribute('aria-current');
   });
 
@@ -155,8 +175,8 @@ describe('PrimaryNav', () => {
       renderAt(path);
 
       // 접힌 채로도 "이 묶음 안에 있다"가 읽혀야 한다 — 하위 경로에서도 마찬가지다.
-      expect(screen.getByRole('button', { name: /포트폴리오/ })).toHaveAttribute('aria-current', 'true');
-      openPortfolioMenu();
+      expect(screen.getByRole('button', { name: /커뮤니티/ })).toHaveAttribute('aria-current', 'true');
+      openCommunityMenu();
 
       expect(screen.getByRole('link', { name: '포트폴리오 갤러리' })).toHaveAttribute('aria-current', 'page');
       expect(screen.getByRole('link', { name: '게시판' })).not.toHaveAttribute('aria-current');
@@ -169,6 +189,7 @@ describe('PrimaryNav', () => {
     communityEnabled = true;
     renderAt('/community/board/42');
 
+    openCommunityMenu();
     const current = screen.getAllByRole('link').filter((link) => link.getAttribute('aria-current') === 'page');
     expect(current).toHaveLength(1);
     expect(current[0]).toHaveAccessibleName('게시판');
@@ -181,9 +202,12 @@ describe('PrimaryNav', () => {
 
     expect(screen.getByRole('link', { name: '나의 배당 포트폴리오' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: '대가들의 포트폴리오' })).not.toHaveAttribute('aria-current');
-    // `/dividend/*` 형제 세그먼트끼리 서로를 활성화하면 사용자는 현재 위치를 잃는다.
-    expect(screen.getByRole('link', { name: '배당 캘린더' })).not.toHaveAttribute('aria-current');
     expect(screen.getByRole('link', { name: '시뮬레이터' })).not.toHaveAttribute('aria-current');
+    // `/dividend/*` 형제 세그먼트끼리 서로를 활성화하면 사용자는 현재 위치를 잃는다.
+    // ⚠ 배당 캘린더는 2026-08-04 부터 캘린더 묶음 안이라 열어야 보인다.
+    expect(screen.getByRole('button', { name: /^캘린더/ })).not.toHaveAttribute('aria-current');
+    openCalendarMenu();
+    expect(screen.getByRole('link', { name: '배당 캘린더' })).not.toHaveAttribute('aria-current');
 
     const current = screen.getAllByRole('link').filter((link) => link.getAttribute('aria-current') === 'page');
     expect(current).toHaveLength(1);
@@ -192,10 +216,51 @@ describe('PrimaryNav', () => {
   it('배당 캘린더에선 내 포트폴리오 링크가 활성이 되지 않는다 (상호 배타)', () => {
     communityEnabled = true;
     renderAt('/dividend/calendar');
+
+    // 접힌 채로도 "이 묶음 안에 있다"가 읽혀야 한다.
+    expect(screen.getByRole('button', { name: /^캘린더/ })).toHaveAttribute('aria-current', 'true');
+    openCalendarMenu();
+    expect(screen.getByRole('link', { name: '배당 캘린더' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: '미국 증시 캘린더' })).not.toHaveAttribute('aria-current');
+
+    openPortfolioMenu();
+    expect(screen.getByRole('link', { name: '나의 배당 포트폴리오' })).not.toHaveAttribute('aria-current');
+  });
+
+  /**
+   * 캘린더 묶음의 두 번째 화면. 🔴 형제끼리 서로를 활성화하면 사용자는 현재 위치를 잃는다 —
+   * `/dividend/calendar` 와 `/market/us-calendar` 는 접두사부터 다른 남남이다.
+   */
+  it('미국 증시 캘린더(/market/us-calendar)에선 그 링크만 활성이다', () => {
+    communityEnabled = true;
+    renderAt('/market/us-calendar');
+
+    expect(screen.getByRole('button', { name: /^캘린더/ })).toHaveAttribute('aria-current', 'true');
+    openCalendarMenu();
+    expect(screen.getByRole('link', { name: '미국 증시 캘린더' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: '배당 캘린더' })).not.toHaveAttribute('aria-current');
+  });
+
+  /**
+   * 포트폴리오 묶음에 뒤늦게 합류한 화면들 — 묶음 트리거가 그 사실을 말해야 한다.
+   * 🔴 미국/한국 두 의원 화면의 이름이 **서로 달라야** 한다. 같은 이름이면 사용자에게 한 화면이다.
+   */
+  it.each([
+    ['/portfolio/nps', '국민연금 (미국 주식)'],
+    ['/portfolio/congress', '미국 의원 주식 거래'],
+    ['/portfolio/korea-assembly', '한국 의원 주식 보유']
+  ])('%s 에선 묶음 안 그 링크만 활성이다', (path, label) => {
+    communityEnabled = true;
+    renderAt(path);
+
+    expect(screen.getByRole('button', { name: /포트폴리오/ })).toHaveAttribute('aria-current', 'true');
     openPortfolioMenu();
 
-    expect(screen.getByRole('link', { name: '배당 캘린더' })).toHaveAttribute('aria-current', 'page');
-    expect(screen.getByRole('link', { name: '나의 배당 포트폴리오' })).not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('link', { name: label })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: '대가들의 포트폴리오' })).not.toHaveAttribute('aria-current');
+
+    const current = screen.getAllByRole('link').filter((link) => link.getAttribute('aria-current') === 'page');
+    expect(current).toHaveLength(1);
   });
 
   /* ── 포트폴리오 묶음 메뉴 ──────────────────────────────────────────────────── */
@@ -248,10 +313,11 @@ describe('PrimaryNav', () => {
   /**
    * 🔴 **윗줄은 8칸이 상한이다.** 좁은 폭에서 넘치면 가로 스크롤로 숨는데, 스크롤로 숨는 항목은
    * 사용자에게 아무 신호를 주지 않는다(2026-07-31 실측). 아홉 번째가 필요하면 새 칸이 아니라
-   * 묶음(`PortfolioNavMenu`)으로 접는 것이 2026-08-02 에 택한 길이다 — 이 개수 단정이 그 규칙을 잠근다.
-   * 포트폴리오 3종을 접고 나서 지금은 **7칸**이라 한 칸 여유가 있다.
+   * 묶음(`NavGroupMenu`)으로 접는 것이 2026-08-02 에 택한 길이다 — 이 개수 단정이 그 규칙을 잠근다.
+   * 포트폴리오 3종을 접어 7칸이 됐고, 2026-08-04 에 배당 목록 4종(허브 + 킹·귀족·챔피언)이 **한 칸**으로
+   * 합류해 지금은 **8칸 = 상한**이다. 다음 기능은 반드시 묶음이어야 한다.
    */
-  it('윗줄은 7칸이고 시뮬레이터 → 포트폴리오(묶음) → 가계부 → 배당 캘린더 순이다', () => {
+  it('윗줄은 8칸이고 시뮬레이터 → 포트폴리오(묶음) → 가계부 → 캘린더(묶음) → 배당 종목(묶음) → 커뮤니티(묶음) 순이다', () => {
     communityEnabled = true;
     ledgerEnabled = true;
     renderAt('/dividend/portfolio');
@@ -268,16 +334,24 @@ describe('PrimaryNav', () => {
 
     expect(slots).toEqual([
       '시뮬레이터',
-      /* 포트폴리오 묶음 — 나의 배당 포트폴리오·대가들의 포트폴리오·포트폴리오 갤러리 셋이 여기 접혀 있다. */
+      /* 포트폴리오 묶음 — 나의 배당 포트폴리오·대가들·국민연금·미국 의원·한국 의원 다섯이 접혀 있다.
+         🔴 갤러리는 2026-08-05 에 커뮤니티 묶음으로 옮겼다(공시 자료 넷과 성격이 달랐다). */
       '포트폴리오',
       '가계부',
-      '배당 캘린더',
-      '게시판',
+      /* 캘린더 묶음(2026-08-04) — 배당 캘린더 + 미국 증시 캘린더 둘이 여기 접혔다.
+         증시 캘린더가 아홉 번째 칸이 될 뻔한 것을 이 묶음이 흡수했다. */
+      '캘린더',
+      /* 배당 리스트 묶음(2026-08-04) — 목록 비교(허브)·배당킹·배당귀족·배당챔피언 넷이 여기 접혀 있다.
+         캘린더 바로 뒤: 둘 다 "배당 그 자체를 보는" 축이다. */
+      '배당 종목',
+      /* 커뮤니티 묶음(2026-08-05) — 포트폴리오 갤러리·게시판 둘이 여기 접혀 있다. 게시판이 단독
+         칸이던 자리를 이 묶음이 그대로 받았다(칸 수는 8 그대로). */
+      '커뮤니티',
       'ETF 소개',
       /* 종목 비교(2026-08-02) — ETF 소개와 같은 "종목 정보" 축이라 그 바로 뒤다. */
       '종목 비교'
     ]);
-    expect(slots).toHaveLength(7);
+    expect(slots).toHaveLength(8);
 
     expect(screen.queryByRole('link', { name: '목표 달성' })).not.toBeInTheDocument();
   });
@@ -320,6 +394,7 @@ describe('PrimaryNav', () => {
     communityEnabled = false;
     renderAt('/dividend/portfolio');
 
+    openCalendarMenu();
     expect(screen.getByRole('link', { name: '배당 캘린더' })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: '포트폴리오 갤러리' })).not.toBeInTheDocument();
     // 포트폴리오 묶음은 커뮤니티 플래그와 무관하다 — 둘 다 커뮤니티 밖 화면이다.
@@ -333,7 +408,7 @@ describe('PrimaryNav', () => {
     renderAt('/');
 
     // 브랜드(홈)와 시뮬레이터 링크는 그대로. 커뮤니티 링크만 사라진다.
-    expect(screen.getByRole('link', { name: '스노우볼 인컴' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Hungry Hippo' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: '시뮬레이터' })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: '포트폴리오 갤러리' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: '게시판' })).not.toBeInTheDocument();

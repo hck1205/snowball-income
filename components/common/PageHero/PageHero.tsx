@@ -3,6 +3,7 @@ import {
   HeroActions,
   HeroIconBadge,
   HeroLede,
+  HeroMascot,
   HeroMeta,
   HeroNotice,
   HeroRoot,
@@ -34,10 +35,12 @@ export default function PageHero({
   meta,
   actions,
   titleAction,
-  tone = 'gradient'
+  tone = 'gradient',
+  mascot,
+  mascotSize = 'md'
 }: PageHeroProps) {
   return (
-    <HeroRoot $tone={tone}>
+    <HeroRoot $tone={tone} $mascotSize={mascot ? mascotSize : undefined}>
       <HeroTitleRow>
         <HeroTitleGroup>
           {icon ? <HeroIconBadge aria-hidden>{icon}</HeroIconBadge> : null}
@@ -52,6 +55,12 @@ export default function PageHero({
       {lede ? <HeroLede>{lede}</HeroLede> : null}
       {notice ? <HeroNotice role="note">{notice}</HeroNotice> : null}
       {meta ? <HeroMeta>{meta}</HeroMeta> : null}
+
+      {/* 마스코트 — 장식이라 이름을 갖지 않는다(`alt=""`). 자리·크기·좁은 폭 규칙은 HeroMascot 소유.
+          ⚠ 히어로는 접힘 위지만 이 그림은 **본문이 아니다** — lazy 로 두어 첫 페인트를 양보한다. */}
+      {mascot ? (
+        <HeroMascot $size={mascotSize} src={mascot} alt="" loading="lazy" decoding="async" draggable={false} />
+      ) : null}
     </HeroRoot>
   );
 }

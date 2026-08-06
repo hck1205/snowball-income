@@ -10,10 +10,13 @@
       지면이고 시뮬레이터는 `/simulator` 다 — 문구의 정본은 `pages/Landing/copy/landingCopy.ts`.
       ⚠ 랜딩은 `useDocumentMeta` 를 쓰지 않는다(정적 메타가 곧 이 페이지의 메타다).
     -->
-    <title>배당 알아보기와 배당 계산기 - Snowball Income</title>
+    <!-- 🔴 2026-08-04: 랜딩 히어로 개정('배당으로 배당을 키우는 복리, 여기서 계산합니다')에 맞춰
+         title/description/OG/JSON-LD 를 **같은 말**로 맞췄다. 검색·공유·AI 답변이 각각 다른 소개를
+         내면 같은 지면이 셋으로 보인다. 정본은 `pages/Landing/copy/landingCopy.ts` 의 hero 다. -->
+    <title>배당 재투자 계산기와 배당 알아보기 - Hungry Hippo</title>
     <meta
       name="description"
-      content="주식과 ETF가 무엇인지부터, 배당을 다시 넣으면 얼마가 되는지까지 한 화면에서 확인하실 수 있습니다. 종목별 배당 지급 월과 포트폴리오 구성 예시, 배당 계산기를 가입 없이 이용하실 수 있습니다. 입력한 가정을 그대로 계산해 보여주는 도구이며 투자 자문이 아닙니다."
+      content="주식과 ETF가 무엇인지부터, 받은 배당을 다시 넣었을 때 자산과 월 배당이 해마다 어떻게 달라지는지까지 한 화면에서 확인하실 수 있습니다. 종목별 배당 지급 월과 포트폴리오 구성 예시, 배당 계산기를 가입 없이 이용하실 수 있습니다. 입력한 가정을 그대로 계산해 보여주는 도구이며 투자 자문이 아닙니다."
     />
     <meta
       name="keywords"
@@ -25,10 +28,12 @@
     />
     <meta name="format-detection" content="telephone=no" />
     <meta name="color-scheme" content="light dark" />
-    <!-- 기본 팔레트(velog)의 bg light/dark = #f8f9fa / #121212 와 동기 (shared/styles/presets.ts) -->
+    <!-- 기본 팔레트(velog)의 bg light/dark = #ffffff / #121212 와 동기 (shared/styles/presets/velog.ts).
+         라이트는 2026-08-03 흰 캔버스 전환으로 순백이 됐다 — 모바일 브라우저 크롬 색이 페이지
+         배경과 어긋나면 주소창 아래에 없는 띠가 하나 생긴다. -->
     <meta
       name="theme-color"
-      content="#f8f9fa"
+      content="#ffffff"
       media="(prefers-color-scheme: light)"
     />
     <meta
@@ -36,7 +41,7 @@
       content="#121212"
       media="(prefers-color-scheme: dark)"
     />
-    <meta name="application-name" content="Snowball Income" />
+    <meta name="application-name" content="Hungry Hippo" />
 
     <!-- canonical / hreflang: 절대 URL이어야 한다. 공유 링크(?s=…)가 각각 색인되지 않도록 항상 클린 URL로 고정. -->
     <link id="canonical-link" rel="canonical" href="%VITE_SITE_URL%/" />
@@ -46,14 +51,14 @@
     <!-- Open Graph — 카카오톡/페이스북/네이버 스크래퍼는 JS를 실행하지 않는다. 반드시 정적·절대 URL. -->
     <meta property="og:locale" content="ko_KR" />
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Snowball Income" />
+    <meta property="og:site_name" content="Hungry Hippo" />
     <meta
       property="og:title"
-      content="배당, 여기서부터 이해하고 계산합니다 — Snowball Income"
+      content="배당으로 배당을 키우는 복리, 여기서 계산합니다 — Hungry Hippo"
     />
     <meta
       property="og:description"
-      content="주식·ETF·배당의 기본부터 배당을 다시 넣었을 때의 계산까지. 가입 없이 이용하실 수 있는 배당 계산기입니다. 투자 자문이 아닙니다."
+      content="주식·ETF·배당의 기본부터, 받은 배당을 다시 넣어 복리로 키웠을 때의 계산까지. 가입 없이 이용하실 수 있는 배당 계산기입니다. 투자 자문이 아닙니다."
     />
     <meta id="og-url" property="og:url" content="%VITE_SITE_URL%/" />
     <meta property="og:image" content="%VITE_SITE_URL%/og-image.png" />
@@ -62,22 +67,22 @@
     <meta property="og:image:height" content="630" />
     <meta
       property="og:image:alt"
-      content="Snowball Income — 배당 알아보기와 배당 계산기"
+      content="Hungry Hippo — 배당 알아보기와 배당 계산기"
     />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta
       name="twitter:title"
-      content="배당, 여기서부터 이해하고 계산합니다 — Snowball Income"
+      content="배당으로 배당을 키우는 복리, 여기서 계산합니다 — Hungry Hippo"
     />
     <meta
       name="twitter:description"
-      content="주식·ETF·배당의 기본부터 배당을 다시 넣었을 때의 계산까지. 가입 없이 이용하실 수 있는 배당 계산기입니다."
+      content="주식·ETF·배당의 기본부터, 받은 배당을 다시 넣어 복리로 키웠을 때의 계산까지. 가입 없이 이용하실 수 있는 배당 계산기입니다."
     />
     <meta name="twitter:image" content="%VITE_SITE_URL%/og-image.png" />
     <meta
       name="twitter:image:alt"
-      content="Snowball Income — 배당 알아보기와 배당 계산기"
+      content="Hungry Hippo — 배당 알아보기와 배당 계산기"
     />
 
     <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -143,15 +148,15 @@
             "@type": "WebSite",
             "@id": "%VITE_SITE_URL%/#website",
             "url": "%VITE_SITE_URL%/",
-            "name": "Snowball Income",
+            "name": "Hungry Hippo",
             "inLanguage": "ko-KR",
-            "description": "배당주·ETF의 기본 개념과 배당 재투자 계산을 함께 제공하는 웹 사이트"
+            "description": "배당주·ETF의 기본 개념과, 받은 배당을 다시 넣어 복리로 키웠을 때의 계산을 함께 제공하는 웹 사이트"
           },
           {
             "@type": "WebApplication",
             "@id": "%VITE_SITE_URL%/#webapp",
             "url": "%VITE_SITE_URL%/simulator",
-            "name": "Snowball Income",
+            "name": "Hungry Hippo",
             "applicationCategory": "FinanceApplication",
             "operatingSystem": "Web",
             "browserRequirements": "JavaScript를 지원하는 최신 브라우저",
@@ -288,34 +293,22 @@
         배경도 테마에 맞춰 미리 칠해, 로딩 동안 흰 화면이 번쩍이지 않게 한다
         (Emotion이 뜨면 `:root`가 더 높은 우선순위로 --sb-bg를 덮는다).
       */
-      /* 무스코프 기본 = 기본 팔레트(velog). 프리셋별 값은 shared/styles/presets.ts의 bg와 동기. */
+      /*
+        🔴 라이트는 **팔레트와 무관하게 순백**이다(2026-08-03 흰 캔버스 전환).
+        구 값은 프리셋마다 달랐다(velog #f8f9fa · forest #eef3ec · aurora #e4f0fc · vivid #eef0ff ·
+        navy-gold #f5efdd · grape #f3effa · sunset #fbf1e8 · ink #f1f1f1). 그 여덟 줄은 이제
+        **전부 #ffffff** 라 존재 이유가 없어졌고, 남겨 두면 첫 페인트가 옛 파스텔 캔버스로 칠해졌다가
+        Emotion 이 붙는 순간 흰색으로 튀는 **깜빡임 하나**가 된다(실측: aurora 에서 `html` 배경이
+        `#e4f0fc` 인 채 남아 `--sb-bg: #ffffff` 와 어긋나 있었다).
+        ⚠ 다크는 여전히 프리셋마다 다르다 — 아래 블록은 그대로 둔다(어두운 캔버스에서 위계를 만드는
+        것은 여전히 면 밝기다). 값의 정본은 `shared/styles/presets/*.ts` 의 `bg` 이고 여기는 그 사본이다.
+      */
       html {
-        background: #f8f9fa;
+        background: #ffffff;
         /* 앱이 뜨면 globalStyles 가 body 에 같은 값을 건다. 여기 없으면 macOS 에서 첫 페인트가
            **더 굵게** 나왔다가 Emotion 이 붙는 순간 얇아지는 깜빡임이 보인다. */
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
-      }
-      html[data-palette='forest'] {
-        background: #eef3ec;
-      }
-      html[data-palette='aurora'] {
-        background: #e4f0fc;
-      }
-      html[data-palette='vivid'] {
-        background: #eef0ff;
-      }
-      html[data-palette='navy-gold'] {
-        background: #f5efdd;
-      }
-      html[data-palette='grape'] {
-        background: #f3effa;
-      }
-      html[data-palette='sunset'] {
-        background: #fbf1e8;
-      }
-      html[data-palette='ink'] {
-        background: #f1f1f1;
       }
       @media (prefers-color-scheme: dark) {
         html:not([data-theme='light']) {
@@ -415,10 +408,11 @@
           쪽이 정본이 되면 둘이 조용히 갈라진다). "자주 묻는 질문" 2문항은 위 FAQPage JSON-LD 와
           **문자 단위로 같아야** 하고 `test/seo/landingFaqStructuredData.test.ts` 가 그걸 잠근다.
         -->
-        <h1>배당, 여기서부터 이해하고 계산합니다</h1>
+        <h1>배당으로 배당을 키우는 복리, 여기서 계산합니다</h1>
         <p>
-          주식과 ETF가 무엇인지부터, 배당을 다시 넣으면 얼마가 되는지까지 한
-          화면에서 확인하실 수 있습니다. 가입은 필요하지 않습니다.
+          주식과 ETF가 무엇인지부터, 받은 배당을 다시 넣었을 때 자산과 월 배당이
+          해마다 어떻게 달라지는지까지 한 화면에서 확인하실 수 있습니다. 가입은
+          필요하지 않습니다.
         </p>
 
         <h2>배당을 알기 전에, 세 단어</h2>

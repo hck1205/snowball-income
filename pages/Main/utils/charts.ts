@@ -10,6 +10,7 @@ import {
 import { buildAxisStyle, buildLegendStyle, buildTooltipStyle, getChartTheme, hexToRgba } from '@/shared/styles';
 import type { ChartTheme } from '@/shared/styles';
 import { tooltipPosition } from '@/shared/lib/charts';
+import { assignSeriesIndexes } from '@/shared/lib/tickerSeries';
 import { formatApproxKRW } from './formatters';
 import type { NormalizedAllocationItem } from './portfolio';
 
@@ -257,12 +258,24 @@ export const buildAllocationPieOption = ({
           length2: 8,
           lineStyle: { color: theme.axisLine }
         },
-        data: normalizedAllocation.map(({ profile, weight }, index) => ({
-          name: getTickerDisplayName(profile.ticker, profile.name),
-          value: Number((weight * 100).toFixed(4)),
-          /* 현재 프리셋의 시리즈 세트 — DOM 범례 점(CHART_SERIES_VARS)과 같은 인덱스 규칙(% 8) */
-          itemStyle: { color: theme.series[index % theme.series.length] }
-        }))
+        /*
+         * 🔴 조각 색은 **DOM 범례(`PortfolioComposition`)와 같은 배정**이어야 한다.
+         * 종전엔 양쪽 다 `index % 8` 이라 우연히 맞았는데, 그건 두 곳이 같은 순서를 받을 때만
+         * 성립하는 계약이었다. 지금은 둘 다 `assignSeriesIndexes` 를 각자 부른다 — 순수·결정적이라
+         * 맵을 넘겨받지 않아도 값이 같고, 순서가 갈려도 어긋나지 않는다.
+         * ⚠ 캔버스는 CSS 변수를 못 읽어 hex(`theme.series`)를 쓴다 — 그래서 공유하는 것은 색이 아니라 **인덱스**다.
+         */
+        data: (() => {
+          const seriesIndexes = assignSeriesIndexes(
+            normalizedAllocation.map(({ profile }) => profile.ticker),
+            theme.series.length
+          );
+          return normalizedAllocation.map(({ profile, weight }) => ({
+            name: getTickerDisplayName(profile.ticker, profile.name),
+            value: Number((weight * 100).toFixed(4)),
+            itemStyle: { color: theme.series[(seriesIndexes.get(profile.ticker) ?? 0) % theme.series.length] }
+          }));
+        })()
       }
     ]
   };

@@ -12,6 +12,7 @@ import {
   normalizeCompareSelection
 } from '../utils';
 import TickerCompareView from './TickerComparePage.view';
+import { buildPresetPreviews } from './TickerComparePage.utils';
 import type { TickerCompareViewModel } from './TickerComparePage.types';
 
 const copy = TICKER_COMPARE_COPY;
@@ -35,6 +36,12 @@ export default function TickerComparePage() {
     [searchParams]
   );
 
+  /**
+   * 예시 조합의 커버리지 미리보기는 **선택과 무관**하다 — 상수 목록에서만 나온다.
+   * 그래서 선택이 바뀔 때마다 열 벌을 다시 세지 않게 따로 메모한다(의존성 없음 = 최초 1회).
+   */
+  const suggestions = useMemo(() => buildPresetPreviews(COMPARE_PRESETS), []);
+
   const viewModel = useMemo<TickerCompareViewModel>(() => {
     const model = buildTickerCompareModel(selected);
     return {
@@ -42,9 +49,9 @@ export default function TickerComparePage() {
       candidates: getCompareCandidates(),
       isAtLimit: model.columns.length >= MAX_COMPARE_TICKERS,
       hasEnough: model.columns.length >= MIN_COMPARE_TICKERS,
-      suggestions: COMPARE_PRESETS
+      suggestions
     };
-  }, [selected]);
+  }, [selected, suggestions]);
 
   /*
    * 선택 변경은 **히스토리를 쌓지 않는다**(`replace`). 칩을 몇 번 눌렀다고 뒤로가기를 그만큼 눌러야

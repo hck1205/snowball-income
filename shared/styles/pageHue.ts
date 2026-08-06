@@ -42,7 +42,7 @@ export const pageHue = `var(${PAGE_HUE_VAR}, ${color.brand})`;
 
 /**
  * hue 에서 파생한 **장식용** 면·경계. 선례는 티커 상세의 `--tk-soft`/`--tk-border`
- * (`pages/Ticker/TickerDetailPage/TickerDetailPage.styled.ts`) — 같은 비율대를 쓴다.
+ * (`pages/Ticker/TickerDetailPage/styled/accent.ts`) — 같은 비율대를 쓴다.
  *
  * @param percent hue 비율(%). 면은 10~20, 경계는 35~55 근처가 이 레포의 실측 관례다.
  * @param base    나머지를 채울 색. 기본은 표면색이고, 경계에는 `'transparent'` 를 넘겨

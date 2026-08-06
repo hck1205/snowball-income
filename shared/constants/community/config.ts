@@ -27,7 +27,12 @@ export const COMMUNITY_QUERY_PARAM = {
   /** 투자 기간 ≥ (년) — duration_years gte. */
   durMin: 'durmin',
   /** 투자 기간 ≤ (년) — duration_years lte. */
-  durMax: 'durmax'
+  durMax: 'durmax',
+  /**
+   * 게시판 글 분류 필터 — 콤마 조인 다중값(`?cat=question,insight`).
+   * 비어 있으면(=All) param 자체를 삭제한다(sort/q 관례와 동일). 파싱·직렬화는 `boardFilters.ts`.
+   */
+  category: 'cat'
 } as const;
 
 /**

@@ -1,0 +1,569 @@
+{
+  "generatedAt": "2026-08-04",
+  "rangeStart": "2026-08-04",
+  "rangeEnd": "2026-10-16",
+  "economic": [
+    {
+      "date": "2026-08-04",
+      "timeEt": "10:00",
+      "nameKo": "ISM 제조업 PMI",
+      "nameEn": "ISM Manufacturing PMI",
+      "major": true
+    },
+    {
+      "date": "2026-08-05",
+      "timeEt": "08:30",
+      "nameKo": "무역수지",
+      "nameEn": "Trade Balance",
+      "major": false
+    },
+    {
+      "date": "2026-08-05",
+      "timeEt": "10:00",
+      "nameKo": "구인·이직 보고서(JOLTS)",
+      "nameEn": "JOLTS Job Openings",
+      "major": false
+    },
+    {
+      "date": "2026-08-06",
+      "timeEt": "10:00",
+      "nameKo": "ISM 서비스업 PMI",
+      "nameEn": "ISM Non-Manufacturing PMI",
+      "major": true
+    },
+    {
+      "date": "2026-08-07",
+      "timeEt": "05:30",
+      "nameKo": "챌린저 감원 발표",
+      "nameEn": "Challenger Job Cuts",
+      "major": false
+    },
+    {
+      "date": "2026-08-07",
+      "timeEt": "08:30",
+      "nameKo": "연속 실업수당 청구",
+      "nameEn": "Continuing Jobless Claims",
+      "major": false
+    },
+    {
+      "date": "2026-08-07",
+      "timeEt": "08:30",
+      "nameKo": "신규 실업수당 청구",
+      "nameEn": "Initial Jobless Claims",
+      "major": false
+    },
+    {
+      "date": "2026-08-12",
+      "timeEt": "10:00",
+      "nameKo": "기존주택 판매",
+      "nameEn": "Existing Home Sales",
+      "major": false
+    },
+    {
+      "date": "2026-08-13",
+      "timeEt": "08:30",
+      "nameKo": "근원 소비자물가지수",
+      "nameEn": "Core CPI",
+      "major": true
+    },
+    {
+      "date": "2026-08-13",
+      "timeEt": "08:30",
+      "nameKo": "소비자물가지수(CPI)",
+      "nameEn": "CPI",
+      "major": true
+    },
+    {
+      "date": "2026-08-13",
+      "timeEt": "14:00",
+      "nameKo": "연방 재정수지",
+      "nameEn": "Federal Budget Balance",
+      "major": false
+    },
+    {
+      "date": "2026-08-14",
+      "timeEt": "08:30",
+      "nameKo": "연속 실업수당 청구",
+      "nameEn": "Continuing Jobless Claims",
+      "major": false
+    },
+    {
+      "date": "2026-08-14",
+      "timeEt": "08:30",
+      "nameKo": "근원 생산자물가지수",
+      "nameEn": "Core PPI",
+      "major": false
+    },
+    {
+      "date": "2026-08-14",
+      "timeEt": "08:30",
+      "nameKo": "신규 실업수당 청구",
+      "nameEn": "Initial Jobless Claims",
+      "major": false
+    },
+    {
+      "date": "2026-08-14",
+      "timeEt": "08:30",
+      "nameKo": "생산자물가지수(PPI)",
+      "nameEn": "PPI",
+      "major": true
+    },
+    {
+      "date": "2026-08-19",
+      "timeEt": "08:30",
+      "nameKo": "주택착공",
+      "nameEn": "Housing Starts",
+      "major": false
+    },
+    {
+      "date": "2026-08-19",
+      "timeEt": "09:15",
+      "nameKo": "산업생산",
+      "nameEn": "Industrial Production",
+      "major": false
+    }
+  ],
+  "earnings": [
+    {
+      "date": "2026-08-04",
+      "ticker": "ANET",
+      "nameEn": "Arista Networks, Inc.",
+      "session": "afterClose",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-04",
+      "ticker": "AMD",
+      "nameEn": "Advanced Micro Devices, Inc.",
+      "session": "afterClose",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-04",
+      "ticker": "AMGN",
+      "nameEn": "Amgen Inc.",
+      "session": "afterClose",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-04",
+      "ticker": "BKNG",
+      "nameEn": "Booking Holdings Inc.",
+      "session": "afterClose",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-04",
+      "ticker": "BP",
+      "nameEn": "BP p.l.c.",
+      "session": "beforeOpen",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-04",
+      "ticker": "CAT",
+      "nameEn": "Caterpillar, Inc.",
+      "session": "beforeOpen",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-04",
+      "ticker": "GILD",
+      "nameEn": "Gilead Sciences, Inc.",
+      "session": "afterClose",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-04",
+      "ticker": "MCD",
+      "nameEn": "McDonald's Corporation",
+      "session": "beforeOpen",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-04",
+      "ticker": "MRK",
+      "nameEn": "Merck & Company, Inc.",
+      "session": "beforeOpen",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-04",
+      "ticker": "PFE",
+      "nameEn": "Pfizer, Inc.",
+      "session": "beforeOpen",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-04",
+      "ticker": "SPCX",
+      "nameEn": "Space Exploration Technologies Corp.",
+      "session": "afterClose",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-04",
+      "ticker": "SPOT",
+      "nameEn": "Spotify Technology S.A.",
+      "session": "beforeOpen",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-05",
+      "ticker": "O",
+      "nameEn": "Realty Income Corporation",
+      "session": "afterClose",
+      "hasTickerPage": true
+    },
+    {
+      "date": "2026-08-05",
+      "ticker": "APP",
+      "nameEn": "Applovin Corporation",
+      "session": "afterClose",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-05",
+      "ticker": "CVS",
+      "nameEn": "CVS Health Corporation",
+      "session": "beforeOpen",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-05",
+      "ticker": "DIS",
+      "nameEn": "Walt Disney Company (The)",
+      "session": "beforeOpen",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-05",
+      "ticker": "HSBC",
+      "nameEn": "HSBC Holdings plc",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-05",
+      "ticker": "LLY",
+      "nameEn": "Eli Lilly and Company",
+      "session": "beforeOpen",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-05",
+      "ticker": "MCK",
+      "nameEn": "McKesson Corporation",
+      "session": "afterClose",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-05",
+      "ticker": "NVO",
+      "nameEn": "Novo Nordisk A/S",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-05",
+      "ticker": "SHOP",
+      "nameEn": "Shopify Inc.",
+      "session": "beforeOpen",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-05",
+      "ticker": "SNDK",
+      "nameEn": "Sandisk Corporation",
+      "session": "afterClose",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-05",
+      "ticker": "UBER",
+      "nameEn": "Uber Technologies, Inc.",
+      "session": "beforeOpen",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-05",
+      "ticker": "WDC",
+      "nameEn": "Western Digital Corporation",
+      "session": "afterClose",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-06",
+      "ticker": "CEG",
+      "nameEn": "Constellation Energy Corporation",
+      "session": "beforeOpen",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-06",
+      "ticker": "COP",
+      "nameEn": "ConocoPhillips",
+      "session": "beforeOpen",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-06",
+      "ticker": "HWM",
+      "nameEn": "Howmet Aerospace Inc.",
+      "session": "beforeOpen",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-06",
+      "ticker": "PBR",
+      "nameEn": "Petroleo Brasileiro S.A.- Petrobras",
+      "session": "afterClose",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-06",
+      "ticker": "PBR.A",
+      "nameEn": "Petroleo Brasileiro S.A.- Petrobras",
+      "session": "afterClose",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-06",
+      "ticker": "PH",
+      "nameEn": "Parker-Hannifin Corporation",
+      "session": "beforeOpen",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-06",
+      "ticker": "TM",
+      "nameEn": "Toyota Motor Corp Ltd Ord",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-07",
+      "ticker": "BRK.A",
+      "nameEn": "Berkshire Hathaway Inc.",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-07",
+      "ticker": "BRK.B",
+      "nameEn": "Berkshire Hathaway Inc.",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-12",
+      "ticker": "CSCO",
+      "nameEn": "Cisco Systems, Inc.",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-13",
+      "ticker": "AMAT",
+      "nameEn": "Applied Materials, Inc.",
+      "session": "afterClose",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-13",
+      "ticker": "BN",
+      "nameEn": "Brookfield Corporation",
+      "session": "beforeOpen",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-18",
+      "ticker": "BHP",
+      "nameEn": "BHP Group Limited",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-18",
+      "ticker": "HD",
+      "nameEn": "Home Depot, Inc. (The)",
+      "session": "beforeOpen",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-19",
+      "ticker": "ADI",
+      "nameEn": "Analog Devices, Inc.",
+      "session": "beforeOpen",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-19",
+      "ticker": "LOW",
+      "nameEn": "Lowe's Companies, Inc.",
+      "session": "beforeOpen",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-19",
+      "ticker": "TJX",
+      "nameEn": "TJX Companies, Inc. (The)",
+      "session": "beforeOpen",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-20",
+      "ticker": "DE",
+      "nameEn": "Deere & Company",
+      "session": "beforeOpen",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-20",
+      "ticker": "WMT",
+      "nameEn": "Walmart Inc.",
+      "session": "beforeOpen",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-24",
+      "ticker": "PDD",
+      "nameEn": "PDD Holdings Inc.",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-25",
+      "ticker": "BMO",
+      "nameEn": "Bank Of Montreal",
+      "session": "beforeOpen",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-25",
+      "ticker": "BNS",
+      "nameEn": "Bank of Nova Scotia (The)",
+      "session": "beforeOpen",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-26",
+      "ticker": "NVDA",
+      "nameEn": "NVIDIA Corporation",
+      "session": "afterClose",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-26",
+      "ticker": "CRWD",
+      "nameEn": "CrowdStrike Holdings, Inc.",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-26",
+      "ticker": "RY",
+      "nameEn": "Royal Bank Of Canada",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-26",
+      "ticker": "SNOW",
+      "nameEn": "Snowflake Inc.",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-27",
+      "ticker": "CM",
+      "nameEn": "Canadian Imperial Bank of Commerce",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-27",
+      "ticker": "DELL",
+      "nameEn": "Dell Technologies Inc.",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-27",
+      "ticker": "MRVL",
+      "nameEn": "Marvell Technology, Inc.",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-08-27",
+      "ticker": "TD",
+      "nameEn": "Toronto Dominion Bank (The)",
+      "session": "beforeOpen",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-09-01",
+      "ticker": "MDT",
+      "nameEn": "Medtronic plc",
+      "session": "beforeOpen",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-09-01",
+      "ticker": "PANW",
+      "nameEn": "Palo Alto Networks, Inc.",
+      "session": "afterClose",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-09-02",
+      "ticker": "CRM",
+      "nameEn": "Salesforce, Inc.",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-09-03",
+      "ticker": "AVGO",
+      "nameEn": "Broadcom Inc.",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-09-04",
+      "ticker": "BABA",
+      "nameEn": "Alibaba Group Holding Limited",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-09-08",
+      "ticker": "ORCL",
+      "nameEn": "Oracle Corporation",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-09-22",
+      "ticker": "MU",
+      "nameEn": "Micron Technology, Inc.",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-09-24",
+      "ticker": "ACN",
+      "nameEn": "Accenture plc",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-09-24",
+      "ticker": "COST",
+      "nameEn": "Costco Wholesale Corporation",
+      "session": "unknown",
+      "hasTickerPage": false
+    }
+  ]
+}

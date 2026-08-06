@@ -26,6 +26,8 @@ const LLMS_FULL = readRepoFile('public/llms-full.txt');
 const AI_OVERVIEW_RAW = readRepoFile('public/ai-overview.json');
 const AI_OVERVIEW = JSON.parse(AI_OVERVIEW_RAW) as { entrypoints: Record<string, string> };
 const INDEX_HTML = readRepoFile('index.html');
+const MANIFEST_RAW = readRepoFile('public/site.webmanifest');
+const MANIFEST = JSON.parse(MANIFEST_RAW) as { name: string; short_name: string };
 const VITE_CONFIG = readRepoFile('vite.config.ts');
 
 const AI_SURFACES = [
@@ -34,11 +36,36 @@ const AI_SURFACES = [
   { name: 'public/ai-overview.json', text: AI_OVERVIEW_RAW }
 ] as const;
 
+/** 브랜드가 박히는 정적 표면 전부 — 한 곳만 남으면 크롤러·LLM 에게 제품 이름이 둘로 보인다. */
+const BRANDED_SURFACES = [
+  ...AI_SURFACES,
+  { name: 'index.html', text: INDEX_HTML },
+  { name: 'public/site.webmanifest', text: MANIFEST_RAW }
+] as const;
+
 /** 주석에만 있는 문자열을 "코드에 있다"고 오판하지 않게 걷어낸다(legalSurfaceConsistency 와 같은 기법). */
 const stripComments = (source: string) => source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^[ \t]*\/\/.*$/gm, '');
 
-/** 브랜드명 "Snowball Income" 은 이름이라 예외 — 금지 대상은 한글 비유다. */
+/**
+ * 금지 대상은 한글 비유다.
+ *
+ * 🔴 2026-07-22 규칙에는 "브랜드 워드마크는 예외"라는 단서가 있었지만 그건 제품명이 `Snowball Income`
+ * 이던 시절 것이다. 제품명이 `Hungry Hippo` 로 바뀐 지금(decisions.md 2026-08-03) 예외는 사라졌고,
+ * 이 표면들에는 어떤 형태의 눈덩이 비유도 남으면 안 된다.
+ */
 const FORBIDDEN_METAPHORS = [/스노우볼/, /눈덩이/] as const;
+
+/**
+ * 제품명은 **영문 `Hungry Hippo` 하나**다. 한글 음차("헝그리 히포")를 만들면 표기가 둘로 갈린다
+ * (decisions.md 2026-08-03).
+ *
+ * ⚠ `Snowball` 을 통째로 금지하지 않는 이유: `index.html` 에는 localStorage 키 접두사
+ * `snowball:` 과 빌드 마커 `SNOWBALL_STATIC_EXAMPLE` 이 있다. 그것들은 브랜드가 아니라
+ * **식별자**라 바꾸면 사용자 데이터·빌드가 깨진다. 그래서 옛 브랜드 **어구**만 잠근다.
+ */
+const BRAND = 'Hungry Hippo';
+const RETIRED_BRAND = /Snowball Income/;
+const FORBIDDEN_TRANSLITERATION = /헝그리\s*히포/;
 
 describe('기계 판독 표면의 라우트 정합', () => {
   it.each(AI_SURFACES)('$name 이 /simulator 를 안다', ({ text }) => {
@@ -73,6 +100,27 @@ describe('기계 판독 표면의 라우트 정합', () => {
     // 경로 리터럴로 되돌아가면(= 랜딩행) 여기서 걸린다.
     expect(serverHandler).not.toMatch(/href="\/"/);
     expect(spaView).not.toMatch(/to="\/"/);
+  });
+});
+
+describe('제품명 표기 (Hungry Hippo 단일 표기)', () => {
+  it.each(BRANDED_SURFACES)('$name 이 제품명을 싣는다', ({ text }) => {
+    expect(text).toContain(BRAND);
+  });
+
+  it.each(BRANDED_SURFACES)('$name 에 옛 브랜드가 남아 있지 않다', ({ text }) => {
+    expect(text).not.toMatch(RETIRED_BRAND);
+  });
+
+  it.each(BRANDED_SURFACES)('$name 에 한글 음차가 없다', ({ text }) => {
+    expect(text).not.toMatch(FORBIDDEN_TRANSLITERATION);
+  });
+
+  it('매니페스트 short_name 은 홈 화면 라벨이라 짧다', () => {
+    // 런처가 잘라내면 브랜드가 "Hungry Hipp…" 로 보인다. name 이 정식 표기를 갖고, short_name 은 축약을 쓴다.
+    expect(MANIFEST.name).toContain(BRAND);
+    expect(MANIFEST.short_name.length).toBeLessThanOrEqual(12);
+    expect(MANIFEST.short_name).toBe('Hippo');
   });
 });
 

@@ -4,7 +4,7 @@
 
 import type { ThemeTokens } from '../semantic';
 import { chartSeriesTokens, type ChartSeries } from './chartSeriesTokens';
-import { buildAuroraGradient, buildDuotoneGradient, buildHeroGradient } from './gradients';
+import { buildAuroraGradient, buildDuotoneGradient } from './gradients';
 import { COMMON_DARK, COMMON_LIGHT } from './sharedTokens';
 
 /**
@@ -30,17 +30,22 @@ const NAVY_GOLD_CHART_SERIES: ChartSeries = [
  */
 export const NAVY_GOLD_LIGHT: ThemeTokens = {
   /*
-   * 아이보리→크림 골드 틴트 강화(구 #f7f4ec → #f5efdd) — border-strong on bg 4.08,
-   * 글로우 최악 4.52(8종 중 가장 타이트 — 실측). 더 진하게 하려면 text-muted부터 어둡게. hover=bg 동기.
+   * 🔴 **순백 캔버스**(2026-08-03 사용자 결정 — "페이지 전체 배경색이 흰색"). 구 값 크림 골드 틴트(#f5efdd).
+   * bg = surface = surface-raised 가 전부 흰색이 되면서 **면색이 카드의 격을 말하지 못한다** —
+   * 그 일은 아래 `border`(헤어라인)·여백·그림자가 이어받았다. 이 프리셋만은 `surface` 가
+   * 아이보리(#fffcf5)로 남는다 — 순백 캔버스 위 크림 카드라, 면색이 **아직 한 칸 말한다**
+   * (1.03:1). 그 한 칸이 크림의 정체성이고, 격은 여전히 경계가 진다.
+   * 부수 효과: 8종 중 가장 타이트하던 글로우 최악 지점(4.52:1) 제약이 통째로 사라졌다.
    */
-  bg: '#f5efdd',
+  bg: '#ffffff',
   surface: '#fffcf5',
   'surface-raised': '#fffcf5',
   'surface-muted': '#fbf9f2',
   'surface-sunken': '#efeadd',
   'surface-hover': '#f5efdd',
 
-  border: '#e3dcc9',
+  /* 🔴 흰 캔버스의 주역. 구 1.34:1(아이보리 위) → 새 1.44:1. */
+  border: '#dbd4c0',
   'border-strong': '#7c7360',
 
   text: '#1f2430',
@@ -76,7 +81,8 @@ export const NAVY_GOLD_LIGHT: ThemeTokens = {
 
   /* 웜 섀도 — 아이보리 지면과 어울리는 갈색 틴트 */
   'shadow-1': '0 1px 2px rgba(46, 40, 24, 0.06), 0 1px 3px rgba(46, 40, 24, 0.08)',
-  'shadow-2': '0 2px 4px rgba(46, 40, 24, 0.06), 0 4px 12px rgba(46, 40, 24, 0.10)',
+  /* ⚠ e2 만 올렸다 — raised 는 테두리 없이 이 그림자 하나로 선다. */
+  'shadow-2': '0 1px 2px rgba(46, 40, 24, 0.05), 0 6px 18px rgba(46, 40, 24, 0.13)',
   'shadow-3': '0 2px 6px rgba(46, 40, 24, 0.08), 0 12px 32px rgba(46, 40, 24, 0.18)',
 
   'ribbon-stop-1': '#1f3a68',
@@ -94,11 +100,12 @@ export const NAVY_GOLD_LIGHT: ThemeTokens = {
    * 히어로 면 — 웜(아이보리) 프리셋이라 쿨 캐스트를 0.12/0.09 로 낮췄다("차가운 빛"이 스민 정도).
    * brand 자체가 네이비(쿨)라 블루 캐스트가 정체성과 충돌하지 않는다. 최악 text-muted 5.07:1.
    */
-  'gradient-hero': buildHeroGradient('#e5edef', '#ecf5ea'),
-  'gradient-hero-soft': buildHeroGradient('#f1f4f2', '#f5f8ef'),
+  /* 히어로 면 — 단색. hero = surface(아이보리) / soft = surface-muted. */
+  'gradient-hero': '#fffcf5',
+  'gradient-hero-soft': '#fbf9f2',
   /* 단색층만 새 bg(#f5efdd)로 — 알파 0.06/0.05 유지(글로우 최악 4.52 실측, 상한) */
-  'bg-glow':
-    'radial-gradient(1200px 640px at 16% -10%, rgba(160, 118, 23, 0.06), transparent 60%), radial-gradient(1000px 560px at 84% -12%, rgba(31, 58, 104, 0.05), transparent 55%), #f5efdd',
+  /* 🔴 상단 글로우를 걷었다. 다크 글로우는 남긴다. */
+  'bg-glow': '#ffffff',
   'surface-glass': 'rgba(255, 252, 245, 0.8)',
   'surface-glass-fallback': '#fffcf5',
 
@@ -168,8 +175,9 @@ export const NAVY_GOLD_DARK: ThemeTokens = {
   'gradient-aurora': buildAuroraGradient(['#6f8fc7', '#d8b04a', '#cf8fa4']),
   'gradient-cta': buildDuotoneGradient('#4d6ca4', '#3a5488'),
   /* 히어로 면 — 다크 최악 text-muted 5.40:1 / soft 5.93:1(실측). */
-  'gradient-hero': buildHeroGradient('#112338', '#10252c'),
-  'gradient-hero-soft': buildHeroGradient('#0e1a2d', '#0d1b26'),
+  /* 히어로 면 — 단색. 다크는 면 밝기 위계를 지킨다. */
+  'gradient-hero': '#141b30',
+  'gradient-hero-soft': '#182138',
   'bg-glow':
     'radial-gradient(1100px 600px at 18% -10%, rgba(216, 176, 74, 0.10), transparent 60%), radial-gradient(900px 520px at 82% -14%, rgba(111, 143, 199, 0.10), transparent 55%), #0a0f1e',
   'surface-glass': 'rgba(31, 41, 66, 0.85)',

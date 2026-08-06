@@ -37,15 +37,31 @@ export const ScenarioTabsWrap = styled.div`
   }
 `;
 
+/**
+ * 시나리오 탭 하나.
+ *
+ * 🔴 **활성 탭이 이 화면의 유일한 L3 솔리드다** (brand 채움 + on-brand 글자, 2026-08-03 확정).
+ * 결과 그리드는 숫자가 사는 data 면이라 채도면을 허용하지 않는다 — 그래서 "고르는 자리"인 이 탭이
+ * 화면의 색 예산을 통째로 받는다. 같은 결정으로 StatTile 의 hero 면(구 accent-subtle)이 중립으로
+ * 내려갔다: **색면 총량은 그대로이고 위치만 옮겼다.**
+ *
+ * 색이 유일한 채널이 아니다 — 활성 탭은 **채움 + 굵기(bold) + 아래 결과 영역과 이어지는 봉합선**
+ * 셋으로 말한다. 회색조로 인쇄해도 어느 탭이 켜져 있는지 읽힌다.
+ *
+ * ⚠ 이름변경(inline input)은 이 버튼이 아니라 ScenarioTabEditWrap 이 그린다 — 입력 중에는
+ * 탭이 L3 를 **잠시 반납하고** 중립 면으로 돌아간다(솔리드 면 위에 입력 필드를 얹지 않는다).
+ */
 export const ScenarioTabButton = styled.button<{ active?: boolean; dragOver?: boolean; isDragging?: boolean }>`
   position: relative;
   flex: 0 0 auto;
   max-width: 160px;
   scroll-snap-align: start;
-  border: 1px solid ${({ active }) => (active ? color.border : 'transparent')};
+  /* 활성/비활성 모두 투명 — 상태가 바뀌어도 폭이 흔들리지 않게 자리만 잡아 둔다.
+     활성 신호는 테두리가 아니라 채움이 만든다. */
+  border: 1px solid transparent;
   border-bottom: 0;
-  background: ${({ active }) => (active ? color.surface : 'transparent')};
-  color: ${({ active }) => (active ? color.text : color.textMuted)};
+  background: ${({ active }) => (active ? color.brand : 'transparent')};
+  color: ${({ active }) => (active ? color.onBrand : color.textMuted)};
   border-radius: ${radius.md} ${radius.md} 0 0;
   padding: ${space[2]} ${space[4]};
   min-height: 40px;
@@ -59,7 +75,13 @@ export const ScenarioTabButton = styled.button<{ active?: boolean; dragOver?: bo
   cursor: pointer;
   z-index: ${({ active }) => (active ? 2 : 1)};
   opacity: ${({ isDragging }) => (isDragging ? 0.65 : 1)};
-  box-shadow: ${({ dragOver }) => (dragOver ? `inset 0 0 0 2px ${color.brand}` : 'none')};
+  /*
+   * 드래그 정렬의 **유일한** 시각 신호. 예전에는 inset 0 0 0 2px brand 였는데, 활성 탭이 brand 로
+   * 통째로 채워진 지금은 그 위에서 같은 색 테두리가 보이지 않는다 — 채널을 색이 아니라
+   * **형태(파선 아웃라인)** 로 옮기고, 잉크만 면에 따라 갈랐다(솔리드 위에서는 on-brand).
+   */
+  outline: ${({ active, dragOver }) => (dragOver ? `2px dashed ${active ? color.onBrand : color.brandBorder}` : 'none')};
+  outline-offset: -2px;
   transition: background-color ${motion.fast} ${motion.ease}, color ${motion.fast} ${motion.ease};
 
   /* 손가락으로 쓰는 폭에서는 터치 타깃 하한(44px)까지 올린다. */
@@ -67,7 +89,9 @@ export const ScenarioTabButton = styled.button<{ active?: boolean; dragOver?: bo
     min-height: 44px;
   }
 
-  /* 활성 탭이 아래 패널과 이어져 보이도록 경계선을 덮는다 */
+  /* 활성 탭이 아래 결과 영역과 이어져 보이도록 래퍼의 밑줄을 덮는다.
+     솔리드가 된 뒤로는 덮는 색도 채움과 같은 brand 다 — surface 로 두면 색면 바로 아래에 흰 실선이
+     한 줄 남아 탭이 잘린 것처럼 보인다. */
   &::after {
     content: '';
     position: absolute;
@@ -75,16 +99,18 @@ export const ScenarioTabButton = styled.button<{ active?: boolean; dragOver?: bo
     right: 0;
     bottom: -1px;
     height: 1px;
-    background: ${({ active }) => (active ? color.surface : 'transparent')};
+    background: ${({ active }) => (active ? color.brand : 'transparent')};
   }
 
   &[draggable='true'] {
     cursor: ${({ isDragging }) => (isDragging ? 'grabbing' : 'grab')};
   }
 
+  /* 활성 탭은 이미 목적지다 — 호버로 면색을 바꾸지 않는다(바꾸면 "누르면 더 있다"고 말한다).
+     비활성 탭만 중립 호버 면을 받는다. */
   &:hover:not(:disabled) {
-    background: ${({ active }) => (active ? color.surface : color.surfaceHover)};
-    color: ${color.text};
+    background: ${({ active }) => (active ? color.brand : color.surfaceHover)};
+    color: ${({ active }) => (active ? color.onBrand : color.text)};
   }
 
   &:disabled {
@@ -113,6 +139,13 @@ export const ScenarioTabRenameInput = styled.input`
   }
 `;
 
+/**
+ * 이름변경 중인 탭의 껍데기.
+ *
+ * 🔴 면이 중립(surface)인 것이 의도다 — **솔리드 면 위에 입력 필드를 얹지 않는다.** 입력하는 동안
+ * 활성 탭은 L3 를 잠시 반납하고, 그래서 캐럿·선택 영역·× 버튼이 전부 검증된 중립 면 위에 선다
+ * (brand 채움 위의 캐럿 색은 대비를 보장할 수 없다). 편집을 마치면 다시 솔리드로 돌아온다.
+ */
 export const ScenarioTabEditWrap = styled.div`
   position: relative;
   display: inline-flex;

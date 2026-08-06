@@ -47,7 +47,8 @@ function ScenarioPreviewComponent({ payload }: ScenarioPreviewProps) {
     <PreviewAccordion>
       <PreviewHeader type="button" id={headerId} aria-expanded={open} aria-controls={panelId} onClick={() => setOpen((prev) => !prev)}>
         <PreviewHeaderText>{c.previewTitle}</PreviewHeaderText>
-        <Chevron open={open} aria-hidden="true">
+        {/* 어트리뷰트는 헤더 hover 가 이 배지를 집기 위한 고리다(Emotion 컴포넌트 셀렉터 미설치). */}
+        <Chevron open={open} data-preview-chevron aria-hidden="true">
           <ChevronDownIcon size={18} strokeWidth={1.8} />
         </Chevron>
       </PreviewHeader>

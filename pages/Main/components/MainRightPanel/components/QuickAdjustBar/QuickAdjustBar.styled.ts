@@ -1,16 +1,72 @@
 import styled from '@emotion/styled';
-import { color, font, radius, shadow, space } from '@/shared/styles';
+import { color, font, media, radius, shadow, space } from '@/shared/styles';
 
 /**
  * 결과 카드 바로 아래의 **1차 조정 줄**. 드로어를 열지 않고 가장 자주 바꾸는 세 값만 만진다.
  *
+ * 🔴 **카드가 아니다**(2026-08-03 2차 리워크). 예전에는 공용 `Card` 를 써서 제목·부제·20px 패딩·
+ * 24~28px 라운드를 전부 갖고 있었고, 그래서 "최종 자산 가치"를 말하는 요약 카드와 **같은 무게**로
+ * 화면에 섰다. 이건 데이터가 아니라 **조작 장치**다 — 읽는 것과 만지는 것이 같은 껍데기를 쓰면
+ * 화면에 위계가 생기지 않는다. 지금은:
+ *
+ *  - 라운드 16px(카드 24~28px 보다 한 단계 아래) · 패딩 얇게 → 카드 조(組)에서 빠진다.
+ *  - 제목이 **왼쪽 이름표 칸**으로 옮겨가 세로 공간을 먹지 않는다(카드 헤더 = 28px + 16px 여백).
+ *  - 결과 이미지 저장에서는 통째로 제외된다(`data-capture-exclude`) — 그림 속에서 누를 수 없는
+ *    슬라이더는 미끼다. 전 폭(12칸)이라 캡처에서 빠져도 격자에 구멍이 아니라 **행 하나**가 사라진다.
+ *
  * 색 규율: 값(숫자)은 **중립 토큰만**(`color.text`). 슬라이더 트랙의 채움만 브랜드 축을 쓴다 —
  * 그건 조작 어포던스(누르는 것)이지 데이터가 아니다.
  */
+export const QuickAdjustRail = styled.div`
+  display: grid;
+  grid-template-columns: minmax(120px, 200px) minmax(0, 1fr);
+  align-items: center;
+  gap: ${space[3]} clamp(${space[4]}, 2.4vw, ${space[8]});
+  border: 1px solid ${color.border};
+  border-radius: ${radius.lg};
+  background: ${color.surface};
+  padding: clamp(${space[3]}, 1.4vw, ${space[4]}) clamp(${space[4]}, 1.8vw, ${space[5]});
+  min-width: 0;
+
+  /* 좁은 폭에서는 이름표가 위, 슬라이더가 아래. 이름표 칸을 억지로 남기면 슬라이더가 눌린다. */
+  ${media.down('drawer')} {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+  }
+`;
+
+export const QuickAdjustLegend = styled.div`
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+`;
+
+/**
+ * 이름표. 카드 제목(16~18px 헤딩 서체)이 아니라 **라벨**(12px 본문 서체 · 자간 확장)이다 —
+ * 이 줄이 카드 조에서 빠졌다는 것을 글자 크기 하나로 말한다.
+ */
+export const QuickAdjustEyebrow = styled.p`
+  margin: 0;
+  font-size: ${font.size.xs};
+  font-weight: ${font.weight.bold};
+  letter-spacing: 0.06em;
+  line-height: ${font.leading.snug};
+  color: ${color.text};
+`;
+
+export const QuickAdjustNote = styled.p`
+  margin: 0;
+  font-size: ${font.size['2xs']};
+  font-weight: ${font.weight.medium};
+  line-height: ${font.leading.snug};
+  color: ${color.textMuted};
+`;
+
 export const QuickAdjustGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
   gap: ${space[3]} ${space[5]};
+  min-width: 0;
 `;
 
 export const QuickAdjustItem = styled.div`

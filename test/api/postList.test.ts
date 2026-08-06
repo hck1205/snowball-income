@@ -10,11 +10,11 @@ import { handler } from '@/server/handlers/PostList';
 const SHELL = `<!doctype html>
 <html lang="ko">
   <head>
-    <title>배당 재투자 시뮬레이터 - Snowball Income</title>
+    <title>배당 재투자 시뮬레이터 - Hungry Hippo</title>
     <meta name="description" content="기본 설명" />
     <link rel="canonical" href="https://snowball.test/" />
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Snowball Income" />
+    <meta property="og:site_name" content="Hungry Hippo" />
     <meta property="og:title" content="기본 제목" />
     <meta property="og:description" content="기본 og 설명" />
     <meta property="og:url" content="https://snowball.test/" />
@@ -89,16 +89,16 @@ describe('api/post-list — 목록 주입', () => {
     stubFetch({ rows: [{ id: ID_A, kind: 'board', title: '안녕하세요' }] });
     const html = await (await call('kind=board')).text();
 
-    expect(html).toContain('<title>자유게시판 - Snowball Income</title>');
+    expect(html).toContain('<title>자유게시판 - Hungry Hippo</title>');
     expect(html).toContain('href="https://snowball.test/community/board"');
     expect(html).toContain('content="https://snowball.test/community/board"');
-    expect(html).toMatch(/property="og:title"\s+content="자유게시판 - Snowball Income"/);
+    expect(html).toMatch(/property="og:title"\s+content="자유게시판 - Hungry Hippo"/);
   });
 
   it('포트폴리오 목록 title 은 갤러리 카피다', async () => {
     stubFetch({ rows: [{ id: ID_A, kind: 'portfolio', title: 'x' }] });
     const html = await (await call('kind=portfolio')).text();
-    expect(html).toContain('<title>포트폴리오 갤러리 - Snowball Income</title>');
+    expect(html).toContain('<title>포트폴리오 갤러리 - Hungry Hippo</title>');
   });
 
   it('제목의 <script> 는 텍스트로 이스케이프한다(마크업 실행 불가)', async () => {
@@ -152,7 +152,7 @@ describe('api/post-list — 빈 목록·실패 처리', () => {
     const html = await res.text();
 
     expect(res.status).toBe(200);
-    expect(html).toContain('<title>포트폴리오 갤러리 - Snowball Income</title>');
+    expect(html).toContain('<title>포트폴리오 갤러리 - Hungry Hippo</title>');
     expect(html).toContain('<div id="root"></div>');
     expect(html).not.toContain('<nav');
   });
@@ -192,7 +192,7 @@ describe('api/post-list — 빈 목록·실패 처리', () => {
 
     expect(res.status).toBe(200);
     expect(res.headers.get('cache-control')).toBe('no-store');
-    expect(await res.text()).toContain('<title>배당 재투자 시뮬레이터 - Snowball Income</title>');
+    expect(await res.text()).toContain('<title>배당 재투자 시뮬레이터 - Hungry Hippo</title>');
   });
 
   it('셸을 못 읽는 극단은 루트로 302', async () => {

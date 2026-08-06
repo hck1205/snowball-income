@@ -46,12 +46,16 @@ describe('SIMULATOR_COPY — 확정 문자열', () => {
  * **부재 계약** — 화면이 존재하지 않는 것을 가리키지 않는다.
  *
  *  - 방향어("좌측/왼쪽"): 설정이 좌측 고정 컬럼에서 오버레이 드로어로 옮겨가면서 전부 거짓이 됐다.
- *  - 눈덩이/스노우볼 비유: 제품 카피에서 전면 금지된 표현이다(브랜드명은 예외라 여기엔 나오지 않는다).
+ *  - 눈덩이/스노우볼/snowball: 제품 카피에서 **전 표면 완전 금지**다. 🔴 "브랜드명은 예외" 조항은
+ *    폐기됐다(2026-08-03 확정 — 제품명은 "Hungry Hippo"). 그래서 영문 `snowball` 도 함께 잠근다.
+ *    ⚠ 여기서 훑는 것은 `SIMULATOR_COPY`·`TOUR_STEPS` 의 **화면에 나가는 값**뿐이다 — localStorage 키
+ *    (`snowball:tutorial:v1`)나 `shared/lib/snowball/` 같은 **코드 식별자는 이 범위에 들어오지 않는다**
+ *    (그건 브랜드가 아니라 식별자라 합법이다).
  *
  * 부재는 눈으로 훑어서는 유지되지 않는다 — 카피를 늘릴 때마다 자동으로 걸리게 둔다.
  */
 const BANNED_DIRECTIONS = ['좌측', '왼쪽', '우측', '오른쪽'];
-const BANNED_METAPHORS = ['눈덩이', '스노우볼'];
+const BANNED_METAPHORS = [/눈덩이/, /스노우볼/, /snowball/i] as const;
 
 /**
  * 카피 트리의 **모든 문자열 잎**을 `경로: 문장` 으로 편다. 최상위 값만 훑으면 중첩된 묶음
@@ -84,11 +88,11 @@ describe('시뮬레이터 카피 — 금지 표현 부재', () => {
     expect(offenders).toEqual([]);
   });
 
-  it('🔴 SIMULATOR_COPY 에 눈덩이/스노우볼 비유가 없다 — 문서 메타 포함', () => {
-    // 회수한 index.html 원문에는 "배당 재투자(스노우볼) 효과"가 있었다. 브랜드명 외 비유는 금지라
-    // 그 삽입구만 뺐고, 다시 들어오면 여기서 걸린다.
+  it('🔴 SIMULATOR_COPY 에 눈덩이/스노우볼/snowball 이 없다 — 문서 메타 포함, 브랜드 예외 없음', () => {
+    // 회수한 index.html 원문에는 "배당 재투자(스노우볼) 효과"가 있었다. 그 삽입구를 뺐고,
+    // 이제는 영문 브랜드 잔재("… — Snowball Income" 류)까지 같은 규칙을 받는다.
     const offenders = SIMULATOR_COPY_LEAVES.filter(([, text]) =>
-      BANNED_METAPHORS.some((word) => text.includes(word))
+      BANNED_METAPHORS.some((pattern) => pattern.test(text))
     );
 
     expect(offenders).toEqual([]);
@@ -102,9 +106,9 @@ describe('시뮬레이터 카피 — 금지 표현 부재', () => {
     expect(offenders).toEqual([]);
   });
 
-  it('가이드 투어 문구에 눈덩이/스노우볼 비유가 없다', () => {
+  it('가이드 투어 문구에 눈덩이/스노우볼/snowball 이 없다', () => {
     const offenders = TOUR_STEPS.filter((step) =>
-      BANNED_METAPHORS.some((word) => step.title.includes(word) || step.body.includes(word))
+      BANNED_METAPHORS.some((pattern) => pattern.test(step.title) || pattern.test(step.body))
     ).map((step) => step.id);
 
     expect(offenders).toEqual([]);

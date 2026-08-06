@@ -1,7 +1,7 @@
 import styled from '@emotion/styled';
 import { Link } from 'react-router-dom';
 import {
-  cardElevation,
+  PICK,
   color,
   font,
   iconOpticalAlign,
@@ -20,6 +20,7 @@ import type { PresetGroupTone } from './PresetBrowser.types';
  * 🔴 **카드는 링크가 아니다.** 프리셋 딥링크(카드 클릭 → 시뮬레이터 프리필)는 새 프리필 계약과
  * 하이드레이션 순서 검증이 필요한 별건이라, v1 은 섹션 끝 CTA 하나로 시뮬레이터에 보낸다.
  * 빈 포트폴리오로 도착하면 시뮬레이터가 자기 온보딩 프리셋 보드를 그대로 띄운다 — 착지가 정확하다.
+ * (그래서 `PickCard` 에 `to`/`onClick` 을 주지 않는다 — 부품은 "누를 수 없는 정보 카드"도 낸다.)
  */
 
 /** 그룹 배지 톤. 시뮬레이터 프리셋 보드와 같은 매핑이다(새로 만들 것이 없다). */
@@ -59,53 +60,80 @@ export const GroupSection = styled.section`
   min-width: 0;
 `;
 
+/**
+ * 묶음 머리 — **2줄**이다(2026-08-03).
+ *
+ * before 는 [배지][이름][힌트][더 보기]가 한 줄에 다 있어서 14px 이름이 12px 힌트와 나란히 서고,
+ * 그 줄 전체가 카드 제목(16px)보다 작았다 — 묶음이 카드보다 가벼웠다. 지금은 이름 줄(20px)과
+ * 힌트 줄이 갈리고, 룰은 묶음 전체 아래로 내려온다.
+ */
 export const GroupHead = styled.div<{ $tone: PresetGroupTone }>`
+  display: grid;
+  gap: ${space[1]};
+  min-width: 0;
+  padding-bottom: ${space[3]};
+  border-bottom: 2px solid ${({ $tone }) => RULE[$tone]};
+`;
+
+export const GroupTitleRow = styled.div`
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: ${space[2]};
+  gap: ${space[3]};
   min-width: 0;
-  padding-bottom: ${space[2]};
-  border-bottom: 1px solid ${({ $tone }) => RULE[$tone]};
 `;
 
 export const GroupBadge = styled.span<{ $tone: PresetGroupTone }>`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: ${radius.sm};
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border-radius: ${radius.md};
   background: ${({ $tone }) => TONE[$tone].bg};
   color: ${({ $tone }) => TONE[$tone].fg};
   /* 오른쪽 그룹 이름이 헤딩 서체라 잉크 중심 보정을 받는다(이름 크기 기준). */
-  ${iconOpticalAlign('display', font.size.base)}
+  ${iconOpticalAlign('display', font.size['2xl'])}
 
   svg {
     display: block;
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
   }
 `;
 
 export const GroupTitle = styled.h3`
   margin: 0;
+  flex: 1 1 auto;
+  min-width: 0;
   font-family: ${font.display};
-  font-size: ${font.size.base};
+  /* 랜딩 h3 한 크기(20px) — ConceptTitle·ChecklistTitle 과 같은 단이다. */
+  font-size: ${font.size['2xl']};
   font-weight: ${font.weight.bold};
+  line-height: ${font.leading.snug};
+  letter-spacing: -0.02em;
   color: ${color.text};
 `;
 
 export const GroupHint = styled.span`
-  flex: 1 1 auto;
   min-width: 0;
-  font-size: ${font.size.xs};
+  font-size: ${font.size.sm};
+  line-height: ${font.leading.snug};
   color: ${color.textSecondary};
+  word-break: keep-all;
 `;
 
-/** 디스클로저 트리거. 펼침에 높이 애니메이션을 걸지 않는다 — 랜딩은 즉시 표시다. */
+/**
+ * 디스클로저 트리거. 펼침에 높이 애니메이션을 걸지 않는다 — 랜딩은 즉시 표시다.
+ *
+ * 🔴 잉크 보정을 **버튼도 받는다.** 같은 줄의 묶음 이름이 헤딩 서체(display)라 잉크 중심이 라인박스
+ * 중심보다 위에 있고, 보정 없이 두면 24px 알약이 이름보다 2.4px 낮게 앉는다(uiprobe --align 실측).
+ * 왼쪽 배지가 같은 보정을 받고 있으므로 배지·이름·버튼 셋이 한 선에 선다.
+ */
 export const MoreButton = styled.button`
   flex: 0 0 auto;
+  ${iconOpticalAlign('display', font.size['2xl'])}
   padding: ${space[1]} ${space[2]};
   border: 1px solid ${color.border};
   border-radius: ${radius.pill};
@@ -147,7 +175,13 @@ export const MoreButton = styled.button`
 export const PresetGrid = styled.ul`
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: clamp(12px, 2vw, 20px);
+  /*
+   * 🔴 간격은 PICK.gap 이다(clamp 12~16px) — 고르는 카드의 hover 부상 그림자(e2)는 blur 12px 라
+   * 그보다 좁으면 그림자가 이웃 카드를 침범한다. 값을 손으로 적지 마라(shared/styles/tokens.ts 소유).
+   * ⚠ 열 수는 그대로 2 다. 위 주석의 실측(3열이면 네 묶음 전부 오른쪽 한 칸이 빈다)이 여전히 유효하고,
+   *   PickCardGrid(auto-fill)로 갈아타면 그 판단이 뷰포트 폭에 따라 뒤집힌다.
+   */
+  gap: ${PICK.gap};
   margin: 0;
   padding: 0;
   list-style: none;
@@ -158,23 +192,18 @@ export const PresetGrid = styled.ul`
   }
 `;
 
-export const PresetCard = styled.li`
+/**
+ * 카드 **본문 한 벌**(훅 문장 → 비중 막대 → 비중 텍스트).
+ *
+ * 🔴 카드 껍데기는 이제 공용 `PickCard` 가 소유한다(면·라운드·레일 캡·글리프 배지·제목 크기).
+ * 여기 남은 것은 **이 화면만의 내용물**뿐이다 — 껍데기를 다시 그리면 같은 모양의 "고르는 카드"가
+ * 8번째로 복제된다(그게 `PickCard` 가 생긴 이유다).
+ */
+export const PresetFacts = styled.div`
   display: grid;
   gap: ${space[2]};
   align-content: start;
   min-width: 0;
-  padding: clamp(14px, 2vw, 20px);
-  border-radius: ${radius.lg};
-  ${cardElevation('base')}
-`;
-
-export const PresetTitle = styled.h4`
-  margin: 0;
-  font-family: ${font.display};
-  font-size: ${font.size.base};
-  font-weight: ${font.weight.bold};
-  color: ${color.text};
-  word-break: keep-all;
 `;
 
 export const PresetHook = styled.p`
@@ -189,7 +218,7 @@ export const PresetHook = styled.p`
  * 🔴 **비중 막대의 폭 상한 — 장식 취향이 아니라 계약이다. 값을 올리지 마라.**
  *
  * `tintscan` 은 «폭 ≥180px **그리고** 높이 ≥8px» 인 유채 요소를 "틴트 면"으로 세고, 랜딩의 면 예산은
- * 2개(히어로 그라디언트 · S7 시작 준비 카드)로 확정돼 있다. 이 막대는 높이가 **정확히 8px** 이라
+ * 2개(마무리 CTA · 푸터 패널)로 확정돼 있다. 이 막대는 높이가 **정확히 8px** 이라
  * **폭만 넘으면** 세 번째 면이 된다. 실제로 2026-08-01 프리셋 격자가 3열→2열이 되며 카드가
  * 333→510px 로 넓어지자 `SCHD 40%` 조각이 117→**187px** 가 되어 `/ @1280` 이 3면으로 실패했다.
  *
@@ -239,21 +268,22 @@ export const BrowserCta = styled(Link)`
   display: inline-flex;
   align-items: center;
   gap: ${space[2]};
-  height: 40px;
-  padding: 0 ${space[4]};
-  border: 1px solid ${color.borderStrong};
-  border-radius: ${radius.sm};
-  background: ${color.surface};
+  height: 44px;
+  padding: 0 ${space[5]};
+  /* 고르는 면의 어휘를 따라 알약이다 — 카드가 30~34px 로 둥근 지면에서 8px 사각 버튼만 각져 있었다. */
+  border: 1px solid ${color.brandBorder};
+  border-radius: ${radius.pill};
+  background: ${color.brandSubtle};
   font-size: ${font.size.sm};
   font-weight: ${font.weight.semibold};
-  color: ${color.text};
+  /* brand-text / brand-subtle 은 contrast.test.ts 가 16테마 전부에서 재는 쌍이다(파생 면 아님). */
+  color: ${color.brandText};
   text-decoration: none;
   transition: background-color ${motion.fast} ${motion.ease}, border-color ${motion.fast} ${motion.ease},
     ${pressTransition};
   ${pressable}
 
   &:hover {
-    background: ${color.surfaceHover};
-    border-color: ${color.brandBorder};
+    background: ${color.brandSubtleHover};
   }
 `;
