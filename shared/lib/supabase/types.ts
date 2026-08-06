@@ -32,12 +32,35 @@ export type PostPayload = {
 export type { PersistedScenarioState };
 
 /**
- * 글 종류 (마이그레이션 20260724000000).
+ * 글 종류 (마이그레이션 20260724000000 → 20260807000000 에서 3종으로 확장).
  *   - 'portfolio' : 갤러리(포트폴리오/시나리오 공유글). 기존 글 전부가 여기 속한다(default).
  *   - 'board'     : 자유게시판 글(질문·잡담·건의 등, 본문 위주 + 선택적 시나리오 첨부).
- * 갤러리/게시판 조회는 이 값으로 서로를 격리한다(fetchGalleryPage=portfolio, fetchBoardPage=board).
+ *   - 'news'      : 미디어 뉴스 — **바깥 글로 가는 링크가 본체**인 글.
+ * 세 표면은 이 값으로 서로를 격리한다(fetchGalleryPage / fetchBoardPage / fetchNewsPage).
  */
-export type PostKind = 'portfolio' | 'board';
+export type PostKind = 'portfolio' | 'board' | 'news';
+
+/**
+ * 뉴스 글이 `payload` 에 담는 **링크 메타**.
+ *
+ * 🔴 컬럼을 더하지 않는다 — 기존 `payload`(jsonb) 안에 산다. 뉴스가 아닌 글에는 이 키가 없다.
+ * 🔴 **원문 본문을 복제해 담지 않는다**(저작권). 담는 것은 제목·요약 2~3줄·썸네일 URL·출처뿐이고,
+ *   카드 전체가 원문으로 가는 링크여야 한다. 이 규율은 DB 가 아니라 클라이언트와 `api/unfurl` 이 지킨다.
+ * ⚠ 전부 서버가 뽑아 준 값이지만 **믿을 수 없는 남의 사이트에서 온 문자열**이다 —
+ *   화면은 텍스트로만 그리고(HTML 주입 금지), `image` 는 http(s) 인지 다시 확인하고 쓴다.
+ */
+export type NewsPayload = {
+  /** 원문 주소. http/https 만. 카드 전체가 이 주소로 간다. */
+  url: string;
+  /** 원문 제목(og:title). 없으면 도메인으로 떨어진다. */
+  title: string;
+  /** 두세 줄 요약(og:description). 없을 수 있다. */
+  summary?: string;
+  /** 썸네일 절대 URL(og:image). 없을 수 있다. */
+  image?: string;
+  /** 출처 표시명(og:site_name 또는 호스트). 화면의 카드 머리에 선다. */
+  source: string;
+};
 
 /**
  * 자유게시판 글 분류 (마이그레이션 20260726000000 → 20260727000000 에서 5종으로 확장).
@@ -310,6 +333,20 @@ export type GalleryPage = {
 };
 
 /**
+ * 뉴스 목록의 한 줄 — 목록인데도 `payload` 를 들고 온다.
+ *
+ * 🔴 `payload` 타입이 `unknown` 인 것은 의도다. 이 값은 **서버 jsonb** 이고 그 안의 문자열은
+ * 남의 사이트에서 온 것이다 — 어떤 화면도 이 값을 그대로 믿으면 안 되고, `parseNewsPayload` 를
+ * 통과한 것만 쓴다(`sim_summary` 를 `parseScenarioSimSummary` 로 거르는 것과 같은 규율).
+ */
+export type NewsListItem = PostListItem & { payload: unknown };
+
+export type NewsPage = {
+  items: NewsListItem[];
+  nextCursor: string | null;
+};
+
+/**
  * supabase-js 제네릭용. `supabase gen types` 출력과 호환되는 형태.
  *
  * `Relationships`는 장식이 아니다 — PostgREST 임베드(`author:profiles(...)`)의 **타입 추론 근거**다.
@@ -333,9 +370,15 @@ export type Database = {
         // kind는 optional(서버 default 'portfolio') — 게시판 글만 명시적으로 'board'로 넣는다. Update엔 없다(종류 고정).
         // sim_summary는 읽기(unknown)와 달리 쓰기 쪽 타입을 조인다 — 데이터 레이어가 만든 검증된 요약만 저장.
         // category는 Insert/Update 양쪽에 있다(kind와 다른 점) — 분류는 사후 수정이 허용된다.
-        Insert: Pick<PostRow, 'title'> &
-          Partial<
-            Pick<PostRow, 'user_id' | 'kind' | 'category' | 'description' | 'payload' | 'body' | 'is_public'>
+        /*
+         * 🔴 쓰기의 payload 만 **뉴스 링크 메타까지** 넓다. 읽기(PostRow.payload)는 시나리오
+         * 그대로 두는 것이 의도다 — 상세 화면이 payload 를 시나리오로 다루는 곳이 여럿이고,
+         * 거기서 유니온을 만나면 전부 좁히기가 필요해진다. 뉴스 payload 를 읽는 곳은 목록 카드
+         * 하나뿐이고 그쪽은 `NewsListItem`(payload: unknown) + `parseNewsPayload` 로 간다.
+         * 서버 CHECK(posts_payload_valid_or_null)가 kind 와 payload 의 짝을 강제한다.
+         */
+        Insert: Pick<PostRow, 'title'> & { payload?: PostPayload | NewsPayload | null } & Partial<
+            Pick<PostRow, 'user_id' | 'kind' | 'category' | 'description' | 'body' | 'is_public'>
           > &
           Partial<{ sim_summary: ScenarioSimSummary | null }>;
         Update: Partial<Pick<PostRow, 'title' | 'category' | 'description' | 'payload' | 'body' | 'is_public'>> &

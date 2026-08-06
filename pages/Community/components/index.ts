@@ -18,3 +18,6 @@ export type { PostFeedRowProps } from './PostFeedRow';
 
 export { PostGalleryCard } from './PostGalleryCard';
 export type { PostGalleryCardProps } from './PostGalleryCard';
+
+/* 미디어 뉴스 카드 — 목록 전용. 카드 전체가 **원문으로 가는 링크**라 다른 카드들과 성격이 다르다. */
+export { NewsCard, NewsCardList } from './NewsCard';

@@ -255,6 +255,9 @@ const CommunityLayout = lazy(() => import('@/pages/Community/CommunityLayout'));
 const CommunityGalleryPage = lazy(() => import('@/pages/Community/CommunityGalleryPage'));
 const CommunityBoardPage = lazy(() => import('@/pages/Community/CommunityBoardPage'));
 const CommunityWritePage = lazy(() => import('@/pages/Community/CommunityWritePage'));
+/** 미디어 뉴스 — 목록과 링크 공유 화면(마이그레이션 20260807000000·…001 이 스키마를 연다). */
+const CommunityNewsPage = lazy(() => import('@/pages/Community/CommunityNewsPage'));
+const CommunityNewsSharePage = lazy(() => import('@/pages/Community/CommunityNewsSharePage'));
 const CommunityDetailPage = lazy(() => import('@/pages/Community/CommunityDetailPage'));
 const CommunityProfilePage = lazy(() => import('@/pages/Community/CommunityProfilePage'));
 const CommunityMyPostsPage = lazy(() => import('@/pages/Community/CommunityMyPostsPage'));
@@ -327,7 +330,17 @@ const communityRoutes: RouteObject[] = isCommunityEnabled
           { path: 'board', element: <CommunityBoardPage /> },
           { path: 'board/write', element: <CommunityWritePage kind="board" /> },
           { path: 'board/:id', element: <CommunityDetailPage kind="board" /> },
-          { path: 'board/:id/edit', element: <CommunityWritePage kind="board" /> }
+          { path: 'board/:id/edit', element: <CommunityWritePage kind="board" /> },
+          /*
+           * 미디어 뉴스 — 정적 세그먼트 'news'.
+           * ⚠ 공유 화면 경로가 'write' 가 아니라 **'share'** 인 것은 의도다. 이 화면이 하는 일은
+           *   글쓰기가 아니라 남의 글을 가져오는 것이고, 주소가 그 차이를 먼저 말한다.
+           * ⚠ 수정 경로는 두지 않는다 — 뉴스의 본체는 남의 원문이라 고칠 것이 한 줄 감상뿐이고,
+           *   `kind` 는 게시 후 고정이다(update GRANT 없음). 필요해지면 그때 연다.
+           */
+          { path: 'news', element: <CommunityNewsPage /> },
+          { path: 'news/share', element: <CommunityNewsSharePage /> },
+          { path: 'news/:id', element: <CommunityDetailPage kind="news" /> }
         ]
       }
     ]

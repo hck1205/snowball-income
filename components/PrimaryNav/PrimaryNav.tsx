@@ -15,6 +15,7 @@ import {
   ListOrdered,
   Medal,
   MessageSquare,
+  Newspaper,
   MessagesSquare,
   PiggyBank,
   ReceiptText,
@@ -123,7 +124,9 @@ const DIVIDEND_LIST_GROUP_ITEMS = [
  */
 const COMMUNITY_GROUP_ITEMS = [
   { to: '/community/portfolio', label: n.gallery, Icon: LayoutGrid },
-  { to: '/community/board', label: n.board, Icon: MessageSquare }
+  { to: '/community/board', label: n.board, Icon: MessageSquare },
+  /* 미디어 뉴스 — 게시판 다음. 셋 다 커뮤니티 묶음 안이라 nav 상한(8칸)에 영향이 없다. */
+  { to: '/community/news', label: n.news, Icon: Newspaper }
 ] as const;
 
 /**

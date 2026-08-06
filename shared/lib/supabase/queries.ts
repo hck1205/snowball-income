@@ -19,6 +19,8 @@ import type {
   GalleryFacetFilters,
   GalleryPage,
   GallerySort,
+  NewsPage,
+  NewsPayload,
   PostCategory,
   PostKind,
   PostListItem,
@@ -47,6 +49,17 @@ const LIST_COLUMNS = 'id,user_id,kind,title,description,is_public,has_payload,si
 
 /** 상세는 본문(body)과 시나리오 첨부(payload)까지 내려온다. */
 const DETAIL_COLUMNS = `${LIST_COLUMNS},payload,body`;
+
+/**
+ * 뉴스 목록 전용 컬럼셋 — 목록에 **payload 를 함께 내린다**.
+ *
+ * 🔴 다른 목록에는 payload 를 넣지 않는다. 포트폴리오 글의 payload 는 수십 KB 라 목록 대역폭을
+ * 통째로 먹는다(위 OPTIONAL_POST_COLUMNS 주석의 그 이유). 반면 **뉴스의 payload 는 링크 메타
+ * 다섯 필드**뿐이라(url·title·summary·image·source, `NewsPayload`) 수백 바이트다.
+ * 그리고 뉴스 카드는 썸네일·출처·요약이 **곧 카드 자체**라, 없으면 목록을 그릴 수가 없다.
+ * ⚠ 이 컬럼셋을 다른 kind 에 쓰지 마라 — kind='news' 조건과 한 벌이다.
+ */
+const NEWS_LIST_COLUMNS = `${LIST_COLUMNS},payload`;
 
 /**
  * **아직 배포되지 않았을 수 있는** posts 컬럼들.
@@ -157,8 +170,13 @@ export const fetchGalleryPage = async (
     query?: string;
     queryFilter?: string;
     facets?: GalleryFacetFilters;
-    /** 글 종류 필터. 기본 'portfolio'(갤러리). 게시판은 'board'. */
+    /** 글 종류 필터. 기본 'portfolio'(갤러리). 게시판은 'board', 뉴스는 'news'. */
     kind?: PostKind;
+    /**
+     * 내려받을 컬럼셋. 기본은 목록 공용(payload 없음).
+     * ⚠ 뉴스만 `NEWS_LIST_COLUMNS` 를 쓴다 — 근거는 그 상수의 주석. 다른 표면에 넘기지 마라.
+     */
+    columns?: string;
   } = {}
 ): Promise<GalleryPage> => {
   const sort = options.sort ?? 'recent';
@@ -183,7 +201,7 @@ export const fetchGalleryPage = async (
 
     // 다음 페이지 존재 여부를 알기 위해 1개 더 받는다
     return query.limit(pageSize + 1).returns<PostListItem[]>();
-  }, LIST_COLUMNS);
+  }, options.columns ?? LIST_COLUMNS);
 
   return splitPage(rows, pageSize, sort);
 };
@@ -204,6 +222,25 @@ export const fetchBoardPage = async (
     facets?: GalleryFacetFilters;
   } = {}
 ): Promise<GalleryPage> => fetchGalleryPage(client, { ...options, kind: 'board' });
+
+/**
+ * 미디어 뉴스 목록 — 게시판과 **같은 이유로** 얇은 래퍼다(마이그레이션 20260807000000).
+ *
+ * 🔴 뉴스에 별도 조회 경로를 만들지 않는다. 페이지네이션·정렬·검색·격리 규칙이 갈리는 순간
+ * 세 표면 중 하나만 고쳐지는 날이 온다 — 지금은 규칙이 한 곳(fetchGalleryPage)에만 있다.
+ * ⚠ 마이그레이션 전에는 kind='news' 행이 존재할 수 없어 **빈 목록**이 온다(에러가 아니다).
+ */
+export const fetchNewsPage = async (
+  client: CommunityClient,
+  options: {
+    sort?: GallerySort;
+    cursor?: string | null;
+    pageSize?: number;
+    query?: string;
+    queryFilter?: string;
+  } = {}
+): Promise<NewsPage> =>
+  fetchGalleryPage(client, { ...options, kind: 'news', columns: NEWS_LIST_COLUMNS }) as Promise<NewsPage>;
 
 export const fetchPostDetail = async (
   client: CommunityClient,
@@ -255,13 +292,23 @@ export const publishPost = async (
     title: string;
     description?: string | null;
     body?: string | null;
-    payload?: PostPayload | null;
+    /**
+     * 시나리오 첨부 **또는** 뉴스 링크 메타. 어느 쪽인지는 `kind` 가 정한다.
+     * 🔴 서버 CHECK(`posts_payload_valid_or_null`, 마이그레이션 20260807000001)가 그 짝을 강제한다 —
+     *   뉴스 글에 시나리오를 담거나 그 반대로 담으면 23514 로 거절된다.
+     */
+    payload?: PostPayload | NewsPayload | null;
     isPublic?: boolean;
     kind?: PostKind;
     category?: PostCategory;
   }
 ): Promise<PostWithAuthor> => {
   const payload = input.payload ?? null;
+  /*
+   * 🔴 뉴스 payload 에는 시뮬 요약이 없다 — `buildScenarioSimSummary` 에 넘기면 시나리오가 아닌
+   * 모양을 파싱하게 된다. kind 로 먼저 갈라 낸다(그 함수가 관대해도 의미 없는 호출이다).
+   */
+  const simSummary = input.kind === 'news' ? null : toSimSummary(payload as PostPayload | null);
 
   return unwrap(
     await client
@@ -271,7 +318,7 @@ export const publishPost = async (
         description: input.description ?? null,
         body: input.body ?? null,
         payload,
-        sim_summary: toSimSummary(payload),
+        sim_summary: simSummary,
         // 기본은 비공개. 공개는 사용자가 명시적으로 선택할 때만 (서버 기본값과 동일한 철학)
         is_public: input.isPublic ?? false,
         // kind 미지정이면 키 자체를 생략 → 서버 default 'portfolio'. 게시판만 'board' 명시.
