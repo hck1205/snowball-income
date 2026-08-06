@@ -25,6 +25,12 @@ import type { ResolvedPageHue } from './usePageHue.types';
  *    **의도적으로 같은 색**이다 — 셋 다 "내 것이 아니라 시장에 있는 배당 사실"을 읽는 축이고,
  *    내 포트폴리오·가계부(accentAlt)와는 그 점이 갈린다. 색이 갈리면 사용자가 같은 성격의 화면을
  *    다른 것으로 읽는다. (라우트별로 색이 갈리는지 재는 가드에 이 쌍을 넣지 마라 — 갈리면 안 된다.)
+ *  - `/guide/*` 검색어 랜딩 = **identity**. 🔴 랜딩·시뮬레이터와 **의도적으로 같은 색**이다
+ *    (2026-08-06 가이드 조판 리워크). 가이드 다섯 편은 랜딩의 "처음이라면 여기부터"가 잇는 한 줄이고
+ *    (`GUIDE_START_PATH`), 마지막 걸음이 곧 시뮬레이터다 — 셋은 "정문에서 도구까지"라는 **한 축**이라
+ *    색이 갈리면 사용자가 같은 길의 중간을 다른 곳으로 읽는다. 차별화 손실도 0이다: 가이드에는
+ *    활성 내비 알약이 없어(내비에 없는 라우트다) hue 소비처가 히어로·목차·표 리본뿐이다.
+ *    **새 hue 를 만들지 마라** — 아래 가드에 이 쌍을 넣지 않는 이유도 같다(갈리면 안 되는 쌍이다).
  *  - `/community/*` = **brand**. 사람이 모이는 곳 — 인터랙션 축과 같은 색이다.
  *  - `/ticker/*` = **배정하지 않는다**. 티커 화면은 이미 **티커별 액센트**(`--tk-from/--tk-to` →
  *    `--tk-text/--tk-soft/--tk-border`)라는 자기 색 체계를 갖는다. 여기에 페이지 hue 를 겹치면
@@ -37,6 +43,8 @@ export const resolvePageHue = (pathname: string): ResolvedPageHue => {
   /* 랜딩(`/`) 과 시뮬레이터(`/simulator`) 는 같은 identity 를 쓴다 — 위 배정 근거 참고. */
   if (pathname === '/') return 'identity';
   if (pathname.startsWith('/simulator')) return 'identity';
+  /* 검색어 랜딩 — 랜딩·시뮬레이터와 한 축이다(위 배정 근거 참고). */
+  if (pathname.startsWith('/guide/')) return 'identity';
   if (pathname.startsWith('/dividend/portfolio')) return 'accentAlt';
   if (pathname.startsWith('/ledger')) return 'accentAlt';
   if (pathname.startsWith('/dividend/calendar')) return 'accent';

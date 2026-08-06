@@ -1,6 +1,7 @@
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect, useRef } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import type { RouteObject } from 'react-router-dom';
+import { ScrollTopButton } from '@/components/common';
 import { MainPage } from '@/pages';
 import {
   isCommunityEnabled,
@@ -38,6 +39,7 @@ import {
  */
 function RootLayout() {
   const location = useLocation();
+  const topAnchorRef = useRef<HTMLDivElement>(null);
 
   usePageHue();
 
@@ -80,7 +82,23 @@ function RootLayout() {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
   }, [location.pathname, location.hash]);
 
-  return <Outlet />;
+  /*
+   * 🔴 **"맨 위로"는 전 라우트가 공유한다**(2026-08-06 사용자 지시: 모든 페이지에 붙여 달라).
+   * 종전에는 랜딩과 커뮤니티 상세 두 곳이 각자 렌더했는데, 긴 화면은 그 둘만이 아니다
+   * (티커 상세·배당 목록·가이드·국민연금 전부 스크롤이 길다). 셸이 한 번 그리면 화면마다
+   * 붙이는 것을 잊을 일이 없다.
+   *
+   * ⚠ 버튼은 이동 뒤 스스로 사라지므로 **포커스를 넘길 곳**이 필요하다(그 부품이 prop 으로 강제한다).
+   *   라우트마다 제목의 자리가 달라서 셸에서는 문서 맨 위의 빈 앵커를 쓴다 — 화면에 아무것도
+   *   그리지 않지만 `tabIndex={-1}` 이라 포커스는 받는다.
+   */
+  return (
+    <>
+      <div ref={topAnchorRef} tabIndex={-1} />
+      <Outlet />
+      <ScrollTopButton focusRef={topAnchorRef} />
+    </>
+  );
 }
 
 /**
@@ -114,7 +132,13 @@ const InvestorsPage = lazy(() => import('@/pages/Investors/InvestorsPage'));
  * 두 스냅샷은 각각 40KB·70KB 라 엔트리에 실리면 그대로 첫인상 비용이 된다.
  */
 const CongressPage = lazy(() => import('@/pages/Congress/CongressPage'));
+const KoreaAssemblyPage = lazy(() => import('@/pages/KoreaAssembly/KoreaAssemblyPage'));
 const NpsPage = lazy(() => import('@/pages/Nps/NpsPage'));
+/**
+ * 검색어 랜딩(`/guide/:slug`). 콘텐츠가 문자열뿐이라 가벼운데도 lazy 로 두는 이유는 **첫 화면 비용**
+ * 때문이다 — 시뮬레이터로 들어온 사람에게 가이드 본문을 실어 줄 이유가 없다.
+ */
+const GuidePage = lazy(() => import('@/pages/Guide/GuidePage'));
 
 /**
  * 미국 증시 캘린더(`/market/us-calendar`) — 배당 캘린더와 같은 `lazy` 격리.
@@ -339,6 +363,21 @@ export const routes: RouteObject[] = [
         element: <MainPage />
       },
       {
+        /*
+         * 검색어 랜딩 — "배당금 계산기"·"월 배당 100만원" 처럼 **사람이 검색창에 치는 말**에 1:1로
+         * 맞는 페이지다(docs/site-assessment-2026-08-06.md P0-③). 콘텐츠는 전부
+         * `shared/constants/guides` 에 있고, 새 가이드는 그 레지스트리에 한 줄이면 여기 자동으로 붙는다.
+         * ⚠ 크롤러 HTML(`api/guide-html.js`)이 같은 콘텐츠를 서버에서 그린다 — vercel.json 의 rewrite 와
+         *   이 라우트는 **한 벌**이라 한쪽만 바꾸면 색인과 화면이 갈린다.
+         */
+        path: '/guide/:slug',
+        element: (
+          <Suspense fallback={null}>
+            <GuidePage />
+          </Suspense>
+        )
+      },
+      {
         path: '/ticker/all',
         element: (
           <Suspense fallback={null}>
@@ -367,6 +406,19 @@ export const routes: RouteObject[] = [
         element: (
           <Suspense fallback={null}>
             <CongressPage />
+          </Suspense>
+        )
+      },
+      {
+        /*
+         * 대한민국 국회의원 주식 보유 — 미국 화면(`/portfolio/congress`)의 형제.
+         * 🔴 **한 화면에 합치지 않았다.** 국회공보의 정기재산변동신고는 연 1회 보유 스냅샷이고
+         * 미 하원 PTR 은 거래 기록이라, 같은 표에 놓으면 어느 쪽도 참이 아닌 숫자가 나온다.
+         */
+        path: '/portfolio/korea-assembly',
+        element: (
+          <Suspense fallback={null}>
+            <KoreaAssemblyPage />
           </Suspense>
         )
       },

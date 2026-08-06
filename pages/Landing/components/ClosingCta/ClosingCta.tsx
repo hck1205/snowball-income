@@ -1,8 +1,7 @@
 import { ArrowRight } from 'lucide-react';
-import { HippoCoinScene } from '@/components/common';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import { LANDING_COPY, LANDING_HERO_CTAS } from '../../copy';
-import { ClosingLead, ClosingLink, ClosingMark, ClosingNote, ClosingRow } from './ClosingCta.styled';
+import { ClosingHippo, ClosingLead, ClosingLink, ClosingMark, ClosingNote, ClosingRow } from './ClosingCta.styled';
 
 /**
  * 페이지를 닫는 줄 — **brand-subtle 틴트 면 + 흰 하마 판 + 오로라 CTA**.
@@ -36,16 +35,25 @@ export default function ClosingCta() {
     <ClosingRow>
       <ClosingLead>
         {/*
-          🔴 앱 전체에서 **금화가 켜지는 단 한 자리**다(2026-08-03 사용자 지시 — 하마+금화는 정말
-          특별한 곳 한두 군데만). 여덟 군데에 흩어져 있던 accent 를 전부 걷어내고 여기로 모았다.
-          왜 여기냐: 히어로는 접힘 위 예산이 239px 이라 연출이 들어갈 자리가 없고(LandingPage.view 주석),
-          그 주석이 **"큰 마스코트는 마무리 패널이 가져간다"**고 이 자리를 미리 예약해 뒀다.
-          ⚠ 금화는 **이미지**다 — 금색 토큰이 아니라 자기 음영과 외곽선을 가진 그림이라, "금색은
-            네이비 패널 위에서만"이라는 토큰 규칙(1.83:1)의 대상이 아니다. 민트 면 위 실측 확인.
-          ⚠ 접힘 아래이므로 lazy 다 — 두 이미지가 합쳐 800KB 대라 eager 면 첫 페인트를 갉아먹는다.
+          🔴 큰 마스코트가 서는 자리다. 히어로는 접힘 위 예산이 239px 이라 연출이 들어갈 자리가 없고
+          (LandingPage.view 주석), 그 주석이 **"큰 마스코트는 마무리 패널이 가져간다"**고 여기를
+          미리 예약해 뒀다.
+          🔴 2026-08-05 사용자 지시로 그림을 **튜브 낀 하마 한 장**(`hippo_duck.png`)으로 바꿨다.
+            종전의 하마+금화 합성 연출(`HippoCoinScene`)은 여기서 내려가고, 금화는 이제 헤더 로고가
+            진다(`AppHeader.tsx`). 경위는 `ClosingCta.styled.ts` 의 `ClosingHippo` 주석.
+          ⚠ 장식이다 — 바로 옆 문장이 이미 다 말한다. alt 는 빈 문자열로 둔다.
+          ⚠ 접힘 아래이므로 lazy 다. eager 로 바꾸면 첫 페인트를 이 그림이 갉아먹는다.
         */}
         <ClosingMark>
-          <HippoCoinScene size={88} loading="lazy" />
+          <ClosingHippo
+            src="/images/hippo/hippo_duck.png"
+            alt=""
+            width={88}
+            height={88}
+            loading="lazy"
+            decoding="async"
+            draggable={false}
+          />
         </ClosingMark>
         <ClosingNote>{LANDING_COPY.closing.note}</ClosingNote>
       </ClosingLead>

@@ -1,7 +1,7 @@
 import { useId, useRef } from 'react';
-import { BookOpen, CalendarDays, HelpCircle, LayoutGrid, ListChecks, Repeat } from 'lucide-react';
+import { BookOpen, CalendarDays, Compass, HelpCircle, LayoutGrid, ListChecks, Repeat } from 'lucide-react';
 import { Button } from '@/components';
-import { HippoCoinScene, PageFooter, PageHero, ScrollTopButton } from '@/components/common';
+import { HippoCoinScene, PageFooter, PageHero } from '@/components/common';
 import { PORTFOLIO_PRESET_PLACEHOLDERS } from '@/shared/constants/portfolioPresets';
 import { LANDING_COPY, LANDING_HERO_CTAS, landingChapter } from '../copy';
 import {
@@ -10,6 +10,7 @@ import {
   ConceptLadder,
   LandingFaq,
   LandingSearch,
+  StartPath,
   LandingSection,
   PayoutRhythm,
   PresetBrowser,
@@ -138,8 +139,29 @@ export default function LandingPageView({ viewModel, onHeroCta, onResume }: Land
 
       </HeroBlock>
 
-      {/* G2 배우기 — 단어(S3) → 원리(S4) → 시간(S5). 이 순서가 이 페이지의 학습 경로다. */}
+      {/* G2 배우기 — 길(S2.5) → 단어(S3) → 원리(S4) → 시간(S5). 이 순서가 이 페이지의 학습 경로다. */}
       <LandingGroup>
+        {/*
+          🔴 **처음 온 사람의 길**이 이 묶음의 첫 장이다(2026-08-06 사용자 지시). 이 아래 장들은
+          전부 "배당을 안다"를 전제로 서 있는데, 그 전제를 만드는 자리가 없었다 — 계좌를 여는 법도,
+          지수추종이 무엇인지도, 배당이 무엇인지도. 그 넷을 가이드로 쓰고 여기서 순서를 준다.
+          ⚠ 이 블록은 **링크만** 갖는다. 본문을 여기 옮기면 랜딩이 교과서가 되고 첫 화면이 사라진다.
+        */}
+        <LandingSection
+          id={sectionId('start')}
+          anchorId={landingChapter('start').anchorId}
+          ordinal={landingChapter('start').ordinal}
+          title={copy.startPath.title}
+          lede={copy.startPath.lede}
+          icon={<Compass size={18} strokeWidth={1.8} aria-hidden focusable={false} />}
+          tone="identity"
+          /* 🔴 support 다. 이 장이 먼저 오지만 **본론은 아니다** — 본론은 복리(왜 하는가)와
+             프리셋(무엇을 고르는가) 둘뿐이라는 계약을 지킨다(셋이 되면 강조가 강조가 아니다). */
+          emphasis="support"
+        >
+          <StartPath />
+        </LandingSection>
+
         {/* S3 */}
         <LandingSection
           id={sectionId('concept')}
@@ -235,7 +257,6 @@ export default function LandingPageView({ viewModel, onHeroCta, onResume }: Land
           차례 블록을 걷은 자리를 이 버튼이 대신한다(차례는 "내려가는 길", 이건 "돌아오는 길").
           부품은 커뮤니티 상세와 **같은 한 벌**이다(2026-08-04 에 components/common 으로 승격).
           임계(뷰포트 1개분)·포커스 이동 계약은 그 부품이 소유하므로 여기서 다시 정하지 않는다. */}
-      <ScrollTopButton focusRef={heroRef} />
     </LandingStack>
   );
 }

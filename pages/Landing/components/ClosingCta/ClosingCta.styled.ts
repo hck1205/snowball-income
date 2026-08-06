@@ -105,6 +105,26 @@ export const ClosingMark = styled.span`
   flex: 0 0 auto;
 `;
 
+/**
+ * 마무리 패널의 마스코트 **한 장**(2026-08-05 사용자 지시: 튜브를 낀 하마 `hippo_duck.png`).
+ *
+ * 🔴 종전에는 `HippoCoinScene`(하마 + 금화 두 장의 합성 연출)이었다. 한 장짜리 그림으로 바꾼
+ * 이유는 사용자가 그 그림을 지정했기 때문이고, 부수 효과가 둘 있다 — ①금화가 무대 밖으로 나가는
+ * 연출이 사라져 위 주석의 "overflow 를 자르지 마라"가 이 자리에서는 더 이상 필요 없다(그래도
+ * 자르지 않는다: 다음 사람이 다시 연출을 얹을 수 있다) ②앱에서 금화가 켜지는 자리는 이제
+ * **헤더 로고 한 곳**이다(`AppHeader.tsx`, `hippo_hugging_coin.png` 가 금화를 품고 있다).
+ *
+ * ⚠ 크기는 종전 무대와 같은 88px 로 남긴다 — 이 줄의 높이·정렬이 그 값에 맞춰져 있고,
+ *   사용자가 요청한 것은 **그림 교체**이지 확대가 아니다.
+ * ⚠ 접힘 아래라 lazy 다(호출부에서 지정). 원본은 1024², 표시 88px 이라 선명도는 남는다.
+ */
+export const ClosingHippo = styled.img`
+  display: block;
+  width: 88px;
+  height: 88px;
+  object-fit: contain;
+`;
+
 /** 그림 + 문장 한 덩어리. 좁은 폭에서 문장이 그림 아래로 내려가지 않게 묶는다. */
 export const ClosingLead = styled.div`
   display: flex;

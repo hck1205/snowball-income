@@ -64,12 +64,18 @@ export type LandingHeroCta = (typeof LANDING_HERO_CTAS)[number];
  * ⚠ 순서는 `LandingPage.view.tsx` 의 섹션 순서와 같아야 한다(문서 순서 = 차례 순서).
  */
 export const LANDING_CHAPTERS = [
-  { key: 'concept', anchorId: 'landing-concept', ordinal: '01', label: '주식 · ETF · 배당주' },
-  { key: 'compound', anchorId: 'landing-compound', ordinal: '02', label: '재투자와 복리' },
-  { key: 'payout', anchorId: 'landing-payout', ordinal: '03', label: '배당이 들어오는 달' },
-  { key: 'presets', anchorId: 'landing-presets', ordinal: '04', label: '많이 쓰는 구성' },
-  { key: 'checklist', anchorId: 'landing-checklist', ordinal: '05', label: '시작하기 전에' },
-  { key: 'faq', anchorId: 'landing-faq', ordinal: '06', label: '자주 묻는 질문' }
+  /*
+   * 🔴 **처음 온 사람의 길**이 1장이다(2026-08-06 사용자 지시). 종전 1장은 '주식·ETF·배당주'
+   * 낱말 풀이였는데, 그 앞에 "계좌는 어떻게 여나 / 투자는 어떻게 시작하나"가 통째로 비어 있었다.
+   * 개념을 모르는 사람이 계산기 앞에 서는 일을 막는 것이 이 장의 목적이다.
+   */
+  { key: 'start', anchorId: 'landing-start', ordinal: '01', label: '처음이라면 여기부터' },
+  { key: 'concept', anchorId: 'landing-concept', ordinal: '02', label: '주식 · ETF · 배당주' },
+  { key: 'compound', anchorId: 'landing-compound', ordinal: '03', label: '재투자와 복리' },
+  { key: 'payout', anchorId: 'landing-payout', ordinal: '04', label: '배당이 들어오는 달' },
+  { key: 'presets', anchorId: 'landing-presets', ordinal: '05', label: '많이 쓰는 구성' },
+  { key: 'checklist', anchorId: 'landing-checklist', ordinal: '06', label: '시작하기 전에' },
+  { key: 'faq', anchorId: 'landing-faq', ordinal: '07', label: '자주 묻는 질문' }
 ] as const;
 
 export type LandingChapter = (typeof LANDING_CHAPTERS)[number];
@@ -161,6 +167,21 @@ export const LANDING_COPY = {
    * 그리고 있어 원문자를 넣으면 24px 배지 안의 12px "원 안의 원"이 되어 숫자가 읽히지 않는다
    * (2.2배 확대 캡처로 확인). 순서 자체는 내용이라(주식을 모르면 ETF 를 설명할 수 없다) 지우지 않는다.
    */
+  /**
+   * 처음 온 사람이 밟는 길(2026-08-06 신설).
+   *
+   * 🔴 걸음의 **제목·설명은 여기 적지 않는다** — `GUIDE_START_PATH` 의 가이드가 자기 제목을 갖고
+   * 있고, 랜딩은 그것을 그대로 그린다. 두 곳에 적으면 가이드를 고칠 때 랜딩이 낡는다.
+   */
+  startPath: {
+    title: '처음이라면 여기부터',
+    lede: '계좌를 여는 일부터 계산까지, 순서대로 읽으실 수 있습니다. 각 걸음은 3분 안팎이면 읽힙니다.',
+    readAction: '읽기',
+    finalTitle: '내 조건으로 계산하기',
+    finalLede: '위 내용을 읽으셨다면, 매달 넣을 금액과 기간을 넣어 배당이 어떻게 쌓이는지 확인하실 수 있습니다.',
+    finalAction: '계산하기'
+  },
+
   concept: {
     title: '배당을 알기 전에, 세 단어',
     items: [

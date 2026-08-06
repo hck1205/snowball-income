@@ -62,6 +62,8 @@ describe('랜딩 섹션 등급(emphasis) 배정', () => {
    */
   it('배정표가 그대로다 — chapter 는 복리·프리셋 둘뿐', () => {
     expect(readSectionEmphasis()).toEqual([
+      /* 2026-08-06 합류 — 처음 온 사람의 길. 먼저 오지만 support 다(본론은 여전히 둘뿐). */
+      { key: 'start', emphasis: 'support' },
       { key: 'concept', emphasis: 'support' },
       { key: 'compound', emphasis: 'chapter' },
       { key: 'payout', emphasis: 'support' },

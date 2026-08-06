@@ -9,5 +9,7 @@ export { useDrawerBackClose } from './useDrawerBackClose';
 export { useOverlayEscape } from './useOverlayEscape';
 export { useOverlayPresence } from './useOverlayPresence';
 export type { OverlayPhase, OverlayPresence } from './useOverlayPresence';
+export { useRevealOnScroll } from './useRevealOnScroll';
+export { useScrollSpy } from './useScrollSpy';
 export { applyPageHue, resolvePageHue, usePageHue } from './usePageHue';
 export type { ResolvedPageHue } from './usePageHue';

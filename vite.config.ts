@@ -84,7 +84,10 @@ const ROUTES = [
    */
   { path: '/market/us-calendar', priority: '0.7', changefreq: 'weekly' },
   { path: '/portfolio/congress', priority: '0.6', changefreq: 'weekly' },
-  { path: '/portfolio/nps', priority: '0.6', changefreq: 'monthly' }
+  /* 🔴 `yearly` 인 것은 게으름이 아니라 사실이다 — 국회공보 정기재산변동신고는 **연 1회**
+     (3월 말) 공개된다. 주 1회라고 적으면 크롤러에게 거짓말을 하는 것이다. */
+  { path: '/portfolio/korea-assembly', priority: '0.6', changefreq: 'yearly' },
+  { path: '/portfolio/nps', priority: '0.6', changefreq: 'monthly' },
 ] as const;
 
 type SitemapRoute = { path: string; priority: string; changefreq: string };
@@ -124,6 +127,50 @@ const loadTickerRoutes = (): Promise<TickerRouteEntry[]> => {
   })();
   return tickerRoutesPromise;
 };
+
+/**
+ * 검색어 랜딩(`/guide/:slug`)도 **레지스트리에서 파생**한다 — 티커와 같은 방법(esbuild 로 한 번
+ * 번들해 메모리에서 평가)이다.
+ *
+ * 🔴 여기 경로를 손으로 나열하지 않는 이유: 가이드는 "레지스트리에 한 줄"이 추가 절차의 전부여야
+ * 하는데, 사이트맵만 손으로 적으면 **글은 있는데 색인되지 않는 페이지**가 조용히 생긴다. 그 실패는
+ * 아무 테스트도 잡지 못하고 몇 주 뒤 "왜 유입이 없지"로만 나타난다.
+ */
+type GuideRouteEntry = { slug: string };
+
+let guideRoutesPromise: Promise<GuideRouteEntry[]> | null = null;
+
+const loadGuideRoutes = (): Promise<GuideRouteEntry[]> => {
+  guideRoutesPromise ??= (async () => {
+    const rootDir = fileURLToPath(new URL('.', import.meta.url));
+    const { outputFiles } = await esbuild({
+      stdin: {
+        contents: `export { GUIDES } from './shared/constants/guides';`,
+        resolveDir: rootDir,
+        loader: 'ts'
+      },
+      bundle: true,
+      write: false,
+      format: 'esm',
+      platform: 'node',
+      target: 'node20',
+      tsconfig: 'tsconfig.json',
+      logLevel: 'silent'
+    });
+    const source = Buffer.from(outputFiles[0].text).toString('base64');
+    const mod = (await import(`data:text/javascript;base64,${source}`)) as { GUIDES: GuideRouteEntry[] };
+    return mod.GUIDES;
+  })();
+  return guideRoutesPromise;
+};
+
+/**
+ * 🔴 우선순위 0.8 은 이 사이트에서 **가장 높은 축**이다 — 이 페이지들의 존재 이유가 검색 유입
+ * 하나이고(docs/site-assessment-2026-08-06.md P0-③), "검색어 = 페이지"가 1:1 이라 색인 가치가
+ * 가장 직접적이다.
+ */
+const buildGuideSitemapRoutes = (guides: readonly GuideRouteEntry[]): SitemapRoute[] =>
+  guides.map((guide) => ({ path: `/guide/${guide.slug}`, priority: '0.8', changefreq: 'monthly' }));
 
 /** 허브(주 1회 갱신 성격) + 개별 티커(콘텐츠 변경이 드묾, 월 1회 성격)를 사이트맵 라우트로 변환한다. */
 const buildTickerSitemapRoutes = (tickers: readonly TickerRouteEntry[]): SitemapRoute[] => [
@@ -387,11 +434,16 @@ const seoAssetsPlugin = (siteUrl: string): Plugin => {
   const lastmod = new Date().toISOString().slice(0, 10);
   // ⚠ `/sitemap-posts.xml`은 여기에 **넣지 않는다** — dist에 파일이 생기면 vercel.json의
   //   `/sitemap-posts.xml → /api/sitemap` rewrite가 파일시스템 히트에 막혀 죽는다(위 buildSitemapIndex 주석).
-  // `/sitemap-pages.xml`만 비동기다 — 티커 라우트를 `loadTickerRoutes()`(esbuild 메모리 평가)로
-  // 파생해야 하기 때문(위 `buildStaticExampleHtml`/`loadEngine`과 같은 이유·같은 기법).
+  // `/sitemap-pages.xml`만 비동기다 — 티커·가이드 라우트를 esbuild 메모리 평가로 **파생**해야 하기
+  // 때문(위 `buildStaticExampleHtml`/`loadEngine`과 같은 이유·같은 기법). 둘 다 레지스트리가 단일
+  // 원천이라, 콘텐츠를 늘릴 때 사이트맵을 따로 고칠 일이 없다.
   const files: Record<string, () => string | Promise<string>> = {
     '/sitemap.xml': () => buildSitemapIndex(siteUrl, lastmod),
-    '/sitemap-pages.xml': async () => buildPagesSitemap(siteUrl, lastmod, buildTickerSitemapRoutes(await loadTickerRoutes())),
+    '/sitemap-pages.xml': async () =>
+      buildPagesSitemap(siteUrl, lastmod, [
+        ...buildTickerSitemapRoutes(await loadTickerRoutes()),
+        ...buildGuideSitemapRoutes(await loadGuideRoutes())
+      ]),
     '/robots.txt': () => buildRobots(siteUrl)
   };
 

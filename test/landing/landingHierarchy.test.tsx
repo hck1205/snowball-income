@@ -67,7 +67,7 @@ describe('랜딩 — 서사 묶음 구조', () => {
     expect(footer?.closest('main')).toBeNull();
   });
 
-  it('🔴 각 묶음의 구성원이 서사 순서 그대로다 — 히어로 / 배우기 3 / 고르기 2 / 참조와 마무리 2', () => {
+  it('🔴 각 묶음의 구성원이 서사 순서 그대로다 — 히어로 / 배우기 4 / 고르기 2 / 참조와 마무리 2', () => {
     const { container } = renderLandingPage();
     const [hero, learn, choose, reference] = [...landingStack(container).children];
 
@@ -75,7 +75,11 @@ describe('랜딩 — 서사 묶음 구조', () => {
     //    히어로에는 제목만 남는다.
     expect(sectionTitlesOf(hero)).toEqual(['배당으로 배당을 키우는 복리, 여기서 계산합니다']);
 
+    /* 🔴 2026-08-06: '처음이라면 여기부터'가 배우기 묶음의 **첫 장**으로 합류했다. 아래 세 장은
+       전부 "배당을 안다"를 전제로 서 있었는데, 그 전제를 만드는 자리가 없었다(사용자 지적).
+       순서가 곧 학습 경로라, 이 장이 맨 앞이 아니면 그 지적이 그대로 되살아난다. */
     expect(sectionTitlesOf(learn)).toEqual([
+      '처음이라면 여기부터',
       '배당을 알기 전에, 세 단어',
       '배당을 다시 넣으면 무엇이 달라지나',
       '배당이 들어오는 달은 종목마다 다릅니다'
