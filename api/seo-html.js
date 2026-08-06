@@ -1,36 +1,11 @@
 // ⚠ 자동 생성물 — 직접 편집하지 마라. 편집해도 다음 빌드가 덮어쓰고, 그 전에 빌드가 실패한다.
-// 소스: server/handlers/TickerHtml/TickerHtml.ts
+// 소스: server/handlers/SeoHtml/SeoHtml.ts
 // 재생성: npm run api:bundle
 
 var __defProp = Object.defineProperty;
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, { get: all[name], enumerable: true });
-};
-
-// shared/lib/og/metaHtml.ts
-var escapeHtmlAttribute = (value) => value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-var replaceMetaContent = (html, attribute, key, value) => {
-  const pattern = new RegExp(`(<meta[^>]*\\s${attribute}="${key}"[^>]*\\scontent=")[^"]*(")`, "i");
-  return html.replace(pattern, `$1${escapeHtmlAttribute(value)}$2`);
-};
-var escapeHtmlText = (value) => value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-var replaceTitleTag = (html, value) => html.replace(/(<title>)[^<]*(<\/title>)/i, `$1${escapeHtmlText(value)}$2`);
-var replaceLinkHref = (html, rel, value) => {
-  const pattern = new RegExp(`(<link[^>]*\\srel="${rel}"[^>]*\\shref=")[^"]*(")`, "i");
-  return html.replace(pattern, `$1${escapeHtmlAttribute(value)}$2`);
-};
-
-// shared/lib/og/siteUrl.ts
-var readServerEnv = (name) => {
-  const value = process.env[name];
-  return typeof value === "string" && value.trim().length > 0 ? value.trim() : void 0;
-};
-var stripTrailingSlash = (url) => url.replace(/\/+$/, "");
-var resolveSiteUrl = (requestUrl) => {
-  const configured = readServerEnv("SITE_URL") ?? readServerEnv("VITE_SITE_URL");
-  if (configured) return stripTrailingSlash(configured);
-  return stripTrailingSlash(new URL(requestUrl).origin);
 };
 
 // shared/lib/server/nodeHandler.ts
@@ -151,1296 +126,1564 @@ var toNodeHandler = (webHandler) => {
   };
 };
 
-// shared/constants/tickers/TickerCategory.ts
-var TICKER_CATEGORY_LABEL = {
-  "dividend-growth": "\uBC30\uB2F9\uC131\uC7A5 ETF",
-  "high-dividend": "\uACE0\uBC30\uB2F9 ETF",
-  "covered-call": "\uCEE4\uBC84\uB4DC\uCF5C\xB7\uC635\uC158\uC778\uCEF4 ETF",
-  reit: "\uB9AC\uCE20(REITs)",
-  international: "\uD574\uC678 \uBC30\uB2F9 ETF",
-  "core-index": "\uCF54\uC5B4 \uC9C0\uC218 ETF",
-  "dividend-stock": "\uAC1C\uBCC4 \uBC30\uB2F9\uC8FC"
+// shared/lib/og/metaHtml.ts
+var escapeHtmlAttribute = (value) => value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+var replaceMetaContent = (html, attribute, key, value) => {
+  const pattern = new RegExp(`(<meta[^>]*\\s${attribute}="${key}"[^>]*\\scontent=")[^"]*(")`, "i");
+  return html.replace(pattern, `$1${escapeHtmlAttribute(value)}$2`);
+};
+var escapeHtmlText = (value) => value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+var replaceTitleTag = (html, value) => html.replace(/(<title>)[^<]*(<\/title>)/i, `$1${escapeHtmlText(value)}$2`);
+var replaceLinkHref = (html, rel, value) => {
+  const pattern = new RegExp(`(<link[^>]*\\srel="${rel}"[^>]*\\shref=")[^"]*(")`, "i");
+  return html.replace(pattern, `$1${escapeHtmlAttribute(value)}$2`);
 };
 
-// shared/constants/marketData/marketData.generated.json
-var marketData_generated_default = {
-  asOf: "2026-08-01",
-  source: "yahoo",
-  entries: {
+// shared/lib/og/siteUrl.ts
+var readServerEnv = (name) => {
+  const value = process.env[name];
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : void 0;
+};
+var stripTrailingSlash = (url) => url.replace(/\/+$/, "");
+var resolveSiteUrl = (requestUrl) => {
+  const configured = readServerEnv("SITE_URL") ?? readServerEnv("VITE_SITE_URL");
+  if (configured) return stripTrailingSlash(configured);
+  return stripTrailingSlash(new URL(requestUrl).origin);
+};
+
+// shared/constants/routes/index.ts
+var SIMULATOR_PATH = "/simulator";
+var DIVIDEND_LIST_IDS = ["kings", "aristocrats", "champions"];
+var DIVIDEND_LIST_HUB_PATH = "/dividend/lists";
+var dividendListPath = (id) => `/dividend/${id}`;
+
+// shared/constants/dividendLists/dividendLists.generated.json
+var dividendLists_generated_default = {
+  asOf: "2026-08-03",
+  source: "proshares-nobl+wikipedia",
+  lists: {
+    aristocrats: {
+      id: "aristocrats",
+      minimumStreakYears: 25,
+      asOf: "2026-08-03",
+      sources: [
+        {
+          label: "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+          url: "https://accounts.profunds.com/etfdata/psdlyhld.csv",
+          role: "primary",
+          retrievedAt: "2026-08-03"
+        },
+        {
+          label: "Wikipedia",
+          url: "https://en.wikipedia.org/wiki/S%26P_500_Dividend_Aristocrats",
+          role: "crosscheck",
+          retrievedAt: "2026-08-03"
+        }
+      ],
+      coverageNote: "S&P 500 \uBC30\uB2F9\uADC0\uC871 \uC9C0\uC218\uB97C \uCD94\uC885\uD558\uB294 ETF(NOBL)\uC758 \uBCF4\uC720\uB0B4\uC5ED\uC5D0\uC11C \uD3B8\uC785 \uC885\uBAA9\uC744 \uD655\uC778\uD558\uACE0, \uC704\uD0A4\uD53C\uB514\uC544 \uAD6C\uC131\uC885\uBAA9 \uD45C\uC640 \uB300\uC870\uD588\uC2B5\uB2C8\uB2E4. \uB450 \uC18C\uC2A4\uB294 69\uC885\uC5D0\uC11C \uC77C\uCE58\uD588\uC2B5\uB2C8\uB2E4.",
+      members: [
+        {
+          ticker: "ABBV",
+          name: "AbbVie",
+          sector: "healthCare",
+          sourceSectorLabel: "Health Care",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "ABT",
+          name: "Abbott Laboratories",
+          sector: "healthCare",
+          sourceSectorLabel: "Health Care",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "ADM",
+          name: "Archer-Daniels-Midland Co",
+          sector: "consumerStaples",
+          sourceSectorLabel: "Consumer Staples",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "ADP",
+          name: "Automatic Data Processing",
+          sector: "informationTechnology",
+          sourceSectorLabel: "Information Technology",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "AFL",
+          name: "AFLAC",
+          sector: "financials",
+          sourceSectorLabel: "Financials",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "ALB",
+          name: "Albemarle Corporation",
+          sector: "materials",
+          sourceSectorLabel: "Materials",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "AMCR",
+          name: "Amcor",
+          sector: "materials",
+          sourceSectorLabel: "Materials",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "AOS",
+          name: "A.O. Smith",
+          sector: "industrials",
+          sourceSectorLabel: "Industrials",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "APD",
+          name: "Air Products & Chemicals",
+          sector: "materials",
+          sourceSectorLabel: "Materials",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "ATO",
+          name: "Atmos Energy Corp",
+          sector: "utilities",
+          sourceSectorLabel: "Utilities",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "BDX",
+          name: "Becton Dickinson & Co",
+          sector: "healthCare",
+          sourceSectorLabel: "Health Care",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "BEN",
+          name: "Franklin Resources Inc",
+          sector: "financials",
+          sourceSectorLabel: "Financials",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "BF.B",
+          name: "Brown\u2013Forman (class B)",
+          sector: "consumerStaples",
+          sourceSectorLabel: "Consumer Staples",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "BRO",
+          name: "Brown & Brown Inc.",
+          sector: "financials",
+          sourceSectorLabel: "Financials",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "CAH",
+          name: "Cardinal Health Inc",
+          sector: "healthCare",
+          sourceSectorLabel: "Health Care",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "CAT",
+          name: "Caterpillar Inc",
+          sector: "industrials",
+          sourceSectorLabel: "Industrials",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "CB",
+          name: "Chubb Limited",
+          sector: "financials",
+          sourceSectorLabel: "Financials",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "CHD",
+          name: "Church & Dwight",
+          sector: "consumerStaples",
+          sourceSectorLabel: "Consumer Staples",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "CHRW",
+          name: "C.H. Robinson",
+          sector: "industrials",
+          sourceSectorLabel: "Industrials",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "CINF",
+          name: "Cincinnati Financial Corp",
+          sector: "financials",
+          sourceSectorLabel: "Financials",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "CL",
+          name: "Colgate-Palmolive",
+          sector: "consumerStaples",
+          sourceSectorLabel: "Consumer Staples",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "CLX",
+          name: "Clorox",
+          sector: "consumerStaples",
+          sourceSectorLabel: "Consumer Staples",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "CTAS",
+          name: "Cintas Corp",
+          sector: "industrials",
+          sourceSectorLabel: "Industrials",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "CVX",
+          name: "Chevron Corp",
+          sector: "energy",
+          sourceSectorLabel: "Energy",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "DOV",
+          name: "Dover Corp",
+          sector: "industrials",
+          sourceSectorLabel: "Industrials",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "ECL",
+          name: "Ecolab Inc",
+          sector: "materials",
+          sourceSectorLabel: "Materials",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "ED",
+          name: "Consolidated Edison Inc",
+          sector: "utilities",
+          sourceSectorLabel: "Utilities",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "EMR",
+          name: "Emerson Electric",
+          sector: "industrials",
+          sourceSectorLabel: "Industrials",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "ERIE",
+          name: "Erie Indemnity",
+          sector: "financials",
+          sourceSectorLabel: "Financials",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "ES",
+          name: "Eversource Energy",
+          sector: "utilities",
+          sourceSectorLabel: "Utilities",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "ESS",
+          name: "Essex Property Trust",
+          sector: "realEstate",
+          sourceSectorLabel: "Real Estate",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "EXPD",
+          name: "Expeditors International of Washington",
+          sector: "industrials",
+          sourceSectorLabel: "Industrials",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "FAST",
+          name: "Fastenal",
+          sector: "industrials",
+          sourceSectorLabel: "Industrials",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "FDS",
+          name: "FactSet Research Systems",
+          sector: "financials",
+          sourceSectorLabel: "Financials",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "FRT",
+          name: "Federal Realty Investment Trust",
+          sector: "realEstate",
+          sourceSectorLabel: "Real Estate",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "GD",
+          name: "General Dynamics",
+          sector: "industrials",
+          sourceSectorLabel: "Industrials",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "GPC",
+          name: "Genuine Parts Company",
+          sector: "consumerDiscretionary",
+          sourceSectorLabel: "Consumer Discretionary",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "GWW",
+          name: "W. W. Grainger",
+          sector: "industrials",
+          sourceSectorLabel: "Industrials",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "HRL",
+          name: "Hormel Foods Corp",
+          sector: "consumerStaples",
+          sourceSectorLabel: "Consumer Staples",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "IBM",
+          name: "IBM",
+          sector: "informationTechnology",
+          sourceSectorLabel: "Information Technology",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "ITW",
+          name: "Illinois Tool Works",
+          sector: "industrials",
+          sourceSectorLabel: "Industrials",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "JNJ",
+          name: "Johnson & Johnson",
+          sector: "healthCare",
+          sourceSectorLabel: "Health Care",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "KMB",
+          name: "Kimberly-Clark",
+          sector: "consumerStaples",
+          sourceSectorLabel: "Consumer Staples",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "KO",
+          name: "Coca-Cola Co",
+          sector: "consumerStaples",
+          sourceSectorLabel: "Consumer Staples",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "KVUE",
+          name: "Kenvue, Inc.",
+          sector: "consumerStaples",
+          sourceSectorLabel: "Consumer Staples",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "LIN",
+          name: "Linde plc",
+          sector: "materials",
+          sourceSectorLabel: "Materials",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "LOW",
+          name: "Lowe's",
+          sector: "consumerDiscretionary",
+          sourceSectorLabel: "Consumer Discretionary",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "MCD",
+          name: "McDonald's Corp",
+          sector: "consumerDiscretionary",
+          sourceSectorLabel: "Consumer Discretionary",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "MDT",
+          name: "Medtronic plc",
+          sector: "healthCare",
+          sourceSectorLabel: "Health Care",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "MKC",
+          name: "McCormick & Company",
+          sector: "consumerStaples",
+          sourceSectorLabel: "Consumer Staples",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "NDSN",
+          name: "Nordson Corp",
+          sector: "industrials",
+          sourceSectorLabel: "Industrials",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "NEE",
+          name: "NextEra Energy",
+          sector: "utilities",
+          sourceSectorLabel: "Utilities",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "NUE",
+          name: "Nucor Corp",
+          sector: "materials",
+          sourceSectorLabel: "Materials",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "O",
+          name: "Realty Income",
+          sector: "realEstate",
+          sourceSectorLabel: "Real Estate",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "PEP",
+          name: "PepsiCo",
+          sector: "consumerStaples",
+          sourceSectorLabel: "Consumer Staples",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "PG",
+          name: "Procter & Gamble",
+          sector: "consumerStaples",
+          sourceSectorLabel: "Consumer Staples",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "PNR",
+          name: "Pentair",
+          sector: "industrials",
+          sourceSectorLabel: "Industrials",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "PPG",
+          name: "PPG Industries",
+          sector: "materials",
+          sourceSectorLabel: "Materials",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "ROP",
+          name: "Roper Technologies",
+          sector: "industrials",
+          sourceSectorLabel: "Industrials",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "SHW",
+          name: "Sherwin-Williams",
+          sector: "materials",
+          sourceSectorLabel: "Materials",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "SJM",
+          name: "The J. M. Smucker Company",
+          sector: "consumerStaples",
+          sourceSectorLabel: "Consumer Staples",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "SPGI",
+          name: "S&P Global Inc",
+          sector: "financials",
+          sourceSectorLabel: "Financials",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "SWK",
+          name: "Stanley Black & Decker",
+          sector: "industrials",
+          sourceSectorLabel: "Industrials",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "SYY",
+          name: "Sysco Corp",
+          sector: "consumerStaples",
+          sourceSectorLabel: "Consumer Staples",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "TGT",
+          name: "Target Corp",
+          sector: "consumerDiscretionary",
+          sourceSectorLabel: "Consumer Discretionary",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "TROW",
+          name: "T Rowe Price Group Inc",
+          sector: "financials",
+          sourceSectorLabel: "Financials",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "WMT",
+          name: "Walmart Inc.",
+          sector: "consumerStaples",
+          sourceSectorLabel: "Consumer Staples",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "WST",
+          name: "West Pharmaceutical Services",
+          sector: "healthCare",
+          sourceSectorLabel: "Health Care",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        },
+        {
+          ticker: "XOM",
+          name: "Exxon Mobil Corp",
+          sector: "energy",
+          sourceSectorLabel: "Energy",
+          confirmedBy: [
+            "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+            "Wikipedia"
+          ]
+        }
+      ]
+    }
+  }
+};
+
+// shared/constants/dividendLists/dividendLists.metrics.generated.json
+var dividendLists_metrics_generated_default = {
+  asOf: "2026-08-04",
+  note: "\uC218\uC9D1\uAE30(npm run dividend:universe)\uAC00 \uC720\uB2C8\uBC84\uC2A4 \uC0B0\uCD9C\uBB3C\uC5D0\uC11C \uBAA9\uB85D \uC218\uB85D \uC885\uBAA9\uB9CC \uCD94\uB824 \uC4F4\uB2E4. \uC190\uC73C\uB85C \uACE0\uCE58\uC9C0 \uB9C8\uB77C.",
+  metrics: {
     ABBV: {
-      initialPrice: 250.94,
-      dividendYield: 2.72,
-      frequency: "quarterly",
-      observedDividendCagr: 6.81,
-      payoutMonths: [
-        2,
-        5,
-        8,
-        11
-      ],
-      exToPayLagDays: 30,
-      payoutMonthsSource: "pay",
-      estimatedPayDayByMonth: {
-        "2": 14,
-        "5": 15,
-        "8": 14,
-        "11": 14
-      }
+      forwardYieldPercent: 2.8233,
+      fiveYearGrowthPercent: 6.8052
     },
-    ADI: {
-      initialPrice: 367.41,
-      dividendYield: 1.14,
-      frequency: "quarterly",
-      observedDividendCagr: 9.81,
-      payoutMonths: [
-        3,
-        6,
-        9,
-        12
-      ],
-      payoutMonthsSource: "ex"
+    ABM: {
+      forwardYieldPercent: 2.38,
+      fiveYearGrowthPercent: 7.4521
     },
-    AIQ: {
-      initialPrice: 58.89,
-      dividendYield: 0.08,
-      frequency: "semiannual",
-      observedDividendCagr: -7.26,
-      payoutMonths: [
-        6,
-        12
-      ],
-      payoutMonthsSource: "ex"
+    ABT: {
+      forwardYieldPercent: 2.3525,
+      fiveYearGrowthPercent: 10.385
     },
-    AMAT: {
-      initialPrice: 507.67,
-      dividendYield: 0.38,
-      frequency: "quarterly",
-      observedDividendCagr: 15.39,
-      payoutMonths: [
-        3,
-        6,
-        9,
-        12
-      ],
-      exToPayLagDays: 21,
-      payoutMonthsSource: "pay",
-      estimatedPayDayByMonth: {
-        "3": 13,
-        "6": 12,
-        "9": 12,
-        "12": 12
-      }
+    ADM: {
+      forwardYieldPercent: 2.6646,
+      fiveYearGrowthPercent: 7.2145
     },
-    ANET: {
-      initialPrice: 180.35,
-      dividendYield: 0,
-      frequency: "quarterly"
+    ADP: {
+      forwardYieldPercent: 2.5206,
+      fiveYearGrowthPercent: 11.0953
     },
-    ASML: {
-      initialPrice: 1629,
-      dividendYield: 0.56,
-      frequency: "quarterly",
-      payoutMonths: [
-        2,
-        5,
-        8,
-        11
-      ],
-      exToPayLagDays: 8,
-      payoutMonthsSource: "pay",
-      estimatedPayDayByMonth: {
-        "2": 18,
-        "5": 6,
-        "8": 7,
-        "11": 7
-      }
+    AFL: {
+      forwardYieldPercent: 1.9257,
+      fiveYearGrowthPercent: 15.6789
     },
-    AVGO: {
-      initialPrice: 389.28,
-      dividendYield: 0.65,
-      frequency: "quarterly",
-      observedDividendCagr: 12.63,
-      payoutMonths: [
-        3,
-        6,
-        9,
-        12
-      ],
-      payoutMonthsSource: "ex"
+    ALB: {
+      forwardYieldPercent: 1.3647,
+      fiveYearGrowthPercent: 1.018
     },
-    CEG: {
-      initialPrice: 262.75,
-      dividendYield: 0.62,
-      frequency: "quarterly",
-      payoutMonths: [
-        3,
-        6,
-        9,
-        12
-      ],
-      exToPayLagDays: 20,
-      payoutMonthsSource: "pay",
-      estimatedPayDayByMonth: {
-        "3": 27,
-        "6": 5,
-        "9": 4,
-        "12": 6
-      }
+    ALRS: {
+      forwardYieldPercent: 2.5791,
+      fiveYearGrowthPercent: 6.961
     },
-    CGDV: {
-      initialPrice: 49.54,
-      dividendYield: 1.18,
-      frequency: "quarterly",
-      payoutMonths: [
-        3,
-        6,
-        9,
-        12
-      ],
-      payoutMonthsSource: "ex"
+    AMCR: {
+      forwardYieldPercent: 5.6497,
+      fiveYearGrowthPercent: null
     },
-    DES: {
-      initialPrice: 40.62,
-      dividendYield: 2.26,
-      frequency: "monthly",
-      observedDividendCagr: 5.47,
-      payoutMonths: [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
-      ],
-      exToPayLagDays: 2,
-      payoutMonthsSource: "pay",
-      estimatedPayDayByMonth: {
-        "1": 28,
-        "2": 26,
-        "3": 28,
-        "4": 27,
-        "5": 28,
-        "6": 27,
-        "7": 28,
-        "8": 28,
-        "9": 27,
-        "10": 30,
-        "11": 26,
-        "12": 28
-      }
+    ANDE: {
+      forwardYieldPercent: 1.1451,
+      fiveYearGrowthPercent: 2.1879
     },
-    DGRO: {
-      initialPrice: 78.01,
-      dividendYield: 1.89,
-      frequency: "quarterly",
-      observedDividendCagr: 7.09,
-      payoutMonths: [
-        3,
-        6,
-        9,
-        12
-      ],
-      exToPayLagDays: 3,
-      payoutMonthsSource: "pay",
-      estimatedPayDayByMonth: {
-        "3": 21,
-        "6": 18,
-        "9": 28,
-        "12": 20
-      }
+    AOS: {
+      forwardYieldPercent: 2.3712,
+      fiveYearGrowthPercent: 7.2145
     },
-    DGRW: {
-      initialPrice: 96.46,
-      dividendYield: 1.28,
-      frequency: "monthly",
-      observedDividendCagr: 4.4,
-      payoutMonths: [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
-      ],
-      exToPayLagDays: 2,
-      payoutMonthsSource: "pay",
-      estimatedPayDayByMonth: {
-        "1": 28,
-        "2": 26,
-        "3": 28,
-        "4": 27,
-        "5": 28,
-        "6": 27,
-        "7": 28,
-        "8": 28,
-        "9": 27,
-        "10": 30,
-        "11": 26,
-        "12": 28
-      }
+    APD: {
+      forwardYieldPercent: 2.4715,
+      fiveYearGrowthPercent: 5.9619
     },
-    DHS: {
-      initialPrice: 116.59,
-      dividendYield: 3.19,
-      frequency: "monthly",
-      observedDividendCagr: 3.32,
-      payoutMonths: [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
-      ],
-      exToPayLagDays: 2,
-      payoutMonthsSource: "pay",
-      estimatedPayDayByMonth: {
-        "1": 28,
-        "2": 26,
-        "3": 28,
-        "4": 27,
-        "5": 28,
-        "6": 27,
-        "7": 28,
-        "8": 28,
-        "9": 27,
-        "10": 30,
-        "11": 26,
-        "12": 28
-      }
+    ATO: {
+      forwardYieldPercent: 2.3136,
+      fiveYearGrowthPercent: 8.6351
     },
-    DIA: {
-      initialPrice: 524.32,
-      dividendYield: 1.37,
-      frequency: "monthly",
-      observedDividendCagr: 3.73,
-      payoutMonths: [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
-      ],
-      exToPayLagDays: 25,
-      payoutMonthsSource: "pay",
-      estimatedPayDayByMonth: {
-        "1": 13,
-        "2": 11,
-        "3": 17,
-        "4": 14,
-        "5": 12,
-        "6": 10,
-        "7": 15,
-        "8": 13,
-        "9": 10,
-        "10": 14,
-        "11": 12,
-        "12": 12
-      }
+    ATR: {
+      forwardYieldPercent: 1.4038,
+      fiveYearGrowthPercent: 4.564
     },
-    DIVO: {
-      initialPrice: 46.89,
-      dividendYield: 6.37,
-      frequency: "monthly",
-      observedDividendCagr: 12.25,
-      payoutMonths: [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
-      ],
-      exToPayLagDays: 1,
-      payoutMonthsSource: "pay",
-      estimatedPayDayByMonth: {
-        "1": 30,
-        "2": 28,
-        "3": 29,
-        "4": 30,
-        "5": 30,
-        "6": 28,
-        "7": 31,
-        "8": 30,
-        "9": 28,
-        "10": 31,
-        "11": 28,
-        "12": 31
-      }
+    AWR: {
+      forwardYieldPercent: 2.3788,
+      fiveYearGrowthPercent: 8.8472
     },
-    DLN: {
-      initialPrice: 98.57,
-      dividendYield: 1.75,
-      frequency: "monthly",
-      observedDividendCagr: 3.21,
-      payoutMonths: [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
-      ],
-      exToPayLagDays: 2,
-      payoutMonthsSource: "pay",
-      estimatedPayDayByMonth: {
-        "1": 28,
-        "2": 26,
-        "3": 28,
-        "4": 27,
-        "5": 28,
-        "6": 27,
-        "7": 28,
-        "8": 28,
-        "9": 27,
-        "10": 30,
-        "11": 26,
-        "12": 28
-      }
+    BANF: {
+      forwardYieldPercent: 1.7193,
+      fiveYearGrowthPercent: 7.528
     },
-    DON: {
-      initialPrice: 57.52,
-      dividendYield: 2.3,
-      frequency: "monthly",
-      observedDividendCagr: 6.24,
-      payoutMonths: [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
-      ],
-      exToPayLagDays: 3,
-      payoutMonthsSource: "pay",
-      estimatedPayDayByMonth: {
-        "1": 28,
-        "2": 27,
-        "3": 29,
-        "4": 28,
-        "5": 29,
-        "6": 28,
-        "7": 29,
-        "8": 29,
-        "9": 28,
-        "10": 31,
-        "11": 27,
-        "12": 29
-      }
+    BDX: {
+      forwardYieldPercent: 2.4675,
+      fiveYearGrowthPercent: 6.1759
     },
-    DVY: {
-      initialPrice: 161.21,
-      dividendYield: 3.26,
-      frequency: "quarterly",
-      observedDividendCagr: 7.86,
-      payoutMonths: [
-        3,
-        6,
-        9,
-        12
-      ],
-      exToPayLagDays: 3,
-      payoutMonthsSource: "pay",
-      estimatedPayDayByMonth: {
-        "3": 21,
-        "6": 18,
-        "9": 28,
-        "12": 20
-      }
+    BEN: {
+      forwardYieldPercent: 3.7457,
+      fiveYearGrowthPercent: 3.4564
     },
-    DWX: {
-      initialPrice: 47.88,
-      dividendYield: 4.1,
-      frequency: "quarterly",
-      observedDividendCagr: 6.78,
-      payoutMonths: [
-        3,
-        6,
-        9,
-        12
-      ],
-      exToPayLagDays: 2,
-      payoutMonthsSource: "pay",
-      estimatedPayDayByMonth: {
-        "3": 25,
-        "6": 25,
-        "9": 24,
-        "12": 24
-      }
+    "BF.B": {
+      forwardYieldPercent: 3.3225,
+      fiveYearGrowthPercent: 5.4618
     },
-    ENB: {
-      initialPrice: 54.46,
-      dividendYield: 3.86,
-      frequency: "quarterly",
-      observedDividendCagr: -3.39,
-      payoutMonths: [
-        2,
-        5,
-        8,
-        11
-      ],
-      payoutMonthsSource: "ex"
+    BKH: {
+      forwardYieldPercent: 3.9478,
+      fiveYearGrowthPercent: 4.7897
     },
-    ETN: {
-      initialPrice: 415.2,
-      dividendYield: 1.03,
-      frequency: "quarterly",
-      observedDividendCagr: 12.95,
-      payoutMonths: [
-        3,
-        5,
-        8,
-        11
-      ],
-      exToPayLagDays: 18,
-      payoutMonthsSource: "pay",
-      estimatedPayDayByMonth: {
-        "3": 28,
-        "5": 23,
-        "8": 23,
-        "11": 22
-      }
+    BMI: {
+      forwardYieldPercent: 1.1683,
+      fiveYearGrowthPercent: 14.8698
     },
-    FDVV: {
-      initialPrice: 62.56,
-      dividendYield: 2.76,
-      frequency: "quarterly",
-      observedDividendCagr: 9.8,
-      payoutMonths: [
-        3,
-        6,
-        9,
-        12
-      ],
-      exToPayLagDays: 4,
-      payoutMonthsSource: "pay",
-      estimatedPayDayByMonth: {
-        "3": 24,
-        "6": 24,
-        "9": 23,
-        "12": 23
-      }
+    BRC: {
+      forwardYieldPercent: 1.0205,
+      fiveYearGrowthPercent: 1.9415
     },
-    HDV: {
-      initialPrice: 28.73,
-      dividendYield: 3.07,
-      frequency: "quarterly",
-      observedDividendCagr: 1.86,
-      payoutMonths: [
-        3,
-        6,
-        9,
-        12
-      ],
-      exToPayLagDays: 3,
-      payoutMonthsSource: "pay",
-      estimatedPayDayByMonth: {
-        "3": 21,
-        "6": 18,
-        "9": 25,
-        "12": 20
-      }
+    BRO: {
+      forwardYieldPercent: 0.9195,
+      fiveYearGrowthPercent: 12.03
     },
-    IDV: {
-      initialPrice: 44.38,
-      dividendYield: 5.13,
-      frequency: "quarterly",
-      observedDividendCagr: 3.87,
-      payoutMonths: [
-        3,
-        6,
-        9,
-        12
-      ],
-      exToPayLagDays: 3,
-      payoutMonthsSource: "pay",
-      estimatedPayDayByMonth: {
-        "3": 21,
-        "6": 18,
-        "9": 28,
-        "12": 20
-      }
+    CAH: {
+      forwardYieldPercent: 0.8761,
+      fiveYearGrowthPercent: 0.8098
     },
-    IDVO: {
-      initialPrice: 42.67,
-      dividendYield: 5.67,
-      frequency: "monthly",
-      payoutMonths: [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
-      ],
-      exToPayLagDays: 1,
-      payoutMonthsSource: "pay",
-      estimatedPayDayByMonth: {
-        "1": 30,
-        "2": 28,
-        "3": 29,
-        "4": 30,
-        "5": 30,
-        "6": 28,
-        "7": 31,
-        "8": 30,
-        "9": 28,
-        "10": 31,
-        "11": 28,
-        "12": 31
-      }
+    CASY: {
+      forwardYieldPercent: 0.3022,
+      fiveYearGrowthPercent: 9.3362
     },
-    IVV: {
-      initialPrice: 750.32,
-      dividendYield: 1.09,
-      frequency: "quarterly",
-      observedDividendCagr: 6.36,
-      payoutMonths: [
-        3,
-        6,
-        9,
-        12
-      ],
-      exToPayLagDays: 3,
-      payoutMonthsSource: "pay",
-      estimatedPayDayByMonth: {
-        "3": 21,
-        "6": 18,
-        "9": 28,
-        "12": 20
-      }
+    CAT: {
+      forwardYieldPercent: 0.7855,
+      fiveYearGrowthPercent: 6.482
     },
-    JEPI: {
-      initialPrice: 57.43,
-      dividendYield: 7.34,
-      frequency: "monthly",
-      payoutMonths: [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
-      ],
-      exToPayLagDays: 3,
-      payoutMonthsSource: "pay",
-      estimatedPayDayByMonth: {
-        "1": 3,
-        "2": 5,
-        "3": 5,
-        "4": 4,
-        "5": 4,
-        "6": 5,
-        "7": 4,
-        "8": 4,
-        "9": 5,
-        "10": 4,
-        "11": 4,
-        "12": 5
-      }
+    CB: {
+      forwardYieldPercent: 1.1716,
+      fiveYearGrowthPercent: null
     },
-    JEPQ: {
-      initialPrice: 58.25,
-      dividendYield: 9.99,
-      frequency: "monthly",
-      payoutMonths: [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
-      ],
-      exToPayLagDays: 3,
-      payoutMonthsSource: "pay",
-      estimatedPayDayByMonth: {
-        "1": 3,
-        "2": 5,
-        "3": 5,
-        "4": 4,
-        "5": 4,
-        "6": 5,
-        "7": 4,
-        "8": 4,
-        "9": 5,
-        "10": 4,
-        "11": 4,
-        "12": 5
-      }
+    CBSH: {
+      forwardYieldPercent: 1.8435,
+      fiveYearGrowthPercent: 4.3627
+    },
+    CBU: {
+      forwardYieldPercent: 2.8254,
+      fiveYearGrowthPercent: 2.3281
+    },
+    CFR: {
+      forwardYieldPercent: 2.4387,
+      fiveYearGrowthPercent: 7.0899
+    },
+    CHD: {
+      forwardYieldPercent: 1.2319,
+      fiveYearGrowthPercent: 4.2131
+    },
+    CHRW: {
+      forwardYieldPercent: 1.7143,
+      fiveYearGrowthPercent: 3.9835
+    },
+    CINF: {
+      forwardYieldPercent: 2.112,
+      fiveYearGrowthPercent: 7.7144
+    },
+    CL: {
+      forwardYieldPercent: 2.3587,
+      fiveYearGrowthPercent: 3.3975
+    },
+    CLX: {
+      forwardYieldPercent: 5.0478,
+      fiveYearGrowthPercent: 2.8515
+    },
+    CSL: {
+      forwardYieldPercent: 1.1832,
+      fiveYearGrowthPercent: 14.8698
+    },
+    CTAS: {
+      forwardYieldPercent: 0.8823,
+      fiveYearGrowthPercent: null
+    },
+    CTBI: {
+      forwardYieldPercent: 2.6859,
+      fiveYearGrowthPercent: 4.3429
+    },
+    CVX: {
+      forwardYieldPercent: 3.6857,
+      fiveYearGrowthPercent: 5.7989
+    },
+    CWT: {
+      forwardYieldPercent: 2.7136,
+      fiveYearGrowthPercent: 7.0899
+    },
+    DCI: {
+      forwardYieldPercent: 1.3331,
+      fiveYearGrowthPercent: 7.3941
+    },
+    DOV: {
+      forwardYieldPercent: 1.0111,
+      fiveYearGrowthPercent: 1.0002
+    },
+    ECL: {
+      forwardYieldPercent: 1.045,
+      fiveYearGrowthPercent: 6.6997
+    },
+    ED: {
+      forwardYieldPercent: 3.2904,
+      fiveYearGrowthPercent: 2.1296
+    },
+    EMR: {
+      forwardYieldPercent: 1.4336,
+      fiveYearGrowthPercent: 1.0957
+    },
+    ERIE: {
+      forwardYieldPercent: 2.4707,
+      fiveYearGrowthPercent: 7.1818
+    },
+    ES: {
+      forwardYieldPercent: 4.3808,
+      fiveYearGrowthPercent: 5.8009
+    },
+    ESS: {
+      forwardYieldPercent: 3.6239,
+      fiveYearGrowthPercent: 4.3416
+    },
+    EXPD: {
+      forwardYieldPercent: 0.9496,
+      fiveYearGrowthPercent: 8.1677
+    },
+    FAST: {
+      forwardYieldPercent: 2.1617,
+      fiveYearGrowthPercent: 11.9702
+    },
+    FDS: {
+      forwardYieldPercent: 1.7206,
+      fiveYearGrowthPercent: 7.3941
+    },
+    FELE: {
+      forwardYieldPercent: 1.0471,
+      fiveYearGrowthPercent: 11.3225
+    },
+    FRT: {
+      forwardYieldPercent: 3.6555,
+      fiveYearGrowthPercent: 0.9347
+    },
+    FUL: {
+      forwardYieldPercent: 1.719,
+      fiveYearGrowthPercent: 7.591
+    },
+    GD: {
+      forwardYieldPercent: 1.663,
+      fiveYearGrowthPercent: 6.3995
+    },
+    GGG: {
+      forwardYieldPercent: 1.4695,
+      fiveYearGrowthPercent: 9.4609
+    },
+    GPC: {
+      forwardYieldPercent: 3.3084,
+      fiveYearGrowthPercent: 5.4489
+    },
+    GWW: {
+      forwardYieldPercent: 0.7263,
+      fiveYearGrowthPercent: 9.4332
+    },
+    HRL: {
+      forwardYieldPercent: 4.6453,
+      fiveYearGrowthPercent: 4.474
+    },
+    HTO: {
+      forwardYieldPercent: 2.8815,
+      fiveYearGrowthPercent: 5.5893
+    },
+    IBM: {
+      forwardYieldPercent: 2.9871,
+      fiveYearGrowthPercent: 1.5151
+    },
+    ITW: {
+      forwardYieldPercent: 2.2323,
+      fiveYearGrowthPercent: 6.9896
+    },
+    JKHY: {
+      forwardYieldPercent: 1.5588,
+      fiveYearGrowthPercent: 6.1676
     },
     JNJ: {
-      initialPrice: 256.35,
-      dividendYield: 2.04,
-      frequency: "quarterly",
-      observedDividendCagr: 5.25,
-      payoutMonths: [
-        2,
-        5,
-        8,
-        11
-      ],
-      payoutMonthsSource: "ex"
+      forwardYieldPercent: 2.1068,
+      fiveYearGrowthPercent: 5.1779
     },
-    KLAC: {
-      initialPrice: 182.82,
-      dividendYield: 0.44,
-      frequency: "quarterly",
-      observedDividendCagr: 16.15,
-      payoutMonths: [
-        2,
-        5,
-        8,
-        11
-      ],
-      payoutMonthsSource: "ex"
+    KMB: {
+      forwardYieldPercent: 4.7601,
+      fiveYearGrowthPercent: 3.3231
     },
     KO: {
-      initialPrice: 87.59,
-      dividendYield: 2.37,
-      frequency: "quarterly",
-      observedDividendCagr: 4.46,
-      payoutMonths: [
-        4,
-        7,
-        10,
-        12
-      ],
-      exToPayLagDays: 17,
-      payoutMonthsSource: "pay",
-      estimatedPayDayByMonth: {
-        "4": 1,
-        "7": 2,
-        "10": 2,
-        "12": 17
-      }
+      forwardYieldPercent: 2.4407,
+      fiveYearGrowthPercent: 4.4617
+    },
+    KVUE: {
+      forwardYieldPercent: 4.3766,
+      fiveYearGrowthPercent: null
+    },
+    LECO: {
+      forwardYieldPercent: 1.18,
+      fiveYearGrowthPercent: 8.8862
+    },
+    LIN: {
+      forwardYieldPercent: 1.3321,
+      fiveYearGrowthPercent: 9.268
     },
     LOW: {
-      initialPrice: 207.81,
-      dividendYield: 2.33,
-      frequency: "quarterly",
-      observedDividendCagr: 15.87,
-      payoutMonths: [
-        1,
-        4,
-        7,
-        10
-      ],
-      payoutMonthsSource: "ex"
+      forwardYieldPercent: 2.3578,
+      fiveYearGrowthPercent: 15.8956
     },
-    LRCX: {
-      initialPrice: 293.02,
-      dividendYield: 0.35,
-      frequency: "quarterly",
-      observedDividendCagr: 14.87,
-      payoutMonths: [
-        3,
-        6,
-        9,
-        12
-      ],
-      payoutMonthsSource: "ex"
+    MATW: {
+      forwardYieldPercent: 3.6338,
+      fiveYearGrowthPercent: 3.5486
+    },
+    MCD: {
+      forwardYieldPercent: 2.8051,
+      fiveYearGrowthPercent: 7.2044
+    },
+    MDT: {
+      forwardYieldPercent: 3.3226,
+      fiveYearGrowthPercent: 4.1277
+    },
+    MGEE: {
+      forwardYieldPercent: 2.375,
+      fiveYearGrowthPercent: 4.9754
+    },
+    MGRC: {
+      forwardYieldPercent: 1.6547,
+      fiveYearGrowthPercent: 2.9197
+    },
+    MKC: {
+      forwardYieldPercent: 3.7267,
+      fiveYearGrowthPercent: 7.7383
+    },
+    MSA: {
+      forwardYieldPercent: 1.1223,
+      fiveYearGrowthPercent: 4.2705
+    },
+    MZTI: {
+      forwardYieldPercent: 3.6117,
+      fiveYearGrowthPercent: 6.298
+    },
+    NDSN: {
+      forwardYieldPercent: 1.0839,
+      fiveYearGrowthPercent: 15.4681
     },
     NEE: {
-      initialPrice: 86.92,
-      dividendYield: 2.74,
-      frequency: "quarterly",
-      observedDividendCagr: 10.13,
-      payoutMonths: [
-        2,
-        6,
-        8,
-        11
-      ],
-      payoutMonthsSource: "ex"
+      forwardYieldPercent: 2.8793,
+      fiveYearGrowthPercent: 10.1293
     },
-    NOBL: {
-      initialPrice: 57.08,
-      dividendYield: 2.04,
-      frequency: "quarterly",
-      observedDividendCagr: 5.44,
-      payoutMonths: [
-        3,
-        6,
-        9,
-        12
-      ],
-      payoutMonthsSource: "ex"
+    NFG: {
+      forwardYieldPercent: 2.6825,
+      fiveYearGrowthPercent: 3.7525
     },
-    NVDA: {
-      initialPrice: 200.75,
-      dividendYield: 0.14,
-      frequency: "quarterly",
-      observedDividendCagr: 20.11,
-      payoutMonths: [
-        3,
-        6,
-        9,
-        12
-      ],
-      payoutMonthsSource: "ex"
+    NJR: {
+      forwardYieldPercent: 3.2713,
+      fiveYearGrowthPercent: 7.531
+    },
+    NNN: {
+      forwardYieldPercent: 5.2222,
+      fiveYearGrowthPercent: 2.4057
+    },
+    NUE: {
+      forwardYieldPercent: 0.8573,
+      fiveYearGrowthPercent: 6.4171
+    },
+    NWN: {
+      forwardYieldPercent: 4.0302,
+      fiveYearGrowthPercent: 0.4971
     },
     O: {
-      initialPrice: 63.87,
-      dividendYield: 5.08,
-      frequency: "monthly",
-      observedDividendCagr: 5.13,
-      payoutMonths: [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
-      ],
-      payoutMonthsSource: "ex"
+      forwardYieldPercent: 5.1229,
+      fiveYearGrowthPercent: 3.4769
+    },
+    ORI: {
+      forwardYieldPercent: 2.9079,
+      fiveYearGrowthPercent: 6.6684
+    },
+    OZK: {
+      forwardYieldPercent: 3.7109,
+      fiveYearGrowthPercent: 10.0665
+    },
+    PB: {
+      forwardYieldPercent: 3.1894,
+      fiveYearGrowthPercent: 4.7452
+    },
+    PEP: {
+      forwardYieldPercent: 4.2398,
+      fiveYearGrowthPercent: 6.8233
     },
     PG: {
-      initialPrice: 144.49,
-      dividendYield: 2.97,
-      frequency: "quarterly",
-      observedDividendCagr: 6.02,
-      payoutMonths: [
-        1,
-        4,
-        7,
-        10
-      ],
-      payoutMonthsSource: "ex"
+      forwardYieldPercent: 3.0048,
+      fiveYearGrowthPercent: 5.9692
     },
-    QDVO: {
-      initialPrice: 28.96,
-      dividendYield: 10.97,
-      frequency: "monthly",
-      payoutMonths: [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
-      ],
-      payoutMonthsSource: "ex"
+    PII: {
+      forwardYieldPercent: 3.8505,
+      fiveYearGrowthPercent: 1.5633
     },
-    QQQ: {
-      initialPrice: 687.99,
-      dividendYield: 0.44,
-      frequency: "quarterly",
-      payoutMonths: [
-        3,
-        6,
-        9,
-        12
-      ],
-      payoutMonthsSource: "ex"
+    PNR: {
+      forwardYieldPercent: 1.6103,
+      fiveYearGrowthPercent: 5.6422
     },
-    QYLD: {
-      initialPrice: 17.74,
-      dividendYield: 11.9,
-      frequency: "monthly",
-      observedDividendCagr: -4.33,
-      payoutMonths: [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
-      ],
-      payoutMonthsSource: "ex"
+    PPG: {
+      forwardYieldPercent: 2.491,
+      fiveYearGrowthPercent: 5.9224
     },
-    RDVY: {
-      initialPrice: 81.09,
-      dividendYield: 0.83,
-      frequency: "quarterly",
-      observedDividendCagr: 4.81,
-      payoutMonths: [
-        3,
-        6,
-        9,
-        12
-      ],
-      payoutMonthsSource: "ex"
+    RNR: {
+      forwardYieldPercent: 0.5103,
+      fiveYearGrowthPercent: 2.7066
     },
-    SCHD: {
-      initialPrice: 33.47,
-      dividendYield: 3.13,
-      frequency: "quarterly",
-      observedDividendCagr: 9.13,
-      payoutMonths: [
-        3,
-        6,
-        9,
-        12
-      ],
-      payoutMonthsSource: "ex"
+    ROP: {
+      forwardYieldPercent: 0.9272,
+      fiveYearGrowthPercent: 9.9683
     },
-    SCHH: {
-      initialPrice: 24.28,
-      dividendYield: 2.72,
-      frequency: "quarterly",
-      observedDividendCagr: 3.19,
-      payoutMonths: [
-        3,
-        6,
-        9,
-        12
-      ],
-      payoutMonthsSource: "ex"
+    RPM: {
+      forwardYieldPercent: 1.9374,
+      fiveYearGrowthPercent: 7.2145
     },
-    SCHY: {
-      initialPrice: 33.36,
-      dividendYield: 3.32,
-      frequency: "quarterly",
-      payoutMonths: [
-        3,
-        6,
-        9,
-        12
-      ],
-      payoutMonthsSource: "ex"
+    SCL: {
+      forwardYieldPercent: 2.4917,
+      fiveYearGrowthPercent: 6.961
     },
-    SDVY: {
-      initialPrice: 43.78,
-      dividendYield: 0.95,
-      frequency: "quarterly",
-      observedDividendCagr: 7.42,
-      payoutMonths: [
-        3,
-        6,
-        9,
-        12
-      ],
-      payoutMonthsSource: "ex"
+    SEIC: {
+      forwardYieldPercent: 0.9982,
+      fiveYearGrowthPercent: 6.961
     },
-    SDY: {
-      initialPrice: 155,
-      dividendYield: 2.41,
-      frequency: "quarterly",
-      observedDividendCagr: 3.75,
-      payoutMonths: [
-        3,
-        6,
-        9,
-        12
-      ],
-      exToPayLagDays: 2,
-      payoutMonthsSource: "pay",
-      estimatedPayDayByMonth: {
-        "3": 26,
-        "6": 25,
-        "9": 24,
-        "12": 24
-      }
+    SHW: {
+      forwardYieldPercent: 0.9034,
+      fiveYearGrowthPercent: 12.0801
     },
-    SMH: {
-      initialPrice: 540.53,
-      dividendYield: 0.2,
-      frequency: "semiannual",
-      payoutMonths: [
-        12
-      ],
-      payoutMonthsSource: "ex"
+    SJM: {
+      forwardYieldPercent: 3.7447,
+      fiveYearGrowthPercent: 4.1809
     },
-    SPY: {
-      initialPrice: 747.03,
-      dividendYield: 1.01,
-      frequency: "quarterly",
-      observedDividendCagr: 5.05,
-      payoutMonths: [
-        1,
-        4,
-        7,
-        10
-      ],
-      exToPayLagDays: 42,
-      payoutMonthsSource: "pay",
-      estimatedPayDayByMonth: {
-        "1": 31,
-        "4": 30,
-        "7": 31,
-        "10": 31
-      }
+    SON: {
+      forwardYieldPercent: 3.8284,
+      fiveYearGrowthPercent: 4.2705
     },
-    SPYD: {
-      initialPrice: 49.5,
-      dividendYield: 4.1,
-      frequency: "quarterly",
-      observedDividendCagr: 3.69,
-      payoutMonths: [
-        3,
-        6,
-        9,
-        12
-      ],
-      payoutMonthsSource: "ex"
+    SPGI: {
+      forwardYieldPercent: 0.8819,
+      fiveYearGrowthPercent: 7.4582
     },
-    SRVR: {
-      initialPrice: 30.87,
-      dividendYield: 2.81,
-      frequency: "quarterly",
-      observedDividendCagr: 6.16,
-      payoutMonths: [
-        1,
-        3,
-        6,
-        9
-      ],
-      exToPayLagDays: 6,
-      payoutMonthsSource: "pay",
-      estimatedPayDayByMonth: {
-        "1": 4,
-        "3": 12,
-        "6": 11,
-        "9": 19
-      }
+    SWK: {
+      forwardYieldPercent: 3.384,
+      fiveYearGrowthPercent: 3.5125
     },
-    T: {
-      initialPrice: 23.25,
-      dividendYield: 4.78,
-      frequency: "quarterly",
-      observedDividendCagr: -11.77,
-      payoutMonths: [
-        1,
-        4,
-        7,
-        10
-      ],
-      payoutMonthsSource: "ex"
+    SYY: {
+      forwardYieldPercent: 2.5888,
+      fiveYearGrowthPercent: 2.5349
     },
-    TSM: {
-      initialPrice: 404.25,
-      dividendYield: 0.88,
-      frequency: "quarterly",
-      observedDividendCagr: 12.84,
-      payoutMonths: [
-        3,
-        6,
-        9,
-        12
-      ],
-      payoutMonthsSource: "ex"
+    TGT: {
+      forwardYieldPercent: 3.0532,
+      fiveYearGrowthPercent: 11.1565
     },
-    TXN: {
-      initialPrice: 275.74,
-      dividendYield: 2.06,
-      frequency: "quarterly",
-      observedDividendCagr: 8.13,
-      payoutMonths: [
-        1,
-        5,
-        7,
-        10
-      ],
-      payoutMonthsSource: "ex"
+    TMP: {
+      forwardYieldPercent: 2.6556,
+      fiveYearGrowthPercent: 3.5804
     },
-    UPS: {
-      initialPrice: 104.22,
-      dividendYield: 6.29,
-      frequency: "quarterly",
-      observedDividendCagr: 10.18,
-      payoutMonths: [
-        3,
-        6,
-        9,
-        12
-      ],
-      exToPayLagDays: 17,
-      payoutMonthsSource: "pay",
-      estimatedPayDayByMonth: {
-        "3": 6,
-        "6": 5,
-        "9": 5,
-        "12": 5
-      }
+    TNC: {
+      forwardYieldPercent: 1.4449,
+      fiveYearGrowthPercent: 6.0425
     },
-    VICI: {
-      initialPrice: 26.35,
-      dividendYield: 6.83,
-      frequency: "quarterly",
-      observedDividendCagr: 7.05,
-      payoutMonths: [
-        3,
-        6,
-        9,
-        12
-      ],
-      payoutMonthsSource: "ex"
+    TROW: {
+      forwardYieldPercent: 4.5811,
+      fiveYearGrowthPercent: 7.1303
     },
-    VIG: {
-      initialPrice: 239.17,
-      dividendYield: 1.5,
-      frequency: "quarterly",
-      observedDividendCagr: 9.15,
-      payoutMonths: [
-        3,
-        7,
-        10,
-        12
-      ],
-      exToPayLagDays: 4,
-      payoutMonthsSource: "pay",
-      estimatedPayDayByMonth: {
-        "3": 31,
-        "7": 2,
-        "10": 1,
-        "12": 26
-      }
+    UMBF: {
+      forwardYieldPercent: 1.1697,
+      fiveYearGrowthPercent: 5.23
     },
-    VIGI: {
-      initialPrice: 97.24,
-      dividendYield: 2.05,
-      frequency: "quarterly",
-      observedDividendCagr: 13.32,
-      payoutMonths: [
-        3,
-        6,
-        9,
-        12
-      ],
-      payoutMonthsSource: "ex"
+    UVV: {
+      forwardYieldPercent: 6.3809,
+      fiveYearGrowthPercent: 1.2825
     },
-    VNQI: {
-      initialPrice: 46.03,
-      dividendYield: 4.68,
-      frequency: "semiannual",
-      observedDividendCagr: -14.54,
-      payoutMonths: [
-        12
-      ],
-      payoutMonthsSource: "ex"
+    WLY: {
+      forwardYieldPercent: 2.693,
+      fiveYearGrowthPercent: 0.7195
     },
-    VOO: {
-      initialPrice: 686.65,
-      dividendYield: 1.07,
-      frequency: "quarterly",
-      observedDividendCagr: 5.91,
-      payoutMonths: [
-        3,
-        6,
-        9,
-        12
-      ],
-      payoutMonthsSource: "ex"
+    WMT: {
+      forwardYieldPercent: 0.896,
+      fiveYearGrowthPercent: 5.4773
     },
-    VRT: {
-      initialPrice: 241.57,
-      dividendYield: 0.09,
-      frequency: "quarterly",
-      payoutMonths: [
-        3,
-        6,
-        9,
-        12
-      ],
-      payoutMonthsSource: "ex"
+    WST: {
+      forwardYieldPercent: 0.2529,
+      fiveYearGrowthPercent: 5.5893
     },
-    VT: {
-      initialPrice: 155.86,
-      dividendYield: 1.59,
-      frequency: "quarterly",
-      observedDividendCagr: 10.87,
-      payoutMonths: [
-        3,
-        6,
-        9,
-        12
-      ],
-      payoutMonthsSource: "ex"
+    WTRG: {
+      forwardYieldPercent: 3.5379,
+      fiveYearGrowthPercent: 6.8564
     },
-    VTI: {
-      initialPrice: 368.21,
-      dividendYield: 1.06,
-      frequency: "quarterly",
-      observedDividendCagr: 6.28,
-      payoutMonths: [
-        3,
-        6,
-        9,
-        12
-      ],
-      payoutMonthsSource: "ex"
+    XOM: {
+      forwardYieldPercent: 2.657,
+      fiveYearGrowthPercent: 2.6179
     },
-    VUG: {
-      initialPrice: 85.2,
-      dividendYield: 0.4,
-      frequency: "quarterly",
-      observedDividendCagr: 3.6,
-      payoutMonths: [
-        3,
-        6,
-        9,
-        12
-      ],
-      payoutMonthsSource: "ex"
-    },
-    VXUS: {
-      initialPrice: 84.59,
-      dividendYield: 2.59,
-      frequency: "quarterly",
-      observedDividendCagr: 13.26,
-      payoutMonths: [
-        3,
-        6,
-        9,
-        12
-      ],
-      payoutMonthsSource: "pay",
-      exToPayLagDays: 4,
-      estimatedPayDayByMonth: {
-        "3": 24,
-        "6": 24,
-        "9": 23,
-        "12": 23
-      }
-    },
-    VYM: {
-      initialPrice: 161.96,
-      dividendYield: 2.24,
-      frequency: "quarterly",
-      observedDividendCagr: 3.8,
-      payoutMonths: [
-        3,
-        6,
-        9,
-        12
-      ],
-      payoutMonthsSource: "ex"
-    },
-    VYMI: {
-      initialPrice: 103.56,
-      dividendYield: 3.48,
-      frequency: "quarterly",
-      observedDividendCagr: 11.09,
-      payoutMonths: [
-        3,
-        6,
-        9,
-        12
-      ],
-      exToPayLagDays: 4,
-      payoutMonthsSource: "pay",
-      estimatedPayDayByMonth: {
-        "3": 24,
-        "6": 24,
-        "9": 23,
-        "12": 23
-      }
-    },
-    XYLD: {
-      initialPrice: 41.17,
-      dividendYield: 10.53,
-      frequency: "monthly",
-      observedDividendCagr: 3.02,
-      payoutMonths: [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
-      ],
-      exToPayLagDays: 3,
-      payoutMonthsSource: "pay",
-      estimatedPayDayByMonth: {
-        "1": 18,
-        "2": 27,
-        "3": 26,
-        "4": 28,
-        "5": 27,
-        "6": 28,
-        "7": 26,
-        "8": 26,
-        "9": 29,
-        "10": 28,
-        "11": 27,
-        "12": 16
-      }
+    YORW: {
+      forwardYieldPercent: 2.9601,
+      fiveYearGrowthPercent: 4.0002
     }
+  }
+};
+
+// shared/constants/dividendLists/dividendLists.curated.ts
+var NAME_REPAIRS = {
+  APD: "Air Products and Chemicals, Inc.",
+  CINF: "Cincinnati Financial Corporation",
+  NWN: "Northwest Natural Holding Company",
+  ORI: "Old Republic International Corporation",
+  EPD: "Enterprise Products Partners L.P.",
+  IBM: "International Business Machines Corporation",
+  XOM: "Exxon Mobil Corporation",
+  CBU: "Community Financial System, Inc.",
+  NJR: "New Jersey Resources Corporation",
+  EXPD: "Expeditors International of Washington, Inc.",
+  CNI: "Canadian National Railway Company",
+  WST: "West Pharmaceutical Services, Inc.",
+  MATW: "Matthews International Corporation",
+  MKC: "McCormick & Company, Incorporated"
+};
+var KINGS_STREAK_FACTS = {
+  ABM: [59, "2026-01"],
+  ADM: [53, "2026-02"],
+  ADP: [51, "2025-12"],
+  AWR: [72, "2025-08"],
+  BDX: [54, "2026-03"],
+  BKH: [55, "2026-02"],
+  CINF: [65, "2026-03"],
+  CL: [63, "2026-04"],
+  CWT: [59, "2026-02"],
+  DOV: [71, "2025-08"],
+  ED: [53, "2026-02"],
+  EMR: [69, "2025-11"],
+  FRT: [59, "2025-10"],
+  FUL: [57, "2026-04"],
+  GPC: [70, "2026-03"],
+  GWW: [55, "2026-05"],
+  HRL: [60, "2026-01"],
+  JNJ: [64, "2026-05"],
+  KMB: [54, "2026-03"],
+  KO: [64, "2026-03"],
+  MSA: [56, "2026-05"],
+  NDSN: [63, "2025-09"],
+  NFG: [56, "2026-06"],
+  NWN: [71, "2025-10"],
+  PEP: [54, "2026-06"],
+  PG: [70, "2026-04"],
+  PH: [70, "2026-05"],
+  PPG: [55, "2025-08"],
+  RPM: [53, "2025-10"],
+  SCL: [58, "2025-11"],
+  SPGI: [53, "2026-02"],
+  SWK: [59, "2025-09"],
+  SYY: [57, "2026-07"],
+  TNC: [54, "2025-11"],
+  UVV: [56, "2026-07"],
+  WMT: [53, "2026-03"]
+};
+var streakStartYearOf = ([increases, latestRaisePaidAt]) => Number(latestRaisePaidAt.slice(0, 4)) - increases + 1;
+var streakSourceOf = ([increases, latestRaisePaidAt]) => `stockanalysis.com \uC5F0\uC18D \uC99D\uBC30 ${increases}\uD68C(2026-08-04 \uD655\uC778) \xB7 \uC57C\uD6C4 \uC2E4\uCE21 \uCD5C\uADFC \uC99D\uBC30 \uC9C0\uAE09 ${latestRaisePaidAt}`;
+var withConfirmedBy = (members, confirmedBy, repairNames = false, streakFacts = {}) => members.map((member) => {
+  const facts = streakFacts[member.ticker];
+  return {
+    ...member,
+    name: (repairNames ? NAME_REPAIRS[member.ticker] : void 0) ?? member.name,
+    confirmedBy: [...confirmedBy],
+    ...facts === void 0 ? {} : { streakStartYear: streakStartYearOf(facts), streakSource: streakSourceOf(facts) }
+  };
+});
+var KINGS_CONFIRMED_BY = ["stockanalysis.com", "DRiP Investing Resource Center"];
+var ARISTOCRATS_CONFIRMED_BY = ["ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED", "Wikipedia"];
+var CHAMPIONS_CONFIRMED_BY = ["DRiP Investing Resource Center"];
+var KINGS_MEMBERS = [
+  { ticker: "ABM", name: "ABM Industries Incorporated", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "ADM", name: "Archer-Daniels-Midland Company", sector: "consumerStaples", sourceSectorLabel: "Consumer Defensive" },
+  { ticker: "ADP", name: "Automatic Data Processing, Inc.", sector: "informationTechnology", sourceSectorLabel: "Technology" },
+  { ticker: "AWR", name: "American States Water Company", sector: "utilities", sourceSectorLabel: "Utilities" },
+  { ticker: "BDX", name: "Becton, Dickinson and Company", sector: "healthCare", sourceSectorLabel: "Healthcare" },
+  { ticker: "BKH", name: "Black Hills Corporation", sector: "utilities", sourceSectorLabel: "Utilities" },
+  { ticker: "CBSH", name: "Commerce Bancshares, Inc.", sector: "financials", sourceSectorLabel: "Financial Services" },
+  { ticker: "CINF", name: "Cincinnati Financial Corporatio", sector: "financials", sourceSectorLabel: "Financial Services" },
+  { ticker: "CL", name: "Colgate-Palmolive Company", sector: "consumerStaples", sourceSectorLabel: "Consumer Defensive" },
+  { ticker: "CWT", name: "California Water Service Group", sector: "utilities", sourceSectorLabel: "Utilities" },
+  { ticker: "DOV", name: "Dover Corporation", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "ED", name: "Consolidated Edison, Inc.", sector: "utilities", sourceSectorLabel: "Utilities" },
+  { ticker: "EMR", name: "Emerson Electric Company", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "FRT", name: "Federal Realty Investment Trust", sector: "realEstate", sourceSectorLabel: "Real Estate" },
+  { ticker: "FUL", name: "H. B. Fuller Company", sector: "materials", sourceSectorLabel: "Basic Materials" },
+  { ticker: "GPC", name: "Genuine Parts Company", sector: "consumerDiscretionary", sourceSectorLabel: "Consumer Cyclical" },
+  { ticker: "GWW", name: "W.W. Grainger, Inc.", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "HRL", name: "Hormel Foods Corporation", sector: "consumerStaples", sourceSectorLabel: "Consumer Defensive" },
+  { ticker: "ITW", name: "Illinois Tool Works Inc.", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "JNJ", name: "Johnson & Johnson", sector: "healthCare", sourceSectorLabel: "Healthcare" },
+  { ticker: "KMB", name: "Kimberly-Clark Corporation", sector: "consumerStaples", sourceSectorLabel: "Consumer Defensive" },
+  { ticker: "KO", name: "Coca-Cola Company (The)", sector: "consumerStaples", sourceSectorLabel: "Consumer Defensive" },
+  { ticker: "LOW", name: "Lowe's Companies, Inc.", sector: "consumerDiscretionary", sourceSectorLabel: "Consumer Cyclical" },
+  { ticker: "MCD", name: "McDonald's Corporation", sector: "consumerDiscretionary", sourceSectorLabel: "Consumer Cyclical" },
+  { ticker: "MGEE", name: "MGE Energy Inc.", sector: "utilities", sourceSectorLabel: "Utilities" },
+  { ticker: "MO", name: "Altria Group, Inc.", sector: "consumerStaples", sourceSectorLabel: "Consumer Defensive" },
+  { ticker: "MSA", name: "MSA Safety Incorporated", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "NDSN", name: "Nordson Corporation", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "NFG", name: "National Fuel Gas Company", sector: "energy", sourceSectorLabel: "Energy" },
+  { ticker: "NUE", name: "Nucor Corporation", sector: "materials", sourceSectorLabel: "Basic Materials" },
+  { ticker: "NWN", name: "Northwest Natural Holding Compa", sector: "utilities", sourceSectorLabel: "Utilities" },
+  { ticker: "PEP", name: "Pepsico, Inc.", sector: "consumerStaples", sourceSectorLabel: "Consumer Defensive" },
+  { ticker: "PG", name: "Procter & Gamble Company (The)", sector: "consumerStaples", sourceSectorLabel: "Consumer Defensive" },
+  { ticker: "PH", name: "Parker-Hannifin Corporation", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "PPG", name: "PPG Industries, Inc.", sector: "materials", sourceSectorLabel: "Basic Materials" },
+  { ticker: "RLI", name: "RLI Corp.", sector: "financials", sourceSectorLabel: "Financial Services" },
+  { ticker: "RPM", name: "RPM International Inc.", sector: "materials", sourceSectorLabel: "Basic Materials" },
+  { ticker: "SCL", name: "Stepan Company", sector: "materials", sourceSectorLabel: "Basic Materials" },
+  { ticker: "SPGI", name: "S&P Global Inc.", sector: "financials", sourceSectorLabel: "Financial Services" },
+  { ticker: "SWK", name: "Stanley Black & Decker, Inc.", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "SYY", name: "Sysco Corporation", sector: "consumerStaples", sourceSectorLabel: "Consumer Defensive" },
+  { ticker: "TGT", name: "Target Corporation", sector: "consumerStaples", sourceSectorLabel: "Consumer Defensive" },
+  { ticker: "TNC", name: "Tennant Company", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "TR", name: "Tootsie Roll Industries, Inc.", sector: "consumerStaples", sourceSectorLabel: "Consumer Defensive" },
+  { ticker: "UVV", name: "Universal Corporation", sector: "consumerStaples", sourceSectorLabel: "Consumer Defensive" },
+  { ticker: "WMT", name: "Walmart Inc.", sector: "consumerStaples", sourceSectorLabel: "Consumer Defensive" }
+];
+var ARISTOCRATS_MEMBERS = [
+  { ticker: "ABBV", name: "AbbVie", sector: "healthCare", sourceSectorLabel: "Health Care" },
+  { ticker: "ABT", name: "Abbott Laboratories", sector: "healthCare", sourceSectorLabel: "Health Care" },
+  { ticker: "ADM", name: "Archer-Daniels-Midland Co", sector: "consumerStaples", sourceSectorLabel: "Consumer Staples" },
+  { ticker: "ADP", name: "Automatic Data Processing", sector: "informationTechnology", sourceSectorLabel: "Information Technology" },
+  { ticker: "AFL", name: "AFLAC", sector: "financials", sourceSectorLabel: "Financials" },
+  { ticker: "ALB", name: "Albemarle Corporation", sector: "materials", sourceSectorLabel: "Materials" },
+  { ticker: "AMCR", name: "Amcor", sector: "materials", sourceSectorLabel: "Materials" },
+  { ticker: "AOS", name: "A.O. Smith", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "APD", name: "Air Products & Chemicals", sector: "materials", sourceSectorLabel: "Materials" },
+  { ticker: "ATO", name: "Atmos Energy Corp", sector: "utilities", sourceSectorLabel: "Utilities" },
+  { ticker: "BDX", name: "Becton Dickinson & Co", sector: "healthCare", sourceSectorLabel: "Health Care" },
+  { ticker: "BEN", name: "Franklin Resources Inc", sector: "financials", sourceSectorLabel: "Financials" },
+  { ticker: "BF.B", name: "Brown\u2013Forman (class B)", sector: "consumerStaples", sourceSectorLabel: "Consumer Staples" },
+  { ticker: "BRO", name: "Brown & Brown Inc.", sector: "financials", sourceSectorLabel: "Financials" },
+  { ticker: "CAH", name: "Cardinal Health Inc", sector: "healthCare", sourceSectorLabel: "Health Care" },
+  { ticker: "CAT", name: "Caterpillar Inc", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "CB", name: "Chubb Limited", sector: "financials", sourceSectorLabel: "Financials" },
+  { ticker: "CHD", name: "Church & Dwight", sector: "consumerStaples", sourceSectorLabel: "Consumer Staples" },
+  { ticker: "CHRW", name: "C.H. Robinson", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "CINF", name: "Cincinnati Financial Corp", sector: "financials", sourceSectorLabel: "Financials" },
+  { ticker: "CL", name: "Colgate-Palmolive", sector: "consumerStaples", sourceSectorLabel: "Consumer Staples" },
+  { ticker: "CLX", name: "Clorox", sector: "consumerStaples", sourceSectorLabel: "Consumer Staples" },
+  { ticker: "CTAS", name: "Cintas Corp", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "CVX", name: "Chevron Corp", sector: "energy", sourceSectorLabel: "Energy" },
+  { ticker: "DOV", name: "Dover Corp", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "ECL", name: "Ecolab Inc", sector: "materials", sourceSectorLabel: "Materials" },
+  { ticker: "ED", name: "Consolidated Edison Inc", sector: "utilities", sourceSectorLabel: "Utilities" },
+  { ticker: "EMR", name: "Emerson Electric", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "ERIE", name: "Erie Indemnity", sector: "financials", sourceSectorLabel: "Financials" },
+  { ticker: "ES", name: "Eversource Energy", sector: "utilities", sourceSectorLabel: "Utilities" },
+  { ticker: "ESS", name: "Essex Property Trust", sector: "realEstate", sourceSectorLabel: "Real Estate" },
+  { ticker: "EXPD", name: "Expeditors International of Washington", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "FAST", name: "Fastenal", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "FDS", name: "FactSet Research Systems", sector: "financials", sourceSectorLabel: "Financials" },
+  { ticker: "FRT", name: "Federal Realty Investment Trust", sector: "realEstate", sourceSectorLabel: "Real Estate" },
+  { ticker: "GD", name: "General Dynamics", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "GPC", name: "Genuine Parts Company", sector: "consumerDiscretionary", sourceSectorLabel: "Consumer Discretionary" },
+  { ticker: "GWW", name: "W. W. Grainger", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "HRL", name: "Hormel Foods Corp", sector: "consumerStaples", sourceSectorLabel: "Consumer Staples" },
+  { ticker: "IBM", name: "IBM", sector: "informationTechnology", sourceSectorLabel: "Information Technology" },
+  { ticker: "ITW", name: "Illinois Tool Works", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "JNJ", name: "Johnson & Johnson", sector: "healthCare", sourceSectorLabel: "Health Care" },
+  { ticker: "KMB", name: "Kimberly-Clark", sector: "consumerStaples", sourceSectorLabel: "Consumer Staples" },
+  { ticker: "KO", name: "Coca-Cola Co", sector: "consumerStaples", sourceSectorLabel: "Consumer Staples" },
+  { ticker: "KVUE", name: "Kenvue, Inc.", sector: "consumerStaples", sourceSectorLabel: "Consumer Staples" },
+  { ticker: "LIN", name: "Linde plc", sector: "materials", sourceSectorLabel: "Materials" },
+  { ticker: "LOW", name: "Lowe's", sector: "consumerDiscretionary", sourceSectorLabel: "Consumer Discretionary" },
+  { ticker: "MCD", name: "McDonald's Corp", sector: "consumerDiscretionary", sourceSectorLabel: "Consumer Discretionary" },
+  { ticker: "MDT", name: "Medtronic plc", sector: "healthCare", sourceSectorLabel: "Health Care" },
+  { ticker: "MKC", name: "McCormick & Company", sector: "consumerStaples", sourceSectorLabel: "Consumer Staples" },
+  { ticker: "NDSN", name: "Nordson Corp", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "NEE", name: "NextEra Energy", sector: "utilities", sourceSectorLabel: "Utilities" },
+  { ticker: "NUE", name: "Nucor Corp", sector: "materials", sourceSectorLabel: "Materials" },
+  { ticker: "O", name: "Realty Income", sector: "realEstate", sourceSectorLabel: "Real Estate" },
+  { ticker: "PEP", name: "PepsiCo", sector: "consumerStaples", sourceSectorLabel: "Consumer Staples" },
+  { ticker: "PG", name: "Procter & Gamble", sector: "consumerStaples", sourceSectorLabel: "Consumer Staples" },
+  { ticker: "PNR", name: "Pentair", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "PPG", name: "PPG Industries", sector: "materials", sourceSectorLabel: "Materials" },
+  { ticker: "ROP", name: "Roper Technologies", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "SHW", name: "Sherwin-Williams", sector: "materials", sourceSectorLabel: "Materials" },
+  { ticker: "SJM", name: "The J. M. Smucker Company", sector: "consumerStaples", sourceSectorLabel: "Consumer Staples" },
+  { ticker: "SPGI", name: "S&P Global Inc", sector: "financials", sourceSectorLabel: "Financials" },
+  { ticker: "SWK", name: "Stanley Black & Decker", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "SYY", name: "Sysco Corp", sector: "consumerStaples", sourceSectorLabel: "Consumer Staples" },
+  { ticker: "TGT", name: "Target Corp", sector: "consumerDiscretionary", sourceSectorLabel: "Consumer Discretionary" },
+  { ticker: "TROW", name: "T Rowe Price Group Inc", sector: "financials", sourceSectorLabel: "Financials" },
+  { ticker: "WMT", name: "Walmart Inc.", sector: "consumerStaples", sourceSectorLabel: "Consumer Staples" },
+  { ticker: "WST", name: "West Pharmaceutical Services", sector: "healthCare", sourceSectorLabel: "Health Care" },
+  { ticker: "XOM", name: "Exxon Mobil Corp", sector: "energy", sourceSectorLabel: "Energy" }
+];
+var CHAMPIONS_MEMBERS = [
+  { ticker: "AFL", name: "AFLAC Incorporated", sector: "financials", sourceSectorLabel: "Financial Services" },
+  { ticker: "ALB", name: "Albemarle Corporation", sector: "materials", sourceSectorLabel: "Basic Materials" },
+  { ticker: "ALRS", name: "Alerus Financial Corporation", sector: "financials", sourceSectorLabel: "Financial Services" },
+  { ticker: "ANDE", name: "The Andersons, Inc.", sector: "consumerStaples", sourceSectorLabel: "Consumer Defensive" },
+  { ticker: "AOS", name: "A.O. Smith Corporation", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "APD", name: "Air Products and Chemicals, Inc", sector: "materials", sourceSectorLabel: "Basic Materials" },
+  { ticker: "AROW", name: "Arrow Financial Corporation", sector: "financials", sourceSectorLabel: "Financial Services" },
+  { ticker: "ATO", name: "Atmos Energy Corporation", sector: "utilities", sourceSectorLabel: "Utilities" },
+  { ticker: "ATR", name: "AptarGroup, Inc.", sector: "healthCare", sourceSectorLabel: "Healthcare" },
+  { ticker: "BANF", name: "BancFirst Corporation", sector: "financials", sourceSectorLabel: "Financial Services" },
+  { ticker: "BEN", name: "Franklin Resources, Inc.", sector: "financials", sourceSectorLabel: "Financial Services" },
+  { ticker: "BMI", name: "Badger Meter, Inc.", sector: "informationTechnology", sourceSectorLabel: "Technology" },
+  { ticker: "BRC", name: "Brady Corporation", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "BRO", name: "Brown & Brown, Inc.", sector: "financials", sourceSectorLabel: "Financial Services" },
+  { ticker: "CASY", name: "Caseys General Stores, Inc.", sector: "consumerDiscretionary", sourceSectorLabel: "Consumer Cyclical" },
+  { ticker: "CAT", name: "Caterpillar, Inc.", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "CB", name: "Chubb Limited", sector: "financials", sourceSectorLabel: "Financial Services" },
+  { ticker: "CBU", name: "Community Financial System, Inc", sector: "financials", sourceSectorLabel: "Financial Services" },
+  { ticker: "CFR", name: "Cullen/Frost Bankers, Inc.", sector: "financials", sourceSectorLabel: "Financial Services" },
+  { ticker: "CHD", name: "Church & Dwight Company, Inc.", sector: "consumerStaples", sourceSectorLabel: "Consumer Defensive" },
+  { ticker: "CHRW", name: "C.H. Robinson Worldwide, Inc.", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "CLX", name: "Clorox Company (The)", sector: "consumerStaples", sourceSectorLabel: "Consumer Defensive" },
+  { ticker: "CNI", name: "Canadian National Railway Compa", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "CSL", name: "Carlisle Companies Incorporated", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "CTAS", name: "Cintas Corporation", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "CTBI", name: "Community Trust Bancorp, Inc.", sector: "financials", sourceSectorLabel: "Financial Services" },
+  { ticker: "CVX", name: "Chevron Corporation", sector: "energy", sourceSectorLabel: "Energy" },
+  { ticker: "DCI", name: "Donaldson Company, Inc.", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "ECL", name: "Ecolab Inc.", sector: "materials", sourceSectorLabel: "Basic Materials" },
+  { ticker: "ENB", name: "Enbridge Inc", sector: "energy", sourceSectorLabel: "Energy" },
+  { ticker: "EPD", name: "Enterprise Products Partners L.", sector: "energy", sourceSectorLabel: "Energy" },
+  { ticker: "ERIE", name: "Erie Indemnity Company", sector: "financials", sourceSectorLabel: "Financial Services" },
+  { ticker: "ES", name: "Eversource Energy (D/B/A)", sector: "utilities", sourceSectorLabel: "Utilities" },
+  { ticker: "ESS", name: "Essex Property Trust, Inc.", sector: "realEstate", sourceSectorLabel: "Real Estate" },
+  { ticker: "EXPD", name: "Expeditors International of Was", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "FAST", name: "Fastenal Company", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "FDS", name: "FactSet Research Systems Inc.", sector: "financials", sourceSectorLabel: "Financial Services" },
+  { ticker: "FELE", name: "Franklin Electric Co., Inc.", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "GD", name: "General Dynamics Corporation", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "GGG", name: "Graco Inc.", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "HTO", name: "H2O America", sector: "utilities", sourceSectorLabel: "Utilities" },
+  { ticker: "IBM", name: "International Business Machines", sector: "informationTechnology", sourceSectorLabel: "Technology" },
+  { ticker: "JKHY", name: "Jack Henry & Associates, Inc.", sector: "informationTechnology", sourceSectorLabel: "Technology" },
+  { ticker: "LECO", name: "Lincoln Electric Holdings, Inc.", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "LIN", name: "Linde plc", sector: "materials", sourceSectorLabel: "Basic Materials" },
+  { ticker: "MATW", name: "Matthews International Corporat", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "MDT", name: "Medtronic plc.", sector: "healthCare", sourceSectorLabel: "Healthcare" },
+  { ticker: "MGRC", name: "McGrath RentCorp", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "MKC", name: "McCormick & Company, Incorporat", sector: "consumerStaples", sourceSectorLabel: "Consumer Defensive" },
+  { ticker: "MZTI", name: "The Marzetti Company", sector: "consumerStaples", sourceSectorLabel: "Consumer Defensive" },
+  { ticker: "NEE", name: "NextEra Energy, Inc.", sector: "utilities", sourceSectorLabel: "Utilities" },
+  { ticker: "NJR", name: "NewJersey Resources Corporation", sector: "utilities", sourceSectorLabel: "Utilities" },
+  { ticker: "NNN", name: "NNN REIT, Inc.", sector: "realEstate", sourceSectorLabel: "Real Estate" },
+  { ticker: "NWFL", name: "Norwood Financial Corp.", sector: "financials", sourceSectorLabel: "Financial Services" },
+  { ticker: "O", name: "Realty Income Corporation", sector: "realEstate", sourceSectorLabel: "Real Estate" },
+  { ticker: "ORI", name: "Old Republic International Corp", sector: "financials", sourceSectorLabel: "Financial Services" },
+  { ticker: "OZK", name: "Bank OZK", sector: "financials", sourceSectorLabel: "Financial Services" },
+  { ticker: "PB", name: "Prosperity Bancshares, Inc.", sector: "financials", sourceSectorLabel: "Financial Services" },
+  { ticker: "PII", name: "Polaris Inc.", sector: "consumerDiscretionary", sourceSectorLabel: "Consumer Cyclical" },
+  { ticker: "RGCO", name: "RGC Resources Inc.", sector: "utilities", sourceSectorLabel: "Utilities" },
+  { ticker: "RNR", name: "RenaissanceRe Holdings Ltd.", sector: "financials", sourceSectorLabel: "Financial Services" },
+  { ticker: "ROP", name: "Roper Technologies, Inc.", sector: "informationTechnology", sourceSectorLabel: "Technology" },
+  { ticker: "RTX", name: "RTX Corporation", sector: "industrials", sourceSectorLabel: "Industrials" },
+  { ticker: "SBSI", name: "Southside Bancshares, Inc.", sector: "financials", sourceSectorLabel: "Financial Services" },
+  { ticker: "SEIC", name: "SEI Investments Company", sector: "financials", sourceSectorLabel: "Financial Services" },
+  { ticker: "SHW", name: "Sherwin-Williams Company (The)", sector: "materials", sourceSectorLabel: "Basic Materials" },
+  { ticker: "SJM", name: "The J.M. Smucker Company", sector: "consumerStaples", sourceSectorLabel: "Consumer Defensive" },
+  { ticker: "SON", name: "Sonoco Products Company", sector: "consumerDiscretionary", sourceSectorLabel: "Consumer Cyclical" },
+  { ticker: "SRCE", name: "1st Source Corporation", sector: "financials", sourceSectorLabel: "Financial Services" },
+  { ticker: "SYK", name: "Stryker Corporation", sector: "healthCare", sourceSectorLabel: "Healthcare" },
+  { ticker: "THFF", name: "First Financial Corporation", sector: "financials", sourceSectorLabel: "Financial Services" },
+  { ticker: "TMP", name: "Tompkins Financial Corporation", sector: "financials", sourceSectorLabel: "Financial Services" },
+  { ticker: "TROW", name: "T. Rowe Price Group, Inc.", sector: "financials", sourceSectorLabel: "Financial Services" },
+  { ticker: "UGI", name: "UGI Corporation", sector: "utilities", sourceSectorLabel: "Utilities" },
+  { ticker: "UHT", name: "Universal Health Realty Income", sector: "realEstate", sourceSectorLabel: "Real Estate" },
+  { ticker: "UMBF", name: "UMB Financial Corporation", sector: "financials", sourceSectorLabel: "Financial Services" },
+  { ticker: "WABC", name: "Westamerica Bancorporation", sector: "financials", sourceSectorLabel: "Financial Services" },
+  { ticker: "WLY", name: "John Wiley & Sons, Inc.", sector: "communicationServices", sourceSectorLabel: "Communication Services" },
+  { ticker: "WLYB", name: "John Wiley & Sons, Inc.", sector: "communicationServices", sourceSectorLabel: "Communication Services" },
+  { ticker: "WST", name: "West Pharmaceutical Services, I", sector: "healthCare", sourceSectorLabel: "Healthcare" },
+  { ticker: "WTRG", name: "Essential Utilities, Inc.", sector: "utilities", sourceSectorLabel: "Utilities" },
+  { ticker: "XOM", name: "ExxonMobil Holdings Corporation", sector: "energy", sourceSectorLabel: "Energy" },
+  { ticker: "YORW", name: "The York Water Company", sector: "utilities", sourceSectorLabel: "Utilities" }
+];
+var CURATED_DIVIDEND_LISTS = {
+  kings: {
+    id: "kings",
+    minimumStreakYears: 50,
+    asOf: "2026-08-03",
+    sources: [
+      {
+        label: "stockanalysis.com",
+        url: "https://stockanalysis.com/list/dividend-kings/",
+        role: "primary",
+        retrievedAt: "2026-08-03"
+      },
+      {
+        label: "DRiP Investing Resource Center",
+        url: "https://www.dripinvesting.org/dividend-kings/",
+        role: "crosscheck",
+        retrievedAt: "2026-08-03"
+      }
+    ],
+    coverageNote: "\uBC30\uB2F9\uD0B9\uC5D0\uB294 \uB2E8\uC77C \uAD8C\uC704 \uC18C\uC2A4\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4. \uB450 \uC18C\uC2A4\uAC00 \uAC01\uAC01 54\uC885\xB747\uC885\uC744 \uC2E4\uC5C8\uACE0, \uC774 \uBAA9\uB85D\uC740 \uB458 \uB2E4 \uC2E4\uC740 46\uC885\uB9CC \uB2F4\uC558\uC2B5\uB2C8\uB2E4. \uD55C\uCABD\uC5D0\uB9CC \uC788\uB294 9\uC885\uC740 \uD310\uB2E8\uC774 \uAC08\uB824 \uC81C\uC678\uD588\uC2B5\uB2C8\uB2E4. \uC5F0\uC18D \uC99D\uBC30\uAC00 \uC2DC\uC791\uB41C \uD574\uB294 \uB450 \uC18C\uC2A4\uC758 \uC99D\uBC30 \uD69F\uC218\uAC00 \uC11C\uB85C \uC5B4\uAE0B\uB098\uC9C0 \uC54A\uACE0 \uBC30\uB2F9 \uC774\uB825\uC5D0\uB3C4 \uC0AD\uAC10\uC774 \uC5C6\uB294 36\uC885\uB9CC \uC801\uC5C8\uACE0, \uB098\uBA38\uC9C0 10\uC885\uC740 \uBAA9\uB85D\uC758 \uAE30\uC900\uC778 50\uB144 \uC774\uC0C1\uC73C\uB85C\uB9CC \uD45C\uC2DC\uD569\uB2C8\uB2E4.",
+    members: withConfirmedBy(KINGS_MEMBERS, KINGS_CONFIRMED_BY, true, KINGS_STREAK_FACTS)
+  },
+  aristocrats: {
+    id: "aristocrats",
+    minimumStreakYears: 25,
+    asOf: "2026-08-03",
+    sources: [
+      {
+        label: "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+        url: "https://accounts.profunds.com/etfdata/psdlyhld.csv",
+        role: "primary",
+        retrievedAt: "2026-08-03"
+      },
+      {
+        label: "Wikipedia",
+        url: "https://en.wikipedia.org/wiki/S%26P_500_Dividend_Aristocrats",
+        role: "crosscheck",
+        retrievedAt: "2026-08-03"
+      }
+    ],
+    coverageNote: "S&P 500 \uBC30\uB2F9\uADC0\uC871 \uC9C0\uC218\uB97C \uCD94\uC885\uD558\uB294 ETF(NOBL)\uC758 \uBCF4\uC720\uB0B4\uC5ED\uC5D0\uC11C \uD3B8\uC785 \uC885\uBAA9\uC744 \uD655\uC778\uD558\uACE0, \uC704\uD0A4\uD53C\uB514\uC544 \uAD6C\uC131\uC885\uBAA9 \uD45C\uC640 \uB300\uC870\uD588\uC2B5\uB2C8\uB2E4. \uB450 \uC18C\uC2A4\uB294 69\uC885\uC5D0\uC11C \uC644\uC804\uD788 \uC77C\uCE58\uD588\uC2B5\uB2C8\uB2E4.",
+    members: withConfirmedBy(ARISTOCRATS_MEMBERS, ARISTOCRATS_CONFIRMED_BY)
+  },
+  champions: {
+    id: "champions",
+    minimumStreakYears: 25,
+    maximumStreakYears: 49,
+    asOf: "2026-08-03",
+    sources: [
+      {
+        label: "DRiP Investing Resource Center",
+        url: "https://www.dripinvesting.org/dividend-champions/",
+        role: "primary",
+        retrievedAt: "2026-08-03"
+      }
+    ],
+    coverageNote: "\uCD9C\uCC98\uB294 \uBC30\uB2F9\uCC54\uD53C\uC5B8\uACFC \uBC30\uB2F9\uD0B9\uC744 \uACB9\uCE58\uC9C0 \uC54A\uAC8C \uB098\uB220 \uC2E3\uC2B5\uB2C8\uB2E4. \uADF8\uB798\uC11C \uC774 \uBAA9\uB85D\uC740 \uC5F0\uC18D \uC99D\uBC30 25~49\uB144 \uAD6C\uAC04\uC774\uBA70, 50\uB144 \uC774\uC0C1\uC740 \uBC30\uB2F9\uD0B9 \uBAA9\uB85D\uC5D0 \uC788\uC2B5\uB2C8\uB2E4. \uCD9C\uCC98 \uD398\uC774\uC9C0 \uBCF8\uBB38\uC740 \uC804\uCCB4 139\uC885\uC744 \uC5B8\uAE09\uD558\uC9C0\uB9CC \uACF5\uAC1C\uB41C \uD45C\uC5D0\uB294 83\uC885\uC774 \uC2E4\uB824 \uC788\uC5B4, \uD655\uC778\uD55C 83\uC885\uB9CC \uB2F4\uC558\uC2B5\uB2C8\uB2E4.",
+    members: withConfirmedBy(CHAMPIONS_MEMBERS, CHAMPIONS_CONFIRMED_BY, true)
   }
 };
 
@@ -5484,6 +5727,2398 @@ var coerce = {
   date: ((arg) => ZodDate.create({ ...arg, coerce: true }))
 };
 var NEVER = INVALID;
+
+// shared/constants/dividendLists/dividendLists.sectors.ts
+var DIVIDEND_LIST_SECTOR_LABEL = {
+  communicationServices: "\uCEE4\uBBA4\uB2C8\uCF00\uC774\uC158 \uC11C\uBE44\uC2A4",
+  consumerDiscretionary: "\uACBD\uAE30\uC18C\uBE44\uC7AC",
+  consumerStaples: "\uD544\uC218\uC18C\uBE44\uC7AC",
+  energy: "\uC5D0\uB108\uC9C0",
+  financials: "\uAE08\uC735",
+  healthCare: "\uD5EC\uC2A4\uCF00\uC5B4",
+  industrials: "\uC0B0\uC5C5\uC7AC",
+  informationTechnology: "\uC815\uBCF4\uAE30\uC220",
+  materials: "\uC18C\uC7AC",
+  realEstate: "\uBD80\uB3D9\uC0B0",
+  utilities: "\uC720\uD2F8\uB9AC\uD2F0"
+};
+var DIVIDEND_LIST_SECTOR_IDS = Object.keys(
+  DIVIDEND_LIST_SECTOR_LABEL
+);
+
+// shared/constants/dividendLists/dividendLists.schema.ts
+var isoDate = external_exports.string().regex(/^\d{4}-\d{2}-\d{2}$/, "\uB0A0\uC9DC\uB294 YYYY-MM-DD \uC5EC\uC57C \uD55C\uB2E4");
+var tickerSchema = external_exports.string().regex(/^[A-Z]{1,5}(\.[A-Z])?$/, "\uD2F0\uCEE4\uB294 \uB300\uBB38\uC790\uC640 \uD074\uB798\uC2A4 \uC811\uBBF8\uC0AC(.B)\uB9CC \uD5C8\uC6A9\uD55C\uB2E4");
+var dividendListSourceSchema = external_exports.object({
+  label: external_exports.string().min(1),
+  url: external_exports.string().url(),
+  role: external_exports.enum(["primary", "crosscheck"]),
+  retrievedAt: isoDate
+});
+var MAX_STREAK_START_YEAR = (/* @__PURE__ */ new Date()).getUTCFullYear();
+var MIN_STREAK_START_YEAR = 1900;
+var dividendListMemberSchema = external_exports.object({
+  ticker: tickerSchema,
+  name: external_exports.string().min(1),
+  sector: external_exports.enum(DIVIDEND_LIST_SECTOR_IDS),
+  sourceSectorLabel: external_exports.string().min(1),
+  /** 최소 1개 — 아무도 확인해 주지 않은 종목은 목록에 실을 수 없다. */
+  confirmedBy: external_exports.array(external_exports.string().min(1)).min(1),
+  streakStartYear: external_exports.number().int().min(MIN_STREAK_START_YEAR, `\uC5F0\uC18D \uC99D\uBC30 \uC2DC\uC791 \uC5F0\uB3C4\uB294 ${MIN_STREAK_START_YEAR}\uB144 \uC774\uD6C4\uC5EC\uC57C \uD55C\uB2E4`).max(MAX_STREAK_START_YEAR, "\uC5F0\uC18D \uC99D\uBC30 \uC2DC\uC791 \uC5F0\uB3C4\uB294 \uBBF8\uB798\uC77C \uC218 \uC5C6\uB2E4").optional(),
+  streakSource: external_exports.string().min(1).optional()
+}).refine(
+  (member) => member.streakStartYear === void 0 === (member.streakSource === void 0),
+  { message: "streakStartYear \uC640 streakSource \uB294 \uB458 \uB2E4 \uC788\uAC70\uB098 \uB458 \uB2E4 \uC5C6\uC5B4\uC57C \uD55C\uB2E4", path: ["streakSource"] }
+);
+var dividendListSchema = external_exports.object({
+  id: external_exports.enum(DIVIDEND_LIST_IDS),
+  minimumStreakYears: external_exports.number().int().min(1).max(200),
+  maximumStreakYears: external_exports.number().int().min(1).max(200).optional(),
+  asOf: isoDate,
+  /** 출처가 하나도 없는 목록은 화면에 낼 수 없다(기준일·출처 노출이 이 기능의 전제다). */
+  sources: external_exports.array(dividendListSourceSchema).min(1),
+  coverageNote: external_exports.string().min(1),
+  /**
+   * 🔴 빈 목록을 통과시키지 않는다. 수집기가 절반쯤 실패해 0종을 쓰고 지나가면 화면은 "이 목록에는
+   * 종목이 없습니다"라는 **거짓말**을 하게 된다. 형태가 깨지면 폴백(큐레이션 값)으로 떨어지는 편이 낫다.
+   */
+  members: external_exports.array(dividendListMemberSchema).min(1)
+});
+var dividendListVerificationFlagSchema = external_exports.object({
+  listId: external_exports.enum(DIVIDEND_LIST_IDS),
+  ticker: tickerSchema,
+  kind: external_exports.enum(["cut", "noHistory"]),
+  detail: external_exports.string().min(1)
+});
+var dividendListsVerificationSchema = external_exports.object({
+  checkedAt: isoDate,
+  checkedCount: external_exports.number().int().min(0),
+  flags: external_exports.array(dividendListVerificationFlagSchema)
+});
+var dividendListsSnapshotSchema = external_exports.object({
+  asOf: isoDate.nullable(),
+  source: external_exports.string(),
+  lists: external_exports.record(external_exports.enum(DIVIDEND_LIST_IDS), dividendListSchema),
+  verification: dividendListsVerificationSchema.optional()
+});
+
+// shared/constants/dividendLists/dividendLists.universe.types.ts
+var DIVIDEND_UNIVERSE_SOURCE_ETFS = ["NOBL", "SDY", "REGL", "SMDV"];
+
+// shared/constants/dividendLists/dividendLists.universe.schema.ts
+var isoDate2 = external_exports.string().regex(/^\d{4}-\d{2}-\d{2}$/, "\uB0A0\uC9DC\uB294 YYYY-MM-DD \uC5EC\uC57C \uD55C\uB2E4");
+var tickerSchema2 = external_exports.string().regex(/^[A-Z]{1,5}(\.[A-Z])?$/, "\uD2F0\uCEE4\uB294 \uB300\uBB38\uC790\uC640 \uD074\uB798\uC2A4 \uC811\uBBF8\uC0AC(.B)\uB9CC \uD5C8\uC6A9\uD55C\uB2E4");
+var MAX_PLAUSIBLE_YIELD_PERCENT = 20;
+var cutSchema = external_exports.object({
+  fromYear: external_exports.number().int().min(1900).max(2200),
+  toYear: external_exports.number().int().min(1900).max(2200),
+  fromRate: external_exports.number().nonnegative(),
+  toRate: external_exports.number().nonnegative()
+});
+var dividendUniverseMetricsSchema = external_exports.object({
+  price: external_exports.number().positive("\uAC00\uACA9\uC740 0\uBCF4\uB2E4 \uCEE4\uC57C \uD55C\uB2E4 \u2014 0\uC774\uBA74 \uBC30\uB2F9\uB960\uC774 \uBB34\uD55C\uB300\uAC00 \uB41C\uB2E4"),
+  currency: external_exports.string().min(1).nullable(),
+  latestDividend: external_exports.number().positive(),
+  latestDividendDate: isoDate2,
+  /** 연 1회(연배당)~52회(주배당) 밖의 값은 주기 계산이 깨진 것이다. */
+  paymentsPerYear: external_exports.number().int().min(1).max(52),
+  forwardAnnualDividend: external_exports.number().positive(),
+  forwardYieldPercent: external_exports.number().positive().max(MAX_PLAUSIBLE_YIELD_PERCENT),
+  /** 성장률은 음수일 수 있다(삭감). 계산 불가는 `null` — 0 으로 대체하지 않는다(뜻이 다르다). */
+  fiveYearGrowthPercent: external_exports.number().nullable(),
+  recentCut: cutSchema.nullable(),
+  firstDividendYear: external_exports.number().int().min(1900).max(2200),
+  measuredAt: isoDate2
+});
+var dividendUniverseIssueSchema = external_exports.object({
+  ticker: tickerSchema2,
+  kind: external_exports.enum([
+    "fetchFailed",
+    "metricsUnavailable",
+    "abnormalLatestPayment",
+    "staleDividend",
+    "implausibleYield",
+    "streakContradiction",
+    "growthUnavailable",
+    "sectorMissing"
+  ]),
+  detail: external_exports.string().min(1),
+  blocking: external_exports.boolean()
+});
+var dividendUniverseEntrySchema = external_exports.object({
+  ticker: tickerSchema2,
+  name: external_exports.string().min(1, "\uC774\uB984 \uC5C6\uB294 \uC885\uBAA9\uC740 \uC2E4\uC744 \uC218 \uC5C6\uB2E4"),
+  sector: external_exports.enum(DIVIDEND_LIST_SECTOR_IDS).nullable(),
+  sourceSectorLabel: external_exports.string().min(1).nullable(),
+  /** 🔴 최소 1개 — 어느 ETF 에도 없는 종목은 후보가 될 이유가 없다. */
+  sourceEtfs: external_exports.array(external_exports.enum(DIVIDEND_UNIVERSE_SOURCE_ETFS)).min(1),
+  minimumStreakYears: external_exports.number().int().min(1).max(200),
+  metrics: dividendUniverseMetricsSchema.nullable()
+});
+var dividendUniverseSnapshotSchema = external_exports.object({
+  asOf: isoDate2,
+  sourceAsOf: external_exports.object({ proShares: isoDate2.nullable(), sdy: isoDate2.nullable() }),
+  memberCountByEtf: external_exports.record(external_exports.enum(DIVIDEND_UNIVERSE_SOURCE_ETFS), external_exports.number().int().min(1)),
+  /** 🔴 빈 유니버스를 통과시키지 않는다 — 절반쯤 실패한 수집이 0종을 쓰고 지나가면 아무도 모른다. */
+  entries: external_exports.array(dividendUniverseEntrySchema).min(1),
+  issues: external_exports.array(dividendUniverseIssueSchema),
+  coverage: external_exports.object({
+    total: external_exports.number().int().min(1),
+    withMetrics: external_exports.number().int().min(0),
+    withSector: external_exports.number().int().min(0),
+    withGrowth: external_exports.number().int().min(0)
+  })
+});
+
+// shared/constants/dividendLists/index.ts
+var EMPTY_DIVIDEND_LISTS_SNAPSHOT = {
+  asOf: null,
+  source: "none",
+  lists: {}
+};
+var parseDividendListsSnapshot = (raw) => {
+  const parsed = dividendListsSnapshotSchema.safeParse(raw);
+  if (!parsed.success) {
+    console.warn("[dividendLists] dividendLists.generated.json \uD615\uD0DC\uAC00 \uB9DE\uC9C0 \uC54A\uC544 \uD050\uB808\uC774\uC158 \uBAA9\uB85D\uC73C\uB85C \uB300\uCCB4\uD55C\uB2E4.");
+    return EMPTY_DIVIDEND_LISTS_SNAPSHOT;
+  }
+  return parsed.data;
+};
+var DIVIDEND_LISTS_SNAPSHOT = parseDividendListsSnapshot(dividendLists_generated_default);
+var overlay = () => {
+  const merged = {};
+  for (const id of DIVIDEND_LIST_IDS) {
+    merged[id] = DIVIDEND_LISTS_SNAPSHOT.lists[id] ?? CURATED_DIVIDEND_LISTS[id];
+  }
+  return merged;
+};
+var METRICS = dividendLists_metrics_generated_default.metrics ?? {};
+var withMetrics = (list) => ({
+  ...list,
+  members: list.members.map((member) => {
+    const m = METRICS[member.ticker];
+    if (!m) return member;
+    return { ...member, forwardYieldPercent: m.forwardYieldPercent, fiveYearGrowthPercent: m.fiveYearGrowthPercent };
+  })
+});
+var DIVIDEND_LISTS = Object.fromEntries(
+  DIVIDEND_LIST_IDS.map((id) => [id, withMetrics(overlay()[id])])
+);
+var DIVIDEND_LIST_ALL = DIVIDEND_LIST_IDS.map((id) => DIVIDEND_LISTS[id]);
+var toDividendListId = (raw) => {
+  const found = DIVIDEND_LIST_IDS.find((id) => id === raw?.trim().toLowerCase());
+  return found ?? null;
+};
+
+// pages/DividendList/copy/dividendListCopy.ts
+var LISTS = {
+  kings: {
+    metaTitle: "\uBC30\uB2F9\uD0B9 \uBAA9\uB85D \u2014 50\uB144 \uC774\uC0C1 \uBC30\uB2F9\uC744 \uB298\uB824 \uC628 \uBBF8\uAD6D \uAE30\uC5C5",
+    metaDescription: "\uC5F0\uC18D \uC99D\uBC30 50\uB144 \uC774\uC0C1\uC73C\uB85C \uB450 \uC790\uB8CC\uAC00 \uBAA8\uB450 \uD655\uC778\uD55C \uBBF8\uAD6D \uAE30\uC5C5 \uBAA9\uB85D\uC785\uB2C8\uB2E4. \uC885\uBAA9\xB7\uC139\uD130\uC640 \uD568\uAED8 \uCD9C\uCC98\uC640 \uAE30\uC900\uC77C\uC744 \uD45C\uAE30\uD588\uC2B5\uB2C8\uB2E4.",
+    title: "\uBC30\uB2F9\uD0B9",
+    lede: "\uBC18\uC138\uAE30 \uB118\uAC8C \uD574\uB9C8\uB2E4 \uBC30\uB2F9\uC744 \uB298\uB824 \uC628 \uAE30\uC5C5\uB4E4\uC785\uB2C8\uB2E4.",
+    definition: "\uBC30\uB2F9\uD0B9\uC740 \uC5F0\uC18D \uC99D\uBC30 \uAE30\uAC04\uC774 50\uB144 \uC774\uC0C1\uC778 \uBBF8\uAD6D \uC0C1\uC7A5 \uAE30\uC5C5\uC744 \uAC00\uB9AC\uD0A4\uB294 \uD1B5\uCE6D\uC785\uB2C8\uB2E4. \uD2B9\uC815 \uC9C0\uC218\uC758 \uACF5\uC2DD \uBA85\uCE6D\uC774 \uC544\uB2C8\uB77C \uC2DC\uC7A5\uC5D0\uC11C \uAD73\uC5B4\uC9C4 \uD45C\uD604\uC774\uB77C, \uC5B4\uB5A4 \uAE30\uC5C5\uC744 \uD3EC\uD568\uD560\uC9C0\uB294 \uC790\uB8CC\uB97C \uB9CC\uB4DC\uB294 \uACF3\uB9C8\uB2E4 \uC870\uAE08\uC529 \uB2E4\uB985\uB2C8\uB2E4.",
+    criterionLabel: "\uC5F0\uC18D \uC99D\uBC30 50\uB144 \uC774\uC0C1",
+    caution: "50\uB144\uC774\uB77C\uB294 \uAE30\uAC04\uC5D0\uB294 1970\uB144\uB300\uC758 \uACE0\uBB3C\uAC00, 2008\uB144 \uAE08\uC735\uC704\uAE30, 2020\uB144 \uD32C\uB370\uBBF9\uC774 \uBAA8\uB450 \uB4E4\uC5B4 \uC788\uC2B5\uB2C8\uB2E4. \uADF8 \uAE30\uAC04\uC744 \uD1B5\uACFC\uD588\uB2E4\uB294 \uC0AC\uC2E4\uC774 \uC55E\uC73C\uB85C\uB3C4 \uAC19\uC73C\uB9AC\uB77C\uB294 \uB73B\uC740 \uC544\uB2D9\uB2C8\uB2E4.",
+    hub: {
+      headline: "\uBC18\uC138\uAE30 \uB3D9\uC548 \uD55C \uD574\uB3C4 \uAC70\uB974\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4",
+      points: [
+        "\uAE30\uC900\uC740 \uD558\uB098\uC785\uB2C8\uB2E4 \u2014 \uC5F0\uC18D \uC99D\uBC30 50\uB144 \uC774\uC0C1.",
+        "\uADF8 50\uB144\uC5D0\uB294 1970\uB144\uB300 \uACE0\uBB3C\uAC00, 2008\uB144 \uAE08\uC735\uC704\uAE30, 2020\uB144 \uD32C\uB370\uBBF9\uC774 \uBAA8\uB450 \uB4E4\uC5B4 \uC788\uC2B5\uB2C8\uB2E4. \uBC30\uB2F9\uC744 \uC904\uC774\uC9C0 \uC54A\uACE0 \uADF8 \uAD6C\uAC04\uC744 \uC9C0\uB0AC\uB2E4\uB294 \uAE30\uB85D\uC785\uB2C8\uB2E4.",
+        "\uACF5\uC2DD \uC9C0\uC218\uAC00 \uC544\uB2C8\uB77C \uC2DC\uC7A5\uC5D0\uC11C \uAD73\uC5B4\uC9C4 \uD1B5\uCE6D\uC774\uB77C, \uC790\uB8CC\uB97C \uB9CC\uB4DC\uB294 \uACF3\uB9C8\uB2E4 \uAD6C\uC131\uC774 \uC870\uAE08\uC529 \uB2E4\uB985\uB2C8\uB2E4."
+      ],
+      question: "\uAC00\uC7A5 \uC624\uB798 \uC774\uC5B4\uC9C4 \uAE30\uB85D\uB9CC \uBCF4\uACE0 \uC2F6\uC744 \uB54C \uC5FD\uB2C8\uB2E4."
+    }
+  },
+  aristocrats: {
+    metaTitle: "\uBC30\uB2F9\uADC0\uC871 \uBAA9\uB85D \u2014 S&P 500\uC5D0\uC11C 25\uB144 \uC774\uC0C1 \uBC30\uB2F9\uC744 \uB298\uB824 \uC628 \uAE30\uC5C5",
+    metaDescription: "S&P 500 \uBC30\uB2F9\uADC0\uC871 \uC9C0\uC218\uC5D0 \uC2E4\uC81C\uB85C \uD3B8\uC785\uB41C \uC885\uBAA9\uC744 \uC9C0\uC218 \uCD94\uC885 ETF \uBCF4\uC720\uB0B4\uC5ED\uC5D0\uC11C \uD655\uC778\uD558\uACE0 \uC704\uD0A4\uD53C\uB514\uC544 \uAD6C\uC131\uC885\uBAA9 \uD45C\uC640 \uB300\uC870\uD588\uC2B5\uB2C8\uB2E4. \uC885\uBAA9\xB7\uC139\uD130\xB7\uAE30\uC900\uC77C\uC744 \uD568\uAED8 \uD45C\uAE30\uD588\uC2B5\uB2C8\uB2E4.",
+    title: "\uBC30\uB2F9\uADC0\uC871",
+    lede: "S&P 500\uC5D0 \uC18D\uD558\uBA74\uC11C 25\uB144 \uB118\uAC8C \uBC30\uB2F9\uC744 \uB298\uB824 \uC628 \uAE30\uC5C5\uB4E4\uC785\uB2C8\uB2E4.",
+    definition: "\uBC30\uB2F9\uADC0\uC871\uC740 S&P 500 \uAD6C\uC131\uC885\uBAA9 \uAC00\uC6B4\uB370 \uC5F0\uC18D \uC99D\uBC30 25\uB144 \uC774\uC0C1\uC774\uB77C\uB294 \uC870\uAC74\uC744 \uC9C0\uC218 \uC0B0\uCD9C \uAE30\uAD00\uC774 \uC815\uD55C \uBC29\uC2DD\uC73C\uB85C \uC2EC\uC0AC\uD574 \uD3B8\uC785\uD55C \uC885\uBAA9\uC785\uB2C8\uB2E4. \uBC30\uB2F9 \uC774\uB825\uB9CC\uC774 \uC544\uB2C8\uB77C \uC2DC\uAC00\uCD1D\uC561\uACFC \uAC70\uB798\uB300\uAE08 \uC870\uAC74\uB3C4 \uD568\uAED8 \uBD05\uB2C8\uB2E4.",
+    criterionLabel: "S&P 500 \uC18C\uC18D + \uC5F0\uC18D \uC99D\uBC30 25\uB144 \uC774\uC0C1",
+    caution: '"S&P 500\uC5D0 \uC18D\uD558\uACE0 25\uB144 \uC774\uC0C1 \uB298\uB838\uB2E4"\uB294 \uC11C\uC220\uACFC "\uC9C0\uC218\uC5D0 \uC2E4\uC81C\uB85C \uD3B8\uC785\uB3FC \uC788\uB2E4"\uB294 \uAC19\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. \uC774 \uBAA9\uB85D\uC740 \uC9C0\uC218\uB97C \uCD94\uC885\uD558\uB294 ETF\uAC00 \uC2E4\uC81C\uB85C \uBCF4\uC720\uD55C \uC885\uBAA9\uC744 \uAE30\uC900\uC73C\uB85C \uC0BC\uC558\uAE30 \uB54C\uBB38\uC5D0, \uC11C\uC220 \uC870\uAC74\uB9CC\uC73C\uB85C \uBAA9\uB85D\uC744 \uB9CC\uB4E0 \uB2E4\uB978 \uC790\uB8CC\uC640 \uBA87 \uC885\uBAA9\uC774 \uB2E4\uB97C \uC218 \uC788\uC2B5\uB2C8\uB2E4.',
+    hub: {
+      headline: "\uC9C0\uC218\uAC00 \uC9C1\uC811 \uC2EC\uC0AC\uD574\uC11C \uB123\uC740 \uBAA9\uB85D\uC785\uB2C8\uB2E4",
+      points: [
+        "\uAE30\uC900\uC740 \uB458\uC785\uB2C8\uB2E4 \u2014 S&P 500 \uC18C\uC18D, \uADF8\uB9AC\uACE0 \uC5F0\uC18D \uC99D\uBC30 25\uB144 \uC774\uC0C1.",
+        "\uBC30\uB2F9 \uC774\uB825\uB9CC \uBCF4\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. \uC2DC\uAC00\uCD1D\uC561\uACFC \uAC70\uB798\uB300\uAE08 \uC870\uAC74\uC744 \uD568\uAED8 \uC2EC\uC0AC\uD558\uBBC0\uB85C, \uADDC\uBAA8\uAC00 \uC791\uC740 \uAE30\uC5C5\uC740 \uAE30\uAC04\uC744 \uCC44\uC6CC\uB3C4 \uB4E4\uC5B4\uC624\uC9C0 \uBABB\uD569\uB2C8\uB2E4.",
+        "\uC774 \uD654\uBA74\uC758 \uBAA9\uB85D\uC740 \uC9C0\uC218\uB97C \uCD94\uC885\uD558\uB294 ETF\uAC00 \uC2E4\uC81C\uB85C \uBCF4\uC720\uD55C \uC885\uBAA9\uC5D0\uC11C \uD655\uC778\uD55C \uAC83\uC774\uB77C, \uC870\uAC74\uB9CC\uC73C\uB85C \uB9CC\uB4E0 \uB2E4\uB978 \uC790\uB8CC\uC640 \uBA87 \uC885\uBAA9\uC774 \uB2E4\uB97C \uC218 \uC788\uC2B5\uB2C8\uB2E4."
+      ],
+      question: "\uD070 \uAE30\uC5C5 \uC704\uC8FC\uB85C \uCD94\uB9B0 \uBA85\uB2E8\uC744 \uBCF4\uACE0 \uC2F6\uC744 \uB54C \uC5FD\uB2C8\uB2E4."
+    }
+  },
+  champions: {
+    metaTitle: "\uBC30\uB2F9\uCC54\uD53C\uC5B8 \uBAA9\uB85D \u2014 25~49\uB144 \uBC30\uB2F9\uC744 \uB298\uB824 \uC628 \uBBF8\uAD6D \uAE30\uC5C5",
+    metaDescription: "S&P 500 \uC18C\uC18D \uC5EC\uBD80\uC640 \uBB34\uAD00\uD558\uAC8C \uC5F0\uC18D \uC99D\uBC30 25\uB144 \uC774\uC0C1\uC778 \uBBF8\uAD6D \uAE30\uC5C5 \uBAA9\uB85D\uC785\uB2C8\uB2E4. \uC885\uBAA9\xB7\uC139\uD130\uC640 \uD568\uAED8 \uCD9C\uCC98\uC640 \uAE30\uC900\uC77C, \uC218\uB85D \uBC94\uC704\uB97C \uD45C\uAE30\uD588\uC2B5\uB2C8\uB2E4.",
+    title: "\uBC30\uB2F9\uCC54\uD53C\uC5B8",
+    lede: "\uC9C0\uC218 \uC18C\uC18D\uACFC \uBB34\uAD00\uD558\uAC8C 25\uB144 \uB118\uAC8C \uBC30\uB2F9\uC744 \uB298\uB824 \uC628 \uAE30\uC5C5\uB4E4\uC785\uB2C8\uB2E4.",
+    definition: "\uBC30\uB2F9\uCC54\uD53C\uC5B8\uC740 \uBBF8\uAD6D\uC5D0 \uC0C1\uC7A5\uB41C \uAE30\uC5C5 \uAC00\uC6B4\uB370 \uC5F0\uC18D \uC99D\uBC30 25\uB144 \uC774\uC0C1\uC778 \uACF3\uC744 \uBAA8\uC740 \uBAA9\uB85D\uC785\uB2C8\uB2E4. \uBC30\uB2F9\uADC0\uC871\uACFC \uAE30\uAC04 \uAE30\uC900\uC740 \uAC19\uC9C0\uB9CC S&P 500 \uC18C\uC18D\uC744 \uC694\uAD6C\uD558\uC9C0 \uC54A\uC544, \uADDC\uBAA8\uAC00 \uC791\uC740 \uAE30\uC5C5\uB3C4 \uB4E4\uC5B4\uC635\uB2C8\uB2E4.",
+    criterionLabel: "\uC5F0\uC18D \uC99D\uBC30 25~49\uB144",
+    caution: "\uC9C0\uC218 \uD3B8\uC785 \uC2EC\uC0AC\uB97C \uAC70\uCE58\uC9C0 \uC54A\uC740 \uBAA9\uB85D\uC774\uB77C \uADDC\uBAA8\uAC00 \uC791\uAC70\uB098 \uAC70\uB798\uAC00 \uD55C\uC0B0\uD55C \uC885\uBAA9\uC774 \uC11E\uC5EC \uC788\uC2B5\uB2C8\uB2E4. \uC885\uBAA9\uB9C8\uB2E4 \uC0AC\uC5C5\uC758 \uC131\uACA9\uC774 \uD06C\uAC8C \uB2E4\uB974\uBBC0\uB85C \uBAA9\uB85D\uC5D0 \uC788\uB2E4\uB294 \uC0AC\uC2E4\uB9CC\uC73C\uB85C \uC131\uACA9\uC744 \uBB36\uC5B4 \uC77D\uC9C0 \uC54A\uB294 \uD3B8\uC774 \uC88B\uC2B5\uB2C8\uB2E4.",
+    hub: {
+      headline: "\uC9C0\uC218 \uBC16\uAE4C\uC9C0 \uB113\uD600 \uBCF8 25\uB144\uC785\uB2C8\uB2E4",
+      points: [
+        "\uAE30\uC900\uC740 \uD558\uB098\uC785\uB2C8\uB2E4 \u2014 \uC5F0\uC18D \uC99D\uBC30 25\uB144 \uC774\uC0C1. \uC9C0\uC218 \uC18C\uC18D\uC740 \uBB3B\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.",
+        "\uADF8\uB798\uC11C \uC14B \uC911 \uC885\uBAA9 \uC218\uAC00 \uAC00\uC7A5 \uB9CE\uACE0, \uBC30\uB2F9\uADC0\uC871\uC5D0\uB294 \uC5C6\uB294 \uC911\uC18C\uD615 \uAE30\uC5C5\uC774 \uD568\uAED8 \uB4E4\uC5B4\uC635\uB2C8\uB2E4.",
+        "\uD3B8\uC785 \uC2EC\uC0AC\uB97C \uAC70\uCE58\uC9C0 \uC54A\uC740 \uBAA9\uB85D\uC774\uB77C \uAC70\uB798\uAC00 \uD55C\uC0B0\uD55C \uC885\uBAA9\uB3C4 \uC11E\uC785\uB2C8\uB2E4. \uBAA9\uB85D\uC5D0 \uC788\uB2E4\uB294 \uC0AC\uC2E4\uB9CC\uC73C\uB85C \uC131\uACA9\uC744 \uBB36\uC5B4 \uC77D\uAE30 \uC5B4\uB835\uC2B5\uB2C8\uB2E4."
+      ],
+      question: "\uC774\uB984\uC774 \uB35C \uC54C\uB824\uC9C4 \uAE30\uC5C5\uAE4C\uC9C0 \uD6D1\uC5B4\uBCF4\uACE0 \uC2F6\uC744 \uB54C \uC5FD\uB2C8\uB2E4."
+    }
+  }
+};
+var DIVIDEND_LIST_COPY = {
+  hub: {
+    meta: {
+      title: "\uBC30\uB2F9\uD0B9\xB7\uBC30\uB2F9\uADC0\uC871\xB7\uBC30\uB2F9\uCC54\uD53C\uC5B8 \u2014 \uC624\uB798 \uBC30\uB2F9\uC744 \uB298\uB824 \uC628 \uBBF8\uAD6D \uAE30\uC5C5 \uBAA9\uB85D",
+      description: "\uC5F0\uC18D\uC73C\uB85C \uBC30\uB2F9\uC744 \uB298\uB824 \uC628 \uAE30\uAC04\uC744 \uAE30\uC900\uC73C\uB85C \uB098\uB208 \uC138 \uAC00\uC9C0 \uBAA9\uB85D\uC785\uB2C8\uB2E4. \uC885\uBAA9\xB7\uC139\uD130\uC640 \uD568\uAED8 \uBAA9\uB85D\uC758 \uCD9C\uCC98\uC640 \uAE30\uC900\uC77C\uC744 \uD568\uAED8 \uD45C\uAE30\uD588\uC2B5\uB2C8\uB2E4."
+    },
+    hero: {
+      title: "\uBC30\uB2F9 \uC885\uBAA9",
+      lede: "\uBC30\uB2F9\uC744 \uBA87 \uB144 \uC5F0\uC18D \uB298\uB824 \uC654\uB294\uC9C0\uB97C \uAE30\uC900\uC73C\uB85C \uB098\uB208 \uC138 \uBAA9\uB85D\uC785\uB2C8\uB2E4. \uAC01 \uBAA9\uB85D\uC774 \uC5B4\uB514\uC5D0\uC11C \uC654\uACE0 \uC5B8\uC81C \uAE30\uC900\uC778\uC9C0 \uD568\uAED8 \uBC1D\uD799\uB2C8\uB2E4."
+    },
+    /** 허브 상단의 상시 고지. 세 페이지가 공유하는 전제라 허브가 한 번 말한다. */
+    notice: "\uC5F0\uC18D \uC99D\uBC30 \uC774\uB825\uC740 \uACFC\uAC70\uC758 \uAE30\uB85D\uC774\uBA70 \uC55E\uC73C\uB85C\uC758 \uBC30\uB2F9\uC744 \uBCF4\uC7A5\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. \uBAA9\uB85D\uC5D0 \uC788\uB358 \uAE30\uC5C5\uC774 \uBC30\uB2F9\uC744 \uC904\uC5EC \uBE60\uC9C0\uB294 \uC77C\uB3C4 \uC2E4\uC81C\uB85C \uC77C\uC5B4\uB0A9\uB2C8\uB2E4.",
+    /**
+     * 🔴 **허브의 첫 블록은 목록이 아니라 개념이다**(2026-08-05 개편).
+     *
+     * 종전 허브는 카드 3장 + 비교표가 전부였다. 그 화면은 이미 "연속 증배가 뭔지 아는 사람"에게만
+     * 쓸모가 있었고, 검색으로 처음 들어온 사람은 세 이름의 차이를 모른 채 아무거나 눌렀다.
+     * 그래서 지금은 **개념 → 세 목록(각각의 성격) → 비교 → 열기** 순으로 읽히게 세웠다.
+     * ⚠ 여기 문장은 정의이지 권유가 아니다. "좋다·안전하다·유리하다"를 쓰지 마라.
+     */
+    intro: {
+      heading: "\uC5F0\uC18D \uC99D\uBC30\uAC00 \uBB34\uC2A8 \uB73B\uC778\uAC00",
+      paragraphs: [
+        "\uAE30\uC5C5\uC774 \uD574\uB9C8\uB2E4 \uBC30\uB2F9\uAE08\uC744 \uC804\uB144\uBCF4\uB2E4 \uB298\uB824 \uC9C0\uAE09\uD55C \uD587\uC218\uB97C \uC5F0\uC18D \uC99D\uBC30\uB77C\uACE0 \uBD80\uB985\uB2C8\uB2E4. \uBC30\uB2F9\uC744 \uC720\uC9C0\uD55C \uD574\uB294 \uC138\uC9C0 \uC54A\uACE0 \uB298\uB9B0 \uD574\uB9CC \uC149\uB2C8\uB2E4. \uD55C \uD574\uB77C\uB3C4 \uB3D9\uACB0\uD558\uAC70\uB098 \uC904\uC774\uBA74 \uAE30\uB85D\uC740 0\uC5D0\uC11C \uB2E4\uC2DC \uC2DC\uC791\uD569\uB2C8\uB2E4.",
+        "\uAE30\uB85D\uC774 \uAE38\uB2E4\uB294 \uAC83\uC740 \uADF8 \uAE30\uC5C5\uC774 \uC5EC\uB7EC \uAD6D\uBA74\uC744 \uC9C0\uB098\uB294 \uB3D9\uC548 \uBC30\uB2F9\uC744 \uC904\uC774\uC9C0 \uC54A\uC558\uB2E4\uB294 \uC0AC\uC2E4\uC744 \uB73B\uD569\uB2C8\uB2E4. \uB2E4\uB9CC \uADF8\uAC83\uC740 \uACFC\uAC70\uC758 \uAE30\uB85D\uC774\uACE0, \uC55E\uC73C\uB85C\uC758 \uBC30\uB2F9\uC744 \uC57D\uC18D\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. \uC2E4\uC81C\uB85C \uC624\uB79C \uAE30\uB85D\uC744 \uAC00\uC9C4 \uAE30\uC5C5\uC774 \uBC30\uB2F9\uC744 \uC904\uC5EC \uBAA9\uB85D\uC5D0\uC11C \uBE60\uC9C0\uB294 \uC77C\uB3C4 \uC77C\uC5B4\uB0A9\uB2C8\uB2E4.",
+        "\uC544\uB798 \uC138 \uBAA9\uB85D\uC740 \uC774 \uD587\uC218\uC640 \uC9C0\uC218 \uC18C\uC18D \uC5EC\uBD80, \uB450 \uAC00\uC9C0 \uCD95\uC73C\uB85C \uB098\uB269\uB2C8\uB2E4. \uC11C\uB85C \uBC30\uD0C0\uC801\uC774\uC9C0 \uC54A\uC544\uC11C \uD55C \uAE30\uC5C5\uC774 \uB450 \uBAA9\uB85D\uC5D0 \uB3D9\uC2DC\uC5D0 \uB4E4\uC5B4\uAC00\uAE30\uB3C4 \uD569\uB2C8\uB2E4."
+      ]
+    },
+    sectionTitle: "\uC138 \uAC00\uC9C0 \uBAA9\uB85D",
+    /** 지그재그 블록 아래에 붙는 한 줄 — 세 블록을 다 읽은 사람이 마지막으로 확인하는 관계. */
+    relation: "\uAE30\uAC04\uB9CC \uBCF4\uBA74 \uBC30\uB2F9\uD0B9(50\uB144)\uC774 \uAC00\uC7A5 \uAE38\uACE0, \uBC30\uB2F9\uADC0\uC871\uACFC \uBC30\uB2F9\uCC54\uD53C\uC5B8\uC740 \uAC19\uC740 25\uB144\uC785\uB2C8\uB2E4. \uB458\uC744 \uAC00\uB974\uB294 \uAC83\uC740 \uAE30\uAC04\uC774 \uC544\uB2C8\uB77C S&P 500 \uC18C\uC18D \uC5EC\uBD80\uC785\uB2C8\uB2E4.",
+    tableHeading: "\uBAA9\uB85D \uBE44\uAD50",
+    tableCaption: "\uC138 \uBAA9\uB85D\uC758 \uAE30\uC900 \xB7 \uC885\uBAA9 \uC218 \xB7 \uAE30\uC900\uC77C",
+    columns: {
+      list: "\uBAA9\uB85D",
+      criterion: "\uAE30\uC900",
+      count: "\uC885\uBAA9 \uC218",
+      asOf: "\uAE30\uC900\uC77C"
+    },
+    /** 비교 매트릭스의 행 이름. 표가 아니라 "질문 목록"으로 읽히게 서술형으로 쓴다. */
+    compareRows: {
+      streak: "\uC5F0\uC18D \uC99D\uBC30 \uAE30\uAC04",
+      index: "S&P 500 \uC18C\uC18D\uC744 \uC694\uAD6C\uD558\uB098",
+      count: "\uC218\uB85D \uC885\uBAA9",
+      asOf: "\uAE30\uC900\uC77C",
+      open: ""
+    },
+    compareIndexYes: "\uC694\uAD6C\uD568",
+    compareIndexNo: "\uC694\uAD6C\uD558\uC9C0 \uC54A\uC74C",
+    cta: "\uBAA9\uB85D \uBCF4\uAE30",
+    /**
+     * 🔴 링크의 **접근명**. 화면에는 "목록 보기"만 보이지만, 이 화면에는 같은 문구의 링크가 여섯 개
+     * (소개 블록 3 + 비교표 3) 있다. 이름이 전부 같으면 스크린리더 사용자는 링크 목록에서
+     * "목록 보기"만 여섯 줄을 보게 되고 어디로 가는지 알 수 없다.
+     */
+    ctaFor: (title) => `${title} \uBAA9\uB85D \uBCF4\uAE30`
+  },
+  lists: LISTS,
+  /** 세 목록 페이지가 공유하는 문구. */
+  page: {
+    definitionHeading: "\uBB34\uC5C7\uC774 \uC774 \uBAA9\uB85D\uC778\uAC00",
+    criterionHeading: "\uAE30\uC900",
+    /**
+     * 🔴 이 문단이 "표의 연속 증배 열은 왜 정확한 연수가 아닌가"에 답한다. 지우면 사용자는
+     * "50년 이상"을 우리가 종목마다 직접 센 값으로 읽는다.
+     */
+    streakHeading: '\uC5F0\uC18D \uC99D\uBC30 \uC5F0\uC218\uC5D0 "\uC774\uC0C1"\uC774 \uBD99\uB294 \uC774\uC720',
+    streakBody: '\uBB34\uB8CC\uB85C \uD655\uC778\uD560 \uC218 \uC788\uB294 \uC790\uB8CC\uB4E4\uC774 \uAC19\uC740 \uC885\uBAA9\uC5D0 \uC11C\uB85C \uB2E4\uB978 \uC5F0\uC218\uB97C \uC801\uACE0 \uC788\uC73C\uBA70, \uBC30\uB2F9 \uC774\uB825\uB9CC\uC73C\uB85C \uB2E4\uC2DC \uACC4\uC0B0\uD574\uB3C4 \uBD84\uD560\xB7\uD569\uBCD1\xB7\uC9C0\uAE09 \uC8FC\uAE30 \uBCC0\uACBD \uB54C\uBB38\uC5D0 \uC5B4\uAE0B\uB0A9\uB2C8\uB2E4. \uADF8\uB798\uC11C \uC99D\uBC30\uAC00 \uC2DC\uC791\uB41C \uD574\uB97C \uD655\uC778\uD55C \uC885\uBAA9\uB9CC \uC5F0\uC218\uB97C \uADF8\uB300\uB85C \uC801\uACE0, \uD655\uC778\uD558\uC9C0 \uBABB\uD55C \uC885\uBAA9\uC740 \uBAA9\uB85D\uC758 \uAE30\uC900\uC774 \uBCF4\uC7A5\uD558\uB294 \uD558\uD55C\uC744 "\uC774\uC0C1"\uC73C\uB85C \uD45C\uAE30\uD569\uB2C8\uB2E4. \uD45C\uC5D0\uC11C \uB450 \uD45C\uAE30\uB294 \uC11C\uB85C \uB2E4\uB978 \uBAA8\uC591\uC73C\uB85C \uADF8\uB824\uC9D1\uB2C8\uB2E4.',
+    tableHeading: "\uC885\uBAA9",
+    tableCaptionSuffix: "\uC885\uBAA9 \uBAA9\uB85D",
+    sourceHeading: "\uCD9C\uCC98\uC640 \uAE30\uC900\uC77C",
+    sourceRolePrimary: "1\uCC28 \uC790\uB8CC",
+    sourceRoleCrosscheck: "\uAD50\uCC28 \uD655\uC778",
+    retrievedAtLabel: "\uD655\uC778\uC77C",
+    asOfLabel: "\uAE30\uC900\uC77C",
+    countLabel: "\uC218\uB85D \uC885\uBAA9",
+    /** ⚠ '종목'이 아니라 '종'이다 — `countLabel` 과 붙으면 "수록 종목 69종목"으로 낱말이 겹친다. */
+    countUnit: "\uC885",
+    coverageHeading: "\uC218\uB85D \uBC94\uC704",
+    columnTicker: "\uD2F0\uCEE4",
+    columnName: "\uC885\uBAA9\uBA85",
+    /** 선행 배당률 — 최신 1회 지급액 × 연 지급횟수 ÷ 현재가. 열 이름이 그 정의를 다 담을 수 없어 각주로 푼다. */
+    columnYield: "\uBC30\uB2F9\uB960",
+    columnStreak: "\uC5F0\uC18D \uC99D\uBC30",
+    columnGrowth: "5\uB144 \uBC30\uB2F9\uC131\uC7A5",
+    columnSector: "\uC139\uD130",
+    sortHint: "\uC5F4 \uC81C\uBAA9\uC744 \uB204\uB974\uBA74 \uC815\uB82C \uC21C\uC11C\uAC00 \uBC14\uB01D\uB2C8\uB2E4.",
+    sortAscLabel: "\uC624\uB984\uCC28\uC21C",
+    sortDescLabel: "\uB0B4\uB9BC\uCC28\uC21C",
+    /**
+     * 정렬 축이 아닌 열의 이유. 목록 하나 안에서 값이 전부 같은 열은 눌러도 순서가 안 바뀐다 —
+     * 그 사실을 말하지 않으면 사용자는 버튼이 고장 났다고 읽는다.
+     */
+    sortUnavailableLabel: "\uC774 \uBAA9\uB85D\uC5D0\uC11C\uB294 \uAC12\uC774 \uBAA8\uB450 \uAC19\uC544 \uC815\uB82C\uD574\uB3C4 \uC21C\uC11C\uAC00 \uBC14\uB00C\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.",
+    /** 🔴 값이 없는 칸의 단 하나의 표기. 0 도 "없음"도 아니라는 것을 기호와 문장이 함께 말한다. */
+    unknownMark: "\u2014",
+    /**
+     * 빈칸의 이유. `utils` 의 `DividendListUnknownReason` 과 키가 1:1 이다 — 새 이유가 생기면
+     * 타입이 여기 문장을 강제한다(문장 없는 빈칸이 새로 생길 수 없다).
+     */
+    unknownReason: {
+      growthHistory: "\uBC30\uB2F9 \uC774\uB825\uC774 \uC644\uACB0\uB41C 6\uAC1C \uC5F0\uB3C4\uC5D0 \uBABB \uBBF8\uCCD0 5\uB144 \uC131\uC7A5\uB960\uC744 \uACC4\uC0B0\uD558\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4.",
+      irregularPayout: "\uD2B9\uBCC4\uBC30\uB2F9\uC774\uB098 \uC9C0\uAE09 \uC8FC\uAE30 \uBCC0\uACBD\uC774 \uC11E\uC5EC \uC815\uAE30 \uBC30\uB2F9\uC744 \uAC00\uB824\uB0B4\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.",
+      sectorSource: "\uC774 \uC885\uBAA9\uC758 \uC139\uD130\uB97C \uBC1D\uD78C \uC790\uB8CC\uAC00 \uC5C6\uC5B4 \uBE44\uC6CC \uB450\uC5C8\uC2B5\uB2C8\uB2E4.",
+      notMeasured: "\uC774 \uBAA9\uB85D\uC5D0\uB294 \uC544\uC9C1 \uC2E4\uCE21 \uC9C0\uD45C\uB97C \uBD99\uC774\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4."
+    },
+    /** 하한 표기에 붙는 설명. 정확값과 구분되게 그리는 것만으로는 "왜"를 말할 수 없다. */
+    streakBoundTitle: "\uBAA9\uB85D\uC758 \uAE30\uC900\uC774 \uBCF4\uC7A5\uD558\uB294 \uD558\uD55C\uC785\uB2C8\uB2E4. \uC885\uBAA9\uBCC4 \uC815\uD655\uD55C \uC5F0\uC218\uAC00 \uC544\uB2D9\uB2C8\uB2E4.",
+    streakExactTitle: "\uC790\uB8CC\uB85C \uD655\uC778\uD55C \uC5F0\uC18D \uC99D\uBC30 \uC5F0\uC218\uC785\uB2C8\uB2E4.",
+    /** 숫자의 기준일. 배당률·성장률은 매일 움직여서 날짜 없이 쓰면 "지금 값"으로 읽힌다. */
+    measuredAtLabel: "\uC9C0\uD45C \uC2E4\uCE21\uC77C",
+    /* ── 세 축 필터 ─────────────────────────────────────────────────────────
+     * 🔴 축 이름은 **표의 열 이름과 같은 낱말**을 쓴다(배당률 · 5년 배당성장 · 섹터).
+     *   필터에서 "배당수익률", 표에서 "배당률" 처럼 갈리면 사용자는 둘이 같은 값인지 확인해야 한다.
+     */
+    filterHeading: "\uC870\uAC74\uC73C\uB85C \uC881\uD788\uAE30",
+    /** 세 축이 함께 걸린다는 사실을 한 줄로. 이걸 안 쓰면 사용자는 축을 바꿀 때마다 앞 축이 풀린 줄 안다. */
+    filterHint: "\uC138 \uC870\uAC74\uC740 \uD568\uAED8 \uC801\uC6A9\uB429\uB2C8\uB2E4. \uC139\uD130\uB294 \uC5EC\uB7EC \uAC1C\uB97C \uACE0\uB97C \uC218 \uC788\uC2B5\uB2C8\uB2E4.",
+    filterAll: "\uC804\uCCB4",
+    /** "3% 이상" 의 뒷부분. 숫자는 눈금 상수(`DIVIDEND_LIST_YIELD_STEPS`)가 준다. */
+    filterAtLeastSuffix: "% \uC774\uC0C1",
+    /** 지금 무엇이 걸려 있는지를 **글자로** 말하는 줄. 칩의 색·굵기만으로는 상태가 색 단독 채널이 된다. */
+    filterActiveLabel: "\uC801\uC6A9 \uC911",
+    filterAxisSeparator: " \xB7 ",
+    filterSectorSeparator: ", ",
+    filterReset: "\uD544\uD130 \uD574\uC81C",
+    /** 값이 없어 빠진 줄 수. "값이 없는 4종은 이 조건에서 제외했습니다." 로 조립된다. */
+    filterUnknownExcludedPrefix: "\uAC12\uC774 \uC5C6\uB294 ",
+    filterUnknownExcludedSuffix: "\uC885\uC740 \uC774 \uC870\uAC74\uC5D0\uC11C \uC81C\uC678\uD588\uC2B5\uB2C8\uB2E4.",
+    filteredEmpty: "\uC870\uAC74\uC5D0 \uB9DE\uB294 \uC885\uBAA9\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.",
+    filteredCountSuffix: "\uC885\uBAA9 \uD45C\uC2DC \uC911",
+    tickerPageLinkTitle: "\uC18C\uAC1C \uD398\uC774\uC9C0 \uC5F4\uAE30",
+    relatedHeading: "\uB2E4\uB978 \uBAA9\uB85D",
+    hubLink: "\uBC30\uB2F9 \uC885\uBAA9 \uC804\uCCB4 \uBCF4\uAE30",
+    /**
+     * 공용 푸터의 각주 슬롯에 들어가는 문장들.
+     *
+     * 🔴 "투자 자문이 아닙니다" 같은 **사이트 공통 고지는 여기 넣지 마라** — 그건 `PageFooter` 가
+     * 이미 갖고 있고, 각주로 또 쓰면 같은 말이 한 화면에 두 번 나온다(`PageFooter` 머리말의 규칙).
+     * 이 슬롯에는 **이 화면에서만 참인 문장**만 둔다.
+     */
+    footerNotesTitle: "\uC774 \uBAA9\uB85D\uC5D0 \uB300\uD574",
+    footerNotes: [
+      "\uC5F0\uC18D \uC99D\uBC30 \uC774\uB825\uC740 \uACFC\uAC70\uC758 \uAE30\uB85D\uC774\uBA70 \uC55E\uC73C\uB85C\uC758 \uBC30\uB2F9\uC744 \uBCF4\uC7A5\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.",
+      "\uBAA9\uB85D\uC740 \uD45C\uAE30\uB41C \uAE30\uC900\uC77C\uC758 \uACF5\uAC1C \uC790\uB8CC\uB97C \uC815\uB9AC\uD55C \uAC83\uC774\uACE0, \uBC30\uB2F9 \uC815\uCC45\uC740 \uAE30\uC5C5\uC758 \uACB0\uC815\uC5D0 \uB530\uB77C \uB2EC\uB77C\uC9C8 \uC218 \uC788\uC2B5\uB2C8\uB2E4.",
+      "\uBC30\uB2F9\uB960\uC740 \uAC00\uC7A5 \uCD5C\uADFC 1\uD68C \uC9C0\uAE09\uC561\uC5D0 \uADF8 \uC885\uBAA9\uC758 \uC5F0 \uC9C0\uAE09 \uD69F\uC218\uB97C \uACF1\uD574 \uD604\uC7AC\uAC00\uB85C \uB098\uB208 \uAC12\uC785\uB2C8\uB2E4. \uC9C0\uB09C 1\uB144 \uB3D9\uC548 \uC2E4\uC81C\uB85C \uC9C0\uAE09\uB41C \uAE08\uC561\uC758 \uD569\uC774 \uC544\uB2D9\uB2C8\uB2E4.",
+      '5\uB144 \uBC30\uB2F9\uC131\uC7A5\uC740 \uCD5C\uADFC 5\uB144\uAC04 \uC815\uAE30 \uBC30\uB2F9\uC758 \uC5F0\uD3C9\uADE0 \uC99D\uAC00\uC728\uC785\uB2C8\uB2E4. \uD2B9\uBCC4\uBC30\uB2F9\uC740 \uBE7C\uACE0 \uACC4\uC0B0\uD558\uBA70, \uC644\uACB0\uB41C 6\uAC1C \uC5F0\uB3C4\uC758 \uC774\uB825\uC774 \uC5C6\uC73C\uBA74 "\u2014"\uB85C \uB461\uB2C8\uB2E4.',
+      '\uC5F0\uC18D \uC99D\uBC30 \uC5F4\uC758 "\uC774\uC0C1"\uC740 \uBAA9\uB85D\uC758 \uAE30\uC900\uC774 \uBCF4\uC7A5\uD558\uB294 \uD558\uD55C\uC774\uB77C\uB294 \uB73B\uC774\uBA70, \uC885\uBAA9\uBCC4\uB85C \uC2E4\uC81C \uD655\uC778\uD55C \uC5F0\uC218\uAC00 \uC544\uB2D9\uB2C8\uB2E4. "\uC774\uC0C1" \uC5C6\uC774 \uC801\uD78C \uC5F0\uC218\uB294 \uC99D\uBC30\uAC00 \uC2DC\uC791\uB41C \uD574\uB97C \uD655\uC778\uD55C \uC885\uBAA9\uC774\uBA70, \uD574\uAC00 \uBC14\uB00C\uBA74 \uB2E4\uC2DC \uC149\uB2C8\uB2E4.'
+    ],
+    /**
+     * 🔴 위키피디아 자료를 쓰는 목록에만 붙는 줄. 위키피디아 본문은 **CC BY-SA 4.0** 이라
+     * 출처 표기가 라이선스상의 **의무**다 — 링크만으로는 부족해서 라이선스 이름을 화면이 말한다.
+     * (이 목록의 섹터 분류가 위키피디아 구성종목 표에서 왔다.)
+     */
+    wikipediaLicenseNote: "\uC704\uD0A4\uD53C\uB514\uC544\uC5D0\uC11C \uAC00\uC838\uC628 \uB0B4\uC6A9(\uAD6C\uC131\uC885\uBAA9\xB7\uC139\uD130 \uBD84\uB958)\uC740 CC BY-SA 4.0 \uB77C\uC774\uC120\uC2A4\uB97C \uB530\uB985\uB2C8\uB2E4.",
+    wikipediaLicenseLinkLabel: "CC BY-SA 4.0",
+    wikipediaLicenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/deed.ko"
+  }
+};
+
+// server/handlers/DividendListHtml/DividendListHtml.ts
+var CACHE_LIST = "public, max-age=0, s-maxage=86400, stale-while-revalidate=604800";
+var CACHE_NO_STORE = "no-store";
+var SITE_SUFFIX = "Hungry Hippo";
+var HUB_PARAM = "hub";
+var copy = DIVIDEND_LIST_COPY;
+var htmlResponse = (html, status, cache) => new Response(html, {
+  status,
+  headers: { "content-type": "text/html; charset=utf-8", "cache-control": cache }
+});
+var redirectToRoot = (origin) => new Response(null, {
+  status: 302,
+  headers: { Location: new URL("/", origin).toString(), "cache-control": CACHE_NO_STORE }
+});
+var escapeJsonForScript = (value) => JSON.stringify(value).replace(/</g, "\\u003c");
+var jsonLdScript = (graph) => `<script type="application/ld+json">${escapeJsonForScript(graph)}</script>`;
+var applyMeta = (shell, title, description, canonical) => {
+  let html = shell;
+  html = replaceTitleTag(html, title);
+  html = replaceMetaContent(html, "name", "description", description);
+  html = replaceLinkHref(html, "canonical", canonical);
+  html = replaceMetaContent(html, "property", "og:title", title);
+  html = replaceMetaContent(html, "property", "og:description", description);
+  html = replaceMetaContent(html, "property", "og:url", canonical);
+  html = replaceMetaContent(html, "name", "twitter:title", title);
+  html = replaceMetaContent(html, "name", "twitter:description", description);
+  return html;
+};
+var injectAtRoot = (shell, body) => {
+  const rootOpenTag = shell.match(/<div\s+id="root"[^>]*>/i);
+  if (!rootOpenTag || rootOpenTag.index === void 0) return shell;
+  const insertAt = rootOpenTag.index + rootOpenTag[0].length;
+  return shell.slice(0, insertAt) + body + shell.slice(insertAt);
+};
+var renderFooterNotes = () => `<section class="disclaimer"><h2>${escapeHtmlText(copy.page.footerNotesTitle)}</h2><ul>` + copy.page.footerNotes.map((note) => `<li>${escapeHtmlText(note)}</li>`).join("") + "</ul></section>";
+var formatCriterion = (list) => list.maximumStreakYears === void 0 ? `${list.minimumStreakYears}\uB144 \uC774\uC0C1` : `${list.minimumStreakYears}~${list.maximumStreakYears}\uB144`;
+var listCanonical = (siteUrl, list) => `${siteUrl}${dividendListPath(list.id)}`;
+var renderMembersTable = (list) => {
+  const rows = list.members.map(
+    (member, index) => `<tr><td>${index + 1}</td><td>${escapeHtmlText(member.ticker)}</td><td>${escapeHtmlText(member.name)}</td><td>${escapeHtmlText(DIVIDEND_LIST_SECTOR_LABEL[member.sector])}</td></tr>`
+  ).join("");
+  return `<section id="members"><h2>${escapeHtmlText(copy.page.tableHeading)}</h2><table><caption>${escapeHtmlText(
+    `${copy.lists[list.id].title} ${copy.page.tableCaptionSuffix} (${copy.page.asOfLabel} ${list.asOf})`
+  )}</caption><thead><tr><th>\uC21C\uC704</th><th>${escapeHtmlText(copy.page.columnTicker)}</th><th>${escapeHtmlText(copy.page.columnName)}</th><th>${escapeHtmlText(copy.page.columnSector)}</th></tr></thead><tbody>${rows}</tbody></table></section>`;
+};
+var renderSources = (list) => {
+  const items = list.sources.map((source) => {
+    const role = source.role === "primary" ? copy.page.sourceRolePrimary : copy.page.sourceRoleCrosscheck;
+    return `<li>${escapeHtmlText(role)} \u2014 <a href="${escapeHtmlAttribute(source.url)}" rel="nofollow noopener">${escapeHtmlText(source.label)}</a> (${escapeHtmlText(`${copy.page.retrievedAtLabel} ${source.retrievedAt}`)})</li>`;
+  }).join("");
+  return `<section id="sources"><h2>${escapeHtmlText(copy.page.sourceHeading)}</h2><ul>${items}</ul><h3>${escapeHtmlText(copy.page.coverageHeading)}</h3><p>${escapeHtmlText(list.coverageNote)}</p></section>`;
+};
+var renderHero = (list) => {
+  const listCopy = copy.lists[list.id];
+  return `<h1>${escapeHtmlText(listCopy.title)}</h1><p>${escapeHtmlText(listCopy.lede)}</p><p>${escapeHtmlText(
+    `${copy.page.criterionHeading}: ${listCopy.criterionLabel} \xB7 ${copy.page.asOfLabel} ${list.asOf} \xB7 ${copy.page.countLabel} ${list.members.length}${copy.page.countUnit}`
+  )}</p><p class="hero-cta"><a href="${SIMULATOR_PATH}">\uBC30\uB2F9 \uC7AC\uD22C\uC790 \uC2DC\uBBAC\uB808\uC774\uD130\uB85C \uACC4\uC0B0\uD574 \uBCF4\uAE30</a></p>`;
+};
+var renderRelated = (currentId) => {
+  const items = DIVIDEND_LIST_ALL.filter((list) => list.id !== currentId).map((list) => {
+    const href = escapeHtmlAttribute(dividendListPath(list.id));
+    const label = `${copy.lists[list.id].title} \u2014 ${formatCriterion(list)} \xB7 ${list.members.length}${copy.page.countUnit}`;
+    return `<li><a href="${href}">${escapeHtmlText(label)}</a></li>`;
+  }).join("");
+  return `<section id="related"><h2>${escapeHtmlText(copy.page.relatedHeading)}</h2><ul>${items}<li><a href="${escapeHtmlAttribute(DIVIDEND_LIST_HUB_PATH)}">${escapeHtmlText(copy.page.hubLink)}</a></li></ul></section>`;
+};
+var buildListJsonLd = (list, canonical) => jsonLdScript({
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  name: copy.lists[list.id].metaTitle,
+  description: copy.lists[list.id].metaDescription,
+  url: canonical,
+  numberOfItems: list.members.length,
+  itemListElement: list.members.map((member, index) => ({
+    "@type": "ListItem",
+    position: index + 1,
+    name: `${member.ticker} \u2014 ${member.name}`
+  }))
+});
+var injectListBody = (shell, list, siteUrl) => {
+  const listCopy = copy.lists[list.id];
+  const canonical = listCanonical(siteUrl, list);
+  const article = "<article>" + renderHero(list) + `<section id="definition"><h2>${escapeHtmlText(copy.page.definitionHeading)}</h2><p>${escapeHtmlText(listCopy.definition)}</p><p>${escapeHtmlText(listCopy.caution)}</p></section><section id="streak"><h2>${escapeHtmlText(copy.page.streakHeading)}</h2><p>${escapeHtmlText(copy.page.streakBody)}</p></section>` + renderMembersTable(list) + renderSources(list) + renderRelated(list.id) + renderFooterNotes() + "</article>" + buildListJsonLd(list, canonical);
+  return injectAtRoot(shell, article);
+};
+var injectHubBody = (shell, siteUrl) => {
+  const rows = DIVIDEND_LIST_ALL.map((list) => {
+    const href = escapeHtmlAttribute(dividendListPath(list.id));
+    return `<tr><td><a href="${href}">${escapeHtmlText(copy.lists[list.id].title)}</a></td><td>${escapeHtmlText(copy.lists[list.id].criterionLabel)}</td><td>${escapeHtmlText(`${list.members.length}${copy.page.countUnit}`)}</td><td>${escapeHtmlText(list.asOf)}</td></tr>`;
+  }).join("");
+  const article = `<article><h1>${escapeHtmlText(copy.hub.hero.title)}</h1><p>${escapeHtmlText(copy.hub.hero.lede)}</p><p>${escapeHtmlText(copy.hub.notice)}</p><section id="lists"><h2>${escapeHtmlText(copy.hub.tableHeading)}</h2><table><caption>${escapeHtmlText(copy.hub.tableCaption)}</caption><thead><tr><th>${escapeHtmlText(copy.hub.columns.list)}</th><th>${escapeHtmlText(copy.hub.columns.criterion)}</th><th>${escapeHtmlText(copy.hub.columns.count)}</th><th>${escapeHtmlText(copy.hub.columns.asOf)}</th></tr></thead><tbody>${rows}</tbody></table></section>` + renderFooterNotes() + "</article>" + jsonLdScript({
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: copy.hub.meta.title,
+    description: copy.hub.meta.description,
+    url: `${siteUrl}${DIVIDEND_LIST_HUB_PATH}`,
+    itemListElement: DIVIDEND_LIST_ALL.map((list, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      url: `${siteUrl}${dividendListPath(list.id)}`,
+      name: copy.lists[list.id].metaTitle
+    }))
+  });
+  return injectAtRoot(shell, article);
+};
+async function handler(request) {
+  const { origin, searchParams } = new URL(request.url);
+  const listParam = (searchParams.get("list") ?? "").trim().toLowerCase();
+  let shell;
+  try {
+    const response = await fetch(new URL("/index.html", origin));
+    if (!response.ok) return redirectToRoot(origin);
+    shell = await response.text();
+  } catch {
+    return redirectToRoot(origin);
+  }
+  const siteUrl = resolveSiteUrl(request.url);
+  if (listParam === HUB_PARAM) {
+    const html2 = applyMeta(
+      shell,
+      `${copy.hub.meta.title} - ${SITE_SUFFIX}`,
+      copy.hub.meta.description,
+      `${siteUrl}${DIVIDEND_LIST_HUB_PATH}`
+    );
+    return htmlResponse(injectHubBody(html2, siteUrl), 200, CACHE_LIST);
+  }
+  const listId = toDividendListId(listParam);
+  if (!listId) return htmlResponse(shell, 200, CACHE_NO_STORE);
+  const list = DIVIDEND_LISTS[listId];
+  const html = applyMeta(
+    shell,
+    `${copy.lists[listId].metaTitle} - ${SITE_SUFFIX}`,
+    copy.lists[listId].metaDescription,
+    listCanonical(siteUrl, list)
+  );
+  return htmlResponse(injectListBody(html, list, siteUrl), 200, CACHE_LIST);
+}
+var DividendListHtml_default = toNodeHandler(handler);
+
+// shared/constants/guides/dividendCalculator.ts
+var DIVIDEND_CALCULATOR_GUIDE = {
+  slug: "dividend-calculator",
+  metaTitle: "\uBC30\uB2F9\uAE08 \uACC4\uC0B0\uAE30 \u2014 \uBC30\uB2F9\uAE08 \uACC4\uC0B0 \uBC29\uBC95\uACFC \uC138\uD6C4 \uC2E4\uC218\uB839\uC561",
+  metaDescription: "\uBC30\uB2F9\uAE08\uC740 \uBCF4\uC720 \uC218\uB7C9 \xD7 \uC8FC\uB2F9 \uBC30\uB2F9\uAE08\uC73C\uB85C \uACC4\uC0B0\uD569\uB2C8\uB2E4. \uC138\uC804\xB7\uC138\uD6C4 \uCC28\uC774, \uBC30\uB2F9\uB960\uB85C \uC5ED\uC0B0\uD558\uB294 \uBC95, \uBC30\uB2F9\uB77D\uC77C\uACFC \uC9C0\uAE09\uC77C\uC758 \uAD00\uACC4\uAE4C\uC9C0 \uC608\uC2DC\uB85C \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4.",
+  title: "\uBC30\uB2F9\uAE08\uC740 \uC5B4\uB5BB\uAC8C \uACC4\uC0B0\uD558\uB098",
+  lede: "\uBCF4\uC720 \uC218\uB7C9\uACFC \uC8FC\uB2F9 \uBC30\uB2F9\uAE08\uB9CC \uC54C\uBA74 \uC190\uC73C\uB85C\uB3C4 \uACC4\uC0B0\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4. \uC138\uAE08\uACFC \uC9C0\uAE09 \uC8FC\uAE30\uAE4C\uC9C0 \uB123\uC73C\uBA74 \uC2E4\uC81C\uB85C \uD1B5\uC7A5\uC5D0 \uB4E4\uC5B4\uC624\uB294 \uAE08\uC561\uC774 \uB429\uB2C8\uB2E4.",
+  targetQueries: ["\uBC30\uB2F9\uAE08 \uACC4\uC0B0\uAE30", "\uBC30\uB2F9\uAE08 \uACC4\uC0B0 \uBC29\uBC95", "\uBC30\uB2F9\uAE08 \uC138\uD6C4 \uACC4\uC0B0", "\uBC30\uB2F9\uB960 \uACC4\uC0B0"],
+  sections: [
+    {
+      id: "basic",
+      heading: "\uAE30\uBCF8 \uC2DD \u2014 \uC218\uB7C9 \xD7 \uC8FC\uB2F9 \uBC30\uB2F9\uAE08",
+      navLabel: "\uAE30\uBCF8 \uC2DD",
+      paragraphs: [
+        "\uBC30\uB2F9\uAE08 \uACC4\uC0B0\uC758 \uCD9C\uBC1C\uC810\uC740 \uACF1\uC148 \uD558\uB098\uC785\uB2C8\uB2E4. \uBCF4\uC720 \uC218\uB7C9\uC5D0 \uC8FC\uB2F9 \uBC30\uB2F9\uAE08(DPS, Dividend Per Share)\uC744 \uACF1\uD558\uBA74 \uADF8 \uD68C\uCC28\uC5D0 \uBC1B\uB294 \uBC30\uB2F9\uAE08\uC774 \uB429\uB2C8\uB2E4.",
+        "\uC8FC\uB2F9 \uBC30\uB2F9\uAE08\uC740 \uD68C\uC0AC\uAC00 \uC815\uD574 \uBC1C\uD45C\uD558\uB294 \uAE08\uC561\uC785\uB2C8\uB2E4. \uBD84\uAE30 \uBC30\uB2F9\uC774\uB77C\uBA74 \uADF8 \uBD84\uAE30\uC5D0 \uC9C0\uAE09\uD558\uB294 \uAE08\uC561\uC774\uACE0, \uC5F0 \uBC30\uB2F9\uAE08\uC740 \uADF8\uD574 \uC9C0\uAE09\uD55C \uD68C\uCC28\uB97C \uBAA8\uB450 \uB354\uD55C \uAC12\uC785\uB2C8\uB2E4. \uB450 \uAC12\uC744 \uC11E\uC5B4 \uC4F0\uBA74 \uBC30\uB2F9\uAE08\uC774 \uB124 \uBC30\uB85C \uBD80\uD480\uAC70\uB098 4\uBD84\uC758 1\uB85C \uC904\uC5B4\uB4ED\uB2C8\uB2E4."
+      ],
+      table: {
+        caption: "\uC218\uB7C9\uACFC \uC8FC\uB2F9 \uBC30\uB2F9\uAE08\uC73C\uB85C \uACC4\uC0B0\uD55C \uC608\uC2DC",
+        columns: ["\uBCF4\uC720 \uC218\uB7C9", "\uC8FC\uB2F9 \uBC30\uB2F9\uAE08(\uBD84\uAE30)", "\uBD84\uAE30 \uBC30\uB2F9\uAE08", "\uC5F0 \uBC30\uB2F9\uAE08"],
+        rows: [
+          ["100\uC8FC", "250\uC6D0", "25,000\uC6D0", "100,000\uC6D0"],
+          ["500\uC8FC", "250\uC6D0", "125,000\uC6D0", "500,000\uC6D0"],
+          ["1,000\uC8FC", "250\uC6D0", "250,000\uC6D0", "1,000,000\uC6D0"]
+        ],
+        note: "\uBD84\uAE30 \uBC30\uB2F9(\uC5F0 4\uD68C)\uC744 \uAC00\uC815\uD55C \uC608\uC2DC\uC785\uB2C8\uB2E4. \uC6D4 \uBC30\uB2F9 \uC885\uBAA9\uC774\uB77C\uBA74 \uAC19\uC740 \uC8FC\uB2F9 \uBC30\uB2F9\uAE08\uC774\uB77C\uB3C4 \uC5F0 12\uD68C\uB85C \uACC4\uC0B0\uD569\uB2C8\uB2E4."
+      }
+    },
+    {
+      id: "from-yield",
+      heading: "\uC8FC\uB2F9 \uBC30\uB2F9\uAE08\uC744 \uBAA8\uB97C \uB54C \u2014 \uBC30\uB2F9\uB960\uB85C \uC5ED\uC0B0\uD558\uAE30",
+      navLabel: "\uBC30\uB2F9\uB960\uB85C \uC5ED\uC0B0",
+      paragraphs: [
+        "\uC8FC\uB2F9 \uBC30\uB2F9\uAE08 \uB300\uC2E0 \uBC30\uB2F9\uB960(%)\uB9CC \uC544\uB294 \uACBD\uC6B0\uAC00 \uB354 \uD754\uD569\uB2C8\uB2E4. \uC774\uB54C\uB294 \uD22C\uC790 \uAE08\uC561\uC5D0 \uBC30\uB2F9\uB960\uC744 \uACF1\uD558\uBA74 \uC5F0 \uBC30\uB2F9\uAE08\uC774 \uB098\uC635\uB2C8\uB2E4. \uD22C\uC790 \uAE08\uC561 1,000\uB9CC \uC6D0\uC5D0 \uBC30\uB2F9\uB960 4%\uB77C\uBA74 \uC5F0 \uBC30\uB2F9\uAE08\uC740 40\uB9CC \uC6D0\uC785\uB2C8\uB2E4.",
+        "\uBC18\uB300\uB85C \uD544\uC694\uD55C \uC6D0\uAE08\uC744 \uAD6C\uD560 \uC218\uB3C4 \uC788\uC2B5\uB2C8\uB2E4. \uBC1B\uACE0 \uC2F6\uC740 \uC5F0 \uBC30\uB2F9\uAE08\uC744 \uBC30\uB2F9\uB960\uB85C \uB098\uB204\uBA74 \uB429\uB2C8\uB2E4. \uC5F0 480\uB9CC \uC6D0(\uC6D4 40\uB9CC \uC6D0)\uC744 \uBC30\uB2F9\uB960 4%\uB85C \uBC1B\uC73C\uB824\uBA74 1\uC5B5 2,000\uB9CC \uC6D0\uC774 \uD544\uC694\uD569\uB2C8\uB2E4."
+      ],
+      table: {
+        caption: "\uC5F0 \uBC30\uB2F9 480\uB9CC \uC6D0(\uC6D4 40\uB9CC \uC6D0)\uC5D0 \uD544\uC694\uD55C \uD22C\uC790 \uC6D0\uAE08",
+        columns: ["\uBC30\uB2F9\uB960", "\uD544\uC694 \uC6D0\uAE08(\uC138\uC804)"],
+        rows: [
+          ["3%", "1\uC5B5 6,000\uB9CC \uC6D0"],
+          ["4%", "1\uC5B5 2,000\uB9CC \uC6D0"],
+          ["5%", "9,600\uB9CC \uC6D0"],
+          ["7%", "\uC57D 6,857\uB9CC \uC6D0"]
+        ],
+        note: "\uC5F0 \uBC30\uB2F9\uAE08 \xF7 \uBC30\uB2F9\uB960\uB85C \uACC4\uC0B0\uD55C \uAC12\uC785\uB2C8\uB2E4. \uBC30\uB2F9\uB960\uC774 \uB192\uC744\uC218\uB85D \uD544\uC694 \uC6D0\uAE08\uC774 \uC904\uC9C0\uB9CC, \uBC30\uB2F9\uB960\uC774 \uB192\uB2E4\uB294 \uC0AC\uC2E4 \uC790\uCCB4\uAC00 \uADF8 \uC885\uBAA9\uC774 \uC548\uC804\uD558\uB2E4\uB294 \uB73B\uC740 \uC544\uB2D9\uB2C8\uB2E4."
+      },
+      caution: "\uBC30\uB2F9\uB960\uC740 \uC8FC\uAC00\uAC00 \uB0B4\uB9AC\uBA74 \uC790\uB3D9\uC73C\uB85C \uC62C\uB77C\uAC11\uB2C8\uB2E4. \uBC30\uB2F9\uAE08\uC774 \uADF8\uB300\uB85C\uC5EC\uB3C4 \uC8FC\uAC00\uAC00 \uBC18\uD1A0\uB9C9\uC774\uBA74 \uBC30\uB2F9\uB960\uC740 \uB450 \uBC30\uB85C \uD45C\uC2DC\uB429\uB2C8\uB2E4."
+    },
+    {
+      id: "tax",
+      heading: "\uC138\uC804\uACFC \uC138\uD6C4 \u2014 \uC2E4\uC81C\uB85C \uB4E4\uC5B4\uC624\uB294 \uAE08\uC561",
+      navLabel: "\uC138\uC804\uACFC \uC138\uD6C4",
+      paragraphs: [
+        "\uBC30\uB2F9\uC5D0\uB294 \uC138\uAE08\uC774 \uBD99\uC2B5\uB2C8\uB2E4. \uAD6D\uB0B4 \uC0C1\uC7A5 \uC885\uBAA9\uC758 \uBC30\uB2F9\uC18C\uB4DD\uC138\uB294 15.4%\uC785\uB2C8\uB2E4(\uC18C\uB4DD\uC138 14% + \uC9C0\uBC29\uC18C\uB4DD\uC138 1.4%). \uC138\uC804 100\uB9CC \uC6D0\uC774\uBA74 \uC2E4\uC218\uB839\uC561\uC740 84\uB9CC 6,000\uC6D0\uC785\uB2C8\uB2E4.",
+        "\uBBF8\uAD6D \uC0C1\uC7A5 \uC885\uBAA9\uC740 \uD604\uC9C0\uC5D0\uC11C 15%\uAC00 \uC6D0\uCC9C\uC9D5\uC218\uB429\uB2C8\uB2E4. \uC774 \uACBD\uC6B0 \uAD6D\uB0B4\uC5D0\uC11C \uCD94\uAC00\uB85C \uB5BC\uC9C0 \uC54A\uB294 \uAC83\uC774 \uC77C\uBC18\uC801\uC774\uC9C0\uB9CC, \uC774\uC790\xB7\uBC30\uB2F9 \uB4F1 \uAE08\uC735\uC18C\uB4DD \uD569\uACC4\uAC00 \uC5F0 2,000\uB9CC \uC6D0\uC744 \uB118\uC73C\uBA74 \uB2E4\uB978 \uC18C\uB4DD\uACFC \uD569\uC0B0\uB418\uC5B4 \uC138\uC728\uC774 \uB2EC\uB77C\uC9C8 \uC218 \uC788\uC2B5\uB2C8\uB2E4.",
+        "\uACC4\uC0B0\uAE30\uC5D0 \uBC30\uB2F9\uB960\uC744 \uB123\uC744 \uB54C\uB294 \uADF8 \uAC12\uC774 \uC138\uC804\uC778\uC9C0 \uC138\uD6C4\uC778\uC9C0 \uBA3C\uC800 \uD655\uC778\uD558\uB294 \uD3B8\uC774 \uC548\uC804\uD569\uB2C8\uB2E4. \uB300\uBD80\uBD84\uC758 \uACF5\uC2DC\uC640 \uC99D\uAD8C\uC0AC \uD654\uBA74\uC740 \uC138\uC804 \uAE30\uC900\uC785\uB2C8\uB2E4."
+      ],
+      table: {
+        caption: "\uC138\uC804 \uBC30\uB2F9\uAE08\uACFC \uC138\uD6C4 \uC2E4\uC218\uB839\uC561",
+        columns: ["\uC138\uC804 \uBC30\uB2F9\uAE08", "\uC138\uC728 15.4%", "\uC138\uD6C4 \uC2E4\uC218\uB839\uC561"],
+        rows: [
+          ["100,000\uC6D0", "15,400\uC6D0", "84,600\uC6D0"],
+          ["500,000\uC6D0", "77,000\uC6D0", "423,000\uC6D0"],
+          ["1,000,000\uC6D0", "154,000\uC6D0", "846,000\uC6D0"]
+        ],
+        note: "\uAD6D\uB0B4 \uBC30\uB2F9\uC18C\uB4DD\uC138 15.4%\uB97C \uC801\uC6A9\uD55C \uAC12\uC785\uB2C8\uB2E4. \uAE08\uC735\uC18C\uB4DD\uC885\uD569\uACFC\uC138 \uB300\uC0C1\uC774\uBA74 \uC2E4\uD6A8\uC138\uC728\uC774 \uC774\uBCF4\uB2E4 \uB192\uC544\uC9C8 \uC218 \uC788\uC2B5\uB2C8\uB2E4."
+      }
+    },
+    {
+      id: "dates",
+      heading: "\uBC30\uB2F9\uB77D\uC77C\uACFC \uC9C0\uAE09\uC77C \u2014 \uC5B8\uC81C \uC0AC\uC57C \uBC1B\uB294\uAC00",
+      navLabel: "\uBC30\uB2F9\uB77D\uC77C\xB7\uC9C0\uAE09\uC77C",
+      paragraphs: [
+        "\uBC30\uB2F9\uC744 \uBC1B\uC73C\uB824\uBA74 \uBC30\uB2F9 \uAE30\uC900\uC77C\uC5D0 \uC8FC\uC8FC\uBA85\uBD80\uC5D0 \uC62C\uB77C \uC788\uC5B4\uC57C \uD569\uB2C8\uB2E4. \uACB0\uC81C\uC5D0 \uC774\uD2C0\uC774 \uAC78\uB9AC\uBBC0\uB85C \uAE30\uC900\uC77C \uC774\uD2C0 \uC804\uAE4C\uC9C0\uB294 \uB9E4\uC218\uD574\uC57C \uD558\uACE0, \uADF8 \uB2E4\uC74C \uB0A0\uC778 \uBC30\uB2F9\uB77D\uC77C\uC5D0 \uC0AC\uBA74 \uADF8 \uD68C\uCC28 \uBC30\uB2F9\uC740 \uBC1B\uC9C0 \uBABB\uD569\uB2C8\uB2E4.",
+        '\uC9C0\uAE09\uC77C\uC740 \uADF8\uBCF4\uB2E4 \uD55C\uCC38 \uB4A4\uC785\uB2C8\uB2E4. \uBBF8\uAD6D \uC885\uBAA9\uC740 \uBC30\uB2F9\uB77D\uC77C\uC5D0\uC11C 2~4\uC8FC \uB4A4\uC5D0 \uB4E4\uC5B4\uC624\uB294 \uACBD\uC6B0\uAC00 \uB9CE\uC2B5\uB2C8\uB2E4. \uC989 "\uBC30\uB2F9\uC744 \uBC1B\uB294 \uB0A0"\uACFC "\uBC30\uB2F9\uC744 \uD655\uC815\uD558\uB294 \uB0A0"\uC740 \uB2E4\uB978 \uB0A0\uC9DC\uC785\uB2C8\uB2E4.'
+      ],
+      caution: "\uBC30\uB2F9\uB77D\uC77C\uC5D0\uB294 \uBC30\uB2F9\uAE08\uB9CC\uD07C \uC8FC\uAC00\uAC00 \uC870\uC815\uB418\uB294 \uAC83\uC774 \uC77C\uBC18\uC801\uC785\uB2C8\uB2E4. \uBC30\uB2F9\uC744 \uBC1B\uACE0 \uBC14\uB85C \uD30C\uB294 \uBC29\uC2DD\uC73C\uB85C \uBC30\uB2F9\uB9CC \uCC59\uAE30\uAE30\uB294 \uC5B4\uB835\uC2B5\uB2C8\uB2E4."
+    },
+    {
+      id: "reinvest",
+      heading: "\uC5EC\uB7EC \uD574\uB97C \uACC4\uC0B0\uD560 \uB54C \u2014 \uC190\uC73C\uB85C\uB294 \uD55C\uACC4\uAC00 \uC788\uB2E4",
+      navLabel: "\uC5EC\uB7EC \uD574 \uACC4\uC0B0",
+      paragraphs: [
+        "\uD55C \uD68C\uCC28 \uBC30\uB2F9\uAE08\uC740 \uACF1\uC148 \uD55C \uBC88\uC774\uBA74 \uB05D\uB098\uC9C0\uB9CC, \uBC1B\uC740 \uBC30\uB2F9\uC73C\uB85C \uB2E4\uC2DC \uC0AC\uACE0 \uADF8 \uC8FC\uC2DD\uC774 \uB610 \uBC30\uB2F9\uC744 \uC8FC\uB294 \uD750\uB984\uC740 \uD574\uB9C8\uB2E4 \uAC12\uC774 \uB2EC\uB77C\uC9D1\uB2C8\uB2E4. \uC5EC\uAE30\uC5D0 \uB9E4\uB2EC \uC801\uB9BD\uD558\uB294 \uAE08\uC561, \uBC30\uB2F9 \uC131\uC7A5\uB960, \uC8FC\uAC00 \uBCC0\uB3D9\uAE4C\uC9C0 \uACB9\uCE58\uBA74 \uC190\uACC4\uC0B0\uC73C\uB85C\uB294 \uB530\uB77C\uAC00\uAE30 \uC5B4\uB835\uC2B5\uB2C8\uB2E4.",
+        "\uC774 \uC0AC\uC774\uD2B8\uC758 \uC2DC\uBBAC\uB808\uC774\uD130\uB294 \uADF8 \uBD80\uBD84\uC744 \uACC4\uC0B0\uD569\uB2C8\uB2E4. \uC704\uC5D0\uC11C \uC815\uB9AC\uD55C \uAC12(\uBCF4\uC720 \uC218\uB7C9 \uB610\uB294 \uD22C\uC790 \uAE08\uC561, \uBC30\uB2F9\uB960, \uC138\uC728, \uC9C0\uAE09 \uC8FC\uAE30)\uC744 \uADF8\uB300\uB85C \uB123\uC73C\uBA74 \uD574\uB9C8\uB2E4\uC758 \uBC30\uB2F9 \uD604\uAE08\uD750\uB984\uACFC \uBAA9\uD45C \uB3C4\uB2EC \uC2DC\uC810\uC744 \uBCF4\uC5EC \uC90D\uB2C8\uB2E4."
+      ]
+    }
+  ],
+  faqs: [
+    {
+      question: "\uBC30\uB2F9\uAE08\uC740 \uC5B8\uC81C \uB4E4\uC5B4\uC624\uB098\uC694?",
+      answer: "\uBC30\uB2F9 \uAE30\uC900\uC77C\uC5D0 \uC8FC\uC8FC\uBA85\uBD80\uC5D0 \uC62C\uB77C \uC788\uC73C\uBA74 \uADF8 \uD68C\uCC28 \uBC30\uB2F9\uC744 \uBC1B\uACE0, \uC2E4\uC81C \uC785\uAE08\uC740 \uC9C0\uAE09\uC77C\uC5D0 \uC774\uB904\uC9D1\uB2C8\uB2E4. \uBBF8\uAD6D \uC885\uBAA9\uC740 \uBC30\uB2F9\uB77D\uC77C\uC5D0\uC11C 2~4\uC8FC \uB4A4\uAC00 \uC77C\uBC18\uC801\uC785\uB2C8\uB2E4."
+    },
+    {
+      question: "\uBC30\uB2F9\uAE08\uC5D0 \uC138\uAE08\uC740 \uC5BC\uB9C8\uB098 \uBD99\uB098\uC694?",
+      answer: "\uAD6D\uB0B4 \uC0C1\uC7A5 \uC885\uBAA9\uC740 15.4%(\uC18C\uB4DD\uC138 14% + \uC9C0\uBC29\uC18C\uB4DD\uC138 1.4%)\uC785\uB2C8\uB2E4. \uBBF8\uAD6D \uC0C1\uC7A5 \uC885\uBAA9\uC740 \uD604\uC9C0\uC5D0\uC11C 15%\uAC00 \uC6D0\uCC9C\uC9D5\uC218\uB429\uB2C8\uB2E4. \uAE08\uC735\uC18C\uB4DD\uC774 \uC5F0 2,000\uB9CC \uC6D0\uC744 \uB118\uC73C\uBA74 \uC885\uD569\uACFC\uC138 \uB300\uC0C1\uC774 \uB418\uC5B4 \uC2E4\uD6A8\uC138\uC728\uC774 \uB2EC\uB77C\uC9C8 \uC218 \uC788\uC2B5\uB2C8\uB2E4."
+    },
+    {
+      question: "\uBC30\uB2F9\uB960\uC774 \uB192\uC740 \uC885\uBAA9\uC774 \uB354 \uC88B\uC740\uAC00\uC694?",
+      answer: "\uBC30\uB2F9\uB960\uC740 \uC8FC\uAC00\uAC00 \uB0B4\uB9AC\uBA74 \uC790\uB3D9\uC73C\uB85C \uC62C\uB77C\uAC11\uB2C8\uB2E4. \uB192\uC740 \uBC30\uB2F9\uB960\uC774 \uADF8 \uC790\uCCB4\uB85C \uC88B\uC740 \uC0C1\uD0DC\uB97C \uB73B\uD558\uC9C0\uB294 \uC54A\uC73C\uBA70, \uBC30\uB2F9\uC774 \uC720\uC9C0\uB420 \uC218 \uC788\uB294\uC9C0\uB294 \uC2E4\uC801\uACFC \uBC30\uB2F9\uC131\uD5A5\uC744 \uD568\uAED8 \uBD10\uC57C \uC54C \uC218 \uC788\uC2B5\uB2C8\uB2E4."
+    },
+    {
+      question: "\uC6D4 \uBC30\uB2F9 \uC885\uBAA9\uACFC \uBD84\uAE30 \uBC30\uB2F9 \uC885\uBAA9\uC740 \uACC4\uC0B0\uC774 \uB2E4\uB978\uAC00\uC694?",
+      answer: "\uC5F0 \uBC30\uB2F9\uAE08\uC774 \uAC19\uB2E4\uBA74 \uCD1D\uC561\uC740 \uAC19\uACE0 \uBC1B\uB294 \uC2DC\uC810\uB9CC \uB2E4\uB985\uB2C8\uB2E4. \uB2E4\uB9CC \uBC30\uB2F9\uC744 \uC7AC\uD22C\uC790\uD55C\uB2E4\uBA74 \uB354 \uC790\uC8FC \uBC1B\uB294 \uCABD\uC774 \uC7AC\uD22C\uC790 \uC2DC\uC810\uC774 \uBE68\uB77C \uACB0\uACFC\uAC00 \uC870\uAE08 \uB2EC\uB77C\uC9D1\uB2C8\uB2E4."
+    }
+  ],
+  cta: {
+    to: SIMULATOR_PATH,
+    label: "\uB0B4 \uC870\uAC74\uC73C\uB85C \uACC4\uC0B0\uD574 \uBCF4\uAE30",
+    note: "\uBCF4\uC720 \uC218\uB7C9\uC774\uB098 \uD22C\uC790 \uAE08\uC561, \uBC30\uB2F9\uB960, \uC138\uC728\uC744 \uB123\uC73C\uBA74 \uC5EC\uB7EC \uD574\uC5D0 \uAC78\uCE5C \uBC30\uB2F9 \uD604\uAE08\uD750\uB984\uC744 \uACC4\uC0B0\uD569\uB2C8\uB2E4."
+  }
+};
+
+// shared/constants/guides/indexInvesting.ts
+var INDEX_INVESTING_GUIDE = {
+  slug: "index-investing",
+  metaTitle: "\uC9C0\uC218\uCD94\uC885 \uD22C\uC790\uB780 \u2014 \uC778\uB371\uC2A4 ETF\uC758 \uB73B\uACFC \uBC30\uB2F9 \uD22C\uC790\uC640\uC758 \uCC28\uC774",
+  metaDescription: "\uC9C0\uC218\uB97C \uB530\uB77C\uAC04\uB2E4\uB294 \uB9D0\uC758 \uB73B, \uC778\uB371\uC2A4 ETF\uAC00 \uC885\uBAA9\uC744 \uACE0\uB974\uC9C0 \uC54A\uB294 \uC774\uC720, \uADF8\uB9AC\uACE0 \uBC30\uB2F9 \uC911\uC2EC \uD22C\uC790\uC640 \uBB34\uC5C7\uC774 \uB2E4\uB978\uC9C0 \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4.",
+  title: "\uC9C0\uC218\uB97C \uB530\uB77C\uAC04\uB2E4\uB294 \uAC8C \uBB34\uC2A8 \uB73B\uC778\uAC00",
+  lede: "\uAC1C\uBCC4 \uC885\uBAA9\uC744 \uACE0\uB974\uB294 \uB300\uC2E0 \uC2DC\uC7A5 \uC804\uCCB4\uB97C \uD1B5\uC9F8\uB85C \uC0AC\uB294 \uBC29\uC2DD\uC785\uB2C8\uB2E4. \uBC30\uB2F9 \uD22C\uC790\uC640 \uB300\uB9BD\uD558\uC9C0 \uC54A\uACE0, \uD55C \uACC4\uC88C\uC5D0\uC11C \uD568\uAED8 \uB2F4\uB294 \uACBD\uC6B0\uAC00 \uB9CE\uC2B5\uB2C8\uB2E4.",
+  targetQueries: ["\uC9C0\uC218\uCD94\uC885 \uD22C\uC790", "\uC778\uB371\uC2A4 \uD380\uB4DC", "S&P 500 \uD22C\uC790", "\uD328\uC2DC\uBE0C \uD22C\uC790"],
+  sections: [
+    {
+      id: "what",
+      heading: "\uC9C0\uC218\uC640 \uC9C0\uC218\uCD94\uC885",
+      navLabel: "\uC9C0\uC218\uC640 \uCD94\uC885",
+      paragraphs: [
+        "\uC9C0\uC218\uB294 \uC2DC\uC7A5\uC758 \uC0C1\uD0DC\uB97C \uD558\uB098\uC758 \uC22B\uC790\uB85C \uC694\uC57D\uD55C \uAC83\uC785\uB2C8\uB2E4. \uC608\uB97C \uB4E4\uC5B4 S&P 500\uC740 \uBBF8\uAD6D\uC758 \uD070 \uAE30\uC5C5 500\uACF3\uC758 \uC8FC\uAC00\uB97C \uC2DC\uAC00\uCD1D\uC561 \uBE44\uC911\uC73C\uB85C \uBB36\uC5B4 \uACC4\uC0B0\uD569\uB2C8\uB2E4. \uCF54\uC2A4\uD53C\uB294 \uAD6D\uB0B4 \uC720\uAC00\uC99D\uAD8C\uC2DC\uC7A5 \uC804\uCCB4\uB97C \uAC19\uC740 \uBC29\uC2DD\uC73C\uB85C \uBB36\uC2B5\uB2C8\uB2E4.",
+        '\uC9C0\uC218\uCD94\uC885 \uD22C\uC790\uB294 \uADF8 \uC9C0\uC218\uB97C \uADF8\uB300\uB85C \uB530\uB77C\uAC00\uB3C4\uB85D \uB9CC\uB4E0 \uC0C1\uD488\uC744 \uC0AC\uB294 \uAC83\uC785\uB2C8\uB2E4. \uC5B4\uB5A4 \uC885\uBAA9\uC774 \uC624\uB97C\uC9C0 \uACE0\uB974\uC9C0 \uC54A\uACE0, \uC9C0\uC218\uAC00 \uB2F4\uACE0 \uC788\uB294 \uC885\uBAA9\uC744 \uADF8 \uBE44\uC911\uB300\uB85C \uB2F4\uC2B5\uB2C8\uB2E4. \uADF8\uB798\uC11C "\uACE0\uB974\uC9C0 \uC54A\uB294 \uAC83"\uC774 \uC774 \uBC29\uC2DD\uC758 \uD575\uC2EC\uC785\uB2C8\uB2E4.'
+      ]
+    },
+    {
+      id: "why",
+      heading: "\uC65C \uACE0\uB974\uC9C0 \uC54A\uB294 \uCABD\uC744 \uD0DD\uD558\uB098",
+      navLabel: "\uACE0\uB974\uC9C0 \uC54A\uB294 \uC774\uC720",
+      paragraphs: [
+        "\uC885\uBAA9\uC744 \uACE0\uB974\uB824\uBA74 \uADF8 \uD68C\uC0AC\uAC00 \uC55E\uC73C\uB85C \uC5B4\uB5BB\uAC8C \uB420\uC9C0 \uD310\uB2E8\uD574\uC57C \uD558\uB294\uB370, \uADF8 \uD310\uB2E8\uC774 \uC2DC\uC7A5 \uD3C9\uADE0\uBCF4\uB2E4 \uB0AB\uB2E4\uB294 \uBCF4\uC7A5\uC774 \uC5C6\uC2B5\uB2C8\uB2E4. \uC9C0\uC218\uCD94\uC885\uC740 \uADF8 \uD310\uB2E8\uC744 \uC544\uC608 \uD558\uC9C0 \uC54A\uB294 \uB300\uC2E0 \uC2DC\uC7A5 \uD3C9\uADE0\uB9CC\uD07C\uC744 \uBAA9\uD45C\uB85C \uC0BC\uC2B5\uB2C8\uB2E4.",
+        "\uC6B4\uC6A9\uBCF4\uC218\uB3C4 \uB300\uCCB4\uB85C \uB0AE\uC2B5\uB2C8\uB2E4. \uC0AC\uB78C\uC774 \uC885\uBAA9\uC744 \uACE0\uB974\uB294 \uC0C1\uD488\uBCF4\uB2E4 \uC190\uC774 \uB35C \uAC00\uAE30 \uB54C\uBB38\uC785\uB2C8\uB2E4. \uBCF4\uC218\uB294 \uB9E4\uB144 \uC790\uC0B0\uC5D0\uC11C \uBE60\uC838\uB098\uAC00\uBBC0\uB85C \uAE30\uAC04\uC774 \uAE38\uC218\uB85D \uCC28\uC774\uAC00 \uB204\uC801\uB429\uB2C8\uB2E4."
+      ],
+      caution: "\uD3C9\uADE0\uC744 \uB530\uB77C\uAC04\uB2E4\uB294 \uAC83\uC740 \uC2DC\uC7A5\uC774 \uB0B4\uB9B4 \uB54C\uB3C4 \uADF8\uB9CC\uD07C \uB0B4\uB9B0\uB2E4\uB294 \uB73B\uC785\uB2C8\uB2E4. \uC9C0\uC218\uCD94\uC885\uC740 \uC190\uC2E4\uC744 \uB9C9\uC544 \uC8FC\uB294 \uBC29\uBC95\uC774 \uC544\uB2D9\uB2C8\uB2E4."
+    },
+    {
+      id: "vs-dividend",
+      heading: "\uBC30\uB2F9 \uD22C\uC790\uC640 \uBB34\uC5C7\uC774 \uB2E4\uB978\uAC00",
+      navLabel: "\uBC30\uB2F9 \uD22C\uC790\uC640 \uBE44\uAD50",
+      paragraphs: [
+        "\uC9C0\uC218\uCD94\uC885\uC758 \uBAA9\uC801\uC740 \uB300\uCCB4\uB85C \uC790\uC0B0\uC758 \uD06C\uAE30\uB97C \uD0A4\uC6B0\uB294 \uAC83\uC774\uACE0, \uBC30\uB2F9 \uD22C\uC790\uC758 \uBAA9\uC801\uC740 \uBCF4\uC720\uD558\uB294 \uB3D9\uC548 \uD604\uAE08\uC774 \uB4E4\uC5B4\uC624\uAC8C \uD558\uB294 \uAC83\uC785\uB2C8\uB2E4. \uB458\uC740 \uBC30\uD0C0\uC801\uC774\uC9C0 \uC54A\uC544 \uD55C \uACC4\uC88C\uC5D0 \uD568\uAED8 \uB2F4\uB294 \uACBD\uC6B0\uAC00 \uB9CE\uC2B5\uB2C8\uB2E4.",
+        "\uC9C0\uC218\uCD94\uC885 ETF\uB3C4 \uBC30\uB2F9\uC744 \uC9C0\uAE09\uD569\uB2C8\uB2E4. \uB2E4\uB9CC \uC9C0\uC218 \uC804\uCCB4\uC758 \uBC30\uB2F9\uB960\uC744 \uB530\uB77C\uAC00\uBBC0\uB85C \uBC30\uB2F9 \uC911\uC2EC ETF\uBCF4\uB2E4 \uB0AE\uC740 \uAC83\uC774 \uC77C\uBC18\uC801\uC785\uB2C8\uB2E4."
+      ],
+      table: {
+        caption: "\uB450 \uBC29\uC2DD\uC774 \uB2F5\uD558\uB294 \uC9C8\uBB38",
+        columns: ["", "\uC9C0\uC218\uCD94\uC885", "\uBC30\uB2F9 \uC911\uC2EC"],
+        rows: [
+          ["\uC8FC\uB41C \uBAA9\uC801", "\uC2DC\uC7A5 \uD3C9\uADE0\uB9CC\uD07C \uC790\uC0B0\uC744 \uD0A4\uC6B4\uB2E4", "\uBCF4\uC720\uD558\uB294 \uB3D9\uC548 \uD604\uAE08\uC774 \uB4E4\uC5B4\uC628\uB2E4"],
+          ["\uC885\uBAA9 \uC120\uD0DD", "\uACE0\uB974\uC9C0 \uC54A\uB294\uB2E4(\uC9C0\uC218\uAC00 \uC815\uD55C\uB2E4)", "\uBC30\uB2F9 \uC774\uB825\xB7\uBC30\uB2F9\uB960\uB85C \uC881\uD78C\uB2E4"],
+          ["\uBC30\uB2F9", "\uC9C0\uAE09\uD558\uC9C0\uB9CC \uB300\uCCB4\uB85C \uB0AE\uB2E4", "\uC774\uCABD\uC774 \uBAA9\uC801\uC774\uB77C \uC0C1\uB300\uC801\uC73C\uB85C \uB192\uB2E4"],
+          ["\uD604\uAE08\uC774 \uD544\uC694\uD55C \uC2DC\uC810", "\uD314\uC544\uC57C \uD604\uAE08\uC774 \uB41C\uB2E4", "\uD314\uC9C0 \uC54A\uC544\uB3C4 \uBC30\uB2F9\uC774 \uB4E4\uC5B4\uC628\uB2E4"]
+        ],
+        note: "\uC0C1\uD488\uB9C8\uB2E4 \uB2E4\uB974\uBBC0\uB85C \uAC1C\uBCC4 \uC885\uBAA9\uC758 \uC2E4\uC81C \uBC30\uB2F9\uB960\uACFC \uBCF4\uC218\uB294 \uAC01 \uC0C1\uD488\uC758 \uC790\uB8CC\uB85C \uD655\uC778\uD574\uC57C \uD569\uB2C8\uB2E4."
+      }
+    },
+    {
+      id: "mix",
+      heading: "\uC11E\uC5B4 \uB2F4\uB294\uB2E4\uBA74",
+      navLabel: "\uC11E\uC5B4 \uB2F4\uAE30",
+      paragraphs: [
+        "\uB450 \uBC29\uC2DD\uC744 \uC11E\uC73C\uBA74 \uAC01\uAC01\uC758 \uC131\uACA9\uC774 \uBE44\uC911\uB9CC\uD07C \uBC18\uC601\uB429\uB2C8\uB2E4. \uC9C0\uC218\uCD94\uC885 \uBE44\uC911\uC774 \uB192\uC73C\uBA74 \uBC30\uB2F9\uC740 \uB0AE\uC544\uC9C0\uACE0, \uBC30\uB2F9 \uC911\uC2EC \uBE44\uC911\uC774 \uB192\uC73C\uBA74 \uB4E4\uC5B4\uC624\uB294 \uD604\uAE08\uC774 \uB298\uC5B4\uB098\uB294 \uB300\uC2E0 \uC2DC\uC7A5 \uC804\uCCB4\uC640 \uC6C0\uC9C1\uC784\uC774 \uC870\uAE08 \uB2EC\uB77C\uC9D1\uB2C8\uB2E4.",
+        "\uC774 \uC0AC\uC774\uD2B8\uC758 \uC2DC\uBBAC\uB808\uC774\uD130\uB294 \uC885\uBAA9\uBCC4 \uBE44\uC911\uC744 \uB123\uC5B4 \uADF8 \uC870\uD569\uC758 \uBC30\uB2F9 \uD750\uB984\uC744 \uACC4\uC0B0\uD569\uB2C8\uB2E4. \uC9C0\uC218\uCD94\uC885 ETF\uB3C4 \uBC30\uB2F9\uB960\uC744 \uAC16\uACE0 \uC788\uC73C\uBBC0\uB85C \uD568\uAED8 \uB2F4\uC544 \uACC4\uC0B0\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4."
+      ]
+    }
+  ],
+  faqs: [
+    {
+      question: "\uC9C0\uC218\uCD94\uC885 \uD22C\uC790\uB780 \uBB34\uC5C7\uC778\uAC00\uC694?",
+      answer: "\uAC1C\uBCC4 \uC885\uBAA9\uC744 \uACE0\uB974\uC9C0 \uC54A\uACE0, \uC9C0\uC218\uAC00 \uB2F4\uACE0 \uC788\uB294 \uC885\uBAA9\uC744 \uADF8 \uBE44\uC911\uB300\uB85C \uB2F4\uC544 \uC2DC\uC7A5 \uD3C9\uADE0\uC744 \uB530\uB77C\uAC00\uB294 \uBC29\uC2DD\uC785\uB2C8\uB2E4. S&P 500\uC774\uB098 \uCF54\uC2A4\uD53C\uB97C \uB530\uB77C\uAC00\uB294 ETF\uAC00 \uB300\uD45C\uC801\uC785\uB2C8\uB2E4."
+    },
+    {
+      question: "\uC9C0\uC218\uCD94\uC885 ETF\uB3C4 \uBC30\uB2F9\uC744 \uC8FC\uB098\uC694?",
+      answer: "\uB300\uBD80\uBD84 \uC9C0\uAE09\uD569\uB2C8\uB2E4. \uB2E4\uB9CC \uC9C0\uC218 \uC804\uCCB4\uC758 \uBC30\uB2F9\uB960\uC744 \uB530\uB77C\uAC00\uBBC0\uB85C \uBC30\uB2F9\uC744 \uBAA9\uC801\uC73C\uB85C \uB9CC\uB4E0 ETF\uBCF4\uB2E4\uB294 \uB0AE\uC740 \uAC83\uC774 \uC77C\uBC18\uC801\uC785\uB2C8\uB2E4."
+    },
+    {
+      question: "\uC9C0\uC218\uCD94\uC885\uACFC \uBC30\uB2F9 \uD22C\uC790 \uC911 \uC5B4\uB290 \uCABD\uC774 \uB098\uC740\uAC00\uC694?",
+      answer: "\uBAA9\uC801\uC774 \uB2E4\uB978 \uBC29\uC2DD\uC774\uB77C \uC6B0\uC5F4\uC744 \uAC00\uB9B4 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4. \uC790\uC0B0\uC744 \uD0A4\uC6B0\uB294 \uAC83\uC774 \uBAA9\uC801\uC778\uC9C0, \uBCF4\uC720\uD558\uB294 \uB3D9\uC548 \uD604\uAE08\uC774 \uB4E4\uC5B4\uC624\uB294 \uAC83\uC774 \uBAA9\uC801\uC778\uC9C0\uC5D0 \uB530\uB77C \uC120\uD0DD\uC774 \uB2EC\uB77C\uC9D1\uB2C8\uB2E4."
+    },
+    {
+      question: "\uC6B4\uC6A9\uBCF4\uC218\uB294 \uC5BC\uB9C8\uB098 \uC911\uC694\uD55C\uAC00\uC694?",
+      answer: "\uB9E4\uB144 \uC790\uC0B0\uC5D0\uC11C \uBE60\uC838\uB098\uAC00\uBBC0\uB85C \uD22C\uC790 \uAE30\uAC04\uC774 \uAE38\uC218\uB85D \uCC28\uC774\uAC00 \uB204\uC801\uB429\uB2C8\uB2E4. \uB2E4\uB9CC \uBCF4\uC218\uB9CC\uC73C\uB85C \uC0C1\uD488\uC744 \uACE0\uB974\uBA74 \uCD94\uC885\uD558\uB294 \uC9C0\uC218\uAC00 \uB2E4\uB974\uB2E4\uB294 \uC810\uC744 \uB193\uCE60 \uC218 \uC788\uC2B5\uB2C8\uB2E4."
+    }
+  ],
+  cta: {
+    to: SIMULATOR_PATH,
+    label: "\uC870\uD569\uC758 \uBC30\uB2F9 \uD750\uB984 \uACC4\uC0B0\uD574 \uBCF4\uAE30",
+    note: "\uC9C0\uC218\uCD94\uC885 ETF\uC640 \uBC30\uB2F9 ETF\uB97C \uD568\uAED8 \uB2F4\uC544 \uBE44\uC911\uBCC4\uB85C \uBC30\uB2F9\uC774 \uC5B4\uB5BB\uAC8C \uB2EC\uB77C\uC9C0\uB294\uC9C0 \uBCFC \uC218 \uC788\uC2B5\uB2C8\uB2E4."
+  }
+};
+
+// shared/constants/guides/monthlyDividendGoal.ts
+var MONTHLY_DIVIDEND_GOAL_GUIDE = {
+  slug: "monthly-dividend-goal",
+  metaTitle: "\uC6D4 \uBC30\uB2F9 100\uB9CC\uC6D0 \uB9CC\uB4E4\uAE30 \u2014 \uBC30\uB2F9\uB960\uBCC4 \uD544\uC694 \uC6D0\uAE08\uACFC \uB3C4\uB2EC \uAE30\uAC04",
+  metaDescription: "\uB9E4\uB2EC \uBC30\uB2F9 100\uB9CC \uC6D0\uC744 \uBC1B\uC73C\uB824\uBA74 \uC5BC\uB9C8\uAC00 \uD544\uC694\uD55C\uC9C0 \uBC30\uB2F9\uB960\uBCC4\uB85C \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4. \uC138\uD6C4 \uAE30\uC900\uC73C\uB85C \uB2E4\uC2DC \uACC4\uC0B0\uD55C \uAC12\uACFC, \uB9E4\uB2EC \uC801\uB9BD\uD560 \uB54C\uC758 \uB3C4\uB2EC \uC2DC\uC810\uAE4C\uC9C0 \uD568\uAED8 \uBD05\uB2C8\uB2E4.",
+  title: "\uC6D4 \uBC30\uB2F9 100\uB9CC \uC6D0, \uC5BC\uB9C8\uAC00 \uD544\uC694\uD55C\uAC00",
+  lede: '\uD544\uC694 \uC6D0\uAE08\uC740 \uB098\uB217\uC148 \uD55C \uBC88\uC73C\uB85C \uB098\uC635\uB2C8\uB2E4. \uB2E4\uB9CC "\uC9C0\uAE08\uBD80\uD130 \uBAA8\uC73C\uBA74 \uC5B8\uC81C\uC778\uAC00"\uB294 \uC801\uB9BD\uACFC \uC7AC\uD22C\uC790\uAC00 \uC5BD\uD600 \uACC4\uC0B0\uC774 \uB2EC\uB77C\uC9D1\uB2C8\uB2E4.',
+  targetQueries: ["\uC6D4 \uBC30\uB2F9 100\uB9CC\uC6D0", "\uBC30\uB2F9\uAE08 100\uB9CC\uC6D0 \uD544\uC694 \uC6D0\uAE08", "\uBC30\uB2F9\uC73C\uB85C \uC0DD\uD65C\uBE44", "\uC6D4 \uBC30\uB2F9 500\uB9CC\uC6D0"],
+  sections: [
+    {
+      id: "principal",
+      heading: "\uD544\uC694 \uC6D0\uAE08 \u2014 \uBAA9\uD45C \uBC30\uB2F9 \xF7 \uBC30\uB2F9\uB960",
+      navLabel: "\uD544\uC694 \uC6D0\uAE08",
+      paragraphs: [
+        "\uB9E4\uB2EC \uBC1B\uACE0 \uC2F6\uC740 \uAE08\uC561\uC5D0 12\uB97C \uACF1\uD558\uBA74 \uC5F0 \uBAA9\uD45C \uBC30\uB2F9\uAE08\uC774 \uB429\uB2C8\uB2E4. \uADF8 \uAC12\uC744 \uBC30\uB2F9\uB960\uB85C \uB098\uB204\uBA74 \uD544\uC694\uD55C \uD22C\uC790 \uC6D0\uAE08\uC774 \uB098\uC635\uB2C8\uB2E4. \uC6D4 100\uB9CC \uC6D0\uC774\uBA74 \uC5F0 1,200\uB9CC \uC6D0\uC774\uACE0, \uBC30\uB2F9\uB960 4%\uB77C\uBA74 3\uC5B5 \uC6D0\uC785\uB2C8\uB2E4.",
+        "\uBC30\uB2F9\uB960\uC774 1%\uD3EC\uC778\uD2B8\uB9CC \uB2EC\uB77C\uC838\uB3C4 \uD544\uC694 \uC6D0\uAE08\uC740 \uD06C\uAC8C \uC6C0\uC9C1\uC785\uB2C8\uB2E4. \uC544\uB798 \uD45C\uAC00 \uADF8 \uD3ED\uC744 \uBCF4\uC5EC \uC90D\uB2C8\uB2E4."
+      ],
+      table: {
+        caption: "\uC6D4 \uBC30\uB2F9 100\uB9CC \uC6D0(\uC5F0 1,200\uB9CC \uC6D0)\uC5D0 \uD544\uC694\uD55C \uC6D0\uAE08 \u2014 \uC138\uC804 \uAE30\uC900",
+        columns: ["\uBC30\uB2F9\uB960", "\uD544\uC694 \uC6D0\uAE08"],
+        rows: [
+          ["2%", "6\uC5B5 \uC6D0"],
+          ["3%", "4\uC5B5 \uC6D0"],
+          ["4%", "3\uC5B5 \uC6D0"],
+          ["5%", "2\uC5B5 4,000\uB9CC \uC6D0"],
+          ["7%", "\uC57D 1\uC5B5 7,143\uB9CC \uC6D0"],
+          ["10%", "1\uC5B5 2,000\uB9CC \uC6D0"]
+        ],
+        note: "\uC5F0 1,200\uB9CC \uC6D0 \xF7 \uBC30\uB2F9\uB960\uB85C \uACC4\uC0B0\uD55C \uAC12\uC785\uB2C8\uB2E4. \uBC30\uB2F9\uB960\uC774 \uB192\uC744\uC218\uB85D \uD544\uC694 \uC6D0\uAE08\uC774 \uC904\uC9C0\uB9CC, \uB192\uC740 \uBC30\uB2F9\uB960\uC740 \uB300\uAC1C \uC8FC\uAC00 \uBCC0\uB3D9\uC774\uB098 \uBC30\uB2F9 \uC9C0\uC18D \uAC00\uB2A5\uC131\uACFC \uD568\uAED8 \uC635\uB2C8\uB2E4."
+      }
+    },
+    {
+      id: "after-tax",
+      heading: "\uC138\uD6C4\uB85C \uB2E4\uC2DC \uACC4\uC0B0\uD558\uBA74",
+      navLabel: "\uC138\uD6C4 \uAE30\uC900",
+      paragraphs: [
+        "\uC704 \uD45C\uB294 \uC138\uC804 \uAE30\uC900\uC785\uB2C8\uB2E4. \uC2E4\uC81C\uB85C \uD1B5\uC7A5\uC5D0 \uC6D4 100\uB9CC \uC6D0\uC774 \uB4E4\uC5B4\uC624\uB824\uBA74 \uC138\uAE08\uB9CC\uD07C \uB354 \uD544\uC694\uD569\uB2C8\uB2E4. \uAD6D\uB0B4 \uBC30\uB2F9\uC18C\uB4DD\uC138 15.4%\uB97C \uC801\uC6A9\uD558\uBA74 \uC138\uC804\uC73C\uB85C \uC57D 118\uB9CC \uC6D0\uC744 \uBC1B\uC544\uC57C \uC138\uD6C4 100\uB9CC \uC6D0\uC774 \uB0A8\uC2B5\uB2C8\uB2E4.",
+        "\uC5F0\uC73C\uB85C \uD658\uC0B0\uD558\uBA74 \uC138\uC804 \uC57D 1,418\uB9CC \uC6D0\uC774\uACE0, \uBC30\uB2F9\uB960 4%\uB77C\uBA74 \uD544\uC694 \uC6D0\uAE08\uC740 3\uC5B5 \uC6D0\uC774 \uC544\uB2C8\uB77C \uC57D 3\uC5B5 5,461\uB9CC \uC6D0\uC774 \uB429\uB2C8\uB2E4. \uBAA9\uD45C\uB97C \uC138\uC6B8 \uB54C \uC138\uC804\xB7\uC138\uD6C4 \uC911 \uC5B4\uB290 \uCABD\uC778\uC9C0 \uBA3C\uC800 \uC815\uD558\uB294 \uD3B8\uC774 \uC88B\uC2B5\uB2C8\uB2E4."
+      ],
+      table: {
+        caption: "\uC138\uD6C4 \uC6D4 100\uB9CC \uC6D0\uC744 \uBC1B\uAE30 \uC704\uD55C \uC6D0\uAE08 \u2014 \uC138\uC728 15.4% \uC801\uC6A9",
+        columns: ["\uBC30\uB2F9\uB960", "\uD544\uC694 \uC6D0\uAE08(\uC138\uD6C4 \uAE30\uC900)"],
+        rows: [
+          ["3%", "\uC57D 4\uC5B5 7,281\uB9CC \uC6D0"],
+          ["4%", "\uC57D 3\uC5B5 5,461\uB9CC \uC6D0"],
+          ["5%", "\uC57D 2\uC5B5 8,369\uB9CC \uC6D0"],
+          ["7%", "\uC57D 2\uC5B5 264\uB9CC \uC6D0"]
+        ],
+        note: "\uC138\uC804 \uD544\uC694\uC561 = \uBAA9\uD45C\uC561 \xF7 (1 \u2212 0.154)\uB85C \uD658\uC0B0\uD55C \uB4A4 \uBC30\uB2F9\uB960\uB85C \uB098\uB208 \uAC12\uC785\uB2C8\uB2E4. \uBBF8\uAD6D \uC0C1\uC7A5 \uC885\uBAA9\uC740 \uD604\uC9C0 \uC6D0\uCC9C\uC9D5\uC218 15%\uAC00 \uC801\uC6A9\uB418\uC5B4 \uAC12\uC774 \uC870\uAE08 \uB2EC\uB77C\uC9D1\uB2C8\uB2E4."
+      }
+    },
+    {
+      id: "timeline",
+      heading: "\uC9C0\uAE08\uBD80\uD130 \uBAA8\uC73C\uBA74 \uC5B8\uC81C \uB3C4\uB2EC\uD558\uB098",
+      navLabel: "\uB3C4\uB2EC \uC2DC\uC810",
+      paragraphs: [
+        "\uC5EC\uAE30\uC11C\uBD80\uD130\uB294 \uB098\uB217\uC148\uC73C\uB85C \uB2F5\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4. \uB9E4\uB2EC \uC5BC\uB9C8\uB97C \uB123\uB294\uC9C0, \uBC1B\uC740 \uBC30\uB2F9\uC744 \uB2E4\uC2DC \uC0AC\uB294\uC9C0, \uADF8 \uC885\uBAA9\uC758 \uBC30\uB2F9\uC774 \uD574\uB9C8\uB2E4 \uB298\uC5B4\uB098\uB294\uC9C0\uC5D0 \uB530\uB77C \uB3C4\uB2EC \uC2DC\uC810\uC774 \uD06C\uAC8C \uB2EC\uB77C\uC9C0\uAE30 \uB54C\uBB38\uC785\uB2C8\uB2E4.",
+        "\uC138 \uAC00\uC9C0\uAC00 \uB3D9\uC2DC\uC5D0 \uC791\uB3D9\uD569\uB2C8\uB2E4. \u2460\uC801\uB9BD\uD55C \uC6D0\uAE08\uC774 \uB298\uACE0 \u2461\uADF8 \uC6D0\uAE08\uC774 \uBC30\uB2F9\uC744 \uB0B3\uACE0 \u2462\uADF8 \uBC30\uB2F9\uC774 \uB2E4\uC2DC \uC8FC\uC2DD\uC774 \uB418\uC5B4 \uB2E4\uC74C \uD574\uC758 \uBC30\uB2F9\uC744 \uD0A4\uC6C1\uB2C8\uB2E4. \uC774 \uC14B\uC774 \uACB9\uCE58\uBA74 \uC2DC\uAC04\uC774 \uC9C0\uB0A0\uC218\uB85D \uB9E4\uB144 \uB298\uC5B4\uB098\uB294 \uD3ED \uC790\uCCB4\uAC00 \uCEE4\uC9D1\uB2C8\uB2E4.",
+        "\uC774 \uC0AC\uC774\uD2B8\uC758 \uC2DC\uBBAC\uB808\uC774\uD130\uB294 \uADF8 \uD750\uB984\uC744 \uD574\uB9C8\uB2E4 \uACC4\uC0B0\uD574\uC11C, \uBAA9\uD45C\uD55C \uC6D4 \uBC30\uB2F9\uC5D0 \uBA87 \uB144 \uBA87 \uAC1C\uC6D4\uC5D0 \uB3C4\uB2EC\uD558\uB294\uC9C0\uB97C \uBCF4\uC5EC \uC90D\uB2C8\uB2E4."
+      ],
+      caution: "\uACC4\uC0B0\uC740 \uC785\uB825\uD55C \uAC00\uC815 \uC704\uC5D0\uC11C\uB9CC \uC131\uB9BD\uD569\uB2C8\uB2E4. \uBC30\uB2F9\uC740 \uD68C\uC0AC\uC758 \uACB0\uC815\uC774\uB77C \uC904\uAC70\uB098 \uBA48\uCD9C \uC218 \uC788\uACE0, \uACFC\uAC70\uC758 \uBC30\uB2F9 \uC131\uC7A5\uB960\uC774 \uC55E\uC73C\uB85C\uB3C4 \uC774\uC5B4\uC9C4\uB2E4\uB294 \uBCF4\uC7A5\uC740 \uC5C6\uC2B5\uB2C8\uB2E4."
+    },
+    {
+      id: "pitfalls",
+      heading: "\uBAA9\uD45C\uB97C \uC138\uC6B8 \uB54C \uD754\uD788 \uB193\uCE58\uB294 \uAC83",
+      navLabel: "\uD754\uD55C \uC2E4\uC218",
+      paragraphs: [
+        "\uCCAB\uC9F8, \uBC30\uB2F9\uB960\uB9CC \uBCF4\uACE0 \uC885\uBAA9\uC744 \uACE0\uB974\uBA74 \uD544\uC694 \uC6D0\uAE08\uC740 \uC904\uC9C0\uB9CC \uC6D0\uAE08 \uC790\uCCB4\uAC00 \uD754\uB4E4\uB9B4 \uC218 \uC788\uC2B5\uB2C8\uB2E4. \uBC30\uB2F9\uB960\uC774 \uB192\uC740 \uC774\uC720\uAC00 \uC8FC\uAC00 \uD558\uB77D\uC77C \uC218 \uC788\uC5B4\uC11C\uC785\uB2C8\uB2E4.",
+        "\uB458\uC9F8, \uBC30\uB2F9\uC740 \uB9E4\uB2EC \uADE0\uB4F1\uD558\uAC8C \uB4E4\uC5B4\uC624\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. \uBD84\uAE30 \uBC30\uB2F9 \uC885\uBAA9\uB9CC \uB2F4\uC73C\uBA74 \uBC30\uB2F9\uC774 \uC5C6\uB294 \uB2EC\uC774 \uC0DD\uAE41\uB2C8\uB2E4. \uC9C0\uAE09 \uC6D4\uC774 \uC11C\uB85C \uB2E4\uB978 \uC885\uBAA9\uC744 \uC11E\uC73C\uBA74 \uC6D4\uBCC4 \uD3B8\uCC28\uAC00 \uC904\uC5B4\uB4ED\uB2C8\uB2E4.",
+        "\uC14B\uC9F8, \uAE08\uC735\uC18C\uB4DD\uC774 \uC5F0 2,000\uB9CC \uC6D0\uC744 \uB118\uC73C\uBA74 \uC885\uD569\uACFC\uC138 \uB300\uC0C1\uC774 \uB418\uC5B4 \uC2E4\uD6A8\uC138\uC728\uC774 \uB2EC\uB77C\uC9D1\uB2C8\uB2E4. \uC6D4 \uBC30\uB2F9 \uBAA9\uD45C\uAC00 \uCEE4\uC9C8\uC218\uB85D \uC774 \uC120\uC744 \uB118\uB294\uC9C0 \uD568\uAED8 \uBD10\uC57C \uD569\uB2C8\uB2E4."
+      ]
+    }
+  ],
+  faqs: [
+    {
+      question: "\uC6D4 \uBC30\uB2F9 100\uB9CC \uC6D0\uC744 \uBC1B\uC73C\uB824\uBA74 \uC5BC\uB9C8\uAC00 \uD544\uC694\uD55C\uAC00\uC694?",
+      answer: "\uBC30\uB2F9\uB960 4%\uB97C \uAC00\uC815\uD558\uBA74 \uC138\uC804 \uAE30\uC900 3\uC5B5 \uC6D0\uC785\uB2C8\uB2E4. \uC138\uD6C4\uB85C \uC6D4 100\uB9CC \uC6D0\uC744 \uBC1B\uC73C\uB824\uBA74 \uAC19\uC740 \uBC30\uB2F9\uB960\uC5D0\uC11C \uC57D 3\uC5B5 5,461\uB9CC \uC6D0\uC774 \uD544\uC694\uD569\uB2C8\uB2E4."
+    },
+    {
+      question: "\uBC30\uB2F9\uB960\uC774 \uB192\uC740 \uC885\uBAA9\uB9CC \uB2F4\uC73C\uBA74 \uC6D0\uAE08\uC774 \uC801\uAC8C \uB4E4\uC9C0 \uC54A\uB098\uC694?",
+      answer: "\uD544\uC694 \uC6D0\uAE08\uC740 \uC904\uC5B4\uB4ED\uB2C8\uB2E4. \uB2E4\uB9CC \uBC30\uB2F9\uB960\uC774 \uB192\uC740 \uC774\uC720\uAC00 \uC8FC\uAC00 \uD558\uB77D\uC778 \uACBD\uC6B0\uAC00 \uC788\uACE0, \uBC30\uB2F9\uC774 \uC720\uC9C0\uB418\uC9C0 \uC54A\uC73C\uBA74 \uACC4\uC0B0\uC758 \uC804\uC81C\uAC00 \uBB34\uB108\uC9D1\uB2C8\uB2E4. \uBC30\uB2F9\uC131\uD5A5\uACFC \uC2E4\uC801\uC744 \uD568\uAED8 \uBCF4\uB294 \uD3B8\uC774 \uC548\uC804\uD569\uB2C8\uB2E4."
+    },
+    {
+      question: "\uB9E4\uB2EC \uC801\uB9BD\uD558\uBA74 \uBA87 \uB144\uC774 \uAC78\uB9AC\uB098\uC694?",
+      answer: "\uC801\uB9BD\uC561\xB7\uBC30\uB2F9\uB960\xB7\uBC30\uB2F9 \uC131\uC7A5\uB960\xB7\uC7AC\uD22C\uC790 \uC5EC\uBD80\uC5D0 \uB530\uB77C \uB2EC\uB77C\uC838 \uD558\uB098\uC758 \uB2F5\uC774 \uC5C6\uC2B5\uB2C8\uB2E4. \uC2DC\uBBAC\uB808\uC774\uD130\uC5D0 \uADF8 \uAC12\uB4E4\uC744 \uB123\uC73C\uBA74 \uBAA9\uD45C \uB3C4\uB2EC \uC2DC\uC810\uC744 \uACC4\uC0B0\uD574 \uBCF4\uC5EC \uC90D\uB2C8\uB2E4."
+    },
+    {
+      question: "\uBC30\uB2F9\uC774 \uC5C6\uB294 \uB2EC\uC740 \uC5B4\uB5BB\uAC8C \uD558\uB098\uC694?",
+      answer: "\uBD84\uAE30 \uBC30\uB2F9 \uC885\uBAA9\uC740 \uC9C0\uAE09 \uC6D4\uC774 \uC815\uD574\uC838 \uC788\uC5B4 \uBE44\uB294 \uB2EC\uC774 \uC0DD\uAE41\uB2C8\uB2E4. \uC9C0\uAE09 \uC6D4\uC774 \uB2E4\uB978 \uC885\uBAA9\uC744 \uD568\uAED8 \uB2F4\uAC70\uB098 \uC6D4 \uBC30\uB2F9 ETF\uB97C \uC11E\uC73C\uBA74 \uC6D4\uBCC4 \uD3B8\uCC28\uAC00 \uC904\uC5B4\uB4ED\uB2C8\uB2E4."
+    }
+  ],
+  cta: {
+    to: SIMULATOR_PATH,
+    label: "\uBAA9\uD45C \uB3C4\uB2EC \uC2DC\uC810 \uACC4\uC0B0\uD574 \uBCF4\uAE30",
+    note: "\uBAA9\uD45C \uC6D4 \uBC30\uB2F9\uACFC \uC801\uB9BD\uC561\uC744 \uB123\uC73C\uBA74 \uBA87 \uB144 \uBA87 \uAC1C\uC6D4\uC5D0 \uB3C4\uB2EC\uD558\uB294\uC9C0 \uACC4\uC0B0\uD569\uB2C8\uB2E4."
+  }
+};
+
+// shared/constants/guides/startInvesting.ts
+var START_INVESTING_GUIDE = {
+  slug: "how-to-start-investing",
+  metaTitle: "\uC8FC\uC2DD \uD22C\uC790 \uC2DC\uC791\uD558\uAE30 \u2014 \uC99D\uAD8C \uACC4\uC88C \uAC1C\uC124\uBD80\uD130 \uCCAB \uB9E4\uC218\uAE4C\uC9C0",
+  metaDescription: "\uC99D\uAD8C \uACC4\uC88C\uB97C \uC5EC\uB294 \uB370 \uD544\uC694\uD55C \uAC83, \uD574\uC678 \uC8FC\uC2DD\uC744 \uC0AC\uAE30 \uC704\uD55C \uCD94\uAC00 \uC808\uCC28, \uD658\uC804\uACFC \uC218\uC218\uB8CC, \uCCAB \uB9E4\uC218 \uC804\uC5D0 \uC815\uD574 \uB458 \uAC83\uC744 \uC21C\uC11C\uB300\uB85C \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4.",
+  title: "\uD22C\uC790, \uBB34\uC5C7\uBD80\uD130 \uD574\uC57C \uD558\uB098",
+  lede: "\uACC4\uC88C\uB97C \uC5EC\uB294 \uC77C\uBD80\uD130 \uCCAB \uB9E4\uC218\uAE4C\uC9C0\uC758 \uC21C\uC11C\uB97C \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4. \uD2B9\uC815 \uC99D\uAD8C\uC0AC\uB97C \uAD8C\uD558\uC9C0 \uC54A\uACE0, \uC5B4\uB514\uC11C \uD558\uB4E0 \uACF5\uD1B5\uC73C\uB85C \uD544\uC694\uD55C \uAC83\uB9CC \uC801\uC5C8\uC2B5\uB2C8\uB2E4.",
+  targetQueries: ["\uC8FC\uC2DD \uD22C\uC790 \uC2DC\uC791", "\uC99D\uAD8C \uACC4\uC88C \uAC1C\uC124", "\uD574\uC678\uC8FC\uC2DD \uC0AC\uB294 \uBC95", "\uC8FC\uC2DD \uCC98\uC74C \uC2DC\uC791"],
+  sections: [
+    {
+      id: "order",
+      heading: "\uD070 \uC21C\uC11C \u2014 \uACC4\uC88C \u2192 \uC785\uAE08 \u2192 (\uD574\uC678\uB77C\uBA74) \uD658\uC804 \u2192 \uB9E4\uC218",
+      navLabel: "\uD070 \uC21C\uC11C",
+      paragraphs: [
+        "\uC8FC\uC2DD\uC744 \uC0AC\uB824\uBA74 \uC99D\uAD8C \uACC4\uC88C\uAC00 \uD544\uC694\uD569\uB2C8\uB2E4. \uC740\uD589 \uACC4\uC88C\uC640\uB294 \uB2E4\uB978 \uACC4\uC88C\uC774\uACE0, \uB300\uBD80\uBD84 \uC2A4\uB9C8\uD2B8\uD3F0 \uC571\uC5D0\uC11C \uC2E0\uBD84\uC99D\uACFC \uBCF8\uC778 \uBA85\uC758 \uC740\uD589 \uACC4\uC88C\uB9CC \uC788\uC73C\uBA74 \uBE44\uB300\uBA74\uC73C\uB85C \uC5F4 \uC218 \uC788\uC2B5\uB2C8\uB2E4.",
+        "\uACC4\uC88C\uB97C \uC5F4\uBA74 \uADF8 \uACC4\uC88C\uB85C \uB3C8\uC744 \uC62E\uAE41\uB2C8\uB2E4. \uAD6D\uB0B4 \uC8FC\uC2DD\uC740 \uBC14\uB85C \uC0B4 \uC218 \uC788\uACE0, \uBBF8\uAD6D \uC8FC\uC2DD\uCC98\uB7FC \uD574\uC678 \uC885\uBAA9\uC744 \uC0AC\uB824\uBA74 \uB450 \uAC00\uC9C0\uAC00 \uB354 \uD544\uC694\uD569\uB2C8\uB2E4 \u2014 \uD574\uC678 \uC8FC\uC2DD \uAC70\uB798 \uC2E0\uCCAD\uACFC \uD658\uC804\uC785\uB2C8\uB2E4.",
+        "\uC774 \uC0AC\uC774\uD2B8\uB294 \uC5B4\uB290 \uC99D\uAD8C\uC0AC\uB97C \uC4F0\uB77C\uACE0 \uAD8C\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. \uD68C\uC0AC\uB9C8\uB2E4 \uC218\uC218\uB8CC\uC640 \uD658\uC804 \uBC29\uC2DD\uC774 \uB2E4\uB974\uBBC0\uB85C, \uC544\uB798 \uD56D\uBAA9\uC744 \uAE30\uC900\uC73C\uB85C \uC2A4\uC2A4\uB85C \uBE44\uAD50\uD558\uC2DC\uB294 \uD3B8\uC774 \uC88B\uC2B5\uB2C8\uB2E4."
+      ],
+      table: {
+        caption: "\uACC4\uC88C\uB97C \uACE0\uB97C \uB54C \uBE44\uAD50\uD558\uB294 \uD56D\uBAA9",
+        columns: ["\uD56D\uBAA9", "\uBB34\uC5C7\uC744 \uBCF4\uB098"],
+        rows: [
+          ["\uAC70\uB798 \uC218\uC218\uB8CC", "\uB9E4\uC218\xB7\uB9E4\uB3C4\uD560 \uB54C\uB9C8\uB2E4 \uBD99\uB294 \uBE44\uC728. \uC18C\uC561\uC744 \uC790\uC8FC \uC0B4\uC218\uB85D \uCCB4\uAC10\uC774 \uD07D\uB2C8\uB2E4."],
+          ["\uD658\uC804 \uBC29\uC2DD\xB7\uD658\uC728 \uC6B0\uB300", "\uC6D0\uD654\uB97C \uB2EC\uB7EC\uB85C \uBC14\uAFC0 \uB54C\uC758 \uC870\uAC74. \uC790\uB3D9 \uD658\uC804 \uAE30\uB2A5\uC774 \uC788\uB294\uC9C0\uB3C4 \uD568\uAED8 \uBD05\uB2C8\uB2E4."],
+          ["\uC18C\uC218\uC810 \uAC70\uB798 \uAC00\uB2A5 \uC5EC\uBD80", "\uD55C \uC8FC \uAC12\uC774 \uBE44\uC2FC \uC885\uBAA9\uC744 \uC870\uAE08\uC529 \uC0AC\uB824\uBA74 \uD544\uC694\uD569\uB2C8\uB2E4."],
+          ["\uBC30\uB2F9 \uC785\uAE08 \uCC98\uB9AC", "\uBC30\uB2F9\uC774 \uB2EC\uB7EC\uB85C \uB4E4\uC5B4\uC624\uB294\uC9C0 \uC6D0\uD654\uB85C \uB4E4\uC5B4\uC624\uB294\uC9C0, \uC6D0\uCC9C\uC9D5\uC218\uAC00 \uC5B4\uB5BB\uAC8C \uD45C\uC2DC\uB418\uB294\uC9C0."]
+        ],
+        note: "\uD56D\uBAA9\uB9CC \uC815\uB9AC\uD55C \uAC83\uC774\uACE0 \uD2B9\uC815 \uD68C\uC0AC\uC758 \uC870\uAC74\uC744 \uBE44\uAD50\uD558\uC9C0\uB294 \uC54A\uC2B5\uB2C8\uB2E4. \uC870\uAC74\uC740 \uC218\uC2DC\uB85C \uBC14\uB00C\uBBC0\uB85C \uAC01 \uD68C\uC0AC \uC548\uB0B4\uB97C \uC9C1\uC811 \uD655\uC778\uD558\uC2DC\uB294 \uD3B8\uC774 \uC815\uD655\uD569\uB2C8\uB2E4."
+      }
+    },
+    {
+      id: "before-first-buy",
+      heading: "\uCCAB \uB9E4\uC218 \uC804\uC5D0 \uC815\uD574 \uB458 \uC138 \uAC00\uC9C0",
+      navLabel: "\uCCAB \uB9E4\uC218 \uC804",
+      paragraphs: [
+        "\uCCAB\uC9F8, \uC5BC\uB9C8\uB97C \uC5BC\uB9C8 \uB3D9\uC548 \uB123\uC744\uC9C0 \uC815\uD569\uB2C8\uB2E4. \uD55C \uBC88\uC5D0 \uD070 \uAE08\uC561\uC744 \uB123\uB294 \uAC83\uACFC \uB9E4\uB2EC \uB098\uB220 \uB123\uB294 \uAC83\uC740 \uACB0\uACFC\uAC00 \uB2E4\uB974\uACE0, \uB300\uBD80\uBD84\uC758 \uC0AC\uB78C\uC5D0\uAC8C\uB294 \uB9E4\uB2EC \uB123\uB294 \uCABD\uC774 \uC9C0\uD0A4\uAE30 \uC27D\uC2B5\uB2C8\uB2E4.",
+        "\uB458\uC9F8, \uC774 \uB3C8\uC744 \uC5B8\uC81C \uC4F8 \uAC83\uC778\uC9C0 \uC815\uD569\uB2C8\uB2E4. 1~2\uB144 \uC548\uC5D0 \uC4F8 \uB3C8\uC774\uB77C\uBA74 \uC8FC\uC2DD\uBCF4\uB2E4 \uC608\uAE08\uC774 \uB9DE\uC744 \uC218 \uC788\uC2B5\uB2C8\uB2E4. \uC8FC\uAC00\uB294 \uC9E7\uC740 \uAE30\uAC04\uC5D0 \uD06C\uAC8C \uD754\uB4E4\uB9BD\uB2C8\uB2E4.",
+        "\uC14B\uC9F8, \uC5BC\uB9C8\uAE4C\uC9C0 \uB5A8\uC5B4\uC9C0\uBA74 \uACAC\uB51C \uC218 \uC788\uB294\uC9C0 \uBBF8\uB9AC \uC0DD\uAC01\uD574 \uB461\uB2C8\uB2E4. \uB5A8\uC5B4\uC9C4 \uB2E4\uC74C\uC5D0 \uC815\uD558\uBA74 \uB300\uAC1C \uAC00\uC7A5 \uB098\uC05C \uC2DC\uC810\uC5D0 \uD314\uAC8C \uB429\uB2C8\uB2E4."
+      ],
+      caution: "\uD22C\uC790\uC5D0\uB294 \uC6D0\uAE08 \uC190\uC2E4 \uC704\uD5D8\uC774 \uC788\uC2B5\uB2C8\uB2E4. \uC774 \uAE00\uC740 \uC808\uCC28\uB97C \uC124\uBA85\uD560 \uBFD0\uC774\uBA70 \uD2B9\uC815 \uC885\uBAA9\uC774\uB098 \uC2DC\uC810\uC744 \uAD8C\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4."
+    },
+    {
+      id: "what-to-buy",
+      heading: "\uBB34\uC5C7\uC744 \uC0B4 \uAC83\uC778\uAC00 \u2014 \uB450 \uAC08\uB798\uC5D0\uC11C \uC2DC\uC791\uD569\uB2C8\uB2E4",
+      navLabel: "\uBB34\uC5C7\uC744 \uC0B4\uAE4C",
+      paragraphs: [
+        "\uCC98\uC74C \uC2DC\uC791\uD560 \uB54C \uAC00\uC7A5 \uD754\uD55C \uB450 \uAC08\uB798\uB294 \uC9C0\uC218\uB97C \uB530\uB77C\uAC00\uB294 \uD22C\uC790\uC640 \uBC30\uB2F9\uC744 \uBC1B\uB294 \uD22C\uC790\uC785\uB2C8\uB2E4. \uB458\uC740 \uC11C\uB85C \uBC30\uD0C0\uC801\uC774\uC9C0 \uC54A\uACE0, \uD55C \uACC4\uC88C \uC548\uC5D0\uC11C \uC11E\uC5B4 \uB2F4\uB294 \uACBD\uC6B0\uAC00 \uB9CE\uC2B5\uB2C8\uB2E4.",
+        "\uC9C0\uC218\uCD94\uC885\uC740 \uC2DC\uC7A5 \uC804\uCCB4\uB97C \uC0AC\uB294 \uBC29\uC2DD\uC774\uB77C \uC885\uBAA9\uC744 \uACE0\uB974\uB294 \uBD80\uB2F4\uC774 \uC801\uACE0, \uBC30\uB2F9 \uD22C\uC790\uB294 \uBCF4\uC720\uD558\uB294 \uB3D9\uC548 \uD604\uAE08\uC774 \uB4E4\uC5B4\uC628\uB2E4\uB294 \uC810\uC774 \uB2E4\uB985\uB2C8\uB2E4. \uAC01\uAC01\uC774 \uBB34\uC5C7\uC778\uC9C0\uB294 \uC544\uB798 \uB2E4\uB978 \uAC00\uC774\uB4DC\uC5D0\uC11C \uC774\uC5B4\uC11C \uB2E4\uB8F9\uB2C8\uB2E4."
+      ]
+    }
+  ],
+  faqs: [
+    {
+      question: "\uC99D\uAD8C \uACC4\uC88C\uB294 \uC5B4\uB5BB\uAC8C \uC5EC\uB098\uC694?",
+      answer: "\uB300\uBD80\uBD84 \uC99D\uAD8C\uC0AC \uC571\uC5D0\uC11C \uBE44\uB300\uBA74\uC73C\uB85C \uC5F4 \uC218 \uC788\uC2B5\uB2C8\uB2E4. \uC2E0\uBD84\uC99D\uACFC \uBCF8\uC778 \uBA85\uC758 \uC740\uD589 \uACC4\uC88C\uAC00 \uD544\uC694\uD558\uACE0, \uBCF4\uD1B5 10\uBD84 \uC548\uD30E\uC774 \uAC78\uB9BD\uB2C8\uB2E4. \uC808\uCC28\uB294 \uD68C\uC0AC\uB9C8\uB2E4 \uC870\uAE08\uC529 \uB2E4\uB985\uB2C8\uB2E4."
+    },
+    {
+      question: "\uBBF8\uAD6D \uC8FC\uC2DD\uC744 \uC0AC\uB824\uBA74 \uBB34\uC5C7\uC774 \uB354 \uD544\uC694\uD55C\uAC00\uC694?",
+      answer: "\uD574\uC678 \uC8FC\uC2DD \uAC70\uB798 \uC2E0\uCCAD\uACFC \uD658\uC804\uC774 \uCD94\uAC00\uB85C \uD544\uC694\uD569\uB2C8\uB2E4. \uD68C\uC0AC\uC5D0 \uB530\uB77C \uC6D0\uD654\uB85C \uC8FC\uBB38\uD558\uBA74 \uC790\uB3D9\uC73C\uB85C \uD658\uC804\uB418\uB294 \uAE30\uB2A5\uC744 \uC81C\uACF5\uD558\uAE30\uB3C4 \uD569\uB2C8\uB2E4."
+    },
+    {
+      question: "\uC5BC\uB9C8\uBD80\uD130 \uC2DC\uC791\uD560 \uC218 \uC788\uB098\uC694?",
+      answer: "\uC815\uD574\uC9C4 \uCD5C\uC18C \uAE08\uC561\uC740 \uC5C6\uC2B5\uB2C8\uB2E4. \uB2E4\uB9CC \uD55C \uC8FC \uAC12\uC774 \uBE44\uC2FC \uC885\uBAA9\uC740 \uC18C\uC218\uC810 \uAC70\uB798\uB97C \uC9C0\uC6D0\uD558\uB294 \uACC4\uC88C\uB77C\uC57C \uC18C\uC561\uC73C\uB85C \uB098\uB220 \uC0B4 \uC218 \uC788\uC2B5\uB2C8\uB2E4."
+    },
+    {
+      question: "\uC801\uB9BD\uC2DD\uACFC \uD55C \uBC88\uC5D0 \uB123\uB294 \uAC83 \uC911 \uC5B4\uB290 \uCABD\uC774 \uB098\uC740\uAC00\uC694?",
+      answer: "\uACB0\uACFC\uB294 \uC2DC\uC7A5\uC758 \uC6C0\uC9C1\uC784\uC5D0 \uB530\uB77C \uB2EC\uB77C\uC838 \uD558\uB098\uC758 \uB2F5\uC774 \uC5C6\uC2B5\uB2C8\uB2E4. \uB2E4\uB9CC \uB9E4\uB2EC \uB098\uB220 \uB123\uB294 \uBC29\uC2DD\uC740 \uB9E4\uC218 \uC2DC\uC810\uC744 \uACE0\uB974\uB294 \uBD80\uB2F4\uC774 \uC801\uC5B4 \uC624\uB798 \uC9C0\uD0A4\uAE30 \uC27D\uB2E4\uB294 \uC810\uC774 \uB2E4\uB985\uB2C8\uB2E4."
+    }
+  ],
+  cta: {
+    to: SIMULATOR_PATH,
+    label: "\uC870\uAC74\uC744 \uB123\uACE0 \uACC4\uC0B0\uD574 \uBCF4\uAE30",
+    note: "\uB9E4\uB2EC \uB123\uC744 \uAE08\uC561\uACFC \uAE30\uAC04\uC744 \uC815\uD588\uB2E4\uBA74, \uADF8 \uC870\uAC74\uC5D0\uC11C \uBC30\uB2F9\uC774 \uC5B4\uB5BB\uAC8C \uC313\uC774\uB294\uC9C0 \uACC4\uC0B0\uD574 \uBCFC \uC218 \uC788\uC2B5\uB2C8\uB2E4."
+  }
+};
+
+// shared/constants/guides/whatIsDividend.ts
+var WHAT_IS_DIVIDEND_GUIDE = {
+  slug: "what-is-dividend",
+  metaTitle: "\uBC30\uB2F9\uC774\uB780 \uBB34\uC5C7\uC778\uAC00 \u2014 \uBC30\uB2F9\uAE08\xB7\uBC30\uB2F9\uB960\xB7\uBC30\uB2F9\uC131\uD5A5 \uB73B \uC815\uB9AC",
+  metaDescription: "\uBC30\uB2F9\uC740 \uD68C\uC0AC\uAC00 \uBC88 \uC774\uC775\uC758 \uC77C\uBD80\uB97C \uC8FC\uC8FC\uC5D0\uAC8C \uD604\uAE08\uC73C\uB85C \uB098\uB220 \uC8FC\uB294 \uAC83\uC785\uB2C8\uB2E4. \uBC30\uB2F9\uAE08\uACFC \uBC30\uB2F9\uB960\uC758 \uCC28\uC774, \uBC30\uB2F9\uC131\uD5A5, \uBC30\uB2F9\uC774 \uC904\uC5B4\uB4DC\uB294 \uACBD\uC6B0\uAE4C\uC9C0 \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4.",
+  title: "\uBC30\uB2F9\uC774\uB780 \uBB34\uC5C7\uC778\uAC00",
+  lede: "\uD68C\uC0AC\uAC00 \uBC88 \uC774\uC775\uC758 \uC77C\uBD80\uB97C \uC8FC\uC8FC\uC5D0\uAC8C \uD604\uAE08\uC73C\uB85C \uB098\uB220 \uC8FC\uB294 \uAC83\uC785\uB2C8\uB2E4. \uC8FC\uC2DD\uC744 \uD314\uC9C0 \uC54A\uC544\uB3C4 \uD604\uAE08\uC774 \uB4E4\uC5B4\uC628\uB2E4\uB294 \uC810\uC774 \uB2E4\uB978 \uC218\uC775\uACFC \uB2E4\uB985\uB2C8\uB2E4.",
+  targetQueries: ["\uBC30\uB2F9\uC774\uB780", "\uBC30\uB2F9\uAE08\uC774\uB780", "\uBC30\uB2F9\uB960 \uB73B", "\uBC30\uB2F9\uC131\uD5A5"],
+  sections: [
+    {
+      id: "definition",
+      heading: "\uBC30\uB2F9 \u2014 \uC774\uC775\uC744 \uB098\uB204\uB294 \uD55C \uAC00\uC9C0 \uBC29\uBC95",
+      navLabel: "\uBC30\uB2F9\uC758 \uC815\uC758",
+      paragraphs: [
+        "\uD68C\uC0AC\uAC00 \uD55C \uD574 \uC7A5\uC0AC\uB97C \uD574\uC11C \uC774\uC775\uC744 \uB0A8\uAE30\uBA74 \uADF8 \uB3C8\uC744 \uC4F0\uB294 \uAE38\uC740 \uD06C\uAC8C \uB458\uC785\uB2C8\uB2E4. \uC0AC\uC5C5\uC5D0 \uB2E4\uC2DC \uB123\uAC70\uB098(\uC7AC\uD22C\uC790), \uC8FC\uC8FC\uC5D0\uAC8C \uB098\uB220 \uC8FC\uAC70\uB098(\uBC30\uB2F9). \uBC30\uB2F9\uC740 \uADF8 \uB450 \uBC88\uC9F8\uC785\uB2C8\uB2E4.",
+        "\uC8FC\uC2DD\uC744 \uAC16\uACE0 \uC788\uB294 \uC0AC\uB78C\uC5D0\uAC8C \uD604\uAE08\uC774 \uB4E4\uC5B4\uC628\uB2E4\uB294 \uC810\uC774 \uBC30\uB2F9\uC758 \uD2B9\uC9D5\uC785\uB2C8\uB2E4. \uC8FC\uAC00\uAC00 \uC62C\uB77C \uC0DD\uAE30\uB294 \uC774\uC775\uC740 \uD314\uC544\uC57C \uC190\uC5D0 \uC950\uC9C0\uB9CC, \uBC30\uB2F9\uC740 \uD314\uC9C0 \uC54A\uC544\uB3C4 \uB4E4\uC5B4\uC635\uB2C8\uB2E4.",
+        "\uBC30\uB2F9\uC744 \uC8FC\uC9C0 \uC54A\uB294 \uD68C\uC0AC\uAC00 \uB098\uC05C \uAC83\uC740 \uC544\uB2D9\uB2C8\uB2E4. \uC131\uC7A5\uD558\uB294 \uD68C\uC0AC\uB294 \uC774\uC775\uC744 \uC0AC\uC5C5\uC5D0 \uB2E4\uC2DC \uB123\uB294 \uD3B8\uC774 \uC8FC\uC8FC\uC5D0\uAC8C \uB354 \uC774\uB85C\uC6B8 \uC218 \uC788\uACE0, \uC2E4\uC81C\uB85C \uADF8\uB807\uAC8C \uD558\uB294 \uD68C\uC0AC\uAC00 \uB9CE\uC2B5\uB2C8\uB2E4."
+      ]
+    },
+    {
+      id: "terms",
+      heading: "\uBC30\uB2F9\uAE08\uACFC \uBC30\uB2F9\uB960 \u2014 \uC790\uC8FC \uD5F7\uAC08\uB9AC\uB294 \uB450 \uB9D0",
+      navLabel: "\uBC30\uB2F9\uAE08\uACFC \uBC30\uB2F9\uB960",
+      paragraphs: [
+        "\uBC30\uB2F9\uAE08\uC740 \uAE08\uC561\uC774\uACE0, \uBC30\uB2F9\uB960\uC740 \uBE44\uC728\uC785\uB2C8\uB2E4. \uC8FC\uB2F9 \uBC30\uB2F9\uAE08(DPS)\uC740 \uD55C \uC8FC\uB2F9 \uC5BC\uB9C8\uB97C \uC8FC\uB294\uC9C0\uC774\uACE0, \uBC30\uB2F9\uB960\uC740 \uADF8 \uC5F0 \uBC30\uB2F9\uAE08\uC744 \uD604\uC7AC \uC8FC\uAC00\uB85C \uB098\uB208 \uAC12\uC785\uB2C8\uB2E4.",
+        "\uADF8\uB798\uC11C \uBC30\uB2F9\uB960\uC740 \uBC30\uB2F9\uAE08\uC774 \uADF8\uB300\uB85C\uC5EC\uB3C4 **\uC8FC\uAC00\uAC00 \uB0B4\uB9AC\uBA74 \uC62C\uB77C\uAC11\uB2C8\uB2E4.** \uBC30\uB2F9\uB960\uC774 \uB192\uB2E4\uB294 \uC0AC\uC2E4\uB9CC\uC73C\uB85C \uADF8 \uC885\uBAA9\uC774 \uC548\uC815\uC801\uC774\uB77C\uACE0 \uC77D\uC744 \uC218 \uC5C6\uB294 \uC774\uC720\uAC00 \uC5EC\uAE30 \uC788\uC2B5\uB2C8\uB2E4.",
+        "\uBC30\uB2F9\uC131\uD5A5\uC740 \uC774\uC775 \uC911 \uC5BC\uB9C8\uB97C \uBC30\uB2F9\uC73C\uB85C \uB0B4\uC8FC\uB294\uC9C0\uC758 \uBE44\uC728\uC785\uB2C8\uB2E4. \uC774 \uAC12\uC774 \uC9C0\uB098\uCE58\uAC8C \uB192\uC73C\uBA74 \uC774\uC775\uC774 \uC870\uAE08\uB9CC \uC904\uC5B4\uB3C4 \uBC30\uB2F9\uC744 \uC720\uC9C0\uD558\uAE30 \uC5B4\uB824\uC6CC\uC9D1\uB2C8\uB2E4."
+      ],
+      table: {
+        caption: "\uC138 \uAC00\uC9C0 \uB9D0\uC758 \uCC28\uC774",
+        columns: ["\uB9D0", "\uB73B", "\uBB34\uC5C7\uC744 \uC54C \uC218 \uC788\uB098"],
+        rows: [
+          ["\uC8FC\uB2F9 \uBC30\uB2F9\uAE08", "\uD55C \uC8FC\uB2F9 \uC9C0\uAE09\uD558\uB294 \uAE08\uC561", "\uB0B4\uAC00 \uBC1B\uC744 \uAE08\uC561(\uC218\uB7C9 \xD7 \uC774 \uAC12)"],
+          ["\uBC30\uB2F9\uB960", "\uC5F0 \uBC30\uB2F9\uAE08 \xF7 \uD604\uC7AC \uC8FC\uAC00", "\uC9C0\uAE08 \uC0AC\uBA74 \uC5BC\uB9C8 \uBE44\uC728\uB85C \uBC1B\uB294\uAC00"],
+          ["\uBC30\uB2F9\uC131\uD5A5", "\uBC30\uB2F9 \uCD1D\uC561 \xF7 \uC21C\uC774\uC775", "\uC9C0\uAE08 \uBC30\uB2F9\uC774 \uBB34\uB9AC\uC778\uC9C0 \uC544\uB2CC\uC9C0"]
+        ],
+        note: "\uBC30\uB2F9\uB960\uC740 \uC8FC\uAC00\uC5D0 \uB530\uB77C \uB9E4\uC77C \uBC14\uB00C\uACE0, \uBC30\uB2F9\uC131\uD5A5\uC740 \uC2E4\uC801 \uBC1C\uD45C\uC5D0 \uB530\uB77C \uBD84\uAE30\uB9C8\uB2E4 \uBC14\uB01D\uB2C8\uB2E4."
+      }
+    },
+    {
+      id: "when",
+      heading: "\uC5B8\uC81C \uC5BC\uB9C8\uB098 \uB4E4\uC5B4\uC624\uB098",
+      navLabel: "\uC9C0\uAE09 \uC2DC\uC810",
+      paragraphs: [
+        "\uC9C0\uAE09 \uC8FC\uAE30\uB294 \uC885\uBAA9\uB9C8\uB2E4 \uB2E4\uB985\uB2C8\uB2E4. \uBBF8\uAD6D \uC885\uBAA9\uC740 \uBD84\uAE30(\uC5F0 4\uD68C)\uAC00 \uAC00\uC7A5 \uD754\uD558\uACE0, \uC6D4 \uBC30\uB2F9\uC744 \uD558\uB294 ETF\uB3C4 \uC788\uC2B5\uB2C8\uB2E4. \uAD6D\uB0B4 \uC885\uBAA9\uC740 \uC5F0 1\uD68C\uB098 \uBC18\uAE30\uAC00 \uB9CE\uC2B5\uB2C8\uB2E4.",
+        "\uBC30\uB2F9\uC744 \uBC1B\uC73C\uB824\uBA74 \uBC30\uB2F9 \uAE30\uC900\uC77C\uC5D0 \uC8FC\uC8FC\uBA85\uBD80\uC5D0 \uC62C\uB77C \uC788\uC5B4\uC57C \uD569\uB2C8\uB2E4. \uC2E4\uC81C \uC785\uAE08\uC740 \uADF8\uBCF4\uB2E4 \uBA87 \uC8FC \uB4A4\uC778 \uC9C0\uAE09\uC77C\uC5D0 \uC774\uB904\uC9D1\uB2C8\uB2E4.",
+        "\uC9C0\uAE09 \uC6D4\uC774 \uC11C\uB85C \uB2E4\uB978 \uC885\uBAA9\uC744 \uC11E\uC73C\uBA74 \uBC30\uB2F9\uC774 \uB4E4\uC5B4\uC624\uB294 \uB2EC\uC774 \uCD18\uCD18\uD574\uC9D1\uB2C8\uB2E4. \uCD1D\uC561\uC774 \uB298\uC5B4\uB098\uB294 \uAC83\uC740 \uC544\uB2C8\uACE0, \uB4E4\uC5B4\uC624\uB294 \uC2DC\uC810\uC774 \uACE0\uB974\uAC8C \uD37C\uC9C0\uB294 \uAC83\uC785\uB2C8\uB2E4."
+      ]
+    },
+    {
+      id: "risk",
+      heading: "\uBC30\uB2F9\uC740 \uC57D\uC18D\uC774 \uC544\uB2C8\uB2E4",
+      navLabel: "\uBC30\uB2F9\uC758 \uC704\uD5D8",
+      paragraphs: [
+        "\uBC30\uB2F9\uC740 \uD68C\uC0AC\uAC00 \uB9E4\uBC88 \uACB0\uC815\uD558\uB294 \uAC83\uC774\uC9C0 \uACC4\uC57D\uC774 \uC544\uB2D9\uB2C8\uB2E4. \uC2E4\uC801\uC774 \uB098\uBE60\uC9C0\uAC70\uB098 \uD070 \uD22C\uC790\uAC00 \uD544\uC694\uD558\uBA74 \uC904\uC774\uAC70\uB098 \uBA48\uCD9C \uC218 \uC788\uACE0, \uC2E4\uC81C\uB85C \uADF8\uB7F0 \uC77C\uC774 \uC77C\uC5B4\uB0A9\uB2C8\uB2E4.",
+        "\uC624\uB798 \uBC30\uB2F9\uC744 \uB298\uB824 \uC628 \uAE30\uC5C5\uB4E4\uC744 \uBAA8\uC544 \uB193\uC740 \uBAA9\uB85D\uC774 \uC788\uB294 \uAC83\uB3C4 \uADF8\uB798\uC11C\uC785\uB2C8\uB2E4. \uADF8 \uAE30\uB85D\uC774 \uBBF8\uB798\uB97C \uBCF4\uC7A5\uD558\uC9C0\uB294 \uC54A\uC9C0\uB9CC, \uC5EC\uB7EC \uAD6D\uBA74\uC744 \uC9C0\uB098\uBA74\uC11C\uB3C4 \uBC30\uB2F9\uC744 \uC904\uC774\uC9C0 \uC54A\uC558\uB2E4\uB294 \uC0AC\uC2E4\uC740 \uB0A8\uC2B5\uB2C8\uB2E4."
+      ],
+      caution: "\uC5F0\uC18D \uC99D\uBC30 \uAE30\uB85D\uC774 \uAE34 \uAE30\uC5C5\uB3C4 \uBC30\uB2F9\uC744 \uC904\uC778 \uC0AC\uB840\uAC00 \uC788\uC2B5\uB2C8\uB2E4. \uBAA9\uB85D\uC5D0 \uC788\uB2E4\uB294 \uC0AC\uC2E4\uB9CC\uC73C\uB85C \uC548\uC804\uD558\uB2E4\uACE0 \uC77D\uC9C0 \uC54A\uB294 \uD3B8\uC774 \uC88B\uC2B5\uB2C8\uB2E4."
+    }
+  ],
+  faqs: [
+    {
+      question: "\uBC30\uB2F9\uC774\uB780 \uBB34\uC5C7\uC778\uAC00\uC694?",
+      answer: "\uD68C\uC0AC\uAC00 \uBC88 \uC774\uC775\uC758 \uC77C\uBD80\uB97C \uC8FC\uC8FC\uC5D0\uAC8C \uD604\uAE08\uC73C\uB85C \uB098\uB220 \uC8FC\uB294 \uAC83\uC785\uB2C8\uB2E4. \uC8FC\uC2DD\uC744 \uD314\uC9C0 \uC54A\uC544\uB3C4 \uBCF4\uC720\uD558\uB294 \uB3D9\uC548 \uD604\uAE08\uC774 \uB4E4\uC5B4\uC628\uB2E4\uB294 \uC810\uC774 \uD2B9\uC9D5\uC785\uB2C8\uB2E4."
+    },
+    {
+      question: "\uBC30\uB2F9\uAE08\uACFC \uBC30\uB2F9\uB960\uC740 \uC5B4\uB5BB\uAC8C \uB2E4\uB978\uAC00\uC694?",
+      answer: "\uBC30\uB2F9\uAE08\uC740 \uAE08\uC561(\uC8FC\uB2F9 \uC5BC\uB9C8), \uBC30\uB2F9\uB960\uC740 \uBE44\uC728(\uC5F0 \uBC30\uB2F9\uAE08 \xF7 \uC8FC\uAC00)\uC785\uB2C8\uB2E4. \uBC30\uB2F9\uAE08\uC774 \uADF8\uB300\uB85C\uC5EC\uB3C4 \uC8FC\uAC00\uAC00 \uB0B4\uB9AC\uBA74 \uBC30\uB2F9\uB960\uC740 \uC62C\uB77C\uAC11\uB2C8\uB2E4."
+    },
+    {
+      question: "\uBC30\uB2F9\uC740 \uC5B8\uC81C \uB4E4\uC5B4\uC624\uB098\uC694?",
+      answer: "\uBC30\uB2F9 \uAE30\uC900\uC77C\uC5D0 \uC8FC\uC8FC\uBA85\uBD80\uC5D0 \uC62C\uB77C \uC788\uC73C\uBA74 \uADF8 \uD68C\uCC28 \uBC30\uB2F9\uC744 \uBC1B\uACE0, \uC2E4\uC81C \uC785\uAE08\uC740 \uC9C0\uAE09\uC77C\uC5D0 \uC774\uB904\uC9D1\uB2C8\uB2E4. \uBBF8\uAD6D \uC885\uBAA9\uC740 \uBD84\uAE30 \uC9C0\uAE09\uC774 \uAC00\uC7A5 \uD754\uD569\uB2C8\uB2E4."
+    },
+    {
+      question: "\uBC30\uB2F9\uC744 \uC8FC\uC9C0 \uC54A\uB294 \uD68C\uC0AC\uB294 \uB098\uC05C \uD68C\uC0AC\uC778\uAC00\uC694?",
+      answer: "\uADF8\uB807\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. \uC774\uC775\uC744 \uC0AC\uC5C5\uC5D0 \uB2E4\uC2DC \uB123\uB294 \uD3B8\uC774 \uC8FC\uC8FC\uC5D0\uAC8C \uB354 \uC774\uB85C\uC6B8 \uC218 \uC788\uACE0, \uC131\uC7A5\uD558\uB294 \uD68C\uC0AC\uC77C\uC218\uB85D \uADF8\uB807\uAC8C \uD558\uB294 \uACBD\uC6B0\uAC00 \uB9CE\uC2B5\uB2C8\uB2E4."
+    }
+  ],
+  cta: {
+    to: SIMULATOR_PATH,
+    label: "\uB0B4 \uC870\uAC74\uC73C\uB85C \uBC30\uB2F9 \uACC4\uC0B0\uD574 \uBCF4\uAE30",
+    note: "\uBCF4\uC720 \uC885\uBAA9\uACFC \uD22C\uC790 \uC870\uAC74\uC744 \uB123\uC73C\uBA74 \uBC30\uB2F9\uC774 \uD574\uB9C8\uB2E4 \uC5B4\uB5BB\uAC8C \uC313\uC774\uB294\uC9C0 \uACC4\uC0B0\uD569\uB2C8\uB2E4."
+  }
+};
+
+// shared/constants/guides/index.ts
+var GUIDES = [
+  START_INVESTING_GUIDE,
+  WHAT_IS_DIVIDEND_GUIDE,
+  INDEX_INVESTING_GUIDE,
+  DIVIDEND_CALCULATOR_GUIDE,
+  MONTHLY_DIVIDEND_GOAL_GUIDE
+];
+var guidePath = (slug) => `/guide/${slug}`;
+var findGuide = (slug) => GUIDES.find((guide) => guide.slug === slug.toLowerCase());
+
+// server/handlers/GuideHtml/GuideHtml.ts
+var CACHE_GUIDE = "public, max-age=0, s-maxage=86400, stale-while-revalidate=604800";
+var CACHE_NO_STORE2 = "no-store";
+var htmlResponse2 = (html, status, cache) => new Response(html, {
+  status,
+  headers: { "content-type": "text/html; charset=utf-8", "cache-control": cache }
+});
+var redirectToRoot2 = (origin) => new Response(null, {
+  status: 302,
+  headers: { Location: new URL("/", origin).toString(), "cache-control": CACHE_NO_STORE2 }
+});
+var SITE_SUFFIX2 = "Hungry Hippo";
+var escapeJsonForScript2 = (value) => JSON.stringify(value).replace(/</g, "\\u003c");
+var jsonLdScript2 = (graph) => `<script type="application/ld+json">${escapeJsonForScript2(graph)}</script>`;
+var applyMeta2 = (shell, title, description, canonical) => {
+  let html = shell;
+  html = replaceTitleTag(html, title);
+  html = replaceMetaContent(html, "name", "description", description);
+  html = replaceLinkHref(html, "canonical", canonical);
+  html = replaceMetaContent(html, "property", "og:title", title);
+  html = replaceMetaContent(html, "property", "og:description", description);
+  html = replaceMetaContent(html, "property", "og:url", canonical);
+  html = replaceMetaContent(html, "name", "twitter:title", title);
+  html = replaceMetaContent(html, "name", "twitter:description", description);
+  return html;
+};
+var injectAtRoot2 = (shell, body) => {
+  const rootOpenTag = shell.match(/<div\s+id="root"[^>]*>/i);
+  if (!rootOpenTag || rootOpenTag.index === void 0) return shell;
+  const insertAt = rootOpenTag.index + rootOpenTag[0].length;
+  return shell.slice(0, insertAt) + body + shell.slice(insertAt);
+};
+var renderTable = (section) => {
+  const table = section.table;
+  if (!table) return "";
+  const head = table.columns.map((column) => `<th scope="col">${escapeHtmlText(column)}</th>`).join("");
+  const body = table.rows.map((row) => `<tr>${row.map((cell) => `<td>${escapeHtmlText(cell)}</td>`).join("")}</tr>`).join("");
+  return `<table><caption>${escapeHtmlText(table.caption)}</caption><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>` + (table.note ? `<p class="table-note">${escapeHtmlText(table.note)}</p>` : "");
+};
+var renderSection = (section) => `<section id="${escapeHtmlAttribute(section.id)}"><h2>${escapeHtmlText(section.heading)}</h2>` + section.paragraphs.map((paragraph) => `<p>${escapeHtmlText(paragraph)}</p>`).join("") + renderTable(section) + (section.caution ? `<p class="caution">${escapeHtmlText(section.caution)}</p>` : "") + "</section>";
+var renderFaqs = (guide) => '<section id="faq"><h2>\uC790\uC8FC \uBB3B\uB294 \uC9C8\uBB38</h2>' + guide.faqs.map(
+  (faq) => `<details><summary>${escapeHtmlText(faq.question)}</summary><p>${escapeHtmlText(faq.answer)}</p></details>`
+).join("") + "</section>";
+var renderRelated2 = (guide) => {
+  const others = GUIDES.filter((entry) => entry.slug !== guide.slug);
+  if (others.length === 0) return "";
+  return '<nav class="related"><h2>\uB2E4\uB978 \uAC00\uC774\uB4DC</h2><ul>' + others.map(
+    (entry) => `<li><a href="${escapeHtmlAttribute(guidePath(entry.slug))}">${escapeHtmlText(entry.title)}</a> \u2014 ${escapeHtmlText(entry.lede)}</li>`
+  ).join("") + "</ul></nav>";
+};
+var buildJsonLd = (guide, canonical) => jsonLdScript2([
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: guide.title,
+    description: guide.metaDescription,
+    url: canonical,
+    inLanguage: "ko",
+    isAccessibleForFree: true
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: guide.faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: { "@type": "Answer", text: faq.answer }
+    }))
+  }
+]);
+var injectGuideBody = (shell, guide, canonical) => {
+  const article = `<article><h1>${escapeHtmlText(guide.title)}</h1><p>${escapeHtmlText(guide.lede)}</p>` + guide.sections.map(renderSection).join("") + renderFaqs(guide) + `<p class="cta"><a href="${escapeHtmlAttribute(guide.cta.to)}">${escapeHtmlText(guide.cta.label)}</a> \u2014 ${escapeHtmlText(guide.cta.note)}</p>` + renderRelated2(guide) + "</article>" + buildJsonLd(guide, canonical);
+  return injectAtRoot2(shell, article);
+};
+async function handler2(request) {
+  const { origin, searchParams } = new URL(request.url);
+  const slug = (searchParams.get("slug") ?? "").trim().toLowerCase();
+  let shell;
+  try {
+    const response = await fetch(new URL("/index.html", origin));
+    if (!response.ok) return redirectToRoot2(origin);
+    shell = await response.text();
+  } catch {
+    return redirectToRoot2(origin);
+  }
+  const guide = findGuide(slug);
+  if (!guide) return htmlResponse2(shell, 200, CACHE_NO_STORE2);
+  const siteUrl = resolveSiteUrl(request.url);
+  const canonical = `${siteUrl}${guidePath(guide.slug)}`;
+  const html = applyMeta2(shell, `${guide.metaTitle} - ${SITE_SUFFIX2}`, guide.metaDescription, canonical);
+  return htmlResponse2(injectGuideBody(html, guide, canonical), 200, CACHE_GUIDE);
+}
+var GuideHtml_default = toNodeHandler(handler2);
+
+// shared/constants/tickers/TickerCategory.ts
+var TICKER_CATEGORY_LABEL = {
+  "dividend-growth": "\uBC30\uB2F9\uC131\uC7A5 ETF",
+  "high-dividend": "\uACE0\uBC30\uB2F9 ETF",
+  "covered-call": "\uCEE4\uBC84\uB4DC\uCF5C\xB7\uC635\uC158\uC778\uCEF4 ETF",
+  reit: "\uB9AC\uCE20(REITs)",
+  international: "\uD574\uC678 \uBC30\uB2F9 ETF",
+  "core-index": "\uCF54\uC5B4 \uC9C0\uC218 ETF",
+  "dividend-stock": "\uAC1C\uBCC4 \uBC30\uB2F9\uC8FC"
+};
+
+// shared/constants/marketData/marketData.generated.json
+var marketData_generated_default = {
+  asOf: "2026-08-01",
+  source: "yahoo",
+  entries: {
+    ABBV: {
+      initialPrice: 250.94,
+      dividendYield: 2.72,
+      frequency: "quarterly",
+      observedDividendCagr: 6.81,
+      payoutMonths: [
+        2,
+        5,
+        8,
+        11
+      ],
+      exToPayLagDays: 30,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "2": 14,
+        "5": 15,
+        "8": 14,
+        "11": 14
+      }
+    },
+    ADI: {
+      initialPrice: 367.41,
+      dividendYield: 1.14,
+      frequency: "quarterly",
+      observedDividendCagr: 9.81,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    AIQ: {
+      initialPrice: 58.89,
+      dividendYield: 0.08,
+      frequency: "semiannual",
+      observedDividendCagr: -7.26,
+      payoutMonths: [
+        6,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    AMAT: {
+      initialPrice: 507.67,
+      dividendYield: 0.38,
+      frequency: "quarterly",
+      observedDividendCagr: 15.39,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      exToPayLagDays: 21,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "3": 13,
+        "6": 12,
+        "9": 12,
+        "12": 12
+      }
+    },
+    ANET: {
+      initialPrice: 180.35,
+      dividendYield: 0,
+      frequency: "quarterly"
+    },
+    ASML: {
+      initialPrice: 1629,
+      dividendYield: 0.56,
+      frequency: "quarterly",
+      payoutMonths: [
+        2,
+        5,
+        8,
+        11
+      ],
+      exToPayLagDays: 8,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "2": 18,
+        "5": 6,
+        "8": 7,
+        "11": 7
+      }
+    },
+    AVGO: {
+      initialPrice: 389.28,
+      dividendYield: 0.65,
+      frequency: "quarterly",
+      observedDividendCagr: 12.63,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    CEG: {
+      initialPrice: 262.75,
+      dividendYield: 0.62,
+      frequency: "quarterly",
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      exToPayLagDays: 20,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "3": 27,
+        "6": 5,
+        "9": 4,
+        "12": 6
+      }
+    },
+    CGDV: {
+      initialPrice: 49.54,
+      dividendYield: 1.18,
+      frequency: "quarterly",
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    DES: {
+      initialPrice: 40.62,
+      dividendYield: 2.26,
+      frequency: "monthly",
+      observedDividendCagr: 5.47,
+      payoutMonths: [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      exToPayLagDays: 2,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "1": 28,
+        "2": 26,
+        "3": 28,
+        "4": 27,
+        "5": 28,
+        "6": 27,
+        "7": 28,
+        "8": 28,
+        "9": 27,
+        "10": 30,
+        "11": 26,
+        "12": 28
+      }
+    },
+    DGRO: {
+      initialPrice: 78.01,
+      dividendYield: 1.89,
+      frequency: "quarterly",
+      observedDividendCagr: 7.09,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      exToPayLagDays: 3,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "3": 21,
+        "6": 18,
+        "9": 28,
+        "12": 20
+      }
+    },
+    DGRW: {
+      initialPrice: 96.46,
+      dividendYield: 1.28,
+      frequency: "monthly",
+      observedDividendCagr: 4.4,
+      payoutMonths: [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      exToPayLagDays: 2,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "1": 28,
+        "2": 26,
+        "3": 28,
+        "4": 27,
+        "5": 28,
+        "6": 27,
+        "7": 28,
+        "8": 28,
+        "9": 27,
+        "10": 30,
+        "11": 26,
+        "12": 28
+      }
+    },
+    DHS: {
+      initialPrice: 116.59,
+      dividendYield: 3.19,
+      frequency: "monthly",
+      observedDividendCagr: 3.32,
+      payoutMonths: [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      exToPayLagDays: 2,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "1": 28,
+        "2": 26,
+        "3": 28,
+        "4": 27,
+        "5": 28,
+        "6": 27,
+        "7": 28,
+        "8": 28,
+        "9": 27,
+        "10": 30,
+        "11": 26,
+        "12": 28
+      }
+    },
+    DIA: {
+      initialPrice: 524.32,
+      dividendYield: 1.37,
+      frequency: "monthly",
+      observedDividendCagr: 3.73,
+      payoutMonths: [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      exToPayLagDays: 25,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "1": 13,
+        "2": 11,
+        "3": 17,
+        "4": 14,
+        "5": 12,
+        "6": 10,
+        "7": 15,
+        "8": 13,
+        "9": 10,
+        "10": 14,
+        "11": 12,
+        "12": 12
+      }
+    },
+    DIVO: {
+      initialPrice: 46.89,
+      dividendYield: 6.37,
+      frequency: "monthly",
+      observedDividendCagr: 12.25,
+      payoutMonths: [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      exToPayLagDays: 1,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "1": 30,
+        "2": 28,
+        "3": 29,
+        "4": 30,
+        "5": 30,
+        "6": 28,
+        "7": 31,
+        "8": 30,
+        "9": 28,
+        "10": 31,
+        "11": 28,
+        "12": 31
+      }
+    },
+    DLN: {
+      initialPrice: 98.57,
+      dividendYield: 1.75,
+      frequency: "monthly",
+      observedDividendCagr: 3.21,
+      payoutMonths: [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      exToPayLagDays: 2,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "1": 28,
+        "2": 26,
+        "3": 28,
+        "4": 27,
+        "5": 28,
+        "6": 27,
+        "7": 28,
+        "8": 28,
+        "9": 27,
+        "10": 30,
+        "11": 26,
+        "12": 28
+      }
+    },
+    DON: {
+      initialPrice: 57.52,
+      dividendYield: 2.3,
+      frequency: "monthly",
+      observedDividendCagr: 6.24,
+      payoutMonths: [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      exToPayLagDays: 3,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "1": 28,
+        "2": 27,
+        "3": 29,
+        "4": 28,
+        "5": 29,
+        "6": 28,
+        "7": 29,
+        "8": 29,
+        "9": 28,
+        "10": 31,
+        "11": 27,
+        "12": 29
+      }
+    },
+    DVY: {
+      initialPrice: 161.21,
+      dividendYield: 3.26,
+      frequency: "quarterly",
+      observedDividendCagr: 7.86,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      exToPayLagDays: 3,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "3": 21,
+        "6": 18,
+        "9": 28,
+        "12": 20
+      }
+    },
+    DWX: {
+      initialPrice: 47.88,
+      dividendYield: 4.1,
+      frequency: "quarterly",
+      observedDividendCagr: 6.78,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      exToPayLagDays: 2,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "3": 25,
+        "6": 25,
+        "9": 24,
+        "12": 24
+      }
+    },
+    ENB: {
+      initialPrice: 54.46,
+      dividendYield: 3.86,
+      frequency: "quarterly",
+      observedDividendCagr: -3.39,
+      payoutMonths: [
+        2,
+        5,
+        8,
+        11
+      ],
+      payoutMonthsSource: "ex"
+    },
+    ETN: {
+      initialPrice: 415.2,
+      dividendYield: 1.03,
+      frequency: "quarterly",
+      observedDividendCagr: 12.95,
+      payoutMonths: [
+        3,
+        5,
+        8,
+        11
+      ],
+      exToPayLagDays: 18,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "3": 28,
+        "5": 23,
+        "8": 23,
+        "11": 22
+      }
+    },
+    FDVV: {
+      initialPrice: 62.56,
+      dividendYield: 2.76,
+      frequency: "quarterly",
+      observedDividendCagr: 9.8,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      exToPayLagDays: 4,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "3": 24,
+        "6": 24,
+        "9": 23,
+        "12": 23
+      }
+    },
+    HDV: {
+      initialPrice: 28.73,
+      dividendYield: 3.07,
+      frequency: "quarterly",
+      observedDividendCagr: 1.86,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      exToPayLagDays: 3,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "3": 21,
+        "6": 18,
+        "9": 25,
+        "12": 20
+      }
+    },
+    IDV: {
+      initialPrice: 44.38,
+      dividendYield: 5.13,
+      frequency: "quarterly",
+      observedDividendCagr: 3.87,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      exToPayLagDays: 3,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "3": 21,
+        "6": 18,
+        "9": 28,
+        "12": 20
+      }
+    },
+    IDVO: {
+      initialPrice: 42.67,
+      dividendYield: 5.67,
+      frequency: "monthly",
+      payoutMonths: [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      exToPayLagDays: 1,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "1": 30,
+        "2": 28,
+        "3": 29,
+        "4": 30,
+        "5": 30,
+        "6": 28,
+        "7": 31,
+        "8": 30,
+        "9": 28,
+        "10": 31,
+        "11": 28,
+        "12": 31
+      }
+    },
+    IVV: {
+      initialPrice: 750.32,
+      dividendYield: 1.09,
+      frequency: "quarterly",
+      observedDividendCagr: 6.36,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      exToPayLagDays: 3,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "3": 21,
+        "6": 18,
+        "9": 28,
+        "12": 20
+      }
+    },
+    JEPI: {
+      initialPrice: 57.43,
+      dividendYield: 7.34,
+      frequency: "monthly",
+      payoutMonths: [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      exToPayLagDays: 3,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "1": 3,
+        "2": 5,
+        "3": 5,
+        "4": 4,
+        "5": 4,
+        "6": 5,
+        "7": 4,
+        "8": 4,
+        "9": 5,
+        "10": 4,
+        "11": 4,
+        "12": 5
+      }
+    },
+    JEPQ: {
+      initialPrice: 58.25,
+      dividendYield: 9.99,
+      frequency: "monthly",
+      payoutMonths: [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      exToPayLagDays: 3,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "1": 3,
+        "2": 5,
+        "3": 5,
+        "4": 4,
+        "5": 4,
+        "6": 5,
+        "7": 4,
+        "8": 4,
+        "9": 5,
+        "10": 4,
+        "11": 4,
+        "12": 5
+      }
+    },
+    JNJ: {
+      initialPrice: 256.35,
+      dividendYield: 2.04,
+      frequency: "quarterly",
+      observedDividendCagr: 5.25,
+      payoutMonths: [
+        2,
+        5,
+        8,
+        11
+      ],
+      payoutMonthsSource: "ex"
+    },
+    KLAC: {
+      initialPrice: 182.82,
+      dividendYield: 0.44,
+      frequency: "quarterly",
+      observedDividendCagr: 16.15,
+      payoutMonths: [
+        2,
+        5,
+        8,
+        11
+      ],
+      payoutMonthsSource: "ex"
+    },
+    KO: {
+      initialPrice: 87.59,
+      dividendYield: 2.37,
+      frequency: "quarterly",
+      observedDividendCagr: 4.46,
+      payoutMonths: [
+        4,
+        7,
+        10,
+        12
+      ],
+      exToPayLagDays: 17,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "4": 1,
+        "7": 2,
+        "10": 2,
+        "12": 17
+      }
+    },
+    LOW: {
+      initialPrice: 207.81,
+      dividendYield: 2.33,
+      frequency: "quarterly",
+      observedDividendCagr: 15.87,
+      payoutMonths: [
+        1,
+        4,
+        7,
+        10
+      ],
+      payoutMonthsSource: "ex"
+    },
+    LRCX: {
+      initialPrice: 293.02,
+      dividendYield: 0.35,
+      frequency: "quarterly",
+      observedDividendCagr: 14.87,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    NEE: {
+      initialPrice: 86.92,
+      dividendYield: 2.74,
+      frequency: "quarterly",
+      observedDividendCagr: 10.13,
+      payoutMonths: [
+        2,
+        6,
+        8,
+        11
+      ],
+      payoutMonthsSource: "ex"
+    },
+    NOBL: {
+      initialPrice: 57.08,
+      dividendYield: 2.04,
+      frequency: "quarterly",
+      observedDividendCagr: 5.44,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    NVDA: {
+      initialPrice: 200.75,
+      dividendYield: 0.14,
+      frequency: "quarterly",
+      observedDividendCagr: 20.11,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    O: {
+      initialPrice: 63.87,
+      dividendYield: 5.08,
+      frequency: "monthly",
+      observedDividendCagr: 5.13,
+      payoutMonths: [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    PG: {
+      initialPrice: 144.49,
+      dividendYield: 2.97,
+      frequency: "quarterly",
+      observedDividendCagr: 6.02,
+      payoutMonths: [
+        1,
+        4,
+        7,
+        10
+      ],
+      payoutMonthsSource: "ex"
+    },
+    QDVO: {
+      initialPrice: 28.96,
+      dividendYield: 10.97,
+      frequency: "monthly",
+      payoutMonths: [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    QQQ: {
+      initialPrice: 687.99,
+      dividendYield: 0.44,
+      frequency: "quarterly",
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    QYLD: {
+      initialPrice: 17.74,
+      dividendYield: 11.9,
+      frequency: "monthly",
+      observedDividendCagr: -4.33,
+      payoutMonths: [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    RDVY: {
+      initialPrice: 81.09,
+      dividendYield: 0.83,
+      frequency: "quarterly",
+      observedDividendCagr: 4.81,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    SCHD: {
+      initialPrice: 33.47,
+      dividendYield: 3.13,
+      frequency: "quarterly",
+      observedDividendCagr: 9.13,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    SCHH: {
+      initialPrice: 24.28,
+      dividendYield: 2.72,
+      frequency: "quarterly",
+      observedDividendCagr: 3.19,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    SCHY: {
+      initialPrice: 33.36,
+      dividendYield: 3.32,
+      frequency: "quarterly",
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    SDVY: {
+      initialPrice: 43.78,
+      dividendYield: 0.95,
+      frequency: "quarterly",
+      observedDividendCagr: 7.42,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    SDY: {
+      initialPrice: 155,
+      dividendYield: 2.41,
+      frequency: "quarterly",
+      observedDividendCagr: 3.75,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      exToPayLagDays: 2,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "3": 26,
+        "6": 25,
+        "9": 24,
+        "12": 24
+      }
+    },
+    SMH: {
+      initialPrice: 540.53,
+      dividendYield: 0.2,
+      frequency: "semiannual",
+      payoutMonths: [
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    SPY: {
+      initialPrice: 747.03,
+      dividendYield: 1.01,
+      frequency: "quarterly",
+      observedDividendCagr: 5.05,
+      payoutMonths: [
+        1,
+        4,
+        7,
+        10
+      ],
+      exToPayLagDays: 42,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "1": 31,
+        "4": 30,
+        "7": 31,
+        "10": 31
+      }
+    },
+    SPYD: {
+      initialPrice: 49.5,
+      dividendYield: 4.1,
+      frequency: "quarterly",
+      observedDividendCagr: 3.69,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    SRVR: {
+      initialPrice: 30.87,
+      dividendYield: 2.81,
+      frequency: "quarterly",
+      observedDividendCagr: 6.16,
+      payoutMonths: [
+        1,
+        3,
+        6,
+        9
+      ],
+      exToPayLagDays: 6,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "1": 4,
+        "3": 12,
+        "6": 11,
+        "9": 19
+      }
+    },
+    T: {
+      initialPrice: 23.25,
+      dividendYield: 4.78,
+      frequency: "quarterly",
+      observedDividendCagr: -11.77,
+      payoutMonths: [
+        1,
+        4,
+        7,
+        10
+      ],
+      payoutMonthsSource: "ex"
+    },
+    TSM: {
+      initialPrice: 404.25,
+      dividendYield: 0.88,
+      frequency: "quarterly",
+      observedDividendCagr: 12.84,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    TXN: {
+      initialPrice: 275.74,
+      dividendYield: 2.06,
+      frequency: "quarterly",
+      observedDividendCagr: 8.13,
+      payoutMonths: [
+        1,
+        5,
+        7,
+        10
+      ],
+      payoutMonthsSource: "ex"
+    },
+    UPS: {
+      initialPrice: 104.22,
+      dividendYield: 6.29,
+      frequency: "quarterly",
+      observedDividendCagr: 10.18,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      exToPayLagDays: 17,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "3": 6,
+        "6": 5,
+        "9": 5,
+        "12": 5
+      }
+    },
+    VICI: {
+      initialPrice: 26.35,
+      dividendYield: 6.83,
+      frequency: "quarterly",
+      observedDividendCagr: 7.05,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    VIG: {
+      initialPrice: 239.17,
+      dividendYield: 1.5,
+      frequency: "quarterly",
+      observedDividendCagr: 9.15,
+      payoutMonths: [
+        3,
+        7,
+        10,
+        12
+      ],
+      exToPayLagDays: 4,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "3": 31,
+        "7": 2,
+        "10": 1,
+        "12": 26
+      }
+    },
+    VIGI: {
+      initialPrice: 97.24,
+      dividendYield: 2.05,
+      frequency: "quarterly",
+      observedDividendCagr: 13.32,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    VNQI: {
+      initialPrice: 46.03,
+      dividendYield: 4.68,
+      frequency: "semiannual",
+      observedDividendCagr: -14.54,
+      payoutMonths: [
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    VOO: {
+      initialPrice: 686.65,
+      dividendYield: 1.07,
+      frequency: "quarterly",
+      observedDividendCagr: 5.91,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    VRT: {
+      initialPrice: 241.57,
+      dividendYield: 0.09,
+      frequency: "quarterly",
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    VT: {
+      initialPrice: 155.86,
+      dividendYield: 1.59,
+      frequency: "quarterly",
+      observedDividendCagr: 10.87,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    VTI: {
+      initialPrice: 368.21,
+      dividendYield: 1.06,
+      frequency: "quarterly",
+      observedDividendCagr: 6.28,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    VUG: {
+      initialPrice: 85.2,
+      dividendYield: 0.4,
+      frequency: "quarterly",
+      observedDividendCagr: 3.6,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    VXUS: {
+      initialPrice: 84.59,
+      dividendYield: 2.59,
+      frequency: "quarterly",
+      observedDividendCagr: 13.26,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 4,
+      estimatedPayDayByMonth: {
+        "3": 24,
+        "6": 24,
+        "9": 23,
+        "12": 23
+      }
+    },
+    VYM: {
+      initialPrice: 161.96,
+      dividendYield: 2.24,
+      frequency: "quarterly",
+      observedDividendCagr: 3.8,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    VYMI: {
+      initialPrice: 103.56,
+      dividendYield: 3.48,
+      frequency: "quarterly",
+      observedDividendCagr: 11.09,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      exToPayLagDays: 4,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "3": 24,
+        "6": 24,
+        "9": 23,
+        "12": 23
+      }
+    },
+    XYLD: {
+      initialPrice: 41.17,
+      dividendYield: 10.53,
+      frequency: "monthly",
+      observedDividendCagr: 3.02,
+      payoutMonths: [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      exToPayLagDays: 3,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "1": 18,
+        "2": 27,
+        "3": 26,
+        "4": 28,
+        "5": 27,
+        "6": 28,
+        "7": 26,
+        "8": 26,
+        "9": 29,
+        "10": 28,
+        "11": 27,
+        "12": 16
+      }
+    }
+  }
+};
 
 // shared/constants/marketData/marketData.schema.ts
 var FREQUENCY_VALUES = ["monthly", "quarterly", "semiannual", "annual", "none"];
@@ -23317,27 +25952,24 @@ var findTickerContentBySlug = (slug) => {
 };
 var listTickerContentByCategory = (categoryId) => TICKER_CONTENT_LIST.filter((entry) => entry.categoryIds.includes(categoryId));
 
-// shared/constants/routes/index.ts
-var SIMULATOR_PATH = "/simulator";
-
 // server/handlers/TickerHtml/TickerHtml.ts
 var CACHE_TICKER = "public, max-age=0, s-maxage=86400, stale-while-revalidate=604800";
-var CACHE_NO_STORE = "no-store";
-var SITE_SUFFIX = "Hungry Hippo";
+var CACHE_NO_STORE3 = "no-store";
+var SITE_SUFFIX3 = "Hungry Hippo";
 var HUB_SLUG = "all";
 var HUB_PATH = `/ticker/${HUB_SLUG}`;
 var HUB_META_TITLE = "\uBC30\uB2F9 ETF\xB7\uC885\uBAA9 SEO \uC18C\uAC1C \uBAA8\uC74C \u2014 \uBC30\uB2F9\uB960\xB7\uBC30\uB2F9\uC131\uC7A5\xB7\uAD6C\uC131 \uD55C\uB208\uC5D0";
-var htmlResponse = (html, status, cache) => new Response(html, {
+var htmlResponse3 = (html, status, cache) => new Response(html, {
   status,
   headers: { "content-type": "text/html; charset=utf-8", "cache-control": cache }
 });
-var redirectToRoot = (origin) => new Response(null, {
+var redirectToRoot3 = (origin) => new Response(null, {
   status: 302,
-  headers: { Location: new URL("/", origin).toString(), "cache-control": CACHE_NO_STORE }
+  headers: { Location: new URL("/", origin).toString(), "cache-control": CACHE_NO_STORE3 }
 });
-var escapeJsonForScript = (value) => JSON.stringify(value).replace(/</g, "\\u003c");
-var jsonLdScript = (graph) => `<script type="application/ld+json">${escapeJsonForScript(graph)}</script>`;
-var applyMeta = (shell, title, description, canonical) => {
+var escapeJsonForScript3 = (value) => JSON.stringify(value).replace(/</g, "\\u003c");
+var jsonLdScript3 = (graph) => `<script type="application/ld+json">${escapeJsonForScript3(graph)}</script>`;
+var applyMeta3 = (shell, title, description, canonical) => {
   let html = shell;
   html = replaceTitleTag(html, title);
   html = replaceMetaContent(html, "name", "description", description);
@@ -23349,21 +25981,21 @@ var applyMeta = (shell, title, description, canonical) => {
   html = replaceMetaContent(html, "name", "twitter:description", description);
   return html;
 };
-var injectAtRoot = (shell, articleAndScripts) => {
+var injectAtRoot3 = (shell, articleAndScripts) => {
   const rootOpenTag = shell.match(/<div\s+id="root"[^>]*>/i);
   if (!rootOpenTag || rootOpenTag.index === void 0) return shell;
   const insertAt = rootOpenTag.index + rootOpenTag[0].length;
   return shell.slice(0, insertAt) + articleAndScripts + shell.slice(insertAt);
 };
 var tickerCanonical = (siteUrl, content) => `${siteUrl}/ticker/${content.slug}`;
-var applyTickerMeta = (shell, content, siteUrl) => applyMeta(shell, `${content.metaTitle} - ${SITE_SUFFIX}`, content.metaDescription, tickerCanonical(siteUrl, content));
+var applyTickerMeta = (shell, content, siteUrl) => applyMeta3(shell, `${content.metaTitle} - ${SITE_SUFFIX3}`, content.metaDescription, tickerCanonical(siteUrl, content));
 var renderText = (text, facts) => escapeHtmlText(renderTickerContentTemplate(text, facts));
 var renderStat = (stat, facts) => {
   if (!stat) return "";
   const caption = stat.caption ? `<p>${renderText(stat.caption, facts)}</p>` : "";
   return `<p class="stat"><strong>${renderText(stat.label, facts)}: ${renderText(stat.value, facts)}</strong></p>${caption}`;
 };
-var renderSection = (section, facts) => {
+var renderSection2 = (section, facts) => {
   const paragraphs = section.paragraphs.map((paragraph) => `<p>${renderText(paragraph, facts)}</p>`).join("");
   const bullets = section.bullets && section.bullets.length > 0 ? `<ul>${section.bullets.map((bullet) => `<li>${renderText(bullet, facts)}</li>`).join("")}</ul>` : "";
   const id = escapeHtmlAttribute(section.id);
@@ -23379,7 +26011,7 @@ var renderTopHoldings = (topHoldings) => {
   ).join("");
   return `<section id="top-holdings"><h2>\uC0C1\uC704 \uBCF4\uC720 \uC885\uBAA9</h2><p>\uBE44\uC911\uC774 \uD070 \uC0C1\uC704 ${count}\uC885\uC785\uB2C8\uB2E4. \uC774 ${count}\uC885\uC744 \uBAA8\uB450 \uB354\uD55C \uBE44\uC911\uC740 ${escapeHtmlText(formatWeight(coveredWeightPercent))}\uC774\uBA70, \uB098\uBA38\uC9C0 \uBCF4\uC720 \uC885\uBAA9\uC740 \uC774 \uD45C\uC5D0 \uB4E4\uC5B4 \uC788\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.</p>` + (excludedNote ? `<p>${escapeHtmlText(excludedNote)}</p>` : "") + `<table><caption>\uC0C1\uC704 \uBCF4\uC720 \uC885\uBAA9 ${count}\uC885 (\uAE30\uC900\uC77C ${escapeHtmlText(asOfDate)})</caption><thead><tr><th>\uC21C\uC704</th><th>\uD2F0\uCEE4</th><th>\uC885\uBAA9\uBA85</th><th>\uBE44\uC911</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><td colspan="3">\uC0C1\uC704 ${count}\uC885 \uD569\uACC4</td><td>${escapeHtmlText(formatWeight(coveredWeightPercent))}</td></tr></tfoot></table><p>\uCD9C\uCC98: <a href="${escapeHtmlAttribute(sourceUrl)}" rel="nofollow noopener">${escapeHtmlText(sourceLabel)}</a> \xB7 \uAE30\uC900\uC77C ${escapeHtmlText(asOfDate)}. \uAD6C\uC131\uACFC \uBE44\uC911\uC740 \uB9AC\uBC38\uB7F0\uC2F1\uACFC \uC2DC\uC138\uC5D0 \uB530\uB77C \uACC4\uC18D \uB2EC\uB77C\uC9D1\uB2C8\uB2E4.</p></section>`;
 };
-var renderFaqs = (faqs, facts) => {
+var renderFaqs2 = (faqs, facts) => {
   if (faqs.length === 0) return "";
   const items = faqs.map((faq) => `<div><h3>${renderText(faq.question, facts)}</h3><p>${renderText(faq.answer, facts)}</p></div>`).join("");
   return `<section id="faq"><h2>\uC790\uC8FC \uBB3B\uB294 \uC9C8\uBB38</h2>${items}</section>`;
@@ -23395,7 +26027,7 @@ var renderRelatedTickers = (related) => {
   }).join("");
   return `<section id="related"><h2>\uAD00\uB828 \uD2F0\uCEE4</h2><ul>${items}</ul></section>`;
 };
-var renderHero = (content, facts) => `<h1>${escapeHtmlText(facts.ticker)} \u2014 ${escapeHtmlText(facts.koreanName)} (${escapeHtmlText(facts.englishName)})</h1><p class="hero-tagline">${renderText(content.heroTagline, facts)}</p><p class="hero-cta"><a href="${SIMULATOR_PATH}">${escapeHtmlText(facts.ticker)}\uB85C \uACC4\uC0B0\uD574 \uBCF4\uAE30</a></p>`;
+var renderHero2 = (content, facts) => `<h1>${escapeHtmlText(facts.ticker)} \u2014 ${escapeHtmlText(facts.koreanName)} (${escapeHtmlText(facts.englishName)})</h1><p class="hero-tagline">${renderText(content.heroTagline, facts)}</p><p class="hero-cta"><a href="${SIMULATOR_PATH}">${escapeHtmlText(facts.ticker)}\uB85C \uACC4\uC0B0\uD574 \uBCF4\uAE30</a></p>`;
 var buildFinancialProductSchema = (content, facts, canonical) => {
   const additionalProperty = [
     { "@type": "PropertyValue", name: "\uBC30\uB2F9\uB960(\uC138\uC804, \uBA85\uBAA9)", value: facts.dividendYieldDisplay },
@@ -23440,19 +26072,19 @@ var buildFaqPageSchema = (content, facts) => ({
     }
   }))
 });
-var buildTickerJsonLd = (content, facts, canonical) => jsonLdScript({
+var buildTickerJsonLd = (content, facts, canonical) => jsonLdScript3({
   "@context": "https://schema.org",
   "@graph": [buildFinancialProductSchema(content, facts, canonical), buildFaqPageSchema(content, facts)]
 });
 var injectTickerBody = (shell, content, siteUrl) => {
   const facts = resolveTickerEngineFacts(content.ticker);
   const canonical = tickerCanonical(siteUrl, content);
-  const article = "<article>" + renderHero(content, facts) + content.sections.map((section) => renderSection(section, facts)).join("") + renderTopHoldings(content.reference.topHoldings) + renderFaqs(content.faqs, facts) + renderRelatedTickers(content.relatedTickers) + `<p class="disclaimer">${escapeHtmlText(content.disclaimer)}</p></article>` + buildTickerJsonLd(content, facts, canonical);
-  return injectAtRoot(shell, article);
+  const article = "<article>" + renderHero2(content, facts) + content.sections.map((section) => renderSection2(section, facts)).join("") + renderTopHoldings(content.reference.topHoldings) + renderFaqs2(content.faqs, facts) + renderRelatedTickers(content.relatedTickers) + `<p class="disclaimer">${escapeHtmlText(content.disclaimer)}</p></article>` + buildTickerJsonLd(content, facts, canonical);
+  return injectAtRoot3(shell, article);
 };
 var buildHubDescription = () => `${TICKER_CONTENT_LIST.length}\uAC1C \uBC30\uB2F9 ETF\xB7\uC885\uBAA9\uC758 \uBC30\uB2F9\uB960\xB7\uBC30\uB2F9\uC131\uC7A5\uB960\xB7\uC6B4\uC6A9\uBCF4\uC218\xB7\uAD6C\uC131 \uAE30\uC900\uC744 \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4. \uAD00\uC2EC \uC788\uB294 \uD2F0\uCEE4\uB97C \uC120\uD0DD\uD574 \uC790\uC138\uD788 \uD655\uC778\uD574 \uBCF4\uC138\uC694.`;
 var HUB_DISCLAIMER = "\uC774 \uD398\uC774\uC9C0\uB294 \uC815\uBCF4 \uC81C\uACF5\uC744 \uBAA9\uC801\uC73C\uB85C \uD558\uBA70 \uD22C\uC790 \uC790\uBB38\uC774 \uC544\uB2D9\uB2C8\uB2E4. \uBC30\uB2F9\uB960\xB7\uC8FC\uAC00\xB7\uC6B4\uC6A9\uBCF4\uC218\xB7\uC138\uAE08 \uB4F1\uC740 \uC2DC\uC7A5 \uC0C1\uD669\uACFC \uC815\uCC45\uC5D0 \uB530\uB77C \uBCC0\uB3D9\uB420 \uC218 \uC788\uC2B5\uB2C8\uB2E4.";
-var applyHubMeta = (shell, siteUrl) => applyMeta(shell, `${HUB_META_TITLE} - ${SITE_SUFFIX}`, buildHubDescription(), `${siteUrl}${HUB_PATH}`);
+var applyHubMeta = (shell, siteUrl) => applyMeta3(shell, `${HUB_META_TITLE} - ${SITE_SUFFIX3}`, buildHubDescription(), `${siteUrl}${HUB_PATH}`);
 var renderHubCategorySections = () => Object.keys(TICKER_CATEGORY_LABEL).map((categoryId) => {
   const entries = listTickerContentByCategory(categoryId);
   if (entries.length === 0) return "";
@@ -23463,7 +26095,7 @@ var renderHubCategorySections = () => Object.keys(TICKER_CATEGORY_LABEL).map((ca
   }).join("");
   return `<section><h2>${escapeHtmlText(TICKER_CATEGORY_LABEL[categoryId])}</h2><ul>${items}</ul></section>`;
 }).join("");
-var buildHubJsonLd = (siteUrl) => jsonLdScript({
+var buildHubJsonLd = (siteUrl) => jsonLdScript3({
   "@context": "https://schema.org",
   "@type": "ItemList",
   itemListElement: TICKER_CONTENT_LIST.map((entry, index) => ({
@@ -23473,33 +26105,49 @@ var buildHubJsonLd = (siteUrl) => jsonLdScript({
     name: `${entry.ticker} \u2014 ${entry.metaTitle}`
   }))
 });
-var injectHubBody = (shell, siteUrl) => {
+var injectHubBody2 = (shell, siteUrl) => {
   const article = `<article><h1>${escapeHtmlText(HUB_META_TITLE)}</h1><p>${escapeHtmlText(buildHubDescription())}</p>` + renderHubCategorySections() + `<p class="disclaimer">${escapeHtmlText(HUB_DISCLAIMER)}</p></article>` + buildHubJsonLd(siteUrl);
-  return injectAtRoot(shell, article);
+  return injectAtRoot3(shell, article);
 };
-async function handler(request) {
+async function handler3(request) {
   const { origin, searchParams } = new URL(request.url);
   const nameParam = (searchParams.get("name") ?? "").trim().toLowerCase();
   let shell;
   try {
     const response = await fetch(new URL("/index.html", origin));
-    if (!response.ok) return redirectToRoot(origin);
+    if (!response.ok) return redirectToRoot3(origin);
     shell = await response.text();
   } catch {
-    return redirectToRoot(origin);
+    return redirectToRoot3(origin);
   }
-  if (!nameParam) return htmlResponse(shell, 200, CACHE_NO_STORE);
+  if (!nameParam) return htmlResponse3(shell, 200, CACHE_NO_STORE3);
   const siteUrl = resolveSiteUrl(request.url);
   if (nameParam === HUB_SLUG) {
-    return htmlResponse(injectHubBody(applyHubMeta(shell, siteUrl), siteUrl), 200, CACHE_TICKER);
+    return htmlResponse3(injectHubBody2(applyHubMeta(shell, siteUrl), siteUrl), 200, CACHE_TICKER);
   }
   const content = findTickerContentBySlug(nameParam);
-  if (!content) return htmlResponse(shell, 200, CACHE_NO_STORE);
-  return htmlResponse(injectTickerBody(applyTickerMeta(shell, content, siteUrl), content, siteUrl), 200, CACHE_TICKER);
+  if (!content) return htmlResponse3(shell, 200, CACHE_NO_STORE3);
+  return htmlResponse3(injectTickerBody(applyTickerMeta(shell, content, siteUrl), content, siteUrl), 200, CACHE_TICKER);
 }
-var TickerHtml_default = toNodeHandler(handler);
+var TickerHtml_default = toNodeHandler(handler3);
+
+// server/handlers/SeoHtml/SeoHtml.ts
+var ROUTES = {
+  ticker: handler3,
+  "dividend-list": handler,
+  guide: handler2
+};
+var isSurface = (value) => value !== null && value in ROUTES;
+async function handler4(request) {
+  const surface = new URL(request.url).searchParams.get("surface");
+  if (isSurface(surface)) return ROUTES[surface](request);
+  return new Response(null, {
+    status: 302,
+    headers: { Location: new URL("/", request.url).toString(), "cache-control": "no-store" }
+  });
+}
+var SeoHtml_default = toNodeHandler(handler4);
 export {
-  TickerHtml_default as default,
-  handler,
-  renderRelatedTickers
+  SeoHtml_default as default,
+  handler4 as handler
 };
