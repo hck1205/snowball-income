@@ -1,5 +1,5 @@
 import { useId } from 'react';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, Search, X } from 'lucide-react';
 import { Button, Chip } from '@/components/common';
 import type { DividendListSectorId } from '@/shared/constants/dividendLists';
 import { ICON } from '@/shared/styles';
@@ -20,7 +20,11 @@ import {
   AxisRow,
   ChipRow,
   FilterHint,
-  FiltersPanel
+  FiltersPanel,
+  SearchClear,
+  SearchField,
+  SearchInput,
+  SearchRow
 } from './DividendListFilters.styled';
 
 const copy = DIVIDEND_LIST_COPY.page;
@@ -61,15 +65,21 @@ export default function DividendListFilters({
   const yieldLabelId = useId();
   const growthLabelId = useId();
   const sectorLabelId = useId();
+  const searchLabelId = useId();
 
   const stepLabel = (step: number) => `${step}${copy.filterAtLeastSuffix}`;
   const setYield = (step: number | null) => onChange({ ...filter, minYieldPercent: step });
   const setGrowth = (step: number | null) => onChange({ ...filter, minGrowthPercent: step });
+  const setQuery = (query: string) => onChange({ ...filter, query });
   const toggleSector = (sector: DividendListSectorId) =>
     onChange({ ...filter, sectors: toggleDividendListSector(filter.sectors, sector) });
 
   /* 걸린 조건을 문장으로. 축 이름은 **표의 열 이름과 같은 낱말**이라 표와 필터가 같은 말을 한다. */
   const activeParts: string[] = [];
+  const trimmedQuery = filter.query.trim();
+  if (trimmedQuery !== '') {
+    activeParts.push(`${copy.filterSearchActivePrefix} ${trimmedQuery}`);
+  }
   if (filter.minYieldPercent !== null) {
     activeParts.push(`${copy.columnYield} ${stepLabel(filter.minYieldPercent)}`);
   }
@@ -85,6 +95,31 @@ export default function DividendListFilters({
 
   return (
     <FiltersPanel>
+      {/*
+        🔴 검색이 **맨 위**다. 찾는 종목이 정해진 사용자는 칩을 볼 이유가 없고, 그 사용자가
+        83줄을 스크롤로 훑는 일을 없애는 것이 이 입력의 목적이다(2026-08-07 사용자 요청).
+        ⚠ type="search" 를 쓴다 — 모바일 키보드가 확인 키를 "검색"으로 바꾸고, 폼이 아니어서
+          엔터로 페이지가 새로고침되지 않는다(입력 즉시 걸리므로 제출할 것도 없다).
+      */}
+      <SearchRow>
+        <AxisLabel id={searchLabelId}>{copy.filterSearchLabel}</AxisLabel>
+        <SearchField>
+          <Search size={ICON.sm} strokeWidth={1.8} aria-hidden focusable={false} />
+          <SearchInput
+            type="search"
+            value={filter.query}
+            aria-labelledby={searchLabelId}
+            placeholder={copy.filterSearchPlaceholder}
+            onChange={(event) => setQuery(event.target.value)}
+          />
+          {filter.query !== '' ? (
+            <SearchClear type="button" aria-label={copy.filterSearchClear} onClick={() => setQuery('')}>
+              <X size={ICON.sm} strokeWidth={1.8} aria-hidden focusable={false} />
+            </SearchClear>
+          ) : null}
+        </SearchField>
+      </SearchRow>
+
       <AxisRow role="group" aria-labelledby={yieldLabelId}>
         <AxisLabel id={yieldLabelId}>{copy.columnYield}</AxisLabel>
         <ChipRow>

@@ -251,6 +251,33 @@ describe('세 축 필터', () => {
     expect(tickersOf(NO_DIVIDEND_LIST_FILTER)).toEqual(METRIC_ROWS.map((r) => r.ticker));
   });
 
+  describe('종목 검색', () => {
+    it('티커를 대소문자 가리지 않고 부분 일치로 찾는다', () => {
+      // 사용자는 소문자로 친다 — 정확 일치만 보면 그 입력이 통째로 버려진다.
+      expect(tickersOf(filterOf({ query: 'ko' }))).toEqual(['KO']);
+      expect(tickersOf(filterOf({ query: 'KO' }))).toEqual(['KO']);
+    });
+
+    it('티커를 몰라도 **종목명**으로 찾는다', () => {
+      expect(tickersOf(filterOf({ query: 'coca' }))).toEqual(['KO']);
+      expect(tickersOf(filterOf({ query: 'gamble' }))).toEqual(['PG']);
+    });
+
+    it('🔴 공백만 남은 입력은 전체를 지운 것으로 본다', () => {
+      // 지운 자리에 남은 공백 하나 때문에 표가 비면 사용자는 자료가 사라졌다고 읽는다.
+      expect(tickersOf(filterOf({ query: '   ' }))).toEqual(METRIC_ROWS.map((r) => r.ticker));
+      expect(isDividendListFiltered(filterOf({ query: '   ' }))).toBe(false);
+      expect(isDividendListFiltered(filterOf({ query: 'ko' }))).toBe(true);
+    });
+
+    it('다른 축과 **함께** 걸린다(검색이 앞선 조건을 풀지 않는다)', () => {
+      // KO 는 검색에 맞고 배당률 2% 이상도 맞는다 → 남는다.
+      expect(tickersOf(filterOf({ query: 'coca', minYieldPercent: 2 }))).toEqual(['KO']);
+      // 같은 검색어라도 배당률 축이 3% 이면 KO(2.44%)가 빠진다 — 검색이 앞선 조건을 덮지 않는다.
+      expect(tickersOf(filterOf({ query: 'coca', minYieldPercent: 3 }))).toEqual([]);
+    });
+  });
+
   it('🔴 "이상" 조건은 값이 낮은 줄과 **값이 없는 줄**을 함께 뺀다', () => {
     // KO 2.44 · PG 3.01 남고, YORW 1.90(낮다)·WRB(값 없음)은 빠진다.
     expect(tickersOf(filterOf({ minYieldPercent: 2 }))).toEqual(['KO', 'PG']);

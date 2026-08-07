@@ -105,3 +105,85 @@ export const ActiveText = styled.span`
   line-height: ${font.leading.normal};
   overflow-wrap: anywhere;
 `;
+
+/**
+ * 종목 검색 한 줄(2026-08-07 사용자 요청).
+ *
+ * 🔴 **세 칩 축보다 위에 선다.** 검색은 "찾는 것이 정해졌을 때" 쓰는 축이라 목적이 다르고,
+ * 칩 사이에 끼우면 사다리 축들 사이에서 성격이 다른 입력이 하나 섞여 읽는 순서가 끊긴다.
+ * ⚠ 아래 얇은 경계선이 "여기까지 검색, 아래는 조건"을 가른다 — 판을 하나 더 만들지 않고 가른다.
+ */
+export const SearchRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${space[2]};
+  padding-bottom: ${space[3]};
+  border-bottom: 1px solid ${color.border};
+  min-width: 0;
+`;
+
+/**
+ * 입력과 아이콘을 한 상자에 담는다.
+ *
+ * 🔴 `min-width: 0` — 이 상자는 flex 아이템이고 안에 input 이 있다. 둘 다 기본 최소 폭이
+ * min-content 라, 없으면 좁은 화면에서 상자가 안 줄고 **페이지에 가로 스크롤**이 생긴다
+ * (랜딩 검색창에서 실제로 겪은 사고 · 2026-08-07).
+ */
+export const SearchField = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${space[2]};
+  flex: 1;
+  min-width: 0;
+  padding: 0 ${space[3]};
+  border: 1px solid ${color.border};
+  border-radius: ${radius.md};
+  background: ${color.surface};
+  color: ${color.textMuted};
+
+  /* 포커스 링은 **상자가** 받는다 — 안의 input 이 받으면 아이콘 밖으로 링이 어긋나 그려진다. */
+  &:focus-within {
+    border-color: ${color.brand};
+    box-shadow: 0 0 0 3px ${color.focusRing};
+  }
+`;
+
+export const SearchInput = styled.input`
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  border: 0;
+  outline: none;
+  background: transparent;
+  padding: ${space[2]} 0;
+  color: ${color.text};
+  font-size: ${font.size.sm};
+
+  &::placeholder {
+    color: ${color.textMuted};
+  }
+
+  /* 검색 타입이 브라우저마다 붙이는 기본 지우기 버튼을 없앤다 — 우리 버튼과 둘이 서면 혼란스럽다. */
+  &::-webkit-search-cancel-button {
+    appearance: none;
+  }
+`;
+
+/** 지우기 버튼. 입력이 있을 때만 그린다 — 늘 떠 있으면 누를 것이 없는 버튼이 자리를 차지한다. */
+export const SearchClear = styled.button`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  border: 0;
+  padding: ${space[1]};
+  border-radius: ${radius.pill};
+  background: transparent;
+  color: ${color.textMuted};
+  cursor: pointer;
+
+  &:hover {
+    color: ${color.text};
+    background: ${color.surfaceHover};
+  }
+`;
