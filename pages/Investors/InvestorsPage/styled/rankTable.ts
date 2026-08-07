@@ -1,5 +1,14 @@
 import styled from '@emotion/styled';
-import { color, font, media, space, subtleScrollbar } from '@/shared/styles';
+import {
+  color,
+  font,
+  media,
+  scrollFadeRight,
+  space,
+  stickyCellTable,
+  stickyColumn,
+  subtleScrollbar
+} from '@/shared/styles';
 
 /* ── ② 합의 보드 — 4위 이하 순위표 (data 면) ───────────────────────────────── */
 /* 같은 섹션의 상위 3종 시상대는 `podium.ts` 에 있다. */
@@ -13,6 +22,9 @@ export const RankTableScroller = styled.div`
   overscroll-behavior-x: contain;
   min-width: 0;
   ${subtleScrollbar}
+
+  /* 끝 흐림은 앱 공통 처방이다 — 판단(폭·색 없음·왼쪽은 안 흐림)은 그 파일이 갖는다. */
+  ${scrollFadeRight}
 `;
 
 /**
@@ -35,7 +47,8 @@ const RANK_TICKER_WIDTH = '116px';
 export const RankTable = styled.table`
   width: 100%;
   min-width: 460px;
-  border-collapse: collapse;
+  /* 🔴 아래 두 열을 고정하려면 이 표는 separate 여야 한다 — 이유는 stickyCellTable 주석. */
+  ${stickyCellTable}
 
   ${media.down('mobileWide')} {
     min-width: ${MOBILE_MIN_WIDTH};
@@ -48,21 +61,6 @@ export const RankTable = styled.table`
   }
 `;
 
-/**
- * 가로로 미는 동안 **제자리에 남는 열**의 공통 규칙(2026-08-07).
- *
- * 🔴 `background` 가 반드시 있어야 한다. 고정 칸은 다른 칸 **위로** 지나가는데, 배경이 없으면
- * 밀려오는 글자가 그 밑에서 그대로 비쳐 두 줄이 겹쳐 보인다.
- * 🔴 경계선을 `border-right` 가 아니라 `box-shadow: inset` 으로 그린다 — 이 표는
- * `border-collapse: collapse` 라 테두리의 주인이 표이고, 고정된 칸의 border 는 함께 밀려간다.
- * ⚠ 넓은 폭에서는 고정하지 않는다. 스크롤이 없으므로 붙일 이유가 없고, 그림자만 남아 없는
- *   경계선이 그려진다.
- */
-const stickyColumn = `
-  position: sticky;
-  z-index: 1;
-  background: ${color.surface};
-`;
 
 export const RankTh = styled.th`
   padding: ${space[2]} ${space[3]};
@@ -82,8 +80,7 @@ export const RankThNumeric = styled(RankTh)`
 /** 순위 열 — 맨 왼쪽에 붙는다. 머리와 값이 **같은 폭·같은 left** 를 써야 열이 어긋나지 않는다. */
 export const RankThIndex = styled(RankTh)`
   ${media.down('mobileWide')} {
-    ${stickyColumn};
-    left: 0;
+    ${stickyColumn('0')}
     width: ${RANK_INDEX_WIDTH};
     min-width: ${RANK_INDEX_WIDTH};
     text-align: right;
@@ -97,11 +94,9 @@ export const RankThIndex = styled(RankTh)`
  */
 export const RankThTicker = styled(RankTh)`
   ${media.down('mobileWide')} {
-    ${stickyColumn};
-    left: ${RANK_INDEX_WIDTH};
+    ${stickyColumn(RANK_INDEX_WIDTH, true)}
     width: ${RANK_TICKER_WIDTH};
     min-width: ${RANK_TICKER_WIDTH};
-    box-shadow: inset -1px 0 ${color.border};
   }
 `;
 
@@ -122,9 +117,15 @@ export const RankThBar = styled(RankTh)`
 `;
 
 export const RankRow = styled.tr`
-  border-bottom: 1px solid ${color.border};
+  /*
+   * ⚠ 줄 사이 선은 **칸(td)** 이 그린다. separate 모드에서는 tr 에 준 border 가 그려지지 않는다
+   *   (collapse 때는 표가 대신 그려 줬다). 아래 규칙이 그 자리를 대신한다.
+   */
+  > td {
+    border-bottom: 1px solid ${color.border};
+  }
 
-  &:last-of-type {
+  &:last-of-type > td {
     border-bottom: 0;
   }
 
@@ -142,12 +143,10 @@ export const RankTd = styled.td`
 /** 종목 값 칸. 위 `RankThTicker` 와 **같은 폭·같은 left** 를 쓴다 — 한쪽만 고치면 열이 어긋난다. */
 export const RankTdTicker = styled(RankTd)`
   ${media.down('mobileWide')} {
-    ${stickyColumn};
-    left: ${RANK_INDEX_WIDTH};
+    ${stickyColumn(RANK_INDEX_WIDTH, true)}
     width: ${RANK_TICKER_WIDTH};
     min-width: ${RANK_TICKER_WIDTH};
     max-width: ${RANK_TICKER_WIDTH};
-    box-shadow: inset -1px 0 ${color.border};
   }
 `;
 
@@ -178,8 +177,7 @@ export const RankIndex = styled.td`
   ${font.numeric}
 
   ${media.down('mobileWide')} {
-    ${stickyColumn};
-    left: 0;
+    ${stickyColumn('0')}
     width: ${RANK_INDEX_WIDTH};
     min-width: ${RANK_INDEX_WIDTH};
   }

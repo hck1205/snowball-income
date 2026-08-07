@@ -159,7 +159,7 @@ export type { TooltipProps } from './Tooltip';
  * 잘린 글자에만 붙는 툴팁. 2026-08-05 에 배당 캘린더 안에서 공용으로 올렸다 —
  * 표·카드·달력 어디서든 `text-overflow: ellipsis` 를 쓰면 같은 처방이 필요해서다.
  */
-export { OverflowTooltip, isTextClipped } from './OverflowTooltip';
+export { OverflowTooltip, isTextClipped, overflowTooltipTarget } from './OverflowTooltip';
 export type { OverflowTooltipProps } from './OverflowTooltip';
 
 export { default as Toggle } from './Toggle';

@@ -1,6 +1,8 @@
 import styled from '@emotion/styled';
 import { Link } from 'react-router-dom';
 import { color, font, radius, space } from '@/shared/styles';
+import { overflowTooltipTarget } from '@/components/common';
+import { brandPillLink } from '@/shared/styles';
 
 /**
  * 표 **안**의 조각들. 표 자체는 공용 `DataTable` 이 그린다 — 좁은 폭에서 행을 카드로 접는 규칙과
@@ -53,7 +55,7 @@ export const Ticker = styled.span`
  * 호버·포커스에서는 면이 진해져 상태가 한 단 더 올라간다.
  */
 export const TickerLink = styled(Link)`
-  display: inline-block;
+  ${brandPillLink}
   /*
    * 카드 모드에서 칸은 그리드다 — 기본 stretch 를 막지 않으면 칩이 카드 폭만큼 늘어난다.
    * 🔴 **end 다**(2026-08-07 사용자 확정). 카드로 접히면 칸은 "라벨 | 값" 2단이 되고 값은 전부
@@ -61,23 +63,11 @@ export const TickerLink = styled(Link)`
    * 왼쪽 정렬과 어긋나 보이지만, 그때는 라벨이 열머리에 따로 서 있어 축이 다르다.
    */
   justify-self: end;
-  padding: 1px ${space[2]};
-  border: 1px solid ${color.brandBorder};
-  border-radius: ${radius.pill};
-  background: ${color.brandSubtle};
   font-family: ${font.dataNumeric};
   font-weight: ${font.weight.semibold};
   white-space: nowrap;
-  color: ${color.brandText};
-  text-decoration: none;
-
-  &:hover,
-  &:focus-visible {
-    background: ${color.brandSubtleHover};
-  }
 `;
 
-/** 종목 이름처럼 길고 접혀도 되는 값. 두 줄까지 보이고 그 뒤는 말줄임. */
 /**
  * 사람 이름 한 줄 — **한 줄로 유지하고 넘치면 말줄임**.
  *
@@ -87,19 +77,38 @@ export const TickerLink = styled(Link)`
  * ⚠ min-width 0 이 없으면 grid/flex 안에서 이 상자가 자기 내용만큼 벌어져 말줄임이 아예 안 걸린다.
  */
 export const PersonName = styled.span`
-  display: block;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-
-  /* 잘린 이름만 포커스를 받는다(OverflowTooltip 이 tabIndex 를 건다) — 커서로도 눌리는 것을 말한다. */
-  &[tabindex] {
-    cursor: help;
-  }
+  ${overflowTooltipTarget}
 `;
 
+/**
+ * **이름 칸 한 덩어리** — 이름 + 뒤에 붙는 꼬리표(명의 태그·지역구)를 하나로 묶는다.
+ *
+ * 🔴 묶지 않으면 좁은 폭에서 **두 줄로 떨어진다**(2026-08-07 사용자 신고: "의원 이름 + 자녀일 때
+ * 두 줄로 나온다"). 카드 모드의 칸은 2열 그리드이고 라벨이 첫 칸을 쓰므로, 이름과 꼬리표가
+ * 형제로 놓이면 **아이템이 셋**이 되어 꼬리표가 다음 줄로 밀린다. 상자 하나로 감싸면 아이템이
+ * 둘로 유지된다.
+ *
+ * 🔴 **왼쪽 정렬이다**(사용자 지시). 칸의 기본은 오른쪽이지만 사람 이름은 값이 아니라 **누구**라서,
+ * 눈이 세로로 훑는 축이 왼쪽에 있어야 한다. 세로 가운데는 그리드가 이미 맞춘다(align-items: center).
+ */
+export const NameCell = styled.span`
+  display: flex;
+  align-items: center;
+  gap: ${space[1]};
+  min-width: 0;
+  text-align: left;
+`;
+
+/** 이름 아래에 한 줄이 더 붙는 경우(지역구). 세로로 쌓되 역시 **한 아이템**으로 묶인다. */
+export const NameStack = styled(NameCell)`
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+`;
+
+/** 종목 이름처럼 긴 값. 🔴 이름이라 왼쪽에서 시작한다(위 NameCell 과 같은 근거). */
 export const Wrapped = styled.span`
+  text-align: left;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;

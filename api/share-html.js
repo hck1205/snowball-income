@@ -8667,6 +8667,26 @@ var subtleScrollbar = `
   }
 `;
 
+// shared/styles/scrollAffordance.ts
+var FADE = "24px";
+var scrollFadeRight = `
+  mask-image: linear-gradient(to right, #000 calc(100% - ${FADE}), transparent);
+`;
+var brandPillLink = `
+  display: inline-block;
+  padding: 1px ${space[2]};
+  border: 1px solid ${color.brandBorder};
+  border-radius: ${radius.pill};
+  background: ${color.brandSubtle};
+  color: ${color.brandText};
+  text-decoration: none;
+
+  &:hover,
+  &:focus-visible {
+    background: ${color.brandSubtleHover};
+  }
+`;
+
 // shared/styles/surfaces.ts
 var outerRadius = (inner, pad) => `calc(${inner} + ${pad})`;
 var PICK_RADIUS = outerRadius(radius.lg, PICK.pad);

@@ -1,10 +1,14 @@
-import { memo, useEffect, useRef } from 'react';
+import { memo, useEffect, useId, useRef, useState } from 'react';
 import { useInRouterContext } from 'react-router-dom';
 import { PrimaryNav, PrimaryNavLinks } from '@/components/PrimaryNav';
+import { Menu } from 'lucide-react';
+import { DrawerToggle, NavDrawer } from '@/components/NavDrawer';
 import HeaderOverflowMenu from '@/components/HeaderOverflowMenu';
 import ColorSchemeToggle from '@/components/ColorSchemeToggle';
 import { AuthControl } from '@/components/community/AuthControl';
+import { COMMUNITY_COPY } from '@/shared/constants/community';
 import { isCommunityEnabled } from '@/shared/lib/supabase';
+import { ICON } from '@/shared/styles';
 import { publishHeaderHeight } from './AppHeader.utils';
 import {
   Actions,
@@ -65,6 +69,8 @@ function AppHeaderComponent({
 }: AppHeaderProps) {
   const rootRef = useRef<HTMLElement>(null);
   const inRouter = useInRouterContext();
+  const navDrawerId = useId();
+  const [isNavDrawerOpen, setNavDrawerOpen] = useState(false);
 
   /* 로고 그림 한 벌 — 링크판·정적판이 **같은 그림**을 쓰도록 여기서 한 번만 만든다. */
   const logo = (
@@ -92,7 +98,14 @@ function AppHeaderComponent({
   }, []);
 
   return (
-    <HeaderRoot ref={rootRef}>
+    /*
+      🔴 드로어는 **헤더 밖**이다(2026-08-07 사용자 신고: 메뉴가 콘텐츠 뒤에서 나온다).
+      HeaderRoot 는 sticky + z-index 라 자기 **쌓임 맥락**을 만든다. 그 안에 있는 자식은
+      z-index 를 아무리 올려도 헤더 층(zIndex.header) 밖으로 못 나가므로, 드로어(55~60)가
+      헤더 층 안에 갇혀 그보다 높은 화면 요소 뒤로 깔렸다. 형제로 빼면 자기 z-index 가 산다.
+    */
+    <>
+      <HeaderRoot ref={rootRef}>
       {/* 슬롯 3개를 **DOM 순서대로** 놓는다: 브랜드 → 메뉴 → 컨트롤.
           배치는 `headerControlsGrid` 의 grid-area 가 정한다(모드별 마크업 분기 없음).
 
@@ -125,7 +138,34 @@ function AppHeaderComponent({
           <LogoSlotStatic aria-hidden>{logo}</LogoSlotStatic>
         )}
 
+        {/*
+          🔴 **앱 아이콘 바로 밑**에 선다(2026-08-07 사용자 지시). 격자에서 로고와 **같은 영역**을
+          쓰되 로고는 위(start), 이 버튼은 아래(end)에 붙어 세로로 포개진다 — 새 트랙을 만들지
+          않고도 "아이콘 밑" 배치가 된다.
+          ⚠ 로고 슬롯 **안**에 넣지 않는다. 그건 홈으로 가는 링크라, 링크 안에 버튼을 중첩하게 된다.
+        */}
+        {/* ⚠ 라우터가 없는 렌더에서는 통째로 빠진다 — 서랍 안이 NavLink 라 라우터 밖에서 죽는다
+            (PrimaryNav 가 쓰는 것과 같은 방어). 그 렌더에는 갈 곳도 없으므로 잃는 것이 없다. */}
+        {inRouter ? (
+          <DrawerToggle
+            type="button"
+            aria-label={COMMUNITY_COPY.nav.drawerOpen}
+            aria-haspopup="dialog"
+            aria-expanded={isNavDrawerOpen}
+            aria-controls={navDrawerId}
+            onClick={() => setNavDrawerOpen(true)}
+          >
+            <Menu size={ICON.sm} strokeWidth={1.8} aria-hidden focusable={false} />
+          </DrawerToggle>
+        ) : null}
+
         <LeadingSlot>
+          {/*
+            🔴 좁은 폭의 **메뉴 드로어 진입점**(2026-08-07 사용자 지시). 그 폭에서는 아래 NavSlot 이
+            숨고 이 버튼이 그 자리를 대신한다 — 종전에는 메뉴 여덟 개가 가로 스크롤로 흡수됐는데,
+            가로로 숨은 항목은 사용자에게 아무 신호도 주지 않는다(pitfalls 2026-07-31 실측).
+            ⚠ 브랜드 **왼쪽**이다. 드로어가 왼쪽에서 나오므로 버튼도 그쪽에 있어야 방향이 맞는다.
+          */}
           <PrimaryNav brandAs={brandAs} withLinks={false} />
           {status}
         </LeadingSlot>
@@ -149,8 +189,13 @@ function AppHeaderComponent({
             {overflowMenu ?? <HeaderOverflowMenu showTutorial={false} />}
           </UtilityGroup>
         </Actions>
-      </HeaderInner>
-    </HeaderRoot>
+        </HeaderInner>
+      </HeaderRoot>
+
+      {inRouter ? (
+        <NavDrawer id={navDrawerId} isOpen={isNavDrawerOpen} onClose={() => setNavDrawerOpen(false)} />
+      ) : null}
+    </>
   );
 }
 

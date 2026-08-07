@@ -4,3 +4,4 @@ export * from './calendarSchedule';
 export * from './calendarShareUrl';
 export * from './calendarStorage';
 export * from './tickerColor';
+export * from './tickerMarket';

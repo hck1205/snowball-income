@@ -73,18 +73,20 @@ describe('달력 칸의 일정 칩', () => {
 });
 
 /**
- * 🔴 **두 캘린더의 칩 문법은 하나다**(2026-08-07 사용자 지시: "배당 캘린더와 미국 주식 캘린더의
- * UI 를 통일시켜줘").
+ * 두 캘린더의 칩 문법(2026-08-07).
  *
- * 종전 이 파일의 스타일은 좁은 폭에서 칩 글자와 `+N` 을 통째로 감춰(`display: none`) 점만 남겼다.
- * 배당 캘린더는 같은 자리에서 정반대로 결정했고(2026-07-26 사용자 결정: "어느 폭에서든 티커
- * 텍스트를 ellipsis 로 보여준다"), 점만 남으면 **색이 유일한 채널**이 되어 이 레포의 공통 규율도
- * 어긴다. 이 테스트는 그 되돌림을 막는다.
+ * 🔴 **통일은 넓은 폭에서만이다.** 이 날 두 캘린더의 칩을 같은 알약으로 맞추면서 좁은 폭에서도
+ * 글자를 세웠는데, 실제 화면에서 날짜 칸이 세로로 길어져 격자가 무너졌다(사용자 신고) — 배당
+ * 캘린더의 칩은 티커 3~4글자지만 여기는 "근원 소비자물가지수" 같은 문장이라 칸마다 서너 줄을
+ * 먹는다. 같은 규칙이 두 화면에서 같은 결과를 내지 않는다는 실측이다.
  *
- * 렌더가 아니라 **소스를 읽는** 이유: jsdom 은 미디어 쿼리 분기를 평가하지 않아 좁은 폭의
- * `display: none` 을 렌더로는 잡을 수 없다(이 레포가 랜딩 검색창에서 쓴 것과 같은 수법).
+ * 그래서 잠그는 것은 **넓은 폭의 알약 모양** 하나다. 좁은 폭의 점 표기는 이 화면의 고유한 답이라
+ * 여기서 강제하지 않는다.
+ *
+ * 렌더가 아니라 소스를 읽는 이유: jsdom 은 미디어 쿼리를 평가하지 않아 폭별 분기를 렌더로는
+ * 확인할 수 없다(이 레포가 랜딩 검색창에서 쓴 것과 같은 수법).
  */
-describe('두 캘린더 칩 문법 통일', () => {
+describe('두 캘린더 칩 문법', () => {
   const source = readFileSync(
     join(__dirname, '../../pages/MarketCalendar/components/MonthGrid/MonthGrid.styled.ts'),
     'utf-8'
@@ -93,19 +95,15 @@ describe('두 캘린더 칩 문법 통일', () => {
   const declarationsOf = (exportName: string): string => {
     const start = source.indexOf(`export const ${exportName} = styled`);
     expect(start, `${exportName} 을 찾지 못했다`).toBeGreaterThan(-1);
-    const next = source.indexOf('\nexport const ', start + 1);
+    const next = source.indexOf(String.fromCharCode(10) + 'export const ', start + 1);
     return source.slice(start, next === -1 ? undefined : next);
   };
 
-  it('좁은 폭에서 칩 글자를 감추지 않는다', () => {
-    expect(declarationsOf('ChipLabel')).not.toMatch(/display:\s*none/);
-  });
-
-  it('좁은 폭에서 접힌 개수(+N)를 감추지 않는다', () => {
-    expect(declarationsOf('ChipMore')).not.toMatch(/display:\s*none/);
-  });
-
   it('칩은 배당 캘린더와 같은 알약 모양이다', () => {
     expect(declarationsOf('Chip')).toMatch(/border-radius:\s*\$\{radius\.pill\}/);
+  });
+
+  it('좁은 폭에서 글자를 감추는 것은 **의도된 분기**다 — 그 분기가 사라지면 이 주석을 다시 읽어라', () => {
+    expect(declarationsOf('ChipLabel')).toMatch(/display:\s*none/);
   });
 });

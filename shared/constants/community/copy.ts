@@ -17,6 +17,10 @@ export const COMMUNITY_COPY = {
     // ── 전역 nav(PrimaryNav) — 브랜드 링크 + 라우트 링크(시뮬레이터·갤러리·게시판) ──
     /** nav 랜드마크 이름(<nav aria-label>). */
     primaryLabel: '주요 메뉴',
+    /* 좁은 폭의 좌측 드로어(2026-08-07 사용자 지시) — 헤더의 가로 스크롤 메뉴를 대신한다. */
+    drawerOpen: '메뉴 열기',
+    drawerTitle: '메뉴',
+    drawerClose: '메뉴 닫기',
     /**
      * 브랜드 워드마크(홈 링크의 접근명). 표기는 **"Hungry Hippo" 영문 하나로 통일**한다(2026-08-03 확정).
      *

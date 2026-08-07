@@ -7,7 +7,6 @@ import { DIVIDEND_LIST_MASCOT } from '../utils';
 import type { DividendListHubViewProps } from './DividendListHubPage.types';
 import {
   CompareCell,
-  CompareHeadArt,
   CompareHeadCell,
   CompareHeadInner,
   CompareLink,
@@ -26,6 +25,7 @@ import {
   Spotlight,
   SpotlightArt,
   SpotlightBadge,
+  SpotlightHead,
   SpotlightBody,
   SpotlightCta,
   SpotlightFoot,
@@ -115,8 +115,17 @@ export default function DividendListHubView({ viewModel }: DividendListHubViewPr
 
             const bodyNode = (
               <SpotlightBody>
-                <SpotlightBadge>{listCopy.criterionLabel}</SpotlightBadge>
-                <SpotlightTitle>{listCopy.title}</SpotlightTitle>
+                {/*
+                  🔴 **제목 + 기준을 한 줄로**(2026-08-07 사용자 지시: "배당킹 + 연속 증배 50년 이상"
+                  이런 식으로). 종전에는 기준 배지가 제목 위에 따로 서서 두 줄을 썼는데, 둘은
+                  "이 목록이 무엇인가"라는 한 문장이라 갈라 놓을 이유가 없었다.
+                  폭이 모자라면 기준 쪽이 말줄임으로 접힌다 — 목록 이름이 먼저 살아야 한다.
+                  그림은 이 줄의 **오른쪽 끝**에 작게 함께 선다(자기 열을 갖던 큰 그림을 대신한다).
+                */}
+                <SpotlightHead>
+                  <SpotlightTitle>{listCopy.title}</SpotlightTitle>
+                  <SpotlightBadge>{listCopy.criterionLabel}</SpotlightBadge>
+                </SpotlightHead>
                 <SpotlightHeadline>{listCopy.hub.headline}</SpotlightHeadline>
                 <SpotlightPoints>
                   {listCopy.hub.points.map((point) => (
@@ -140,9 +149,11 @@ export default function DividendListHubView({ viewModel }: DividendListHubViewPr
             /* 🔴 DOM 순서가 곧 낭독 순서다 — 좁은 폭에서 한 열이 되면 위에서부터 이 순서로 읽힌다.
                넓은 폭의 좌우는 grid-template-columns 가 정한다(order 로 뒤집지 않는다). */
             return (
+              /* 그림이 제목 줄로 들어갔으므로 블록은 한 열이다 — 좌우 지그재그는 사라졌다. */
               <Spotlight key={summary.id} $flip={flip}>
-                {flip ? bodyNode : artNode}
-                {flip ? artNode : bodyNode}
+                {/* 그림은 흐름 밖에서 카드 오른쪽에 깔린다 — 세 목록이 폭과 무관하게 같은 자리다. */}
+                {artNode}
+                {bodyNode}
               </Spotlight>
             );
           })}
@@ -161,26 +172,18 @@ export default function DividendListHubView({ viewModel }: DividendListHubViewPr
             <CompareTable>
               <thead>
                 <tr>
-                  <CompareHeadCell scope="col" />
-                  {summaries.map((summary) => {
-                    const art = DIVIDEND_LIST_MASCOT[summary.id];
-                    return (
-                      <CompareHeadCell key={summary.id} scope="col">
-                        <CompareHeadInner>
-                          <CompareHeadArt
-                            src={art.src}
-                            alt=""
-                            width={art.width}
-                            height={art.height}
-                            loading="lazy"
-                            decoding="async"
-                            draggable={false}
-                          />
-                          {DIVIDEND_LIST_COPY.lists[summary.id].title}
-                        </CompareHeadInner>
-                      </CompareHeadCell>
-                    );
-                  })}
+                  {/* 모서리 칸 — 아래 첫 열이 무엇을 나열하는지 말한다(고정 열이라 늘 보인다). */}
+                  <CompareHeadCell scope="col">{copy.compareCorner}</CompareHeadCell>
+                  {/*
+                    🔴 **그림을 뺐다**(2026-08-07 사용자 지시). 열 머리의 그림은 위 소개 블록과 눈을
+                    잇는 장치였는데, 이 표는 좁은 폭에서 가로로 밀리는 표라 그림이 열 폭을 키워
+                    미는 거리를 늘린다. 같은 연결은 바로 위 지그재그 블록이 이미 만든다.
+                  */}
+                  {summaries.map((summary) => (
+                    <CompareHeadCell key={summary.id} scope="col">
+                      <CompareHeadInner>{DIVIDEND_LIST_COPY.lists[summary.id].title}</CompareHeadInner>
+                    </CompareHeadCell>
+                  ))}
                 </tr>
               </thead>
               <tbody>

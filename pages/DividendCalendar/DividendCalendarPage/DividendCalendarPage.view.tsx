@@ -263,35 +263,41 @@ export default function DividendCalendarView({
       ) : null}
 
       {/* ── ① 데크 — 조작과 답이 한 판에 ──────────────────────────────────────── */}
+      {/*
+        DeckBar 는 데크 카드 **밖**에 있다(2026-08-07 사용자 지시: 붙은 조작 줄이 문서 끝까지
+        따라와야 한다). position: sticky 는 **부모 상자 안에서만** 붙으므로, 카드 안에 두면
+        카드가 화면 위로 지나가는 순간 떨어진다. 페이지 루트의 직계여야 문서 전체가 그 범위다.
+      */}
+      <DeckBar>
+        {/* 툴바는 표 바깥에 있다 — 월을 넘겨도 버튼이 리마운트되지 않아 포커스가 유지된다(연타 가능). */}
+        <CalendarToolbar
+          monthLabel={monthLabel}
+          prevLabel={copy.nav.monthLabel(prev.year, prev.month)}
+          nextLabel={copy.nav.monthLabel(next.year, next.month)}
+          todayLabel={copy.nav.monthLabel(todayMonth.year, todayMonth.month)}
+          isCurrentMonth={isCurrentMonth}
+          titleId={monthTitleId}
+          onPrev={onPrevMonth}
+          onNext={onNextMonth}
+          onToday={onToday}
+        />
+        <HeadSpacer />
+        <FilterButton
+          type="button"
+          aria-label={copy.picker.open(selected.length)}
+          aria-expanded={isPickerOpen}
+          aria-controls={drawerId}
+          onClick={onOpenPicker}
+        >
+          <SlidersHorizontal size={16} strokeWidth={1.8} aria-hidden focusable={false} />
+          {copy.picker.openShort}
+          {selected.length > 0 ? <FilterCount aria-hidden>{selected.length}</FilterCount> : null}
+        </FilterButton>
+        {/* 별도의 "선택 N종" 텍스트는 두지 않는다(사용자 결정 2026-07-25 — 배지와 중복).
+            개수는 배지가 눈으로, 버튼 접근명(`picker.open`)과 라이브 리전이 소리로 말한다. */}
+      </DeckBar>
+
       <MonthDeck aria-labelledby={monthTitleId}>
-        <DeckBar>
-          {/* 툴바는 표 바깥에 있다 — 월을 넘겨도 버튼이 리마운트되지 않아 포커스가 유지된다(연타 가능). */}
-          <CalendarToolbar
-            monthLabel={monthLabel}
-            prevLabel={copy.nav.monthLabel(prev.year, prev.month)}
-            nextLabel={copy.nav.monthLabel(next.year, next.month)}
-            todayLabel={copy.nav.monthLabel(todayMonth.year, todayMonth.month)}
-            isCurrentMonth={isCurrentMonth}
-            titleId={monthTitleId}
-            onPrev={onPrevMonth}
-            onNext={onNextMonth}
-            onToday={onToday}
-          />
-          <HeadSpacer />
-          <FilterButton
-            type="button"
-            aria-label={copy.picker.open(selected.length)}
-            aria-expanded={isPickerOpen}
-            aria-controls={drawerId}
-            onClick={onOpenPicker}
-          >
-            <SlidersHorizontal size={16} strokeWidth={1.8} aria-hidden focusable={false} />
-            {copy.picker.openShort}
-            {selected.length > 0 ? <FilterCount aria-hidden>{selected.length}</FilterCount> : null}
-          </FilterButton>
-          {/* 별도의 "선택 N종" 텍스트는 두지 않는다(사용자 결정 2026-07-25 — 배지와 중복).
-              개수는 배지가 눈으로, 버튼 접근명(`picker.open`)과 라이브 리전이 소리로 말한다. */}
-        </DeckBar>
 
         {renderNextLead()}
 
