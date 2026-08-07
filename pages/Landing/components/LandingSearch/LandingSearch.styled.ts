@@ -56,6 +56,21 @@ export const SearchInputWrap = styled.label`
   align-items: center;
   gap: ${space[3]};
   /*
+   * 🔴 **이 두 줄이 없으면 좁은 폭에서 페이지 전체에 가로 스크롤이 생긴다**
+   * (2026-08-07 Android Chrome 사용자 신고).
+   *
+   * 원인은 input 의 **고유 폭**이다. flex 항목의 기본 min-width 는 auto 이고, 그것은 "내용보다
+   * 작아지지 않는다"는 뜻이다. input 의 내용 폭은 플레이스홀더 글자에서 나온다("SCHD, JEPI 같은
+   * 종목을 검색해 보세요"). 안쪽 input 에는 min-width 0 이 있었지만 **이 상자에는 없어서**,
+   * 상자가 자기 내용만큼 벌어지고 그만큼 문서가 넓어졌다.
+   *
+   * ⚠ 이 결함은 **폰트 폭에 따라 갈린다** — 같은 393px 에서도 윈도우 헤드리스(좁은 한글 폴백)에서는
+   *   아슬아슬하게 들어오고 안드로이드(넓은 폴백)에서는 넘친다. 그래서 데스크톱 실측·CDP 모바일
+   *   에뮬레이션 어디에서도 재현되지 않았다. **폰트에 기대는 레이아웃을 남기지 마라.**
+   */
+  min-width: 0;
+  max-width: 100%;
+  /*
    * 56px — before 44px. 이 입력은 히어로 바로 아래 **한 줄을 온전히 쓰는 요소**이고, 랜딩에서
    * 히어로 CTA 다음으로 큰 컨트롤이다. 44px 이면 아래 차례 행(min-height 44px)과 같은 높이라
    * "누르는 것"과 "읽는 것"이 같은 무게로 보였다.
@@ -92,6 +107,12 @@ export const SearchInputWrap = styled.label`
 export const SearchInput = styled.input`
   flex: 1 1 auto;
   min-width: 0;
+  /*
+   * 🔴 min-width 0 과 **한 쌍**이다. input 은 size 특성(기본 20자)에서 오는 고유 폭을 갖는데,
+   * width 100% 를 주면 그 값을 쓰지 않고 남는 자리에 맞춘다 — 플레이스홀더가 아무리 길어도
+   * 상자를 밀어내지 못한다. 위 SearchInputWrap 주석의 가로 스크롤 사고와 같은 뿌리다.
+   */
+  width: 100%;
   /* 🔴 상자 높이를 세로로 채운다 — 한 줄 높이로만 서면 캐럿을 잡을 수 있는 띠가 44px 중 20px 뿐이다.
      바깥 label 이 클릭을 대신 받아 주지만, 입력 자체가 상자를 채워야 드래그 선택도 자연스럽다. */
   align-self: stretch;
