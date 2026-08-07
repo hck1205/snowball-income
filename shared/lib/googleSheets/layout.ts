@@ -18,6 +18,7 @@
  * 🔴 **추측으로 단정하지 않는다.** 확신이 서지 않으면 `flat` 으로 떨어진다 — 잘못 감지해
  *    엉뚱한 열을 읽는 것보다, 못 알아보고 사용자에게 열 매핑을 묻는 쪽이 낫다.
  */
+import { normalizeSheetHeader } from './mapping';
 import type { ColumnMapping } from './types';
 
 /** 시트가 가진 모양. */
@@ -48,13 +49,11 @@ export type LedgerLayout = FlatLayout | MonthBlockLayout;
 
 export const FLAT_LAYOUT: FlatLayout = { kind: 'flat' };
 
-/** 비교용 정규화 — 헤더 표기의 흔들림(공백·괄호·단위)을 지운다. */
-const normalizeHeader = (raw: string): string =>
-  raw
-    .trim()
-    .toLowerCase()
-    .replace(/\(.*?\)/g, '') // `지출금액(원)` → `지출금액`
-    .replace(/[\s·・/\\|,.\-_]/g, '');
+/**
+ * 비교용 정규화. 🔴 **열 매핑(`mapping.ts`)과 같은 함수를 쓴다** — 규칙이 갈리면 같은 시트를
+ * 한쪽은 알아보고 한쪽은 못 알아본다(2026-08-08 P3 에서 실제로 그런 상태였다).
+ */
+const normalizeHeader = normalizeSheetHeader;
 
 /**
  * 블록 헤더로 인정하는 낱말. **필수 셋**(항목·금액·날짜 계열)이 한 줄에 모여 있어야 블록이다.

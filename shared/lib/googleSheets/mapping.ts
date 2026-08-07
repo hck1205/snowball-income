@@ -33,7 +33,24 @@ const HEADER_CANDIDATES: Readonly<Record<LedgerField, readonly string[]>> = {
   status: ['상태', 'status']
 };
 
-const normalizeHeader = (header: string): string => header.trim().toLowerCase().replace(/\s+/g, '');
+/**
+ * 헤더 비교용 정규화 — **열 매핑과 레이아웃 감지가 함께 쓴다**(둘이 다른 규칙을 쓰면 같은 시트를
+ * 한쪽은 알아보고 한쪽은 못 알아본다. 실제로 그런 상태였다).
+ *
+ * 지우는 것: 공백 · 괄호와 그 안 · 구분기호.
+ * 🔴 괄호를 지우는 것이 핵심이다. 널리 쓰이는 템플릿의 헤더가 `지출금액(원)`·`항목(복사금지)` 라
+ *    괄호를 남기면 어떤 후보와도 맞지 않는다. 안내 문구를 헤더에 붙이는 시트가 흔하다.
+ * ⚠ **글자 자체는 지우지 않는다** — `교통비`와 `교통`은 다른 문자열로 남고, 후보 목록이 잇는다.
+ *   부분일치로 이으면 `분류`가 `내역분류`에, `금액`이 `지출금액`에 끌려가 두 열이 뭉친다.
+ */
+export const normalizeSheetHeader = (header: string): string =>
+  header
+    .trim()
+    .toLowerCase()
+    .replace(/\(.*?\)/g, '')
+    .replace(/[\s·・/\|,.\-_]/g, '');
+
+const normalizeHeader = normalizeSheetHeader;
 
 export type MappingSuggestion = {
   readonly mapping: Partial<ColumnMapping>;
@@ -148,14 +165,17 @@ const isColumnMapping = (value: unknown): value is ColumnMapping => {
 
 /** 저장 직전에 **허용된 키만** 남긴다. 실수로 행 값을 흘려 넣어도 여기서 떨어진다. */
 export const toStoredSheetLink = (link: StoredSheetLink): StoredSheetLink => {
-  const mapping: Record<string, number> = {
-    date: link.mapping.date,
-    kind: link.mapping.kind,
-    amount: link.mapping.amount,
-    category: link.mapping.category
-  };
-  if (link.mapping.memo !== undefined) mapping.memo = link.mapping.memo;
-  if (link.mapping.status !== undefined) mapping.status = link.mapping.status;
+  /*
+   * 🔴 여기도 상수를 돈다. 손으로 나열하던 시절, v2 축 넷이 늘었는데 이 함수만 옛 목록으로 남아
+   *    **저장하면 그 열 매핑이 사라졌다** — 다시 열면 상세항목·주체·결제수단·고정이 매핑되지 않은
+   *    시트가 되고, 사용자는 열 고르기를 처음부터 다시 해야 했다. 조용히 되돌아가는 실패라 더 나쁘다.
+   */
+  const mapping: Record<string, number> = {};
+  for (const field of LEDGER_REQUIRED_FIELDS) mapping[field] = link.mapping[field];
+  for (const field of LEDGER_OPTIONAL_FIELDS) {
+    const index = link.mapping[field];
+    if (index !== undefined) mapping[field] = index;
+  }
   return {
     spreadsheetId: link.spreadsheetId,
     sheetId: link.sheetId,
