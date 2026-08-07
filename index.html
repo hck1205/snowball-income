@@ -150,7 +150,29 @@
             "url": "%VITE_SITE_URL%/",
             "name": "Hungry Hippo",
             "inLanguage": "ko-KR",
-            "description": "배당주·ETF의 기본 개념과, 받은 배당을 다시 넣어 복리로 키웠을 때의 계산을 함께 제공하는 웹 사이트"
+            "description": "배당주·ETF의 기본 개념과, 받은 배당을 다시 넣어 복리로 키웠을 때의 계산을 함께 제공하는 웹 사이트",
+            "publisher": { "@id": "%VITE_SITE_URL%/#organization" },
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "%VITE_SITE_URL%/ticker/all?q={search_term_string}"
+              },
+              "query-input": "required name=search_term_string"
+            }
+          },
+          {
+            "@type": "Organization",
+            "@id": "%VITE_SITE_URL%/#organization",
+            "url": "%VITE_SITE_URL%/",
+            "name": "Hungry Hippo",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "%VITE_SITE_URL%/icon-512.png",
+              "width": 512,
+              "height": 512
+            },
+            "description": "배당 재투자 계산과 공개 공시 자료를 한국어로 정리해 제공한다."
           },
           {
             "@type": "WebApplication",

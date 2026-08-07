@@ -88,6 +88,21 @@ const ROUTES = [
      (3월 말) 공개된다. 주 1회라고 적으면 크롤러에게 거짓말을 하는 것이다. */
   { path: '/portfolio/korea-assembly', priority: '0.6', changefreq: 'yearly' },
   { path: '/portfolio/nps', priority: '0.6', changefreq: 'monthly' },
+  /*
+   * 🔴 **빠져 있던 넷**(2026-08-08 점검에서 발견). 넷 다 색인 대상 공개 라우트인데 사이트맵에만
+   * 없었다 — 크롤러가 링크를 타고 발견할 수는 있지만 그만큼 늦고, 갱신 주기를 알릴 방법도 없다.
+   *
+   * ⚠ 이 배열은 `router/routes.tsx` 의 공개 라우트와 손으로 맞추는 목록이라 이런 누락이 생긴다.
+   *   아래 `test/seo/` 의 가드가 그 대조를 자동화한다 — 새 공개 라우트를 열면 그 테스트가 먼저 빨개진다.
+   */
+  /* 대가들의 포트폴리오 — 13F 공시라 분기 갱신이지만 인물 구성이 그 사이에도 바뀐다. */
+  { path: '/portfolio/investors', priority: '0.6', changefreq: 'monthly' },
+  /* 배당 지급 캘린더 — 매달 날짜가 바뀌는 유틸리티. 검색 유입이 붙기 좋은 축이라 0.7. */
+  { path: '/dividend/calendar', priority: '0.7', changefreq: 'weekly' },
+  /* 내 배당 포트폴리오 — 로그인 없이도 쓰는 도구다(저장만 로그인). */
+  { path: '/dividend/portfolio', priority: '0.7', changefreq: 'weekly' },
+  /* 종목 비교 — `/ticker/all` 허브와 한 축이라 같은 0.6. */
+  { path: '/ticker/compare', priority: '0.6', changefreq: 'weekly' },
 ] as const;
 
 type SitemapRoute = { path: string; priority: string; changefreq: string };
