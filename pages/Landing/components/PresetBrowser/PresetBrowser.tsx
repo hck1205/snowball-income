@@ -1,11 +1,7 @@
-import { useCallback, useId, useMemo, useState } from 'react';
+import { useId, useMemo } from 'react';
 import { ArrowRight } from 'lucide-react';
-import { PickCard } from '@/components/common';
-import {
-  PRESET_ICON_STROKE,
-  groupPortfolioPresets,
-  type PortfolioPresetGroupId
-} from '@/shared/constants/portfolioPresets';
+import { Carousel, PickCard } from '@/components/common';
+import { PRESET_ICON_STROKE, groupPortfolioPresets } from '@/shared/constants/portfolioPresets';
 import { SIMULATOR_PATH } from '@/shared/constants/routes';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import { LANDING_COPY } from '../../copy';
@@ -23,9 +19,7 @@ import {
   GroupSection,
   GroupTitle,
   GroupTitleRow,
-  MoreButton,
   PresetFacts,
-  PresetGrid,
   PresetHook
 } from './PresetBrowser.styled';
 
@@ -54,27 +48,26 @@ const copy = LANDING_COPY.presets;
  * 마무리 브랜드 패널이 이미 쓴다. 근거·매핑은 `PresetBrowser.utils.ts` 의 `PRESET_CAP_AXIS`.
  * (레일 캡이라 `PickCardGrid cluster` 표식도 필요 없다 — 6px 은 애초에 세어지지 않는다.)
  *
- * ## 모션
- * "더 보기"는 **즉시 표시**다. 높이 전이를 넣지 않는다 — 랜딩의 모션 예산은 호버·누름·아코디언
- * 펼침까지이고, 이 디스클로저는 스크롤 위치에서 문서 길이를 바꾸므로 애니메이션이 되레 방해가 된다.
+ * ## 🔴 묶음마다 **가로 한 줄**이다 (2026-08-07 사용자 지시)
+ * 종전에는 묶음마다 격자로 쌓이고 나머지는 "더 보기"로 접혀 있었다. 그 배치의 문제는 길이다 —
+ * 네 묶음이 세로로 이어지면 이 장 하나가 화면 몇 개를 먹고, **처음 온 사람은 그 길이만 보고
+ * 나간다**("정보가 너무 많이 보이면 이탈한다"는 사용자 판단).
+ * 캐러셀은 같은 정보를 화면 한 칸으로 접는다. 덤으로 "더 보기" 가 사라졌다 — 모든 카드가
+ * 궤도 위에 있어 접을 것이 없고, 디스클로저가 문서 길이를 바꾸던 문제도 함께 없어졌다.
+ * ⚠ 자동 넘김은 켜지 않는다. 이 카드는 **고르는 것**이라, 읽는 중에 넘어가면 방해가 된다 —
+ *   움직임이 필요한 자리와 고르는 자리는 다르다(Carousel 의 autoAdvanceSeconds 기본값 주석).
  */
 export default function PresetBrowser() {
   const headingIdPrefix = useId();
   const sections = useMemo(() => groupPortfolioPresets(), []);
-  const [expanded, setExpanded] = useState<readonly PortfolioPresetGroupId[]>([]);
-
-  const toggle = useCallback((groupId: PortfolioPresetGroupId) => {
-    setExpanded((prev) => (prev.includes(groupId) ? prev.filter((id) => id !== groupId) : [...prev, groupId]));
-  }, []);
 
   return (
     <BrowserRoot>
       {sections.map(({ group, visible, hidden }) => {
         const headingId = `${headingIdPrefix}-${group.id}`;
-        const panelId = `${headingIdPrefix}-${group.id}-panel`;
-        const isExpanded = expanded.includes(group.id);
         const GroupIcon = group.icon;
-        const shown = isExpanded ? [...visible, ...hidden] : visible;
+        /* 🔴 접지 않는다 — 전부 궤도에 올린다. 캐러셀이 곧 "더 보기"의 자리를 대신한다. */
+        const shown = [...visible, ...hidden];
 
         return (
           <GroupSection key={group.id} aria-labelledby={headingId}>
@@ -84,21 +77,11 @@ export default function PresetBrowser() {
                   <GroupIcon size={16} strokeWidth={PRESET_ICON_STROKE} aria-hidden focusable={false} />
                 </GroupBadge>
                 <GroupTitle id={headingId}>{group.label}</GroupTitle>
-                {hidden.length > 0 ? (
-                  <MoreButton
-                    type="button"
-                    aria-expanded={isExpanded}
-                    aria-controls={panelId}
-                    onClick={() => toggle(group.id)}
-                  >
-                    {isExpanded ? copy.collapse : copy.more(group.label, hidden.length)}
-                  </MoreButton>
-                ) : null}
               </GroupTitleRow>
               <GroupHint>{group.hint}</GroupHint>
             </GroupHead>
 
-            <PresetGrid id={panelId}>
+            <Carousel ariaLabel={copy.carouselLabel(group.label, shown.length)}>
               {shown.map((preset) => {
                 const segments = buildAllocationSegments(preset);
 
@@ -138,7 +121,7 @@ export default function PresetBrowser() {
                   </PickCard>
                 );
               })}
-            </PresetGrid>
+            </Carousel>
           </GroupSection>
         );
       })}
