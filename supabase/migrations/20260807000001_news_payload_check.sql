@@ -1,13 +1,6 @@
--- =============================================================================
--- snowball-income — 뉴스 글의 payload 를 허용한다 (20260807000000 의 후속)
--- =============================================================================
---
--- 왜 필요한가
--- ---------------------------------------------------------------------------
--- 앞 마이그레이션이 kind='news' 를 열었지만, payload 에는 20260714000000 이 세운 CHECK 가
--- 그대로 걸려 있다:
---
---     check (payload is null or public.is_valid_scenario_payload(payload))
+` 로 **rename** 했다. 개명을 실행한 DB 와 아닌 DB 가 갈릴 수 있으므로
+--   이 파일은 **이름을 가정하지 않고 실재하는 쪽을 찾아 쓴다**(아래 2단계).
+--   ⚠ 2026-08-07 첫 실행이 정확히 이 이유로 42883(function does not exist)으로 실패했다.
 --
 -- 그 함수는 payload 가 **시나리오**임을 요구한다(portfolio · investmentSettings 키 필수).
 -- 뉴스의 payload 는 링크 메타 다섯 필드라 이 검사를 통과하지 못하고, 게시가 23514
@@ -70,12 +63,33 @@ comment on function public.is_valid_news_payload(jsonb) is
 -- =============================================================================
 -- 2. posts.payload CHECK 교체 — 시나리오 **또는** 뉴스
 -- =============================================================================
--- 이름을 가정하지 않고 payload 를 참조하는 CHECK 를 전부 걷어낸 뒤 이름 있는 제약으로 다시 건다
--- (20260727000000 의 category 와 같은 처방 — 20260715000000 이 남긴 이름이 프로젝트마다 다를 수 있다).
+-- 두 가지를 **이름으로 가정하지 않는다**:
+--   ① 기존 CHECK 제약 이름 — 20260715000000 이 남긴 이름이 프로젝트마다 다를 수 있다
+--      (20260727000000 의 category 와 같은 처방).
+--   ② 시나리오 검사 함수 이름 — 20260723000000 의 rename 실행 여부에 따라
+--      `is_valid_post_payload`(개명 후) 또는 `is_valid_scenario_payload`(개명 전)다.
+--      🔴 둘 다 없으면 **아무것도 바꾸지 않고 예외로 멈춘다** — 여기서 조용히 넘어가면
+--        시나리오 payload 검사가 통째로 사라진 채 제약이 다시 걸린다(그게 더 나쁘다).
 do $$
 declare
   target record;
+  scenario_fn text;
 begin
+  -- 실재하는 시나리오 검사 함수를 먼저 찾는다. 드롭보다 **앞**이어야 한다 —
+  -- 없는데 드롭부터 하면 되돌릴 것 없이 제약만 잃는다.
+  select p.proname into scenario_fn
+  from pg_proc p
+  join pg_namespace n on n.oid = p.pronamespace
+  where n.nspname = 'public'
+    and p.proname in ('is_valid_post_payload', 'is_valid_scenario_payload')
+  order by case p.proname when 'is_valid_post_payload' then 0 else 1 end
+  limit 1;
+
+  if scenario_fn is null then
+    raise exception
+      '시나리오 payload 검사 함수를 찾지 못했습니다(is_valid_post_payload / is_valid_scenario_payload). 20260714000000 을 먼저 실행하세요.';
+  end if;
+
   for target in
     select con.conname
     from pg_constraint con
@@ -88,23 +102,48 @@ begin
   loop
     execute format('alter table public.posts drop constraint %I', target.conname);
   end loop;
+
+  -- 🔴 kind 로 갈라 검사한다. 뉴스 글에 시나리오를 담거나 그 반대로 담는 것을 DB 가 막는다.
+  execute format(
+    'alter table public.posts add constraint posts_payload_valid_or_null check ('
+    || 'payload is null'
+    || ' or (kind = ''news'' and public.is_valid_news_payload(payload))'
+    || ' or (kind <> ''news'' and public.%I(payload)))',
+    scenario_fn
+  );
 end
 $$;
-
--- 🔴 kind 로 갈라 검사한다. 뉴스 글에 시나리오를 담거나 그 반대로 담는 것을 DB 가 막는다.
-alter table public.posts
-  add constraint posts_payload_valid_or_null
-  check (
-    payload is null
-    or (kind = 'news' and public.is_valid_news_payload(payload))
-    or (kind <> 'news' and public.is_valid_scenario_payload(payload))
-  );
 
 -- =============================================================================
 -- 끝. 요약
 -- =============================================================================
 --   - is_valid_news_payload(jsonb) 신설 (url 필수 · 4KB 상한)
 --   - posts.payload CHECK 를 "시나리오 또는 뉴스"로 교체 (이름: posts_payload_valid_or_null)
+--   - 시나리오 검사 함수는 **실재하는 이름을 찾아** 쓴다(개명 전/후 DB 양쪽에서 선다)
 --   - 기존 행은 한 줄도 건드리지 않는다 — 시나리오 payload 규칙은 그대로다
 --   - 새 컬럼 0 · 새 테이블 0 · RLS 변경 없음 · 재실행 안전
+--
+-- 실행 뒤 확인 (SQL 에디터에 그대로 붙여 넣어 보라)
+-- ---------------------------------------------------------------------------
+--   select conname, pg_get_constraintdef(oid)
+--     from pg_constraint
+--    where conrelid = 'public.posts'::regclass and contype = 'c'
+--      and pg_get_constraintdef(oid) ilike '%payload%';
+--
+--   → posts_payload_valid_or_null 한 줄이 나오고, 그 정의에 is_valid_news_payload 와
+--     시나리오 검사 함수가 **둘 다** 보여야 한다.
 -- =============================================================================
+-- =============================================================================
+-- snowball-income — 뉴스 글의 payload 를 허용한다 (20260807000000 의 후속)
+-- =============================================================================
+--
+-- 왜 필요한가
+-- ---------------------------------------------------------------------------
+-- 앞 마이그레이션이 kind='news' 를 열었지만, payload 에는 20260714000000 이 세운 CHECK 가
+-- 그대로 걸려 있다:
+--
+--     check (payload is null or public.is_valid_post_payload(payload))
+--
+-- 🔴 **함수 이름이 DB 마다 다를 수 있다.** 20260714000000 은 이 함수를
+--   `is_valid_scenario_payload` 로 만들었고, 20260723000000(scenarios → posts 개명)이
+--   `is_valid_post_payload
