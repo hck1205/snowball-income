@@ -138,6 +138,21 @@ const wordmarkGradientText = (gradient: string, solid: string) => `
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  /*
+   * 🔴 **글자 아랫부분이 잘려 보이던 것의 수리**(2026-08-07 모바일 사용자 신고).
+   *
+   * background-clip: text 는 그라디언트를 이 요소의 **배경 상자 안에서만** 칠한다. 워드마크의
+   * 줄 상자는 15px/18px 로 빡빡한데 display 서체(Gmarket Sans)의 글자 잉크는 그보다 아래로
+   * 내려간다 — 배경 상자 밖으로 나간 부분은 그라디언트가 안 칠해지고, 글자색이 transparent 라
+   * 아예 **사라진다**. 사용자에게는 "아랫부분이 살짝 잘린" 것으로 보인다.
+   *
+   * 인라인 요소의 padding 은 **배경 상자를 넓히지만 줄 상자 높이는 바꾸지 않는다** — 그래서
+   * 이 한 줄이 레이아웃을 1px 도 건드리지 않고 잉크를 덮는다.
+   * 🔴 line-height 를 올려 고치지 마라. 헤더는 실측 119px 이고 계약 상한이 120px 이라
+   *   줄 높이를 키우면 그 자리에서 상한을 넘는다(tools/dev/headerprobe.mjs).
+   * ⚠ 세로 방향만 준다. 좌우로 주면 두 낱말 사이 간격이 벌어져 한 낱말로 안 읽힌다.
+   */
+  padding-block: 0.14em;
 
   @supports not ((background-clip: text) or (-webkit-background-clip: text)) {
     background-image: none;

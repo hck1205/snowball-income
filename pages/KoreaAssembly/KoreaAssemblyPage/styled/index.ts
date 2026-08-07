@@ -3,6 +3,7 @@ export {
   IssuerLink,
   MemberSample,
   Num,
+  PersonName,
   Position,
   RelationTag,
   TagRow,

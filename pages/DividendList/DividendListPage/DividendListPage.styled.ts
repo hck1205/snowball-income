@@ -93,7 +93,9 @@ const HERO_RAIL_HEIGHT = '4px';
  *   읽는 폭과 같은 대역이다).
  * ⚠ 문자열을 **밖에서** 조립한다 — styled 템플릿 안 중첩 템플릿 리터럴은 백틱 가드가 문맥을 닫지 못한다.
  */
-const HERO_COLUMNS = 'auto minmax(0, min(68ch, 100%))';
+/* 🔴 글이 먼저, 그림이 뒤다(2026-08-07 사용자 지시로 좌↔우를 뒤집었다). DOM 순서(글 → 그림)와
+   보이는 순서가 같아져, 아래 header/HeroMascot 의 grid-column 재배치도 함께 사라졌다. */
+const HERO_COLUMNS = 'minmax(0, min(68ch, 100%)) auto';
 
 /**
  * 히어로 + 마스코트 한 덩어리 — **허브(`/dividend/lists`)의 소개 블록과 같은 배치**
@@ -189,8 +191,8 @@ export const HeroBlock = styled.div`
       display: none;
     }
 
-    /* 글은 두 번째 열이다. 🔴 DOM 순서는 글 → 그림 그대로 둔다 — 장식이 낭독 순서를 앞서지 않게. */
-    grid-column: 2;
+    /* 글은 첫 번째 열이다 — DOM 순서와 같아 재배치가 없다(2026-08-07 좌↔우 반전). */
+    grid-column: 1;
     grid-row: 1;
   }
 `;
@@ -212,10 +214,10 @@ export const HeroMascot = styled.img`
    * position: relative 로 페인트 단계를 끌어올려야 카드 배경 위로 나왔다(2026-08-04 실측 사고).
    * 열이 갈린 지금은 그 보정이 필요 없다 — 겹치는 것이 없으므로 쌓임을 만들 이유도 없다.
    */
-  /* 맨 왼쪽 열. DOM 상 뒤에 있지만 자리는 앞이다(위 header 규칙과 한 벌). */
-  grid-column: 1;
+  /* 맨 오른쪽 열(2026-08-07 사용자 지시). DOM 순서와 자리가 같다 — 재배치가 필요 없다. */
+  grid-column: 2;
   grid-row: 1;
-  justify-self: start;
+  justify-self: end;
   /* 세로 가운데 — 글과 눈높이를 맞춘다(허브 소개 블록과 같은 규율). */
   align-self: center;
   width: 100%;

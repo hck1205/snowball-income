@@ -80,3 +80,24 @@ export const Position = styled.span`
   color: ${color.textMuted};
   font-size: ${font.size.xs};
 `;
+
+/**
+ * 사람 이름 한 줄 — **한 줄로 유지하고 넘치면 말줄임**.
+ *
+ * 🔴 이름은 두 줄로 접지 않는다(2026-08-07 사용자 신고: 카드에서 이름이 겹친다). 사람 이름은
+ * 줄바꿈 지점이 없어 접으면 어색하게 갈리고, 표가 카드로 접히는 폭에서는 라벨과 겹친다.
+ * 전체 문자열은 OverflowTooltip 이 준다 — 잘렸을 때만 뜨고 hover·클릭·키보드를 전부 받는다
+ * (모바일은 hover 가 없어 **클릭**이 유일한 경로다).
+ * ⚠ min-width 0 이 없으면 grid/flex 안에서 상자가 내용만큼 벌어져 말줄임이 아예 안 걸린다.
+ */
+export const PersonName = styled.span`
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &[tabindex] {
+    cursor: help;
+  }
+`;

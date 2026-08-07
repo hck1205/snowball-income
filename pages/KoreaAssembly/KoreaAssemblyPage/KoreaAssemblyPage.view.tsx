@@ -25,6 +25,7 @@ import {
   IssuerLink,
   MemberSample,
   Num,
+  PersonName,
   Position,
   RelationTag,
   TagRow,
@@ -84,9 +85,12 @@ const MEMBER_COLUMNS = [
   {
     key: 'name',
     header: copy.members.columnName,
+    /* 🔴 이름은 한 줄 + 말줄임 + 툴팁 — 카드 모드에서 라벨과 겹치던 자리다(국회 화면과 같은 처방). */
     render: (row: KoreaMemberRow) => (
       <>
-        {row.name}
+        <OverflowTooltip text={row.name}>
+          <PersonName />
+        </OverflowTooltip>
         {/* 의장·부의장만 직위를 덧붙인다 — 일반 의원에게 "국회의원"을 또 쓰면 잡음이다. */}
         {row.position === '국회의원' ? null : <Position>{row.position}</Position>}
       </>
