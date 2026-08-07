@@ -53,6 +53,7 @@ const entryOf = (snapshotId: string, rowNumber: number, amount: number): LedgerE
   date: '2026-08-03',
   kind: 'expense',
   amount,
+  fixity: 'variable' as const,
   category: '식비',
   memo: '점심',
   // 🔴 `seen` = 읽을 때 본 원본 셀. 요약 비교의 유일한 재료다.

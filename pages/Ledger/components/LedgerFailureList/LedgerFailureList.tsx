@@ -2,6 +2,7 @@ import { useId } from 'react';
 import { RotateCcw, TriangleAlert } from 'lucide-react';
 import { Button, Card } from '@/components/common';
 import { LEDGER_COPY } from '../../copy';
+import { kindLabel } from '../../utils';
 import type { LedgerFailureListProps } from './LedgerFailureList.types';
 import {
   FailureBody,
@@ -35,7 +36,7 @@ export default function LedgerFailureList({ model, retryCountdowns, onRetry, onR
     <Card tone="sunken" title={copy.error.partial.listTitle}>
       <FailureItems>
         {model.rows.map((row) => {
-          const kindText = row.kind === 'income' ? copy.list.kindIncome : copy.list.kindExpense;
+          const kindText = kindLabel(row.kind, copy.list);
           const blockedSeconds = retryCountdowns.get(row.id) ?? 0;
 
           return (

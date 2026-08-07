@@ -9,9 +9,13 @@ export type FeedMastheadProps = {
   lead: string;
   /** 문서 개요에 맞춰 고른다. 목록 인덱스는 `h1`. */
   titleAs?: 'h1' | 'h2';
-  /** 주 행동(글쓰기) 라벨. */
-  actionLabel: string;
+  /**
+   * 주 행동(글쓰기) 라벨. **`onAction` 과 짝**이다 — 둘 다 있어야 버튼이 선다.
+   * 생략하면 머리 면에 버튼이 아예 그려지지 않는다(비활성 버튼이 아니라 없음).
+   * 쓸 수 없는 사람에게 눌리는 버튼을 보여 주면 "왜 안 되는지"를 누른 뒤에야 알게 된다.
+   */
+  actionLabel?: string;
   /** 주 행동 아이콘. 라벨과 함께 읽힌다(아이콘 단독 금지). */
   actionIcon?: ReactNode;
-  onAction: () => void;
+  onAction?: () => void;
 };

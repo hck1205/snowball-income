@@ -1,9 +1,10 @@
 import { useCallback, useMemo, useState } from 'react';
 import type { LedgerEntry, LedgerSnapshot } from '@/shared/lib/googleSheets';
+import { LEDGER_CATEGORIES } from '@/shared/constants/ledger';
 import type { LedgerMonthSummary, LedgerRowModel } from '../types';
 import {
   addMonths,
-  collectCategories,
+  collectFieldValues,
   isSameMonth,
   isVisibleEntry,
   latestMonthOf,
@@ -28,8 +29,15 @@ export type LedgerMonth = {
   summary: LedgerMonthSummary;
   /** 행 id → 시트에서 읽은 원본(쓰기에 필요한 `ref`·`seen` 을 갖고 있다). */
   entryById: ReadonlyMap<string, LedgerEntry>;
-  /** 분류 자동완성 후보(시트에 등장한 값만). */
+  /**
+   * 자동완성 후보 — 시트에 등장한 값이 앞, 기본 분류 사전이 뒤.
+   * 🔴 관측값이 먼저다. 사용자가 실제로 쓰던 낱말을 사전이 밀어내지 않는다.
+   */
   categoryOptions: readonly string[];
+  subcategoryOptions: readonly string[];
+  /** 주체·결제수단은 사전이 없다 — 사용자가 정하는 이름이라 시드가 있을 수 없다. */
+  payerOptions: readonly string[];
+  methodOptions: readonly string[];
   goPrev: () => void;
   goNext: () => void;
   goThisMonth: () => void;
@@ -71,7 +79,19 @@ export function useLedgerMonth(snapshot: LedgerSnapshot | null, now: Date): Ledg
   }, [entries]);
 
   const latestMonth = useMemo(() => latestMonthOf(entries), [entries]);
-  const categoryOptions = useMemo(() => collectCategories(entries), [entries]);
+  const categoryOptions = useMemo(
+    () => collectFieldValues(entries, 'category', { seed: LEDGER_CATEGORIES.map((category) => category.label) }),
+    [entries]
+  );
+  const subcategoryOptions = useMemo(
+    () =>
+      collectFieldValues(entries, 'subcategory', {
+        seed: LEDGER_CATEGORIES.flatMap((category) => category.subcategories.map((sub) => sub.label))
+      }),
+    [entries]
+  );
+  const payerOptions = useMemo(() => collectFieldValues(entries, 'payer'), [entries]);
+  const methodOptions = useMemo(() => collectFieldValues(entries, 'method'), [entries]);
 
   const goPrev = useCallback(() => setCursor((previous) => addMonths(previous, -1)), []);
   const goNext = useCallback(() => setCursor((previous) => addMonths(previous, 1)), []);
@@ -93,6 +113,9 @@ export function useLedgerMonth(snapshot: LedgerSnapshot | null, now: Date): Ledg
     summary,
     entryById,
     categoryOptions,
+    subcategoryOptions,
+    payerOptions,
+    methodOptions,
     goPrev,
     goNext,
     goThisMonth,

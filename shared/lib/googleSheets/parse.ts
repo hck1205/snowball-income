@@ -4,6 +4,7 @@
  * 설계 원칙: **한 행이 이상해도 연결이 실패하지 않는다.** 금액 칸에 `₩1,200`·`1200원`·빈칸이 섞여 있는
  * 것은 남의 가계부에서 정상이다. 읽을 수 없는 행은 사유와 함께 `UnreadableRow` 로 표시하고 건너뛴다.
  */
+import { isFixityToken, isSharedPayer, parseFixity } from '@/shared/constants/ledger';
 import { LEDGER_FIRST_DATA_ROW } from './schema';
 import type {
   ColumnMapping,
@@ -86,14 +87,17 @@ export const parseLedgerDate = (raw: string | undefined): string | null => {
 
 const INCOME_WORDS = new Set(['수입', '입금', '소득', '수익', 'income', 'in', 'credit', '+']);
 const EXPENSE_WORDS = new Set(['지출', '출금', '소비', '비용', 'expense', 'out', 'debit', '-']);
+/** 이체 = 쓴 것이 아니라 옮긴 것. 저축·투자 납입이 여기 온다(설계 §2.3). */
+const TRANSFER_WORDS = new Set(['이체', '대체', '저축', '투자', 'transfer', 'move']);
 
-/** `수입`/`지출` 계열 표기를 정규화한다. 모르는 말이면 `null`(임의로 지출로 몰지 않는다). */
+/** `수입`/`지출`/`이체` 계열 표기를 정규화한다. 모르는 말이면 `null`(임의로 지출로 몰지 않는다). */
 export const parseLedgerKind = (raw: string | undefined): LedgerKind | null => {
   if (typeof raw !== 'string') return null;
   const normalized = raw.trim().toLowerCase().replace(/\s+/g, '');
   if (normalized.length === 0) return null;
   if (INCOME_WORDS.has(normalized)) return 'income';
   if (EXPENSE_WORDS.has(normalized)) return 'expense';
+  if (TRANSFER_WORDS.has(normalized)) return 'transfer';
   return null;
 };
 
@@ -108,6 +112,10 @@ export const pickRowCells = (
     amount: readColumn(mapping.amount) ?? '',
     category: readColumn(mapping.category) ?? ''
   };
+  if (mapping.subcategory !== undefined) cells.subcategory = readColumn(mapping.subcategory) ?? '';
+  if (mapping.payer !== undefined) cells.payer = readColumn(mapping.payer) ?? '';
+  if (mapping.method !== undefined) cells.method = readColumn(mapping.method) ?? '';
+  if (mapping.fixity !== undefined) cells.fixity = readColumn(mapping.fixity) ?? '';
   if (mapping.memo !== undefined) cells.memo = readColumn(mapping.memo) ?? '';
   if (mapping.status !== undefined) cells.status = readColumn(mapping.status) ?? '';
   return cells;
@@ -143,6 +151,20 @@ export const parseLedgerRow = (cells: RowCells, rowNumber: number): ParsedRow =>
 
   const memo = cells.memo?.trim();
   const status = cells.status?.trim();
+  const subcategory = cells.subcategory?.trim();
+  const method = cells.method?.trim();
+  /* 공동은 값이 아니라 기본값이다 — 빈 칸도 `공동`이라 굳이 들고 다니지 않는다(§axes). */
+  const payer = isSharedPayer(cells.payer) ? undefined : cells.payer?.trim();
+
+  /*
+   * 고정 여부는 두 곳에서 온다:
+   *   ① 전용 `고정` 열 (v2 시트)
+   *   ② **날짜 칸의 `고정지출` 토큰** — 분석한 원본 템플릿의 관습이다. 그 시트에서는 날짜 대신
+   *      그 글자가 들어 있어 날짜 파싱이 실패하는데, 위에서 이미 실패로 걸러졌으므로 여기까지
+   *      오지 않는다. 그래도 두 경로를 함께 보는 이유는 매핑 단계(P3)가 그 토큰을 날짜에서
+   *      떼어 이 칸으로 옮겨 넣을 것이고, 그때 이 코드가 이미 서 있어야 하기 때문이다.
+   */
+  const fixity = parseFixity(cells.fixity ?? (isFixityToken(cells.date) ? '고정' : ''));
 
   return {
     ok: true,
@@ -152,6 +174,10 @@ export const parseLedgerRow = (cells: RowCells, rowNumber: number): ParsedRow =>
       kind,
       amount,
       category: (cells.category ?? '').trim(),
+      ...(subcategory && subcategory.length > 0 ? { subcategory } : {}),
+      ...(payer && payer.length > 0 ? { payer } : {}),
+      ...(method && method.length > 0 ? { method } : {}),
+      fixity,
       ...(memo && memo.length > 0 ? { memo } : {}),
       ...(status && status.length > 0 ? { status } : {}),
       seen: cells
@@ -196,12 +222,21 @@ export const parseLedgerColumns = (params: {
  * 새로 넣을 항목이 시트에 쓸 수 있는 값인지. **문제가 된 필드 목록**을 돌려준다(빈 배열 = 통과).
  * 여기서 걸린 건은 네트워크를 쓰지 않고 그 건만 실패로 보고된다(AC-W5 의 부분 실패).
  */
+const KINDS: readonly LedgerKind[] = ['income', 'expense', 'transfer'];
+
+/** v2 의 자유 텍스트 축들 — 검사 규칙이 같아서 한 곳에서 돈다. */
+const TEXT_AXES = ['subcategory', 'payer', 'method'] as const;
+
 export const validateLedgerDraft = (draft: LedgerDraft): LedgerField[] => {
   const invalid: LedgerField[] = [];
   if (parseLedgerDate(draft.date) !== draft.date) invalid.push('date');
-  if (draft.kind !== 'income' && draft.kind !== 'expense') invalid.push('kind');
+  if (!KINDS.includes(draft.kind)) invalid.push('kind');
   if (typeof draft.amount !== 'number' || !Number.isFinite(draft.amount)) invalid.push('amount');
   if (typeof draft.category !== 'string') invalid.push('category');
+  for (const axis of TEXT_AXES) {
+    if (draft[axis] !== undefined && typeof draft[axis] !== 'string') invalid.push(axis);
+  }
+  if (draft.fixity !== undefined && draft.fixity !== 'fixed' && draft.fixity !== 'variable') invalid.push('fixity');
   if (draft.memo !== undefined && typeof draft.memo !== 'string') invalid.push('memo');
   return invalid;
 };
@@ -210,11 +245,15 @@ export const validateLedgerDraft = (draft: LedgerDraft): LedgerField[] => {
 export const validateLedgerPatch = (patch: LedgerPatch): LedgerField[] => {
   const invalid: LedgerField[] = [];
   if (patch.date !== undefined && parseLedgerDate(patch.date) !== patch.date) invalid.push('date');
-  if (patch.kind !== undefined && patch.kind !== 'income' && patch.kind !== 'expense') invalid.push('kind');
+  if (patch.kind !== undefined && !KINDS.includes(patch.kind)) invalid.push('kind');
   if (patch.amount !== undefined && (typeof patch.amount !== 'number' || !Number.isFinite(patch.amount))) {
     invalid.push('amount');
   }
   if (patch.category !== undefined && typeof patch.category !== 'string') invalid.push('category');
+  for (const axis of TEXT_AXES) {
+    if (patch[axis] !== undefined && typeof patch[axis] !== 'string') invalid.push(axis);
+  }
+  if (patch.fixity !== undefined && patch.fixity !== 'fixed' && patch.fixity !== 'variable') invalid.push('fixity');
   if (patch.memo !== undefined && typeof patch.memo !== 'string') invalid.push('memo');
   return invalid;
 };

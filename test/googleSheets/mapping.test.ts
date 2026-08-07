@@ -17,8 +17,21 @@ import {
 
 describe('헤더에서 열 매핑 후보 제시', () => {
   it('앱 스키마 헤더는 그대로 잡는다', () => {
-    const { mapping, missing } = suggestColumnMapping(['날짜', '구분', '금액', '분류', '메모', '상태']);
-    expect(mapping).toEqual({ date: 0, kind: 1, amount: 2, category: 3, memo: 4, status: 5 });
+    const { mapping, missing } = suggestColumnMapping([
+      '날짜', '구분', '항목', '상세항목', '금액', '주체', '결제수단', '고정', '내용', '상태'
+    ]);
+    expect(mapping).toEqual({
+      date: 0,
+      kind: 1,
+      category: 2,
+      subcategory: 3,
+      amount: 4,
+      payer: 5,
+      method: 6,
+      fixity: 7,
+      memo: 8,
+      status: 9
+    });
     expect(missing).toEqual([]);
   });
 
@@ -71,7 +84,7 @@ describe('매핑 검증', () => {
   });
 
   it('앱이 만든 시트인지 헤더로 판정한다', () => {
-    expect(matchesAppSheetHeaders(['날짜', '구분', '금액', '분류', '메모', '상태'])).toBe(true);
+    expect(matchesAppSheetHeaders(['날짜', '구분', '항목', '상세항목', '금액', '주체', '결제수단', '고정', '내용', '상태'])).toBe(true);
     expect(matchesAppSheetHeaders(['날짜', '금액', '분류'])).toBe(false);
   });
 });

@@ -77,6 +77,9 @@ function LedgerContent({ now: nowProp }: LedgerPageProps) {
     connection,
     entryById: month.entryById,
     categoryOptions: month.categoryOptions,
+    subcategoryOptions: month.subcategoryOptions,
+    payerOptions: month.payerOptions,
+    methodOptions: month.methodOptions,
     rows: month.rows,
     countdown,
     now

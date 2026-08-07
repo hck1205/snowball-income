@@ -1,9 +1,10 @@
 import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/common';
-import { COMMUNITY_COPY } from '@/shared/constants/community';
+import { useIsCommunityAdmin } from '@/jotai/community';
+import { canWriteCommunityNews, COMMUNITY_COPY } from '@/shared/constants/community';
 import { newsHostLabel } from '@/shared/lib/supabase';
-import { CommunityTopBar } from '../components';
+import { CommunityTopBar, FeedEmpty } from '../components';
 import { useLinkShare } from './hooks';
 import {
   Actions,
@@ -37,10 +38,35 @@ const copy = COMMUNITY_COPY.news;
  * ⚠ 기존 글쓰기 폼(`CommunityWritePage`)을 재사용하지 않았다. 그 폼의 축은 "제목 + 본문
  *   (+시나리오 첨부)"이고 이 화면의 축은 "주소 → 가져오기 → 한 줄"이다 — 같은 폼에 모드를
  *   하나 더 만들면 두 축이 한 파일에서 서로를 가린다.
+ *
+ * 🔴 **운영자만 쓴다**(2026-08-08 사용자 결정). 목록에서 진입점을 지우는 것만으로는 부족하다 —
+ *   `/community/news/share` 를 주소창에 직접 쳐서 들어오는 길이 남기 때문이다. 그래서 폼을
+ *   그리기 전에 여기서 한 번 더 본다(목록 게이트와 **곱**이지 대체가 아니다).
+ *   ⚠ 서버는 막지 않는다 — `COMMUNITY_NEWS_WRITE_ADMIN_ONLY` 주석에 그 한계와 DB 강제 방법을 적어 뒀다.
  */
 export default function CommunityNewsSharePage() {
   const navigate = useNavigate();
+  const isAdmin = useIsCommunityAdmin();
   const share = useLinkShare(copy);
+
+  if (!canWriteCommunityNews(isAdmin)) {
+    return (
+      <>
+        <CommunityTopBar />
+        <section aria-label={copy.composeTitle}>
+          <FeedEmpty
+            title={copy.hiddenTitle}
+            subtitle={copy.hiddenSubtitle}
+            action={
+              <Button variant="primary" onClick={() => navigate('/community/portfolio')}>
+                {copy.hiddenAction}
+              </Button>
+            }
+          />
+        </section>
+      </>
+    );
+  }
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();

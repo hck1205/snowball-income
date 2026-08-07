@@ -6,7 +6,13 @@
  *  2) **행 참조는 스냅샷에 묶인다** (`LedgerRowRef`) — 물리 삭제로 행 인덱스가 밀린 뒤 옛 참조로
  *     쓰기를 시도하면 타입이 아니라 런타임 가드가 잡는다(`writeSafety.ts`).
  *  3) **본 값을 함께 들고 다닌다** (`LedgerEntry.seen`) — 동시 편집 감지(AC-W6)의 비교 기준.
+ *
+ * v2(2026-08-08): 분류가 2단이 되고 주체·결제수단·고정 축이 늘었다. 넷 다 **선택**이라 이 열들이
+ * 없는 시트도 그대로 읽힌다. 설계 근거: docs/ledger-v2-design.md
  */
+import type { LedgerFixity } from '@/shared/constants/ledger';
+
+export type { LedgerFixity };
 
 /** 성공/실패를 값으로 표현한다. 이름을 길게 쓰는 이유 = 배럴에서 `ok`/`err` 같은 흔한 이름 충돌 방지. */
 export type LedgerResult<T, E = LedgerError> = { ok: true; value: T } | { ok: false; error: E };
@@ -14,17 +20,41 @@ export type LedgerResult<T, E = LedgerError> = { ok: true; value: T } | { ok: fa
 export const ledgerOk = <T>(value: T): { ok: true; value: T } => ({ ok: true, value });
 export const ledgerErr = <E>(error: E): { ok: false; error: E } => ({ ok: false, error });
 
-/** 수입/지출. `구분` 열이 없으면 나중에 지출만 골라낼 수 없어서 **필수 필드**다. */
-export type LedgerKind = 'income' | 'expense';
+/**
+ * 수입/지출/**이체**. `구분` 열이 없으면 나중에 지출만 골라낼 수 없어서 **필수 필드**다.
+ *
+ * 🔴 `transfer`(이체)가 v2 에서 늘었다. 저축·투자로 나간 돈은 **쓴 것이 아니라 옮긴 것**이다.
+ *   지출로 세면 지출 합계가 부풀고 저축률이 무너진다(분석한 두 템플릿이 그렇게 되어 있다).
+ *   근거: docs/ledger-v2-design.md §2.3
+ */
+export type LedgerKind = 'income' | 'expense' | 'transfer';
 
-/** 시트 열에 대응하는 논리 필드. `memo`·`status` 만 선택이다. */
-export type LedgerField = 'date' | 'kind' | 'amount' | 'category' | 'memo' | 'status';
+/**
+ * 시트 열에 대응하는 논리 필드.
+ *
+ * v2 에서 넷이 늘었다(`subcategory`·`payer`·`method`·`fixity`). 넷 다 **선택**이라 이 값들이 없는
+ * 시트도 그대로 읽힌다 — 남의 가계부는 이 열들을 갖고 있지 않은 것이 정상이다.
+ */
+export type LedgerField =
+  | 'date'
+  | 'kind'
+  | 'amount'
+  | 'category'
+  | 'subcategory'
+  | 'payer'
+  | 'method'
+  | 'fixity'
+  | 'memo'
+  | 'status';
 
 /** 매핑이 반드시 있어야 하는 필드. */
 export const LEDGER_REQUIRED_FIELDS = ['date', 'kind', 'amount', 'category'] as const;
 
-/** 매핑이 있으면 쓰고 없으면 생략하는 필드. `status` 는 앱이 만든 시트에만 있다(소프트 삭제용). */
-export const LEDGER_OPTIONAL_FIELDS = ['memo', 'status'] as const;
+/**
+ * 매핑이 있으면 쓰고 없으면 생략하는 필드. `status` 는 앱이 만든 시트에만 있다(소프트 삭제용).
+ * v2 의 네 축도 여기 산다 — **없어도 가계부는 성립한다**(주체=공동, 고정=변동으로 떨어진다).
+ */
+export const LEDGER_OPTIONAL_FIELDS = ['subcategory', 'payer', 'method', 'fixity', 'memo', 'status'] as const;
 
 /** 전체 필드 순서(표시·직렬화의 단일 기준). */
 export const LEDGER_FIELDS = [...LEDGER_REQUIRED_FIELDS, ...LEDGER_OPTIONAL_FIELDS] as const;
@@ -38,6 +68,11 @@ export type ColumnMapping = {
   readonly kind: number;
   readonly amount: number;
   readonly category: number;
+  /** v2 축. 없는 시트가 정상이다 — 없으면 읽을 때 기본값으로 떨어진다. */
+  readonly subcategory?: number;
+  readonly payer?: number;
+  readonly method?: number;
+  readonly fixity?: number;
   readonly memo?: number;
   readonly status?: number;
 };
@@ -66,6 +101,14 @@ export type LedgerEntry = {
   readonly kind: LedgerKind;
   readonly amount: number;
   readonly category: string;
+  /** 상세항목(소분류). 시트에 열이 없거나 빈 칸이면 생략된다. */
+  readonly subcategory?: string;
+  /** 누구 지갑에서 나갔나. 빈 칸·미지정은 공동으로 읽으므로 여기서도 생략된다. */
+  readonly payer?: string;
+  /** 결제수단 별칭(`신한 딥드림` 같은 사용자 값). 카드 추천의 유일한 입력이다. */
+  readonly method?: string;
+  /** 고정비 여부. 열이 없으면 항상 `variable` — 명시된 것만 고정비다. */
+  readonly fixity: LedgerFixity;
   readonly memo?: string;
   /** 앱이 만든 시트에만 있다. `삭제됨` 이면 소프트 삭제된 행이다. */
   readonly status?: string;
@@ -86,6 +129,11 @@ export type LedgerDraft = {
   readonly kind: LedgerKind;
   readonly amount: number;
   readonly category: string;
+  readonly subcategory?: string;
+  readonly payer?: string;
+  readonly method?: string;
+  /** 생략하면 변동비다. 고정비는 **명시적으로만** 고정비가 된다. */
+  readonly fixity?: LedgerFixity;
   readonly memo?: string;
 };
 
@@ -95,6 +143,10 @@ export type LedgerPatch = {
   readonly kind?: LedgerKind;
   readonly amount?: number;
   readonly category?: string;
+  readonly subcategory?: string;
+  readonly payer?: string;
+  readonly method?: string;
+  readonly fixity?: LedgerFixity;
   readonly memo?: string;
 };
 

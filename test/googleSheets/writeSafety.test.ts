@@ -153,7 +153,7 @@ describe('AC-W3 — 수정은 매핑된 셀만', () => {
     });
     expect(plan.ok).toBe(true);
     if (!plan.ok) return;
-    expect(rangesOf(plan.value)).toEqual(["'가계부'!C7"]);
+    expect(rangesOf(plan.value)).toEqual(["'가계부'!E7"]);
   });
 
   it('🔴 만들어지는 범위는 모두 단일 셀이다 — 행 단위 덮어쓰기 경로가 없다', () => {
@@ -203,7 +203,7 @@ describe('AC-W4 — 삭제는 되돌릴 수 있게', () => {
     const plan = planSoftDelete({ sheetTitle: SHEET, mapping: APP_SHEET_MAPPING, rowNumber: 9 });
     expect(plan.ok).toBe(true);
     if (!plan.ok) return;
-    expect(plan.value).toEqual([{ range: "'가계부'!F9", majorDimension: 'COLUMNS', values: [['삭제됨']] }]);
+    expect(plan.value).toEqual([{ range: "'가계부'!J9", majorDimension: 'COLUMNS', values: [['삭제됨']] }]);
   });
 
   it('되돌리기는 상태 칸을 비운다', () => {

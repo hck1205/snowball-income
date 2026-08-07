@@ -23,6 +23,7 @@ const entry = (overrides: Partial<LedgerEntry> = {}): LedgerEntry => ({
   kind: 'expense',
   amount: 12000,
   category: '식비',
+  fixity: 'variable',
   memo: '점심',
   seen: {},
   ...overrides

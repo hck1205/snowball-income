@@ -24,6 +24,7 @@ import type {
   SheetValueRange
 } from './types';
 import { ledgerErr, ledgerOk, ledgerError } from './types';
+import { LEDGER_OPTIONAL_FIELDS, LEDGER_REQUIRED_FIELDS } from './types';
 
 /** 물리 삭제로 행 번호가 밀려 더는 믿을 수 없게 된 스냅샷들. */
 const retiredSnapshots = new Set<string>();
@@ -57,9 +58,15 @@ export const guardRowRef = (snapshot: LedgerSnapshot, ref: LedgerRowRef): Ledger
 
 /** 매핑된 필드 목록(값이 있는 것만). */
 const mappedFields = (mapping: ColumnMapping): LedgerField[] => {
-  const fields: LedgerField[] = ['date', 'kind', 'amount', 'category'];
-  if (mapping.memo !== undefined) fields.push('memo');
-  if (mapping.status !== undefined) fields.push('status');
+  /*
+   * 🔴 선택 필드를 손으로 나열하지 않는다. v2 에서 축 넷이 늘었을 때 이런 목록 셋이 옛 상태로
+   *    남아, 새 열을 **읽지도 쓰지도 않는** 버그가 났다(조용히 값만 비는 형태). 상수를 돌면
+   *    필드가 늘어날 때 여기를 고치는 것을 잊을 수 없다.
+   */
+  const fields: LedgerField[] = [...LEDGER_REQUIRED_FIELDS];
+  for (const field of LEDGER_OPTIONAL_FIELDS) {
+    if (mapping[field] !== undefined) fields.push(field);
+  }
   return fields;
 };
 

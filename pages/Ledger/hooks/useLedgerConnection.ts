@@ -35,7 +35,7 @@ import type {
   LedgerPhase,
   LedgerPreviewRow
 } from '../types';
-import { formatEntryDate, isExpiredCode, toColumnOptions, toErrorModel, toFailureReason } from '../utils';
+import { formatEntryDate, isExpiredCode, kindLabel, toColumnOptions, toErrorModel, toFailureReason } from '../utils';
 
 const copy = LEDGER_COPY;
 
@@ -143,7 +143,7 @@ const toPreviewRows = (entries: readonly LedgerEntry[], unreadable: readonly Unr
       id: `preview-${entry.ref.rowNumber}`,
       cells: [
         formatEntryDate(entry.date),
-        entry.kind === 'income' ? copy.list.kindIncome : copy.list.kindExpense,
+        kindLabel(entry.kind, copy.list),
         String(entry.amount),
         entry.category,
         entry.memo ?? ''

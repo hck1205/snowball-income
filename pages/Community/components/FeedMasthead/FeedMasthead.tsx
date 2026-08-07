@@ -30,10 +30,13 @@ export default function FeedMasthead({
         <MastheadEyebrow>{eyebrow}</MastheadEyebrow>
         <MastheadTitle as={titleAs}>{title}</MastheadTitle>
         <MastheadLead>{lead}</MastheadLead>
-        <MastheadAction type="button" onClick={onAction}>
-          {actionIcon}
-          {actionLabel}
-        </MastheadAction>
+        {/* 라벨과 핸들러가 **둘 다** 있을 때만 선다 — 한쪽만 준 호출부는 버튼을 얻지 못한다. */}
+        {actionLabel && onAction ? (
+          <MastheadAction type="button" onClick={onAction}>
+            {actionIcon}
+            {actionLabel}
+          </MastheadAction>
+        ) : null}
       </MastheadBody>
     </MastheadRoot>
   );

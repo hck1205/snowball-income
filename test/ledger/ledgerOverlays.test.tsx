@@ -18,9 +18,12 @@ import { baseViewModel, renderLedgerView } from './ledgerFixtures';
 
 const formModel = (overrides: Partial<LedgerFormModel> = {}): LedgerFormModel => ({
   mode: 'create',
-  draft: { date: '2026-08-03', kind: 'expense', amount: '12000', category: '식비', memo: '점심 김밥' },
+  draft: { date: '2026-08-03', kind: 'expense', amount: '12000', category: '식비', subcategory: '', payer: '', method: '', isFixed: false, memo: '점심 김밥' },
   errors: {},
   categoryOptions: ['식비', '교통'],
+  subcategoryOptions: ['외식', '식료품'],
+  payerOptions: [],
+  methodOptions: [],
   isSaving: false,
   writeError: null,
   ...overrides
@@ -47,9 +50,9 @@ describe('/ledger — 항목 폼 모달(§4.5)', () => {
     expect(within(dialog).getByLabelText('지출')).toBeChecked();
     expect(within(dialog).getByLabelText('수입')).not.toBeChecked();
     expect(within(dialog).getByLabelText('금액')).toHaveValue('12000');
-    expect(within(dialog).getByLabelText('분류')).toHaveValue('식비');
-    expect(within(dialog).getByLabelText('메모 (선택)')).toHaveValue('점심 김밥');
-    expect(within(dialog).getByText('시트에 있는 분류에서 고르거나 새로 적을 수 있습니다.')).toBeInTheDocument();
+    expect(within(dialog).getByLabelText('항목')).toHaveValue('식비');
+    expect(within(dialog).getByLabelText('내용 (선택)')).toHaveValue('점심 김밥');
+    expect(within(dialog).getByText('기본 분류에서 고르거나 새로 적을 수 있습니다.')).toBeInTheDocument();
     expect(within(dialog).getByRole('button', { name: '저장' })).toBeInTheDocument();
     expect(within(dialog).getByRole('button', { name: '취소' })).toBeInTheDocument();
   });
@@ -99,8 +102,8 @@ describe('/ledger — 항목 폼 모달(§4.5)', () => {
 
     // 🔴 사용자가 친 값이 살아 있다.
     expect(within(dialog).getByLabelText('금액')).toHaveValue('12000');
-    expect(within(dialog).getByLabelText('분류')).toHaveValue('식비');
-    expect(within(dialog).getByLabelText('메모 (선택)')).toHaveValue('점심 김밥');
+    expect(within(dialog).getByLabelText('항목')).toHaveValue('식비');
+    expect(within(dialog).getByLabelText('내용 (선택)')).toHaveValue('점심 김밥');
 
     await user.click(within(banner).getByRole('button', { name: '다시 시도' }));
     expect(handlers.onSubmitForm).toHaveBeenCalledTimes(1);
@@ -110,7 +113,7 @@ describe('/ledger — 항목 폼 모달(§4.5)', () => {
     renderLedgerView(
       baseViewModel({
         form: formModel({
-          draft: { date: '2026-08-03', kind: 'expense', amount: '', category: '', memo: '' },
+          draft: { date: '2026-08-03', kind: 'expense', amount: '', category: '', subcategory: '', payer: '', method: '', isFixed: false, memo: '' },
           errors: { amount: '금액을 입력해 주세요.', category: '분류를 입력해 주세요.' }
         })
       })
@@ -122,7 +125,7 @@ describe('/ledger — 항목 폼 모달(§4.5)', () => {
     expect(amountDescribedBy).not.toBeNull();
     expect(document.getElementById(amountDescribedBy as string)).toHaveTextContent('금액을 입력해 주세요.');
 
-    const category = screen.getByLabelText('분류');
+    const category = screen.getByLabelText('항목');
     expect(category).toHaveAttribute('aria-invalid', 'true');
     expect(within(screen.getByRole('dialog')).getByText('분류를 입력해 주세요.')).toBeInTheDocument();
 

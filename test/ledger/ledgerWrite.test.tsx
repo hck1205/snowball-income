@@ -45,6 +45,7 @@ const ENTRY: LedgerEntry = {
   kind: 'expense',
   amount: 12000,
   category: '식비',
+  fixity: 'variable',
   memo: '점심',
   seen: { date: '2026-08-03', kind: '지출', amount: '12000', category: '식비', memo: '점심' }
 };
@@ -108,6 +109,9 @@ const renderWrite = (connection: LedgerConnection) => {
         connection: props.connection,
         entryById: new Map([[ROW_ID, ENTRY]]),
         categoryOptions: ['식비'],
+        subcategoryOptions: [],
+        payerOptions: [],
+        methodOptions: [],
         rows,
         countdown: countdown(),
         now: new Date('2026-08-03T09:30:00+09:00')
@@ -116,7 +120,18 @@ const renderWrite = (connection: LedgerConnection) => {
   );
 };
 
-const DRAFT = { date: '2026-08-04', kind: 'expense' as const, amount: '9000', category: '교통', memo: '버스' };
+const DRAFT = {
+  date: '2026-08-04',
+  kind: 'expense' as const,
+  amount: '9000',
+  category: '교통',
+  /* v2 축 넷 — 폼에서 비워 두는 것이 기본이고, 그 기본이 draft 에도 그대로 실린다. */
+  subcategory: '',
+  payer: '',
+  method: '',
+  isFixed: false,
+  memo: '버스'
+};
 
 beforeEach(() => {
   // 🔴 호출 이력은 테스트마다 0에서 시작한다 — 누적되면 "부르지 않았다" 단정이 옆 테스트에 오염된다.
@@ -251,7 +266,7 @@ describe('저장 — 실패해도 입력값을 버리지 않는다', () => {
 
     expect(result.current.form?.errors).toEqual({
       amount: '금액을 입력해 주세요.',
-      category: '분류를 입력해 주세요.'
+      category: '항목을 입력해 주세요.'
     });
     expect(appendLedgerEntries).not.toHaveBeenCalled();
   });

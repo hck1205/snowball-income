@@ -77,18 +77,47 @@ const LINK: SheetLink = {
   createdByApp: true
 };
 
-/** 2행 = 읽히는 항목 / 3행 = 날짜를 못 읽는 항목. */
+/**
+ * 2행 = 읽히는 항목 / 3행 = 날짜를 못 읽는 항목.
+ *
+ * ⚠ 순서는 **v2 열 순서**다: 날짜·구분·항목·상세항목·금액·주체·결제수단·고정·내용·상태.
+ *   v2 축 넷은 빈 열이다 — 값을 넣지 않은 시트가 정상이고, 그때도 읽혀야 한다는 것이 이 픽스처의 뜻이다.
+ */
 const SHEET_COLUMNS: readonly (readonly string[])[] = [
   ['2026-08-01', 'ㅁㅁ'],
   ['지출', '수입'],
-  ['₩1,200', '1000'],
   ['식비', '급여'],
+  [],
+  ['₩1,200', '1000'],
+  [],
+  [],
+  [],
   ['점심'],
   []
 ];
 
-/** 2행의 현재 값(매핑 필드 순서: 날짜·구분·금액·분류·메모·상태). */
-const ROW2_CURRENT: readonly (readonly string[])[] = [['2026-08-01'], ['지출'], ['₩1,200'], ['식비'], ['점심'], []];
+/**
+ * 2행의 현재 값 — **필드 순서**다(열 순서가 아니다).
+ *
+ * 🔴 두 읽기의 순서가 다르다. 스냅샷 조회는 `mappedColumnIndices`(열 인덱스 오름차순)로 요청하고,
+ *    충돌 검증(`readCurrentRowCells`)·추가 검증은 `mappedFields`(필수 → 선택의 **필드** 순서)로
+ *    요청한다. 그래서 위 SHEET_COLUMNS 는 열 순서, 이 픽스처는 필드 순서다 —
+ *    섞으면 값이 엉뚱한 필드로 들어가 "바꾸지도 않은 칸이 충돌"로 나온다.
+ *
+ * 필드 순서: 날짜 · 구분 · 금액 · 항목 · 상세항목 · 주체 · 결제수단 · 고정 · 내용 · 상태
+ */
+const ROW2_CURRENT: readonly (readonly string[])[] = [
+  ['2026-08-01'],
+  ['지출'],
+  ['₩1,200'],
+  ['식비'],
+  [],
+  [],
+  [],
+  [],
+  ['점심'],
+  []
+];
 
 const DRAFT: LedgerDraft = { date: '2026-08-05', kind: 'expense', amount: 5000, category: '교통', memo: '지하철' };
 
@@ -98,7 +127,7 @@ describe('연결', () => {
   it('앱 스키마와 일치하면 매핑 단계를 건너뛴다', async () => {
     const harness = createHarness();
     harness.queues.meta.push({ payload: { spreadsheetId: 'sheet-1', sheets: [{ properties: { sheetId: 0, title: '가계부' } }] } });
-    harness.queues.headerGet.push({ payload: { values: [['날짜', '구분', '금액', '분류', '메모', '상태']] } });
+    harness.queues.headerGet.push({ payload: { values: [['날짜', '구분', '항목', '상세항목', '금액', '주체', '결제수단', '고정', '내용', '상태']] } });
 
     const result = await connectSpreadsheet(harness.context, { spreadsheetId: 'sheet-1' });
     expect(harness.unmatched).toEqual([]);
@@ -145,7 +174,7 @@ describe('연결', () => {
         sheets: [{ properties: { sheetId: 0, title: '가계부' } }, { properties: { sheetId: 7, title: '작년' } }]
       }
     });
-    harness.queues.headerGet.push({ payload: { values: [['날짜', '구분', '금액', '분류', '메모', '상태']] } });
+    harness.queues.headerGet.push({ payload: { values: [['날짜', '구분', '항목', '상세항목', '금액', '주체', '결제수단', '고정', '내용', '상태']] } });
 
     const result = await connectSpreadsheet(harness.context, { spreadsheetId: 'sheet-1' });
     if (!result.ok || result.value.status !== 'linked') throw new Error('연결되지 않았습니다');
@@ -215,15 +244,20 @@ describe('연결', () => {
 
     const write = harness.calls.find((call) => call.kind === 'valuesWrite');
     const data = (write?.body as { data: { range: string; values: string[][] }[] }).data;
+    // v2 는 열이 10 개다. 헤더는 열마다 한 칸씩 쓴다(행 통째로 덮지 않는 규율 그대로).
     expect(data.map((entry) => entry.range)).toEqual([
       "'가계부'!A1",
       "'가계부'!B1",
       "'가계부'!C1",
       "'가계부'!D1",
       "'가계부'!E1",
-      "'가계부'!F1"
+      "'가계부'!F1",
+      "'가계부'!G1",
+      "'가계부'!H1",
+      "'가계부'!I1",
+      "'가계부'!J1"
     ]);
-    expect(data.map((entry) => entry.values[0][0])).toEqual(['날짜', '구분', '금액', '분류', '메모', '상태']);
+    expect(data.map((entry) => entry.values[0][0])).toEqual(['날짜', '구분', '항목', '상세항목', '금액', '주체', '결제수단', '고정', '내용', '상태']);
   });
 });
 
@@ -250,11 +284,12 @@ describe('조회', () => {
     expect(result.value.unreadableRows).toEqual([{ rowNumber: 3, reasons: ['날짜를 읽을 수 없습니다.'] }]);
     expect(result.value.lastDataRow).toBe(3);
 
-    // 매핑된 6열만, 각각 한 열짜리 열린 범위로 요청한다.
+    // 매핑된 10열만, 각각 한 열짜리 열린 범위로 요청한다(v2: A~J).
     const url = decodeURIComponent(harness.calls[0].url);
     expect(url).toContain("ranges='가계부'!A2:A");
-    expect(url).toContain("ranges='가계부'!F2:F");
-    expect(url).not.toContain('G2');
+    expect(url).toContain("ranges='가계부'!J2:J");
+    // 🔴 매핑 밖의 열은 요청하지 않는다 — 사용자가 오른쪽에 덧붙인 자기 열을 앱이 읽지 않는다.
+    expect(url).not.toContain('K2');
   });
 
   it('조회가 실패하면 스냅샷을 지어내지 않는다', async () => {
@@ -281,7 +316,7 @@ describe('추가 (AC-W1 · AC-W5)', () => {
     const harness = createHarness();
     const snapshot = await readSnapshot(harness);
 
-    harness.queues.batchGet.push({ payload: valueRanges([[], [], [], [], [], []]) }); // 대상 칸 확인
+    harness.queues.batchGet.push({ payload: valueRanges([[], [], [], [], [], [], [], [], [], []]) }); // 대상 칸 확인
     harness.queues.valuesWrite.push({ payload: { totalUpdatedCells: 6 } });
 
     const report = await appendLedgerEntries(harness.context, {
@@ -298,13 +333,21 @@ describe('추가 (AC-W1 · AC-W5)', () => {
 
     const write = harness.calls.find((call) => call.kind === 'valuesWrite');
     const data = (write?.body as { data: { range: string }[] }).data;
+    /*
+     * 열마다 한 단위씩 쓴다(행 통째로 덮지 않는다). 순서는 **필드 순서**라 열 문자가 A~J 오름차순이
+     * 아니다 — 금액(E)이 항목(C)보다 먼저 온다. 이 어긋남이 곧 "쓰기는 필드 단위"라는 증거다.
+     */
     expect(data.map((entry) => entry.range)).toEqual([
-      "'가계부'!A4:A4",
-      "'가계부'!B4:B4",
-      "'가계부'!C4:C4",
-      "'가계부'!D4:D4",
-      "'가계부'!E4:E4",
-      "'가계부'!F4:F4"
+      "'가계부'!A4:A4", // 날짜
+      "'가계부'!B4:B4", // 구분
+      "'가계부'!E4:E4", // 금액
+      "'가계부'!C4:C4", // 항목
+      "'가계부'!D4:D4", // 상세항목
+      "'가계부'!F4:F4", // 주체
+      "'가계부'!G4:G4", // 결제수단
+      "'가계부'!H4:H4", // 고정
+      "'가계부'!I4:I4", // 내용
+      "'가계부'!J4:J4" // 상태
     ]);
   });
 
@@ -312,7 +355,7 @@ describe('추가 (AC-W1 · AC-W5)', () => {
     const harness = createHarness();
     const snapshot = await readSnapshot(harness);
 
-    harness.queues.batchGet.push({ payload: valueRanges([['남의 값'], [], [], [], [], []]) });
+    harness.queues.batchGet.push({ payload: valueRanges([['남의 값'], [], [], [], [], [], [], [], [], []]) });
 
     const report = await appendLedgerEntries(harness.context, { link: LINK, snapshot, drafts: [DRAFT] });
 
@@ -341,7 +384,7 @@ describe('추가 (AC-W1 · AC-W5)', () => {
     const harness = createHarness();
     const snapshot = await readSnapshot(harness);
 
-    harness.queues.batchGet.push({ payload: valueRanges([[], [], [], [], [], []]) });
+    harness.queues.batchGet.push({ payload: valueRanges([[], [], [], [], [], [], [], [], [], []]) });
     harness.queues.valuesWrite.push({ status: 403, payload: {} });
 
     const report = await appendLedgerEntries(harness.context, { link: LINK, snapshot, drafts: [DRAFT] });
@@ -380,14 +423,26 @@ describe('수정 (AC-W3 · AC-W6)', () => {
 
     const write = harness.calls.find((call) => call.kind === 'valuesWrite');
     expect((write?.body as { data: { range: string; values: string[][] }[] }).data).toEqual([
-      { range: "'가계부'!C2", majorDimension: 'COLUMNS', values: [['3000']] }
+      { range: "'가계부'!E2", majorDimension: 'COLUMNS', values: [['3000']] }
     ]);
   });
 
   it('🔴 시트가 먼저 바뀌었으면 덮어쓰지 않고 충돌로 돌려준다', async () => {
     const { harness, snapshot, entry } = await setup();
     harness.queues.batchGet.push({
-      payload: valueRanges([['2026-08-01'], ['지출'], ['₩9,900'], ['식비'], ['점심'], []])
+      // 필드 순서(ROW2_CURRENT 주석 참고). 금액만 시트에서 먼저 바뀐 상황이다.
+      payload: valueRanges([
+        ['2026-08-01'],
+        ['지출'],
+        ['₩9,900'],
+        ['식비'],
+        [],
+        [],
+        [],
+        [],
+        ['점심'],
+        []
+      ])
     });
 
     const result = await updateLedgerEntry(harness.context, {
@@ -475,7 +530,7 @@ describe('삭제 (AC-W4)', () => {
     expect(result.ok && result.value).toEqual({ rowNumber: 2, mode: 'soft', snapshotRetired: false });
     const write = harness.calls.find((call) => call.kind === 'valuesWrite');
     expect((write?.body as { data: { range: string; values: string[][] }[] }).data).toEqual([
-      { range: "'가계부'!F2", majorDimension: 'COLUMNS', values: [['삭제됨']] }
+      { range: "'가계부'!J2", majorDimension: 'COLUMNS', values: [['삭제됨']] }
     ]);
   });
 
