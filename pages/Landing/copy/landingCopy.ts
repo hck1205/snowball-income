@@ -248,8 +248,11 @@ export const LANDING_COPY = {
     /** 개수는 데이터에서 센다 — 프리셋이 14개가 되면 이 문장이 저절로 따라온다. */
     title: (count: number) => `사람들이 많이 쓰는 구성 ${count}가지`,
     lede: '아래 구성은 시뮬레이터에 그대로 넣어 볼 수 있는 예시입니다. 특정 종목의 매수를 권하는 것이 아니며, 결과는 입력하신 조건에 따라 달라집니다.',
-    more: (label: string, count: number) => `${label} ${count}개 더 보기`,
-    collapse: '접기',
+    /**
+     * 묶음 캐러셀의 접근명(2026-08-07). 🔴 "더 보기"/"접기" 를 대신한 자리다 — 카드가 전부
+     * 궤도 위에 있어 접을 것이 없어졌고, 개수는 여기서 소리로 말한다(화면에는 점과 숫자가 말한다).
+     */
+    carouselLabel: (label: string, count: number) => `${label} ${count}개`,
     allocationLabel: '구성 비중',
     cta: '시뮬레이터에서 골라 적용하기'
   },

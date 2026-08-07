@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useRef } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import type { RouteObject } from 'react-router-dom';
 import { ScrollTopButton } from '@/components/common';
+import { RouteError } from './RouteError';
 import { MainPage } from '@/pages';
 import {
   isCommunityEnabled,
@@ -349,6 +350,13 @@ const communityRoutes: RouteObject[] = isCommunityEnabled
 export const routes: RouteObject[] = [
   {
     element: <RootLayout />,
+    /*
+     * 🔴 라우트 오류의 **마지막 안전망**(2026-08-07 프로덕션 사고). 없으면 react-router 의 기본
+     * 화면("Unexpected Application Error!" + 영문 스택)이 앱을 통째로 대체한다 — 사용자에게는
+     * "사이트가 깨졌다"로 보인다. 가장 흔한 원인은 배포 스큐(사라진 lazy 청크)이고, 그건
+     * 새로고침 한 번이면 끝나는 상태다. 이 화면이 그것을 한국어로 말하고 스스로 복구한다.
+     */
+    errorElement: <RouteError />,
     children: [
       /**
        * `/` = 랜딩, `/simulator` = 시뮬레이터. **공유 링크는 `/simulator` 에만 붙는다.**

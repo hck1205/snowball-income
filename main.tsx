@@ -10,6 +10,14 @@ import ReactDOM from "react-dom/client";
 import AppRouter from "@/router";
 import { ANALYTICS_EVENT, applySeoRuntimeMetadata, initGoogleAnalytics, peekLoginSource, track } from "@/shared/lib/analytics";
 import { hasOAuthCallbackParams, isKakaoCallbackPath, isNaverCallbackPath } from "@/shared/lib/supabase";
+import { clearChunkReloadMark, installChunkRecovery } from "@/shared/lib/chunkRecovery";
+
+// 🔴 **가장 먼저 건다.** 새 배포가 나가면 lazy 청크의 해시 파일명이 전부 바뀌는데, 그때 이미 열려
+// 있던 탭은 옛 해시를 기억한다 — 그 탭에서 화면을 옮기는 순간 없는 파일을 가져오려다 앱이 통째로
+// 죽는다("Failed to fetch dynamically imported module", 2026-08-07 프로덕션 실측).
+// 이 배선이 그 실패를 잡아 **한 번만** 새로고침한다. 라우터보다 앞이어야 라우터가 에러 화면을
+// 그리기 전에 가로챈다.
+installChunkRecovery();
 
 applySeoRuntimeMetadata();
 initGoogleAnalytics();
@@ -83,3 +91,7 @@ if (import.meta.env.DEV) {
 }
 
 ReactDOM.createRoot(document.getElementById("root")!).render(<AppRouter />);
+
+// 여기까지 왔다 = 앱이 떴다. 복구 표식을 지워 **다음 배포에서 또 복구할 수 있게** 한다
+// (안 지우면 탭 수명 동안 복구가 한 번뿐이라, 하루에 두 번 배포하면 두 번째는 못 산다).
+clearChunkReloadMark();

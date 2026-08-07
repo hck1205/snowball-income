@@ -12,6 +12,7 @@ import type {
 // 다음 예상 지급일 타일(#7)은 정렬·묶기 규칙이 촘촘해 별도 파일로 뗐다 — 여기서 재-export 로
 // 기존 배럴 표면(`buildNextPayoutTile`)을 그대로 유지한다.
 import { buildNextPayoutDDay, buildNextPayoutTile } from './PortfolioPage.nextPayoutTile';
+import { buildMonthlyRecap } from './PortfolioPage.monthlyRecap';
 export { buildNextPayoutDDay, buildNextPayoutTile } from './PortfolioPage.nextPayoutTile';
 
 /**
@@ -349,6 +350,8 @@ export const buildPortfolioViewModel = (input: PortfolioViewModelInput): Portfol
      * #3(월 평균)과 #6(이번 달)은 정의가 다르다. 분기 배당만 보유하면 "월 배당은 있는데 이번 달은 0"이
      * 정상인데, 설명이 없으면 계산 오류로 읽힌다.
      */
+    /* 지급월을 아는 종목이 없으면 부품이 안 그린다 — 모델은 항상 만들고 판단은 화면이 한다. */
+    monthlyRecap: buildMonthlyRecap(summary),
     showMonthlyVsThisMonthNote:
       hasIncludedRows && summary.thisMonthDividendUsd <= 0 && summary.monthlyDividendAfterTaxUsd > 0,
     summaryNotes: buildSummaryNotes(summary),

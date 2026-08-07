@@ -62,7 +62,9 @@ const DECLARED_FILE_DEVIATIONS: Record<string, string> = {
   'pages/Main/Main.shared.styled.ts':
     'Main 하위 컴포넌트들이 공유하는 스타일 조각의 재수출 지점(공용 Modal 스킨 등). 옮기면 호출부 import 가 전부 바뀐다.',
   'pages/Portfolio/PortfolioPage/PortfolioPage.nextPayoutTile.ts':
-    '다음 지급일 타일 전용 순수 함수 묶음. 규칙이 촘촘해 독립 서브모듈로 떼고 전용 테스트가 그 경계를 검증한다.'
+    '다음 지급일 타일 전용 순수 함수 묶음. 규칙이 촘촘해 독립 서브모듈로 떼고 전용 테스트가 그 경계를 검증한다.',
+  'pages/Portfolio/PortfolioPage/PortfolioPage.monthlyRecap.ts':
+    '월간 리캡의 열두 달 파생 — 위 nextPayoutTile 과 같은 이유로 독립 서브모듈이다. 값이 "받은 돈"이 아니라 "예상"이라는 규율을 이 파일 하나가 지고, 전용 테스트가 그 경계(지급월 모르는 종목 제외·0 나눗셈·1월의 지난달)를 검증한다.'
 };
 
 type ComponentFolder = { dir: string; name: string; files: string[] };

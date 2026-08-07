@@ -166,3 +166,7 @@ export { default as Toggle } from './Toggle';
 export type { ToggleProps, ToggleSize } from './Toggle';
 
 export { default as ToggleField } from './ToggleField';
+
+/* 긴 목록을 가로 한 줄로 접는 장치 — 장식이 아니라 **밀도 조절**이다(Carousel.tsx 머리말). */
+export { Carousel } from './Carousel';
+export type { CarouselProps } from './Carousel';
