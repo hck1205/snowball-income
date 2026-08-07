@@ -128,12 +128,17 @@ describe('설정 드로어 — 상단 결과 스트립 (드로어가 hero 숫자
     const strip = within(settingsDrawerPanel()).getByRole('region', { name: '현재 결과 요약' });
     const stripFinalAsset = within(strip).getByText('최종 자산').nextElementSibling?.textContent ?? '';
 
-    /* 결과 카드 hero: 라벨(span) → 같은 타일(TileRoot) 안의 값(p). */
-    const heroTile = screen.getByText('최종 자산 가치').closest('div')?.parentElement as HTMLElement;
-    const heroValue = heroTile.querySelector('p')?.textContent ?? '';
-
     expect(stripFinalAsset).not.toBe('');
-    expect(stripFinalAsset).toBe(heroValue);
+
+    /*
+     * 🔴 **같은 문자열이 결과 카드 hero 안에도 있는가**로 본다.
+     * 종전에는 타일 안에서 `querySelector('p')` 로 값을 집었는데, 그건 값이 어떤 태그로 그려지는지에
+     * 매인 검사다 — 실제로 2026-08-07 에 StatTile 의 값이 p 에서 span 으로 바뀌자(툴팁 앵커 안에
+     * p 를 넣을 수 없어서) 화면은 멀쩡한데 이 테스트만 깨졌다. 이 테스트가 지키려는 계약은
+     * "두 곳의 포맷터가 갈리지 않는다" 하나뿐이므로, 그 사실만 본다.
+     */
+    const heroTile = screen.getByText('최종 자산 가치').closest('div') as HTMLElement;
+    expect(within(heroTile).getByText(stripFinalAsset)).toBeInTheDocument();
   });
 
   it('드로어가 닫혀 있으면 스트립은 렌더되지 않는다 (결과 화면에 사본을 남기지 않는다)', () => {

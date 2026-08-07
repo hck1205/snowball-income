@@ -188,8 +188,15 @@ export const TileLabel = styled.span<{ emphasis: StatEmphasis }>`
   text-overflow: ellipsis;
 `;
 
-export const TileValue = styled.p<{ emphasis: StatEmphasis; tone: StatTone }>`
+/*
+ * 🔴 `<p>` 가 아니라 **display:block 인 span** 이다(2026-08-07). 잘렸을 때 `OverflowTooltip` 이 이
+ * 요소를 툴팁 앵커(span)로 감싸는데, span 안의 `<p>` 는 유효하지 않은 중첩이다(span 은 구문 콘텐츠만
+ * 담는다). 낭독 순서는 그대로다 — 라벨과 값은 여전히 별개의 블록으로 차례대로 읽힌다.
+ */
+export const TileValue = styled.span<{ emphasis: StatEmphasis; tone: StatTone }>`
+  display: block;
   margin: 0;
+  min-width: 0;
   /*
    * 서체로도 위계를 나눈다: hero 값만 heroNumeric(LINE Seed), 나머지는 dataNumeric(Inter).
    * hero 서체는 화면당 한 곳이어야 의미가 있다 — StatTile.types.ts의 hero 규칙과 같은 제약이다.
@@ -267,8 +274,11 @@ export const ProgressFill = styled.span`
   }
 `;
 
-export const TileHint = styled.p<{ emphasis: StatEmphasis }>`
+/** 위 `TileValue` 와 같은 이유로 span 이다 — 잘리면 툴팁 앵커(span) 안에 들어간다. */
+export const TileHint = styled.span<{ emphasis: StatEmphasis }>`
+  display: block;
   margin: 0;
+  min-width: 0;
   font-size: ${font.size.xs};
   font-weight: ${font.weight.medium};
   /*

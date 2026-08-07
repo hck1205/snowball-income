@@ -323,7 +323,15 @@ describe('워크플로 계약 — 실행해 볼 수 없으니 참조만이라도
     (JSON.parse(readFileSync(resolve(REPO_ROOT, 'package.json'), 'utf-8')) as { scripts: Record<string, string> })
       .scripts
   );
-  const universeWorkflow = readFileSync(resolve(WORKFLOW_DIR, 'refresh-dividend-universe.yml'), 'utf-8');
+  /*
+   * 🔴 **줄바꿈을 정규화해서 읽는다.** 아래 검사 하나가 여러 줄에 걸친 문자열을 그대로 찾는데,
+   * 윈도우 작업 트리에서는 이 파일이 CRLF 로 체크아웃돼 그 검사가 실패했다(2026-08-07 실측).
+   * 리눅스 CI 에서는 통과하고 로컬에서만 빨개지는, 가장 헷갈리는 종류의 실패다 — 잡아 둔다.
+   */
+  const readWorkflow = (file: string) =>
+    readFileSync(resolve(WORKFLOW_DIR, file), 'utf-8').split(String.fromCharCode(13)).join('');
+
+  const universeWorkflow = readWorkflow('refresh-dividend-universe.yml');
 
   it('워크플로가 부르는 npm 스크립트는 전부 package.json 에 실재한다', () => {
     const missing: string[] = [];
@@ -338,7 +346,7 @@ describe('워크플로 계약 — 실행해 볼 수 없으니 참조만이라도
 
   it('매월 2일에 돌고, 기존 티커 갱신(매월 1일)과 같은 날 겹치지 않는다', () => {
     expect(universeWorkflow).toContain("cron: '0 20 2 * *'");
-    const tickerWorkflow = readFileSync(resolve(WORKFLOW_DIR, 'refresh-tickers.yml'), 'utf-8');
+    const tickerWorkflow = readWorkflow('refresh-tickers.yml');
     expect(tickerWorkflow).toContain("cron: '0 21 1 * *'");
   });
 

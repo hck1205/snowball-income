@@ -79,14 +79,15 @@ export const NavButton = styled.button`
 
 export const TodayButton = styled.button`
   /* 흐름 안의 마지막 항목이다(구 절대 배치는 툴바가 전폭이던 시절의 값 — 위 ToolbarRoot 주석 참고).
-     아이콘 전용이라 정사각으로 두어 옆의 원형 이동 버튼과 크기 축이 맞는다. */
+     🔴 아이콘 + 글자다(2026-08-07). 정사각 40px 은 아이콘 전용이던 시절의 치수라, 글자가 들어온
+     지금은 내용만큼 벌어지되 높이만 옆의 원형 이동 버튼과 맞춘다. */
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: ${space[1]};
   margin-left: ${space[1]};
-  width: 40px;
   height: 40px;
-  padding: 0;
+  padding: 0 ${space[3]};
   border: 1px solid ${color.brandBorder};
   border-radius: ${radius.pill};
   background: ${color.brandSubtle};

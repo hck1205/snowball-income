@@ -41,12 +41,24 @@ export const TickerBadge = styled.span`
   color: ${color.textMuted};
 `;
 
-/** 신고한 의원 이름 나열. 길어서 두 줄까지 보이고 그 뒤는 말줄임. */
+/**
+ * 신고한 의원 이름 나열(“신고한 의원” · “가장 많이 신고한 종목” 두 열이 함께 쓴다).
+ *
+ * 🔴 **한 줄 말줄임이다**(2026-08-07 사용자 지시: 엘립시스 + 툴팁). 종전에는
+ * `-webkit-line-clamp: 2`(두 줄 자르기)였는데, 그 방식은 글자가 **가로로 넘치지 않는다** —
+ * 줄바꿈으로 접히므로 `scrollWidth === clientWidth` 가 된다. 이 열을 감싼 `OverflowTooltip` 은
+ * 그 두 값을 견줘 잘림을 판정하므로(`isTextClipped`), 눈에는 잘려 보이는데 **툴팁은 영영 안 떴다.**
+ * 한 줄로 자르면 잘림이 가로 축에서 일어나 판정이 성립하고, 잘린 이름 전부를 툴팁이 되돌려준다.
+ *
+ * ⚠ 세로로 자르고 싶어지면 `isTextClipped` 부터 고쳐라(`scrollHeight > clientHeight` 도 보게).
+ *   여기만 바꾸면 툴팁이 다시 조용히 죽는다.
+ */
 export const MemberSample = styled.span`
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  display: block;
+  min-width: 0;
   overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: ${color.textSecondary};
 `;
 

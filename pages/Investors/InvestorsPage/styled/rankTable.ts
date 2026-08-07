@@ -15,20 +15,30 @@ export const RankTableScroller = styled.div`
   ${subtleScrollbar}
 `;
 
+/**
+ * 좁은 폭에서 표가 요구하는 최소 폭.
+ *
+ * 🔴 **일부러 화면보다 넓다**(2026-08-07 사용자 지시: "모바일에선 스크롤이 생겨서 잘 보여줬으면").
+ * 종전에는 여기가 `min-width: 0` 이었다 — 표를 390px 안에 우겨넣어 스크롤을 없애는 처방이었는데,
+ * 그러면 담은 사람 칩 줄과 금액이 서로를 밀어 **어느 칸도 제대로 안 보인다**. 좁은 화면에서
+ * 정보를 지키는 길은 눌러 담는 것이 아니라 **가로로 미는 것**이고, 그때 잃는 맥락("이게 어느
+ * 종목 줄이지?")은 아래 고정 열이 되돌려준다.
+ *
+ * 값의 근거: 순위 44 + 종목 120 + 담은 사람 ~200(칩 4~6개) + 금액 90 ≈ 454 → 여유를 얹어 480.
+ */
+const MOBILE_MIN_WIDTH = '480px';
+
+/** 고정되는 두 열(순위·종목)의 폭. 종목 열이 `left` 를 잡으려면 순위 열 폭이 **상수**여야 한다. */
+const RANK_INDEX_WIDTH = '44px';
+const RANK_TICKER_WIDTH = '116px';
+
 export const RankTable = styled.table`
   width: 100%;
   min-width: 460px;
   border-collapse: collapse;
 
-  /*
-   * 🔴 좁은 폭에서는 하한을 **풀고 여백도 조인다.** 막대 열을 숨겨 놓고 min-width 460px 을 그대로
-   * 두면 표가 여전히 460px 을 요구해 390px 화면에서 금액 열이 가로 스크롤 뒤로 숨었다
-   * (2026-08-03 실측: 스크롤러 366px < 표 460px). 열을 버리는 목적은 **스크롤을 없애는 것**이지
-   * 줄이는 것이 아니다. 지금은 390px 에서 네 열이 그대로 보인다(320px 은 여전히 스크롤한다 —
-   * 그 폭에서는 이 레포의 다른 표도 같은 처지라 표를 더 깎지 않는다).
-   */
   ${media.down('mobileWide')} {
-    min-width: 0;
+    min-width: ${MOBILE_MIN_WIDTH};
 
     th,
     td {
@@ -36,6 +46,22 @@ export const RankTable = styled.table`
       padding-right: ${space[2]};
     }
   }
+`;
+
+/**
+ * 가로로 미는 동안 **제자리에 남는 열**의 공통 규칙(2026-08-07).
+ *
+ * 🔴 `background` 가 반드시 있어야 한다. 고정 칸은 다른 칸 **위로** 지나가는데, 배경이 없으면
+ * 밀려오는 글자가 그 밑에서 그대로 비쳐 두 줄이 겹쳐 보인다.
+ * 🔴 경계선을 `border-right` 가 아니라 `box-shadow: inset` 으로 그린다 — 이 표는
+ * `border-collapse: collapse` 라 테두리의 주인이 표이고, 고정된 칸의 border 는 함께 밀려간다.
+ * ⚠ 넓은 폭에서는 고정하지 않는다. 스크롤이 없으므로 붙일 이유가 없고, 그림자만 남아 없는
+ *   경계선이 그려진다.
+ */
+const stickyColumn = `
+  position: sticky;
+  z-index: 1;
+  background: ${color.surface};
 `;
 
 export const RankTh = styled.th`
@@ -53,7 +79,40 @@ export const RankThNumeric = styled(RankTh)`
   text-align: right;
 `;
 
-/** 좁은 폭에서는 막대 열을 접는다 — 표를 가로로 밀게 만드느니 장식을 먼저 버린다. */
+/** 순위 열 — 맨 왼쪽에 붙는다. 머리와 값이 **같은 폭·같은 left** 를 써야 열이 어긋나지 않는다. */
+export const RankThIndex = styled(RankTh)`
+  ${media.down('mobileWide')} {
+    ${stickyColumn};
+    left: 0;
+    width: ${RANK_INDEX_WIDTH};
+    min-width: ${RANK_INDEX_WIDTH};
+    text-align: right;
+  }
+`;
+
+/**
+ * 종목 열 — 순위 열 **바로 오른쪽**에 붙는다.
+ * 🔴 사용자가 고정을 요구한 칸이 여기다(2026-08-07): 가로로 밀었을 때 "지금 보는 금액이 어느
+ *    종목 것인지"를 잃지 않게 하는 것이 이 열의 유일한 일이다.
+ */
+export const RankThTicker = styled(RankTh)`
+  ${media.down('mobileWide')} {
+    ${stickyColumn};
+    left: ${RANK_INDEX_WIDTH};
+    width: ${RANK_TICKER_WIDTH};
+    min-width: ${RANK_TICKER_WIDTH};
+    box-shadow: inset -1px 0 ${color.border};
+  }
+`;
+
+/**
+ * 좁은 폭에서는 막대 열을 접는다.
+ *
+ * ⚠ 근거가 2026-08-07 에 바뀌었다. 종전에는 "표를 가로로 밀게 만드느니 장식을 먼저 버린다" 였는데,
+ * 이제 이 표는 좁은 폭에서 **일부러 가로로 민다**. 그래도 막대를 접는 이유는 남는다 — 막대는
+ * 금액을 그림으로 다시 말하는 장식이고, 손가락으로 미는 거리를 그 장식에 쓰게 하지 않는다.
+ * 같은 비율은 바로 위 시상대가 이미 막대로 보여 준다.
+ */
 export const RankThBar = styled(RankTh)`
   width: 26%;
 
@@ -78,6 +137,18 @@ export const RankTd = styled.td`
   padding: ${space[3]};
   color: ${color.text};
   vertical-align: middle;
+`;
+
+/** 종목 값 칸. 위 `RankThTicker` 와 **같은 폭·같은 left** 를 쓴다 — 한쪽만 고치면 열이 어긋난다. */
+export const RankTdTicker = styled(RankTd)`
+  ${media.down('mobileWide')} {
+    ${stickyColumn};
+    left: ${RANK_INDEX_WIDTH};
+    width: ${RANK_TICKER_WIDTH};
+    min-width: ${RANK_TICKER_WIDTH};
+    max-width: ${RANK_TICKER_WIDTH};
+    box-shadow: inset -1px 0 ${color.border};
+  }
 `;
 
 export const RankTdNumeric = styled(RankTd)`
@@ -105,6 +176,13 @@ export const RankIndex = styled.td`
   text-align: right;
   white-space: nowrap;
   ${font.numeric}
+
+  ${media.down('mobileWide')} {
+    ${stickyColumn};
+    left: 0;
+    width: ${RANK_INDEX_WIDTH};
+    min-width: ${RANK_INDEX_WIDTH};
+  }
 `;
 
 export const RankName = styled.span`
