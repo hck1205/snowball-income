@@ -53,3 +53,33 @@ export const observeWidth = (element: Element, onResize: WidthListener): (() => 
     sharedObserver?.unobserve(element);
   };
 };
+
+/**
+ * 🔴 **툴팁이 붙는 요소가 지켜야 하는 CSS 계약.**
+ *
+ * `isTextClipped` 는 `scrollWidth > clientWidth` 로 잘림을 판정한다. 즉 글자가 **가로로** 넘쳐야
+ * 한다 — 여러 줄로 접히는 방식(`-webkit-line-clamp`, `white-space: normal`)은 눈에는 잘려 보여도
+ * 두 값이 같아져 **툴팁이 영영 뜨지 않는다.**
+ *
+ * 실제로 그렇게 죽어 있었다(2026-08-07): 한국 의원 화면의 이름 나열이 `-webkit-line-clamp: 2` 라,
+ * 툴팁으로 감싸 놓고도 아무 일이 일어나지 않았다. 코드에는 아무 이상이 없어 보여서 원인이
+ * **CSS 쪽**이라는 걸 알아채기 어려운 종류의 무음 실패다.
+ *
+ * 그래서 이 선언 묶음을 툴팁 부품 옆에 둔다 — 감싸는 쪽과 계약이 한 파일에 있어야 한쪽만
+ * 바뀌지 않는다. 새 자리에 툴팁을 달 때 스타일은 이걸 쓰면 된다.
+ *
+ * ⚠ `min-width: 0` 이 없으면 flex/grid 안에서 상자가 자기 내용만큼 벌어져 말줄임이 아예 안 걸린다.
+ * ⚠ `&[tabindex]` — 잘린 요소에만 `OverflowTooltip` 이 `tabIndex` 를 건다. 커서로도 "누를 수
+ *   있다"를 말한다(키보드 사용자에게 정거장이 생겼다는 신호이기도 하다).
+ */
+export const overflowTooltipTarget = `
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &[tabindex] {
+    cursor: help;
+  }
+`;

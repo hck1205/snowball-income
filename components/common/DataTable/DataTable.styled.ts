@@ -121,6 +121,20 @@ const stackedCell = `
    */
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
+
+  /*
+   * 🔴 **칸 하나에는 요소 하나만 넣어라.** 이 칸은 2열 그리드이고 라벨(::before)이 첫 칸을 쓴다.
+   * 그래서 render 가 형제 둘을 돌려주면 아이템이 **셋**이 되어 두 번째가 다음 줄로 밀린다 —
+   * 넓은 폭에서는 td 안 인라인 흐름이라 멀쩡해서, 좁은 폭에서만 깨지는 종류의 버그다.
+   *
+   * 2026-08-07 하루에 세 화면이 각자 이 함정을 밟았다: 미국 의원(이름 + 명의 태그가 두 줄로),
+   * 한국 의원(종목 + 티커 배지), 그리고 매수·매도 배지가 값 트랙을 통째로 채워 100% 로 부푼 건
+   * 같은 격자의 다른 얼굴이다(그리드 아이템의 기본 정렬이 stretch 라 inline-block 도 늘어난다 —
+   * justify-self 로 막는다).
+   *
+   * ⇒ 이름 + 꼬리표처럼 둘 이상을 담을 땐 **상자 하나로 감싸서** 넘겨라
+   *   (선례: Congress 의 NameCell·NameStack, KoreaAssembly 의 IssuerCellRoot).
+   */
   gap: ${space[3]};
   text-align: right;
   padding: ${space[2]} ${space[1]};

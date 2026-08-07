@@ -14,6 +14,53 @@ export const PickerRoot = styled.div`
   min-height: 0;
 `;
 
+/**
+ * 시장 탭 줄(2026-08-07). 검색 **위**에 선다 — 어느 시장을 보는지가 무엇을 찾을지보다 먼저 정해진다.
+ *
+ * `role="tablist"` 를 쓰지 않는다. 탭 패턴은 화살표 이동·`aria-controls`·패널 포커스 관리까지
+ * 계약이 딸려 오는데, 여기는 아래 목록이 통째로 바뀌는 **필터**에 가깝다. 라디오 그룹으로 말하면
+ * 그 계약 없이도 "여럿 중 하나가 켜져 있다"가 그대로 전달된다.
+ */
+export const MarketTabs = styled.div`
+  display: flex;
+  gap: ${space[1]};
+  padding: ${space[1]};
+  border-radius: ${radius.pill};
+  background: ${color.surfaceSunken};
+`;
+
+export const MarketTab = styled.button<{ $active: boolean }>`
+  flex: 1 1 0;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: ${space[1]};
+  height: 34px;
+  padding: 0 ${space[2]};
+  border: 0;
+  border-radius: ${radius.pill};
+  background: ${({ $active }) => ($active ? color.surface : 'transparent')};
+  color: ${({ $active }) => ($active ? color.text : color.textMuted)};
+  font-family: inherit;
+  font-size: ${font.size.sm};
+  /* 🔴 굵기가 선택 상태의 **두 번째 채널**이다 — 면 색만으로 말하지 않는다. */
+  font-weight: ${({ $active }) => ($active ? font.weight.bold : font.weight.medium)};
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid ${color.focusRing};
+    outline-offset: 1px;
+  }
+`;
+
+/** 탭 라벨 뒤의 개수. 값이라 데이터 서체로 세운다. */
+export const MarketTabCount = styled.span`
+  font-family: ${font.dataNumeric};
+  font-size: ${font.size.xs};
+  ${font.numeric}
+`;
+
 export const SearchRow = styled.div`
   position: relative;
   display: block;

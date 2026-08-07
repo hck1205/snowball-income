@@ -1,6 +1,8 @@
 import styled from '@emotion/styled';
 import { Link } from 'react-router-dom';
 import { color, font, radius, space } from '@/shared/styles';
+import { overflowTooltipTarget } from '@/components/common';
+import { brandPillLink } from '@/shared/styles';
 
 /**
  * 표 **안**의 조각들. 표 자체는 공용 `DataTable` 이 그린다 — 미국 화면과 같은 이유로
@@ -16,21 +18,36 @@ export const Num = styled.span`
 `;
 
 /** 종목 이름. 한글이 대부분이라 본문 서체를 쓴다(티커처럼 데이터 서체로 세우지 않는다). */
+/**
+ * 종목 이름 + 티커를 **한 상자**로 묶는다.
+ *
+ * 🔴 묶지 않으면 좁은 폭에서 티커 배지가 다음 줄로 떨어진다 — 카드 모드의 칸은 2열 그리드라
+ * 라벨이 첫 칸을 쓰고, 이름과 배지가 형제로 놓이면 아이템이 셋이 된다(미국 화면에서 같은 함정을
+ * 이름+명의 태그로 이미 겪었다).
+ * 🔴 **오른쪽에 선다**(2026-08-07 사용자 지시) — 카드 모드에서 값은 전부 오른쪽 축이다.
+ */
+export const IssuerCellRoot = styled.span`
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: ${space[1]};
+  min-width: 0;
+`;
+
 export const Issuer = styled.span`
   font-weight: ${font.weight.semibold};
 `;
 
-/** 우리 앱에 소개 페이지가 있는 종목만 링크가 된다. */
+/**
+ * 우리 앱에 소개 페이지가 있는 종목 — **누를 수 있는 것처럼 생긴다**(2026-08-07 사용자 지시).
+ *
+ * 종전에는 브랜드색 글자 + 호버에만 나타나는 밑줄이었다. 모바일에는 호버가 없어 쉴 때의 모습이
+ * 전부인데, 그건 색이 조금 다른 글자일 뿐이라 **색 단독 채널**이었다. 미국 화면의 티커와 같은
+ * 알약 칩으로 맞춘다 — 두 화면이 같은 종류의 자료이므로 같은 어휘를 써야 한다.
+ */
 export const IssuerLink = styled(Link)`
+  ${brandPillLink}
   font-weight: ${font.weight.semibold};
-  color: ${color.brandText};
-  text-decoration: none;
-  border-bottom: 1px solid transparent;
-
-  &:hover,
-  &:focus-visible {
-    border-bottom-color: currentColor;
-  }
 `;
 
 /** 티커 배지 — 종목 이름 옆에 작게. 미국 종목에만 붙는다. */
@@ -41,12 +58,20 @@ export const TickerBadge = styled.span`
   color: ${color.textMuted};
 `;
 
-/** 신고한 의원 이름 나열. 길어서 두 줄까지 보이고 그 뒤는 말줄임. */
+/**
+ * 신고한 의원 이름 나열(“신고한 의원” · “가장 많이 신고한 종목” 두 열이 함께 쓴다).
+ *
+ * 🔴 **한 줄 말줄임이다**(2026-08-07 사용자 지시: 엘립시스 + 툴팁). 종전에는
+ * `-webkit-line-clamp: 2`(두 줄 자르기)였는데, 그 방식은 글자가 **가로로 넘치지 않는다** —
+ * 줄바꿈으로 접히므로 `scrollWidth === clientWidth` 가 된다. 이 열을 감싼 `OverflowTooltip` 은
+ * 그 두 값을 견줘 잘림을 판정하므로(`isTextClipped`), 눈에는 잘려 보이는데 **툴팁은 영영 안 떴다.**
+ * 한 줄로 자르면 잘림이 가로 축에서 일어나 판정이 성립하고, 잘린 이름 전부를 툴팁이 되돌려준다.
+ *
+ * ⚠ 세로로 자르고 싶어지면 `isTextClipped` 부터 고쳐라(`scrollHeight > clientHeight` 도 보게).
+ *   여기만 바꾸면 툴팁이 다시 조용히 죽는다.
+ */
 export const MemberSample = styled.span`
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
+  ${overflowTooltipTarget}
   color: ${color.textSecondary};
 `;
 
@@ -91,13 +116,5 @@ export const Position = styled.span`
  * ⚠ min-width 0 이 없으면 grid/flex 안에서 상자가 내용만큼 벌어져 말줄임이 아예 안 걸린다.
  */
 export const PersonName = styled.span`
-  display: block;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-
-  &[tabindex] {
-    cursor: help;
-  }
+  ${overflowTooltipTarget}
 `;

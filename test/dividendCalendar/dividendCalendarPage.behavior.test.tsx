@@ -30,6 +30,7 @@ import { DividendCalendarPage } from '@/pages/DividendCalendar';
 import { MAX_DAY_CHIPS } from '@/pages/DividendCalendar/components';
 import { routes } from '@/router/routes';
 import { MARKET_DATA } from '@/shared/constants/marketData';
+import { tickerMarketOf } from '@/pages/DividendCalendar/utils';
 import { DIVIDEND_UNIVERSE } from '@/shared/constants/presets';
 
 /**
@@ -305,6 +306,14 @@ const busiestDayOf = (month: number, year: number = YEAR): { day: number; ticker
   return { day: busiest[0], tickers: [...busiest[1]].sort() };
 };
 
+/**
+ * 드로어가 열렸을 때 화면이 세는 대상 — **미국 탭의 종목 수**(2026-08-07 시장 탭 도입).
+ * 상수를 박지 않고 유니버스에서 다시 센다: 종목이 늘어도 이 테스트가 화면 버그가 아닌 이유로
+ * 빨개지지 않게 한다.
+ */
+const usTickerCount = () =>
+  Object.keys(DIVIDEND_UNIVERSE).filter((ticker) => tickerMarketOf(ticker) === 'us').length;
+
 describe('배당 지급 캘린더 — 기본 루프', () => {
   it('검색해서 고르면 달력·요약·아젠다·라이브 리전이 함께 갱신되고, 고른 항목은 목록에 남는다', async () => {
     const { user } = await renderCalendar();
@@ -344,7 +353,8 @@ describe('배당 지급 캘린더 — 기본 루프', () => {
 
     expect(search).toHaveValue('');
     expect(search).toHaveFocus();
-    expect(screen.getByText(`${Object.keys(DIVIDEND_UNIVERSE).length}종목`)).toBeInTheDocument();
+    /* 🔴 개수는 **보고 있는 탭**의 것이다(2026-08-07 시장 탭 도입). 드로어는 미국 탭으로 열린다. */
+    expect(screen.getByText(`${usTickerCount()}종목`)).toBeInTheDocument();
   });
 
   it('화면 폭과 무관하게 핵심 요소는 하나씩만 존재한다(중복 렌더 회귀 방지)', async () => {
@@ -641,6 +651,12 @@ describe('배당 지급 캘린더 — 캘린더에 놓을 수 없는 종목', ()
    * 리터럴(19)을 박지 않는 이유는 이 파일 머리의 규칙과 같다 — 크론이 스냅샷을 채우는 날
    * 화면 버그가 아닌 이유로 빨개진다.
    */
+  /*
+   * 🔴 **미국 탭 기준으로 센다**(2026-08-07 시장 탭 도입). 드로어는 미국 탭으로 열리므로 화면의
+   * 숫자도 그 탭의 것이다. 유니버스 전체로 세면 한국 상장 12종만큼 어긋난다.
+   */
+  const usOnly = (tickers: readonly string[]) => tickers.filter((ticker) => tickerMarketOf(ticker) === 'us');
+
   const nonDividendTickers = Object.entries(DIVIDEND_UNIVERSE)
     .filter(([, preset]) => preset.frequency === 'none')
     .map(([ticker]) => ticker);
@@ -654,18 +670,18 @@ describe('배당 지급 캘린더 — 캘린더에 놓을 수 없는 종목', ()
     const { user } = await renderCalendar();
     await openPicker(user);
 
-    expect(screen.getByText(`${Object.keys(DIVIDEND_UNIVERSE).length}종목`)).toBeInTheDocument();
-    expect(screen.getByText(`배당 없음 ${nonDividendTickers.length}종`)).toBeInTheDocument();
+    expect(screen.getByText(`${usTickerCount()}종목`)).toBeInTheDocument();
+    expect(screen.getByText(`배당 없음 ${usOnly(nonDividendTickers).length}종`)).toBeInTheDocument();
     // 숫자의 근거 = 화면에 실제로 그 배지가 달린 항목 수. 둘이 어긋나면 둘 다 못 믿는다.
-    expect(screen.getAllByText('배당 없음')).toHaveLength(nonDividendTickers.length);
+    expect(screen.getAllByText('배당 없음')).toHaveLength(usOnly(nonDividendTickers).length);
 
     /*
      * "준비 중"은 스냅샷이 채워지면 0 이 되는 부류다(2026-07-29 갱신으로 실제 0 이 됐다).
      * 0 일 때 토큰을 아예 렌더하지 않는 것도 계약이라, 개수에 따라 양쪽을 모두 단정한다.
      */
-    if (unavailableTickers.length > 0) {
-      expect(screen.getByText(`준비 중 ${unavailableTickers.length}종`)).toBeInTheDocument();
-      expect(screen.getAllByText('데이터 준비 중')).toHaveLength(unavailableTickers.length);
+    if (usOnly(unavailableTickers).length > 0) {
+      expect(screen.getByText(`준비 중 ${usOnly(unavailableTickers).length}종`)).toBeInTheDocument();
+      expect(screen.getAllByText('데이터 준비 중')).toHaveLength(usOnly(unavailableTickers).length);
     } else {
       expect(screen.queryByText(/^준비 중/)).not.toBeInTheDocument();
       expect(screen.queryByText('데이터 준비 중')).not.toBeInTheDocument();

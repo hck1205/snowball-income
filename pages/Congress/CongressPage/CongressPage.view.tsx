@@ -27,6 +27,8 @@ import { AxisButton, AxisLabel, AxisRow, KoreaBody, KoreaLink } from './styled';
 import {
   ActionBadge,
   District,
+  NameCell,
+  NameStack,
   PersonName,
   Num,
   OwnerTag,
@@ -94,12 +96,13 @@ const MEMBER_COLUMNS = [
     header: copy.members.columnName,
     /* 🔴 이름은 한 줄로 두고 넘치면 말줄임 + 툴팁 — 카드 모드에서 라벨과 겹치던 자리다. */
     render: (row: CongressMemberRow) => (
-      <>
+      /* 이름 + 지역구는 세로로 쌓되 **한 상자**다 — 형제로 두면 카드 모드에서 그리드 아이템이 셋이 된다. */
+      <NameStack>
         <OverflowTooltip text={row.name}>
           <PersonName />
         </OverflowTooltip>
         <District>{formatDistrict(row.stateDistrict)}</District>
-      </>
+      </NameStack>
     )
   },
   { key: 'buys', header: copy.members.columnBuys, render: (row: CongressMemberRow) => <Num>{countLabel(row.buys)}</Num> },
@@ -141,12 +144,13 @@ const RECENT_COLUMNS = [
     header: copy.recent.columnMember,
     /* 최근 거래도 같은 규율 — 이름은 한 줄, 넘치면 말줄임 + 툴팁. */
     render: (row: CongressRecentTrade) => (
-      <>
+      /* 🔴 한 상자로 묶는다 — 형제로 두면 카드 모드(2열 그리드)에서 명의 태그가 다음 줄로 밀린다. */
+      <NameCell>
         <OverflowTooltip text={row.member}>
           <PersonName />
         </OverflowTooltip>
         {row.owner ? <OwnerTag>{copy.owner[row.owner]}</OwnerTag> : null}
-      </>
+      </NameCell>
     )
   },
   {

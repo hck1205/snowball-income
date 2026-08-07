@@ -6000,6 +6000,9 @@ var DIVIDEND_LIST_COPY = {
     relation: "\uAE30\uAC04\uB9CC \uBCF4\uBA74 \uBC30\uB2F9\uD0B9(50\uB144)\uC774 \uAC00\uC7A5 \uAE38\uACE0, \uBC30\uB2F9\uADC0\uC871\uACFC \uBC30\uB2F9\uCC54\uD53C\uC5B8\uC740 \uAC19\uC740 25\uB144\uC785\uB2C8\uB2E4. \uB458\uC744 \uAC00\uB974\uB294 \uAC83\uC740 \uAE30\uAC04\uC774 \uC544\uB2C8\uB77C S&P 500 \uC18C\uC18D \uC5EC\uBD80\uC785\uB2C8\uB2E4.",
     tableHeading: "\uBAA9\uB85D \uBE44\uAD50",
     tableCaption: "\uC138 \uBAA9\uB85D\uC758 \uAE30\uC900 \xB7 \uC885\uBAA9 \uC218 \xB7 \uAE30\uC900\uC77C",
+    /* 🔴 비교표 왼쪽 위 모서리 칸의 글자(2026-08-07 사용자 지시: 지금은 공란이다).
+       아래 행 이름들이 전부 "무엇을 비교하는가"라서, 그 열의 머리는 '항목'이 맞다. */
+    compareCorner: "\uD56D\uBAA9",
     columns: {
       list: "\uBAA9\uB85D",
       criterion: "\uAE30\uC900",
@@ -6007,9 +6010,14 @@ var DIVIDEND_LIST_COPY = {
       asOf: "\uAE30\uC900\uC77C"
     },
     /** 비교 매트릭스의 행 이름. 표가 아니라 "질문 목록"으로 읽히게 서술형으로 쓴다. */
+    /*
+     * ⚠ 짧게 쓴다(2026-08-07 사용자 지시). 이 행 이름들은 표의 **첫 열**이고 그 열은 좁은 폭에서
+     * 고정돼 따라다니므로, 길면 표가 쓸 폭을 그만큼 먹는다. "S&P 500 소속을 요구하나" 같은
+     * 서술형은 자리를 두 배로 쓰면서 값("요구함")이 이미 말하는 것을 되풀이한다.
+     */
     compareRows: {
-      streak: "\uC5F0\uC18D \uC99D\uBC30 \uAE30\uAC04",
-      index: "S&P 500 \uC18C\uC18D\uC744 \uC694\uAD6C\uD558\uB098",
+      streak: "\uC5F0\uC18D \uC99D\uBC30\uAE30\uAC04",
+      index: "S&P \uC18C\uC18D\uC694\uAD6C",
       count: "\uC218\uB85D \uC885\uBAA9",
       asOf: "\uAE30\uC900\uC77C",
       open: ""

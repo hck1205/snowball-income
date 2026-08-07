@@ -32,7 +32,16 @@ export default function CalendarToolbar({
       <NavButton type="button" aria-label={copy.nav.next(nextLabel)} onClick={onNext}>
         <ChevronRight size={16} strokeWidth={1.8} aria-hidden focusable={false} />
       </NavButton>
-      {/* "이번 달" 텍스트는 뺐다(사용자 결정 2026-07-26) — 아이콘 전용, 접근명은 그대로 말한다. */}
+      {/*
+        🔴 **보이는 텍스트를 되살렸다**(2026-08-07 사용자 신고: "달력 아이콘의 존재 의미를 모르겠다").
+        2026-07-26 에 아이콘만 남겼는데, 달력 그림은 "이번 달로 돌아간다"를 말하지 못한다 —
+        하물며 여기는 캘린더 화면이라 달력 아이콘이 무엇도 가리키지 않는다.
+
+        ⚠ 현재 달에서 **숨기지 않고 비활성으로 둔다**(미국 증시 캘린더는 숨긴다 — 여기만 다르다).
+          누르는 순간 사라지면 포커스가 body 로 떨어져 키보드 사용자가 자리를 잃는다. 그 계약을
+          테스트가 지키고 있다(dividendCalendarPage.behavior — "포커스 유지"). 비활성 버튼은
+          "이미 이번 달이다"를 말하는 상태이기도 하다.
+      */}
       <TodayButton
         type="button"
         aria-label={copy.nav.todayAria(todayLabel)}
@@ -40,6 +49,7 @@ export default function CalendarToolbar({
         onClick={onToday}
       >
         <CalendarDays size={16} strokeWidth={1.8} aria-hidden focusable={false} />
+        {copy.nav.today}
       </TodayButton>
     </ToolbarRoot>
   );

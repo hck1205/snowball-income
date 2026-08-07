@@ -10,7 +10,10 @@ import {
   pressTransition,
   pressableSubtle,
   radius,
+  scrollFadeRight,
   space,
+  stickyCellTable,
+  stickyColumn,
   subtleScrollbar
 } from '@/shared/styles';
 
@@ -125,15 +128,16 @@ export const ConceptBody = styled.p`
 export const Spotlight = styled.article<{ $flip: boolean }>`
   display: grid;
   align-items: center;
+  /* 태블릿 이상에서 그림이 배경으로 물러나며 absolute 가 된다 — 그 기준 상자가 여기다. */
+  position: relative;
+  overflow: hidden;
   gap: clamp(16px, 3vw, 40px);
   padding: ${BLOCK_PAD};
   border-radius: ${radius.xl};
   border: 1px solid ${color.border};
   background: ${color.surface};
 
-  ${media.up('tablet')} {
-    grid-template-columns: ${({ $flip }) => ($flip ? 'minmax(0, 1fr) auto' : 'auto minmax(0, 1fr)')};
-  }
+  /* 그림이 흐름 밖으로 나가면서 이 블록은 어느 폭에서도 **한 열**이다($flip 은 후광 쪽만 쓴다). */
 
   /*
    * 그림 뒤 후광 — 캐릭터의 보라가 흰 면에서 뚝 끊기지 않게 그림 쪽에만 아주 옅게 깐다
@@ -157,27 +161,92 @@ export const Spotlight = styled.article<{ $flip: boolean }>`
   }
 `;
 
+/**
+ * 목록 그림. 🔴 **제목 줄 오른쪽 끝에 작게 선다**(2026-08-07 사용자 지시).
+ * 종전에는 자기 열을 갖는 clamp(180px, 24vw, 300px) 짜리였다 — 블록 하나가 화면 한 판을 쓰고,
+ * 좁은 폭에서는 글보다 그림이 먼저 눈에 들어왔다. 이제 제목의 동반자 크기다.
+ */
 export const SpotlightArt = styled.img`
-  display: block;
-  justify-self: center;
-  width: clamp(180px, 24vw, 300px);
+  /*
+   * 🔴 **어느 폭에서도 같은 자리다**(2026-08-07 사용자 지시). 카드 오른쪽에 옅게 깔리는 배경
+   * 이미지이고, 크기만 폭을 따라 줄었다 늘었다 한다.
+   *
+   * 종전에는 폭에 따라 역할이 갈렸다(모바일=제목 줄의 작은 동반자 / 태블릿 이상=배경). 그러면
+   * 같은 카드가 폭마다 다른 화면으로 읽히고, 실제로 세 목록의 그림 정렬이 서로 어긋났다
+   * (챔피언만 다른 자리에 섰다 — 그림마다 세로 비율이 달라 흐름 안에서는 윗변이 맞지 않는다).
+   * 흐름 밖으로 빼고 세로 가운데에 고정하면 비율과 무관하게 세 카드가 같은 자리를 쓴다.
+   *
+   * ⚠ 흐름에서 빠지므로 부모(Spotlight)가 relative 여야 하고, 글(SpotlightBody)이 이 자리를
+   *   침범하지 않게 오른쪽 여백을 비워 둔다.
+   * ⚠ 장식이라 클릭을 통과시키고 낭독에서도 빠진다(alt="").
+   */
+  position: absolute;
+  right: clamp(4px, 2vw, 32px);
+  /*
+   * 🔴 좁은 폭에서는 **우측 상단**이다(2026-08-07 사용자 지시). 그 폭에서는 카드가 세로로 길어져
+   * 세로 가운데가 본문 한복판이 된다 — 그림이 글 뒤 가운데에 깔리면 가장 읽어야 할 문장 위에
+   * 얹힌다. 위로 올리면 제목 줄 옆에 서서 "이 카드가 무엇인지"만 말하고 본문은 비워 준다.
+   */
+  top: ${space[3]};
+  width: clamp(72px, 22vw, 260px);
   height: auto;
-  /* 장식이라 클릭을 통과시킨다 — 옆의 제목·버튼이 이 장면의 조작부다. */
+  /* 글 뒤로 물러난 만큼 옅게 — 진하면 그 위의 문장이 읽히지 않는다. */
+  opacity: 0.45;
+  z-index: 0;
   pointer-events: none;
   user-select: none;
+
+  /* 넓은 폭에서는 카드가 낮고 넓어 세로 가운데가 맞다 — 그 자리가 오른쪽 여백의 한복판이다. */
+  ${media.up('tablet')} {
+    top: 50%;
+    transform: translateY(-50%);
+  }
 `;
 
 export const SpotlightBody = styled.div`
   display: grid;
   gap: ${space[3]};
   min-width: 0;
+  /* 배경으로 깔린 그림 **위**에 선다(그림은 z-index 0). 글이 장식에 묻히지 않는다. */
+  position: relative;
+  z-index: 1;
+
+  /* 그림이 오른쪽에 깔리는 폭에서는 글이 그 자리를 침범하지 않게 오른쪽을 비워 둔다. */
+  /*
+   * 🔴 좁은 폭에서는 **자리를 비우지 않는다**(2026-08-07 사용자 지시: 텍스트 뒤에 표기되게).
+   * 글이 카드 폭을 다 쓰고 그림은 그 **뒤로** 깔린다(그림 z-index 0 · 이 상자 1). 좁은 화면에서
+   * 오른쪽을 100px 비우면 남는 글 폭이 두세 낱말이라, 비켜 주는 대가가 너무 크다.
+   * 넓은 폭에서는 그림이 커져 글과 겹치면 읽기 어려우므로 그때만 자리를 비운다.
+   */
+  ${media.up('tablet')} {
+    padding-right: clamp(140px, 20vw, 240px);
+  }
+`;
+
+/**
+ * 제목 한 줄 — 목록 이름 + 기준 칩 + 그림이 **같은 줄**에 선다(2026-08-07 사용자 지시).
+ * 좁아지면 기준 칩이 먼저 줄어들며 말줄임으로 접힌다 — 목록 이름이 먼저 살아야 한다.
+ */
+export const SpotlightHead = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${space[2]};
+  min-width: 0;
 `;
 
 /** 기준을 한 조각으로 박는 칩. 폭이 짧아(<180px) 틴트 면으로 세어지지 않는다. */
 export const SpotlightBadge = styled.span`
   justify-self: start;
-  display: inline-flex;
-  align-items: center;
+  /*
+   * 이름 다음으로 자리를 양보한다 — 좁아지면 여기부터 줄고, 넘치면 말줄임이 된다.
+   * ⚠ inline-flex 가 아니라 **inline-block** 이다. 글자만 담는데 flex 상자면 익명 아이템이 생겨
+   *   text-overflow 가 걸리지 않는다(말줄임이 조용히 안 먹는 흔한 자리다).
+   */
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
   padding: 4px ${space[3]};
   border-radius: ${radius.pill};
   border: 1px solid ${color.brandBorder};
@@ -190,6 +259,9 @@ export const SpotlightBadge = styled.span`
 
 export const SpotlightTitle = styled.h3`
   margin: 0;
+  /* 이름은 줄지 않는다 — 세 글자짜리 고유명이라 여기가 접히면 무엇을 보는지 알 수 없게 된다.
+     자리를 양보하는 쪽은 옆의 기준 칩이다(SpotlightBadge 의 flex: 0 1 auto). */
+  flex: none;
   font-family: ${font.display};
   font-size: clamp(${font.size['2xl']}, 3.2vw, ${font.size['4xl']});
   font-weight: ${font.weight.extrabold};
@@ -316,16 +388,32 @@ export const CompareWrap = styled.div`
   overflow-x: auto;
   border-radius: ${DATA_RADIUS};
   border: 1px solid ${color.border};
-  background: ${color.surface};
   /* 생 overflow 만 두면 각진 네이티브 스크롤바가 나온다 — 앱 공통 믹스인으로 모양을 맞춘다. */
   ${subtleScrollbar}
+
+  /* 가로 스크롤이 페이지로 번지지 않게 — 표 끝에서 손가락을 계속 밀면 뒤 페이지가 따라 움직인다. */
+  overscroll-behavior-x: contain;
+  background: ${color.surface};
+
+  /* 끝 흐림은 앱 공통 처방이다 — 판단(폭·색 없음·왼쪽은 안 흐림)은 그 파일이 갖는다. */
+  ${scrollFadeRight}
 `;
 
 export const CompareTable = styled.table`
   width: 100%;
   min-width: 620px;
-  border-collapse: collapse;
+  /* 🔴 첫 열을 고정하려면 이 표는 separate 여야 한다 — 이유는 stickyCellTable 주석. */
+  ${stickyCellTable}
   text-align: left;
+
+  /*
+   * 🔴 마지막 줄의 밑줄을 지운다. 그 선은 상자 **폭 전체**를 가로지르므로,
+   * 둥근 아래 모서리를 직선으로 잘라 "반경이 안 먹은" 모양이 된다(같은 사용자 신고).
+   * 줄 사이를 가르는 것이 그 선의 일이고, 마지막 줄 아래에는 가를 것이 없다.
+   */
+  tbody tr:last-of-type > * {
+    border-bottom: 0;
+  }
 `;
 
 /** 열 머리 — 그림 + 목록 이름. 그림이 있어야 위 지그재그 블록과 같은 것임을 눈이 잇는다. */
@@ -337,10 +425,16 @@ export const CompareHeadCell = styled.th`
   font-weight: ${font.weight.bold};
   color: ${color.text};
 
-  /* 첫 열은 질문 이름 자리라 비어 있다. */
+  /*
+   * 첫 열 = 항목 이름 자리. 🔴 **머리 칸도 함께 고정된다** — 아래 값 줄만 붙어 있고 머리가
+   * 밀려 나가면 고정된 열에 이름이 없는 상태가 된다(2026-08-07 사용자 지시).
+   * ⚠ 아래 CompareRowLabel 과 **같은 left · 같은 배경 · 같은 경계선**을 써야 한 열로 보인다.
+   */
   &:first-of-type {
     width: 22%;
     min-width: 132px;
+    ${stickyColumn('0', true)}
+    text-align: center;
   }
 `;
 
@@ -358,7 +452,19 @@ export const CompareHeadArt = styled.img`
   user-select: none;
 `;
 
+/**
+ * 행 이름(첫 열).
+ *
+ * 🔴 **가로로 밀어도 제자리에 남는다**(2026-08-07 사용자 지시: 스크롤 시 fixed 로 따라오게).
+ * 이 표는 좁은 폭에서 가로로 밀리는데, 그때 첫 열이 함께 밀려 나가면 "지금 보는 값이 무슨
+ * 항목이었는지"를 잃는다 — 값만 셋 남고 질문이 사라진다.
+ * ⚠ 배경이 반드시 있어야 한다(고정 칸은 다른 칸 위를 지나간다). 경계선은 border 가 아니라
+ *   box-shadow 로 그린다 — border-collapse 표에서는 테두리의 주인이 표라 함께 밀려간다.
+ */
 export const CompareRowLabel = styled.th`
+  /* 🔴 값 열들이 가운데 정렬이라 항목 열도 같은 축에 선다(2026-08-07 사용자 지시). */
+  text-align: center;
+  ${stickyColumn('0', true)}
   padding: ${space[3]};
   border-bottom: 1px solid ${color.border};
   vertical-align: middle;

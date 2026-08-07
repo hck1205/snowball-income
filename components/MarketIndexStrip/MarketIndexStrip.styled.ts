@@ -1,7 +1,7 @@
 import { keyframes } from '@emotion/react';
 import styled from '@emotion/styled';
 import type { IndexChange } from '@/shared/lib/marketIndices';
-import { color, font, media, motion, radius, space, subtleScrollbar } from '@/shared/styles';
+import { color, font, media, motion, radius, scrollFadeRight, space, subtleScrollbar } from '@/shared/styles';
 
 /**
  * 스트립 컨테이너 — **투명하다**(배경·테두리 없음). 이 부품이 어떤 면 위에 놓일지 모르기 때문이다
@@ -116,8 +116,9 @@ export const List = styled.ul`
   ${subtleScrollbar}
 
   /* 🔴 넘칠 때만 오른쪽 가장자리를 흐린다 — "더 있다"를 스크롤바 없이도 말한다.
-     mask-image 는 색을 안 쓰므로 프리셋·다크모드와 무관하게 동작한다(대비 게이트 대상 아님). */
-  mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent);
+     이 처방의 **원본이 여기였다**. 2026-08-07 에 표 두 곳이 같은 리터럴을 복사하면서 공통으로
+     뽑았다(shared/styles/scrollAffordance) — 폭·색 없음·왼쪽은 안 흐림 같은 판단은 그 파일이 진다. */
+  ${scrollFadeRight}
 
 `;
 

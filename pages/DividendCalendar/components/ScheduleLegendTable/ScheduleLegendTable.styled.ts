@@ -31,9 +31,16 @@ export const LegendDetails = styled.details`
 `;
 
 export const LegendSummary = styled.summary`
-  display: inline-flex;
+  /*
+   * 🔴 **줄 전체가 누르는 자리다**(2026-08-07 사용자 지시). 종전에는 inline-flex 라 글자 폭만
+   * 대상이었다 — 화살표 옆 빈 자리를 눌러도 아무 일이 없어서, 열리는 줄인지 아닌지가 손끝으로
+   * 확인될 때까지 알 수 없었다. 손가락 목표로도 좁다.
+   * ⚠ 여백은 여기(summary)에 준다. 부모에 주면 늘어난 영역이 클릭 대상 밖으로 남는다.
+   */
+  display: flex;
   align-items: center;
   gap: ${space[1]};
+  padding: ${space[2]} 0;
   cursor: pointer;
   list-style: none;
   font-size: ${font.size.sm};

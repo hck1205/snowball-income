@@ -54,6 +54,8 @@ export type { PageHueName } from './pageHue';
 export { pressable, pressableSubtle, pressTransition } from './pressable';
 
 export { hiddenScrollbar, subtleScrollbar } from './scrollbar';
+/* 가로로 미는 상자의 공통 처방 — 끝 흐림 · 고정 열(그 표는 반드시 separate 여야 한다). */
+export { brandPillLink, scrollFadeRight, stickyCellTable, stickyColumn } from './scrollAffordance';
 
 export {
   DATA_RADIUS,

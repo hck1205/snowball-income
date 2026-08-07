@@ -1,5 +1,6 @@
 export {
   Issuer,
+  IssuerCellRoot,
   IssuerLink,
   MemberSample,
   Num,

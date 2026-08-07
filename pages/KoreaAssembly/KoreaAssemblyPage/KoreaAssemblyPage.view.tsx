@@ -22,6 +22,7 @@ import {
   BridgeBody,
   BridgeLink,
   Issuer,
+  IssuerCellRoot,
   IssuerLink,
   MemberSample,
   Num,
@@ -47,10 +48,10 @@ const SLUG_BY_SYMBOL = new Map<string, string>(
 const IssuerCell = ({ row }: { row: KoreaIssuerRow }) => {
   const slug = row.ticker ? SLUG_BY_SYMBOL.get(row.ticker) : undefined;
   return (
-    <>
+    <IssuerCellRoot>
       {slug ? <IssuerLink to={`/ticker/${slug}`}>{row.issuer}</IssuerLink> : <Issuer>{row.issuer}</Issuer>}
       {row.ticker ? <TickerBadge>{row.ticker}</TickerBadge> : null}
-    </>
+    </IssuerCellRoot>
   );
 };
 

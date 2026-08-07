@@ -1,4 +1,5 @@
 import { Check } from 'lucide-react';
+import { OverflowTooltip } from '@/components/common';
 import type { StatTileProps } from './StatTile.types';
 import { clampProgress, formatProgressHint, toProgressPercent } from './StatTile.utils';
 import {
@@ -51,9 +52,24 @@ export default function StatTile({
         <TileLabel emphasis={emphasis}>{label}</TileLabel>
         {action}
       </TileLabelRow>
-      <TileValue emphasis={emphasis} tone={tone}>
-        {value}
-      </TileValue>
+      {/*
+        🔴 값·보조설명은 `nowrap + ellipsis` 라 좁은 타일에서 자주 잘린다. 잘린 글자를 되찾을 길이
+        있어야 한다(2026-08-07 사용자 지시) — `OverflowTooltip` 은 **실제로 잘렸을 때만** 뜨고
+        hover·클릭·키보드를 모두 받는다(모바일에는 호버가 없으므로 클릭이 유일한 길이다).
+        ⚠ 문자열일 때만 감싼다. 툴팁은 전체 문자열을 알아야 하는데 ReactNode 는 글자로 환원되지
+          않는다 — 노드를 넘긴 호출부는 자기 안에서 잘림을 다뤄야 한다.
+        ⚠ 폭 계약: 이 두 요소는 타일 폭 100% 를 쓰는 블록이고 툴팁 앵커는 `max-width: 100%` 라,
+          감싸도 상자 폭이 그대로다(감쌈↔풂이 반복되지 않는다 — OverflowTooltip 머리말의 계약).
+      */}
+      {typeof value === 'string' ? (
+        <OverflowTooltip text={value}>
+          <TileValue emphasis={emphasis} tone={tone} />
+        </OverflowTooltip>
+      ) : (
+        <TileValue emphasis={emphasis} tone={tone}>
+          {value}
+        </TileValue>
+      )}
       {clamped !== undefined ? (
         <>
           <ProgressTrack
@@ -69,7 +85,13 @@ export default function StatTile({
           <TileHint emphasis={emphasis}>{formatProgressHint(clamped)}</TileHint>
         </>
       ) : null}
-      {hint ? <TileHint emphasis={emphasis}>{hint}</TileHint> : null}
+      {typeof hint === 'string' ? (
+        <OverflowTooltip text={hint}>
+          <TileHint emphasis={emphasis} />
+        </OverflowTooltip>
+      ) : hint ? (
+        <TileHint emphasis={emphasis}>{hint}</TileHint>
+      ) : null}
     </TileRoot>
   );
 }

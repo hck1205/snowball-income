@@ -191,11 +191,21 @@ export const ChipList = styled.span`
   max-width: 100%;
 
   /*
-   * 🔴 **좁은 폭에서도 세로다**(2026-08-07 두 캘린더 UI 통일). 종전에는 여기서 가로로 눕히고
-   * 아래 ChipLabel 을 감췄다 — 점만 남는 줄이었다. 배당 캘린더는 같은 자리에서 정반대로
-   * 결정했고(2026-07-26 사용자 결정: "어느 폭에서든 글자가 이긴다"), 그쪽이 맞다. 점만 남으면
-   * 색이 유일한 채널이 되고, 두 캘린더가 같은 화면 문법을 쓰지 않게 된다.
+   * 🔴 **좁은 폭에서는 다시 가로로 눕고 점만 남는다**(2026-08-07 사용자 지시로 되돌림).
+   *
+   * 이 날 앞서 두 캘린더의 칩 문법을 통일하며 좁은 폭에서도 글자를 세로로 세웠는데, 실제 화면에서
+   * 날짜 칸이 세로로 길어져 격자가 무너졌다 — 배당 캘린더의 칩은 티커 3~4글자라 한 줄에 들어가지만
+   * 여기 일정 이름은 "근원 소비자물가지수" 같은 문장이라 칸마다 서너 줄을 먹는다. 같은 규칙이
+   * 두 화면에서 같은 결과를 내지 않는다.
+   *
+   * ⚠ 점만 남아도 **색이 유일한 채널은 아니다** — 칸 전체에 title 로 일정 이름이 붙고, 칸을 누르면
+   *   그 날의 드로어가 이름을 그대로 편다. 아래 범례가 색과 이름을 짝지어 두는 것도 그대로다.
    */
+  ${media.down('mobileWide')} {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 3px;
+  }
 `;
 
 /**
@@ -226,6 +236,13 @@ export const Chip = styled.span`
   font-size: ${font.size['2xs']};
   font-weight: ${font.weight.semibold};
   line-height: 1.5;
+
+  /* 좁은 폭에서는 알약 껍데기를 지운다 — 남는 것은 점뿐이라 상자가 있을 이유가 없다. */
+  ${media.down('mobileWide')} {
+    padding: 0;
+    border-color: transparent;
+    background: transparent;
+  }
 `;
 
 /** 칩 안의 글자. 넘치면 말줄임 — 원문은 칸 전체 `title` 이 갖고 있다. */
@@ -234,6 +251,11 @@ export const ChipLabel = styled.span`
   min-width: 0;
   white-space: nowrap;
   text-overflow: ellipsis;
+
+  /* 좁은 폭에서는 글자를 감춘다 — 이름은 칸의 title 과 날짜 드로어가 말한다(ChipList 주석). */
+  ${media.down('mobileWide')} {
+    display: none;
+  }
 `;
 
 /** 접힌 일정 수(`+3`). 🔴 접혔다는 사실을 숨기지 않는 것이 이 조각의 존재 이유다. */
@@ -241,6 +263,10 @@ export const ChipMore = styled.span`
   color: ${color.textMuted};
   font-size: ${font.size['2xs']};
   font-variant-numeric: tabular-nums;
+
+  ${media.down('mobileWide')} {
+    display: none;
+  }
 `;
 
 export type DotKind = 'fomc' | 'economic' | 'earnings';

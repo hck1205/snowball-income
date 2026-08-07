@@ -8,6 +8,7 @@
  * 열림 상태는 페이지가 갖는다. 그래야 칩과 카드가 같은 드로어를 공유하면서도 서로를 모른다.
  */
 import { useMemo } from 'react';
+import { OverflowTooltip } from '@/components/common';
 import { assignSeries } from '@/shared/lib/tickerSeries';
 import { color } from '@/shared/styles';
 import { INVESTORS_COPY } from '../../../copy';
@@ -42,9 +43,12 @@ import {
   RankTd,
   RankTdBar,
   RankTdNumeric,
+  RankTdTicker,
   RankTh,
   RankThBar,
+  RankThIndex,
   RankThNumeric,
+  RankThTicker,
   Track,
   VisuallyHidden
 } from '../../styled';
@@ -179,8 +183,8 @@ export default function ConsensusBoard({
             </caption>
             <thead>
               <tr>
-                <RankTh scope="col">{copy.aggregate.rankHeader}</RankTh>
-                <RankTh scope="col">{copy.aggregate.tickerHeader}</RankTh>
+                <RankThIndex scope="col">{copy.aggregate.rankHeader}</RankThIndex>
+                <RankThTicker scope="col">{copy.aggregate.tickerHeader}</RankThTicker>
                 <RankTh scope="col">{copy.aggregate.holdersOfLabel}</RankTh>
                 <RankThNumeric scope="col">{copy.aggregate.valueHeader}</RankThNumeric>
                 <RankThBar scope="col">{copy.aggregate.barHeader}</RankThBar>
@@ -190,10 +194,23 @@ export default function ConsensusBoard({
               {rest.map((row, index) => (
                 <RankRow key={row.cusip}>
                   <RankIndex>{index + PODIUM_SIZE + 1}</RankIndex>
-                  <RankTd>
-                    <RankName>{row.label}</RankName>
-                    {row.koreanName ? <RankKorean>{row.koreanName}</RankKorean> : null}
-                  </RankTd>
+                  {/*
+                    🔴 종목 열은 고정 폭(116px)이라 이름이 자주 잘린다 — 잘린 것을 되찾을 길이
+                    반드시 있어야 한다(2026-08-07 사용자 지시). `OverflowTooltip` 은 **실제로
+                    잘렸을 때만** 뜨고 hover·클릭·키보드를 모두 받는다 — 모바일은 호버가 없으므로
+                    클릭 경로가 여기서는 유일한 길이다.
+                    ⚠ 두 줄을 각각 감싼다. 티커와 한글명은 서로 다른 문자열이고 잘리는 시점도 다르다.
+                  */}
+                  <RankTdTicker>
+                    <OverflowTooltip text={row.label}>
+                      <RankName />
+                    </OverflowTooltip>
+                    {row.koreanName ? (
+                      <OverflowTooltip text={row.koreanName}>
+                        <RankKorean />
+                      </OverflowTooltip>
+                    ) : null}
+                  </RankTdTicker>
                   <RankTd>
                     <HolderChips holders={row.holders} colorOf={personColorOf} onOpen={onOpenPerson} />
                   </RankTd>

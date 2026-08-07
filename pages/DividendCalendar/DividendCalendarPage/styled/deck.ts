@@ -9,8 +9,10 @@ import {
   motion,
   pageHue,
   radius,
-  space
+  space,
+  zIndex
 } from '@/shared/styles';
+import { appHeaderHeight } from '@/shared/styles';
 import { SURFACE_PAD } from './surfaces';
 
 /* -------------------------------------------------------------------------- */
@@ -42,12 +44,48 @@ export const DeckBar = styled.div`
   align-items: center;
   gap: ${space[3]};
   flex-wrap: wrap;
+
+  /*
+   * 🔴 **좁은 폭에서는 가운데로 모으고 화면에 붙는다**(2026-08-07 사용자 지시).
+   *
+   * 이 줄은 이 화면의 조작 전부다 — 달을 넘기는 세 버튼과 종목 선택. 달력은 세로로 길어서
+   * 아래쪽 날짜를 보다가 달을 바꾸려면 매번 맨 위로 되돌아가야 했다. 붙여 두면 보던 자리에서
+   * 바로 바꾼다.
+   *
+   * ⚠ top 은 **헤더 실측값**을 쓴다(appHeaderHeight). 숫자를 박으면 헤더가 한 줄↔두 줄로
+   *   바뀔 때 조용히 낡아 이 줄이 헤더 뒤로 숨거나 빈 띠가 생긴다(shared/styles/headerSurface 의
+   *   같은 계약 — 이 레포가 티커 목차 바에서 이미 세 번 고쳐 쓴 이력이 있다).
+   * ⚠ 배경이 반드시 있어야 한다 — 붙어 있는 동안 아래 달력이 이 줄 밑으로 지나간다.
+   * ⚠ 넓은 폭에서는 붙이지 않는다. 달력이 한 화면에 들어와 되돌아갈 일이 없고, 조작 줄이
+   *   따라다니면 오히려 자리만 먹는다.
+   */
+  ${media.down('tablet')} {
+    position: sticky;
+    top: ${appHeaderHeight};
+    z-index: ${zIndex.stickyAction};
+    justify-content: center;
+    /* 두 줄이다: 위가 월 이동, 아래가 종목 선택(아래 HeadSpacer 가 줄을 가른다). */
+    gap: ${space[2]};
+    padding: ${space[2]} 0;
+    background: ${color.surface};
+    border-bottom: 1px solid ${color.border};
+  }
 `;
 
 /** 조작 줄·카드 머리에서 오른쪽 끝으로 밀어 두는 슬롯. */
 export const HeadSpacer = styled.span`
   flex: 1 1 auto;
   min-width: 0;
+
+  /*
+   * 🔴 좁은 폭에서는 미는 대신 **줄을 가른다**(2026-08-07 사용자 지시: 월 이동 한 줄, 종목 선택
+   * 한 줄). 폭 100% 를 차지하는 빈 아이템이라 뒤따르는 버튼이 다음 줄로 넘어간다.
+   * 높이는 0 이라 그 자체로는 아무 자리도 먹지 않는다 — 줄 간격은 부모의 gap 이 만든다.
+   */
+  ${media.down('tablet')} {
+    flex: 1 0 100%;
+    height: 0;
+  }
 `;
 
 /**

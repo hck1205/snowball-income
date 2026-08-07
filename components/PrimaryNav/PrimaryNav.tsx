@@ -57,7 +57,7 @@ const n = COMMUNITY_COPY.nav;
  * ⚠ 경로가 셋 다 다른 접두사인 것은 의도가 아니라 **현실**이다. 주소 개편은 2026-08-02 에
  *   "이미 배포된 주소를 흔들지 않는다"로 보류됐고, `/portfolio/investors` 만 새로 태어나 그 형태를 따랐다.
  */
-const PORTFOLIO_GROUP_ITEMS = [
+export const PORTFOLIO_GROUP_ITEMS = [
   { to: '/dividend/portfolio', label: n.myPortfolio, Icon: Wallet, communityOnly: false },
   { to: '/portfolio/investors', label: n.investors, Icon: Users, communityOnly: false },
   /* 2026-08-04 합류. 셋 다 "누구의 포트폴리오인가"라는 한 축이라 같은 묶음에 선다 —
@@ -84,7 +84,7 @@ const PORTFOLIO_GROUP_ITEMS = [
  * 순서는 **내 것 → 시장 것**이다. 배당 캘린더는 내가 고른 종목의 지급일이고, 증시 캘린더는
  * 시장 전체의 개폐장·발표 일정이다.
  */
-const CALENDAR_GROUP_ITEMS = [
+export const CALENDAR_GROUP_ITEMS = [
   { to: '/dividend/calendar', label: n.dividendCalendar, Icon: CalendarDays },
   { to: '/market/us-calendar', label: n.marketCalendar, Icon: CalendarRange }
 ] as const;
@@ -102,7 +102,7 @@ const CALENDAR_GROUP_ITEMS = [
  * 🔴 경로는 `shared/constants/routes`(의존성 0 리프)에서 온다 — 여기서 목록 데이터 폴더를 import 하면
  * 200종 가까운 종목 배열이 **엔트리 번들**에 실린다(이 컴포넌트는 시뮬레이터 헤더를 통해 엔트리다).
  */
-const DIVIDEND_LIST_GROUP_ITEMS = [
+export const DIVIDEND_LIST_GROUP_ITEMS = [
   { to: DIVIDEND_LIST_HUB_PATH, label: n.dividendListHub, Icon: ListOrdered },
   { to: dividendListPath('kings'), label: n.dividendKings, Icon: Crown },
   { to: dividendListPath('aristocrats'), label: n.dividendAristocrats, Icon: Gem },
@@ -122,7 +122,7 @@ const DIVIDEND_LIST_GROUP_ITEMS = [
  * ⚠ 묶음 아이콘은 말풍선 **둘**(MessagesSquare), 자식 게시판은 말풍선 **하나**(MessageSquare)다 —
  *   2026-08-05 에 둘이 같은 글리프라 부모·자식이 같은 것으로 읽힌다는 지적을 받고 갈랐다.
  */
-const COMMUNITY_GROUP_ITEMS = [
+export const COMMUNITY_GROUP_ITEMS = [
   { to: '/community/portfolio', label: n.gallery, Icon: LayoutGrid },
   { to: '/community/board', label: n.board, Icon: MessageSquare },
   /* 미디어 뉴스 — 게시판 다음. 셋 다 커뮤니티 묶음 안이라 nav 상한(8칸)에 영향이 없다. */
