@@ -26,10 +26,31 @@ describe('가드 자체가 살아 있는지', () => {
 describe('🔴 액세스 토큰은 메모리에만 산다', () => {
   const STORAGE_API = /localStorage|sessionStorage|document\.cookie|indexedDB/;
 
-  it('저장소 API 를 쓰는 파일은 열 매핑 보관(mapping.ts) 하나뿐이다', () => {
+  /**
+   * 저장소를 만질 수 있는 파일의 **허용 목록**.
+   *
+   * 🔴 여기 이름을 더할 때는 반드시 "무엇을 저장하고, 왜 그것은 가계부 값이 아닌가"를 함께 적어라.
+   *    이유 없이 늘어나면 이 가드는 "예외 목록"이 되어 존재 의미가 사라진다.
+   *
+   *   - `mapping.ts`      — 시트 ID · 탭 ID · 열 인덱스. "이 시트를 어떻게 읽을지"의 설정이고
+   *                          가계부 행(날짜·금액·메모)은 한 글자도 담기지 않는다.
+   *   - `valueMapping.ts` — 학습된 **별칭표**("식료품비 → 식비"). 사람의 어휘 사전이지 가계부 값이
+   *                          아니다. 이게 없으면 사용자가 한 번 이어 준 답을 매번 다시 물어야 해서
+   *                          매핑이 한 번 쓰고 버려진다(2026-08-08 P3).
+   *
+   * 🔴 토큰을 다루는 `auth.ts` 는 **영원히 여기 오면 안 된다** — 오는 순간
+   *    "탭을 닫으면 사라진다"는 전제가 깨진다.
+   */
+  const STORAGE_ALLOWED = ['mapping.ts', 'valueMapping.ts'];
+
+  it('저장소 API 를 쓰는 파일은 허용 목록뿐이다', () => {
     const offenders = sourceFiles.filter((file) => STORAGE_API.test(read(file)));
-    // 토큰을 다루는 auth.ts 가 여기 끼면 "탭을 닫으면 사라진다" 전제가 깨진다.
-    expect(offenders).toEqual(['mapping.ts']);
+
+    expect(offenders).toEqual(STORAGE_ALLOWED);
+  });
+
+  it('🔴 토큰을 다루는 파일은 저장소를 만지지 않는다', () => {
+    expect(STORAGE_API.test(read('auth.ts'))).toBe(false);
   });
 });
 
