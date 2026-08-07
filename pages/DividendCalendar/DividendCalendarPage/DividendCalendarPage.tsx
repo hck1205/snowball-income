@@ -170,12 +170,17 @@ export default function DividendCalendarPage({ today }: DividendCalendarPageProp
     setJumpRequest((prev) => ({ date: isoDate, seq: (prev?.seq ?? 0) + 1 }));
   }, []);
 
-  /** 탭 전환·강조 렌더가 커밋된 **다음 프레임**에 찾는다(그 전엔 대상 노드가 없을 수 있다). */
+  /**
+   * 탭 전환·강조 렌더가 커밋된 뒤에 찾는다.
+   * 🔴 **한 프레임으로는 부족하다** — 좁은 폭에서는 아젠다가 탭 안에 있어 마운트가 늦고, 그때
+   * 대상이 없으면 종전 코드는 조용히 끝나 "날짜를 눌러도 아무 일이 없는" 상태가 됐다
+   * (2026-08-07 모바일 신고). 이제 focusAgendaDay 가 나타날 때까지 몇 프레임 기다린다.
+   * ⚠ 반환된 중단 함수를 반드시 정리에 건다 — 날짜를 연달아 누르면 옛 기다림이 나중에 엉뚱한
+   *   날로 스크롤한다.
+   */
   useEffect(() => {
     if (!jumpRequest) return undefined;
-
-    const frame = requestAnimationFrame(() => focusAgendaDay(jumpRequest.date));
-    return () => cancelAnimationFrame(frame);
+    return focusAgendaDay(jumpRequest.date);
   }, [jumpRequest]);
 
   const handleOpenPicker = useCallback(() => {

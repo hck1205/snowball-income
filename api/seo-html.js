@@ -6083,8 +6083,18 @@ var DIVIDEND_LIST_COPY = {
      *   필터에서 "배당수익률", 표에서 "배당률" 처럼 갈리면 사용자는 둘이 같은 값인지 확인해야 한다.
      */
     filterHeading: "\uC870\uAC74\uC73C\uB85C \uC881\uD788\uAE30",
-    /** 세 축이 함께 걸린다는 사실을 한 줄로. 이걸 안 쓰면 사용자는 축을 바꿀 때마다 앞 축이 풀린 줄 안다. */
-    filterHint: "\uC138 \uC870\uAC74\uC740 \uD568\uAED8 \uC801\uC6A9\uB429\uB2C8\uB2E4. \uC139\uD130\uB294 \uC5EC\uB7EC \uAC1C\uB97C \uACE0\uB97C \uC218 \uC788\uC2B5\uB2C8\uB2E4.",
+    /** 축이 함께 걸린다는 사실을 한 줄로. 이걸 안 쓰면 사용자는 축을 바꿀 때마다 앞 축이 풀린 줄 안다. */
+    filterHint: "\uC870\uAC74\uC740 \uD568\uAED8 \uC801\uC6A9\uB429\uB2C8\uB2E4. \uC139\uD130\uB294 \uC5EC\uB7EC \uAC1C\uB97C \uACE0\uB97C \uC218 \uC788\uC2B5\uB2C8\uB2E4.",
+    /* ── 종목 검색 (2026-08-07) ────────────────────────────────────────────
+     * 🔴 라벨이 "검색"이 아니라 "종목 검색"인 이유: 이 화면에는 헤더의 전역 검색도 있다.
+     *   같은 낱말을 쓰면 여기에 친 글자가 사이트 전체를 뒤진다고 읽힌다.
+     */
+    filterSearchLabel: "\uC885\uBAA9 \uAC80\uC0C9",
+    /** 무엇으로 찾을 수 있는지를 자리표시자가 직접 말한다 — 티커만 되는 줄 알고 지나치지 않게. */
+    filterSearchPlaceholder: "\uD2F0\uCEE4 \uB610\uB294 \uC885\uBAA9\uBA85",
+    filterSearchClear: "\uAC80\uC0C9\uC5B4 \uC9C0\uC6B0\uAE30",
+    /** "적용 중" 줄에 들어가는 축 이름. 다른 축과 같은 조립 규칙을 쓴다. */
+    filterSearchActivePrefix: "\uAC80\uC0C9",
     filterAll: "\uC804\uCCB4",
     /** "3% 이상" 의 뒷부분. 숫자는 눈금 상수(`DIVIDEND_LIST_YIELD_STEPS`)가 준다. */
     filterAtLeastSuffix: "% \uC774\uC0C1",

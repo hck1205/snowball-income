@@ -391,13 +391,22 @@ export type DividendListFilter = {
   minGrowthPercent: number | null;
   /** 빈 배열 = 전체. 여럿이면 그중 하나라도 맞는 줄이 남는다. */
   sectors: readonly DividendListSectorId[];
+  /**
+   * 종목 검색어. 빈 문자열 = 전체(2026-08-07 사용자 요청: "종목 검색 기능을 넣었으면").
+   *
+   * 🔴 **다른 세 축과 성격이 다르다.** 배당률·성장·섹터는 "조건에 맞는 것들을 훑어보려고" 거는
+   * 축이고, 검색은 **찾는 종목이 이미 정해져 있을 때** 쓴다. 83종을 눈으로 훑어 KO 를 찾는
+   * 일을 없애는 것이 목적이라, 좁은 화면일수록 값이 크다(스크롤이 그만큼 길다).
+   */
+  query: string;
 };
 
 /** 아무 축도 걸지 않은 상태. 화면의 초기값이자 "전체 해제"가 되돌아가는 자리다. */
 export const NO_DIVIDEND_LIST_FILTER: DividendListFilter = {
   minYieldPercent: null,
   minGrowthPercent: null,
-  sectors: []
+  sectors: [],
+  query: ''
 };
 
 /**
@@ -436,6 +445,22 @@ const passesSector = (row: DividendListRow, filter: DividendListFilter): boolean
   filter.sectors.length === 0 || (row.sector !== null && filter.sectors.includes(row.sector));
 
 /**
+ * 검색어가 이 줄의 **티커 또는 이름**에 들어 있는가.
+ *
+ * 🔴 부분 일치이고 대소문자를 가리지 않는다. 티커는 대문자로 저장돼 있는데 사용자는 소문자로
+ * 친다("ko") — 정확 일치만 보면 그 입력이 통째로 버려진다.
+ * 🔴 이름도 본다. 이 목록은 미국 종목이라 이름이 영문인데("Coca-Cola"), 티커를 모르는 채
+ * 회사 이름으로 찾는 쪽이 오히려 흔하다.
+ * ⚠ 공백만 친 입력은 **거르지 않는다**(trim 후 빈 문자열이면 전체 통과) — 지운 자리에 남은
+ *   공백 하나 때문에 표가 통째로 비면 사용자는 자료가 사라졌다고 읽는다.
+ */
+const passesQuery = (row: DividendListRow, filter: DividendListFilter): boolean => {
+  const needle = filter.query.trim().toLowerCase();
+  if (needle === '') return true;
+  return row.ticker.toLowerCase().includes(needle) || row.name.toLowerCase().includes(needle);
+};
+
+/**
  * 🔴 **값이 없는 줄은 "이상" 조건을 통과하지 못한다.** 모르는 값을 0 으로도, 통과로도 읽지 않는다
  * (표가 빈칸을 "0" 으로 그리지 않는 것과 같은 규율). 대신 그렇게 빠진 줄이 몇 개인지
  * `countRowsHiddenByUnknown` 이 세어 화면이 말한다 — 조용히 사라지면 사용자는 목록이 잘못됐다고 읽는다.
@@ -456,13 +481,14 @@ const passesKnownPart = (
   min: number | null
 ): boolean => min === null || !cell.known || cell.value >= min;
 
-/** 세 축을 한꺼번에 건다. 필터가 목록을 비우는 것과 목록 자체가 빈 것은 화면에서 다르게 말한다. */
+/** 네 축을 한꺼번에 건다. 필터가 목록을 비우는 것과 목록 자체가 빈 것은 화면에서 다르게 말한다. */
 export const filterDividendListRows = (
   rows: readonly DividendListRow[],
   filter: DividendListFilter
 ): DividendListRow[] =>
   rows.filter(
     (row) =>
+      passesQuery(row, filter) &&
       passesSector(row, filter) &&
       passesMin(row.yield, filter.minYieldPercent) &&
       passesMin(row.growth, filter.minGrowthPercent)
@@ -482,6 +508,7 @@ export const countRowsHiddenByUnknown = (
   rows.filter(
     (row) =>
       blockedByUnknown(row, filter) &&
+      passesQuery(row, filter) &&
       passesSector(row, filter) &&
       passesKnownPart(row.yield, filter.minYieldPercent) &&
       passesKnownPart(row.growth, filter.minGrowthPercent)
@@ -489,7 +516,10 @@ export const countRowsHiddenByUnknown = (
 
 /** 축이 하나라도 걸려 있는가. 화면은 이 값으로 "적용 중" 줄과 해제 버튼을 낸다. */
 export const isDividendListFiltered = (filter: DividendListFilter): boolean =>
-  filter.minYieldPercent !== null || filter.minGrowthPercent !== null || filter.sectors.length > 0;
+  filter.minYieldPercent !== null ||
+  filter.minGrowthPercent !== null ||
+  filter.sectors.length > 0 ||
+  filter.query.trim() !== '';
 
 /**
  * 섹터 하나를 켜고 끈다. **순서를 보존한다**(누른 순서대로 남는다) — 정렬해 다시 담으면

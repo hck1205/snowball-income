@@ -190,12 +190,12 @@ export const ChipList = styled.span`
   min-width: 0;
   max-width: 100%;
 
-  /* 좁은 폭에서는 글자를 감추고 점만 남긴다 — 그때 세로로 쌓으면 칸이 길어지므로 다시 가로로. */
-  ${media.down('mobileWide')} {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 3px;
-  }
+  /*
+   * 🔴 **좁은 폭에서도 세로다**(2026-08-07 두 캘린더 UI 통일). 종전에는 여기서 가로로 눕히고
+   * 아래 ChipLabel 을 감췄다 — 점만 남는 줄이었다. 배당 캘린더는 같은 자리에서 정반대로
+   * 결정했고(2026-07-26 사용자 결정: "어느 폭에서든 글자가 이긴다"), 그쪽이 맞다. 점만 남으면
+   * 색이 유일한 채널이 되고, 두 캘린더가 같은 화면 문법을 쓰지 않게 된다.
+   */
 `;
 
 /**
@@ -212,17 +212,20 @@ export const Chip = styled.span`
   gap: 3px;
   max-width: 100%;
   min-width: 0;
-  padding: 0 3px;
+  /*
+   * 🔴 **알약 + 흰 면**. 배당 캘린더의 DayChip 과 같은 값을 쓴다(2026-08-07 UI 통일) — 두 캘린더는
+   * 같은 종류의 화면이고, 같은 자리의 같은 부품이 한쪽은 모난 사각, 한쪽은 알약이면 사용자는
+   * 둘을 다른 제품으로 읽는다.
+   * ⚠ 여기 칩은 버튼이 아니다(누를 것이 없다 — 칸 전체가 버튼이다). 모양만 같고 상호작용은 다르다.
+   */
+  padding: 1px ${space[1]};
   border: 1px solid ${color.border};
-  border-radius: ${radius.sm};
-  color: ${color.textSecondary};
+  border-radius: ${radius.pill};
+  background: ${color.surface};
+  color: ${color.text};
   font-size: ${font.size['2xs']};
+  font-weight: ${font.weight.semibold};
   line-height: 1.5;
-
-  ${media.down('mobileWide')} {
-    padding: 0;
-    border-color: transparent;
-  }
 `;
 
 /** 칩 안의 글자. 넘치면 말줄임 — 원문은 칸 전체 `title` 이 갖고 있다. */
@@ -231,10 +234,6 @@ export const ChipLabel = styled.span`
   min-width: 0;
   white-space: nowrap;
   text-overflow: ellipsis;
-
-  ${media.down('mobileWide')} {
-    display: none;
-  }
 `;
 
 /** 접힌 일정 수(`+3`). 🔴 접혔다는 사실을 숨기지 않는 것이 이 조각의 존재 이유다. */
@@ -242,10 +241,6 @@ export const ChipMore = styled.span`
   color: ${color.textMuted};
   font-size: ${font.size['2xs']};
   font-variant-numeric: tabular-nums;
-
-  ${media.down('mobileWide')} {
-    display: none;
-  }
 `;
 
 export type DotKind = 'fomc' | 'economic' | 'earnings';
