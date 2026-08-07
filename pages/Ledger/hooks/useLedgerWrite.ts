@@ -21,6 +21,7 @@ import type {
 import {
   formatEntryDate,
   isExpiredCode,
+  kindLabel,
   nextRetryDelaySec,
   parseLedgerAmount,
   toErrorModel,
@@ -85,6 +86,11 @@ const toDraftForm = (entry: LedgerEntry): LedgerDraftForm => ({
   kind: entry.kind,
   amount: String(Math.abs(entry.amount)),
   category: entry.category,
+  subcategory: entry.subcategory ?? '',
+  /* 공동은 시트에서 빈 칸이라 폼에서도 빈 칸이다 — "공동"이라는 글자를 되살리지 않는다. */
+  payer: entry.payer ?? '',
+  method: entry.method ?? '',
+  isFixed: entry.fixity === 'fixed',
   memo: entry.memo ?? ''
 });
 
@@ -93,7 +99,31 @@ const toLedgerDraft = (draft: LedgerDraftForm): LedgerDraft => ({
   kind: draft.kind,
   amount: parseLedgerAmount(draft.amount),
   category: draft.category.trim(),
+  subcategory: draft.subcategory.trim(),
+  payer: draft.payer.trim(),
+  method: draft.method.trim(),
+  fixity: draft.isFixed ? 'fixed' : 'variable',
   memo: draft.memo.trim()
+});
+
+/**
+ * 새 항목 폼의 시작값.
+ *
+ * 🔴 **직전에 저장한 값 일부를 물려준다**(연속 입력). 분석한 시트에서 사람들은 같은 날 여러 건을
+ *    이어서 적고, 그 시트는 날짜·항목 칸을 아예 비워 "위와 같음"을 표현했다. 앱에서 그 관습을
+ *    되살리는 방법이 프리필이다 — 물려주는 것은 **또 칠 가능성이 높은 축**(날짜·주체·결제수단·구분)
+ *    뿐이고, 금액·상세내용처럼 건마다 다른 값은 반드시 비운다(직전 금액이 남으면 오기입이 난다).
+ */
+const nextDraftForm = (now: Date, previous: LedgerDraftForm | null): LedgerDraftForm => ({
+  date: previous?.date ?? toISODate(now),
+  kind: previous?.kind ?? 'expense',
+  amount: '',
+  category: '',
+  subcategory: '',
+  payer: previous?.payer ?? '',
+  method: previous?.method ?? '',
+  isFixed: false,
+  memo: ''
 });
 
 /** 폼 값 → 대기열에 남을 행 모델. 시트에 없으므로 id 는 대기열이 만든다. */
@@ -119,6 +149,11 @@ const toPatch = (before: LedgerDraftForm, after: LedgerDraftForm): LedgerPatch =
   if (before.kind !== after.kind) patch.kind = after.kind;
   if (before.amount !== after.amount) patch.amount = parseLedgerAmount(after.amount);
   if (before.category !== after.category) patch.category = after.category.trim();
+  /* 🔴 v2 축을 빠뜨리면 화면에서는 고쳐지는데 시트에는 안 들어간다(가장 조용한 실패다). */
+  if (before.subcategory !== after.subcategory) patch.subcategory = after.subcategory.trim();
+  if (before.payer !== after.payer) patch.payer = after.payer.trim();
+  if (before.method !== after.method) patch.method = after.method.trim();
+  if (before.isFixed !== after.isFixed) patch.fixity = after.isFixed ? 'fixed' : 'variable';
   if (before.memo !== after.memo) patch.memo = after.memo.trim();
   return patch as LedgerPatch;
 };
@@ -135,13 +170,23 @@ export function useLedgerWrite(params: {
   connection: LedgerConnection;
   entryById: ReadonlyMap<string, LedgerEntry>;
   categoryOptions: readonly string[];
+  subcategoryOptions: readonly string[];
+  payerOptions: readonly string[];
+  methodOptions: readonly string[];
   rows: readonly LedgerRowModel[];
   countdown: RetryCountdown;
   now: Date;
 }): LedgerWrite {
-  const { connection, entryById, categoryOptions, rows, countdown, now } = params;
+  const { connection, entryById, categoryOptions, subcategoryOptions, payerOptions, methodOptions, rows, countdown, now } =
+    params;
 
   const [session, setSession] = useState<FormSession | null>(null);
+  /*
+   * 연속 입력 프리필의 근거값 — **마지막으로 저장에 성공한 폼**.
+   * 🔴 state 가 아니라 ref 다. 이 값이 바뀌었다고 화면이 다시 그려질 이유가 없고(다음 폼을 열 때만
+   *    읽는다), state 로 두면 저장할 때마다 목록 전체가 리렌더된다.
+   */
+  const lastSavedDraftRef = useRef<LedgerDraftForm | null>(null);
   const [removeId, setRemoveId] = useState<string | null>(null);
   const [isRemoving, setIsRemoving] = useState(false);
   const [removeError, setRemoveError] = useState<LedgerErrorModel | null>(null);
@@ -182,7 +227,7 @@ export function useLedgerWrite(params: {
       mode: 'create',
       targetId: null,
       // 기본 = 오늘(로컬 자정 기준) · 기본 구분 = 지출.
-      draft: { date: toISODate(now), kind: 'expense', amount: '', category: '', memo: '' },
+      draft: nextDraftForm(now, lastSavedDraftRef.current),
       errors: {},
       isSaving: false,
       writeError: null
@@ -308,6 +353,11 @@ export function useLedgerWrite(params: {
       }
 
       pendingRef.current = null;
+      /*
+       * 다음 "항목 추가"가 물려받을 값. **추가에서만** 기억한다 — 수정은 남의 과거 행을 고치는
+       * 일이라, 그 값이 다음 새 항목의 기본이 되면 엉뚱한 날짜·수단이 딸려 온다.
+       */
+      if (mode === 'create') lastSavedDraftRef.current = draft;
       setSession(null);
       setLiveMessage(mode === 'create' ? copy.live.saved : copy.live.updated);
       await connection.refresh();
@@ -547,6 +597,9 @@ export function useLedgerWrite(params: {
             draft: session.draft,
             errors: session.errors,
             categoryOptions,
+            subcategoryOptions,
+            payerOptions,
+            methodOptions,
             isSaving: session.isSaving,
             writeError: session.writeError
           },
@@ -560,7 +613,7 @@ export function useLedgerWrite(params: {
     return {
       id: row.id,
       dateText: row.dateText,
-      kindText: row.kind === 'income' ? copy.list.kindIncome : copy.list.kindExpense,
+      kindText: kindLabel(row.kind, copy.list),
       category: row.category,
       amountText: row.amountText
     };

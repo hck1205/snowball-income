@@ -169,6 +169,8 @@ export const LEDGER_COPY = {
     columnActions: '작업',
     kindIncome: '수입',
     kindExpense: '지출',
+    /* 이체 = 내 돈이 내 통장으로 옮겨간 것. 지출이 아니라서 월 요약의 지출에 들어가지 않는다. */
+    kindTransfer: '이체',
     noMemo: '',
     editAria: (date: string, category: string, amount: string) => `${date} ${category} ${amount} 기록 수정`,
     removeAria: (date: string, category: string, amount: string) => `${date} ${category} ${amount} 기록 삭제`,
@@ -255,13 +257,29 @@ export const LEDGER_COPY = {
     kindLegend: '구분',
     kindIncome: '수입',
     kindExpense: '지출',
+    kindTransfer: '이체',
     amount: '금액',
     amountUnit: '원',
-    category: '분류',
+    category: '항목',
     categoryPlaceholder: '예: 식비',
-    categoryHint: '시트에 있는 분류에서 고르거나 새로 적을 수 있습니다.',
-    categoryListLabel: '시트에 있는 분류',
-    memo: '메모 (선택)',
+    categoryHint: '기본 분류에서 고르거나 새로 적을 수 있습니다.',
+    categoryListLabel: '항목 제안',
+    /* ── v2 축 (2026-08-08) ─────────────────────────────────────────
+     * 넷 다 **선택**이다. 비워 두면 상세항목 없음·공동·수단 없음·변동비로 들어간다 —
+     * 1인 가구가 매번 네 칸을 더 채우게 만들면 입력이 무거워져 가계부를 안 쓰게 된다. */
+    subcategory: '상세항목 (선택)',
+    subcategoryPlaceholder: '예: 외식',
+    subcategoryListLabel: '상세항목 제안',
+    payer: '주체 (선택)',
+    payerPlaceholder: '비워 두면 공동',
+    payerListLabel: '주체 제안',
+    payerHint: '2인 이상이 함께 쓸 때만 채우면 됩니다. 비워 두면 공동 지출입니다.',
+    method: '결제수단 (선택)',
+    methodPlaceholder: '예: 신한카드',
+    methodListLabel: '결제수단 제안',
+    fixed: '고정비',
+    fixedHint: '매달 같은 자리에서 빠져나가는 돈이면 켜 주세요. 고정비만 따로 볼 수 있습니다.',
+    memo: '내용 (선택)',
     submitCreate: '저장',
     submitEdit: '수정 저장',
     cancel: '취소',
@@ -272,9 +290,12 @@ export const LEDGER_COPY = {
       amountNumber: '금액은 숫자만 입력할 수 있습니다.',
       amountPositive: '금액은 0보다 큰 값이어야 합니다.',
       amountTooLarge: '금액은 1조 원 미만으로 입력해 주세요.',
-      categoryRequired: '분류를 입력해 주세요.',
-      categoryTooLong: '분류는 40자까지 입력할 수 있습니다.',
-      memoTooLong: '메모는 200자까지 입력할 수 있습니다.'
+      categoryRequired: '항목을 입력해 주세요.',
+      categoryTooLong: '항목은 40자까지 입력할 수 있습니다.',
+      subcategoryTooLong: '상세항목은 40자까지 입력할 수 있습니다.',
+      payerTooLong: '주체는 20자까지 입력할 수 있습니다.',
+      methodTooLong: '결제수단은 40자까지 입력할 수 있습니다.',
+      memoTooLong: '내용은 200자까지 입력할 수 있습니다.'
     }
   },
 

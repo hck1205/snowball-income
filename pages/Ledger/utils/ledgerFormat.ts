@@ -1,6 +1,6 @@
 import { formatKRW } from '@/shared/utils';
 import { columnLetter, isSoftDeleted } from '@/shared/lib/googleSheets';
-import type { LedgerEntry, LedgerErrorCode } from '@/shared/lib/googleSheets';
+import type { LedgerEntry, LedgerErrorCode, LedgerKind } from '@/shared/lib/googleSheets';
 import { LEDGER_COPY } from '../copy';
 import type { LedgerErrorModel, LedgerFailureReason, LedgerMonthSummary, LedgerRowModel } from '../types';
 
@@ -72,6 +72,18 @@ export const formatReadAt = (date: Date): string =>
   `${`${date.getHours()}`.padStart(2, '0')}:${`${date.getMinutes()}`.padStart(2, '0')}`;
 
 /**
+ * 구분 칩·읽어주기 문구에 쓰는 한 낱말.
+ *
+ * 🔴 삼항(`kind === 'income' ? 수입 : 지출`)으로 쓰지 마라 — `transfer` 가 조용히 '지출'로 읽힌다.
+ *    v2 에서 구분이 셋이 된 뒤 그 삼항은 전부 이 함수로 바뀌었다.
+ */
+export const kindLabel = (
+  kind: LedgerKind,
+  labels: { readonly kindIncome: string; readonly kindExpense: string; readonly kindTransfer: string }
+): string =>
+  kind === 'income' ? labels.kindIncome : kind === 'transfer' ? labels.kindTransfer : labels.kindExpense;
+
+/**
  * 시트에서 읽은 한 건 → 표의 한 행.
  *
  * 🔴 `amount` 는 **부호 없는 절대값**이다. 방향은 `kind`(구분 칩)가 말한다 — 행 금액에 부호나
@@ -102,10 +114,15 @@ export const summarizeMonth = (rows: readonly LedgerRowModel[]): LedgerMonthSumm
   let expenseCount = 0;
 
   for (const row of rows) {
+    /*
+     * 🔴 `transfer` 는 **어느 쪽도 아니다.** 저축·투자 납입을 지출로 세면 지출 합계가 부풀고
+     *    "수입 − 지출" 순액이 실제보다 작게 나온다(내 통장으로 옮긴 돈을 쓴 것으로 세는 셈).
+     *    else 로 뭉뚱그리면 이 사고가 조용히 난다 — 그래서 세 갈래를 명시한다.
+     */
     if (row.kind === 'income') {
       income += row.amount;
       incomeCount += 1;
-    } else {
+    } else if (row.kind === 'expense') {
       expense += row.amount;
       expenseCount += 1;
     }
@@ -132,19 +149,38 @@ export const latestMonthOf = (entries: readonly LedgerEntry[]): LedgerMonthCurso
   return latest;
 };
 
-/** 분류 자동완성 후보 — 시트에 등장한 값만, 빈도 내림차순, 상한 50(사용자 시트가 정본이다). */
-export const collectCategories = (entries: readonly LedgerEntry[], limit = 50): string[] => {
+/**
+ * 자동완성 후보 — 시트에 등장한 값을 빈도 내림차순으로. **사용자 시트가 정본이다.**
+ *
+ * 🔴 v2 에서 필드를 인자로 받게 바꿨다. 상세항목·주체·결제수단도 같은 규칙이 필요한데,
+ *    같은 함수를 넷으로 복제하면 정렬·상한 규칙이 넷으로 갈린다.
+ *    `seed`(기본 분류 사전 등)를 뒤에 붙이는 것도 여기 한 곳에서만 한다.
+ */
+export const collectFieldValues = (
+  entries: readonly LedgerEntry[],
+  field: 'category' | 'subcategory' | 'payer' | 'method',
+  options?: { readonly limit?: number; readonly seed?: readonly string[] }
+): string[] => {
+  const limit = options?.limit ?? 50;
   const counts = new Map<string, number>();
   for (const entry of entries) {
-    const category = entry.category.trim();
-    if (category.length === 0) continue;
-    counts.set(category, (counts.get(category) ?? 0) + 1);
+    const value = (entry[field] ?? '').trim();
+    if (value.length === 0) continue;
+    counts.set(value, (counts.get(value) ?? 0) + 1);
   }
-  return [...counts.entries()]
+  const observed = [...counts.entries()]
     .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0], 'ko'))
-    .slice(0, limit)
-    .map(([category]) => category);
+    .map(([value]) => value);
+
+  /* 🔴 관측값이 **먼저**다. 사전값은 뒤에 붙는 제안일 뿐, 사용자가 실제로 쓰던 낱말을 밀어내지 않는다. */
+  const seen = new Set(observed);
+  const seeded = (options?.seed ?? []).filter((value) => !seen.has(value));
+  return [...observed, ...seeded].slice(0, limit);
 };
+
+/** 분류 자동완성 후보. `collectFieldValues` 의 얇은 별칭 — 기존 호출부를 그대로 둔다. */
+export const collectCategories = (entries: readonly LedgerEntry[], limit = 50): string[] =>
+  collectFieldValues(entries, 'category', { limit });
 
 /** 열 인덱스 목록 → 셀렉트 선택지. 헤더가 비어 있으면 문자만 보여 준다. */
 export const toColumnOptions = (headers: readonly string[]): { letter: string; header: string }[] =>

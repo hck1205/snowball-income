@@ -15,7 +15,6 @@ import {
   ListOrdered,
   Medal,
   MessageSquare,
-  Newspaper,
   MessagesSquare,
   PiggyBank,
   ReceiptText,
@@ -124,9 +123,20 @@ export const DIVIDEND_LIST_GROUP_ITEMS = [
  */
 export const COMMUNITY_GROUP_ITEMS = [
   { to: '/community/portfolio', label: n.gallery, Icon: LayoutGrid },
-  { to: '/community/board', label: n.board, Icon: MessageSquare },
-  /* 미디어 뉴스 — 게시판 다음. 셋 다 커뮤니티 묶음 안이라 nav 상한(8칸)에 영향이 없다. */
-  { to: '/community/news', label: n.news, Icon: Newspaper }
+  { to: '/community/board', label: n.board, Icon: MessageSquare }
+  /*
+   * 🔴 미디어 뉴스는 **일부러 빠져 있다** (2026-08-08 사용자 결정으로 임시 비공개).
+   *   되돌릴 때는 아래 한 줄을 되살리고 `COMMUNITY_NEWS_PUBLIC` 을 true 로 바꾼다. 둘은 짝이다.
+   *     { to: '/community/news', label: n.news, Icon: Newspaper }
+   *   (`Newspaper` 는 위 lucide import 에서도 함께 빼 뒀다 — noUnusedLocals 가 켜져 있어 남겨 둘 수 없다.
+   *    되살릴 때 import 도 같이 되살려라. 카피 `n.news` 는 그대로 있다.)
+   *   (셋 다 커뮤니티 묶음 안이라 nav 상한 8칸에는 영향이 없다 — 자리는 비워 둔 것이지 없앤 게 아니다.)
+   *
+   * ⚠ 왜 `isAdmin` 조건부로 두지 않았나: 이 nav 는 **전 라우트 공용 헤더**인데
+   *   `profileAtom` 은 `CommunityAuthProvider`(= /community 라우트 안)에서만 채워진다. 조건부로 두면
+   *   운영자에게도 커뮤니티 밖에서는 안 보이고 커뮤니티 안에서만 나타나 — 라우트마다 nav 가 바뀐다.
+   *   그 어긋남보다 "주소로 들어간다"가 낫다. 운영자 진입: /community/news
+   */
 ] as const;
 
 /**

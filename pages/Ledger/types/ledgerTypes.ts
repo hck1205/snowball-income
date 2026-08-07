@@ -7,6 +7,7 @@
  * 순환이 된다. 그래서 공유 모델만 형제 폴더로 뺐다 — `LedgerPage.types.ts` 에는 그 페이지의
  * **뷰 모델·props** 만 남는다.
  */
+import type { LedgerKind } from '@/shared/lib/googleSheets';
 
 /**
  * 화면 상태 기계. 상태마다 라우트를 만들지 않는다 — 뒤로가기 스택이 지저분해지고
@@ -167,7 +168,8 @@ export type LedgerRowModel = {
   dateISO: string;
   /** `8월 3일 (월)`. 파싱이 안 되면 시트 원문 그대로. */
   dateText: string;
-  kind: 'income' | 'expense';
+  /** 🔴 `transfer`(이체) 가 v2 에서 늘었다 — 저축·투자 납입은 쓴 것이 아니라 옮긴 것이다. */
+  kind: LedgerKind;
   category: string;
   /** 🔴 항상 양수. 방향은 `kind` 가 갖는다(행 금액에는 부호가 없다). */
   amount: number;
@@ -191,9 +193,19 @@ export type LedgerMonthSummary = {
 /** 폼이 다루는 값. 금액은 문자열 그대로 쥔다(중간 입력 상태를 숫자로 접으면 지울 수 없다). */
 export type LedgerDraftForm = {
   date: string;
-  kind: 'income' | 'expense';
+  kind: LedgerKind;
   amount: string;
   category: string;
+  /**
+   * v2 축 넷. 전부 **선택**이라 빈 값이 정상이다.
+   * 🔴 폼에서 비워 두면 상세항목 없음 · 공동 · 수단 없음 · 변동비로 저장된다 —
+   *    1인 가구가 매번 네 칸을 더 채우게 만들면 입력이 무거워져 가계부 자체를 안 쓰게 된다.
+   */
+  subcategory: string;
+  payer: string;
+  method: string;
+  /** 체크박스 하나. 도메인의 `LedgerFixity` 로는 저장 직전에 접는다. */
+  isFixed: boolean;
   memo: string;
 };
 
@@ -258,8 +270,17 @@ export type LedgerFormModel = {
   draft: LedgerDraftForm;
   /** 제출 시도 후에만 채워진다(입력 중 빨간 줄 금지). */
   errors: Partial<Record<keyof LedgerDraftForm, string>>;
-  /** 분류 자동완성 후보(빈도 내림차순, 상한 50). */
+  /**
+   * 자동완성 후보(빈도 내림차순, 상한 50).
+   *
+   * 🔴 후보는 **시트에서 관측한 값 + 기본 분류 사전**을 합친 것이다. 설정 화면을 따로 만들지 않은
+   *    이유가 이것이다 — 구성원·결제수단은 한 번 쓰면 다음부터 목록에 뜬다. 관리할 화면을 하나 더
+   *    만드는 것보다, 쓰던 값이 저절로 쌓이는 쪽이 가볍고 시트가 정본이라는 원칙과도 맞는다.
+   */
   categoryOptions: readonly string[];
+  subcategoryOptions: readonly string[];
+  payerOptions: readonly string[];
+  methodOptions: readonly string[];
   isSaving: boolean;
   writeError: LedgerErrorModel | null;
 };

@@ -199,3 +199,26 @@ export const BannerRow = styled.span`
   flex-wrap: wrap;
   gap: ${space[3]};
 `;
+
+/**
+ * 체크박스 + 라벨 한 줄. 라벨이 오른쪽에 서고 **광학 정렬**을 맞춘다 —
+ * 한글 라인박스는 중심이 아래로 치우쳐 있어 `center` 만으로는 글자가 박스보다 낮게 앉는다.
+ */
+export const CheckboxRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  input {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    accent-color: ${color.brand};
+    cursor: pointer;
+  }
+
+  label {
+    margin: 0;
+    cursor: pointer;
+  }
+`;

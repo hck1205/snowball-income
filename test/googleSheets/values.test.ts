@@ -80,8 +80,14 @@ describe('구분 파싱', () => {
     expect(parseLedgerKind(raw)).toBe('expense');
   });
 
+  it('이체는 수입도 지출도 아닌 제3의 구분이다 (v2)', () => {
+    // 저축·투자 납입은 쓴 것이 아니라 옮긴 것 — 지출로 접으면 지출 합계가 부푼다.
+    expect(parseLedgerKind('이체')).toBe('transfer');
+    expect(parseLedgerKind('저축')).toBe('transfer');
+  });
+
   it('모르는 말을 지출로 몰지 않는다', () => {
-    expect(parseLedgerKind('이체')).toBeNull();
+    expect(parseLedgerKind('환전')).toBeNull();
     expect(parseLedgerKind('')).toBeNull();
   });
 });
@@ -197,7 +203,40 @@ describe('셀로 쓰기 — 남의 시트에 수식을 심지 않는다', () => 
       { date: '2026-08-01', kind: 'expense', amount: 1200, category: '식비', memo: '=1+1' },
       { withStatus: true }
     );
-    expect(cells).toEqual({ date: '2026-08-01', kind: '지출', amount: '1200', category: '식비', memo: "'=1+1", status: '' });
+    /*
+     * v2 축 넷도 함께 나간다. 값을 주지 않았으므로 전부 **빈 칸**이다 —
+     * 주체는 공동(=빈 칸), 고정은 변동(=빈 칸)이 기본이고, 그 기본이 시트를 어지럽히지 않는다.
+     */
+    expect(cells).toEqual({
+      date: '2026-08-01',
+      kind: '지출',
+      amount: '1200',
+      category: '식비',
+      subcategory: '',
+      payer: '',
+      method: '',
+      fixity: '',
+      memo: "'=1+1",
+      status: ''
+    });
+  });
+
+  it('⭐ 이체·고정비·주체를 주면 그 칸에만 글자가 남는다', () => {
+    const cells = draftToCells({
+      date: '2026-08-01',
+      kind: 'transfer',
+      amount: 500000,
+      category: '저축·투자',
+      subcategory: '저축',
+      payer: '남편',
+      method: '계좌이체',
+      fixity: 'fixed'
+    });
+
+    expect(cells.kind).toBe('이체');
+    expect(cells.fixity).toBe('고정');
+    expect(cells.payer).toBe('남편');
+    expect(cells.subcategory).toBe('저축');
   });
 
   it('수정은 넣은 필드만 셀로 만든다', () => {
@@ -250,6 +289,6 @@ describe('A1 표기', () => {
   });
 
   it('앱 스키마 매핑은 헤더 순서와 같다', () => {
-    expect(APP_SHEET_MAPPING).toEqual({ date: 0, kind: 1, amount: 2, category: 3, memo: 4, status: 5 });
+    expect(APP_SHEET_MAPPING).toEqual({ date: 0, kind: 1, category: 2, subcategory: 3, amount: 4, payer: 5, method: 6, fixity: 7, memo: 8, status: 9 });
   });
 });

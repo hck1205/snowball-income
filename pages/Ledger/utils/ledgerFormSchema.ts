@@ -16,6 +16,11 @@ export const LEDGER_AMOUNT_MAX = 1_000_000_000_000;
 
 export const LEDGER_CATEGORY_MAX_LENGTH = 40;
 export const LEDGER_MEMO_MAX_LENGTH = 200;
+/** 상세항목은 항목과 같은 폭이면 충분하다(같은 성격의 이름이다). */
+export const LEDGER_SUBCATEGORY_MAX_LENGTH = 40;
+/** 주체는 사람 이름 한 칸 — 길면 표에서 줄바꿈이 나 목록이 흔들린다. */
+export const LEDGER_PAYER_MAX_LENGTH = 20;
+export const LEDGER_METHOD_MAX_LENGTH = 40;
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -58,11 +63,23 @@ const memoSchema = z.string().refine((value) => value.length <= LEDGER_MEMO_MAX_
   message: errors.memoTooLong
 });
 
+/**
+ * v2 축의 자유 텍스트 셋. **비어 있어도 통과한다** — 선택 축이라 빈 값이 정상이고,
+ * 길이만 본다(값의 뜻은 앱이 정하지 않는다. 사용자가 쓰던 낱말이 정본이다).
+ */
+const optionalTextSchema = (max: number, message: string) =>
+  z.string().refine((value) => value.trim().length <= max, { message });
+
 export const ledgerFormSchema = z.object({
   date: dateSchema,
-  kind: z.union([z.literal('income'), z.literal('expense')]),
+  /* 🔴 `transfer` 가 v2 에서 늘었다 — 빠뜨리면 이체 저장이 폼 단계에서 막힌다. */
+  kind: z.union([z.literal('income'), z.literal('expense'), z.literal('transfer')]),
   amount: amountSchema,
   category: categorySchema,
+  subcategory: optionalTextSchema(LEDGER_SUBCATEGORY_MAX_LENGTH, errors.subcategoryTooLong),
+  payer: optionalTextSchema(LEDGER_PAYER_MAX_LENGTH, errors.payerTooLong),
+  method: optionalTextSchema(LEDGER_METHOD_MAX_LENGTH, errors.methodTooLong),
+  isFixed: z.boolean(),
   memo: memoSchema
 });
 
@@ -88,7 +105,7 @@ export const parseLedgerAmount = (raw: string): number => Number(raw.replace(/,/
 export const firstInvalidField = (
   messages: Partial<Record<keyof LedgerDraftForm, string>>
 ): keyof LedgerDraftForm | null => {
-  for (const field of ['date', 'kind', 'amount', 'category', 'memo'] as const) {
+  for (const field of ['date', 'kind', 'amount', 'category', 'subcategory', 'payer', 'method', 'memo'] as const) {
     if (messages[field] !== undefined) return field;
   }
   return null;

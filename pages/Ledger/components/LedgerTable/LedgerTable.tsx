@@ -1,6 +1,7 @@
 import { ArrowDownToLine, ArrowUpFromLine, Pencil, TriangleAlert, Trash2 } from 'lucide-react';
 import { Button, Chip } from '@/components/common';
 import { LEDGER_COPY } from '../../copy';
+import { kindLabel } from '../../utils';
 import type { LedgerTableProps } from './LedgerTable.types';
 import {
   ActionCell,
@@ -83,7 +84,7 @@ export default function LedgerTable({
           </tr>
         </thead>
         {rows.map((row) => {
-          const kindText = row.kind === 'income' ? copy.list.kindIncome : copy.list.kindExpense;
+          const kindText = kindLabel(row.kind, copy.list);
           const blockedSeconds = retryCountdowns.get(row.id) ?? 0;
 
           return (

@@ -19,7 +19,7 @@ const MASTHEAD_EYEBROW = '커뮤니티';
  * 다른 것은 줄이 아니라 **카드**라는 점 하나다 — 썸네일이 이 지면의 정보이기 때문이다.
  */
 export default function CommunityNewsView({ viewModel }: CommunityNewsViewProps) {
-  const { items, status, reachedEnd, isLoadingMore, loadMoreError, loadMore, retry, onWrite } = viewModel;
+  const { items, status, reachedEnd, isLoadingMore, loadMoreError, loadMore, retry, canWrite, onWrite } = viewModel;
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -39,13 +39,14 @@ export default function CommunityNewsView({ viewModel }: CommunityNewsViewProps)
 
   return (
     <section aria-label={n.mainLabel}>
+      {/* 공유 권한이 없으면 주 행동 자체를 넘기지 않는다 — 머리 면에 버튼이 서지 않는다. */}
       <FeedMasthead
         eyebrow={MASTHEAD_EYEBROW}
         title={n.title}
         lead={n.subtitle}
-        actionLabel={n.write}
-        actionIcon={<PencilIcon size={16} strokeWidth={1.8} />}
-        onAction={onWrite}
+        actionLabel={canWrite ? n.write : undefined}
+        actionIcon={canWrite ? <PencilIcon size={16} strokeWidth={1.8} /> : undefined}
+        onAction={canWrite ? onWrite : undefined}
       />
 
       {status === 'loading' ? (
@@ -62,10 +63,13 @@ export default function CommunityNewsView({ viewModel }: CommunityNewsViewProps)
         <FeedEmpty
           title={n.emptyTitle}
           subtitle={n.emptySubtitle}
+          /* 빈 상태의 출구도 같은 권한을 본다 — 여기만 열어 두면 머리 면에서 막은 것이 무의미해진다. */
           action={
-            <Button variant="primary" onClick={onWrite}>
-              {n.emptyCta}
-            </Button>
+            canWrite ? (
+              <Button variant="primary" onClick={onWrite}>
+                {n.emptyCta}
+              </Button>
+            ) : undefined
           }
         />
       ) : null}

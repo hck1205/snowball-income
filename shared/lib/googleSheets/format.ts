@@ -8,6 +8,7 @@
  *    앞에 작은따옴표를 붙여 "글자 그대로"로 고정한다(시트에서 그 따옴표는 보이지 않고, 다시 읽으면
  *    원래 문자열이 돌아온다). 남의 가계부에 수식을 심지 않기 위한 최소 방어다.
  */
+import { formatPayerCell, LEDGER_FIXITY_LABEL, type LedgerFixity } from '@/shared/constants/ledger';
 import type { LedgerDraft, LedgerField, LedgerKind, LedgerPatch, RowCells } from './types';
 
 /** 수식으로 해석될 수 있는 첫 글자. */
@@ -20,7 +21,12 @@ export const escapeFormulaText = (value: string): string => (FORMULA_LEAD.test(v
 export const formatDateCell = (isoDate: string): string => isoDate;
 
 /** 구분은 사람이 읽는 한국어로 쓴다(시트를 열어 보는 사람이 첫 독자다). */
-export const formatKindCell = (kind: LedgerKind): string => (kind === 'income' ? '수입' : '지출');
+export const formatKindCell = (kind: LedgerKind): string =>
+  kind === 'income' ? '수입' : kind === 'transfer' ? '이체' : '지출';
+
+/** 고정비만 글자가 남는다. 변동은 빈 칸이다 — 천 줄에 `변동`이 반복되면 시트가 읽히지 않는다. */
+export const formatFixityCell = (fixity: LedgerFixity | undefined): string =>
+  LEDGER_FIXITY_LABEL[fixity ?? 'variable'];
 
 /**
  * 금액은 **부호 있는 순수 숫자 문자열**로 쓴다. 통화 기호·천단위 구분은 넣지 않는다 —
@@ -41,6 +47,11 @@ export const draftToCells = (draft: LedgerDraft, options?: { readonly withStatus
     kind: formatKindCell(draft.kind),
     amount: formatAmountCell(draft.amount),
     category: formatTextCell(draft.category),
+    subcategory: formatTextCell(draft.subcategory ?? ''),
+    /* 공동이면 빈 칸으로 나간다 — 1인 가구 시트에 같은 글자가 반복되지 않게(§axes). */
+    payer: formatTextCell(formatPayerCell(draft.payer)),
+    method: formatTextCell(draft.method ?? ''),
+    fixity: formatFixityCell(draft.fixity),
     memo: formatTextCell(draft.memo ?? '')
   };
   if (options?.withStatus) cells.status = '';
@@ -54,6 +65,10 @@ export const patchToCells = (patch: LedgerPatch): RowCells => {
   if (patch.kind !== undefined) cells.kind = formatKindCell(patch.kind);
   if (patch.amount !== undefined) cells.amount = formatAmountCell(patch.amount);
   if (patch.category !== undefined) cells.category = formatTextCell(patch.category);
+  if (patch.subcategory !== undefined) cells.subcategory = formatTextCell(patch.subcategory);
+  if (patch.payer !== undefined) cells.payer = formatTextCell(formatPayerCell(patch.payer));
+  if (patch.method !== undefined) cells.method = formatTextCell(patch.method);
+  if (patch.fixity !== undefined) cells.fixity = formatFixityCell(patch.fixity);
   if (patch.memo !== undefined) cells.memo = formatTextCell(patch.memo);
   return cells;
 };

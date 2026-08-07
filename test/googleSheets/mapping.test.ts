@@ -17,8 +17,21 @@ import {
 
 describe('헤더에서 열 매핑 후보 제시', () => {
   it('앱 스키마 헤더는 그대로 잡는다', () => {
-    const { mapping, missing } = suggestColumnMapping(['날짜', '구분', '금액', '분류', '메모', '상태']);
-    expect(mapping).toEqual({ date: 0, kind: 1, amount: 2, category: 3, memo: 4, status: 5 });
+    const { mapping, missing } = suggestColumnMapping([
+      '날짜', '구분', '항목', '상세항목', '금액', '주체', '결제수단', '고정', '내용', '상태'
+    ]);
+    expect(mapping).toEqual({
+      date: 0,
+      kind: 1,
+      category: 2,
+      subcategory: 3,
+      amount: 4,
+      payer: 5,
+      method: 6,
+      fixity: 7,
+      memo: 8,
+      status: 9
+    });
     expect(missing).toEqual([]);
   });
 
@@ -71,7 +84,7 @@ describe('매핑 검증', () => {
   });
 
   it('앱이 만든 시트인지 헤더로 판정한다', () => {
-    expect(matchesAppSheetHeaders(['날짜', '구분', '금액', '분류', '메모', '상태'])).toBe(true);
+    expect(matchesAppSheetHeaders(['날짜', '구분', '항목', '상세항목', '금액', '주체', '결제수단', '고정', '내용', '상태'])).toBe(true);
     expect(matchesAppSheetHeaders(['날짜', '금액', '분류'])).toBe(false);
   });
 });
@@ -122,5 +135,41 @@ describe('🔴 로컬에 저장되는 것은 연결 정보뿐 — 가계부 행�
   it('망가진 문자열이어도 던지지 않는다 — 연결이 실패하면 안 된다', () => {
     expect(parseStoredSheetLinks('{{{')).toEqual([]);
     expect(parseStoredSheetLinks(null)).toEqual([]);
+  });
+});
+
+/**
+ * 🔴 2026-08-08 P3 리팩토링에서 잡은 **조용한 되돌아감**.
+ *
+ * `toStoredSheetLink` 가 선택 필드를 손으로 나열하고 있어, v2 축 넷을 매핑해도 저장하면 그 넷이
+ * 사라졌다. 다시 열면 열 고르기를 처음부터 다시 해야 하는데, 오류가 나지 않으니 사용자는 자기가
+ * 뭘 잘못했는지 알 수 없다. 필드가 또 늘어날 때 같은 일이 나지 않게 여기서 잠근다.
+ */
+describe('저장 왕복 — 매핑한 열이 사라지지 않는다', () => {
+  it('⭐ v2 축 넷이 저장 후에도 남는다', () => {
+    const mapping = {
+      date: 0,
+      kind: 1,
+      category: 2,
+      subcategory: 3,
+      amount: 4,
+      payer: 5,
+      method: 6,
+      fixity: 7,
+      memo: 8,
+      status: 9
+    } as ColumnMapping;
+
+    const stored = toStoredSheetLink({ spreadsheetId: 's', sheetId: 0, mapping, createdByApp: true });
+
+    expect(stored.mapping).toEqual(mapping);
+  });
+
+  it('매핑하지 않은 선택 필드는 저장에도 없다 (없는 열을 지어내지 않는다)', () => {
+    const mapping = { date: 0, kind: 1, amount: 2, category: 3 } as ColumnMapping;
+
+    const stored = toStoredSheetLink({ spreadsheetId: 's', sheetId: 0, mapping, createdByApp: false });
+
+    expect(Object.keys(stored.mapping).sort()).toEqual(['amount', 'category', 'date', 'kind']);
   });
 });

@@ -98,6 +98,50 @@ export const POST_CATEGORY_IDS: readonly PostCategory[] = [
 /** 운영자에게만 **선택지로** 노출되는 분류. ⚠ UI 제한일 뿐 서버가 막지 않는다(RLS 없음). */
 export const ADMIN_ONLY_POST_CATEGORIES: readonly PostCategory[] = ['notice'];
 
+// ── 미디어 뉴스 게이트 (2026-08-08 사용자 결정) ───────────────────────────────
+
+/**
+ * 미디어 뉴스를 **일반 사용자에게 공개하는가.** 2026-08-08 사용자 결정으로 임시 `false`.
+ *
+ * 🔴 코드는 한 줄도 지우지 않았다 — 화면·훅·카드·라우트·마이그레이션 전부 그대로 있고,
+ *    이 상수를 `true` 로 되돌리면 원래대로 돌아온다. "잠시 닫는다"와 "없앤다"는 다른 일이고,
+ *    지웠다가 되살리면 그 사이에 다른 코드가 움직여 되돌리기가 이사가 된다.
+ *
+ * `false` 일 때 무엇이 사라지나:
+ *   - nav 묶음의 '미디어 뉴스' 항목 (PrimaryNav / NavDrawer — 상수 배열에서 뺐다)
+ *   - `/community/news`·`news/share`·`news/:id` 진입 (CommunityNewsGate 가 안내로 대체)
+ * 관리자(profiles.is_admin)는 **그대로 들어간다** — 닫아 두는 동안에도 운영자가 화면을
+ * 확인하고 글을 쌓아 둘 수 있어야 한다는 사용자 결정이다. nav 에는 없으므로 주소로 들어간다
+ * (`/community/news`). nav 항목까지 관리자 조건부로 만들지 않은 이유는 PrimaryNav 주석 참고.
+ */
+export const COMMUNITY_NEWS_PUBLIC = false;
+
+/**
+ * 뉴스 글 작성을 **운영자에게만** 여는가. 2026-08-08 사용자 결정으로 `true`.
+ *
+ * 🔴 이건 `COMMUNITY_NEWS_PUBLIC` 과 **다른 축**이다. 지금은 둘 다 켜져 있어 결과가 같아
+ *    보이지만(뉴스 자체가 운영자만 보이니까), 나중에 뉴스를 다시 공개해도
+ *    (`COMMUNITY_NEWS_PUBLIC = true`) **작성은 운영자만**으로 남는다. 그 순간을 위해 나눠 둔다.
+ *
+ * ⚠ **UI 수준 차단이다 — 서버는 막지 않는다.** anon 키로 REST 를 직접 때리면 여전히
+ *   `kind='news'` 행을 만들 수 있다. 기존 '공지' 분류(ADMIN_ONLY_POST_CATEGORIES)와 같은 수준이고,
+ *   is_admin 을 "권한이 아니라 표시 힌트"로 못 박은 20260725000000 마이그레이션의 방침 그대로다.
+ *   DB 로 강제하려면 posts INSERT 정책에 `kind <> 'news' or profiles.is_admin` 를 더하면 된다
+ *   (is_admin 은 update GRANT 가 없어 자가 승격이 불가능하므로 그 조건은 안전하다).
+ *   2026-08-08 사용자 판단으로 **그 결정은 보류**했다 — 필요해지면 여기 주석을 근거로 올린다.
+ */
+export const COMMUNITY_NEWS_WRITE_ADMIN_ONLY = true;
+
+/** 이 사용자가 미디어 뉴스 지면을 볼 수 있는가. 닫혀 있어도 운영자는 본다. */
+export const canViewCommunityNews = (isAdmin: boolean): boolean => COMMUNITY_NEWS_PUBLIC || isAdmin;
+
+/**
+ * 이 사용자가 뉴스 링크를 공유(작성)할 수 있는가.
+ * 볼 수 없는 사람은 쓸 수도 없다 — 두 게이트를 곱해 "목록은 막혔는데 작성 화면은 열린" 틈을 없앤다.
+ */
+export const canWriteCommunityNews = (isAdmin: boolean): boolean =>
+  canViewCommunityNews(isAdmin) && (!COMMUNITY_NEWS_WRITE_ADMIN_ONLY || isAdmin);
+
 /**
  * 서버가 준 값을 신뢰하지 않고 정규화한다.
  * - 마이그레이션 전 → 컬럼 자체가 없어 `undefined` → 'free'

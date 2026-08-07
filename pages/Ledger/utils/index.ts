@@ -2,10 +2,12 @@ export {
   addMonths,
   buildSheetUrl,
   collectCategories,
+  collectFieldValues,
   formatEntryDate,
   formatReadAt,
   isExpiredCode,
   isSameMonth,
+  kindLabel,
   isVisibleEntry,
   latestMonthOf,
   monthCursorOfISO,
@@ -52,3 +54,30 @@ export {
   parseLedgerAmount,
   validateLedgerForm
 } from './ledgerFormSchema';
+
+/* ── P4·P5 분석 집계 (2026-08-08) ────────────────────────────────────────────
+ * 순수 함수만 있다. 화면(차트·표)은 이 값을 그리기만 하고 계산하지 않는다 —
+ * 계산이 컴포넌트로 흩어지면 표와 그래프가 다른 숫자를 말하기 시작한다. */
+export {
+  FIXITY_LABEL,
+  UNCLASSIFIED_LABEL,
+  buildCategoryPivot,
+  hasMultiplePayers,
+  monthKeyOf,
+  monthlyCashFlow,
+  splitByFixity,
+  topSpending,
+  totalsByMethod,
+  totalsByPayer
+} from './ledgerAnalysis';
+export type {
+  CategoryPivot,
+  FixitySplit,
+  MethodTotal,
+  MonthKey,
+  MonthlyCashFlow,
+  PayerTotal,
+  PivotCell,
+  PivotRow,
+  TopSpending
+} from './ledgerAnalysis';

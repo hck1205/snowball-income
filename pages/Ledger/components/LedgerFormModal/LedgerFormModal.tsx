@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef } from 'react';
 import type { FormEvent, MouseEvent } from 'react';
-import { ArrowDownToLine, ArrowUpFromLine } from 'lucide-react';
+import { ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { Banner, Button, Modal } from '@/components/common';
 import { formatKRW } from '@/shared/utils';
@@ -15,6 +15,7 @@ import {
   BannerRow,
   Field,
   FieldError,
+  CheckboxRow,
   FieldHint,
   FieldInput,
   FieldLabel,
@@ -62,6 +63,15 @@ export default function LedgerFormModal({
   const memoId = `${idPrefix}-memo`;
   const categoryListId = `${idPrefix}-categories`;
   const categoryHintId = `${idPrefix}-category-hint`;
+  const subcategoryId = `${idPrefix}-subcategory`;
+  const subcategoryListId = `${idPrefix}-subcategories`;
+  const payerId = `${idPrefix}-payer`;
+  const payerListId = `${idPrefix}-payers`;
+  const payerHintId = `${idPrefix}-payer-hint`;
+  const methodId = `${idPrefix}-method`;
+  const methodListId = `${idPrefix}-methods`;
+  const fixedId = `${idPrefix}-fixed`;
+  const fixedHintId = `${idPrefix}-fixed-hint`;
   const amountHintId = `${idPrefix}-amount-hint`;
 
   const dateRef = useRef<HTMLInputElement | null>(null);
@@ -202,6 +212,20 @@ export default function LedgerFormModal({
                     {copy.form.kindExpense}
                   </KindOptionFace>
                 </KindOption>
+                {/* 🔴 이체는 수입도 지출도 아니다 — 저축·투자 납입이 여기 온다. 월 요약의 지출에서 빠진다. */}
+                <KindOption>
+                  <input
+                    type="radio"
+                    name={`${idPrefix}-kind`}
+                    value="transfer"
+                    checked={model.draft.kind === 'transfer'}
+                    onChange={() => onChange({ kind: 'transfer' })}
+                  />
+                  <KindOptionFace>
+                    <ArrowLeftRight size={16} strokeWidth={1.8} aria-hidden focusable={false} />
+                    {copy.form.kindTransfer}
+                  </KindOptionFace>
+                </KindOption>
               </KindOptions>
             </KindFieldset>
 
@@ -253,6 +277,94 @@ export default function LedgerFormModal({
               </datalist>
               <FieldHint id={categoryHintId}>{copy.form.categoryHint}</FieldHint>
               {errors.category ? <FieldError id={`${categoryId}-error`}>{errors.category}</FieldError> : null}
+            </Field>
+
+            {/*
+              ── v2 축 넷 (2026-08-08) ────────────────────────────────────────
+              🔴 전부 **선택**이다. 별표도 required 도 붙이지 않는다 — 1인 가구가 매번 네 칸을 더
+                 채우게 만들면 입력이 무거워져 가계부 자체를 안 쓰게 된다. 라벨의 "(선택)"이 그 약속이다.
+              🔴 주체·결제수단은 사전이 없다. 제안 목록은 **시트에서 관측한 값**뿐이라 처음에는 비어
+                 있고, 한 번 쓰면 다음부터 뜬다. 설정 화면을 따로 만들지 않은 이유가 이것이다.
+            */}
+            <Field>
+              <FieldLabel htmlFor={subcategoryId}>{copy.form.subcategory}</FieldLabel>
+              <FieldInput
+                id={subcategoryId}
+                data-field="subcategory"
+                type="text"
+                list={subcategoryListId}
+                placeholder={copy.form.subcategoryPlaceholder}
+                value={model.draft.subcategory}
+                aria-invalid={errors.subcategory ? true : undefined}
+                aria-describedby={errors.subcategory ? `${subcategoryId}-error` : undefined}
+                onChange={(event) => onChange({ subcategory: event.target.value })}
+              />
+              <datalist id={subcategoryListId} aria-label={copy.form.subcategoryListLabel}>
+                {model.subcategoryOptions.map((option) => (
+                  <option key={option} value={option} />
+                ))}
+              </datalist>
+              {errors.subcategory ? (
+                <FieldError id={`${subcategoryId}-error`}>{errors.subcategory}</FieldError>
+              ) : null}
+            </Field>
+
+            <Field>
+              <FieldLabel htmlFor={methodId}>{copy.form.method}</FieldLabel>
+              <FieldInput
+                id={methodId}
+                data-field="method"
+                type="text"
+                list={methodListId}
+                placeholder={copy.form.methodPlaceholder}
+                value={model.draft.method}
+                aria-invalid={errors.method ? true : undefined}
+                aria-describedby={errors.method ? `${methodId}-error` : undefined}
+                onChange={(event) => onChange({ method: event.target.value })}
+              />
+              <datalist id={methodListId} aria-label={copy.form.methodListLabel}>
+                {model.methodOptions.map((option) => (
+                  <option key={option} value={option} />
+                ))}
+              </datalist>
+              {errors.method ? <FieldError id={`${methodId}-error`}>{errors.method}</FieldError> : null}
+            </Field>
+
+            <Field>
+              <FieldLabel htmlFor={payerId}>{copy.form.payer}</FieldLabel>
+              <FieldInput
+                id={payerId}
+                data-field="payer"
+                type="text"
+                list={payerListId}
+                placeholder={copy.form.payerPlaceholder}
+                value={model.draft.payer}
+                aria-invalid={errors.payer ? true : undefined}
+                aria-describedby={describedBy(errors.payer ? `${payerId}-error` : undefined, payerHintId)}
+                onChange={(event) => onChange({ payer: event.target.value })}
+              />
+              <datalist id={payerListId} aria-label={copy.form.payerListLabel}>
+                {model.payerOptions.map((option) => (
+                  <option key={option} value={option} />
+                ))}
+              </datalist>
+              <FieldHint id={payerHintId}>{copy.form.payerHint}</FieldHint>
+              {errors.payer ? <FieldError id={`${payerId}-error`}>{errors.payer}</FieldError> : null}
+            </Field>
+
+            <Field>
+              <CheckboxRow>
+                <input
+                  id={fixedId}
+                  data-field="isFixed"
+                  type="checkbox"
+                  checked={model.draft.isFixed}
+                  aria-describedby={fixedHintId}
+                  onChange={(event) => onChange({ isFixed: event.target.checked })}
+                />
+                <FieldLabel htmlFor={fixedId}>{copy.form.fixed}</FieldLabel>
+              </CheckboxRow>
+              <FieldHint id={fixedHintId}>{copy.form.fixedHint}</FieldHint>
             </Field>
 
             <Field>
