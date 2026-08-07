@@ -46,6 +46,27 @@ export const TickerLink = styled(Link)`
 `;
 
 /** 종목 이름처럼 길고 접혀도 되는 값. 두 줄까지 보이고 그 뒤는 말줄임. */
+/**
+ * 사람 이름 한 줄 — **한 줄로 유지하고 넘치면 말줄임**.
+ *
+ * 🔴 이름은 두 줄로 접지 않는다(2026-08-07 사용자 신고: 카드에서 이름이 겹친다). 사람 이름은
+ * 줄바꿈 지점이 없어 두 줄로 접으면 성과 이름이 어색하게 갈리고, 카드 모드에서는 라벨과 겹친다.
+ * 전체 문자열은 화면이 툴팁으로 준다(OverflowTooltip — 잘렸을 때만 뜨고 hover·클릭·키보드 전부 받는다).
+ * ⚠ min-width 0 이 없으면 grid/flex 안에서 이 상자가 자기 내용만큼 벌어져 말줄임이 아예 안 걸린다.
+ */
+export const PersonName = styled.span`
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  /* 잘린 이름만 포커스를 받는다(OverflowTooltip 이 tabIndex 를 건다) — 커서로도 눌리는 것을 말한다. */
+  &[tabindex] {
+    cursor: help;
+  }
+`;
+
 export const Wrapped = styled.span`
   display: -webkit-box;
   -webkit-box-orient: vertical;

@@ -109,12 +109,31 @@ export const TH = styled.th`
 
 const stackedCell = `
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  /*
+   * 🔴 **값 쪽도 줄어들 수 있어야 한다**(2026-08-07 사용자 신고: 국회 카드에서 의원 이름이 겹친다).
+   *
+   * 종전은 두 번째 트랙이 auto 였다. auto 트랙의 최소 크기는 min-content 라, 값이 길면 그 셀이
+   * **절대 안 줄고** 라벨 트랙(1fr)을 0까지 밀어낸다 — 라벨과 값이 그 자리에서 겹쳐 보인다.
+   * 이제 둘 다 minmax(0, …) 이라 긴 값은 자기 자리 안에서 말줄임으로 접힌다.
+   *
+   * ⚠ 라벨은 auto 로 바꿨다. 라벨은 "의원"·"매수" 같은 짧은 낱말이라 줄어들 이유가 없고,
+   *   고정 자리를 가져야 값의 오른쪽 끝선이 카드 안에서 가지런하다.
+   */
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: ${space[3]};
   text-align: right;
   padding: ${space[2]} ${space[1]};
   border-bottom: 1px solid ${color.border};
+
+  /*
+   * 🔴 값이 한 줄로 남고 넘치면 말줄임으로 접힌다. 전체 문자열은 화면이 툴팁으로 준다
+   * (components/common/OverflowTooltip — 잘렸을 때만 뜨고 hover·클릭·키보드 전부 받는다).
+   * ⚠ 자식이 있는 셀(칩 묶음 등)은 자기 규칙을 갖는다 — 여기서는 텍스트 노드만 접는다.
+   */
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 
   &:last-of-type {
     border-bottom: 0;
@@ -126,6 +145,8 @@ const stackedCell = `
     color: ${color.textMuted};
     font-size: ${font.size.xs};
     font-weight: ${font.weight.medium};
+    /* 라벨은 절대 줄바꿈하지 않는다 — 두 줄이 되면 값과 세로 중심이 어긋난다. */
+    white-space: nowrap;
   }
 `;
 

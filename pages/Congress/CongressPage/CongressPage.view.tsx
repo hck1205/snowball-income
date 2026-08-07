@@ -27,6 +27,7 @@ import { AxisButton, AxisLabel, AxisRow, KoreaBody, KoreaLink } from './styled';
 import {
   ActionBadge,
   District,
+  PersonName,
   Num,
   OwnerTag,
   Ticker,
@@ -91,9 +92,12 @@ const MEMBER_COLUMNS = [
   {
     key: 'name',
     header: copy.members.columnName,
+    /* 🔴 이름은 한 줄로 두고 넘치면 말줄임 + 툴팁 — 카드 모드에서 라벨과 겹치던 자리다. */
     render: (row: CongressMemberRow) => (
       <>
-        {row.name}
+        <OverflowTooltip text={row.name}>
+          <PersonName />
+        </OverflowTooltip>
         <District>{formatDistrict(row.stateDistrict)}</District>
       </>
     )
@@ -135,9 +139,12 @@ const RECENT_COLUMNS = [
   {
     key: 'member',
     header: copy.recent.columnMember,
+    /* 최근 거래도 같은 규율 — 이름은 한 줄, 넘치면 말줄임 + 툴팁. */
     render: (row: CongressRecentTrade) => (
       <>
-        {row.member}
+        <OverflowTooltip text={row.member}>
+          <PersonName />
+        </OverflowTooltip>
         {row.owner ? <OwnerTag>{copy.owner[row.owner]}</OwnerTag> : null}
       </>
     )
