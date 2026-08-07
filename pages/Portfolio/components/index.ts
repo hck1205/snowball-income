@@ -43,3 +43,6 @@ export type {
 
 export { default as CloudSyncNotice } from './CloudSyncNotice';
 export type { CloudSyncNoticeProps } from './CloudSyncNotice';
+
+/* 월간 리캡 — 한 해의 배당 리듬과 이번 달의 자리(평가서 P1-⑤). */
+export { MonthlyRecap } from './MonthlyRecap';

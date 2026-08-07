@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import type { PortfolioGoalCardModel, PortfolioHoldingRowModel } from '../components';
 import type { PortfolioAddInput, PortfolioAddResult } from '../hooks';
 import type { PortfolioUniverseEntry } from '../utils';
+import type { MonthlyRecapModel } from './PortfolioPage.monthlyRecap';
 
 export type PortfolioPageProps = {
   /** '오늘' 주입(테스트 전용). 미지정이면 컨테이너가 마운트 시점의 시각을 고정해 쓴다. */
@@ -72,6 +73,12 @@ export type PortfolioViewModel = {
   tiles: PortfolioTileModel[];
   /** #3(월 평균)과 #6(이번 달)의 개념 차이 안내. 이번 달이 0인데 월 평균이 있을 때만. */
   showMonthlyVsThisMonthNote: boolean;
+  /**
+   * 월간 리캡 — 열두 달의 예상 배당과 이번 달의 자리(평가서 P1-⑤).
+   * 🔴 지급월을 아는 종목이 하나도 없으면 `null` 이다 — 빈 띠는 "배당이 없다"로 읽히는데
+   *   사실은 "지급월을 모른다"라서 거짓말이 된다.
+   */
+  monthlyRecap: MonthlyRecapModel | null;
   /** 요약 하단 "무엇이 빠졌는가" 줄들. */
   summaryNotes: string[];
   rows: PortfolioRowModel[];

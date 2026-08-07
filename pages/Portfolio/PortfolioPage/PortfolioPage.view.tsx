@@ -15,6 +15,7 @@ import MarketIndexStrip from '@/components/MarketIndexStrip';
 import { PORTFOLIO_COPY } from '../copy';
 import {
   GoalCard,
+  MonthlyRecap,
   HoldingPicker,
   HoldingPickerDrawer,
   HoldingsComposition,
@@ -545,6 +546,15 @@ export default function PortfolioPageView({
                   </FigureRow>
                 ))}
               </FigureList>
+
+              {/*
+                월간 리캡 — 이 앱이 "한 번 계산하면 끝"이 되지 않게 하는 자리(평가서 P1-⑤).
+                🔴 불러오는 중에는 그리지 않는다. 값이 없는 띠는 "배당이 없다"로 읽힌다.
+                ⚠ 지급월을 아는 종목이 없으면 부품이 스스로 null 을 낸다(같은 이유).
+              */}
+              {viewModel.isLoading || !viewModel.monthlyRecap ? null : (
+                <MonthlyRecap model={viewModel.monthlyRecap} />
+              )}
 
               {viewModel.showMonthlyVsThisMonthNote ? (
                 <NoteLine>
