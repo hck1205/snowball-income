@@ -17,15 +17,20 @@ import { API_BUNDLES } from './tools/apiBundle/manifest.mjs';
  *   - robots.txt: Sitemap: 지시어
  *   - 런타임 canonical 보정 (shared/lib/analytics.ts)
  *
- * ⚠ `.example`은 RFC 2606이 예약한 "절대 해석되지 않는" 테스트용 TLD다. 즉 현재 값은 placeholder이며,
- *   실제 도메인으로 바꾸기 전에는 서치콘솔 등록·SNS 미리보기·sitemap이 전부 무효다.
- *   레포에 이미 들어 있던 값(public/sitemap.xml)을 그대로 승계했을 뿐, 지어내지 않았다.
+ * 🔴 **2026-08-08 실제 도메인으로 확정했다.** 그전 값은 `snowball-income.example` 이었는데, `.example`
+ *   은 RFC 2606이 예약한 "절대 해석되지 않는" TLD 다 — 즉 canonical·og:url·sitemap·robots 가 전부
+ *   **존재하지 않는 주소**를 가리키고 있었다. 서치콘솔도 SNS 미리보기도 그 상태로는 무효였다.
+ *
+ * ⚠ 이 값은 **`hungry-hippo.xyz` 하나**다. `snowball-income.vercel.app`(Vercel 기본 도메인)으로도
+ *   앱이 뜨지만 그쪽은 정식 주소가 아니다 — vercel.json 의 리다이렉트가 그 호스트로 들어온 요청을
+ *   정식 도메인으로 넘긴다. 그래야 사용자가 주소창을 복사해 만든 공유 링크도 정식 도메인이 된다
+ *   (시뮬레이터 공유 링크는 **현재 href** 로 만들어진다 — `pages/Main/hooks/persistence/shareUrl.ts`).
  *
  * 바꾸는 법 (둘 중 하나):
  *   1) 아래 DEFAULT_SITE_URL 한 줄 수정 (가장 간단)
  *   2) 빌드 환경변수 VITE_SITE_URL 주입 (CI/호스팅에서 덮어쓰기; .env는 .gitignore 대상이라 CI엔 안 간다)
  */
-const DEFAULT_SITE_URL = 'https://snowball-income.example';
+const DEFAULT_SITE_URL = 'https://hungry-hippo.xyz';
 
 const stripTrailingSlash = (url: string) => url.replace(/\/+$/, '');
 

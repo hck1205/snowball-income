@@ -43,7 +43,7 @@ import { toNodeHandler } from '@/shared/lib/server';
 /** 종류별 목록 페이지 메타. */
 const LIST_META: Record<PublicPostKind, { title: string; description: string }> = {
   portfolio: {
-    title: '포트폴리오 갤러리',
+    title: '배당계산 갤러리',
     description: 'Hungry Hippo 커뮤니티에 공유된 배당 포트폴리오 시나리오 모음입니다. 월 배당·목표 달성 시점을 살펴보세요.'
   },
   board: {

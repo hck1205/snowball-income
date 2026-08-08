@@ -43,7 +43,7 @@ const g = COMMUNITY_COPY.gallery;
  */
 const MASTHEAD = {
   eyebrow: '커뮤니티',
-  title: '포트폴리오 갤러리',
+  title: '배당계산 갤러리',
   lead: '다른 투자자가 공유한 배당 포트폴리오와 시뮬레이션 결과를 살펴보십시오.'
 } as const;
 

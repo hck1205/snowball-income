@@ -318,8 +318,8 @@ const communityRoutes: RouteObject[] = isCommunityEnabled
           </Suspense>
         ),
         children: [
-          // 포트폴리오 갤러리(/community/portfolio)와 게시판(/community/board)을 대칭 섹션으로 둔다.
-          // 예전 진입점 /community 는 포트폴리오 갤러리로 리다이렉트(기존 링크·북마크 보존).
+          // 배당계산 갤러리(/community/portfolio)와 게시판(/community/board)을 대칭 섹션으로 둔다.
+          // 예전 진입점 /community 는 배당계산 갤러리로 리다이렉트(기존 링크·북마크 보존).
           { index: true, element: <Navigate to="/community/portfolio" replace /> },
           { path: 'portfolio', element: <CommunityGalleryPage /> },
           { path: 'portfolio/write', element: <CommunityWritePage /> },
