@@ -16,6 +16,10 @@ import type {
   RowCells,
   UnreadableRow
 } from './types';
+import { LEDGER_FIXITY_LABEL } from '@/shared/constants/ledger';
+import { classifyLedgerRow, isBackfillable } from '@/shared/lib/ledger';
+import type { LedgerClassifyRule } from '@/shared/lib/ledger';
+import { formatKindCell } from './format';
 
 /** 금액에서 떼어낼 표기. 숫자·부호·소수점만 남기고 나머지는 실패로 본다. */
 const AMOUNT_NOISE = /[\s ,₩￦$¥]|원|KRW/gi;
@@ -130,20 +134,59 @@ export type ParsedRow =
   | { readonly ok: false; readonly unreadable: UnreadableRow };
 
 /**
- * 한 행을 해석한다. 필수 4필드(날짜·구분·금액·분류) 중 하나라도 못 읽으면 그 행만 실패다.
- * `분류` 는 비어 있어도 통과시킨다(빈 분류는 흔하고, 값 자체는 손상되지 않았다).
+ * 한 행을 해석한다. **날짜·금액**을 못 읽으면 그 행만 실패다.
+ *
+ * ## 🔴 구분과 항목은 비어 있어도 된다 (2026-08-08)
+ *
+ * 종전에는 `구분` 이 비면 그 행을 "읽을 수 없음"으로 버렸다. 이제는 **분류 사다리**가 채운다 —
+ * 항목이 정해지면 구분은 조회이기 때문이다(`category.flow`). 사다리 전문은
+ * `shared/lib/ledger/classify` 머리말에 있다.
+ *
+ * 다만 **값 자체는 여전히 필수다.** 사다리를 다 내려가도 구분을 못 정하면 그 행은 실패다 —
+ * 수입·지출·이체를 못 가르면 이체가 지출로 세어져 저축한 돈이 쓴 돈이 되고 저축률이 무너진다.
+ * "입력은 선택, 값은 필수"이고, 그 사이를 사다리가 메운다.
+ *
+ * ## 🔴 적힌 것은 다시 쓰지 않는다
+ *
+ * 사다리가 채운 값을 쓰는 것은 **원래 빈 칸이던 자리**뿐이다. 사람이 적어 둔 말은 그 사람의
+ * 어휘이므로, 사전의 정규 이름으로 바꿔 적지 않는다 — 시트에 `주거비` 라고 쓴 사람의 화면에
+ * `주거` 가 나오면 그건 우리가 남의 기록을 고친 것이다.
+ *
+ * @param rules 사용자 분류 규칙(`분류 규칙` 탭). 없으면 사다리가 내장 사전까지만 쓴다.
+ *   ⚠ 여러 행을 돌 때는 호출부가 `sortRulesBySpecificity` 로 **한 번** 정렬해 넘긴다.
  */
-export const parseLedgerRow = (cells: RowCells, rowNumber: number): ParsedRow => {
+export const parseLedgerRow = (
+  cells: RowCells,
+  rowNumber: number,
+  rules: readonly LedgerClassifyRule[] = []
+): ParsedRow => {
   const reasons: string[] = [];
 
   const date = parseLedgerDate(cells.date);
   if (date === null) reasons.push('날짜를 읽을 수 없습니다.');
 
-  const kind = parseLedgerKind(cells.kind);
-  if (kind === null) reasons.push('구분(수입/지출)을 읽을 수 없습니다.');
-
   const amount = parseAmount(cells.amount);
   if (amount === null) reasons.push('금액을 읽을 수 없습니다.');
+
+  /*
+   * 사다리를 태운다. 0단이 "적혀 있으면 그것"이라 **적힌 값이 언제나 이긴다** —
+   * 이 호출이 사용자의 구분·분류를 뒤집는 일은 없다.
+   */
+  const classification = classifyLedgerRow(
+    {
+      kind: cells.kind,
+      category: cells.category,
+      subcategory: cells.subcategory,
+      memo: cells.memo,
+      fixity: cells.fixity
+    },
+    rules
+  );
+
+  const kind = classification.flow;
+  if (kind === null) {
+    reasons.push('구분(수입/지출)을 읽을 수 없습니다. 항목이나 내용을 적어 주시면 채워 드립니다.');
+  }
 
   if (date === null || kind === null || amount === null) {
     return { ok: false, unreadable: { rowNumber, reasons } };
@@ -164,7 +207,35 @@ export const parseLedgerRow = (cells: RowCells, rowNumber: number): ParsedRow =>
    *      오지 않는다. 그래도 두 경로를 함께 보는 이유는 매핑 단계(P3)가 그 토큰을 날짜에서
    *      떼어 이 칸으로 옮겨 넣을 것이고, 그때 이 코드가 이미 서 있어야 하기 때문이다.
    */
-  const fixity = parseFixity(cells.fixity ?? (isFixityToken(cells.date) ? '고정' : ''));
+  const writtenFixityCell = (cells.fixity ?? '').trim();
+  const fixity =
+    writtenFixityCell.length > 0
+      ? parseFixity(writtenFixityCell)
+      : (classification.fixity ?? parseFixity(isFixityToken(cells.date) ? '고정' : ''));
+
+  /* 🔴 빈 칸이던 자리만 사다리 값으로 채운다. 적힌 말은 그대로 둔다. */
+  const rawCategory = (cells.category ?? '').trim();
+  const category = rawCategory.length > 0 ? rawCategory : (classification.category?.label ?? '');
+  const subcategoryValue =
+    subcategory && subcategory.length > 0 ? subcategory : classification.subcategory?.label;
+
+  /*
+   * **히포가 채운 칸들.** 되적기(`planBackfill`)가 정확히 이것만 쓴다.
+   *
+   * 🔴 `seen` 이 빈 칸이었던 것만 담는다 — 여기에 적혀 있던 칸이 섞이면 되적기가 사용자의 말을
+   *    덮어쓴다. 그 실수는 되돌릴 수 없다(원본이 사라지므로).
+   */
+  const filled: Record<string, string> = {};
+  if (isBackfillable(classification)) {
+    if (rawCategory.length === 0 && classification.category) filled.category = classification.category.label;
+    if ((subcategory ?? '').length === 0 && classification.subcategory) {
+      filled.subcategory = classification.subcategory.label;
+    }
+    if ((cells.kind ?? '').trim().length === 0) filled.kind = formatKindCell(kind);
+    if (writtenFixityCell.length === 0 && classification.fixity === 'fixed') {
+      filled.fixity = LEDGER_FIXITY_LABEL.fixed;
+    }
+  }
 
   return {
     ok: true,
@@ -173,13 +244,18 @@ export const parseLedgerRow = (cells: RowCells, rowNumber: number): ParsedRow =>
       date,
       kind,
       amount,
-      category: (cells.category ?? '').trim(),
-      ...(subcategory && subcategory.length > 0 ? { subcategory } : {}),
+      category,
+      ...(subcategoryValue && subcategoryValue.length > 0 ? { subcategory: subcategoryValue } : {}),
       ...(payer && payer.length > 0 ? { payer } : {}),
       ...(method && method.length > 0 ? { method } : {}),
       fixity,
       ...(memo && memo.length > 0 ? { memo } : {}),
       ...(status && status.length > 0 ? { status } : {}),
+      /* 사다리가 관여했을 때만 붙는다 — 화면이 "히포가 이렇게 봤습니다"라고 말할 근거다. */
+      ...(classification.source === 'rule' || classification.source === 'dictionary'
+        ? { filledBy: classification.source }
+        : {}),
+      ...(Object.keys(filled).length > 0 ? { filled } : {}),
       seen: cells
     }
   };
