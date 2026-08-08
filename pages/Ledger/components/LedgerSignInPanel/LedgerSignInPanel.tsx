@@ -6,7 +6,9 @@ import type { LedgerSignInPanelProps } from './LedgerSignInPanel.types';
 import {
   SignInBody,
   SignInButtons,
+  SignInColumn,
   SignInGlyph,
+  SignInHeadRow,
   SignInHeading,
   SignInSection
 } from './LedgerSignInPanel.styled';
@@ -29,22 +31,32 @@ const copy = LEDGER_COPY;
 export default function LedgerSignInPanel({ headingId, onSignIn }: LedgerSignInPanelProps) {
   return (
     <SignInSection aria-labelledby={headingId}>
-      <SignInGlyph aria-hidden>
-        <LockKeyhole size={24} strokeWidth={1.8} focusable={false} />
-      </SignInGlyph>
-      <SignInHeading id={headingId}>{copy.signIn.heading}</SignInHeading>
-      <SignInBody>{copy.signIn.body}</SignInBody>
-      <SignInButtons>
-        <SocialLoginButton provider="google" onClick={() => onSignIn('google')} />
-        <SocialLoginButton
-          provider="naver"
-          pending={!isNaverEnabled}
-          onClick={() => {
-            if (isNaverEnabled) onSignIn('naver');
-          }}
-        />
-        <SocialLoginButton provider="kakao" onClick={() => onSignIn('kakao')} />
-      </SignInButtons>
+      {/*
+        🔴 안쪽 열 하나에 제목·문장·버튼을 전부 넣는다 — 셋의 **왼쪽 시작점을 맞추기 위해서**다
+           (2026-08-08 사용자 지시). 카드는 가운데지만 글은 왼쪽에서 시작해야 읽히고, 그 왼쪽이
+           로그인 버튼의 왼쪽과 어긋나면 한 카드 안에 기준선이 둘이 된다.
+      */}
+      <SignInColumn>
+        {/* 배지는 제목 **오른쪽 끝**이다. 장식이라 aria-hidden 그대로다. */}
+        <SignInHeadRow>
+          <SignInHeading id={headingId}>{copy.signIn.heading}</SignInHeading>
+          <SignInGlyph aria-hidden>
+            <LockKeyhole size={24} strokeWidth={1.8} focusable={false} />
+          </SignInGlyph>
+        </SignInHeadRow>
+        <SignInBody>{copy.signIn.body}</SignInBody>
+        <SignInButtons>
+          <SocialLoginButton provider="google" onClick={() => onSignIn('google')} />
+          <SocialLoginButton
+            provider="naver"
+            pending={!isNaverEnabled}
+            onClick={() => {
+              if (isNaverEnabled) onSignIn('naver');
+            }}
+          />
+          <SocialLoginButton provider="kakao" onClick={() => onSignIn('kakao')} />
+        </SignInButtons>
+      </SignInColumn>
     </SignInSection>
   );
 }
