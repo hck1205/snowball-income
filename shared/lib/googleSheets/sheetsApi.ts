@@ -205,20 +205,45 @@ export const fetchSpreadsheetMeta = async (
  */
 export const createSpreadsheet = async (
   context: SheetsRequestContext,
-  params: { readonly title: string; readonly tabTitle: string }
+  params: { readonly title: string; readonly body?: Record<string, unknown>; readonly tabTitle?: string }
 ): Promise<LedgerResult<SpreadsheetMeta>> => {
   const result = await request<unknown>(context, {
     method: 'POST',
     url: SHEETS_BASE,
-    body: {
+    /*
+     * 🔴 `body` 를 받으면 그대로 보낸다 — 설계도(`blueprint.ts`)가 탭·격자·고정행·초기값을 **한 번의
+     *    요청**으로 만들기 때문이다. 나눠 보내면 탭마다 왕복이 생기고 429 예산을 그만큼 먹는다.
+     * ⚠ `tabTitle` 은 설계도를 안 쓰는 호출부(테스트 등)를 위한 최소 경로다.
+     */
+    body: params.body ?? {
       properties: { title: params.title },
-      sheets: [{ properties: { title: params.tabTitle } }]
+      sheets: [{ properties: { title: params.tabTitle ?? params.title } }]
     }
   });
   if (!result.ok) return passThroughError(result.error);
 
   const meta = parseSpreadsheetMeta(result.value);
   return meta ? ledgerOk(meta) : ledgerErr(ledgerError('invalid-response'));
+};
+
+/**
+ * 서식·드롭다운·줄무늬를 입힌다. 생성 응답에서 받은 `sheetId` 가 필요해 **두 번째 요청**이다.
+ *
+ * 🔴 실패해도 시트는 살아 있다 — 호출부가 이 실패로 연결을 무르지 않는다. 서식이 덜 입혀진 시트는
+ *    보기에 아쉬울 뿐 기록은 정상이고, 여기서 되돌리면 사용자가 만든 파일이 드라이브에 고아로 남는다.
+ */
+export const applySheetFormatting = async (
+  context: SheetsRequestContext,
+  params: { readonly spreadsheetId: string; readonly requests: readonly Record<string, unknown>[] }
+): Promise<LedgerResult<true>> => {
+  if (params.requests.length === 0) return ledgerOk(true);
+  const result = await request<unknown>(context, {
+    method: 'POST',
+    url: `${SHEETS_BASE}/${encodeURIComponent(params.spreadsheetId)}:batchUpdate`,
+    body: { requests: params.requests }
+  });
+  if (!result.ok) return passThroughError(result.error);
+  return ledgerOk(true);
 };
 
 /* ── 값 읽기 ────────────────────────────────────────────────────────────────── */

@@ -235,29 +235,61 @@ describe('연결', () => {
 
   it('🔴 새 시트에는 헤더만 넣고 예시 데이터 행을 넣지 않는다', async () => {
     const harness = createHarness();
-    harness.queues.create.push({ payload: { spreadsheetId: 'new-1', sheets: [{ properties: { sheetId: 0, title: '가계부' } }] } });
-    harness.queues.valuesWrite.push({ payload: { totalUpdatedCells: 6 } });
+    harness.queues.create.push({
+      payload: {
+        spreadsheetId: 'new-1',
+        sheets: [
+          { properties: { sheetId: 0, title: '가계부' } },
+          { properties: { sheetId: 1, title: '분류' } }
+        ]
+      }
+    });
+    /* 서식·드롭다운은 생성 뒤 두 번째 요청이다(sheetId 를 받아야 지정할 수 있다). */
+    harness.queues.sheetBatchUpdate.push({ payload: {} });
 
     const result = await createLedgerSheet(harness.context, { title: '가계부' });
     expect(harness.unmatched).toEqual([]);
     expect(result.ok).toBe(true);
 
-    const write = harness.calls.find((call) => call.kind === 'valuesWrite');
-    const data = (write?.body as { data: { range: string; values: string[][] }[] }).data;
-    // v2 는 열이 10 개다. 헤더는 열마다 한 칸씩 쓴다(행 통째로 덮지 않는 규율 그대로).
-    expect(data.map((entry) => entry.range)).toEqual([
-      "'가계부'!A1",
-      "'가계부'!B1",
-      "'가계부'!C1",
-      "'가계부'!D1",
-      "'가계부'!E1",
-      "'가계부'!F1",
-      "'가계부'!G1",
-      "'가계부'!H1",
-      "'가계부'!I1",
-      "'가계부'!J1"
-    ]);
-    expect(data.map((entry) => entry.values[0][0])).toEqual(['날짜', '구분', '항목', '상세항목', '금액', '주체', '결제수단', '고정', '내용', '상태']);
+    /*
+     * 🔴 계약은 그대로다 — **사용자가 지워야 할 예시 행을 앱이 만들지 않는다.**
+     *    설계도가 탭·머리·수식을 생성 요청에 함께 실으므로 별도 값 쓰기는 없다.
+     */
+    const create = harness.calls.find((call) => call.kind === 'create');
+    const body = create?.body as { sheets: { properties: { title: string }; data: { rowData: unknown[] }[] }[] };
+    const ledgerTab = body.sheets.find((sheet) => sheet.properties.title === '가계부');
+
+    expect(ledgerTab?.data[0].rowData).toHaveLength(1); // 머리 한 줄뿐
+    expect(harness.calls.some((call) => call.kind === 'valuesWrite')).toBe(false);
+  });
+
+  it('설계도대로 탭 여럿을 한 번의 요청으로 만든다', async () => {
+    const harness = createHarness();
+    harness.queues.create.push({
+      payload: { spreadsheetId: 'new-1', sheets: [{ properties: { sheetId: 0, title: '가계부' } }] }
+    });
+    harness.queues.sheetBatchUpdate.push({ payload: {} });
+
+    await createLedgerSheet(harness.context, { title: '가계부' });
+
+    const create = harness.calls.find((call) => call.kind === 'create');
+    const body = create?.body as { sheets: { properties: { title: string } }[] };
+
+    expect(body.sheets.length).toBeGreaterThan(1);
+    expect(body.sheets[0].properties.title).toBe('가계부'); // 연결이 tabs[0] 을 집는다
+    expect(harness.calls.filter((call) => call.kind === 'create')).toHaveLength(1);
+  });
+
+  it('🔴 서식이 실패해도 연결은 성립한다 — 방금 만든 파일을 고아로 남기지 않는다', async () => {
+    const harness = createHarness();
+    harness.queues.create.push({
+      payload: { spreadsheetId: 'new-1', sheets: [{ properties: { sheetId: 0, title: '가계부' } }] }
+    });
+    harness.queues.sheetBatchUpdate.push({ status: 500, payload: {} });
+
+    const result = await createLedgerSheet(harness.context, { title: '가계부' });
+
+    expect(result.ok).toBe(true);
   });
 });
 
