@@ -7,6 +7,7 @@
  *   삭제: 참조 유효성 → **현재 값 읽기 → 충돌 비교** → (소프트 | 확인된 물리) → 물리면 **스냅샷 폐기**
  */
 import { cellRange, headerRowRange, openColumnRange } from './a1';
+import type { LedgerClassifyRule } from '@/shared/lib/ledger';
 import { draftToCells, patchToCells } from './format';
 import { buildCreateSpreadsheetBody, buildFormatRequests } from './blueprint';
 import { mappedColumnIndices } from './mapping';
@@ -224,7 +225,15 @@ export const connectSpreadsheet = async (
  */
 export const readLedgerSnapshot = async (
   context: SheetsRequestContext,
-  link: SheetLink
+  link: SheetLink,
+  /**
+   * 사용자 분류 규칙(`분류 규칙` 탭).
+   *
+   * 🔴 **이것을 넘기지 않으면 사다리 1단이 빠진다** — 사용자가 만들어 둔 규칙이 무시되고
+   *    화면에 미분류가 잔뜩 나온다. 호출부는 `readClassifyRules` 를 먼저 부른다.
+   *    (앱이 만든 시트가 아니면 그 탭이 없으므로 생략이 정상이다.)
+   */
+  rules: readonly LedgerClassifyRule[] = []
 ): Promise<LedgerResult<LedgerSnapshot>> => {
   const indices = mappedColumnIndices(link.mapping);
   const ranges = indices.map((columnIndex) => openColumnRange(link.sheetTitle, columnIndex, LEDGER_FIRST_DATA_ROW));
@@ -235,7 +244,7 @@ export const readLedgerSnapshot = async (
   const columns = new Map<number, readonly string[]>();
   indices.forEach((columnIndex, position) => columns.set(columnIndex, read.value[position] ?? []));
 
-  const parsed = parseLedgerColumns({ mapping: link.mapping, columns, firstDataRow: LEDGER_FIRST_DATA_ROW });
+  const parsed = parseLedgerColumns({ mapping: link.mapping, columns, firstDataRow: LEDGER_FIRST_DATA_ROW, rules });
   const snapshotId = nextSnapshotId();
 
   const entries: LedgerEntry[] = [];

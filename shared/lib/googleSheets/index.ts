@@ -36,6 +36,7 @@ export * from './layoutProbe';
 export * from './writeSafety';
 export * from './backfill';
 export * from './holdingsReader';
+export * from './sideTabs';
 export * from './auth';
 export * from './picker';
 export * from './sheetsApi';

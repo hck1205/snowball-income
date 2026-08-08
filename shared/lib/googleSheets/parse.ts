@@ -17,7 +17,7 @@ import type {
   UnreadableRow
 } from './types';
 import { LEDGER_FIXITY_LABEL } from '@/shared/constants/ledger';
-import { classifyLedgerRow, isBackfillable } from '@/shared/lib/ledger';
+import { classifyLedgerRow, isBackfillable, sortRulesBySpecificity } from '@/shared/lib/ledger';
 import type { LedgerClassifyRule } from '@/shared/lib/ledger';
 import { formatKindCell } from './format';
 
@@ -278,8 +278,15 @@ export const parseLedgerColumns = (params: {
   /** 요청한 열 인덱스 → 그 열의 값 배열(첫 원소가 `firstDataRow`). */
   readonly columns: ReadonlyMap<number, readonly string[]>;
   readonly firstDataRow?: number;
+  /**
+   * 사용자 분류 규칙(`분류 규칙` 탭).
+   *
+   * ⚠ **여기서 한 번 정렬**해 매 행마다 다시 정렬하지 않는다 — 500행이면 500번 정렬한다.
+   */
+  readonly rules?: readonly LedgerClassifyRule[];
 }): ParsedColumns => {
   const firstDataRow = params.firstDataRow ?? LEDGER_FIRST_DATA_ROW;
+  const rules = params.rules === undefined ? [] : sortRulesBySpecificity(params.rules);
   const lengths = Array.from(params.columns.values(), (values) => values.length);
   const height = lengths.length === 0 ? 0 : Math.max(...lengths);
 
@@ -288,7 +295,7 @@ export const parseLedgerColumns = (params: {
     const rowNumber = firstDataRow + offset;
     const cells = pickRowCells(params.mapping, (columnIndex) => params.columns.get(columnIndex)?.[offset] ?? '');
     if (isBlankRow(cells)) continue;
-    rows.push(parseLedgerRow(cells, rowNumber));
+    rows.push(parseLedgerRow(cells, rowNumber, rules));
   }
 
   return { rows, lastDataRow: firstDataRow - 1 + height };

@@ -1,5 +1,5 @@
 import type { CommunityOAuthProvider } from '@/shared/lib/supabase';
-import type { LedgerAnalysisModel } from '../utils';
+import type { LedgerAnalysisModel, LedgerPayerScope, LedgerViewTab, LedgerViewTabId } from '../utils';
 import type {
   LedgerAppAuthGate,
   LedgerCarryOverModel,
@@ -18,6 +18,7 @@ import type {
   LedgerRowModel,
   LedgerTabPickerModel
 } from '../types';
+import type { LedgerSideTabState } from '../components';
 
 /**
  * 뷰가 그대로 그리는 화면 모델. **여기 없는 필드는 화면에 없다.**
@@ -35,6 +36,27 @@ export type LedgerViewModel = {
    *  - `isLoggedIn: true`  = 제공자와 무관하게 시트 연결 흐름으로 간다.
    */
   appAuth: LedgerAppAuthGate | null;
+
+  /**
+   * 🔴 **화면 탭 — 시트의 네 입력 탭을 앱에서도 탭으로**(2026-08-08).
+   *
+   * `tabPicker`(사용자 워크시트 고르기)와 **다른 축이다.** 섞지 마라 —
+   *  - `tabPicker` 는 어느 **파일의 어느 워크시트**를 볼지(개수가 열려 있다 · 셀렉트).
+   *  - 이것은 같은 파일 안의 **어느 관심사**를 볼지(넷으로 닫혀 있다 · 가로 탭바).
+   */
+  viewTabs: readonly LedgerViewTab[];
+  selectedViewTab: LedgerViewTabId;
+  /** `entries` 를 보고 있으면 `null`. 그 밖에는 그 탭의 읽기 상태다. */
+  sideTab: LedgerSideTabState | null;
+
+  /**
+   * 주체 목록 — 부부·연인이 한 장부를 나눠 볼 때. **걸러지지 않은** 기록에서 뽑는다.
+   * 🔴 `공동` 은 언제나 마지막이고, 하나의 선택지다(겹치지 않게 나눈다 — `ledgerPayerScope.ts`).
+   */
+  payers: readonly string[];
+  payerScope: LedgerPayerScope;
+  /** 🔴 둘 이상일 때만 컨트롤을 그린다 — 선택지 하나인 필터는 화면의 거짓말이다. */
+  offerPayerScope: boolean;
 
   state: LedgerConnectionState;
   phase: LedgerPhase;
@@ -140,6 +162,13 @@ export type LedgerViewProps = {
   onConfirmMapping: () => void;
   /** 같은 파일의 다른 탭으로. 🔴 막혀 있을 때는 컨트롤이 비활성이라 호출되지 않는다. */
   onSelectTab: (sheetId: number) => void;
+
+  /** 화면 탭 전환. 🔴 `onSelectTab`(워크시트 전환)과 다른 축이다 — 저장 대기열에 영향이 없다. */
+  onSelectViewTab: (id: LedgerViewTabId) => void;
+  /** 주체 범위. `null` = 전체. */
+  onSelectPayerScope: (scope: LedgerPayerScope) => void;
+  /** 옆탭 다시 읽기. 🔴 자동 갱신 대신 **사용자가 정하는** 갱신이다(할당량을 아낀다). */
+  onRetrySideTab: () => void;
 
   /** B-4 배당 겹쳐 보기 토글. 🔴 시트에 아무것도 쓰지 않는다 — 화면 상태와 로컬 취향뿐이다. */
   onToggleDividendOverlay: (isOn: boolean) => void;

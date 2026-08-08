@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { LedgerClassifyRule } from '@/shared/lib/ledger';
 import {
   columnIndexFromLetter,
   columnLetter,
@@ -7,6 +8,7 @@ import {
   getCachedAccessToken,
   loadSheetLinks,
   openSpreadsheetPicker,
+  readClassifyRules,
   readLedgerSnapshot,
   requestAccessToken,
   saveSheetLink,
@@ -242,6 +244,37 @@ export function useLedgerConnection(): LedgerConnection {
     setConnectError(toErrorModel(reason));
   }, []);
 
+  /*
+   * 사용자 분류 규칙(`분류 규칙` 탭) 캐시. 스프레드시트별로 한 번만 읽는다.
+   *
+   * 🔴 **기록을 읽을 때마다 규칙도 다시 읽지 않는다.** 규칙은 사용자가 시트에서 손으로 고치는
+   *    드문 일이고, 매 새로고침마다 요청을 하나 더 보내면 429(할당량)에 그만큼 가까워진다.
+   *    시트에서 규칙을 고친 뒤 앱에 바로 반영하고 싶으면 다시 연결하면 된다.
+   * ⚠ 규칙 읽기가 실패해도 **기록 읽기를 무르지 않는다.** 규칙이 없으면 사다리 1단만 빠지고
+   *   나머지(내장 사전·미분류)는 그대로 동작한다 — 분류가 조금 덜 채워지는 것과 화면이 안 뜨는
+   *   것은 비교할 수 없다.
+   */
+  const rulesBySpreadsheetRef = useRef<Map<string, readonly LedgerClassifyRule[]>>(new Map());
+
+  const ensureRules = useCallback(
+    async (
+      context: SheetsRequestContext,
+      target: SheetLink
+    ): Promise<readonly LedgerClassifyRule[]> => {
+      /* 앱이 만든 시트가 아니면 그 탭이 아예 없다 — 부르지 않는 것이 정상이다. */
+      if (!target.createdByApp) return [];
+
+      const cached = rulesBySpreadsheetRef.current.get(target.spreadsheetId);
+      if (cached !== undefined) return cached;
+
+      const read = await readClassifyRules(context, target.spreadsheetId);
+      const rules = read.ok ? read.value.records : [];
+      rulesBySpreadsheetRef.current.set(target.spreadsheetId, rules);
+      return rules;
+    },
+    []
+  );
+
   const loadSnapshot = useCallback(
     async (target: SheetLink, options: { first: boolean }): Promise<boolean> => {
       const context = readContext();
@@ -253,7 +286,9 @@ export function useLedgerConnection(): LedgerConnection {
       if (options.first) setIsFirstLoad(true);
       else setIsRefetching(true);
 
-      const result = await readLedgerSnapshot(context, target);
+      /* 🔴 규칙을 **먼저** 읽는다 — 없으면 사용자가 만들어 둔 규칙이 무시되고 미분류가 잔뜩 나온다. */
+      const rules = await ensureRules(context, target);
+      const result = await readLedgerSnapshot(context, target, rules);
       if (!isMountedRef.current) return false;
 
       setIsFirstLoad(false);
@@ -270,7 +305,7 @@ export function useLedgerConnection(): LedgerConnection {
       setConnectError(null);
       return true;
     },
-    [applyError, readContext]
+    [applyError, ensureRules, readContext]
   );
 
   /**

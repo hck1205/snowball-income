@@ -9,16 +9,26 @@ import {
   useLedgerConnection,
   useLedgerFreshness,
   useLedgerMonth,
+  useLedgerSideTabs,
   useLedgerWrite,
   useRetryCountdown
 } from '../hooks';
 import type { LedgerDividendModel, LedgerRowModel, LedgerTabPickerModel } from '../types';
 import {
+  DEFAULT_LEDGER_VIEW_TAB,
+  LEDGER_PAYER_SCOPE_ALL,
   buildLedgerDividendModel,
+  buildLedgerViewTabs,
   buildSheetUrl,
+  collectPayers,
+  filterByPayerScope,
   readLedgerDividendOverlay,
+  resolveLedgerViewTab,
+  resolvePayerScope,
+  shouldOfferPayerScope,
   writeLedgerDividendOverlay
 } from '../utils';
+import type { LedgerPayerScope, LedgerViewTabId } from '../utils';
 import LedgerPageView from './LedgerPage.view';
 import type { LedgerPageProps, LedgerViewModel } from './LedgerPage.types';
 
@@ -71,7 +81,53 @@ function LedgerContent({ now: nowProp }: LedgerPageProps) {
   const appAuth = useLedgerAppAuth();
 
   const connection = useLedgerConnection();
-  const month = useLedgerMonth(connection.snapshot, now);
+
+  /**
+   * 화면 탭 — 시트의 네 입력 탭을 앱에서도 탭으로(2026-08-08).
+   *
+   * 🔴 `connection.switchTab`(사용자 워크시트 전환)과 **다른 축**이다. 섞지 마라 —
+   *    이건 같은 파일 안의 관심사 전환이라 저장 대기열·행 참조에 아무 영향이 없다
+   *    (탭 전환 가드 `tabSwitchBlocked` 가 여기엔 필요 없는 이유).
+   */
+  const [viewTab, setViewTab] = useState<LedgerViewTabId>(DEFAULT_LEDGER_VIEW_TAB);
+  const viewTabs = useMemo(
+    () => buildLedgerViewTabs(connection.link?.createdByApp ?? false),
+    [connection.link?.createdByApp]
+  );
+  /* 🔴 쓸 수 없는 탭을 고르고 있으면 되돌린다 — 안 그러면 빈 화면이 나온다. */
+  const selectedViewTab = resolveLedgerViewTab(viewTab, viewTabs);
+
+  /**
+   * 주체 범위 — 부부·연인이 한 장부를 나눠 볼 때.
+   *
+   * 🔴 **기록 단계에서 걸러야 한다.** 표만 걸러 요약을 그대로 두면 두 숫자가 어긋나고,
+   *    사용자는 어느 쪽이 진짜인지 물어야 한다. 그래서 스냅샷의 `entries` 를 걸러 `useLedgerMonth`
+   *    에 넣는다 — 요약·분석·표가 모두 같은 집합을 본다.
+   *
+   * ⚠ 범위를 좁히면 그 사람의 것이 아닌 행은 화면에서 사라진다. 저장 실패 표시도 함께 사라질 수
+   *   있는데, 이는 **월 이동과 같은 성질**이다(달을 넘겨도 실패 행이 화면에서 빠진다) —
+   *   사용자가 명시적으로 한 이동이고, 범위를 전체로 되돌리면 다시 보인다.
+   *   append 실패(`partialFailure`)는 범위와 무관한 별개 표면이라 계속 남는다.
+   */
+  const [payerScope, setPayerScope] = useState<LedgerPayerScope>(LEDGER_PAYER_SCOPE_ALL);
+
+  /* 🔴 주체 목록은 **걸러지지 않은** 기록에서 뽑는다 — 한 사람을 고르면 나머지가 목록에서 사라진다. */
+  const payers = useMemo(
+    () => (connection.snapshot === null ? [] : collectPayers(connection.snapshot.entries)),
+    [connection.snapshot]
+  );
+  /* 고른 사람이 이 달에 없으면 전체로 되돌린다(빈 목록이 "기록이 사라진 것"처럼 보이지 않게). */
+  const effectivePayerScope = resolvePayerScope(payerScope, payers);
+
+  const scopedSnapshot = useMemo(() => {
+    if (connection.snapshot === null || effectivePayerScope === null) return connection.snapshot;
+    return {
+      ...connection.snapshot,
+      entries: filterByPayerScope(connection.snapshot.entries, effectivePayerScope)
+    };
+  }, [connection.snapshot, effectivePayerScope]);
+
+  const month = useLedgerMonth(scopedSnapshot, now);
   const countdown = useRetryCountdown();
   const write = useLedgerWrite({
     connection,
@@ -286,8 +342,39 @@ function LedgerContent({ now: nowProp }: LedgerPageProps) {
     });
   }, [month.rows, write.rowFailures]);
 
+  /**
+   * 옆탭 읽기 — 고른 탭만, 한 번만. 🔴 셋을 미리 다 읽으면 할당량을 안 볼 표에 쓴다
+   * (근거 전문: `useLedgerSideTabs` 머리말).
+   */
+  const sideTabs = useLedgerSideTabs({
+    spreadsheetId: connection.link?.spreadsheetId ?? null,
+    createdByApp: connection.link?.createdByApp ?? false,
+    readContext: connection.readContext,
+    onError: connection.applyError
+  });
+
+  const handleSelectViewTab = useCallback(
+    (id: LedgerViewTabId) => {
+      setViewTab(id);
+      if (id !== 'entries') void sideTabs.load(id);
+    },
+    [sideTabs]
+  );
+
+  const handleRetrySideTab = useCallback(() => {
+    if (selectedViewTab === 'entries') return;
+    void sideTabs.load(selectedViewTab, { force: true });
+  }, [selectedViewTab, sideTabs]);
+
   const viewModel: LedgerViewModel = {
     appAuth: appAuth.gate,
+
+    viewTabs,
+    selectedViewTab,
+    sideTab: selectedViewTab === 'entries' ? null : sideTabs.byTab[selectedViewTab],
+    payers,
+    payerScope: effectivePayerScope,
+    offerPayerScope: shouldOfferPayerScope(payers),
 
     state: connection.state,
     phase: connection.phase,
@@ -341,6 +428,9 @@ function LedgerContent({ now: nowProp }: LedgerPageProps) {
       onMappingChange={connection.changeMapping}
       onConfirmMapping={connection.confirmMapping}
       onSelectTab={connection.switchTab}
+      onSelectViewTab={handleSelectViewTab}
+      onSelectPayerScope={setPayerScope}
+      onRetrySideTab={handleRetrySideTab}
       onToggleDividendOverlay={handleToggleDividendOverlay}
       onPrevMonth={handlePrevMonth}
       onNextMonth={handleNextMonth}

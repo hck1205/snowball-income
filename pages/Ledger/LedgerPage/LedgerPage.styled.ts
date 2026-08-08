@@ -543,3 +543,22 @@ export const CarryOverAmount = styled.span`
   color: ${color.text};
   font-variant-numeric: tabular-nums;
 `;
+
+/**
+ * 주체 범위 줄 — "누구의 것을 볼까요".
+ *
+ * 🔴 라벨을 컨트롤 **위**에 둔다. 이 줄은 280px 짜리 범위 레일 안에 살고, 가로 배치에서는
+ *    셀렉트가 눌려 사람 이름이 잘린다(형제 `LedgerTabPicker` 가 2026-08-03 에 실측한 사고).
+ */
+export const PayerScopeRow = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${space[1]};
+  min-width: 0;
+`;
+
+export const PayerScopeLabel = styled.label`
+  font-size: ${font.size.sm};
+  font-weight: ${font.weight.medium};
+  color: ${color.textMuted};
+`;

@@ -95,3 +95,43 @@ export type {
 /* 고정비 이어가기 — 지난달 고정비를 이번 달 초안으로. 🔴 제안만 만들고 쓰기는 호출부가 한다. */
 export { collectCarryOverCandidates } from './ledgerCarryOver';
 export type { CarryOverCandidate } from './ledgerCarryOver';
+
+/* ── 화면 탭 · 주체 범위 (2026-08-08) ─────────────────────────────────────────
+ * 시트의 네 입력 탭을 앱에서도 탭으로 보여 준다. 🔴 `LedgerTabPicker`(사용자 워크시트 고르기)와
+ * 다른 것이다 — 개수가 넷으로 닫혀 있어 가로 탭바가 허용되는 자리다(근거는 ledgerViewTabs 머리말).
+ * ⚠ 위 "블렌딩 제거" 주석과 어긋나지 않는다: 탭을 **전환**할 뿐, 탭을 넘어 합계를 내지 않는다. */
+export {
+  DEFAULT_LEDGER_VIEW_TAB,
+  LEDGER_VIEW_TAB_IDS,
+  LEDGER_VIEW_TAB_SHEET_TITLE,
+  buildLedgerViewTabs,
+  resolveLedgerViewTab
+} from './ledgerViewTabs';
+export type { LedgerViewTab, LedgerViewTabId } from './ledgerViewTabs';
+
+/* 주체 범위 — 부부·연인이 한 장부를 나눠 볼 때. 🔴 겹치지 않게 나눈다(합이 맞아야 한다). */
+export {
+  LEDGER_PAYER_SCOPE_ALL,
+  collectPayers,
+  filterByPayerScope,
+  resolvePayerScope,
+  shouldOfferPayerScope
+} from './ledgerPayerScope';
+export type { LedgerPayerScope } from './ledgerPayerScope';
+
+/* 옆탭 뷰 모델 — 자산·투자·분류 규칙. 표시 규칙은 여기가 진다(컴포넌트가 계산하지 않는다). */
+export {
+  NET_WORTH_TREND_LIMIT,
+  buildHoldingsModel,
+  buildInvestmentsModel,
+  buildRulesModel
+} from './ledgerSideTabModel';
+export type {
+  HoldingRow,
+  HoldingsModel,
+  InvestmentRow,
+  InvestmentsModel,
+  NetWorthPoint,
+  RuleRow,
+  RulesModel
+} from './ledgerSideTabModel';

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useId, useRef } from 'react';
 import { ArrowDownToLine, ArrowUpFromLine, CalendarOff, Plus, ReceiptText, RefreshCw, RotateCw } from 'lucide-react';
-import { Banner, Button, Card, HintText, MODAL_EXIT_MS, PageFooter, PageHero } from '@/components/common';
+import { Banner, Button, Card, HintText, MODAL_EXIT_MS, PageFooter, PageHero, Select } from '@/components/common';
 import { useOverlayPresence } from '@/shared/hooks';
 import { LEDGER_COPY } from '../copy';
 import {
@@ -10,6 +10,8 @@ import {
   LedgerFailureList,
   LedgerFormModal,
   LedgerMappingCard,
+  LedgerSideTabPanel,
+  LedgerViewTabs,
   LedgerMonthNav,
   LedgerRemoveDialog,
   LedgerSignInPanel,
@@ -47,6 +49,8 @@ import {
   LiveRegion,
   PageStack,
   ReadAtText,
+  PayerScopeLabel,
+  PayerScopeRow,
   ScopePanel,
   ScopeRail,
   SkeletonBar,
@@ -150,6 +154,9 @@ export default function LedgerPageView({
   onMappingChange,
   onConfirmMapping,
   onSelectTab,
+  onSelectViewTab,
+  onSelectPayerScope,
+  onRetrySideTab,
   onToggleDividendOverlay,
   onPrevMonth,
   onNextMonth,
@@ -178,6 +185,7 @@ export default function LedgerPageView({
   const connectHeadingId = `${idPrefix}-connect`;
   const signInHeadingId = `${idPrefix}-signin`;
   const monthTitleId = `${idPrefix}-month`;
+  const payerScopeId = `${idPrefix}-payer-scope`;
   const listTitleId = `${idPrefix}-list`;
   /* 429 로 새로고침이 막혔을 때의 사유 줄 — 비활성 버튼이 이것을 가리킨다(무음 비활성 금지). */
   const refreshHintId = `${idPrefix}-refresh`;
@@ -485,7 +493,30 @@ export default function LedgerPageView({
         />
       ) : null}
 
+      {/*
+        🔴 **화면 탭바 — 작업면 전체보다 위**다. 이 컨트롤이 "아래에 무엇이 보이는가"를 정하므로
+           작업면 안에 넣으면 자기가 만드는 것 안에 사는 모양이 된다.
+        ⚠ `tabPicker`(어느 워크시트인가)는 아래 `ScopePanel` 에 그대로 남는다 — **다른 축**이다.
+           둘을 한 줄에 합치면 "탭을 넘기면 파일도 바뀌나"라는 오해가 생긴다.
+      */}
       {isConnected ? (
+        <LedgerViewTabs
+          tabs={viewModel.viewTabs}
+          selected={viewModel.selectedViewTab}
+          onSelect={onSelectViewTab}
+        />
+      ) : null}
+
+      {isConnected && viewModel.selectedViewTab !== 'entries' && viewModel.sideTab ? (
+        <LedgerSideTabPanel
+          tab={viewModel.selectedViewTab}
+          state={viewModel.sideTab}
+          sheetUrl={viewModel.sheetUrl ?? undefined}
+          onRetry={onRetrySideTab}
+        />
+      ) : null}
+
+      {isConnected && viewModel.selectedViewTab === 'entries' ? (
         <Workspace>
           <ScopeRail>
             {/*
@@ -502,6 +533,32 @@ export default function LedgerPageView({
             <ScopePanel>
               {viewModel.tabPicker ? (
                 <LedgerTabPicker model={viewModel.tabPicker} onSelectTab={onSelectTab} />
+              ) : null}
+
+              {/*
+                🔴 **주체 범위** — 부부·연인이 한 장부를 나눠 볼 때. 둘 이상일 때만 그린다
+                   (선택지 하나인 필터는 화면의 거짓말이다).
+                🔴 `공동` 은 하나의 선택지다 — 사람별 합의 총합이 전체와 정확히 같아야 하므로
+                   겹치지 않게 나눈다(근거: `ledgerPayerScope.ts`).
+              */}
+              {viewModel.offerPayerScope ? (
+                <PayerScopeRow>
+                  <PayerScopeLabel htmlFor={payerScopeId}>누구의 것을 볼지</PayerScopeLabel>
+                  <Select
+                    id={payerScopeId}
+                    value={viewModel.payerScope ?? ''}
+                    onChange={(event) =>
+                      onSelectPayerScope(event.target.value.length === 0 ? null : event.target.value)
+                    }
+                  >
+                    <option value="">전체</option>
+                    {viewModel.payers.map((payer) => (
+                      <option key={payer} value={payer}>
+                        {payer}
+                      </option>
+                    ))}
+                  </Select>
+                </PayerScopeRow>
               ) : null}
 
               <LedgerMonthNav
