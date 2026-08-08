@@ -6,8 +6,14 @@ import { getChartTheme } from '@/shared/styles';
 import {
   buildInsights,
   buildKpis,
+  categoryRadar,
+  categorySunburst,
   categoryTrend,
   cumulativeNet,
+  dailySpending,
+  monthWaterfall,
+  sankeyFlow,
+  spendingYears,
   expenseByCategory,
   expenseByMethod,
   fixityTrend,
@@ -44,15 +50,22 @@ import {
   SectionTitle
 } from './LedgerReportPanel.styled';
 import {
+  calendarOption,
   categoryTrendOption,
   cumulativeOption,
   donutOption,
   fixityOption,
+  fixityRatioOption,
   holdingTrendOption,
   horizontalBarOption,
   monthlyFlowOption,
-  netWorthOption,
+  netWorthStepOption,
   payerOption,
+  radarOption,
+  sankeyOption,
+  savingGaugeOption,
+  sunburstOption,
+  waterfallOption,
   weekdayOption
 } from './LedgerReportPanel.utils';
 
@@ -137,6 +150,22 @@ export default function LedgerReportPanel({
     return found.has(LEDGER_PAYER_SHARED) ? [...named, LEDGER_PAYER_SHARED] : named;
   }, [payerPoints]);
 
+  const sankey = useMemo(() => sankeyFlow(entries, latestMonth ?? undefined), [entries, latestMonth]);
+  const daily = useMemo(() => dailySpending(entries), [entries]);
+  const years = useMemo(() => spendingYears(daily), [daily]);
+  const sunburst = useMemo(
+    () => (latestMonth === null ? [] : categorySunburst(entries, latestMonth)),
+    [entries, latestMonth]
+  );
+  const waterfall = useMemo(
+    () => (latestMonth === null ? [] : monthWaterfall(entries, latestMonth)),
+    [entries, latestMonth]
+  );
+  const radar = useMemo(() => categoryRadar(entries), [entries]);
+
+  /* 게이지에 쓸 최근 달 저축률. 🔴 잴 수 없으면 그리지 않는다. */
+  const savingRate = flows.at(-1)?.savingRate ?? null;
+
   const kpis = useMemo(() => buildKpis({ flows, fixity, netWorth }), [fixity, flows, netWorth]);
   const insights = useMemo(() => buildInsights({ flows, fixity, netWorth }), [fixity, flows, netWorth]);
 
@@ -180,6 +209,25 @@ export default function LedgerReportPanel({
         <Section>
           <SectionTitle>현금흐름</SectionTitle>
 
+          {/*
+            🔴 **이 화면에서 가장 많은 것을 한 번에 말하는 그림.** 파이는 지출 안의 비율만,
+               막대는 달별 크기만 보여 주는데 흐름도는 번 돈이 어떻게 쪼개졌나를 통째로 보여 준다.
+          */}
+          {sankey.links.length > 0 ? (
+            <ChartBlock>
+              <ChartTitle>
+                {latestMonth === null ? '돈이 어디로 갔나' : monthLabel(latestMonth) + ' 돈이 어디로 갔나'}
+              </ChartTitle>
+              <ChartNote>
+                {'왼쪽이 들어온 곳, 오른쪽이 나간 곳입니다. 저축·투자로 옮긴 돈도 한 갈래로 세웁니다.'}
+                {sankey.overspent > 0 ? ' 이 달은 번 것보다 ' + KRW(sankey.overspent) + '을 더 썼습니다.' : ''}
+              </ChartNote>
+              <ChartArea $tall>
+                <ResponsiveEChart option={sankeyOption(sankey, theme)} />
+              </ChartArea>
+            </ChartBlock>
+          ) : null}
+
           <ChartBlock>
             <ChartTitle>달마다의 수입·지출과 저축률</ChartTitle>
             <ChartNote>
@@ -190,6 +238,34 @@ export default function LedgerReportPanel({
               <ResponsiveEChart option={monthlyFlowOption(flows, theme)} />
             </ChartArea>
           </ChartBlock>
+
+          <ReportRow>
+            {waterfall.length > 0 ? (
+              <ChartBlock>
+                <ChartTitle>
+                  {latestMonth === null ? '무엇이 깎아 갔나' : monthLabel(latestMonth) + ' 무엇이 깎아 갔나'}
+                </ChartTitle>
+                <ChartNote>
+                  {'수입에서 시작해 항목마다 깎이고 무엇이 남았는지 보여 줍니다.'}
+                </ChartNote>
+                <ChartArea>
+                  <ResponsiveEChart option={waterfallOption(waterfall, theme)} />
+                </ChartArea>
+              </ChartBlock>
+            ) : null}
+
+            {savingRate === null ? null : (
+              <ChartBlock>
+                <ChartTitle>최근 달 저축률</ChartTitle>
+                <ChartNote>
+                  {'눈금에 좋고 나쁨을 칠하지 않았습니다 — 적정 저축률은 사람마다 다릅니다.'}
+                </ChartNote>
+                <ChartArea>
+                  <ResponsiveEChart option={savingGaugeOption(savingRate, theme)} />
+                </ChartArea>
+              </ChartBlock>
+            )}
+          </ReportRow>
 
           <ReportRow>
             <ChartBlock>
@@ -212,6 +288,20 @@ export default function LedgerReportPanel({
               </ChartArea>
             </ChartBlock>
           </ReportRow>
+
+          {/*
+            🔴 위 그림은 **금액**, 이 그림은 **비중**이다. 금액만 보면 총액이 커졌을 때 고정비도
+               커 보이는데, 비중을 따로 보면 씀씀이가 커진 것과 고정비가 늘어난 것이 갈린다.
+          */}
+          <ChartBlock>
+            <ChartTitle>고정비가 차지하는 몫</ChartTitle>
+            <ChartNote>
+              {'달마다 지출을 100으로 놓고 비중만 본 그림입니다. 지출이 없던 달은 뺐습니다.'}
+            </ChartNote>
+            <ChartArea>
+              <ResponsiveEChart option={fixityRatioOption(fixity, theme)} />
+            </ChartArea>
+          </ChartBlock>
         </Section>
 
         <Section>
@@ -220,9 +310,18 @@ export default function LedgerReportPanel({
           <ReportRow>
             <ChartBlock>
               <ChartTitle>{latestMonth === null ? '지출 구성' : `${monthLabel(latestMonth)} 지출은 어디로 갔나`}</ChartTitle>
-              <ChartNote>기록이 있는 가장 최근 달 기준입니다.</ChartNote>
+              {/*
+                🔴 **도넛이 아니라 선버스트**다. 도넛은 한 층만 말해서 식비가 크다는 것까지는 알아도
+                   그 안에서 무엇이 컸는지는 못 본다 — 시트가 이미 두 층을 갖고 있다.
+                ⚠ 상세항목이 하나도 없으면 선버스트가 도넛과 같아지므로 그때는 도넛으로 떨어진다.
+              */}
+              <ChartNote>안쪽이 항목, 바깥이 상세항목입니다. 바깥 이름은 짚으면 나옵니다.</ChartNote>
               <ChartArea>
-                <ResponsiveEChart option={donutOption(categorySlices, theme)} />
+                <ResponsiveEChart
+                  option={
+                    sunburst.length > 0 ? sunburstOption(sunburst, theme) : donutOption(categorySlices, theme)
+                  }
+                />
               </ChartArea>
             </ChartBlock>
 
@@ -236,6 +335,29 @@ export default function LedgerReportPanel({
               </ChartArea>
             </ChartBlock>
           </ReportRow>
+
+          {radar.length > 0 ? (
+            <ChartBlock>
+              <ChartTitle>이번 달은 평소와 어떻게 달랐나</ChartTitle>
+              <ChartNote>
+                {'실선이 최근 달, 점선이 그 이전 달들의 평균입니다. 평균은 그 항목에 지출이 있던 달로만 냅니다.'}
+              </ChartNote>
+              <ChartArea>
+                <ResponsiveEChart option={radarOption(radar, theme)} />
+              </ChartArea>
+            </ChartBlock>
+          ) : null}
+
+          {/* 🔴 기록이 있는 날만 칠한다 — 안 쓴 날과 안 적은 날을 같게 칠하면 뜻이 사라진다. */}
+          {years.map((year) => (
+            <ChartBlock key={year}>
+              <ChartTitle>{year + '년 지출 달력'}</ChartTitle>
+              <ChartNote>진할수록 그날 많이 썼다는 뜻입니다. 기록이 없는 날은 비어 있습니다.</ChartNote>
+              <ChartArea>
+                <ResponsiveEChart option={calendarOption(year, daily, theme)} />
+              </ChartArea>
+            </ChartBlock>
+          ))}
 
           <ReportRow>
             <ChartBlock>
@@ -291,10 +413,11 @@ export default function LedgerReportPanel({
                 <ChartBlock>
                   <ChartTitle>순자산은 어떻게 움직였나</ChartTitle>
                   <ChartNote>
-                    {'자산에서 부채를 뺀 값입니다. 잔액을 적지 않은 달은 점이 없습니다 — 0원과 다릅니다.'}
+                    {'자산에서 부채를 뺀 값입니다. 계단인 것은 잰 날의 값만 알기 때문입니다 — '}
+                    {'스냅샷 사이를 매끈하게 이으면 재지 않은 것을 잰 척하는 것이 됩니다.'}
                   </ChartNote>
                   <ChartArea>
-                    <ResponsiveEChart option={netWorthOption(netWorth, theme)} />
+                    <ResponsiveEChart option={netWorthStepOption(netWorth, theme)} />
                   </ChartArea>
                 </ChartBlock>
 

@@ -457,3 +457,405 @@ export const holdingTrendOption = (
     itemStyle: { color: theme.series[index % theme.series.length] }
   }))
 });
+
+/* ── ⑪ 돈의 흐름 (생키) ──────────────────────────────────────────────────────── */
+
+/**
+ * 수입원 → 들어온 돈 → 지출·저축·남은 돈.
+ *
+ * 🔴 이 화면에서 가장 많은 것을 한 번에 말하는 그림이다 — 파이는 지출 안의 비율만, 막대는 달별
+ *    크기만 보여 주는데 흐름도는 **번 돈이 어떻게 쪼개졌나**를 통째로 보여 준다.
+ * ⚠ 마디 라벨을 왼쪽·오른쪽으로 갈라 놓는다. 전부 오른쪽이면 마지막 열의 글자가 캔버스 밖으로 나간다.
+ */
+export const sankeyOption = (
+  data: { readonly nodes: readonly { readonly name: string }[]; readonly links: readonly { readonly source: string; readonly target: string; readonly value: number }[] },
+  theme: ChartTheme
+): EChartsOption => ({
+  tooltip: {
+    ...buildTooltipStyle(theme),
+    trigger: 'item',
+    triggerOn: 'mousemove',
+    valueFormatter: (value) => KRW(Number(value))
+  },
+  series: [
+    {
+      type: 'sankey',
+      left: 8,
+      right: 96,
+      top: 12,
+      bottom: 12,
+      data: data.nodes.map((node) => ({ name: node.name })),
+      links: data.links.map((link) => ({ ...link })),
+      emphasis: { focus: 'adjacency' },
+      /* 곡선이 완만해야 여러 갈래가 겹쳐도 따라갈 수 있다. */
+      lineStyle: { color: 'gradient', curveness: 0.45, opacity: 0.35 },
+      label: { color: theme.label, fontSize: theme.labelFontSize },
+      itemStyle: { borderWidth: 0 },
+      color: theme.series
+    }
+  ]
+});
+
+/* ── ⑫ 일별 지출 (캘린더 히트맵) ─────────────────────────────────────────────── */
+
+/**
+ * 한 해의 지출 리듬.
+ *
+ * 🔴 **기록이 있는 날만 칠한다.** 안 쓴 날과 안 적은 날을 0 으로 같게 칠하면 달력이 온통 한 색이
+ *    되어 실제로 안 쓴 날의 뜻이 사라진다(집계 쪽 `dailySpending` 이 이미 그렇게 준다).
+ * ⚠ 색 눈금(`visualMap`)을 반드시 보여 준다 — 색 진하기가 유일한 채널인 그림이라, 눈금이 없으면
+ *   "진한 게 얼마인지"를 알 방법이 없다.
+ */
+export const calendarOption = (
+  year: string,
+  daily: readonly { readonly date: string; readonly amount: number }[],
+  theme: ChartTheme
+): EChartsOption => {
+  const rows = daily.filter((point) => point.date.startsWith(year));
+  const max = rows.reduce((most, point) => Math.max(most, point.amount), 0);
+
+  return {
+    tooltip: {
+      ...buildTooltipStyle(theme),
+      formatter: (params: unknown) => {
+        const point = params as { value: [string, number] };
+        return `${point.value[0]}<br/>${KRW(point.value[1])}`;
+      }
+    },
+    visualMap: {
+      min: 0,
+      max: max || 1,
+      calculable: false,
+      orient: 'horizontal',
+      left: 'center',
+      bottom: 0,
+      itemWidth: 12,
+      itemHeight: 90,
+      textStyle: { color: theme.label, fontSize: theme.labelFontSize },
+      formatter: (value: unknown) => shortKRW(Number(value)),
+      inRange: { color: [hexToRgba(theme.series[0], 0.12), theme.series[0]] }
+    },
+    calendar: {
+      top: 24,
+      left: 32,
+      right: 16,
+      cellSize: ['auto', 14],
+      range: year,
+      itemStyle: { color: 'transparent', borderColor: theme.splitLine, borderWidth: 1 },
+      splitLine: { show: false },
+      yearLabel: { show: false },
+      monthLabel: { color: theme.label, fontSize: theme.labelFontSize },
+      dayLabel: { color: theme.label, fontSize: theme.labelFontSize, firstDay: 1 }
+    },
+    series: [
+      {
+        type: 'heatmap',
+        coordinateSystem: 'calendar',
+        data: rows.map((point) => [point.date, point.amount])
+      }
+    ]
+  };
+};
+
+/* ── ⑬ 항목 → 상세항목 (선버스트) ───────────────────────────────────────────── */
+
+/**
+ * 두 층 구성.
+ *
+ * 🔴 도넛은 한 층만 말한다 — `식비` 가 크다는 것까지는 알아도 그 안에서 무엇이 컸는지는 못 본다.
+ *    시트가 이미 두 층을 갖고 있으므로 버릴 이유가 없다.
+ * ⚠ 안쪽 고리에만 이름을 쓴다. 바깥까지 쓰면 좁은 폭에서 글자가 서로를 덮는다 — 바깥은 툴팁이 말한다.
+ */
+export const sunburstOption = (
+  nodes: readonly { readonly name: string; readonly value: number; readonly children?: readonly { readonly name: string; readonly value: number }[] }[],
+  theme: ChartTheme
+): EChartsOption => ({
+  tooltip: { ...buildTooltipStyle(theme), trigger: 'item', valueFormatter: (value) => KRW(Number(value)) },
+  series: [
+    {
+      type: 'sunburst',
+      radius: ['18%', '90%'],
+      center: ['50%', '50%'],
+      sort: undefined,
+      data: nodes.map((node) => ({
+        name: node.name,
+        value: node.value,
+        children: node.children?.map((child) => ({ name: child.name, value: child.value }))
+      })),
+      levels: [
+        {},
+        {
+          r0: '18%',
+          r: '52%',
+          label: { rotate: 'tangential', color: theme.label, fontSize: theme.labelFontSize, minAngle: 18 },
+          itemStyle: { borderWidth: 2, borderColor: theme.sliceBorder }
+        },
+        {
+          r0: '52%',
+          r: '90%',
+          /* 🔴 바깥 고리는 글자를 쓰지 않는다 — 좁은 폭에서 서로를 덮는다. 툴팁이 이름을 진다. */
+          label: { show: false },
+          itemStyle: { borderWidth: 1, borderColor: theme.sliceBorder, opacity: 0.75 }
+        }
+      ],
+      color: theme.series
+    }
+  ]
+});
+
+/* ── ⑭ 폭포 (한 달의 수입 → 지출 → 남은 돈) ─────────────────────────────────── */
+
+/**
+ * 수입에서 시작해 항목마다 깎이고 무엇이 남았는지.
+ *
+ * 🔴 **투명 받침 + 실제 막대** 두 계열로 만든다(ECharts 의 폭포 관용구). 받침은 툴팁·범례에서
+ *    빠져야 한다 — 안 빼면 "받침"이라는 없는 항목이 사용자에게 보인다.
+ * ⚠ 남은 돈이 음수인 달은 받침이 0 이고 막대만 선다. 그 사실은 화면의 문장이 말한다.
+ */
+export const waterfallOption = (
+  steps: readonly { readonly label: string; readonly base: number; readonly size: number; readonly direction: 'up' | 'down' | 'total'; readonly value: number }[],
+  theme: ChartTheme
+): EChartsOption => ({
+  grid: { ...baseGrid, top: 24 },
+  tooltip: {
+    ...buildTooltipStyle(theme),
+    trigger: 'axis',
+    axisPointer: { type: 'shadow' },
+    formatter: (params: unknown) => {
+      const list = params as { dataIndex: number }[];
+      const step = steps[list[0]?.dataIndex ?? 0];
+      if (!step) return '';
+      const sign = step.value < 0 ? '−' : '';
+      return `${step.label}<br/>${sign}${KRW(Math.abs(step.value))}`;
+    }
+  },
+  xAxis: {
+    ...buildAxisStyle(theme),
+    type: 'category',
+    data: steps.map((step) => step.label),
+    axisLabel: { ...buildAxisStyle(theme).axisLabel, interval: 0, rotate: steps.length > 5 ? 30 : 0 }
+  },
+  yAxis: {
+    ...buildAxisStyle(theme),
+    type: 'value',
+    axisLabel: { ...buildAxisStyle(theme).axisLabel, formatter: (value: number) => shortKRW(value) },
+    splitLine: { lineStyle: { color: theme.splitLine } }
+  },
+  series: [
+    {
+      /* 🔴 투명 받침 — 툴팁·범례에서 빠진다. */
+      name: '받침',
+      type: 'bar',
+      stack: 'waterfall',
+      silent: true,
+      itemStyle: { color: 'transparent' },
+      emphasis: { itemStyle: { color: 'transparent' } },
+      tooltip: { show: false },
+      data: steps.map((step) => step.base)
+    },
+    {
+      name: '금액',
+      type: 'bar',
+      stack: 'waterfall',
+      data: steps.map((step) => ({
+        value: step.size,
+        itemStyle: {
+          color:
+            step.direction === 'up'
+              ? theme.series[0]
+              : step.direction === 'total'
+                ? theme.series[2]
+                : theme.series[1],
+          borderRadius: [4, 4, 0, 0]
+        }
+      }))
+    }
+  ]
+});
+
+/* ── ⑮ 레이더 (이번 달 vs 평소) ─────────────────────────────────────────────── */
+
+/**
+ * 어느 축이 튀었나.
+ *
+ * 🔴 추이 그래프는 항목별로 따로 봐야 하는데 레이더는 **한 그림에서 튀는 축**을 찾게 해 준다.
+ * ⚠ 두 겹을 다 채우면 아래 겹이 안 보인다 — 이번 달만 옅게 채우고 평소는 선으로 둔다.
+ */
+export const radarOption = (
+  axes: readonly { readonly label: string; readonly max: number; readonly latest: number; readonly average: number }[],
+  theme: ChartTheme
+): EChartsOption => ({
+  tooltip: { ...buildTooltipStyle(theme), valueFormatter: (value) => KRW(Number(value)) },
+  legend: { ...buildLegendStyle(theme), top: 0, data: ['이번 달', '평소'] },
+  radar: {
+    center: ['50%', '56%'],
+    radius: '62%',
+    indicator: axes.map((axis) => ({ name: axis.label, max: axis.max })),
+    axisName: { color: theme.label, fontSize: theme.labelFontSize },
+    splitLine: { lineStyle: { color: theme.splitLine } },
+    splitArea: { show: false },
+    axisLine: { lineStyle: { color: theme.splitLine } }
+  },
+  series: [
+    {
+      type: 'radar',
+      data: [
+        {
+          name: '이번 달',
+          value: axes.map((axis) => Math.round(axis.latest)),
+          lineStyle: { color: theme.series[0], width: 2 },
+          itemStyle: { color: theme.series[0] },
+          areaStyle: { color: hexToRgba(theme.series[0], 0.22) }
+        },
+        {
+          name: '평소',
+          value: axes.map((axis) => Math.round(axis.average)),
+          lineStyle: { color: theme.series[3], width: 2, type: 'dashed' },
+          itemStyle: { color: theme.series[3] },
+          /* 🔴 평소는 채우지 않는다 — 두 겹을 다 채우면 아래가 안 보인다. */
+          areaStyle: undefined
+        }
+      ]
+    }
+  ]
+});
+
+/* ── ⑯ 고정비 비중 (100% 비율 막대) ─────────────────────────────────────────── */
+
+/**
+ * 지출을 100 으로 놓고 고정비가 차지하는 몫.
+ *
+ * 🔴 절대 금액 쌓기(`fixityOption`)는 **총액이 커지면 비중이 그대로여도 커 보인다.** 이 그림은
+ *    총액을 지우고 **비중만** 남겨, 씀씀이가 커진 것과 고정비가 늘어난 것을 갈라 준다.
+ * ⚠ 지출이 없던 달은 비중이 없다 — 그 달은 아예 뺀다(0% 로 그리면 "고정비가 없다"로 읽힌다).
+ */
+export const fixityRatioOption = (
+  trend: readonly ReportFixitySplit[],
+  theme: ChartTheme
+): EChartsOption => {
+  const shown = trend.filter((point) => point.fixedRatio !== null);
+  return {
+    grid: legendGrid,
+    tooltip: {
+      ...buildTooltipStyle(theme),
+      trigger: 'axis',
+      valueFormatter: (value) => `${Math.round(Number(value) * 100)}%`
+    },
+    legend: { ...topLegend(theme), data: ['고정비', '변동비'] },
+    xAxis: { ...buildAxisStyle(theme), type: 'category', data: shown.map((point) => shortMonth(point.month)) },
+    yAxis: {
+      ...buildAxisStyle(theme),
+      type: 'value',
+      max: 1,
+      axisLabel: { ...buildAxisStyle(theme).axisLabel, formatter: (value: number) => `${Math.round(value * 100)}%` },
+      splitLine: { lineStyle: { color: theme.splitLine } }
+    },
+    series: [
+      {
+        name: '고정비',
+        type: 'bar',
+        stack: 'ratio',
+        data: shown.map((point) => point.fixedRatio ?? 0),
+        itemStyle: { color: theme.series[0] }
+      },
+      {
+        name: '변동비',
+        type: 'bar',
+        stack: 'ratio',
+        data: shown.map((point) => 1 - (point.fixedRatio ?? 0)),
+        itemStyle: { color: theme.series[3], borderRadius: [4, 4, 0, 0] }
+      }
+    ]
+  };
+};
+
+/* ── ⑰ 순자산 계단선 ─────────────────────────────────────────────────────────── */
+
+/**
+ * 순자산은 **계단**이다.
+ *
+ * 🔴 매끈한 선은 "두 스냅샷 사이에 값이 서서히 변했다"고 말하는데, 우리가 아는 것은 **잰 날의 값**
+ *    뿐이다. 그 사이를 매끈하게 이으면 재지 않은 것을 잰 척하는 것이다. 계단은 "다음에 잴 때까지
+ *    이 값으로 알고 있다"를 정확히 말한다.
+ */
+export const netWorthStepOption = (
+  points: readonly ReportNetWorthPoint[],
+  theme: ChartTheme
+): EChartsOption => ({
+  grid: baseGrid,
+  tooltip: { ...buildTooltipStyle(theme), trigger: 'axis', valueFormatter: (value) => KRW(Number(value)) },
+  xAxis: { ...buildAxisStyle(theme), type: 'category', data: points.map((point) => shortMonth(point.month)) },
+  yAxis: {
+    ...buildAxisStyle(theme),
+    type: 'value',
+    scale: true,
+    axisLabel: { ...buildAxisStyle(theme).axisLabel, formatter: (value: number) => shortKRW(value) },
+    splitLine: { lineStyle: { color: theme.splitLine } }
+  },
+  series: [
+    {
+      name: '순자산',
+      type: 'line',
+      step: 'end',
+      showSymbol: points.length <= 24,
+      data: points.map((point) => point.netWorth),
+      lineStyle: { color: theme.series[0], width: 2 },
+      itemStyle: { color: theme.series[0] },
+      areaStyle: { color: hexToRgba(theme.series[0], 0.16) },
+      markLine: {
+        silent: true,
+        symbol: 'none',
+        label: { show: false },
+        lineStyle: { color: theme.axisLine, type: 'dashed' },
+        data: [{ yAxis: 0 }]
+      }
+    }
+  ]
+});
+
+/* ── ⑱ 저축률 게이지 ─────────────────────────────────────────────────────────── */
+
+/**
+ * 최근 달 저축률 하나만 크게.
+ *
+ * 🔴 **눈금에 좋고 나쁨을 칠하지 않는다.** "30% 이상이면 초록" 같은 구간을 그으면 그건 조언이고,
+ *    적정 저축률은 그 사람의 사정이다 — 눈금은 한 색이고 바늘 위치만 사실을 말한다.
+ * ⚠ 음수 저축률(번 것보다 쓴 달)도 그린다. 하한을 0 으로 자르면 그 달이 0% 로 보인다.
+ */
+export const savingGaugeOption = (rate: number, theme: ChartTheme): EChartsOption => {
+  const min = Math.min(0, Math.floor(rate * 10) / 10);
+  return {
+    series: [
+      {
+        type: 'gauge',
+        center: ['50%', '58%'],
+        radius: '92%',
+        startAngle: 200,
+        endAngle: -20,
+        min,
+        max: 1,
+        splitNumber: 5,
+        progress: { show: true, width: 14, itemStyle: { color: theme.series[0] } },
+        axisLine: { lineStyle: { width: 14, color: [[1, theme.splitLine]] } },
+        pointer: { show: false },
+        axisTick: { show: false },
+        splitLine: { show: false },
+        axisLabel: {
+          color: theme.label,
+          fontSize: theme.labelFontSize,
+          distance: 18,
+          formatter: (value: number) => `${Math.round(value * 100)}%`
+        },
+        detail: {
+          valueAnimation: false,
+          offsetCenter: [0, '-8%'],
+          color: theme.label,
+          fontSize: 28,
+          fontWeight: 700,
+          formatter: (value: number) => `${Math.round(value * 100)}%`
+        },
+        data: [{ value: rate }]
+      }
+    ]
+  };
+};
