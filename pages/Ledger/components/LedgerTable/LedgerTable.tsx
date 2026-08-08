@@ -1,4 +1,4 @@
-import { ArrowDownToLine, ArrowUpFromLine, Pencil, TriangleAlert, Trash2 } from 'lucide-react';
+import { ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, Pencil, TriangleAlert, Trash2 } from 'lucide-react';
 import { Button } from '@/components/common';
 import { LEDGER_COPY } from '../../copy';
 import { kindLabel } from '../../utils';
@@ -119,9 +119,16 @@ export default function LedgerTable({
                        상태 배지가 아니라 **값**이다 — 표의 다른 칸과 같은 무게여야 한다.
                        구별은 여전히 아이콘 + 글자가 한다(색 단독 채널 금지는 그대로).
                   */}
-                  <KindChipInner>
+                  <KindChipInner data-kind={row.kind}>
+                    {/*
+                      🔴 **이체가 자기 아이콘을 갖는다**(2026-08-09). 종전에는 수입이 아니면 전부
+                         지출 화살표라, 저축·투자 납입이 지출과 같은 그림으로 보였다 — 그 둘을
+                         가르는 것이 v2 의 핵심 판단인데 표에서는 구분이 사라져 있었다.
+                    */}
                     {row.kind === 'income' ? (
                       <ArrowDownToLine size={14} strokeWidth={1.8} aria-hidden focusable={false} />
+                    ) : row.kind === 'transfer' ? (
+                      <ArrowLeftRight size={14} strokeWidth={1.8} aria-hidden focusable={false} />
                     ) : (
                       <ArrowUpFromLine size={14} strokeWidth={1.8} aria-hidden focusable={false} />
                     )}

@@ -334,3 +334,253 @@ export const buildInsights = (params: {
 
   return insights;
 };
+
+/* ── 누적 순현금 ─────────────────────────────────────────────────────────────── */
+
+export type ReportCumulativePoint = {
+  readonly month: ReportMonth;
+  /** 그 달까지의 (수입 − 지출) 누계. */
+  readonly cumulative: number;
+};
+
+/**
+ * 달마다의 남은 돈을 **쌓아** 본다.
+ *
+ * 🔴 월별 막대는 "이 달 어땠나"를 말하고 이 선은 **"그래서 지금까지 얼마나 모았나"** 를 말한다.
+ *    한 달만 나빴는지 계속 새고 있는지는 누계로만 보인다.
+ * ⚠ 이체는 빼지 않는다 — 저축·투자로 옮긴 돈도 아직 내 돈이다(`ReportMonthlyFlow.net` 과 같은 정의).
+ */
+export const cumulativeNet = (flows: readonly ReportMonthlyFlow[]): readonly ReportCumulativePoint[] => {
+  let running = 0;
+  return flows.map((flow) => {
+    running += flow.net;
+    return { month: flow.month, cumulative: running };
+  });
+};
+
+/* ── 항목별 추이 ─────────────────────────────────────────────────────────────── */
+
+export type ReportCategoryTrend = {
+  readonly months: readonly ReportMonth[];
+  /** 항목 이름 → 달별 금액(달 순서는 `months` 와 같다). */
+  readonly series: readonly { readonly label: string; readonly values: readonly number[] }[];
+};
+
+/** 추이에 세울 항목 수. 그보다 많으면 읽을 수 없고, 나머지는 `기타` 한 줄로 접는다. */
+export const CATEGORY_TREND_LIMIT = 5;
+
+/**
+ * 상위 항목이 **달마다 어떻게 움직였나.**
+ *
+ * 🔴 파이는 "지금 어떻게 나뉘나"를 말하고 이건 **"무엇이 늘고 있나"** 를 말한다 — 파이만 보면
+ *    비중이 그대로여도 총액이 두 배가 된 것을 못 본다.
+ * ⚠ 상위 밖 항목은 버리지 않고 `기타` 로 접는다. 버리면 달별 합이 실제 지출과 안 맞는다.
+ */
+export const categoryTrend = (
+  entries: readonly LedgerEntry[],
+  limit = CATEGORY_TREND_LIMIT
+): ReportCategoryTrend => {
+  const living = alive(entries).filter((entry) => entry.kind === 'expense');
+  const months = [...new Set(living.map(monthOf))].sort();
+  if (months.length === 0) return { months: [], series: [] };
+
+  const totals = new Map<string, number>();
+  for (const entry of living) {
+    const key = labelOf(entry.category);
+    totals.set(key, (totals.get(key) ?? 0) + entry.amount);
+  }
+  const ranked = [...totals.entries()].sort(([, left], [, right]) => right - left).map(([label]) => label);
+  const head = ranked.slice(0, limit);
+  const headSet = new Set(head);
+  const hasTail = ranked.length > head.length;
+
+  const byLabel = new Map<string, number[]>();
+  for (const label of head) byLabel.set(label, months.map(() => 0));
+  if (hasTail) byLabel.set('기타', months.map(() => 0));
+
+  const monthIndex = new Map(months.map((month, index) => [month, index]));
+  for (const entry of living) {
+    const key = labelOf(entry.category);
+    const bucket = byLabel.get(headSet.has(key) ? key : '기타');
+    if (!bucket) continue;
+    bucket[monthIndex.get(monthOf(entry)) as number] += entry.amount;
+  }
+
+  return {
+    months,
+    series: [...byLabel.entries()].map(([label, values]) => ({ label, values }))
+  };
+};
+
+/* ── 요일별 소비 리듬 ────────────────────────────────────────────────────────── */
+
+export type ReportWeekdaySpending = {
+  /** 0 = 일요일. */
+  readonly weekday: number;
+  readonly label: string;
+  readonly total: number;
+  /** 그 요일에 기록이 있던 날 수. */
+  readonly days: number;
+  /** 하루 평균. 🔴 요일마다 등장 횟수가 달라 **합계로 비교하면 왜곡**된다. */
+  readonly average: number;
+};
+
+const WEEKDAY_LABEL = ['일', '월', '화', '수', '목', '금', '토'] as const;
+
+/**
+ * 요일별 지출.
+ *
+ * 🔴 **합계가 아니라 평균으로 비교한다.** 기록 구간에 따라 월요일이 5번, 화요일이 4번일 수 있어
+ *    합계로 세우면 그 차이가 소비 습관처럼 보인다.
+ * ⚠ 하루에 여러 건이 있어도 그 날은 하루로 센다.
+ */
+export const weekdaySpending = (entries: readonly LedgerEntry[]): readonly ReportWeekdaySpending[] => {
+  const totals = new Array(7).fill(0) as number[];
+  const dates = Array.from({ length: 7 }, () => new Set<string>());
+
+  for (const entry of alive(entries)) {
+    if (entry.kind !== 'expense') continue;
+    const weekday = new Date(entry.date + 'T00:00:00').getDay();
+    if (!Number.isFinite(weekday)) continue;
+    totals[weekday] += entry.amount;
+    dates[weekday].add(entry.date);
+  }
+
+  return WEEKDAY_LABEL.map((label, weekday) => {
+    const days = dates[weekday].size;
+    return {
+      weekday,
+      label,
+      total: totals[weekday],
+      days,
+      average: days === 0 ? 0 : totals[weekday] / days
+    };
+  });
+};
+
+/* ── 자산 종류별 추이 ────────────────────────────────────────────────────────── */
+
+export type ReportHoldingTrend = {
+  readonly months: readonly ReportMonth[];
+  readonly series: readonly { readonly label: string; readonly values: readonly number[] }[];
+};
+
+/**
+ * 자산이 **무엇으로** 쌓여 왔나.
+ *
+ * 🔴 부채는 빼고 자산만 쌓는다 — 순자산 추이가 따로 있고, 여기에 부채를 섞으면 "무엇으로
+ *    갖고 있나"라는 질문의 답이 아니게 된다.
+ * ⚠ 적지 않은 달은 그 달 자체가 없다(0 으로 채우지 않는다).
+ */
+export const holdingKindTrend = (
+  records: readonly HoldingRecord[],
+  labelOfKind: (kind: HoldingRecord['kind']) => string
+): ReportHoldingTrend => {
+  const assets = records.filter((record) => !record.isDebt);
+  const months = [...new Set(assets.map((record) => record.date.slice(0, 7)))].sort();
+  if (months.length === 0) return { months: [], series: [] };
+
+  const monthIndex = new Map(months.map((month, index) => [month, index]));
+  const byKind = new Map<string, number[]>();
+  for (const record of assets) {
+    const label = labelOfKind(record.kind);
+    const bucket = byKind.get(label) ?? months.map(() => 0);
+    bucket[monthIndex.get(record.date.slice(0, 7)) as number] += record.amount;
+    byKind.set(label, bucket);
+  }
+
+  return { months, series: [...byKind.entries()].map(([label, values]) => ({ label, values })) };
+};
+
+/* ── 투자 ────────────────────────────────────────────────────────────────────── */
+
+/**
+ * 계좌별 매입금액.
+ *
+ * ⚠ 통화가 섞이면 더할 수 없다 — `investmentMix` 와 같은 이유로 통화별로 나눈다.
+ */
+export const investmentByAccount = (
+  records: readonly InvestmentRecord[]
+): readonly { readonly currency: string; readonly slices: readonly ReportSlice[] }[] => {
+  const byCurrency = new Map<string, Map<string, number>>();
+
+  for (const record of records) {
+    if (record.unitCost === null) continue;
+    const account = record.account.trim().length > 0 ? record.account.trim() : '계좌 미기재';
+    const bucket = byCurrency.get(record.currency) ?? new Map<string, number>();
+    bucket.set(account, (bucket.get(account) ?? 0) + record.unitCost * record.shares);
+    byCurrency.set(record.currency, bucket);
+  }
+
+  return [...byCurrency.entries()]
+    .map(([currency, totals]) => ({ currency, slices: toSlices(totals) }))
+    .filter((group) => group.slices.length > 0)
+    .sort((left, right) => left.currency.localeCompare(right.currency));
+};
+
+/* ── 요약 타일 ───────────────────────────────────────────────────────────────── */
+
+export type ReportKpi = {
+  readonly id: string;
+  readonly label: string;
+  /** 🔴 낼 수 없으면 `null` — 화면이 대시로 그리고 사유를 적는다. 0 으로 위장하지 않는다. */
+  readonly value: number | null;
+  readonly unit: 'krw' | 'percent';
+  /** 왜 그 숫자인지 한 줄. */
+  readonly note: string;
+};
+
+/**
+ * 화면 맨 위의 큰 숫자 넷.
+ *
+ * 🔴 **낼 수 없는 값은 `null`** 이다. 자산을 안 적었으면 순자산은 0 이 아니라 없음이고,
+ *    수입이 없는 달의 저축률도 없음이다.
+ */
+export const buildKpis = (params: {
+  readonly flows: readonly ReportMonthlyFlow[];
+  readonly fixity: readonly ReportFixitySplit[];
+  readonly netWorth: readonly ReportNetWorthPoint[];
+}): readonly ReportKpi[] => {
+  const { flows, fixity, netWorth } = params;
+  const lastFlow = flows.at(-1) ?? null;
+  const lastFixity = fixity.at(-1) ?? null;
+  const lastNetWorth = netWorth.at(-1) ?? null;
+
+  const expenses = flows.map((flow) => flow.expense).filter((value) => value > 0);
+  const averageExpense =
+    expenses.length === 0 ? null : expenses.reduce((total, value) => total + value, 0) / expenses.length;
+
+  return [
+    {
+      id: 'saving-rate',
+      label: '최근 달 저축률',
+      value: lastFlow?.savingRate ?? null,
+      unit: 'percent',
+      note: (lastFlow?.savingRate ?? null) === null ? '수입 기록이 없어 잴 수 없습니다.' : '수입에서 지출을 뺀 몫입니다.'
+    },
+    {
+      id: 'average-expense',
+      label: '월평균 지출',
+      value: averageExpense,
+      unit: 'krw',
+      note: `지출이 있는 ${expenses.length}개월 평균입니다.`
+    },
+    {
+      id: 'fixed-ratio',
+      label: '고정비 비중',
+      value: lastFixity?.fixedRatio ?? null,
+      unit: 'percent',
+      note: '최근 달 지출에서 고정비가 차지하는 몫입니다.'
+    },
+    {
+      id: 'net-worth',
+      label: '순자산',
+      value: lastNetWorth?.netWorth ?? null,
+      unit: 'krw',
+      note:
+        lastNetWorth === null
+          ? '자산 탭에 잔액을 적으시면 여기에 나타납니다.'
+          : `${lastNetWorth.month.slice(0, 4)}년 ${Number(lastNetWorth.month.slice(5))}월 기준입니다.`
+    }
+  ];
+};

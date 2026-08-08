@@ -121,7 +121,7 @@ const EXPECTED: StringTree = {
     expense: '지출'
   },
   list: {
-    title: '거래 내역',
+    title: '적어 둔 것',
     subtitle: '시트에 적힌 순서 그대로 보여 줍니다.',
     columnDate: '날짜',
     columnKind: '구분',

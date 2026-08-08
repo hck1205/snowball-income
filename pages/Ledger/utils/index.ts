@@ -156,8 +156,15 @@ export type {
  * 🔴 `ledgerAnalysis` 는 **보고 있는 달**을 접고, 여기는 **전 기간**을 본다. 같은 파일에 두면
  *    "이 숫자는 어느 기간인가"가 함수마다 달라져 화면이 매번 그것을 설명해야 한다. */
 export {
+  CATEGORY_TREND_LIMIT,
   MIN_MONTHS_FOR_AVERAGE,
   buildInsights,
+  buildKpis,
+  categoryTrend,
+  cumulativeNet,
+  holdingKindTrend,
+  investmentByAccount,
+  weekdaySpending,
   expenseByCategory,
   expenseByMethod,
   fixityTrend,
@@ -168,7 +175,12 @@ export {
   payerTrend
 } from './ledgerReport';
 export type {
+  ReportCategoryTrend,
+  ReportCumulativePoint,
   ReportFixitySplit,
+  ReportHoldingTrend,
+  ReportKpi,
+  ReportWeekdaySpending,
   ReportInsight,
   ReportMonth,
   ReportMonthlyFlow,
