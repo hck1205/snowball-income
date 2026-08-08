@@ -77,6 +77,8 @@ const ROUTES = [
   { path: '/dividend/kings', priority: '0.7', changefreq: 'monthly' },
   { path: '/dividend/aristocrats', priority: '0.7', changefreq: 'monthly' },
   { path: '/dividend/champions', priority: '0.7', changefreq: 'monthly' },
+  /* 배당 히든스타(2026-08-08 신설). 달마다 한 종목이 더해지므로 다른 셋과 같은 monthly 다. */
+  { path: '/dividend/hidden-stars', priority: '0.7', changefreq: 'monthly' },
   /*
    * 자료형 화면 셋(2026-08-04 신설).
    *

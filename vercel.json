@@ -31,6 +31,10 @@
       "source": "/dividend/champions",
       "destination": "/api/seo-html?surface=dividend-list&list=champions"
     },
+    {
+      "source": "/dividend/hidden-stars",
+      "destination": "/api/seo-html?surface=dividend-list&list=hiddenStars"
+    },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
 

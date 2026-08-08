@@ -24,14 +24,26 @@ import {
  * 기준일 없는 목록은 "지금 기준"으로 읽힌다).
  */
 describe('배당 목록 데이터', () => {
-  it('세 목록이 전부 있고 id 가 라우트 세그먼트와 일치한다', () => {
-    expect(DIVIDEND_LIST_IDS).toEqual(['kings', 'aristocrats', 'champions']);
+  it('네 목록이 전부 있고 데이터의 id 가 목록 id 와 일치한다', () => {
+    expect(DIVIDEND_LIST_IDS).toEqual(['kings', 'aristocrats', 'champions', 'hiddenStars']);
     for (const id of DIVIDEND_LIST_IDS) {
       expect(DIVIDEND_LISTS[id].id).toBe(id);
-      expect(dividendListPath(id)).toBe(`/dividend/${id}`);
     }
     expect(DIVIDEND_LIST_HUB_PATH).toBe('/dividend/lists');
     expect(DIVIDEND_LIST_ALL.map((list) => list.id)).toEqual([...DIVIDEND_LIST_IDS]);
+  });
+
+  /**
+   * 🔴 id 와 경로 세그먼트가 **더 이상 같지 않다**(2026-08-08). `hiddenStars` 는 카멜케이스 id 이고
+   *    주소는 `hidden-stars` 다 — 카멜케이스를 URL 에 그대로 쓰지 않기 때문이다.
+   *    그래서 `'/dividend/' + id` 로 경로를 조립하는 코드가 있으면 그 자리에서 깨진다.
+   *    조립은 `dividendListPath` 한 곳에서만 한다는 것을 여기서 못 박는다.
+   */
+  it('경로는 id 가 아니라 dividendListPath 가 정한다', () => {
+    expect(dividendListPath('kings')).toBe('/dividend/kings');
+    expect(dividendListPath('aristocrats')).toBe('/dividend/aristocrats');
+    expect(dividendListPath('champions')).toBe('/dividend/champions');
+    expect(dividendListPath('hiddenStars')).toBe('/dividend/hidden-stars');
   });
 
   it('목록마다 종목이 있고 티커가 중복되지 않는다', () => {

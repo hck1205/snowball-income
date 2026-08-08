@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { handler } from '@/server/handlers/DividendListHtml';
-import { DIVIDEND_LIST_IDS, DIVIDEND_LISTS } from '@/shared/constants/dividendLists';
+import { DIVIDEND_LIST_IDS, DIVIDEND_LISTS, dividendListPath } from '@/shared/constants/dividendLists';
 import { DIVIDEND_LIST_COPY } from '@/pages/DividendList/copy';
 import {
   apiRequest,
@@ -116,7 +116,8 @@ describe('/api/dividend-list-html — 허브', () => {
     const html = await (await handler(apiRequest('/api/dividend-list-html', { list: 'hub' }))).text();
 
     for (const id of DIVIDEND_LIST_IDS) {
-      expect(html).toContain(`href="/dividend/${id}"`);
+      /* 🔴 경로를 손으로 조립하지 않는다 — id 와 세그먼트가 다른 목록이 있다(hiddenStars → hidden-stars). */
+      expect(html).toContain(`href="${dividendListPath(id)}"`);
       expect(html).toContain(asHtmlText(DIVIDEND_LIST_COPY.lists[id].criterionLabel));
     }
     expect(html).toContain('<link rel="canonical" href="https://snowball.test/dividend/lists" />');

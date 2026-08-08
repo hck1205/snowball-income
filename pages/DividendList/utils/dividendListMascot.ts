@@ -22,5 +22,11 @@ export type DividendListMascot = {
 export const DIVIDEND_LIST_MASCOT: Record<DividendListId, DividendListMascot> = {
   kings: { src: '/images/hippo/hippo_dividend_king.png', width: 440, height: 431 },
   aristocrats: { src: '/images/hippo/hippo_dividend_noble.png', width: 440, height: 432 },
-  champions: { src: '/images/hippo/hippo_dividend_champ.png', width: 440, height: 414 }
+  champions: { src: '/images/hippo/hippo_dividend_champ.png', width: 440, height: 414 },
+  /*
+   * ⚠ 히든스타 **전용 그림이 아직 없다.** 앞의 셋은 각 목록을 위해 그린 것이고 이건 기존 자산을
+   *   빌려 쓴다 — 뜻은 맞다("찾아낸다"). 지어낸 자산을 만들 수는 없으므로 전용 그림이 생기면
+   *   이 줄만 갈아 끼우면 된다(크기도 함께 고칠 것 — 원본 1024x1024 를 440 폭에 맞춰 적었다).
+   */
+  hiddenStars: { src: '/images/hippo/hippo_map.png', width: 440, height: 440 }
 };

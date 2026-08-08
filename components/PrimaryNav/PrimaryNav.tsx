@@ -13,6 +13,7 @@ import {
   LayoutGrid,
   LineChart,
   ListOrdered,
+  Sparkles,
   Medal,
   MessageSquare,
   MessagesSquare,
@@ -105,7 +106,13 @@ export const DIVIDEND_LIST_GROUP_ITEMS = [
   { to: DIVIDEND_LIST_HUB_PATH, label: n.dividendListHub, Icon: ListOrdered },
   { to: dividendListPath('kings'), label: n.dividendKings, Icon: Crown },
   { to: dividendListPath('aristocrats'), label: n.dividendAristocrats, Icon: Gem },
-  { to: dividendListPath('champions'), label: n.dividendChampions, Icon: Medal }
+  { to: dividendListPath('champions'), label: n.dividendChampions, Icon: Medal },
+  /*
+   * 배당 히든스타(2026-08-08 신설) — **맨 끝**이다. 앞의 셋은 기간이 긴 순(50년 → 25년)이고
+   * 이것은 그 셋 어디에도 못 든 종목이라, 순서로도 "그다음"임을 말한다.
+   * ⚠ 글리프는 왕관·보석·메달과 결이 다르다 — 저 셋은 수여받은 지위이고 이건 아니다.
+   */
+  { to: dividendListPath('hiddenStars'), label: n.dividendHiddenStars, Icon: Sparkles }
 ] as const;
 
 /**

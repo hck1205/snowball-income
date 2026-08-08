@@ -8,6 +8,8 @@ import type { DividendList, DividendListId, DividendListsSnapshot } from './divi
 export * from './dividendLists.sectors';
 export * from './dividendLists.schema';
 export * from './dividendLists.streak';
+export * from './dividendLists.hiddenStars';
+export * from './dividendLists.hiddenStars.data';
 export type * from './dividendLists.types';
 export { CURATED_DIVIDEND_LISTS, KINGS_STREAK_UNRESOLVED } from './dividendLists.curated';
 
@@ -105,8 +107,21 @@ export const DIVIDEND_LIST_ALL: DividendList[] = DIVIDEND_LIST_IDS.map((id) => D
  */
 export { DIVIDEND_LIST_HUB_PATH, dividendListPath };
 
-/** 라우트 파라미터·쿼리에서 온 임의 문자열을 목록 id 로 좁힌다. 모르면 `null`. */
+/**
+ * 라우트 파라미터·쿼리에서 온 임의 문자열을 목록 id 로 좁힌다. 모르면 `null`.
+ *
+ * 🔴 **id 와 경로 세그먼트를 둘 다 받는다.** `hiddenStars`(id) 와 `hidden-stars`(주소) 가 다르기
+ *    때문이다(2026-08-08). 종전에는 `id === raw.toLowerCase()` 로 비교했는데, 카멜케이스 id 가
+ *    생기는 순간 그 비교는 영영 실패한다 — 소문자로 내린 `hiddenstars` 는 어떤 id 와도 같지 않다.
+ *    실제로 `/dividend/hidden-stars` 의 크롤러 HTML 이 빈 껍데기로 나갔고, 테스트가 그것을 잡았다.
+ *    양쪽을 같은 방식으로 정규화(소문자 + 하이픈 제거)해 비교한다.
+ */
+const normalizeListKey = (raw: string): string => raw.trim().toLowerCase().replace(/-/g, '');
+
 export const toDividendListId = (raw: string | null | undefined): DividendListId | null => {
-  const found = DIVIDEND_LIST_IDS.find((id) => id === raw?.trim().toLowerCase());
+  if (typeof raw !== 'string') return null;
+  const key = normalizeListKey(raw);
+  if (key.length === 0) return null;
+  const found = DIVIDEND_LIST_IDS.find((id) => normalizeListKey(id) === key);
   return found ?? null;
 };

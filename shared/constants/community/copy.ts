@@ -51,6 +51,12 @@ export const COMMUNITY_COPY = {
     tickers: 'ETF 소개',
     /** 종목 비교(/ticker/compare). ETF 소개와 같은 '종목 정보' 축이라 그 바로 뒤에 선다. */
     tickerCompare: '종목 비교',
+    /**
+     * 배당 히든스타(/dividend/hidden-stars) — 배당 목록 묶음의 마지막 자리(2026-08-08 신설).
+     * ⚠ '숨은 보석'·'유망주' 같은 말을 쓰지 않는다 — 이 서비스는 종목을 추천하지 않는다.
+     *   '히든스타'는 "이름난 목록 밖에 있다"는 사실을 가리키는 이름이지 평가가 아니다.
+     */
+    dividendHiddenStars: '배당 히든스타',
     /** 배당 지급 월 캘린더(/dividend/calendar). 시뮬 결과가 아니라 관측 지급월 기반 페이지다. */
     dividendCalendar: '배당 캘린더',
     /**
