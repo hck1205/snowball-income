@@ -12,11 +12,12 @@ import { baseViewModel, renderLedgerView } from './ledgerFixtures';
  */
 
 describe('화면 탭바', () => {
-  it('⭐ 네 탭이 보이고 가계부가 골라져 있다', async () => {
+  it('⭐ 다섯 탭이 보이고 가계부가 골라져 있다', async () => {
     renderLedgerView(baseViewModel());
 
     const tabs = await screen.findAllByRole('tab');
-    expect(tabs.map((tab) => tab.textContent)).toEqual(['가계부', '자산', '투자', '분류 규칙']);
+    /* ⚠ `한눈에 보기` 가 마지막이다 — 앞의 넷은 적는 곳이고 이건 보는 곳이라 성격이 다르다. */
+    expect(tabs.map((tab) => tab.textContent)).toEqual(['가계부', '자산', '투자', '분류 규칙', '한눈에 보기']);
     expect(screen.getByRole('tab', { name: '가계부' })).toHaveAttribute('aria-selected', 'true');
   });
 
@@ -50,6 +51,7 @@ describe('화면 탭바', () => {
         sideTab: {
           status: 'ready',
           holdings: {
+            records: [],
             rows: [
               {
                 id: 'h1',
@@ -91,6 +93,7 @@ describe('화면 탭바', () => {
         sideTab: {
           status: 'ready',
           holdings: {
+            records: [],
             rows: [],
             trend: [
               {

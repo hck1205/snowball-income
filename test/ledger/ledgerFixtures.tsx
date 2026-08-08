@@ -74,6 +74,7 @@ export const baseViewModel = (overrides: Partial<LedgerViewModel> = {}): LedgerV
   selectedViewTab: 'entries',
   sideTab: null,
   sideForm: null,
+  report: { entries: [], holdings: [], investments: [], isLoadingSideTabs: false },
   canSimulateInvestments: false,
   unknownInvestmentTickers: [],
   /* 기본값은 **혼자 쓰는 장부** — 주체 컨트롤이 없던 시절의 화면을 그대로 본다. */

@@ -1,4 +1,4 @@
-import type { HoldingsModel, InvestmentsModel, LedgerViewTabId, RulesModel } from '../../utils';
+import type { HoldingsModel, InvestmentsModel, LedgerSheetTabId, RulesModel } from '../../utils';
 
 /**
  * 옆탭 하나의 상태.
@@ -15,7 +15,7 @@ export type LedgerSideTabState =
   | { readonly status: 'ready'; readonly rules: RulesModel };
 
 export type LedgerSideTabPanelProps = {
-  readonly tab: Exclude<LedgerViewTabId, 'entries'>;
+  readonly tab: LedgerSheetTabId;
   readonly state: LedgerSideTabState;
   /** 이 탭이 가리키는 시트 탭을 새 창에서 여는 주소. 적는 것은 시트에서 한다. */
   readonly sheetUrl?: string;

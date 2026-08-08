@@ -1,4 +1,5 @@
 import type { CommunityOAuthProvider } from '@/shared/lib/supabase';
+import type { HoldingRecord, InvestmentRecord, LedgerEntry } from '@/shared/lib/googleSheets';
 import type {
   LedgerAnalysisModel,
   LedgerPayerScope,
@@ -70,6 +71,26 @@ export type LedgerViewModel = {
    *    계산에서 사라진 것을 모른다(초기 투자금에는 그 금액이 들어가므로 더 그렇다).
    */
   unknownInvestmentTickers: readonly string[];
+  /**
+   * `한눈에 보기` 가 쓰는 재료.
+   *
+   * 🔴 **원본 기록**이다(화면용 문자열이 아니다) — 집계는 숫자로 해야 하고, 같은 값을 두 모양으로
+   *    들고 다니면 한쪽만 고쳐지는 사고가 난다.
+   */
+  report: {
+    /**
+     * 🔴 **걸러지지 않은 전 기간 기록**이다 — 달 이동과 주체 범위를 따르지 않는다.
+     *
+     * 이 화면의 이름이 "한눈에 보기"이고, 주체별로 나눠 보는 일은 **그 안의 차트**가 한다.
+     * 필터를 따라가면 주체 차트가 막대 하나가 되어 그 차트의 존재 이유가 사라진다.
+     * (달 이동·주체 셀렉트는 `가계부` 탭에서만 그려지므로 화면에서 헷갈릴 자리도 없다.)
+     */
+    entries: readonly LedgerEntry[];
+    holdings: readonly HoldingRecord[];
+    investments: readonly InvestmentRecord[];
+    /** 🔴 "없다"와 "아직 안 읽었다"는 다른 사실이다. */
+    isLoadingSideTabs: boolean;
+  };
   /** 자산·투자 직접 적기 폼. 열려 있지 않으면 `null`. */
   sideForm: {
     kind: LedgerSideFormKind;

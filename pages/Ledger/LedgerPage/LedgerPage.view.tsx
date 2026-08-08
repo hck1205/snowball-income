@@ -10,6 +10,7 @@ import {
   LedgerFailureList,
   LedgerFormModal,
   LedgerMappingCard,
+  LedgerReportPanel,
   LedgerSideFormModal,
   LedgerSideTabPanel,
   LedgerViewTabs,
@@ -515,7 +516,20 @@ export default function LedgerPageView({
         />
       ) : null}
 
-      {isConnected && viewModel.selectedViewTab !== 'entries' && viewModel.sideTab ? (
+      {/* 🔴 `한눈에 보기` 는 시트 탭이 아니라 **앱이 읽은 것을 그리는 화면**이라 따로 선다. */}
+      {isConnected && viewModel.selectedViewTab === 'report' ? (
+        <LedgerReportPanel
+          entries={viewModel.report.entries}
+          holdings={viewModel.report.holdings}
+          investments={viewModel.report.investments}
+          isLoadingSideTabs={viewModel.report.isLoadingSideTabs}
+        />
+      ) : null}
+
+      {isConnected
+      && viewModel.selectedViewTab !== 'entries'
+      && viewModel.selectedViewTab !== 'report'
+      && viewModel.sideTab ? (
         <LedgerSideTabPanel
           tab={viewModel.selectedViewTab}
           state={viewModel.sideTab}

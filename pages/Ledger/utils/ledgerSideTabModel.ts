@@ -33,6 +33,14 @@ export type NetWorthPoint = {
 };
 
 export type HoldingsModel = {
+  /**
+   * 파서가 낸 **원본 기록**.
+   *
+   * 🔴 화면용 행(`rows`)은 금액이 `10,000,000원` 같은 **문자열로 접힌** 값이라 집계에 못 쓴다.
+   *    `한눈에 보기` 가 이 원본으로 순자산·구성을 낸다 — 문자열을 숫자로 되돌리는 코드를 쓰기
+   *    시작하면 그건 모델이 원본을 버린 설계가 잘못이라는 신호다.
+   */
+  readonly records: readonly HoldingRecord[];
   readonly rows: readonly HoldingRow[];
   readonly trend: readonly NetWorthPoint[];
   /** 가장 최근 달의 순자산. 기록이 없으면 `null` — 🔴 0 이 아니다. */
@@ -92,6 +100,7 @@ export const buildHoldingsModel = (
   const latestValue = latestMonth === null ? null : (byMonth.get(latestMonth) ?? null);
 
   return {
+    records,
     rows,
     trend,
     latestNetWorthText: latestValue === null ? null : formatMoney(latestValue),
@@ -114,6 +123,8 @@ export type InvestmentRow = {
 };
 
 export type InvestmentsModel = {
+  /** 파서가 낸 원본 기록. 🔴 이유는 `HoldingsModel.records` 와 같다. */
+  readonly records: readonly InvestmentRecord[];
   readonly rows: readonly InvestmentRow[];
   readonly skipped: number;
 };
@@ -126,6 +137,7 @@ export const buildInvestmentsModel = (
   records: readonly InvestmentRecord[],
   skipped: number
 ): InvestmentsModel => ({
+  records,
   rows: records.map((record, index) => ({
     id: `${record.ticker}-${record.currency}-${index}`,
     account: record.account,

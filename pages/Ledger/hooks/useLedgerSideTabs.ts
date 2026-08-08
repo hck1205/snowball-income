@@ -14,10 +14,10 @@ import {
   toFailureReason,
   validateSideDraft
 } from '../utils';
-import type { LedgerSideDraft, LedgerSideFormKind, LedgerViewTabId } from '../utils';
+import type { LedgerSheetTabId, LedgerSideDraft, LedgerSideFormKind } from '../utils';
 import type { LedgerErrorModel } from '../types';
 
-type SideTabId = Exclude<LedgerViewTabId, 'entries'>;
+type SideTabId = LedgerSheetTabId;
 
 const IDLE: LedgerSideTabState = { status: 'idle' };
 const EMPTY_STATES: Readonly<Record<SideTabId, LedgerSideTabState>> = {

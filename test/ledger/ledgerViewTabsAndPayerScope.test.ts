@@ -35,10 +35,14 @@ describe('화면 탭', () => {
     expect(tabs.every((tab) => tab.isAvailable)).toBe(true);
   });
 
-  it('⭐ 앱 시트가 아니면 가계부만 쓸 수 있다', () => {
+  it('⭐ 앱 시트가 아니면 기록과 한눈에 보기만 쓸 수 있다', () => {
     const tabs = buildLedgerViewTabs(false);
 
-    expect(tabs.filter((tab) => tab.isAvailable).map((tab) => tab.id)).toEqual(['entries']);
+    /*
+     * 🔴 `report` 는 **시트 탭이 아니다** — 앱이 읽은 것을 그리는 화면이라, 가계부 하나만
+     *    연결해도 흐름·구성은 그려진다(자산·투자 구획만 비어 있을 뿐이다).
+     */
+    expect(tabs.filter((tab) => tab.isAvailable).map((tab) => tab.id)).toEqual(['entries', 'report']);
   });
 
   it('🔴 막힌 탭에는 반드시 사유가 있다 — 무음 비활성 금지', () => {

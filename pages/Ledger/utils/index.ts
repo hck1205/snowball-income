@@ -108,7 +108,7 @@ export {
   resolveLedgerViewTab,
   selectableLedgerTabs
 } from './ledgerViewTabs';
-export type { LedgerViewTab, LedgerViewTabId } from './ledgerViewTabs';
+export type { LedgerSheetTabId, LedgerViewTab, LedgerViewTabId } from './ledgerViewTabs';
 
 /* 주체 범위 — 부부·연인이 한 장부를 나눠 볼 때. 🔴 겹치지 않게 나눈다(합이 맞아야 한다). */
 export {
@@ -151,3 +151,28 @@ export type {
   LedgerSideFieldKind,
   LedgerSideFormKind
 } from './ledgerSideForm';
+
+/* ── 한눈에 보기 (2026-08-09) ────────────────────────────────────────────────
+ * 🔴 `ledgerAnalysis` 는 **보고 있는 달**을 접고, 여기는 **전 기간**을 본다. 같은 파일에 두면
+ *    "이 숫자는 어느 기간인가"가 함수마다 달라져 화면이 매번 그것을 설명해야 한다. */
+export {
+  MIN_MONTHS_FOR_AVERAGE,
+  buildInsights,
+  expenseByCategory,
+  expenseByMethod,
+  fixityTrend,
+  investmentMix,
+  latestHoldingMix,
+  monthlyFlows,
+  netWorthTrend,
+  payerTrend
+} from './ledgerReport';
+export type {
+  ReportFixitySplit,
+  ReportInsight,
+  ReportMonth,
+  ReportMonthlyFlow,
+  ReportNetWorthPoint,
+  ReportPayerMonth,
+  ReportSlice
+} from './ledgerReport';

@@ -368,22 +368,34 @@ function LedgerContent({ now: nowProp }: LedgerPageProps) {
     onError: connection.applyError
   });
 
+  /**
+   * 탭 전환.
+   *
+   * 🔴 **`한눈에 보기` 를 열면 자산·투자를 함께 읽는다.** 그 화면은 셋을 한 자리에서 그리는데,
+   *    안 읽으면 순자산·자산 구성·투자 구성 구획이 통째로 비어 "적었는데 안 나온다"가 된다.
+   *    (`분류 규칙` 은 그 화면이 안 쓰므로 부르지 않는다 — 안 볼 표를 읽는 것은 할당량 낭비다.)
+   */
   const handleSelectViewTab = useCallback(
     (id: LedgerViewTabId) => {
       setViewTab(id);
+      if (id === 'report') {
+        void sideTabs.load('holdings');
+        void sideTabs.load('investments');
+        return;
+      }
       if (id !== 'entries') void sideTabs.load(id);
     },
     [sideTabs]
   );
 
   const handleRetrySideTab = useCallback(() => {
-    if (selectedViewTab === 'entries') return;
+    if (selectedViewTab === 'entries' || selectedViewTab === 'report') return;
     void sideTabs.load(selectedViewTab, { force: true });
   }, [selectedViewTab, sideTabs]);
 
   /* 🔴 `분류 규칙` 에는 적기가 없다 — 그 탭은 시트에서 고치는 것이 정상 사용이다(패널이 버튼을 안 그린다). */
   const handleAddSideEntry = useCallback(() => {
-    if (selectedViewTab === 'entries' || selectedViewTab === 'rules') return;
+    if (selectedViewTab === 'entries' || selectedViewTab === 'rules' || selectedViewTab === 'report') return;
     sideTabs.openForm(selectedViewTab);
   }, [selectedViewTab, sideTabs]);
 
@@ -399,6 +411,25 @@ function LedgerContent({ now: nowProp }: LedgerPageProps) {
    *    반올림이 갈려 "안내와 실제 프리필이 다르다"가 된다.
    * ⚠ 환율이 없으면 프리필을 만들지 않는다(그 함수의 규약). 그때는 버튼이 비활성이고 사유가 선다.
    */
+  /**
+   * `한눈에 보기` 가 쓰는 **원본 기록**.
+   *
+   * 🔴 화면용 행은 금액이 문자열로 접힌 값이라 집계에 못 쓴다. 그래서 모델이 원본(`records`)을
+   *    함께 들고 다닌다 — 문자열을 숫자로 되돌리는 코드를 쓰기 시작하면 그건 설계가 잘못됐다는
+   *    신호다(같은 값을 두 모양으로 들고 한쪽만 고쳐지는 사고가 이 레포에서 반복됐다).
+   */
+  const holdingRecords = useMemo(() => {
+    const state = sideTabs.byTab.holdings;
+    if (state.status !== 'ready' || !('holdings' in state)) return [];
+    return state.holdings.records;
+  }, [sideTabs.byTab.holdings]);
+
+  const investmentRecords = useMemo(() => {
+    const state = sideTabs.byTab.investments;
+    if (state.status !== 'ready' || !('investments' in state)) return [];
+    return state.investments.records;
+  }, [sideTabs.byTab.investments]);
+
   const investmentPrefill = useMemo(() => {
     const state = sideTabs.byTab.investments;
     if (state.status !== 'ready' || !('investments' in state)) return null;
@@ -440,7 +471,19 @@ function LedgerContent({ now: nowProp }: LedgerPageProps) {
 
     viewTabs,
     selectedViewTab,
-    sideTab: selectedViewTab === 'entries' ? null : sideTabs.byTab[selectedViewTab],
+    sideTab:
+      selectedViewTab === 'entries' || selectedViewTab === 'report'
+        ? null
+        : sideTabs.byTab[selectedViewTab],
+    /* 🔴 `한눈에 보기` 가 쓰는 재료. 아직 읽는 중이면 화면이 "없다"고 말하지 않는다. */
+    report: {
+      /* 🔴 `scopedSnapshot` 이 아니라 원본이다 — 리포트는 전 기간·전 주체를 본다. */
+      entries: connection.snapshot?.entries ?? [],
+      holdings: holdingRecords,
+      investments: investmentRecords,
+      isLoadingSideTabs:
+        sideTabs.byTab.holdings.status === 'loading' || sideTabs.byTab.investments.status === 'loading'
+    },
     sideForm: sideTabs.form,
     /* 🔴 프리필을 못 만들면 `null` — 화면이 버튼을 잠그고 사유를 말한다(무음 비활성 금지). */
     canSimulateInvestments: investmentPrefillState !== null,

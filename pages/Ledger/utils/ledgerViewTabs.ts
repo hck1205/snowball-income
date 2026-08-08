@@ -26,24 +26,41 @@
  */
 import { BLUEPRINT_TABS, BLUEPRINT_TAB_ORDER } from '@/shared/lib/googleSheets';
 
-export type LedgerViewTabId = 'entries' | 'holdings' | 'investments' | 'rules';
+export type LedgerViewTabId = 'entries' | 'holdings' | 'investments' | 'rules' | 'report';
 
 export const LEDGER_VIEW_TAB_IDS: readonly LedgerViewTabId[] = [
   'entries',
   'holdings',
   'investments',
-  'rules'
+  'rules',
+  /* 🔴 마지막이다 — 앞의 넷은 적는 곳이고 이건 **보는 곳**이다. 성격이 다른 것을 섞지 않는다. */
+  'report'
 ];
+
+/**
+ * **시트 탭이 있는** 화면 탭.
+ *
+ * 🔴 `entries` 는 가계부 자체라 따로 다루고, `report` 는 **시트에 대응하는 탭이 없다**
+ *    (앱이 읽은 것을 그릴 뿐이다). 읽기·쓰기 경로가 이 타입을 받으면 그 둘이 애초에 들어올 수 없다.
+ */
+export type LedgerSheetTabId = Exclude<LedgerViewTabId, 'entries' | 'report'>;
 
 /** 기본 탭. 🔴 `entries` 여야 한다 — 가계부를 열었으니 기록이 먼저 보여야 한다. */
 export const DEFAULT_LEDGER_VIEW_TAB: LedgerViewTabId = 'entries';
 
 /** 화면 탭 ↔ 시트 탭. 이름을 두 곳에 적지 않으려고 청사진에서 가져온다. */
+/**
+ * 화면 탭 ↔ 시트 탭. 이름을 두 곳에 적지 않으려고 청사진에서 가져온다.
+ *
+ * ⚠ `report` 는 **시트에 대응하는 탭이 없다** — 앱이 읽은 것을 그릴 뿐이라 빈 문자열이다.
+ *   그래서 쓰기 경로(`appendSheetRow`)가 이 값을 쓰는 자리에는 `report` 가 올 수 없다.
+ */
 export const LEDGER_VIEW_TAB_SHEET_TITLE: Readonly<Record<LedgerViewTabId, string>> = {
   entries: BLUEPRINT_TABS.ledger,
   holdings: BLUEPRINT_TABS.holdings,
   investments: BLUEPRINT_TABS.investments,
-  rules: BLUEPRINT_TABS.rules
+  rules: BLUEPRINT_TABS.rules,
+  report: ''
 };
 
 export type LedgerViewTab = {
@@ -61,14 +78,16 @@ const TAB_LABEL: Readonly<Record<LedgerViewTabId, string>> = {
   entries: '가계부',
   holdings: '자산',
   investments: '투자',
-  rules: '분류 규칙'
+  rules: '분류 규칙',
+  report: '한눈에 보기'
 };
 
 const TAB_DESCRIPTION: Readonly<Record<LedgerViewTabId, string>> = {
   entries: '들어오고 나간 돈을 적습니다. 항목을 비워 두시면 내용을 보고 채워 드립니다.',
   holdings: '달마다 한 번, 월말에 얼마 있는지 적습니다. 부채도 같은 표에 적으면 순자산이 나옵니다.',
   investments: '가진 종목과 수량을 적습니다. 배당이 얼마 들어올지 계산으로 이어집니다.',
-  rules: '히포가 배운 분류 규칙입니다. 마음에 들지 않는 줄은 고치시면 다음부터 그대로 따릅니다.'
+  rules: '히포가 배운 분류 규칙입니다. 마음에 들지 않는 줄은 고치시면 다음부터 그대로 따릅니다.',
+  report: '적어 두신 것을 흐름과 구성으로 그립니다. 가계부·자산·투자를 한 화면에서 봅니다.'
 };
 
 /**
@@ -87,8 +106,12 @@ const NEEDS_APP_SHEET = (label: string): string =>
  */
 export const buildLedgerViewTabs = (createdByApp: boolean): readonly LedgerViewTab[] =>
   LEDGER_VIEW_TAB_IDS.map((id) => {
-    /* `가계부` 는 언제나 있다 — 그것이 연결의 조건이다. */
-    const isAvailable = id === 'entries' ? true : createdByApp;
+    /*
+     * `가계부` 는 언제나 있다 — 그것이 연결의 조건이다.
+     * `한눈에 보기` 도 언제나 쓸 수 있다 — 시트 탭이 아니라 **앱이 읽은 것을 그리는 화면**이라,
+     * 가계부 하나만 연결해도 흐름·구성은 그려진다(자산·투자 구획만 비어 있을 뿐이다).
+     */
+    const isAvailable = id === 'entries' || id === 'report' ? true : createdByApp;
     return {
       id,
       label: TAB_LABEL[id],
