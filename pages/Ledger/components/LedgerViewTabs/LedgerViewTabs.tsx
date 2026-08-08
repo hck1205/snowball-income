@@ -1,7 +1,7 @@
-import { useId } from 'react';
+import { Fragment, useId } from 'react';
 import { HintText } from '@/components/common';
 import type { LedgerViewTabsProps } from './LedgerViewTabs.types';
-import { TabButton, TabDescription, TabList, TabsRoot } from './LedgerViewTabs.styled';
+import { TabButton, TabDescription, TabDivider, TabList, TabsRoot } from './LedgerViewTabs.styled';
 
 /**
  * 화면 탭바 — 시트의 네 입력 탭(`가계부`·`자산`·`투자`·`분류 규칙`)을 앱에서도 탭으로.
@@ -38,21 +38,30 @@ export default function LedgerViewTabs({ tabs, selected, onSelect }: LedgerViewT
   return (
     <TabsRoot>
       <TabList role="tablist" aria-label="가계부 탭">
-        {tabs.map((tab) => (
-          <TabButton
-            key={tab.id}
-            type="button"
-            role="tab"
-            id={`${baseId}-tab-${tab.id}`}
-            aria-selected={tab.id === selected}
-            aria-controls={panelId}
-            data-selected={tab.id === selected}
-            disabled={!tab.isAvailable}
-            aria-describedby={tab.isAvailable ? undefined : reasonId}
-            onClick={() => onSelect(tab.id)}
-          >
-            {tab.label}
-          </TabButton>
+        {tabs.map((tab, index) => (
+          <Fragment key={tab.id}>
+            {/*
+              🔴 **적는 탭과 보는 탭 사이에 칸막이**를 세운다(2026-08-09 사용자 지적).
+                 앞의 넷은 시트의 탭과 1:1 이라 적는 곳이고, 한눈에 보기는 시트에 없는 보는 곳이다.
+              ⚠ `aria-hidden` 이다 — 보조기기에는 아래 각 탭의 이름만 읽히면 되고, 칸막이는
+                시각적 구획일 뿐이라 낭독되면 소음이다.
+            */}
+            {index > 0 && tabs[index - 1].role !== tab.role ? <TabDivider aria-hidden /> : null}
+            <TabButton
+              type="button"
+              role="tab"
+              id={`${baseId}-tab-${tab.id}`}
+              aria-selected={tab.id === selected}
+              aria-controls={panelId}
+              data-selected={tab.id === selected}
+              data-role={tab.role}
+              disabled={!tab.isAvailable}
+              aria-describedby={tab.isAvailable ? undefined : reasonId}
+              onClick={() => onSelect(tab.id)}
+            >
+              {tab.label}
+            </TabButton>
+          </Fragment>
         ))}
       </TabList>
 

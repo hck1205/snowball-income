@@ -153,56 +153,10 @@ export type {
 } from './ledgerSideForm';
 
 /* ── 한눈에 보기 (2026-08-09) ────────────────────────────────────────────────
- * 🔴 `ledgerAnalysis` 는 **보고 있는 달**을 접고, 여기는 **전 기간**을 본다. 같은 파일에 두면
- *    "이 숫자는 어느 기간인가"가 함수마다 달라져 화면이 매번 그것을 설명해야 한다. */
-export {
-  CATEGORY_TREND_LIMIT,
-  MIN_MONTHS_FOR_AVERAGE,
-  RADAR_MAX_AXES,
-  RADAR_MIN_AXES,
-  SANKEY_HUB,
-  SANKEY_LEFTOVER,
-  WATERFALL_LIMIT,
-  categoryRadar,
-  categorySunburst,
-  dailySpending,
-  monthWaterfall,
-  sankeyFlow,
-  spendingYears,
-  buildInsights,
-  buildKpis,
-  categoryTrend,
-  cumulativeNet,
-  holdingKindTrend,
-  investmentByAccount,
-  weekdaySpending,
-  expenseByCategory,
-  expenseByMethod,
-  fixityTrend,
-  investmentMix,
-  latestHoldingMix,
-  monthlyFlows,
-  netWorthTrend,
-  payerTrend
-} from './ledgerReport';
-export type {
-  ReportCategoryTrend,
-  ReportDailySpending,
-  ReportFlowLink,
-  ReportFlowNode,
-  ReportRadarAxis,
-  ReportSankey,
-  ReportSunburstNode,
-  ReportWaterfallStep,
-  ReportCumulativePoint,
-  ReportFixitySplit,
-  ReportHoldingTrend,
-  ReportKpi,
-  ReportWeekdaySpending,
-  ReportInsight,
-  ReportMonth,
-  ReportMonthlyFlow,
-  ReportNetWorthPoint,
-  ReportPayerMonth,
-  ReportSlice
-} from './ledgerReport';
+ * 🔴 `ledgerAnalysis` 는 **보고 있는 달**을 접고, 저기는 **전 기간**을 본다. 같은 파일에 두면
+ *    "이 숫자는 어느 기간인가"가 함수마다 달라져 화면이 매번 그것을 설명해야 한다.
+ * ⚠ 한 파일이 900 줄을 넘어 관심사별 폴더로 갈랐다(2026-08-09) — 배럴 하나로 그대로 편다. */
+export * from './report';
+
+/* 차트 옵션 — 컴포넌트 폴더가 파일 접미사를 잠그고 있어 여기로 나왔다(2026-08-09). */
+export * from './reportCharts';

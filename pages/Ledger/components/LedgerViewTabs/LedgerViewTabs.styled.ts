@@ -26,11 +26,28 @@ export const TabsRoot = styled.div`
 export const TabList = styled.div`
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: ${space[1]};
   min-width: 0;
   padding: ${space[1]};
   border-radius: ${radius.md};
   background: ${color.surfaceSunken};
+`;
+
+/**
+ * **적는 탭과 보는 탭 사이의 칸막이.**
+ *
+ * 🔴 사용자가 "한눈에 보기는 탭과 다른 메뉴"라고 지적했다(2026-08-09). 앞의 넷은 시트의 탭과
+ *    1:1 이라 적는 곳이고, 한눈에 보기는 시트에 없는 **보는 곳**이다 — 같은 모양으로 나란히
+ *    두면 거기에도 무언가 적는 줄 안다.
+ * ⚠ 칸막이만으로는 부족해서 버튼 자체도 모양을 달리한다(아래 `data-role`).
+ */
+export const TabDivider = styled.span`
+  flex: 0 0 auto;
+  width: 1px;
+  align-self: stretch;
+  margin: ${space[1]} ${space[2]};
+  background: ${color.border};
 `;
 
 /**
@@ -66,6 +83,20 @@ export const TabButton = styled.button<{ 'data-selected'?: boolean }>`
   &:focus-visible {
     outline: 2px solid ${color.focusRing};
     outline-offset: 2px;
+  }
+
+  /*
+   * 🔴 **보는 탭은 모양이 다르다.** 테두리를 둘러 "적는 탭"과 갈라 놓는다 — 색만 다르게 하면
+   *    색을 못 보는 사람에게는 같은 것으로 보인다(색 단독 채널 금지).
+   */
+  &[data-role='view'] {
+    border: 1px solid ${color.border};
+  }
+
+  &[data-role='view'][data-selected='true'] {
+    border-color: ${color.brandBorder};
+    background: ${color.brandSubtle};
+    color: ${color.brandText};
   }
 `;
 

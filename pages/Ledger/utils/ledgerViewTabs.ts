@@ -63,8 +63,18 @@ export const LEDGER_VIEW_TAB_SHEET_TITLE: Readonly<Record<LedgerViewTabId, strin
   report: ''
 };
 
+/**
+ * 탭의 **성격**.
+ *
+ * 🔴 `sheet` 는 시트의 탭 하나와 1:1 이라 **적는 곳**이고, `view` 는 시트에 없는 **보는 곳**이다
+ *    (앱이 읽은 것을 그린다). 사용자가 "한눈에 보기는 탭과 다른 메뉴"라고 지적한 그 차이다 —
+ *    같은 모양으로 나란히 두면 거기에도 무언가 적는 줄 안다.
+ */
+export type LedgerViewTabRole = 'sheet' | 'view';
+
 export type LedgerViewTab = {
   readonly id: LedgerViewTabId;
+  readonly role: LedgerViewTabRole;
   /** 화면에 적히는 이름. 시트 탭 이름과 **같게** 둔다 — 두 화면을 오가는 사람이 같은 말을 봐야 한다. */
   readonly label: string;
   /** 이 탭이 무엇인지 한 줄. 탭을 고르면 그 아래에 선다. */
@@ -114,6 +124,7 @@ export const buildLedgerViewTabs = (createdByApp: boolean): readonly LedgerViewT
     const isAvailable = id === 'entries' || id === 'report' ? true : createdByApp;
     return {
       id,
+      role: id === 'report' ? ('view' as const) : ('sheet' as const),
       label: TAB_LABEL[id],
       description: TAB_DESCRIPTION[id],
       isAvailable,

@@ -11,6 +11,7 @@ import {
   categoryTrend,
   cumulativeNet,
   dailySpending,
+  methodFixitySplit,
   monthWaterfall,
   sankeyFlow,
   spendingYears,
@@ -62,12 +63,13 @@ import {
   netWorthStepOption,
   payerOption,
   radarOption,
+  roseOption,
   sankeyOption,
   savingGaugeOption,
+  stackedHorizontalOption,
   sunburstOption,
-  waterfallOption,
-  weekdayOption
-} from './LedgerReportPanel.utils';
+  waterfallOption
+} from '../../utils';
 
 /**
  * **한눈에 보기** — 가계부·자산·투자를 그래프로.
@@ -123,6 +125,7 @@ export default function LedgerReportPanel({
   const categories = useMemo(() => categoryTrend(entries), [entries]);
   const weekdays = useMemo(() => weekdaySpending(entries), [entries]);
   const methodSlices = useMemo(() => expenseByMethod(entries), [entries]);
+  const methodSplit = useMemo(() => methodFixitySplit(entries), [entries]);
 
   const netWorth = useMemo(() => netWorthTrend(holdings), [holdings]);
   const holdingMix = useMemo(() => latestHoldingMix(holdings), [holdings]);
@@ -361,21 +364,44 @@ export default function LedgerReportPanel({
 
           <ReportRow>
             <ChartBlock>
+              {/*
+                🔴 **로즈**를 쓰는 이유는 요일이 **주기**를 갖기 때문이다 — 일곱 조각이 한 바퀴를
+                   도는 것이 한 주가 도는 것과 같아 그림 모양 자체가 리듬을 말한다.
+                ⚠ 일반 구성(항목별 지출)에는 로즈를 쓰지 않는다. 반지름까지 값에 묶여 면적이 값에
+                  비례하지 않으므로, 크기를 눈으로 비교해야 하는 자리에서는 도넛보다 부정확하다.
+              */}
               <ChartTitle>요일별 소비 리듬</ChartTitle>
               <ChartNote>
                 {'하루 평균입니다. 기록 구간에 따라 요일마다 날 수가 달라, 합계로 비교하면 습관처럼 보입니다.'}
               </ChartNote>
               <ChartArea>
-                <ResponsiveEChart option={weekdayOption(weekdays, theme)} />
+                <ResponsiveEChart option={roseOption(weekdays, theme)} />
               </ChartArea>
             </ChartBlock>
 
             {methodSlices.length > 0 ? (
               <ChartBlock>
+                {/*
+                  🔴 합계만 보면 "이 카드를 많이 쓴다"까지다. 고정/변동을 쪼개면 그 카드에 묶인 것이
+                     자동이체인지 그때그때 쓴 것인지가 보인다 — 카드를 바꿀 수 있는지 판단하는 자리다.
+                */}
                 <ChartTitle>결제수단별 지출</ChartTitle>
-                <ChartNote>전 기간 합계입니다. 시트에 적으신 이름 그대로 셉니다.</ChartNote>
+                <ChartNote>
+                  {'전 기간 합계입니다. 시트에 적으신 이름 그대로 세고, 고정비와 변동비를 나눠 쌓았습니다.'}
+                </ChartNote>
                 <ChartArea>
-                  <ResponsiveEChart option={horizontalBarOption(methodSlices, theme)} />
+                  <ResponsiveEChart
+                    option={stackedHorizontalOption(
+                      {
+                        categories: methodSplit.methods,
+                        series: [
+                          { label: '고정비', values: methodSplit.fixed },
+                          { label: '변동비', values: methodSplit.variable }
+                        ]
+                      },
+                      theme
+                    )}
+                  />
                 </ChartArea>
               </ChartBlock>
             ) : null}
