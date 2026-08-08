@@ -249,11 +249,38 @@ const sheetSpecs = (): SheetSpec[] => [
   },
   { title: BLUEPRINT_TABS.monthly, grid: { rowCount: 60, columnCount: 14, frozenRowCount: 4, frozenColumnCount: 1 }, rows: monthlyRows() },
   { title: BLUEPRINT_TABS.cashFlow, grid: { rowCount: 40, columnCount: 8, frozenRowCount: 4 }, rows: cashFlowRows() },
-  { title: BLUEPRINT_TABS.fixed, grid: { rowCount: 200, columnCount: 8, frozenRowCount: 4 }, rows: fixedRows() },
+  { title: BLUEPRINT_TABS.fixed, grid: { rowCount: 200, columnCount: 10, frozenRowCount: 4 }, rows: fixedRows() },
   { title: BLUEPRINT_TABS.categories, grid: { rowCount: 200, columnCount: 2, frozenRowCount: 1 }, rows: categoryRows() },
   { title: BLUEPRINT_TABS.settings, grid: { rowCount: 100, columnCount: 2, frozenRowCount: 1 }, rows: settingsRows() },
   { title: BLUEPRINT_TABS.readme, grid: { rowCount: 40, columnCount: 2 }, rows: readmeRows() }
 ];
+
+/**
+ * 셀 하나의 값. 🔴 **수식은 `formulaValue` 로 보내야 한다.**
+ *
+ * `stringValue` 로 보내면 구글이 그것을 **글자 그대로** 저장한다 — 요약 탭에 `=SUMIFS(...)` 가
+ * 계산되지 않고 텍스트로 보인다. `spreadsheets.create` 에는 `valueInputOption` 이 없어서
+ * (그건 `values.update` 쪽 옵션이다) 값의 종류를 여기서 직접 갈라 줘야 한다.
+ */
+const toCellValue = (cell: string): Record<string, string> =>
+  cell.startsWith('=') ? { formulaValue: cell } : { stringValue: cell };
+
+/**
+ * 각 탭의 격자 열 수가 **실제로 쓰는 열 수 이상**인지 확인한다.
+ *
+ * 🔴 이 가드가 없어서 실제로 시트 생성이 400 으로 죽었다 —
+ *    `Attempting to write column: 8, beyond the last requested column of: 7`.
+ *    고정비 탭의 머리를 7열에서 9열로 늘리면서 `columnCount` 를 안 고쳤기 때문이다.
+ *    격자와 내용은 **함께** 바뀌어야 하는데 코드상 그 둘이 떨어져 있어 어긋날 수 있다.
+ */
+export const findGridOverflow = (): { title: string; columnCount: number; used: number }[] =>
+  sheetSpecs()
+    .map((spec) => ({
+      title: spec.title,
+      columnCount: spec.grid.columnCount,
+      used: spec.rows.reduce((max, row) => Math.max(max, row.length), 0)
+    }))
+    .filter((spec) => spec.used > spec.columnCount);
 
 /**
  * `spreadsheets.create` 본문. 탭·격자·고정행·초기값을 **한 번의 요청**으로 만든다.
@@ -279,7 +306,7 @@ export const buildCreateSpreadsheetBody = (title: string): Record<string, unknow
         startRow: 0,
         startColumn: 0,
         rowData: spec.rows.map((row) => ({
-          values: row.map((cell) => ({ userEnteredValue: { stringValue: cell } }))
+          values: row.map((cell) => ({ userEnteredValue: toCellValue(cell) }))
         }))
       }
     ]

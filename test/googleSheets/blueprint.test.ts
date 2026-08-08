@@ -6,7 +6,8 @@ import {
   BLUEPRINT_TAB_ORDER,
   KIND_CHOICES,
   buildCreateSpreadsheetBody,
-  buildFormatRequests
+  buildFormatRequests,
+  findGridOverflow
 } from '@/shared/lib/googleSheets';
 import { LEDGER_CATEGORIES } from '@/shared/constants/ledger';
 
@@ -22,13 +23,25 @@ import { LEDGER_CATEGORIES } from '@/shared/constants/ledger';
 
 const body = () => buildCreateSpreadsheetBody('테스트 가계부') as {
   properties: { title: string; locale: string; timeZone: string };
-  sheets: { properties: { title: string; gridProperties: { frozenRowCount?: number } }; data: { rowData: { values?: { userEnteredValue: { stringValue: string } }[] }[] }[] }[];
+  sheets: {
+    properties: { title: string; gridProperties: { columnCount: number; frozenRowCount?: number } };
+    data: { rowData: { values?: { userEnteredValue: Record<string, string> }[] }[] }[];
+  }[];
 };
+
+/**
+ * 셀 값을 문자열로 편다.
+ *
+ * ⚠ 수식은 `formulaValue`, 나머지는 `stringValue` 다 — 한쪽만 읽으면 수식 검사가 통째로 헛돈다
+ *   (실제로 `stringValue` 만 읽다가, 수식을 formulaValue 로 고친 순간 네 개가 조용히 빈 문자열이 됐다).
+ */
+const cellText = (cell: { userEnteredValue: Record<string, string> }): string =>
+  cell.userEnteredValue.formulaValue ?? cell.userEnteredValue.stringValue ?? '';
 
 const rowsOf = (title: string): string[][] => {
   const sheet = body().sheets.find((candidate) => candidate.properties.title === title);
   if (!sheet) throw new Error(`탭을 찾지 못했다: ${title}`);
-  return sheet.data[0].rowData.map((row) => (row.values ?? []).map((cell) => cell.userEnteredValue.stringValue));
+  return sheet.data[0].rowData.map((row) => (row.values ?? []).map(cellText));
 };
 
 describe('탭 구성', () => {
@@ -129,6 +142,38 @@ describe('🔴 수식 — 틀리면 숫자가 어긋난다', () => {
 
   it('FILTER 는 맞는 행이 없어도 붉은 오류를 내지 않는다', () => {
     expect(rowsOf(BLUEPRINT_TABS.fixed).flat().join('\n')).toContain('IFERROR(FILTER(');
+  });
+});
+
+describe('🔴 실제 400 을 냈던 자리 — 회귀 가드', () => {
+  it('⭐ 격자 열 수가 실제로 쓰는 열 수보다 작지 않다', () => {
+    /*
+     * 실제로 시트 생성이 이 오류로 죽었다:
+     *   `Invalid sheets[3].data[0]: Attempting to write column: 8, beyond the last requested column of: 7`
+     * 고정비 탭의 머리를 7열에서 9열로 늘리면서 `columnCount` 를 안 고쳤기 때문이다.
+     * 격자와 내용은 함께 바뀌어야 하는데 코드상 둘이 떨어져 있어 어긋날 수 있다.
+     */
+    expect(findGridOverflow()).toEqual([]);
+  });
+
+  it('⭐ 수식은 formulaValue 로 나간다 — stringValue 면 글자 그대로 저장된다', () => {
+    const sheets = body().sheets as unknown as {
+      properties: { title: string };
+      data: { rowData: { values?: { userEnteredValue: Record<string, string> }[] }[] }[];
+    }[];
+
+    const cells = sheets.flatMap((sheet) =>
+      sheet.data[0].rowData.flatMap((row) => row.values ?? [])
+    );
+    const formulaLike = cells.filter((cell) =>
+      Object.values(cell.userEnteredValue).some((value) => typeof value === 'string' && value.startsWith('='))
+    );
+
+    expect(formulaLike.length).toBeGreaterThan(0);
+    for (const cell of formulaLike) {
+      expect(cell.userEnteredValue.formulaValue, JSON.stringify(cell)).toBeDefined();
+      expect(cell.userEnteredValue.stringValue).toBeUndefined();
+    }
   });
 });
 
