@@ -1,0 +1,2408 @@
+{
+  "asOf": "2026-08-08",
+  "note": "수집기(npm run dividend:dex)가 배당 목록 넷을 모아 만든다. 손으로 고치지 마라. 🔴 number 는 append-only — 기존 값을 바꾸면 사용자가 기억한 도감 번호가 다른 회사가 된다.",
+  "entries": [
+    {
+      "number": 1,
+      "ticker": "ABBV",
+      "name": "AbbVie",
+      "sector": "healthCare",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats"
+      ],
+      "forwardYieldPercent": 2.8233,
+      "fiveYearGrowthPercent": 6.8052,
+      "artKey": "sector:healthCare"
+    },
+    {
+      "number": 2,
+      "ticker": "ABM",
+      "name": "ABM Industries Incorporated",
+      "sector": "industrials",
+      "rarity": 5,
+      "listIds": [
+        "kings"
+      ],
+      "forwardYieldPercent": 2.38,
+      "fiveYearGrowthPercent": 7.4521,
+      "artKey": "sector:industrials"
+    },
+    {
+      "number": 3,
+      "ticker": "ABT",
+      "name": "Abbott Laboratories",
+      "sector": "healthCare",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats"
+      ],
+      "forwardYieldPercent": 2.3525,
+      "fiveYearGrowthPercent": 10.385,
+      "artKey": "sector:healthCare"
+    },
+    {
+      "number": 4,
+      "ticker": "ACN",
+      "name": "Accenture",
+      "sector": "informationTechnology",
+      "rarity": 3,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 3.933397683397683,
+      "fiveYearGrowthPercent": 13.09264089979596,
+      "artKey": "sector:informationTechnology"
+    },
+    {
+      "number": 5,
+      "ticker": "ADM",
+      "name": "Archer-Daniels-Midland Company",
+      "sector": "consumerStaples",
+      "rarity": 5,
+      "listIds": [
+        "aristocrats",
+        "kings"
+      ],
+      "forwardYieldPercent": 2.6646,
+      "fiveYearGrowthPercent": 7.2145,
+      "artKey": "sector:consumerStaples"
+    },
+    {
+      "number": 6,
+      "ticker": "ADP",
+      "name": "Automatic Data Processing, Inc.",
+      "sector": "informationTechnology",
+      "rarity": 5,
+      "listIds": [
+        "aristocrats",
+        "kings"
+      ],
+      "forwardYieldPercent": 2.5206,
+      "fiveYearGrowthPercent": 11.0953,
+      "artKey": "sector:informationTechnology"
+    },
+    {
+      "number": 7,
+      "ticker": "AFG",
+      "name": "American Financial Group",
+      "sector": "financials",
+      "rarity": 3,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 3.720405862457723,
+      "fiveYearGrowthPercent": 12.195514544619957,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 8,
+      "ticker": "AFL",
+      "name": "AFLAC",
+      "sector": "financials",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats",
+        "champions"
+      ],
+      "forwardYieldPercent": 1.9257,
+      "fiveYearGrowthPercent": 15.6789,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 9,
+      "ticker": "ALB",
+      "name": "Albemarle Corporation",
+      "sector": "materials",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats",
+        "champions"
+      ],
+      "forwardYieldPercent": 1.3647,
+      "fiveYearGrowthPercent": 1.018,
+      "artKey": "sector:materials"
+    },
+    {
+      "number": 10,
+      "ticker": "ALRS",
+      "name": "Alerus Financial Corporation",
+      "sector": "financials",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": 2.5791,
+      "fiveYearGrowthPercent": 6.961,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 11,
+      "ticker": "AMCR",
+      "name": "Amcor",
+      "sector": "materials",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats"
+      ],
+      "forwardYieldPercent": 5.6497,
+      "fiveYearGrowthPercent": null,
+      "artKey": "sector:materials"
+    },
+    {
+      "number": 12,
+      "ticker": "ANDE",
+      "name": "The Andersons, Inc.",
+      "sector": "consumerStaples",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": 1.1451,
+      "fiveYearGrowthPercent": 2.1879,
+      "artKey": "sector:consumerStaples"
+    },
+    {
+      "number": 13,
+      "ticker": "AOS",
+      "name": "A.O. Smith",
+      "sector": "industrials",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats",
+        "champions"
+      ],
+      "forwardYieldPercent": 2.3712,
+      "fiveYearGrowthPercent": 7.2145,
+      "artKey": "sector:industrials"
+    },
+    {
+      "number": 14,
+      "ticker": "APD",
+      "name": "Air Products & Chemicals",
+      "sector": "materials",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats",
+        "champions"
+      ],
+      "forwardYieldPercent": 2.4715,
+      "fiveYearGrowthPercent": 5.9619,
+      "artKey": "sector:materials"
+    },
+    {
+      "number": 15,
+      "ticker": "APOG",
+      "name": "Apogee Enterprises, Inc.",
+      "sector": "industrials",
+      "rarity": 1,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 2.5732666190135816,
+      "fiveYearGrowthPercent": 6.699675773069802,
+      "artKey": "sector:industrials"
+    },
+    {
+      "number": 16,
+      "ticker": "AROW",
+      "name": "Arrow Financial Corporation",
+      "sector": "financials",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": null,
+      "fiveYearGrowthPercent": null,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 17,
+      "ticker": "ASB",
+      "name": "Associated Bank",
+      "sector": "financials",
+      "rarity": 1,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 3.0573248407643314,
+      "fiveYearGrowthPercent": 5.024607263868264,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 18,
+      "ticker": "ATO",
+      "name": "Atmos Energy Corp",
+      "sector": "utilities",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats",
+        "champions"
+      ],
+      "forwardYieldPercent": 2.3136,
+      "fiveYearGrowthPercent": 8.6351,
+      "artKey": "sector:utilities"
+    },
+    {
+      "number": 19,
+      "ticker": "ATR",
+      "name": "AptarGroup, Inc.",
+      "sector": "healthCare",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": 1.4038,
+      "fiveYearGrowthPercent": 4.564,
+      "artKey": "sector:healthCare"
+    },
+    {
+      "number": 20,
+      "ticker": "AUB",
+      "name": "Atlantic Union Bankshares, Corp.",
+      "sector": "financials",
+      "rarity": 1,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 3.460369417816226,
+      "fiveYearGrowthPercent": 6.342724238285391,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 21,
+      "ticker": "AVNT",
+      "name": "Avient",
+      "sector": "materials",
+      "rarity": 2,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 2.9419630917357584,
+      "fiveYearGrowthPercent": 5.870154107037795,
+      "artKey": "sector:materials"
+    },
+    {
+      "number": 22,
+      "ticker": "AWR",
+      "name": "American States Water Company",
+      "sector": "utilities",
+      "rarity": 5,
+      "listIds": [
+        "kings"
+      ],
+      "forwardYieldPercent": 2.3788,
+      "fiveYearGrowthPercent": 8.8472,
+      "artKey": "sector:utilities"
+    },
+    {
+      "number": 23,
+      "ticker": "BANF",
+      "name": "BancFirst Corporation",
+      "sector": "financials",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": 1.7193,
+      "fiveYearGrowthPercent": 7.528,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 24,
+      "ticker": "BBY",
+      "name": "Best Buy",
+      "sector": "consumerDiscretionary",
+      "rarity": 3,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 4.504398826979472,
+      "fiveYearGrowthPercent": 11.550670014054099,
+      "artKey": "sector:consumerDiscretionary"
+    },
+    {
+      "number": 25,
+      "ticker": "BDX",
+      "name": "Becton, Dickinson and Company",
+      "sector": "healthCare",
+      "rarity": 5,
+      "listIds": [
+        "aristocrats",
+        "kings"
+      ],
+      "forwardYieldPercent": 2.4675,
+      "fiveYearGrowthPercent": 6.1759,
+      "artKey": "sector:healthCare"
+    },
+    {
+      "number": 26,
+      "ticker": "BEN",
+      "name": "Franklin Resources Inc",
+      "sector": "financials",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats",
+        "champions"
+      ],
+      "forwardYieldPercent": 3.7457,
+      "fiveYearGrowthPercent": 3.4564,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 27,
+      "ticker": "BF.B",
+      "name": "Brown–Forman (class B)",
+      "sector": "consumerStaples",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats"
+      ],
+      "forwardYieldPercent": 3.3225,
+      "fiveYearGrowthPercent": 5.4618,
+      "artKey": "sector:consumerStaples"
+    },
+    {
+      "number": 28,
+      "ticker": "BKH",
+      "name": "Black Hills Corporation",
+      "sector": "utilities",
+      "rarity": 5,
+      "listIds": [
+        "kings"
+      ],
+      "forwardYieldPercent": 3.9478,
+      "fiveYearGrowthPercent": 4.7897,
+      "artKey": "sector:utilities"
+    },
+    {
+      "number": 29,
+      "ticker": "BMI",
+      "name": "Badger Meter, Inc.",
+      "sector": "informationTechnology",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": 1.1683,
+      "fiveYearGrowthPercent": 14.8698,
+      "artKey": "sector:informationTechnology"
+    },
+    {
+      "number": 30,
+      "ticker": "BRC",
+      "name": "Brady Corporation",
+      "sector": "industrials",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": 1.0205,
+      "fiveYearGrowthPercent": 1.9415,
+      "artKey": "sector:industrials"
+    },
+    {
+      "number": 31,
+      "ticker": "BRO",
+      "name": "Brown & Brown Inc.",
+      "sector": "financials",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats",
+        "champions"
+      ],
+      "forwardYieldPercent": 0.9195,
+      "fiveYearGrowthPercent": 12.03,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 32,
+      "ticker": "CAH",
+      "name": "Cardinal Health Inc",
+      "sector": "healthCare",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats"
+      ],
+      "forwardYieldPercent": 0.8761,
+      "fiveYearGrowthPercent": 0.8098,
+      "artKey": "sector:healthCare"
+    },
+    {
+      "number": 33,
+      "ticker": "CASY",
+      "name": "Caseys General Stores, Inc.",
+      "sector": "consumerDiscretionary",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": 0.3022,
+      "fiveYearGrowthPercent": 9.3362,
+      "artKey": "sector:consumerDiscretionary"
+    },
+    {
+      "number": 34,
+      "ticker": "CAT",
+      "name": "Caterpillar Inc",
+      "sector": "industrials",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats",
+        "champions"
+      ],
+      "forwardYieldPercent": 0.7855,
+      "fiveYearGrowthPercent": 6.482,
+      "artKey": "sector:industrials"
+    },
+    {
+      "number": 35,
+      "ticker": "CB",
+      "name": "Chubb Limited",
+      "sector": "financials",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats",
+        "champions"
+      ],
+      "forwardYieldPercent": 1.1716,
+      "fiveYearGrowthPercent": null,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 36,
+      "ticker": "CBSH",
+      "name": "Commerce Bancshares, Inc.",
+      "sector": "financials",
+      "rarity": 5,
+      "listIds": [
+        "kings"
+      ],
+      "forwardYieldPercent": 1.8435,
+      "fiveYearGrowthPercent": 4.3627,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 37,
+      "ticker": "CBU",
+      "name": "Community Financial System, Inc.",
+      "sector": "financials",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": 2.8254,
+      "fiveYearGrowthPercent": 2.3281,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 38,
+      "ticker": "CFR",
+      "name": "Cullen/Frost Bankers, Inc.",
+      "sector": "financials",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": 2.4387,
+      "fiveYearGrowthPercent": 7.0899,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 39,
+      "ticker": "CHD",
+      "name": "Church & Dwight",
+      "sector": "consumerStaples",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats",
+        "champions"
+      ],
+      "forwardYieldPercent": 1.2319,
+      "fiveYearGrowthPercent": 4.2131,
+      "artKey": "sector:consumerStaples"
+    },
+    {
+      "number": 40,
+      "ticker": "CHRW",
+      "name": "C.H. Robinson",
+      "sector": "industrials",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats",
+        "champions"
+      ],
+      "forwardYieldPercent": 1.7143,
+      "fiveYearGrowthPercent": 3.9835,
+      "artKey": "sector:industrials"
+    },
+    {
+      "number": 41,
+      "ticker": "CINF",
+      "name": "Cincinnati Financial Corporation",
+      "sector": "financials",
+      "rarity": 5,
+      "listIds": [
+        "aristocrats",
+        "kings"
+      ],
+      "forwardYieldPercent": 2.112,
+      "fiveYearGrowthPercent": 7.7144,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 42,
+      "ticker": "CL",
+      "name": "Colgate-Palmolive Company",
+      "sector": "consumerStaples",
+      "rarity": 5,
+      "listIds": [
+        "aristocrats",
+        "kings"
+      ],
+      "forwardYieldPercent": 2.3587,
+      "fiveYearGrowthPercent": 3.3975,
+      "artKey": "sector:consumerStaples"
+    },
+    {
+      "number": 43,
+      "ticker": "CLX",
+      "name": "Clorox",
+      "sector": "consumerStaples",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats",
+        "champions"
+      ],
+      "forwardYieldPercent": 5.0478,
+      "fiveYearGrowthPercent": 2.8515,
+      "artKey": "sector:consumerStaples"
+    },
+    {
+      "number": 44,
+      "ticker": "CNI",
+      "name": "Canadian National Railway Company",
+      "sector": "industrials",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": null,
+      "fiveYearGrowthPercent": null,
+      "artKey": "sector:industrials"
+    },
+    {
+      "number": 45,
+      "ticker": "CNS",
+      "name": "Cohen & Steers, Inc.",
+      "sector": "financials",
+      "rarity": 1,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 3.166725747370909,
+      "fiveYearGrowthPercent": 9.714850709074053,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 46,
+      "ticker": "CSL",
+      "name": "Carlisle Companies Incorporated",
+      "sector": "industrials",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": 1.1832,
+      "fiveYearGrowthPercent": 14.8698,
+      "artKey": "sector:industrials"
+    },
+    {
+      "number": 47,
+      "ticker": "CTAS",
+      "name": "Cintas Corp",
+      "sector": "industrials",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats",
+        "champions"
+      ],
+      "forwardYieldPercent": 0.8823,
+      "fiveYearGrowthPercent": null,
+      "artKey": "sector:industrials"
+    },
+    {
+      "number": 48,
+      "ticker": "CTBI",
+      "name": "Community Trust Bancorp, Inc.",
+      "sector": "financials",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": 2.6859,
+      "fiveYearGrowthPercent": 4.3429,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 49,
+      "ticker": "CTRE",
+      "name": "CareTrust REIT",
+      "sector": "realEstate",
+      "rarity": 1,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 3.7845705967976713,
+      "fiveYearGrowthPercent": 6.0280952775362495,
+      "artKey": "sector:realEstate"
+    },
+    {
+      "number": 50,
+      "ticker": "CUBE",
+      "name": "CubeSmart",
+      "sector": "realEstate",
+      "rarity": 2,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 5.066921606118547,
+      "fiveYearGrowthPercent": 9.521121099648798,
+      "artKey": "sector:realEstate"
+    },
+    {
+      "number": 51,
+      "ticker": "CVX",
+      "name": "Chevron Corp",
+      "sector": "energy",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats",
+        "champions"
+      ],
+      "forwardYieldPercent": 3.6857,
+      "fiveYearGrowthPercent": 5.7989,
+      "artKey": "sector:energy"
+    },
+    {
+      "number": 52,
+      "ticker": "CWT",
+      "name": "California Water Service Group",
+      "sector": "utilities",
+      "rarity": 5,
+      "listIds": [
+        "kings"
+      ],
+      "forwardYieldPercent": 2.7136,
+      "fiveYearGrowthPercent": 7.0899,
+      "artKey": "sector:utilities"
+    },
+    {
+      "number": 53,
+      "ticker": "DCI",
+      "name": "Donaldson Company, Inc.",
+      "sector": "industrials",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": 1.3331,
+      "fiveYearGrowthPercent": 7.3941,
+      "artKey": "sector:industrials"
+    },
+    {
+      "number": 54,
+      "ticker": "DOV",
+      "name": "Dover Corporation",
+      "sector": "industrials",
+      "rarity": 5,
+      "listIds": [
+        "aristocrats",
+        "kings"
+      ],
+      "forwardYieldPercent": 1.0111,
+      "fiveYearGrowthPercent": 1.0002,
+      "artKey": "sector:industrials"
+    },
+    {
+      "number": 55,
+      "ticker": "ECL",
+      "name": "Ecolab Inc",
+      "sector": "materials",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats",
+        "champions"
+      ],
+      "forwardYieldPercent": 1.045,
+      "fiveYearGrowthPercent": 6.6997,
+      "artKey": "sector:materials"
+    },
+    {
+      "number": 56,
+      "ticker": "ED",
+      "name": "Consolidated Edison, Inc.",
+      "sector": "utilities",
+      "rarity": 5,
+      "listIds": [
+        "aristocrats",
+        "kings"
+      ],
+      "forwardYieldPercent": 3.2904,
+      "fiveYearGrowthPercent": 2.1296,
+      "artKey": "sector:utilities"
+    },
+    {
+      "number": 57,
+      "ticker": "EGP",
+      "name": "EastGroup Properties",
+      "sector": "realEstate",
+      "rarity": 2,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 2.9739063699155794,
+      "fiveYearGrowthPercent": 13.29568106011707,
+      "artKey": "sector:realEstate"
+    },
+    {
+      "number": 58,
+      "ticker": "EIG",
+      "name": "Employers Holdings, Inc.",
+      "sector": "financials",
+      "rarity": 1,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 2.685093780848964,
+      "fiveYearGrowthPercent": 5.061112176150684,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 59,
+      "ticker": "EIX",
+      "name": "Edison International",
+      "sector": "utilities",
+      "rarity": 3,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 4.914637559473832,
+      "fiveYearGrowthPercent": 5.351793066568655,
+      "artKey": "sector:utilities"
+    },
+    {
+      "number": 60,
+      "ticker": "ELS",
+      "name": "Equity Lifestyle Properties",
+      "sector": "realEstate",
+      "rarity": 3,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 3.3074463225216997,
+      "fiveYearGrowthPercent": 8.468247099429128,
+      "artKey": "sector:realEstate"
+    },
+    {
+      "number": 61,
+      "ticker": "EMR",
+      "name": "Emerson Electric Company",
+      "sector": "industrials",
+      "rarity": 5,
+      "listIds": [
+        "aristocrats",
+        "kings"
+      ],
+      "forwardYieldPercent": 1.4336,
+      "fiveYearGrowthPercent": 1.0957,
+      "artKey": "sector:industrials"
+    },
+    {
+      "number": 62,
+      "ticker": "ENB",
+      "name": "Enbridge Inc",
+      "sector": "energy",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": null,
+      "fiveYearGrowthPercent": null,
+      "artKey": "sector:energy"
+    },
+    {
+      "number": 63,
+      "ticker": "EPD",
+      "name": "Enterprise Products Partners L.P.",
+      "sector": "energy",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": null,
+      "fiveYearGrowthPercent": null,
+      "artKey": "sector:energy"
+    },
+    {
+      "number": 64,
+      "ticker": "ERIE",
+      "name": "Erie Indemnity",
+      "sector": "financials",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats",
+        "champions"
+      ],
+      "forwardYieldPercent": 2.4707,
+      "fiveYearGrowthPercent": 7.1818,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 65,
+      "ticker": "ES",
+      "name": "Eversource Energy",
+      "sector": "utilities",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats",
+        "champions"
+      ],
+      "forwardYieldPercent": 4.3808,
+      "fiveYearGrowthPercent": 5.8009,
+      "artKey": "sector:utilities"
+    },
+    {
+      "number": 66,
+      "ticker": "ESS",
+      "name": "Essex Property Trust",
+      "sector": "realEstate",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats",
+        "champions"
+      ],
+      "forwardYieldPercent": 3.6239,
+      "fiveYearGrowthPercent": 4.3416,
+      "artKey": "sector:realEstate"
+    },
+    {
+      "number": 67,
+      "ticker": "EVRG",
+      "name": "Evergy",
+      "sector": "utilities",
+      "rarity": 3,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 3.3401417758019942,
+      "fiveYearGrowthPercent": 5.754052091282724,
+      "artKey": "sector:utilities"
+    },
+    {
+      "number": 68,
+      "ticker": "EXPD",
+      "name": "Expeditors International of Washington",
+      "sector": "industrials",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats",
+        "champions"
+      ],
+      "forwardYieldPercent": 0.9496,
+      "fiveYearGrowthPercent": 8.1677,
+      "artKey": "sector:industrials"
+    },
+    {
+      "number": 69,
+      "ticker": "FAF",
+      "name": "First American Financial Corporation",
+      "sector": "financials",
+      "rarity": 2,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 2.9177718832891246,
+      "fiveYearGrowthPercent": 4.180926810264429,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 70,
+      "ticker": "FAST",
+      "name": "Fastenal",
+      "sector": "industrials",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats",
+        "champions"
+      ],
+      "forwardYieldPercent": 2.1617,
+      "fiveYearGrowthPercent": 11.9702,
+      "artKey": "sector:industrials"
+    },
+    {
+      "number": 71,
+      "ticker": "FDS",
+      "name": "FactSet Research Systems",
+      "sector": "financials",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats",
+        "champions"
+      ],
+      "forwardYieldPercent": 1.7206,
+      "fiveYearGrowthPercent": 7.3941,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 72,
+      "ticker": "FELE",
+      "name": "Franklin Electric Co., Inc.",
+      "sector": "industrials",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": 1.0471,
+      "fiveYearGrowthPercent": 11.3225,
+      "artKey": "sector:industrials"
+    },
+    {
+      "number": 73,
+      "ticker": "FRT",
+      "name": "Federal Realty Investment Trust",
+      "sector": "realEstate",
+      "rarity": 5,
+      "listIds": [
+        "aristocrats",
+        "kings"
+      ],
+      "forwardYieldPercent": 3.6555,
+      "fiveYearGrowthPercent": 0.9347,
+      "artKey": "sector:realEstate"
+    },
+    {
+      "number": 74,
+      "ticker": "FUL",
+      "name": "H. B. Fuller Company",
+      "sector": "materials",
+      "rarity": 5,
+      "listIds": [
+        "kings"
+      ],
+      "forwardYieldPercent": 1.719,
+      "fiveYearGrowthPercent": 7.591,
+      "artKey": "sector:materials"
+    },
+    {
+      "number": 75,
+      "ticker": "FULT",
+      "name": "Fulton Financial Corporation",
+      "sector": "financials",
+      "rarity": 1,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 3.0856678846934638,
+      "fiveYearGrowthPercent": 6.724918187953888,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 76,
+      "ticker": "GD",
+      "name": "General Dynamics",
+      "sector": "industrials",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats",
+        "champions"
+      ],
+      "forwardYieldPercent": 1.663,
+      "fiveYearGrowthPercent": 6.3995,
+      "artKey": "sector:industrials"
+    },
+    {
+      "number": 77,
+      "ticker": "GGG",
+      "name": "Graco Inc.",
+      "sector": "industrials",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": 1.4695,
+      "fiveYearGrowthPercent": 9.4609,
+      "artKey": "sector:industrials"
+    },
+    {
+      "number": 78,
+      "ticker": "GPC",
+      "name": "Genuine Parts Company",
+      "sector": "consumerDiscretionary",
+      "rarity": 5,
+      "listIds": [
+        "aristocrats",
+        "kings"
+      ],
+      "forwardYieldPercent": 3.3084,
+      "fiveYearGrowthPercent": 5.4489,
+      "artKey": "sector:consumerDiscretionary"
+    },
+    {
+      "number": 79,
+      "ticker": "GWW",
+      "name": "W.W. Grainger, Inc.",
+      "sector": "industrials",
+      "rarity": 5,
+      "listIds": [
+        "aristocrats",
+        "kings"
+      ],
+      "forwardYieldPercent": 0.7263,
+      "fiveYearGrowthPercent": 9.4332,
+      "artKey": "sector:industrials"
+    },
+    {
+      "number": 80,
+      "ticker": "HASI",
+      "name": "Hannon Armstrong Sustainable Infrastructure Capital, Inc.",
+      "sector": "financials",
+      "rarity": 1,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 4.406428201140487,
+      "fiveYearGrowthPercent": 4.316756381013498,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 81,
+      "ticker": "HOMB",
+      "name": "Home BancShares",
+      "sector": "financials",
+      "rarity": 2,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 2.6854219948849103,
+      "fiveYearGrowthPercent": 8.997698704834534,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 82,
+      "ticker": "HRL",
+      "name": "Hormel Foods Corporation",
+      "sector": "consumerStaples",
+      "rarity": 5,
+      "listIds": [
+        "aristocrats",
+        "kings"
+      ],
+      "forwardYieldPercent": 4.6453,
+      "fiveYearGrowthPercent": 4.474,
+      "artKey": "sector:consumerStaples"
+    },
+    {
+      "number": 83,
+      "ticker": "HTO",
+      "name": "H2O America",
+      "sector": "utilities",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": 2.8815,
+      "fiveYearGrowthPercent": 5.5893,
+      "artKey": "sector:utilities"
+    },
+    {
+      "number": 84,
+      "ticker": "IBM",
+      "name": "IBM",
+      "sector": "informationTechnology",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats",
+        "champions"
+      ],
+      "forwardYieldPercent": 2.9871,
+      "fiveYearGrowthPercent": 1.5151,
+      "artKey": "sector:informationTechnology"
+    },
+    {
+      "number": 85,
+      "ticker": "INDB",
+      "name": "Independent Bank Corp.",
+      "sector": "financials",
+      "rarity": 1,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 3.011764705882353,
+      "fiveYearGrowthPercent": 5.103901130952315,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 86,
+      "ticker": "INGR",
+      "name": "Ingredion",
+      "sector": "consumerStaples",
+      "rarity": 2,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 3.2662816172077274,
+      "fiveYearGrowthPercent": 4.893816562469966,
+      "artKey": "sector:consumerStaples"
+    },
+    {
+      "number": 87,
+      "ticker": "ITW",
+      "name": "Illinois Tool Works Inc.",
+      "sector": "industrials",
+      "rarity": 5,
+      "listIds": [
+        "aristocrats",
+        "kings"
+      ],
+      "forwardYieldPercent": 2.2323,
+      "fiveYearGrowthPercent": 6.9896,
+      "artKey": "sector:industrials"
+    },
+    {
+      "number": 88,
+      "ticker": "JJSF",
+      "name": "J&J Snack Foods Corp.",
+      "sector": "consumerStaples",
+      "rarity": 1,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 4.049607694254619,
+      "fiveYearGrowthPercent": 6.288273250054988,
+      "artKey": "sector:consumerStaples"
+    },
+    {
+      "number": 89,
+      "ticker": "JKHY",
+      "name": "Jack Henry & Associates, Inc.",
+      "sector": "informationTechnology",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": 1.5588,
+      "fiveYearGrowthPercent": 6.1676,
+      "artKey": "sector:informationTechnology"
+    },
+    {
+      "number": 90,
+      "ticker": "JNJ",
+      "name": "Johnson & Johnson",
+      "sector": "healthCare",
+      "rarity": 5,
+      "listIds": [
+        "aristocrats",
+        "kings"
+      ],
+      "forwardYieldPercent": 2.1068,
+      "fiveYearGrowthPercent": 5.1779,
+      "artKey": "sector:healthCare"
+    },
+    {
+      "number": 91,
+      "ticker": "KMB",
+      "name": "Kimberly-Clark Corporation",
+      "sector": "consumerStaples",
+      "rarity": 5,
+      "listIds": [
+        "aristocrats",
+        "kings"
+      ],
+      "forwardYieldPercent": 4.7601,
+      "fiveYearGrowthPercent": 3.3231,
+      "artKey": "sector:consumerStaples"
+    },
+    {
+      "number": 92,
+      "ticker": "KO",
+      "name": "Coca-Cola Company (The)",
+      "sector": "consumerStaples",
+      "rarity": 5,
+      "listIds": [
+        "aristocrats",
+        "kings"
+      ],
+      "forwardYieldPercent": 2.4407,
+      "fiveYearGrowthPercent": 4.4617,
+      "artKey": "sector:consumerStaples"
+    },
+    {
+      "number": 93,
+      "ticker": "KVUE",
+      "name": "Kenvue, Inc.",
+      "sector": "consumerStaples",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats"
+      ],
+      "forwardYieldPercent": 4.3766,
+      "fiveYearGrowthPercent": null,
+      "artKey": "sector:consumerStaples"
+    },
+    {
+      "number": 94,
+      "ticker": "LECO",
+      "name": "Lincoln Electric Holdings, Inc.",
+      "sector": "industrials",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": 1.18,
+      "fiveYearGrowthPercent": 8.8862,
+      "artKey": "sector:industrials"
+    },
+    {
+      "number": 95,
+      "ticker": "LIN",
+      "name": "Linde plc",
+      "sector": "materials",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats",
+        "champions"
+      ],
+      "forwardYieldPercent": 1.3321,
+      "fiveYearGrowthPercent": 9.268,
+      "artKey": "sector:materials"
+    },
+    {
+      "number": 96,
+      "ticker": "LKFN",
+      "name": "Lakeland Financial",
+      "sector": "financials",
+      "rarity": 1,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 3.306310602447942,
+      "fiveYearGrowthPercent": 10.756634324829006,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 97,
+      "ticker": "LNT",
+      "name": "Alliant Energy",
+      "sector": "utilities",
+      "rarity": 3,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 3.002665918338712,
+      "fiveYearGrowthPercent": 5.9363175944590285,
+      "artKey": "sector:utilities"
+    },
+    {
+      "number": 98,
+      "ticker": "LOW",
+      "name": "Lowe's Companies, Inc.",
+      "sector": "consumerDiscretionary",
+      "rarity": 5,
+      "listIds": [
+        "aristocrats",
+        "kings"
+      ],
+      "forwardYieldPercent": 2.3578,
+      "fiveYearGrowthPercent": 15.8956,
+      "artKey": "sector:consumerDiscretionary"
+    },
+    {
+      "number": 99,
+      "ticker": "MATW",
+      "name": "Matthews International Corporation",
+      "sector": "industrials",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": 3.6338,
+      "fiveYearGrowthPercent": 3.5486,
+      "artKey": "sector:industrials"
+    },
+    {
+      "number": 100,
+      "ticker": "MCD",
+      "name": "McDonald's Corporation",
+      "sector": "consumerDiscretionary",
+      "rarity": 5,
+      "listIds": [
+        "aristocrats",
+        "kings"
+      ],
+      "forwardYieldPercent": 2.8051,
+      "fiveYearGrowthPercent": 7.2044,
+      "artKey": "sector:consumerDiscretionary"
+    },
+    {
+      "number": 101,
+      "ticker": "MDT",
+      "name": "Medtronic plc",
+      "sector": "healthCare",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats",
+        "champions"
+      ],
+      "forwardYieldPercent": 3.3226,
+      "fiveYearGrowthPercent": 4.1277,
+      "artKey": "sector:healthCare"
+    },
+    {
+      "number": 102,
+      "ticker": "MGEE",
+      "name": "MGE Energy Inc.",
+      "sector": "utilities",
+      "rarity": 5,
+      "listIds": [
+        "kings"
+      ],
+      "forwardYieldPercent": 2.375,
+      "fiveYearGrowthPercent": 4.9754,
+      "artKey": "sector:utilities"
+    },
+    {
+      "number": 103,
+      "ticker": "MGRC",
+      "name": "McGrath RentCorp",
+      "sector": "industrials",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": 1.6547,
+      "fiveYearGrowthPercent": 2.9197,
+      "artKey": "sector:industrials"
+    },
+    {
+      "number": 104,
+      "ticker": "MKC",
+      "name": "McCormick & Company",
+      "sector": "consumerStaples",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats",
+        "champions"
+      ],
+      "forwardYieldPercent": 3.7267,
+      "fiveYearGrowthPercent": 7.7383,
+      "artKey": "sector:consumerStaples"
+    },
+    {
+      "number": 105,
+      "ticker": "MO",
+      "name": "Altria Group, Inc.",
+      "sector": "consumerStaples",
+      "rarity": 5,
+      "listIds": [
+        "kings"
+      ],
+      "forwardYieldPercent": null,
+      "fiveYearGrowthPercent": null,
+      "artKey": "sector:consumerStaples"
+    },
+    {
+      "number": 106,
+      "ticker": "MSA",
+      "name": "MSA Safety Incorporated",
+      "sector": "industrials",
+      "rarity": 5,
+      "listIds": [
+        "kings"
+      ],
+      "forwardYieldPercent": 1.1223,
+      "fiveYearGrowthPercent": 4.2705,
+      "artKey": "sector:industrials"
+    },
+    {
+      "number": 107,
+      "ticker": "MSEX",
+      "name": "Middlesex Water Company",
+      "sector": "utilities",
+      "rarity": 1,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 2.5329815303430077,
+      "fiveYearGrowthPercent": 5.839502638636529,
+      "artKey": "sector:utilities"
+    },
+    {
+      "number": 108,
+      "ticker": "MZTI",
+      "name": "The Marzetti Company",
+      "sector": "consumerStaples",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": 3.6117,
+      "fiveYearGrowthPercent": 6.298,
+      "artKey": "sector:consumerStaples"
+    },
+    {
+      "number": 109,
+      "ticker": "NBTB",
+      "name": "NBT Bancorp, Inc.",
+      "sector": "financials",
+      "rarity": 1,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 2.797202797202797,
+      "fiveYearGrowthPercent": 4.718407860618323,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 110,
+      "ticker": "NDSN",
+      "name": "Nordson Corporation",
+      "sector": "industrials",
+      "rarity": 5,
+      "listIds": [
+        "aristocrats",
+        "kings"
+      ],
+      "forwardYieldPercent": 1.0839,
+      "fiveYearGrowthPercent": 15.4681,
+      "artKey": "sector:industrials"
+    },
+    {
+      "number": 111,
+      "ticker": "NEE",
+      "name": "NextEra Energy",
+      "sector": "utilities",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats",
+        "champions"
+      ],
+      "forwardYieldPercent": 2.8793,
+      "fiveYearGrowthPercent": 10.1293,
+      "artKey": "sector:utilities"
+    },
+    {
+      "number": 112,
+      "ticker": "NFG",
+      "name": "National Fuel Gas Company",
+      "sector": "energy",
+      "rarity": 5,
+      "listIds": [
+        "kings"
+      ],
+      "forwardYieldPercent": 2.6825,
+      "fiveYearGrowthPercent": 3.7525,
+      "artKey": "sector:energy"
+    },
+    {
+      "number": 113,
+      "ticker": "NJR",
+      "name": "New Jersey Resources Corporation",
+      "sector": "utilities",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": 3.2713,
+      "fiveYearGrowthPercent": 7.531,
+      "artKey": "sector:utilities"
+    },
+    {
+      "number": 114,
+      "ticker": "NKE",
+      "name": "Nike, Inc.",
+      "sector": "consumerDiscretionary",
+      "rarity": 3,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 3.846153846153846,
+      "fiveYearGrowthPercent": 10.300830235778413,
+      "artKey": "sector:consumerDiscretionary"
+    },
+    {
+      "number": 115,
+      "ticker": "NNN",
+      "name": "NNN REIT, Inc.",
+      "sector": "realEstate",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": 5.2222,
+      "fiveYearGrowthPercent": 2.4057,
+      "artKey": "sector:realEstate"
+    },
+    {
+      "number": 116,
+      "ticker": "NUE",
+      "name": "Nucor Corporation",
+      "sector": "materials",
+      "rarity": 5,
+      "listIds": [
+        "aristocrats",
+        "kings"
+      ],
+      "forwardYieldPercent": 0.8573,
+      "fiveYearGrowthPercent": 6.4171,
+      "artKey": "sector:materials"
+    },
+    {
+      "number": 117,
+      "ticker": "NWFL",
+      "name": "Norwood Financial Corp.",
+      "sector": "financials",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": null,
+      "fiveYearGrowthPercent": null,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 118,
+      "ticker": "NWN",
+      "name": "Northwest Natural Holding Company",
+      "sector": "utilities",
+      "rarity": 5,
+      "listIds": [
+        "kings"
+      ],
+      "forwardYieldPercent": 4.0302,
+      "fiveYearGrowthPercent": 0.4971,
+      "artKey": "sector:utilities"
+    },
+    {
+      "number": 119,
+      "ticker": "NXRT",
+      "name": "NexPoint Residential Trust, Inc.",
+      "sector": "realEstate",
+      "rarity": 1,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 8.182169046700116,
+      "fiveYearGrowthPercent": 10.256745157647828,
+      "artKey": "sector:realEstate"
+    },
+    {
+      "number": 120,
+      "ticker": "O",
+      "name": "Realty Income",
+      "sector": "realEstate",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats",
+        "champions"
+      ],
+      "forwardYieldPercent": 5.1229,
+      "fiveYearGrowthPercent": 3.4769,
+      "artKey": "sector:realEstate"
+    },
+    {
+      "number": 121,
+      "ticker": "OGS",
+      "name": "One Gas",
+      "sector": "utilities",
+      "rarity": 3,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 3.4693877551020407,
+      "fiveYearGrowthPercent": 4.408584653882852,
+      "artKey": "sector:utilities"
+    },
+    {
+      "number": 122,
+      "ticker": "ORI",
+      "name": "Old Republic International Corporation",
+      "sector": "financials",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": 2.9079,
+      "fiveYearGrowthPercent": 6.6684,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 123,
+      "ticker": "OTTR",
+      "name": "Otter Tail Corporation",
+      "sector": "utilities",
+      "rarity": 1,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 2.56433007985803,
+      "fiveYearGrowthPercent": 7.2485713934655305,
+      "artKey": "sector:utilities"
+    },
+    {
+      "number": 124,
+      "ticker": "OZK",
+      "name": "Bank OZK",
+      "sector": "financials",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": 3.7109,
+      "fiveYearGrowthPercent": 10.0665,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 125,
+      "ticker": "PB",
+      "name": "Prosperity Bancshares, Inc.",
+      "sector": "financials",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": 3.1894,
+      "fiveYearGrowthPercent": 4.7452,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 126,
+      "ticker": "PEP",
+      "name": "Pepsico, Inc.",
+      "sector": "consumerStaples",
+      "rarity": 5,
+      "listIds": [
+        "aristocrats",
+        "kings"
+      ],
+      "forwardYieldPercent": 4.2398,
+      "fiveYearGrowthPercent": 6.8233,
+      "artKey": "sector:consumerStaples"
+    },
+    {
+      "number": 127,
+      "ticker": "PFBC",
+      "name": "Preferred Bank",
+      "sector": "financials",
+      "rarity": 1,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 3.0160226201696516,
+      "fiveYearGrowthPercent": 20.11244339814313,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 128,
+      "ticker": "PG",
+      "name": "Procter & Gamble Company (The)",
+      "sector": "consumerStaples",
+      "rarity": 5,
+      "listIds": [
+        "aristocrats",
+        "kings"
+      ],
+      "forwardYieldPercent": 3.0048,
+      "fiveYearGrowthPercent": 5.9692,
+      "artKey": "sector:consumerStaples"
+    },
+    {
+      "number": 129,
+      "ticker": "PH",
+      "name": "Parker-Hannifin Corporation",
+      "sector": "industrials",
+      "rarity": 5,
+      "listIds": [
+        "kings"
+      ],
+      "forwardYieldPercent": null,
+      "fiveYearGrowthPercent": null,
+      "artKey": "sector:industrials"
+    },
+    {
+      "number": 130,
+      "ticker": "PII",
+      "name": "Polaris Inc.",
+      "sector": "consumerDiscretionary",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": 3.8505,
+      "fiveYearGrowthPercent": 1.5633,
+      "artKey": "sector:consumerDiscretionary"
+    },
+    {
+      "number": 131,
+      "ticker": "PNR",
+      "name": "Pentair",
+      "sector": "industrials",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats"
+      ],
+      "forwardYieldPercent": 1.6103,
+      "fiveYearGrowthPercent": 5.6422,
+      "artKey": "sector:industrials"
+    },
+    {
+      "number": 132,
+      "ticker": "POR",
+      "name": "Portland General Electric",
+      "sector": "utilities",
+      "rarity": 2,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 4.39481555333998,
+      "fiveYearGrowthPercent": 6.399531281508364,
+      "artKey": "sector:utilities"
+    },
+    {
+      "number": 133,
+      "ticker": "PPG",
+      "name": "PPG Industries, Inc.",
+      "sector": "materials",
+      "rarity": 5,
+      "listIds": [
+        "aristocrats",
+        "kings"
+      ],
+      "forwardYieldPercent": 2.491,
+      "fiveYearGrowthPercent": 5.9224,
+      "artKey": "sector:materials"
+    },
+    {
+      "number": 134,
+      "ticker": "RGCO",
+      "name": "RGC Resources Inc.",
+      "sector": "utilities",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": null,
+      "fiveYearGrowthPercent": null,
+      "artKey": "sector:utilities"
+    },
+    {
+      "number": 135,
+      "ticker": "RHI",
+      "name": "Robert Half",
+      "sector": "industrials",
+      "rarity": 3,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 6.093467596178673,
+      "fiveYearGrowthPercent": 11.654085522403058,
+      "artKey": "sector:industrials"
+    },
+    {
+      "number": 136,
+      "ticker": "RLI",
+      "name": "RLI Corp.",
+      "sector": "financials",
+      "rarity": 5,
+      "listIds": [
+        "kings"
+      ],
+      "forwardYieldPercent": null,
+      "fiveYearGrowthPercent": null,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 137,
+      "ticker": "RNR",
+      "name": "RenaissanceRe Holdings Ltd.",
+      "sector": "financials",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": 0.5103,
+      "fiveYearGrowthPercent": 2.7066,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 138,
+      "ticker": "ROP",
+      "name": "Roper Technologies",
+      "sector": "industrials",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats",
+        "champions"
+      ],
+      "forwardYieldPercent": 0.9272,
+      "fiveYearGrowthPercent": 9.9683,
+      "artKey": "sector:industrials"
+    },
+    {
+      "number": 139,
+      "ticker": "RPM",
+      "name": "RPM International Inc.",
+      "sector": "materials",
+      "rarity": 5,
+      "listIds": [
+        "kings"
+      ],
+      "forwardYieldPercent": 1.9374,
+      "fiveYearGrowthPercent": 7.2145,
+      "artKey": "sector:materials"
+    },
+    {
+      "number": 140,
+      "ticker": "RTX",
+      "name": "RTX Corporation",
+      "sector": "industrials",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": null,
+      "fiveYearGrowthPercent": null,
+      "artKey": "sector:industrials"
+    },
+    {
+      "number": 141,
+      "ticker": "SBSI",
+      "name": "Southside Bancshares, Inc.",
+      "sector": "financials",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": null,
+      "fiveYearGrowthPercent": null,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 142,
+      "ticker": "SCL",
+      "name": "Stepan Company",
+      "sector": "materials",
+      "rarity": 5,
+      "listIds": [
+        "kings"
+      ],
+      "forwardYieldPercent": 2.4917,
+      "fiveYearGrowthPercent": 6.961,
+      "artKey": "sector:materials"
+    },
+    {
+      "number": 143,
+      "ticker": "SEIC",
+      "name": "SEI Investments Company",
+      "sector": "financials",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": 0.9982,
+      "fiveYearGrowthPercent": 6.961,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 144,
+      "ticker": "SFNC",
+      "name": "Simmons First National Corporation",
+      "sector": "financials",
+      "rarity": 1,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 3.604358759430008,
+      "fiveYearGrowthPercent": 4.613115579519111,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 145,
+      "ticker": "SHW",
+      "name": "Sherwin-Williams",
+      "sector": "materials",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats",
+        "champions"
+      ],
+      "forwardYieldPercent": 0.9034,
+      "fiveYearGrowthPercent": 12.0801,
+      "artKey": "sector:materials"
+    },
+    {
+      "number": 146,
+      "ticker": "SJM",
+      "name": "The J. M. Smucker Company",
+      "sector": "consumerStaples",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats",
+        "champions"
+      ],
+      "forwardYieldPercent": 3.7447,
+      "fiveYearGrowthPercent": 4.1809,
+      "artKey": "sector:consumerStaples"
+    },
+    {
+      "number": 147,
+      "ticker": "SON",
+      "name": "Sonoco Products Company",
+      "sector": "consumerDiscretionary",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": 3.8284,
+      "fiveYearGrowthPercent": 4.2705,
+      "artKey": "sector:consumerDiscretionary"
+    },
+    {
+      "number": 148,
+      "ticker": "SPGI",
+      "name": "S&P Global Inc.",
+      "sector": "financials",
+      "rarity": 5,
+      "listIds": [
+        "aristocrats",
+        "kings"
+      ],
+      "forwardYieldPercent": 0.8819,
+      "fiveYearGrowthPercent": 7.4582,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 149,
+      "ticker": "SR",
+      "name": "Spire",
+      "sector": "utilities",
+      "rarity": 3,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 4.120364589836434,
+      "fiveYearGrowthPercent": 4.7312584434531235,
+      "artKey": "sector:utilities"
+    },
+    {
+      "number": 150,
+      "ticker": "SRCE",
+      "name": "1st Source Corporation",
+      "sector": "financials",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": null,
+      "fiveYearGrowthPercent": null,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 151,
+      "ticker": "SWK",
+      "name": "Stanley Black & Decker, Inc.",
+      "sector": "industrials",
+      "rarity": 5,
+      "listIds": [
+        "aristocrats",
+        "kings"
+      ],
+      "forwardYieldPercent": 3.384,
+      "fiveYearGrowthPercent": 3.5125,
+      "artKey": "sector:industrials"
+    },
+    {
+      "number": 152,
+      "ticker": "SYK",
+      "name": "Stryker Corporation",
+      "sector": "healthCare",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": null,
+      "fiveYearGrowthPercent": null,
+      "artKey": "sector:healthCare"
+    },
+    {
+      "number": 153,
+      "ticker": "SYY",
+      "name": "Sysco Corporation",
+      "sector": "consumerStaples",
+      "rarity": 5,
+      "listIds": [
+        "aristocrats",
+        "kings"
+      ],
+      "forwardYieldPercent": 2.5888,
+      "fiveYearGrowthPercent": 2.5349,
+      "artKey": "sector:consumerStaples"
+    },
+    {
+      "number": 154,
+      "ticker": "TGT",
+      "name": "Target Corporation",
+      "sector": "consumerStaples",
+      "rarity": 5,
+      "listIds": [
+        "aristocrats",
+        "kings"
+      ],
+      "forwardYieldPercent": 3.0532,
+      "fiveYearGrowthPercent": 11.1565,
+      "artKey": "sector:consumerStaples"
+    },
+    {
+      "number": 155,
+      "ticker": "THFF",
+      "name": "First Financial Corporation",
+      "sector": "financials",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": null,
+      "fiveYearGrowthPercent": null,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 156,
+      "ticker": "THO",
+      "name": "Thor Industries",
+      "sector": "consumerDiscretionary",
+      "rarity": 2,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 2.6835247064894854,
+      "fiveYearGrowthPercent": 4.563955259127317,
+      "artKey": "sector:consumerDiscretionary"
+    },
+    {
+      "number": 157,
+      "ticker": "TMP",
+      "name": "Tompkins Financial Corporation",
+      "sector": "financials",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": 2.6556,
+      "fiveYearGrowthPercent": 3.5804,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 158,
+      "ticker": "TNC",
+      "name": "Tennant Company",
+      "sector": "industrials",
+      "rarity": 5,
+      "listIds": [
+        "kings"
+      ],
+      "forwardYieldPercent": 1.4449,
+      "fiveYearGrowthPercent": 6.0425,
+      "artKey": "sector:industrials"
+    },
+    {
+      "number": 159,
+      "ticker": "TR",
+      "name": "Tootsie Roll Industries, Inc.",
+      "sector": "consumerStaples",
+      "rarity": 5,
+      "listIds": [
+        "kings"
+      ],
+      "forwardYieldPercent": null,
+      "fiveYearGrowthPercent": null,
+      "artKey": "sector:consumerStaples"
+    },
+    {
+      "number": 160,
+      "ticker": "TRN",
+      "name": "Trinity Industries, Inc.",
+      "sector": "industrials",
+      "rarity": 1,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 3.956604977664327,
+      "fiveYearGrowthPercent": 9.565425774785385,
+      "artKey": "sector:industrials"
+    },
+    {
+      "number": 161,
+      "ticker": "TRNO",
+      "name": "Terreno Realty Corporation",
+      "sector": "realEstate",
+      "rarity": 1,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 2.900976290097629,
+      "fiveYearGrowthPercent": 12.659148174514279,
+      "artKey": "sector:realEstate"
+    },
+    {
+      "number": 162,
+      "ticker": "TROW",
+      "name": "T Rowe Price Group Inc",
+      "sector": "financials",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats",
+        "champions"
+      ],
+      "forwardYieldPercent": 4.5811,
+      "fiveYearGrowthPercent": 7.1303,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 163,
+      "ticker": "TXNM",
+      "name": "TXNM Energy",
+      "sector": "utilities",
+      "rarity": 1,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 2.9375,
+      "fiveYearGrowthPercent": 5.784463865939604,
+      "artKey": "sector:utilities"
+    },
+    {
+      "number": 164,
+      "ticker": "UCB",
+      "name": "United Community Banks, Inc.",
+      "sector": "financials",
+      "rarity": 1,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 2.790957298353335,
+      "fiveYearGrowthPercent": 5.922384104881218,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 165,
+      "ticker": "UGI",
+      "name": "UGI Corporation",
+      "sector": "utilities",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": null,
+      "fiveYearGrowthPercent": null,
+      "artKey": "sector:utilities"
+    },
+    {
+      "number": 166,
+      "ticker": "UHT",
+      "name": "Universal Health Realty Income",
+      "sector": "realEstate",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": null,
+      "fiveYearGrowthPercent": null,
+      "artKey": "sector:realEstate"
+    },
+    {
+      "number": 167,
+      "ticker": "UMBF",
+      "name": "UMB Financial Corporation",
+      "sector": "financials",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": 1.1697,
+      "fiveYearGrowthPercent": 5.23,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 168,
+      "ticker": "UVV",
+      "name": "Universal Corporation",
+      "sector": "consumerStaples",
+      "rarity": 5,
+      "listIds": [
+        "kings"
+      ],
+      "forwardYieldPercent": 6.3809,
+      "fiveYearGrowthPercent": 1.2825,
+      "artKey": "sector:consumerStaples"
+    },
+    {
+      "number": 169,
+      "ticker": "WABC",
+      "name": "Westamerica Bancorporation",
+      "sector": "financials",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": null,
+      "fiveYearGrowthPercent": null,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 170,
+      "ticker": "WAFD",
+      "name": "WaFd, Inc.",
+      "sector": "financials",
+      "rarity": 1,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 2.8907922912205573,
+      "fiveYearGrowthPercent": 4.180926810264429,
+      "artKey": "sector:financials"
+    },
+    {
+      "number": 171,
+      "ticker": "WEC",
+      "name": "WEC Energy Group",
+      "sector": "utilities",
+      "rarity": 3,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 3.4882869692532936,
+      "fiveYearGrowthPercent": 7.124682997948595,
+      "artKey": "sector:utilities"
+    },
+    {
+      "number": 172,
+      "ticker": "WLK",
+      "name": "Westlake Corporation",
+      "sector": "materials",
+      "rarity": 3,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 3.033338102732866,
+      "fiveYearGrowthPercent": 14.826125503976373,
+      "artKey": "sector:materials"
+    },
+    {
+      "number": 173,
+      "ticker": "WLY",
+      "name": "John Wiley & Sons, Inc.",
+      "sector": "communicationServices",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": 2.693,
+      "fiveYearGrowthPercent": 0.7195,
+      "artKey": "sector:communicationServices"
+    },
+    {
+      "number": 174,
+      "ticker": "WLYB",
+      "name": "John Wiley & Sons, Inc.",
+      "sector": "communicationServices",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": null,
+      "fiveYearGrowthPercent": null,
+      "artKey": "sector:communicationServices"
+    },
+    {
+      "number": 175,
+      "ticker": "WMT",
+      "name": "Walmart Inc.",
+      "sector": "consumerStaples",
+      "rarity": 5,
+      "listIds": [
+        "aristocrats",
+        "kings"
+      ],
+      "forwardYieldPercent": 0.896,
+      "fiveYearGrowthPercent": 5.4773,
+      "artKey": "sector:consumerStaples"
+    },
+    {
+      "number": 176,
+      "ticker": "WST",
+      "name": "West Pharmaceutical Services",
+      "sector": "healthCare",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats",
+        "champions"
+      ],
+      "forwardYieldPercent": 0.2529,
+      "fiveYearGrowthPercent": 5.5893,
+      "artKey": "sector:healthCare"
+    },
+    {
+      "number": 177,
+      "ticker": "WTRG",
+      "name": "Essential Utilities, Inc.",
+      "sector": "utilities",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": 3.5379,
+      "fiveYearGrowthPercent": 6.8564,
+      "artKey": "sector:utilities"
+    },
+    {
+      "number": 178,
+      "ticker": "XEL",
+      "name": "Xcel Energy",
+      "sector": "utilities",
+      "rarity": 3,
+      "listIds": [
+        "hiddenStars"
+      ],
+      "forwardYieldPercent": 3.0531599948513324,
+      "fiveYearGrowthPercent": 5.79893110716263,
+      "artKey": "sector:utilities"
+    },
+    {
+      "number": 179,
+      "ticker": "XOM",
+      "name": "Exxon Mobil Corp",
+      "sector": "energy",
+      "rarity": 4,
+      "listIds": [
+        "aristocrats",
+        "champions"
+      ],
+      "forwardYieldPercent": 2.657,
+      "fiveYearGrowthPercent": 2.6179,
+      "artKey": "sector:energy"
+    },
+    {
+      "number": 180,
+      "ticker": "YORW",
+      "name": "The York Water Company",
+      "sector": "utilities",
+      "rarity": 4,
+      "listIds": [
+        "champions"
+      ],
+      "forwardYieldPercent": 2.9601,
+      "fiveYearGrowthPercent": 4.0002,
+      "artKey": "sector:utilities"
+    }
+  ]
+}
