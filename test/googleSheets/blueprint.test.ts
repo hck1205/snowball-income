@@ -185,25 +185,38 @@ describe('탭 역할 — 색과 보호가 어긋나지 않는다', () => {
     }
   });
 
-  it('⭐ 드롭다운 원본은 숨긴다 — 사용자는 만질 탭만 본다', () => {
+  it('⭐ 드롭다운 원본과 공동 가계부는 숨긴다 — 사용자는 만질 탭만 본다', () => {
     const sheets = body().sheets;
     const hidden = sheets.filter((sheet) => (sheet.properties as { hidden?: boolean }).hidden);
 
+    /*
+     * 🔴 숨기는 이유가 둘로 다르다:
+     *    `분류`·`설정` 은 **기계**라 영영 안 보인다.
+     *    `공동 가계부` 는 **입력 탭**인데 아직 안 켠 것이다 — 앱에서 켜면 드러난다.
+     *    그래서 "숨김 = machinery" 라고 단정하면 안 된다.
+     */
     expect(hidden.map((sheet) => sheet.properties.title).sort()).toEqual(
-      [BLUEPRINT_TABS.categories, BLUEPRINT_TABS.settings].sort()
+      [BLUEPRINT_TABS.categories, BLUEPRINT_TABS.settings, BLUEPRINT_TABS.ledgerShared].sort()
     );
-    /* 숨긴 탭은 정확히 machinery 역할인 것들이다. */
     for (const sheet of hidden) {
-      expect(BLUEPRINT_TAB_ROLE[sheet.properties.title]).toBe('machinery');
+      const role = BLUEPRINT_TAB_ROLE[sheet.properties.title];
+      expect(role === 'machinery' || sheet.properties.title === BLUEPRINT_TABS.ledgerShared).toBe(true);
     }
   });
 
-  it('보이는 탭에는 색이 있고 숨긴 탭에는 없다', () => {
+  it('🔴 기계 탭에만 색이 없다 — 공동 가계부는 켜면 파란 입력 탭이라 색을 미리 갖는다', () => {
     for (const sheet of body().sheets) {
       const properties = sheet.properties as { title: string; hidden?: boolean; tabColorStyle?: unknown };
-      if (properties.hidden) expect(properties.tabColorStyle, properties.title).toBeUndefined();
-      else expect(properties.tabColorStyle, properties.title).toBeDefined();
+      if (BLUEPRINT_TAB_ROLE[properties.title] === 'machinery') {
+        expect(properties.tabColorStyle, properties.title).toBeUndefined();
+      } else {
+        expect(properties.tabColorStyle, properties.title).toBeDefined();
+      }
     }
+  });
+
+  it('⭐ 두 가계부의 머리가 글자 하나 다르지 않다 — 다르면 한쪽이 매핑 단계로 떨어진다', () => {
+    expect(rowsOf(BLUEPRINT_TABS.ledgerShared)[0]).toEqual(rowsOf(BLUEPRINT_TABS.ledger)[0]);
   });
 });
 
@@ -272,6 +285,23 @@ describe('서식 요청', () => {
     for (const validation of validations) {
       expect(validation.setDataValidation.rule.strict).toBe(false);
     }
+  });
+
+  it('⭐ 날짜 칸은 달력으로 고른다 — 글자로 적히면 월 구간 SUMIFS 가 그 행을 못 센다', () => {
+    /*
+     * 🔴 숫자 서식만으로는 달력이 뜨지 않는다. 서식은 보이는 모양, 유효성 검사는 입력 방법이다.
+     *    `DATE_IS_VALID_DATE` 가 걸린 칸이라야 시트가 달력 선택기를 띄운다.
+     */
+    const dateRules = requests()
+      .filter((request) => request.setDataValidation)
+      .filter((request) => request.setDataValidation.rule.condition.type === 'DATE_IS_VALID_DATE');
+
+    expect(dateRules.length).toBeGreaterThanOrEqual(2);
+    const sheetIds = dateRules.map((request) => request.setDataValidation.range.sheetId);
+    expect(sheetIds).toContain(SHEET_IDS[BLUEPRINT_TABS.ledger]);
+    expect(sheetIds).toContain(SHEET_IDS[BLUEPRINT_TABS.holdings]);
+    /* 🔴 첫 열(날짜)에만 걸린다. */
+    for (const request of dateRules) expect(request.setDataValidation.range.startColumnIndex).toBe(0);
   });
 
   it('구분 드롭다운이 파서가 아는 낱말이다', () => {

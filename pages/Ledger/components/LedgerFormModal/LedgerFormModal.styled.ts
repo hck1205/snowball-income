@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, media, motion, radius, space } from '@/shared/styles';
+import { color, font, inputSurface, media, motion, radius, space } from '@/shared/styles';
 
 /**
  * 항목 추가·수정 폼.
@@ -36,33 +36,6 @@ export const FieldLabel = styled.label`
   font-size: ${font.size.sm};
   font-weight: ${font.weight.medium};
   color: ${color.textSecondary};
-`;
-
-const inputSurface = `
-  width: 100%;
-  min-width: 0;
-  height: 44px;
-  padding: 0 ${space[3]};
-  border: 1px solid ${color.border};
-  border-radius: ${radius.md};
-  background: ${color.surface};
-  color: ${color.text};
-  font-family: inherit;
-  font-size: ${font.size.base};
-  transition: border-color ${motion.fast} ${motion.ease};
-
-  &::placeholder {
-    color: ${color.textMuted};
-  }
-
-  &:focus-visible {
-    outline: 2px solid ${color.focusRing};
-    outline-offset: 2px;
-  }
-
-  &[aria-invalid='true'] {
-    border-color: ${color.danger};
-  }
 `;
 
 export const FieldInput = styled.input`
@@ -125,9 +98,16 @@ export const KindLegend = styled.legend`
   color: ${color.textSecondary};
 `;
 
+/**
+ * 🔴 **셋을 한 줄에** 둔다(2026-08-08 사용자 요청). 종전 2열이라 수입·지출이 한 줄, 이체가 다음
+ *    줄로 접혔다 — 같은 급의 선택지 셋이 두 줄로 갈리면 이체가 다른 종류처럼 보인다.
+ *
+ * ⚠ `1fr` 이 아니라 `minmax(0, 1fr)` 이다. 그냥 `1fr` 이면 칸이 내용 최소폭보다 작아지지 못해
+ *   좁은 화면에서 격자가 모달 밖으로 넘친다.
+ */
 export const KindOptions = styled.div`
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: ${space[2]};
 `;
 
@@ -174,13 +154,18 @@ export const KindOption = styled.label`
 `;
 
 /** 세그먼트 한 칸의 보이는 면. 선택 신호(테두리·면·굵기)는 위 형제 선택자가 여기에 얹는다. */
+/**
+ * ⚠ 아이콘과 글자가 **한 덩어리로 가운데** 선다. 종전에는 좌우 여백이 좁아 글자가 칸 오른쪽 벽에
+ *   붙어 보였다(2026-08-08 사용자 지적) — 3열로 좁아진 뒤 더 두드러졌다. 가로 패딩을 키우고
+ *   아이콘·글자 사이 간격은 줄여, 덩어리가 칸 중앙에 오게 했다.
+ */
 export const KindOptionFace = styled.span`
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: ${space[2]};
+  gap: ${space[1]};
   min-height: 44px;
-  padding: 0 ${space[3]};
+  padding: 0 ${space[2]};
   border: 1px solid ${color.border};
   border-radius: ${radius.md};
   background: ${color.surface};

@@ -110,3 +110,80 @@ export const SrOnly = styled.span`
   white-space: nowrap;
   border: 0;
 `;
+
+/* ── 설명 블록 ───────────────────────────────────────────────────────────────── */
+
+/**
+ * 탭이 무엇을 하는지 설명하는 자리.
+ *
+ * 🔴 `Card` 를 쓰지 않는다 — 이 패널이 이미 `Card` 안이고, **`Card` 안 `Card` 금지**다.
+ *    가라앉은 면(`surfaceSunken`)으로 구획만 나눈다.
+ */
+export const IntroBlock = styled.section`
+  display: flex;
+  flex-direction: column;
+  gap: ${space[3]};
+  padding: ${space[4]};
+  border-radius: ${radius.md};
+  background: ${color.surfaceSunken};
+`;
+
+export const IntroTitle = styled.h3`
+  margin: 0;
+  font-size: ${font.size.md};
+  font-weight: ${font.weight.bold};
+  color: ${color.text};
+`;
+
+export const IntroText = styled.p`
+  margin: 0;
+  font-size: ${font.size.sm};
+  line-height: 1.7;
+  color: ${color.textSecondary};
+`;
+
+/** 무엇을 적으면 무엇이 채워지는지 — 말보다 예시 한 줄이 빠르다. */
+export const IntroExample = styled.div`
+  display: grid;
+  gap: ${space[2]};
+  padding: ${space[3]};
+  border-radius: ${radius.sm};
+  background: ${color.surface};
+  border: 1px solid ${color.border};
+`;
+
+export const IntroExampleRow = styled.p`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: ${space[2]};
+  margin: 0;
+  font-size: ${font.size.sm};
+  line-height: 1.6;
+  color: ${color.text};
+`;
+
+export const IntroExampleLabel = styled.span`
+  flex: 0 0 auto;
+  min-width: 7.5rem;
+  font-size: ${font.size.xs};
+  font-weight: ${font.weight.semibold};
+  color: ${color.textMuted};
+`;
+
+/** 히포가 채운 부분 — 🔴 색만으로 말하지 않는다. 위 라벨이 "히포가 채웁니다"라고 적혀 있다. */
+export const IntroFilled = styled.strong`
+  font-weight: ${font.weight.semibold};
+  color: ${color.brandText};
+`;
+
+export const IntroList = styled.ul`
+  display: flex;
+  flex-direction: column;
+  gap: ${space[2]};
+  margin: 0;
+  padding-left: ${space[4]};
+  font-size: ${font.size.sm};
+  line-height: 1.7;
+  color: ${color.textSecondary};
+`;

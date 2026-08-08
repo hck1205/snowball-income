@@ -105,7 +105,8 @@ export {
   LEDGER_VIEW_TAB_IDS,
   LEDGER_VIEW_TAB_SHEET_TITLE,
   buildLedgerViewTabs,
-  resolveLedgerViewTab
+  resolveLedgerViewTab,
+  selectableLedgerTabs
 } from './ledgerViewTabs';
 export type { LedgerViewTab, LedgerViewTabId } from './ledgerViewTabs';
 

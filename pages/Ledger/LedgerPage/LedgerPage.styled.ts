@@ -209,20 +209,27 @@ export const FlowGrid = styled.div`
   }
 `;
 
+/**
+ * ⚠ **가로 패딩이 있다**(2026-08-08 사용자 지적). 종전에는 `padding: … 0 0` 이라 건수(`FlowCount`)가
+ *   `margin-left: auto` 로 밀려 칸의 오른쪽 벽에 그대로 붙었다. 12px 을 좌우에 두어 숫자가
+ *   벽에서 떨어지게 했다.
+ *
+ * ⚠ 두 번째 칸의 왼쪽 패딩은 이 값보다 커야 한다 — 경계선과 글자 사이 간격이라 역할이 다르다.
+ */
 export const FlowCell = styled.div`
   display: grid;
   gap: ${space[1]};
   min-width: 0;
-  padding: ${space[3]} 0 0;
+  padding: ${space[3]} ${space[3]} 0;
 
   & + & {
-    padding-left: ${space[4]};
+    padding-left: ${space[5]};
     border-left: 1px solid ${color.border};
   }
 
   ${media.down('mobile')} {
     & + & {
-      padding-left: 0;
+      padding-left: ${space[3]};
       border-left: 0;
       border-top: 1px solid ${color.border};
     }

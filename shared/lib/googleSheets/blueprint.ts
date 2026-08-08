@@ -63,6 +63,15 @@ import { CLASSIFY_RULE_HEADERS } from '@/shared/lib/ledger';
 
 export const BLUEPRINT_TABS = {
   ledger: APP_SHEET_TAB_TITLE,
+  /**
+   * **둘째 가계부** — 공동 생활비용(2026-08-08 사용자 요청).
+   *
+   * 🔴 만들 때부터 **숨겨** 둔다. 혼자 쓰는 사람의 시트에 안 쓰는 탭이 보이면 소음이고,
+   *    "이건 뭐지"를 묻게 만든다. 앱에서 공동 가계부를 켜면 그때 드러난다.
+   * 🔴 **합계를 A 와 합치지 않는다.** 2026-08-02 결정(블렌딩 제거)이 그대로 살아 있다 —
+   *    앱은 탭을 전환할 뿐, 두 장부를 넘어 합계를 내지 않는다. 합치고 싶으면 시트에서 한다.
+   */
+  ledgerShared: '공동 가계부',
   holdings: '자산',
   investments: '투자',
   rules: '분류 규칙',
@@ -82,6 +91,7 @@ export const BLUEPRINT_TABS = {
  */
 export const BLUEPRINT_TAB_ORDER: readonly string[] = [
   BLUEPRINT_TABS.ledger,
+  BLUEPRINT_TABS.ledgerShared,
   BLUEPRINT_TABS.holdings,
   BLUEPRINT_TABS.investments,
   BLUEPRINT_TABS.rules,
@@ -112,6 +122,7 @@ export type BlueprintTabRole =
 
 export const BLUEPRINT_TAB_ROLE: Readonly<Record<string, BlueprintTabRole>> = {
   [BLUEPRINT_TABS.ledger]: 'input',
+  [BLUEPRINT_TABS.ledgerShared]: 'input',
   [BLUEPRINT_TABS.holdings]: 'input',
   [BLUEPRINT_TABS.investments]: 'input',
   [BLUEPRINT_TABS.rules]: 'input',
@@ -409,13 +420,23 @@ const readmeRows = (): string[][] => [
   ['   평가금액·수익률 칸은 두지 않았습니다. 시세를 받아 오지 않으므로 채울 수 없는 칸입니다.']
 ];
 
+/**
+ * 가계부 탭 하나의 스펙. **A 와 B 가 글자 하나 다르지 않다** — 같은 머리, 같은 격자, 같은 서식.
+ *
+ * 🔴 둘을 따로 적으면 한쪽만 고쳐진다. 이 레포가 "손으로 나열한 목록"으로 여섯 번 조용히 틀렸다.
+ */
+const ledgerSpec = (title: string, hidden: boolean): SheetSpec => ({
+  title,
+  /* 🔴 넉넉히 잡는다. 행이 모자라면 사용자가 직접 늘려야 하고, 수식의 열 전체 참조도 그만큼만 본다. */
+  grid: { rowCount: 2000, columnCount: APP_SHEET_HEADERS.length, frozenRowCount: 1 },
+  ...(hidden ? { hidden: true } : {}),
+  rows: [[...APP_SHEET_HEADERS]]
+});
+
 const sheetSpecs = (): SheetSpec[] => [
-  {
-    title: BLUEPRINT_TABS.ledger,
-    /* 🔴 넉넉히 잡는다. 행이 모자라면 사용자가 직접 늘려야 하고, 수식의 열 전체 참조도 그만큼만 본다. */
-    grid: { rowCount: 2000, columnCount: APP_SHEET_HEADERS.length, frozenRowCount: 1 },
-    rows: [[...APP_SHEET_HEADERS]]
-  },
+  ledgerSpec(BLUEPRINT_TABS.ledger, false),
+  /* 🔴 공동 가계부는 숨겨서 만든다 — 앱에서 켜면 드러난다. */
+  ledgerSpec(BLUEPRINT_TABS.ledgerShared, true),
   {
     title: BLUEPRINT_TABS.holdings,
     grid: { rowCount: 500, columnCount: LEDGER_HOLDING_HEADERS.length, frozenRowCount: 1 },
@@ -569,6 +590,30 @@ const dropdownFromRange = (
   };
 };
 
+/**
+ * 날짜 칸의 유효성 검사 — 🔴 **구글 시트가 달력 선택기를 띄우는 조건**이다.
+ *
+ * `DATE_IS_VALID_DATE` 규칙이 걸린 칸을 누르면 시트가 작은 달력을 띄운다. 이 규칙이 없으면
+ * 날짜 열도 그냥 숫자·글자 입력칸이라, 사용자가 `8/3` 처럼 적어 로케일에 따라 다르게 읽히거나
+ * 아예 글자로 저장된다 — 그러면 `SUMIFS` 의 월 구간 조건이 그 행을 못 세고 요약에서 조용히 빠진다.
+ *
+ * ⚠ 숫자 서식(`yyyy-mm-dd`)만으로는 달력이 뜨지 않는다. 서식은 **보이는 모양**이고
+ *   유효성 검사는 **입력 방법**이라 역할이 다르다 — 둘 다 필요하다.
+ * 🔴 `strict: false` 다. 다른 드롭다운과 같은 이유로, 앱이나 사용자가 넣는 값이 **거부되지 않아야**
+ *   한다(거부되면 저장이 실패한다). 경고 표시만 남는다.
+ */
+const dateValidation = (sheetId: number, columnIndex: number) => ({
+  setDataValidation: {
+    range: { sheetId, startRowIndex: 1, startColumnIndex: columnIndex, endColumnIndex: columnIndex + 1 },
+    rule: {
+      condition: { type: 'DATE_IS_VALID_DATE' },
+      inputMessage: '날짜를 고르거나 2026-08-01 처럼 적습니다.',
+      showCustomUi: true,
+      strict: false
+    }
+  }
+});
+
 const dropdownFromValues = (sheetId: number, columnIndex: number, choices: readonly string[]) => ({
   setDataValidation: {
     range: { sheetId, startRowIndex: 1, startColumnIndex: columnIndex, endColumnIndex: columnIndex + 1 },
@@ -702,6 +747,8 @@ export const buildFormatRequests = (sheetIds: SheetIdByTitle): Record<string, un
     }
   });
 
+  /* 🔴 날짜 칸은 달력으로 고른다 — 글자로 적히면 월 구간 SUMIFS 가 그 행을 못 센다. */
+  requests.push(dateValidation(ledger, COL.date));
   requests.push(dropdownFromValues(ledger, COL.kind, KIND_CHOICES));
   requests.push(dropdownFromValues(ledger, COL.fixity, FIXITY_CHOICES));
   if (categories !== undefined) {
@@ -776,6 +823,8 @@ export const buildFormatRequests = (sheetIds: SheetIdByTitle): Record<string, un
     requests.push(headerFormat(holdings, LEDGER_HOLDING_HEADERS.length));
     [110, 100, 200, 140, 260].forEach((width, index) => requests.push(columnWidth(holdings, index, width)));
     requests.push(numberFormat(holdings, 0, 'DATE', 'yyyy-mm-dd'));
+    /* 자산도 같은 처방 — 월말 스냅샷의 달을 못 읽으면 순자산 추이가 통째로 빈다. */
+    requests.push(dateValidation(holdings, 0));
     requests.push(currencyColumn(holdings, 3));
     requests.push(dropdownFromValues(holdings, 1, LEDGER_HOLDING_CHOICES));
   }

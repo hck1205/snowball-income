@@ -1,8 +1,8 @@
-import { useEffect, useId, useRef } from 'react';
+import { useCallback, useEffect, useId, useRef } from 'react';
 import type { FormEvent, MouseEvent } from 'react';
 import { ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine } from 'lucide-react';
 import { createPortal } from 'react-dom';
-import { Banner, Button, Modal } from '@/components/common';
+import { Banner, Button, ComboBox, Modal } from '@/components/common';
 import { formatKRW } from '@/shared/utils';
 import { LEDGER_COPY } from '../../copy';
 import { LEDGER_MEMO_MAX_LENGTH, firstInvalidField, parseLedgerAmount } from '../../utils';
@@ -61,15 +61,11 @@ export default function LedgerFormModal({
   const amountId = `${idPrefix}-amount`;
   const categoryId = `${idPrefix}-category`;
   const memoId = `${idPrefix}-memo`;
-  const categoryListId = `${idPrefix}-categories`;
   const categoryHintId = `${idPrefix}-category-hint`;
   const subcategoryId = `${idPrefix}-subcategory`;
-  const subcategoryListId = `${idPrefix}-subcategories`;
   const payerId = `${idPrefix}-payer`;
-  const payerListId = `${idPrefix}-payers`;
   const payerHintId = `${idPrefix}-payer-hint`;
   const methodId = `${idPrefix}-method`;
-  const methodListId = `${idPrefix}-methods`;
   const fixedId = `${idPrefix}-fixed`;
   const fixedHintId = `${idPrefix}-fixed-hint`;
   const amountHintId = `${idPrefix}-amount-hint`;
@@ -86,6 +82,24 @@ export default function LedgerFormModal({
     const element = containerRef.current?.querySelector<HTMLElement>(`[data-field="${target}"]`);
     element?.focus();
   }, [containerRef, errors]);
+
+  /**
+   * 날짜 칸을 누르면 달력을 띄운다.
+   *
+   * ⚠ `showPicker()` 는 **사용자 제스처 안에서만** 부를 수 있고, 미지원 브라우저(사파리 일부)와
+   *   이미 열려 있는 상태에서는 던진다. 실패해도 할 일이 없다 — `type="date"` 의 기본 동작이
+   *   그대로 남아 아이콘으로는 여전히 열린다. 그래서 조용히 삼킨다.
+   * 🔴 `onFocus` 가 아니라 `onClick` 이다. 포커스는 코드가 옮기기도 하는데(자동 포커스),
+   *   제스처 없이 부르면 브라우저가 `NotAllowedError` 를 던지고 콘솔이 더러워진다.
+   */
+  const openDatePicker = useCallback((event: MouseEvent<HTMLInputElement>) => {
+    const input = event.currentTarget as HTMLInputElement & { showPicker?: () => void };
+    try {
+      input.showPicker?.();
+    } catch {
+      /* 미지원·이미 열림 — 기본 동작으로 충분하다. */
+    }
+  }, []);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -168,6 +182,11 @@ export default function LedgerFormModal({
           <FormGrid>
             <Field>
               <FieldLabel htmlFor={dateId}>{copy.form.date}</FieldLabel>
+              {/*
+                🔴 **칸 아무 데나 눌러도 달력이 열린다**(2026-08-08 사용자 요청).
+                   `type="date"` 만으로는 크롬에서 오른쪽 끝 작은 달력 아이콘을 정확히 눌러야
+                   열린다 — 손가락으로는 거의 못 맞춘다. `showPicker()` 로 칸 전체를 그 버튼으로 만든다.
+              */}
               <FieldInput
                 id={dateId}
                 ref={dateRef}
@@ -176,6 +195,7 @@ export default function LedgerFormModal({
                 value={model.draft.date}
                 aria-invalid={errors.date ? true : undefined}
                 aria-describedby={errors.date ? `${dateId}-error` : undefined}
+                onClick={openDatePicker}
                 onChange={(event) => onChange({ date: event.target.value })}
               />
               {errors.date ? <FieldError id={`${dateId}-error`}>{errors.date}</FieldError> : null}
@@ -254,27 +274,27 @@ export default function LedgerFormModal({
 
             <Field>
               <FieldLabel htmlFor={categoryId}>{copy.form.category}</FieldLabel>
-              {/* 🔴 네이티브 `<datalist>` — 커스텀 콤보박스는 오버레이 층을 하나 더 만든다.
-                  제안일 뿐 강제가 아니라서 "사용자 시트가 정본" 원칙과도 맞는다. */}
-              <FieldInput
+              {/*
+                🔴 **검색되는 제안 목록**(2026-08-08 사용자 요청). 종전 판단은 네이티브 `<datalist>` 였다 —
+                   "커스텀 콤보박스는 오버레이 층을 하나 더 만든다"가 그 이유였고, 그 우려는 여전히
+                   맞다. 그래서 `ComboBox` 는 **포털을 쓰지 않고**(모달 안에 절대 배치) **ESC 를 삼킨다**
+                   (목록만 닫히고 모달은 남는다). 그 둘이 오버레이 층 문제의 실체다.
+                🔴 여전히 **자유 입력**이다 — 목록에 없는 말도 그대로 저장된다("사용자 시트가 정본").
+              */}
+              <ComboBox
                 id={categoryId}
-                data-field="category"
-                type="text"
-                list={categoryListId}
+                dataField="category"
+                options={model.categoryOptions}
+                listLabel={copy.form.categoryListLabel}
                 placeholder={copy.form.categoryPlaceholder}
                 value={model.draft.category}
-                aria-invalid={errors.category ? true : undefined}
-                aria-describedby={describedBy(
+                ariaInvalid={Boolean(errors.category)}
+                ariaDescribedBy={describedBy(
                   errors.category ? `${categoryId}-error` : undefined,
                   categoryHintId
                 )}
-                onChange={(event) => onChange({ category: event.target.value })}
+                onChange={(next) => onChange({ category: next })}
               />
-              <datalist id={categoryListId} aria-label={copy.form.categoryListLabel}>
-                {model.categoryOptions.map((option) => (
-                  <option key={option} value={option} />
-                ))}
-              </datalist>
               <FieldHint id={categoryHintId}>{copy.form.categoryHint}</FieldHint>
               {errors.category ? <FieldError id={`${categoryId}-error`}>{errors.category}</FieldError> : null}
             </Field>
@@ -288,22 +308,17 @@ export default function LedgerFormModal({
             */}
             <Field>
               <FieldLabel htmlFor={subcategoryId}>{copy.form.subcategory}</FieldLabel>
-              <FieldInput
+              <ComboBox
                 id={subcategoryId}
-                data-field="subcategory"
-                type="text"
-                list={subcategoryListId}
+                dataField="subcategory"
+                options={model.subcategoryOptions}
+                listLabel={copy.form.subcategoryListLabel}
                 placeholder={copy.form.subcategoryPlaceholder}
                 value={model.draft.subcategory}
-                aria-invalid={errors.subcategory ? true : undefined}
-                aria-describedby={errors.subcategory ? `${subcategoryId}-error` : undefined}
-                onChange={(event) => onChange({ subcategory: event.target.value })}
+                ariaInvalid={Boolean(errors.subcategory)}
+                ariaDescribedBy={errors.subcategory ? `${subcategoryId}-error` : undefined}
+                onChange={(next) => onChange({ subcategory: next })}
               />
-              <datalist id={subcategoryListId} aria-label={copy.form.subcategoryListLabel}>
-                {model.subcategoryOptions.map((option) => (
-                  <option key={option} value={option} />
-                ))}
-              </datalist>
               {errors.subcategory ? (
                 <FieldError id={`${subcategoryId}-error`}>{errors.subcategory}</FieldError>
               ) : null}
@@ -311,43 +326,33 @@ export default function LedgerFormModal({
 
             <Field>
               <FieldLabel htmlFor={methodId}>{copy.form.method}</FieldLabel>
-              <FieldInput
+              <ComboBox
                 id={methodId}
-                data-field="method"
-                type="text"
-                list={methodListId}
+                dataField="method"
+                options={model.methodOptions}
+                listLabel={copy.form.methodListLabel}
                 placeholder={copy.form.methodPlaceholder}
                 value={model.draft.method}
-                aria-invalid={errors.method ? true : undefined}
-                aria-describedby={errors.method ? `${methodId}-error` : undefined}
-                onChange={(event) => onChange({ method: event.target.value })}
+                ariaInvalid={Boolean(errors.method)}
+                ariaDescribedBy={errors.method ? `${methodId}-error` : undefined}
+                onChange={(next) => onChange({ method: next })}
               />
-              <datalist id={methodListId} aria-label={copy.form.methodListLabel}>
-                {model.methodOptions.map((option) => (
-                  <option key={option} value={option} />
-                ))}
-              </datalist>
               {errors.method ? <FieldError id={`${methodId}-error`}>{errors.method}</FieldError> : null}
             </Field>
 
             <Field>
               <FieldLabel htmlFor={payerId}>{copy.form.payer}</FieldLabel>
-              <FieldInput
+              <ComboBox
                 id={payerId}
-                data-field="payer"
-                type="text"
-                list={payerListId}
+                dataField="payer"
+                options={model.payerOptions}
+                listLabel={copy.form.payerListLabel}
                 placeholder={copy.form.payerPlaceholder}
                 value={model.draft.payer}
-                aria-invalid={errors.payer ? true : undefined}
-                aria-describedby={describedBy(errors.payer ? `${payerId}-error` : undefined, payerHintId)}
-                onChange={(event) => onChange({ payer: event.target.value })}
+                ariaInvalid={Boolean(errors.payer)}
+                ariaDescribedBy={describedBy(errors.payer ? `${payerId}-error` : undefined, payerHintId)}
+                onChange={(next) => onChange({ payer: next })}
               />
-              <datalist id={payerListId} aria-label={copy.form.payerListLabel}>
-                {model.payerOptions.map((option) => (
-                  <option key={option} value={option} />
-                ))}
-              </datalist>
               <FieldHint id={payerHintId}>{copy.form.payerHint}</FieldHint>
               {errors.payer ? <FieldError id={`${payerId}-error`}>{errors.payer}</FieldError> : null}
             </Field>

@@ -25,6 +25,7 @@ import {
   readLedgerDividendOverlay,
   resolveLedgerViewTab,
   resolvePayerScope,
+  selectableLedgerTabs,
   shouldOfferPayerScope,
   writeLedgerDividendOverlay
 } from '../utils';
@@ -276,8 +277,17 @@ function LedgerContent({ now: nowProp }: LedgerPageProps) {
     // 지금 보고 있는 탭이 목록에 없으면 고를 자리를 만들지 않는다(추측으로 목록을 채우지 않는다).
     if (current === undefined) return null;
 
+    /*
+     * 🔴 **앱이 만든 시트에서는 기록 탭이 아닌 것을 뺀다**(2026-08-08).
+     *    안 빼면 이 드롭다운에 `월별 요약`·`읽어보기`·`분류 규칙` 이 나오고, 고르는 순간 앱이
+     *    그것을 가계부로 읽으려 한다 — 헤더가 안 맞아 매핑 화면으로 떨어지고 최악에는 수식 탭에
+     *    쓰기를 시도한다. 화면 탭바와 이름이 겹치는 것보다, 두 컨트롤이 같은 탭을 다르게 다루는
+     *    것이 문제였다. 근거 전문: `selectableLedgerTabs`.
+     */
+    const selectable = selectableLedgerTabs(connection.tabs, activeLink.createdByApp);
+
     return {
-      options: connection.tabs.map((tab) => ({ sheetId: tab.sheetId, title: tab.title })),
+      options: selectable.map((tab) => ({ sheetId: tab.sheetId, title: tab.title })),
       currentSheetId: current.sheetId,
       currentTitle: current.title,
       blockedReason: tabSwitchBlocked,

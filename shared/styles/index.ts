@@ -47,6 +47,7 @@ export {
 } from './heroTitleRow';
 
 export { iconSwapIn } from './iconSwap';
+export { inputSurface } from './inputSurface';
 
 export { PAGE_HUE_TOKEN, PAGE_HUE_VAR, pageHue, pageHueMix } from './pageHue';
 export type { PageHueName } from './pageHue';

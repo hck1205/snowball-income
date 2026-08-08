@@ -351,6 +351,64 @@ export const fetchGridRows = async (
   );
 };
 
+/* ── 탭 속성 ────────────────────────────────────────────────────────────────── */
+
+/**
+ * 탭 하나의 **제목**을 바꾼다.
+ *
+ * 🔴 이름을 바꿔도 **수식은 따라온다.** 구글이 `'가계부'!$E:$E` 같은 참조를 자동으로 고쳐 준다 —
+ *    그래서 `월별 요약`·`현금흐름` 이 깨지지 않는다.
+ * ⚠ 우리 코드가 **제목으로 찾는 탭**(`자산`·`투자`·`분류 규칙`)은 이 경로로 바꾸면 안 된다.
+ *   그 탭들은 앱이 이름으로 집으므로 바뀌는 순간 못 찾는다. 가계부 탭만 이름을 연다.
+ */
+export const updateSheetTitle = async (
+  context: SheetsRequestContext,
+  params: { readonly spreadsheetId: string; readonly sheetId: number; readonly title: string }
+): Promise<LedgerResult<null>> => {
+  const result = await request<unknown>(context, {
+    method: 'POST',
+    url: `${SHEETS_BASE}/${encodeURIComponent(params.spreadsheetId)}:batchUpdate`,
+    body: {
+      requests: [
+        {
+          updateSheetProperties: {
+            properties: { sheetId: params.sheetId, title: params.title },
+            fields: 'title'
+          }
+        }
+      ]
+    }
+  });
+  return result.ok ? ledgerOk(null) : passThroughError(result.error);
+};
+
+/**
+ * 탭을 보이거나 숨긴다.
+ *
+ * 🔴 **지우지 않는다.** 공동 가계부를 끌 때 탭을 지우면 적어 둔 기록이 함께 사라진다 —
+ *    끄는 것과 버리는 것은 다르고, 사용자가 뜻한 것은 앞쪽이다. 다시 켜면 그대로 돌아온다.
+ */
+export const setSheetHidden = async (
+  context: SheetsRequestContext,
+  params: { readonly spreadsheetId: string; readonly sheetId: number; readonly hidden: boolean }
+): Promise<LedgerResult<null>> => {
+  const result = await request<unknown>(context, {
+    method: 'POST',
+    url: `${SHEETS_BASE}/${encodeURIComponent(params.spreadsheetId)}:batchUpdate`,
+    body: {
+      requests: [
+        {
+          updateSheetProperties: {
+            properties: { sheetId: params.sheetId, hidden: params.hidden },
+            fields: 'hidden'
+          }
+        }
+      ]
+    }
+  });
+  return result.ok ? ledgerOk(null) : passThroughError(result.error);
+};
+
 /* ── 값 쓰기 ────────────────────────────────────────────────────────────────── */
 
 /**

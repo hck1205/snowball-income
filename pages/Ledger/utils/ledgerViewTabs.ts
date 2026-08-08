@@ -24,7 +24,7 @@
  * 앱이 만든 시트가 아니면 `자산`·`투자`·`분류 규칙` 탭이 없다. 그때 탭을 흐리게만 만들면
  * 사용자는 "왜 눌리지 않는가"를 알 방법이 없다. 이유를 문장으로 들고 다닌다.
  */
-import { BLUEPRINT_TABS } from '@/shared/lib/googleSheets';
+import { BLUEPRINT_TABS, BLUEPRINT_TAB_ORDER } from '@/shared/lib/googleSheets';
 
 export type LedgerViewTabId = 'entries' | 'holdings' | 'investments' | 'rules';
 
@@ -111,3 +111,40 @@ export const resolveLedgerViewTab = (
   const found = tabs.find((tab) => tab.id === requested);
   return found?.isAvailable ? requested : DEFAULT_LEDGER_VIEW_TAB;
 };
+
+/* ── 🔴 탭 피커에서 빼야 하는 것 ─────────────────────────────────────────────── */
+
+/**
+ * **앱이 만든 시트에서 워크시트 피커에 보여선 안 되는 탭 제목.**
+ *
+ * ## 왜 필요한가 (2026-08-08 사용자 지적으로 발견한 결함)
+ *
+ * `fetchSpreadsheetMeta` 는 워크시트를 **하나도 거르지 않고** 다 돌려준다. 앱이 만든 시트의 탭이
+ * 11 개가 되면서, 워크시트 피커(`LedgerTabPicker`)에 `월별 요약`·`읽어보기`·`분류 규칙` 까지 다
+ * 나오게 됐다. 거기서 `월별 요약` 을 고르면 앱은 **그것을 가계부로 읽으려** 한다 —
+ * 헤더가 안 맞아 매핑 화면으로 떨어지고, 최악에는 수식 탭에 쓰기를 시도한다.
+ *
+ * 이름이 겹치는 것보다 나쁜 것은 **두 컨트롤이 같은 탭을 다르게 다루는** 것이다: 화면 탭바는
+ * 전용 파서로 옳게 읽고, 워크시트 피커는 가계부로 오해한다.
+ *
+ * ## 🔴 앱이 만든 시트에서만 거른다
+ *
+ * 사용자가 고른 기존 시트의 탭 이름은 **우리가 판단할 근거가 없다.** 어쩌다 `월별 요약` 이라는
+ * 탭이 있더라도 그건 그 사람의 가계부일 수 있다 — 추측으로 선택지를 빼앗지 않는다.
+ */
+const NON_LEDGER_BLUEPRINT_TITLES: ReadonlySet<string> = new Set(
+  BLUEPRINT_TAB_ORDER.filter((title) => title !== BLUEPRINT_TABS.ledger)
+);
+
+/**
+ * 워크시트 피커에 실을 탭만 남긴다.
+ *
+ * @param createdByApp 앱이 만든 시트인가. `false` 면 **하나도 거르지 않는다**(위 머리말).
+ *
+ * ⚠ 앱 시트에서는 남는 것이 `가계부` 하나가 되고, 그때 `LedgerTabPicker` 는 드롭다운을 만들지
+ *   않고 이름만 말한다(그 컴포넌트의 규칙) — 겹침이 화면에서 사라진다.
+ */
+export const selectableLedgerTabs = <T extends { readonly title: string }>(
+  tabs: readonly T[],
+  createdByApp: boolean
+): readonly T[] => (createdByApp ? tabs.filter((tab) => !NON_LEDGER_BLUEPRINT_TITLES.has(tab.title)) : tabs);
