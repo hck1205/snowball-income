@@ -123,6 +123,8 @@ export default function LedgerFormModal({
   return createPortal(
     <div ref={containerRef}>
       <Modal
+        /* 🔴 칸이 열 개라 520px 에서는 언제나 세로 스크롤이 생겼다 — 넓혀서 두 칸씩 세운다. */
+        size="lg"
         title={model.mode === 'create' ? copy.form.createTitle : copy.form.editTitle}
         phase={phase}
         onBackdropClick={handleBackdropClick}
@@ -272,6 +274,28 @@ export default function LedgerFormModal({
               {errors.amount ? <FieldError id={`${amountId}-error`}>{errors.amount}</FieldError> : null}
             </Field>
 
+            {/*
+              🔴 **내용이 금액 바로 밑에 있다**(2026-08-08 사용자 요청). 항목을 비워도 되는 지금,
+                 분류를 정하는 것은 이 칸이다 — 아래쪽에 두면 "선택 칸" 처럼 보여 비우고 넘어간다.
+              🔴 제안 목록은 `분류 규칙` 탭의 **포함하는 말**이다. 그 말을 그대로 고르면 규칙이
+                 반드시 걸린다 — 손으로 치다 한 글자 틀리면 규칙이 안 걸리고, 그 사실은 저장한
+                 뒤에야 보인다.
+            */}
+            <Field $full>
+              <FieldLabel htmlFor={memoId}>{copy.form.memo}</FieldLabel>
+              <ComboBox
+                id={memoId}
+                dataField="memo"
+                options={model.memoOptions}
+                listLabel={copy.form.memoListLabel}
+                value={model.draft.memo}
+                ariaInvalid={Boolean(errors.memo)}
+                ariaDescribedBy={errors.memo ? `${memoId}-error` : undefined}
+                onChange={(next) => onChange({ memo: next.slice(0, LEDGER_MEMO_MAX_LENGTH) })}
+              />
+              {errors.memo ? <FieldError id={`${memoId}-error`}>{errors.memo}</FieldError> : null}
+            </Field>
+
             <Field>
               <FieldLabel htmlFor={categoryId}>{copy.form.category}</FieldLabel>
               {/*
@@ -357,7 +381,8 @@ export default function LedgerFormModal({
               {errors.payer ? <FieldError id={`${payerId}-error`}>{errors.payer}</FieldError> : null}
             </Field>
 
-            <Field>
+            {/* 고정 여부는 한 줄짜리 스위치라 전폭에 두는 편이 읽기 좋다. */}
+            <Field $full>
               <CheckboxRow>
                 <input
                   id={fixedId}
@@ -372,20 +397,6 @@ export default function LedgerFormModal({
               <FieldHint id={fixedHintId}>{copy.form.fixedHint}</FieldHint>
             </Field>
 
-            <Field>
-              <FieldLabel htmlFor={memoId}>{copy.form.memo}</FieldLabel>
-              <FieldInput
-                id={memoId}
-                data-field="memo"
-                type="text"
-                maxLength={LEDGER_MEMO_MAX_LENGTH}
-                value={model.draft.memo}
-                aria-invalid={errors.memo ? true : undefined}
-                aria-describedby={errors.memo ? `${memoId}-error` : undefined}
-                onChange={(event) => onChange({ memo: event.target.value })}
-              />
-              {errors.memo ? <FieldError id={`${memoId}-error`}>{errors.memo}</FieldError> : null}
-            </Field>
           </FormGrid>
         </form>
       </Modal>

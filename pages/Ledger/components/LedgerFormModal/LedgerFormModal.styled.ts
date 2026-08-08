@@ -10,26 +10,37 @@ import { color, font, inputSurface, media, motion, radius, space } from '@/share
  * 두 종류의 필드 마크업이 섞이는 편이 더 나쁘다. **공용 부품을 고치지도, 새로 만들지도 않는다.**
  */
 
+/**
+ * 폼 격자.
+ *
+ * ## 🔴 순서로 자리를 정하지 않는다 (2026-08-08)
+ *
+ * 종전에는 `nth-of-type(n + 3)` 으로 "셋째부터는 전폭"이라고 적었다. 칸 하나를 옮기는 순간
+ * 자리가 통째로 밀리는 규칙이라, 내용을 금액 밑으로 올리자마자 배치가 무너졌다.
+ * 이제 **전폭인 칸이 스스로 그렇게 말한다**(`Field $full`).
+ *
+ * ## 스크롤을 없앤다
+ *
+ * 칸이 열 개라 520px 모달에서는 언제나 세로 스크롤이 생겼다. 모달을 `lg`(720px)로 넓히고
+ * 두 칸씩 나란히 세워 한 화면에 담는다 — 좁은 폭에서는 한 줄씩으로 되돌아간다.
+ */
 export const FormGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: ${space[3]};
   min-width: 0;
 
-  /* 금액·분류·메모는 언제나 전폭이다 — 날짜|구분 두 칸만 나란히 선다. */
-  > *:nth-of-type(n + 3) {
-    grid-column: 1 / -1;
-  }
-
   ${media.down('mobile')} {
     grid-template-columns: minmax(0, 1fr);
   }
 `;
 
-export const Field = styled.div`
+/** `$full` — 이 칸이 두 열을 다 쓴다. 🔴 자리를 순서가 아니라 **칸 자신이** 말한다. */
+export const Field = styled.div<{ $full?: boolean }>`
   display: grid;
   gap: ${space[2]};
   min-width: 0;
+  ${(props) => (props.$full ? 'grid-column: 1 / -1;' : '')}
 `;
 
 export const FieldLabel = styled.label`
@@ -83,6 +94,7 @@ export const FieldError = styled.p`
 `;
 
 export const KindFieldset = styled.fieldset`
+  grid-column: 1 / -1;
   margin: 0;
   padding: 0;
   border: 0;

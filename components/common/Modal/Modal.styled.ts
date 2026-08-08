@@ -57,8 +57,14 @@ export const ModalBackdrop = styled.div<{ $phase?: OverlayPhase }>`
   }
 `;
 
-export const ModalPanel = styled.section<{ $phase?: OverlayPhase }>`
-  width: min(520px, 100%);
+/**
+ * `$size` — 기본은 `md`(520px). `lg`(720px)는 **칸이 많아 스크롤이 생기는 폼** 전용이다.
+ *
+ * ⚠ 기본값을 넓히지 않는 이유: 확인 다이얼로그처럼 문장 두 줄짜리 모달이 대부분이고, 그런 것이
+ *   넓어지면 읽는 눈이 좌우로 멀리 움직여 오히려 읽기 나빠진다. 넓힘은 **필요한 곳만** 켠다.
+ */
+export const ModalPanel = styled.section<{ $phase?: OverlayPhase; $size?: 'md' | 'lg' }>`
+  width: min(${(props) => (props.$size === 'lg' ? '720px' : '520px')}, 100%);
   max-height: min(88vh, 760px);
   /*
    * 서리유리(§4.7) — 폴백 불투명색을 먼저 깔고, 지원 브라우저에서만 글래스로 승격한다.

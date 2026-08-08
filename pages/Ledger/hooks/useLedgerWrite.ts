@@ -649,6 +649,18 @@ export function useLedgerWrite(params: {
 
   /* ── 화면 모델 ───────────────────────────────────────────────────────────── */
 
+  /**
+   * 내용 제안 = `분류 규칙` 탭의 "포함하는 말".
+   *
+   * 🔴 규칙에 적어 둔 말을 그대로 고르면 그 규칙이 **반드시** 걸린다. 손으로 치다 한 글자 틀리면
+   *    규칙이 안 걸리는데 그 사실은 저장한 뒤에야 보인다 — 고르게 하면 그 실패가 사라진다.
+   * ⚠ 같은 말이 여러 규칙에 있을 수 있어 중복을 걷는다.
+   */
+  const memoOptions = useMemo(
+    () => [...new Set(connection.classifyRules.map((rule) => rule.contains.trim()).filter((value) => value.length > 0))],
+    [connection.classifyRules]
+  );
+
   const form: LedgerFormModel | null = useMemo(
     () =>
       session === null
@@ -657,6 +669,7 @@ export function useLedgerWrite(params: {
             mode: session.mode,
             draft: session.draft,
             errors: session.errors,
+            memoOptions,
             categoryOptions,
             subcategoryOptions,
             payerOptions,
@@ -664,7 +677,7 @@ export function useLedgerWrite(params: {
             isSaving: session.isSaving,
             writeError: session.writeError
           },
-    [categoryOptions, session]
+    [categoryOptions, memoOptions, session]
   );
 
   const removeTarget: LedgerRemoveTarget | null = useMemo(() => {

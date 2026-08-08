@@ -18,7 +18,8 @@ import { ModalActions, ModalBackdrop, ModalPanel, ModalTitle } from './Modal.sty
  * 받으면서 **셸을 쓰는 다음 사람은 그 처리를 물려받지 못하는** 구멍이 생겼다(2026-07-31 리뷰 m2).
  * 백드롭 클릭도 함께 끈다 — 이미 닫힌 것을 다시 닫을 수는 없다.
  */
-export default function Modal({ title, children, actions, onBackdropClick, phase }: ModalProps) {
+export default function Modal({ title, children, actions, onBackdropClick, phase,
+  size}: ModalProps) {
   const titleId = useId();
   const isExiting = phase === 'exit';
 
@@ -31,7 +32,8 @@ export default function Modal({ title, children, actions, onBackdropClick, phase
       onClick={isExiting ? undefined : onBackdropClick}
       $phase={phase}
     >
-      <ModalPanel $phase={phase}>
+      <ModalPanel
+      $size={size} $phase={phase}>
         <ModalTitle id={titleId}>{title}</ModalTitle>
         {children}
         {actions ? <ModalActions>{actions}</ModalActions> : null}

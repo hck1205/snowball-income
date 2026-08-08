@@ -177,6 +177,7 @@ const EXPECTED: StringTree = {
     category: '항목',
     categoryPlaceholder: '예: 식비',
     categoryHint: '기본 분류에서 고르거나 새로 적을 수 있습니다.',
+    memoListLabel: '분류 규칙에 적어 둔 말',
     categoryListLabel: '항목 제안',
     subcategory: '상세항목 (선택)',
     subcategoryPlaceholder: '예: 외식',

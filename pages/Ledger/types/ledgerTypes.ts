@@ -317,6 +317,14 @@ export type LedgerFormModel = {
    *    이유가 이것이다 — 구성원·결제수단은 한 번 쓰면 다음부터 목록에 뜬다. 관리할 화면을 하나 더
    *    만드는 것보다, 쓰던 값이 저절로 쌓이는 쪽이 가볍고 시트가 정본이라는 원칙과도 맞는다.
    */
+  /**
+   * 내용 제안 — **`분류 규칙` 탭의 "포함하는 말"** 이다(2026-08-08).
+   *
+   * 🔴 규칙에 적어 둔 말을 그대로 고르면 그 규칙이 반드시 걸린다. 손으로 치다 한 글자 틀리면
+   *    규칙이 안 걸리는데, 그 사실은 저장한 뒤에야 보인다 — 고르게 하면 그 실패가 사라진다.
+   * ⚠ 자유 입력은 그대로다. 목록은 제안이지 강제가 아니다.
+   */
+  memoOptions: readonly string[];
   categoryOptions: readonly string[];
   subcategoryOptions: readonly string[];
   payerOptions: readonly string[];
