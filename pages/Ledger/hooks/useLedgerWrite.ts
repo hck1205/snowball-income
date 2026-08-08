@@ -5,11 +5,15 @@ import {
   deleteLedgerEntry,
   updateLedgerEntry
 } from '@/shared/lib/googleSheets';
+import { collectBackfillTargets, planBackfill, writeValues } from '@/shared/lib/googleSheets';
 import type { LedgerDraft, LedgerEntry, LedgerError, LedgerPatch } from '@/shared/lib/googleSheets';
+import { classifyLedgerRow } from '@/shared/lib/ledger';
+import type { LedgerClassifyRule } from '@/shared/lib/ledger';
 import { formatKRW } from '@/shared/utils';
 import { LEDGER_COPY } from '../copy';
 import type { CarryOverCandidate } from '../utils';
 import type {
+  LedgerBackfillModel,
   LedgerCarryOverModel,
   LedgerDraftForm,
   LedgerErrorModel,
@@ -86,6 +90,14 @@ export type LedgerWrite = {
    *    남의 시트에 열 줄을 한 번에 넣는 일이라 확인 없이 실행하지 않는다.
    */
   carryOver: LedgerCarryOverModel | null;
+  /**
+   * 되채워 쓰기 — 히포가 채운 분류를 시트에도 적는다. 채울 것이 없으면 `null`.
+   *
+   * 🔴 이게 없으면 시트를 단독으로 열었을 때 항목 칸이 비어 있고, `월별 요약`·`현금흐름` 의
+   *    SUMIFS 가 그 행을 못 세어 **요약이 통째로 0** 이 된다.
+   */
+  backfill: LedgerBackfillModel | null;
+  runBackfill: () => void;
   openCarryOver: () => void;
   confirmCarryOver: () => void;
   closeCarryOver: () => void;
@@ -106,17 +118,49 @@ const toDraftForm = (entry: LedgerEntry): LedgerDraftForm => ({
   memo: entry.memo ?? ''
 });
 
-const toLedgerDraft = (draft: LedgerDraftForm): LedgerDraft => ({
-  date: draft.date.trim(),
-  kind: draft.kind,
-  amount: parseLedgerAmount(draft.amount),
-  category: draft.category.trim(),
-  subcategory: draft.subcategory.trim(),
-  payer: draft.payer.trim(),
-  method: draft.method.trim(),
-  fixity: draft.isFixed ? 'fixed' : 'variable',
-  memo: draft.memo.trim()
-});
+/**
+ * 폼 값 → 시트에 쓸 초안.
+ *
+ * ## 🔴 항목을 비우고 저장하면 **여기서 채운다** (2026-08-08)
+ *
+ * 폼이 "항목을 비워도 된다"고 허락하는 것만으로는 부족하다. 그대로 쓰면 시트에 빈 항목 칸이
+ * 들어가고, `월별 요약`·`현금흐름` 의 `SUMIFS` 가 그 행을 못 세어 **저장은 됐는데 요약에 안
+ * 잡히는** 상태가 된다. 사용자에게 가장 나쁜 결과다.
+ *
+ * 그래서 저장 직전에 분류 사다리를 태운다. 읽을 때 채우는 것과 **같은 함수**를 쓰므로
+ * (`shared/lib/ledger/classify`) 앱이 보여 준 분류와 시트에 적히는 분류가 갈릴 수 없다.
+ *
+ * 🔴 **적어 둔 항목은 건드리지 않는다.** 사다리 0단이 그것을 보장한다 — 이 호출이 사용자의
+ *    분류를 뒤집는 일은 없다.
+ * ⚠ 구분도 사다리가 정한 값을 쓰지 않는다. 폼의 라디오는 **사용자가 명시적으로 고른 값**이라
+ *   언제나 그것이 이긴다.
+ */
+const toLedgerDraft = (
+  draft: LedgerDraftForm,
+  rules: readonly LedgerClassifyRule[]
+): LedgerDraft => {
+  const category = draft.category.trim();
+  const subcategory = draft.subcategory.trim();
+  const memo = draft.memo.trim();
+
+  const classification = classifyLedgerRow(
+    { category, subcategory, memo, kind: draft.kind },
+    rules
+  );
+
+  return {
+    date: draft.date.trim(),
+    kind: draft.kind,
+    amount: parseLedgerAmount(draft.amount),
+    /* 빈 칸일 때만 사다리 값이 들어간다. 못 정했으면 빈 칸 그대로 — 지어내지 않는다. */
+    category: category.length > 0 ? category : (classification.category?.label ?? ''),
+    subcategory: subcategory.length > 0 ? subcategory : (classification.subcategory?.label ?? ''),
+    payer: draft.payer.trim(),
+    method: draft.method.trim(),
+    fixity: draft.isFixed ? 'fixed' : 'variable',
+    memo
+  };
+};
 
 /**
  * 새 항목 폼의 시작값.
@@ -312,7 +356,7 @@ export function useLedgerWrite(params: {
       const { link, snapshot } = connection;
       if (context === null || link === null || snapshot === null) return null;
 
-      const report = await appendLedgerEntries(context, { link, snapshot, drafts: [toLedgerDraft(draft)] });
+      const report = await appendLedgerEntries(context, { link, snapshot, drafts: [toLedgerDraft(draft, connection.classifyRules)] });
       const failed = report.items.find((item) => !item.ok);
       return failed && !failed.ok ? failed.error : null;
     },
@@ -566,7 +610,7 @@ export function useLedgerWrite(params: {
       const report = await appendLedgerEntries(context, {
         link,
         snapshot,
-        drafts: batch.map((item) => toLedgerDraft(item.draft))
+        drafts: batch.map((item) => toLedgerDraft(item.draft, connection.classifyRules))
       });
 
       setBatchReport({ successCount: report.successCount, totalCount: report.items.length });
@@ -615,6 +659,18 @@ export function useLedgerWrite(params: {
 
   /* ── 화면 모델 ───────────────────────────────────────────────────────────── */
 
+  /**
+   * 내용 제안 = `분류 규칙` 탭의 "포함하는 말".
+   *
+   * 🔴 규칙에 적어 둔 말을 그대로 고르면 그 규칙이 **반드시** 걸린다. 손으로 치다 한 글자 틀리면
+   *    규칙이 안 걸리는데 그 사실은 저장한 뒤에야 보인다 — 고르게 하면 그 실패가 사라진다.
+   * ⚠ 같은 말이 여러 규칙에 있을 수 있어 중복을 걷는다.
+   */
+  const memoOptions = useMemo(
+    () => [...new Set(connection.classifyRules.map((rule) => rule.contains.trim()).filter((value) => value.length > 0))],
+    [connection.classifyRules]
+  );
+
   const form: LedgerFormModel | null = useMemo(
     () =>
       session === null
@@ -623,6 +679,7 @@ export function useLedgerWrite(params: {
             mode: session.mode,
             draft: session.draft,
             errors: session.errors,
+            memoOptions,
             categoryOptions,
             subcategoryOptions,
             payerOptions,
@@ -630,7 +687,7 @@ export function useLedgerWrite(params: {
             isSaving: session.isSaving,
             writeError: session.writeError
           },
-    [categoryOptions, session]
+    [categoryOptions, memoOptions, session]
   );
 
   const removeTarget: LedgerRemoveTarget | null = useMemo(() => {
@@ -675,6 +732,63 @@ export function useLedgerWrite(params: {
       await connection.refresh();
     })();
   }, [carryOverCandidates, connection]);
+
+  /* ── 되채워 쓰기 (2026-08-09) ──────────────────────────────────────────────── */
+
+  const [isBackfilling, setIsBackfilling] = useState(false);
+
+  /**
+   * 히포가 채운 분류 중 **시트에는 아직 없는** 것들.
+   *
+   * 🔴 `collectBackfillTargets` 가 `seen` 을 다시 보고 **빈 칸이던 자리만** 고른다 — 적어 둔 말을
+   *    덮지 않는다. 그 확인이 파서(`filled` 를 만들 때)와 여기 두 곳에 있는 이유는, 하나가 뚫리면
+   *    조용히 데이터가 상하기 때문이다.
+   */
+  const backfillTargets = useMemo(() => {
+    const { link, snapshot } = connection;
+    if (link === null || snapshot === null) return [];
+    return collectBackfillTargets(snapshot.entries, link.mapping);
+  }, [connection]);
+
+  /**
+   * 되적기 실행.
+   *
+   * ⚠ **사용자가 시작한다.** 자동으로 조용히 쓰지 않는다 — 남의 시트에 여러 줄을 한 번에 넣는
+   *   일이라 되돌리려면 하나씩 지워야 한다(`고정비 이어가기` 와 같은 처방).
+   */
+  const runBackfill = useCallback(() => {
+    const context = connection.readContext();
+    const { link } = connection;
+    if (context === null || link === null || backfillTargets.length === 0) return;
+
+    const planned = planBackfill({
+      sheetTitle: link.sheetTitle,
+      mapping: link.mapping,
+      targets: backfillTargets
+    });
+    if (!planned.ok) return;
+
+    setIsBackfilling(true);
+    void (async () => {
+      const result = await writeValues(context, {
+        spreadsheetId: link.spreadsheetId,
+        data: planned.value.data
+      });
+      setIsBackfilling(false);
+
+      if (!result.ok) {
+        connection.applyError(result.error);
+        return;
+      }
+      setLiveMessage(copy.backfill.live(planned.value.rowCount));
+      await connection.refresh();
+    })();
+  }, [backfillTargets, connection]);
+
+  const backfill: LedgerBackfillModel | null = useMemo(() => {
+    if (backfillTargets.length === 0) return null;
+    return { count: backfillTargets.length, isSaving: isBackfilling };
+  }, [backfillTargets.length, isBackfilling]);
 
   const carryOver: LedgerCarryOverModel | null = useMemo(() => {
     if (carryOverCandidates.length === 0) return null;
@@ -724,6 +838,8 @@ export function useLedgerWrite(params: {
     retryRow,
     retryAll,
     carryOver,
+    backfill,
+    runBackfill,
     openCarryOver,
     confirmCarryOver,
     closeCarryOver,

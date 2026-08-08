@@ -4,10 +4,9 @@ import { HintText, Select } from '@/components/common';
 import { LEDGER_COPY } from '../../copy';
 import type { LedgerTabPickerProps } from './LedgerTabPicker.types';
 import {
-  PickerAxis,
+  OpenSheetLink,
   PickerBlock,
   PickerLabel,
-  PickerName,
   PickerRow,
   PickerStatus
 } from './LedgerTabPicker.styled';
@@ -27,20 +26,28 @@ const copy = LEDGER_COPY;
  * ⚠ 2026-08-03 — 라벨을 컨트롤 **위**로 올렸다. 이 줄은 280px 짜리 범위 레일 안에 사는데,
  * 가로 배치에서는 셀렉트가 12ch 로 눌려 탭 제목이 잘렸다.
  */
-export default function LedgerTabPicker({ model, onSelectTab }: LedgerTabPickerProps) {
+export default function LedgerTabPicker({ model, sheetUrl, onSelectTab }: LedgerTabPickerProps) {
   const idPrefix = useId();
   const selectId = `${idPrefix}-tab`;
   const hintId = `${idPrefix}-tab-hint`;
   const isBlocked = model.blockedReason !== null;
 
+  /*
+   * 🔴 **탭이 하나면 시트로 가는 버튼을 준다**(2026-08-08 사용자 요청).
+   *
+   * 종전에는 "가계부 탭을 보고 있습니다"라고 적었다. 앱이 만든 시트에서 기록 탭이 아닌 것을
+   * 걸러 내면서 이 자리는 **거의 언제나** 그 문장 하나가 됐고, 고를 것이 없는데 자리만 차지하는
+   * 줄이 되었다 — 아는 사실을 다시 말하는 것은 정보가 아니다.
+   * 그 자리에 실제로 할 일이 있는 것을 놓는다: 시트를 여는 것.
+   */
   if (model.options.length <= 1) {
+    if (sheetUrl === undefined) return null;
     return (
       <PickerBlock>
-        <PickerAxis>
-          <FileSpreadsheet size={14} strokeWidth={1.8} aria-hidden focusable={false} />
-          {copy.tab.label}
-        </PickerAxis>
-        <PickerName>{copy.tab.single(model.currentTitle)}</PickerName>
+        <OpenSheetLink href={sheetUrl} target="_blank" rel="noreferrer noopener">
+          <FileSpreadsheet size={16} strokeWidth={1.8} aria-hidden focusable={false} />
+          {copy.tab.openSheet}
+        </OpenSheetLink>
       </PickerBlock>
     );
   }

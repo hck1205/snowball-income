@@ -5,10 +5,12 @@ import {
   BLUEPRINT_TABS,
   BLUEPRINT_TAB_ORDER,
   KIND_CHOICES,
+  BLUEPRINT_TAB_ROLE,
   buildCreateSpreadsheetBody,
-  buildFormatRequests
+  buildFormatRequests,
+  findGridOverflow
 } from '@/shared/lib/googleSheets';
-import { LEDGER_CATEGORIES } from '@/shared/constants/ledger';
+import { LEDGER_CATEGORIES, LEDGER_HOLDING_LABEL } from '@/shared/constants/ledger';
 
 /**
  * 앱이 만드는 스프레드시트의 **설계도**.
@@ -22,13 +24,25 @@ import { LEDGER_CATEGORIES } from '@/shared/constants/ledger';
 
 const body = () => buildCreateSpreadsheetBody('테스트 가계부') as {
   properties: { title: string; locale: string; timeZone: string };
-  sheets: { properties: { title: string; gridProperties: { frozenRowCount?: number } }; data: { rowData: { values?: { userEnteredValue: { stringValue: string } }[] }[] }[] }[];
+  sheets: {
+    properties: { title: string; gridProperties: { columnCount: number; frozenRowCount?: number } };
+    data: { rowData: { values?: { userEnteredValue: Record<string, string> }[] }[] }[];
+  }[];
 };
+
+/**
+ * 셀 값을 문자열로 편다.
+ *
+ * ⚠ 수식은 `formulaValue`, 나머지는 `stringValue` 다 — 한쪽만 읽으면 수식 검사가 통째로 헛돈다
+ *   (실제로 `stringValue` 만 읽다가, 수식을 formulaValue 로 고친 순간 네 개가 조용히 빈 문자열이 됐다).
+ */
+const cellText = (cell: { userEnteredValue: Record<string, string> }): string =>
+  cell.userEnteredValue.formulaValue ?? cell.userEnteredValue.stringValue ?? '';
 
 const rowsOf = (title: string): string[][] => {
   const sheet = body().sheets.find((candidate) => candidate.properties.title === title);
   if (!sheet) throw new Error(`탭을 찾지 못했다: ${title}`);
-  return sheet.data[0].rowData.map((row) => (row.values ?? []).map((cell) => cell.userEnteredValue.stringValue));
+  return sheet.data[0].rowData.map((row) => (row.values ?? []).map(cellText));
 };
 
 describe('탭 구성', () => {
@@ -132,6 +146,121 @@ describe('🔴 수식 — 틀리면 숫자가 어긋난다', () => {
   });
 });
 
+describe('🔴 실제 400 을 냈던 자리 — 회귀 가드', () => {
+  it('⭐ 격자 열 수가 실제로 쓰는 열 수보다 작지 않다', () => {
+    /*
+     * 실제로 시트 생성이 이 오류로 죽었다:
+     *   `Invalid sheets[3].data[0]: Attempting to write column: 8, beyond the last requested column of: 7`
+     * 고정비 탭의 머리를 7열에서 9열로 늘리면서 `columnCount` 를 안 고쳤기 때문이다.
+     * 격자와 내용은 함께 바뀌어야 하는데 코드상 둘이 떨어져 있어 어긋날 수 있다.
+     */
+    expect(findGridOverflow()).toEqual([]);
+  });
+
+  it('⭐ 수식은 formulaValue 로 나간다 — stringValue 면 글자 그대로 저장된다', () => {
+    const sheets = body().sheets as unknown as {
+      properties: { title: string };
+      data: { rowData: { values?: { userEnteredValue: Record<string, string> }[] }[] }[];
+    }[];
+
+    const cells = sheets.flatMap((sheet) =>
+      sheet.data[0].rowData.flatMap((row) => row.values ?? [])
+    );
+    const formulaLike = cells.filter((cell) =>
+      Object.values(cell.userEnteredValue).some((value) => typeof value === 'string' && value.startsWith('='))
+    );
+
+    expect(formulaLike.length).toBeGreaterThan(0);
+    for (const cell of formulaLike) {
+      expect(cell.userEnteredValue.formulaValue, JSON.stringify(cell)).toBeDefined();
+      expect(cell.userEnteredValue.stringValue).toBeUndefined();
+    }
+  });
+});
+
+describe('탭 역할 — 색과 보호가 어긋나지 않는다', () => {
+  it('⭐ 모든 탭에 역할이 있다 — 빠뜨리면 색도 보호도 안 걸린다', () => {
+    for (const title of BLUEPRINT_TAB_ORDER) {
+      expect(BLUEPRINT_TAB_ROLE[title], title).toBeDefined();
+    }
+  });
+
+  it('⭐ 드롭다운 원본은 숨긴다 — 사용자는 만질 탭만 본다', () => {
+    const sheets = body().sheets;
+    const hidden = sheets.filter((sheet) => (sheet.properties as { hidden?: boolean }).hidden);
+
+    expect(hidden.map((sheet) => sheet.properties.title).sort()).toEqual(
+      [BLUEPRINT_TABS.categories, BLUEPRINT_TABS.settings].sort()
+    );
+    /* 숨긴 탭은 정확히 machinery 역할인 것들이다. */
+    for (const sheet of hidden) {
+      expect(BLUEPRINT_TAB_ROLE[sheet.properties.title]).toBe('machinery');
+    }
+  });
+
+  it('보이는 탭에는 색이 있고 숨긴 탭에는 없다', () => {
+    for (const sheet of body().sheets) {
+      const properties = sheet.properties as { title: string; hidden?: boolean; tabColorStyle?: unknown };
+      if (properties.hidden) expect(properties.tabColorStyle, properties.title).toBeUndefined();
+      else expect(properties.tabColorStyle, properties.title).toBeDefined();
+    }
+  });
+});
+
+describe('🔴 순자산 — 안 적은 달과 0원은 다른 사실이다', () => {
+  const cashFlow = () => rowsOf(BLUEPRINT_TABS.cashFlow).flat().join('\n');
+
+  it('⭐ 자산을 안 적은 달은 빈 칸이다 — 0 으로 적으면 추이가 바닥을 찍는다', () => {
+    /* COUNTIFS 로 그 달 기록 수를 먼저 세고, 0 이면 빈 문자열을 낸다. */
+    expect(cashFlow()).toContain('=IF(COUNTIFS(');
+  });
+
+  it('⭐ 부채를 뺀다 — 안 빼면 그건 순자산이 아니라 자산 합계다', () => {
+    const text = cashFlow();
+
+    expect(text).toContain(`"<>"&"${LEDGER_HOLDING_LABEL.debt}"`);
+    expect(text).toContain(`,"${LEDGER_HOLDING_LABEL.debt}",`);
+  });
+
+  it('🔴 앞 달 값을 끌어오지 않는다 — 스냅샷은 그 달에 실제로 센 값이어야 한다', () => {
+    /* 앞 달 참조를 쓰면 안 적은 달이 적은 것처럼 보인다. 순자산 열에 그런 참조가 없어야 한다. */
+    const netWorthCells = rowsOf(BLUEPRINT_TABS.cashFlow)
+      .slice(4)
+      .map((row) => row[6] ?? '')
+      .filter((cell) => cell.length > 0);
+
+    expect(netWorthCells.length).toBe(12);
+    for (const cell of netWorthCells) expect(cell).not.toMatch(/G\d+/);
+  });
+});
+
+describe('예시 탭 — 빈 표 앞에서 얼어붙지 않게', () => {
+  it('⭐ “분류를 비워도 된다”를 보여 준다 — 이게 이 시트의 다른 점이다', () => {
+    const rows = rowsOf(BLUEPRINT_TABS.example);
+    const dataRows = rows.slice(4);
+
+    /* 항목(C=2)·상세항목(D=3)이 둘 다 빈 견본 줄이 있어야 한다. */
+    const blankCategory = dataRows.filter((row) => (row[2] ?? '') === '' && (row[3] ?? '') === '');
+    expect(blankCategory.length).toBeGreaterThan(0);
+
+    /* 그리고 직접 적은 줄도 있어야 한다 — 둘 다 된다는 것이 요점이다. */
+    expect(dataRows.some((row) => (row[2] ?? '').length > 0)).toBe(true);
+  });
+
+  it('이체 견본이 있다 — 저축이 지출이 아니라는 것이 가장 자주 틀리는 자리다', () => {
+    expect(rowsOf(BLUEPRINT_TABS.example).flat()).toContain('이체');
+  });
+});
+
+describe('분류 규칙 탭', () => {
+  it('⭐ 견본 규칙을 심어 두지 않는다 — 우리가 고른 말로 부분 일치를 하면 조용한 오분류가 된다', () => {
+    const rows = rowsOf(BLUEPRINT_TABS.rules);
+
+    /* 머리 한 줄뿐이어야 한다. */
+    expect(rows).toHaveLength(1);
+  });
+});
+
 describe('서식 요청', () => {
   const SHEET_IDS = Object.fromEntries(BLUEPRINT_TAB_ORDER.map((title, index) => [title, index]));
   const requests = () => buildFormatRequests(SHEET_IDS) as Record<string, any>[];
@@ -143,6 +272,23 @@ describe('서식 요청', () => {
     for (const validation of validations) {
       expect(validation.setDataValidation.rule.strict).toBe(false);
     }
+  });
+
+  it('⭐ 날짜 칸은 달력으로 고른다 — 글자로 적히면 월 구간 SUMIFS 가 그 행을 못 센다', () => {
+    /*
+     * 🔴 숫자 서식만으로는 달력이 뜨지 않는다. 서식은 보이는 모양, 유효성 검사는 입력 방법이다.
+     *    `DATE_IS_VALID_DATE` 가 걸린 칸이라야 시트가 달력 선택기를 띄운다.
+     */
+    const dateRules = requests()
+      .filter((request) => request.setDataValidation)
+      .filter((request) => request.setDataValidation.rule.condition.type === 'DATE_IS_VALID_DATE');
+
+    expect(dateRules.length).toBeGreaterThanOrEqual(2);
+    const sheetIds = dateRules.map((request) => request.setDataValidation.range.sheetId);
+    expect(sheetIds).toContain(SHEET_IDS[BLUEPRINT_TABS.ledger]);
+    expect(sheetIds).toContain(SHEET_IDS[BLUEPRINT_TABS.holdings]);
+    /* 🔴 첫 열(날짜)에만 걸린다. */
+    for (const request of dateRules) expect(request.setDataValidation.range.startColumnIndex).toBe(0);
   });
 
   it('구분 드롭다운이 파서가 아는 낱말이다', () => {
@@ -164,5 +310,45 @@ describe('서식 요청', () => {
 
   it('🔴 sheetId 를 못 찾으면 조용히 건너뛴다 — 서식 실패로 시트 생성을 무르지 않는다', () => {
     expect(buildFormatRequests({})).toEqual([]);
+  });
+
+  it('⭐ 보호는 경고만 한다 — 완전히 잠그면 앱도 사용자도 못 쓴다', () => {
+    const protections = requests().filter((request) => request.addProtectedRange);
+
+    expect(protections.length).toBeGreaterThan(0);
+    for (const protection of protections) {
+      expect(protection.addProtectedRange.protectedRange.warningOnly).toBe(true);
+    }
+  });
+
+  it('⭐ 저절로 차는 탭은 전부 보호한다 — 손으로 나열하면 탭이 늘 때 빠뜨린다', () => {
+    const protectedIds = new Set(
+      requests()
+        .filter((request) => request.addProtectedRange)
+        .map((request) => request.addProtectedRange.protectedRange.range.sheetId)
+    );
+    const derived = BLUEPRINT_TAB_ORDER.filter((title) => BLUEPRINT_TAB_ROLE[title] === 'derived');
+
+    expect(derived.length).toBeGreaterThan(0);
+    for (const title of derived) expect(protectedIds.has(SHEET_IDS[title]), title).toBe(true);
+  });
+
+  it('🔴 분류 규칙 탭은 보호하지 않는다 — 사용자가 고치는 것이 설계 의도다', () => {
+    const protectedIds = new Set(
+      requests()
+        .filter((request) => request.addProtectedRange)
+        .map((request) => request.addProtectedRange.protectedRange.range.sheetId)
+    );
+
+    expect(protectedIds.has(SHEET_IDS[BLUEPRINT_TABS.rules])).toBe(false);
+  });
+
+  it('⭐ 가계부 머리에 열마다 메모가 붙는다 — 색 단독으로는 뜻이 전해지지 않는다', () => {
+    const notes = requests()
+      .filter((request) => request.repeatCell)
+      .filter((request) => request.repeatCell.range.sheetId === SHEET_IDS[BLUEPRINT_TABS.ledger])
+      .filter((request) => typeof request.repeatCell.cell?.note === 'string');
+
+    expect(notes).toHaveLength(APP_SHEET_HEADERS.length);
   });
 });

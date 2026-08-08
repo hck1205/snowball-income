@@ -351,6 +351,105 @@ export const fetchGridRows = async (
   );
 };
 
+/* ── 우리 탭에 행 덧붙이기 ──────────────────────────────────────────────────── */
+
+/**
+ * `자산` · `투자` 처럼 **우리가 만든 탭**에 행 하나를 덧붙인다.
+ *
+ * ## 왜 `가계부` 와 다른 경로인가
+ *
+ * `가계부` 쓰기는 매핑(사용자가 고른 기존 시트의 열 순서)과 스냅샷 행 참조를 지켜야 해서
+ * `planAppend` 가 마지막 데이터 행을 계산하고 범위를 명시적으로 만든다. 이 탭들은 **열 순서가
+ * 고정이고 사용자 시트가 아니라 우리 청사진**이라 그 무게가 필요 없다.
+ *
+ * ## ⚠ `values:append` 는 구글이 마지막 행을 찾는다
+ *
+ * 그래서 우리가 행 번호를 세지 않아도 되지만, **표 아래에 딴 내용이 있으면 그 뒤에 붙는다.**
+ * 우리 탭에는 머리 한 줄뿐이라 문제가 없고, 사용자가 표 아래에 메모를 적어 뒀다면 그 아래로
+ * 붙는 것이 오히려 안전하다(그 메모를 덮지 않는다).
+ *
+ * 🔴 `INSERT_ROWS` 다. 기본값(`OVERWRITE`)은 **격자 마지막 행에 이미 값이 있으면 덮어쓴다** —
+ *    사용자가 적어 둔 줄이 사라지는 종류의 사고다.
+ * 🔴 `USER_ENTERED` 다. 날짜·숫자가 값으로 들어가야 시트 수식(순자산)이 그 행을 센다
+ *    (`RAW` 로 보내면 `2026-08-31` 이 글자로 앉는다).
+ */
+export const appendSheetRow = async (
+  context: SheetsRequestContext,
+  params: {
+    readonly spreadsheetId: string;
+    readonly sheetTitle: string;
+    readonly values: readonly string[];
+  }
+): Promise<LedgerResult<null>> => {
+  const range = `${quoteSheetTitle(params.sheetTitle)}!A:A`;
+  const result = await request<unknown>(context, {
+    method: 'POST',
+    url:
+      `${SHEETS_BASE}/${encodeURIComponent(params.spreadsheetId)}/values/${encodeURIComponent(range)}:append`
+      + '?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS',
+    body: { values: [[...params.values]] }
+  });
+  return result.ok ? ledgerOk(null) : passThroughError(result.error);
+};
+
+/* ── 탭 속성 ────────────────────────────────────────────────────────────────── */
+
+/**
+ * 탭 하나의 **제목**을 바꾼다.
+ *
+ * 🔴 이름을 바꿔도 **수식은 따라온다.** 구글이 `'가계부'!$E:$E` 같은 참조를 자동으로 고쳐 준다 —
+ *    그래서 `월별 요약`·`현금흐름` 이 깨지지 않는다.
+ * ⚠ 우리 코드가 **제목으로 찾는 탭**(`자산`·`투자`·`분류 규칙`)은 이 경로로 바꾸면 안 된다.
+ *   그 탭들은 앱이 이름으로 집으므로 바뀌는 순간 못 찾는다. 가계부 탭만 이름을 연다.
+ */
+export const updateSheetTitle = async (
+  context: SheetsRequestContext,
+  params: { readonly spreadsheetId: string; readonly sheetId: number; readonly title: string }
+): Promise<LedgerResult<null>> => {
+  const result = await request<unknown>(context, {
+    method: 'POST',
+    url: `${SHEETS_BASE}/${encodeURIComponent(params.spreadsheetId)}:batchUpdate`,
+    body: {
+      requests: [
+        {
+          updateSheetProperties: {
+            properties: { sheetId: params.sheetId, title: params.title },
+            fields: 'title'
+          }
+        }
+      ]
+    }
+  });
+  return result.ok ? ledgerOk(null) : passThroughError(result.error);
+};
+
+/**
+ * 탭을 보이거나 숨긴다.
+ *
+ * 🔴 **지우지 않는다.** 공동 가계부를 끌 때 탭을 지우면 적어 둔 기록이 함께 사라진다 —
+ *    끄는 것과 버리는 것은 다르고, 사용자가 뜻한 것은 앞쪽이다. 다시 켜면 그대로 돌아온다.
+ */
+export const setSheetHidden = async (
+  context: SheetsRequestContext,
+  params: { readonly spreadsheetId: string; readonly sheetId: number; readonly hidden: boolean }
+): Promise<LedgerResult<null>> => {
+  const result = await request<unknown>(context, {
+    method: 'POST',
+    url: `${SHEETS_BASE}/${encodeURIComponent(params.spreadsheetId)}:batchUpdate`,
+    body: {
+      requests: [
+        {
+          updateSheetProperties: {
+            properties: { sheetId: params.sheetId, hidden: params.hidden },
+            fields: 'hidden'
+          }
+        }
+      ]
+    }
+  });
+  return result.ok ? ledgerOk(null) : passThroughError(result.error);
+};
+
 /* ── 값 쓰기 ────────────────────────────────────────────────────────────────── */
 
 /**

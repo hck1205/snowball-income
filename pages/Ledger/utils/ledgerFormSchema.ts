@@ -54,9 +54,17 @@ const amountSchema = z
     { message: errors.amountTooLarge }
   );
 
+/**
+ * 항목.
+ *
+ * 🔴 **혼자서는 필수가 아니다**(2026-08-08). 비워 두면 분류 사다리가 내용을 보고 채운다
+ *    (`shared/lib/ledger/classify`). 대신 채울 재료가 있어야 하므로, "항목과 내용이 둘 다 비면
+ *    막는다"는 **교차 규칙**이 아래 `superRefine` 에 있다.
+ *
+ * ⚠ 이 스키마만 보고 "항목은 선택"이라고 읽으면 안 된다 — 규칙이 객체 수준에 있다.
+ */
 const categorySchema = z
   .string()
-  .refine((value) => value.trim().length > 0, { message: errors.categoryRequired })
   .refine((value) => value.trim().length <= LEDGER_CATEGORY_MAX_LENGTH, { message: errors.categoryTooLong });
 
 const memoSchema = z.string().refine((value) => value.length <= LEDGER_MEMO_MAX_LENGTH, {
@@ -81,7 +89,23 @@ export const ledgerFormSchema = z.object({
   method: optionalTextSchema(LEDGER_METHOD_MAX_LENGTH, errors.methodTooLong),
   isFixed: z.boolean(),
   memo: memoSchema
-});
+})
+  /**
+   * 🔴 **항목과 내용이 둘 다 비면 막는다.**
+   *
+   * 항목을 비워도 되는 것은 히포가 채워 주기 때문인데, 채우는 유일한 재료가 **내용**이다.
+   * 둘 다 비면 사다리가 아무것도 못 하고 그 줄은 구분을 못 정해 **합계에서 통째로 빠진다** —
+   * 저장은 됐는데 요약에 안 잡히는 것이 사용자에게 가장 나쁜 결과라, 그 전에 막는다.
+   *
+   * ⚠ 오류를 `category` 에 붙인다. `firstInvalidField` 가 그 칸으로 포커스를 옮기는데,
+   *   둘 중 먼저 눈에 들어오는 칸이 항목이라 거기서 시작하는 편이 자연스럽다.
+   *   문구는 "내용을 적어도 된다"를 함께 말한다.
+   */
+  .superRefine((draft, ctx) => {
+    if (draft.category.trim().length > 0) return;
+    if (draft.memo.trim().length > 0) return;
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['category'], message: errors.categoryRequired });
+  });
 
 /** 필드별 첫 오류 메시지. 통과하면 빈 객체다(제출 시도 전에는 호출하지 않는다). */
 export const validateLedgerForm = (draft: LedgerDraftForm): Partial<Record<keyof LedgerDraftForm, string>> => {

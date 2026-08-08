@@ -58,8 +58,26 @@ describe('/ledger 소스 스캔 — 대상이 실제로 잡히는가', () => {
 });
 
 describe('/ledger 색 규율(§3.4)', () => {
-  it('🔴 손익색을 쓰지 않는다 — 수입·지출은 P&L 이 아니다', () => {
-    expect(hits(/dataPositive|dataNegative/g)).toEqual([]);
+  /**
+   * 🔴 **금액에는 손익색을 쓰지 않는다.**
+   *
+   * ⚠ 2026-08-09 사용자 결정으로 **구분 칸 하나만** 예외다 — 지출이 빨강, 수입이 파랑이다
+   *   (통장 표기의 관습). 규칙의 핵심은 "색 하나에 기대지 않는다" 였고, 그 칸은 아이콘과
+   *   글자를 그대로 둔 채 색을 **덧붙였을 뿐**이라 색을 못 보는 사람에게도 정보가 남는다.
+   *
+   * 🔴 예외를 그 한 파일로 못 박는 이유: 금액(`AmountText`)까지 물들면 화면이 손익표처럼 읽힌다.
+   *    월세를 냈다고 손해를 본 것이 아니다. 다른 파일에 번지면 이 검사가 먼저 빨개진다.
+   */
+  const KIND_COLOR_EXCEPTION = 'pages/Ledger/components/LedgerTable/LedgerTable.styled.ts';
+
+  it('🔴 손익색은 구분 칸 한 곳에만 있다 — 금액·나머지 표면은 중립색이다', () => {
+    const offenders = hits(/dataPositive|dataNegative/g).filter((hit) => !hit.startsWith(KIND_COLOR_EXCEPTION));
+    expect(offenders).toEqual([]);
+  });
+
+  it('⭐ 그 예외가 실제로 살아 있다 — 가드만 남고 색이 사라지면 사용자 결정이 조용히 되돌려진다', () => {
+    const table = FILES.find((file) => file.path === KIND_COLOR_EXCEPTION);
+    expect(table?.source).toContain('dataPositive');
   });
 
   /**

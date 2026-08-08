@@ -18,3 +18,4 @@ export type { LedgerWrite } from './useLedgerWrite';
 
 export { useRetryCountdown } from './useRetryCountdown';
 export type { RetryCountdown } from './useRetryCountdown';
+export { useLedgerSideTabs } from './useLedgerSideTabs';

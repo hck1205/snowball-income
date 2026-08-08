@@ -95,7 +95,9 @@ export const Workspace = styled.div`
   min-width: 0;
 
   ${media.up('headerStack')} {
-    grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+    /* ⚠ 2026-08-08 — 레일을 넓혔다. 탭 피커·주체 셀렉트·요약 세 숫자가 한 칸에 사는데
+       340px 상한에서는 사람 이름과 금액이 자주 잘렸다. */
+    grid-template-columns: minmax(320px, 400px) minmax(0, 1fr);
   }
 `;
 
@@ -209,20 +211,27 @@ export const FlowGrid = styled.div`
   }
 `;
 
+/**
+ * ⚠ **가로 패딩이 있다**(2026-08-08 사용자 지적). 종전에는 `padding: … 0 0` 이라 건수(`FlowCount`)가
+ *   `margin-left: auto` 로 밀려 칸의 오른쪽 벽에 그대로 붙었다. 12px 을 좌우에 두어 숫자가
+ *   벽에서 떨어지게 했다.
+ *
+ * ⚠ 두 번째 칸의 왼쪽 패딩은 이 값보다 커야 한다 — 경계선과 글자 사이 간격이라 역할이 다르다.
+ */
 export const FlowCell = styled.div`
   display: grid;
   gap: ${space[1]};
   min-width: 0;
-  padding: ${space[3]} 0 0;
+  padding: ${space[3]} ${space[3]} 0;
 
   & + & {
-    padding-left: ${space[4]};
+    padding-left: ${space[5]};
     border-left: 1px solid ${color.border};
   }
 
   ${media.down('mobile')} {
     & + & {
-      padding-left: 0;
+      padding-left: ${space[3]};
       border-left: 0;
       border-top: 1px solid ${color.border};
     }
@@ -254,10 +263,14 @@ export const FlowCount = styled.span`
   ${font.numeric}
 `;
 
+/**
+ * ⚠ 2026-08-08 — 한 단 줄였다(xl → lg). 이 칸의 주인공은 위의 **순액**이고, 수입·지출은 그
+ *   내역이다. 셋이 비슷한 크기면 무엇이 결론인지 읽히지 않는다.
+ */
 export const FlowValue = styled.p`
   margin: 0;
   font-family: ${font.dataNumeric};
-  font-size: ${font.size.xl};
+  font-size: ${font.size.lg};
   font-weight: ${font.weight.bold};
   line-height: ${font.leading.tight};
   color: ${color.text};
@@ -542,4 +555,23 @@ export const CarryOverAmount = styled.span`
   font-weight: ${font.weight.semibold};
   color: ${color.text};
   font-variant-numeric: tabular-nums;
+`;
+
+/**
+ * 주체 범위 줄 — "누구의 것을 볼까요".
+ *
+ * 🔴 라벨을 컨트롤 **위**에 둔다. 이 줄은 280px 짜리 범위 레일 안에 살고, 가로 배치에서는
+ *    셀렉트가 눌려 사람 이름이 잘린다(형제 `LedgerTabPicker` 가 2026-08-03 에 실측한 사고).
+ */
+export const PayerScopeRow = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${space[1]};
+  min-width: 0;
+`;
+
+export const PayerScopeLabel = styled.label`
+  font-size: ${font.size.sm};
+  font-weight: ${font.weight.medium};
+  color: ${color.textMuted};
 `;

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { LedgerClassifyRule } from '@/shared/lib/ledger';
 import {
   columnIndexFromLetter,
   columnLetter,
@@ -7,6 +8,7 @@ import {
   getCachedAccessToken,
   loadSheetLinks,
   openSpreadsheetPicker,
+  readClassifyRules,
   readLedgerSnapshot,
   requestAccessToken,
   saveSheetLink,
@@ -82,6 +84,11 @@ export type LedgerConnection = {
   connectError: LedgerErrorModel | null;
   mapping: LedgerMappingModel | null;
 
+  /**
+   * 사용자 분류 규칙(`분류 규칙` 탭). 🔴 **쓰기 훅이 저장할 때 빈 항목을 채우는 데 쓴다** —
+   * 읽을 때와 같은 규칙을 써야 앱이 보여 준 분류와 시트에 적히는 분류가 갈리지 않는다.
+   */
+  classifyRules: readonly LedgerClassifyRule[];
   /** 쓰기 훅이 쓰는 요청 컨텍스트. 토큰이 없으면 `null`(= 만료로 취급한다). */
   readContext: () => SheetsRequestContext | null;
   /** 데이터 계층 실패를 화면 상태로 옮긴다. 만료·충돌이면 전용 배너가 켜진다. */
@@ -103,6 +110,14 @@ export type LedgerConnection = {
   switchTab: (sheetId: number) => void;
   changeMapping: (field: LedgerFieldId, letter: string | null) => void;
   confirmMapping: () => void;
+  /**
+   * 열 지정을 **그만두고 연결 선택 화면으로 돌아간다**(2026-08-09).
+   *
+   * 🔴 `pickExistingSheet`(다른 시트 고르기)와 다르다 — 저쪽은 구글 피커를 **다시 연다**.
+   *    시트를 잘못 고른 게 아니라 "여기까지 왔는데 새로 만들기로 하겠다"는 사람에게는 그 팝업이
+   *    막다른 길이다. 화면에 뒤로 가는 길이 없으면 새로고침 말고는 방법이 없다.
+   */
+  cancelMapping: () => void;
   reconnect: (onRestored?: () => void) => void;
   dismissCreatedNotice: () => void;
 };
@@ -242,6 +257,48 @@ export function useLedgerConnection(): LedgerConnection {
     setConnectError(toErrorModel(reason));
   }, []);
 
+  /*
+   * 사용자 분류 규칙(`분류 규칙` 탭) 캐시. 스프레드시트별로 한 번만 읽는다.
+   *
+   * 🔴 **기록을 읽을 때마다 규칙도 다시 읽지 않는다.** 규칙은 사용자가 시트에서 손으로 고치는
+   *    드문 일이고, 매 새로고침마다 요청을 하나 더 보내면 429(할당량)에 그만큼 가까워진다.
+   *    시트에서 규칙을 고친 뒤 앱에 바로 반영하고 싶으면 다시 연결하면 된다.
+   * ⚠ 규칙 읽기가 실패해도 **기록 읽기를 무르지 않는다.** 규칙이 없으면 사다리 1단만 빠지고
+   *   나머지(내장 사전·미분류)는 그대로 동작한다 — 분류가 조금 덜 채워지는 것과 화면이 안 뜨는
+   *   것은 비교할 수 없다.
+   */
+  const rulesBySpreadsheetRef = useRef<Map<string, readonly LedgerClassifyRule[]>>(new Map());
+  /**
+   * 같은 규칙을 **쓰기 훅도** 본다(저장할 때 빈 항목을 채운다).
+   *
+   * 🔴 ref 만 두면 안 된다 — 쓰기 훅은 렌더 사이에 값을 읽으므로 state 가 필요하고,
+   *    ref 는 "한 번만 읽는다"는 판단에 쓴다. 둘의 역할이 다르다.
+   */
+  const [classifyRules, setClassifyRules] = useState<readonly LedgerClassifyRule[]>([]);
+
+  const ensureRules = useCallback(
+    async (
+      context: SheetsRequestContext,
+      target: SheetLink
+    ): Promise<readonly LedgerClassifyRule[]> => {
+      /* 앱이 만든 시트가 아니면 그 탭이 아예 없다 — 부르지 않는 것이 정상이다. */
+      if (!target.createdByApp) return [];
+
+      const cached = rulesBySpreadsheetRef.current.get(target.spreadsheetId);
+      if (cached !== undefined) {
+        setClassifyRules(cached);
+        return cached;
+      }
+
+      const read = await readClassifyRules(context, target.spreadsheetId);
+      const rules = read.ok ? read.value.records : [];
+      rulesBySpreadsheetRef.current.set(target.spreadsheetId, rules);
+      setClassifyRules(rules);
+      return rules;
+    },
+    []
+  );
+
   const loadSnapshot = useCallback(
     async (target: SheetLink, options: { first: boolean }): Promise<boolean> => {
       const context = readContext();
@@ -253,7 +310,9 @@ export function useLedgerConnection(): LedgerConnection {
       if (options.first) setIsFirstLoad(true);
       else setIsRefetching(true);
 
-      const result = await readLedgerSnapshot(context, target);
+      /* 🔴 규칙을 **먼저** 읽는다 — 없으면 사용자가 만들어 둔 규칙이 무시되고 미분류가 잔뜩 나온다. */
+      const rules = await ensureRules(context, target);
+      const result = await readLedgerSnapshot(context, target, rules);
       if (!isMountedRef.current) return false;
 
       setIsFirstLoad(false);
@@ -270,7 +329,7 @@ export function useLedgerConnection(): LedgerConnection {
       setConnectError(null);
       return true;
     },
-    [applyError, readContext]
+    [applyError, ensureRules, readContext]
   );
 
   /**
@@ -476,6 +535,19 @@ export function useLedgerConnection(): LedgerConnection {
     })();
   }, [applyError, readContext, sessionDraft, sessionSheetId, sessionSheetTitle, sessionSpreadsheetId]);
 
+  /**
+   * 열 지정 그만두기.
+   *
+   * ⚠ **연결 정보를 지우지 않는다.** 아직 아무것도 저장하지 않은 단계라 지울 것도 없다 —
+   *   세션만 버리고 선택 화면으로 되돌린다.
+   */
+  const cancelMapping = useCallback(() => {
+    setSession(null);
+    setConnectError(null);
+    setState('disconnected');
+    setPhase('idle');
+  }, []);
+
   const confirmMapping = useCallback(() => {
     if (session === null) return;
     const mapping = toColumnMapping(session.draft);
@@ -635,6 +707,7 @@ export function useLedgerConnection(): LedgerConnection {
     showCreatedNotice,
     connectError,
     mapping: mappingModel,
+    classifyRules,
     readContext,
     applyError,
     refresh,
@@ -643,6 +716,7 @@ export function useLedgerConnection(): LedgerConnection {
     createSheet,
     switchTab,
     changeMapping,
+    cancelMapping,
     confirmMapping,
     reconnect,
     dismissCreatedNotice

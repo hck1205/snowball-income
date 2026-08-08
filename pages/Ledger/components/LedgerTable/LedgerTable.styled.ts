@@ -292,17 +292,39 @@ export const AmountText = styled.span`
 `;
 
 /**
- * 구분 칩의 내용(아이콘 + 텍스트).
+ * 구분 칸의 내용(아이콘 + 글자 + 색).
  *
- * 🔴 수입/지출은 **색이 아니라 아이콘 + 텍스트**로 구별한다(§3.4). 칩은 전부 `neutral` 이다.
- * `ChipLabel` 이 인라인 span 이라 SVG 가 베이스라인에 앉는다 — 여기서 inline-flex 로 감싸
- * 글자 중심에 맞춘다(본문 서체는 잉크 보정이 0 이라 `iconOpticalAlign('sans', …)` 은 flex 만 낸다).
+ * ## 🔴 색은 **덧붙인** 채널이다 (2026-08-09 사용자 요청)
+ *
+ * 종전 규칙은 "수입/지출은 색이 아니라 아이콘 + 텍스트로 구별한다" 였다. 사용자가 색으로도
+ * 구별되기를 요청했고, 그 요청은 규칙과 부딪히지 않는다 — 규칙이 막는 것은 **색 하나에 기대는
+ * 것**이지 색을 쓰는 것 자체가 아니다. 아이콘과 글자를 그대로 두고 색을 더했으므로,
+ * 색을 못 보는 사람에게도 정보가 그대로 남는다.
+ *
+ * ⚠ **금액은 여전히 중립색이다.** 그 규칙은 별개이고(`AmountText`), 금액까지 물들이면 화면이
+ *   손익표처럼 읽힌다 — 월세를 냈다고 손해를 본 것이 아니다.
+ *
+ * ⚠ 인라인 span 이라 SVG 가 베이스라인에 앉는다 — inline-flex 로 감싸 글자 중심에 맞춘다.
  */
-export const KindChipInner = styled.span`
+export const KindChipInner = styled.span<{ 'data-kind'?: string }>`
   display: inline-flex;
   align-items: center;
   gap: ${space[1]};
   white-space: nowrap;
+  font-weight: ${font.weight.semibold};
+  /*
+   * 🔴 **지출이 빨강, 수입이 파랑**이다(2026-08-09 사용자 결정) — 통장 표기의 관습이다.
+   *
+   * ⚠ 토큰 이름에 속지 마라. 이 레포의 dataPositive 는 **상승 적색**이고 dataNegative 는
+   *   **하락 청색**이다(한국 시장 관습 — shared/styles/presets/sharedTokens.ts).
+   *   그래서 지출이 dataPositive, 수입이 dataNegative 를 쓴다. 이름만 보고 뒤집으면 색이 정반대가 된다.
+   */
+  color: ${(props) =>
+    props['data-kind'] === 'expense'
+      ? color.dataPositive
+      : props['data-kind'] === 'income'
+        ? color.dataNegative
+        : color.textSecondary};
 
   svg {
     ${iconOpticalAlign('sans', font.size.xs)}

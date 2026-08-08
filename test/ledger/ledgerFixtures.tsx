@@ -1,4 +1,5 @@
 import { vi } from 'vitest';
+import { buildLedgerViewTabs } from '@/pages/Ledger/utils';
 import { render } from '@testing-library/react';
 import LedgerPageView from '@/pages/Ledger/LedgerPage/LedgerPage.view';
 import type { LedgerViewModel, LedgerViewProps } from '@/pages/Ledger';
@@ -65,6 +66,22 @@ export const baseViewModel = (overrides: Partial<LedgerViewModel> = {}): LedgerV
    */
   appAuth: { isReady: true, isLoggedIn: true },
 
+  /*
+   * 기본값은 **앱이 만든 시트**(네 탭 다 열림) + `가계부` 탭을 보고 있는 상태다 —
+   * 기존 화면 테스트가 전부 기록 목록을 전제로 서 있다.
+   */
+  viewTabs: buildLedgerViewTabs(true),
+  selectedViewTab: 'entries',
+  sideTab: null,
+  sideForm: null,
+  report: { entries: [], holdings: [], investments: [], isLoadingSideTabs: false },
+  canSimulateInvestments: false,
+  unknownInvestmentTickers: [],
+  /* 기본값은 **혼자 쓰는 장부** — 주체 컨트롤이 없던 시절의 화면을 그대로 본다. */
+  payers: [],
+  payerScope: null,
+  offerPayerScope: false,
+
   state: 'connected',
   phase: 'idle',
   showCheckingSkeleton: false,
@@ -101,6 +118,7 @@ export const baseViewModel = (overrides: Partial<LedgerViewModel> = {}): LedgerV
 
   /* 이어갈 고정비 없음 = 자리 자체가 없다. 기존 화면 테스트가 보던 화면 그대로다. */
   carryOver: null,
+  backfill: null,
 
   summary: SUMMARY_WITH_ROWS,
   rows: TWO_ROWS,
@@ -144,6 +162,7 @@ export const renderLedgerView = (
     onCreateSheet: vi.fn(),
     onMappingChange: vi.fn(),
     onConfirmMapping: vi.fn(),
+    onCancelMapping: vi.fn(),
     onSelectTab: vi.fn(),
     onToggleDividendOverlay: vi.fn(),
     onPrevMonth: vi.fn(),
@@ -166,7 +185,16 @@ export const renderLedgerView = (
     onReconnect: vi.fn(),
     onRefresh: vi.fn(),
     onOpenSheet: vi.fn(),
-    onDismissCreatedNotice: vi.fn()
+    onDismissCreatedNotice: vi.fn(),
+    onSelectViewTab: vi.fn(),
+    onSelectPayerScope: vi.fn(),
+    onRetrySideTab: vi.fn(),
+    onAddSideEntry: vi.fn(),
+    onSideFormChange: vi.fn(),
+    onSideFormSubmit: vi.fn(),
+    onSideFormClose: vi.fn(),
+    onSimulateInvestments: vi.fn(),
+    onRunBackfill: vi.fn()
   } satisfies LedgerHandlers;
 
   const utils = render(

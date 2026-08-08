@@ -244,6 +244,17 @@ export type LedgerCarryOverRow = {
  * 🔴 **두 단계다.** `isOpen` 이 false 면 버튼만 있고, 열어야 목록이 보이고, 확인해야 쓴다 —
  *    남의 시트에 여러 줄을 한 번에 넣는 일이라 한 번의 오조작이 비싸다(되돌리려면 하나씩 지운다).
  */
+/**
+ * 되채워 쓰기 상태.
+ *
+ * 🔴 채울 것이 없으면 모델 자체가 `null` 이다 — 0 건짜리 안내를 그리지 않는다.
+ */
+export type LedgerBackfillModel = {
+  /** 몇 행을 채우나. 🔴 "일부" 가 아니라 숫자로 말한다. */
+  count: number;
+  isSaving: boolean;
+};
+
 export type LedgerCarryOverModel = {
   count: number;
   isOpen: boolean;
@@ -317,6 +328,14 @@ export type LedgerFormModel = {
    *    이유가 이것이다 — 구성원·결제수단은 한 번 쓰면 다음부터 목록에 뜬다. 관리할 화면을 하나 더
    *    만드는 것보다, 쓰던 값이 저절로 쌓이는 쪽이 가볍고 시트가 정본이라는 원칙과도 맞는다.
    */
+  /**
+   * 내용 제안 — **`분류 규칙` 탭의 "포함하는 말"** 이다(2026-08-08).
+   *
+   * 🔴 규칙에 적어 둔 말을 그대로 고르면 그 규칙이 반드시 걸린다. 손으로 치다 한 글자 틀리면
+   *    규칙이 안 걸리는데, 그 사실은 저장한 뒤에야 보인다 — 고르게 하면 그 실패가 사라진다.
+   * ⚠ 자유 입력은 그대로다. 목록은 제안이지 강제가 아니다.
+   */
+  memoOptions: readonly string[];
   categoryOptions: readonly string[];
   subcategoryOptions: readonly string[];
   payerOptions: readonly string[];

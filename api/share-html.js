@@ -8612,6 +8612,34 @@ var iconOpticalAlign = (role, textFontSize) => {
 };
 var heroIconOpticalAlign = iconOpticalAlign("display", heroTitleFontSize);
 
+// shared/styles/inputSurface.ts
+var inputSurface = `
+  width: 100%;
+  min-width: 0;
+  height: 44px;
+  padding: 0 ${space[3]};
+  border: 1px solid ${color.border};
+  border-radius: ${radius.md};
+  background: ${color.surface};
+  color: ${color.text};
+  font-family: inherit;
+  font-size: ${font.size.base};
+  transition: border-color ${motion.fast} ${motion.ease};
+
+  &::placeholder {
+    color: ${color.textMuted};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${color.focusRing};
+    outline-offset: 2px;
+  }
+
+  &[aria-invalid='true'] {
+    border-color: ${color.danger};
+  }
+`;
+
 // shared/styles/pageHue.ts
 var PAGE_HUE_VAR = "--sb-page-hue";
 var PAGE_HUE_TOKEN = {

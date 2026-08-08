@@ -112,6 +112,21 @@ export type LedgerEntry = {
   readonly memo?: string;
   /** 앱이 만든 시트에만 있다. `삭제됨` 이면 소프트 삭제된 행이다. */
   readonly status?: string;
+  /**
+   * **히포가 채운 것인가**, 채웠다면 무엇으로 채웠나.
+   *
+   * 사다리가 관여했을 때만 붙는다(`rule` = 사용자 규칙, `dictionary` = 내장 사전).
+   * 화면이 "이렇게 봤습니다"라고 밝히는 근거다 — 조용히 채우면 사용자는 자기 기록이
+   * 어떻게 분류됐는지 모른다.
+   */
+  readonly filledBy?: 'rule' | 'dictionary';
+  /**
+   * 히포가 채운 **칸들**(시트에 적을 글자 그대로).
+   *
+   * 🔴 **원래 빈 칸이던 자리만** 들어온다. 적혀 있던 칸이 섞이면 되적기가 사용자의 말을
+   *    덮어쓰고, 그 실수는 원본이 사라지므로 되돌릴 수 없다.
+   */
+  readonly filled?: Readonly<Record<string, string>>;
   /** 읽을 때 본 원본 셀 값 — 동시 편집 감지(AC-W6)의 비교 기준. */
   readonly seen: RowCells;
 };

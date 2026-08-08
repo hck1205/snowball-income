@@ -1,7 +1,16 @@
 import type { CommunityOAuthProvider } from '@/shared/lib/supabase';
-import type { LedgerAnalysisModel } from '../utils';
+import type { HoldingRecord, InvestmentRecord, LedgerEntry } from '@/shared/lib/googleSheets';
+import type {
+  LedgerAnalysisModel,
+  LedgerPayerScope,
+  LedgerSideDraft,
+  LedgerSideFormKind,
+  LedgerViewTab,
+  LedgerViewTabId
+} from '../utils';
 import type {
   LedgerAppAuthGate,
+  LedgerBackfillModel,
   LedgerCarryOverModel,
   LedgerConnectionState,
   LedgerDividendModel,
@@ -18,6 +27,7 @@ import type {
   LedgerRowModel,
   LedgerTabPickerModel
 } from '../types';
+import type { LedgerSideTabState } from '../components';
 
 /**
  * 뷰가 그대로 그리는 화면 모델. **여기 없는 필드는 화면에 없다.**
@@ -35,6 +45,69 @@ export type LedgerViewModel = {
    *  - `isLoggedIn: true`  = 제공자와 무관하게 시트 연결 흐름으로 간다.
    */
   appAuth: LedgerAppAuthGate | null;
+
+  /**
+   * 🔴 **화면 탭 — 시트의 네 입력 탭을 앱에서도 탭으로**(2026-08-08).
+   *
+   * `tabPicker`(사용자 워크시트 고르기)와 **다른 축이다.** 섞지 마라 —
+   *  - `tabPicker` 는 어느 **파일의 어느 워크시트**를 볼지(개수가 열려 있다 · 셀렉트).
+   *  - 이것은 같은 파일 안의 **어느 관심사**를 볼지(넷으로 닫혀 있다 · 가로 탭바).
+   */
+  viewTabs: readonly LedgerViewTab[];
+  selectedViewTab: LedgerViewTabId;
+  /** `entries` 를 보고 있으면 `null`. 그 밖에는 그 탭의 읽기 상태다. */
+  sideTab: LedgerSideTabState | null;
+  /**
+   * `투자` 탭의 종목으로 **배당 시뮬레이터**를 열 수 있나.
+   *
+   * 🔴 `false` 면 화면이 버튼을 잠그고 **사유를 함께 세운다**(무음 비활성 금지). 못 만드는 이유는
+   *    보통 둘이다 — 적은 종목이 없거나, 환율을 아직 못 받았다(가짜 환율로 위장하지 않는다).
+   */
+  canSimulateInvestments: boolean;
+  /**
+   * 프리셋에 없어 계산에 못 들어가는 티커.
+   *
+   * 🔴 화면이 이 목록을 그대로 보여 준다 — 조용히 빼면 사용자는 자기 포트폴리오의 일부가
+   *    계산에서 사라진 것을 모른다(초기 투자금에는 그 금액이 들어가므로 더 그렇다).
+   */
+  unknownInvestmentTickers: readonly string[];
+  /**
+   * `한눈에 보기` 가 쓰는 재료.
+   *
+   * 🔴 **원본 기록**이다(화면용 문자열이 아니다) — 집계는 숫자로 해야 하고, 같은 값을 두 모양으로
+   *    들고 다니면 한쪽만 고쳐지는 사고가 난다.
+   */
+  report: {
+    /**
+     * 🔴 **걸러지지 않은 전 기간 기록**이다 — 달 이동과 주체 범위를 따르지 않는다.
+     *
+     * 이 화면의 이름이 "한눈에 보기"이고, 주체별로 나눠 보는 일은 **그 안의 차트**가 한다.
+     * 필터를 따라가면 주체 차트가 막대 하나가 되어 그 차트의 존재 이유가 사라진다.
+     * (달 이동·주체 셀렉트는 `가계부` 탭에서만 그려지므로 화면에서 헷갈릴 자리도 없다.)
+     */
+    entries: readonly LedgerEntry[];
+    holdings: readonly HoldingRecord[];
+    investments: readonly InvestmentRecord[];
+    /** 🔴 "없다"와 "아직 안 읽었다"는 다른 사실이다. */
+    isLoadingSideTabs: boolean;
+  };
+  /** 자산·투자 직접 적기 폼. 열려 있지 않으면 `null`. */
+  sideForm: {
+    kind: LedgerSideFormKind;
+    draft: LedgerSideDraft;
+    errors: Readonly<Record<string, string>>;
+    isSaving: boolean;
+    writeError: LedgerErrorModel | null;
+  } | null;
+
+  /**
+   * 주체 목록 — 부부·연인이 한 장부를 나눠 볼 때. **걸러지지 않은** 기록에서 뽑는다.
+   * 🔴 `공동` 은 언제나 마지막이고, 하나의 선택지다(겹치지 않게 나눈다 — `ledgerPayerScope.ts`).
+   */
+  payers: readonly string[];
+  payerScope: LedgerPayerScope;
+  /** 🔴 둘 이상일 때만 컨트롤을 그린다 — 선택지 하나인 필터는 화면의 거짓말이다. */
+  offerPayerScope: boolean;
 
   state: LedgerConnectionState;
   phase: LedgerPhase;
@@ -81,6 +154,12 @@ export type LedgerViewModel = {
    * (버튼만 남고 눌러도 아무 일 없는 컨트롤을 두지 않는다).
    */
   carryOver: LedgerCarryOverModel | null;
+  /**
+   * 되채워 쓰기 — 히포가 채운 분류를 시트에도 적는다. 채울 것이 없으면 `null`(안내를 그리지 않는다).
+   *
+   * 🔴 이게 없으면 시트를 단독으로 열었을 때 항목 칸이 비어 있고 요약 수식이 그 행을 못 센다.
+   */
+  backfill: LedgerBackfillModel | null;
 
 
   summary: LedgerMonthSummary;
@@ -138,8 +217,26 @@ export type LedgerViewProps = {
   onCreateSheet: () => void;
   onMappingChange: (field: LedgerFieldId, letter: string | null) => void;
   onConfirmMapping: () => void;
+  /** 열 지정을 그만두고 연결 선택 화면으로. 🔴 구글 피커를 다시 열지 않는다. */
+  onCancelMapping: () => void;
   /** 같은 파일의 다른 탭으로. 🔴 막혀 있을 때는 컨트롤이 비활성이라 호출되지 않는다. */
   onSelectTab: (sheetId: number) => void;
+
+  /** 화면 탭 전환. 🔴 `onSelectTab`(워크시트 전환)과 다른 축이다 — 저장 대기열에 영향이 없다. */
+  onSelectViewTab: (id: LedgerViewTabId) => void;
+  /** 주체 범위. `null` = 전체. */
+  onSelectPayerScope: (scope: LedgerPayerScope) => void;
+  /** 옆탭 다시 읽기. 🔴 자동 갱신 대신 **사용자가 정하는** 갱신이다(할당량을 아낀다). */
+  onRetrySideTab: () => void;
+  /** 지금 보고 있는 옆탭에 한 줄 적기. */
+  onAddSideEntry: () => void;
+  onSideFormChange: (patch: Readonly<Record<string, string>>) => void;
+  onSideFormSubmit: () => void;
+  onSideFormClose: () => void;
+  /** `투자` 탭의 종목으로 배당 시뮬레이터를 연다. 🔴 못 만들면 호출되지 않는다(버튼이 잠긴다). */
+  onSimulateInvestments: () => void;
+  /** 히포가 채운 분류를 시트에 적는다. 🔴 사용자가 시작한다 — 자동으로 조용히 쓰지 않는다. */
+  onRunBackfill: () => void;
 
   /** B-4 배당 겹쳐 보기 토글. 🔴 시트에 아무것도 쓰지 않는다 — 화면 상태와 로컬 취향뿐이다. */
   onToggleDividendOverlay: (isOn: boolean) => void;

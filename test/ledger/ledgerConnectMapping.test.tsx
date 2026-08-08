@@ -33,13 +33,13 @@ describe('§4.1 연결 전 — 두 선택지의 무게가 같다', () => {
     expect(screen.getByRole('heading', { level: 2, name: '이미 쓰는 시트 연결하기' })).toBeInTheDocument();
     expect(
       screen.getByText(
-        '구글 드라이브에서 가계부로 쓰던 시트를 고릅니다. 다음 단계에서 어느 열이 날짜·구분·금액·분류인지 지정합니다.'
+        '구글 드라이브에서 가계부로 쓰던 시트를 고릅니다. 다음 단계에서 어느 열이 날짜·구분·금액·항목인지 지정합니다.'
       )
     ).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: '새 가계부 시트 만들기' })).toBeInTheDocument();
     expect(
       screen.getByText(
-        '날짜·구분·금액·분류·메모 열이 준비된 시트를 사용자의 드라이브에 새로 만듭니다. 만든 뒤에는 구글 시트에서 직접 열어 볼 수 있습니다.'
+        '기록·자산·투자·분류 규칙과 자동 요약 표까지 갖춘 시트를 드라이브에 새로 만듭니다. 머리가 이미 맞아 열 지정을 건너뛰고 바로 기록을 시작합니다.'
       )
     ).toBeInTheDocument();
     expect(

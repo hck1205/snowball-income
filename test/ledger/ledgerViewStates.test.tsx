@@ -15,7 +15,7 @@ import { baseViewModel, ledgerRow, renderLedgerView, TWO_ROWS, ZERO_SUMMARY } fr
  */
 
 describe('/ledger — 연결 후 목록', () => {
-  it('월 네비·주역 요약 카드·거래 내역 표가 함께 선다', () => {
+  it('월 네비·주역 요약 카드·기록 표가 함께 선다', () => {
     renderLedgerView(baseViewModel());
 
     expect(screen.getByRole('heading', { level: 1, name: 'Hungry Hippo 가계부' })).toBeInTheDocument();
@@ -24,7 +24,7 @@ describe('/ledger — 연결 후 목록', () => {
     // 🔴 제목 없는 주역 카드는 월 제목을 자기 이름으로 삼는다(aria-labelledby).
     expect(screen.getByRole('region', { name: '2026년 8월' })).toBeInTheDocument();
 
-    expect(screen.getByRole('heading', { level: 2, name: '거래 내역' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: '적어 둔 것' })).toBeInTheDocument();
     expect(screen.getByText('시트에 적힌 순서 그대로 보여 줍니다.')).toBeInTheDocument();
 
     const table = screen.getByRole('table', { name: '2026년 8월 수입·지출 기록' });
@@ -103,7 +103,7 @@ describe('/ledger — 연결 전과 연결 후 0건은 다른 화면이다', () 
     // 🔴 0원은 실제 값이다 — 숨기면 사용자가 연결 실패로 오해한다.
     expect(within(summary).getAllByText('₩0').length).toBe(3);
 
-    expect(screen.getByRole('heading', { level: 2, name: '거래 내역' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: '적어 둔 것' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 3, name: '이번 달 기록이 없습니다.' })).toBeInTheDocument();
     expect(
       screen.getByText('시트에 아직 기록이 없습니다. 첫 항목을 추가하면 이 시트에 저장됩니다.')
@@ -114,7 +114,12 @@ describe('/ledger — 연결 전과 연결 후 0건은 다른 화면이다', () 
     renderLedgerView(baseViewModel({ rows: [], summary: ZERO_SUMMARY }));
 
     expect(screen.getAllByRole('button', { name: '항목 추가' }).length).toBe(1);
-    expect(screen.getByRole('button', { name: '연결된 구글 시트를 새 탭에서 열기' })).toBeInTheDocument();
+    /*
+     * 🔴 2026-08-08 — 히어로에서 `시트에서 열기` 를 없앴다. 같은 일을 하는 버튼이 범위 레일로
+     *    내려갔고, 화면에 둘이면 사용자는 둘이 다른 일을 한다고 읽는다.
+     */
+    expect(screen.queryByRole('button', { name: '연결된 구글 시트를 새 탭에서 열기' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '구글 시트에서 열기' })).toBeInTheDocument();
   });
 
   it('다른 달에 기록이 있으면 그 사실을 말하고 그 달로 가는 버튼을 준다', async () => {

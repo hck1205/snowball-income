@@ -384,6 +384,7 @@ describe('화면 — 목록 카드 헤더가 "언제 기준 · 다시 읽기"를
 
     expect(screen.queryByText(/연결한 시트/)).not.toBeInTheDocument();
     // 대신 탭 줄이 "어느 장부"를 한 번만 말한다.
-    expect(screen.getByText('우리집 가계부 탭을 보고 있습니다')).toBeInTheDocument();
+    /* 🔴 탭이 하나면 이름 문장 대신 시트로 가는 링크가 선다(2026-08-08). */
+    expect(screen.getByRole('link', { name: '구글 시트에서 열기' })).toBeInTheDocument();
   });
 });

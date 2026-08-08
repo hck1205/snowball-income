@@ -44,23 +44,26 @@ const EXPECTED: StringTree = {
   connect: {
     heading: '가계부를 시작하는 방법을 고릅니다',
     // 연결 무대(네이비 면)의 리드 한 줄 — 🔴 `privacy` 네 문장을 요약하지 않는다(단일 출처 유지).
-    stageLede: '구글 시트를 연결하면 달마다의 수입과 지출을 이 화면에서 확인할 수 있습니다.',
+    stageLede:
+      '기록은 사용자의 구글 시트에 남고, 분류·요약·시각화는 이 화면이 맡습니다. 날짜·금액·내용만 적으면 나머지는 채워 드립니다.',
     stepsLabel: '연결 절차',
     // 🔴 연결 화면과 열 지정 화면이 **같은 값**을 쓴다 — 두 화면이 한 흐름임을 화면이 말한다.
     steps: {
       pick: '시트 고르기',
-      map: '열 지정',
+      map: '열 지정 (필요할 때만)',
       record: '기록 시작'
     },
     existing: {
       title: '이미 쓰는 시트 연결하기',
-      body: '구글 드라이브에서 가계부로 쓰던 시트를 고릅니다. 다음 단계에서 어느 열이 날짜·구분·금액·분류인지 지정합니다.',
+      body: '구글 드라이브에서 가계부로 쓰던 시트를 고릅니다. 다음 단계에서 어느 열이 날짜·구분·금액·항목인지 지정합니다.',
       cta: '시트 고르기',
       loading: '구글 드라이브를 여는 중입니다'
     },
     create: {
       title: '새 가계부 시트 만들기',
-      body: '날짜·구분·금액·분류·메모 열이 준비된 시트를 사용자의 드라이브에 새로 만듭니다. 만든 뒤에는 구글 시트에서 직접 열어 볼 수 있습니다.',
+      body:
+        '기록·자산·투자·분류 규칙과 자동 요약 표까지 갖춘 시트를 드라이브에 새로 만듭니다. '
+        + '머리가 이미 맞아 열 지정을 건너뛰고 바로 기록을 시작합니다.',
       cta: '새 시트 만들기',
       loading: '시트를 만드는 중입니다'
     },
@@ -96,10 +99,13 @@ const EXPECTED: StringTree = {
       noRows: '시트에 아직 데이터 행이 없습니다. 연결한 뒤 첫 항목을 추가하면 이 시트에 기록됩니다.'
     },
     submit: '연결하기',
-    reselect: '다른 시트 고르기'
+    reselect: '다른 시트 고르기',
+    /* 🔴 피커를 다시 여는 reselect 와 다르다 — 연결 선택 화면으로 되돌아간다. */
+    back: '처음으로'
   },
   /* B-1 탭 선택 — 비활성 문구는 **막힌 이유 + 푸는 방법**을 함께 말해야 한다. */
   tab: {
+      openSheet: '구글 시트에서 열기',
     label: '탭',
     switching: '탭을 여는 중입니다',
     blockedByForm: '기록을 추가하거나 고치는 중에는 탭을 바꿀 수 없습니다. 저장하거나 취소한 뒤에 이동해 주세요.',
@@ -115,7 +121,7 @@ const EXPECTED: StringTree = {
     expense: '지출'
   },
   list: {
-    title: '거래 내역',
+    title: '적어 둔 것',
     subtitle: '시트에 적힌 순서 그대로 보여 줍니다.',
     columnDate: '날짜',
     columnKind: '구분',
@@ -173,6 +179,7 @@ const EXPECTED: StringTree = {
     category: '항목',
     categoryPlaceholder: '예: 식비',
     categoryHint: '기본 분류에서 고르거나 새로 적을 수 있습니다.',
+    memoListLabel: '분류 규칙에 적어 둔 말',
     categoryListLabel: '항목 제안',
     subcategory: '상세항목 (선택)',
     subcategoryPlaceholder: '예: 외식',
@@ -197,7 +204,7 @@ const EXPECTED: StringTree = {
       amountNumber: '금액은 숫자만 입력할 수 있습니다.',
       amountPositive: '금액은 0보다 큰 값이어야 합니다.',
       amountTooLarge: '금액은 1조 원 미만으로 입력해 주세요.',
-      categoryRequired: '항목을 입력해 주세요.',
+      categoryRequired: '항목을 비우실 거라면 내용을 적어 주세요. 내용을 보고 항목을 채워 드립니다.',
       categoryTooLong: '항목은 40자까지 입력할 수 있습니다.',
       subcategoryTooLong: '상세항목은 40자까지 입력할 수 있습니다.',
       payerTooLong: '주체는 20자까지 입력할 수 있습니다.',
@@ -222,6 +229,12 @@ const EXPECTED: StringTree = {
     trendIncome: '수입',
     trendExpense: '지출',
     savingRateUnknown: '수입이 없어 저축률을 잴 수 없습니다'
+  },
+
+  backfill: {
+    body: '시트에는 아직 빈 칸입니다. 적어 두시면 시트만 열어 보셔도 요약이 맞습니다.',
+    cta: '시트에도 적기',
+    saving: '적는 중입니다'
   },
 
   carryOver: {
@@ -375,6 +388,11 @@ describe('LEDGER_COPY — 문장을 만드는 카피', () => {
     expect(LEDGER_COPY.dividend.coveragePercent(17)).toBe('17%');
     expect(LEDGER_COPY.dividend.covered(['통신비', '구독료'])).toBe('통신비 · 구독료 지출을 덮는 정도입니다.');
     expect(LEDGER_COPY.dividend.unknownSchedule(3)).toBe('지급월을 알 수 없는 3종은 이 계산에 포함되지 않았습니다.');
+  });
+
+  it('🔴 되채워 쓰기 — "일부" 가 아니라 숫자로 말한다', () => {
+    expect(LEDGER_COPY.backfill.title(12)).toBe('12건의 항목을 히포가 채웠습니다');
+    expect(LEDGER_COPY.backfill.live(12)).toBe('12건을 시트에 적었습니다.');
   });
 
   it('빈 달', () => {

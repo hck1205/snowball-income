@@ -259,7 +259,16 @@ export const PickCardBody = styled.div`
   line-height: ${font.leading.normal};
 `;
 
-/** 하단 액션 줄. `PickCardTitleRight` 와 같은 이유로 컨트롤 위에 뜬다. */
+/**
+ * 하단 액션 줄. `PickCardTitleRight` 와 같은 이유로 컨트롤 위에 뜬다.
+ *
+ * 🔴 **바닥에 붙는다**(2026-08-09). 카드 여럿이 격자에서 같은 높이로 늘어나는데, 설명문 길이가
+ *    다르면 버튼이 카드마다 다른 높이에 서서 줄이 안 맞는다 — 같은 급의 선택지를 나란히 놓는
+ *    화면에서 그건 "둘의 무게가 같다"는 메시지를 깨뜨린다(`LedgerConnectPanel` 이 그 예다).
+ *
+ * ⚠ `margin-top: auto` 만 두면 **남는 공간이 없을 때 위 여백이 0 이 된다**(auto 가 0 으로 접힌다).
+ *   그래서 간격은 `padding-top` 이 진다 — 늘어나든 안 늘어나든 같은 여백이 남는다.
+ */
 export const PickCardActions = styled.div`
   position: relative;
   z-index: 1;
@@ -267,7 +276,8 @@ export const PickCardActions = styled.div`
   flex-wrap: wrap;
   align-items: center;
   gap: ${space[2]};
-  margin-top: ${space[3]};
+  margin-top: auto;
+  padding-top: ${space[3]};
 `;
 
 /**

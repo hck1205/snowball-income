@@ -20,6 +20,7 @@ const formModel = (overrides: Partial<LedgerFormModel> = {}): LedgerFormModel =>
   mode: 'create',
   draft: { date: '2026-08-03', kind: 'expense', amount: '12000', category: '식비', subcategory: '', payer: '', method: '', isFixed: false, memo: '점심 김밥' },
   errors: {},
+  memoOptions: [],
   categoryOptions: ['식비', '교통'],
   subcategoryOptions: ['외식', '식료품'],
   payerOptions: [],

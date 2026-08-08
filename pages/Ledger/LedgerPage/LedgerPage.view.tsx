@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useId, useRef } from 'react';
 import { ArrowDownToLine, ArrowUpFromLine, CalendarOff, Plus, ReceiptText, RefreshCw, RotateCw } from 'lucide-react';
-import { Banner, Button, Card, HintText, MODAL_EXIT_MS, PageFooter, PageHero } from '@/components/common';
+import { Banner, Button, Card, HintText, MODAL_EXIT_MS, PageFooter, PageHero, Select } from '@/components/common';
 import { useOverlayPresence } from '@/shared/hooks';
 import { LEDGER_COPY } from '../copy';
 import {
@@ -10,6 +10,10 @@ import {
   LedgerFailureList,
   LedgerFormModal,
   LedgerMappingCard,
+  LedgerReportPanel,
+  LedgerSideFormModal,
+  LedgerSideTabPanel,
+  LedgerViewTabs,
   LedgerMonthNav,
   LedgerRemoveDialog,
   LedgerSignInPanel,
@@ -47,6 +51,8 @@ import {
   LiveRegion,
   PageStack,
   ReadAtText,
+  PayerScopeLabel,
+  PayerScopeRow,
   ScopePanel,
   ScopeRail,
   SkeletonBar,
@@ -149,7 +155,17 @@ export default function LedgerPageView({
   onCreateSheet,
   onMappingChange,
   onConfirmMapping,
+  onCancelMapping,
   onSelectTab,
+  onSelectViewTab,
+  onSelectPayerScope,
+  onRetrySideTab,
+  onAddSideEntry,
+  onSideFormChange,
+  onSideFormSubmit,
+  onSideFormClose,
+  onSimulateInvestments,
+  onRunBackfill,
   onToggleDividendOverlay,
   onPrevMonth,
   onNextMonth,
@@ -178,6 +194,7 @@ export default function LedgerPageView({
   const connectHeadingId = `${idPrefix}-connect`;
   const signInHeadingId = `${idPrefix}-signin`;
   const monthTitleId = `${idPrefix}-month`;
+  const payerScopeId = `${idPrefix}-payer-scope`;
   const listTitleId = `${idPrefix}-list`;
   /* 429 로 새로고침이 막혔을 때의 사유 줄 — 비활성 버튼이 이것을 가리킨다(무음 비활성 금지). */
   const refreshHintId = `${idPrefix}-refresh`;
@@ -239,17 +256,16 @@ export default function LedgerPageView({
   const refreshBlockedHintId = viewModel.isExpired ? expiredHintId : isRateLimited ? refreshHintId : undefined;
 
   /**
-   * 🔴 히어로 액션은 **하나**다(2026-08-03).
+   * 🔴 히어로에 액션이 **없다**(2026-08-08).
    *
-   * `항목 추가` 는 목록 카드의 도구 줄로 내려갔다 — 쓰기 액션은 그 대상 옆에 서는 편이 낫고,
-   * 히어로는 "이 화면이 무엇인가"(제목 · 권한 고지)만 말한다. 0건 화면에서 추가 버튼이 화면에
-   * **정확히 하나**라는 규칙은 그대로다(그때는 빈 상태 블록이 갖는다).
+   * 종전에는 `시트에서 열기` 하나가 있었다. 그 버튼이 왼쪽 범위 레일로 내려갔고(탭이 하나뿐일 때
+   * 탭 피커 자리를 대신한다), 같은 일을 하는 버튼이 화면에 둘이면 사용자는 둘이 다른 일을 한다고
+   * 읽는다. 히어로는 "이 화면이 무엇인가"(제목 · 권한 고지)만 말한다.
+   *
+   * ⚠ `항목 추가` 가 목록 카드의 도구 줄에 있는 것과 같은 판단이다 — 액션은 그 대상 옆에 선다.
+   *   시트를 여는 일의 대상은 "지금 보고 있는 장부"이고, 그것을 말하는 자리가 범위 레일이다.
    */
-  const heroActions = isConnected ? (
-    <Button type="button" variant="secondary" aria-label={copy.hero.openSheetAria} onClick={onOpenSheet}>
-      {copy.hero.openSheet}
-    </Button>
-  ) : undefined;
+  const heroActions = undefined;
 
   /*
    * 🔴 **연결 전에는 히어로가 `plain` 이다**(2026-08-03, tintscan 실측으로 잡은 초과).
@@ -482,10 +498,51 @@ export default function LedgerPageView({
           onMappingChange={onMappingChange}
           onConfirm={onConfirmMapping}
           onReselect={onPickExistingSheet}
+          onBack={onCancelMapping}
         />
       ) : null}
 
+      {/*
+        🔴 **화면 탭바 — 작업면 전체보다 위**다. 이 컨트롤이 "아래에 무엇이 보이는가"를 정하므로
+           작업면 안에 넣으면 자기가 만드는 것 안에 사는 모양이 된다.
+        ⚠ `tabPicker`(어느 워크시트인가)는 아래 `ScopePanel` 에 그대로 남는다 — **다른 축**이다.
+           둘을 한 줄에 합치면 "탭을 넘기면 파일도 바뀌나"라는 오해가 생긴다.
+      */}
       {isConnected ? (
+        <LedgerViewTabs
+          tabs={viewModel.viewTabs}
+          selected={viewModel.selectedViewTab}
+          onSelect={onSelectViewTab}
+        />
+      ) : null}
+
+      {/* 🔴 `한눈에 보기` 는 시트 탭이 아니라 **앱이 읽은 것을 그리는 화면**이라 따로 선다. */}
+      {isConnected && viewModel.selectedViewTab === 'report' ? (
+        <LedgerReportPanel
+          entries={viewModel.report.entries}
+          holdings={viewModel.report.holdings}
+          investments={viewModel.report.investments}
+          isLoadingSideTabs={viewModel.report.isLoadingSideTabs}
+        />
+      ) : null}
+
+      {isConnected
+      && viewModel.selectedViewTab !== 'entries'
+      && viewModel.selectedViewTab !== 'report'
+      && viewModel.sideTab ? (
+        <LedgerSideTabPanel
+          tab={viewModel.selectedViewTab}
+          state={viewModel.sideTab}
+          sheetUrl={viewModel.sheetUrl ?? undefined}
+          onRetry={onRetrySideTab}
+          onAdd={onAddSideEntry}
+          canSimulate={viewModel.canSimulateInvestments}
+          unknownTickers={viewModel.unknownInvestmentTickers}
+          onSimulate={onSimulateInvestments}
+        />
+      ) : null}
+
+      {isConnected && viewModel.selectedViewTab === 'entries' ? (
         <Workspace>
           <ScopeRail>
             {/*
@@ -501,7 +558,37 @@ export default function LedgerPageView({
             */}
             <ScopePanel>
               {viewModel.tabPicker ? (
-                <LedgerTabPicker model={viewModel.tabPicker} onSelectTab={onSelectTab} />
+                <LedgerTabPicker
+                  model={viewModel.tabPicker}
+                  sheetUrl={viewModel.sheetUrl ?? undefined}
+                  onSelectTab={onSelectTab}
+                />
+              ) : null}
+
+              {/*
+                🔴 **주체 범위** — 부부·연인이 한 장부를 나눠 볼 때. 둘 이상일 때만 그린다
+                   (선택지 하나인 필터는 화면의 거짓말이다).
+                🔴 `공동` 은 하나의 선택지다 — 사람별 합의 총합이 전체와 정확히 같아야 하므로
+                   겹치지 않게 나눈다(근거: `ledgerPayerScope.ts`).
+              */}
+              {viewModel.offerPayerScope ? (
+                <PayerScopeRow>
+                  <PayerScopeLabel htmlFor={payerScopeId}>누구의 것을 볼지</PayerScopeLabel>
+                  <Select
+                    id={payerScopeId}
+                    value={viewModel.payerScope ?? ''}
+                    onChange={(event) =>
+                      onSelectPayerScope(event.target.value.length === 0 ? null : event.target.value)
+                    }
+                  >
+                    <option value="">전체</option>
+                    {viewModel.payers.map((payer) => (
+                      <option key={payer} value={payer}>
+                        {payer}
+                      </option>
+                    ))}
+                  </Select>
+                </PayerScopeRow>
               ) : null}
 
               <LedgerMonthNav
@@ -720,6 +807,30 @@ export default function LedgerPageView({
               </Card>
             ) : null}
 
+            {/*
+              🔴 **되채워 쓰기**(2026-08-09). 히포가 채운 분류는 앱 화면에만 있고 시트에는 빈 칸이라,
+                 시트를 단독으로 열면 `월별 요약`·`현금흐름` 의 SUMIFS 가 그 행을 못 세어 요약이
+                 통째로 0 이 된다. 적어 주면 두 세계가 같은 것을 본다.
+              ⚠ **사용자가 시작한다.** 남의 시트에 여러 줄을 한 번에 넣는 일이라 되돌리려면 하나씩
+                지워야 한다 — 자동으로 조용히 쓰지 않는다.
+            */}
+            {viewModel.backfill ? (
+              <Banner tone="info" title={copy.backfill.title(viewModel.backfill.count)}>
+                <BannerRow>
+                  {copy.backfill.body}
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    disabled={viewModel.backfill.isSaving}
+                    onClick={onRunBackfill}
+                  >
+                    {viewModel.backfill.isSaving ? copy.backfill.saving : copy.backfill.cta}
+                  </Button>
+                </BannerRow>
+              </Banner>
+            ) : null}
+
             {/* 🔴 요약 카드 **밖 형제**로 둔다(`Card` 안 `Card` 금지). */}
             {viewModel.partialFailure ? (
               <LedgerFailureList
@@ -734,6 +845,20 @@ export default function LedgerPageView({
       ) : null}
 
       {footer}
+
+      {/* 🔴 자산·투자 직접 적기. 검증 규칙은 시트 쓰기와 같은 파일을 쓴다(`ledgerSideForm.ts`). */}
+      {viewModel.sideForm ? (
+        <LedgerSideFormModal
+          kind={viewModel.sideForm.kind}
+          draft={viewModel.sideForm.draft}
+          errors={viewModel.sideForm.errors}
+          isSaving={viewModel.sideForm.isSaving}
+          writeError={viewModel.sideForm.writeError}
+          onChange={onSideFormChange}
+          onSubmit={onSideFormSubmit}
+          onClose={onSideFormClose}
+        />
+      ) : null}
 
       {form.value ? (
         <LedgerFormModal

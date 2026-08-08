@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useFxRateSync, useFxRateValueAtomValue } from '@/jotai';
+import { buildPortfolioSimulationPrefillState } from '@/shared/constants';
+import { SIMULATOR_PATH } from '@/shared/constants/routes';
+import { toPortfolioPrefillSource } from '@/shared/lib/portfolio';
 import { usePortfolioHoldings, toPortfolioHoldings } from '@/pages/Portfolio/hooks';
 import { TickerPageShell } from '@/pages/Ticker/components';
 import { tabSwitchBlockedReason } from '../components';
@@ -9,16 +13,27 @@ import {
   useLedgerConnection,
   useLedgerFreshness,
   useLedgerMonth,
+  useLedgerSideTabs,
   useLedgerWrite,
   useRetryCountdown
 } from '../hooks';
 import type { LedgerDividendModel, LedgerRowModel, LedgerTabPickerModel } from '../types';
 import {
+  DEFAULT_LEDGER_VIEW_TAB,
+  LEDGER_PAYER_SCOPE_ALL,
   buildLedgerDividendModel,
+  buildLedgerViewTabs,
   buildSheetUrl,
+  collectPayers,
+  filterByPayerScope,
   readLedgerDividendOverlay,
+  resolveLedgerViewTab,
+  resolvePayerScope,
+  selectableLedgerTabs,
+  shouldOfferPayerScope,
   writeLedgerDividendOverlay
 } from '../utils';
+import type { LedgerPayerScope, LedgerViewTabId } from '../utils';
 import LedgerPageView from './LedgerPage.view';
 import type { LedgerPageProps, LedgerViewModel } from './LedgerPage.types';
 
@@ -63,6 +78,7 @@ export default function LedgerPage({ now }: LedgerPageProps = {}) {
 function LedgerContent({ now: nowProp }: LedgerPageProps) {
   /** '오늘'은 컨테이너가 한 번 고정해 아래로 내린다(순수 계층은 시계를 읽지 않는다 · 테스트 결정성). */
   const [now] = useState(() => nowProp ?? new Date());
+  const navigate = useNavigate();
 
   /**
    * 🔴 앱 신원 층. 구글 시트 권한과 **중첩되지 않는다** — 네이버·카카오로 로그인한 사용자도
@@ -71,7 +87,53 @@ function LedgerContent({ now: nowProp }: LedgerPageProps) {
   const appAuth = useLedgerAppAuth();
 
   const connection = useLedgerConnection();
-  const month = useLedgerMonth(connection.snapshot, now);
+
+  /**
+   * 화면 탭 — 시트의 네 입력 탭을 앱에서도 탭으로(2026-08-08).
+   *
+   * 🔴 `connection.switchTab`(사용자 워크시트 전환)과 **다른 축**이다. 섞지 마라 —
+   *    이건 같은 파일 안의 관심사 전환이라 저장 대기열·행 참조에 아무 영향이 없다
+   *    (탭 전환 가드 `tabSwitchBlocked` 가 여기엔 필요 없는 이유).
+   */
+  const [viewTab, setViewTab] = useState<LedgerViewTabId>(DEFAULT_LEDGER_VIEW_TAB);
+  const viewTabs = useMemo(
+    () => buildLedgerViewTabs(connection.link?.createdByApp ?? false),
+    [connection.link?.createdByApp]
+  );
+  /* 🔴 쓸 수 없는 탭을 고르고 있으면 되돌린다 — 안 그러면 빈 화면이 나온다. */
+  const selectedViewTab = resolveLedgerViewTab(viewTab, viewTabs);
+
+  /**
+   * 주체 범위 — 부부·연인이 한 장부를 나눠 볼 때.
+   *
+   * 🔴 **기록 단계에서 걸러야 한다.** 표만 걸러 요약을 그대로 두면 두 숫자가 어긋나고,
+   *    사용자는 어느 쪽이 진짜인지 물어야 한다. 그래서 스냅샷의 `entries` 를 걸러 `useLedgerMonth`
+   *    에 넣는다 — 요약·분석·표가 모두 같은 집합을 본다.
+   *
+   * ⚠ 범위를 좁히면 그 사람의 것이 아닌 행은 화면에서 사라진다. 저장 실패 표시도 함께 사라질 수
+   *   있는데, 이는 **월 이동과 같은 성질**이다(달을 넘겨도 실패 행이 화면에서 빠진다) —
+   *   사용자가 명시적으로 한 이동이고, 범위를 전체로 되돌리면 다시 보인다.
+   *   append 실패(`partialFailure`)는 범위와 무관한 별개 표면이라 계속 남는다.
+   */
+  const [payerScope, setPayerScope] = useState<LedgerPayerScope>(LEDGER_PAYER_SCOPE_ALL);
+
+  /* 🔴 주체 목록은 **걸러지지 않은** 기록에서 뽑는다 — 한 사람을 고르면 나머지가 목록에서 사라진다. */
+  const payers = useMemo(
+    () => (connection.snapshot === null ? [] : collectPayers(connection.snapshot.entries)),
+    [connection.snapshot]
+  );
+  /* 고른 사람이 이 달에 없으면 전체로 되돌린다(빈 목록이 "기록이 사라진 것"처럼 보이지 않게). */
+  const effectivePayerScope = resolvePayerScope(payerScope, payers);
+
+  const scopedSnapshot = useMemo(() => {
+    if (connection.snapshot === null || effectivePayerScope === null) return connection.snapshot;
+    return {
+      ...connection.snapshot,
+      entries: filterByPayerScope(connection.snapshot.entries, effectivePayerScope)
+    };
+  }, [connection.snapshot, effectivePayerScope]);
+
+  const month = useLedgerMonth(scopedSnapshot, now);
   const countdown = useRetryCountdown();
   const write = useLedgerWrite({
     connection,
@@ -220,8 +282,17 @@ function LedgerContent({ now: nowProp }: LedgerPageProps) {
     // 지금 보고 있는 탭이 목록에 없으면 고를 자리를 만들지 않는다(추측으로 목록을 채우지 않는다).
     if (current === undefined) return null;
 
+    /*
+     * 🔴 **앱이 만든 시트에서는 기록 탭이 아닌 것을 뺀다**(2026-08-08).
+     *    안 빼면 이 드롭다운에 `월별 요약`·`읽어보기`·`분류 규칙` 이 나오고, 고르는 순간 앱이
+     *    그것을 가계부로 읽으려 한다 — 헤더가 안 맞아 매핑 화면으로 떨어지고 최악에는 수식 탭에
+     *    쓰기를 시도한다. 화면 탭바와 이름이 겹치는 것보다, 두 컨트롤이 같은 탭을 다르게 다루는
+     *    것이 문제였다. 근거 전문: `selectableLedgerTabs`.
+     */
+    const selectable = selectableLedgerTabs(connection.tabs, activeLink.createdByApp);
+
     return {
-      options: connection.tabs.map((tab) => ({ sheetId: tab.sheetId, title: tab.title })),
+      options: selectable.map((tab) => ({ sheetId: tab.sheetId, title: tab.title })),
       currentSheetId: current.sheetId,
       currentTitle: current.title,
       blockedReason: tabSwitchBlocked,
@@ -286,8 +357,141 @@ function LedgerContent({ now: nowProp }: LedgerPageProps) {
     });
   }, [month.rows, write.rowFailures]);
 
+  /**
+   * 옆탭 읽기 — 고른 탭만, 한 번만. 🔴 셋을 미리 다 읽으면 할당량을 안 볼 표에 쓴다
+   * (근거 전문: `useLedgerSideTabs` 머리말).
+   */
+  const sideTabs = useLedgerSideTabs({
+    spreadsheetId: connection.link?.spreadsheetId ?? null,
+    createdByApp: connection.link?.createdByApp ?? false,
+    readContext: connection.readContext,
+    onError: connection.applyError
+  });
+
+  /**
+   * 탭 전환.
+   *
+   * 🔴 **`한눈에 보기` 를 열면 자산·투자를 함께 읽는다.** 그 화면은 셋을 한 자리에서 그리는데,
+   *    안 읽으면 순자산·자산 구성·투자 구성 구획이 통째로 비어 "적었는데 안 나온다"가 된다.
+   *    (`분류 규칙` 은 그 화면이 안 쓰므로 부르지 않는다 — 안 볼 표를 읽는 것은 할당량 낭비다.)
+   */
+  const handleSelectViewTab = useCallback(
+    (id: LedgerViewTabId) => {
+      setViewTab(id);
+      if (id === 'report') {
+        void sideTabs.load('holdings');
+        void sideTabs.load('investments');
+        return;
+      }
+      if (id !== 'entries') void sideTabs.load(id);
+    },
+    [sideTabs]
+  );
+
+  const handleRetrySideTab = useCallback(() => {
+    if (selectedViewTab === 'entries' || selectedViewTab === 'report') return;
+    void sideTabs.load(selectedViewTab, { force: true });
+  }, [selectedViewTab, sideTabs]);
+
+  /* 🔴 `분류 규칙` 에는 적기가 없다 — 그 탭은 시트에서 고치는 것이 정상 사용이다(패널이 버튼을 안 그린다). */
+  const handleAddSideEntry = useCallback(() => {
+    if (selectedViewTab === 'entries' || selectedViewTab === 'rules' || selectedViewTab === 'report') return;
+    sideTabs.openForm(selectedViewTab);
+  }, [selectedViewTab, sideTabs]);
+
+  const handleSideFormSubmit = useCallback(() => {
+    void sideTabs.submitForm();
+  }, [sideTabs]);
+
+  /**
+   * **`투자` 탭 → 배당 시뮬레이터.**
+   *
+   * 🔴 비중·정규화·유니버스 판정을 여기서 하지 않는다 — `buildPortfolioSimulationPrefillState` 가
+   *    정본이고, `내 포트폴리오` 화면이 쓰는 **바로 그 경로**다. 규칙을 두 벌로 만들면 두 화면의
+   *    반올림이 갈려 "안내와 실제 프리필이 다르다"가 된다.
+   * ⚠ 환율이 없으면 프리필을 만들지 않는다(그 함수의 규약). 그때는 버튼이 비활성이고 사유가 선다.
+   */
+  /**
+   * `한눈에 보기` 가 쓰는 **원본 기록**.
+   *
+   * 🔴 화면용 행은 금액이 문자열로 접힌 값이라 집계에 못 쓴다. 그래서 모델이 원본(`records`)을
+   *    함께 들고 다닌다 — 문자열을 숫자로 되돌리는 코드를 쓰기 시작하면 그건 설계가 잘못됐다는
+   *    신호다(같은 값을 두 모양으로 들고 한쪽만 고쳐지는 사고가 이 레포에서 반복됐다).
+   */
+  const holdingRecords = useMemo(() => {
+    const state = sideTabs.byTab.holdings;
+    if (state.status !== 'ready' || !('holdings' in state)) return [];
+    return state.holdings.records;
+  }, [sideTabs.byTab.holdings]);
+
+  const investmentRecords = useMemo(() => {
+    const state = sideTabs.byTab.investments;
+    if (state.status !== 'ready' || !('investments' in state)) return [];
+    return state.investments.records;
+  }, [sideTabs.byTab.investments]);
+
+  const investmentPrefill = useMemo(() => {
+    const state = sideTabs.byTab.investments;
+    if (state.status !== 'ready' || !('investments' in state)) return null;
+    return toPortfolioPrefillSource(
+      state.investments.rows.map((row) => ({
+        ticker: row.ticker,
+        shares: Number(row.sharesText.replace(/,/g, '')),
+        unitCost: row.unitCostText === null ? null : Number(row.unitCostText.replace(/[^\d.]/g, '')),
+        currency: row.currency
+      })),
+      fxRateKrwPerUsd
+    );
+  }, [fxRateKrwPerUsd, sideTabs.byTab.investments]);
+
+  const investmentPrefillState = useMemo(
+    () =>
+      investmentPrefill === null
+        ? null
+        : buildPortfolioSimulationPrefillState({
+            summary: investmentPrefill.source,
+            fxRateKrwPerUsd
+          }),
+    [fxRateKrwPerUsd, investmentPrefill]
+  );
+
+  /**
+   * ⚠ **여기서 GA 이벤트를 보내지 않는다.** `/ledger` 는 계측을 전면 금지한 화면이다 —
+   *   시트 제목·탭 이름이 파라미터로 새는 유일한 경로라, "호출 자체를 두지 않는다"로 잠갔다
+   *   (`test/ledger/ledgerPrivacy.test.*` 가 그 가드다). 이 CTA 도 예외가 아니다.
+   *   한 번 예외를 열면 다음 사람이 파라미터에 무엇이 실리는지 매번 감사해야 한다.
+   */
+  const handleSimulateInvestments = useCallback(() => {
+    if (investmentPrefillState === null) return;
+    navigate(SIMULATOR_PATH, { state: investmentPrefillState });
+  }, [investmentPrefillState, navigate]);
+
   const viewModel: LedgerViewModel = {
     appAuth: appAuth.gate,
+
+    viewTabs,
+    selectedViewTab,
+    sideTab:
+      selectedViewTab === 'entries' || selectedViewTab === 'report'
+        ? null
+        : sideTabs.byTab[selectedViewTab],
+    /* 🔴 `한눈에 보기` 가 쓰는 재료. 아직 읽는 중이면 화면이 "없다"고 말하지 않는다. */
+    report: {
+      /* 🔴 `scopedSnapshot` 이 아니라 원본이다 — 리포트는 전 기간·전 주체를 본다. */
+      entries: connection.snapshot?.entries ?? [],
+      holdings: holdingRecords,
+      investments: investmentRecords,
+      isLoadingSideTabs:
+        sideTabs.byTab.holdings.status === 'loading' || sideTabs.byTab.investments.status === 'loading'
+    },
+    sideForm: sideTabs.form,
+    /* 🔴 프리필을 못 만들면 `null` — 화면이 버튼을 잠그고 사유를 말한다(무음 비활성 금지). */
+    canSimulateInvestments: investmentPrefillState !== null,
+    /** 🔴 프리셋에 없어 계산에 못 들어가는 티커. 조용히 빼면 사용자는 일부가 사라진 걸 모른다. */
+    unknownInvestmentTickers: investmentPrefill?.unknownTickers ?? [],
+    payers,
+    payerScope: effectivePayerScope,
+    offerPayerScope: shouldOfferPayerScope(payers),
 
     state: connection.state,
     phase: connection.phase,
@@ -299,6 +503,7 @@ function LedgerContent({ now: nowProp }: LedgerPageProps) {
     dividend,
     analysis: month.analysis,
     carryOver: write.carryOver,
+    backfill: write.backfill,
 
     monthLabel: month.monthLabel,
     prevMonthLabel: month.prevMonthLabel,
@@ -340,7 +545,17 @@ function LedgerContent({ now: nowProp }: LedgerPageProps) {
       onCreateSheet={connection.createSheet}
       onMappingChange={connection.changeMapping}
       onConfirmMapping={connection.confirmMapping}
+      onCancelMapping={connection.cancelMapping}
       onSelectTab={connection.switchTab}
+      onSelectViewTab={handleSelectViewTab}
+      onSelectPayerScope={setPayerScope}
+      onRetrySideTab={handleRetrySideTab}
+      onAddSideEntry={handleAddSideEntry}
+      onSideFormChange={sideTabs.changeForm}
+      onSideFormSubmit={handleSideFormSubmit}
+      onSideFormClose={sideTabs.closeForm}
+      onSimulateInvestments={handleSimulateInvestments}
+      onRunBackfill={write.runBackfill}
       onToggleDividendOverlay={handleToggleDividendOverlay}
       onPrevMonth={handlePrevMonth}
       onNextMonth={handleNextMonth}

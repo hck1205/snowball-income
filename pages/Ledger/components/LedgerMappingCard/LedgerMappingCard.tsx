@@ -59,7 +59,8 @@ export default function LedgerMappingCard({
   phase,
   onMappingChange,
   onConfirm,
-  onReselect
+  onReselect,
+  onBack
 }: LedgerMappingCardProps) {
   const idPrefix = useId();
   const previewTitleId = `${idPrefix}-preview`;
@@ -168,6 +169,14 @@ export default function LedgerMappingCard({
         </Button>
         <Button type="button" variant="secondary" loading={phase === 'picking'} onClick={onReselect}>
           {copy.mapping.reselect}
+        </Button>
+        {/*
+          🔴 **뒤로 가는 길**(2026-08-09). `다른 시트 고르기` 는 구글 피커를 다시 여는 길이라,
+             "여기까지 왔는데 새로 만들기로 하겠다"는 사람에게는 막다른 길이었다 —
+             화면에 뒤로 가는 길이 없으면 새로고침 말고 방법이 없다.
+        */}
+        <Button type="button" variant="ghost" onClick={onBack}>
+          {copy.mapping.back}
         </Button>
       </ActionRow>
     </Card>

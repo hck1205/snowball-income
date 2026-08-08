@@ -2,6 +2,13 @@ import type { MouseEventHandler, ReactNode } from 'react';
 import type { OverlayPhase } from '@/shared/hooks';
 
 export type ModalProps = {
+  /**
+   * 패널 폭. 기본 `md`(520px).
+   *
+   * 🔴 `lg`(720px)는 **칸이 많아 세로 스크롤이 생기는 폼**에만 쓴다 — 넓히면 두 칸씩 나란히 세워
+   *    한 화면에 담을 수 있다. 문장 몇 줄짜리 모달에는 쓰지 마라(읽기가 나빠진다).
+   */
+  size?: 'md' | 'lg';
   title: string;
   children: ReactNode;
   /** 하단 액션 영역(버튼들). */

@@ -69,6 +69,9 @@ const countdown = (): RetryCountdown => ({
 });
 
 const makeConnection = (overrides: Partial<LedgerConnection> = {}): LedgerConnection => ({
+  /* 기본값은 **규칙 없음** — 사다리 1단이 빠진 상태가 기존 테스트의 전제다. */
+  classifyRules: [],
+  cancelMapping: vi.fn(),
   state: 'connected',
   phase: 'idle',
   showCheckingSkeleton: false,
@@ -267,7 +270,7 @@ describe('저장 — 실패해도 입력값을 버리지 않는다', () => {
 
     expect(result.current.form?.errors).toEqual({
       amount: '금액을 입력해 주세요.',
-      category: '항목을 입력해 주세요.'
+      category: '항목을 비우실 거라면 내용을 적어 주세요. 내용을 보고 항목을 채워 드립니다.'
     });
     expect(appendLedgerEntries).not.toHaveBeenCalled();
   });

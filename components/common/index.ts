@@ -14,6 +14,9 @@ export type { CardProps, CardTone } from './Card';
 
 export { ChartWrap } from './ChartWrap';
 
+export { ComboBox } from './ComboBox';
+export type { ComboBoxProps } from './ComboBox';
+
 export { default as Chip } from './Chip';
 export type { ChipProps } from './Chip';
 
