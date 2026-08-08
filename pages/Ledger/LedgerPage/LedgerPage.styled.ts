@@ -483,3 +483,63 @@ export const CreatedActions = styled.span`
   margin-top: ${space[2]};
   min-width: 0;
 `;
+
+/* ── 고정비 이어가기 ──────────────────────────────────────────────────────────
+ * 🔴 이 구획은 **쓰기 직전의 확인 화면**이다. 무엇이 시트에 들어갈지 한 줄씩 보이고, 그래서
+ *    목록이 표가 아니라 읽는 글에 가깝다(정렬보다 이름이 먼저 읽혀야 한다).
+ * 🔴 손익색 금지 — 이 화면의 규율 그대로다. */
+
+export const CarryOverTitle = styled.h3`
+  margin: 0 0 ${space[1]};
+  font-size: ${font.size.md};
+  font-weight: ${font.weight.semibold};
+  color: ${color.text};
+`;
+
+export const CarryOverBody = styled.p`
+  margin: 0 0 ${space[3]};
+  font-size: ${font.size.sm};
+  line-height: ${font.leading.relaxed};
+  color: ${color.textSecondary};
+`;
+
+export const CarryOverList = styled.ul`
+  display: grid;
+  gap: ${space[2]};
+  margin: 0 0 ${space[4]};
+  padding: 0;
+  list-style: none;
+`;
+
+export const CarryOverRow = styled.li`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: ${space[1]} ${space[3]};
+  min-width: 0;
+`;
+
+export const CarryOverLabel = styled.span`
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  font-size: ${font.size.sm};
+  color: ${color.text};
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+export const CarryOverMeta = styled.span`
+  flex: none;
+  font-size: ${font.size.xs};
+  color: ${color.textMuted};
+`;
+
+export const CarryOverAmount = styled.span`
+  flex: none;
+  font-family: ${font.dataNumeric};
+  font-size: ${font.size.sm};
+  font-weight: ${font.weight.semibold};
+  color: ${color.text};
+  font-variant-numeric: tabular-nums;
+`;

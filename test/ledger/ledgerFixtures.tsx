@@ -99,6 +99,9 @@ export const baseViewModel = (overrides: Partial<LedgerViewModel> = {}): LedgerV
    */
   analysis: { fixity: null, payer: null, topBars: [], trend: [], isEmpty: true },
 
+  /* 이어갈 고정비 없음 = 자리 자체가 없다. 기존 화면 테스트가 보던 화면 그대로다. */
+  carryOver: null,
+
   summary: SUMMARY_WITH_ROWS,
   rows: TWO_ROWS,
   isRefetching: false,
@@ -157,6 +160,9 @@ export const renderLedgerView = (
     onCloseRemove: vi.fn(),
     onRetryRow: vi.fn(),
     onRetryAll: vi.fn(),
+  onOpenCarryOver: vi.fn(),
+  onConfirmCarryOver: vi.fn(),
+  onCloseCarryOver: vi.fn(),
     onReconnect: vi.fn(),
     onRefresh: vi.fn(),
     onOpenSheet: vi.fn(),

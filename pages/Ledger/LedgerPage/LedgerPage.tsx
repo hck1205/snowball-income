@@ -80,6 +80,7 @@ function LedgerContent({ now: nowProp }: LedgerPageProps) {
     subcategoryOptions: month.subcategoryOptions,
     payerOptions: month.payerOptions,
     methodOptions: month.methodOptions,
+    carryOverCandidates: month.carryOverCandidates,
     rows: month.rows,
     countdown,
     now
@@ -297,6 +298,7 @@ function LedgerContent({ now: nowProp }: LedgerPageProps) {
     freshness: freshness.model,
     dividend,
     analysis: month.analysis,
+    carryOver: write.carryOver,
 
     monthLabel: month.monthLabel,
     prevMonthLabel: month.prevMonthLabel,
@@ -354,6 +356,9 @@ function LedgerContent({ now: nowProp }: LedgerPageProps) {
       onCloseRemove={write.closeRemove}
       onRetryRow={write.retryRow}
       onRetryAll={write.retryAll}
+      onOpenCarryOver={write.openCarryOver}
+      onConfirmCarryOver={write.confirmCarryOver}
+      onCloseCarryOver={write.closeCarryOver}
       onReconnect={handleReconnect}
       onRefresh={handleRefresh}
       onOpenSheet={handleOpenSheet}

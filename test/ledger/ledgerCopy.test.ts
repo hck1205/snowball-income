@@ -77,8 +77,12 @@ const EXPECTED: StringTree = {
       date: '날짜',
       kind: '구분',
       amount: '금액',
-      category: '분류',
-      memo: '메모 (선택)'
+      category: '항목',
+      subcategory: '상세항목 (선택)',
+      payer: '주체 (선택)',
+      method: '결제수단 (선택)',
+      fixity: '고정 (선택)',
+      memo: '내용 (선택)'
     },
     required: '필수',
     unset: '선택 안 함',
@@ -218,6 +222,14 @@ const EXPECTED: StringTree = {
     trendIncome: '수입',
     trendExpense: '지출',
     savingRateUnknown: '수입이 없어 저축률을 잴 수 없습니다'
+  },
+
+  carryOver: {
+    title: '지난달 고정비를 이번 달에 넣습니다',
+    body: '아래 항목이 이번 달 기록으로 추가됩니다. 금액이 달라졌으면 추가한 뒤 고쳐 주세요.',
+    confirm: '추가',
+    saving: '추가하는 중입니다',
+    cancel: '취소'
   },
 
   remove: {

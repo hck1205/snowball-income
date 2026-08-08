@@ -5,6 +5,7 @@ import type { LedgerMonthSummary, LedgerRowModel } from '../types';
 import {
   addMonths,
   buildLedgerAnalysisModel,
+  collectCarryOverCandidates,
   collectFieldValues,
   isSameMonth,
   isVisibleEntry,
@@ -15,7 +16,7 @@ import {
   toMonthCursor,
   toRowModel
 } from '../utils';
-import type { LedgerAnalysisModel, LedgerMonthCursor } from '../utils';
+import type { CarryOverCandidate, LedgerAnalysisModel, LedgerMonthCursor } from '../utils';
 
 export type LedgerMonth = {
   cursor: LedgerMonthCursor;
@@ -38,6 +39,8 @@ export type LedgerMonth = {
   subcategoryOptions: readonly string[];
   /** 분석 카드가 그릴 값. 이 달 기준 구획 + 전체 기간 추이가 함께 들어 있다. */
   analysis: LedgerAnalysisModel;
+  /** 지난달 고정비 중 이번 달에 아직 없는 것. 비어 있으면 이어가기 자리를 만들지 않는다. */
+  carryOverCandidates: readonly CarryOverCandidate[];
   /** 주체·결제수단은 사전이 없다 — 사용자가 정하는 이름이라 시드가 있을 수 없다. */
   payerOptions: readonly string[];
   methodOptions: readonly string[];
@@ -100,6 +103,12 @@ export function useLedgerMonth(snapshot: LedgerSnapshot | null, now: Date): Ledg
    * 이 달만 넘기면 추이가 한 점짜리 그래프가 된다. 이 달 기준 구획은 모델이 안에서 걸러 낸다.
    */
   const analysis = useMemo(() => buildLedgerAnalysisModel(entries, cursor), [entries, cursor]);
+
+  /*
+   * 고정비 이어가기 후보. 🔴 계산은 여기(시트에 무엇이 있나를 아는 쪽)가 하고, 쓰기는
+   * `useLedgerWrite` 가 한다 — 두 관심사를 한 훅에 넣으면 "읽은 것"과 "쓸 것"이 섞인다.
+   */
+  const carryOverCandidates = useMemo(() => collectCarryOverCandidates(entries, cursor), [entries, cursor]);
   const methodOptions = useMemo(() => collectFieldValues(entries, 'method'), [entries]);
 
   const goPrev = useCallback(() => setCursor((previous) => addMonths(previous, -1)), []);
@@ -122,6 +131,7 @@ export function useLedgerMonth(snapshot: LedgerSnapshot | null, now: Date): Ledg
     summary,
     entryById,
     analysis,
+    carryOverCandidates,
     categoryOptions,
     subcategoryOptions,
     payerOptions,

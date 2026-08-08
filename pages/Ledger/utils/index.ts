@@ -91,3 +91,7 @@ export type {
   PayerSection,
   TrendPoint
 } from './ledgerAnalysisModel';
+
+/* 고정비 이어가기 — 지난달 고정비를 이번 달 초안으로. 🔴 제안만 만들고 쓰기는 호출부가 한다. */
+export { collectCarryOverCandidates } from './ledgerCarryOver';
+export type { CarryOverCandidate } from './ledgerCarryOver';

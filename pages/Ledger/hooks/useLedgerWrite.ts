@@ -8,7 +8,9 @@ import {
 import type { LedgerDraft, LedgerEntry, LedgerError, LedgerPatch } from '@/shared/lib/googleSheets';
 import { formatKRW } from '@/shared/utils';
 import { LEDGER_COPY } from '../copy';
+import type { CarryOverCandidate } from '../utils';
 import type {
+  LedgerCarryOverModel,
   LedgerDraftForm,
   LedgerErrorModel,
   LedgerFormModel,
@@ -77,6 +79,16 @@ export type LedgerWrite = {
 
   retryRow: (id: string) => void;
   retryAll: () => void;
+
+  /**
+   * 고정비 이어가기 — 지난달 고정비를 이번 달에 한 번에 넣는다.
+   * 🔴 **두 단계다.** `openCarryOver` 는 목록만 열고, `confirmCarryOver` 가 실제로 쓴다.
+   *    남의 시트에 열 줄을 한 번에 넣는 일이라 확인 없이 실행하지 않는다.
+   */
+  carryOver: LedgerCarryOverModel | null;
+  openCarryOver: () => void;
+  confirmCarryOver: () => void;
+  closeCarryOver: () => void;
   /** 만료 배너의 "다시 연결" — 재연결 성공 시 하던 작업을 이어서 실행한다. */
   resumePending: () => void;
 };
@@ -173,12 +185,24 @@ export function useLedgerWrite(params: {
   subcategoryOptions: readonly string[];
   payerOptions: readonly string[];
   methodOptions: readonly string[];
+  /** 고정비 이어가기 후보(계산은 `useLedgerMonth` 가 한다 — 이 훅은 쓰기만 맡는다). */
+  carryOverCandidates: readonly CarryOverCandidate[];
   rows: readonly LedgerRowModel[];
   countdown: RetryCountdown;
   now: Date;
 }): LedgerWrite {
-  const { connection, entryById, categoryOptions, subcategoryOptions, payerOptions, methodOptions, rows, countdown, now } =
-    params;
+  const {
+    connection,
+    entryById,
+    categoryOptions,
+    subcategoryOptions,
+    payerOptions,
+    methodOptions,
+    carryOverCandidates,
+    rows,
+    countdown,
+    now
+  } = params;
 
   const [session, setSession] = useState<FormSession | null>(null);
   /*
@@ -195,6 +219,9 @@ export function useLedgerWrite(params: {
   const [batchReport, setBatchReport] = useState<{ successCount: number; totalCount: number } | null>(null);
   const [liveMessage, setLiveMessage] = useState('');
   const [focusAfterRemoveId, setFocusAfterRemoveId] = useState<string | null>(null);
+  /** 고정비 이어가기 확인 목록. `null` 이면 닫혀 있다. */
+  const [carryOverOpen, setCarryOverOpen] = useState(false);
+  const [isCarryingOver, setIsCarryingOver] = useState(false);
 
   /** 재연결 뒤 이어서 실행할 작업. 🔴 만료가 사용자의 입력을 삼키지 않게 하는 유일한 장치다. */
   const pendingRef = useRef<LedgerPendingAction | null>(null);
@@ -619,6 +646,51 @@ export function useLedgerWrite(params: {
     };
   }, [removeId, rows]);
 
+  /* ── 고정비 이어가기 ──────────────────────────────────────────────────────
+   * 🔴 **두 단계**다. 목록을 먼저 보이고, 확인해야 쓴다 — 남의 시트에 여러 줄을 한 번에 넣는
+   *    일이라 한 번의 오조작이 비싸다. 되돌리려면 넣은 줄을 하나씩 지워야 한다.
+   */
+  const openCarryOver = useCallback(() => setCarryOverOpen(true), []);
+  const closeCarryOver = useCallback(() => setCarryOverOpen(false), []);
+
+  const confirmCarryOver = useCallback(() => {
+    if (carryOverCandidates.length === 0) return;
+    const context = connection.readContext();
+    const { link, snapshot } = connection;
+    if (context === null || link === null || snapshot === null) return;
+
+    setIsCarryingOver(true);
+    void (async () => {
+      const report = await appendLedgerEntries(context, {
+        link,
+        snapshot,
+        drafts: carryOverCandidates.map((candidate) => candidate.draft)
+      });
+
+      setIsCarryingOver(false);
+      setCarryOverOpen(false);
+      /* 🔴 부분 실패도 숫자로 그대로 말한다 — "일부 실패" 같은 뭉뚱그린 문구는 이 화면의 금지어다. */
+      setBatchReport({ successCount: report.successCount, totalCount: report.items.length });
+      setLiveMessage(copy.carryOver.live(report.successCount, report.items.length));
+      await connection.refresh();
+    })();
+  }, [carryOverCandidates, connection]);
+
+  const carryOver: LedgerCarryOverModel | null = useMemo(() => {
+    if (carryOverCandidates.length === 0) return null;
+    return {
+      count: carryOverCandidates.length,
+      isOpen: carryOverOpen,
+      isSaving: isCarryingOver,
+      rows: carryOverCandidates.map((candidate) => ({
+        id: candidate.id,
+        label: candidate.label,
+        amountText: formatKRW(candidate.draft.amount),
+        dateText: formatEntryDate(candidate.draft.date)
+      }))
+    };
+  }, [carryOverCandidates, carryOverOpen, isCarryingOver]);
+
   const partialFailure: LedgerPartialFailureModel | null = useMemo(() => {
     if (queue.length === 0) return null;
     return {
@@ -651,6 +723,10 @@ export function useLedgerWrite(params: {
     closeRemove,
     retryRow,
     retryAll,
+    carryOver,
+    openCarryOver,
+    confirmCarryOver,
+    closeCarryOver,
     resumePending
   };
 }

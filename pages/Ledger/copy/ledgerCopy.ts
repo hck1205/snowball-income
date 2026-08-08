@@ -102,8 +102,12 @@ export const LEDGER_COPY = {
       date: '날짜',
       kind: '구분',
       amount: '금액',
-      category: '분류',
-      memo: '메모 (선택)'
+      category: '항목',
+      subcategory: '상세항목 (선택)',
+      payer: '주체 (선택)',
+      method: '결제수단 (선택)',
+      fixity: '고정 (선택)',
+      memo: '내용 (선택)'
     },
     required: '필수',
     unset: '선택 안 함',
@@ -329,6 +333,21 @@ export const LEDGER_COPY = {
     savingRate: (percent: string) => `저축률 ${percent}`,
     /** 🔴 수입이 없는 달은 저축률을 **0% 가 아니라 "잴 수 없음"** 으로 말한다. 다른 사실이다. */
     savingRateUnknown: '수입이 없어 저축률을 잴 수 없습니다'
+  },
+
+  /**
+   * 고정비 이어가기. 🔴 문구가 **무엇이 일어날지 먼저** 말한다 — 여러 줄을 시트에 쓰는 동작이라
+   * "몇 건을" "어디에" 넣는지 누르기 전에 알아야 한다.
+   */
+  carryOver: {
+    open: (count: number) => `지난달 고정비 ${count}건 가져오기`,
+    title: '지난달 고정비를 이번 달에 넣습니다',
+    body: '아래 항목이 이번 달 기록으로 추가됩니다. 금액이 달라졌으면 추가한 뒤 고쳐 주세요.',
+    confirm: '추가',
+    saving: '추가하는 중입니다',
+    cancel: '취소',
+    /** 🔴 뭉뚱그리지 않는다 — 언제나 건별 숫자로 말한다. */
+    live: (success: number, total: number) => `고정비 ${total}건 중 ${success}건을 추가했습니다.`
   },
 
   remove: {

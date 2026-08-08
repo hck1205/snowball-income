@@ -112,6 +112,7 @@ const renderWrite = (connection: LedgerConnection) => {
         subcategoryOptions: [],
         payerOptions: [],
         methodOptions: [],
+        carryOverCandidates: [],
         rows,
         countdown: countdown(),
         now: new Date('2026-08-03T09:30:00+09:00')

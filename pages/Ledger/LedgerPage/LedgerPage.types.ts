@@ -2,6 +2,7 @@ import type { CommunityOAuthProvider } from '@/shared/lib/supabase';
 import type { LedgerAnalysisModel } from '../utils';
 import type {
   LedgerAppAuthGate,
+  LedgerCarryOverModel,
   LedgerConnectionState,
   LedgerDividendModel,
   LedgerDraftForm,
@@ -74,6 +75,12 @@ export type LedgerViewModel = {
    * 이쪽은 "어디에 몰렸는가"다. 여기 숫자는 요약에 **한 번도 더해지지 않는다**.
    */
   analysis: LedgerAnalysisModel;
+
+  /**
+   * 고정비 이어가기. `null` 이면 이어갈 것이 없어 자리를 만들지 않는다
+   * (버튼만 남고 눌러도 아무 일 없는 컨트롤을 두지 않는다).
+   */
+  carryOver: LedgerCarryOverModel | null;
 
 
   summary: LedgerMonthSummary;
@@ -154,6 +161,11 @@ export type LedgerViewProps = {
 
   onRetryRow: (id: string) => void;
   onRetryAll: () => void;
+
+  /** 🔴 두 단계다 — 열기는 목록만 보이고, 확인이 실제로 시트에 쓴다. */
+  onOpenCarryOver: () => void;
+  onConfirmCarryOver: () => void;
+  onCloseCarryOver: () => void;
   onReconnect: () => void;
   onRefresh: () => void;
   onOpenSheet: () => void;
