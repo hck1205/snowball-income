@@ -92,6 +92,13 @@ export const baseViewModel = (overrides: Partial<LedgerViewModel> = {}): LedgerV
   /* B-4 기본값 = **꺼짐**(확정 결정). 기존 화면 테스트는 배당 카드가 없던 시절의 화면을 그대로 본다. */
   dividend: { isOn: false, body: null },
 
+  /*
+   * P4·P5 분석 카드 기본값 = **빈 모델**. 기존 화면 테스트는 분석 카드가 없던 시절의 화면을 그대로
+   * 보아야 하고, 빈 모델이면 카드가 한 문장으로 접혀 다른 단정에 끼어들지 않는다.
+   * 분석 카드 자체의 테스트는 모델을 직접 넘겨 본다(ledgerAnalysisCard.test.tsx).
+   */
+  analysis: { fixity: null, payer: null, topBars: [], trend: [], isEmpty: true },
+
   summary: SUMMARY_WITH_ROWS,
   rows: TWO_ROWS,
   isRefetching: false,

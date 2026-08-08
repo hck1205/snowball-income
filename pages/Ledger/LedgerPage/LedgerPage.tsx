@@ -296,6 +296,7 @@ function LedgerContent({ now: nowProp }: LedgerPageProps) {
     tabPicker,
     freshness: freshness.model,
     dividend,
+    analysis: month.analysis,
 
     monthLabel: month.monthLabel,
     prevMonthLabel: month.prevMonthLabel,

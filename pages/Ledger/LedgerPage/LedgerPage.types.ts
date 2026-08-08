@@ -1,4 +1,5 @@
 import type { CommunityOAuthProvider } from '@/shared/lib/supabase';
+import type { LedgerAnalysisModel } from '../utils';
 import type {
   LedgerAppAuthGate,
   LedgerConnectionState,
@@ -67,6 +68,12 @@ export type LedgerViewModel = {
    * 정의는 하나다). 토글이 꺼져 있어도 모델은 있고 `body` 만 `null` 이다.
    */
   dividend: LedgerDividendModel;
+
+  /**
+   * P4·P5 **이 달 살펴보기**. 🔴 `summary` 와 다른 질문에 답한다 — 요약은 "얼마인가",
+   * 이쪽은 "어디에 몰렸는가"다. 여기 숫자는 요약에 **한 번도 더해지지 않는다**.
+   */
+  analysis: LedgerAnalysisModel;
 
 
   summary: LedgerMonthSummary;

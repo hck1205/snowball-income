@@ -4,6 +4,7 @@ import { LEDGER_CATEGORIES } from '@/shared/constants/ledger';
 import type { LedgerMonthSummary, LedgerRowModel } from '../types';
 import {
   addMonths,
+  buildLedgerAnalysisModel,
   collectFieldValues,
   isSameMonth,
   isVisibleEntry,
@@ -14,7 +15,7 @@ import {
   toMonthCursor,
   toRowModel
 } from '../utils';
-import type { LedgerMonthCursor } from '../utils';
+import type { LedgerAnalysisModel, LedgerMonthCursor } from '../utils';
 
 export type LedgerMonth = {
   cursor: LedgerMonthCursor;
@@ -35,6 +36,8 @@ export type LedgerMonth = {
    */
   categoryOptions: readonly string[];
   subcategoryOptions: readonly string[];
+  /** 분석 카드가 그릴 값. 이 달 기준 구획 + 전체 기간 추이가 함께 들어 있다. */
+  analysis: LedgerAnalysisModel;
   /** 주체·결제수단은 사전이 없다 — 사용자가 정하는 이름이라 시드가 있을 수 없다. */
   payerOptions: readonly string[];
   methodOptions: readonly string[];
@@ -91,6 +94,12 @@ export function useLedgerMonth(snapshot: LedgerSnapshot | null, now: Date): Ledg
     [entries]
   );
   const payerOptions = useMemo(() => collectFieldValues(entries, 'payer'), [entries]);
+
+  /*
+   * 분석 카드 모델. 🔴 **전체 entries** 를 넘긴다 — 최근 흐름 구획이 여러 달을 봐야 하고,
+   * 이 달만 넘기면 추이가 한 점짜리 그래프가 된다. 이 달 기준 구획은 모델이 안에서 걸러 낸다.
+   */
+  const analysis = useMemo(() => buildLedgerAnalysisModel(entries, cursor), [entries, cursor]);
   const methodOptions = useMemo(() => collectFieldValues(entries, 'method'), [entries]);
 
   const goPrev = useCallback(() => setCursor((previous) => addMonths(previous, -1)), []);
@@ -112,6 +121,7 @@ export function useLedgerMonth(snapshot: LedgerSnapshot | null, now: Date): Ledg
     rows,
     summary,
     entryById,
+    analysis,
     categoryOptions,
     subcategoryOptions,
     payerOptions,

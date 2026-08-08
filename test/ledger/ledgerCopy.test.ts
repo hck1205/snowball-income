@@ -201,6 +201,25 @@ const EXPECTED: StringTree = {
       memoTooLong: '내용은 200자까지 입력할 수 있습니다.'
     }
   },
+  analysis: {
+    title: '이 달 살펴보기',
+    subtitle: '숫자를 그대로 두고, 어디에 몰렸는지만 보여 드립니다.',
+    empty: '아직 살펴볼 기록이 없습니다. 항목을 추가하면 이 자리에 요약이 생깁니다.',
+    fixityHeading: '고정비와 변동비',
+    fixityHint: '고정비는 계약을 바꿔야 줄고, 변동비는 이번 달에 줄일 수 있습니다.',
+    fixedLabel: '고정비',
+    variableLabel: '변동비',
+    payerHeading: '누가 얼마를 썼나',
+    payerHint: '주체를 적지 않은 기록은 공동으로 셉니다.',
+    topHeading: '많이 쓴 항목',
+    topHint: '이 달 기준 상위 다섯입니다.',
+    trendHeading: '최근 흐름',
+    trendHint: '기록이 있는 최근 여섯 달입니다. 이체(저축·투자)는 지출에 넣지 않습니다.',
+    trendIncome: '수입',
+    trendExpense: '지출',
+    savingRateUnknown: '수입이 없어 저축률을 잴 수 없습니다'
+  },
+
   remove: {
     title: '이 기록을 삭제합니다',
     body: '아래 기록을 시트에서 지웁니다. 되돌릴 수 없습니다.',

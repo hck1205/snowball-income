@@ -81,3 +81,13 @@ export type {
   PivotRow,
   TopSpending
 } from './ledgerAnalysis';
+
+/* 분석 카드 뷰 모델 — 집계를 화면이 그릴 문자열로 접는다(표시 규칙은 여기가 진다). */
+export { TOP_SPENDING_LIMIT, TREND_MONTH_LIMIT, buildLedgerAnalysisModel } from './ledgerAnalysisModel';
+export type {
+  AnalysisBar,
+  FixitySection,
+  LedgerAnalysisModel,
+  PayerSection,
+  TrendPoint
+} from './ledgerAnalysisModel';

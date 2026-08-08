@@ -4,6 +4,7 @@ import { Banner, Button, Card, HintText, MODAL_EXIT_MS, PageFooter, PageHero } f
 import { useOverlayPresence } from '@/shared/hooks';
 import { LEDGER_COPY } from '../copy';
 import {
+  LedgerAnalysisCard,
   LedgerConnectPanel,
   LedgerDividendCard,
   LedgerFailureList,
@@ -525,6 +526,16 @@ export default function LedgerPageView({
               monthLabel={viewModel.monthLabel}
               onToggle={onToggleDividendOverlay}
             />
+
+            {/*
+              P4·P5 — **이 달 살펴보기**. 배당 카드와 같은 층의 형제다(`Card` 안 `Card` 금지 ·
+              주역 카드는 화면당 1개이고 그것은 위 월 요약이다).
+              🔴 여기 숫자는 요약 3숫자에 **한 번도 더해지지 않는다** — 요약은 "얼마인가",
+                 이 카드는 "어디에 몰렸는가"다. 두 카드가 같은 합계를 두 번 말하면 어느 쪽이
+                 진짜인지 사용자가 물어야 한다.
+              🔴 시트에 아무것도 쓰지 않는다(읽은 것을 접어 보여 줄 뿐이다).
+            */}
+            <LedgerAnalysisCard model={viewModel.analysis} monthLabel={viewModel.monthLabel} />
           </ScopeRail>
 
           <LedgerColumn>
