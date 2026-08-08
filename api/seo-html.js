@@ -1881,6 +1881,8 @@ var toMember = (star) => ({
    *    빈 배열로 두면 화면이 "출처 없음"으로 읽어 버리므로 규칙 이름을 적는다.
    */
   confirmedBy: ["\uBC30\uB2F9 \uD788\uB4E0\uC2A4\uD0C0 \uC120\uC815 \uADDC\uCE59"],
+  /* 🔴 종목별 하한을 살린다 — 목록 하한(10년)으로 뭉개면 44종이 전부 같은 등급이 된다. */
+  minimumStreakYears: star.minimumStreakYears,
   forwardYieldPercent: star.forwardYieldPercent,
   fiveYearGrowthPercent: star.fiveYearGrowthPercent
 });
