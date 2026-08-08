@@ -1945,12 +1945,19 @@ var marketData_generated_default = {
       frequency: "quarterly",
       observedDividendCagr: 15.87,
       payoutMonths: [
-        1,
-        4,
-        7,
-        10
+        2,
+        5,
+        8,
+        11
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 14,
+      estimatedPayDayByMonth: {
+        "2": 5,
+        "5": 7,
+        "8": 7,
+        "11": 6
+      }
     },
     LRCX: {
       initialPrice: 293.02,
@@ -2261,8 +2268,8 @@ var marketData_generated_default = {
         7,
         10
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 26,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "1": 9,
         "4": 10,

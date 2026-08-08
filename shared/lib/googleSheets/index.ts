@@ -25,6 +25,7 @@ export * from './config';
 export * from './types';
 export * from './a1';
 export * from './schema';
+export * from './blueprint';
 export * from './format';
 export * from './parse';
 export * from './mapping';

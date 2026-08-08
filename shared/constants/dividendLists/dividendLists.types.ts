@@ -115,6 +115,15 @@ export type DividendListMember = {
    *   GIC −21.82%(실제 +13.18%)였다. 규칙 배당 기준으로 바꾸니 마이너스가 0종이 됐다.
    */
   fiveYearGrowthPercent?: number | null;
+  /**
+   * 이 **종목**의 연속 증배 하한(년). 목록 전체의 하한(`DividendList.minimumStreakYears`)과 다르다.
+   *
+   * 🔴 배당킹·귀족·챔피언에는 **없다.** 그 목록들은 "25년 이상" 같은 한 줄로만 보장하고, 종목별
+   *    정확값은 계산이 불가능하다(이 파일 머리말의 실측 근거). 없는 값을 만들지 않는다.
+   * ✅ 배당 히든스타에는 **있다.** 후보를 모은 ETF(SMDV 10년 · REGL 15년 · SDY 20년)가 종목마다
+   *    다른 하한을 보장하기 때문이다. 그 차이를 버리면 44종이 전부 같은 등급으로 뭉개진다.
+   */
+  minimumStreakYears?: number;
 };
 
 export type DividendList = {

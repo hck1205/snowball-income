@@ -36,7 +36,8 @@
     "archclip": "node tools/dev/archclip.mjs",
     "brand:assets": "python tools/brand/rebuild-brand-assets.py",
     "brand:check": "node tools/brand/check-brand-alpha.mjs",
-    "dividend:hidden-stars": "vite-node scripts/dividendLists/hiddenStarsCli.ts --"
+    "dividend:hidden-stars": "vite-node scripts/dividendLists/hiddenStarsCli.ts --",
+    "dividend:dex": "vite-node scripts/dividendDex/dexCli.ts --"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

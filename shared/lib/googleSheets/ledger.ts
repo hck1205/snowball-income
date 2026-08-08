@@ -8,18 +8,18 @@
  */
 import { cellRange, headerRowRange, openColumnRange } from './a1';
 import { draftToCells, patchToCells } from './format';
+import { buildCreateSpreadsheetBody, buildFormatRequests } from './blueprint';
 import { mappedColumnIndices } from './mapping';
 import { parseLedgerColumns, validateLedgerDraft, validateLedgerPatch } from './parse';
 import {
   APP_SHEET_MAPPING,
-  APP_SHEET_TAB_TITLE,
   LEDGER_FIRST_DATA_ROW,
   LEDGER_HEADER_ROW,
-  buildAppSheetHeaderRow,
   matchesAppSheetHeaders
 } from './schema';
 import type { SheetTabMeta, SheetsRequestContext } from './sheetsApi';
 import {
+  applySheetFormatting,
   createSpreadsheet,
   deleteRow,
   fetchColumnValues,
@@ -98,19 +98,28 @@ export const createLedgerSheet = async (
   context: SheetsRequestContext,
   params: { readonly title: string }
 ): Promise<LedgerResult<SheetLink>> => {
-  const created = await createSpreadsheet(context, { title: params.title, tabTitle: APP_SHEET_TAB_TITLE });
+  /*
+   * 🔴 설계도(`blueprint.ts`)가 탭 일곱·고정행·초기 수식까지 **한 번의 요청**으로 만든다.
+   *    종전에는 탭 하나를 만들고 헤더 글자만 따로 썼다 — 사용자가 시트를 열면 민짜 표였다.
+   */
+  const created = await createSpreadsheet(context, {
+    title: params.title,
+    body: buildCreateSpreadsheetBody(params.title)
+  });
   if (!created.ok) return ledgerErr(created.error);
 
   const tab = created.value.tabs[0];
-  const headers = buildAppSheetHeaderRow();
-  const headerData = headers.map((header, index) => ({
-    range: cellRange(tab.title, index, LEDGER_HEADER_ROW),
-    majorDimension: 'COLUMNS' as const,
-    values: [[header]]
-  }));
 
-  const written = await writeValues(context, { spreadsheetId: created.value.spreadsheetId, data: headerData });
-  if (!written.ok) return ledgerErr(written.error);
+  /*
+   * 서식은 두 번째 요청이다(생성 응답의 sheetId 가 있어야 지정할 수 있다).
+   * 🔴 실패해도 **연결은 성립한다.** 서식이 덜 입혀진 시트는 보기에 아쉬울 뿐 기록은 정상이고,
+   *    여기서 실패로 되돌리면 방금 만든 파일이 사용자 드라이브에 고아로 남는다.
+   */
+  const sheetIds = Object.fromEntries(created.value.tabs.map((meta) => [meta.title, meta.sheetId]));
+  await applySheetFormatting(context, {
+    spreadsheetId: created.value.spreadsheetId,
+    requests: buildFormatRequests(sheetIds)
+  });
 
   return ledgerOk({
     spreadsheetId: created.value.spreadsheetId,
