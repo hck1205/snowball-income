@@ -227,7 +227,16 @@ const renderNetWorth = (state: Extract<LedgerSideTabState, { holdings: unknown }
   );
 };
 
-export default function LedgerSideTabPanel({ tab, state, sheetUrl, onRetry, onAdd }: LedgerSideTabPanelProps) {
+export default function LedgerSideTabPanel({
+  tab,
+  state,
+  sheetUrl,
+  onRetry,
+  onAdd,
+  canSimulate = false,
+  unknownTickers = [],
+  onSimulate
+}: LedgerSideTabPanelProps) {
   /* 🔴 `분류 규칙` 은 시트에서 고치는 것이 정상 사용이라 앱에 입력을 두지 않는다(그 탭 설명 참고). */
   const canAdd = tab !== 'rules';
 
@@ -275,6 +284,29 @@ export default function LedgerSideTabPanel({ tab, state, sheetUrl, onRetry, onAd
               <DataTable caption="투자 기록" columns={INVESTMENT_COLUMNS} rows={[...state.investments.rows]} />
             )}
             {renderSkipped(state.investments.skipped)}
+
+            {/*
+              🔴 **가계부와 배당 시뮬레이터를 한 제품에 둔 이유가 여기서 드러난다** — 적은 종목이
+                 곧 시뮬레이터의 포트폴리오가 된다. 널리 쓰이는 가계부 템플릿들은 종목을 적는
+                 데까지가 끝이다.
+              🔴 못 만들면 **사유가 함께 선다**(무음 비활성 금지). 보통 둘이다 — 적은 종목이
+                 없거나, 환율을 아직 못 받았다(가짜 환율로 위장하지 않는다).
+            */}
+            {state.investments.rows.length > 0 ? (
+              <div>
+                <Button type="button" disabled={!canSimulate} onClick={onSimulate}>
+                  이 종목으로 배당 계산하기
+                </Button>
+                {canSimulate ? null : (
+                  <HintText>환율을 아직 받아 오지 못했습니다. 잠시 뒤에 다시 시도해 주세요.</HintText>
+                )}
+                {unknownTickers.length > 0 ? (
+                  <HintText>
+                    {`${unknownTickers.join(' · ')} 은(는) 아직 저희가 지표를 가진 종목이 아니라 계산에서 빠집니다.`}
+                  </HintText>
+                ) : null}
+              </div>
+            ) : null}
           </>
         ) : null}
 

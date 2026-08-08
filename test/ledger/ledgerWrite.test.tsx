@@ -71,6 +71,7 @@ const countdown = (): RetryCountdown => ({
 const makeConnection = (overrides: Partial<LedgerConnection> = {}): LedgerConnection => ({
   /* 기본값은 **규칙 없음** — 사다리 1단이 빠진 상태가 기존 테스트의 전제다. */
   classifyRules: [],
+  cancelMapping: vi.fn(),
   state: 'connected',
   phase: 'idle',
   showCheckingSkeleton: false,

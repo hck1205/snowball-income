@@ -154,6 +154,7 @@ export default function LedgerPageView({
   onCreateSheet,
   onMappingChange,
   onConfirmMapping,
+  onCancelMapping,
   onSelectTab,
   onSelectViewTab,
   onSelectPayerScope,
@@ -162,6 +163,8 @@ export default function LedgerPageView({
   onSideFormChange,
   onSideFormSubmit,
   onSideFormClose,
+  onSimulateInvestments,
+  onRunBackfill,
   onToggleDividendOverlay,
   onPrevMonth,
   onNextMonth,
@@ -494,6 +497,7 @@ export default function LedgerPageView({
           onMappingChange={onMappingChange}
           onConfirm={onConfirmMapping}
           onReselect={onPickExistingSheet}
+          onBack={onCancelMapping}
         />
       ) : null}
 
@@ -518,6 +522,9 @@ export default function LedgerPageView({
           sheetUrl={viewModel.sheetUrl ?? undefined}
           onRetry={onRetrySideTab}
           onAdd={onAddSideEntry}
+          canSimulate={viewModel.canSimulateInvestments}
+          unknownTickers={viewModel.unknownInvestmentTickers}
+          onSimulate={onSimulateInvestments}
         />
       ) : null}
 
@@ -784,6 +791,30 @@ export default function LedgerPageView({
                   </ActionRow>
                 )}
               </Card>
+            ) : null}
+
+            {/*
+              🔴 **되채워 쓰기**(2026-08-09). 히포가 채운 분류는 앱 화면에만 있고 시트에는 빈 칸이라,
+                 시트를 단독으로 열면 `월별 요약`·`현금흐름` 의 SUMIFS 가 그 행을 못 세어 요약이
+                 통째로 0 이 된다. 적어 주면 두 세계가 같은 것을 본다.
+              ⚠ **사용자가 시작한다.** 남의 시트에 여러 줄을 한 번에 넣는 일이라 되돌리려면 하나씩
+                지워야 한다 — 자동으로 조용히 쓰지 않는다.
+            */}
+            {viewModel.backfill ? (
+              <Banner tone="info" title={copy.backfill.title(viewModel.backfill.count)}>
+                <BannerRow>
+                  {copy.backfill.body}
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    disabled={viewModel.backfill.isSaving}
+                    onClick={onRunBackfill}
+                  >
+                    {viewModel.backfill.isSaving ? copy.backfill.saving : copy.backfill.cta}
+                  </Button>
+                </BannerRow>
+              </Banner>
             ) : null}
 
             {/* 🔴 요약 카드 **밖 형제**로 둔다(`Card` 안 `Card` 금지). */}

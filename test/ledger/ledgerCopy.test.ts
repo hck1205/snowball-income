@@ -99,7 +99,9 @@ const EXPECTED: StringTree = {
       noRows: '시트에 아직 데이터 행이 없습니다. 연결한 뒤 첫 항목을 추가하면 이 시트에 기록됩니다.'
     },
     submit: '연결하기',
-    reselect: '다른 시트 고르기'
+    reselect: '다른 시트 고르기',
+    /* 🔴 피커를 다시 여는 reselect 와 다르다 — 연결 선택 화면으로 되돌아간다. */
+    back: '처음으로'
   },
   /* B-1 탭 선택 — 비활성 문구는 **막힌 이유 + 푸는 방법**을 함께 말해야 한다. */
   tab: {
@@ -227,6 +229,12 @@ const EXPECTED: StringTree = {
     trendIncome: '수입',
     trendExpense: '지출',
     savingRateUnknown: '수입이 없어 저축률을 잴 수 없습니다'
+  },
+
+  backfill: {
+    body: '시트에는 아직 빈 칸입니다. 적어 두시면 시트만 열어 보셔도 요약이 맞습니다.',
+    cta: '시트에도 적기',
+    saving: '적는 중입니다'
   },
 
   carryOver: {
@@ -380,6 +388,11 @@ describe('LEDGER_COPY — 문장을 만드는 카피', () => {
     expect(LEDGER_COPY.dividend.coveragePercent(17)).toBe('17%');
     expect(LEDGER_COPY.dividend.covered(['통신비', '구독료'])).toBe('통신비 · 구독료 지출을 덮는 정도입니다.');
     expect(LEDGER_COPY.dividend.unknownSchedule(3)).toBe('지급월을 알 수 없는 3종은 이 계산에 포함되지 않았습니다.');
+  });
+
+  it('🔴 되채워 쓰기 — "일부" 가 아니라 숫자로 말한다', () => {
+    expect(LEDGER_COPY.backfill.title(12)).toBe('12건의 항목을 히포가 채웠습니다');
+    expect(LEDGER_COPY.backfill.live(12)).toBe('12건을 시트에 적었습니다.');
   });
 
   it('빈 달', () => {

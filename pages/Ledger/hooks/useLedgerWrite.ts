@@ -5,6 +5,7 @@ import {
   deleteLedgerEntry,
   updateLedgerEntry
 } from '@/shared/lib/googleSheets';
+import { collectBackfillTargets, planBackfill, writeValues } from '@/shared/lib/googleSheets';
 import type { LedgerDraft, LedgerEntry, LedgerError, LedgerPatch } from '@/shared/lib/googleSheets';
 import { classifyLedgerRow } from '@/shared/lib/ledger';
 import type { LedgerClassifyRule } from '@/shared/lib/ledger';
@@ -12,6 +13,7 @@ import { formatKRW } from '@/shared/utils';
 import { LEDGER_COPY } from '../copy';
 import type { CarryOverCandidate } from '../utils';
 import type {
+  LedgerBackfillModel,
   LedgerCarryOverModel,
   LedgerDraftForm,
   LedgerErrorModel,
@@ -88,6 +90,14 @@ export type LedgerWrite = {
    *    남의 시트에 열 줄을 한 번에 넣는 일이라 확인 없이 실행하지 않는다.
    */
   carryOver: LedgerCarryOverModel | null;
+  /**
+   * 되채워 쓰기 — 히포가 채운 분류를 시트에도 적는다. 채울 것이 없으면 `null`.
+   *
+   * 🔴 이게 없으면 시트를 단독으로 열었을 때 항목 칸이 비어 있고, `월별 요약`·`현금흐름` 의
+   *    SUMIFS 가 그 행을 못 세어 **요약이 통째로 0** 이 된다.
+   */
+  backfill: LedgerBackfillModel | null;
+  runBackfill: () => void;
   openCarryOver: () => void;
   confirmCarryOver: () => void;
   closeCarryOver: () => void;
@@ -723,6 +733,63 @@ export function useLedgerWrite(params: {
     })();
   }, [carryOverCandidates, connection]);
 
+  /* ── 되채워 쓰기 (2026-08-09) ──────────────────────────────────────────────── */
+
+  const [isBackfilling, setIsBackfilling] = useState(false);
+
+  /**
+   * 히포가 채운 분류 중 **시트에는 아직 없는** 것들.
+   *
+   * 🔴 `collectBackfillTargets` 가 `seen` 을 다시 보고 **빈 칸이던 자리만** 고른다 — 적어 둔 말을
+   *    덮지 않는다. 그 확인이 파서(`filled` 를 만들 때)와 여기 두 곳에 있는 이유는, 하나가 뚫리면
+   *    조용히 데이터가 상하기 때문이다.
+   */
+  const backfillTargets = useMemo(() => {
+    const { link, snapshot } = connection;
+    if (link === null || snapshot === null) return [];
+    return collectBackfillTargets(snapshot.entries, link.mapping);
+  }, [connection]);
+
+  /**
+   * 되적기 실행.
+   *
+   * ⚠ **사용자가 시작한다.** 자동으로 조용히 쓰지 않는다 — 남의 시트에 여러 줄을 한 번에 넣는
+   *   일이라 되돌리려면 하나씩 지워야 한다(`고정비 이어가기` 와 같은 처방).
+   */
+  const runBackfill = useCallback(() => {
+    const context = connection.readContext();
+    const { link } = connection;
+    if (context === null || link === null || backfillTargets.length === 0) return;
+
+    const planned = planBackfill({
+      sheetTitle: link.sheetTitle,
+      mapping: link.mapping,
+      targets: backfillTargets
+    });
+    if (!planned.ok) return;
+
+    setIsBackfilling(true);
+    void (async () => {
+      const result = await writeValues(context, {
+        spreadsheetId: link.spreadsheetId,
+        data: planned.value.data
+      });
+      setIsBackfilling(false);
+
+      if (!result.ok) {
+        connection.applyError(result.error);
+        return;
+      }
+      setLiveMessage(copy.backfill.live(planned.value.rowCount));
+      await connection.refresh();
+    })();
+  }, [backfillTargets, connection]);
+
+  const backfill: LedgerBackfillModel | null = useMemo(() => {
+    if (backfillTargets.length === 0) return null;
+    return { count: backfillTargets.length, isSaving: isBackfilling };
+  }, [backfillTargets.length, isBackfilling]);
+
   const carryOver: LedgerCarryOverModel | null = useMemo(() => {
     if (carryOverCandidates.length === 0) return null;
     return {
@@ -771,6 +838,8 @@ export function useLedgerWrite(params: {
     retryRow,
     retryAll,
     carryOver,
+    backfill,
+    runBackfill,
     openCarryOver,
     confirmCarryOver,
     closeCarryOver,

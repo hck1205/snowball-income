@@ -244,6 +244,17 @@ export type LedgerCarryOverRow = {
  * 🔴 **두 단계다.** `isOpen` 이 false 면 버튼만 있고, 열어야 목록이 보이고, 확인해야 쓴다 —
  *    남의 시트에 여러 줄을 한 번에 넣는 일이라 한 번의 오조작이 비싸다(되돌리려면 하나씩 지운다).
  */
+/**
+ * 되채워 쓰기 상태.
+ *
+ * 🔴 채울 것이 없으면 모델 자체가 `null` 이다 — 0 건짜리 안내를 그리지 않는다.
+ */
+export type LedgerBackfillModel = {
+  /** 몇 행을 채우나. 🔴 "일부" 가 아니라 숫자로 말한다. */
+  count: number;
+  isSaving: boolean;
+};
+
 export type LedgerCarryOverModel = {
   count: number;
   isOpen: boolean;

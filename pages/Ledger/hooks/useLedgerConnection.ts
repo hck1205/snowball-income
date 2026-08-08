@@ -110,6 +110,14 @@ export type LedgerConnection = {
   switchTab: (sheetId: number) => void;
   changeMapping: (field: LedgerFieldId, letter: string | null) => void;
   confirmMapping: () => void;
+  /**
+   * 열 지정을 **그만두고 연결 선택 화면으로 돌아간다**(2026-08-09).
+   *
+   * 🔴 `pickExistingSheet`(다른 시트 고르기)와 다르다 — 저쪽은 구글 피커를 **다시 연다**.
+   *    시트를 잘못 고른 게 아니라 "여기까지 왔는데 새로 만들기로 하겠다"는 사람에게는 그 팝업이
+   *    막다른 길이다. 화면에 뒤로 가는 길이 없으면 새로고침 말고는 방법이 없다.
+   */
+  cancelMapping: () => void;
   reconnect: (onRestored?: () => void) => void;
   dismissCreatedNotice: () => void;
 };
@@ -527,6 +535,19 @@ export function useLedgerConnection(): LedgerConnection {
     })();
   }, [applyError, readContext, sessionDraft, sessionSheetId, sessionSheetTitle, sessionSpreadsheetId]);
 
+  /**
+   * 열 지정 그만두기.
+   *
+   * ⚠ **연결 정보를 지우지 않는다.** 아직 아무것도 저장하지 않은 단계라 지울 것도 없다 —
+   *   세션만 버리고 선택 화면으로 되돌린다.
+   */
+  const cancelMapping = useCallback(() => {
+    setSession(null);
+    setConnectError(null);
+    setState('disconnected');
+    setPhase('idle');
+  }, []);
+
   const confirmMapping = useCallback(() => {
     if (session === null) return;
     const mapping = toColumnMapping(session.draft);
@@ -695,6 +716,7 @@ export function useLedgerConnection(): LedgerConnection {
     createSheet,
     switchTab,
     changeMapping,
+    cancelMapping,
     confirmMapping,
     reconnect,
     dismissCreatedNotice

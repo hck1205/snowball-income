@@ -8,6 +8,7 @@ export type {
   LedgerDraftForm,
   LedgerErrorModel,
   LedgerFailureReason,
+  LedgerBackfillModel,
   LedgerCarryOverModel,
   LedgerCarryOverRow,
   LedgerFieldId,

@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useFxRateSync, useFxRateValueAtomValue } from '@/jotai';
+import { buildPortfolioSimulationPrefillState } from '@/shared/constants';
+import { SIMULATOR_PATH } from '@/shared/constants/routes';
+import { toPortfolioPrefillSource } from '@/shared/lib/portfolio';
 import { usePortfolioHoldings, toPortfolioHoldings } from '@/pages/Portfolio/hooks';
 import { TickerPageShell } from '@/pages/Ticker/components';
 import { tabSwitchBlockedReason } from '../components';
@@ -74,6 +78,7 @@ export default function LedgerPage({ now }: LedgerPageProps = {}) {
 function LedgerContent({ now: nowProp }: LedgerPageProps) {
   /** '오늘'은 컨테이너가 한 번 고정해 아래로 내린다(순수 계층은 시계를 읽지 않는다 · 테스트 결정성). */
   const [now] = useState(() => nowProp ?? new Date());
+  const navigate = useNavigate();
 
   /**
    * 🔴 앱 신원 층. 구글 시트 권한과 **중첩되지 않는다** — 네이버·카카오로 로그인한 사용자도
@@ -386,6 +391,50 @@ function LedgerContent({ now: nowProp }: LedgerPageProps) {
     void sideTabs.submitForm();
   }, [sideTabs]);
 
+  /**
+   * **`투자` 탭 → 배당 시뮬레이터.**
+   *
+   * 🔴 비중·정규화·유니버스 판정을 여기서 하지 않는다 — `buildPortfolioSimulationPrefillState` 가
+   *    정본이고, `내 포트폴리오` 화면이 쓰는 **바로 그 경로**다. 규칙을 두 벌로 만들면 두 화면의
+   *    반올림이 갈려 "안내와 실제 프리필이 다르다"가 된다.
+   * ⚠ 환율이 없으면 프리필을 만들지 않는다(그 함수의 규약). 그때는 버튼이 비활성이고 사유가 선다.
+   */
+  const investmentPrefill = useMemo(() => {
+    const state = sideTabs.byTab.investments;
+    if (state.status !== 'ready' || !('investments' in state)) return null;
+    return toPortfolioPrefillSource(
+      state.investments.rows.map((row) => ({
+        ticker: row.ticker,
+        shares: Number(row.sharesText.replace(/,/g, '')),
+        unitCost: row.unitCostText === null ? null : Number(row.unitCostText.replace(/[^\d.]/g, '')),
+        currency: row.currency
+      })),
+      fxRateKrwPerUsd
+    );
+  }, [fxRateKrwPerUsd, sideTabs.byTab.investments]);
+
+  const investmentPrefillState = useMemo(
+    () =>
+      investmentPrefill === null
+        ? null
+        : buildPortfolioSimulationPrefillState({
+            summary: investmentPrefill.source,
+            fxRateKrwPerUsd
+          }),
+    [fxRateKrwPerUsd, investmentPrefill]
+  );
+
+  /**
+   * ⚠ **여기서 GA 이벤트를 보내지 않는다.** `/ledger` 는 계측을 전면 금지한 화면이다 —
+   *   시트 제목·탭 이름이 파라미터로 새는 유일한 경로라, "호출 자체를 두지 않는다"로 잠갔다
+   *   (`test/ledger/ledgerPrivacy.test.*` 가 그 가드다). 이 CTA 도 예외가 아니다.
+   *   한 번 예외를 열면 다음 사람이 파라미터에 무엇이 실리는지 매번 감사해야 한다.
+   */
+  const handleSimulateInvestments = useCallback(() => {
+    if (investmentPrefillState === null) return;
+    navigate(SIMULATOR_PATH, { state: investmentPrefillState });
+  }, [investmentPrefillState, navigate]);
+
   const viewModel: LedgerViewModel = {
     appAuth: appAuth.gate,
 
@@ -393,6 +442,10 @@ function LedgerContent({ now: nowProp }: LedgerPageProps) {
     selectedViewTab,
     sideTab: selectedViewTab === 'entries' ? null : sideTabs.byTab[selectedViewTab],
     sideForm: sideTabs.form,
+    /* 🔴 프리필을 못 만들면 `null` — 화면이 버튼을 잠그고 사유를 말한다(무음 비활성 금지). */
+    canSimulateInvestments: investmentPrefillState !== null,
+    /** 🔴 프리셋에 없어 계산에 못 들어가는 티커. 조용히 빼면 사용자는 일부가 사라진 걸 모른다. */
+    unknownInvestmentTickers: investmentPrefill?.unknownTickers ?? [],
     payers,
     payerScope: effectivePayerScope,
     offerPayerScope: shouldOfferPayerScope(payers),
@@ -407,6 +460,7 @@ function LedgerContent({ now: nowProp }: LedgerPageProps) {
     dividend,
     analysis: month.analysis,
     carryOver: write.carryOver,
+    backfill: write.backfill,
 
     monthLabel: month.monthLabel,
     prevMonthLabel: month.prevMonthLabel,
@@ -448,6 +502,7 @@ function LedgerContent({ now: nowProp }: LedgerPageProps) {
       onCreateSheet={connection.createSheet}
       onMappingChange={connection.changeMapping}
       onConfirmMapping={connection.confirmMapping}
+      onCancelMapping={connection.cancelMapping}
       onSelectTab={connection.switchTab}
       onSelectViewTab={handleSelectViewTab}
       onSelectPayerScope={setPayerScope}
@@ -456,6 +511,8 @@ function LedgerContent({ now: nowProp }: LedgerPageProps) {
       onSideFormChange={sideTabs.changeForm}
       onSideFormSubmit={handleSideFormSubmit}
       onSideFormClose={sideTabs.closeForm}
+      onSimulateInvestments={handleSimulateInvestments}
+      onRunBackfill={write.runBackfill}
       onToggleDividendOverlay={handleToggleDividendOverlay}
       onPrevMonth={handlePrevMonth}
       onNextMonth={handleNextMonth}

@@ -25,4 +25,9 @@ export type LedgerSideTabPanelProps = {
    * (`ledgerSideForm.ts`) — 경로가 둘이어도 규칙이 하나면 갈리지 않는다.
    */
   readonly onAdd: () => void;
+  /** `투자` 탭에서만 쓴다. 🔴 `false` 면 버튼이 잠기고 **사유가 함께 선다**. */
+  readonly canSimulate?: boolean;
+  /** 프리셋에 없어 계산에 못 들어가는 티커. 🔴 조용히 빼지 않고 이 목록을 보여 준다. */
+  readonly unknownTickers?: readonly string[];
+  readonly onSimulate?: () => void;
 };

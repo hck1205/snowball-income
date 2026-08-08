@@ -9,6 +9,7 @@ import type {
 } from '../utils';
 import type {
   LedgerAppAuthGate,
+  LedgerBackfillModel,
   LedgerCarryOverModel,
   LedgerConnectionState,
   LedgerDividendModel,
@@ -55,6 +56,20 @@ export type LedgerViewModel = {
   selectedViewTab: LedgerViewTabId;
   /** `entries` 를 보고 있으면 `null`. 그 밖에는 그 탭의 읽기 상태다. */
   sideTab: LedgerSideTabState | null;
+  /**
+   * `투자` 탭의 종목으로 **배당 시뮬레이터**를 열 수 있나.
+   *
+   * 🔴 `false` 면 화면이 버튼을 잠그고 **사유를 함께 세운다**(무음 비활성 금지). 못 만드는 이유는
+   *    보통 둘이다 — 적은 종목이 없거나, 환율을 아직 못 받았다(가짜 환율로 위장하지 않는다).
+   */
+  canSimulateInvestments: boolean;
+  /**
+   * 프리셋에 없어 계산에 못 들어가는 티커.
+   *
+   * 🔴 화면이 이 목록을 그대로 보여 준다 — 조용히 빼면 사용자는 자기 포트폴리오의 일부가
+   *    계산에서 사라진 것을 모른다(초기 투자금에는 그 금액이 들어가므로 더 그렇다).
+   */
+  unknownInvestmentTickers: readonly string[];
   /** 자산·투자 직접 적기 폼. 열려 있지 않으면 `null`. */
   sideForm: {
     kind: LedgerSideFormKind;
@@ -118,6 +133,12 @@ export type LedgerViewModel = {
    * (버튼만 남고 눌러도 아무 일 없는 컨트롤을 두지 않는다).
    */
   carryOver: LedgerCarryOverModel | null;
+  /**
+   * 되채워 쓰기 — 히포가 채운 분류를 시트에도 적는다. 채울 것이 없으면 `null`(안내를 그리지 않는다).
+   *
+   * 🔴 이게 없으면 시트를 단독으로 열었을 때 항목 칸이 비어 있고 요약 수식이 그 행을 못 센다.
+   */
+  backfill: LedgerBackfillModel | null;
 
 
   summary: LedgerMonthSummary;
@@ -175,6 +196,8 @@ export type LedgerViewProps = {
   onCreateSheet: () => void;
   onMappingChange: (field: LedgerFieldId, letter: string | null) => void;
   onConfirmMapping: () => void;
+  /** 열 지정을 그만두고 연결 선택 화면으로. 🔴 구글 피커를 다시 열지 않는다. */
+  onCancelMapping: () => void;
   /** 같은 파일의 다른 탭으로. 🔴 막혀 있을 때는 컨트롤이 비활성이라 호출되지 않는다. */
   onSelectTab: (sheetId: number) => void;
 
@@ -189,6 +212,10 @@ export type LedgerViewProps = {
   onSideFormChange: (patch: Readonly<Record<string, string>>) => void;
   onSideFormSubmit: () => void;
   onSideFormClose: () => void;
+  /** `투자` 탭의 종목으로 배당 시뮬레이터를 연다. 🔴 못 만들면 호출되지 않는다(버튼이 잠긴다). */
+  onSimulateInvestments: () => void;
+  /** 히포가 채운 분류를 시트에 적는다. 🔴 사용자가 시작한다 — 자동으로 조용히 쓰지 않는다. */
+  onRunBackfill: () => void;
 
   /** B-4 배당 겹쳐 보기 토글. 🔴 시트에 아무것도 쓰지 않는다 — 화면 상태와 로컬 취향뿐이다. */
   onToggleDividendOverlay: (isOn: boolean) => void;
