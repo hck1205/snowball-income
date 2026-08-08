@@ -103,6 +103,7 @@ const EXPECTED: StringTree = {
   },
   /* B-1 탭 선택 — 비활성 문구는 **막힌 이유 + 푸는 방법**을 함께 말해야 한다. */
   tab: {
+      openSheet: '구글 시트에서 열기',
     label: '탭',
     switching: '탭을 여는 중입니다',
     blockedByForm: '기록을 추가하거나 고치는 중에는 탭을 바꿀 수 없습니다. 저장하거나 취소한 뒤에 이동해 주세요.',
@@ -200,7 +201,7 @@ const EXPECTED: StringTree = {
       amountNumber: '금액은 숫자만 입력할 수 있습니다.',
       amountPositive: '금액은 0보다 큰 값이어야 합니다.',
       amountTooLarge: '금액은 1조 원 미만으로 입력해 주세요.',
-      categoryRequired: '항목을 입력해 주세요.',
+      categoryRequired: '항목을 비우실 거라면 내용을 적어 주세요. 내용을 보고 항목을 채워 드립니다.',
       categoryTooLong: '항목은 40자까지 입력할 수 있습니다.',
       subcategoryTooLong: '상세항목은 40자까지 입력할 수 있습니다.',
       payerTooLong: '주체는 20자까지 입력할 수 있습니다.',

@@ -114,7 +114,12 @@ describe('/ledger — 연결 전과 연결 후 0건은 다른 화면이다', () 
     renderLedgerView(baseViewModel({ rows: [], summary: ZERO_SUMMARY }));
 
     expect(screen.getAllByRole('button', { name: '항목 추가' }).length).toBe(1);
-    expect(screen.getByRole('button', { name: '연결된 구글 시트를 새 탭에서 열기' })).toBeInTheDocument();
+    /*
+     * 🔴 2026-08-08 — 히어로에서 `시트에서 열기` 를 없앴다. 같은 일을 하는 버튼이 범위 레일로
+     *    내려갔고, 화면에 둘이면 사용자는 둘이 다른 일을 한다고 읽는다.
+     */
+    expect(screen.queryByRole('button', { name: '연결된 구글 시트를 새 탭에서 열기' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '구글 시트에서 열기' })).toBeInTheDocument();
   });
 
   it('다른 달에 기록이 있으면 그 사실을 말하고 그 달로 가는 버튼을 준다', async () => {

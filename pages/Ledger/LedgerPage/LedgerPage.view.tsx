@@ -247,17 +247,16 @@ export default function LedgerPageView({
   const refreshBlockedHintId = viewModel.isExpired ? expiredHintId : isRateLimited ? refreshHintId : undefined;
 
   /**
-   * 🔴 히어로 액션은 **하나**다(2026-08-03).
+   * 🔴 히어로에 액션이 **없다**(2026-08-08).
    *
-   * `항목 추가` 는 목록 카드의 도구 줄로 내려갔다 — 쓰기 액션은 그 대상 옆에 서는 편이 낫고,
-   * 히어로는 "이 화면이 무엇인가"(제목 · 권한 고지)만 말한다. 0건 화면에서 추가 버튼이 화면에
-   * **정확히 하나**라는 규칙은 그대로다(그때는 빈 상태 블록이 갖는다).
+   * 종전에는 `시트에서 열기` 하나가 있었다. 그 버튼이 왼쪽 범위 레일로 내려갔고(탭이 하나뿐일 때
+   * 탭 피커 자리를 대신한다), 같은 일을 하는 버튼이 화면에 둘이면 사용자는 둘이 다른 일을 한다고
+   * 읽는다. 히어로는 "이 화면이 무엇인가"(제목 · 권한 고지)만 말한다.
+   *
+   * ⚠ `항목 추가` 가 목록 카드의 도구 줄에 있는 것과 같은 판단이다 — 액션은 그 대상 옆에 선다.
+   *   시트를 여는 일의 대상은 "지금 보고 있는 장부"이고, 그것을 말하는 자리가 범위 레일이다.
    */
-  const heroActions = isConnected ? (
-    <Button type="button" variant="secondary" aria-label={copy.hero.openSheetAria} onClick={onOpenSheet}>
-      {copy.hero.openSheet}
-    </Button>
-  ) : undefined;
+  const heroActions = undefined;
 
   /*
    * 🔴 **연결 전에는 히어로가 `plain` 이다**(2026-08-03, tintscan 실측으로 잡은 초과).
@@ -532,7 +531,11 @@ export default function LedgerPageView({
             */}
             <ScopePanel>
               {viewModel.tabPicker ? (
-                <LedgerTabPicker model={viewModel.tabPicker} onSelectTab={onSelectTab} />
+                <LedgerTabPicker
+                  model={viewModel.tabPicker}
+                  sheetUrl={viewModel.sheetUrl ?? undefined}
+                  onSelectTab={onSelectTab}
+                />
               ) : null}
 
               {/*

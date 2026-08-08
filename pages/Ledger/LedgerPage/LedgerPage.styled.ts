@@ -95,7 +95,9 @@ export const Workspace = styled.div`
   min-width: 0;
 
   ${media.up('headerStack')} {
-    grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+    /* ⚠ 2026-08-08 — 레일을 넓혔다. 탭 피커·주체 셀렉트·요약 세 숫자가 한 칸에 사는데
+       340px 상한에서는 사람 이름과 금액이 자주 잘렸다. */
+    grid-template-columns: minmax(320px, 400px) minmax(0, 1fr);
   }
 `;
 
@@ -261,10 +263,14 @@ export const FlowCount = styled.span`
   ${font.numeric}
 `;
 
+/**
+ * ⚠ 2026-08-08 — 한 단 줄였다(xl → lg). 이 칸의 주인공은 위의 **순액**이고, 수입·지출은 그
+ *   내역이다. 셋이 비슷한 크기면 무엇이 결론인지 읽히지 않는다.
+ */
 export const FlowValue = styled.p`
   margin: 0;
   font-family: ${font.dataNumeric};
-  font-size: ${font.size.xl};
+  font-size: ${font.size.lg};
   font-weight: ${font.weight.bold};
   line-height: ${font.leading.tight};
   color: ${color.text};

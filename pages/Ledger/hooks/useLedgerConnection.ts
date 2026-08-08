@@ -84,6 +84,11 @@ export type LedgerConnection = {
   connectError: LedgerErrorModel | null;
   mapping: LedgerMappingModel | null;
 
+  /**
+   * 사용자 분류 규칙(`분류 규칙` 탭). 🔴 **쓰기 훅이 저장할 때 빈 항목을 채우는 데 쓴다** —
+   * 읽을 때와 같은 규칙을 써야 앱이 보여 준 분류와 시트에 적히는 분류가 갈리지 않는다.
+   */
+  classifyRules: readonly LedgerClassifyRule[];
   /** 쓰기 훅이 쓰는 요청 컨텍스트. 토큰이 없으면 `null`(= 만료로 취급한다). */
   readContext: () => SheetsRequestContext | null;
   /** 데이터 계층 실패를 화면 상태로 옮긴다. 만료·충돌이면 전용 배너가 켜진다. */
@@ -255,6 +260,13 @@ export function useLedgerConnection(): LedgerConnection {
    *   것은 비교할 수 없다.
    */
   const rulesBySpreadsheetRef = useRef<Map<string, readonly LedgerClassifyRule[]>>(new Map());
+  /**
+   * 같은 규칙을 **쓰기 훅도** 본다(저장할 때 빈 항목을 채운다).
+   *
+   * 🔴 ref 만 두면 안 된다 — 쓰기 훅은 렌더 사이에 값을 읽으므로 state 가 필요하고,
+   *    ref 는 "한 번만 읽는다"는 판단에 쓴다. 둘의 역할이 다르다.
+   */
+  const [classifyRules, setClassifyRules] = useState<readonly LedgerClassifyRule[]>([]);
 
   const ensureRules = useCallback(
     async (
@@ -265,11 +277,15 @@ export function useLedgerConnection(): LedgerConnection {
       if (!target.createdByApp) return [];
 
       const cached = rulesBySpreadsheetRef.current.get(target.spreadsheetId);
-      if (cached !== undefined) return cached;
+      if (cached !== undefined) {
+        setClassifyRules(cached);
+        return cached;
+      }
 
       const read = await readClassifyRules(context, target.spreadsheetId);
       const rules = read.ok ? read.value.records : [];
       rulesBySpreadsheetRef.current.set(target.spreadsheetId, rules);
+      setClassifyRules(rules);
       return rules;
     },
     []
@@ -670,6 +686,7 @@ export function useLedgerConnection(): LedgerConnection {
     showCreatedNotice,
     connectError,
     mapping: mappingModel,
+    classifyRules,
     readContext,
     applyError,
     refresh,

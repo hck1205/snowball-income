@@ -6,6 +6,8 @@ import {
   updateLedgerEntry
 } from '@/shared/lib/googleSheets';
 import type { LedgerDraft, LedgerEntry, LedgerError, LedgerPatch } from '@/shared/lib/googleSheets';
+import { classifyLedgerRow } from '@/shared/lib/ledger';
+import type { LedgerClassifyRule } from '@/shared/lib/ledger';
 import { formatKRW } from '@/shared/utils';
 import { LEDGER_COPY } from '../copy';
 import type { CarryOverCandidate } from '../utils';
@@ -106,17 +108,49 @@ const toDraftForm = (entry: LedgerEntry): LedgerDraftForm => ({
   memo: entry.memo ?? ''
 });
 
-const toLedgerDraft = (draft: LedgerDraftForm): LedgerDraft => ({
-  date: draft.date.trim(),
-  kind: draft.kind,
-  amount: parseLedgerAmount(draft.amount),
-  category: draft.category.trim(),
-  subcategory: draft.subcategory.trim(),
-  payer: draft.payer.trim(),
-  method: draft.method.trim(),
-  fixity: draft.isFixed ? 'fixed' : 'variable',
-  memo: draft.memo.trim()
-});
+/**
+ * 폼 값 → 시트에 쓸 초안.
+ *
+ * ## 🔴 항목을 비우고 저장하면 **여기서 채운다** (2026-08-08)
+ *
+ * 폼이 "항목을 비워도 된다"고 허락하는 것만으로는 부족하다. 그대로 쓰면 시트에 빈 항목 칸이
+ * 들어가고, `월별 요약`·`현금흐름` 의 `SUMIFS` 가 그 행을 못 세어 **저장은 됐는데 요약에 안
+ * 잡히는** 상태가 된다. 사용자에게 가장 나쁜 결과다.
+ *
+ * 그래서 저장 직전에 분류 사다리를 태운다. 읽을 때 채우는 것과 **같은 함수**를 쓰므로
+ * (`shared/lib/ledger/classify`) 앱이 보여 준 분류와 시트에 적히는 분류가 갈릴 수 없다.
+ *
+ * 🔴 **적어 둔 항목은 건드리지 않는다.** 사다리 0단이 그것을 보장한다 — 이 호출이 사용자의
+ *    분류를 뒤집는 일은 없다.
+ * ⚠ 구분도 사다리가 정한 값을 쓰지 않는다. 폼의 라디오는 **사용자가 명시적으로 고른 값**이라
+ *   언제나 그것이 이긴다.
+ */
+const toLedgerDraft = (
+  draft: LedgerDraftForm,
+  rules: readonly LedgerClassifyRule[]
+): LedgerDraft => {
+  const category = draft.category.trim();
+  const subcategory = draft.subcategory.trim();
+  const memo = draft.memo.trim();
+
+  const classification = classifyLedgerRow(
+    { category, subcategory, memo, kind: draft.kind },
+    rules
+  );
+
+  return {
+    date: draft.date.trim(),
+    kind: draft.kind,
+    amount: parseLedgerAmount(draft.amount),
+    /* 빈 칸일 때만 사다리 값이 들어간다. 못 정했으면 빈 칸 그대로 — 지어내지 않는다. */
+    category: category.length > 0 ? category : (classification.category?.label ?? ''),
+    subcategory: subcategory.length > 0 ? subcategory : (classification.subcategory?.label ?? ''),
+    payer: draft.payer.trim(),
+    method: draft.method.trim(),
+    fixity: draft.isFixed ? 'fixed' : 'variable',
+    memo
+  };
+};
 
 /**
  * 새 항목 폼의 시작값.
@@ -312,7 +346,7 @@ export function useLedgerWrite(params: {
       const { link, snapshot } = connection;
       if (context === null || link === null || snapshot === null) return null;
 
-      const report = await appendLedgerEntries(context, { link, snapshot, drafts: [toLedgerDraft(draft)] });
+      const report = await appendLedgerEntries(context, { link, snapshot, drafts: [toLedgerDraft(draft, connection.classifyRules)] });
       const failed = report.items.find((item) => !item.ok);
       return failed && !failed.ok ? failed.error : null;
     },
@@ -566,7 +600,7 @@ export function useLedgerWrite(params: {
       const report = await appendLedgerEntries(context, {
         link,
         snapshot,
-        drafts: batch.map((item) => toLedgerDraft(item.draft))
+        drafts: batch.map((item) => toLedgerDraft(item.draft, connection.classifyRules))
       });
 
       setBatchReport({ successCount: report.successCount, totalCount: report.items.length });

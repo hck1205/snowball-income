@@ -1,5 +1,5 @@
 import { ArrowDownToLine, ArrowUpFromLine, Pencil, TriangleAlert, Trash2 } from 'lucide-react';
-import { Button, Chip } from '@/components/common';
+import { Button } from '@/components/common';
 import { LEDGER_COPY } from '../../copy';
 import { kindLabel } from '../../utils';
 import type { LedgerTableProps } from './LedgerTable.types';
@@ -113,16 +113,20 @@ export default function LedgerTable({
                 </TD>
 
                 <TD $align="left" $area="kind" data-label={copy.list.columnKind}>
-                  <Chip variant="neutral">
-                    <KindChipInner>
-                      {row.kind === 'income' ? (
-                        <ArrowDownToLine size={14} strokeWidth={1.8} aria-hidden focusable={false} />
-                      ) : (
-                        <ArrowUpFromLine size={14} strokeWidth={1.8} aria-hidden focusable={false} />
-                      )}
-                      {kindText}
-                    </KindChipInner>
-                  </Chip>
+                  {/*
+                    🔴 **칩 껍데기를 벗겼다**(2026-08-08 사용자 지적). 둥근 테두리가 아이콘과 글자를
+                       자기 안쪽 여백 기준으로 밀어 칸 안에서 가운데로 안 보였고, 애초에 이 칸은
+                       상태 배지가 아니라 **값**이다 — 표의 다른 칸과 같은 무게여야 한다.
+                       구별은 여전히 아이콘 + 글자가 한다(색 단독 채널 금지는 그대로).
+                  */}
+                  <KindChipInner>
+                    {row.kind === 'income' ? (
+                      <ArrowDownToLine size={14} strokeWidth={1.8} aria-hidden focusable={false} />
+                    ) : (
+                      <ArrowUpFromLine size={14} strokeWidth={1.8} aria-hidden focusable={false} />
+                    )}
+                    {kindText}
+                  </KindChipInner>
                 </TD>
 
                 <TD $area="amount" data-label={copy.list.columnAmount}>

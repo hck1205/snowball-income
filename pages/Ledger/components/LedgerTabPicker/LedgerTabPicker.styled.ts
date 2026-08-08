@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, space } from '@/shared/styles';
+import { color, font, radius, space } from '@/shared/styles';
 
 /**
  * B-1 탭 줄 — "어느 장부인가".
@@ -74,4 +74,35 @@ export const PickerName = styled.p`
 export const PickerStatus = styled.span`
   font-size: ${font.size.sm};
   color: ${color.textMuted};
+`;
+
+/**
+ * 시트로 가는 버튼(탭이 하나일 때).
+ *
+ * 🔴 `<a>` 다 — 새 창으로 나가는 이동이라 링크여야 한다. 버튼으로 만들면 가운데클릭·새 탭 열기가
+ *    죽고, 보조기기에도 "누르면 무언가 일어난다"까지만 전해진다.
+ */
+export const OpenSheetLink = styled.a`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: ${space[2]};
+  min-height: 40px;
+  padding: 0 ${space[3]};
+  border: 1px solid ${color.border};
+  border-radius: ${radius.md};
+  background: ${color.surface};
+  color: ${color.text};
+  font-size: ${font.size.sm};
+  font-weight: ${font.weight.semibold};
+  text-decoration: none;
+
+  &:hover {
+    background: ${color.surfaceHover};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${color.focusRing};
+    outline-offset: 2px;
+  }
 `;

@@ -43,7 +43,13 @@ describe('AC1-1 탭이 2개 이상이면 고를 수 있고, 1개면 이름만 �
     );
 
     expect(screen.queryByRole('combobox', { name: '탭' })).not.toBeInTheDocument();
-    expect(screen.getByText('가계부 탭을 보고 있습니다')).toBeInTheDocument();
+    /*
+     * 🔴 2026-08-08 — 탭이 하나면 **시트로 가는 링크**가 그 자리에 선다.
+     *    종전에는 "가계부 탭을 보고 있습니다"라고 적었는데, 앱 시트에서 기록 탭이 아닌 것을
+     *    걸러 내면서 이 자리는 거의 언제나 그 문장 하나가 됐다 — 아는 사실을 다시 말하는 것은
+     *    정보가 아니라 자리만 차지하는 줄이다.
+     */
+    expect(screen.getByRole('link', { name: '구글 시트에서 열기' })).toBeInTheDocument();
   });
 
   it('고른 탭 id 를 그대로 올려 보낸다', async () => {
