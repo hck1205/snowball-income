@@ -120,18 +120,36 @@ export type LedgerDividendModel = {
 /** 매핑 셀렉트의 한 선택지. `letter` 는 A1 열 문자, `header` 는 첫 행에서 읽은 이름(빈 문자열 가능). */
 export type LedgerColumnOption = { letter: string; header: string };
 
-/** 화면이 다루는 논리 필드. 데이터 계층의 `status`(소프트 삭제 표시)는 사용자가 고르는 대상이 아니다. */
-export type LedgerFieldId = 'date' | 'kind' | 'amount' | 'category' | 'memo';
+/**
+ * 화면이 다루는 논리 필드. 데이터 계층의 `status`(소프트 삭제 표시)는 사용자가 고르는 대상이 아니다.
+ *
+ * 🔴 **데이터 계층의 `LedgerField` 와 맞춰 둔다**(`status` 하나만 뺀 것). v2 에서 축 넷이 늘었을 때
+ *    이 목록만 옛 다섯으로 남아 있었고, 그 결과 **매핑 화면에서 상세항목·주체·결제수단·고정을
+ *    고를 자리가 없었다.** 앱이 만든 시트는 헤더가 정확히 맞아 매핑을 건너뛰므로 겉으로는 멀쩡했지만,
+ *    사용자가 열을 하나 더하거나 헤더 이름을 바꾸는 순간 매핑 화면으로 떨어지고 그 네 축이 조용히
+ *    죽었다(입력 폼에는 칸이 있고, 저장은 성공했다고 나오고, 시트에는 안 들어간다).
+ *    시트를 손대는 것은 헤비 유저일수록 잦다 — 정확히 겨냥한 사용자에게만 터지는 결함이었다.
+ */
+export type LedgerFieldId = 'date' | 'kind' | 'amount' | 'category' | 'subcategory' | 'payer' | 'method' | 'fixity' | 'memo';
 
 /** 필드 → 열 문자. `null` = 아직 고르지 않음. */
 export type LedgerMappingDraft = Readonly<Record<LedgerFieldId, string | null>>;
 
-/** 매핑 화면의 필드 정의(필수 4 + 선택 1). 순서가 곧 화면 순서다. */
+/**
+ * 매핑 화면의 필드 정의(필수 4 + 선택 5). 순서가 곧 화면 순서다.
+ *
+ * 순서는 **앱이 만드는 시트의 열 순서**와 같다 — 사용자가 시트를 옆에 띄워 두고 위에서부터 짚어
+ * 내려갈 수 있어야 한다. 필수를 앞에 몰지 않은 이유가 이것이다(필수 표시는 배지가 진다).
+ */
 export const LEDGER_MAPPING_FIELDS = [
   { id: 'date', required: true },
   { id: 'kind', required: true },
-  { id: 'amount', required: true },
   { id: 'category', required: true },
+  { id: 'subcategory', required: false },
+  { id: 'amount', required: true },
+  { id: 'payer', required: false },
+  { id: 'method', required: false },
+  { id: 'fixity', required: false },
   { id: 'memo', required: false }
 ] as const satisfies readonly { id: LedgerFieldId; required: boolean }[];
 
@@ -210,6 +228,28 @@ export type LedgerDraftForm = {
 };
 
 export type LedgerFormMode = 'create' | 'edit';
+
+/** 이어갈 고정비 한 줄. 값은 이미 포맷된 문자열이다(뷰는 계산하지 않는다). */
+export type LedgerCarryOverRow = {
+  id: string;
+  /** `주거 · 월세`. 어디서 왔는지 사용자가 알아볼 수 있어야 한다. */
+  label: string;
+  amountText: string;
+  dateText: string;
+};
+
+/**
+ * 고정비 이어가기. `null` 이면 이어갈 것이 없어 자리를 만들지 않는다.
+ *
+ * 🔴 **두 단계다.** `isOpen` 이 false 면 버튼만 있고, 열어야 목록이 보이고, 확인해야 쓴다 —
+ *    남의 시트에 여러 줄을 한 번에 넣는 일이라 한 번의 오조작이 비싸다(되돌리려면 하나씩 지운다).
+ */
+export type LedgerCarryOverModel = {
+  count: number;
+  isOpen: boolean;
+  isSaving: boolean;
+  rows: readonly LedgerCarryOverRow[];
+};
 
 /** §4.7 — 재연결 성공 직후 **이어서 실행**할 작업. */
 export type LedgerPendingAction =

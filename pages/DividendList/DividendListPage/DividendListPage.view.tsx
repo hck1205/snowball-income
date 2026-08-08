@@ -1,7 +1,11 @@
 import { useMemo, useState } from 'react';
-import { Crown, Gem, Medal } from 'lucide-react';
+import { Crown, Gem, Medal, Sparkles } from 'lucide-react';
 import { PageFooter, PageHero } from '@/components/common';
-import { DIVIDEND_LIST_HUB_PATH } from '@/shared/constants/dividendLists';
+import {
+  DIVIDEND_LIST_HUB_PATH,
+  HIDDEN_STAR_MONTHLY,
+  formatHiddenStarMonth
+} from '@/shared/constants/dividendLists';
 import type { DividendListId } from '@/shared/constants/dividendLists';
 import { ICON } from '@/shared/styles';
 import { DividendListFilters, DividendListTable } from '../components';
@@ -24,6 +28,13 @@ import type { DividendListViewProps } from './DividendListPage.types';
 import {
   Body,
   CautionPanel,
+  MonthlyAsOf,
+  MonthlyFacts,
+  MonthlyList,
+  MonthlyMonth,
+  MonthlyName,
+  MonthlyNotice,
+  MonthlyRow,
   CriterionBadge,
   HeroBlock,
   HeroMascot,
@@ -56,7 +67,9 @@ const SORT_KEYS: DividendListSortKey[] = ['ticker', 'name', 'yield', 'streak', '
 const LIST_ICON: Record<DividendListId, typeof Crown> = {
   kings: Crown,
   aristocrats: Gem,
-  champions: Medal
+  champions: Medal,
+  /* 왕관·보석·메달은 '수여받은 지위'를 뜻한다. 히든스타는 수여받지 못한 쪽이라 다른 결의 글리프를 쓴다. */
+  hiddenStars: Sparkles
 };
 
 /**
@@ -144,6 +157,36 @@ export default function DividendListView({ viewModel }: DividendListViewProps) {
           <CriterionBadge>{`${copy.criterionHeading} · ${listCopy.criterionLabel}`}</CriterionBadge>
           <CautionPanel>{listCopy.caution}</CautionPanel>
         </Section>
+
+        {/*
+          이달의 히든스타 — **이 목록에만** 선다. 다른 셋은 바깥 명부라 "이달의 하나"라는 자리가
+          성립하지 않는다(명부가 이달에 바뀐 것이 아니므로).
+          🔴 지난달 선정은 **그때의 수치와 함께 보존**된다. 매달 다시 계산하면 8월에 소개한 종목이
+             9월에 바뀌어 과거가 뒤집힌다 — 그건 기록이 아니다.
+        */}
+        {list.id === 'hiddenStars' && HIDDEN_STAR_MONTHLY.length > 0 ? (
+          <Section>
+            <SectionTitle>{copy.monthlyHeading}</SectionTitle>
+            <Body>{copy.monthlyBody}</Body>
+            <MonthlyList>
+              {HIDDEN_STAR_MONTHLY.map((pick) => (
+                <MonthlyRow key={pick.month}>
+                  <MonthlyMonth>{formatHiddenStarMonth(pick.month)}</MonthlyMonth>
+                  <MonthlyName>
+                    {pick.ticker} · {pick.name}
+                  </MonthlyName>
+                  <MonthlyFacts>
+                    {copy.monthlyYield} {pick.forwardYieldPercent.toFixed(2)}% · {copy.monthlyGrowth}{' '}
+                    {pick.fiveYearGrowthPercent.toFixed(1)}% · {copy.monthlyStreak(pick.minimumStreakYears)}
+                  </MonthlyFacts>
+                  {/* 🔴 규칙이 통과시킨 것과 사용자가 알아야 할 것은 다른 문제다. */}
+                  {pick.isHighYieldOutlier ? <MonthlyNotice>{copy.monthlyHighYieldNotice}</MonthlyNotice> : null}
+                  <MonthlyAsOf>{`${copy.asOfLabel} ${pick.asOf}`}</MonthlyAsOf>
+                </MonthlyRow>
+              ))}
+            </MonthlyList>
+          </Section>
+        ) : null}
 
         <Section>
           <SectionTitle>{copy.streakHeading}</SectionTitle>

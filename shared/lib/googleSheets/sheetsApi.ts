@@ -8,6 +8,7 @@
  *     응답 본문을 그대로 싣지 않고 정적 문구만 쓴다(`LEDGER_ERROR_MESSAGE`).
  *  3) 읽기·쓰기 모두 **한 열 단위 범위**로만 한다 — 매핑 밖의 열을 읽지도 쓰지도 않는다(AC-W2).
  */
+import { quoteSheetTitle } from './a1';
 import type { DeleteRowRequest } from './writeSafety';
 import type { LedgerError, LedgerErrorCode, LedgerResult, SheetValueRange } from './types';
 import { ledgerErr, ledgerOk, ledgerError } from './types';
@@ -284,6 +285,45 @@ export const fetchHeaderRow = async (
   const first = values[0];
   if (!Array.isArray(first)) return ledgerOk([]);
   return ledgerOk(first.map((cell) => (typeof cell === 'string' ? cell : cell === null || cell === undefined ? '' : String(cell))));
+};
+
+/**
+ * 시트 **위쪽 몇 줄**을 행 단위로 읽는다(레이아웃 탐색용).
+ *
+ * 🔴 `fetchHeaderRow` 와 갈라 두는 이유: 저쪽은 "헤더는 1행"이라는 전제를 갖고 한 줄만 읽는다.
+ *    널리 쓰이는 가계부 템플릿은 1행이 제목·안내문이고 진짜 헤더가 한참 아래라(실측 11행) 그
+ *    전제가 성립하지 않는다. 전제가 다른 함수를 하나로 합치면 한쪽 호출부가 조용히 틀린 줄을 읽는다.
+ *
+ * ⚠ **데이터 셀을 읽는 것이 아니다.** 위 N 줄만 보고 모양을 알아낸 뒤 버린다 — 가계부 값은 이
+ *   단계에서 앱 메모리에 남지 않는다(연결 전에 남의 시트 내용을 들고 있지 않는다는 규율).
+ * ⚠ 열 길이가 제각각이라 짧은 행은 그대로 짧게 온다. 호출부(`suggestColumnMapping`)가 빈 칸을
+ *   후보에서 거르므로 여기서 굳이 채우지 않는다.
+ */
+export const fetchGridRows = async (
+  context: SheetsRequestContext,
+  params: { readonly spreadsheetId: string; readonly sheetTitle: string; readonly lastRow: number }
+): Promise<LedgerResult<readonly (readonly string[])[]>> => {
+  const range = `${quoteSheetTitle(params.sheetTitle)}!1:${params.lastRow}`;
+  const result = await request<unknown>(context, {
+    method: 'GET',
+    url: `${SHEETS_BASE}/${encodeURIComponent(params.spreadsheetId)}/values/${encodeURIComponent(range)}?majorDimension=ROWS&valueRenderOption=FORMATTED_VALUE`
+  });
+  if (!result.ok) return passThroughError(result.error);
+
+  const payload = result.value;
+  if (!payload || typeof payload !== 'object') return ledgerErr(ledgerError('invalid-response'));
+  const values = (payload as Record<string, unknown>).values;
+  // 빈 시트는 `values` 키 자체가 없다 — 실패가 아니라 "아무것도 없다"이다.
+  if (values === undefined) return ledgerOk([]);
+  if (!Array.isArray(values)) return ledgerErr(ledgerError('invalid-response'));
+
+  return ledgerOk(
+    values.map((row) =>
+      Array.isArray(row)
+        ? row.map((cell) => (typeof cell === 'string' ? cell : cell === null || cell === undefined ? '' : String(cell)))
+        : []
+    )
+  );
 };
 
 /* ── 값 쓰기 ────────────────────────────────────────────────────────────────── */

@@ -98,7 +98,7 @@ describe('api/post-list — 목록 주입', () => {
   it('포트폴리오 목록 title 은 갤러리 카피다', async () => {
     stubFetch({ rows: [{ id: ID_A, kind: 'portfolio', title: 'x' }] });
     const html = await (await call('kind=portfolio')).text();
-    expect(html).toContain('<title>포트폴리오 갤러리 - Hungry Hippo</title>');
+    expect(html).toContain('<title>배당계산 갤러리 - Hungry Hippo</title>');
   });
 
   it('제목의 <script> 는 텍스트로 이스케이프한다(마크업 실행 불가)', async () => {
@@ -152,7 +152,7 @@ describe('api/post-list — 빈 목록·실패 처리', () => {
     const html = await res.text();
 
     expect(res.status).toBe(200);
-    expect(html).toContain('<title>포트폴리오 갤러리 - Hungry Hippo</title>');
+    expect(html).toContain('<title>배당계산 갤러리 - Hungry Hippo</title>');
     expect(html).toContain('<div id="root"></div>');
     expect(html).not.toContain('<nav');
   });

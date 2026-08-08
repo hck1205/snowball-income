@@ -1,3 +1,4 @@
+import { HIDDEN_STARS_LIST } from './dividendLists.hiddenStars.data';
 import type { DividendList, DividendListId, DividendListMember } from './dividendLists.types';
 
 /**
@@ -515,5 +516,12 @@ export const CURATED_DIVIDEND_LISTS: Record<DividendListId, DividendList> = {
     coverageNote:
       '출처는 배당챔피언과 배당킹을 겹치지 않게 나눠 싣습니다. 그래서 이 목록은 연속 증배 25~49년 구간이며, 50년 이상은 배당킹 목록에 있습니다. 출처 페이지 본문은 전체 139종을 언급하지만 공개된 표에는 83종이 실려 있어, 확인한 83종만 담았습니다.',
     members: withConfirmedBy(CHAMPIONS_MEMBERS, CHAMPIONS_CONFIRMED_BY, true)
-  }
+  },
+  /*
+   * 🔴 배당 히든스타만 성격이 다르다 — 앞의 셋은 **바깥 기관이 만든 명부**를 사람이 옮겨 적은
+   *    것이고, 이것은 그 셋 어디에도 없는 종목을 **공개된 규칙으로 걸러 낸** 목록이다.
+   *    그래서 여기 손으로 적을 멤버가 없고, 생성물이 곧 큐레이션이다.
+   *    규칙은 `dividendLists.hiddenStars.ts`, 생성기는 `npm run dividend:hidden-stars`.
+   */
+  hiddenStars: HIDDEN_STARS_LIST
 };

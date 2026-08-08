@@ -201,7 +201,7 @@ var toNodeHandler = (webHandler) => {
 // server/handlers/PostList/PostList.ts
 var LIST_META = {
   portfolio: {
-    title: "\uD3EC\uD2B8\uD3F4\uB9AC\uC624 \uAC24\uB7EC\uB9AC",
+    title: "\uBC30\uB2F9\uACC4\uC0B0 \uAC24\uB7EC\uB9AC",
     description: "Hungry Hippo \uCEE4\uBBA4\uB2C8\uD2F0\uC5D0 \uACF5\uC720\uB41C \uBC30\uB2F9 \uD3EC\uD2B8\uD3F4\uB9AC\uC624 \uC2DC\uB098\uB9AC\uC624 \uBAA8\uC74C\uC785\uB2C8\uB2E4. \uC6D4 \uBC30\uB2F9\xB7\uBAA9\uD45C \uB2EC\uC131 \uC2DC\uC810\uC744 \uC0B4\uD3B4\uBCF4\uC138\uC694."
   },
   board: {

@@ -81,3 +81,17 @@ export type {
   PivotRow,
   TopSpending
 } from './ledgerAnalysis';
+
+/* 분석 카드 뷰 모델 — 집계를 화면이 그릴 문자열로 접는다(표시 규칙은 여기가 진다). */
+export { TOP_SPENDING_LIMIT, TREND_MONTH_LIMIT, buildLedgerAnalysisModel } from './ledgerAnalysisModel';
+export type {
+  AnalysisBar,
+  FixitySection,
+  LedgerAnalysisModel,
+  PayerSection,
+  TrendPoint
+} from './ledgerAnalysisModel';
+
+/* 고정비 이어가기 — 지난달 고정비를 이번 달 초안으로. 🔴 제안만 만들고 쓰기는 호출부가 한다. */
+export { collectCarryOverCandidates } from './ledgerCarryOver';
+export type { CarryOverCandidate } from './ledgerCarryOver';

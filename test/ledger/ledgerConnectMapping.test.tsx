@@ -16,7 +16,7 @@ const mappingModel = (overrides: Partial<LedgerMappingModel> = {}): LedgerMappin
     { letter: 'B', header: '구분' },
     { letter: 'C', header: '' }
   ],
-  draft: { date: 'A', kind: 'B', amount: null, category: null, memo: null },
+  draft: { date: 'A', kind: 'B', amount: null, category: null, subcategory: null, payer: null, method: null, fixity: null, memo: null },
   matchedCount: 2,
   missingNames: ['금액', '분류'],
   previewRows: [],
@@ -90,7 +90,7 @@ describe('§4.2 열 매핑', () => {
     expect(screen.getByLabelText(/^구분\s*필수$/)).toHaveValue('B');
     expect(screen.getByLabelText(/^금액\s*필수$/)).toHaveValue('');
     // 선택 열은 "선택 안 함"이 기본값이고, 메모만 "필수" 칩이 없다.
-    expect(screen.getByLabelText('메모 (선택)')).toHaveValue('');
+    expect(screen.getByLabelText('내용 (선택)')).toHaveValue('');
     // 헤더가 비어 있으면 열 문자만 보여 준다.
     expect(within(dateSelect).getByRole('option', { name: 'C열' })).toBeInTheDocument();
     expect(within(dateSelect).getByRole('option', { name: 'A열 · 사용일자' })).toBeInTheDocument();
@@ -120,7 +120,7 @@ describe('§4.2 열 매핑', () => {
       baseViewModel({
         state: 'mapping',
         mapping: mappingModel({
-          draft: { date: 'A', kind: 'B', amount: 'C', category: 'A', memo: null },
+          draft: { date: 'A', kind: 'B', amount: 'C', category: 'A', subcategory: null, payer: null, method: null, fixity: null, memo: null },
           missingNames: [],
           canPreview: true,
           previewRows: [{ id: 'preview-2', cells: ['8월 3일 (월)', '지출', '12000', '식비', '점심'], unreadable: false }]
@@ -143,7 +143,7 @@ describe('§4.2 열 매핑', () => {
     renderLedgerView(
       baseViewModel({
         state: 'mapping',
-        mapping: mappingModel({ draft: { date: 'A', kind: 'B', amount: 'C', category: 'A', memo: null }, missingNames: [], canPreview: true })
+        mapping: mappingModel({ draft: { date: 'A', kind: 'B', amount: 'C', category: 'A', subcategory: null, payer: null, method: null, fixity: null, memo: null }, missingNames: [], canPreview: true })
       })
     );
 
@@ -158,7 +158,7 @@ describe('§4.2 열 매핑', () => {
       baseViewModel({
         state: 'mapping',
         mapping: mappingModel({
-          draft: { date: 'A', kind: 'B', amount: 'C', category: 'A', memo: null },
+          draft: { date: 'A', kind: 'B', amount: 'C', category: 'A', subcategory: null, payer: null, method: null, fixity: null, memo: null },
           missingNames: [],
           canPreview: true,
           allUnreadable: true,

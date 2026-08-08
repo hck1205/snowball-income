@@ -13,6 +13,7 @@ import {
   LayoutGrid,
   LineChart,
   ListOrdered,
+  Sparkles,
   Medal,
   MessageSquare,
   MessagesSquare,
@@ -105,11 +106,17 @@ export const DIVIDEND_LIST_GROUP_ITEMS = [
   { to: DIVIDEND_LIST_HUB_PATH, label: n.dividendListHub, Icon: ListOrdered },
   { to: dividendListPath('kings'), label: n.dividendKings, Icon: Crown },
   { to: dividendListPath('aristocrats'), label: n.dividendAristocrats, Icon: Gem },
-  { to: dividendListPath('champions'), label: n.dividendChampions, Icon: Medal }
+  { to: dividendListPath('champions'), label: n.dividendChampions, Icon: Medal },
+  /*
+   * 배당 히든스타(2026-08-08 신설) — **맨 끝**이다. 앞의 셋은 기간이 긴 순(50년 → 25년)이고
+   * 이것은 그 셋 어디에도 못 든 종목이라, 순서로도 "그다음"임을 말한다.
+   * ⚠ 글리프는 왕관·보석·메달과 결이 다르다 — 저 셋은 수여받은 지위이고 이건 아니다.
+   */
+  { to: dividendListPath('hiddenStars'), label: n.dividendHiddenStars, Icon: Sparkles }
 ] as const;
 
 /**
- * 커뮤니티 묶음 — 포트폴리오 갤러리 + 게시판(2026-08-05 신설, 사용자 지시).
+ * 커뮤니티 묶음 — 배당계산 갤러리 + 게시판(2026-08-05 신설, 사용자 지시).
  *
  * 왜 묶는가: 포트폴리오 묶음이 다섯으로 불어나면서 그 안의 갤러리만 성격이 달랐다(나머지는 공시
  * 자료, 갤러리는 사용자 글). 갤러리를 게시판 옆으로 옮기면 **"사람이 쓴 것"이 한 칸에 모인다.**
@@ -308,7 +315,7 @@ const NavLinkItems = () => (
         시뮬레이터(핵심 도구) → 내 포트폴리오(지금 상태·목표 달성) → 가계부(내 실측 데이터 — 같은 축이라 붙인다) →
         배당 캘린더(매일 볼 유틸리티) → 갤러리(구경 콘텐츠) → 게시판 → ETF 소개(검색 유입이 주라 nav 클릭률은
         가장 낮다). GA4 로 실측되면 재조정. */}
-    {/* 포트폴리오 묶음 — 내 배당 포트폴리오 + 대가들의 포트폴리오 + 포트폴리오 갤러리 셋.
+    {/* 포트폴리오 묶음 — 내 배당 포트폴리오 + 대가들의 포트폴리오 + 배당계산 갤러리 셋.
         아이콘은 지갑(Wallet): Briefcase 는 클리셰이고 PieChart 는 시뮬레이터(LineChart)와 혼동된다.
         ⚠ 갤러리는 원래 커뮤니티 축(갤러리·게시판)에 있었는데 2026-08-02 사용자 지시로 이리 옮겼다 —
           사용자에게는 "포트폴리오를 보는 곳"이 한 군데인 편이 낫다는 판단이다. 게시판은 그대로 남는다. */}
@@ -341,7 +348,7 @@ const NavLinkItems = () => (
         아이콘(Wallet·CalendarDays·BookOpen·Scale·LineChart·ReceiptText)과 겹치지 않는다.
         🔴 목록 3종을 각각 올리면 nav 가 11개가 되어 상한(8)을 넘는다 — 그래서 묶음이다. */}
     <NavGroupMenu label={n.dividendListGroup} Icon={Trophy} items={DIVIDEND_LIST_GROUP_ITEMS} />
-    {/* 커뮤니티 묶음(2026-08-05) — 포트폴리오 갤러리 + 게시판. 둘 다 **사용자가 쓴 것**이라 한 축이다.
+    {/* 커뮤니티 묶음(2026-08-05) — 배당계산 갤러리 + 게시판. 둘 다 **사용자가 쓴 것**이라 한 축이다.
         🔴 커뮤니티가 꺼진 배포에서는 묶음째 사라진다(안에 든 두 목적지가 모두 커뮤니티 전용이다). */}
     {isCommunityEnabled ? (
       <NavGroupMenu label={n.communityGroup} Icon={MessagesSquare} items={COMMUNITY_GROUP_ITEMS} />

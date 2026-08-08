@@ -107,14 +107,22 @@ export type LedgerConnection = {
   dismissCreatedNotice: () => void;
 };
 
-/** 논리 필드 → 열 문자 초안. 데이터 계층이 준 인덱스 제안을 화면 어휘로 옮긴다. */
-const toMappingDraft = (mapping: Partial<ColumnMapping>): LedgerMappingDraft => ({
-  date: mapping.date === undefined ? null : columnLetter(mapping.date),
-  kind: mapping.kind === undefined ? null : columnLetter(mapping.kind),
-  amount: mapping.amount === undefined ? null : columnLetter(mapping.amount),
-  category: mapping.category === undefined ? null : columnLetter(mapping.category),
-  memo: mapping.memo === undefined ? null : columnLetter(mapping.memo)
-});
+/**
+ * 논리 필드 → 열 문자 초안. 데이터 계층이 준 인덱스 제안을 화면 어휘로 옮긴다.
+ *
+ * 🔴 **필드를 손으로 나열하지 않는다.** 이 레포가 같은 실수를 다섯 번 했다 — 선택 필드를 한 줄씩
+ *    적어 둔 자리가 v2 에서 축이 늘 때마다 옛 목록으로 남아, 그 열을 요청조차 않거나 저장에서
+ *    떨어뜨렸다. 전부 오류 없이 조용히 틀리는 형태였다. `LEDGER_MAPPING_FIELDS` 를 돌면
+ *    화면·초안·검증이 한 목록을 보게 되어 어긋날 자리가 사라진다.
+ */
+const toMappingDraft = (mapping: Partial<ColumnMapping>): LedgerMappingDraft => {
+  const draft: Partial<Record<LedgerFieldId, string | null>> = {};
+  for (const field of LEDGER_MAPPING_FIELDS) {
+    const index = mapping[field.id];
+    draft[field.id] = index === undefined ? null : columnLetter(index);
+  }
+  return draft as LedgerMappingDraft;
+};
 
 /** 열 문자 초안 → 데이터 계층의 열 인덱스 매핑. 필수가 빠지면 `null`. */
 const toColumnMapping = (draft: LedgerMappingDraft): ColumnMapping | null => {

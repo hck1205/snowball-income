@@ -4,6 +4,7 @@ import { Banner, Button, Card, HintText, MODAL_EXIT_MS, PageFooter, PageHero } f
 import { useOverlayPresence } from '@/shared/hooks';
 import { LEDGER_COPY } from '../copy';
 import {
+  LedgerAnalysisCard,
   LedgerConnectPanel,
   LedgerDividendCard,
   LedgerFailureList,
@@ -20,6 +21,13 @@ import type { LedgerViewProps } from './LedgerPage.types';
 import {
   ActionHint,
   ActionRow,
+  CarryOverAmount,
+  CarryOverBody,
+  CarryOverLabel,
+  CarryOverList,
+  CarryOverMeta,
+  CarryOverRow,
+  CarryOverTitle,
   AlertLane,
   BannerRow,
   CountBadge,
@@ -157,6 +165,9 @@ export default function LedgerPageView({
   onCloseRemove,
   onRetryRow,
   onRetryAll,
+  onOpenCarryOver,
+  onConfirmCarryOver,
+  onCloseCarryOver,
   onReconnect,
   onRefresh,
   onOpenSheet,
@@ -525,6 +536,16 @@ export default function LedgerPageView({
               monthLabel={viewModel.monthLabel}
               onToggle={onToggleDividendOverlay}
             />
+
+            {/*
+              P4·P5 — **이 달 살펴보기**. 배당 카드와 같은 층의 형제다(`Card` 안 `Card` 금지 ·
+              주역 카드는 화면당 1개이고 그것은 위 월 요약이다).
+              🔴 여기 숫자는 요약 3숫자에 **한 번도 더해지지 않는다** — 요약은 "얼마인가",
+                 이 카드는 "어디에 몰렸는가"다. 두 카드가 같은 합계를 두 번 말하면 어느 쪽이
+                 진짜인지 사용자가 물어야 한다.
+              🔴 시트에 아무것도 쓰지 않는다(읽은 것을 접어 보여 줄 뿐이다).
+            */}
+            <LedgerAnalysisCard model={viewModel.analysis} monthLabel={viewModel.monthLabel} />
           </ScopeRail>
 
           <LedgerColumn>
@@ -642,6 +663,62 @@ export default function LedgerPageView({
                 </EmptyBlock>
               )}
             </Card>
+
+            {/*
+              고정비 이어가기 — 지난달 고정비를 이번 달에 한 번에 넣는다.
+
+              🔴 **두 단계다.** 버튼은 목록을 열 뿐이고, 확인해야 시트에 쓴다. 남의 시트에 여러 줄을
+                 한 번에 넣는 일이라 한 번의 오조작이 비싸다(되돌리려면 넣은 줄을 하나씩 지운다).
+              🔴 이어갈 것이 없으면 **자리 자체가 없다** — 눌러도 아무 일 없는 컨트롤을 두지 않는다.
+              🔴 만료 중에는 잠그고 사유 줄을 가리킨다(다른 쓰기 컨트롤과 같은 규율).
+            */}
+            {viewModel.carryOver ? (
+              <Card tone="sunken">
+                {viewModel.carryOver.isOpen ? (
+                  <>
+                    <CarryOverTitle>{copy.carryOver.title}</CarryOverTitle>
+                    <CarryOverBody>{copy.carryOver.body}</CarryOverBody>
+                    <CarryOverList>
+                      {viewModel.carryOver.rows.map((row) => (
+                        <CarryOverRow key={row.id}>
+                          <CarryOverLabel>{row.label}</CarryOverLabel>
+                          <CarryOverMeta>{row.dateText}</CarryOverMeta>
+                          <CarryOverAmount>{row.amountText}</CarryOverAmount>
+                        </CarryOverRow>
+                      ))}
+                    </CarryOverList>
+                    <ActionRow>
+                      <Button
+                        type="button"
+                        variant="primary"
+                        loading={viewModel.carryOver.isSaving}
+                        disabled={viewModel.isExpired}
+                        aria-describedby={viewModel.isExpired ? expiredHintId : undefined}
+                        onClick={onConfirmCarryOver}
+                      >
+                        {viewModel.carryOver.isSaving ? copy.carryOver.saving : copy.carryOver.confirm}
+                      </Button>
+                      <Button type="button" variant="secondary" onClick={onCloseCarryOver}>
+                        {copy.carryOver.cancel}
+                      </Button>
+                    </ActionRow>
+                  </>
+                ) : (
+                  <ActionRow>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      startIcon={<RotateCw size={16} strokeWidth={1.8} aria-hidden focusable={false} />}
+                      disabled={viewModel.isExpired}
+                      aria-describedby={viewModel.isExpired ? expiredHintId : undefined}
+                      onClick={onOpenCarryOver}
+                    >
+                      {copy.carryOver.open(viewModel.carryOver.count)}
+                    </Button>
+                  </ActionRow>
+                )}
+              </Card>
+            ) : null}
 
             {/* 🔴 요약 카드 **밖 형제**로 둔다(`Card` 안 `Card` 금지). */}
             {viewModel.partialFailure ? (

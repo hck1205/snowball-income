@@ -1,6 +1,15 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
 
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "snowball-income.vercel.app" }],
+      "destination": "https://hungry-hippo.xyz/:path*",
+      "permanent": true
+    }
+  ],
+
   "rewrites": [
     { "source": "/sitemap-posts.xml", "destination": "/api/sitemap" },
     { "source": "/community/portfolio", "destination": "/api/post-list?kind=portfolio" },
@@ -21,6 +30,10 @@
     {
       "source": "/dividend/champions",
       "destination": "/api/seo-html?surface=dividend-list&list=champions"
+    },
+    {
+      "source": "/dividend/hidden-stars",
+      "destination": "/api/seo-html?surface=dividend-list&list=hiddenStars"
     },
     { "source": "/(.*)", "destination": "/index.html" }
   ],

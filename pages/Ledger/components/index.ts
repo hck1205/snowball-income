@@ -32,3 +32,7 @@ export type { LedgerTableProps } from './LedgerTable';
 
 export { LedgerTabPicker, tabSwitchBlockedReason } from './LedgerTabPicker';
 export type { LedgerTabPickerProps } from './LedgerTabPicker';
+
+/* 분석 카드(P4·P5). 🔴 월 요약 카드의 **형제**다 — Card 안 Card 금지 · 주역 카드는 화면당 1개. */
+export { LedgerAnalysisCard } from './LedgerAnalysisCard';
+export type { LedgerAnalysisCardProps } from './LedgerAnalysisCard';

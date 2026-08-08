@@ -10,18 +10,18 @@ var __export = (target, all) => {
 
 // shared/lib/server/nodeHandler.ts
 var firstHeaderValue = (headers, name) => {
-  const raw = headers[name];
-  const value = Array.isArray(raw) ? raw[0] : raw;
+  const raw2 = headers[name];
+  const value = Array.isArray(raw2) ? raw2[0] : raw2;
   if (typeof value !== "string") return void 0;
   const first = value.split(",")[0]?.trim();
   return first && first.length > 0 ? first : void 0;
 };
 var resolveRequestUrl = (req) => {
-  const raw = req.url && req.url.length > 0 ? req.url : "/";
-  if (/^https?:\/\//i.test(raw)) return raw;
+  const raw2 = req.url && req.url.length > 0 ? req.url : "/";
+  if (/^https?:\/\//i.test(raw2)) return raw2;
   const host = firstHeaderValue(req.headers, "x-forwarded-host") ?? firstHeaderValue(req.headers, "host") ?? "localhost";
   const proto = firstHeaderValue(req.headers, "x-forwarded-proto") ?? (req.socket?.encrypted === true ? "https" : "http");
-  return new URL(raw, `${proto}://${host}`).toString();
+  return new URL(raw2, `${proto}://${host}`).toString();
 };
 var toWebHeaders = (headers) => {
   const web = new Headers();
@@ -45,9 +45,9 @@ var concatChunks = (chunks) => {
   }
   return merged.buffer;
 };
-var toChunk = (raw) => {
-  if (raw instanceof Uint8Array) return raw;
-  if (typeof raw === "string") return new TextEncoder().encode(raw);
+var toChunk = (raw2) => {
+  if (raw2 instanceof Uint8Array) return raw2;
+  if (typeof raw2 === "string") return new TextEncoder().encode(raw2);
   return void 0;
 };
 var serializeParsedBody = (body) => {
@@ -153,9 +153,15 @@ var resolveSiteUrl = (requestUrl) => {
 
 // shared/constants/routes/index.ts
 var SIMULATOR_PATH = "/simulator";
-var DIVIDEND_LIST_IDS = ["kings", "aristocrats", "champions"];
+var DIVIDEND_LIST_IDS = ["kings", "aristocrats", "champions", "hiddenStars"];
+var DIVIDEND_LIST_SEGMENTS = {
+  kings: "kings",
+  aristocrats: "aristocrats",
+  champions: "champions",
+  hiddenStars: "hidden-stars"
+};
 var DIVIDEND_LIST_HUB_PATH = "/dividend/lists";
-var dividendListPath = (id) => `/dividend/${id}`;
+var dividendListPath = (id) => `/dividend/${DIVIDEND_LIST_SEGMENTS[id]}`;
 
 // shared/constants/dividendLists/dividendLists.generated.json
 var dividendLists_generated_default = {
@@ -1353,6 +1359,569 @@ var dividendLists_metrics_generated_default = {
   }
 };
 
+// shared/constants/dividendLists/dividendLists.hiddenStars.generated.json
+var dividendLists_hiddenStars_generated_default = {
+  asOf: "2026-08-04",
+  note: "\uC218\uC9D1\uAE30(npm run dividend:hidden-stars)\uAC00 \uC720\uB2C8\uBC84\uC2A4\uC5D0 \uC120\uC815 \uADDC\uCE59\uC744 \uB3CC\uB824 \uB9CC\uB4E0\uB2E4. \uC190\uC73C\uB85C \uACE0\uCE58\uC9C0 \uB9C8\uB77C. \uADDC\uCE59\uC740 shared/constants/dividendLists/dividendLists.hiddenStars.ts \uAC00 \uC815\uBCF8\uC774\uB2E4.",
+  members: [
+    {
+      ticker: "NXRT",
+      name: "NexPoint Residential Trust, Inc.",
+      sector: "realEstate",
+      sourceSectorLabel: "Real Estate",
+      minimumStreakYears: 10,
+      forwardYieldPercent: 8.182169046700116,
+      fiveYearGrowthPercent: 10.256745157647828,
+      score: 13.31054162552403,
+      isHighYieldOutlier: true
+    },
+    {
+      ticker: "PFBC",
+      name: "Preferred Bank",
+      sector: "financials",
+      sourceSectorLabel: "Financials",
+      minimumStreakYears: 10,
+      forwardYieldPercent: 3.0160226201696516,
+      fiveYearGrowthPercent: 20.11244339814313,
+      score: 13.072244319241218,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "RHI",
+      name: "Robert Half",
+      sector: "industrials",
+      sourceSectorLabel: "Industrials",
+      minimumStreakYears: 20,
+      forwardYieldPercent: 6.093467596178673,
+      fiveYearGrowthPercent: 11.654085522403058,
+      score: 11.920510357380202,
+      isHighYieldOutlier: true
+    },
+    {
+      ticker: "ACN",
+      name: "Accenture",
+      sector: "informationTechnology",
+      sourceSectorLabel: "Information Technology",
+      minimumStreakYears: 20,
+      forwardYieldPercent: 3.933397683397683,
+      fiveYearGrowthPercent: 13.09264089979596,
+      score: 10.479718133295663,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "WLK",
+      name: "Westlake Corporation",
+      sector: "materials",
+      sourceSectorLabel: "Materials",
+      minimumStreakYears: 20,
+      forwardYieldPercent: 3.033338102732866,
+      fiveYearGrowthPercent: 14.826125503976373,
+      score: 10.446400854721052,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "BBY",
+      name: "Best Buy",
+      sector: "consumerDiscretionary",
+      sourceSectorLabel: "Consumer Discretionary",
+      minimumStreakYears: 20,
+      forwardYieldPercent: 4.504398826979472,
+      fiveYearGrowthPercent: 11.550670014054099,
+      score: 10.279733834006521,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "CUBE",
+      name: "CubeSmart",
+      sector: "realEstate",
+      sourceSectorLabel: "Real Estate",
+      minimumStreakYears: 15,
+      forwardYieldPercent: 5.066921606118547,
+      fiveYearGrowthPercent: 9.521121099648798,
+      score: 9.827482155942945,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "AFG",
+      name: "American Financial Group",
+      sector: "financials",
+      sourceSectorLabel: "Financials",
+      minimumStreakYears: 20,
+      forwardYieldPercent: 3.720405862457723,
+      fiveYearGrowthPercent: 12.195514544619957,
+      score: 9.818163134767701,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "EGP",
+      name: "EastGroup Properties",
+      sector: "realEstate",
+      sourceSectorLabel: "Real Estate",
+      minimumStreakYears: 15,
+      forwardYieldPercent: 2.9739063699155794,
+      fiveYearGrowthPercent: 13.29568106011707,
+      score: 9.621746899974115,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "TRNO",
+      name: "Terreno Realty Corporation",
+      sector: "realEstate",
+      sourceSectorLabel: "Real Estate",
+      minimumStreakYears: 10,
+      forwardYieldPercent: 2.900976290097629,
+      fiveYearGrowthPercent: 12.659148174514279,
+      score: 9.230550377354769,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "NKE",
+      name: "Nike, Inc.",
+      sector: "consumerDiscretionary",
+      sourceSectorLabel: "Consumer Discretionary",
+      minimumStreakYears: 20,
+      forwardYieldPercent: 3.846153846153846,
+      fiveYearGrowthPercent: 10.300830235778413,
+      score: 8.996568964043053,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "TRN",
+      name: "Trinity Industries, Inc.",
+      sector: "industrials",
+      sourceSectorLabel: "Industrials",
+      minimumStreakYears: 10,
+      forwardYieldPercent: 3.956604977664327,
+      fiveYearGrowthPercent: 9.565425774785385,
+      score: 8.73931786505702,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "LKFN",
+      name: "Lakeland Financial",
+      sector: "financials",
+      sourceSectorLabel: "Financials",
+      minimumStreakYears: 10,
+      forwardYieldPercent: 3.306310602447942,
+      fiveYearGrowthPercent: 10.756634324829006,
+      score: 8.684627764862444,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "CNS",
+      name: "Cohen & Steers, Inc.",
+      sector: "financials",
+      sourceSectorLabel: "Financials",
+      minimumStreakYears: 10,
+      forwardYieldPercent: 3.166725747370909,
+      fiveYearGrowthPercent: 9.714850709074053,
+      score: 8.024151101907936,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "POR",
+      name: "Portland General Electric",
+      sector: "utilities",
+      sourceSectorLabel: "Utilities",
+      minimumStreakYears: 15,
+      forwardYieldPercent: 4.39481555333998,
+      fiveYearGrowthPercent: 6.399531281508364,
+      score: 7.594581194094163,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "EIX",
+      name: "Edison International",
+      sector: "utilities",
+      sourceSectorLabel: "Utilities",
+      minimumStreakYears: 20,
+      forwardYieldPercent: 4.914637559473832,
+      fiveYearGrowthPercent: 5.351793066568655,
+      score: 7.590534092758159,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "ELS",
+      name: "Equity Lifestyle Properties",
+      sector: "realEstate",
+      sourceSectorLabel: "Real Estate",
+      minimumStreakYears: 20,
+      forwardYieldPercent: 3.3074463225216997,
+      fiveYearGrowthPercent: 8.468247099429128,
+      score: 7.541569872236264,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "JJSF",
+      name: "J&J Snack Foods Corp.",
+      sector: "consumerStaples",
+      sourceSectorLabel: "Consumer Staples",
+      minimumStreakYears: 10,
+      forwardYieldPercent: 4.049607694254619,
+      fiveYearGrowthPercent: 6.288273250054988,
+      score: 7.193744319282112,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "HOMB",
+      name: "Home BancShares",
+      sector: "financials",
+      sourceSectorLabel: "Financials",
+      minimumStreakYears: 15,
+      forwardYieldPercent: 2.6854219948849103,
+      fiveYearGrowthPercent: 8.997698704834534,
+      score: 7.184271347302177,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "WEC",
+      name: "WEC Energy Group",
+      sector: "utilities",
+      sourceSectorLabel: "Utilities",
+      minimumStreakYears: 20,
+      forwardYieldPercent: 3.4882869692532936,
+      fiveYearGrowthPercent: 7.124682997948595,
+      score: 7.0506284682275915,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "CTRE",
+      name: "CareTrust REIT",
+      sector: "realEstate",
+      sourceSectorLabel: "Real Estate",
+      minimumStreakYears: 10,
+      forwardYieldPercent: 3.7845705967976713,
+      fiveYearGrowthPercent: 6.0280952775362495,
+      score: 6.798618235565796,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "AUB",
+      name: "Atlantic Union Bankshares, Corp.",
+      sector: "financials",
+      sourceSectorLabel: "Financials",
+      minimumStreakYears: 10,
+      forwardYieldPercent: 3.460369417816226,
+      fiveYearGrowthPercent: 6.342724238285391,
+      score: 6.631731536958922,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "HASI",
+      name: "Hannon Armstrong Sustainable Infrastructure Capital, Inc.",
+      sector: "financials",
+      sourceSectorLabel: "Financials",
+      minimumStreakYears: 10,
+      forwardYieldPercent: 4.406428201140487,
+      fiveYearGrowthPercent: 4.316756381013498,
+      score: 6.564806391647236,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "SR",
+      name: "Spire",
+      sector: "utilities",
+      sourceSectorLabel: "Utilities",
+      minimumStreakYears: 20,
+      forwardYieldPercent: 4.120364589836434,
+      fiveYearGrowthPercent: 4.7312584434531235,
+      score: 6.485993811562996,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "FULT",
+      name: "Fulton Financial Corporation",
+      sector: "financials",
+      sourceSectorLabel: "Financials",
+      minimumStreakYears: 10,
+      forwardYieldPercent: 3.0856678846934638,
+      fiveYearGrowthPercent: 6.724918187953888,
+      score: 6.448126978670407,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "EVRG",
+      name: "Evergy",
+      sector: "utilities",
+      sourceSectorLabel: "Utilities",
+      minimumStreakYears: 20,
+      forwardYieldPercent: 3.3401417758019942,
+      fiveYearGrowthPercent: 5.754052091282724,
+      score: 6.217167821443356,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "OTTR",
+      name: "Otter Tail Corporation",
+      sector: "utilities",
+      sourceSectorLabel: "Utilities",
+      minimumStreakYears: 10,
+      forwardYieldPercent: 2.56433007985803,
+      fiveYearGrowthPercent: 7.2485713934655305,
+      score: 6.188615776590796,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "LNT",
+      name: "Alliant Energy",
+      sector: "utilities",
+      sourceSectorLabel: "Utilities",
+      minimumStreakYears: 20,
+      forwardYieldPercent: 3.002665918338712,
+      fiveYearGrowthPercent: 5.9363175944590285,
+      score: 5.970824715568226,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "XEL",
+      name: "Xcel Energy",
+      sector: "utilities",
+      sourceSectorLabel: "Utilities",
+      minimumStreakYears: 20,
+      forwardYieldPercent: 3.0531599948513324,
+      fiveYearGrowthPercent: 5.79893110716263,
+      score: 5.952625548432648,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "APOG",
+      name: "Apogee Enterprises, Inc.",
+      sector: "industrials",
+      sourceSectorLabel: "Industrials",
+      minimumStreakYears: 10,
+      forwardYieldPercent: 2.5732666190135816,
+      fiveYearGrowthPercent: 6.699675773069802,
+      score: 5.923104505548483,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "SFNC",
+      name: "Simmons First National Corporation",
+      sector: "financials",
+      sourceSectorLabel: "Financials",
+      minimumStreakYears: 10,
+      forwardYieldPercent: 3.604358759430008,
+      fiveYearGrowthPercent: 4.613115579519111,
+      score: 5.910916549189563,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "AVNT",
+      name: "Avient",
+      sector: "materials",
+      sourceSectorLabel: "Materials",
+      minimumStreakYears: 15,
+      forwardYieldPercent: 2.9419630917357584,
+      fiveYearGrowthPercent: 5.870154107037795,
+      score: 5.8770401452546555,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "TXNM",
+      name: "TXNM Energy",
+      sector: "utilities",
+      sourceSectorLabel: "Utilities",
+      minimumStreakYears: 10,
+      forwardYieldPercent: 2.9375,
+      fiveYearGrowthPercent: 5.784463865939604,
+      score: 5.829731932969802,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "UCB",
+      name: "United Community Banks, Inc.",
+      sector: "financials",
+      sourceSectorLabel: "Financials",
+      minimumStreakYears: 10,
+      forwardYieldPercent: 2.790957298353335,
+      fiveYearGrowthPercent: 5.922384104881218,
+      score: 5.752149350793944,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "INGR",
+      name: "Ingredion",
+      sector: "consumerStaples",
+      sourceSectorLabel: "Consumer Staples",
+      minimumStreakYears: 15,
+      forwardYieldPercent: 3.2662816172077274,
+      fiveYearGrowthPercent: 4.893816562469966,
+      score: 5.71318989844271,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "OGS",
+      name: "One Gas",
+      sector: "utilities",
+      sourceSectorLabel: "Utilities",
+      minimumStreakYears: 20,
+      forwardYieldPercent: 3.4693877551020407,
+      fiveYearGrowthPercent: 4.408584653882852,
+      score: 5.673680082043466,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "ASB",
+      name: "Associated Bank",
+      sector: "financials",
+      sourceSectorLabel: "Financials",
+      minimumStreakYears: 10,
+      forwardYieldPercent: 3.0573248407643314,
+      fiveYearGrowthPercent: 5.024607263868264,
+      score: 5.569628472698463,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "INDB",
+      name: "Independent Bank Corp.",
+      sector: "financials",
+      sourceSectorLabel: "Financials",
+      minimumStreakYears: 10,
+      forwardYieldPercent: 3.011764705882353,
+      fiveYearGrowthPercent: 5.103901130952315,
+      score: 5.563715271358511,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "MSEX",
+      name: "Middlesex Water Company",
+      sector: "utilities",
+      sourceSectorLabel: "Utilities",
+      minimumStreakYears: 10,
+      forwardYieldPercent: 2.5329815303430077,
+      fiveYearGrowthPercent: 5.839502638636529,
+      score: 5.452732849661272,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "EIG",
+      name: "Employers Holdings, Inc.",
+      sector: "financials",
+      sourceSectorLabel: "Financials",
+      minimumStreakYears: 10,
+      forwardYieldPercent: 2.685093780848964,
+      fiveYearGrowthPercent: 5.061112176150684,
+      score: 5.215649868924306,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "NBTB",
+      name: "NBT Bancorp, Inc.",
+      sector: "financials",
+      sourceSectorLabel: "Financials",
+      minimumStreakYears: 10,
+      forwardYieldPercent: 2.797202797202797,
+      fiveYearGrowthPercent: 4.718407860618323,
+      score: 5.156406727511959,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "FAF",
+      name: "First American Financial Corporation",
+      sector: "financials",
+      sourceSectorLabel: "Financials",
+      minimumStreakYears: 15,
+      forwardYieldPercent: 2.9177718832891246,
+      fiveYearGrowthPercent: 4.180926810264429,
+      score: 5.008235288421339,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "WAFD",
+      name: "WaFd, Inc.",
+      sector: "financials",
+      sourceSectorLabel: "Financials",
+      minimumStreakYears: 10,
+      forwardYieldPercent: 2.8907922912205573,
+      fiveYearGrowthPercent: 4.180926810264429,
+      score: 4.981255696352772,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "THO",
+      name: "Thor Industries",
+      sector: "consumerDiscretionary",
+      sourceSectorLabel: "Consumer Discretionary",
+      minimumStreakYears: 15,
+      forwardYieldPercent: 2.6835247064894854,
+      fiveYearGrowthPercent: 4.563955259127317,
+      score: 4.965502336053143,
+      isHighYieldOutlier: false
+    }
+  ],
+  monthly: [
+    {
+      month: "2026-08",
+      asOf: "2026-08-04",
+      star: {
+        ticker: "NXRT",
+        name: "NexPoint Residential Trust, Inc.",
+        sector: "realEstate",
+        sourceSectorLabel: "Real Estate",
+        minimumStreakYears: 10,
+        forwardYieldPercent: 8.182169046700116,
+        fiveYearGrowthPercent: 10.256745157647828,
+        score: 13.31054162552403,
+        isHighYieldOutlier: true
+      }
+    }
+  ]
+};
+
+// shared/constants/dividendLists/dividendLists.hiddenStars.data.ts
+var raw = dividendLists_hiddenStars_generated_default;
+var toMember = (star) => ({
+  ticker: star.ticker,
+  name: star.name,
+  sector: star.sector,
+  sourceSectorLabel: star.sourceSectorLabel ?? "",
+  /*
+   * 🔴 이 목록의 "확인해 준 소스"는 **규칙 그 자체**다. 앞의 세 목록은 바깥 명부를 옮겨 온 것이라
+   *    누가 실었는지가 근거이지만, 여기는 우리가 공개된 규칙으로 걸러 낸 것이라 근거가 규칙이다.
+   *    빈 배열로 두면 화면이 "출처 없음"으로 읽어 버리므로 규칙 이름을 적는다.
+   */
+  confirmedBy: ["\uBC30\uB2F9 \uD788\uB4E0\uC2A4\uD0C0 \uC120\uC815 \uADDC\uCE59"],
+  forwardYieldPercent: star.forwardYieldPercent,
+  fiveYearGrowthPercent: star.fiveYearGrowthPercent
+});
+var FALLBACK_AS_OF = "";
+var HIDDEN_STARS_AS_OF = raw.asOf ?? FALLBACK_AS_OF;
+var HIDDEN_STARS_LIST = {
+  id: "hiddenStars",
+  minimumStreakYears: 10,
+  /* 🔴 상한이 24 인 것이 이 목록의 정의다 — 25년을 넘으면 배당귀족·배당챔피언 쪽으로 간다. */
+  maximumStreakYears: 24,
+  asOf: HIDDEN_STARS_AS_OF,
+  sources: [
+    {
+      label: "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
+      url: "https://accounts.profunds.com/etfdata/psdlyhld.csv",
+      role: "primary",
+      retrievedAt: "2026-07-31"
+    },
+    {
+      label: "SPDR SDY\xB7SMDV\xB7REGL \uBCF4\uC720\uB0B4\uC5ED",
+      url: "https://www.ssga.com/us/en/intermediary/etfs/spdr-sp-dividend-etf-sdy",
+      role: "primary",
+      retrievedAt: "2026-07-31"
+    }
+  ],
+  coverageNote: "\uBC30\uB2F9\uD0B9\xB7\uBC30\uB2F9\uADC0\uC871\xB7\uBC30\uB2F9\uCC54\uD53C\uC5B8 \uC5B4\uB514\uC5D0\uB3C4 \uC5C6\uB294 \uC885\uBAA9\uB9CC \uB2F4\uC2B5\uB2C8\uB2E4. \uD6C4\uBCF4\uB294 \uBC30\uB2F9\uC131\uC7A5 ETF(NOBL\xB7SDY\xB7SMDV\xB7REGL) \uBCF4\uC720\uB0B4\uC5ED\uC5D0\uC11C \uBAA8\uC558\uACE0, \uACF5\uAC1C\uB41C \uC120\uC815 \uADDC\uCE59\uC744 \uD1B5\uACFC\uD55C \uC885\uBAA9\uB9CC \uC2E4\uC5C8\uC2B5\uB2C8\uB2E4. \uC138 \uBAA9\uB85D\uACFC \uB2EC\uB9AC \uBC14\uAE65 \uAE30\uAD00\uC774 \uB9CC\uB4E0 \uBA85\uBD80\uAC00 \uC544\uB2C8\uB77C \uC774 \uC11C\uBE44\uC2A4\uAC00 \uADDC\uCE59\uC73C\uB85C \uAC78\uB7EC \uB0B8 \uBAA9\uB85D\uC774\uBA70, \uADDC\uCE59\uACFC \uAE30\uC900\uC77C\uC740 \uC774 \uD398\uC774\uC9C0\uC5D0 \uADF8\uB300\uB85C \uC801\uD600 \uC788\uC2B5\uB2C8\uB2E4. \uC5F0\uC18D \uC99D\uBC30 \uC5F0\uC218\uB294 \uD6C4\uBCF4\uB97C \uBAA8\uC740 ETF\uAC00 \uBCF4\uC7A5\uD558\uB294 \uD558\uD55C\uC774\uACE0 \uC815\uD655\uD55C \uC5F0\uC218\uAC00 \uC544\uB2D9\uB2C8\uB2E4.",
+  members: (raw.members ?? []).map(toMember)
+};
+var HIDDEN_STAR_MONTHLY = [...raw.monthly ?? []].sort((left, right) => right.month.localeCompare(left.month)).map((pick) => ({
+  month: pick.month,
+  asOf: pick.asOf,
+  ticker: pick.star.ticker,
+  name: pick.star.name,
+  sector: pick.star.sector,
+  minimumStreakYears: pick.star.minimumStreakYears,
+  forwardYieldPercent: pick.star.forwardYieldPercent,
+  fiveYearGrowthPercent: pick.star.fiveYearGrowthPercent,
+  isHighYieldOutlier: pick.star.isHighYieldOutlier
+}));
+var LATEST_HIDDEN_STAR = HIDDEN_STAR_MONTHLY[0] ?? null;
+
 // shared/constants/dividendLists/dividendLists.curated.ts
 var NAME_REPAIRS = {
   APD: "Air Products and Chemicals, Inc.",
@@ -1684,7 +2253,14 @@ var CURATED_DIVIDEND_LISTS = {
     ],
     coverageNote: "\uCD9C\uCC98\uB294 \uBC30\uB2F9\uCC54\uD53C\uC5B8\uACFC \uBC30\uB2F9\uD0B9\uC744 \uACB9\uCE58\uC9C0 \uC54A\uAC8C \uB098\uB220 \uC2E3\uC2B5\uB2C8\uB2E4. \uADF8\uB798\uC11C \uC774 \uBAA9\uB85D\uC740 \uC5F0\uC18D \uC99D\uBC30 25~49\uB144 \uAD6C\uAC04\uC774\uBA70, 50\uB144 \uC774\uC0C1\uC740 \uBC30\uB2F9\uD0B9 \uBAA9\uB85D\uC5D0 \uC788\uC2B5\uB2C8\uB2E4. \uCD9C\uCC98 \uD398\uC774\uC9C0 \uBCF8\uBB38\uC740 \uC804\uCCB4 139\uC885\uC744 \uC5B8\uAE09\uD558\uC9C0\uB9CC \uACF5\uAC1C\uB41C \uD45C\uC5D0\uB294 83\uC885\uC774 \uC2E4\uB824 \uC788\uC5B4, \uD655\uC778\uD55C 83\uC885\uB9CC \uB2F4\uC558\uC2B5\uB2C8\uB2E4.",
     members: withConfirmedBy(CHAMPIONS_MEMBERS, CHAMPIONS_CONFIRMED_BY, true)
-  }
+  },
+  /*
+   * 🔴 배당 히든스타만 성격이 다르다 — 앞의 셋은 **바깥 기관이 만든 명부**를 사람이 옮겨 적은
+   *    것이고, 이것은 그 셋 어디에도 없는 종목을 **공개된 규칙으로 걸러 낸** 목록이다.
+   *    그래서 여기 손으로 적을 멤버가 없고, 생성물이 곧 큐레이션이다.
+   *    규칙은 `dividendLists.hiddenStars.ts`, 생성기는 `npm run dividend:hidden-stars`.
+   */
+  hiddenStars: HIDDEN_STARS_LIST
 };
 
 // node_modules/zod/v3/external.js
@@ -5876,8 +6452,8 @@ var EMPTY_DIVIDEND_LISTS_SNAPSHOT = {
   source: "none",
   lists: {}
 };
-var parseDividendListsSnapshot = (raw) => {
-  const parsed = dividendListsSnapshotSchema.safeParse(raw);
+var parseDividendListsSnapshot = (raw2) => {
+  const parsed = dividendListsSnapshotSchema.safeParse(raw2);
   if (!parsed.success) {
     console.warn("[dividendLists] dividendLists.generated.json \uD615\uD0DC\uAC00 \uB9DE\uC9C0 \uC54A\uC544 \uD050\uB808\uC774\uC158 \uBAA9\uB85D\uC73C\uB85C \uB300\uCCB4\uD55C\uB2E4.");
     return EMPTY_DIVIDEND_LISTS_SNAPSHOT;
@@ -5905,8 +6481,12 @@ var DIVIDEND_LISTS = Object.fromEntries(
   DIVIDEND_LIST_IDS.map((id) => [id, withMetrics(overlay()[id])])
 );
 var DIVIDEND_LIST_ALL = DIVIDEND_LIST_IDS.map((id) => DIVIDEND_LISTS[id]);
-var toDividendListId = (raw) => {
-  const found = DIVIDEND_LIST_IDS.find((id) => id === raw?.trim().toLowerCase());
+var normalizeListKey = (raw2) => raw2.trim().toLowerCase().replace(/-/g, "");
+var toDividendListId = (raw2) => {
+  if (typeof raw2 !== "string") return null;
+  const key = normalizeListKey(raw2);
+  if (key.length === 0) return null;
+  const found = DIVIDEND_LIST_IDS.find((id) => normalizeListKey(id) === key);
   return found ?? null;
 };
 
@@ -5964,6 +6544,31 @@ var LISTS = {
         "\uD3B8\uC785 \uC2EC\uC0AC\uB97C \uAC70\uCE58\uC9C0 \uC54A\uC740 \uBAA9\uB85D\uC774\uB77C \uAC70\uB798\uAC00 \uD55C\uC0B0\uD55C \uC885\uBAA9\uB3C4 \uC11E\uC785\uB2C8\uB2E4. \uBAA9\uB85D\uC5D0 \uC788\uB2E4\uB294 \uC0AC\uC2E4\uB9CC\uC73C\uB85C \uC131\uACA9\uC744 \uBB36\uC5B4 \uC77D\uAE30 \uC5B4\uB835\uC2B5\uB2C8\uB2E4."
       ],
       question: "\uC774\uB984\uC774 \uB35C \uC54C\uB824\uC9C4 \uAE30\uC5C5\uAE4C\uC9C0 \uD6D1\uC5B4\uBCF4\uACE0 \uC2F6\uC744 \uB54C \uC5FD\uB2C8\uB2E4."
+    }
+  },
+  /*
+   * 🔴 앞의 셋과 **성격이 다르다.** 저 셋은 바깥 기관이 만든 명부를 옮겨 온 것이고, 이건 그 셋
+   *    어디에도 없는 종목을 이 서비스가 공개된 규칙으로 걸러 낸 목록이다. 그래서 카피가
+   *    "누가 실었나"가 아니라 **"어떤 규칙으로 걸렀나"** 를 말한다 — 근거가 다르면 문장도 달라야 한다.
+   * ⚠ 규율은 그대로다: 투자권유 금지 · 지어낸 숫자 0 · 연수는 하한으로만.
+   *   숫자(2.5% · 4% · 8%)는 `dividendLists.hiddenStars.ts` 의 상수와 **같은 값**이어야 한다.
+   */
+  hiddenStars: {
+    metaTitle: "\uBC30\uB2F9 \uD788\uB4E0\uC2A4\uD0C0 \u2014 \uBC30\uB2F9\uD0B9\xB7\uADC0\uC871\xB7\uCC54\uD53C\uC5B8\uC5D0 \uC5C6\uB294 \uBC30\uB2F9\uC131\uC7A5 \uC885\uBAA9",
+    metaDescription: "\uBC30\uB2F9\uD0B9\xB7\uBC30\uB2F9\uADC0\uC871\xB7\uBC30\uB2F9\uCC54\uD53C\uC5B8 \uC5B4\uB514\uC5D0\uB3C4 \uC5C6\uC9C0\uB9CC \uBC30\uB2F9\uC744 \uC624\uB798 \uB298\uB824 \uC628 \uBBF8\uAD6D \uAE30\uC5C5 \uBAA9\uB85D\uC785\uB2C8\uB2E4. \uC120\uC815 \uADDC\uCE59\uACFC \uAE30\uC900\uC77C\uC744 \uD568\uAED8 \uD45C\uAE30\uD588\uC2B5\uB2C8\uB2E4.",
+    title: "\uBC30\uB2F9 \uD788\uB4E0\uC2A4\uD0C0",
+    lede: "\uC138 \uBAA9\uB85D\uC758 \uBB38\uD131\uC744 \uB118\uC9C0 \uBABB\uD588\uC744 \uBFD0, \uBC30\uB2F9\uC740 \uC624\uB798 \uB298\uB824 \uC628 \uAE30\uC5C5\uB4E4\uC785\uB2C8\uB2E4.",
+    definition: "\uBC30\uB2F9\uD0B9\xB7\uBC30\uB2F9\uADC0\uC871\xB7\uBC30\uB2F9\uCC54\uD53C\uC5B8\uC740 \uBAA8\uB450 \uC5F0\uC18D \uC99D\uBC30 \uC5F0\uC218\uB77C\uB294 \uD55C \uAC00\uC9C0 \uC790\uB97C \uC501\uB2C8\uB2E4. \uADF8 \uC790\uC5D0 \uBA87 \uD574\uAC00 \uBAA8\uC790\uB77C\uBA74 \uC5B4\uB290 \uBAA9\uB85D\uC5D0\uB3C4 \uC2E4\uB9AC\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. \uC774 \uBAA9\uB85D\uC740 \uADF8 \uD2C8\uC5D0 \uC788\uB294 \uC885\uBAA9\uC744 \uC139\uD130\uB97C \uAC00\uB9AC\uC9C0 \uC54A\uACE0 \uBAA8\uC740 \uAC83\uC73C\uB85C, \uBC14\uAE65 \uAE30\uAD00\uC758 \uBA85\uBD80\uAC00 \uC544\uB2C8\uB77C \uC544\uB798 \uADDC\uCE59\uC744 \uD1B5\uACFC\uD55C \uC885\uBAA9\uB9CC \uB2F4\uC2B5\uB2C8\uB2E4.",
+    criterionLabel: "\uC138 \uBAA9\uB85D\uC5D0 \uC5C6\uC74C + \uBC30\uB2F9\uB960 2.5% \uC774\uC0C1 + 5\uB144 \uBC30\uB2F9\uC131\uC7A5\uB960 4% \uC774\uC0C1",
+    caution: "\uC774 \uBAA9\uB85D\uC740 \uB2E4\uB978 \uC14B\uACFC \uB2EC\uB9AC \uACF5\uC778\uB41C \uBA85\uBD80\uAC00 \uC544\uB2C8\uB77C \uC774 \uC11C\uBE44\uC2A4\uAC00 \uC815\uD55C \uADDC\uCE59\uC758 \uACB0\uACFC\uC785\uB2C8\uB2E4. \uADDC\uCE59\uC774 \uBC14\uB00C\uBA74 \uAD6C\uC131\uB3C4 \uBC14\uB01D\uB2C8\uB2E4. \uBC30\uB2F9\uB960\uC774 \uB610\uB798\uBCF4\uB2E4 \uD06C\uAC8C \uB192\uC740 \uC885\uBAA9\uC740 \uBC30\uB2F9\uC774 \uB298\uC5B4\uC11C\uAC00 \uC544\uB2C8\uB77C \uC8FC\uAC00\uAC00 \uB0B4\uB824\uC11C \uADF8\uB807\uAC8C \uBCF4\uC77C \uC218 \uC788\uC5B4, \uD574\uB2F9 \uC885\uBAA9\uC5D0\uB294 \uD45C\uC5D0\uC11C \uB530\uB85C \uD45C\uC2DC\uD588\uC2B5\uB2C8\uB2E4. \uC5F0\uC18D \uC99D\uBC30 \uC5F0\uC218\uB294 \uD6C4\uBCF4\uB97C \uBAA8\uC740 ETF\uAC00 \uBCF4\uC7A5\uD558\uB294 \uD558\uD55C\uC774\uBA70 \uC815\uD655\uD55C \uC5F0\uC218\uAC00 \uC544\uB2D9\uB2C8\uB2E4.",
+    hub: {
+      headline: "\uBB38\uD131\uC5D0\uC11C \uBA87 \uD574\uAC00 \uBAA8\uC790\uB790\uC744 \uBFD0\uC785\uB2C8\uB2E4",
+      points: [
+        "\uAE30\uC900\uC740 \uC14B\uC785\uB2C8\uB2E4 \u2014 \uC138 \uBAA9\uB85D\uC5D0 \uC5C6\uC744 \uAC83, \uBC30\uB2F9\uB960 2.5% \uC774\uC0C1, 5\uB144 \uBC30\uB2F9\uC131\uC7A5\uB960 4% \uC774\uC0C1.",
+        "\uBC30\uB2F9\uB960\uC774 \uB610\uB798\uBCF4\uB2E4 \uD06C\uAC8C \uB192\uC73C\uBA74 \uC131\uC7A5\uB960 8% \uC774\uC0C1\uC744 \uCD94\uAC00\uB85C \uC694\uAD6C\uD569\uB2C8\uB2E4. \uBC30\uB2F9\uC774 \uB298\uC5B4\uC11C \uB192\uC740 \uAC83\uACFC \uC8FC\uAC00\uAC00 \uB0B4\uB824\uC11C \uB192\uC544 \uBCF4\uC774\uB294 \uAC83\uC744 \uAC00\uB974\uAE30 \uC704\uD574\uC11C\uC785\uB2C8\uB2E4.",
+        "\uACF5\uC778\uB41C \uBA85\uBD80\uAC00 \uC544\uB2C8\uB77C \uC774 \uC11C\uBE44\uC2A4\uAC00 \uC815\uD55C \uADDC\uCE59\uC758 \uACB0\uACFC\uC785\uB2C8\uB2E4. \uADDC\uCE59\uC774 \uBC14\uB00C\uBA74 \uAD6C\uC131\uB3C4 \uBC14\uB01D\uB2C8\uB2E4."
+      ],
+      question: "\uC774\uB984\uB09C \uBAA9\uB85D \uBC16\uC5D0\uC11C \uBC30\uB2F9\uC744 \uB298\uB824 \uC628 \uAE30\uC5C5\uC744 \uCC3E\uC744 \uB54C \uC5FD\uB2C8\uB2E4."
     }
   }
 };
@@ -6049,6 +6654,14 @@ var DIVIDEND_LIST_COPY = {
     sourceRolePrimary: "1\uCC28 \uC790\uB8CC",
     sourceRoleCrosscheck: "\uAD50\uCC28 \uD655\uC778",
     retrievedAtLabel: "\uD655\uC778\uC77C",
+    /* ── 이달의 히든스타 (배당 히든스타 페이지에만) ─────────────────────────
+    * 🔴 "추천"이 아니라 "규칙이 뽑은 것"이라고 말한다. 이 서비스는 종목을 권하지 않는다. */
+    monthlyHeading: "\uB2EC\uB9C8\uB2E4 \uD55C \uC885\uBAA9",
+    monthlyBody: "\uADDC\uCE59 \uC810\uC218\uAC00 \uAC00\uC7A5 \uB192\uC740 \uD55C \uC885\uBAA9\uC744 \uADF8\uB2EC\uC758 \uD788\uB4E0\uC2A4\uD0C0\uB85C \uC801\uC5B4 \uB461\uB2C8\uB2E4. \uCD94\uCC9C\uC774 \uC544\uB2C8\uB77C \uADDC\uCE59\uC774 \uBF51\uC740 \uACB0\uACFC\uC774\uBA70, \uC9C0\uB09C\uB2EC \uAE30\uB85D\uC740 \uADF8\uB54C\uC758 \uC218\uCE58 \uADF8\uB300\uB85C \uB0A8\uC2B5\uB2C8\uB2E4.",
+    monthlyYield: "\uBC30\uB2F9\uB960",
+    monthlyGrowth: "5\uB144 \uC131\uC7A5\uB960",
+    monthlyStreak: (years) => `\uC5F0\uC18D \uC99D\uBC30 ${years}\uB144 \uC774\uC0C1`,
+    monthlyHighYieldNotice: "\uBC30\uB2F9\uB960\uC774 \uB610\uB798\uBCF4\uB2E4 \uD06C\uAC8C \uB192\uC2B5\uB2C8\uB2E4. \uBC30\uB2F9\uC774 \uB298\uC5B4\uC11C\uAC00 \uC544\uB2C8\uB77C \uC8FC\uAC00\uAC00 \uB0B4\uB824\uC11C \uADF8\uB807\uAC8C \uBCF4\uC77C \uC218 \uC788\uC2B5\uB2C8\uB2E4.",
     asOfLabel: "\uAE30\uC900\uC77C",
     countLabel: "\uC218\uB85D \uC885\uBAA9",
     /** ⚠ '종목'이 아니라 '종'이다 — `countLabel` 과 붙으면 "수록 종목 69종목"으로 낱말이 겹친다. */
@@ -8208,8 +8821,8 @@ var applyMarketData = (universe, snapshot) => {
 };
 
 // shared/constants/marketData/index.ts
-var parseMarketDataSnapshot = (raw) => {
-  const parsed = marketDataSnapshotSchema.safeParse(raw);
+var parseMarketDataSnapshot = (raw2) => {
+  const parsed = marketDataSnapshotSchema.safeParse(raw2);
   if (!parsed.success) {
     console.warn("[marketData] Ignoring invalid marketData.generated.json; falling back to preset values.");
     return EMPTY_MARKET_DATA_SNAPSHOT;

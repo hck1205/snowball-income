@@ -357,3 +357,63 @@ export const HubLink = styled(Link)`
     text-decoration: underline;
   }
 `;
+
+/* ── 이달의 히든스타 ──────────────────────────────────────────────────────────
+ * 🔴 표가 아니라 **목록**이다. 달마다 한 종목뿐이라 열을 세우면 빈칸이 더 많아지고, 읽는 순서도
+ *    "언제 → 무엇 → 왜"라는 문장에 가깝다. 그래서 줄마다 세로로 쌓는다.
+ * 🔴 손익색을 쓰지 않는다 — 이 서비스는 종목을 평가하지 않는다. */
+
+export const MonthlyList = styled.ol`
+  display: grid;
+  gap: ${space[4]};
+  margin: ${space[3]} 0 0;
+  padding: 0;
+  list-style: none;
+`;
+
+export const MonthlyRow = styled.li`
+  display: grid;
+  gap: ${space[1]};
+  padding: ${space[4]};
+  border: 1px solid ${color.border};
+  border-radius: ${radius.lg};
+  background: ${color.surface};
+`;
+
+export const MonthlyMonth = styled.p`
+  margin: 0;
+  font-size: ${font.size.xs};
+  font-weight: ${font.weight.semibold};
+  letter-spacing: 0.03em;
+  color: ${color.textMuted};
+`;
+
+export const MonthlyName = styled.p`
+  margin: 0;
+  font-size: ${font.size.lg};
+  font-weight: ${font.weight.bold};
+  color: ${color.text};
+`;
+
+/** 세 숫자 한 줄. 데이터 서체로 두어 표와 같은 값임을 형태가 말한다. */
+export const MonthlyFacts = styled.p`
+  margin: 0;
+  font-family: ${font.dataNumeric};
+  font-size: ${font.size.sm};
+  color: ${color.textSecondary};
+  font-variant-numeric: tabular-nums;
+`;
+
+/** 🔴 주의 한 줄. 색이 아니라 **문장**이 채널이다(색 단독 채널 금지). */
+export const MonthlyNotice = styled.p`
+  margin: ${space[1]} 0 0;
+  font-size: ${font.size.xs};
+  line-height: ${font.leading.relaxed};
+  color: ${color.textSecondary};
+`;
+
+export const MonthlyAsOf = styled.p`
+  margin: 0;
+  font-size: ${font.size.xs};
+  color: ${color.textMuted};
+`;

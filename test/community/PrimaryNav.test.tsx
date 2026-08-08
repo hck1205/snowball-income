@@ -151,7 +151,7 @@ describe('PrimaryNav', () => {
     renderAt('/community/portfolio');
     openCommunityMenu();
 
-    expect(screen.getByRole('link', { name: '포트폴리오 갤러리' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: '배당계산 갤러리' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: '시뮬레이터' })).not.toHaveAttribute('aria-current');
     expect(screen.getByRole('link', { name: '게시판' })).not.toHaveAttribute('aria-current');
   });
@@ -164,7 +164,7 @@ describe('PrimaryNav', () => {
     expect(screen.getByRole('link', { name: '게시판' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: '시뮬레이터' })).not.toHaveAttribute('aria-current');
     // 형제 세그먼트라 갤러리는 게시판 하위에서 활성이 되지 않는다.
-    expect(screen.getByRole('link', { name: '포트폴리오 갤러리' })).not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('link', { name: '배당계산 갤러리' })).not.toHaveAttribute('aria-current');
   });
 
   // 갤러리 하위 경로(상세·글쓰기·수정)에서도 섹션 탭이 유지돼야 한다 — routes.tsx의 portfolio 자식 라우트.
@@ -178,7 +178,7 @@ describe('PrimaryNav', () => {
       expect(screen.getByRole('button', { name: /커뮤니티/ })).toHaveAttribute('aria-current', 'true');
       openCommunityMenu();
 
-      expect(screen.getByRole('link', { name: '포트폴리오 갤러리' })).toHaveAttribute('aria-current', 'page');
+      expect(screen.getByRole('link', { name: '배당계산 갤러리' })).toHaveAttribute('aria-current', 'page');
       expect(screen.getByRole('link', { name: '게시판' })).not.toHaveAttribute('aria-current');
       // 시뮬레이터는 exact(end)라 어떤 하위 경로에서도 활성이 되지 않는다.
       expect(screen.getByRole('link', { name: '시뮬레이터' })).not.toHaveAttribute('aria-current');
@@ -344,7 +344,7 @@ describe('PrimaryNav', () => {
       /* 배당 리스트 묶음(2026-08-04) — 목록 비교(허브)·배당킹·배당귀족·배당챔피언 넷이 여기 접혀 있다.
          캘린더 바로 뒤: 둘 다 "배당 그 자체를 보는" 축이다. */
       '배당 종목',
-      /* 커뮤니티 묶음(2026-08-05) — 포트폴리오 갤러리·게시판 둘이 여기 접혀 있다. 게시판이 단독
+      /* 커뮤니티 묶음(2026-08-05) — 배당계산 갤러리·게시판 둘이 여기 접혀 있다. 게시판이 단독
          칸이던 자리를 이 묶음이 그대로 받았다(칸 수는 8 그대로). */
       '커뮤니티',
       'ETF 소개',
@@ -396,7 +396,7 @@ describe('PrimaryNav', () => {
 
     openCalendarMenu();
     expect(screen.getByRole('link', { name: '배당 캘린더' })).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: '포트폴리오 갤러리' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: '배당계산 갤러리' })).not.toBeInTheDocument();
     // 포트폴리오 묶음은 커뮤니티 플래그와 무관하다 — 둘 다 커뮤니티 밖 화면이다.
     openPortfolioMenu();
     expect(screen.getByRole('link', { name: '나의 배당 포트폴리오' })).toHaveAttribute('aria-current', 'page');
@@ -410,7 +410,7 @@ describe('PrimaryNav', () => {
     // 브랜드(홈)와 시뮬레이터 링크는 그대로. 커뮤니티 링크만 사라진다.
     expect(screen.getByRole('link', { name: 'Hungry Hippo' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: '시뮬레이터' })).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: '포트폴리오 갤러리' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: '배당계산 갤러리' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: '게시판' })).not.toBeInTheDocument();
   });
 });

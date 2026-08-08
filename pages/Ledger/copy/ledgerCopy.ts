@@ -102,8 +102,12 @@ export const LEDGER_COPY = {
       date: '날짜',
       kind: '구분',
       amount: '금액',
-      category: '분류',
-      memo: '메모 (선택)'
+      category: '항목',
+      subcategory: '상세항목 (선택)',
+      payer: '주체 (선택)',
+      method: '결제수단 (선택)',
+      fixity: '고정 (선택)',
+      memo: '내용 (선택)'
     },
     required: '필수',
     unset: '선택 안 함',
@@ -297,6 +301,53 @@ export const LEDGER_COPY = {
       methodTooLong: '결제수단은 40자까지 입력할 수 있습니다.',
       memoTooLong: '내용은 200자까지 입력할 수 있습니다.'
     }
+  },
+
+  /**
+   * 분석 카드(P4·P5). 🔴 구획마다 **기준 기간을 밝힌다** — 고정비·주체·Top N 은 보고 있는 달,
+   * 추이는 전체 기간이다. 기간을 말하지 않으면 사용자가 두 숫자를 같은 기준으로 읽고 오해한다.
+   */
+  analysis: {
+    title: '이 달 살펴보기',
+    subtitle: '숫자를 그대로 두고, 어디에 몰렸는지만 보여 드립니다.',
+    empty: '아직 살펴볼 기록이 없습니다. 항목을 추가하면 이 자리에 요약이 생깁니다.',
+
+    fixityHeading: '고정비와 변동비',
+    fixityHint: '고정비는 계약을 바꿔야 줄고, 변동비는 이번 달에 줄일 수 있습니다.',
+    fixedLabel: '고정비',
+    variableLabel: '변동비',
+    fixedPercent: (percent: string) => `지출의 ${percent}가 고정비입니다`,
+
+    payerHeading: '누가 얼마를 썼나',
+    payerHint: '주체를 적지 않은 기록은 공동으로 셉니다.',
+    payerSr: (payer: string, amount: string, percent: string) => `${payer} ${amount}, 전체의 ${percent}`,
+
+    topHeading: '많이 쓴 항목',
+    topHint: '이 달 기준 상위 다섯입니다.',
+    topSr: (label: string, amount: string, count: number) => `${label} ${amount}, ${count}건`,
+
+    trendHeading: '최근 흐름',
+    trendHint: '기록이 있는 최근 여섯 달입니다. 이체(저축·투자)는 지출에 넣지 않습니다.',
+    trendIncome: '수입',
+    trendExpense: '지출',
+    savingRate: (percent: string) => `저축률 ${percent}`,
+    /** 🔴 수입이 없는 달은 저축률을 **0% 가 아니라 "잴 수 없음"** 으로 말한다. 다른 사실이다. */
+    savingRateUnknown: '수입이 없어 저축률을 잴 수 없습니다'
+  },
+
+  /**
+   * 고정비 이어가기. 🔴 문구가 **무엇이 일어날지 먼저** 말한다 — 여러 줄을 시트에 쓰는 동작이라
+   * "몇 건을" "어디에" 넣는지 누르기 전에 알아야 한다.
+   */
+  carryOver: {
+    open: (count: number) => `지난달 고정비 ${count}건 가져오기`,
+    title: '지난달 고정비를 이번 달에 넣습니다',
+    body: '아래 항목이 이번 달 기록으로 추가됩니다. 금액이 달라졌으면 추가한 뒤 고쳐 주세요.',
+    confirm: '추가',
+    saving: '추가하는 중입니다',
+    cancel: '취소',
+    /** 🔴 뭉뚱그리지 않는다 — 언제나 건별 숫자로 말한다. */
+    live: (success: number, total: number) => `고정비 ${total}건 중 ${success}건을 추가했습니다.`
   },
 
   remove: {

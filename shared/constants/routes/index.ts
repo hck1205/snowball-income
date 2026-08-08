@@ -39,7 +39,21 @@ export const SIMULATOR_PATH = '/simulator';
  * `shared/constants/tickerPages` 가 같은 이유로 존재하는 경량 인덱스다.
  * 목록 폴더는 이 값을 **역으로 재export** 하므로 정본은 하나다.
  */
-export const DIVIDEND_LIST_IDS = ['kings', 'aristocrats', 'champions'] as const;
+export const DIVIDEND_LIST_IDS = ['kings', 'aristocrats', 'champions', 'hiddenStars'] as const;
+
+/**
+ * 🔴 `hiddenStars` 만 성격이 다르다 — 앞의 셋은 **바깥 소스가 만든 명부**를 옮겨 온 것이고,
+ *    이것은 그 셋 **어디에도 없는 종목을 우리가 규칙으로 걸러 낸** 목록이다(2026-08-08 신설).
+ *    그래서 큐레이션 원본이 없고 생성물만 있다 — 목록 데이터 폴더가 그 차이를 흡수한다.
+ * ⚠ 경로 세그먼트는 `hidden-stars` 다(카멜케이스 id 를 그대로 주소에 쓰지 않는다).
+ *   `dividendListPath` 가 그 변환의 유일한 자리다.
+ */
+const DIVIDEND_LIST_SEGMENTS: Record<(typeof DIVIDEND_LIST_IDS)[number], string> = {
+  kings: 'kings',
+  aristocrats: 'aristocrats',
+  champions: 'champions',
+  hiddenStars: 'hidden-stars'
+};
 
 export type DividendListId = (typeof DIVIDEND_LIST_IDS)[number];
 
@@ -47,4 +61,4 @@ export type DividendListId = (typeof DIVIDEND_LIST_IDS)[number];
 export const DIVIDEND_LIST_HUB_PATH = '/dividend/lists';
 
 /** 목록 상세 경로. 문자열을 조립하는 곳(라우터·nav·사이트맵·크롤러 HTML)을 한 군데로 모은다. */
-export const dividendListPath = (id: DividendListId): string => `/dividend/${id}`;
+export const dividendListPath = (id: DividendListId): string => `/dividend/${DIVIDEND_LIST_SEGMENTS[id]}`;
