@@ -9,3 +9,4 @@
  */
 export * from './categories';
 export * from './axes';
+export * from './holdings';

@@ -5,11 +5,12 @@ import {
   BLUEPRINT_TABS,
   BLUEPRINT_TAB_ORDER,
   KIND_CHOICES,
+  BLUEPRINT_TAB_ROLE,
   buildCreateSpreadsheetBody,
   buildFormatRequests,
   findGridOverflow
 } from '@/shared/lib/googleSheets';
-import { LEDGER_CATEGORIES } from '@/shared/constants/ledger';
+import { LEDGER_CATEGORIES, LEDGER_HOLDING_LABEL } from '@/shared/constants/ledger';
 
 /**
  * 앱이 만드는 스프레드시트의 **설계도**.
@@ -177,6 +178,89 @@ describe('🔴 실제 400 을 냈던 자리 — 회귀 가드', () => {
   });
 });
 
+describe('탭 역할 — 색과 보호가 어긋나지 않는다', () => {
+  it('⭐ 모든 탭에 역할이 있다 — 빠뜨리면 색도 보호도 안 걸린다', () => {
+    for (const title of BLUEPRINT_TAB_ORDER) {
+      expect(BLUEPRINT_TAB_ROLE[title], title).toBeDefined();
+    }
+  });
+
+  it('⭐ 드롭다운 원본은 숨긴다 — 사용자는 만질 탭만 본다', () => {
+    const sheets = body().sheets;
+    const hidden = sheets.filter((sheet) => (sheet.properties as { hidden?: boolean }).hidden);
+
+    expect(hidden.map((sheet) => sheet.properties.title).sort()).toEqual(
+      [BLUEPRINT_TABS.categories, BLUEPRINT_TABS.settings].sort()
+    );
+    /* 숨긴 탭은 정확히 machinery 역할인 것들이다. */
+    for (const sheet of hidden) {
+      expect(BLUEPRINT_TAB_ROLE[sheet.properties.title]).toBe('machinery');
+    }
+  });
+
+  it('보이는 탭에는 색이 있고 숨긴 탭에는 없다', () => {
+    for (const sheet of body().sheets) {
+      const properties = sheet.properties as { title: string; hidden?: boolean; tabColorStyle?: unknown };
+      if (properties.hidden) expect(properties.tabColorStyle, properties.title).toBeUndefined();
+      else expect(properties.tabColorStyle, properties.title).toBeDefined();
+    }
+  });
+});
+
+describe('🔴 순자산 — 안 적은 달과 0원은 다른 사실이다', () => {
+  const cashFlow = () => rowsOf(BLUEPRINT_TABS.cashFlow).flat().join('\n');
+
+  it('⭐ 자산을 안 적은 달은 빈 칸이다 — 0 으로 적으면 추이가 바닥을 찍는다', () => {
+    /* COUNTIFS 로 그 달 기록 수를 먼저 세고, 0 이면 빈 문자열을 낸다. */
+    expect(cashFlow()).toContain('=IF(COUNTIFS(');
+  });
+
+  it('⭐ 부채를 뺀다 — 안 빼면 그건 순자산이 아니라 자산 합계다', () => {
+    const text = cashFlow();
+
+    expect(text).toContain(`"<>"&"${LEDGER_HOLDING_LABEL.debt}"`);
+    expect(text).toContain(`,"${LEDGER_HOLDING_LABEL.debt}",`);
+  });
+
+  it('🔴 앞 달 값을 끌어오지 않는다 — 스냅샷은 그 달에 실제로 센 값이어야 한다', () => {
+    /* 앞 달 참조를 쓰면 안 적은 달이 적은 것처럼 보인다. 순자산 열에 그런 참조가 없어야 한다. */
+    const netWorthCells = rowsOf(BLUEPRINT_TABS.cashFlow)
+      .slice(4)
+      .map((row) => row[6] ?? '')
+      .filter((cell) => cell.length > 0);
+
+    expect(netWorthCells.length).toBe(12);
+    for (const cell of netWorthCells) expect(cell).not.toMatch(/G\d+/);
+  });
+});
+
+describe('예시 탭 — 빈 표 앞에서 얼어붙지 않게', () => {
+  it('⭐ “분류를 비워도 된다”를 보여 준다 — 이게 이 시트의 다른 점이다', () => {
+    const rows = rowsOf(BLUEPRINT_TABS.example);
+    const dataRows = rows.slice(4);
+
+    /* 항목(C=2)·상세항목(D=3)이 둘 다 빈 견본 줄이 있어야 한다. */
+    const blankCategory = dataRows.filter((row) => (row[2] ?? '') === '' && (row[3] ?? '') === '');
+    expect(blankCategory.length).toBeGreaterThan(0);
+
+    /* 그리고 직접 적은 줄도 있어야 한다 — 둘 다 된다는 것이 요점이다. */
+    expect(dataRows.some((row) => (row[2] ?? '').length > 0)).toBe(true);
+  });
+
+  it('이체 견본이 있다 — 저축이 지출이 아니라는 것이 가장 자주 틀리는 자리다', () => {
+    expect(rowsOf(BLUEPRINT_TABS.example).flat()).toContain('이체');
+  });
+});
+
+describe('분류 규칙 탭', () => {
+  it('⭐ 견본 규칙을 심어 두지 않는다 — 우리가 고른 말로 부분 일치를 하면 조용한 오분류가 된다', () => {
+    const rows = rowsOf(BLUEPRINT_TABS.rules);
+
+    /* 머리 한 줄뿐이어야 한다. */
+    expect(rows).toHaveLength(1);
+  });
+});
+
 describe('서식 요청', () => {
   const SHEET_IDS = Object.fromEntries(BLUEPRINT_TAB_ORDER.map((title, index) => [title, index]));
   const requests = () => buildFormatRequests(SHEET_IDS) as Record<string, any>[];
@@ -209,5 +293,45 @@ describe('서식 요청', () => {
 
   it('🔴 sheetId 를 못 찾으면 조용히 건너뛴다 — 서식 실패로 시트 생성을 무르지 않는다', () => {
     expect(buildFormatRequests({})).toEqual([]);
+  });
+
+  it('⭐ 보호는 경고만 한다 — 완전히 잠그면 앱도 사용자도 못 쓴다', () => {
+    const protections = requests().filter((request) => request.addProtectedRange);
+
+    expect(protections.length).toBeGreaterThan(0);
+    for (const protection of protections) {
+      expect(protection.addProtectedRange.protectedRange.warningOnly).toBe(true);
+    }
+  });
+
+  it('⭐ 저절로 차는 탭은 전부 보호한다 — 손으로 나열하면 탭이 늘 때 빠뜨린다', () => {
+    const protectedIds = new Set(
+      requests()
+        .filter((request) => request.addProtectedRange)
+        .map((request) => request.addProtectedRange.protectedRange.range.sheetId)
+    );
+    const derived = BLUEPRINT_TAB_ORDER.filter((title) => BLUEPRINT_TAB_ROLE[title] === 'derived');
+
+    expect(derived.length).toBeGreaterThan(0);
+    for (const title of derived) expect(protectedIds.has(SHEET_IDS[title]), title).toBe(true);
+  });
+
+  it('🔴 분류 규칙 탭은 보호하지 않는다 — 사용자가 고치는 것이 설계 의도다', () => {
+    const protectedIds = new Set(
+      requests()
+        .filter((request) => request.addProtectedRange)
+        .map((request) => request.addProtectedRange.protectedRange.range.sheetId)
+    );
+
+    expect(protectedIds.has(SHEET_IDS[BLUEPRINT_TABS.rules])).toBe(false);
+  });
+
+  it('⭐ 가계부 머리에 열마다 메모가 붙는다 — 색 단독으로는 뜻이 전해지지 않는다', () => {
+    const notes = requests()
+      .filter((request) => request.repeatCell)
+      .filter((request) => request.repeatCell.range.sheetId === SHEET_IDS[BLUEPRINT_TABS.ledger])
+      .filter((request) => typeof request.repeatCell.cell?.note === 'string');
+
+    expect(notes).toHaveLength(APP_SHEET_HEADERS.length);
   });
 });
