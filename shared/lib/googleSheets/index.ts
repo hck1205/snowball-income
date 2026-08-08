@@ -31,6 +31,7 @@ export * from './mapping';
 export * from './layout';
 export * from './valueMapping';
 export * from './monthBlockReader';
+export * from './layoutProbe';
 export * from './writeSafety';
 export * from './auth';
 export * from './picker';
