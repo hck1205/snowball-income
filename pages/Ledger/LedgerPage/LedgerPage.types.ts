@@ -1,5 +1,12 @@
 import type { CommunityOAuthProvider } from '@/shared/lib/supabase';
-import type { LedgerAnalysisModel, LedgerPayerScope, LedgerViewTab, LedgerViewTabId } from '../utils';
+import type {
+  LedgerAnalysisModel,
+  LedgerPayerScope,
+  LedgerSideDraft,
+  LedgerSideFormKind,
+  LedgerViewTab,
+  LedgerViewTabId
+} from '../utils';
 import type {
   LedgerAppAuthGate,
   LedgerCarryOverModel,
@@ -48,6 +55,14 @@ export type LedgerViewModel = {
   selectedViewTab: LedgerViewTabId;
   /** `entries` 를 보고 있으면 `null`. 그 밖에는 그 탭의 읽기 상태다. */
   sideTab: LedgerSideTabState | null;
+  /** 자산·투자 직접 적기 폼. 열려 있지 않으면 `null`. */
+  sideForm: {
+    kind: LedgerSideFormKind;
+    draft: LedgerSideDraft;
+    errors: Readonly<Record<string, string>>;
+    isSaving: boolean;
+    writeError: LedgerErrorModel | null;
+  } | null;
 
   /**
    * 주체 목록 — 부부·연인이 한 장부를 나눠 볼 때. **걸러지지 않은** 기록에서 뽑는다.
@@ -169,6 +184,11 @@ export type LedgerViewProps = {
   onSelectPayerScope: (scope: LedgerPayerScope) => void;
   /** 옆탭 다시 읽기. 🔴 자동 갱신 대신 **사용자가 정하는** 갱신이다(할당량을 아낀다). */
   onRetrySideTab: () => void;
+  /** 지금 보고 있는 옆탭에 한 줄 적기. */
+  onAddSideEntry: () => void;
+  onSideFormChange: (patch: Readonly<Record<string, string>>) => void;
+  onSideFormSubmit: () => void;
+  onSideFormClose: () => void;
 
   /** B-4 배당 겹쳐 보기 토글. 🔴 시트에 아무것도 쓰지 않는다 — 화면 상태와 로컬 취향뿐이다. */
   onToggleDividendOverlay: (isOn: boolean) => void;

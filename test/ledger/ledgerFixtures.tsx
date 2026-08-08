@@ -73,6 +73,7 @@ export const baseViewModel = (overrides: Partial<LedgerViewModel> = {}): LedgerV
   viewTabs: buildLedgerViewTabs(true),
   selectedViewTab: 'entries',
   sideTab: null,
+  sideForm: null,
   /* 기본값은 **혼자 쓰는 장부** — 주체 컨트롤이 없던 시절의 화면을 그대로 본다. */
   payers: [],
   payerScope: null,
@@ -182,7 +183,11 @@ export const renderLedgerView = (
     onDismissCreatedNotice: vi.fn(),
     onSelectViewTab: vi.fn(),
     onSelectPayerScope: vi.fn(),
-    onRetrySideTab: vi.fn()
+    onRetrySideTab: vi.fn(),
+    onAddSideEntry: vi.fn(),
+    onSideFormChange: vi.fn(),
+    onSideFormSubmit: vi.fn(),
+    onSideFormClose: vi.fn()
   } satisfies LedgerHandlers;
 
   const utils = render(

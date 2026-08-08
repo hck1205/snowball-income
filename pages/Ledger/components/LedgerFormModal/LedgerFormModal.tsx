@@ -182,27 +182,13 @@ export default function LedgerFormModal({
 
         <form id={formId} onSubmit={handleSubmit}>
           <FormGrid>
-            <Field>
-              <FieldLabel htmlFor={dateId}>{copy.form.date}</FieldLabel>
-              {/*
-                🔴 **칸 아무 데나 눌러도 달력이 열린다**(2026-08-08 사용자 요청).
-                   `type="date"` 만으로는 크롬에서 오른쪽 끝 작은 달력 아이콘을 정확히 눌러야
-                   열린다 — 손가락으로는 거의 못 맞춘다. `showPicker()` 로 칸 전체를 그 버튼으로 만든다.
-              */}
-              <FieldInput
-                id={dateId}
-                ref={dateRef}
-                data-field="date"
-                type="date"
-                value={model.draft.date}
-                aria-invalid={errors.date ? true : undefined}
-                aria-describedby={errors.date ? `${dateId}-error` : undefined}
-                onClick={openDatePicker}
-                onChange={(event) => onChange({ date: event.target.value })}
-              />
-              {errors.date ? <FieldError id={`${dateId}-error`}>{errors.date}</FieldError> : null}
-            </Field>
-
+            {/*
+              🔴 **구분이 맨 위다**(2026-08-09 사용자 요청). 이 값이 정해져야 나머지 칸의 뜻이
+                 정해진다 — 같은 5만 원이 수입인지 지출인지 이체인지에 따라 완전히 다른 기록이다.
+                 아래에 두면 금액을 먼저 치고 나서 구분을 고치는 순서가 되어, 고치는 걸 잊으면
+                 지출이 수입으로 저장된다.
+              ⚠ 전폭이라 그 아래 **날짜와 금액이 한 줄로** 나란히 선다.
+            */}
             <KindFieldset>
               <KindLegend>{copy.form.kindLegend}</KindLegend>
               <KindOptions>
@@ -250,6 +236,28 @@ export default function LedgerFormModal({
                 </KindOption>
               </KindOptions>
             </KindFieldset>
+
+            <Field>
+              <FieldLabel htmlFor={dateId}>{copy.form.date}</FieldLabel>
+              {/*
+                🔴 **칸 아무 데나 눌러도 달력이 열린다**(2026-08-08 사용자 요청).
+                   `type="date"` 만으로는 크롬에서 오른쪽 끝 작은 달력 아이콘을 정확히 눌러야
+                   열린다 — 손가락으로는 거의 못 맞춘다. `showPicker()` 로 칸 전체를 그 버튼으로 만든다.
+              */}
+              <FieldInput
+                id={dateId}
+                ref={dateRef}
+                data-field="date"
+                type="date"
+                value={model.draft.date}
+                aria-invalid={errors.date ? true : undefined}
+                aria-describedby={errors.date ? `${dateId}-error` : undefined}
+                onClick={openDatePicker}
+                onChange={(event) => onChange({ date: event.target.value })}
+              />
+              {errors.date ? <FieldError id={`${dateId}-error`}>{errors.date}</FieldError> : null}
+            </Field>
+
 
             <Field>
               <FieldLabel htmlFor={amountId}>{copy.form.amount}</FieldLabel>

@@ -40,3 +40,5 @@ export { LedgerViewTabs } from './LedgerViewTabs';
 export type { LedgerViewTabsProps } from './LedgerViewTabs';
 export { LedgerSideTabPanel } from './LedgerSideTabPanel';
 export type { LedgerSideTabPanelProps, LedgerSideTabState } from './LedgerSideTabPanel';
+export { LedgerSideFormModal } from './LedgerSideFormModal';
+export type { LedgerSideFormModalProps } from './LedgerSideFormModal';

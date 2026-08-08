@@ -29,6 +29,12 @@ export const FormGrid = styled.div`
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: ${space[3]};
   min-width: 0;
+  /*
+   * 🔴 start 다(2026-08-09). 기본값 stretch 면 같은 줄의 두 칸이 **큰 쪽 높이로 늘어나고**,
+   *    늘어난 높이를 각 칸의 내부 행(라벨·컨트롤·힌트)이 나눠 가져 입력칸이 세로로 어긋난다.
+   *    한쪽에만 힌트가 있는 줄(항목|상세항목 · 결제수단|주체)에서 그게 눈에 띈다.
+   */
+  align-items: start;
 
   ${media.down('mobile')} {
     grid-template-columns: minmax(0, 1fr);
@@ -40,6 +46,8 @@ export const Field = styled.div<{ $full?: boolean }>`
   display: grid;
   gap: ${space[2]};
   min-width: 0;
+  /* 위 FormGrid 의 align-items: start 와 짝이다 — 칸이 늘어나더라도 내용은 위에 붙어 있는다. */
+  align-content: start;
   ${(props) => (props.$full ? 'grid-column: 1 / -1;' : '')}
 `;
 

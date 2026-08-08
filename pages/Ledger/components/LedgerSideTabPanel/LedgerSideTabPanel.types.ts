@@ -20,4 +20,9 @@ export type LedgerSideTabPanelProps = {
   /** 이 탭이 가리키는 시트 탭을 새 창에서 여는 주소. 적는 것은 시트에서 한다. */
   readonly sheetUrl?: string;
   readonly onRetry: () => void;
+  /**
+   * 이 탭에 **직접 적기**. 🔴 앱에도 입력을 두되 검증 규칙은 시트 쓰기와 **한 곳**을 쓴다
+   * (`ledgerSideForm.ts`) — 경로가 둘이어도 규칙이 하나면 갈리지 않는다.
+   */
+  readonly onAdd: () => void;
 };

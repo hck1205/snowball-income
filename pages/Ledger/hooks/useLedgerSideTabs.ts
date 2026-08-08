@@ -1,16 +1,21 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ledgerError, readClassifyRules, readHoldings, readInvestments } from '@/shared/lib/googleSheets';
+import { appendSheetRow, ledgerError, readClassifyRules, readHoldings, readInvestments } from '@/shared/lib/googleSheets';
 import type { LedgerError, SheetsRequestContext } from '@/shared/lib/googleSheets';
 import type { LedgerSideTabState } from '../components';
 import {
+  LEDGER_VIEW_TAB_SHEET_TITLE,
   buildHoldingsModel,
   buildInvestmentsModel,
   buildRulesModel,
+  emptySideDraft,
   isExpiredCode,
+  sideFormRow,
   toErrorModel,
-  toFailureReason
+  toFailureReason,
+  validateSideDraft
 } from '../utils';
-import type { LedgerViewTabId } from '../utils';
+import type { LedgerSideDraft, LedgerSideFormKind, LedgerViewTabId } from '../utils';
+import type { LedgerErrorModel } from '../types';
 
 type SideTabId = Exclude<LedgerViewTabId, 'entries'>;
 
@@ -149,5 +154,84 @@ export const useLedgerSideTabs = (params: {
     [applyFailure, createdByApp, readContext, spreadsheetId]
   );
 
-  return { byTab, load } as const;
+  /* ── 직접 적기 (2026-08-09) ────────────────────────────────────────────────── */
+
+  const [form, setForm] = useState<{
+    readonly kind: LedgerSideFormKind;
+    readonly draft: LedgerSideDraft;
+    readonly errors: Readonly<Record<string, string>>;
+    readonly isSaving: boolean;
+    readonly writeError: LedgerErrorModel | null;
+  } | null>(null);
+
+  const openForm = useCallback((kind: LedgerSideFormKind) => {
+    setForm({ kind, draft: emptySideDraft(kind), errors: {}, isSaving: false, writeError: null });
+  }, []);
+
+  const closeForm = useCallback(() => setForm(null), []);
+
+  const changeForm = useCallback((patch: Readonly<Record<string, string>>) => {
+    setForm((previous) => {
+      if (previous === null) return previous;
+      const draft = { ...previous.draft, ...patch };
+      /*
+       * ⚠ 고친 칸의 오류만 지운다. 전부 지우면 다른 칸의 오류가 사라져 "고쳤나 보다"로 읽히고,
+       *   다시 제출해야 그 오류가 돌아온다.
+       */
+      const errors = { ...previous.errors };
+      for (const key of Object.keys(patch)) delete errors[key];
+      return { ...previous, draft, errors };
+    });
+  }, []);
+
+  /**
+   * 저장. 🔴 **검증은 화면이 아니라 순수 규칙이 한다**(`validateSideDraft`) — 시트에 적히는 행을
+   * 만드는 함수와 같은 파일에 있어, 규칙과 행 모양이 갈릴 수 없다.
+   */
+  const submitForm = useCallback(async () => {
+    if (form === null || spreadsheetId === null) return;
+
+    const errors = validateSideDraft(form.kind, form.draft);
+    if (Object.keys(errors).length > 0) {
+      setForm((previous) => (previous === null ? previous : { ...previous, errors, writeError: null }));
+      return;
+    }
+
+    const context = readContext();
+    if (context === null) {
+      onError(ledgerError('auth-expired'));
+      return;
+    }
+
+    setForm((previous) => (previous === null ? previous : { ...previous, isSaving: true, writeError: null }));
+
+    const result = await appendSheetRow(context, {
+      spreadsheetId,
+      sheetTitle: LEDGER_VIEW_TAB_SHEET_TITLE[form.kind],
+      values: sideFormRow(form.kind, form.draft)
+    });
+    if (!isMountedRef.current) return;
+
+    if (!result.ok) {
+      if (isExpiredCode(result.error.code)) {
+        onError(result.error);
+        setForm((previous) => (previous === null ? previous : { ...previous, isSaving: false }));
+        return;
+      }
+      /* 🔴 실패해도 모달을 닫지 않는다 — 입력값을 버리지 않는다. */
+      setForm((previous) =>
+        previous === null
+          ? previous
+          : { ...previous, isSaving: false, writeError: toErrorModel(toFailureReason(result.error.code)) }
+      );
+      return;
+    }
+
+    setForm(null);
+    /* 🔴 방금 적은 것이 표에 보여야 한다 — 강제로 다시 읽는다(캐시를 무른다). */
+    startedRef.current.delete(form.kind);
+    void load(form.kind, { force: true });
+  }, [form, load, onError, readContext, spreadsheetId]);
+
+  return { byTab, load, form, openForm, closeForm, changeForm, submitForm } as const;
 };

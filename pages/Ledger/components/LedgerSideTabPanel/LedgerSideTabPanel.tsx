@@ -28,14 +28,17 @@ import {
 /**
  * 옆탭 패널 — `자산` · `투자` · `분류 규칙` 을 **읽어서 보여 준다.**
  *
- * ## 🔴 이 패널은 시트에 쓰지 않는다
+ * ## 앱에서도 적는다 (2026-08-09 사용자 결정)
  *
- * 적는 것은 시트에서 한다. 앱에 입력 폼을 또 만들면 같은 값을 넣는 길이 둘이 되고, 두 길의 검증이
- * 갈리는 순간 어느 쪽이 맞는지 아무도 모른다. 대신 **그 탭으로 바로 가는 링크**를 준다 —
- * 시트가 이미 좋은 입력 도구이고(드롭다운·서식·보호까지 우리가 깔아 뒀다) 그것을 다시 만들 이유가 없다.
+ * 처음에는 "적는 것은 시트에서 한다"였다 — 입력 경로가 둘이면 검증이 갈린다는 이유였다.
+ * 자산을 적으려고 시트로 나가면 돌아오지 않는다는 점이 더 컸고, 우려하던 것은 다른 방법으로 막았다:
+ * **검증도 행 만들기도 `ledgerSideForm.ts` 한 곳**에 있고 화면은 그 스펙을 그리기만 한다.
+ * 경로가 둘이어도 규칙은 하나다.
  *
- * ⚠ `가계부` 탭만은 예외로 앱에도 입력이 있다. 기록은 하루에 여러 번 넣는 일이라 왕복 비용이
- *   달라서다(자산은 한 달에 한 번, 투자는 그보다 드물다).
+ * ⚠ `분류 규칙` 만은 앱에 입력을 두지 않는다. 그 탭은 **시트에서 고치는 것이 정상 사용**이고
+ *   (그래서 보호도 걸지 않았다), 앱에서 분류를 고치면 그 줄이 저절로 쌓이는 것이 본래 흐름이다.
+ *
+ * 시트로 가는 링크는 그대로 둔다 — 여러 줄을 한 번에 정리할 때는 시트가 낫다.
  *
  * ## 🔴 손익색 금지 · 색 단독 채널 금지
  *
@@ -165,6 +168,12 @@ const TITLE: Readonly<Record<SideTab, string>> = {
   rules: '분류 규칙'
 };
 
+const ADD_LABEL: Readonly<Record<SideTab, string>> = {
+  holdings: '자산 적기',
+  investments: '종목 적기',
+  rules: ''
+};
+
 const EMPTY_NOTE: Readonly<Record<SideTab, string>> = {
   holdings: '아직 적은 잔액이 없습니다. 달마다 한 번, 월말에 통장·적금·부채를 적어 두시면 순자산이 나옵니다.',
   investments: '아직 적은 종목이 없습니다. 티커와 수량을 적어 두시면 배당이 얼마 들어올지 계산해 드립니다.',
@@ -218,9 +227,22 @@ const renderNetWorth = (state: Extract<LedgerSideTabState, { holdings: unknown }
   );
 };
 
-export default function LedgerSideTabPanel({ tab, state, sheetUrl, onRetry }: LedgerSideTabPanelProps) {
+export default function LedgerSideTabPanel({ tab, state, sheetUrl, onRetry, onAdd }: LedgerSideTabPanelProps) {
+  /* 🔴 `분류 규칙` 은 시트에서 고치는 것이 정상 사용이라 앱에 입력을 두지 않는다(그 탭 설명 참고). */
+  const canAdd = tab !== 'rules';
+
   return (
-    <Card tone="default" title={TITLE[tab]}>
+    <Card
+      tone="default"
+      title={TITLE[tab]}
+      titleRight={
+        canAdd ? (
+          <Button type="button" size="sm" onClick={onAdd}>
+            {ADD_LABEL[tab]}
+          </Button>
+        ) : undefined
+      }
+    >
       <PanelBody>
         {state.status === 'loading' ? <HeadLine>읽고 있습니다…</HeadLine> : null}
 

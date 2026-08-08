@@ -376,12 +376,23 @@ function LedgerContent({ now: nowProp }: LedgerPageProps) {
     void sideTabs.load(selectedViewTab, { force: true });
   }, [selectedViewTab, sideTabs]);
 
+  /* 🔴 `분류 규칙` 에는 적기가 없다 — 그 탭은 시트에서 고치는 것이 정상 사용이다(패널이 버튼을 안 그린다). */
+  const handleAddSideEntry = useCallback(() => {
+    if (selectedViewTab === 'entries' || selectedViewTab === 'rules') return;
+    sideTabs.openForm(selectedViewTab);
+  }, [selectedViewTab, sideTabs]);
+
+  const handleSideFormSubmit = useCallback(() => {
+    void sideTabs.submitForm();
+  }, [sideTabs]);
+
   const viewModel: LedgerViewModel = {
     appAuth: appAuth.gate,
 
     viewTabs,
     selectedViewTab,
     sideTab: selectedViewTab === 'entries' ? null : sideTabs.byTab[selectedViewTab],
+    sideForm: sideTabs.form,
     payers,
     payerScope: effectivePayerScope,
     offerPayerScope: shouldOfferPayerScope(payers),
@@ -441,6 +452,10 @@ function LedgerContent({ now: nowProp }: LedgerPageProps) {
       onSelectViewTab={handleSelectViewTab}
       onSelectPayerScope={setPayerScope}
       onRetrySideTab={handleRetrySideTab}
+      onAddSideEntry={handleAddSideEntry}
+      onSideFormChange={sideTabs.changeForm}
+      onSideFormSubmit={handleSideFormSubmit}
+      onSideFormClose={sideTabs.closeForm}
       onToggleDividendOverlay={handleToggleDividendOverlay}
       onPrevMonth={handlePrevMonth}
       onNextMonth={handleNextMonth}

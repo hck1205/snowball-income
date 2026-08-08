@@ -136,3 +136,18 @@ export type {
   RuleRow,
   RulesModel
 } from './ledgerSideTabModel';
+
+/* 자산·투자 직접 입력 폼 — 🔴 검증 규칙이 여기 **한 곳**에 있다(화면·저장이 같은 함수를 쓴다). */
+export {
+  LEDGER_SIDE_FIELDS,
+  LEDGER_SIDE_HEADERS,
+  emptySideDraft,
+  sideFormRow,
+  validateSideDraft
+} from './ledgerSideForm';
+export type {
+  LedgerSideDraft,
+  LedgerSideField,
+  LedgerSideFieldKind,
+  LedgerSideFormKind
+} from './ledgerSideForm';

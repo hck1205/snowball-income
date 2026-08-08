@@ -10,6 +10,7 @@ import {
   LedgerFailureList,
   LedgerFormModal,
   LedgerMappingCard,
+  LedgerSideFormModal,
   LedgerSideTabPanel,
   LedgerViewTabs,
   LedgerMonthNav,
@@ -157,6 +158,10 @@ export default function LedgerPageView({
   onSelectViewTab,
   onSelectPayerScope,
   onRetrySideTab,
+  onAddSideEntry,
+  onSideFormChange,
+  onSideFormSubmit,
+  onSideFormClose,
   onToggleDividendOverlay,
   onPrevMonth,
   onNextMonth,
@@ -512,6 +517,7 @@ export default function LedgerPageView({
           state={viewModel.sideTab}
           sheetUrl={viewModel.sheetUrl ?? undefined}
           onRetry={onRetrySideTab}
+          onAdd={onAddSideEntry}
         />
       ) : null}
 
@@ -794,6 +800,20 @@ export default function LedgerPageView({
       ) : null}
 
       {footer}
+
+      {/* 🔴 자산·투자 직접 적기. 검증 규칙은 시트 쓰기와 같은 파일을 쓴다(`ledgerSideForm.ts`). */}
+      {viewModel.sideForm ? (
+        <LedgerSideFormModal
+          kind={viewModel.sideForm.kind}
+          draft={viewModel.sideForm.draft}
+          errors={viewModel.sideForm.errors}
+          isSaving={viewModel.sideForm.isSaving}
+          writeError={viewModel.sideForm.writeError}
+          onChange={onSideFormChange}
+          onSubmit={onSideFormSubmit}
+          onClose={onSideFormClose}
+        />
+      ) : null}
 
       {form.value ? (
         <LedgerFormModal
