@@ -6660,6 +6660,12 @@ var DIVIDEND_LIST_COPY = {
     * 🔴 "추천"이 아니라 "규칙이 뽑은 것"이라고 말한다. 이 서비스는 종목을 권하지 않는다. */
     monthlyHeading: "\uB2EC\uB9C8\uB2E4 \uD55C \uC885\uBAA9",
     monthlyBody: "\uADDC\uCE59 \uC810\uC218\uAC00 \uAC00\uC7A5 \uB192\uC740 \uD55C \uC885\uBAA9\uC744 \uADF8\uB2EC\uC758 \uD788\uB4E0\uC2A4\uD0C0\uB85C \uC801\uC5B4 \uB461\uB2C8\uB2E4. \uCD94\uCC9C\uC774 \uC544\uB2C8\uB77C \uADDC\uCE59\uC774 \uBF51\uC740 \uACB0\uACFC\uC774\uBA70, \uC9C0\uB09C\uB2EC \uAE30\uB85D\uC740 \uADF8\uB54C\uC758 \uC218\uCE58 \uADF8\uB300\uB85C \uB0A8\uC2B5\uB2C8\uB2E4.",
+    /**
+     * **이달** 배지 — 목록의 첫 줄에만 붙는다(2026-08-09).
+     *
+     * 🔴 색만으로 "이번 달"을 말하지 않는다. 배지가 글자로 말하고, 크기·면·리본이 함께 거든다.
+     */
+    monthlyCurrentBadge: "\uC774\uB2EC\uC758 \uC885\uBAA9",
     monthlyYield: "\uBC30\uB2F9\uB960",
     monthlyGrowth: "5\uB144 \uC131\uC7A5\uB960",
     monthlyStreak: (years) => `\uC5F0\uC18D \uC99D\uBC30 ${years}\uB144 \uC774\uC0C1`,

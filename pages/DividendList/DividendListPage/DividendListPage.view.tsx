@@ -30,11 +30,16 @@ import {
   CautionPanel,
   MonthlyAsOf,
   MonthlyFacts,
+  MonthlyBadge,
   MonthlyList,
   MonthlyMonth,
   MonthlyName,
   MonthlyNotice,
   MonthlyRow,
+  MonthlyStat,
+  MonthlyStatLabel,
+  MonthlyStatRow,
+  MonthlyStatValue,
   CriterionBadge,
   HeroBlock,
   HeroMascot,
@@ -169,21 +174,52 @@ export default function DividendListView({ viewModel }: DividendListViewProps) {
             <SectionTitle>{copy.monthlyHeading}</SectionTitle>
             <Body>{copy.monthlyBody}</Body>
             <MonthlyList>
-              {HIDDEN_STAR_MONTHLY.map((pick) => (
-                <MonthlyRow key={pick.month}>
-                  <MonthlyMonth>{formatHiddenStarMonth(pick.month)}</MonthlyMonth>
-                  <MonthlyName>
-                    {pick.ticker} · {pick.name}
-                  </MonthlyName>
-                  <MonthlyFacts>
-                    {copy.monthlyYield} {pick.forwardYieldPercent.toFixed(2)}% · {copy.monthlyGrowth}{' '}
-                    {pick.fiveYearGrowthPercent.toFixed(1)}% · {copy.monthlyStreak(pick.minimumStreakYears)}
-                  </MonthlyFacts>
-                  {/* 🔴 규칙이 통과시킨 것과 사용자가 알아야 할 것은 다른 문제다. */}
-                  {pick.isHighYieldOutlier ? <MonthlyNotice>{copy.monthlyHighYieldNotice}</MonthlyNotice> : null}
-                  <MonthlyAsOf>{`${copy.asOfLabel} ${pick.asOf}`}</MonthlyAsOf>
-                </MonthlyRow>
-              ))}
+              {/*
+                🔴 **첫 줄이 이달이고, 다르게 선다**(2026-08-09 사용자 지적). 종전에는 모든 달이
+                   같은 상자라 "이달의 종목"이 하나도 티가 안 났다 — 지금 것과 지나간 것은 읽는
+                   목적이 다르다(무엇을 뽑았나 vs 그때 무엇을 뽑았었나).
+                ⚠ `HIDDEN_STAR_MONTHLY` 는 **최신이 앞**이다(생성기가 그 순서로 적는다). 정렬을
+                  여기서 다시 하지 않는다 — 두 곳이 순서를 정하면 한쪽만 바뀔 때 조용히 어긋난다.
+              */}
+              {HIDDEN_STAR_MONTHLY.map((pick, index) => {
+                const isCurrent = index === 0;
+                return (
+                  <MonthlyRow key={pick.month} $featured={isCurrent}>
+                    {isCurrent ? <MonthlyBadge>{copy.monthlyCurrentBadge}</MonthlyBadge> : null}
+                    <MonthlyMonth>{formatHiddenStarMonth(pick.month)}</MonthlyMonth>
+                    <MonthlyName $featured={isCurrent}>
+                      {pick.ticker} · {pick.name}
+                    </MonthlyName>
+
+                    {/* 이달은 세 숫자를 칸으로 편다 — 지난달은 훑는 자리라 한 줄 문장 그대로다. */}
+                    {isCurrent ? (
+                      <MonthlyStatRow>
+                        <MonthlyStat>
+                          <MonthlyStatLabel>{copy.monthlyYield}</MonthlyStatLabel>
+                          <MonthlyStatValue>{pick.forwardYieldPercent.toFixed(2)}%</MonthlyStatValue>
+                        </MonthlyStat>
+                        <MonthlyStat>
+                          <MonthlyStatLabel>{copy.monthlyGrowth}</MonthlyStatLabel>
+                          <MonthlyStatValue>{pick.fiveYearGrowthPercent.toFixed(1)}%</MonthlyStatValue>
+                        </MonthlyStat>
+                        <MonthlyStat>
+                          <MonthlyStatLabel>{copy.monthlyStreak(pick.minimumStreakYears)}</MonthlyStatLabel>
+                          <MonthlyStatValue>{pick.minimumStreakYears}년+</MonthlyStatValue>
+                        </MonthlyStat>
+                      </MonthlyStatRow>
+                    ) : (
+                      <MonthlyFacts>
+                        {copy.monthlyYield} {pick.forwardYieldPercent.toFixed(2)}% · {copy.monthlyGrowth}{' '}
+                        {pick.fiveYearGrowthPercent.toFixed(1)}% · {copy.monthlyStreak(pick.minimumStreakYears)}
+                      </MonthlyFacts>
+                    )}
+
+                    {/* 🔴 규칙이 통과시킨 것과 사용자가 알아야 할 것은 다른 문제다. */}
+                    {pick.isHighYieldOutlier ? <MonthlyNotice>{copy.monthlyHighYieldNotice}</MonthlyNotice> : null}
+                    <MonthlyAsOf>{`${copy.asOfLabel} ${pick.asOf}`}</MonthlyAsOf>
+                  </MonthlyRow>
+                );
+              })}
             </MonthlyList>
           </Section>
         ) : null}

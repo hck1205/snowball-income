@@ -229,6 +229,12 @@ export const DIVIDEND_LIST_COPY = {
   monthlyHeading: '달마다 한 종목',
   monthlyBody:
     '규칙 점수가 가장 높은 한 종목을 그달의 히든스타로 적어 둡니다. 추천이 아니라 규칙이 뽑은 결과이며, 지난달 기록은 그때의 수치 그대로 남습니다.',
+  /**
+   * **이달** 배지 — 목록의 첫 줄에만 붙는다(2026-08-09).
+   *
+   * 🔴 색만으로 "이번 달"을 말하지 않는다. 배지가 글자로 말하고, 크기·면·리본이 함께 거든다.
+   */
+  monthlyCurrentBadge: '이달의 종목',
   monthlyYield: '배당률',
   monthlyGrowth: '5년 성장률',
   monthlyStreak: (years: number) => `연속 증배 ${years}년 이상`,
