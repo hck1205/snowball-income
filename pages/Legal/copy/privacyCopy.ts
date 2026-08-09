@@ -1,4 +1,5 @@
 import type { LegalDocumentModel } from '../components';
+import { LEGAL_DOCUMENT_META, LEGAL_EFFECTIVE_DATE, LEGAL_LAST_REVISED_DATE, formatLegalDate } from './legalDates';
 
 /**
  * 개인정보처리방침 — **초안**.
@@ -20,6 +21,8 @@ import type { LegalDocumentModel } from '../components';
  *  - 이용 통계        : shared/lib/analytics.ts:21(활성 조건) · :375(버킷 라벨)
  *  - 기기 저장소      : jotai/snowball/persistence/appStateStorage.ts:10 · pages/Portfolio/utils/portfolioStorage.ts:31 ·
  *                       pages/DividendCalendar/utils/calendarStorage.ts:14 · shared/lib/supabase/queries.ts:379
+ *
+ * 2026-08-09 — **시행일 확정**(`[확인 필요]` 해소). 날짜와 그 근거는 legalDates.ts 에 모았다.
  *
  * 2026-08-09 개정 — 가계부 v2 반영(자산·투자·분류 규칙 탭, 자동 분류, 한눈에 보기). 근거가 된 코드:
  *  - 읽는 열이 6개에서 10개로: shared/lib/googleSheets/schema.ts(APP_SHEET_HEADERS)
@@ -59,7 +62,7 @@ export const PRIVACY_DOCUMENT: LegalDocumentModel = {
   title: '개인정보처리방침',
   lede:
     'Hungry Hippo는 이용자의 개인정보를 소중히 다루며, 「개인정보 보호법」 등 관계 법령을 준수합니다. 이 방침은 서비스가 어떤 정보를 어떤 목적으로 처리하고 얼마나 보관하는지를 밝힙니다.',
-  meta: ['[확인 필요: 시행일 — 실제 게시일로 확정]'],
+  meta: LEGAL_DOCUMENT_META,
   sections: [
     {
       id: 'privacy-overview',
@@ -551,7 +554,14 @@ export const PRIVACY_DOCUMENT: LegalDocumentModel = {
           text:
             '이 방침은 시행일부터 적용됩니다. 내용을 추가·삭제·수정할 때에는 변경되는 내용의 시행 7일 전부터 이 페이지와 서비스 내 공지를 통해 알려 드립니다. 다만 이용자의 권리에 중대한 영향을 미치는 변경인 경우에는 30일 전부터 알려 드립니다.'
         },
-        { kind: 'paragraph', text: '이 방침은 최초로 제정된 것입니다. 이전 버전은 없습니다.' }
+        /*
+         * 🔴 "이전 버전은 없습니다"를 지웠다(2026-08-09). 시행일을 확정하고 개정일을 함께 적는
+         *    순간 그 문장은 자기모순이 된다 — 개정했다는 것은 이전 버전이 있었다는 뜻이다.
+         */
+        {
+          kind: 'paragraph',
+          text: `이 방침은 ${formatLegalDate(LEGAL_EFFECTIVE_DATE)} 제정되어 같은 날부터 시행되었습니다. ${formatLegalDate(LEGAL_LAST_REVISED_DATE)}에 가계부 기능의 변경 사항(자산·투자 기록, 자동 분류, 한눈에 보기)을 반영해 개정했습니다.`
+        }
       ]
     }
   ]
