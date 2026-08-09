@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { useId, useMemo } from 'react';
 import {
   ArrowDown,
   ArrowUp,
@@ -16,7 +16,7 @@ import {
   X
 } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { BrandGlyph, Card, PageFooter, PageHero, PickCard, PickCardGrid, Select } from '@/components/common';
+import { BrandGlyph, Card, ComboBox, PageFooter, PageHero, PickCard, PickCardGrid } from '@/components/common';
 import { ICON } from '@/shared/styles';
 import { assignSeries } from '@/shared/lib/tickerSeries';
 import { TICKER_COMPARE_COPY } from '../copy';
@@ -163,6 +163,28 @@ export default function TickerCompareView({
   const selectedSet = new Set(selected);
   const options = candidates.filter((candidate) => !selectedSet.has(candidate.ticker));
 
+  /** 콤보박스에 보일 글자. 지급월을 모르는 종목은 종전처럼 꼬리표가 붙는다. */
+  const pickerOptions = useMemo(
+    () =>
+      options.map(
+        (candidate) =>
+          `${candidate.ticker} · ${candidate.name}${candidate.hasPayoutMonths ? '' : copy.picker.noScheduleSuffix}`
+      ),
+    [options]
+  );
+
+  /** 보이는 글자 → 티커. 🔴 라벨을 다시 쪼개지 않는다(이름에 가운뎃점이 들면 깨진다). */
+  const tickerByLabel = useMemo(
+    () =>
+      new Map(
+        options.map((candidate) => [
+          `${candidate.ticker} · ${candidate.name}${candidate.hasPayoutMonths ? '' : copy.picker.noScheduleSuffix}`,
+          candidate.ticker
+        ])
+      ),
+    [options]
+  );
+
   /**
    * 🔴 **한 화면 안에서 종목 색이 겹치지 않게** 배정한다(`assignSeries` 2겹 — 안정 해시 + 충돌 회피).
    * 이 맵 하나가 덱 슬롯의 귀 · 표 열 머리의 귀 · 지급월 마크 **세 곳**을 동시에 칠한다.
@@ -227,28 +249,38 @@ export default function TickerCompareView({
 
         {/* 전폭이라 긴 종목명이 잘리지 않는다.
             상한에 닿으면 컨트롤을 잠그고 **사유를 아래 문장이** 말한다 — 이유 없는 회색 컨트롤 금지. */}
+        {/*
+          🔴 콤보박스는 **보이는 글자**를 돌려준다 — 그 글자에서 티커를 되찾을 표가 필요하다.
+             `SCHD · Schwab US Dividend` 같은 라벨을 다시 쪼개 파싱하면 이름에 가운뎃점이 든 종목에서
+             조용히 깨진다.
+        */}
         <AddRow>
-          <Select
+          {/*
+            🔴 **검색되는 콤보박스**다(2026-08-09 사용자 요청). 종전에는 네이티브 `<select>` 라
+               후보가 수백 개면 스크롤로만 찾아야 했다 — 티커를 아는 사람에게 그건 가장 느린 길이다.
+            ⚠ **고르는 도구**라 값을 담아 두지 않는다(`clearOnSelect`). 고른 즉시 위 목록에 담기고
+              칸은 비워져 다음 선택을 기다린다 — 고른 값이 남아 있으면 "이미 담았는데 아직 있다"로
+              읽혀 한 번 더 누르게 된다.
+            ⚠ 자유 입력을 받지 않는다. 여기는 우리 목록 안의 종목만 비교할 수 있는 자리라,
+              목록에 없는 글자를 넘기면 아무 일도 안 일어나 사용자가 이유를 모른다.
+          */}
+          <ComboBox
             id={addSelectId}
-            size="md"
-            width="full"
             value=""
+            options={pickerOptions}
+            listLabel={copy.picker.addLabel}
+            ariaLabel={copy.picker.addLabel}
+            placeholder={copy.picker.addPlaceholder}
             disabled={isAtLimit || options.length === 0}
-            aria-label={copy.picker.addLabel}
-            aria-describedby={hintId}
-            onChange={(event) => {
-              const ticker = event.target.value;
+            ariaDescribedBy={hintId}
+            clearOnSelect
+            allowFreeText={false}
+            visibleOptionCount={8}
+            onChange={(label) => {
+              const ticker = tickerByLabel.get(label);
               if (ticker) onAdd(ticker);
             }}
-          >
-            <option value="">{copy.picker.addPlaceholder}</option>
-            {options.map((candidate) => (
-              <option key={candidate.ticker} value={candidate.ticker}>
-                {candidate.ticker} · {candidate.name}
-                {candidate.hasPayoutMonths ? '' : copy.picker.noScheduleSuffix}
-              </option>
-            ))}
-          </Select>
+          />
 
           <PickerHint id={hintId}>{isAtLimit ? copy.picker.atLimit : copy.picker.hint}</PickerHint>
         </AddRow>

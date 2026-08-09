@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import TickerCompareView from '@/pages/Ticker/TickerComparePage/TickerComparePage.view';
@@ -61,13 +61,26 @@ describe('선택 진입점', () => {
     expect(onRemove).toHaveBeenCalledWith('SCHD');
   });
 
-  it('셀렉트로 종목을 더할 수 있고, 이미 고른 종목은 후보에서 빠진다', async () => {
+  /**
+   * 🔴 2026-08-09 — 네이티브 `<select>` 에서 **검색되는 콤보박스**로 바뀌었다(사용자 요청).
+   *    후보가 수백 개면 스크롤로만 찾아야 했는데, 티커를 아는 사람에게 그건 가장 느린 길이다.
+   *
+   * ⚠ 그래서 `selectOptions`(네이티브 전용)를 쓸 수 없다. 사용자가 실제로 하는 대로 —
+   *   **치고 고른다** — 조작한다.
+   */
+  it('검색해서 종목을 더할 수 있고, 이미 고른 종목은 후보에서 빠진다', async () => {
     const { onAdd } = renderView(['SCHD', 'JEPI']);
 
-    const select = screen.getByRole('combobox', { name: '종목 추가' });
-    expect(within(select).queryByRole('option', { name: /^SCHD ·/ })).toBeNull();
+    const combo = screen.getByRole('combobox', { name: '종목 추가' });
+    await userEvent.click(combo);
 
-    await userEvent.selectOptions(select, 'O');
+    /* 이미 고른 것은 후보에 없다. */
+    expect(screen.queryByRole('option', { name: /^SCHD ·/ })).toBeNull();
+
+    await userEvent.type(combo, 'O');
+    const option = await screen.findByRole('option', { name: /^O ·/ });
+    await userEvent.click(option);
+
     expect(onAdd).toHaveBeenCalledWith('O');
   });
 

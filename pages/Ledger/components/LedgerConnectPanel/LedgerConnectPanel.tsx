@@ -12,6 +12,7 @@ import { LedgerStepRail } from "../LedgerStepRail";
 import type { LedgerConnectPanelProps } from "./LedgerConnectPanel.types";
 import {
   ChoiceBody,
+  DualActions,
   ChoiceGrid,
   ChoiceTitle,
   ConnectHeading,
@@ -90,8 +91,9 @@ export default function LedgerConnectPanel({
             </ChoiceTitle>
           }
           actions={
-            <>
-              {/*
+            hasStoredLink ? (
+              <DualActions>
+                {/*
                 🔴 **지난 시트로 이어서** — 저장된 연결이 있을 때만 선다(2026-08-09).
                    시트 ID·탭·열 매핑은 이미 로컬에 있고 필요한 것은 토큰뿐인데, 종전에는 그것 하나
                    때문에 피커를 다시 열어 **이미 고른 파일을 또 골라야** 했다.
@@ -100,28 +102,39 @@ export default function LedgerConnectPanel({
                 🔴 마운트에서 자동으로 하지 않는다. 사용자가 아무것도 안 눌렀는데 구글 계정 선택
                    창이 뜨는 것은 팝업이 막히는 것보다 나쁘다(실측으로 되돌린 판단).
               */}
-              {hasStoredLink ? (
                 <Button
                   type="button"
+                  fullWidth
                   loading={isPicking}
                   disabled={isBusy && !isPicking}
                   onClick={onRestoreLastSheet}
                 >
                   {copy.connect.resume.cta}
                 </Button>
-              ) : null}
+                <Button
+                  type="button"
+                  variant="secondary"
+                  fullWidth
+                  ref={registerPickButton}
+                  disabled={isBusy && !isPicking}
+                  onClick={onPickExistingSheet}
+                >
+                  {copy.connect.existing.ctaOther}
+                </Button>
+              </DualActions>
+            ) : (
               <Button
                 type="button"
                 variant="secondary"
-                fullWidth={!hasStoredLink}
+                fullWidth
                 ref={registerPickButton}
-                loading={isPicking && !hasStoredLink}
+                loading={isPicking}
                 disabled={isBusy && !isPicking}
                 onClick={onPickExistingSheet}
               >
-                {hasStoredLink ? copy.connect.existing.ctaOther : copy.connect.existing.cta}
+                {copy.connect.existing.cta}
               </Button>
-            </>
+            )
           }
         >
           <ChoiceBody>
