@@ -3,6 +3,7 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import {
   LEDGER_LINK_STORAGE_KEY,
   connectSpreadsheet,
+  ledgerError,
   getCachedAccessToken,
   openSpreadsheetPicker,
   readLedgerSnapshot,
@@ -91,7 +92,18 @@ beforeEach(() => {
   window.localStorage.setItem(LEDGER_LINK_STORAGE_KEY, JSON.stringify(LEGACY_STORED));
 
   vi.mocked(getCachedAccessToken).mockReturnValue({ value: 'token-1', expiresAt: null });
-  vi.mocked(requestAccessToken).mockResolvedValue({ ok: true, value: { value: 'token-1', expiresAt: null } });
+  /*
+   * 🔴 **마운트의 무음 되살리기를 끈다**(2026-08-09). 저장된 연결이 있으면 훅이 마운트에서
+   *    조용히 토큰을 받아 연결을 되살리는데, 이 파일은 **탭 전환**을 보는 곳이라 그 흐름이
+   *    끼면 목 큐(`mockResolvedValueOnce`)를 먼저 소비해 아래 단정이 엉뚱한 응답을 본다.
+   *    무음 시도만 실패시키면 되살리기가 곧바로 물러나고 이 파일의 전제가 그대로 남는다.
+   *    (되살리기 자체는 `ledgerSilentRestore.test.tsx` 가 따로 검증한다.)
+   */
+  vi.mocked(requestAccessToken).mockImplementation(async (options) =>
+    options?.silent
+      ? { ok: false, error: ledgerError('not-authorized') }
+      : { ok: true, value: { value: 'token-1', expiresAt: null } }
+  );
   vi.mocked(openSpreadsheetPicker).mockResolvedValue({ ok: true, value: { spreadsheetId: 'sheet-1' } });
   mockedRead.mockResolvedValue({ ok: true, value: snapshotOf('snap-1', TAB_NOW.title) });
 });
