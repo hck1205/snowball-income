@@ -53,10 +53,16 @@ const EXPECTED: StringTree = {
       map: '열 지정 (필요할 때만)',
       record: '기록 시작'
     },
+    resume: {
+      cta: '이어서 열기'
+    },
     existing: {
       title: '이미 쓰는 시트 연결하기',
       body: '구글 드라이브에서 가계부로 쓰던 시트를 고릅니다. 다음 단계에서 어느 열이 날짜·구분·금액·항목인지 지정합니다.',
+      bodyWithResume:
+        '지난번에 연결한 시트를 그대로 다시 엽니다. 다른 시트를 쓰시려면 옆 버튼으로 고르시면 됩니다.',
       cta: '시트 고르기',
+      ctaOther: '다른 시트 고르기',
       loading: '구글 드라이브를 여는 중입니다'
     },
     create: {

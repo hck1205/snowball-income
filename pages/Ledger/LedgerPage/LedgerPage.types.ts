@@ -116,6 +116,8 @@ export type LedgerViewModel = {
   /** 새 탭으로 열 시트 주소. 연결 전에는 `null`. */
   sheetUrl: string | null;
   sheetName: string | null;
+  /** 이 브라우저에 저장된 연결이 있나. 연결 화면이 “이어서 열기” 타일을 그릴지 정한다. */
+  hasStoredLink: boolean;
   /**
    * B-1 탭 선택. `null` 이면 고를 자리가 없다(연결 전 · 연결 정보를 아직 못 받았다).
    * 🔴 탭 제목은 여기까지만 온다 — 저장·GA·에러 문구로 흘리지 않는다.
@@ -213,6 +215,8 @@ export type LedgerViewProps = {
   /** 앱 로그인 시작(구글·네이버·카카오). 🔴 구글 시트 동의와 다른 층이다. */
   onSignIn: (provider: CommunityOAuthProvider) => void;
 
+  /** 지난 시트로 한 번에. 🔴 피커를 거치지 않는다 — 이미 고른 파일을 또 고르게 하지 않는다. */
+  onRestoreLastSheet: () => void;
   onPickExistingSheet: () => void;
   onCreateSheet: () => void;
   onMappingChange: (field: LedgerFieldId, letter: string | null) => void;

@@ -151,6 +151,7 @@ export default function LedgerPageView({
   focusAfterRemoveId,
   onFocusAfterRemoveHandled,
   onSignIn,
+  onRestoreLastSheet,
   onPickExistingSheet,
   onCreateSheet,
   onMappingChange,
@@ -486,6 +487,8 @@ export default function LedgerPageView({
           phase={viewModel.phase}
           headingId={connectHeadingId}
           isAppSignedIn={isAppSignedIn}
+          hasStoredLink={viewModel.hasStoredLink}
+          onRestoreLastSheet={onRestoreLastSheet}
           onPickExistingSheet={onPickExistingSheet}
           onCreateSheet={onCreateSheet}
         />

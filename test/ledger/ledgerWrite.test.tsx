@@ -72,6 +72,8 @@ const makeConnection = (overrides: Partial<LedgerConnection> = {}): LedgerConnec
   /* 기본값은 **규칙 없음** — 사다리 1단이 빠진 상태가 기존 테스트의 전제다. */
   classifyRules: [],
   cancelMapping: vi.fn(),
+  restoreLastSheet: vi.fn(),
+  hasStoredLink: false,
   state: 'connected',
   phase: 'idle',
   showCheckingSkeleton: false,

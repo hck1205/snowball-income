@@ -97,6 +97,14 @@ export type LedgerConnection = {
   refresh: () => Promise<boolean>;
   markPopupBlocked: () => void;
 
+  /**
+   * 지난 시트로 **한 번에** 돌아간다(피커를 거치지 않는다). 저장된 연결이 없으면 아무것도 안 한다.
+   *
+   * 🔴 클릭 핸들러 안에서만 불러야 한다 — 구글 창이 열릴 수 있다.
+   */
+  restoreLastSheet: () => void;
+  /** 이 브라우저에 저장된 연결이 있나. 화면이 위 버튼을 그릴지 정하는 값이다. */
+  hasStoredLink: boolean;
   pickExistingSheet: () => void;
   createSheet: () => void;
   /**
@@ -238,80 +246,28 @@ export function useLedgerConnection(): LedgerConnection {
   /* ── checking → disconnected ─────────────────────────────────────────────── */
 
   /**
-   * 마운트 — 저장된 연결이 있으면 **조용히 되살려 본다**(2026-08-09).
+   * 마운트 — 저장된 연결이 있어도 **자동으로 열지 않는다.**
    *
-   * ## 왜
+   * ## 🔴 무음 되살리기를 넣었다가 되돌렸다 (2026-08-09)
    *
-   * 시트 ID·탭·열 매핑은 이미 로컬에 있는데 **토큰만 메모리라 새로고침에서 사라진다.** 그래서
-   * 새로고침할 때마다 사용자가 연결 버튼을 다시 눌러야 했다 — 저장된 것이 있는데도.
+   * `prompt: ''` 가 "이미 동의했으면 조용히 준다"라고 읽혀 마운트에서 한 번 시도하게 했는데,
+   * 실제로는 **계정 선택 창이 떴다.** `prompt: ''` 는 **동의**를 건너뛸 뿐이고, 구글 계정이 여럿
+   * 로그인돼 있으면 GIS 는 어느 계정인지 물어야 해서 창을 연다 — 그건 `prompt` 로 못 막는다.
    *
-   * `prompt: ''`(기본값)는 **이미 동의했고 구글 세션이 살아 있으면 팝업 없이** 토큰을 준다.
-   * 그러면 클릭 없이 곧바로 연결된다.
+   * 사용자가 아무것도 안 눌렀는데 계정 선택 창이 뜨는 것은 **팝업이 막히는 것보다 나쁘다.**
+   * 그래서 자동 시도를 걷어냈다. 대신 **지난 시트로 한 번에 돌아가는 버튼**을 두었다
+   * (`restoreLastSheet`) — 클릭으로 뜨는 창은 사용자가 예상한 것이고, 피커를 거치지 않아
+   * 종전보다 한 단계 짧다.
    *
-   * ## 🔴 실패는 조용히 삼킨다
-   *
-   * 동의가 없거나 세션이 없으면 GIS 가 팝업을 열려다 제스처가 없어 막히고, 그것이 오류로 온다.
-   * **그때 배너를 띄우면 거짓 경보다** — 사용자는 아무것도 안 눌렀다. 그냥 지금까지처럼 연결
-   * 화면이 서고, 버튼을 누르면 정상 흐름으로 간다.
-   *
-   * ⚠ 서드파티 쿠키를 막은 브라우저에서는 무음 경로가 실패한다. 그것도 위와 같이 폴백이다.
-   * ⚠ **동의를 새로 받지 않는다.** `prompt: 'consent'` 를 쓰면 마운트마다 동의 화면이 뜬다.
+   * ⚠ 되살리려면 `hint`(구글 이메일)가 있어야 창 없이 되는데, 우리는 그 값을 갖고 있지 않다 —
+   *   액세스 토큰 응답에 이메일이 없고, 이 앱은 카카오·네이버 로그인이 1급이라 앱 세션의
+   *   이메일이 구글 계정과 같다는 보장도 없다.
    */
   useEffect(() => {
     const timer = window.setTimeout(() => setShowCheckingSkeleton(true), CHECKING_SKELETON_DELAY_MS);
-    const stored = loadSheetLinks();
-    storedLinksRef.current = stored;
-
-    /* 저장된 연결이 없으면 되살릴 것도 없다 — 곧바로 선택 화면. */
-    if (stored.length === 0) {
-      setState('disconnected');
-      return () => window.clearTimeout(timer);
-    }
-
-    let cancelled = false;
-    /** 🔴 사용자가 이미 버튼을 눌렀으면 되살리기는 물러난다 — 사람이 이긴다. */
-    const abandoned = () => cancelled || userStartedRef.current || !isMountedRef.current;
-
-    void (async () => {
-      const token = await requestAccessToken({ silent: true });
-      if (abandoned()) return;
-
-      if (!token.ok) {
-        /* 🔴 조용히 물러난다. 배너도 오류도 없다 — 사용자는 아무것도 안 눌렀다. */
-        setState('disconnected');
-        return;
-      }
-
-      /* 가장 마지막에 쓰던 연결을 되살린다(저장 순서의 끝). */
-      const target = stored[stored.length - 1];
-      const connected = await connectSpreadsheet(
-        { accessToken: token.value.value },
-        { spreadsheetId: target.spreadsheetId, sheetId: target.sheetId, mapping: target.mapping }
-      );
-      if (abandoned()) return;
-
-      /*
-       * 🔴 되살리기 실패도 조용하다. 시트가 지워졌거나 권한이 바뀐 경우인데, 그 사실은 사용자가
-       *    연결을 시도할 때 제대로 된 사유와 함께 말하는 편이 낫다 — 화면에 들어오자마자
-       *    빨간 배너가 뜨면 무엇 때문인지 알 방법이 없다.
-       */
-      if (!connected.ok || connected.value.status !== 'linked') {
-        setState('disconnected');
-        return;
-      }
-
-      await finalize(connected.value.link, { created: false, tabs: connected.value.tabs });
-    })();
-
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timer);
-    };
-    /*
-     * ⚠ `finalize` 는 의도적으로 뺐다. 이 효과는 **마운트에 한 번만** 돌아야 하는데, 넣으면
-     *   그 콜백이 새로 만들어질 때마다 되살리기가 다시 돈다(요청이 늘고 화면이 깜빡인다).
-     */
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    storedLinksRef.current = loadSheetLinks();
+    setState('disconnected');
+    return () => window.clearTimeout(timer);
   }, []);
 
   /* ── 공통 도우미 ─────────────────────────────────────────────────────────── */
@@ -457,6 +413,53 @@ export function useLedgerConnection(): LedgerConnection {
   const markUserStarted = useCallback(() => {
     userStartedRef.current = true;
   }, []);
+
+  /**
+   * **지난 시트로 한 번에 돌아간다** — 구글 드라이브 피커를 거치지 않는다.
+   *
+   * 시트 ID·탭·열 매핑은 이미 로컬에 있으므로 필요한 것은 토큰뿐이다. 종전에는 그 토큰을 받으려고
+   * `시트 고르기` → 피커 → 파일 선택을 다시 거쳐야 했는데, 이미 고른 파일을 다시 고르는 절차다.
+   *
+   * 🔴 **클릭 핸들러 안에서만 부른다.** 구글 창이 열릴 수 있고, 제스처 없이 부르면 막히거나
+   *    (더 나쁘게) 사용자가 예상하지 못한 계정 선택 창이 뜬다 — 그래서 마운트 자동 시도를 되돌렸다.
+   */
+  const restoreLastSheet = useCallback(() => {
+    const stored = storedLinksRef.current;
+    const target = stored[stored.length - 1];
+    if (!target) return;
+
+    markUserStarted();
+    setPhase('picking');
+    setConnectError(null);
+
+    void (async () => {
+      const context = await acquireToken();
+      if (context === null) return;
+
+      setPhase('connecting');
+      const connected = await connectSpreadsheet(context, {
+        spreadsheetId: target.spreadsheetId,
+        sheetId: target.sheetId,
+        mapping: target.mapping
+      });
+      if (!isMountedRef.current) return;
+
+      if (!connected.ok) {
+        setPhase('idle');
+        applyError(connected.error);
+        return;
+      }
+
+      /* 매핑이 아직 없으면 연결 흐름과 같은 화면으로 넘긴다 — 전용 화면을 새로 만들지 않는다. */
+      if (connected.value.status !== 'linked') {
+        setPhase('idle');
+        setState('disconnected');
+        return;
+      }
+
+      await finalize(connected.value.link, { created: false, tabs: connected.value.tabs });
+    })();
+  }, [acquireToken, applyError, finalize, markUserStarted]);
 
   const pickExistingSheet = useCallback(() => {
     markUserStarted();
@@ -796,6 +799,8 @@ export function useLedgerConnection(): LedgerConnection {
     applyError,
     refresh,
     markPopupBlocked,
+    restoreLastSheet,
+    hasStoredLink: storedLinksRef.current.length > 0,
     pickExistingSheet,
     createSheet,
     switchTab,

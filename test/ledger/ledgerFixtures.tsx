@@ -87,6 +87,7 @@ export const baseViewModel = (overrides: Partial<LedgerViewModel> = {}): LedgerV
   showCheckingSkeleton: false,
   sheetUrl: 'https://docs.google.com/spreadsheets/d/abc/edit',
   sheetName: '우리집 가계부',
+  hasStoredLink: false,
   /* 기본값은 **탭 1개** — 기존 화면 테스트는 탭 선택이 없던 시절의 화면을 그대로 본다. */
   tabPicker: {
     options: [{ sheetId: 0, title: '우리집 가계부' }],
@@ -158,6 +159,7 @@ export const renderLedgerView = (
   const handlers = {
     onFocusAfterRemoveHandled: vi.fn(),
     onSignIn: vi.fn(),
+    onRestoreLastSheet: vi.fn(),
     onPickExistingSheet: vi.fn(),
     onCreateSheet: vi.fn(),
     onMappingChange: vi.fn(),
