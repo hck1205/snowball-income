@@ -1,4 +1,6 @@
 import { toNodeHandler } from '@/shared/lib/server';
+import { youtubeVideoId } from '@/shared/lib/youtube';
+import { fetchYoutubeMeta } from './youtube';
 
 /**
  * `/api/unfurl?url=…` — 남의 페이지에서 **제목·요약·썸네일·출처**만 뽑아 JSON 으로 돌려준다.
@@ -21,10 +23,10 @@ import { toNodeHandler } from '@/shared/lib/server';
  *
  * ⚠ IP 리터럴만 막는 것으로는 부족하다 — 이름이 사설 IP 로 풀리는 경우(DNS rebinding)는 이
  *   레이어에서 완전히 막을 수 없다. 그래서 **저장하는 값이 텍스트뿐**이라는 점이 두 번째 방어선이다
- *   (본문을 가져와 보여 주지 않는다. NewsPayload 주석 참고).
+ *   (본문을 가져와 보여 주지 않는다. LinkPayload 주석 참고).
  *
  * ## 무엇을 돌려주나
- * `{ url, title, summary?, image?, source }` — `shared/lib/supabase` 의 `NewsPayload` 와 같은 모양이다.
+ * `{ url, title, summary?, image?, source }` — `shared/lib/supabase` 의 `LinkPayload` 와 같은 모양이다.
  * 🔴 **원문 본문은 담지 않는다**(저작권). 제목·요약 두세 줄·썸네일·출처가 전부다.
  */
 
@@ -202,6 +204,21 @@ const resolveImage = (raw: string | undefined, base: string): string | undefined
 export async function handler(request: Request): Promise<Response> {
   const target = new URL(request.url).searchParams.get('url')?.trim();
   if (!target) return fail(400, 'url 파라미터가 필요합니다.');
+
+  /*
+   * 🔴 **유튜브는 여기서 갈라진다.** 영상 ID 만 뽑아 우리가 만든 oEmbed 주소를 부르므로,
+   *    아래의 "남의 주소를 대신 연다"는 경로를 아예 타지 않는다 — 이 분기에는 SSRF 표면이 없다.
+   *    근거와 ID 추출 규칙은 `./youtube.ts` 머리말에 있다.
+   * ⚠ 순서가 중요하다. `isSafeUrl` 뒤에 두면 유튜브도 일반 경로의 제약(리다이렉트·바이트 상한)을
+   *   함께 받게 되는데, 그건 우리가 부르는 주소가 유튜브 한 곳이라 의미가 없다.
+   */
+  const videoId = youtubeVideoId(target);
+  if (videoId) {
+    const meta = await fetchYoutubeMeta(videoId);
+    if (!meta) return fail(422, '이 영상의 정보를 읽지 못했습니다.');
+    return new Response(JSON.stringify(meta), { status: 200, headers: JSON_HEADERS });
+  }
+
   if (!isSafeUrl(target)) return fail(400, '열 수 없는 주소입니다.');
 
   const fetched = await fetchHtml(target);

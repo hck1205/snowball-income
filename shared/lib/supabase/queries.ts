@@ -19,8 +19,8 @@ import type {
   GalleryFacetFilters,
   GalleryPage,
   GallerySort,
-  NewsPage,
-  NewsPayload,
+  FirePage,
+  LinkPayload,
   PostCategory,
   PostKind,
   PostListItem,
@@ -55,11 +55,11 @@ const DETAIL_COLUMNS = `${LIST_COLUMNS},payload,body`;
  *
  * 🔴 다른 목록에는 payload 를 넣지 않는다. 포트폴리오 글의 payload 는 수십 KB 라 목록 대역폭을
  * 통째로 먹는다(위 OPTIONAL_POST_COLUMNS 주석의 그 이유). 반면 **뉴스의 payload 는 링크 메타
- * 다섯 필드**뿐이라(url·title·summary·image·source, `NewsPayload`) 수백 바이트다.
+ * 다섯 필드**뿐이라(url·title·summary·image·source, `LinkPayload`) 수백 바이트다.
  * 그리고 뉴스 카드는 썸네일·출처·요약이 **곧 카드 자체**라, 없으면 목록을 그릴 수가 없다.
  * ⚠ 이 컬럼셋을 다른 kind 에 쓰지 마라 — kind='news' 조건과 한 벌이다.
  */
-const NEWS_LIST_COLUMNS = `${LIST_COLUMNS},payload`;
+const FIRE_LIST_COLUMNS = `${LIST_COLUMNS},payload`;
 
 /**
  * **아직 배포되지 않았을 수 있는** posts 컬럼들.
@@ -174,7 +174,7 @@ export const fetchGalleryPage = async (
     kind?: PostKind;
     /**
      * 내려받을 컬럼셋. 기본은 목록 공용(payload 없음).
-     * ⚠ 뉴스만 `NEWS_LIST_COLUMNS` 를 쓴다 — 근거는 그 상수의 주석. 다른 표면에 넘기지 마라.
+     * ⚠ 뉴스만 `FIRE_LIST_COLUMNS` 를 쓴다 — 근거는 그 상수의 주석. 다른 표면에 넘기지 마라.
      */
     columns?: string;
   } = {}
@@ -230,7 +230,7 @@ export const fetchBoardPage = async (
  * 세 표면 중 하나만 고쳐지는 날이 온다 — 지금은 규칙이 한 곳(fetchGalleryPage)에만 있다.
  * ⚠ 마이그레이션 전에는 kind='news' 행이 존재할 수 없어 **빈 목록**이 온다(에러가 아니다).
  */
-export const fetchNewsPage = async (
+export const fetchFirePage = async (
   client: CommunityClient,
   options: {
     sort?: GallerySort;
@@ -239,8 +239,8 @@ export const fetchNewsPage = async (
     query?: string;
     queryFilter?: string;
   } = {}
-): Promise<NewsPage> =>
-  fetchGalleryPage(client, { ...options, kind: 'news', columns: NEWS_LIST_COLUMNS }) as Promise<NewsPage>;
+): Promise<FirePage> =>
+  fetchGalleryPage(client, { ...options, kind: 'fire', columns: FIRE_LIST_COLUMNS }) as Promise<FirePage>;
 
 export const fetchPostDetail = async (
   client: CommunityClient,
@@ -297,7 +297,7 @@ export const publishPost = async (
      * 🔴 서버 CHECK(`posts_payload_valid_or_null`, 마이그레이션 20260807000001)가 그 짝을 강제한다 —
      *   뉴스 글에 시나리오를 담거나 그 반대로 담으면 23514 로 거절된다.
      */
-    payload?: PostPayload | NewsPayload | null;
+    payload?: PostPayload | LinkPayload | null;
     isPublic?: boolean;
     kind?: PostKind;
     category?: PostCategory;
@@ -308,7 +308,7 @@ export const publishPost = async (
    * 🔴 뉴스 payload 에는 시뮬 요약이 없다 — `buildScenarioSimSummary` 에 넘기면 시나리오가 아닌
    * 모양을 파싱하게 된다. kind 로 먼저 갈라 낸다(그 함수가 관대해도 의미 없는 호출이다).
    */
-  const simSummary = input.kind === 'news' ? null : toSimSummary(payload as PostPayload | null);
+  const simSummary = input.kind === 'fire' ? null : toSimSummary(payload as PostPayload | null);
 
   return unwrap(
     await client

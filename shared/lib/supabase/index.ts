@@ -20,7 +20,7 @@ export * from './oauthFailure';
 export * from './comments';
 export * from './pagination';
 export * from './payload';
-export * from './newsPayload';
+export * from './linkPayload';
 export * from './queries';
 export * from './userAppStates';
 export * from './userPortfolioStates';

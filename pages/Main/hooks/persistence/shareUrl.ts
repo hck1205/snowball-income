@@ -16,7 +16,15 @@ export const buildShareUrl = (href: string, shareCode: string): string => {
   return url.toString();
 };
 
-/** 현재 href에 DB 공유 key를 붙인 URL 문자열을 만든다(`?s=<key>`). */
+/**
+ * 현재 href에 DB 공유 key를 붙인 URL 문자열을 만든다(`?s=<key>`).
+ *
+ * 🔴 **앱은 더 이상 이걸로 링크를 만들지 않는다**(2026-08-09, DB 쓰기 경로를 닫았다 —
+ * 근거는 `usePortfolioPersistence` 의 `createShareLink` 주석). 그런데 지우지 않는다:
+ * 이미 나간 `?s=` 링크를 **읽는** 쪽(`readDbShareKeyFromHref`)은 계속 살아 있어야 하고,
+ * 그게 진짜 작동하는지는 짝이 되는 생성기로 **왕복**시켜야 증명된다. 없애면 테스트가 손으로
+ * 적은 문자열에 기대게 되고, 그 문자열은 조용히 실제 포맷과 어긋난다.
+ */
 export const buildDbShareUrl = (href: string, key: string): string => {
   const url = new URL(href);
   url.searchParams.set(S_QUERY_PARAM, key);

@@ -12667,10 +12667,25 @@ var headerControlsGrid = `
     column-gap: ${space[2]};
   }
 
+  /*
+   * \u{1F534} **\uBA54\uB274 \uBC84\uD2BC\uC5D0 \uC790\uAE30 \uC5F4\uC744 \uC900\uB2E4**(2026-08-09 \uC0AC\uC6A9\uC790 \uC2E0\uACE0: \uC544\uC774\uCF58\uC774 \uB85C\uACE0\uB97C \uAC00\uB9B0\uB2E4).
+   *
+   * \uC885\uC804\uC5D0\uB294 \uC11C\uB78D \uBC84\uD2BC\uC774 logo \uCE78\uC744 \uB85C\uACE0 \uADF8\uB9BC\uACFC **\uD568\uAED8** \uC37C\uB2E4. \uB113\uC740 \uD3ED\uC5D0\uC11C\uB294 \uADF8 \uCE78\uC774 \uB450 \uC904\uC744
+   * \uAC00\uB85C\uC9C8\uB7EC\uC11C \uB85C\uACE0\uB294 \uAC00\uC6B4\uB370\xB7\uBC84\uD2BC\uC740 \uC544\uB798\uB85C \uD3EC\uAC1C\uC84C\uB294\uB370, \uC774 \uAD6C\uAC04\uC5D0\uC11C\uB294 \uB85C\uACE0\uAC00 \uBE0C\uB79C\uB4DC \uC904\uB85C \uB4E4\uC5B4\uC640
+   * **\uD55C \uCE78\uC774 \uB418\uBA74\uC11C \uB458\uC774 \uADF8\uB300\uB85C \uACB9\uCCE4\uB2E4.**
+   *
+   * \u26A0 \uC774 \uC8FC\uC11D\uC5D0 **\uBC31\uD2F1\uC744 \uC4F0\uC9C0 \uB9C8\uB77C.** \uC5EC\uAE30\uB294 Emotion \uD15C\uD50C\uB9BF \uB9AC\uD130\uB7F4 \uC548\uC774\uB77C \uBC31\uD2F1 \uD558\uB098\uAC00 \uBB38\uC790\uC5F4\uC744
+   *   \uB04A\uB294\uB2E4 \u2014 \uC2E4\uC81C\uB85C \uC774 \uD30C\uC77C\uC5D0\uC11C \uADF8\uB807\uAC8C \uAE68\uB728\uB838\uB2E4(2026-08-09).
+   * \u26A0 \uBC84\uD2BC\uC744 \uC544\uB7AB\uC904(nav)\uB85C \uB0B4\uB9AC\uB294 \uAE38\uB3C4 \uC788\uC5C8\uC9C0\uB9CC \uADF8\uB7EC\uBA74 \uD5E4\uB354\uAC00 **65px \u2192 113px** \uC774 \uB41C\uB2E4
+   *   (headerprobe \uC2E4\uCE21, 390px \uAE30\uC900). sticky \uD5E4\uB354\uAC00 \uAC70\uC758 \uB450 \uBC30\uAC00 \uB418\uB294 \uB300\uAC00\uB77C \uC5F4\uC744 \uD558\uB098 \uB298\uB838\uB2E4 \u2014
+   *   \uC774\uCABD\uC740 \uB192\uC774\uAC00 \uADF8\uB300\uB85C\uB2E4.
+   * \u26A0 \uBC84\uD2BC\uC774 \uB85C\uACE0 **\uC67C\uCABD**\uC778 \uAC83\uB3C4 \uC758\uB3C4\uB2E4. \uC11C\uB78D\uC774 \uC67C\uCABD\uC5D0\uC11C \uB098\uC624\uBBC0\uB85C \uBC29\uD5A5\uC774 \uB9DE\uB294\uB2E4.
+   */
   ${media.down("mobileWide")} {
+    grid-template-columns: auto auto minmax(0, 1fr) auto;
     grid-template-areas:
-      'logo brand actions'
-      'nav nav nav';
+      'menu logo brand actions'
+      'nav nav nav nav';
   }
 `;
 
@@ -14309,6 +14324,7 @@ var toNodeHandler = (webHandler) => {
 var import_jsx_runtime = __toESM(require_jsx_runtime(), 1);
 var WIDTH = 1200;
 var HEIGHT = 630;
+var STATIC_OG_IMAGE = "/og-hungry-hippo.png";
 var COLOR = {
   brand800: "#0a4a6e",
   brand600: "#0a6da3",
@@ -14473,7 +14489,7 @@ async function handler(request) {
     return new Response(null, {
       status: 302,
       headers: {
-        Location: new URL("/og-image.png", origin).toString(),
+        Location: new URL(STATIC_OG_IMAGE, origin).toString(),
         "Cache-Control": "public, no-transform, max-age=300"
       }
     });

@@ -1,4 +1,4 @@
-import { useLocation, useMatch, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/common';
 import { BackIcon } from '@/components/community/CommunityIcons';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
@@ -17,21 +17,28 @@ import type { CommunityTopBarProps } from './CommunityTopBar.types';
  * 우측 `actions` 는 화면이 채운다(상세의 수정·삭제). 비어 있어도 좌측 정렬은 그대로다 —
  * `space-between` 은 자식이 하나면 그 자식을 왼쪽에 둔다.
  *
- * 목록 화면(갤러리/게시판 인덱스)에서는 아무것도 렌더하지 않는다 — 자기 자신으로 돌아가는 링크는
- * 소음이다. 어느 섹션의 목록으로 돌아가는지는 현재 경로가 정한다.
+ * 목록 화면 자신에서는 아무것도 렌더하지 않는다 — 자기 자신으로 돌아가는 링크는 소음이다.
+ * 어느 섹션의 목록으로 돌아가는지는 현재 경로가 정한다(아래 `SECTIONS`).
  */
 export default function CommunityTopBar({ actions, sticky = false }: CommunityTopBarProps) {
-  // ⚠ 두 `useMatch` 를 `||` 로 한 식에 묶지 말 것 — 단축 평가로 뒤 훅이 호출되지 않으면 조건부 훅이 된다
-  //   (CommunityHeader 가 같은 함정을 주석으로 남겨 뒀다).
-  const isGalleryIndex = Boolean(useMatch({ path: '/community/portfolio', end: true }));
-  const isBoardIndex = Boolean(useMatch({ path: '/community/board', end: true }));
+  /* ⚠ 훅은 조건 앞에서 전부 부른다 — 아래 이른 반환보다 위에 있어야 조건부 훅이 되지 않는다. */
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
-  if (isGalleryIndex || isBoardIndex) return null;
+  /*
+   * 🔴 **섹션 목록을 표로 둔다.** 종전에는 "게시판이면 게시판, 아니면 갤러리"라는 삼항이라,
+   *    섹션이 하나 늘자(파이어족들) 그 상세에서 뒤로 가면 갤러리로 튀었다(2026-08-09 사용자 신고).
+   *    섹션이 늘 때 **여기 한 줄만 더하면 되게** 표로 바꾼다 — 삼항은 늘 때마다 분기가 겹친다.
+   * ⚠ 순서에 뜻은 없다. 다만 접두사가 서로를 포함하지 않아야 한다(`/community/board` 와
+   *   `/community/boardgame` 같은 관계가 생기면 앞의 것이 뒤의 것을 먹는다).
+   */
+  const SECTIONS = ['/community/board', '/community/firenow', '/community/portfolio'] as const;
+  const section = SECTIONS.find((base) => pathname === base || pathname.startsWith(`${base}/`));
 
-  const inBoard = pathname === '/community/board' || pathname.startsWith('/community/board/');
-  const listPath = inBoard ? '/community/board' : '/community/portfolio';
+  /* 목록 화면 자신에서는 아무것도 그리지 않는다 — 자기 자신으로 가는 링크는 소음이다. */
+  if (!section || pathname === section) return null;
+
+  const listPath = section;
 
   return (
     <TopBarRow $sticky={sticky}>

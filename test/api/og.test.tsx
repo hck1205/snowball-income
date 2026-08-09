@@ -27,7 +27,7 @@ import {
  * 1. **모듈 평가 스모크**: import 만으로 죽지 않는다. 이 파일 상단의 정적 import 자체가 검증이다
  *    (`import.meta.env` 를 모듈 스코프에서 읽는 코드가 딸려오면 Vercel Node 런타임에서 함수가 즉사한다 —
  *    실제로 겪은 사고라 소스 주석에 규약으로 박혀 있다).
- * 2. **5xx 금지 계약의 실패 절반**: 폰트를 못 받으면 → 302 `/og-image.png`. 렌더 없이 도달 가능한 경로다.
+ * 2. **5xx 금지 계약의 실패 절반**: 폰트를 못 받으면 → 302 `/og-hungry-hippo.png`. 렌더 없이 도달 가능한 경로다.
  * 3. **`?s=` 조회 배선**: 유효 key + env 설정이면 RPC 를 부르고, 형식 불일치면 안 부른다.
  *
  * 성공 경로(200 PNG + `immutable` 캐시)는 **프리뷰 배포에서 눈으로** 확인한다.
@@ -70,13 +70,13 @@ describe('api/og — 모듈 평가 스모크', () => {
 });
 
 describe('api/og — 폰트 실패는 5xx 가 아니라 정적 이미지 302', () => {
-  it('폰트가 !ok 면 /og-image.png 로 302 한다', async () => {
+  it('폰트가 !ok 면 정적 공유 이미지로 302 한다', async () => {
     stubFetchRoutes([failingFontsRoute('not-ok')]);
 
     const response = await handler(apiRequest('/api/og'));
 
     expect(response.status).toBe(302);
-    expect(response.headers.get('location')).toBe(`${TEST_ORIGIN}/og-image.png`);
+    expect(response.headers.get('location')).toBe(`${TEST_ORIGIN}/og-hungry-hippo.png`);
     // 코드 배포로 복구될 수 있는 장애라 짧게만 캐시한다(성공 카드의 1년 immutable 과 다른 값).
     expect(response.headers.get('cache-control')).toBe('public, no-transform, max-age=300');
     expect(consoleErrorSpy).toHaveBeenCalled();
@@ -88,7 +88,7 @@ describe('api/og — 폰트 실패는 5xx 가 아니라 정적 이미지 302', (
     const response = await handler(apiRequest('/api/og'));
 
     expect(response.status).toBe(302);
-    expect(response.headers.get('location')).toBe(`${TEST_ORIGIN}/og-image.png`);
+    expect(response.headers.get('location')).toBe(`${TEST_ORIGIN}/og-hungry-hippo.png`);
   });
 
   it('실패한 폰트 로드를 캐시하지 않는다 — 다음 요청이 다시 시도한다', async () => {

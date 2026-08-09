@@ -78,7 +78,7 @@ hippo **41.1%** 였다. 비율보다 **개수**가 사태를 말한다 — 그 �
     public/apple-touch-icon.png 180×180 RGB   흰 면 · 폭의 91.4% · 가운데 정렬
     public/icon-192.png        192×192  RGB   (PWA)
     public/icon-512.png        512×512  RGB   (PWA)
-    public/og-image.png       1200×630  RGB   브랜드 패널 카드(공유 미리보기)
+    public/og-hungry-hippo.png 1200×630  RGB   브랜드 패널 카드(공유 미리보기)
 
 og 카드의 색 3종은 **하드코딩하지 않는다** — `shared/styles/presets/sharedTokens.ts` 의
 `BRAND_PANEL` 을 그대로 읽어 쓴다. 화면과 공유 카드가 갈라지지 않게 하는 유일한 방법이다.
@@ -384,7 +384,12 @@ def main() -> None:
     written.append(('favicon.ico', ico[-1]))
 
     # ── og 카드 ───────────────────────────────────────────────────────────
-    write('og-image.png', build_og(tight))
+    # 🔴 파일 이름에 브랜드가 들어 있는 것은 **의도**다. 카카오·페이스북 같은 수집기는
+    # 이미지를 **주소 기준**으로 캐시한다 — 같은 이름에 덮어쓰면 그림을 바꿔도 옥 그림이
+    # 계속 나간다(2026-08-09, 실제로 몇 주간 옥 브랜드 그림이 공유 카드에 남았다).
+    # ⚠ 디자인을 바꾸면 **이 이름도 함께 바꾸고**, index.html · Og.tsx 의 STATIC_OG_IMAGE 를
+    #   같이 고친다(둘이 같은지는 test/api/ogImageAsset.test.ts 가 잠그고 있다).
+    write('og-hungry-hippo.png', build_og(tight))
 
     print('\n산출물')
     for name, img in written:

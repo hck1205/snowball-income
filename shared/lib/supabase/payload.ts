@@ -21,6 +21,19 @@ export const COMMENT_BODY_MAX_LENGTH = 2_000;
  * 로컬 탭 id/name은 **버린다**: 서버에선 posts.title이 제목의 정본이고,
  * 로컬 id를 넣어봐야 다른 사용자에게 의미가 없다 (게다가 페이로드 크기만 먹는다).
  */
+/**
+ * 이 `payload` 가 **시뮬 시나리오**인가.
+ *
+ * 🔴 `payload` 는 jsonb 한 칸에 **여러 종류**가 들어온다 — 갤러리 글은 시나리오이고, 파이어족들
+ *    글은 링크 메타(`{url,title,image,source}`)다. 그래서 "payload 가 있으면 시나리오"라고
+ *    단정하면 안 된다. 실제로 그렇게 단정한 자리가 있어서, 링크 글 상세를 열면 시뮬 미리보기가
+ *    `portfolio.tickerProfiles` 를 읽다 터졌다(2026-08-09 사용자 신고).
+ * ⚠ 이 판정은 **모양**으로 한다. `kind` 를 화면까지 배선해 판단하면 종류가 하나 늘 때마다
+ *   그 배선이 함께 늘어난다 — 모양은 데이터가 스스로 말한다.
+ */
+export const isScenarioPayload = (payload: PostPayload | null | undefined): payload is PostPayload =>
+  Boolean(payload && typeof payload === 'object' && 'portfolio' in payload && payload.portfolio);
+
 export const toPostPayload = (scenario: PersistedScenarioState): PostPayload => ({
   portfolio: scenario.portfolio,
   investmentSettings: scenario.investmentSettings

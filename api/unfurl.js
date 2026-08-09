@@ -121,10 +121,57 @@ var toNodeHandler = (webHandler) => {
   };
 };
 
+// shared/lib/youtube/youtube.ts
+var youtubeVideoId = (raw) => {
+  let url;
+  try {
+    url = new URL(raw);
+  } catch {
+    return null;
+  }
+  if (url.protocol !== "https:" && url.protocol !== "http:") return null;
+  const host = url.hostname.toLowerCase().replace(/^www\./, "").replace(/^m\./, "");
+  const path = url.pathname.split("/").filter(Boolean);
+  const candidate = host === "youtu.be" ? path[0] : host === "youtube.com" || host === "music.youtube.com" ? path[0] === "watch" ? url.searchParams.get("v") ?? "" : ["shorts", "live", "embed", "v"].includes(path[0] ?? "") ? path[1] : "" : "";
+  if (!candidate) return null;
+  return /^[A-Za-z0-9_-]{11}$/.test(candidate) ? candidate : null;
+};
+var youtubeWatchUrl = (videoId) => `https://www.youtube.com/watch?v=${videoId}`;
+
+// server/handlers/Unfurl/youtube.ts
+var TIMEOUT_MS = 5e3;
+var fetchYoutubeMeta = async (videoId) => {
+  const watch = youtubeWatchUrl(videoId);
+  const endpoint = `https://www.youtube.com/oembed?url=${encodeURIComponent(watch)}&format=json`;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  try {
+    const response = await fetch(endpoint, { signal: controller.signal });
+    if (!response.ok) return null;
+    const data = await response.json();
+    const title = typeof data.title === "string" ? data.title.trim() : "";
+    if (!title) return null;
+    const thumbnail = typeof data.thumbnail_url === "string" ? data.thumbnail_url : "";
+    const author = typeof data.author_name === "string" ? data.author_name.trim() : "";
+    return {
+      url: watch,
+      title: title.slice(0, 200),
+      /* ⚠ 썸네일도 https 인지 다시 본다 — 남이 준 문자열이 그대로 `<img src>` 로 간다. */
+      image: thumbnail.startsWith("https://") ? thumbnail : void 0,
+      /* 출처는 **채널 이름**이다. 없으면 플랫폼 이름으로 떨어진다(빈 칸을 두지 않는다). */
+      source: (author || "YouTube").slice(0, 60)
+    };
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+};
+
 // server/handlers/Unfurl/Unfurl.ts
 var MAX_REDIRECTS = 3;
 var MAX_BYTES = 256 * 1024;
-var TIMEOUT_MS = 5e3;
+var TIMEOUT_MS2 = 5e3;
 var MAX_SUMMARY = 300;
 var JSON_HEADERS = { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" };
 var fail = (status, message) => new Response(JSON.stringify({ error: message }), { status, headers: JSON_HEADERS });
@@ -176,7 +223,7 @@ var fetchHtml = async (startUrl) => {
   for (let hop = 0; hop <= MAX_REDIRECTS; hop += 1) {
     if (!isSafeUrl(target)) return null;
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS2);
     let response;
     try {
       response = await fetch(target, {
@@ -240,6 +287,12 @@ var resolveImage = (raw, base) => {
 async function handler(request) {
   const target = new URL(request.url).searchParams.get("url")?.trim();
   if (!target) return fail(400, "url \uD30C\uB77C\uBBF8\uD130\uAC00 \uD544\uC694\uD569\uB2C8\uB2E4.");
+  const videoId = youtubeVideoId(target);
+  if (videoId) {
+    const meta = await fetchYoutubeMeta(videoId);
+    if (!meta) return fail(422, "\uC774 \uC601\uC0C1\uC758 \uC815\uBCF4\uB97C \uC77D\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.");
+    return new Response(JSON.stringify(meta), { status: 200, headers: JSON_HEADERS });
+  }
   if (!isSafeUrl(target)) return fail(400, "\uC5F4 \uC218 \uC5C6\uB294 \uC8FC\uC18C\uC785\uB2C8\uB2E4.");
   const fetched = await fetchHtml(target);
   if (!fetched) return fail(422, "\uC774 \uC8FC\uC18C\uC5D0\uC11C \uC815\uBCF4\uB97C \uC77D\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.");

@@ -7,7 +7,8 @@
 | `app_icon.png` (아기 하마, 1.3MB) | `public/hippo-mark.png` (256px, 62KB) | `BrandGlyph` — 앱 전역 심볼 |
 | | `public/hippo.png` (720px, 510KB) | `HippoCoinScene` 무대의 하마 |
 | | `public/favicon.ico` · `favicon-16/32.png` · `apple-touch-icon.png` · `icon-192/512.png` | 파비콘·홈화면·PWA |
-| | `public/og-image.png` | 공유 카드(네이비 + 금색 괘선 + 하마) |
+| | `public/og-hungry-hippo.png` | 공유 카드(네이비 + 금색 괘선 + 하마) |
+| | `public/og-image.png` | ⚠ 옛 주소. 같은 그림이고, 옛 HTML 을 캐시한 수집기용으로만 남겨 뒀다 |
 | `coin_icon.png` (금화, 2.2MB) | `public/coin.png` (512px, 326KB) | `HippoCoinScene` 의 금화 |
 
 ## 재생성
