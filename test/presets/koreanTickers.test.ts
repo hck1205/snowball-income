@@ -1,3 +1,4 @@
+// @vitest-environment node — DOM 을 쓰지 않는 순수 테스트 (기준: vitest.config.ts)
 import { describe, expect, it } from 'vitest';
 import { DIVIDEND_UNIVERSE, KOREAN_DIVIDEND_TICKERS, PRESET_TICKER_KOREAN_NAME_BY_TICKER } from '@/shared/constants/presets';
 import { KOREAN_TICKER_TAX_CATEGORY, isKoreanListedTicker } from '@/shared/constants/tax';

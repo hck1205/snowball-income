@@ -54,9 +54,10 @@ const paint = {
 // 인자 파싱
 // ─────────────────────────────────────────────────────────────────────────────
 function parseArgs(argv) {
-  const opts = { test: true, build: true, api: true, plan: false, help: false };
+  const opts = { test: true, build: true, api: true, plan: false, help: false, quick: false };
   for (const a of argv) {
-    if (a === '--no-test') opts.test = false;
+    if (a === '--quick' || a === '-q') opts.quick = true;
+    else if (a === '--no-test') opts.test = false;
     else if (a === '--no-build') opts.build = false;
     else if (a === '--no-api') opts.api = false;
     else if (a === '--plan' || a === '-n' || a === '--dry-run') opts.plan = true;
@@ -76,6 +77,7 @@ const USAGE = `verify — 배포 전 통합 검증 게이트(fail-fast 5단계)
   node tools/dev/verify.mjs [옵션]
 
 옵션:
+  --quick, -q   작업 중 빠른 확인 — 바뀐 파일에 걸린 테스트 + 전역 가드만. 배포 게이트가 아니다
   --no-test     ② vitest 를 건너뛴다
   --no-build    ⑤ vite build 를 건너뛴다
   --no-api      ③④ api 번들/체크를 건너뛴다(server/handlers 무변경일 때)
@@ -104,8 +106,58 @@ function findNodeModulesRoot(start) {
 //   · bin: node_modules 상대 경로(tsc/vitest/vite). null 이면 project(=ROOT 상대) 스크립트.
 //   · script: ROOT 상대 .mjs 경로(api 번들러). bin 과 상호배타.
 // ─────────────────────────────────────────────────────────────────────────────
+/**
+ * **레포 전체를 훑는 가드 테스트** — `--quick` 에서도 항상 돈다.
+ *
+ * 🔴 이 파일들은 import 가 아니라 `readdirSync` 로 소스를 훑는다(카피 어미·구조 규칙·색 토큰·
+ *    카드 위계 등). 그래서 vitest 의 `--changed` 가 쓰는 **모듈 그래프에 걸리지 않는다** —
+ *    새 컴포넌트를 하나 만들면 그 파일을 import 하는 테스트는 없지만 구조 규칙은 깨질 수 있다.
+ *    자동으로 알아낼 방법이 없으므로 명단으로 고정한다.
+ *
+ * ⚠ `readdirSync`·`globSync` 로 소스를 훑는 테스트를 새로 만들면 **여기에 추가하라**.
+ *   빠뜨리면 --quick 이 조용히 통과시킨다(가드가 없는 게 아니라, 안 도는 것이다).
+ *   현재 명단의 출처: `grep -rl "readdirSync\\|globSync" test`.
+ */
+const REPO_WIDE_GUARDS = [
+  'test/googleSheets/sourceGuards.test.ts',
+  'test/landing/landingDataDiscipline.test.ts',
+  'test/landing/landingVisualLanguage.test.ts',
+  'test/ledger/ledgerSourceRules.test.ts',
+  'test/shared/appHeaderSingleSource.test.ts',
+  'test/shared/cardElevationHierarchy.test.ts',
+  'test/shared/copyTone.test.ts',
+  'test/shared/depthTokens.test.ts',
+  'test/shared/iconConsistency.test.ts',
+  'test/shared/marketDataDisplayOnly.test.ts',
+  'test/shared/marketIndexStripPlacement.test.ts',
+  'test/shared/pressTransition.test.ts',
+  'test/shared/radiusShape.test.ts',
+  'test/shared/scrollbarStyle.test.ts',
+  'test/shared/structureRules.test.ts',
+  'test/ticker/tickerCompareStickyHead.test.ts',
+];
+
+/** 워킹트리에서 바뀐 파일(스테이징 포함). git 이 없거나 실패하면 빈 배열 — 호출부가 전체로 되돌린다. */
+function changedFiles() {
+  const res = spawnSync('git', ['status', '--porcelain'], { cwd: ROOT, encoding: 'utf8' });
+  if (res.status !== 0 || !res.stdout) return [];
+  return res.stdout
+    .split('\n')
+    .map((line) => line.slice(3).trim())
+    .filter(Boolean)
+    .map((p) => (p.includes(' -> ') ? p.split(' -> ')[1] : p));
+}
+
 function buildSteps(opts, nmRoot) {
   const nm = (rel) => join(nmRoot, 'node_modules', rel);
+
+  /*
+   * --quick 의 api 단계는 **자동으로** 켜고 끈다. api/*.js 는 server/handlers 소스를 번들한
+   * 생성물이라 그쪽이 안 바뀌었으면 재생성해도 결과가 같다 — 3.5초를 매번 낼 이유가 없다.
+   */
+  const changed = opts.quick ? changedFiles() : [];
+  const apiTouched = changed.some((p) => p.startsWith('server/') || p.startsWith('api/') || p.startsWith('tools/apiBundle/'));
+
   const all = [
     {
       /*
@@ -134,7 +186,38 @@ function buildSteps(opts, nmRoot) {
       note: '테스트 (.claude/ worktree 중복 제외)',
       entry: nm(join('vitest', 'vitest.mjs')),
       args: ['run', '--exclude', '**/.claude/**'],
-      enabled: opts.test,
+      enabled: opts.test && !opts.quick,
+      skipReason: opts.quick ? '--quick (아래 축약 단계로 대체)' : '--no-test',
+    },
+    /*
+     * --quick 전용 테스트. 두 갈래를 **각각** 돌린다:
+     *   ① `--changed` — 바뀐 파일을 (전이적으로) import 하는 테스트. 모듈 그래프 기반이라
+     *      "이 함수를 쓰는 테스트가 어디 있나"를 vitest 가 정확히 안다(grep 추측보다 낫다).
+     *   ② REPO_WIDE_GUARDS — 그래프에 안 걸리는 레포 전수 검사(위 상수 주석 참고).
+     *
+     * 🔴 **한 번에 합치면 안 된다.** `--changed` 와 파일 인자를 같이 주면 vitest 는 둘을
+     *    **교집합**으로 본다 — 안 바뀐 가드 파일은 전부 걸러져 "No test files found" 로
+     *    **0개를 돌고도 초록**이 뜬다(2026-08-09 실측). 합집합이 필요하므로 단계를 나눈다.
+     *
+     * 🔴 **배포 게이트가 아니다.** 바뀐 파일과 무관한 회귀는 여기서 안 잡힌다. 머지·배포 전에는
+     *    반드시 전체 `verify` 를 돌린다. 이 단계는 "작업 중 빠르게 확인"만을 위한 것이다.
+     */
+    {
+      key: 'vitest:changed',
+      label: 'vitest run --changed',
+      note: '바뀐 파일을 import 하는 테스트 — 배포 게이트 아님',
+      entry: nm(join('vitest', 'vitest.mjs')),
+      args: ['run', '--exclude', '**/.claude/**', '--changed'],
+      enabled: opts.test && opts.quick,
+      skipReason: '--no-test',
+    },
+    {
+      key: 'vitest:guards',
+      label: `vitest run — 전역 가드 ${REPO_WIDE_GUARDS.length}개`,
+      note: '레포를 훑는 규칙 검사(모듈 그래프에 안 걸린다)',
+      entry: nm(join('vitest', 'vitest.mjs')),
+      args: ['run', '--exclude', '**/.claude/**', ...REPO_WIDE_GUARDS],
+      enabled: opts.test && opts.quick,
       skipReason: '--no-test',
     },
     {
@@ -143,8 +226,8 @@ function buildSteps(opts, nmRoot) {
       note: 'api/*.js 재생성 — 바뀌면 스테이징 대상',
       entry: join(ROOT, 'tools', 'apiBundle', 'build.mjs'),
       args: [],
-      enabled: opts.api,
-      skipReason: '--no-api',
+      enabled: opts.api && (!opts.quick || apiTouched),
+      skipReason: opts.quick && !apiTouched ? '--quick · server/ 무변경' : '--no-api',
     },
     {
       key: 'api:check',
@@ -152,8 +235,8 @@ function buildSteps(opts, nmRoot) {
       note: 'api/*.js 가 server/handlers 소스와 일치(드리프트 0)',
       entry: join(ROOT, 'tools', 'apiBundle', 'build.mjs'),
       args: ['--check'],
-      enabled: opts.api,
-      skipReason: '--no-api',
+      enabled: opts.api && (!opts.quick || apiTouched),
+      skipReason: opts.quick && !apiTouched ? '--quick · server/ 무변경' : '--no-api',
     },
     {
       key: 'vite',
@@ -161,8 +244,9 @@ function buildSteps(opts, nmRoot) {
       note: '프로덕션 번들',
       entry: nm(join('vite', 'bin', 'vite.js')),
       args: ['build'],
-      enabled: opts.build,
-      skipReason: '--no-build',
+      // --quick 은 번들을 만들지 않는다. tsc 가 이미 타입을 봤고, 빌드가 30초를 먹는다.
+      enabled: opts.build && !opts.quick,
+      skipReason: opts.quick ? '--quick' : '--no-build',
     },
   ];
   return all;

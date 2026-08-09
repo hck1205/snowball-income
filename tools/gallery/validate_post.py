@@ -116,10 +116,21 @@ def validate_row(row: dict[str, Any]) -> list[str]:
     if row.get("is_public") is not False:
         errors.append("is_public 이 false 가 아니다 — 이 도구는 비공개 발행 전용이다")
 
-    if "payload" not in row:
-        errors.append("payload 가 없다 (NOT NULL)")
+    # payload 는 **더 이상 NOT NULL 이 아니다** — 20260715000000 이 제약을 "NULL 허용" 으로 풀었다.
+    # 갤러리 글(kind='portfolio')은 시뮬 첨부가 존재 이유라 여전히 필수이고, 게시판 글(kind='board')은
+    # 본문만으로 성립한다. 여기서 kind 로 갈라야 게시판 글이 "payload 가 없다" 로 잘못 걸리지 않는다.
+    if (kind or "portfolio") == "portfolio":
+        if "payload" not in row or row.get("payload") is None:
+            errors.append("payload 가 없다 (갤러리 글에는 시뮬 첨부가 필수다)")
+        else:
+            validate_payload(row["payload"], errors)
     else:
-        validate_payload(row["payload"], errors)
+        if row.get("payload") is not None:
+            validate_payload(row["payload"], errors)
+        # 게시판 글은 분류가 화면의 탭을 정한다. 빠지면 DB 기본값 'free' 로 조용히 들어가
+        # "인사이트로 올렸는데 자유 글에 있는" 상태가 된다 — 오류가 아니라 잘못된 자리다.
+        if not row.get("category"):
+            errors.append("category 가 없다 (게시판 글은 분류가 있어야 한다)")
 
     sim_summary = row.get("sim_summary")
     if sim_summary is not None:
@@ -154,9 +165,15 @@ def main() -> int:
 
     print("✓ 검증 통과 — DB 제약(길이·enum·payload 구조·비공개)을 모두 만족한다")
     print(f"  title      : {row['title']}")
-    print(f"  payload    : {_byte_len(row['payload'])} bytes")
+    # 게시판 글에는 payload 가 없다 — 있을 때만 크기를 말한다(없는 키를 읽어 죽지 않게).
+    payload = row.get("payload")
+    print(f"  payload    : {_byte_len(payload)} bytes" if payload is not None else "  payload    : 없음(게시판 글)")
+    body = row.get("body")
+    if body:
+        print(f"  body       : {len(body.encode('utf-8'))} bytes")
     print(f"  is_public  : {row.get('is_public')}")
     print(f"  kind       : {row.get('kind')}")
+    print(f"  category   : {row.get('category')}")
     return 0
 
 

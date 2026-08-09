@@ -1,3 +1,4 @@
+// @vitest-environment node — DOM 을 쓰지 않는 순수 테스트 (기준: vitest.config.ts)
 import { describe, expect, it } from 'vitest';
 import { HIDDEN_STAR_MONTHLY, LATEST_HIDDEN_STAR } from '@/shared/constants/dividendLists';
 
