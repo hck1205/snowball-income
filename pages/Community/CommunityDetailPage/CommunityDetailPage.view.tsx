@@ -18,6 +18,8 @@ import {
 import { RichTextContent } from '@/components/community/RichTextContent';
 import { CommunityTopBar, TopBarActions } from '@/pages/Community/components';
 import { CommentSection, ScenarioPreview } from './components';
+import { isScenarioPayload } from '@/shared/lib/supabase';
+import { FireLinkBlock } from '@/pages/Community/components';
 import type { CommunityDetailViewProps } from './CommunityDetailPage.types';
 import {
   ActionRail,
@@ -211,9 +213,22 @@ export default function CommunityDetailView({ viewModel }: CommunityDetailViewPr
          */}
         <BodyGrid>
           <BodyColumn>
+            {/*
+              🔴 **영상 링크 글의 본체**(파이어족들). `parseLinkPayload` 를 통과하는 payload 일
+                 때만 그려지므로 kind 를 여기까지 배선하지 않는다 — 모양이 곧 판정이다.
+                 통과하지 못하면 컴포넌트가 스스로 아무것도 그리지 않는다.
+              ⚠ 본문보다 **위**다. 이 글에서 사람이 먼저 보려는 것은 영상이지 소개 글이 아니다.
+            */}
+            <FireLinkBlock payload={post.payload} />
+
             {post.body ? <RichTextContent html={post.body} /> : null}
 
-            {post.payload && detail.openInSimulatorHref ? (
+            {/*
+              🔴 `post.payload` 만 보면 안 된다 — 링크 글(파이어족들)의 payload 도 참이라
+                 시뮬 미리보기가 없는 `portfolio` 를 읽다 터졌다(2026-08-09).
+                 **모양으로** 가른다: `isScenarioPayload`.
+            */}
+            {isScenarioPayload(post.payload) && detail.openInSimulatorHref ? (
               <AttachCard aria-label={d.attachCtaTitle}>
                 <AttachRail aria-hidden="true" />
                 <AttachHead>

@@ -90,14 +90,22 @@ export const DrawerLinkLabel = styled.span`
  */
 export const DrawerToggle = styled.button`
   /*
-   * 🔴 **앱 아이콘 바로 밑**에 선다(2026-08-07 사용자 지시). 헤더 격자에서 로고와 **같은 영역**을
-   * 쓰고, 로고는 위(start)·이 버튼은 아래(end)에 붙어 세로로 포개진다 — 트랙을 새로 만들지 않고
-   * "아이콘 밑" 배치를 얻는다.
+   * 🔴 **로고 왼쪽의 자기 열**에 선다(2026-08-09 사용자 신고로 옮겼다).
+   *
+   * 종전에는 grid-area: logo 로 로고와 같은 칸을 쓰면서 align-self: end 로 아래에 붙었다.
+   * 넓은 폭에서는 그 칸이 두 줄을 가로질러 세로로 포개졌지만, 이 버튼이 보이는 구간(≤640)에서는
+   * 로고가 브랜드 줄로 들어와 **한 칸이 되면서 둘이 겹쳤다.**
+   * 그래서 헤더 격자에 menu 열을 하나 만들고 여기로 왔다(shared/styles/headerSurface.ts).
+   *
+   * ⚠ 이 주석에 **백틱을 쓰지 마라.** 여기는 Emotion 템플릿 리터럴 안이라 백틱 하나가 문자열을
+   *   끊는다 — 실제로 이 파일에서 그렇게 깨뜨렸다(2026-08-09).
+   *
+   * ⚠ 아랫줄로 내리지 않은 이유: 헤더가 65px → 113px 이 된다(headerprobe 실측, 390px).
    * ⚠ 로고 슬롯 안에 넣지 않는다. 그건 홈으로 가는 링크라 링크 안에 버튼을 중첩하게 된다.
    */
-  grid-area: logo;
-  align-self: end;
-  justify-self: center;
+  grid-area: menu;
+  align-self: center;
+  justify-self: start;
 
   display: inline-flex;
   align-items: center;

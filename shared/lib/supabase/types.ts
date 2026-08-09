@@ -36,9 +36,9 @@ export type { PersistedScenarioState };
  *   - 'portfolio' : 갤러리(포트폴리오/시나리오 공유글). 기존 글 전부가 여기 속한다(default).
  *   - 'board'     : 자유게시판 글(질문·잡담·건의 등, 본문 위주 + 선택적 시나리오 첨부).
  *   - 'news'      : 미디어 뉴스 — **바깥 글로 가는 링크가 본체**인 글.
- * 세 표면은 이 값으로 서로를 격리한다(fetchGalleryPage / fetchBoardPage / fetchNewsPage).
+ * 세 표면은 이 값으로 서로를 격리한다(fetchGalleryPage / fetchBoardPage / fetchFirePage).
  */
-export type PostKind = 'portfolio' | 'board' | 'news';
+export type PostKind = 'portfolio' | 'board' | 'fire';
 
 /**
  * 뉴스 글이 `payload` 에 담는 **링크 메타**.
@@ -49,7 +49,7 @@ export type PostKind = 'portfolio' | 'board' | 'news';
  * ⚠ 전부 서버가 뽑아 준 값이지만 **믿을 수 없는 남의 사이트에서 온 문자열**이다 —
  *   화면은 텍스트로만 그리고(HTML 주입 금지), `image` 는 http(s) 인지 다시 확인하고 쓴다.
  */
-export type NewsPayload = {
+export type LinkPayload = {
   /** 원문 주소. http/https 만. 카드 전체가 이 주소로 간다. */
   url: string;
   /** 원문 제목(og:title). 없으면 도메인으로 떨어진다. */
@@ -74,7 +74,7 @@ export type NewsPayload = {
  *
  * `kind`(표면)와 직교한다: 갤러리 글(kind='portfolio')은 이 값을 쓰지 않고 기본값으로 남는다.
  */
-export type PostCategory = 'free' | 'question' | 'insight' | 'suggestion' | 'notice';
+export type PostCategory = 'free' | 'question' | 'insight' | 'suggestion' | 'notice' | 'news';
 
 export type ProfileRow = {
   id: string;
@@ -336,12 +336,12 @@ export type GalleryPage = {
  * 뉴스 목록의 한 줄 — 목록인데도 `payload` 를 들고 온다.
  *
  * 🔴 `payload` 타입이 `unknown` 인 것은 의도다. 이 값은 **서버 jsonb** 이고 그 안의 문자열은
- * 남의 사이트에서 온 것이다 — 어떤 화면도 이 값을 그대로 믿으면 안 되고, `parseNewsPayload` 를
+ * 남의 사이트에서 온 것이다 — 어떤 화면도 이 값을 그대로 믿으면 안 되고, `parseLinkPayload` 를
  * 통과한 것만 쓴다(`sim_summary` 를 `parseScenarioSimSummary` 로 거르는 것과 같은 규율).
  */
 export type NewsListItem = PostListItem & { payload: unknown };
 
-export type NewsPage = {
+export type FirePage = {
   items: NewsListItem[];
   nextCursor: string | null;
 };
@@ -374,10 +374,10 @@ export type Database = {
          * 🔴 쓰기의 payload 만 **뉴스 링크 메타까지** 넓다. 읽기(PostRow.payload)는 시나리오
          * 그대로 두는 것이 의도다 — 상세 화면이 payload 를 시나리오로 다루는 곳이 여럿이고,
          * 거기서 유니온을 만나면 전부 좁히기가 필요해진다. 뉴스 payload 를 읽는 곳은 목록 카드
-         * 하나뿐이고 그쪽은 `NewsListItem`(payload: unknown) + `parseNewsPayload` 로 간다.
+         * 하나뿐이고 그쪽은 `NewsListItem`(payload: unknown) + `parseLinkPayload` 로 간다.
          * 서버 CHECK(posts_payload_valid_or_null)가 kind 와 payload 의 짝을 강제한다.
          */
-        Insert: Pick<PostRow, 'title'> & { payload?: PostPayload | NewsPayload | null } & Partial<
+        Insert: Pick<PostRow, 'title'> & { payload?: PostPayload | LinkPayload | null } & Partial<
             Pick<PostRow, 'user_id' | 'kind' | 'category' | 'description' | 'body' | 'is_public'>
           > &
           Partial<{ sim_summary: ScenarioSimSummary | null }>;

@@ -157,9 +157,24 @@ export const headerControlsGrid = `
     column-gap: ${space[2]};
   }
 
+  /*
+   * 🔴 **메뉴 버튼에 자기 열을 준다**(2026-08-09 사용자 신고: 아이콘이 로고를 가린다).
+   *
+   * 종전에는 서랍 버튼이 logo 칸을 로고 그림과 **함께** 썼다. 넓은 폭에서는 그 칸이 두 줄을
+   * 가로질러서 로고는 가운데·버튼은 아래로 포개졌는데, 이 구간에서는 로고가 브랜드 줄로 들어와
+   * **한 칸이 되면서 둘이 그대로 겹쳤다.**
+   *
+   * ⚠ 이 주석에 **백틱을 쓰지 마라.** 여기는 Emotion 템플릿 리터럴 안이라 백틱 하나가 문자열을
+   *   끊는다 — 실제로 이 파일에서 그렇게 깨뜨렸다(2026-08-09).
+   * ⚠ 버튼을 아랫줄(nav)로 내리는 길도 있었지만 그러면 헤더가 **65px → 113px** 이 된다
+   *   (headerprobe 실측, 390px 기준). sticky 헤더가 거의 두 배가 되는 대가라 열을 하나 늘렸다 —
+   *   이쪽은 높이가 그대로다.
+   * ⚠ 버튼이 로고 **왼쪽**인 것도 의도다. 서랍이 왼쪽에서 나오므로 방향이 맞는다.
+   */
   ${media.down('mobileWide')} {
+    grid-template-columns: auto auto minmax(0, 1fr) auto;
     grid-template-areas:
-      'logo brand actions'
-      'nav nav nav';
+      'menu logo brand actions'
+      'nav nav nav nav';
   }
 `;

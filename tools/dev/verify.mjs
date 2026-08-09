@@ -28,8 +28,8 @@
 //       이 파일과 dev-process 마스터 스킬을 고쳐라. 프로세스는 살아있다.
 
 import { spawnSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 /** 저장소 루트(절대경로). tools/dev/verify.mjs → 두 단계 위. */
@@ -107,35 +107,50 @@ function findNodeModulesRoot(start) {
 //   · script: ROOT 상대 .mjs 경로(api 번들러). bin 과 상호배타.
 // ─────────────────────────────────────────────────────────────────────────────
 /**
- * **레포 전체를 훑는 가드 테스트** — `--quick` 에서도 항상 돈다.
+ * **레포를 파일로 훑는 테스트**를 찾아낸다 — `--quick` 에서도 항상 돈다.
  *
- * 🔴 이 파일들은 import 가 아니라 `readdirSync` 로 소스를 훑는다(카피 어미·구조 규칙·색 토큰·
- *    카드 위계 등). 그래서 vitest 의 `--changed` 가 쓰는 **모듈 그래프에 걸리지 않는다** —
- *    새 컴포넌트를 하나 만들면 그 파일을 import 하는 테스트는 없지만 구조 규칙은 깨질 수 있다.
- *    자동으로 알아낼 방법이 없으므로 명단으로 고정한다.
+ * ## 🔴 왜 명단이 아니라 탐색인가
  *
- * ⚠ `readdirSync`·`globSync` 로 소스를 훑는 테스트를 새로 만들면 **여기에 추가하라**.
- *   빠뜨리면 --quick 이 조용히 통과시킨다(가드가 없는 게 아니라, 안 도는 것이다).
- *   현재 명단의 출처: `grep -rl "readdirSync\\|globSync" test`.
+ * 처음에는 파일 목록을 상수로 적어 뒀다. 그 명단을 `readdirSync|globSync` 로만 만든 탓에
+ * **`readFileSync` 로 소스를 읽는 테스트가 통째로 빠졌고**, 사이트맵에 새 라우트를 빠뜨린 것을
+ * `--quick` 이 놓쳤다(2026-08-09 실측 — 전체 verify 가 잡았다).
+ *
+ * 손으로 관리하는 명단은 **새 테스트가 생길 때마다 누군가 기억해야** 한다. 그 기억이 이 게이트의
+ * 유일한 방어선이면 언젠가 또 샌다. 그래서 매번 `test/` 를 훑어 **직접 찾는다** — 새 가드를
+ * 추가하면 아무것도 안 해도 여기 들어온다.
+ *
+ * ⚠ 이 테스트들은 모듈 그래프에 안 걸린다. import 가 아니라 **파일을 읽기** 때문이다 —
+ *   새 컴포넌트를 만들면 그 파일을 import 하는 테스트는 없지만 구조 규칙은 깨질 수 있다.
+ *   그래서 `--changed` 로는 절대 안 잡히고, 여기서 따로 돌려야 한다.
  */
-const REPO_WIDE_GUARDS = [
-  'test/googleSheets/sourceGuards.test.ts',
-  'test/landing/landingDataDiscipline.test.ts',
-  'test/landing/landingVisualLanguage.test.ts',
-  'test/ledger/ledgerSourceRules.test.ts',
-  'test/shared/appHeaderSingleSource.test.ts',
-  'test/shared/cardElevationHierarchy.test.ts',
-  'test/shared/copyTone.test.ts',
-  'test/shared/depthTokens.test.ts',
-  'test/shared/iconConsistency.test.ts',
-  'test/shared/marketDataDisplayOnly.test.ts',
-  'test/shared/marketIndexStripPlacement.test.ts',
-  'test/shared/pressTransition.test.ts',
-  'test/shared/radiusShape.test.ts',
-  'test/shared/scrollbarStyle.test.ts',
-  'test/shared/structureRules.test.ts',
-  'test/ticker/tickerCompareStickyHead.test.ts',
-];
+const FS_MARKER = /read(File|dir)Sync|globSync/;
+
+function collectRepoWideGuards(dir = join(ROOT, 'test'), found = []) {
+  let entries;
+  try {
+    entries = readdirSync(dir, { withFileTypes: true });
+  } catch {
+    return found;
+  }
+
+  for (const entry of entries) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      collectRepoWideGuards(full, found);
+      continue;
+    }
+    if (!/\.test\.tsx?$/.test(entry.name)) continue;
+    try {
+      if (FS_MARKER.test(readFileSync(full, 'utf8'))) {
+        found.push(relative(ROOT, full).split(sep).join('/'));
+      }
+    } catch {
+      /* 읽을 수 없으면 건너뛴다 — 게이트가 파일 하나 때문에 죽지 않게. */
+    }
+  }
+
+  return found.sort();
+}
 
 /** 워킹트리에서 바뀐 파일(스테이징 포함). git 이 없거나 실패하면 빈 배열 — 호출부가 전체로 되돌린다. */
 function changedFiles() {
@@ -156,6 +171,8 @@ function buildSteps(opts, nmRoot) {
    * 생성물이라 그쪽이 안 바뀌었으면 재생성해도 결과가 같다 — 3.5초를 매번 낼 이유가 없다.
    */
   const changed = opts.quick ? changedFiles() : [];
+  /* 매번 훑는다 — 명단을 손으로 관리하면 새 가드가 조용히 빠진다(위 주석 참고). */
+  const repoWideGuards = opts.quick ? collectRepoWideGuards() : [];
   const apiTouched = changed.some((p) => p.startsWith('server/') || p.startsWith('api/') || p.startsWith('tools/apiBundle/'));
 
   const all = [
@@ -169,6 +186,23 @@ function buildSteps(opts, nmRoot) {
       label: 'brand:check (node tools/brand/check-brand-alpha.mjs)',
       note: '브랜드 래스터 알파·프레이밍 회귀 0',
       entry: join(ROOT, 'tools', 'brand', 'check-brand-alpha.mjs'),
+      args: [],
+      enabled: true,
+    },
+    {
+      /*
+       * 🔴 **tsc 앞**에 둔다(0.4초). 이 검사가 잡는 것은 tsc 도 잡지만, tsc 는
+       * `TS1005: ',' expected` 같은 **엉뚱한 자리의 구문 오류**로만 말한다 — 진짜 원인(주석 안의
+       * 백틱 하나가 템플릿 리터럴을 끊었다)까지 가는 데 시간이 걸리고, Vite 의 모듈 그래프까지
+       * 오염되면 "does not provide an export named 'X'" 라는 완전히 다른 얼굴로 나타난다.
+       *
+       * ⚠ 이 스크립트는 **만들어 두고 아무 데서도 안 돌리고 있었다**(2026-08-09 발견). 그래서 같은
+       *   함정에 한 세션에서 네 번 빠졌다. 도구가 있다는 것과 도는 것은 다르다 — 여기 배선이 그 차이다.
+       */
+      key: 'styled:backticks',
+      label: 'styled:backticks (node tools/dev/styled-comment-backticks.mjs)',
+      note: '템플릿 리터럴 주석 안 백틱 0',
+      entry: join(ROOT, 'tools', 'dev', 'styled-comment-backticks.mjs'),
       args: [],
       enabled: true,
     },
@@ -213,10 +247,10 @@ function buildSteps(opts, nmRoot) {
     },
     {
       key: 'vitest:guards',
-      label: `vitest run — 전역 가드 ${REPO_WIDE_GUARDS.length}개`,
+      label: `vitest run — 레포 전수 가드 ${repoWideGuards.length}개`,
       note: '레포를 훑는 규칙 검사(모듈 그래프에 안 걸린다)',
       entry: nm(join('vitest', 'vitest.mjs')),
-      args: ['run', '--exclude', '**/.claude/**', ...REPO_WIDE_GUARDS],
+      args: ['run', '--exclude', '**/.claude/**', ...repoWideGuards],
       enabled: opts.test && opts.quick,
       skipReason: '--no-test',
     },

@@ -1,3 +1,9 @@
 export { AXIS_ORDER, ZONE_VISUAL, formatPulseDate, formatPulseValue } from './pulseVisual';
 export type { ZoneVisual } from './pulseVisual';
-export { buildPulseChartOption, chartHeightOf } from './pulseChart';
+export {
+  FEAR_GREED_CENTERS,
+  FEAR_GREED_LABEL_SPLIT_NUMBER,
+  buildPulseChartOption,
+  chartHeightOf,
+  fearGreedNameAt
+} from './pulseChart';

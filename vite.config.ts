@@ -96,6 +96,11 @@ const ROUTES = [
    * 그렇게 자주 바뀌는 화면은 이 둘뿐이다.
    * ⚠ 크롤러에게는 빈 셸이다(값을 브라우저가 받아 그린다). 그래도 등재하는 이유는 위 87행과 같다.
    */
+  /*
+   * 파이어족들(2026-08-09). 운영자가 영상을 더할 때만 바뀌므로 `weekly` 로 둔다 —
+   * 매일 바뀌지 않는 화면에 daily 를 적는 것은 크롤러에게 거짓말이다.
+   */
+  { path: '/community/firenow', priority: '0.6', changefreq: 'weekly' },
   { path: '/market/pulse', priority: '0.7', changefreq: 'daily' },
   { path: '/market/stats', priority: '0.6', changefreq: 'daily' },
   { path: '/portfolio/congress', priority: '0.6', changefreq: 'weekly' },

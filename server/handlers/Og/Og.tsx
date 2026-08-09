@@ -39,7 +39,7 @@ import { toNodeHandler } from '@/shared/lib/server';
  *
  * ## 절대 5xx 를 내지 않는다
  * 크롤러/스크래퍼(카카오톡·페이스북·트위터)는 미리보기 요청이 실패하면 **카드를 아예 포기**한다.
- * 그래서 모든 실패 경로는 정적 `/og-image.png` 로 302 하거나 기본 카드를 그린다.
+ * 그래서 모든 실패 경로는 정적 `STATIC_OG_IMAGE` 로 302 하거나 기본 카드를 그린다.
  *
  * ## 확장 지점
  * Supabase 시나리오 id(`?id=`)는 아직 지원하지 않는다. `resolveCardModel` 한 곳만 고치면 된다.
@@ -47,6 +47,19 @@ import { toNodeHandler } from '@/shared/lib/server';
 
 const WIDTH = 1200;
 const HEIGHT = 630;
+
+/**
+ * 카드를 못 그렸을 때 대신 내주는 **정적 공유 이미지**.
+ *
+ * 🔴 `index.html` 의 `og:image`·`twitter:image` 와 **같은 파일**이어야 한다. 그런데 그쪽은 HTML 이라
+ * 이 상수를 가져다 쓸 수 없어서, 같은 값이 두 곳에 적혀 있다. 어긋나면 이 폴백이 **없는 파일로
+ * 302** 하고, 수집기는 404 를 만나 미리보기 카드를 통째로 포기한다 — 오류 로그 하나 없이.
+ * 그래서 `test/api/ogImageAsset.test.ts` 가 둘이 같은지, 그 파일이 실제로 있는지 잠근다.
+ *
+ * ⚠ 그림을 새로 만들 때는 **이름도 바꾼다**(같은 이름 덮어쓰기 금지). 카카오·페이스북이 이미지를
+ *   주소로 캐시해서, 이름이 같으면 옛 그림이 계속 나간다 — index.html 주석에 전말이 있다.
+ */
+const STATIC_OG_IMAGE = '/og-hungry-hippo.png';
 
 /** 브랜드 팔레트 (shared/styles/primitives.ts 의 brand 램프와 동일 값). */
 const COLOR = {
@@ -322,7 +335,7 @@ export async function handler(request: Request): Promise<Response> {
     return new Response(null, {
       status: 302,
       headers: {
-        Location: new URL('/og-image.png', origin).toString(),
+        Location: new URL(STATIC_OG_IMAGE, origin).toString(),
         'Cache-Control': 'public, no-transform, max-age=300'
       }
     });

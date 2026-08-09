@@ -268,10 +268,9 @@ const CommunityGalleryPage = lazy(() => import('@/pages/Community/CommunityGalle
 const CommunityBoardPage = lazy(() => import('@/pages/Community/CommunityBoardPage'));
 const CommunityWritePage = lazy(() => import('@/pages/Community/CommunityWritePage'));
 /** 미디어 뉴스 — 목록과 링크 공유 화면(마이그레이션 20260807000000·…001 이 스키마를 연다). */
-const CommunityNewsPage = lazy(() => import('@/pages/Community/CommunityNewsPage'));
-const CommunityNewsSharePage = lazy(() => import('@/pages/Community/CommunityNewsSharePage'));
+const CommunityFirePage = lazy(() => import('@/pages/Community/CommunityFirePage'));
+const CommunityFireSharePage = lazy(() => import('@/pages/Community/CommunityFireSharePage'));
 /** 뉴스 세 라우트의 접근 게이트. 임시 비공개(2026-08-08) — 근거는 아래 라우트 주석. */
-const CommunityNewsGate = lazy(() => import('@/pages/Community/CommunityNewsGate'));
 const CommunityDetailPage = lazy(() => import('@/pages/Community/CommunityDetailPage'));
 const CommunityProfilePage = lazy(() => import('@/pages/Community/CommunityProfilePage'));
 const CommunityMyPostsPage = lazy(() => import('@/pages/Community/CommunityMyPostsPage'));
@@ -346,25 +345,19 @@ const communityRoutes: RouteObject[] = isCommunityEnabled
           { path: 'board/:id', element: <CommunityDetailPage kind="board" /> },
           { path: 'board/:id/edit', element: <CommunityWritePage kind="board" /> },
           /*
-           * 미디어 뉴스 — 정적 세그먼트 'news'.
+           * 미디어 뉴스 — 정적 세그먼트 'fire'.
            * ⚠ 공유 화면 경로가 'write' 가 아니라 **'share'** 인 것은 의도다. 이 화면이 하는 일은
            *   글쓰기가 아니라 남의 글을 가져오는 것이고, 주소가 그 차이를 먼저 말한다.
            * ⚠ 수정 경로는 두지 않는다 — 뉴스의 본체는 남의 원문이라 고칠 것이 한 줄 감상뿐이고,
            *   `kind` 는 게시 후 고정이다(update GRANT 없음). 필요해지면 그때 연다.
            *
-           * 🔴 셋 다 `CommunityNewsGate` **아래**에 산다(2026-08-08 사용자 결정으로 임시 비공개).
-           *   경로 없는 부모 라우트라 주소는 그대로이고, 게이트가 통과시킬 때만 아래가 그려진다.
-           *   판정 근거는 `COMMUNITY_NEWS_PUBLIC`(shared/constants/community/config.ts) 하나다 —
-           *   되돌릴 때 이 라우트 구조는 건드리지 않는다(상수만 true 로).
+           * 🔴 **게이트가 없다.** 종전 뉴스 지면은 비공개 플래그 아래 있었지만, 파이어족들은
+           *   **누구나 본다** — 제한은 보기가 아니라 **쓰기**에 있고, 그건 화면이 아니라 DB 가
+           *   막는다(20260810000001: `kind='fire'` INSERT 는 `profiles.is_admin` 만).
            */
-          {
-            element: <CommunityNewsGate />,
-            children: [
-              { path: 'news', element: <CommunityNewsPage /> },
-              { path: 'news/share', element: <CommunityNewsSharePage /> },
-              { path: 'news/:id', element: <CommunityDetailPage kind="news" /> }
-            ]
-          }
+          { path: 'firenow', element: <CommunityFirePage /> },
+          { path: 'firenow/share', element: <CommunityFireSharePage /> },
+          { path: 'firenow/:id', element: <CommunityDetailPage kind="fire" /> }
         ]
       }
     ]

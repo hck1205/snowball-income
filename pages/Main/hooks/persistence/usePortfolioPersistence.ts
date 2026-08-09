@@ -41,19 +41,18 @@ import {
 } from '@/jotai';
 import type { PortfolioPersistedState } from '@/shared/types/snowball';
 import { createSessionLocalAutosaveCache, useCloudSync } from '@/jotai/snowball/cloud';
-import {
-  buildSharedSnapshotEnvelope,
-  createSharedSnapshot,
-  fetchSharedSnapshot,
-  getSupabaseClient
-} from '@/shared/lib/supabase';
+/*
+ * 🔴 `createSharedSnapshot` 은 **일부러 안 가져온다**(2026-08-09). 공유 링크의 DB 쓰기 경로를 닫았다 —
+ * 근거는 아래 `createShareLink` 주석. `fetchSharedSnapshot`(읽기)은 이미 나간 `?s=` 링크를 여는 데
+ * 계속 쓰이므로 그대로다.
+ */
+import { fetchSharedSnapshot, getSupabaseClient } from '@/shared/lib/supabase';
 import { ANALYTICS_EVENT, setUserProperties, trackEvent } from '@/shared/lib/analytics';
 import { DEFAULT_PREFILL_PRESET_ID } from '@/pages/Main/utils';
 import { shouldRequestScenarioPrefill } from './scenarioPrefill';
 import { buildScenariosSnapshot, isSameScenarioContent, mergeSharedScenarioIntoTabs } from './scenarioSnapshot';
 import { decodeSharedScenarioResult, encodeSharedScenario, SHARED_SCENARIO_ID, SHARE_LENGTH_LIMIT } from './shareLink';
 import {
-  buildDbShareUrl,
   buildShareUrl,
   readDbShareKeyFromHref,
   readShareCodeFromHref,
@@ -506,18 +505,35 @@ export const usePortfolioPersistence = () => {
     }
   };
 
-  /** 구 lz-string `?share=` 폴백 — client 미설정/미배포 또는 DB 저장 실패 시에도 공유는 성립한다. */
-  const createLegacyShareLink = async (activeScenario: PersistedScenarioState) => {
-    const encoded = encodeSharedScenario(activeScenario);
-    if (encoded.length > SHARE_LENGTH_LIMIT) {
-      return {
-        ok: false as const,
-        message: `공유 데이터가 너무 큽니다. (현재 ${encoded.length}자, 최대 ${SHARE_LENGTH_LIMIT}자)`
-      };
-    }
-    return copyShareUrl(buildShareUrl(window.location.href, encoded));
-  };
-
+  /**
+   * 공유 링크를 만든다 — **URL 에 담는 lz-string `?share=` 한 길뿐이다.**
+   *
+   * ## 🔴 DB 저장 경로를 왜 없앴나 (2026-08-09)
+   *
+   * 예전에는 활성 시나리오를 `shared_snapshots` 테이블에 넣고 짧은 `?s=<key>` URL 을 주는 길이
+   * **먼저** 있었고, 그게 실패하면 이 lz-string 경로로 떨어졌다. 그 길을 판단 근거째로 걷어냈다.
+   *
+   * 붙였던 이유가 둘이었는데 실측해 보니 둘 다 서 있지 않았다:
+   *
+   * 1. **"URL 이 길어져 터진다"** — 아니다. `test/share/shareLengthCensus.test.ts` 로 실제 인코더에
+   *    실제 프리셋을 넣어 재 보니 4000자 상한을 넘기려면 **73종목**이 필요하다. 30종목이 1823자
+   *    (상한의 46%), 50종목이 2790자다. 배당 포트폴리오에서 73종목은 사실상 안 나온다.
+   *    ⚠ v3 압축 인코딩(2026-02-18)이 DB 경로(2026-07-18)보다 **다섯 달 먼저** 들어와 있었다 —
+   *      "옛날엔 인코딩이 뚱뚱했다"는 설명도 성립하지 않는다.
+   * 2. **"OG 카드를 그리려면 서버가 payload 를 읽어야 한다"** — 아니다. `?share=` 링크도 카드가
+   *    정상으로 그려진다. 서버리스 함수가 lz-string 을 직접 푼다(server/handlers/Og 의 `resolveCardModel`).
+   *
+   * 반면 대가는 실재했다. 생성 RPC 는 **로그인 없이 누구나** 부를 수 있고(공개 anon 키), 저장분에
+   * 만료도 정리도 없었다. 한 건 64KB 이므로 반복 호출로 무료 용량을 채울 수 있는 상태였다.
+   * 얻는 것이 "URL 이 짧아 보기 좋다" 하나뿐인데 치르는 값이 그것이라 길을 닫았다.
+   *
+   * ## ⚠ 기존 `?s=` 링크는 계속 열린다
+   *
+   * 닫은 것은 **쓰기뿐**이다. 이미 나간 링크를 읽는 세 경로(앱의 `applySharedScenario`,
+   * 미들웨어의 메타 치환, OG 카드)는 그대로다 — 공유 URL 은 사용자 자산이라 끊지 않는다.
+   * DB 쪽도 `create_shared_snapshot` 만 EXECUTE 를 회수했고 `get_shared_snapshot` 은 살아 있다
+   * (supabase/migrations/20260811000000_close_shared_snapshot_writes.sql).
+   */
   const createShareLink = async () => {
     const { scenarios, activeScenarioId: currentActiveScenarioId } = buildCurrentScenariosSnapshot();
     const activeScenario = scenarios.find((scenario) => scenario.id === currentActiveScenarioId) ?? null;
@@ -528,24 +544,23 @@ export const usePortfolioPersistence = () => {
       };
     }
 
-    // 1) DB key 경로: 활성 시나리오를 shared_snapshots에 저장 → 짧은 `?s=<key>` URL.
-    //    client가 있으면(설정+배포) 우선 시도한다. 실패는 아래 lz-string 폴백이 흡수한다.
-    try {
-      const client = await getSupabaseClient();
-      if (client) {
-        const key = await createSharedSnapshot(client, buildSharedSnapshotEnvelope(activeScenario));
-        return await copyShareUrl(buildDbShareUrl(window.location.href, key));
-      }
-    } catch {
-      // 무음 실패 금지 — 계측 후 구 lz-string으로 폴백해 공유를 성립시킨다.
+    const encoded = encodeSharedScenario(activeScenario);
+    if (encoded.length > SHARE_LENGTH_LIMIT) {
+      /*
+       * 실측상 73종목 이상이라야 여기 닿는다. 폴백이 사라졌으므로 이 자리가 곧 **공유 실패**다 —
+       * 그래서 조용히 넘어가지 않고 계측한다. 이 이벤트가 실제로 찍히기 시작하면 상한을 올릴지
+       * (브라우저는 4000자보다 훨씬 긴 URL 을 받는다) 판단할 근거가 된다.
+       */
       trackEvent(ANALYTICS_EVENT.OPERATION_ERROR, {
         operation: 'create_share_link',
-        reason: 'db_snapshot_failed'
+        reason: 'payload_too_large'
       });
+      return {
+        ok: false as const,
+        message: `공유 데이터가 너무 큽니다. (현재 ${encoded.length}자, 최대 ${SHARE_LENGTH_LIMIT}자)`
+      };
     }
-
-    // 2) 폴백(client null=미설정/테스트, 또는 DB 저장 throw): 구 lz-string `?share=`.
-    return createLegacyShareLink(activeScenario);
+    return copyShareUrl(buildShareUrl(window.location.href, encoded));
   };
 
   /** 공유로 들어온 시나리오를 "공유된 탭"으로 병합·활성화·적용한다(DB key/구 lz-string 공통 경로). */

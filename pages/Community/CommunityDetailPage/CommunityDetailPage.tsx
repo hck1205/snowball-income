@@ -30,7 +30,7 @@ export default function CommunityDetailPage({ kind = 'portfolio' }: CommunityDet
    *   컴파일이 깨지는 편이 낫다(조용히 갤러리로 떨어지는 것보다).
    */
   const sectionBase =
-    kind === 'board' ? '/community/board' : kind === 'news' ? '/community/news' : '/community/portfolio';
+    kind === 'board' ? '/community/board' : kind === 'fire' ? '/community/firenow' : '/community/portfolio';
 
   const onRequireLogin = useCallback(() => openLoginPrompt(), [openLoginPrompt]);
 
