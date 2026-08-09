@@ -68,6 +68,14 @@ const SINGLE_ROW_MIN_WIDTH = 1024;
 const SINGLE_ROW_MAX_HEIGHT = 120;
 /** 좁은 폭 두 줄 모드의 절대 상한(px) — 개선 전 실측 121~127 에 대한 회귀 방지선. */
 const STACKED_MAX_HEIGHT = 120;
+/**
+ * 브랜드 워드마크와 그 오른쪽 컨트롤 사이의 **최소 간격**(px).
+ *
+ * 0 이 아니라 4 인 이유: 딱 붙은 것도 겹친 것만큼이나 깨져 보인다. 여유를 조금 요구해 두면
+ * 폰트 폴백으로 글자가 몇 px 넓어지는 정도는 실패가 아니라 경고 없이 흡수된다.
+ */
+const BRAND_MIN_GAP = 4;
+
 /** 승격된 히어로 액션이 헤더 아래에 서는 간격(px). useStickyHeroAction 의 PIN_GAP. */
 const PIN_GAP = 8;
 /**
@@ -109,7 +117,12 @@ const arg = (name, fallback) => {
 };
 
 const BASE = arg('base', 'http://localhost:5173').replace(/\/$/, '');
-const WIDTHS = arg('widths', '1280,1024,900,760,390')
+/*
+ * 🔴 **320·360 을 반드시 포함한다**(2026-08-09). 종전에는 가장 좁은 것이 390 이어서,
+ * 로그아웃 상태 360px 에서 워드마크가 로그인 버튼 밑으로 파고드는 것을 **한 번도 본 적이 없었다**
+ * (390 은 24px 여유가 있어 멀쩡했다). 360 은 가장 흔한 안드로이드 폭이고 320 은 지원 하한이다.
+ */
+const WIDTHS = arg('widths', '1280,1024,900,760,390,360,320')
   .split(',')
   .map((w) => Number(w.trim()))
   .filter(Boolean);
@@ -248,7 +261,41 @@ const MEASURE = `(() => {
           left: Math.round(ctaBox.left),
           right: Math.round(ctaBox.right)
         }
-      : null
+      : null,
+    /*
+     * 브랜드 워드마크가 오른쪽 컨트롤과 포개지는지.
+     *
+     * 2026-08-09 사용자 신고 — 로그아웃 상태 360px 에서 "Hungry Hippo" 가 로그인 버튼 밑으로 6px,
+     * 320px 에서 46px 파고들어 있었다.
+     *
+     * 가로 오버플로 검사로는 절대 안 잡힌다. 이 겹침은 문서 폭을 1px 도 넓히지 않는다
+     * (실측 scrollWidth - clientWidth = 0) — 격자 안에서 두 칸이 포개진 것뿐이라 재던 것이
+     * 전부 초록인 채로 화면만 깨져 있었다. 그래서 좌표를 직접 비교한다.
+     *
+     * 슬롯이 아니라 안의 내용을 잰다. 브랜드 슬롯은 트랙이 minmax(0,1fr) 이라 얌전히 줄어드는데
+     * 안의 워드마크가 white-space: nowrap 이라 밖으로 삐져나온다 — 슬롯만 재면 멀쩡해 보인다.
+     */
+    brandBleed: (() => {
+      /* 워드마크 = 홈 링크 중 접근성 트리에 보이는 것(옆 로고 링크는 aria-hidden 이다). */
+      const brand = document.querySelector('header a[href="/"]:not([aria-hidden])');
+      if (!brand) return { missing: true };
+
+      const brandBox = brand.getBoundingClientRect();
+      let worst = null;
+
+      /* 브랜드와 같은 줄에서 그 오른쪽에 있는 것 중 가장 가까운 것. 아랫줄 메뉴는 대상이 아니다. */
+      for (const el of document.querySelectorAll('header button, header a')) {
+        const box = el.getBoundingClientRect();
+        if (box.width === 0) continue;
+        if (box.left < brandBox.right - 1) continue;
+        if (box.bottom <= brandBox.top || box.top >= brandBox.bottom) continue;
+        const gap = Math.round(box.left - brandBox.right);
+        if (worst === null || gap < worst.gap) {
+          worst = { gap, name: (el.getAttribute('aria-label') || el.textContent || '?').trim().slice(0, 12) };
+        }
+      }
+      return worst;
+    })()
   };
 })()`;
 
@@ -324,6 +371,16 @@ for (const route of ROUTES) {
     const problems = [];
 
     if (!at.published || !at.measured) problems.push('헤더 높이를 못 읽었다(헤더가 없거나 변수 미발행)');
+
+    /* 브랜드 줄 겹침 — 워드마크를 못 찾으면 0건 통과가 되지 않게 **실패**로 센다(5번과 같은 규율). */
+    if (at.brandBleed?.missing) {
+      problems.push('브랜드 워드마크를 못 찾았다 — 검사가 0건이 되어 통과하는 것을 막는다');
+    } else if (at.brandBleed && at.brandBleed.gap < BRAND_MIN_GAP) {
+      problems.push(
+        `브랜드가 "${at.brandBleed.name}" 과 ${at.brandBleed.gap}px 간격 (최소 ${BRAND_MIN_GAP}px)` +
+          (at.brandBleed.gap < 0 ? ' — 겹치고 있다' : '')
+      );
+    }
     else {
       if (at.published > limit) problems.push(`높이 ${at.published}px > 상한 ${limit}px`);
       if (Math.abs(at.published - at.measured) > 1) {

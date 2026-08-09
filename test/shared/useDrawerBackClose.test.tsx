@@ -78,10 +78,28 @@ function hasDrawerEntry(): boolean {
   return state?.sbDrawer !== undefined;
 }
 
-/** 이펙트 정리에서 비동기로 날아오는 `history.back()`·popstate 까지 가라앉힌다. */
+/**
+ * 이펙트 정리에서 비동기로 날아오는 `history.back()`·popstate 까지 가라앉힌다.
+ *
+ * ## 🔴 이 값은 부하에 민감하다 (2026-08-09)
+ *
+ * 30ms 였을 때 이 파일의 "되감기가 이미 날아간 뒤에…" 케이스가 **전체 스위트에서만** 간헐 실패했다
+ * (단독 실행은 3/3 통과). jsdom 의 `history.back()` 은 매크로태스크로 popstate 를 흘리는데,
+ * 403개 파일이 동시에 도는 동안 그 태스크가 30ms 안에 못 도착하는 일이 생긴다.
+ *
+ * ⚠ 실패가 **파일 순서·머신 부하에 따라 나타났다 사라진다.** 그래서 "재실행하니 통과"로 넘기기
+ *   쉬운데, 그러면 게이트가 신뢰를 잃는다 — 실제로 어느 테스트인지 특정하는 데 두 번의 전체
+ *   실행이 들었다.
+ * ⚠ 이 파일이 `pool: 'threads'`(vitest.config.ts) 전환 뒤 더 자주 드러났다. 스레드는 한 프로세스를
+ *   공유해 타이머 경합이 늘기 때문이다. 되돌리는 것도 방법이지만 그건 스위트 전체를 24초 느리게
+ *   만든다 — **고정 대기에 기대는 이 테스트 쪽이 근본 원인**이라 여기를 고쳤다.
+ * ⚠ 더 줄이지 마라. 늘리는 것은 안전하다(9곳 × 여유분이므로 스위트에 1초 미만으로 붙는다).
+ */
+const SETTLE_MS = 150;
+
 async function settle(): Promise<void> {
   await new Promise((resolve) => {
-    setTimeout(resolve, 30);
+    setTimeout(resolve, SETTLE_MS);
   });
 }
 
