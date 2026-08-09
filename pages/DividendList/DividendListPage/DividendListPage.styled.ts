@@ -1,6 +1,18 @@
 import styled from '@emotion/styled';
 import { Link } from 'react-router-dom';
-import { DATA_RADIUS, color, font, media, pageHue, pageHueMix, radius, space, surface, topRail } from '@/shared/styles';
+import {
+  DATA_RADIUS,
+  color,
+  elevation,
+  font,
+  media,
+  pageHue,
+  pageHueMix,
+  radius,
+  space,
+  surface,
+  topRail
+} from '@/shared/styles';
 
 /**
  * 이 화면이 세우는 면의 패딩. `surface()` 가 이 값에서 안쪽 라운드까지 파생하므로 상수로 둔다
@@ -371,13 +383,56 @@ export const MonthlyList = styled.ol`
   list-style: none;
 `;
 
-export const MonthlyRow = styled.li`
+/**
+ * 한 달 한 줄.
+ *
+ * ## 🔴 **이달은 다르게 선다** (2026-08-09 사용자 지적)
+ *
+ * 종전에는 모든 달이 같은 상자였다 — 그래서 "이달의 종목"이 하나도 티가 안 났다.
+ * 지금 것과 지나간 것은 **읽는 목적이 다르다**: 이달은 "무엇을 뽑았나"이고, 지난달은 "그때 무엇을
+ * 뽑았었나"라는 기록이다. 같은 무게로 세우면 목록이 그냥 길기만 하다.
+ *
+ * ⚠ 그래도 **크기·면·테두리로만** 가른다. 색 하나에 기대지 않고, 위에 붙는 배지가 글자로도 말한다.
+ */
+export const MonthlyRow = styled.li<{ $featured?: boolean }>`
+  position: relative;
   display: grid;
-  gap: ${space[1]};
-  padding: ${space[4]};
-  border: 1px solid ${color.border};
+  gap: ${(props) => (props.$featured ? space[2] : space[1])};
+  padding: ${(props) => (props.$featured ? space[6] : space[4])};
+  border: 1px solid ${(props) => (props.$featured ? color.identityBorder : color.border)};
   border-radius: ${radius.lg};
-  background: ${color.surface};
+  background: ${(props) => (props.$featured ? color.identitySubtle : color.surface)};
+  ${(props) => (props.$featured ? `box-shadow: ${elevation[2]};` : '')}
+  overflow: hidden;
+
+  /*
+   * 🔴 왼쪽 리본 — 이 구획의 주역이라는 표시. 아이덴티티 색은 **비텍스트 전용**이라
+   *    (semantic.ts 주석) 글자를 얹지 않고 면으로만 쓴다.
+   */
+  ${(props) =>
+    props.$featured
+      ? `
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 4px;
+    background: ${color.identity};
+  }
+  `
+      : ''}
+`;
+
+/** 🔴 "이달" 배지 — 색이 아니라 **글자**가 채널이다(색 단독 채널 금지). */
+export const MonthlyBadge = styled.span`
+  justify-self: start;
+  padding: ${space[1]} ${space[2]};
+  border-radius: ${radius.pill};
+  background: ${color.identity};
+  color: ${color.textInverse};
+  font-size: ${font.size['2xs']};
+  font-weight: ${font.weight.bold};
+  letter-spacing: 0.04em;
 `;
 
 export const MonthlyMonth = styled.p`
@@ -388,11 +443,47 @@ export const MonthlyMonth = styled.p`
   color: ${color.textMuted};
 `;
 
-export const MonthlyName = styled.p`
+/** 이달은 이 화면에서 가장 큰 글자다 — 그게 "이 달의 하나"라는 뜻을 크기로 말한다. */
+export const MonthlyName = styled.p<{ $featured?: boolean }>`
   margin: 0;
-  font-size: ${font.size.lg};
+  font-size: ${(props) =>
+    props.$featured ? `clamp(${font.size.xl}, 3.4vw, ${font.size['3xl']})` : font.size.lg};
+  font-weight: ${(props) => (props.$featured ? font.weight.extrabold : font.weight.bold)};
+  letter-spacing: ${(props) => (props.$featured ? '-0.02em' : 'normal')};
+  color: ${color.text};
+`;
+
+/**
+ * 이달의 세 숫자를 칸으로 편다.
+ *
+ * ⚠ 지난달은 그대로 한 줄 문장이다 — 기록을 훑는 자리라 칸으로 벌리면 목록이 길어지기만 한다.
+ */
+export const MonthlyStatRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: ${space[2]} ${space[5]};
+  margin-top: ${space[1]};
+`;
+
+export const MonthlyStat = styled.div`
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+`;
+
+export const MonthlyStatLabel = styled.span`
+  font-size: ${font.size['2xs']};
+  font-weight: ${font.weight.semibold};
+  letter-spacing: 0.03em;
+  color: ${color.textMuted};
+`;
+
+export const MonthlyStatValue = styled.strong`
+  font-family: ${font.dataNumeric};
+  font-size: ${font.size.xl};
   font-weight: ${font.weight.bold};
   color: ${color.text};
+  font-variant-numeric: tabular-nums;
 `;
 
 /** 세 숫자 한 줄. 데이터 서체로 두어 표와 같은 값임을 형태가 말한다. */

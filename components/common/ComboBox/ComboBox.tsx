@@ -40,10 +40,14 @@ export default function ComboBox({
   options,
   placeholder,
   listLabel,
+  ariaLabel,
   ariaInvalid,
   ariaDescribedBy,
   dataField,
-  visibleOptionCount = 7
+  visibleOptionCount = 7,
+  clearOnSelect = false,
+  disabled = false,
+  allowFreeText = true
 }: ComboBoxProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -56,10 +60,19 @@ export default function ComboBox({
   const forceOpenRef = useRef(false);
 
   const listId = `${id}-listbox`;
-  const filtered = useMemo(() => filterComboOptions(options, value), [options, value]);
+  /**
+   * 화면에 보이는 글자.
+   *
+   * 🔴 `clearOnSelect` 일 때는 **이 컴포넌트가 직접 들고 있다.** 그 모드의 호출부는 값을 담아 두지
+   *    않으므로(고르는 즉시 목록에 담고 칸은 비운다) 바깥 `value` 가 언제나 빈 문자열이고,
+   *    그것을 그대로 그리면 타이핑이 화면에 안 나타난다.
+   */
+  const [query, setQuery] = useState('');
+  const text = clearOnSelect ? query : value;
+  const filtered = useMemo(() => filterComboOptions(options, text), [options, text]);
 
   const shouldShow =
-    isOpen && (forceOpenRef.current || !isExactMatch(options, value)) && options.length > 0;
+    isOpen && !disabled && (forceOpenRef.current || !isExactMatch(options, text)) && options.length > 0;
 
   const close = useCallback(() => {
     setIsOpen(false);
@@ -67,12 +80,19 @@ export default function ComboBox({
     forceOpenRef.current = false;
   }, []);
 
+  /**
+   * 고른 값을 넘긴다.
+   *
+   * ⚠ `clearOnSelect` 면 **입력칸에 남긴 글자를 지운다** — 고르는 도구로 쓰는 자리에서는 고른 값이
+   *   칸에 남아 있으면 "이미 담았는데 아직 있다"로 읽혀 한 번 더 누르게 된다.
+   */
   const commit = useCallback(
     (option: string) => {
       onChange(option);
       close();
+      if (clearOnSelect) setQuery('');
     },
-    [close, onChange]
+    [clearOnSelect, close, onChange]
   );
 
   const handleKeyDown = useCallback(
@@ -118,6 +138,7 @@ export default function ComboBox({
         {...(dataField === undefined ? {} : { 'data-field': dataField })}
         type="text"
         role="combobox"
+        aria-label={ariaLabel}
         autoComplete="off"
         aria-expanded={shouldShow}
         aria-controls={listId}
@@ -126,7 +147,8 @@ export default function ComboBox({
           shouldShow && activeIndex >= 0 ? `${listId}-option-${activeIndex}` : undefined
         }
         placeholder={placeholder}
-        value={value}
+        disabled={disabled}
+        value={text}
         aria-invalid={ariaInvalid ? true : undefined}
         aria-describedby={ariaDescribedBy}
         onChange={(event) => {
@@ -134,6 +156,11 @@ export default function ComboBox({
           forceOpenRef.current = false;
           setIsOpen(true);
           setActiveIndex(-1);
+          if (clearOnSelect) {
+            /* 🔴 고르는 도구다 — 타이핑은 검색어일 뿐이라 바깥으로 흘리지 않는다. */
+            setQuery(event.target.value);
+            return;
+          }
           onChange(event.target.value);
         }}
         onFocus={() => setIsOpen(true)}
@@ -153,7 +180,9 @@ export default function ComboBox({
         >
           {filtered.length === 0 ? (
             /* 🔴 목록을 감추지 않고 왜 비었는지 말한다 — 감추면 컨트롤이 고장 난 것처럼 보인다. */
-            <ComboEmpty>{'찾는 항목이 없습니다. 그대로 적으셔도 저장됩니다.'}</ComboEmpty>
+            <ComboEmpty>
+              {allowFreeText ? '찾는 항목이 없습니다. 그대로 적으셔도 저장됩니다.' : '찾는 항목이 없습니다.'}
+            </ComboEmpty>
           ) : (
             filtered.map((option, index) => (
               <ComboOption

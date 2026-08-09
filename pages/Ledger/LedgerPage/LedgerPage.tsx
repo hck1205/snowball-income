@@ -498,6 +498,7 @@ function LedgerContent({ now: nowProp }: LedgerPageProps) {
     showCheckingSkeleton: connection.showCheckingSkeleton,
     sheetUrl,
     sheetName: connection.link?.sheetTitle ?? null,
+    hasStoredLink: connection.hasStoredLink,
     tabPicker,
     freshness: freshness.model,
     dividend,
@@ -541,6 +542,7 @@ function LedgerContent({ now: nowProp }: LedgerPageProps) {
       focusAfterRemoveId={write.focusAfterRemoveId}
       onFocusAfterRemoveHandled={write.clearFocusAfterRemove}
       onSignIn={appAuth.signIn}
+      onRestoreLastSheet={connection.restoreLastSheet}
       onPickExistingSheet={connection.pickExistingSheet}
       onCreateSheet={connection.createSheet}
       onMappingChange={connection.changeMapping}

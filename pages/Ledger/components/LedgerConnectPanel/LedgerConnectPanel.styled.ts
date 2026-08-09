@@ -237,3 +237,19 @@ export const ChoiceTitle = styled.span`
     color: ${color.brandText};
   }
 `;
+
+/**
+ * 두 버튼을 **1:1 로 전폭** 채우는 줄(2026-08-09 사용자 요청).
+ *
+ * 🔴 `PickCardActions` 는 `flex-wrap` 이라 버튼이 각자 내용만큼만 넓어지고, 글자 길이가 다르면
+ *    (`이어서 열기` vs `다른 시트 고르기`) 폭이 눈에 띄게 어긋난다 — 같은 급의 선택지 둘이
+ *    다른 크기로 서면 하나가 더 중요해 보인다.
+ * ⚠ 공용 부품을 고치지 않고 이 화면만 배치를 바꾼다 — 버튼이 하나뿐인 카드가 훨씬 많다.
+ */
+export const DualActions = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: ${space[2]};
+  width: 100%;
+  min-width: 0;
+`;

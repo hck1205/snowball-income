@@ -12,6 +12,7 @@ import { LedgerStepRail } from "../LedgerStepRail";
 import type { LedgerConnectPanelProps } from "./LedgerConnectPanel.types";
 import {
   ChoiceBody,
+  DualActions,
   ChoiceGrid,
   ChoiceTitle,
   ConnectHeading,
@@ -54,6 +55,8 @@ export default function LedgerConnectPanel({
   phase,
   headingId,
   isAppSignedIn,
+  hasStoredLink,
+  onRestoreLastSheet,
   onPickExistingSheet,
   onCreateSheet,
   registerPickButton,
@@ -88,20 +91,55 @@ export default function LedgerConnectPanel({
             </ChoiceTitle>
           }
           actions={
-            <Button
-              type="button"
-              variant="secondary"
-              fullWidth
-              ref={registerPickButton}
-              loading={isPicking}
-              disabled={isBusy && !isPicking}
-              onClick={onPickExistingSheet}
-            >
-              {copy.connect.existing.cta}
-            </Button>
+            hasStoredLink ? (
+              <DualActions>
+                {/*
+                🔴 **지난 시트로 이어서** — 저장된 연결이 있을 때만 선다(2026-08-09).
+                   시트 ID·탭·열 매핑은 이미 로컬에 있고 필요한 것은 토큰뿐인데, 종전에는 그것 하나
+                   때문에 피커를 다시 열어 **이미 고른 파일을 또 골라야** 했다.
+                ⚠ 타일을 따로 만들지 않고 이 카드 안에 둔다 — 둘 다 "이미 있는 시트를 쓴다"라는
+                  한 가지 뜻이고, 갈라 놓으면 선택지가 셋으로 보여 무엇이 다른지 매번 읽어야 한다.
+                🔴 마운트에서 자동으로 하지 않는다. 사용자가 아무것도 안 눌렀는데 구글 계정 선택
+                   창이 뜨는 것은 팝업이 막히는 것보다 나쁘다(실측으로 되돌린 판단).
+              */}
+                <Button
+                  type="button"
+                  fullWidth
+                  loading={isPicking}
+                  disabled={isBusy && !isPicking}
+                  onClick={onRestoreLastSheet}
+                >
+                  {copy.connect.resume.cta}
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  fullWidth
+                  ref={registerPickButton}
+                  disabled={isBusy && !isPicking}
+                  onClick={onPickExistingSheet}
+                >
+                  {copy.connect.existing.ctaOther}
+                </Button>
+              </DualActions>
+            ) : (
+              <Button
+                type="button"
+                variant="secondary"
+                fullWidth
+                ref={registerPickButton}
+                loading={isPicking}
+                disabled={isBusy && !isPicking}
+                onClick={onPickExistingSheet}
+              >
+                {copy.connect.existing.cta}
+              </Button>
+            )
           }
         >
-          <ChoiceBody>{copy.connect.existing.body}</ChoiceBody>
+          <ChoiceBody>
+            {hasStoredLink ? copy.connect.existing.bodyWithResume : copy.connect.existing.body}
+          </ChoiceBody>
         </PickCard>
 
         <PickCard
