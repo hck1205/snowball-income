@@ -12809,6 +12809,7 @@ var pickLift = `
 
 // shared/styles/chartTheme.ts
 var FALLBACK_TOKENS = DEFAULT_THEME_PRESET.light;
+var TINT_TOKEN_KEYS = ["danger-surface", "warning-surface", "surface-muted", "accent-subtle", "success-surface"];
 var FALLBACK = {
   axisLine: FALLBACK_TOKENS["chart-axis-line"],
   splitLine: FALLBACK_TOKENS["chart-split-line"],
@@ -12823,7 +12824,8 @@ var FALLBACK = {
   success: FALLBACK_TOKENS.success,
   successSurface: FALLBACK_TOKENS["success-surface"],
   warning: FALLBACK_TOKENS.warning,
-  series: Array.from({ length: 8 }, (_, index) => FALLBACK_TOKENS[`chart-series-${index}`])
+  series: Array.from({ length: 8 }, (_, index) => FALLBACK_TOKENS[`chart-series-${index}`]),
+  tint: TINT_TOKEN_KEYS.map((key) => FALLBACK_TOKENS[key])
 };
 var readVar = (name, fallback) => {
   if (typeof document === "undefined" || typeof getComputedStyle !== "function") return fallback;
@@ -12845,6 +12847,7 @@ var getChartTheme = () => ({
   successSurface: readVar("--sb-success-surface", FALLBACK.successSurface),
   warning: readVar("--sb-warning", FALLBACK.warning),
   series: FALLBACK.series.map((fallback, index) => readVar(`--sb-chart-series-${index}`, fallback)),
+  tint: TINT_TOKEN_KEYS.map((key, index) => readVar(`--sb-${key}`, FALLBACK.tint[index])),
   fontFamily: font.dataNumeric,
   labelFontSize: 12
 });

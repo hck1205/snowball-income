@@ -42,7 +42,9 @@ describe('/dividend/portfolio 라우트', () => {
     const activeLinks = screen.getAllByRole('link').filter((link) => link.getAttribute('aria-current') === 'page');
     expect(activeLinks).toHaveLength(0);
 
-    const trigger = screen.getByRole('button', { name: new RegExp(COMMUNITY_COPY.nav.portfolioGroup) });
+    /* 🔴 2026-08-09 부터 내 포트폴리오는 **개인 묶음**(내 자산계획) 안이다 — 외부 포트폴리오가 아니다.
+       주어가 '나'인 화면과 남의 공시 자료를 한 묶음에 두면 묶음 이름이 무엇을 뜻하는지 흐려진다. */
+    const trigger = screen.getByRole('button', { name: new RegExp(COMMUNITY_COPY.nav.personalGroup) });
     expect(trigger).toHaveAttribute('aria-current', 'true');
 
     // 펼치면 그 안에서 활성은 정확히 하나다 — 형제끼리 서로를 활성화하지 않는다.

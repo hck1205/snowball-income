@@ -172,7 +172,11 @@ describe('AppHeader — 전 페이지 공통 계약', () => {
     expect(within(banner).getAllByRole('navigation', { name: COMMUNITY_COPY.nav.primaryLabel }).length).toBeGreaterThan(
       0
     );
-    expect(within(banner).getByRole('link', { name: COMMUNITY_COPY.nav.simulator })).toBeInTheDocument();
+    /* 🔴 2026-08-09 대개편으로 **시뮬레이터도 묶음 안**이다(내 자산계획). 헤더가 보장하는 것은
+       그 트리거가 자리에 있다는 것까지다 — 링크는 펼쳐야 나온다. */
+    expect(
+      within(banner).getByRole('button', { name: new RegExp(COMMUNITY_COPY.nav.personalGroup) })
+    ).toBeInTheDocument();
     /* 묶음 메뉴 안의 목적지는 **접혀 있다** — 헤더가 보장하는 것은 그 트리거가 자리에 있다는 것까지다
        (펼친 뒤 내용은 PrimaryNav.test.tsx 가 본다).
        포트폴리오 묶음 2026-08-02(내·대가들·갤러리, 2026-08-04 에 국민연금·국회의원 합류),

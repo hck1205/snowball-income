@@ -55,6 +55,8 @@ import { toNodeHandler } from '@/shared/lib/server';
  *   - 전부 실패(502)는 `no-store`: 실패를 엣지에 박제하지 않는다(다음 요청이 곧바로 재시도).
  */
 
+import { handler as marketPulseHandler } from '../MarketPulse/MarketPulse';
+
 const CHART_BASE_URL = 'https://query1.finance.yahoo.com/v8/finance/chart';
 
 /** Yahoo chart 엔드포인트는 무인증이지만 브라우저 형태의 UA 가 없는 요청을 거부한다. */
@@ -200,8 +202,24 @@ const fetchQuote = async (symbol: MarketIndexSymbol): Promise<MarketIndexQuote |
   }
 };
 
-/** 웹 표준 핸들러 — `test/api/marketIndices.test.ts` 가 `handler(new Request(...))` 로 직접 호출한다. */
-export async function handler(_request: Request): Promise<Response> {
+/**
+ * 웹 표준 핸들러 — `test/api/marketIndices.test.ts` 가 `handler(new Request(...))` 로 직접 호출한다.
+ *
+ * ## 🔴 이 함수는 두 화면을 태운다
+ *
+ * `?surface=pulse` 면 **시장 온도**(`MarketPulse`)로 위임한다. 왜 함수를 따로 만들지 않았나:
+ * Vercel Hobby 는 배포 함수 **12개가 상한**이고 이 레포는 이미 12개를 쓴다
+ * (`test/api/functionBudget.test.ts` 가 그 상한을 잠근다 — 넘기면 배포가 실패한다).
+ * 매니페스트 머리말이 "JSON 응답이 하나 더 필요하면 프록시들을 묶어라"고 예고한 수순이다.
+ *
+ * ⚠ 두 갈래는 **캐시 수명이 다르다**(지수 15분 / 온도 6시간). 각자 자기 응답에 헤더를 붙이므로
+ *   섞이지 않는다 — 여기서 공통 헤더를 씌우지 마라.
+ */
+export async function handler(request: Request): Promise<Response> {
+  if (new URL(request.url).searchParams.get('surface') === 'pulse') {
+    return marketPulseHandler(request);
+  }
+
   /*
     5심볼을 **병렬**로 조회한다. 순차면 최악의 경우 5 × 4초 = 20초라 Vercel 함수 실행 한도에 닿는다.
     `fetchQuote` 는 스스로 삼키므로 reject 되지 않지만, upstream 하나의 예외가 전체를 죽이지 않도록

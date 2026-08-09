@@ -22,6 +22,17 @@ import { font } from './tokens';
 
 const FALLBACK_TOKENS = DEFAULT_THEME_PRESET.light;
 
+/**
+ * **옅은 틴트 5색**의 토큰 이름 — 따뜻한 쪽 → 중립 → 시원한 쪽 순서다.
+ *
+ * 🔴 `chart-series-*` 팔레트는 선·조각을 서로 구별하려고 만든 **진한 색**이라, 게이지 링처럼
+ *    면을 넓게 까는 자리에 쓰면 화면에서 혼자 튄다. 알파를 낮추는 것은 답이 아니다 —
+ *    배경이 비쳐 색이 자리마다 달라지고, 위에 얹는 글자 대비도 무보장이 된다.
+ *    그래서 **원래부터 옅게 설계된 시맨틱 틴트**를 쓴다(2026-08-09 사용자 지시).
+ * ⚠ 순서에 뜻이 있다(따뜻함 → 중립 → 시원함). 소비처가 그 순서를 기대한다.
+ */
+const TINT_TOKEN_KEYS = ['danger-surface', 'warning-surface', 'surface-muted', 'accent-subtle', 'success-surface'] as const;
+
 const FALLBACK = {
   axisLine: FALLBACK_TOKENS['chart-axis-line'],
   splitLine: FALLBACK_TOKENS['chart-split-line'],
@@ -36,7 +47,8 @@ const FALLBACK = {
   success: FALLBACK_TOKENS.success,
   successSurface: FALLBACK_TOKENS['success-surface'],
   warning: FALLBACK_TOKENS.warning,
-  series: Array.from({ length: 8 }, (_, index) => FALLBACK_TOKENS[`chart-series-${index}`])
+  series: Array.from({ length: 8 }, (_, index) => FALLBACK_TOKENS[`chart-series-${index}`]),
+  tint: TINT_TOKEN_KEYS.map((key) => FALLBACK_TOKENS[key])
 } as const;
 
 const readVar = (name: string, fallback: string): string => {
@@ -76,6 +88,11 @@ export type ChartTheme = {
    */
   series: string[];
   /**
+   * 옅은 틴트 5색 — **면을 넓게 까는 자리**(게이지 링·구간 배경)용. 순서는 따뜻함 → 중립 → 시원함.
+   * 근거와 왜 알파가 답이 아닌지는 `TINT_TOKEN_KEYS` 주석에 있다.
+   */
+  tint: string[];
+  /**
    * 축 라벨·툴팁 서체 = `font.dataNumeric`(차트 안 글자는 대부분 숫자다).
    *
    * 캔버스는 `var()`를 못 읽지만 **font-family 문자열은 그대로 해석**하므로 토큰을 그대로 넘긴다.
@@ -100,6 +117,7 @@ export const getChartTheme = (): ChartTheme => ({
   successSurface: readVar('--sb-success-surface', FALLBACK.successSurface),
   warning: readVar('--sb-warning', FALLBACK.warning),
   series: FALLBACK.series.map((fallback, index) => readVar(`--sb-chart-series-${index}`, fallback)),
+  tint: TINT_TOKEN_KEYS.map((key, index) => readVar(`--sb-${key}`, FALLBACK.tint[index])),
   fontFamily: font.dataNumeric,
   labelFontSize: 12
 });
@@ -122,6 +140,7 @@ const toChartTheme = (tokens: ThemeTokens): ChartTheme => ({
   successSurface: tokens['success-surface'],
   warning: tokens.warning,
   series: Array.from({ length: 8 }, (_unused, index) => tokens[`chart-series-${index}`]),
+  tint: TINT_TOKEN_KEYS.map((key) => tokens[key]),
   fontFamily: font.dataNumeric,
   labelFontSize: 12
 });
