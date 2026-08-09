@@ -7,6 +7,7 @@
 import type { EChartsOption } from 'echarts';
 import { buildAxisStyle, buildLegendStyle, buildTooltipStyle, hexToRgba } from '@/shared/styles';
 import type { ChartTheme } from '@/shared/styles';
+import { tooltipPosition } from '@/shared/lib/charts';
 
 import { KRW, baseGrid, legendGrid, shortKRW, shortMonth, topLegend } from './chartShared';
 import type { ReportSlice, ReportWeekdaySpending } from '../report';
@@ -37,6 +38,9 @@ export const donutOption = (
     tooltip: {
       ...buildTooltipStyle(theme),
       trigger: 'item',
+      /* 좁은 화면에서 가장자리 조각을 누르면 툴팁이 카드 밖으로 나가 잘린다 — 컨테이너 안에 가둔다. */
+      confine: true,
+      position: tooltipPosition,
       valueFormatter: (value) => KRW(Number(value))
     },
     /*
@@ -293,7 +297,14 @@ export const sunburstOption = (
   nodes: readonly { readonly name: string; readonly value: number; readonly children?: readonly { readonly name: string; readonly value: number }[] }[],
   theme: ChartTheme
 ): EChartsOption => ({
-  tooltip: { ...buildTooltipStyle(theme), trigger: 'item', valueFormatter: (value) => KRW(Number(value)) },
+  /* 선버스트도 파이와 같은 방사형이라 바깥 고리를 누르면 툴팁이 가장자리에서 잘린다 — 같이 가둔다. */
+  tooltip: {
+    ...buildTooltipStyle(theme),
+    trigger: 'item',
+    confine: true,
+    position: tooltipPosition,
+    valueFormatter: (value) => KRW(Number(value))
+  },
   series: [
     {
       type: 'sunburst',
@@ -433,6 +444,8 @@ export const roseOption = (
   tooltip: {
     ...buildTooltipStyle(theme),
     trigger: 'item',
+    confine: true,
+    position: tooltipPosition,
     formatter: (params: unknown) => {
       const point = params as { dataIndex: number };
       const row = spending[point.dataIndex];

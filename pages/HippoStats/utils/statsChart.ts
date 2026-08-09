@@ -1,5 +1,6 @@
 import type { ChartTheme } from '@/shared/styles';
 import { buildTooltipStyle, hexToRgba } from '@/shared/styles';
+import { tooltipPosition } from '@/shared/lib/charts';
 import type { TensionAxis } from '@/shared/lib/marketPulse';
 import type { TradeRank } from './tradeRanking';
 
@@ -109,6 +110,9 @@ export const donutOption = (
   tooltip: {
     ...buildTooltipStyle(theme),
     trigger: 'item' as const,
+    /* 조각을 누르는 자리가 가장자리일 수 있다 — 좁은 화면에서 툴팁이 카드 밖으로 나가 잘리지 않게 가둔다. */
+    confine: true,
+    position: tooltipPosition,
     formatter: (params: unknown) => {
       const point = params as { data?: { fullName?: string; ticker?: string; value?: number }; percent?: number };
       const data = point.data;
