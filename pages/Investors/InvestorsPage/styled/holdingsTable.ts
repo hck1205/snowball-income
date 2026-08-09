@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, space, subtleScrollbar } from '@/shared/styles';
+import { color, font, scrollFadeRight, space, stickyCellTable, stickyColumn, subtleScrollbar } from '@/shared/styles';
 
 /* ── ④ 보유 표 (드로어 안) ─────────────────────────────────────────────────── */
 
@@ -48,12 +48,16 @@ export const TableScroller = styled.div`
   min-width: 0;
   /* 앱 공용 스크롤바 — 부품마다 다른 막대가 나오지 않게 한다(scrollbarStyle.test.ts 가 잠근다). */
   ${subtleScrollbar}
+
+  /* 끝 흐림은 앱 공통 처방이다 — 왼쪽은 아래 고정 열이 제 면으로 덮으므로 흐리지 않는다. */
+  ${scrollFadeRight}
 `;
 
 export const Table = styled.table`
   width: 100%;
   min-width: 420px;
-  border-collapse: collapse;
+  /* 🔴 발행사 열을 고정하려면 이 표는 separate 여야 한다 — 이유는 stickyCellTable 주석. */
+  ${stickyCellTable}
   font-size: ${font.size.sm};
 `;
 
@@ -66,6 +70,15 @@ export const Th = styled.th`
   letter-spacing: 0.08em;
   text-align: left;
   white-space: nowrap;
+
+  /*
+   * 🔴 첫 열(발행사)은 가로로 밀어도 남는다. 이 표는 최소폭 420px 이라 드로어 폭이 좁으면
+   *    반드시 밀리는데, 이름이 흘러나가면 옆의 비중·배당이 **누구 것인지** 사라진다.
+   * ⚠ 머리와 값이 **같은 규칙**을 써야 한다 — 한쪽만 고치면 미는 동안 열이 어긋난다.
+   */
+  &:first-of-type {
+    ${stickyColumn('0', true)}
+  }
 `;
 
 export const ThNumeric = styled(Th)`
@@ -77,6 +90,11 @@ export const Td = styled.td`
   border-bottom: 1px solid ${color.border};
   color: ${color.text};
   vertical-align: top;
+
+  /* 🔴 첫 열(발행사)은 위 열 머리(Th)와 같은 규칙으로 고정된다 — 근거는 그 주석. */
+  &:first-of-type {
+    ${stickyColumn('0', true)}
+  }
 `;
 
 export const TdNumeric = styled(Td)`
