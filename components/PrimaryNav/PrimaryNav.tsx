@@ -3,7 +3,9 @@ import { createPortal } from 'react-dom';
 import { useInRouterContext, useLocation } from 'react-router-dom';
 // per-icon named import(트리셰이킹) → 엔트리에는 이 아이콘들만 실린다(CommunityNavLink·ThemePresetSwitcher와 동일 패턴).
 import {
+  Activity,
   BookOpen,
+  ChartPie,
   CalendarDays,
   CalendarRange,
   ChevronDown,
@@ -15,6 +17,7 @@ import {
   ListOrdered,
   Sparkles,
   Medal,
+  Thermometer,
   MessageSquare,
   MessagesSquare,
   PiggyBank,
@@ -26,6 +29,9 @@ import {
 } from 'lucide-react';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
 import { DIVIDEND_LIST_HUB_PATH, SIMULATOR_PATH, dividendListPath } from '@/shared/constants/routes';
+/* 경로 문자열만 가져온다 — 페이지 모듈이 아니라 상수 파일이라 엔트리 번들이 커지지 않는다. */
+import { MARKET_PULSE_PATH } from '@/pages/MarketPulse/marketPulseRoute';
+import { HIPPO_STATS_PATH } from '@/pages/HippoStats/hippoStatsRoute';
 import { isGoogleSheetsEnabled } from '@/shared/lib/googleSheets';
 import { isCommunityEnabled } from '@/shared/lib/supabase';
 import {
@@ -34,7 +40,6 @@ import {
   BrandFallback,
   BrandWordmark,
   Nav,
-  NavItem,
   NavItems,
   NavLabel,
   NavMenu,
@@ -57,8 +62,12 @@ const n = COMMUNITY_COPY.nav;
  * ⚠ 경로가 셋 다 다른 접두사인 것은 의도가 아니라 **현실**이다. 주소 개편은 2026-08-02 에
  *   "이미 배포된 주소를 흔들지 않는다"로 보류됐고, `/portfolio/investors` 만 새로 태어나 그 형태를 따랐다.
  */
+/*
+ * 🔴 2026-08-09 에 **'나의 배당 포트폴리오'가 여기서 빠졌다**(사용자 결정). 그 화면만 주어가
+ *    '나'라서, 남은 넷(공시로 만든 남의 자료)과 축이 달랐다 — 묶음 이름이 '외부 포트폴리오'가
+ *    된 것도 그래서다. 내 포트폴리오는 `PERSONAL_GROUP_ITEMS` 로 옮겼다.
+ */
 export const PORTFOLIO_GROUP_ITEMS = [
-  { to: '/dividend/portfolio', label: n.myPortfolio, Icon: Wallet, communityOnly: false },
   { to: '/portfolio/investors', label: n.investors, Icon: Users, communityOnly: false },
   /* 2026-08-04 합류. 셋 다 "누구의 포트폴리오인가"라는 한 축이라 같은 묶음에 선다 —
      사람(대가) → 기관(국민연금) → 정치인(하원). 순서는 익숙한 것에서 낯선 것으로. */
@@ -84,6 +93,44 @@ export const PORTFOLIO_GROUP_ITEMS = [
  * 순서는 **내 것 → 시장 것**이다. 배당 캘린더는 내가 고른 종목의 지급일이고, 증시 캘린더는
  * 시장 전체의 개폐장·발표 일정이다.
  */
+/**
+ * 개인 묶음이 품는 목적지 — 시뮬레이터 · 나의 배당 포트폴리오 · 가계부(2026-08-09 사용자 결정).
+ *
+ * 순서는 **계획 → 지금 → 흐름**이다: 앞으로 얼마가 될지(시뮬레이터), 지금 무엇을 갖고 있는지
+ * (포트폴리오), 매달 얼마가 들고 나는지(가계부).
+ *
+ * 🔴 `sheetsOnly` 는 가계부 전용 플래그다. `isGoogleSheetsEnabled` 가 false 면 `/ledger` 라우트가
+ *    **존재하지 않으므로**(routes.tsx) 이 항목도 지워야 한다 — 남기면 404 로 가는 죽은 링크다.
+ *    `communityOnly` 가 갤러리에 하던 일과 같은 처방이다.
+ */
+export const PERSONAL_GROUP_ITEMS = [
+  { to: SIMULATOR_PATH, label: n.simulator, Icon: LineChart, sheetsOnly: false },
+  { to: '/dividend/portfolio', label: n.myPortfolio, Icon: Wallet, sheetsOnly: false },
+  { to: '/ledger', label: n.ledger, Icon: ReceiptText, sheetsOnly: true }
+] as const;
+
+/**
+ * 종목 묶음이 품는 목적지 — ETF 소개 + 종목 비교(2026-08-09 사용자 결정).
+ * 소개를 읽다가 "그래서 저것과 뭐가 다른가"로 이어지는 순서라 비교가 뒤에 선다.
+ */
+export const TICKER_GROUP_ITEMS = [
+  { to: '/ticker/all', label: n.tickers, Icon: BookOpen },
+  { to: '/ticker/compare', label: n.tickerCompare, Icon: Scale }
+] as const;
+
+/**
+ * 시장 묶음이 품는 목적지 — 지금은 시장 온도 하나다(2026-08-09 신설).
+ *
+ * ⚠ 자식이 하나뿐인 묶음을 만든 이유: 여기에 곧 둘이 더 붙는다. 단독 칸으로 올렸다가 다시
+ *   접으면 사용자가 익힌 위치가 두 번 바뀐다 — 자리를 미리 잡아 두는 편이 낫다.
+ */
+export const MARKET_GROUP_ITEMS = [
+  /* 온도계 — 이름이 '시장 온도'라 그림이 이름을 그대로 말한다(2026-08-09 사용자 지시). */
+  { to: MARKET_PULSE_PATH, label: n.marketPulse, Icon: Thermometer },
+  /* 히포 통계 — 시장 온도 **바로 밑**이다. 그 화면의 지표를 재료로 쓰는 화면이라 순서가 곧 흐름이다. */
+  { to: HIPPO_STATS_PATH, label: n.hippoStats, Icon: ChartPie }
+] as const;
+
 export const CALENDAR_GROUP_ITEMS = [
   { to: '/dividend/calendar', label: n.dividendCalendar, Icon: CalendarDays },
   { to: '/market/us-calendar', label: n.marketCalendar, Icon: CalendarRange }
@@ -307,66 +354,55 @@ function NavGroupMenu({ label, Icon: TriggerIcon, items }: NavGroupMenuProps) {
 /** 라우트 링크 목록 — 윗줄(브랜드 옆)과 아랫줄(전용 스크롤 줄)이 공유하는 단일 정본. */
 const NavLinkItems = () => (
   <>
-    <NavItem to={SIMULATOR_PATH} end aria-label={n.simulator}>
-      <LineChart size={16} strokeWidth={1.8} aria-hidden focusable={false} />
-      <NavLabel>{n.simulator}</NavLabel>
-    </NavItem>
-    {/* ── 순서 = 예상 관심도·클릭률(사용자 결정 2026-07-25, 2026-08-01 가계부 삽입) ──────────
-        시뮬레이터(핵심 도구) → 내 포트폴리오(지금 상태·목표 달성) → 가계부(내 실측 데이터 — 같은 축이라 붙인다) →
-        배당 캘린더(매일 볼 유틸리티) → 갤러리(구경 콘텐츠) → 게시판 → ETF 소개(검색 유입이 주라 nav 클릭률은
-        가장 낮다). GA4 로 실측되면 재조정. */}
-    {/* 포트폴리오 묶음 — 내 배당 포트폴리오 + 대가들의 포트폴리오 + 배당계산 갤러리 셋.
-        아이콘은 지갑(Wallet): Briefcase 는 클리셰이고 PieChart 는 시뮬레이터(LineChart)와 혼동된다.
-        ⚠ 갤러리는 원래 커뮤니티 축(갤러리·게시판)에 있었는데 2026-08-02 사용자 지시로 이리 옮겼다 —
-          사용자에게는 "포트폴리오를 보는 곳"이 한 군데인 편이 낫다는 판단이다. 게시판은 그대로 남는다. */}
+    {/*
+      ── 2026-08-09 대개편(사용자 결정) ────────────────────────────────────────────
+      종전 8칸: 시뮬레이터 · 포트폴리오 · 가계부 · 캘린더 · 배당 종목 · 커뮤니티 · ETF 소개 · 종목 비교
+      지금 7칸: 내 자산계획 · 외부 포트폴리오 · 시장 읽기 · 캘린더 · 배당 종목 · 커뮤니티 · 종목 탐색
+
+      무엇이 바뀌었나:
+       ① **주어로 갈랐다.** 시뮬레이터·내 포트폴리오·가계부는 주어가 '나'라서 한 묶음(내 자산계획)이
+          되고, 남은 넷(대가·국민연금·미국 의원·한국 의원)은 전부 **남의 공시 자료**라 '외부
+          포트폴리오'가 됐다. 종전에는 내 것과 남의 것이 한 묶음에 섞여 있어 이름이 무엇을
+          뜻하는지 흐렸다.
+       ② ETF 소개 + 종목 비교를 '종목 탐색'으로 접어 한 칸을 돌려받았다.
+       ③ 그 자리에 '시장 읽기'가 들어갔다.
+
+      🔴 상한은 여전히 8칸이다. 8번째가 필요하면 새 칸이 아니라 또 하나의 묶음을 만들어라.
+      ⚠ 순서 = 예상 관심도. 내 데이터 → 남의 데이터 → 시장 전체 → 시간(캘린더) → 목록 → 사람 → 종목.
+    */}
+    {/* 내 자산계획 — 시뮬레이터 · 나의 배당 포트폴리오 · 가계부.
+        아이콘은 지갑(Wallet): 셋 다 "내 돈"이 주어라 가장 곧은 그림이다.
+        🔴 가계부는 `isGoogleSheetsEnabled` 가 꺼진 배포에서 라우트 자체가 없다 — 항목도 함께 지운다. */}
+    <NavGroupMenu
+      label={n.personalGroup}
+      Icon={Wallet}
+      items={PERSONAL_GROUP_ITEMS.filter((item) => !item.sheetsOnly || isGoogleSheetsEnabled)}
+    />
+    {/* 외부 포트폴리오 — 대가들 · 국민연금 · 미국 의원 · 한국 의원. 넷 다 공시에서 나온 남의 보유다.
+        아이콘은 사람들(Users): 지갑은 위 개인 묶음이 가져갔고, 이 묶음의 공통점은 "누구의 것인가"다. */}
     <NavGroupMenu
       label={n.portfolioGroup}
-      Icon={Wallet}
-      /* 커뮤니티가 꺼진 배포에선 갤러리 항목이 통째로 빠진다 — 라우트 자체가 없어 죽은 링크가 된다. */
+      Icon={Users}
+      /* 커뮤니티가 꺼진 배포에선 커뮤니티 전용 항목이 빠진다(지금은 해당 항목이 없지만 계약은 남긴다). */
       items={PORTFOLIO_GROUP_ITEMS.filter((item) => !item.communityOnly || isCommunityEnabled)}
     />
-    {/* 가계부 — 내 포트폴리오 **바로 뒤**. 둘은 "내가 직접 넣은 실측 데이터"라는 한 축이라
-        페이지 hue 도 accentAlt 를 공유한다(usePageHue.utils.ts). 아이콘은 영수증(ReceiptText):
-        Wallet 은 내 포트폴리오가, BookOpen 은 ETF 소개가 이미 쓴다(ledger UI 스펙 §아이콘과 동일 선택).
-        🔴 `isGoogleSheetsEnabled` 가 false 면 routes.tsx 의 `/ledger` 라우트가 **존재하지 않는다** —
-        같은 플래그로 이 항목도 지운다(커뮤니티 링크가 `isCommunityEnabled` 로 갈리는 것과 같은 방식).
-        메뉴만 남으면 404 로 가는 죽은 링크가 된다. */}
-    {isGoogleSheetsEnabled ? (
-      <NavItem to="/ledger" aria-label={n.ledger}>
-        <ReceiptText size={16} strokeWidth={1.8} aria-hidden focusable={false} />
-        <NavLabel>{n.ledger}</NavLabel>
-      </NavItem>
-    ) : null}
-    {/* 캘린더 묶음 — 배당 캘린더 + 미국 증시 캘린더(2026-08-04). 둘 다 커뮤니티 여부와 무관한
-        정적 페이지이고 lazy 청크라, 이 링크(경로 문자열)로 엔트리 번들이 커지지 않는다.
-        🔴 배당 캘린더가 여기로 접히면서 윗줄 항목 수는 8 그대로다 — 증시 캘린더가 아홉 번째가
-        될 뻔한 것을 묶음으로 흡수했다(아래 종목 비교 주석의 상한 규칙). */}
+    {/* 시장 읽기 — 지금은 시장 온도 하나. 아이콘은 파형(Activity): 묶음이 재는 것이
+        시장의 흔들림이라, 캘린더·트로피·책과 뜻이 겹치지 않는다.
+        ⚠ 온도계는 **묶음이 아니라 그 안의 '시장 온도' 항목**이 쓴다(2026-08-09 사용자 정정) —
+          묶음에는 곧 다른 화면이 붙으므로 이름 하나에 그림을 맞추면 안 된다. */}
+    <NavGroupMenu label={n.marketGroup} Icon={Activity} items={MARKET_GROUP_ITEMS} />
+    {/* 캘린더 묶음 — 배당 캘린더 + 미국 증시 캘린더(2026-08-04). */}
     <NavGroupMenu label={n.calendarGroup} Icon={CalendarDays} items={CALENDAR_GROUP_ITEMS} />
-    {/* 배당 리스트 묶음 — 목록 비교(허브) + 배당킹 + 배당귀족 + 배당챔피언 넷(2026-08-04 신설).
-        배당 캘린더 **바로 뒤**: 둘 다 `/dividend/` 아래의 "배당 그 자체를 보는" 축이다.
-        아이콘은 트로피(Trophy) — 오래 이어 온 기록이라는 이 묶음의 성격을 말하고, nav 의 다른
-        아이콘(Wallet·CalendarDays·BookOpen·Scale·LineChart·ReceiptText)과 겹치지 않는다.
-        🔴 목록 3종을 각각 올리면 nav 가 11개가 되어 상한(8)을 넘는다 — 그래서 묶음이다. */}
+    {/* 배당 목록 묶음 — 허브 + 배당킹·귀족·챔피언·히든스타. "몇 년 연속 배당을 늘렸는가"라는 한 축. */}
     <NavGroupMenu label={n.dividendListGroup} Icon={Trophy} items={DIVIDEND_LIST_GROUP_ITEMS} />
     {/* 커뮤니티 묶음(2026-08-05) — 배당계산 갤러리 + 게시판. 둘 다 **사용자가 쓴 것**이라 한 축이다.
         🔴 커뮤니티가 꺼진 배포에서는 묶음째 사라진다(안에 든 두 목적지가 모두 커뮤니티 전용이다). */}
     {isCommunityEnabled ? (
       <NavGroupMenu label={n.communityGroup} Icon={MessagesSquare} items={COMMUNITY_GROUP_ITEMS} />
     ) : null}
-    <NavItem to="/ticker/all" aria-label={n.tickers}>
-      <BookOpen size={16} strokeWidth={1.8} aria-hidden focusable={false} />
-      <NavLabel>{n.tickers}</NavLabel>
-    </NavItem>
-    {/* 종목 비교 — ETF 소개 **바로 뒤**. 둘은 "종목 정보"라는 한 축이고, 비교는 소개를 읽다가
-        "그래서 저것과 뭐가 다른가"로 이어지는 자리라 그 옆이 자연스럽다.
-        ⚠ 이 항목으로 nav 가 8개가 됐다. 좁은 폭에서는 `NavScroller` 가 가로 스크롤로 흡수하는데,
-        스크롤로 숨는 항목은 사용자에게 아무 신호를 주지 않는다(pitfalls 2026-07-31 실측).
-        🔴 **8개가 상한이다.** 아홉 번째가 필요하면 새 칸을 만들지 말고 `PortfolioNavMenu` 처럼
-        같은 축끼리 묶어라 — 그것이 2026-08-02 에 실제로 택한 길이다. */}
-    <NavItem to="/ticker/compare" aria-label={n.tickerCompare}>
-      <Scale size={16} strokeWidth={1.8} aria-hidden focusable={false} />
-      <NavLabel>{n.tickerCompare}</NavLabel>
-    </NavItem>
+    {/* 종목 탐색 — ETF 소개 + 종목 비교(2026-08-09). 아이콘은 책(BookOpen): 종전 ETF 소개의
+        아이콘을 묶음이 물려받았다 — 사용자가 익힌 그림을 그대로 둔다. */}
+    <NavGroupMenu label={n.tickerGroup} Icon={BookOpen} items={TICKER_GROUP_ITEMS} />
   </>
 );
 

@@ -1,10 +1,13 @@
-import { BookOpen, LineChart, ReceiptText, Scale } from 'lucide-react';
+import { LineChart } from 'lucide-react';
 import { SideDrawer } from '@/components/common';
 import {
   CALENDAR_GROUP_ITEMS,
   COMMUNITY_GROUP_ITEMS,
   DIVIDEND_LIST_GROUP_ITEMS,
-  PORTFOLIO_GROUP_ITEMS
+  MARKET_GROUP_ITEMS,
+  PERSONAL_GROUP_ITEMS,
+  PORTFOLIO_GROUP_ITEMS,
+  TICKER_GROUP_ITEMS
 } from '@/components/PrimaryNav';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
 import { SIMULATOR_PATH } from '@/shared/constants/routes';
@@ -36,6 +39,8 @@ const n = COMMUNITY_COPY.nav;
  *   꺼진 배포에서는 라우트 자체가 없어 죽은 링크가 된다.
  */
 export default function NavDrawer({ id, isOpen, onClose }: NavDrawerProps) {
+  /* 가계부는 라우트가 없는 배포가 있다 — 헤더와 **같은 조건**으로 거른다(PERSONAL_GROUP_ITEMS 주석). */
+  const personalItems = PERSONAL_GROUP_ITEMS.filter((item) => !item.sheetsOnly || isGoogleSheetsEnabled);
   const portfolioItems = PORTFOLIO_GROUP_ITEMS.filter(
     (item) => !item.communityOnly || isCommunityEnabled
   );
@@ -58,14 +63,27 @@ export default function NavDrawer({ id, isOpen, onClose }: NavDrawerProps) {
       onClose={onClose}
     >
       <DrawerNav aria-label={n.primaryLabel}>
-        <Group>{renderLink(SIMULATOR_PATH, n.simulator, LineChart)}</Group>
+        {/*
+          🔴 **헤더 메뉴와 같은 묶음·같은 순서여야 한다**(2026-08-09 대개편). 두 진입점이 같은
+             목적지를 다른 이름·다른 자리에 두면 사용자는 두 개의 메뉴 체계를 배워야 한다.
+             그래서 항목을 여기서 손으로 적지 않고 PrimaryNav 의 상수를 **그대로 가져다 쓴다** —
+             종전에는 시뮬레이터·가계부·ETF·비교 넷을 여기서 따로 적고 있었고, 그래서 헤더가
+             바뀔 때마다 이 파일이 조용히 낡았다.
+        */}
+        <Group>
+          <GroupLabel>{n.personalGroup}</GroupLabel>
+          {personalItems.map((item) => renderLink(item.to, item.label, item.Icon))}
+        </Group>
 
         <Group>
           <GroupLabel>{n.portfolioGroup}</GroupLabel>
           {portfolioItems.map((item) => renderLink(item.to, item.label, item.Icon))}
         </Group>
 
-        {isGoogleSheetsEnabled ? <Group>{renderLink('/ledger', n.ledger, ReceiptText)}</Group> : null}
+        <Group>
+          <GroupLabel>{n.marketGroup}</GroupLabel>
+          {MARKET_GROUP_ITEMS.map((item) => renderLink(item.to, item.label, item.Icon))}
+        </Group>
 
         <Group>
           <GroupLabel>{n.calendarGroup}</GroupLabel>
@@ -85,8 +103,8 @@ export default function NavDrawer({ id, isOpen, onClose }: NavDrawerProps) {
         ) : null}
 
         <Group>
-          {renderLink('/ticker/all', n.tickers, BookOpen)}
-          {renderLink('/ticker/compare', n.tickerCompare, Scale)}
+          <GroupLabel>{n.tickerGroup}</GroupLabel>
+          {TICKER_GROUP_ITEMS.map((item) => renderLink(item.to, item.label, item.Icon))}
         </Group>
       </DrawerNav>
     </SideDrawer>

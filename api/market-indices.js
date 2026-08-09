@@ -156,11 +156,379 @@ var toNodeHandler = (webHandler) => {
   };
 };
 
+// shared/lib/marketPulse/parse.ts
+var parseFredCsv = (csv) => {
+  const lines = csv.trim().split(/\r?\n/);
+  const points = [];
+  for (let index = 1; index < lines.length; index += 1) {
+    const [date, raw] = lines[index].split(",");
+    if (!date || raw === void 0) continue;
+    const value = Number(raw.trim());
+    if (!Number.isFinite(value) || raw.trim() === "") continue;
+    points.push({ date: date.trim(), value });
+  }
+  return points;
+};
+var parseCboeCsv = (csv) => {
+  const lines = csv.trim().split(/\r?\n/);
+  const points = [];
+  for (let index = 1; index < lines.length; index += 1) {
+    const cells = lines[index].split(",");
+    if (cells.length < 5) continue;
+    const [month, day, year] = cells[0].trim().split("/");
+    if (!month || !day || !year || year.length !== 4) continue;
+    const close = Number(cells[4]);
+    if (!Number.isFinite(close) || close <= 0) continue;
+    points.push({ date: `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`, value: close });
+  }
+  return points;
+};
+var latestOf = (points) => points.length === 0 ? null : points[points.length - 1];
+var tailOf = (points, count) => count >= points.length ? points : points.slice(points.length - count);
+var movingAverage = (points, window) => {
+  if (points.length < window) return null;
+  const slice = points.slice(points.length - window);
+  return slice.reduce((sum, point) => sum + point.value, 0) / window;
+};
+var percentileOf = (points, value) => {
+  if (points.length === 0) return null;
+  const below = points.filter((point) => point.value <= value).length;
+  return below / points.length * 100;
+};
+
+// shared/lib/marketPulse/zones.ts
+var vixZone = (value) => {
+  if (value < 12) return "calm";
+  if (value < 20) return "normal";
+  if (value < 30) return "elevated";
+  return "stressed";
+};
+var termStructureZone = (ratio) => {
+  if (ratio < 0.85) return "calm";
+  if (ratio < 1) return "normal";
+  if (ratio < 1.1) return "elevated";
+  return "stressed";
+};
+var fearGreedZone = (value) => {
+  if (value < 25 || value > 75) return "stressed";
+  if (value < 45 || value > 55) return "elevated";
+  return "normal";
+};
+var yieldCurveZone = (value) => {
+  if (value < 0) return "stressed";
+  if (value < 0.25) return "elevated";
+  if (value < 1.5) return "normal";
+  return "calm";
+};
+var percentileZone = (history, value, direction) => {
+  const percentile = percentileOf(history, value);
+  if (percentile === null) return "unknown";
+  const tension = direction === "higher-is-tense" ? percentile : 100 - percentile;
+  if (tension >= 95) return "stressed";
+  if (tension >= 80) return "elevated";
+  if (tension <= 20) return "calm";
+  return "normal";
+};
+
+// shared/lib/marketPulse/catalog.ts
+var PULSE_SOURCE = {
+  fred: "FRED (\uC138\uC778\uD2B8\uB8E8\uC774\uC2A4 \uC5F0\uC740)",
+  cboe: "Cboe",
+  cnn: "CNN Business"
+};
+
+// server/handlers/MarketPulse/MarketPulse.ts
+var CACHE_SUCCESS = "public, max-age=0, s-maxage=21600, stale-while-revalidate=86400";
+var CACHE_PARTIAL = "public, max-age=0, s-maxage=1800, stale-while-revalidate=86400";
+var SERIES_POINTS = 260;
+var HISTORY_POINTS = 2600;
+var FRED_CSV = "https://fred.stlouisfed.org/graph/fredgraph.csv?id=";
+var CBOE_CSV = "https://cdn.cboe.com/api/global/us_indices/daily_prices/";
+var CNN_FNG = "https://production.dataviz.cnn.io/index/fearandgreed/graphdata";
+var CNN_HEADERS = {
+  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+  Accept: "application/json, text/plain, */*",
+  Referer: "https://edition.cnn.com/",
+  Origin: "https://edition.cnn.com"
+};
+var TIMEOUT_MS = 8e3;
+async function getText(url, headers) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  try {
+    const response = await fetch(url, { headers, signal: controller.signal });
+    if (!response.ok) return { ok: false, reason: `\uC0C1\uB958 \uC751\uB2F5 ${response.status}` };
+    return { ok: true, value: await response.text() };
+  } catch (error) {
+    const name = error instanceof Error ? error.name : "";
+    return { ok: false, reason: name === "AbortError" ? "\uC0C1\uB958 \uC751\uB2F5 \uC9C0\uC5F0" : "\uC0C1\uB958\uC5D0 \uB2FF\uC9C0 \uBABB\uD568" };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+var fredSeries = async (id) => {
+  const text = await getText(`${FRED_CSV}${id}`);
+  if (!text.ok) return text;
+  const points = parseFredCsv(text.value);
+  if (points.length === 0) return { ok: false, reason: "\uC6D0\uC790\uB8CC\uB97C \uC77D\uC9C0 \uBABB\uD568" };
+  return { ok: true, value: points };
+};
+var cboeSeries = async (file) => {
+  const text = await getText(`${CBOE_CSV}${file}.csv`);
+  if (!text.ok) return text;
+  const points = parseCboeCsv(text.value);
+  if (points.length === 0) return { ok: false, reason: "\uC6D0\uC790\uB8CC\uB97C \uC77D\uC9C0 \uBABB\uD568" };
+  return { ok: true, value: points };
+};
+var missing = (base, reason) => ({
+  ...base,
+  observation: null,
+  zone: "unknown",
+  series: [],
+  unavailableReason: reason
+});
+async function buildMarketPulse() {
+  const [vix, vix3m, vix9d, hyOas, curve10y2y, curve10y3m, dgs10, sp500, fng] = await Promise.all([
+    cboeSeries("VIX_History"),
+    cboeSeries("VIX3M_History"),
+    cboeSeries("VIX9D_History"),
+    fredSeries("BAMLH0A0HYM2"),
+    fredSeries("T10Y2Y"),
+    fredSeries("T10Y3M"),
+    fredSeries("DGS10"),
+    fredSeries("SP500"),
+    getText(CNN_FNG, CNN_HEADERS)
+  ]);
+  const indicators = [];
+  const vixBase = {
+    id: "vix",
+    axis: "volatility",
+    label: "VIX",
+    meaning: "\uC635\uC158\uC2DC\uC7A5\uC774 \uC55E\uC73C\uB85C 30\uC77C \uB3D9\uC548 \uC608\uC0C1\uD558\uB294 S&P 500 \uC758 \uBCC0\uB3D9 \uD3ED",
+    cadence: "daily",
+    direction: "higher-is-tense",
+    unit: "",
+    precision: 2,
+    source: PULSE_SOURCE.cboe
+  };
+  if (vix.ok) {
+    const last = latestOf(vix.value);
+    indicators.push({
+      ...vixBase,
+      observation: last ? { value: last.value, asOf: last.date } : null,
+      zone: last ? vixZone(last.value) : "unknown",
+      series: tailOf(vix.value, SERIES_POINTS)
+    });
+  } else {
+    indicators.push(missing(vixBase, vix.reason));
+  }
+  const termBase = {
+    id: "vix-term",
+    axis: "volatility",
+    label: "VIX \uAE30\uAC04\uAD6C\uC870",
+    meaning: "30\uC77C VIX \xF7 3\uAC1C\uC6D4 VIX. 1\uC744 \uB118\uC73C\uBA74 \uB2E8\uAE30 \uBD88\uC548\uC774 \uC7A5\uAE30\uBCF4\uB2E4 \uCEE4\uC9C4 \uC0C1\uD0DC",
+    cadence: "daily",
+    direction: "higher-is-tense",
+    unit: "\uBC30",
+    /* 🔴 소수점 두 자리까지만 — 세 자리는 읽는 사람에게 아무 정보를 더 주지 않는다(사용자 결정). */
+    precision: 2,
+    source: PULSE_SOURCE.cboe
+  };
+  if (vix.ok && vix3m.ok) {
+    const threeMonth = new Map(vix3m.value.map((point) => [point.date, point.value]));
+    const ratios = [];
+    for (const point of vix.value) {
+      const long = threeMonth.get(point.date);
+      if (long !== void 0 && long > 0) ratios.push({ date: point.date, value: point.value / long });
+    }
+    const last = latestOf(ratios);
+    indicators.push({
+      ...termBase,
+      observation: last ? { value: last.value, asOf: last.date } : null,
+      zone: last ? termStructureZone(last.value) : "unknown",
+      series: tailOf(ratios, SERIES_POINTS)
+    });
+  } else {
+    indicators.push(missing(termBase, (vix.ok ? vix3m : vix).ok ? "\uC6D0\uC790\uB8CC\uB97C \uC77D\uC9C0 \uBABB\uD568" : "\uC0C1\uB958\uC5D0 \uB2FF\uC9C0 \uBABB\uD568"));
+  }
+  const hyBase = {
+    id: "hy-spread",
+    axis: "credit",
+    label: "\uD558\uC774\uC77C\uB4DC \uC2A4\uD504\uB808\uB4DC",
+    meaning: "\uD22C\uAE30\uB4F1\uAE09 \uD68C\uC0AC\uCC44\uAC00 \uAD6D\uCC44\uBCF4\uB2E4 \uB354 \uC694\uAD6C\uD558\uB294 \uAE08\uB9AC. \uC2E0\uC6A9\uC2DC\uC7A5\uC774 \uBCF4\uB294 \uC704\uD5D8\uC758 \uD06C\uAE30",
+    cadence: "daily",
+    direction: "higher-is-tense",
+    unit: "%p",
+    precision: 2,
+    source: PULSE_SOURCE.fred
+  };
+  if (hyOas.ok) {
+    const last = latestOf(hyOas.value);
+    indicators.push({
+      ...hyBase,
+      observation: last ? { value: last.value, asOf: last.date } : null,
+      /* 고정 경계가 관습으로 확립돼 있지 않아 **자기 10년 분포**로 판정한다. */
+      zone: last ? percentileZone(tailOf(hyOas.value, HISTORY_POINTS), last.value, "higher-is-tense") : "unknown",
+      series: tailOf(hyOas.value, SERIES_POINTS)
+    });
+  } else {
+    indicators.push(missing(hyBase, hyOas.reason));
+  }
+  const curves = [
+    ["curve-10y2y", "\uC7A5\uB2E8\uAE30 \uAE08\uB9AC\uCC28 (10\uB144-2\uB144)", curve10y2y],
+    ["curve-10y3m", "\uC7A5\uB2E8\uAE30 \uAE08\uB9AC\uCC28 (10\uB144-3\uAC1C\uC6D4)", curve10y3m]
+  ];
+  for (const [id, label, fetched] of curves) {
+    const base = {
+      id,
+      axis: "macro",
+      label,
+      meaning: "\uC74C\uC218\uBA74 \uC5ED\uC804 \u2014 \uC7A5\uAE30 \uAE08\uB9AC\uAC00 \uB2E8\uAE30\uBCF4\uB2E4 \uB0AE\uC740 \uC0C1\uD0DC",
+      cadence: "daily",
+      direction: "lower-is-tense",
+      unit: "%p",
+      precision: 2,
+      source: PULSE_SOURCE.fred
+    };
+    if (!fetched.ok) {
+      indicators.push(missing(base, fetched.reason));
+      continue;
+    }
+    const last = latestOf(fetched.value);
+    indicators.push({
+      ...base,
+      observation: last ? { value: last.value, asOf: last.date } : null,
+      zone: last ? yieldCurveZone(last.value) : "unknown",
+      series: tailOf(fetched.value, SERIES_POINTS)
+    });
+  }
+  const tenBase = {
+    id: "dgs10",
+    axis: "macro",
+    label: "\uBBF8\uAD6D 10\uB144\uBB3C \uAE08\uB9AC",
+    meaning: "\uC8FC\uC2DD\uC758 \uAE30\uD68C\uBE44\uC6A9\uC774\uC790 \uD560\uC778\uC728\uC758 \uAE30\uC900\uC774 \uB418\uB294 \uAE08\uB9AC",
+    cadence: "daily",
+    direction: "higher-is-tense",
+    unit: "%",
+    precision: 2,
+    source: PULSE_SOURCE.fred
+  };
+  if (dgs10.ok) {
+    const last = latestOf(dgs10.value);
+    indicators.push({
+      ...tenBase,
+      observation: last ? { value: last.value, asOf: last.date } : null,
+      /*
+       * 🔴 백분위로 긴장도를 매기지 않는다. 첫 실행에서 10년물이 10년 분포 상단이라 `stressed`
+       *    로 찍혔는데, **금리가 높은 것은 시장 긴장이 아니다**(할인율이 높아진 것이다).
+       *    판정할 근거가 없으면 판정하지 않는다 — 근거는 PulseZone 의 `context` 주석.
+       */
+      zone: last ? "context" : "unknown",
+      series: tailOf(dgs10.value, SERIES_POINTS)
+    });
+  } else {
+    indicators.push(missing(tenBase, dgs10.reason));
+  }
+  const fngBase = {
+    id: "fear-greed",
+    axis: "sentiment",
+    label: "\uACF5\uD3EC\uD0D0\uC695\uC9C0\uC218",
+    meaning: "7\uAC00\uC9C0 \uC2DC\uC7A5 \uC9C0\uD45C\uB97C \uBB36\uC740 \uCC38\uC5EC\uC790 \uC2EC\uB9AC. 0\uC774 \uADF9\uB2E8\uC801 \uACF5\uD3EC, 100\uC774 \uADF9\uB2E8\uC801 \uD0D0\uC695",
+    cadence: "daily",
+    direction: "extremes-are-tense",
+    unit: "",
+    precision: 0,
+    source: PULSE_SOURCE.cnn
+  };
+  if (fng.ok) {
+    const parsed = parseFearGreed(fng.value);
+    if (parsed) {
+      indicators.push({
+        ...fngBase,
+        observation: { value: parsed.score, asOf: parsed.asOf },
+        zone: fearGreedZone(parsed.score),
+        comparisons: parsed.comparisons,
+        series: tailOf(parsed.series, SERIES_POINTS)
+      });
+    } else {
+      indicators.push(missing(fngBase, "\uC751\uB2F5 \uD615\uC2DD\uC774 \uBC14\uB01C"));
+    }
+  } else {
+    indicators.push(missing(fngBase, fng.reason));
+  }
+  const spBase = {
+    id: "sp500",
+    axis: "valuation",
+    label: "S&P 500",
+    meaning: "\uC9C0\uC218 \uC218\uC900. \uB2E4\uB978 \uC9C0\uD45C\uB97C \uC77D\uC744 \uB54C\uC758 \uBC30\uACBD",
+    cadence: "daily",
+    direction: "higher-is-tense",
+    unit: "",
+    precision: 0,
+    source: PULSE_SOURCE.fred
+  };
+  if (sp500.ok) {
+    const last = latestOf(sp500.value);
+    const ma200 = movingAverage(sp500.value, 200);
+    indicators.push({
+      ...spBase,
+      observation: last ? { value: last.value, asOf: last.date } : null,
+      /* 지수 수준 자체에는 긴장도가 없다 — 200일선 위/아래는 사실로만 덧붙인다. */
+      zone: last ? "context" : "unknown",
+      note: last && ma200 !== null ? `200\uC77C \uC774\uB3D9\uD3C9\uADE0(${Math.round(ma200).toLocaleString("ko-KR")}) ${last.value >= ma200 ? "\uC704" : "\uC544\uB798"}` : void 0,
+      series: tailOf(sp500.value, SERIES_POINTS)
+    });
+  } else {
+    indicators.push(missing(spBase, sp500.reason));
+  }
+  void vix9d;
+  const complete = indicators.every((indicator) => indicator.observation !== null);
+  return { snapshot: { fetchedAt: (/* @__PURE__ */ new Date()).toISOString(), indicators }, complete };
+}
+function parseFearGreed(raw) {
+  try {
+    const json = JSON.parse(raw);
+    const score = Number(json.fear_and_greed?.score);
+    const stamp = json.fear_and_greed?.timestamp;
+    if (!Number.isFinite(score) || typeof stamp !== "string") return null;
+    const series = [];
+    for (const point of json.fear_and_greed_historical?.data ?? []) {
+      const time = Number(point.x);
+      const value = Number(point.y);
+      if (!Number.isFinite(time) || !Number.isFinite(value)) continue;
+      series.push({ date: new Date(time).toISOString().slice(0, 10), value });
+    }
+    const head = json.fear_and_greed ?? {};
+    const comparisons = [
+      ["\uC804\uC77C", head.previous_close],
+      ["1\uC8FC \uC804", head.previous_1_week],
+      ["1\uAC1C\uC6D4 \uC804", head.previous_1_month],
+      ["1\uB144 \uC804", head.previous_1_year]
+    ].flatMap(([label, raw2]) => {
+      const value = Number(raw2);
+      return Number.isFinite(value) ? [{ label, value }] : [];
+    });
+    return { score, asOf: stamp.slice(0, 10), series, comparisons };
+  } catch {
+    return null;
+  }
+}
+async function handler(_request) {
+  const { snapshot, complete } = await buildMarketPulse();
+  return new Response(JSON.stringify(snapshot), {
+    status: 200,
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": complete ? CACHE_SUCCESS : CACHE_PARTIAL
+    }
+  });
+}
+
 // server/handlers/MarketIndices/MarketIndices.ts
 var CHART_BASE_URL = "https://query1.finance.yahoo.com/v8/finance/chart";
 var USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36";
-var CACHE_SUCCESS = "public, max-age=0, s-maxage=900, stale-while-revalidate=86400";
-var CACHE_PARTIAL = "public, max-age=0, s-maxage=300, stale-while-revalidate=86400";
+var CACHE_SUCCESS2 = "public, max-age=0, s-maxage=900, stale-while-revalidate=86400";
+var CACHE_PARTIAL2 = "public, max-age=0, s-maxage=300, stale-while-revalidate=86400";
 var CACHE_FAILURE = "no-store";
 var UPSTREAM_TIMEOUT_MS = 4e3;
 var jsonResponse = (body, status, cache) => new Response(JSON.stringify(body), {
@@ -216,7 +584,10 @@ var fetchQuote = async (symbol) => {
     return null;
   }
 };
-async function handler(_request) {
+async function handler2(request) {
+  if (new URL(request.url).searchParams.get("surface") === "pulse") {
+    return handler(request);
+  }
   const settled = await Promise.allSettled(MARKET_INDEX_SYMBOLS.map(fetchQuote));
   const indices = settled.flatMap(
     (result) => result.status === "fulfilled" && result.value !== null ? [result.value] : []
@@ -230,10 +601,10 @@ async function handler(_request) {
     indices
   };
   const isComplete = indices.length === MARKET_INDEX_SYMBOLS.length;
-  return jsonResponse(body, 200, isComplete ? CACHE_SUCCESS : CACHE_PARTIAL);
+  return jsonResponse(body, 200, isComplete ? CACHE_SUCCESS2 : CACHE_PARTIAL2);
 }
-var MarketIndices_default = toNodeHandler(handler);
+var MarketIndices_default = toNodeHandler(handler2);
 export {
   MarketIndices_default as default,
-  handler
+  handler2 as handler
 };

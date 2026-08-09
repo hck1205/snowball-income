@@ -90,6 +90,14 @@ const ROUTES = [
    * 국회 거래는 주 1회, 국민연금은 분기 1회(13F 는 분기 데이터다).
    */
   { path: '/market/us-calendar', priority: '0.7', changefreq: 'weekly' },
+  /*
+   * 시장 온도·히포 통계(2026-08-09 신설). 둘 다 **매일 값이 바뀐다** — 지표는 하루 단위로
+   * 갱신되고 그것을 재료로 쓰는 통계도 함께 움직인다. 그래서 `daily` 이고, 이 사이트에서
+   * 그렇게 자주 바뀌는 화면은 이 둘뿐이다.
+   * ⚠ 크롤러에게는 빈 셸이다(값을 브라우저가 받아 그린다). 그래도 등재하는 이유는 위 87행과 같다.
+   */
+  { path: '/market/pulse', priority: '0.7', changefreq: 'daily' },
+  { path: '/market/stats', priority: '0.6', changefreq: 'daily' },
   { path: '/portfolio/congress', priority: '0.6', changefreq: 'weekly' },
   /* 🔴 `yearly` 인 것은 게으름이 아니라 사실이다 — 국회공보 정기재산변동신고는 **연 1회**
      (3월 말) 공개된다. 주 1회라고 적으면 크롤러에게 거짓말을 하는 것이다. */

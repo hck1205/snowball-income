@@ -150,6 +150,17 @@ const GuidePage = lazy(() => import('@/pages/Guide/GuidePage'));
 const MarketCalendarPage = lazy(() => import('@/pages/MarketCalendar/MarketCalendarPage'));
 
 /**
+ * 시장 온도(`/market/pulse`) — 미국 증시 캘린더와 같은 `/market/` 축, 같은 `lazy` 격리.
+ *
+ * ⚠ 이 화면은 마운트 즉시 `/api/market-pulse` 를 부른다. 엔트리 번들에 들어가면 시뮬레이터로
+ *   들어온 사람도 그 코드를 받는다 — lazy 를 풀지 마라.
+ */
+const MarketPulsePage = lazy(() => import('@/pages/MarketPulse/MarketPulsePage'));
+
+/** 히포 통계(`/market/stats`) — 시장 온도와 같은 `/market/` 축, 같은 `lazy` 격리. */
+const HippoStatsPage = lazy(() => import('@/pages/HippoStats/HippoStatsPage'));
+
+/**
  * 배당 지급 월 캘린더 — 티커 랜딩과 같은 `lazy` 격리.
  *
  * 시뮬레이터를 거치지 않는 독립 도구라 엔트리에 실을 이유가 없다. `PrimaryNav` 링크와 사이트맵
@@ -461,6 +472,22 @@ export const routes: RouteObject[] = [
         element: (
           <Suspense fallback={null}>
             <NpsPage />
+          </Suspense>
+        )
+      },
+      {
+        path: '/market/stats',
+        element: (
+          <Suspense fallback={null}>
+            <HippoStatsPage />
+          </Suspense>
+        )
+      },
+      {
+        path: '/market/pulse',
+        element: (
+          <Suspense fallback={null}>
+            <MarketPulsePage />
           </Suspense>
         )
       },
