@@ -3,6 +3,12 @@
 
   "redirects": [
     {
+      "source": "/",
+      "has": [{ "type": "host", "value": "snowball-income.vercel.app" }],
+      "destination": "https://hungry-hippo.xyz/",
+      "permanent": true
+    },
+    {
       "source": "/:path*",
       "has": [{ "type": "host", "value": "snowball-income.vercel.app" }],
       "destination": "https://hungry-hippo.xyz/:path*",
