@@ -105,6 +105,21 @@ export const BrandWordmark = styled.span`
   ${media.down('mobileWide')} {
     font-size: 15px;
   }
+
+  /*
+   * 아주 좁은 폭에서 한 단 더 줄인다(2026-08-09).
+   *
+   * 같은 폭에서 로고 그림이 이미 빠졌는데도(AppHeader.styled 의 logoSlotStyle) 320px 여유가
+   * **2px** 밖에 안 남았고, 300px 이하는 여전히 겹쳤다. 15 → 14px 은 한 단이지만 워드마크가
+   * 113 → 105px 로 줄어 여유가 8px 늘고, 그만큼 폰트 폴백으로 글자가 넓어져도 버틴다.
+   *
+   * ⚠ 더 줄이지 마라. 13px 아래는 브랜드가 본문 글씨보다 작아져 헤더에서 이름이 안 읽힌다.
+   *   그보다 좁은 폭이 문제라면 폰트가 아니라 **무엇을 뺄지**를 정해야 한다
+   *   (후보: 테마·더보기를 서랍으로).
+   */
+  ${media.down('mobileNarrow')} {
+    font-size: 14px;
+  }
 `;
 
 /**
