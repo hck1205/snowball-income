@@ -1,3 +1,4 @@
+// @vitest-environment node — DOM 을 쓰지 않는 순수 테스트 (기준: vitest.config.ts)
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { handler } from '@/server/handlers/DividendListHtml';
 import { DIVIDEND_LIST_IDS, DIVIDEND_LISTS, dividendListPath } from '@/shared/constants/dividendLists';

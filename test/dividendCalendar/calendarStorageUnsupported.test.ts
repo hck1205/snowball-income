@@ -1,3 +1,4 @@
+// @vitest-environment node — DOM 을 쓰지 않는 순수 테스트 (기준: vitest.config.ts)
 /**
  * IndexedDB 가 **없는** 환경(jsdom, SSR, 일부 프라이빗 모드)에서의 동작을 고정한다.
  * 이 파일은 일부러 `fake-indexeddb` 를 import 하지 않는다 — import 하면 검증 대상이 사라진다.

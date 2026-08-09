@@ -1,3 +1,4 @@
+// @vitest-environment node — DOM 을 쓰지 않는 순수 테스트 (기준: vitest.config.ts)
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { handler } from '@/server/handlers/SeoHtml/SeoHtml';
 import { GUIDES } from '@/shared/constants/guides';
