@@ -218,6 +218,14 @@ export function useLedgerConnection(): LedgerConnection {
   const storedLinksRef = useRef(loadSheetLinks());
   /** 미리보기 응답의 순서 뒤바뀜을 막는 요청 토큰. */
   const previewRequestRef = useRef(0);
+  /**
+   * 사용자가 **직접 시작한 흐름**이 있었나(시트 고르기·만들기·재연결).
+   *
+   * 🔴 마운트의 무음 되살리기는 비동기라, 그 사이 사용자가 버튼을 누르면 두 흐름이 같은 상태를
+   *    두고 다툰다 — 되살리기가 늦게 끝나면서 사용자가 방금 고른 시트를 **옛 시트로 덮는다.**
+   *    이 깃발이 서면 되살리기는 결과를 버린다(먼저 시작했더라도 사람이 이긴다).
+   */
+  const userStartedRef = useRef(false);
   const isMountedRef = useRef(true);
 
   useEffect(
@@ -229,12 +237,81 @@ export function useLedgerConnection(): LedgerConnection {
 
   /* ── checking → disconnected ─────────────────────────────────────────────── */
 
+  /**
+   * 마운트 — 저장된 연결이 있으면 **조용히 되살려 본다**(2026-08-09).
+   *
+   * ## 왜
+   *
+   * 시트 ID·탭·열 매핑은 이미 로컬에 있는데 **토큰만 메모리라 새로고침에서 사라진다.** 그래서
+   * 새로고침할 때마다 사용자가 연결 버튼을 다시 눌러야 했다 — 저장된 것이 있는데도.
+   *
+   * `prompt: ''`(기본값)는 **이미 동의했고 구글 세션이 살아 있으면 팝업 없이** 토큰을 준다.
+   * 그러면 클릭 없이 곧바로 연결된다.
+   *
+   * ## 🔴 실패는 조용히 삼킨다
+   *
+   * 동의가 없거나 세션이 없으면 GIS 가 팝업을 열려다 제스처가 없어 막히고, 그것이 오류로 온다.
+   * **그때 배너를 띄우면 거짓 경보다** — 사용자는 아무것도 안 눌렀다. 그냥 지금까지처럼 연결
+   * 화면이 서고, 버튼을 누르면 정상 흐름으로 간다.
+   *
+   * ⚠ 서드파티 쿠키를 막은 브라우저에서는 무음 경로가 실패한다. 그것도 위와 같이 폴백이다.
+   * ⚠ **동의를 새로 받지 않는다.** `prompt: 'consent'` 를 쓰면 마운트마다 동의 화면이 뜬다.
+   */
   useEffect(() => {
-    // 저장된 연결이 있어도 **자동으로 열지 않는다** — 토큰 요청이 팝업이라 클릭이 필요하다.
     const timer = window.setTimeout(() => setShowCheckingSkeleton(true), CHECKING_SKELETON_DELAY_MS);
-    storedLinksRef.current = loadSheetLinks();
-    setState('disconnected');
-    return () => window.clearTimeout(timer);
+    const stored = loadSheetLinks();
+    storedLinksRef.current = stored;
+
+    /* 저장된 연결이 없으면 되살릴 것도 없다 — 곧바로 선택 화면. */
+    if (stored.length === 0) {
+      setState('disconnected');
+      return () => window.clearTimeout(timer);
+    }
+
+    let cancelled = false;
+    /** 🔴 사용자가 이미 버튼을 눌렀으면 되살리기는 물러난다 — 사람이 이긴다. */
+    const abandoned = () => cancelled || userStartedRef.current || !isMountedRef.current;
+
+    void (async () => {
+      const token = await requestAccessToken({ silent: true });
+      if (abandoned()) return;
+
+      if (!token.ok) {
+        /* 🔴 조용히 물러난다. 배너도 오류도 없다 — 사용자는 아무것도 안 눌렀다. */
+        setState('disconnected');
+        return;
+      }
+
+      /* 가장 마지막에 쓰던 연결을 되살린다(저장 순서의 끝). */
+      const target = stored[stored.length - 1];
+      const connected = await connectSpreadsheet(
+        { accessToken: token.value.value },
+        { spreadsheetId: target.spreadsheetId, sheetId: target.sheetId, mapping: target.mapping }
+      );
+      if (abandoned()) return;
+
+      /*
+       * 🔴 되살리기 실패도 조용하다. 시트가 지워졌거나 권한이 바뀐 경우인데, 그 사실은 사용자가
+       *    연결을 시도할 때 제대로 된 사유와 함께 말하는 편이 낫다 — 화면에 들어오자마자
+       *    빨간 배너가 뜨면 무엇 때문인지 알 방법이 없다.
+       */
+      if (!connected.ok || connected.value.status !== 'linked') {
+        setState('disconnected');
+        return;
+      }
+
+      await finalize(connected.value.link, { created: false, tabs: connected.value.tabs });
+    })();
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+    /*
+     * ⚠ `finalize` 는 의도적으로 뺐다. 이 효과는 **마운트에 한 번만** 돌아야 하는데, 넣으면
+     *   그 콜백이 새로 만들어질 때마다 되살리기가 다시 돈다(요청이 늘고 화면이 깜빡인다).
+     */
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /* ── 공통 도우미 ─────────────────────────────────────────────────────────── */
@@ -376,7 +453,13 @@ export function useLedgerConnection(): LedgerConnection {
 
   /* ── §4.1 두 진입 ────────────────────────────────────────────────────────── */
 
+  /** 🔴 사용자가 시작한 흐름이 시작될 때마다 세운다 — 마운트 되살리기가 물러나게 하는 신호다. */
+  const markUserStarted = useCallback(() => {
+    userStartedRef.current = true;
+  }, []);
+
   const pickExistingSheet = useCallback(() => {
+    markUserStarted();
     setConnectError(null);
     setIsPopupBlocked(false);
     setPhase('picking');
@@ -439,6 +522,7 @@ export function useLedgerConnection(): LedgerConnection {
   }, [acquireToken, applyError, finalize]);
 
   const createSheet = useCallback(() => {
+    markUserStarted();
     setConnectError(null);
     setIsPopupBlocked(false);
     setPhase('creating');
