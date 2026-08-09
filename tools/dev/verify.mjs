@@ -163,6 +163,55 @@ function changedFiles() {
     .map((p) => (p.includes(' -> ') ? p.split(' -> ')[1] : p));
 }
 
+/**
+ * 실패 기록을 파일로도 남기는 vitest 인자.
+ *
+ * ## 🔴 왜 (2026-08-09 실제로 당했다)
+ *
+ * 단계 출력은 `stdio: 'inherit'` 로 **실시간 스트리밍**된다(진행이 보여야 하므로 이건 지킨다).
+ * 그런데 그 말은 **호출자가 파이프하면 아무것도 안 남는다**는 뜻이다. `npm run verify | tail -20`
+ * 으로 돌렸다가 "1 failed" 라는 숫자만 남고 **어느 테스트인지 영영 알 수 없게** 됐다. 3분 30초를
+ * 다시 태워야 하는데, 그 사이 재현이 안 되면(간헐 실패였다) 그대로 미제가 된다.
+ *
+ * vitest 는 리포터를 **겹칠 수 있다** — 콘솔 출력은 그대로 두고 json 을 파일로 하나 더 받는다.
+ * 실시간성을 잃지 않으면서 실패 목록이 항상 디스크에 남는다.
+ *
+ * ⚠ `default` 를 명시적으로 함께 줘야 한다. `--reporter=json` 만 주면 콘솔 출력이 json 으로
+ *   바뀌어 진행 상황이 안 보인다.
+ * ⚠ 산출물은 git 비추적이다(.gitignore). 매 실행마다 덮어쓴다 — 마지막 실행 것만 남는다.
+ */
+const VITEST_RECORD = '.verify-vitest.json';
+const VITEST_RECORD_ARGS = ['--reporter=default', '--reporter=json', '--outputFile', VITEST_RECORD];
+
+/** 기록 파일에서 실패한 테스트만 뽑아 사람이 읽을 수 있게 출력한다. */
+function printRecordedFailures() {
+  const path = join(ROOT, VITEST_RECORD);
+  if (!existsSync(path)) return;
+
+  let report;
+  try {
+    report = JSON.parse(readFileSync(path, 'utf8'));
+  } catch {
+    return; // 기록이 깨졌으면 조용히 넘어간다 — 이건 보조 수단이지 판정 근거가 아니다.
+  }
+
+  const failures = [];
+  for (const file of report.testResults ?? []) {
+    for (const assertion of file.assertionResults ?? []) {
+      if (assertion.status === 'failed') failures.push({ file: file.name, name: assertion.fullName });
+    }
+  }
+  if (!failures.length) return;
+
+  console.log('');
+  console.log('  ' + paint.bold(`실패한 테스트 ${failures.length}건`) + paint.dim(`  (기록: ${VITEST_RECORD})`));
+  for (const failure of failures.slice(0, 20)) {
+    console.log('  ' + paint.red('✗ ') + failure.name);
+    console.log('    ' + paint.dim(failure.file));
+  }
+  if (failures.length > 20) console.log('  ' + paint.dim(`… 그 밖에 ${failures.length - 20}건`));
+}
+
 function buildSteps(opts, nmRoot) {
   const nm = (rel) => join(nmRoot, 'node_modules', rel);
 
@@ -219,7 +268,7 @@ function buildSteps(opts, nmRoot) {
       label: 'vitest run --exclude "**/.claude/**"',
       note: '테스트 (.claude/ worktree 중복 제외)',
       entry: nm(join('vitest', 'vitest.mjs')),
-      args: ['run', '--exclude', '**/.claude/**'],
+      args: ['run', '--exclude', '**/.claude/**', ...VITEST_RECORD_ARGS],
       enabled: opts.test && !opts.quick,
       skipReason: opts.quick ? '--quick (아래 축약 단계로 대체)' : '--no-test',
     },
@@ -241,7 +290,7 @@ function buildSteps(opts, nmRoot) {
       label: 'vitest run --changed',
       note: '바뀐 파일을 import 하는 테스트 — 배포 게이트 아님',
       entry: nm(join('vitest', 'vitest.mjs')),
-      args: ['run', '--exclude', '**/.claude/**', '--changed'],
+      args: ['run', '--exclude', '**/.claude/**', '--changed', ...VITEST_RECORD_ARGS],
       enabled: opts.test && opts.quick,
       skipReason: '--no-test',
     },
@@ -360,6 +409,11 @@ function main() {
     }
     if (res.status !== 0) {
       console.log('  ' + paint.red(`✗ ${s.label} 실패 (exit ${res.status})`) + paint.dim(`  · ${fmtDuration(elapsed)}`));
+      /*
+       * 파이프로 넘겨 생살이 잘려도 **어느 테스트가 죽었는지**는 남게 한다(VITEST_RECORD 주석 참고).
+       * vitest 가 아닌 단계에서는 기록이 없거나 오래된 것이므로 조용히 넘어간다.
+       */
+      if (s.key.startsWith('vitest')) printRecordedFailures();
       summarize(done, s, totalStart);
       process.exit(res.status || 1);
     }

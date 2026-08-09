@@ -252,12 +252,30 @@ const MEASURE = `(() => {
   };
 })()`;
 
+/**
+ * 승격된 히어로 액션을 집는 선택자.
+ *
+ * 🔴 **"모든 `position: fixed` 버튼"으로 세지 마라**(2026-08-09 에 그렇게 하다 고쳤다).
+ * 그러면 화면 아래에 있어야 할 "맨 위로"(ScrollTopButton)까지 잡혀 5개 라우트가 "헤더에서 775px"
+ * 이라며 늘 빨간불이 된다 — 늘 실패하는 가드는 아무도 안 본다. 더 나쁜 쪽도 있었다: 다른 fixed
+ * 버튼이 우연히 헤더 밑 8px 에 서 있으면 승격이 죽었어도 **검사가 통과**한다.
+ *
+ * ⚠ 이 표식은 `pages/Main/components/SimulatorHero/SimulatorHero.tsx` 가 붙인다. 한 쌍이다.
+ */
+const STICKY_HERO_ACTION_SELECTOR = '[data-hero-action][data-pinned="true"]';
+
 /** 스크롤 후: 오버플로 재확인 + 승격된 히어로 액션의 좌표(있을 때만). */
 const MEASURE_SCROLLED = `(() => {
   const doc = document.documentElement;
   const header = document.querySelector('header');
-  const pinned = [...document.querySelectorAll('button')]
-    .filter((b) => getComputedStyle(b).position === 'fixed')
+  /*
+   * ⚠ 재는 것은 **슬롯이 아니라 안쪽 버튼**이다. 슬롯은 흐름에 남아 자리(높이)를 지키고,
+   *   실제로 fixed 로 승격되는 것은 그 자식 버튼이다. 슬롯을 재면 스크롤한 만큼 음수가 나온다
+   *   (실측 -724px). 슬롯은 "어느 것이 승격 대상인가"를 가리키는 표식일 뿐이다.
+   */
+  const pinned = [...document.querySelectorAll('${STICKY_HERO_ACTION_SELECTOR}')]
+    .map((slot) => slot.querySelector('button'))
+    .filter(Boolean)
     .map((b) => ({
       name: (b.getAttribute('aria-label') || b.textContent || '').trim().slice(0, 20),
       gap: Math.round(b.getBoundingClientRect().top - header.getBoundingClientRect().bottom)
