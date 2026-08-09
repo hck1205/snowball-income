@@ -1,4 +1,5 @@
 import type { LegalDocumentModel } from '../components';
+import { LEGAL_DOCUMENT_META, LEGAL_EFFECTIVE_DATE, LEGAL_LAST_REVISED_DATE, formatLegalDate } from './legalDates';
 
 /**
  * 이용약관 — **초안**.
@@ -60,7 +61,7 @@ export const TERMS_DOCUMENT: LegalDocumentModel = {
   title: '이용약관',
   lede:
     'Hungry Hippo는 이용자가 입력한 가정을 계산해 보여주는 배당 재투자 시뮬레이터입니다. 이 약관은 서비스의 이용 조건과 절차, 이용자와 운영자의 권리·의무를 정합니다.',
-  meta: ['[확인 필요: 시행일 — 실제 게시일로 확정]'],
+  meta: LEGAL_DOCUMENT_META,
   sections: [
     {
       id: 'terms-purpose',
@@ -298,7 +299,14 @@ export const TERMS_DOCUMENT: LegalDocumentModel = {
       id: 'terms-addendum',
       heading: '부칙',
       blocks: [
-        { kind: 'paragraph', text: '이 약관은 [확인 필요: 시행일 — 실제 게시일로 확정]부터 시행합니다.' }
+        {
+          kind: 'paragraph',
+          text: `이 약관은 ${formatLegalDate(LEGAL_EFFECTIVE_DATE)}부터 시행합니다.`
+        },
+        {
+          kind: 'paragraph',
+          text: `이 약관은 ${formatLegalDate(LEGAL_LAST_REVISED_DATE)}에 가계부 기능의 변경 사항(자산·투자 기록, 자동 분류, 한눈에 보기)을 반영해 개정되었습니다.`
+        }
       ]
     }
   ]

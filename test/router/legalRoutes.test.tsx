@@ -120,7 +120,9 @@ describe('법무 고지문 라우트', () => {
     // 10 → 12: 2026-08-01 구글 시트 가계부 개정에서 둘이 늘었다.
     //   ① 8. 국외 이전 — 가계부 연동분의 Google 데이터센터 소재 국가
     //   ② 9. 권리 행사 — 구글 계정에서 접근 권한을 회수하는 화면의 주소
-    expect(countPending(PRIVACY_DOCUMENT)).toBe(12);
-    expect(countPending(TERMS_DOCUMENT)).toBe(2);
+    // 12 → 11 / 2 → 0: 2026-08-09 **시행일을 확정**했다(두 문서 모두). 값과 그 근거는
+    //   pages/Legal/copy/legalDates.ts, 형태 가드는 test/legal/legalEffectiveDate.test.ts.
+    expect(countPending(PRIVACY_DOCUMENT)).toBe(11);
+    expect(countPending(TERMS_DOCUMENT)).toBe(0);
   });
 });
