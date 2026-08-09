@@ -106,3 +106,6 @@ PR_DESCRIPTION.md
 !.claude/skills/portfolio-post/
 !.claude/skills/refresh-data/
 !.claude/skills/ship/
+
+# verify 의 vitest 실패 기록(보조 수단). 매 실행 덮어쓴다 — tools/dev/verify.mjs 의 VITEST_RECORD.
+.verify-vitest.json

@@ -67,6 +67,20 @@ function SimulatorHeroComponent({ drawerId, isSettingsOpen, onOpenSettings }: Si
         <SettingsSlot
           ref={slotRef}
           $pinned={pinned}
+          /*
+           * 🔴 `headerprobe` 가 이 표식으로 승격 버튼을 **정확히** 집는다(랜딩의 `data-landing-cta` 와 같은 방식).
+           *
+           * 예전에는 프로브가 "화면의 모든 `position: fixed` 버튼"을 승격 액션으로 셌다. 그러다
+           * 화면 **아래**에 있어야 할 "맨 위로"(ScrollTopButton)도 fixed 라 함께 잡혀, 5개 라우트가
+           * "헤더에서 775px 떨어져 있다"며 늘 빨간불이었다 — 늘 실패하는 가드는 아무도 안 본다.
+           * 반대 방향의 위험이 더 컸다: 다른 fixed 버튼이 우연히 헤더 밑 8px 에 서 있으면 승격이
+           * 죽었어도 **검사가 통과**한다. 표식으로 집으면 둘 다 사라진다.
+           *
+           * ⚠ 지우거나 이름을 바꾸면 프로브의 4번 검사가 "요소 0건"으로 실패한다(조용히 통과하지
+           *   않는다 — 그게 의도다). tools/dev/headerprobe.mjs 의 STICKY_HERO_ACTION_SELECTOR 와 한 쌍이다.
+           */
+          data-hero-action="settings"
+          data-pinned={pinned ? 'true' : 'false'}
           style={
             box
               ? ({
