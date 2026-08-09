@@ -200,22 +200,33 @@ export default function CongressView({ viewModel }: CongressViewProps) {
       <SectionStack>
         <DataSection title={copy.summary.heading}>
           <SummaryGrid>
+            {/*
+              🔴 **국민연금 "이 분기 요약"과 같은 위계**다(2026-08-09 사용자 요청).
+                 종전에는 넷 다 `default` 라 값이 작고 우측정렬이어서, 카드가 아니라 표의 한 줄처럼
+                 읽혔다 — 이 구획은 화면에 들어와 **가장 먼저 보는 숫자**인데 위계가 없었다.
+              ⚠ 넷을 전부 `hero` 로 올리지 않는다. 좌측 오로라 리본은 화면당 한 군데여야 뜻이 있고,
+                넷이 같은 크기가 되면 "이 화면의 주역"이 사라진다. `lead` 는 크기만 따라간다.
+            */}
             <StatTile
               label={copy.summary.filings}
               value={`${coverage.filingsRead.toLocaleString('ko-KR')}${copy.summary.filingsUnit}`}
+              emphasis="hero"
               hint={copy.summary.scannedNote(coverage.filingsScanned)}
             />
             <StatTile
               label={copy.summary.transactions}
               value={`${coverage.equityTransactions.toLocaleString('ko-KR')}${copy.summary.transactionsUnit}`}
+              emphasis="lead"
             />
             <StatTile
               label={copy.summary.members}
               value={`${coverage.members.toLocaleString('ko-KR')}${copy.summary.membersUnit}`}
+              emphasis="lead"
             />
             <StatTile
               label={copy.summary.tickers}
               value={`${coverage.tickers.toLocaleString('ko-KR')}${copy.summary.tickersUnit}`}
+              emphasis="lead"
             />
           </SummaryGrid>
         </DataSection>
