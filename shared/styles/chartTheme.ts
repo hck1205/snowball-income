@@ -210,7 +210,15 @@ export const buildTooltipStyle = (theme: ChartTheme) => ({
     fontSize: 12,
     fontFamily: theme.fontFamily
   },
-  extraCssText: 'border-radius: 12px; box-shadow: var(--sb-shadow-3); backdrop-filter: blur(2px);'
+  /**
+   * 🔴 `max-width` + 줄바꿈 허용이 **모바일에서 툴팁이 잘리지 않게 하는 핵심**이다.
+   *    ECharts 기본 툴팁은 `white-space: nowrap` 이라 "티커 · 긴 종목명" 한 줄이 그대로
+   *    폭이 된다 — 360px 화면에서 툴팁이 차트보다 넓어지면 위치를 어떻게 잡아도 잘린다.
+   *    폭을 먼저 접어야 `tooltipPosition` 의 좌우 가두기가 의미를 가진다.
+   */
+  extraCssText:
+    'border-radius: 12px; box-shadow: var(--sb-shadow-3); backdrop-filter: blur(2px);' +
+    ' max-width: min(280px, calc(100vw - 32px)); white-space: normal; overflow-wrap: anywhere;'
 });
 
 export const buildLegendStyle = (theme: ChartTheme) => ({
