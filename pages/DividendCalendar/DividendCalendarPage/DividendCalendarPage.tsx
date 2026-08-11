@@ -12,12 +12,13 @@ import {
   shiftCalendarMonth
 } from '../utils';
 import type { CalendarYearMonth } from '../utils';
-import { useCalendarSelection } from '../hooks';
+import { useCalendarSelection, useMyDividendMonth } from '../hooks';
 import { DIVIDEND_CALENDAR_COPY } from '../copy';
 import DividendCalendarView from './DividendCalendarPage.view';
 import type {
   CalendarDetailTab,
   CalendarLastAction,
+  CalendarMode,
   DividendCalendarPageProps
 } from './DividendCalendarPage.types';
 import { buildCalendarLiveMessage, buildDividendCalendarViewModel } from './DividendCalendarPage.utils';
@@ -64,6 +65,19 @@ export default function DividendCalendarPage({ today }: DividendCalendarPageProp
   const { selected, status, lastAction, unknownTickers, toggleTicker, clearSelection } =
     useCalendarSelection(universe);
 
+  /**
+   * 달력 종류(2026-08-11). 기본은 **전체 배당** — 보유를 아직 넣지 않은 사용자가 첫 화면에서
+   * 빈 상태를 만나지 않게 한다(넣은 사람은 탭 한 번이면 자기 것을 본다).
+   */
+  const [mode, setMode] = useState<CalendarMode>('all');
+  const mine = useMyDividendMonth(visibleMonth.year, visibleMonth.month);
+
+  /**
+   * 🔴 달력을 채우는 목록. 내 배당 탭은 **고른 목록 대신 보유 목록**으로 같은 달력을 채운다 —
+   *    선택 상태를 덮어쓰지 않으므로 전체 탭으로 돌아오면 고르던 것이 그대로 있다.
+   */
+  const effectiveSelected = mode === 'mine' ? mine.tickers : selected;
+
   useDocumentMeta({
     title: copy.meta.title,
     description: copy.meta.description,
@@ -75,13 +89,13 @@ export default function DividendCalendarPage({ today }: DividendCalendarPageProp
       buildDividendCalendarViewModel({
         universe,
         keyword,
-        selected,
+        selected: effectiveSelected,
         asOf: MARKET_DATA.asOf,
         year: visibleMonth.year,
         month: visibleMonth.month,
         today: resolvedToday
       }),
-    [keyword, resolvedToday, selected, universe, visibleMonth.month, visibleMonth.year]
+    [effectiveSelected, keyword, resolvedToday, universe, visibleMonth.month, visibleMonth.year]
   );
 
   /**
@@ -193,6 +207,29 @@ export default function DividendCalendarPage({ today }: DividendCalendarPageProp
 
   const handleClosePicker = useCallback(() => setIsPickerOpen(false), []);
 
+  const handleModeChange = useCallback((next: CalendarMode) => {
+    trackEvent(ANALYTICS_EVENT.CTA_CLICK, {
+      cta_name: next === 'mine' ? 'dividend_calendar_mode_mine' : 'dividend_calendar_mode_all',
+      placement: 'dividend_calendar'
+    });
+    setMode(next);
+    // 다른 목록을 그리는 순간 지난 탭의 날짜 강조는 거짓말이 된다.
+    setJumpRequest(null);
+  }, []);
+
+  /** 뷰가 쓰는 모양으로 좁힌다 — 티커 목록은 컨테이너가 이미 달력에 먹였다(뷰는 금액만 쓴다). */
+  const mineView = useMemo(
+    () => ({
+      status: mine.status,
+      hasHoldings: mine.hasHoldings,
+      amountLabelByTicker: mine.amountLabelByTicker,
+      totalLabel: mine.totalLabel,
+      entryCount: mine.tickers.length,
+      unknownCount: mine.unknownCount
+    }),
+    [mine]
+  );
+
 
   return (
     <TickerPageShell>
@@ -207,6 +244,9 @@ export default function DividendCalendarPage({ today }: DividendCalendarPageProp
         liveMessage={liveMessage}
         unknownTickers={unknownTickers}
         highlightedAgendaDate={jumpRequest?.date ?? null}
+        mode={mode}
+        mine={mineView}
+        onModeChange={handleModeChange}
         onKeywordChange={setKeyword}
         onDetailTabChange={setDetailTab}
         onOpenPicker={handleOpenPicker}

@@ -187,3 +187,56 @@ export const MonthSummaryLine = styled.p`
     background: ${pageHue};
   }
 `;
+
+/**
+ * 달력 종류 탭(2026-08-11) — `전체 배당` / `내 배당`.
+ *
+ * 🔴 조작 줄(`DeckBar`) **위**에 선다. 달·종목 선택보다 상위 결정이기 때문이다 — "무엇을 보는가"를
+ *    먼저 고르고, 그 안에서 달을 넘긴다. 같은 줄에 넣으면 세 조작이 같은 무게로 보인다.
+ * ⚠ 라디오가 아니라 버튼 두 개 + `aria-pressed` 다. 라디오는 폼 값처럼 읽히는데 이건 화면 전환이다.
+ */
+export const ModeTabs = styled.div`
+  display: inline-flex;
+  gap: ${space[1]};
+  padding: ${space[1]};
+  border: 1px solid ${color.border};
+  border-radius: ${radius.pill};
+  background: ${color.surfaceMuted};
+`;
+
+export const ModeTabButton = styled.button<{ $active: boolean }>`
+  padding: ${space[2]} ${space[4]};
+  border: 0;
+  border-radius: ${radius.pill};
+  background: ${({ $active }) => ($active ? color.surface : 'transparent')};
+  color: ${({ $active }) => ($active ? color.text : color.textMuted)};
+  font-size: ${font.size.sm};
+  font-weight: ${({ $active }) => ($active ? font.weight.bold : font.weight.medium)};
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: ${({ $active }) => ($active ? elevation[1] : 'none')};
+
+  &:hover {
+    color: ${color.text};
+  }
+`;
+
+/**
+ * 내 배당 탭의 한 줄 요약 — 그 달 합계와 건수.
+ * ⚠ 금액이 **추정**이라는 사실을 이 줄이 직접 말한다(카피에 `(추정)`이 들어 있다). 합계만 크게
+ *   띄우면 확정된 입금 예정처럼 읽힌다.
+ */
+export const MineSummaryLine = styled.p`
+  margin: 0;
+  font-size: ${font.size.sm};
+  font-weight: ${font.weight.semibold};
+  color: ${color.text};
+  ${font.numeric}
+`;
+
+/** 금액에서 빠진 보유가 있을 때의 보조 줄. 조용히 빼지 않는다는 규율의 화면 쪽 절반이다. */
+export const MineNoteLine = styled.p`
+  margin: 0;
+  font-size: ${font.size.xs};
+  color: ${color.textMuted};
+`;

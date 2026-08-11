@@ -10,6 +10,16 @@ export type CalendarLastAction = 'none' | 'cleared' | 'month';
 export type CalendarDetailTab = 'agenda' | 'undated';
 
 /**
+ * 달력을 **무엇으로 채우는가**(2026-08-11).
+ *  - `'all'` : 사용자가 고른 종목의 지급 일정. 금액이 없다(종전 화면).
+ *  - `'mine'`: 보유 수량으로 계산한 내 배당. 금액이 붙는다.
+ *
+ * 🔴 모드는 **선택 상태를 덮어쓰지 않는다.** `'mine'` 은 고른 목록 대신 보유 목록으로 달력을
+ *    채울 뿐이라, 전체 탭으로 돌아오면 고르던 것이 그대로 있다.
+ */
+export type CalendarMode = 'all' | 'mine';
+
+/**
  * 검색 목록의 한 줄. **지급월 데이터가 없는 종목도 목록에 남긴다** — 조용히 빼면 "왜 없지?"가 된다.
  *
  * 선택 불가는 두 가지고, 둘은 **다른 말을 해야 한다**:
@@ -50,6 +60,16 @@ export type CalendarNextPayout = {
   isPast: boolean;
   /** 그 날 지급 예정 종목(티커 오름차순). */
   tickers: string[];
+};
+
+/** 내 배당 탭이 화면에 넘기는 값 묶음. 훅(`useMyDividendMonth`)이 만든 것을 그대로 나른다. */
+export type CalendarMineView = {
+  status: 'loading' | 'ready' | 'read-error';
+  hasHoldings: boolean;
+  amountLabelByTicker: Record<string, string>;
+  totalLabel: string | null;
+  entryCount: number;
+  unknownCount: number;
 };
 
 export type DividendCalendarViewModel = {
@@ -101,6 +121,11 @@ export type DividendCalendarViewProps = {
   unknownTickers: string[];
   /** 달력 칸에서 눌러 들어온 아젠다 날짜(ISO). 없으면 null. */
   highlightedAgendaDate: string | null;
+  /** 지금 보고 있는 달력 종류. */
+  mode: CalendarMode;
+  /** 내 배당 탭의 값. 전체 탭에서도 넘어오지만 화면이 쓰지 않는다(탭을 오갈 때 다시 계산되지 않게). */
+  mine: CalendarMineView;
+  onModeChange: (mode: CalendarMode) => void;
   onKeywordChange: (keyword: string) => void;
   onDetailTabChange: (tab: CalendarDetailTab) => void;
   onOpenPicker: () => void;

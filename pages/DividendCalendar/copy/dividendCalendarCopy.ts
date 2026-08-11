@@ -40,6 +40,30 @@ export const DIVIDEND_CALENDAR_COPY = {
      */
     nonDividend: '배당 없음'
   },
+  /**
+   * 달력의 **두 갈래**(2026-08-11). 같은 달력을 무엇으로 채우느냐가 다르다.
+   *  - `all` : 사용자가 고른 종목의 지급 일정(종전 화면 그대로) — 금액 없음.
+   *  - `mine`: **보유 수량**으로 계산한 내 배당 — 금액이 붙는다.
+   * ⚠ 금액은 전부 추정이다(연배당을 지급월 수로 균등 분배). 그 사실을 화면이 숨기지 않는다.
+   */
+  mode: {
+    groupLabel: '달력 종류',
+    all: '전체 배당',
+    mine: '내 배당',
+    /** 그 달 예정 합계. 금액이 추정임을 같은 줄에서 밝힌다. */
+    mineTotal: (monthLabel: string, amount: string, count: number) =>
+      `${monthLabel} 예정 ${amount} · ${count}건 (추정)`,
+    mineNone: (monthLabel: string) => `${monthLabel}에 예정된 배당이 없습니다.`,
+    /** 금액을 낼 수 없어 빠진 보유 — 조용히 빼지 않고 수를 말한다. */
+    mineUnknown: (n: number) => `보유 ${n}종은 수량·시세·지급월 정보가 없어 금액에서 빠졌습니다.`,
+    emptyTitle: '보유 종목을 먼저 등록해 주세요',
+    emptyBody: '내 포트폴리오에 티커와 수량을 넣으면 이 달력이 실제 예상 금액으로 채워집니다.',
+    emptyCta: '내 포트폴리오로 가기',
+    emptyCtaHref: '/dividend/portfolio',
+    loading: '보유 목록을 불러오는 중입니다.',
+    readError: '보유 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'
+  },
+
   picker: {
     heading: '종목 선택',
     /** 우측 드로어를 여는 버튼 — 몇 종을 골라 둔 상태인지 접근명에도 담는다(배지 숫자만으론 안 읽힌다). */

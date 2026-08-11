@@ -222,6 +222,19 @@ export const AgendaNameSlot = styled.span`
   }
 `;
 
+/**
+ * 그 달의 예상 금액(내 배당 탭에서만). **숫자라 등폭**으로 세운다 — 여러 줄이 쌓였을 때 자릿수가
+ * 세로로 맞아야 훑어 읽힌다.
+ * ⚠ 추정값이라 강조색을 쓰지 않는다(본문색). 색으로 강조하면 확정된 입금액처럼 읽힌다.
+ */
+export const AgendaAmount = styled.span`
+  flex: 0 0 auto;
+  font-size: ${font.size.sm};
+  font-weight: ${font.weight.semibold};
+  color: ${color.text};
+  ${font.numeric}
+`;
+
 export const AgendaName = styled.span`
   flex: 1 1 auto;
   min-width: 0;

@@ -8,6 +8,7 @@ import {
   AgendaDayItem,
   AgendaDayLabel,
   AgendaDayList,
+  AgendaAmount,
   AgendaDot,
   AgendaEmpty,
   AgendaItem,
@@ -34,6 +35,7 @@ const copy = DIVIDEND_CALENDAR_COPY;
 export default function AgendaList({
   days,
   hasUndated,
+  amountLabelByTicker,
   highlightedDate = null,
   seriesOf = tickerSeriesVar
 }: AgendaListProps) {
@@ -78,6 +80,10 @@ export default function AgendaList({
                         <AgendaName />
                       </OverflowTooltip>
                     </AgendaNameSlot>
+                    {/* 금액은 근거 배지 **앞**에 선다 — 눈이 먼저 찾는 것이 숫자다. 없으면 안 그린다. */}
+                    {amountLabelByTicker?.[item.ticker] ? (
+                      <AgendaAmount>{amountLabelByTicker[item.ticker]}</AgendaAmount>
+                    ) : null}
                     <ScheduleSourceBadge source={item.source} />
                   </AgendaItem>
                 ))}

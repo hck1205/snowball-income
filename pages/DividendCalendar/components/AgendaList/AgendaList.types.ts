@@ -1,6 +1,11 @@
 import type { AgendaDay, TickerSeriesResolver } from '../../utils';
 
 export type AgendaListProps = {
+  /**
+   * 티커 → 그 달의 예상 금액 문자열. **내 배당 탭에서만** 온다(전체 탭은 금액 개념이 없다).
+   * 키가 없는 종목은 금액을 그리지 않는다 — 0 원으로 위장하지 않는다.
+   */
+  amountLabelByTicker?: Record<string, string>;
   /** 항목이 있는 날짜만, 날짜 오름차순. */
   days: AgendaDay[];
   /** 화면 하나가 만든 색 사전(`tickerSeriesResolver`). 달력 칩·범례와 같은 값이어야 한다. */
