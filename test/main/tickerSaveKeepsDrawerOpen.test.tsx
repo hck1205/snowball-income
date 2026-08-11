@@ -44,7 +44,7 @@ const isDrawerOpen = () => settingsTrigger().getAttribute('aria-expanded') === '
 
 const openTickerModal = async (user: User): Promise<HTMLElement> => {
   await user.click(screen.getByRole('button', { name: '티커 생성 열기' }));
-  return screen.findByRole('dialog', { name: '티커 생성' }, LAZY_MODAL_TIMEOUT);
+  return screen.findByRole('complementary', { name: '티커 생성' }, LAZY_MODAL_TIMEOUT);
 };
 
 const createFromPreset = async (user: User, ticker: string): Promise<void> => {
@@ -67,7 +67,7 @@ describe('티커 저장 → 설정 드로어는 열린 채로 남는다 (2026-07
     await createFromPreset(user, 'SCHD');
 
     // 티커 모달만 닫히고 드로어는 그대로다.
-    expect(screen.queryByRole('dialog', { name: '티커 생성' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('complementary', { name: '티커 생성' })).not.toBeInTheDocument();
     expect(isDrawerOpen()).toBe(true);
     expect(screen.getByRole('button', { name: '티커 생성 열기' })).toBeInTheDocument();
   });

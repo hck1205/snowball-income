@@ -4,6 +4,9 @@ export type { PresetTickerPickerProps } from './PresetTickerPicker';
 export { PresetTickerPreview } from './PresetTickerPreview';
 export type { PresetTickerPreviewProps } from './PresetTickerPreview';
 
+export { StagedTickerList } from './StagedTickerList';
+export type { StagedTickerListProps } from './StagedTickerList';
+
 export { TickerDraftForm } from './TickerDraftForm';
 export type { TickerDraftFormProps } from './TickerDraftForm';
 

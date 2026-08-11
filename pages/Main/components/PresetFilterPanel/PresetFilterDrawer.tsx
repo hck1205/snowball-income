@@ -34,7 +34,7 @@ const FOCUSABLE_SELECTOR =
   'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 /**
- * 모달 우측 슬라이드 드로어. 셸(ModalShell)의 absolute 형제로 마운트돼 패널 스크롤과 무관하게 핀된다.
+ * 티커 생성 드로어 안 우측 슬라이드 패널. 본문 셸(TickerDrawerLayout)의 absolute 자식으로 마운트된다.
  *
  * 🔴 **공용 `SideDrawer` 로 통합하지 않는다**(2026-07-30 판단, 근거를 남긴다). 이름은 드로어지만
  *   성격이 다른 부품이다:

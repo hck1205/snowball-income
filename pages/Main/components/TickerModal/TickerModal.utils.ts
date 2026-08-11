@@ -132,6 +132,124 @@ export const isTickerCreateDisabled = ({
   tickerDraft: TickerDraft;
 }): boolean => isCustomTickerInput(mode, selectedPreset) && !isValidTickerInput(tickerDraft);
 
+/**
+ * 생성 대기 목록의 한 칸 — "담은 종목".
+ *
+ * 🔴 프리셋과 직접 입력을 **한 목록**에 담는다(2026-08-10 다중 생성). 그래서 프리셋 3개 + 직접
+ *    입력 2개를 한 번에 만들 수 있고, 직접 입력이 "다중 선택에 못 끼는 예외"가 되지 않는다.
+ * ⚠ `isCustomPreset` 은 저장 시 이름 처리를 가른다(`buildTickerProfileFromDraft`) — 프리셋은
+ *   영문 풀네임을 버리고 심볼만 남기고, 직접 입력은 사용자가 적은 이름을 지킨다. 그래서 항목마다
+ *   따라다녀야 한다(목록 전체에 하나로 둘 수 없다).
+ */
+export type StagedTicker = {
+  /** 목록 안의 신원. 프리셋은 프리셋 키, 직접 입력은 `custom:<번호>`. */
+  key: string;
+  draft: TickerDraft;
+  isCustomPreset: boolean;
+};
+
+/** 직접 입력 항목의 키 접두사 — 프리셋 키와 절대 겹치지 않는 형태여야 한다. */
+const CUSTOM_STAGED_PREFIX = 'custom:';
+
+/**
+ * 프리셋 칩 토글. 이미 담겨 있으면 빼고, 아니면 뒤에 붙인다(누른 순서가 목록 순서다).
+ *
+ * ⚠ 프리셋의 `name`(영문 풀네임)을 담지 않는다 — 담으면 좌측 칩이 심볼 대신 풀네임으로 보인다
+ *   (`TickerModal.tsx` 의 단일 선택 경로가 같은 이유로 name 을 비운다).
+ */
+export const toggleStagedPreset = (
+  staged: readonly StagedTicker[],
+  presetKey: PresetTickerKey,
+  draft: TickerDraft
+): StagedTicker[] =>
+  staged.some((item) => item.key === presetKey)
+    ? staged.filter((item) => item.key !== presetKey)
+    : [...staged, { key: presetKey, draft: { ...draft, name: '' }, isCustomPreset: false }];
+
+/** 직접 입력 폼의 현재 값을 목록에 담는다. 키는 기존 번호 중 가장 큰 것 + 1 (재사용 안 함). */
+export const stageCustomDraft = (staged: readonly StagedTicker[], draft: TickerDraft): StagedTicker[] => {
+  const nextSequence =
+    staged.reduce((max, item) => {
+      if (!item.key.startsWith(CUSTOM_STAGED_PREFIX)) return max;
+      const parsed = Number(item.key.slice(CUSTOM_STAGED_PREFIX.length));
+      return Number.isFinite(parsed) ? Math.max(max, parsed) : max;
+    }, 0) + 1;
+
+  return [...staged, { key: `${CUSTOM_STAGED_PREFIX}${nextSequence}`, draft, isCustomPreset: true }];
+};
+
+export const removeStaged = (staged: readonly StagedTicker[], key: string): StagedTicker[] =>
+  staged.filter((item) => item.key !== key);
+
+/**
+ * 실제로 생성할 항목들. **버튼 라벨(N개 생성)과 잠금 판정이 이 함수 하나를 본다** —
+ * 두 곳이 따로 세면 "3개 생성"을 눌렀는데 2개만 생기는 어긋남이 난다.
+ *
+ * 규칙 둘.
+ *  ① 담은 목록이 곧 대상이다.
+ *  ② 직접 입력 탭에서 **담기를 누르지 않고** 바로 생성해도 그 폼 값이 함께 생성된다 — 담기를
+ *     모르고 지나친 사용자가 입력을 잃지 않게. 같은 티커가 이미 담겨 있으면 두 번 만들지 않는다.
+ *
+ * @param isCustomInputTab 직접 입력 탭이 열려 있는가(프리셋 탭의 미리보기 드래프트는 대상이 아니다 —
+ *   칩을 누르는 순간 이미 목록에 담겼으므로 여기서 또 세면 같은 종목이 두 번 만들어진다).
+ */
+export const resolveCreateTargets = ({
+  staged,
+  tickerDraft,
+  isCustomInputTab
+}: {
+  staged: readonly StagedTicker[];
+  tickerDraft: TickerDraft;
+  isCustomInputTab: boolean;
+}): StagedTicker[] => {
+  if (!isCustomInputTab) return [...staged];
+  if (!isValidTickerInput(tickerDraft)) return [...staged];
+
+  const typedTicker = tickerDraft.ticker.trim().toUpperCase();
+  const alreadyStaged = staged.some((item) => item.draft.ticker.trim().toUpperCase() === typedTicker);
+  if (alreadyStaged) return [...staged];
+
+  return [...staged, { key: `${CUSTOM_STAGED_PREFIX}live`, draft: tickerDraft, isCustomPreset: true }];
+};
+
+/**
+ * 이름 칸에 **보여 줄** 이름. 저장값이 아니라 표시의 문제다.
+ *
+ * ## 🔴 왜 저장된 이름을 그대로 못 쓰나
+ *
+ * 프리셋에서 만든 티커는 `name` 을 **일부러 비운다** — `getTickerDisplayName` 이 name 을 우선하므로
+ * 실으면 종목 칩이 심볼(SCHD) 대신 영문 풀네임으로 보인다(`TickerModal.tsx` 의 같은 주석).
+ * 그 대가가 두 곳에서 나타났다(2026-08-11 사용자 지적):
+ *   ① 프리셋을 눌렀을 때 미리보기의 이름 칸이 공란
+ *   ② **수정 모드**로 들어가도 공란 — 이쪽은 화면 문제가 아니라 **저장된 값 자체가 빈 문자열**이다.
+ *      그래서 선택된 프리셋이 없어도(수정 모드는 항상 `'custom'`) 심볼로 이름을 되찾아야 한다.
+ *
+ * 우선순위: 사용자가 적은 이름 → 지금 고른 프리셋의 한글 이름 → **심볼로 찾은** 한글 이름 →
+ * 프리셋의 영문 이름 → 빈 문자열.
+ *
+ * ⚠ 저장 데이터는 건드리지 않는다. 이 함수의 결과가 `name` 으로 저장되면 칩 표시가 다시 망가진다.
+ */
+export const toPreviewDisplayName = ({
+  tickerDraft,
+  selectedPreset,
+  presetTickers,
+  koreanNameByTicker
+}: {
+  tickerDraft: TickerDraft;
+  selectedPreset: 'custom' | PresetTickerKey;
+  presetTickers: Record<PresetTickerKey, TickerDraft>;
+  koreanNameByTicker: Record<PresetTickerKey, string>;
+}): string => {
+  const typedName = tickerDraft.name.trim();
+  if (typedName) return typedName;
+
+  /* 심볼로 프리셋을 되찾는다 — 프리셋 키가 곧 심볼이다(대소문자만 맞춘다). */
+  const symbol = tickerDraft.ticker.trim().toUpperCase() as PresetTickerKey;
+  const presetKey = selectedPreset !== 'custom' ? selectedPreset : symbol;
+
+  return koreanNameByTicker[presetKey] ?? presetTickers[presetKey]?.name ?? '';
+};
+
 /** Empty number inputs become NaN so the draft stays visibly blank instead of snapping to 0. */
 export const parseNumericInputOrNaN = (rawValue: string): number => (rawValue === '' ? Number.NaN : Number(rawValue));
 

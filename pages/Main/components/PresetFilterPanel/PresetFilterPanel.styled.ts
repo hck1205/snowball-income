@@ -7,7 +7,7 @@ import { color, font, media, motion, radius, shadow, space, subtleScrollbar } fr
  * 유효 HTML 어트리뷰트(open/active 등)를 피해 transient 성격으로 짓는다.
  *
  * UX 모델(2026-07-22): 접이식 패널 → 검색행 우측 아이콘 트리거 + 모달 우측 슬라이드 드로어.
- * 드로어는 스크롤되는 ModalPanel 이 아니라 그 밖의 relative 셸(ModalShell, TickerModal 뷰)에
+ * 드로어는 스크롤되는 패널 자체가 아니라 그 안의 relative 셸(TickerDrawerLayout, TickerModal 뷰)에
  * absolute 로 핀돼 패널 스크롤과 무관하게 가시 박스에 고정된다.
  */
 

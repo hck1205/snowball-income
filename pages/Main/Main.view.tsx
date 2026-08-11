@@ -200,7 +200,6 @@ function MainViewComponent({ viewModel }: MainViewProps) {
             <Suspense fallback={null}>
               {isTickerModalOpen && (
                 <TickerModal
-                  onBackdropClick={handleBackdropClick}
                   onDelete={deleteTicker}
                   onClose={closeTickerModal}
                   onHelpExpectedTotalReturn={openHelpExpectedTotalReturn}

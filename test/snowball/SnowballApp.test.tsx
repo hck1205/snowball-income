@@ -41,7 +41,7 @@ beforeAll(async () => {
 const openTickerModal = async (user: User): Promise<HTMLElement> => {
   await openSettingsDrawer(user);
   await user.click(screen.getByRole('button', { name: '티커 생성 열기' }));
-  return screen.findByRole('dialog', { name: '티커 생성' }, LAZY_MODAL_TIMEOUT);
+  return screen.findByRole('complementary', { name: '티커 생성' }, LAZY_MODAL_TIMEOUT);
 };
 
 /**
@@ -176,7 +176,7 @@ describe('SnowballAppFeature', () => {
 
     await createCustomTicker(user, { ticker: 'VYM', initialPrice: '100', dividendYield: '4', dividendGrowth: '6' });
 
-    expect(screen.queryByRole('dialog', { name: '티커 생성' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('complementary', { name: '티커 생성' })).not.toBeInTheDocument();
 
     const tickerChip = screen.getByRole('button', { name: '티커 VYM 선택' });
     expect(tickerChip).toHaveAttribute('aria-pressed', 'true');
@@ -234,7 +234,7 @@ describe('SnowballAppFeature', () => {
 
     await user.click(screen.getByRole('button', { name: '티커 QQQ 설정' }));
 
-    const dialog = await screen.findByRole('dialog', { name: '티커 설정 수정' }, LAZY_MODAL_TIMEOUT);
+    const dialog = await screen.findByRole('complementary', { name: '티커 설정 수정' }, LAZY_MODAL_TIMEOUT);
     await user.click(within(dialog).getByRole('tab', { name: '직접 입력' }));
     await fillField(user, dialog, '티커', 'QQQM');
     await user.click(within(dialog).getByRole('button', { name: '저장' }));
@@ -250,7 +250,7 @@ describe('SnowballAppFeature', () => {
 
     await user.click(screen.getByRole('button', { name: '티커 SCHD 설정' }));
 
-    const dialog = await screen.findByRole('dialog', { name: '티커 설정 수정' }, LAZY_MODAL_TIMEOUT);
+    const dialog = await screen.findByRole('complementary', { name: '티커 설정 수정' }, LAZY_MODAL_TIMEOUT);
     await user.click(within(dialog).getByRole('button', { name: '티커 삭제' }));
 
     // 삭제도 드로어를 닫는다 — 목록이 정말 비었는지 보려면 다시 열어야 한다.

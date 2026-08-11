@@ -46,5 +46,16 @@ export type SideDrawerProps = {
   dimBelow?: SideDrawerDimScope;
   /** 본문 세로 배치. 기본 `'scroll'`. 목록 피커는 `'fill'`. */
   bodyLayout?: SideDrawerBodyLayout;
+  /**
+   * **다른 드로어 위에 겹치는 층**인가(2026-08-11: 설정 드로어 → 티커 생성 드로어).
+   *
+   * 딤·스크림·패널을 한 단 위(`zIndex.drawerStacked*`)로 올린다 — 기본값으로는 두 드로어가 같은
+   * 층이라 아래 패널이 위 드로어의 딤 위로 올라온다("덮었는데 덮이지 않은" 화면).
+   *
+   * ⚠ 이 값은 **한 겹까지**다. 세 겹이 필요해지면 숫자를 늘리기 전에 동선을 다시 본다.
+   * ⚠ 겹친 드로어는 보통 `dimBelow='always'` 와 함께 쓴다 — 아래 층을 가린 채 "고르고 돌아오는"
+   *   한 갈래 동선이기 때문이다.
+   */
+  stacked?: boolean;
   children: ReactNode;
 };

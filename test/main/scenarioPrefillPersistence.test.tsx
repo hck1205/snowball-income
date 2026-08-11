@@ -195,7 +195,7 @@ describe('첫 방문 기본 시나리오 — 사용자가 건드리면 승격된
     advance(5_000);
     expect(writeSpy).not.toHaveBeenCalled();
 
-    // 인라인 "빠른 조정" 슬라이더가 커밋할 때와 같은 경로(폼 값 변경).
+    // 투자 설정에서 값을 고칠 때와 같은 경로(폼 값 변경).
     act(() => {
       store.set(yieldFormAtom, (prev) => ({ ...prev, monthlyContribution: 3_000_000 }));
     });

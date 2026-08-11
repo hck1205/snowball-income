@@ -30,7 +30,6 @@ const makeProps = (overrides: Partial<TickerModalViewProps> = {}): TickerModalVi
   selectedPreset: 'custom',
   presetTickers: PRESET_TICKERS,
   tickerDraft: makeDraft({ ticker: '', name: '' }),
-  onBackdropClick: vi.fn(),
   onSelectPreset: vi.fn(),
   onChangeDraft: vi.fn(),
   onHelpExpectedTotalReturn: vi.fn(),
@@ -50,9 +49,14 @@ const renderModal = (overrides: Partial<TickerModalViewProps> = {}) => {
 const toggle = (expanded: boolean) => screen.getByRole('button', { expanded });
 
 describe('TickerModal 프리셋 필터 흐름', () => {
-  it('모달은 document.body 에 포털로 마운트된다', () => {
+  /**
+   * 2026-08-11: 모달(포털 + role=dialog) → **설정 드로어 위에 겹치는 드로어**로 바뀌었다.
+   * 공용 `SideDrawer` 는 role/aria-modal 을 일부러 선언하지 않으므로(지키지 않을 계약을 선언하지
+   * 않는다는 관례) 이 층은 `complementary`(aside) + `aria-labelledby` 로 식별된다.
+   */
+  it('티커 생성은 제목이 붙은 드로어 층으로 뜬다', () => {
     renderModal();
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByRole('complementary', { name: '티커 생성' })).toBeInTheDocument();
     // 초기: 필터 접힘, 전량 표시.
     expect(toggle(false)).toBeInTheDocument();
     expect(screen.getByText('표시: 4 / 전체: 4')).toBeInTheDocument();
@@ -141,8 +145,8 @@ describe('TickerModal 프리셋 필터 흐름', () => {
 });
 
 describe('TickerModal 드로어 ↔ 모달 격리·포커스·닫기 경로', () => {
-  // 모달과 드로어 둘 다 role=dialog 라 이름으로 구분한다.
-  const modal = () => screen.getByRole('dialog', { name: '티커 생성' });
+  // 티커 층은 드로어(complementary), 안쪽 필터만 진짜 모달(dialog)이다.
+  const modal = () => screen.getByRole('complementary', { name: '티커 생성' });
   const drawer = () => screen.getByRole('dialog', { name: /프리셋 필터/ });
   const queryDrawer = () => screen.queryByRole('dialog', { name: /프리셋 필터/ });
 
@@ -263,7 +267,7 @@ describe('TickerModal "필터 적용 중" 표시(3중 표식)', () => {
 });
 
 describe('TickerModal 뒤로가기 닫기 · 배경 스크롤 잠금', () => {
-  const modal = () => screen.getByRole('dialog', { name: '티커 생성' });
+  const modal = () => screen.getByRole('complementary', { name: '티커 생성' });
   const queryDrawer = () => screen.queryByRole('dialog', { name: /프리셋 필터/ });
 
   /** jsdom 의 `history.back()` 은 비동기 태스크라 popstate 가 다음 틱에 온다. */
@@ -311,7 +315,13 @@ describe('TickerModal 뒤로가기 닫기 · 배경 스크롤 잠금', () => {
   });
 
   it('열려 있는 동안 배경 스크롤을 잠그고, 닫으면 원래 값으로 되돌린다', () => {
-    const root = document.documentElement;
+    /*
+     * 🔴 잠그는 대상이 `html` → **`body`** 로 바뀌었다(2026-08-11 드로어 전환). 이 층이 직접
+     *    잠그던 시절에는 아래 설정 드로어(body 를 잠근다)와 대상을 갈라 두 잠금이 서로를 덮지
+     *    않게 했는데, 지금은 두 층이 **같은 공용 드로어의 refcount 잠금**을 공유하므로 대상을
+     *    가를 이유가 사라졌다(마지막 층이 닫힐 때만 복원된다).
+     */
+    const root = document.body;
     /*
      * ⚠ 시작값을 캡처해 그 값과 비교하면(before = root.style.overflow → toBe(before)) 앞선 테스트가
      *   잠금을 흘렸을 때 단정이 **자기충족**이 된다 — 복원 로직을 통째로 지운 뮤테이션이 파일 전체
@@ -427,5 +437,65 @@ describe('TickerModal 히스토리 수지(엔트리 과·부족)', () => {
       expect(readDrawerMarker()).toBeUndefined();
     });
     expect(readPageSentinel()).toBe('nested-page');
+  });
+});
+
+/**
+ * 다중 생성(2026-08-10) — 프리셋을 여러 개 담고 한 번에 만든다.
+ *
+ * 여기서 지키는 계약 셋:
+ *  ① 칩은 **토글**이다(다시 누르면 빠진다).
+ *  ② 생성 버튼 라벨이 **담은 개수**를 말한다.
+ *  ③ `onSave` 가 담은 목록을 **담은 순서대로** 받는다 — 이 순서가 종목 목록의 순서가 된다.
+ */
+describe('TickerModal 다중 생성', () => {
+  const stageChip = async (user: ReturnType<typeof userEvent.setup>, ticker: string) => {
+    await user.click(screen.getByRole('option', { name: `${ticker} 선택` }));
+  };
+
+  it('프리셋 두 개를 담으면 버튼이 "2개 생성"이 되고 목록이 함께 전달된다', async () => {
+    const user = userEvent.setup();
+    const props = renderModal();
+
+    await stageChip(user, 'A');
+    await stageChip(user, 'C');
+
+    expect(screen.getByText('담은 종목 2개')).toBeInTheDocument();
+
+    const createButton = screen.getByRole('button', { name: '2개 생성' });
+    await user.click(createButton);
+
+    expect(props.onSave).toHaveBeenCalledTimes(1);
+    const [drafts] = (props.onSave as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(drafts.map((item: { draft: TickerDraft }) => item.draft.ticker)).toEqual(['A', 'C']);
+    // 프리셋에서 담은 것은 커스텀이 아니다 — 저장 시 영문 풀네임을 버리는 분기를 이 값이 정한다.
+    expect(drafts.every((item: { isCustomPreset: boolean }) => item.isCustomPreset === false)).toBe(true);
+  });
+
+  it('같은 칩을 다시 누르면 목록에서 빠진다 — 담긴 것이 없으면 생성이 잠긴다', async () => {
+    const user = userEvent.setup();
+    renderModal();
+
+    await stageChip(user, 'B');
+    expect(screen.getByRole('option', { name: 'B 선택' })).toHaveAttribute('aria-selected', 'true');
+
+    await stageChip(user, 'B');
+    expect(screen.getByRole('option', { name: 'B 선택' })).toHaveAttribute('aria-selected', 'false');
+    expect(screen.queryByText(/담은 종목/)).toBeNull();
+    expect(screen.getByRole('button', { name: '생성' })).toBeDisabled();
+  });
+
+  it('담은 항목을 목록에서 하나만 뺄 수 있다', async () => {
+    const user = userEvent.setup();
+    renderModal();
+
+    await stageChip(user, 'A');
+    await stageChip(user, 'D');
+    expect(screen.getByText('담은 종목 2개')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'A 목록에서 빼기' }));
+
+    expect(screen.getByText('담은 종목 1개')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '생성' })).toBeEnabled();
   });
 });

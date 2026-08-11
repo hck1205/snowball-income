@@ -58,7 +58,7 @@ const sectionAnchors = () => {
 
 const createFromPreset = async (user: User, ticker: string): Promise<void> => {
   await user.click(screen.getByRole('button', { name: '티커 생성 열기' }));
-  const dialog = await screen.findByRole('dialog', { name: '티커 생성' }, LAZY_MODAL_TIMEOUT);
+  const dialog = await screen.findByRole('complementary', { name: '티커 생성' }, LAZY_MODAL_TIMEOUT);
   await user.type(within(dialog).getByRole('textbox', { name: '프리셋 티커 검색' }), ticker);
   await user.click(within(dialog).getByRole('option', { name: `${ticker} 선택` }));
   await user.click(within(dialog).getByRole('button', { name: '생성' }));

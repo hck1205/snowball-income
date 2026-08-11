@@ -107,13 +107,3 @@ describe('프리필로 열린 결과 화면', () => {
     expect(screen.queryByRole('note')).toBeNull();
   });
 });
-
-describe('빠른 조정 — 드로어를 열지 않는 1차 조정', () => {
-  it('세 값만 인라인으로 조정한다(나머지는 드로어가 계속 소유한다)', () => {
-    renderPanel(true);
-
-    const sliders = screen.getAllByRole('slider');
-    const labels = sliders.map((slider) => slider.getAttribute('aria-label'));
-    expect(labels).toEqual(expect.arrayContaining(['월 적립', '투자 기간', '목표 월배당']));
-  });
-});

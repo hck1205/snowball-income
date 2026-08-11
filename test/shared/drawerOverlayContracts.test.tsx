@@ -182,7 +182,6 @@ const makeModalProps = (onClose: () => void): TickerModalViewProps => ({
   selectedPreset: 'custom',
   presetTickers: PRESET_TICKERS,
   tickerDraft: makeDraft(''),
-  onBackdropClick: vi.fn(),
   onSelectPreset: vi.fn(),
   onChangeDraft: vi.fn(),
   onHelpExpectedTotalReturn: vi.fn(),
@@ -192,7 +191,7 @@ const makeModalProps = (onClose: () => void): TickerModalViewProps => ({
 });
 
 const filterDrawer = () => screen.queryByRole('dialog', { name: '프리셋 필터' });
-const tickerModal = () => screen.queryByRole('dialog', { name: '티커 생성' });
+const tickerModal = () => screen.queryByRole('complementary', { name: '티커 생성' });
 
 /** 필터는 모달의 프리셋 탭 검색행에서 연다(앱 전체에서 `aria-expanded` 를 가진 유일한 버튼). */
 async function openFilter(user: ReturnType<typeof userEvent.setup>) {
@@ -265,10 +264,15 @@ describe('프리셋 필터 드로어 — 티커 모달 위 한 겹', () => {
     expect(window.location.href).toBe(urlBeforeOpen);
   });
 
-  it('배경 스크롤락을 추가하지 않는다 — 잠금은 모달(html)만 소유한다', async () => {
+  it('배경 스크롤락을 추가하지 않는다 — 잠금은 티커 드로어 것 하나뿐이다', async () => {
     /*
-     * 이 드로어는 모달 셸 안의 패널이라 배경은 이미 모달이 잠갔다(좁은 폭에서 `documentElement`).
-     * 여기서 `body` 까지 잠그면 두 잠금이 얽혀 과거의 "페이지 영구 잠김" 경로가 되살아난다.
+     * 🔄 2026-08-11: 티커 생성이 모달 → **겹친 드로어**가 되면서 잠금의 주인이 바뀌었다.
+     *   종전에는 모달이 좁은 폭에서 `documentElement` 를 잠갔고, 이 필터 패널이 `body` 까지
+     *   잠그면 두 잠금이 얽혀 "페이지 영구 잠김"이 되살아났다.
+     *   지금은 티커 층이 공용 드로어의 **refcount 잠금(body)** 을 쥐고, `html` 은 아무도 안 만진다.
+     *   이 패널이 지켜야 할 것은 그대로다 — **잠금을 하나 더 만들지 않는다.**
+     * ⚠ 여기서 `body: 'hidden'` 은 필터가 아니라 **티커 층**이 걸어 둔 것이다. 필터를 닫아도
+     *   남아 있어야 정상이고, 그 해제는 티커 층이 닫힐 때 일어난다(overlayScrollLock 이 잠근다).
      */
     stubViewportWidth(360);
     const user = userEvent.setup();
@@ -276,7 +280,7 @@ describe('프리셋 필터 드로어 — 티커 모달 위 한 겹', () => {
 
     await openFilter(user);
 
-    expect(document.documentElement.style.overflow).toBe('hidden');
-    expect(document.body.style.overflow).toBe('');
+    expect(document.documentElement.style.overflow).toBe('');
+    expect(document.body.style.overflow).toBe('hidden');
   });
 });

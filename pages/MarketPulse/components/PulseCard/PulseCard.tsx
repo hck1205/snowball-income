@@ -4,6 +4,7 @@ import { ZONE_LABEL } from '@/shared/lib/marketPulse';
 import { getChartTheme } from '@/shared/styles';
 import { MARKET_PULSE_COPY as copy, PULSE_EXPLAIN } from '../../copy';
 import { ZONE_VISUAL, buildPulseChartOption, chartHeightOf, formatPulseDate, formatPulseValue } from '../../utils';
+import { useElementWidth } from './PulseCard.utils';
 import { BandScale } from '../BandScale';
 import {
   CardFoot,
@@ -42,11 +43,22 @@ export function PulseCard({ indicator }: PulseCardProps) {
   const visual = ZONE_VISUAL[indicator.zone];
   const explain = PULSE_EXPLAIN[indicator.id];
 
+  const chartHeight = chartHeightOf(indicator);
+  /*
+   * 그래프 자리의 폭. 공포탐욕 다이얼은 이 값으로 라벨 거리·글자 크기를 좁힌다 — 좁은 화면에서
+   * 픽셀 고정 거리가 칸을 벗어나던 문제(2026-08-10)의 해결점이라, 폭이 바뀌면 옵션을 다시 만든다.
+   */
+  const [chartSlotRef, chartWidth] = useElementWidth<HTMLDivElement>();
+
   /*
    * 🔴 `getChartTheme()` 은 DOM 의 CSS 변수를 읽는다 — 테마(밝게/어둡게·프리셋)가 바뀌면 값도
    *    바뀐다. 모듈 최상위에서 한 번 읽어 두면 첫 테마의 색이 영원히 굳는다.
    */
-  const option = useMemo(() => buildPulseChartOption(indicator, getChartTheme()), [indicator]);
+  const option = useMemo(
+    /* 게이지 반지름이 보는 것과 같은 기준 — 컨테이너의 **짧은 변**이다. */
+    () => buildPulseChartOption(indicator, getChartTheme(), chartWidth > 0 ? Math.min(chartWidth, chartHeight) : undefined),
+    [chartHeight, chartWidth, indicator]
+  );
 
   const observation = indicator.observation;
 
@@ -120,7 +132,7 @@ export function PulseCard({ indicator }: PulseCardProps) {
             ) : null}
 
             {option ? (
-              <ChartSlot $height={chartHeightOf(indicator)} role="img" aria-label={copy.chartLabel(indicator.label)}>
+              <ChartSlot ref={chartSlotRef} $height={chartHeight} role="img" aria-label={copy.chartLabel(indicator.label)}>
                 <ResponsiveEChart option={option} />
               </ChartSlot>
             ) : null}

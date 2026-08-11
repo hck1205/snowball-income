@@ -10,12 +10,6 @@ import type { ReactNode } from 'react';
 export type MainResultGridProps = {
   /** 결과 요약(hero + 지표 타일 + 조건 스트립). */
   summary?: ReactNode;
-  /**
-   * 결과 카드 **바로 아래**의 1차 조정 줄(월 적립·기간·목표). 요약 다음 자리인 이유는
-   * "지금 본 숫자를 그 자리에서 바꾼다"가 이 앱의 핵심 루프이기 때문이다 —
-   * 조정과 결과가 한 화면에 있어야 조정↔확인이 성립한다.
-   */
-  quickAdjust?: ReactNode;
   /** 금융소득종합과세 안내 배너. 리드 막의 마지막 칸이다(경고는 막 안으로 들어가지 않는다). */
   financialIncomeBanner?: ReactNode;
   /** 월 평균 배당 차트(목표선·도달 마커 포함). 막 01 의 마지막 칸. */

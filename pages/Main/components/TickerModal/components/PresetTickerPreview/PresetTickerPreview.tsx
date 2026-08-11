@@ -10,6 +10,7 @@ import type { PresetTickerPreviewProps } from './PresetTickerPreview.types';
  */
 function PresetTickerPreview({
   tickerDraft,
+  displayName,
   derivedTotalReturn,
   totalReturnCaption,
   onHelpExpectedTotalReturn
@@ -18,7 +19,8 @@ function PresetTickerPreview({
     <>
       <FormGrid>
         <InputField label="티커" value={tickerDraft.ticker} disabled onChange={() => undefined} />
-        <InputField label="이름" value={tickerDraft.name} disabled onChange={() => undefined} />
+        {/* 🔴 저장되는 값(`tickerDraft.name`)이 아니라 표시용 이름이다 — 근거는 types 의 주석. */}
+        <InputField label="이름" value={displayName} disabled onChange={() => undefined} />
       </FormGrid>
       <ModalCompactFormGrid>
         <InputField label="현재 주가" prefix="$" type="number" min={0} value={tickerDraft.initialPrice} disabled onChange={() => undefined} />

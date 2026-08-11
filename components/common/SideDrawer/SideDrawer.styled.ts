@@ -1,4 +1,4 @@
-import { css } from '@emotion/react';
+import { css, keyframes } from '@emotion/react';
 import styled from '@emotion/styled';
 import {
   color,
@@ -30,6 +30,25 @@ import type { SideDrawerBodyLayout, SideDrawerDimScope, SideDrawerSide } from '.
  * 바깥에 그대로 얹는다 — **같은 선언 한 벌**을 두 자리에 쓰기 위해 뽑았다(두 벌로 나누면
  * 한쪽만 고쳐진다).
  */
+/**
+ * 겹친 드로어의 **진입 슬라이드**.
+ *
+ * 🔴 전이(transition)가 아니라 **애니메이션**인 이유: 겹친 드로어는 호출부가 열린 상태로
+ *    마운트한다(`{isOpen && <TickerModal/>}`). CSS 전이는 시작 상태가 한 프레임 존재해야 도는데
+ *    마운트 순간부터 열려 있으면 그 프레임이 없어 그냥 툭 나타난다. 애니메이션은 마운트에서
+ *    바로 돌고, 닫혔다 다시 열릴 때도(선언이 none ↔ 애니메이션으로 바뀌므로) 다시 돈다.
+ * ⚠ 항상 마운트되는 기본 드로어(설정)는 이 애니메이션을 쓰지 않는다 — 그쪽은 전이로 열고 닫으며,
+ *   둘을 함께 걸면 열 때 두 벌이 겹쳐 움직인다.
+ */
+const stackedEnter = (side: SideDrawerSide) => keyframes`
+  from {
+    transform: translateX(${side === 'left' ? '-100%' : '100%'});
+  }
+  to {
+    transform: translateX(0);
+  }
+`;
+
 const dimSurface = (open: boolean) => css`
   background: ${color.overlay};
   backdrop-filter: blur(2px);
@@ -37,10 +56,16 @@ const dimSurface = (open: boolean) => css`
   visibility: ${open ? 'visible' : 'hidden'};
 `;
 
-export const SideDrawerDim = styled.div<{ $open: boolean; $dimBelow: SideDrawerDimScope }>`
+/**
+ * 겹친 층의 배경 z-index. 겹친 드로어는 **아래 드로어 패널보다 높은** 배경을 써야 그 패널이 덮인다.
+ * 근거는 `zIndex.drawerStackedBackdrop` 주석.
+ */
+const backdropLayer = (stacked: boolean) => (stacked ? zIndex.drawerStackedBackdrop : zIndex.drawerBackdrop);
+
+export const SideDrawerDim = styled.div<{ $open: boolean; $dimBelow: SideDrawerDimScope; $stacked: boolean }>`
   position: fixed;
   inset: 0;
-  z-index: ${zIndex.drawerBackdrop};
+  z-index: ${({ $stacked }) => backdropLayer($stacked)};
   /* 순수 장식 — 클릭은 형제 스크림이 받는다. */
   pointer-events: none;
   background: transparent;
@@ -65,10 +90,10 @@ export const SideDrawerDim = styled.div<{ $open: boolean; $dimBelow: SideDrawerD
   }
 `;
 
-export const SideDrawerScrim = styled.div<{ $open: boolean }>`
+export const SideDrawerScrim = styled.div<{ $open: boolean; $stacked: boolean }>`
   position: fixed;
   inset: 0;
-  z-index: ${zIndex.drawerBackdrop};
+  z-index: ${({ $stacked }) => backdropLayer($stacked)};
   background: transparent;
   opacity: ${({ $open }) => ($open ? 1 : 0)};
   /* 닫혀 있을 때 클릭을 삼키지 않게 하는 것은 opacity 가 아니라 visibility 다. */
@@ -89,12 +114,17 @@ export const SideDrawerScrim = styled.div<{ $open: boolean }>`
  * 닫힘 상태에 `visibility: hidden` 이 반드시 함께 붙어야 한다. `transform` 으로 화면 밖에 밀기만 하면
  * 스크린리더와 탭 이동이 여전히 닿아 "안 보이는데 포커스가 들어가는 패널"이 된다.
  */
-export const SideDrawerPanel = styled.aside<{ $open: boolean; $side: SideDrawerSide; $width: string }>`
+export const SideDrawerPanel = styled.aside<{
+  $open: boolean;
+  $side: SideDrawerSide;
+  $width: string;
+  $stacked: boolean;
+}>`
   position: fixed;
   top: 0;
   bottom: 0;
   ${({ $side }) => ($side === 'left' ? 'left: 0;' : 'right: 0;')}
-  z-index: ${zIndex.drawer};
+  z-index: ${({ $stacked }) => ($stacked ? zIndex.drawerStacked : zIndex.drawer)};
   width: ${({ $width }) => $width};
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
@@ -113,8 +143,17 @@ export const SideDrawerPanel = styled.aside<{ $open: boolean; $side: SideDrawerS
     transform ${motion.base} ${motion.easeDrawer},
     visibility ${motion.base} ${motion.easeDrawer};
 
+  /* 겹친 층만 — 마운트 즉시 슬라이드해 들어온다(위 stackedEnter 주석. 이 파일은 css 템플릿이라 백틱 금지). */
+  ${({ $open, $stacked, $side }) =>
+    $open && $stacked
+      ? css`
+          animation: ${stackedEnter($side)} ${motion.base} ${motion.easeDrawer};
+        `
+      : ''}
+
   @media (prefers-reduced-motion: reduce) {
     transition: none;
+    animation: none;
   }
 `;
 

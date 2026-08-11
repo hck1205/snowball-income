@@ -15,7 +15,6 @@ import {
   PostInvestmentProjectionPanel,
   PresetApplyModal,
   PortfolioPrefillRequest,
-  QuickAdjustBar,
   ScenarioPrefillNotice,
   ShareLinkFailureNotice,
   ScenarioTabs,
@@ -436,16 +435,6 @@ function MainRightPanelComponent({ configDrawerId }: MainRightPanelProps) {
                     onOpen={openConfigDrawer}
                   />
                 }
-              />
-            }
-            quickAdjust={
-              <QuickAdjustBar
-                values={{
-                  monthlyContribution: values.monthlyContribution,
-                  durationYears: values.durationYears,
-                  targetMonthlyDividend: values.targetMonthlyDividend
-                }}
-                onSetField={setField}
               />
             }
             financialIncomeBanner={
