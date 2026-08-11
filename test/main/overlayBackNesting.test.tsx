@@ -215,7 +215,6 @@ const makeModalProps = (onClose: () => void): TickerModalViewProps => ({
   selectedPreset: 'custom',
   presetTickers: PRESET_TICKERS,
   tickerDraft: makeDraft(''),
-  onBackdropClick: vi.fn(),
   onSelectPreset: vi.fn(),
   onChangeDraft: vi.fn(),
   onHelpExpectedTotalReturn: vi.fn(),
@@ -257,7 +256,7 @@ function RealHarness() {
 }
 
 const isSettingsOpen = () => screen.getByRole('button', { name: '설정 열기' }).getAttribute('aria-expanded') === 'true';
-const isModalOpen = () => screen.queryByRole('dialog', { name: '티커 생성' }) !== null;
+const isModalOpen = () => screen.queryByRole('complementary', { name: '티커 생성' }) !== null;
 const isFilterOpen = () => screen.queryByRole('dialog', { name: '프리셋 필터' }) !== null;
 
 async function openSettingsModalFilter(user: ReturnType<typeof userEvent.setup>) {

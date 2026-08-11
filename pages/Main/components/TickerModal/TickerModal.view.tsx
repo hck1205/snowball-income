@@ -1,11 +1,8 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { PRESET_TICKER_KOREAN_NAME_BY_TICKER } from '@/shared/constants';
 import nasdaqListedJson from '@/utils/TickerParser/output/nasdaq-listed.json';
 import otherListedJson from '@/utils/TickerParser/output/other-listed.json';
-import { InlineField, ModalBackdrop, ModalBody, ModalTitle } from '@/components/common';
-import { useDrawerBackClose, useOverlayEscape } from '@/shared/hooks';
-import { BREAKPOINT } from '@/shared/styles';
+import { InlineField, ModalBody, SideDrawer } from '@/components/common';
 import {
   PresetFilterDrawer,
   applyPresetFilters,
@@ -13,22 +10,30 @@ import {
   derivePresetRanges,
   type PresetFilterState
 } from '@/pages/Main/components/PresetFilterPanel';
-import { ModalShell, TickerModalPanel } from './TickerModal.styled';
 import type { TickerModalViewProps } from './TickerModal.types';
+import { Button } from '@/components';
+import { StageActionRow, TickerDrawerLayout } from './TickerModal.styled';
 import {
   buildTickerSearchRows,
   filterPresetKeys,
   isCustomTickerInput,
   isTickerCreateDisabled,
+  removeStaged,
+  resolveCreateTargets,
   scoreTickerSearch,
   sortPresetKeys,
+  stageCustomDraft,
+  toPreviewDisplayName,
+  toggleStagedPreset,
   toTotalReturnCaption,
   withDerivedTotalReturn,
-  type ListedTickerMap
+  type ListedTickerMap,
+  type StagedTicker
 } from './TickerModal.utils';
 import {
   PresetTickerPicker,
   PresetTickerPreview,
+  StagedTickerList,
   TickerDraftForm,
   TickerModalActions,
   TickerModalTabs,
@@ -42,21 +47,12 @@ const SHOW_SEARCH_TAB = false;
 
 const SEARCH_ROWS = buildTickerSearchRows(nasdaqListedJson as ListedTickerMap, otherListedJson as ListedTickerMap);
 
-/** 이 모달이 딤·스크롤 잠금을 쓰지 않아도 되는 넓은 폭. 설정 드로어의 딤 경계와 같은 토큰을 쓴다. */
-const STATIC_COLUMN_QUERY = `(min-width: ${BREAKPOINT.drawer + 1}px)`;
-
-function matchesStaticColumn(): boolean {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
-  return window.matchMedia(STATIC_COLUMN_QUERY).matches;
-}
-
 export default function TickerModalView({
   isOpen,
   mode,
   selectedPreset,
   presetTickers,
   tickerDraft,
-  onBackdropClick,
   onSelectPreset,
   onChangeDraft,
   onHelpExpectedTotalReturn,
@@ -64,12 +60,17 @@ export default function TickerModalView({
   onClose,
   onSave
 }: TickerModalViewProps) {
-  const modalRoot = typeof document !== 'undefined' ? document.body : null;
   const [searchKeyword, setSearchKeyword] = useState('');
   const [debouncedSearchKeyword, setDebouncedSearchKeyword] = useState('');
   const [presetSearchKeyword, setPresetSearchKeyword] = useState('');
   const [activeTab, setActiveTab] = useState<ModalTabKey>('preset');
+  /**
+   * 생성 대기 목록 — **뷰가 소유한다.** 모달을 닫으면 사라져야 하는 임시 상태라 jotai 로 올리지
+   * 않는다(올리면 공유 링크·영속 페이로드에 새 필드가 생길 이유가 없는데도 생긴다).
+   */
+  const [staged, setStaged] = useState<readonly StagedTicker[]>([]);
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
+  const panelId = useId();
   const drawerId = useId();
   const filterTriggerRef = useRef<HTMLButtonElement>(null);
   const sortedPresetKeys = useMemo(() => sortPresetKeys(presetTickers), [presetTickers]);
@@ -82,53 +83,14 @@ export default function TickerModalView({
     filterTriggerRef.current?.focus();
   }, []);
 
-  /**
-   * 모바일 뒤로가기로 모달 닫기 — 사용자는 이 모달을 드로어류로 인식한다(드로어 3곳과 같은 훅).
-   * 중첩은 3층이다: 설정 드로어 → 이 모달 → 필터 드로어. 훅의 층 스택이 "맨 위 한 겹"을 정하므로
-   * 뒤로가기 1회는 필터만, 한 번 더는 이 모달만 닫는다 — **밑의 설정 드로어는 남는다**(2026-07-30
-   * 까지는 필터를 닫는 순간 두 칸 아래 설정까지 닫혔다: 마커 슬롯이 1개였다).
-   * URL 은 한 글자도 바뀌지 않는다(훅 JSDoc 계약).
-   */
-  useDrawerBackClose(isOpen, onClose);
-
   /*
-   * Escape = 모달 닫기. 이 모달은 **설정 드로어 위에** 열리므로 층 순서를 스택이 정해야 한다 —
-   * 직접 window 리스너를 달던 시절엔 드로어의 document 리스너가 **먼저** 돌아(document 버블 →
-   * window 버블) Escape 한 번에 모달과 설정이 함께 닫혔다. 안쪽 필터 드로어도 2026-07-30부터 같은
-   * 스택에 참여한다 — 나중에 열려 맨 위이므로 Escape 는 필터만 닫고 이 층은 자기 차례를 기다린다
-   * (옛 `nativeEvent.stopPropagation()` 전파 차단은 제거됐다: 포커스가 패널 밖으로 떨어지면 무효였다).
-   */
-  useOverlayEscape(isOpen, onClose);
-
-  /**
-   * 열려 있는 동안 배경 페이지 스크롤 잠금 — 없으면 모바일에서 모달 위 터치가 뒤 페이지를 굴린다.
+   * 🔴 뒤로가기·Escape·배경 스크롤 잠금은 **공용 `SideDrawer` 가 소유한다**(2026-08-11 드로어 전환).
    *
-   * ⚠ 잠그는 대상이 `body` 가 아니라 **`html`** 인 이유: 이 모달은 설정 드로어
-   * (공용 `SideDrawer`) 위에 열리는데, 그 드로어가 `document.body.style.overflow` 를 같은
-   * 저장·복원 방식으로 소유한다. 저장 시점 값이 서로 얽혀 있어(모달은 드로어가 심어둔 'hidden'을
-   * 저장한다) 둘이 같은 값을 두고 겹치면 잠금이 남을 수 있다. 실측(QA)으로 확인된 영구 잠금 경로는
-   * **순차 닫힘** — 드로어가 먼저 닫혀 body 를 ''로 되돌린 뒤, 모달이 열린 채 남았다가 나중에
-   * 닫히며 자기가 저장해 둔 'hidden'을 복원한다 → 페이지가 영영 잠긴다.
-   * (티커 저장처럼 **같은 커밋에서 함께 닫히는** 경우는 React 18 passive 정리 순서상 언마운트되는
-   * 모달 정리가 드로어의 의존성 변경 정리보다 먼저 돌아 우연히 상쇄된다 — 정리 순서에 기댄 취약한
-   * 초록이라 근거로 삼지 않는다.)
-   * 뷰포트 스크롤은 html 이 visible 일 때만 body 로 전파되므로, 서로 다른 엘리먼트를 잠그면
-   * 두 잠금이 독립적이고 순서와 무관하게 항상 정확히 풀린다.
+   * 이 파일에는 그 셋이 직접 배선돼 있었다(모달 시절). 드로어로 바뀐 뒤에도 남겨 두면 같은 층이
+   * 스택에 **두 번** 등록돼 뒤로가기 한 번에 두 칸이 소비되고, 잠금은 `html`(여기) 과 `body`
+   * (드로어) 두 곳이 서로 모르는 채 걸린다. 그래서 전부 걷어냈다 — 중첩 순서(설정 → 티커 →
+   * 필터)는 `SideDrawer` 와 `PresetFilterDrawer` 가 각자 등록하는 같은 스택이 그대로 정한다.
    */
-  useEffect(() => {
-    if (!isOpen || typeof document === 'undefined') return undefined;
-    // 오버레이 폭(≤ BREAKPOINT.drawer)에서만 잠근다 — 데스크톱은 배경 스크롤 오작동이 없는 반면,
-    // 클래식 스크롤바(Windows)에서 잠그는 순간 스크롤바가 사라져 배경이 ~15px 밀리는 시각 변화가 생긴다.
-    if (matchesStaticColumn()) return undefined;
-
-    const root = document.documentElement;
-    const previousOverflow = root.style.overflow;
-    root.style.overflow = 'hidden';
-
-    return () => {
-      root.style.overflow = previousOverflow;
-    };
-  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -137,6 +99,8 @@ export default function TickerModalView({
     setDebouncedSearchKeyword('');
     setPresetSearchKeyword('');
     setIsFilterDrawerOpen(false);
+    // 담은 목록은 모달을 열 때마다 빈 상태로 시작한다 — 지난번에 담다 만 것이 되살아나면 사고다.
+    setStaged([]);
     setPresetFilter(createInitialFilterState(presetRanges));
     // presetRanges 는 presetTickers 파생 memo 다. presetTickers 는 안정 참조여야 한다 —
     // 매 렌더 새 객체를 넘기면 presetRanges 가 재계산돼 이 이펙트가 필터를 매 렌더 초기화한다.
@@ -169,20 +133,106 @@ export default function TickerModalView({
     });
     return applyPresetFilters(textFiltered, presetTickers, presetFilter);
   }, [presetSearchKeyword, presetTickers, sortedPresetKeys, presetFilter]);
+  /**
+   * 이름 칸에 보여 줄 이름. 판정은 `toPreviewDisplayName` 한 곳이 소유한다 — 프리셋 선택과
+   * **수정 모드**(저장된 name 이 빈 문자열인 경우)를 같은 규칙으로 처리해야 한다.
+   */
+  const previewDisplayName = toPreviewDisplayName({
+    tickerDraft,
+    selectedPreset,
+    presetTickers,
+    koreanNameByTicker: PRESET_TICKER_KOREAN_NAME_BY_TICKER
+  });
+
+  /** 칩의 선택 표시용 — 담은 항목의 키(프리셋 키)들. */
+  const stagedPresetKeys = useMemo(() => staged.map((item) => item.key), [staged]);
   const isCreateCustomInput = isCustomTickerInput(mode, selectedPreset);
-  const isCreateDisabled = isTickerCreateDisabled({ mode, selectedPreset, tickerDraft });
+
+  /**
+   * 프리셋 칩을 누르면 **담기 토글 + 미리보기 갱신**을 함께 한다.
+   *
+   * 미리보기(`onSelectPreset` → tickerDraft)는 담을 때만 갱신한다 — 빼는 순간 미리보기까지
+   * 지우면 "방금 뺀 것이 무엇이었는지"를 확인할 화면이 사라진다.
+   */
+  const handleTogglePreset = useCallback(
+    (preset: 'custom' | keyof typeof presetTickers) => {
+      if (preset === 'custom') {
+        onSelectPreset(preset);
+        return;
+      }
+      const willStage = !staged.some((item) => item.key === preset);
+      setStaged((prev) => toggleStagedPreset(prev, preset, presetTickers[preset]));
+      if (willStage) onSelectPreset(preset);
+    },
+    [onSelectPreset, presetTickers, staged]
+  );
+
+  /** 직접 입력 폼을 목록에 담고 폼을 비운다 — 연속 입력이 되게(주기는 방금 고른 값을 유지). */
+  const handleStageCustomDraft = useCallback(() => {
+    setStaged((prev) => stageCustomDraft(prev, tickerDraft));
+    onChangeDraft((prev) => ({
+      ticker: '',
+      name: '',
+      initialPrice: Number.NaN,
+      dividendYield: Number.NaN,
+      dividendGrowth: Number.NaN,
+      expectedTotalReturn: Number.NaN,
+      frequency: prev.frequency
+    }));
+  }, [onChangeDraft, tickerDraft]);
+
+  /**
+   * 담은 목록 노드. **탭마다 자리가 다르므로** 노드를 한 번 만들어 두 곳에서 쓴다(탭은 배타라
+   * 실제로 그려지는 것은 언제나 하나다).
+   *
+   * 🔴 자리: 프리셋 탭은 **칩 목록 바로 밑**(2026-08-11 사용자 지시) — 고른 것이 어디로 갔는지
+   *    눈이 움직이는 거리가 가장 짧다. 직접 입력 탭은 담기 버튼 밑이다(같은 이유).
+   */
+  const stagedList =
+    mode === 'create' ? (
+      <StagedTickerList
+        staged={staged}
+        onRemove={(key) => setStaged((prev) => removeStaged(prev, key))}
+        onClear={() => setStaged([])}
+      />
+    ) : null;
+
+  /* 🔴 라벨·잠금·저장이 **같은 목록**을 본다. 세 곳이 따로 세면 개수와 결과가 어긋난다. */
+  const createTargets = resolveCreateTargets({ staged, tickerDraft, isCustomInputTab: activeTab === 'input' });
+  const isCreateDisabled =
+    mode === 'edit'
+      ? isTickerCreateDisabled({ mode, selectedPreset, tickerDraft })
+      : createTargets.length === 0;
   // 정합 모델: 총수익률은 입력이 아니라 배당률 + 배당 성장률의 파생값이다.
   const derivedTotalReturn = withDerivedTotalReturn(tickerDraft).expectedTotalReturn;
   const totalReturnCaption = toTotalReturnCaption(tickerDraft);
 
   if (!isOpen) return null;
-  if (!modalRoot) return null;
 
-  return createPortal(
-    <ModalBackdrop role="dialog" aria-modal="true" aria-labelledby="ticker-modal-title" onClick={onBackdropClick}>
-      <ModalShell>
-      <TickerModalPanel>
-        <ModalTitle id="ticker-modal-title">{mode === 'edit' ? '티커 설정 수정' : '티커 생성'}</ModalTitle>
+  /*
+   * 🔴 **설정 드로어 위에 겹치는 드로어**다(2026-08-11 사용자 지시로 모달 → 드로어).
+   *
+   * 모달이던 시절에는 화면 가운데 520px 패널이 떠서, 설정 드로어에서 "종목을 담는" 동작이
+   * 다른 좌표계로 튀어나갔다. 지금은 같은 왼쪽 가장자리에서 한 겹 위로 올라온다 — 뒤로가기·
+   * Escape 로 한 겹씩 벗겨지는 동선이 화면 형태와 일치한다.
+   *
+   * ⚠ 설정 드로어(560px)보다 **넓다**(600px). 아래 층을 완전히 덮어 "지금 만지는 것은 이 층"이
+   *   분명해진다 — 살짝 좁게 두면 뒤 패널이 한 줄 삐져나와 어느 층이 위인지 흔들린다.
+   * ⚠ `dimBelow='always'` — 전 폭에서 아래 층을 덮는다. 이 층은 "고르고 돌아오는" 한 갈래 동선이라
+   *   설정 드로어처럼 "만지면서 결과를 본다"가 아니다.
+   */
+  return (
+    <SideDrawer
+      id={panelId}
+      isOpen={isOpen}
+      stacked
+      dimBelow="always"
+      width="min(96vw, 600px)"
+      title={mode === 'edit' ? '티커 설정 수정' : '티커 생성'}
+      closeLabel={mode === 'edit' ? '티커 설정 수정 닫기' : '티커 생성 닫기'}
+      onClose={onClose}
+    >
+      <TickerDrawerLayout>
         <ModalBody>
           {mode === 'edit'
             ? '값을 수정하면 해당 티커 설정이 업데이트됩니다.'
@@ -191,21 +241,41 @@ export default function TickerModalView({
         <TickerModalTabs activeTab={activeTab} mode={mode} showSearchTab={SHOW_SEARCH_TAB} onSelectTab={setActiveTab} />
 
         {activeTab === 'input' ? (
-          <TickerDraftForm
-            tickerDraft={tickerDraft}
-            isCreateCustomInput={isCreateCustomInput}
-            derivedTotalReturn={derivedTotalReturn}
-            totalReturnCaption={totalReturnCaption}
-            onChangeDraft={onChangeDraft}
-            onHelpExpectedTotalReturn={onHelpExpectedTotalReturn}
-          />
+          <>
+            <TickerDraftForm
+              tickerDraft={tickerDraft}
+              isCreateCustomInput={isCreateCustomInput}
+              derivedTotalReturn={derivedTotalReturn}
+              totalReturnCaption={totalReturnCaption}
+              onChangeDraft={onChangeDraft}
+              onHelpExpectedTotalReturn={onHelpExpectedTotalReturn}
+            />
+            {/*
+              🔴 직접 입력이 다중 생성에서 소외되지 않게 하는 한 칸(2026-08-10). 담으면 폼이 비워져
+                 **여러 개를 연달아** 적을 수 있고, 프리셋에서 담은 것들과 같은 목록에 섞인다.
+              ⚠ 담지 않고 바로 생성해도 이 폼 값은 함께 만들어진다(`resolveCreateTargets`) — 이 버튼은
+                "여러 개를 적으려면" 쓰는 것이고, 한 개만 만들 사람에게 강요되는 단계가 아니다.
+            */}
+            {mode === 'create' ? (
+              <StageActionRow>
+                <Button
+                  variant="secondary"
+                  type="button"
+                  disabled={isTickerCreateDisabled({ mode, selectedPreset: 'custom', tickerDraft })}
+                  onClick={handleStageCustomDraft}
+                >
+                  목록에 담고 계속 입력
+                </Button>
+              </StageActionRow>
+            ) : null}
+            {stagedList}
+          </>
         ) : null}
 
         {activeTab === 'preset' ? (
           <InlineField>
             <PresetTickerPicker
               presetTickers={presetTickers}
-              selectedPreset={selectedPreset}
               presetSearchKeyword={presetSearchKeyword}
               onChangeSearchKeyword={setPresetSearchKeyword}
               filterTriggerRef={filterTriggerRef}
@@ -217,10 +287,19 @@ export default function TickerModalView({
               onChangeFilter={setPresetFilter}
               filteredPresetKeys={filteredPresetKeys}
               totalPresetCount={sortedPresetKeys.length}
-              onSelectPreset={onSelectPreset}
+              stagedPresetKeys={stagedPresetKeys}
+              onSelectPreset={handleTogglePreset}
             />
+            {stagedList}
+            {/*
+              🔴 미리보기는 **항상 보인다**(2026-08-11 사용자 지적으로 되돌림). 두 개 이상 담으면
+                 숨기게 해 뒀었는데, 사용자에게는 "두 개째부터 담기 표시만 남고 값이 사라지는 버그"로
+                 읽혔다 — 맞는 지적이다. 방금 누른 종목의 값을 확인하는 창은 담은 개수와 무관하게
+                 필요하다(무엇을 담았는지는 아래 목록이 따로 말한다).
+            */}
             <PresetTickerPreview
               tickerDraft={tickerDraft}
+              displayName={previewDisplayName}
               derivedTotalReturn={derivedTotalReturn}
               totalReturnCaption={totalReturnCaption}
               onHelpExpectedTotalReturn={onHelpExpectedTotalReturn}
@@ -241,12 +320,13 @@ export default function TickerModalView({
         <TickerModalActions
           mode={mode}
           isCreateDisabled={isCreateDisabled}
+          createCount={createTargets.length}
           onDelete={onDelete}
           onClose={onClose}
-          onSave={onSave}
+          /* 수정 모드는 목록 개념이 없다 — 인자를 비워 종전 단일 저장 경로로 보낸다. */
+          onSave={() => onSave(mode === 'edit' ? undefined : createTargets)}
         />
-      </TickerModalPanel>
-      {activeTab === 'preset' && isFilterDrawerOpen ? (
+        {activeTab === 'preset' && isFilterDrawerOpen ? (
         <PresetFilterDrawer
           open={isFilterDrawerOpen}
           drawerId={drawerId}
@@ -254,11 +334,10 @@ export default function TickerModalView({
           ranges={presetRanges}
           onChange={setPresetFilter}
           resultCount={filteredPresetKeys.length}
-          onClose={closeFilterDrawer}
-        />
-      ) : null}
-      </ModalShell>
-    </ModalBackdrop>,
-    modalRoot
+            onClose={closeFilterDrawer}
+          />
+        ) : null}
+      </TickerDrawerLayout>
+    </SideDrawer>
   );
 }

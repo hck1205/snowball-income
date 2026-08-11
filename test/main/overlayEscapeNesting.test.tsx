@@ -54,7 +54,6 @@ const makeModalProps = (onClose: () => void): TickerModalViewProps => ({
   selectedPreset: 'custom',
   presetTickers: PRESET_TICKERS,
   tickerDraft: makeDraft(''),
-  onBackdropClick: vi.fn(),
   onSelectPreset: vi.fn(),
   onChangeDraft: vi.fn(),
   onHelpExpectedTotalReturn: vi.fn(),
@@ -119,11 +118,11 @@ describe('중첩 오버레이 Escape — 한 번에 한 겹만 닫힌다', () =>
     render(<Harness overlay="ticker-modal" />);
 
     await openDrawerThenOverlay(user);
-    expect(screen.getByRole('dialog', { name: '티커 생성' })).toBeInTheDocument();
+    expect(screen.getByRole('complementary', { name: '티커 생성' })).toBeInTheDocument();
 
     await user.keyboard('{Escape}');
 
-    expect(screen.queryByRole('dialog', { name: '티커 생성' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('complementary', { name: '티커 생성' })).not.toBeInTheDocument();
     // 회귀의 핵심: 모달을 취소했을 뿐인데 뒤의 설정까지 사라지면 사용자는 하던 자리를 잃는다.
     expect(isDrawerOpen()).toBe(true);
   });

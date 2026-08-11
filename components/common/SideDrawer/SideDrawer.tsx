@@ -43,11 +43,32 @@ let bodyScrollLockCount = 0;
  */
 let bodyScrollLockPreviousOverflow = '';
 
+/**
+ * **첫 잠금 시점**의 인라인 `padding-right`. 아래 스크롤바 보정과 짝이다 — `overflow` 와 같은 이유로
+ * 복원값은 하나뿐이어야 한다.
+ */
+let bodyScrollLockPreviousPaddingRight = '';
+
+/**
+ * 세로 스크롤바가 차지하던 폭. `overflow: hidden` 은 그 스크롤바를 없애 **배경을 그 폭만큼 밀어낸다**
+ * (클래식 스크롤바를 쓰는 Windows 에서 눈에 띈다 — 드로어를 열 때 뒤 페이지가 15px 점프한다).
+ * 같은 폭을 `padding-right` 로 되돌려 주면 레이아웃이 그대로 있다. 오버레이 스크롤바(macOS 기본)면
+ * 차이가 0 이라 아무 일도 일어나지 않는다.
+ */
+function verticalScrollbarWidth(): number {
+  if (typeof window === 'undefined') return 0;
+  return Math.max(0, window.innerWidth - document.documentElement.clientWidth);
+}
+
 /** 잠금을 하나 잡고, 그 하나를 놓는 함수를 돌려준다(두 번 불러도 한 번만 센다). */
 function acquireBodyScrollLock(): () => void {
   if (bodyScrollLockCount === 0) {
     bodyScrollLockPreviousOverflow = document.body.style.overflow;
+    bodyScrollLockPreviousPaddingRight = document.body.style.paddingRight;
+    const gap = verticalScrollbarWidth();
     document.body.style.overflow = 'hidden';
+    // 0 이면 손대지 않는다 — 인라인 스타일을 괜히 남기지 않기 위해서다.
+    if (gap > 0) document.body.style.paddingRight = `${gap}px`;
   }
   bodyScrollLockCount += 1;
 
@@ -59,7 +80,9 @@ function acquireBodyScrollLock(): () => void {
     // 마지막 하나가 놓을 때만 복원한다. 남아 있는 드로어가 있으면 잠금은 그대로 유지된다.
     if (bodyScrollLockCount > 0) return;
     document.body.style.overflow = bodyScrollLockPreviousOverflow;
+    document.body.style.paddingRight = bodyScrollLockPreviousPaddingRight;
     bodyScrollLockPreviousOverflow = '';
+    bodyScrollLockPreviousPaddingRight = '';
   };
 }
 
@@ -112,6 +135,7 @@ function useIsDimmed(dimBelow: SideDrawerDimScope): boolean {
  * | `pages/Main/.../SettingsDrawer` | 기본값(left·`dimBelow='drawer'`·`bodyLayout='scroll'`) | 데스크톱은 딤·락 없이 조정↔확인 |
  * | `pages/Portfolio/.../HoldingPickerDrawer` | right·420px·`'always'`·`'fill'` | 전 폭 모달 피커, 목록이 높이를 먹는다 |
  * | `pages/DividendCalendar/.../PickerDrawer` | 위와 동일 | 같은 성격의 종목 피커 |
+ * | `pages/Main/.../TickerModal` | left·`stacked`·`'always'` | **설정 드로어 위에 겹치는 한 겹** — 티커 생성 |
  *
  * (`pages/Main/.../PresetFilterDrawer` 는 **의도적으로 여기 없다** — 뷰포트가 아니라 티커 모달 셸에
  *  `absolute` 로 핀되는 모달 안 패널이라 이 껍데기와 좌표계·모달성이 다르다. 그 파일 주석 참고.)
@@ -140,6 +164,7 @@ export default function SideDrawer({
   width = 'min(92vw, 400px)',
   dimBelow = 'drawer',
   bodyLayout = 'scroll',
+  stacked = false,
   children
 }: SideDrawerProps) {
   const titleId = useId();
@@ -173,9 +198,16 @@ export default function SideDrawer({
 
   return (
     <>
-      <SideDrawerDim $open={isOpen} $dimBelow={dimBelow} aria-hidden />
-      <SideDrawerScrim $open={isOpen} aria-hidden onClick={onClose} />
-      <SideDrawerPanel id={id} $open={isOpen} $side={side} $width={width} aria-labelledby={titleId}>
+      <SideDrawerDim $open={isOpen} $dimBelow={dimBelow} $stacked={stacked} aria-hidden />
+      <SideDrawerScrim $open={isOpen} $stacked={stacked} aria-hidden onClick={onClose} />
+      <SideDrawerPanel
+        id={id}
+        $open={isOpen}
+        $side={side}
+        $width={width}
+        $stacked={stacked}
+        aria-labelledby={titleId}
+      >
         <SideDrawerHead>
           <SideDrawerTitle id={titleId}>{title}</SideDrawerTitle>
           <SideDrawerCloseButton type="button" ref={closeRef} aria-label={closeLabel} onClick={onClose}>

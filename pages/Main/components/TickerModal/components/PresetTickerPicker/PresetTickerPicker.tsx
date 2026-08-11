@@ -12,7 +12,7 @@ import {
 import { PresetFilterStatus, PresetFilterTrigger, countActiveFilters } from '@/pages/Main/components/PresetFilterPanel';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 // 부모 배럴(../../index.ts)을 경유하면 TickerModal ↔ 하위 컴포넌트 순환이 된다 — 상대 경로로 직접 가져온다.
-import { ModalCaption } from '../../TickerModal.styled';
+import { PickerHintRow } from '../../TickerModal.styled';
 import type { PresetTickerPickerProps } from './PresetTickerPicker.types';
 
 /**
@@ -21,7 +21,6 @@ import type { PresetTickerPickerProps } from './PresetTickerPicker.types';
  */
 function PresetTickerPicker({
   presetTickers,
-  selectedPreset,
   presetSearchKeyword,
   onChangeSearchKeyword,
   filterTriggerRef,
@@ -33,6 +32,7 @@ function PresetTickerPicker({
   onChangeFilter,
   filteredPresetKeys,
   totalPresetCount,
+  stagedPresetKeys,
   onSelectPreset
 }: PresetTickerPickerProps) {
   return (
@@ -57,22 +57,32 @@ function PresetTickerPicker({
         />
       </ModalTickerSearchWrap>
       <PresetFilterStatus filter={presetFilter} ranges={presetRanges} onChange={onChangeFilter} />
-      <ModalCaption>
-        주의: 실시간 데이터가 아니기 때문에 실제 데이터와 다를 수 있습니다. 참고용으로만 사용해 주세요.
-      </ModalCaption>
-      <ModalCaption>
-        표시: {filteredPresetKeys.length} / 전체: {totalPresetCount}
-      </ModalCaption>
+      {/*
+        캡션 세 줄(면책 · 개수 · 다중선택 안내)을 **한 줄**로 눕혔다 — 셋 다 훑고 지나가는 정보인데
+        쌓아 두면 목록보다 큰 덩어리가 됐다(2026-08-11). 면책은 같은 뜻의 짧은 형태로 줄였다.
+      */}
+      <PickerHintRow>
+        <span>
+          표시: {filteredPresetKeys.length} / 전체: {totalPresetCount}
+        </span>
+        <span>여러 개를 눌러 담기 · 참고용 시세(실시간 아님)</span>
+      </PickerHintRow>
       {filteredPresetKeys.length > 0 ? (
         <PresetChipScrollArea>
-          <PresetChipGrid role="listbox" aria-label="프리셋 티커 목록">
+          {/*
+            🔴 `aria-multiselectable` 이다(2026-08-10 다중 생성). 칩 하나를 누르면 담기고 다시 누르면
+               빠지므로, 단일 선택 목록이라고 낭독되면 스크린리더 사용자는 "여러 개를 담을 수 있다"를
+               알 수 없다.
+          */}
+          <PresetChipGrid role="listbox" aria-multiselectable="true" aria-label="프리셋 티커 목록">
             {filteredPresetKeys.map((presetKey) => (
               <PresetChipButton
                 key={presetKey}
                 type="button"
                 role="option"
-                selected={selectedPreset === presetKey}
-                aria-selected={selectedPreset === presetKey}
+                /* 선택 표시 = **담겼는가**. 미리보기 대상(`selectedPreset`)과 다르다. */
+                selected={stagedPresetKeys.includes(presetKey)}
+                aria-selected={stagedPresetKeys.includes(presetKey)}
                 aria-label={`${presetTickers[presetKey].ticker} 선택`}
                 onClick={() => {
                   trackEvent(ANALYTICS_EVENT.CTA_CLICK, {

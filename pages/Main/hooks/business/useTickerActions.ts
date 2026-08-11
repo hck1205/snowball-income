@@ -139,7 +139,74 @@ export const useTickerActions = () => {
     if (isTickerModalOpen) closeTickerModal();
   }, [closeHelp, closeTickerModal, currentHelp, isTickerModalOpen]);
 
-  const saveTicker = useCallback(() => {
+  /**
+   * 담은 목록을 **한 번에** 생성한다(2026-08-10 다중 생성).
+   *
+   * 🔴 상태 갱신을 항목마다 반복하지 않고 배열을 한 번에 만들어 한 번씩만 쓴다 — 항목마다
+   *    `setTickerProfiles` 를 부르면 각 업데이터가 직전 결과를 못 보고 겹칠 위험(그리고 리렌더
+   *    N배)이 있다.
+   * 🔴 담은 **순서대로** 목록에 선다. 화면의 목록은 최신이 위이므로 profiles/included 에 넣을 때
+   *    새 항목 묶음을 앞에 붙이고, 묶음 안의 순서는 담은 순서를 지킨다.
+   * ⚠ 선택(포커스)은 **첫 항목**으로 간다 — 여러 개를 만든 뒤 마지막 것이 선택되면 사용자가 방금
+   *   훑어본 목록의 맨 위와 어긋난다.
+   */
+  const saveTickers = useCallback(
+    (items: readonly { draft: TickerDraft; isCustomPreset: boolean }[]) => {
+      const profiles = items
+        .filter((item) => isTickerDraftValid(item.draft))
+        .map((item) =>
+          buildTickerProfileFromDraft({
+            draft: item.draft,
+            mode: 'create',
+            isCustomPreset: item.isCustomPreset,
+            editingTickerId: null,
+            generateId: createTickerId
+          })
+        );
+
+      if (profiles.length === 0) return;
+
+      const newIds = profiles.map((profile) => profile.id);
+      setTickerProfiles((prev: TickerProfile[]) => [...profiles, ...prev]);
+      setIncludedTickerIds((prev: string[]) => [...newIds, ...prev]);
+      setWeightByTickerId((prev: Record<string, number>) => ({
+        ...prev,
+        ...Object.fromEntries(newIds.map((id) => [id, 1]))
+      }));
+      setFixedByTickerId((prev: Record<string, boolean>) => ({
+        ...prev,
+        ...Object.fromEntries(newIds.map((id) => [id, false]))
+      }));
+      setSelectedTickerId(profiles[0].id);
+      applyTickerProfile(profiles[0]);
+
+      profiles.forEach((profile, index) => {
+        const source = items[index]?.isCustomPreset ? 'custom' : 'preset';
+        trackEvent(ANALYTICS_EVENT.TICKER_SAVED, { mode: 'create', ticker: profile.ticker, source });
+        trackEvent(ANALYTICS_EVENT.TICKER_INCLUDED, { ticker: profile.ticker, source });
+      });
+      setUserProperties({ has_saved: true });
+
+      closeTickerModal();
+    },
+    [
+      applyTickerProfile,
+      closeTickerModal,
+      setFixedByTickerId,
+      setIncludedTickerIds,
+      setSelectedTickerId,
+      setTickerProfiles,
+      setWeightByTickerId
+    ]
+  );
+
+  const saveTicker = useCallback((drafts?: readonly { draft: TickerDraft; isCustomPreset: boolean }[]) => {
+    /* 목록이 실려 오면 다중 생성 경로다(수정 모드는 인자 없이 들어온다). */
+    if (drafts && drafts.length > 0) {
+      saveTickers(drafts);
+      return;
+    }
+
     if (!isTickerDraftValid(tickerDraft)) return;
 
     const profile = buildTickerProfileFromDraft({
@@ -196,6 +263,7 @@ export const useTickerActions = () => {
     setSelectedTickerId,
     setTickerProfiles,
     setWeightByTickerId,
+    saveTickers,
     tickerDraft,
     tickerModalMode,
     selectedPreset

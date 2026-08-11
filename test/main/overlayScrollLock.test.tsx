@@ -9,13 +9,22 @@ import type { PresetTickerKey } from '@/shared/constants';
 import type { TickerDraft } from '@/shared/types/snowball';
 
 /**
- * 좁은 폭에서 **설정 드로어(body 잠금)** 와 **티커 모달(html 잠금)** 이 겹칠 때 배경 스크롤이
- * 영구 잠기지 않는지 검증한다. 두 잠금이 서로 다른 엘리먼트를 소유한다는 것이 "정리 순서와
- * 무관하게 항상 풀린다"의 유일한 근거라, 그 주장을 순서를 바꿔가며 실제로 구동해 확인한다.
+ * 설정 드로어와 티커 생성 드로어가 겹칠 때 배경 스크롤이 **영구 잠기지 않는지** 검증한다.
  *
- * 설정 패널은 이제 **전 해상도에서 오버레이 드로어**다. 갈리는 것은 "열려 있는가"가 아니라
- * **딤·스크롤 잠금을 걸 만큼 좁은가**(≤960)뿐이다 — 전역 `matchMedia` 스텁이 `matches: false` 라
- * 기본은 "딤 없음"이고, 좁은 폭은 아래에서 따로 스텁한다.
+ * ## 🔄 뒤집힌 계약 (2026-08-11 티커 생성 모달 → 겹친 드로어)
+ *
+ * 종전 계약은 "**서로 다른 엘리먼트**를 잠근다"(설정=body · 티커 모달=html)였다. 두 층이 각자
+ * 저장·복원하던 시절, 같은 엘리먼트를 두고 겹치면 먼저 닫히는 쪽이 남은 층의 잠금을 풀거나
+ * 반대로 영구 잠금을 남겼기 때문이다.
+ *
+ * 지금은 두 층이 **같은 공용 `SideDrawer`** 이고, 잠금은 그 모듈의 **refcount** 가 소유한다.
+ * 그래서 계약이 이렇게 바뀐다:
+ *   · 잠그는 곳은 `body` **한 곳**이다. `html` 은 아무도 건드리지 않는다.
+ *   · 두 층이 겹쳐도 잠금은 하나이고, **마지막 층이 닫힐 때만** 복원된다.
+ *   · 티커 층은 `dimBelow='always'` 라 **넓은 폭에서도** 잠근다(겹친 층은 아래를 덮는 동선이다).
+ *     설정 층은 `'drawer'`(≤960) 그대로 — 넓은 화면에서 조정↔확인 루프를 끊지 않는다.
+ *
+ * 이 파일이 지키는 것은 여전히 하나다: **어떤 순서로 닫아도 잠금이 남지 않는다.**
  */
 
 const makeDraft = (ticker: string): TickerDraft => ({
@@ -36,7 +45,6 @@ const makeModalProps = (): TickerModalViewProps => ({
   selectedPreset: 'custom',
   presetTickers: PRESET_TICKERS,
   tickerDraft: makeDraft(''),
-  onBackdropClick: vi.fn(),
   onSelectPreset: vi.fn(),
   onChangeDraft: vi.fn(),
   onHelpExpectedTotalReturn: vi.fn(),
@@ -52,7 +60,7 @@ type HarnessHandle = {
 };
 
 /**
- * Main.view 와 **같은 트리 순서**(드로어가 모달보다 앞선 형제)로 둘을 함께 마운트한다 —
+ * Main.view 와 **같은 트리 순서**(설정 층이 티커 층보다 앞선 형제)로 둘을 함께 마운트한다 —
  * 언마운트 정리는 트리 순서로 도므로 순서를 바꾸면 검증 대상 자체가 달라진다.
  */
 function Harness({ onReady }: { onReady: (handle: HarnessHandle) => void }) {
@@ -89,6 +97,7 @@ const renderHarness = () => {
   const view = render(<Harness onReady={(next) => { handle = next; }} />);
   return {
     ...view,
+    handle: () => handle as unknown as HarnessHandle,
     act: (run: (handle: HarnessHandle) => void) => {
       act(() => {
         run(handle as unknown as HarnessHandle);
@@ -102,7 +111,7 @@ const locks = () => ({
   html: document.documentElement.style.overflow
 });
 
-describe('모바일 오버레이 스크롤 잠금 — 설정 드로어(body) × 티커 모달(html)', () => {
+describe('모바일 오버레이 스크롤 잠금 — 겹친 두 드로어가 body 잠금 하나를 공유한다', () => {
   beforeEach(() => {
     // 딤·스크롤 잠금이 걸리는 좁은 폭(≤960). 전역 스텁은 어떤 질의도 매치하지 않는다.
     stubViewportWidth(360);
@@ -112,39 +121,41 @@ describe('모바일 오버레이 스크롤 잠금 — 설정 드로어(body) × 
     restoreMatchMedia();
   });
 
-  it('두 잠금은 서로 다른 엘리먼트를 소유한다(같은 값을 덮어쓰지 않는다)', () => {
+  it('두 층이 겹쳐도 잠그는 곳은 body 한 곳이다 — html 은 아무도 건드리지 않는다', () => {
     expect(locks()).toEqual({ body: '', html: '' });
 
     renderHarness();
 
-    // 드로어와 모달이 동시에 열려 있어도 각자 자기 엘리먼트만 잠근다.
-    expect(locks()).toEqual({ body: 'hidden', html: 'hidden' });
-    expect(screen.getByRole('dialog', { name: '티커 생성' })).toBeInTheDocument();
+    expect(locks()).toEqual({ body: 'hidden', html: '' });
+    expect(screen.getByRole('complementary', { name: '티커 생성' })).toBeInTheDocument();
   });
 
-  it('티커 저장처럼 드로어·모달이 같은 커밋에 함께 닫혀도 두 잠금이 모두 풀린다', () => {
+  it('티커 저장처럼 두 층이 같은 커밋에 함께 닫혀도 잠금이 풀린다', () => {
     const view = renderHarness();
-    expect(locks()).toEqual({ body: 'hidden', html: 'hidden' });
+    expect(locks()).toEqual({ body: 'hidden', html: '' });
 
-    // ⚠ 이것이 회귀의 핵심 동선이다: 둘 다 body 를 잠그던 시절엔 정리 순서(트리 순서) 탓에
-    //    드로어가 ''로 되돌린 뒤 모달이 'hidden'을 복원해 페이지가 영영 잠겼다.
+    /*
+     * ⚠ 회귀의 핵심 동선. 층마다 저장·복원하던 시절엔 정리 순서(트리 순서) 탓에 한쪽이 ''로
+     *   되돌린 뒤 다른 쪽이 'hidden'을 복원해 페이지가 영영 잠겼다. 지금은 refcount 가 막는다.
+     */
     view.act((handle) => handle.closeBoth());
 
     expect(locks()).toEqual({ body: '', html: '' });
   });
 
-  it('닫히는 순서를 바꿔도(드로어 먼저 / 모달 먼저) 잠금이 남지 않는다', () => {
+  it('🔴 한 층만 닫혀도 잠금은 유지된다 — 남은 층 위에서 배경이 굴러가면 딤이 거짓말이 된다', () => {
     const first = renderHarness();
+
     first.act((handle) => handle.closeDrawerOnly());
-    // 모달은 아직 열려 있다 — html 만 잠긴 채 body 는 풀린다.
-    expect(locks()).toEqual({ body: '', html: 'hidden' });
+    // 티커 층이 남아 있다 → 잠금도 남는다(조기 해제 금지).
+    expect(locks()).toEqual({ body: 'hidden', html: '' });
     first.act((handle) => handle.closeModalOnly());
     expect(locks()).toEqual({ body: '', html: '' });
     first.unmount();
 
     const second = renderHarness();
+    // 반대 순서도 같다 — 마지막 하나가 놓을 때만 복원된다.
     second.act((handle) => handle.closeModalOnly());
-    // 반대로 모달만 먼저 — body 만 잠긴 채 html 은 풀린다.
     expect(locks()).toEqual({ body: 'hidden', html: '' });
     second.act((handle) => handle.closeDrawerOnly());
     expect(locks()).toEqual({ body: '', html: '' });
@@ -152,7 +163,7 @@ describe('모바일 오버레이 스크롤 잠금 — 설정 드로어(body) × 
 
   it('언마운트(라우트 이동 등)로 한꺼번에 사라져도 잠금이 남지 않는다', () => {
     const view = renderHarness();
-    expect(locks()).toEqual({ body: 'hidden', html: 'hidden' });
+    expect(locks()).toEqual({ body: 'hidden', html: '' });
 
     view.unmount();
 
@@ -160,13 +171,7 @@ describe('모바일 오버레이 스크롤 잠금 — 설정 드로어(body) × 
   });
 });
 
-/**
- * 🔄 **뒤집힌 계약(2026-07-28)**: 설정 패널은 이제 넓은 폭에서도 오버레이 드로어다.
- * 그래서 대조군은 "오버레이가 아니면 안 잠근다"가 아니라 **"딤이 없는 폭(≥961)에서는
- * 열려 있어도 스크롤을 잠그지 않는다"** 다 — 설정을 만지면서 결과를 계속 스크롤하는 동선이
- * 이 계약에 걸려 있다.
- */
-describe('넓은 폭 대조군 — 드로어는 열리되 딤·스크롤 잠금은 걸리지 않는다', () => {
+describe('넓은 폭 — 설정 층은 잠그지 않고, 겹친 티커 층은 잠근다', () => {
   beforeEach(() => {
     // 넓은 폭: `(max-width: 960px)` 는 false, `(min-width: 961px)` 는 true.
     stubViewportWidth(1440);
@@ -176,27 +181,34 @@ describe('넓은 폭 대조군 — 드로어는 열리되 딤·스크롤 잠금�
     restoreMatchMedia();
   });
 
-  it('드로어가 열려 있어도 body 를 잠그지 않는다(결과를 계속 스크롤할 수 있어야 한다)', () => {
+  it('설정 층만 열려 있으면 잠그지 않는다 — 결과를 계속 스크롤할 수 있어야 한다', () => {
     expect(locks()).toEqual({ body: '', html: '' });
 
     const view = renderHarness();
+    // 티커 층을 닫아 설정 층만 남긴다(이 대조군의 관심사는 설정 층 단독 상태다).
+    view.act((handle) => handle.closeModalOnly());
 
     // 드로어는 실제로 열려 있다 — 잠금이 없는 이유가 "안 열려서"가 아님을 못 박는다.
     expect(screen.getByRole('button', { name: '설정 닫기' })).toBeInTheDocument();
-    expect(document.body.style.overflow).toBe('');
+    expect(locks()).toEqual({ body: '', html: '' });
 
-    view.act((handle) => handle.closeBoth());
+    view.act((handle) => handle.closeDrawerOnly());
     expect(locks()).toEqual({ body: '', html: '' });
   });
 
-  it('티커 모달이 열려도 html 을 잠그지 않는다(클래식 스크롤바가 사라져 배경이 밀리는 것 방지)', () => {
+  /**
+   * 🔴 겹친 층은 **넓은 폭에서도** 잠근다(`dimBelow='always'`). 아래 층을 딤으로 덮은 채 배경이
+   *    굴러가면 그 딤이 거짓말이 된다 — 딤과 잠금은 한 축이다.
+   * ⚠ 잠금이 스크롤바를 없애 배경이 밀리는 문제는 `padding-right` 보정이 맡는다(`SideDrawer`).
+   *    jsdom 은 스크롤바 폭이 0 이라 여기서는 보정값이 붙지 않는다.
+   */
+  it('겹친 티커 층은 넓은 폭에서도 body 를 잠근다', () => {
     expect(locks()).toEqual({ body: '', html: '' });
 
     const view = renderHarness();
 
-    // 모달은 실제로 열려 있다 — 잠금이 없는 이유가 "안 떠서"가 아님을 못 박는다.
-    expect(screen.getByRole('dialog', { name: '티커 생성' })).toBeInTheDocument();
-    expect(locks()).toEqual({ body: '', html: '' });
+    expect(screen.getByRole('complementary', { name: '티커 생성' })).toBeInTheDocument();
+    expect(locks()).toEqual({ body: 'hidden', html: '' });
 
     view.act((handle) => handle.closeBoth());
     expect(locks()).toEqual({ body: '', html: '' });

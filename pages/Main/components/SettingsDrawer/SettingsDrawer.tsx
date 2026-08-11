@@ -28,6 +28,14 @@ function SettingsDrawerComponent({
       isOpen={isOpen}
       title={SIMULATOR_COPY.settingsTitle}
       closeLabel={SIMULATOR_COPY.settingsClose}
+      /*
+       * 기본값(400px)보다 넓힌다(2026-08-11 사용자 지시). 이 드로어는 "고르고 닫는 피커"가 아니라
+       * **여러 입력을 나란히 놓고 만지는 작업면**이다 — 400px 에서는 숫자 입력이 한 줄에 하나씩
+       * 떨어져 세로로 길어졌다. 폼 그리드(`ConfigInputGrid`)가 컨테이너 쿼리로 2열을 쓰는 폭이라
+       * 늘린 만큼 그대로 세로 길이가 줄어든다.
+       * ⚠ vw 상한을 92 → 96 으로 함께 올린다 — 좁은 화면에서 560px 에 닿지 못하면 고정폭만 커진 셈이다.
+       */
+      width="min(96vw, 560px)"
       onClose={onClose}
     >
       <MainLeftPanel
