@@ -33,6 +33,14 @@ import { PULSE_SCALES, PULSE_THRESHOLDS, type PulseIndicator } from '@/shared/li
  */
 export const chartHeightOf = (indicator: PulseIndicator): number => (indicator.id === 'fear-greed' ? 360 : 200);
 
+/**
+ * 공포탐욕 다이얼의 **기준 크기**. 라벨 거리(-60)·글자 크기(14px)가 이 크기에서 맞춰졌다.
+ *
+ * 🔴 다이얼의 그래프 높이(위 `chartHeightOf` 의 360)와 같은 수여야 한다 — 넓은 화면에서는 짧은
+ *    변이 높이이므로, 두 수가 같을 때만 "넓을 때는 지금 모양 그대로, 좁을 때만 좁힌다"가 성립한다.
+ */
+export const GAUGE_REFERENCE_SIZE = 360;
+
 const dates = (indicator: PulseIndicator) => indicator.series.map((point) => point.date);
 const values = (indicator: PulseIndicator) => indicator.series.map((point) => point.value);
 
@@ -174,14 +182,22 @@ const thresholdMarkLine = (indicator: PulseIndicator, theme: ChartTheme) => {
  * 반환 타입을 `EChartsOption` 으로 좁히지 않는다 — visualMap·gauge 까지 한 함수에서 만들면
  * 유니온이 폭발해 타입이 도움이 되기보다 방해가 된다(소비처가 하나뿐이라 얻는 것도 없다).
  */
-export const buildPulseChartOption = (indicator: PulseIndicator, theme: ChartTheme): Record<string, unknown> | null => {
+export const buildPulseChartOption = (
+  indicator: PulseIndicator,
+  theme: ChartTheme,
+  /**
+   * 그래프 자리의 **짧은 변**(px). 공포탐욕 다이얼의 라벨 거리·글자 크기를 이 값에 맞춰 좁힌다.
+   * 없으면(첫 렌더·측정 불가) 기준 크기로 취급해 종전 모양 그대로 그린다.
+   */
+  chartSize?: number
+): Record<string, unknown> | null => {
   const points = indicator.series;
 
   /* 🔴 공포탐욕지수는 시계열이 없어도 그린다 — 값 하나로 성립하는 유일한 그림이다. */
   if (indicator.id === 'fear-greed') {
     const score = indicator.observation?.value;
     if (score === undefined) return null;
-    return gaugeOption(score, theme);
+    return gaugeOption(score, theme, chartSize);
   }
 
   if (points.length === 0) return null;
@@ -512,6 +528,9 @@ export const FEAR_GREED_CENTERS = [0.125, 0.35, 0.505, 0.66, 0.88] as const;
  *    좁아 **눈금 두 개가 같은 이름에 걸렸고, 이름이 두 번씩 찍혔다**(2026-08-09 사용자 지적).
  * ⚠ 긴 이름 둘은 두 줄로 접는다. ECharts 는 글자를 곡선을 따라 휘게 하지 못해서(`rotate:
  *   'tangential'` 은 덩어리를 기울일 뿐이다), 다이얼 양끝에서 여섯 글자가 한 줄이면 칸을 넘는다.
+ * 🔴 **이름은 줄이지 않는다**(2026-08-10 사용자 지시). '극단'으로 줄여 본 적이 있는데 등급 이름은
+ *    출처(CNN)의 것을 그대로 써야 한다 — 좁은 화면의 잘림은 글자를 깎아서가 아니라 **라벨 거리와
+ *    글자 크기를 폭에 맞춰 좁혀서** 푼다(`gaugeOption` 의 `labelScale`).
  * ⚠ 부동소수 누적(0.35000000000000003)을 피해 소수 셋째 자리에서 반올림해 찾는다.
  */
 export const fearGreedNameAt = (tick: number): string => {
@@ -544,11 +563,39 @@ export const fearGreedNameAt = (tick: number): string => {
  *   초록이 좋다는 뜻이 아니다 — 우리 판정은 카드 위 구간 배지가 따로 말하고, 거기서는
  *   **극단적 탐욕도 '경계'** 다(zones.ts `fearGreedZone`).
  */
-const gaugeOption = (score: number, theme: ChartTheme) => {
+const gaugeOption = (score: number, theme: ChartTheme, chartSize?: number) => {
   /* 예제의 축이 0~1 이라 점수를 그 좌표로 옮긴다. */
   const value = Math.min(1, Math.max(0, score / 100));
   const STOPS = [0.25, 0.45, 0.56, 0.76, 1] as const;
   const activeIndex = Math.max(0, STOPS.findIndex((stop) => value < stop));
+
+  /*
+   * 🔴 폭이 줄면 **라벨 거리와 글자 크기를 같은 비율로 좁힌다**(2026-08-10 사용자 지시).
+   *
+   * 게이지의 반지름은 `'90%'` 라 컨테이너의 짧은 변에 따라 줄어드는데, `axisLabel.distance` 는
+   * 퍼센트를 받지 않아 픽셀로 고정된다. 그래서 좁은 화면에서는 같은 60px 이 **반지름에 비해 더 큰
+   * 거리**가 되어 라벨이 자기 칸을 벗어났다(사용자 지적: 모바일에서 극단적 공포·탐욕이 짤린다).
+   * 비율로 좁히면 라벨은 폭과 무관하게 칸 안의 **같은 자리**에 선다.
+   *
+   * 기준(360)은 이 카드의 그래프 높이다(`chartHeightOf`) — 넓은 화면에서는 짧은 변이 높이라
+   * 지금까지의 모양(-60 · 14px)이 **한 픽셀도 바뀌지 않는다**. 좁아질 때만 줄어든다(그래서 1로 상한).
+   * 글자 크기 하한 11px 은 더 줄면 읽을 수 없어서다 — 그 아래에서는 거리만 계속 좁혀진다.
+   */
+  const labelScale = chartSize && chartSize > 0 ? Math.min(1, chartSize / GAUGE_REFERENCE_SIZE) : 1;
+  /*
+   * 🔴 **거리는 폭보다 빠르게 좁힌다**(2026-08-11 사용자 지적: 비례만으로는 여전히 잘린다).
+   *
+   * 선형 비례로는 부족한 이유가 있다. 글자 크기에는 하한(11px)이 있어서 다이얼이 줄어도 글자는
+   * 그만큼 작아지지 않는다 — 즉 좁은 화면에서는 **칸에 대한 글자의 비중이 오히려 커진다.** 그래서
+   * 거리를 폭에 3제곱으로 걸어(`scale³`) 좁을 때 훨씬 더 붙게 만든다. 글자는 1.5제곱으로 중간 속도.
+   *
+   * ⚠ 여기가 **유일한 조절 손잡이**다. 더 붙여야 하면 지수를 올리고(예: 3 → 4), 넓은 화면에는
+   *   영향이 없다(scale=1 이면 몇 제곱이든 1이라 -60·14px 그대로다).
+   */
+  const distanceTighten = labelScale ** 3;
+  const fontTighten = labelScale ** 1.5;
+  const labelDistance = -Math.round(60 * distanceTighten);
+  const labelFontSize = Math.max(11, Math.round(14 * fontTighten));
 
   return {
     series: [
@@ -641,12 +688,13 @@ const gaugeOption = (score: number, theme: ChartTheme) => {
         detail: { show: false },
         axisLabel: {
           color: theme.textMuted,
-          fontSize: 14,
+          /* 🔴 셋 다 폭에 따라 함께 좁혀진다 — 하나만 줄이면 두 줄이 서로 붙거나 칸을 벗어난다. */
+          fontSize: labelFontSize,
           fontFamily: theme.fontFamily,
-          distance: -60,
+          distance: labelDistance,
           rotate: 'tangential' as const,
           /* 두 줄짜리 이름이 있으므로 줄 간격을 정해 준다 — 기본값은 폰트에 따라 들쭉날쭉하다. */
-          lineHeight: 16,
+          lineHeight: labelFontSize + 2,
           formatter: fearGreedNameAt
         },
         data: []

@@ -15,7 +15,13 @@ import {
   yieldCurveZone,
   type PulseIndicator
 } from '@/shared/lib/marketPulse';
-import { FEAR_GREED_CENTERS, FEAR_GREED_LABEL_SPLIT_NUMBER, fearGreedNameAt } from '@/pages/MarketPulse/utils';
+import {
+  FEAR_GREED_CENTERS,
+  FEAR_GREED_LABEL_SPLIT_NUMBER,
+  GAUGE_REFERENCE_SIZE,
+  buildPulseChartOption,
+  fearGreedNameAt
+} from '@/pages/MarketPulse/utils';
 
 /**
  * 시장 온도의 **계약**을 잠근다.
@@ -67,6 +73,15 @@ describe('🔴 게이지 이름은 칸마다 정확히 하나', () => {
       expect(Math.abs(Math.round(center / step) - center / step)).toBeLessThan(1e-9);
       expect(fearGreedNameAt(center)).not.toBe('');
     }
+  });
+
+  /**
+   * 이름은 **출처(CNN)의 등급 그대로**다(2026-08-10 사용자 지시). 좁은 화면 잘림을 글자를 깎아
+   * 해결하려 한 적이 있는데, 그 처방은 폐기됐다 — 잘림은 아래 "라벨 거리" 계약이 맡는다.
+   */
+  it('🔴 양끝은 등급 이름을 온전히 쓰고 두 줄로 접는다', () => {
+    expect(fearGreedNameAt(FEAR_GREED_CENTERS[0])).toBe('극단적\n공포');
+    expect(fearGreedNameAt(FEAR_GREED_CENTERS[FEAR_GREED_CENTERS.length - 1])).toBe('극단적\n탐욕');
   });
 
   it('중심이 아닌 값에는 이름을 붙이지 않는다', () => {
@@ -181,5 +196,67 @@ describe('종합 단계는 지표 배지와 같은 어휘를 쓴다', () => {
     expect(overallLevelOf(21)).toBe('normal');
     expect(overallLevelOf(80)).toBe('elevated');
     expect(overallLevelOf(95)).toBe('stressed');
+  });
+});
+
+/**
+ * 🔴 공포탐욕 다이얼의 **라벨 거리는 폭에 딸린다**(2026-08-10 사용자 지시).
+ *
+ * 반지름은 `'90%'` 로 컨테이너에 따라 줄어드는데 `axisLabel.distance` 는 퍼센트를 못 받는다.
+ * 픽셀로 고정하면 좁은 화면에서 그 거리가 반지름에 비해 커져 라벨이 칸을 벗어난다 —
+ * 실제로 모바일에서 "극단적 공포·극단적 탐욕"이 잘렸다. 눈으로만 맞출 수 있는 종류의 계약이라
+ * 여기서 잠근다(깨져도 오류가 나지 않고 글자만 잘린다).
+ */
+describe('🔴 공포탐욕 다이얼 — 라벨 거리는 폭에 비례한다', () => {
+  /** 색만 쓰는 테마 — 이 테스트는 수치만 본다(node 환경이라 실제 CSS 변수를 읽을 수 없다). */
+  const CHART_THEME = {
+    series: ['#1', '#2', '#3', '#4', '#5'],
+    sliceBorder: '#s',
+    text: '#t',
+    textMuted: '#m',
+    fontFamily: 'sans-serif'
+  } as unknown as Parameters<typeof buildPulseChartOption>[1];
+
+  /** 이름 전용 시리즈(두 번째)의 라벨 설정. 거리·글자 크기가 여기 있다. */
+  const labelOf = (chartSize?: number) => {
+    const option = buildPulseChartOption(
+      indicator({ id: 'fear-greed', observation: { value: 64, asOf: '2026-08-07' } }),
+      CHART_THEME,
+      chartSize
+    ) as { series: { axisLabel?: { distance: number; fontSize: number; lineHeight: number } }[] };
+
+    const label = option.series[1].axisLabel;
+    if (!label) throw new Error('이름 전용 시리즈의 axisLabel 이 사라졌다');
+    return label;
+  };
+
+  it('기준 크기에서는 종전 모양 그대로다 — 넓은 화면은 한 픽셀도 바뀌지 않는다', () => {
+    expect(labelOf(GAUGE_REFERENCE_SIZE)).toMatchObject({ distance: -60, fontSize: 14 });
+    // 측정 전(첫 렌더)에도 기준 모양으로 그린다 — 빈 화면이나 깨진 배치가 스치지 않게.
+    expect(labelOf(undefined)).toMatchObject({ distance: -60, fontSize: 14 });
+    // 기준보다 커도 더 벌리지 않는다(상한 1) — 다이얼이 커지면 라벨만 밖으로 튀어나간다.
+    expect(labelOf(GAUGE_REFERENCE_SIZE * 2)).toMatchObject({ distance: -60, fontSize: 14 });
+  });
+
+  it('폭이 좁아지면 거리와 글자 크기가 함께 좁혀진다', () => {
+    const narrow = labelOf(280);
+
+    expect(Math.abs(narrow.distance)).toBeLessThan(60);
+    expect(narrow.fontSize).toBeLessThan(14);
+    // 줄 간격도 함께 따라와야 두 줄이 서로 붙지 않는다.
+    expect(narrow.lineHeight).toBe(narrow.fontSize + 2);
+  });
+
+  it('좁을수록 단조적으로 좁아진다 — 어떤 폭에서도 뒤집히지 않는다', () => {
+    const distances = [360, 320, 280, 240, 200].map((size) => Math.abs(labelOf(size).distance));
+
+    for (let index = 1; index < distances.length; index += 1) {
+      expect(distances[index]).toBeLessThan(distances[index - 1]);
+    }
+  });
+
+  it('글자 크기는 11px 아래로 내려가지 않는다 — 그 아래는 읽을 수 없다', () => {
+    expect(labelOf(120).fontSize).toBe(11);
+    expect(labelOf(60).fontSize).toBe(11);
   });
 });
