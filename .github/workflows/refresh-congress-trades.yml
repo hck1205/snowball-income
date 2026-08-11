@@ -87,6 +87,14 @@ jobs:
             npm run congress:trades
           fi
 
+      # 🔴 **데이터가 바뀌면 `api/*.js` 도 낡는다**(2026-08-12 발견).
+      # `api/*.js` 는 커밋되는 배포 산출물이고, 그중 `seo-html`·`og` 번들은 이 데이터를 **품고 있다**.
+      # 데이터만 커밋하면 산출물이 소스와 어긋나 `api:check` 가 실패한다 — 실제로 지급일 갱신
+      # PR(#127)이 머지된 직후 main 이 그 상태가 됐고, 다음 PR 의 CI 가 그것을 잡았다.
+      # ⚠ 바뀐 것이 없으면 아무 파일도 변하지 않는다(멱등) — 조건 없이 돌려도 안전하다.
+      - name: Rebundle api outputs
+        run: npm run api:bundle
+
       - name: Typecheck
         run: npx tsc -b tsconfig.build.json
 
@@ -97,7 +105,7 @@ jobs:
       - name: Commit the refreshed trades
         id: commit
         run: |
-          git add "$TRADES_JSON"
+          git add "$TRADES_JSON" api
           if git diff --cached --quiet; then
             echo "새 신고가 없다 — 이번 주 변화 없음."
             echo "committed=false" >> "$GITHUB_OUTPUT"
