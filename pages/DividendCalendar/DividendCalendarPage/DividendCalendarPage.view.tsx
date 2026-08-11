@@ -33,6 +33,10 @@ import {
   MapCard,
   MapZoneLabel,
   MonthDeck,
+  MineNoteLine,
+  MineSummaryLine,
+  ModeTabButton,
+  ModeTabs,
   MonthSummaryLine,
   NextLead,
   NextLeadBody,
@@ -110,6 +114,9 @@ export default function DividendCalendarView({
   liveMessage,
   unknownTickers,
   highlightedAgendaDate,
+  mode,
+  mine,
+  onModeChange,
   onKeywordChange,
   onDetailTabChange,
   onOpenPicker,
@@ -128,7 +135,13 @@ export default function DividendCalendarView({
 
   const { selected, selectedWithData, unavailable, month, monthLabel, nextPayout } = viewModel;
   const isReady = status === 'ready';
-  const showEmptyState = isReady && selected.length === 0;
+  const isMine = mode === 'mine';
+  /*
+   * 내 배당 탭에서는 일반 빈 상태(종목 고르기 안내)를 쓰지 않는다 — 여기서 할 말은
+   * "고르세요"가 아니라 "보유를 등록하세요"다(아래 `showMineEmpty`).
+   */
+  const showEmptyState = isReady && selected.length === 0 && !isMine;
+  const showMineEmpty = isMine && mine.status === 'ready' && !mine.hasHoldings;
   const showAllUnavailable = isReady && selected.length > 0 && selectedWithData === 0;
   const showCalendar = isReady && selectedWithData > 0;
   const quickPicks = selectQuickPickOptions(viewModel.options);
@@ -268,6 +281,40 @@ export default function DividendCalendarView({
         따라와야 한다). position: sticky 는 **부모 상자 안에서만** 붙으므로, 카드 안에 두면
         카드가 화면 위로 지나가는 순간 떨어진다. 페이지 루트의 직계여야 문서 전체가 그 범위다.
       */}
+      {/*
+        ── 달력 종류 — "무엇을 보는가"는 달·종목보다 상위 결정이라 조작 줄 위에 선다.
+      */}
+      <ModeTabs role="group" aria-label={copy.mode.groupLabel}>
+        <ModeTabButton
+          type="button"
+          $active={!isMine}
+          aria-pressed={!isMine}
+          onClick={() => onModeChange('all')}
+        >
+          {copy.mode.all}
+        </ModeTabButton>
+        <ModeTabButton
+          type="button"
+          $active={isMine}
+          aria-pressed={isMine}
+          onClick={() => onModeChange('mine')}
+        >
+          {copy.mode.mine}
+        </ModeTabButton>
+      </ModeTabs>
+
+      {showMineEmpty ? (
+        <Banner tone="info" role="status">
+          {copy.mode.emptyTitle} — {copy.mode.emptyBody} <a href={copy.mode.emptyCtaHref}>{copy.mode.emptyCta}</a>
+        </Banner>
+      ) : null}
+
+      {isMine && mine.status === 'read-error' ? (
+        <Banner tone="warning" role="status">
+          {copy.mode.readError}
+        </Banner>
+      ) : null}
+
       <DeckBar>
         {/* 툴바는 표 바깥에 있다 — 월을 넘겨도 버튼이 리마운트되지 않아 포커스가 유지된다(연타 가능). */}
         <CalendarToolbar
@@ -282,6 +329,8 @@ export default function DividendCalendarView({
           onToday={onToday}
         />
         <HeadSpacer />
+        {/* 🔴 내 배당 탭에는 종목 선택이 없다 — 목록을 정하는 것은 보유이지 취향이 아니다. */}
+        {isMine ? null : (
         <FilterButton
           type="button"
           aria-label={copy.picker.open(selected.length)}
@@ -293,6 +342,7 @@ export default function DividendCalendarView({
           {copy.picker.openShort}
           {selected.length > 0 ? <FilterCount aria-hidden>{selected.length}</FilterCount> : null}
         </FilterButton>
+        )}
         {/* 별도의 "선택 N종" 텍스트는 두지 않는다(사용자 결정 2026-07-25 — 배지와 중복).
             개수는 배지가 눈으로, 버튼 접근명(`picker.open`)과 라이브 리전이 소리로 말한다. */}
       </DeckBar>
@@ -300,6 +350,16 @@ export default function DividendCalendarView({
       <MonthDeck aria-labelledby={monthTitleId}>
 
         {renderNextLead()}
+
+        {isMine && mine.totalLabel !== null ? (
+          <MineSummaryLine>{copy.mode.mineTotal(monthLabel, mine.totalLabel, mine.entryCount)}</MineSummaryLine>
+        ) : null}
+        {isMine && mine.status === 'ready' && mine.hasHoldings && mine.totalLabel === null ? (
+          <MineSummaryLine>{copy.mode.mineNone(monthLabel)}</MineSummaryLine>
+        ) : null}
+        {isMine && mine.unknownCount > 0 ? (
+          <MineNoteLine>{copy.mode.mineUnknown(mine.unknownCount)}</MineNoteLine>
+        ) : null}
 
         {showCalendar ? (
           <MonthSummaryLine>
@@ -403,6 +463,8 @@ export default function DividendCalendarView({
               <AgendaList
                 days={viewModel.agendaDays}
                 hasUndated={undatedCount > 0}
+                /* 금액은 내 배당 탭에서만 — 전체 탭에는 수량이 없어 낼 수 있는 금액이 없다. */
+                amountLabelByTicker={isMine ? mine.amountLabelByTicker : undefined}
                 highlightedDate={highlightedAgendaDate}
                 seriesOf={seriesOf}
               />
