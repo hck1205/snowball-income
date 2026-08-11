@@ -1,0 +1,86 @@
+name: Check curated calendar horizon
+
+# 휴장일·조기폐장·FOMC 는 **사람이 채우는 자료**다(`marketCalendar.curated.ts`).
+# 1년 전에 확정 공시되고 거의 바뀌지 않아서, 확정된 사실을 매주 긁으면 얻는 것 없이 소스 개편·차단에만
+# 노출된다 — 그래서 수집기가 일부러 만들지 않는다(그 CLI 머리주석의 결정).
+#
+# ## 그럼 무엇을 자동화하나 — **만료를 감시한다**
+# 이 자료의 유일한 위험은 "언젠가 바닥난다"는 것이고, 그 순간을 사람이 기억해야 한다는 점이다.
+# 데이터를 자동으로 만들 수 없다면 **잊지 않게 만드는 것**까지가 자동화의 몫이다.
+# 남은 기간이 1년 밑으로 내려가면 이슈를 열어 알린다. 그때까지는 아무 일도 하지 않는다.
+#
+# ⚠ 이슈를 **중복으로 열지 않는다** — 이미 열려 있으면 그대로 둔다(매달 같은 알림이 쌓이면 아무도 안 읽는다).
+on:
+  schedule:
+    # 매월 10일 22:00 UTC == 11일 07:00 KST. 다른 갱신 워크플로와 겹치지 않는 시각.
+    - cron: '0 22 10 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: check-curated-calendar
+  cancel-in-progress: false
+
+env:
+  TZ: Asia/Seoul
+  CURATED_FILE: shared/constants/marketCalendar/marketCalendar.curated.ts
+
+jobs:
+  check-horizon:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 상수를 그대로 읽는다. 이 파일은 TS 라 `require` 할 수 없고, 이 한 값 때문에 빌드를 돌릴
+      # 이유도 없다 — 값의 형태(`CURATED_THROUGH_YEAR = 2028`)가 계약이다.
+      # ⚠ 상수 이름이나 형태를 바꾸면 이 단계가 **조용히 통과**하지 않고 실패한다(빈 값 → exit 1).
+      - name: Read the curated horizon
+        id: horizon
+        run: |
+          through="$(grep -oE 'CURATED_THROUGH_YEAR = [0-9]{4}' "$CURATED_FILE" | grep -oE '[0-9]{4}')"
+          if [ -z "$through" ]; then
+            echo "::error::$CURATED_FILE 에서 CURATED_THROUGH_YEAR 를 읽지 못했다. 상수 이름이 바뀌었는지 확인하라."
+            exit 1
+          fi
+          this_year="$(date +%Y)"
+          runway=$(( through - this_year ))
+          echo "through=$through" >> "$GITHUB_OUTPUT"
+          echo "runway=$runway" >> "$GITHUB_OUTPUT"
+          echo "큐레이션 캘린더는 ${through}년까지 있다(남은 기간 ${runway}년)."
+
+      # 남은 기간이 1년 이하일 때만 알린다. 휴장일은 보통 3년 앞까지, FOMC 는 1년 앞까지 공시되므로
+      # 1년 여유에서 알리면 채울 자료가 이미 존재한다.
+      - name: Open a reminder issue when the horizon is short
+        if: steps.horizon.outputs.runway <= 1
+        env:
+          GH_TOKEN: ${{ github.token }}
+          THROUGH: ${{ steps.horizon.outputs.through }}
+          RUNWAY: ${{ steps.horizon.outputs.runway }}
+        run: |
+          title="chore(data): 큐레이션 증시 캘린더가 ${THROUGH}년까지밖에 없다"
+          if gh issue list --state open --search "$title in:title" --json number --jq 'length' | grep -qv '^0$'; then
+            echo "이미 열린 이슈가 있다 — 중복으로 열지 않는다."
+            exit 0
+          fi
+          {
+            echo "\`$CURATED_FILE\` 의 \`CURATED_THROUGH_YEAR\` 가 **${THROUGH}** 입니다(남은 기간 ${RUNWAY}년)."
+            echo
+            echo '이 자료는 자동 수집하지 않습니다 — 1년 전에 확정 공시되고 거의 바뀌지 않아서, 확정된 사실을 매주 긁으면 얻는 것 없이 소스 차단에만 노출됩니다. 그래서 **사람이 채웁니다.**'
+            echo
+            echo '### 채워야 하는 것'
+            echo '- `MARKET_HOLIDAYS` — NYSE/Nasdaq 휴장일 (보통 3년 앞까지 공시)'
+            echo '- `MARKET_EARLY_CLOSES` — 조기폐장 (13:00 ET)'
+            echo '- `FOMC_MEETINGS` — FOMC 일정 (연준이 약 1년 앞까지 공시)'
+            echo '- `CURATED_THROUGH_YEAR` 를 새 연도로 올리기'
+            echo
+            echo '### 왜 미리 알리나'
+            echo '바닥나면 화면이 "휴장일 없음"으로 조용히 틀린 말을 합니다 — 없다는 것과 모른다는 것이 화면에서 같아 보이는 자리입니다.'
+          } > issue-body.md
+          gh issue create --title "$title" --body-file issue-body.md
+          echo "::notice::이슈를 열었다 — 큐레이션 캘린더를 채워야 한다."

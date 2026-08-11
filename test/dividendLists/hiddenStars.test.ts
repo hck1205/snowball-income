@@ -4,6 +4,7 @@ import {
   DIVIDEND_LISTS,
   HIDDEN_STAR_MONTHLY,
   HIDDEN_STARS_LIST,
+  HIDDEN_STAR_FAME_LIST_KEYS,
   HIDDEN_STAR_HIGH_YIELD_MIN_GROWTH_PERCENT,
   HIDDEN_STAR_HIGH_YIELD_NOTICE_PERCENT,
   HIDDEN_STAR_MIN_GROWTH_PERCENT,
@@ -174,5 +175,44 @@ describe('생성물 — 실제 데이터', () => {
   it('월 표기를 사람이 읽는 말로 바꾼다', () => {
     expect(formatHiddenStarMonth('2026-08')).toBe('2026년 8월');
     expect(formatHiddenStarMonth('망가진값')).toBe('망가진값');
+  });
+});
+
+/**
+ * 🔴 **생성기가 자기 출력물을 후보에서 빼면 안 된다** (2026-08-11 회귀).
+ *
+ * 게이트 ①("이미 유명 목록에 실렸으면 히든이 아니다")이 보는 목록에 히든스타 자신이 들어가면,
+ * 지난번에 뽑힌 종목이 이번에는 "이미 목록에 있다"로 탈락한다 — 규칙이 자기 자신을 무효화한다.
+ *
+ * 실제로 그렇게 됐다. 히든스타가 큐레이션 목록으로 편입된 뒤 생성기는 **매번 0종**을 뽑았고,
+ * "빈 목록은 쓰지 않는다"는 안전장치 덕에 파일이 덮이진 않았지만 **생성물이 조용히 멈춰 있었다**
+ * (2026-08-04 자에서 정지). 실측: 제외 180종 → 0종 / 히든스타를 뺀 136종 → 44종.
+ *
+ * 자동화(월간 워크플로)를 붙이는 순간 이 단계는 매달 exit 1 로 실패했을 것이다.
+ */
+describe('🔴 히든스타 게이트는 자기 목록을 보지 않는다', () => {
+  it('명예 목록에 hiddenStars 가 들어 있지 않다', () => {
+    expect(HIDDEN_STAR_FAME_LIST_KEYS).not.toContain('hiddenStars');
+    // 셋 다 있어야 한다 — 하나라도 빠지면 이미 유명한 종목이 히든으로 올라온다.
+    expect([...HIDDEN_STAR_FAME_LIST_KEYS].sort()).toEqual(['aristocrats', 'champions', 'kings']);
+  });
+
+  it('⭐ 자기 목록을 제외 집합에 넣으면 아무도 통과하지 못한다 — 그게 이 회귀의 모양이다', () => {
+    const candidates: HiddenStarCandidate[] = HIDDEN_STARS_LIST.members.slice(0, 3).map((member) => ({
+      ticker: member.ticker,
+      name: member.name,
+      sector: 'financials',
+      minimumStreakYears: 10,
+      forwardYieldPercent: 4,
+      fiveYearGrowthPercent: 8,
+      recentCut: null
+    }));
+
+    // 정상: 유명 목록에 없는 종목이라 전부 통과한다.
+    expect(selectHiddenStars(candidates, new Set())).toHaveLength(candidates.length);
+
+    // 회귀 모양: 자기 출력물을 제외 집합에 넣으면 전멸한다.
+    const selfExcluded = new Set(HIDDEN_STARS_LIST.members.map((member) => member.ticker));
+    expect(selectHiddenStars(candidates, selfExcluded)).toHaveLength(0);
   });
 });

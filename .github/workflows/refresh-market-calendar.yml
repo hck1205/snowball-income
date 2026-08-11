@@ -1,0 +1,125 @@
+name: Refresh US market calendar
+
+# 미국 증시 캘린더의 **가까운 일정**(경제지표 · 실적 발표)을 갱신한다
+# — `shared/constants/marketCalendar/marketCalendar.generated.json`.
+#
+# ## 🔴 휴장일·조기폐장·FOMC 는 여기서 만들지 않는다
+# 그 셋은 `marketCalendar.curated.ts` 가 **사람의 손으로** 소유한다(1년 전에 확정 공시되고 거의
+# 바뀌지 않아서, 확정된 사실을 매주 긁으면 얻는 것 없이 소스 차단에만 노출된다 — CLI 머리주석).
+# 즉 이 워크플로가 돌아도 휴장일은 갱신되지 않는다. 그쪽은 연 1회 사람이 채워 넣는 자료다.
+#
+# ## 왜 주 1회인가
+# 이 생성물은 **오늘부터 90일**을 담는 롤링 윈도우다. 가만히 두면 앞쪽이 지난 일정으로 차고 뒤쪽이
+# 비어 간다 — 내용이 바뀌지 않아도 **시간이 지나는 것만으로 낡는다.** 그래서 다른 자료(사건이
+# 생겼을 때만 바뀌는 것)와 성격이 다르고, 주기적으로 다시 만들어야 한다.
+# 매일 돌 이유는 없다: 90일 창에서 한 주는 8% 다.
+#
+# ## 자동 머지한다
+# 창을 다시 그리는 기계적 갱신이라 사람이 판단할 여지가 없다(paydates 와 같은 부류).
+on:
+  schedule:
+    # 매주 월요일 22:00 UTC == 화요일 07:00 KST. 한 주가 시작되기 전에 창을 새로 그린다.
+    - cron: '0 22 * * 1'
+  workflow_dispatch:
+    inputs:
+      days:
+        description: 'Lookahead window in days (blank = default 90)'
+        required: false
+        type: string
+      auto_merge:
+        description: 'Merge the PR automatically'
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: refresh-market-calendar
+  cancel-in-progress: false
+
+env:
+  # 🔴 Node 시작 전에 심는다 — 이 생성물은 "오늘"을 기준으로 창을 자르므로 러너가 UTC 로 돌면
+  #    KST 기준 하루가 어긋난 창이 커밋된다(2026-08-11 회귀와 같은 뿌리).
+  TZ: Asia/Seoul
+  REFRESH_BRANCH: chore/refresh-market-calendar
+  CALENDAR_JSON: shared/constants/marketCalendar/marketCalendar.generated.json
+
+jobs:
+  market-calendar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # 입력은 셸에 보간하지 않고 env 로 넘긴다(수동 입력이 셸을 주입할 수 없게).
+      - name: Collect the calendar window
+        env:
+          DAYS: ${{ inputs.days }}
+        run: |
+          args=""
+          if [ -n "$DAYS" ]; then args="--days $DAYS"; fi
+          npm run market:calendar -- $args
+
+      - name: Typecheck
+        run: npx tsc -b tsconfig.build.json
+
+      - name: Test
+        run: npm run test:ci
+
+      - name: Commit the refreshed window
+        id: commit
+        run: |
+          git add "$CALENDAR_JSON"
+          if git diff --cached --quiet; then
+            echo "창이 그대로다 — 새 일정도, 지나간 일정도 없다(드물지만 가능하다)."
+            echo "committed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git push origin --delete "$REFRESH_BRANCH" 2>/dev/null || true
+          git checkout -B "$REFRESH_BRANCH"
+          git -c user.name="github-actions[bot]" -c user.email="github-actions[bot]@users.noreply.github.com" \
+            commit -m "chore(data): 미국 증시 캘린더 주간 갱신"
+          git push origin "$REFRESH_BRANCH"
+          echo "committed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Open and auto-merge the calendar PR
+        if: steps.commit.outputs.committed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          AUTO_MERGE: ${{ github.event_name == 'schedule' || inputs.auto_merge }}
+        run: |
+          if ! gh pr view "$REFRESH_BRANCH" --json state --jq .state 2>/dev/null | grep -q OPEN; then
+            {
+              echo '미국 증시 캘린더의 **가까운 일정**(경제지표 · 실적 발표) 창을 다시 그렸습니다.'
+              echo
+              echo '### 무엇이 바뀌나'
+              echo '오늘부터 90일 롤링 윈도우라, 내용이 그대로여도 **지난 일정이 빠지고 뒤쪽이 채워집니다.** 주간 갱신의 목적이 그것입니다.'
+              echo
+              echo '### 휴장일은 이 PR 에 없습니다'
+              echo '휴장일·조기폐장·FOMC 는 `marketCalendar.curated.ts` 가 사람 손으로 소유합니다 — 1년 전에 확정 공시되는 자료라 긁지 않습니다. 새해 휴장일이 필요하면 그 파일을 직접 채워야 합니다.'
+            } > pr-body.md
+            gh pr create --base main --head "$REFRESH_BRANCH" \
+              --title "chore(data): 미국 증시 캘린더 주간 갱신" \
+              --body-file pr-body.md
+          fi
+          if [ "$AUTO_MERGE" = "true" ]; then
+            gh pr merge "$REFRESH_BRANCH" --merge --delete-branch
+          else
+            echo "auto_merge=false - PR 을 열어 두고 멈춘다."
+          fi

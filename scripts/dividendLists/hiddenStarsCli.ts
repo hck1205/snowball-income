@@ -23,6 +23,7 @@ import { resolve } from 'node:path';
 
 import { CURATED_DIVIDEND_LISTS } from '@/shared/constants/dividendLists';
 import {
+  HIDDEN_STAR_FAME_LIST_KEYS,
   selectHiddenStars,
   type HiddenStar,
   type HiddenStarCandidate
@@ -52,12 +53,20 @@ type HiddenStarsFile = {
 
 const readJson = (path: string): unknown => JSON.parse(readFileSync(path, 'utf8'));
 
-/** 킹·귀족·챔피언에 이미 실린 티커 — 게이트 ①. 큐레이션과 생성물을 **둘 다** 본다. */
+/**
+ * 킹·귀족·챔피언에 이미 실린 티커 — 게이트 ①. 큐레이션과 생성물을 **둘 다** 본다.
+ *
+ * 🔴 **히든스타 목록은 빼고 본다.** 그것은 이 생성기의 출력물이라, 제외 집합에 넣으면 지난번에
+ *    뽑힌 종목이 이번에는 "이미 목록에 있다"로 탈락해 규칙이 자기 자신을 무효화한다. 실제로
+ *    2026-08-04 부터 매번 0종을 뽑아 생성물이 멈춰 있었다(근거는 `HIDDEN_STAR_FAME_LIST_KEYS` 주석).
+ * ⚠ 그래서 `Object.values(CURATED_DIVIDEND_LISTS)` 로 전부 훑지 않는다 — 목록이 하나 늘 때마다
+ *   조용히 후보가 줄어드는 구조였다. 볼 목록을 이름으로 명시한다.
+ */
 const collectListedTickers = (): Set<string> => {
   const listed = new Set<string>();
 
-  for (const list of Object.values(CURATED_DIVIDEND_LISTS)) {
-    for (const member of list.members) listed.add(member.ticker);
+  for (const key of HIDDEN_STAR_FAME_LIST_KEYS) {
+    for (const member of CURATED_DIVIDEND_LISTS[key].members) listed.add(member.ticker);
   }
 
   const snapshot = readJson(LISTS) as { lists?: Record<string, { members?: { ticker: string }[] }> };
