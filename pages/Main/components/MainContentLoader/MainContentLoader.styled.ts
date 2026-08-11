@@ -100,21 +100,6 @@ export const SkeletonCard = styled.div`
   background: ${color.surface};
 `;
 
-/**
- * 조작 레일(빠른 조정)의 자리. 카드보다 낮고 가로로 긴 형태라 **카드가 아님**이 모양으로 보인다 —
- * 실제 화면의 위계를 스켈레톤이 미리 예고한다.
- */
-export const SkeletonRail = styled.div`
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
-  align-items: center;
-  gap: ${space[4]};
-  padding: ${space[3]} ${space[4]};
-  border: 1px solid ${color.border};
-  border-radius: ${radius.lg};
-  background: ${color.surface};
-`;
-
 /** 막 머리띠의 자리 — 표식 + 제목 + 룰. 결과가 "장이 있는 문서"임을 로딩 중에도 말한다. */
 export const SkeletonBand = styled.div`
   display: grid;

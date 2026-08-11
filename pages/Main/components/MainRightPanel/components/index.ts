@@ -9,7 +9,6 @@ export {
   groupPortfolioPresets
 } from './PortfolioPresetBoard';
 export { default as PresetApplyModal } from './PresetApplyModal';
-export { default as QuickAdjustBar } from './QuickAdjustBar';
 export { default as ScenarioPrefillNotice } from './ScenarioPrefillNotice';
 export { default as ShareLinkFailureNotice } from './ShareLinkFailureNotice';
 export { default as TabDeleteModal } from './TabDeleteModal';

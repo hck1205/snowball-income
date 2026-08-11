@@ -98,18 +98,17 @@ describe('MainResultGrid — 고아 칸 방지(span 규칙)', () => {
     expect(spanOf('자산 가치')).toBe('span 12');
   });
 
-  it('리드 막(요약·빠른 조정·경고)은 전부 12칸이다', () => {
+  it('리드 막(요약·경고)은 전부 12칸이다', () => {
     render(
       <MainResultGrid
         summary={card('요약')}
-        quickAdjust={card('빠른 조정')}
         financialIncomeBanner={card('종합과세 안내')}
         monthlyCashflow={card('월별 현금흐름')}
         yearlyResult={card('연도별 결과')}
       />
     );
 
-    ['요약', '빠른 조정', '종합과세 안내', '월별 현금흐름', '연도별 결과'].forEach((label) =>
+    ['요약', '종합과세 안내', '월별 현금흐름', '연도별 결과'].forEach((label) =>
       expect(spanOf(label)).toBe('span 12')
     );
   });
@@ -135,8 +134,8 @@ describe('MainResultGrid — 막 머리띠', () => {
     expect(screen.queryByRole('heading', { name: '투자를 마친 뒤' })).toBeNull();
   });
 
-  it('리드 막(요약·빠른 조정)과 빈 상태에는 머리띠가 없다 — 숫자와 첫인상이 곧 제목이다', () => {
-    render(<MainResultGrid summary={card('요약')} quickAdjust={card('빠른 조정')} />);
+  it('리드 막(요약)과 빈 상태에는 머리띠가 없다 — 숫자와 첫인상이 곧 제목이다', () => {
+    render(<MainResultGrid summary={card('요약')} />);
 
     expect(screen.queryAllByRole('heading')).toEqual([]);
   });
@@ -166,11 +165,10 @@ describe('MainResultGrid — DOM 순서', () => {
    *
    * 막을 나눈 뒤에도 **카드의 상대 순서는 한 칸도 바뀌지 않았다** — 막은 묶고 이름을 붙였을 뿐이다.
    */
-  it('요약 → 조정 → 배너 → 구성 → 월별 → 월평균 → 연도별 → 자산 → 누적 → 투자종료후 → 전량매도', () => {
+  it('요약 → 배너 → 구성 → 월별 → 월평균 → 연도별 → 자산 → 누적 → 투자종료후 → 전량매도', () => {
     const { container } = render(
       <MainResultGrid
         summary={card('요약')}
-        quickAdjust={card('조정')}
         financialIncomeBanner={card('배너')}
         monthlyAverageChart={card('월평균')}
         composition={card('구성')}
@@ -186,7 +184,6 @@ describe('MainResultGrid — DOM 순서', () => {
     const rendered = Array.from(container.querySelectorAll('span')).map((node) => node.textContent);
     expect(rendered).toEqual([
       '요약',
-      '조정',
       '배너',
       '구성',
       '월별',

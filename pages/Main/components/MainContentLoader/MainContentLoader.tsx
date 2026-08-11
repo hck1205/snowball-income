@@ -9,7 +9,6 @@ import {
   SkeletonBoard,
   SkeletonCard,
   SkeletonPairRow,
-  SkeletonRail,
   SkeletonStack,
   SkeletonTabsRow,
   SkeletonTileRow
@@ -50,11 +49,6 @@ function MainContentLoaderComponent({ label = '불러오는 중…', minHeight, 
                   <SkeletonBar $h="46px" />
                 </SkeletonTileRow>
               </SkeletonCard>
-              {/* 조작 레일(빠른 조정): 이름표 칸 + 슬라이더 칸 */}
-              <SkeletonRail>
-                <SkeletonBar $w="70%" $h="16px" />
-                <SkeletonBar $h="16px" />
-              </SkeletonRail>
               {/* 막 머리띠: 표식 + 제목 + 룰 */}
               <SkeletonBand>
                 <SkeletonBar $w="26px" $h="18px" />
