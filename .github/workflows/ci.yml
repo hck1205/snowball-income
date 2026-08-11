@@ -1,0 +1,67 @@
+# =============================================================================
+# PR·push 검증 (2026-08-11 신설)
+# =============================================================================
+#
+# 왜 이제야 생겼나 — 이 레포에는 **코드 검증 CI 가 없었다.** 워크플로 넷은 전부 데이터 갱신용이고,
+# 그것들이 부수적으로 돌리는 `npm run test:ci` 가 유일한 CI 신호였다. 그래서 2026-08-09 에 들어온
+# 타임존 회귀가 **데이터 갱신 잡의 실패로만** 드러났고, 그 사이 코드 PR 은 검증 없이 머지됐다.
+#
+# 여기서 지키는 것은 하나다: **main 에 들어가는 모든 변경이 러너(UTC·리눅스)에서도 초록인가.**
+# 개발자 PC 는 대개 KST·Windows 라, 로컬 초록은 "이 환경에서 초록"이라는 뜻밖에 안 된다.
+#
+# ⚠ `npm run verify`(로컬 게이트) 를 그대로 쓰지 않는다. 그 안의 `vite build` 는 `ticker:parse` 로
+#   상장 티커 목록을 **네트워크에서 다시 만든다** — 러너에서 그 출처가 막히면 코드와 무관한 이유로
+#   빨개진다. 여기서는 네트워크가 필요 없는 단계만 돌리고, 빌드는 배포(Vercel)가 확인한다.
+# =============================================================================
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# 같은 브랜치에 연달아 푸시하면 앞선 실행은 취소한다 — 마지막 커밋의 결과만 의미가 있다.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # 🔴 Node **시작 전에** 심어야 한다. V8 은 첫 Date 사용 시점에 타임존을 캐시하므로 프로세스가
+  #    뜬 뒤 바꾼 값(vitest.config 의 env.TZ)은 Date/Intl 에 반영되지 않는다. 이 앱의 날짜 계산은
+  #    KST 기준이라, 러너 기본값(UTC)으로 돌리면 배당 지급일이 하루 어긋난 채로 초록이 된다.
+  TZ: Asia/Seoul
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # 타입이 먼저다 — 타입이 깨지면 테스트 실패가 원인이 아니라 증상이다.
+      # ⚠ bare `tsc -b` 는 루트(api+middleware)만 본다. 솔루션 진입점은 tsconfig.build.json 이다.
+      - name: Typecheck
+        run: npx tsc -b tsconfig.build.json
+
+      # `test:ci` 는 가장 무거운 한 파일(SnowballApp)을 뺀 전체다 — 데이터 갱신 워크플로가 쓰는
+      # 것과 같은 명령이라, 여기가 초록이면 그쪽도 테스트 때문에 멈추지 않는다.
+      - name: Test
+        run: npm run test:ci
+
+      # api/*.js 번들이 server/handlers/ 와 어긋나지 않는지. 네트워크가 필요 없다.
+      - name: API bundle check
+        run: npm run api:check
