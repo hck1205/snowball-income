@@ -169,3 +169,79 @@ describe('링크 메타 추출', () => {
     expect(response.headers.get('cache-control')).toBe('no-store');
   });
 });
+
+/**
+ * **국회공보 릴레이** (`?relay=assembly`) — 2026-08-12 신설.
+ *
+ * ## 왜 이 기능이 여기 있나
+ * GitHub 러너(미국)에서 국회 사이트가 `Connection timed out` 으로 막혀 데이터 갱신 워크플로가
+ * 며칠째 실패했다. 우리 함수가 도는 싱가포르에서는 열린다(실측 200/1.6초). 그래서 러너 → 이 함수 →
+ * 국회 로 한 홉을 우회한다. 새 함수를 만들지 못한 이유는 Vercel Hobby 의 함수 상한(12개, 여유 0)이다.
+ *
+ * ## 🔴 이 테스트가 지키는 것 — "릴레이는 오픈 프록시가 아니다"
+ * 위의 `?url=` 경로는 호출자가 준 주소를 열지만, 릴레이는 **호스트가 코드에 박혀 있다.**
+ * 호출자가 고를 수 있는 것은 허용된 경로 둘과 그 질의문자열뿐이다. 그 경계가 무너지면 이 엔드포인트가
+ * 진짜 오픈 프록시가 되므로, 경로 화이트리스트와 호스트 고정을 여기서 못 박는다.
+ */
+describe('국회공보 릴레이 — 오픈 프록시가 아니다', () => {
+  const relay = (params: string) => handler(new Request(`https://hungry-hippo.xyz/api/unfurl?relay=assembly&${params}`));
+
+  it('허용된 경로는 국회 호스트로 나간다 — 호스트는 호출자가 고르지 못한다', async () => {
+    fetchMock.mockResolvedValueOnce(
+      new Response('<html>목록</html>', { status: 200, headers: { 'content-type': 'text/html' } })
+    );
+
+    const response = await relay('path=%2Fportal%2Fcnts%2FcntsNamgzn%2Fgongbo.do&pageUnit=400');
+
+    expect(response.status).toBe(200);
+    const [calledUrl] = fetchMock.mock.calls[0];
+    expect(String(calledUrl)).toBe(
+      'https://www.assembly.go.kr/portal/cnts/cntsNamgzn/gongbo.do?pageUnit=400'
+    );
+  });
+
+  it('첨부 다운로드 경로도 허용된다(PDF 원문)', async () => {
+    fetchMock.mockResolvedValueOnce(
+      new Response('%PDF-1.4', { status: 200, headers: { 'content-type': 'application/pdf' } })
+    );
+
+    const response = await relay('path=%2Fportal%2Fcmmn%2Ffile%2FfileDown.do&atchFileId=abc&fileSn=1');
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toBe('application/pdf');
+  });
+
+  it('🔴 허용 목록에 없는 경로는 나가지 않는다 — fetch 가 아예 불리지 않는다', async () => {
+    const response = await relay('path=%2Fanything%2Felse');
+
+    expect(response.status).toBe(400);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('🔴 경로에 다른 호스트를 심어도 국회를 벗어나지 못한다', async () => {
+    // `//evil.example/…` 은 프로토콜 상대 주소로 읽히기를 노린 형태다.
+    const response = await relay('path=%2F%2Fevil.example%2Fportal%2Fcnts%2FcntsNamgzn%2Fgongbo.do');
+
+    expect(response.status).toBe(400);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('릴레이는 SSRF 가드를 지나지 않지만, 그 대신 경로가 고정이다 — url 파라미터를 요구하지 않는다', async () => {
+    fetchMock.mockResolvedValueOnce(
+      new Response('<html/>', { status: 200, headers: { 'content-type': 'text/html' } })
+    );
+
+    // `url` 없이도 200 이다(릴레이가 먼저 갈린다). 이 분기가 뒤로 밀리면 400 이 된다.
+    const response = await relay('path=%2Fportal%2Fcnts%2FcntsNamgzn%2Fgongbo.do');
+
+    expect(response.status).toBe(200);
+  });
+
+  it('상류가 실패하면 502 로 정직하게 알린다 — 빈 본문을 성공으로 돌려주지 않는다', async () => {
+    fetchMock.mockResolvedValueOnce(new Response('nope', { status: 503 }));
+
+    const response = await relay('path=%2Fportal%2Fcnts%2FcntsNamgzn%2Fgongbo.do');
+
+    expect(response.status).toBe(502);
+  });
+});

@@ -133,12 +133,39 @@ ALIASES = {
 }
 
 
+# 릴레이 주소(`--relay`). 비어 있으면 국회 홈페이지를 **직접** 부른다(로컬 기본값).
+RELAY_BASE = ""
+
+
+def relay_url(url: str) -> str:
+    """직접 부를 주소 → 릴레이 경유 주소. 릴레이가 설정돼 있지 않으면 그대로 돌려준다.
+
+    ## 🔴 왜 릴레이가 필요한가
+    이 수집기는 로컬(한국)에서는 정상인데 **GitHub Actions(미국 러너)에서 `Connection timed out`**
+    으로 죽는다(2026-08-07 부터 매일 실패). 국가 차단이 아니라 그 경로에서만 막힌다 —
+    우리 함수가 도는 싱가포르에서는 200/1.6초로 열린다(2026-08-12 실측).
+    그래서 워크플로에서만 `--relay https://hungry-hippo.xyz/api/unfurl` 로 한 홉을 우회한다.
+
+    ⚠ 로컬 동작은 바뀌지 않는다 — 기본값이 직접 접속이다. 릴레이가 죽어도 사람이 손으로 돌릴 수 있다.
+    ⚠ 릴레이가 허용하는 경로는 **둘**뿐이다(공보 목록 / 첨부 다운로드). 여기서 부르는 경로를 바꾸면
+      `server/handlers/Unfurl/Unfurl.ts` 의 화이트리스트도 함께 열어야 한다.
+    """
+    if not RELAY_BASE:
+        return url
+
+    parts = urllib.parse.urlsplit(url)
+    head = urllib.parse.urlencode({"relay": "assembly", "path": parts.path})
+    tail = f"&{parts.query}" if parts.query else ""
+    return f"{RELAY_BASE}?{head}{tail}"
+
+
 def fetch(url: str, tries: int = 3) -> bytes:
     """국회 홈페이지에서 받는다. UA 를 반드시 실어야 한다."""
     last = None
+    target = relay_url(url)
     for attempt in range(tries):
         try:
-            request = urllib.request.Request(url, headers={"User-Agent": UA})
+            request = urllib.request.Request(target, headers={"User-Agent": UA})
             with urllib.request.urlopen(request, timeout=180) as response:
                 return response.read()
         except Exception as error:  # noqa: BLE001 — 네트워크 실패는 종류를 가리지 않고 재시도한다.
@@ -339,7 +366,18 @@ def main():
     parser.add_argument("--top-issuers", type=int, default=60)
     parser.add_argument("--top-members", type=int, default=60)
     parser.add_argument("--force", action="store_true", help="급감 가드를 넘겨 덮어쓴다(사람이 확인한 뒤에만)")
+    parser.add_argument(
+        "--relay",
+        default="",
+        help="국회 홈페이지를 직접 부르지 않고 이 엔드포인트를 경유한다(예: https://hungry-hippo.xyz/api/unfurl). "
+        "GitHub 러너에서 국회 사이트가 열리지 않아 필요하다 — 근거는 relay_url() 주석.",
+    )
     args = parser.parse_args()
+
+    global RELAY_BASE
+    RELAY_BASE = args.relay.strip()
+    if RELAY_BASE:
+        print(f"[korea] 릴레이 경유: {RELAY_BASE}")
 
     year = args.year or dt.date.today().year
     stored = read_snapshot()
