@@ -55,9 +55,19 @@ export default defineConfig({
     env: {
       /*
        * 이 앱의 날짜 계산(배당 지급일·'오늘' 판정)은 KST 기준이다. 개발자 PC는 대개 KST라
-       * 로컬에서는 통과하고 UTC로 도는 CI에서만 하루 어긋나는 회귀가 생긴다 — 실행 타임존을
-       * 고정해 어디서 돌려도 같은 날짜를 보게 한다. (Node 는 process.env.TZ 대입 시 타임존
-       * 캐시를 무효화하므로 워커에 주입되는 이 값이 Date/Intl 에 실제로 반영된다.)
+       * 로컬에서는 통과하고 UTC로 도는 CI에서만 하루 어긋나는 회귀가 생긴다.
+       *
+       * 🔴 **이 값만으로는 부족하다**(2026-08-11 실측). 여기 적혀 있던 "Node 는 process.env.TZ
+       *    대입 시 타임존 캐시를 무효화한다"는 설명은 **사실이 아니었다** — V8 은 첫 Date 사용
+       *    시점에 타임존을 캐시하고, 프로세스가 뜬 뒤 넣은 값은 반영되지 않는 경우가 있다.
+       *    그래서 CI 에서 `process.env.TZ === 'Asia/Seoul'` 인데
+       *    `new Date('2026-01-01T00:00:00Z').getHours()` 가 0(UTC)으로 나왔고, 데이터 갱신
+       *    워크플로 둘이 그 테스트에서 며칠간 멈춰 있었다.
+       * 🔴 진짜 방어선은 **프로세스 시작 전 환경변수**다 — `.github/workflows/*.yml` 의
+       *    워크플로 레벨 `TZ: Asia/Seoul`. 이 값은 그 위에 얹는 2차 방어선으로 남긴다
+       *    (환경이 이미 KST 면 아무 일도 안 하고, 아니면 최소한 `process.env.TZ` 는 맞춘다).
+       * ⚠ 로컬이 초록인 것은 설정 덕이 아니라 **PC 시간대가 KST 라서**일 수 있다. 그 차이를
+       *   `test/shared/testEnvironmentSplit.test.ts` 가 실제 Date 값으로 확인한다.
        */
       TZ: 'Asia/Seoul',
       VITE_SUPABASE_URL: '',

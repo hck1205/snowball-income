@@ -53,6 +53,13 @@ permissions:
   pull-requests: write
 
 env:
+  # 🔴 Node **시작 전에** 심어야 하는 값이다(2026-08-11). V8 은 첫 Date 사용 시점에 타임존을
+  #    캐시하므로, vitest.config 의 `env.TZ` 처럼 프로세스가 뜬 뒤 넣은 값은 Date/Intl 에 반영되지
+  #    않는다. 그래서 `process.env.TZ` 는 'Asia/Seoul' 인데 `getHours()` 는 UTC 로 읽히는 상태가 됐고,
+  #    이 잡이 2026-08-09 부터 테스트 단계에서 멈췄다(로컬은 PC 가 KST 라 우연히 통과했다).
+  # ⚠ 이 앱의 날짜 계산(배당 지급일·'오늘' 판정)은 KST 기준이다 — 러너 기본값(UTC)으로 돌리면
+  #   하루 어긋난 데이터를 그대로 커밋하게 된다.
+  TZ: Asia/Seoul
   REFRESH_BRANCH: chore/refresh-ticker-data
 
 jobs:
