@@ -54,6 +54,14 @@ env:
   #   하루 어긋난 데이터를 그대로 커밋하게 된다.
   TZ: Asia/Seoul
   SNAPSHOT_JSON: shared/constants/koreaAssemblyStocks/koreaAssemblyStocks.generated.json
+  # 🔴 **러너에서 국회 사이트가 열리지 않는다.** 로컬(한국)에서는 정상인데 GitHub Actions 에서는
+  #    `Connection timed out` 으로 죽었다(2026-08-07 부터 매일 실패 — TZ 회귀와는 다른 원인이다).
+  #    국가 차단이 아니라 그 경로에서만 막힌다: 우리 함수가 도는 싱가포르(sin1)에서는 200/1.6초로
+  #    열린다(2026-08-12 실측). 그래서 러너 → 이 엔드포인트 → 국회 로 한 홉을 우회한다.
+  # ⚠ 릴레이는 **호스트가 코드에 박혀 있고 경로가 둘로 제한된** 전용 통로다(오픈 프록시가 아니다) —
+  #   근거와 가드는 `server/handlers/Unfurl/Unfurl.ts` 의 릴레이 머리말, 계약은 test/api/unfurl.test.ts.
+  # ⚠ 로컬 수동 실행은 이 값을 주지 않아 **직접 접속**한다(릴레이가 죽어도 사람이 돌릴 수 있다).
+  RELAY_BASE: https://hungry-hippo.xyz/api/unfurl
 
 jobs:
   korea-assembly:
@@ -99,10 +107,18 @@ jobs:
           YEAR: ${{ inputs.year }}
           CHECK_ONLY: ${{ inputs.check_only }}
         run: |
-          args=""
+          args="--relay $RELAY_BASE"
           if [ -n "$YEAR" ]; then args="$args --year=$YEAR"; fi
           if [ "$CHECK_ONLY" = "true" ]; then args="$args --check"; fi
           npm run korea:assembly -- $args
+
+      # 🔴 **데이터가 바뀌면 `api/*.js` 도 낡는다**(2026-08-12 발견).
+      # `api/*.js` 는 커밋되는 배포 산출물이고, 그중 `seo-html`·`og` 번들은 이 데이터를 **품고 있다**.
+      # 데이터만 커밋하면 산출물이 소스와 어긋나 `api:check` 가 실패한다 — 실제로 지급일 갱신
+      # PR(#127)이 머지된 직후 main 이 그 상태가 됐고, 다음 PR 의 CI 가 그것을 잡았다.
+      # ⚠ 바뀐 것이 없으면 아무 파일도 변하지 않는다(멱등) — 조건 없이 돌려도 안전하다.
+      - name: Rebundle api outputs
+        run: npm run api:bundle
 
       - name: Typecheck
         # Full project (app + scripts + api). Bare `tsc -b` only covers the root (api + middleware).
@@ -122,7 +138,7 @@ jobs:
         id: commit
         if: inputs.check_only != true
         run: |
-          git add "$SNAPSHOT_JSON"
+          git add "$SNAPSHOT_JSON" api
           if git diff --cached --quiet; then
             echo "바뀐 값이 없다 — 새 공개가 아직 없거나 같은 호다."
             echo "committed=false" >> "$GITHUB_OUTPUT"

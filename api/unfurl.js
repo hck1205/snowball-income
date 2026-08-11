@@ -284,7 +284,74 @@ var resolveImage = (raw, base) => {
     return void 0;
   }
 };
+var RELAY_HOST = "www.assembly.go.kr";
+var RELAY_ALLOWED_PATHS = [
+  /** 공보 목록 조회(HTML). */
+  /^\/portal\/cnts\/cntsNamgzn\/gongbo\.do$/,
+  /** 첨부 파일 다운로드(PDF). */
+  /^\/portal\/cmmn\/file\/fileDown\.do$/
+];
+var RELAY_MAX_BYTES = 8 * 1024 * 1024;
+var RELAY_TIMEOUT_MS = 25e3;
+var RELAY_USER_AGENT = "Mozilla/5.0 (compatible; HungryHippo/1.0; +https://hungry-hippo.xyz)";
+var clampStream = (body, limit) => {
+  let seen = 0;
+  return body.pipeThrough(
+    new TransformStream({
+      transform(chunk, controller) {
+        seen += chunk.byteLength;
+        if (seen > limit) {
+          controller.error(new Error("relay body too large"));
+          return;
+        }
+        controller.enqueue(chunk);
+      }
+    })
+  );
+};
+var relayAssembly = async (request) => {
+  const requested = new URL(request.url);
+  const path = requested.searchParams.get("path")?.trim() ?? "";
+  if (!RELAY_ALLOWED_PATHS.some((allowed) => allowed.test(path))) {
+    return fail(400, "\uB9B4\uB808\uC774\uD560 \uC218 \uC5C6\uB294 \uACBD\uB85C\uC785\uB2C8\uB2E4.");
+  }
+  const upstream = new URL(`https://${RELAY_HOST}${path}`);
+  for (const [key, value] of requested.searchParams) {
+    if (key === "relay" || key === "path") continue;
+    upstream.searchParams.append(key, value);
+  }
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), RELAY_TIMEOUT_MS);
+  try {
+    const response = await fetch(upstream.toString(), {
+      /* 리다이렉트를 따라가되 목적지가 위 URL 로 고정돼 있어 여기서 열리는 표면이 없다. */
+      redirect: "follow",
+      headers: { "user-agent": RELAY_USER_AGENT, accept: "*/*" },
+      signal: controller.signal
+    });
+    if (!response.ok || !response.body) {
+      return fail(502, `\uAD6D\uD68C\uACF5\uBCF4\uB97C \uC77D\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4 (${response.status}).`);
+    }
+    const declared = Number(response.headers.get("content-length") ?? "0");
+    if (declared > RELAY_MAX_BYTES) return fail(502, "\uC751\uB2F5\uC774 \uB108\uBB34 \uD07D\uB2C8\uB2E4.");
+    return new Response(clampStream(response.body, RELAY_MAX_BYTES), {
+      status: 200,
+      headers: {
+        "content-type": response.headers.get("content-type") ?? "application/octet-stream",
+        /* 갱신은 하루 한 번이라 짧게 캐시해도 upstream 부담이 줄고 재시도가 빨라진다. */
+        "cache-control": "public, max-age=300"
+      }
+    });
+  } catch {
+    return fail(504, "\uAD6D\uD68C\uACF5\uBCF4\uAC00 \uC751\uB2F5\uD558\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4.");
+  } finally {
+    clearTimeout(timer);
+  }
+};
 async function handler(request) {
+  if (new URL(request.url).searchParams.get("relay") === "assembly") {
+    return relayAssembly(request);
+  }
   const target = new URL(request.url).searchParams.get("url")?.trim();
   if (!target) return fail(400, "url \uD30C\uB77C\uBBF8\uD130\uAC00 \uD544\uC694\uD569\uB2C8\uB2E4.");
   const videoId = youtubeVideoId(target);

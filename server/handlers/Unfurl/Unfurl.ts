@@ -201,7 +201,142 @@ const resolveImage = (raw: string | undefined, base: string): string | undefined
   }
 };
 
+/* -------------------------------------------------------------------------- */
+/* 국회공보 릴레이 — 남의 주소를 여는 것이 아니라 **정해진 한 곳**을 대신 읽는다      */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * `/api/unfurl?relay=assembly&path=…` — 국회공보(정기재산변동신고) 원문을 **그대로** 흘려보낸다.
+ *
+ * ## 🔴 왜 이 파일에 있나 (성격이 다른 기능인데)
+ *
+ * Vercel Hobby 의 **서버리스 함수 상한이 12개이고 이미 12개**다(`tools/apiBundle/manifest.mjs` — 13개로
+ * 늘렸다가 배포가 죽은 적이 있다). 새 함수를 만들 수 없어 기존 함수에 얹었고, 그 매니페스트가 지시하는
+ * 수순("프록시 묶음으로 합쳐라")과 같다. 이 파일을 고른 이유는 **이미 밖으로 나가는 유일한 함수**여서다 —
+ * 새로운 종류의 표면이 생기지 않는다.
+ *
+ * ## 🔴 왜 SSRF 가 아닌가 (위 가드와 무엇이 다른가)
+ *
+ * 위 경로(`?url=`)는 **호출자가 준 주소**를 연다 — 그 위험을 위 가드가 막는다.
+ * 여기는 **호출자가 주소를 주지 않는다.** 호스트는 아래 상수에 박혀 있고 경로는 두 형태만 허용한다
+ * (공보 목록 / 첨부 다운로드). 호출자가 고를 수 있는 것은 **숫자와 날짜뿐**이라, 이 엔드포인트로
+ * 도달할 수 있는 곳은 국회공보 페이지 하나뿐이다.
+ *
+ * ## 왜 필요한가 — GitHub 러너에서 국회 사이트가 열리지 않는다
+ *
+ * 수집기(`tools/koreaAssembly/harvest.py`)는 로컬(한국)에서는 정상인데 GitHub Actions(미국 러너)에서
+ * **`Connection timed out`** 으로 죽었다(2026-08-07 부터 매일 실패). 국가 차단이 아니라 그 경로에서만
+ * 막힌다 — 이 함수가 도는 싱가포르(sin1)에서는 **200 / 1.6초**로 열린다(2026-08-12 실측).
+ * 그래서 러너 → 이 함수 → 국회 로 한 홉을 우회한다. 이 릴레이가 그 자동화를 가능하게 하는 유일한 조각이다.
+ *
+ * ## 인증을 두지 않는다
+ * 도달 지점이 **공개 자료 한 곳**으로 고정돼 있어 누가 불러도 국회공보만 나온다. 토큰을 두면 사람이
+ * 손으로 관리할 시크릿이 하나 늘 뿐이고(자동화의 목적과 반대다), 막아서 얻는 것이 없다.
+ * 대신 크기·시간 상한으로 남용 비용을 묶는다.
+ */
+const RELAY_HOST = 'www.assembly.go.kr';
+
+/**
+ * 허용 경로. **정규식이 곧 화이트리스트**다 — 여기 없는 경로는 릴레이하지 않는다.
+ * ⚠ 수집기가 부르는 경로를 바꾸면 여기도 함께 열어야 한다(어긋나면 404 가 아니라 400 이 온다).
+ */
+const RELAY_ALLOWED_PATHS = [
+  /** 공보 목록 조회(HTML). */
+  /^\/portal\/cnts\/cntsNamgzn\/gongbo\.do$/,
+  /** 첨부 파일 다운로드(PDF). */
+  /^\/portal\/cmmn\/file\/fileDown\.do$/
+] as const;
+
+/** 릴레이 상한 — 공보 PDF 실측 약 4MB. 8MB 면 여유가 있고 남용으로 함수를 태우지도 못한다. */
+const RELAY_MAX_BYTES = 8 * 1024 * 1024;
+/** 목록 조회는 2초 안에 끝나지만 첨부(4MB PDF)는 수 초가 걸린다. */
+const RELAY_TIMEOUT_MS = 25_000;
+/** 수집기와 같은 신원을 쓴다 — 어느 쪽에서 온 요청인지 상대 로그에서 구분되지 않게 할 이유가 없다. */
+const RELAY_USER_AGENT = 'Mozilla/5.0 (compatible; HungryHippo/1.0; +https://hungry-hippo.xyz)';
+
+/** 상한을 넘으면 **끊는다** — 잘린 응답은 수집기가 파싱에 실패해 알게 된다(조용히 반쪽을 주지 않는다). */
+const clampStream = (body: ReadableStream<Uint8Array>, limit: number): ReadableStream<Uint8Array> => {
+  let seen = 0;
+  return body.pipeThrough(
+    new TransformStream<Uint8Array, Uint8Array>({
+      transform(chunk, controller) {
+        seen += chunk.byteLength;
+        if (seen > limit) {
+          controller.error(new Error('relay body too large'));
+          return;
+        }
+        controller.enqueue(chunk);
+      }
+    })
+  );
+};
+
+/**
+ * 릴레이 응답. **본문을 해석하지 않고 그대로 흘린다** — 파싱은 수집기의 일이다.
+ *
+ * ⚠ 스트리밍으로 돌려준다. 버퍼로 모으면 Vercel 의 응답 본문 상한(4.5MB)에 PDF(4MB)가 아슬아슬하게
+ *   걸린다 — 스트림은 그 제한을 받지 않는다.
+ */
+const relayAssembly = async (request: Request): Promise<Response> => {
+  const requested = new URL(request.url);
+  const path = requested.searchParams.get('path')?.trim() ?? '';
+
+  if (!RELAY_ALLOWED_PATHS.some((allowed) => allowed.test(path))) {
+    return fail(400, '릴레이할 수 없는 경로입니다.');
+  }
+
+  /*
+   * 질의문자열은 **우리가 다시 조립한다** — 호출자가 준 문자열을 그대로 이어 붙이면 `#`·`@` 같은
+   * 글자로 호스트를 갈아치우는 시도가 가능하다. 우리 파라미터를 뺀 나머지만 옮긴다.
+   */
+  const upstream = new URL(`https://${RELAY_HOST}${path}`);
+  for (const [key, value] of requested.searchParams) {
+    if (key === 'relay' || key === 'path') continue;
+    upstream.searchParams.append(key, value);
+  }
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), RELAY_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(upstream.toString(), {
+      /* 리다이렉트를 따라가되 목적지가 위 URL 로 고정돼 있어 여기서 열리는 표면이 없다. */
+      redirect: 'follow',
+      headers: { 'user-agent': RELAY_USER_AGENT, accept: '*/*' },
+      signal: controller.signal
+    });
+
+    if (!response.ok || !response.body) {
+      return fail(502, `국회공보를 읽지 못했습니다 (${response.status}).`);
+    }
+
+    const declared = Number(response.headers.get('content-length') ?? '0');
+    if (declared > RELAY_MAX_BYTES) return fail(502, '응답이 너무 큽니다.');
+
+    return new Response(clampStream(response.body, RELAY_MAX_BYTES), {
+      status: 200,
+      headers: {
+        'content-type': response.headers.get('content-type') ?? 'application/octet-stream',
+        /* 갱신은 하루 한 번이라 짧게 캐시해도 upstream 부담이 줄고 재시도가 빨라진다. */
+        'cache-control': 'public, max-age=300'
+      }
+    });
+  } catch {
+    return fail(504, '국회공보가 응답하지 않았습니다.');
+  } finally {
+    clearTimeout(timer);
+  }
+};
+
 export async function handler(request: Request): Promise<Response> {
+  /*
+   * 🔴 릴레이가 **가장 먼저** 갈린다 — 아래 `url` 경로와 공유하는 것이 없다(호스트가 고정이라 SSRF
+   *    가드를 지날 이유가 없고, 본문을 파싱하지도 않는다). 근거는 위 머리말.
+   */
+  if (new URL(request.url).searchParams.get('relay') === 'assembly') {
+    return relayAssembly(request);
+  }
+
   const target = new URL(request.url).searchParams.get('url')?.trim();
   if (!target) return fail(400, 'url 파라미터가 필요합니다.');
 
