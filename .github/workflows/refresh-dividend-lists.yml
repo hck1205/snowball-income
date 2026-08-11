@@ -1,0 +1,144 @@
+name: Refresh dividend lists
+
+# 배당 목록 3종(배당킹·배당귀족·배당챔피언)과 그 파생물을 갱신한다.
+#
+#   npm run dividend:lists         → dividendLists.generated.json          (멤버십·지표)
+#   npm run dividend:hidden-stars  → dividendLists.hiddenStars.generated.json (유니버스에서 규칙 통과분)
+#   npm run dividend:dex           → dividendDex.generated.json            (도감 카드 — 번호 append-only)
+#
+# ## 순서가 있다
+# 히든스타와 도감은 **목록의 파생물**이라 목록을 먼저 만들어야 한다. 따로 돌리면 도감이 지난 목록을
+# 보고 카드를 만든다. 그래서 한 잡에서 이 순서로 이어 돌린다.
+#
+# ## 🔴 자동 머지하지 않는다
+# 멤버십 변화는 **사건**이다 — 배당킹에서 한 종목이 빠지는 것은 50년 연속 증배가 끊겼다는 뜻이고,
+# 화면이 사용자에게 그렇게 말하게 된다. 값이 매일 조금씩 움직이는 가격 갱신과 성질이 다르다.
+# 또 도감 번호는 append-only 라 잘못 들어간 편입을 되돌려도 번호는 회수되지 않는다(CLI 머리주석).
+# 그래서 PR 만 열고 멈춘다 — korea-assembly 와 같은 판단이다.
+#
+# ⚠ 후보 유니버스(`refresh-dividend-universe.yml`)와는 다른 자료다. 그쪽은 "후보군을 넓히는" 월간
+#   갱신이고 자동 머지한다. 이쪽은 그 위에서 **확정 목록**을 만든다.
+on:
+  schedule:
+    # 매월 5일 22:30 UTC == 6일 07:30 KST. 유니버스 갱신(매월 2일)이 끝난 뒤에 돈다 — 순서가 뒤집히면
+    # 이번 달 목록이 지난달 유니버스를 보고 만들어진다.
+    - cron: '30 22 5 * *'
+  workflow_dispatch:
+    inputs:
+      only:
+        description: 'Limit to one list (kings | aristocrats | champions)'
+        required: false
+        type: string
+      delay:
+        description: 'Delay between requests in ms (blank = CLI default)'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: refresh-dividend-lists
+  cancel-in-progress: false
+
+env:
+  # 🔴 Node 시작 전에 심는다(2026-08-11 회귀 — 자세한 경위는 refresh-paydates.yml 주석).
+  TZ: Asia/Seoul
+  REFRESH_BRANCH: chore/refresh-dividend-lists
+  LISTS_JSON: shared/constants/dividendLists/dividendLists.generated.json
+  METRICS_JSON: shared/constants/dividendLists/dividendLists.metrics.generated.json
+  HIDDEN_STARS_JSON: shared/constants/dividendLists/dividendLists.hiddenStars.generated.json
+  DEX_JSON: shared/constants/dividendDex/dividendDex.generated.json
+
+jobs:
+  dividend-lists:
+    runs-on: ubuntu-latest
+    # 목록 3종 수집은 요청이 많아 지연을 넣고 돈다.
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Refresh the lists
+        env:
+          ONLY: ${{ inputs.only }}
+          DELAY: ${{ inputs.delay }}
+        run: |
+          args="--write"
+          if [ -n "$ONLY" ]; then args="$args --only=$ONLY"; fi
+          if [ -n "$DELAY" ]; then args="$args --delay=$DELAY"; fi
+          npm run dividend:lists -- $args
+
+      # 파생물 둘 — 위 목록을 입력으로 삼는다. 순서를 바꾸지 마라.
+      - name: Rebuild hidden stars
+        run: npm run dividend:hidden-stars
+
+      - name: Rebuild the dividend dex
+        run: npm run dividend:dex
+
+      - name: Typecheck
+        run: npx tsc -b tsconfig.build.json
+
+      - name: Test
+        run: npm run test:ci
+
+      # 변화 판정에서 **도감을 뒤로 뺀다** — 2차 방어선이다.
+      # 도감 생성기는 카드가 그대로면 `asOf` 도 그대로 두도록 고쳤다(2026-08-11, dexCli 주석).
+      # 그 전에는 실행할 때마다 날짜를 오늘로 써서, 내용이 안 바뀌어도 diff 가 생겼고 "안 바뀌면
+      # PR 을 만들지 않는다"는 가드가 매달 무력했다. 생성기가 다시 그렇게 되더라도 여기서 막힌다.
+      - name: Commit the refreshed lists
+        id: commit
+        run: |
+          git add "$LISTS_JSON" "$METRICS_JSON" "$HIDDEN_STARS_JSON"
+          if git diff --cached --quiet; then
+            echo "멤버십도 지표도 그대로다 — 이번 달 변화가 없다(도감 날짜만 움직인 것은 되돌린다)."
+            git checkout -- "$DEX_JSON"
+            echo "committed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git add "$DEX_JSON"
+          git push origin --delete "$REFRESH_BRANCH" 2>/dev/null || true
+          git checkout -B "$REFRESH_BRANCH"
+          git -c user.name="github-actions[bot]" -c user.email="github-actions[bot]@users.noreply.github.com" \
+            commit -m "chore(data): 배당 목록·히든스타·도감 갱신"
+          git push origin "$REFRESH_BRANCH"
+          echo "committed=true" >> "$GITHUB_OUTPUT"
+
+      # PR 만 연다. 🔴 자동 머지하지 않는다 — 멤버십 변화는 사람이 봐야 하는 사건이다.
+      - name: Open the PR for review
+        if: steps.commit.outputs.committed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo '배당 목록 3종과 파생물(히든스타 · 도감)을 다시 만들었습니다.'
+            echo
+            echo '### 🔴 사람이 봐야 하는 이유'
+            echo '- **멤버십 변화는 사건입니다.** 배당킹에서 종목이 빠지면 50년 연속 증배가 끊겼다는 뜻이고, 화면이 사용자에게 그렇게 말하게 됩니다. 편입·제외 목록이 상식적인지 확인해 주세요.'
+            echo '- **도감 번호는 append-only 입니다.** 잘못 들어간 편입을 나중에 되돌려도 번호는 회수되지 않습니다 — 빈 번호가 남습니다.'
+            echo
+            echo '### 확인 순서'
+            echo '1. 편입·제외된 종목이 실제로 그 조건을 넘었는지(연속 증배 연수)'
+            echo '2. 수집 실패로 지표가 통째로 빠진 종목이 없는지'
+            echo '3. 도감에 새로 붙은 번호가 목록 끝에 이어졌는지'
+          } > pr-body.md
+          title="chore(data): 배당 목록·히든스타·도감 갱신 (사람 확인 필요)"
+          if gh pr view "$REFRESH_BRANCH" --json state --jq .state 2>/dev/null | grep -q OPEN; then
+            gh pr edit "$REFRESH_BRANCH" --title "$title" --body-file pr-body.md
+          else
+            gh pr create --base main --head "$REFRESH_BRANCH" --title "$title" --body-file pr-body.md
+          fi
+          echo "::notice::PR 을 열었다. 🔴 자동 머지하지 않는다 — 멤버십 변화는 사람이 확인한다."

@@ -133,8 +133,21 @@ const main = (): void => {
    */
   const retired = (previous?.entries ?? []).filter((entry) => !collected.has(entry.ticker));
 
+  /*
+   * 🔴 **카드가 그대로면 날짜도 그대로 둔다**(2026-08-11).
+   *
+   * 종전에는 실행할 때마다 `asOf` 에 오늘을 썼다. 카드 180장이 한 글자도 안 바뀌어도 파일은 늘
+   * 변경됐고, 그래서 "바뀐 게 없으면 커밋하지 않는다"는 자동화의 가드가 통하지 않았다(매달 날짜
+   * 한 줄짜리 PR 이 열린다). 사람이 확인차 한 번 돌려도 작업 트리가 더러워졌다.
+   *
+   * `asOf` 는 "이 도감이 언제 만들어졌나"가 아니라 **"카드가 언제 바뀌었나"** 여야 한다 —
+   * 그래야 화면의 기준일이 실제로 의미를 갖는다.
+   */
+  const nextEntries = JSON.stringify(entries);
+  const isUnchanged = previous !== null && JSON.stringify(previous.entries ?? []) === nextEntries;
+
   const file: DexFile = {
-    asOf: new Date().toISOString().slice(0, 10),
+    asOf: isUnchanged ? previous.asOf : new Date().toISOString().slice(0, 10),
     note: '수집기(npm run dividend:dex)가 배당 목록 넷을 모아 만든다. 손으로 고치지 마라. 🔴 number 는 append-only — 기존 값을 바꾸면 사용자가 기억한 도감 번호가 다른 회사가 된다.',
     entries
   };
@@ -142,7 +155,7 @@ const main = (): void => {
   mkdirSync(dirname(OUT), { recursive: true });
   writeFileSync(OUT, `${JSON.stringify(file, null, 2)}\n`, 'utf8');
   console.log(
-    `[dex] ${entries.length}장 · 새 번호 ${fresh.length}개${retired.length > 0 ? ` · 목록에서 빠진 종목 ${retired.length}개(번호는 보존)` : ''}`
+    `[dex] ${entries.length}장 · 새 번호 ${fresh.length}개${retired.length > 0 ? ` · 목록에서 빠진 종목 ${retired.length}개(번호는 보존)` : ''}${isUnchanged ? ' · 변화 없음(기준일 유지)' : ''}`
   );
 };
 

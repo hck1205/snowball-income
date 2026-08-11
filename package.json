@@ -25,6 +25,7 @@
     "dividend:lists": "vite-node scripts/dividendLists/cli.ts --",
     "dividend:universe": "vite-node scripts/dividendLists/universeCli.ts --",
     "nps:portfolio": "vite-node scripts/npsPortfolio/cli.ts --",
+    "investors:holdings": "vite-node scripts/investorHoldings/cli.ts --",
     "congress:trades": "python tools/congressTrades/harvest.py",
     "korea:assembly": "python tools/koreaAssembly/harvest.py",
     "market:calendar": "vite-node scripts/marketCalendar/cli.ts --",

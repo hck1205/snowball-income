@@ -126,6 +126,24 @@ export const hiddenStarScore = (yieldPercent: number, growthPercent: number): nu
  * ⚠ **정렬이 안정적이어야 한다.** 점수가 같으면 티커 사전순으로 갈라, 같은 입력이면 같은 순서가
  *   나온다. 안 그러면 매달 생성물이 이유 없이 흔들려 diff 가 소음이 된다.
  */
+/**
+ * 게이트 ①("이미 유명 목록에 실렸으면 히든이 아니다")이 보는 목록들.
+ *
+ * ## 🔴 여기에 `hiddenStars` 를 넣지 마라 — 자기 출력물이다
+ *
+ * 히든스타 목록(`CURATED_DIVIDEND_LISTS.hiddenStars`)은 **이 규칙이 만들어 낸 결과**다. 그것을
+ * 제외 집합에 넣으면 지난번에 뽑힌 종목이 이번에는 "이미 목록에 있다"는 이유로 탈락한다 — 즉
+ * 규칙이 자기 자신을 무효화한다.
+ *
+ * 실제로 그렇게 됐다(2026-08-11 발견). 히든스타가 큐레이션 목록으로 편입된 뒤부터 생성기가
+ * **매번 0종**을 뽑아 아무것도 쓰지 못했고("빈 목록은 쓰지 않는다"), 생성물은 2026-08-04 자에서
+ * 멈춰 있었다. 실측: 제외 집합 180종 → 0종 선정 / 히든스타를 뺀 136종 → 44종 선정.
+ *
+ * ⚠ 목록이 늘어나면 여기에 **명시적으로** 추가한다. `Object.keys(CURATED_DIVIDEND_LISTS)` 로
+ *   훑는 방식으로 되돌리지 마라 — 그게 이 사고의 원인이었다.
+ */
+export const HIDDEN_STAR_FAME_LIST_KEYS = ['kings', 'aristocrats', 'champions'] as const;
+
 export const selectHiddenStars = (
   candidates: readonly HiddenStarCandidate[],
   listedTickers: ReadonlySet<string>

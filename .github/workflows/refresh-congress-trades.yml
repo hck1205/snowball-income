@@ -1,0 +1,137 @@
+name: Refresh US congress stock trades
+
+# 미 하원 의원 주식 거래 공시(STOCK Act PTR)를 갱신한다 — `shared/constants/congressTrades/`.
+#
+# ## 이 자료의 성질
+# **보유가 아니라 거래**다. PTR 은 사고판 기록이라 "지금 무엇을 들고 있는지"는 알 수 없다
+# (한국 의원 화면은 반대로 보유다 — 두 화면의 낱말이 반대인 것이 핵심이라 섞으면 안 된다).
+#
+# ## 왜 주 1회인가
+# 신고는 거래 후 **45일 이내 수시**라 특정 날짜에 몰리지 않는다. 매일 돌리면 하원 사무국에 매일
+# ZIP 색인을 요청하면서 대부분의 날은 새 PDF 가 없다. 반대로 월 1회면 최대 한 달치가 늦는다.
+# 주 1회가 그 사이다 — 45일 신고 기한에 비하면 일주일은 오차 범위 안이다.
+#
+# ## 자동 머지한다
+# 새 신고가 붙기만 하는 append 성 갱신이고, 화면이 "거래 기록"이라고 이미 말하고 있다.
+# 사람이 판단할 여지가 없다(paydates 와 같은 부류).
+on:
+  schedule:
+    # 매주 목요일 23:30 UTC == 금요일 08:30 KST. 다른 갱신과 시각이 겹치지 않게 두었다.
+    - cron: '30 23 * * 4'
+  workflow_dispatch:
+    inputs:
+      years:
+        description: 'Years to harvest, space separated (blank = last two years)'
+        required: false
+        type: string
+      auto_merge:
+        description: 'Merge the PR automatically'
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: refresh-congress-trades
+  cancel-in-progress: false
+
+env:
+  # 🔴 Node 시작 전에 심는다(2026-08-11 회귀 — 자세한 경위는 refresh-paydates.yml 주석).
+  TZ: Asia/Seoul
+  REFRESH_BRANCH: chore/refresh-congress-trades
+  TRADES_JSON: shared/constants/congressTrades/congressTrades.generated.json
+
+jobs:
+  congress-trades:
+    runs-on: ubuntu-latest
+    # 새 신고가 몰린 주에는 의원별 PDF 를 여러 건 받아 파싱한다.
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # 🔴 이 레포에는 requirements 파일이 없다(파이썬 도구가 둘뿐이고 의존성이 이것 하나다).
+      # 받는 것이 PDF 라서 pypdf 가 필요하다 — 버전을 열어 두면 파싱 결과가 조용히 달라질 수 있어
+      # 메이저를 고정한다(refresh-korea-assembly 와 같은 규율).
+      - name: Install PDF parser
+        run: python -m pip install --disable-pip-version-check 'pypdf>=5,<7'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # 입력은 셸에 보간하지 않고 env 로 넘긴다(수동 입력이 셸을 주입할 수 없게).
+      - name: Harvest the disclosures
+        env:
+          YEARS: ${{ inputs.years }}
+        run: |
+          if [ -n "$YEARS" ]; then
+            python tools/congressTrades/harvest.py $YEARS
+          else
+            npm run congress:trades
+          fi
+
+      - name: Typecheck
+        run: npx tsc -b tsconfig.build.json
+
+      - name: Test
+        run: npm run test:ci
+
+      # 새 신고가 없는 주는 빈 커밋도 빈 PR 도 만들지 않는다.
+      - name: Commit the refreshed trades
+        id: commit
+        run: |
+          git add "$TRADES_JSON"
+          if git diff --cached --quiet; then
+            echo "새 신고가 없다 — 이번 주 변화 없음."
+            echo "committed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git push origin --delete "$REFRESH_BRANCH" 2>/dev/null || true
+          git checkout -B "$REFRESH_BRANCH"
+          git -c user.name="github-actions[bot]" -c user.email="github-actions[bot]@users.noreply.github.com" \
+            commit -m "chore(data): 미 하원 의원 주식 거래 공시 갱신"
+          git push origin "$REFRESH_BRANCH"
+          echo "committed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Open and auto-merge the trades PR
+        if: steps.commit.outputs.committed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          AUTO_MERGE: ${{ github.event_name == 'schedule' || inputs.auto_merge }}
+        run: |
+          if ! gh pr view "$REFRESH_BRANCH" --json state --jq .state 2>/dev/null | grep -q OPEN; then
+            {
+              echo '하원 사무국 PTR 공시에서 새 신고를 받아 스냅샷을 갱신했습니다.'
+              echo
+              echo '### 이 자료의 성질'
+              echo '**보유가 아니라 거래**입니다. 사고판 기록이라 지금 무엇을 들고 있는지는 알 수 없고, 신고는 거래 후 최대 45일 뒤에 올라옵니다. 금액도 구간(range)으로만 신고됩니다.'
+              echo
+              echo '### 왜 자동 머지인가'
+              echo '새 신고가 붙기만 하는 append 성 갱신이라 사람이 판단할 여지가 없습니다. 파싱이 깨지면 위 테스트 단계에서 멈추므로 이 PR 은 열리지 않습니다.'
+            } > pr-body.md
+            gh pr create --base main --head "$REFRESH_BRANCH" \
+              --title "chore(data): 미 하원 의원 주식 거래 공시 갱신" \
+              --body-file pr-body.md
+          fi
+          if [ "$AUTO_MERGE" = "true" ]; then
+            gh pr merge "$REFRESH_BRANCH" --merge --delete-branch
+          else
+            echo "auto_merge=false - PR 을 열어 두고 멈춘다."
+          fi
