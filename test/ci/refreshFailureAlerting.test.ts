@@ -32,7 +32,13 @@ const NOTIFIER_FILE = 'notify-refresh-failure.yml';
  */
 const NOT_ALERTED = new Set(['ci.yml']);
 
-const read = (file: string): string => readFileSync(`${WORKFLOW_DIR}${file}`, 'utf8');
+/**
+ * ⚠ 줄바꿈을 **반드시 정규화**한다. 이 레포는 Windows 에서 개발하고 git 이 체크아웃 때 CRLF 로
+ * 바꾸는데, JS 정규식의 `.` 은 `\r` 을 매치하지 않는다 — `.+\n` 형태의 검사가 새로 clone 한
+ * 환경에서만 통째로 실패한다(2026-08-12 실측: 커밋 직후 재체크아웃에서 드러났다).
+ * 러너는 LF 라 CI 는 초록인데 로컬만 빨간, 원인 찾기 나쁜 종류다.
+ */
+const read = (file: string): string => readFileSync(`${WORKFLOW_DIR}${file}`, 'utf8').replace(/\r\n/g, '\n');
 
 const workflowFiles = readdirSync(WORKFLOW_DIR).filter((file) => file.endsWith('.yml'));
 
@@ -94,6 +100,19 @@ describe('실패 알림 — 자동화가 조용히 죽지 않게 하는 그물',
   it('이슈를 열고 닫을 권한이 있다', () => {
     // 권한이 없으면 실패하는 것은 알림 워크플로 자신이고, 그 실패는 아무도 안 알려 준다.
     expect(topLevelBlock(notifier, 'permissions')).toMatch(/issues:[ \t]*write/);
+  });
+
+  it('🔴 checkout 없이 gh 를 쓰므로 대상 저장소를 명시한다', () => {
+    /*
+     * `gh` 는 저장소를 **git remote 로 알아낸다.** 이 잡은 코드가 필요 없어 checkout 을 하지 않으니
+     * 러너에 `.git` 이 없고, 그러면 첫 gh 호출이 통째로 죽는다:
+     *   `failed to run git: fatal: not a git repository`
+     * 2026-08-12 첫 실물 검증에서 세 번 다 이 자리에서 실패했다 — 문법도 권한도 멀쩡했고,
+     * 로컬에서는 레포 안에서 돌려 봐서 안 드러났다. **환경이 다른 것을 테스트가 대신 기억한다.**
+     */
+    const usesCheckout = /uses:[ \t]*actions\/checkout/.test(notifier);
+    const declaresRepo = /GH_REPO:/.test(topLevelBlock(notifier, 'env'));
+    expect(usesCheckout || declaresRepo).toBe(true);
   });
 });
 

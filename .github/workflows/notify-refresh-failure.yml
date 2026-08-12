@@ -72,6 +72,12 @@ concurrency:
 
 env:
   TZ: Asia/Seoul
+  # 🔴 `gh` 는 대상 저장소를 **git remote 로 알아낸다.** 이 잡은 코드가 필요 없어 `actions/checkout`
+  #    을 하지 않으므로 러너에 `.git` 이 없고, 그러면 모든 gh 호출이 첫 줄에서
+  #    `failed to run git: fatal: not a git repository` 로 죽는다(2026-08-12 실측 — 첫 실물 검증에서
+  #    세 번 다 이 자리에서 실패했다). 체크아웃을 더하는 대신 저장소를 명시한다 — 이 워크플로가
+  #    빠른 이유가 소스를 안 받는 것이라, 알림 하나 때문에 레포 전체를 받을 이유가 없다.
+  GH_REPO: ${{ github.repository }}
   # dispatch 로 점검할 때는 workflow_run 컨텍스트가 비어 있으므로 입력값으로 떨어진다.
   WF_NAME: ${{ github.event.workflow_run.name || inputs.workflow_name }}
   CONCLUSION: ${{ github.event.workflow_run.conclusion || inputs.conclusion }}
