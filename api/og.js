@@ -1361,8 +1361,8 @@ var marketData_generated_default = {
         10,
         12
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 1,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "4": 1,
         "7": 1,
@@ -2154,7 +2154,14 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 5,
+      estimatedPayDayByMonth: {
+        "3": 30,
+        "6": 30,
+        "9": 30,
+        "12": 16
+      }
     },
     SDVY: {
       initialPrice: 43.78,
