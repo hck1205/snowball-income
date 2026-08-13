@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-11",
+  "generatedAt": "2026-08-13",
   "source": "SEC EDGAR 13F-HR",
   "investors": [
     {
@@ -1219,165 +1219,172 @@
       "firm": "Baupost Group",
       "note": "안전마진을 강조하는 가치투자자로, 현금 비중이 높은 시기가 있습니다.",
       "registrantName": "BAUPOST GROUP LLC/MA",
-      "accessionNumber": "0001061768-26-000007",
-      "reportDate": "2026-03-31",
-      "filingDate": "2026-05-14",
+      "accessionNumber": "0001061768-26-000010",
+      "reportDate": "2026-06-30",
+      "filingDate": "2026-08-13",
       "valueUnit": "thousands",
-      "totalValueUsd": 5115380000,
-      "totalHoldingCount": 22,
+      "totalValueUsd": 5415853000,
+      "totalHoldingCount": 23,
       "topHoldings": [
         {
           "cusip": "023135106",
           "issuer": "AMAZON COM INC",
-          "valueUsd": 649543000,
-          "weightPercent": 12.697844539408607,
-          "kind": "share"
-        },
-        {
-          "cusip": "76131D103",
-          "issuer": "RESTAURANT BRANDS INTL INC",
-          "valueUsd": 597208000,
-          "weightPercent": 11.674753390754939,
-          "kind": "share"
-        },
-        {
-          "cusip": "95082P105",
-          "issuer": "WESCO INTL INC",
-          "valueUsd": 393159000,
-          "weightPercent": 7.685821972170201,
-          "kind": "share"
-        },
-        {
-          "cusip": "907818108",
-          "issuer": "UNION PAC CORP",
-          "valueUsd": 373876000,
-          "weightPercent": 7.308860729799155,
+          "valueUsd": 892310000,
+          "weightPercent": 16.475890316816205,
           "kind": "share"
         },
         {
           "cusip": "036752103",
           "issuer": "ELEVANCE HEALTH INC FORMERLY",
-          "valueUsd": 373301000,
-          "weightPercent": 7.29762011815349,
+          "valueUsd": 493140000,
+          "weightPercent": 9.105490861734983,
+          "kind": "share"
+        },
+        {
+          "cusip": "76131D103",
+          "issuer": "RESTAURANT BRANDS INTL INC",
+          "valueUsd": 489612000,
+          "weightPercent": 9.040348768698117,
           "kind": "share"
         },
         {
           "cusip": "02079K107",
           "issuer": "ALPHABET INC",
-          "valueUsd": 338819000,
-          "weightPercent": 6.623535299430346,
+          "valueUsd": 484744000,
+          "weightPercent": 8.950464497466973,
           "kind": "share"
         },
         {
           "cusip": "31488V107",
           "issuer": "FERGUSON ENTERPRISES INC",
-          "valueUsd": 336457000,
-          "weightPercent": 6.577360821678938,
-          "kind": "share"
-        },
-        {
-          "cusip": "G96629103",
-          "issuer": "WILLIS TOWERS WATSON PLC LTD",
-          "valueUsd": 259632000,
-          "weightPercent": 5.075517361369048,
-          "kind": "share"
-        },
-        {
-          "cusip": "G0403H108",
-          "issuer": "AON PLC",
-          "valueUsd": 248218000,
-          "weightPercent": 4.85238633298015,
-          "kind": "share"
-        },
-        {
-          "cusip": "92826C839",
-          "issuer": "VISA INC",
-          "valueUsd": 211978000,
-          "weightPercent": 4.143934565955999,
-          "kind": "share"
-        },
-        {
-          "cusip": "879369106",
-          "issuer": "TELEFLEX INCORPORATED",
-          "valueUsd": 190778000,
-          "weightPercent": 3.7294981018027986,
-          "kind": "share"
-        },
-        {
-          "cusip": "26969P108",
-          "issuer": "EAGLE MATLS INC",
-          "valueUsd": 169134000,
-          "weightPercent": 3.306381930570163,
+          "valueUsd": 344269000,
+          "weightPercent": 6.356690257287263,
           "kind": "share"
         },
         {
           "cusip": "372460105",
           "issuer": "GENUINE PARTS CO",
-          "valueUsd": 157604000,
-          "weightPercent": 3.0809832309623135,
+          "valueUsd": 332253000,
+          "weightPercent": 6.13482308327054,
           "kind": "share"
         },
         {
-          "cusip": "G61188127",
-          "issuer": "LIBERTY GLOBAL LTD",
-          "valueUsd": 157150000,
-          "weightPercent": 3.072108034984693,
+          "cusip": "907818108",
+          "issuer": "UNION PAC CORP",
+          "valueUsd": 322427000,
+          "weightPercent": 5.953392752720578,
           "kind": "share"
         },
         {
-          "cusip": "G4412G101",
-          "issuer": "HERBALIFE LTD",
-          "valueUsd": 136305000,
-          "weightPercent": 2.6646114267170766,
+          "cusip": "92826C839",
+          "issuer": "VISA INC",
+          "valueUsd": 240628000,
+          "weightPercent": 4.443030488456758,
           "kind": "share"
         },
         {
-          "cusip": "36165L108",
-          "issuer": "GDS HLDGS LTD",
-          "valueUsd": 122676000,
-          "weightPercent": 2.3981796073800967,
+          "cusip": "95082P105",
+          "issuer": "WESCO INTL INC",
+          "valueUsd": 228979000,
+          "weightPercent": 4.227939716975331,
           "kind": "share"
         },
         {
-          "cusip": "03064D108",
-          "issuer": "AMERICOLD REALTY TRUST INC",
-          "valueUsd": 89168000,
-          "weightPercent": 1.7431354073402172,
+          "cusip": "G0403H108",
+          "issuer": "AON PLC",
+          "valueUsd": 227871000,
+          "weightPercent": 4.207481259184841,
           "kind": "share"
         },
         {
-          "cusip": "60855R100",
-          "issuer": "MOLINA HEALTHCARE INC",
-          "valueUsd": 84460000,
-          "weightPercent": 1.651099234074497,
-          "kind": "share"
-        },
-        {
-          "cusip": "40054J109",
-          "issuer": "GRUPO AEROMEXICO SAB DE CV",
-          "valueUsd": 68371000,
-          "weightPercent": 1.3365771457838909,
+          "cusip": "879369106",
+          "issuer": "TELEFLEX INCORPORATED",
+          "valueUsd": 178605000,
+          "weightPercent": 3.2978184599914364,
           "kind": "share"
         },
         {
           "cusip": "G66721104",
           "issuer": "NORWEGIAN CRUISE LINE HLDGS",
-          "valueUsd": 67881000,
-          "weightPercent": 1.3269981897728027,
+          "valueUsd": 163180000,
+          "weightPercent": 3.013006446075992,
           "kind": "share"
         },
         {
-          "cusip": "92243G108",
-          "issuer": "VAXCYTE INC",
-          "valueUsd": 46488000,
-          "weightPercent": 0.9087887898846224,
+          "cusip": "60855R100",
+          "issuer": "MOLINA HEALTHCARE INC",
+          "valueUsd": 144906000,
+          "weightPercent": 2.675589607029585,
+          "kind": "share"
+        },
+        {
+          "cusip": "12572Q105",
+          "issuer": "CME GROUP INC",
+          "valueUsd": 136694000,
+          "weightPercent": 2.5239606761852658,
+          "kind": "share"
+        },
+        {
+          "cusip": "G4412G101",
+          "issuer": "HERBALIFE LTD",
+          "valueUsd": 121767000,
+          "weightPercent": 2.248343889688291,
+          "kind": "share"
+        },
+        {
+          "cusip": "26969P108",
+          "issuer": "EAGLE MATLS INC",
+          "valueUsd": 119422000,
+          "weightPercent": 2.2050450778483093,
+          "kind": "share"
+        },
+        {
+          "cusip": "36165L108",
+          "issuer": "GDS HLDGS LTD",
+          "valueUsd": 113208000,
+          "weightPercent": 2.0903078425503794,
+          "kind": "share"
+        },
+        {
+          "cusip": "03064D108",
+          "issuer": "AMERICOLD REALTY TRUST INC",
+          "valueUsd": 107371000,
+          "weightPercent": 1.9825316529086,
+          "kind": "share"
+        },
+        {
+          "cusip": "G61188127",
+          "issuer": "LIBERTY GLOBAL LTD",
+          "valueUsd": 93975000,
+          "weightPercent": 1.7351837282141889,
+          "kind": "share"
+        },
+        {
+          "cusip": "40054J109",
+          "issuer": "GRUPO AEROMEXICO SAB DE CV",
+          "valueUsd": 87843000,
+          "weightPercent": 1.6219605665072518,
+          "kind": "share"
+        },
+        {
+          "cusip": "G0750C108",
+          "issuer": "AXALTA COATING SYS LTD",
+          "valueUsd": 43608000,
+          "weightPercent": 0.8051917214148907,
           "kind": "share"
         },
         {
           "cusip": "67011P100",
           "issuer": "DNOW INC",
-          "valueUsd": 43174000,
-          "weightPercent": 0.8440037690259571,
+          "valueUsd": 36160000,
+          "weightPercent": 0.6676695250037252,
+          "kind": "share"
+        },
+        {
+          "cusip": "71531U102",
+          "issuer": "PERSHING SQUARE INC",
+          "valueUsd": 12881000,
+          "weightPercent": 0.2378388039704918,
           "kind": "share"
         }
       ]
