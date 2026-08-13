@@ -12,8 +12,25 @@ import {
   sortableDividendListKeys
 } from '@/pages/DividendList/utils';
 import type { DividendListRow, DividendListSort, DividendListSortKey } from '@/pages/DividendList/utils';
+import type { CompareSelection } from '@/pages/Ticker/hooks';
 
 const copy = DIVIDEND_LIST_COPY.page;
+
+/**
+ * 비교 담기 선택의 최소 스텁. 이 표 테스트의 관심사는 **네 필드·정렬·빈칸**이라 담기 상태는 정지값이면
+ * 충분하다(담기→링크 왕복은 `dividendListCompareSelection.test.tsx` 가 실제 훅으로 검증한다).
+ */
+const STUB_SELECTION: CompareSelection = {
+  selected: [],
+  max: 4,
+  min: 2,
+  href: '/ticker/compare',
+  isSelected: () => false,
+  isDisabled: () => false,
+  toggle: () => {},
+  remove: () => {},
+  clear: () => {}
+};
 
 /**
  * 표에 붙은 **네 필드**(배당률·연속 증배·5년 배당성장·섹터)의 화면 계약.
@@ -67,6 +84,7 @@ function Harness({ rows = ROWS }: { rows?: DividendListRow[] }) {
         sort={sort}
         onSortChange={(key) => setSort((prev) => nextDividendListSort(prev, key))}
         sortableKeys={sortableDividendListKeys(rows, SORT_KEYS)}
+        selection={STUB_SELECTION}
       />
     </MemoryRouter>
   );
@@ -81,7 +99,8 @@ const tickerOrder = () =>
   within(screen.getByRole('table'))
     .getAllByRole('row')
     .slice(1)
-    .map((tr) => within(tr).getAllByRole('cell')[0].textContent?.trim() ?? '');
+    // [0] 은 이제 비교 담기 체크박스 칸이다 — 티커는 그 다음 칸으로 밀렸다.
+    .map((tr) => within(tr).getAllByRole('cell')[1].textContent?.trim() ?? '');
 
 describe('배당 목록 표의 네 필드', () => {
   it('배당률·연속 증배·5년 배당성장·섹터 열이 모두 그려진다', () => {
@@ -191,6 +210,7 @@ describe('배당 목록 표의 네 필드', () => {
       .getAllByRole('cell')
       .map((cell) => cell.getAttribute('data-label'));
     expect(labels).toEqual([
+      copy.columnCompare,
       copy.columnTicker,
       copy.columnName,
       copy.columnYield,
@@ -205,13 +225,14 @@ describe('배당 목록 표의 네 필드', () => {
    * (`withConfirmedBy` 가 목록 상수를 복사해 넣는다) 46~83줄을 같은 문자열로 채우던 열이었다.
    * 같은 사실은 "출처와 기준일" 섹션이 목록당 한 번 말한다.
    */
-  it('열은 여섯이고, 빈 표의 안내가 그 여섯 칸을 가득 채운다', () => {
+  it('열은 일곱(비교 담기 + 여섯 데이터 열)이고, 빈 표의 안내가 그 일곱 칸을 가득 채운다', () => {
     render(<Harness rows={[]} />);
     const table = screen.getByRole('table');
-    expect(within(table).getAllByRole('columnheader')).toHaveLength(6);
+    // 6 데이터 열(2026-08-04 "확인한 자료" 제거 후 고정) + 비교 담기 1 열.
+    expect(within(table).getAllByRole('columnheader')).toHaveLength(7);
 
     const emptyCell = within(table).getByText(copy.filteredEmpty);
     // colSpan 이 열 수와 어긋나면 안내 문장이 한 칸에 갇혀 표가 기운다.
-    expect(emptyCell.getAttribute('colspan')).toBe('6');
+    expect(emptyCell.getAttribute('colspan')).toBe('7');
   });
 });

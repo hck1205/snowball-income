@@ -3,6 +3,7 @@ import {
   ArrowDown,
   ArrowUp,
   BarChart3,
+  Calculator,
   CalendarCheck,
   CalendarRange,
   Globe2,
@@ -16,7 +17,7 @@ import {
   X
 } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { BrandGlyph, Card, ComboBox, PageFooter, PageHero, PickCard, PickCardGrid } from '@/components/common';
+import { BrandGlyph, Button, Card, ComboBox, PageFooter, PageHero, PickCard, PickCardGrid } from '@/components/common';
 import { ICON } from '@/shared/styles';
 import { assignSeries } from '@/shared/lib/tickerSeries';
 import { TICKER_COMPARE_COPY } from '../copy';
@@ -67,6 +68,15 @@ import {
   SectionHead,
   SectionHint,
   SectionTitle,
+  SimulateHead,
+  SimulateItem,
+  SimulateLede,
+  SimulateList,
+  SimulateMeta,
+  SimulateName,
+  SimulateSection,
+  SimulateTicker,
+  SimulateTitle,
   Slot,
   SlotBody,
   SlotGhost,
@@ -154,7 +164,8 @@ export default function TickerCompareView({
   viewModel,
   onAdd,
   onRemove,
-  onApplySuggestion
+  onApplySuggestion,
+  onSimulate
 }: TickerCompareViewProps) {
   const addSelectId = useId();
   const hintId = useId();
@@ -413,6 +424,37 @@ export default function TickerCompareView({
               </Table>
             </TableScroller>
           </Card>
+
+          {/*
+            🔴 비교가 끝난 **직후**가 실행 의도의 정점이다(기획서 §3-2 연결②) — "그래서 이걸 계산해 보자".
+            표 아래에 두는 이유가 이것이다. 한 종목을 고르면 그 종목만의 시나리오가 시뮬레이터 새 탭으로 열린다.
+            🔴 "추천"이 아니다 — 어느 종목이 나은지는 이 화면이 말하지 않는다(`betterDirection` 을 두지 않은 것과 같은 결정).
+          */}
+          <SimulateSection aria-labelledby={`${hintId}-simulate`}>
+            <SimulateHead>
+              <SimulateTitle id={`${hintId}-simulate`}>{copy.actions.title}</SimulateTitle>
+              <SimulateLede>{copy.actions.lede}</SimulateLede>
+            </SimulateHead>
+            <SimulateList>
+              {model.columns.map((column) => (
+                <SimulateItem key={column.ticker} $series={seriesOf(column.ticker)}>
+                  <SimulateMeta>
+                    <SimulateTicker>{column.ticker}</SimulateTicker>
+                    <SimulateName title={column.name}>{column.name}</SimulateName>
+                  </SimulateMeta>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    startIcon={<Calculator size={ICON.sm} strokeWidth={ICON.stroke} aria-hidden focusable={false} />}
+                    aria-label={copy.actions.simulateAria(column.ticker)}
+                    onClick={() => onSimulate(column.ticker)}
+                  >
+                    {copy.actions.simulate}
+                  </Button>
+                </SimulateItem>
+              ))}
+            </SimulateList>
+          </SimulateSection>
         </>
       ) : (
         <>

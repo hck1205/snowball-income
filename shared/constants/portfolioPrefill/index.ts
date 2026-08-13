@@ -61,9 +61,21 @@ export type PortfolioSimulationPrefill = {
   holdings: PortfolioSimulationPrefillHolding[];
 };
 
+/**
+ * 새 탭에 붙일 이름(선택). 넘기지 않으면 받는 쪽이 기본 이름(`PORTFOLIO_PREFILL_SCENARIO_NAME`)을 쓴다.
+ *
+ * 🔴 값이 없는 게 **정상 경로**다 — "내 포트폴리오" 프리필은 이 필드를 싣지 않아 종전과 동일하게 동작한다.
+ *    종목 비교("이 종목으로 계산")처럼 출처가 다른 프리필만, 만든 탭이 "내 포트폴리오"로 오해되지 않게
+ *    티커명을 실어 보낸다.
+ * ⚠ `location.state` 는 신뢰 불가 입력이라 받는 쪽이 `sanitizeScenarioName` 으로 좁혀 읽는다.
+ */
+const SCENARIO_NAME_MAX_LENGTH = 40;
+
 /** 이동에 실는 `location.state`. 키 하나로 감싸 다른 요청(목표 포커스)과 섞이지 않게 한다. */
 export type PortfolioSimulationPrefillState = {
   portfolioSimulationPrefill: PortfolioSimulationPrefill;
+  /** 새 탭 이름 힌트(선택). 위 `SCENARIO_NAME_MAX_LENGTH` 주석 참고. */
+  scenarioName?: string;
 };
 
 /** 대문자·트림된 심볼(`normalizePortfolioTicker`와 같은 규칙). 비문자열은 `''`(= 매칭 실패). */
@@ -169,6 +181,22 @@ export const readPortfolioSimulationPrefillRequest = (state: unknown): Portfolio
     ? sanitizePortfolioSimulationPrefill((state as { portfolioSimulationPrefill: unknown }).portfolioSimulationPrefill)
     : null;
 
+/** 새 탭 이름으로 받아들일 값인가. 문자열·트림 후 비어 있지 않아야 하고, 길이를 자른다. 아니면 `undefined`. */
+const sanitizeScenarioName = (value: unknown): string | undefined => {
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim();
+  return trimmed.length === 0 ? undefined : trimmed.slice(0, SCENARIO_NAME_MAX_LENGTH);
+};
+
+/**
+ * 실려 온 새 탭 이름 힌트(검증 통과분). 없거나 이상하면 `undefined` — 받는 쪽이 기본 이름을 쓴다.
+ * 프리필 자체가 유효하지 않으면 이름도 읽지 않는다(짝이 맞지 않는 이름만 남는 일 방지).
+ */
+export const readPortfolioSimulationPrefillScenarioName = (state: unknown): string | undefined =>
+  hasPortfolioSimulationPrefillRequest(state)
+    ? sanitizeScenarioName((state as { scenarioName?: unknown }).scenarioName)
+    : undefined;
+
 /**
  * 보내는 쪽이 넘기는 **최소 정보**. `PortfolioSummary`(shared/lib/portfolio)가 구조적으로 만족하므로
  * 그대로 넘기면 된다 — 이 계약이 Portfolio 도메인 타입을 직접 import하지 않는 이유는, 계산 계층이
@@ -241,4 +269,32 @@ export const buildPortfolioSimulationPrefillState = (
   });
 
   return sanitized === null ? null : { portfolioSimulationPrefill: sanitized };
+};
+
+/**
+ * **"이 종목으로 계산"(종목 비교 → 시뮬레이터) 프리필 state.**
+ *
+ * 종목 하나를 100% 비중으로 실어 시뮬레이터가 그 종목만의 시나리오를 새 탭으로 연다. 배당률·성장률은
+ * 싣지 않는다 — 시뮬레이터가 **같은 유니버스**에서 읽으므로(비교 화면과 동일 출처) URL 에 숫자를 실으면
+ * 중복이자 조작 창구가 된다. 여기서 넘기는 것은 "어느 종목인가"뿐이다.
+ *
+ * 초기 투자금은 0 이다 — 비교에서 온 종목에는 금액이라는 개념이 없다(사용자가 시뮬레이터에서 넣는다).
+ * `sanitizeInitialInvestmentKrw` 가 0 을 허용하므로(`>= 0`) 계약 위반이 아니다.
+ *
+ * 유니버스 밖 티커면 `null`(보내는 쪽이 CTA 를 그리지 않을 신호로 쓴다). 새 탭 이름은 티커명이다 —
+ * 만든 탭이 "내 포트폴리오"로 오해되지 않게 한다.
+ */
+export const buildSingleTickerPrefillState = (
+  ticker: string,
+  universe: Readonly<Record<string, unknown>> = DIVIDEND_UNIVERSE
+): PortfolioSimulationPrefillState | null => {
+  const symbol = normalizePrefillTicker(ticker);
+  if (!isSimulationKnownTicker(symbol, universe)) return null;
+
+  const sanitized = sanitizePortfolioSimulationPrefill({
+    initialInvestmentKrw: 0,
+    holdings: [{ ticker: symbol, weightPercent: PORTFOLIO_PREFILL_WEIGHT_TOTAL }]
+  });
+
+  return sanitized === null ? null : { portfolioSimulationPrefill: sanitized, scenarioName: symbol };
 };

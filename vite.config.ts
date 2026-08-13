@@ -66,6 +66,12 @@ const ROUTES = [
   { path: '/privacy', priority: '0.2', changefreq: 'yearly' },
   { path: '/terms', priority: '0.2', changefreq: 'yearly' },
   /*
+   * 사람이 훑는 HTML 사이트맵(`/sitemap`). XML 사이트맵과 청중이 다르지만, 등재해 두면 크롤러가
+   * 전 섹션으로 가는 링크 묶음을 한 번에 발견해 크롤 깊이가 얕아진다(privacy·terms 와 같은 취지).
+   * 본문 페이지와 경쟁하지 않게 priority 는 최하위(0.2), 개편이 드무므로 changefreq 는 monthly.
+   */
+  { path: '/sitemap', priority: '0.2', changefreq: 'monthly' },
+  /*
    * 배당 연속 증배 목록(허브 + 킹·귀족·챔피언). **크롤러가 읽는 본문은 서버가 낸다**
    * (`server/handlers/DividendListHtml` — 앱의 표는 React 가 그려서 JS 없는 크롤러에겐 빈 셸이다).
    * 여기에 하드코딩한 이유: 티커처럼 개수가 늘어나는 목록이 아니라 **셋으로 고정**이고, 목록 데이터

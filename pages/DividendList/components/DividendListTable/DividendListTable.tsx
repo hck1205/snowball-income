@@ -1,7 +1,10 @@
+import { TickerSelectorCheckbox } from '@/components/common';
 import { DIVIDEND_LIST_COPY } from '../../copy';
 import type { DividendListRow, DividendListSortKey, DividendListUnknownReason } from '../../utils';
 import type { DividendListTableProps } from './DividendListTable.types';
 import {
+  CompareCell,
+  CompareTH,
   EmptyRowCell,
   GrowthValue,
   NumberCell,
@@ -86,7 +89,8 @@ export default function DividendListTable({
   caption,
   sort,
   onSortChange,
-  sortableKeys
+  sortableKeys,
+  selection
 }: DividendListTableProps) {
   return (
     <TableWrap>
@@ -94,6 +98,8 @@ export default function DividendListTable({
         <caption>{caption}</caption>
         <thead>
           <tr>
+            {/* 비교 담기 열 — 정렬 축이 아니라 COLUMNS 밖에서 맨 앞에 세운다(그 배열은 정렬 가능 열만). */}
+            <CompareTH scope="col">{copy.columnCompare}</CompareTH>
             {COLUMNS.map((column) => {
               const active = sort.key === column.key;
               const sortable = sortableKeys.includes(column.key);
@@ -134,11 +140,21 @@ export default function DividendListTable({
         <tbody>
           {rows.length === 0 ? (
             <tr>
-              <EmptyRowCell colSpan={COLUMNS.length}>{copy.filteredEmpty}</EmptyRowCell>
+              {/* +1 은 앞에 붙인 비교 담기 열이다 — 배열 밖이라 손으로 센다. */}
+              <EmptyRowCell colSpan={COLUMNS.length + 1}>{copy.filteredEmpty}</EmptyRowCell>
             </tr>
           ) : (
             rows.map((row) => (
               <tr key={row.ticker}>
+                <CompareCell data-label={copy.columnCompare}>
+                  <TickerSelectorCheckbox
+                    ticker={row.ticker}
+                    checked={selection.isSelected(row.ticker)}
+                    disabled={selection.isDisabled(row.ticker)}
+                    disabledReason={copy.compareUnavailable}
+                    onToggle={selection.toggle}
+                  />
+                </CompareCell>
                 <TickerCell data-label={copy.columnTicker}>
                   {/* 소개 페이지가 실재할 때만 링크한다(없는 페이지로 보내지 않는다). */}
                   {row.tickerPagePath ? (

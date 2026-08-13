@@ -15,8 +15,10 @@ import {
   type LucideIcon
 } from 'lucide-react';
 import type { CSSProperties } from 'react';
-import { BrandGlyph, PageFooter, PickCardGrid } from '@/components/common';
+import { BrandGlyph, PageFooter, PickCardGrid, TickerSelectorBar, TickerSelectorCheckbox } from '@/components/common';
 import { ICON } from '@/shared/styles';
+import { useCompareSelection } from '../hooks';
+import type { CompareSelection } from '../hooks';
 import type {
   HubResultCategory,
   HubTickerCard,
@@ -91,6 +93,7 @@ import {
   TableNumberCell,
   TableRow,
   TableScroll,
+  TableSelectCell,
   TableTickerCell,
   TableTickerLink,
   TickerTable,
@@ -166,6 +169,15 @@ export default function TickerHubView({
   const { stats } = viewModel;
   const frequencyLabel = HUB_FREQUENCY_OPTIONS.find((option) => option.value === filters.frequency)?.label ?? '전체';
   const hasResults = result.matchedCount > 0;
+
+  /*
+   * 🔴 이 화면에는 이미 `/ticker/compare` 링크가 있었지만 **아무것도 싣지 않고 갔다** — 비교 화면에
+   * 도착해서 종목을 처음부터 다시 골라야 했다. 여기서 고른 것을 그대로 실어 보낸다(기획서 연결①).
+   *
+   * ⚠ 표 뷰에만 체크박스가 있다. 카드 뷰의 카드는 그 자체가 링크라(`HubPickCard` → `to`),
+   *   안에 체크박스를 넣으면 링크 안의 대화형 요소가 되어 키보드·스크린리더에서 둘 다 망가진다.
+   */
+  const compare = useCompareSelection('ticker-hub');
 
   return (
     <>
@@ -387,6 +399,7 @@ export default function TickerHubView({
               order={order}
               view={filters.view}
               filtered={result.filtered}
+              compare={compare}
             />
           ))}
         </Results>
@@ -396,6 +409,16 @@ export default function TickerHubView({
           사이트 공통 고지만 나간다 — 카드 숫자의 근거는 각 티커 상세가 자기 문장으로 말한다.
           ⚠ 크롤러가 읽는 HTML 은 `server/handlers/TickerHtml` 이 따로 만든다(이 컴포넌트와 무관). */}
       <PageFooter />
+
+      {/* 선택이 비면 컴포넌트가 스스로 `null` 을 낸다 — 여기서 조건을 또 쓰지 않는다. */}
+      <TickerSelectorBar
+        selected={compare.selected}
+        max={compare.max}
+        min={compare.min}
+        href={compare.href}
+        onRemove={compare.remove}
+        onClear={compare.clear}
+      />
     </>
   );
 }
@@ -405,12 +428,14 @@ function CategorySectionView({
   category,
   order,
   view,
-  filtered
+  filtered,
+  compare
 }: {
   category: HubResultCategory;
   order: number;
   view: 'grid' | 'table';
   filtered: boolean;
+  compare: CompareSelection;
 }) {
   const Glyph = glyphFor(category.id);
   const empty = category.matched.length === 0;
@@ -436,7 +461,7 @@ function CategorySectionView({
       {empty ? (
         <SectionEmpty>지금 조건에 맞는 {category.label} 티커가 없습니다.</SectionEmpty>
       ) : view === 'table' ? (
-        <CategoryTable category={category} />
+        <CategoryTable category={category} compare={compare} />
       ) : (
         /*
          * `cluster` 는 **서 있는 보험**이다. 2026-08-03 흰 캔버스 전환으로 카드 캡의 면색이
@@ -507,7 +532,7 @@ function CategorySectionView({
  *
  * 🔴 티커 셀은 **여전히 상세로 가는 링크**다. 보기를 바꿔도 진입점 수는 카드 격자와 같다.
  */
-function CategoryTable({ category }: { category: HubResultCategory }) {
+function CategoryTable({ category, compare }: { category: HubResultCategory; compare: CompareSelection }) {
   return (
     <TableScroll>
       <TickerTable>
@@ -521,6 +546,8 @@ function CategoryTable({ category }: { category: HubResultCategory }) {
             <th scope="col">배당률</th>
             <th scope="col">운용보수</th>
             <th scope="col">지급</th>
+            {/* 🔴 맨 끝이다 — 첫 열이 좌측 고정이라 앞에 끼우면 그 오프셋이 어긋난다(styled/table.ts). */}
+            <th scope="col">비교</th>
           </tr>
         </thead>
         <tbody>
@@ -538,6 +565,15 @@ function CategoryTable({ category }: { category: HubResultCategory }) {
                 {ticker.expenseRatio ?? <TableMuted>미공시</TableMuted>}
               </TableNumberCell>
               <TableNumberCell>{ticker.frequencyLabel}</TableNumberCell>
+              <TableSelectCell>
+                <TickerSelectorCheckbox
+                  ticker={ticker.ticker}
+                  checked={compare.isSelected(ticker.ticker)}
+                  disabled={compare.isDisabled(ticker.ticker)}
+                  disabledReason="비교 표에 자료가 없는 종목입니다"
+                  onToggle={compare.toggle}
+                />
+              </TableSelectCell>
             </TableRow>
           ))}
         </tbody>

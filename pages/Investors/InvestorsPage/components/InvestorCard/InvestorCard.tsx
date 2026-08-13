@@ -10,7 +10,9 @@
  */
 import { useId } from 'react';
 import { AlertTriangle } from 'lucide-react';
-import { Button, PickCard, SideDrawer } from '@/components/common';
+import { Button, PickCard, SideDrawer, TickerSelectorCheckbox, TickerSelectorUnknown } from '@/components/common';
+import { useCompareSelection } from '@/pages/Ticker/hooks';
+import type { CompareSelection } from '@/pages/Ticker/hooks';
 import { investorAvatar } from '@/shared/constants/investors';
 import { useRevealOnScroll } from '@/shared/hooks';
 import { CHART_SERIES_VARS, ICON, color } from '@/shared/styles';
@@ -149,7 +151,7 @@ function CompositionBar({ card }: { card: InvestorCardModel }) {
  * ⚠ 껍데기를 새로 만들지 않는다 — 공용 `SideDrawer` 를 쓴다(복제했다가 `useOverlayEscape` 를
  *   빠뜨려 중첩 Escape 스택 밖으로 나간 이력이 있다).
  */
-function HoldingsTable({ card }: { card: InvestorCardModel }) {
+function HoldingsTable({ card, compare }: { card: InvestorCardModel; compare: CompareSelection }) {
   return (
     <TableScroller>
       <Table>
@@ -161,6 +163,7 @@ function HoldingsTable({ card }: { card: InvestorCardModel }) {
             <Th scope="col">{copy.holdings.issuerHeader}</Th>
             <ThNumeric scope="col">{copy.holdings.weightHeader}</ThNumeric>
             <ThNumeric scope="col">{copy.holdings.dividendHeader}</ThNumeric>
+            <ThNumeric scope="col">{copy.holdings.compareHeader}</ThNumeric>
           </tr>
         </thead>
         <tbody>
@@ -181,6 +184,26 @@ function HoldingsTable({ card }: { card: InvestorCardModel }) {
                   <UnknownCell title={copy.holdings.notInUniverseHint}>{copy.holdings.notInUniverse}</UnknownCell>
                 ) : (
                   `${row.dividendYieldPercent.toFixed(2)}%`
+                )}
+              </TdNumeric>
+              <TdNumeric>
+                {/*
+                  🔴 티커를 모르는 줄은 체크박스를 **아예 두지 않는다**(꺼진 채로도 아니다).
+                     바로 왼쪽 칸이 이미 "자료 없음"이라고 같은 사실을 말하고 있어서, 꺼진 체크박스를
+                     덧붙이면 한 줄에서 같은 말을 두 번 하게 된다.
+                  ⚠ 풋·콜 줄에도 체크박스를 둔다 — 담기는 그 **종목의 배당 자료**를 비교 표로 가져가는
+                     동작이고, 포지션 방향은 왼쪽 칸의 KindMark 가 이미 말한다.
+                */}
+                {row.ticker === null ? (
+                  <TickerSelectorUnknown reason={copy.holdings.compareUnavailable} />
+                ) : (
+                  <TickerSelectorCheckbox
+                    ticker={row.ticker}
+                    checked={compare.isSelected(row.ticker)}
+                    disabled={compare.isDisabled(row.ticker)}
+                    disabledReason={copy.holdings.compareUnavailable}
+                    onToggle={compare.toggle}
+                  />
                 )}
               </TdNumeric>
             </tr>
@@ -230,6 +253,12 @@ export default function InvestorCard({
   const reveal = useRevealOnScroll<HTMLDivElement>();
   const drawerId = useId();
   const tickers = comparableTickers(card, COMPARE_LIMIT);
+  /*
+   * 종목 비교 선택(기획서 연결①). 상태는 sessionStorage 한 곳에 있으므로, 카드마다 이 훅을 불러도
+   * **모든 카드가 같은 선택을 본다** — 버핏 카드에서 둘, 켄 피셔 카드에서 하나를 담을 수 있다.
+   * 하단 바는 `InvestorsPage.view` 가 한 번만 그린다(카드마다 그리면 열세 개가 겹친다).
+   */
+  const compare = useCompareSelection('investors');
   const hasOptions = card.holdings.some((row) => row.kind !== 'share');
   const personColor = personColorOf(card.person);
 
@@ -283,9 +312,16 @@ export default function InvestorCard({
               {copy.card.open}
             </Button>
 
-            {/* 매핑된 종목이 2개 이상일 때만 — 비교는 2종부터 성립한다. */}
+            {/*
+              매핑된 종목이 2개 이상일 때만 — 비교는 2종부터 성립한다.
+              🔴 `?from=investors` 는 **측정용**이다(2026-08-13). 이 링크는 원래부터 있었지만 출처를
+                 싣지 않아, 비교 화면 도착이 어느 유입 화면 덕인지 셀 수 없었다. 담기(체크박스)와
+                 같은 `from` 을 쓴다 — 둘은 같은 화면이 만든 이동이고, 나누면 이 화면의 기여가 반씩 접힌다.
+            */}
             {tickers.length >= 2 ? (
-              <CompareLink to={`/ticker/compare?t=${tickers.join(',')}`}>{copy.holdings.compareAction}</CompareLink>
+              <CompareLink to={`/ticker/compare?t=${tickers.join(',')}&from=investors`}>
+                {copy.holdings.compareAction}
+              </CompareLink>
             ) : null}
           </>
         }
@@ -361,7 +397,7 @@ export default function InvestorCard({
           </DrawerSummaryItem>
         </DrawerSummary>
 
-        <HoldingsTable card={card} />
+        <HoldingsTable card={card} compare={compare} />
         {/* 드로어 안은 폭·높이에 여유가 있어 문장 그대로 둔다 — 카드에서는 짧은 표시로 접었다. */}
         {hasOptions ? <DrawerNote>{copy.kind.mixedNote}</DrawerNote> : null}
       </SideDrawer>

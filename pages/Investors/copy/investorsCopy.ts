@@ -109,6 +109,13 @@ export const INVESTORS_COPY = {
     issuerHeader: '종목',
     weightHeader: '비중',
     dividendHeader: '배당률',
+    /* 비교 담기 열(2026-08-13). 빈 `<th>` 는 스크린리더가 "빈 열 머리글"로 읽어 헤더를 비우지 않는다. */
+    compareHeader: '비교',
+    /*
+     * 🔴 `notInUniverse` 와 **같은 사실**을 말한다(배당 자료가 없다). 문구를 따로 두는 이유는
+     *    그 칸은 값의 부재를, 이 칸은 **동작의 불가**를 설명하기 때문이다 — 읽는 사람이 묻는 것이 다르다.
+     */
+    compareUnavailable: '우리 종목 데이터에 없어 비교할 수 없습니다.',
     /** 우리 유니버스에 없는 종목 — 🔴 "배당 없음"이 아니라 "모른다"를 말한다. */
     notInUniverse: '자료 없음',
     notInUniverseHint: '우리 종목 데이터에 없어 배당 정보를 표시할 수 없습니다.',

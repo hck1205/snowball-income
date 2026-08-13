@@ -118,6 +118,7 @@ export {
   TableNumberCell,
   TableRow,
   TableScroll,
+  TableSelectCell,
   TableTickerCell,
   TableTickerLink,
   TickerTable

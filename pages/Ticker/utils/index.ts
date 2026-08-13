@@ -25,3 +25,16 @@ export type {
   PayoutCoverage,
   TickerCompareModel
 } from './tickerCompare';
+
+/*
+ * 유입 화면(의원거래·13F·국민연금·배당목록·검색)이 비교로 종목을 보내는 규칙.
+ * 상한·유니버스·정규화를 위 `tickerCompare` 와 **같은 정본**에서 가져다 쓴다.
+ */
+export {
+  addTickerWithEviction,
+  buildCompareHref,
+  canOpenCompare,
+  isComparableTicker,
+  removeTicker
+} from './tickerSelection';
+export type { CompareEntryPoint } from './tickerSelection';

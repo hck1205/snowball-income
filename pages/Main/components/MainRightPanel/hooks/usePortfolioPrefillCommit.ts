@@ -94,7 +94,7 @@ export const usePortfolioPrefillCommit = ({
   openLoginNudge
 }: UsePortfolioPrefillCommitArgs) => {
   return useCallback(
-    (prefill: PortfolioSimulationPrefill): PortfolioPrefillCommitResult => {
+    (prefill: PortfolioSimulationPrefill, scenarioName?: string): PortfolioPrefillCommitResult => {
       const scenario = buildPortfolioPrefillScenario({ prefill, universe: DIVIDEND_UNIVERSE });
       // 매핑되는 티커가 하나도 없으면 아무것도 만들지 않는다(빈 탭만 남기지 않는다).
       if (!scenario) return NOT_COMMITTED('nothing-to-commit');
@@ -112,7 +112,8 @@ export const usePortfolioPrefillCommit = ({
       if (target === 'tab-limit-reached') return NOT_COMMITTED(target);
 
       if (target === 'new-tab') {
-        const outcome = createScenarioTab(PORTFOLIO_PREFILL_SCENARIO_NAME);
+        // 출처가 이름을 주면(예: 종목 비교의 티커명) 그걸 쓰고, 없으면 기본 "내 포트폴리오".
+        const outcome = createScenarioTab(scenarioName ?? PORTFOLIO_PREFILL_SCENARIO_NAME);
         // 게이트를 통과했는데도 생성이 거부되면(경합) 커밋하지 않는다 — 남의 탭을 덮지 않는다.
         if (outcome !== 'created') return NOT_COMMITTED(outcome === 'login-required' ? 'login-required' : 'tab-limit-reached');
       }

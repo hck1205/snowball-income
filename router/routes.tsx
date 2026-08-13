@@ -217,6 +217,7 @@ const NotFoundPage = lazy(() => import('@/pages/NotFound'));
  */
 const PrivacyPage = lazy(() => import('@/pages/Legal/PrivacyPage'));
 const TermsPage = lazy(() => import('@/pages/Legal/TermsPage'));
+const SitemapPage = lazy(() => import('@/pages/Sitemap'));
 
 /**
  * 랜딩(`/`) — 배당을 처음 접하는 사람이 도착하는 정문. 404·법무 문서와 같은 `lazy` 격리다.
@@ -558,6 +559,15 @@ export const routes: RouteObject[] = [
         element: (
           <Suspense fallback={null}>
             <TermsPage />
+          </Suspense>
+        )
+      },
+      {
+        // 사람이 훑는 사이트 색인. XML 사이트맵(크롤러용)과 청중이 다르다 — 둘 다 둔다.
+        path: '/sitemap',
+        element: (
+          <Suspense fallback={null}>
+            <SitemapPage />
           </Suspense>
         )
       },

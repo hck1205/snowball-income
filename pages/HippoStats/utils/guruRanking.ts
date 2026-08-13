@@ -1,4 +1,5 @@
 import { INVESTOR_SNAPSHOT } from '@/shared/constants/investors';
+import { tickerForCusip } from '@/shared/constants/investors/cusipToTicker';
 
 /**
  * 대가들 13F 보유를 종목별로 모은다.
@@ -24,6 +25,11 @@ import { INVESTOR_SNAPSHOT } from '@/shared/constants/investors';
 export type GuruRank = {
   /** 화면 라벨. 종목명이 길어 파이에서는 이것만 쓴다. */
   issuer: string;
+  /**
+   * 이 종목의 티커. 🔴 13F 는 티커를 주지 않고 CUSIP 만 준다 — 변환표(`tickerForCusip`)를 거치며,
+   * 표에 없으면 `null`(모른다). 비교 담기 목록(`topComparableGuruHoldings`)은 이 값이 있는 것만 고른다.
+   */
+  ticker: string | null;
   /** 이 종목을 들고 있는 대가 수. */
   holders: number;
   /** 합산 평가액(USD). */
@@ -39,16 +45,19 @@ const shareRows = () =>
   );
 
 const aggregate = (): GuruRank[] => {
-  const byIssuer = new Map<string, GuruRank>();
+  // CUSIP 을 함께 들고 다니다 마지막에 티커로 옮긴다 — 같은 issuer 는 같은 종목이라 첫 CUSIP 으로 대표한다.
+  const byIssuer = new Map<string, GuruRank & { cusip: string }>();
 
   for (const { holding } of shareRows()) {
-    const current = byIssuer.get(holding.issuer) ?? { issuer: holding.issuer, holders: 0, valueUsd: 0 };
+    const current =
+      byIssuer.get(holding.issuer) ??
+      { issuer: holding.issuer, ticker: null, holders: 0, valueUsd: 0, cusip: holding.cusip };
     current.holders += 1;
     current.valueUsd += holding.valueUsd;
     byIssuer.set(holding.issuer, current);
   }
 
-  return [...byIssuer.values()];
+  return [...byIssuer.values()].map(({ cusip, ...rank }) => ({ ...rank, ticker: tickerForCusip(cusip) }));
 };
 
 /** 가장 많은 대가가 담은 종목. 동률이면 금액이 큰 쪽이 앞. */
@@ -62,6 +71,28 @@ export const topByValue = (): GuruRank[] =>
   aggregate()
     .sort((left, right) => right.valueUsd - left.valueUsd)
     .slice(0, TOP_N);
+
+/** 비교 담기 목록의 한 줄 — 티커를 알고 담을 수 있는 대가 보유 종목. */
+export type GuruHolding = {
+  ticker: string;
+  issuer: string;
+  holders: number;
+};
+
+/**
+ * 대가들이 담은 종목 중 **티커를 아는** 것만, 담은 대가 수 내림차순으로(연결① 의 비교 담기 원천).
+ *
+ * 🔴 상위 도넛(`topByHolders`)은 애플·엔비디아 같은 **무배당 대형주**가 앞자리를 채워 비교 표에
+ *    없는 경우가 많다. 이 목록은 그와 별개로 **담아도 빈 비교가 열리지 않는** 종목만 모은다 —
+ *    변환표에 티커가 있는 것까지 여기서 거르고, 유니버스 소속 최종 판정은 화면
+ *    (`useCompareSelection.isDisabled`)이 한 번 더 한다(변환표와 유니버스는 갱신 주기가 다르다).
+ */
+export const topComparableGuruHoldings = (limit = 12): GuruHolding[] =>
+  aggregate()
+    .filter((rank): rank is GuruRank & { ticker: string } => rank.ticker !== null)
+    .map((rank) => ({ ticker: rank.ticker, issuer: rank.issuer, holders: rank.holders }))
+    .sort((left, right) => right.holders - left.holders || left.ticker.localeCompare(right.ticker))
+    .slice(0, limit);
 
 /** 이 집계가 덮는 보고 시점들 — 서로 다르므로 화면이 전부 보여 준다. */
 export const guruReportDates = (): string[] =>

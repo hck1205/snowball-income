@@ -6675,6 +6675,10 @@ var DIVIDEND_LIST_COPY = {
     /** ⚠ '종목'이 아니라 '종'이다 — `countLabel` 과 붙으면 "수록 종목 69종목"으로 낱말이 겹친다. */
     countUnit: "\uC885",
     coverageHeading: "\uC218\uB85D \uBC94\uC704",
+    /** 비교 담기 체크박스 열(기획서 연결①). 정렬 축이 아니라 짧은 라벨만 둔다. */
+    columnCompare: "\uBE44\uAD50",
+    /** 티커는 알지만 비교표가 열 배당 자료가 없는 종목. 꺼진 체크박스에 `title` 로 붙는다. */
+    compareUnavailable: "\uBC30\uB2F9 \uC790\uB8CC\uAC00 \uC5C6\uC5B4 \uBE44\uAD50\uD560 \uC218 \uC5C6\uB294 \uC885\uBAA9\uC785\uB2C8\uB2E4",
     columnTicker: "\uD2F0\uCEE4",
     columnName: "\uC885\uBAA9\uBA85",
     /** 선행 배당률 — 최신 1회 지급액 × 연 지급횟수 ÷ 현재가. 열 이름이 그 정의를 다 담을 수 없어 각주로 푼다. */

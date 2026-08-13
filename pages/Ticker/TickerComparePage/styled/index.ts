@@ -96,6 +96,18 @@ export {
   ExtremeMark
 } from './table';
 
+export {
+  SimulateSection,
+  SimulateHead,
+  SimulateTitle,
+  SimulateLede,
+  SimulateList,
+  SimulateItem,
+  SimulateMeta,
+  SimulateTicker,
+  SimulateName
+} from './actions';
+
 export { EmptyBlock, EmptyGlyph, EmptyBody, EmptyTitle, EmptyLede, PartialNotice } from './empty';
 
 export {

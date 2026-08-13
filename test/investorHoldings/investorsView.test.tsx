@@ -97,11 +97,16 @@ describe('대가들의 포트폴리오 화면', () => {
     expect(screen.getByRole('button', { name: '보유 종목 전체 보기' })).toHaveAttribute('aria-expanded', 'true');
   });
 
-  it('매핑된 종목이 2종 이상이면 비교 링크를 남긴다', () => {
+  /*
+   * 🔴 `&from=investors` 는 2026-08-13 에 붙였다 — 링크 자체는 원래 있었지만 출처를 싣지 않아,
+   *    비교 화면 도착이 어느 유입 화면 덕인지 셀 수 없었다(기획서 §3-2 의 "이동률" 지표).
+   *    이 문자열이 빠지면 그 화면의 기여가 통째로 미상으로 잡히므로 href 를 통째로 잠근다.
+   */
+  it('매핑된 종목이 2종 이상이면 출처를 실은 비교 링크를 남긴다', () => {
     renderView([card()]);
     expect(screen.getByRole('link', { name: '상위 종목 비교' })).toHaveAttribute(
       'href',
-      '/ticker/compare?t=AAPL,KO'
+      '/ticker/compare?t=AAPL,KO&from=investors'
     );
   });
 
