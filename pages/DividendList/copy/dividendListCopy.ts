@@ -246,6 +246,10 @@ export const DIVIDEND_LIST_COPY = {
     /** ⚠ '종목'이 아니라 '종'이다 — `countLabel` 과 붙으면 "수록 종목 69종목"으로 낱말이 겹친다. */
     countUnit: '종',
     coverageHeading: '수록 범위',
+    /** 비교 담기 체크박스 열(기획서 연결①). 정렬 축이 아니라 짧은 라벨만 둔다. */
+    columnCompare: '비교',
+    /** 티커는 알지만 비교표가 열 배당 자료가 없는 종목. 꺼진 체크박스에 `title` 로 붙는다. */
+    compareUnavailable: '배당 자료가 없어 비교할 수 없는 종목입니다',
     columnTicker: '티커',
     columnName: '종목명',
     /** 선행 배당률 — 최신 1회 지급액 × 연 지급횟수 ÷ 현재가. 열 이름이 그 정의를 다 담을 수 없어 각주로 푼다. */

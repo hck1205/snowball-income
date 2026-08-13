@@ -97,12 +97,14 @@ describe('배당 목록 라우트', () => {
     const firstTickerOf = () => within(table).getAllByRole('row')[1].textContent ?? '';
 
     const ascending = firstTickerOf();
-    const tickerHeader = within(table).getAllByRole('columnheader')[0];
-    expect(tickerHeader).toHaveAttribute('aria-sort', 'ascending');
+    // 🔴 맨 앞 열은 비교 담기(정렬 축이 아니다)라, 인덱스가 아니라 **이름**으로 티커 헤더를 집는다.
+    const tickerHeaderName = new RegExp(DIVIDEND_LIST_COPY.page.columnTicker);
+    const tickerHeader = () => within(table).getByRole('columnheader', { name: tickerHeaderName });
+    expect(tickerHeader()).toHaveAttribute('aria-sort', 'ascending');
 
-    await user.click(within(tickerHeader).getByRole('button'));
+    await user.click(within(tickerHeader()).getByRole('button'));
 
-    expect(within(table).getAllByRole('columnheader')[0]).toHaveAttribute('aria-sort', 'descending');
+    expect(tickerHeader()).toHaveAttribute('aria-sort', 'descending');
     expect(firstTickerOf()).not.toBe(ascending);
   });
 

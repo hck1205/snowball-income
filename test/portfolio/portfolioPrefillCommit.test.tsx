@@ -47,7 +47,7 @@ import {
 import type { PersistedScenarioState } from '@/jotai/snowball/types';
 import type { TickerProfile } from '@/shared/types/snowball';
 import { PORTFOLIO_PREFILL_SCENARIO_NAME } from '@/pages/Main/utils';
-import { buildPortfolioSimulationPrefillState } from '@/shared/constants';
+import { buildPortfolioSimulationPrefillState, buildSingleTickerPrefillState } from '@/shared/constants';
 
 const PREFILL_STATE = buildPortfolioSimulationPrefillState({
   summary: {
@@ -153,10 +153,20 @@ describe('PortfolioPrefillRequest — 요청 수신(1회 소비 → 커밋 → �
     const { onApplyPrefill, readState } = renderRequest(PREFILL_STATE);
 
     await waitFor(() => expect(onApplyPrefill).toHaveBeenCalledTimes(1));
-    expect(onApplyPrefill).toHaveBeenCalledWith(PREFILL_STATE?.portfolioSimulationPrefill);
+    // "내 포트폴리오" 경로는 이름을 싣지 않는다 → scenarioName 은 undefined(받는 쪽이 기본 이름을 쓴다).
+    expect(onApplyPrefill).toHaveBeenCalledWith(PREFILL_STATE?.portfolioSimulationPrefill, undefined);
     // 소거되지 않으면 뒤로가기·새로고침마다 같은 프리필이 또 커밋된다(탭이 계속 늘어난다).
     await waitFor(() => expect(readState()).toBeNull());
     expect(onApplyPrefill).toHaveBeenCalledTimes(1);
+  });
+
+  it('🔴 종목 비교("이 종목으로 계산")가 실은 새 탭 이름을 그대로 넘긴다', async () => {
+    const state = buildSingleTickerPrefillState('SCHD');
+    const { onApplyPrefill } = renderRequest(state);
+
+    await waitFor(() => expect(onApplyPrefill).toHaveBeenCalledTimes(1));
+    // 단일 종목 100% + 이름은 티커명. 만든 탭이 "내 포트폴리오"로 오해되지 않게 하는 계약.
+    expect(onApplyPrefill).toHaveBeenCalledWith(state?.portfolioSimulationPrefill, 'SCHD');
   });
 
   it('요청이 없으면 아무 일도 하지 않는다', async () => {
@@ -215,6 +225,21 @@ describe('프리필 커밋 (결과 패널 전체 경로)', () => {
     expect(weightSum(store)).toBeCloseTo(100, 9);
     expect(store.get(yieldFormAtom).initialInvestment).toBe(EXPECTED_INITIAL_INVESTMENT);
     await waitFor(() => expect(readState()).toBeNull());
+  });
+
+  it('🔴 종목 비교("이 종목으로 계산"): 새 탭 이름이 티커명이고 그 종목 100% + 초기 투자금 0 이다', async () => {
+    const store = seedStore({ loggedIn: true });
+    renderPanel(store, buildSingleTickerPrefillState('SCHD'));
+
+    await waitFor(() => expect(tickersOf(store)).toEqual(['SCHD']));
+
+    const tabs = store.get(scenarioTabsAtom);
+    expect(tabs).toHaveLength(2);
+    // 🔴 "내 포트폴리오"가 아니라 티커명 — 만든 탭이 무엇에서 왔는지 이름이 말한다.
+    expect(tabs[1].name).toBe('SCHD');
+    expect(weightSum(store)).toBeCloseTo(100, 9);
+    // 비교에서 온 종목엔 금액 개념이 없다 → 0(사용자가 시뮬레이터에서 넣는다).
+    expect(store.get(yieldFormAtom).initialInvestment).toBe(0);
   });
 
   it('비로그인 + 빈 활성 탭: 탭을 늘리지 않고 그 탭에 커밋한다', async () => {

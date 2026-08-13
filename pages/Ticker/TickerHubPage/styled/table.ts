@@ -184,3 +184,16 @@ export const TableMuted = styled.span`
   color: ${color.textMuted};
   font-weight: ${font.weight.regular};
 `;
+
+/**
+ * 비교 담기 칸.
+ *
+ * 🔴 **맨 끝 열이다.** 첫 열(`TableTickerCell`)이 `stickyColumn('0')` 으로 좌측에 고정돼 있어서,
+ * 앞에 열을 하나 끼우면 그 고정 오프셋이 통째로 어긋난다(좁은 폭에서 티커가 흘러나간다).
+ * 의원거래 표와 열 순서가 다른 것은 그래서다 — 그쪽 표에는 고정 열이 없다.
+ */
+export const TableSelectCell = styled.td`
+  width: 1%;
+  text-align: center;
+  white-space: nowrap;
+`;

@@ -25,4 +25,6 @@ export type TickerCompareViewProps = {
   onAdd: (ticker: string) => void;
   onRemove: (ticker: string) => void;
   onApplySuggestion: (tickers: readonly string[]) => void;
+  /** "이 종목으로 계산" — 고른 종목 하나를 시뮬레이터로 보낸다(프리필 + 계측은 컨테이너가 한다). */
+  onSimulate: (ticker: string) => void;
 };

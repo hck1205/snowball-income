@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { AlertTriangle, Users } from 'lucide-react';
-import { BrandGlyph, PageFooter, PageHero } from '@/components/common';
+import { BrandGlyph, PageFooter, PageHero, TickerSelectorBar } from '@/components/common';
+import { useCompareSelection } from '@/pages/Ticker/hooks';
 import { assignSeries } from '@/shared/lib/tickerSeries';
 import { CHART_SERIES_VARS, ICON } from '@/shared/styles';
 import { INVESTORS_COPY } from '../copy';
@@ -61,6 +62,9 @@ export default function InvestorsView({ viewModel }: InvestorsViewProps) {
    */
   const [openCik, setOpenCik] = useState<string | null>(null);
   const closeDrawer = useCallback(() => setOpenCik(null), []);
+
+  /* 하단 선택 바용. 담기는 인물 카드의 보유 표(드로어)에서 하고, 상태는 sessionStorage 한 곳에 있다. */
+  const compare = useCompareSelection('investors');
 
   /**
    * 🔴 인물 색은 **화면 전체가 한 번에** 배정한다(`assignSeries`).
@@ -212,6 +216,20 @@ export default function InvestorsView({ viewModel }: InvestorsViewProps) {
           사용자 지시 "모든 페이지에 footer가 존재하게 해줘" — 셸의 슬롯으로 착지하므로
           여기 두어도 `<main>` 밖에 서고 contentinfo 랜드마크가 살아 있다. */}
       <PageFooter />
+
+      {/*
+        🔴 하단 바는 **이 화면에 한 장뿐**이다. 인물 카드마다 그리면 열세 장이 같은 자리에 겹친다
+           (`position: fixed` 라 겹친 사실이 화면에 드러나지도 않는다 — 마지막 것만 보인다).
+        ⚠ 선택이 비면 컴포넌트가 스스로 `null` 을 낸다.
+      */}
+      <TickerSelectorBar
+        selected={compare.selected}
+        max={compare.max}
+        min={compare.min}
+        href={compare.href}
+        onRemove={compare.remove}
+        onClear={compare.clear}
+      />
     </Stack>
   );
 }

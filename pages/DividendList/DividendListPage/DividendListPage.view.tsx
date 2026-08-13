@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Crown, Gem, Medal, Sparkles } from 'lucide-react';
-import { PageFooter, PageHero } from '@/components/common';
+import { PageFooter, PageHero, TickerSelectorBar } from '@/components/common';
+import { useCompareSelection } from '@/pages/Ticker/hooks';
 import {
   DIVIDEND_LIST_HUB_PATH,
   HIDDEN_STAR_MONTHLY,
@@ -107,6 +108,14 @@ export default function DividendListView({ viewModel }: DividendListViewProps) {
   const { list, copy: listCopy, rows, criterion, others } = viewModel;
   const [sort, setSort] = useState<DividendListSort>(DEFAULT_DIVIDEND_LIST_SORT);
   const [filter, setFilter] = useState<DividendListFilter>(NO_DIVIDEND_LIST_FILTER);
+
+  /*
+   * 종목 비교로 보내는 연결(기획서 연결①). `from='dividend-list'` 는 측정용 — 배당킹·귀족·챔피언·
+   * 히든스타 네 라우트가 이 한 컴포넌트라, 어느 목록에서 왔는지는 슬러그가 아니라 GA 의 page_path 가 가른다.
+   * ⚠ 목록 표에만 붙인다. 히든스타의 "이달의 종목" 카드는 소개 자리라 담기 동작이 문맥에 맞지 않는다
+   *   (Nps 가 보유표에만 붙이고 신규·청산표엔 안 붙인 것과 같은 판단).
+   */
+  const compare = useCompareSelection('dividend-list');
 
   const facets = useMemo(() => buildSectorFacets(rows), [rows]);
   const visibleRows = useMemo(
@@ -251,6 +260,7 @@ export default function DividendListView({ viewModel }: DividendListViewProps) {
             sort={sort}
             onSortChange={onSortChange}
             sortableKeys={sortableKeys}
+            selection={compare}
           />
         </Section>
 
@@ -307,6 +317,17 @@ export default function DividendListView({ viewModel }: DividendListViewProps) {
       {/* 각주 + 사이트 공통 고지 = 공용 푸터 한 벌. `TickerPageShell` 의 슬롯으로 포털되어
           `<main>` **밖**(contentinfo 랜드마크)에 그려진다 — 이 셸을 쓰는 화면들의 공통 관례다. */}
       <PageFooter notesTitle={copy.footerNotesTitle} notes={copy.footerNotes} />
+
+      {/* 🔴 `Sections` 밖이다 — `position: fixed` 라 조상이 스태킹 컨텍스트를 만들면 갇힌다
+          (TickerPageShell 루트엔 transform/filter/contain 이 없어 안전 — TickerHub 도 같은 셸에서 이 바를 쓴다). */}
+      <TickerSelectorBar
+        selected={compare.selected}
+        max={compare.max}
+        min={compare.min}
+        href={compare.href}
+        onRemove={compare.remove}
+        onClear={compare.clear}
+      />
     </>
   );
 }

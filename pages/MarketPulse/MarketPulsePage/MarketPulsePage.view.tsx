@@ -1,6 +1,9 @@
-import { Thermometer } from 'lucide-react';
+import { ArrowRight, Thermometer } from 'lucide-react';
 import { Button, PageHero } from '@/components/common';
 import { PULSE_AXIS_LABEL, type PulseAxis } from '@/shared/lib/marketPulse';
+import { SIMULATOR_PATH } from '@/shared/constants/routes';
+import { ANALYTICS_EVENT, track } from '@/shared/lib/analytics';
+import { ICON } from '@/shared/styles';
 import { PulseCard } from '../components';
 import { MARKET_PULSE_COPY as copy } from '../copy';
 import { AXIS_ORDER } from '../utils';
@@ -18,6 +21,11 @@ import {
   LegendLevel,
   LegendLevels,
   LegendTitle,
+  NudgeBody,
+  NudgeBox,
+  NudgeCta,
+  NudgeText,
+  NudgeTitle,
   PageBody,
   StatusBox
 } from './MarketPulsePage.styled';
@@ -104,6 +112,22 @@ export function MarketPulseView({ state, onReload }: MarketPulseViewProps) {
           <LegendCaution>{copy.zoneLegendCaution}</LegendCaution>
         </LegendBox>
       ) : null}
+
+      {/*
+        🔴 시뮬레이터로 잇는 넛지(연결⑤). 상태와 무관하게 늘 보인다 — 지표를 못 받았어도 "타이밍보다
+           기간"이라는 문장은 그대로 참이고, 막다른 화면 대신 다음 걸음을 준다.
+        🔴 클릭을 계측한다(도착이 아니라) — 시뮬레이터 도착은 URL 에 표식이 없어 셀 수 없다.
+      */}
+      <NudgeBox aria-labelledby="pulse-nudge">
+        <NudgeText>
+          <NudgeTitle id="pulse-nudge">{copy.simulatorNudge.title}</NudgeTitle>
+          <NudgeBody>{copy.simulatorNudge.body}</NudgeBody>
+        </NudgeText>
+        <NudgeCta to={SIMULATOR_PATH} onClick={() => track(ANALYTICS_EVENT.MARKET_PULSE_TO_SIMULATOR)}>
+          {copy.simulatorNudge.cta}
+          <ArrowRight size={16} strokeWidth={ICON.stroke} aria-hidden focusable={false} />
+        </NudgeCta>
+      </NudgeBox>
     </PageBody>
   );
 }

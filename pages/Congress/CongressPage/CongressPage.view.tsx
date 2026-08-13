@@ -10,8 +10,12 @@ import {
   SectionMeta,
   SectionStack,
   StatTile,
-  SummaryGrid
+  SummaryGrid,
+  TickerSelectorBar,
+  TickerSelectorCheckbox
 } from '@/components/common';
+import { useCompareSelection } from '@/pages/Ticker/hooks';
+import type { CompareSelection } from '@/pages/Ticker/hooks';
 import { ICON } from '@/shared/styles';
 import { TICKER_PAGE_INDEX } from '@/shared/constants/tickerPages';
 import type {
@@ -60,7 +64,27 @@ const TickerCell = ({ ticker }: { ticker: string }) => {
 
 const countLabel = (value: number) => `${value}${copy.tickers.unitCount}`;
 
-const TICKER_COLUMNS = [
+/**
+ * 종목 표의 열. **선택 상태를 받아야 하므로 상수가 아니라 함수다**(체크박스가 현재 선택을 그린다).
+ *
+ * 🔴 비교 담기 열은 **이 표에만** 붙인다. 최근 거래 표에도 종목이 나오지만 그쪽은 비교 가능한
+ * 종목이 30건 중 7건뿐이라(2026-08-13 실측), 붙이면 대부분이 꺼진 체크박스가 되어 표가 고장 난
+ * 것처럼 보인다. 이 표는 상위 20종 중 18종이 비교 가능하다.
+ */
+const buildTickerColumns = (selection: CompareSelection) => [
+  {
+    key: 'compare',
+    header: copy.tickers.columnCompare,
+    render: (row: CongressTickerRow) => (
+      <TickerSelectorCheckbox
+        ticker={row.ticker}
+        checked={selection.isSelected(row.ticker)}
+        disabled={selection.isDisabled(row.ticker)}
+        disabledReason={copy.tickers.compareUnavailable}
+        onToggle={selection.toggle}
+      />
+    )
+  },
   {
     key: 'ticker',
     header: copy.tickers.columnTicker,
@@ -186,6 +210,13 @@ export default function CongressView({ viewModel }: CongressViewProps) {
   const [axis, setAxis] = useState<CongressTickerAxis>('count');
   const tickers = useMemo(() => sortTickersBy(snapshot.topTickers, axis, TICKER_ROWS), [snapshot, axis]);
 
+  /*
+   * 종목 비교로 보내는 연결(기획서 연결①). `from='congress'` 는 **측정용**이다 — 여섯 유입 화면 중
+   * 어디가 비교로 가장 많이 보내는지 모르면 다음에 어디를 손볼지 정할 수 없다.
+   */
+  const compare = useCompareSelection('congress');
+  const tickerColumns = useMemo(() => buildTickerColumns(compare), [compare]);
+
   return (
     <>
       <PageHero
@@ -258,7 +289,7 @@ export default function CongressView({ viewModel }: CongressViewProps) {
               {copy.tickers.axisAmount}
             </AxisButton>
           </AxisRow>
-          <DataTable columns={TICKER_COLUMNS} rows={[...tickers]} />
+          <DataTable columns={tickerColumns} rows={[...tickers]} />
         </DataSection>
 
         <DataSection title={copy.members.heading} subtitle={copy.members.subtitle}>
@@ -287,6 +318,21 @@ export default function CongressView({ viewModel }: CongressViewProps) {
           </SectionMeta>
         </DataSection>
       </SectionStack>
+
+      {/*
+        🔴 `SectionStack` **밖**이다. 이 바는 `position: fixed` 라 조상이 스태킹 컨텍스트나
+           레이아웃 컨테인먼트를 만들면 화면 하단이 아니라 그 상자 안에 갇힌다
+           (`shared/styles/tokens.ts` 의 컨테이너 쿼리 주석 참고).
+        ⚠ 선택이 비면 컴포넌트가 스스로 `null` 을 낸다 — 여기서 조건을 또 쓰지 않는다.
+      */}
+      <TickerSelectorBar
+        selected={compare.selected}
+        max={compare.max}
+        min={compare.min}
+        href={compare.href}
+        onRemove={compare.remove}
+        onClear={compare.clear}
+      />
     </>
   );
 }

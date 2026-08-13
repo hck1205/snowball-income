@@ -8,6 +8,8 @@ export type PortfolioPrefillRequestProps = {
    * 사용자가 손으로 조작한 것과 같은 경로여야 자동저장·클라우드 동기화·계측이 그대로 따라온다.
    * **하이드레이션이 끝난 뒤에만** 불려야 하므로 이 컴포넌트의 마운트 위치가 계약의 일부다
    * (`TargetFocusRequest` 주석 참고 — `MainRightPanel` 밖으로 올리지 말 것).
+   *
+   * `scenarioName` 은 새 탭에 붙일 이름(선택). 없으면 기본 이름(`PORTFOLIO_PREFILL_SCENARIO_NAME`).
    */
-  onApplyPrefill: (prefill: PortfolioSimulationPrefill) => void;
+  onApplyPrefill: (prefill: PortfolioSimulationPrefill, scenarioName?: string) => void;
 };

@@ -162,6 +162,22 @@ export const ANALYTICS_EVENT = {
   // 'x'|'facebook'|'naver'=공유 창의 채널 버튼. 데스크톱은 OS 시트를 쓰지 않으므로 web_share 는 모바일 신호에 가깝다.
   // 시뮬 상태 공유(scenario_shared)와 구분 — 이건 공개 SEO 페이지로의 유입을 노린 글 공유. 용도: 바이럴 계수(어떤 글이 퍼지나) 측정.
   COMMUNITY_POST_SHARED: "community_post_shared",
+  // 유입 화면에서 고른 종목을 실은 채 `/ticker/compare` 에 도착(파라미터: from, ticker_count).
+  //
+  // 🔴 **클릭이 아니라 도착을 센다.** 퍼널 지표가 "유입 화면 → 종목 비교 **이동률**"이라, 눌렀지만
+  //    도착하지 못한 것(뒤로가기·중간 이탈)을 이동으로 세면 뒤 단계 전환율이 조용히 부풀려진다.
+  // ⚠ `from` 이 없는 도착(직접 방문·북마크·공유 링크)은 이 이벤트를 쏘지 않는다 — 그건 연결의
+  //   성과가 아니라 그냥 그 화면의 트래픽이고, 섞으면 어느 화면이 보냈는지를 되레 흐린다.
+  COMPARE_ENTRY: "compare_entry",
+  // 비교 화면에서 고른 한 종목을 시뮬레이터로 보냄("이 종목으로 계산", 파라미터: ticker).
+  // 용도: §3-2 퍼널의 "종목 비교 → 시뮬레이터 이동률" **클릭** 측정. 도착(compare_entry)의 다음 칸이다.
+  // 🔴 클릭을 센다(도착이 아니라) — 시뮬레이터 도착은 프리필을 `location.state` 로 받아 URL 에 표식이
+  //    남지 않으므로 도착측에서 셀 수 없다. 그래서 이 짝은 비대칭이다(비교=도착, 여기=클릭).
+  COMPARE_TO_SIMULATOR: "compare_to_simulator",
+  // 시장 온도 화면에서 시뮬레이터로 유입("진입 시점보다 기간" 넛지 클릭).
+  // 용도: §3-2 리텐션층(일간 재방문) → 코어 제품(시뮬레이터) 전환 측정. community_to_simulator 와 같은 짝이다.
+  // 🔴 클릭을 센다 — 도착은 URL 에 표식이 없어 셀 수 없다(compare_to_simulator 와 같은 이유).
+  MARKET_PULSE_TO_SIMULATOR: "market_pulse_to_simulator",
 } as const;
 
 export type AnalyticsEventName = (typeof ANALYTICS_EVENT)[keyof typeof ANALYTICS_EVENT];
@@ -328,6 +344,16 @@ export type AnalyticsEventParamMap = {
     kind: string;
     /** 공유가 일어난 표면 — 피드 카드='feed', 상세 페이지='detail'. */
     placement: "feed" | "detail";
+  };
+  [ANALYTICS_EVENT.COMPARE_ENTRY]: {
+    /** 보낸 화면(`pages/Ticker/utils` 의 `CompareEntryPoint`). 라우트 경로가 아니라 안정적인 슬러그다. */
+    from: string;
+    /** 실제로 열린 열 수. 고른 수와 다를 수 있다 — 유니버스에서 빠진 티커는 걸러진다. */
+    ticker_count: number;
+  };
+  [ANALYTICS_EVENT.COMPARE_TO_SIMULATOR]: {
+    /** 시뮬레이터로 보낸 종목(대문자 심볼). */
+    ticker: string;
   };
 };
 

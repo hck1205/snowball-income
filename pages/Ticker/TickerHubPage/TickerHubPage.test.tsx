@@ -209,4 +209,57 @@ describe('TickerHubPage', () => {
     expect(screen.getByRole('button', { name: '카드' })).toHaveAttribute('aria-pressed', 'false');
     expect(screen.getAllByRole('table').length).toBeGreaterThan(0);
   });
+
+  /**
+   * 종목 비교로 **고른 것을 실어 보낸다**(기획서 연결①).
+   *
+   * 🔴 이 화면에는 원래도 `/ticker/compare` 링크가 있었지만 파라미터가 없어서, 비교 화면에
+   * 도착하면 종목을 처음부터 다시 골라야 했다. 여기서 잠그는 것은 **선택이 주소에 실린다**는 것 하나다.
+   * ⚠ 선택은 sessionStorage 에 남는다 — 앞 테스트의 선택이 새지 않도록 비우고 시작한다.
+   */
+  describe('비교 담기', () => {
+    beforeEach(() => {
+      sessionStorage.clear();
+    });
+
+    it('표에서 두 종목을 고르면 그 조합을 실은 비교 링크가 나온다', async () => {
+      const user = userEvent.setup();
+      renderHub();
+
+      await user.click(screen.getByRole('checkbox', { name: 'SCHD 비교에 담기' }));
+      await user.click(screen.getByRole('checkbox', { name: 'JEPI 비교에 담기' }));
+
+      const href = screen.getByRole('link', { name: '비교하기 →' }).getAttribute('href') ?? '';
+      const params = new URLSearchParams(href.slice(href.indexOf('?') + 1));
+      expect(params.get('t')).toBe('SCHD,JEPI');
+      // `from` 이 빠지면 어느 화면이 비교로 보내는지 알 수 없다 — 측정이 이 연결의 목적 절반이다.
+      expect(params.get('from')).toBe('ticker-hub');
+    });
+
+    it('상한을 넘겨 고르면 가장 오래 고른 것이 빠진다 — 막지 않는다', async () => {
+      const user = userEvent.setup();
+      renderHub();
+
+      /*
+       * ⚠ `getAllByRole(...)[0]` 이다 — 같은 종목이 **여러 카테고리에 중복 등재**돼 있어(예: 리츠이면서
+       *   고배당) 체크박스가 둘 이상 뜬다. 셋 다 같은 선택 상태를 공유하므로 어느 것을 눌러도 같다.
+       */
+      for (const ticker of ['SCHD', 'JEPI', 'VYM', 'DGRO', 'O']) {
+        await user.click(screen.getAllByRole('checkbox', { name: `${ticker} 비교에 담기` })[0]);
+      }
+
+      const href = screen.getByRole('link', { name: '비교하기 →' }).getAttribute('href') ?? '';
+      const selected = new URLSearchParams(href.slice(href.indexOf('?') + 1)).get('t')?.split(',') ?? [];
+      expect(selected).toHaveLength(4);
+      expect(selected).not.toContain('SCHD');
+      expect(selected).toContain('O');
+    });
+
+    /* 카드 뷰의 카드는 그 자체가 링크다 — 안에 체크박스를 넣으면 링크 안의 대화형 요소가 된다. */
+    it('카드 보기에는 체크박스를 두지 않는다', async () => {
+      await renderHubAsCards();
+
+      expect(screen.queryByRole('checkbox', { name: 'SCHD 비교에 담기' })).not.toBeInTheDocument();
+    });
+  });
 });

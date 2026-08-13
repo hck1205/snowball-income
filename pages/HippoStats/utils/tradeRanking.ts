@@ -44,6 +44,30 @@ const rank = (pick: (row: { buys: number; sells: number }) => number): TradeRank
 export const topBuys = (): TradeRank[] => rank((row) => row.buys);
 export const topSells = (): TradeRank[] => rank((row) => row.sells);
 
+/** 비교 담기 목록의 한 줄 — 공시된 거래 종목 중 비교로 보낼 수 있는 것. */
+export type TradeHolding = {
+  ticker: string;
+  name: string;
+  /** 🔴 매수·매도를 **합친** 신고 건수다. 이 목록의 관심은 방향이 아니라 "얼마나 자주 오르내렸나"다. */
+  count: number;
+};
+
+/**
+ * 공시된 거래 종목을 신고 건수 내림차순으로(연결① 의 비교 담기 원천).
+ *
+ * 🔴 위 도넛(`topBuys`·`topSells`)과 **다른 목록**이다. 도넛은 매수·매도를 갈라 세지만 여기서는
+ *    둘을 합친다 — 담아서 견줄 대상은 "많이 사고팔린 종목"이지 방향이 아니고, 같은 종목이
+ *    양쪽 도넛에 나오면 목록에서 두 줄이 되어 체크박스가 둘로 갈린다.
+ * 🔴 대가 목록(`topComparableGuruHoldings`)과 달리 **티커 변환이 필요 없다** — 의원 신고는
+ *    처음부터 티커로 온다. 유니버스 소속 최종 판정은 화면(`useCompareSelection.isDisabled`)이 한다.
+ */
+export const topComparableTradeTickers = (limit = 12): TradeHolding[] =>
+  CONGRESS_TRADES.topTickers
+    .map((row) => ({ ticker: row.ticker, name: row.name, count: row.buys + row.sells }))
+    .filter((row) => row.count > 0)
+    .sort((left, right) => right.count - left.count || left.ticker.localeCompare(right.ticker))
+    .slice(0, limit);
+
 /** 집계가 덮는 기간 — 화면이 반드시 함께 보여 준다(자료마다 시점이 다르다). */
 export const tradeWindow = () => CONGRESS_TRADES.window;
 

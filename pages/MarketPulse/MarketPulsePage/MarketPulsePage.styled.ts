@@ -1,5 +1,6 @@
 import styled from '@emotion/styled';
-import { color, font, radius, space } from '@/shared/styles';
+import { Link } from 'react-router-dom';
+import { TOUCH_TARGET, color, font, motion, radius, space } from '@/shared/styles';
 
 export const PageBody = styled.div`
   display: grid;
@@ -145,4 +146,66 @@ export const LegendCaution = styled.p`
   font-size: ${font.size.xs};
   line-height: 1.7;
   color: ${color.textMuted};
+`;
+
+/* ── 시뮬레이터 넛지(연결⑤) ─────────────────────────────────────────────────── */
+
+/**
+ * 시장 온도를 본 사용자를 시뮬레이터로 잇는다(기획서 연결⑤).
+ *
+ * ⚠ 카드처럼 채도 면을 크게 깔지 않는다 — 이 화면의 색은 지표 구간(안정·주의·경계)을 뜻하고,
+ *   넛지가 브랜드색 면을 넓게 쓰면 그 척도와 섞여 읽힌다. 테두리 + 버튼 하나로만 존재를 알린다.
+ */
+export const NudgeBox = styled.section`
+  display: grid;
+  gap: ${space[3]};
+  justify-items: start;
+  padding: ${space[5]};
+  border: 1px solid ${color.border};
+  border-radius: ${radius.lg};
+  background: ${color.surface};
+`;
+
+export const NudgeText = styled.div`
+  display: grid;
+  gap: ${space[2]};
+`;
+
+export const NudgeTitle = styled.h2`
+  margin: 0;
+  font-size: ${font.size.md};
+  font-weight: ${font.weight.bold};
+  color: ${color.text};
+`;
+
+export const NudgeBody = styled.p`
+  margin: 0;
+  font-size: ${font.size.sm};
+  line-height: 1.7;
+  color: ${color.textSecondary};
+`;
+
+export const NudgeCta = styled(Link)`
+  display: inline-flex;
+  align-items: center;
+  gap: ${space[1]};
+  min-height: ${TOUCH_TARGET};
+  padding: 0 ${space[4]};
+  border-radius: ${radius.md};
+  background: ${color.brand};
+  color: ${color.onBrand};
+  font-size: ${font.size.sm};
+  font-weight: ${font.weight.bold};
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color ${motion.fast} ${motion.ease};
+
+  &:hover {
+    background: ${color.brandHover};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${color.focusRing};
+    outline-offset: 2px;
+  }
 `;

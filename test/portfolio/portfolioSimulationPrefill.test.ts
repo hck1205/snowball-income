@@ -5,9 +5,11 @@ import {
   PORTFOLIO_PREFILL_MAX_INITIAL_INVESTMENT_KRW,
   PORTFOLIO_PREFILL_WEIGHT_TOTAL,
   buildPortfolioSimulationPrefillState,
+  buildSingleTickerPrefillState,
   hasPortfolioSimulationPrefillRequest,
   isSimulationKnownTicker,
   readPortfolioSimulationPrefillRequest,
+  readPortfolioSimulationPrefillScenarioName,
   sanitizePortfolioSimulationPrefill,
   type PortfolioPrefillSource
 } from '@/shared/constants';
@@ -305,6 +307,63 @@ describe('buildPortfolioSimulationPrefillState — 보내는 쪽', () => {
     });
 
     expect(state?.portfolioSimulationPrefill.holdings).toEqual([{ ticker: 'AAA', weightPercent: 100 }]);
+  });
+});
+
+describe('buildSingleTickerPrefillState — "이 종목으로 계산"(종목 비교 → 시뮬레이터)', () => {
+  it('유니버스 종목 하나를 100% 비중 · 초기 투자금 0 · 티커명 탭으로 만든다', () => {
+    const state = buildSingleTickerPrefillState('SCHD');
+    expect(state?.portfolioSimulationPrefill).toEqual({
+      initialInvestmentKrw: 0,
+      holdings: [{ ticker: 'SCHD', weightPercent: PORTFOLIO_PREFILL_WEIGHT_TOTAL }]
+    });
+    // 새 탭 이름은 티커명 — 만든 탭이 "내 포트폴리오"로 오해되지 않게 한다.
+    expect(state?.scenarioName).toBe('SCHD');
+  });
+
+  it('대소문자·공백과 무관하게 정규화한다', () => {
+    const state = buildSingleTickerPrefillState('  schd ');
+    expect(state?.portfolioSimulationPrefill.holdings[0]?.ticker).toBe('SCHD');
+    expect(state?.scenarioName).toBe('SCHD');
+  });
+
+  it('유니버스 밖 티커면 null (보내는 쪽이 CTA 를 그리지 않을 신호)', () => {
+    expect(buildSingleTickerPrefillState(UNKNOWN_TICKER)).toBeNull();
+    expect(buildSingleTickerPrefillState('')).toBeNull();
+  });
+
+  it('주입한 유니버스로 판정한다 (실제 유니버스 변화에 흔들리지 않는다)', () => {
+    expect(buildSingleTickerPrefillState('AAA', { AAA: {} })?.scenarioName).toBe('AAA');
+    expect(buildSingleTickerPrefillState('SCHD', { AAA: {} })).toBeNull();
+  });
+});
+
+describe('readPortfolioSimulationPrefillScenarioName — 신뢰 불가 입력 방어', () => {
+  it('빌더가 실은 이름을 그대로 읽는다', () => {
+    expect(readPortfolioSimulationPrefillScenarioName(buildSingleTickerPrefillState('SCHD'))).toBe('SCHD');
+  });
+
+  it('프리필이 없으면(짝이 안 맞는 이름만) 읽지 않는다', () => {
+    expect(readPortfolioSimulationPrefillScenarioName({ scenarioName: 'SCHD' })).toBeUndefined();
+  });
+
+  it('이름이 문자열이 아니거나 공백뿐이면 undefined (받는 쪽이 기본 이름을 쓴다)', () => {
+    const withName = (scenarioName: unknown) => ({
+      portfolioSimulationPrefill: { initialInvestmentKrw: 0, holdings: [{ ticker: 'SCHD', weightPercent: 100 }] },
+      scenarioName
+    });
+    expect(readPortfolioSimulationPrefillScenarioName(withName('   '))).toBeUndefined();
+    expect(readPortfolioSimulationPrefillScenarioName(withName(42))).toBeUndefined();
+    expect(readPortfolioSimulationPrefillScenarioName(withName(undefined))).toBeUndefined();
+  });
+
+  it('긴 이름은 잘라서 받아들인다 (적대적 거대 문자열 방어)', () => {
+    const long = 'X'.repeat(200);
+    const name = readPortfolioSimulationPrefillScenarioName({
+      portfolioSimulationPrefill: { initialInvestmentKrw: 0, holdings: [{ ticker: 'SCHD', weightPercent: 100 }] },
+      scenarioName: long
+    });
+    expect(name && name.length).toBeLessThanOrEqual(40);
   });
 });
 

@@ -9,9 +9,15 @@ import {
   SectionMeta,
   SectionStack,
   StatTile,
-  SummaryGrid
+  SummaryGrid,
+  TickerSelectorBar,
+  TickerSelectorCheckbox,
+  TickerSelectorUnknown
 } from '@/components/common';
+import { useCompareSelection } from '@/pages/Ticker/hooks';
+import type { CompareSelection } from '@/pages/Ticker/hooks';
 import { ICON } from '@/shared/styles';
+import { tickerForCusip } from '@/shared/constants/investors/cusipToTicker';
 import type { NpsHolding, NpsMove } from '@/shared/constants/npsPortfolio';
 import { NPS_COPY } from '../copy';
 import {
@@ -39,7 +45,35 @@ import {
 
 const copy = NPS_COPY;
 
-const HOLDING_COLUMNS = [
+/**
+ * 보유 종목 표의 열. **선택 상태를 받아야 하므로 상수가 아니라 함수다.**
+ *
+ * 🔴 이 화면의 종목은 티커가 아니라 **CUSIP** 으로 온다(13F 공시의 성질이다). 그래서 비교로
+ * 보내려면 `tickerForCusip` 을 한 번 거쳐야 하고, 그 변환표에 없는 줄은 **티커 자체를 모른다** —
+ * "비교 불가"가 아니라 "모른다"이므로 꺼진 체크박스가 아니라 `TickerSelectorUnknown`(`—`)을 세운다.
+ * 꺼진 체크박스는 "이 종목은 비교 대상이 아니다"로 읽히는데, 그건 아는 것보다 많이 말하는 것이다.
+ * (의원거래 표는 티커를 알고 있어서 그쪽은 꺼진 체크박스가 맞다.)
+ *
+ * 실측(2026-08-13, 변환표 확장 후): 보유 30줄 중 티커를 아는 줄이 74%.
+ */
+const buildHoldingColumns = (selection: CompareSelection) => [
+  {
+    key: 'compare',
+    header: copy.holdings.columnCompare,
+    render: (row: NpsHolding) => {
+      const ticker = tickerForCusip(row.cusip);
+      if (!ticker) return <TickerSelectorUnknown reason={copy.holdings.compareUnknown} />;
+      return (
+        <TickerSelectorCheckbox
+          ticker={ticker}
+          checked={selection.isSelected(ticker)}
+          disabled={selection.isDisabled(ticker)}
+          disabledReason={copy.holdings.compareUnavailable}
+          onToggle={selection.toggle}
+        />
+      );
+    }
+  },
   {
     key: 'issuer',
     header: copy.holdings.columnIssuer,
@@ -78,6 +112,15 @@ const HOLDING_COLUMNS = [
  */
 export default function NpsView({ viewModel }: NpsViewProps) {
   const { snapshot, holdings, opened, closed, totalChangePercent, reclassified } = viewModel;
+
+  /*
+   * 종목 비교로 보내는 연결(기획서 연결①). `from='nps'` 는 측정용이다 — 유입 화면 중 어디가
+   * 비교로 가장 많이 보내는지 모르면 다음에 어디를 손볼지 정할 수 없다.
+   * ⚠ 보유 표에만 붙인다. 신규·청산 표는 "이번 분기에 무슨 일이 있었나"를 읽는 자리라
+   *   그 줄에서 종목을 담는 동작은 문맥에 맞지 않는다.
+   */
+  const compare = useCompareSelection('nps');
+  const holdingColumns = buildHoldingColumns(compare);
 
   /* 신규·청산 두 표가 같은 열을 쓴다. `reclassified` 를 닫아 잡으므로 컴포넌트 안에서 만든다. */
   const moveColumns = [
@@ -167,7 +210,7 @@ export default function NpsView({ viewModel }: NpsViewProps) {
           subtitle={copy.holdings.subtitle(snapshot.totalHoldingCount, holdings.length)}
           meta={copy.holdings.weightNote}
         >
-          <DataTable columns={HOLDING_COLUMNS} rows={[...holdings]} />
+          <DataTable columns={holdingColumns} rows={[...holdings]} />
         </DataSection>
 
         <DataSection
@@ -221,6 +264,16 @@ export default function NpsView({ viewModel }: NpsViewProps) {
           </SectionMeta>
         </DataSection>
       </SectionStack>
+
+      {/* 🔴 `SectionStack` 밖이다 — `position: fixed` 라 조상이 스태킹 컨텍스트를 만들면 갇힌다. */}
+      <TickerSelectorBar
+        selected={compare.selected}
+        max={compare.max}
+        min={compare.min}
+        href={compare.href}
+        onRemove={compare.remove}
+        onClear={compare.clear}
+      />
     </>
   );
 }

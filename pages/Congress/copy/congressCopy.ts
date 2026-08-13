@@ -53,6 +53,13 @@ export const CONGRESS_COPY = {
     subtitleByAmount:
       '신고 금액이 큰 순입니다. 금액은 구간이라 **하한**으로 줄을 세웠습니다 — 실제 금액은 그보다 큽니다.',
     columnRank: '#',
+    /*
+     * 비교 담기 열(2026-08-13, 기획서 연결①). 헤더는 한 글자라도 **비워 두지 않는다** —
+     * 빈 `<th>` 는 스크린리더가 "빈 열 머리글"로 읽고, 표를 훑는 눈에도 정렬 기준으로 오해된다.
+     */
+    columnCompare: '비교',
+    /** 비교 표에 자료가 없는 종목의 체크박스가 꺼진 이유. 마우스를 올리면 읽힌다. */
+    compareUnavailable: '배당 자료가 없어 비교할 수 없는 종목입니다',
     columnTicker: '종목',
     columnName: '이름',
     columnBuys: '매수',

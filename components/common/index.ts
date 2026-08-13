@@ -156,6 +156,18 @@ export {
   TickerList
 } from './TickerPicker';
 
+/*
+ * 유입 화면(의원거래·13F·국민연금·배당목록·검색)에서 종목을 골라 `/ticker/compare` 로 보내는 부품.
+ * ⚠ 이 폴더는 **비교 유니버스를 모른다**(프리셋 218종을 이 배럴로 끌어들이지 않기 위해서다) —
+ *   무엇이 비교 가능한지·주소를 어떻게 만드는지는 `pages/Ticker/hooks` 의 `useCompareSelection` 이 정한다.
+ */
+export { TickerSelectorBar, TickerSelectorCheckbox, TickerSelectorUnknown } from './TickerSelector';
+export type {
+  TickerSelectorBarProps,
+  TickerSelectorCheckboxProps,
+  TickerSelectorUnknownProps
+} from './TickerSelector';
+
 export { default as Tooltip } from './Tooltip';
 export type { TooltipProps } from './Tooltip';
 /**

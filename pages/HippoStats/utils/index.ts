@@ -1,11 +1,12 @@
 export { donutOption, radarOption } from './statsChart';
-export { shortNameOf, topBuys, topSells, tradeWindow } from './tradeRanking';
-export type { TradeRank } from './tradeRanking';
+export { shortNameOf, topBuys, topComparableTradeTickers, topSells, tradeWindow } from './tradeRanking';
+export type { TradeHolding, TradeRank } from './tradeRanking';
 export {
   excludedDerivativeCount,
   guruCount,
   guruReportDates,
   topByHolders,
-  topByValue
+  topByValue,
+  topComparableGuruHoldings
 } from './guruRanking';
-export type { GuruRank } from './guruRanking';
+export type { GuruHolding, GuruRank } from './guruRanking';

@@ -25,6 +25,24 @@ export const Section = styled.section`
   min-width: 0;
 `;
 
+/**
+ * 절 머리 — 제목과 **그 절의 동작 버튼**이 한 줄에 선다.
+ *
+ * 🔴 버튼이 제목 옆인 이유(2026-08-14 사용자 지시): 종전에는 "담을 수 있는 배당 종목" 목록이
+ * 도넛 아래 본문에 그대로 펼쳐져 있어, 파이 둘을 모아 보려고 스크롤할 때마다 목록이 시선을 갈랐다.
+ * 목록을 드로어로 옮기면 절의 본문에는 **그림만** 남고 고르는 동선은 이 버튼 하나로 모인다
+ * (대가들 포폴 카드가 보유 표를 드로어로 여는 것과 같은 처방).
+ *
+ * ⚠ 좁은 폭에서는 줄바꿈한다 — 한 줄에 우겨 넣으면 제목이 잘린다.
+ */
+export const SectionHead = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: ${space[3]};
+`;
+
 export const SectionTitle = styled.h2`
   margin: 0;
   font-size: ${font.size.lg};
@@ -70,6 +88,59 @@ export const PieTitle = styled.h3`
   font-size: ${font.size.md};
   font-weight: ${font.weight.semibold};
   color: ${color.text};
+`;
+
+/**
+ * 대가 보유 종목 중 **비교 담을 수 있는 것**의 목록(연결①).
+ *
+ * 🔴 도넛과 달리 **고르는 표면**이라 카드 격자가 아니라 줄이다 — 체크박스가 왼쪽 첫 칸에 서고
+ *    티커·종목명·보유 대가 수가 한 줄에 이어진다(표의 행과 같은 읽기 방향).
+ */
+export const CompareBlock = styled.div`
+  display: grid;
+  gap: ${space[3]};
+`;
+
+export const CompareList = styled.ul`
+  display: grid;
+  gap: ${space[2]};
+  margin: 0;
+  padding: 0;
+  list-style: none;
+`;
+
+export const CompareItem = styled.li`
+  display: flex;
+  align-items: center;
+  gap: ${space[3]};
+  padding: ${space[2]} ${space[3]};
+  border: 1px solid ${color.border};
+  border-radius: ${radius.md};
+  background: ${color.surface};
+`;
+
+export const CompareTickerLabel = styled.span`
+  flex: none;
+  font-family: ${font.dataNumeric};
+  font-weight: ${font.weight.bold};
+  color: ${color.text};
+`;
+
+export const CompareIssuer = styled.span`
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: ${font.size.sm};
+  color: ${color.textSecondary};
+`;
+
+export const CompareCount = styled.span`
+  flex: none;
+  font-size: ${font.size.xs};
+  color: ${color.textMuted};
+  font-variant-numeric: tabular-nums;
 `;
 
 export const Caveats = styled.ul`

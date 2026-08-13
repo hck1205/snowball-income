@@ -49,6 +49,15 @@ export const NPS_COPY = {
     heading: '가장 많이 보유한 종목',
     subtitle: (total: number, shown: number) => `전체 ${total}종 중 신고 금액 상위 ${shown}종입니다.`,
     columnRank: '#',
+    /* 비교 담기 열(2026-08-13). 헤더를 비워 두지 않는다 — 빈 `<th>` 는 스크린리더가 "빈 열 머리글"로 읽는다. */
+    columnCompare: '비교',
+    /*
+     * 🔴 두 문구는 **다른 사실**을 말한다. 섞으면 우리가 아는 것보다 많이 말하게 된다.
+     *  - compareUnknown: 13F 는 CUSIP 만 주고, 그 번호가 어느 티커인지 우리 변환표에 없다.
+     *  - compareUnavailable: 티커는 알지만 계산할 배당 자료가 없다.
+     */
+    compareUnknown: '공시가 종목 번호(CUSIP)만 제공해 티커를 확인하지 못한 종목입니다',
+    compareUnavailable: '배당 자료가 없어 비교할 수 없는 종목입니다',
     columnIssuer: '종목',
     columnValue: '신고 금액',
     columnWeight: '비중',

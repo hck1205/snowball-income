@@ -37,6 +37,7 @@ const renderView = (tickers: readonly string[]) => {
   const onAdd = vi.fn();
   const onRemove = vi.fn();
   const onApplySuggestion = vi.fn();
+  const onSimulate = vi.fn();
   render(
     <MemoryRouter>
       <TickerCompareView
@@ -44,10 +45,11 @@ const renderView = (tickers: readonly string[]) => {
         onAdd={onAdd}
         onRemove={onRemove}
         onApplySuggestion={onApplySuggestion}
+        onSimulate={onSimulate}
       />
     </MemoryRouter>
   );
-  return { onAdd, onRemove, onApplySuggestion };
+  return { onAdd, onRemove, onApplySuggestion, onSimulate };
 };
 
 describe('선택 진입점', () => {
@@ -88,6 +90,24 @@ describe('선택 진입점', () => {
     renderView(['SCHD', 'JEPI', 'O', 'VOO']);
     expect(screen.getByRole('combobox', { name: '종목 추가' })).toBeDisabled();
     expect(screen.getByText(/모두 골랐습니다/)).toBeInTheDocument();
+  });
+});
+
+describe('이 종목으로 계산 (연결②)', () => {
+  it('고른 종목마다 "이 종목으로 계산" 버튼이 있고 그 종목을 돌려준다', async () => {
+    const { onSimulate } = renderView(['SCHD', 'JEPI']);
+
+    // 버튼은 어느 종목인지 접근名으로 말한다(버튼만 훑는 사용자를 위해).
+    const simulateSchd = screen.getByRole('button', { name: /SCHD.*시뮬레이터로 보내/ });
+    expect(screen.getByRole('button', { name: /JEPI.*시뮬레이터로 보내/ })).toBeInTheDocument();
+
+    await userEvent.click(simulateSchd);
+    expect(onSimulate).toHaveBeenCalledWith('SCHD');
+  });
+
+  it('🔴 2종 미만(빈 상태·1종)에서는 계산 액션을 그리지 않는다 — 비교가 성립한 뒤에만 나온다', () => {
+    renderView(['SCHD']);
+    expect(screen.queryByRole('button', { name: /시뮬레이터로 보내/ })).toBeNull();
   });
 });
 

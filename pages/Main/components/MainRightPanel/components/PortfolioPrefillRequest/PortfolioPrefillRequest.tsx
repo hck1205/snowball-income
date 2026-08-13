@@ -1,6 +1,10 @@
 import { useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { hasPortfolioSimulationPrefillRequest, readPortfolioSimulationPrefillRequest } from '@/shared/constants';
+import {
+  hasPortfolioSimulationPrefillRequest,
+  readPortfolioSimulationPrefillRequest,
+  readPortfolioSimulationPrefillScenarioName
+} from '@/shared/constants';
 import type { PortfolioPrefillRequestProps } from './PortfolioPrefillRequest.types';
 
 /**
@@ -43,7 +47,7 @@ export default function PortfolioPrefillRequest({ onApplyPrefill }: PortfolioPre
      * 클램프하지 않아, 비정상 값이 영속되면 정규화가 나중에 기본값으로 바꿔치기한다).
      */
     const prefill = readPortfolioSimulationPrefillRequest(location.state);
-    if (prefill !== null) onApplyPrefill(prefill);
+    if (prefill !== null) onApplyPrefill(prefill, readPortfolioSimulationPrefillScenarioName(location.state));
 
     navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
   }, [location.pathname, location.search, location.state, navigate, onApplyPrefill]);

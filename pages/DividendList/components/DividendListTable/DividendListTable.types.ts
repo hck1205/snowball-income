@@ -1,8 +1,15 @@
+import type { CompareSelection } from '@/pages/Ticker/hooks';
 import type { DividendListRow, DividendListSort, DividendListSortKey } from '../../utils';
 
 export type DividendListTableProps = {
   /** 이미 정렬·필터가 끝난 행. 이 컴포넌트는 표시만 한다(상태는 페이지가 소유한다). */
   rows: readonly DividendListRow[];
+  /**
+   * 종목 비교 선택(기획서 연결①). 표 첫 열의 체크박스가 이걸로 담기/해제·비교불가 판정을 한다.
+   * 뷰(`useCompareSelection('dividend-list')`)가 소유하고 이 표는 표시만 한다 — 유니버스·주소 조립을
+   * 이 컴포넌트가 알면 공용 배럴이 프리셋 218종을 함께 싣게 된다(`TickerSelector.types` 머리말).
+   */
+  selection: CompareSelection;
   caption: string;
   sort: DividendListSort;
   onSortChange: (key: DividendListSortKey) => void;

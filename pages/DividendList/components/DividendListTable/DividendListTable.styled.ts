@@ -83,7 +83,10 @@ const stackedTable = `
 export const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
-  min-width: 720px;
+  /* 720 은 여섯 열(자연 폭 최댓값 702)의 바닥 가드였다. 비교 체크박스 열(≈40px)이 앞에 붙어
+     760 으로 올린다 — 여전히 stackedTable 발동선(container 820)보다 낮아 표 모드에서 스크롤을
+     새로 만들지 않는다. 열을 더 더하면 위 stackedTable 주석의 uiprobe 로 자연 폭을 다시 재라. */
+  min-width: 760px;
   font-size: ${font.size.sm};
 
   caption {
@@ -222,6 +225,26 @@ export const TD = styled.td`
   ${media.down('tablet')} {
     ${stackedCell};
   }
+`;
+
+/**
+ * 비교 담기 열(기획서 연결①).
+ *
+ * 🔴 정렬 축이 아니라 `TH`(버튼 없음)로 세운다 — `TH` 는 padding 0 이라(정렬 버튼이 자기 padding 을
+ * 대던 자리) 라벨이 셀 벽에 붙는다. 그래서 여기만 padding 을 직접 준다.
+ * `width: 1%` + `nowrap` 은 표에서 "내용만큼만" 차지하게 하는 관례다 — 체크박스 한 칸이 열을 넓히지 않는다.
+ */
+export const CompareTH = styled(TH)`
+  width: 1%;
+  padding: ${space[2]};
+  white-space: nowrap;
+`;
+
+/** 비교 담기 칸. 넓은 폭에선 가운데, 좁은 폭(stackedCell)에선 `data-label` "비교" + 체크박스 우측 정렬. */
+export const CompareCell = styled(TD)`
+  width: 1%;
+  white-space: nowrap;
+  text-align: center;
 `;
 
 /** 티커 셀 — 숫자·기호가 섞인 짧은 문자열이라 데이터 서체로 세운다. */
