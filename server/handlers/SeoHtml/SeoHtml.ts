@@ -1,7 +1,7 @@
 import { toNodeHandler } from '@/shared/lib/server';
 import { handler as dividendListHandler } from '../DividendListHtml/DividendListHtml';
 import { handler as guideHandler } from '../GuideHtml/GuideHtml';
-import { handler as tickerHandler } from '../TickerHtml/TickerHtml';
+import { categoryHandler as tickerCategoryHandler, handler as tickerHandler } from '../TickerHtml/TickerHtml';
 
 /**
  * `/api/seo-html` — **크롤러가 읽는 정적 콘텐츠 지면 셋을 한 함수로 모은 진입점**.
@@ -32,10 +32,12 @@ import { handler as tickerHandler } from '../TickerHtml/TickerHtml';
  * ⚠ `vercel.json` 의 rewrite 와 **한 벌**이다. 한쪽만 바꾸면 크롤러가 셸만 받는다.
  * ⚠ 각 핸들러는 자기 파일에 그대로 남는다(테스트도 그 모듈을 직접 부른다). 이 파일은 **배선만** 한다.
  */
-type Surface = 'ticker' | 'dividend-list' | 'guide';
+type Surface = 'ticker' | 'ticker-category' | 'dividend-list' | 'guide';
 
 const ROUTES: Record<Surface, (request: Request) => Promise<Response>> = {
   ticker: tickerHandler,
+  // 카테고리 허브(`/ticker/category/:id`) — 같은 파일의 다른 export 다. **새 함수가 아니다**(칸 12/12).
+  'ticker-category': tickerCategoryHandler,
   'dividend-list': dividendListHandler,
   guide: guideHandler
 };

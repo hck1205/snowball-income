@@ -20,8 +20,12 @@ import {
   listTickerContentByCategory,
   renderTickerContentTemplate,
   resolveTickerEngineFacts,
+  TICKER_CATEGORY_IDS,
   TICKER_CATEGORY_LABEL,
+  TICKER_CATEGORY_META,
   TICKER_CONTENT_LIST,
+  isTickerCategoryId,
+  tickerCategoryPath,
   type TickerCategoryId,
   type TickerContent,
   type TickerContentFaq,
@@ -308,6 +312,27 @@ const buildTickerJsonLd = (content: TickerContent, facts: TickerEngineFacts, can
     '@graph': [buildFinancialProductSchema(content, facts, canonical), buildFaqPageSchema(content, facts)]
   });
 
+/**
+ * 이 티커가 속한 **묶음으로 되돌아가는 링크**.
+ *
+ * 🔴 토픽 클러스터는 양방향이어야 성립한다 — 카테고리 허브가 개별 페이지로 내려보내기만 하고
+ * 개별 페이지가 되올라오지 않으면 크롤러가 그 묶음을 "한 번 스쳐 가는 목록"으로 읽는다.
+ * 한 티커가 여러 묶음에 속할 수 있어(`categoryIds` 는 배열) 전부 낸다.
+ */
+const renderCategoryBacklinks = (content: TickerContent): string => {
+  if (content.categoryIds.length === 0) return '';
+
+  const items = content.categoryIds
+    .map(
+      (categoryId) =>
+        `<li><a href="${escapeHtmlAttribute(tickerCategoryPath(categoryId))}">` +
+        `${escapeHtmlText(TICKER_CATEGORY_LABEL[categoryId])}</a></li>`
+    )
+    .join('');
+
+  return `<nav class="categories"><h2>이 종목이 속한 묶음</h2><ul>${items}</ul></nav>`;
+};
+
 const injectTickerBody = (shell: string, content: TickerContent, siteUrl: string): string => {
   const facts = resolveTickerEngineFacts(content.ticker);
   const canonical = tickerCanonical(siteUrl, content);
@@ -319,6 +344,7 @@ const injectTickerBody = (shell: string, content: TickerContent, siteUrl: string
     renderTopHoldings(content.reference.topHoldings) +
     renderFaqs(content.faqs, facts) +
     renderRelatedTickers(content.relatedTickers) +
+    renderCategoryBacklinks(content) +
     `<p class="disclaimer">${escapeHtmlText(content.disclaimer)}</p>` +
     '</article>' +
     buildTickerJsonLd(content, facts, canonical);
@@ -380,6 +406,143 @@ const injectHubBody = (shell: string, siteUrl: string): string => {
 
   return injectIntoRoot(shell, article);
 };
+
+/* -------------------------------------------------------------------------- */
+/* `/ticker/category/:id` 카테고리 허브                                          */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * 전체 허브(`/ticker/all`)와 개별 티커 사이의 **중간 계층**.
+ *
+ * 🔴 왜 필요한가: 티커 페이지 109개가 허브 하나에만 매달려 있어 토픽 클러스터가 형성되지 않는다.
+ * "커버드콜 ETF 비교" 같은 **묶음 단위 검색어**를 받을 페이지가 없고, 개별 페이지로 가는 내부 링크가
+ * 한 단계뿐이라 권위가 분산된다.
+ *
+ * 이 화면의 콘텐츠는 **목록**이다 — 앱이 React 로 그리면 JS 없는 크롤러에겐 빈 셸이므로,
+ * 목록·기준·주의를 이 HTML 안에 텍스트로 낸다(`renderTopHoldings` 와 같은 논리).
+ */
+const categoryCanonical = (siteUrl: string, categoryId: TickerCategoryId): string =>
+  `${siteUrl}${tickerCategoryPath(categoryId)}`;
+
+const renderCategoryList = (categoryId: TickerCategoryId): string => {
+  const entries = listTickerContentByCategory(categoryId);
+  if (entries.length === 0) return '';
+
+  const items = entries
+    .map((entry) => {
+      const href = escapeHtmlAttribute(`/ticker/${entry.slug}`);
+      return (
+        `<li><a href="${href}">${escapeHtmlText(`${entry.ticker} — ${entry.metaTitle}`)}</a>` +
+        ` — ${escapeHtmlText(entry.heroTagline)}</li>`
+      );
+    })
+    .join('');
+
+  return `<section id="members"><h2>${escapeHtmlText(
+    `${TICKER_CATEGORY_LABEL[categoryId]} ${entries.length}종`
+  )}</h2><ul>${items}</ul></section>`;
+};
+
+/** 형제 카테고리로 가는 링크 — 크롤러가 이 가족을 다 찾아가는 경로다(GuideHtml.renderRelated 와 같은 취지). */
+const renderSiblingCategories = (currentId: TickerCategoryId): string => {
+  const others = TICKER_CATEGORY_IDS.filter(
+    (categoryId) => categoryId !== currentId && listTickerContentByCategory(categoryId).length > 0
+  );
+  if (others.length === 0) return '';
+
+  const items = others
+    .map(
+      (categoryId) =>
+        `<li><a href="${escapeHtmlAttribute(tickerCategoryPath(categoryId))}">` +
+        `${escapeHtmlText(TICKER_CATEGORY_LABEL[categoryId])}</a></li>`
+    )
+    .join('');
+
+  return `<nav class="related"><h2>다른 묶음</h2><ul>${items}</ul>` +
+    `<p><a href="${escapeHtmlAttribute(HUB_PATH)}">${escapeHtmlText('전체 목록 보기')}</a></p></nav>`;
+};
+
+/**
+ * `ItemList` + `BreadcrumbList`.
+ * 허브(`/ticker/all`)와 달리 여기는 **상위 계층이 둘**(전체 허브 → 이 묶음)이라 breadcrumb 이 실제
+ * 정보를 담는다 — 검색결과에 계층이 노출되고 크롤러가 사이트 구조를 읽는다.
+ */
+const buildCategoryJsonLd = (categoryId: TickerCategoryId, siteUrl: string): string =>
+  jsonLdScript([
+    {
+      '@context': 'https://schema.org',
+      '@type': 'ItemList',
+      name: TICKER_CATEGORY_LABEL[categoryId],
+      itemListElement: listTickerContentByCategory(categoryId).map((entry, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        url: `${siteUrl}/ticker/${entry.slug}`,
+        name: `${entry.ticker} — ${entry.metaTitle}`
+      }))
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: '배당 ETF·종목', item: `${siteUrl}${HUB_PATH}` },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: TICKER_CATEGORY_LABEL[categoryId],
+          item: categoryCanonical(siteUrl, categoryId)
+        }
+      ]
+    }
+  ]);
+
+const injectCategoryBody = (shell: string, categoryId: TickerCategoryId, siteUrl: string): string => {
+  const meta = TICKER_CATEGORY_META[categoryId];
+  const article =
+    '<article>' +
+    `<h1>${escapeHtmlText(meta.metaTitle)}</h1>` +
+    `<p>${escapeHtmlText(meta.description)}</p>` +
+    `<p class="caution">${escapeHtmlText(meta.caution)}</p>` +
+    renderCategoryList(categoryId) +
+    `<p class="cta"><a href="${escapeHtmlAttribute(SIMULATOR_PATH)}">` +
+    `${escapeHtmlText('이 묶음으로 배당 재투자 계산해 보기')}</a></p>` +
+    renderSiblingCategories(categoryId) +
+    `<p class="disclaimer">${escapeHtmlText(HUB_DISCLAIMER)}</p>` +
+    '</article>' +
+    buildCategoryJsonLd(categoryId, siteUrl);
+
+  return injectIntoRoot(shell, article);
+};
+
+/**
+ * `/api/seo-html?surface=ticker-category&id=<카테고리>` — 카테고리 허브의 진입 HTML.
+ * 🔴 **새 서버리스 함수가 아니다** — `SeoHtml` 이 지면(surface)으로 갈라 부르므로 함수 칸(12/12)을 쓰지 않는다.
+ */
+export async function categoryHandler(request: Request): Promise<Response> {
+  const { origin, searchParams } = new URL(request.url);
+  const idParam = (searchParams.get('id') ?? '').trim().toLowerCase();
+
+  let shell: string;
+  try {
+    const response = await fetch(new URL('/index.html', origin));
+    if (!response.ok) return redirectToRoot(origin);
+    shell = await response.text();
+  } catch {
+    return redirectToRoot(origin);
+  }
+
+  // 모르는 카테고리는 무치환 셸 200 + no-store — 개별 티커와 같은 처방(앱이 부팅해 라우터가 판단).
+  if (!isTickerCategoryId(idParam)) return htmlResponse(shell, 200, CACHE_NO_STORE);
+
+  const siteUrl = resolveSiteUrl(request.url);
+  const meta = TICKER_CATEGORY_META[idParam];
+  const withMeta = applyDocumentMeta(shell, {
+    title: `${meta.metaTitle} - ${SITE_SUFFIX}`,
+    description: meta.description,
+    canonical: categoryCanonical(siteUrl, idParam)
+  });
+
+  return htmlResponse(injectCategoryBody(withMeta, idParam, siteUrl), 200, CACHE_TICKER);
+}
 
 /** 웹 표준 핸들러 — `test/api/tickerHtml.test.ts` 가 `handler(new Request(...))` 로 직접 호출한다. */
 export async function handler(request: Request): Promise<Response> {

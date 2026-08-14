@@ -28,7 +28,7 @@ export const buildConditionStripItems = (input: ConditionStripInput): ConditionS
   items.push({
     key: 'tax',
     text:
-      input.taxRatePercent === undefined ? '세율 미입력 (0% 적용)' : `세율 ${input.taxRatePercent}%`
+      input.taxRatePercent === undefined ? '세율 미입력 (종목 기준 자동)' : `세율 ${input.taxRatePercent}%`
   });
 
   items.push({

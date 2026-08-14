@@ -139,7 +139,8 @@ describe('기간 내 미도달 (D)', () => {
     renderPortfolioPage();
     await screen.findByText(copy.goal.tiles.etaNotReached);
 
-    const assumptions = screen.getByText(copy.assumptions.summary(15.4)).closest('details');
+    // 저장값 15.4 는 손대지 않은 옛 기본값이라 **자동**으로 읽힌다 → SCHD(미국 상장)는 15.0%.
+    const assumptions = screen.getByText(copy.assumptions.summary(15)).closest('details');
     if (assumptions === null) throw new Error('가정 요약 details 를 찾지 못했다');
 
     const group = within(assumptions);

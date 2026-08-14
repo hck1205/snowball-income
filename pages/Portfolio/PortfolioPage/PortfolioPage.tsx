@@ -11,7 +11,7 @@ import {
   buildPortfolioSimulationPrefillState,
   isSimulationKnownTicker
 } from '@/shared/constants';
-import { computePortfolioSummary } from '@/shared/lib/portfolio';
+import { computePortfolioSummary, toPortfolioTaxOverride } from '@/shared/lib/portfolio';
 import { formatUSD } from '@/shared/utils';
 import { isCommunityEnabled } from '@/shared/lib/supabase';
 import { isGoogleSheetsEnabled } from '@/shared/lib/googleSheets';
@@ -87,7 +87,13 @@ export default function PortfolioPage({ now: nowProp }: PortfolioPageProps = {})
   });
 
   const summary = useMemo(
-    () => computePortfolioSummary(toPortfolioHoldings(items), { today: now, taxRatePercent: taxPercent }),
+    /* 🔴 저장값을 **오버라이드로만** 넘긴다 — 손대지 않은 기본값(15.4)은 `null` 이 되어 종목마다
+       현행 세법 기준(미국 15.0 / 국내 15.4)으로 계산된다(toPortfolioTaxOverride 주석 참고). */
+    () =>
+      computePortfolioSummary(toPortfolioHoldings(items), {
+        today: now,
+        taxRatePercent: toPortfolioTaxOverride(taxPercent)
+      }),
     [items, now, taxPercent]
   );
 

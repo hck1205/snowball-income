@@ -33,6 +33,8 @@ const INTENTIONALLY_ABSENT: Record<string, string> = {
     '가계부는 구글 시트 연동 전용 화면이라 로그인·연동 없이는 볼 것이 없다(isGoogleSheetsEnabled 로 라우트 자체가 사라지기도 한다).',
   '/guide/:slug': '가이드는 개별 slug 로 파생해 사이트맵에 들어간다(다섯 편 모두 등재돼 있다).',
   '/ticker/:name': '티커 상세는 loadTickerRoutes() 가 TICKER_CONTENT_LIST 에서 파생한다.',
+  '/ticker/category/:categoryId':
+    '카테고리 허브는 loadTickerCategories() 가 TICKER_CATEGORY_IDS 에서 파생한다(7개 전부 등재된다). 라벨을 한 줄 더하면 사이트맵도 함께 늘어난다.',
   '/ticker/all':
     '사이트맵에 **있다**. 다만 리터럴이 아니라 vite.config 의 TICKER_HUB_PATH 상수로 들어가 아래 정규식에 안 잡힌다.'
 };

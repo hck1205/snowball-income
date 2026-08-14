@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 import { ROUTE_SHELLS, ROUTE_SHELL_EXCLUSIONS } from '@/tools/seo/routeShells';
+import { PRIVACY_DOCUMENT, TERMS_DOCUMENT } from '@/pages/Legal/copy';
 
 /**
  * **색인 대상 라우트가 저마다의 정적 HTML 을 갖는다**는 계약 (2026-08-14).
@@ -103,6 +104,20 @@ describe('문구', () => {
   it('제목이 서로 다르다 — 중복 제목은 이 작업이 고치려는 결함 그 자체다', () => {
     const titles = ROUTE_SHELLS.map((route) => route.title);
     expect(new Set(titles).size).toBe(titles.length);
+  });
+
+  it('🔴 법무 문서는 셸 제목 + 접미 === 런타임 documentTitle 이다', () => {
+    // `LegalDocument` 는 `useDocumentMeta` 를 안 거치고 `document.title = documentTitle` 로 직접 쓴다.
+    // 그래서 접미가 그 상수 안에 들어 있고, 셸은 앞자리만 받아 붙인다 — 둘이 갈리면 JS 실행 전후로
+    // 탭 제목이 바뀐다(구글 OAuth 심사가 읽는 URL 이라 특히 어긋나면 안 된다).
+    for (const [path, model] of [
+      ['/privacy', PRIVACY_DOCUMENT],
+      ['/terms', TERMS_DOCUMENT]
+    ] as const) {
+      const shell = ROUTE_SHELLS.find((route) => route.path === path);
+      expect(shell, path).toBeDefined();
+      expect(`${shell!.title} - Hungry Hippo`, path).toBe(model.documentTitle);
+    }
   });
 });
 

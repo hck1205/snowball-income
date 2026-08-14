@@ -2,7 +2,6 @@
 import {
   computeMeasuredMonthlyDividend,
   computePortfolioSummary,
-  DEFAULT_PORTFOLIO_TAX_RATE_PERCENT,
   normalizePortfolioQuantity,
   type PortfolioHolding
 } from '@/shared/lib/portfolio';
@@ -87,13 +86,27 @@ describe('computePortfolioSummary — #1~#5 기본 정의', () => {
 });
 
 describe('세후(#5) — 세전 × (1 − t/100)', () => {
-  it('세율 미지정이면 시뮬레이터와 같은 기본 15.4% 를 쓴다', () => {
+  /**
+   * 🔴 2026-08-14 계약 변경: 세율 미지정은 "15.4% 하나"가 아니라 **종목마다 현행 세법 기준**이다
+   * (미국 상장 15.0 / 국내 상장 15.4). 픽스처가 전부 미국 표기라 실효세율이 15.0 으로 나온다 —
+   * 종전에는 미국 ETF 에도 15.4 를 곱해 세부담이 과대 계상됐고, 같은 종목을 시뮬레이터와 견주면
+   * 두 화면이 다른 세후 금액을 말했다.
+   */
+  it('세율 미지정이면 종목마다 세법 기준 세율을 쓴다 (미국 표기 → 실효 15.0%)', () => {
     const summary = summaryOf(MIXED_HOLDINGS);
 
-    expect(DEFAULT_PORTFOLIO_TAX_RATE_PERCENT).toBe(15.4);
-    expect(summary.taxRatePercent).toBe(15.4);
-    expect(summary.annualDividendAfterTaxUsd).toBeCloseTo(summary.annualDividendUsd * (1 - 15.4 / 100), 10);
+    expect(summary.taxRateMode).toBe('auto');
+    expect(summary.taxRatePercent).toBe(15);
+    expect(summary.annualDividendAfterTaxUsd).toBeCloseTo(summary.annualDividendUsd * (1 - 15 / 100), 10);
     expect(summary.monthlyDividendAfterTaxUsd).toBeCloseTo(summary.annualDividendAfterTaxUsd / 12, 10);
+  });
+
+  it('국내 상장(.KS)은 15.4% 가 붙는다 — 같은 조건이라도 상장지에 따라 갈린다', () => {
+    const domestic = summaryOf([{ ticker: '458730.KS', quantity: 10 }], TODAY);
+
+    // 픽스처 해석기가 이 티커의 시세를 모르면 세전이 0 이라 실효세율을 못 센다 — 그때는 모드만 본다.
+    expect(domestic.taxRateMode).toBe('auto');
+    if (domestic.annualDividendUsd > 0) expect(domestic.taxRatePercent).toBe(15.4);
   });
 
   it('커스텀 세율이 그대로 반영된다', () => {
@@ -308,7 +321,7 @@ describe('computeMeasuredMonthlyDividend — Goal 실측 교체용 공유 계층
     );
   });
 
-  it('세율을 생략하면 기본 15.4% 를 쓰고, 오늘 날짜에 의존하지 않는다', () => {
+  it('세율을 생략하면 종목별 세법 기준을 쓰고, 오늘 날짜에 의존하지 않는다', () => {
     const measured = computeMeasuredMonthlyDividend(MIXED_HOLDINGS, undefined, { resolve: fixtureResolver });
     const january = summaryOf(MIXED_HOLDINGS, localDate(2026, 1, 1));
     const december = summaryOf(MIXED_HOLDINGS, localDate(2026, 12, 31));

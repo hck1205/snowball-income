@@ -140,6 +140,41 @@ type SitemapRoute = { path: string; priority: string; changefreq: string };
 const TICKER_HUB_PATH = '/ticker/all';
 
 /**
+ * 카테고리 허브(`/ticker/category/:id`) — 허브와 개별 티커 사이의 중간 계층.
+ *
+ * 🔴 경로를 손으로 나열하지 않는다. `TICKER_CATEGORY_LABEL` 에 한 줄을 더하면 사이트맵도 함께
+ * 늘어야 하는데, 손으로 적으면 **페이지는 있는데 색인되지 않는** 상태가 조용히 생긴다
+ * (`loadGuideRoutes` 와 같은 근거). 티커 목록과 같은 esbuild 브리지로 읽는다.
+ */
+type TickerCategoryEntry = { id: string };
+
+let tickerCategoriesPromise: Promise<TickerCategoryEntry[]> | null = null;
+
+const loadTickerCategories = (): Promise<TickerCategoryEntry[]> => {
+  tickerCategoriesPromise ??= (async () => {
+    const rootDir = fileURLToPath(new URL('.', import.meta.url));
+    const { outputFiles } = await esbuild({
+      stdin: {
+        contents: `export { TICKER_CATEGORY_IDS } from './shared/constants/tickers';`,
+        resolveDir: rootDir,
+        loader: 'ts'
+      },
+      bundle: true,
+      write: false,
+      format: 'esm',
+      platform: 'node',
+      target: 'node20',
+      tsconfig: 'tsconfig.json',
+      logLevel: 'silent'
+    });
+    const source = Buffer.from(outputFiles[0].text).toString('base64');
+    const mod = (await import(`data:text/javascript;base64,${source}`)) as { TICKER_CATEGORY_IDS: string[] };
+    return mod.TICKER_CATEGORY_IDS.map((id) => ({ id }));
+  })();
+  return tickerCategoriesPromise;
+};
+
+/**
  * `shared/constants/tickers`를 config 파일에서 그냥 import할 수는 없다(위 `loadEngine`과 같은 이유 —
  * Vite config 로더가 `@/...` 스펙파이어를 external로 빼버린다). esbuild로 한 번 번들해 메모리에서
  * 평가한다. 여기서 필요한 건 `slug`뿐이라 최소 타입만 선언한다.
@@ -221,6 +256,18 @@ const buildTickerSitemapRoutes = (tickers: readonly TickerRouteEntry[]): Sitemap
   { path: TICKER_HUB_PATH, priority: '0.6', changefreq: 'weekly' },
   ...tickers.map((ticker) => ({ path: `/ticker/${ticker.slug}`, priority: '0.6', changefreq: 'monthly' }))
 ];
+
+/**
+ * 카테고리 허브. 전체 허브(0.6)와 개별 티커(0.6) **사이**라 0.65 를 줄 수도 있었지만, 색인 우선순위는
+ * 상대값이라 촘촘히 쪼갤수록 신호가 흐려진다 — 허브와 같은 0.6 으로 두고 changefreq 로만 구분한다
+ * (카테고리 구성은 티커가 추가될 때만 바뀌므로 monthly).
+ */
+const buildTickerCategorySitemapRoutes = (categories: readonly TickerCategoryEntry[]): SitemapRoute[] =>
+  categories.map((category) => ({
+    path: `/ticker/category/${category.id}`,
+    priority: '0.6',
+    changefreq: 'monthly'
+  }));
 
 /**
  * ## 사이트맵을 3파일로 쪼갠 이유 (파일시스템 우선순위 회피)
@@ -642,6 +689,7 @@ const seoAssetsPlugin = (siteUrl: string): Plugin => {
     '/sitemap-pages.xml': async () =>
       buildPagesSitemap(siteUrl, lastmod, [
         ...buildTickerSitemapRoutes(await loadTickerRoutes()),
+        ...buildTickerCategorySitemapRoutes(await loadTickerCategories()),
         ...buildGuideSitemapRoutes(await loadGuideRoutes())
       ]),
     '/robots.txt': () => buildRobots(siteUrl)

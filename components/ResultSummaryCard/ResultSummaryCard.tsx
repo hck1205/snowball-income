@@ -34,7 +34,8 @@ function ResultSummaryCardComponent({
   formatPercent,
   targetYearLabel,
   condition,
-  conditionAction
+  conditionAction,
+  footnote
 }: ResultSummaryCardProps) {
   const setActiveHelp = useSetActiveHelpWrite();
   const openMonthlyAverageDividendHelp = useCallback(() => {
@@ -155,6 +156,7 @@ function ResultSummaryCardComponent({
         )}
 
         <ConditionStrip items={condition} action={conditionAction} />
+        {footnote}
       </Card>
     </SummaryCardShell>
   );

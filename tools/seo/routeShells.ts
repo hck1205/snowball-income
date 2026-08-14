@@ -31,6 +31,8 @@ import { MARKET_PULSE_COPY } from '../../pages/MarketPulse/copy';
 import { NPS_COPY } from '../../pages/Nps/copy';
 import { PORTFOLIO_COPY } from '../../pages/Portfolio/copy';
 import { TICKER_COMPARE_COPY } from '../../pages/Ticker/copy';
+import { PRIVACY_DOCUMENT, TERMS_DOCUMENT } from '../../pages/Legal/copy';
+import { COMMUNITY_COPY } from '../../shared/constants/community';
 import { SIMULATOR_COPY } from '../../shared/constants/simulator';
 import { SIMULATOR_PATH } from '../../shared/constants/routes';
 
@@ -66,7 +68,20 @@ export const ROUTE_SHELLS: readonly RouteShell[] = [
     description: KOREA_ASSEMBLY_COPY.meta.description
   },
   { path: '/portfolio/nps', title: NPS_COPY.meta.title, description: NPS_COPY.meta.description },
-  { path: '/portfolio/investors', title: INVESTORS_COPY.meta.title, description: INVESTORS_COPY.meta.description }
+  { path: '/portfolio/investors', title: INVESTORS_COPY.meta.title, description: INVESTORS_COPY.meta.description },
+  /*
+   * 파이어족들 — 커뮤니티 목록이지만 **자기 콘텐츠가 있는 화면**이다(운영자가 고른 영상 모음).
+   * 글 상세와 달리 서버 렌더 핸들러가 없어 셸이 유일한 정적 표면이다.
+   */
+  { path: '/community/firenow', title: COMMUNITY_COPY.fire.title, description: COMMUNITY_COPY.fire.subtitle },
+  /*
+   * 법무 고지문 둘. 검색 유입이 목적이 아니라 **구글 OAuth 심사가 이 URL 을 읽는다** —
+   * 랜딩 제목·본문이 실려 나가면 심사자가 "방침 문서가 아니다"로 읽을 여지가 있다.
+   * 🔴 `title` 은 **접미 없는 앞자리**만 준다. 빌드가 ` - Hungry Hippo` 를 붙여
+   *   `LegalDocument` 가 런타임에 쓰는 `documentTitle` 과 정확히 같아진다(가드가 잠근다).
+   */
+  { path: '/privacy', title: PRIVACY_DOCUMENT.title, description: PRIVACY_DOCUMENT.lede },
+  { path: '/terms', title: TERMS_DOCUMENT.title, description: TERMS_DOCUMENT.lede }
 ];
 
 /**
@@ -75,8 +90,5 @@ export const ROUTE_SHELLS: readonly RouteShell[] = [
  */
 export const ROUTE_SHELL_EXCLUSIONS: Readonly<Record<string, string>> = {
   '/': '랜딩 자신. index.html 이 곧 이 라우트의 셸이다',
-  '/sitemap': '사이트 색인. 크롤러는 sitemap.xml 을 읽으므로 HTML 색인은 사람용이다',
-  '/privacy': '법적 고지. 색인 가치가 낮고 화면 문구가 곧 전부다',
-  '/terms': '법적 고지. 위와 같다',
-  '/community/firenow': '커뮤니티 목록. 글 상세는 api/post-html 이 이미 라우트별 HTML 을 만든다'
+  '/sitemap': '사이트 색인. 링크 묶음이 전부라 셸에 담을 고유 본문이 없고, 크롤러는 sitemap.xml 을 읽는다'
 };

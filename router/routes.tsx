@@ -117,6 +117,8 @@ function RootLayout() {
  * `:name`보다 먼저 등록해 정적 세그먼트가 파라미터보다 우선 매칭되게 한다.
  */
 const TickerHubPage = lazy(() => import('@/pages/Ticker/TickerHubPage'));
+/* 카테고리 허브(`/ticker/category/:categoryId`) — 허브와 개별 티커 사이의 중간 계층(토픽 클러스터). */
+const TickerCategoryPage = lazy(() => import('@/pages/Ticker/TickerCategoryPage'));
 const TickerDetailPage = lazy(() => import('@/pages/Ticker/TickerDetailPage'));
 /* 종목 비교. `:name` 보다 먼저 등록해야 `/ticker/compare` 가 티커 이름으로 먹히지 않는다. */
 const TickerComparePage = lazy(() => import('@/pages/Ticker/TickerComparePage'));
@@ -420,6 +422,19 @@ export const routes: RouteObject[] = [
         element: (
           <Suspense fallback={null}>
             <TickerHubPage />
+          </Suspense>
+        )
+      },
+      {
+        /*
+         * 🔴 `/ticker/:name` 보다 **먼저** 선언한다. 두 경로가 같은 깊이라면 상관없지만, 여기는
+         * `/ticker/category/:id`(두 겹)라 `:name`(한 겹)과 겹치지 않는다 — 다만 vercel.json 의
+         * rewrite 순서는 실제로 겹치므로 그쪽에서 카테고리를 앞에 둔다(가드가 잠근다).
+         */
+        path: '/ticker/category/:categoryId',
+        element: (
+          <Suspense fallback={null}>
+            <TickerCategoryPage />
           </Suspense>
         )
       },
