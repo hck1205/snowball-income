@@ -269,7 +269,12 @@ describe('buildSnowballReport — 마지막 12개월 배당 캘린더', () => {
 });
 
 describe('buildSnowballReport — 입력 요약과 방어', () => {
-  it('사용자가 입력한 조건을 그대로 되돌려 준다 (세율 미입력은 0%)', () => {
+  /**
+   * 🔴 2026-08-14 계약 변경: 세율 **미입력은 0% 가 아니라 그 종목의 기본 세율**이다.
+   * 예전에는 세율을 비우면 세금이 통째로 빠진 채 계산됐다(조용한 과대추정). 지금은 상장지에서
+   * 파생한다 — SCHD 는 미국 상장이라 15%(shared/constants/tax/dividendTaxRate.ts).
+   */
+  it('사용자가 입력한 조건을 그대로 되돌려 준다 (세율 미입력은 종목 기준 기본값)', () => {
     const report = buildSnowballReport(
       buildPayload([schd], { t1: 100 }, { taxRate: undefined, reinvestDividendPercent: 50 })
     )!;
@@ -279,11 +284,18 @@ describe('buildSnowballReport — 입력 요약과 방어', () => {
       monthlyContribution: 1_000_000,
       durationYears: 20,
       investmentStartDate: '2024-01-01',
-      taxRatePercent: 0,
+      taxRatePercent: 15,
       reinvestDividends: true,
       reinvestDividendPercent: 50,
       targetMonthlyDividend: 2_000_000
     });
+    expect(report.taxes.cumulativeDividendTax).toBeGreaterThan(0);
+  });
+
+  it('세율 0 을 명시하면 그대로 0% 다 (미입력과 구분된다)', () => {
+    const report = buildSnowballReport(buildPayload([schd], { t1: 100 }, { taxRate: 0 }))!;
+
+    expect(report.inputs.taxRatePercent).toBe(0);
     expect(report.taxes.cumulativeDividendTax).toBe(0);
   });
 

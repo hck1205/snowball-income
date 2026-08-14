@@ -1,4 +1,5 @@
 import type { DpsGrowthMode, Frequency, ReinvestTiming, SimulationOutput, SimulationResult } from '@/shared/types';
+import { resolveDefaultDividendTaxRatePercent } from '@/shared/constants/tax';
 import { computeCapitalGains, findFinancialIncomeThresholdYear } from './SnowballCapitalGains';
 import { toExpectedTotalReturnPercent } from './SnowballRates';
 import { runScenarioPayload } from './SnowballScenarioRun';
@@ -311,7 +312,9 @@ export const buildSnowballReport = (payload: unknown): SnowballReport | null => 
       monthlyContribution: values.monthlyContribution,
       durationYears: values.durationYears,
       investmentStartDate: values.investmentStartDate,
-      taxRatePercent: values.taxRate ?? 0,
+      // 🔴 엔진이 실제로 쓴 값과 같아야 한다. 예전엔 여기가 `?? 0` 이라 "세율 0%"라고 적어 놓고
+      //    세금은 붙는(또는 안 붙는) 상태가 가능했다 — 보고서는 계산의 근거를 설명하는 문서다.
+      taxRatePercent: values.taxRate ?? resolveDefaultDividendTaxRatePercent(values.ticker),
       reinvestDividends: values.reinvestDividends,
       reinvestDividendPercent: values.reinvestDividendPercent,
       reinvestTiming: values.reinvestTiming,

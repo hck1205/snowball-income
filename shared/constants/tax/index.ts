@@ -36,3 +36,4 @@ export {
   isKoreanListedTicker
 } from './koreanTaxCategory';
 export type { KoreanTaxCategory } from './koreanTaxCategory';
+export { resolveDefaultDividendTaxRatePercent, US_LISTED_DIVIDEND_TAX_RATE } from './dividendTaxRate';

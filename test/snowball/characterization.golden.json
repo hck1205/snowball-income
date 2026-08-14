@@ -1108,11 +1108,11 @@
         "shares": 59.15364463935307,
         "price": 102469.507659596,
         "dividendPerShare": 3586.43276808586,
-        "dividendPaid": 88575.28474314116,
+        "dividendPaid": 75288.99203166999,
         "contributionPaid": 1000000,
-        "taxPaid": 0,
+        "taxPaid": 13286.292711471175,
         "portfolioValue": 6061444.842465209,
-        "cumulativeDividend": 88575.28474314116
+        "cumulativeDividend": 75288.99203166999
       },
       {
         "monthIndex": 7,
@@ -1125,7 +1125,7 @@
         "contributionPaid": 1000000,
         "taxPaid": 0,
         "portfolioValue": 7086139.919061168,
-        "cumulativeDividend": 88575.28474314116
+        "cumulativeDividend": 75288.99203166999
       },
       {
         "monthIndex": 8,
@@ -1138,7 +1138,7 @@
         "contributionPaid": 1000000,
         "taxPaid": 0,
         "portfolioValue": 8115009.730239674,
-        "cumulativeDividend": 88575.28474314116
+        "cumulativeDividend": 75288.99203166999
       },
       {
         "monthIndex": 9,
@@ -1151,7 +1151,7 @@
         "contributionPaid": 1000000,
         "taxPaid": 0,
         "portfolioValue": 9148071.28438618,
-        "cumulativeDividend": 88575.28474314116
+        "cumulativeDividend": 75288.99203166999
       },
       {
         "monthIndex": 10,
@@ -1164,7 +1164,7 @@
         "contributionPaid": 1000000,
         "taxPaid": 0,
         "portfolioValue": 10185341.659180408,
-        "cumulativeDividend": 88575.28474314116
+        "cumulativeDividend": 75288.99203166999
       },
       {
         "monthIndex": 11,
@@ -1177,7 +1177,7 @@
         "contributionPaid": 1000000,
         "taxPaid": 0,
         "portfolioValue": 11226838.001878658,
-        "cumulativeDividend": 88575.28474314116
+        "cumulativeDividend": 75288.99203166999
       },
       {
         "monthIndex": 12,
@@ -1186,11 +1186,11 @@
         "shares": 116.88169075806931,
         "price": 105000,
         "dividendPerShare": 3675.0000000000005,
-        "dividendPaid": 197270.10676795238,
+        "dividendPaid": 167679.59075275954,
         "contributionPaid": 1000000,
-        "taxPaid": 0,
+        "taxPaid": 29590.516015192858,
         "portfolioValue": 12272577.529597277,
-        "cumulativeDividend": 285845.39151109353
+        "cumulativeDividend": 242968.58278442954
       },
       {
         "monthIndex": 13,
@@ -1203,7 +1203,7 @@
         "contributionPaid": 1000000,
         "taxPaid": 0,
         "portfolioValue": 13322577.529597279,
-        "cumulativeDividend": 285845.39151109353
+        "cumulativeDividend": 242968.58278442954
       },
       {
         "monthIndex": 14,
@@ -1216,7 +1216,7 @@
         "contributionPaid": 1000000,
         "taxPaid": 0,
         "portfolioValue": 14376855.359570108,
-        "cumulativeDividend": 285845.39151109353
+        "cumulativeDividend": 242968.58278442954
       },
       {
         "monthIndex": 15,
@@ -1229,7 +1229,7 @@
         "contributionPaid": 1000000,
         "taxPaid": 0,
         "portfolioValue": 15435428.447924607,
-        "cumulativeDividend": 285845.39151109353
+        "cumulativeDividend": 242968.58278442954
       },
       {
         "monthIndex": 16,
@@ -1242,7 +1242,7 @@
         "contributionPaid": 1000000,
         "taxPaid": 0,
         "portfolioValue": 16498314.294075096,
-        "cumulativeDividend": 285845.39151109353
+        "cumulativeDividend": 242968.58278442954
       },
       {
         "monthIndex": 17,
@@ -1255,7 +1255,7 @@
         "contributionPaid": 1000000,
         "taxPaid": 0,
         "portfolioValue": 17565530.46873069,
-        "cumulativeDividend": 285845.39151109353
+        "cumulativeDividend": 242968.58278442954
       },
       {
         "monthIndex": 18,
@@ -1264,11 +1264,11 @@
         "shares": 173.2184951765008,
         "price": 107592.98304257578,
         "dividendPerShare": 3765.754406490153,
-        "dividendPaid": 308649.1557482506,
+        "dividendPaid": 262351.782386013,
         "contributionPaid": 1000000,
-        "taxPaid": 0,
+        "taxPaid": 46297.37336223759,
         "portfolioValue": 18637094.614185747,
-        "cumulativeDividend": 594494.5472593441
+        "cumulativeDividend": 505320.36517044256
       },
       {
         "monthIndex": 19,
@@ -1281,7 +1281,7 @@
         "contributionPaid": 1000000,
         "taxPaid": 0,
         "portfolioValue": 19713024.444611505,
-        "cumulativeDividend": 594494.5472593441
+        "cumulativeDividend": 505320.36517044256
       },
       {
         "monthIndex": 20,
@@ -1294,7 +1294,7 @@
         "contributionPaid": 1000000,
         "taxPaid": 0,
         "portfolioValue": 20793337.746348936,
-        "cumulativeDividend": 594494.5472593441
+        "cumulativeDividend": 505320.36517044256
       },
       {
         "monthIndex": 21,
@@ -1307,7 +1307,7 @@
         "contributionPaid": 1000000,
         "taxPaid": 0,
         "portfolioValue": 21878052.37820277,
-        "cumulativeDividend": 594494.5472593441
+        "cumulativeDividend": 505320.36517044256
       },
       {
         "monthIndex": 22,
@@ -1320,7 +1320,7 @@
         "contributionPaid": 1000000,
         "taxPaid": 0,
         "portfolioValue": 22967186.271736708,
-        "cumulativeDividend": 594494.5472593441
+        "cumulativeDividend": 505320.36517044256
       },
       {
         "monthIndex": 23,
@@ -1333,7 +1333,7 @@
         "contributionPaid": 1000000,
         "taxPaid": 0,
         "portfolioValue": 24060757.43156987,
-        "cumulativeDividend": 594494.5472593441
+        "cumulativeDividend": 505320.36517044256
       },
       {
         "monthIndex": 24,
@@ -1342,11 +1342,11 @@
         "shares": 228.19758671813534,
         "price": 110250,
         "dividendPerShare": 3858.7500000000005,
-        "dividendPaid": 422778.7188743024,
+        "dividendPaid": 359361.91104315704,
         "contributionPaid": 1000000,
-        "taxPaid": 0,
+        "taxPaid": 63416.80783114536,
         "portfolioValue": 25158783.93567442,
-        "cumulativeDividend": 1017273.2661336465
+        "cumulativeDividend": 864682.2762135996
       }
     ],
     "yearly": [
@@ -1354,27 +1354,27 @@
         "year": 2026,
         "totalContribution": 12000000,
         "assetValue": 12272577.529597277,
-        "annualDividend": 285845.39151109353,
-        "cumulativeDividend": 285845.39151109353,
-        "monthlyDividend": 23820.44929259113
+        "annualDividend": 242968.58278442954,
+        "cumulativeDividend": 242968.58278442954,
+        "monthlyDividend": 20247.38189870246
       },
       {
         "year": 2027,
         "totalContribution": 24000000,
         "assetValue": 25158783.93567442,
-        "annualDividend": 731427.874622553,
-        "cumulativeDividend": 1017273.2661336465,
-        "monthlyDividend": 60952.32288521275
+        "annualDividend": 621713.6934291701,
+        "cumulativeDividend": 864682.2762135996,
+        "monthlyDividend": 51809.47445243084
       }
     ],
     "summary": {
       "finalAssetValue": 25158783.93567442,
-      "finalAnnualDividend": 731427.874622553,
-      "finalMonthlyAverageDividend": 60952.32288521275,
-      "finalPayoutMonthDividend": 422778.7188743024,
+      "finalAnnualDividend": 621713.6934291701,
+      "finalMonthlyAverageDividend": 51809.47445243084,
+      "finalPayoutMonthDividend": 359361.91104315704,
       "totalContribution": 24000000,
-      "totalNetDividend": 1017273.2661336465,
-      "totalTaxPaid": 0,
+      "totalNetDividend": 864682.2762135996,
+      "totalTaxPaid": 152590.989920047,
       "totalCostBasis": 24000000,
       "unrealizedGain": 1158783.9356744215,
       "estimatedCapitalGainsTax": 0,
