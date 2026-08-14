@@ -173,7 +173,8 @@ describe('가정 요약의 세율 입력', () => {
 
     // 빈 칸을 0% 로 커밋하면 사용자가 지우는 중에 세후 금액이 세전으로 튄다.
     expect(taxField).toHaveValue('');
-    expect(screen.getByText(copy.summary.tiles.annualNetHint(15.4))).toBeInTheDocument();
+    // 저장된 15.4 는 옛 기본값이라 자동으로 읽힌다 → SCHD 는 미국 상장이라 15.0%.
+    expect(screen.getByText(copy.summary.tiles.annualNetHint(15))).toBeInTheDocument();
 
     await user.type(taxField, '22');
     expect(await screen.findByText(copy.summary.tiles.annualNetHint(22))).toBeInTheDocument();

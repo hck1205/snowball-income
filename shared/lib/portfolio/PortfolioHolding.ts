@@ -51,3 +51,21 @@ export const normalizePortfolioTaxRatePercent = (taxRatePercent: number | undefi
 
   return Math.min(100, Math.max(0, taxRatePercent));
 };
+
+/**
+ * 저장된 세율 → **사용자 지정 오버라이드**(없으면 `null` = 종목별 세법 기준).
+ *
+ * 🔴 **레거시 `15.4` 는 `null`(자동)로 읽는다.** 그 값은 사용자가 고른 것이 아니라 예전 기본값이
+ * 그대로 굳은 것이고, 지금 기준으로는 미국 상장 종목에 0.4%p 과대 계상이다. 손대지 않은 기본값을
+ * "의도적 지정"으로 대접하면 이번 수정이 **기존 사용자 전원에게 닿지 않는다**(2026-08-14 사용자 결정
+ * — 지금 세법 기준 수치로 맞춘다).
+ *
+ * ⚠ 정확히 15.4 를 **일부러** 넣은 사용자는 자동으로 넘어간다. 그래도 국내 상장 종목에는 여전히
+ * 15.4 가 적용되므로 그 사용자의 숫자가 틀려지지는 않는다 — 미국 종목이 15.0 으로 바로잡힐 뿐이다.
+ */
+export const toPortfolioTaxOverride = (taxRatePercent: number | undefined | null): number | null => {
+  if (typeof taxRatePercent !== 'number' || !Number.isFinite(taxRatePercent)) return null;
+  if (taxRatePercent === DEFAULT_PORTFOLIO_TAX_RATE_PERCENT) return null;
+
+  return Math.min(100, Math.max(0, taxRatePercent));
+};

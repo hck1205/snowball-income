@@ -157,8 +157,17 @@ export type PortfolioSummary = {
    * `annualDividendUsd` 와의 차이가 곧 `exclusions` 의 `annualDividendUsd` 합이다.
    */
   scheduledAnnualDividendUsd: number;
-  /** 적용된 세율(%). 정규화 후 값. */
+  /**
+   * 적용된 세율(%).
+   *
+   * `taxRateMode === 'auto'` 면 이 값은 **입력이 아니라 결과**다 — 종목마다 현행 세법 기준 세율
+   * (미국 상장 15.0 / 국내 상장 15.4)로 계산한 뒤 합계에서 역산한 **실효세율**이다. 미국·국내가
+   * 섞이면 15.0 과 15.4 사이의 값이 나온다.
+   * `'manual'` 이면 사용자가 지정한 값 그대로다(ISA·연금저축 등).
+   */
   taxRatePercent: number;
+  /** 세율이 어디서 왔나 — `auto`(종목별 세법 기준) / `manual`(사용자 지정). */
+  taxRateMode: 'auto' | 'manual';
   /** 시세 기준일 — 스냅샷 행이 하나라도 있을 때만 값이 있다. */
   asOf: string | null;
   holdings: PortfolioHoldingBreakdown[];
