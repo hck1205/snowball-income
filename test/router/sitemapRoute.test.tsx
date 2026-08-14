@@ -38,7 +38,7 @@ describe('/sitemap 라우트', () => {
     renderAt('/sitemap');
     await screen.findByRole('heading', { level: 1, name: '사이트맵' });
 
-    // nav 정본에서 온 묶음 이름들이 섹션 제목으로 선다.
+    // nav 정본에서 온 묶음 이름들이 섹션 제목으로 선다 (nav 한 칸 = 여기 한 장).
     expect(screen.getByRole('heading', { level: 2, name: nav.personalGroup })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: nav.portfolioGroup })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: nav.dividendListGroup })).toBeInTheDocument();

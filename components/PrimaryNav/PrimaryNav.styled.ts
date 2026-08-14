@@ -435,12 +435,22 @@ export const NavMenu = styled.div`
   display: grid;
   gap: 2px;
   min-width: 12rem;
+  /* 좌표 clamp(PrimaryNav 의 syncPosition)와 짝이다: 이쪽이 폭을, 저쪽이 위치를 막는다.
+     줄 오른쪽 끝 칸의 목록이 화면 밖으로 나가지 않게 한다. */
+  max-width: calc(100vw - ${space[4]});
   padding: ${space[1]};
   border: 1px solid ${color.border};
   border-radius: ${radius.md};
   background: ${color.surface};
   box-shadow: ${shadow.e2};
 `;
+
+/*
+ * 🔴 여기 있던 메가메뉴 판(NavMenuColumns/NavMenuSection/NavMenuSectionLabel)은 2026-08-14 에
+ *    **걷어냈다.** 자식이 많은 칸 하나만 여러 열로 열게 했더니 형제 중 그 칸만 다르게 동작해
+ *    사용자가 배운 규칙이 깨졌다(사용자 신고). 목록이 길어지면 판을 키우지 말고 칸을 나눈다 —
+ *    되살리지 마라. 근거는 `PrimaryNav.utils` 상단 주석.
+ */
 
 export const NavMenuItem = styled(NavLink)`
   display: flex;
