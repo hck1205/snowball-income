@@ -14,7 +14,16 @@ import {
   injectIntoRoot,
   applyDocumentMeta
 } from '@/shared/lib/og';
-import { toNodeHandler } from '@/shared/lib/server';
+import { withSiteTitleSuffix } from '@/shared/constants/site';
+import {
+  CACHE_NO_STORE,
+  CACHE_STATIC_CONTENT,
+  fetchShellHtml,
+  htmlResponse,
+  jsonLdScript,
+  redirectToRoot,
+  toNodeHandler
+} from '@/shared/lib/server';
 import {
   findTickerContentBySlug,
   listTickerContentByCategory,
@@ -87,37 +96,18 @@ import { SIMULATOR_PATH } from '@/shared/constants/routes';
  * 함수 코드 자체가 새 버전으로 교체되므로 낡은 본문이 5분 안에라도 남을 일이 없다 — s-maxage 는
  * "같은 배포 내에서 얼마나 자주 다시 계산할까"의 문제일 뿐이다.
  */
-const CACHE_TICKER = 'public, max-age=0, s-maxage=86400, stale-while-revalidate=604800';
 
 /** 무치환 셸(없는 티커/name 부재) — **캐시하지 않는다**. 다음 배포로 콘텐츠가 생기면 바로 반영돼야 한다. */
-const CACHE_NO_STORE = 'no-store';
 
-/** 상세 페이지 메타에 붙일 사이트 접미사 — index.html 기본 title 과 같은 브랜드 표기(PostHtml과 동일 관례). */
-const SITE_SUFFIX = 'Hungry Hippo';
 
 /** `/ticker/all` 예약 슬러그. `PresetTickerKey`(실제 티커 심볼)와 충돌하지 않는다. */
 const HUB_SLUG = 'all';
 const HUB_PATH = `/ticker/${HUB_SLUG}`;
 const HUB_META_TITLE = '배당 ETF·종목 SEO 소개 모음 — 배당률·배당성장·구성 한눈에';
 
-const htmlResponse = (html: string, status: number, cache: string): Response =>
-  new Response(html, {
-    status,
-    headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': cache }
-  });
 
-/** 셸 자체를 못 읽는 극단(자기 도메인 정적 파일 장애)의 폴백. post-html.ts 와 동일하게 루트로 302 한다. */
-const redirectToRoot = (origin: string): Response =>
-  new Response(null, {
-    status: 302,
-    headers: { Location: new URL('/', origin).toString(), 'cache-control': CACHE_NO_STORE }
-  });
 
-/** `</script>` 조기 종료를 막는 JSON-LD 안전 직렬화. `<` 를 전부 유니코드 이스케이프한다(표준 기법). */
-const escapeJsonForScript = (value: unknown): string => JSON.stringify(value).replace(/</g, '\\u003c');
 
-const jsonLdScript = (graph: unknown): string =>
-  `<script type="application/ld+json">${escapeJsonForScript(graph)}</script>`;
 
 /* -------------------------------------------------------------------------- */
 /* 공통 메타 치환 — 개별 티커/허브가 공유                                          */
@@ -132,7 +122,7 @@ const tickerCanonical = (siteUrl: string, content: TickerContent): string => `${
 
 const applyTickerMeta = (shell: string, content: TickerContent, siteUrl: string): string =>
   applyDocumentMeta(shell, {
-    title: `${content.metaTitle} - ${SITE_SUFFIX}`,
+    title: withSiteTitleSuffix(content.metaTitle),
     description: content.metaDescription,
     canonical: tickerCanonical(siteUrl, content)
   });
@@ -363,7 +353,7 @@ const HUB_DISCLAIMER =
   '이 페이지는 정보 제공을 목적으로 하며 투자 자문이 아닙니다. 배당률·주가·운용보수·세금 등은 시장 상황과 정책에 따라 변동될 수 있습니다.';
 
 const applyHubMeta = (shell: string, siteUrl: string): string =>
-  applyDocumentMeta(shell, { title: `${HUB_META_TITLE} - ${SITE_SUFFIX}`, description: buildHubDescription(), canonical: `${siteUrl}${HUB_PATH}` });
+  applyDocumentMeta(shell, { title: withSiteTitleSuffix(HUB_META_TITLE), description: buildHubDescription(), canonical: `${siteUrl}${HUB_PATH}` });
 
 const renderHubCategorySections = (): string =>
   (Object.keys(TICKER_CATEGORY_LABEL) as TickerCategoryId[])
@@ -521,14 +511,8 @@ export async function categoryHandler(request: Request): Promise<Response> {
   const { origin, searchParams } = new URL(request.url);
   const idParam = (searchParams.get('id') ?? '').trim().toLowerCase();
 
-  let shell: string;
-  try {
-    const response = await fetch(new URL('/index.html', origin));
-    if (!response.ok) return redirectToRoot(origin);
-    shell = await response.text();
-  } catch {
-    return redirectToRoot(origin);
-  }
+  const shell = await fetchShellHtml(origin);
+  if (shell === null) return redirectToRoot(origin);
 
   // 모르는 카테고리는 무치환 셸 200 + no-store — 개별 티커와 같은 처방(앱이 부팅해 라우터가 판단).
   if (!isTickerCategoryId(idParam)) return htmlResponse(shell, 200, CACHE_NO_STORE);
@@ -536,12 +520,12 @@ export async function categoryHandler(request: Request): Promise<Response> {
   const siteUrl = resolveSiteUrl(request.url);
   const meta = TICKER_CATEGORY_META[idParam];
   const withMeta = applyDocumentMeta(shell, {
-    title: `${meta.metaTitle} - ${SITE_SUFFIX}`,
+    title: withSiteTitleSuffix(meta.metaTitle),
     description: meta.description,
     canonical: categoryCanonical(siteUrl, idParam)
   });
 
-  return htmlResponse(injectCategoryBody(withMeta, idParam, siteUrl), 200, CACHE_TICKER);
+  return htmlResponse(injectCategoryBody(withMeta, idParam, siteUrl), 200, CACHE_STATIC_CONTENT);
 }
 
 /** 웹 표준 핸들러 — `test/api/tickerHtml.test.ts` 가 `handler(new Request(...))` 로 직접 호출한다. */
@@ -550,14 +534,8 @@ export async function handler(request: Request): Promise<Response> {
   const nameParam = (searchParams.get('name') ?? '').trim().toLowerCase();
 
   // 1) index.html 셸. 이 경로는 rewrite 대상이 아니라 재진입이 없다(post-html.ts와 동일 전제).
-  let shell: string;
-  try {
-    const response = await fetch(new URL('/index.html', origin));
-    if (!response.ok) return redirectToRoot(origin);
-    shell = await response.text();
-  } catch {
-    return redirectToRoot(origin);
-  }
+  const shell = await fetchShellHtml(origin);
+  if (shell === null) return redirectToRoot(origin);
 
   // 2) name이 없으면(방어) 무치환 셸 200. 앱이 부팅해 라우터가 알아서 처리한다.
   if (!nameParam) return htmlResponse(shell, 200, CACHE_NO_STORE);
@@ -566,14 +544,14 @@ export async function handler(request: Request): Promise<Response> {
 
   // 3) `/ticker/all` 허브 — 개별 티커 조회보다 먼저 분기한다(위 "허브" 주석 근거).
   if (nameParam === HUB_SLUG) {
-    return htmlResponse(injectHubBody(applyHubMeta(shell, siteUrl), siteUrl), 200, CACHE_TICKER);
+    return htmlResponse(injectHubBody(applyHubMeta(shell, siteUrl), siteUrl), 200, CACHE_STATIC_CONTENT);
   }
 
   // 4) 콘텐츠가 없는 티커는 404가 아니라 무치환 셸 200 + no-store (위 "없는 티커" 주석 근거).
   const content = findTickerContentBySlug(nameParam);
   if (!content) return htmlResponse(shell, 200, CACHE_NO_STORE);
 
-  return htmlResponse(injectTickerBody(applyTickerMeta(shell, content, siteUrl), content, siteUrl), 200, CACHE_TICKER);
+  return htmlResponse(injectTickerBody(applyTickerMeta(shell, content, siteUrl), content, siteUrl), 200, CACHE_STATIC_CONTENT);
 }
 
 /** ⚠ Vercel 이 실제로 호출하는 진입점. 어댑터를 벗기면 무응답으로 되돌아간다(위 "런타임" 주석). */

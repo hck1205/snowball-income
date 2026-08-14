@@ -6983,7 +6983,8 @@ var buildSummary = ({
   yearly,
   totalTaxPaid,
   targetMonthlyDividend,
-  totalReinvestedAmount
+  totalReinvestedAmount,
+  finalRunRateMonthlyDividend
 }) => {
   const finalYear = yearly[yearly.length - 1];
   const lastPayoutRow = findLastPayoutMonth(monthly);
@@ -6997,6 +6998,7 @@ var buildSummary = ({
     // 라는 이름으로 한 번 더 들어 있었으나, 어떤 화면도 읽지 않는 중복 필드라 제거했다.)
     finalMonthlyAverageDividend: finalYear?.monthlyDividend ?? 0,
     finalPayoutMonthDividend: lastPayoutRow?.dividendPaid ?? 0,
+    finalRunRateMonthlyDividend,
     totalContribution,
     totalNetDividend: finalYear?.cumulativeDividend ?? 0,
     totalTaxPaid,
@@ -7091,6 +7093,8 @@ var runSimulation = (input) => {
       );
     }
   }
+  const lastRow = monthly[monthly.length - 1];
+  const finalRunRateMonthlyDividend = lastRow === void 0 ? 0 : lastRow.shares * lastRow.dividendPerShare * (1 - taxRate) / 12;
   return {
     monthly,
     yearly,
@@ -7099,7 +7103,8 @@ var runSimulation = (input) => {
       yearly,
       totalTaxPaid,
       targetMonthlyDividend: settings.targetMonthlyDividend,
-      totalReinvestedAmount
+      totalReinvestedAmount,
+      finalRunRateMonthlyDividend
     }),
     quickEstimate: runQuickEstimate(input)
   };
@@ -13126,6 +13131,7 @@ var isYearlyAreaFillOnAtom = atomState(true);
 var isResultCompactAtom = atomState(false);
 var showSplitGraphsAtom = atomState(false);
 var showPortfolioDividendCenterAtom = atomState(true);
+var dividendCenterModeAtom = atomState("runRate");
 var selectedPresetAtom = atomState("custom");
 var tourLaunchRequestAtom = atomState(0);
 var scenarioPrefillAtom = atomState(null);
@@ -13966,6 +13972,12 @@ var aggregatePortfolioSimulation = (outputs, targetMonthlyDividend) => {
       finalAnnualDividend: finalYear?.annualDividend ?? 0,
       finalMonthlyAverageDividend: finalYear?.monthlyDividend ?? 0,
       finalPayoutMonthDividend: lastPayout?.dividendPaid ?? 0,
+      /*
+       * 🔴 **종목별 값의 단순 합이 맞다.** 각 종목이 자기 배당률·세율·지급주기로 계산한 월 환산액이라
+       *    합치면 곧 포트폴리오의 월 환산액이다(양도세처럼 인별 공제가 끼어드는 항목이 아니다 —
+       *    아래 `computeCapitalGains` 가 합산 후 한 번만 계산하는 것과 대비된다).
+       */
+      finalRunRateMonthlyDividend: sumBy(outputs, (output) => output.summary.finalRunRateMonthlyDividend),
       totalContribution: finalYear?.totalContribution ?? 0,
       totalNetDividend: finalYear?.cumulativeDividend ?? 0,
       totalTaxPaid: sumBy(outputs, (output) => output.summary.totalTaxPaid),

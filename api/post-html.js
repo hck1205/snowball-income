@@ -133,6 +133,10 @@ var resolveSiteUrl = (requestUrl) => {
   return stripTrailingSlash(new URL(requestUrl).origin);
 };
 
+// shared/constants/site/index.ts
+var SITE_NAME = "Hungry Hippo";
+var withSiteTitleSuffix = (title) => `${title} - ${SITE_NAME}`;
+
 // shared/lib/server/nodeHandler.ts
 var firstHeaderValue = (headers, name) => {
   const raw = headers[name];
@@ -249,6 +253,26 @@ var toNodeHandler = (webHandler) => {
       }
     }
   };
+};
+
+// shared/lib/server/crawlerHtml.ts
+var CACHE_NO_STORE = "no-store";
+var htmlResponse = (html2, status, cache) => new Response(html2, {
+  status,
+  headers: { "content-type": "text/html; charset=utf-8", "cache-control": cache }
+});
+var redirectToRoot = (origin) => new Response(null, {
+  status: 302,
+  headers: { Location: new URL("/", origin).toString(), "cache-control": CACHE_NO_STORE }
+});
+var fetchShellHtml = async (origin) => {
+  try {
+    const response = await fetch(new URL("/index.html", origin));
+    if (!response.ok) return null;
+    return await response.text();
+  } catch {
+    return null;
+  }
 };
 
 // node_modules/dompurify/dist/purify.es.mjs
@@ -1860,22 +1884,12 @@ var sanitizePostBody = (html2) => {
 
 // server/handlers/PostHtml/PostHtml.ts
 var CACHE_POST = "public, max-age=0, s-maxage=300, stale-while-revalidate=604800";
-var CACHE_NO_STORE = "no-store";
-var SITE_SUFFIX = "Hungry Hippo";
 var FALLBACK_DESCRIPTION = {
   portfolio: "Hungry Hippo \uCEE4\uBBA4\uB2C8\uD2F0\uC5D0 \uACF5\uC720\uB41C \uBC30\uB2F9 \uD3EC\uD2B8\uD3F4\uB9AC\uC624 \uC2DC\uB098\uB9AC\uC624\uC785\uB2C8\uB2E4. \uC6D4 \uBC30\uB2F9\xB7\uBAA9\uD45C \uB2EC\uC131 \uC2DC\uC810\uC744 \uD655\uC778\uD574 \uBCF4\uC138\uC694.",
   board: "Hungry Hippo \uC790\uC720\uAC8C\uC2DC\uD310\uC5D0 \uC62C\uB77C\uC628 \uAE00\uC785\uB2C8\uB2E4."
 };
-var htmlResponse = (html2, status, cache) => new Response(html2, {
-  status,
-  headers: { "content-type": "text/html; charset=utf-8", "cache-control": cache }
-});
-var redirectToRoot = (origin) => new Response(null, {
-  status: 302,
-  headers: { Location: new URL("/", origin).toString(), "cache-control": CACHE_NO_STORE }
-});
 var applyPostMeta = (shell, post, siteUrl) => {
-  const title = `${post.title} - ${SITE_SUFFIX}`;
+  const title = withSiteTitleSuffix(post.title);
   const description = post.description ?? FALLBACK_DESCRIPTION[post.kind];
   const canonical = `${siteUrl}/community/${post.kind}/${post.id}`;
   let html2 = shell;
@@ -1907,14 +1921,8 @@ async function handler(request) {
   const { origin, searchParams } = new URL(request.url);
   const kindParam = searchParams.get("kind");
   const id = searchParams.get("id") ?? "";
-  let shell;
-  try {
-    const response = await fetch(new URL("/index.html", origin));
-    if (!response.ok) return redirectToRoot(origin);
-    shell = await response.text();
-  } catch {
-    return redirectToRoot(origin);
-  }
+  const shell = await fetchShellHtml(origin);
+  if (shell === null) return redirectToRoot(origin);
   if (!isPublicPostKind(kindParam)) return htmlResponse(shell, 200, CACHE_NO_STORE);
   if (!POST_ID_PATTERN.test(id)) return htmlResponse(shell, 200, CACHE_NO_STORE);
   const result = await fetchPublicPostMeta(kindParam, id);

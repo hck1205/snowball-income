@@ -60,4 +60,17 @@ describe('/sitemap 라우트', () => {
 
     expect(router.state.location.pathname).toBe('/sitemap');
   });
+
+  /**
+   * 🔴 사이트명 접미는 **표면(`useDocumentMeta`)이 붙인다.** 콘텐츠가 직접 적으면 두 번 붙어
+   * `사이트맵 - Hungry Hippo - Hungry Hippo` 가 된다 — 2026-08-14 에 이 페이지가 실제로 그 상태였고,
+   * 화면에는 아무 증상이 없어 탭 제목을 눈으로 보기 전에는 드러나지 않았다.
+   */
+  it('문서 제목에 사이트명이 정확히 한 번만 붙는다', async () => {
+    renderAt('/sitemap');
+    await screen.findByRole('heading', { level: 1, name: '사이트맵' });
+
+    expect(document.title).toBe('사이트맵 - Hungry Hippo');
+    expect(document.title.match(/Hungry Hippo/g)).toHaveLength(1);
+  });
 });

@@ -4926,7 +4926,8 @@ var buildSummary = ({
   yearly,
   totalTaxPaid,
   targetMonthlyDividend,
-  totalReinvestedAmount
+  totalReinvestedAmount,
+  finalRunRateMonthlyDividend
 }) => {
   const finalYear = yearly[yearly.length - 1];
   const lastPayoutRow = findLastPayoutMonth(monthly);
@@ -4940,6 +4941,7 @@ var buildSummary = ({
     // 라는 이름으로 한 번 더 들어 있었으나, 어떤 화면도 읽지 않는 중복 필드라 제거했다.)
     finalMonthlyAverageDividend: finalYear?.monthlyDividend ?? 0,
     finalPayoutMonthDividend: lastPayoutRow?.dividendPaid ?? 0,
+    finalRunRateMonthlyDividend,
     totalContribution,
     totalNetDividend: finalYear?.cumulativeDividend ?? 0,
     totalTaxPaid,
@@ -5034,6 +5036,8 @@ var runSimulation = (input) => {
       );
     }
   }
+  const lastRow = monthly[monthly.length - 1];
+  const finalRunRateMonthlyDividend = lastRow === void 0 ? 0 : lastRow.shares * lastRow.dividendPerShare * (1 - taxRate) / 12;
   return {
     monthly,
     yearly,
@@ -5042,7 +5046,8 @@ var runSimulation = (input) => {
       yearly,
       totalTaxPaid,
       targetMonthlyDividend: settings.targetMonthlyDividend,
-      totalReinvestedAmount
+      totalReinvestedAmount,
+      finalRunRateMonthlyDividend
     }),
     quickEstimate: runQuickEstimate(input)
   };
@@ -8898,6 +8903,12 @@ var aggregatePortfolioSimulation = (outputs, targetMonthlyDividend) => {
       finalAnnualDividend: finalYear?.annualDividend ?? 0,
       finalMonthlyAverageDividend: finalYear?.monthlyDividend ?? 0,
       finalPayoutMonthDividend: lastPayout?.dividendPaid ?? 0,
+      /*
+       * 🔴 **종목별 값의 단순 합이 맞다.** 각 종목이 자기 배당률·세율·지급주기로 계산한 월 환산액이라
+       *    합치면 곧 포트폴리오의 월 환산액이다(양도세처럼 인별 공제가 끼어드는 항목이 아니다 —
+       *    아래 `computeCapitalGains` 가 합산 후 한 번만 계산하는 것과 대비된다).
+       */
+      finalRunRateMonthlyDividend: sumBy(outputs, (output) => output.summary.finalRunRateMonthlyDividend),
       totalContribution: finalYear?.totalContribution ?? 0,
       totalNetDividend: finalYear?.cumulativeDividend ?? 0,
       totalTaxPaid: sumBy(outputs, (output) => output.summary.totalTaxPaid),
@@ -9216,19 +9227,30 @@ var toNodeHandler = (webHandler) => {
   };
 };
 
+// shared/lib/server/crawlerHtml.ts
+var CACHE_STATIC_CONTENT = "public, max-age=0, s-maxage=86400, stale-while-revalidate=604800";
+var CACHE_NO_STORE = "no-store";
+var htmlResponse = (html, status, cache) => new Response(html, {
+  status,
+  headers: { "content-type": "text/html; charset=utf-8", "cache-control": cache }
+});
+var fetchShellHtml = async (origin) => {
+  try {
+    const response = await fetch(new URL("/index.html", origin));
+    if (!response.ok) return null;
+    return await response.text();
+  } catch {
+    return null;
+  }
+};
+
 // shared/constants/routes/index.ts
 var SIMULATOR_PATH = "/simulator";
 
 // server/handlers/ShareHtml/ShareHtml.ts
-var CACHE_SCENARIO = "public, max-age=0, s-maxage=86400, stale-while-revalidate=604800";
-var CACHE_FALLBACK = "no-store";
-var htmlResponse = (html, cache) => new Response(html, {
-  status: 200,
-  headers: { "content-type": "text/html; charset=utf-8", "cache-control": cache }
-});
 var redirectToSimulator = (origin) => new Response(null, {
   status: 302,
-  headers: { Location: new URL(SIMULATOR_PATH, origin).toString(), "cache-control": CACHE_FALLBACK }
+  headers: { Location: new URL(SIMULATOR_PATH, origin).toString(), "cache-control": CACHE_NO_STORE }
 });
 var applyShareMeta = (shell, key, origin, model) => {
   const { title, description, imageAlt } = buildOgShareText(model);
@@ -9252,22 +9274,16 @@ var applyShareMeta = (shell, key, origin, model) => {
 async function handler(request) {
   const { origin, searchParams } = new URL(request.url);
   const key = searchParams.get("s");
-  let shell;
-  try {
-    const response = await fetch(new URL("/index.html", origin));
-    if (!response.ok) return redirectToSimulator(origin);
-    shell = await response.text();
-  } catch {
-    return redirectToSimulator(origin);
-  }
-  if (!key || !DB_SHARE_KEY_PATTERN.test(key)) return htmlResponse(shell, CACHE_FALLBACK);
+  const shell = await fetchShellHtml(origin);
+  if (shell === null) return redirectToSimulator(origin);
+  if (!key || !DB_SHARE_KEY_PATTERN.test(key)) return htmlResponse(shell, 200, CACHE_NO_STORE);
   try {
     const envelope = await fetchSharedSnapshotByKey(key);
     const model = summarizeSharedScenarioForOg(envelope?.scenario);
-    if (!model) return htmlResponse(shell, CACHE_FALLBACK);
-    return htmlResponse(applyShareMeta(shell, key, origin, model), CACHE_SCENARIO);
+    if (!model) return htmlResponse(shell, 200, CACHE_NO_STORE);
+    return htmlResponse(applyShareMeta(shell, key, origin, model), 200, CACHE_STATIC_CONTENT);
   } catch {
-    return htmlResponse(shell, CACHE_FALLBACK);
+    return htmlResponse(shell, 200, CACHE_NO_STORE);
   }
 }
 var ShareHtml_default = toNodeHandler(handler);

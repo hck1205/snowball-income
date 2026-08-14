@@ -11,7 +11,16 @@ import {
   injectIntoRoot,
   applyDocumentMeta
 } from '@/shared/lib/og';
-import { toNodeHandler } from '@/shared/lib/server';
+import { withSiteTitleSuffix } from '@/shared/constants/site';
+import {
+  CACHE_NO_STORE,
+  CACHE_STATIC_CONTENT,
+  fetchShellHtml,
+  htmlResponse,
+  jsonLdScript,
+  redirectToRoot,
+  toNodeHandler
+} from '@/shared/lib/server';
 import { GUIDES, findGuide, guidePath } from '@/shared/constants/guides';
 import type { GuideContent, GuideSection } from '@/shared/constants/guides';
 
@@ -37,29 +46,11 @@ import type { GuideContent, GuideSection } from '@/shared/constants/guides';
  */
 
 /** 성공 캐시 — 24시간 신선 / 7일 stale. 가이드 본문은 배포로만 바뀐다(TickerHtml 과 같은 값·근거). */
-const CACHE_GUIDE = 'public, max-age=0, s-maxage=86400, stale-while-revalidate=604800';
-const CACHE_NO_STORE = 'no-store';
 
-const htmlResponse = (html: string, status: number, cache: string): Response =>
-  new Response(html, {
-    status,
-    headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': cache }
-  });
 
-const redirectToRoot = (origin: string): Response =>
-  new Response(null, {
-    status: 302,
-    headers: { Location: new URL('/', origin).toString(), 'cache-control': CACHE_NO_STORE }
-  });
 
-/** 문서 제목 끝에 붙는 사이트명. SPA 의 `useDocumentMeta` 와 **같은 값**이어야 두 표면이 갈리지 않는다. */
-const SITE_SUFFIX = 'Hungry Hippo';
 
-/** `</script>` 조기 종료 방지. `<` 를 전부 유니코드 이스케이프한다(표준 기법). */
-const escapeJsonForScript = (value: unknown): string => JSON.stringify(value).replace(/</g, '\\u003c');
 
-const jsonLdScript = (graph: unknown): string =>
-  `<script type="application/ld+json">${escapeJsonForScript(graph)}</script>`;
 
 
 /**
@@ -171,14 +162,8 @@ export async function handler(request: Request): Promise<Response> {
   const slug = (searchParams.get('slug') ?? '').trim().toLowerCase();
 
   // 1) index.html 셸. 이 경로는 rewrite 대상이 아니라 재진입이 없다(다른 핸들러와 같은 전제).
-  let shell: string;
-  try {
-    const response = await fetch(new URL('/index.html', origin));
-    if (!response.ok) return redirectToRoot(origin);
-    shell = await response.text();
-  } catch {
-    return redirectToRoot(origin);
-  }
+  const shell = await fetchShellHtml(origin);
+  if (shell === null) return redirectToRoot(origin);
 
   // 2) 모르는 슬러그는 무치환 셸 200 + no-store — 앱이 부팅해 라우터가 판단한다.
   const guide = findGuide(slug);
@@ -189,9 +174,9 @@ export async function handler(request: Request): Promise<Response> {
   /* 🔴 접미사는 **표면이 붙인다**(TickerHtml 과 같은 규칙). 종전에는 콘텐츠의 metaTitle 이 직접
      적고 있었는데, SPA 가 같은 문자열에 접미사를 한 번 더 붙여 화면 제목이 두 번 겹쳤다
      (2026-08-06). 콘텐츠는 검색어에 쓸 앞자리만 소유한다. */
-  const html = applyDocumentMeta(shell, { title: `${guide.metaTitle} - ${SITE_SUFFIX}`, description: guide.metaDescription, canonical: canonical });
+  const html = applyDocumentMeta(shell, { title: withSiteTitleSuffix(guide.metaTitle), description: guide.metaDescription, canonical: canonical });
 
-  return htmlResponse(injectGuideBody(html, guide, canonical), 200, CACHE_GUIDE);
+  return htmlResponse(injectGuideBody(html, guide, canonical), 200, CACHE_STATIC_CONTENT);
 }
 
 /** ⚠ Vercel 이 실제로 호출하는 진입점. 어댑터를 벗기면 무응답으로 되돌아간다(위 "런타임" 주석). */

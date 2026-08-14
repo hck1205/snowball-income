@@ -22,7 +22,12 @@ import { PageStack, Section, SectionTitle, SitemapGrid, SitemapLink, SitemapLink
 
 const COPY = {
   meta: {
-    title: '사이트맵 - Hungry Hippo',
+    /*
+     * 🔴 **접미(`- Hungry Hippo`)를 여기 적지 마라.** `useDocumentMeta` 가 `withSiteTitleSuffix` 로
+     * 붙인다 — 콘텐츠가 직접 적으면 `사이트맵 - Hungry Hippo - Hungry Hippo` 가 된다.
+     * 2026-08-14 에 이 파일이 실제로 그 상태였다(전 화면 중 유일). 아래 테스트가 다시 못 하게 잠근다.
+     */
+    title: '사이트맵',
     description:
       'Hungry Hippo 의 모든 화면을 한곳에 모았습니다. 배당 시뮬레이터·외부 포트폴리오·시장 통계·배당 캘린더·배당 종목 목록·커뮤니티·종목 비교로 바로 이동할 수 있습니다.'
   },

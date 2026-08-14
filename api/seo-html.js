@@ -207,6 +207,33 @@ var resolveSiteUrl = (requestUrl) => {
   return stripTrailingSlash(new URL(requestUrl).origin);
 };
 
+// shared/lib/server/crawlerHtml.ts
+var CACHE_STATIC_CONTENT = "public, max-age=0, s-maxage=86400, stale-while-revalidate=604800";
+var CACHE_NO_STORE = "no-store";
+var htmlResponse = (html, status, cache) => new Response(html, {
+  status,
+  headers: { "content-type": "text/html; charset=utf-8", "cache-control": cache }
+});
+var redirectToRoot = (origin) => new Response(null, {
+  status: 302,
+  headers: { Location: new URL("/", origin).toString(), "cache-control": CACHE_NO_STORE }
+});
+var fetchShellHtml = async (origin) => {
+  try {
+    const response = await fetch(new URL("/index.html", origin));
+    if (!response.ok) return null;
+    return await response.text();
+  } catch {
+    return null;
+  }
+};
+var jsonLdScript = (graph) => `<script type="application/ld+json">${JSON.stringify(graph).replace(/</g, "\\u003c")}</script>`;
+var renderSection = (id, heading, paragraphs) => `<section id="${escapeHtmlAttribute(id)}"><h2>${escapeHtmlText(heading)}</h2>` + paragraphs.map((paragraph) => `<p>${escapeHtmlText(paragraph)}</p>`).join("") + "</section>";
+
+// shared/constants/site/index.ts
+var SITE_NAME = "Hungry Hippo";
+var withSiteTitleSuffix = (title) => `${title} - ${SITE_NAME}`;
+
 // shared/constants/routes/index.ts
 var SIMULATOR_PATH = "/simulator";
 var DIVIDEND_LIST_IDS = ["kings", "aristocrats", "champions", "hiddenStars"];
@@ -6827,21 +6854,8 @@ var DIVIDEND_LIST_COPY = {
 };
 
 // server/handlers/DividendListHtml/DividendListHtml.ts
-var CACHE_LIST = "public, max-age=0, s-maxage=86400, stale-while-revalidate=604800";
-var CACHE_NO_STORE = "no-store";
-var SITE_SUFFIX = "Hungry Hippo";
 var HUB_PARAM = "hub";
 var copy = DIVIDEND_LIST_COPY;
-var htmlResponse = (html, status, cache) => new Response(html, {
-  status,
-  headers: { "content-type": "text/html; charset=utf-8", "cache-control": cache }
-});
-var redirectToRoot = (origin) => new Response(null, {
-  status: 302,
-  headers: { Location: new URL("/", origin).toString(), "cache-control": CACHE_NO_STORE }
-});
-var escapeJsonForScript = (value) => JSON.stringify(value).replace(/</g, "\\u003c");
-var jsonLdScript = (graph) => `<script type="application/ld+json">${escapeJsonForScript(graph)}</script>`;
 var renderFooterNotes = () => `<section class="disclaimer"><h2>${escapeHtmlText(copy.page.footerNotesTitle)}</h2><ul>` + copy.page.footerNotes.map((note) => `<li>${escapeHtmlText(note)}</li>`).join("") + "</ul></section>";
 var formatCriterion = (list) => list.maximumStreakYears === void 0 ? `${list.minimumStreakYears}\uB144 \uC774\uC0C1` : `${list.minimumStreakYears}~${list.maximumStreakYears}\uB144`;
 var listCanonical = (siteUrl, list) => `${siteUrl}${dividendListPath(list.id)}`;
@@ -6890,7 +6904,7 @@ var buildListJsonLd = (list, canonical) => jsonLdScript({
 var injectListBody = (shell, list, siteUrl) => {
   const listCopy = copy.lists[list.id];
   const canonical = listCanonical(siteUrl, list);
-  const article = "<article>" + renderHero(list) + `<section id="definition"><h2>${escapeHtmlText(copy.page.definitionHeading)}</h2><p>${escapeHtmlText(listCopy.definition)}</p><p>${escapeHtmlText(listCopy.caution)}</p></section><section id="streak"><h2>${escapeHtmlText(copy.page.streakHeading)}</h2><p>${escapeHtmlText(copy.page.streakBody)}</p></section>` + renderMembersTable(list) + renderSources(list) + renderRelated(list.id) + renderFooterNotes() + "</article>" + buildListJsonLd(list, canonical);
+  const article = "<article>" + renderHero(list) + renderSection("definition", copy.page.definitionHeading, [listCopy.definition, listCopy.caution]) + renderSection("streak", copy.page.streakHeading, [copy.page.streakBody]) + renderMembersTable(list) + renderSources(list) + renderRelated(list.id) + renderFooterNotes() + "</article>" + buildListJsonLd(list, canonical);
   return injectIntoRoot(shell, article);
 };
 var injectHubBody = (shell, siteUrl) => {
@@ -6916,24 +6930,18 @@ var injectHubBody = (shell, siteUrl) => {
 async function handler(request) {
   const { origin, searchParams } = new URL(request.url);
   const listParam = (searchParams.get("list") ?? "").trim().toLowerCase();
-  let shell;
-  try {
-    const response = await fetch(new URL("/index.html", origin));
-    if (!response.ok) return redirectToRoot(origin);
-    shell = await response.text();
-  } catch {
-    return redirectToRoot(origin);
-  }
+  const shell = await fetchShellHtml(origin);
+  if (shell === null) return redirectToRoot(origin);
   const siteUrl = resolveSiteUrl(request.url);
   if (listParam === HUB_PARAM) {
-    const html2 = applyDocumentMeta(shell, { title: `${copy.hub.meta.title} - ${SITE_SUFFIX}`, description: copy.hub.meta.description, canonical: `${siteUrl}${DIVIDEND_LIST_HUB_PATH}` });
-    return htmlResponse(injectHubBody(html2, siteUrl), 200, CACHE_LIST);
+    const html2 = applyDocumentMeta(shell, { title: withSiteTitleSuffix(copy.hub.meta.title), description: copy.hub.meta.description, canonical: `${siteUrl}${DIVIDEND_LIST_HUB_PATH}` });
+    return htmlResponse(injectHubBody(html2, siteUrl), 200, CACHE_STATIC_CONTENT);
   }
   const listId = toDividendListId(listParam);
   if (!listId) return htmlResponse(shell, 200, CACHE_NO_STORE);
   const list = DIVIDEND_LISTS[listId];
-  const html = applyDocumentMeta(shell, { title: `${copy.lists[listId].metaTitle} - ${SITE_SUFFIX}`, description: copy.lists[listId].metaDescription, canonical: listCanonical(siteUrl, list) });
-  return htmlResponse(injectListBody(html, list, siteUrl), 200, CACHE_LIST);
+  const html = applyDocumentMeta(shell, { title: withSiteTitleSuffix(copy.lists[listId].metaTitle), description: copy.lists[listId].metaDescription, canonical: listCanonical(siteUrl, list) });
+  return htmlResponse(injectListBody(html, list, siteUrl), 200, CACHE_STATIC_CONTENT);
 }
 var DividendListHtml_default = toNodeHandler(handler);
 
@@ -7405,19 +7413,6 @@ var guidePath = (slug) => `/guide/${slug}`;
 var findGuide = (slug) => GUIDES.find((guide) => guide.slug === slug.toLowerCase());
 
 // server/handlers/GuideHtml/GuideHtml.ts
-var CACHE_GUIDE = "public, max-age=0, s-maxage=86400, stale-while-revalidate=604800";
-var CACHE_NO_STORE2 = "no-store";
-var htmlResponse2 = (html, status, cache) => new Response(html, {
-  status,
-  headers: { "content-type": "text/html; charset=utf-8", "cache-control": cache }
-});
-var redirectToRoot2 = (origin) => new Response(null, {
-  status: 302,
-  headers: { Location: new URL("/", origin).toString(), "cache-control": CACHE_NO_STORE2 }
-});
-var SITE_SUFFIX2 = "Hungry Hippo";
-var escapeJsonForScript2 = (value) => JSON.stringify(value).replace(/</g, "\\u003c");
-var jsonLdScript2 = (graph) => `<script type="application/ld+json">${escapeJsonForScript2(graph)}</script>`;
 var renderTable = (section) => {
   const table = section.table;
   if (!table) return "";
@@ -7425,7 +7420,7 @@ var renderTable = (section) => {
   const body = table.rows.map((row) => `<tr>${row.map((cell) => `<td>${escapeHtmlText(cell)}</td>`).join("")}</tr>`).join("");
   return `<table><caption>${escapeHtmlText(table.caption)}</caption><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>` + (table.note ? `<p class="table-note">${escapeHtmlText(table.note)}</p>` : "");
 };
-var renderSection = (section) => `<section id="${escapeHtmlAttribute(section.id)}"><h2>${escapeHtmlText(section.heading)}</h2>` + section.paragraphs.map((paragraph) => `<p>${escapeHtmlText(paragraph)}</p>`).join("") + renderTable(section) + (section.caution ? `<p class="caution">${escapeHtmlText(section.caution)}</p>` : "") + "</section>";
+var renderSection2 = (section) => `<section id="${escapeHtmlAttribute(section.id)}"><h2>${escapeHtmlText(section.heading)}</h2>` + section.paragraphs.map((paragraph) => `<p>${escapeHtmlText(paragraph)}</p>`).join("") + renderTable(section) + (section.caution ? `<p class="caution">${escapeHtmlText(section.caution)}</p>` : "") + "</section>";
 var renderFaqs = (guide) => '<section id="faq"><h2>\uC790\uC8FC \uBB3B\uB294 \uC9C8\uBB38</h2>' + guide.faqs.map(
   (faq) => `<details><summary>${escapeHtmlText(faq.question)}</summary><p>${escapeHtmlText(faq.answer)}</p></details>`
 ).join("") + "</section>";
@@ -7436,7 +7431,7 @@ var renderRelated2 = (guide) => {
     (entry) => `<li><a href="${escapeHtmlAttribute(guidePath(entry.slug))}">${escapeHtmlText(entry.title)}</a> \u2014 ${escapeHtmlText(entry.lede)}</li>`
   ).join("") + "</ul></nav>";
 };
-var buildJsonLd = (guide, canonical) => jsonLdScript2([
+var buildJsonLd = (guide, canonical) => jsonLdScript([
   {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -7457,26 +7452,20 @@ var buildJsonLd = (guide, canonical) => jsonLdScript2([
   }
 ]);
 var injectGuideBody = (shell, guide, canonical) => {
-  const article = `<article><h1>${escapeHtmlText(guide.title)}</h1><p>${escapeHtmlText(guide.lede)}</p>` + guide.sections.map(renderSection).join("") + renderFaqs(guide) + `<p class="cta"><a href="${escapeHtmlAttribute(guide.cta.to)}">${escapeHtmlText(guide.cta.label)}</a> \u2014 ${escapeHtmlText(guide.cta.note)}</p>` + renderRelated2(guide) + "</article>" + buildJsonLd(guide, canonical);
+  const article = `<article><h1>${escapeHtmlText(guide.title)}</h1><p>${escapeHtmlText(guide.lede)}</p>` + guide.sections.map(renderSection2).join("") + renderFaqs(guide) + `<p class="cta"><a href="${escapeHtmlAttribute(guide.cta.to)}">${escapeHtmlText(guide.cta.label)}</a> \u2014 ${escapeHtmlText(guide.cta.note)}</p>` + renderRelated2(guide) + "</article>" + buildJsonLd(guide, canonical);
   return injectIntoRoot(shell, article);
 };
 async function handler2(request) {
   const { origin, searchParams } = new URL(request.url);
   const slug = (searchParams.get("slug") ?? "").trim().toLowerCase();
-  let shell;
-  try {
-    const response = await fetch(new URL("/index.html", origin));
-    if (!response.ok) return redirectToRoot2(origin);
-    shell = await response.text();
-  } catch {
-    return redirectToRoot2(origin);
-  }
+  const shell = await fetchShellHtml(origin);
+  if (shell === null) return redirectToRoot(origin);
   const guide = findGuide(slug);
-  if (!guide) return htmlResponse2(shell, 200, CACHE_NO_STORE2);
+  if (!guide) return htmlResponse(shell, 200, CACHE_NO_STORE);
   const siteUrl = resolveSiteUrl(request.url);
   const canonical = `${siteUrl}${guidePath(guide.slug)}`;
-  const html = applyDocumentMeta(shell, { title: `${guide.metaTitle} - ${SITE_SUFFIX2}`, description: guide.metaDescription, canonical });
-  return htmlResponse2(injectGuideBody(html, guide, canonical), 200, CACHE_GUIDE);
+  const html = applyDocumentMeta(shell, { title: withSiteTitleSuffix(guide.metaTitle), description: guide.metaDescription, canonical });
+  return htmlResponse(injectGuideBody(html, guide, canonical), 200, CACHE_STATIC_CONTENT);
 }
 var GuideHtml_default = toNodeHandler(handler2);
 
@@ -26700,25 +26689,12 @@ var findTickerContentBySlug = (slug) => {
 var listTickerContentByCategory = (categoryId) => TICKER_CONTENT_LIST.filter((entry) => entry.categoryIds.includes(categoryId));
 
 // server/handlers/TickerHtml/TickerHtml.ts
-var CACHE_TICKER = "public, max-age=0, s-maxage=86400, stale-while-revalidate=604800";
-var CACHE_NO_STORE3 = "no-store";
-var SITE_SUFFIX3 = "Hungry Hippo";
 var HUB_SLUG = "all";
 var HUB_PATH = `/ticker/${HUB_SLUG}`;
 var HUB_META_TITLE = "\uBC30\uB2F9 ETF\xB7\uC885\uBAA9 SEO \uC18C\uAC1C \uBAA8\uC74C \u2014 \uBC30\uB2F9\uB960\xB7\uBC30\uB2F9\uC131\uC7A5\xB7\uAD6C\uC131 \uD55C\uB208\uC5D0";
-var htmlResponse3 = (html, status, cache) => new Response(html, {
-  status,
-  headers: { "content-type": "text/html; charset=utf-8", "cache-control": cache }
-});
-var redirectToRoot3 = (origin) => new Response(null, {
-  status: 302,
-  headers: { Location: new URL("/", origin).toString(), "cache-control": CACHE_NO_STORE3 }
-});
-var escapeJsonForScript3 = (value) => JSON.stringify(value).replace(/</g, "\\u003c");
-var jsonLdScript3 = (graph) => `<script type="application/ld+json">${escapeJsonForScript3(graph)}</script>`;
 var tickerCanonical = (siteUrl, content) => `${siteUrl}/ticker/${content.slug}`;
 var applyTickerMeta = (shell, content, siteUrl) => applyDocumentMeta(shell, {
-  title: `${content.metaTitle} - ${SITE_SUFFIX3}`,
+  title: withSiteTitleSuffix(content.metaTitle),
   description: content.metaDescription,
   canonical: tickerCanonical(siteUrl, content)
 });
@@ -26728,7 +26704,7 @@ var renderStat = (stat, facts) => {
   const caption = stat.caption ? `<p>${renderText(stat.caption, facts)}</p>` : "";
   return `<p class="stat"><strong>${renderText(stat.label, facts)}: ${renderText(stat.value, facts)}</strong></p>${caption}`;
 };
-var renderSection2 = (section, facts) => {
+var renderSection3 = (section, facts) => {
   const paragraphs = section.paragraphs.map((paragraph) => `<p>${renderText(paragraph, facts)}</p>`).join("");
   const bullets = section.bullets && section.bullets.length > 0 ? `<ul>${section.bullets.map((bullet) => `<li>${renderText(bullet, facts)}</li>`).join("")}</ul>` : "";
   const id = escapeHtmlAttribute(section.id);
@@ -26805,7 +26781,7 @@ var buildFaqPageSchema = (content, facts) => ({
     }
   }))
 });
-var buildTickerJsonLd = (content, facts, canonical) => jsonLdScript3({
+var buildTickerJsonLd = (content, facts, canonical) => jsonLdScript({
   "@context": "https://schema.org",
   "@graph": [buildFinancialProductSchema(content, facts, canonical), buildFaqPageSchema(content, facts)]
 });
@@ -26819,12 +26795,12 @@ var renderCategoryBacklinks = (content) => {
 var injectTickerBody = (shell, content, siteUrl) => {
   const facts = resolveTickerEngineFacts(content.ticker);
   const canonical = tickerCanonical(siteUrl, content);
-  const article = "<article>" + renderHero2(content, facts) + content.sections.map((section) => renderSection2(section, facts)).join("") + renderTopHoldings(content.reference.topHoldings) + renderFaqs2(content.faqs, facts) + renderRelatedTickers(content.relatedTickers) + renderCategoryBacklinks(content) + `<p class="disclaimer">${escapeHtmlText(content.disclaimer)}</p></article>` + buildTickerJsonLd(content, facts, canonical);
+  const article = "<article>" + renderHero2(content, facts) + content.sections.map((section) => renderSection3(section, facts)).join("") + renderTopHoldings(content.reference.topHoldings) + renderFaqs2(content.faqs, facts) + renderRelatedTickers(content.relatedTickers) + renderCategoryBacklinks(content) + `<p class="disclaimer">${escapeHtmlText(content.disclaimer)}</p></article>` + buildTickerJsonLd(content, facts, canonical);
   return injectIntoRoot(shell, article);
 };
 var buildHubDescription = () => `${TICKER_CONTENT_LIST.length}\uAC1C \uBC30\uB2F9 ETF\xB7\uC885\uBAA9\uC758 \uBC30\uB2F9\uB960\xB7\uBC30\uB2F9\uC131\uC7A5\uB960\xB7\uC6B4\uC6A9\uBCF4\uC218\xB7\uAD6C\uC131 \uAE30\uC900\uC744 \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4. \uAD00\uC2EC \uC788\uB294 \uD2F0\uCEE4\uB97C \uC120\uD0DD\uD574 \uC790\uC138\uD788 \uD655\uC778\uD574 \uBCF4\uC138\uC694.`;
 var HUB_DISCLAIMER = "\uC774 \uD398\uC774\uC9C0\uB294 \uC815\uBCF4 \uC81C\uACF5\uC744 \uBAA9\uC801\uC73C\uB85C \uD558\uBA70 \uD22C\uC790 \uC790\uBB38\uC774 \uC544\uB2D9\uB2C8\uB2E4. \uBC30\uB2F9\uB960\xB7\uC8FC\uAC00\xB7\uC6B4\uC6A9\uBCF4\uC218\xB7\uC138\uAE08 \uB4F1\uC740 \uC2DC\uC7A5 \uC0C1\uD669\uACFC \uC815\uCC45\uC5D0 \uB530\uB77C \uBCC0\uB3D9\uB420 \uC218 \uC788\uC2B5\uB2C8\uB2E4.";
-var applyHubMeta = (shell, siteUrl) => applyDocumentMeta(shell, { title: `${HUB_META_TITLE} - ${SITE_SUFFIX3}`, description: buildHubDescription(), canonical: `${siteUrl}${HUB_PATH}` });
+var applyHubMeta = (shell, siteUrl) => applyDocumentMeta(shell, { title: withSiteTitleSuffix(HUB_META_TITLE), description: buildHubDescription(), canonical: `${siteUrl}${HUB_PATH}` });
 var renderHubCategorySections = () => Object.keys(TICKER_CATEGORY_LABEL).map((categoryId) => {
   const entries = listTickerContentByCategory(categoryId);
   if (entries.length === 0) return "";
@@ -26835,7 +26811,7 @@ var renderHubCategorySections = () => Object.keys(TICKER_CATEGORY_LABEL).map((ca
   }).join("");
   return `<section><h2>${escapeHtmlText(TICKER_CATEGORY_LABEL[categoryId])}</h2><ul>${items}</ul></section>`;
 }).join("");
-var buildHubJsonLd = (siteUrl) => jsonLdScript3({
+var buildHubJsonLd = (siteUrl) => jsonLdScript({
   "@context": "https://schema.org",
   "@type": "ItemList",
   itemListElement: TICKER_CONTENT_LIST.map((entry, index) => ({
@@ -26871,7 +26847,7 @@ var renderSiblingCategories = (currentId) => {
   ).join("");
   return `<nav class="related"><h2>\uB2E4\uB978 \uBB36\uC74C</h2><ul>${items}</ul><p><a href="${escapeHtmlAttribute(HUB_PATH)}">${escapeHtmlText("\uC804\uCCB4 \uBAA9\uB85D \uBCF4\uAE30")}</a></p></nav>`;
 };
-var buildCategoryJsonLd = (categoryId, siteUrl) => jsonLdScript3([
+var buildCategoryJsonLd = (categoryId, siteUrl) => jsonLdScript([
   {
     "@context": "https://schema.org",
     "@type": "ItemList",
@@ -26905,43 +26881,31 @@ var injectCategoryBody = (shell, categoryId, siteUrl) => {
 async function categoryHandler(request) {
   const { origin, searchParams } = new URL(request.url);
   const idParam = (searchParams.get("id") ?? "").trim().toLowerCase();
-  let shell;
-  try {
-    const response = await fetch(new URL("/index.html", origin));
-    if (!response.ok) return redirectToRoot3(origin);
-    shell = await response.text();
-  } catch {
-    return redirectToRoot3(origin);
-  }
-  if (!isTickerCategoryId(idParam)) return htmlResponse3(shell, 200, CACHE_NO_STORE3);
+  const shell = await fetchShellHtml(origin);
+  if (shell === null) return redirectToRoot(origin);
+  if (!isTickerCategoryId(idParam)) return htmlResponse(shell, 200, CACHE_NO_STORE);
   const siteUrl = resolveSiteUrl(request.url);
   const meta = TICKER_CATEGORY_META[idParam];
   const withMeta = applyDocumentMeta(shell, {
-    title: `${meta.metaTitle} - ${SITE_SUFFIX3}`,
+    title: withSiteTitleSuffix(meta.metaTitle),
     description: meta.description,
     canonical: categoryCanonical(siteUrl, idParam)
   });
-  return htmlResponse3(injectCategoryBody(withMeta, idParam, siteUrl), 200, CACHE_TICKER);
+  return htmlResponse(injectCategoryBody(withMeta, idParam, siteUrl), 200, CACHE_STATIC_CONTENT);
 }
 async function handler3(request) {
   const { origin, searchParams } = new URL(request.url);
   const nameParam = (searchParams.get("name") ?? "").trim().toLowerCase();
-  let shell;
-  try {
-    const response = await fetch(new URL("/index.html", origin));
-    if (!response.ok) return redirectToRoot3(origin);
-    shell = await response.text();
-  } catch {
-    return redirectToRoot3(origin);
-  }
-  if (!nameParam) return htmlResponse3(shell, 200, CACHE_NO_STORE3);
+  const shell = await fetchShellHtml(origin);
+  if (shell === null) return redirectToRoot(origin);
+  if (!nameParam) return htmlResponse(shell, 200, CACHE_NO_STORE);
   const siteUrl = resolveSiteUrl(request.url);
   if (nameParam === HUB_SLUG) {
-    return htmlResponse3(injectHubBody2(applyHubMeta(shell, siteUrl), siteUrl), 200, CACHE_TICKER);
+    return htmlResponse(injectHubBody2(applyHubMeta(shell, siteUrl), siteUrl), 200, CACHE_STATIC_CONTENT);
   }
   const content = findTickerContentBySlug(nameParam);
-  if (!content) return htmlResponse3(shell, 200, CACHE_NO_STORE3);
-  return htmlResponse3(injectTickerBody(applyTickerMeta(shell, content, siteUrl), content, siteUrl), 200, CACHE_TICKER);
+  if (!content) return htmlResponse(shell, 200, CACHE_NO_STORE);
+  return htmlResponse(injectTickerBody(applyTickerMeta(shell, content, siteUrl), content, siteUrl), 200, CACHE_STATIC_CONTENT);
 }
 var TickerHtml_default = toNodeHandler(handler3);
 
@@ -26957,10 +26921,7 @@ var isSurface = (value) => value !== null && value in ROUTES;
 async function handler4(request) {
   const surface = new URL(request.url).searchParams.get("surface");
   if (isSurface(surface)) return ROUTES[surface](request);
-  return new Response(null, {
-    status: 302,
-    headers: { Location: new URL("/", request.url).toString(), "cache-control": "no-store" }
-  });
+  return redirectToRoot(new URL(request.url).origin);
 }
 var SeoHtml_default = toNodeHandler(handler4);
 export {
