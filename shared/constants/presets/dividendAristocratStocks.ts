@@ -12,7 +12,86 @@
  * 오분류하는 것을 확인해(2026-08-02 실측 원자료) `'semiannual'`로 수기 보정했다. `dividendYield`는
  * "오늘" 기준 TTM 창이라 이 버그의 영향을 받지 않는다.
  */
+/**
+ * 2026-08-14 확충분: `expectedTotalReturn` 을 **실측에서 유도했다** — 앞선 확충분과 규칙이 다르다.
+ *
+ *     expectedTotalReturn = 실측 TTM 배당률 + 실측 5년 배당 CAGR
+ *
+ * 갱신 파이프라인이 `implied etr` 이라는 이름으로 계산해 주는 값이다(`scripts/tickerRefresh` 의
+ * `CagrReview`). 큐레이터가 미래 수익률을 새로 가정하는 대신 **시장의 자기 배당 이력이 함의하는
+ * 총수익**을 그대로 쓴 것이라, 지어낸 숫자가 들어가지 않는다.
+ *
+ * 🔴 **이 규칙은 여기까지만 유효하다.** 같은 날 유명 대형주 85종에 그대로 적용해 봤다가 접었다 —
+ *    5년 배당 CAGR 은 **스핀오프·배당 재개·삭감·특별배당에서 구조적으로 깨진다**. 실측 결과
+ *    GE 49%, ODFL 30%, 인텔 14%(실제로는 삭감한 해에도 양수), 도미니언 -1%, PPL -5% 가 나왔다.
+ *    음수 ETR 은 **손실이 확정된 프리셋**이 된다. 이 16종은 값을 하나씩 눈으로 확인해 넣은 것이고,
+ *    규모를 늘리려면 다른 규칙이 필요하다(회고: 종목당 검토 없이 이 규칙을 확대하지 마라).
+ * ⚠ TJX 는 뺐다 — 배당 시계열이 끊겨 5년 CAGR 이 산출되지 않아 규칙을 적용할 근거가 없다.
+ */
 export const DIVIDEND_ARISTOCRAT_STOCKS = {
+  NOC: {
+    ticker: 'NOC',
+    name: 'Northrop Grumman',
+    initialPrice: 582.67,
+    dividendYield: 1.61,
+    dividendGrowth: 9.69,
+    expectedTotalReturn: 11.3,
+    frequency: 'quarterly' as const
+  },
+  LHX: {
+    ticker: 'LHX',
+    name: 'L3Harris Technologies',
+    initialPrice: 291.0,
+    dividendYield: 1.68,
+    dividendGrowth: 7.12,
+    expectedTotalReturn: 8.8,
+    frequency: 'quarterly' as const
+  },
+  CMI: {
+    ticker: 'CMI',
+    name: 'Cummins',
+    initialPrice: 637.84,
+    dividendYield: 1.25,
+    dividendGrowth: 7.65,
+    expectedTotalReturn: 8.9,
+    frequency: 'quarterly' as const
+  },
+  RSG: {
+    ticker: 'RSG',
+    name: 'Republic Services',
+    initialPrice: 215.17,
+    dividendYield: 1.16,
+    dividendGrowth: 7.34,
+    expectedTotalReturn: 8.5,
+    frequency: 'quarterly' as const
+  },
+  FAST: {
+    ticker: 'FAST',
+    name: 'Fastenal',
+    initialPrice: 50.85,
+    dividendYield: 1.89,
+    dividendGrowth: 4.61,
+    expectedTotalReturn: 6.5,
+    frequency: 'quarterly' as const
+  },
+  TRV: {
+    ticker: 'TRV',
+    name: 'Travelers Companies',
+    initialPrice: 370.23,
+    dividendYield: 1.23,
+    dividendGrowth: 5.27,
+    expectedTotalReturn: 6.5,
+    frequency: 'quarterly' as const
+  },
+  ALB: {
+    ticker: 'ALB',
+    name: 'Albemarle',
+    initialPrice: 136.56,
+    dividendYield: 1.19,
+    dividendGrowth: 1.01,
+    expectedTotalReturn: 2.2,
+    frequency: 'quarterly' as const
+  },
   APD: {
     ticker: 'APD',
     name: 'Air Products and Chemicals, Inc.',

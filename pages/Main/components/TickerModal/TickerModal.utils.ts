@@ -107,7 +107,14 @@ export const filterPresetKeys = ({
   return presetKeys.filter((presetKey) => {
     const ticker = presetTickers[presetKey].ticker;
     const displayName = getTickerDisplayName(presetTickers[presetKey].ticker, presetTickers[presetKey].name);
-    const koreanName = koreanNameByTicker[presetKey];
+    /*
+     * 🔴 한글명은 **없을 수 있다.** 타입은 `Record<PresetTickerKey, string>` 이라 항상 있는 것처럼
+     * 보이지만, 그 맵은 손으로 채우는 목록이라 프리셋을 추가하고 한글명을 빠뜨리면 런타임에
+     * `undefined` 가 온다 — 그대로 `toUpperCase()` 를 부르면 **프리셋 검색 전체가 죽는다.**
+     * 잘 알려지지 않은 종목까지 한글 음차를 지어내는 것보다 없는 채로 두는 편이 낫고, 그러려면
+     * 여기가 견뎌야 한다.
+     */
+    const koreanName = koreanNameByTicker[presetKey] ?? '';
     return matches(ticker) || matches(displayName) || matches(koreanName);
   });
 };

@@ -7,7 +7,7 @@ import {
   type CalendarTickerEntry
 } from '@/pages/DividendCalendar/utils';
 import { MARKET_DATA } from '@/shared/constants/marketData';
-import { DIVIDEND_UNIVERSE } from '@/shared/constants/presets';
+import { DIVIDEND_UNIVERSE, PRESET_TICKER_KOREAN_NAME_BY_TICKER } from '@/shared/constants/presets';
 
 const entry = (ticker: string, months: number[] | null, name = `${ticker} 이름`): CalendarTickerEntry =>
   months === null
@@ -96,11 +96,27 @@ describe('filterCalendarUniverse', () => {
     expect(filterCalendarUniverse(entries, 'jep').map((item) => item.ticker)).toEqual(['JEPI', 'JEPQ']);
   });
 
+  /**
+   * 🔴 **결과 목록을 통째로 단정하지 않는다.** 종전에는 `toEqual(['FRT','O'])` 였는데, 한글명에
+   * '리얼티'가 든 프리셋이 하나 늘 때마다 깨졌다 — 2026-08-02 확충(FRT)에서 한 번, 2026-08-14
+   * 확충(ADC·DLR·KIM)에서 또 한 번. 그건 회귀가 아니라 **부분일치가 맞게 동작한 결과**다.
+   *
+   * 그래서 여기서 잠그는 것은 기능 자체다: ①한글명 부분일치가 걸린다 ②걸린 것은 전부 그 낱말을
+   * 품는다 ③관계없는 종목은 안 걸린다. 이러면 유니버스가 커져도 계약이 흔들리지 않는다.
+   */
   it('한글명으로도 찾는다', () => {
-    // 2026-08-02 유니버스 확충으로 FRT(페더럴 리얼티 인베스트먼트 트러스트)가 추가되면서
-    // '리얼티' 부분일치가 O(리얼티 인컴)와 함께 FRT도 정당하게 잡는다 — 부분일치 기능이 맞게
-    // 동작한 결과이지 회귀가 아니다.
-    expect(filterCalendarUniverse(entries, '리얼티').map((item) => item.ticker)).toEqual(['FRT', 'O']);
+    const KOREAN_NAME_BY_TICKER: Record<string, string> = PRESET_TICKER_KOREAN_NAME_BY_TICKER;
+    const hits = filterCalendarUniverse(entries, '리얼티');
+    const tickers = hits.map((item) => item.ticker);
+
+    expect(tickers).toContain('O'); // 리얼티 인컴
+    expect(tickers.length).toBeGreaterThan(0);
+    // 걸린 항목은 전부 한글명에 '리얼티'를 품는다 — 엉뚱한 종목이 섞이면 여기서 잡힌다.
+    for (const item of hits) {
+      expect(KOREAN_NAME_BY_TICKER[item.ticker] ?? '').toContain('리얼티');
+    }
+    // 관계없는 종목은 안 걸린다.
+    expect(tickers).not.toContain('SCHD');
   });
 
   it('영문명 부분일치도 지원한다', () => {
