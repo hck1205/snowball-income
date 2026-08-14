@@ -17,7 +17,20 @@ import {
   stripLandingShellBody
 } from '@/shared/lib/og';
 import type { PublicPostKind, PublicPostMeta } from '@/shared/lib/og';
-import { toNodeHandler } from '@/shared/lib/server';
+/**
+ * 🔴 **정적 콘텐츠 캐시를 쓰지 않는다.** 글 제목·요약 수정이 검색·SNS 미리보기에 **5분 내** 반영돼야
+ * 한다 — 배포로만 바뀌는 티커·가이드와 신선도 요구가 다르다.
+ */
+const CACHE_POST = 'public, max-age=0, s-maxage=300, stale-while-revalidate=604800';
+
+import { withSiteTitleSuffix } from '@/shared/constants/site';
+import {
+  CACHE_NO_STORE,
+  fetchShellHtml,
+  htmlResponse,
+  redirectToRoot,
+  toNodeHandler
+} from '@/shared/lib/server';
 import { sanitizePostBody } from './serverSanitize';
 
 /**
@@ -65,7 +78,6 @@ import { sanitizePostBody } from './serverSanitize';
  *   - `stale-while-revalidate=604800`(7일): 5분이 지나도 백그라운드 갱신 동안 캐시본을 즉시 내보낸다.
  *     크롤러가 기다리지 않고, DB 장애 중에도 미리보기가 깨지지 않는다.
  */
-const CACHE_POST = 'public, max-age=0, s-maxage=300, stale-while-revalidate=604800';
 
 /**
  * 무치환 셸 / 404 — **캐시하지 않는다**.
@@ -73,10 +85,7 @@ const CACHE_POST = 'public, max-age=0, s-maxage=300, stale-while-revalidate=6048
  *     공개→비공개로 되돌린 글의 HTML 이 엣지에 남아 **URL 을 아는 누구에게나** 계속 노출된다.
  *   - 일시적 조회 실패를 캐시하면 장애가 엣지에 박제된다.
  */
-const CACHE_NO_STORE = 'no-store';
 
-/** 상세 페이지 메타에 붙일 사이트 접미사 — index.html 의 기본 title 과 같은 브랜드 표기. */
-const SITE_SUFFIX = 'Hungry Hippo';
 
 /** description 이 없는 글(첨부만 있는 포트폴리오 등)의 기본 설명. 종류별로 문맥이 다르다. */
 const FALLBACK_DESCRIPTION: Record<PublicPostKind, string> = {
@@ -84,21 +93,7 @@ const FALLBACK_DESCRIPTION: Record<PublicPostKind, string> = {
   board: 'Hungry Hippo 자유게시판에 올라온 글입니다.'
 };
 
-const htmlResponse = (html: string, status: number, cache: string): Response =>
-  new Response(html, {
-    status,
-    headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': cache }
-  });
 
-/**
- * 셸 자체를 못 읽는 극단(자기 도메인 정적 파일 장애)의 폴백. share-html.ts 와 동일하게 루트로 302 한다.
- * `/` 는 이 함수로 rewrite 되지 않으므로 루프가 없다.
- */
-const redirectToRoot = (origin: string): Response =>
-  new Response(null, {
-    status: 302,
-    headers: { Location: new URL('/', origin).toString(), 'cache-control': CACHE_NO_STORE }
-  });
 
 /**
  * 글 메타를 셸에 박는다. 바꾸는 것은 **제목·설명·URL 계열뿐**이고 og:type/og:locale/og:site_name/
@@ -110,7 +105,7 @@ const redirectToRoot = (origin: string): Response =>
  * 루트로 고정해 두면 색인이 전부 루트로 접힌다(공유 링크 `?s=` 가 canonical 을 루트로 두는 것과 정반대 의도).
  */
 const applyPostMeta = (shell: string, post: PublicPostMeta, siteUrl: string): string => {
-  const title = `${post.title} - ${SITE_SUFFIX}`;
+  const title = withSiteTitleSuffix(post.title);
   const description = post.description ?? FALLBACK_DESCRIPTION[post.kind];
   const canonical = `${siteUrl}/community/${post.kind}/${post.id}`;
 
@@ -175,14 +170,8 @@ export async function handler(request: Request): Promise<Response> {
   const id = searchParams.get('id') ?? '';
 
   // 1) index.html 셸. 이 경로는 rewrite 대상이 아니라 재진입이 없다.
-  let shell: string;
-  try {
-    const response = await fetch(new URL('/index.html', origin));
-    if (!response.ok) return redirectToRoot(origin);
-    shell = await response.text();
-  } catch {
-    return redirectToRoot(origin);
-  }
+  const shell = await fetchShellHtml(origin);
+  if (shell === null) return redirectToRoot(origin);
 
   // 2) kind 가 아니면(방어) 무치환 셸 200. 앱이 부팅해 라우터가 알아서 처리한다.
   if (!isPublicPostKind(kindParam)) return htmlResponse(shell, 200, CACHE_NO_STORE);

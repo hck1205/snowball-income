@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 import { ROUTE_SHELLS, ROUTE_SHELL_EXCLUSIONS } from '@/tools/seo/routeShells';
+import { withSiteTitleSuffix } from '@/shared/constants/site';
 import { PRIVACY_DOCUMENT, TERMS_DOCUMENT } from '@/pages/Legal/copy';
 
 /**
@@ -126,19 +127,27 @@ describe('빌드 배선', () => {
     expect(viteConfig).toMatch(/plugins:\s*\[[^\]]*routeShellsPlugin\(siteUrl\)/);
   });
 
-  it('접미 문자열이 런타임 훅과 같다', () => {
+  /*
+   * 🔴 2026-08-14: 두 곳이 각자 `const SITE_SUFFIX = 'Hungry Hippo'` 를 들고 있던 것을
+   *    `shared/constants/site` 하나로 모았다(사본은 일곱 곳이었다). 그래서 이 가드는 **문자열이
+   *    서로 같은지**를 볼 필요가 없어졌다 — 같은 함수를 부르는지만 보면 구조적으로 보장된다.
+   *    (종전 테스트는 사라진 `SITE_SUFFIX` 리터럴을 찾고 있어서 리팩터와 함께 깨져 있었다.)
+   */
+  it('런타임 훅과 빌드 배선이 같은 정본 함수로 접미를 붙인다', () => {
     const hook = readRepoFile('../../pages/Ticker/hooks/useDocumentMeta.ts');
-    const hookSuffix = /const SITE_SUFFIX = '([^']+)'/.exec(hook)?.[1];
-    const buildSuffix = /const SITE_SUFFIX = '([^']+)'/.exec(viteConfig)?.[1];
 
-    expect(hookSuffix).toBeDefined();
-    expect(buildSuffix).toBe(hookSuffix);
+    expect(hook).toContain('withSiteTitleSuffix(title)');
+    expect(viteConfig).toContain('withSiteTitleSuffix(route.title)');
+    /* 정본을 직접 import 하는지까지 본다 — 같은 이름의 지역 함수를 새로 만들면 다시 갈린다. */
+    expect(hook).toMatch(/import \{ withSiteTitleSuffix \} from '@\/shared\/constants\/site'/);
+    expect(viteConfig).toMatch(/import \{ withSiteTitleSuffix \} from '\.\/shared\/constants\/site'/);
   });
 
-  it('두 곳 모두 `제목 - 사이트명` 형태로 조립한다', () => {
-    const hook = readRepoFile('../../pages/Ticker/hooks/useDocumentMeta.ts');
-    expect(hook).toContain('`${title} - ${SITE_SUFFIX}`');
-    expect(viteConfig).toContain('`${route.title} - ${SITE_SUFFIX}`');
+  it('정본 함수가 만드는 형태는 `제목 - 사이트명` 이다', () => {
+    expect(withSiteTitleSuffix('배당 캘린더')).toBe('배당 캘린더 - Hungry Hippo');
+    /* 🔴 콘텐츠가 접미를 직접 적으면 두 번 붙는다 — 그 실수를 이 함수가 막아 주지는 않는다.
+       적발은 각 화면 테스트의 몫이다(예: test/router/sitemapRoute.test.tsx). */
+    expect(withSiteTitleSuffix('사이트맵 - Hungry Hippo')).toBe('사이트맵 - Hungry Hippo - Hungry Hippo');
   });
 });
 

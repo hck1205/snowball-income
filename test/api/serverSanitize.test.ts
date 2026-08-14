@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { sanitizePostBody } from '@/server/handlers/PostHtml/serverSanitize';
 import { sanitizeRichHtml } from '@/shared/lib/richtext';
+import { renderSection } from '@/shared/lib/server';
 
 /**
  * 서버 본문 정화(`sanitizePostBody`, jsdom + DOMPurify) — 상세 ISR 이 `#root` 에 주입하기 전에 반드시
@@ -117,5 +118,29 @@ describe('클라이언트 ↔ 서버 정화 파리티', () => {
     for (const { input } of XSS_PAYLOADS) {
       expect(sanitizePostBody(input)).toBe(sanitizeRichHtml(input));
     }
+  });
+});
+
+/**
+ * 크롤러 HTML 공통 계층(`@/shared/lib/server` 의 `renderSection`)의 **속성 경계**.
+ *
+ * 🔴 지금 호출부가 넘기는 `id` 는 전부 하드코딩 리터럴이지만, 이 함수는 공개 헬퍼라 언젠가
+ * 콘텐츠에서 온 슬러그가 들어온다. 그때 `id="..."` 밖으로 빠져나가면 그 페이지는 크롤러에게만
+ * 망가진 채로 나가고 **화면 확인으로는 절대 드러나지 않는다** — 그래서 미리 잠근다.
+ */
+describe('renderSection — 속성 경계', () => {
+  it('id 를 이스케이프해 따옴표를 닫고 나오지 못하게 한다', () => {
+    const html = renderSection('x" onload="alert(1)', '제목', ['본문']);
+
+    expect(html).not.toContain('onload="alert(1)"');
+    expect(html).toContain('&quot;');
+  });
+
+  it('제목과 문단도 텍스트로만 나간다', () => {
+    const html = renderSection('safe', '<script>alert(1)</script>', ['<img src=x onerror=alert(1)>']);
+
+    expect(html).not.toContain('<script');
+    expect(html).not.toContain('<img');
+    expect(html).toContain('&lt;script&gt;');
   });
 });

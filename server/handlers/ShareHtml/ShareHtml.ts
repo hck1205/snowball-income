@@ -8,7 +8,7 @@
 */
 import { DB_SHARE_KEY_PATTERN, fetchSharedSnapshotByKey, replaceMetaContent } from '@/shared/lib/og';
 import { buildOgShareText, summarizeSharedScenarioForOg, type OgCardModel } from '@/pages/Main/utils/ogCard';
-import { toNodeHandler } from '@/shared/lib/server';
+import { CACHE_NO_STORE, CACHE_STATIC_CONTENT, fetchShellHtml, htmlResponse, toNodeHandler } from '@/shared/lib/server';
 import { SIMULATOR_PATH } from '@/shared/constants/routes';
 
 /**
@@ -40,16 +40,16 @@ import { SIMULATOR_PATH } from '@/shared/constants/routes';
  * - og:url 만 실제 `?s=<key>` URL 을, og:image 만 `/api/og?s=<key>` 를 가리킨다(canonical 은 클린 루트 유지).
  */
 
-/** 시나리오 메타를 박은 성공 HTML — 실사용자 진입점이라 immutable 금지(엣지 캐시만). middleware `?share=` 헤더 재사용. */
-const CACHE_SCENARIO = 'public, max-age=0, s-maxage=86400, stale-while-revalidate=604800';
-/** 무치환 셸(조회 실패/부재) — 장애를 엣지에 박제하지 않도록 캐시하지 않는다. */
-const CACHE_FALLBACK = 'no-store';
-
-const htmlResponse = (html: string, cache: string): Response =>
-  new Response(html, {
-    status: 200,
-    headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': cache }
-  });
+/*
+ * 🔴 캐시 정책·응답 조립·셸 fetch 는 `@/shared/lib/server` 의 공통 계층을 쓴다(2026-08-14 통합).
+ *    종전에는 이 파일이 `CACHE_SCENARIO`·`CACHE_FALLBACK`·`htmlResponse`·셸 fetch 를 **글자까지 같은
+ *    사본**으로 들고 있었다 — 크롤러 HTML 핸들러 여섯 곳이 같은 상태였고, 그 복사본이 갈리는 것이
+ *    이 레포에서 실제로 사고를 만든 경로다(`crawlerHtml.ts` 주석).
+ *    이름만 달랐다: `CACHE_SCENARIO` = `CACHE_STATIC_CONTENT`, `CACHE_FALLBACK` = `CACHE_NO_STORE`.
+ *
+ * ⚠ 다만 **폴백 목적지는 여기만 다르다** — 루트가 아니라 `/simulator` 다. 그래서 `redirectToRoot` 를
+ *   쓰지 않고 아래 `redirectToSimulator` 를 남긴다(사유는 그 함수 주석).
+ */
 
 /**
  * 시나리오 셸을 못 읽는 극단 폴백(5xx 금지) — **시뮬레이터로** 302.
@@ -61,7 +61,7 @@ const htmlResponse = (html: string, cache: string): Response =>
 const redirectToSimulator = (origin: string): Response =>
   new Response(null, {
     status: 302,
-    headers: { Location: new URL(SIMULATOR_PATH, origin).toString(), 'cache-control': CACHE_FALLBACK }
+    headers: { Location: new URL(SIMULATOR_PATH, origin).toString(), 'cache-control': CACHE_NO_STORE }
   });
 
 /** OG/트위터 메타 content 만 치환한다(불변식 태그는 손대지 않는다). */
@@ -94,26 +94,20 @@ export async function handler(request: Request): Promise<Response> {
   const key = searchParams.get('s');
 
   // 1) index.html 셸을 가져온다. matcher 에 안 걸리는 경로라 middleware 재진입이 없다.
-  let shell: string;
-  try {
-    const response = await fetch(new URL('/index.html', origin));
-    if (!response.ok) return redirectToSimulator(origin);
-    shell = await response.text();
-  } catch {
-    return redirectToSimulator(origin);
-  }
+  const shell = await fetchShellHtml(origin);
+  if (shell === null) return redirectToSimulator(origin);
 
   // 2) key 형식이 아니면(방어) 무치환 셸 → 기본 카드. 앱은 그대로 부팅.
-  if (!key || !DB_SHARE_KEY_PATTERN.test(key)) return htmlResponse(shell, CACHE_FALLBACK);
+  if (!key || !DB_SHARE_KEY_PATTERN.test(key)) return htmlResponse(shell, 200, CACHE_NO_STORE);
 
   // 3) 조회 + 요약. 어떤 실패도(부재/만료/미설정/네트워크) 무치환 셸로 흡수(5xx 금지).
   try {
     const envelope = await fetchSharedSnapshotByKey(key);
     const model = summarizeSharedScenarioForOg(envelope?.scenario);
-    if (!model) return htmlResponse(shell, CACHE_FALLBACK);
-    return htmlResponse(applyShareMeta(shell, key, origin, model), CACHE_SCENARIO);
+    if (!model) return htmlResponse(shell, 200, CACHE_NO_STORE);
+    return htmlResponse(applyShareMeta(shell, key, origin, model), 200, CACHE_STATIC_CONTENT);
   } catch {
-    return htmlResponse(shell, CACHE_FALLBACK);
+    return htmlResponse(shell, 200, CACHE_NO_STORE);
   }
 }
 

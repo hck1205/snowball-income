@@ -1,7 +1,7 @@
 import { createElement } from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { SIMULATOR_COPY } from '@/shared/constants';
+import { ALLOCATION_COPY, SIMULATOR_COPY } from '@/shared/constants';
 import type { TickerProfile } from '@/shared/types/snowball';
 import type { PortfolioCompositionProps } from './PortfolioComposition.types';
 import PortfolioComposition from './PortfolioComposition';
@@ -290,5 +290,39 @@ describe('PortfolioComposition — 슬라이더 트랙 색 = 도넛 조각 색',
     for (const ticker of ['AAA', 'BBB']) {
       expect(sliderFor(ticker).closest('li')).toHaveTextContent(ticker);
     }
+  });
+  /* ── 파이 중앙 배당 표시 토글 (2026-08-14) ─────────────────────────────────── */
+
+  /**
+   * 🔴 기본값은 **최근 실지급**이다(사용자 요청). 적립식에서 월평균(연÷12)은 연말 시점의 수령액을
+   * 크게 과소평가한다 — JEPI 100% · 초기 2,500만 · 월 500만 · 1년이면 평균 30.5만 vs 실지급 47.1만.
+   * "1년 뒤 매달 얼마 받나"에 답하는 값이 기본이어야 한다.
+   */
+  it('배당 표시 토글이 카드 헤더에 있고 기본값은 최근 실지급이다', () => {
+    renderComposition([makeProfile('a', 'AAA')]);
+
+    const toggle = screen.getByRole('checkbox', { name: ALLOCATION_COPY.dividendCenterToggleLabel });
+    expect(toggle).toBeChecked();
+  });
+
+  it('토글을 끄면 월평균으로, 다시 켜면 최근 실지급으로 돌아온다', async () => {
+    const user = userEvent.setup();
+    renderComposition([makeProfile('a', 'AAA')]);
+
+    const toggle = screen.getByRole('checkbox', { name: ALLOCATION_COPY.dividendCenterToggleLabel });
+
+    await user.click(toggle);
+    expect(toggle).not.toBeChecked();
+
+    await user.click(toggle);
+    expect(toggle).toBeChecked();
+  });
+
+  /** 잠금 스위치와 **함께** 선다 — 하나를 넣으면서 다른 하나를 밀어내지 않았는지 본다. */
+  it('배당 표시 토글이 생겨도 비율 조절 잠금 토글은 그대로 있다', () => {
+    renderComposition([makeProfile('a', 'AAA'), makeProfile('b', 'BBB')]);
+
+    expect(screen.getByRole('checkbox', { name: ALLOCATION_COPY.lockToggleLabel })).toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: ALLOCATION_COPY.dividendCenterToggleLabel })).toBeInTheDocument();
   });
 });

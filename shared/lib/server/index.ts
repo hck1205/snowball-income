@@ -8,3 +8,4 @@
 export * from './nodeHandler';
 export type * from './nodeHandler.types';
 export * from './authLog';
+export * from './crawlerHtml';

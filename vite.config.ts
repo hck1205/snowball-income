@@ -10,6 +10,7 @@ import type { SimulationOutput } from './shared/types';
 import { API_BUNDLES } from './tools/apiBundle/manifest.mjs';
 import { escapeHtmlText, replaceLinkHref, replaceMetaContent, replaceTitleTag } from './shared/lib/og/metaHtml';
 import { stripLandingShellBody } from './shared/lib/og/shellBody';
+import { withSiteTitleSuffix } from './shared/constants/site';
 
 /**
  * 배포 도메인의 단일 진실 공급원(single source of truth).
@@ -602,15 +603,13 @@ const loadRouteShells = (): Promise<RouteShell[]> => {
   return routeShellsPromise;
 };
 
-/** 문서 제목 접미. `pages/Ticker/hooks/useDocumentMeta.ts`·`server/handlers/*` 와 같은 문자열이다. */
-const SITE_SUFFIX = 'Hungry Hippo';
 
 const buildRouteShell = (indexHtml: string, siteUrl: string, route: RouteShell): string => {
   const canonical = `${siteUrl}${route.path}`;
   const { description } = route;
   // 🔴 접미는 `useDocumentMeta` 가 런타임에 붙이는 것과 **같은 형태**여야 한다. 다르면 JS 실행 전후로
   //    탭 제목이 바뀌고, 크롤러가 읽는 제목과 GA4 `page_title` 이 갈린다(가드: test/seo/routeShells).
-  const title = `${route.title} - ${SITE_SUFFIX}`;
+  const title = withSiteTitleSuffix(route.title);
 
   let html = stripLandingShellBody(indexHtml);
   html = replaceTitleTag(html, title);

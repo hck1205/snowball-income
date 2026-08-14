@@ -1,4 +1,4 @@
-import { toNodeHandler } from '@/shared/lib/server';
+import { redirectToRoot, toNodeHandler } from '@/shared/lib/server';
 import { handler as dividendListHandler } from '../DividendListHtml/DividendListHtml';
 import { handler as guideHandler } from '../GuideHtml/GuideHtml';
 import { categoryHandler as tickerCategoryHandler, handler as tickerHandler } from '../TickerHtml/TickerHtml';
@@ -51,12 +51,10 @@ export async function handler(request: Request): Promise<Response> {
 
   /*
    * 모르는 지면 — 루트로 보낸다(각 핸들러가 모르는 슬러그에 하는 것과 같은 처방).
-   * 이 경로에 닿는 것은 rewrite 와 이 파일이 어긋났다는 뜻이라 캐시하지 않는다.
+   * 이 경로에 닿는 것은 rewrite 와 이 파일이 어긋났다는 뜻이라 캐시하지 않는다(`redirectToRoot` 가
+   * `CACHE_NO_STORE` 를 건다).
    */
-  return new Response(null, {
-    status: 302,
-    headers: { Location: new URL('/', request.url).toString(), 'cache-control': 'no-store' }
-  });
+  return redirectToRoot(new URL(request.url).origin);
 }
 
 /** ⚠ Vercel 이 실제로 호출하는 진입점. 어댑터를 벗기면 무응답으로 되돌아간다. */

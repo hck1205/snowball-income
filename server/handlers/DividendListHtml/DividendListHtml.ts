@@ -13,7 +13,17 @@ import {
   injectIntoRoot,
   applyDocumentMeta
 } from '@/shared/lib/og';
-import { toNodeHandler } from '@/shared/lib/server';
+import { withSiteTitleSuffix } from '@/shared/constants/site';
+import {
+  CACHE_NO_STORE,
+  CACHE_STATIC_CONTENT,
+  fetchShellHtml,
+  htmlResponse,
+  jsonLdScript,
+  redirectToRoot,
+  renderSection,
+  toNodeHandler
+} from '@/shared/lib/server';
 import {
   DIVIDEND_LIST_ALL,
   DIVIDEND_LIST_HUB_PATH,
@@ -58,35 +68,16 @@ import { SIMULATOR_PATH } from '@/shared/constants/routes';
  * 정적 콘텐츠 성공 캐시 — 24시간 신선도 / 7일 stale 허용. `TickerHtml` 과 같은 값·같은 근거다.
  * 목록은 코드(커밋된 JSON)에만 있으므로 배포가 나가면 함수 코드 자체가 교체된다.
  */
-const CACHE_LIST = 'public, max-age=0, s-maxage=86400, stale-while-revalidate=604800';
-const CACHE_NO_STORE = 'no-store';
 
-/** 상세 페이지 메타에 붙일 사이트 접미사 — `TickerHtml`·`PostHtml` 과 같은 관례. */
-const SITE_SUFFIX = 'Hungry Hippo';
 
 /** 허브를 가리키는 예약값. 목록 id(`kings`…)와 충돌하지 않는다. */
 const HUB_PARAM = 'hub';
 
 const copy = DIVIDEND_LIST_COPY;
 
-const htmlResponse = (html: string, status: number, cache: string): Response =>
-  new Response(html, {
-    status,
-    headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': cache }
-  });
 
-/** 셸 자체를 못 읽는 극단(자기 도메인 정적 파일 장애)의 폴백. 다른 핸들러와 동일하게 루트로 302. */
-const redirectToRoot = (origin: string): Response =>
-  new Response(null, {
-    status: 302,
-    headers: { Location: new URL('/', origin).toString(), 'cache-control': CACHE_NO_STORE }
-  });
 
-/** `</script>` 조기 종료를 막는 JSON-LD 안전 직렬화. `<` 를 전부 유니코드 이스케이프한다(표준 기법). */
-const escapeJsonForScript = (value: unknown): string => JSON.stringify(value).replace(/</g, '\\u003c');
 
-const jsonLdScript = (graph: unknown): string =>
-  `<script type="application/ld+json">${escapeJsonForScript(graph)}</script>`;
 
 
 /**
@@ -227,11 +218,8 @@ const injectListBody = (shell: string, list: DividendList, siteUrl: string): str
   const article =
     '<article>' +
     renderHero(list) +
-    `<section id="definition"><h2>${escapeHtmlText(copy.page.definitionHeading)}</h2>` +
-    `<p>${escapeHtmlText(listCopy.definition)}</p>` +
-    `<p>${escapeHtmlText(listCopy.caution)}</p></section>` +
-    `<section id="streak"><h2>${escapeHtmlText(copy.page.streakHeading)}</h2>` +
-    `<p>${escapeHtmlText(copy.page.streakBody)}</p></section>` +
+    renderSection('definition', copy.page.definitionHeading, [listCopy.definition, listCopy.caution]) +
+    renderSection('streak', copy.page.streakHeading, [copy.page.streakBody]) +
     renderMembersTable(list) +
     renderSources(list) +
     renderRelated(list.id) +
@@ -295,21 +283,15 @@ export async function handler(request: Request): Promise<Response> {
   const listParam = (searchParams.get('list') ?? '').trim().toLowerCase();
 
   // 1) index.html 셸. 이 경로는 rewrite 대상이 아니라 재진입이 없다(다른 핸들러와 동일 전제).
-  let shell: string;
-  try {
-    const response = await fetch(new URL('/index.html', origin));
-    if (!response.ok) return redirectToRoot(origin);
-    shell = await response.text();
-  } catch {
-    return redirectToRoot(origin);
-  }
+  const shell = await fetchShellHtml(origin);
+  if (shell === null) return redirectToRoot(origin);
 
   const siteUrl = resolveSiteUrl(request.url);
 
   // 2) 허브 — 목록 조회보다 **먼저** 분기한다(`hub` 는 목록 id 가 될 수 없는 예약어다).
   if (listParam === HUB_PARAM) {
-    const html = applyDocumentMeta(shell, { title: `${copy.hub.meta.title} - ${SITE_SUFFIX}`, description: copy.hub.meta.description, canonical: `${siteUrl}${DIVIDEND_LIST_HUB_PATH}` });
-    return htmlResponse(injectHubBody(html, siteUrl), 200, CACHE_LIST);
+    const html = applyDocumentMeta(shell, { title: withSiteTitleSuffix(copy.hub.meta.title), description: copy.hub.meta.description, canonical: `${siteUrl}${DIVIDEND_LIST_HUB_PATH}` });
+    return htmlResponse(injectHubBody(html, siteUrl), 200, CACHE_STATIC_CONTENT);
   }
 
   // 3) 모르는 값은 무치환 셸 200 + no-store (rewrite 가 정확한 4개만 보내므로 정상 경로에는 없다).
@@ -317,8 +299,8 @@ export async function handler(request: Request): Promise<Response> {
   if (!listId) return htmlResponse(shell, 200, CACHE_NO_STORE);
 
   const list = DIVIDEND_LISTS[listId];
-  const html = applyDocumentMeta(shell, { title: `${copy.lists[listId].metaTitle} - ${SITE_SUFFIX}`, description: copy.lists[listId].metaDescription, canonical: listCanonical(siteUrl, list) });
-  return htmlResponse(injectListBody(html, list, siteUrl), 200, CACHE_LIST);
+  const html = applyDocumentMeta(shell, { title: withSiteTitleSuffix(copy.lists[listId].metaTitle), description: copy.lists[listId].metaDescription, canonical: listCanonical(siteUrl, list) });
+  return htmlResponse(injectListBody(html, list, siteUrl), 200, CACHE_STATIC_CONTENT);
 }
 
 /** ⚠ Vercel 이 실제로 호출하는 진입점. 어댑터를 벗기면 무응답으로 되돌아간다(위 "런타임" 주석). */

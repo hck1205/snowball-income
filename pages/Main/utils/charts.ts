@@ -2,6 +2,7 @@ import type { EChartsOption } from 'echarts';
 import type { SimulationResult } from '@/shared/types';
 import { formatKRW, getTickerDisplayName } from '@/shared/utils';
 import {
+  ALLOCATION_COPY,
   YEARLY_SERIES_LABEL,
   YEARLY_SERIES_ORDER,
   getYearlySeriesColor,
@@ -175,13 +176,22 @@ export const buildLineChartOption = <TRow>({
 export const buildAllocationPieOption = ({
   normalizedAllocation,
   showPortfolioDividendCenter,
-  finalMonthlyAverageDividend,
+  centerDividend,
+  centerLabel = ALLOCATION_COPY.dividendCenterLabelAverage,
   theme = getChartTheme(),
   formatCompact = formatApproxKRW
 }: {
   normalizedAllocation: NormalizedAllocationItem[];
   showPortfolioDividendCenter: boolean;
-  finalMonthlyAverageDividend: number;
+  /**
+   * 중앙에 띄울 배당 금액. **무엇인지는 호출부가 정한다** — 월평균(연÷12)일 수도, 마지막 실지급월
+   * 금액일 수도 있다(시뮬레이터의 `dividendCenterModeAtom`).
+   * 🔴 그래서 `centerLabel` 을 값과 **함께** 넘겨라. 실지급액은 분기 배당 종목에서 한 분기치라
+   *    '월배당'이라는 이름이 붙으면 3배 과장이 된다.
+   */
+  centerDividend: number;
+  /** 값 위에 서는 이름. 미지정이면 월평균 — PDF·갤러리 미리보기는 항상 월평균을 넘긴다. */
+  centerLabel?: string;
   theme?: ChartTheme;
   formatCompact?: (value: number) => string;
 }): EChartsOption | null => {
@@ -201,7 +211,7 @@ export const buildAllocationPieOption = ({
                 left: 'center',
                 top: -12,
                 style: {
-                  text: '월배당',
+                  text: centerLabel,
                   fill: theme.textMuted,
                   fontSize: 12,
                   fontWeight: 600,
@@ -215,7 +225,7 @@ export const buildAllocationPieOption = ({
                 left: 'center',
                 top: 8,
                 style: {
-                  text: formatCompact(finalMonthlyAverageDividend),
+                  text: formatCompact(centerDividend),
                   fill: theme.text,
                   fontSize: 14,
                   fontWeight: 700,

@@ -179,7 +179,7 @@ describe('PDF 리포트·커뮤니티 미리보기 경로(빌더 기본 인자)�
     const option = buildAllocationPieOption({
       normalizedAllocation: [{ profile, weight: 1 }],
       showPortfolioDividendCenter: true,
-      finalMonthlyAverageDividend: 1_870_000
+      centerDividend: 1_870_000
     });
 
     expect(pieCenterText(option)).toBe('약 187만');

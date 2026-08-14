@@ -55,6 +55,12 @@ export type SummaryParams = {
    * 취득원가에 포함된다(이미 배당소득세를 낸 돈이라 양도세 계산에서 다시 이익으로 잡히면 안 된다).
    */
   totalReinvestedAmount: number;
+  /**
+   * 종료 시점 보유 기준 월 배당(세후). 🔴 **호출부가 계산해 넘긴다** — 이 함수는 월별 스냅샷만
+   * 받는데 스냅샷에 세율이 없기 때문이다(세율은 종목마다 다르고 `runSimulation` 만 안다).
+   * 정의와 다른 두 지표와의 차이는 `SimulationSummary.finalRunRateMonthlyDividend` 주석에 있다.
+   */
+  finalRunRateMonthlyDividend: number;
 };
 
 /**
@@ -66,7 +72,8 @@ export const buildSummary = ({
   yearly,
   totalTaxPaid,
   targetMonthlyDividend,
-  totalReinvestedAmount
+  totalReinvestedAmount,
+  finalRunRateMonthlyDividend
 }: SummaryParams): SimulationSummary => {
   const finalYear = yearly[yearly.length - 1];
   const lastPayoutRow = findLastPayoutMonth(monthly);
@@ -83,6 +90,7 @@ export const buildSummary = ({
     // 라는 이름으로 한 번 더 들어 있었으나, 어떤 화면도 읽지 않는 중복 필드라 제거했다.)
     finalMonthlyAverageDividend: finalYear?.monthlyDividend ?? 0,
     finalPayoutMonthDividend: lastPayoutRow?.dividendPaid ?? 0,
+    finalRunRateMonthlyDividend,
     totalContribution,
     totalNetDividend: finalYear?.cumulativeDividend ?? 0,
     totalTaxPaid,

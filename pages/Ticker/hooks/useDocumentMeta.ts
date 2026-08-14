@@ -1,3 +1,4 @@
+import { withSiteTitleSuffix } from '@/shared/constants/site';
 import { useEffect } from 'react';
 import { applySeoRuntimeMetadata } from '@/shared/lib/analytics';
 
@@ -10,7 +11,6 @@ export type DocumentMetaInput = {
   pathname: string;
 };
 
-const SITE_SUFFIX = 'Hungry Hippo';
 
 const setNamedMeta = (name: string, content: string): string | null => {
   const el = document.querySelector<HTMLMetaElement>(`meta[name="${name}"]`);
@@ -41,7 +41,7 @@ export const useDocumentMeta = ({ title, description, pathname }: DocumentMetaIn
     // 빈 제목 = 콘텐츠 없음(리다이렉트 예정) — 문서 메타를 건드리지 않는다.
     if (!title) return;
 
-    const fullTitle = `${title} - ${SITE_SUFFIX}`;
+    const fullTitle = withSiteTitleSuffix(title);
 
     const prevTitle = document.title;
     const prevDescription = setNamedMeta('description', description);

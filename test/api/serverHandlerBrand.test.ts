@@ -70,8 +70,17 @@ describe('서버 핸들러 브랜드 표기', () => {
     }
   });
 
-  it.each(SOURCES)('$path 는 현재 제품명을 쓴다', ({ code }) => {
-    expect(code).toContain(BRAND);
+  /**
+   * 🔴 2026-08-14: 제품명 리터럴이 **`shared/constants/site` 한 곳으로 통합**됐다(종전 7벌).
+   * 그래서 핸들러는 리터럴 대신 `withSiteTitleSuffix` 를 부른다 — 둘 중 하나면 통과다.
+   * 리터럴만 요구하면 이 가드가 **중복을 강제하는** 가드가 되어 버린다.
+   */
+  it.each(SOURCES)('$path 는 현재 제품명을 쓴다 (리터럴 또는 공용 상수)', ({ code }) => {
+    expect(code.includes(BRAND) || code.includes('withSiteTitleSuffix')).toBe(true);
+  });
+
+  it('공용 상수가 실제로 그 제품명을 담고 있다 — 통합의 근거', () => {
+    expect(readSource('shared/constants/site/index.ts')).toContain(BRAND);
   });
 
   it.each(SOURCES)('$path 에 구 제품명이 남아 있지 않다', ({ code }) => {

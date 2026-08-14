@@ -138,6 +138,12 @@ const aggregatePortfolioSimulation = (outputs: SimulationOutput[], targetMonthly
       finalAnnualDividend: finalYear?.annualDividend ?? 0,
       finalMonthlyAverageDividend: finalYear?.monthlyDividend ?? 0,
       finalPayoutMonthDividend: lastPayout?.dividendPaid ?? 0,
+      /*
+       * 🔴 **종목별 값의 단순 합이 맞다.** 각 종목이 자기 배당률·세율·지급주기로 계산한 월 환산액이라
+       *    합치면 곧 포트폴리오의 월 환산액이다(양도세처럼 인별 공제가 끼어드는 항목이 아니다 —
+       *    아래 `computeCapitalGains` 가 합산 후 한 번만 계산하는 것과 대비된다).
+       */
+      finalRunRateMonthlyDividend: sumBy(outputs, (output) => output.summary.finalRunRateMonthlyDividend),
       totalContribution: finalYear?.totalContribution ?? 0,
       totalNetDividend: finalYear?.cumulativeDividend ?? 0,
       totalTaxPaid: sumBy(outputs, (output) => output.summary.totalTaxPaid),

@@ -18,7 +18,21 @@ import {
   stripLandingShellBody
 } from '@/shared/lib/og';
 import type { PublicPostKind, PublicPostListItem } from '@/shared/lib/og';
-import { toNodeHandler } from '@/shared/lib/server';
+/**
+ * 🔴 **정적 콘텐츠 캐시를 쓰지 않는다.** 이 목록은 DB 에서 오고 새 글이 **1분 안에** 보여야 한다 —
+ * 배포로만 바뀌는 티커·가이드와 신선도 요구가 다르다(공용 상수로 뭉뚱그렸다가 24시간이 되어
+ * `test/api/postList.test.ts` 가 잡았다).
+ */
+const CACHE_LIST = 'public, max-age=0, s-maxage=60, stale-while-revalidate=3600';
+
+import { withSiteTitleSuffix } from '@/shared/constants/site';
+import {
+  CACHE_NO_STORE,
+  fetchShellHtml,
+  htmlResponse,
+  redirectToRoot,
+  toNodeHandler
+} from '@/shared/lib/server';
 
 /**
  * `/api/post-list?kind=<board|portfolio>` — 커뮤니티 **목록 페이지의 진입 HTML**.
@@ -53,28 +67,15 @@ const LIST_META: Record<PublicPostKind, { title: string; description: string }> 
   }
 };
 
-const SITE_SUFFIX = 'Hungry Hippo';
 
 /**
  * 목록 성공 — 상세(300s)보다 짧은 60초 신선도. 새 글이 최대 1분 내 목록에 노출된다.
  * `stale-while-revalidate=3600`: 1분이 지나도 백그라운드 갱신 동안 캐시본을 즉시 내보낸다.
  */
-const CACHE_LIST = 'public, max-age=0, s-maxage=60, stale-while-revalidate=3600';
 
 /** 무치환 셸 / 조회 실패 — 캐시하지 않는다(장애·빈 목록을 엣지에 박제하지 않는다). */
-const CACHE_NO_STORE = 'no-store';
 
-const htmlResponse = (html: string, status: number, cache: string): Response =>
-  new Response(html, {
-    status,
-    headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': cache }
-  });
 
-const redirectToRoot = (origin: string): Response =>
-  new Response(null, {
-    status: 302,
-    headers: { Location: new URL('/', origin).toString(), 'cache-control': CACHE_NO_STORE }
-  });
 
 /**
  * 목록 메타를 셸에 박는다(제목·설명·canonical·og·twitter). og:type/site_name/이미지 규격/twitter:card 는
@@ -82,7 +83,7 @@ const redirectToRoot = (origin: string): Response =>
  */
 const applyListMeta = (shell: string, kind: PublicPostKind, siteUrl: string): string => {
   const meta = LIST_META[kind];
-  const title = `${meta.title} - ${SITE_SUFFIX}`;
+  const title = withSiteTitleSuffix(meta.title);
   const canonical = `${siteUrl}/community/${kind}`;
 
   let html = shell;
@@ -131,14 +132,8 @@ export async function handler(request: Request): Promise<Response> {
   const { origin, searchParams } = new URL(request.url);
   const kindParam = searchParams.get('kind');
 
-  let shell: string;
-  try {
-    const response = await fetch(new URL('/index.html', origin));
-    if (!response.ok) return redirectToRoot(origin);
-    shell = await response.text();
-  } catch {
-    return redirectToRoot(origin);
-  }
+  const shell = await fetchShellHtml(origin);
+  if (shell === null) return redirectToRoot(origin);
 
   // kind 가 아니면(방어) 무치환 셸 200 — 앱 라우터가 처리한다.
   if (!isPublicPostKind(kindParam)) return htmlResponse(shell, 200, CACHE_NO_STORE);

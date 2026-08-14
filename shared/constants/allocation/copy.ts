@@ -13,6 +13,19 @@ export const ALLOCATION_COPY = {
   /** 카드 헤더에 보이는 짧은 라벨 — 자물쇠 글리프와 나란히 놓여 맥락이 이미 서 있다. */
   lockToggleShortLabel: '잠금',
 
+  /* ①-2 파이 중앙 배당 표시 토글 (2026-08-14) */
+  /**
+   * 🔴 중앙 라벨은 **모드마다 다르다** — 값과 이름이 함께 움직여야 한다.
+   *    `runRate` 는 "받았다"가 아니라 "이 상태가 유지되면"이라는 **추정**이라 이름이 그 사실을
+   *    드러내야 하고(`예상`), `average` 는 그 해 실제 수령액의 평균이라 성격이 다르다.
+   *    (근거: `jotai/snowball/atoms/ui` 의 `dividendCenterModeAtom` 주석)
+   */
+  dividendCenterLabelAverage: '월평균 배당',
+  dividendCenterLabelRunRate: '예상 월배당',
+  /** 카드 헤더 스위치 — 켜짐 = 종료 시점 보유 기준 예상 월배당. 꺼짐 = 월평균(연÷12). */
+  dividendCenterToggleShortLabel: '예상',
+  dividendCenterToggleLabel: '파이 중앙에 예상 월배당 표시 (끄면 그 해 월평균)',
+
   /* ② 종목별 "고정" 버튼 (B) */
   fixButtonText: '고정',
   fixButtonAriaFix: (name: string) => `${name} 비중 고정`,

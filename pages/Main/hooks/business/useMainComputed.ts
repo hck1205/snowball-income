@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import {
+  ALLOCATION_COPY,
   DEFAULT_DISPLAY_CURRENCY,
   YEARLY_SERIES_HELP_KEY,
   YEARLY_SERIES_LABEL,
@@ -9,6 +10,7 @@ import {
 } from '@/shared/constants';
 import type { YieldFormValues } from '@/shared/types';
 import {
+  useDividendCenterModeAtomValue,
   useEffectiveColorScheme,
   useIncludedProfilesAtomValue,
   useNormalizedAllocationAtomValue,
@@ -86,16 +88,33 @@ export const useMainComputed = ({
   );
 
   const tableRows = useMemo(() => simulation?.yearly ?? [], [simulation]);
+  /*
+   * 파이 중앙 표시값 — 기본은 **종료 시점 보유 기준 예상 월배당**이다(2026-08-14 사용자 결정).
+   *
+   * 적립식에서는 월평균(연÷12)이 종료 시점의 수령액을 크게 과소평가한다. 잔고가 그 해 내내
+   * 커지므로 "그 해에 받은 총액"은 평균 잔고에 대한 값이기 때문이다 — JEPI 100% · 초기 2,500만 ·
+   * 월 500만 · 1년이면 평균 30.5만 vs 런레이트 49.9만이다.
+   *
+   * 🔴 라벨을 값과 **함께** 넘긴다. 런레이트는 "받았다"가 아니라 추정이라 이름에 '예상'이 붙는다.
+   */
+  const dividendCenterMode = useDividendCenterModeAtomValue();
+  const isRunRateCenter = dividendCenterMode === 'runRate';
+  const centerDividend = isRunRateCenter
+    ? simulation?.summary.finalRunRateMonthlyDividend ?? 0
+    : simulation?.summary.finalMonthlyAverageDividend ?? 0;
   const allocationPieOption = useMemo(
     () =>
       buildAllocationPieOption({
         normalizedAllocation,
-        // 배당 중앙표시 토글을 없애고 파이 중앙에 월배당을 항상 노출한다(사용자 요청).
+        // 배당 중앙표시 토글을 없애고 파이 중앙에 배당을 항상 노출한다(사용자 요청).
         showPortfolioDividendCenter: true,
-        finalMonthlyAverageDividend: simulation?.summary.finalMonthlyAverageDividend ?? 0,
+        centerDividend,
+        centerLabel: isRunRateCenter
+          ? ALLOCATION_COPY.dividendCenterLabelRunRate
+          : ALLOCATION_COPY.dividendCenterLabelAverage,
         formatCompact: formatChartCompact
       }),
-    [colorScheme, formatChartCompact, normalizedAllocation, palettePreset, simulation?.summary.finalMonthlyAverageDividend]
+    [centerDividend, colorScheme, formatChartCompact, isRunRateCenter, normalizedAllocation, palettePreset]
   );
   const defaultCashflowYear = yearlyCashflowByTicker.years[yearlyCashflowByTicker.years.length - 1] ?? null;
   const defaultCashflowByYear =

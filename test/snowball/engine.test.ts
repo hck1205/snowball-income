@@ -610,12 +610,21 @@ describe('summary builders', () => {
     // finalMonthlyDividend 는 finalMonthlyAverageDividend 와 값이 완전히 같은 중복 필드였고
     // 어떤 화면도 읽지 않아 제거했다.
     expect(
-      buildSummary({ monthly, yearly, totalTaxPaid: 77, targetMonthlyDividend: 100, totalReinvestedAmount: 50 })
+      buildSummary({
+        monthly,
+        yearly,
+        totalTaxPaid: 77,
+        targetMonthlyDividend: 100,
+        totalReinvestedAmount: 50,
+        finalRunRateMonthlyDividend: 160
+      })
     ).toEqual({
       finalAssetValue: 300,
       finalAnnualDividend: 1_800,
       finalMonthlyAverageDividend: 150,
       finalPayoutMonthDividend: 40,
+      /* 호출부(runSimulation)가 계산해 넘긴 값을 그대로 싣는다 — 여기서 다시 유도하지 않는다. */
+      finalRunRateMonthlyDividend: 160,
       totalContribution: 900,
       totalNetDividend: 2_400,
       totalTaxPaid: 77,
@@ -631,12 +640,20 @@ describe('summary builders', () => {
 
   it('buildSummary returns zeros for an empty simulation', () => {
     expect(
-      buildSummary({ monthly: [], yearly: [], totalTaxPaid: 0, targetMonthlyDividend: 1, totalReinvestedAmount: 0 })
+      buildSummary({
+        monthly: [],
+        yearly: [],
+        totalTaxPaid: 0,
+        targetMonthlyDividend: 1,
+        totalReinvestedAmount: 0,
+        finalRunRateMonthlyDividend: 0
+      })
     ).toEqual({
       finalAssetValue: 0,
       finalAnnualDividend: 0,
       finalMonthlyAverageDividend: 0,
       finalPayoutMonthDividend: 0,
+      finalRunRateMonthlyDividend: 0,
       totalContribution: 0,
       totalNetDividend: 0,
       totalTaxPaid: 0,
@@ -729,5 +746,61 @@ describe('runQuickEstimate', () => {
     const estimate = runQuickEstimate(toSimulationInput(buildValues({ durationYears: 10 })));
 
     expect(estimate.monthlyDividendApprox).toBeCloseTo(estimate.annualDividendApprox / 12, 9);
+  });
+});
+
+/**
+ * 종료 시점 보유 기준 월 배당(`finalRunRateMonthlyDividend`) — 2026-08-14 신설.
+ *
+ * 🔴 이 지표가 생긴 이유가 아래 첫 테스트다. 종전에 파이 중앙이 쓰던 `finalPayoutMonthDividend`
+ * (마지막 실지급액)는 **분기 배당 종목이면 한 분기치**라 월 기준으로 3배로 읽혔다. 런레이트는
+ * 연 주당배당금을 12 로 나누므로 지급 주기와 무관하다 — 그 불변식을 여기서 잠근다.
+ */
+describe('finalRunRateMonthlyDividend', () => {
+  /** 재투자를 끄고 적립도 0 으로 두면 보유량이 고정돼, 지급 주기만 다른 두 종목을 곧바로 비교할 수 있다. */
+  const buildFixedHolding = (frequency: YieldFormValues['frequency']) =>
+    buildValues({
+      frequency,
+      dividendYield: 8,
+      dividendGrowth: 0,
+      initialInvestment: 120_000_000,
+      monthlyContribution: 0,
+      reinvestDividends: false,
+      durationYears: 1,
+      taxRate: 0
+    });
+
+  it('지급 주기가 달라도 런레이트는 같다 (분기 종목이 3배로 읽히지 않는다)', () => {
+    const monthly = runSimulation(toSimulationInput(buildFixedHolding('monthly'))).summary;
+    const quarterly = runSimulation(toSimulationInput(buildFixedHolding('quarterly'))).summary;
+
+    expect(quarterly.finalRunRateMonthlyDividend).toBeCloseTo(monthly.finalRunRateMonthlyDividend, 6);
+
+    /* 대비: 종전 지표는 분기 종목에서 정확히 3배다 — 이것이 파이 중앙에 쓰면 안 되는 이유다. */
+    expect(quarterly.finalPayoutMonthDividend).toBeCloseTo(monthly.finalPayoutMonthDividend * 3, 6);
+  });
+
+  /** 🔴 화면에서 눈으로 검산되는 관계 — 최종 자산 × 배당률 ÷ 12 × (1−세율). */
+  it('최종 자산 × 배당률 ÷ 12 × (1−세율) 과 일치한다', () => {
+    const summary = runSimulation(
+      toSimulationInput(buildValues({ frequency: 'monthly', dividendYield: 8, dividendGrowth: 0, taxRate: 15 }))
+    ).summary;
+
+    const expected = (summary.finalAssetValue * 0.08 * 0.85) / 12;
+    expect(summary.finalRunRateMonthlyDividend).toBeCloseTo(expected, 6);
+  });
+
+  /**
+   * 적립식에서 월평균(연÷12)은 종료 시점 수령액을 **과소평가**한다 — 잔고가 그 해 내내 커지기 때문.
+   * 이 관계가 뒤집히면 두 지표 중 하나의 정의가 무너진 것이다.
+   */
+  it('적립이 있으면 월평균보다 크다', () => {
+    const summary = runSimulation(
+      toSimulationInput(
+        buildValues({ dividendYield: 8, dividendGrowth: 0, initialInvestment: 25_000_000, monthlyContribution: 5_000_000 })
+      )
+    ).summary;
+
+    expect(summary.finalRunRateMonthlyDividend).toBeGreaterThan(summary.finalMonthlyAverageDividend);
   });
 });

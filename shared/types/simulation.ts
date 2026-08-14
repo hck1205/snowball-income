@@ -78,6 +78,24 @@ export type SimulationSummary = {
   finalMonthlyAverageDividend: number;
   /** 마지막 실제 지급월에 지급된 금액. */
   finalPayoutMonthDividend: number;
+  /**
+   * **종료 시점 보유 기준 월 배당(세후)** — "지금 이 포트폴리오면 앞으로 매달 얼마".
+   *
+   *     최종 보유 주식 수 × 마지막 시점 연 주당배당금 ÷ 12 × (1 − 세율)
+   *
+   * 위 둘과 갈리는 지점이 분명하다:
+   * - `finalMonthlyAverageDividend`(연÷12)는 **그 해에 받은 총액**의 평균이라, 적립식에서는 잔고가
+   *   한 해 내내 커지므로 종료 시점 수령액을 과소평가한다(1년차 실측: 30.5만 vs 49.9만).
+   * - `finalPayoutMonthDividend`는 **마지막으로 실제 지급된 금액**이라, ①그 달의 적립분이 아직 안
+   *   붙어 있고 ②**분기 배당 종목이면 한 분기치**가 그대로 들어온다(월 기준으로 3배로 읽힌다).
+   *
+   * 이 필드는 지급 주기와 무관하게 **월 환산**이라 종목을 섞어도 튀지 않는다. 다만 "받았다"가 아니라
+   * "이 상태가 유지되면"이라는 추정이므로, 화면 라벨은 그 사실이 드러나야 한다(예: '예상 월배당').
+   *
+   * 🔴 DPS 는 **마지막 해 기준**이다(관측된 마지막 상태). 그다음 해로 성장시킨 값을 쓰지 마라 —
+   *    시뮬레이션이 말한 적 없는 미래를 숫자로 만들게 된다.
+   */
+  finalRunRateMonthlyDividend: number;
   totalContribution: number;
   totalNetDividend: number;
   /** 누적 **배당소득세**. 양도세는 여기 포함되지 않는다(아래 estimatedCapitalGainsTax 참고). */
