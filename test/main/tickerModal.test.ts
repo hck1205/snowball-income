@@ -92,6 +92,25 @@ describe('filterPresetKeys', () => {
     expect(filterPresetKeys({ presetKeys, presetTickers, koreanNameByTicker, keyword: '   ' })).toEqual(presetKeys);
   });
 
+  /**
+   * 🔴 한글명 맵은 **손으로 채우는 목록**이라 프리셋을 추가하고 빠뜨릴 수 있다. 타입은
+   * `Record<PresetTickerKey, string>` 이라 항상 있는 것처럼 보이지만 런타임엔 `undefined` 가 오고,
+   * 그대로 `toUpperCase()` 를 부르면 **프리셋 검색 전체가 죽는다**(빈 목록이 아니라 예외).
+   * 잘 안 알려진 종목까지 한글 음차를 지어내는 것보다 없는 채로 두는 편이 낫고, 그러려면 여기가 견뎌야 한다.
+   */
+  it('한글명이 없는 프리셋이 섞여 있어도 검색이 죽지 않는다', () => {
+    const withMissingKorean = { ...koreanNameByTicker } as Record<PresetTickerKey, string>;
+    delete (withMissingKorean as Record<string, string>).SCHD;
+
+    expect(() =>
+      filterPresetKeys({ presetKeys, presetTickers, koreanNameByTicker: withMissingKorean, keyword: 'schd' })
+    ).not.toThrow();
+    // 티커·영문명 매칭은 그대로 살아 있다.
+    expect(filterPresetKeys({ presetKeys, presetTickers, koreanNameByTicker: withMissingKorean, keyword: 'schd' })).toEqual([
+      'SCHD'
+    ]);
+  });
+
   it('matches the ticker symbol case-insensitively', () => {
     expect(filterPresetKeys({ presetKeys, presetTickers, koreanNameByTicker, keyword: 'schd' })).toEqual(['SCHD']);
   });
