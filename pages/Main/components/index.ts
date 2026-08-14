@@ -10,6 +10,7 @@
  */
 export * from './ChartPanel';
 /* 구 `LandingDisclaimer` 는 공용 `components/common/PageFooter` 로 수렴했다(2026-07-31, 문구 동일). */
+export { default as FxSensitivityNote } from './FxSensitivityNote';
 export { default as MainContentLoader } from './MainContentLoader';
 export { default as MainLeftPanel } from './MainLeftPanel';
 export { default as MainOverflowMenu } from './MainOverflowMenu';

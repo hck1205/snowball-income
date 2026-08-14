@@ -10,3 +10,4 @@ export * from './SnowballScenarioRun';
 export * from './SnowballScenarioSummary';
 export * from './SnowballSimulation';
 export * from './SnowballSummary';
+export * from './SnowballFxSensitivity';

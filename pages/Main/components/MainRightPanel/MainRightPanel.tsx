@@ -58,6 +58,7 @@ import {
 import { useMainComputed, useScenarioTabs, useSnowballForm, useTickerActions } from '@/pages/Main/hooks';
 // 형제 폴더 직접 참조 — 상위 배럴(@/pages/Main/components)은 이 파일 자신도 재수출해 import 순환이 된다.
 import { ChartPanel } from '../ChartPanel';
+import FxSensitivityNote from '../FxSensitivityNote';
 import MainResultGrid from '../MainResultGrid';
 import ResultBoard from '../ResultBoard';
 import ScenarioTabsRow from '../ScenarioTabsRow';
@@ -101,6 +102,8 @@ function MainRightPanelComponent({ configDrawerId }: MainRightPanelProps) {
     [setIsResultCompact]
   );
   const includedProfiles = useIncludedProfilesAtomValue();
+  /* 환율 민감도 안내용 — 국내 상장(.KS/.KQ)만 담겼으면 안내를 내지 않는다(FxSensitivityNote). */
+  const includedTickers = useMemo(() => includedProfiles.map((profile) => profile.ticker), [includedProfiles]);
   /* 프리필이 활성 탭을 덮어도 되는지 판정할 때만 쓴다 — **제외된 티커도 지우면 안 되는 데이터**라
      includedProfiles가 아니라 전체 프로필을 본다. */
   const tickerProfiles = useTickerProfilesAtomValue();
@@ -437,6 +440,9 @@ function MainRightPanelComponent({ configDrawerId }: MainRightPanelProps) {
                     onOpen={openConfigDrawer}
                   />
                 }
+                /* 🔴 조건 요약 **바로 아래**. 이 계산이 무엇을 넣지 않았는지는 조건의 일부다
+                   — 결과 숫자에서 멀어지면 읽히지 않는다(FxSensitivityNote 주석 참고). */
+                footnote={<FxSensitivityNote tickers={includedTickers} fxRate={display.rate} />}
               />
             }
             financialIncomeBanner={
