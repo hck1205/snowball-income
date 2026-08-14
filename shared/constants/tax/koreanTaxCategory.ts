@@ -41,7 +41,16 @@ export const KOREAN_TICKER_TAX_CATEGORY: Record<string, KoreanTaxCategory> = {
   '088980.KS': 'domestic-stock',
   '033780.KS': 'domestic-stock',
   '316140.KS': 'domestic-stock',
-  '105560.KS': 'domestic-stock'
+  '105560.KS': 'domestic-stock',
+  /* 2026-08-15 확충분. 🔴 갈래는 **자산이 어디냐**로 가른다 — 미국 자산에 투자하면 국내 상장이어도
+     매매차익이 배당소득세로 과세되는 '해외 ETF' 갈래다(가장 흔한 오해). */
+  '489250.KS': 'domestic-listed-foreign-etf',
+  '446720.KS': 'domestic-listed-foreign-etf',
+  '458760.KS': 'domestic-listed-foreign-etf',
+  '441640.KS': 'domestic-listed-foreign-etf',
+  '476850.KS': 'domestic-listed-domestic-etf',
+  '322410.KS': 'domestic-listed-domestic-etf',
+  '266160.KS': 'domestic-listed-domestic-etf'
 };
 
 /** 국내 상장 종목인가. 티커 표기(`.KS`/`.KQ`)가 곧 그 사실이다. */

@@ -2,6 +2,138 @@
   "asOf": "2026-08-14",
   "source": "yahoo",
   "entries": {
+    "266160.KS": {
+      "initialPrice": 33350,
+      "dividendYield": 1.87,
+      "frequency": "quarterly",
+      "payoutMonths": [
+        1,
+        4,
+        7,
+        10
+      ],
+      "payoutMonthsSource": "ex"
+    },
+    "322410.KS": {
+      "initialPrice": 23350,
+      "dividendYield": 2.63,
+      "frequency": "monthly",
+      "payoutMonths": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "payoutMonthsSource": "ex"
+    },
+    "441640.KS": {
+      "initialPrice": 13055,
+      "dividendYield": 9.04,
+      "frequency": "monthly",
+      "payoutMonths": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "payoutMonthsSource": "ex"
+    },
+    "446720.KS": {
+      "initialPrice": 14165,
+      "dividendYield": 2.9,
+      "frequency": "monthly",
+      "payoutMonths": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "payoutMonthsSource": "ex"
+    },
+    "458760.KS": {
+      "initialPrice": 11340,
+      "dividendYield": 9.56,
+      "frequency": "monthly",
+      "payoutMonths": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "payoutMonthsSource": "ex"
+    },
+    "476850.KS": {
+      "initialPrice": 21770,
+      "dividendYield": 6.27,
+      "frequency": "monthly",
+      "payoutMonths": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "payoutMonthsSource": "ex"
+    },
+    "489250.KS": {
+      "initialPrice": 13295,
+      "dividendYield": 2.8,
+      "frequency": "monthly",
+      "payoutMonths": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "payoutMonthsSource": "ex"
+    },
     "A": {
       "initialPrice": 148.48,
       "dividendYield": 0.68,
