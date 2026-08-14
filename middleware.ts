@@ -85,8 +85,13 @@ export default async function middleware(request: Request): Promise<Response> {
   if (!shareCode || !SHARE_CODE_PATTERN.test(shareCode)) return next();
 
   try {
-    // matcher(`/`·`/simulator`) 에 걸리지 않는 경로라 미들웨어가 재진입하지 않는다.
-    const shell = await fetch(new URL('/index.html', url.origin));
+    // 공유 링크의 정본 주소는 `/simulator` 다(아래 `shareUrl`) → 셸도 **시뮬레이터 셸**을 쓴다.
+    // `simulator.html` 은 빌드가 굽는 정적 파일이고 canonical·제목이 이미 `/simulator` 것이라,
+    // 여기서 따로 고치지 않아도 공유 페이지가 랜딩 제목을 달고 나가지 않는다(vite.config 참고).
+    // ⚠ matcher(`/`·`/simulator`) 에 걸리지 않는 경로라 미들웨어가 재진입하지 않는다 — `/simulator.html`
+    //   도 마찬가지다(508 회피). 파일이 없던 시절 배포로 롤백되면 index.html 로 폴백한다.
+    const simulatorShell = await fetch(new URL('/simulator.html', url.origin));
+    const shell = simulatorShell.ok ? simulatorShell : await fetch(new URL('/index.html', url.origin));
     if (!shell.ok) return next();
 
     const ogImageUrl = new URL('/api/og', url.origin);

@@ -13,7 +13,8 @@ import {
   replaceLinkHref,
   replaceMetaContent,
   replaceTitleTag,
-  resolveSiteUrl
+  resolveSiteUrl,
+  stripLandingShellBody
 } from '@/shared/lib/og';
 import type { PublicPostKind, PublicPostMeta } from '@/shared/lib/og';
 import { toNodeHandler } from '@/shared/lib/server';
@@ -143,8 +144,10 @@ const applyPostMeta = (shell: string, post: PublicPostMeta, siteUrl: string): st
  * ## 삽입 지점 — `<div id="root">` 여는 태그 **직후**
  * 기존 `app-shell-fallback` 을 감싼 `</div>` 를 매칭하는 방식은 `#root` 안에 중첩 div 가 있어 정규식이
  * 취약하다. **여는 태그 직후 삽입**은 빈 `<div id="root"></div>`(테스트 픽스처)와 실제 셸(fallback 포함)
- * **양쪽에서 결정적**이고, 크롤러가 글 제목·본문을 셸 잡동사니보다 먼저 읽는다. 여는 태그가 없으면(방어)
- * 원문 그대로 반환한다.
+ * **양쪽에서 결정적**이다. 여는 태그가 없으면(방어) 원문 그대로 반환한다.
+ *
+ * 삽입 **전에** `stripLandingShellBody` 로 랜딩 셸 본문(+랜딩 FAQ JSON-LD)을 걷어낸다 — 남겨 두면 글
+ * 제목 h1 뒤에 랜딩 h1 이 하나 더 붙고 전 글이 같은 6.5KB 텍스트를 공유한다(shellBody.ts 참고).
  *
  * ## HTML 컨텍스트 안전 (XSS 경계)
  * 본문은 **엘리먼트 content 위치**(article 안)에 들어간다. `sanitizePostBody` 는 DOMPurify 가 파싱·정화한
@@ -154,14 +157,15 @@ const applyPostMeta = (shell: string, post: PublicPostMeta, siteUrl: string): st
  * 제목은 마크업이 아닌 텍스트라 `escapeHtmlText` 로만 이스케이프한다(h1 의 content 위치).
  */
 const injectPostBody = (shell: string, post: PublicPostMeta): string => {
-  const rootOpenTag = shell.match(/<div\s+id="root"[^>]*>/i);
-  if (!rootOpenTag || rootOpenTag.index === undefined) return shell;
+  const stripped = stripLandingShellBody(shell);
+  const rootOpenTag = stripped.match(/<div\s+id="root"[^>]*>/i);
+  if (!rootOpenTag || rootOpenTag.index === undefined) return stripped;
 
   const safeBody = sanitizePostBody(post.body ?? '');
   const article = `<article><h1>${escapeHtmlText(post.title)}</h1>${safeBody}</article>`;
 
   const insertAt = rootOpenTag.index + rootOpenTag[0].length;
-  return shell.slice(0, insertAt) + article + shell.slice(insertAt);
+  return stripped.slice(0, insertAt) + article + stripped.slice(insertAt);
 };
 
 /** 웹 표준 핸들러 — `test/api/postHtml.test.ts` 가 `handler(new Request(...))` 로 직접 호출한다. */
