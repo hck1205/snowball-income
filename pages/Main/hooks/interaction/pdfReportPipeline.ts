@@ -151,7 +151,7 @@ const buildCharts = async (
   const pieOption = buildAllocationPieOption({
     normalizedAllocation: input.normalizedAllocation,
     showPortfolioDividendCenter: input.showPortfolioDividendCenter,
-    finalMonthlyAverageDividend: report.outcome.finalMonthlyAverageDividend,
+    centerDividend: report.outcome.finalMonthlyAverageDividend,
     theme
   });
 

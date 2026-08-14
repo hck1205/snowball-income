@@ -29,6 +29,27 @@ export const isYearlyAreaFillOnAtom = atomState(true);
 export const isResultCompactAtom = atomState(false);
 export const showSplitGraphsAtom = atomState(false);
 export const showPortfolioDividendCenterAtom = atomState(true);
+/**
+ * 파이 중앙에 무엇을 띄울지 (2026-08-14 사용자 요청).
+ *
+ * - `runRate` — **종료 시점 보유 기준 월 배당**(`summary.finalRunRateMonthlyDividend`). 기본값.
+ * - `average` — 마지막 해 연 배당 ÷ 12 (`summary.finalMonthlyAverageDividend`).
+ *
+ * 왜 둘이 필요한가: 적립식에서는 두 값이 크게 갈린다. 잔고가 그 해 내내 커지므로 **평균은 종료
+ * 시점의 수령액을 과소평가**한다 — JEPI 100% · 초기 2,500만 · 월 500만 · 1년이면 평균 30.5만 vs
+ * 런레이트 49.9만이다. "1년 뒤 매달 얼마 받나"에 답하는 값이 기본이어야 한다. 기간이 길어지면
+ * 격차는 줄어든다.
+ *
+ * 🔴 **`finalPayoutMonthDividend`(마지막 실지급액)를 여기 쓰지 마라.** 2026-08-14 에 잠깐 그랬다가
+ *    되돌렸다: ①그 달 적립분이 아직 안 붙어 있어 최종 자산과 산수가 안 맞고 ②**분기 배당 종목이면
+ *    한 분기치**라 월 기준으로 3배로 읽힌다. 런레이트는 월 환산이라 지급 주기와 무관하다.
+ *    그 값은 결과 카드의 '최근 실지급 배당' 타일이 계속 보여 준다(파이=앞으로 / 타일=실제 기록).
+ *
+ * 🔴 라벨을 값과 함께 바꿔라 — 런레이트는 추정이므로 이름에 '예상'이 들어간다
+ *    (`ALLOCATION_COPY.dividendCenter*`).
+ */
+export type DividendCenterMode = 'average' | 'runRate';
+export const dividendCenterModeAtom = atomState<DividendCenterMode>('runRate');
 export const selectedPresetAtom = atomState<'custom' | PresetTickerKey>('custom');
 
 /**
@@ -420,6 +441,8 @@ export const useShowSplitGraphsAtomValue = () => useAtomValue(showSplitGraphsAto
 export const useSetShowSplitGraphsWrite = () => useAtomWrite(showSplitGraphsAtom);
 export const useShowPortfolioDividendCenterAtomValue = () => useAtomValue(showPortfolioDividendCenterAtom);
 export const useSetShowPortfolioDividendCenterWrite = () => useAtomWrite(showPortfolioDividendCenterAtom);
+export const useDividendCenterModeAtomValue = () => useAtomValue(dividendCenterModeAtom);
+export const useSetDividendCenterModeWrite = () => useAtomWrite(dividendCenterModeAtom);
 export const useSelectedPresetAtomValue = () => useAtomValue(selectedPresetAtom);
 export const useSetSelectedPresetWrite = () => useAtomWrite(selectedPresetAtom);
 export const useTourLaunchRequestAtomValue = () => useAtomValue(tourLaunchRequestAtom);

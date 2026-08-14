@@ -31,7 +31,7 @@ export const buildPreviewPieOption = (
   buildAllocationPieOption({
     normalizedAllocation,
     showPortfolioDividendCenter: finalMonthlyDividend !== null,
-    finalMonthlyAverageDividend: finalMonthlyDividend ?? 0
+    centerDividend: finalMonthlyDividend ?? 0
   });
 
 /**

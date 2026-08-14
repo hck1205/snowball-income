@@ -133,6 +133,24 @@ export const runSimulation = (input: SimulationInput): SimulationOutput => {
     }
   }
 
+  /*
+   * 종료 시점 보유 기준 월 배당(세후) — "지금 이 보유량이면 앞으로 매달 얼마".
+   *
+   * 🔴 **여기서 계산한다.** `buildSummary` 는 월별 스냅샷만 받는데, 스냅샷에는 세율이 없다
+   *    (세율은 종목마다 다르고 이 함수만 알고 있다 — 위 `taxRate` 주석). 요약 쪽에서 다시 유도하려면
+   *    세율을 한 번 더 넘겨야 하고, 그러면 같은 값이 두 경로로 흐른다.
+   *
+   * 마지막 달의 `shares` 는 그 달 적립분까지 반영된 값이라 `finalAssetValue` 와 짝이 맞는다
+   * (`portfolioValue = shares * price` 가 같은 줄에서 만들어진다). 그래서 이 값은
+   * `finalAssetValue × 배당률 ÷ 12 × (1−세율)` 과 일치한다 — 화면에서 눈으로 검산된다.
+   *
+   * ⚠ `paymentsPerYear` 로 나누지 않는다. `dps` 가 **연** 주당배당금이라 12 로 나누면 곧 월 환산이고,
+   *   그래야 분기 배당 종목도 월 기준으로 읽힌다(지급월에 한 분기치가 튀는 문제가 여기서 사라진다).
+   */
+  const lastRow = monthly[monthly.length - 1];
+  const finalRunRateMonthlyDividend =
+    lastRow === undefined ? 0 : (lastRow.shares * lastRow.dividendPerShare * (1 - taxRate)) / 12;
+
   return {
     monthly,
     yearly,
@@ -141,7 +159,8 @@ export const runSimulation = (input: SimulationInput): SimulationOutput => {
       yearly,
       totalTaxPaid,
       targetMonthlyDividend: settings.targetMonthlyDividend,
-      totalReinvestedAmount
+      totalReinvestedAmount,
+      finalRunRateMonthlyDividend
     }),
     quickEstimate: runQuickEstimate(input)
   };

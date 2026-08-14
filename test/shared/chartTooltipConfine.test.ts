@@ -84,7 +84,7 @@ describe('파이 툴팁 옵션 — 폭 상한과 가두기가 붙어 있다', ()
       buildAllocationPieOption({
         normalizedAllocation: [{ profile, weight: 1 }],
         showPortfolioDividendCenter: false,
-        finalMonthlyAverageDividend: 0
+        centerDividend: 0
       }),
       donutOption(slices, theme),
       roseOption(

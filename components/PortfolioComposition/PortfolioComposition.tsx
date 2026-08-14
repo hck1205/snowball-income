@@ -2,6 +2,7 @@ import { memo, useState, type CSSProperties } from 'react';
 import { Info, Lock, Pin, PinOff } from 'lucide-react';
 import { Card, Chip, ToggleField } from '@/components';
 import { ALLOCATION_COPY, SIMULATOR_COPY, TOUR_TARGET } from '@/shared/constants';
+import { useDividendCenterModeAtomValue, useSetDividendCenterModeWrite } from '@/jotai';
 import { CHART_SERIES_VARS } from '@/shared/styles';
 import { assignSeriesIndexes } from '@/shared/lib/tickerSeries';
 import { getTickerDisplayName } from '@/shared/utils';
@@ -22,6 +23,7 @@ import {
   HintText,
   SelectedChipWrap
 } from '@/components/common';
+import { TitleRightGroup } from './PortfolioComposition.styled';
 
 // 힌트 줄은 하나만 노출되므로 안정적인 단일 id로 슬라이더 aria-describedby와 연결한다.
 const ADJUST_HINT_ID = 'allocation-adjust-hint';
@@ -44,6 +46,10 @@ function PortfolioCompositionComponent({
 }: PortfolioCompositionProps) {
   // 모바일(≤960px, drawer 레이아웃)에서만 기본 잠금 — 세로 스크롤 중 슬라이더 오조작 방지. 데스크톱은 기본 조절.
   // matchMedia 미지원(jsdom/test)이면 false(조절)로 떨어뜨려 기존 슬라이더 상호작용 테스트를 보존한다.
+  /* 파이 중앙 표시 모드 — 카드 헤더 토글이 쓰고 `useMainComputed` 가 읽어 옵션을 만든다. */
+  const dividendCenterMode = useDividendCenterModeAtomValue();
+  const setDividendCenterMode = useSetDividendCenterModeWrite();
+
   const [isLocked, setIsLocked] = useState<boolean>(
     () =>
       typeof window !== 'undefined' &&
@@ -81,21 +87,39 @@ function PortfolioCompositionComponent({
       title="포트폴리오 구성"
       dataTour={TOUR_TARGET.portfolioComposition}
       titleRight={
-        /* 비율 조절 잠금 — 기본값은 위 useState 참고(모바일 ≤960px만 ON). 잠금을 풀 때만 슬라이더 조절 가능.
-           상태(잠김/조절)는 토글 자신의 on/off 와 라벨이 말한다 — 옆에 자물쇠·연필 글리프를 덧대면
-           같은 말을 두 번 하는 장식이라 두지 않는다(2026-07-28 사용자 결정). */
-        <ToggleField
-          label={ALLOCATION_COPY.lockToggleShortLabel}
-          accessibleName={ALLOCATION_COPY.lockToggleLabel}
-          checked={isLocked}
-          onChange={(event) => {
-            trackEvent(ANALYTICS_EVENT.TOGGLE_CHANGED, {
-              field_name: 'allocationLocked',
-              value: event.target.checked
-            });
-            setIsLocked(event.target.checked);
-          }}
-        />
+        <TitleRightGroup>
+          {/* 파이 중앙 배당 표시 — 켜짐(기본)이면 **종료 시점 보유 기준 예상 월배당**, 끄면 월평균(연÷12).
+              🔴 값만 바뀌는 게 아니라 중앙 **라벨도 함께** 바뀐다(useMainComputed) — 런레이트는
+                 추정이라 이름에 '예상'이 붙어야 한다. */}
+          <ToggleField
+            label={ALLOCATION_COPY.dividendCenterToggleShortLabel}
+            accessibleName={ALLOCATION_COPY.dividendCenterToggleLabel}
+            checked={dividendCenterMode === 'runRate'}
+            onChange={(event) => {
+              const next = event.target.checked ? 'runRate' : 'average';
+              trackEvent(ANALYTICS_EVENT.TOGGLE_CHANGED, {
+                field_name: 'dividendCenterMode',
+                value: event.target.checked
+              });
+              setDividendCenterMode(next);
+            }}
+          />
+          {/* 비율 조절 잠금 — 기본값은 위 useState 참고(모바일 ≤960px만 ON). 잠금을 풀 때만 슬라이더 조절 가능.
+              상태(잠김/조절)는 토글 자신의 on/off 와 라벨이 말한다 — 옆에 자물쇠·연필 글리프를 덧대면
+              같은 말을 두 번 하는 장식이라 두지 않는다(2026-07-28 사용자 결정). */}
+          <ToggleField
+            label={ALLOCATION_COPY.lockToggleShortLabel}
+            accessibleName={ALLOCATION_COPY.lockToggleLabel}
+            checked={isLocked}
+            onChange={(event) => {
+              trackEvent(ANALYTICS_EVENT.TOGGLE_CHANGED, {
+                field_name: 'allocationLocked',
+                value: event.target.checked
+              });
+              setIsLocked(event.target.checked);
+            }}
+          />
+        </TitleRightGroup>
       }
     >
       {includedProfiles.length === 0 ? (
