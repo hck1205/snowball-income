@@ -7490,6 +7490,47 @@ var TICKER_CATEGORY_LABEL = {
   "core-index": "\uCF54\uC5B4 \uC9C0\uC218 ETF",
   "dividend-stock": "\uAC1C\uBCC4 \uBC30\uB2F9\uC8FC"
 };
+var TICKER_CATEGORY_PATH_PREFIX = "/ticker/category";
+var tickerCategoryPath = (categoryId) => `${TICKER_CATEGORY_PATH_PREFIX}/${categoryId}`;
+var isTickerCategoryId = (value) => Object.prototype.hasOwnProperty.call(TICKER_CATEGORY_LABEL, value);
+var TICKER_CATEGORY_IDS = Object.keys(TICKER_CATEGORY_LABEL);
+var TICKER_CATEGORY_META = {
+  "dividend-growth": {
+    metaTitle: "\uBC30\uB2F9\uC131\uC7A5 ETF \uBAA8\uC74C \u2014 \uBC30\uB2F9\uC774 \uB298\uC5B4\uB098\uB294 \uC18D\uB3C4\uB85C \uACE0\uB974\uB294 \uC885\uBAA9",
+    description: "\uC9C0\uAE08\uC758 \uBC30\uB2F9\uB960\uBCF4\uB2E4 \uBC30\uB2F9\uC774 \uD574\uB9C8\uB2E4 \uB298\uC5B4\uB098\uB294 \uC18D\uB3C4\uB97C \uC6B0\uC120\uD558\uB294 ETF\uB97C \uBAA8\uC558\uC2B5\uB2C8\uB2E4. \uAC01 \uC885\uBAA9\uC758 \uC120\uBCC4 \uAE30\uC900\uACFC \uBC30\uB2F9\uC131\uC7A5\uB960, \uAD6C\uC131 \uBC29\uC2DD\uC744 \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4.",
+    caution: "\uBC30\uB2F9\uC131\uC7A5 ETF\uB294 \uB2F9\uC7A5\uC758 \uBC30\uB2F9\uB960\uC774 \uACE0\uBC30\uB2F9 \uC0C1\uD488\uBCF4\uB2E4 \uB0AE\uC2B5\uB2C8\uB2E4. \uC9C0\uAE08 \uBC1B\uC744 \uD604\uAE08\uC774 \uD544\uC694\uD55C \uACBD\uC6B0\uC640 \uC2DC\uAC04\uC744 \uB4E4\uC5EC \uB298\uB9B4 \uACBD\uC6B0\uB294 \uC120\uD0DD\uC774 \uAC08\uB9BD\uB2C8\uB2E4."
+  },
+  "high-dividend": {
+    metaTitle: "\uACE0\uBC30\uB2F9 ETF \uBAA8\uC74C \u2014 \uC9C0\uAE08 \uBC1B\uB294 \uBC30\uB2F9\uC774 \uD070 \uC885\uBAA9",
+    description: "\uD604\uC7AC \uBC30\uB2F9\uB960\uC774 \uB192\uC740 ETF\uB97C \uBAA8\uC558\uC2B5\uB2C8\uB2E4. \uC5B4\uB5A4 \uBC29\uC2DD\uC73C\uB85C \uB192\uC740 \uBD84\uBC30\uAE08\uC744 \uB9CC\uB4DC\uB294\uC9C0, \uADF8 \uC7AC\uC6D0\uC774 \uBB34\uC5C7\uC778\uC9C0 \uC885\uBAA9\uBCC4\uB85C \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4.",
+    caution: "\uB192\uC740 \uBC30\uB2F9\uB960\uC740 \uC8FC\uAC00\uAC00 \uB0B4\uB824\uC11C \uC0DD\uAE30\uAE30\uB3C4 \uD569\uB2C8\uB2E4. \uBC30\uB2F9\uB960\uB9CC \uBCF4\uACE0 \uACE0\uB974\uBA74 \uBC30\uB2F9\uC740 \uBC1B\uB418 \uC6D0\uAE08\uC774 \uC904\uC5B4\uB4DC\uB294 \uC870\uD569\uC744 \uACE0\uB97C \uC218 \uC788\uC2B5\uB2C8\uB2E4."
+  },
+  "covered-call": {
+    metaTitle: "\uCEE4\uBC84\uB4DC\uCF5C\xB7\uC635\uC158\uC778\uCEF4 ETF \uBAA8\uC74C \u2014 \uBD84\uBC30\uAE08\uC774 \uD070 \uB300\uC2E0 \uBB34\uC5C7\uC744 \uB0B4\uC8FC\uB098",
+    description: "\uCF5C\uC635\uC158 \uB9E4\uB3C4\uB85C \uBD84\uBC30\uAE08\uC744 \uB9CC\uB4DC\uB294 ETF\uB97C \uBAA8\uC558\uC2B5\uB2C8\uB2E4. \uD504\uB9AC\uBBF8\uC5C4\uC744 \uC5B4\uB5BB\uAC8C \uC218\uCDE8\uD558\uB294\uC9C0\uC640 \uADF8 \uB300\uAC00\uB85C \uBB34\uC5C7\uC744 \uD3EC\uAE30\uD558\uB294\uC9C0\uB97C \uC885\uBAA9\uBCC4\uB85C \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4.",
+    caution: "\uCEE4\uBC84\uB4DC\uCF5C\uC740 \uD504\uB9AC\uBBF8\uC5C4\uC744 \uBC1B\uB294 \uB300\uC2E0 **\uC8FC\uAC00 \uC0C1\uC2B9\uBD84\uC744 \uC77C\uBD80 \uB0B4\uC90D\uB2C8\uB2E4**. \uBD84\uBC30\uC728\uC774 \uB192\uB2E4\uACE0 \uCD1D\uC218\uC775\uC774 \uB192\uC740 \uAC83\uC740 \uC544\uB2D9\uB2C8\uB2E4."
+  },
+  reit: {
+    metaTitle: "\uB9AC\uCE20(REITs) \uBAA8\uC74C \u2014 \uBD80\uB3D9\uC0B0 \uC784\uB300\uC218\uC775\uC744 \uBC30\uB2F9\uC73C\uB85C \uBC1B\uB294 \uC885\uBAA9",
+    description: "\uBD80\uB3D9\uC0B0\uC5D0\uC11C \uB098\uC624\uB294 \uC784\uB300\uC218\uC775\uC744 \uBC30\uB2F9\uC73C\uB85C \uB3CC\uB824\uC8FC\uB294 \uB9AC\uCE20\uB97C \uBAA8\uC558\uC2B5\uB2C8\uB2E4. \uBCF4\uC720 \uC790\uC0B0\uC758 \uC131\uACA9\uACFC \uBC30\uB2F9 \uC7AC\uC6D0\uC744 \uC885\uBAA9\uBCC4\uB85C \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4.",
+    caution: "\uB9AC\uCE20\uB294 \uAE08\uB9AC\uC5D0 \uBBFC\uAC10\uD569\uB2C8\uB2E4. \uAE08\uB9AC\uAC00 \uC624\uB974\uBA74 \uC870\uB2EC \uBE44\uC6A9\uC774 \uB298\uACE0 \uBC30\uB2F9 \uC5EC\uB825\uC774 \uC904\uC5B4\uB4E4 \uC218 \uC788\uC2B5\uB2C8\uB2E4."
+  },
+  international: {
+    metaTitle: "\uD574\uC678 \uBC30\uB2F9 ETF \uBAA8\uC74C \u2014 \uBBF8\uAD6D \uBC16\uC73C\uB85C \uB113\uD788\uB294 \uBC30\uB2F9 \uD3EC\uD2B8\uD3F4\uB9AC\uC624",
+    description: "\uBBF8\uAD6D \uC678 \uC9C0\uC5ED\uC758 \uBC30\uB2F9\uC8FC\uC5D0 \uD22C\uC790\uD558\uB294 ETF\uB97C \uBAA8\uC558\uC2B5\uB2C8\uB2E4. \uC5B4\uB290 \uC9C0\uC5ED\uC744 \uB2F4\uB294\uC9C0\uC640 \uD1B5\uD654\xB7\uACFC\uC138\uAC00 \uC5B4\uB5BB\uAC8C \uB2EC\uB77C\uC9C0\uB294\uC9C0 \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4.",
+    caution: "\uC9C0\uC5ED\uC744 \uB113\uD788\uBA74 \uBD84\uC0B0\uC740 \uB298\uC9C0\uB9CC \uD658\uC728\uACFC \uD604\uC9C0 \uC6D0\uCC9C\uC9D5\uC218\uB77C\uB294 \uBCC0\uC218\uAC00 \uD568\uAED8 \uB298\uC5B4\uB0A9\uB2C8\uB2E4."
+  },
+  "core-index": {
+    metaTitle: "\uCF54\uC5B4 \uC9C0\uC218 ETF \uBAA8\uC74C \u2014 \uBC30\uB2F9 \uD3EC\uD2B8\uD3F4\uB9AC\uC624\uC758 \uAE30\uC900\uC120",
+    description: "\uC2DC\uC7A5 \uC804\uCCB4\uB97C \uB530\uB77C\uAC00\uB294 \uC9C0\uC218 ETF\uB97C \uBAA8\uC558\uC2B5\uB2C8\uB2E4. \uBC30\uB2F9\uC774 \uC8FC\uBAA9\uC801\uC740 \uC544\uB2C8\uC9C0\uB9CC \uBC30\uB2F9 \uD3EC\uD2B8\uD3F4\uB9AC\uC624\uC758 \uBE44\uAD50 \uAE30\uC900\uC73C\uB85C \uC790\uC8FC \uC4F0\uC785\uB2C8\uB2E4.",
+    caution: "\uCF54\uC5B4 \uC9C0\uC218 ETF\uB294 \uBC30\uB2F9\uB960\uC774 \uB0AE\uC2B5\uB2C8\uB2E4. \uC6D4 \uBC30\uB2F9 \uD604\uAE08\uD750\uB984\uC774 \uBAA9\uC801\uC774\uB77C\uBA74 \uC774 \uBB36\uC74C\uB9CC\uC73C\uB85C\uB294 \uBAA9\uD45C\uC5D0 \uB2FF\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4."
+  },
+  "dividend-stock": {
+    metaTitle: "\uAC1C\uBCC4 \uBC30\uB2F9\uC8FC \uBAA8\uC74C \u2014 \uC885\uBAA9 \uD558\uB098\uB97C \uC9C1\uC811 \uACE0\uB97C \uB54C",
+    description: "ETF\uAC00 \uC544\uB2C8\uB77C \uAC1C\uBCC4 \uAE30\uC5C5\uC758 \uBC30\uB2F9\uC8FC\uB97C \uBAA8\uC558\uC2B5\uB2C8\uB2E4. \uBC30\uB2F9\uC744 \uC5BC\uB9C8\uB098 \uC624\uB798 \uC774\uC5B4 \uC654\uB294\uC9C0\uC640 \uADF8 \uC7AC\uC6D0\uC744 \uC885\uBAA9\uBCC4\uB85C \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4.",
+    caution: "\uAC1C\uBCC4 \uC885\uBAA9\uC740 \uBD84\uC0B0\uC774 \uC5C6\uC2B5\uB2C8\uB2E4. \uBC30\uB2F9\uC740 \uC57D\uC18D\uC774 \uC544\uB2C8\uB77C \uD68C\uC0AC\uC758 \uACB0\uC815\uC774\uB77C \uD55C \uC885\uBAA9\uC758 \uBC30\uB2F9 \uC911\uB2E8\uC774 \uADF8\uB300\uB85C \uD3EC\uD2B8\uD3F4\uB9AC\uC624\uC5D0 \uC635\uB2C8\uB2E4."
+  }
+};
 
 // shared/constants/marketData/marketData.generated.json
 var marketData_generated_default = {
@@ -26761,10 +26802,17 @@ var buildTickerJsonLd = (content, facts, canonical) => jsonLdScript3({
   "@context": "https://schema.org",
   "@graph": [buildFinancialProductSchema(content, facts, canonical), buildFaqPageSchema(content, facts)]
 });
+var renderCategoryBacklinks = (content) => {
+  if (content.categoryIds.length === 0) return "";
+  const items = content.categoryIds.map(
+    (categoryId) => `<li><a href="${escapeHtmlAttribute(tickerCategoryPath(categoryId))}">${escapeHtmlText(TICKER_CATEGORY_LABEL[categoryId])}</a></li>`
+  ).join("");
+  return `<nav class="categories"><h2>\uC774 \uC885\uBAA9\uC774 \uC18D\uD55C \uBB36\uC74C</h2><ul>${items}</ul></nav>`;
+};
 var injectTickerBody = (shell, content, siteUrl) => {
   const facts = resolveTickerEngineFacts(content.ticker);
   const canonical = tickerCanonical(siteUrl, content);
-  const article = "<article>" + renderHero2(content, facts) + content.sections.map((section) => renderSection2(section, facts)).join("") + renderTopHoldings(content.reference.topHoldings) + renderFaqs2(content.faqs, facts) + renderRelatedTickers(content.relatedTickers) + `<p class="disclaimer">${escapeHtmlText(content.disclaimer)}</p></article>` + buildTickerJsonLd(content, facts, canonical);
+  const article = "<article>" + renderHero2(content, facts) + content.sections.map((section) => renderSection2(section, facts)).join("") + renderTopHoldings(content.reference.topHoldings) + renderFaqs2(content.faqs, facts) + renderRelatedTickers(content.relatedTickers) + renderCategoryBacklinks(content) + `<p class="disclaimer">${escapeHtmlText(content.disclaimer)}</p></article>` + buildTickerJsonLd(content, facts, canonical);
   return injectIntoRoot(shell, article);
 };
 var buildHubDescription = () => `${TICKER_CONTENT_LIST.length}\uAC1C \uBC30\uB2F9 ETF\xB7\uC885\uBAA9\uC758 \uBC30\uB2F9\uB960\xB7\uBC30\uB2F9\uC131\uC7A5\uB960\xB7\uC6B4\uC6A9\uBCF4\uC218\xB7\uAD6C\uC131 \uAE30\uC900\uC744 \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4. \uAD00\uC2EC \uC788\uB294 \uD2F0\uCEE4\uB97C \uC120\uD0DD\uD574 \uC790\uC138\uD788 \uD655\uC778\uD574 \uBCF4\uC138\uC694.`;
@@ -26794,6 +26842,80 @@ var injectHubBody2 = (shell, siteUrl) => {
   const article = `<article><h1>${escapeHtmlText(HUB_META_TITLE)}</h1><p>${escapeHtmlText(buildHubDescription())}</p>` + renderHubCategorySections() + `<p class="disclaimer">${escapeHtmlText(HUB_DISCLAIMER)}</p></article>` + buildHubJsonLd(siteUrl);
   return injectIntoRoot(shell, article);
 };
+var categoryCanonical = (siteUrl, categoryId) => `${siteUrl}${tickerCategoryPath(categoryId)}`;
+var renderCategoryList = (categoryId) => {
+  const entries = listTickerContentByCategory(categoryId);
+  if (entries.length === 0) return "";
+  const items = entries.map((entry) => {
+    const href = escapeHtmlAttribute(`/ticker/${entry.slug}`);
+    return `<li><a href="${href}">${escapeHtmlText(`${entry.ticker} \u2014 ${entry.metaTitle}`)}</a> \u2014 ${escapeHtmlText(entry.heroTagline)}</li>`;
+  }).join("");
+  return `<section id="members"><h2>${escapeHtmlText(
+    `${TICKER_CATEGORY_LABEL[categoryId]} ${entries.length}\uC885`
+  )}</h2><ul>${items}</ul></section>`;
+};
+var renderSiblingCategories = (currentId) => {
+  const others = TICKER_CATEGORY_IDS.filter(
+    (categoryId) => categoryId !== currentId && listTickerContentByCategory(categoryId).length > 0
+  );
+  if (others.length === 0) return "";
+  const items = others.map(
+    (categoryId) => `<li><a href="${escapeHtmlAttribute(tickerCategoryPath(categoryId))}">${escapeHtmlText(TICKER_CATEGORY_LABEL[categoryId])}</a></li>`
+  ).join("");
+  return `<nav class="related"><h2>\uB2E4\uB978 \uBB36\uC74C</h2><ul>${items}</ul><p><a href="${escapeHtmlAttribute(HUB_PATH)}">${escapeHtmlText("\uC804\uCCB4 \uBAA9\uB85D \uBCF4\uAE30")}</a></p></nav>`;
+};
+var buildCategoryJsonLd = (categoryId, siteUrl) => jsonLdScript3([
+  {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: TICKER_CATEGORY_LABEL[categoryId],
+    itemListElement: listTickerContentByCategory(categoryId).map((entry, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      url: `${siteUrl}/ticker/${entry.slug}`,
+      name: `${entry.ticker} \u2014 ${entry.metaTitle}`
+    }))
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "\uBC30\uB2F9 ETF\xB7\uC885\uBAA9", item: `${siteUrl}${HUB_PATH}` },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: TICKER_CATEGORY_LABEL[categoryId],
+        item: categoryCanonical(siteUrl, categoryId)
+      }
+    ]
+  }
+]);
+var injectCategoryBody = (shell, categoryId, siteUrl) => {
+  const meta = TICKER_CATEGORY_META[categoryId];
+  const article = `<article><h1>${escapeHtmlText(meta.metaTitle)}</h1><p>${escapeHtmlText(meta.description)}</p><p class="caution">${escapeHtmlText(meta.caution)}</p>` + renderCategoryList(categoryId) + `<p class="cta"><a href="${escapeHtmlAttribute(SIMULATOR_PATH)}">${escapeHtmlText("\uC774 \uBB36\uC74C\uC73C\uB85C \uBC30\uB2F9 \uC7AC\uD22C\uC790 \uACC4\uC0B0\uD574 \uBCF4\uAE30")}</a></p>` + renderSiblingCategories(categoryId) + `<p class="disclaimer">${escapeHtmlText(HUB_DISCLAIMER)}</p></article>` + buildCategoryJsonLd(categoryId, siteUrl);
+  return injectIntoRoot(shell, article);
+};
+async function categoryHandler(request) {
+  const { origin, searchParams } = new URL(request.url);
+  const idParam = (searchParams.get("id") ?? "").trim().toLowerCase();
+  let shell;
+  try {
+    const response = await fetch(new URL("/index.html", origin));
+    if (!response.ok) return redirectToRoot3(origin);
+    shell = await response.text();
+  } catch {
+    return redirectToRoot3(origin);
+  }
+  if (!isTickerCategoryId(idParam)) return htmlResponse3(shell, 200, CACHE_NO_STORE3);
+  const siteUrl = resolveSiteUrl(request.url);
+  const meta = TICKER_CATEGORY_META[idParam];
+  const withMeta = applyDocumentMeta(shell, {
+    title: `${meta.metaTitle} - ${SITE_SUFFIX3}`,
+    description: meta.description,
+    canonical: categoryCanonical(siteUrl, idParam)
+  });
+  return htmlResponse3(injectCategoryBody(withMeta, idParam, siteUrl), 200, CACHE_TICKER);
+}
 async function handler3(request) {
   const { origin, searchParams } = new URL(request.url);
   const nameParam = (searchParams.get("name") ?? "").trim().toLowerCase();
@@ -26819,6 +26941,8 @@ var TickerHtml_default = toNodeHandler(handler3);
 // server/handlers/SeoHtml/SeoHtml.ts
 var ROUTES = {
   ticker: handler3,
+  // 카테고리 허브(`/ticker/category/:id`) — 같은 파일의 다른 export 다. **새 함수가 아니다**(칸 12/12).
+  "ticker-category": categoryHandler,
   "dividend-list": handler,
   guide: handler2
 };

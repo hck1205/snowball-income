@@ -40,7 +40,29 @@ export const ANALYTICS_EVENT = {
   // 모달 노출 이벤트. 용도: 어떤 모달(도움말/저장/불러오기)에 사용자가 시간을 쓰는지 파악.
   MODAL_VIEW: "modal_view",
   // 주요 CTA 클릭 이벤트. 용도: 버튼/영역별 클릭률 비교, CTA 문구/위치 A/B 테스트 근거.
+  // 🔴 **제휴(CPA) CTA 는 이 이름을 쓰지 마라** — 아래 `CPA_*` 를 쓴다. 이유는 그 주석 참고.
   CTA_CLICK: "cta_click",
+  /*
+   * ── 제휴(CPA) CTA 3종 ─────────────────────────────────────────────────────
+   *
+   * 🔴 **`cta_click` 을 재사용하지 않는 이유**: 그 이름은 이미 사이트 전역 CTA 47곳이 쏘고 있다.
+   * 제휴 CTA 를 같은 이름으로 실으면 두 값공간이 한 지표에 섞여 **CTR(=제휴 최적화의 주 지표)이
+   * 오염된다.** 되돌리려면 과거 데이터를 파라미터로 갈라내야 하는데, GA4 는 소급 재처리가 안 된다.
+   * (같은 모양의 사고: `preset_id` 에 팔레트 8종과 밝기 2종이 한 값공간에 섞였던 건.)
+   *
+   * ⚠ 아직 **아무도 쏘지 않는다.** 제휴 승인 전이라 CTA 자체가 없다 — 이 세 줄은 이름을 미리
+   * 못 박아 두는 것이 목적이다(구현 시점에 급하게 정하면 위 사고가 그대로 재발한다).
+   *
+   * 파라미터 규약(구현 시 지킬 것):
+   *   placement : 'compare' | 'simulator' | 'ticker'   — 어느 화면의 자리인가(§5-2 배치)
+   *   account   : 'general' | 'isa' | 'pension'        — 안내한 계좌 **유형**
+   *               🔴 증권**사**를 파라미터로 싣지 마라. 금소법상 '광고 주체' 로 읽힐 여지를 만든다
+   *   variant   : A/B 문구 식별자
+   * KPI: CPA_CTA_CLICK / CPA_CTA_IMPRESSION = CTR, 제휴사 리포트 건수 / CPA_CTA_CLICK = 최종 전환율.
+   */
+  CPA_CTA_IMPRESSION: "cpa_cta_impression",
+  CPA_CTA_CLICK: "cpa_cta_click",
+  CPA_CTA_DISMISS: "cpa_cta_dismiss",
   // 티커 생성 퍼널 시작 이벤트. 용도: 생성 퍼널 시작 모수 집계 및 시작 대비 완료율 계산.
   TICKER_CREATE_STARTED: "ticker_create_started",
   // 티커 생성/수정 완료 이벤트. 용도: 생성 성공률, 입력 방식(커스텀/프리셋)별 완료 성과 분석.
