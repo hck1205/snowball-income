@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { SimulationInput, YieldFormValues } from '@/shared/types';
 import type { YieldValidation } from '@/shared/types/snowball';
+import { resolveDefaultDividendTaxRatePercent } from '@/shared/constants/tax';
 import { isCalendarDateInput } from './SnowballCalendar';
 import { toExpectedTotalReturnPercent } from './SnowballRates';
 
@@ -83,6 +84,9 @@ export const toDateInputValue = (date: Date): string => {
   return `${year}-${month}-${day}`;
 };
 
+/** 기본 종목. 세율 기본값이 여기서 파생되므로(상장지 판정) 바꾸면 세율도 함께 바뀐다. */
+const DEFAULT_TICKER = 'SCHD';
+
 /**
  * 기본 폼 값 팩토리. `today` 를 주입할 수 있어 순수하게 테스트된다.
  *
@@ -91,7 +95,7 @@ export const toDateInputValue = (date: Date): string => {
  * 남는 한계는 그대로지만, UTC 로 인한 **하루 밀림은 사라졌다**.
  */
 export const createDefaultYieldFormValues = (today: Date = new Date()): YieldFormValues => ({
-  ticker: 'SCHD',
+  ticker: DEFAULT_TICKER,
   initialPrice: 100000,
   dividendYield: 3.5,
   // 정합 모델 전환: 기존 기본값(dy 3.5 / dg 6 / etr 8.5)은 dy + dg !== etr 로 자기모순이었다.
@@ -106,7 +110,9 @@ export const createDefaultYieldFormValues = (today: Date = new Date()): YieldFor
   durationYears: 20,
   reinvestDividends: false,
   reinvestDividendPercent: 100,
-  taxRate: 15.4,
+  // 🔴 상장지에서 파생한다 — SCHD 는 미국 상장이라 15.0% 다(국내 15.4% 를 쓰면 세부담이 과대 계상된다).
+  //    기본 티커를 국내 종목으로 바꾸면 이 값도 자동으로 15.4 가 된다.
+  taxRate: resolveDefaultDividendTaxRatePercent(DEFAULT_TICKER),
   reinvestTiming: 'sameMonth',
   dpsGrowthMode: 'monthlySmooth'
 });

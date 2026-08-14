@@ -6,7 +6,7 @@ import { getTickerDisplayName } from '@/shared/utils';
 import { createPortal } from 'react-dom';
 import { ResponsiveEChart } from '@/components/common';
 import { useOptionalCommunityAuth } from '@/components/community/CommunityAuthProvider';
-import { DISPLAY_CURRENCY_COPY, SIMULATOR_COPY } from '@/shared/constants';
+import { DISPLAY_CURRENCY_COPY, resolveDefaultDividendTaxRatePercent, SIMULATOR_COPY } from '@/shared/constants';
 import { buildPostInvestmentChartTitle, focusTargetMonthlyDividendInput } from './MainRightPanel.utils';
 import {
   FinancialIncomeNotice,
@@ -267,7 +267,9 @@ function MainRightPanelComponent({ configDrawerId }: MainRightPanelProps) {
     durationYears: values.durationYears,
     monthlyContribution: values.monthlyContribution,
     initialInvestment: values.initialInvestment,
-    taxRatePercent: values.taxRate,
+    // 세율은 선택 입력이라 비어 있을 수 있다(`h:null` 공유 링크 등). 그때 엔진은 종목 기준 기본값으로
+    // 계산하므로, 화면도 같은 값을 보여야 "조건"과 결과가 갈리지 않는다(shared/constants/tax).
+    taxRatePercent: values.taxRate ?? resolveDefaultDividendTaxRatePercent(values.ticker),
     reinvestDividends: values.reinvestDividends,
     reinvestDividendPercent: values.reinvestDividendPercent,
     targetMonthlyDividend: values.targetMonthlyDividend,

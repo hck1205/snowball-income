@@ -16,6 +16,44 @@ var replaceLinkHref = (html, rel, value) => {
   return html.replace(pattern, `$1${escapeHtmlAttribute(value)}$2`);
 };
 
+// shared/lib/og/shellBody.ts
+var SHELL_FALLBACK_CLASS_NAME = "app-shell-fallback";
+var LANDING_FAQ_SCRIPT_ID = "faq-structured-data";
+var DIV_TAG_PATTERN = /<\/?div\b[^>]*>/gi;
+var findMatchingDivEnd = (html, openTagEnd) => {
+  const pattern = new RegExp(DIV_TAG_PATTERN.source, DIV_TAG_PATTERN.flags);
+  pattern.lastIndex = openTagEnd;
+  let depth = 1;
+  let match = pattern.exec(html);
+  while (match !== null) {
+    if (match[0].startsWith("</")) {
+      depth -= 1;
+      if (depth === 0) return match.index + match[0].length;
+    } else if (!match[0].endsWith("/>")) {
+      depth += 1;
+    }
+    match = pattern.exec(html);
+  }
+  return null;
+};
+var removeDivByClassName = (html, className) => {
+  const openTag = html.match(
+    new RegExp(`<div[^>]*\\sclass="(?:[^"]*\\s)?${className}(?:\\s[^"]*)?"[^>]*>`, "i")
+  );
+  if (!openTag || openTag.index === void 0) return html;
+  const end = findMatchingDivEnd(html, openTag.index + openTag[0].length);
+  if (end === null) return html;
+  return html.slice(0, openTag.index) + html.slice(end);
+};
+var removeScriptById = (html, id) => {
+  const openTag = html.match(new RegExp(`<script[^>]*\\sid="${id}"[^>]*>`, "i"));
+  if (!openTag || openTag.index === void 0) return html;
+  const closeIndex = html.indexOf("</script>", openTag.index + openTag[0].length);
+  if (closeIndex === -1) return html;
+  return html.slice(0, openTag.index) + html.slice(closeIndex + "</script>".length);
+};
+var stripLandingShellBody = (html) => removeScriptById(removeDivByClassName(html, SHELL_FALLBACK_CLASS_NAME), LANDING_FAQ_SCRIPT_ID);
+
 // shared/lib/og/sharedSnapshotRest.ts
 var readServerEnv = (name) => {
   const value = process.env[name];
@@ -236,13 +274,15 @@ var applyListMeta = (shell, kind, siteUrl) => {
   return html;
 };
 var injectPostList = (shell, kind, items) => {
-  const rootOpenTag = shell.match(/<div\s+id="root"[^>]*>/i);
-  if (!rootOpenTag || rootOpenTag.index === void 0) return shell;
+  const stripped = stripLandingShellBody(shell);
+  const rootOpenTag = stripped.match(/<div\s+id="root"[^>]*>/i);
+  if (!rootOpenTag || rootOpenTag.index === void 0) return stripped;
   const label = LIST_META[kind].title;
   const listItems = items.map((item) => `<li><a href="/community/${item.kind}/${item.id}">${escapeHtmlText(item.title)}</a></li>`).join("");
+  const heading = `<h1>${escapeHtmlText(label)}</h1>`;
   const nav = `<nav aria-label="${escapeHtmlAttribute(label)}"><ul>${listItems}</ul></nav>`;
   const insertAt = rootOpenTag.index + rootOpenTag[0].length;
-  return shell.slice(0, insertAt) + nav + shell.slice(insertAt);
+  return stripped.slice(0, insertAt) + heading + nav + stripped.slice(insertAt);
 };
 async function handler(request) {
   const { origin, searchParams } = new URL(request.url);

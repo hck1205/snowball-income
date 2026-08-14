@@ -17,6 +17,17 @@
   ],
 
   "rewrites": [
+    { "source": "/simulator", "destination": "/simulator.html" },
+    { "source": "/dividend/calendar", "destination": "/dividend/calendar.html" },
+    { "source": "/dividend/portfolio", "destination": "/dividend/portfolio.html" },
+    { "source": "/ticker/compare", "destination": "/ticker/compare.html" },
+    { "source": "/market/pulse", "destination": "/market/pulse.html" },
+    { "source": "/market/stats", "destination": "/market/stats.html" },
+    { "source": "/market/us-calendar", "destination": "/market/us-calendar.html" },
+    { "source": "/portfolio/congress", "destination": "/portfolio/congress.html" },
+    { "source": "/portfolio/korea-assembly", "destination": "/portfolio/korea-assembly.html" },
+    { "source": "/portfolio/nps", "destination": "/portfolio/nps.html" },
+    { "source": "/portfolio/investors", "destination": "/portfolio/investors.html" },
     { "source": "/sitemap-posts.xml", "destination": "/api/sitemap" },
     { "source": "/community/portfolio", "destination": "/api/post-list?kind=portfolio" },
     { "source": "/community/board", "destination": "/api/post-list?kind=board" },

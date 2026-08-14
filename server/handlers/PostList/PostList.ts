@@ -14,7 +14,8 @@ import {
   replaceLinkHref,
   replaceMetaContent,
   replaceTitleTag,
-  resolveSiteUrl
+  resolveSiteUrl,
+  stripLandingShellBody
 } from '@/shared/lib/og';
 import type { PublicPostKind, PublicPostListItem } from '@/shared/lib/og';
 import { toNodeHandler } from '@/shared/lib/server';
@@ -105,8 +106,9 @@ const applyListMeta = (shell: string, kind: PublicPostKind, siteUrl: string): st
  * 실행되지 않는다. href 의 id 는 uuid 형식만 통과(postsRest toListItem)라 속성값 주입 위험이 없다.
  */
 const injectPostList = (shell: string, kind: PublicPostKind, items: PublicPostListItem[]): string => {
-  const rootOpenTag = shell.match(/<div\s+id="root"[^>]*>/i);
-  if (!rootOpenTag || rootOpenTag.index === undefined) return shell;
+  const stripped = stripLandingShellBody(shell);
+  const rootOpenTag = stripped.match(/<div\s+id="root"[^>]*>/i);
+  if (!rootOpenTag || rootOpenTag.index === undefined) return stripped;
 
   const label = LIST_META[kind].title;
   const listItems = items
@@ -115,10 +117,13 @@ const injectPostList = (shell: string, kind: PublicPostKind, items: PublicPostLi
   // aria-label 은 **속성 컨텍스트**라 큰따옴표까지 이스케이프하는 escapeHtmlAttribute 를 쓴다
   // (escapeHtmlText 는 &<> 만 처리해 " 로 속성 이탈이 가능하다 — metaHtml.ts 규약). label 이 지금은
   // 정적 상수라 악용 불가지만, 규약 일치 + 미래에 label 이 동적화될 때의 속성 주입을 원천 차단한다.
+  // 🔴 h1 을 함께 낸다. 랜딩 셸 본문을 걷어내면서 이 페이지에 남는 유일한 제목이 `<title>` 뿐이 되는데,
+  //    목록 페이지에 본문 제목이 없으면 크롤러가 "링크만 있는 페이지"로 읽는다. `<title>` 과 같은 문구다.
+  const heading = `<h1>${escapeHtmlText(label)}</h1>`;
   const nav = `<nav aria-label="${escapeHtmlAttribute(label)}"><ul>${listItems}</ul></nav>`;
 
   const insertAt = rootOpenTag.index + rootOpenTag[0].length;
-  return shell.slice(0, insertAt) + nav + shell.slice(insertAt);
+  return stripped.slice(0, insertAt) + heading + nav + stripped.slice(insertAt);
 };
 
 /** 웹 표준 핸들러 — `test/api/postList.test.ts` 가 `handler(new Request(...))` 로 직접 호출한다. */

@@ -16,6 +16,44 @@ var replaceLinkHref = (html2, rel, value) => {
   return html2.replace(pattern, `$1${escapeHtmlAttribute(value)}$2`);
 };
 
+// shared/lib/og/shellBody.ts
+var SHELL_FALLBACK_CLASS_NAME = "app-shell-fallback";
+var LANDING_FAQ_SCRIPT_ID = "faq-structured-data";
+var DIV_TAG_PATTERN = /<\/?div\b[^>]*>/gi;
+var findMatchingDivEnd = (html2, openTagEnd) => {
+  const pattern = new RegExp(DIV_TAG_PATTERN.source, DIV_TAG_PATTERN.flags);
+  pattern.lastIndex = openTagEnd;
+  let depth = 1;
+  let match = pattern.exec(html2);
+  while (match !== null) {
+    if (match[0].startsWith("</")) {
+      depth -= 1;
+      if (depth === 0) return match.index + match[0].length;
+    } else if (!match[0].endsWith("/>")) {
+      depth += 1;
+    }
+    match = pattern.exec(html2);
+  }
+  return null;
+};
+var removeDivByClassName = (html2, className) => {
+  const openTag = html2.match(
+    new RegExp(`<div[^>]*\\sclass="(?:[^"]*\\s)?${className}(?:\\s[^"]*)?"[^>]*>`, "i")
+  );
+  if (!openTag || openTag.index === void 0) return html2;
+  const end = findMatchingDivEnd(html2, openTag.index + openTag[0].length);
+  if (end === null) return html2;
+  return html2.slice(0, openTag.index) + html2.slice(end);
+};
+var removeScriptById = (html2, id) => {
+  const openTag = html2.match(new RegExp(`<script[^>]*\\sid="${id}"[^>]*>`, "i"));
+  if (!openTag || openTag.index === void 0) return html2;
+  const closeIndex = html2.indexOf("</script>", openTag.index + openTag[0].length);
+  if (closeIndex === -1) return html2;
+  return html2.slice(0, openTag.index) + html2.slice(closeIndex + "</script>".length);
+};
+var stripLandingShellBody = (html2) => removeScriptById(removeDivByClassName(html2, SHELL_FALLBACK_CLASS_NAME), LANDING_FAQ_SCRIPT_ID);
+
 // shared/lib/og/sharedSnapshotRest.ts
 var readServerEnv = (name) => {
   const value = process.env[name];
@@ -1857,12 +1895,13 @@ var applyPostMeta = (shell, post, siteUrl) => {
   return html2;
 };
 var injectPostBody = (shell, post) => {
-  const rootOpenTag = shell.match(/<div\s+id="root"[^>]*>/i);
-  if (!rootOpenTag || rootOpenTag.index === void 0) return shell;
+  const stripped = stripLandingShellBody(shell);
+  const rootOpenTag = stripped.match(/<div\s+id="root"[^>]*>/i);
+  if (!rootOpenTag || rootOpenTag.index === void 0) return stripped;
   const safeBody = sanitizePostBody(post.body ?? "");
   const article = `<article><h1>${escapeHtmlText(post.title)}</h1>${safeBody}</article>`;
   const insertAt = rootOpenTag.index + rootOpenTag[0].length;
-  return shell.slice(0, insertAt) + article + shell.slice(insertAt);
+  return stripped.slice(0, insertAt) + article + stripped.slice(insertAt);
 };
 async function handler(request) {
   const { origin, searchParams } = new URL(request.url);

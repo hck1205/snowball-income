@@ -138,6 +138,62 @@ var replaceLinkHref = (html, rel, value) => {
   const pattern = new RegExp(`(<link[^>]*\\srel="${rel}"[^>]*\\shref=")[^"]*(")`, "i");
   return html.replace(pattern, `$1${escapeHtmlAttribute(value)}$2`);
 };
+var applyDocumentMeta = (html, meta) => {
+  let next = replaceTitleTag(html, meta.title);
+  next = replaceMetaContent(next, "name", "description", meta.description);
+  next = replaceLinkHref(next, "canonical", meta.canonical);
+  next = replaceMetaContent(next, "property", "og:title", meta.title);
+  next = replaceMetaContent(next, "property", "og:description", meta.description);
+  next = replaceMetaContent(next, "property", "og:url", meta.canonical);
+  next = replaceMetaContent(next, "name", "twitter:title", meta.title);
+  next = replaceMetaContent(next, "name", "twitter:description", meta.description);
+  return next;
+};
+
+// shared/lib/og/shellBody.ts
+var SHELL_FALLBACK_CLASS_NAME = "app-shell-fallback";
+var LANDING_FAQ_SCRIPT_ID = "faq-structured-data";
+var DIV_TAG_PATTERN = /<\/?div\b[^>]*>/gi;
+var findMatchingDivEnd = (html, openTagEnd) => {
+  const pattern = new RegExp(DIV_TAG_PATTERN.source, DIV_TAG_PATTERN.flags);
+  pattern.lastIndex = openTagEnd;
+  let depth = 1;
+  let match = pattern.exec(html);
+  while (match !== null) {
+    if (match[0].startsWith("</")) {
+      depth -= 1;
+      if (depth === 0) return match.index + match[0].length;
+    } else if (!match[0].endsWith("/>")) {
+      depth += 1;
+    }
+    match = pattern.exec(html);
+  }
+  return null;
+};
+var removeDivByClassName = (html, className) => {
+  const openTag = html.match(
+    new RegExp(`<div[^>]*\\sclass="(?:[^"]*\\s)?${className}(?:\\s[^"]*)?"[^>]*>`, "i")
+  );
+  if (!openTag || openTag.index === void 0) return html;
+  const end = findMatchingDivEnd(html, openTag.index + openTag[0].length);
+  if (end === null) return html;
+  return html.slice(0, openTag.index) + html.slice(end);
+};
+var removeScriptById = (html, id) => {
+  const openTag = html.match(new RegExp(`<script[^>]*\\sid="${id}"[^>]*>`, "i"));
+  if (!openTag || openTag.index === void 0) return html;
+  const closeIndex = html.indexOf("</script>", openTag.index + openTag[0].length);
+  if (closeIndex === -1) return html;
+  return html.slice(0, openTag.index) + html.slice(closeIndex + "</script>".length);
+};
+var stripLandingShellBody = (html) => removeScriptById(removeDivByClassName(html, SHELL_FALLBACK_CLASS_NAME), LANDING_FAQ_SCRIPT_ID);
+var injectIntoRoot = (shell, body) => {
+  const stripped = stripLandingShellBody(shell);
+  const rootOpenTag = stripped.match(/<div\s+id="root"[^>]*>/i);
+  if (!rootOpenTag || rootOpenTag.index === void 0) return stripped;
+  const insertAt = rootOpenTag.index + rootOpenTag[0].length;
+  return stripped.slice(0, insertAt) + body + stripped.slice(insertAt);
+};
 
 // shared/lib/og/siteUrl.ts
 var readServerEnv = (name) => {
@@ -6786,24 +6842,6 @@ var redirectToRoot = (origin) => new Response(null, {
 });
 var escapeJsonForScript = (value) => JSON.stringify(value).replace(/</g, "\\u003c");
 var jsonLdScript = (graph) => `<script type="application/ld+json">${escapeJsonForScript(graph)}</script>`;
-var applyMeta = (shell, title, description, canonical) => {
-  let html = shell;
-  html = replaceTitleTag(html, title);
-  html = replaceMetaContent(html, "name", "description", description);
-  html = replaceLinkHref(html, "canonical", canonical);
-  html = replaceMetaContent(html, "property", "og:title", title);
-  html = replaceMetaContent(html, "property", "og:description", description);
-  html = replaceMetaContent(html, "property", "og:url", canonical);
-  html = replaceMetaContent(html, "name", "twitter:title", title);
-  html = replaceMetaContent(html, "name", "twitter:description", description);
-  return html;
-};
-var injectAtRoot = (shell, body) => {
-  const rootOpenTag = shell.match(/<div\s+id="root"[^>]*>/i);
-  if (!rootOpenTag || rootOpenTag.index === void 0) return shell;
-  const insertAt = rootOpenTag.index + rootOpenTag[0].length;
-  return shell.slice(0, insertAt) + body + shell.slice(insertAt);
-};
 var renderFooterNotes = () => `<section class="disclaimer"><h2>${escapeHtmlText(copy.page.footerNotesTitle)}</h2><ul>` + copy.page.footerNotes.map((note) => `<li>${escapeHtmlText(note)}</li>`).join("") + "</ul></section>";
 var formatCriterion = (list) => list.maximumStreakYears === void 0 ? `${list.minimumStreakYears}\uB144 \uC774\uC0C1` : `${list.minimumStreakYears}~${list.maximumStreakYears}\uB144`;
 var listCanonical = (siteUrl, list) => `${siteUrl}${dividendListPath(list.id)}`;
@@ -6853,7 +6891,7 @@ var injectListBody = (shell, list, siteUrl) => {
   const listCopy = copy.lists[list.id];
   const canonical = listCanonical(siteUrl, list);
   const article = "<article>" + renderHero(list) + `<section id="definition"><h2>${escapeHtmlText(copy.page.definitionHeading)}</h2><p>${escapeHtmlText(listCopy.definition)}</p><p>${escapeHtmlText(listCopy.caution)}</p></section><section id="streak"><h2>${escapeHtmlText(copy.page.streakHeading)}</h2><p>${escapeHtmlText(copy.page.streakBody)}</p></section>` + renderMembersTable(list) + renderSources(list) + renderRelated(list.id) + renderFooterNotes() + "</article>" + buildListJsonLd(list, canonical);
-  return injectAtRoot(shell, article);
+  return injectIntoRoot(shell, article);
 };
 var injectHubBody = (shell, siteUrl) => {
   const rows = DIVIDEND_LIST_ALL.map((list) => {
@@ -6873,7 +6911,7 @@ var injectHubBody = (shell, siteUrl) => {
       name: copy.lists[list.id].metaTitle
     }))
   });
-  return injectAtRoot(shell, article);
+  return injectIntoRoot(shell, article);
 };
 async function handler(request) {
   const { origin, searchParams } = new URL(request.url);
@@ -6888,23 +6926,13 @@ async function handler(request) {
   }
   const siteUrl = resolveSiteUrl(request.url);
   if (listParam === HUB_PARAM) {
-    const html2 = applyMeta(
-      shell,
-      `${copy.hub.meta.title} - ${SITE_SUFFIX}`,
-      copy.hub.meta.description,
-      `${siteUrl}${DIVIDEND_LIST_HUB_PATH}`
-    );
+    const html2 = applyDocumentMeta(shell, { title: `${copy.hub.meta.title} - ${SITE_SUFFIX}`, description: copy.hub.meta.description, canonical: `${siteUrl}${DIVIDEND_LIST_HUB_PATH}` });
     return htmlResponse(injectHubBody(html2, siteUrl), 200, CACHE_LIST);
   }
   const listId = toDividendListId(listParam);
   if (!listId) return htmlResponse(shell, 200, CACHE_NO_STORE);
   const list = DIVIDEND_LISTS[listId];
-  const html = applyMeta(
-    shell,
-    `${copy.lists[listId].metaTitle} - ${SITE_SUFFIX}`,
-    copy.lists[listId].metaDescription,
-    listCanonical(siteUrl, list)
-  );
+  const html = applyDocumentMeta(shell, { title: `${copy.lists[listId].metaTitle} - ${SITE_SUFFIX}`, description: copy.lists[listId].metaDescription, canonical: listCanonical(siteUrl, list) });
   return htmlResponse(injectListBody(html, list, siteUrl), 200, CACHE_LIST);
 }
 var DividendListHtml_default = toNodeHandler(handler);
@@ -7390,24 +7418,6 @@ var redirectToRoot2 = (origin) => new Response(null, {
 var SITE_SUFFIX2 = "Hungry Hippo";
 var escapeJsonForScript2 = (value) => JSON.stringify(value).replace(/</g, "\\u003c");
 var jsonLdScript2 = (graph) => `<script type="application/ld+json">${escapeJsonForScript2(graph)}</script>`;
-var applyMeta2 = (shell, title, description, canonical) => {
-  let html = shell;
-  html = replaceTitleTag(html, title);
-  html = replaceMetaContent(html, "name", "description", description);
-  html = replaceLinkHref(html, "canonical", canonical);
-  html = replaceMetaContent(html, "property", "og:title", title);
-  html = replaceMetaContent(html, "property", "og:description", description);
-  html = replaceMetaContent(html, "property", "og:url", canonical);
-  html = replaceMetaContent(html, "name", "twitter:title", title);
-  html = replaceMetaContent(html, "name", "twitter:description", description);
-  return html;
-};
-var injectAtRoot2 = (shell, body) => {
-  const rootOpenTag = shell.match(/<div\s+id="root"[^>]*>/i);
-  if (!rootOpenTag || rootOpenTag.index === void 0) return shell;
-  const insertAt = rootOpenTag.index + rootOpenTag[0].length;
-  return shell.slice(0, insertAt) + body + shell.slice(insertAt);
-};
 var renderTable = (section) => {
   const table = section.table;
   if (!table) return "";
@@ -7448,7 +7458,7 @@ var buildJsonLd = (guide, canonical) => jsonLdScript2([
 ]);
 var injectGuideBody = (shell, guide, canonical) => {
   const article = `<article><h1>${escapeHtmlText(guide.title)}</h1><p>${escapeHtmlText(guide.lede)}</p>` + guide.sections.map(renderSection).join("") + renderFaqs(guide) + `<p class="cta"><a href="${escapeHtmlAttribute(guide.cta.to)}">${escapeHtmlText(guide.cta.label)}</a> \u2014 ${escapeHtmlText(guide.cta.note)}</p>` + renderRelated2(guide) + "</article>" + buildJsonLd(guide, canonical);
-  return injectAtRoot2(shell, article);
+  return injectIntoRoot(shell, article);
 };
 async function handler2(request) {
   const { origin, searchParams } = new URL(request.url);
@@ -7465,7 +7475,7 @@ async function handler2(request) {
   if (!guide) return htmlResponse2(shell, 200, CACHE_NO_STORE2);
   const siteUrl = resolveSiteUrl(request.url);
   const canonical = `${siteUrl}${guidePath(guide.slug)}`;
-  const html = applyMeta2(shell, `${guide.metaTitle} - ${SITE_SUFFIX2}`, guide.metaDescription, canonical);
+  const html = applyDocumentMeta(shell, { title: `${guide.metaTitle} - ${SITE_SUFFIX2}`, description: guide.metaDescription, canonical });
   return htmlResponse2(injectGuideBody(html, guide, canonical), 200, CACHE_GUIDE);
 }
 var GuideHtml_default = toNodeHandler(handler2);
@@ -8895,6 +8905,14 @@ var parseStartDate = (value) => {
 };
 var isCalendarDateInput = (value) => parseStartDate(value) !== null;
 
+// shared/constants/tax/koreanTaxCategory.ts
+var KOREAN_DIVIDEND_TAX_RATE = 15.4;
+var isKoreanListedTicker = (ticker) => ticker.endsWith(".KS") || ticker.endsWith(".KQ");
+
+// shared/constants/tax/dividendTaxRate.ts
+var US_LISTED_DIVIDEND_TAX_RATE = 15;
+var resolveDefaultDividendTaxRatePercent = (ticker) => isKoreanListedTicker(ticker) ? KOREAN_DIVIDEND_TAX_RATE : US_LISTED_DIVIDEND_TAX_RATE;
+
 // shared/lib/snowball/SnowballRates.ts
 var roundToTwoDecimals = (value) => Math.round(value * 100) / 100;
 var toDerivedDividendGrowthPercent = (expectedTotalReturnPercent, dividendYieldPercent) => roundToTwoDecimals(expectedTotalReturnPercent - dividendYieldPercent);
@@ -8938,8 +8956,9 @@ var toDateInputValue = (date) => {
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 };
+var DEFAULT_TICKER = "SCHD";
 var createDefaultYieldFormValues = (today = /* @__PURE__ */ new Date()) => ({
-  ticker: "SCHD",
+  ticker: DEFAULT_TICKER,
   initialPrice: 1e5,
   dividendYield: 3.5,
   // 정합 모델 전환: 기존 기본값(dy 3.5 / dg 6 / etr 8.5)은 dy + dg !== etr 로 자기모순이었다.
@@ -8954,7 +8973,9 @@ var createDefaultYieldFormValues = (today = /* @__PURE__ */ new Date()) => ({
   durationYears: 20,
   reinvestDividends: false,
   reinvestDividendPercent: 100,
-  taxRate: 15.4,
+  // 🔴 상장지에서 파생한다 — SCHD 는 미국 상장이라 15.0% 다(국내 15.4% 를 쓰면 세부담이 과대 계상된다).
+  //    기본 티커를 국내 종목으로 바꾸면 이 값도 자동으로 15.4 가 된다.
+  taxRate: resolveDefaultDividendTaxRatePercent(DEFAULT_TICKER),
   reinvestTiming: "sameMonth",
   dpsGrowthMode: "monthlySmooth"
 });
@@ -26654,26 +26675,12 @@ var redirectToRoot3 = (origin) => new Response(null, {
 });
 var escapeJsonForScript3 = (value) => JSON.stringify(value).replace(/</g, "\\u003c");
 var jsonLdScript3 = (graph) => `<script type="application/ld+json">${escapeJsonForScript3(graph)}</script>`;
-var applyMeta3 = (shell, title, description, canonical) => {
-  let html = shell;
-  html = replaceTitleTag(html, title);
-  html = replaceMetaContent(html, "name", "description", description);
-  html = replaceLinkHref(html, "canonical", canonical);
-  html = replaceMetaContent(html, "property", "og:title", title);
-  html = replaceMetaContent(html, "property", "og:description", description);
-  html = replaceMetaContent(html, "property", "og:url", canonical);
-  html = replaceMetaContent(html, "name", "twitter:title", title);
-  html = replaceMetaContent(html, "name", "twitter:description", description);
-  return html;
-};
-var injectAtRoot3 = (shell, articleAndScripts) => {
-  const rootOpenTag = shell.match(/<div\s+id="root"[^>]*>/i);
-  if (!rootOpenTag || rootOpenTag.index === void 0) return shell;
-  const insertAt = rootOpenTag.index + rootOpenTag[0].length;
-  return shell.slice(0, insertAt) + articleAndScripts + shell.slice(insertAt);
-};
 var tickerCanonical = (siteUrl, content) => `${siteUrl}/ticker/${content.slug}`;
-var applyTickerMeta = (shell, content, siteUrl) => applyMeta3(shell, `${content.metaTitle} - ${SITE_SUFFIX3}`, content.metaDescription, tickerCanonical(siteUrl, content));
+var applyTickerMeta = (shell, content, siteUrl) => applyDocumentMeta(shell, {
+  title: `${content.metaTitle} - ${SITE_SUFFIX3}`,
+  description: content.metaDescription,
+  canonical: tickerCanonical(siteUrl, content)
+});
 var renderText = (text, facts) => escapeHtmlText(renderTickerContentTemplate(text, facts));
 var renderStat = (stat, facts) => {
   if (!stat) return "";
@@ -26765,11 +26772,11 @@ var injectTickerBody = (shell, content, siteUrl) => {
   const facts = resolveTickerEngineFacts(content.ticker);
   const canonical = tickerCanonical(siteUrl, content);
   const article = "<article>" + renderHero2(content, facts) + content.sections.map((section) => renderSection2(section, facts)).join("") + renderTopHoldings(content.reference.topHoldings) + renderFaqs2(content.faqs, facts) + renderRelatedTickers(content.relatedTickers) + `<p class="disclaimer">${escapeHtmlText(content.disclaimer)}</p></article>` + buildTickerJsonLd(content, facts, canonical);
-  return injectAtRoot3(shell, article);
+  return injectIntoRoot(shell, article);
 };
 var buildHubDescription = () => `${TICKER_CONTENT_LIST.length}\uAC1C \uBC30\uB2F9 ETF\xB7\uC885\uBAA9\uC758 \uBC30\uB2F9\uB960\xB7\uBC30\uB2F9\uC131\uC7A5\uB960\xB7\uC6B4\uC6A9\uBCF4\uC218\xB7\uAD6C\uC131 \uAE30\uC900\uC744 \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4. \uAD00\uC2EC \uC788\uB294 \uD2F0\uCEE4\uB97C \uC120\uD0DD\uD574 \uC790\uC138\uD788 \uD655\uC778\uD574 \uBCF4\uC138\uC694.`;
 var HUB_DISCLAIMER = "\uC774 \uD398\uC774\uC9C0\uB294 \uC815\uBCF4 \uC81C\uACF5\uC744 \uBAA9\uC801\uC73C\uB85C \uD558\uBA70 \uD22C\uC790 \uC790\uBB38\uC774 \uC544\uB2D9\uB2C8\uB2E4. \uBC30\uB2F9\uB960\xB7\uC8FC\uAC00\xB7\uC6B4\uC6A9\uBCF4\uC218\xB7\uC138\uAE08 \uB4F1\uC740 \uC2DC\uC7A5 \uC0C1\uD669\uACFC \uC815\uCC45\uC5D0 \uB530\uB77C \uBCC0\uB3D9\uB420 \uC218 \uC788\uC2B5\uB2C8\uB2E4.";
-var applyHubMeta = (shell, siteUrl) => applyMeta3(shell, `${HUB_META_TITLE} - ${SITE_SUFFIX3}`, buildHubDescription(), `${siteUrl}${HUB_PATH}`);
+var applyHubMeta = (shell, siteUrl) => applyDocumentMeta(shell, { title: `${HUB_META_TITLE} - ${SITE_SUFFIX3}`, description: buildHubDescription(), canonical: `${siteUrl}${HUB_PATH}` });
 var renderHubCategorySections = () => Object.keys(TICKER_CATEGORY_LABEL).map((categoryId) => {
   const entries = listTickerContentByCategory(categoryId);
   if (entries.length === 0) return "";
@@ -26792,7 +26799,7 @@ var buildHubJsonLd = (siteUrl) => jsonLdScript3({
 });
 var injectHubBody2 = (shell, siteUrl) => {
   const article = `<article><h1>${escapeHtmlText(HUB_META_TITLE)}</h1><p>${escapeHtmlText(buildHubDescription())}</p>` + renderHubCategorySections() + `<p class="disclaimer">${escapeHtmlText(HUB_DISCLAIMER)}</p></article>` + buildHubJsonLd(siteUrl);
-  return injectAtRoot3(shell, article);
+  return injectIntoRoot(shell, article);
 };
 async function handler3(request) {
   const { origin, searchParams } = new URL(request.url);

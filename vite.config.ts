@@ -1,4 +1,5 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, resolve as resolvePath } from 'node:path';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { build as esbuild } from 'esbuild';
@@ -7,6 +8,8 @@ import type { Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import type { SimulationOutput } from './shared/types';
 import { API_BUNDLES } from './tools/apiBundle/manifest.mjs';
+import { escapeHtmlText, replaceLinkHref, replaceMetaContent, replaceTitleTag } from './shared/lib/og/metaHtml';
+import { stripLandingShellBody } from './shared/lib/og/shellBody';
 
 /**
  * 배포 도메인의 단일 진실 공급원(single source of truth).
@@ -274,6 +277,31 @@ ${[...ROUTES, ...extraRoutes]
 //   sitemaps.org의 크로스-경로 규칙상 사이트맵은 자기 디렉터리 이하의 URL만 담을 수 있고 **robots.txt에
 //   직접 등재된 사이트맵은 그 제약에서 면제**된다. `/sitemap-posts.xml`은 rewrite로 `/api/` 함수가
 //   서빙하므로, 등재해 두면 경로 해석 차이로 조용히 거부당하는 경우를 원천 차단한다.
+/**
+ * robots.txt.
+ *
+ * 국내 검색(Yeti·Daumoa)을 명시하는 이유는 그들이 **JS 를 실행하지 않기** 때문이다 — 명시 허용만으로는
+ * 부족해서 라우트별 정적 셸(`ROUTE_SHELLS`)까지 굽는다.
+ *
+ * ## 🔴 생성형 엔진(AI) 크롤러를 명시하는 이유
+ * `User-agent: *` 로 이미 허용되지만, **명시는 의도의 기록**이다. 이 사이트의 자산은 "트레이드오프를
+ * 먼저 말하는 정직한 설명"이고 그건 AI 답변에 인용될 때 가장 값이 크다. 명시해 두면 ①나중에 누가
+ * 와일드카드를 좁혀도 이 정책이 남고 ②차단하기로 마음이 바뀌면 **여기 한 곳만** 고치면 된다.
+ * ⚠ 이건 정책 결정이다 — 학습·인용을 원치 않으면 해당 줄을 `Disallow: /` 로 바꾼다.
+ *   `Google-Extended`(Gemini 학습)와 `Applebot-Extended`(Apple Intelligence)는 **검색 색인과 별개**라
+ *   막아도 구글 검색 순위에는 영향이 없다.
+ */
+const AI_CRAWLERS = [
+  'GPTBot', // OpenAI 학습
+  'OAI-SearchBot', // ChatGPT 검색 색인
+  'ChatGPT-User', // 사용자가 링크를 열 때
+  'ClaudeBot', // Anthropic
+  'PerplexityBot',
+  'Google-Extended', // Gemini 학습 (검색 색인과 별개)
+  'Applebot-Extended', // Apple Intelligence
+  'CCBot' // Common Crawl — 여러 모델의 공통 재료
+];
+
 const buildRobots = (siteUrl: string) =>
   `User-agent: *
 Allow: /
@@ -284,6 +312,9 @@ Allow: /
 User-agent: Daumoa
 Allow: /
 
+${AI_CRAWLERS.map((agent) => `User-agent: ${agent}\nAllow: /`).join('\n\n')}
+
+# 사람이 읽는 요약: ${siteUrl}/llms.txt (전문: /llms-full.txt, 구조화: /ai-overview.json)
 Sitemap: ${siteUrl}/sitemap.xml
 Sitemap: ${siteUrl}/sitemap-pages.xml
 Sitemap: ${siteUrl}/sitemap-posts.xml
@@ -467,6 +498,134 @@ const ogFontsPlugin = (): Plugin => ({
 });
 
 /**
+ * `/simulator` 전용 **정적 셸**(`dist/simulator.html`)을 하나 더 굽는다.
+ *
+ * ## 무엇을 고치나
+ * `/simulator` 는 서버 렌더 핸들러가 없어 `index.html`(= 랜딩 셸)을 그대로 받는다. 그래서 정적 HTML의
+ * `<title>`·`description`·`canonical` 이 전부 **랜딩의 것**이었다. 앱은 `SIMULATOR_COPY.meta` 로
+ * 런타임에 고치지만(`useDocumentMeta`), **JS 를 실행하지 않는 크롤러**(네이버 Yeti·다음 Daumoa·일부 AI
+ * 봇)는 그 수정을 보지 못한다 — 그쪽 눈에는 색인 대상 두 라우트의 제목·canonical 이 완전히 같고,
+ * "배당 재투자 시뮬레이터" 라는 주력 키워드를 가진 페이지가 **검색에 존재하지 않는다**.
+ *
+ * ## 🔴 왜 서버리스 함수가 아니라 정적 파일인가
+ * Vercel Hobby 함수 상한이 **12개인데 이미 12개**다(`tools/apiBundle/manifest.mjs`). 정적 파일은 그
+ * 칸을 쓰지 않고 런타임 비용도 0 이다 — 엣지 미들웨어에서 셸을 fetch·치환하는 방식과 달리 일반
+ * 방문자에게 지연을 더하지 않는다.
+ *
+ * ## 문구의 정본
+ * 제목·설명은 **`SIMULATOR_COPY.meta`** 를 그대로 쓴다(앱이 런타임에 쓰는 바로 그 값). 두 벌로
+ * 나누면 정적 HTML 과 탭 제목이 조용히 갈라진다 — `test/seo/simulatorShell.test.ts` 가 둘을 함께 잠근다.
+ *
+ * ⚠ 랜딩 본문(`.app-shell-fallback`)과 랜딩 전용 FAQPage JSON-LD 는 걷어낸다. 남겨 두면 `/simulator`
+ *   에도 랜딩 h1 과 랜딩 FAQ 가 실려 중복 콘텐츠가 된다(shellBody.ts 와 같은 이유).
+ */
+
+/**
+ * 라우트 셸 목록(`tools/seo/routeShells.ts`)을 읽는다.
+ *
+ * 🔴 정적 `import` 로는 못 가져온다 — 그 파일이 참조하는 화면 카피가 `@/...` 별칭을 쓰는데
+ * **Vite config 로더는 그 스펙파이어를 external 로 빼버린다**(`ERR_MODULE_NOT_FOUND: @/shared`).
+ * `loadTickerRoutes`·`loadGuideRoutes` 와 **같은 방법**으로 esbuild 로 한 번 번들해 메모리에서 평가한다.
+ */
+type RouteShell = { path: string; title: string; description: string };
+
+let routeShellsPromise: Promise<RouteShell[]> | null = null;
+
+const loadRouteShells = (): Promise<RouteShell[]> => {
+  routeShellsPromise ??= (async () => {
+    const rootDir = fileURLToPath(new URL('.', import.meta.url));
+    const { outputFiles } = await esbuild({
+      stdin: {
+        contents: `export { ROUTE_SHELLS } from './tools/seo/routeShells';`,
+        resolveDir: rootDir,
+        loader: 'ts'
+      },
+      bundle: true,
+      write: false,
+      format: 'esm',
+      platform: 'node',
+      target: 'node20',
+      tsconfig: 'tsconfig.json',
+      logLevel: 'silent'
+    });
+    const source = Buffer.from(outputFiles[0].text).toString('base64');
+    const mod = (await import(`data:text/javascript;base64,${source}`)) as { ROUTE_SHELLS: RouteShell[] };
+    return mod.ROUTE_SHELLS;
+  })();
+  return routeShellsPromise;
+};
+
+/** 문서 제목 접미. `pages/Ticker/hooks/useDocumentMeta.ts`·`server/handlers/*` 와 같은 문자열이다. */
+const SITE_SUFFIX = 'Hungry Hippo';
+
+const buildRouteShell = (indexHtml: string, siteUrl: string, route: RouteShell): string => {
+  const canonical = `${siteUrl}${route.path}`;
+  const { description } = route;
+  // 🔴 접미는 `useDocumentMeta` 가 런타임에 붙이는 것과 **같은 형태**여야 한다. 다르면 JS 실행 전후로
+  //    탭 제목이 바뀌고, 크롤러가 읽는 제목과 GA4 `page_title` 이 갈린다(가드: test/seo/routeShells).
+  const title = `${route.title} - ${SITE_SUFFIX}`;
+
+  let html = stripLandingShellBody(indexHtml);
+  html = replaceTitleTag(html, title);
+  html = replaceMetaContent(html, 'name', 'description', description);
+  html = replaceLinkHref(html, 'canonical', canonical);
+  html = replaceMetaContent(html, 'property', 'og:url', canonical);
+  html = replaceMetaContent(html, 'property', 'og:title', title);
+  html = replaceMetaContent(html, 'property', 'og:description', description);
+  html = replaceMetaContent(html, 'name', 'twitter:title', title);
+  html = replaceMetaContent(html, 'name', 'twitter:description', description);
+
+  // 랜딩 본문을 걷어낸 자리에 **그 화면의 본문**을 넣는다. 비워 두면 JS 없는 방문자에게 빈 화면이고,
+  // 크롤러에게는 "제목만 있고 내용이 없는 페이지"가 된다. 문구는 위 메타와 같은 정본에서 온다.
+  const fallback =
+    '<div class="app-shell-fallback">'
+    + `<h1>${escapeHtmlText(route.title)}</h1>`
+    + `<p>${escapeHtmlText(description)}</p>`
+    + '<noscript><p class="disclaimer">이 화면을 직접 사용하려면 브라우저에서 JavaScript를 활성화해 주세요.</p></noscript>'
+    + '</div>';
+  const rootOpenTag = html.match(/<div\s+id="root"[^>]*>/i);
+  if (rootOpenTag && rootOpenTag.index !== undefined) {
+    const insertAt = rootOpenTag.index + rootOpenTag[0].length;
+    html = html.slice(0, insertAt) + fallback + html.slice(insertAt);
+  }
+
+  return html;
+};
+
+/**
+ * `ROUTE_SHELLS` 목록대로 라우트별 정적 셸을 굽는다.
+ *
+ * `closeBundle` 에서 **디스크의 `dist/index.html` 을 읽는** 이유는 그 시점의 index.html 이 해시가 박힌
+ * `<script>`/`<link>` 와 `%VITE_SITE_URL%` 치환까지 **끝난 최종본**이기 때문이다(generateBundle 단계에서는
+ * 플러그인 순서에 따라 아직 아닐 수 있다). 같은 스크립트 태그를 그대로 물려받으므로 **앱 부팅은 동일**하다.
+ */
+const routeShellsPlugin = (siteUrl: string): Plugin => {
+  let outDir = 'dist';
+  let root = process.cwd();
+
+  return {
+    name: 'snowball-route-shells',
+    apply: 'build',
+    configResolved(config) {
+      outDir = config.build.outDir;
+      root = config.root;
+    },
+    async closeBundle() {
+      const indexPath = resolvePath(root, outDir, 'index.html');
+      if (!existsSync(indexPath)) return;
+      const indexHtml = readFileSync(indexPath, 'utf8');
+
+      for (const route of await loadRouteShells()) {
+        // `/portfolio/nps` → `dist/portfolio/nps.html`. 중첩 경로라 디렉터리를 먼저 만든다.
+        const target = resolvePath(root, outDir, `${route.path.replace(/^\//, '')}.html`);
+        mkdirSync(dirname(target), { recursive: true });
+        writeFileSync(target, buildRouteShell(indexHtml, siteUrl, route), 'utf8');
+      }
+    }
+  };
+};
+
+/**
  * sitemap.xml / robots.txt를 도메인 단일 소스에서 생성한다.
  * public/에 정적 파일로 두면 도메인이 3곳(html·sitemap·robots)에 흩어져 반드시 drift가 난다.
  * 외부 의존성 0 — 인라인 플러그인.
@@ -636,7 +795,7 @@ export default defineConfig(({ command, mode }) => {
   }
 
   return {
-    plugins: [react(), seoAssetsPlugin(siteUrl), ogFontsPlugin(), apiDevPlugin()],
+    plugins: [react(), seoAssetsPlugin(siteUrl), ogFontsPlugin(), routeShellsPlugin(siteUrl), apiDevPlugin()],
     // index.html의 %VITE_SITE_URL% 토큰과 앱 코드의 import.meta.env.VITE_SITE_URL이
     // 항상 같은 값(정규화된 siteUrl)을 보도록 되돌려 넣는다.
     define: {

@@ -6716,6 +6716,14 @@ var buildMonthContext = (startDate, monthIndex) => {
   };
 };
 
+// shared/constants/tax/koreanTaxCategory.ts
+var KOREAN_DIVIDEND_TAX_RATE = 15.4;
+var isKoreanListedTicker = (ticker) => ticker.endsWith(".KS") || ticker.endsWith(".KQ");
+
+// shared/constants/tax/dividendTaxRate.ts
+var US_LISTED_DIVIDEND_TAX_RATE = 15;
+var resolveDefaultDividendTaxRatePercent = (ticker) => isKoreanListedTicker(ticker) ? KOREAN_DIVIDEND_TAX_RATE : US_LISTED_DIVIDEND_TAX_RATE;
+
 // shared/constants/tax/index.ts
 var OVERSEAS_CAPITAL_GAINS_TAX_RATE = 22;
 var CAPITAL_GAINS_ANNUAL_DEDUCTION = 25e5;
@@ -6814,8 +6822,9 @@ var toDateInputValue = (date) => {
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 };
+var DEFAULT_TICKER = "SCHD";
 var createDefaultYieldFormValues = (today = /* @__PURE__ */ new Date()) => ({
-  ticker: "SCHD",
+  ticker: DEFAULT_TICKER,
   initialPrice: 1e5,
   dividendYield: 3.5,
   // 정합 모델 전환: 기존 기본값(dy 3.5 / dg 6 / etr 8.5)은 dy + dg !== etr 로 자기모순이었다.
@@ -6830,7 +6839,9 @@ var createDefaultYieldFormValues = (today = /* @__PURE__ */ new Date()) => ({
   durationYears: 20,
   reinvestDividends: false,
   reinvestDividendPercent: 100,
-  taxRate: 15.4,
+  // 🔴 상장지에서 파생한다 — SCHD 는 미국 상장이라 15.0% 다(국내 15.4% 를 쓰면 세부담이 과대 계상된다).
+  //    기본 티커를 국내 종목으로 바꾸면 이 값도 자동으로 15.4 가 된다.
+  taxRate: resolveDefaultDividendTaxRatePercent(DEFAULT_TICKER),
   reinvestTiming: "sameMonth",
   dpsGrowthMode: "monthlySmooth"
 });
@@ -6999,7 +7010,7 @@ var buildSummary = ({
 // shared/lib/snowball/SnowballSimulation.ts
 var runSimulation = (input) => {
   const { ticker, settings } = input;
-  const taxRate = toTaxRate(settings.taxRate);
+  const taxRate = toTaxRate(settings.taxRate ?? resolveDefaultDividendTaxRatePercent(ticker.ticker));
   const dividendYield = ticker.dividendYield / 100;
   const growth = toPriceGrowth(ticker.dividendGrowth);
   const priceGrowth = growth;

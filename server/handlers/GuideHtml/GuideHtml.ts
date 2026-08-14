@@ -7,10 +7,9 @@
 import {
   escapeHtmlAttribute,
   escapeHtmlText,
-  replaceLinkHref,
-  replaceMetaContent,
-  replaceTitleTag,
-  resolveSiteUrl
+  resolveSiteUrl,
+  injectIntoRoot,
+  applyDocumentMeta
 } from '@/shared/lib/og';
 import { toNodeHandler } from '@/shared/lib/server';
 import { GUIDES, findGuide, guidePath } from '@/shared/constants/guides';
@@ -62,26 +61,6 @@ const escapeJsonForScript = (value: unknown): string => JSON.stringify(value).re
 const jsonLdScript = (graph: unknown): string =>
   `<script type="application/ld+json">${escapeJsonForScript(graph)}</script>`;
 
-const applyMeta = (shell: string, title: string, description: string, canonical: string): string => {
-  let html = shell;
-  html = replaceTitleTag(html, title);
-  html = replaceMetaContent(html, 'name', 'description', description);
-  html = replaceLinkHref(html, 'canonical', canonical);
-  html = replaceMetaContent(html, 'property', 'og:title', title);
-  html = replaceMetaContent(html, 'property', 'og:description', description);
-  html = replaceMetaContent(html, 'property', 'og:url', canonical);
-  html = replaceMetaContent(html, 'name', 'twitter:title', title);
-  html = replaceMetaContent(html, 'name', 'twitter:description', description);
-  return html;
-};
-
-/** `<div id="root">` 여는 태그 **직후**에 삽입 — 다른 핸들러와 같은 지점(닫는 태그 매칭은 취약하다). */
-const injectAtRoot = (shell: string, body: string): string => {
-  const rootOpenTag = shell.match(/<div\s+id="root"[^>]*>/i);
-  if (!rootOpenTag || rootOpenTag.index === undefined) return shell;
-  const insertAt = rootOpenTag.index + rootOpenTag[0].length;
-  return shell.slice(0, insertAt) + body + shell.slice(insertAt);
-};
 
 /**
  * 표 한 장. 🔴 `note`(계산 전제)를 반드시 함께 낸다 — 화면이 그 줄을 필수로 다루는 것과 같은 이유로,
@@ -183,7 +162,7 @@ const injectGuideBody = (shell: string, guide: GuideContent, canonical: string):
     '</article>' +
     buildJsonLd(guide, canonical);
 
-  return injectAtRoot(shell, article);
+  return injectIntoRoot(shell, article);
 };
 
 /** 웹 표준 핸들러 — 테스트가 `handler(new Request(...))` 로 직접 호출한다. */
@@ -210,7 +189,7 @@ export async function handler(request: Request): Promise<Response> {
   /* 🔴 접미사는 **표면이 붙인다**(TickerHtml 과 같은 규칙). 종전에는 콘텐츠의 metaTitle 이 직접
      적고 있었는데, SPA 가 같은 문자열에 접미사를 한 번 더 붙여 화면 제목이 두 번 겹쳤다
      (2026-08-06). 콘텐츠는 검색어에 쓸 앞자리만 소유한다. */
-  const html = applyMeta(shell, `${guide.metaTitle} - ${SITE_SUFFIX}`, guide.metaDescription, canonical);
+  const html = applyDocumentMeta(shell, { title: `${guide.metaTitle} - ${SITE_SUFFIX}`, description: guide.metaDescription, canonical: canonical });
 
   return htmlResponse(injectGuideBody(html, guide, canonical), 200, CACHE_GUIDE);
 }

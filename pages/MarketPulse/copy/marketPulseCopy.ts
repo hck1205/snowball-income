@@ -12,7 +12,12 @@
  *  · 각 값 옆에 **기준일**을 반드시 적는다 — 갱신 주기가 제각각이다.
  */
 export const MARKET_PULSE_COPY = {
-  documentTitle: '시장 온도 - Hungry Hippo',
+  /**
+   * 🔴 **사이트명 접미(` - Hungry Hippo`)를 여기 넣지 마라.** `useDocumentMeta` 가 붙이고,
+   * 빌드의 정적 셸(`tools/seo/routeShells.ts`)도 같은 형태로 붙인다 — 여기 이미 들어 있으면
+   * 탭 제목과 크롤러가 읽는 `<title>` 이 `… - Hungry Hippo - Hungry Hippo` 가 된다(2026-08-14 수정).
+   */
+  documentTitle: '시장 온도 — VIX·신용 스프레드·공포탐욕 지수',
   title: '시장 온도',
   lede:
     '변동성·신용·심리·거시 지표를 한자리에 모았습니다. 각 숫자가 무엇을 재는지와 지금 값이 자기 역사에서 어디쯤인지를 보여 드립니다.',

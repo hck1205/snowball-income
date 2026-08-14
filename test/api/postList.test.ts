@@ -81,7 +81,9 @@ describe('api/post-list — 목록 주입', () => {
     const html = await (await call('kind=portfolio')).text();
     const inner = rootInner(html);
 
-    expect(inner.startsWith('<nav')).toBe(true);
+    // h1 이 먼저, 그 뒤에 nav — 랜딩 셸 본문을 걷어내면서(shellBody.ts) 이 페이지의 유일한 본문 제목이
+    // 됐다. 제목 없이 링크만 남기면 크롤러가 "링크만 있는 페이지"로 읽는다.
+    expect(inner.startsWith('<h1>배당계산 갤러리</h1><nav')).toBe(true);
     expect(html).toContain(`<a href="/community/portfolio/${ID_A}">SCHD 30년</a>`);
     expect(html).toContain(`<a href="/community/portfolio/${ID_B}">JEPI 배당</a>`);
   });

@@ -54,3 +54,28 @@ export const replaceLinkHref = (html: string, rel: string, value: string): strin
   const pattern = new RegExp(`(<link[^>]*\\srel="${rel}"[^>]*\\shref=")[^"]*(")`, 'i');
   return html.replace(pattern, `$1${escapeHtmlAttribute(value)}$2`);
 };
+
+/**
+ * 문서 메타 **한 벌**을 통째로 치환한다 — title / description / canonical / og / twitter.
+ *
+ * 🔴 크롤러 HTML 핸들러 셋(Ticker·Guide·DividendList)이 **글자 하나 다르지 않은 같은 함수**를
+ * 각자 두고 있었다(2026-08-14 통합). 복사본이 있으면 "og:url 을 빠뜨린 한 곳" 같은 결함이 생기고,
+ * 그 손실은 **화면에 아무 증상이 없어** 리뷰로도 잘 안 잡힌다.
+ *
+ * ⚠ 여덟 자리를 **한 번에** 바꾸는 것이 요점이다. 검색결과 제목(`<title>`)·SNS 카드(og·twitter)·
+ * 색인 정본(canonical)이 갈리면 표면마다 다른 페이지처럼 보인다.
+ */
+export const applyDocumentMeta = (
+  html: string,
+  meta: { title: string; description: string; canonical: string }
+): string => {
+  let next = replaceTitleTag(html, meta.title);
+  next = replaceMetaContent(next, 'name', 'description', meta.description);
+  next = replaceLinkHref(next, 'canonical', meta.canonical);
+  next = replaceMetaContent(next, 'property', 'og:title', meta.title);
+  next = replaceMetaContent(next, 'property', 'og:description', meta.description);
+  next = replaceMetaContent(next, 'property', 'og:url', meta.canonical);
+  next = replaceMetaContent(next, 'name', 'twitter:title', meta.title);
+  next = replaceMetaContent(next, 'name', 'twitter:description', meta.description);
+  return next;
+};

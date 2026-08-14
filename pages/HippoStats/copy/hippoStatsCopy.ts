@@ -8,7 +8,8 @@
  * ⚠ 미래형 서술 금지. 이 화면에 예측은 없다.
  */
 export const HIPPO_STATS_COPY = {
-  documentTitle: '히포 통계 - Hungry Hippo',
+  /** 🔴 사이트명 접미는 `useDocumentMeta`·빌드 셸이 붙인다 — 여기 넣으면 두 번 붙는다(marketPulseCopy 주석 참고). */
+  documentTitle: '히포 통계 — 시장 지표 레이더와 의원 거래 순위',
   title: '히포 통계',
   lede: '시장 온도의 지표들을 한 도형에 겹쳐 보고, 공시로 드러난 거래를 종목별로 세어 봅니다.',
   metaDescription:

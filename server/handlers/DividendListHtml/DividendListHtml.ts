@@ -9,10 +9,9 @@
 import {
   escapeHtmlAttribute,
   escapeHtmlText,
-  replaceLinkHref,
-  replaceMetaContent,
-  replaceTitleTag,
-  resolveSiteUrl
+  resolveSiteUrl,
+  injectIntoRoot,
+  applyDocumentMeta
 } from '@/shared/lib/og';
 import { toNodeHandler } from '@/shared/lib/server';
 import {
@@ -89,29 +88,6 @@ const escapeJsonForScript = (value: unknown): string => JSON.stringify(value).re
 const jsonLdScript = (graph: unknown): string =>
   `<script type="application/ld+json">${escapeJsonForScript(graph)}</script>`;
 
-const applyMeta = (shell: string, title: string, description: string, canonical: string): string => {
-  let html = shell;
-  html = replaceTitleTag(html, title);
-  html = replaceMetaContent(html, 'name', 'description', description);
-  html = replaceLinkHref(html, 'canonical', canonical);
-  html = replaceMetaContent(html, 'property', 'og:title', title);
-  html = replaceMetaContent(html, 'property', 'og:description', description);
-  html = replaceMetaContent(html, 'property', 'og:url', canonical);
-  html = replaceMetaContent(html, 'name', 'twitter:title', title);
-  html = replaceMetaContent(html, 'name', 'twitter:description', description);
-  return html;
-};
-
-/**
- * `<div id="root">` 여는 태그 **직후**에 삽입한다 — `TickerHtml`·`PostHtml` 과 같은 지점 선택 이유
- * (중첩 div 매칭에 취약한 닫는 태그 방식 대신, 빈 셸/실셸 양쪽에서 결정적이다).
- */
-const injectAtRoot = (shell: string, body: string): string => {
-  const rootOpenTag = shell.match(/<div\s+id="root"[^>]*>/i);
-  if (!rootOpenTag || rootOpenTag.index === undefined) return shell;
-  const insertAt = rootOpenTag.index + rootOpenTag[0].length;
-  return shell.slice(0, insertAt) + body + shell.slice(insertAt);
-};
 
 /**
  * 화면 푸터의 각주와 **같은 문장**을 크롤러 HTML 에도 낸다. 화면은 `PageFooter` 가 사이트 공통 고지를
@@ -263,7 +239,7 @@ const injectListBody = (shell: string, list: DividendList, siteUrl: string): str
     '</article>' +
     buildListJsonLd(list, canonical);
 
-  return injectAtRoot(shell, article);
+  return injectIntoRoot(shell, article);
 };
 
 /* -------------------------------------------------------------------------- */
@@ -310,7 +286,7 @@ const injectHubBody = (shell: string, siteUrl: string): string => {
       }))
     });
 
-  return injectAtRoot(shell, article);
+  return injectIntoRoot(shell, article);
 };
 
 /** 웹 표준 핸들러 — `test/api/dividendListHtml.test.ts` 가 `handler(new Request(...))` 로 직접 호출한다. */
@@ -332,12 +308,7 @@ export async function handler(request: Request): Promise<Response> {
 
   // 2) 허브 — 목록 조회보다 **먼저** 분기한다(`hub` 는 목록 id 가 될 수 없는 예약어다).
   if (listParam === HUB_PARAM) {
-    const html = applyMeta(
-      shell,
-      `${copy.hub.meta.title} - ${SITE_SUFFIX}`,
-      copy.hub.meta.description,
-      `${siteUrl}${DIVIDEND_LIST_HUB_PATH}`
-    );
+    const html = applyDocumentMeta(shell, { title: `${copy.hub.meta.title} - ${SITE_SUFFIX}`, description: copy.hub.meta.description, canonical: `${siteUrl}${DIVIDEND_LIST_HUB_PATH}` });
     return htmlResponse(injectHubBody(html, siteUrl), 200, CACHE_LIST);
   }
 
@@ -346,12 +317,7 @@ export async function handler(request: Request): Promise<Response> {
   if (!listId) return htmlResponse(shell, 200, CACHE_NO_STORE);
 
   const list = DIVIDEND_LISTS[listId];
-  const html = applyMeta(
-    shell,
-    `${copy.lists[listId].metaTitle} - ${SITE_SUFFIX}`,
-    copy.lists[listId].metaDescription,
-    listCanonical(siteUrl, list)
-  );
+  const html = applyDocumentMeta(shell, { title: `${copy.lists[listId].metaTitle} - ${SITE_SUFFIX}`, description: copy.lists[listId].metaDescription, canonical: listCanonical(siteUrl, list) });
   return htmlResponse(injectListBody(html, list, siteUrl), 200, CACHE_LIST);
 }
 

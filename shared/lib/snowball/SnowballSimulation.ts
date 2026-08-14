@@ -1,4 +1,5 @@
 import type { MonthlySnapshot, SimulationInput, SimulationOutput, SimulationResult } from '@/shared/types';
+import { resolveDefaultDividendTaxRatePercent } from '@/shared/constants/tax';
 import { buildMonthContext, toStartDate } from './SnowballCalendar';
 import { computeMonthlyPayout, isPayoutMonth, paymentsPerYearMap, planReinvestment } from './SnowballPayout';
 import { dpsAtMonth, priceAtMonth, toPriceGrowth, toReinvestRatio, toTaxRate } from './SnowballRates';
@@ -24,7 +25,12 @@ import { buildSummary, buildYearlyRow } from './SnowballSummary';
 export const runSimulation = (input: SimulationInput): SimulationOutput => {
   const { ticker, settings } = input;
 
-  const taxRate = toTaxRate(settings.taxRate);
+  // 🔴 미입력은 **0% 가 아니라 그 종목의 정확한 기본 세율**로 해결한다(미국 상장 15 / 국내 상장 15.4).
+  //    세율은 선택 입력이라, 비운 폼·세율 없이 저장된 페이로드·`h:null` 공유 링크가 전부 무세금으로
+  //    계산되고 있었다(과대추정, 화면에 경고 없음). 여기가 모든 경로가 지나는 유일한 촉점이다 —
+  //    포트폴리오 시뮬레이션도 종목마다 이 함수를 부르므로 **종목별로** 정확해진다.
+  //    ⚠ 사용자가 넣은 값은 언제나 이긴다(`??` 는 undefined 일 때만 대체한다 — 0 은 그대로 0%).
+  const taxRate = toTaxRate(settings.taxRate ?? resolveDefaultDividendTaxRatePercent(ticker.ticker));
   const dividendYield = ticker.dividendYield / 100;
   // 정합 모델: 가격과 배당이 같은 속도로 성장한다. 하나의 growth 를 양쪽에 쓰기 때문에
   // dps(t) === price(t) * dividendYield 가 모든 t 에서 성립한다(= 배당수익률 불변).

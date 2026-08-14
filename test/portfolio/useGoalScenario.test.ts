@@ -111,7 +111,9 @@ describe('useGoalScenario — 저장 데이터 왕복', () => {
       monthlyContribution: 1_000_000,
       durationYears: 20,
       investmentStartDate: '2024-01-01',
-      taxRate: 15.4,
+      // SCHD 는 미국 상장이라 15% 다 — 세율 기본값은 상장지에서 파생된다
+      // (shared/constants/tax/dividendTaxRate.ts). 국내 상장(.KS/.KQ)이면 15.4 다.
+      taxRate: 15,
       tickerCount: 1
     });
 

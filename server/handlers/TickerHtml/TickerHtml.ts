@@ -10,10 +10,9 @@
 import {
   escapeHtmlAttribute,
   escapeHtmlText,
-  replaceLinkHref,
-  replaceMetaContent,
-  replaceTitleTag,
-  resolveSiteUrl
+  resolveSiteUrl,
+  injectIntoRoot,
+  applyDocumentMeta
 } from '@/shared/lib/og';
 import { toNodeHandler } from '@/shared/lib/server';
 import {
@@ -120,30 +119,6 @@ const jsonLdScript = (graph: unknown): string =>
 /* 공통 메타 치환 — 개별 티커/허브가 공유                                          */
 /* -------------------------------------------------------------------------- */
 
-const applyMeta = (shell: string, title: string, description: string, canonical: string): string => {
-  let html = shell;
-  html = replaceTitleTag(html, title);
-  html = replaceMetaContent(html, 'name', 'description', description);
-  html = replaceLinkHref(html, 'canonical', canonical);
-  html = replaceMetaContent(html, 'property', 'og:title', title);
-  html = replaceMetaContent(html, 'property', 'og:description', description);
-  html = replaceMetaContent(html, 'property', 'og:url', canonical);
-  html = replaceMetaContent(html, 'name', 'twitter:title', title);
-  html = replaceMetaContent(html, 'name', 'twitter:description', description);
-  return html;
-};
-
-/**
- * `<div id="root">` 여는 태그 **직후**에 삽입한다(PostHtml.ts 의 `injectPostBody` 와 같은 지점 선택
- * 이유 — 중첩 div 매칭에 취약한 닫는 태그 방식 대신, 빈 셸/실셸 양쪽에서 결정적이다). 여는 태그가
- * 없으면(방어) 원문 그대로 반환한다.
- */
-const injectAtRoot = (shell: string, articleAndScripts: string): string => {
-  const rootOpenTag = shell.match(/<div\s+id="root"[^>]*>/i);
-  if (!rootOpenTag || rootOpenTag.index === undefined) return shell;
-  const insertAt = rootOpenTag.index + rootOpenTag[0].length;
-  return shell.slice(0, insertAt) + articleAndScripts + shell.slice(insertAt);
-};
 
 /* -------------------------------------------------------------------------- */
 /* 개별 티커 페이지                                                              */
@@ -152,7 +127,11 @@ const injectAtRoot = (shell: string, articleAndScripts: string): string => {
 const tickerCanonical = (siteUrl: string, content: TickerContent): string => `${siteUrl}/ticker/${content.slug}`;
 
 const applyTickerMeta = (shell: string, content: TickerContent, siteUrl: string): string =>
-  applyMeta(shell, `${content.metaTitle} - ${SITE_SUFFIX}`, content.metaDescription, tickerCanonical(siteUrl, content));
+  applyDocumentMeta(shell, {
+    title: `${content.metaTitle} - ${SITE_SUFFIX}`,
+    description: content.metaDescription,
+    canonical: tickerCanonical(siteUrl, content)
+  });
 
 const renderText = (text: string, facts: TickerEngineFacts): string =>
   escapeHtmlText(renderTickerContentTemplate(text, facts));
@@ -344,7 +323,7 @@ const injectTickerBody = (shell: string, content: TickerContent, siteUrl: string
     '</article>' +
     buildTickerJsonLd(content, facts, canonical);
 
-  return injectAtRoot(shell, article);
+  return injectIntoRoot(shell, article);
 };
 
 /* -------------------------------------------------------------------------- */
@@ -358,7 +337,7 @@ const HUB_DISCLAIMER =
   '이 페이지는 정보 제공을 목적으로 하며 투자 자문이 아닙니다. 배당률·주가·운용보수·세금 등은 시장 상황과 정책에 따라 변동될 수 있습니다.';
 
 const applyHubMeta = (shell: string, siteUrl: string): string =>
-  applyMeta(shell, `${HUB_META_TITLE} - ${SITE_SUFFIX}`, buildHubDescription(), `${siteUrl}${HUB_PATH}`);
+  applyDocumentMeta(shell, { title: `${HUB_META_TITLE} - ${SITE_SUFFIX}`, description: buildHubDescription(), canonical: `${siteUrl}${HUB_PATH}` });
 
 const renderHubCategorySections = (): string =>
   (Object.keys(TICKER_CATEGORY_LABEL) as TickerCategoryId[])
@@ -399,7 +378,7 @@ const injectHubBody = (shell: string, siteUrl: string): string => {
     '</article>' +
     buildHubJsonLd(siteUrl);
 
-  return injectAtRoot(shell, article);
+  return injectIntoRoot(shell, article);
 };
 
 /** 웹 표준 핸들러 — `test/api/tickerHtml.test.ts` 가 `handler(new Request(...))` 로 직접 호출한다. */
