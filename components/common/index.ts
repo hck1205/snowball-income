@@ -54,7 +54,7 @@ export { HintText } from './HintText';
 export { InlineField, InlineFieldHeader } from './InlineField';
 
 export { default as InputField } from './InputField';
-export { FrequencySelect } from './InputField';
+export { FrequencySelect, AccountTypeSelect } from './InputField';
 
 export { default as Modal } from './Modal';
 export { MODAL_EXIT_MS, ModalActions, ModalBackdrop, ModalBody, ModalPanel, ModalTitle } from './Modal';

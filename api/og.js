@@ -8005,6 +8005,16 @@ var isKoreanListedTicker = (ticker) => ticker.endsWith(".KS") || ticker.endsWith
 var US_LISTED_DIVIDEND_TAX_RATE = 15;
 var resolveDefaultDividendTaxRatePercent = (ticker) => isKoreanListedTicker(ticker) ? KOREAN_DIVIDEND_TAX_RATE : US_LISTED_DIVIDEND_TAX_RATE;
 
+// shared/constants/tax/accountType.ts
+var DEFAULT_ACCOUNT_TYPE = "taxable";
+var ISA_SEPARATE_TAX_RATE = 9.9;
+var ISA_TAX_FREE_ALLOWANCE = 2e6;
+var payoutTaxRateFor = (accountType, taxableRatePercent) => accountType === "isa" ? 0 : taxableRatePercent;
+var estimateIsaSettlementTax = (cumulativeDividend) => {
+  const taxable = Math.max(0, cumulativeDividend - ISA_TAX_FREE_ALLOWANCE);
+  return taxable * ISA_SEPARATE_TAX_RATE / 100;
+};
+
 // shared/constants/tax/index.ts
 var OVERSEAS_CAPITAL_GAINS_TAX_RATE = 22;
 var CAPITAL_GAINS_ANNUAL_DEDUCTION = 25e5;
@@ -8066,6 +8076,7 @@ var dpsAtMonth = ({
 
 // shared/lib/snowball/SnowballForm.ts
 var frequencySchema = external_exports.enum(["monthly", "quarterly", "semiannual", "annual", "none"]);
+var accountTypeSchema = external_exports.enum(["taxable", "isa"]);
 var reinvestTimingSchema = external_exports.enum(["sameMonth", "nextMonth"]);
 var dpsGrowthModeSchema = external_exports.enum(["annualStep", "monthlySmooth"]);
 var dateInputSchema = external_exports.string().regex(/^\d{4}-\d{2}-\d{2}$/, "\uD22C\uC790 \uC2DC\uC791 \uB0A0\uC9DC\uB97C \uC120\uD0DD\uD558\uC138\uC694.").refine(isCalendarDateInput, "\uC874\uC7AC\uD558\uC9C0 \uC54A\uB294 \uB0A0\uC9DC\uC785\uB2C8\uB2E4.");
@@ -8078,6 +8089,13 @@ var formSchema = external_exports.object({
   dividendGrowth: external_exports.number().finite("\uBC30\uB2F9 \uC131\uC7A5\uB960\uC744 \uC785\uB825\uD558\uC138\uC694.").min(-100, "\uBC30\uB2F9 \uC131\uC7A5\uB960\uC740 -100 \uC774\uC0C1\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4.").max(100, "\uBC30\uB2F9 \uC131\uC7A5\uB960\uC740 100 \uC774\uD558\uC5EC\uC57C \uD569\uB2C8\uB2E4."),
   expectedTotalReturn: external_exports.number().finite("\uAE30\uB300 \uCD1D\uC218\uC775\uC728 (CAGR)\uC744 \uC785\uB825\uD558\uC138\uC694.").min(-100, "\uAE30\uB300 \uCD1D\uC218\uC775\uC728 (CAGR)\uC740 -100 \uC774\uC0C1\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4.").max(100, "\uAE30\uB300 \uCD1D\uC218\uC775\uC728 (CAGR)\uC740 100 \uC774\uD558\uC5EC\uC57C \uD569\uB2C8\uB2E4."),
   frequency: frequencySchema,
+  /**
+   * 계좌 유형. **선택 입력**이라 기존 저장 페이로드·공유 링크가 그대로 통과한다(미지정 = 과세계좌).
+   * 🔴 ISA 는 국내 상장 종목에만 고를 수 있다 — 그 제약은 화면(`isAccountTypeSelectable`)이 건다.
+   *    스키마에서 막지 않는 이유: 이 스키마는 저장된 옛 데이터도 통과시켜야 하는 경계라,
+   *    여기서 조합을 거절하면 남의 링크가 열리지 않는다.
+   */
+  accountType: accountTypeSchema.optional(),
   initialInvestment: external_exports.number().finite("\uCD08\uAE30 \uD22C\uC790\uAE08\uC744 \uC785\uB825\uD558\uC138\uC694.").min(0, "\uCD08\uAE30 \uD22C\uC790\uAE08\uC740 0 \uC774\uC0C1\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4."),
   monthlyContribution: external_exports.number().finite("\uC6D4 \uD22C\uC790\uAE08\uC744 \uC785\uB825\uD558\uC138\uC694.").min(0, "\uC6D4 \uD22C\uC790\uAE08\uC740 0 \uC774\uC0C1\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4."),
   targetMonthlyDividend: external_exports.number().finite("\uBAA9\uD45C \uC6D4\uBC30\uB2F9\uC744 \uC785\uB825\uD558\uC138\uC694.").min(0, "\uBAA9\uD45C \uC6D4\uBC30\uB2F9\uC740 0 \uC774\uC0C1\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4."),
@@ -8095,7 +8113,8 @@ var tickerInputSchema = formSchema.pick({
   dividendYield: true,
   dividendGrowth: true,
   expectedTotalReturn: true,
-  frequency: true
+  frequency: true,
+  accountType: true
 });
 var toDateInputValue = (date) => {
   const year = String(date.getFullYear()).padStart(4, "0");
@@ -8145,7 +8164,8 @@ var toSimulationInput = (values) => ({
     dividendGrowth: values.dividendGrowth,
     // 파생 표시값이므로 폼에 남아 있는 값을 믿지 않고 항상 다시 계산한다 (엔진은 쓰지 않는다).
     expectedTotalReturn: toExpectedTotalReturnPercent(values.dividendYield, values.dividendGrowth),
-    frequency: values.frequency
+    frequency: values.frequency,
+    accountType: values.accountType
   },
   settings: {
     initialInvestment: values.initialInvestment,
@@ -8265,7 +8285,8 @@ var buildSummary = ({
   totalTaxPaid,
   targetMonthlyDividend,
   totalReinvestedAmount,
-  finalRunRateMonthlyDividend
+  finalRunRateMonthlyDividend,
+  isaSettlementTax
 }) => {
   const finalYear = yearly[yearly.length - 1];
   const lastPayoutRow = findLastPayoutMonth(monthly);
@@ -8280,6 +8301,7 @@ var buildSummary = ({
     finalMonthlyAverageDividend: finalYear?.monthlyDividend ?? 0,
     finalPayoutMonthDividend: lastPayoutRow?.dividendPaid ?? 0,
     finalRunRateMonthlyDividend,
+    isaSettlementTax,
     totalContribution,
     totalNetDividend: finalYear?.cumulativeDividend ?? 0,
     totalTaxPaid,
@@ -8293,7 +8315,9 @@ var buildSummary = ({
 // shared/lib/snowball/SnowballSimulation.ts
 var runSimulation = (input) => {
   const { ticker, settings } = input;
-  const taxRate = toTaxRate(settings.taxRate ?? resolveDefaultDividendTaxRatePercent(ticker.ticker));
+  const accountType = ticker.accountType ?? DEFAULT_ACCOUNT_TYPE;
+  const taxableRatePercent = settings.taxRate ?? resolveDefaultDividendTaxRatePercent(ticker.ticker);
+  const taxRate = toTaxRate(payoutTaxRateFor(accountType, taxableRatePercent));
   const dividendYield = ticker.dividendYield / 100;
   const growth = toPriceGrowth(ticker.dividendGrowth);
   const priceGrowth = growth;
@@ -8374,6 +8398,7 @@ var runSimulation = (input) => {
       );
     }
   }
+  const isaSettlementTax = accountType === "isa" ? estimateIsaSettlementTax(cumulativeDividend) : 0;
   const lastRow = monthly[monthly.length - 1];
   const finalRunRateMonthlyDividend = lastRow === void 0 ? 0 : lastRow.shares * lastRow.dividendPerShare * (1 - taxRate) / 12;
   return {
@@ -8385,7 +8410,8 @@ var runSimulation = (input) => {
       totalTaxPaid,
       targetMonthlyDividend: settings.targetMonthlyDividend,
       totalReinvestedAmount,
-      finalRunRateMonthlyDividend
+      finalRunRateMonthlyDividend,
+      isaSettlementTax
     }),
     quickEstimate: runQuickEstimate(input)
   };
@@ -15849,7 +15875,7 @@ var decodeVisibleYearlySeriesMask = (mask) => ({
 var decodeCompactPortfolio = (compact) => {
   const tickerProfiles = compact.t.map((tuple, index) => {
     if (!Array.isArray(tuple)) return null;
-    const [ticker, initialPrice, dividendYield, dividendGrowth, expectedTotalReturn, frequencyCode, name] = tuple;
+    const [ticker, initialPrice, dividendYield, dividendGrowth, expectedTotalReturn, frequencyCode, name, accountType] = tuple;
     if (typeof ticker !== "string" || !ticker.trim()) return null;
     if (!Number.isFinite(initialPrice) || initialPrice <= 0) return null;
     if (!Number.isFinite(dividendYield) || dividendYield < 0) return null;
@@ -15863,7 +15889,9 @@ var decodeCompactPortfolio = (compact) => {
       dividendYield: Number(dividendYield),
       dividendGrowth: toDerivedDividendGrowthPercent(Number(expectedTotalReturn), Number(dividendYield)),
       expectedTotalReturn: Number(expectedTotalReturn),
-      frequency: decodeFrequency(frequencyCode)
+      frequency: decodeFrequency(frequencyCode),
+      /* 모르는 값·부재는 전부 기본값이다 — 남의 링크를 못 여는 것보다 낫다. */
+      accountType: accountType === "isa" ? "isa" : DEFAULT_ACCOUNT_TYPE
     };
   }).filter((profile) => profile !== null);
   const maxIndex = tickerProfiles.length - 1;
@@ -16148,6 +16176,11 @@ var aggregatePortfolioSimulation = (outputs, targetMonthlyDividend) => {
        *    아래 `computeCapitalGains` 가 합산 후 한 번만 계산하는 것과 대비된다).
        */
       finalRunRateMonthlyDividend: sumBy(outputs, (output) => output.summary.finalRunRateMonthlyDividend),
+      /* ISA 정산세도 종목별 합이다 — 계좌 유형이 종목마다 달라도 각자 자기 규칙으로 계산돼 있다.
+         ⚠ 비과세 한도(200만원)는 **계좌당**인데 여기서는 종목마다 적용된다. 한 ISA 계좌에 여러
+         종목을 담으면 실제보다 세금을 적게 잡는다 — 한도를 계좌 단위로 묶으려면 "어느 종목이 같은
+         계좌인가"라는 입력이 더 필요하다(지금은 그 입력이 없다). 화면 문구가 이 한계를 밝힌다. */
+      isaSettlementTax: sumBy(outputs, (output) => output.summary.isaSettlementTax),
       totalContribution: finalYear?.totalContribution ?? 0,
       totalNetDividend: finalYear?.cumulativeDividend ?? 0,
       totalTaxPaid: sumBy(outputs, (output) => output.summary.totalTaxPaid),

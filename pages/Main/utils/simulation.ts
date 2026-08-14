@@ -144,6 +144,11 @@ const aggregatePortfolioSimulation = (outputs: SimulationOutput[], targetMonthly
        *    아래 `computeCapitalGains` 가 합산 후 한 번만 계산하는 것과 대비된다).
        */
       finalRunRateMonthlyDividend: sumBy(outputs, (output) => output.summary.finalRunRateMonthlyDividend),
+      /* ISA 정산세도 종목별 합이다 — 계좌 유형이 종목마다 달라도 각자 자기 규칙으로 계산돼 있다.
+         ⚠ 비과세 한도(200만원)는 **계좌당**인데 여기서는 종목마다 적용된다. 한 ISA 계좌에 여러
+         종목을 담으면 실제보다 세금을 적게 잡는다 — 한도를 계좌 단위로 묶으려면 "어느 종목이 같은
+         계좌인가"라는 입력이 더 필요하다(지금은 그 입력이 없다). 화면 문구가 이 한계를 밝힌다. */
+      isaSettlementTax: sumBy(outputs, (output) => output.summary.isaSettlementTax),
       totalContribution: finalYear?.totalContribution ?? 0,
       totalNetDividend: finalYear?.cumulativeDividend ?? 0,
       totalTaxPaid: sumBy(outputs, (output) => output.summary.totalTaxPaid),

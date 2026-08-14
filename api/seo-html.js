@@ -10230,6 +10230,7 @@ var toDerivedDividendGrowthPercent = (expectedTotalReturnPercent, dividendYieldP
 
 // shared/lib/snowball/SnowballForm.ts
 var frequencySchema = external_exports.enum(["monthly", "quarterly", "semiannual", "annual", "none"]);
+var accountTypeSchema = external_exports.enum(["taxable", "isa"]);
 var reinvestTimingSchema = external_exports.enum(["sameMonth", "nextMonth"]);
 var dpsGrowthModeSchema = external_exports.enum(["annualStep", "monthlySmooth"]);
 var dateInputSchema = external_exports.string().regex(/^\d{4}-\d{2}-\d{2}$/, "\uD22C\uC790 \uC2DC\uC791 \uB0A0\uC9DC\uB97C \uC120\uD0DD\uD558\uC138\uC694.").refine(isCalendarDateInput, "\uC874\uC7AC\uD558\uC9C0 \uC54A\uB294 \uB0A0\uC9DC\uC785\uB2C8\uB2E4.");
@@ -10242,6 +10243,13 @@ var formSchema = external_exports.object({
   dividendGrowth: external_exports.number().finite("\uBC30\uB2F9 \uC131\uC7A5\uB960\uC744 \uC785\uB825\uD558\uC138\uC694.").min(-100, "\uBC30\uB2F9 \uC131\uC7A5\uB960\uC740 -100 \uC774\uC0C1\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4.").max(100, "\uBC30\uB2F9 \uC131\uC7A5\uB960\uC740 100 \uC774\uD558\uC5EC\uC57C \uD569\uB2C8\uB2E4."),
   expectedTotalReturn: external_exports.number().finite("\uAE30\uB300 \uCD1D\uC218\uC775\uC728 (CAGR)\uC744 \uC785\uB825\uD558\uC138\uC694.").min(-100, "\uAE30\uB300 \uCD1D\uC218\uC775\uC728 (CAGR)\uC740 -100 \uC774\uC0C1\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4.").max(100, "\uAE30\uB300 \uCD1D\uC218\uC775\uC728 (CAGR)\uC740 100 \uC774\uD558\uC5EC\uC57C \uD569\uB2C8\uB2E4."),
   frequency: frequencySchema,
+  /**
+   * 계좌 유형. **선택 입력**이라 기존 저장 페이로드·공유 링크가 그대로 통과한다(미지정 = 과세계좌).
+   * 🔴 ISA 는 국내 상장 종목에만 고를 수 있다 — 그 제약은 화면(`isAccountTypeSelectable`)이 건다.
+   *    스키마에서 막지 않는 이유: 이 스키마는 저장된 옛 데이터도 통과시켜야 하는 경계라,
+   *    여기서 조합을 거절하면 남의 링크가 열리지 않는다.
+   */
+  accountType: accountTypeSchema.optional(),
   initialInvestment: external_exports.number().finite("\uCD08\uAE30 \uD22C\uC790\uAE08\uC744 \uC785\uB825\uD558\uC138\uC694.").min(0, "\uCD08\uAE30 \uD22C\uC790\uAE08\uC740 0 \uC774\uC0C1\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4."),
   monthlyContribution: external_exports.number().finite("\uC6D4 \uD22C\uC790\uAE08\uC744 \uC785\uB825\uD558\uC138\uC694.").min(0, "\uC6D4 \uD22C\uC790\uAE08\uC740 0 \uC774\uC0C1\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4."),
   targetMonthlyDividend: external_exports.number().finite("\uBAA9\uD45C \uC6D4\uBC30\uB2F9\uC744 \uC785\uB825\uD558\uC138\uC694.").min(0, "\uBAA9\uD45C \uC6D4\uBC30\uB2F9\uC740 0 \uC774\uC0C1\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4."),
@@ -10259,7 +10267,8 @@ var tickerInputSchema = formSchema.pick({
   dividendYield: true,
   dividendGrowth: true,
   expectedTotalReturn: true,
-  frequency: true
+  frequency: true,
+  accountType: true
 });
 var toDateInputValue = (date) => {
   const year = String(date.getFullYear()).padStart(4, "0");

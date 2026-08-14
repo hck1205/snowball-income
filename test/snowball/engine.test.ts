@@ -616,7 +616,8 @@ describe('summary builders', () => {
         totalTaxPaid: 77,
         targetMonthlyDividend: 100,
         totalReinvestedAmount: 50,
-        finalRunRateMonthlyDividend: 160
+        finalRunRateMonthlyDividend: 160,
+        isaSettlementTax: 0
       })
     ).toEqual({
       finalAssetValue: 300,
@@ -625,6 +626,7 @@ describe('summary builders', () => {
       finalPayoutMonthDividend: 40,
       /* 호출부(runSimulation)가 계산해 넘긴 값을 그대로 싣는다 — 여기서 다시 유도하지 않는다. */
       finalRunRateMonthlyDividend: 160,
+      isaSettlementTax: 0,
       totalContribution: 900,
       totalNetDividend: 2_400,
       totalTaxPaid: 77,
@@ -646,7 +648,8 @@ describe('summary builders', () => {
         totalTaxPaid: 0,
         targetMonthlyDividend: 1,
         totalReinvestedAmount: 0,
-        finalRunRateMonthlyDividend: 0
+        finalRunRateMonthlyDividend: 0,
+        isaSettlementTax: 0
       })
     ).toEqual({
       finalAssetValue: 0,
@@ -654,6 +657,7 @@ describe('summary builders', () => {
       finalMonthlyAverageDividend: 0,
       finalPayoutMonthDividend: 0,
       finalRunRateMonthlyDividend: 0,
+      isaSettlementTax: 0,
       totalContribution: 0,
       totalNetDividend: 0,
       totalTaxPaid: 0,
@@ -802,5 +806,77 @@ describe('finalRunRateMonthlyDividend', () => {
     ).summary;
 
     expect(summary.finalRunRateMonthlyDividend).toBeGreaterThan(summary.finalMonthlyAverageDividend);
+  });
+});
+
+/**
+ * 계좌 유형(과세계좌 / ISA) — 2026-08-15 신설.
+ *
+ * 🔴 이 묶음이 지키는 것은 **ISA 가 세율 인하가 아니라 과세이연**이라는 사실이다. 세율만 9.9% 로
+ * 낮추는 근사로 갈아끼우면 아래 첫 테스트가 깨진다 — 그 근사는 매 지급마다 떼는 구조가 그대로라
+ * **재투자 원금이 커지지 않고**, 이 계좌를 쓰는 진짜 이유가 결과에서 사라진다.
+ */
+describe('accountType', () => {
+  const build = (accountType: 'taxable' | 'isa') =>
+    toSimulationInput(
+      buildValues({
+        ticker: '458730.KS',
+        frequency: 'quarterly',
+        dividendYield: 5,
+        dividendGrowth: 0,
+        initialInvestment: 100_000_000,
+        monthlyContribution: 0,
+        reinvestDividends: true,
+        reinvestDividendPercent: 100,
+        durationYears: 10,
+        accountType
+      })
+    );
+
+  it('ISA 는 지급 시점에 세금을 떼지 않아 재투자 원금이 커진다 (= 최종 자산이 더 크다)', () => {
+    const taxable = runSimulation(build('taxable'));
+    const isa = runSimulation(build('isa'));
+
+    expect(taxable.summary.totalTaxPaid).toBeGreaterThan(0);
+    expect(isa.summary.totalTaxPaid).toBe(0);
+    /* 핵심: 뗀 세금만큼 덜 재투자되므로 과세계좌의 최종 자산이 더 작다. */
+    expect(isa.summary.finalAssetValue).toBeGreaterThan(taxable.summary.finalAssetValue);
+  });
+
+  /**
+   * 🔴 세금이 **사라진 게 아니라 옮겨 왔다.** ISA 는 `totalTaxPaid` 가 0 이라, 정산세를 함께 보지
+   * 않으면 화면이 "세금 없음"이라는 거짓을 말하게 된다.
+   */
+  it('ISA 의 미뤄 둔 세금은 종료 정산세로 나타난다 (과세계좌는 0)', () => {
+    expect(runSimulation(build('isa')).summary.isaSettlementTax).toBeGreaterThan(0);
+    expect(runSimulation(build('taxable')).summary.isaSettlementTax).toBe(0);
+  });
+
+  it('비과세 한도(200만원) 아래면 정산세가 0 이다', () => {
+    const tiny = runSimulation(
+      toSimulationInput(
+        buildValues({
+          ticker: '458730.KS',
+          dividendYield: 1,
+          dividendGrowth: 0,
+          initialInvestment: 1_000_000,
+          monthlyContribution: 0,
+          durationYears: 1,
+          accountType: 'isa'
+        })
+      )
+    );
+
+    expect(tiny.summary.isaSettlementTax).toBe(0);
+  });
+
+  /** 미지정은 과세계좌다 — 옛 저장 데이터·공유 링크가 그대로 열려야 한다. */
+  it('accountType 이 없으면 과세계좌와 결과가 같다 (하위 호환)', () => {
+    const omitted = runSimulation(toSimulationInput(buildValues({ ticker: '458730.KS', dividendYield: 5 })));
+    const explicit = runSimulation(
+      toSimulationInput(buildValues({ ticker: '458730.KS', dividendYield: 5, accountType: 'taxable' }))
+    );
+
+    expect(omitted.summary).toEqual(explicit.summary);
   });
 });

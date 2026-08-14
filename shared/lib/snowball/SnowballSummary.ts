@@ -61,6 +61,8 @@ export type SummaryParams = {
    * 정의와 다른 두 지표와의 차이는 `SimulationSummary.finalRunRateMonthlyDividend` 주석에 있다.
    */
   finalRunRateMonthlyDividend: number;
+  /** ISA 종료 정산세. 호출부가 계좌 유형을 알고 계산해 넘긴다(요약은 계좌를 모른다). */
+  isaSettlementTax: number;
 };
 
 /**
@@ -73,7 +75,8 @@ export const buildSummary = ({
   totalTaxPaid,
   targetMonthlyDividend,
   totalReinvestedAmount,
-  finalRunRateMonthlyDividend
+  finalRunRateMonthlyDividend,
+  isaSettlementTax
 }: SummaryParams): SimulationSummary => {
   const finalYear = yearly[yearly.length - 1];
   const lastPayoutRow = findLastPayoutMonth(monthly);
@@ -91,6 +94,7 @@ export const buildSummary = ({
     finalMonthlyAverageDividend: finalYear?.monthlyDividend ?? 0,
     finalPayoutMonthDividend: lastPayoutRow?.dividendPaid ?? 0,
     finalRunRateMonthlyDividend,
+    isaSettlementTax,
     totalContribution,
     totalNetDividend: finalYear?.cumulativeDividend ?? 0,
     totalTaxPaid,
