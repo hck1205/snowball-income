@@ -10,16 +10,17 @@
  * 🔴 **이 목록의 길이가 곧 서버리스 함수 개수이고, 상한이 12개다**(Vercel Hobby).
  * 2026-08-07 에 13개로 늘렸다가 배포가 죽었다 — 빌드는 통과하고 "Deploying outputs" 에서
  * `exceeded_serverless_functions_per_deployment` 로 실패한다(빌드 로그에는 이유가 안 남는다).
- * 새 핸들러를 더하기 전에 **먼저 세라.** 지금 12개 — **여유가 0이다.**
+ * 새 핸들러를 더하기 전에 **먼저 세라.** 2026-08-15 에 외부 조회 셋을 `Proxy` 로 합쳐 **10개**가 됐다(여유 2).
  * 지면이 하나 더 필요하면 새 파일을 만들지 말고 `SeoHtml`(정적 콘텐츠 렌더러 묶음)에 얹어라.
  * JSON 응답이 하나 더 필요하면 `Fx`·`MarketIndices`·`Unfurl` 을 프록시 묶음으로 합치는 것이
  * 다음 수순이다(같은 패턴 — 근거는 SeoHtml.ts 머리말).
  */
 export const API_BUNDLES = [
   { entry: 'server/handlers/AccountDelete/AccountDelete.ts', out: 'api/account-delete.js' },
-  { entry: 'server/handlers/Fx/Fx.ts', out: 'api/fx.js' },
+  /* 외부 조회 셋(fx · market-indices · unfurl)을 **한 함수로** 모은 진입점 — 근거는 Proxy.ts 머리말.
+     공개 URL 은 vercel.json rewrite 가 그대로 유지한다. */
+  { entry: 'server/handlers/Proxy/Proxy.ts', out: 'api/proxy.js' },
   { entry: 'server/handlers/KakaoAuth/KakaoAuth.ts', out: 'api/kakao-auth.js' },
-  { entry: 'server/handlers/MarketIndices/MarketIndices.ts', out: 'api/market-indices.js' },
   { entry: 'server/handlers/NaverAuth/NaverAuth.ts', out: 'api/naver-auth.js' },
   { entry: 'server/handlers/Og/Og.tsx', out: 'api/og.js' },
   { entry: 'server/handlers/PostHtml/PostHtml.ts', out: 'api/post-html.js' },
@@ -29,7 +30,6 @@ export const API_BUNDLES = [
   { entry: 'server/handlers/ShareHtml/ShareHtml.ts', out: 'api/share-html.js' },
   { entry: 'server/handlers/Sitemap/Sitemap.ts', out: 'api/sitemap.js' },
   /* 링크 미리보기 — 남의 페이지에서 제목·요약·썸네일만 뽑는다. SSRF 가드가 그 파일의 본체다. */
-  { entry: 'server/handlers/Unfurl/Unfurl.ts', out: 'api/unfurl.js' }
 ];
 
 /**

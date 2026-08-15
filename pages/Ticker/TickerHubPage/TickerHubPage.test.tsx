@@ -1,6 +1,7 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
+import { TICKER_CONTENT_LIST } from '@/shared/constants/tickers';
 import TickerHubPage from './TickerHubPage';
 
 function renderHub() {
@@ -261,5 +262,45 @@ describe('TickerHubPage', () => {
 
       expect(screen.queryByRole('checkbox', { name: 'SCHD 비교에 담기' })).not.toBeInTheDocument();
     });
+  });
+});
+
+/**
+ * 소개 글이 없는 프리셋 목록 (2026-08-15).
+ *
+ * 🔴 이 묶음이 지키는 것은 **"목록으로만 보여 준다"** 는 선택이다. 프리셋마다 얇은 소개 페이지를
+ * 자동 생성하면 같은 뼈대에 숫자만 바뀐 페이지가 수백 개 생기고, 검색엔진이 그걸 얇은 콘텐츠로
+ * 판정하면 **조사해서 쓴 페이지들까지 같이 끌어내린다.** 그래서 상세는 늘리지 않고 표만 늘린다.
+ */
+describe('시뮬레이터에서 계산되는 종목', () => {
+  it('소개 글이 없는 프리셋을 표로 보여 준다', () => {
+    renderHub();
+
+    const section = screen.getByRole('region', { name: '시뮬레이터에서 계산되는 종목' });
+    expect(within(section).getByRole('table')).toBeInTheDocument();
+  });
+
+  /** 🔴 목록에 오른 종목은 **상세 링크를 갖지 않는다** — 갈 곳 없는 링크를 만들지 않는다. */
+  it('그 표의 행은 링크가 아니다 (상세 페이지가 없다)', () => {
+    renderHub();
+
+    const section = screen.getByRole('region', { name: '시뮬레이터에서 계산되는 종목' });
+    expect(within(section).queryAllByRole('link')).toHaveLength(0);
+  });
+
+  /**
+   * 소개 글이 있는 종목이 이 표에 섞이면 **같은 종목이 두 곳에 있는 것**이 된다.
+   * 카드 격자에 이미 있는 티커는 여기 없어야 한다.
+   */
+  it('소개 글이 있는 종목은 표에 없다 (중복 노출 금지)', () => {
+    renderHub();
+
+    const section = screen.getByRole('region', { name: '시뮬레이터에서 계산되는 종목' });
+    const rows = within(section).getAllByRole('row').slice(1); // 헤더 제외
+    const listed = rows.map((row) => within(row).getAllByRole('cell')[0].textContent);
+
+    for (const ticker of TICKER_CONTENT_LIST.map((content) => content.ticker)) {
+      expect(listed).not.toContain(ticker);
+    }
   });
 });

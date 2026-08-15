@@ -70,9 +70,19 @@ export type HubLibraryStats = {
   monthlyCount: number;
 };
 
+/** 소개 글은 없지만 시뮬레이터에서는 계산되는 종목 한 줄. 숫자는 프리셋에서 그대로 온다. */
+export type SimulatorOnlyRow = {
+  ticker: string;
+  name: string;
+  dividendYield: number;
+  frequencyLabel: string;
+};
+
 export type TickerHubViewModel = {
   categories: HubCategory[];
   totalCount: number;
+  /** 🔴 여기에 얇은 소개 페이지를 자동 생성하지 않는다 — 근거는 buildSimulatorOnlyRows 주석. */
+  simulatorOnly: SimulatorOnlyRow[];
   stats: HubLibraryStats;
 };
 

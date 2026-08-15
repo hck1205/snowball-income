@@ -146,3 +146,58 @@ export const SectionEmpty = styled.p`
   color: ${color.textMuted};
   font-size: ${font.size.sm};
 `;
+
+/**
+ * "시뮬레이터에서 계산되는 종목" 표 — 소개 글이 없는 프리셋 목록(2026-08-15).
+ *
+ * 🔴 카드 격자가 아니라 **표**다. 카드는 "골라 보라"는 초대인데 이 종목들에는 읽을 상세가 없다 —
+ * 눌러도 갈 곳이 없는 카드를 수백 개 세우면 격자 전체의 의미가 흐려진다. 표는 "여기 있다"만 말한다.
+ */
+export const SimulatorOnlySection = styled.section`
+  display: grid;
+  gap: ${space[3]};
+  min-width: 0;
+  margin-top: ${space[6]};
+  padding-top: ${space[5]};
+  border-top: 1px solid ${color.border};
+`;
+
+export const SimulatorOnlyNote = styled.p`
+  margin: 0;
+  max-width: 68ch;
+  color: ${color.textMuted};
+  font-size: ${font.size.sm};
+  line-height: 1.7;
+`;
+
+export const SimulatorOnlyTable = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  font-size: ${font.size.sm};
+
+  th,
+  td {
+    padding: ${space[2]} ${space[3]};
+    border-bottom: 1px solid ${color.border};
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  th {
+    color: ${color.textMuted};
+    font-weight: ${font.weight.medium};
+    font-size: ${font.size.xs};
+    letter-spacing: 0.02em;
+  }
+
+  /* 숫자 열은 오른쪽 정렬 + 자릿수 고정 — 세로로 훑을 때 자리가 흔들리지 않는다. */
+  td:nth-of-type(3),
+  th:nth-of-type(3) {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  td:first-of-type {
+    font-weight: ${font.weight.bold};
+  }
+`;

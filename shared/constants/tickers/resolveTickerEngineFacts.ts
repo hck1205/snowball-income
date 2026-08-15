@@ -1,7 +1,8 @@
 import { DIVIDEND_UNIVERSE, PRESET_TICKER_KOREAN_NAME_BY_TICKER, type PresetTickerKey } from '@/shared/constants/presets';
 import type { Frequency } from '@/shared/types';
 
-const FREQUENCY_LABEL_KO: Record<Frequency, string> = {
+/* 허브의 '시뮬레이터 전용' 표도 같은 문구를 쓴다 — 같은 개념을 두 벌로 적지 않는다. */
+export const FREQUENCY_LABEL_KO: Record<Frequency, string> = {
   monthly: '매월',
   quarterly: '분기(연 4회)',
   semiannual: '반기(연 2회)',

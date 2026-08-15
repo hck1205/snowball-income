@@ -8,8 +8,10 @@ import {
   type TickerContent
 } from '@/shared/constants/tickers';
 import { assignSeries } from '@/shared/lib/tickerSeries';
+import { DIVIDEND_UNIVERSE, type PresetTickerKey } from '@/shared/constants/presets';
 import type {
   HubFilterState,
+  SimulatorOnlyRow,
   HubFrequencyKey,
   HubLibraryStats,
   HubResult,
@@ -119,8 +121,44 @@ export const buildTickerHubViewModel = (): TickerHubViewModel => {
   return {
     categories,
     totalCount: TICKER_CONTENT_LIST.length,
+    simulatorOnly: buildSimulatorOnlyRows(),
     stats: summarizeLibrary(allCards, categories.length)
   };
+};
+
+/**
+ * **소개 글은 없지만 시뮬레이터에서는 계산되는 종목**들.
+ *
+ * 두 데이터가 다르다는 사실이 이 목록의 존재 이유다:
+ *  - `TICKER_CONTENT_LIST` — 사람이 쓴 소개 페이지(출처·조회일까지 붙은 조사 결과)
+ *  - `DIVIDEND_UNIVERSE`   — 시뮬레이터 프리셋(주가·배당률이 매월 자동 갱신)
+ *
+ * 프리셋이 훨씬 많아서, 소개 페이지만 보면 "스타벅스는 없네"로 읽힌다 — 실제로는 계산이 된다.
+ * 🔴 그렇다고 프리셋마다 **얇은 소개 페이지를 자동 생성하지 않는다.** 같은 뼈대에 숫자만 바뀐
+ *    페이지 수백 개는 검색엔진이 얇은 콘텐츠로 판정해 **잘 있는 페이지까지 끌어내린다.**
+ *    목록으로만 보여 주고 상세는 조사한 것만 쓴다 — 그게 이 함수가 표 하나로 끝나는 이유다.
+ *
+ * ⚠ 숫자는 `DIVIDEND_UNIVERSE` 에서 그대로 온다(프리셋 + 시장데이터 오버레이). 여기서 다시
+ *   계산하지 않으므로 매월 갱신이 자동으로 반영된다.
+ */
+const buildSimulatorOnlyRows = (): SimulatorOnlyRow[] => {
+  const documented = new Set(TICKER_CONTENT_LIST.map((content) => content.ticker.toUpperCase()));
+  const keys = Object.keys(DIVIDEND_UNIVERSE) as PresetTickerKey[];
+
+  return keys
+    .filter((key) => !documented.has(key.toUpperCase()))
+    /* 🔴 값 조립을 여기서 다시 하지 않는다 — 상세 페이지가 쓰는 그 함수를 그대로 쓴다.
+       한글명·주기 라벨·배당률 표기가 두 화면에서 갈리지 않는 유일한 방법이다. */
+    .map((key) => {
+      const facts = resolveTickerEngineFacts(key);
+      return {
+        ticker: facts.ticker,
+        name: facts.koreanName ?? facts.englishName ?? facts.ticker,
+        dividendYield: facts.dividendYieldPercent,
+        frequencyLabel: facts.frequencyLabel
+      };
+    })
+    .sort((left, right) => left.ticker.localeCompare(right.ticker));
 };
 
 /** 필터의 초기값 — 컨테이너와 "필터 지우기" 버튼이 **같은 상수**를 쓴다(초기화가 두 벌로 갈리지 않게). */

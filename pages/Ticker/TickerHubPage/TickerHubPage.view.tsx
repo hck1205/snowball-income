@@ -92,6 +92,9 @@ import {
   TableNameCell,
   TableNumberCell,
   TableRow,
+  SimulatorOnlyNote,
+  SimulatorOnlySection,
+  SimulatorOnlyTable,
   TableScroll,
   TableSelectCell,
   TableTickerCell,
@@ -404,6 +407,42 @@ export default function TickerHubView({
           ))}
         </Results>
       </Layout>
+
+      {/*
+        소개 글이 없는 프리셋 목록. 🔴 **얇은 상세 페이지를 자동 생성하는 대신** 목록으로만 보여 준다 —
+        같은 뼈대에 숫자만 바뀐 페이지 수백 개는 검색엔진이 얇은 콘텐츠로 판정해 잘 있는 페이지까지
+        끌어내린다(근거는 `buildSimulatorOnlyRows` 주석).
+      */}
+      {viewModel.simulatorOnly.length > 0 ? (
+        <SimulatorOnlySection aria-labelledby="simulator-only-heading">
+          <SectionHeading id="simulator-only-heading">시뮬레이터에서 계산되는 종목</SectionHeading>
+          <SimulatorOnlyNote>
+            {`소개 글은 아직 없지만 시뮬레이터 프리셋에 들어 있어, 종목을 담으면 주가·배당률이 자동으로 채워집니다. ${viewModel.simulatorOnly.length}종이며 숫자는 매월 갱신됩니다.`}
+          </SimulatorOnlyNote>
+          <TableScroll>
+            <SimulatorOnlyTable>
+              <thead>
+                <tr>
+                  <th scope="col">티커</th>
+                  <th scope="col">종목명</th>
+                  <th scope="col">배당률</th>
+                  <th scope="col">지급 주기</th>
+                </tr>
+              </thead>
+              <tbody>
+                {viewModel.simulatorOnly.map((row) => (
+                  <tr key={row.ticker}>
+                    <td>{row.ticker}</td>
+                    <td>{row.name}</td>
+                    <td>{`${row.dividendYield.toFixed(2)}%`}</td>
+                    <td>{row.frequencyLabel}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </SimulatorOnlyTable>
+          </TableScroll>
+        </SimulatorOnlySection>
+      ) : null}
 
       {/* 다른 화면과 같은 자리·같은 모양의 공용 푸터(2026-07-31). 이 화면에는 자기 각주가 없어
           사이트 공통 고지만 나간다 — 카드 숫자의 근거는 각 티커 상세가 자기 문장으로 말한다.
