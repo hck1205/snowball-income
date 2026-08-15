@@ -48,6 +48,7 @@ export {
 
 export { iconSwapIn } from './iconSwap';
 export { inputSurface } from './inputSurface';
+export { stackedTableShell } from './stackedTable';
 
 export { PAGE_HUE_TOKEN, PAGE_HUE_VAR, pageHue, pageHueMix } from './pageHue';
 export type { PageHueName } from './pageHue';

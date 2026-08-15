@@ -8,6 +8,8 @@
  * ⚠ 이 값은 **참고용**이라 시뮬레이션 입력·저장 payload·공유 URL 어디에도 들어가지 않는다.
  */
 
+import { isFinitePositive } from '@/shared/lib/numeric';
+
 /** 서버 프록시 경로. 엣지 공유 캐시(6h/24h)라 클라이언트는 매 조회를 그냥 때려도 된다. */
 export const FX_ENDPOINT = '/api/fx';
 
@@ -42,9 +44,6 @@ export type ExchangeRateView =
   | { status: 'success'; rate: FxRate }
   | { status: 'stale'; rate: FxRate }
   | { status: 'error' };
-
-const isFinitePositive = (value: unknown): value is number =>
-  typeof value === 'number' && Number.isFinite(value) && value > 0;
 
 /**
  * 신뢰할 수 없는 `/api/fx` 응답을 `FxRate` 로 정규화한다. 형태가 어긋나면 `null`(가짜 값을 지어내지 않는다).

@@ -1,5 +1,6 @@
 import type { DpsGrowthMode, Frequency, ReinvestTiming, SimulationOutput, SimulationResult } from '@/shared/types';
 import { resolveDefaultDividendTaxRatePercent } from '@/shared/constants/tax';
+import { sumBy } from '@/shared/lib/numeric';
 import { computeCapitalGains, findFinancialIncomeThresholdYear } from './SnowballCapitalGains';
 import { toExpectedTotalReturnPercent } from './SnowballRates';
 import { runScenarioPayload } from './SnowballScenarioRun';
@@ -201,8 +202,6 @@ type SnowballReportRun = NonNullable<ReturnType<typeof runScenarioPayload>>;
 /** 잦은 순. `none`(무배당)은 주기가 아니므로 맨 뒤 — 리포트의 주기 구성에서 빠지면 비중 합이 어긋난다. */
 const FREQUENCY_ORDER: Frequency[] = ['monthly', 'quarterly', 'semiannual', 'annual', 'none'];
 
-const sumBy = <T>(items: T[], getValue: (item: T) => number): number =>
-  items.reduce((sum, item) => sum + getValue(item), 0);
 
 /** 분모가 0이거나 비유한이면 null. 리포트에 NaN/Infinity를 흘리지 않기 위한 유일한 나눗셈 통로다. */
 const ratioOrNull = (numerator: number, denominator: number): number | null => {

@@ -183,7 +183,13 @@ const titleTag = (html: string): string | undefined => {
   return match?.[1] ? decodeEntities(match[1]).replace(/\s+/g, ' ').trim() : undefined;
 };
 
-const clamp = (value: string | undefined, max: number): string | undefined => {
+/**
+ * 공백을 접고 `max` 자로 자른다(잘리면 말줄임표). 남이 준 메타 텍스트를 카드에 넣기 전의 정리다.
+ *
+ * ⚠ 예전 이름은 `clamp` 였다 — 이 레포의 다른 `clamp`(`shared/lib/numeric`)는 **숫자를 범위로**
+ *   가두는 것이라 같은 이름이 전혀 다른 일을 했다. 읽는 사람이 속는다.
+ */
+const truncateText = (value: string | undefined, max: number): string | undefined => {
   if (!value) return undefined;
   const trimmed = value.replace(/\s+/g, ' ').trim();
   if (!trimmed) return undefined;
@@ -366,10 +372,10 @@ export async function handler(request: Request): Promise<Response> {
     JSON.stringify({
       url: finalUrl,
       /* 제목이 없으면 도메인으로 떨어진다 — 빈 카드를 만들지 않는다. */
-      title: clamp(metaContent(html, 'og:title') ?? titleTag(html), 200) ?? host,
-      summary: clamp(metaContent(html, 'og:description') ?? metaContent(html, 'description'), MAX_SUMMARY),
+      title: truncateText(metaContent(html, 'og:title') ?? titleTag(html), 200) ?? host,
+      summary: truncateText(metaContent(html, 'og:description') ?? metaContent(html, 'description'), MAX_SUMMARY),
       image: resolveImage(metaContent(html, 'og:image'), finalUrl),
-      source: clamp(metaContent(html, 'og:site_name'), 60) ?? host
+      source: truncateText(metaContent(html, 'og:site_name'), 60) ?? host
     }),
     { status: 200, headers: JSON_HEADERS }
   );

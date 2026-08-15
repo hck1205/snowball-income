@@ -10,6 +10,14 @@ export type ResultSummaryCardProps = {
   formatResultAmount: (value: number, compact: boolean) => string;
   formatPercent: (value: number) => string;
   targetYearLabel: (year: number | undefined) => string;
+  /**
+   * 목표에 도달하는 **최소 월 적립금**. 목표 타일이 `미도달` 로 끝나지 않고 "월 N원이면 달성"을
+   * 덧붙이기 위한 값이다.
+   *
+   * `null`(또는 미전달) = 말할 것이 없다 — 이미 도달했거나, 목표 미설정이거나, 어떤 금액으로도
+   * 도달할 수 없는 경우(무배당 종목 등)다. 🔴 그때 추측한 숫자를 대신 보여주지 않는다.
+   */
+  requiredMonthlyContribution?: number | null;
   /** 계산 조건 스트립 항목 — 순수 함수(`buildConditionStripItems`) 산출물. */
   condition: ConditionStripItem[];
   /** 조건 스트립 우측 액션("조건 수정"). 페이지가 설정 진입 버튼을 만들어 넣는다. */

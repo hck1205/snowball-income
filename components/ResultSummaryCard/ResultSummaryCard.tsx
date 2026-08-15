@@ -33,6 +33,7 @@ function ResultSummaryCardComponent({
   formatResultAmount,
   formatPercent,
   targetYearLabel,
+  requiredMonthlyContribution = null,
   condition,
   conditionAction,
   footnote
@@ -63,6 +64,22 @@ function ResultSummaryCardComponent({
    */
   const isTargetReached = hasTarget && summary.targetMonthDividendReachedYear !== undefined;
   const isCelebrating = useGoalReachCelebration(isTargetReached);
+  /*
+   * 목표 타일 hint — 도달했으면 "언제", 못 미치면 "월 얼마면 되는지". 둘 다 없으면 hint 자체가 없다
+   * (역산이 `null` 인 경우: 목표 미설정 · 어떤 금액으로도 도달 불가 — 없는 숫자를 지어내지 않는다).
+   */
+  const goalHint = ((): string | undefined => {
+    if (!hasTarget) return undefined;
+    /*
+     * ⚠ 분기는 `yearsToReach` 가 아니라 **도달 여부**로 가른다. 도달했는데 연차를 못 찾는 경우가
+     *   실재한다(도달 연도가 `yearly` 에 없을 때). 그때 적립금 쪽으로 흘러가면 이미 달성한
+     *   사용자에게 "월 얼마 필요"라고 말하게 된다 — 화면이 자기 자신과 모순된다.
+     */
+    if (isTargetReached) return yearsToReach === undefined ? undefined : `투자 ${yearsToReach}년차`;
+    if (requiredMonthlyContribution === null) return undefined;
+
+    return `월 적립 ${formatResultAmount(requiredMonthlyContribution, isResultCompact)} 필요`;
+  })();
 
   return (
     /* 껍데기는 좌측 6px 얼굴색 레일만 소유한다 — 카드의 위계 선언(면·그림자)에는 손대지 않는다.
@@ -168,8 +185,13 @@ function ResultSummaryCardComponent({
               /*
                * "몇 년 뒤"는 값이 아니라 hint로 붙인다 — 값(TileValue)은 nowrap+ellipsis라
                * "2028년 (투자 3년차)"를 넣으면 잘린다.
+               *
+               * 미도달일 때는 같은 자리가 **다음 행동**을 말한다. `미도달` 한 단어로 끝나면
+               * 사용자는 무엇을 얼마나 바꿔야 하는지 몰라 슬라이더를 흔들어 스스로 찾아야 했다.
+               * 🔴 조사(助詞)를 금액에 붙이지 않는다 — 달러 표시 모드에서는 `$1,240` 이라
+               *    "…이면"이 어색해진다. 통화와 무관하게 읽히는 어순으로 둔다.
                */
-              hint={hasTarget && yearsToReach !== undefined ? `투자 ${yearsToReach}년차` : undefined}
+              hint={goalHint}
             />
           </SummaryGrid>
         )}

@@ -63,7 +63,8 @@ const stackedTable = `
   }
 
   /* 🔴 minmax(0, 1fr) 은 장식이 아니다 — 기본 암시 트랙(auto)은 최소 크기가 min-content 라
-     긴 분류·메모 하나가 카드 폭을 래퍼 밖으로 밀어낸다(이 레포에서 반복된 가로 오버플로 원인). */
+     긴 분류·메모 하나가 카드 폭을 래퍼 밖으로 밀어낸다. 근거 전문은 shared/styles/stackedTable.ts.
+     ⚠ 이 표는 카드 외형이 달라(grid-template-areas) 공용 골격을 일부러 쓰지 않는다 — 이 규칙만 공유한다. */
   tbody {
     display: grid;
     grid-template-columns: minmax(0, 1fr);

@@ -121,6 +121,9 @@ var toNodeHandler = (webHandler) => {
   };
 };
 
+// shared/lib/numeric.ts
+var isFinitePositive = (value) => typeof value === "number" && Number.isFinite(value) && value > 0;
+
 // server/handlers/Fx/Fx.ts
 var BASE = "USD";
 var QUOTE = "KRW";
@@ -131,7 +134,6 @@ var jsonResponse = (body, status, cache) => new Response(JSON.stringify(body), {
   status,
   headers: { "content-type": "application/json; charset=utf-8", "cache-control": cache }
 });
-var isFinitePositive = (value) => typeof value === "number" && Number.isFinite(value) && value > 0;
 var toIso = (value) => {
   if (typeof value !== "string" || value.length === 0) return null;
   const parsed = new Date(value);
@@ -619,10 +621,9 @@ var jsonResponse2 = (body, status, cache) => new Response(JSON.stringify(body), 
   status,
   headers: { "content-type": "application/json; charset=utf-8", "cache-control": cache }
 });
-var isFinitePositive2 = (value) => typeof value === "number" && Number.isFinite(value) && value > 0;
 var asRecord = (value) => value && typeof value === "object" ? value : null;
 var toIsoFromUnixSeconds2 = (value) => {
-  if (!isFinitePositive2(value)) return null;
+  if (!isFinitePositive(value)) return null;
   const parsed = new Date(value * 1e3);
   return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
 };
@@ -633,7 +634,7 @@ var readPreviousClose = (result) => {
   if (closes === null) return null;
   for (let index = closes.length - 2; index >= 0; index -= 1) {
     const close = closes[index];
-    if (isFinitePositive2(close)) return close;
+    if (isFinitePositive(close)) return close;
   }
   return null;
 };
@@ -646,7 +647,7 @@ var readQuote = (symbol, data) => {
   if (result === null) return null;
   const meta = asRecord(result.meta);
   if (meta === null) return null;
-  if (!isFinitePositive2(meta.regularMarketPrice)) return null;
+  if (!isFinitePositive(meta.regularMarketPrice)) return null;
   const quote = { symbol, price: meta.regularMarketPrice };
   const previousClose = readPreviousClose(result);
   if (previousClose !== null) quote.previousClose = previousClose;
@@ -837,7 +838,7 @@ var titleTag = (html) => {
   const match = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
   return match?.[1] ? decodeEntities(match[1]).replace(/\s+/g, " ").trim() : void 0;
 };
-var clamp = (value, max) => {
+var truncateText = (value, max) => {
   if (!value) return void 0;
   const trimmed = value.replace(/\s+/g, " ").trim();
   if (!trimmed) return void 0;
@@ -937,10 +938,10 @@ async function handler4(request) {
     JSON.stringify({
       url: finalUrl,
       /* 제목이 없으면 도메인으로 떨어진다 — 빈 카드를 만들지 않는다. */
-      title: clamp(metaContent(html, "og:title") ?? titleTag(html), 200) ?? host,
-      summary: clamp(metaContent(html, "og:description") ?? metaContent(html, "description"), MAX_SUMMARY),
+      title: truncateText(metaContent(html, "og:title") ?? titleTag(html), 200) ?? host,
+      summary: truncateText(metaContent(html, "og:description") ?? metaContent(html, "description"), MAX_SUMMARY),
       image: resolveImage(metaContent(html, "og:image"), finalUrl),
-      source: clamp(metaContent(html, "og:site_name"), 60) ?? host
+      source: truncateText(metaContent(html, "og:site_name"), 60) ?? host
     }),
     { status: 200, headers: JSON_HEADERS }
   );

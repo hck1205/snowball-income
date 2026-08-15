@@ -1,4 +1,4 @@
-const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
+import { clamp } from '@/shared/lib/numeric';
 
 /**
  * 한 축(가로 또는 세로)을 뷰 안에 가둔다.

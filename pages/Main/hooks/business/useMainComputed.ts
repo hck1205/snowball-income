@@ -24,7 +24,8 @@ import {
   buildSimulationBundle,
   buildYearlyResultBarOption,
   createChartCompactFormatter,
-  createChartValueFormatter
+  createChartValueFormatter,
+  solveRequiredMonthlyContributionForPortfolio
 } from '@/pages/Main/utils';
 
 type UseMainComputedParams = {
@@ -89,6 +90,19 @@ export const useMainComputed = ({
 
   const tableRows = useMemo(() => simulation?.yearly ?? [], [simulation]);
   /*
+   * 목표에 **못 미칠 때만** 역산한다 — "월 얼마면 달성"을 목표 타일이 말하기 위한 값이다.
+   *
+   * 🔴 도달한 경우에는 계산하지 않는다. 답이 화면에 쓰이지 않는데 판정(=시뮬레이션)을 15~20번
+   *    더 돌릴 이유가 없다. 슬라이더를 한 칸 움직일 때마다 이 훅이 다시 도는 자리다.
+   */
+  const requiredMonthlyContribution = useMemo(
+    () =>
+      simulation !== null && simulation.summary.targetMonthDividendReachedYear === undefined
+        ? solveRequiredMonthlyContributionForPortfolio({ isValid, includedProfiles, normalizedAllocation, values })
+        : null,
+    [includedProfiles, isValid, normalizedAllocation, simulation, values]
+  );
+  /*
    * 파이 중앙 표시값 — 기본은 **종료 시점 보유 기준 예상 월배당**이다(2026-08-14 사용자 결정).
    *
    * 적립식에서는 월평균(연÷12)이 종료 시점의 수령액을 크게 과소평가한다. 잔고가 그 해 내내
@@ -148,6 +162,8 @@ export const useMainComputed = ({
   return {
     simulation,
     tableRows,
+    /** 목표 미도달일 때만 값이 있다(도달했거나 목표 미설정이면 `null`). */
+    requiredMonthlyContribution,
     allocationPieOption,
     recentCashflowBarOption,
     yearlyCashflowByTicker,
