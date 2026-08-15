@@ -28,6 +28,14 @@
  *    판정법: 자손 **요소 박스**와 **텍스트 조각(Range)** 중 어느 것도 패딩 박스를 넘지 않으면
  *    넘친 주체는 의사요소다(요소·텍스트가 아니면 화면에 배치된 것이 없다).
  *
+ * 4. 🔴 **저자가 선언한 장식 돌출**(`data-decorative-overflow` 속성). 넘치는 것이 사실이지만
+ *    **그렇게 그리기로 한 것**이다 — 랜딩 히어로의 금화(무대 밖 13% 돌출이 연출의 핵심)와
+ *    내 포트폴리오의 선글라스 하마(`right: calc(-1 * space[3])`, "카드가 이 그림을 자르지 마라"가
+ *    명시된 규칙)가 그렇다. 둘 다 코드 주석에 이미 확정 결정으로 적혀 있던 것을 도구에 말해 준 것이다.
+ *    ⚠ 스크롤러 허용 목록과 같은 원칙: **넘긴 것도 `▫` 로 항상 출력한다.** 조용히 사라지면
+ *      허용이 아니라 눈감기가 되고, 그 순간 이 가드는 장식이 된다.
+ *    ⚠ 선언은 **요소에 붙인다**(경로 목록이 아니라). 그래야 옆 요소까지 덤으로 면제되지 않는다.
+ *
  * 남는 것만 실패로 센다: **`overflow-x: visible` 인데 실제 자손 박스나 텍스트가 밖으로 나간 요소.**
  * 그것만이 옆 요소를 덮거나 조상으로 전파되어 문서를 넓힌다.
  *
@@ -226,10 +234,18 @@ const WIDTHS = arg('widths', '390,360')
  *   크기가 0 으로 클램프되는 덕이다 — 그 배치가 한 겹만 깊어지면(래퍼 하나 추가) 캘린더의 지급 월
  *   표가 문서를 390 → 587 로 늘렸던 것과 **같은 사고**가 난다. 우연히 맞은 상태를 가드 안으로 넣는다.
  *   `/terms` 는 표가 0개라 뺐다(문단·목록뿐 — 라우트를 늘린 만큼 매 실행이 느려진다).
+ *
+ * 🔴 `/dividend/kings` 는 **카드 모드 격자가 이 표에만 있는 배당 목록 표**다(2026-08-15 추가).
+ *   다른 표들이 값을 늘려 채우는(`stretch`) 것과 달리 이 표만 `justify-items: end` 로 값을 제 폭만큼
+ *   만들어 오른쪽에 붙인다 — 그 배치에서는 값이 트랙보다 넓어지면 **왼쪽(라벨 쪽)으로** 삐져나간다.
+ *   게다가 공용 `DataTable` 셀에 있는 방어(`overflow: hidden`)가 이 사본에는 없다.
+ *   지금은 새지 않는다(390/360/320px 실측 0건, 뮤턴트 3/3 지목으로 감도도 확인). 하지만 그건
+ *   **현재 값들이 짧아서**이지 구조가 막아 주는 것이 아니다 — `/privacy` 와 같은 이유로,
+ *   우연히 맞은 상태를 가드 안으로 넣는다.
  */
 const ROUTES = arg(
   'routes',
-  '/,/simulator,/dividend/portfolio,/dividend/calendar,/ticker/all,/community/portfolio,/privacy'
+  '/,/simulator,/dividend/portfolio,/dividend/calendar,/ticker/all,/community/portfolio,/privacy,/dividend/kings'
 )
   .split(',')
   .map((r) => r.trim())
@@ -374,7 +390,7 @@ const buildScan = (allowlist, tolerance, offenderTolerance) => `(() => {
       const r = node.getBoundingClientRect();
       if (r.width === 0 && r.height === 0) continue;
       const out = Math.max(r.right - padRight, padLeft - r.left);
-      if (out > OFF_TOL) found.push({ what: desc(node), out: Math.round(out * 100) / 100, kind: 'element' });
+      if (out > OFF_TOL) found.push({ what: desc(node), out: Math.round(out * 100) / 100, kind: 'element', decorative: !!node.closest('[data-decorative-overflow]') });
     }
     const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
     const range = document.createRange();
@@ -385,7 +401,7 @@ const buildScan = (allowlist, tolerance, offenderTolerance) => `(() => {
         if (r.width === 0) continue;
         const out = Math.max(r.right - padRight, padLeft - r.left);
         if (out > OFF_TOL) {
-          found.push({ what: 'text «' + t.nodeValue.trim().slice(0, 24) + '»', out: Math.round(out * 100) / 100, kind: 'text' });
+          found.push({ what: 'text «' + t.nodeValue.trim().slice(0, 24) + '»', out: Math.round(out * 100) / 100, kind: 'text', decorative: false });
           break;
         }
       }
@@ -412,6 +428,7 @@ const buildScan = (allowlist, tolerance, offenderTolerance) => `(() => {
 
   const real = [];
   const scrollers = [];
+  const decorative = [];
   const seenScrollers = new Set();
   /* 🔴 "무엇을 보았나"의 증거. 이 숫자가 작으면 결함 0건이 아니라 **볼 게 없었던 것**이다. */
   let inspected = 0;
@@ -453,6 +470,17 @@ const buildScan = (allowlist, tolerance, offenderTolerance) => `(() => {
     // 필터 3 — 요소도 텍스트도 안 넘었다 = 넘친 주체는 의사요소(hitArea 터치 타깃). 보이지 않는다.
     if (offenders.length === 0) continue;
 
+    /*
+     * 필터 4 — **저자가 선언한 장식 돌출**(data-decorative-overflow 속성).
+     * ⚠ 이 블록은 브라우저로 보내는 템플릿 문자열 안이다 — 주석에 백틱을 쓰면 문자열이 끊긴다.
+     * 스크롤러 허용 목록과 같은 성격이다: 넘치는 것이 사실이지만 **그렇게 그리기로 한 것**이다.
+     * 넘긴 것도 INFO 로 반드시 출력한다 — 조용히 사라지면 허용이 아니라 눈감기가 된다.
+     */
+    if (offenders.every((o) => o.decorative)) {
+      decorative.push({ el: desc(el), over, offenders: offenders.slice(0, 3), chain: chain(el) });
+      continue;
+    }
+
     real.push({
       el: desc(el),
       over,
@@ -469,7 +497,8 @@ const buildScan = (allowlist, tolerance, offenderTolerance) => `(() => {
     doc: { scroll: document.documentElement.scrollWidth, client: document.documentElement.clientWidth },
     inspected,
     real,
-    scrollers
+    scrollers,
+    decorative
   };
 })()`;
 
@@ -710,8 +739,13 @@ for (const route of ROUTES) {
       console.log(
         `  ${scan.inspected < MIN_INSPECTED_ELEMENTS ? '✗' : '✓'} ${label}  새는 요소 0 · ${seen}` +
           ` · 의도적 스크롤 ${scan.scrollers.length}개(허용 ${scan.scrollers.length - unknown.length})` +
+          ` · 선언된 장식 돌출 ${scan.decorative.length}개` +
           ` · 아코디언 ${expanded.opened}/${expanded.total} 펼침`
       );
+    }
+    /* 선언된 장식 돌출은 실패가 아니지만 **항상 보인다** — 허용이 눈감기로 굳지 않게. */
+    for (const d of scan.decorative) {
+      console.log(`      ▫ ${d.el} +${d.over}px ← ${d.offenders[0]?.what}  [선언된 장식 돌출 — data-decorative-overflow]`);
     }
     if (VERBOSE || unknown.length) {
       for (const s of scan.scrollers) {
