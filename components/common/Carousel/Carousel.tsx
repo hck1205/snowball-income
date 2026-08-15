@@ -115,7 +115,10 @@ export default function Carousel({ children, ariaLabel, autoAdvanceSeconds = 0, 
       /* 터치는 hover 가 없다 — 손이 닿는 동안은 멈춘다. */
       onTouchStart={() => setPaused(true)}
     >
-      <CarouselTrack ref={trackRef} aria-label={ariaLabel}>
+      {/* 🔴 `data-carousel-track` 은 장식이 아니라 **계약**이다 — 이 트랙은 가로로 스크롤하는 것이
+          설계이므로(overflow-x: auto + scroll-snap), overflowprobe 가 그 사실을 알아야 한다.
+          aria-label 은 호출부가 만드는 동적 문자열("성장 4개")이라 앵커로 쓸 수 없다. */}
+      <CarouselTrack ref={trackRef} data-carousel-track="true" aria-label={ariaLabel}>
         {children}
       </CarouselTrack>
 
