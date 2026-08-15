@@ -17,6 +17,8 @@
  */
 
 /** 방향. `flat` 은 "표시 정밀도에서 변동이 없다"는 뜻이다(아래 `percent` 주석 참고). */
+import { isFinitePositive } from '@/shared/lib/numeric';
+
 export type FxChangeDirection = 'up' | 'down' | 'flat';
 
 export type FxChange = {
@@ -33,9 +35,6 @@ export type FxChange = {
 /** 방향 판정에 쓰는 표시 정밀도(소수 2자리). 아래 주석의 보합 규칙과 짝을 이룬다. */
 const DIRECTION_DECIMALS = 2;
 const DIRECTION_EPSILON = 10 ** -DIRECTION_DECIMALS / 2;
-
-const isFinitePositive = (value: unknown): value is number =>
-  typeof value === 'number' && Number.isFinite(value) && value > 0;
 
 /**
  * 당일 환율과 전일 종가로 변동률을 낸다.

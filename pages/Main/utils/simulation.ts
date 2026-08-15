@@ -1,8 +1,17 @@
 import type { TickerProfile } from '@/shared/types/snowball';
 import type { MonthlySnapshot, SimulationOutput, SimulationResult, YieldFormValues } from '@/shared/types';
 import { getTickerDisplayName } from '@/shared/utils';
+import { sumBy } from '@/shared/lib/numeric';
 import { getChartTheme } from '@/shared/styles';
-import { computeCapitalGains, findFinancialIncomeThresholdYear, runSimulation, toPriceGrowth } from '@/shared/lib/snowball';
+import {
+  aggregateYearly,
+  computeCapitalGains,
+  findFinancialIncomeThresholdYear,
+  findTargetYear,
+  runSimulation,
+  solveRequiredMonthlyContribution,
+  toPriceGrowth
+} from '@/shared/lib/snowball';
 import type { YearlyCashflowByTicker } from '@/shared/lib/charts';
 import type { NormalizedAllocationItem } from './portfolio';
 
@@ -74,9 +83,6 @@ const buildTargetProfiles = ({
   return normalizedAllocation.map(({ profile, weight }) => ({ profile, weight }));
 };
 
-const sumBy = <T>(items: T[], getValue: (item: T) => number): number =>
-  items.reduce((sum, item) => sum + getValue(item), 0);
-
 /**
  * 종목별 시뮬레이션을 포트폴리오 한 줄로 합산한다.
  *
@@ -110,19 +116,8 @@ const aggregatePortfolioSimulation = (outputs: SimulationOutput[], targetMonthly
     };
   });
 
-  const yearly: SimulationResult[] = base.yearly.map((row, index) => {
-    const merged = outputs.map((output) => output.yearly[index]);
-    const annualDividend = sumBy(merged, (item) => item.annualDividend);
-
-    return {
-      year: row.year,
-      totalContribution: sumBy(merged, (item) => item.totalContribution),
-      assetValue: sumBy(merged, (item) => item.assetValue),
-      annualDividend,
-      cumulativeDividend: sumBy(merged, (item) => item.cumulativeDividend),
-      monthlyDividend: annualDividend / 12
-    };
-  });
+  /* 연간 합산은 커뮤니티·PDF 경로(`runScenarioPayload`)와 **같은 함수**다 — 예전엔 양쪽에 복붙돼 있었다. */
+  const yearly: SimulationResult[] = aggregateYearly(outputs);
 
   const finalYear = yearly[yearly.length - 1];
   const lastPayout = [...monthly].reverse().find((item) => item.dividendPaid > 0);
@@ -152,7 +147,9 @@ const aggregatePortfolioSimulation = (outputs: SimulationOutput[], targetMonthly
       totalContribution: finalYear?.totalContribution ?? 0,
       totalNetDividend: finalYear?.cumulativeDividend ?? 0,
       totalTaxPaid: sumBy(outputs, (output) => output.summary.totalTaxPaid),
-      targetMonthDividendReachedYear: yearly.find((item) => item.monthlyDividend >= targetMonthlyDividend)?.year,
+      /* 🔴 단일 종목 경로(`buildSummary`)와 **같은 함수**다 — 인라인으로 다시 구현하면 같은 화면에서
+         "도달"과 "미도달"이 갈릴 수 있다. */
+      targetMonthDividendReachedYear: findTargetYear(yearly, targetMonthlyDividend),
       totalCostBasis,
       /**
        * 양도세는 **종목별 세금의 합이 아니다**. 기본공제 250만원은 인별로 1회만 적용되므로
@@ -193,6 +190,57 @@ export const buildSimulation = ({
     values
   });
   return bundle.simulation;
+};
+
+/**
+ * 후보 월 적립금으로 **목표 월배당에 도달하는가**.
+ *
+ * 🔴 판정은 화면과 **같은 두 함수**로 한다 — `aggregateYearly` 로 합산하고 `findTargetYear` 로
+ * 판정한다. 그 둘이 곧 `aggregatePortfolioSimulation` 이 `targetMonthDividendReachedYear` 를
+ * 만드는 방법이다. "같은 식을 쓴다"는 약속이 아니라 **같은 코드를 부르는 것**이라, 판정 규칙이
+ * 바뀌어도 역산과 화면이 갈릴 수 없다.
+ *
+ * 차트 옵션·색·월 시계열은 만들지 않는다. 역산은 이 판정을 15~20번 부르는데, 번들 전체를 매번
+ * 다시 만들면 `getChartTheme()` 이 그만큼 DOM 을 읽는다(느리고, 답에는 아무 영향이 없다).
+ */
+const reachesTargetMonthlyDividend = (
+  targetProfiles: WeightedTargetProfile[],
+  values: YieldFormValues,
+  monthlyContribution: number
+): boolean => {
+  const outputs = targetProfiles.map((item) =>
+    runForProfile(item.profile, monthlyContribution * item.weight, values.initialInvestment * item.weight, values)
+  );
+
+  return findTargetYear(aggregateYearly(outputs), values.targetMonthlyDividend) !== undefined;
+};
+
+/**
+ * 목표 월배당에 도달하는 **최소 월 적립금**. 계산할 수 없거나 어떤 금액으로도 도달할 수 없으면 `null`.
+ *
+ * 화면(`ResultSummaryCard` 의 목표 타일)이 `미도달` 만 말하고 끝나던 자리에 "월 얼마면 달성"을
+ * 채우는 값이다. 배분·계좌·세율 같은 맥락은 여기서 묶고, 탐색 자체는 순수 함수
+ * (`solveRequiredMonthlyContribution`)에 맡긴다.
+ *
+ * ⚠ 목표 미설정(0 이하)이면 `null` 이다 — 0 은 첫 해에 자동으로 "도달"이라 답이 언제나 0이 되어
+ *   무의미하다(호출부가 "미설정"을 따로 표시한다).
+ */
+export const solveRequiredMonthlyContributionForPortfolio = ({
+  isValid,
+  includedProfiles,
+  normalizedAllocation,
+  values
+}: SimulationInputParams): number | null => {
+  if (!isValid || !(values.targetMonthlyDividend > 0)) return null;
+
+  const targetProfiles = buildTargetProfiles({ includedProfiles, normalizedAllocation });
+  if (targetProfiles.length === 0) return null;
+
+  return solveRequiredMonthlyContribution({
+    reachesTarget: (monthlyContribution) => reachesTargetMonthlyDividend(targetProfiles, values, monthlyContribution),
+    // 필요한 적립금은 대개 현재 적립금이나 목표 월배당과 비슷한 자릿수다 — 거기서 시작하면 탐색이 짧다.
+    probeStart: Math.max(values.monthlyContribution, values.targetMonthlyDividend)
+  });
 };
 
 export type PostInvestmentDividendProjectionRow = {

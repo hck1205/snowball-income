@@ -1,6 +1,6 @@
 import styled from '@emotion/styled';
 import { Link } from 'react-router-dom';
-import { color, container, font, media, motion, radius, space, subtleScrollbar } from '@/shared/styles';
+import { color, container, font, media, motion, radius, space, stackedTableShell, subtleScrollbar } from '@/shared/styles';
 
 /**
  * 정렬 가능한 목록 표.
@@ -28,39 +28,15 @@ export const TableWrap = styled.div`
 `;
 
 /* 좁은 폭에서는 행을 카드로 접는다. DataTable 과 같은 규칙·같은 중단점. */
+/*
+ * 골격은 공용(`stackedTableShell`)이다 — 예전엔 DataTable 의 CSS 가 **바이트 단위로** 복붙돼 있었다.
+ * 이 표만 다른 것은 caption 하나뿐이다(표 제목을 카드 모드에서도 보여 준다).
+ */
 const stackedTable = `
-  display: block;
-  min-width: 0;
+  ${stackedTableShell}
 
-  /*
-   * ⚠ 표가 block 이 되면 caption(display: table-caption)만 익명 표 상자에 남아 **shrink-to-fit**
-   * 으로 줄어든다 — 390px 실측에서 "종목 목록 (기준일 2026-08-03)"이 폭 50px 남짓한 기둥으로 접혔다.
-   * 🔴 그 caption 이 이 표의 **기준일**을 말하는 유일한 자리라 읽히지 않으면 목록이 "지금 기준"이 된다.
-   */
   caption {
     display: block;
-  }
-
-  thead {
-    display: none;
-  }
-
-  tbody {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: ${space[2]};
-  }
-
-  tbody tr {
-    display: block;
-    border: 1px solid ${color.border};
-    border-radius: ${radius.md};
-    padding: ${space[1]} ${space[3]};
-    background: ${color.surfaceMuted};
-  }
-
-  tbody tr:hover {
-    background: ${color.surfaceMuted};
   }
 `;
 

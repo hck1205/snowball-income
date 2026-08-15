@@ -13,6 +13,8 @@ import {
   type MarketIndicesSnapshot
 } from '@/shared/lib/marketIndices';
 import { toNodeHandler } from '@/shared/lib/server';
+/* `numeric` 은 import 0개·`import.meta` 없음의 순수 모듈이라 위 규약을 깨지 않는다(번들러가 인라인한다). */
+import { isFinitePositive } from '@/shared/lib/numeric';
 
 /**
  * `/api/market-indices` — **표시 전용** 주요 지수(현재가 + 전일 종가) 프록시.
@@ -75,9 +77,6 @@ const jsonResponse = (body: unknown, status: number, cache: string): Response =>
     status,
     headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': cache }
   });
-
-const isFinitePositive = (value: unknown): value is number =>
-  typeof value === 'number' && Number.isFinite(value) && value > 0;
 
 const asRecord = (value: unknown): Record<string, unknown> | null =>
   value && typeof value === 'object' ? (value as Record<string, unknown>) : null;

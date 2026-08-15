@@ -6,7 +6,7 @@ import { parseMarketIndicesSnapshot } from '@/shared/lib/marketIndices';
 
 /**
  * 🔴 **표시 전용 경계** — 환율·주요 지수 값은 시뮬레이션 입력·저장 payload·공유 URL 어디에도
- * 들어가지 않는다(`docs/external-data.md`, `shared/lib/fx`·`shared/lib/marketIndices` 계약 주석).
+ * 들어가지 않는다(`shared/lib/fx`·`shared/lib/marketIndices` 의 계약 주석이 정본이다).
  *
  * 왜 테스트로 못 박나: 이 경계는 "지금 안 쓰니까 괜찮다"로 지켜지고 있어 **한 줄이면 샌다**.
  * 새는 순간 사용자 자산(저장 슬롯·공유 링크)에 시세가 굳어, 나중에 열면 과거 환율이 오늘 값처럼

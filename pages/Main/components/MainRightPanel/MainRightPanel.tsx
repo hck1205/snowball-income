@@ -147,6 +147,7 @@ function MainRightPanelComponent({ configDrawerId }: MainRightPanelProps) {
     postInvestmentDividendProjectionRows,
     yearlyResultBarOption,
     yearlySeriesItems,
+    requiredMonthlyContribution,
     formatChartValue,
     formatChartCompact
   } = useMainComputed({
@@ -431,6 +432,7 @@ function MainRightPanelComponent({ configDrawerId }: MainRightPanelProps) {
                 formatResultAmount={formatResultAmount}
                 formatPercent={formatPercent}
                 targetYearLabel={targetYearLabel}
+                requiredMonthlyContribution={requiredMonthlyContribution}
                 condition={conditionItems}
                 conditionAction={
                   <SettingsEntryButton

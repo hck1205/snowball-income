@@ -3,6 +3,8 @@ import type { PortfolioMonthlyPoint, SimulationOutput, SimulationResult, YieldFo
 import { defaultYieldFormValues, tickerInputSchema, validateFormValues } from './SnowballForm';
 import { aggregateMonthly } from './SnowballGoal';
 import { runSimulation } from './SnowballSimulation';
+/* 연간 합산은 앱 화면 경로와 **같은 함수**를 쓴다 — 예전엔 이 파일에 복붙돼 있었다. */
+import { aggregateYearly } from './SnowballSummary';
 
 /**
  * 시나리오 payload(`{ portfolio, investmentSettings }`) → 시뮬레이션 실행 — **순수 함수**.
@@ -69,29 +71,6 @@ const normalizeWeights = (profiles: ScenarioTickerProfile[], weightByTickerId: R
     ? profiles.map(() => 1 / profiles.length)
     : rawWeights.map((weight) => weight / rawWeightSum);
 };
-
-const sumBy = <T>(items: T[], getValue: (item: T) => number): number =>
-  items.reduce((sum, item) => sum + getValue(item), 0);
-
-/**
- * 종목별 연간 행을 포트폴리오 한 줄로 합산한다 — `aggregatePortfolioSimulation`(pages/Main/utils/simulation.ts)의
- * yearly 합산과 같은 순서·같은 수식(단순 합 + `annualDividend / 12`)이라 부동소수까지 동일하다.
- * 단일 종목이면 합산이 항등이 되어 `runSimulation` 결과 그대로다.
- */
-const aggregateYearly = (outputs: SimulationOutput[]): SimulationResult[] =>
-  outputs[0].yearly.map((baseRow, index) => {
-    const merged = outputs.map((output) => output.yearly[index]);
-    const annualDividend = sumBy(merged, (row) => row.annualDividend);
-
-    return {
-      year: baseRow.year,
-      totalContribution: sumBy(merged, (row) => row.totalContribution),
-      assetValue: sumBy(merged, (row) => row.assetValue),
-      annualDividend,
-      cumulativeDividend: sumBy(merged, (row) => row.cumulativeDividend),
-      monthlyDividend: annualDividend / 12
-    };
-  });
 
 export type ScenarioRun = {
   /** 계산에 실제로 참여한(=포함된) 티커 프로필. payload 순서를 보존한다. */

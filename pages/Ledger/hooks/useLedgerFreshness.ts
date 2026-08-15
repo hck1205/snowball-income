@@ -10,7 +10,8 @@ const copy = LEDGER_COPY;
 
 /**
  * 창으로 돌아왔을 때 다시 읽기까지 기다리는 시간.
- * 주요 지수 스트립의 탭 복귀 규약과 같은 5분이다(`docs/external-data.md` §3-1) — 화면마다 다른
+ * 주요 지수 스트립의 탭 복귀 규약과 같은 5분이다
+ * (`jotai/snowball/atoms/marketIndices` 의 `REFRESH_MIN_INTERVAL_MS`) — 화면마다 다른
  * 스로틀을 두면 "왜 어떤 화면은 갱신되고 어떤 화면은 안 되나"가 설명 불가능해진다.
  */
 export const FRESHNESS_THROTTLE_MS = 5 * 60 * 1000;

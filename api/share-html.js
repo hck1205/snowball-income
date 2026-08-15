@@ -4915,11 +4915,26 @@ var runQuickEstimate = (input) => {
   };
 };
 
+// shared/lib/numeric.ts
+var sumBy = (items, getValue) => items.reduce((sum, item) => sum + getValue(item), 0);
+
 // shared/lib/snowball/SnowballSummary.ts
 var findTargetYear = (rows, monthlyTarget) => {
   return rows.find((row) => row.monthlyDividend >= monthlyTarget)?.year;
 };
-var sumDividendPaid = (rows) => rows.reduce((sum, row) => sum + row.dividendPaid, 0);
+var aggregateYearly = (outputs) => outputs[0].yearly.map((baseRow, index) => {
+  const merged = outputs.map((output) => output.yearly[index]);
+  const annualDividend = sumBy(merged, (row) => row.annualDividend);
+  return {
+    year: baseRow.year,
+    totalContribution: sumBy(merged, (row) => row.totalContribution),
+    assetValue: sumBy(merged, (row) => row.assetValue),
+    annualDividend,
+    cumulativeDividend: sumBy(merged, (row) => row.cumulativeDividend),
+    monthlyDividend: annualDividend / 12
+  };
+});
+var sumDividendPaid = (rows) => sumBy(rows, (row) => row.dividendPaid);
 var findLastPayoutMonth = (monthly) => [...monthly].reverse().find((row) => row.dividendPaid > 0);
 var buildYearlyRow = ({
   year,
@@ -8714,6 +8729,34 @@ var inputSurface = `
   }
 `;
 
+// shared/styles/stackedTable.ts
+var stackedTableShell = `
+  display: block;
+  min-width: 0;
+
+  thead {
+    display: none;
+  }
+
+  tbody {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: ${space[2]};
+  }
+
+  tbody tr {
+    display: block;
+    border: 1px solid ${color.border};
+    border-radius: ${radius.md};
+    padding: ${space[1]} ${space[3]};
+    background: ${color.surfaceMuted};
+  }
+
+  tbody tr:hover {
+    background: ${color.surfaceMuted};
+  }
+`;
+
 // shared/styles/pageHue.ts
 var PAGE_HUE_VAR = "--sb-page-hue";
 var PAGE_HUE_TOKEN = {
@@ -8882,7 +8925,6 @@ var buildTargetProfiles = ({
   }
   return normalizedAllocation.map(({ profile, weight }) => ({ profile, weight }));
 };
-var sumBy = (items, getValue) => items.reduce((sum, item) => sum + getValue(item), 0);
 var aggregatePortfolioSimulation = (outputs, targetMonthlyDividend) => {
   const base = outputs[0];
   const monthly = base.monthly.map((row, index) => {
@@ -8904,18 +8946,7 @@ var aggregatePortfolioSimulation = (outputs, targetMonthlyDividend) => {
       cumulativeDividend: sumBy(merged, (item) => item.cumulativeDividend)
     };
   });
-  const yearly = base.yearly.map((row, index) => {
-    const merged = outputs.map((output) => output.yearly[index]);
-    const annualDividend = sumBy(merged, (item) => item.annualDividend);
-    return {
-      year: row.year,
-      totalContribution: sumBy(merged, (item) => item.totalContribution),
-      assetValue: sumBy(merged, (item) => item.assetValue),
-      annualDividend,
-      cumulativeDividend: sumBy(merged, (item) => item.cumulativeDividend),
-      monthlyDividend: annualDividend / 12
-    };
-  });
+  const yearly = aggregateYearly(outputs);
   const finalYear = yearly[yearly.length - 1];
   const lastPayout = [...monthly].reverse().find((item) => item.dividendPaid > 0);
   const finalAssetValue = finalYear?.assetValue ?? 0;
@@ -8942,7 +8973,9 @@ var aggregatePortfolioSimulation = (outputs, targetMonthlyDividend) => {
       totalContribution: finalYear?.totalContribution ?? 0,
       totalNetDividend: finalYear?.cumulativeDividend ?? 0,
       totalTaxPaid: sumBy(outputs, (output) => output.summary.totalTaxPaid),
-      targetMonthDividendReachedYear: yearly.find((item) => item.monthlyDividend >= targetMonthlyDividend)?.year,
+      /* 🔴 단일 종목 경로(`buildSummary`)와 **같은 함수**다 — 인라인으로 다시 구현하면 같은 화면에서
+         "도달"과 "미도달"이 갈릴 수 있다. */
+      targetMonthDividendReachedYear: findTargetYear(yearly, targetMonthlyDividend),
       totalCostBasis,
       /**
        * 양도세는 **종목별 세금의 합이 아니다**. 기본공제 250만원은 인별로 1회만 적용되므로

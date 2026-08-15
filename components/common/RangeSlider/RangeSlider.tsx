@@ -17,8 +17,8 @@ import {
   TrackArea,
   ValueReadout
 } from './RangeSlider.styled';
+import { clamp } from '@/shared/lib/numeric';
 
-const clamp = (value: number, low: number, high: number): number => Math.min(Math.max(value, low), high);
 
 type ThumbKey = 'min' | 'max';
 

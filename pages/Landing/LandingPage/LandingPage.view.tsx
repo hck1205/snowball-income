@@ -119,7 +119,9 @@ export default function LandingPageView({ viewModel, onHeroCta, onResume }: Land
             없고 오히려 첫 화면이 늦게 채워진다.
             ⚠ `size={280}` 은 **상한값**이다(실제 폭은 CSS clamp 가 정한다). 이 숫자가 img 의
             width/height 속성으로 내려가 레이아웃 예약에 쓰인다. */}
-        <HeroArt>
+        {/* 🔴 금화가 무대 오른쪽으로 13% 나가는 것이 이 연출의 핵심이다(HeroArt/HERO_ART_INSET 주석).
+            그 돌출은 결함이 아니라 의도이므로 overflowprobe 에 그렇게 선언한다. */}
+        <HeroArt data-decorative-overflow="true">
           <HippoCoinScene size={280} loading="eager" />
         </HeroArt>
 

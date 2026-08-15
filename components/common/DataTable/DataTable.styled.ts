@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, container, font, media, motion, radius, space, subtleScrollbar } from '@/shared/styles';
+import { color, container, font, media, motion, space, stackedTableShell, subtleScrollbar } from '@/shared/styles';
 
 export const TableWrap = styled.div`
   overflow-x: auto;
@@ -16,34 +16,8 @@ export const TableWrap = styled.div`
  * 좁은 폭(<=820px)에서는 표를 행 단위 카드로 접는다. 기존 동작 그대로 유지하되
  * 컨테이너 쿼리와 미디어 쿼리를 함께 쓴다(컨테이너 미지원 폴백).
  */
-const stackedTable = `
-  display: block;
-  min-width: 0;
-
-  thead {
-    display: none;
-  }
-
-  /* minmax(0, 1fr) — 기본 암시 트랙(auto)은 최소 크기가 min-content 라 긴 셀 하나가 카드 폭을
-     래퍼(overflow-x: auto) 밖으로 밀어낸다. 보유 표에서 실제로 20~41px 가로 스크롤이 생겼던 원인이다. */
-  tbody {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: ${space[2]};
-  }
-
-  tbody tr {
-    display: block;
-    border: 1px solid ${color.border};
-    border-radius: ${radius.md};
-    padding: ${space[1]} ${space[3]};
-    background: ${color.surfaceMuted};
-  }
-
-  tbody tr:hover {
-    background: ${color.surfaceMuted};
-  }
-`;
+/* 골격은 공용이다 — 근거(minmax(0,1fr) 가로 오버플로)는 shared/styles/stackedTable.ts 에 있다. */
+const stackedTable = stackedTableShell;
 
 export const Table = styled.table`
   width: 100%;

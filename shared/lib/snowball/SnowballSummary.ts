@@ -1,12 +1,50 @@
-import type { MonthlySnapshot, SimulationResult, SimulationSummary } from '@/shared/types';
+import type { MonthlySnapshot, SimulationOutput, SimulationResult, SimulationSummary } from '@/shared/types';
+import { sumBy } from '@/shared/lib/numeric';
 import { computeCapitalGains, findFinancialIncomeThresholdYear } from './SnowballCapitalGains';
 
-export const findTargetYear = (rows: SimulationResult[], monthlyTarget: number): number | undefined => {
+/**
+ * 목표 월배당에 처음 도달하는 **연도 라벨**. 도달하지 않으면 `undefined`.
+ *
+ * 🔴 **연 해상도 목표 판정의 유일한 정의다.** 앱의 여러 표면(단일 종목 요약·포트폴리오 합산·
+ * 필요 적립금 역산)이 전부 이 함수를 부른다 — 한 곳이라도 `rows.find(...)` 로 다시 구현하면
+ * 같은 화면 안에서 "도달"과 "미도달"이 동시에 나올 수 있다(실제로 포트폴리오 합산 쪽이 그렇게
+ * 인라인 재구현돼 있었다).
+ *
+ * ⚠ `monthlyTarget = 0`(목표 미설정)이면 첫 행에서 즉시 성립한다 — 호출부가 "미설정"을 따로 분기한다.
+ */
+export const findTargetYear = (rows: readonly SimulationResult[], monthlyTarget: number): number | undefined => {
   return rows.find((row) => row.monthlyDividend >= monthlyTarget)?.year;
 };
 
-export const sumDividendPaid = (rows: MonthlySnapshot[]): number =>
-  rows.reduce((sum, row) => sum + row.dividendPaid, 0);
+/**
+ * 종목별 연간 행을 **포트폴리오 한 줄로 합산**한다.
+ *
+ * 🔴 이 구현은 원래 **두 곳에 글자 그대로 복붙돼 있었다** — `SnowballScenarioRun`(커뮤니티 요약·
+ * PDF 리포트 경로)과 `pages/Main/utils/simulation`(앱 화면 경로). 둘이 "같은 순서·같은 수식이라
+ * 부동소수까지 동일하다"는 것을 **주석으로만** 보장하고 있었는데, 그건 한쪽을 고치는 순간 깨진다.
+ * 같은 시나리오가 화면과 공유 카드에서 다른 숫자를 내는 종류의 버그라 구조로 막는다.
+ *
+ * 합산 규칙: 금액 항목은 단순 합, `monthlyDividend` 는 합산된 `annualDividend / 12`.
+ * `year` 라벨은 첫 종목 것을 쓴다(모든 종목이 같은 시작일·기간을 공유한다).
+ * ⚠ `price`/`shares`/`dividendPerShare` 는 종목 간 단위가 달라 여기서 다루지 않는다 — 그 항목까지
+ *   필요한 월 해상도 합산은 `aggregateMonthly`(SnowballGoal)와 호출부가 따로 맡는다.
+ */
+export const aggregateYearly = (outputs: readonly SimulationOutput[]): SimulationResult[] =>
+  outputs[0].yearly.map((baseRow, index) => {
+    const merged = outputs.map((output) => output.yearly[index]);
+    const annualDividend = sumBy(merged, (row) => row.annualDividend);
+
+    return {
+      year: baseRow.year,
+      totalContribution: sumBy(merged, (row) => row.totalContribution),
+      assetValue: sumBy(merged, (row) => row.assetValue),
+      annualDividend,
+      cumulativeDividend: sumBy(merged, (row) => row.cumulativeDividend),
+      monthlyDividend: annualDividend / 12
+    };
+  });
+
+export const sumDividendPaid = (rows: MonthlySnapshot[]): number => sumBy(rows, (row) => row.dividendPaid);
 
 export const findLastPayoutMonth = (monthly: MonthlySnapshot[]): MonthlySnapshot | undefined =>
   [...monthly].reverse().find((row) => row.dividendPaid > 0);

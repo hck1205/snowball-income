@@ -5,6 +5,8 @@
   전혀 없다(순수 `@/shared/lib/server` 어댑터만 쓴다).
 */
 import { toNodeHandler } from '@/shared/lib/server';
+/* `numeric` 은 import 0개·`import.meta` 없음의 순수 모듈이라 위 규약을 깨지 않는다(번들러가 인라인한다). */
+import { isFinitePositive } from '@/shared/lib/numeric';
 
 /**
  * `/api/fx` — **표시 전용** 원↔달러 환율 프록시.
@@ -27,7 +29,7 @@ import { toNodeHandler } from '@/shared/lib/server';
  * ## 왜 Yahoo 가 1순위인가 (전일 종가를 함께 받으려고)
  *   1. **변동률의 두 값(당일·전일)은 같은 출처·같은 스냅샷이어야 한다.** er-api 의 당일값과 Yahoo 의 전일값을
  *      섞으면 공급자 간 상시 오차(mid-market vs close, 0.1~0.3%p)가 하루치 변동폭과 같은 자릿수라 **없는 변동을
- *      지어내게 된다**(docs/external-data.md 원칙 3 "관측값과 가정을 섞지 않는다", 원칙 4 "날조 금지").
+ *      지어내게 된다** — 이 레포의 "관측값과 가정을 섞지 않는다 · 지어낸 숫자 0" 원칙에 정면으로 어긋난다.
  *   2. 이 레포는 **이미 Yahoo chart API 에 의존**한다(티커 시세·배당 갱신 파이프라인 전체) — 새 벤더 의존이 아니다.
  *   3. Yahoo 가 실패해도 기존 두 공급자가 그대로 살아 있어 가용성은 오히려 3중이 된다. 폴백이 이기면 전일 종가가
  *      없고 → **변동률만 생략**된다(부분 실패 허용, 환율 자체는 정상).
@@ -87,9 +89,6 @@ const jsonResponse = (body: unknown, status: number, cache: string): Response =>
     status,
     headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': cache }
   });
-
-const isFinitePositive = (value: unknown): value is number =>
-  typeof value === 'number' && Number.isFinite(value) && value > 0;
 
 /** RFC2822/ISO 등 Date 가 파싱 가능한 문자열 → ISO. 파싱 불가면 null(as-of 를 지어내지 않는다). */
 const toIso = (value: unknown): string | null => {

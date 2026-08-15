@@ -22,6 +22,7 @@ type RenderOptions = {
   showQuickEstimate?: boolean;
   targetMonthlyDividend?: number;
   yearly?: SimulationOutput['yearly'];
+  requiredMonthlyContribution?: number | null;
 };
 
 const renderCard = ({
@@ -29,7 +30,8 @@ const renderCard = ({
   isResultCompact = false,
   showQuickEstimate = false,
   targetMonthlyDividend = 3_000_000,
-  yearly = []
+  yearly = [],
+  requiredMonthlyContribution = null
 }: RenderOptions = {}) => {
   render(
     <Provider store={createStore()}>
@@ -41,6 +43,7 @@ const renderCard = ({
         formatResultAmount={formatResultAmount}
         formatPercent={formatPercent}
         targetYearLabel={targetYearLabel}
+        requiredMonthlyContribution={requiredMonthlyContribution}
         condition={buildConditionStripItems({
           durationYears: 20,
           monthlyContribution: 1_000_000,
@@ -183,6 +186,73 @@ describe('ResultSummaryCard — 목표 월배당 타일', () => {
     expect(yearCountHint()).toHaveTextContent('투자 3년차');
   });
 
+  /**
+   * **미도달일 때의 다음 행동.** `미도달` 한 단어로 끝나면 사용자는 무엇을 얼마나 바꿔야 하는지
+   * 몰라 슬라이더를 흔들어 스스로 찾아야 했다. 그 자리를 역산값이 채운다(2026-08-15).
+   */
+  const contributionHint = () => screen.queryByText(/^월 적립 .+ 필요$/);
+
+  it('미도달이면 "월 적립 N원 필요"가 hint 로 붙는다', () => {
+    renderCard({
+      targetMonthlyDividend: 3_000_000,
+      yearly: buildYearly([2026, 2027, 2028]),
+      summary: { targetMonthDividendReachedYear: undefined },
+      requiredMonthlyContribution: 1_240_000
+    });
+
+    expect(screen.getByText('미도달')).toBeInTheDocument();
+    // 🔴 금액 뒤에 조사를 붙이지 않는 이유가 여기 있다 — 원화 정밀 표기는 `₩1,240,000` 이라
+    //    "…이면"이 붙으면 어색해지고, 달러 표시 모드에서는 더 어색해진다.
+    expect(contributionHint()).toHaveTextContent('월 적립 ₩1,240,000 필요');
+  });
+
+  it('간략히 모드에서는 hint 금액도 간략 표기를 따른다 — 카드 안에서 표기가 섞이지 않는다', () => {
+    renderCard({
+      isResultCompact: true,
+      targetMonthlyDividend: 3_000_000,
+      yearly: buildYearly([2026, 2027, 2028]),
+      summary: { targetMonthDividendReachedYear: undefined },
+      requiredMonthlyContribution: 1_240_000
+    });
+
+    expect(contributionHint()).toHaveTextContent('월 적립 약 124만 필요');
+  });
+
+  it('🔴 역산이 불가능하면(null) 금액을 지어내지 않는다 — hint 자체가 없다', () => {
+    renderCard({
+      targetMonthlyDividend: 3_000_000,
+      yearly: buildYearly([2026, 2027, 2028]),
+      summary: { targetMonthDividendReachedYear: undefined },
+      requiredMonthlyContribution: null
+    });
+
+    expect(screen.getByText('미도달')).toBeInTheDocument();
+    expect(contributionHint()).not.toBeInTheDocument();
+  });
+
+  it('도달했으면 역산값이 있어도 년차 hint 가 이긴다 — 이미 답이 나온 자리다', () => {
+    renderCard({
+      targetMonthlyDividend: 3_000_000,
+      yearly: buildYearly([2026, 2027, 2028, 2029]),
+      summary: { targetMonthDividendReachedYear: 2028 },
+      requiredMonthlyContribution: 1_240_000
+    });
+
+    expect(yearCountHint()).toHaveTextContent('투자 3년차');
+    expect(contributionHint()).not.toBeInTheDocument();
+  });
+
+  it('목표 미설정이면 역산값이 있어도 hint 를 내지 않는다', () => {
+    renderCard({
+      targetMonthlyDividend: 0,
+      summary: { targetMonthDividendReachedYear: undefined },
+      requiredMonthlyContribution: 1_240_000
+    });
+
+    expect(screen.getByText('미설정')).toBeInTheDocument();
+    expect(contributionHint()).not.toBeInTheDocument();
+  });
+
   it('도달 연도가 yearly 에 없으면 hint 를 지어내지 않는다', () => {
     renderCard({
       targetMonthlyDividend: 3_000_000,
@@ -192,5 +262,18 @@ describe('ResultSummaryCard — 목표 월배당 타일', () => {
 
     expect(screen.getByText('2050년')).toBeInTheDocument();
     expect(yearCountHint()).not.toBeInTheDocument();
+  });
+
+  it('🔴 도달했는데 연차를 못 찾아도 적립금 hint 로 새지 않는다 — 달성자에게 "얼마 필요"는 모순이다', () => {
+    renderCard({
+      targetMonthlyDividend: 3_000_000,
+      yearly: buildYearly([2026, 2027]),
+      summary: { targetMonthDividendReachedYear: 2050 },
+      requiredMonthlyContribution: 1_240_000
+    });
+
+    expect(screen.getByText('2050년')).toBeInTheDocument();
+    expect(yearCountHint()).not.toBeInTheDocument();
+    expect(contributionHint()).not.toBeInTheDocument();
   });
 });

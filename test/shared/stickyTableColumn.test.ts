@@ -53,8 +53,20 @@ const scrollingTableFiles = FILES.filter((file) => {
   const widths = [...file.source.matchAll(/min-width:\s*(\d+)px/g)].map((match) => Number(match[1]));
   if (!widths.some((width) => width >= SCROLLING_MIN_WIDTH)) return false;
 
-  /* 좁은 폭에서 행 카드로 접는 표는 애초에 밀지 않는다 — 머리 행을 감추는 것이 그 처방의 표식이다. */
-  const stacks = /thead\s*{\s*display:\s*none;/.test(file.source);
+  /*
+   * 좁은 폭에서 행 카드로 접는 표는 애초에 밀지 않는다 — 머리 행을 감추는 것이 그 처방의 표식이다.
+   *
+   * 🔴 표식은 **둘**이다. 접기 골격이 `shared/styles/stackedTable.ts` 의 `stackedTableShell` 로
+   * 빠져나간 뒤로, 그것을 쓰는 파일에는 `thead { display: none }` 이라는 글자가 남지 않는다
+   * (2026-08-15 리팩터에서 이 테스트가 실제로 그걸 잡았다 — 접히는 표 둘이 "가로로 미는데 고정
+   * 열이 없다"로 잘못 분류됐다). 이 스캐너는 `components/`·`pages/` 만 훑으므로 공용 헬퍼의
+   * 본문을 볼 수 없다 → **헬퍼를 쓴다는 사실 자체**를 표식으로 인정한다.
+   *
+   * ⚠ 새로운 접기 헬퍼를 만들면 여기에도 더해야 한다. 안 그러면 이 테스트가 멀쩡한 표를
+   *   빨갛게 만든다(그래도 조용히 통과하는 쪽보다 낫다 — 아래 "스캔이 0건" 자기검사와 같은 방향).
+   */
+  const stacks =
+    /thead\s*{\s*display:\s*none;/.test(file.source) || /\bstackedTableShell\b/.test(file.source);
   return !stacks;
 });
 

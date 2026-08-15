@@ -98,9 +98,10 @@ const OPPOSITE: Record<TourPlacement, TourPlacement> = {
   right: 'left'
 };
 
+import { clamp } from '@/shared/lib/numeric';
+
 const ALL_PLACEMENTS: readonly TourPlacement[] = ['bottom', 'top', 'right', 'left'];
 
-const clamp = (value: number, min: number, max: number): number => Math.min(Math.max(value, min), max);
 
 /**
  * 주축(main axis)에 말풍선이 들어갈 자리가 있는가.

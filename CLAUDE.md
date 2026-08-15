@@ -18,7 +18,7 @@ npm run search -- runSimulation            # 코드 + 문서 통합
 npm run search -- kind:code atom           # 코드 심볼만 (component|hook|atom|type|const|function|styled)
 npm run search -- kind:pure allocation     # 순수 함수만 — FP 리팩터링 결과물을 빠르게 찾는다
 npm run search -- kind:test reinvest       # 테스트 케이스 제목으로
-npm run search -- kind:docs 공유            # 문서(CLAUDE.md / .cursor/rules / .claude/agents)
+npm run search -- kind:docs 공유            # 문서(CLAUDE.md / README.md / DESIGN.md / .cursor/rules)
 npm run search -- file:shared/lib/snowball/SnowballSimulation.ts   # 파일 카드
 ```
 
@@ -159,13 +159,17 @@ npm run hooks:install  # pre-commit 훅 활성화 (커밋 시 자동 재인덱�
 | **T0 대화·사소** | 질문·설명·슬래시 호출 | 직접 답. 에이전트 0 |
 | **T1 국소 변경** | 1~2파일·명확·되돌리기 쉬움 | 직접 편집 + `npm run verify` |
 | **T2 다층 기능·버그** | 여러 레이어·버그추적·리팩터 | understand(search/codegraph) → specialist 병렬 → qa → reviewer |
-| **T3 신규 제품기능** | 새 화면/도메인·스코프 불명 | pm-po(문제·목표·AC) → T2 루프. → `feature` 스킬 |
-| **T4 배포** | "배포/올려/커밋/PR" | `ship` 스킬. ⚠ 매번 [[ask-before-deploy]] 승인 |
-| **도메인 반복** | 티커 페이지 추가·데이터 갱신 | `new-ticker-page` · `refresh-data` 스킬 |
+| **T3 신규 제품기능** | 새 화면/도메인·스코프 불명 | 문제·목표·수용기준을 먼저 적고 → T2 루프 |
+| **T4 배포** | "배포/올려/커밋/PR" | ⚠ 매번 [[ask-before-deploy]] 승인 — 포괄 승인으로 해석 금지 |
+| **도메인 반복** | 티커 페이지 추가·데이터 갱신 | 기존 파이프라인(`scripts/`)과 프리셋 규약을 그대로 따른다 |
 
-상세(트리아지·루프·검증·진화)는 **[.claude/skills/dev-process](.claude/skills/dev-process/SKILL.md)** 가 마스터다. 검증 게이트는
-`npm run verify`(tsc→test→api번들→api체크→build, fail-fast). **이 프로세스는 진화한다 — 현실과 어긋나거나 더 나으면
-retro에 근거를 남기고 스킬·이 표를 고쳐라.**
+검증 게이트는 `npm run verify`(브랜드→styled주석→tsc→test→api번들→api체크→build, fail-fast).
+**이 프로세스는 진화한다 — 현실과 어긋나거나 더 나으면 근거를 남기고 이 표를 고쳐라.**
+
+⚠ **여기서 프로세스 스킬 문서를 가리키지 않는다.** 예전에는 `.claude/skills/dev-process` 를 "마스터"로
+지목했는데 **그 디렉터리는 존재하지 않는다**(2026-08-15 확인). `.claude/` 는 git 비추적이라 새 클론·CI
+·다른 PC 에는 애초에 따라가지 않는다 — 추적 문서가 그것을 정본으로 삼으면 안 된다. 프로세스의 정본은
+**이 표**다.
 
 ## 에이전트 팀 (orchestrator ↔ specialist)
 
@@ -175,9 +179,10 @@ retro에 근거를 남기고 스킬·이 표를 고쳐라.**
 **먼저 맨몸으로 시도한다.** 에이전트를 띄우기 전에 항상 "이거 그냥 하면 안 되나?"를 묻는다.
 위임은 셋 중 하나일 때만 — ①파일 경계가 실제로 갈리는 병렬 작업 ②머지 전 독립 리뷰·가드 설계
 ③단일 컨텍스트를 넘는 규모. **공유 파일이 병목이면 위임은 손해다**(핸드오프 왕복만 는다).
-근거와 실측은 [dev-process §1-1](.claude/skills/dev-process/SKILL.md).
 
-에이전트 정의([.claude/agents/](.claude/agents/))와 Agent 툴은 그대로다 — 없어진 건 기본값이지 수단이 아니다.
+🔴 **에이전트 정의(`.claude/agents/`)는 이 PC 에 없다** (2026-08-15 확인 — 디렉터리 자체가 없다).
+`.claude/` 는 git 비추적이라 다른 PC 에 있었을 수도, 지워졌을 수도 있다. **아래 표는 "이런 역할로
+나누면 좋다"는 지도이지 실재하는 정의가 아니다** — 위임하려면 그 자리에서 역할을 프롬프트로 준다.
 
 **요청이 들어오면 [docs/work-request-template.md](docs/work-request-template.md)의 네 칸(문제·판단기준·제약·기정사항)이
 채워져 있는지 먼저 본다.** 채워져 있으면 pm-po 단계를 건너뛰고 바로 착수한다. 비어 있고 그 빈칸이
@@ -185,13 +190,19 @@ retro에 근거를 남기고 스킬·이 표를 고쳐라.**
 
 ### 팀 지식 기반 — 성장형 에이전트 (2026-07-17~)
 
-**[.claude/knowledge/](.claude/knowledge/)** 는 에이전트 팀의 누적 학습 저장소다
-(decisions·pitfalls·project-map·retro·user-profile). 모든 에이전트는 정의에 심어진
-**학습 프로토콜**에 따라 작업 전 `INDEX.md`를 읽고, 작업 후 "코드만 봐서는 알 수 없는"
-교훈을 기록한다. orchestrator는 큐레이터(브리핑에 지식 주입·중복 정리·미션 회고)를 겸한다.
-메인 세션도 여기 기록된 결정·함정을 존중한다 — **확정 결정을 뒤집으려면 사용자 승인 필요.**
+**[.claude/knowledge/](.claude/knowledge/)** 는 누적 학습 저장소다. **실제로 있는 파일은 셋뿐이다**
+(2026-08-15 확인): `INDEX.md` · `decisions.md`(확정 결정) · `pitfalls.md`(반복해서 당한 함정).
+예전 이 문단은 `project-map`·`retro`·`user-profile` 도 있다고 적었으나 **그런 파일은 없다.**
 
-| 에이전트 | 담당 |
+작업 **전** `INDEX.md` 를 읽고, 작업 **후** "코드만 봐서는 알 수 없는" 교훈을 남긴다.
+여기 기록된 결정·함정을 존중한다 — **확정 결정을 뒤집으려면 사용자 승인 필요.**
+
+⚠ `.claude/` 는 git 비추적이라 **여기 적은 것은 이 PC 에만 남는다.** 팀이 공유해야 할 규칙은
+이 `CLAUDE.md` 나 `.cursor/rules` 에, 코드에 붙는 근거는 **그 코드 옆 주석**에 적어야 살아남는다.
+
+아래는 **역할 분담 지도**다(위 경고대로 실재하는 에이전트 정의가 아니다).
+
+| 역할 | 담당 |
 |----------|------|
 | `pm-po` | 제품 정의 — 문제·목표·성공지표·스코프, 유저스토리·수용기준, 백로그 우선순위 |
 | `orchestrator` | 작업 분해·위임·검증·종합 (직접 구현하지 않음) |
@@ -210,7 +221,7 @@ retro에 근거를 남기고 스킬·이 표를 고쳐라.**
 | `etf-seo-page-builder` | ETF·티커 SEO 소개 랜딩 페이지(콘텐츠 모델·크롤러 HTML·JSON-LD·사이트맵·내부링크)를 확장 가능하게 대량 생성 |
 | `portfolio-strategist` | 배당 포트폴리오 전략 설계 — 타겟·컨셉·효율 배분을 잡고 앱의 전 입력 필드를 채운 완성 제안 생성. 프리셋에 없는 티커는 실측으로 정의하되 코드 미수정, 없는 티커 목록만 보고(제안 전용) |
 
-각 에이전트는 작업 결과를 **핸드오프 형식**(요약 / 산출물 `path:line` / 다음 담당 제안 / 리스크)으로 반환한다.
+위임할 때는 결과를 **핸드오프 형식**(요약 / 산출물 `path:line` / 다음 담당 제안 / 리스크)으로 받는다.
 
 ## MCP — Google Analytics (`analytics-mcp`)
 

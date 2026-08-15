@@ -526,6 +526,9 @@ export default function PortfolioPageView({
                       "무엇을" 자랑하는지 모르는 화면이 된다. */}
                 {viewModel.isLoading ? null : (
                   <HeroMascot
+                    /* 🔴 카드 밖으로 나가는 것이 설계다(`right: calc(-1 * space[3])`). 이 선언이 없으면
+                       overflowprobe 가 12px 누수로 잡는다 — 실패가 아니라 **의도**임을 도구에 말한다. */
+                    data-decorative-overflow="true"
                     src="/images/hippo/hippo_sun_glasses.png"
                     alt=""
                     loading="lazy"
