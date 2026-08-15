@@ -79,13 +79,29 @@ describe('묶은 함수의 공개 URL', () => {
     expect(rewrite?.destination).toBe(`/api/proxy?surface=${surface}`);
   });
 
+  /**
+   * 🔴 로그인 경로다 — rewrite 가 빠지면 **소셜 로그인이 통째로 죽는다.** 그리고 그 실패는
+   * 타입·테스트·번들 어디에도 안 잡히고 배포 후에야 드러난다.
+   * ⚠ 외부(카카오·네이버 콘솔)에 등록된 `redirect_uri` 는 앱 라우트라 이 통합과 무관하다.
+   */
+  it.each([
+    ['/api/kakao-auth', 'kakao'],
+    ['/api/naver-auth', 'naver']
+  ])('%s 는 oauth-session 의 %s 지면으로 간다', (source, surface) => {
+    const rewrite = vercelConfig.rewrites.find((item) => item.source === source);
+
+    expect(rewrite).toBeDefined();
+    expect(rewrite?.destination).toBe(`/api/oauth-session?surface=${surface}`);
+  });
+
   /** 합쳐서 없앤 함수가 되살아나면(파일이 다시 생기면) rewrite 와 파일이 겹쳐 혼란해진다. */
   it('합쳐서 없앤 함수 파일은 남아 있지 않다', () => {
     const deployed = new Set(readdirSync(apiDir));
 
-    for (const gone of ['fx.js', 'market-indices.js', 'unfurl.js']) {
+    for (const gone of ['fx.js', 'market-indices.js', 'unfurl.js', 'kakao-auth.js', 'naver-auth.js']) {
       expect(deployed.has(gone)).toBe(false);
     }
     expect(deployed.has('proxy.js')).toBe(true);
+    expect(deployed.has('oauth-session.js')).toBe(true);
   });
 });

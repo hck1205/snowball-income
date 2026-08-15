@@ -40,6 +40,8 @@
     { "source": "/api/fx", "destination": "/api/proxy?surface=fx" },
     { "source": "/api/market-indices", "destination": "/api/proxy?surface=market-indices" },
     { "source": "/api/unfurl", "destination": "/api/proxy?surface=unfurl" },
+    { "source": "/api/kakao-auth", "destination": "/api/oauth-session?surface=kakao" },
+    { "source": "/api/naver-auth", "destination": "/api/oauth-session?surface=naver" },
 
     { "source": "/community/portfolio", "destination": "/api/post-list?kind=portfolio" },
     { "source": "/community/board", "destination": "/api/post-list?kind=board" },

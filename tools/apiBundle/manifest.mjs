@@ -10,7 +10,7 @@
  * 🔴 **이 목록의 길이가 곧 서버리스 함수 개수이고, 상한이 12개다**(Vercel Hobby).
  * 2026-08-07 에 13개로 늘렸다가 배포가 죽었다 — 빌드는 통과하고 "Deploying outputs" 에서
  * `exceeded_serverless_functions_per_deployment` 로 실패한다(빌드 로그에는 이유가 안 남는다).
- * 새 핸들러를 더하기 전에 **먼저 세라.** 2026-08-15 에 외부 조회 셋을 `Proxy` 로 합쳐 **10개**가 됐다(여유 2).
+ * 새 핸들러를 더하기 전에 **먼저 세라.** 2026-08-15 에 외부 조회 셋을 `Proxy` 로, 소셜 로그인 둘을 `OauthSession` 으로 합쳐 **9개**가 됐다(여유 3).
  * 지면이 하나 더 필요하면 새 파일을 만들지 말고 `SeoHtml`(정적 콘텐츠 렌더러 묶음)에 얹어라.
  * JSON 응답이 하나 더 필요하면 `Fx`·`MarketIndices`·`Unfurl` 을 프록시 묶음으로 합치는 것이
  * 다음 수순이다(같은 패턴 — 근거는 SeoHtml.ts 머리말).
@@ -20,8 +20,9 @@ export const API_BUNDLES = [
   /* 외부 조회 셋(fx · market-indices · unfurl)을 **한 함수로** 모은 진입점 — 근거는 Proxy.ts 머리말.
      공개 URL 은 vercel.json rewrite 가 그대로 유지한다. */
   { entry: 'server/handlers/Proxy/Proxy.ts', out: 'api/proxy.js' },
-  { entry: 'server/handlers/KakaoAuth/KakaoAuth.ts', out: 'api/kakao-auth.js' },
-  { entry: 'server/handlers/NaverAuth/NaverAuth.ts', out: 'api/naver-auth.js' },
+  /* 소셜 로그인 세션 발급 둘(kakao · naver)을 **한 함수로** 모은 진입점 — 근거는 OauthSession.ts 머리말.
+     ⚠ 외부에 등록된 redirect_uri 는 앱 라우트라 이 통합과 무관하다. */
+  { entry: 'server/handlers/OauthSession/OauthSession.ts', out: 'api/oauth-session.js' },
   { entry: 'server/handlers/Og/Og.tsx', out: 'api/og.js' },
   { entry: 'server/handlers/PostHtml/PostHtml.ts', out: 'api/post-html.js' },
   { entry: 'server/handlers/PostList/PostList.ts', out: 'api/post-list.js' },
