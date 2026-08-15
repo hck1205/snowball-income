@@ -1,102 +1,7 @@
 // ⚠ 자동 생성물 — 직접 편집하지 마라. 편집해도 다음 빌드가 덮어쓰고, 그 전에 빌드가 실패한다.
-// 소스: server/handlers/KakaoAuth/KakaoAuth.ts
+// 소스: server/handlers/OauthSession/OauthSession.ts
 // 재생성: npm run api:bundle
 
-
-// server/handlers/KakaoAuth/KakaoAuth.ts
-import { createClient } from "@supabase/supabase-js";
-
-// shared/lib/community/display.ts
-var MINUTE = 60;
-var HOUR = MINUTE * 60;
-var DAY = HOUR * 24;
-var WEEK = DAY * 7;
-var MONTH = DAY * 30;
-var YEAR = DAY * 365;
-
-// shared/lib/community/kakaoAuth.ts
-var KAKAO_TOKEN_ENDPOINT = "https://kauth.kakao.com/oauth/token";
-var KAKAO_PROFILE_ENDPOINT = "https://kapi.kakao.com/v2/user/me";
-var buildKakaoSyntheticEmail = (kakaoId, domain) => `kakao_${kakaoId}@${domain}`;
-var parseKakaoTokenResponse = (raw) => {
-  if (!raw || typeof raw !== "object") return null;
-  const token = raw.access_token;
-  if (typeof token !== "string") return null;
-  const trimmed = token.trim();
-  return trimmed.length > 0 ? trimmed : null;
-};
-var readNickname = (value) => {
-  if (typeof value !== "string") return null;
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : null;
-};
-var parseKakaoProfileResponse = (raw) => {
-  if (!raw || typeof raw !== "object") return null;
-  const obj = raw;
-  const rawId = obj.id;
-  const id = typeof rawId === "number" && Number.isFinite(rawId) ? String(rawId) : typeof rawId === "string" ? rawId.trim() : "";
-  if (!id) return null;
-  const account = obj.kakao_account;
-  const accountProfile = account && typeof account === "object" ? account.profile : void 0;
-  const accountNickname = accountProfile && typeof accountProfile === "object" ? readNickname(accountProfile.nickname) : null;
-  const properties = obj.properties;
-  const propertyNickname = properties && typeof properties === "object" ? readNickname(properties.nickname) : null;
-  return { id, nickname: accountNickname ?? propertyNickname };
-};
-var readCodeState = (body) => {
-  if (!body || typeof body !== "object") return { code: "", state: "" };
-  const obj = body;
-  const code = typeof obj.code === "string" ? obj.code.trim() : "";
-  const state = typeof obj.state === "string" ? obj.state.trim() : "";
-  return { code, state };
-};
-var json = (status, body) => new Response(JSON.stringify(body), {
-  status,
-  headers: { "content-type": "application/json; charset=utf-8" }
-});
-var handleKakaoAuth = async (request, deps) => {
-  if (request.method !== "POST") {
-    return json(405, { error: "method_not_allowed" });
-  }
-  let body;
-  try {
-    body = await request.json();
-  } catch {
-    return json(400, { error: "invalid_request" });
-  }
-  const { code, state } = readCodeState(body);
-  if (!code || !state) {
-    return json(400, { error: "invalid_request" });
-  }
-  let accessToken;
-  try {
-    accessToken = await deps.exchangeCodeForToken(code);
-  } catch {
-    accessToken = null;
-  }
-  if (!accessToken) {
-    return json(502, { error: "kakao_exchange_failed" });
-  }
-  let profile;
-  try {
-    profile = await deps.fetchKakaoProfile(accessToken);
-  } catch {
-    profile = null;
-  }
-  if (!profile) {
-    return json(502, { error: "kakao_profile_failed" });
-  }
-  let tokenHash;
-  try {
-    tokenHash = await deps.issueMagicLink(profile);
-  } catch {
-    tokenHash = null;
-  }
-  if (!tokenHash) {
-    return json(500, { error: "session_issue_failed" });
-  }
-  return json(200, { token_hash: tokenHash, type: "magiclink" });
-};
 
 // shared/lib/server/nodeHandler.ts
 var firstHeaderValue = (headers, name) => {
@@ -225,6 +130,179 @@ var logAuthFailure = async (tag, response) => {
 };
 
 // server/handlers/KakaoAuth/KakaoAuth.ts
+import { createClient } from "@supabase/supabase-js";
+
+// shared/lib/community/display.ts
+var MINUTE = 60;
+var HOUR = MINUTE * 60;
+var DAY = HOUR * 24;
+var WEEK = DAY * 7;
+var MONTH = DAY * 30;
+var YEAR = DAY * 365;
+
+// shared/lib/community/naverAuth.ts
+var NAVER_TOKEN_ENDPOINT = "https://nid.naver.com/oauth2.0/token";
+var NAVER_PROFILE_ENDPOINT = "https://openapi.naver.com/v1/nid/me";
+var buildNaverSyntheticEmail = (naverId, domain) => `naver_${naverId}@${domain}`;
+var parseNaverTokenResponse = (raw) => {
+  if (!raw || typeof raw !== "object") return null;
+  const token = raw.access_token;
+  if (typeof token !== "string") return null;
+  const trimmed = token.trim();
+  return trimmed.length > 0 ? trimmed : null;
+};
+var parseNaverProfileResponse = (raw) => {
+  if (!raw || typeof raw !== "object") return null;
+  const obj = raw;
+  if (obj.resultcode !== "00") return null;
+  const response = obj.response;
+  if (!response || typeof response !== "object") return null;
+  const r = response;
+  const id = typeof r.id === "string" ? r.id.trim() : "";
+  if (!id) return null;
+  const nickname = typeof r.nickname === "string" && r.nickname.trim().length > 0 ? r.nickname.trim() : null;
+  return { id, nickname };
+};
+var readCodeState = (body) => {
+  if (!body || typeof body !== "object") return { code: "", state: "" };
+  const obj = body;
+  const code = typeof obj.code === "string" ? obj.code.trim() : "";
+  const state = typeof obj.state === "string" ? obj.state.trim() : "";
+  return { code, state };
+};
+var json = (status, body) => new Response(JSON.stringify(body), {
+  status,
+  headers: { "content-type": "application/json; charset=utf-8" }
+});
+var handleNaverAuth = async (request, deps) => {
+  if (request.method !== "POST") {
+    return json(405, { error: "method_not_allowed" });
+  }
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return json(400, { error: "invalid_request" });
+  }
+  const { code, state } = readCodeState(body);
+  if (!code || !state) {
+    return json(400, { error: "invalid_request" });
+  }
+  let accessToken;
+  try {
+    accessToken = await deps.exchangeCodeForToken(code, state);
+  } catch {
+    accessToken = null;
+  }
+  if (!accessToken) {
+    return json(502, { error: "naver_exchange_failed" });
+  }
+  let profile;
+  try {
+    profile = await deps.fetchNaverProfile(accessToken);
+  } catch {
+    profile = null;
+  }
+  if (!profile) {
+    return json(502, { error: "naver_profile_failed" });
+  }
+  let tokenHash;
+  try {
+    tokenHash = await deps.issueMagicLink(profile);
+  } catch {
+    tokenHash = null;
+  }
+  if (!tokenHash) {
+    return json(500, { error: "session_issue_failed" });
+  }
+  return json(200, { token_hash: tokenHash, type: "magiclink" });
+};
+
+// shared/lib/community/kakaoAuth.ts
+var KAKAO_TOKEN_ENDPOINT = "https://kauth.kakao.com/oauth/token";
+var KAKAO_PROFILE_ENDPOINT = "https://kapi.kakao.com/v2/user/me";
+var buildKakaoSyntheticEmail = (kakaoId, domain) => `kakao_${kakaoId}@${domain}`;
+var parseKakaoTokenResponse = (raw) => {
+  if (!raw || typeof raw !== "object") return null;
+  const token = raw.access_token;
+  if (typeof token !== "string") return null;
+  const trimmed = token.trim();
+  return trimmed.length > 0 ? trimmed : null;
+};
+var readNickname = (value) => {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+};
+var parseKakaoProfileResponse = (raw) => {
+  if (!raw || typeof raw !== "object") return null;
+  const obj = raw;
+  const rawId = obj.id;
+  const id = typeof rawId === "number" && Number.isFinite(rawId) ? String(rawId) : typeof rawId === "string" ? rawId.trim() : "";
+  if (!id) return null;
+  const account = obj.kakao_account;
+  const accountProfile = account && typeof account === "object" ? account.profile : void 0;
+  const accountNickname = accountProfile && typeof accountProfile === "object" ? readNickname(accountProfile.nickname) : null;
+  const properties = obj.properties;
+  const propertyNickname = properties && typeof properties === "object" ? readNickname(properties.nickname) : null;
+  return { id, nickname: accountNickname ?? propertyNickname };
+};
+var readCodeState2 = (body) => {
+  if (!body || typeof body !== "object") return { code: "", state: "" };
+  const obj = body;
+  const code = typeof obj.code === "string" ? obj.code.trim() : "";
+  const state = typeof obj.state === "string" ? obj.state.trim() : "";
+  return { code, state };
+};
+var json2 = (status, body) => new Response(JSON.stringify(body), {
+  status,
+  headers: { "content-type": "application/json; charset=utf-8" }
+});
+var handleKakaoAuth = async (request, deps) => {
+  if (request.method !== "POST") {
+    return json2(405, { error: "method_not_allowed" });
+  }
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return json2(400, { error: "invalid_request" });
+  }
+  const { code, state } = readCodeState2(body);
+  if (!code || !state) {
+    return json2(400, { error: "invalid_request" });
+  }
+  let accessToken;
+  try {
+    accessToken = await deps.exchangeCodeForToken(code);
+  } catch {
+    accessToken = null;
+  }
+  if (!accessToken) {
+    return json2(502, { error: "kakao_exchange_failed" });
+  }
+  let profile;
+  try {
+    profile = await deps.fetchKakaoProfile(accessToken);
+  } catch {
+    profile = null;
+  }
+  if (!profile) {
+    return json2(502, { error: "kakao_profile_failed" });
+  }
+  let tokenHash;
+  try {
+    tokenHash = await deps.issueMagicLink(profile);
+  } catch {
+    tokenHash = null;
+  }
+  if (!tokenHash) {
+    return json2(500, { error: "session_issue_failed" });
+  }
+  return json2(200, { token_hash: tokenHash, type: "magiclink" });
+};
+
+// server/handlers/KakaoAuth/KakaoAuth.ts
 var readEnv = (name) => {
   const value = process.env[name];
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : void 0;
@@ -346,7 +424,106 @@ async function handler(request) {
   return logAuthFailure("kakao-auth", response);
 }
 var KakaoAuth_default = toNodeHandler(handler);
+
+// server/handlers/NaverAuth/NaverAuth.ts
+import { createClient as createClient2 } from "@supabase/supabase-js";
+var readEnv2 = (name) => {
+  const value = process.env[name];
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : void 0;
+};
+var DEFAULT_SYNTHETIC_EMAIL_DOMAIN2 = "naver-oauth.snowball.invalid";
+var readConfig2 = () => {
+  const clientId = readEnv2("VITE_NAVER_CLIENT_ID") ?? readEnv2("NAVER_CLIENT_ID");
+  const clientSecret = readEnv2("NAVER_CLIENT_SECRET");
+  const supabaseUrl = readEnv2("SUPABASE_URL") ?? readEnv2("VITE_SUPABASE_URL");
+  const serviceKey = readEnv2("SUPABASE_SERVICE_ROLE_KEY");
+  const emailDomain = readEnv2("NAVER_SYNTHETIC_EMAIL_DOMAIN") ?? DEFAULT_SYNTHETIC_EMAIL_DOMAIN2;
+  if (!clientId || !clientSecret || !supabaseUrl || !serviceKey) return null;
+  return { clientId, clientSecret, supabaseUrl, serviceKey, emailDomain };
+};
+var jsonError2 = (status, code) => new Response(JSON.stringify({ error: code }), {
+  status,
+  headers: { "content-type": "application/json; charset=utf-8" }
+});
+var isAlreadyRegistered2 = (error) => {
+  if (!error) return false;
+  if (error.code === "email_exists") return true;
+  if (error.status === 422) return true;
+  return typeof error.message === "string" && /already\s+been\s+registered|already\s+registered/i.test(error.message);
+};
+async function handler2(request) {
+  const config = readConfig2();
+  if (!config) {
+    console.error(
+      "[naver-auth] \uD658\uACBD\uBCC0\uC218 \uBBF8\uC124\uC815 (VITE_NAVER_CLIENT_ID / NAVER_CLIENT_SECRET / SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY)"
+    );
+    return jsonError2(500, "internal_error");
+  }
+  const admin = createClient2(config.supabaseUrl, config.serviceKey, {
+    auth: { persistSession: false, autoRefreshToken: false }
+  });
+  const deps = {
+    exchangeCodeForToken: async (code, state) => {
+      const body = new URLSearchParams({
+        grant_type: "authorization_code",
+        client_id: config.clientId,
+        client_secret: config.clientSecret,
+        code,
+        state
+      });
+      const res = await fetch(NAVER_TOKEN_ENDPOINT, {
+        method: "POST",
+        headers: { "content-type": "application/x-www-form-urlencoded" },
+        body: body.toString()
+      });
+      if (!res.ok) return null;
+      return parseNaverTokenResponse(await res.json().catch(() => null));
+    },
+    fetchNaverProfile: async (accessToken) => {
+      const res = await fetch(NAVER_PROFILE_ENDPOINT, {
+        headers: { authorization: `Bearer ${accessToken}` }
+      });
+      if (!res.ok) return null;
+      return parseNaverProfileResponse(await res.json().catch(() => null));
+    },
+    issueMagicLink: async (profile) => {
+      const email = buildNaverSyntheticEmail(profile.id, config.emailDomain);
+      const created = await admin.auth.admin.createUser({
+        email,
+        email_confirm: true,
+        // 합성 이메일 — 확인메일 발송 안 함
+        user_metadata: profile.nickname ? { name: profile.nickname } : {},
+        app_metadata: { provider: "naver", naver_id: profile.id }
+      });
+      if (created.error && !isAlreadyRegistered2(created.error)) {
+        return null;
+      }
+      const { data, error } = await admin.auth.admin.generateLink({ type: "magiclink", email });
+      const tokenHash = data?.properties?.hashed_token;
+      if (error || typeof tokenHash !== "string" || tokenHash.length === 0) return null;
+      return tokenHash;
+    }
+  };
+  return logAuthFailure("naver-auth", await handleNaverAuth(request, deps));
+}
+var NaverAuth_default = toNodeHandler(handler2);
+
+// server/handlers/OauthSession/OauthSession.ts
+var ROUTES = {
+  kakao: handler,
+  naver: handler2
+};
+var isSurface = (value) => value !== null && value in ROUTES;
+async function handler3(request) {
+  const surface = new URL(request.url).searchParams.get("surface");
+  if (isSurface(surface)) return ROUTES[surface](request);
+  return new Response(JSON.stringify({ error: "unknown surface" }), {
+    status: 404,
+    headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" }
+  });
+}
+var OauthSession_default = toNodeHandler(handler3);
 export {
-  KakaoAuth_default as default,
-  handler
+  OauthSession_default as default,
+  handler3 as handler
 };

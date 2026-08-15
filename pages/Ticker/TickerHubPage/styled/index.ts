@@ -89,7 +89,10 @@ export {
   SectionEyebrow,
   SectionGlyph,
   SectionHead,
-  SectionHeading
+  SectionHeading,
+  SimulatorOnlyNote,
+  SimulatorOnlySection,
+  SimulatorOnlyTable
 } from './sections';
 
 export {
