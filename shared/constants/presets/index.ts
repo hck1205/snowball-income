@@ -318,6 +318,7 @@ export const PRESET_TICKER_KOREAN_NAME_BY_TICKER = {
   '446720.KS': 'SOL 미국배당미국채혼합50',
   '458760.KS': 'TIGER 미국배당+7%프리미엄다우존스',
   '441640.KS': 'KODEX 미국배당프리미엄액티브',
+  BNY: 'BNY 멜론',
   PG: '프록터 앤 갬블',
   KO: '코카콜라',
   JNJ: '존슨앤드존슨',

@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-08-14",
+  "asOf": "2026-08-15",
   "source": "yahoo",
   "entries": {
     "266160.KS": {
@@ -286,8 +286,8 @@
         7,
         10
       ],
-      "payoutMonthsSource": "pay",
       "exToPayLagDays": 19,
+      "payoutMonthsSource": "pay",
       "estimatedPayDayByMonth": {
         "1": 2,
         "4": 1,
@@ -409,6 +409,19 @@
       "dividendYield": 3.94,
       "frequency": "quarterly",
       "observedDividendCagr": 1.61,
+      "payoutMonths": [
+        1,
+        4,
+        7,
+        10
+      ],
+      "payoutMonthsSource": "ex"
+    },
+    "BNY": {
+      "initialPrice": 163.24,
+      "dividendYield": 1.36,
+      "frequency": "quarterly",
+      "observedDividendCagr": 10.03,
       "payoutMonths": [
         1,
         4,

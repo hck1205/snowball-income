@@ -1228,7 +1228,7 @@ var TARGET_MONTHLY_DIVIDEND_MAX_MAN_WON = TARGET_MONTHLY_DIVIDEND_MAX / 1e4;
 
 // shared/constants/marketData/marketData.generated.json
 var marketData_generated_default = {
-  asOf: "2026-08-14",
+  asOf: "2026-08-15",
   source: "yahoo",
   entries: {
     "266160.KS": {
@@ -1515,8 +1515,8 @@ var marketData_generated_default = {
         7,
         10
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 19,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "1": 2,
         "4": 1,
@@ -1638,6 +1638,19 @@ var marketData_generated_default = {
       dividendYield: 3.94,
       frequency: "quarterly",
       observedDividendCagr: 1.61,
+      payoutMonths: [
+        1,
+        4,
+        7,
+        10
+      ],
+      payoutMonthsSource: "ex"
+    },
+    BNY: {
+      initialPrice: 163.24,
+      dividendYield: 1.36,
+      frequency: "quarterly",
+      observedDividendCagr: 10.03,
       payoutMonths: [
         1,
         4,
@@ -10854,6 +10867,22 @@ var KOREAN_DIVIDEND_TICKERS = {
 
 // shared/constants/presets/wellKnownDividendStocks.ts
 var WELL_KNOWN_DIVIDEND_STOCKS = {
+  /*
+   * BNY (BNY Mellon) — 2026-08-15 합류. 🔴 **티커가 `BK` 에서 바뀌었다.** 옛 심볼로는 야후가 404 를
+   * 답한다(그래서 첫 확충에서 빠졌다). 미국 티커도 개명한다는 사실을 여기 남긴다.
+   * ⚠ 실측 5년 배당 CAGR 은 10.03% 지만 이 묶음의 균일 규칙대로 `expectedTotalReturn` 은 8% 다 —
+   *   그래서 파생 성장률이 6.64% 로 **실측보다 보수적**이다. 과거 성장률을 미래 가정으로 쓰지 않는
+   *   것이 이 파일의 규칙이고(머리말), 개별 종목에서 예외를 두지 않는다.
+   */
+  BNY: {
+    ticker: "BNY",
+    name: "BNY Mellon",
+    initialPrice: 163.24,
+    dividendYield: 1.36,
+    dividendGrowth: 6.64,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
   DIS: {
     ticker: "DIS",
     name: "Walt Disney",
