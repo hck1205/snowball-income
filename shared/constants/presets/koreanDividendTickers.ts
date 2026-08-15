@@ -143,5 +143,68 @@ export const KOREAN_DIVIDEND_TICKERS = {
     dividendGrowth: 3.63,
     expectedTotalReturn: 7,
     frequency: 'quarterly' as const
-  }
+  },
+  '489250.KS': {
+    ticker: '489250.KS',
+    name: 'KODEX 미국배당다우존스',
+    initialPrice: 13295,
+    dividendYield: 2.8,
+    dividendGrowth: 5.7,
+    expectedTotalReturn: 8.5,
+    frequency: 'monthly' as const
+  },
+  '476850.KS': {
+    ticker: '476850.KS',
+    name: 'KoAct 배당성장액티브',
+    initialPrice: 21770,
+    dividendYield: 6.27,
+    dividendGrowth: 1.73,
+    expectedTotalReturn: 8.0,
+    frequency: 'monthly' as const
+  },
+  '322410.KS': {
+    ticker: '322410.KS',
+    name: 'HANARO 고배당',
+    initialPrice: 23350,
+    dividendYield: 2.63,
+    dividendGrowth: 4.87,
+    expectedTotalReturn: 7.5,
+    frequency: 'monthly' as const
+  },
+  '266160.KS': {
+    ticker: '266160.KS',
+    name: 'KBSTAR 고배당',
+    initialPrice: 33350,
+    dividendYield: 1.87,
+    dividendGrowth: 5.63,
+    expectedTotalReturn: 7.5,
+    frequency: 'quarterly' as const
+  },
+  '446720.KS': {
+    ticker: '446720.KS',
+    name: 'SOL 미국배당미국채혼합50',
+    initialPrice: 14165,
+    dividendYield: 2.9,
+    dividendGrowth: 4.1,
+    expectedTotalReturn: 7.0,
+    frequency: 'monthly' as const
+  },
+  '458760.KS': {
+    ticker: '458760.KS',
+    name: 'TIGER 미국배당+7%프리미엄다우존스',
+    initialPrice: 11340,
+    dividendYield: 9.56,
+    dividendGrowth: -1.06,
+    expectedTotalReturn: 8.5,
+    frequency: 'monthly' as const
+  },
+  '441640.KS': {
+    ticker: '441640.KS',
+    name: 'KODEX 미국배당프리미엄액티브',
+    initialPrice: 13055,
+    dividendYield: 9.04,
+    dividendGrowth: -0.54,
+    expectedTotalReturn: 8.5,
+    frequency: 'monthly' as const
+  },
 } as const;

@@ -7526,6 +7526,138 @@ var marketData_generated_default = {
   asOf: "2026-08-14",
   source: "yahoo",
   entries: {
+    "266160.KS": {
+      initialPrice: 33350,
+      dividendYield: 1.87,
+      frequency: "quarterly",
+      payoutMonths: [
+        1,
+        4,
+        7,
+        10
+      ],
+      payoutMonthsSource: "ex"
+    },
+    "322410.KS": {
+      initialPrice: 23350,
+      dividendYield: 2.63,
+      frequency: "monthly",
+      payoutMonths: [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    "441640.KS": {
+      initialPrice: 13055,
+      dividendYield: 9.04,
+      frequency: "monthly",
+      payoutMonths: [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    "446720.KS": {
+      initialPrice: 14165,
+      dividendYield: 2.9,
+      frequency: "monthly",
+      payoutMonths: [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    "458760.KS": {
+      initialPrice: 11340,
+      dividendYield: 9.56,
+      frequency: "monthly",
+      payoutMonths: [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    "476850.KS": {
+      initialPrice: 21770,
+      dividendYield: 6.27,
+      frequency: "monthly",
+      payoutMonths: [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    "489250.KS": {
+      initialPrice: 13295,
+      dividendYield: 2.8,
+      frequency: "monthly",
+      payoutMonths: [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
     A: {
       initialPrice: 148.48,
       dividendYield: 0.68,
@@ -12534,6 +12666,69 @@ var KOREAN_DIVIDEND_TICKERS = {
     dividendGrowth: 3.63,
     expectedTotalReturn: 7,
     frequency: "quarterly"
+  },
+  "489250.KS": {
+    ticker: "489250.KS",
+    name: "KODEX \uBBF8\uAD6D\uBC30\uB2F9\uB2E4\uC6B0\uC874\uC2A4",
+    initialPrice: 13295,
+    dividendYield: 2.8,
+    dividendGrowth: 5.7,
+    expectedTotalReturn: 8.5,
+    frequency: "monthly"
+  },
+  "476850.KS": {
+    ticker: "476850.KS",
+    name: "KoAct \uBC30\uB2F9\uC131\uC7A5\uC561\uD2F0\uBE0C",
+    initialPrice: 21770,
+    dividendYield: 6.27,
+    dividendGrowth: 1.73,
+    expectedTotalReturn: 8,
+    frequency: "monthly"
+  },
+  "322410.KS": {
+    ticker: "322410.KS",
+    name: "HANARO \uACE0\uBC30\uB2F9",
+    initialPrice: 23350,
+    dividendYield: 2.63,
+    dividendGrowth: 4.87,
+    expectedTotalReturn: 7.5,
+    frequency: "monthly"
+  },
+  "266160.KS": {
+    ticker: "266160.KS",
+    name: "KBSTAR \uACE0\uBC30\uB2F9",
+    initialPrice: 33350,
+    dividendYield: 1.87,
+    dividendGrowth: 5.63,
+    expectedTotalReturn: 7.5,
+    frequency: "quarterly"
+  },
+  "446720.KS": {
+    ticker: "446720.KS",
+    name: "SOL \uBBF8\uAD6D\uBC30\uB2F9\uBBF8\uAD6D\uCC44\uD63C\uD56950",
+    initialPrice: 14165,
+    dividendYield: 2.9,
+    dividendGrowth: 4.1,
+    expectedTotalReturn: 7,
+    frequency: "monthly"
+  },
+  "458760.KS": {
+    ticker: "458760.KS",
+    name: "TIGER \uBBF8\uAD6D\uBC30\uB2F9+7%\uD504\uB9AC\uBBF8\uC5C4\uB2E4\uC6B0\uC874\uC2A4",
+    initialPrice: 11340,
+    dividendYield: 9.56,
+    dividendGrowth: -1.06,
+    expectedTotalReturn: 8.5,
+    frequency: "monthly"
+  },
+  "441640.KS": {
+    ticker: "441640.KS",
+    name: "KODEX \uBBF8\uAD6D\uBC30\uB2F9\uD504\uB9AC\uBBF8\uC5C4\uC561\uD2F0\uBE0C",
+    initialPrice: 13055,
+    dividendYield: 9.04,
+    dividendGrowth: -0.54,
+    expectedTotalReturn: 8.5,
+    frequency: "monthly"
   }
 };
 
@@ -13473,6 +13668,13 @@ var PRESET_TICKER_KOREAN_NAME_BY_TICKER = {
   NNN: "NNN \uB9AC\uCE20",
   ADC: "\uC5B4\uADF8\uB9AC \uB9AC\uC5BC\uD2F0",
   KIM: "\uD0B4\uCF54 \uB9AC\uC5BC\uD2F0",
+  "489250.KS": "KODEX \uBBF8\uAD6D\uBC30\uB2F9\uB2E4\uC6B0\uC874\uC2A4",
+  "476850.KS": "KoAct \uBC30\uB2F9\uC131\uC7A5\uC561\uD2F0\uBE0C",
+  "322410.KS": "HANARO \uACE0\uBC30\uB2F9",
+  "266160.KS": "KBSTAR \uACE0\uBC30\uB2F9",
+  "446720.KS": "SOL \uBBF8\uAD6D\uBC30\uB2F9\uBBF8\uAD6D\uCC44\uD63C\uD56950",
+  "458760.KS": "TIGER \uBBF8\uAD6D\uBC30\uB2F9+7%\uD504\uB9AC\uBBF8\uC5C4\uB2E4\uC6B0\uC874\uC2A4",
+  "441640.KS": "KODEX \uBBF8\uAD6D\uBC30\uB2F9\uD504\uB9AC\uBBF8\uC5C4\uC561\uD2F0\uBE0C",
   PG: "\uD504\uB85D\uD130 \uC564 \uAC2C\uBE14",
   KO: "\uCF54\uCE74\uCF5C\uB77C",
   JNJ: "\uC874\uC2A8\uC564\uB4DC\uC874\uC2A8",
