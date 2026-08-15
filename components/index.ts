@@ -5,6 +5,7 @@ export {
   Chip,
   DataTable,
   FormSection,
+  AccountTypeSelect,
   FrequencySelect,
   InputField,
   Modal,

@@ -1,5 +1,10 @@
 import type { MonthlySnapshot, SimulationInput, SimulationOutput, SimulationResult } from '@/shared/types';
-import { resolveDefaultDividendTaxRatePercent } from '@/shared/constants/tax';
+import {
+  DEFAULT_ACCOUNT_TYPE,
+  estimateIsaSettlementTax,
+  payoutTaxRateFor,
+  resolveDefaultDividendTaxRatePercent
+} from '@/shared/constants/tax';
 import { buildMonthContext, toStartDate } from './SnowballCalendar';
 import { computeMonthlyPayout, isPayoutMonth, paymentsPerYearMap, planReinvestment } from './SnowballPayout';
 import { dpsAtMonth, priceAtMonth, toPriceGrowth, toReinvestRatio, toTaxRate } from './SnowballRates';
@@ -30,7 +35,17 @@ export const runSimulation = (input: SimulationInput): SimulationOutput => {
   //    계산되고 있었다(과대추정, 화면에 경고 없음). 여기가 모든 경로가 지나는 유일한 촉점이다 —
   //    포트폴리오 시뮬레이션도 종목마다 이 함수를 부르므로 **종목별로** 정확해진다.
   //    ⚠ 사용자가 넣은 값은 언제나 이긴다(`??` 는 undefined 일 때만 대체한다 — 0 은 그대로 0%).
-  const taxRate = toTaxRate(settings.taxRate ?? resolveDefaultDividendTaxRatePercent(ticker.ticker));
+  /*
+   * 🔴 **계좌가 과세 시점을 정한다** (2026-08-15). ISA 는 계좌 안에서 세금을 떼지 않고
+   *    종료 시점에 한 번 정산한다 — 그래서 지급 시 세율이 0 이고, 그만큼 **재투자 원금이 커진다.**
+   *    이 계좌를 쓰는 진짜 이유(과세이연 복리)가 여기서 결과에 나타난다.
+   *    세율만 9.9% 로 낮추는 근사와 결과가 다르다 — 그 근사는 매 지급마다 떼는 구조가 그대로다.
+   * ⚠ 사용자가 넣은 세율은 여전히 이긴다. 다만 ISA 에서는 그 값도 지급 시점에는 쓰이지 않는다
+   *   (정산은 `estimateIsaSettlementTax` 가 법정 분리과세율로 한다).
+   */
+  const accountType = ticker.accountType ?? DEFAULT_ACCOUNT_TYPE;
+  const taxableRatePercent = settings.taxRate ?? resolveDefaultDividendTaxRatePercent(ticker.ticker);
+  const taxRate = toTaxRate(payoutTaxRateFor(accountType, taxableRatePercent));
   const dividendYield = ticker.dividendYield / 100;
   // 정합 모델: 가격과 배당이 같은 속도로 성장한다. 하나의 growth 를 양쪽에 쓰기 때문에
   // dps(t) === price(t) * dividendYield 가 모든 t 에서 성립한다(= 배당수익률 불변).
@@ -147,6 +162,13 @@ export const runSimulation = (input: SimulationInput): SimulationOutput => {
    * ⚠ `paymentsPerYear` 로 나누지 않는다. `dps` 가 **연** 주당배당금이라 12 로 나누면 곧 월 환산이고,
    *   그래야 분기 배당 종목도 월 기준으로 읽힌다(지급월에 한 분기치가 튀는 문제가 여기서 사라진다).
    */
+  /*
+   * ISA 종료 정산세 — 계좌 안에서 미뤄 둔 세금을 마지막에 한 번 센다.
+   * 🔴 과세계좌는 0 이다(이미 매 지급마다 뗐다). 두 값을 **함께** 보지 않으면 ISA 시나리오에서
+   *    세금이 통째로 사라진 것처럼 읽힌다 — 화면이 이 필드를 반드시 노출해야 하는 이유다.
+   */
+  const isaSettlementTax = accountType === 'isa' ? estimateIsaSettlementTax(cumulativeDividend) : 0;
+
   const lastRow = monthly[monthly.length - 1];
   const finalRunRateMonthlyDividend =
     lastRow === undefined ? 0 : (lastRow.shares * lastRow.dividendPerShare * (1 - taxRate)) / 12;
@@ -160,7 +182,8 @@ export const runSimulation = (input: SimulationInput): SimulationOutput => {
       totalTaxPaid,
       targetMonthlyDividend: settings.targetMonthlyDividend,
       totalReinvestedAmount,
-      finalRunRateMonthlyDividend
+      finalRunRateMonthlyDividend,
+      isaSettlementTax
     }),
     quickEstimate: runQuickEstimate(input)
   };

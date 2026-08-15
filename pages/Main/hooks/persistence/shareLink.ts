@@ -1,6 +1,7 @@
 import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from 'lz-string';
 import { EMPTY_INVESTMENT_SETTINGS, normalizePersistedAppState, type PersistedInvestmentSettings, type PersistedScenarioState } from '@/jotai';
 import { toDerivedDividendGrowthPercent } from '@/shared/lib/snowball';
+import { DEFAULT_ACCOUNT_TYPE } from '@/shared/constants/tax';
 import type { Frequency } from '@/shared/types';
 import type { PortfolioPersistedState, TickerProfile } from '@/shared/types/snowball';
 
@@ -24,7 +25,16 @@ type CompactTickerTuple = [
   dividendGrowth: number,
   expectedTotalReturn: number,
   frequencyCode: 0 | 1 | 2 | 3 | 4,
-  name?: string
+  name?: string,
+  /**
+   * 계좌 유형(2026-08-15 추가). **기본값(과세계좌)이면 아예 넣지 않는다** — 그래서 옛 링크와
+   * 새 링크가 바이트까지 같고, 링크 길이도 안 늘어난다.
+   *
+   * 🔴 `name` 이 **조건부**라 자리를 세는 방식이 위험하다(`name` 이 비면 6칸, 있으면 7칸). 그래서
+   *    이 칸을 쓸 때는 `name` 자리를 반드시 채운다(빈 문자열이라도). 그러지 않으면 계좌 값이
+   *    `name` 자리로 밀려 들어가 **종목 이름이 'isa' 로 열린다.**
+   */
+  accountType?: 'taxable' | 'isa'
 ];
 
 type CompactPortfolio = {
@@ -138,7 +148,7 @@ export const decodeVisibleYearlySeriesMask = (mask: number): PersistedInvestment
   cumulativeDividend: Boolean(mask & 16)
 });
 
-const toCompactPortfolio = (scenario: PersistedScenarioState): CompactPortfolio => {
+export const toCompactPortfolio = (scenario: PersistedScenarioState): CompactPortfolio => {
   const { portfolio } = scenario;
   const indexById = new Map<string, number>();
   const tickers: CompactTickerTuple[] = portfolio.tickerProfiles.map((profile, index) => {
@@ -151,7 +161,13 @@ const toCompactPortfolio = (scenario: PersistedScenarioState): CompactPortfolio 
       profile.expectedTotalReturn,
       encodeFrequency(profile.frequency)
     ];
-    if (profile.name.trim()) base.push(profile.name);
+    /*
+     * 🔴 자리를 세는 튜플이라 **뒤 칸을 쓰면 앞 칸을 반드시 채운다.** 계좌 유형을 실을 때만
+     *    이름 자리를 강제로 채우고(빈 문자열 허용), 기본값이면 종전과 완전히 같은 모양을 유지한다.
+     */
+    const hasNonDefaultAccount = profile.accountType !== undefined && profile.accountType !== DEFAULT_ACCOUNT_TYPE;
+    if (profile.name.trim() || hasNonDefaultAccount) base.push(profile.name);
+    if (hasNonDefaultAccount) base.push(profile.accountType as 'isa');
     return base;
   });
 
@@ -228,7 +244,8 @@ export const decodeCompactPortfolio = (compact: CompactPortfolio): PortfolioPers
   const tickerProfiles = compact.t
     .map((tuple, index): TickerProfile | null => {
       if (!Array.isArray(tuple)) return null;
-      const [ticker, initialPrice, dividendYield, dividendGrowth, expectedTotalReturn, frequencyCode, name] = tuple;
+      const [ticker, initialPrice, dividendYield, dividendGrowth, expectedTotalReturn, frequencyCode, name, accountType] =
+        tuple;
       if (typeof ticker !== 'string' || !ticker.trim()) return null;
       if (!Number.isFinite(initialPrice) || initialPrice <= 0) return null;
       if (!Number.isFinite(dividendYield) || dividendYield < 0) return null;
@@ -244,7 +261,9 @@ export const decodeCompactPortfolio = (compact: CompactPortfolio): PortfolioPers
         dividendYield: Number(dividendYield),
         dividendGrowth: toDerivedDividendGrowthPercent(Number(expectedTotalReturn), Number(dividendYield)),
         expectedTotalReturn: Number(expectedTotalReturn),
-        frequency: decodeFrequency(frequencyCode)
+        frequency: decodeFrequency(frequencyCode),
+        /* 모르는 값·부재는 전부 기본값이다 — 남의 링크를 못 여는 것보다 낫다. */
+        accountType: accountType === 'isa' ? 'isa' : DEFAULT_ACCOUNT_TYPE
       };
     })
     .filter((profile): profile is TickerProfile => profile !== null);

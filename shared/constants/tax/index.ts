@@ -37,3 +37,15 @@ export {
 } from './koreanTaxCategory';
 export type { KoreanTaxCategory } from './koreanTaxCategory';
 export { resolveDefaultDividendTaxRatePercent, US_LISTED_DIVIDEND_TAX_RATE } from './dividendTaxRate';
+
+/* 계좌 유형(과세계좌 / ISA) — 과세 **시점**을 옮기는 입력이다. 근거는 그 파일 머리말. */
+export {
+  DEFAULT_ACCOUNT_TYPE,
+  ISA_SEPARATE_TAX_RATE,
+  ISA_TAX_FREE_ALLOWANCE,
+  estimateIsaSettlementTax,
+  payoutTaxRateFor,
+  isIsaSelectableFor,
+  ACCOUNT_TYPE_LABEL,
+  type AccountType
+} from './accountType';

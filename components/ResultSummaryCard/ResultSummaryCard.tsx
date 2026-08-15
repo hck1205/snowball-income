@@ -126,6 +126,25 @@ function ResultSummaryCardComponent({
             />
             <StatTile label="누적 순배당" value={formatResultAmount(summary.totalNetDividend, isResultCompact)} />
             <StatTile label="누적 세금" value={formatResultAmount(summary.totalTaxPaid, isResultCompact)} />
+            {/*
+              🔴 **ISA 시나리오에서만 뜬다 — 그리고 반드시 떠야 한다.** ISA 는 지급 때 세금을 떼지
+                 않아 위 '누적 세금'이 0 으로 나오는데, 그것만 보면 세금이 없는 것처럼 읽힌다.
+                 실제로는 사라진 게 아니라 종료 시점으로 **옮겨 온** 것이고, 그 값이 이 타일이다.
+              ⚠ 과세계좌만 담은 시나리오에서는 0 이라 렌더하지 않는다 — 늘 0 인 타일은 잡음이다.
+            */}
+            {summary.isaSettlementTax > 0 ? (
+              <StatTile
+                label="ISA 종료 정산세"
+                value={formatResultAmount(summary.isaSettlementTax, isResultCompact)}
+                /*
+                 * 🔴 한계를 **화면이 말한다.** 비과세 한도 200만원은 실제로는 **계좌당**인데 이
+                 *    시뮬레이터는 종목마다 적용한다("어느 종목이 같은 계좌인가"라는 입력이 없다).
+                 *    ISA 에 여러 종목을 담으면 한도가 종목 수만큼 늘어난 셈이라 **세금을 실제보다
+                 *    적게** 잡는다 — 과소추정이라 반드시 밝혀야 하는 방향이다.
+                 */
+                hint="비과세 한도 200만원을 종목마다 적용한 추정입니다. 실제로는 계좌당 한도라 여러 종목을 담으면 세금이 이보다 클 수 있습니다."
+              />
+            ) : null}
             <StatTile
               label={
                 hasTarget

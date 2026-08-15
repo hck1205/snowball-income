@@ -6,6 +6,7 @@ import {
   decodeCompactInvestmentSettingsV2,
   decodeCompactInvestmentSettingsV3,
   decodeCompactPortfolio,
+  toCompactPortfolio,
   decodeFrequency,
   decodeSharedScenario,
   decodeSharedScenarioResult,
@@ -676,5 +677,92 @@ describe('decodeSharedScenario 방어', () => {
     const result = decodeSharedScenarioResult(valid);
     expect(result.ok).toBe(true);
     expect(result.ok ? result.scenario : null).toEqual(decodeSharedScenario(valid));
+  });
+});
+
+/**
+ * 계좌 유형(2026-08-15) — **공유 링크 하위 호환**.
+ *
+ * 🔴 공유 링크는 사용자 자산이다. 이미 나간 링크가 안 열리면 그 시나리오는 영영 사라진다.
+ * 그래서 이 묶음이 지키는 것은 셋이다:
+ *  ① 옛 링크(계좌 칸 없음)가 그대로 열리고 **과세계좌**로 읽힌다
+ *  ② 기본값(과세계좌)이면 **인코딩 결과가 종전과 바이트까지 같다** — 링크가 길어지지 않는다
+ *  ③ ISA 를 실을 때 이름 자리가 밀리지 않는다(튜플은 자리로 읽으므로 이게 가장 위험한 회귀다)
+ */
+describe('공유 링크 — 계좌 유형', () => {
+  const profile = (over: Partial<TickerProfile> = {}): TickerProfile => ({
+    id: 't1',
+    ticker: '458730.KS',
+    name: '',
+    initialPrice: 10_000,
+    dividendYield: 5,
+    dividendGrowth: 3,
+    expectedTotalReturn: 8,
+    frequency: 'quarterly',
+    ...over
+  });
+
+  const portfolioOf = (profiles: TickerProfile[]) => ({
+    tickerProfiles: profiles,
+    includedTickerIds: profiles.map((item) => item.id),
+    weightByTickerId: Object.fromEntries(profiles.map((item) => [item.id, 1])),
+    fixedByTickerId: {}
+  });
+
+  it('옛 링크(계좌 칸 없음)는 과세계좌로 열린다', () => {
+    const legacy = { t: [['458730.KS', 10_000, 5, 3, 8, 1]] } as never;
+
+    const decoded = decodeCompactPortfolio(legacy);
+
+    expect(decoded.tickerProfiles[0].accountType).toBe('taxable');
+    expect(decoded.tickerProfiles[0].name).toBe('');
+  });
+
+  it('이름이 있는 옛 링크도 이름을 이름으로 읽는다 (계좌 칸으로 오해하지 않는다)', () => {
+    const legacy = { t: [['458730.KS', 10_000, 5, 3, 8, 1, '내 ETF']] } as never;
+
+    const decoded = decodeCompactPortfolio(legacy);
+
+    expect(decoded.tickerProfiles[0].name).toBe('내 ETF');
+    expect(decoded.tickerProfiles[0].accountType).toBe('taxable');
+  });
+
+  /** 🔴 기본값이면 링크가 종전과 완전히 같아야 한다 — 안 그러면 모든 링크가 길어진다. */
+  it('과세계좌는 인코딩에 자리를 차지하지 않는다', () => {
+    const withField = toCompactPortfolio({ portfolio: portfolioOf([profile({ accountType: 'taxable' })]) } as never);
+    const withoutField = toCompactPortfolio({ portfolio: portfolioOf([profile()]) } as never);
+
+    expect(withField.t[0]).toHaveLength(6);
+    expect(withField).toEqual(withoutField);
+  });
+
+  it('ISA 는 실리고, 이름이 비어 있어도 자리가 밀리지 않는다', () => {
+    const compact = toCompactPortfolio({ portfolio: portfolioOf([profile({ accountType: 'isa' })]) } as never);
+
+    // [ticker, price, yield, growth, etr, freq, name, account] — 이름 자리를 빈 문자열로 채운다.
+    expect(compact.t[0]).toHaveLength(8);
+    expect(compact.t[0][6]).toBe('');
+    expect(compact.t[0][7]).toBe('isa');
+
+    const decoded = decodeCompactPortfolio(compact);
+    expect(decoded.tickerProfiles[0].name).toBe('');
+    expect(decoded.tickerProfiles[0].accountType).toBe('isa');
+  });
+
+  it('이름과 ISA 가 함께 있어도 왕복한다', () => {
+    const compact = toCompactPortfolio({
+      portfolio: portfolioOf([profile({ name: 'KODEX 미국배당', accountType: 'isa' })])
+    } as never);
+
+    const decoded = decodeCompactPortfolio(compact);
+
+    expect(decoded.tickerProfiles[0].name).toBe('KODEX 미국배당');
+    expect(decoded.tickerProfiles[0].accountType).toBe('isa');
+  });
+
+  it('모르는 계좌 값은 과세계좌로 떨어진다 (남의 링크를 못 여는 것보다 낫다)', () => {
+    const weird = { t: [['458730.KS', 10_000, 5, 3, 8, 1, '', 'pension']] } as never;
+
+    expect(decodeCompactPortfolio(weird).tickerProfiles[0].accountType).toBe('taxable');
   });
 });

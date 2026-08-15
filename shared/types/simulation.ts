@@ -1,3 +1,4 @@
+import type { AccountType } from '@/shared/constants/tax';
 /**
  * 배당 지급 주기.
  *
@@ -28,6 +29,12 @@ export type TickerInput = {
    */
   expectedTotalReturn: number;
   frequency: Frequency;
+  /**
+   * 이 종목을 담은 계좌. 미지정은 **과세계좌**다 — 그래서 옛 저장 페이로드·공유 링크가 그대로 열린다.
+   * 🔴 ISA 는 지급 시점에 세금을 떼지 않고 **종료 시점에 한 번 정산**한다(`payoutTaxRateFor` /
+   *    `estimateIsaSettlementTax`). 세율만 낮추는 것과 결과가 다르다 — 재투자 원금이 달라진다.
+   */
+  accountType?: AccountType;
 };
 
 export type InvestmentSettings = {
@@ -96,6 +103,14 @@ export type SimulationSummary = {
    *    시뮬레이션이 말한 적 없는 미래를 숫자로 만들게 된다.
    */
   finalRunRateMonthlyDividend: number;
+  /**
+   * **ISA 종료 정산세(원, 세후 추정)** — 계좌 안에서 미뤄 둔 배당소득세를 마지막에 한 번 센다.
+   * 과세계좌는 0 이다(이미 매 지급마다 뗐다).
+   *
+   * 🔴 화면은 이 값을 **반드시 함께 보여야 한다.** ISA 시나리오는 `totalTaxPaid` 가 0 으로 나오는데,
+   *    그것만 보면 세금이 없는 것처럼 읽힌다 — 실제로는 여기로 옮겨 왔을 뿐이다.
+   */
+  isaSettlementTax: number;
   totalContribution: number;
   totalNetDividend: number;
   /** 누적 **배당소득세**. 양도세는 여기 포함되지 않는다(아래 estimatedCapitalGainsTax 참고). */

@@ -11,6 +11,8 @@ import { toExpectedTotalReturnPercent } from './SnowballRates';
  * 좁히는 방향(값 제거·이름 변경)은 저장 데이터를 못 열게 만들므로 금지.
  */
 const frequencySchema = z.enum(['monthly', 'quarterly', 'semiannual', 'annual', 'none']);
+/* 계좌 유형. 값이 늘어날 때 여기와 `shared/constants/tax/accountType` 의 유니온을 함께 고친다. */
+const accountTypeSchema = z.enum(['taxable', 'isa']);
 const reinvestTimingSchema = z.enum(['sameMonth', 'nextMonth']);
 const dpsGrowthModeSchema = z.enum(['annualStep', 'monthlySmooth']);
 // 정규식만으로는 2026-02-31 / 2026-13-01 같은 "형식은 맞지만 실재하지 않는" 날짜가 통과한다.
@@ -39,6 +41,13 @@ const formSchema = z.object({
     .min(-100, '기대 총수익율 (CAGR)은 -100 이상이어야 합니다.')
     .max(100, '기대 총수익율 (CAGR)은 100 이하여야 합니다.'),
   frequency: frequencySchema,
+  /**
+   * 계좌 유형. **선택 입력**이라 기존 저장 페이로드·공유 링크가 그대로 통과한다(미지정 = 과세계좌).
+   * 🔴 ISA 는 국내 상장 종목에만 고를 수 있다 — 그 제약은 화면(`isAccountTypeSelectable`)이 건다.
+   *    스키마에서 막지 않는 이유: 이 스키마는 저장된 옛 데이터도 통과시켜야 하는 경계라,
+   *    여기서 조합을 거절하면 남의 링크가 열리지 않는다.
+   */
+  accountType: accountTypeSchema.optional(),
   initialInvestment: z.number().finite('초기 투자금을 입력하세요.').min(0, '초기 투자금은 0 이상이어야 합니다.'),
   monthlyContribution: z.number().finite('월 투자금을 입력하세요.').min(0, '월 투자금은 0 이상이어야 합니다.'),
   targetMonthlyDividend: z.number().finite('목표 월배당을 입력하세요.').min(0, '목표 월배당은 0 이상이어야 합니다.'),
@@ -64,7 +73,8 @@ export const tickerInputSchema = formSchema.pick({
   dividendYield: true,
   dividendGrowth: true,
   expectedTotalReturn: true,
-  frequency: true
+  frequency: true,
+  accountType: true
 });
 
 /** 이 티커 입력이 엔진에 넣어도 되는 값인가. */
@@ -140,7 +150,8 @@ export const toSimulationInput = (values: YieldFormValues): SimulationInput => (
     dividendGrowth: values.dividendGrowth,
     // 파생 표시값이므로 폼에 남아 있는 값을 믿지 않고 항상 다시 계산한다 (엔진은 쓰지 않는다).
     expectedTotalReturn: toExpectedTotalReturnPercent(values.dividendYield, values.dividendGrowth),
-    frequency: values.frequency
+    frequency: values.frequency,
+    accountType: values.accountType
   },
   settings: {
     initialInvestment: values.initialInvestment,

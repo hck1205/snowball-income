@@ -12,6 +12,7 @@ export const buildSummary = (overrides: Partial<SimulationSummary> = {}): Simula
   finalMonthlyAverageDividend: 2_564_105,
   finalPayoutMonthDividend: 8_000_000,
   finalRunRateMonthlyDividend: 2_700_000,
+  isaSettlementTax: 0,
   totalContribution: 190_000_000,
   totalNetDividend: 290_712_891,
   totalTaxPaid: 52_919_368,
