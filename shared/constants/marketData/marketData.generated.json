@@ -2615,7 +2615,14 @@
         9,
         12
       ],
-      "payoutMonthsSource": "ex"
+      "payoutMonthsSource": "pay",
+      "exToPayLagDays": 4,
+      "estimatedPayDayByMonth": {
+        "3": 24,
+        "6": 24,
+        "9": 23,
+        "12": 23
+      }
     },
     "VYMI": {
       "initialPrice": 103.56,
@@ -2643,12 +2650,19 @@
       "frequency": "quarterly",
       "observedDividendCagr": 7.12,
       "payoutMonths": [
-        2,
-        5,
-        8,
-        11
+        3,
+        6,
+        9,
+        12
       ],
-      "payoutMonthsSource": "ex"
+      "payoutMonthsSource": "pay",
+      "exToPayLagDays": 18,
+      "estimatedPayDayByMonth": {
+        "3": 1,
+        "6": 1,
+        "9": 1,
+        "12": 1
+      }
     },
     "WELL": {
       "initialPrice": 234.03,
