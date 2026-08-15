@@ -207,6 +207,15 @@ const INTENTIONAL_SCROLLERS = [
        + 같은 파일 30행의 `min-width: 520px`. 연도별 결과 등 다른 넓은 표 래퍼도 같은 규칙이다. */
     match: 'div:has(> table), div:has(> * > table)',
     why: '표 래퍼 — 넓은 표는 접지 않고 자체 가로 스크롤한다(PayoutScheduleStrip 등)'
+  },
+  {
+    /* 캐러셀 트랙. 구현이 **네이티브 스크롤 + scroll-snap** 이라 가로 스크롤이 곧 그 부품의 기능이다
+       (components/common/Carousel/Carousel.styled.ts:37 `overflow-x: auto` + 39 `scroll-snap-type`).
+       랜딩의 포트폴리오 프리셋 묶음 넷(성장·균형·인컴·특화)이 이것으로 그려진다.
+       ⚠ `aria-label` 은 호출부가 만드는 동적 문자열("성장 4개")이라 앵커로 못 쓴다 — 그래서 트랙이
+         `data-carousel-track` 을 직접 단다(그 속성은 이 계약을 위해 존재한다). */
+    match: '[data-carousel-track]',
+    why: 'Carousel 트랙 — 네이티브 스크롤 + scroll-snap 이 이 부품의 구현이다'
   }
 ];
 
