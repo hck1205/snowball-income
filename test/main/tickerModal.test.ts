@@ -11,7 +11,7 @@ import {
   toTotalReturnCaption,
   withDerivedTotalReturn
 } from '@/pages/Main/components/TickerModal';
-import type { PresetTickerKey } from '@/shared/constants';
+import { DIVIDEND_UNIVERSE, PRESET_TICKER_KOREAN_NAME_BY_TICKER, type PresetTickerKey } from '@/shared/constants';
 import type { TickerDraft } from '@/shared/types/snowball';
 
 const draft: TickerDraft = {
@@ -223,5 +223,36 @@ describe('toTotalReturnCaption', () => {
 
   it('값이 비어 있으면 캡션을 감춘다', () => {
     expect(toTotalReturnCaption({ ...draft, dividendGrowth: Number.NaN })).toBeNull();
+  });
+});
+
+/**
+ * 실제 유니버스로 도는 검색 테스트.
+ *
+ * 🔴 프리셋 검색이 훑는 것은 **티커·영문명·한글명 셋뿐**이다(`filterPresetKeys`). 레버리지 종목은
+ *    사용자가 티커를 외우고 오기보다 "레버리지"·"3배"로 훑으므로, 그 낱말이 한글명에 없으면 목록에
+ *    있어도 **찾을 수 없다**. 한글명에서 접미사를 떼는 순간 이 테스트가 빨개진다.
+ */
+describe('레버리지 프리셋 검색 (실제 유니버스)', () => {
+  const universe = DIVIDEND_UNIVERSE as unknown as Record<PresetTickerKey, TickerDraft>;
+  const allKeys = Object.keys(universe) as PresetTickerKey[];
+  const search = (keyword: string): PresetTickerKey[] =>
+    filterPresetKeys({
+      presetKeys: allKeys,
+      presetTickers: universe,
+      koreanNameByTicker: PRESET_TICKER_KOREAN_NAME_BY_TICKER,
+      keyword
+    });
+
+  it('티커로 찾는다', () => {
+    expect(search('qld')).toContain('QLD');
+  });
+
+  it('"레버리지" 로 레버리지 종목 전량이 걸린다', () => {
+    expect(search('레버리지').sort()).toEqual(['QLD', 'SOXL', 'SPXL', 'SSO', 'TNA', 'TQQQ', 'UPRO', 'USD']);
+  });
+
+  it('"3배" 로 3배 종목만 걸린다', () => {
+    expect(search('3배').sort()).toEqual(['SOXL', 'SPXL', 'TNA', 'TQQQ', 'UPRO']);
   });
 });

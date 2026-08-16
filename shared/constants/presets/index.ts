@@ -14,6 +14,7 @@ import { REIT_ETFS } from './reitEtfs';
 import { DIVIDEND_GROWTH_STOCKS } from './dividendGrowthStocks';
 import { HIGH_DIVIDEND_STOCKS } from './highDividendStocks';
 import { CORE_INDEX_ETFS } from './coreIndexEtfs';
+import { LEVERAGED_INDEX_ETFS } from './leveragedIndexEtfs';
 import { SEMICONDUCTOR_DIVIDEND_GROWTH_PORTFOLIO } from './semiconductorDividendGrowthPortfolio';
 import { AI_INFRA_ETFS_AND_STOCKS } from './aiInfraEtfsAndStocks';
 import { MEGA_CAP_GROWTH_STOCKS } from './megaCapGrowthStocks';
@@ -31,6 +32,7 @@ export { REIT_ETFS } from './reitEtfs';
 export { DIVIDEND_GROWTH_STOCKS } from './dividendGrowthStocks';
 export { HIGH_DIVIDEND_STOCKS } from './highDividendStocks';
 export { CORE_INDEX_ETFS } from './coreIndexEtfs';
+export { LEVERAGED_INDEX_ETFS } from './leveragedIndexEtfs';
 export { SEMICONDUCTOR_DIVIDEND_GROWTH_PORTFOLIO } from './semiconductorDividendGrowthPortfolio';
 export { AI_INFRA_ETFS_AND_STOCKS } from './aiInfraEtfsAndStocks';
 export { MEGA_CAP_GROWTH_STOCKS } from './megaCapGrowthStocks';
@@ -49,6 +51,9 @@ export { WELL_KNOWN_DIVIDEND_STOCKS } from './wellKnownDividendStocks';
  */
 export const CURATED_DIVIDEND_UNIVERSE = {
   ...CORE_INDEX_ETFS,
+  /* 레버리지 ETF 8종(2026-08-16). 배당이 아니라 주가 성장으로 담는 묶음이라 기대총수익률이
+     "기초지수 × 배수"가 아닌 변동성 손실 보정값이다 — 근거는 그 파일 머리말. */
+  ...LEVERAGED_INDEX_ETFS,
   ...US_DIVIDEND_GROWTH_ETFS,
   ...US_HIGH_DIVIDEND_ETFS,
   ...OPTION_INCOME_ETFS,
@@ -171,6 +176,19 @@ export const PRESET_TICKER_KOREAN_NAME_BY_TICKER = {
   VT: '뱅가드 토탈 월드 주식 ETF',
   VXUS: '뱅가드 토탈 국제 주식 ETF',
   DIA: 'SPDR 다우존스 산업평균 ETF',
+  /*
+   * 레버리지 8종(2026-08-16). 다른 종목과 달리 한글명 끝에 **"N배 레버리지"** 를 붙인다 —
+   * 프리셋 검색은 티커·영문명·이 한글명만 훑으므로(`filterPresetKeys`), 여기 없는 낱말로는
+   * 찾을 수 없다. 사용자는 티커를 외우고 오기보다 "레버리지"·"3배"로 훑는다.
+   */
+  QLD: '프로셰어즈 울트라 QQQ 2배 레버리지',
+  TQQQ: '프로셰어즈 울트라프로 QQQ 3배 레버리지',
+  SSO: '프로셰어즈 울트라 S&P 500 2배 레버리지',
+  UPRO: '프로셰어즈 울트라프로 S&P 500 3배 레버리지',
+  SPXL: '디렉시온 데일리 S&P 500 불 3배 레버리지',
+  USD: '프로셰어즈 울트라 반도체 2배 레버리지',
+  SOXL: '디렉시온 데일리 반도체 불 3배 레버리지',
+  TNA: '디렉시온 데일리 스몰캡 불 3배 레버리지',
   SCHD: '슈왑 미국 배당주 ETF',
   VIG: '뱅가드 배당성장 ETF',
   DGRO: '아이셰어즈 코어 배당성장 ETF',
