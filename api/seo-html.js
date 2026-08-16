@@ -11304,6 +11304,95 @@ var CORE_INDEX_ETFS = {
   }
 };
 
+// shared/constants/presets/leveragedIndexEtfs.ts
+var LEVERAGED_INDEX_ETFS = {
+  QLD: {
+    ticker: "QLD",
+    name: "ProShares Ultra QQQ",
+    initialPrice: 94.15,
+    dividendYield: 0.12,
+    /* 나스닥100 2배. g=11%, σ=22%, f=0.95% → 12.9% */
+    dividendGrowth: 12.78,
+    expectedTotalReturn: 12.9,
+    frequency: "quarterly"
+  },
+  TQQQ: {
+    ticker: "TQQQ",
+    name: "ProShares UltraPro QQQ",
+    initialPrice: 76.79,
+    dividendYield: 0.49,
+    /* 나스닥100 3배. g=11%, σ=22%, f=0.84% → 10.6% (같은 지수 2배인 QLD 보다 낮다 — 위 머리말) */
+    dividendGrowth: 10.11,
+    expectedTotalReturn: 10.6,
+    frequency: "quarterly"
+  },
+  SSO: {
+    ticker: "SSO",
+    name: "ProShares Ultra S&P500",
+    initialPrice: 72.2,
+    dividendYield: 0.63,
+    /* S&P 500 2배. g=9.5%, σ=16%, f=0.89% → 12.5% */
+    dividendGrowth: 11.87,
+    expectedTotalReturn: 12.5,
+    frequency: "quarterly"
+  },
+  UPRO: {
+    ticker: "UPRO",
+    name: "ProShares UltraPro S&P 500",
+    initialPrice: 156.63,
+    dividendYield: 0.69,
+    /* S&P 500 3배. g=9.5%, σ=16%, f=0.91% → 13.6% */
+    dividendGrowth: 12.91,
+    expectedTotalReturn: 13.6,
+    frequency: "quarterly"
+  },
+  SPXL: {
+    ticker: "SPXL",
+    name: "Direxion Daily S&P 500 Bull 3X Shares",
+    initialPrice: 299.31,
+    dividendYield: 0.48,
+    /* S&P 500 3배(디렉시온). g=9.5%, σ=16%, f=0.87% → 13.6%.
+       UPRO 와 같은 지수·같은 배수라 기대수익률이 겹치는 것이 정상이다 — 보수 0.04%p 차이는
+       소수 첫째 자리에서 사라진다. 두 종목을 모두 두는 이유는 "내가 가진 티커"로 찾기 위함이다. */
+    dividendGrowth: 13.12,
+    expectedTotalReturn: 13.6,
+    frequency: "quarterly"
+  },
+  USD: {
+    ticker: "USD",
+    name: "ProShares Ultra Semiconductors",
+    initialPrice: 94.16,
+    dividendYield: 0.32,
+    /* 반도체 2배. g=12%, σ=30%, f=0.95% → 10.3% */
+    dividendGrowth: 9.98,
+    expectedTotalReturn: 10.3,
+    frequency: "quarterly"
+  },
+  SOXL: {
+    ticker: "SOXL",
+    name: "Direxion Daily Semiconductor Bull 3X Shares",
+    initialPrice: 144.95,
+    dividendYield: 0.01,
+    /* 반도체 3배. g=12%, σ=30%, f=0.90% → 0.2%.
+       🔴 오타가 아니다. 변동성 30% 짜리 지수를 3배로 끌면 σ² 손실(연 27%p)이 기초지수 수익률
+          3배(연 34%p)를 거의 다 먹는다. 같은 지수 2배(USD 10.3%)와 비교되도록 나란히 둔다. */
+    dividendGrowth: 0.19,
+    expectedTotalReturn: 0.2,
+    frequency: "quarterly"
+  },
+  TNA: {
+    ticker: "TNA",
+    name: "Direxion Daily Small Cap Bull 3X Shares",
+    initialPrice: 77.14,
+    dividendYield: 0.27,
+    /* 러셀2000 3배. g=8%, σ=22%, f=1.00% → 1.7%.
+       기초지수 8% 는 이 파일의 가정이다(러셀2000 대응 프리셋이 레포에 없다). */
+    dividendGrowth: 1.43,
+    expectedTotalReturn: 1.7,
+    frequency: "quarterly"
+  }
+};
+
 // shared/constants/presets/aiInfraEtfsAndStocks.ts
 var AI_INFRA_ETFS_AND_STOCKS = {
   SMH: {
@@ -13520,6 +13609,9 @@ var WELL_KNOWN_DIVIDEND_STOCKS = {
 // shared/constants/presets/index.ts
 var CURATED_DIVIDEND_UNIVERSE = {
   ...CORE_INDEX_ETFS,
+  /* 레버리지 ETF 8종(2026-08-16). 배당이 아니라 주가 성장으로 담는 묶음이라 기대총수익률이
+     "기초지수 × 배수"가 아닌 변동성 손실 보정값이다 — 근거는 그 파일 머리말. */
+  ...LEVERAGED_INDEX_ETFS,
   ...US_DIVIDEND_GROWTH_ETFS,
   ...US_HIGH_DIVIDEND_ETFS,
   ...OPTION_INCOME_ETFS,
@@ -13571,6 +13663,19 @@ var PRESET_TICKER_KOREAN_NAME_BY_TICKER = {
   VT: "\uBC45\uAC00\uB4DC \uD1A0\uD0C8 \uC6D4\uB4DC \uC8FC\uC2DD ETF",
   VXUS: "\uBC45\uAC00\uB4DC \uD1A0\uD0C8 \uAD6D\uC81C \uC8FC\uC2DD ETF",
   DIA: "SPDR \uB2E4\uC6B0\uC874\uC2A4 \uC0B0\uC5C5\uD3C9\uADE0 ETF",
+  /*
+   * 레버리지 8종(2026-08-16). 다른 종목과 달리 한글명 끝에 **"N배 레버리지"** 를 붙인다 —
+   * 프리셋 검색은 티커·영문명·이 한글명만 훑으므로(`filterPresetKeys`), 여기 없는 낱말로는
+   * 찾을 수 없다. 사용자는 티커를 외우고 오기보다 "레버리지"·"3배"로 훑는다.
+   */
+  QLD: "\uD504\uB85C\uC170\uC5B4\uC988 \uC6B8\uD2B8\uB77C QQQ 2\uBC30 \uB808\uBC84\uB9AC\uC9C0",
+  TQQQ: "\uD504\uB85C\uC170\uC5B4\uC988 \uC6B8\uD2B8\uB77C\uD504\uB85C QQQ 3\uBC30 \uB808\uBC84\uB9AC\uC9C0",
+  SSO: "\uD504\uB85C\uC170\uC5B4\uC988 \uC6B8\uD2B8\uB77C S&P 500 2\uBC30 \uB808\uBC84\uB9AC\uC9C0",
+  UPRO: "\uD504\uB85C\uC170\uC5B4\uC988 \uC6B8\uD2B8\uB77C\uD504\uB85C S&P 500 3\uBC30 \uB808\uBC84\uB9AC\uC9C0",
+  SPXL: "\uB514\uB809\uC2DC\uC628 \uB370\uC77C\uB9AC S&P 500 \uBD88 3\uBC30 \uB808\uBC84\uB9AC\uC9C0",
+  USD: "\uD504\uB85C\uC170\uC5B4\uC988 \uC6B8\uD2B8\uB77C \uBC18\uB3C4\uCCB4 2\uBC30 \uB808\uBC84\uB9AC\uC9C0",
+  SOXL: "\uB514\uB809\uC2DC\uC628 \uB370\uC77C\uB9AC \uBC18\uB3C4\uCCB4 \uBD88 3\uBC30 \uB808\uBC84\uB9AC\uC9C0",
+  TNA: "\uB514\uB809\uC2DC\uC628 \uB370\uC77C\uB9AC \uC2A4\uBAB0\uCEA1 \uBD88 3\uBC30 \uB808\uBC84\uB9AC\uC9C0",
   SCHD: "\uC288\uC651 \uBBF8\uAD6D \uBC30\uB2F9\uC8FC ETF",
   VIG: "\uBC45\uAC00\uB4DC \uBC30\uB2F9\uC131\uC7A5 ETF",
   DGRO: "\uC544\uC774\uC170\uC5B4\uC988 \uCF54\uC5B4 \uBC30\uB2F9\uC131\uC7A5 ETF",
