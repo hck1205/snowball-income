@@ -8028,7 +8028,14 @@ var marketData_generated_default = {
         7,
         10
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 21,
+      estimatedPayDayByMonth: {
+        "1": 27,
+        "4": 23,
+        "7": 23,
+        "10": 23
+      }
     },
     CMI: {
       initialPrice: 637.84,
@@ -10139,8 +10146,8 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 4,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "3": 24,
         "6": 24,
@@ -10179,8 +10186,8 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 18,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "3": 1,
         "6": 1,
