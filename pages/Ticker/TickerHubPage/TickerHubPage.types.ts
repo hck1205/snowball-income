@@ -34,6 +34,18 @@ export type HubTickerCard = {
   /** 같은 값의 숫자 — **정렬 전용**이다. 화면에는 위 표시값만 나간다(포맷 규칙 이중화 금지). */
   dividendYieldPercent: number;
   /**
+   * 연 배당성장률 표시값(`6.87%`).
+   *
+   * 🔴 **시뮬레이터 계산 프리셋의 가정치**다(엔진의 `dividendGrowth`) — 과거 실적 CAGR 이 아니다.
+   * 상세 페이지 히어로가 "연 배당성장률(계산 가정)"이라고 부르는 바로 그 값이라, 허브에서 본 숫자와
+   * 상세에서 본 숫자가 같다. 열 머리 옆의 각주가 이 사실을 화면에서도 말한다.
+   * ⚠ 과거 배당성장 CAGR(`reference.historicalDividendCagrPercent`)과 **다른 값**이다. 두 값을
+   *   같은 열에 섞지 마라 — 하나는 가정이고 하나는 이력이다.
+   */
+  dividendGrowth: string;
+  /** 같은 값의 숫자 — 정렬 전용. */
+  dividendGrowthPercent: number;
+  /**
    * 운용보수(총보수).
    *
    * ⚠ **선택 필드다.** 콘텐츠에 값이 없는 티커가 있을 수 있고, 그때는 뷰가 이 지표를 **통째로
@@ -76,6 +88,22 @@ export type SimulatorOnlyRow = {
   name: string;
   dividendYield: number;
   frequencyLabel: string;
+  /**
+   * 지급 주기의 **순서값**(매월 0 → 배당 없음 4).
+   *
+   * 🔴 라벨 문자열로 정렬하지 않는다. "매월 · 반기(연 2회) · 분기(연 4회) · 연 1회"를 가나다순으로
+   * 세우면 매월 → 반기 → 분기 → 연1회가 되어, **자주 주는 순**이라는 이 열의 유일한 의미가
+   * 사라진다(반기가 분기보다 앞에 선다). 순서는 지급 빈도가 정한다.
+   */
+  frequencyRank: number;
+};
+
+/** 시뮬레이터 전용 표의 정렬 축. 네 열 모두 값이 갈리므로 전부 정렬 가능하다. */
+export type SimulatorOnlySortKey = 'ticker' | 'name' | 'yield' | 'frequency';
+
+export type SimulatorOnlySort = {
+  key: SimulatorOnlySortKey;
+  direction: 'asc' | 'desc';
 };
 
 export type TickerHubViewModel = {
@@ -87,7 +115,7 @@ export type TickerHubViewModel = {
 };
 
 /** 정렬 축. `default` 는 레지스트리 순서(큐레이션 순서)다. */
-export type HubSortKey = 'default' | 'yield-desc' | 'expense-asc' | 'ticker-asc';
+export type HubSortKey = 'default' | 'yield-desc' | 'growth-desc' | 'expense-asc' | 'ticker-asc';
 
 /** 보기 형태. `grid` = 고르는 카드 격자, `table` = 읽는 표(밀도 우선). */
 export type HubViewMode = 'grid' | 'table';
@@ -97,6 +125,16 @@ export type HubFrequencyFilter = 'all' | 'monthly' | 'quarterly';
 
 export type HubFilterState = {
   query: string;
+  /**
+   * 배당률 하한(%). `null` = 전체.
+   *
+   * 🔴 **글자를 치지 않고 후보를 좁히는 축**이다(2026-08-17 사용자 요청: "입력 대신 클릭으로
+   * 필터되는 UI"). 105종 라이브러리에서 검색은 찾을 티커를 이미 아는 사람만 쓸 수 있는데,
+   * 대부분의 방문자는 "4% 넘는 것"처럼 조건만 들고 온다.
+   * ⚠ "이상" 사다리라 값이 **하나만** 걸린다 — 배당 목록 화면의 같은 축과 같은 문법이다
+   *   (4% 이상은 2% 이상을 이미 포함하므로 다중 선택이 의미가 없다).
+   */
+  minYieldPercent: number | null;
   frequency: HubFrequencyFilter;
   sort: HubSortKey;
   view: HubViewMode;
@@ -127,6 +165,7 @@ export type TickerHubViewProps = {
   filters: HubFilterState;
   result: HubResult;
   onQueryChange: (query: string) => void;
+  onYieldChange: (minYieldPercent: number | null) => void;
   onFrequencyChange: (frequency: HubFrequencyFilter) => void;
   onSortChange: (sort: HubSortKey) => void;
   onViewChange: (view: HubViewMode) => void;

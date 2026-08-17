@@ -6,8 +6,10 @@ import {
   color,
   font,
   media,
+  scrollFadeRight,
   space,
-  subtleScrollbar
+  subtleScrollbar,
+  zIndex
 } from '@/shared/styles';
 import { RAIL_COLUMN } from './tokens';
 
@@ -66,15 +68,80 @@ export const IndexRail = styled.aside`
   }
 
   /*
-   * 🔴 좁은 화면에서는 **고정하지 않는다.** 이 레일은 검색 + 칩 3개 + 정렬/보기 + 카테고리 칩
-   * 6개 + CTA 라 390px 에서 230px 대역이다 — sticky 로 두면 844px 뷰포트의 27% 를 영구히 먹는다
-   * (상세 페이지가 목차 바 3줄로 같은 사고를 겪고 칩을 한 단 줄인 이력이 있다). 여기서는 줄일 수
-   * 있는 양이 아니므로 고정 자체를 포기하고, 대신 본문 맨 위에 놓아 첫 화면에서 바로 보이게 한다.
+   * 🔴 좁은 화면에서 **레일 전체는 여전히 고정하지 않는다.** 검색 + 칩 + 정렬/보기 + 카테고리 칩
+   * 7개 + CTA 를 통째로 붙이면 390px 에서 230px 대역이라 844px 뷰포트의 27% 를 영구히 먹는다.
+   * 대신 조건 부분(RailControls)만 떼어 그 안에서 고정한다(2026-08-17 사용자 요청).
+   *
+   * ⚠ display:contents 가 그 요청을 성립시키는 유일한 수단이다. sticky 자식은 **자기 부모
+   *   상자 안에서만** 붙어 있으므로, 레일이 제 상자를 유지하면 조건 바는 레일 높이(230px)만큼
+   *   스크롤하다 사라진다 — 결과 목록은 레일의 자식이 아니라 형제이기 때문이다. 상자를 지우면
+   *   RailControls 가 Layout 의 직계 자식이 되어 결과 목록을 지나는 내내 붙어 있는다.
+   * ⚠ 상자가 사라지므로 레일이 지던 아래 구분선도 함께 사라진다 — 그 선은 Results 가 위쪽
+   *   테두리로 대신 그린다(results.ts).
    */
   ${media.down('layout')} {
-    gap: ${space[3]};
-    padding-bottom: ${space[4]};
+    display: contents;
+  }
+`;
+
+/**
+ * 조건 묶음(검색 + 칩 + 정렬/보기) — **좁은 화면에서 헤더 아래 붙는 바**.
+ *
+ * 데스크톱에서는 상자가 아니다(`display: contents`) — 레일이 이미 그리드라 여기서 상자를 하나 더
+ * 만들면 레일의 gap 리듬이 이 묶음 안팎으로 갈린다.
+ *
+ * 🔴 높이를 **두 줄로 묶는 것이 이 부품의 설계 조건**이다(검색 한 줄 + 가로로 미는 칩 트랙 한 줄).
+ * 조건을 세로로 쌓으면 위 `IndexRail` 주석이 경고한 27% 를 그대로 되풀이한다.
+ * ⚠ `zIndex.stickyAction`(10) 이다 — 헤더(30)보다 낮아 스크롤 시 헤더 뒤로 들어가고,
+ *   하단 비교 바(`dropdown`, 20)보다 낮아 그 바가 위에 남는다.
+ */
+export const RailControls = styled.div`
+  display: contents;
+
+  ${media.down('layout')} {
+    display: grid;
+    gap: ${space[2]};
+    position: sticky;
+    top: ${appHeaderHeight};
+    z-index: ${zIndex.stickyAction};
+    /*
+     * 면이 **불투명해야** 한다 — 아래를 지나가는 표 글자가 비치면 조건이 읽히지 않는다.
+     * 좌우로 조금 넓혀 지면 가장자리까지 덮는다(그 자리를 안 덮으면 글자가 옆으로 새어 보인다).
+     */
+    margin: 0 calc(-1 * ${space[2]});
+    padding: ${space[2]};
+    background: ${color.bg};
     border-bottom: 1px solid ${color.border};
+  }
+`;
+
+/**
+ * 칩·정렬·보기를 **한 줄로 미는 트랙**(좁은 화면 전용). 데스크톱에서는 상자가 아니다.
+ *
+ * 🔴 세 묶음(배당률·지급·정렬/보기)을 세로로 쌓으면 조건 바가 세 줄 더 자란다. 가로 스크롤은
+ * 모바일에서 이미 익은 문법이고, 각 묶음 앞의 라벨이 "지금 무슨 축을 보고 있는지"를 말한다.
+ * ⚠ 묶음 자체는 줄바꿈하지 않는다(`flex: none` + `nowrap`) — 한 묶음이 두 줄로 접히면 트랙이
+ *   두 줄이 되어 가로로 미는 의미가 사라진다.
+ */
+export const ControlTrack = styled.div`
+  display: contents;
+
+  ${media.down('layout')} {
+    display: flex;
+    align-items: center;
+    gap: ${space[3]};
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    /* 스크롤바가 조건 바의 높이를 키우지 않게 얇은 처방을 쓴다(표들과 같은 스크롤바). */
+    ${subtleScrollbar}
+    ${scrollFadeRight}
+
+    /* ⚠ 클래스를 두 번 써(&&) 명시도를 올린다 — FilterRow 가 스스로 flex-wrap: wrap 을 갖고
+       있어, 명시도가 같으면 정의 순서에 승패가 걸린다(배당 목록 필터에서 실제로 그렇게 졌다). */
+    && > * {
+      flex: none;
+      flex-wrap: nowrap;
+    }
   }
 `;
 

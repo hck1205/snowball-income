@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, motion, radius, space } from '@/shared/styles';
+import { color, font, media, motion, radius, space } from '@/shared/styles';
 
 /* -------------------------------------------------------------------------- */
 /* 결과 영역                                                                    */
@@ -9,6 +9,16 @@ export const Results = styled.div`
   min-width: 0;
   display: grid;
   gap: clamp(28px, 4vw, 44px);
+
+  /*
+   * 좁은 화면에서 "여기부터 결과"를 가르는 선. 종전에는 레일이 자기 아래 테두리로 그렸는데,
+   * 그 레일은 이제 조건 바를 고정하려고 상자를 내려놓았다(IndexRail 의 display:contents) —
+   * 상자가 없으면 테두리도 없으므로 선의 주인이 이쪽으로 넘어왔다.
+   */
+  ${media.down('layout')} {
+    padding-top: ${space[4]};
+    border-top: 1px solid ${color.border};
+  }
 `;
 
 /**

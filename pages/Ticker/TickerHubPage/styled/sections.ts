@@ -1,5 +1,15 @@
 import styled from '@emotion/styled';
-import { appHeaderHeight, color, font, iconOpticalAlign, radius, space } from '@/shared/styles';
+import {
+  appHeaderHeight,
+  color,
+  font,
+  iconOpticalAlign,
+  motion,
+  radius,
+  space,
+  stickyCellTable,
+  stickyColumn
+} from '@/shared/styles';
 import { CAT_COLORS, CAT_GROUP_1, CAT_GROUP_2, CAT_VAR, sectionSelector } from './tokens';
 
 /* ── 카테고리 섹션 ────────────────────────────────────────────────────────── */
@@ -170,9 +180,21 @@ export const SimulatorOnlyNote = styled.p`
   line-height: 1.7;
 `;
 
+/**
+ * 🔴 **티커 열은 가로로 미는 동안 제자리에 남는다**(2026-08-17 사용자 요청). 위 카테고리 표
+ * (`TickerTable`)가 이미 같은 처방을 쓰고 있고, 이 표만 안 붙어 있어서 좁은 화면(390px 실측:
+ * 상자 366 · 표 529)에서 배당률·지급 주기를 보려고 밀면 **그게 누구 것인지**가 화면 밖으로
+ * 사라졌다. 좁은 폭에서 지켜야 할 열은 숫자가 아니라 그 행의 이름이다.
+ *
+ * ⚠ `border-collapse: separate`(=`stickyCellTable`)가 **전제**다 — collapse 인 표의 셀에는
+ *   Chrome 이 sticky 를 아예 적용하지 않는다(scrollAffordance.ts 주석). 줄 사이 선은 이미
+ *   `th, td` 의 `border-bottom` 이 지고 있어 옮길 것이 없었다.
+ * ⚠ 면색은 이 표 **뒤에 있는 것**(지면 = bg)이다. 카드 위가 아니라 지면 위에 서는 표라,
+ *   공용 기본값(surface)을 쓰면 고정 열만 밝은 띠로 남는다 — `TableTickerCell` 과 같은 판단.
+ */
 export const SimulatorOnlyTable = styled.table`
   width: 100%;
-  border-collapse: collapse;
+  ${stickyCellTable}
   font-size: ${font.size.sm};
 
   th,
@@ -184,6 +206,8 @@ export const SimulatorOnlyTable = styled.table`
   }
 
   th {
+    /* 정렬 버튼이 자기 패딩을 대신 진다 — 칸에 두 겹으로 주면 누를 수 있는 폭이 그만큼 줄어든다. */
+    padding: 0;
     color: ${color.textMuted};
     font-weight: ${font.weight.medium};
     font-size: ${font.size.xs};
@@ -197,7 +221,58 @@ export const SimulatorOnlyTable = styled.table`
     font-variant-numeric: tabular-nums;
   }
 
+  /* 머리와 값이 같은 축에 서야 한다 — 칸은 우측정렬인데 버튼이 좌측이면 열이 어긋나 보인다. */
+  th:nth-of-type(3) button {
+    justify-content: flex-end;
+  }
+
+  th:first-of-type,
+  td:first-of-type {
+    ${stickyColumn('0', true)}
+    background: ${color.bg};
+  }
+
   td:first-of-type {
     font-weight: ${font.weight.bold};
   }
+`;
+
+/**
+ * 시뮬레이터 전용 표의 **정렬 버튼 = 열 머리 전체**(2026-08-17 사용자 요청).
+ *
+ * 🔴 작은 화살표만 누르게 하면 손가락으로 못 맞춘다 — 배당 목록 표(`SortButton`)가 같은 이유로
+ * 같은 모양을 쓴다. 두 표에서 같은 손짓이 같게 동작하는 것이 이 복제의 값이다.
+ * ⚠ 활성 표시를 색으로만 하지 않는다 — 옆의 글리프가 방향을 함께 말하고, `aria-sort` 가
+ *   보조기술에 같은 사실을 전달한다(뷰가 건다). 색 단독 채널은 이 레포가 반복해서 금지해 온 것이다.
+ */
+export const SimulatorOnlySortButton = styled.button<{ $active: boolean }>`
+  display: inline-flex;
+  align-items: center;
+  gap: ${space[1]};
+  width: 100%;
+  padding: ${space[2]} ${space[3]};
+  border: 0;
+  background: none;
+  cursor: pointer;
+  color: ${({ $active }) => ($active ? color.text : color.textMuted)};
+  font: inherit;
+  letter-spacing: inherit;
+  transition: color ${motion.fast} ${motion.ease};
+
+  &:hover {
+    color: ${color.text};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${color.focusRing};
+    outline-offset: -2px;
+  }
+`;
+
+/** 정렬 방향 글리프. 비활성 열에서도 자리를 차지해 열 폭이 누를 때마다 흔들리지 않는다. */
+export const SimulatorOnlySortGlyph = styled.span<{ $active: boolean }>`
+  width: 10px;
+  text-align: center;
+  font-size: ${font.size['2xs']};
+  opacity: ${({ $active }) => ($active ? 1 : 0.35)};
 `;

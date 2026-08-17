@@ -39,7 +39,9 @@ export const TableScroll = styled.div`
  */
 export const TickerTable = styled.table`
   width: 100%;
-  min-width: 520px;
+  /* 520 → 600: 배당성장 열이 하나 붙었다(2026-08-17). 좁은 폭에서는 어차피 가로로 밀고,
+     고정된 티커 열이 그 동안 행의 이름을 지킨다. */
+  min-width: 600px;
   /* 🔴 티커 열을 고정하려면 이 표는 separate 여야 한다 — 이유는 stickyCellTable 주석. */
   ${stickyCellTable}
   font-size: ${font.size.sm};

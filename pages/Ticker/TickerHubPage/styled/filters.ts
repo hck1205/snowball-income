@@ -12,6 +12,23 @@ export const FilterRow = styled.div`
 `;
 
 /**
+ * 칩 묶음 앞에 서는 축 이름("배당률" · "지급").
+ *
+ * 🔴 **화면에 보이는 라벨이다.** 종전에는 축 이름이 `aria-label` 로만 있어서, 눈으로 보는 사람은
+ * 칩 글자만으로 축을 추측해야 했다("전체 · 매월 · 분기"가 무엇의 전체인가). 조건 바가 좁은 화면에서
+ * 가로로 미는 한 줄이 되면(`ControlTrack`) 그 추측은 더 어려워진다 — 축 이름이 트랙의 이정표다.
+ * ⚠ `id` 를 받아 묶음의 `aria-labelledby` 가 이 글자를 가리킨다(같은 말을 두 벌로 적지 않는다).
+ */
+export const ChipGroupLabel = styled.span`
+  flex: none;
+  color: ${color.textMuted};
+  font-size: ${font.size['2xs']};
+  font-weight: ${font.weight.bold};
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+`;
+
+/**
  * 지급 주기 칩 묶음.
  *
  * 🔴 면은 중립이고, 눌린 칩은 **테두리 굵기와 글자 무게**로 말한다. 폭이 짧아(<180px) 채도를 깔아도

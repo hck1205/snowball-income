@@ -9,9 +9,12 @@ import {
 } from '@/shared/constants/tickers';
 import { assignSeries } from '@/shared/lib/tickerSeries';
 import { DIVIDEND_UNIVERSE, type PresetTickerKey } from '@/shared/constants/presets';
+import type { Frequency } from '@/shared/types';
 import type {
   HubFilterState,
   SimulatorOnlyRow,
+  SimulatorOnlySort,
+  SimulatorOnlySortKey,
   HubFrequencyKey,
   HubLibraryStats,
   HubResult,
@@ -44,6 +47,9 @@ const toCard = (content: TickerContent, seriesVar: string, categoryLabel: string
     tagline,
     dividendYield: facts.dividendYieldDisplay,
     dividendYieldPercent: facts.dividendYieldPercent,
+    /* 상세 히어로의 "연 배당성장률(계산 가정)"과 **같은 함수·같은 포맷**이다 — 두 화면이 갈릴 수 없다. */
+    dividendGrowth: facts.dividendGrowthDisplay,
+    dividendGrowthPercent: facts.dividendGrowthPercent,
     /*
      * 값이 **없는**(undefined) 티커는 그대로 undefined 로 둬 뷰가 지표를 통째로 뺀다 — '-'·'미정'
      * 같은 placeholder 로 자리를 채우지 않는다.
@@ -155,15 +161,83 @@ const buildSimulatorOnlyRows = (): SimulatorOnlyRow[] => {
         ticker: facts.ticker,
         name: facts.koreanName ?? facts.englishName ?? facts.ticker,
         dividendYield: facts.dividendYieldPercent,
-        frequencyLabel: facts.frequencyLabel
+        frequencyLabel: facts.frequencyLabel,
+        frequencyRank: FREQUENCY_RANK[facts.frequency]
       };
     })
     .sort((left, right) => left.ticker.localeCompare(right.ticker));
 };
 
+/**
+ * 지급 주기의 정렬 순서 — **자주 주는 것이 먼저**다.
+ *
+ * ⚠ `none`(배당 없음)은 "가장 드물게"가 아니라 **없는 것**이라 맨 끝이다. 0회로 읽어 숫자 축에
+ *   섞으면 "연 0회"라는 없는 개념이 생긴다(FREQUENCY_LABEL_KO 가 같은 이유로 그 문구를 피한다).
+ */
+const FREQUENCY_RANK: Record<Frequency, number> = {
+  monthly: 0,
+  quarterly: 1,
+  semiannual: 2,
+  annual: 3,
+  none: 4
+};
+
+/** 시뮬레이터 전용 표의 초기 정렬 — 티커 오름차순(표가 처음부터 그 순서로 만들어져 있다). */
+export const DEFAULT_SIMULATOR_ONLY_SORT: SimulatorOnlySort = { key: 'ticker', direction: 'asc' };
+
+/** 열 정의 = 머리 글자 + 정렬 축 + 숫자 열 여부. 뷰가 이 배열 하나로 머리 행을 그린다. */
+export const SIMULATOR_ONLY_COLUMNS: readonly {
+  key: SimulatorOnlySortKey;
+  label: string;
+  numeric: boolean;
+}[] = [
+  { key: 'ticker', label: '티커', numeric: false },
+  { key: 'name', label: '종목명', numeric: false },
+  { key: 'yield', label: '배당률', numeric: true },
+  { key: 'frequency', label: '지급 주기', numeric: false }
+];
+
+/**
+ * 같은 열을 다시 누르면 방향만 뒤집고, 다른 열을 누르면 **오름차순부터** 시작한다.
+ * 배당 목록 표(`nextDividendListSort`)와 **같은 규칙**이다 — 두 표에서 같은 손짓이 같게 동작한다.
+ */
+export const nextSimulatorOnlySort = (
+  current: SimulatorOnlySort,
+  key: SimulatorOnlySortKey
+): SimulatorOnlySort =>
+  current.key === key
+    ? { key, direction: current.direction === 'asc' ? 'desc' : 'asc' }
+    : { key, direction: 'asc' };
+
+/**
+ * 227종을 고른 축으로 정렬한다.
+ *
+ * 🔴 값이 같을 때는 **항상 티커**로 갈라 순서를 확정한다. 동률을 그대로 두면(예: 배당 없음 47종)
+ * 정렬을 껐다 켤 때마다 줄 순서가 미묘하게 달라져 "같은 조건인데 다른 표"로 읽힌다.
+ * ⚠ 원본 배열을 건드리지 않는다(뷰모델은 마운트당 한 번 만든 값이라 공유된다).
+ */
+export const sortSimulatorOnlyRows = (
+  rows: readonly SimulatorOnlyRow[],
+  sort: SimulatorOnlySort
+): SimulatorOnlyRow[] => {
+  const factor = sort.direction === 'asc' ? 1 : -1;
+
+  return [...rows].sort((left, right) => {
+    let primary = 0;
+    if (sort.key === 'yield') primary = left.dividendYield - right.dividendYield;
+    else if (sort.key === 'frequency') primary = left.frequencyRank - right.frequencyRank;
+    else if (sort.key === 'name') primary = left.name.localeCompare(right.name, 'ko');
+    else primary = left.ticker.localeCompare(right.ticker, 'ko');
+
+    if (primary !== 0) return primary * factor;
+    return left.ticker.localeCompare(right.ticker, 'ko');
+  });
+};
+
 /** 필터의 초기값 — 컨테이너와 "필터 지우기" 버튼이 **같은 상수**를 쓴다(초기화가 두 벌로 갈리지 않게). */
 export const DEFAULT_HUB_FILTERS: HubFilterState = {
   query: '',
+  minYieldPercent: null,
   frequency: 'all',
   sort: 'default',
   /*
@@ -178,6 +252,7 @@ export const DEFAULT_HUB_FILTERS: HubFilterState = {
 export const HUB_SORT_OPTIONS: readonly { value: HubSortKey; label: string }[] = [
   { value: 'default', label: '기본 순서' },
   { value: 'yield-desc', label: '배당률 높은 순' },
+  { value: 'growth-desc', label: '배당성장 높은 순' },
   { value: 'expense-asc', label: '운용보수 낮은 순' },
   { value: 'ticker-asc', label: '티커 이름순' }
 ];
@@ -190,6 +265,16 @@ export const HUB_FREQUENCY_OPTIONS = [
 ] as const;
 
 /**
+ * 배당률 하한 칩의 계단.
+ *
+ * 🔴 값은 **라이브러리 실제 분포**에서 왔다(2026-08-17 실측, 고유 105종): 2% 이상 67종 ·
+ * 4% 이상 25종 · 6% 이상 12종. 어느 칸을 눌러도 결과가 0이 되거나 거의 안 줄지 않는 계단이어야
+ * 칩이 쓸모가 있다(1% 이상은 90종이라 거의 안 줄고, 10% 이상은 5종이라 표가 사라진다).
+ * ⚠ 라이브러리가 크게 바뀌면 이 계단도 다시 재라 — 한 칸이 0종이 되는 순간 그 칩은 함정이 된다.
+ */
+export const HUB_YIELD_STEPS = [2, 4, 6] as const;
+
+/**
  * 정렬 비교자.
  *
  * 🔴 값이 **없는** 운용보수는 오름차순에서 맨 뒤로 보낸다 — undefined 를 0 으로 읽으면
@@ -197,6 +282,8 @@ export const HUB_FREQUENCY_OPTIONS = [
  */
 const comparatorFor = (sort: HubSortKey): ((a: HubTickerCard, b: HubTickerCard) => number) | undefined => {
   if (sort === 'yield-desc') return (a, b) => b.dividendYieldPercent - a.dividendYieldPercent;
+  /* 배당성장은 프리셋 가정치라 **모든 티커에 값이 있다** — 운용보수처럼 없는 값을 뒤로 밀 일이 없다. */
+  if (sort === 'growth-desc') return (a, b) => b.dividendGrowthPercent - a.dividendGrowthPercent;
   if (sort === 'ticker-asc') return (a, b) => a.ticker.localeCompare(b.ticker);
   if (sort === 'expense-asc') {
     return (a, b) => {
@@ -222,6 +309,8 @@ export const filterTickerHub = (viewModel: TickerHubViewModel, filters: HubFilte
   const categories = viewModel.categories.map((category) => {
     const matched = category.tickers.filter((card) => {
       if (needle && !card.searchText.includes(needle)) return false;
+      /* "이상" 사다리 — 같은 축의 두 칸이 동시에 걸리는 일이 없으므로 비교가 한 번이다. */
+      if (filters.minYieldPercent !== null && card.dividendYieldPercent < filters.minYieldPercent) return false;
       if (filters.frequency !== 'all' && card.frequencyKey !== filters.frequency) return false;
       return true;
     });
@@ -235,6 +324,6 @@ export const filterTickerHub = (viewModel: TickerHubViewModel, filters: HubFilte
     categories,
     matchedCount: matchedTickers.size,
     totalCount: viewModel.stats.tickerCount,
-    filtered: needle.length > 0 || filters.frequency !== 'all'
+    filtered: needle.length > 0 || filters.minYieldPercent !== null || filters.frequency !== 'all'
   };
 };
