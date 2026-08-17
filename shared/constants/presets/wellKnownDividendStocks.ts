@@ -779,4 +779,32 @@ export const WELL_KNOWN_DIVIDEND_STOCKS = {
     expectedTotalReturn: 8,
     frequency: 'quarterly' as const
   },
+  /* ── 2026-08-18 사용자 요청 3종. 이 파일의 규칙대로 ETR 은 8% 균일이다(머리말). ── */
+  CDW: {
+    ticker: 'CDW',
+    name: 'CDW Corporation',
+    initialPrice: 134.82,
+    dividendYield: 1.87,
+    dividendGrowth: 6.13,
+    expectedTotalReturn: 8,
+    frequency: 'quarterly' as const
+  },
+  MAS: {
+    ticker: 'MAS',
+    name: 'Masco Corporation',
+    initialPrice: 73.1,
+    dividendYield: 1.3,
+    dividendGrowth: 6.7,
+    expectedTotalReturn: 8,
+    frequency: 'quarterly' as const
+  },
+  TSCO: {
+    ticker: 'TSCO',
+    name: 'Tractor Supply Company',
+    initialPrice: 35.1,
+    dividendYield: 2.68,
+    dividendGrowth: 5.32,
+    expectedTotalReturn: 8,
+    frequency: 'quarterly' as const
+  },
 } as const;

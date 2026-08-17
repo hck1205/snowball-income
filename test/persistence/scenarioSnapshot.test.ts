@@ -119,13 +119,21 @@ describe('isSameScenarioContent', () => {
     expect(isSameScenarioContent(a, b)).toBe(false);
   });
 
-  it('taxRate undefined 여부 차이를 잡아낸다', () => {
+  /*
+   * ⚠ 방향이 2026-08-18 에 뒤집혔다: `EMPTY_INVESTMENT_SETTINGS.taxRate` 가 이제 **undefined** 다
+   * (세율을 종목 상장지에서 파생시키기 위해 — `SnowballForm` 의 `taxRate` 주석). 그래서 "기본값 대
+   * undefined" 로는 더 이상 차이가 없고, 검사할 대비는 **undefined 대 명시값**이다.
+   * 계약 자체는 그대로다: 세율의 유무가 바뀌면 다른 시나리오로 봐야 한다(비교가 `!==` 라 undefined 도
+   * 값으로 다룬다).
+   */
+  it('taxRate 유무 차이를 잡아낸다 (미입력 ↔ 명시값)', () => {
     const a = { portfolio: EMPTY_PORTFOLIO_STATE, investmentSettings: EMPTY_INVESTMENT_SETTINGS };
     const b = {
       portfolio: EMPTY_PORTFOLIO_STATE,
-      investmentSettings: { ...EMPTY_INVESTMENT_SETTINGS, taxRate: undefined }
+      investmentSettings: { ...EMPTY_INVESTMENT_SETTINGS, taxRate: 15 }
     };
 
+    expect(EMPTY_INVESTMENT_SETTINGS.taxRate).toBeUndefined();
     expect(isSameScenarioContent(a, b)).toBe(false);
   });
 

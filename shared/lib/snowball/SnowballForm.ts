@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import type { SimulationInput, YieldFormValues } from '@/shared/types';
 import type { YieldValidation } from '@/shared/types/snowball';
-import { resolveDefaultDividendTaxRatePercent } from '@/shared/constants/tax';
 import { isCalendarDateInput } from './SnowballCalendar';
 import { toExpectedTotalReturnPercent } from './SnowballRates';
 
@@ -120,9 +119,25 @@ export const createDefaultYieldFormValues = (today: Date = new Date()): YieldFor
   durationYears: 20,
   reinvestDividends: false,
   reinvestDividendPercent: 100,
-  // 🔴 상장지에서 파생한다 — SCHD 는 미국 상장이라 15.0% 다(국내 15.4% 를 쓰면 세부담이 과대 계상된다).
-  //    기본 티커를 국내 종목으로 바꾸면 이 값도 자동으로 15.4 가 된다.
-  taxRate: resolveDefaultDividendTaxRatePercent(DEFAULT_TICKER),
+  /*
+   * 🔴 **비워 둔다**(2026-08-18 사용자 결정). 세율은 종목의 상장지에서 파생돼야 하고, 그 파생은
+   * 엔진이 **미입력일 때만** 한다(`SnowballSimulation`: `settings.taxRate ?? resolveDefault…(ticker)`).
+   *
+   * 종전에는 여기서 `resolveDefaultDividendTaxRatePercent(DEFAULT_TICKER)` 로 **15 를 박아 넣었다.**
+   * 그러면 폼·새 탭·저장 기본값이 전부 "사용자가 15 를 입력한 상태"가 되어 파생이 영원히 발동하지
+   * 않았다 — **국내 상장 종목(`.KS`/`.KQ`)을 담아도 15.4% 가 아니라 15% 로 계산됐고**, 화면에도 15 로
+   * 보여 사용자가 틀렸다는 단서를 얻을 수 없었다(2026-08-18 사용자 신고로 발견).
+   *
+   * 비워 두면 엔진이 **종목마다** 판정한다. 시뮬레이션은 프로필별로 호출되므로
+   * (`pages/Main/utils/simulation.ts`) 미국 종목은 15%, 국내 종목은 15.4% 로 **한 포트폴리오 안에서
+   * 동시에** 정확해진다 — 단일 숫자로는 표현할 수 없던 일이다.
+   *
+   * ⚠ `0` 은 미입력이 아니라 "0%"다(ISA·연금 표현). `??` 를 `||` 로 바꾸면 그 구분이 깨진다.
+   * ⚠ 이미 저장된 데이터에는 15 가 명시로 남아 있다 — 그것을 자동으로 지우지 않는다(사용자가 일부러
+   *   15 를 넣은 것과 구별할 방법이 없다). 화면의 힌트가 그 사실을 드러내는 역할을 한다
+   *   (`InvestmentSettings` 의 세율 필드).
+   */
+  taxRate: undefined,
   reinvestTiming: 'sameMonth',
   dpsGrowthMode: 'monthlySmooth'
 });

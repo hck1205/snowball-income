@@ -11,7 +11,14 @@ import { SettingsEntry } from './SettingsEntryButton.styled';
  * `aria-controls`/`aria-expanded` 계약은 둘이 공유한다 — 두 곳에 손으로 복제하면 한 곳이
  * 조용히 계약을 잃는다(그게 이 컴포넌트가 존재하는 이유다).
  */
-function SettingsEntryButtonComponent({ variant, drawerId, isOpen, onOpen, dataTour }: SettingsEntryButtonProps) {
+function SettingsEntryButtonComponent({
+  variant,
+  drawerId,
+  isOpen,
+  onOpen,
+  dataTour,
+  iconOnly
+}: SettingsEntryButtonProps) {
   const shared = {
     'aria-controls': drawerId,
     'aria-expanded': isOpen,
@@ -20,6 +27,19 @@ function SettingsEntryButtonComponent({ variant, drawerId, isOpen, onOpen, dataT
   };
 
   if (variant === 'hero') {
+    /*
+     * 고정된 상태의 축약형 — 톱니만 남는다. **같은 버튼 하나**이고(요소 교체가 아니라 자식 교체),
+     * `aria-label` 로 접근성 이름을 그대로 들고 간다: 라벨과 이름이 같은 상수를 쓰므로 축약 여부와
+     * 무관하게 스크린리더·테스트가 찾는 이름("투자 설정")이 변하지 않는다.
+     */
+    if (iconOnly) {
+      return (
+        <SettingsEntry {...shared} variant="primary" iconOnly aria-label={SIMULATOR_COPY.settingsTitle}>
+          <Settings size={16} strokeWidth={1.8} aria-hidden focusable={false} />
+        </SettingsEntry>
+      );
+    }
+
     return (
       <SettingsEntry
         {...shared}

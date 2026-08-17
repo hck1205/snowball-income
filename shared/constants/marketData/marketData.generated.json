@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-08-15",
+  "asOf": "2026-08-17",
   "source": "yahoo",
   "entries": {
     "266160.KS": {
@@ -346,6 +346,23 @@
       "dividendYield": 0,
       "frequency": "quarterly"
     },
+    "ARKK": {
+      "initialPrice": 81.9,
+      "dividendYield": 0,
+      "frequency": "annual",
+      "observedDividendCagr": -20.8
+    },
+    "ASEA": {
+      "initialPrice": 21.65,
+      "dividendYield": 3.58,
+      "frequency": "semiannual",
+      "observedDividendCagr": 17.16,
+      "payoutMonths": [
+        6,
+        12
+      ],
+      "payoutMonthsSource": "ex"
+    },
     "ASML": {
       "initialPrice": 1629,
       "dividendYield": 0.56,
@@ -383,6 +400,19 @@
       "dividendYield": 0.65,
       "frequency": "quarterly",
       "observedDividendCagr": 12.63,
+      "payoutMonths": [
+        3,
+        6,
+        9,
+        12
+      ],
+      "payoutMonthsSource": "ex"
+    },
+    "BBAX": {
+      "initialPrice": 64.05,
+      "dividendYield": 3.51,
+      "frequency": "quarterly",
+      "observedDividendCagr": 9.37,
       "payoutMonths": [
         3,
         6,
@@ -443,6 +473,32 @@
       ],
       "payoutMonthsSource": "ex"
     },
+    "CARZ": {
+      "initialPrice": 111.58,
+      "dividendYield": 1.22,
+      "frequency": "quarterly",
+      "observedDividendCagr": -10.9,
+      "payoutMonths": [
+        3,
+        6,
+        9,
+        12
+      ],
+      "payoutMonthsSource": "ex"
+    },
+    "CDW": {
+      "initialPrice": 134.82,
+      "dividendYield": 1.87,
+      "frequency": "quarterly",
+      "observedDividendCagr": 10.22,
+      "payoutMonths": [
+        2,
+        5,
+        8,
+        11
+      ],
+      "payoutMonthsSource": "ex"
+    },
     "CEG": {
       "initialPrice": 262.75,
       "dividendYield": 0.62,
@@ -481,6 +537,15 @@
         "12": 29
       }
     },
+    "CHAT": {
+      "initialPrice": 95.29,
+      "dividendYield": 1.76,
+      "frequency": "annual",
+      "payoutMonths": [
+        12
+      ],
+      "payoutMonthsSource": "ex"
+    },
     "CI": {
       "initialPrice": 279.74,
       "dividendYield": 2.19,
@@ -504,8 +569,8 @@
         7,
         10
       ],
-      "payoutMonthsSource": "pay",
       "exToPayLagDays": 21,
+      "payoutMonthsSource": "pay",
       "estimatedPayDayByMonth": {
         "1": 27,
         "4": 23,
@@ -536,6 +601,19 @@
         5,
         8,
         11
+      ],
+      "payoutMonthsSource": "ex"
+    },
+    "COWZ": {
+      "initialPrice": 70.07,
+      "dividendYield": 1.77,
+      "frequency": "quarterly",
+      "observedDividendCagr": 9.13,
+      "payoutMonths": [
+        3,
+        6,
+        9,
+        12
       ],
       "payoutMonthsSource": "ex"
     },
@@ -777,6 +855,39 @@
       ],
       "payoutMonthsSource": "ex"
     },
+    "DIVB": {
+      "initialPrice": 67.62,
+      "dividendYield": 2.06,
+      "frequency": "quarterly",
+      "observedDividendCagr": 13.96,
+      "payoutMonths": [
+        3,
+        6,
+        9,
+        12
+      ],
+      "payoutMonthsSource": "ex"
+    },
+    "DIVG": {
+      "initialPrice": 38.71,
+      "dividendYield": 2.91,
+      "frequency": "monthly",
+      "payoutMonths": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "payoutMonthsSource": "ex"
+    },
     "DIVO": {
       "initialPrice": 46.89,
       "dividendYield": 6.37,
@@ -812,6 +923,19 @@
         "11": 28,
         "12": 31
       }
+    },
+    "DJD": {
+      "initialPrice": 65.35,
+      "dividendYield": 2.4,
+      "frequency": "quarterly",
+      "observedDividendCagr": 2.46,
+      "payoutMonths": [
+        3,
+        6,
+        9,
+        12
+      ],
+      "payoutMonthsSource": "ex"
     },
     "DLN": {
       "initialPrice": 98.57,
@@ -911,6 +1035,16 @@
       ],
       "payoutMonthsSource": "ex"
     },
+    "DTCR": {
+      "initialPrice": 29.32,
+      "dividendYield": 0.84,
+      "frequency": "semiannual",
+      "payoutMonths": [
+        6,
+        12
+      ],
+      "payoutMonthsSource": "ex"
+    },
     "DTE": {
       "initialPrice": 140.29,
       "dividendYield": 3.27,
@@ -976,6 +1110,18 @@
         "9": 24,
         "12": 24
       }
+    },
+    "DXJ": {
+      "initialPrice": 181.98,
+      "dividendYield": 0.92,
+      "frequency": "quarterly",
+      "payoutMonths": [
+        3,
+        6,
+        9,
+        12
+      ],
+      "payoutMonthsSource": "ex"
     },
     "EL": {
       "initialPrice": 86.91,
@@ -1067,6 +1213,19 @@
       ],
       "payoutMonthsSource": "ex"
     },
+    "ESGU": {
+      "initialPrice": 169.9,
+      "dividendYield": 0.9,
+      "frequency": "quarterly",
+      "observedDividendCagr": 6.18,
+      "payoutMonths": [
+        3,
+        6,
+        9,
+        12
+      ],
+      "payoutMonthsSource": "ex"
+    },
     "ETN": {
       "initialPrice": 415.2,
       "dividendYield": 1.03,
@@ -1086,6 +1245,26 @@
         "8": 23,
         "11": 22
       }
+    },
+    "EWJ": {
+      "initialPrice": 98.39,
+      "dividendYield": 3.62,
+      "frequency": "quarterly",
+      "payoutMonths": [
+        6,
+        12
+      ],
+      "payoutMonthsSource": "ex"
+    },
+    "EWJV": {
+      "initialPrice": 47.93,
+      "dividendYield": 4.66,
+      "frequency": "quarterly",
+      "payoutMonths": [
+        6,
+        12
+      ],
+      "payoutMonthsSource": "ex"
     },
     "EXC": {
       "initialPrice": 45.59,
@@ -1163,6 +1342,30 @@
       "dividendYield": 1.4,
       "frequency": "quarterly",
       "observedDividendCagr": 17.12,
+      "payoutMonths": [
+        3,
+        6,
+        9,
+        12
+      ],
+      "payoutMonthsSource": "ex"
+    },
+    "FLJP": {
+      "initialPrice": 41.83,
+      "dividendYield": 4.04,
+      "frequency": "semiannual",
+      "observedDividendCagr": 31.51,
+      "payoutMonths": [
+        6,
+        12
+      ],
+      "payoutMonthsSource": "ex"
+    },
+    "FVD": {
+      "initialPrice": 50.53,
+      "dividendYield": 2.21,
+      "frequency": "quarterly",
+      "observedDividendCagr": 6.05,
       "payoutMonths": [
         3,
         6,
@@ -1282,6 +1485,27 @@
       ],
       "payoutMonthsSource": "ex"
     },
+    "HYEM": {
+      "initialPrice": 20.04,
+      "dividendYield": 6.76,
+      "frequency": "monthly",
+      "observedDividendCagr": -0.03,
+      "payoutMonths": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "payoutMonthsSource": "ex"
+    },
     "IDV": {
       "initialPrice": 44.38,
       "dividendYield": 5.13,
@@ -1337,6 +1561,41 @@
         "12": 31
       }
     },
+    "IGRO": {
+      "initialPrice": 92.09,
+      "dividendYield": 2.63,
+      "frequency": "quarterly",
+      "observedDividendCagr": 6.41,
+      "payoutMonths": [
+        3,
+        6,
+        9,
+        12
+      ],
+      "payoutMonthsSource": "ex"
+    },
+    "IGV": {
+      "initialPrice": 102.65,
+      "dividendYield": 0.02,
+      "frequency": "annual",
+      "payoutMonths": [
+        6
+      ],
+      "payoutMonthsSource": "ex"
+    },
+    "IQDG": {
+      "initialPrice": 44.7,
+      "dividendYield": 2.31,
+      "frequency": "quarterly",
+      "observedDividendCagr": 9.45,
+      "payoutMonths": [
+        3,
+        6,
+        9,
+        12
+      ],
+      "payoutMonthsSource": "ex"
+    },
     "IRM": {
       "initialPrice": 126.74,
       "dividendYield": 2.66,
@@ -1369,6 +1628,29 @@
         "9": 28,
         "12": 20
       }
+    },
+    "IXN": {
+      "initialPrice": 145.2,
+      "dividendYield": 0.75,
+      "frequency": "quarterly",
+      "payoutMonths": [
+        6,
+        12
+      ],
+      "payoutMonthsSource": "ex"
+    },
+    "IYK": {
+      "initialPrice": 74.22,
+      "dividendYield": 2.56,
+      "frequency": "quarterly",
+      "observedDividendCagr": 17.51,
+      "payoutMonths": [
+        3,
+        6,
+        9,
+        12
+      ],
+      "payoutMonthsSource": "ex"
     },
     "JEPI": {
       "initialPrice": 57.43,
@@ -1615,6 +1897,19 @@
       ],
       "payoutMonthsSource": "ex"
     },
+    "MAS": {
+      "initialPrice": 73.1,
+      "dividendYield": 1.3,
+      "frequency": "quarterly",
+      "observedDividendCagr": 17.87,
+      "payoutMonths": [
+        2,
+        5,
+        8,
+        11
+      ],
+      "payoutMonthsSource": "ex"
+    },
     "MCK": {
       "initialPrice": 862.31,
       "dividendYield": 0.38,
@@ -1651,6 +1946,19 @@
         5,
         8,
         11
+      ],
+      "payoutMonthsSource": "ex"
+    },
+    "MGK": {
+      "initialPrice": 90.68,
+      "dividendYield": 0.32,
+      "frequency": "quarterly",
+      "observedDividendCagr": 1.93,
+      "payoutMonths": [
+        3,
+        6,
+        9,
+        12
       ],
       "payoutMonthsSource": "ex"
     },
@@ -1817,6 +2125,17 @@
       ],
       "payoutMonthsSource": "ex"
     },
+    "PAVE": {
+      "initialPrice": 58.56,
+      "dividendYield": 0.74,
+      "frequency": "semiannual",
+      "observedDividendCagr": 36.33,
+      "payoutMonths": [
+        6,
+        12
+      ],
+      "payoutMonthsSource": "ex"
+    },
     "PAYX": {
       "initialPrice": 122.16,
       "dividendYield": 3.72,
@@ -1934,6 +2253,27 @@
       ],
       "payoutMonthsSource": "ex"
     },
+    "QDIV": {
+      "initialPrice": 40.39,
+      "dividendYield": 2.75,
+      "frequency": "monthly",
+      "observedDividendCagr": 6.3,
+      "payoutMonths": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "payoutMonthsSource": "ex"
+    },
     "QDVO": {
       "initialPrice": 28.96,
       "dividendYield": 10.97,
@@ -1958,6 +2298,31 @@
       "initialPrice": 687.99,
       "dividendYield": 0.44,
       "frequency": "quarterly",
+      "payoutMonths": [
+        3,
+        6,
+        9,
+        12
+      ],
+      "payoutMonthsSource": "ex"
+    },
+    "QQQM": {
+      "initialPrice": 302.34,
+      "dividendYield": 0.43,
+      "frequency": "quarterly",
+      "payoutMonths": [
+        3,
+        6,
+        9,
+        12
+      ],
+      "payoutMonthsSource": "ex"
+    },
+    "QTUM": {
+      "initialPrice": 159.21,
+      "dividendYield": 0.74,
+      "frequency": "quarterly",
+      "observedDividendCagr": 42.89,
       "payoutMonths": [
         3,
         6,
@@ -2056,6 +2421,19 @@
       "dividendYield": 3.13,
       "frequency": "quarterly",
       "observedDividendCagr": 9.13,
+      "payoutMonths": [
+        3,
+        6,
+        9,
+        12
+      ],
+      "payoutMonthsSource": "ex"
+    },
+    "SCHG": {
+      "initialPrice": 35.63,
+      "dividendYield": 0.37,
+      "frequency": "quarterly",
+      "observedDividendCagr": 6.85,
       "payoutMonths": [
         3,
         6,
@@ -2295,6 +2673,25 @@
       ],
       "payoutMonthsSource": "ex"
     },
+    "TDVG": {
+      "initialPrice": 50.38,
+      "dividendYield": 0.95,
+      "frequency": "quarterly",
+      "payoutMonths": [
+        3,
+        6,
+        9,
+        12
+      ],
+      "exToPayLagDays": 4,
+      "payoutMonthsSource": "pay",
+      "estimatedPayDayByMonth": {
+        "3": 31,
+        "6": 30,
+        "9": 30,
+        "12": 26
+      }
+    },
     "TFC": {
       "initialPrice": 53.11,
       "dividendYield": 2.94,
@@ -2343,6 +2740,19 @@
         6,
         9,
         12
+      ],
+      "payoutMonthsSource": "ex"
+    },
+    "TSCO": {
+      "initialPrice": 35.1,
+      "dividendYield": 2.68,
+      "frequency": "quarterly",
+      "observedDividendCagr": 25.12,
+      "payoutMonths": [
+        2,
+        5,
+        8,
+        11
       ],
       "payoutMonthsSource": "ex"
     },
@@ -2424,6 +2834,32 @@
         "9": 5,
         "12": 5
       }
+    },
+    "VDC": {
+      "initialPrice": 230.32,
+      "dividendYield": 2.08,
+      "frequency": "quarterly",
+      "observedDividendCagr": 1.86,
+      "payoutMonths": [
+        3,
+        6,
+        9,
+        12
+      ],
+      "payoutMonthsSource": "ex"
+    },
+    "VGT": {
+      "initialPrice": 123.28,
+      "dividendYield": 0.35,
+      "frequency": "quarterly",
+      "observedDividendCagr": 0.91,
+      "payoutMonths": [
+        3,
+        6,
+        9,
+        12
+      ],
+      "payoutMonthsSource": "ex"
     },
     "VICI": {
       "initialPrice": 26.35,
@@ -2514,6 +2950,19 @@
       ],
       "payoutMonthsSource": "ex"
     },
+    "VPL": {
+      "initialPrice": 118.07,
+      "dividendYield": 2.56,
+      "frequency": "quarterly",
+      "observedDividendCagr": 20.31,
+      "payoutMonths": [
+        3,
+        6,
+        9,
+        12
+      ],
+      "payoutMonthsSource": "ex"
+    },
     "VRT": {
       "initialPrice": 241.57,
       "dividendYield": 0.09,
@@ -2525,6 +2974,41 @@
         12
       ],
       "payoutMonthsSource": "ex"
+    },
+    "VSDA": {
+      "initialPrice": 60.36,
+      "dividendYield": 2.4,
+      "frequency": "monthly",
+      "payoutMonths": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "exToPayLagDays": 1,
+      "payoutMonthsSource": "pay",
+      "estimatedPayDayByMonth": {
+        "1": 13,
+        "2": 10,
+        "3": 11,
+        "4": 11,
+        "5": 10,
+        "6": 10,
+        "7": 11,
+        "8": 10,
+        "9": 9,
+        "10": 12,
+        "11": 10,
+        "12": 13
+      }
     },
     "VT": {
       "initialPrice": 155.86,
@@ -2658,6 +3142,15 @@
         "12": 1
       }
     },
+    "WELD": {
+      "initialPrice": 59.26,
+      "dividendYield": 0.22,
+      "frequency": "semiannual",
+      "payoutMonths": [
+        12
+      ],
+      "payoutMonthsSource": "ex"
+    },
     "WELL": {
       "initialPrice": 234.03,
       "dividendYield": 1.31,
@@ -2689,6 +3182,58 @@
       "dividendYield": 2.95,
       "frequency": "quarterly",
       "observedDividendCagr": 10.46,
+      "payoutMonths": [
+        3,
+        6,
+        9,
+        12
+      ],
+      "payoutMonthsSource": "ex"
+    },
+    "XLI": {
+      "initialPrice": 186.64,
+      "dividendYield": 1.1,
+      "frequency": "quarterly",
+      "observedDividendCagr": 7.8,
+      "payoutMonths": [
+        3,
+        6,
+        9,
+        12
+      ],
+      "payoutMonthsSource": "ex"
+    },
+    "XLK": {
+      "initialPrice": 191.7,
+      "dividendYield": 0.41,
+      "frequency": "quarterly",
+      "observedDividendCagr": 5.56,
+      "payoutMonths": [
+        3,
+        6,
+        9,
+        12
+      ],
+      "payoutMonthsSource": "ex"
+    },
+    "XLP": {
+      "initialPrice": 84.78,
+      "dividendYield": 2.59,
+      "frequency": "quarterly",
+      "observedDividendCagr": 4.83,
+      "payoutMonths": [
+        3,
+        6,
+        9,
+        12
+      ],
+      "payoutMonthsSource": "ex"
+    },
+    "XLV": {
+      "initialPrice": 167.48,
+      "dividendYield": 1.51,
+      "frequency": "quarterly",
+      "observedDividendCagr": 7.96,
       "payoutMonths": [
         3,
         6,

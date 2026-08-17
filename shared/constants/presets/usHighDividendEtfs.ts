@@ -94,5 +94,37 @@ export const US_HIGH_DIVIDEND_ETFS = {
     dividendGrowth: 4.91,
     expectedTotalReturn: 8.5,
     frequency: 'quarterly' as const
+  },
+  /*
+   * ── 2026-08-18 사용자 요청 3종. 셋 다 **배당률·배당액으로 종목을 고르거나 가중**한다. ──
+   * ⚠ 배당성장 묶음(`usDividendGrowthEtfs`)과 헷갈리기 쉽다: 저쪽은 "올릴 종목", 이쪽은 "지금 많이
+   *   주는 종목"이다. QDIV·DIVB 는 그 위에 퀄리티 문턱을 얹은 것이라 배당률이 순수 고배당보다 낮다.
+   */
+  DJD: {
+    ticker: 'DJD',
+    name: 'Invesco Dow Jones Industrial Average Dividend ETF',
+    initialPrice: 65.35,
+    dividendYield: 2.4,
+    dividendGrowth: 5.6,
+    expectedTotalReturn: 8,
+    frequency: 'quarterly' as const
+  },
+  QDIV: {
+    ticker: 'QDIV',
+    name: 'Global X S&P 500 Quality Dividend ETF',
+    initialPrice: 40.39,
+    dividendYield: 2.75,
+    dividendGrowth: 5.75,
+    expectedTotalReturn: 8.5,
+    frequency: 'monthly' as const
+  },
+  DIVB: {
+    ticker: 'DIVB',
+    name: 'iShares Core Dividend ETF',
+    initialPrice: 67.62,
+    dividendYield: 2.06,
+    dividendGrowth: 6.44,
+    expectedTotalReturn: 8.5,
+    frequency: 'quarterly' as const
   }
 } as const;

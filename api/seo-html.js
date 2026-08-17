@@ -7546,7 +7546,7 @@ var TICKER_CATEGORY_META = {
 
 // shared/constants/marketData/marketData.generated.json
 var marketData_generated_default = {
-  asOf: "2026-08-15",
+  asOf: "2026-08-17",
   source: "yahoo",
   entries: {
     "266160.KS": {
@@ -7893,6 +7893,23 @@ var marketData_generated_default = {
       dividendYield: 0,
       frequency: "quarterly"
     },
+    ARKK: {
+      initialPrice: 81.9,
+      dividendYield: 0,
+      frequency: "annual",
+      observedDividendCagr: -20.8
+    },
+    ASEA: {
+      initialPrice: 21.65,
+      dividendYield: 3.58,
+      frequency: "semiannual",
+      observedDividendCagr: 17.16,
+      payoutMonths: [
+        6,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
     ASML: {
       initialPrice: 1629,
       dividendYield: 0.56,
@@ -7930,6 +7947,19 @@ var marketData_generated_default = {
       dividendYield: 0.65,
       frequency: "quarterly",
       observedDividendCagr: 12.63,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    BBAX: {
+      initialPrice: 64.05,
+      dividendYield: 3.51,
+      frequency: "quarterly",
+      observedDividendCagr: 9.37,
       payoutMonths: [
         3,
         6,
@@ -7990,6 +8020,32 @@ var marketData_generated_default = {
       ],
       payoutMonthsSource: "ex"
     },
+    CARZ: {
+      initialPrice: 111.58,
+      dividendYield: 1.22,
+      frequency: "quarterly",
+      observedDividendCagr: -10.9,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    CDW: {
+      initialPrice: 134.82,
+      dividendYield: 1.87,
+      frequency: "quarterly",
+      observedDividendCagr: 10.22,
+      payoutMonths: [
+        2,
+        5,
+        8,
+        11
+      ],
+      payoutMonthsSource: "ex"
+    },
     CEG: {
       initialPrice: 262.75,
       dividendYield: 0.62,
@@ -8028,6 +8084,15 @@ var marketData_generated_default = {
         "12": 29
       }
     },
+    CHAT: {
+      initialPrice: 95.29,
+      dividendYield: 1.76,
+      frequency: "annual",
+      payoutMonths: [
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
     CI: {
       initialPrice: 279.74,
       dividendYield: 2.19,
@@ -8051,8 +8116,8 @@ var marketData_generated_default = {
         7,
         10
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 21,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "1": 27,
         "4": 23,
@@ -8083,6 +8148,19 @@ var marketData_generated_default = {
         5,
         8,
         11
+      ],
+      payoutMonthsSource: "ex"
+    },
+    COWZ: {
+      initialPrice: 70.07,
+      dividendYield: 1.77,
+      frequency: "quarterly",
+      observedDividendCagr: 9.13,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
       ],
       payoutMonthsSource: "ex"
     },
@@ -8324,6 +8402,39 @@ var marketData_generated_default = {
       ],
       payoutMonthsSource: "ex"
     },
+    DIVB: {
+      initialPrice: 67.62,
+      dividendYield: 2.06,
+      frequency: "quarterly",
+      observedDividendCagr: 13.96,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    DIVG: {
+      initialPrice: 38.71,
+      dividendYield: 2.91,
+      frequency: "monthly",
+      payoutMonths: [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
     DIVO: {
       initialPrice: 46.89,
       dividendYield: 6.37,
@@ -8359,6 +8470,19 @@ var marketData_generated_default = {
         "11": 28,
         "12": 31
       }
+    },
+    DJD: {
+      initialPrice: 65.35,
+      dividendYield: 2.4,
+      frequency: "quarterly",
+      observedDividendCagr: 2.46,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
     },
     DLN: {
       initialPrice: 98.57,
@@ -8458,6 +8582,16 @@ var marketData_generated_default = {
       ],
       payoutMonthsSource: "ex"
     },
+    DTCR: {
+      initialPrice: 29.32,
+      dividendYield: 0.84,
+      frequency: "semiannual",
+      payoutMonths: [
+        6,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
     DTE: {
       initialPrice: 140.29,
       dividendYield: 3.27,
@@ -8523,6 +8657,18 @@ var marketData_generated_default = {
         "9": 24,
         "12": 24
       }
+    },
+    DXJ: {
+      initialPrice: 181.98,
+      dividendYield: 0.92,
+      frequency: "quarterly",
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
     },
     EL: {
       initialPrice: 86.91,
@@ -8614,6 +8760,19 @@ var marketData_generated_default = {
       ],
       payoutMonthsSource: "ex"
     },
+    ESGU: {
+      initialPrice: 169.9,
+      dividendYield: 0.9,
+      frequency: "quarterly",
+      observedDividendCagr: 6.18,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
     ETN: {
       initialPrice: 415.2,
       dividendYield: 1.03,
@@ -8633,6 +8792,26 @@ var marketData_generated_default = {
         "8": 23,
         "11": 22
       }
+    },
+    EWJ: {
+      initialPrice: 98.39,
+      dividendYield: 3.62,
+      frequency: "quarterly",
+      payoutMonths: [
+        6,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    EWJV: {
+      initialPrice: 47.93,
+      dividendYield: 4.66,
+      frequency: "quarterly",
+      payoutMonths: [
+        6,
+        12
+      ],
+      payoutMonthsSource: "ex"
     },
     EXC: {
       initialPrice: 45.59,
@@ -8710,6 +8889,30 @@ var marketData_generated_default = {
       dividendYield: 1.4,
       frequency: "quarterly",
       observedDividendCagr: 17.12,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    FLJP: {
+      initialPrice: 41.83,
+      dividendYield: 4.04,
+      frequency: "semiannual",
+      observedDividendCagr: 31.51,
+      payoutMonths: [
+        6,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    FVD: {
+      initialPrice: 50.53,
+      dividendYield: 2.21,
+      frequency: "quarterly",
+      observedDividendCagr: 6.05,
       payoutMonths: [
         3,
         6,
@@ -8829,6 +9032,27 @@ var marketData_generated_default = {
       ],
       payoutMonthsSource: "ex"
     },
+    HYEM: {
+      initialPrice: 20.04,
+      dividendYield: 6.76,
+      frequency: "monthly",
+      observedDividendCagr: -0.03,
+      payoutMonths: [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
     IDV: {
       initialPrice: 44.38,
       dividendYield: 5.13,
@@ -8884,6 +9108,41 @@ var marketData_generated_default = {
         "12": 31
       }
     },
+    IGRO: {
+      initialPrice: 92.09,
+      dividendYield: 2.63,
+      frequency: "quarterly",
+      observedDividendCagr: 6.41,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    IGV: {
+      initialPrice: 102.65,
+      dividendYield: 0.02,
+      frequency: "annual",
+      payoutMonths: [
+        6
+      ],
+      payoutMonthsSource: "ex"
+    },
+    IQDG: {
+      initialPrice: 44.7,
+      dividendYield: 2.31,
+      frequency: "quarterly",
+      observedDividendCagr: 9.45,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
     IRM: {
       initialPrice: 126.74,
       dividendYield: 2.66,
@@ -8916,6 +9175,29 @@ var marketData_generated_default = {
         "9": 28,
         "12": 20
       }
+    },
+    IXN: {
+      initialPrice: 145.2,
+      dividendYield: 0.75,
+      frequency: "quarterly",
+      payoutMonths: [
+        6,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    IYK: {
+      initialPrice: 74.22,
+      dividendYield: 2.56,
+      frequency: "quarterly",
+      observedDividendCagr: 17.51,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
     },
     JEPI: {
       initialPrice: 57.43,
@@ -9162,6 +9444,19 @@ var marketData_generated_default = {
       ],
       payoutMonthsSource: "ex"
     },
+    MAS: {
+      initialPrice: 73.1,
+      dividendYield: 1.3,
+      frequency: "quarterly",
+      observedDividendCagr: 17.87,
+      payoutMonths: [
+        2,
+        5,
+        8,
+        11
+      ],
+      payoutMonthsSource: "ex"
+    },
     MCK: {
       initialPrice: 862.31,
       dividendYield: 0.38,
@@ -9198,6 +9493,19 @@ var marketData_generated_default = {
         5,
         8,
         11
+      ],
+      payoutMonthsSource: "ex"
+    },
+    MGK: {
+      initialPrice: 90.68,
+      dividendYield: 0.32,
+      frequency: "quarterly",
+      observedDividendCagr: 1.93,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
       ],
       payoutMonthsSource: "ex"
     },
@@ -9364,6 +9672,17 @@ var marketData_generated_default = {
       ],
       payoutMonthsSource: "ex"
     },
+    PAVE: {
+      initialPrice: 58.56,
+      dividendYield: 0.74,
+      frequency: "semiannual",
+      observedDividendCagr: 36.33,
+      payoutMonths: [
+        6,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
     PAYX: {
       initialPrice: 122.16,
       dividendYield: 3.72,
@@ -9481,6 +9800,27 @@ var marketData_generated_default = {
       ],
       payoutMonthsSource: "ex"
     },
+    QDIV: {
+      initialPrice: 40.39,
+      dividendYield: 2.75,
+      frequency: "monthly",
+      observedDividendCagr: 6.3,
+      payoutMonths: [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
     QDVO: {
       initialPrice: 28.96,
       dividendYield: 10.97,
@@ -9505,6 +9845,31 @@ var marketData_generated_default = {
       initialPrice: 687.99,
       dividendYield: 0.44,
       frequency: "quarterly",
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    QQQM: {
+      initialPrice: 302.34,
+      dividendYield: 0.43,
+      frequency: "quarterly",
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    QTUM: {
+      initialPrice: 159.21,
+      dividendYield: 0.74,
+      frequency: "quarterly",
+      observedDividendCagr: 42.89,
       payoutMonths: [
         3,
         6,
@@ -9603,6 +9968,19 @@ var marketData_generated_default = {
       dividendYield: 3.13,
       frequency: "quarterly",
       observedDividendCagr: 9.13,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    SCHG: {
+      initialPrice: 35.63,
+      dividendYield: 0.37,
+      frequency: "quarterly",
+      observedDividendCagr: 6.85,
       payoutMonths: [
         3,
         6,
@@ -9842,6 +10220,25 @@ var marketData_generated_default = {
       ],
       payoutMonthsSource: "ex"
     },
+    TDVG: {
+      initialPrice: 50.38,
+      dividendYield: 0.95,
+      frequency: "quarterly",
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      exToPayLagDays: 4,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "3": 31,
+        "6": 30,
+        "9": 30,
+        "12": 26
+      }
+    },
     TFC: {
       initialPrice: 53.11,
       dividendYield: 2.94,
@@ -9890,6 +10287,19 @@ var marketData_generated_default = {
         6,
         9,
         12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    TSCO: {
+      initialPrice: 35.1,
+      dividendYield: 2.68,
+      frequency: "quarterly",
+      observedDividendCagr: 25.12,
+      payoutMonths: [
+        2,
+        5,
+        8,
+        11
       ],
       payoutMonthsSource: "ex"
     },
@@ -9971,6 +10381,32 @@ var marketData_generated_default = {
         "9": 5,
         "12": 5
       }
+    },
+    VDC: {
+      initialPrice: 230.32,
+      dividendYield: 2.08,
+      frequency: "quarterly",
+      observedDividendCagr: 1.86,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    VGT: {
+      initialPrice: 123.28,
+      dividendYield: 0.35,
+      frequency: "quarterly",
+      observedDividendCagr: 0.91,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
     },
     VICI: {
       initialPrice: 26.35,
@@ -10061,6 +10497,19 @@ var marketData_generated_default = {
       ],
       payoutMonthsSource: "ex"
     },
+    VPL: {
+      initialPrice: 118.07,
+      dividendYield: 2.56,
+      frequency: "quarterly",
+      observedDividendCagr: 20.31,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
     VRT: {
       initialPrice: 241.57,
       dividendYield: 0.09,
@@ -10072,6 +10521,41 @@ var marketData_generated_default = {
         12
       ],
       payoutMonthsSource: "ex"
+    },
+    VSDA: {
+      initialPrice: 60.36,
+      dividendYield: 2.4,
+      frequency: "monthly",
+      payoutMonths: [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      exToPayLagDays: 1,
+      payoutMonthsSource: "pay",
+      estimatedPayDayByMonth: {
+        "1": 13,
+        "2": 10,
+        "3": 11,
+        "4": 11,
+        "5": 10,
+        "6": 10,
+        "7": 11,
+        "8": 10,
+        "9": 9,
+        "10": 12,
+        "11": 10,
+        "12": 13
+      }
     },
     VT: {
       initialPrice: 155.86,
@@ -10205,6 +10689,15 @@ var marketData_generated_default = {
         "12": 1
       }
     },
+    WELD: {
+      initialPrice: 59.26,
+      dividendYield: 0.22,
+      frequency: "semiannual",
+      payoutMonths: [
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
     WELL: {
       initialPrice: 234.03,
       dividendYield: 1.31,
@@ -10236,6 +10729,58 @@ var marketData_generated_default = {
       dividendYield: 2.95,
       frequency: "quarterly",
       observedDividendCagr: 10.46,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    XLI: {
+      initialPrice: 186.64,
+      dividendYield: 1.1,
+      frequency: "quarterly",
+      observedDividendCagr: 7.8,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    XLK: {
+      initialPrice: 191.7,
+      dividendYield: 0.41,
+      frequency: "quarterly",
+      observedDividendCagr: 5.56,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    XLP: {
+      initialPrice: 84.78,
+      dividendYield: 2.59,
+      frequency: "quarterly",
+      observedDividendCagr: 4.83,
+      payoutMonths: [
+        3,
+        6,
+        9,
+        12
+      ],
+      payoutMonthsSource: "ex"
+    },
+    XLV: {
+      initialPrice: 167.48,
+      dividendYield: 1.51,
+      frequency: "quarterly",
+      observedDividendCagr: 7.96,
       payoutMonths: [
         3,
         6,
@@ -10399,14 +10944,6 @@ var parseStartDate = (value) => {
 };
 var isCalendarDateInput = (value) => parseStartDate(value) !== null;
 
-// shared/constants/tax/koreanTaxCategory.ts
-var KOREAN_DIVIDEND_TAX_RATE = 15.4;
-var isKoreanListedTicker = (ticker) => ticker.endsWith(".KS") || ticker.endsWith(".KQ");
-
-// shared/constants/tax/dividendTaxRate.ts
-var US_LISTED_DIVIDEND_TAX_RATE = 15;
-var resolveDefaultDividendTaxRatePercent = (ticker) => isKoreanListedTicker(ticker) ? KOREAN_DIVIDEND_TAX_RATE : US_LISTED_DIVIDEND_TAX_RATE;
-
 // shared/lib/snowball/SnowballRates.ts
 var roundToTwoDecimals = (value) => Math.round(value * 100) / 100;
 var toDerivedDividendGrowthPercent = (expectedTotalReturnPercent, dividendYieldPercent) => roundToTwoDecimals(expectedTotalReturnPercent - dividendYieldPercent);
@@ -10476,9 +11013,25 @@ var createDefaultYieldFormValues = (today = /* @__PURE__ */ new Date()) => ({
   durationYears: 20,
   reinvestDividends: false,
   reinvestDividendPercent: 100,
-  // 🔴 상장지에서 파생한다 — SCHD 는 미국 상장이라 15.0% 다(국내 15.4% 를 쓰면 세부담이 과대 계상된다).
-  //    기본 티커를 국내 종목으로 바꾸면 이 값도 자동으로 15.4 가 된다.
-  taxRate: resolveDefaultDividendTaxRatePercent(DEFAULT_TICKER),
+  /*
+   * 🔴 **비워 둔다**(2026-08-18 사용자 결정). 세율은 종목의 상장지에서 파생돼야 하고, 그 파생은
+   * 엔진이 **미입력일 때만** 한다(`SnowballSimulation`: `settings.taxRate ?? resolveDefault…(ticker)`).
+   *
+   * 종전에는 여기서 `resolveDefaultDividendTaxRatePercent(DEFAULT_TICKER)` 로 **15 를 박아 넣었다.**
+   * 그러면 폼·새 탭·저장 기본값이 전부 "사용자가 15 를 입력한 상태"가 되어 파생이 영원히 발동하지
+   * 않았다 — **국내 상장 종목(`.KS`/`.KQ`)을 담아도 15.4% 가 아니라 15% 로 계산됐고**, 화면에도 15 로
+   * 보여 사용자가 틀렸다는 단서를 얻을 수 없었다(2026-08-18 사용자 신고로 발견).
+   *
+   * 비워 두면 엔진이 **종목마다** 판정한다. 시뮬레이션은 프로필별로 호출되므로
+   * (`pages/Main/utils/simulation.ts`) 미국 종목은 15%, 국내 종목은 15.4% 로 **한 포트폴리오 안에서
+   * 동시에** 정확해진다 — 단일 숫자로는 표현할 수 없던 일이다.
+   *
+   * ⚠ `0` 은 미입력이 아니라 "0%"다(ISA·연금 표현). `??` 를 `||` 로 바꾸면 그 구분이 깨진다.
+   * ⚠ 이미 저장된 데이터에는 15 가 명시로 남아 있다 — 그것을 자동으로 지우지 않는다(사용자가 일부러
+   *   15 를 넣은 것과 구별할 방법이 없다). 화면의 힌트가 그 사실을 드러내는 역할을 한다
+   *   (`InvestmentSettings` 의 세율 필드).
+   */
+  taxRate: void 0,
   reinvestTiming: "sameMonth",
   dpsGrowthMode: "monthlySmooth"
 });
@@ -10633,6 +11186,58 @@ var US_DIVIDEND_GROWTH_ETFS = {
     dividendGrowth: 5.8,
     expectedTotalReturn: 8.5,
     frequency: "quarterly"
+  },
+  /*
+   * VSDA — 2026-08-17 합류(사용자 요청). 이 묶음의 기준(배당으로 종목을 고르는 미국 ETF)에 정확히
+   * 맞는다: 나스닥 빅토리 배당 액셀러레이터 지수를 따라 **앞으로 배당을 올릴 가능성이 높은** 종목을
+   * 고른다 — 과거 증배 연수를 세는 NOBL·VIG 와 고르는 방식이 다르지만 고르는 축은 같다.
+   * ⚠ `expectedTotalReturn` 9.5 는 같은 성격의 이웃(VIG·DGRO)과 같은 값이다 — 저배당·고성장 쪽이라
+   *   파생 성장률이 이 파일에서 가장 높은 편에 선다.
+   * 🔴 **월배당이다**(2026-08-17 실측 — `inferFrequency` 가 12개월 지급을 확인했고 `ticker:paydates`
+   *   도 지급월 [1..12] 로 맞췄다). 이 파일의 월배당은 DGRW·DIVG 와 함께 셋이다.
+   *   처음에 분기로 짐작해 넣었다가 실측에서 뒤집혔다:
+   *   나머지 배당성장 ETF 가 전부 분기라고 해서 새 종목도 분기인 것이 아니다. 주기는 재투자 복리
+   *   횟수를 바꾸는 입력이라(`paymentsPerYearMap`) 짐작이 곧 계산 오차다.
+   * 값의 출처: 아래 셋 다 2026-08-17 실측(`ticker:refresh`, Yahoo).
+   */
+  VSDA: {
+    ticker: "VSDA",
+    name: "VictoryShares Dividend Accelerator ETF",
+    initialPrice: 60.36,
+    dividendYield: 2.4,
+    dividendGrowth: 7.1,
+    expectedTotalReturn: 9.5,
+    frequency: "monthly"
+  },
+  /* ── 2026-08-18 사용자 요청 3종. 셋 다 "앞으로 배당을 올릴 종목"을 고르는 스크린이라 이 파일 소속이다. ── */
+  /* 액티브 운용(지수 추종이 아니다)이지만 고르는 축은 같다 — 배당을 늘려 온 대형 우량주. */
+  TDVG: {
+    ticker: "TDVG",
+    name: "T. Rowe Price Dividend Growth ETF",
+    initialPrice: 50.38,
+    dividendYield: 0.95,
+    dividendGrowth: 8.55,
+    expectedTotalReturn: 9.5,
+    frequency: "quarterly"
+  },
+  DIVG: {
+    ticker: "DIVG",
+    name: "Invesco S&P 500 High Dividend Growers ETF",
+    initialPrice: 38.71,
+    dividendYield: 2.91,
+    dividendGrowth: 6.09,
+    expectedTotalReturn: 9,
+    frequency: "monthly"
+  },
+  /* ⚠ 밸류라인 **랭킹**으로 고르고 동일가중한다 — 배당률 자체는 선정 기준이 아니라 문턱이다. */
+  FVD: {
+    ticker: "FVD",
+    name: "First Trust Value Line Dividend Index Fund",
+    initialPrice: 50.53,
+    dividendYield: 2.21,
+    dividendGrowth: 6.29,
+    expectedTotalReturn: 8.5,
+    frequency: "quarterly"
   }
 };
 
@@ -10725,6 +11330,38 @@ var US_HIGH_DIVIDEND_ETFS = {
     initialPrice: 51.48,
     dividendYield: 3.59,
     dividendGrowth: 4.91,
+    expectedTotalReturn: 8.5,
+    frequency: "quarterly"
+  },
+  /*
+   * ── 2026-08-18 사용자 요청 3종. 셋 다 **배당률·배당액으로 종목을 고르거나 가중**한다. ──
+   * ⚠ 배당성장 묶음(`usDividendGrowthEtfs`)과 헷갈리기 쉽다: 저쪽은 "올릴 종목", 이쪽은 "지금 많이
+   *   주는 종목"이다. QDIV·DIVB 는 그 위에 퀄리티 문턱을 얹은 것이라 배당률이 순수 고배당보다 낮다.
+   */
+  DJD: {
+    ticker: "DJD",
+    name: "Invesco Dow Jones Industrial Average Dividend ETF",
+    initialPrice: 65.35,
+    dividendYield: 2.4,
+    dividendGrowth: 5.6,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  QDIV: {
+    ticker: "QDIV",
+    name: "Global X S&P 500 Quality Dividend ETF",
+    initialPrice: 40.39,
+    dividendYield: 2.75,
+    dividendGrowth: 5.75,
+    expectedTotalReturn: 8.5,
+    frequency: "monthly"
+  },
+  DIVB: {
+    ticker: "DIVB",
+    name: "iShares Core Dividend ETF",
+    initialPrice: 67.62,
+    dividendYield: 2.06,
+    dividendGrowth: 6.44,
     expectedTotalReturn: 8.5,
     frequency: "quarterly"
   }
@@ -11011,6 +11648,322 @@ var INTERNATIONAL_DIVIDEND_ETFS = {
     dividendGrowth: 2,
     expectedTotalReturn: 7.5,
     frequency: "quarterly"
+  },
+  /* ── 2026-08-18 사용자 요청 2종. 미국 밖 종목을 **배당 기준으로 고르는** 스크린이라 이 파일 소속이다.
+       (같은 요청의 VPL·BBAX·ASEA 는 배당이 아니라 지역으로 고르므로 `asiaPacificEquityEtfs.ts` 에 있다.) ── */
+  IGRO: {
+    ticker: "IGRO",
+    name: "iShares International Dividend Growth ETF",
+    initialPrice: 92.09,
+    dividendYield: 2.63,
+    dividendGrowth: 5.87,
+    expectedTotalReturn: 8.5,
+    frequency: "quarterly"
+  },
+  IQDG: {
+    ticker: "IQDG",
+    name: "WisdomTree International Quality Dividend Growth Fund",
+    initialPrice: 44.7,
+    dividendYield: 2.31,
+    dividendGrowth: 6.19,
+    expectedTotalReturn: 8.5,
+    frequency: "quarterly"
+  }
+};
+
+// shared/constants/presets/japanEquityEtfs.ts
+var JAPAN_EQUITY_ETFS = {
+  EWJ: {
+    ticker: "EWJ",
+    name: "iShares MSCI Japan ETF",
+    initialPrice: 98.39,
+    dividendYield: 3.62,
+    dividendGrowth: 4.38,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  EWJV: {
+    ticker: "EWJV",
+    name: "iShares MSCI Japan Value ETF",
+    initialPrice: 47.93,
+    dividendYield: 4.66,
+    dividendGrowth: 3.34,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  FLJP: {
+    ticker: "FLJP",
+    name: "Franklin FTSE Japan ETF",
+    initialPrice: 41.83,
+    dividendYield: 4.04,
+    dividendGrowth: 3.96,
+    expectedTotalReturn: 8,
+    frequency: "semiannual"
+  },
+  /*
+   * DXJ — 2026-08-18 사용자 요청. 🔴 **환헤지 상품이다**(엔/달러 노출을 제거한다). 위 셋은 엔화 노출을
+   * 그대로 안으므로, 같은 일본 시장을 담아도 **엔이 움직일 때 결과가 반대로 갈린다** — 엔 약세면 DXJ 가
+   * 유리하고 엔 강세면 불리하다. 이 앱은 환율을 모델링하지 않으므로(표시 통화 변환만 한다) 그 차이는
+   * 숫자에 나타나지 않는다. 한글명에 "환헤지"를 넣어 화면에서라도 구분되게 했다.
+   * ⚠ **배당률이 위 셋의 4분의 1 수준이다**(실측 0.92% 대 3.6~4.7%). 배당가중 지수라서 배당률이 더
+   *   높을 것이라 짐작했다가 실측에서 뒤집혔다. 그래서 같은 ETR 8% 안에서 이 종목만 **성장률 쪽에
+   *   7.08% 가 몰린다**(위 셋은 3.3~4.4%) — 같은 일본 시장인데 배당 현금흐름의 모양이 전혀 다르게 나온다.
+   */
+  DXJ: {
+    ticker: "DXJ",
+    name: "WisdomTree Japan Hedged Equity Fund",
+    initialPrice: 181.98,
+    dividendYield: 0.92,
+    dividendGrowth: 7.08,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  }
+};
+
+// shared/constants/presets/asiaPacificEquityEtfs.ts
+var ASIA_PACIFIC_EQUITY_ETFS = {
+  VPL: {
+    ticker: "VPL",
+    name: "Vanguard FTSE Pacific ETF",
+    initialPrice: 118.07,
+    dividendYield: 2.56,
+    dividendGrowth: 5.44,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  BBAX: {
+    ticker: "BBAX",
+    name: "JPMorgan BetaBuilders Developed Asia Pacific ex-Japan ETF",
+    initialPrice: 64.05,
+    dividendYield: 3.51,
+    dividendGrowth: 4.49,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  ASEA: {
+    ticker: "ASEA",
+    name: "Global X FTSE Southeast Asia ETF",
+    initialPrice: 21.65,
+    dividendYield: 3.58,
+    dividendGrowth: 4.42,
+    expectedTotalReturn: 8,
+    frequency: "semiannual"
+  }
+};
+
+// shared/constants/presets/sectorEquityEtfs.ts
+var SECTOR_EQUITY_ETFS = {
+  /* ── 필수소비재 ─────────────────────────────────────────────────────────────── */
+  IYK: {
+    ticker: "IYK",
+    name: "iShares U.S. Consumer Staples ETF",
+    initialPrice: 74.22,
+    dividendYield: 2.56,
+    dividendGrowth: 5.44,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  XLP: {
+    ticker: "XLP",
+    name: "Consumer Staples Select Sector SPDR Fund",
+    initialPrice: 84.78,
+    dividendYield: 2.59,
+    dividendGrowth: 5.41,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  VDC: {
+    ticker: "VDC",
+    name: "Vanguard Consumer Staples ETF",
+    initialPrice: 230.32,
+    dividendYield: 2.08,
+    dividendGrowth: 5.92,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  /* ── 헬스케어 ──────────────────────────────────────────────────────────────── */
+  XLV: {
+    ticker: "XLV",
+    name: "Health Care Select Sector SPDR Fund",
+    initialPrice: 167.48,
+    dividendYield: 1.51,
+    dividendGrowth: 6.99,
+    expectedTotalReturn: 8.5,
+    frequency: "quarterly"
+  },
+  /* ── 산업재 ───────────────────────────────────────────────────────────────── */
+  XLI: {
+    ticker: "XLI",
+    name: "Industrial Select Sector SPDR Fund",
+    initialPrice: 186.64,
+    dividendYield: 1.1,
+    dividendGrowth: 7.9,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  /* ── 기술 ────────────────────────────────────────────────────────────────────
+     ⚠ IGV 는 소프트웨어 **하위 산업**만 담아 셋보다 더 좁고, IXN 은 미국 밖까지 담아 더 넓다.
+       그래도 고르는 축은 같은 산업 분류이므로 이 파일에 함께 둔다. */
+  XLK: {
+    ticker: "XLK",
+    name: "Technology Select Sector SPDR Fund",
+    initialPrice: 191.7,
+    dividendYield: 0.41,
+    dividendGrowth: 10.09,
+    expectedTotalReturn: 10.5,
+    frequency: "quarterly"
+  },
+  /* 🔴 **2026-04-21 에 8:1 분할했다**(야후 split 이벤트로 확인). 갱신 파이프라인의 ±50% 가드가
+     막아 준 덕에 알았고, 비율은 짐작하지 않고 조회했다. 같은 날 MGK 도 5:1 로 쪼갰다(그 파일 주석).
+     ⚠ XLK 도 2025-12-05 에 2:1 분할했다 — 이 파일의 기술 3종은 최근 전부 액면이 바뀌었다. */
+  VGT: {
+    ticker: "VGT",
+    name: "Vanguard Information Technology ETF",
+    initialPrice: 123.28,
+    dividendYield: 0.35,
+    dividendGrowth: 10.15,
+    expectedTotalReturn: 10.5,
+    frequency: "quarterly"
+  },
+  IGV: {
+    ticker: "IGV",
+    name: "iShares Expanded Tech-Software Sector ETF",
+    initialPrice: 102.65,
+    dividendYield: 0.02,
+    dividendGrowth: 10.48,
+    expectedTotalReturn: 10.5,
+    frequency: "annual"
+  },
+  IXN: {
+    ticker: "IXN",
+    name: "iShares Global Tech ETF",
+    initialPrice: 145.2,
+    dividendYield: 0.75,
+    dividendGrowth: 9.25,
+    expectedTotalReturn: 10,
+    frequency: "quarterly"
+  }
+};
+
+// shared/constants/presets/thematicEquityEtfs.ts
+var THEMATIC_EQUITY_ETFS = {
+  PAVE: {
+    ticker: "PAVE",
+    name: "Global X U.S. Infrastructure Development ETF",
+    initialPrice: 58.56,
+    dividendYield: 0.74,
+    dividendGrowth: 8.26,
+    expectedTotalReturn: 9,
+    frequency: "semiannual"
+  },
+  DTCR: {
+    ticker: "DTCR",
+    name: "Global X Data Center & Digital Infrastructure ETF",
+    initialPrice: 29.32,
+    dividendYield: 0.84,
+    dividendGrowth: 8.16,
+    expectedTotalReturn: 9,
+    frequency: "semiannual"
+  },
+  CARZ: {
+    ticker: "CARZ",
+    name: "First Trust S-Network Future Vehicles & Technology ETF",
+    initialPrice: 111.58,
+    dividendYield: 1.22,
+    dividendGrowth: 7.78,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  /* ⚠ "생성형 AI 라 무배당"이라 짐작했다가 실측에서 뒤집혔다 — **연 1회 분배가 있고 배당률 1.76%** 다
+     (이 파일에서 CARZ 다음으로 높다). 무배당은 아래 ARKK 뿐이다. */
+  CHAT: {
+    ticker: "CHAT",
+    name: "Roundhill Generative AI & Technology ETF",
+    initialPrice: 95.29,
+    dividendYield: 1.76,
+    dividendGrowth: 7.24,
+    expectedTotalReturn: 9,
+    frequency: "annual"
+  },
+  QTUM: {
+    ticker: "QTUM",
+    name: "Defiance Quantum ETF",
+    initialPrice: 159.21,
+    dividendYield: 0.74,
+    dividendGrowth: 8.26,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  /*
+   * 🔴 배당률 0 이면 주기도 **반드시 `'none'`** 이다. 갱신 파이프라인이 스냅샷에 남겨 둔 `'annual'` 을
+   * 그대로 옮겼다가 `test/tickerRefresh/applyMarketData.test.ts` 의 "빈 스냅샷은 무연산" 불변식이
+   * 깨졌다 — 유니버스 합성이 배당률 0 을 보고 주기를 `'none'` 으로 접기 때문에(`withCoherentPayoutFrequency`)
+   * 큐레이션 값이 그와 어긋나면 "입력 = 출력"이 성립하지 않는다.
+   * ⚠ 지급이 없는데 주기를 적어 두면 캘린더가 "일정 미확인"으로 읽는다 — 그 혼동을 막는 것이
+   *   그 파생 규칙의 존재 이유다(`presets/index.ts` 주석).
+   */
+  ARKK: {
+    ticker: "ARKK",
+    name: "ARK Innovation ETF",
+    initialPrice: 81.9,
+    dividendYield: 0,
+    dividendGrowth: 9,
+    expectedTotalReturn: 9,
+    frequency: "none"
+  },
+  /*
+   * WELD — 2026-08-18 실측으로 확인했다. 🔴 이 레포의 상장 티커 데이터셋
+   * (`utils/TickerParser/output/`)에는 **없다** — 최근 상장분이라 그 생성물이 아직 모른다.
+   * 야후 chart API 로 이름·시세를 대조한 뒤에만 넣었다(짐작으로 넣지 않는다).
+   */
+  WELD: {
+    ticker: "WELD",
+    name: "Tema U.S. Manufacturing & Reshoring ETF",
+    initialPrice: 59.26,
+    dividendYield: 0.22,
+    dividendGrowth: 8.78,
+    expectedTotalReturn: 9,
+    frequency: "semiannual"
+  }
+};
+
+// shared/constants/presets/factorEquityEtfs.ts
+var FACTOR_EQUITY_ETFS = {
+  COWZ: {
+    ticker: "COWZ",
+    name: "Pacer US Cash Cows 100 ETF",
+    initialPrice: 70.07,
+    dividendYield: 1.77,
+    dividendGrowth: 7.23,
+    expectedTotalReturn: 9,
+    frequency: "quarterly"
+  },
+  ESGU: {
+    ticker: "ESGU",
+    name: "iShares ESG Aware MSCI USA ETF",
+    initialPrice: 169.9,
+    dividendYield: 0.9,
+    dividendGrowth: 8.6,
+    expectedTotalReturn: 9.5,
+    frequency: "quarterly"
+  }
+};
+
+// shared/constants/presets/bondEtfs.ts
+var BOND_ETFS = {
+  /*
+   * ⚠ `expectedTotalReturn` 이 **실측 배당률과 같은 6.76** 이다(위 머리말의 규칙: 채권은 성장률 0).
+   *   처음에 6.5 로 뒀는데 갱신에서 배당률이 6.76 으로 들어와 성장률이 -0.26 으로 파생됐다 — 그 말은
+   *   "채권 가격이 해마다 0.26% 씩 떨어진다"는 가정이 조용히 들어왔다는 뜻이라 ETR 을 배당률에 맞춰 옮겼다.
+   */
+  HYEM: {
+    ticker: "HYEM",
+    name: "VanEck Emerging Markets High Yield Bond ETF",
+    initialPrice: 20.04,
+    dividendYield: 6.76,
+    dividendGrowth: 0,
+    expectedTotalReturn: 6.76,
+    frequency: "monthly"
   }
 };
 
@@ -11458,6 +12411,47 @@ var CORE_INDEX_ETFS = {
     dividendYield: 1.8,
     dividendGrowth: 6.7,
     expectedTotalReturn: 8.5,
+    frequency: "quarterly"
+  },
+  /*
+   * ── 2026-08-18 사용자 요청 3종. 셋 다 **시가총액 그대로 담는 코어 자리**라 이 파일 소속이다. ──
+   * QQQM 은 QQQ 와 같은 지수(나스닥 100)를 더 낮은 보수로 담는 형제 상품이라 ETR 도 QQQ 와 같은 11 이다.
+   * MGK·SCHG 는 대형 성장주 묶음이라 VUG(10.5)와 같은 대역에 둔다.
+   * ⚠ 이 셋과 QQQ·VUG 를 함께 담으면 **같은 대형 기술주가 여러 번 계산된다**(구성이 크게 겹친다).
+   */
+  QQQM: {
+    ticker: "QQQM",
+    name: "Invesco NASDAQ 100 ETF",
+    initialPrice: 302.34,
+    dividendYield: 0.43,
+    dividendGrowth: 10.57,
+    expectedTotalReturn: 11,
+    frequency: "quarterly"
+  },
+  /*
+   * 🔴 이름과 주가 둘 다 2026-08-18 실측으로 고쳤다.
+   *  ① 공식명이 **"Vanguard Morningstar Mega Cap Growth ETF"** 다 — 이 레포가 VUG·VTI 에서 이미 겪은
+   *     CRSP → 모닝스타 지수 개명이 이 펀드에도 왔다(방법론은 그대로다).
+   *  ② **2026-04-21 에 5:1 분할했다**(야후 split 이벤트로 확인 — 비율을 짐작하지 않고 조회했다).
+   *     갱신 파이프라인의 ±50% 가드가 380 → 90.7 을 "분할 또는 오류"로 막아 준 덕에 알았다 —
+   *     가드가 조용히 통과하지 않는다는 것이 그 값의 존재 이유다. 같은 날 VGT 도 8:1 로 쪼갰다.
+   */
+  MGK: {
+    ticker: "MGK",
+    name: "Vanguard Morningstar Mega Cap Growth ETF",
+    initialPrice: 90.68,
+    dividendYield: 0.32,
+    dividendGrowth: 10.18,
+    expectedTotalReturn: 10.5,
+    frequency: "quarterly"
+  },
+  SCHG: {
+    ticker: "SCHG",
+    name: "Schwab U.S. Large-Cap Growth ETF",
+    initialPrice: 35.63,
+    dividendYield: 0.37,
+    dividendGrowth: 10.13,
+    expectedTotalReturn: 10.5,
     frequency: "quarterly"
   }
 };
@@ -13793,6 +14787,34 @@ var WELL_KNOWN_DIVIDEND_STOCKS = {
     dividendGrowth: 3.78,
     expectedTotalReturn: 8,
     frequency: "quarterly"
+  },
+  /* ── 2026-08-18 사용자 요청 3종. 이 파일의 규칙대로 ETR 은 8% 균일이다(머리말). ── */
+  CDW: {
+    ticker: "CDW",
+    name: "CDW Corporation",
+    initialPrice: 134.82,
+    dividendYield: 1.87,
+    dividendGrowth: 6.13,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  MAS: {
+    ticker: "MAS",
+    name: "Masco Corporation",
+    initialPrice: 73.1,
+    dividendYield: 1.3,
+    dividendGrowth: 6.7,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
+  },
+  TSCO: {
+    ticker: "TSCO",
+    name: "Tractor Supply Company",
+    initialPrice: 35.1,
+    dividendYield: 2.68,
+    dividendGrowth: 5.32,
+    expectedTotalReturn: 8,
+    frequency: "quarterly"
   }
 };
 
@@ -13806,6 +14828,23 @@ var CURATED_DIVIDEND_UNIVERSE = {
   ...US_HIGH_DIVIDEND_ETFS,
   ...OPTION_INCOME_ETFS,
   ...INTERNATIONAL_DIVIDEND_ETFS,
+  /* 일본 국가 지수 ETF 3종(2026-08-17). 배당으로 고른 묶음이 아니라 시장을 통째로 담는 쪽이고,
+     지급이 분기가 아니라 반기·연 1회다 — 근거는 그 파일 머리말. */
+  ...JAPAN_EQUITY_ETFS,
+  /* 아시아태평양 광역(2026-08-18). 위 일본 묶음과 달리 여러 나라를 담고, VPL 은 일본을 포함해
+     겹친다 — 근거는 그 파일 머리말. */
+  ...ASIA_PACIFIC_EQUITY_ETFS,
+  /* 섹터 ETF(2026-08-17 신설 · 08-18 확충 9종). 표준 산업 분류로 고른다 — 테마와 다른 파일인 이유가 그것이다. */
+  ...SECTOR_EQUITY_ETFS,
+  /* 테마 ETF(2026-08-18 7종). ETR 9% 균일이고 코어보다 **낮다** — 역사가 짧아 과거 수익률을 가정으로
+     옮기면 안 되는 묶음이다(그 파일 머리말). */
+  ...THEMATIC_EQUITY_ETFS,
+  /* 팩터·스크리닝(2026-08-18: 현금흐름 COWZ · ESG ESGU). 팩터 초과수익을 가정하지 않는다. */
+  ...FACTOR_EQUITY_ETFS,
+  /* 🔴 채권(2026-08-18: HYEM). 이 엔진의 전제(고든 성장모형)가 성립하지 않는 자산이라 "쿠폰은 받고
+     가격은 제자리"(ETR = 배당률, 성장률 0)로 근사했다 — 가정의 뜻과 한계는 그 파일 머리말.
+     ⚠ 같이 넣었던 USO(원유 선물)는 사용자 결정으로 빼면서 그 이유도 그 파일에 남겼다. */
+  ...BOND_ETFS,
   ...REIT_ETFS,
   ...DIVIDEND_GROWTH_STOCKS,
   ...HIGH_DIVIDEND_STOCKS,
@@ -13853,6 +14892,10 @@ var PRESET_TICKER_KOREAN_NAME_BY_TICKER = {
   VT: "\uBC45\uAC00\uB4DC \uD1A0\uD0C8 \uC6D4\uB4DC \uC8FC\uC2DD ETF",
   VXUS: "\uBC45\uAC00\uB4DC \uD1A0\uD0C8 \uAD6D\uC81C \uC8FC\uC2DD ETF",
   DIA: "SPDR \uB2E4\uC6B0\uC874\uC2A4 \uC0B0\uC5C5\uD3C9\uADE0 ETF",
+  /* 코어 확충 3종(2026-08-18). QQQM 은 QQQ 의 저보수 형제라 이름에 나스닥 100 을 남긴다. */
+  QQQM: "\uC778\uBCA0\uC2A4\uCF54 \uB098\uC2A4\uB2E5 100 ETF",
+  MGK: "\uBC45\uAC00\uB4DC \uBA54\uAC00\uCEA1 \uC131\uC7A5 ETF",
+  SCHG: "\uC288\uC651 \uBBF8\uAD6D \uB300\uD615 \uC131\uC7A5\uC8FC ETF",
   /*
    * 레버리지 8종(2026-08-16). 다른 종목과 달리 한글명 끝에 **"N배 레버리지"** 를 붙인다 —
    * 프리셋 검색은 티커·영문명·이 한글명만 훑으므로(`filterPresetKeys`), 여기 없는 낱말로는
@@ -13877,6 +14920,10 @@ var PRESET_TICKER_KOREAN_NAME_BY_TICKER = {
   DLN: "\uC704\uC988\uB364\uD2B8\uB9AC \uBBF8\uAD6D \uB300\uD615\uC8FC \uBC30\uB2F9 \uD380\uB4DC",
   DON: "\uC704\uC988\uB364\uD2B8\uB9AC \uBBF8\uAD6D \uC911\uD615\uC8FC \uBC30\uB2F9 \uD380\uB4DC",
   DES: "\uC704\uC988\uB364\uD2B8\uB9AC \uBBF8\uAD6D \uC18C\uD615\uC8FC \uBC30\uB2F9 \uD380\uB4DC",
+  VSDA: "\uBE45\uD1A0\uB9AC\uC170\uC5B4\uC988 \uBC30\uB2F9 \uC561\uC140\uB7EC\uB808\uC774\uD130 ETF",
+  TDVG: "T. \uB85C\uC6B0 \uD504\uB77C\uC774\uC2A4 \uBC30\uB2F9\uC131\uC7A5 ETF",
+  DIVG: "\uC778\uBCA0\uC2A4\uCF54 S&P 500 \uACE0\uBC30\uB2F9 \uC131\uC7A5\uC8FC ETF",
+  FVD: "\uD37C\uC2A4\uD2B8\uD2B8\uB7EC\uC2A4\uD2B8 \uBC38\uB958\uB77C\uC778 \uBC30\uB2F9 \uC778\uB371\uC2A4 \uD380\uB4DC",
   VYM: "\uBC45\uAC00\uB4DC \uACE0\uBC30\uB2F9 \uC218\uC775 ETF",
   HDV: "\uC544\uC774\uC170\uC5B4\uC988 \uCF54\uC5B4 \uACE0\uBC30\uB2F9 ETF",
   SMH: "\uBC18\uC5D0\uD06C \uBC18\uB3C4\uCCB4 ETF",
@@ -13888,6 +14935,9 @@ var PRESET_TICKER_KOREAN_NAME_BY_TICKER = {
   SPHD: "\uC778\uBCA0\uC2A4\uCF54 S&P 500 \uACE0\uBC30\uB2F9 \uC800\uBCC0\uB3D9\uC131 ETF",
   PEY: "\uC778\uBCA0\uC2A4\uCF54 \uD558\uC774\uC77C\uB4DC \uC5D0\uCFFC\uD2F0 \uB514\uBE44\uB358\uB4DC \uC5B4\uCE58\uBC84\uC2A4 ETF",
   FDL: "\uD37C\uC2A4\uD2B8\uD2B8\uB7EC\uC2A4\uD2B8 \uBAA8\uB2DD\uC2A4\uD0C0 \uB514\uBE44\uB358\uB4DC \uB9AC\uB354\uC2A4 \uC778\uB371\uC2A4 \uD380\uB4DC",
+  DJD: "\uC778\uBCA0\uC2A4\uCF54 \uB2E4\uC6B0\uC874\uC2A4 \uC0B0\uC5C5\uD3C9\uADE0 \uBC30\uB2F9 ETF",
+  QDIV: "\uAE00\uB85C\uBC8C X S&P 500 \uD004\uB9AC\uD2F0 \uBC30\uB2F9 ETF",
+  DIVB: "\uC544\uC774\uC170\uC5B4\uC988 \uCF54\uC5B4 \uBC30\uB2F9 ETF",
   /*
    * 옵션인컴 계열(2026-08-17). 🔴 한글명 끝을 **"커버드콜"** 로 통일했다 — 프리셋 검색이 훑는 것은
    * 티커·영문명·한글명 셋뿐이라(`filterPresetKeys`), 사용자가 "커버드콜"로 훑으면 그 낱말이 한글명에
@@ -13929,6 +14979,49 @@ var PRESET_TICKER_KOREAN_NAME_BY_TICKER = {
   SCHY: "\uC288\uC651 \uC778\uD130\uB0B4\uC154\uB110 \uBC30\uB2F9\uC8FC ETF",
   IDV: "\uC544\uC774\uC170\uC5B4\uC988 \uC778\uD130\uB0B4\uC154\uB110 \uC140\uB809\uD2B8 \uBC30\uB2F9 ETF",
   DWX: "SPDR S&P \uC778\uD130\uB0B4\uC154\uB110 \uBC30\uB2F9 ETF",
+  /* 국제 배당 확충 2종(2026-08-18). 아래 지역 ETF 와 달리 **배당으로 고른** 국제 ETF 다. */
+  IGRO: "\uC544\uC774\uC170\uC5B4\uC988 \uC778\uD130\uB0B4\uC154\uB110 \uBC30\uB2F9\uC131\uC7A5 ETF",
+  IQDG: "\uC704\uC988\uB364\uD2B8\uB9AC \uC778\uD130\uB0B4\uC154\uB110 \uD004\uB9AC\uD2F0 \uBC30\uB2F9\uC131\uC7A5 \uD380\uB4DC",
+  /*
+   * 일본 3종(2026-08-17). 한글명에 **"일본"** 을 반드시 넣는다 — 프리셋 검색이 훑는 것은 티커·영문명·
+   * 이 한글명 셋뿐이라(`filterPresetKeys`), 이 낱말이 없으면 사용자가 "일본"으로 훑을 때 하나도 안
+   * 걸린다(영문명은 Japan 이다). 커버드콜 묶음에서 같은 이유로 당한 적이 있다(위 주석).
+   */
+  EWJ: "\uC544\uC774\uC170\uC5B4\uC988 MSCI \uC77C\uBCF8 ETF",
+  EWJV: "\uC544\uC774\uC170\uC5B4\uC988 MSCI \uC77C\uBCF8 \uAC00\uCE58\uC8FC ETF",
+  FLJP: "\uD504\uB7AD\uD074\uB9B0 FTSE \uC77C\uBCF8 ETF",
+  /* DXJ 는 이름에 **환헤지**를 반드시 남긴다 — 위 일본 3종과 갈리는 유일한 지점이고(엔 노출 제거),
+     그 차이는 이 앱의 숫자에는 나타나지 않는다(환율 미모델링). 근거는 그 파일의 DXJ 주석. */
+  DXJ: "\uC704\uC988\uB364\uD2B8\uB9AC \uC77C\uBCF8 \uD658\uD5E4\uC9C0 \uC8FC\uC2DD \uD380\uB4DC",
+  /* 아시아태평양 광역 3종(2026-08-18). "아시아"·"동남아"로 검색되도록 이름에 지역어를 남긴다. */
+  VPL: "\uBC45\uAC00\uB4DC FTSE \uC544\uC2DC\uC544\uD0DC\uD3C9\uC591 ETF",
+  BBAX: "JP\uBAA8\uAC74 \uBCA0\uD0C0\uBE4C\uB354\uC2A4 \uC120\uC9C4 \uC544\uC2DC\uC544\uD0DC\uD3C9\uC591(\uC77C\uBCF8 \uC81C\uC678) ETF",
+  ASEA: "\uAE00\uB85C\uBC8C X FTSE \uB3D9\uB0A8\uC544\uC2DC\uC544 ETF",
+  /* 섹터 ETF 9종 — 한글 섹터명이 검색되는 유일한 경로다(영문명은 Consumer Staples·Health Care…). */
+  IYK: "\uC544\uC774\uC170\uC5B4\uC988 \uBBF8\uAD6D \uD544\uC218\uC18C\uBE44\uC7AC ETF",
+  XLP: "SPDR \uD544\uC218\uC18C\uBE44\uC7AC \uC139\uD130 ETF",
+  VDC: "\uBC45\uAC00\uB4DC \uD544\uC218\uC18C\uBE44\uC7AC ETF",
+  XLV: "SPDR \uD5EC\uC2A4\uCF00\uC5B4 \uC139\uD130 ETF",
+  XLI: "SPDR \uC0B0\uC5C5\uC7AC \uC139\uD130 ETF",
+  XLK: "SPDR \uAE30\uC220 \uC139\uD130 ETF",
+  VGT: "\uBC45\uAC00\uB4DC \uC815\uBCF4\uAE30\uC220 ETF",
+  IGV: "\uC544\uC774\uC170\uC5B4\uC988 \uD655\uC7A5 \uAE30\uC220-\uC18C\uD504\uD2B8\uC6E8\uC5B4 \uC139\uD130 ETF",
+  IXN: "\uC544\uC774\uC170\uC5B4\uC988 \uAE00\uB85C\uBC8C \uAE30\uC220 ETF",
+  /* 테마 ETF 7종(2026-08-18). 테마어(인프라·데이터센터·AI·양자·리쇼어링)를 한글명에 넣는다 —
+     사용자는 티커가 아니라 그 낱말로 훑는다. */
+  PAVE: "\uAE00\uB85C\uBC8C X \uBBF8\uAD6D \uC778\uD504\uB77C \uAC1C\uBC1C ETF",
+  DTCR: "\uAE00\uB85C\uBC8C X \uB370\uC774\uD130\uC13C\uD130 \uBC0F \uB514\uC9C0\uD138 \uC778\uD504\uB77C ETF",
+  CARZ: "\uD37C\uC2A4\uD2B8\uD2B8\uB7EC\uC2A4\uD2B8 \uBBF8\uB798 \uBAA8\uBE4C\uB9AC\uD2F0 \uBC0F \uAE30\uC220 ETF",
+  CHAT: "\uB77C\uC6B4\uB4DC\uD790 \uC0DD\uC131\uD615 AI \uBC0F \uAE30\uC220 ETF",
+  QTUM: "\uB514\uD30C\uC774\uC5B8\uC2A4 \uD000\uD140(\uC591\uC790\uCEF4\uD4E8\uD305) ETF",
+  ARKK: "ARK \uC774\uB178\uBCA0\uC774\uC158 ETF",
+  WELD: "\uD14C\uB9C8 \uBBF8\uAD6D \uC81C\uC870 \uBC0F \uB9AC\uC1FC\uC5B4\uB9C1 ETF",
+  /* 팩터·스크리닝 2종(2026-08-18). */
+  COWZ: "\uD398\uC774\uC11C \uBBF8\uAD6D \uCE90\uC2DC\uCE74\uC6B0 100 ETF",
+  ESGU: "\uC544\uC774\uC170\uC5B4\uC988 ESG \uC5B4\uC6E8\uC5B4 MSCI \uBBF8\uAD6D ETF",
+  /* 🔴 채권(2026-08-18). 한글명에 **채권**을 넣어 목록에서 성격이 바로 읽히게 한다 — 주식 프리셋과
+     같은 것으로 읽히면 가정을 오해한다(그 파일 머리말). */
+  HYEM: "\uBC18\uC5D0\uD06C \uC2E0\uD765\uAD6D \uD558\uC774\uC77C\uB4DC \uCC44\uAD8C ETF",
   SCHH: "\uC288\uC651 \uBBF8\uAD6D \uB9AC\uCE20 ETF",
   VNQ: "\uBC45\uAC00\uB4DC \uBD80\uB3D9\uC0B0 ETF",
   VNQI: "\uBC45\uAC00\uB4DC \uAE00\uB85C\uBC8C(\uBBF8\uAD6D \uC81C\uC678) \uBD80\uB3D9\uC0B0 ETF",
@@ -14031,6 +15124,10 @@ var PRESET_TICKER_KOREAN_NAME_BY_TICKER = {
   NNN: "NNN \uB9AC\uCE20",
   ADC: "\uC5B4\uADF8\uB9AC \uB9AC\uC5BC\uD2F0",
   KIM: "\uD0B4\uCF54 \uB9AC\uC5BC\uD2F0",
+  /* 인지도 배당주 확충 3종(2026-08-18 사용자 요청 — 이름으로 받았다: CDW·매스코·트랙터 서플라이). */
+  CDW: "CDW",
+  MAS: "\uB9E4\uC2A4\uCF54",
+  TSCO: "\uD2B8\uB799\uD130 \uC11C\uD50C\uB77C\uC774",
   "489250.KS": "KODEX \uBBF8\uAD6D\uBC30\uB2F9\uB2E4\uC6B0\uC874\uC2A4",
   "476850.KS": "KoAct \uBC30\uB2F9\uC131\uC7A5\uC561\uD2F0\uBE0C",
   "322410.KS": "HANARO \uACE0\uBC30\uB2F9",

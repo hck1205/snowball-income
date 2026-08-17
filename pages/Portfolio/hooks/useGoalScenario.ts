@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { readPersistedAppState, type PersistedAppStatePayload, type PersistedScenarioState } from '@/jotai';
 import { currentMonthlyDividend, findTargetMonth, findTargetYear, runScenarioPayload } from '@/shared/lib/snowball';
+import { resolveDefaultDividendTaxRatePercent } from '@/shared/constants/tax';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import type { CurrentMonthlyDividendMode, TargetMonthReached, YearMonth } from '@/shared/types';
 
@@ -52,7 +53,15 @@ export type GoalConditions = {
   investmentStartDate: string;
   reinvestDividends: boolean;
   reinvestDividendPercent: number;
-  /** 정규화가 기본값(15.4)을 채우지만, 구버전 데이터를 위해 optional을 유지한다. */
+  /**
+   * 계산에 **실제로 적용된** 배당소득세율(%).
+   *
+   * 저장된 값이 있으면 그 값이고, 없으면 엔진과 같은 규칙으로 **종목 상장지에서 파생**한 값이다
+   * (미국 상장 15% · 국내 상장 15.4% — `resolveDefaultDividendTaxRatePercent`).
+   * 🔴 `undefined` 는 "모른다"가 아니라 **"한 숫자로 말할 수 없다"** 는 뜻이다: 미국·국내를 섞은
+   * 포트폴리오는 종목마다 세율이 갈리므로(엔진이 프로필별로 계산한다) 요약에 단일 숫자를 적으면
+   * 거짓이 된다. 그때 화면은 `taxRateUnknown`("기본값")으로 표시한다.
+   */
   taxRate: number | undefined;
   /** 계산에 참여한(=포함된) 티커 수. */
   tickerCount: number;
@@ -247,6 +256,13 @@ export const useGoalScenario = (options: UseGoalScenarioOptions = {}): GoalScena
     }
 
     const tickers = run.profiles.map((profile) => profile.ticker);
+    /*
+     * 세율은 저장돼 있지 않을 수 있고(그게 기본값이다 — `SnowballForm` 의 `taxRate` 주석), 그때 엔진은
+     * **종목 상장지에서 파생**한다. 요약이 "계산에 실제로 쓰인 값"이려면 같은 파생을 여기서도 해야 한다.
+     * 🔴 종목마다 갈리면(미국+국내 혼합) 단일 숫자로 적지 않고 `undefined` 로 남긴다 — 화면이
+     *    "기본값"으로 표시한다. 아무 종목의 세율을 골라 적으면 나머지 종목에 대해 거짓이 된다.
+     */
+    const derivedTaxRates = new Set(tickers.map((ticker) => resolveDefaultDividendTaxRatePercent(ticker)));
     const conditions: GoalConditions = {
       initialInvestment: run.values.initialInvestment,
       monthlyContribution: run.values.monthlyContribution,
@@ -254,7 +270,7 @@ export const useGoalScenario = (options: UseGoalScenarioOptions = {}): GoalScena
       investmentStartDate: run.values.investmentStartDate,
       reinvestDividends: run.values.reinvestDividends,
       reinvestDividendPercent: run.values.reinvestDividendPercent,
-      taxRate: run.values.taxRate,
+      taxRate: run.values.taxRate ?? (derivedTaxRates.size === 1 ? [...derivedTaxRates][0] : undefined),
       tickerCount: run.profiles.length
     };
 

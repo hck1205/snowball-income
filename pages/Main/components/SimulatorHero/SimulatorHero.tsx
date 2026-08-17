@@ -51,57 +51,74 @@ function SimulatorHeroComponent({ drawerId, isSettingsOpen, onOpenSettings }: Si
       title={SIMULATOR_COPY.heroTitle}
       lede={SIMULATOR_COPY.heroLede}
       meta={meta}
-      /* 제목 줄 맨 오른쪽 — 좁은 폭에서도 "배당 시뮬레이터" 와 같은 줄에 남는다.
-         넓은 화면에서는 결과적으로 "투자 설정" 바로 옆자리가 된다. */
-      titleAction={
-        <CaptureAction>
-          <ResultCaptureButton
-            isCapturing={capture.isCapturing}
-            failure={capture.failure}
-            onCapture={capture.captureResult}
-            onDismissFailure={capture.dismissFailure}
-          />
-        </CaptureAction>
-      }
+      /*
+       * ── 두 액션이 **한 슬롯**에 있다 (2026-08-17 사용자 지시: 캡처와 투자 설정 위치를 맞바꿔라) ──
+       *
+       * 순서가 `[캡처][투자 설정]` 이라 **투자 설정이 줄의 맨 오른쪽**이다. 종전에는 캡처가
+       * `titleAction`(제목 줄 전용 슬롯)에 있어서 설정보다 오른쪽에 섰다.
+       *
+       * 🔴 왜 `titleAction` 을 안 쓰고 둘을 같은 슬롯에 넣었나 — 보이는 순서와 **DOM·포커스 순서가
+       *    일치해야** 한다. 두 슬롯은 `actions` → `titleAction` 순으로 렌더되므로, 슬롯을 그대로 두고
+       *    화면에서만 뒤집으면 탭 이동이 눈으로 보는 순서와 어긋난다.
+       * ⚠ 대가를 알고 고른 것이다: `titleAction` 은 **어느 폭에서도 제목 줄에 남는** 슬롯이라,
+       *   캡처 버튼이 ≤640 에서 제목 줄을 떠나 설정 버튼과 함께 아래 줄로 내려간다
+       *   (2026-07-29 에 "좁은 화면에서도 제목 옆자리를 지킨다"고 정했던 것을 사용자 결정으로 바꿨다).
+       *   되돌리려면 이 주석의 순서 문제(포커스 순서)를 먼저 해결하라.
+       */
       actions={
-        <SettingsSlot
-          ref={slotRef}
-          $pinned={pinned}
-          /*
-           * 🔴 `headerprobe` 가 이 표식으로 승격 버튼을 **정확히** 집는다(랜딩의 `data-landing-cta` 와 같은 방식).
-           *
-           * 예전에는 프로브가 "화면의 모든 `position: fixed` 버튼"을 승격 액션으로 셌다. 그러다
-           * 화면 **아래**에 있어야 할 "맨 위로"(ScrollTopButton)도 fixed 라 함께 잡혀, 5개 라우트가
-           * "헤더에서 775px 떨어져 있다"며 늘 빨간불이었다 — 늘 실패하는 가드는 아무도 안 본다.
-           * 반대 방향의 위험이 더 컸다: 다른 fixed 버튼이 우연히 헤더 밑 8px 에 서 있으면 승격이
-           * 죽었어도 **검사가 통과**한다. 표식으로 집으면 둘 다 사라진다.
-           *
-           * ⚠ 지우거나 이름을 바꾸면 프로브의 4번 검사가 "요소 0건"으로 실패한다(조용히 통과하지
-           *   않는다 — 그게 의도다). tools/dev/headerprobe.mjs 의 STICKY_HERO_ACTION_SELECTOR 와 한 쌍이다.
-           */
-          data-hero-action="settings"
-          data-pinned={pinned ? 'true' : 'false'}
-          style={
-            box
-              ? ({
-                  '--pin-left': `${box.left}px`,
-                  '--pin-width': `${box.width}px`,
-                  '--pin-height': `${box.height}px`,
-                  '--pin-top': `${box.top}px`
-                } as CSSProperties)
-              : undefined
-          }
-        >
-          <SettingsEntryButton
-            variant="hero"
-            drawerId={drawerId}
-            isOpen={isSettingsOpen}
-            onOpen={onOpenSettings}
-            /* 투어 1단계의 앵커. 헤더 버튼이 사라졌으므로 이 버튼이 유일한 상시 진입점이자 앵커다
-               (앵커가 없으면 투어는 그 단계를 **조용히** 건너뛴다 — test/main/tourAnchors.test.tsx 가 지킨다). */
-            dataTour={TOUR_TARGET.openSettings}
-          />
-        </SettingsSlot>
+        <>
+          <CaptureAction>
+            <ResultCaptureButton
+              isCapturing={capture.isCapturing}
+              failure={capture.failure}
+              onCapture={capture.captureResult}
+              onDismissFailure={capture.dismissFailure}
+            />
+          </CaptureAction>
+          <SettingsSlot
+            ref={slotRef}
+            $pinned={pinned}
+            /*
+             * 🔴 `headerprobe` 가 이 표식으로 승격 버튼을 **정확히** 집는다(랜딩의 `data-landing-cta` 와 같은 방식).
+             *
+             * 예전에는 프로브가 "화면의 모든 `position: fixed` 버튼"을 승격 액션으로 셌다. 그러다
+             * 화면 **아래**에 있어야 할 "맨 위로"(ScrollTopButton)도 fixed 라 함께 잡혀, 5개 라우트가
+             * "헤더에서 775px 떨어져 있다"며 늘 빨간불이었다 — 늘 실패하는 가드는 아무도 안 본다.
+             * 반대 방향의 위험이 더 컸다: 다른 fixed 버튼이 우연히 헤더 밑 8px 에 서 있으면 승격이
+             * 죽었어도 **검사가 통과**한다. 표식으로 집으면 둘 다 사라진다.
+             *
+             * ⚠ 지우거나 이름을 바꾸면 프로브의 4번 검사가 "요소 0건"으로 실패한다(조용히 통과하지
+             *   않는다 — 그게 의도다). tools/dev/headerprobe.mjs 의 STICKY_HERO_ACTION_SELECTOR 와 한 쌍이다.
+             */
+            data-hero-action="settings"
+            data-pinned={pinned ? 'true' : 'false'}
+            style={
+              box
+                ? ({
+                    /* 좌측이 아니라 **우측**을 못 박는다 — 붙는 순간 아이콘만 남아 폭이 줄기 때문이다
+                       (근거는 `useStickyHeroAction` 의 `right` 필드 주석). */
+                    '--pin-right': `${box.right}px`,
+                    '--pin-width': `${box.width}px`,
+                    '--pin-height': `${box.height}px`,
+                    '--pin-top': `${box.top}px`
+                  } as CSSProperties)
+                : undefined
+            }
+          >
+            <SettingsEntryButton
+              variant="hero"
+              drawerId={drawerId}
+              isOpen={isSettingsOpen}
+              onOpen={onOpenSettings}
+              /* 고정되면 라벨을 접고 톱니만 남긴다(사용자 지시 2026-08-17). 붙는 자리가 시나리오 탭 바와
+                 같은 띠라 폭이 귀하다 — 접근성 이름은 `aria-label` 로 유지된다. */
+              iconOnly={pinned}
+              /* 투어 1단계의 앵커. 헤더 버튼이 사라졌으므로 이 버튼이 유일한 상시 진입점이자 앵커다
+                 (앵커가 없으면 투어는 그 단계를 **조용히** 건너뛴다 — test/main/tourAnchors.test.tsx 가 지킨다). */
+              dataTour={TOUR_TARGET.openSettings}
+            />
+          </SettingsSlot>
+        </>
       }
     />
   );

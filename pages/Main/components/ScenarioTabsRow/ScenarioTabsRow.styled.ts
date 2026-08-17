@@ -1,5 +1,14 @@
 import styled from '@emotion/styled';
-import { color } from '@/shared/styles';
+import { color, media, space } from '@/shared/styles';
+
+/**
+ * 고정된 설정 버튼이 이 줄의 오른쪽 끝에 앉을 자리 — **아이콘 40px + 숨구멍 8px**.
+ *
+ * 40px 은 `Button` 의 `size="md"` + `iconOnly` 정사각 크기다(`Button.styled.ts` 의 `SIZE.md.icon`).
+ * 그 값은 export 되지 않아 여기서 다시 적는다 — **한 쌍이므로 한쪽만 바꾸면 어긋난다**(아이콘이 커지면
+ * 탭이 그 밑으로 들어가고, 작아지면 오른쪽에 빈 띠가 남는다).
+ */
+const PINNED_SETTINGS_RESERVE = `calc(40px + ${space[2]})`;
 
 /**
  * 시나리오 탭 줄 = **결과 보드의 머리**.
@@ -19,6 +28,27 @@ export const TabsRowRoot = styled.div`
   align-items: flex-end;
   border-bottom: 1px solid ${color.border};
   min-width: 0;
+
+  /*
+   * 🔴 오른쪽 끝에 **고정된 설정 아이콘의 자리를 비워 둔다** (2026-08-17 사용자 지시:
+   * "탭들의 wrapper width 를 setting 아이콘 보일 만큼만 지정해라").
+   * ⚠ 주석에 백틱 금지 — Emotion 템플릿 리터럴 안이다.
+   *
+   * 왜 필요한가: 스크롤하면 설정 버튼이 톱니 아이콘만 남아 이 줄과 **같은 띠의 우측 끝**에 고정된다
+   * (useStickyHeroAction). 자리를 비워 두지 않으면 탭이 많을 때 스트립이 그 아이콘 **밑까지** 늘어나,
+   * 스크롤을 끝까지 밀어도 마지막 탭이 아이콘에 가려 읽히지 않는다.
+   *
+   * 이 여백은 **항상** 있다(고정 상태에서만 켜지 않는다): 탭이 넘치지 않는 평상시에는 스트립이 남는
+   * 폭을 다 쓰지 않으므로 화면에 아무 변화가 없고, 반대로 켜고 끄면 고정되는 순간 탭들이 48px 옆으로
+   * 밀려 흔들린다. 넘칠 때만 효과가 드러나는 여백이 조용한 쪽이다.
+   *
+   * 밑줄(border-bottom)은 이 여백을 **가로질러 그대로 간다** — 테두리는 패딩 밖이라 봉합선이 짧아지지
+   * 않는다(그 선은 결과 영역의 끝선과 맞아야 한다 — ResultBoard 머리말).
+   * 경계는 바가 실제로 붙는 구간과 같다(mobileWide 이하에서는 이 줄이 고정되지 않으므로 자리도 필요 없다).
+   */
+  ${media.up('mobileWide')} {
+    padding-right: ${PINNED_SETTINGS_RESERVE};
+  }
 `;
 
 /** 탭 스트립이 남는 가로를 전부 먹는다(스트립 자체가 가로 스크롤이라 줄바꿈이 필요 없다). */

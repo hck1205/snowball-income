@@ -7,9 +7,18 @@ const PIN_GAP = 8;
 const HEADER_HEIGHT_FALLBACK = 88;
 
 export type StickyHeroActionBox = {
-  /** 붙었을 때 버튼이 설 뷰포트 x 좌표(= 흐름상 자리의 좌측). */
-  left: number;
-  /** 붙었을 때의 버튼 폭. 모바일 전폭 버튼도 그대로 유지된다. */
+  /**
+   * 붙었을 때 버튼의 **우측 끝**이 설 자리 — 뷰포트 오른쪽 끝에서 흐름상 자리의 우측까지의 거리.
+   *
+   * 🔴 좌측(`left`)이 아니라 우측으로 고정하는 이유: 붙는 순간 버튼이 **아이콘만 남아 좁아진다**
+   * (2026-08-17 사용자 지시). 좌측을 고정하면 그 폭 차이만큼 버튼이 콘텐츠 우측 끝선에서 안쪽으로
+   * 밀려 들어와, 같은 줄에 붙는 시나리오 탭 바의 끝선과 어긋난다. 우측을 고정하면 폭이 어떻게
+   * 바뀌어도 끝선이 맞는다.
+   * ⚠ 기준은 `documentElement.clientWidth` 다 — `innerWidth` 는 스크롤바(~15px)를 포함해서
+   *   `position: fixed` 의 기준(초기 컨테이닝 블록)과 어긋난다. 그만큼 버튼이 화면 밖으로 밀린다.
+   */
+  right: number;
+  /** 흐름상 자리의 폭. 자리(placeholder)가 그대로 붙들어 레이아웃 시프트를 막는다. */
   width: number;
   /** 자리(placeholder)가 유지해야 할 높이. */
   height: number;
@@ -39,8 +48,11 @@ const readHeaderHeight = (): number => {
  * **붙기 직전의 크기를 그대로 유지**한다 — 크기는 흐름 상태에서 계속 재고 있으므로 폰트 로드·리사이즈·
  * 통화 전환으로 버튼 폭이 바뀌어도 따라간다.
  *
- * 실제 좌표(`left`/`width`)도 흐름상의 자리에서 읽는다. `100vw` 기반 CSS 계산은 스크롤바 폭(~15px)만큼
+ * 실제 좌표(`right`/`top`)도 흐름상의 자리에서 읽는다. `100vw` 기반 CSS 계산은 스크롤바 폭(~15px)만큼
  * 어긋나 데스크톱에서 버튼이 콘텐츠 우측 끝선과 안 맞는다.
+ *
+ * ⚠ 붙은 버튼은 **아이콘만 남는다**(2026-08-17 사용자 지시) — 그래서 고정 좌표가 좌측이 아니라
+ *   **우측**이다(`right` 필드 주석). 폭이 줄어도 콘텐츠 우측 끝선에 그대로 맞는다.
  */
 export function useStickyHeroAction() {
   const slotRef = useRef<HTMLDivElement>(null);
@@ -52,9 +64,33 @@ export function useStickyHeroAction() {
     if (!slot) return;
     const rect = slot.getBoundingClientRect();
     const top = readHeaderHeight() + PIN_GAP;
+    /* 스크롤바를 제외한 뷰포트 폭 = `position: fixed` 의 기준(초기 컨테이닝 블록). 위 `right` 주석 참고. */
+    const viewportWidth = document.documentElement.clientWidth;
+    /*
+     * 🔴 우측 정렬 기준은 **슬롯이 아니라 페이지 컬럼**이다(`data-page-column`, `Main.view.tsx`).
+     *
+     * 붙는 순간 이 버튼은 히어로 카드를 떠나 시나리오 탭 바와 같은 띠에 선다. 그래서 히어로 **안쪽**
+     * 패딩 끝(슬롯의 우측)에 맞추면 탭 바의 끝선과 어긋난다 — 실측 @1280: 슬롯 1172 · 컬럼 1213 로
+     * 41px 차이였고, 화면에서는 아이콘만 애매하게 안쪽으로 들어와 보였다.
+     * ⚠ 표식이 없으면 슬롯 기준으로 떨어진다(끝선이 41px 안쪽이 될 뿐, 깨지지는 않는다).
+     *
+     * 🔴 **컬럼의 좌우 여백(gutter)을 빼야 한다.** `getBoundingClientRect` 는 border-box 라 컬럼의
+     *    `padding-right` 을 포함하는데, 탭 바는 그 컬럼의 **콘텐츠 박스**에 맞춰 서 있다. 빼지 않으면
+     *    아이콘이 바보다 그 여백만큼 밖으로 나간다(실측 @1280: 아이콘 1233 대 바 1213 — 20px 초과).
+     */
+    const column = slot.closest('[data-page-column]');
+    const alignRight = column
+      ? column.getBoundingClientRect().right - Number.parseFloat(getComputedStyle(column).paddingRight || '0')
+      : slot.getBoundingClientRect().right;
     setBox((prev) => {
-      const next = { left: rect.left, width: rect.width, height: rect.height, top };
-      if (prev && prev.left === next.left && prev.width === next.width && prev.height === next.height && prev.top === next.top) {
+      const next = { right: viewportWidth - alignRight, width: rect.width, height: rect.height, top };
+      if (
+        prev &&
+        prev.right === next.right &&
+        prev.width === next.width &&
+        prev.height === next.height &&
+        prev.top === next.top
+      ) {
         return prev;
       }
       return next;

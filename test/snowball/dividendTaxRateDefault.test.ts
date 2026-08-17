@@ -97,13 +97,37 @@ describe('엔진 — 사용자 입력이 항상 이긴다', () => {
   });
 });
 
-describe('폼 기본값', () => {
-  it('기본 종목(SCHD, 미국 상장)의 세율은 15% 다', () => {
-    expect(createDefaultYieldFormValues(new Date('2026-08-14')).taxRate).toBe(15);
+/**
+ * ## 🔴 2026-08-18 — 폼 기본값을 **비운다**(사용자 결정)
+ *
+ * 종전 계약은 "기본 폼의 세율은 15" 였다. 그 15 는 옳은 값이었지만 **잘못된 자리**에 있었다:
+ * 폼·새 탭·저장 기본값이 전부 "사용자가 15 를 입력한 상태"가 되어 위 파생(`?? resolveDefault…`)이
+ * 영원히 발동하지 않았고, **국내 상장 종목을 담아도 15.4% 가 아니라 15% 로 계산됐다**
+ * (2026-08-18 사용자 신고: "새 탭을 만들면 기본 세율이 15% 인데 의도된 건가").
+ *
+ * 그래서 기본값은 `undefined` 이고, 15 냐 15.4 냐는 **엔진이 종목을 보고** 정한다.
+ */
+describe('폼 기본값 — 비어 있다(종목별 파생이 살아나도록)', () => {
+  it('기본 폼의 세율은 미입력이다 — 15 를 박아 넣지 않는다', () => {
+    expect(createDefaultYieldFormValues(new Date('2026-08-18')).taxRate).toBeUndefined();
   });
 
-  it('기본 폼으로 만든 엔진 입력이 그 세율을 그대로 싣는다', () => {
-    const values = createDefaultYieldFormValues(new Date('2026-08-14'));
-    expect(toSimulationInput(values).settings.taxRate).toBe(15);
+  it('기본 폼으로 만든 엔진 입력도 미입력을 그대로 넘긴다(엔진이 종목으로 판정한다)', () => {
+    const values = createDefaultYieldFormValues(new Date('2026-08-18'));
+    expect(toSimulationInput(values).settings.taxRate).toBeUndefined();
+  });
+
+  it('🔴 그래서 같은 기본 설정이 미국 종목엔 15%, 국내 종목엔 15.4% 로 적용된다', () => {
+    const taxRate = createDefaultYieldFormValues(new Date('2026-08-18')).taxRate;
+
+    expect(totalTax('SCHD', taxRate)).toBeCloseTo(totalTax('SCHD', US_LISTED_DIVIDEND_TAX_RATE), 6);
+    expect(totalTax('458730.KS', taxRate)).toBeCloseTo(totalTax('458730.KS', KOREAN_DIVIDEND_TAX_RATE), 6);
+    // 종전 결함의 회귀 가드: 기본값이 15 로 박혀 있으면 이 둘이 같아진다(국내가 과소 계상).
+    expect(totalTax('458730.KS', taxRate)).toBeGreaterThan(totalTax('SCHD', taxRate));
+  });
+
+  it('세율 0% 는 여전히 표현할 수 있다 — 미입력과 구별된다', () => {
+    expect(totalTax('458730.KS', 0)).toBe(0);
+    expect(totalTax('458730.KS', undefined)).toBeGreaterThan(0);
   });
 });
