@@ -1,3 +1,4 @@
+import { storageKey } from '@/shared/lib/storage';
 const GA_MEASUREMENT_ID = import.meta.env.VITE_GA_MEASUREMENT_ID;
 
 /**
@@ -200,6 +201,29 @@ export const ANALYTICS_EVENT = {
   // 용도: §3-2 리텐션층(일간 재방문) → 코어 제품(시뮬레이터) 전환 측정. community_to_simulator 와 같은 짝이다.
   // 🔴 클릭을 센다 — 도착은 URL 에 표식이 없어 셀 수 없다(compare_to_simulator 와 같은 이유).
   MARKET_PULSE_TO_SIMULATOR: "market_pulse_to_simulator",
+  /*
+   * ── 수준 분기 · 성향 테스트 (2026-08-17) ──────────────────────────────────
+   *
+   * 랜딩 히어로가 "바로 계산하기" 두 갈래에서 **수준 4갈래**로 바뀌었다. 그 결정이 옳았는지는
+   * 데이터로만 답할 수 있어서, 여기 넷이 그 답을 만든다.
+   *
+   * 🔴 `cta_click` 을 재사용하지 않는다 — 그 이름은 이미 사이트 전역 CTA 수십 곳이 쏘고 있어
+   *   수준 선택 분포가 그 안에 묻힌다(CPA_* 를 가른 것과 같은 이유).
+   */
+  // 랜딩 4갈래에서 수준을 고른 순간(파라미터: level_id).
+  // 용도: 방문자 구성 파악 — 입문자가 실제로 많은지, 어느 갈래가 죽어 있는지.
+  LEVEL_SELECTED: "level_selected",
+  // 성향 테스트 1문항이 응답된 순간(파라미터: question_index 1~12, axis).
+  // 🔴 **이탈 지점을 보려고 문항마다 쏜다.** 12문항은 정밀도를 위해 고른 값이라(사용자 결정),
+  //    실제 이탈이 어디서 나는지 모르면 줄일 근거도 늘릴 근거도 생기지 않는다.
+  //    완주율 = quiz_completed / quiz_answered(question_index=1).
+  QUIZ_ANSWERED: "quiz_answered",
+  // 결과 화면이 실제로 그려진 순간(파라미터: type_id).
+  // 용도: 완주율, 유형 분포. 유형이 한쪽으로 쏠리면 기준 좌표를 다시 잡아야 한다는 신호다.
+  QUIZ_COMPLETED: "quiz_completed",
+  // 결과 화면에서 다음 행동을 고른 순간(파라미터: action='prefill'|'share'|'next', type_id).
+  // 용도: 이 기능의 **종착 전환** — 테스트가 계산기 사용으로 이어지는지가 존재 이유다.
+  QUIZ_RESULT_ACTION: "quiz_result_action",
 } as const;
 
 export type AnalyticsEventName = (typeof ANALYTICS_EVENT)[keyof typeof ANALYTICS_EVENT];
@@ -447,7 +471,7 @@ export const bucketValue = (value: number, edges: readonly number[]): string => 
  * `CommunityAuthProvider` 가 읽는다. **양쪽 다 이 read+clear 로 게이팅**하므로 — 랜딩 페이지는 하나뿐이고
  * 마커는 한 번 읽히면 지워지므로 — 로그인당 정확히 1회만 발화한다(SIGNED_IN 무조건 발화 금지).
  */
-export const LOGIN_SOURCE_KEY = "snowball:cloud-login-source";
+export const LOGIN_SOURCE_KEY = storageKey('cloud-login-source');
 
 /** 로그인 리다이렉트 직전에 source를 심는다(예: 'google'|'naver'|'kakao'). */
 export const writeLoginSource = (source: string) => {
