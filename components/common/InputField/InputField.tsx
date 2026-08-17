@@ -1,4 +1,4 @@
-import type { ChangeEvent } from 'react';
+import { useState, type ChangeEvent } from 'react';
 import type { AccountType } from '@/shared/constants/tax';
 import type { InputFieldProps, SelectFieldProps } from './InputField.types';
 import { formatNumericDisplay, normalizeNumericInput, toInputId } from './InputField.utils';
@@ -42,6 +42,16 @@ const LabelWithHelp = ({
   </LabelRow>
 );
 
+/**
+ * 문자열을 수치로 — 비교 전용. 숫자가 아닌 중간 상태(`''`·`'-'`·`'.'`)는 전부 `null` 이다.
+ * `Number('')` 이 0 이라 빈 문자열을 먼저 걸러야 한다.
+ */
+const toComparableNumber = (raw: string): number | null => {
+  if (raw === '') return null;
+  const parsed = Number(raw);
+  return Number.isNaN(parsed) ? null : parsed;
+};
+
 function InputField({
   label,
   id: idProp,
@@ -59,10 +69,27 @@ function InputField({
   const isNumber = type === 'number';
   const hintId = hint ? `${id}-hint` : undefined;
 
+  /**
+   * 숫자 필드는 **사용자가 두드린 문자열을 그대로 들고 있는다** (2026-08-17 사용자 신고: 세율에
+   * 소수점이 입력되지 않는다).
+   *
+   * 🔴 왜 필요한가 — 이 입력은 controlled 이고, 소비처는 값을 `Number(...)` 로 파싱해 **숫자**로
+   * 되돌려준다. `"15."` 은 `Number` 를 지나면 `15` 가 되고 표시값으로 다시 오면 `"15"` 다. 즉
+   * **소수점을 찍는 순간 그 점이 지워져 소수를 끝까지 쓸 수 없었다** — 15.4 를 입력할 방법이
+   * 아예 없었다. 세율만의 문제가 아니라 배당률·배당성장률·주가까지 모든 숫자 필드가 같은 결함을
+   * 공유했다(그래서 개별 화면이 아니라 이 공용 컴포넌트에서 고친다).
+   *
+   * 규칙: 초안은 **들어온 값과 수치가 같을 때만** 이긴다(`"15." === 15`). 프리셋 적용·시나리오
+   * 전환처럼 바깥에서 값이 바뀌면 수치가 달라지므로 초안은 그 즉시 무시된다 — 낡은 문자열이 화면에
+   * 남지 않는다. 살아남는 것은 `"15."`·`"15.40"` 같은 **입력 중간 상태**뿐이다.
+   */
+  const [draft, setDraft] = useState<string | null>(null);
+
   // 숫자 입력은 표시값을 포맷하고 입력을 정규화한다(기존 동작 보존). type은 text로 두어 브라우저 스피너를 없앤다.
   const handleChange = isNumber
     ? (event: ChangeEvent<HTMLInputElement>) => {
         const normalizedValue = normalizeNumericInput(event.target.value);
+        setDraft(normalizedValue);
         onChange({
           ...event,
           target: { ...event.target, value: normalizedValue },
@@ -71,6 +98,11 @@ function InputField({
       }
     : onChange;
 
+  const draftWins =
+    isNumber &&
+    draft !== null &&
+    toComparableNumber(draft) === toComparableNumber(String(value ?? '').replace(/,/g, ''));
+
   const adorn = [prefix ? 'prefix' : '', suffix ? 'suffix' : ''].filter(Boolean).join(' ');
 
   const input = (
@@ -78,7 +110,7 @@ function InputField({
       id={id}
       aria-label={label}
       type={isNumber ? 'text' : type}
-      value={isNumber ? formatNumericDisplay(value) : value}
+      value={isNumber ? formatNumericDisplay(draftWins && draft !== null ? draft : value) : value}
       onChange={handleChange}
       aria-describedby={hintId}
       data-adorn={adorn || undefined}
