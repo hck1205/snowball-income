@@ -114,4 +114,21 @@ export * from './cvs';
 export * from './gd';
 export * from './avgo';
 export * from './txn';
+/* 5차 확충(2026-08-17) — 레버리지 8종 */
+export * from './tqqq';
+export * from './qld';
+export * from './sso';
+export * from './upro';
+export * from './spxl';
+export * from './usd';
+export * from './soxl';
+export * from './tna';
+/* 5차 확충(2026-08-17) — 성장주 7종 */
+export * from './nvda';
+export * from './googl';
+export * from './amzn';
+export * from './meta';
+export * from './tsla';
+export * from './tsm';
+export * from './asml';
 export * from './registry';

@@ -106,6 +106,21 @@ import { CVS_TICKER_CONTENT } from './cvs';
 import { GD_TICKER_CONTENT } from './gd';
 import { AVGO_TICKER_CONTENT } from './avgo';
 import { TXN_TICKER_CONTENT } from './txn';
+import { TQQQ_TICKER_CONTENT } from './tqqq';
+import { QLD_TICKER_CONTENT } from './qld';
+import { SSO_TICKER_CONTENT } from './sso';
+import { UPRO_TICKER_CONTENT } from './upro';
+import { SPXL_TICKER_CONTENT } from './spxl';
+import { USD_TICKER_CONTENT } from './usd';
+import { SOXL_TICKER_CONTENT } from './soxl';
+import { TNA_TICKER_CONTENT } from './tna';
+import { NVDA_TICKER_CONTENT } from './nvda';
+import { GOOGL_TICKER_CONTENT } from './googl';
+import { AMZN_TICKER_CONTENT } from './amzn';
+import { META_TICKER_CONTENT } from './meta';
+import { TSLA_TICKER_CONTENT } from './tsla';
+import { TSM_TICKER_CONTENT } from './tsm';
+import { ASML_TICKER_CONTENT } from './asml';
 
 /**
  * 콘텐츠 엔트리가 준비된 티커만 이 레지스트리에 있다 — `PresetTickerKey`(계산 유니버스 전체)의
@@ -142,6 +157,16 @@ import { TXN_TICKER_CONTENT } from './txn';
  * 숨기지 않고 정직하게 다루며, WFC(2020년 팬데믹 시기 80% 삭감)·TGT(배당킹 지위가 압박받는 둔화된
  * 인상 속도)도 마찬가지다. SPHD는 2026-08-02 세션에서 발행사 페이지가 스크립트 렌더라 콘텐츠를
  * 만들지 못했으나, 이번엔 애그리게이터 종합으로 보완했다.
+ * 2026-08-17: 5차 확충 15종 추가(105→120종) — **검색 인지도만 보고 골랐다.** 프리셋에 있으나
+ * 소개 글이 없는 티커는 이 시점에 221종이었고, 그중 한국 투자자 검색량이 가장 큰 두 묶음만
+ * 골랐다: 레버리지(TQQQ·QLD·SSO·UPRO·SPXL·USD·SOXL·TNA)와 메가캡 성장주(NVDA·GOOGL·AMZN·
+ * META·TSLA·TSM·ASML). 나머지는 남겨 둔다 — 같은 뼈대에 숫자만 바뀐 페이지를 대량 생성하면
+ * 얇은 콘텐츠로 판정돼 잘 있는 페이지까지 끌어내린다(`TickerHubPage.utils.ts` 의 같은 규율).
+ * 이 확충으로 카테고리 둘이 늘었다(`leveraged` · `growth-stock`) — 레버리지를 코어 지수와,
+ * 무배당 성장주를 개별 배당주와 같은 칸에 두면 그 묶음의 `caution` 한 줄이 거짓말이 된다.
+ * AMZN·TSLA 는 배당이 아예 없어(`frequency: 'none'`) 페이지가 "이 종목은 배당을 주지 않는다"를
+ * 먼저 말하고, 배당 0인 종목이 이 앱의 정합 모델에서 어떻게 계산되는지를 본문으로 다룬다.
+ * NVDA 는 2026년 5월 분기 배당을 0.01→0.25달러(2,400%)로 올린 사실을 그대로 싣는다.
  *
  * ⚠ 티커 하나를 추가하면 손댈 곳은 **셋**이다: 이 레지스트리, `index.ts` 배럴, 그리고
  * `shared/constants/tickerPages/index.ts` 의 `TICKER_PAGE_INDEX`(랜딩 검색용 경량 인덱스).
@@ -252,7 +277,22 @@ export const TICKER_CONTENT_REGISTRY = {
   CVS: CVS_TICKER_CONTENT,
   GD: GD_TICKER_CONTENT,
   AVGO: AVGO_TICKER_CONTENT,
-  TXN: TXN_TICKER_CONTENT
+  TXN: TXN_TICKER_CONTENT,
+  TQQQ: TQQQ_TICKER_CONTENT,
+  QLD: QLD_TICKER_CONTENT,
+  SSO: SSO_TICKER_CONTENT,
+  UPRO: UPRO_TICKER_CONTENT,
+  SPXL: SPXL_TICKER_CONTENT,
+  USD: USD_TICKER_CONTENT,
+  SOXL: SOXL_TICKER_CONTENT,
+  TNA: TNA_TICKER_CONTENT,
+  NVDA: NVDA_TICKER_CONTENT,
+  GOOGL: GOOGL_TICKER_CONTENT,
+  AMZN: AMZN_TICKER_CONTENT,
+  META: META_TICKER_CONTENT,
+  TSLA: TSLA_TICKER_CONTENT,
+  TSM: TSM_TICKER_CONTENT,
+  ASML: ASML_TICKER_CONTENT
 } as const satisfies Partial<Record<PresetTickerKey, TickerContent>>;
 
 /** SEO 콘텐츠가 준비된 티커 심볼만의 유니언 — `PresetTickerKey`의 부분집합. */

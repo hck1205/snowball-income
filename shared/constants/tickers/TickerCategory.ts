@@ -13,7 +13,20 @@ export const TICKER_CATEGORY_LABEL = {
   reit: '리츠(REITs)',
   international: '해외 배당 ETF',
   'core-index': '코어 지수 ETF',
-  'dividend-stock': '개별 배당주'
+  /**
+   * 레버리지 ETF(2026-08-17). 코어 지수와 같은 칸에 두지 않는 이유는 상품 성격이 다르기 때문이다 —
+   * 일간 목표 상품이라 보유 기간이 길어질수록 기초지수 배수와 멀어지고, 이 앱의 결정론적 계산
+   * 모델이 그 위험을 표현하지 못한다. 묶음을 갈라야 `caution` 한 줄로 그 사실을 먼저 말할 수 있다.
+   */
+  leveraged: '레버리지 ETF',
+  'dividend-stock': '개별 배당주',
+  /**
+   * 성장주(2026-08-17). '개별 배당주' 와 가르는 기준은 **배당 이력의 길이**다 — AAPL(15년)·
+   * MSFT(24년)처럼 오래 늘려 온 종목은 배당주로 두고, 배당이 없거나(AMZN·TSLA) 도입한 지
+   * 2년 남짓인(GOOGL·META·NVDA) 종목을 여기 모은다. 배당 목적으로 검색해 들어온 사람이
+   * 두 묶음을 같은 것으로 읽지 않게 하는 것이 이 칸의 목적이다.
+   */
+  'growth-stock': '성장주(무배당·저배당)'
 } as const;
 
 export type TickerCategoryId = keyof typeof TICKER_CATEGORY_LABEL;
@@ -96,6 +109,20 @@ export const TICKER_CATEGORY_META: Record<TickerCategoryId, TickerCategoryMeta> 
       '시장 전체를 따라가는 지수 ETF를 모았습니다. 배당이 주목적은 아니지만 배당 포트폴리오의 비교 기준으로 자주 쓰입니다.',
     caution:
       '코어 지수 ETF는 배당률이 낮습니다. 월 배당 현금흐름이 목적이라면 이 묶음만으로는 목표에 닿지 않습니다.'
+  },
+  leveraged: {
+    metaTitle: '레버리지 ETF 모음 — 배수는 하루치에만 걸린다',
+    description:
+      '지수의 하루치 수익률을 2배·3배로 추종하는 ETF를 모았습니다. 일간 재조정이 무엇을 만드는지, 배수를 올릴수록 장기 기대값이 어떻게 달라지는지 종목별로 정리했습니다.',
+    caution:
+      '레버리지 ETF의 배수는 **하루치 수익률에만** 걸립니다. 매일 재조정하기 때문에 횡보 구간에서는 지수가 제자리여도 원금이 줄고, 배수가 클수록 그 손실이 제곱으로 커집니다.'
+  },
+  'growth-stock': {
+    metaTitle: '성장주 모음 — 배당보다 주가로 답하는 종목',
+    description:
+      '배당이 없거나 배당을 시작한 지 얼마 되지 않은 대형 성장주를 모았습니다. 배당 이력이 어디까지 쌓였는지와, 배당이 없는 종목이 이 시뮬레이터에서 어떻게 계산되는지 정리했습니다.',
+    caution:
+      '이 묶음의 종목들은 배당 현금흐름을 만들지 못합니다. 배당이 0이면 시뮬레이터의 결과가 전액 주가 성장 가정에 의존하며, 보유하는 동안 들어오는 돈은 없습니다.'
   },
   'dividend-stock': {
     metaTitle: '개별 배당주 모음 — 종목 하나를 직접 고를 때',

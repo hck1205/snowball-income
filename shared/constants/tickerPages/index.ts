@@ -121,7 +121,24 @@ export const TICKER_PAGE_INDEX = [
   { symbol: 'CVS', slug: 'cvs' },
   { symbol: 'GD', slug: 'gd' },
   { symbol: 'AVGO', slug: 'avgo' },
-  { symbol: 'TXN', slug: 'txn' }
+  { symbol: 'TXN', slug: 'txn' },
+  /* 5차 확충(2026-08-17) — 레버리지 8종 */
+  { symbol: 'TQQQ', slug: 'tqqq' },
+  { symbol: 'QLD', slug: 'qld' },
+  { symbol: 'SSO', slug: 'sso' },
+  { symbol: 'UPRO', slug: 'upro' },
+  { symbol: 'SPXL', slug: 'spxl' },
+  { symbol: 'USD', slug: 'usd' },
+  { symbol: 'SOXL', slug: 'soxl' },
+  { symbol: 'TNA', slug: 'tna' },
+  /* 5차 확충(2026-08-17) — 성장주 7종 */
+  { symbol: 'NVDA', slug: 'nvda' },
+  { symbol: 'GOOGL', slug: 'googl' },
+  { symbol: 'AMZN', slug: 'amzn' },
+  { symbol: 'META', slug: 'meta' },
+  { symbol: 'TSLA', slug: 'tsla' },
+  { symbol: 'TSM', slug: 'tsm' },
+  { symbol: 'ASML', slug: 'asml' }
 ] as const;
 
 /** 인덱스 한 줄. 심볼은 대문자, slug 는 소문자(라우트 파라미터와 같은 형태). */

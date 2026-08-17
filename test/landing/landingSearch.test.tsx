@@ -67,9 +67,15 @@ describe('랜딩 — 종목 검색', () => {
 
   it('결과가 없으면 사유를 말하고, "소개 글이 준비된 종목" 셋으로 안내한다', async () => {
     renderLandingPage();
-    await typeQuery('테슬라');
+    /*
+     * 🔴 **실재하는 종목명을 "결과 없음" 질의로 쓰지 마라.** 예전에는 '테슬라' 였는데, 소개 페이지가
+     * 늘 때마다 그 이름이 걸리기 시작한다(2026-08-17 TSLA 페이지 추가로 실제로 깨졌다). 회귀가
+     * 아니라 검색이 맞게 동작한 결과다 — 라이브러리가 커져도 절대 걸릴 수 없는 문자열을 쓴다.
+     */
+    const NEVER_MATCHES = '존재하지않는종목';
+    await typeQuery(NEVER_MATCHES);
 
-    expect(await screen.findByText(LANDING_COPY.search.empty('테슬라'))).toBeInTheDocument();
+    expect(await screen.findByText(LANDING_COPY.search.empty(NEVER_MATCHES))).toBeInTheDocument();
 
     const fallbackTitle = screen.getByText(LANDING_COPY.search.fallbackTitle);
     // 🔴 "추천 종목"이라고 부르면 투자 권유다. 문구가 바뀌면 여기서 잡는다.
