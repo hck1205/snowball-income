@@ -8,6 +8,14 @@ var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __esm = (fn, res, err) => function __init() {
+  if (err) throw err[0];
+  try {
+    return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
+  } catch (e) {
+    throw err = [e], e;
+  }
+};
 var __commonJS = (cb, mod) => function __require() {
   try {
     return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
@@ -1005,6 +1013,33 @@ var require_extends = __commonJS({
       }, module.exports.__esModule = true, module.exports["default"] = module.exports, _extends2.apply(null, arguments);
     }
     module.exports = _extends2, module.exports.__esModule = true, module.exports["default"] = module.exports;
+  }
+});
+
+// shared/lib/storage/storagePrefix.ts
+var STORAGE_PREFIX, storageKey;
+var init_storagePrefix = __esm({
+  "shared/lib/storage/storagePrefix.ts"() {
+    "use strict";
+    STORAGE_PREFIX = "hungryhippo:";
+    storageKey = (suffix) => `${STORAGE_PREFIX}${suffix}`;
+  }
+});
+
+// shared/lib/storage/migrateLegacyStorage.ts
+var init_migrateLegacyStorage = __esm({
+  "shared/lib/storage/migrateLegacyStorage.ts"() {
+    "use strict";
+    init_storagePrefix();
+  }
+});
+
+// shared/lib/storage/index.ts
+var init_storage = __esm({
+  "shared/lib/storage/index.ts"() {
+    "use strict";
+    init_storagePrefix();
+    init_migrateLegacyStorage();
   }
 });
 
@@ -16817,6 +16852,7 @@ var HELP_CONTENT = {
 };
 
 // shared/constants/tour/index.ts
+init_storage();
 var TOUR_TARGET = {
   openSettings: "open-settings",
   tickerCreate: "ticker-create",
@@ -16827,6 +16863,7 @@ var TOUR_TARGET = {
   quickActions: "quick-actions",
   scenarioTabs: "scenario-tabs"
 };
+var TOUR_STORAGE_KEY = storageKey("tutorial:v1");
 var TOUR_STEPS = [
   {
     id: "open-settings",
@@ -16904,6 +16941,7 @@ var YEARLY_SERIES_COLOR = {
 
 // jotai/snowball/atoms/ui/index.ts
 var import_react3 = __toESM(require_react(), 1);
+init_storage();
 var activeHelpAtom = atomState(null);
 var isTickerModalOpenAtom = atomState(false);
 var isConfigDrawerOpenAtom = atomState(false);
@@ -16926,7 +16964,7 @@ var selectedPresetAtom = atomState("custom");
 var tourLaunchRequestAtom = atomState(0);
 var scenarioPrefillAtom = atomState(null);
 var shareLinkFailureAtom = atomState(null);
-var PALETTE_STORAGE_KEY = "snowball:palette";
+var PALETTE_STORAGE_KEY = storageKey("palette");
 var paletteStorage = {
   getItem: (key, initialValue) => {
     try {
@@ -16976,7 +17014,7 @@ var palettePresetAtom = atom(
     applyPaletteToDocument(toVisiblePalettePresetId(get(palettePresetStorageAtom)));
   }
 );
-var COLOR_SCHEME_STORAGE_KEY = "snowball:color-scheme";
+var COLOR_SCHEME_STORAGE_KEY = storageKey("color-scheme");
 var DEFAULT_COLOR_SCHEME_PREFERENCE = "system";
 var normalizeColorSchemePreference = (value) => value === "light" || value === "dark" ? value : DEFAULT_COLOR_SCHEME_PREFERENCE;
 var colorSchemeStorage = {
@@ -17029,7 +17067,7 @@ var colorSchemeAtom = atom(
     applyColorSchemeToDocument(get(colorSchemeStorageAtom));
   }
 );
-var DISPLAY_CURRENCY_STORAGE_KEY = "snowball:display-currency";
+var DISPLAY_CURRENCY_STORAGE_KEY = storageKey("display-currency");
 var displayCurrencyStorage = {
   getItem: (key, initialValue) => {
     try {
@@ -17436,6 +17474,14 @@ var normalizePersistedAppState = (rawValue) => {
     savedName: sanitizeSavedName(parsed?.savedName)
   };
 };
+
+// jotai/snowball/persistence/portfolioDbMigration.ts
+init_storage();
+var MIGRATED_KEY = storageKey("idb-migrated:v1");
+
+// jotai/snowball/persistence/workspaceMarker.ts
+init_storage();
+var HAS_WORKSPACE_KEY = storageKey("has-workspace");
 
 // jotai/snowball/selectors/simulation.ts
 var validationAtom = atom((get) => validateFormValues(get(yieldFormAtom)));
