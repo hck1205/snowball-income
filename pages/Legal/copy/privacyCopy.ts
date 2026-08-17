@@ -214,7 +214,7 @@ export const PRIVACY_DOCUMENT: LegalDocumentModel = {
           caption: '브라우저 저장소에 남는 값',
           columns: ['저장 위치', '저장되는 값'],
           rows: [
-            ['IndexedDB(snowball-income-db)', '시뮬레이터 입력값, 시나리오 탭, 이름을 붙여 저장한 슬롯'],
+            ['IndexedDB(hungryhippo-db)', '시뮬레이터 입력값, 시나리오 탭, 이름을 붙여 저장한 슬롯'],
             ['IndexedDB(snowball-portfolio)', '내 포트폴리오의 보유 종목과 수량, 배당소득세율'],
             ['IndexedDB(snowball-dividend-calendar)', '배당 캘린더에서 선택한 종목'],
             [

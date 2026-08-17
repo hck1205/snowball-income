@@ -2,12 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link2, RotateCcw } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { TickerPageShell } from '@/pages/Ticker/components';
-import {
-  INVESTOR_AXES,
-  INVESTOR_QUESTIONS,
-  PORTFOLIO_PRESET_PLACEHOLDERS,
-  PRESET_QUERY_PARAM
-} from './InvestorTypePage.deps';
+import { INVESTOR_AXES, INVESTOR_QUESTIONS } from '@/shared/constants/investorType';
+import { PORTFOLIO_PRESET_PLACEHOLDERS } from '@/shared/constants/portfolioPresets';
+import { PRESET_QUERY_PARAM } from '@/pages/Main/components/MainRightPanel/hooks';
 import { INVESTOR_TYPE_PATH, SIMULATOR_PATH } from '@/shared/constants/routes';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import { storageKey } from '@/shared/lib/storage';

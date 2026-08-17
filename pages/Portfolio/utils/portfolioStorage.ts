@@ -9,7 +9,7 @@ import type { PortfolioHolding, PortfolioManualMarketInput } from '@/shared/lib/
  * 내 포트폴리오(`/dividend/portfolio`)의 보유 목록 로컬 저장 (IndexedDB).
  *
  * ## 전용 DB 를 새로 연다
- * 시뮬레이터 자동저장(`snowball-income-db`)이나 배당 캘린더(`snowball-dividend-calendar`)에
+ * 시뮬레이터 자동저장(`hungryhippo-db`)이나 배당 캘린더(`snowball-dividend-calendar`)에
  * 스토어를 얹으려면 그 DB 의 **버전을 올려야** 하고, 그건 이미 저장된 사용자 데이터 전체를
  * 마이그레이션 리스크에 태우는 일이다. 그래서 이 파일은 완전히 분리된 DB 하나만 만지며,
  * 시뮬레이터의 영속 payload·공유 URL(`?share=`·`?s=`)·클라우드 스키마와 **한 바이트도 겹치지 않는다**.
