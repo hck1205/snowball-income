@@ -84,6 +84,16 @@ function InvestmentSettingsComponent({
               value={values.durationYears}
               onChange={(event) => onSetField('durationYears', Number(event.target.value))}
             />
+            {/*
+              🔴 **비워 두는 것이 기본이고, 그 상태가 정답인 경우가 많다**(2026-08-18).
+              세율은 종목의 상장지에서 갈리므로(미국 상장 15% · 국내 상장 15.4%) 엔진이 종목마다
+              판정하게 두는 편이 정확하다 — 미국·국내를 섞은 포트폴리오는 단일 숫자로 맞출 수가 없다.
+              그래서 값을 넣지 않았을 때 필드를 **빈 칸 + "자동"** 으로 보여 준다: 예전처럼 15 를 미리
+              박아 넣으면 사용자가 입력한 것과 구별되지 않아 파생이 죽고, 국내 종목이 15% 로 계산된다
+              (`SnowballForm` 의 `taxRate` 주석).
+              ⚠ 힌트는 값이 있을 때도 남긴다 — 이미 15 가 저장된 옛 탭에서 "왜 15.4 가 아닌가"를
+                사용자가 스스로 알아챌 수 있는 유일한 단서다.
+            */}
             <InputField
               label="세율 (%)"
               type="number"
@@ -91,6 +101,8 @@ function InvestmentSettingsComponent({
               max={100}
               step={0.1}
               value={values.taxRate ?? ''}
+              placeholder="자동"
+              hint="비우면 종목별 자동 — 미국 상장 15% · 국내 상장 15.4%"
               onChange={(event) => {
                 const next = event.target.value;
                 onSetField('taxRate', next === '' ? undefined : Number(next));
