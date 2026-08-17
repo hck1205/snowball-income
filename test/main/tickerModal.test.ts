@@ -256,3 +256,46 @@ describe('레버리지 프리셋 검색 (실제 유니버스)', () => {
     expect(search('3배').sort()).toEqual(['SOXL', 'SPXL', 'TNA', 'TQQQ', 'UPRO']);
   });
 });
+
+/**
+ * 커버드콜(옵션인컴) 계열 검색 — 2026-08-17.
+ *
+ * 🔴 이 테스트가 막는 사고: **목록에는 있는데 검색으로는 없는 종목.** 사용자가 "QQQI 는 있는데
+ *    GPIQ 는 안 보인다"고 한 것이 실제로 이 계열의 절반이 `커버드콜` 로 안 걸리던 상태였다
+ *    (글로벌 X 3종만 한글명에 그 낱말이 있었다). 한글명 접미사를 떼면 여기가 빨개진다.
+ */
+describe('커버드콜 프리셋 검색 (실제 유니버스)', () => {
+  const universe = DIVIDEND_UNIVERSE as unknown as Record<PresetTickerKey, TickerDraft>;
+  const allKeys = Object.keys(universe) as PresetTickerKey[];
+  const search = (keyword: string): PresetTickerKey[] =>
+    filterPresetKeys({
+      presetKeys: allKeys,
+      presetTickers: universe,
+      koreanNameByTicker: PRESET_TICKER_KOREAN_NAME_BY_TICKER,
+      keyword
+    });
+
+  /**
+   * `OPTION_INCOME_ETFS` 전량 + 국내 상장 커버드콜 1종(`483290.KS` KODEX 미국배당다우존스타겟커버드콜).
+   * 국내 종목이 함께 걸리는 것은 **의도한 결과**다 — 그 종목의 공식 명칭 자체에 "커버드콜"이 들어 있고,
+   * 같은 성격의 종목을 한 검색어로 모아 보는 것이 이 검색의 목적이다.
+   * 이 계열에 종목을 넣고 한글명을 빠뜨리면 아래 두 케이스가 잡는다.
+   */
+  const OPTION_INCOME = [
+    '483290.KS',
+    'BALI', 'DIVO', 'DJIA', 'FTHI', 'FTQI', 'GPIQ', 'GPIX', 'IDVO', 'ISPY', 'IWMI', 'IYRI',
+    'JEPI', 'JEPQ', 'KNG', 'PBP', 'QDVO', 'QQQI', 'QQQT', 'QYLD', 'RYLD', 'SPYI', 'SPYT', 'XYLD'
+  ];
+
+  it('티커로 찾는다 — GPIQ', () => {
+    expect(search('gpiq')).toEqual(['GPIQ']);
+  });
+
+  it('"커버드콜" 로 옵션인컴 계열 전량이 걸린다', () => {
+    expect(search('커버드콜').sort()).toEqual(OPTION_INCOME);
+  });
+
+  it('"커버드 콜"(공백) 로도 같은 결과가 나온다', () => {
+    expect(search('커버드 콜').sort()).toEqual(OPTION_INCOME);
+  });
+});

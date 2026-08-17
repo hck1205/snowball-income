@@ -519,6 +519,101 @@ describe('payoutMonthsSource 이월 (매일 가격 갱신)', () => {
   });
 });
 
+/**
+ * 🔴 배당을 **중단한** 종목이 캘린더에서 계속 배당하는 사고를 막는다.
+ *
+ * `inferPayoutMonths` 는 마지막 지급일 기준 3년 창을 보므로, 중단 이전 이력만으로 지급월을 계속
+ * 만들어 낸다 — 인텔(마지막 지급 2024-08-07)이 2026년 갱신에서도 `[2,5,8,11]` 을 얻는다.
+ * 배당 캘린더는 지급월이 있으면 그것을 무배당 판정보다 **먼저** 믿으므로
+ * (`pages/DividendCalendar/utils/calendarSchedule.ts`), 2년째 한 푼도 안 주는 종목이 분기 배당
+ * 종목으로 화면에 뜬다.
+ */
+describe('지급이 끊긴 종목은 일정을 주장하지 않는다', () => {
+  const snapshotWith = (entries: Record<string, MarketDataSnapshotEntry>) => ({
+    asOf: '2026-07-01',
+    source: 'fixture',
+    entries
+  });
+
+  /** 인텔형: 분기 지급을 하다 2024-08 이후 완전히 멈춘 이력. */
+  const STOPPED_DIVIDENDS = [
+    ...quarterlyHistory({ 2022: 0.5, 2023: 0.5 }),
+    { date: '2024-02-07', amount: 0.125 },
+    { date: '2024-05-06', amount: 0.125 },
+    { date: '2024-08-07', amount: 0.125 }
+  ];
+
+  const stoppedProvider = createFixtureProvider({
+    quotes: { INTC: 102.5 },
+    dividends: { INTC: STOPPED_DIVIDENDS }
+  });
+
+  it('중단 이전 이력으로 지급월을 새로 만들지 않는다', async () => {
+    const result = await run(['INTC'], stoppedProvider);
+    const entry = result.snapshot.entries.INTC;
+
+    expect(entry).not.toHaveProperty('payoutMonths');
+    expect(entry).not.toHaveProperty('payoutMonthsSource');
+    // 가격은 정상적으로 갱신된다 — 지우는 것은 일정뿐이다.
+    expect(entry.initialPrice).toBe(102.5);
+  });
+
+  it('스냅샷에 남아 있던 지급월도 비운다 (출처가 실측 pay 여도 마찬가지)', async () => {
+    const result = await run(
+      ['INTC'],
+      stoppedProvider,
+      snapshotWith({
+        INTC: {
+          initialPrice: 105.17,
+          dividendYield: 0,
+          frequency: 'quarterly',
+          payoutMonths: [2, 5, 8, 11],
+          payoutMonthsSource: 'pay',
+          estimatedPayDayByMonth: { '2': 1, '5': 1, '8': 1, '11': 1 }
+        }
+      })
+    );
+    const entry = result.snapshot.entries.INTC;
+
+    expect(entry).not.toHaveProperty('payoutMonths');
+    expect(entry).not.toHaveProperty('payoutMonthsSource');
+    expect(entry).not.toHaveProperty('estimatedPayDayByMonth');
+  });
+
+  it('정상 지급 중인 종목은 영향을 받지 않는다', async () => {
+    const provider = createFixtureProvider({ quotes: { SCHD: 32.1 }, dividends: { SCHD: SCHD_DIVIDENDS } });
+
+    const entry = (await run(['SCHD'], provider)).snapshot.entries.SCHD;
+
+    expect(entry.payoutMonths).toEqual([3, 6, 9, 12]);
+    expect(entry.payoutMonthsSource).toBe('ex');
+  });
+
+  it('🔴 이력이 빈 응답은 일정을 지우지 않는다 — "끊겼다"가 아니라 "모른다"다', async () => {
+    // 공급자 이상치 한 번이 멀쩡한 종목의 캘린더를 지우면 안 된다.
+    const emptyProvider = createFixtureProvider({ quotes: { SCHD: 32.1 }, dividends: { SCHD: [] } });
+
+    const entry = (
+      await run(
+        ['SCHD'],
+        emptyProvider,
+        snapshotWith({
+          SCHD: {
+            initialPrice: 32,
+            dividendYield: 3.4,
+            frequency: 'quarterly',
+            payoutMonths: [3, 6, 9, 12],
+            payoutMonthsSource: 'pay'
+          }
+        })
+      )
+    ).snapshot.entries.SCHD;
+
+    expect(entry.payoutMonths).toEqual([3, 6, 9, 12]);
+    expect(entry.payoutMonthsSource).toBe('pay');
+  });
+});
+
 describe('derived-growth warning (soft guard)', () => {
   it('warns when a refreshed yield overruns the curated expectedTotalReturn', async () => {
     // QYLD: curated etr 7%. An 11%+ TTM yield forces the derived growth negative.

@@ -36,6 +36,13 @@ const minusYears = (time: number, years: number): number => {
   return date.getTime();
 };
 
+/** Subtracts whole months from an ISO date, in UTC. */
+const minusMonths = (time: number, months: number): number => {
+  const date = new Date(time);
+  date.setUTCMonth(date.getUTCMonth() - months);
+  return date.getTime();
+};
+
 const median = (values: readonly number[]): number | null => {
   if (values.length === 0) return null;
   const sorted = [...values].sort((left, right) => left - right);
@@ -218,6 +225,49 @@ const PAYMENTS_PER_YEAR: Record<Frequency, number> = {
   semiannual: 2,
   annual: 1,
   none: 0
+};
+
+/**
+ * 지급이 이만큼 끊기면 "지급 일정이 있다"고 더는 말하지 않는다.
+ *
+ * 12 가 아니라 **18** 인 이유: 연 1회 지급 종목은 지급일이 몇 달만 밀려도 12개월 창을 벗어난다
+ * (그때 일정을 지우면 멀쩡한 종목의 캘린더가 사라진다). 18개월이면 연 1회 종목도 반드시 한 번은
+ * 들어오고, 배당을 실제로 중단한 종목만 걸린다.
+ */
+export const STALE_PAYOUT_SCHEDULE_MONTHS = 18;
+
+/**
+ * 지급 일정을 **더는 주장하면 안 되는** 상태인가 — 마지막 지급이 `staleMonths` 보다 오래됐는가.
+ *
+ * ## 이 함수가 막는 사고
+ *
+ * `inferPayoutMonths` 는 **마지막 지급일 기준** 3년 창을 본다. 그래서 배당을 중단한 종목도 중단
+ * 이전의 이력으로 지급월을 계속 만들어 낸다 — 인텔(마지막 지급 2024-08-07)이 2026년에도
+ * `[2,5,8,11]` 을 얻는다. 배당 캘린더는 지급월이 있으면 그것을 먼저 믿으므로
+ * (`pages/DividendCalendar/utils/calendarSchedule.ts`), 2년째 한 푼도 안 주는 종목이 **분기 배당
+ * 종목으로** 화면에 뜬다.
+ *
+ * ## 🔴 "모른다"와 "끊겼다"를 가른다 — 이력이 비면 `false`
+ *
+ * 이 파이프라인의 기본 규칙은 "모르면 이전 값을 지킨다"이고, 이 함수는 그 규칙의 예외가 아니라
+ * **적용 조건을 좁히는 장치**다. 지급 이력이 아예 없는 응답은 공급자 이상치일 수 있으므로
+ * (Yahoo 가 일시적으로 빈 배열을 줄 수 있다) `false` 를 돌려 이전 값을 그대로 두게 한다.
+ * `true` 는 **이력이 실재하고 그 마지막이 오래됐을 때만** — 즉 추측이 아니라 관측된 결론일 때만
+ * 나온다. 그래야 한 번의 실패한 응답이 멀쩡한 종목의 일정을 지우지 못한다.
+ */
+export const hasStalePayoutSchedule = (
+  dividends: readonly DividendPayment[],
+  asOf: string,
+  staleMonths: number = STALE_PAYOUT_SCHEDULE_MONTHS
+): boolean => {
+  const asOfTime = toTime(asOf);
+  if (asOfTime === null) return false;
+
+  const payments = sanitize(dividends);
+  if (payments.length === 0) return false;
+
+  const latest = payments[payments.length - 1].time;
+  return latest < minusMonths(asOfTime, staleMonths);
 };
 
 /**

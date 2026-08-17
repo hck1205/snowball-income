@@ -8854,19 +8854,6 @@ var marketData_generated_default = {
         "12": 31
       }
     },
-    INTC: {
-      initialPrice: 105.17,
-      dividendYield: 0,
-      frequency: "quarterly",
-      observedDividendCagr: -9.22,
-      payoutMonths: [
-        2,
-        5,
-        8,
-        11
-      ],
-      payoutMonthsSource: "ex"
-    },
     IRM: {
       initialPrice: 126.74,
       dividendYield: 2.66,
@@ -10753,7 +10740,10 @@ var OPTION_INCOME_ETFS = {
   },
   QDVO: {
     ticker: "QDVO",
-    name: "QRAFT AI-Enhanced U.S. Dividend ETF",
+    /* 2026-08-17 정정: 'QRAFT AI-Enhanced U.S. Dividend ETF' 로 적혀 있었으나 그런 종목이 아니다.
+       QDVO 는 2024-09 상장한 앰플리파이의 성장·인컴 ETF(DIVO 의 성장주 버전)다 — Yahoo
+       `chart.meta.longName` 과 첫 분배일(2024-09-27)이 모두 이 이름을 가리킨다. */
+    name: "Amplify CWP Growth & Income ETF",
     initialPrice: 27,
     dividendYield: 6.5,
     dividendGrowth: 2.5,
@@ -10803,6 +10793,144 @@ var OPTION_INCOME_ETFS = {
     dividendYield: 14.38,
     dividendGrowth: -5.38,
     expectedTotalReturn: 9,
+    frequency: "monthly"
+  },
+  /* ── 2026-08-17 확충분 (실측일 2026-08-17, 근거는 파일 머리말) ───────────────────────── */
+  GPIQ: {
+    ticker: "GPIQ",
+    name: "Goldman Sachs Nasdaq-100 Premium Income ETF",
+    initialPrice: 57.66,
+    dividendYield: 9.82,
+    /* 나스닥100 11% − 1.5. 같은 지수의 QQQI(9)보다 높게 잡은 이유: 콜을 일부에만 쓰는 액티브
+       운용이라 분배율이 9.8%(QQQI 14.4%)로 낮고, 보수 0.29% 는 이 묶음에서 가장 싸다. */
+    dividendGrowth: -0.32,
+    expectedTotalReturn: 9.5,
+    frequency: "monthly"
+  },
+  GPIX: {
+    ticker: "GPIX",
+    name: "Goldman Sachs S&P 500 Premium Income ETF",
+    initialPrice: 56.61,
+    dividendYield: 7.99,
+    /* S&P 500 9.5% − 1. 같은 지수·같은 성격인 SPYI(8.5)와 같은 값이다. */
+    dividendGrowth: 0.51,
+    expectedTotalReturn: 8.5,
+    frequency: "monthly"
+  },
+  IWMI: {
+    ticker: "IWMI",
+    name: "NEOS Russell 2000 High Income ETF",
+    initialPrice: 53.65,
+    dividendYield: 13.35,
+    /* 러셀2000 8% − 1. 같은 지수의 RYLD(7)와 같은 값 — 기초지수가 낮은 것이 차감폭보다 먼저 온다. */
+    dividendGrowth: -6.35,
+    expectedTotalReturn: 7,
+    frequency: "monthly"
+  },
+  IYRI: {
+    ticker: "IYRI",
+    name: "NEOS Real Estate High Income ETF",
+    initialPrice: 49.98,
+    dividendYield: 10.83,
+    /* 미국 리츠 8%(VNQ) − 1. */
+    dividendGrowth: -3.83,
+    expectedTotalReturn: 7,
+    frequency: "monthly"
+  },
+  DJIA: {
+    ticker: "DJIA",
+    name: "Global X Dow 30 Covered Call ETF",
+    initialPrice: 22.81,
+    dividendYield: 10.3,
+    /* 다우30 8.5%(DIA) − 2. 전량 커버라 차감폭은 형제 종목 XYLD(9.5→7.5)와 같다. */
+    dividendGrowth: -3.8,
+    expectedTotalReturn: 6.5,
+    frequency: "monthly"
+  },
+  FTQI: {
+    ticker: "FTQI",
+    name: "First Trust Nasdaq BuyWrite Income ETF",
+    initialPrice: 22.4,
+    dividendYield: 10.92,
+    /* 나스닥100 11% − 2.5. 부분 커버 액티브(QQQI 급)지만 보수 0.75% 가 붙어 반 칸 더 깎았다. */
+    dividendGrowth: -2.42,
+    expectedTotalReturn: 8.5,
+    frequency: "monthly"
+  },
+  FTHI: {
+    ticker: "FTHI",
+    name: "First Trust BuyWrite Income ETF",
+    initialPrice: 24.33,
+    dividendYield: 8.63,
+    /* S&P 500 9.5% − 1.5. 보수 0.85% 를 감안해 GPIX·SPYI(8.5)보다 반 칸 아래. */
+    dividendGrowth: -0.63,
+    expectedTotalReturn: 8,
+    frequency: "monthly"
+  },
+  KNG: {
+    ticker: "KNG",
+    name: "FT Cboe Vest S&P 500 Dividend Aristocrats Target Income ETF",
+    initialPrice: 52.07,
+    dividendYield: 8.08,
+    /* 배당귀족 9%(NOBL) − 1. 이 묶음에서 유일하게 기초가 지수가 아니라 **배당귀족 바스켓**이고,
+       콜은 보유 종목의 일부에만 쓴다. */
+    dividendGrowth: -0.08,
+    expectedTotalReturn: 8,
+    frequency: "monthly"
+  },
+  BALI: {
+    ticker: "BALI",
+    name: "iShares U.S. Large Cap Premium Income Active ETF",
+    initialPrice: 35.18,
+    dividendYield: 7.55,
+    /* S&P 500 9.5% − 1. 보수 0.35% 의 액티브 부분 커버 — SPYI·GPIX 와 같은 자리. */
+    dividendGrowth: 0.95,
+    expectedTotalReturn: 8.5,
+    frequency: "monthly"
+  },
+  ISPY: {
+    ticker: "ISPY",
+    name: "ProShares S&P 500 High Income ETF",
+    initialPrice: 49.12,
+    dividendYield: 4.95,
+    /* S&P 500 9.5% − 1. 이 묶음에서 배당률이 가장 낮은(4.95%) 대신 **성장률이 유일하게 3%대로
+       양수**다 — 만기 1일 콜을 매일 새로 팔아 상방을 덜 넘기는 구조라, "커버드콜은 다 NAV 가
+       깎인다"가 아니라 분배율과 성장의 교환이라는 것을 이 종목이 보여 준다. */
+    dividendGrowth: 3.55,
+    expectedTotalReturn: 8.5,
+    frequency: "monthly"
+  },
+  PBP: {
+    ticker: "PBP",
+    name: "Invesco S&P 500 BuyWrite ETF",
+    initialPrice: 23.38,
+    dividendYield: 12.02,
+    /* S&P 500 9.5% − 2. 전량 커버라 XYLD(7.5)와 같은 값 — 같은 지수·같은 전략이므로 겹치는 것이
+       정상이다. 두 종목을 모두 두는 이유는 "내가 가진 티커"로 찾기 위함이다. */
+    dividendGrowth: -4.52,
+    expectedTotalReturn: 7.5,
+    frequency: "monthly"
+  },
+  QQQT: {
+    ticker: "QQQT",
+    name: "Defiance Nasdaq 100 Income Target ETF",
+    initialPrice: 18.37,
+    dividendYield: 19.86,
+    /* 나스닥100 11% − 4. 연 20% 분배를 목표로 스프레드를 굴리고 보수도 0.99% 로 가장 비싸다.
+       🔴 성장률 -12.86 은 오타가 아니다 — 7% 를 벌어 20% 를 꺼내면 차액이 원금에서 나온다(머리말). */
+    dividendGrowth: -12.86,
+    expectedTotalReturn: 7,
+    frequency: "monthly"
+  },
+  SPYT: {
+    ticker: "SPYT",
+    name: "Defiance S&P 500 Target Income ETF",
+    initialPrice: 17.65,
+    dividendYield: 20.44,
+    /* S&P 500 9.5% − 3. QQQT 와 같은 구조를 변동성이 낮은 지수에 얹은 것이라 목표 분배율 20% 를
+       채우려면 더 많은 상방을 팔아야 한다. 🔴 성장률 -13.94 도 같은 이유다(머리말). */
+    dividendGrowth: -13.94,
+    expectedTotalReturn: 6.5,
     frequency: "monthly"
   }
 };
@@ -11456,6 +11584,38 @@ var AI_INFRA_ETFS_AND_STOCKS = {
     dividendYield: 0,
     dividendGrowth: 14,
     expectedTotalReturn: 14,
+    frequency: "none"
+  },
+  /**
+   * 인텔 (2026-08-17 추가). 배당을 **중단한** 종목이라 위 ANET 과 같은 형태(`dividendYield: 0`,
+   * `frequency: 'none'`)로 들어간다 — 마지막 지급이 2024-08-07 이고 그 뒤 2년째 지급이 없다
+   * (2026-08-17 Yahoo 실측: 주가 102.5, TTM 배당률 산출 불가).
+   *
+   * ## 🔴 `wellKnownDividendStocks`(인지도 높은 배당주)에는 일부러 넣지 않았다
+   *
+   * 2026-08-14 확충(`9ee8c55`)에서 **의도적으로 걸러진 종목**이다 — 그 묶음의 선정 기준이
+   * "인지도 + **배당 지급 사실**"이라 배당을 중단한 회사는 자격이 없다. 그 결정을 뒤집지 않으면서도
+   * 인텔을 찾을 수 있게 하는 자리가 여기다: 이 묶음의 근거는 배당이 아니라 **반도체·AI 인프라**이고,
+   * 배당률 0% 인 ANET 이 이미 같은 이유로 앉아 있다.
+   *
+   * ## `expectedTotalReturn` 을 8% 로 둔 이유 — 섹터 평균(SMH 12%)을 주지 않는다
+   *
+   * 12% 를 적으면 "인텔이 반도체 지수만큼 한다"는 **주장**이 된다. 파운드리 전환 중인 회사에 대해
+   * 이 앱이 할 주장이 아니다. 그래서 `wellKnownDividendStocks` 가 쓰는 **광의의 주식 기대수익률
+   * 8% 균일값**을 그대로 쓴다 — 특정 회사의 미래를 주장하지 않는 모델링 가정이고, 사용자가 화면에서
+   * 바로 고친다. 5년 배당 CAGR 로 유도하는 길은 이 종목에서 특히 못 쓴다(그 파일 머리말이 든 예가
+   * 바로 "인텔 14% — 삭감한 해에도 양수"다).
+   *
+   * ⚠ 배당이 0 이므로 이 8% 는 **전부 주가 성장**으로 실현된다(정합 모델에서 `dividendGrowth` 가
+   *   곧 주가 성장률이다). 배당 재투자 시뮬레이션에서는 현금흐름이 0 인 종목으로 계산된다.
+   */
+  INTC: {
+    ticker: "INTC",
+    name: "Intel Corporation",
+    initialPrice: 102.5,
+    dividendYield: 0,
+    dividendGrowth: 8,
+    expectedTotalReturn: 8,
     frequency: "none"
   },
   NVDA: {
@@ -13698,17 +13858,42 @@ var PRESET_TICKER_KOREAN_NAME_BY_TICKER = {
   SPHD: "\uC778\uBCA0\uC2A4\uCF54 S&P 500 \uACE0\uBC30\uB2F9 \uC800\uBCC0\uB3D9\uC131 ETF",
   PEY: "\uC778\uBCA0\uC2A4\uCF54 \uD558\uC774\uC77C\uB4DC \uC5D0\uCFFC\uD2F0 \uB514\uBE44\uB358\uB4DC \uC5B4\uCE58\uBC84\uC2A4 ETF",
   FDL: "\uD37C\uC2A4\uD2B8\uD2B8\uB7EC\uC2A4\uD2B8 \uBAA8\uB2DD\uC2A4\uD0C0 \uB514\uBE44\uB358\uB4DC \uB9AC\uB354\uC2A4 \uC778\uB371\uC2A4 \uD380\uB4DC",
-  JEPI: "JP\uBAA8\uAC74 \uC5D0\uCFFC\uD2F0 \uD504\uB9AC\uBBF8\uC5C4 \uC778\uCEF4 ETF",
-  JEPQ: "JP\uBAA8\uAC74 \uB098\uC2A4\uB2E5 \uC5D0\uCFFC\uD2F0 \uD504\uB9AC\uBBF8\uC5C4 \uC778\uCEF4 ETF",
-  DIVO: "\uC570\uD50C\uB9AC\uD30C\uC774 CWP \uC778\uD578\uC2A4\uB4DC \uB514\uBE44\uB358\uB4DC \uC778\uCEF4 ETF",
-  IDVO: "\uC570\uD50C\uB9AC\uD30C\uC774 \uC778\uD130\uB0B4\uC154\uB110 \uC778\uD578\uC2A4\uB4DC \uB514\uBE44\uB358\uB4DC ETF",
+  /*
+   * 옵션인컴 계열(2026-08-17). 🔴 한글명 끝을 **"커버드콜"** 로 통일했다 — 프리셋 검색이 훑는 것은
+   * 티커·영문명·한글명 셋뿐이라(`filterPresetKeys`), 사용자가 "커버드콜"로 훑으면 그 낱말이 한글명에
+   * 있는 종목만 걸린다. 예전에는 글로벌 X 3종(QYLD·XYLD·RYLD)만 걸려서, 정작 가장 많이 찾는
+   * JEPI·QQQI 가 목록에 있는데도 **검색으로는 없는 종목**이었다.
+   *
+   * ⚠ 엄밀히는 전부 "커버드콜"이 아니다 — JEPI·JEPQ 는 ELN, NEOS 계열은 지수옵션 스프레드,
+   *   NUSI 는 칼라(콜 매도 + 풋 매수)다. 그래도 이 낱말로 통일한 이유는 국내에서 이 묶음 전체를
+   *   "커버드콜 ETF"로 부르기 때문이다. 전략 차이는 각 종목의 `expectedTotalReturn` 주석에 있다
+   *   (`optionIncomeEtfs.ts`).
+   */
+  JEPI: "JP\uBAA8\uAC74 \uC5D0\uCFFC\uD2F0 \uD504\uB9AC\uBBF8\uC5C4 \uC778\uCEF4 \uCEE4\uBC84\uB4DC\uCF5C",
+  JEPQ: "JP\uBAA8\uAC74 \uB098\uC2A4\uB2E5 \uC5D0\uCFFC\uD2F0 \uD504\uB9AC\uBBF8\uC5C4 \uC778\uCEF4 \uCEE4\uBC84\uB4DC\uCF5C",
+  DIVO: "\uC570\uD50C\uB9AC\uD30C\uC774 CWP \uC778\uD578\uC2A4\uB4DC \uB514\uBE44\uB358\uB4DC \uC778\uCEF4 \uCEE4\uBC84\uB4DC\uCF5C",
+  IDVO: "\uC570\uD50C\uB9AC\uD30C\uC774 \uC778\uD130\uB0B4\uC154\uB110 \uC778\uD578\uC2A4\uB4DC \uB514\uBE44\uB358\uB4DC \uCEE4\uBC84\uB4DC\uCF5C",
   AIQ: "\uAE00\uB85C\uBC8C X AI \uBC0F \uAE30\uC220 ETF",
-  QDVO: "\uD06C\uB798\uD504\uD2B8 AI \uC778\uD578\uC2A4\uB4DC \uBBF8\uAD6D \uBC30\uB2F9 ETF",
+  /* 2026-08-17 정정: '크래프트 AI 인핸스드 미국 배당 ETF' 는 QDVO 가 아니다(영문명 주석 참고). */
+  QDVO: "\uC570\uD50C\uB9AC\uD30C\uC774 CWP \uC131\uC7A5 \uC778\uCEF4 \uCEE4\uBC84\uB4DC\uCF5C",
   QYLD: "\uAE00\uB85C\uBC8C X \uB098\uC2A4\uB2E5 100 \uCEE4\uBC84\uB4DC\uCF5C ETF",
   XYLD: "\uAE00\uB85C\uBC8C X S&P 500 \uCEE4\uBC84\uB4DC\uCF5C ETF",
   RYLD: "\uAE00\uB85C\uBC8C X \uB7EC\uC140 2000 \uCEE4\uBC84\uB4DC\uCF5C ETF",
-  SPYI: "NEOS S&P 500 \uD558\uC774 \uC778\uCEF4 ETF",
-  QQQI: "NEOS \uB098\uC2A4\uB2E5 100 \uD558\uC774 \uC778\uCEF4 ETF",
+  SPYI: "NEOS S&P 500 \uD558\uC774 \uC778\uCEF4 \uCEE4\uBC84\uB4DC\uCF5C",
+  QQQI: "NEOS \uB098\uC2A4\uB2E5 100 \uD558\uC774 \uC778\uCEF4 \uCEE4\uBC84\uB4DC\uCF5C",
+  GPIQ: "\uACE8\uB4DC\uB9CC\uC0AD\uC2A4 \uB098\uC2A4\uB2E5 100 \uD504\uB9AC\uBBF8\uC5C4 \uC778\uCEF4 \uCEE4\uBC84\uB4DC\uCF5C",
+  GPIX: "\uACE8\uB4DC\uB9CC\uC0AD\uC2A4 S&P 500 \uD504\uB9AC\uBBF8\uC5C4 \uC778\uCEF4 \uCEE4\uBC84\uB4DC\uCF5C",
+  IWMI: "NEOS \uB7EC\uC140 2000 \uD558\uC774 \uC778\uCEF4 \uCEE4\uBC84\uB4DC\uCF5C",
+  IYRI: "NEOS \uBBF8\uAD6D \uB9AC\uCE20 \uD558\uC774 \uC778\uCEF4 \uCEE4\uBC84\uB4DC\uCF5C",
+  DJIA: "\uAE00\uB85C\uBC8C X \uB2E4\uC6B0 30 \uCEE4\uBC84\uB4DC\uCF5C ETF",
+  FTQI: "\uD37C\uC2A4\uD2B8\uD2B8\uB7EC\uC2A4\uD2B8 \uB098\uC2A4\uB2E5 \uBC14\uC774\uB77C\uC774\uD2B8 \uC778\uCEF4 \uCEE4\uBC84\uB4DC\uCF5C",
+  FTHI: "\uD37C\uC2A4\uD2B8\uD2B8\uB7EC\uC2A4\uD2B8 \uBC14\uC774\uB77C\uC774\uD2B8 \uC778\uCEF4 \uCEE4\uBC84\uB4DC\uCF5C",
+  KNG: "FT Cboe \uBCA0\uC2A4\uD2B8 S&P 500 \uBC30\uB2F9\uADC0\uC871 \uD0C0\uAC9F \uC778\uCEF4 \uCEE4\uBC84\uB4DC\uCF5C",
+  BALI: "\uC544\uC774\uC170\uC5B4\uC988 \uBBF8\uAD6D \uB300\uD615\uC8FC \uD504\uB9AC\uBBF8\uC5C4 \uC778\uCEF4 \uC561\uD2F0\uBE0C \uCEE4\uBC84\uB4DC\uCF5C",
+  ISPY: "\uD504\uB85C\uC170\uC5B4\uC988 S&P 500 \uD558\uC774 \uC778\uCEF4 \uCEE4\uBC84\uB4DC\uCF5C",
+  PBP: "\uC778\uBCA0\uC2A4\uCF54 S&P 500 \uBC14\uC774\uB77C\uC774\uD2B8 \uCEE4\uBC84\uB4DC\uCF5C",
+  QQQT: "\uB514\uD30C\uC774\uC5B8\uC2A4 \uB098\uC2A4\uB2E5 100 \uC778\uCEF4 \uD0C0\uAC9F \uCEE4\uBC84\uB4DC\uCF5C",
+  SPYT: "\uB514\uD30C\uC774\uC5B8\uC2A4 S&P 500 \uD0C0\uAC9F \uC778\uCEF4 \uCEE4\uBC84\uB4DC\uCF5C",
   VIGI: "\uBC45\uAC00\uB4DC \uC778\uD130\uB0B4\uC154\uB110 \uBC30\uB2F9\uC131\uC7A5 ETF",
   VYMI: "\uBC45\uAC00\uB4DC \uC778\uD130\uB0B4\uC154\uB110 \uACE0\uBC30\uB2F9 \uC218\uC775 ETF",
   SCHY: "\uC288\uC651 \uC778\uD130\uB0B4\uC154\uB110 \uBC30\uB2F9\uC8FC ETF",
@@ -13853,6 +14038,9 @@ var PRESET_TICKER_KOREAN_NAME_BY_TICKER = {
   MO: "\uC54C\uD2B8\uB9AC\uC544 \uADF8\uB8F9",
   AVGO: "\uBE0C\uB85C\uB4DC\uCEF4",
   ANET: "\uC544\uB9AC\uC2A4\uD0C0 \uB124\uD2B8\uC6CD\uC2A4",
+  /* 인텔(2026-08-17). 배당 중단 종목이라 배당주 묶음이 아니라 AI·반도체 묶음에 있다 —
+     근거는 `aiInfraEtfsAndStocks.ts` 의 INTC 주석. */
+  INTC: "\uC778\uD154",
   NVDA: "\uC5D4\uBE44\uB514\uC544",
   TXN: "\uD14D\uC0AC\uC2A4 \uC778\uC2A4\uD2B8\uB8E8\uBA3C\uD2B8",
   ADI: "\uC544\uB0A0\uB85C\uADF8 \uB514\uBC14\uC774\uC2DC\uC2A4",

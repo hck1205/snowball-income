@@ -69,6 +69,38 @@ export const AI_INFRA_ETFS_AND_STOCKS = {
     expectedTotalReturn: 14,
     frequency: 'none' as const
   },
+  /**
+   * 인텔 (2026-08-17 추가). 배당을 **중단한** 종목이라 위 ANET 과 같은 형태(`dividendYield: 0`,
+   * `frequency: 'none'`)로 들어간다 — 마지막 지급이 2024-08-07 이고 그 뒤 2년째 지급이 없다
+   * (2026-08-17 Yahoo 실측: 주가 102.5, TTM 배당률 산출 불가).
+   *
+   * ## 🔴 `wellKnownDividendStocks`(인지도 높은 배당주)에는 일부러 넣지 않았다
+   *
+   * 2026-08-14 확충(`9ee8c55`)에서 **의도적으로 걸러진 종목**이다 — 그 묶음의 선정 기준이
+   * "인지도 + **배당 지급 사실**"이라 배당을 중단한 회사는 자격이 없다. 그 결정을 뒤집지 않으면서도
+   * 인텔을 찾을 수 있게 하는 자리가 여기다: 이 묶음의 근거는 배당이 아니라 **반도체·AI 인프라**이고,
+   * 배당률 0% 인 ANET 이 이미 같은 이유로 앉아 있다.
+   *
+   * ## `expectedTotalReturn` 을 8% 로 둔 이유 — 섹터 평균(SMH 12%)을 주지 않는다
+   *
+   * 12% 를 적으면 "인텔이 반도체 지수만큼 한다"는 **주장**이 된다. 파운드리 전환 중인 회사에 대해
+   * 이 앱이 할 주장이 아니다. 그래서 `wellKnownDividendStocks` 가 쓰는 **광의의 주식 기대수익률
+   * 8% 균일값**을 그대로 쓴다 — 특정 회사의 미래를 주장하지 않는 모델링 가정이고, 사용자가 화면에서
+   * 바로 고친다. 5년 배당 CAGR 로 유도하는 길은 이 종목에서 특히 못 쓴다(그 파일 머리말이 든 예가
+   * 바로 "인텔 14% — 삭감한 해에도 양수"다).
+   *
+   * ⚠ 배당이 0 이므로 이 8% 는 **전부 주가 성장**으로 실현된다(정합 모델에서 `dividendGrowth` 가
+   *   곧 주가 성장률이다). 배당 재투자 시뮬레이션에서는 현금흐름이 0 인 종목으로 계산된다.
+   */
+  INTC: {
+    ticker: 'INTC',
+    name: 'Intel Corporation',
+    initialPrice: 102.5,
+    dividendYield: 0,
+    dividendGrowth: 8,
+    expectedTotalReturn: 8,
+    frequency: 'none' as const
+  },
   NVDA: {
     ticker: 'NVDA',
     name: 'NVIDIA Corporation',

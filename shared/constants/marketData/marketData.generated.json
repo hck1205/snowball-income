@@ -1330,19 +1330,6 @@
         "12": 31
       }
     },
-    "INTC": {
-      "initialPrice": 105.17,
-      "dividendYield": 0,
-      "frequency": "quarterly",
-      "observedDividendCagr": -9.22,
-      "payoutMonths": [
-        2,
-        5,
-        8,
-        11
-      ],
-      "payoutMonthsSource": "ex"
-    },
     "IRM": {
       "initialPrice": 126.74,
       "dividendYield": 2.66,
