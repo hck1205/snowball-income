@@ -48,9 +48,12 @@ describe('SIMULATOR_COPY — 확정 문자열', () => {
  *  - 방향어("좌측/왼쪽"): 설정이 좌측 고정 컬럼에서 오버레이 드로어로 옮겨가면서 전부 거짓이 됐다.
  *  - 눈덩이/스노우볼/snowball: 제품 카피에서 **전 표면 완전 금지**다. 🔴 "브랜드명은 예외" 조항은
  *    폐기됐다(2026-08-03 확정 — 제품명은 "Hungry Hippo"). 그래서 영문 `snowball` 도 함께 잠근다.
- *    ⚠ 여기서 훑는 것은 `SIMULATOR_COPY`·`TOUR_STEPS` 의 **화면에 나가는 값**뿐이다 — localStorage 키
- *    (`snowball:tutorial:v1`)나 `shared/lib/snowball/` 같은 **코드 식별자는 이 범위에 들어오지 않는다**
+ *    ⚠ 여기서 훑는 것은 `SIMULATOR_COPY`·`TOUR_STEPS` 의 **화면에 나가는 값**뿐이다 —
+ *    `shared/lib/snowball/`·`jotai/snowball/` 같은 **코드 식별자는 이 범위에 들어오지 않는다**
  *    (그건 브랜드가 아니라 식별자라 합법이다).
+ *    ⚠ localStorage 접두사는 2026-08-17 에 `hungryhippo:` 로 옮겼다(이관: `shared/lib/storage`).
+ *      그 전에는 이 자리에 `snowball:tutorial:v1` 이 예시로 적혀 있었다 — **키 접두사는 더 이상
+ *      "합법적인 잔재"의 예가 아니다.** 코드 식별자(폴더·모듈 이름)만 남아 있다.
  *
  * 부재는 눈으로 훑어서는 유지되지 않는다 — 카피를 늘릴 때마다 자동으로 걸리게 둔다.
  */

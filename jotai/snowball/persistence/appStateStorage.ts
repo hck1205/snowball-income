@@ -6,11 +6,21 @@ import {
   PORTFOLIO_STATE_KEY,
   type PortfolioStoreRecord
 } from './appStateRecords';
+import {
+  PORTFOLIO_DB_STORE_NAME,
+  PORTFOLIO_DB_VERSION,
+  resolvePortfolioDbName
+} from './portfolioDbMigration';
 import { clearWorkspaceMarker, markWorkspaceStored } from './workspaceMarker';
 
-const PORTFOLIO_DB_NAME = 'snowball-income-db';
-const PORTFOLIO_DB_VERSION = 1;
-const PORTFOLIO_STORE_NAME = 'app_state';
+/**
+ * 🔴 DB **이름은 상수가 아니라 약속**이다(2026-08-17). 이름을 `snowball-income-db` →
+ * `hungryhippo-db` 로 옮기면서, 이관이 끝났는지에 따라 이번 세션이 열어야 할 DB 가 달라진다 —
+ * 이관 실패 시 옛 DB 를 계속 써야 사용자 포트폴리오가 살아 있다. 판정과 복사는
+ * `portfolioDbMigration` 이 소유하고, 이 파일은 **그 결과 이름만 받아 쓴다**.
+ * ⚠ 이름을 여기서 다시 하드코딩하지 마라 — 이관 실패 경로가 조용히 죽는다.
+ */
+const PORTFOLIO_STORE_NAME = PORTFOLIO_DB_STORE_NAME;
 
 /**
  * 읽기 결과. 실패해도 앱이 계속 돌아가도록 기본 페이로드를 함께 넘기되,
@@ -35,17 +45,17 @@ const hasIndexedDb = (): boolean => typeof window !== 'undefined' && typeof wind
 
 const warnPersistenceFailure = (operation: string, error: unknown): void => {
   // 삭제하지 않는다. 사용자에게는 호출부가 기존 에러 표시 경로로 알린다.
-  console.warn(`[snowball] IndexedDB ${operation} 실패 — 저장된 데이터는 보존됩니다.`, error);
+  console.warn(`[hungryhippo] IndexedDB ${operation} 실패 — 저장된 데이터는 보존됩니다.`, error);
 };
 
-const openPortfolioDb = (): Promise<IDBDatabase> =>
-  new Promise((resolve, reject) => {
-    if (!hasIndexedDb()) {
-      reject(new Error('IndexedDB unavailable'));
-      return;
-    }
+const openPortfolioDb = async (): Promise<IDBDatabase> => {
+  if (!hasIndexedDb()) throw new Error('IndexedDB unavailable');
 
-    const request = window.indexedDB.open(PORTFOLIO_DB_NAME, PORTFOLIO_DB_VERSION);
+  // 첫 호출에서만 이관이 돌고, 이후에는 메모된 이름이 즉시 온다.
+  const databaseName = await resolvePortfolioDbName();
+
+  return new Promise<IDBDatabase>((resolve, reject) => {
+    const request = window.indexedDB.open(databaseName, PORTFOLIO_DB_VERSION);
 
     request.onupgradeneeded = () => {
       const db = request.result;
@@ -59,6 +69,7 @@ const openPortfolioDb = (): Promise<IDBDatabase> =>
     // 다른 탭이 잡고 있으면 예전에는 영원히 pending 이었다. 명시적으로 실패시킨다.
     request.onblocked = () => reject(new Error('IndexedDB open blocked by another tab'));
   });
+};
 
 /** DB 핸들을 확실히 닫는다 (예전에는 예외 경로에서 핸들이 새어 다음 열기를 막았다). */
 const withPortfolioDb = async <T>(run: (db: IDBDatabase) => Promise<T>): Promise<T> => {
@@ -144,9 +155,11 @@ export const recoverCorruptedPortfolioDb = async (): Promise<PortfolioDbRecovery
   if (!hasIndexedDb()) return { deleted: false, backupJson: null };
 
   const backupJson = await backupPortfolioDb();
+  // 이관이 끝났으면 새 DB, 실패했으면 옛 DB — 지금 실제로 쓰고 있는 쪽을 지워야 복구가 성립한다.
+  const databaseName = await resolvePortfolioDbName();
 
   const deleted = await new Promise<boolean>((resolve) => {
-    const request = window.indexedDB.deleteDatabase(PORTFOLIO_DB_NAME);
+    const request = window.indexedDB.deleteDatabase(databaseName);
     request.onsuccess = () => resolve(true);
     request.onerror = () => resolve(false);
     request.onblocked = () => resolve(false);
@@ -161,8 +174,9 @@ export const recoverCorruptedPortfolioDb = async (): Promise<PortfolioDbRecovery
 /** 버전을 지정하지 않고 열어 업그레이드를 트리거하지 않는다 → 손상된 DB 도 읽을 가능성이 남는다. */
 const backupPortfolioDb = async (): Promise<string | null> => {
   try {
+    const databaseName = await resolvePortfolioDbName();
     const db = await new Promise<IDBDatabase>((resolve, reject) => {
-      const request = window.indexedDB.open(PORTFOLIO_DB_NAME);
+      const request = window.indexedDB.open(databaseName);
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error ?? new Error('Failed to open IndexedDB for backup'));
       request.onblocked = () => reject(new Error('IndexedDB backup blocked by another tab'));

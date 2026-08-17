@@ -57,6 +57,13 @@ const ROUTES = [
   { path: '/', priority: '1.0', changefreq: 'weekly' },
   /* 시뮬레이터. 랜딩보다 한 단계 낮은 0.9 로 고정(둘 다 색인 대상이고 내용이 다르다). */
   { path: '/simulator', priority: '0.9', changefreq: 'weekly' },
+  /*
+   * 투자 성향 테스트(2026-08-17). "투자 성향 테스트" 는 사람이 검색창에 실제로 치는 말이라 색인 가치가
+   * 있다 — 랜딩 4갈래 중 중급자가 도착하는 곳이기도 하다.
+   * 🔴 결과는 **쿼리**(`?t=…&s=…`)로 표현되는데 사이트맵에는 클린 URL 만 넣는다. 결과 주소를 넣으면
+   *   같은 화면이 유형 수만큼 색인되고, 그건 개인 결과라 색인 가치가 0 이다.
+   */
+  { path: '/investor-type', priority: '0.7', changefreq: 'monthly' },
   { path: '/community/portfolio', priority: '0.8', changefreq: 'daily' },
   { path: '/community/board', priority: '0.8', changefreq: 'daily' },
   /*

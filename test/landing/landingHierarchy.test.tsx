@@ -118,7 +118,7 @@ describe('랜딩 — 서사 묶음 구조', () => {
   });
 });
 
-describe('랜딩 — 히어로 CTA 순서', () => {
+describe('랜딩 — 수준 4갈래 순서', () => {
   beforeEach(() => {
     restoreFetch = stubMarketIndicesFetch();
     setWorkspaceMarker(false);
@@ -134,25 +134,25 @@ describe('랜딩 — 히어로 CTA 순서', () => {
    * 랜딩의 대상은 SNS 로 처음 들어와 보유 종목이 0인 사람이라, 포트폴리오로 먼저 보내면 빈 화면을
    * 만난다. 다시 뒤집으려면 사용자 승인이 필요하다 — 그 승인 없이 배열 순서가 바뀌면 여기서 빨개진다.
    */
-  it('🔴 문서 순서로 시뮬레이터 → 포트폴리오이고, 라벨이 정확히 일치한다', () => {
+  it('🔴 문서 순서로 입문 → 초보 → 중급 → 고수이고, 직행로가 그 뒤에 하나 온다', () => {
     const { container } = renderLandingPage();
-    const anchors = [...container.querySelectorAll('[data-landing-cta]')];
 
-    expect(anchors.map((node) => node.getAttribute('data-landing-cta'))).toEqual([
-      'simulator',
-      'portfolio'
+    /**
+     * 🔴 순서가 곧 서사다. 모르는 사람이 먼저 오고 아는 사람이 뒤에 온다 — 뒤집으면 이 지면이
+     * 다시 "아는 사람 먼저"가 되는데, 그것이 2026-08-17 에 고친 문제다.
+     * 전 계약(시뮬레이터 → 포트폴리오 두 CTA)은 이 교체로 폐기됐다.
+     */
+    const levels = [...container.querySelectorAll('[data-landing-level]')];
+    expect(levels.map((node) => node.getAttribute('data-landing-level'))).toEqual([
+      'beginner',
+      'novice',
+      'intermediate',
+      'advanced'
     ]);
-    expect(anchors.map((node) => node.textContent?.trim())).toEqual([
-      '배당 계산 시작하기',
-      '보유 종목으로 계산'
-    ]);
-  });
-});
 
-describe('랜딩 — FAQ 의 형태', () => {
-  beforeEach(() => {
-    restoreFetch = stubMarketIndicesFetch();
-    setWorkspaceMarker(false);
+    // 직행로는 네 칸 **뒤**다(4 = FOLLOWING). 앞에 두면 다섯 갈래가 되어 넷으로 좁힌 의미가 없다.
+    const direct = container.querySelector('[data-landing-cta="simulator"]');
+    expect(levels[3].compareDocumentPosition(direct!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   afterEach(() => {

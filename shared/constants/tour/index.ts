@@ -1,3 +1,4 @@
+import { storageKey } from '@/shared/lib/storage';
 /**
  * 가이드 투어(스포트라이트 코치마크)의 대상과 문구.
  *
@@ -32,7 +33,7 @@ export type TourStep = {
 };
 
 /** 투어를 이미 봤는지 기록하는 키. 다음 투어 개편은 `:v2`로 올려 새로 띄운다. */
-export const TOUR_STORAGE_KEY = 'snowball:tutorial:v1';
+export const TOUR_STORAGE_KEY = storageKey('tutorial:v1');
 
 /**
  * 선언 순서 = 사용자가 실제로 밟는 순서(종목 → 포트폴리오 → 설정 → 결과 → 저장 → 비교).

@@ -1,3 +1,4 @@
+import { storageKey } from '@/shared/lib/storage';
 /**
  * 일회성 공지의 "닫힘" 플래그.
  *
@@ -7,7 +8,7 @@
  *
  * 키에 버전(`:v1`)을 붙여 두어, 다음 공지는 새 키(`:v2` 또는 다른 slug)로 독립적으로 띄울 수 있다.
  */
-export const MODEL_CHANGE_NOTICE_STORAGE_KEY = 'snowball:notice:coherent-model:v1';
+export const MODEL_CHANGE_NOTICE_STORAGE_KEY = storageKey('notice:coherent-model:v1');
 
 const DISMISSED_VALUE = 'dismissed';
 

@@ -9,6 +9,7 @@ import {
 } from '@/jotai';
 import type { TickerProfile } from '@/shared/types/snowball';
 import { useGoalScenario } from '@/pages/Portfolio/hooks';
+import { PORTFOLIO_DB_NAMES } from '@/jotai';
 
 /**
  * `useGoalScenario` — 저장 payload → 순수 재계산 → 상태 7종.
@@ -23,7 +24,11 @@ import { useGoalScenario } from '@/pages/Portfolio/hooks';
  * 이름과 값이 어긋나면 다음 사람이 이름만 믿고 엉뚱한 DB 를 지운다 — 명명은
  * `test/portfolio/portfolioGoalHarness.tsx` 의 구분(`PORTFOLIO_DB_NAME` / `APP_STATE_DB_NAME`)을 따른다.
  */
-const APP_STATE_DB_NAME = 'snowball-income-db';
+/**
+ * 🔴 이름을 손으로 적지 마라. 2026-08-17 이름 이관(snowball-income-db → hungryhippo-db) 때 이런 줄이
+ * 그대로 남아, 정리해야 할 DB 를 안 지우고 **테스트끼리 데이터가 새는** 실패가 났다(CI 에서만 드러났다).
+ */
+const APP_STATE_DB_NAME = PORTFOLIO_DB_NAMES.current;
 
 /** 계산 기준 시점 — 투자 시작(2024-01) 후 29개월. 롤링 12개월 창이 꽉 찬다(폴백 아님). */
 const NOW = new Date('2026-06-15T00:00:00+09:00');

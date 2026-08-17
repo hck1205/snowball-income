@@ -1,4 +1,5 @@
 import { getSupabaseClient, isCommunityEnabled } from './client';
+import { storageKey } from '@/shared/lib/storage';
 
 /**
  * 네이버 로그인 **클라이언트 seam** — UI(SocialLoginButton/LoginModal)가 소비하는 진입점.
@@ -24,8 +25,8 @@ const DEFAULT_RETURN_TO = '/community';
 /** 우리 서버 엔드포인트(같은 도메인). */
 const NAVER_AUTH_ENDPOINT = '/api/naver-auth';
 
-const STATE_STORAGE_KEY = 'snowball:naver_oauth_state';
-const RETURN_TO_STORAGE_KEY = 'snowball:naver_return_to';
+const STATE_STORAGE_KEY = storageKey('naver_oauth_state');
+const RETURN_TO_STORAGE_KEY = storageKey('naver_return_to');
 
 /** 실패를 사용자에게 보이게 하는 쿼리 플래그(무음 실패 금지). 콜백 실패 시 returnTo 에 붙여 보낸다. */
 export const NAVER_LOGIN_ERROR_PARAM = 'naverLogin';

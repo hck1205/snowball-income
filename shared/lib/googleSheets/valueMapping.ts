@@ -22,6 +22,7 @@
  */
 import { normalizeCategoryToken, resolveCategoryName } from '@/shared/constants/ledger';
 import type { LedgerCategoryId } from '@/shared/constants/ledger';
+import { storageKey } from '@/shared/lib/storage';
 
 /** 학습된 별칭 한 줄. `subcategoryId` 가 없으면 항목까지만 정한 것이다. */
 export type LearnedAlias = {
@@ -120,7 +121,7 @@ export const forgetAlias = (book: AliasBook, raw: string): AliasBook => {
 /* ── 로컬 보관 ──────────────────────────────────────────────────────────────── */
 
 /** 별칭표 저장 키. 시트별로 나누지 않는다 — 사람의 어휘는 시트를 옮겨도 그대로다. */
-export const ALIAS_BOOK_STORAGE_KEY = 'snowball:ledger-alias-book';
+export const ALIAS_BOOK_STORAGE_KEY = storageKey('ledger-alias-book');
 
 /**
  * 저장된 별칭표를 읽는다. **어떤 실패도 던지지 않는다** — 손상된 값 하나가 가계부 화면 전체를

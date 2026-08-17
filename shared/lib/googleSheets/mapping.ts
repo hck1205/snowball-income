@@ -7,6 +7,7 @@
  */
 import type { ColumnMapping, LedgerField } from './types';
 import { LEDGER_OPTIONAL_FIELDS, LEDGER_REQUIRED_FIELDS } from './types';
+import { storageKey } from '@/shared/lib/storage';
 
 /**
  * 헤더 텍스트 후보. 정규화(소문자·공백 제거) 후 **완전 일치**를 먼저 보고, 없으면 포함을 본다.
@@ -150,7 +151,7 @@ export type StoredSheetLink = {
   readonly createdByApp: boolean;
 };
 
-export const LEDGER_LINK_STORAGE_KEY = 'snowball:ledger:links';
+export const LEDGER_LINK_STORAGE_KEY = storageKey('ledger:links');
 
 /** 저장 페이로드에 허용되는 키 — 이 목록 밖의 키가 들어가면 소스/직렬화 가드가 실패한다. */
 export const STORED_SHEET_LINK_KEYS = ['spreadsheetId', 'sheetId', 'mapping', 'createdByApp'] as const;

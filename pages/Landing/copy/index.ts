@@ -7,3 +7,5 @@ export {
   landingChapter
 } from './landingCopy';
 export type { LandingChapter, LandingHeroCta } from './landingCopy';
+export { LANDING_LEVELS, findLandingLevel } from './landingLevels';
+export type { LandingLevel, LandingLevelId } from './landingLevels';

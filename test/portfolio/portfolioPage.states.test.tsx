@@ -13,6 +13,11 @@ import { applyFxFetchResultAtom, displayCurrencyAtom } from '@/jotai';
 import { resolvePortfolioMarketInfo } from '@/shared/lib/portfolio';
 import { ANALYTICS_EVENT, track } from '@/shared/lib/analytics';
 import { formatUSD } from '@/shared/utils';
+import { PORTFOLIO_DB_NAMES } from '@/jotai';
+
+/** 앱 상태 DB 이름. 상수에서 받아 온다 — 손으로 적으면 이름이 바뀔 때 조용히 깨진다. */
+const APP_STATE_DB_NAME = PORTFOLIO_DB_NAMES.current;
+
 
 /**
  * `/dividend/portfolio` — **화면 상태 분기**(수용 기준 대비 검증).
@@ -423,7 +428,9 @@ describe('저장소 격리 (AC4-4)', () => {
       await waitFor(() => expect(transactions.some((entry) => entry.mode === 'readwrite')).toBe(true));
 
       const opened = new Set(openSpy.mock.calls.map(([name]) => name));
-      expect([...opened].sort()).toEqual(['snowball-income-db', PORTFOLIO_DB_NAME].sort());
+      // 🔴 앱 상태 DB 이름을 손으로 적지 마라 — 2026-08-17 이름 이관 때 이 줄이 그대로 남아 깨졌다.
+      //    (여기 PORTFOLIO_DB_NAME 은 '내 포트폴리오' 전용 DB 로 이것과 별개다.)
+      expect([...opened].sort()).toEqual([APP_STATE_DB_NAME, PORTFOLIO_DB_NAME].sort());
       expect(opened.has('snowball-dividend-calendar')).toBe(false);
 
       const written = new Set(transactions.filter((entry) => entry.mode === 'readwrite').map((entry) => entry.db));

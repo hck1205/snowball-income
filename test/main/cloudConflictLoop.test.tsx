@@ -460,7 +460,7 @@ describe('merge-base 정책 A — 단방향 FF(무모달) vs 양방향 모달, �
 });
 
 /**
- * **회귀 M1(데이터 안전)**: base는 per-user(`snowball:cloud-sync-base:<userId>`)로 격리되지만 로컬
+ * **회귀 M1(데이터 안전)**: base는 per-user(`hungryhippo:cloud-sync-base:<userId>`)로 격리되지만 로컬
  * autosave(IndexedDB)는 **전역**이고 로그아웃이 안 지운다. 계정전환(A→B→A) 후 A 세션시작 3-way가
  * `local=B(≠base_A), cloud=A(==base_A)`를 "로컬만 전진"으로 오판해 **A의 클라우드를 B로 조용히 FF-push**하면
  * A 데이터가 소실된다. 수정: **전역 로컬의 직전 소유자(로그인 사용자)** 를 기록해, owner≠현재면 무음 FF 금지 →

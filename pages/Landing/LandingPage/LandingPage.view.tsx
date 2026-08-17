@@ -3,13 +3,14 @@ import { BookOpen, CalendarDays, Compass, HelpCircle, LayoutGrid, ListChecks, Re
 import { Button } from '@/components';
 import { HippoCoinScene, PageFooter, PageHero } from '@/components/common';
 import { PORTFOLIO_PRESET_PLACEHOLDERS } from '@/shared/constants/portfolioPresets';
-import { LANDING_COPY, LANDING_HERO_CTAS, landingChapter } from '../copy';
+import { LANDING_COPY, landingChapter } from '../copy';
 import {
   ClosingCta,
   CompoundExplainer,
   ConceptLadder,
   LandingFaq,
   LandingSearch,
+  LevelPicker,
   StartPath,
   LandingSection,
   PayoutRhythm,
@@ -33,14 +34,15 @@ const copy = LANDING_COPY;
  * 랜딩 여섯 장의 **순수 뷰**.
  *
  * ## 히어로 수직 순서가 이 화면의 핵심이다
- * ① 제목 → ② **CTA** → ③ 리드 → ④ 그림 → ⑤ 검색 → ⑥ (조건부) 이어서 계산하기.
- * ①~③ 은 `PageHero`(`제목+actions` → `lede`) 가 그대로 준다. ④~⑥ 은 히어로 **밖**, 바로 아래
+ * ① 제목 → ② 리드 → ③ **수준 4갈래**(`LevelPicker`) → ④ 그림 → ⑤ 검색 → ⑥ (조건부) 이어서 계산하기.
+ * ①~② 는 `PageHero` 가 준다(2026-08-17 부터 `actions` 는 비어 있다). ③~⑥ 은 히어로 **밖**, 바로 아래
  * 형제다 — 히어로에 랜딩 전용 슬롯·prop 을 뚫지 않기 위해서이고, 그래야 `meta` 슬롯의 hue 밑줄이
  * 검색 아래에 남지 않는다(`LandingPage.styled.ts` HeroExtras 주석에 실측 근거).
  *
- * 🔴 **CTA 줄 *위*에 새 요소를 넣지 마라.** 390x664(iOS Safari 의 100svh 최소 상태)에서 시뮬레이터
- * CTA 의 bounding box 하단이 239px 이고, 제목 위 배지 줄·"NEW" 리본·소개 문구 한 줄이 하나만
- * 들어와도 그 예산이 깨진다. 리드·그림·검색은 전부 CTA **아래**다 — 2026-08-04 에 들어온 히어로
+ * 🔴 **4갈래 그리드 *위*에 새 요소를 넣지 마라.** 390x664(iOS Safari 의 100svh 최소 상태) 예산이다.
+ * 예전에는 이 자리가 CTA 줄이었고 그 bounding box 하단이 239px 이었다 — 지금은 리드 한 줄이 위에
+ * 붙었으므로 여유가 더 좁다. 제목 위 배지 줄·"NEW" 리본이 하나만 들어와도 네 번째 칸이 접힘
+ * 아래로 내려간다. 그림·검색은 전부 그리드 **아래**다 — 2026-08-04 에 들어온 히어로
  * 그림도 이 규칙 때문에 좁은 폭에서 카드 아래에 앉는다(넓은 폭에서만 카드 오른쪽으로 겹쳐 올라간다).
  *
  * ## 차례는 걷었다 (2026-08-04, 사용자 지시)
@@ -71,7 +73,7 @@ const copy = LANDING_COPY;
  * 1px 중립). **한 화면에 강조는 하나**라는 원칙의 집행이고, 등급을 늘리면 그 순간 위계가 아니라
  * 소음이 된다.
  */
-export default function LandingPageView({ viewModel, onHeroCta, onResume }: LandingPageViewProps) {
+export default function LandingPageView({ viewModel, onSelectLevel, onDirect, onResume }: LandingPageViewProps) {
   const sectionIdPrefix = useId();
   const sectionId = (key: string) => `${sectionIdPrefix}-${key}`;
 
@@ -90,23 +92,21 @@ export default function LandingPageView({ viewModel, onHeroCta, onResume }: Land
     <LandingStack>
       {/* S1 — 히어로. 헤더 워드마크는 span 이므로(AppHeader 기본값) 이 제목이 문서의 유일한 h1 이다. */}
       <HeroBlock ref={heroRef} tabIndex={-1}>
-        <PageHero
-          title={copy.hero.title}
-          titleAs="h1"
-          lede={copy.hero.lede}
-          actions={LANDING_HERO_CTAS.map((cta) => (
-            <Button
-              key={cta.id}
-              variant={cta.variant}
-              size="md"
-              /* 접힘 위 CTA 프로브가 이 속성으로 요소를 찾는다 — 배열 순서가 뒤집혀도 같은 곳을 가리킨다. */
-              data-landing-cta={cta.id}
-              onClick={() => onHeroCta(cta.id)}
-            >
-              {cta.label}
-            </Button>
-          ))}
-        />
+        {/* 🔴 **`actions` 를 비워 두었다**(2026-08-17). 히어로 CTA 두 버튼이 아래 `LevelPicker` 로
+            대체됐다 — 그 둘은 "배당 계산 시작하기"·"보유 종목으로 계산"이라 **이미 무엇을 할지 아는
+            사람**만 쓸 수 있었고, 그것이 이 지면의 후킹이 약했던 원인이었다(사용자 지적).
+            직행로는 사라지지 않았다 — `LevelPicker` 안의 "바로 계산기로" 글줄이 받는다.
+            ⚠ 되살리려면 `LANDING_HERO_CTAS` 가 아직 `copy` 에 있다. 다만 되살리기 전에 GA4 의
+              level_selected 분포를 먼저 봐라(그 데이터를 만들려고 바꾼 것이다). */}
+        <PageHero title={copy.hero.title} titleAs="h1" lede={copy.hero.lede} />
+
+        {/* 🔴 히어로 **밖**, 바로 아래 형제다. `PageHero` 의 `actions` 슬롯에 넣지 않은 것은 그 자리가
+            제목 옆 버튼용 flex 행이라(`flex: 0 0 auto` + 자식 광학 정렬 transform) 2×2 카드 그리드가
+            넓은 폭에서 제목 옆에 끼어 찌그러지기 때문이다. 공용 히어로는 전 페이지가 쓰므로
+            여기 하나를 위해 슬롯을 뚫지 않는다(2026-08-17 사용자 결정: 리드가 카드 위에 서도 좋다).
+            ⚠ 그래서 화면 순서는 **제목 → 리드 → 4갈래**다. 접힘 예산(390×664)은 여전히 네 칸을
+              전부 담는다 — 카드에 줄을 더하기 전에 그 폭에서 다시 재라. */}
+        <LevelPicker onSelectLevel={onSelectLevel} onDirect={onDirect} />
         {/* 🔴 **DOM 순서가 좁은 폭의 화면 순서다**(제목 → CTA → 리드 → 그림 → 검색). 그림을 CTA 줄
             위로 올리면 접힘 예산이 깨진다(위 머리말). 넓은 폭에서는 `HeroArt` 가 히어로 카드와 같은
             그리드 셀로 올라가 카드 오른쪽 안쪽에 선다 — 배치 근거는 `LandingPage.styled.ts` 의 HeroArt.

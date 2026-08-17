@@ -1,5 +1,6 @@
 import { getSupabaseClient } from './client';
 import { hasOAuthCallbackParams, readOAuthCallbackError, sanitizeOAuthRedirectTo } from './oauthCallback';
+import { storageKey } from '@/shared/lib/storage';
 
 /**
  * OAuth 콜백 **착지 판정**과 실패 기록 — "돌아왔는데 로그인이 안 된" 상태를 무음으로 두지 않기 위한 층.
@@ -56,7 +57,7 @@ export type OAuthLoginFailure = {
   errorCode?: string;
 };
 
-const FAILURE_STORAGE_KEY = 'snowball:oauth-login-failure';
+const FAILURE_STORAGE_KEY = storageKey('oauth-login-failure');
 
 /** 연속 실패가 이 횟수 이상이면 UI 가 "재시도해도 같다"는 쪽으로 안내를 승격한다. */
 export const OAUTH_FAILURE_ESCALATION_THRESHOLD = 2;

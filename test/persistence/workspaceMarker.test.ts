@@ -10,13 +10,19 @@ import {
   type PersistedAppStatePayload
 } from '@/jotai';
 import type { TickerProfile } from '@/shared/types/snowball';
+import { storageKey } from '@/shared/lib/storage';
+import { PORTFOLIO_DB_NAMES } from '@/jotai';
 
 /**
  * 랜딩(`/`)이 "이어서 계산하기"를 띄울지 판단하는 **localStorage 부기 마커**의 계약.
  * 저장 포맷(영속 payload·공유 URL)과 무관하다 — 여기서 단정하는 것은 마커의 수명뿐이다.
  */
-const PORTFOLIO_DB_NAME = 'snowball-income-db';
-const HAS_WORKSPACE_KEY = 'snowball:has-workspace';
+/**
+ * 🔴 이름을 손으로 적지 마라. 2026-08-17 이름 이관(snowball-income-db → hungryhippo-db) 때 이런 줄이
+ * 그대로 남아, 정리해야 할 DB 를 안 지우고 **테스트끼리 데이터가 새는** 실패가 났다(CI 에서만 드러났다).
+ */
+const PORTFOLIO_DB_NAME = PORTFOLIO_DB_NAMES.current;
+const HAS_WORKSPACE_KEY = storageKey('has-workspace');
 
 const buildProfile = (): TickerProfile => ({
   id: 'ticker-1',

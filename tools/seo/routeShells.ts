@@ -54,6 +54,18 @@ export const ROUTE_SHELLS: readonly RouteShell[] = [
   },
   { path: '/dividend/portfolio', title: PORTFOLIO_COPY.meta.title, description: PORTFOLIO_COPY.meta.description },
   { path: '/ticker/compare', title: TICKER_COMPARE_COPY.meta.title, description: TICKER_COMPARE_COPY.meta.description },
+  /*
+   * 투자 성향 테스트(2026-08-17). JS 를 실행하지 않는 크롤러에게도 제목·설명·canonical 이 가야
+   * "투자 성향 테스트" 검색어로 발견된다 — 셸이 없으면 이 주소는 빈 앱 셸로만 보인다.
+   * 🔴 결과(`?t=…&s=…`)는 셸을 갖지 않는다. 개인 결과라 색인 가치가 0 이고, 유형 수만큼 같은 화면이
+   *   색인되는 것을 막아야 한다(사이트맵에도 클린 URL 만 넣는 이유와 같다).
+   */
+  {
+    path: '/investor-type',
+    title: '투자 성향 테스트 — 12문항으로 보는 내 투자 성향',
+    description:
+      '집중도·목적·변동성·시간 네 축을 12문항으로 살펴 여섯 유형 중 어디에 가까운지 보여 드립니다. 공시된 13F 에서 비슷한 모습을 보이는 투자자와 결이 맞는 구성 예시도 함께 확인하실 수 있습니다. 투자 자문이 아닙니다.'
+  },
   { path: '/market/pulse', title: MARKET_PULSE_COPY.documentTitle, description: MARKET_PULSE_COPY.metaDescription },
   { path: '/market/stats', title: HIPPO_STATS_COPY.documentTitle, description: HIPPO_STATS_COPY.metaDescription },
   {

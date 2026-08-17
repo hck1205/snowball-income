@@ -1,5 +1,6 @@
 import { atomWithStorage, createJSONStorage } from 'jotai/utils';
 import { useAtomValue, useAtomWrite } from '@/jotai/atom';
+import { storageKey } from '@/shared/lib/storage';
 
 /**
  * 종목 비교 선택 상태 — 유입 화면(의원거래·13F·국민연금·배당목록·검색)에서 고른 티커를
@@ -20,8 +21,8 @@ import { useAtomValue, useAtomWrite } from '@/jotai/atom';
  *   필요한데, 상태 원자가 그걸 물면 이 원자를 쓰는 모든 청크가 유니버스를 함께 싣는다).
  */
 
-/** localStorage 의 `snowball:` 접두사 규약을 sessionStorage 에도 그대로 쓴다(키 충돌 방지). */
-const STORAGE_KEY = 'snowball:compare-selection';
+/** localStorage 의 `hungryhippo:` 접두사 규약을 sessionStorage 에도 그대로 쓴다(키 충돌 방지). */
+const STORAGE_KEY = storageKey('compare-selection');
 
 /**
  * 🔴 `sessionStorage` 접근을 **getter 안**에, 그리고 **`typeof` 가드 뒤**에 둔다.

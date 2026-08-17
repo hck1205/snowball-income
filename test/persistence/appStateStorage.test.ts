@@ -2,6 +2,7 @@ import 'fake-indexeddb/auto';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   buildDefaultPayload,
+  PORTFOLIO_DB_NAMES,
   readPersistedAppState,
   recoverCorruptedPortfolioDb,
   writePersistedAppState,
@@ -9,7 +10,12 @@ import {
 } from '@/jotai';
 import type { TickerProfile } from '@/shared/types/snowball';
 
-const PORTFOLIO_DB_NAME = 'snowball-income-db';
+/**
+ * 🔴 이름을 여기 다시 적지 마라. 2026-08-17 이관 전까지 이 파일은 `'snowball-income-db'` 를 손으로
+ * 적고 있었는데, 앱이 `hungryhippo-db` 로 옮겨 간 뒤에도 그 문자열이 남으면 `beforeEach` 의 삭제가
+ * **엉뚱한 DB 를 지우고** 테스트끼리 상태가 새어 나간다(실패는 무작위로 나타난다).
+ */
+const PORTFOLIO_DB_NAME = PORTFOLIO_DB_NAMES.current;
 
 const buildProfile = (): TickerProfile => ({
   id: 'ticker-1',

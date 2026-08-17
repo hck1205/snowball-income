@@ -12,6 +12,7 @@ import {
 import type { TickerProfile } from '@/shared/types/snowball';
 import PortfolioPage from '@/pages/Portfolio/PortfolioPage';
 import { writePortfolioRecord } from '@/pages/Portfolio/utils';
+import { PORTFOLIO_DB_NAMES } from '@/jotai';
 
 /**
  * 목표 달성 카드 테스트용 **공용 하네스**.
@@ -28,7 +29,11 @@ import { writePortfolioRecord } from '@/pages/Portfolio/utils';
 export const NOW = new Date(2026, 5, 15);
 
 export const PORTFOLIO_DB_NAME = 'snowball-portfolio';
-export const APP_STATE_DB_NAME = 'snowball-income-db';
+/**
+ * 🔴 이름을 손으로 적지 마라. 2026-08-17 이름 이관(snowball-income-db → hungryhippo-db) 때 이런 줄이
+ * 그대로 남아, 정리해야 할 DB 를 안 지우고 **테스트끼리 데이터가 새는** 실패가 났다(CI 에서만 드러났다).
+ */
+export const APP_STATE_DB_NAME = PORTFOLIO_DB_NAMES.current;
 
 export const FX_RATE = 1381;
 

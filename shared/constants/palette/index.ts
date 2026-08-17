@@ -61,7 +61,7 @@ export const isVisiblePalettePresetId = (value: unknown): value is PalettePreset
 /**
  * 저장값을 **화면에 적용할 값**으로 바꾼다 — 노출 목록에 없으면 기본 팔레트로 폴백한다.
  *
- * 🔴 폴백은 **읽을 때만** 한다. 저장값(localStorage `snowball:palette`)은 절대 덮어쓰지 않는다 —
+ * 🔴 폴백은 **읽을 때만** 한다. 저장값(localStorage `hungryhippo:palette`)은 절대 덮어쓰지 않는다 —
  * 감추기를 되돌리는 순간 사용자가 고른 프리셋이 그대로 복원돼야 하기 때문이다.
  * (`normalizePalettePresetId` 는 "존재하지 않는 값"을, 이 함수는 "존재하지만 지금 안 보이는 값"을 다룬다.)
  */

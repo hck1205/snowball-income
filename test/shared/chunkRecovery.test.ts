@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { storageKey } from '@/shared/lib/storage';
 import {
   clearChunkReloadMark,
   isChunkLoadError,
@@ -15,7 +16,7 @@ import {
  * 🔴 **이 결함은 배포해 봐야만 드러난다** — 로컬 dev 는 해시가 바뀌지 않아 재현되지 않고,
  * 렌더 테스트도 볼 수 없다. 그래서 여기서 **판정과 루프 방지**를 직접 잠근다.
  */
-const RELOAD_MARK = 'snowball:chunk-reload';
+const RELOAD_MARK = storageKey('chunk-reload');
 
 let reloadSpy: ReturnType<typeof vi.fn>;
 

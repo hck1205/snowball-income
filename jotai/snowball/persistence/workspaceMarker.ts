@@ -1,3 +1,4 @@
+import { storageKey } from '@/shared/lib/storage';
 /**
  * "이 브라우저에서 시뮬레이터를 써 본 적이 있다" 는 **단일 부기 마커** — localStorage.
  *
@@ -22,7 +23,7 @@
  *   write/clear 가 no-op 으로 **조용히 강등**된다. 없는 쪽이 안전한 기본값이다.
  */
 
-const HAS_WORKSPACE_KEY = 'snowball:has-workspace';
+const HAS_WORKSPACE_KEY = storageKey('has-workspace');
 
 /** 값 자체는 의미 없다(존재 여부만 본다). 나중에 값에 뜻을 싣지 마라 — 그러면 스키마가 된다. */
 const HAS_WORKSPACE_VALUE = '1';

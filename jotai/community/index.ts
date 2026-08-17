@@ -3,6 +3,7 @@ import { atomWithStorage } from 'jotai/utils';
 import type { Session } from '@supabase/supabase-js';
 import { useAtomValue, useAtomWrite } from '@/jotai/atom';
 import type { MyProfile } from '@/shared/lib/supabase';
+import { storageKey } from '@/shared/lib/storage';
 
 /**
  * 커뮤니티 전역 상태 — **순수 상태 컨테이너**.
@@ -48,7 +49,7 @@ export const isCommunityAdminAtom = atom((get) => get(profileAtom)?.is_admin ===
 export type CommunityViewType = 'inline' | 'card';
 
 /** 갤러리 보기 방식 저장 키 (테스트/디버깅에서 참조할 수 있게 export). */
-export const COMMUNITY_VIEW_STORAGE_KEY = 'snowball:community-view';
+export const COMMUNITY_VIEW_STORAGE_KEY = storageKey('community-view');
 
 /**
  * 갤러리 보기 방식. 새로고침/재방문에도 유지되도록 localStorage에 저장한다.

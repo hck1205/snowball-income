@@ -25,6 +25,7 @@
       "source": "/ticker/category/:id",
       "destination": "/api/seo-html?surface=ticker-category&id=:id"
     },
+    { "source": "/investor-type", "destination": "/investor-type.html" },
     { "source": "/market/pulse", "destination": "/market/pulse.html" },
     { "source": "/market/stats", "destination": "/market/stats.html" },
     { "source": "/market/us-calendar", "destination": "/market/us-calendar.html" },

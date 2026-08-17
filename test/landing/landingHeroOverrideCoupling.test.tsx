@@ -44,9 +44,12 @@ const landingStyledSource = stripComments(readFileSync(LANDING_STYLED_PATH, 'utf
 const HERO_OVERRIDE_SELECTORS = [
   '> header',
   '> header > div:first-of-type',
-  '> header h1',
-  '> header > div:first-of-type > div + div',
-  '> header > div:first-of-type > div + div > *'
+  '> header h1'
+  /**
+   * 🔴 CTA 줄 오버라이드 두 개(`> div + div`, `> div + div > *`)를 걷었다(2026-08-17).
+   * 히어로 `actions` 슬롯이 비면서 겨냥할 대상이 사라졌다 — 남겨 두면 히어로가 나중에 div 를
+   * 하나 더 늘리는 순간 엉뚱한 요소를 잡는다. 수준 4갈래는 히어로 밖 형제라 이 보정이 필요 없다.
+   */
 ] as const;
 
 /**
@@ -58,8 +61,6 @@ const SELECTOR = {
   card: HERO_OVERRIDE_SELECTORS[0],
   titleRow: HERO_OVERRIDE_SELECTORS[1],
   title: HERO_OVERRIDE_SELECTORS[2],
-  actions: HERO_OVERRIDE_SELECTORS[3],
-  actionChildren: HERO_OVERRIDE_SELECTORS[4]
 } as const;
 
 /** 소스에 적힌 `> header …{` 룰을 등장 순서대로 뽑는다. */
@@ -147,27 +148,18 @@ describe('랜딩 히어로 override — 선택자가 겨냥하는 DOM 이 그대
     expect(titles[0]).toHaveAccessibleName(LANDING_COPY.hero.title);
   });
 
-  /**
-   * 🔴 `> div + div` 은 "제목 줄의 직계 div 가 **정확히 둘**(제목 그룹 · 액션)"을 전제한다.
-   * 셋이 되면 매칭이 2건이 되어 엉뚱한 요소까지 왼쪽 정렬·transform 해제를 먹고,
-   * 하나가 되면 CTA 가 제목 줄에 남는다. 매칭된 것이 **CTA 컨테이너가 맞는지**까지 확인한다 —
-   * 개수만 세면 "다른 div 가 우연히 두 번째"인 상황을 통과시킨다.
-   */
-  it('제목 줄의 직계 div 는 정확히 둘이고, 두 번째는 CTA 컨테이너다', () => {
+  it('제목 줄의 직계 div 는 하나다 — CTA 컨테이너가 사라졌다', () => {
+    /**
+     * 🔴 2026-08-17: 히어로 `actions` 를 비웠다(수준 4갈래가 그 역할을 히어로 밖에서 한다).
+     * 그래서 제목 줄의 직계 div 는 **제목 그룹 하나**이고, 이 파일이 지키던 `> div + div` 룰도
+     * 함께 걷혔다. 둘로 돌아가면 히어로에 액션이 다시 생겼다는 뜻이니 그때 룰도 같이 되살려라.
+     */
     renderLandingPage();
     const block = getHeroBlock();
 
     const titleRow = scoped(block, SELECTOR.titleRow)[0];
     const directDivs = [...titleRow.children].filter((child) => child.tagName === 'DIV');
-    expect(directDivs).toHaveLength(2);
-
-    const actions = scoped(block, SELECTOR.actions);
-    expect(actions).toHaveLength(1);
-    // 랜딩 히어로 CTA 2개가 전부 이 컨테이너 안에 있어야 "CTA 를 아랫줄로 내린다"는 룰이 유효하다.
-    expect(actions[0].querySelectorAll('[data-landing-cta]')).toHaveLength(2);
-
-    // 마지막 룰(`> *`)은 CTA 하나하나의 잉크 보정을 되돌린다 — 대상이 곧 CTA 개수다.
-    expect(scoped(block, SELECTOR.actionChildren)).toHaveLength(2);
+    expect(directDivs).toHaveLength(1);
   });
 
   /**
