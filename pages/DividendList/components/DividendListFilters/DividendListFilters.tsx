@@ -18,6 +18,7 @@ import {
   ActiveText,
   AxisLabel,
   AxisRow,
+  AxisTrack,
   ChipRow,
   FilterHint,
   FiltersPanel,
@@ -120,64 +121,71 @@ export default function DividendListFilters({
         </SearchField>
       </SearchRow>
 
-      <AxisRow role="group" aria-labelledby={yieldLabelId}>
-        <AxisLabel id={yieldLabelId}>{copy.columnYield}</AxisLabel>
-        <ChipRow>
-          <Chip selected={filter.minYieldPercent === null} onClick={() => setYield(null)}>
-            {copy.filterAll}
-          </Chip>
-          {DIVIDEND_LIST_YIELD_STEPS.map((step) => (
-            <Chip
-              key={step}
-              selected={filter.minYieldPercent === step}
-              /* 켜진 칸을 다시 누르면 꺼진다 — "전체"까지 가지 않고도 축 하나를 되돌릴 수 있다. */
-              onClick={() => setYield(filter.minYieldPercent === step ? null : step)}
-            >
-              {stepLabel(step)}
+      {/*
+        세 축은 한 트랙에 산다 — 좁은 화면에서 이 판이 헤더 아래 고정되기 때문이다(2026-08-17
+        사용자 요청). 세로로 쌓인 채 고정하면 조건 판이 화면의 28%를 영구히 먹는다.
+        넓은 화면에서는 트랙이 상자가 아니라(display: contents) 지금까지의 세로 스택 그대로다.
+      */}
+      <AxisTrack>
+        <AxisRow role="group" aria-labelledby={yieldLabelId}>
+          <AxisLabel id={yieldLabelId}>{copy.columnYield}</AxisLabel>
+          <ChipRow>
+            <Chip selected={filter.minYieldPercent === null} onClick={() => setYield(null)}>
+              {copy.filterAll}
             </Chip>
-          ))}
-        </ChipRow>
-      </AxisRow>
+            {DIVIDEND_LIST_YIELD_STEPS.map((step) => (
+              <Chip
+                key={step}
+                selected={filter.minYieldPercent === step}
+                /* 켜진 칸을 다시 누르면 꺼진다 — "전체"까지 가지 않고도 축 하나를 되돌릴 수 있다. */
+                onClick={() => setYield(filter.minYieldPercent === step ? null : step)}
+              >
+                {stepLabel(step)}
+              </Chip>
+            ))}
+          </ChipRow>
+        </AxisRow>
 
-      <AxisRow role="group" aria-labelledby={growthLabelId}>
-        <AxisLabel id={growthLabelId}>{copy.columnGrowth}</AxisLabel>
-        <ChipRow>
-          <Chip selected={filter.minGrowthPercent === null} onClick={() => setGrowth(null)}>
-            {copy.filterAll}
-          </Chip>
-          {DIVIDEND_LIST_GROWTH_STEPS.map((step) => (
-            <Chip
-              key={step}
-              selected={filter.minGrowthPercent === step}
-              onClick={() => setGrowth(filter.minGrowthPercent === step ? null : step)}
-            >
-              {stepLabel(step)}
+        <AxisRow role="group" aria-labelledby={growthLabelId}>
+          <AxisLabel id={growthLabelId}>{copy.columnGrowth}</AxisLabel>
+          <ChipRow>
+            <Chip selected={filter.minGrowthPercent === null} onClick={() => setGrowth(null)}>
+              {copy.filterAll}
             </Chip>
-          ))}
-        </ChipRow>
-      </AxisRow>
+            {DIVIDEND_LIST_GROWTH_STEPS.map((step) => (
+              <Chip
+                key={step}
+                selected={filter.minGrowthPercent === step}
+                onClick={() => setGrowth(filter.minGrowthPercent === step ? null : step)}
+              >
+                {stepLabel(step)}
+              </Chip>
+            ))}
+          </ChipRow>
+        </AxisRow>
 
-      <AxisRow role="group" aria-labelledby={sectorLabelId}>
-        <AxisLabel id={sectorLabelId}>{copy.columnSector}</AxisLabel>
-        <ChipRow>
-          {/* 섹터 축의 "전체" = 고른 섹터를 전부 비우는 것. 목록 크기를 함께 달아 필터 전 규모를 남긴다. */}
-          <Chip
-            selected={filter.sectors.length === 0}
-            onClick={() => onChange({ ...filter, sectors: [] })}
-          >
-            {`${copy.filterAll} ${totalCount}`}
-          </Chip>
-          {facets.map((facet) => (
+        <AxisRow role="group" aria-labelledby={sectorLabelId}>
+          <AxisLabel id={sectorLabelId}>{copy.columnSector}</AxisLabel>
+          <ChipRow>
+            {/* 섹터 축의 "전체" = 고른 섹터를 전부 비우는 것. 목록 크기를 함께 달아 필터 전 규모를 남긴다. */}
             <Chip
-              key={facet.sector}
-              selected={filter.sectors.includes(facet.sector)}
-              onClick={() => toggleSector(facet.sector)}
+              selected={filter.sectors.length === 0}
+              onClick={() => onChange({ ...filter, sectors: [] })}
             >
-              {`${facet.label} ${facet.count}`}
+              {`${copy.filterAll} ${totalCount}`}
             </Chip>
-          ))}
-        </ChipRow>
-      </AxisRow>
+            {facets.map((facet) => (
+              <Chip
+                key={facet.sector}
+                selected={filter.sectors.includes(facet.sector)}
+                onClick={() => toggleSector(facet.sector)}
+              >
+                {`${facet.label} ${facet.count}`}
+              </Chip>
+            ))}
+          </ChipRow>
+        </AxisRow>
+      </AxisTrack>
 
       <FilterHint>{copy.filterHint}</FilterHint>
 

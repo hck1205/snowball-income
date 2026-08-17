@@ -182,12 +182,48 @@ describe('TickerHubPage', () => {
     const symbols = [...(firstSection?.querySelectorAll('h3') ?? [])].map((h) => h.textContent ?? '');
     expect(symbols.length).toBeGreaterThan(1);
 
-    // 정렬 결과는 이름이 아니라 값의 순서로 검증한다 — 데이터가 갱신돼도 이 계약은 유지된다.
-    const yields = [...(firstSection?.querySelectorAll('dd') ?? [])]
-      .map((dd) => dd.textContent ?? '')
-      .filter((text) => text.endsWith('%'));
-    const parsed = symbols.map((_, index) => Number.parseFloat(yields[index * 2] ?? '0'));
+    /*
+     * 정렬 결과는 이름이 아니라 값의 순서로 검증한다 — 데이터가 갱신돼도 이 계약은 유지된다.
+     * ⚠ 값은 **라벨을 보고** 집는다. 종전에는 "카드마다 %로 끝나는 dd 가 둘"이라는 자릿수 가정
+     *   (`index * 2`)으로 집었는데, 카드에 배당성장 행이 하나 붙자(2026-08-17) 그 보폭이 어긋나
+     *   정렬과 무관하게 깨졌다. 지표를 더 붙여도 이 방식은 안 깨진다.
+     */
+    const parsed = [...(firstSection?.querySelectorAll('dl') ?? [])].map((metric) => {
+      const label = [...metric.querySelectorAll('dt')].find((dt) => dt.textContent === '배당률');
+      return Number.parseFloat(label?.nextElementSibling?.textContent ?? '0');
+    });
+    expect(parsed.length).toBe(symbols.length);
     for (let i = 1; i < parsed.length; i += 1) expect(parsed[i]).toBeLessThanOrEqual(parsed[i - 1]);
+  });
+
+  /**
+   * 🔴 **글자를 치지 않고** 후보를 좁히는 길(2026-08-17 사용자 지시: "입력 대신 클릭으로 필터되는
+   * UI"). 검색은 찾을 티커를 이미 아는 사람의 도구라, 조건만 들고 온 사용자에게는 칩이 유일한 문이다.
+   */
+  it('배당률 칩으로 후보를 좁히고, 무엇이 걸렸는지 글자로 남는다', async () => {
+    const user = userEvent.setup();
+    const { container } = renderHub();
+
+    await user.click(screen.getByRole('button', { name: '4% 이상' }));
+
+    const summary = screen.getByRole('status');
+    expect(within(summary).getByText('배당률 4% 이상')).toBeInTheDocument();
+    expect(summary.textContent).toMatch(/종 일치/);
+
+    /*
+     * 표에 남은 줄은 **전부** 조건을 만족한다 — 조건과 결과가 갈리면 필터가 거짓말을 한 것이다.
+     * ⚠ 카테고리를 하나 집어 검사하지 않는다. 배당성장 ETF 처럼 4% 이상이 한 종도 없는 칸이
+     *   실제로 있고(그 칸은 "조건에 맞는 티커가 없습니다" 한 줄로 남는다), 그런 칸을 집으면
+     *   필터가 아니라 데이터 분포를 검사하게 된다.
+     * ⚠ `section[id]` 는 카테고리 칸만 고른다 — 시뮬레이터 전용 표의 섹션에는 id 가 없다
+     *   (그 표는 이 필터의 대상이 아니다).
+     */
+    const rows = [...container.querySelectorAll('section[id] tbody tr')];
+    expect(rows.length).toBeGreaterThan(0);
+    for (const row of rows) {
+      const yieldText = within(row as HTMLElement).getAllByRole('cell')[2].textContent ?? '';
+      expect(Number.parseFloat(yieldText)).toBeGreaterThanOrEqual(4);
+    }
   });
 
   it('reports the library scope in the masthead spec strip', () => {
@@ -302,5 +338,44 @@ describe('시뮬레이터에서 계산되는 종목', () => {
     for (const ticker of TICKER_CONTENT_LIST.map((content) => content.ticker)) {
       expect(listed).not.toContain(ticker);
     }
+  });
+
+  /**
+   * 이 표에는 검색도 필터도 없다(얇은 소개 페이지를 만들지 않기로 한 판단의 결과). 227줄에서
+   * 무언가를 찾는 **유일한 수단이 정렬**이라, 열 머리가 실제로 순서를 바꾸는지를 잠근다.
+   */
+  it('열 머리를 누르면 그 기준으로 정렬된다', async () => {
+    const user = userEvent.setup();
+    renderHub();
+
+    const section = screen.getByRole('region', { name: '시뮬레이터에서 계산되는 종목' });
+    const yieldOf = () =>
+      within(section)
+        .getAllByRole('row')
+        .slice(1)
+        .map((row) => Number.parseFloat(within(row).getAllByRole('cell')[2].textContent ?? '0'));
+
+    // 한 번 누르면 오름차순, 다시 누르면 내림차순 — 배당 목록 표와 같은 규칙이다.
+    await user.click(within(section).getByRole('button', { name: '배당률' }));
+    const ascending = yieldOf();
+    for (let i = 1; i < ascending.length; i += 1) expect(ascending[i]).toBeGreaterThanOrEqual(ascending[i - 1]);
+
+    await user.click(within(section).getByRole('button', { name: '배당률 (오름차순)' }));
+    const descending = yieldOf();
+    for (let i = 1; i < descending.length; i += 1) expect(descending[i]).toBeLessThanOrEqual(descending[i - 1]);
+  });
+
+  /** 🔴 `aria-sort` 는 표당 하나여야 한다(WAI-ARIA) — 정렬 축을 옮겼을 때 옛 열에 남으면 안 된다. */
+  it('정렬 중 표시는 지금 정렬하는 열에만 남는다', async () => {
+    const user = userEvent.setup();
+    const { container } = renderHub();
+
+    const section = screen.getByRole('region', { name: '시뮬레이터에서 계산되는 종목' });
+    await user.click(within(section).getByRole('button', { name: '배당률' }));
+    await user.click(within(section).getByRole('button', { name: '종목명' }));
+
+    const sorted = [...container.querySelectorAll('th[aria-sort]')];
+    expect(sorted).toHaveLength(1);
+    expect(sorted[0].textContent).toContain('종목명');
   });
 });

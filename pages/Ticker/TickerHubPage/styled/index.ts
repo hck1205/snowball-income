@@ -64,11 +64,11 @@ export {
   MastheadTitle
 } from './masthead';
 
-export { IndexRail, Layout, RailDivider, RailGroupLabel } from './rail';
+export { ControlTrack, IndexRail, Layout, RailControls, RailDivider, RailGroupLabel } from './rail';
 
 export { SearchClear, SearchField, SearchGlyph, SearchInput } from './search';
 
-export { FilterRow, FrequencyChip, SortSelect, ViewToggle, ViewToggleButton } from './filters';
+export { ChipGroupLabel, FilterRow, FrequencyChip, SortSelect, ViewToggle, ViewToggleButton } from './filters';
 
 export {
   CategoryIndex,
@@ -92,6 +92,8 @@ export {
   SectionHeading,
   SimulatorOnlyNote,
   SimulatorOnlySection,
+  SimulatorOnlySortButton,
+  SimulatorOnlySortGlyph,
   SimulatorOnlyTable
 } from './sections';
 

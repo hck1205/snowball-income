@@ -14,7 +14,7 @@ import {
   X,
   type LucideIcon
 } from 'lucide-react';
-import type { CSSProperties } from 'react';
+import { useId, useMemo, useState, type CSSProperties } from 'react';
 import { BrandGlyph, PageFooter, PickCardGrid, TickerSelectorBar, TickerSelectorCheckbox } from '@/components/common';
 import { ICON } from '@/shared/styles';
 import { useCompareSelection } from '../hooks';
@@ -22,9 +22,19 @@ import type { CompareSelection } from '../hooks';
 import type {
   HubResultCategory,
   HubTickerCard,
+  SimulatorOnlyRow,
+  SimulatorOnlySort,
   TickerHubViewProps
 } from './TickerHubPage.types';
-import { HUB_FREQUENCY_OPTIONS, HUB_SORT_OPTIONS } from './TickerHubPage.utils';
+import {
+  DEFAULT_SIMULATOR_ONLY_SORT,
+  HUB_FREQUENCY_OPTIONS,
+  HUB_SORT_OPTIONS,
+  HUB_YIELD_STEPS,
+  SIMULATOR_ONLY_COLUMNS,
+  nextSimulatorOnlySort,
+  sortSimulatorOnlyRows
+} from './TickerHubPage.utils';
 import {
   CARD_MIN_WIDTH,
   CapLabel,
@@ -48,7 +58,9 @@ import {
   CategoryList,
   CategoryNav,
   CategorySection,
+  ChipGroupLabel,
   CompareLink,
+  ControlTrack,
   EmptyActions,
   EmptyGlyph,
   EmptyState,
@@ -68,6 +80,7 @@ import {
   MastheadLede,
   MastheadMascot,
   MastheadTitle,
+  RailControls,
   RailDivider,
   RailGroupLabel,
   ResetButton,
@@ -94,6 +107,8 @@ import {
   TableRow,
   SimulatorOnlyNote,
   SimulatorOnlySection,
+  SimulatorOnlySortButton,
+  SimulatorOnlySortGlyph,
   SimulatorOnlyTable,
   TableScroll,
   TableSelectCell,
@@ -164,6 +179,7 @@ export default function TickerHubView({
   filters,
   result,
   onQueryChange,
+  onYieldChange,
   onFrequencyChange,
   onSortChange,
   onViewChange,
@@ -172,6 +188,9 @@ export default function TickerHubView({
   const { stats } = viewModel;
   const frequencyLabel = HUB_FREQUENCY_OPTIONS.find((option) => option.value === filters.frequency)?.label ?? '전체';
   const hasResults = result.matchedCount > 0;
+  /* 칩 묶음의 접근 가능한 이름 = 화면에 보이는 축 라벨. 같은 말을 aria 로 한 번 더 적지 않는다. */
+  const yieldGroupId = useId();
+  const frequencyGroupId = useId();
 
   /*
    * 🔴 이 화면에는 이미 `/ticker/compare` 링크가 있었지만 **아무것도 싣지 않고 갔다** — 비교 화면에
@@ -229,77 +248,116 @@ export default function TickerHubView({
         <IndexRail aria-label="티커 찾기">
           <RailGroupLabel>찾기</RailGroupLabel>
 
-          <SearchField>
-            <SearchGlyph aria-hidden>
-              <Search size={ICON.sm} strokeWidth={ICON.stroke} />
-            </SearchGlyph>
-            <SearchInput
-              type="search"
-              value={filters.query}
-              onChange={(event) => onQueryChange(event.target.value)}
-              placeholder="티커·종목명으로 검색"
-              aria-label="티커·종목명 검색"
-            />
-            {/* 검색어가 있을 때만 선다 — 빈 아이콘 자리를 남겨 두지 않는다. */}
-            {filters.query ? (
-              <SearchClear type="button" onClick={() => onQueryChange('')} aria-label="검색어 지우기">
-                <X size={ICON.sm} strokeWidth={ICON.stroke} aria-hidden />
-              </SearchClear>
-            ) : null}
-          </SearchField>
+          {/*
+            조건 묶음 — 좁은 화면에서는 이 덩어리만 헤더 아래에 붙는다(2026-08-17 사용자 요청).
+            레일 전체를 붙이지 않는 이유와 그것을 성립시키는 CSS 는 `styled/rail.ts` 의
+            `IndexRail`·`RailControls` 주석에 실측과 함께 적혀 있다.
+          */}
+          <RailControls>
+            <SearchField>
+              <SearchGlyph aria-hidden>
+                <Search size={ICON.sm} strokeWidth={ICON.stroke} />
+              </SearchGlyph>
+              <SearchInput
+                type="search"
+                value={filters.query}
+                onChange={(event) => onQueryChange(event.target.value)}
+                placeholder="티커·종목명으로 검색"
+                aria-label="티커·종목명 검색"
+              />
+              {/* 검색어가 있을 때만 선다 — 빈 아이콘 자리를 남겨 두지 않는다. */}
+              {filters.query ? (
+                <SearchClear type="button" onClick={() => onQueryChange('')} aria-label="검색어 지우기">
+                  <X size={ICON.sm} strokeWidth={ICON.stroke} aria-hidden />
+                </SearchClear>
+              ) : null}
+            </SearchField>
 
-          {/* 지급 주기 — 라디오형 묶음이라 항상 하나가 눌려 있다(aria-pressed 로 상태를 말한다). */}
-          <FilterRow role="group" aria-label="지급 주기">
-            {HUB_FREQUENCY_OPTIONS.map((option) => (
-              <FrequencyChip
-                key={option.value}
-                type="button"
-                $active={filters.frequency === option.value}
-                aria-pressed={filters.frequency === option.value}
-                onClick={() => onFrequencyChange(option.value)}
-              >
-                {option.label}
-              </FrequencyChip>
-            ))}
-          </FilterRow>
+            <ControlTrack>
+              {/*
+                🔴 배당률 사다리 — **글자를 치지 않고** 105종을 좁히는 축이다. 검색은 찾을 티커를
+                이미 아는 사람의 도구인데, 이 화면에 오는 사람 다수는 "4% 넘는 것"처럼 조건만 들고
+                온다(2026-08-17 사용자 지시: "입력 대신 클릭으로 필터되는 UI").
+                ⚠ 켜진 칸을 다시 누르면 꺼진다 — "전체"까지 가지 않고도 축 하나를 되돌린다.
+              */}
+              <FilterRow role="group" aria-labelledby={yieldGroupId}>
+                <ChipGroupLabel id={yieldGroupId}>배당률</ChipGroupLabel>
+                <FrequencyChip
+                  type="button"
+                  $active={filters.minYieldPercent === null}
+                  aria-pressed={filters.minYieldPercent === null}
+                  onClick={() => onYieldChange(null)}
+                >
+                  전체
+                </FrequencyChip>
+                {HUB_YIELD_STEPS.map((step) => (
+                  <FrequencyChip
+                    key={step}
+                    type="button"
+                    $active={filters.minYieldPercent === step}
+                    aria-pressed={filters.minYieldPercent === step}
+                    onClick={() => onYieldChange(filters.minYieldPercent === step ? null : step)}
+                  >
+                    {`${step}% 이상`}
+                  </FrequencyChip>
+                ))}
+              </FilterRow>
 
-          <FilterRow>
-            <SortSelect
-              value={filters.sort}
-              onChange={(event) => onSortChange(event.target.value as typeof filters.sort)}
-              aria-label="정렬 기준"
-            >
-              {HUB_SORT_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </SortSelect>
+              {/* 지급 주기 — 라디오형 묶음이라 항상 하나가 눌려 있다(aria-pressed 로 상태를 말한다). */}
+              <FilterRow role="group" aria-labelledby={frequencyGroupId}>
+                <ChipGroupLabel id={frequencyGroupId}>지급</ChipGroupLabel>
+                {HUB_FREQUENCY_OPTIONS.map((option) => (
+                  <FrequencyChip
+                    key={option.value}
+                    type="button"
+                    $active={filters.frequency === option.value}
+                    aria-pressed={filters.frequency === option.value}
+                    onClick={() => onFrequencyChange(option.value)}
+                  >
+                    {option.label}
+                  </FrequencyChip>
+                ))}
+              </FilterRow>
 
-            {/* 밀도를 사용자가 고른다 — 카드는 훑기에, 표는 비교에 낫다. */}
-            <ViewToggle role="group" aria-label="보기 형태">
-              {/* 🔴 **표가 먼저**다 — 기본값이 표이므로(DEFAULT_HUB_FILTERS) 순서도 그것을 따른다.
-                  기본값과 첫 칸이 어긋나면 "지금 어느 쪽인지"를 매번 다시 읽어야 한다. */}
-              <ViewToggleButton
-                type="button"
-                $active={filters.view === 'table'}
-                aria-pressed={filters.view === 'table'}
-                onClick={() => onViewChange('table')}
-              >
-                <Rows3 size={ICON.xs} strokeWidth={ICON.stroke} aria-hidden />
-                표
-              </ViewToggleButton>
-              <ViewToggleButton
-                type="button"
-                $active={filters.view === 'grid'}
-                aria-pressed={filters.view === 'grid'}
-                onClick={() => onViewChange('grid')}
-              >
-                <LayoutGrid size={ICON.xs} strokeWidth={ICON.stroke} aria-hidden />
-                카드
-              </ViewToggleButton>
-            </ViewToggle>
-          </FilterRow>
+              <FilterRow>
+                <SortSelect
+                  value={filters.sort}
+                  onChange={(event) => onSortChange(event.target.value as typeof filters.sort)}
+                  aria-label="정렬 기준"
+                >
+                  {HUB_SORT_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </SortSelect>
+
+                {/* 밀도를 사용자가 고른다 — 카드는 훑기에, 표는 비교에 낫다. */}
+                <ViewToggle role="group" aria-label="보기 형태">
+                  {/* 🔴 **표가 먼저**다 — 기본값이 표이므로(DEFAULT_HUB_FILTERS) 순서도 그것을 따른다.
+                      기본값과 첫 칸이 어긋나면 "지금 어느 쪽인지"를 매번 다시 읽어야 한다. */}
+                  <ViewToggleButton
+                    type="button"
+                    $active={filters.view === 'table'}
+                    aria-pressed={filters.view === 'table'}
+                    onClick={() => onViewChange('table')}
+                  >
+                    <Rows3 size={ICON.xs} strokeWidth={ICON.stroke} aria-hidden />
+                    표
+                  </ViewToggleButton>
+                  <ViewToggleButton
+                    type="button"
+                    $active={filters.view === 'grid'}
+                    aria-pressed={filters.view === 'grid'}
+                    onClick={() => onViewChange('grid')}
+                  >
+                    <LayoutGrid size={ICON.xs} strokeWidth={ICON.stroke} aria-hidden />
+                    카드
+                  </ViewToggleButton>
+                </ViewToggle>
+              </FilterRow>
+            </ControlTrack>
+          </RailControls>
 
           <RailDivider />
           <RailGroupLabel>카테고리</RailGroupLabel>
@@ -352,6 +410,7 @@ export default function TickerHubView({
               </span>
             )}
             {filters.query ? <ResultChip>검색 “{filters.query}”</ResultChip> : null}
+            {filters.minYieldPercent !== null ? <ResultChip>배당률 {filters.minYieldPercent}% 이상</ResultChip> : null}
             {filters.frequency !== 'all' ? <ResultChip>지급 {frequencyLabel}</ResultChip> : null}
             {result.filtered ? (
               <ResetButton type="button" onClick={onReset}>
@@ -413,36 +472,7 @@ export default function TickerHubView({
         같은 뼈대에 숫자만 바뀐 페이지 수백 개는 검색엔진이 얇은 콘텐츠로 판정해 잘 있는 페이지까지
         끌어내린다(근거는 `buildSimulatorOnlyRows` 주석).
       */}
-      {viewModel.simulatorOnly.length > 0 ? (
-        <SimulatorOnlySection aria-labelledby="simulator-only-heading">
-          <SectionHeading id="simulator-only-heading">시뮬레이터에서 계산되는 종목</SectionHeading>
-          <SimulatorOnlyNote>
-            {`소개 글은 아직 없지만 시뮬레이터 프리셋에 들어 있어, 종목을 담으면 주가·배당률이 자동으로 채워집니다. ${viewModel.simulatorOnly.length}종이며 숫자는 매월 갱신됩니다.`}
-          </SimulatorOnlyNote>
-          <TableScroll>
-            <SimulatorOnlyTable>
-              <thead>
-                <tr>
-                  <th scope="col">티커</th>
-                  <th scope="col">종목명</th>
-                  <th scope="col">배당률</th>
-                  <th scope="col">지급 주기</th>
-                </tr>
-              </thead>
-              <tbody>
-                {viewModel.simulatorOnly.map((row) => (
-                  <tr key={row.ticker}>
-                    <td>{row.ticker}</td>
-                    <td>{row.name}</td>
-                    <td>{`${row.dividendYield.toFixed(2)}%`}</td>
-                    <td>{row.frequencyLabel}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </SimulatorOnlyTable>
-          </TableScroll>
-        </SimulatorOnlySection>
-      ) : null}
+      {viewModel.simulatorOnly.length > 0 ? <SimulatorOnlyBlock rows={viewModel.simulatorOnly} /> : null}
 
       {/* 다른 화면과 같은 자리·같은 모양의 공용 푸터(2026-07-31). 이 화면에는 자기 각주가 없어
           사이트 공통 고지만 나간다 — 카드 숫자의 근거는 각 티커 상세가 자기 문장으로 말한다.
@@ -459,6 +489,76 @@ export default function TickerHubView({
         onClear={compare.clear}
       />
     </>
+  );
+}
+
+/**
+ * 소개 글이 없는 프리셋 목록(227종).
+ *
+ * 🔴 **열 머리로 정렬한다**(2026-08-17 사용자 요청). 227줄을 눈으로 훑어 "배당률이 높은 것"을
+ * 찾는 것은 사실상 불가능했다 — 이 표는 위 카테고리 표와 달리 검색·필터가 붙지 않는 자리라
+ * (얇은 소개 페이지를 만들지 않기로 한 판단의 결과), 정렬이 유일한 탐색 수단이다.
+ *
+ * ⚠ 정렬 상태를 이 컴포넌트가 **혼자 소유한다.** 위 라이브러리의 찾기 상태(HubFilterState)와 섞지
+ *   않는다 — 두 표는 서로 다른 데이터(소개 있는 105종 · 없는 227종)를 보여 주고, 한쪽 정렬을
+ *   바꿨다고 다른 쪽이 흔들리면 "무엇을 눌렀는지"를 잃는다.
+ * ⚠ 접근성 계약은 배당 목록 표와 같다: `aria-sort` 는 **현재 정렬 중인 열에만**(표당 하나여야
+ *   한다), 방향은 색이 아니라 글리프 + `aria-sort` 값이 말한다.
+ */
+function SimulatorOnlyBlock({ rows }: { rows: SimulatorOnlyRow[] }) {
+  const [sort, setSort] = useState<SimulatorOnlySort>(DEFAULT_SIMULATOR_ONLY_SORT);
+  const sorted = useMemo(() => sortSimulatorOnlyRows(rows, sort), [rows, sort]);
+
+  return (
+    <SimulatorOnlySection aria-labelledby="simulator-only-heading">
+      <SectionHeading id="simulator-only-heading">시뮬레이터에서 계산되는 종목</SectionHeading>
+      <SimulatorOnlyNote>
+        {`소개 글은 아직 없지만 시뮬레이터 프리셋에 들어 있어, 종목을 담으면 주가·배당률이 자동으로 채워집니다. ${rows.length}종이며 숫자는 매월 갱신됩니다. 열 머리를 누르면 그 기준으로 정렬됩니다.`}
+      </SimulatorOnlyNote>
+      <TableScroll>
+        <SimulatorOnlyTable>
+          <thead>
+            <tr>
+              {SIMULATOR_ONLY_COLUMNS.map((column) => {
+                const active = sort.key === column.key;
+                const directionLabel = sort.direction === 'asc' ? '오름차순' : '내림차순';
+
+                return (
+                  <th
+                    key={column.key}
+                    scope="col"
+                    aria-sort={active ? (sort.direction === 'asc' ? 'ascending' : 'descending') : undefined}
+                  >
+                    <SimulatorOnlySortButton
+                      type="button"
+                      $active={active}
+                      onClick={() => setSort((prev) => nextSimulatorOnlySort(prev, column.key))}
+                      /* 버튼 이름에 현재 방향을 담는다 — 화살표 글리프는 aria-hidden 이라 이름에 안 들어온다. */
+                      aria-label={active ? `${column.label} (${directionLabel})` : column.label}
+                    >
+                      {column.label}
+                      <SimulatorOnlySortGlyph $active={active} aria-hidden>
+                        {active ? (sort.direction === 'asc' ? '▲' : '▼') : '▾'}
+                      </SimulatorOnlySortGlyph>
+                    </SimulatorOnlySortButton>
+                  </th>
+                );
+              })}
+            </tr>
+          </thead>
+          <tbody>
+            {sorted.map((row) => (
+              <tr key={row.ticker}>
+                <td>{row.ticker}</td>
+                <td>{row.name}</td>
+                <td>{`${row.dividendYield.toFixed(2)}%`}</td>
+                <td>{row.frequencyLabel}</td>
+              </tr>
+            ))}
+          </tbody>
+        </SimulatorOnlyTable>
+      </TableScroll>
+    </SimulatorOnlySection>
   );
 }
 
@@ -543,6 +643,12 @@ function CategorySectionView({
                       <CardMetricValue>{ticker.dividendYield}</CardMetricValue>
                     </CardMetricLead>
                     <CardMetricRows>
+                      {/* 표 보기와 **같은 지표를 같은 순서로** 말한다 — 보기를 바꿨다고 아는 사실이 줄면
+                          전환이 손해가 된다. 배당성장은 프리셋 가정치라 전 티커에 값이 있다. */}
+                      <CardMetricRow>
+                        <CardMetricRowLabel>배당성장</CardMetricRowLabel>
+                        <CardMetricRowValue>{ticker.dividendGrowth}</CardMetricRowValue>
+                      </CardMetricRow>
                       {/* 값이 없는 티커는 행 자체를 뺀다 — 빈 값·'-'·0% 로 자리를 채우지 않는다. */}
                       {ticker.expenseRatio ? (
                         <CardMetricRow>
@@ -575,14 +681,20 @@ function CategoryTable({ category, compare }: { category: HubResultCategory; com
   return (
     <TableScroll>
       <TickerTable>
+        {/* 🔴 캡션이 배당성장의 **성격**을 말한다 — 과거 실적이 아니라 시뮬레이터 계산 프리셋의
+            가정치다(상세 히어로의 "연 배당성장률(계산 가정)"과 같은 값). 숫자 옆에 근거 없는
+            퍼센트를 세우지 않는다는 이 레포의 규율이 이 한 줄로 지켜진다. */}
         <caption>
-          {category.label} {category.matched.length}종 — 배당률·운용보수·지급 주기
+          {category.label} {category.matched.length}종 — 배당률·배당성장(계산 가정)·운용보수·지급 주기
         </caption>
         <thead>
           <tr>
             <th scope="col">티커</th>
             <th scope="col">종목명</th>
             <th scope="col">배당률</th>
+            {/* 🔴 배당률 **바로 옆**이다 — 둘은 같은 단위(%)의 짝이고, "지금 얼마"와 "얼마나 빨리 느나"를
+                나란히 놓는 것이 이 표를 읽는 이유다. 값의 성격(가정치)은 표 아래 각주가 말한다. */}
+            <th scope="col">배당성장</th>
             <th scope="col">운용보수</th>
             <th scope="col">지급</th>
             {/* 🔴 맨 끝이다 — 첫 열이 좌측 고정이라 앞에 끼우면 그 오프셋이 어긋난다(styled/table.ts). */}
@@ -600,6 +712,7 @@ function CategoryTable({ category, compare }: { category: HubResultCategory; com
                 <TableEnglish>{ticker.englishName}</TableEnglish>
               </TableNameCell>
               <TableNumberCell>{ticker.dividendYield}</TableNumberCell>
+              <TableNumberCell>{ticker.dividendGrowth}</TableNumberCell>
               <TableNumberCell>
                 {ticker.expenseRatio ?? <TableMuted>미공시</TableMuted>}
               </TableNumberCell>

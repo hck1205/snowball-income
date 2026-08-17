@@ -1,5 +1,15 @@
 import styled from '@emotion/styled';
-import { color, font, media, radius, space } from '@/shared/styles';
+import {
+  appHeaderHeight,
+  color,
+  font,
+  media,
+  radius,
+  scrollFadeRight,
+  space,
+  subtleScrollbar,
+  zIndex
+} from '@/shared/styles';
 
 /**
  * 세 축 필터 판.
@@ -20,6 +30,69 @@ export const FiltersPanel = styled.div`
   border-radius: ${radius.lg};
   background: ${color.surfaceSunken};
   min-width: 0;
+
+  /*
+   * 🔴 좁은 화면에서 **헤더 아래에 붙는다**(2026-08-17 사용자 요청). 표가 행 카드로 접히는
+   * 바로 그 폭(tablet)부터다 — 카드 모드의 목록은 세로로 길어서, 40번째 줄에서 조건을 바꾸려면
+   * 조건 판까지 되돌아 올라가야 했다.
+   *
+   * ⚠ 붙는 것은 이 판이 **표와 같은 섹션 안에 있기 때문**에 성립한다(둘 다 같은 Section 의 자식).
+   *   sticky 는 제 부모 상자 안에서만 붙으므로, 표를 다 지나가면 자연스럽게 함께 떠난다 —
+   *   출처·관련 목록 섹션까지 따라다니지 않는다. 판을 다른 상자로 옮기지 마라.
+   * ⚠ 면이 반투명하면 밑을 지나는 표 글자가 비친다. surfaceSunken 은 불투명 토큰이다.
+   * ⚠ 높이는 두 줄(검색 + 가로로 미는 축 트랙)로 묶는다. 세 축을 세로로 쌓으면 390px 에서
+   *   판만 240px 가 되어 뷰포트의 28% 를 영구히 먹는다 — 그건 조건이 아니라 벽이다.
+   */
+  ${media.down('tablet')} {
+    position: sticky;
+    top: ${appHeaderHeight};
+    z-index: ${zIndex.stickyAction};
+    gap: ${space[2]};
+    padding: ${space[2]} ${space[3]};
+  }
+`;
+
+/**
+ * 세 축(배당률·성장·섹터)을 **한 줄로 미는 트랙** — 좁은 화면 전용.
+ *
+ * 넓은 화면에서는 상자가 아니다(`display: contents`) — 판이 이미 세로 스택이라 여기서 상자를
+ * 하나 더 만들면 gap 리듬이 트랙 안팎으로 갈린다.
+ *
+ * 🔴 트랙 안에서는 축의 라벨이 칩 **옆**으로 돌아온다. 위 `AxisRow` 가 좁은 폭에서 라벨을 칩 위로
+ * 올리는 것은 칩이 여러 줄로 접히는 세로 배치를 전제한 판단인데, 트랙은 접지 않고 옆으로 밀기
+ * 때문에 그 전제가 뒤집힌다 — 라벨이 위로 가면 트랙이 통째로 두 줄이 된다.
+ */
+export const AxisTrack = styled.div`
+  display: contents;
+
+  ${media.down('tablet')} {
+    display: flex;
+    align-items: center;
+    gap: ${space[4]};
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    ${subtleScrollbar}
+    ${scrollFadeRight}
+
+    /*
+     * 축 한 묶음 = 라벨 + 칩들. 접히지 않고 제 폭을 그대로 갖는다.
+     * ⚠ 클래스를 두 번 쓴다(&&, 명시도 0,2,0). AxisRow 가 같은 폭 구간에서 스스로
+     *   flex-direction: column 을 걸고 있어 명시도가 같으면 **정의 순서**로 승패가 갈린다 —
+     *   실측(390px)에서 실제로 져서 축이 두 줄로 섰다. 순서에 기대지 않는다.
+     */
+    && > * {
+      flex: none;
+      flex-direction: row;
+      align-items: center;
+      gap: ${space[2]};
+    }
+
+    /* 칩 줄이 접히면 트랙이 두 줄이 되어 가로로 미는 의미가 사라진다. */
+    && > * > * {
+      flex-wrap: nowrap;
+      min-width: 0;
+    }
+  }
 `;
 
 /**
@@ -51,6 +124,12 @@ export const AxisLabel = styled.span`
   color: ${color.textSecondary};
   font-size: ${font.size.xs};
   font-weight: ${font.weight.semibold};
+
+  /* 트랙 안에서는 라벨 기둥을 세울 이유가 없다 — 축끼리 나란히 흐르므로 제 글자 폭이면 된다. */
+  ${media.down('tablet')} {
+    min-width: 0;
+    white-space: nowrap;
+  }
 `;
 
 export const ChipRow = styled.div`
@@ -66,6 +145,15 @@ export const FilterHint = styled.p`
   color: ${color.textMuted};
   font-size: ${font.size.xs};
   line-height: ${font.leading.normal};
+
+  /*
+   * 좁은 화면에서는 뺀다. 이 판이 헤더 아래 상시 고정되는 폭에서, 두 줄짜리 설명문은 스크롤하는
+   * 내내 자리를 먹으면서 처음 한 번 말고는 읽히지 않는다 — 대신 아래 "적용 중" 줄이 지금 걸린
+   * 조건을 계속 말한다(그쪽이 상태를 말하는 진짜 채널이다).
+   */
+  ${media.down('tablet')} {
+    display: none;
+  }
 `;
 
 /**
@@ -83,6 +171,10 @@ export const ActiveRow = styled.div`
   padding-top: ${space[3]};
   border-top: 1px solid ${color.border};
   min-width: 0;
+
+  ${media.down('tablet')} {
+    padding-top: ${space[2]};
+  }
 `;
 
 export const ActiveBadge = styled.span`
@@ -120,6 +212,11 @@ export const SearchRow = styled.div`
   padding-bottom: ${space[3]};
   border-bottom: 1px solid ${color.border};
   min-width: 0;
+
+  /* 고정된 판에서는 줄 사이 여백이 그대로 높이다 — 가르는 선은 남기고 여백만 줄인다. */
+  ${media.down('tablet')} {
+    padding-bottom: ${space[2]};
+  }
 `;
 
 /**

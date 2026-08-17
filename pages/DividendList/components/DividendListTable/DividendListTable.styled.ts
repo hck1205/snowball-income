@@ -216,11 +216,27 @@ export const CompareTH = styled(TH)`
   white-space: nowrap;
 `;
 
-/** 비교 담기 칸. 넓은 폭에선 가운데, 좁은 폭(stackedCell)에선 `data-label` "비교" + 체크박스 우측 정렬. */
+/**
+ * 비교 담기 칸. 넓은 폭에선 가운데, 좁은 폭(stackedCell)에선 `data-label` "비교" + 체크박스 우측 정렬.
+ *
+ * 🔴 **카드 모드에서 `width: auto` 로 되돌린다.** `width: 1%` 는 표 레이아웃 알고리즘에서만
+ * "내용만큼만"으로 읽힌다 — 카드 모드의 이 칸은 `display: grid` 인 블록이라 1% 가 글자 그대로
+ * 행 폭의 1%(390px 실측: **8px**)가 되고, 격자 트랙이 `20.75px 0px` 로 눌려 44px 체크박스가
+ * "비교" 라벨 **위로 겹쳐** 그려졌다(2026-08-17 사용자 신고, 배당 히든스타 모바일).
+ * `LedgerTable`·`HoldingsTable` 이 같은 함정을 같은 처방으로 이미 막고 있다 — 그 셋이 한 규칙이다.
+ */
 export const CompareCell = styled(TD)`
   width: 1%;
   white-space: nowrap;
   text-align: center;
+
+  ${container.down('tablet')} {
+    width: auto;
+  }
+
+  ${media.down('tablet')} {
+    width: auto;
+  }
 `;
 
 /** 티커 셀 — 숫자·기호가 섞인 짧은 문자열이라 데이터 서체로 세운다. */

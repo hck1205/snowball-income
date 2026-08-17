@@ -29,6 +29,10 @@ export default function TickerHubPage() {
   useDocumentMeta({ title: HUB_TITLE, description: buildHubDescription(viewModel.totalCount), pathname: '/ticker/all' });
 
   const onQueryChange = useCallback((query: string) => setFilters((prev) => ({ ...prev, query })), []);
+  const onYieldChange = useCallback(
+    (minYieldPercent: number | null) => setFilters((prev) => ({ ...prev, minYieldPercent })),
+    []
+  );
   const onFrequencyChange = useCallback(
     (frequency: HubFrequencyFilter) => setFilters((prev) => ({ ...prev, frequency })),
     []
@@ -49,6 +53,7 @@ export default function TickerHubPage() {
         filters={filters}
         result={result}
         onQueryChange={onQueryChange}
+        onYieldChange={onYieldChange}
         onFrequencyChange={onFrequencyChange}
         onSortChange={onSortChange}
         onViewChange={onViewChange}
