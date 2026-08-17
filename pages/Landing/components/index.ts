@@ -4,6 +4,8 @@ export { default as ClosingCta } from './ClosingCta';
 export { default as CompoundExplainer } from './CompoundExplainer';
 export { default as ConceptLadder } from './ConceptLadder';
 export { StartPath } from './StartPath';
+export { LevelPicker } from './LevelPicker';
+export type { LevelPickerProps } from './LevelPicker';
 export { default as LandingFaq } from './LandingFaq';
 export { default as LandingSearch } from './LandingSearch';
 export { default as LandingSection } from './LandingSection';

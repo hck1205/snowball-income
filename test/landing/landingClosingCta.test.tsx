@@ -69,13 +69,14 @@ describe('랜딩 — 마무리 CTA', () => {
     expect(anchor.textContent?.trim()).toBe(SIMULATOR_LABEL);
   });
 
-  it('🔴 마무리 CTA 에는 `data-landing-cta` 를 붙이지 않는다 — 접힘 프로브의 2개 계약을 오염시킨다', () => {
+  it('🔴 마무리 CTA 에는 `data-landing-cta` 를 붙이지 않는다 — 접힘 프로브의 앵커 계약을 오염시킨다', () => {
     const { container } = renderLandingPage();
 
     expect(closingAnchor(container).hasAttribute('data-landing-cta')).toBe(false);
 
     const heroAnchors = [...container.querySelectorAll('[data-landing-cta]')];
-    expect(heroAnchors).toHaveLength(2);
+    // 🔴 2026-08-17: 히어로 CTA 두 버튼이 수준 4갈래로 교체되면서 이 앵커는 직행 링크 **하나**다.
+    expect(heroAnchors).toHaveLength(1);
     // 접힘 위 CTA 는 전부 마무리 CTA 보다 **앞**에 있다(2 = PRECEDING).
     for (const hero of heroAnchors) {
       expect(

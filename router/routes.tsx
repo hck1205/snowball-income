@@ -21,7 +21,7 @@ import { COMMUNITY_COPY } from '@/shared/constants/community';
  * (`shared/constants/dividendLists`)를 여기서 import 하면 200종 가까운 종목 데이터가 엔트리 번들에
  * 실려 아래 lazy 격리가 그 자리에서 무효가 된다.
  */
-import {
+import { INVESTOR_TYPE_PATH,
   DIVIDEND_LIST_HUB_PATH,
   DIVIDEND_LIST_IDS,
   SIMULATOR_PATH,
@@ -142,6 +142,11 @@ const NpsPage = lazy(() => import('@/pages/Nps/NpsPage'));
  * 때문이다 — 시뮬레이터로 들어온 사람에게 가이드 본문을 실어 줄 이유가 없다.
  */
 const GuidePage = lazy(() => import('@/pages/Guide/GuidePage'));
+/**
+ * 투자 성향 테스트. 랜딩 4갈래 중 **중급자**가 도착하는 유일한 신규 화면이다(2026-08-17).
+ * 문항과 결과가 같은 라우트를 쓴다 — 결과는 쿼리(`?t=…&s=…`)에 실린다(그 이유는 화면 파일 머리말).
+ */
+const InvestorTypePage = lazy(() => import('@/pages/InvestorType/InvestorTypePage/InvestorTypePage'));
 
 /**
  * 미국 증시 캘린더(`/market/us-calendar`) — 배당 캘린더와 같은 `lazy` 격리.
@@ -410,6 +415,14 @@ export const routes: RouteObject[] = [
          * ⚠ 크롤러 HTML(`api/guide-html.js`)이 같은 콘텐츠를 서버에서 그린다 — vercel.json 의 rewrite 와
          *   이 라우트는 **한 벌**이라 한쪽만 바꾸면 색인과 화면이 갈린다.
          */
+        path: INVESTOR_TYPE_PATH,
+        element: (
+          <Suspense fallback={null}>
+            <InvestorTypePage />
+          </Suspense>
+        )
+      },
+      {
         path: '/guide/:slug',
         element: (
           <Suspense fallback={null}>

@@ -4,7 +4,7 @@ import { TickerPageShell } from '@/pages/Ticker/components';
 import { hasStoredWorkspace } from '@/jotai';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import { SIMULATOR_PATH } from '@/shared/constants/routes';
-import { LANDING_HERO_CTAS } from '../copy';
+import { findLandingLevel, type LandingLevelId } from '../copy';
 import LandingPageView from './LandingPage.view';
 import type { LandingViewModel } from './LandingPage.types';
 
@@ -43,16 +43,23 @@ export default function LandingPage() {
    * 히어로 CTA. **목적지와 계측 이름을 카피 배열이 소유한다** — 순서가 뒤집혀도(D1 A안↔B안)
    * 여기 코드는 한 글자도 바뀌지 않는다.
    */
-  const handleHeroCta = useCallback(
-    (ctaId: string) => {
-      const cta = LANDING_HERO_CTAS.find((candidate) => candidate.id === ctaId);
-      if (!cta) return;
+  /**
+   * 수준 4갈래. **계측만** 한다 — 이동은 `LevelPicker` 의 `Link` 가 하므로 가운데 클릭·새 탭이
+   * 살아 있다(`navigate()` 를 여기서 부르면 그것들이 조용히 죽는다).
+   *
+   * 🔴 `cta_click` 이 아니라 `level_selected` 다. 그 이름은 이미 사이트 전역 CTA 수십 곳이 쏘고 있어
+   *   수준 분포가 그 안에 묻힌다 — 이 화면을 4갈래로 바꾼 판단이 옳았는지는 이 분포로만 답할 수 있다.
+   */
+  const handleSelectLevel = useCallback((levelId: LandingLevelId) => {
+    // 모르는 id 는 쏘지 않는다(값공간 오염 방지). 이동은 Link 가 이미 했다.
+    if (!findLandingLevel(levelId)) return;
+    trackEvent(ANALYTICS_EVENT.LEVEL_SELECTED, { level_id: levelId });
+  }, []);
 
-      trackEvent(ANALYTICS_EVENT.CTA_CLICK, { cta_name: cta.ctaName });
-      navigate(cta.to);
-    },
-    [navigate]
-  );
+  /** 직행로 — 4갈래로 바꾸면서 잃을 뻔한 길이다. 얼마나 쓰이는지가 되돌릴지의 근거가 된다. */
+  const handleDirect = useCallback(() => {
+    trackEvent(ANALYTICS_EVENT.CTA_CLICK, { cta_name: 'landing_direct_simulator' });
+  }, []);
 
   const handleResume = useCallback(() => {
     trackEvent(ANALYTICS_EVENT.CTA_CLICK, { cta_name: 'landing_resume' });
@@ -61,7 +68,12 @@ export default function LandingPage() {
 
   return (
     <TickerPageShell>
-      <LandingPageView viewModel={viewModel} onHeroCta={handleHeroCta} onResume={handleResume} />
+      <LandingPageView
+        viewModel={viewModel}
+        onSelectLevel={handleSelectLevel}
+        onDirect={handleDirect}
+        onResume={handleResume}
+      />
     </TickerPageShell>
   );
 }

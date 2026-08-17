@@ -1,0 +1,1 @@
+export { InvestorTypePage } from './InvestorTypePage';

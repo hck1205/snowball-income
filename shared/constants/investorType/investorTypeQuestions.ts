@@ -43,12 +43,13 @@ export const INVESTOR_QUESTIONS: readonly InvestorQuestion[] = [
   {
     id: 'concentration-1',
     axis: 'concentration',
-    question: '새로 투자할 돈이 생겼습니다. 어떻게 넣으시겠습니까?',
+    context: '새로 투자할 돈이 생겼습니다.',
+    question: '어떻게 나누시겠습니까?',
     options: [
       { label: '가장 확신이 큰 한 종목에 전부 넣습니다', score: 0 },
       { label: '잘 아는 두세 종목에 나눠 넣습니다', score: 1 },
       { label: '여러 종목에 고르게 나눠 넣습니다', score: 2 },
-      { label: '넓게 담은 ETF 한두 개로 끝냅니다', score: 3 }
+      { label: '넓게 담은 ETF 한두 개에 넣습니다', score: 3 }
     ]
   },
   {
@@ -68,10 +69,10 @@ export const INVESTOR_QUESTIONS: readonly InvestorQuestion[] = [
     axis: 'concentration',
     question: '종목을 고를 때 무엇을 더 믿으십니까?',
     options: [
-      { label: '깊이 조사한 소수에 대한 제 판단', score: 0 },
-      { label: '제 판단을 쓰되 몇 개로는 나눕니다', score: 1 },
+      { label: '깊이 조사한 소수 종목에 대한 제 판단', score: 0 },
+      { label: '제 판단, 다만 몇 종목으로는 나눕니다', score: 1 },
       { label: '시장 평균에 가까운 구성', score: 2 },
-      { label: '개별 판단을 최소화한 지수 추종', score: 3 }
+      { label: '개별 판단을 뺀 지수 추종', score: 3 }
     ]
   },
 
@@ -79,13 +80,21 @@ export const INVESTOR_QUESTIONS: readonly InvestorQuestion[] = [
   {
     id: 'purpose-1',
     axis: 'purpose',
-    context: '둘 중 하나만 고를 수 있다고 가정합니다.',
-    question: '배당률 5%에 배당 성장 0%, 배당률 1.5%에 배당 성장 10% — 어느 쪽이십니까?',
+    /**
+     * ⚠ 처음엔 "둘 중 하나만 고르라"고 묻고 선택지를 넷 두었다. 그러면 가운데 둘이
+     *   "둘 중에는 5% 쪽에 기웁니다" 같은 **억지 표현**이 된다 — 이분법 질문에 4단 답을 붙인 탓이다
+     *   (2026-08-18 사용자 지적). 질문을 "어디에 무게를 두는가"로 바꾸니 넷이 자연스러운 배분 단계가 됐다.
+     * 🔴 다른 문항을 고칠 때도 같은 함정을 조심해라 — **질문이 이분법이면 선택지도 둘이어야 한다.**
+     *   축당 3문항 × 4선택지 구조를 지키려면 질문을 정도(程度)로 물어야 한다.
+     */
+    context:
+      '배당률 5%인데 배당이 늘지 않는 종목과, 배당률 1.5%인데 배당이 해마다 10%씩 느는 종목이 있다고 가정합니다.',
+    question: '어느 쪽에 무게를 두시겠습니까?',
     options: [
-      { label: '5% / 성장 0%', score: 0 },
-      { label: '둘 중에는 5% 쪽에 기웁니다', score: 1 },
-      { label: '둘 중에는 1.5% 쪽에 기웁니다', score: 2 },
-      { label: '1.5% / 성장 10%', score: 3 }
+      { label: '5% 쪽에 전부 넣습니다', score: 0 },
+      { label: '5% 쪽을 더 많이 담습니다', score: 1 },
+      { label: '1.5% 쪽을 더 많이 담습니다', score: 2 },
+      { label: '1.5% 쪽에 전부 넣습니다', score: 3 }
     ]
   },
   {
@@ -105,7 +114,7 @@ export const INVESTOR_QUESTIONS: readonly InvestorQuestion[] = [
     question: '계좌를 열었을 때 가장 먼저 확인하는 숫자는 무엇입니까?',
     options: [
       { label: '이번 달에 들어온 배당금', score: 0 },
-      { label: '한 해 배당 합계', score: 1 },
+      { label: '올해 들어온 배당 합계', score: 1 },
       { label: '전체 평가액', score: 2 },
       { label: '누적 수익률', score: 3 }
     ]
@@ -127,10 +136,10 @@ export const INVESTOR_QUESTIONS: readonly InvestorQuestion[] = [
   {
     id: 'volatility-2',
     axis: 'volatility',
-    context: '1년 뒤 결과가 아래 범위 안에서 정해진다고 가정합니다.',
+    context: '1년 뒤 수익률이 아래 네 범위 중 하나에서 정해진다고 가정합니다.',
     question: '어느 쪽을 고르시겠습니까?',
     options: [
-      { label: '확정 +3%', score: 0 },
+      { label: '+3% 확정', score: 0 },
       { label: '-5% ~ +12%', score: 1 },
       { label: '-20% ~ +30%', score: 2 },
       { label: '-40% ~ +60%', score: 3 }
@@ -142,7 +151,7 @@ export const INVESTOR_QUESTIONS: readonly InvestorQuestion[] = [
     context: '보유 종목에 대한 나쁜 소식을 뉴스에서 봤습니다.',
     question: '가장 먼저 무엇을 하십니까?',
     options: [
-      { label: '먼저 팔고 나중에 확인합니다', score: 0 },
+      { label: '일단 팔고 나서 확인합니다', score: 0 },
       { label: '비중을 줄이고 지켜봅니다', score: 1 },
       { label: '사실을 확인할 때까지 손대지 않습니다', score: 2 },
       { label: '값이 싸졌는지부터 봅니다', score: 3 }
@@ -156,26 +165,26 @@ export const INVESTOR_QUESTIONS: readonly InvestorQuestion[] = [
     question: '지금 넣는 돈을 언제 쓸 계획이십니까?',
     options: [
       { label: '5년 안에 씁니다', score: 0 },
-      { label: '5년에서 10년 사이입니다', score: 1 },
-      { label: '10년에서 20년 사이입니다', score: 2 },
-      { label: '20년 이상이거나 정하지 않았습니다', score: 3 }
+      { label: '5년에서 10년 사이에 씁니다', score: 1 },
+      { label: '10년에서 20년 사이에 씁니다', score: 2 },
+      { label: '20년 뒤이거나 아직 정하지 않았습니다', score: 3 }
     ]
   },
   {
     id: 'horizon-2',
     axis: 'horizon',
-    question: '한 종목을 사면 보통 얼마나 들고 계십니까?',
+    question: '한 종목을 사면 보통 얼마나 오래 들고 계십니까?',
     options: [
-      { label: '몇 달입니다', score: 0 },
-      { label: '1년에서 3년입니다', score: 1 },
-      { label: '3년에서 10년입니다', score: 2 },
-      { label: '팔 이유가 생길 때까지 둡니다', score: 3 }
+      { label: '몇 달쯤 들고 있습니다', score: 0 },
+      { label: '1년에서 3년쯤 들고 있습니다', score: 1 },
+      { label: '3년에서 10년쯤 들고 있습니다', score: 2 },
+      { label: '팔 이유가 생기기 전까지 계속 둡니다', score: 3 }
     ]
   },
   {
     id: 'horizon-3',
     axis: 'horizon',
-    question: '지금 목표에 더 가까운 문장은 무엇입니까?',
+    question: '지금 목표에 가장 가까운 문장은 무엇입니까?',
     options: [
       { label: '가까운 시일 안에 생활비를 배당으로 채우고 싶습니다', score: 0 },
       { label: '몇 년 안에 받는 배당을 눈에 띄게 늘리고 싶습니다', score: 1 },

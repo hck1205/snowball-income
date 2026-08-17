@@ -1,4 +1,4 @@
-import { DIVIDEND_LIST_HUB_PATH, SIMULATOR_PATH } from '@/shared/constants/routes';
+import { DIVIDEND_LIST_HUB_PATH } from '@/shared/constants/routes';
 import type { InvestorAxisScores } from './investorTypeAxes';
 
 /**
@@ -15,6 +15,11 @@ import type { InvestorAxisScores } from './investorTypeAxes';
  * 같은 말은 13F 에 없다.** 그래서 현금흐름 성향 두 유형(`monthly-income`·`retirement-ready`)은
  * `investors` 가 **빈 배열**이다. 억지로 채우지 마라 — 데이터가 말하지 않는 것을 말하게 된다.
  * ⚠ 결과 화면은 빈 배열을 정상 상태로 그린다(대가 카드 자리를 비우고 프리셋을 앞세운다).
+ *
+ * ## 🔴 `next` 에 "계산기로" 를 넣지 마라
+ * 계산기로 가는 링크는 **프리셋 패널이 소유한다**(`?preset=<id>` 를 실어야 구성이 함께 열린다).
+ * 예전에는 여기에도 같은 문구가 있어 결과 화면에 **같은 말을 하는 링크 둘**이 떴는데, 목적지가
+ * 달랐다(하나는 빈 계산기, 하나는 구성이 채워진 계산기). 사용자는 그 차이를 알 수 없다.
  *
  * ## 🔴 유형 이름은 성격 진단이 아니다
  * "당신은 공격적입니다" 같은 판정을 하지 않는다. 이름은 **행동의 서술**(집중 가치형·월 현금흐름형)
@@ -79,7 +84,6 @@ export const INVESTOR_TYPE_PROFILES: readonly InvestorTypeProfile[] = [
     ],
     presetId: 'warren-buffett-style',
     next: [
-      { label: '이 구성으로 계산해 보기', to: SIMULATOR_PATH },
       { label: '대가들의 실제 보유 종목', to: '/portfolio/investors' }
     ]
   },
@@ -99,7 +103,6 @@ export const INVESTOR_TYPE_PROFILES: readonly InvestorTypeProfile[] = [
     ],
     presetId: 'smart-diversification-360',
     next: [
-      { label: '이 구성으로 계산해 보기', to: SIMULATOR_PATH },
       { label: '종목을 나란히 비교하기', to: '/ticker/compare' }
     ]
   },
@@ -124,7 +127,6 @@ export const INVESTOR_TYPE_PROFILES: readonly InvestorTypeProfile[] = [
     ],
     presetId: 'global-dividend-diversified',
     next: [
-      { label: '이 구성으로 계산해 보기', to: SIMULATOR_PATH },
       { label: '지금 시장 온도 보기', to: '/market/pulse' }
     ]
   },
@@ -149,7 +151,6 @@ export const INVESTOR_TYPE_PROFILES: readonly InvestorTypeProfile[] = [
     ],
     presetId: 'stable-dividend-growth',
     next: [
-      { label: '이 구성으로 계산해 보기', to: SIMULATOR_PATH },
       { label: '배당을 오래 늘려 온 기업들', to: DIVIDEND_LIST_HUB_PATH }
     ]
   },
@@ -164,7 +165,6 @@ export const INVESTOR_TYPE_PROFILES: readonly InvestorTypeProfile[] = [
     investors: [],
     presetId: 'reit-monthly-rent-strategy',
     next: [
-      { label: '이 구성으로 계산해 보기', to: SIMULATOR_PATH },
       { label: '종목별 배당 지급 월 보기', to: '/dividend/calendar' }
     ]
   },
@@ -179,7 +179,6 @@ export const INVESTOR_TYPE_PROFILES: readonly InvestorTypeProfile[] = [
     investors: [],
     presetId: 'retirement-prep',
     next: [
-      { label: '이 구성으로 계산해 보기', to: SIMULATOR_PATH },
       { label: '월 배당 목표까지 얼마가 필요한가', to: '/guide/monthly-dividend-goal' }
     ]
   }

@@ -69,6 +69,7 @@ import {
   usePortfolioPrefill,
   usePortfolioPrefillCommit,
   usePortfolioPresetApply,
+  usePresetQueryApply,
   useResultChartAdapters,
   useResultViewAnalytics,
   useScenarioTabInteractions,
@@ -313,6 +314,13 @@ function MainRightPanelComponent({ configDrawerId }: MainRightPanelProps) {
     setShowPortfolioDividendCenter,
     setYieldFormValues
   });
+
+  /*
+   * 주소로 지목된 프리셋(`/simulator?preset=<id>`) — 성향 테스트 결과가 여는 진입점이다.
+   * 🔴 `requestApply` 다(조용한 적용이 아니다). 이 경로는 이미 자기 포트폴리오를 만들어 둔 사용자도
+   *   타므로, 링크 한 번에 그것이 덮이면 확인 모달이 막으려던 바로 그 사고가 된다.
+   */
+  usePresetQueryApply({ requestApply });
 
   /*
    * 첫 방문 기본 시나리오. **저장소가 비어 있을 때만** 영속 계층이 id 를 발행하고(그 순간부터 저장 정지),

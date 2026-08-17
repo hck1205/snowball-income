@@ -90,17 +90,34 @@ describe('랜딩 — 문서 구조', () => {
     expect(container.querySelector('[data-landing-cta="simulator"]')).not.toBeNull();
   });
 
-  it('히어로 CTA 는 두 개뿐이고, 접힘 예산 때문에 리드보다 **위**에 온다', () => {
+  it('접힘 위 갈림길은 수준 카드 4개 + 직행 링크 1개다', () => {
+    /**
+     * 🔴 2026-08-17 계약 교체. 전에는 "히어로 CTA 2개(`data-landing-cta`)"였다 — 그 둘은
+     * `배당 계산 시작하기`·`보유 종목으로 계산`이라 **이미 무엇을 할지 아는 사람**만 쓸 수 있었고,
+     * 그것이 이 지면의 후킹이 약했던 원인이었다(사용자 지적). 지금 접힘 위 갈림길은 수준 넷이고,
+     * 시뮬레이터 직행로는 무게를 한 단 낮춘 글줄 하나가 받는다.
+     * ⚠ 넷을 셋으로 줄이거나 카드에 줄을 더하려면 390x664 에서 네 칸이 다 보이는지 먼저 재라.
+     */
     const { container } = renderLandingPage();
 
-    const anchors = [...container.querySelectorAll('[data-landing-cta]')];
-    expect(anchors).toHaveLength(2);
+    expect(container.querySelectorAll('[data-landing-level]')).toHaveLength(4);
+    expect(container.querySelectorAll('[data-landing-cta]')).toHaveLength(1);
+  });
+
+  it('수준 카드는 리드 **아래**에 온다 — 공용 히어로를 건드리지 않은 대가다', () => {
+    /**
+     * 승인된 모형은 제목 → 카드 → 리드였다. 공용 `PageHero` 의 `actions` 슬롯이 제목 옆 버튼용
+     * flex 행이라 2×2 그리드를 담을 수 없어, 카드를 히어로 밖 형제로 두고 리드가 위에 서게 했다
+     * (2026-08-17 사용자 결정). 이 순서가 뒤집히면 그때는 공용 히어로에 슬롯이 생겼다는 뜻이다.
+     */
+    const { container } = renderLandingPage();
 
     const lede = screen.getByText(LANDING_COPY.hero.lede);
-    // compareDocumentPosition: 4 = FOLLOWING(리드가 CTA 뒤에 온다).
-    for (const anchor of anchors) {
-      expect(anchor.compareDocumentPosition(lede) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    }
+    const firstCard = container.querySelector('[data-landing-level]');
+    expect(firstCard).not.toBeNull();
+
+    // 2 = PRECEDING(리드가 카드보다 앞에 온다).
+    expect(firstCard!.compareDocumentPosition(lede) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
   });
 
   it('재방문 마커가 없으면 "이어서 계산하기"를 보여 주지 않는다', () => {

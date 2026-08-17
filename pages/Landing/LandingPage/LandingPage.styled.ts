@@ -170,14 +170,11 @@ export const HeroBlock = styled.div`
       font-size: ${LANDING_HERO_TITLE_FONT_SIZE};
     }
 
-    /* 3) CTA 는 더 이상 제목 줄이 아니다 — 제목 잉크 보정을 되돌리고 왼쪽에 붙인다. */
-    > header > div:first-of-type > div + div {
-      justify-content: flex-start;
-    }
-
-    > header > div:first-of-type > div + div > * {
-      transform: none;
-    }
+    /* 3) 🔴 CTA 줄 오버라이드 두 개를 걷었다(2026-08-17). 히어로 actions 슬롯이 비면서
+          "> div + div" 가 겨냥할 대상이 사라졌다 — 남겨 두면 무엇을 고치는지 아무도 모르는 규칙이
+          되고, 나중에 히어로가 div 를 하나 더 늘리는 순간 엉뚱한 요소를 잡는다.
+          수준 4갈래는 히어로 밖 형제라 이 오버라이드가 필요 없다(자체 스타일이 왼쪽 정렬을 갖는다).
+          ⚠ 이 주석에 백틱을 쓰지 마라 — 템플릿 리터럴이 그 자리에서 끊긴다(실제로 겪었다). */
   }
 `;
 

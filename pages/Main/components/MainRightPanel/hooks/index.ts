@@ -11,3 +11,4 @@ export type {
 export { useResultChartAdapters } from './useResultChartAdapters';
 export { useConditionStripItems } from './useConditionStripItems';
 export { useTargetFieldControls } from './useTargetFieldControls';
+export { usePresetQueryApply, PRESET_QUERY_PARAM } from './usePresetQueryApply';
