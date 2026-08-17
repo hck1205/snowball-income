@@ -2150,7 +2150,21 @@ var marketData_generated_default = {
         11,
         12
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 4,
+      estimatedPayDayByMonth: {
+        "2": 27,
+        "3": 27,
+        "4": 25,
+        "5": 23,
+        "6": 27,
+        "7": 25,
+        "8": 23,
+        "9": 27,
+        "10": 25,
+        "11": 25,
+        "12": 27
+      }
     },
     DIVO: {
       initialPrice: 46.89,
