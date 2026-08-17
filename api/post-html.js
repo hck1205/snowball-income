@@ -275,7 +275,7 @@ var fetchShellHtml = async (origin) => {
   }
 };
 
-// ../../../node_modules/dompurify/dist/purify.es.mjs
+// node_modules/dompurify/dist/purify.es.mjs
 function _arrayLikeToArray(r, a) {
   (null == a || a > r.length) && (a = r.length);
   for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e];
