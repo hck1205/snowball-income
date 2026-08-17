@@ -164,7 +164,14 @@ function MainViewComponent({ viewModel }: MainViewProps) {
            실행 트리거는 더보기 메뉴가 소유한다(tourLaunchRequestAtom bump). */
           actions={<TourGuide />}
         />
-        <FeatureLayout>
+        {/*
+          🔴 `data-page-column` — 이 화면의 **끝선을 정의하는 박스**라는 표식이다(2026-08-17 신설).
+          `useStickyHeroAction` 이 이것으로 고정된 설정 버튼의 우측 좌표를 잡는다: 그 버튼은 붙는 순간
+          히어로 카드를 떠나 시나리오 탭 바와 같은 띠에 서므로, 정렬 기준도 히어로 **안쪽** 패딩이 아니라
+          이 컬럼의 끝선이어야 한다(실측 @1280: 히어로 안쪽 1172 · 컬럼 1213 — 41px 어긋났다).
+          ⚠ 지우면 그 훅이 슬롯 기준으로 조용히 되돌아간다(버튼이 41px 안쪽으로 들어온다).
+        */}
+        <FeatureLayout data-page-column>
           <MainContent id="main-content">
             {/* 🔴 페이지 맨 위의 참고 시세 — 캘린더·내 포트폴리오와 같은 자리다(2026-08-02).
               헤더에 얹었다가 되돌렸다: 헤더는 전 라우트에 상시 있어 시세가 필요 없는 화면까지 따라다녔다. */}

@@ -18,4 +18,13 @@ export type SettingsEntryButtonProps = {
   onOpen: () => void;
   /** 가이드 투어 앵커(`data-tour`). 히어로 버튼 한 곳만 갖는다(상시 진입점이라 투어가 항상 찾는다). */
   dataTour?: string;
+  /**
+   * 라벨을 접고 톱니 아이콘만 남긴다 (`hero` 변형 전용, 2026-08-17 사용자 지시).
+   *
+   * 쓰는 곳은 **스크롤로 헤더 아래에 고정된 상태** 하나다(`useStickyHeroAction` 의 `pinned`).
+   * 붙는 자리는 시나리오 탭 바와 같은 띠라 폭이 귀하고, 그 맥락에서는 톱니만으로도 뜻이 통한다.
+   * 🔴 접근성 이름은 `aria-label` 로 **그대로 유지**된다 — 라벨을 지우고 이름까지 잃으면 스크린리더에
+   *    "버튼"만 남는다. 그래서 이름 문자열은 라벨과 같은 `SIMULATOR_COPY.settingsTitle` 하나를 쓴다.
+   */
+  iconOnly?: boolean;
 };

@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { space } from '@/shared/styles';
+import { appHeaderHeight, color, media, space, zIndex } from '@/shared/styles';
 
 /**
  * 결과 영역의 **묶음**.
@@ -42,9 +42,17 @@ import { space } from '@/shared/styles';
  *    보다 밝아 카드가 보드보다 가라앉아 보인다. 카드의 격(주역=그림자 · 본문=테두리 · 부속=면색)은
  *    전부 **페이지 배경을 기준으로** 정해져 있으므로 배경은 비워 두어야 한다.
  */
+/*
+ * 🔴 `display: block` 이다 — **grid 로 되돌리면 아래 머리 줄의 sticky 가 죽는다**(2026-08-17).
+ * grid item 의 sticky 는 자기 **grid area(= 자기 행) 안에서만** 움직인다. 머리 줄은 자기 높이만큼의
+ * 행을 차지하므로 이동 범위가 0 이 되어 사실상 static 이다(`Main.shared.styled.ts` 에 같은 함정이
+ * 적혀 있다 — 히어로 액션은 그래서 fixed 승격을 택했다). 흐름(block)에서는 머리 줄의 컨테이닝 블록이
+ * **보드 전체**라, 결과 격자를 지나는 동안 탭이 헤더 아래에 붙어 있는다.
+ * ⚠ `gap: 0` 이었으므로 grid 를 벗어도 간격은 변하지 않는다(세 슬롯이 각자 패딩으로 띈다).
+ *   자식들은 margin 을 쓰지 않으므로 마진 상쇄도 생기지 않는다.
+ */
 export const BoardRoot = styled.section`
-  display: grid;
-  gap: 0;
+  display: block;
   min-width: 0;
   border: 0;
   background: transparent;
@@ -62,10 +70,57 @@ export const BoardRoot = styled.section`
  *
  * 위쪽 12px 은 프레임이 있던 시절의 값을 그대로 지킨 것이다 — 프레임을 벗었다고 히어로와의 간격까지
  * 좁히면 탭 줄이 위 카드에 붙어 그 카드의 꼬리처럼 읽힌다(격자 gap 20 + 이 값 12 = 32px).
+ * 붙어 있는 동안에는 그 12px 이 **헤더 hairline 과 탭 사이의 숨구멍**이 된다(히어로 액션의 PIN_GAP 8 과
+ * 같은 역할이라 값을 따로 두지 않았다).
+ *
+ * ── 🔴 스크롤하면 앱 헤더 아래에 붙는다 (2026-08-17 사용자 지시: "탭 영역을 fixed sticky 로") ──────
+ *
+ * `top` 은 **실측 헤더 높이**(`appHeaderHeight`)다. 88px 같은 상수를 적으면 헤더가 한 줄에서 두 줄로
+ * 바뀔 때 탭이 헤더 뒤로 숨는다 — 이 레포에서 세 번 고쳐 쓴 값이라 상수를 금지한다
+ * (`headerSurface.ts` 의 그 변수 주석).
+ *
+ * 🔴 **배경을 반드시 칠한다.** 이 줄은 원래 투명이었고(보드가 면을 갖지 않는다는 규칙 — 위 `BoardRoot`
+ *    주석), 투명한 채로 붙이면 아래를 지나가는 결과 카드가 탭 글자와 겹쳐 읽힌다. 면색은 `surface`
+ *    계열이 아니라 **페이지 배경(`bg`)** 이다: 이 줄은 카드가 아니라 페이지의 일부이고, 카드 면색을
+ *    쓰면 붙는 순간 없던 카드가 하나 생긴 것처럼 보인다.
+ *    ⚠ body 의 오로라 글로우는 `background-attachment: fixed` 가 아니라 함께 스크롤되므로, 붙어 있는
+ *      동안 이 줄 뒤에 있는 것은 단색 `bg` 다 — 그래서 단색으로 맞아떨어진다.
+ *
+ * 층위는 `stickyBar`(9): 결과 카드(1~2) 위를 지나가고, 앱 헤더(30) 아래로 들어가며, 드로어
+ * 계열(55~60)이 열리면 그 아래에 깔린다.
+ * 🔴 **`stickyAction`(10)으로 올리지 마라.** 그 값이던 동안 이 바가 고정된 "투자 설정" 버튼을
+ *    삼켰다(같은 층 → DOM 순서로 승자 결정, 보드가 히어로보다 뒤 + 불투명 배경). 그 버튼은
+ *    이 바 **위에** 떠야 한다 — 근거와 실측은 `tokens.ts` 의 `stickyBar` 주석.
+ *
+ * ⚠ sticky 는 **스태킹 컨텍스트**를 만든다. 탭의 이름표 툴팁(`ScenarioTabTooltip`)이 `position: fixed`
+ *   인데도 안전한 이유는 그것이 `modalRoot` 로 **포털**되어 이 컨텍스트 밖에서 그려지기 때문이다
+ *   (`MainRightPanel` 의 createPortal). 툴팁을 이 안으로 되돌리면 z-index 2000 이 이 층(10)에 갇힌다.
  */
 export const BoardHeader = styled.div`
   padding: ${space[3]} 0 0;
   min-width: 0;
+
+  /*
+   * 🔴 **모바일(≤640)에서는 붙이지 않는다** (2026-08-17 사용자 결정).
+   * ⚠ 이 주석에 **백틱을 쓰지 마라** — 여기는 Emotion 템플릿 리터럴 안이라 백틱 하나가 문자열을
+   *   끊는다(pitfalls 에 적힌 함정이고, 이 파일에서 실제로 그렇게 깨뜨렸다).
+   *
+   * 그 폭에서는 이 띠를 고정된 "투자 설정" 버튼이 이미 쓰고 있고, 둘은 **같은 자리를 나눠 쓸 수
+   * 없다**: 실측(390) 결과 고정 버튼이 폭 316px 로 이 바 366px 의 **86%** 를 덮었다(히어로 액션이
+   * mobileWide 이하에서 자식을 전폭으로 늘린다). 그 버튼은 모바일에서 설정 드로어로 가는 **상시
+   * 진입점**이고(헤더에는 설정 버튼이 없다 — 2026-07-29 삭제), 탭은 스크롤해 올리면 다시 보인다.
+   * 그래서 좁은 폭에서는 버튼이 이긴다.
+   *
+   * ⚠ 경계가 mobileWide(640)인 것은 우연이 아니다 — 버튼이 전폭으로 늘어나는 구간이 정확히
+   *   거기다(PageHero 의 HeroActions). 641 이상에서는 버튼이 고유 폭(~40px 아이콘)이라 둘이
+   *   한 줄에 편하게 선다.
+   */
+  ${media.up('mobileWide')} {
+    position: sticky;
+    top: ${appHeaderHeight};
+    z-index: ${zIndex.stickyBar};
+    background: ${color.bg};
+  }
 `;
 
 /**
