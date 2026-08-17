@@ -4,9 +4,11 @@ import {
   computeDividendCagr,
   computeTtmYield,
   deriveEstimatedPayDays,
+  hasStalePayoutSchedule,
   inferFrequency,
   inferPayoutMonths,
-  roundTo
+  roundTo,
+  STALE_PAYOUT_SCHEDULE_MONTHS
 } from '@/scripts/tickerRefresh';
 import type { DividendPayment } from '@/scripts/tickerRefresh';
 import { JEPI_DIVIDENDS, monthlyHistory, quarterlyHistory, SCHD_DIVIDENDS } from './fixtures';
@@ -427,5 +429,57 @@ describe('deriveEstimatedPayDays', () => {
       expect(day).toBeGreaterThanOrEqual(1);
       expect(day).toBeLessThanOrEqual(31);
     }
+  });
+});
+
+/**
+ * 🔴 이 함수가 막는 사고: **배당을 중단한 종목이 캘린더에서 계속 배당한다.**
+ *
+ * `inferPayoutMonths` 는 마지막 지급일 기준 3년 창을 보므로 중단 이전 이력으로 지급월을 계속
+ * 만들어 낸다(인텔: 마지막 지급 2024-08-07 인데 2026년에도 `[2,5,8,11]`). 배당 캘린더는 지급월이
+ * 있으면 그것을 무배당 판정보다 먼저 믿는다.
+ */
+describe('hasStalePayoutSchedule', () => {
+  it('지급이 끊긴 지 오래면 true — 인텔 실제 이력(마지막 2024-08-07)', () => {
+    const intel: DividendPayment[] = [
+      ...quarterlyHistory({ 2022: 0.5, 2023: 0.5 }),
+      { date: '2024-02-07', amount: 0.125 },
+      { date: '2024-05-06', amount: 0.125 },
+      { date: '2024-08-07', amount: 0.125 }
+    ];
+
+    expect(hasStalePayoutSchedule(intel, '2026-08-17')).toBe(true);
+  });
+
+  it('정상 지급 중인 종목은 false', () => {
+    expect(hasStalePayoutSchedule(SCHD_DIVIDENDS, AS_OF)).toBe(false);
+    expect(hasStalePayoutSchedule(JEPI_DIVIDENDS, AS_OF)).toBe(false);
+  });
+
+  it('🔴 이력이 아예 없으면 false — "끊겼다"가 아니라 "모른다"다', () => {
+    // 공급자가 일시적으로 빈 배열을 준 경우까지 "일정 없음"으로 결론지으면, 한 번의 실패한 응답이
+    // 멀쩡한 종목의 캘린더를 지운다.
+    expect(hasStalePayoutSchedule([], AS_OF)).toBe(false);
+  });
+
+  it('연 1회 지급 종목은 지급일이 밀려도 살아남는다 (임계가 12개월이 아닌 이유)', () => {
+    const annual: DividendPayment[] = [
+      { date: '2024-06-20', amount: 1 },
+      { date: '2025-09-20', amount: 1 } // 석 달 밀렸다 — 12개월 창이면 여기서 지워졌다
+    ];
+
+    expect(hasStalePayoutSchedule(annual, '2026-07-14')).toBe(false);
+  });
+
+  it('임계는 마지막 지급일 기준이다 (경계 양쪽)', () => {
+    const paidOnce: DividendPayment[] = [{ date: '2025-01-15', amount: 1 }];
+
+    expect(hasStalePayoutSchedule(paidOnce, '2026-06-15')).toBe(false); // 17개월
+    expect(hasStalePayoutSchedule(paidOnce, '2026-07-16')).toBe(true); // 18개월 + 1일
+    expect(STALE_PAYOUT_SCHEDULE_MONTHS).toBe(18);
+  });
+
+  it('asOf 를 못 읽으면 false — 파싱 실패로 일정을 지우지 않는다', () => {
+    expect(hasStalePayoutSchedule(SCHD_DIVIDENDS, 'not-a-date')).toBe(false);
   });
 });

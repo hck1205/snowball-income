@@ -4,6 +4,7 @@ import {
   computeDividendCagr,
   computeTtmYield,
   deriveEstimatedPayDays,
+  hasStalePayoutSchedule,
   inferFrequency,
   inferPayoutMonths,
   roundTo
@@ -218,11 +219,29 @@ export const refreshTickers = async ({
           ? previousPayoutMonths
           : (inferPayoutMonths(dividends, effectiveFrequency) ?? previousPayoutMonths);
 
+      /*
+       * 🔴 지급이 오래 끊긴 종목은 **일정을 주장하지 않는다** — 새로 추론하지도, 이전 값을 이어받지도
+       * 않는다(`payoutMonths`·`payoutMonthsSource` 를 통째로 비운다).
+       *
+       * `inferPayoutMonths` 는 마지막 지급일 기준 3년 창을 보므로, 배당을 중단한 종목도 중단 이전
+       * 이력으로 지급월을 계속 만든다(인텔: 마지막 지급 2024-08-07 인데 2026년에도 `[2,5,8,11]`).
+       * 배당 캘린더는 지급월이 있으면 그것을 무배당 판정보다 **먼저** 믿기 때문에, 그대로 두면 2년째
+       * 한 푼도 안 주는 종목이 분기 배당 종목으로 화면에 뜬다.
+       *
+       * 이건 "모르면 이전 값을 지킨다"의 예외가 아니다 — `hasStalePayoutSchedule` 은 **이력이 실재하고
+       * 그 마지막이 오래됐을 때만** true 라, 지우는 근거가 추측이 아니라 관측이다. 공급자가 빈 이력을
+       * 준 경우(이상치)는 false 라 이전 값이 그대로 남는다.
+       *
+       * 실측 지급일(`'pay'`)도 함께 비운다. 출처가 좋아도 **끊긴 일정**인 것은 마찬가지다.
+       */
+      const scheduleIsStale = hasStalePayoutSchedule(dividends, asOf);
+
       // ⚠ Months already derived from real **payment dates** (`ticker:paydates`) outrank anything
       // inferred here from ex-dates — this source cannot see the pay date at all. Without this
       // guard the daily price refresh would quietly downgrade the better data every morning.
-      const keepsPaySourced = previousPayoutMonthsSource === 'pay' && previousPayoutMonths !== undefined;
-      const payoutMonths = keepsPaySourced ? previousPayoutMonths : inferredMonths;
+      const keepsPaySourced =
+        !scheduleIsStale && previousPayoutMonthsSource === 'pay' && previousPayoutMonths !== undefined;
+      const payoutMonths = scheduleIsStale ? undefined : keepsPaySourced ? previousPayoutMonths : inferredMonths;
       // ⚠ `payoutMonthsSource: 'none'` ("ticker:paydates confirmed no dividend history") is this
       // pipeline's to preserve, not to produce — it never fetches a payment-date schedule itself.
       // When months are still undefined (this refresh could not infer any either) the marker must
