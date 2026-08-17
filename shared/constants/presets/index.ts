@@ -10,6 +10,12 @@ import { US_DIVIDEND_GROWTH_ETFS } from './usDividendGrowthEtfs';
 import { US_HIGH_DIVIDEND_ETFS } from './usHighDividendEtfs';
 import { OPTION_INCOME_ETFS } from './optionIncomeEtfs';
 import { INTERNATIONAL_DIVIDEND_ETFS } from './internationalDividendEtfs';
+import { JAPAN_EQUITY_ETFS } from './japanEquityEtfs';
+import { ASIA_PACIFIC_EQUITY_ETFS } from './asiaPacificEquityEtfs';
+import { SECTOR_EQUITY_ETFS } from './sectorEquityEtfs';
+import { THEMATIC_EQUITY_ETFS } from './thematicEquityEtfs';
+import { FACTOR_EQUITY_ETFS } from './factorEquityEtfs';
+import { BOND_ETFS } from './bondEtfs';
 import { REIT_ETFS } from './reitEtfs';
 import { DIVIDEND_GROWTH_STOCKS } from './dividendGrowthStocks';
 import { HIGH_DIVIDEND_STOCKS } from './highDividendStocks';
@@ -28,6 +34,12 @@ export { US_DIVIDEND_GROWTH_ETFS } from './usDividendGrowthEtfs';
 export { US_HIGH_DIVIDEND_ETFS } from './usHighDividendEtfs';
 export { OPTION_INCOME_ETFS } from './optionIncomeEtfs';
 export { INTERNATIONAL_DIVIDEND_ETFS } from './internationalDividendEtfs';
+export { JAPAN_EQUITY_ETFS } from './japanEquityEtfs';
+export { ASIA_PACIFIC_EQUITY_ETFS } from './asiaPacificEquityEtfs';
+export { SECTOR_EQUITY_ETFS } from './sectorEquityEtfs';
+export { THEMATIC_EQUITY_ETFS } from './thematicEquityEtfs';
+export { FACTOR_EQUITY_ETFS } from './factorEquityEtfs';
+export { BOND_ETFS } from './bondEtfs';
 export { REIT_ETFS } from './reitEtfs';
 export { DIVIDEND_GROWTH_STOCKS } from './dividendGrowthStocks';
 export { HIGH_DIVIDEND_STOCKS } from './highDividendStocks';
@@ -58,6 +70,23 @@ export const CURATED_DIVIDEND_UNIVERSE = {
   ...US_HIGH_DIVIDEND_ETFS,
   ...OPTION_INCOME_ETFS,
   ...INTERNATIONAL_DIVIDEND_ETFS,
+  /* 일본 국가 지수 ETF 3종(2026-08-17). 배당으로 고른 묶음이 아니라 시장을 통째로 담는 쪽이고,
+     지급이 분기가 아니라 반기·연 1회다 — 근거는 그 파일 머리말. */
+  ...JAPAN_EQUITY_ETFS,
+  /* 아시아태평양 광역(2026-08-18). 위 일본 묶음과 달리 여러 나라를 담고, VPL 은 일본을 포함해
+     겹친다 — 근거는 그 파일 머리말. */
+  ...ASIA_PACIFIC_EQUITY_ETFS,
+  /* 섹터 ETF(2026-08-17 신설 · 08-18 확충 9종). 표준 산업 분류로 고른다 — 테마와 다른 파일인 이유가 그것이다. */
+  ...SECTOR_EQUITY_ETFS,
+  /* 테마 ETF(2026-08-18 7종). ETR 9% 균일이고 코어보다 **낮다** — 역사가 짧아 과거 수익률을 가정으로
+     옮기면 안 되는 묶음이다(그 파일 머리말). */
+  ...THEMATIC_EQUITY_ETFS,
+  /* 팩터·스크리닝(2026-08-18: 현금흐름 COWZ · ESG ESGU). 팩터 초과수익을 가정하지 않는다. */
+  ...FACTOR_EQUITY_ETFS,
+  /* 🔴 채권(2026-08-18: HYEM). 이 엔진의 전제(고든 성장모형)가 성립하지 않는 자산이라 "쿠폰은 받고
+     가격은 제자리"(ETR = 배당률, 성장률 0)로 근사했다 — 가정의 뜻과 한계는 그 파일 머리말.
+     ⚠ 같이 넣었던 USO(원유 선물)는 사용자 결정으로 빼면서 그 이유도 그 파일에 남겼다. */
+  ...BOND_ETFS,
   ...REIT_ETFS,
   ...DIVIDEND_GROWTH_STOCKS,
   ...HIGH_DIVIDEND_STOCKS,
@@ -176,6 +205,10 @@ export const PRESET_TICKER_KOREAN_NAME_BY_TICKER = {
   VT: '뱅가드 토탈 월드 주식 ETF',
   VXUS: '뱅가드 토탈 국제 주식 ETF',
   DIA: 'SPDR 다우존스 산업평균 ETF',
+  /* 코어 확충 3종(2026-08-18). QQQM 은 QQQ 의 저보수 형제라 이름에 나스닥 100 을 남긴다. */
+  QQQM: '인베스코 나스닥 100 ETF',
+  MGK: '뱅가드 메가캡 성장 ETF',
+  SCHG: '슈왑 미국 대형 성장주 ETF',
   /*
    * 레버리지 8종(2026-08-16). 다른 종목과 달리 한글명 끝에 **"N배 레버리지"** 를 붙인다 —
    * 프리셋 검색은 티커·영문명·이 한글명만 훑으므로(`filterPresetKeys`), 여기 없는 낱말로는
@@ -200,6 +233,10 @@ export const PRESET_TICKER_KOREAN_NAME_BY_TICKER = {
   DLN: '위즈덤트리 미국 대형주 배당 펀드',
   DON: '위즈덤트리 미국 중형주 배당 펀드',
   DES: '위즈덤트리 미국 소형주 배당 펀드',
+  VSDA: '빅토리셰어즈 배당 액셀러레이터 ETF',
+  TDVG: 'T. 로우 프라이스 배당성장 ETF',
+  DIVG: '인베스코 S&P 500 고배당 성장주 ETF',
+  FVD: '퍼스트트러스트 밸류라인 배당 인덱스 펀드',
   VYM: '뱅가드 고배당 수익 ETF',
   HDV: '아이셰어즈 코어 고배당 ETF',
   SMH: '반에크 반도체 ETF',
@@ -211,6 +248,9 @@ export const PRESET_TICKER_KOREAN_NAME_BY_TICKER = {
   SPHD: '인베스코 S&P 500 고배당 저변동성 ETF',
   PEY: '인베스코 하이일드 에쿼티 디비던드 어치버스 ETF',
   FDL: '퍼스트트러스트 모닝스타 디비던드 리더스 인덱스 펀드',
+  DJD: '인베스코 다우존스 산업평균 배당 ETF',
+  QDIV: '글로벌 X S&P 500 퀄리티 배당 ETF',
+  DIVB: '아이셰어즈 코어 배당 ETF',
   /*
    * 옵션인컴 계열(2026-08-17). 🔴 한글명 끝을 **"커버드콜"** 로 통일했다 — 프리셋 검색이 훑는 것은
    * 티커·영문명·한글명 셋뿐이라(`filterPresetKeys`), 사용자가 "커버드콜"로 훑으면 그 낱말이 한글명에
@@ -252,6 +292,49 @@ export const PRESET_TICKER_KOREAN_NAME_BY_TICKER = {
   SCHY: '슈왑 인터내셔널 배당주 ETF',
   IDV: '아이셰어즈 인터내셔널 셀렉트 배당 ETF',
   DWX: 'SPDR S&P 인터내셔널 배당 ETF',
+  /* 국제 배당 확충 2종(2026-08-18). 아래 지역 ETF 와 달리 **배당으로 고른** 국제 ETF 다. */
+  IGRO: '아이셰어즈 인터내셔널 배당성장 ETF',
+  IQDG: '위즈덤트리 인터내셔널 퀄리티 배당성장 펀드',
+  /*
+   * 일본 3종(2026-08-17). 한글명에 **"일본"** 을 반드시 넣는다 — 프리셋 검색이 훑는 것은 티커·영문명·
+   * 이 한글명 셋뿐이라(`filterPresetKeys`), 이 낱말이 없으면 사용자가 "일본"으로 훑을 때 하나도 안
+   * 걸린다(영문명은 Japan 이다). 커버드콜 묶음에서 같은 이유로 당한 적이 있다(위 주석).
+   */
+  EWJ: '아이셰어즈 MSCI 일본 ETF',
+  EWJV: '아이셰어즈 MSCI 일본 가치주 ETF',
+  FLJP: '프랭클린 FTSE 일본 ETF',
+  /* DXJ 는 이름에 **환헤지**를 반드시 남긴다 — 위 일본 3종과 갈리는 유일한 지점이고(엔 노출 제거),
+     그 차이는 이 앱의 숫자에는 나타나지 않는다(환율 미모델링). 근거는 그 파일의 DXJ 주석. */
+  DXJ: '위즈덤트리 일본 환헤지 주식 펀드',
+  /* 아시아태평양 광역 3종(2026-08-18). "아시아"·"동남아"로 검색되도록 이름에 지역어를 남긴다. */
+  VPL: '뱅가드 FTSE 아시아태평양 ETF',
+  BBAX: 'JP모건 베타빌더스 선진 아시아태평양(일본 제외) ETF',
+  ASEA: '글로벌 X FTSE 동남아시아 ETF',
+  /* 섹터 ETF 9종 — 한글 섹터명이 검색되는 유일한 경로다(영문명은 Consumer Staples·Health Care…). */
+  IYK: '아이셰어즈 미국 필수소비재 ETF',
+  XLP: 'SPDR 필수소비재 섹터 ETF',
+  VDC: '뱅가드 필수소비재 ETF',
+  XLV: 'SPDR 헬스케어 섹터 ETF',
+  XLI: 'SPDR 산업재 섹터 ETF',
+  XLK: 'SPDR 기술 섹터 ETF',
+  VGT: '뱅가드 정보기술 ETF',
+  IGV: '아이셰어즈 확장 기술-소프트웨어 섹터 ETF',
+  IXN: '아이셰어즈 글로벌 기술 ETF',
+  /* 테마 ETF 7종(2026-08-18). 테마어(인프라·데이터센터·AI·양자·리쇼어링)를 한글명에 넣는다 —
+     사용자는 티커가 아니라 그 낱말로 훑는다. */
+  PAVE: '글로벌 X 미국 인프라 개발 ETF',
+  DTCR: '글로벌 X 데이터센터 및 디지털 인프라 ETF',
+  CARZ: '퍼스트트러스트 미래 모빌리티 및 기술 ETF',
+  CHAT: '라운드힐 생성형 AI 및 기술 ETF',
+  QTUM: '디파이언스 퀀텀(양자컴퓨팅) ETF',
+  ARKK: 'ARK 이노베이션 ETF',
+  WELD: '테마 미국 제조 및 리쇼어링 ETF',
+  /* 팩터·스크리닝 2종(2026-08-18). */
+  COWZ: '페이서 미국 캐시카우 100 ETF',
+  ESGU: '아이셰어즈 ESG 어웨어 MSCI 미국 ETF',
+  /* 🔴 채권(2026-08-18). 한글명에 **채권**을 넣어 목록에서 성격이 바로 읽히게 한다 — 주식 프리셋과
+     같은 것으로 읽히면 가정을 오해한다(그 파일 머리말). */
+  HYEM: '반에크 신흥국 하이일드 채권 ETF',
   SCHH: '슈왑 미국 리츠 ETF',
   VNQ: '뱅가드 부동산 ETF',
   VNQI: '뱅가드 글로벌(미국 제외) 부동산 ETF',
@@ -354,6 +437,10 @@ export const PRESET_TICKER_KOREAN_NAME_BY_TICKER = {
   NNN: 'NNN 리츠',
   ADC: '어그리 리얼티',
   KIM: '킴코 리얼티',
+  /* 인지도 배당주 확충 3종(2026-08-18 사용자 요청 — 이름으로 받았다: CDW·매스코·트랙터 서플라이). */
+  CDW: 'CDW',
+  MAS: '매스코',
+  TSCO: '트랙터 서플라이',
   '489250.KS': 'KODEX 미국배당다우존스',
   '476850.KS': 'KoAct 배당성장액티브',
   '322410.KS': 'HANARO 고배당',
