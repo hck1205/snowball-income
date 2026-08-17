@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { PortfolioHolding, PortfolioMarketInfo, PortfolioMarketInfoResolver } from '@/shared/lib/portfolio';
 import type { LedgerRowModel } from '@/pages/Ledger/types';
+import { storageKey } from '@/shared/lib/storage';
 import {
   LEDGER_DIVIDEND_OVERLAY_KEY,
   buildLedgerDividendModel,
@@ -116,12 +117,12 @@ describe('B-4 토글 저장 — 관용 파서 · 새 키 하나', () => {
 
   it('🔴 시트 연결 키를 건드리지 않는다', () => {
     const links = '[{"spreadsheetId":"abc","sheetId":0,"mapping":{}}]';
-    window.localStorage.setItem('snowball:ledger:links', links);
+    window.localStorage.setItem(storageKey('ledger:links'), links);
 
     writeLedgerDividendOverlay(true);
     writeLedgerDividendOverlay(false);
 
-    expect(window.localStorage.getItem('snowball:ledger:links')).toBe(links);
+    expect(window.localStorage.getItem(storageKey('ledger:links'))).toBe(links);
   });
 });
 

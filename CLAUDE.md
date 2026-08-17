@@ -5,9 +5,18 @@
 
 > 🔴 제품명은 **영문 "Hungry Hippo" 하나**다(한글 음차 금지, 2026-08-03 확정). "눈덩이/스노우볼/snowball"
 > 비유는 **전 표면 완전 금지**이고 브랜드 예외 조항은 폐기됐다 — 같은 개념은 복리·시간·재투자로 푼다.
-> 위 제목의 `snowball-income` 과 아래 경로들의 `snowball`(`shared/lib/snowball/`·`jotai/snowball/`·
-> localStorage `snowball:` 접두사)은 **저장소·코드 식별자·사용자 데이터 키**라 브랜드가 아니다 — 바꾸지 마라.
+> 위 제목의 `snowball-income` 과 아래 경로들의 `snowball`(`shared/lib/snowball/`·`jotai/snowball/`)은
+> **저장소·코드 식별자**라 브랜드가 아니다 — 바꾸지 마라.
 > 근거 [.claude/knowledge/decisions.md](.claude/knowledge/decisions.md) "리브랜딩" 섹션.
+>
+> 🔴 **브라우저 저장소 접두사는 2026-08-17 에 `snowball:` → `hungryhippo:` 로 옮겼다**(사용자 결정으로
+> 위 "바꾸지 마라"에서 **제외**됐다 — 예전 이 줄은 접두사도 바꾸지 말라고 적고 있었다).
+> 접두사 정본은 [shared/lib/storage](shared/lib/storage/storagePrefix.ts) 한 곳이고, 새 키는 반드시
+> `storageKey('...')` 로 만든다. 옛 접두사로 저장된 값은 부팅 시 1회 이관된다(`migrateLegacyStorageKeys`,
+> `main.tsx` 본문 첫 줄). IndexedDB 도 `snowball-income-db` → `hungryhippo-db` 로 옮겼다
+> (`jotai/snowball/persistence/portfolioDbMigration.ts` — 실패하면 **옛 DB 를 계속 쓴다**).
+> ⚠ `LEGACY_STORAGE_PREFIX` 와 `index.html` 프리페인트의 옛 키 폴백을 지우지 마라 — 아직 이관되지 않은
+> 브라우저가 남아 있고, 그게 언제 0이 되는지는 알 수 없다.
 
 ## 🔍 검색은 인덱스 먼저 (토큰 효율 필수 규칙)
 

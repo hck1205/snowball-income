@@ -11,6 +11,19 @@ import AppRouter from "@/router";
 import { ANALYTICS_EVENT, applySeoRuntimeMetadata, initGoogleAnalytics, peekLoginSource, track } from "@/shared/lib/analytics";
 import { hasOAuthCallbackParams, isKakaoCallbackPath, isNaverCallbackPath } from "@/shared/lib/supabase";
 import { clearChunkReloadMark, installChunkRecovery } from "@/shared/lib/chunkRecovery";
+import { migrateLegacyStorageKeys } from "@/shared/lib/storage";
+
+// 🔴 **저장소를 읽는 무엇보다 먼저 돈다.** 2026-08-17 에 브라우저 저장소 접두사를 `snowball:` →
+// `hungryhippo:` 로 옮겼는데, 접두사는 코드가 아니라 **이미 사용자 기기에 있는 데이터의 주소**다.
+// 이 한 줄이 없으면 앱은 빈 새 주소를 보게 되고 사용자에게는 팔레트·통화 초기화, 장부 연결 끊김,
+// 투어 재노출로 나타난다 — 그중 `cloud-sync-base:<userId>` 소실은 동기화 충돌 해소의 기준선을
+// 없애므로 가장 위험하다.
+//
+// ⚠ 아래 `installChunkRecovery()` 보다도 **먼저**다. 그쪽이 `chunk-reload` 마커를 읽기 때문이다.
+//   이관은 동기이고 옮길 키가 없으면 "키 목록 한 번 훑기"라, 청크 복구가 늦어지는 비용은 없다.
+// ⚠ import 순서에 기대는 side-effect 배선을 쓰지 않은 이유: 앱 코드에 **모듈 스코프 저장소 읽기가
+//   없어서**(2026-08-17 확인) 여기서 불러도 충분하고, import 정렬 도구 하나에 깨지지 않는다.
+migrateLegacyStorageKeys();
 
 // 🔴 **가장 먼저 건다.** 새 배포가 나가면 lazy 청크의 해시 파일명이 전부 바뀌는데, 그때 이미 열려
 // 있던 탭은 옛 해시를 기억한다 — 그 탭에서 화면을 옮기는 순간 없는 파일을 가져오려다 앱이 통째로

@@ -1,3 +1,4 @@
+import { storageKey } from '@/shared/lib/storage';
 /**
  * 클라우드 리컨사일 **merge-base(마지막 동기화 기준점)** 의 per-user 로컬 저장 — localStorage.
  *
@@ -17,7 +18,7 @@
  */
 
 /** per-user 저장 키 접두. userId를 붙여 기기 내에서 사용자별로 격리한다(다른 사용자 로그인 시 충돌 없음). */
-const SYNC_BASE_KEY_PREFIX = 'snowball:cloud-sync-base:';
+const SYNC_BASE_KEY_PREFIX = storageKey('cloud-sync-base:');
 
 const keyFor = (userId: string): string => `${SYNC_BASE_KEY_PREFIX}${userId}`;
 
@@ -73,7 +74,7 @@ export const clearSyncBase = (userId: string): void => {
  * - 값이 빈 문자열('')이거나 없으면(undefined) "미상/익명" → foreign으로 보지 않는다(로그인 전 작업·레거시를
  *   보호 모달로 겁주지 않기 위함). **특정 다른 userId일 때만** foreign이다.
  */
-const LOCAL_OWNER_KEY = 'snowball:cloud-local-owner';
+const LOCAL_OWNER_KEY = storageKey('cloud-local-owner');
 
 /** 직전에 로컬 autosave를 소유한 로그인 사용자 id. 없거나 실패하면 undefined(=미상 → foreign 아님). */
 export const readLocalOwner = (): string | undefined => {

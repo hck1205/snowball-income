@@ -3,6 +3,7 @@ import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ModelChangeNotice from './ModelChangeNotice';
 import { MODEL_CHANGE_NOTICE_STORAGE_KEY } from './ModelChangeNotice.utils';
+import { storageKey } from '@/shared/lib/storage';
 
 describe('ModelChangeNotice', () => {
   beforeEach(() => {
@@ -88,11 +89,11 @@ describe('ModelChangeNotice', () => {
 
   it('keys the dismissal by storage key so a future notice can be shown independently', async () => {
     const user = userEvent.setup();
-    const first = render(createElement(ModelChangeNotice, { storageKey: 'snowball:notice:coherent-model:v1' }));
+    const first = render(createElement(ModelChangeNotice, { storageKey: storageKey('notice:coherent-model:v1') }));
     await user.click(screen.getByRole('button', { name: '공지 닫기' }));
     first.unmount();
 
-    render(createElement(ModelChangeNotice, { storageKey: 'snowball:notice:next-thing:v1' }));
+    render(createElement(ModelChangeNotice, { storageKey: storageKey('notice:next-thing:v1') }));
 
     expect(screen.getByRole('status')).toBeInTheDocument();
   });

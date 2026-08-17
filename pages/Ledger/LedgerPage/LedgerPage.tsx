@@ -304,8 +304,8 @@ function LedgerContent({ now: nowProp }: LedgerPageProps) {
    * B-4 배당 겹쳐 보기 — 🔴 **화면 오버레이 전용**이다. 이 아래 어떤 코드도 시트에 쓰지 않고,
    * 아래 `viewModel.summary`(수입·지출·합계)에 배당을 더하지 않는다.
    *
-   * 🔴 기본값은 **꺼짐**이고, 상태는 새 로컬 키 하나(`snowball:ledger:dividend-overlay`)에만 산다 —
-   * `snowball:ledger:links` 는 건드리지 않는다. 불량 값은 조용히 꺼짐이다.
+   * 🔴 기본값은 **꺼짐**이고, 상태는 새 로컬 키 하나(`hungryhippo:ledger:dividend-overlay`)에만 산다 —
+   * `hungryhippo:ledger:links` 는 건드리지 않는다. 불량 값은 조용히 꺼짐이다.
    */
   const [isDividendOverlayOn, setIsDividendOverlayOn] = useState(readLedgerDividendOverlay);
 

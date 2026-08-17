@@ -128,7 +128,7 @@ export const LANDING_COPY = {
     searchLabel: '종목 검색',
     searchPlaceholder: 'SCHD, JEPI 같은 종목을 검색해 보세요',
     /*
-     * 🔴 마커가 말할 수 있는 것보다 더 말하지 않는다. `snowball:has-workspace` 는
+     * 🔴 마커가 말할 수 있는 것보다 더 말하지 않는다. `hungryhippo:has-workspace` 는
      * **"이 브라우저에서 시뮬레이터를 써 본 적 있음"** 이지 "저장된 계산이 있음"이 아니다 —
      * 자동 저장이 하이드레이션 직후 120ms 디바운스로 **사용자 편집 없이도** 한 번 돌기 때문에
      * (pages/Main/hooks/persistence/usePortfolioPersistence.ts) 한 번 열어만 봐도 마커가 남고,

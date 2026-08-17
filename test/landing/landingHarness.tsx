@@ -3,6 +3,7 @@ import { Provider } from 'jotai/react';
 import { createStore } from 'jotai/vanilla';
 import { MemoryRouter } from 'react-router-dom';
 import LandingPage from '@/pages/Landing/LandingPage';
+import { storageKey } from '@/shared/lib/storage';
 
 /**
  * 랜딩 렌더 **공용 하네스**.
@@ -13,11 +14,11 @@ import LandingPage from '@/pages/Landing/LandingPage';
  *     **영원히 대기하는 프로미스**로 끊어 스트립을 로딩 상태로 고정한다(테스트마다 시세가 다르면
  *     구조 단정이 흔들린다).
  *
- * ⚠ `snowball:has-workspace` 마커는 `localStorage` 한 개다. 테스트가 심으면 "이어서 계산하기"가
+ * ⚠ `hungryhippo:has-workspace` 마커는 `localStorage` 한 개다. 테스트가 심으면 "이어서 계산하기"가
  * 보이고, 지우면 안 보인다 — 값을 **테스트가 명시적으로** 정하게 한다(전역 상태 누수 방지).
  */
 
-export const HAS_WORKSPACE_KEY = 'snowball:has-workspace';
+export const HAS_WORKSPACE_KEY = storageKey('has-workspace');
 
 export const setWorkspaceMarker = (present: boolean): void => {
   if (present) window.localStorage.setItem(HAS_WORKSPACE_KEY, '1');

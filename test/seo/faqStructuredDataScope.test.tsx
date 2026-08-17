@@ -8,6 +8,7 @@ import { createStore } from 'jotai/vanilla';
 import { routes } from '@/router/routes';
 import { FAQ_STRUCTURED_DATA_ID } from '@/shared/lib/seo';
 import { LANDING_COPY } from '@/pages/Landing/copy';
+import { storageKey } from '@/shared/lib/storage';
 
 /**
  * 🔴 **`FAQPage` JSON-LD 는 `/` 에서만 DOM 에 있다.**
@@ -63,7 +64,7 @@ let restoreFetch: () => void;
 
 beforeEach(() => {
   restoreFetch = stubNeverResolvingFetch();
-  window.localStorage.removeItem('snowball:has-workspace');
+  window.localStorage.removeItem(storageKey('has-workspace'));
   // 실제 셸과 같은 출발점: 어느 주소로 들어오든 서버는 이 노드가 든 HTML 을 내려준다.
   document.head.insertAdjacentHTML('beforeend', FAQ_SCRIPT_MARKUP);
 });

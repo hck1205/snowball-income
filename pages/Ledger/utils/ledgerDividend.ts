@@ -4,6 +4,7 @@ import { formatKRW, formatUSD } from '@/shared/utils';
 import { LEDGER_COPY } from '../copy';
 import type { LedgerDividendBody, LedgerDividendModel, LedgerRowModel } from '../types';
 import type { LedgerMonthCursor } from './ledgerFormat';
+import { storageKey } from '@/shared/lib/storage';
 
 const copy = LEDGER_COPY;
 
@@ -26,10 +27,10 @@ const copy = LEDGER_COPY;
  */
 
 /**
- * 토글 상태 저장 키. 🔴 `snowball:ledger:links`·`snowball:ledger:blend` 와 **별개**이고,
+ * 토글 상태 저장 키. 🔴 `hungryhippo:ledger:links`·`hungryhippo:ledger:blend` 와 **별개**이고,
  * 지우면 완전히 원상복구된다(기본값 = 꺼짐).
  */
-export const LEDGER_DIVIDEND_OVERLAY_KEY = 'snowball:ledger:dividend-overlay';
+export const LEDGER_DIVIDEND_OVERLAY_KEY = storageKey('ledger:dividend-overlay');
 
 /**
  * 저장값 → 켜짐 여부. **`'on'` 만 켜짐**이고 나머지(없음·`'off'`·불량 값)는 전부 꺼짐이다 —

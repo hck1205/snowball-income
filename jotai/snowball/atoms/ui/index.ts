@@ -11,6 +11,7 @@ import {
 import type { DisplayCurrency, PalettePresetId, PresetTickerKey, YearlySeriesKey } from '@/shared/constants';
 import type { TickerModalMode } from '@/shared/types/snowball';
 import { atomState, useAtomValue, useAtomWrite } from '@/jotai/atom';
+import { storageKey } from '@/shared/lib/storage';
 
 export const activeHelpAtom = atomState<string | null>(null);
 export const isTickerModalOpenAtom = atomState(false);
@@ -111,7 +112,7 @@ export const shareLinkFailureAtom = atomState<ShareLinkFailureReason | null>(nul
 //   공유 URL·저장 슬롯의 하위 호환에 영향을 주면 안 된다.
 
 /** 팔레트 저장 키 (테스트/index.html 프리페인트 스크립트가 참조 — 값은 따옴표 없는 원시 문자열). */
-export const PALETTE_STORAGE_KEY = 'snowball:palette';
+export const PALETTE_STORAGE_KEY = storageKey('palette');
 
 /**
  * JSON 직렬화 대신 원시 문자열로 저장하는 커스텀 storage.
@@ -224,7 +225,7 @@ export const useApplyPalettePreset = (): void => {
 export type ColorSchemePreference = 'system' | 'light' | 'dark';
 
 /** 화면 밝기 저장 키 (index.html 프리페인트 스크립트가 참조 — 값은 따옴표 없는 원시 문자열). */
-export const COLOR_SCHEME_STORAGE_KEY = 'snowball:color-scheme';
+export const COLOR_SCHEME_STORAGE_KEY = storageKey('color-scheme');
 
 /** 저장값이 없거나 잘못됐을 때: OS를 따른다. */
 export const DEFAULT_COLOR_SCHEME_PREFERENCE: ColorSchemePreference = 'system';
@@ -364,7 +365,7 @@ export const useEffectiveColorScheme = (): 'light' | 'dark' => {
 //   (의미있는 액션 배제 목록: 탭 전환·뷰 토글·테마 옆).
 
 /** 표시 통화 저장 키. */
-export const DISPLAY_CURRENCY_STORAGE_KEY = 'snowball:display-currency';
+export const DISPLAY_CURRENCY_STORAGE_KEY = storageKey('display-currency');
 
 /**
  * 팔레트와 동일한 원시 문자열 storage — JSON 직렬화 없이 `"KRW"`/`"USD"` 그대로 저장한다.

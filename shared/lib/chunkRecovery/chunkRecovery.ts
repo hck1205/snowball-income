@@ -1,3 +1,4 @@
+import { storageKey } from '@/shared/lib/storage';
 /**
  * **배포 스큐(deploy skew) 복구** — 사라진 lazy 청크를 만났을 때 앱이 통째로 죽지 않게 한다.
  *
@@ -26,7 +27,7 @@
  *   복구를 포기한다(에러를 삼키지 않는 쪽이 안전하다).
  */
 
-const RELOAD_MARK = 'snowball:chunk-reload';
+const RELOAD_MARK = storageKey('chunk-reload');
 
 /** 이 오류가 "사라진 청크"인가. 브라우저마다 문구가 달라 **여러 형태**를 본다. */
 export const isChunkLoadError = (reason: unknown): boolean => {

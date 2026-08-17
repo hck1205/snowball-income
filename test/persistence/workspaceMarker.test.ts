@@ -10,13 +10,14 @@ import {
   type PersistedAppStatePayload
 } from '@/jotai';
 import type { TickerProfile } from '@/shared/types/snowball';
+import { storageKey } from '@/shared/lib/storage';
 
 /**
  * 랜딩(`/`)이 "이어서 계산하기"를 띄울지 판단하는 **localStorage 부기 마커**의 계약.
  * 저장 포맷(영속 payload·공유 URL)과 무관하다 — 여기서 단정하는 것은 마커의 수명뿐이다.
  */
 const PORTFOLIO_DB_NAME = 'snowball-income-db';
-const HAS_WORKSPACE_KEY = 'snowball:has-workspace';
+const HAS_WORKSPACE_KEY = storageKey('has-workspace');
 
 const buildProfile = (): TickerProfile => ({
   id: 'ticker-1',

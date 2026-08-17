@@ -1,4 +1,5 @@
 import { getSupabaseClient, isCommunityEnabled } from './client';
+import { storageKey } from '@/shared/lib/storage';
 
 /**
  * 카카오 로그인 **클라이언트 seam** — UI(SocialLoginButton/LoginModal)가 소비하는 진입점.
@@ -31,8 +32,8 @@ const DEFAULT_RETURN_TO = '/community';
 /** 우리 서버 엔드포인트(같은 도메인). */
 const KAKAO_AUTH_ENDPOINT = '/api/kakao-auth';
 
-const STATE_STORAGE_KEY = 'snowball:kakao_oauth_state';
-const RETURN_TO_STORAGE_KEY = 'snowball:kakao_return_to';
+const STATE_STORAGE_KEY = storageKey('kakao_oauth_state');
+const RETURN_TO_STORAGE_KEY = storageKey('kakao_return_to');
 
 /** 로그인 시 요청하는 동의항목. 닉네임만 — 이메일·프로필사진은 받지 않는다(계정 병합·avatar 사고 방지). */
 const KAKAO_SCOPE = 'profile_nickname';

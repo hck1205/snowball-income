@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { buildScenarioSimSummary } from '@/shared/lib/snowball';
+import { storageKey } from '@/shared/lib/storage';
 import {
   buildCommentKeysetFilter,
   buildGalleryFacetFilters,
@@ -423,7 +424,7 @@ export const fetchMyCommentLikes = async (
 
 // ── 조회수 ──────────────────────────────────────────────────────────────────
 
-const VIEWER_TOKEN_KEY = 'snowball:viewer-token';
+const VIEWER_TOKEN_KEY = storageKey('viewer-token');
 
 /**
  * 익명 뷰어 토큰 (localStorage).

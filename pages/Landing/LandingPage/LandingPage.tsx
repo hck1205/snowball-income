@@ -20,7 +20,7 @@ import type { LandingViewModel } from './LandingPage.types';
  * `index.html` 의 **정적 메타가 곧 이 페이지의 메타**다(그 메타 본문 교체는 SEO 트랙 소관).
  *
  * ## 재방문 마커
- * `snowball:has-workspace` 는 동기 localStorage 한 개다(`jotai/snowball/persistence/workspaceMarker`).
+ * `hungryhippo:has-workspace` 는 동기 localStorage 한 개다(`jotai/snowball/persistence/workspaceMarker`).
  * 🔴 렌더 **전에** 값이 나와야 하므로 `useEffect` 가 아니라 `useState` 초기화로 읽는다 —
  * 이펙트로 읽으면 첫 프레임 뒤에 줄이 하나 생겨 히어로가 흔들린다.
  * 마커가 틀려도 사고가 없다: 목적지가 어차피 시뮬레이터이고, 항상 보이는 CTA 가 안전망이다.

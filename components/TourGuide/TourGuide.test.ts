@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import type { TourStep } from '@/shared/constants';
 import { useSetTourLaunchRequestWrite } from '@/jotai';
 import TourGuide from './TourGuide';
+import { storageKey } from '@/shared/lib/storage';
 import {
   centerPopoverPosition,
   clampSpotlight,
@@ -184,7 +185,7 @@ describe('TourGuide.utils - 말풍선 위치', () => {
 });
 
 describe('TourGuide.utils - 본 적 있음 플래그', () => {
-  const KEY = 'snowball:tutorial:test';
+  const KEY = storageKey('tutorial:test');
 
   beforeEach(() => {
     window.localStorage.clear();
@@ -220,7 +221,7 @@ describe('TourGuide.utils - 본 적 있음 플래그', () => {
 /* 컴포넌트                                                                      */
 /* -------------------------------------------------------------------------- */
 
-const STORAGE_KEY = 'snowball:tutorial:test';
+const STORAGE_KEY = storageKey('tutorial:test');
 
 const TEST_STEPS = [
   {
