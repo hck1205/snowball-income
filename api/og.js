@@ -2150,8 +2150,8 @@ var marketData_generated_default = {
         11,
         12
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 4,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "2": 27,
         "3": 27,
@@ -4453,7 +4453,14 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 17,
+      estimatedPayDayByMonth: {
+        "3": 30,
+        "6": 29,
+        "9": 29,
+        "12": 29
+      }
     },
     XEL: {
       initialPrice: 78.93,
