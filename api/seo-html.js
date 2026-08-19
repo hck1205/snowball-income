@@ -9799,7 +9799,14 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 15,
+      estimatedPayDayByMonth: {
+        "3": 28,
+        "6": 27,
+        "9": 30,
+        "12": 30
+      }
     },
     PSX: {
       initialPrice: 233.86,
@@ -10736,8 +10743,8 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 17,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "3": 30,
         "6": 29,
