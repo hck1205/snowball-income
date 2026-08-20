@@ -2676,7 +2676,14 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 14,
+      estimatedPayDayByMonth: {
+        "3": 28,
+        "6": 27,
+        "9": 29,
+        "12": 30
+      }
     },
     GIS: {
       initialPrice: 39.01,
@@ -3516,8 +3523,8 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 15,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "3": 28,
         "6": 27,
