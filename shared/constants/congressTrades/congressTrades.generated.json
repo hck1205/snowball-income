@@ -1,31 +1,22 @@
 {
-  "generatedAt": "2026-08-14",
+  "generatedAt": "2026-08-21",
   "source": "U.S. House of Representatives — Clerk, Periodic Transaction Reports (STOCK Act)",
   "sourceUrl": "https://disclosures-clerk.house.gov/PublicDisclosure",
   "window": {
-    "start": "2025-02-13",
-    "end": "2026-08-07"
+    "start": "2025-02-20",
+    "end": "2026-08-13"
   },
   "coverage": {
-    "filingsRead": 755,
-    "filingsTotal": 860,
-    "filingsScanned": 105,
+    "filingsRead": 766,
+    "filingsTotal": 874,
+    "filingsScanned": 108,
     "filingsFailed": 0,
-    "transactions": 9016,
-    "equityTransactions": 7951,
-    "members": 97,
-    "tickers": 1182
+    "transactions": 9010,
+    "equityTransactions": 7937,
+    "members": 98,
+    "tickers": 1183
   },
   "topTickers": [
-    {
-      "ticker": "MSFT",
-      "name": "Microsoft Corporation - Common Stock",
-      "buys": 68,
-      "sells": 59,
-      "memberCount": 31,
-      "minUsd": 11692127,
-      "maxUsd": 39955000
-    },
     {
       "ticker": "NVDA",
       "name": "NVIDIA Corporation - Common Stock",
@@ -36,22 +27,31 @@
       "maxUsd": 21235000
     },
     {
+      "ticker": "MSFT",
+      "name": "Microsoft Corporation - Common Stock",
+      "buys": 64,
+      "sells": 56,
+      "memberCount": 31,
+      "minUsd": 5443120,
+      "maxUsd": 12470000
+    },
+    {
       "ticker": "AAPL",
       "name": "Apple Inc. - Common Stock",
       "buys": 51,
-      "sells": 42,
-      "memberCount": 31,
-      "minUsd": 12568093,
-      "maxUsd": 56670000
+      "sells": 44,
+      "memberCount": 32,
+      "minUsd": 12669095,
+      "maxUsd": 56935000
     },
     {
       "ticker": "AMZN",
       "name": "Amazon.com, Inc. - Common Stock",
-      "buys": 61,
+      "buys": 62,
       "sells": 30,
       "memberCount": 24,
-      "minUsd": 3235091,
-      "maxUsd": 11025000
+      "minUsd": 3236092,
+      "maxUsd": 11040000
     },
     {
       "ticker": "META",
@@ -66,37 +66,37 @@
       "ticker": "UNH",
       "name": "UnitedHealth Group Incorporated Common Stock",
       "buys": 31,
-      "sells": 35,
+      "sells": 36,
       "memberCount": 19,
-      "minUsd": 602066,
-      "maxUsd": 2155000
+      "minUsd": 603067,
+      "maxUsd": 2170000
     },
     {
       "ticker": "AVGO",
       "name": "Broadcom Inc. - Common Stock",
-      "buys": 33,
+      "buys": 34,
       "sells": 27,
-      "memberCount": 17,
-      "minUsd": 1446060,
-      "maxUsd": 6790000
+      "memberCount": 18,
+      "minUsd": 1447061,
+      "maxUsd": 6805000
     },
     {
       "ticker": "GOOGL",
       "name": "Alphabet Inc. - Class A Common Stock",
       "buys": 24,
-      "sells": 34,
+      "sells": 35,
       "memberCount": 21,
-      "minUsd": 3487058,
-      "maxUsd": 13855000
+      "minUsd": 3488059,
+      "maxUsd": 13870000
     },
     {
       "ticker": "HD",
       "name": "Home Depot, Inc",
       "buys": 28,
-      "sells": 25,
+      "sells": 26,
       "memberCount": 19,
-      "minUsd": 313053,
-      "maxUsd": 1395000
+      "minUsd": 314054,
+      "maxUsd": 1410000
     },
     {
       "ticker": "GOOG",
@@ -110,38 +110,29 @@
     {
       "ticker": "PG",
       "name": "Procter & Gamble Company",
-      "buys": 21,
-      "sells": 25,
+      "buys": 20,
+      "sells": 26,
       "memberCount": 22,
       "minUsd": 327046,
       "maxUsd": 1305000
     },
     {
-      "ticker": "V",
-      "name": "Visa Inc",
-      "buys": 24,
-      "sells": 21,
-      "memberCount": 18,
-      "minUsd": 277045,
-      "maxUsd": 1205000
-    },
-    {
       "ticker": "JNJ",
       "name": "Johnson & Johnson Common Stock",
       "buys": 15,
-      "sells": 29,
+      "sells": 30,
       "memberCount": 18,
-      "minUsd": 332044,
-      "maxUsd": 1330000
+      "minUsd": 333045,
+      "maxUsd": 1345000
     },
     {
-      "ticker": "LLY",
-      "name": "Eli Lilly and Company Common Stock",
-      "buys": 16,
-      "sells": 27,
-      "memberCount": 15,
-      "minUsd": 233043,
-      "maxUsd": 1070000
+      "ticker": "V",
+      "name": "Visa Inc",
+      "buys": 23,
+      "sells": 22,
+      "memberCount": 18,
+      "minUsd": 277045,
+      "maxUsd": 1205000
     },
     {
       "ticker": "UPS",
@@ -153,13 +144,13 @@
       "maxUsd": 955000
     },
     {
-      "ticker": "TSLA",
-      "name": "Tesla, Inc. - Common Stock",
-      "buys": 25,
-      "sells": 18,
-      "memberCount": 9,
-      "minUsd": 156043,
-      "maxUsd": 915000
+      "ticker": "LLY",
+      "name": "Eli Lilly and Company Common Stock",
+      "buys": 16,
+      "sells": 26,
+      "memberCount": 15,
+      "minUsd": 232042,
+      "maxUsd": 1055000
     },
     {
       "ticker": "IBM",
@@ -171,6 +162,24 @@
       "maxUsd": 1100000
     },
     {
+      "ticker": "TSLA",
+      "name": "Tesla, Inc. - Common Stock",
+      "buys": 25,
+      "sells": 16,
+      "memberCount": 9,
+      "minUsd": 154041,
+      "maxUsd": 885000
+    },
+    {
+      "ticker": "BRK.B",
+      "name": "Berkshire Hathaway Inc. New Common Stock",
+      "buys": 13,
+      "sells": 26,
+      "memberCount": 17,
+      "minUsd": 299039,
+      "maxUsd": 1185000
+    },
+    {
       "ticker": "TSM",
       "name": "Taiwan Semiconductor Manufacturing Company Ltd",
       "buys": 26,
@@ -178,15 +187,6 @@
       "memberCount": 12,
       "minUsd": 860039,
       "maxUsd": 2400000
-    },
-    {
-      "ticker": "BRK.B",
-      "name": "Berkshire Hathaway Inc. New Common Stock",
-      "buys": 12,
-      "sells": 26,
-      "memberCount": 17,
-      "minUsd": 298038,
-      "maxUsd": 1170000
     },
     {
       "ticker": "NFLX",
@@ -216,6 +216,15 @@
       "maxUsd": 1000000
     },
     {
+      "ticker": "AMD",
+      "name": "Advanced Micro Devices, Inc",
+      "buys": 27,
+      "sells": 9,
+      "memberCount": 11,
+      "minUsd": 372036,
+      "maxUsd": 1230000
+    },
+    {
       "ticker": "PLTR",
       "name": "Palantir Technologies Inc. - Class A Common Stock",
       "buys": 22,
@@ -225,13 +234,13 @@
       "maxUsd": 1325000
     },
     {
-      "ticker": "AMD",
-      "name": "Advanced Micro Devices, Inc",
-      "buys": 26,
-      "sells": 9,
-      "memberCount": 10,
-      "minUsd": 371035,
-      "maxUsd": 1215000
+      "ticker": "ABT",
+      "name": "Abbott Laboratories Common Stock",
+      "buys": 13,
+      "sells": 21,
+      "memberCount": 14,
+      "minUsd": 112035,
+      "maxUsd": 680000
     },
     {
       "ticker": "ACN",
@@ -243,24 +252,6 @@
       "maxUsd": 1440000
     },
     {
-      "ticker": "ORCL",
-      "name": "Oracle Corporation Common Stock",
-      "buys": 13,
-      "sells": 21,
-      "memberCount": 11,
-      "minUsd": 209034,
-      "maxUsd": 910000
-    },
-    {
-      "ticker": "ABT",
-      "name": "Abbott Laboratories Common Stock",
-      "buys": 14,
-      "sells": 19,
-      "memberCount": 14,
-      "minUsd": 97034,
-      "maxUsd": 630000
-    },
-    {
       "ticker": "CRM",
       "name": "Salesforce, Inc. Common Stock",
       "buys": 14,
@@ -270,13 +261,22 @@
       "maxUsd": 775000
     },
     {
+      "ticker": "ORCL",
+      "name": "Oracle Corporation Common Stock",
+      "buys": 13,
+      "sells": 20,
+      "memberCount": 11,
+      "minUsd": 208033,
+      "maxUsd": 895000
+    },
+    {
       "ticker": "PEP",
       "name": "Pepsico, Inc",
       "buys": 11,
-      "sells": 20,
+      "sells": 21,
       "memberCount": 16,
-      "minUsd": 143031,
-      "maxUsd": 745000
+      "minUsd": 144032,
+      "maxUsd": 760000
     },
     {
       "ticker": "BRO",
@@ -297,13 +297,13 @@
       "maxUsd": 535000
     },
     {
-      "ticker": "DASH",
-      "name": "DoorDash, Inc. - Common Stock",
-      "buys": 23,
-      "sells": 7,
-      "memberCount": 6,
-      "minUsd": 58030,
-      "maxUsd": 520000
+      "ticker": "CVX",
+      "name": "Chevron Corporation Common Stock",
+      "buys": 11,
+      "sells": 19,
+      "memberCount": 12,
+      "minUsd": 129031,
+      "maxUsd": 710000
     },
     {
       "ticker": "MRK",
@@ -315,15 +315,6 @@
       "maxUsd": 715000
     },
     {
-      "ticker": "CVX",
-      "name": "Chevron Corporation Common Stock",
-      "buys": 11,
-      "sells": 18,
-      "memberCount": 11,
-      "minUsd": 128030,
-      "maxUsd": 695000
-    },
-    {
       "ticker": "UBER",
       "name": "Uber Technologies, Inc. Common Stock",
       "buys": 15,
@@ -331,15 +322,6 @@
       "memberCount": 11,
       "minUsd": 654029,
       "maxUsd": 1660000
-    },
-    {
-      "ticker": "PGR",
-      "name": "Progressive Corporation",
-      "buys": 17,
-      "sells": 12,
-      "memberCount": 9,
-      "minUsd": 92029,
-      "maxUsd": 555000
     },
     {
       "ticker": "TMO",
@@ -351,13 +333,31 @@
       "maxUsd": 665000
     },
     {
-      "ticker": "INTC",
-      "name": "Intel Corporation - Common Stock",
+      "ticker": "PGR",
+      "name": "Progressive Corporation",
       "buys": 16,
-      "sells": 11,
-      "memberCount": 13,
-      "minUsd": 1237027,
-      "maxUsd": 5905000
+      "sells": 12,
+      "memberCount": 9,
+      "minUsd": 91028,
+      "maxUsd": 540000
+    },
+    {
+      "ticker": "DASH",
+      "name": "DoorDash, Inc. - Common Stock",
+      "buys": 21,
+      "sells": 7,
+      "memberCount": 6,
+      "minUsd": 56028,
+      "maxUsd": 490000
+    },
+    {
+      "ticker": "WMT",
+      "name": "Walmart Inc. Common Stock",
+      "buys": 13,
+      "sells": 14,
+      "memberCount": 15,
+      "minUsd": 231027,
+      "maxUsd": 865000
     },
     {
       "ticker": "PANW",
@@ -396,22 +396,22 @@
       "maxUsd": 885000
     },
     {
-      "ticker": "INTU",
-      "name": "Intuit Inc. - Common Stock",
-      "buys": 9,
-      "sells": 17,
-      "memberCount": 9,
-      "minUsd": 280026,
-      "maxUsd": 1000000
+      "ticker": "INTC",
+      "name": "Intel Corporation - Common Stock",
+      "buys": 15,
+      "sells": 11,
+      "memberCount": 13,
+      "minUsd": 1236026,
+      "maxUsd": 5890000
     },
     {
       "ticker": "XOM",
       "name": "Exxon Mobil Corporation Common Stock",
       "buys": 11,
       "sells": 14,
-      "memberCount": 12,
-      "minUsd": 463027,
-      "maxUsd": 1320000
+      "memberCount": 13,
+      "minUsd": 465029,
+      "maxUsd": 1350000
     },
     {
       "ticker": "VZ",
@@ -423,22 +423,22 @@
       "maxUsd": 1180000
     },
     {
-      "ticker": "PYPL",
-      "name": "PayPal Holdings, Inc. - Common Stock",
-      "buys": 8,
-      "sells": 14,
-      "memberCount": 12,
-      "minUsd": 313022,
-      "maxUsd": 920000
-    },
-    {
       "ticker": "MCD",
       "name": "McDonald's Corporation Common Stock",
       "buys": 9,
-      "sells": 12,
+      "sells": 13,
       "memberCount": 11,
-      "minUsd": 331021,
-      "maxUsd": 1065000
+      "minUsd": 332022,
+      "maxUsd": 1080000
+    },
+    {
+      "ticker": "PYPL",
+      "name": "PayPal Holdings, Inc. - Common Stock",
+      "buys": 8,
+      "sells": 13,
+      "memberCount": 12,
+      "minUsd": 312021,
+      "maxUsd": 905000
     },
     {
       "ticker": "HOG",
@@ -459,13 +459,13 @@
       "maxUsd": 5415000
     },
     {
-      "ticker": "F",
-      "name": "Ford Motor Company Common Stock",
-      "buys": 9,
-      "sells": 8,
-      "memberCount": 6,
-      "minUsd": 446017,
-      "maxUsd": 1190000
+      "ticker": "KR",
+      "name": "Kroger Company",
+      "buys": 10,
+      "sells": 7,
+      "memberCount": 5,
+      "minUsd": 280017,
+      "maxUsd": 775000
     },
     {
       "ticker": "AAL",
@@ -486,6 +486,15 @@
       "maxUsd": 2385000
     },
     {
+      "ticker": "F",
+      "name": "Ford Motor Company Common Stock",
+      "buys": 8,
+      "sells": 8,
+      "memberCount": 6,
+      "minUsd": 431016,
+      "maxUsd": 1140000
+    },
+    {
       "ticker": "HY",
       "name": "Hyster-Yale, Inc. Class A common stock",
       "buys": 11,
@@ -498,10 +507,10 @@
       "ticker": "FLL",
       "name": "Full House Resorts, Inc. - Common Stock",
       "buys": 0,
-      "sells": 12,
+      "sells": 11,
       "memberCount": 1,
-      "minUsd": 1329012,
-      "maxUsd": 2810000
+      "minUsd": 1314011,
+      "maxUsd": 2760000
     },
     {
       "ticker": "IBIT",
@@ -563,9 +572,9 @@
       "name": "Lisa McClain",
       "stateDistrict": "MI09",
       "buys": 647,
-      "sells": 683,
-      "minUsd": 1576330,
-      "maxUsd": 20525000,
+      "sells": 682,
+      "minUsd": 1575329,
+      "maxUsd": 20510000,
       "topTickers": [
         "HDB",
         "SAP",
@@ -607,14 +616,14 @@
     {
       "name": "Julie Johnson",
       "stateDistrict": "TX32",
-      "buys": 71,
-      "sells": 415,
-      "minUsd": 574490,
-      "maxUsd": 7560000,
+      "buys": 67,
+      "sells": 414,
+      "minUsd": 569485,
+      "maxUsd": 7485000,
       "topTickers": [
         "MMM",
-        "COF",
         "CI",
+        "COF",
         "MSFT",
         "MDLZ"
       ]
@@ -622,40 +631,40 @@
     {
       "name": "Rob Bresnahan",
       "stateDistrict": "PA08",
-      "buys": 214,
-      "sells": 249,
-      "minUsd": 1058463,
-      "maxUsd": 8395000,
+      "buys": 211,
+      "sells": 246,
+      "minUsd": 1052457,
+      "maxUsd": 8305000,
       "topTickers": [
         "NVDA",
         "TSLA",
         "META",
-        "INTC",
-        "TXN"
+        "TXN",
+        "INTC"
       ]
     },
     {
       "name": "Josh Gottheimer",
       "stateDistrict": "NJ05",
-      "buys": 113,
-      "sells": 281,
-      "minUsd": 8897394,
-      "maxUsd": 37805000,
+      "buys": 107,
+      "sells": 271,
+      "minUsd": 2639378,
+      "maxUsd": 10185000,
       "topTickers": [
         "MSFT",
         "V",
-        "TSLA",
         "IBM",
+        "TSLA",
         "NOW"
       ]
     },
     {
       "name": "April McClain Delaney",
       "stateDistrict": "MD06",
-      "buys": 196,
-      "sells": 185,
-      "minUsd": 956382,
-      "maxUsd": 7165000,
+      "buys": 192,
+      "sells": 179,
+      "minUsd": 932372,
+      "maxUsd": 6980000,
       "topTickers": [
         "MKL",
         "TSCO",
@@ -743,9 +752,9 @@
       "name": "Jared Moskowitz",
       "stateDistrict": "FL23",
       "buys": 106,
-      "sells": 60,
-      "minUsd": 348166,
-      "maxUsd": 2945000,
+      "sells": 59,
+      "minUsd": 347165,
+      "maxUsd": 2930000,
       "topTickers": [
         "AVGO",
         "NVDA",
@@ -755,33 +764,18 @@
       ]
     },
     {
-      "name": "Byron Donalds",
-      "stateDistrict": "FL19",
-      "buys": 69,
-      "sells": 72,
-      "minUsd": 141141,
-      "maxUsd": 2115000,
-      "topTickers": [
-        "TTD",
-        "BRO",
-        "CMG",
-        "PGR",
-        "PYPL"
-      ]
-    },
-    {
       "name": "Tim Moore",
       "stateDistrict": "NC14",
-      "buys": 97,
+      "buys": 96,
       "sells": 41,
-      "minUsd": 3934138,
-      "maxUsd": 10335000,
+      "minUsd": 3919137,
+      "maxUsd": 10285000,
       "topTickers": [
         "HOG",
         "HY",
         "AAL",
-        "F",
-        "CBRL"
+        "CBRL",
+        "F"
       ]
     },
     {
@@ -797,6 +791,21 @@
         "MU",
         "CRM",
         "TTWO"
+      ]
+    },
+    {
+      "name": "Byron Donalds",
+      "stateDistrict": "FL19",
+      "buys": 65,
+      "sells": 68,
+      "minUsd": 133133,
+      "maxUsd": 1995000,
+      "topTickers": [
+        "TTD",
+        "BRO",
+        "CMG",
+        "PGR",
+        "PYPL"
       ]
     },
     {
@@ -832,16 +841,31 @@
     {
       "name": "Thomas H. Kean Jr",
       "stateDistrict": "NJ07",
-      "buys": 41,
-      "sells": 51,
-      "minUsd": 361095,
-      "maxUsd": 2090000,
+      "buys": 45,
+      "sells": 53,
+      "minUsd": 367101,
+      "maxUsd": 2180000,
       "topTickers": [
         "SYK",
         "JNJ",
         "FCNCA",
         "MKL",
-        "NVT"
+        "GOOGL"
+      ]
+    },
+    {
+      "name": "Richard Dean Dr McCormick",
+      "stateDistrict": "GA06",
+      "buys": 39,
+      "sells": 45,
+      "minUsd": 84084,
+      "maxUsd": 1260000,
+      "topTickers": [
+        "LHX",
+        "ADI",
+        "UNH",
+        "ABT",
+        "MSFT"
       ]
     },
     {
@@ -905,48 +929,18 @@
       ]
     },
     {
-      "name": "Richard Dean Dr McCormick",
-      "stateDistrict": "GA06",
-      "buys": 38,
-      "sells": 20,
-      "minUsd": 58058,
-      "maxUsd": 870000,
-      "topTickers": [
-        "LHX",
-        "ADI",
-        "UNH",
-        "ABT",
-        "MSFT"
-      ]
-    },
-    {
       "name": "Greg Landsman",
       "stateDistrict": "OH01",
-      "buys": 4,
-      "sells": 49,
-      "minUsd": 666053,
-      "maxUsd": 2115000,
+      "buys": 3,
+      "sells": 48,
+      "minUsd": 664051,
+      "maxUsd": 2085000,
       "topTickers": [
         "COST",
         "AMZN",
         "AMP",
-        "CRWD",
-        "NVDA"
-      ]
-    },
-    {
-      "name": "Scott Scott Franklin",
-      "stateDistrict": "FL18",
-      "buys": 16,
-      "sells": 26,
-      "minUsd": 933042,
-      "maxUsd": 2445000,
-      "topTickers": [
-        "NVO",
-        "UNP",
-        "UPS",
-        "HSY",
-        "AMZN"
+        "NVDA",
+        "PH"
       ]
     },
     {
@@ -965,6 +959,21 @@
       ]
     },
     {
+      "name": "Scott Scott Franklin",
+      "stateDistrict": "FL18",
+      "buys": 13,
+      "sells": 26,
+      "minUsd": 916039,
+      "maxUsd": 2365000,
+      "topTickers": [
+        "NVO",
+        "UNP",
+        "UPS",
+        "HSY",
+        "AMZN"
+      ]
+    },
+    {
       "name": "George Whitesides",
       "stateDistrict": "CA27",
       "buys": 0,
@@ -980,18 +989,18 @@
       ]
     },
     {
-      "name": "Lloyd Doggett",
-      "stateDistrict": "TX37",
-      "buys": 29,
-      "sells": 0,
-      "minUsd": 29029,
-      "maxUsd": 435000,
+      "name": "Richard W. Allen",
+      "stateDistrict": "GA12",
+      "buys": 12,
+      "sells": 18,
+      "minUsd": 366030,
+      "maxUsd": 1215000,
       "topTickers": [
-        "KO",
-        "HD",
-        "IBM",
-        "JNJ",
-        "PPG"
+        "INTU",
+        "ACN",
+        "NFLX",
+        "SPGI",
+        "TSM"
       ]
     },
     {
@@ -1010,6 +1019,21 @@
       ]
     },
     {
+      "name": "Lloyd Doggett",
+      "stateDistrict": "TX37",
+      "buys": 28,
+      "sells": 0,
+      "minUsd": 28028,
+      "maxUsd": 420000,
+      "topTickers": [
+        "KO",
+        "HD",
+        "IBM",
+        "JNJ",
+        "PPG"
+      ]
+    },
+    {
       "name": "Michael Rulli",
       "stateDistrict": "OH06",
       "buys": 13,
@@ -1022,21 +1046,6 @@
         "LLY",
         "META",
         "MSFT"
-      ]
-    },
-    {
-      "name": "Richard W. Allen",
-      "stateDistrict": "GA12",
-      "buys": 10,
-      "sells": 17,
-      "minUsd": 349027,
-      "maxUsd": 1135000,
-      "topTickers": [
-        "INTU",
-        "ACN",
-        "NFLX",
-        "SPGI",
-        "TSM"
       ]
     },
     {
@@ -1057,10 +1066,10 @@
     {
       "name": "Virginia Foxx",
       "stateDistrict": "NC05",
-      "buys": 15,
+      "buys": 13,
       "sells": 11,
-      "minUsd": 243026,
-      "maxUsd": 820000,
+      "minUsd": 241024,
+      "maxUsd": 790000,
       "topTickers": [
         "ARLP",
         "HTGC",
@@ -1073,9 +1082,9 @@
       "name": "Susie Lee",
       "stateDistrict": "NV03",
       "buys": 0,
-      "sells": 21,
-      "minUsd": 1352021,
-      "maxUsd": 2980000,
+      "sells": 20,
+      "minUsd": 1337020,
+      "maxUsd": 2930000,
       "topTickers": [
         "FLL",
         "CCL",
@@ -1115,6 +1124,21 @@
       ]
     },
     {
+      "name": "Carol Devine Miller",
+      "stateDistrict": "WV01",
+      "buys": 9,
+      "sells": 9,
+      "minUsd": 74018,
+      "maxUsd": 410000,
+      "topTickers": [
+        "PFE",
+        "DGX",
+        "TGT",
+        "USB",
+        "AFL"
+      ]
+    },
+    {
       "name": "James French Hill",
       "stateDistrict": "AR02",
       "buys": 4,
@@ -1143,24 +1167,21 @@
         "NOW",
         "WMT"
       ]
-    },
-    {
-      "name": "Carol Devine Miller",
-      "stateDistrict": "WV01",
-      "buys": 9,
-      "sells": 5,
-      "minUsd": 14014,
-      "maxUsd": 210000,
-      "topTickers": [
-        "AFL",
-        "AWK",
-        "CME",
-        "GILD",
-        "HON"
-      ]
     }
   ],
   "recent": [
+    {
+      "date": "2026-08-13",
+      "member": "Ed Case",
+      "stateDistrict": "HI01",
+      "ticker": "AAPL",
+      "name": "Apple Inc. - Common Stock",
+      "action": "buy",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": "SP"
+    },
     {
       "date": "2026-08-07",
       "member": "Christian D. Menefee",
@@ -1436,6 +1457,318 @@
       "minUsd": 15001,
       "maxUsd": 50000,
       "owner": "DC"
+    },
+    {
+      "date": "2026-07-30",
+      "member": "Richard Dean Dr McCormick",
+      "stateDistrict": "GA06",
+      "ticker": "ABT",
+      "name": "Abbott Laboratories Common Stock",
+      "action": "sell",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-07-30",
+      "member": "Richard Dean Dr McCormick",
+      "stateDistrict": "GA06",
+      "ticker": "APD",
+      "name": "Air Products and Chemicals, Inc. Common Stock",
+      "action": "sell",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-07-30",
+      "member": "Richard Dean Dr McCormick",
+      "stateDistrict": "GA06",
+      "ticker": "AWK",
+      "name": "American Water Works Company, Inc. Common Stock",
+      "action": "sell",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-07-30",
+      "member": "Richard Dean Dr McCormick",
+      "stateDistrict": "GA06",
+      "ticker": "ADI",
+      "name": "Analog Devices, Inc. - Common Stock",
+      "action": "sell",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-07-30",
+      "member": "Richard Dean Dr McCormick",
+      "stateDistrict": "GA06",
+      "ticker": "AAPL",
+      "name": "Apple Inc. - Common Stock",
+      "action": "sell",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-07-30",
+      "member": "Richard Dean Dr McCormick",
+      "stateDistrict": "GA06",
+      "ticker": "ADP",
+      "name": "Automatic Data Processing, Inc. - Common Stock",
+      "action": "sell",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-07-30",
+      "member": "Richard Dean Dr McCormick",
+      "stateDistrict": "GA06",
+      "ticker": "BRK.B",
+      "name": "Berkshire Hathaway Inc. New Common Stock",
+      "action": "buy",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-07-30",
+      "member": "Richard Dean Dr McCormick",
+      "stateDistrict": "GA06",
+      "ticker": "BLK",
+      "name": "BlackRock, Inc. Common Stock",
+      "action": "sell",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-07-30",
+      "member": "Richard Dean Dr McCormick",
+      "stateDistrict": "GA06",
+      "ticker": "CSCO",
+      "name": "Cisco Systems, Inc. - Common Stock",
+      "action": "sell",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-07-30",
+      "member": "Richard Dean Dr McCormick",
+      "stateDistrict": "GA06",
+      "ticker": "COST",
+      "name": "Costco Wholesale Corporation - Common Stock",
+      "action": "sell",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-07-30",
+      "member": "Richard Dean Dr McCormick",
+      "stateDistrict": "GA06",
+      "ticker": "EMR",
+      "name": "Emerson Electric Company Common Stock",
+      "action": "sell",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-07-30",
+      "member": "Richard Dean Dr McCormick",
+      "stateDistrict": "GA06",
+      "ticker": "HD",
+      "name": "Home Depot, Inc",
+      "action": "sell",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-07-30",
+      "member": "Richard Dean Dr McCormick",
+      "stateDistrict": "GA06",
+      "ticker": "ITW",
+      "name": "Illinois Tool Works Inc. Common Stock",
+      "action": "sell",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-07-30",
+      "member": "Richard Dean Dr McCormick",
+      "stateDistrict": "GA06",
+      "ticker": "ICE",
+      "name": "Intercontinental Exchange Inc. Common Stock",
+      "action": "sell",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-07-30",
+      "member": "Richard Dean Dr McCormick",
+      "stateDistrict": "GA06",
+      "ticker": "JNJ",
+      "name": "Johnson & Johnson Common Stock",
+      "action": "sell",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-07-30",
+      "member": "Richard Dean Dr McCormick",
+      "stateDistrict": "GA06",
+      "ticker": "LHX",
+      "name": "L3Harris Technologies, Inc. Common Stock",
+      "action": "sell",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-07-30",
+      "member": "Richard Dean Dr McCormick",
+      "stateDistrict": "GA06",
+      "ticker": "MCD",
+      "name": "McDonald's Corporation Common Stock",
+      "action": "sell",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-07-30",
+      "member": "Richard Dean Dr McCormick",
+      "stateDistrict": "GA06",
+      "ticker": "MDT",
+      "name": "Medtronic plc. Ordinary Shares",
+      "action": "sell",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-07-30",
+      "member": "Richard Dean Dr McCormick",
+      "stateDistrict": "GA06",
+      "ticker": "MSFT",
+      "name": "Microsoft Corporation - Common Stock",
+      "action": "sell",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-07-30",
+      "member": "Richard Dean Dr McCormick",
+      "stateDistrict": "GA06",
+      "ticker": "NEE",
+      "name": "NextEra Energy, Inc. Common Stock",
+      "action": "sell",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-07-30",
+      "member": "Richard Dean Dr McCormick",
+      "stateDistrict": "GA06",
+      "ticker": "PEP",
+      "name": "Pepsico, Inc",
+      "action": "sell",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-07-30",
+      "member": "Richard Dean Dr McCormick",
+      "stateDistrict": "GA06",
+      "ticker": "PG",
+      "name": "Procter & Gamble Company",
+      "action": "sell",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-07-30",
+      "member": "Richard Dean Dr McCormick",
+      "stateDistrict": "GA06",
+      "ticker": "O",
+      "name": "Realty Income Corporation Common Stock",
+      "action": "sell",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-07-30",
+      "member": "Richard Dean Dr McCormick",
+      "stateDistrict": "GA06",
+      "ticker": "UNH",
+      "name": "UnitedHealth Group Incorporated Common Stock",
+      "action": "sell",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-07-30",
+      "member": "Richard Dean Dr McCormick",
+      "stateDistrict": "GA06",
+      "ticker": "V",
+      "name": "Visa Inc",
+      "action": "sell",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-07-30",
+      "member": "Richard Dean Dr McCormick",
+      "stateDistrict": "GA06",
+      "ticker": "WMT",
+      "name": "Walmart Inc. - Common Stock",
+      "action": "sell",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
     },
     {
       "date": "2026-07-29",
@@ -2050,6 +2383,30 @@
       "owner": "DC"
     },
     {
+      "date": "2026-07-22",
+      "member": "Thomas H. Kean Jr",
+      "stateDistrict": "NJ07",
+      "ticker": "GOOGL",
+      "name": "Alphabet Inc. - Class A Common Stock",
+      "action": "sell",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-07-22",
+      "member": "Thomas H. Kean Jr",
+      "stateDistrict": "NJ07",
+      "ticker": "SYK",
+      "name": "Stryker Corporation Common Stock",
+      "action": "sell",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
       "date": "2026-07-21",
       "member": "April McClain Delaney",
       "stateDistrict": "MD06",
@@ -2252,354 +2609,6 @@
       "minUsd": 1001,
       "maxUsd": 15000,
       "owner": "DC"
-    },
-    {
-      "date": "2026-07-17",
-      "member": "April McClain Delaney",
-      "stateDistrict": "MD06",
-      "ticker": "SCI",
-      "name": "Service Corporation International Common Stock",
-      "action": "sell",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": "DC"
-    },
-    {
-      "date": "2026-07-17",
-      "member": "Josh Gottheimer",
-      "stateDistrict": "NJ05",
-      "ticker": "GTLS",
-      "name": "Chart Industries, Inc",
-      "action": "sell",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": "JT"
-    },
-    {
-      "date": "2026-07-17",
-      "member": "Josh Gottheimer",
-      "stateDistrict": "NJ05",
-      "ticker": "MNST",
-      "name": "Monster Beverage Corporation - Common Stock",
-      "action": "buy",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": "JT"
-    },
-    {
-      "date": "2026-07-17",
-      "member": "Mike Kelly",
-      "stateDistrict": "PA16",
-      "ticker": "ABT",
-      "name": "Abbott Laboratories Common Stock",
-      "action": "sell",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": "SP"
-    },
-    {
-      "date": "2026-07-17",
-      "member": "Mike Kelly",
-      "stateDistrict": "PA16",
-      "ticker": "PEP",
-      "name": "Pepsico, Inc",
-      "action": "sell",
-      "amount": "$15,001 - $50,000",
-      "minUsd": 15001,
-      "maxUsd": 50000,
-      "owner": "SP"
-    },
-    {
-      "date": "2026-07-17",
-      "member": "Mike Kelly",
-      "stateDistrict": "PA16",
-      "ticker": "DIS",
-      "name": "Walt Disney Company",
-      "action": "sell",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": "SP"
-    },
-    {
-      "date": "2026-07-17",
-      "member": "David J. Taylor",
-      "stateDistrict": "OH02",
-      "ticker": "GOOGL",
-      "name": "Alphabet Inc. - Class A Common Stock",
-      "action": "buy",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": null
-    },
-    {
-      "date": "2026-07-16",
-      "member": "April McClain Delaney",
-      "stateDistrict": "MD06",
-      "ticker": "CPAY",
-      "name": "Corpay, Inc. Common Stock",
-      "action": "sell",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": "DC"
-    },
-    {
-      "date": "2026-07-16",
-      "member": "Josh Gottheimer",
-      "stateDistrict": "NJ05",
-      "ticker": "IBM",
-      "name": "International Business Machines Corporation Common Stock",
-      "action": "sell",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": "JT"
-    },
-    {
-      "date": "2026-07-16",
-      "member": "Josh Gottheimer",
-      "stateDistrict": "NJ05",
-      "ticker": "PANW",
-      "name": "Palo Alto Networks, Inc",
-      "action": "buy",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": "JT"
-    },
-    {
-      "date": "2026-07-15",
-      "member": "April McClain Delaney",
-      "stateDistrict": "MD06",
-      "ticker": "CPAY",
-      "name": "Corpay, Inc. Common Stock",
-      "action": "sell",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": "DC"
-    },
-    {
-      "date": "2026-07-15",
-      "member": "Josh Gottheimer",
-      "stateDistrict": "NJ05",
-      "ticker": "CRWD",
-      "name": "CrowdStrike Holdings, Inc. - Class A Common Stock",
-      "action": "buy",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": "JT"
-    },
-    {
-      "date": "2026-07-15",
-      "member": "Josh Gottheimer",
-      "stateDistrict": "NJ05",
-      "ticker": "IBM",
-      "name": "International Business Machines Corporation Common Stock",
-      "action": "sell",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": "JT"
-    },
-    {
-      "date": "2026-07-15",
-      "member": "John J Mr McGuire III",
-      "stateDistrict": "VA05",
-      "ticker": "AMAT",
-      "name": "Applied Materials, Inc. - Common Stock",
-      "action": "buy",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": "SP"
-    },
-    {
-      "date": "2026-07-14",
-      "member": "Josh Gottheimer",
-      "stateDistrict": "NJ05",
-      "ticker": "FN",
-      "name": "Fabrinet Ordinary Shares",
-      "action": "sell",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": "JT"
-    },
-    {
-      "date": "2026-07-14",
-      "member": "John J Mr McGuire III",
-      "stateDistrict": "VA05",
-      "ticker": "BLK",
-      "name": "BlackRock, Inc. Common Stock",
-      "action": "sell",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": "SP"
-    },
-    {
-      "date": "2026-07-10",
-      "member": "Cleo Fields",
-      "stateDistrict": "LA06",
-      "ticker": "TSM",
-      "name": "Taiwan Semiconductor Manufacturing Company Ltd",
-      "action": "buy",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": null
-    },
-    {
-      "date": "2026-07-10",
-      "member": "John J Mr McGuire III",
-      "stateDistrict": "VA05",
-      "ticker": "BLK",
-      "name": "BlackRock, Inc. Common Stock",
-      "action": "sell",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": "SP"
-    },
-    {
-      "date": "2026-07-10",
-      "member": "Dan Newhouse",
-      "stateDistrict": "WA04",
-      "ticker": "ACN",
-      "name": "Accenture plc Class A Ordinary Shares",
-      "action": "buy",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": "SP"
-    },
-    {
-      "date": "2026-07-10",
-      "member": "Dan Newhouse",
-      "stateDistrict": "WA04",
-      "ticker": "ADBE",
-      "name": "Adobe Inc. - Common Stock",
-      "action": "sell",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": "SP"
-    },
-    {
-      "date": "2026-07-10",
-      "member": "Dan Newhouse",
-      "stateDistrict": "WA04",
-      "ticker": "AMD",
-      "name": "Advanced Micro Devices, Inc",
-      "action": "sell",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": "SP"
-    },
-    {
-      "date": "2026-07-10",
-      "member": "Dan Newhouse",
-      "stateDistrict": "WA04",
-      "ticker": "GOOGL",
-      "name": "Alphabet Inc. - Class A Common Stock",
-      "action": "sell",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": "SP"
-    },
-    {
-      "date": "2026-07-10",
-      "member": "Dan Newhouse",
-      "stateDistrict": "WA04",
-      "ticker": "AMCR",
-      "name": "Amcor plc Ordinary Shares",
-      "action": "buy",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": "SP"
-    },
-    {
-      "date": "2026-07-10",
-      "member": "Dan Newhouse",
-      "stateDistrict": "WA04",
-      "ticker": "APH",
-      "name": "Amphenol Corporation Common Stock",
-      "action": "buy",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": "SP"
-    },
-    {
-      "date": "2026-07-10",
-      "member": "Dan Newhouse",
-      "stateDistrict": "WA04",
-      "ticker": "AMAT",
-      "name": "Applied Materials, Inc. - Common Stock",
-      "action": "sell",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": "SP"
-    },
-    {
-      "date": "2026-07-10",
-      "member": "Dan Newhouse",
-      "stateDistrict": "WA04",
-      "ticker": "ANET",
-      "name": "Arista Networks, Inc. Common Stock",
-      "action": "buy",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": "SP"
-    },
-    {
-      "date": "2026-07-10",
-      "member": "Dan Newhouse",
-      "stateDistrict": "WA04",
-      "ticker": "COST",
-      "name": "Costco Wholesale Corporation - Common Stock",
-      "action": "buy",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": "SP"
-    },
-    {
-      "date": "2026-07-10",
-      "member": "Dan Newhouse",
-      "stateDistrict": "WA04",
-      "ticker": "CSX",
-      "name": "CSX Corporation",
-      "action": "sell",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": "SP"
-    },
-    {
-      "date": "2026-07-10",
-      "member": "Dan Newhouse",
-      "stateDistrict": "WA04",
-      "ticker": "DE",
-      "name": "Deere & Company Common Stock",
-      "action": "sell",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": "SP"
     }
   ]
 }
