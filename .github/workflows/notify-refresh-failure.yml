@@ -31,6 +31,14 @@ name: Notify data refresh failure
 on:
   workflow_run:
     # 이름은 각 파일의 `name:` 과 **정확히** 일치해야 한다(경로가 아니라 표시 이름으로 매칭한다).
+    #
+    # ⚠ 이 목록 **사이에 주석을 끼우지 마라.** 목록을 잠그는 테스트가 연속된 `- ` 줄만 읽어서
+    #   (`refreshFailureAlerting.test.ts` 의 추출 정규식), 중간에 주석이 들어가면 그 아래 항목이
+    #   통째로 안 보인다 — 감시 중이라고 적어 두고 실제로는 감시하지 않는 상태가 된다.
+    #
+    # `Main health check` 는 데이터 갱신이 아니라 **main 상시 점검**이다. 아무도 그 결과를
+    # 기다리지 않으므로(사람이 보는 PR 화면에 뜨지 않는다) 이슈로 띄우지 않으면 조용히 빨간 채로
+    # 남는다 — 그것이 정확히 그 워크플로가 막으려는 실패 모양이라, 여기 빠지면 자기모순이 된다.
     workflows:
       - Refresh dividend pay dates
       - Refresh ticker market data
@@ -41,6 +49,7 @@ on:
       - Refresh US congress stock trades
       - Refresh Korean assembly stock holdings
       - Check curated calendar horizon
+      - Main health check
     types: [completed]
 
   # 실패를 기다리지 않고 알림 자체를 점검하기 위한 통로다. 진짜 파이프라인을 일부러 깨뜨리지 않고
