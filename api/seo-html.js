@@ -248,25 +248,25 @@ var dividendListPath = (id) => `/dividend/${DIVIDEND_LIST_SEGMENTS[id]}`;
 
 // shared/constants/dividendLists/dividendLists.generated.json
 var dividendLists_generated_default = {
-  asOf: "2026-08-03",
+  asOf: "2026-08-21",
   source: "proshares-nobl+wikipedia",
   lists: {
     aristocrats: {
       id: "aristocrats",
       minimumStreakYears: 25,
-      asOf: "2026-08-03",
+      asOf: "2026-08-21",
       sources: [
         {
           label: "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
           url: "https://accounts.profunds.com/etfdata/psdlyhld.csv",
           role: "primary",
-          retrievedAt: "2026-08-03"
+          retrievedAt: "2026-08-21"
         },
         {
           label: "Wikipedia",
           url: "https://en.wikipedia.org/wiki/S%26P_500_Dividend_Aristocrats",
           role: "crosscheck",
-          retrievedAt: "2026-08-03"
+          retrievedAt: "2026-08-21"
         }
       ],
       coverageNote: "S&P 500 \uBC30\uB2F9\uADC0\uC871 \uC9C0\uC218\uB97C \uCD94\uC885\uD558\uB294 ETF(NOBL)\uC758 \uBCF4\uC720\uB0B4\uC5ED\uC5D0\uC11C \uD3B8\uC785 \uC885\uBAA9\uC744 \uD655\uC778\uD558\uACE0, \uC704\uD0A4\uD53C\uB514\uC544 \uAD6C\uC131\uC885\uBAA9 \uD45C\uC640 \uB300\uC870\uD588\uC2B5\uB2C8\uB2E4. \uB450 \uC18C\uC2A4\uB294 69\uC885\uC5D0\uC11C \uC77C\uCE58\uD588\uC2B5\uB2C8\uB2E4.",
