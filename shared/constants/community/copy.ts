@@ -9,6 +9,11 @@ export const COMMUNITY_COPY = {
   nav: {
     community: '커뮤니티',
     simulator: '시뮬레이터',
+    /*
+     * 투자 성향 테스트(2026-08-22). 이름에 "테스트"를 남긴 것은 의도다 — 사람이 검색창에 치는 말이고,
+     * 12문항을 푼다는 것을 라벨이 미리 알려 줘야 눌러 보고 놀라지 않는다.
+     */
+    investorType: '투자 성향 테스트',
     toSimulator: '시뮬레이터로',
     write: '글쓰기',
     login: '로그인',

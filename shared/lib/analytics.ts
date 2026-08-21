@@ -300,6 +300,30 @@ export const initGoogleAnalytics = () => {
   window.gtag("config", GA_MEASUREMENT_ID, { send_page_view: false });
 };
 
+/**
+ * SPA 페이지뷰.
+ *
+ * 🔴 **`gtag("event", "page_view", …)` 다. `gtag("config", …)` 재호출이 아니다.**
+ *
+ * 2026-08-22 GA4 실측에서 페이지뷰가 대량으로 유실되고 있었다:
+ * ```
+ *   landingPage=(not set)   158 세션 (28일 전체의 53%)  이탈률 76.6%   ← 다른 페이지는 0~14%
+ *   /            페이지뷰 1  vs  사용자 9
+ *   /simulator   페이지뷰 13 vs  사용자 17
+ * ```
+ * 페이지뷰가 사용자 수보다 **적다**는 것은 대다수 방문이 페이지뷰를 한 건도 남기지 않았다는 뜻이다.
+ * 그 결과 GA4 가 세션의 첫 페이지를 못 정해 `landingPage` 가 `(not set)` 이 되고, 유입 분석의 절반이
+ * 눈이 먼 상태가 된다(어느 지면으로 들어오는지 모르면 어디를 고쳐야 할지도 모른다).
+ *
+ * 원인은 전달 방식이었다. 부팅에서 `config` 에 `send_page_view: false` 를 준 뒤(첫 화면 중복 방지),
+ * 라우트마다 **`config` 를 다시 부르는** 방식으로 페이지뷰를 보내고 있었다. 같은 측정 ID 로 `config` 를
+ * 되풀이하는 것은 gtag 가 **설정 갱신**으로 취급하는 경로라 이벤트가 나가지 않을 수 있다 — 구글이
+ * SPA 에 안내하는 방식도 `event` 쪽이다.
+ *
+ * ⚠ `initGoogleAnalytics` 의 `send_page_view: false` 는 **그대로 둔다.** 그것을 켜면 첫 화면이
+ *   자동 페이지뷰 + 이 함수의 페이지뷰로 **두 번** 세어진다.
+ * ⚠ 계약은 `test/analytics/pageView.test.ts` 가 잠근다 — 다시 `config` 로 되돌리면 빨개진다.
+ */
 export const sendPageView = (location?: PageLocation) => {
   if (typeof window === "undefined") return;
   if (!isAnalyticsEnabled()) return;
@@ -309,7 +333,7 @@ export const sendPageView = (location?: PageLocation) => {
   const search = location?.search ?? window.location.search;
   const hash = location?.hash ?? window.location.hash;
 
-  window.gtag("config", GA_MEASUREMENT_ID, {
+  window.gtag("event", "page_view", {
     page_title: document.title,
     page_location: resolveAbsoluteUrl({ pathname, search, hash }),
     page_path: `${pathname}${search}${hash}`,
@@ -334,7 +358,8 @@ export const trackEvent = (eventName: AnalyticsEventName, params?: AnalyticsEven
 export type AnalyticsEventParamMap = {
   [ANALYTICS_EVENT.PRESET_APPLIED]: { preset_id: string };
   [ANALYTICS_EVENT.SIMULATION_RESULT_VIEW]: { reinvest_mode?: string; target_met?: boolean };
-  [ANALYTICS_EVENT.LOGIN_COMPLETED]: { source: string; entry_point?: string };
+  // 🔴 `source` 를 쓰지 마라 — GA4 가 유입 출처 귀속에 쓰는 이름이다(login_failed 와 같은 `provider`).
+  [ANALYTICS_EVENT.LOGIN_COMPLETED]: { provider: string; entry_point?: string };
   [ANALYTICS_EVENT.LOGIN_FAILED]: {
     provider: string;
     reason: "provider_error" | "no_session" | "client_unavailable";
