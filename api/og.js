@@ -1670,7 +1670,14 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 9,
+      estimatedPayDayByMonth: {
+        "3": 31,
+        "6": 30,
+        "9": 30,
+        "12": 31
+      }
     },
     BBAX: {
       initialPrice: 64.05,
@@ -2676,8 +2683,8 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 14,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "3": 28,
         "6": 27,
