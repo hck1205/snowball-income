@@ -87,8 +87,20 @@ export const useTickerActions = () => {
       cta_name: 'ticker_create_open',
       placement: 'ticker_creation_panel'
     });
+    /*
+     * 🔴 파라미터 이름이 `source` 가 아니라 `placement` 다(2026-08-22 교체).
+     *
+     * GA4 는 `source` 를 **유입 출처 귀속**에 쓰는 이름으로 취급한다. 이벤트 파라미터로 실어 보내면
+     * 그 세션의 출처가 이 값으로 덮인다 — 실측에서 `sessionSource = main_left_panel` 19세션,
+     * `ticker_chip` 3세션이 **가짜 유입**으로 잡혀 있었다(28일 기준 약 28세션). 세션 수가 부풀고,
+     * "사람들이 어디서 오는가"라는 질문의 답이 통째로 오염된다.
+     *
+     * `placement` 는 이 레포가 이미 쓰고 있는 이름이고(바로 위 cta_click), GA4 예약 의미가 없다.
+     * ⚠ 이름을 바꿨으므로 이 이벤트의 **그 이전 데이터와 시계열이 끊긴다.** 지금(데이터가 적을 때)이
+     *   바꾸기 가장 싼 시점이라 감수한 것이다 — 되돌리지 마라.
+     */
     trackEvent(ANALYTICS_EVENT.TICKER_CREATE_STARTED, {
-      source: 'main_left_panel'
+      placement: 'main_left_panel'
     });
     setTickerDraft({
       ticker: '',
@@ -181,9 +193,15 @@ export const useTickerActions = () => {
       applyTickerProfile(profiles[0]);
 
       profiles.forEach((profile, index) => {
-        const source = items[index]?.isCustomPreset ? 'custom' : 'preset';
-        trackEvent(ANALYTICS_EVENT.TICKER_SAVED, { mode: 'create', ticker: profile.ticker, source });
-        trackEvent(ANALYTICS_EVENT.TICKER_INCLUDED, { ticker: profile.ticker, source });
+        /*
+         * 🔴 `source` 가 아니라 `origin` 이다(2026-08-22 교체). GA4 는 `source` 를 유입 출처 귀속에
+         * 쓰므로, 이벤트 파라미터로 실으면 세션 출처가 이 값으로 덮인다 — 실측에서
+         * `sessionSource = preset` 4세션, `custom` 2세션이 가짜 유입으로 잡혀 있었다.
+         * ⚠ 이름을 바꿨으므로 이 이벤트의 그 이전 데이터와 시계열이 끊긴다(감수한 교체다).
+         */
+        const origin = items[index]?.isCustomPreset ? 'custom' : 'preset';
+        trackEvent(ANALYTICS_EVENT.TICKER_SAVED, { mode: 'create', ticker: profile.ticker, origin });
+        trackEvent(ANALYTICS_EVENT.TICKER_INCLUDED, { ticker: profile.ticker, origin });
       });
       setUserProperties({ has_saved: true });
 
@@ -322,18 +340,20 @@ export const useTickerActions = () => {
 
     if (isIncluded) {
       // Included ticker chips act as "select" only; removal is handled by right-side x button or modal delete.
+      // 🔴 `source` 금지 — GA4 유입 출처를 덮는다(위 openTickerModal 주석에 실측 근거).
       trackEvent(ANALYTICS_EVENT.TICKER_SELECTED, {
         ticker: profile.ticker,
-        source: 'ticker_chip'
+        placement: 'ticker_chip'
       });
       setSelectedTickerId(profile.id);
       applyTickerProfile(profile);
       return;
     }
 
+    // 🔴 `source` 금지 — 같은 이유.
     trackEvent(ANALYTICS_EVENT.TICKER_INCLUDED, {
       ticker: profile.ticker,
-      source: 'ticker_chip'
+      placement: 'ticker_chip'
     });
     setIncludedTickerIds((prev: string[]) => [...prev, profile.id]);
     setWeightByTickerId((weights: Record<string, number>) => ({ ...weights, [profile.id]: weights[profile.id] ?? 1 }));

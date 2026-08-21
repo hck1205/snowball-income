@@ -1,0 +1,83 @@
+# =============================================================================
+# main 상시 점검 (2026-08-22 신설)
+# =============================================================================
+#
+# 🔴 **자동 갱신이 main 에 들어갈 때 CI 가 돌지 않는다.** 이 워크플로가 메우는 구멍이다.
+#
+# 갱신 워크플로들은 `GH_TOKEN: ${{ github.token }}`(= GITHUB_TOKEN)으로 PR 을 열고 곧바로 머지한다.
+# GitHub 은 무한 루프 방지를 위해 **GITHUB_TOKEN 이 만든 이벤트로는 워크플로를 트리거하지 않는다** —
+# 그래서 그 PR 에도, 머지 뒤 main push 에도 `ci.yml` 이 붙지 않는다.
+#
+# 실측(2026-08-22): 8/18~8/21 사이 main 에 커밋 8개(머지 4건)가 들어갔는데 CI 실행은 **1건**이었고,
+# 그마저 `action_required` 로 멈춰 실제로는 돌지 않았다. 즉 **나흘간 main 이 검증되지 않았다.**
+#
+# 각 갱신 워크플로가 자기 안에서 `tsc` + `test:ci` 를 돌기는 한다. 하지만 그것은 **그 워크플로가 만든
+# 트리**에 대한 검사다 — 이미 main 에 있던 어긋남(예: 다른 경로로 들어온 커밋이 남긴 산출물 불일치)은
+# 그 검사로 드러나지 않는다. 실제로 2026-08-17~18 에 `api/og.js` 가 소스와 어긋난 채 main 에 있었지만
+# 그 사이 갱신 잡들은 전부 초록이었다(자기 트리에서 번들을 새로 굽고 검사했으므로).
+#
+# ## 왜 토큰을 바꾸지 않고 이 방식을 골랐나
+# PAT·GitHub App 토큰으로 바꾸면 갱신 PR 에 정식 CI 가 붙는다. 다만 ①비밀 관리 부담이 생기고
+# ②자동 머지 흐름을 다시 설계해야 하며 ③**"누가 어떻게 커밋했든"** 이라는 보장은 여전히 없다
+# (사람이 웹에서 직접 편집하는 경로 등). 이 워크플로는 커밋 경로와 무관하게 **결과만** 본다.
+#
+# ⚠ 여기서 하는 검사는 `ci.yml` 과 **같은 집합**이다. `npm run verify` 를 그대로 쓰지 않는 이유는
+#   그쪽과 같다 — `vite build` 가 `ticker:parse` 로 상장 목록을 네트워크에서 다시 만들어서, 출처가
+#   막히면 코드와 무관한 이유로 빨개진다. 빌드는 배포(Vercel)가 확인한다.
+# ⚠ 실패는 `notify-refresh-failure.yml` 이 이슈로 띄운다. **아무도 안 보는 스케줄 잡**이라 그 배선이
+#   없으면 이 워크플로 자체가 조용히 빨간 채로 남는다(그것이 정확히 이 파일이 막으려는 실패 모양이다).
+# =============================================================================
+
+name: Main health check
+
+on:
+  schedule:
+    # 매일 01:00 UTC == 10:00 KST. 🔴 그날의 데이터 갱신이 **전부 끝난 뒤**여야 한다 —
+    # 갱신(20:00~23:30 UTC)보다 앞서 돌면 어제 상태를 검사하게 되고, 방금 머지된 갱신이 남긴
+    # 어긋남은 다음 날까지 발견되지 않는다.
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: main-health
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # 🔴 Node 시작 전에 심어야 하는 값이다(ci.yml 과 같은 이유 — V8 이 첫 Date 사용 시점에 캐시한다).
+  TZ: Asia/Seoul
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 🔴 `ref` 를 명시한다. 스케줄 실행은 기본 브랜치를 쓰지만, 이 워크플로의 존재 이유가
+      #    "main 이 초록인가"라 그 대상을 주석이 아니라 **코드로** 못 박는다.
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # 타입이 먼저다 — 타입이 깨지면 테스트 실패는 원인이 아니라 증상이다.
+      - name: Typecheck
+        run: npx tsc -b tsconfig.build.json
+
+      - name: Test
+        run: npm run test:ci
+
+      # 이 검사가 이 워크플로의 핵심 동기다 — 2026-08-17 에 main 이 이 항목으로 깨져 있었고,
+      # 프로덕션이 실행하는 산출물이 옛 코드였는데 아무도 몰랐다.
+      - name: API bundle check
+        run: npm run api:check

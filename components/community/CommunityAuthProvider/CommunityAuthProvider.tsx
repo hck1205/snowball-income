@@ -40,8 +40,15 @@ const markAccountUserProperty = (session: Session | null) => {
  */
 const markLoginCompleted = (session: Session | null) => {
   if (!session) return;
-  const source = readAndClearLoginSource();
-  if (source) trackEvent(ANALYTICS_EVENT.LOGIN_COMPLETED, { source });
+  const provider = readAndClearLoginSource();
+  /*
+   * 🔴 파라미터가 `source` 가 아니라 `provider` 다(2026-08-22 교체). GA4 는 `source` 를 유입 출처
+   * 귀속에 쓰므로 이벤트에 실으면 그 세션의 출처가 'google'·'naver'·'kakao' 로 덮인다 —
+   * OAuth 왕복이 이미 `accounts.google.com` 리퍼럴을 만드는 마당에 그 위에 한 겹을 더 씌우는 꼴이다.
+   * `provider` 는 짝 이벤트인 `login_failed` 가 이미 쓰는 이름이라, 둘을 나란히 놓고 비교하기도 쉬워진다.
+   * ⚠ 저장 키 이름(`cloud-login-source`)은 그대로 둔다 — 그쪽은 GA 와 무관한 localStorage 키다.
+   */
+  if (provider) trackEvent(ANALYTICS_EVENT.LOGIN_COMPLETED, { provider });
 };
 
 /**

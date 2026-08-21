@@ -1,5 +1,6 @@
 // per-icon named import(트리셰이킹) → 엔트리에는 이 아이콘들만 실린다.
 import {
+  Compass,
   Activity,
   BookOpen,
   CalendarDays,
@@ -25,7 +26,8 @@ import {
   Wallet
 } from 'lucide-react';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
-import { DIVIDEND_LIST_HUB_PATH, SIMULATOR_PATH, dividendListPath } from '@/shared/constants/routes';
+import {
+  INVESTOR_TYPE_PATH, DIVIDEND_LIST_HUB_PATH, SIMULATOR_PATH, dividendListPath } from '@/shared/constants/routes';
 /* 경로 문자열만 가져온다 — 페이지 모듈이 아니라 상수 파일이라 엔트리 번들이 커지지 않는다. */
 import { MARKET_PULSE_PATH } from '@/pages/MarketPulse/marketPulseRoute';
 import { HIPPO_STATS_PATH } from '@/pages/HippoStats/hippoStatsRoute';
@@ -120,6 +122,17 @@ export const TICKER_GROUP_ITEMS = [
  *    **존재하지 않으므로**(routes.tsx) 이 항목도 지워야 한다 — 남기면 404 로 가는 죽은 링크다.
  */
 export const PERSONAL_GROUP_ITEMS = [
+  /*
+   * 🔴 성향 테스트가 **맨 앞**이다(2026-08-22). 이 묶음의 순서는 계획 → 지금 → 흐름이었는데,
+   * 그 앞에 "나를 안다"가 온다 — 무엇을 계획할지 정하기 전에 오는 단계라 자리가 앞이다.
+   *
+   * 여기에 넣은 이유는 GA4 실측이다: 랜딩(`/`)에 닿는 세션이 28일간 **5건**뿐이라, 랜딩 히어로의
+   * 수준 4갈래만으로는 이 테스트가 노출될 길이 사실상 없었다(`/simulator` 54 · `/dividend/portfolio` 21).
+   * 내비는 도착 지점과 무관하게 모든 화면에 있으므로, 유입 구조가 이런 동안은 여기가 유일하게
+   * 실효가 있는 자리다.
+   * ⚠ 랜딩 유입이 늘면 이 항목의 값어치를 다시 재라 — 내비 자리는 공짜가 아니다.
+   */
+  { to: INVESTOR_TYPE_PATH, label: n.investorType, Icon: Compass, sheetsOnly: false },
   { to: SIMULATOR_PATH, label: n.simulator, Icon: LineChart, sheetsOnly: false },
   { to: '/dividend/portfolio', label: n.myPortfolio, Icon: Wallet, sheetsOnly: false },
   { to: '/ledger', label: n.ledger, Icon: ReceiptText, sheetsOnly: true }
