@@ -1,23 +1,23 @@
 {
-  "asOf": "2026-08-03",
+  "asOf": "2026-08-21",
   "source": "proshares-nobl+wikipedia",
   "lists": {
     "aristocrats": {
       "id": "aristocrats",
       "minimumStreakYears": 25,
-      "asOf": "2026-08-03",
+      "asOf": "2026-08-21",
       "sources": [
         {
           "label": "ProShares NOBL 보유내역",
           "url": "https://accounts.profunds.com/etfdata/psdlyhld.csv",
           "role": "primary",
-          "retrievedAt": "2026-08-03"
+          "retrievedAt": "2026-08-21"
         },
         {
           "label": "Wikipedia",
           "url": "https://en.wikipedia.org/wiki/S%26P_500_Dividend_Aristocrats",
           "role": "crosscheck",
-          "retrievedAt": "2026-08-03"
+          "retrievedAt": "2026-08-21"
         }
       ],
       "coverageNote": "S&P 500 배당귀족 지수를 추종하는 ETF(NOBL)의 보유내역에서 편입 종목을 확인하고, 위키피디아 구성종목 표와 대조했습니다. 두 소스는 69종에서 일치했습니다.",
