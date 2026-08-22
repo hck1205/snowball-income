@@ -8940,11 +8940,13 @@ var defaultYieldFormValues = createDefaultYieldFormValues();
 var validateFormValues = (values) => {
   const parsed = formSchema.safeParse(values);
   if (parsed.success) {
-    return { isValid: true, errors: [] };
+    return { isValid: true, errors: [], fields: [] };
   }
   return {
     isValid: false,
-    errors: parsed.error.issues.map((issue) => issue.message)
+    errors: parsed.error.issues.map((issue) => issue.message),
+    // 같은 필드에 규칙이 둘 이상 걸리면 이슈도 둘이 된다 — 계측에서는 한 번만 센다.
+    fields: [...new Set(parsed.error.issues.map((issue) => String(issue.path[0] ?? "unknown")))]
   };
 };
 var toSimulationInput = (values) => ({
