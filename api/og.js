@@ -1670,8 +1670,8 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 9,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "3": 31,
         "6": 30,
@@ -4142,10 +4142,17 @@ var marketData_generated_default = {
       payoutMonths: [
         3,
         6,
-        9,
+        7,
         12
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 2,
+      estimatedPayDayByMonth: {
+        "3": 27,
+        "6": 28,
+        "7": 4,
+        "12": 20
+      }
     },
     VGT: {
       initialPrice: 123.28,
