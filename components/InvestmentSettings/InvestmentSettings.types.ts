@@ -12,6 +12,11 @@ export type InvestmentSettingsProps = {
    */
   display: DisplayCurrencyView;
   validationErrors: string[];
+  /**
+   * 오류가 난 **필드 이름**들. 🔴 화면에 그리지 않는다 — 계측이 "어느 입력에서 막히는가"에
+   * 답하기 위한 값이다(사용자가 읽는 문장은 `validationErrors`).
+   */
+  validationFields: string[];
   onSetField: <K extends keyof YieldFormValues>(field: K, value: YieldFormValues[K]) => void;
   onToggleQuickEstimate: (checked: boolean) => void;
   onToggleSplitGraphs: (checked: boolean) => void;

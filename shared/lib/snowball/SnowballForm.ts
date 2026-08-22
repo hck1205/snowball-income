@@ -144,16 +144,30 @@ export const createDefaultYieldFormValues = (today: Date = new Date()): YieldFor
 
 export const defaultYieldFormValues: YieldFormValues = createDefaultYieldFormValues();
 
+/**
+ * 폼 검증.
+ *
+ * 🔴 `fields` 를 함께 낸다(2026-08-22). 전에는 zod 의 `issue.message` 만 남기고 `issue.path` 를
+ * **버리고 있었다.** 그래서 `validation_error_view` 계측이 "몇 개 틀렸다"만 알고 "무엇이 틀렸다"는
+ * 몰랐다 — GA4 실측에서 45건 전부 `field_name=(not set)` 이었고, 그 이벤트의 선언된 용도
+ * ("이탈 유발 입력 항목 식별")를 달성할 수 없는 상태였다.
+ *
+ * ⚠ `errors` 의 모양은 **바꾸지 않았다.** 화면 여러 곳이 그 배열을 그대로 그리므로, 타입을 바꾸면
+ *   계측 하나를 고치려고 렌더 경로 전체를 건드리게 된다. 그래서 가법적으로 더했다.
+ * ⚠ `path[0]` 만 쓴다. 중첩 필드는 아직 없고, 생기면 그때 `join('.')` 로 넓혀라.
+ */
 export const validateFormValues = (values: YieldFormValues): YieldValidation => {
   const parsed = formSchema.safeParse(values);
 
   if (parsed.success) {
-    return { isValid: true, errors: [] };
+    return { isValid: true, errors: [], fields: [] };
   }
 
   return {
     isValid: false,
-    errors: parsed.error.issues.map((issue) => issue.message)
+    errors: parsed.error.issues.map((issue) => issue.message),
+    // 같은 필드에 규칙이 둘 이상 걸리면 이슈도 둘이 된다 — 계측에서는 한 번만 센다.
+    fields: [...new Set(parsed.error.issues.map((issue) => String(issue.path[0] ?? 'unknown')))]
   };
 };
 

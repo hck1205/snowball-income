@@ -176,6 +176,7 @@ function MainLeftPanelComponent({
         showSplitGraphs={showSplitGraphs}
         display={display}
         validationErrors={validation.errors}
+        validationFields={validation.fields}
         onSetField={setField}
         onToggleQuickEstimate={setShowQuickEstimate}
         onToggleSplitGraphs={setShowSplitGraphs}
