@@ -7,7 +7,16 @@ import type {
 
 export type YieldValidation = {
   isValid: boolean;
+  /** 사람이 읽는 메시지. **화면은 이것만 쓴다.** */
   errors: string[];
+  /**
+   * 오류가 난 **필드 이름**들(zod `issue.path[0]`). 계측 전용이다.
+   *
+   * 🔴 `errors` 와 따로 두는 이유: 메시지는 문구가 바뀌면 값이 바뀌지만 필드 이름은 안 바뀐다.
+   * 계측 값공간에 메시지를 실으면 카피를 고칠 때마다 시계열이 끊긴다.
+   * ⚠ 화면 렌더에 쓰지 마라 — 사용자에게 보여 줄 것은 `errors` 다.
+   */
+  fields: string[];
 };
 
 export type YieldFeatureState = {

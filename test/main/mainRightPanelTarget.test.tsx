@@ -169,6 +169,7 @@ function SettingsAndResults() {
         showSplitGraphs={false}
         display={display}
         validationErrors={[]}
+      validationFields={[]}
         onSetField={(field, value) => setValues((prev) => ({ ...prev, [field]: value }))}
         onToggleQuickEstimate={() => undefined}
         onToggleSplitGraphs={() => undefined}

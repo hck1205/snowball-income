@@ -32,6 +32,7 @@ function InvestmentSettingsComponent({
   showSplitGraphs,
   display,
   validationErrors,
+  validationFields,
   onSetField,
   onToggleQuickEstimate,
   onToggleSplitGraphs,
@@ -40,12 +41,26 @@ function InvestmentSettingsComponent({
   onHelpReinvestTiming,
   onHelpDpsGrowthMode
 }: InvestmentSettingsProps) {
+  /**
+   * 검증 에러 노출 계측.
+   *
+   * 🔴 `field_name` 이 이 이벤트의 존재 이유다(2026-08-22 추가). 전에는 `error_count` 만 보내서
+   * "몇 개 틀렸다"는 알아도 **"무엇이 틀렸다"는 몰랐다** — GA4 에서 45건 전부 `(not set)` 이었고,
+   * 택소노미가 선언한 용도("이탈 유발 입력 항목 식별")를 달성할 수 없었다.
+   *
+   * ⚠ 여러 필드가 동시에 틀리면 `|` 로 잇는다. 값공간이 조금 늘지만, 실제로는 한두 개가 대부분이고
+   *   `error_count` 와 함께 보면 조합인지 단일인지 구별된다. 필드마다 이벤트를 쪼개지 않은 이유는
+   *   이 이벤트가 "에러 상태가 보인 순간" 1회를 세는 것이기 때문이다 — 쪼개면 그 뜻이 바뀌고
+   *   과거 데이터와 비교가 끊긴다.
+   * ⚠ 이름은 정렬한다. `a|b` 와 `b|a` 가 다른 값으로 갈리면 집계가 흩어진다.
+   */
   useEffect(() => {
     if (validationErrors.length === 0) return;
     trackEvent(ANALYTICS_EVENT.VALIDATION_ERROR_VIEW, {
-      error_count: validationErrors.length
+      error_count: validationErrors.length,
+      field_name: [...validationFields].sort().join('|') || 'unknown'
     });
-  }, [validationErrors]);
+  }, [validationErrors, validationFields]);
 
   return (
     <Card dataTour={TOUR_TARGET.investmentSettings}>
