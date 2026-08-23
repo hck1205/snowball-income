@@ -47,7 +47,7 @@ export default defineConfig({
      */
     exclude: [...configDefaults.exclude, '.claude/worktrees/**'],
     /*
-     * RTL asyncUtilTimeout 을 4초로 올렸으므로(test/setup.ts), 대기 2번이면 기본 5초를 넘는다.
+     * RTL asyncUtilTimeout 이 8초이므로(test/setup.dom.ts), 대기 2번이면 기본 5초를 훌쩍 넘는다.
      * 부하 시 테스트 자체가 타임아웃으로 오인되지 않게 여유를 둔다.
      *
      * 🔴 15초 → 30초 (2026-08-23). 15초는 **경합 폭을 감당하지 못했다.**
