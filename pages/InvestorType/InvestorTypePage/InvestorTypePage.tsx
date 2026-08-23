@@ -4,8 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { TickerPageShell } from '@/pages/Ticker/components';
 import { INVESTOR_AXES, INVESTOR_QUESTIONS } from '@/shared/constants/investorType';
 import { PORTFOLIO_PRESET_PLACEHOLDERS } from '@/shared/constants/portfolioPresets';
-import { PRESET_QUERY_PARAM } from '@/pages/Main/components/MainRightPanel/hooks';
-import { INVESTOR_TYPE_PATH, SIMULATOR_PATH } from '@/shared/constants/routes';
+import { INVESTOR_TYPE_PATH, PRESET_QUERY_PARAM, SIMULATOR_PATH } from '@/shared/constants/routes';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import { storageKey } from '@/shared/lib/storage';
 import {

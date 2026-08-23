@@ -41,6 +41,17 @@ export const SIMULATOR_PATH = '/simulator';
 export const INVESTOR_TYPE_PATH = '/investor-type';
 
 /**
+ * `/simulator?preset=<id>` — **다른 화면이 프리셋을 지목해 계산기를 여는 진입점.**
+ *
+ * 🔴 이 상수가 라우트 계약 옆에 사는 이유(2026-08-23): 이것을 읽는 곳이 **둘**이다 —
+ * 영속 계층(`resolveScenarioPrefillPresetId`)과 우패널 훅(`usePresetQueryApply`).
+ * 처음엔 훅 파일에 두고 영속 계층이 가져다 썼는데, 그러면 **저장 코드가 화면 코드에 딸려 온다**
+ * (`pages/Main/utils/preset.ts` 가 같은 이유로 프리셋 배럴을 피하고 있다).
+ * 주소 형식은 라우팅 계약이므로 여기가 제자리다.
+ */
+export const PRESET_QUERY_PARAM = 'preset';
+
+/**
  * 배당 연속 증배 목록의 식별자 — 라우트 마지막 세그먼트와 **같은 문자열**이다. 순서 = 화면 노출 순서.
  *
  * 🔴 목록 데이터(`shared/constants/dividendLists`)가 아니라 여기 사는 이유: 그 폴더는 200종 가까운

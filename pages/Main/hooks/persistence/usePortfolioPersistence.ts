@@ -48,8 +48,7 @@ import { createSessionLocalAutosaveCache, useCloudSync } from '@/jotai/snowball/
  */
 import { fetchSharedSnapshot, getSupabaseClient } from '@/shared/lib/supabase';
 import { ANALYTICS_EVENT, setUserProperties, trackEvent } from '@/shared/lib/analytics';
-import { DEFAULT_PREFILL_PRESET_ID } from '@/pages/Main/utils';
-import { shouldRequestScenarioPrefill } from './scenarioPrefill';
+import { resolveScenarioPrefillPresetId } from './scenarioPrefill';
 import { buildScenariosSnapshot, isSameScenarioContent, mergeSharedScenarioIntoTabs } from './scenarioSnapshot';
 import { decodeSharedScenarioResult, encodeSharedScenario, SHARED_SCENARIO_ID, SHARE_LENGTH_LIMIT } from './shareLink';
 import {
@@ -91,7 +90,7 @@ export const usePortfolioPersistence = () => {
   const scenarioTabs = useScenarioTabsAtomValue();
   const activeScenarioId = useActiveScenarioIdAtomValue();
   /**
-   * 첫 방문 기본 시나리오(프리필) 상태. non-null 이면 **아무것도 저장하지 않는다** —
+   * 프리필 상태. non-null 이면 **아무것도 저장하지 않는다** —
    * 프리필은 앱이 대신 채운 화면이지 사용자가 만든 데이터가 아니다(아래 autosave effect·buildPayload).
    */
   const scenarioPrefill = useScenarioPrefillAtomValue();
@@ -258,14 +257,18 @@ export const usePortfolioPersistence = () => {
         }
 
         /*
-         * **첫 방문 기본 시나리오 요청.** 저장된 워크스페이스가 하나도 없을 때만 켠다 —
-         * 복원이 언제나 우선이고, 공유 링크(`?s=`/`?share=`)로 들어온 방문은 곧 그 시나리오가
-         * 적용되므로 프리필이 끼어들면 화면이 두 번 바뀐다.
-         * 여기서는 **어떤 구성을 열지(id)만** 발행하고, 실제 적용은 우패널이 한다(`usePortfolioPrefill`).
+         * **첫 방문에 무엇으로 열지.** 판정은 `resolveScenarioPrefillPresetId` 가 한다(그쪽 주석에 규칙).
+         *
+         * 🔴 2026-08-23 부터 **고정 프리셋을 자동으로 얹지 않는다.** 성향 테스트가 지목한 구성
+         *    (`?preset=`)이 있을 때만 미리 계산해 열고, 그 외에는 `null` 이라 워크스페이스가 빈 채로
+         *    열린다 — 그러면 "시작하기 / 추천 포트폴리오로 시작해보세요" 택일 화면이 뜬다.
+         *
+         * 여기서는 **어떤 구성을 열지(id)만** 발행하고, 실제 적용은 우패널이 한다(`usePresetPrefill`).
          * 이 순서가 중요하다: 표식이 먼저 켜져 있어야 프리필이 만든 상태 변화가 저장 경로에 닿지 않는다.
          */
-        if (shouldRequestScenarioPrefill(result.payload, window.location.href)) {
-          setScenarioPrefill({ presetId: DEFAULT_PREFILL_PRESET_ID, status: 'requested' });
+        const prefillPresetId = resolveScenarioPrefillPresetId(result.payload, window.location.href);
+        if (prefillPresetId !== null) {
+          setScenarioPrefill({ presetId: prefillPresetId, status: 'requested' });
         }
       } catch {
         // Keep current defaults/state when hydration fails.

@@ -20,12 +20,22 @@ type PortfolioPresetApplyDeps = {
 export type PortfolioPresetApply = {
   /** 확인 모달이 떠 있는 대상(없으면 `null`). */
   pendingPreset: PortfolioPresetPlaceholder | null;
+  /**
+   * **이 세션에서 마지막으로 적용한 프리셋 id**(없으면 `null`).
+   *
+   * 🔴 결과 아래 프리셋 보드를 띄울지 판단하는 데 쓴다(2026-08-23). 종전에는 그 판단을
+   * `scenarioPrefill` 로만 했는데, 첫 방문 자동 프리필이 사라지면서 **택일 화면에서 직접 고른
+   * 사용자에게는 보드가 안 뜨는** 구멍이 생겼다 — 방금 고른 사람이 다른 구성으로 바꿀 길을 잃는다.
+   * ⚠ 사용자가 종목을 직접 만들어 나가는 화면에는 여전히 뜨지 않는다: 프리셋을 **한 번이라도
+   *   적용했을 때만** 값이 차기 때문이다(프리셋 벽이 상주하면 "내 화면"이 아니라 카탈로그가 된다).
+   */
+  appliedPresetId: string | null;
   /** 프리셋 카드 클릭 — 바로 적용하지 않고 확인을 먼저 받는다. */
   requestApply: (preset: PortfolioPresetPlaceholder) => void;
   cancelApply: () => void;
   confirmApply: () => void;
   /**
-   * 확인 모달 없이 **조용히** 적용한다(첫 방문 기본 시나리오 프리필 전용).
+   * 확인 모달 없이 **조용히** 적용한다(프리필 전용 — 성향 테스트가 지목한 구성으로 여는 경로).
    * 계측을 쏘지 않는 이유는 아래 `applyPreset` 주석 참고.
    */
   applyPresetSilently: (preset: PortfolioPresetPlaceholder) => void;
@@ -52,13 +62,14 @@ export function usePortfolioPresetApply(deps: PortfolioPresetApplyDeps): Portfol
   } = deps;
 
   const [pendingPreset, setPendingPreset] = useState<PortfolioPresetPlaceholder | null>(null);
+  const [appliedPresetId, setAppliedPresetId] = useState<string | null>(null);
 
   /**
    * 프리셋을 워크스페이스에 커밋한다.
    *
    * `isUserChoice` 는 **계측 게이트**다. `preset_applied` 는 "프리셋 인기 순위"의 모수이고
    * `cta_click`(apply_portfolio_preset)은 클릭 수라, 첫 방문에 앱이 대신 적용하는
-   * 기본 시나리오(프리필)까지 여기 섞이면 **모든 방문이 한 프리셋에 1표씩 주는 꼴**이 되어
+   * 프리필까지 여기 섞이면 **앱이 대신 연 구성에 사용자가 표를 준 것처럼** 잡혀
    * 순위가 통째로 무의미해진다. 그래서 프리필은 **미발화**를 골랐다
    * (`source:'prefill'` 파라미터 추가안은 기각 — 기존 대시보드·탐색 질의가 그 파라미터를
    *  필터링하지 않아 "필터를 안 걸면 틀린 값"이 되고, 그건 조용히 틀리는 쪽이다).
@@ -81,6 +92,7 @@ export function usePortfolioPresetApply(deps: PortfolioPresetApplyDeps): Portfol
         });
       }
 
+      setAppliedPresetId(preset.id);
       setTickerProfiles(nextPortfolio.profiles);
       setIncludedTickerIds(nextPortfolio.includedIds);
       setSelectedTickerId(nextPortfolio.selectedTickerId);
@@ -113,5 +125,12 @@ export function usePortfolioPresetApply(deps: PortfolioPresetApplyDeps): Portfol
     [applyPreset]
   );
 
-  return { pendingPreset, requestApply: setPendingPreset, cancelApply, confirmApply, applyPresetSilently };
+  return {
+    pendingPreset,
+    appliedPresetId,
+    requestApply: setPendingPreset,
+    cancelApply,
+    confirmApply,
+    applyPresetSilently
+  };
 }

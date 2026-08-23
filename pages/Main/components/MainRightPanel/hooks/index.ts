@@ -1,6 +1,6 @@
 export { useScenarioTabInteractions } from './useScenarioTabInteractions';
 export { usePortfolioPrefillCommit } from './usePortfolioPrefillCommit';
-export { usePortfolioPrefill } from './usePortfolioPrefill';
+export { usePresetPrefill } from './usePresetPrefill';
 export { usePortfolioPresetApply } from './usePortfolioPresetApply';
 export type { PortfolioPresetApply } from './usePortfolioPresetApply';
 export { useResultViewAnalytics } from './useResultViewAnalytics';
