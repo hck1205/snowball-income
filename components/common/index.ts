@@ -89,16 +89,27 @@ export {
   AllocationColorDot,
   AllocationFixButton,
   AllocationHint,
+  AllocationHoldingAmount,
+  AllocationHoldingBasis,
+  AllocationHoldingDivider,
+  AllocationHoldingDividend,
+  AllocationHoldingField,
+  AllocationHoldingNotice,
+  AllocationHoldingRow,
+  AllocationHoldingTotal,
+  AllocationHoldingTotalLabel,
   AllocationLegend,
+  AllocationLegendColumn,
   AllocationLegendItem,
   AllocationLegendName,
   AllocationLegendSlider,
   AllocationLegendValue,
+  AllocationSrOnly,
   SelectedChipWrap
 } from './PortfolioAllocation';
 
 export { default as QuantityInput, QUANTITY_INPUT_DECIMALS } from './QuantityInput';
-export type { QuantityInputProps } from './QuantityInput';
+export type { QuantityInputProps, QuantityInputSize } from './QuantityInput';
 
 export { default as RangeSlider } from './RangeSlider';
 export type { RangeSliderProps } from './RangeSlider';

@@ -4,6 +4,7 @@ import type { TickerDraft, TickerProfile } from '@/shared/types/snowball';
 import {
   useAllocationPercentExactByTickerIdAtomValue,
   useCurrentHelpAtomValue,
+  useDisplayCurrencyViewAtomValue,
   useEditingTickerIdAtomValue,
   useFixedByTickerIdAtomValue,
   useIncludedProfilesAtomValue,
@@ -31,15 +32,19 @@ import {
 } from '@/jotai';
 import { useLongPress } from '@/pages/Main/hooks/interaction';
 import {
+  NEW_TICKER_WEIGHT,
+  applyTickerAmount,
   applyTickerRemoval,
   buildTickerProfileFromDraft,
   createTickerId,
   isTickerDraftValid,
   redistributeAllocationWeights,
+  toAmountFromShares,
   toTickerDraft,
   type TickerPortfolioState,
   type TickerRemovalMode
 } from '@/pages/Main/utils';
+import { toKrwUnitPrice } from '@/shared/lib/tickerPrice';
 import { ANALYTICS_EVENT, setUserProperties, trackEvent } from '@/shared/lib/analytics';
 
 export const useTickerActions = () => {
@@ -63,6 +68,8 @@ export const useTickerActions = () => {
   const weightByTickerId = useWeightByTickerIdAtomValue();
   const setWeightByTickerId = useSetWeightByTickerIdWrite();
   const allocationPercentExactByTickerId = useAllocationPercentExactByTickerIdAtomValue();
+  /* 환율은 주식 수 ↔ 금액 환산에만 쓴다 — 미국 상장 종목의 주가가 달러 숫자라서다. */
+  const displayCurrency = useDisplayCurrencyViewAtomValue();
   const currentHelp = useCurrentHelpAtomValue();
   const setActiveHelp = useSetActiveHelpWrite();
   const isTickerModalOpen = useIsTickerModalOpenAtomValue();
@@ -183,7 +190,7 @@ export const useTickerActions = () => {
       setIncludedTickerIds((prev: string[]) => [...newIds, ...prev]);
       setWeightByTickerId((prev: Record<string, number>) => ({
         ...prev,
-        ...Object.fromEntries(newIds.map((id) => [id, 1]))
+        ...Object.fromEntries(newIds.map((id) => [id, NEW_TICKER_WEIGHT]))
       }));
       setFixedByTickerId((prev: Record<string, boolean>) => ({
         ...prev,
@@ -244,7 +251,7 @@ export const useTickerActions = () => {
       setTickerProfiles((prev: TickerProfile[]) => [profile, ...prev]);
       setSelectedTickerId(profile.id);
       setIncludedTickerIds((prev: string[]) => [profile.id, ...prev]);
-      setWeightByTickerId((prev: Record<string, number>) => ({ ...prev, [profile.id]: 1 }));
+      setWeightByTickerId((prev: Record<string, number>) => ({ ...prev, [profile.id]: NEW_TICKER_WEIGHT }));
       setFixedByTickerId((prev: Record<string, boolean>) => ({ ...prev, [profile.id]: false }));
       applyTickerProfile(profile);
     }
@@ -302,10 +309,34 @@ export const useTickerActions = () => {
     (removingTickerId: string, mode: TickerRemovalMode) => {
       const next = applyTickerRemoval(portfolioState, removingTickerId, mode);
 
+      /*
+       * 🔴 **빠지는 종목의 금액만큼 초기 투자금이 줄어든다** (2026-08-23 사용자 결정).
+       *
+       * 종전에는 총액을 예산처럼 고정해 두고 남은 종목에 재분배했다. 금액만 다루던 시절에는
+       * 자연스러웠지만, 주식 수는 절대량이라 그 규칙과 충돌한다 — SCHD 5,000주 · QQQ 5,000주에서
+       * QQQ 를 빼면 SCHD 가 총액을 통째로 받아 **73,016주**가 됐다(14.6배).
+       *
+       * 그 종목의 금액을 0 으로 두는 것이 곧 "예산에서 뺀다"이므로 `applyTickerAmount` 를 그대로
+       * 쓴다 — 남은 종목 금액은 건드리지 않고 총액만 줄어드는 것이 그 함수의 정의다.
+       */
+      const released = applyTickerAmount({
+        targetId: removingTickerId,
+        nextAmount: 0,
+        includedIds: includedProfiles.map((profile) => profile.id),
+        percentExactById: allocationPercentExactByTickerId,
+        totalAmount: values.initialInvestment
+      });
+
       if (mode === 'delete') {
         setTickerProfiles(next.tickerProfiles);
-        setWeightByTickerId(next.weightByTickerId);
+        /* 비중을 먼저 반영하고 **그다음** 삭제 키를 지운다 — 순서를 뒤집으면 지운 키가 되살아난다. */
+        const nextWeights = { ...next.weightByTickerId, ...released.percentById };
+        delete nextWeights[removingTickerId];
+        setWeightByTickerId(nextWeights);
+      } else {
+        setWeightByTickerId((prev: Record<string, number>) => ({ ...prev, ...released.percentById }));
       }
+      setYieldFormValues((prev) => ({ ...prev, initialInvestment: released.totalAmount }));
       setIncludedTickerIds(next.includedTickerIds);
       setFixedByTickerId(next.fixedByTickerId);
 
@@ -318,7 +349,19 @@ export const useTickerActions = () => {
 
       return next;
     },
-    [applyTickerProfile, portfolioState, setFixedByTickerId, setIncludedTickerIds, setSelectedTickerId, setTickerProfiles, setWeightByTickerId]
+    [
+      allocationPercentExactByTickerId,
+      applyTickerProfile,
+      includedProfiles,
+      portfolioState,
+      setFixedByTickerId,
+      setIncludedTickerIds,
+      setSelectedTickerId,
+      setTickerProfiles,
+      setWeightByTickerId,
+      setYieldFormValues,
+      values.initialInvestment
+    ]
   );
 
   const deleteTicker = useCallback(() => {
@@ -356,7 +399,8 @@ export const useTickerActions = () => {
       placement: 'ticker_chip'
     });
     setIncludedTickerIds((prev: string[]) => [...prev, profile.id]);
-    setWeightByTickerId((weights: Record<string, number>) => ({ ...weights, [profile.id]: weights[profile.id] ?? 1 }));
+    /* 다시 담는 것도 새로 담는 것과 같다 — 예전 비중을 되살리면 총액이 저절로 늘어난다. */
+    setWeightByTickerId((weights: Record<string, number>) => ({ ...weights, [profile.id]: NEW_TICKER_WEIGHT }));
     setFixedByTickerId((fixed: Record<string, boolean>) => ({ ...fixed, [profile.id]: fixed[profile.id] ?? false }));
     setSelectedTickerId(profile.id);
     applyTickerProfile(profile);
@@ -392,6 +436,55 @@ export const useTickerActions = () => {
       weight_percent: Math.round((nextMap[profileId] ?? 0) * 10) / 10
     });
   }, [allocationPercentExactByTickerId, fixedByTickerId, includedProfiles, setWeightByTickerId]);
+
+  /**
+   * 종목의 **보유 주식 수**를 직접 정한다 — 슬라이더와 같은 배분을 반대 방향에서 만지는 입력이다.
+   *
+   * 슬라이더(`setTickerWeight`)는 총 투자금을 고정하고 몫만 나누는 **상대량**이고, 여기는 다른 종목을
+   * 건드리지 않고 이 종목의 크기만 바꾸는 **절대량**이다. 그래서 총 투자금이 따라 움직이고 비중이
+   * 다시 계산된다(규칙과 근거는 `applyTickerAmount` 머리말).
+   *
+   * ⚠ 고정 핀을 보지 않는다. 핀은 "슬라이더를 끌 때 안 움직인다"는 뜻이라 자기 절대량 입력과
+   *   충돌하지 않는다 — `setTickerWeight` 첫 줄의 `fixedByTickerId` 가드를 여기 복사하면
+   *   핀을 걸어 둔 종목의 주식 수를 영영 못 고치게 된다.
+   */
+  const setTickerShares = useCallback((profileId: string, shares: number) => {
+    const targetProfile = includedProfiles.find((item) => item.id === profileId);
+    if (!targetProfile) return;
+
+    /*
+     * 🔴 주가를 **원 단위로 되맞춰** 곱한다. 프리셋이 미국 종목의 달러 가격을 그대로 담고 있어서
+     *    원가격으로 곱하면 6000주가 25억이 아니라 181만원이 된다(`toKrwUnitPrice` 머리말의 신고 사례).
+     * ⚠ 환율이 없으면 **아무것도 하지 않는다.** 화면이 이미 입력을 잠그고 사유를 말하고 있으므로
+     *   (`AllocationHoldings.hasUnpricedShares`) 여기까지 오는 것은 정상 경로가 아니다 —
+     *   그래도 틀린 값을 쓰는 것보다 안 쓰는 쪽이 낫다.
+     */
+    const krwUnitPrice = toKrwUnitPrice({
+      ticker: targetProfile.ticker,
+      price: targetProfile.initialPrice,
+      fxRate: displayCurrency.rate
+    });
+    if (krwUnitPrice === null) return;
+
+    const { totalAmount, percentById } = applyTickerAmount({
+      targetId: profileId,
+      nextAmount: toAmountFromShares(shares, krwUnitPrice),
+      includedIds: includedProfiles.map((profile) => profile.id),
+      percentExactById: allocationPercentExactByTickerId,
+      totalAmount: values.initialInvestment
+    });
+
+    setWeightByTickerId((prev: Record<string, number>) => ({ ...prev, ...percentById }));
+    /* 총 투자금은 폼 값이다 — 비중만 고치면 종목 금액이 원하는 값으로 서지 않는다(둘은 한 쌍이다). */
+    setYieldFormValues((prev) => ({ ...prev, initialInvestment: totalAmount }));
+
+    trackEvent(ANALYTICS_EVENT.ALLOCATION_CHANGED, {
+      action: 'set_shares',
+      ticker: targetProfile.ticker,
+      ticker_id: profileId,
+      weight_percent: Math.round((percentById[profileId] ?? 0) * 10) / 10
+    });
+  }, [allocationPercentExactByTickerId, displayCurrency.rate, includedProfiles, setWeightByTickerId, setYieldFormValues, values.initialInvestment]);
 
   const toggleTickerFixed = useCallback((profileId: string) => {
     const nextIsFixed = !fixedByTickerId[profileId];
@@ -446,6 +539,7 @@ export const useTickerActions = () => {
     openTickerModal,
     removeIncludedTicker,
     saveTicker,
+    setTickerShares,
     setTickerWeight,
     toggleTickerFixed,
     clearAllFixed

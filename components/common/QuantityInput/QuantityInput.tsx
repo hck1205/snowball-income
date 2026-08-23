@@ -1,5 +1,5 @@
 import type { QuantityInputProps } from './QuantityInput.types';
-import { toQuantityInputChange } from './QuantityInput.utils';
+import { QUANTITY_INPUT_DECIMALS, toQuantityInputChange } from './QuantityInput.utils';
 import { QuantityField, QuantityRoot, QuantityUnit } from './QuantityInput.styled';
 
 /**
@@ -25,12 +25,15 @@ export default function QuantityInput({
   suffix = '주',
   describedById,
   inputRef,
+  size = 'md',
+  decimals = QUANTITY_INPUT_DECIMALS,
   disabled,
   onBlur
 }: QuantityInputProps) {
   return (
-    <QuantityRoot>
+    <QuantityRoot $size={size}>
       <QuantityField
+        $size={size}
         type="text"
         inputMode="decimal"
         autoComplete="off"
@@ -39,10 +42,10 @@ export default function QuantityInput({
         aria-label={ariaLabel}
         aria-describedby={describedById}
         disabled={disabled}
-        onChange={(event) => onChange(toQuantityInputChange(event.target.value))}
+        onChange={(event) => onChange(toQuantityInputChange(event.target.value, decimals))}
         onBlur={onBlur}
       />
-      {suffix ? <QuantityUnit aria-hidden>{suffix}</QuantityUnit> : null}
+      {suffix ? <QuantityUnit $size={size} aria-hidden>{suffix}</QuantityUnit> : null}
     </QuantityRoot>
   );
 }

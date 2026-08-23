@@ -63,7 +63,7 @@ import MainResultGrid from '../MainResultGrid';
 import ResultBoard from '../ResultBoard';
 import ScenarioTabsRow from '../ScenarioTabsRow';
 import SettingsEntryButton from '../SettingsEntryButton';
-import { createResultAmountFormatter, formatPercent, targetYearLabel } from '@/pages/Main/utils';
+import { buildAllocationHoldings, createResultAmountFormatter, formatPercent, targetYearLabel } from '@/pages/Main/utils';
 import {
   useConditionStripItems,
   usePresetPrefill,
@@ -160,7 +160,31 @@ function MainRightPanelComponent({ configDrawerId }: MainRightPanelProps) {
     displayCurrency: display.currency,
     fxRate: display.rate
   });
-  const { setTickerWeight, toggleTickerFixed, clearAllFixed, removeIncludedTicker } = useTickerActions();
+  const { setTickerShares, setTickerWeight, toggleTickerFixed, clearAllFixed, removeIncludedTicker } = useTickerActions();
+  /*
+   * 비중 배분을 "몇 주 · 얼마 · 월 얼마"로 되읽은 것. 저장되는 값은 여전히 (초기 투자금, 비중) 한 쌍이고
+   * 이건 그 쌍의 다른 표현이라, 두 입력(슬라이더·수량)이 같은 상태를 가리킨다.
+   */
+  /*
+   * 🔴 보유 줄의 금액은 **간략 표기(`약 2.2억`)를 쓰지 않는다** (2026-08-23 사용자 신고).
+   *
+   * 처음엔 파이·차트가 쓰는 `formatChartCompact`(= `formatApproxKRW`)를 그대로 물렸는데, 그 포맷터는
+   * **억 구간에서 0.1억(=1,000만원) 단위로 반올림**한다. 차트 라벨에서는 맞는 선택이지만 입력 옆에서는
+   * 아니다 — 그 자리 숫자는 **내 입력이 반영됐다는 증거**라서, SCHD 주수를 100주 고쳐도 `약 2.2억`
+   * 그대로면 사용자에게는 "안 먹는다"로 보인다(월 배당도 만 단위 반올림이라 약 50주까지 안 움직였다).
+   * 그래서 여기만 정밀 포맷터를 쓴다. 표시 통화(원/달러) 전환은 그대로 따라간다.
+   */
+  const formatHoldingAmount = useCallback((value: number) => formatResultAmount(value, false), [formatResultAmount]);
+  const allocationHoldings = useMemo(
+    () =>
+      buildAllocationHoldings({
+        normalizedAllocation,
+        initialInvestment: values.initialInvestment,
+        taxRate: values.taxRate,
+        fxRate: display.rate
+      }),
+    [display.rate, normalizedAllocation, values.initialInvestment, values.taxRate]
+  );
   const {
     tabs,
     activeScenarioId,
@@ -283,15 +307,27 @@ function MainRightPanelComponent({ configDrawerId }: MainRightPanelProps) {
     formatResultAmount
   });
 
-  /** 연도별 시계열 라인 차트 3종(월평균·자산·누적)이 공유하는 props. 제목과 y값만 달라진다. */
-  const seriesChartProps = {
-    rows: tableRows,
-    hasData: hasGraphData,
-    emptyMessage: emptyGraphMessage,
-    getXValue: getYear,
-    yAxisLabelFormatter: formatChartValue,
-    chartLabelSuffix
-  };
+  /**
+   * 연도별 시계열 라인 차트 3종(월평균·자산·누적)이 공유하는 props. 제목과 y값만 달라진다.
+   *
+   * 🔴 **`useMemo` 가 없으면 `ChartPanel` 의 `memo` 가 무의미하다.** 매 렌더 새 객체 리터럴이면
+   *    spread 로 내려간 prop 들의 참조가 전부 달라져 세 패널이 항상 다시 그려진다.
+   *    `useResultChartAdapters` 가 게터를 `useCallback([])` 으로 고정해 둔 이유(그 파일 머리말:
+   *    "ChartPanel 이 걸러내도록")가 이 한 줄에서 깨지고 있었다 — 준비는 돼 있는데 문이 열려 있었다.
+   * ⚠ 시뮬레이션이 바뀌면(`tableRows`) 어차피 다시 그린다. 이 memo 가 막는 것은 **결과와 무관한
+   *   리렌더**다(드로어 열닫기, 탭 상호작용, 수량 입력창 타이핑 같은 것들).
+   */
+  const seriesChartProps = useMemo(
+    () => ({
+      rows: tableRows,
+      hasData: hasGraphData,
+      emptyMessage: emptyGraphMessage,
+      getXValue: getYear,
+      yAxisLabelFormatter: formatChartValue,
+      chartLabelSuffix
+    }),
+    [chartLabelSuffix, emptyGraphMessage, formatChartValue, getYear, hasGraphData, tableRows]
+  );
 
   /* 양도세 카드는 정밀 결과의 '상세' 모드에서만 (간략 모드는 핵심 숫자만 남긴다). */
   const showSaleTaxCard = !showQuickEstimate && !isResultCompact;
@@ -488,6 +524,10 @@ function MainRightPanelComponent({ configDrawerId }: MainRightPanelProps) {
                 fixedByTickerId={fixedByTickerId}
                 adjustableTickerCount={adjustableTickerCount}
                 onSetTickerWeight={setTickerWeight}
+                onSetTickerShares={setTickerShares}
+                holdings={allocationHoldings}
+                formatAmount={formatHoldingAmount}
+                fxRate={display.rate}
                 onToggleTickerFixed={toggleTickerFixed}
                 onClearAllFixed={clearAllFixed}
                 onRemoveIncludedTicker={removeIncludedTicker}
