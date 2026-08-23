@@ -2,7 +2,8 @@ import { z } from 'zod';
 import type { PortfolioMonthlyPoint, SimulationOutput, SimulationResult, YieldFormValues } from '@/shared/types';
 import { defaultYieldFormValues, tickerInputSchema, validateFormValues } from './SnowballForm';
 import { aggregateMonthly } from './SnowballGoal';
-import { runSimulation } from './SnowballSimulation';
+import { runPortfolioSimulation } from './SnowballPortfolio';
+import { toPortfolioSettings, toPortfolioTickerInputs } from './SnowballPortfolioInput';
 /* 연간 합산은 앱 화면 경로와 **같은 함수**를 쓴다 — 예전엔 이 파일에 복붙돼 있었다. */
 import { aggregateYearly } from './SnowballSummary';
 
@@ -12,7 +13,7 @@ import { aggregateYearly } from './SnowballSummary';
  * 커뮤니티 요약(`buildScenarioSimSummary`)과 PDF 리포트(`buildSnowballReport`)가 **같은 입력 해석·
  * 같은 배분·같은 합산**을 쓰도록 여기 한 곳에 모아 둔 공통 단계다. 수식은 하나도 새로 만들지 않았고,
  * 앱 화면(`buildSimulationBundle`)과 동일한 경로를 그대로 따른다:
- * 티커별 `runSimulation` → 연간 행 단순 합산.
+ * 결합 엔진(`runPortfolioSimulation`) → 연간 행 단순 합산. 앱 화면과 같은 엔진이다.
  *
  * 이 모듈이 생기기 전에는 이 해석 로직이 `SnowballScenarioSummary.ts` 안에만 있었다.
  * 새 소비처가 복붙하면 두 표면이 조용히 어긋나므로 반드시 이 함수를 통해서만 payload를 실행한다.
@@ -53,7 +54,10 @@ const scenarioPayloadSchema = z.object({
   portfolio: z.object({
     tickerProfiles: z.array(z.unknown()),
     includedTickerIds: z.array(z.string()),
-    weightByTickerId: z.record(z.string(), z.number())
+    weightByTickerId: z.record(z.string(), z.number()),
+    /* 배당 재투자 라우팅(2026-08-23). **선택 입력**이라 이 필드가 없던 옛 페이로드가 그대로 통과한다. */
+    reinvestPercentByTickerId: z.record(z.string(), z.number()).optional(),
+    reinvestTargetByTickerId: z.record(z.string(), z.string()).optional()
   }),
   investmentSettings: scenarioSettingsSchema
 });
@@ -145,30 +149,24 @@ export const runScenarioPayload = (payload: unknown): ScenarioRun | null => {
 
   // 티커별 시뮬레이션 — buildSimulationBundle과 같은 배분(초기/월 적립금을 정규화 가중치로 분할).
   const weights = normalizeWeights(profiles, portfolio.weightByTickerId);
-  const outputs = profiles.map((profile, index) =>
-    runSimulation({
-      ticker: {
-        ticker: profile.ticker,
-        initialPrice: profile.initialPrice,
-        dividendYield: profile.dividendYield,
-        dividendGrowth: profile.dividendGrowth,
-        expectedTotalReturn: profile.expectedTotalReturn,
-        frequency: profile.frequency
-      },
-      settings: {
-        initialInvestment: values.initialInvestment * weights[index],
-        monthlyContribution: values.monthlyContribution * weights[index],
-        targetMonthlyDividend: values.targetMonthlyDividend,
-        investmentStartDate: values.investmentStartDate,
-        durationYears: values.durationYears,
-        reinvestDividends: values.reinvestDividends,
-        reinvestDividendPercent: values.reinvestDividendPercent,
-        taxRate: values.taxRate,
-        reinvestTiming: values.reinvestTiming,
-        dpsGrowthMode: values.dpsGrowthMode
-      }
-    })
-  );
+  /*
+   * 🔴 앱 화면과 **같은 결합 엔진**을 부른다(`runPortfolioSimulation`).
+   *
+   * 종전에는 여기서 종목마다 `runSimulation` 을 따로 돌렸다. 앱 쪽이 결합 엔진으로 옮겨간 뒤에도
+   * 그대로 두면, **배당 라우팅을 켠 시나리오가 앱과 공유 카드·PDF 에서 다른 숫자를 낸다** —
+   * 같은 링크를 열었는데 값이 다르면 둘 다 신뢰를 잃는다. 라우팅이 없으면 두 경로 모두 종전과
+   * 같은 값이므로, 이 전환으로 기존 공유 카드가 바뀌지는 않는다.
+   */
+  const outputs = runPortfolioSimulation({
+    /* 🔴 앱 화면과 **같은 두 함수**를 부른다 — 그 머리말에 왜 한 곳이어야 하는지 적어 두었다. */
+    tickers: toPortfolioTickerInputs({
+      entries: profiles.map((profile, index) => ({ profile, weight: weights[index] })),
+      initialInvestment: values.initialInvestment,
+      monthlyContribution: values.monthlyContribution,
+      routing: portfolio
+    }),
+    settings: toPortfolioSettings(values)
+  });
 
   return {
     profiles,

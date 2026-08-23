@@ -51,6 +51,18 @@ export type PortfolioPersistedState = {
   weightByTickerId: Record<string, number>;
   fixedByTickerId: Record<string, boolean>;
   selectedTickerId: string | null;
+  /**
+   * 종목별 배당 재투자 비율(%). **선택 입력**이라 기존 저장 페이로드·공유 링크가 그대로 통과한다
+   * (미지정 = 전역값 `reinvestDividendPercent`).
+   */
+  reinvestPercentByTickerId?: Record<string, number>;
+  /**
+   * 종목별 배당 **목적지** 티커 id — "이 종목의 배당으로 저 종목을 산다".
+   *
+   * 미지정·없는 id 는 **자기 자신**이다. 자기 자신이 곧 종전 동작이라, 이 필드가 없는 옛 데이터가
+   * 예전과 똑같은 결과를 낸다. 엔진 쪽 계약은 `PortfolioTickerInput.reinvestTargetIndex` 다.
+   */
+  reinvestTargetByTickerId?: Record<string, string>;
 };
 
 export type ScenarioTabState = {

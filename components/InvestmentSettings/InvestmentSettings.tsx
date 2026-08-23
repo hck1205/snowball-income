@@ -17,10 +17,12 @@ import {
   InlineFieldHeader
 } from '@/components/common';
 import { Select } from '@/components/common';
+import { ReinvestRouting } from './components';
 import {
   ReinvestControls,
   ReinvestLabel,
   ReinvestPercentField,
+  ReinvestPercentPrefix,
   ReinvestPercentInput,
   ReinvestPercentSuffix,
   ReinvestRow
@@ -39,7 +41,8 @@ function InvestmentSettingsComponent({
   onChangeCurrency,
   onHelpResultMode,
   onHelpReinvestTiming,
-  onHelpDpsGrowthMode
+  onHelpDpsGrowthMode,
+  reinvestRouting
 }: InvestmentSettingsProps) {
   /**
    * 검증 에러 노출 계측.
@@ -172,8 +175,15 @@ function InvestmentSettingsComponent({
             <ReinvestControls>
               {values.reinvestDividends ? (
                 <ReinvestPercentField>
+                  {/*
+                    🔴 **"기본"이라고 말한다** (2026-08-23 사용자 지적). 종목별 재투자가 생긴 뒤로
+                       이 숫자는 포트폴리오 전체가 아니라 **종목별 값이 없을 때 쓰는 기본값**이다.
+                       그냥 "배당 재투자 100%"로 두면, 한 종목이라도 0%면 화면이 거짓을 말한다.
+                       라벨을 고치는 것이 진짜 수정이다 — 안내 문구만 덧붙이는 것은 반쪽이다.
+                  */}
+                  <ReinvestPercentPrefix>기본</ReinvestPercentPrefix>
                   <ReinvestPercentInput
-                    aria-label="배당 재투자 비율"
+                    aria-label="배당 재투자 기본 비율"
                     type="number"
                     min={0}
                     max={100}
@@ -194,6 +204,12 @@ function InvestmentSettingsComponent({
               />
             </ReinvestControls>
           </ReinvestRow>
+          {/* 전역값은 기본값이고 아래 표가 그것을 종목마다 덮는다 — 근거는 그 컴포넌트 머리말. */}
+          <ReinvestRouting
+            {...reinvestRouting}
+            globalPercent={values.reinvestDividendPercent}
+            enabled={values.reinvestDividends}
+          />
           <ConfigInputGrid>
             <InlineField htmlFor="reinvest-timing">
               <InlineFieldHeader>

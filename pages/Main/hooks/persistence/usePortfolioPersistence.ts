@@ -5,6 +5,10 @@ import {
   serializeMeaningfulPayload,
   useActiveScenarioIdAtomValue,
   useFixedByTickerIdAtomValue,
+  useReinvestPercentByTickerIdAtomValue,
+  useReinvestTargetByTickerIdAtomValue,
+  useSetReinvestPercentByTickerIdWrite,
+  useSetReinvestTargetByTickerIdWrite,
   useIncludedTickerIdsAtomValue,
   useIsResultCompactAtomValue,
   useIsYearlyAreaFillOnAtomValue,
@@ -79,6 +83,8 @@ export const usePortfolioPersistence = () => {
   const includedTickerIds = useIncludedTickerIdsAtomValue();
   const weightByTickerId = useWeightByTickerIdAtomValue();
   const fixedByTickerId = useFixedByTickerIdAtomValue();
+  const reinvestPercentByTickerId = useReinvestPercentByTickerIdAtomValue();
+  const reinvestTargetByTickerId = useReinvestTargetByTickerIdAtomValue();
   const selectedTickerId = useSelectedTickerIdAtomValue();
   const values = useYieldFormAtomValue();
   const showQuickEstimate = useShowQuickEstimateAtomValue();
@@ -105,6 +111,8 @@ export const usePortfolioPersistence = () => {
   const setIncludedTickerIds = useSetIncludedTickerIdsWrite();
   const setWeightByTickerId = useSetWeightByTickerIdWrite();
   const setFixedByTickerId = useSetFixedByTickerIdWrite();
+  const setReinvestPercentByTickerId = useSetReinvestPercentByTickerIdWrite();
+  const setReinvestTargetByTickerId = useSetReinvestTargetByTickerIdWrite();
   const setSelectedTickerId = useSetSelectedTickerIdWrite();
   const setShowQuickEstimate = useSetShowQuickEstimateWrite();
   const setShowSplitGraphs = useSetShowSplitGraphsWrite();
@@ -168,7 +176,9 @@ export const usePortfolioPersistence = () => {
     includedTickerIds,
     weightByTickerId,
     fixedByTickerId,
-    selectedTickerId
+    selectedTickerId,
+    reinvestPercentByTickerId,
+    reinvestTargetByTickerId
   });
 
   const buildInvestmentSettings = (): PersistedInvestmentSettings => ({
@@ -314,6 +324,8 @@ export const usePortfolioPersistence = () => {
   }, [
     activeScenarioId,
     fixedByTickerId,
+    reinvestPercentByTickerId,
+    reinvestTargetByTickerId,
     includedTickerIds,
     isPortfolioHydrated,
     isResultCompact,
@@ -414,6 +426,8 @@ export const usePortfolioPersistence = () => {
     flushCloudSave,
     scheduleCloudSave,
     fixedByTickerId,
+    reinvestPercentByTickerId,
+    reinvestTargetByTickerId,
     hasHydrationFailed,
     includedTickerIds,
     isPortfolioHydrated,
@@ -467,6 +481,10 @@ export const usePortfolioPersistence = () => {
     setIncludedTickerIds(scenario.portfolio.includedTickerIds);
     setWeightByTickerId(scenario.portfolio.weightByTickerId);
     setFixedByTickerId(scenario.portfolio.fixedByTickerId);
+    /* 선택 입력이라 옛 시나리오에는 없다 — 없으면 빈 맵(= 종전 동작)으로 되돌린다.
+       ⚠ `?? {}` 를 빠뜨리면 탭을 옮겨도 앞 탭의 라우팅이 남는다. */
+    setReinvestPercentByTickerId(scenario.portfolio.reinvestPercentByTickerId ?? {});
+    setReinvestTargetByTickerId(scenario.portfolio.reinvestTargetByTickerId ?? {});
     setSelectedTickerId(scenario.portfolio.selectedTickerId);
     setYieldFormValues((prev) => ({
       ...prev,

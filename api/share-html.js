@@ -5006,110 +5006,198 @@ var buildSummary = ({
   };
 };
 
-// shared/lib/snowball/SnowballSimulation.ts
-var runSimulation = (input) => {
-  const { ticker, settings } = input;
-  const accountType = ticker.accountType ?? DEFAULT_ACCOUNT_TYPE;
-  const taxableRatePercent = settings.taxRate ?? resolveDefaultDividendTaxRatePercent(ticker.ticker);
-  const taxRate = toTaxRate(payoutTaxRateFor(accountType, taxableRatePercent));
-  const dividendYield = ticker.dividendYield / 100;
-  const growth = toPriceGrowth(ticker.dividendGrowth);
-  const priceGrowth = growth;
-  const dividendGrowth = growth;
+// shared/lib/snowball/SnowballPortfolio.ts
+var runPortfolioSimulation = ({ tickers, settings }) => {
+  const count = tickers.length;
+  if (count === 0) return [];
   const totalMonths = settings.durationYears * 12;
-  const paymentsPerYear = paymentsPerYearMap[ticker.frequency];
   const startDate = toStartDate(settings.investmentStartDate);
-  const reinvestRatio = toReinvestRatio(settings.reinvestDividendPercent);
-  const dps0 = ticker.initialPrice * dividendYield;
-  let shares = settings.initialInvestment / ticker.initialPrice;
-  let cumulativeDividend = 0;
-  let totalTaxPaid = 0;
-  let pendingReinvestCash = 0;
-  let totalReinvestedAmount = 0;
-  const monthly = [];
-  const yearly = [];
+  const constants = tickers.map(({ ticker }) => {
+    const accountType = ticker.accountType ?? DEFAULT_ACCOUNT_TYPE;
+    const taxableRatePercent = settings.taxRate ?? resolveDefaultDividendTaxRatePercent(ticker.ticker);
+    const growth = toPriceGrowth(ticker.dividendGrowth);
+    return {
+      accountType,
+      taxRate: toTaxRate(payoutTaxRateFor(accountType, taxableRatePercent)),
+      growth,
+      paymentsPerYear: paymentsPerYearMap[ticker.frequency],
+      dps0: ticker.initialPrice * (ticker.dividendYield / 100)
+    };
+  });
+  const targetOf = tickers.map((item, index) => {
+    const target = item.reinvestTargetIndex;
+    return target !== void 0 && Number.isInteger(target) && target >= 0 && target < count ? target : index;
+  });
+  const ratioOf = tickers.map((item) => toReinvestRatio(item.reinvestPercent ?? settings.reinvestDividendPercent));
+  const shares = tickers.map((item) => item.initialInvestment / item.ticker.initialPrice);
+  const cumulativeDividend = tickers.map(() => 0);
+  const totalTaxPaid = tickers.map(() => 0);
+  const pendingReinvestCash = tickers.map(() => 0);
+  const totalReinvestedAmount = tickers.map(() => 0);
+  const monthly = tickers.map(() => []);
+  const yearly = tickers.map(() => []);
   for (let m = 1; m <= totalMonths; m += 1) {
     const context = buildMonthContext(startDate, m);
-    const price = priceAtMonth(ticker.initialPrice, priceGrowth, context.elapsedYearFraction);
-    const dps = dpsAtMonth({
-      dps0,
-      dividendGrowth,
-      mode: settings.dpsGrowthMode,
-      elapsedYearFraction: context.elapsedYearFraction,
-      completedYears: context.completedYears
-    });
-    if (pendingReinvestCash > 0) {
-      shares += pendingReinvestCash / price;
-      totalReinvestedAmount += pendingReinvestCash;
-      pendingReinvestCash = 0;
+    const price = tickers.map(
+      (item, i) => priceAtMonth(item.ticker.initialPrice, constants[i].growth, context.elapsedYearFraction)
+    );
+    const dps = tickers.map(
+      (_item, i) => dpsAtMonth({
+        dps0: constants[i].dps0,
+        dividendGrowth: constants[i].growth,
+        mode: settings.dpsGrowthMode,
+        elapsedYearFraction: context.elapsedYearFraction,
+        completedYears: context.completedYears
+      })
+    );
+    for (let i = 0; i < count; i += 1) {
+      if (pendingReinvestCash[i] > 0) {
+        shares[i] += pendingReinvestCash[i] / price[i];
+        totalReinvestedAmount[i] += pendingReinvestCash[i];
+        pendingReinvestCash[i] = 0;
+      }
     }
-    let dividendPaid = 0;
-    let taxPaid = 0;
-    if (isPayoutMonth(ticker.frequency, context.simulationMonth)) {
-      const payout = computeMonthlyPayout({ shares, annualDps: dps, paymentsPerYear, taxRate });
-      const reinvestment = planReinvestment({
-        netDividend: payout.net,
-        price,
+    const dividendPaid = tickers.map(() => 0);
+    const taxPaid = tickers.map(() => 0);
+    for (let i = 0; i < count; i += 1) {
+      if (!isPayoutMonth(tickers[i].ticker.frequency, context.simulationMonth)) continue;
+      const payout = computeMonthlyPayout({
+        shares: shares[i],
+        annualDps: dps[i],
+        paymentsPerYear: constants[i].paymentsPerYear,
+        taxRate: constants[i].taxRate
+      });
+      dividendPaid[i] = payout.net;
+      taxPaid[i] = payout.tax;
+      cumulativeDividend[i] += payout.net;
+      totalTaxPaid[i] += payout.tax;
+    }
+    for (let i = 0; i < count; i += 1) {
+      if (dividendPaid[i] <= 0) continue;
+      const target = targetOf[i];
+      const plan = planReinvestment({
+        netDividend: dividendPaid[i],
+        price: price[target],
         enabled: settings.reinvestDividends,
-        ratio: reinvestRatio,
+        ratio: ratioOf[i],
         timing: settings.reinvestTiming
       });
-      taxPaid = payout.tax;
-      dividendPaid = payout.net;
-      shares += reinvestment.sharesToBuyNow;
-      totalReinvestedAmount += reinvestment.amountInvestedNow;
-      pendingReinvestCash += reinvestment.cashToCarry;
-      cumulativeDividend += dividendPaid;
-      totalTaxPaid += taxPaid;
+      shares[target] += plan.sharesToBuyNow;
+      totalReinvestedAmount[target] += plan.amountInvestedNow;
+      pendingReinvestCash[target] += plan.cashToCarry;
     }
-    shares += settings.monthlyContribution / price;
-    const rawPortfolioValue = shares * price;
-    const portfolioValue = Number.isFinite(rawPortfolioValue) ? rawPortfolioValue : 0;
-    monthly.push({
-      monthIndex: m,
-      year: context.calendarYear,
-      month: context.calendarMonth,
-      shares,
-      price,
-      dividendPerShare: dps,
-      dividendPaid,
-      contributionPaid: settings.monthlyContribution,
-      taxPaid,
-      portfolioValue,
-      cumulativeDividend
-    });
-    if (context.simulationMonth === 12) {
-      yearly.push(
-        buildYearlyRow({
-          year: context.simulationYearLabel,
-          monthIndex: m,
-          initialInvestment: settings.initialInvestment,
-          monthlyContribution: settings.monthlyContribution,
-          assetValue: portfolioValue,
-          cumulativeDividend,
-          recentMonths: monthly.slice(-12)
-        })
-      );
+    for (let i = 0; i < count; i += 1) {
+      shares[i] += tickers[i].monthlyContribution / price[i];
+    }
+    for (let i = 0; i < count; i += 1) {
+      const rawPortfolioValue = shares[i] * price[i];
+      const portfolioValue = Number.isFinite(rawPortfolioValue) ? rawPortfolioValue : 0;
+      monthly[i].push({
+        monthIndex: m,
+        year: context.calendarYear,
+        month: context.calendarMonth,
+        shares: shares[i],
+        price: price[i],
+        dividendPerShare: dps[i],
+        dividendPaid: dividendPaid[i],
+        contributionPaid: tickers[i].monthlyContribution,
+        taxPaid: taxPaid[i],
+        portfolioValue,
+        cumulativeDividend: cumulativeDividend[i]
+      });
+      if (context.simulationMonth === 12) {
+        yearly[i].push(
+          buildYearlyRow({
+            year: context.simulationYearLabel,
+            monthIndex: m,
+            initialInvestment: tickers[i].initialInvestment,
+            monthlyContribution: tickers[i].monthlyContribution,
+            assetValue: portfolioValue,
+            cumulativeDividend: cumulativeDividend[i],
+            recentMonths: monthly[i].slice(-12)
+          })
+        );
+      }
     }
   }
-  const isaSettlementTax = accountType === "isa" ? estimateIsaSettlementTax(cumulativeDividend) : 0;
-  const lastRow = monthly[monthly.length - 1];
-  const finalRunRateMonthlyDividend = lastRow === void 0 ? 0 : lastRow.shares * lastRow.dividendPerShare * (1 - taxRate) / 12;
-  return {
-    monthly,
-    yearly,
-    summary: buildSummary({
-      monthly,
-      yearly,
-      totalTaxPaid,
-      targetMonthlyDividend: settings.targetMonthlyDividend,
-      totalReinvestedAmount,
-      finalRunRateMonthlyDividend,
-      isaSettlementTax
-    }),
-    quickEstimate: runQuickEstimate(input)
-  };
+  return tickers.map((item, i) => {
+    const lastRow = monthly[i][monthly[i].length - 1];
+    const finalRunRateMonthlyDividend = lastRow === void 0 ? 0 : lastRow.shares * lastRow.dividendPerShare * (1 - constants[i].taxRate) / 12;
+    const isaSettlementTax = constants[i].accountType === "isa" ? estimateIsaSettlementTax(cumulativeDividend[i]) : 0;
+    return {
+      monthly: monthly[i],
+      yearly: yearly[i],
+      summary: buildSummary({
+        monthly: monthly[i],
+        yearly: yearly[i],
+        totalTaxPaid: totalTaxPaid[i],
+        targetMonthlyDividend: settings.targetMonthlyDividend,
+        totalReinvestedAmount: totalReinvestedAmount[i],
+        finalRunRateMonthlyDividend,
+        isaSettlementTax
+      }),
+      /*
+       * 근사치는 종전과 같이 **종목 단독** 기준이다 — 닫힌 식이라 종목 사이를 건너가는 현금을
+       * 표현할 수 없다. 라우팅을 켜면 정밀 계산과 벌어지므로, 화면이 근사 모드를 쓸 때
+       * 그 사실을 밝혀야 한다(`runQuickEstimate` 머리말의 `annualStep`·`nextMonth` 와 같은 성격).
+       */
+      quickEstimate: runQuickEstimate({
+        ticker: item.ticker,
+        settings: {
+          ...settings,
+          initialInvestment: item.initialInvestment,
+          monthlyContribution: item.monthlyContribution,
+          reinvestDividendPercent: item.reinvestPercent ?? settings.reinvestDividendPercent
+        }
+      })
+    };
+  });
 };
+
+// shared/lib/snowball/SnowballPortfolioInput.ts
+var toPortfolioTickerInputs = ({
+  entries,
+  initialInvestment,
+  monthlyContribution,
+  routing
+}) => {
+  const indexById = new Map(entries.map(({ profile }, index) => [profile.id, index]));
+  return entries.map(({ profile, weight }) => {
+    const targetId = routing?.reinvestTargetByTickerId?.[profile.id];
+    const targetIndex = targetId === void 0 ? void 0 : indexById.get(targetId);
+    const percent = routing?.reinvestPercentByTickerId?.[profile.id];
+    return {
+      ticker: {
+        ticker: profile.ticker,
+        initialPrice: profile.initialPrice,
+        dividendYield: profile.dividendYield,
+        dividendGrowth: profile.dividendGrowth,
+        expectedTotalReturn: profile.expectedTotalReturn,
+        frequency: profile.frequency,
+        /*
+         * 🔴 **빼지 마라.** 이 한 줄이 없어서 ISA 가 저장·공유·화면에는 있는데 계산에는 닿지 않았다
+         *    (`isaSettlementTax` 가 언제나 0). 선택 필드라 타입도 컴파일도 막아 주지 않는다 —
+         *    `test/snowball/portfolioAccountType.test.ts` 가 유일한 방어선이다.
+         */
+        accountType: profile.accountType
+      },
+      initialInvestment: initialInvestment * weight,
+      monthlyContribution: monthlyContribution * weight,
+      ...targetIndex === void 0 ? null : { reinvestTargetIndex: targetIndex },
+      ...percent === void 0 ? null : { reinvestPercent: percent }
+    };
+  });
+};
+var toPortfolioSettings = (settings) => ({
+  targetMonthlyDividend: settings.targetMonthlyDividend,
+  investmentStartDate: settings.investmentStartDate,
+  durationYears: settings.durationYears,
+  reinvestDividends: settings.reinvestDividends,
+  reinvestDividendPercent: settings.reinvestDividendPercent,
+  taxRate: settings.taxRate,
+  reinvestTiming: settings.reinvestTiming,
+  dpsGrowthMode: settings.dpsGrowthMode
+});
 
 // shared/lib/snowball/SnowballScenarioRun.ts
 var scenarioTickerProfileSchema = tickerInputSchema.extend({ id: external_exports.string() });
@@ -5130,7 +5218,10 @@ var scenarioPayloadSchema = external_exports.object({
   portfolio: external_exports.object({
     tickerProfiles: external_exports.array(external_exports.unknown()),
     includedTickerIds: external_exports.array(external_exports.string()),
-    weightByTickerId: external_exports.record(external_exports.string(), external_exports.number())
+    weightByTickerId: external_exports.record(external_exports.string(), external_exports.number()),
+    /* 배당 재투자 라우팅(2026-08-23). **선택 입력**이라 이 필드가 없던 옛 페이로드가 그대로 통과한다. */
+    reinvestPercentByTickerId: external_exports.record(external_exports.string(), external_exports.number()).optional(),
+    reinvestTargetByTickerId: external_exports.record(external_exports.string(), external_exports.string()).optional()
   }),
   investmentSettings: scenarioSettingsSchema
 });
@@ -8906,27 +8997,16 @@ var getChartTheme = () => ({
 });
 
 // pages/Main/utils/simulation.ts
-var runForProfile = (profile, monthlyContribution, initialInvestment, values) => runSimulation({
-  ticker: {
-    ticker: profile.ticker,
-    initialPrice: profile.initialPrice,
-    dividendYield: profile.dividendYield,
-    dividendGrowth: profile.dividendGrowth,
-    expectedTotalReturn: profile.expectedTotalReturn,
-    frequency: profile.frequency
-  },
-  settings: {
-    initialInvestment,
+var runPortfolio = (targetProfiles, values, monthlyContribution, routing) => runPortfolioSimulation({
+  /* 🔴 공유 카드·PDF 경로(`SnowballScenarioRun`)와 **같은 두 함수**를 부른다 — 그 머리말에
+     왜 한 곳이어야 하는지(두 번 물린 사고) 적어 두었다. */
+  tickers: toPortfolioTickerInputs({
+    entries: targetProfiles,
+    initialInvestment: values.initialInvestment,
     monthlyContribution,
-    targetMonthlyDividend: values.targetMonthlyDividend,
-    investmentStartDate: values.investmentStartDate,
-    durationYears: values.durationYears,
-    reinvestDividends: values.reinvestDividends,
-    reinvestDividendPercent: values.reinvestDividendPercent,
-    taxRate: values.taxRate,
-    reinvestTiming: values.reinvestTiming,
-    dpsGrowthMode: values.dpsGrowthMode
-  }
+    routing
+  }),
+  settings: toPortfolioSettings(values)
 });
 var buildTargetProfiles = ({
   includedProfiles,
@@ -9026,6 +9106,8 @@ var buildSimulationBundle = ({
   includedProfiles,
   normalizedAllocation,
   values,
+  reinvestPercentByTickerId,
+  reinvestTargetByTickerId,
   postInvestmentProjectionYears = DEFAULT_POST_INVESTMENT_PROJECTION_YEARS
 }) => {
   if (!isValid2) {
@@ -9043,10 +9125,14 @@ var buildSimulationBundle = ({
       postInvestmentDividendProjectionRows: []
     };
   }
-  const outputs = targetProfiles.map((item) => ({
+  const portfolioOutputs = runPortfolio(targetProfiles, values, values.monthlyContribution, {
+    reinvestPercentByTickerId,
+    reinvestTargetByTickerId
+  });
+  const outputs = targetProfiles.map((item, index) => ({
     ticker: item.profile.ticker,
     name: item.profile.name,
-    output: runForProfile(item.profile, values.monthlyContribution * item.weight, values.initialInvestment * item.weight, values),
+    output: portfolioOutputs[index],
     growthRate: toPriceGrowth(item.profile.dividendGrowth)
   }));
   const simulation = outputs.length === 1 ? outputs[0].output : aggregatePortfolioSimulation(outputs.map((item) => item.output), values.targetMonthlyDividend);

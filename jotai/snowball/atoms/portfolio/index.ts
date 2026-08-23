@@ -27,7 +27,9 @@ export const EMPTY_PORTFOLIO_STATE: PortfolioPersistedState = {
   includedTickerIds: [],
   weightByTickerId: {},
   fixedByTickerId: {},
-  selectedTickerId: null
+  selectedTickerId: null,
+  reinvestPercentByTickerId: {},
+  reinvestTargetByTickerId: {}
 };
 
 export const MAX_SCENARIO_TABS = 10;
@@ -73,6 +75,10 @@ export const selectedTickerIdAtom = atomState<string | null>(EMPTY_PORTFOLIO_STA
 export const includedTickerIdsAtom = atomState<string[]>(EMPTY_PORTFOLIO_STATE.includedTickerIds);
 export const weightByTickerIdAtom = atomState<Record<string, number>>(EMPTY_PORTFOLIO_STATE.weightByTickerId);
 export const fixedByTickerIdAtom = atomState<Record<string, boolean>>(EMPTY_PORTFOLIO_STATE.fixedByTickerId);
+/** 종목별 배당 재투자 비율(%). 키가 없으면 전역값을 쓴다 — 근거는 `PortfolioPersistedState`. */
+export const reinvestPercentByTickerIdAtom = atomState<Record<string, number>>({});
+/** 종목별 배당 목적지(티커 id). 키가 없거나 없는 id 면 자기 자신이다. */
+export const reinvestTargetByTickerIdAtom = atomState<Record<string, string>>({});
 export const tickerDraftAtom = atomState<TickerDraft>(toTickerDraft(defaultYieldFormValues));
 export const scenarioTabsAtom = atomState<PersistedScenarioState[]>(DEFAULT_SCENARIO_TABS);
 export const activeScenarioIdAtom = atomState<string>(DEFAULT_SCENARIO_TAB_ID);
@@ -87,6 +93,10 @@ export const useWeightByTickerIdAtomValue = () => useAtomValue(weightByTickerIdA
 export const useSetWeightByTickerIdWrite = () => useAtomWrite(weightByTickerIdAtom);
 export const useFixedByTickerIdAtomValue = () => useAtomValue(fixedByTickerIdAtom);
 export const useSetFixedByTickerIdWrite = () => useAtomWrite(fixedByTickerIdAtom);
+export const useReinvestPercentByTickerIdAtomValue = () => useAtomValue(reinvestPercentByTickerIdAtom);
+export const useSetReinvestPercentByTickerIdWrite = () => useAtomWrite(reinvestPercentByTickerIdAtom);
+export const useReinvestTargetByTickerIdAtomValue = () => useAtomValue(reinvestTargetByTickerIdAtom);
+export const useSetReinvestTargetByTickerIdWrite = () => useAtomWrite(reinvestTargetByTickerIdAtom);
 export const useTickerDraftAtomValue = () => useAtomValue(tickerDraftAtom);
 export const useSetTickerDraftWrite = () => useAtomWrite(tickerDraftAtom);
 export const useScenarioTabsAtomValue = () => useAtomValue(scenarioTabsAtom);

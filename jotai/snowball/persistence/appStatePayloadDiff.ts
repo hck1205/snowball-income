@@ -63,7 +63,10 @@ const pickMeaningfulPortfolio = (portfolio: PortfolioPersistedState): Record<str
   tickerProfiles: portfolio.tickerProfiles,
   includedTickerIds: portfolio.includedTickerIds,
   weightByTickerId: portfolio.weightByTickerId,
-  fixedByTickerId: portfolio.fixedByTickerId
+  fixedByTickerId: portfolio.fixedByTickerId,
+  /* 라우팅은 **계산에 들어간다** — 선택 상태와 달리 바뀌면 클라우드 저장을 유발해야 한다. */
+  reinvestPercentByTickerId: portfolio.reinvestPercentByTickerId,
+  reinvestTargetByTickerId: portfolio.reinvestTargetByTickerId
 });
 
 /**

@@ -13,3 +13,5 @@ export * from './SnowballSimulation';
 export * from './SnowballSummary';
 export * from './SnowballFxSensitivity';
 export * from './SnowballHoldingDividend';
+export * from './SnowballPortfolio';
+export * from './SnowballPortfolioInput';

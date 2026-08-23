@@ -1,8 +1,13 @@
 import type { ChangeEvent } from 'react';
 import type { DisplayCurrencyView } from '@/jotai';
 import type { YieldFormValues } from '@/shared/types';
+import type { ReinvestRoutingProps } from './components';
+
+/** 종목별 재투자 표에 그대로 내려보내는 묶음 — 이 컴포넌트는 값을 만들지 않고 전달만 한다. */
+export type InvestmentSettingsReinvestRouting = Omit<ReinvestRoutingProps, 'globalPercent' | 'enabled'>;
 
 export type InvestmentSettingsProps = {
+  reinvestRouting: InvestmentSettingsReinvestRouting;
   values: YieldFormValues;
   showQuickEstimate: boolean;
   showSplitGraphs: boolean;

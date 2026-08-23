@@ -14,6 +14,8 @@ import {
   useEffectiveColorScheme,
   useIncludedProfilesAtomValue,
   useNormalizedAllocationAtomValue,
+  useReinvestPercentByTickerIdAtomValue,
+  useReinvestTargetByTickerIdAtomValue,
   usePalettePresetAtomValue,
   useSetActiveHelpWrite,
   useSetVisibleYearlySeriesWrite
@@ -54,6 +56,9 @@ export const useMainComputed = ({
 }: UseMainComputedParams) => {
   const includedProfiles = useIncludedProfilesAtomValue();
   const normalizedAllocation = useNormalizedAllocationAtomValue();
+  /* 종목별 배당 재투자(비율·목적지). 계산에 들어가는 값이라 시뮬레이션 입력에 그대로 실린다. */
+  const reinvestPercentByTickerId = useReinvestPercentByTickerIdAtomValue();
+  const reinvestTargetByTickerId = useReinvestTargetByTickerIdAtomValue();
   const setVisibleYearlySeries = useSetVisibleYearlySeriesWrite();
   const setActiveHelp = useSetActiveHelpWrite();
   /*
@@ -82,10 +87,22 @@ export const useMainComputed = ({
         includedProfiles,
         normalizedAllocation,
         values,
+        reinvestPercentByTickerId,
+        reinvestTargetByTickerId,
         postInvestmentProjectionYears
       }),
     // palettePreset·colorScheme: 실지급 배당 스택 색이 번들 데이터에 박히므로(simulation.ts) 테마 전환 시 재빌드
-    [colorScheme, includedProfiles, isValid, normalizedAllocation, palettePreset, postInvestmentProjectionYears, values]
+    [
+      colorScheme,
+      includedProfiles,
+      isValid,
+      normalizedAllocation,
+      palettePreset,
+      postInvestmentProjectionYears,
+      reinvestPercentByTickerId,
+      reinvestTargetByTickerId,
+      values
+    ]
   );
 
   const tableRows = useMemo(() => simulation?.yearly ?? [], [simulation]);
@@ -115,9 +132,9 @@ export const useMainComputed = ({
   const solverInput = useMemo(
     () =>
       simulation !== null && simulation.summary.targetMonthDividendReachedYear === undefined
-        ? { isValid, includedProfiles, normalizedAllocation, values }
+        ? { isValid, includedProfiles, normalizedAllocation, values, reinvestPercentByTickerId, reinvestTargetByTickerId }
         : null,
-    [includedProfiles, isValid, normalizedAllocation, simulation, values]
+    [includedProfiles, isValid, normalizedAllocation, reinvestPercentByTickerId, reinvestTargetByTickerId, simulation, values]
   );
   const deferredSolverInput = useDeferredValue(solverInput);
   const requiredMonthlyContribution = useMemo(

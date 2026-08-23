@@ -11105,7 +11105,10 @@ var scenarioPayloadSchema = external_exports.object({
   portfolio: external_exports.object({
     tickerProfiles: external_exports.array(external_exports.unknown()),
     includedTickerIds: external_exports.array(external_exports.string()),
-    weightByTickerId: external_exports.record(external_exports.string(), external_exports.number())
+    weightByTickerId: external_exports.record(external_exports.string(), external_exports.number()),
+    /* 배당 재투자 라우팅(2026-08-23). **선택 입력**이라 이 필드가 없던 옛 페이로드가 그대로 통과한다. */
+    reinvestPercentByTickerId: external_exports.record(external_exports.string(), external_exports.number()).optional(),
+    reinvestTargetByTickerId: external_exports.record(external_exports.string(), external_exports.string()).optional()
   }),
   investmentSettings: scenarioSettingsSchema
 });
