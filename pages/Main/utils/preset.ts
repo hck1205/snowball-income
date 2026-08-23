@@ -1,16 +1,21 @@
 import type { Frequency } from '@/shared/types';
 import type { TickerDraft, TickerProfile } from '@/shared/types/snowball';
 
-/**
- * **첫 방문 기본 시나리오**의 프리셋 id.
+/*
+ * 🔴 여기 있던 두 가지가 걷혔다(2026-08-23):
  *
- * 저장된 워크스페이스가 하나도 없을 때 이 구성을 **적용된 상태로** 열어, 첫 화면이 "13지선다"가 아니라
- * "이미 돌아가는 화면"이 되게 한다. 저장은 하지 않는다(`usePortfolioPersistence` 의 프리필 가드).
+ *  ① `DEFAULT_PREFILL_PRESET_ID = 'stable-dividend-growth'` — 첫 방문이면 무조건 얹던 고정 구성.
+ *     그 탓에 **누구에게나 같은 포트폴리오**가 열렸고, 만들어 둔 "시작하기" 택일 화면은 도달할 수조차
+ *     없었다(프리필이 워크스페이스를 채워 `isPortfolioEmpty` 가 거짓이 되므로).
  *
- * 여기(엔진 인접 유틸)에 두는 이유: 영속 계층이 **무엇을 열지**를 알아야 하는데, 그러자고 저장 훅이
- * 프리셋 카드 컴포넌트 배럴을 import 하면 저장 코드가 화면 코드에 딸려 온다.
+ *  ② `isKnownPortfolioPresetId` — 주소로 온 id 가 실재하는지 보는 검증. **중복이라 지웠다.**
+ *     `usePresetPrefill` 이 이미 목록에서 못 찾으면 `setPrefill(null)` 로 내려 빈 워크스페이스를
+ *     남긴다 — 그게 곧 택일 화면이다. 게다가 그 검증을 위해 `shared/constants/portfolioPresets` 를
+ *     import 했는데, 그 파일은 **lucide 아이콘 컴포넌트를 끌고 온다.** 저장 경로에 아이콘 번들이
+ *     딸려 오는 것은 이 파일이 애초에 피하려던 바로 그 일이다.
+ *
+ * ⚠ 그래서 영속 계층은 **id 를 검증하지 않는다.** 모르는 id 는 화면 계층이 조용히 흘려보낸다.
  */
-export const DEFAULT_PREFILL_PRESET_ID = 'stable-dividend-growth';
 
 export type PortfolioPresetAllocation = {
   ticker: string;

@@ -7,7 +7,7 @@ import type { PersistedAppStatePayload, PersistedAppStateReadResult } from '@/jo
 import type { TickerProfile } from '@/shared/types/snowball';
 
 /**
- * 🔴 **첫 방문 기본 시나리오(프리필)는 저장되지 않는다.**
+ * 🔴 **프리필은 저장되지 않는다.** (2026-08-23 부터 프리필 = 성향 테스트가 지목한 구성)
  *
  * 프리필은 앱이 대신 채운 화면이지 사용자가 만든 데이터가 아니다. 한 번이라도 IndexedDB·클라우드에
  * 흘러가면 ①다음 방문에 "내가 만든 적 없는 포트폴리오"가 복원되고 ②로그인 사용자라면 그것이
@@ -58,7 +58,6 @@ const {
   yieldFormAtom
 } = await import('@/jotai');
 const { usePortfolioPersistence } = await import('@/pages/Main/hooks/persistence');
-const { DEFAULT_PREFILL_PRESET_ID } = await import('@/pages/Main/utils');
 
 type Store = ReturnType<typeof createStore>;
 
@@ -84,14 +83,14 @@ const advance = (ms: number) => {
   });
 };
 
-/** 우패널(`usePortfolioPrefill`)이 하는 일 = 프리셋 커밋 + `applied` 전이. **같은 배치**여야 한다. */
+/** 우패널(`usePresetPrefill`)이 하는 일 = 프리셋 커밋 + `applied` 전이. **같은 배치**여야 한다. */
 const applyPrefillLikeRightPanel = (store: Store) => {
   act(() => {
     store.set(tickerProfilesAtom, [PREFILLED_PROFILE]);
     store.set(includedTickerIdsAtom, [PREFILLED_PROFILE.id]);
     store.set(weightByTickerIdAtom, { [PREFILLED_PROFILE.id]: 100 });
     store.set(yieldFormAtom, (prev) => ({ ...prev, monthlyContribution: 1_500_000, durationYears: 12 }));
-    store.set(scenarioPrefillAtom, { presetId: DEFAULT_PREFILL_PRESET_ID, status: 'applied' });
+    store.set(scenarioPrefillAtom, { presetId: 'stable-dividend-growth', status: 'applied' });
   });
 };
 
@@ -126,16 +125,49 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
-describe('첫 방문 기본 시나리오 — 저장되지 않는다', () => {
-  it('저장된 워크스페이스가 없으면 프리필을 요청한다', async () => {
+describe('프리필 — 저장되지 않는다', () => {
+  it('🔴 그냥 들어오면 프리필하지 않는다 — 빈 워크스페이스로 열어 고르게 한다', async () => {
+    /**
+     * 2026-08-23 계약 교체. 종전에는 첫 방문이면 무조건 `stable-dividend-growth` 를 얹었고,
+     * 그래서 **누구에게나 같은 포트폴리오**가 열렸다. 그 프리필이 워크스페이스를 채우는 바람에
+     * 만들어 둔 "시작하기 / 추천 포트폴리오로 시작해보세요" 택일 화면은 도달할 수조차 없었다
+     * (`isPortfolioEmpty` 가 거짓이 되므로).
+     */
+    const store = createStore();
+    renderPersistence(store);
+    await act(async () => undefined);
+
+    expect(store.get(scenarioPrefillAtom)).toBeNull();
+  });
+
+  it('🔴 성향 테스트가 지목한 구성(?preset=)으로 들어오면 그것으로 연다', async () => {
+    // 자기 성향을 아는 사람에게만 미리 채워 준다 — 그 사람에게는 택일이 오히려 되돌아가는 걸음이다.
+    vi.stubGlobal('location', { href: 'https://x.test/simulator?preset=warren-buffett-style' } as Location);
+
     const store = createStore();
     renderPersistence(store);
     await act(async () => undefined);
 
     expect(store.get(scenarioPrefillAtom)).toEqual({
-      presetId: DEFAULT_PREFILL_PRESET_ID,
+      presetId: 'warren-buffett-style',
       status: 'requested'
     });
+  });
+
+  it('⚠ 모르는 프리셋 id 도 영속 계층은 그대로 발행한다 — 거르는 일은 화면 계층 몫', async () => {
+    /**
+     * 2026-08-23 리팩터로 검증이 화면 계층(`usePresetPrefill`)으로 옮겨갔다. 여기서 거르려면
+     * 프리셋 목록을 알아야 하는데 그 모듈이 **lucide 아이콘을 끌고 오기 때문**이다 — 저장 경로에
+     * 아이콘 번들이 딸려 오는 것은 `pages/Main/utils/preset.ts` 가 피하려던 바로 그 일이다.
+     * 사용자가 보는 결과는 같다: 화면 계층이 목록에서 못 찾으면 프리필을 내려 택일 화면이 뜬다.
+     */
+    vi.stubGlobal('location', { href: 'https://x.test/simulator?preset=nope-not-real' } as Location);
+
+    const store = createStore();
+    renderPersistence(store);
+    await act(async () => undefined);
+
+    expect(store.get(scenarioPrefillAtom)).toEqual({ presetId: 'nope-not-real', status: 'requested' });
   });
 
   it('저장된 포트폴리오가 있으면 프리필을 요청하지 않는다(복원이 우선)', async () => {
@@ -185,7 +217,7 @@ describe('첫 방문 기본 시나리오 — 저장되지 않는다', () => {
   });
 });
 
-describe('첫 방문 기본 시나리오 — 사용자가 건드리면 승격된다', () => {
+describe('프리필 — 사용자가 건드리면 승격된다', () => {
   it('의미 있는 값이 바뀌면 표식이 내려가고 정상 저장된다(그리고 바뀐 값이 저장된다)', async () => {
     const store = createStore();
     renderPersistence(store);
