@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useDeferredValue, useMemo } from 'react';
 import {
   ALLOCATION_COPY,
   DEFAULT_DISPLAY_CURRENCY,
@@ -95,12 +95,34 @@ export const useMainComputed = ({
    * 🔴 도달한 경우에는 계산하지 않는다. 답이 화면에 쓰이지 않는데 판정(=시뮬레이션)을 15~20번
    *    더 돌릴 이유가 없다. 슬라이더를 한 칸 움직일 때마다 이 훅이 다시 도는 자리다.
    */
-  const requiredMonthlyContribution = useMemo(
+  /*
+   * 🔴 역산은 **급하지 않은 값**이라 `useDeferredValue` 로 미룬다 (2026-08-23, 실측 근거).
+   *
+   * 판정 1회가 시뮬레이션 1회이고 15~20회를 부르므로, 여기가 이 훅에서 유일하게 비싼 자리다:
+   *   종목 2개 10.2ms · 종목 8개 **40.4ms** (비교: 번들 전체 빌드는 각각 3.6ms · 5.3ms).
+   * 입력 한 글자마다 도는 자리라(슬라이더·초기 투자금·주식 수) 8종목에서는 프레임을 떨어뜨린다.
+   *
+   * 미루면 타이핑이 긴급 렌더로 먼저 끝나고 역산은 그다음 저우선순위 렌더에서 돈다 — 빠르게
+   * 이어 치면 React 가 중간 렌더를 **버린다**. 목표 타일이 한 프레임 늦게 갱신되지만, 그건
+   * "월 얼마면 달성" 이라는 참고 값이라 즉시성이 필요 없다.
+   *
+   * 🔴 **입력을 통째로 미룬다** — 도달 판정까지 같은 묶음에 넣는다. 판정만 최신이고 값이 옛것이면
+   *    서로 다른 세대의 입력으로 만든 숫자가 한 화면에 서게 된다.
+   * ⚠ 알고리즘 자체는 건드리지 않았다. 허용오차(1e-4)를 늘리면 3자리 반올림이 흔들리고,
+   *   닫힌 식으로 바꾸는 것은 `SnowballGoalSolver` 가 **일부러 거부한 설계**다(그 머리말:
+   *   엔진을 그대로 여러 번 돌려야 화면이 보여주는 숫자와 어긋날 수 없다).
+   */
+  const solverInput = useMemo(
     () =>
       simulation !== null && simulation.summary.targetMonthDividendReachedYear === undefined
-        ? solveRequiredMonthlyContributionForPortfolio({ isValid, includedProfiles, normalizedAllocation, values })
+        ? { isValid, includedProfiles, normalizedAllocation, values }
         : null,
     [includedProfiles, isValid, normalizedAllocation, simulation, values]
+  );
+  const deferredSolverInput = useDeferredValue(solverInput);
+  const requiredMonthlyContribution = useMemo(
+    () => (deferredSolverInput === null ? null : solveRequiredMonthlyContributionForPortfolio(deferredSolverInput)),
+    [deferredSolverInput]
   );
   /*
    * 파이 중앙 표시값 — 기본은 **종료 시점 보유 기준 예상 월배당**이다(2026-08-14 사용자 결정).
