@@ -750,7 +750,8 @@ const seoAssetsPlugin = (siteUrl: string): Plugin => {
  * `yarn dev`(순수 Vite)에는 서버 런타임이 없어 `/api/*` 가 404 다(그래서 네이버 콜백이 실패했다).
  * 이 플러그인이 Vercel Node 함수의 **default export(= `toNodeHandler(handler)`, Node `(req,res)` 시그니처)** 를
  * 프로덕션과 똑같이 `(req, res)` 로 호출해, `vercel dev` 없이도 로그인(`/api/naver-auth`)·계정삭제
- * (`/api/account-delete`)가 dev 에서 돈다. (핸들러가 내부에서 req 본문 파싱·res 쓰기를 다 한다 —
+ * (`/api/account-delete`)가 dev 에서 돈다. 통합 핸들러로 합쳐진 주소(`/api/fx` 등)는 `loadApiRewrites`
+ * 가 `vercel.json` 의 rewrite 를 그대로 적용해 준다 — 그 머리말에 왜 필요한지 적어 두었다. (핸들러가 내부에서 req 본문 파싱·res 쓰기를 다 한다 —
  * 이 플러그인은 Node req/res 를 그대로 넘길 뿐, Web Request 로 바꾸지 않는다. 바꿔서 넘기면 res 가
  * undefined 가 돼 `res.end` 에서 터진다 — 과거 회귀 이력.)
  *
@@ -763,6 +764,45 @@ const seoAssetsPlugin = (siteUrl: string): Plugin => {
  * `apply: 'serve'` 라 프로덕션 빌드(=Vercel 실제 함수)에는 영향이 없다.
  */
 type NodeApiHandler = (req: IncomingMessage, res: ServerResponse) => void | Promise<void>;
+
+type ApiRewriteRule = { source: string; destination: string };
+
+/**
+ * `vercel.json` 의 **`/api/*` rewrite 표**. dev 에는 그 리라이트가 없으므로 여기서 같은 파일을 읽는다.
+ *
+ * ## 왜 필요한가 (2026-08-23 발견)
+ * 2026-08-15 에 Vercel Hobby 의 **함수 12개 상한**을 맞추려고 외부 조회 셋(fx·market-indices·unfurl)을
+ * `Proxy` 로, 소셜 로그인 둘(kakao·naver)을 `OauthSession` 으로 합쳤다(`manifest.mjs` 머리말).
+ * 공개 URL 은 `vercel.json` rewrite 가 유지했지만, **이 플러그인은 그 통합을 못 따라갔다** —
+ * `/api/fx` 를 매니페스트에서 찾다 없으니 `next()` 로 흘려보냈고, Vite SPA 폴백이 `index.html` 을
+ * **200 으로** 돌려줘서 `response.ok` 가 참인 채 `response.json()` 이 터졌다. 그래서 dev 에서는
+ * 환율·지수·링크 미리보기·소셜 로그인 다섯이 조용히 죽어 있었다(사용자 신고: 로컬에서 환율 미조회).
+ *
+ * 🔴 표를 여기 손으로 적지 않는다 — `vercel.json` 을 읽는다. 손으로 적으면 rewrite 를 하나 더할 때
+ *    **배포는 되는데 dev 만 죽는** 지금 상태가 그대로 재발한다.
+ * ⚠ 파라미터가 있는 source(`:id`)는 건너뛴다. `/api/*` 에는 현재 없고, 생기면 여기서 패턴 매칭이
+ *   필요해지므로 조용히 통과시키지 않고 로그로 알린다.
+ */
+const loadApiRewrites = (logger: { warn: (message: string) => void }): Map<string, string> => {
+  const rewrites = new Map<string, string>();
+  try {
+    const config = JSON.parse(readFileSync(new URL('./vercel.json', import.meta.url), 'utf8')) as {
+      rewrites?: ApiRewriteRule[];
+    };
+    for (const rule of config.rewrites ?? []) {
+      if (!rule.source?.startsWith('/api/') || !rule.destination?.startsWith('/api/')) continue;
+      if (rule.source.includes(':')) {
+        logger.warn(`[api-dev] 파라미터가 있는 rewrite 는 dev 에서 배선하지 않는다: ${rule.source}`);
+        continue;
+      }
+      rewrites.set(rule.source, rule.destination);
+    }
+  } catch (error) {
+    // 무음 실패 금지 — dev 편의 기능이라 서버를 죽이지는 않되, 왜 /api 가 안 도는지는 말해 준다.
+    logger.warn(`[api-dev] vercel.json rewrite 를 읽지 못했다: ${String(error)}`);
+  }
+  return rewrites;
+};
 
 /**
  * `/api/<name>` → 그 핸들러의 **소스** 경로를 찾는다. 없으면 null(→ 미들웨어 pass-through).
@@ -809,7 +849,21 @@ const apiDevPlugin = (): Plugin => ({
   name: 'snowball-api-dev',
   apply: 'serve',
   configureServer(server) {
+    const apiRewrites = loadApiRewrites(server.config.logger);
+
     server.middlewares.use((req, res, next) => {
+      const [requestPath = '', requestQuery] = (req.url ?? '').split('?');
+      /*
+       * 프로덕션에서 vercel.json 이 해 주는 일을 여기서 한 번 한다(`/api/fx` → `/api/proxy?surface=fx`).
+       * 원래 쿼리는 **뒤에** 붙인다 — 목적지가 실은 분기 키(`surface`)라 그것이 먼저 서야 한다.
+       */
+      const destination = apiRewrites.get(requestPath);
+      if (destination) {
+        const [destinationPath, destinationQuery] = destination.split('?');
+        const query = [destinationQuery, requestQuery].filter(Boolean).join('&');
+        req.url = query ? `${destinationPath}?${query}` : destinationPath;
+      }
+
       const path = req.url?.split('?')[0] ?? '';
       const match = /^\/api\/([\w-]+)$/.exec(path);
       if (!match) return next();
