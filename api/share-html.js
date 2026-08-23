@@ -5173,7 +5173,13 @@ var toPortfolioTickerInputs = ({
         dividendYield: profile.dividendYield,
         dividendGrowth: profile.dividendGrowth,
         expectedTotalReturn: profile.expectedTotalReturn,
-        frequency: profile.frequency
+        frequency: profile.frequency,
+        /*
+         * 🔴 **빼지 마라.** 이 한 줄이 없어서 ISA 가 저장·공유·화면에는 있는데 계산에는 닿지 않았다
+         *    (`isaSettlementTax` 가 언제나 0). 선택 필드라 타입도 컴파일도 막아 주지 않는다 —
+         *    `test/snowball/portfolioAccountType.test.ts` 가 유일한 방어선이다.
+         */
+        accountType: profile.accountType
       },
       initialInvestment: initialInvestment * weight,
       monthlyContribution: monthlyContribution * weight,
