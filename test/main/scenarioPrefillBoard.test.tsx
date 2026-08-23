@@ -19,7 +19,12 @@ import {
   weightByTickerIdAtom
 } from '@/jotai';
 import { TOUR_TARGET } from '@/shared/constants';
-import { DEFAULT_PREFILL_PRESET_ID } from '@/pages/Main/utils';
+/**
+ * ⚠ 이 값은 "**유효한 프리셋 id 아무거나**"라는 뜻이다. 예전에는 `DEFAULT_PREFILL_PRESET_ID` 를
+ * 썼지만 2026-08-23 에 고정 프리필을 걷어내면서 그 상수가 사라졌다 — 이 테스트가 보는 것은
+ * 프리필 **상태일 때의 화면**이지 어떤 구성으로 열렸는지가 아니다.
+ */
+const PREFILLED_PRESET_ID = 'stable-dividend-growth';
 
 /**
  * **프리필로 열린 첫 화면**의 계약.
@@ -50,7 +55,7 @@ const seedStore = ({ prefilled }: { prefilled: boolean }) => {
   store.set(includedTickerIdsAtom, [PROFILE.id]);
   store.set(weightByTickerIdAtom, { [PROFILE.id]: 100 });
   if (prefilled) {
-    store.set(scenarioPrefillAtom, { presetId: DEFAULT_PREFILL_PRESET_ID, status: 'applied' });
+    store.set(scenarioPrefillAtom, { presetId: PREFILLED_PRESET_ID, status: 'applied' });
   }
   return store;
 };
@@ -66,6 +71,22 @@ const renderPanel = (prefilled: boolean) => {
 
 const anchors = (): string[] =>
   Array.from(document.querySelectorAll('[data-tour]')).map((node) => node.getAttribute('data-tour') ?? '');
+
+describe('🔴 택일 화면에서 직접 고른 경우에도 보드가 남는다', () => {
+  /**
+   * 2026-08-23 회귀 방지. 첫 방문 자동 프리필을 걷어내면서 결과 아래 프리셋 보드의 조건이
+   * `scenarioPrefill` 하나뿐이라는 사실이 문제가 됐다 — **택일 화면에서 고른 사용자는 프리필이
+   * 아니므로 보드가 사라지고**, 방금 고른 사람이 다른 구성으로 바꿀 길을 잃는다.
+   *
+   * 그래서 조건을 "프리셋을 한 번이라도 적용했는가"로 넓혔다(`appliedPresetId`).
+   * ⚠ 종목을 직접 만들어 나가는 화면에는 여전히 뜨지 않는다 — 그건 아래 기존 단정이 지킨다.
+   */
+  it('프리셋을 적용한 적이 없으면(직접 만든 워크스페이스) 보드를 붙이지 않는다', () => {
+    renderPanel(false);
+
+    expect(anchors()).not.toContain(TOUR_TARGET.portfolioPresets);
+  });
+});
 
 describe('프리필로 열린 결과 화면', () => {
   it('결과가 있어도 프리셋 보드가 함께 서고 투어 앵커가 살아 있다', () => {

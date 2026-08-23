@@ -64,7 +64,11 @@ export const selectedPresetAtom = atomState<'custom' | PresetTickerKey>('custom'
 export const tourLaunchRequestAtom = atomState(0);
 
 /**
- * **첫 방문 기본 시나리오(프리필)의 상태.** 없으면 null.
+ * **프리필 상태.** 없으면 null.
+ *
+ * ⚠ 2026-08-23 부터 프리필은 "첫 방문이면 무조건"이 아니다 — **성향 테스트가 지목한 구성**
+ *   (`/simulator?preset=<id>`)으로 들어왔을 때만 켜진다. 그냥 들어온 첫 방문은 빈 워크스페이스로
+ *   열려 택일 화면이 뜬다(`resolveScenarioPrefillPresetId`).
  *
  * 첫 화면을 "고르는 화면"이 아니라 "이미 돌아가는 화면"으로 열기 위해, 저장된 워크스페이스가
  * 하나도 없을 때 대표 프리셋 하나를 **적용된 상태로** 렌더한다. 이 atom 이 그 상태의 유일한 표식이고

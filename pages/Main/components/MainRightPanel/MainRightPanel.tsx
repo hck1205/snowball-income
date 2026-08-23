@@ -66,7 +66,7 @@ import SettingsEntryButton from '../SettingsEntryButton';
 import { createResultAmountFormatter, formatPercent, targetYearLabel } from '@/pages/Main/utils';
 import {
   useConditionStripItems,
-  usePortfolioPrefill,
+  usePresetPrefill,
   usePortfolioPrefillCommit,
   usePortfolioPresetApply,
   usePresetQueryApply,
@@ -303,7 +303,8 @@ function MainRightPanelComponent({ configDrawerId }: MainRightPanelProps) {
     isPostInvestmentAssetView
   );
 
-  const { pendingPreset, requestApply, cancelApply, confirmApply, applyPresetSilently } = usePortfolioPresetApply({
+  const { pendingPreset, appliedPresetId, requestApply, cancelApply, confirmApply, applyPresetSilently } =
+    usePortfolioPresetApply({
     activeScenarioId,
     renameScenarioTab,
     setTickerProfiles,
@@ -316,20 +317,27 @@ function MainRightPanelComponent({ configDrawerId }: MainRightPanelProps) {
   });
 
   /*
-   * 주소로 지목된 프리셋(`/simulator?preset=<id>`) — 성향 테스트 결과가 여는 진입점이다.
-   * 🔴 `requestApply` 다(조용한 적용이 아니다). 이 경로는 이미 자기 포트폴리오를 만들어 둔 사용자도
-   *   타므로, 링크 한 번에 그것이 덮이면 확인 모달이 막으려던 바로 그 사고가 된다.
+   * 주소로 지목된 프리셋(`/simulator?preset=<id>`) 중 **덮어쓰기가 되는 경우**만 여기서 받는다.
+   * 🔴 빈 워크스페이스는 영속 계층의 프리필이 맡는다 — 둘 다 돌면 조용히 적용된 화면 위에 확인
+   *   모달까지 뜬다(2026-08-23). 그래서 `hasTickerProfiles` 를 넘겨 역할을 가른다.
    */
-  usePresetQueryApply({ requestApply });
+  usePresetQueryApply({ requestApply, hasTickerProfiles: includedProfiles.length > 0 });
 
   /*
-   * 첫 방문 기본 시나리오. **저장소가 비어 있을 때만** 영속 계층이 id 를 발행하고(그 순간부터 저장 정지),
+   * 프리필 적용. **저장소가 비어 있고 성향 테스트가 구성을 지목했을 때만** 영속 계층이 id 를 발행하고(그 순간부터 저장 정지),
    * 여기서 프리셋 카드와 같은 경로로 적용한다. 계측만 쏘지 않는다(프리셋 인기 순위 오염 방지).
    */
-  usePortfolioPrefill({ hasTickerProfiles: tickerProfiles.length > 0, applyPreset: applyPresetSilently });
+  usePresetPrefill({ hasTickerProfiles: tickerProfiles.length > 0, applyPreset: applyPresetSilently });
   /* 프리필이 살아 있는 동안에만 결과 아래에 프리셋 고르개를 붙이고, 배너·"지금 적용됨" 표식을 켠다. */
   const scenarioPrefill = useScenarioPrefillAtomValue();
   const appliedPrefillPresetId = scenarioPrefill?.status === 'applied' ? scenarioPrefill.presetId : null;
+  /**
+   * 결과 아래 프리셋 보드가 가리킬 구성. **프리필이든 사용자가 직접 고른 것이든** 여기로 모인다.
+   *
+   * 🔴 종전에는 프리필만 봤다. 첫 방문 자동 프리필이 사라진 뒤(2026-08-23) 그대로 두면 **택일
+   *   화면에서 고른 사용자에게 보드가 안 뜬다** — 방금 고른 사람이 다른 구성으로 바꿀 길을 잃는다.
+   */
+  const boardPresetId = appliedPrefillPresetId ?? appliedPresetId;
 
   useResultViewAnalytics({
     simulation,
@@ -555,14 +563,16 @@ function MainRightPanelComponent({ configDrawerId }: MainRightPanelProps) {
       {/*
         🔴 결과 그리드의 **형제**다 — 캡처 루트(`ResultGrid`) 안에 넣으면 결과 이미지에 프리셋 13장이
         따라 들어간다. 프리필로 열린 화면에서만 붙인다: 사용자가 자기 포트폴리오를 만든 뒤에도
-        프리셋 벽이 결과 아래에 상주하면 "내 화면"이 아니라 카탈로그가 된다.
+        프리셋 벽이 결과 아래에 상주하면 "내 화면"이 아니라 카탈로그가 된다 — 그래서 조건은
+        "프리셋을 **한 번이라도 적용했는가**"다(프리필이든 택일이든). 종목을 직접 만들어 나가는
+        화면에는 여전히 뜨지 않는다.
         여기에 보드가 서 있는 덕분에 첫 화면에서도 `TOUR_TARGET.portfolioPresets` 앵커가 살아 있다.
       */}
-      {simulation && appliedPrefillPresetId ? (
+      {simulation && boardPresetId ? (
         <PortfolioPresetBoard
           isPortfolioEmpty
           variant="browse"
-          appliedPresetId={appliedPrefillPresetId}
+          appliedPresetId={boardPresetId}
           onPresetSelect={requestApply}
         />
       ) : null}

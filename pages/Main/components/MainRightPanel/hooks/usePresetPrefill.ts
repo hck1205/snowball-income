@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useScenarioPrefillAtomValue, useSetScenarioPrefillWrite } from '@/jotai';
 import { PORTFOLIO_PRESET_PLACEHOLDERS, type PortfolioPresetPlaceholder } from '../components';
 
-type PortfolioPrefillDeps = {
+type PresetPrefillDeps = {
   /** 지금 워크스페이스에 티커가 하나라도 있는가. 있으면 프리필하지 않는다(사용자 데이터가 우선). */
   hasTickerProfiles: boolean;
   /** 프리셋 카드 클릭과 **같은 적용 경로**. 확인 모달을 거치지 않고 곧바로 커밋한다. */
@@ -10,7 +10,15 @@ type PortfolioPrefillDeps = {
 };
 
 /**
- * 첫 방문 기본 시나리오를 **화면에 적용**한다.
+ * **프리셋** 프리필을 화면에 적용한다.
+ *
+ * ⚠ 이름이 `usePortfolioPrefill` 이었다(2026-08-23 개명). 바로 옆에 `usePortfolioPrefillCommit` 이
+ *   있는데 그쪽은 **보유 종목(내 포트폴리오) → 계산기** 프리필이라 하는 일이 완전히 다르다.
+ *   둘이 `MainRightPanel` 에서 나란히 import 되던 터라 접두사만 같은 이름이 실제 혼동 위험이었다.
+ *   지금 이름은 **무엇을 프리필하는지**를 말한다 — 프리셋이다.
+ *
+ * ⚠ 2026-08-23 부터 대상이 좁아졌다. 종전에는 첫 방문이면 무조건 고정 프리셋을 얹었지만, 지금은
+ *   **성향 테스트가 지목한 구성**(`?preset=`)만 온다 — 그냥 들어온 첫 방문은 택일 화면을 본다.
  *
  * 역할 분담: *언제 켤지*는 영속 계층이 정해 `scenarioPrefillAtom` 에 `requested` 로 발행하고
  * (저장된 워크스페이스가 없고 공유 링크도 아닐 때 — `shouldRequestScenarioPrefill`),
@@ -25,7 +33,7 @@ type PortfolioPrefillDeps = {
  *   `requested` 상태로 영원히 잠긴다(무음 데이터 유실).
  * ⚠ 계측은 일부러 발화하지 않는다 — 이유는 `usePortfolioPresetApply.applyPreset` 주석 참고.
  */
-export function usePortfolioPrefill({ hasTickerProfiles, applyPreset }: PortfolioPrefillDeps): void {
+export function usePresetPrefill({ hasTickerProfiles, applyPreset }: PresetPrefillDeps): void {
   const prefill = useScenarioPrefillAtomValue();
   const setPrefill = useSetScenarioPrefillWrite();
   const hasAppliedRef = useRef(false);
