@@ -8,43 +8,48 @@ import {
   computeCapitalGains,
   findFinancialIncomeThresholdYear,
   findTargetYear,
-  runSimulation,
+  runPortfolioSimulation,
   solveRequiredMonthlyContribution,
-  toPriceGrowth
+  toPortfolioSettings,
+  toPortfolioTickerInputs,
+  toPriceGrowth,
+  type PortfolioRoutingMaps
 } from '@/shared/lib/snowball';
 import type { YearlyCashflowByTicker } from '@/shared/lib/charts';
 import type { NormalizedAllocationItem } from './portfolio';
 
-const runForProfile = (
-  profile: TickerProfile,
+/**
+ * 포트폴리오 전체를 **하나의 결합 월 루프**로 돌린다(`runPortfolioSimulation`).
+ *
+ * 🔴 종전에는 종목마다 `runSimulation` 을 따로 돌렸다. 그 구조로는 "A 의 배당으로 B 를 산다"를
+ *    표현할 통로가 없어서 배당 라우팅을 넣을 수 없었다. 라우팅을 지정하지 않으면 결과가 종전과
+ *    한 자리도 다르지 않다 — `test/snowball/coupledEngineParity.test.ts` 가 직접 대조한다.
+ */
+const runPortfolio = (
+  targetProfiles: WeightedTargetProfile[],
+  values: YieldFormValues,
   monthlyContribution: number,
-  initialInvestment: number,
-  values: YieldFormValues
-): SimulationOutput =>
-  runSimulation({
-    ticker: {
-      ticker: profile.ticker,
-      initialPrice: profile.initialPrice,
-      dividendYield: profile.dividendYield,
-      dividendGrowth: profile.dividendGrowth,
-      expectedTotalReturn: profile.expectedTotalReturn,
-      frequency: profile.frequency
-    },
-    settings: {
-      initialInvestment,
+  routing: ReinvestRouting
+): SimulationOutput[] =>
+  runPortfolioSimulation({
+    /* 🔴 공유 카드·PDF 경로(`SnowballScenarioRun`)와 **같은 두 함수**를 부른다 — 그 머리말에
+       왜 한 곳이어야 하는지(두 번 물린 사고) 적어 두었다. */
+    tickers: toPortfolioTickerInputs({
+      entries: targetProfiles,
+      initialInvestment: values.initialInvestment,
       monthlyContribution,
-      targetMonthlyDividend: values.targetMonthlyDividend,
-      investmentStartDate: values.investmentStartDate,
-      durationYears: values.durationYears,
-      reinvestDividends: values.reinvestDividends,
-      reinvestDividendPercent: values.reinvestDividendPercent,
-      taxRate: values.taxRate,
-      reinvestTiming: values.reinvestTiming,
-      dpsGrowthMode: values.dpsGrowthMode
-    }
+      routing
+    }),
+    settings: toPortfolioSettings(values)
   });
 
-type SimulationInputParams = {
+/**
+ * 종목별 배당 라우팅. 둘 다 **선택 입력**이라, 넘기지 않으면 종전 동작(각자 자기 자신 · 전역 비율)이다.
+ * 저장 스키마(`PortfolioPersistedState`)의 같은 이름 필드가 그대로 흘러 들어온다.
+ */
+export type ReinvestRouting = PortfolioRoutingMaps;
+
+type SimulationInputParams = ReinvestRouting & {
   isValid: boolean;
   includedProfiles: TickerProfile[];
   normalizedAllocation: NormalizedAllocationItem[];
@@ -181,13 +186,15 @@ export const buildSimulation = ({
   isValid,
   includedProfiles,
   normalizedAllocation,
-  values
+  values,
+  ...routing
 }: SimulationInputParams): SimulationOutput | null => {
   const bundle = buildSimulationBundle({
     isValid,
     includedProfiles,
     normalizedAllocation,
-    values
+    values,
+    ...routing
   });
   return bundle.simulation;
 };
@@ -206,11 +213,10 @@ export const buildSimulation = ({
 const reachesTargetMonthlyDividend = (
   targetProfiles: WeightedTargetProfile[],
   values: YieldFormValues,
-  monthlyContribution: number
+  monthlyContribution: number,
+  routing: ReinvestRouting
 ): boolean => {
-  const outputs = targetProfiles.map((item) =>
-    runForProfile(item.profile, monthlyContribution * item.weight, values.initialInvestment * item.weight, values)
-  );
+  const outputs = runPortfolio(targetProfiles, values, monthlyContribution, routing);
 
   return findTargetYear(aggregateYearly(outputs), values.targetMonthlyDividend) !== undefined;
 };
@@ -229,7 +235,9 @@ export const solveRequiredMonthlyContributionForPortfolio = ({
   isValid,
   includedProfiles,
   normalizedAllocation,
-  values
+  values,
+  reinvestPercentByTickerId,
+  reinvestTargetByTickerId
 }: SimulationInputParams): number | null => {
   if (!isValid || !(values.targetMonthlyDividend > 0)) return null;
 
@@ -237,7 +245,11 @@ export const solveRequiredMonthlyContributionForPortfolio = ({
   if (targetProfiles.length === 0) return null;
 
   return solveRequiredMonthlyContribution({
-    reachesTarget: (monthlyContribution) => reachesTargetMonthlyDividend(targetProfiles, values, monthlyContribution),
+    reachesTarget: (monthlyContribution) =>
+      reachesTargetMonthlyDividend(targetProfiles, values, monthlyContribution, {
+        reinvestPercentByTickerId,
+        reinvestTargetByTickerId
+      }),
     // 필요한 적립금은 대개 현재 적립금이나 목표 월배당과 비슷한 자릿수다 — 거기서 시작하면 탐색이 짧다.
     probeStart: Math.max(values.monthlyContribution, values.targetMonthlyDividend)
   });
@@ -271,6 +283,8 @@ export const buildSimulationBundle = ({
   includedProfiles,
   normalizedAllocation,
   values,
+  reinvestPercentByTickerId,
+  reinvestTargetByTickerId,
   postInvestmentProjectionYears = DEFAULT_POST_INVESTMENT_PROJECTION_YEARS
 }: SimulationInputParams): {
   simulation: SimulationOutput | null;
@@ -294,10 +308,14 @@ export const buildSimulationBundle = ({
     };
   }
 
-  const outputs: ProfileSimulationOutput[] = targetProfiles.map((item) => ({
+  const portfolioOutputs = runPortfolio(targetProfiles, values, values.monthlyContribution, {
+    reinvestPercentByTickerId,
+    reinvestTargetByTickerId
+  });
+  const outputs: ProfileSimulationOutput[] = targetProfiles.map((item, index) => ({
     ticker: item.profile.ticker,
     name: item.profile.name,
-    output: runForProfile(item.profile, values.monthlyContribution * item.weight, values.initialInvestment * item.weight, values),
+    output: portfolioOutputs[index],
     growthRate: toPriceGrowth(item.profile.dividendGrowth)
   }));
 

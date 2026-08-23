@@ -43,6 +43,14 @@ type CompactPortfolio = {
   w?: Array<[number, number]>;
   f?: number[];
   s?: number;
+  /**
+   * 배당 재투자 라우팅(2026-08-23). 둘 다 **없을 때가 기본**이라 종전 링크가 그대로 열리고,
+   * 라우팅을 안 쓴 시나리오는 링크 길이도 종전과 같다.
+   *  - `rp`: [종목 인덱스, 재투자 비율 %]
+   *  - `rt`: [출발 인덱스, 목적지 인덱스]
+   */
+  rp?: Array<[number, number]>;
+  rt?: Array<[number, number]>;
 };
 
 type CompactInvestmentSettings = {
@@ -193,12 +201,31 @@ export const toCompactPortfolio = (scenario: PersistedScenarioState): CompactPor
 
   const selected = portfolio.selectedTickerId ? indexById.get(portfolio.selectedTickerId) : undefined;
 
+  const reinvestPercents = Object.entries(portfolio.reinvestPercentByTickerId ?? {})
+    .map(([id, percent]) => [indexById.get(id), Number(percent)] as const)
+    .filter((entry): entry is readonly [number, number] => {
+      const [index, percent] = entry;
+      return Number.isInteger(index) && Number.isFinite(percent) && percent >= 0 && percent <= 100;
+    })
+    .map(([index, percent]) => [index, percent] as [number, number]);
+
+  /* 목적지가 자기 자신이면 싣지 않는다 — 그게 기본값이라 링크만 길어진다. */
+  const reinvestTargets = Object.entries(portfolio.reinvestTargetByTickerId ?? {})
+    .map(([id, targetId]) => [indexById.get(id), indexById.get(targetId)] as const)
+    .filter((entry): entry is readonly [number, number] => {
+      const [index, target] = entry;
+      return Number.isInteger(index) && Number.isInteger(target) && index !== target;
+    })
+    .map(([index, target]) => [index, target] as [number, number]);
+
   return {
     t: tickers,
     ...(isDefaultIncluded ? null : { i: included }),
     ...(weights.length ? { w: weights } : null),
     ...(fixed.length ? { f: fixed } : null),
-    ...(Number.isInteger(selected) ? { s: selected } : null)
+    ...(Number.isInteger(selected) ? { s: selected } : null),
+    ...(reinvestPercents.length ? { rp: reinvestPercents } : null),
+    ...(reinvestTargets.length ? { rt: reinvestTargets } : null)
   };
 };
 
@@ -305,12 +332,37 @@ export const decodeCompactPortfolio = (compact: CompactPortfolio): PortfolioPers
       ? indexToId[selectedIndexRaw]
       : null;
 
+  /* 모르는 값·범위 밖은 전부 버린다 — 남의 링크를 못 여는 것보다 기본 동작으로 떨어지는 게 낫다. */
+  const reinvestPercentByTickerId = Array.isArray(compact.rp)
+    ? compact.rp.reduce<Record<string, number>>((acc, entry) => {
+        if (!Array.isArray(entry) || entry.length < 2) return acc;
+        const [index, percent] = entry;
+        if (!Number.isInteger(index) || index < 0 || index > maxIndex) return acc;
+        if (!Number.isFinite(percent) || percent < 0 || percent > 100) return acc;
+        acc[indexToId[index]] = Number(percent);
+        return acc;
+      }, {})
+    : {};
+
+  const reinvestTargetByTickerId = Array.isArray(compact.rt)
+    ? compact.rt.reduce<Record<string, string>>((acc, entry) => {
+        if (!Array.isArray(entry) || entry.length < 2) return acc;
+        const [index, target] = entry;
+        if (!Number.isInteger(index) || index < 0 || index > maxIndex) return acc;
+        if (!Number.isInteger(target) || target < 0 || target > maxIndex) return acc;
+        acc[indexToId[index]] = indexToId[target];
+        return acc;
+      }, {})
+    : {};
+
   return {
     tickerProfiles,
     includedTickerIds,
     weightByTickerId,
     fixedByTickerId,
-    selectedTickerId
+    selectedTickerId,
+    reinvestPercentByTickerId,
+    reinvestTargetByTickerId
   };
 };
 

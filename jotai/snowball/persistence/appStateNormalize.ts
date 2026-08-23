@@ -134,12 +134,35 @@ export const sanitizePortfolioState = (input: unknown): PortfolioPersistedState 
   }, {});
   const selectedTickerId = parsed.selectedTickerId && idSet.has(parsed.selectedTickerId) ? parsed.selectedTickerId : null;
 
+  /* 배당 재투자 비율(%) — 없는 종목 키와 범위 밖 값은 버린다(= 전역값으로 떨어진다). */
+  const reinvestPercentByTickerId = Object.entries(parsed.reinvestPercentByTickerId ?? {}).reduce<Record<string, number>>(
+    (acc, [id, value]) => {
+      if (!idSet.has(id)) return acc;
+      const next = Number(value);
+      if (!Number.isFinite(next) || next < 0 || next > 100) return acc;
+      acc[id] = next;
+      return acc;
+    },
+    {}
+  );
+  /* 배당 목적지 — **출발지도 목적지도** 살아 있는 종목이어야 한다. 아니면 버린다(= 자기 자신). */
+  const reinvestTargetByTickerId = Object.entries(parsed.reinvestTargetByTickerId ?? {}).reduce<Record<string, string>>(
+    (acc, [id, value]) => {
+      if (!idSet.has(id) || typeof value !== 'string' || !idSet.has(value)) return acc;
+      acc[id] = value;
+      return acc;
+    },
+    {}
+  );
+
   return {
     tickerProfiles: profiles,
     includedTickerIds,
     weightByTickerId,
     fixedByTickerId,
-    selectedTickerId
+    selectedTickerId,
+    reinvestPercentByTickerId,
+    reinvestTargetByTickerId
   };
 };
 

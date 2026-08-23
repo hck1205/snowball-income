@@ -6,6 +6,7 @@ import { CloudReconcileModal } from "@/components/CloudReconcileModal";
 import { previewBlend } from "@/jotai/snowball/cloud";
 import MainContentLoader from "@/pages/Main/components/MainContentLoader";
 import { DrawerResultStrip, SettingsToolsSection } from "./components";
+import { useReinvestRouting } from "./hooks";
 import {
   useDisplayCurrencyViewAtomValue,
   useIncludedTickerIdsAtomValue,
@@ -45,6 +46,9 @@ function MainLeftPanelComponent({
   const setDisplayCurrency = useSetDisplayCurrencyWrite();
   const setActiveHelp = useSetActiveHelpWrite();
   const { values, validation, setField } = useSnowballForm();
+  /* 종목별 배당 재투자(비율·목적지) — 읽기·쓰기 규칙은 훅이 갖는다. */
+  const reinvestRouting = useReinvestRouting(values.reinvestDividendPercent);
+
   const {
     openTickerModal,
     handleTickerChipClick,
@@ -171,6 +175,7 @@ function MainLeftPanelComponent({
         onOpenEdit={openTickerEditModal}
       />
       <InvestmentSettings
+        reinvestRouting={reinvestRouting}
         values={values}
         showQuickEstimate={showQuickEstimate}
         showSplitGraphs={showSplitGraphs}

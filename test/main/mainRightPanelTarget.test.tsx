@@ -164,6 +164,13 @@ function SettingsAndResults() {
   return (
     <>
       <InvestmentSettings
+        reinvestRouting={{
+          includedProfiles: [],
+          percentByTickerId: {},
+          targetByTickerId: {},
+          onSetPercent: () => undefined,
+          onSetTarget: () => undefined
+        }}
         values={values}
         showQuickEstimate={false}
         showSplitGraphs={false}

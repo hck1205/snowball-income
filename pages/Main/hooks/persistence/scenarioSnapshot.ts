@@ -63,6 +63,8 @@ export const isSameScenarioContent = (a: ScenarioContent, b: ScenarioContent): b
     a.portfolio.includedTickerIds === b.portfolio.includedTickerIds &&
     a.portfolio.weightByTickerId === b.portfolio.weightByTickerId &&
     a.portfolio.fixedByTickerId === b.portfolio.fixedByTickerId &&
+    a.portfolio.reinvestPercentByTickerId === b.portfolio.reinvestPercentByTickerId &&
+    a.portfolio.reinvestTargetByTickerId === b.portfolio.reinvestTargetByTickerId &&
     a.portfolio.selectedTickerId === b.portfolio.selectedTickerId;
 
   const isSameInvestmentSettings =

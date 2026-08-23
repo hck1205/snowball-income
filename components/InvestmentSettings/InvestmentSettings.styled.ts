@@ -28,6 +28,16 @@ export const ReinvestPercentField = styled.div`
   gap: ${space[1]};
 `;
 
+/**
+ * 비율 앞의 "기본" 표기. 이 숫자는 포트폴리오 전체 비율이 아니라 **종목별 값이 없을 때의 기본값**
+ * 이다(종목별 재투자 도입, 2026-08-23). 이 낱말이 없으면 한 종목만 달라져도 화면이 거짓을 말한다.
+ */
+export const ReinvestPercentPrefix = styled.span`
+  color: ${color.textMuted};
+  font-size: ${font.size.xs};
+  white-space: nowrap;
+`;
+
 export const ReinvestPercentInput = styled.input`
   width: 64px;
   height: 32px;
