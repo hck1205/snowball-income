@@ -33,7 +33,8 @@ const stackedLegendItem = `
   grid-template-columns: 16px 40px minmax(0, 1fr) 60px;
   grid-template-areas:
     'dot name name value'
-    'dot slider slider fix';
+    'dot slider slider fix'
+    'sub sub sub sub';
   gap: ${space[2]};
 `;
 
@@ -45,8 +46,12 @@ export const AllocationLegendItem = styled.li`
    * 카드 헤더의 "비율 조절 잠금" 토글이 그 오조작을 원천 차단하면서 근거가 사라졌다.
    */
   grid-template-columns: 16px 72px minmax(120px, 1fr) 52px 60px;
-  grid-template-areas: 'dot name slider value fix';
+  /* 2행: 주식 수·금액·월 배당. 슬라이더 행과 같은 값을 다른 단위로 읽은 것이라 같은 행 묶음 안에 산다. */
+  grid-template-areas:
+    'dot name slider value fix'
+    'sub sub sub sub sub';
   gap: ${space[2]};
+  row-gap: ${space[1]};
   align-items: center;
   font-size: ${font.size.xs};
   color: ${color.textSecondary};
@@ -266,4 +271,118 @@ export const AllocationClearFixedButton = styled.button`
   &:hover {
     color: ${color.text};
   }
+`;
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * 보유 줄 — 비중 슬라이더 바로 아래에서 같은 배분을 "몇 주 · 얼마 · 월 얼마"로 읽는다.
+ *
+ * 슬라이더 위에 얹지 않고 **아래 줄**로 뺀 이유: 트랙 위에 텍스트를 얹지 않는다는 이 파일의
+ * 규율(AllocationLegendSlider 머리말)과, 8프리셋 × 라이트/다크에서 시리즈 색 위 명암이 갈리는 문제.
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+/**
+ * 범례 열. `AllocationLegend`(ul) 아래에 합계 줄(p)을 세우려면 둘을 한 칸에 묶어야 한다 —
+ * 차트 레이아웃이 auto-fit 그리드라 자식을 하나 더 두면 세 번째 칸이 생긴다.
+ */
+export const AllocationLegendColumn = styled.div`
+  min-width: 0;
+`;
+
+export const AllocationHoldingRow = styled.div`
+  grid-area: sub;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: ${space[1]} ${space[2]};
+  /* 색 점 폭 + 열 간격 — 위 줄의 티커명과 같은 세로선에서 시작한다. */
+  padding-left: calc(16px + ${space[2]});
+  min-width: 0;
+  color: ${color.textMuted};
+`;
+
+/**
+ * 수량 입력 자리. 크기는 `QuantityInput` 의 `size="sm"` 이 정하고(28px·100px), 여기서는 그 칸이
+ * 줄어들거나 늘어나지 않게만 잡는다 — 행의 다른 값들이 같은 세로선에서 시작해야 위아래가 읽힌다.
+ * ⚠ 여기서 input 을 CSS 로 다시 키우지 마라. 크기는 그 컴포넌트가 소유한다.
+ */
+export const AllocationHoldingField = styled.span`
+  display: inline-flex;
+  flex: 0 0 auto;
+`;
+
+/** 평가 금액 — 참고 값이라 강조하지 않는다(강조는 월 배당 하나만 받는다). */
+export const AllocationHoldingAmount = styled.span`
+  color: ${color.textSecondary};
+  ${font.numeric};
+`;
+
+/**
+ * 이 종목이 **지금 기준 매달 주는 돈**. 행에서 유일하게 강조되는 숫자다 —
+ * 사용자가 수량을 치는 이유가 이 값을 보기 위해서다.
+ */
+export const AllocationHoldingDividend = styled.span`
+  color: ${color.text};
+  font-weight: ${font.weight.semibold};
+  ${font.numeric};
+`;
+
+/** 값 사이 구분점. 장식이라 낭독에서 뺀다(호출부가 aria-hidden 을 붙인다). */
+export const AllocationHoldingDivider = styled.span`
+  color: ${color.borderStrong};
+`;
+
+/**
+ * 합계 줄. 종목 행과 같은 항목을 같은 순서로 읽되, 왼쪽 라벨이 '합계'로 바뀐다.
+ * 기준(시작 시점·세후)을 여기 한 번만 적는다 — 행마다 반복하면 숫자가 안 읽힌다.
+ */
+export const AllocationHoldingTotal = styled.p`
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: ${space[1]} ${space[2]};
+  margin: ${space[2]} 0 0;
+  padding: ${space[2]} 0 0;
+  padding-left: calc(16px + ${space[2]});
+  border-top: 1px solid ${color.border};
+  font-size: ${font.size.xs};
+  color: ${color.textMuted};
+`;
+
+export const AllocationHoldingTotalLabel = styled.span`
+  color: ${color.textSecondary};
+  font-weight: ${font.weight.medium};
+`;
+
+/** 기준 표기. 값이 아니라 조건이라 오른쪽 끝으로 밀어 숫자 흐름과 섞이지 않게 한다. */
+export const AllocationHoldingBasis = styled.span`
+  margin-left: auto;
+  color: ${color.textMuted};
+`;
+
+/**
+ * 수량 입력이 잠긴 사유 줄. 합계 아래에 한 번만 선다 — 행마다 반복하면 정작 숫자가 안 읽힌다.
+ * 슬라이더 비활성 사유(AllocationHint)와 **다른 줄**이다: 저쪽은 비중 조절, 이쪽은 주식 수다.
+ */
+export const AllocationHoldingNotice = styled.p`
+  display: flex;
+  align-items: flex-start;
+  gap: ${space[1]};
+  margin: ${space[1]} 0 0;
+  padding-left: calc(16px + ${space[2]});
+  font-size: ${font.size.xs};
+  color: ${color.textMuted};
+  line-height: ${font.leading.normal};
+`;
+
+/** 낭독 전용 라벨 — 화면에서는 열/맥락이 대신하지만 스크린리더는 셀만 읽는다. */
+export const AllocationSrOnly = styled.span`
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 `;

@@ -46,6 +46,10 @@ const renderComposition = (profiles: TickerProfile[], overrides: Overrides = {})
     fixedByTickerId: {},
     adjustableTickerCount: profiles.length,
     onSetTickerWeight: vi.fn(),
+    onSetTickerShares: vi.fn(),
+    holdings: { byTickerId: {}, totalAmount: 0, totalMonthlyDividend: 0, hasUnpricedShares: false, usesFxRate: false },
+    formatAmount: (value: number) => `${value}원`,
+    fxRate: 1390,
     onToggleTickerFixed: vi.fn(),
     onClearAllFixed: vi.fn(),
     onRemoveIncludedTicker: vi.fn(),
@@ -324,5 +328,144 @@ describe('PortfolioComposition — 슬라이더 트랙 색 = 도넛 조각 색',
 
     expect(screen.getByRole('checkbox', { name: ALLOCATION_COPY.lockToggleLabel })).toBeInTheDocument();
     expect(screen.getByRole('checkbox', { name: ALLOCATION_COPY.dividendCenterToggleLabel })).toBeInTheDocument();
+  });
+});
+
+/**
+ * 보유 줄 — 주식 수 입력은 비중 슬라이더와 **같은 배분**을 반대 방향에서 만진다.
+ * 여기서 보는 것은 화면의 계약뿐이다(총액·비중을 실제로 어떻게 다시 계산하는지는
+ * `test/main/allocationShares.test.ts` 의 순수 함수 테스트가 맡는다).
+ */
+describe('PortfolioComposition — 주식 수 입력', () => {
+  const holdingsFor = (shares: number | null, amount: number, monthlyDividend: number) => ({
+    byTickerId: { a: { shares, amount, monthlyDividend } },
+    totalAmount: amount,
+    totalMonthlyDividend: monthlyDividend,
+    hasUnpricedShares: shares === null,
+    usesFxRate: false
+  });
+
+  const sharesInput = (ticker: string) =>
+    screen.getByRole('textbox', { name: ALLOCATION_COPY.sharesInputAria(ticker) });
+
+  it('배분에서 되읽은 주식 수를 보여준다', () => {
+    renderComposition([makeProfile('a', 'AAA')], { holdings: holdingsFor(120, 12_000_000, 35_000) });
+
+    expect(sharesInput('AAA')).toHaveValue('120');
+  });
+
+  it('부동소수 잡음은 표시에서 접는다 — 방금 친 숫자가 그대로 서 있어야 한다', () => {
+    renderComposition([makeProfile('a', 'AAA')], { holdings: holdingsFor(119.99999999, 12_000_000, 35_000) });
+
+    expect(sharesInput('AAA')).toHaveValue('120');
+  });
+
+  it('수량을 고치면 그 값으로 배분을 바꾼다', async () => {
+    const user = userEvent.setup();
+    const { props } = renderComposition([makeProfile('a', 'AAA')], {
+      holdings: holdingsFor(0, 0, 0)
+    });
+
+    await user.type(sharesInput('AAA'), '12');
+
+    // 타건마다 즉시 반영한다 — 값이 바뀌는 순간 월 배당이 갱신되는 것이 이 입력의 목적이다.
+    expect(props.onSetTickerShares).toHaveBeenCalledWith('a', 1);
+    expect(props.onSetTickerShares).toHaveBeenLastCalledWith('a', 12);
+  });
+
+  it('지우는 중(빈 값)에는 배분을 건드리지 않는다', async () => {
+    const user = userEvent.setup();
+    const { props } = renderComposition([makeProfile('a', 'AAA')], {
+      holdings: holdingsFor(120, 12_000_000, 35_000)
+    });
+
+    await user.clear(sharesInput('AAA'));
+
+    // 비웠다고 0주로 커밋하면 그 종목 비중이 무너졌다가 다음 타건에 되살아난다.
+    expect(props.onSetTickerShares).not.toHaveBeenCalled();
+    expect(sharesInput('AAA')).toHaveValue('');
+  });
+
+  it('포커스를 잃으면 표시값이 다시 배분에서 파생된다', async () => {
+    const user = userEvent.setup();
+    renderComposition([makeProfile('a', 'AAA')], { holdings: holdingsFor(120, 12_000_000, 35_000) });
+
+    await user.clear(sharesInput('AAA'));
+    await user.tab();
+
+    expect(sharesInput('AAA')).toHaveValue('120');
+  });
+
+  it('그 종목의 금액과 월 배당을 같은 줄에서 보여준다', () => {
+    renderComposition([makeProfile('a', 'AAA')], {
+      holdings: holdingsFor(120, 12_000_000, 35_000),
+      formatAmount: (value: number) => `<${value}>`
+    });
+
+    expect(screen.getAllByText(/<12000000>/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/<35000>/).length).toBeGreaterThan(0);
+  });
+
+  it('합계와 기준(시작 시점·세후)을 한 번만 밝힌다', () => {
+    renderComposition([makeProfile('a', 'AAA')], { holdings: holdingsFor(120, 12_000_000, 35_000) });
+
+    expect(screen.getByText(ALLOCATION_COPY.holdingTotalLabel)).toBeInTheDocument();
+    expect(screen.getByText(ALLOCATION_COPY.holdingBasisNote)).toBeInTheDocument();
+  });
+});
+
+describe('PortfolioComposition — 환율이 없을 때', () => {
+  const sharesInput = (ticker: string) =>
+    screen.getByRole('textbox', { name: ALLOCATION_COPY.sharesInputAria(ticker) });
+
+  const unpriced = {
+    byTickerId: { a: { shares: null, amount: 12_000_000, monthlyDividend: 35_000 } },
+    totalAmount: 12_000_000,
+    totalMonthlyDividend: 35_000,
+    hasUnpricedShares: true,
+    usesFxRate: false
+  };
+
+  it('수량 입력을 잠그고 사유를 낭독까지 연결한다 (무음 비활성 금지)', () => {
+    renderComposition([makeProfile('a', 'AAA')], { holdings: unpriced, fxRate: null });
+
+    expect(sharesInput('AAA')).toBeDisabled();
+    expect(screen.getByText(ALLOCATION_COPY.holdingFxUnavailable)).toBeInTheDocument();
+    expect(sharesInput('AAA')).toHaveAccessibleDescription(ALLOCATION_COPY.holdingFxUnavailable);
+  });
+
+  it('낼 수 없는 주식 수를 0주로 지어내지 않는다', () => {
+    renderComposition([makeProfile('a', 'AAA')], { holdings: unpriced, fxRate: null });
+
+    expect(sharesInput('AAA')).toHaveValue('');
+  });
+
+  it('금액과 월 배당은 그대로 보여준다 — 환율과 무관하게 정확하다', () => {
+    renderComposition([makeProfile('a', 'AAA')], {
+      holdings: unpriced,
+      fxRate: null,
+      formatAmount: (value: number) => `<${value}>`
+    });
+
+    expect(screen.getAllByText(/<12000000>/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/<35000>/).length).toBeGreaterThan(0);
+  });
+
+  it('환율을 실제로 쓴 경우에만 적용 환율을 밝힌다', () => {
+    const { unmount } = renderComposition([makeProfile('a', 'AAA')], {
+      holdings: {
+        byTickerId: { a: { shares: 120, amount: 12_000_000, monthlyDividend: 35_000 } },
+        totalAmount: 12_000_000,
+        totalMonthlyDividend: 35_000,
+        hasUnpricedShares: false,
+        usesFxRate: true
+      },
+      fxRate: 1390
+    });
+    expect(screen.getByText(/환율 1,390원 적용/)).toBeInTheDocument();
+    unmount();
+
+    renderComposition([makeProfile('a', 'AAA')], { holdings: unpriced, fxRate: null });
+    expect(screen.queryByText(/환율 .*원 적용/)).not.toBeInTheDocument();
   });
 });

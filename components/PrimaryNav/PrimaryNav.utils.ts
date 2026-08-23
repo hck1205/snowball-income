@@ -115,26 +115,29 @@ export const TICKER_GROUP_ITEMS = [
 ] as const;
 
 /**
- * 내 자산계획 — 시뮬레이터 · 나의 배당 포트폴리오 · 가계부. 셋 다 주어가 '나'다.
- * 순서는 **계획 → 지금 → 흐름**이다: 앞으로 얼마가 될지, 지금 무엇을 갖고 있는지, 매달 얼마가 들고 나는지.
+ * 내 자산계획 — 시뮬레이터 · 나의 배당 포트폴리오 · 투자 성향 테스트 · 가계부. 넷 다 주어가 '나'다.
+ * 순서는 **계획 → 지금 → 나 → 흐름**이다: 앞으로 얼마가 될지, 지금 무엇을 갖고 있는지,
+ * 나는 어떤 성향인지, 매달 얼마가 들고 나는지.
  *
  * 🔴 `sheetsOnly` 는 가계부 전용 플래그다. `isGoogleSheetsEnabled` 가 false 면 `/ledger` 라우트가
  *    **존재하지 않으므로**(routes.tsx) 이 항목도 지워야 한다 — 남기면 404 로 가는 죽은 링크다.
  */
 export const PERSONAL_GROUP_ITEMS = [
+  { to: SIMULATOR_PATH, label: n.simulator, Icon: LineChart, sheetsOnly: false },
+  { to: '/dividend/portfolio', label: n.myPortfolio, Icon: Wallet, sheetsOnly: false },
   /*
-   * 🔴 성향 테스트가 **맨 앞**이다(2026-08-22). 이 묶음의 순서는 계획 → 지금 → 흐름이었는데,
-   * 그 앞에 "나를 안다"가 온다 — 무엇을 계획할지 정하기 전에 오는 단계라 자리가 앞이다.
+   * 🔴 자리는 **'나의 배당 포트폴리오' 바로 밑**이다(2026-08-23 사용자 지시). 2026-08-22 에는 이
+   *    묶음의 **맨 앞**이었다 — "무엇을 계획할지 정하기 전에 나를 안다"는 순서였는데 사용자가 뒤로
+   *    물렸다. 앞으로 되돌리려면 사용자에게 물어라.
    *
-   * 여기에 넣은 이유는 GA4 실측이다: 랜딩(`/`)에 닿는 세션이 28일간 **5건**뿐이라, 랜딩 히어로의
-   * 수준 4갈래만으로는 이 테스트가 노출될 길이 사실상 없었다(`/simulator` 54 · `/dividend/portfolio` 21).
-   * 내비는 도착 지점과 무관하게 모든 화면에 있으므로, 유입 구조가 이런 동안은 여기가 유일하게
-   * 실효가 있는 자리다.
+   * 이 묶음에 **있는** 이유는 자리와 별개로 여전히 유효하다 — GA4 실측이다. 랜딩(`/`)에 닿는 세션이
+   * 28일간 **5건**뿐이라, 랜딩 히어로의 수준 4갈래만으로는 이 테스트가 노출될 길이 사실상 없었다
+   * (`/simulator` 54 · `/dividend/portfolio` 21). 내비는 도착 지점과 무관하게 모든 화면에 있으므로,
+   * 유입 구조가 이런 동안은 여기가 유일하게 실효가 있는 자리다. 바로 위가 그 21건이 닿는 화면이라
+   * 트래픽이 있는 항목 옆에 선다.
    * ⚠ 랜딩 유입이 늘면 이 항목의 값어치를 다시 재라 — 내비 자리는 공짜가 아니다.
    */
   { to: INVESTOR_TYPE_PATH, label: n.investorType, Icon: Compass, sheetsOnly: false },
-  { to: SIMULATOR_PATH, label: n.simulator, Icon: LineChart, sheetsOnly: false },
-  { to: '/dividend/portfolio', label: n.myPortfolio, Icon: Wallet, sheetsOnly: false },
   { to: '/ledger', label: n.ledger, Icon: ReceiptText, sheetsOnly: true }
 ] as const;
 
