@@ -1737,12 +1737,19 @@ var marketData_generated_default = {
       frequency: "quarterly",
       observedDividendCagr: 8.9,
       payoutMonths: [
-        1,
-        4,
-        7,
-        10
+        2,
+        5,
+        6,
+        11
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 31,
+      estimatedPayDayByMonth: {
+        "2": 27,
+        "5": 30,
+        "6": 3,
+        "11": 27
+      }
     },
     CARZ: {
       initialPrice: 111.58,
@@ -2657,8 +2664,8 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 5,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "3": 31,
         "6": 30,
