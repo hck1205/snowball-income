@@ -131,4 +131,10 @@ export * from './meta';
 export * from './tsla';
 export * from './tsm';
 export * from './asml';
+/* 6차 확충(2026-08-26) — 지수·섹터 ETF 5종 */
+export * from './qqqm';
+export * from './schg';
+export * from './mgk';
+export * from './xlk';
+export * from './vgt';
 export * from './registry';

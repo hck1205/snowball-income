@@ -138,7 +138,13 @@ export const TICKER_PAGE_INDEX = [
   { symbol: 'META', slug: 'meta' },
   { symbol: 'TSLA', slug: 'tsla' },
   { symbol: 'TSM', slug: 'tsm' },
-  { symbol: 'ASML', slug: 'asml' }
+  { symbol: 'ASML', slug: 'asml' },
+  /* 6차 확충(2026-08-26) — 지수 ETF 3종 + 기술 섹터 ETF 2종 */
+  { symbol: 'QQQM', slug: 'qqqm' },
+  { symbol: 'SCHG', slug: 'schg' },
+  { symbol: 'MGK', slug: 'mgk' },
+  { symbol: 'XLK', slug: 'xlk' },
+  { symbol: 'VGT', slug: 'vgt' }
 ] as const;
 
 /** 인덱스 한 줄. 심볼은 대문자, slug 는 소문자(라우트 파라미터와 같은 형태). */
