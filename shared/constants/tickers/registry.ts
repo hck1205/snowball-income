@@ -121,6 +121,11 @@ import { META_TICKER_CONTENT } from './meta';
 import { TSLA_TICKER_CONTENT } from './tsla';
 import { TSM_TICKER_CONTENT } from './tsm';
 import { ASML_TICKER_CONTENT } from './asml';
+import { QQQM_TICKER_CONTENT } from './qqqm';
+import { SCHG_TICKER_CONTENT } from './schg';
+import { MGK_TICKER_CONTENT } from './mgk';
+import { XLK_TICKER_CONTENT } from './xlk';
+import { VGT_TICKER_CONTENT } from './vgt';
 
 /**
  * 콘텐츠 엔트리가 준비된 티커만 이 레지스트리에 있다 — `PresetTickerKey`(계산 유니버스 전체)의
@@ -167,6 +172,19 @@ import { ASML_TICKER_CONTENT } from './asml';
  * AMZN·TSLA 는 배당이 아예 없어(`frequency: 'none'`) 페이지가 "이 종목은 배당을 주지 않는다"를
  * 먼저 말하고, 배당 0인 종목이 이 앱의 정합 모델에서 어떻게 계산되는지를 본문으로 다룬다.
  * NVDA 는 2026년 5월 분기 배당을 0.01→0.25달러(2,400%)로 올린 사실을 그대로 싣는다.
+ * 2026-08-26: 6차 확충 5종 추가(120→125종) — 지수 ETF(QQQM·SCHG·MGK)와 기술 섹터 ETF(XLK·VGT).
+ * 사용자가 "인기 상위" 기준으로 고른 묶음이고, 다섯 종 모두 프리셋에는 이미 있었으나 소개 글이
+ * 없던 티커다. ⚠ **이 배치는 5차까지와 달리 성격이 서로 가까운 종목이 섞여 있다**(XLK ↔ VGT 는
+ * 같은 GICS 기술 섹터를 담고, SCHG ↔ MGK ↔ VUG 는 같은 대형 성장 대역이다). 얇은 콘텐츠 판정을
+ * 피하려고 **각 페이지가 "무엇이 다른가" 하나를 서사의 중심에 놓았다**: QQQM 은 2025년 QQQ 펀드
+ * 현대화로 보수 격차가 0.05→0.03%포인트로 좁아진 사건, SCHG 는 VUG 와 지수 제공사가 갈라 성장주
+ * 판정 기준이 다르다는 점, MGK 는 60종만 담는 집중도, XLK 는 S&P 500 회원 자격이 곧 입장권이라
+ * 중소형이 통째로 빠진다는 점, VGT 는 소형까지 담아 320종이라는 점이다. 같은 뼈대에 숫자만
+ * 바꾸지 않았다는 근거가 이 다섯 문장이다.
+ * 이 확충으로 카테고리가 하나 늘었다(`sector`) — 한 산업에 집중한 상품을 코어 지수와 같은 칸에
+ * 두면 그 묶음의 `caution` 한 줄이 거짓말이 된다(레버리지를 가른 것과 같은 기준).
+ * 발행사 1차 자료로 읽힌 것은 XLK(SSGA)뿐이고 나머지 넷은 스크립트 렌더·403 이라 애그리게이터
+ * 교차 확인으로 대체했다. 보유 종목 수가 출처마다 갈린 QQQM·SCHG 는 **그 값을 비웠다.**
  *
  * ⚠ 티커 하나를 추가하면 손댈 곳은 **셋**이다: 이 레지스트리, `index.ts` 배럴, 그리고
  * `shared/constants/tickerPages/index.ts` 의 `TICKER_PAGE_INDEX`(랜딩 검색용 경량 인덱스).
@@ -292,7 +310,12 @@ export const TICKER_CONTENT_REGISTRY = {
   META: META_TICKER_CONTENT,
   TSLA: TSLA_TICKER_CONTENT,
   TSM: TSM_TICKER_CONTENT,
-  ASML: ASML_TICKER_CONTENT
+  ASML: ASML_TICKER_CONTENT,
+  QQQM: QQQM_TICKER_CONTENT,
+  SCHG: SCHG_TICKER_CONTENT,
+  MGK: MGK_TICKER_CONTENT,
+  XLK: XLK_TICKER_CONTENT,
+  VGT: VGT_TICKER_CONTENT
 } as const satisfies Partial<Record<PresetTickerKey, TickerContent>>;
 
 /** SEO 콘텐츠가 준비된 티커 심볼만의 유니언 — `PresetTickerKey`의 부분집합. */
