@@ -126,6 +126,9 @@ import { SCHG_TICKER_CONTENT } from './schg';
 import { MGK_TICKER_CONTENT } from './mgk';
 import { XLK_TICKER_CONTENT } from './xlk';
 import { VGT_TICKER_CONTENT } from './vgt';
+import { SBUX_TICKER_CONTENT } from './sbux';
+import { DIS_TICKER_CONTENT } from './dis';
+import { INTC_TICKER_CONTENT } from './intc';
 
 /**
  * 콘텐츠 엔트리가 준비된 티커만 이 레지스트리에 있다 — `PresetTickerKey`(계산 유니버스 전체)의
@@ -185,6 +188,23 @@ import { VGT_TICKER_CONTENT } from './vgt';
  * 두면 그 묶음의 `caution` 한 줄이 거짓말이 된다(레버리지를 가른 것과 같은 기준).
  * 발행사 1차 자료로 읽힌 것은 XLK(SSGA)뿐이고 나머지 넷은 스크립트 렌더·403 이라 애그리게이터
  * 교차 확인으로 대체했다. 보유 종목 수가 출처마다 갈린 QQQM·SCHG 는 **그 값을 비웠다.**
+ * 2026-08-30: 7차 확충 3종 추가(125→128종) — 인지도 높은 개별 종목(SBUX·DIS·INTC).
+ * 사용자가 "인지도 높은 개별 종목"으로 고른 묶음이고, **셋의 배당 이력이 서로 다른 결말을**
+ * **갖는다는 것이 이 배치를 고른 유일한 기준이다**(같은 뼈대에 숫자만 바꾸지 않았다는 근거).
+ * SBUX 는 15년 연속 인상을 지키고 있지만 배당성향이 142%까지 올라가 최근 1년 인상률이 1.64%로
+ * 눌린 종목이고, DIS 는 48개월간 배당이 끊겼다가 2024년 1월 재개해 반기 배당이 0.30→0.75달러가
+ * 된 종목이며, INTC 는 2023년 2월 66% 삭감에 이어 2024년 9월 지급을 끝으로 배당이 사라진 종목이다.
+ * 유지 / 중단 후 재개 / 소멸 — 배당이 갈 수 있는 세 갈래를 각각 하나씩 맡는다.
+ * INTC 는 배당이 없어(`frequency: 'none'` · `dividendYield: 0`) `growth-stock` 에 넣었다. 그
+ * 카테고리 caution("배당 현금흐름을 만들지 못합니다")이 정확히 맞는 반면 description 은 "배당을
+ * 시작한 지 얼마 되지 않은" 종목만 상정하고 있어, **배당을 멈춘 종목까지 포함하도록 그 한 줄을
+ * 함께 넓혔다**(`TickerCategory.ts`). 카테고리를 새로 만들지 않은 이유는 caution 한 줄이 갈리지
+ * 않기 때문이다 — 그것이 이 레포가 카테고리를 가르는 기준이다.
+ * 🔴 **셋 다 발행사·기업 IR 1차 자료를 읽지 못했다**(SBUX IR 배당 이력 404, DIS IR 배당 페이지
+ * 404, INTC 배당 공시 원문 미확인). 그래서 stockanalysis.com + dividendhistory.org 교차 확인으로
+ * 대체했고, **원문으로 확인해야 할 것은 비웠다**: DIS 의 배당 중단 사유와 INTC 의 삭감·중단 사유를
+ * 본문에 쓰지 않았다. 일어난 일과 날짜만 적혀 있다. SBUX 의 2010년 첫 배당 금액도 2015년
+ * 액면분할 소급 조정으로 소스마다 갈려 **금액 없이 시점만** 적었다.
  *
  * ⚠ 티커 하나를 추가하면 손댈 곳은 **셋**이다: 이 레지스트리, `index.ts` 배럴, 그리고
  * `shared/constants/tickerPages/index.ts` 의 `TICKER_PAGE_INDEX`(랜딩 검색용 경량 인덱스).
@@ -315,7 +335,10 @@ export const TICKER_CONTENT_REGISTRY = {
   SCHG: SCHG_TICKER_CONTENT,
   MGK: MGK_TICKER_CONTENT,
   XLK: XLK_TICKER_CONTENT,
-  VGT: VGT_TICKER_CONTENT
+  VGT: VGT_TICKER_CONTENT,
+  SBUX: SBUX_TICKER_CONTENT,
+  DIS: DIS_TICKER_CONTENT,
+  INTC: INTC_TICKER_CONTENT
 } as const satisfies Partial<Record<PresetTickerKey, TickerContent>>;
 
 /** SEO 콘텐츠가 준비된 티커 심볼만의 유니언 — `PresetTickerKey`의 부분집합. */

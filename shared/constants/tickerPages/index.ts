@@ -144,7 +144,10 @@ export const TICKER_PAGE_INDEX = [
   { symbol: 'SCHG', slug: 'schg' },
   { symbol: 'MGK', slug: 'mgk' },
   { symbol: 'XLK', slug: 'xlk' },
-  { symbol: 'VGT', slug: 'vgt' }
+  { symbol: 'VGT', slug: 'vgt' },
+  { symbol: 'SBUX', slug: 'sbux' },
+  { symbol: 'DIS', slug: 'dis' },
+  { symbol: 'INTC', slug: 'intc' }
 ] as const;
 
 /** 인덱스 한 줄. 심볼은 대문자, slug 는 소문자(라우트 파라미터와 같은 형태). */
