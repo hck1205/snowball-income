@@ -256,17 +256,18 @@ export const useTickerActions = () => {
       applyTickerProfile(profile);
     }
 
+    /* 🔴 `source` 금지 — GA4 예약 파라미터라 그 세션의 유입 출처를 덮는다(위 `origin` 과 같은 이유). */
     trackEvent(ANALYTICS_EVENT.TICKER_SAVED, {
       mode: tickerModalMode,
       ticker: profile.ticker,
-      source: selectedPreset === 'custom' ? 'custom' : 'preset'
+      origin: selectedPreset === 'custom' ? 'custom' : 'preset'
     });
     // 저장한 사용자 코호트(User Property). 매번 set해도 GA4는 마지막 값(true)을 쓴다 — 멱등.
     setUserProperties({ has_saved: true });
     if (tickerModalMode === 'create') {
       trackEvent(ANALYTICS_EVENT.TICKER_INCLUDED, {
         ticker: profile.ticker,
-        source: selectedPreset === 'custom' ? 'custom' : 'preset'
+        origin: selectedPreset === 'custom' ? 'custom' : 'preset'
       });
     }
 

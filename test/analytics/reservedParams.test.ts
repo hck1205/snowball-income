@@ -73,9 +73,19 @@ describe('GA4 예약 파라미터 금지', () => {
         // 주석은 뺀다 — 이 금지를 **설명하는** 주석이 스스로 걸리면 안 된다.
         const code = call.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
         for (const name of RESERVED) {
-          // `{ source }` 축약과 `source: x` 둘 다 잡는다.
-          const shorthand = new RegExp(`[{,]\s*${name}\s*[,}]`);
-          const explicit = new RegExp(`[{,]\s*${name}\s*:`);
+          /*
+           * `{ source }` 축약과 `source: x` 둘 다 잡는다.
+           *
+           * 🔴 **역슬래시를 두 번 쓴다.** 템플릿 리터럴 안에서 `\s` 는 유효한 이스케이프가 아니라
+           *    그냥 `s` 로 무너진다 — 그래서 예전 정규식은 `[{,]s*sources*:` 였고 공백이 낀
+           *    **실제 코드를 한 번도 잡지 못했다.** 테스트는 늘 초록인데 누수는 그대로 나갔다
+           *    (2026-08-30 GA4 실측에서 `Unassigned / preset` 이 8/22·8/24 에도 찍혀 발각).
+           *
+           * ⚠ 가드가 있다는 사실이 오히려 위험했다 — 있으니까 막혀 있다고 믿게 된다.
+           *   정규식을 고칠 때는 **일부러 위반을 하나 넣어 빨개지는지** 확인하고 되돌려라.
+           */
+          const shorthand = new RegExp(`[{,]\\s*${name}\\s*[,}]`);
+          const explicit = new RegExp(`[{,]\\s*${name}\\s*:`);
           if (shorthand.test(code) || explicit.test(code)) {
             offenders.push(`${file.split(/[\/]/).slice(-2).join('/')} → ${name}`);
           }

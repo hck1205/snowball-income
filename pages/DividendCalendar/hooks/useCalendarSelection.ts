@@ -154,9 +154,10 @@ export const useCalendarSelection = (universe: CalendarTickerEntry[]): CalendarS
       const symbol = ticker.trim().toUpperCase();
       const isSelected = selected.includes(symbol);
 
+      /* 🔴 `source` 금지 — GA4 예약 파라미터라 그 세션의 유입 출처를 덮는다. */
       trackEvent(ANALYTICS_EVENT.TICKER_SELECTED, {
         ticker: symbol,
-        source: CALENDAR_ANALYTICS_SOURCE,
+        origin: CALENDAR_ANALYTICS_SOURCE,
         selected: !isSelected
       });
 

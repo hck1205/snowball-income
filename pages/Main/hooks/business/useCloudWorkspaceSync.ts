@@ -141,7 +141,13 @@ export const useCloudWorkspaceSync = (deps: {
     // OAuth 리다이렉트로 돌아와 세션이 잡힌 첫 시점(메인 랜딩). 로그인 완료 귀속(마커 read+clear).
     const loginSource = readAndClearLoginSource();
     if (loginSource) {
-      trackEvent(ANALYTICS_EVENT.LOGIN_COMPLETED, { source: loginSource });
+      /*
+       * 🔴 `provider` 다 — `source` 는 GA4 예약 파라미터라 세션 유입 출처를 덮는다.
+       *    하필 이 이벤트는 **OAuth 복귀 직후**에 뜬다. 그 시점 세션 출처는 이미
+       *    `accounts.google.com` 자기참조로 흔들려 있는데, 여기서 한 번 더 덮으면
+       *    "이 사용자가 원래 어디서 왔는가"가 완전히 지워진다.
+       */
+      trackEvent(ANALYTICS_EVENT.LOGIN_COMPLETED, { provider: loginSource });
     }
 
     let cancelled = false;
