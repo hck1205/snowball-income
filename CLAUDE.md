@@ -182,9 +182,21 @@ npm run hooks:install  # pre-commit 훅 활성화 (커밋 시 자동 재인덱�
 
 위 사고는 **CI 실패 10초 뒤 머지**로 들어갔다. `mergeStateStatus` 가 `CLEAN` 인지 보고 머지한다
 (`gh pr checks <번호> --watch` 로 기다릴 수 있다).
-⚠ 자동 갱신이 여는 PR 에는 애초에 CI 가 붙지 않는다 — `GITHUB_TOKEN` 이 만든 이벤트는 워크플로를
-트리거하지 않기 때문이다. 그 구멍은 [main-health.yml](.github/workflows/main-health.yml) 이 매일 main 을
-직접 검사해 메운다.
+**자동 갱신 PR 은 다르다 — 그리고 여기 적혀 있던 설명은 틀렸다**(2026-08-30 실측으로 정정).
+
+예전에는 "`GITHUB_TOKEN` 이 만든 이벤트는 워크플로를 트리거하지 않아 자동 갱신 PR 에는 CI 가 애초에
+안 붙는다"고 적혀 있었다. **둘 다 사실이 아니다.** `ci.yml` 은 그 PR 에서도 시작되고, 갱신 워크플로가
+PR 을 열자마자 `gh pr merge --delete-branch` 를 부르기 때문에 **1초 만에 죽어 실패로 기록된다**
+(#180·#181·#182 의 머지 시각과 초 단위로 일치했다).
+
+🔴 **자동 갱신은 무검증이 아니다.** [refresh-*.yml](.github/workflows/) 은 커밋하기 **전에** 스스로
+`api:bundle` · `tsc -b tsconfig.build.json` · `test:ci` 를 돌린다 — 통과하지 못하면 브랜치도 PR 도
+만들어지지 않는다. `ci.yml` 이 도는 것과 **같은 검사**다. 그래서 지금은 `ci.yml` 이 `chore/refresh-*`
+를 건너뛴다(그 파일의 `if:` 와 근거 주석).
+
+⚠ 그러니 **"자동 갱신 PR 에 CI 가 없다 = 검증이 없다"로 읽지 마라.** 검증은 갱신 잡 안에 있다.
+[main-health.yml](.github/workflows/main-health.yml) 이 매일 main 을 직접 검사하는 것은 그와 별개로,
+"머지된 결과가 실제로 초록인가"를 사후에 보는 층이다.
 
 ## 개발 프로세스 (적응형)
 
