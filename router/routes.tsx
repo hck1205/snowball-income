@@ -21,7 +21,8 @@ import { COMMUNITY_COPY } from '@/shared/constants/community';
  * (`shared/constants/dividendLists`)를 여기서 import 하면 200종 가까운 종목 데이터가 엔트리 번들에
  * 실려 아래 lazy 격리가 그 자리에서 무효가 된다.
  */
-import { INVESTOR_TYPE_PATH,
+import { ABOUT_PATH,
+  INVESTOR_TYPE_PATH,
   DIVIDEND_LIST_HUB_PATH,
   DIVIDEND_LIST_IDS,
   SIMULATOR_PATH,
@@ -235,6 +236,11 @@ const SitemapPage = lazy(() => import('@/pages/Sitemap'));
  * (docs/simulator-route-migration-compat.md §10 P3 의 ⚠ 항목).
  */
 const LandingPage = lazy(() => import('@/pages/Landing/LandingPage'));
+/**
+ * 첫 화면(`/`). 🔴 **`LandingPage` 와 다른 화면이다** — 그쪽은 2026-08-27 부터 `/about` 을 그린다.
+ * 이름이 헷갈리면 아래 라우트의 `path` 로 판단해라.
+ */
+const HomePage = lazy(() => import('@/pages/Home/HomePage'));
 
 /**
  * 가계부(`/ledger`) — 구글 시트 연동. 티커 랜딩과 같은 `lazy` 격리다.
@@ -396,7 +402,30 @@ export const routes: RouteObject[] = [
        * (docs/simulator-route-migration-compat.md §11).
        */
       {
+        /*
+         * 🔴 2026-08-27: 이 자리의 화면이 **바뀌었다.** 여섯 장짜리 안내문(`LandingPage`)이 여기
+         * 있었는데, 그 문서는 아래 `/about` 으로 옮기고 `/` 는 **목표 여섯**을 고르는 한 화면이 됐다
+         * (사용자 피드백: "직관적인 버튼 6개 만들고 그거 먼저 시작해야 재밌을 것 같다").
+         *
+         * ⚠ 주소는 그대로다 — 색인·공유 링크·외부 유입은 하나도 깨지지 않는다. 바뀐 것은
+         *   그 주소가 그리는 화면뿐이라 사이트맵 priority(1.0)도 그대로 둔다(vite.config.ts 주석).
+         */
         path: '/',
+        element: (
+          <Suspense fallback={null}>
+            <HomePage />
+          </Suspense>
+        )
+      },
+      {
+        /*
+         * 긴 안내문. **`/` 에 있던 그 화면 그대로**이고 부품·문구·테스트도 손대지 않았다
+         * (`pages/Landing`). 옮긴 이유는 첫 화면이 "읽어라"부터 시키고 있었기 때문이다.
+         *
+         * 🔴 `FAQPage` JSON-LD 가 이 주소로 함께 옮겨 왔다 — FAQ 가 **화면에 보이는** 유일한 곳이라서다
+         *   (`shared/lib/seo/faqStructuredData.ts`). 이 라우트를 지우거나 옮기면 그 상수도 함께 고쳐라.
+         */
+        path: ABOUT_PATH,
         element: (
           <Suspense fallback={null}>
             <LandingPage />

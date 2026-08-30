@@ -72,13 +72,20 @@ describe('기계 판독 표면의 라우트 정합', () => {
     expect(text).toContain('/simulator');
   });
 
-  it('llms.txt 가 랜딩과 시뮬레이터를 따로 가리킨다', () => {
-    expect(LLMS).toMatch(/^- Landing[^\n]*`\/`$/m);
+  /*
+   * 🔴 2026-08-27: `/` 가 **둘로 갈라졌다.** 목표를 고르는 첫 화면(`/`)과 긴 안내문(`/about`)이
+   * 다른 지면이 됐으므로, 기계가 읽는 목록도 셋을 각각 가리켜야 한다. 하나로 묶어 두면 "배당이란"
+   * 같은 질문에 답할 지면을 AI 답변 엔진이 `/` 로 잘못 고른다.
+   */
+  it('llms.txt 가 첫 화면·안내문·시뮬레이터를 따로 가리킨다', () => {
+    expect(LLMS).toMatch(/^- Home[^\n]*`\/`$/m);
+    expect(LLMS).toMatch(/^- About[^\n]*`\/about`$/m);
     expect(LLMS).toMatch(/^- Simulator[^\n]*`\/simulator`$/m);
   });
 
-  it('ai-overview.json 의 entrypoints 가 둘을 나눠 갖는다', () => {
+  it('ai-overview.json 의 entrypoints 가 셋을 나눠 갖는다', () => {
     expect(AI_OVERVIEW.entrypoints.landing).toBe('/');
+    expect(AI_OVERVIEW.entrypoints.about).toBe('/about');
     expect(AI_OVERVIEW.entrypoints.simulator).toBe('/simulator');
     // 구 `app` 키는 "앱이 `/` 에 있다"는 뜻이라 이전 후에는 거짓이다.
     expect(AI_OVERVIEW.entrypoints.app).toBeUndefined();
@@ -96,7 +103,13 @@ describe('기계 판독 표면의 라우트 정합', () => {
     const spaView = stripComments(readRepoFile('pages/Ticker/TickerDetailPage/TickerDetailPage.view.tsx'));
 
     expect(serverHandler).toContain('href="${SIMULATOR_PATH}"');
-    expect(spaView).toContain('<PrimaryCta to={SIMULATOR_PATH}>');
+    /*
+     * ⚠ **닫는 `>` 까지 붙이지 않는다**(2026-08-30). 이 단정이 재는 것은 "목적지가 상수인가"이지
+     * "그 태그에 prop 이 더 없는가"가 아니다. 예전에는 `<PrimaryCta to={SIMULATOR_PATH}>` 를 통째로
+     * 대조해서, CTA 에 **계측 onClick 을 붙였다는 이유만으로** 빨개졌다 — 목적지는 한 글자도
+     * 바뀌지 않았는데 가드가 엉뚱한 것을 막아 섰다. 그런 가드는 다음 사람이 지우고 싶어진다.
+     */
+    expect(spaView).toContain('<PrimaryCta to={SIMULATOR_PATH}');
     // 경로 리터럴로 되돌아가면(= 랜딩행) 여기서 걸린다.
     expect(serverHandler).not.toMatch(/href="\/"/);
     expect(spaView).not.toMatch(/to="\/"/);

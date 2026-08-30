@@ -1,6 +1,7 @@
 import type { PersistedAppStatePayload } from '@/jotai';
 import { PRESET_QUERY_PARAM } from '@/shared/constants/routes';
 import { readDbShareKeyFromHref, readShareCodeFromHref } from './shareUrl';
+import { resolveLandingGoalFromSearch } from '@/shared/constants/landingGoals';
 
 /**
  * 첫 방문에 **어떤 구성으로 열지** 정한다 — 순수 판정.
@@ -49,6 +50,39 @@ export const resolveScenarioPrefillPresetId = (
     return new URL(href).searchParams.get(PRESET_QUERY_PARAM);
   } catch {
     // 파싱 불가한 주소(테스트 하네스 등)는 지목이 없는 것으로 본다 → 택일 화면.
+    return null;
+  }
+};
+
+/**
+ * 🔴 **주소에 실린 목표가 저장된 목표를 이긴다** — 그 판정만 하는 순수 함수 (2026-08-30).
+ *
+ * ## 왜 있는가 (사용자 신고)
+ * *"로그인 된 상태에서 1억·3억·5억, 배당도 마찬가지로 클릭하면 시뮬레이터의 계산식이 다 동일해."*
+ * 원인은 복원이 목표를 덮는 것이었다. 방문자는 방금 "월 100만원"을 눌러서 왔는데, 저장된
+ * 워크스페이스가 올라오면서 그 목표를 자기 값으로 되돌려 놓았다 — 저장된 작업이 없는 사람에게는
+ * 멀쩡했고 **있는 사람(로그인·재방문)에게만** 여섯 목표가 같은 화면이 됐다.
+ *
+ * ## 🔴 복원 경로가 셋이라 판정을 한 곳에 둔다
+ * 하이드레이션 · 세션 시작 클라우드 동기화 · 충돌 해소. 셋이 전부 `applyScenario` 를 지나므로
+ * 그 한 곳에서 이 함수를 부른다. 호출부마다 순서를 맞추는 방식은 하나를 놓치기 쉽고, 실제로
+ * 처음 고칠 때 하이드레이션만 보고 클라우드 경로를 놓쳤다.
+ *
+ * ## 무엇을 덮고 무엇을 안 덮나
+ * ⚠ 덮는 것은 **목표 한 칸뿐**이다. 포트폴리오·기간·적립금 같은 나머지 저장값은 그대로 복원된다 —
+ *   사용자가 주소로 표시한 의사는 "이 목표로 보고 싶다"이지 "내 설정을 버려라"가 아니다.
+ * ⚠ 자산 목표(`asset-*`)는 `null` 이다. 폼에 목표 자산 칸이 없어서이고, 그쪽 답은 결과를 훑어
+ *   배너가 낸다(`GoalBanner` — `findAssetTargetYear`). 여기서 배당으로 환산하지 **않는다**.
+ *
+ * @param href 현재 주소(`window.location.href`). 테스트가 값을 넣을 수 있게 인자로 받는다.
+ * @returns 주소가 지목한 목표 월배당(원). 없거나 자산 목표면 `null`.
+ */
+export const resolveUrlGoalTargetMonthlyDividend = (href: string): number | null => {
+  try {
+    const goal = resolveLandingGoalFromSearch(new URL(href).search);
+    return goal !== undefined && goal.kind === 'dividend' ? goal.amount : null;
+  } catch {
+    // 주소가 깨졌으면 저장값을 그대로 쓴다 — 여기서 던지면 복원 전체가 멈춘다.
     return null;
   }
 };

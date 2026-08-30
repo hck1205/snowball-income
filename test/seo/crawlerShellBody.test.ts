@@ -39,14 +39,21 @@ const BODY_INJECTING_HANDLERS = [
 ] as const;
 
 const indexHtml = readRepoFile('../../index.html');
+/**
+ * 🔴 `FAQPage` JSON-LD 는 2026-08-27 부터 `index.html` 이 아니라 이 파셜에 산다 — 첫 화면이 목표
+ * 여섯으로 바뀌면서 FAQ 가 보이는 곳이 `/about` 하나가 됐기 때문이다. 빌드가 이 조각을 `/about`
+ * 셸에만 붙인다(`ROUTE_SHELLS` 의 `headFile`).
+ */
+const aboutHeadHtml = readRepoFile('../../tools/seo/shells/about.head.html');
 
 describe('index.html 과의 상수 계약', () => {
-  it('랜딩 본문 래퍼 class 가 셸에 실제로 있다', () => {
+  it('첫 화면 본문 래퍼 class 가 셸에 실제로 있다', () => {
     expect(indexHtml).toContain(`class="${SHELL_FALLBACK_CLASS_NAME}"`);
   });
 
-  it('랜딩 FAQ script id 가 셸에 실제로 있다', () => {
-    expect(indexHtml).toContain(`id="${LANDING_FAQ_SCRIPT_ID}"`);
+  it('FAQ script id 가 `/about` 셸 조각에 실제로 있다', () => {
+    // ⚠ `index.html` 이 아니다(위 상수 주석). 여기가 갈라지면 strip 함수가 조용히 아무것도 안 한다.
+    expect(aboutHeadHtml).toContain(`id="${LANDING_FAQ_SCRIPT_ID}"`);
   });
 
   it('FAQ script id 가 런타임 제거 로직(faqStructuredData)과 같은 값이다', () => {

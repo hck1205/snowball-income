@@ -224,6 +224,61 @@ export const ANALYTICS_EVENT = {
   // 결과 화면에서 다음 행동을 고른 순간(파라미터: action='prefill'|'share'|'next', type_id).
   // 용도: 이 기능의 **종착 전환** — 테스트가 계산기 사용으로 이어지는지가 존재 이유다.
   QUIZ_RESULT_ACTION: "quiz_result_action",
+
+  /**
+   * ── 목표 여섯 (2026-08-27) ────────────────────────────────────────────────
+   *
+   * 첫 화면이 **긴 안내문에서 목표 버튼 여섯**으로 바뀌었다(사용자 피드백). 안내문은 `/about` 으로
+   * 옮겼다. 이 이벤트가 그 교체의 성적표다 — 여섯 중 무엇이 눌리는지, **아무것도 안 눌리는지**.
+   *
+   * 🔴 `level_selected` 를 재사용하지 않는다. 그쪽은 "수준 4갈래"의 분포를 재는 이름이고 그 갈래는
+   *   이제 `/about` 에만 있다. 한 이름에 두 화면을 섞으면 둘 다 못 읽는다.
+   * ⚠ 값공간: `goal_id` 는 `shared/constants/landingGoals` 의 여섯 id 뿐이다(`asset-100m` …).
+   *   `goal_kind` 는 `asset`|`dividend` — 자산이 먼저 눌리는지 배당이 먼저인지가 이 앱의
+   *   포지셔닝을 되묻는 질문이라 따로 뽑는다.
+   */
+  // 첫 화면에서 목표 하나를 고른 순간(파라미터: goal_id, goal_kind).
+  GOAL_SELECTED: "goal_selected",
+  /**
+   * 계산기가 그 목표를 **되짚어 보여 준 순간**(파라미터: goal_id, goal_kind, status).
+   *
+   * 🔴 `goal_selected` 의 **착지 확인**이다. 둘의 차이가 곧 이탈이다 — 목표를 눌렀는데 계산기에서
+   *   배너를 못 본 사람이 있다면 링크·프리필 경로가 새고 있다는 뜻이다.
+   * 🔴 `status` 가 이 이벤트의 진짜 값어치다: `missed` 비율이 높으면 **목표값 자체가 비현실적**
+   *   이거나 기본 조건(기간·적립금)이 낮게 잡혀 있다는 신호다. 그건 카드 여섯의 숫자를 다시
+   *   정할 근거가 된다 — 지금은 그걸 알 방법이 없다.
+   * ⚠ 값공간: status = reached | missed | unknown (셋뿐이다).
+   */
+  GOAL_BANNER_VIEW: "goal_banner_view",
+
+  /**
+   * ── 콘텐츠 지면 → 계산기 (2026-08-30) ─────────────────────────────────────
+   *
+   * 🔴 **이 사이트의 가장 큰 계측 공백이었다.** 검색 유입 대부분은 티커 소개(`/ticker/:name`)와
+   * 검색어 가이드(`/guide/:slug`)에 착지하는데, 그 지면들의 "계산해 보기" 버튼에 계측이 하나도
+   * 없었다(2026-08-30 감사). 즉 **SEO 가 실제로 앱 사용으로 이어지는지**를 잴 수 없었다 — 페이지뷰는
+   * 늘어도 그게 성과인지 알 길이 없었다는 뜻이다.
+   *
+   * 🔴 지면마다 새 이름을 만들지 않는다. 이미 `community_to_simulator`·`compare_to_simulator`·
+   *   `market_pulse_to_simulator` 셋이 같은 질문을 서로 다른 이름으로 재고 있다(그 셋은 이미
+   *   배포돼 데이터 연속성이 있어 그대로 둔다). 여기서 다섯 개를 더 만들면 "어느 지면이 잘
+   *   보내는가"를 물을 때마다 리포트를 여덟 번 합쳐야 한다.
+   * ⚠ 값공간: surface = ticker | guide (늘어날 수 있다) · slot = hero | toc (지면 안 위치).
+   *   slot 을 가르는 이유: 같은 지면에서도 **글 위 버튼과 목차 레일 버튼의 성적이 다르고**,
+   *   그 차이가 곧 "본문을 읽고 눌렀나, 훑다가 눌렀나"다.
+   */
+  CONTENT_TO_SIMULATOR: "content_to_simulator",
+
+  /**
+   * 목표를 누른 사람에게 **계획이 실제로 만들어진 순간**(파라미터: goal_id, goal_kind, preset_id, solved).
+   *
+   * 🔴 `solved` 가 이 이벤트의 핵심이다. `false` 면 그 구성으로는 **어떤 적립금으로도 목표에 닿지
+   *   못한다**는 뜻이고(무배당·마이너스 성장), 그건 목표값이 아니라 **기본 프리셋을 다시 골라야
+   *   한다**는 신호다. 지금은 그걸 알 방법이 없다.
+   * ⚠ `goal_banner_view` 와 짝이다: 배너는 "무엇을 골랐고 닿는가", 이것은 "계획을 만들어 줬는가".
+   *   둘의 차이가 곧 새 탭을 못 만들어 막힌 사람(비로그인 1탭 게이트)의 수다.
+   */
+  GOAL_PLAN_APPLIED: "goal_plan_applied",
 } as const;
 
 export type AnalyticsEventName = (typeof ANALYTICS_EVENT)[keyof typeof ANALYTICS_EVENT];

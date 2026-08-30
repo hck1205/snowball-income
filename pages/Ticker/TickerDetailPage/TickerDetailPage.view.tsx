@@ -13,6 +13,7 @@ import {
 import { Fragment, useCallback, useMemo, type CSSProperties } from 'react';
 import { PageFooter, PickCardGrid } from '@/components/common';
 import { SIMULATOR_PATH } from '@/shared/constants/routes';
+import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import { useScrollSpy } from '@/shared/hooks';
 import { ICON } from '@/shared/styles';
 import type { ResolvedRelatedTicker, ResolvedSection, TickerDetailViewProps } from './TickerDetailPage.types';
@@ -202,6 +203,19 @@ export default function TickerDetailView({ viewModel }: TickerDetailViewProps) {
   const tocIds = useMemo(() => viewModel.toc.map((item) => item.id), [viewModel.toc]);
   const activeId = useScrollSpy(tocIds);
 
+  /**
+   * 🔴 **이 지면이 검색 유입의 착지점이다.** 2026-08-30 감사 전까지 여기 두 CTA 에는 계측이
+   * 하나도 없어서, 티커 페이지 수십 개가 실제로 앱 사용으로 이어지는지 잴 방법이 없었다 —
+   * 페이지뷰는 늘어도 그게 성과인지 알 수 없었다는 뜻이다.
+   *
+   * ⚠ 티커 심볼은 파라미터로 싣지 않는다. `page_location` 이 이미 어느 티커인지 말한다
+   *   (중복 파라미터는 값공간만 넓힌다). 가르는 것은 **지면 안 위치**(slot)뿐이고, 그 차이가
+   *   "본문을 읽고 눌렀나(hero), 훑다가 눌렀나(toc)"다.
+   */
+  const trackToSimulator = useCallback((slot: 'hero' | 'toc') => {
+    trackEvent(ANALYTICS_EVENT.CONTENT_TO_SIMULATOR, { surface: 'ticker', slot });
+  }, []);
+
   const onNavClick = useCallback((id: string) => {
     const target = document.getElementById(id);
     if (!target) return;
@@ -262,7 +276,7 @@ export default function TickerDetailView({ viewModel }: TickerDetailViewProps) {
               <HeroTagline>{viewModel.heroTagline}</HeroTagline>
             </HeroReveal>
             <HeroReveal $delay={180}>
-              <CtaRowSlot ticker={viewModel.ticker} />
+              <CtaRowSlot ticker={viewModel.ticker} onToSimulator={() => trackToSimulator('hero')} />
             </HeroReveal>
           </HeroMain>
 
@@ -331,7 +345,7 @@ export default function TickerDetailView({ viewModel }: TickerDetailViewProps) {
             })}
           </TocList>
           {/* 긴 문서 어디에서도 다음 행동이 한 화면 안에 있게 하는 상시 진입점(데스크톱). */}
-          <TocCta to={SIMULATOR_PATH}>
+          <TocCta to={SIMULATOR_PATH} onClick={() => trackToSimulator('toc')}>
             시뮬레이터로 계산
             <ArrowRight size={ICON.sm} strokeWidth={ICON.stroke} aria-hidden />
           </TocCta>
@@ -531,14 +545,14 @@ export default function TickerDetailView({ viewModel }: TickerDetailViewProps) {
 /**
  * CTA 두 개.
  *
- * 🔴 `<PrimaryCta to={SIMULATOR_PATH}>` 이 리터럴 그대로 남아야 한다 —
+ * 🔴 `to={SIMULATOR_PATH}` 가 **상수 참조 그대로** 남아야 한다(경로 리터럴로 바꾸지 마라) —
  * `test/seo/machineReadableSurfaces.test.ts` 가 서버 렌더 HTML 과 이 뷰가 **같은 상수**를 가리키는지
  * 소스 문자열로 대조한다(한쪽만 바뀌면 크롤러만 엉뚱한 곳으로 간다).
  */
-function CtaRowSlot({ ticker }: { ticker: string }) {
+function CtaRowSlot({ ticker, onToSimulator }: { ticker: string; onToSimulator: () => void }) {
   return (
     <CtaRow>
-      <PrimaryCta to={SIMULATOR_PATH}>
+      <PrimaryCta to={SIMULATOR_PATH} onClick={onToSimulator}>
         {ticker}로 계산해 보기
         <ArrowRight size={ICON.md} strokeWidth={ICON.stroke} aria-hidden />
       </PrimaryCta>

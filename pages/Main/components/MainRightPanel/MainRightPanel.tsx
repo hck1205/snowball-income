@@ -55,10 +55,11 @@ import {
   useTickerProfilesAtomValue,
   useVisibleYearlySeriesAtomValue
 } from '@/jotai';
-import { useMainComputed, useScenarioTabs, useSnowballForm, useTickerActions } from '@/pages/Main/hooks';
+import { useMainComputed, useSnowballForm, useTickerActions } from '@/pages/Main/hooks';
 // 형제 폴더 직접 참조 — 상위 배럴(@/pages/Main/components)은 이 파일 자신도 재수출해 import 순환이 된다.
 import { ChartPanel } from '../ChartPanel';
 import FxSensitivityNote from '../FxSensitivityNote';
+import { GoalBanner, useActiveGoalOutcome } from '../GoalBanner';
 import MainResultGrid from '../MainResultGrid';
 import ResultBoard from '../ResultBoard';
 import ScenarioTabsRow from '../ScenarioTabsRow';
@@ -72,7 +73,8 @@ import {
   usePresetQueryApply,
   useResultChartAdapters,
   useResultViewAnalytics,
-  useScenarioTabInteractions,
+  useGoalPlanApply,
+  useScenarioTabPanel,
   useTargetFieldControls
 } from './hooks';
 import type { MainRightPanelProps } from './MainRightPanel.types';
@@ -160,6 +162,10 @@ function MainRightPanelComponent({ configDrawerId }: MainRightPanelProps) {
     displayCurrency: display.currency,
     fxRate: display.rate
   });
+  /* 첫 화면에서 고른 목표를 지금 결과로 판정하고 계측까지 한다. 목표 없이 들어왔으면 `null` 이고
+     이 자리에는 아무것도 그려지지 않는다(훅 머리말). */
+  const goalOutcome = useActiveGoalOutcome(tableRows);
+
   const { setTickerShares, setTickerWeight, toggleTickerFixed, clearAllFixed, removeIncludedTicker } = useTickerActions();
   /*
    * 비중 배분을 "몇 주 · 얼마 · 월 얼마"로 되읽은 것. 저장되는 값은 여전히 (초기 투자금, 비중) 한 쌍이고
@@ -185,59 +191,29 @@ function MainRightPanelComponent({ configDrawerId }: MainRightPanelProps) {
       }),
     [display.rate, normalizedAllocation, values.initialInvestment, values.taxRate]
   );
-  const {
-    tabs,
-    activeScenarioId,
-    canCreateTab,
-    canDeleteTab,
-    requiresLoginToCreateTab,
-    tabCreationGate,
-    selectScenarioTab,
-    createScenarioTab,
-    renameScenarioTab,
-    deleteScenarioTab,
-    reorderScenarioTabs
-  } = useScenarioTabs();
-  const {
-    editingTabId,
-    editingTabName,
-    editingTabWidth,
-    deleteTargetTabId,
-    hoverTooltip,
-    draggingTabId,
-    dragOverTabId,
-    dragJustFinishedRef,
-    isLoginNudgeOpen,
-    setEditingTabName,
-    setDraggingTabId,
-    setDragOverTabId,
-    startRenameMode,
-    cancelRenameMode,
-    commitRenameMode,
-    openDeleteModal,
-    closeDeleteModal,
-    confirmDeleteTab,
-    showHoverTooltip,
-    hideHoverTooltip,
-    handleCreateTab,
-    openLoginNudge,
-    closeLoginNudge,
-    handleLoginFromNudge,
-    openScenarioTabsHelp
-  } = useScenarioTabInteractions({
-    renameScenarioTab,
-    deleteScenarioTab,
-    createScenarioTab,
-    setActiveHelp,
-    communityAuth
-  });
   /*
-   * "내 포트폴리오" 화면에서 넘어온 프리필의 커밋. 기본은 새 탭 생성이고, 새 탭을 못 만들 때
-   * (비로그인 1탭 게이트)만 비어 있는 활성 탭에 커밋한다 — 판정·매핑은 전부 순수 함수에 있다.
+   * 시나리오 탭 한 벌. 🔴 예전에는 여기서 두 훅의 **이름 45개를 통째로 풀어** 들고, 그중 22개를
+   * `<ScenarioTabs>` 에 한 줄씩 넘겼다(2026-08-30 리팩터). 이 파일이 하는 일은 결과 화면 조립인데
+   * 탭 스트립의 드래그 상태·이름 편집 폭 같은 **부품 내부 사정**이 스코프의 절반을 차지했다.
+   * 동작은 그대로다 — 훅도 두 개 그대로이고, 조립만 `useScenarioTabPanel` 로 옮겼다.
    */
+  const {
+    tabsProps,
+    overlays: {
+      deleteTargetTabId,
+      closeDeleteModal,
+      confirmDeleteTab,
+      isLoginNudgeOpen,
+      closeLoginNudge,
+      handleLoginFromNudge,
+      hoverTooltip
+    },
+    tabApi
+  } = useScenarioTabPanel({ setActiveHelp, communityAuth });
+
   const applyPortfolioPrefill = usePortfolioPrefillCommit({
-    tabCreationGate,
-    createScenarioTab,
+    tabCreationGate: tabApi.tabCreationGate,
+    createScenarioTab: tabApi.createScenarioTab,
     tickerProfileCount: tickerProfiles.length,
     initialInvestment: values.initialInvestment,
     setTickerProfiles,
@@ -246,7 +222,7 @@ function MainRightPanelComponent({ configDrawerId }: MainRightPanelProps) {
     setFixedByTickerId,
     setSelectedTickerId,
     setField,
-    openLoginNudge
+    openLoginNudge: tabApi.openLoginNudge
   });
   const hasGraphData = includedProfiles.length > 0;
   const emptyGraphMessage = SIMULATOR_COPY.emptyPortfolioHint;
@@ -341,8 +317,8 @@ function MainRightPanelComponent({ configDrawerId }: MainRightPanelProps) {
 
   const { pendingPreset, appliedPresetId, requestApply, cancelApply, confirmApply, applyPresetSilently } =
     usePortfolioPresetApply({
-    activeScenarioId,
-    renameScenarioTab,
+    activeScenarioId: tabApi.activeScenarioId,
+    renameScenarioTab: tabApi.renameScenarioTab,
     setTickerProfiles,
     setIncludedTickerIds,
     setSelectedTickerId,
@@ -364,6 +340,26 @@ function MainRightPanelComponent({ configDrawerId }: MainRightPanelProps) {
    * 여기서 프리셋 카드와 같은 경로로 적용한다. 계측만 쏘지 않는다(프리셋 인기 순위 오염 방지).
    */
   usePresetPrefill({ hasTickerProfiles: tickerProfiles.length > 0, applyPreset: applyPresetSilently });
+
+  /*
+   * 🔴 첫 화면에서 고른 목표(`?goal=`)를 **완성된 계획**으로 연다 — 구성을 담고, 목표를 채우고,
+   * 그 목표에 닿는 월 적립금을 역산한다(2026-08-31 사용자 지적: "클릭하면 바로 5억 만들기의
+   * 포폴이 완성되어있어야 하지 않을까").
+   * ⚠ `applyPresetSilently` 를 쓰므로 **프리셋 적용기 뒤**에 와야 한다.
+   * ⚠ 이 패널은 하이드레이션 후에만 마운트된다 — 그래서 저장된 워크스페이스가 이 계획을 덮지
+   *   못한다(2026-08-30 결함의 재발 방지). 훅을 위로 올리지 마라.
+   */
+  useGoalPlanApply({
+    values,
+    setField,
+    tabCreationGate: tabApi.tabCreationGate,
+    createScenarioTab: tabApi.createScenarioTab,
+    renameScenarioTab: tabApi.renameScenarioTab,
+    activeScenarioId: tabApi.activeScenarioId,
+    applyPresetSilently,
+    openLoginNudge: tabApi.openLoginNudge,
+    hasStoredPortfolio: tickerProfiles.length > 0
+  });
   /* 프리필이 살아 있는 동안에만 결과 아래에 프리셋 고르개를 붙이고, 배너·"지금 적용됨" 표식을 켠다. */
   const scenarioPrefill = useScenarioPrefillAtomValue();
   const appliedPrefillPresetId = scenarioPrefill?.status === 'applied' ? scenarioPrefill.presetId : null;
@@ -411,6 +407,10 @@ function MainRightPanelComponent({ configDrawerId }: MainRightPanelProps) {
         </>
       ) : null}
 
+      {/* 🔴 결과 보드 **바로 위**다. "네가 고른 목표 → 그 답" 이 한 흐름으로 읽혀야 하고,
+          목표가 없으면 이 자리에 아무것도 생기지 않는다(부품 머리말). */}
+      {goalOutcome === null ? null : <GoalBanner outcome={goalOutcome} />}
+
       {/*
         🔴 결과 영역은 **보드 하나**다(2026-08-03 2차 리워크). 예전에는 [탭 줄] · [알림] · [결과 격자]가
         페이지 배경 위의 형제 셋이었고, 탭이 무엇을 전환하는지·결과가 어디까지인지 화면이 말하지
@@ -423,32 +423,8 @@ function MainRightPanelComponent({ configDrawerId }: MainRightPanelProps) {
           /* 탭 줄은 탭 스트립만 소유한다 — "간략히" 토글은 2026-07-29 에 결과 요약 카드
              우측 상단으로 옮겼다(탭 스트립과 가로를 나눠 써서 좁은 폭에서 가장 먼저 눌렸다). */
           <ScenarioTabsRow>
-            <ScenarioTabs
-              tabs={tabs}
-              activeScenarioId={activeScenarioId}
-              editingTabId={editingTabId}
-              editingTabName={editingTabName}
-              editingTabWidth={editingTabWidth}
-              draggingTabId={draggingTabId}
-              dragOverTabId={dragOverTabId}
-              dragJustFinishedRef={dragJustFinishedRef}
-              canCreateTab={canCreateTab}
-              canDeleteTab={canDeleteTab}
-              requiresLoginToCreateTab={requiresLoginToCreateTab}
-              setEditingTabName={setEditingTabName}
-              setDraggingTabId={setDraggingTabId}
-              setDragOverTabId={setDragOverTabId}
-              commitRenameMode={commitRenameMode}
-              cancelRenameMode={cancelRenameMode}
-              startRenameMode={startRenameMode}
-              openDeleteModal={openDeleteModal}
-              selectScenarioTab={selectScenarioTab}
-              reorderScenarioTabs={reorderScenarioTabs}
-              showHoverTooltip={showHoverTooltip}
-              hideHoverTooltip={hideHoverTooltip}
-              onCreateTab={handleCreateTab}
-              openScenarioTabsHelp={openScenarioTabsHelp}
-            />
+            {/* 🔴 prop 22개를 한 줄씩 넘기던 자리다. 무엇을 넘길지는 이제 useScenarioTabPanel 이 정한다. */}
+            <ScenarioTabs {...tabsProps} />
           </ScenarioTabsRow>
         }
         notices={

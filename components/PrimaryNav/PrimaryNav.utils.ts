@@ -1,6 +1,5 @@
 // per-icon named import(트리셰이킹) → 엔트리에는 이 아이콘들만 실린다.
 import {
-  Compass,
   Activity,
   BookOpen,
   CalendarDays,
@@ -26,8 +25,7 @@ import {
   Wallet
 } from 'lucide-react';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
-import {
-  INVESTOR_TYPE_PATH, DIVIDEND_LIST_HUB_PATH, SIMULATOR_PATH, dividendListPath } from '@/shared/constants/routes';
+import { DIVIDEND_LIST_HUB_PATH, SIMULATOR_PATH, dividendListPath } from '@/shared/constants/routes';
 /* 경로 문자열만 가져온다 — 페이지 모듈이 아니라 상수 파일이라 엔트리 번들이 커지지 않는다. */
 import { MARKET_PULSE_PATH } from '@/pages/MarketPulse/marketPulseRoute';
 import { HIPPO_STATS_PATH } from '@/pages/HippoStats/hippoStatsRoute';
@@ -126,18 +124,17 @@ export const PERSONAL_GROUP_ITEMS = [
   { to: SIMULATOR_PATH, label: n.simulator, Icon: LineChart, sheetsOnly: false },
   { to: '/dividend/portfolio', label: n.myPortfolio, Icon: Wallet, sheetsOnly: false },
   /*
-   * 🔴 자리는 **'나의 배당 포트폴리오' 바로 밑**이다(2026-08-23 사용자 지시). 2026-08-22 에는 이
-   *    묶음의 **맨 앞**이었다 — "무엇을 계획할지 정하기 전에 나를 안다"는 순서였는데 사용자가 뒤로
-   *    물렸다. 앞으로 되돌리려면 사용자에게 물어라.
+   * 🔴 **투자 성향 테스트(`/investor-type`)는 이 묶음에서 빠졌다**(2026-08-27 사용자 지시).
    *
-   * 이 묶음에 **있는** 이유는 자리와 별개로 여전히 유효하다 — GA4 실측이다. 랜딩(`/`)에 닿는 세션이
-   * 28일간 **5건**뿐이라, 랜딩 히어로의 수준 4갈래만으로는 이 테스트가 노출될 길이 사실상 없었다
-   * (`/simulator` 54 · `/dividend/portfolio` 21). 내비는 도착 지점과 무관하게 모든 화면에 있으므로,
-   * 유입 구조가 이런 동안은 여기가 유일하게 실효가 있는 자리다. 바로 위가 그 21건이 닿는 화면이라
-   * 트래픽이 있는 항목 옆에 선다.
-   * ⚠ 랜딩 유입이 늘면 이 항목의 값어치를 다시 재라 — 내비 자리는 공짜가 아니다.
+   * 여기 있던 이유는 GA4 실측이었다 — 랜딩(`/`)에 닿는 세션이 28일간 5건뿐이라 그 화면의 수준
+   * 4갈래만으로는 테스트가 노출될 길이 없었고, 내비는 모든 화면에 있어서 유일하게 실효가 있는
+   * 자리였다. 그 근거가 2026-08-27 에 **바뀌었다**: 첫 화면이 목표 여섯으로 교체되면서 목표 카드
+   * 바로 아래에 "나의 투자 성향 테스트" 카드가 생겼다(`pages/Home`). 이제 노출 경로가 있고,
+   * 그 자리가 이 항목의 청중("아직 잘 모르는 사람")과 정확히 겹친다.
+   *
+   * ⚠ 라우트·사이트맵·정적 셸은 **그대로 있다** — 내비에서 뺀 것뿐이라 주소는 살아 있다.
+   * ⚠ 되살리려면 `INVESTOR_TYPE_PATH` import 도 함께 되살려야 한다(지금은 쓰지 않아 지웠다).
    */
-  { to: INVESTOR_TYPE_PATH, label: n.investorType, Icon: Compass, sheetsOnly: false },
   { to: '/ledger', label: n.ledger, Icon: ReceiptText, sheetsOnly: true }
 ] as const;
 

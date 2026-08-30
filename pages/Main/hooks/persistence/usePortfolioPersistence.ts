@@ -52,7 +52,7 @@ import { createSessionLocalAutosaveCache, useCloudSync } from '@/jotai/snowball/
  */
 import { fetchSharedSnapshot, getSupabaseClient } from '@/shared/lib/supabase';
 import { ANALYTICS_EVENT, setUserProperties, trackEvent } from '@/shared/lib/analytics';
-import { resolveScenarioPrefillPresetId } from './scenarioPrefill';
+import { resolveScenarioPrefillPresetId, resolveUrlGoalTargetMonthlyDividend } from './scenarioPrefill';
 import { buildScenariosSnapshot, isSameScenarioContent, mergeSharedScenarioIntoTabs } from './scenarioSnapshot';
 import { decodeSharedScenarioResult, encodeSharedScenario, SHARED_SCENARIO_ID, SHARE_LENGTH_LIMIT } from './shareLink';
 import {
@@ -490,7 +490,12 @@ export const usePortfolioPersistence = () => {
       ...prev,
       initialInvestment: scenario.investmentSettings.initialInvestment,
       monthlyContribution: scenario.investmentSettings.monthlyContribution,
-      targetMonthlyDividend: scenario.investmentSettings.targetMonthlyDividend,
+      // 🔴 주소의 목표가 있으면 그것이 이긴다(위 resolveUrlGoalTarget 머리말).
+      /* 🔴 주소의 목표가 저장값을 이긴다 — 판정·근거는 `resolveUrlGoalTargetMonthlyDividend`.
+         복원 경로 셋(하이드레이션·클라우드 동기화·충돌 해소)이 전부 이 함수를 지난다. */
+      targetMonthlyDividend:
+        resolveUrlGoalTargetMonthlyDividend(typeof window === 'undefined' ? '' : window.location.href)
+        ?? scenario.investmentSettings.targetMonthlyDividend,
       investmentStartDate: scenario.investmentSettings.investmentStartDate,
       durationYears: scenario.investmentSettings.durationYears,
       reinvestDividends: scenario.investmentSettings.reinvestDividends,

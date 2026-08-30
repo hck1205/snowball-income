@@ -9101,6 +9101,28 @@ var aggregatePortfolioSimulation = (outputs, targetMonthlyDividend) => {
 };
 var DEFAULT_POST_INVESTMENT_PROJECTION_YEARS = 10;
 var MIN_POST_INVESTMENT_PROJECTION_YEARS = 5;
+var runGoalScenarioSimulation = ({
+  includedProfiles,
+  normalizedAllocation,
+  values,
+  reinvestPercentByTickerId,
+  reinvestTargetByTickerId
+}) => {
+  const targetProfiles = buildTargetProfiles({ includedProfiles, normalizedAllocation });
+  if (targetProfiles.length === 0) return null;
+  const portfolioOutputs = runPortfolio(targetProfiles, values, values.monthlyContribution, {
+    reinvestPercentByTickerId,
+    reinvestTargetByTickerId
+  });
+  const outputs = targetProfiles.map((item, index) => ({
+    ticker: item.profile.ticker,
+    name: item.profile.name,
+    output: portfolioOutputs[index],
+    growthRate: toPriceGrowth(item.profile.dividendGrowth)
+  }));
+  const simulation = outputs.length === 1 ? outputs[0].output : aggregatePortfolioSimulation(outputs.map((item) => item.output), values.targetMonthlyDividend);
+  return { outputs, simulation };
+};
 var buildSimulationBundle = ({
   isValid: isValid2,
   includedProfiles,
@@ -9117,25 +9139,21 @@ var buildSimulationBundle = ({
       postInvestmentDividendProjectionRows: []
     };
   }
-  const targetProfiles = buildTargetProfiles({ includedProfiles, normalizedAllocation });
-  if (targetProfiles.length === 0) {
+  const run = runGoalScenarioSimulation({
+    includedProfiles,
+    normalizedAllocation,
+    values,
+    reinvestPercentByTickerId,
+    reinvestTargetByTickerId
+  });
+  if (run === null) {
     return {
       simulation: null,
       yearlyCashflowByTicker: { years: [], byYear: {} },
       postInvestmentDividendProjectionRows: []
     };
   }
-  const portfolioOutputs = runPortfolio(targetProfiles, values, values.monthlyContribution, {
-    reinvestPercentByTickerId,
-    reinvestTargetByTickerId
-  });
-  const outputs = targetProfiles.map((item, index) => ({
-    ticker: item.profile.ticker,
-    name: item.profile.name,
-    output: portfolioOutputs[index],
-    growthRate: toPriceGrowth(item.profile.dividendGrowth)
-  }));
-  const simulation = outputs.length === 1 ? outputs[0].output : aggregatePortfolioSimulation(outputs.map((item) => item.output), values.targetMonthlyDividend);
+  const { outputs, simulation } = run;
   const baseMonthly = outputs[0]?.output.monthly ?? [];
   const years = Array.from(new Set(baseMonthly.map((row) => row.year))).sort((left, right) => left - right);
   const seriesColors = getChartTheme().series;

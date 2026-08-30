@@ -5,6 +5,7 @@ export * from './charts';
 export * from './ogCard';
 export * from './portfolio';
 export * from './portfolioPrefill';
+export * from './goalPlanSolver';
 export * from './preset';
 export * from './scenario';
 export * from './simulation';

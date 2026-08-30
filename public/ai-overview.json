@@ -10,6 +10,7 @@
   "computation": "client-side (simulation runs entirely in the browser; serverless functions serve OG cards, sitemap, FX/index quotes, auth callbacks, and community data)",
   "entrypoints": {
     "landing": "/",
+    "about": "/about",
     "simulator": "/simulator",
     "sitemap": "/sitemap.xml",
     "robots": "/robots.txt",

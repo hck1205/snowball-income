@@ -1,10 +1,11 @@
-import { Map, Shield, ScrollText } from 'lucide-react';
+import { BookOpen, Map, Shield, ScrollText } from 'lucide-react';
 import { PageFooter, PageHero } from '@/components/common';
 import { buildNavTree } from '@/components/PrimaryNav';
 import type { NavGroup } from '@/components/PrimaryNav';
 import { TickerPageShell } from '@/pages/Ticker/components';
 import { useDocumentMeta } from '@/pages/Ticker/hooks';
 import { ICON } from '@/shared/styles';
+import { ABOUT_PATH } from '@/shared/constants/routes';
 import { PageStack, Section, SectionTitle, SitemapGrid, SitemapLink, SitemapLinkList } from './Sitemap.styled';
 
 /**
@@ -33,8 +34,20 @@ const COPY = {
   },
   title: '사이트맵',
   lede: 'Hungry Hippo 의 모든 화면을 한곳에 모았습니다. 원하는 곳으로 바로 이동하세요.',
-  policiesTitle: '정책'
+  policiesTitle: '정책',
+  aboutTitle: '소개',
+  aboutLabel: '배당 알아보기'
 } as const;
+
+/**
+ * 안내문(`/about`)도 nav 에 없다 — 헤더 메뉴는 "무엇을 하는 화면"으로 묶여 있는데 이것은 읽는
+ * 지면이라 어느 칸에도 자연스럽게 앉지 않는다. 다만 이 페이지의 일은 "모든 화면을 한곳에" 이므로
+ * 빠지면 안 된다(2026-08-27 에 `/` 에서 갈라져 나왔다).
+ */
+const ABOUT_SECTION: NavGroup = {
+  label: COPY.aboutTitle,
+  items: [{ to: ABOUT_PATH, label: COPY.aboutLabel, Icon: BookOpen }]
+};
 
 /** 정책 두 장은 nav 에 없다 — 이 페이지에만 있는 꼬리다. */
 const POLICY_SECTION: NavGroup = {
@@ -49,7 +62,7 @@ export default function SitemapPage() {
   useDocumentMeta({ title: COPY.meta.title, description: COPY.meta.description, pathname: '/sitemap' });
 
   /* 🔴 렌더 안에서 부른다 — env 플래그를 호출 시점에 읽어야 꺼진 배포의 동작이 테스트로 잡힌다. */
-  const sections: readonly NavGroup[] = [...buildNavTree(), POLICY_SECTION];
+  const sections: readonly NavGroup[] = [...buildNavTree(), ABOUT_SECTION, POLICY_SECTION];
 
   return (
     <TickerPageShell>

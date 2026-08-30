@@ -49,6 +49,19 @@ describe('문항 화면', () => {
     expect(screen.getByText(`1 / ${INVESTOR_QUESTIONS.length}`)).toBeTruthy();
   });
 
+  it('🔴 진행을 낭독기도 읽을 수 있다 — 12문항짜리 흐름에서 "언제 끝나나"는 화면만의 정보가 아니다', () => {
+    renderAt('/investor-type');
+
+    /*
+     * 2026-08-27 이전에는 진행 막대가 의미 없는 div 두 겹이라 낭독기에 아무것도 전달되지 않았다.
+     * 눈에 보이는 "1 / 12" 와 **같은 사실**이 여기로도 나가야 한다.
+     */
+    const bar = screen.getByRole('progressbar');
+    expect(bar).toHaveAttribute('aria-valuenow', '1');
+    expect(bar).toHaveAttribute('aria-valuemax', String(INVESTOR_QUESTIONS.length));
+    expect(bar.getAttribute('aria-valuetext')).toContain(`${INVESTOR_QUESTIONS.length}문항 중 1번째`);
+  });
+
   it('첫 문항에는 "이전 문항"이 없다 — 돌아갈 곳이 없다', () => {
     renderAt('/investor-type');
     expect(screen.queryByText(/이전 문항/)).toBeNull();

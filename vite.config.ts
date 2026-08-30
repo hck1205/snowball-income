@@ -58,6 +58,16 @@ const ROUTES = [
   /* 시뮬레이터. 랜딩보다 한 단계 낮은 0.9 로 고정(둘 다 색인 대상이고 내용이 다르다). */
   { path: '/simulator', priority: '0.9', changefreq: 'weekly' },
   /*
+   * 긴 안내문(2026-08-27 신설 — 그 전까지 `/` 였다).
+   *
+   * 🔴 **이 사이트의 유일한 설명형 색인 대상**이다. "배당이란"·"ETF란" 같은 검색어가 도착할 곳이
+   *   `/` 에서 여기로 옮겨 왔으므로 우선순위도 그만큼 높다(0.8). 개념 설명이라 개정이 잦지 않아
+   *   `monthly` 로 둔다 — 안 바뀌는 문서에 weekly 를 적는 것은 크롤러에게 거짓말이다.
+   * ⚠ `/` 와 **본문이 겹치지 않아야** 두 주소가 각자 색인된다. 정적 셸 본문은 파셜로 갈라 두었다
+   *   (`tools/seo/shells/about.body.html`) — 되돌려 합치면 중복 콘텐츠가 된다.
+   */
+  { path: '/about', priority: '0.8', changefreq: 'monthly' },
+  /*
    * 투자 성향 테스트(2026-08-17). "투자 성향 테스트" 는 사람이 검색창에 실제로 치는 말이라 색인 가치가
    * 있다 — 랜딩 4갈래 중 중급자가 도착하는 곳이기도 하다.
    * 🔴 결과는 **쿼리**(`?t=…&s=…`)로 표현되는데 사이트맵에는 클린 URL 만 넣는다. 결과 주소를 넣으면
@@ -582,7 +592,15 @@ const ogFontsPlugin = (): Plugin => ({
  * **Vite config 로더는 그 스펙파이어를 external 로 빼버린다**(`ERR_MODULE_NOT_FOUND: @/shared`).
  * `loadTickerRoutes`·`loadGuideRoutes` 와 **같은 방법**으로 esbuild 로 한 번 번들해 메모리에서 평가한다.
  */
-type RouteShell = { path: string; title: string; description: string };
+type RouteShell = {
+  path: string;
+  title: string;
+  description: string;
+  /** 자기 본문 HTML 파일(루트 기준). 정본·이유는 `tools/seo/routeShells.ts` 의 타입 주석. */
+  bodyFile?: string;
+  /** 이 라우트에만 붙는 `<head>` 조각(루트 기준). `/about` 의 FAQPage JSON-LD 가 유일한 사용처다. */
+  headFile?: string;
+};
 
 let routeShellsPromise: Promise<RouteShell[]> | null = null;
 
@@ -611,7 +629,18 @@ const loadRouteShells = (): Promise<RouteShell[]> => {
 };
 
 
-const buildRouteShell = (indexHtml: string, siteUrl: string, route: RouteShell): string => {
+/**
+ * 라우트 셸 하나를 굽는다.
+ *
+ * @param partials `bodyFile`/`headFile` 을 미리 읽어 치환까지 끝낸 조각. 파일 읽기와 비동기 치환
+ *   (계산 예시)을 호출부가 맡고 이 함수는 순수하게 문자열만 다룬다 — 그래야 테스트가 쉽다.
+ */
+const buildRouteShell = (
+  indexHtml: string,
+  siteUrl: string,
+  route: RouteShell,
+  partials: { body?: string; head?: string } = {}
+): string => {
   const canonical = `${siteUrl}${route.path}`;
   const { description } = route;
   // 🔴 접미는 `useDocumentMeta` 가 런타임에 붙이는 것과 **같은 형태**여야 한다. 다르면 JS 실행 전후로
@@ -628,14 +657,24 @@ const buildRouteShell = (indexHtml: string, siteUrl: string, route: RouteShell):
   html = replaceMetaContent(html, 'name', 'twitter:title', title);
   html = replaceMetaContent(html, 'name', 'twitter:description', description);
 
-  // 랜딩 본문을 걷어낸 자리에 **그 화면의 본문**을 넣는다. 비워 두면 JS 없는 방문자에게 빈 화면이고,
+  /* 이 라우트에만 붙는 head 조각(`/about` 의 FAQPage JSON-LD). `</head>` **직전**에 넣는다 —
+     기존 JSON-LD 들과 같은 자리라 순서가 뒤엉키지 않는다. */
+  if (partials.head) {
+    html = html.replace('</head>', `${partials.head}
+  </head>`);
+  }
+
+  // 첫 화면 본문을 걷어낸 자리에 **그 화면의 본문**을 넣는다. 비워 두면 JS 없는 방문자에게 빈 화면이고,
   // 크롤러에게는 "제목만 있고 내용이 없는 페이지"가 된다. 문구는 위 메타와 같은 정본에서 온다.
+  // 🔴 `bodyFile` 을 가진 라우트(`/about`)는 **그 파일이 곧 본문**이다 — 요약 두 줄로 줄이면
+  //    이 사이트의 유일한 설명형 색인 대상이 빈 껍데기가 된다.
   const fallback =
-    '<div class="app-shell-fallback">'
-    + `<h1>${escapeHtmlText(route.title)}</h1>`
-    + `<p>${escapeHtmlText(description)}</p>`
-    + '<noscript><p class="disclaimer">이 화면을 직접 사용하려면 브라우저에서 JavaScript를 활성화해 주세요.</p></noscript>'
-    + '</div>';
+    partials.body
+    ?? ('<div class="app-shell-fallback">'
+      + `<h1>${escapeHtmlText(route.title)}</h1>`
+      + `<p>${escapeHtmlText(description)}</p>`
+      + '<noscript><p class="disclaimer">이 화면을 직접 사용하려면 브라우저에서 JavaScript를 활성화해 주세요.</p></noscript>'
+      + '</div>');
   const rootOpenTag = html.match(/<div\s+id="root"[^>]*>/i);
   if (rootOpenTag && rootOpenTag.index !== undefined) {
     const insertAt = rootOpenTag.index + rootOpenTag[0].length;
@@ -668,11 +707,27 @@ const routeShellsPlugin = (siteUrl: string): Plugin => {
       if (!existsSync(indexPath)) return;
       const indexHtml = readFileSync(indexPath, 'utf8');
 
+      /* 계산 예시는 `index.html` 과 **같은 캐시**를 쓴다(빌드당 1회). 파셜 본문에도 같은 마커가
+         들어 있어서, 여기서 치환하지 않으면 `/about` 셸에 주석만 남는다. */
+      staticExampleHtml ??= buildStaticExampleHtml();
+      const staticExample = await staticExampleHtml;
+
+      /** 파셜 하나를 읽어 `index.html` 과 같은 치환을 건다. 파일이 없으면 조용히 건너뛴다. */
+      const readPartial = (file: string | undefined): string | undefined => {
+        if (!file) return undefined;
+        const path = resolvePath(root, file);
+        if (!existsSync(path)) return undefined;
+        return readFileSync(path, 'utf8')
+          .replace(/%VITE_SITE_URL%/g, siteUrl)
+          .replace(STATIC_EXAMPLE_MARKER, staticExample);
+      };
+
       for (const route of await loadRouteShells()) {
         // `/portfolio/nps` → `dist/portfolio/nps.html`. 중첩 경로라 디렉터리를 먼저 만든다.
         const target = resolvePath(root, outDir, `${route.path.replace(/^\//, '')}.html`);
         mkdirSync(dirname(target), { recursive: true });
-        writeFileSync(target, buildRouteShell(indexHtml, siteUrl, route), 'utf8');
+        const partials = { body: readPartial(route.bodyFile), head: readPartial(route.headFile) };
+        writeFileSync(target, buildRouteShell(indexHtml, siteUrl, route, partials), 'utf8');
       }
     }
   };

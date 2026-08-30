@@ -1,15 +1,23 @@
-// @vitest-environment node — index.html 원문을 문자열로 읽어 본다 (DOM 불필요)
+// @vitest-environment node — 셸 원문을 문자열로 읽어 본다 (DOM 불필요)
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { LANDING_COPY } from '@/pages/Landing/copy';
 
 /**
- * **랜딩 FAQ 의 이중 정본 드리프트 방지.**
+ * **`/about` FAQ 의 이중 정본 드리프트 방지.**
  *
  * FAQ 문장이 사는 곳은 원래 하나(`pages/Landing/copy/landingCopy.ts`)여야 하지만, `FAQPage`
- * 구조화 데이터는 **정적 `index.html` 에 있어야만** 한다 — 런타임에 JS 로 주입하면 JS 를 실행하지
+ * 구조화 데이터는 **정적 HTML 에 있어야만** 한다 — 런타임에 JS 로 주입하면 JS 를 실행하지
  * 않는 크롤러가 못 읽는다. 그래서 같은 문장이 두 곳에 산다. 없앨 수 없으니 **어긋나면 빨개지게** 한다.
+ *
+ * 🔴 **2026-08-27 부터 그 두 곳은 `index.html` 이 아니다.** 첫 화면이 목표 여섯으로 바뀌면서 FAQ 는
+ * `/about` 으로 옮겼고, 정본도 함께 갈라졌다:
+ *   · JSON-LD → `tools/seo/shells/about.head.html`
+ *   · 보이는 본문 → `tools/seo/shells/about.body.html`
+ * 빌드가 그 둘을 `dist/about.html` 한 장으로 굽는다(`ROUTE_SHELLS` 의 `headFile`·`bodyFile`).
+ * ⚠ 사이트 수준 `@graph`(`#structured-data`)는 여전히 `index.html` 에 있다 — 그쪽은 주소와 무관한
+ *   사이트 엔티티라 전 라우트가 공유한다.
  *
  * 잠그는 것 셋:
  *  ① 🔴 **승인 경계** — `needsApproval: true` 인 문항은 JSON-LD 에 **없어야** 한다. JSON-LD 는 검색
@@ -23,6 +31,11 @@ import { LANDING_COPY } from '@/pages/Landing/copy';
 const readRepoFile = (relativePath: string) =>
   readFileSync(fileURLToPath(new URL(`../../${relativePath}`, import.meta.url)), 'utf-8');
 
+/** `/about` 셸의 head 조각 — `FAQPage` JSON-LD 가 여기 산다. */
+const ABOUT_HEAD_HTML = readRepoFile('tools/seo/shells/about.head.html');
+/** `/about` 셸의 본문 — 사람이 읽는 FAQ 가 여기 보인다(가시성 계약 ③). */
+const ABOUT_BODY_HTML = readRepoFile('tools/seo/shells/about.body.html');
+/** 사이트 수준 `@graph` 는 주소와 무관해 여전히 `index.html` 에 있다. */
 const INDEX_HTML = readRepoFile('index.html');
 
 type FaqNode = {
@@ -40,10 +53,10 @@ type FaqNode = {
  * 범위 계약은 `test/seo/faqStructuredDataScope.test.tsx` 가 따로 잠근다.
  */
 const readFaqNode = (): FaqNode | undefined => {
-  const match = INDEX_HTML.match(
+  const match = ABOUT_HEAD_HTML.match(
     /<script id="faq-structured-data" type="application\/ld\+json">([\s\S]*?)<\/script>/
   );
-  if (!match) throw new Error('index.html 에서 faq-structured-data 스크립트를 찾지 못했다.');
+  if (!match) throw new Error('about.head.html 에서 faq-structured-data 스크립트를 찾지 못했다.');
   // `%VITE_SITE_URL%` 은 JSON 문자열 **안**에 있어 파싱을 막지 않는다(빌드 때 치환된다).
   const node = JSON.parse(match[1]) as FaqNode;
   return node['@type'] === 'FAQPage' ? node : undefined;
@@ -58,7 +71,7 @@ const readSiteGraph = (): readonly FaqNode[] => {
 
 /** 사람이 실제로 읽는 본문만 남긴다 — 주석·태그를 걷고 줄바꿈 들여쓰기를 한 칸으로 접는다. */
 const shellText = () => {
-  const shell = INDEX_HTML.slice(INDEX_HTML.indexOf('class="app-shell-fallback"'));
+  const shell = ABOUT_BODY_HTML.slice(ABOUT_BODY_HTML.indexOf('class="app-shell-fallback"'));
   return shell
     .replace(/<!--[\s\S]*?-->/g, ' ')
     .replace(/<[^>]+>/g, ' ')
@@ -102,11 +115,14 @@ describe('랜딩 FAQ 구조화 데이터', () => {
   );
 
   it.each(PENDING.map((item) => [item.id, item.question, item.answer] as const))(
-    '🔴 승인 대기 문항 "%s" 은 index.html 어디에도 없다',
+    '🔴 승인 대기 문항 "%s" 은 정적 셸 어디에도 없다',
     (_id, question, answer) => {
       // 화면에는 이미 떠 있지만 색인시키지 않는다 — JSON-LD 는 공개 약속이 된다.
-      expect(INDEX_HTML).not.toContain(question);
-      expect(INDEX_HTML.replace(/\s+/g, ' ')).not.toContain(answer);
+      // ⚠ 세 파일을 **모두** 훑는다. 한 곳만 보면 나머지로 새어 나간 문장을 놓친다.
+      for (const html of [ABOUT_HEAD_HTML, ABOUT_BODY_HTML, INDEX_HTML]) {
+        expect(html).not.toContain(question);
+        expect(html.replace(/\s+/g, ' ')).not.toContain(answer);
+      }
     }
   );
 
