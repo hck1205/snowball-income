@@ -5,6 +5,7 @@ import { Button, PageFooter, PageHero } from '@/components/common';
 import { guidePath } from '@/shared/constants/guides';
 import type { GuideSection as GuideSectionContent } from '@/shared/constants/guides';
 import { useRevealOnScroll, useScrollSpy } from '@/shared/hooks';
+import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import { ICON } from '@/shared/styles';
 import type { GuideViewProps } from './GuidePage.types';
 import { FAQ_SECTION_ID, NEXT_SECTION_ID, chapterIndex } from './GuidePage.utils';
@@ -185,6 +186,18 @@ export default function GuideView({ viewModel }: GuideViewProps) {
   const tocIds = useMemo(() => toc.map((item) => item.id), [toc]);
   const activeId = useScrollSpy(tocIds);
 
+  /**
+   * 🔴 검색어 가이드는 **"배당금 계산기" 같은 말로 들어온 사람이 처음 닿는 지면**이다. 그 사람들이
+   * 실제로 계산기까지 가는지가 이 지면의 존재 이유인데, 2026-08-30 감사 전까지 계측이 없었다.
+   *
+   * ⚠ 가이드 슬러그는 파라미터로 싣지 않는다 — `page_location` 이 이미 말한다(티커 상세와 같은 규약).
+   * ⚠ 목적지는 `guide.cta.to` 라 글마다 다를 수 있다(전부 시뮬레이터는 아니다). 그래도 이 이벤트로
+   *   묶는 이유는 재려는 것이 "목적지"가 아니라 **이 지면이 사람을 앱으로 보내는가**여서다.
+   */
+  const trackToSimulator = useCallback((slot: 'hero' | 'toc') => {
+    trackEvent(ANALYTICS_EVENT.CONTENT_TO_SIMULATOR, { surface: 'guide', slot });
+  }, []);
+
   const onTocClick = useCallback((id: string) => {
     const target = document.getElementById(id);
     if (!target) return;
@@ -235,7 +248,7 @@ export default function GuideView({ viewModel }: GuideViewProps) {
         lede={guide.lede}
         meta={metaLine}
         actions={
-          <HeroCta to={guide.cta.to}>
+          <HeroCta to={guide.cta.to} onClick={() => trackToSimulator('hero')}>
             {guide.cta.label}
             <ArrowRight size={ICON.sm} strokeWidth={ICON.stroke} aria-hidden />
           </HeroCta>
@@ -278,7 +291,7 @@ export default function GuideView({ viewModel }: GuideViewProps) {
               );
             })}
           </TocList>
-          <TocCta to={guide.cta.to}>
+          <TocCta to={guide.cta.to} onClick={() => trackToSimulator('toc')}>
             {SIMULATOR_ACTION}
             <ArrowRight size={ICON.sm} strokeWidth={ICON.stroke} aria-hidden />
           </TocCta>

@@ -1,4 +1,4 @@
-// @vitest-environment node — index.html 원문을 문자열로 읽어 본다 (DOM 불필요)
+// @vitest-environment node — 셸 원문을 문자열로 읽어 본다 (DOM 불필요)
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
@@ -7,8 +7,13 @@ import { LANDING_COPY } from '@/pages/Landing/copy';
 /**
  * **정적 셸 본문 ↔ 랜딩 카피의 드리프트 방지.**
  *
- * `index.html` 의 `.app-shell-fallback` 은 **JS 를 실행하지 않는 소비자**(네이버 Yeti·Daumoa·
- * 카카오 스크래퍼·AI 답변 엔진)가 읽는 이 사이트의 전부다. 문구의 정본은
+ * 🔴 **2026-08-27 부터 이 본문은 `index.html` 이 아니라 `tools/seo/shells/about.body.html` 에 있다.**
+ * 첫 화면이 목표 여섯으로 바뀌면서 안내문이 `/about` 으로 옮겨 갔고, 빌드가 이 파일을
+ * `dist/about.html` 로 굽는다(`ROUTE_SHELLS` 의 `bodyFile`). `index.html` 은 이제 `/` 의 짧은
+ * 본문만 갖는다 — 둘이 같은 본문을 내려주면 두 색인 대상이 중복 콘텐츠가 되기 때문이다.
+ *
+ * 이 본문은 **JS 를 실행하지 않는 소비자**(네이버 Yeti·Daumoa·
+ * 카카오 스크래퍼·AI 답변 엔진)가 읽는 이 사이트의 설명 전부다. 문구의 정본은
  * `pages/Landing/copy/landingCopy.ts` 이고 셸은 그 사본이다 — 그런데 사본은 **화면에 안 보이므로**
  * 어긋나도 아무도 눈치채지 못한다. 실제로 첫 커밋에서 이미 어긋났고, 하필 바뀐 낱말이 "추천"이라
  * 셸만 "추천 구성 중 하나를 고르라"고 말하는 상태였다(= 투자 권유). 그래서 FAQ 와 같은 방식으로
@@ -26,7 +31,11 @@ import { LANDING_COPY } from '@/pages/Landing/copy';
 const readRepoFile = (relativePath: string) =>
   readFileSync(fileURLToPath(new URL(`../../${relativePath}`, import.meta.url)), 'utf-8');
 
-const INDEX_HTML = readRepoFile('index.html');
+/**
+ * 🔴 `index.html` 이 아니다(위 머리말). 변수 이름은 이 파일 전체가 쓰고 있어 그대로 두되,
+ * 가리키는 것은 `/about` 셸 본문 파셜이다.
+ */
+const INDEX_HTML = readRepoFile('tools/seo/shells/about.body.html');
 
 /**
  * 사람이 실제로 읽는 본문만 남긴다 — 주석·태그를 걷고 줄바꿈 들여쓰기를 한 칸으로 접는다.

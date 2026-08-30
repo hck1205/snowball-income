@@ -278,6 +278,51 @@ export const computeAnnualGrowthRate = <TRow>(rows: readonly TRow[], getValue: (
   return getValue(rows[1]) / baseValue - 1;
 };
 
+/**
+ * 포트폴리오 시뮬레이션 **본체**만 돌린다 — 차트·현금흐름 조립은 하지 않는다.
+ *
+ * 🔴 `buildSimulationBundle` 에서 갈라 냈다(2026-08-31). 목표 역산기가 필요한 것은 "이 조건이 목표에
+ * 닿는가" 하나인데, 그걸 알려고 매 후보마다 차트 시리즈·색·연도별 스택까지 만드는 것은 낭비다.
+ * 역산은 판정을 15~20회 부른다(`solveRequiredMonthlyContribution`).
+ *
+ * 🔴 **역산과 화면이 같은 함수를 쓴다는 것이 핵심이다.** 비슷하지만 다른 식을 역산에 쓰면
+ * "앱이 알려준 금액을 넣었는데 미도달"이 된다 — 그 솔버가 판정을 주입받게 설계된 이유다.
+ * 그래서 `buildSimulationBundle` 도 이 함수를 통해 돈다(복사본을 만들지 않았다).
+ *
+ * @returns 담을 종목이 없으면 `null`.
+ */
+export const runGoalScenarioSimulation = ({
+  includedProfiles,
+  normalizedAllocation,
+  values,
+  reinvestPercentByTickerId,
+  reinvestTargetByTickerId
+}: Pick<
+  SimulationInputParams,
+  'includedProfiles' | 'normalizedAllocation' | 'values' | 'reinvestPercentByTickerId' | 'reinvestTargetByTickerId'
+>): { outputs: ProfileSimulationOutput[]; simulation: SimulationOutput } | null => {
+  const targetProfiles = buildTargetProfiles({ includedProfiles, normalizedAllocation });
+  if (targetProfiles.length === 0) return null;
+
+  const portfolioOutputs = runPortfolio(targetProfiles, values, values.monthlyContribution, {
+    reinvestPercentByTickerId,
+    reinvestTargetByTickerId
+  });
+  const outputs: ProfileSimulationOutput[] = targetProfiles.map((item, index) => ({
+    ticker: item.profile.ticker,
+    name: item.profile.name,
+    output: portfolioOutputs[index],
+    growthRate: toPriceGrowth(item.profile.dividendGrowth)
+  }));
+
+  const simulation =
+    outputs.length === 1
+      ? outputs[0].output
+      : aggregatePortfolioSimulation(outputs.map((item) => item.output), values.targetMonthlyDividend);
+
+  return { outputs, simulation };
+};
+
 export const buildSimulationBundle = ({
   isValid,
   includedProfiles,
@@ -299,8 +344,14 @@ export const buildSimulationBundle = ({
     };
   }
 
-  const targetProfiles = buildTargetProfiles({ includedProfiles, normalizedAllocation });
-  if (targetProfiles.length === 0) {
+  const run = runGoalScenarioSimulation({
+    includedProfiles,
+    normalizedAllocation,
+    values,
+    reinvestPercentByTickerId,
+    reinvestTargetByTickerId
+  });
+  if (run === null) {
     return {
       simulation: null,
       yearlyCashflowByTicker: { years: [], byYear: {} },
@@ -308,19 +359,7 @@ export const buildSimulationBundle = ({
     };
   }
 
-  const portfolioOutputs = runPortfolio(targetProfiles, values, values.monthlyContribution, {
-    reinvestPercentByTickerId,
-    reinvestTargetByTickerId
-  });
-  const outputs: ProfileSimulationOutput[] = targetProfiles.map((item, index) => ({
-    ticker: item.profile.ticker,
-    name: item.profile.name,
-    output: portfolioOutputs[index],
-    growthRate: toPriceGrowth(item.profile.dividendGrowth)
-  }));
-
-  const simulation =
-    outputs.length === 1 ? outputs[0].output : aggregatePortfolioSimulation(outputs.map((item) => item.output), values.targetMonthlyDividend);
+  const { outputs, simulation } = run;
 
   const baseMonthly = outputs[0]?.output.monthly ?? [];
   const years = Array.from(new Set(baseMonthly.map((row) => row.year))).sort((left, right) => left - right);

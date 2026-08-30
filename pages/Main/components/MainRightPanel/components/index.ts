@@ -1,4 +1,5 @@
 export { default as ScenarioTabs, ScenarioTabTooltip } from './ScenarioTabs';
+export type { ScenarioTabsProps } from './ScenarioTabs';
 export { default as PortfolioPresetBoard } from './PortfolioPresetBoard';
 export type { PortfolioPresetPlaceholder } from './PortfolioPresetBoard';
 export {

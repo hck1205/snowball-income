@@ -34,7 +34,8 @@ import { TICKER_COMPARE_COPY } from '../../pages/Ticker/copy';
 import { PRIVACY_DOCUMENT, TERMS_DOCUMENT } from '../../pages/Legal/copy';
 import { COMMUNITY_COPY } from '../../shared/constants/community';
 import { SIMULATOR_COPY } from '../../shared/constants/simulator';
-import { SIMULATOR_PATH } from '../../shared/constants/routes';
+import { ABOUT_PATH, SIMULATOR_PATH } from '../../shared/constants/routes';
+import { LANDING_COPY } from '../../pages/Landing/copy';
 
 export type RouteShell = {
   /** 라우트 경로. `dist/<path>.html` 과 `vercel.json` rewrite 의 키가 된다. */
@@ -43,10 +44,43 @@ export type RouteShell = {
   title: string;
   /** meta description·og:description. */
   description: string;
+  /**
+   * 이 라우트가 **자기 본문 HTML 을 갖는다**면 그 파일(저장소 루트 기준 경로).
+   *
+   * 비워 두면 빌드가 `<h1>제목</h1><p>설명</p>` 만 넣는다 — 대부분의 화면은 그것으로 충분하다
+   * (크롤러에게 "이 주소는 무엇인가"만 답하면 되고, 본문은 JS 가 그린다).
+   * 🔴 `/about` 만 이것을 쓴다. 그 화면은 **본문 자체가 콘텐츠**(설명 여섯 장 + FAQ)라서, 요약
+   *   두 줄로 줄이면 이 사이트의 유일한 설명형 색인 대상이 빈 껍데기가 된다.
+   * ⚠ 파일 안의 `<!--SNOWBALL_STATIC_EXAMPLE-->` 는 빌드가 실제 계산 결과로 치환한다
+   *   (`index.html` 과 같은 처리 — vite.config.ts).
+   */
+  bodyFile?: string;
+  /**
+   * 이 라우트에만 붙일 `<head>` 조각(저장소 루트 기준 경로). `</head>` 직전에 들어간다.
+   * 🔴 `/about` 의 `FAQPage` JSON-LD 가 유일한 사용처다. **페이지 수준 타입이라 그 FAQ 가 화면에
+   *   보이는 주소에만 있어야 한다** — 이유는 `shared/lib/seo/faqStructuredData.ts`.
+   */
+  headFile?: string;
 };
 
 export const ROUTE_SHELLS: readonly RouteShell[] = [
   { path: SIMULATOR_PATH, title: SIMULATOR_COPY.meta.title, description: SIMULATOR_COPY.meta.description },
+  /*
+   * 긴 안내문(2026-08-27 이전까지 `/` 였다).
+   *
+   * 🔴 이 저장소에서 **본문 파일과 head 조각을 둘 다 갖는 유일한 라우트**다. 그 둘은 원래
+   *   `index.html` 안에 있었는데, `/` 가 목표 여섯 화면으로 바뀌면서 이 주소로 함께 옮겼다.
+   *   `/` 와 같은 본문을 내려주면 두 색인 대상이 중복 콘텐츠가 되므로 되돌리지 마라.
+   * ⚠ 제목·설명은 **화면이 쓰는 카피 그대로**다(`LANDING_COPY.hero`). 새로 쓰면 정적 HTML 과
+   *   화면이 갈린다 — 이 목록 머리말의 규약.
+   */
+  {
+    path: ABOUT_PATH,
+    title: LANDING_COPY.hero.title,
+    description: LANDING_COPY.hero.lede,
+    bodyFile: 'tools/seo/shells/about.body.html',
+    headFile: 'tools/seo/shells/about.head.html'
+  },
   {
     path: '/dividend/calendar',
     title: DIVIDEND_CALENDAR_COPY.meta.title,

@@ -17,6 +17,26 @@ export const findTargetYear = (rows: readonly SimulationResult[], monthlyTarget:
 };
 
 /**
+ * **목표 자산**에 처음 닿는 연도 라벨. 닿지 않으면 `undefined`.
+ *
+ * 🔴 `findTargetYear` 와 **완전 대칭**이다 — 보는 열만 다르다(월배당 vs 자산). 첫 화면의 목표
+ * 여섯 중 자산 셋(1억·3억·5억)이 계산기에서 답을 받으려면 이 판정이 필요한데, 엔진에는
+ * **목표 자산 입력 필드가 없다**(폼의 목표는 `targetMonthlyDividend` 하나뿐).
+ *
+ * ⚠ 그래서 이것은 **입력이 아니라 판독**이다. 엔진이 이미 만들어 둔 연간 행의 `assetValue` 를
+ *   훑을 뿐이라 시뮬레이션 결과를 한 글자도 바꾸지 않는다 — 목표 자산을 엔진 입력으로 넣는 것과
+ *   혼동하지 마라. 그쪽은 재투자·지급주기와 얽히는 진짜 엔진 변경이고, 이쪽은 순수 스캔이다.
+ * ⚠ `assetTarget <= 0` 이면 첫 행에서 즉시 성립한다 — 호출부가 "미설정"을 따로 분기한다
+ *   (`findTargetYear` 와 같은 계약).
+ */
+export const findAssetTargetYear = (
+  rows: readonly SimulationResult[],
+  assetTarget: number
+): number | undefined => {
+  return rows.find((row) => row.assetValue >= assetTarget)?.year;
+};
+
+/**
  * 종목별 연간 행을 **포트폴리오 한 줄로 합산**한다.
  *
  * 🔴 이 구현은 원래 **두 곳에 글자 그대로 복붙돼 있었다** — `SnowballScenarioRun`(커뮤니티 요약·

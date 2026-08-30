@@ -52,6 +52,28 @@ export const INVESTOR_TYPE_PATH = '/investor-type';
 export const PRESET_QUERY_PARAM = 'preset';
 
 /**
+ * 긴 안내문(`/about`) — **2026-08-27 이전에는 이것이 `/` 였다.**
+ *
+ * 첫 화면이 목표 여섯 버튼으로 바뀌면서 개념·복리·지급 리듬·프리셋·시작 전 점검·FAQ 여섯 장이
+ * 통째로 이 주소로 옮겨 왔다(사용자 결정). 화면 코드는 `pages/Landing/` 에 **그대로 있다** —
+ * 옮긴 것은 주소뿐이라 폴더·부품·테스트 이름은 계속 "Landing" 이다.
+ *
+ * 🔴 이 주소는 **색인 대상**이다(사이트맵 등재 + 정적 셸). 그 여섯 장이 이 사이트의 설명형 콘텐츠
+ *   전부이고, `FAQPage` JSON-LD 도 이 주소로 함께 옮겼다 — FAQ 가 **보이는** 유일한 화면이라서다
+ *   (`shared/lib/seo/faqStructuredData.ts`).
+ */
+export const ABOUT_PATH = '/about';
+
+/**
+ * `/simulator?goal=<id>` — **랜딩의 목표 버튼이 계산기를 여는 진입점**(2026-08-27).
+ *
+ * `PRESET_QUERY_PARAM` 과 같은 이유로 여기 산다: 읽는 곳이 화면과 영속 계층 양쪽이라, 한쪽에 두면
+ * 반대쪽이 그 계층을 통째로 끌어온다. 주소 형식은 라우팅 계약이다.
+ * ⚠ 값은 `shared/constants/landingGoals` 의 목표 id 다(`asset-100m` · `dividend-100` …).
+ */
+export const GOAL_QUERY_PARAM = 'goal';
+
+/**
  * 배당 연속 증배 목록의 식별자 — 라우트 마지막 세그먼트와 **같은 문자열**이다. 순서 = 화면 노출 순서.
  *
  * 🔴 목록 데이터(`shared/constants/dividendLists`)가 아니라 여기 사는 이유: 그 폴더는 200종 가까운

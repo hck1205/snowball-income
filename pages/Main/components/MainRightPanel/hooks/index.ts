@@ -1,4 +1,6 @@
 export { useScenarioTabInteractions } from './useScenarioTabInteractions';
+export { useScenarioTabPanel } from './useScenarioTabPanel';
+export { useGoalPlanApply } from './useGoalPlanApply';
 export { usePortfolioPrefillCommit } from './usePortfolioPrefillCommit';
 export { usePresetPrefill } from './usePresetPrefill';
 export { usePortfolioPresetApply } from './usePortfolioPresetApply';

@@ -18,6 +18,7 @@
 
   "rewrites": [
     { "source": "/simulator", "destination": "/simulator.html" },
+    { "source": "/about", "destination": "/about.html" },
     { "source": "/dividend/calendar", "destination": "/dividend/calendar.html" },
     { "source": "/dividend/portfolio", "destination": "/dividend/portfolio.html" },
     { "source": "/ticker/compare", "destination": "/ticker/compare.html" },

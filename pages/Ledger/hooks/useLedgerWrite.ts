@@ -5,7 +5,6 @@ import {
   deleteLedgerEntry,
   updateLedgerEntry
 } from '@/shared/lib/googleSheets';
-import { collectBackfillTargets, planBackfill, writeValues } from '@/shared/lib/googleSheets';
 import type { LedgerDraft, LedgerEntry, LedgerError, LedgerPatch } from '@/shared/lib/googleSheets';
 import { classifyLedgerRow } from '@/shared/lib/ledger';
 import type { LedgerClassifyRule } from '@/shared/lib/ledger';
@@ -36,6 +35,7 @@ import {
   validateLedgerForm
 } from '../utils';
 import type { LedgerConnection } from './useLedgerConnection';
+import { useLedgerBatchWrites } from './useLedgerBatchWrites';
 import type { RetryCountdown } from './useRetryCountdown';
 
 const copy = LEDGER_COPY;
@@ -264,8 +264,6 @@ export function useLedgerWrite(params: {
   const [liveMessage, setLiveMessage] = useState('');
   const [focusAfterRemoveId, setFocusAfterRemoveId] = useState<string | null>(null);
   /** 고정비 이어가기 확인 목록. `null` 이면 닫혀 있다. */
-  const [carryOverOpen, setCarryOverOpen] = useState(false);
-  const [isCarryingOver, setIsCarryingOver] = useState(false);
 
   /** 재연결 뒤 이어서 실행할 작업. 🔴 만료가 사용자의 입력을 삼키지 않게 하는 유일한 장치다. */
   const pendingRef = useRef<LedgerPendingAction | null>(null);
@@ -703,107 +701,19 @@ export function useLedgerWrite(params: {
     };
   }, [removeId, rows]);
 
-  /* ── 고정비 이어가기 ──────────────────────────────────────────────────────
-   * 🔴 **두 단계**다. 목록을 먼저 보이고, 확인해야 쓴다 — 남의 시트에 여러 줄을 한 번에 넣는
-   *    일이라 한 번의 오조작이 비싸다. 되돌리려면 넣은 줄을 하나씩 지워야 한다.
+  /*
+   * 시트에 **여러 줄을 한 번에 쓰는** 두 기능(고정비 이어가기 · 되채워 쓰기)은 별도 훅이 소유한다
+   * (2026-08-31 리팩터). 성격이 같고 이 훅의 나머지 상태와 거의 얽히지 않는다 — 바깥으로 새는 것은
+   * 완료 보고와 안내 문구뿐이라 콜백 둘로 끝난다.
+   * ⚠ 공개 API 는 그대로다 — 아래 return 이 같은 이름으로 그대로 내보낸다.
    */
-  const openCarryOver = useCallback(() => setCarryOverOpen(true), []);
-  const closeCarryOver = useCallback(() => setCarryOverOpen(false), []);
-
-  const confirmCarryOver = useCallback(() => {
-    if (carryOverCandidates.length === 0) return;
-    const context = connection.readContext();
-    const { link, snapshot } = connection;
-    if (context === null || link === null || snapshot === null) return;
-
-    setIsCarryingOver(true);
-    void (async () => {
-      const report = await appendLedgerEntries(context, {
-        link,
-        snapshot,
-        drafts: carryOverCandidates.map((candidate) => candidate.draft)
-      });
-
-      setIsCarryingOver(false);
-      setCarryOverOpen(false);
-      /* 🔴 부분 실패도 숫자로 그대로 말한다 — "일부 실패" 같은 뭉뚱그린 문구는 이 화면의 금지어다. */
-      setBatchReport({ successCount: report.successCount, totalCount: report.items.length });
-      setLiveMessage(copy.carryOver.live(report.successCount, report.items.length));
-      await connection.refresh();
-    })();
-  }, [carryOverCandidates, connection]);
-
-  /* ── 되채워 쓰기 (2026-08-09) ──────────────────────────────────────────────── */
-
-  const [isBackfilling, setIsBackfilling] = useState(false);
-
-  /**
-   * 히포가 채운 분류 중 **시트에는 아직 없는** 것들.
-   *
-   * 🔴 `collectBackfillTargets` 가 `seen` 을 다시 보고 **빈 칸이던 자리만** 고른다 — 적어 둔 말을
-   *    덮지 않는다. 그 확인이 파서(`filled` 를 만들 때)와 여기 두 곳에 있는 이유는, 하나가 뚫리면
-   *    조용히 데이터가 상하기 때문이다.
-   */
-  const backfillTargets = useMemo(() => {
-    const { link, snapshot } = connection;
-    if (link === null || snapshot === null) return [];
-    return collectBackfillTargets(snapshot.entries, link.mapping);
-  }, [connection]);
-
-  /**
-   * 되적기 실행.
-   *
-   * ⚠ **사용자가 시작한다.** 자동으로 조용히 쓰지 않는다 — 남의 시트에 여러 줄을 한 번에 넣는
-   *   일이라 되돌리려면 하나씩 지워야 한다(`고정비 이어가기` 와 같은 처방).
-   */
-  const runBackfill = useCallback(() => {
-    const context = connection.readContext();
-    const { link } = connection;
-    if (context === null || link === null || backfillTargets.length === 0) return;
-
-    const planned = planBackfill({
-      sheetTitle: link.sheetTitle,
-      mapping: link.mapping,
-      targets: backfillTargets
+  const { carryOver, openCarryOver, closeCarryOver, confirmCarryOver, backfill, runBackfill } =
+    useLedgerBatchWrites({
+      connection,
+      carryOverCandidates,
+      onBatchReport: setBatchReport,
+      onAnnounce: setLiveMessage
     });
-    if (!planned.ok) return;
-
-    setIsBackfilling(true);
-    void (async () => {
-      const result = await writeValues(context, {
-        spreadsheetId: link.spreadsheetId,
-        data: planned.value.data
-      });
-      setIsBackfilling(false);
-
-      if (!result.ok) {
-        connection.applyError(result.error);
-        return;
-      }
-      setLiveMessage(copy.backfill.live(planned.value.rowCount));
-      await connection.refresh();
-    })();
-  }, [backfillTargets, connection]);
-
-  const backfill: LedgerBackfillModel | null = useMemo(() => {
-    if (backfillTargets.length === 0) return null;
-    return { count: backfillTargets.length, isSaving: isBackfilling };
-  }, [backfillTargets.length, isBackfilling]);
-
-  const carryOver: LedgerCarryOverModel | null = useMemo(() => {
-    if (carryOverCandidates.length === 0) return null;
-    return {
-      count: carryOverCandidates.length,
-      isOpen: carryOverOpen,
-      isSaving: isCarryingOver,
-      rows: carryOverCandidates.map((candidate) => ({
-        id: candidate.id,
-        label: candidate.label,
-        amountText: formatKRW(candidate.draft.amount),
-        dateText: formatEntryDate(candidate.draft.date)
-      }))
-    };
-  }, [carryOverCandidates, carryOverOpen, isCarryingOver]);
 
   const partialFailure: LedgerPartialFailureModel | null = useMemo(() => {
     if (queue.length === 0) return null;
