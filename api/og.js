@@ -2565,11 +2565,18 @@ var marketData_generated_default = {
       observedDividendCagr: 7.92,
       payoutMonths: [
         3,
-        5,
-        8,
-        11
+        6,
+        9,
+        12
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 25,
+      estimatedPayDayByMonth: {
+        "3": 14,
+        "6": 14,
+        "9": 15,
+        "12": 13
+      }
     },
     EXR: {
       initialPrice: 148.61,
@@ -3240,8 +3247,8 @@ var marketData_generated_default = {
         7,
         10
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 14,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "1": 14,
         "4": 14,
