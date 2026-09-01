@@ -1,78 +1,8 @@
 {
-  "generatedAt": "2026-08-24",
-  "rangeStart": "2026-08-25",
-  "rangeEnd": "2026-11-20",
+  "generatedAt": "2026-09-01",
+  "rangeStart": "2026-09-01",
+  "rangeEnd": "2026-11-27",
   "economic": [
-    {
-      "date": "2026-08-26",
-      "timeEt": "10:00",
-      "nameKo": "소비자신뢰지수",
-      "nameEn": "CB Consumer Confidence",
-      "major": false
-    },
-    {
-      "date": "2026-08-26",
-      "timeEt": "10:00",
-      "nameKo": "신규주택 판매",
-      "nameEn": "New Home Sales",
-      "major": false
-    },
-    {
-      "date": "2026-08-27",
-      "timeEt": "08:30",
-      "nameKo": "근원 PCE 물가",
-      "nameEn": "Core PCE Price Index",
-      "major": true
-    },
-    {
-      "date": "2026-08-27",
-      "timeEt": "08:30",
-      "nameKo": "내구재 주문",
-      "nameEn": "Durable Goods Orders",
-      "major": false
-    },
-    {
-      "date": "2026-08-27",
-      "timeEt": "08:30",
-      "nameKo": "국내총생산(GDP)",
-      "nameEn": "GDP",
-      "major": true
-    },
-    {
-      "date": "2026-08-27",
-      "timeEt": "08:30",
-      "nameKo": "GDP 물가지수",
-      "nameEn": "GDP Price Index",
-      "major": false
-    },
-    {
-      "date": "2026-08-27",
-      "timeEt": "08:30",
-      "nameKo": "개인소득",
-      "nameEn": "Personal Income",
-      "major": false
-    },
-    {
-      "date": "2026-08-27",
-      "timeEt": "08:30",
-      "nameKo": "개인소비",
-      "nameEn": "Personal Spending",
-      "major": false
-    },
-    {
-      "date": "2026-08-28",
-      "timeEt": "08:30",
-      "nameKo": "연속 실업수당 청구",
-      "nameEn": "Continuing Jobless Claims",
-      "major": false
-    },
-    {
-      "date": "2026-08-28",
-      "timeEt": "08:30",
-      "nameKo": "신규 실업수당 청구",
-      "nameEn": "Initial Jobless Claims",
-      "major": false
-    },
     {
       "date": "2026-09-02",
       "timeEt": "10:00",
@@ -142,100 +72,30 @@
       "nameKo": "기존주택 판매",
       "nameEn": "Existing Home Sales",
       "major": false
+    },
+    {
+      "date": "2026-09-17",
+      "timeEt": "08:30",
+      "nameKo": "근원 소매판매",
+      "nameEn": "Core Retail Sales",
+      "major": false
+    },
+    {
+      "date": "2026-09-17",
+      "timeEt": "08:30",
+      "nameKo": "소매판매",
+      "nameEn": "Retail Sales",
+      "major": true
+    },
+    {
+      "date": "2026-09-18",
+      "timeEt": "09:15",
+      "nameKo": "산업생산",
+      "nameEn": "Industrial Production",
+      "major": false
     }
   ],
   "earnings": [
-    {
-      "date": "2026-08-25",
-      "ticker": "BMO",
-      "nameEn": "Bank Of Montreal",
-      "session": "beforeOpen",
-      "hasTickerPage": false
-    },
-    {
-      "date": "2026-08-25",
-      "ticker": "BNS",
-      "nameEn": "Bank of Nova Scotia (The)",
-      "session": "beforeOpen",
-      "hasTickerPage": false
-    },
-    {
-      "date": "2026-08-25",
-      "ticker": "INTU",
-      "nameEn": "Intuit Inc.",
-      "session": "afterClose",
-      "hasTickerPage": false
-    },
-    {
-      "date": "2026-08-26",
-      "ticker": "A",
-      "nameEn": "Agilent Technologies, Inc.",
-      "session": "afterClose",
-      "hasTickerPage": false
-    },
-    {
-      "date": "2026-08-26",
-      "ticker": "HPQ",
-      "nameEn": "HP Inc.",
-      "session": "afterClose",
-      "hasTickerPage": false
-    },
-    {
-      "date": "2026-08-26",
-      "ticker": "NVDA",
-      "nameEn": "NVIDIA Corporation",
-      "session": "afterClose",
-      "hasTickerPage": true
-    },
-    {
-      "date": "2026-08-26",
-      "ticker": "CRM",
-      "nameEn": "Salesforce, Inc.",
-      "session": "afterClose",
-      "hasTickerPage": false
-    },
-    {
-      "date": "2026-08-26",
-      "ticker": "CRWD",
-      "nameEn": "CrowdStrike Holdings, Inc.",
-      "session": "afterClose",
-      "hasTickerPage": false
-    },
-    {
-      "date": "2026-08-27",
-      "ticker": "DG",
-      "nameEn": "Dollar General Corporation",
-      "session": "beforeOpen",
-      "hasTickerPage": false
-    },
-    {
-      "date": "2026-08-27",
-      "ticker": "CM",
-      "nameEn": "Canadian Imperial Bank of Commerce",
-      "session": "beforeOpen",
-      "hasTickerPage": false
-    },
-    {
-      "date": "2026-08-27",
-      "ticker": "MRVL",
-      "nameEn": "Marvell Technology, Inc.",
-      "session": "afterClose",
-      "hasTickerPage": false
-    },
-    {
-      "date": "2026-08-27",
-      "ticker": "RY",
-      "nameEn": "Royal Bank Of Canada",
-      "session": "beforeOpen",
-      "hasTickerPage": false
-    },
-    {
-      "date": "2026-08-27",
-      "ticker": "TD",
-      "nameEn": "Toronto Dominion Bank (The)",
-      "session": "beforeOpen",
-      "hasTickerPage": false
-    },
     {
       "date": "2026-09-01",
       "ticker": "DELL",
@@ -293,17 +153,10 @@
       "hasTickerPage": false
     },
     {
-      "date": "2026-09-16",
+      "date": "2026-09-23",
       "ticker": "GIS",
       "nameEn": "General Mills, Inc.",
-      "session": "unknown",
-      "hasTickerPage": false
-    },
-    {
-      "date": "2026-09-22",
-      "ticker": "MU",
-      "nameEn": "Micron Technology, Inc.",
-      "session": "unknown",
+      "session": "beforeOpen",
       "hasTickerPage": false
     },
     {
@@ -315,16 +168,16 @@
     },
     {
       "date": "2026-09-29",
-      "ticker": "NKE",
-      "nameEn": "Nike, Inc.",
+      "ticker": "PAYX",
+      "nameEn": "Paychex, Inc.",
       "session": "unknown",
       "hasTickerPage": false
     },
     {
-      "date": "2026-09-29",
-      "ticker": "PAYX",
-      "nameEn": "Paychex, Inc.",
-      "session": "unknown",
+      "date": "2026-09-30",
+      "ticker": "MU",
+      "nameEn": "Micron Technology, Inc.",
+      "session": "afterClose",
       "hasTickerPage": false
     },
     {
@@ -332,6 +185,13 @@
       "ticker": "ACN",
       "nameEn": "Accenture plc",
       "session": "beforeOpen",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-10-01",
+      "ticker": "NKE",
+      "nameEn": "Nike, Inc.",
+      "session": "afterClose",
       "hasTickerPage": false
     },
     {
@@ -345,7 +205,7 @@
       "date": "2026-10-08",
       "ticker": "PEP",
       "nameEn": "Pepsico, Inc.",
-      "session": "unknown",
+      "session": "beforeOpen",
       "hasTickerPage": true
     },
     {
@@ -471,6 +331,272 @@
       "date": "2026-10-16",
       "ticker": "IBN",
       "nameEn": "ICICI Bank Limited",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-10-20",
+      "ticker": "ADC",
+      "nameEn": "Agree Realty Corporation",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-10-20",
+      "ticker": "DHR",
+      "nameEn": "Danaher Corporation",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-10-20",
+      "ticker": "GE",
+      "nameEn": "GE Aerospace",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-10-20",
+      "ticker": "KO",
+      "nameEn": "Coca-Cola Company (The)",
+      "session": "unknown",
+      "hasTickerPage": true
+    },
+    {
+      "date": "2026-10-20",
+      "ticker": "LMT",
+      "nameEn": "Lockheed Martin Corporation",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-10-20",
+      "ticker": "MMM",
+      "nameEn": "3M Company",
+      "session": "unknown",
+      "hasTickerPage": true
+    },
+    {
+      "date": "2026-10-20",
+      "ticker": "NOC",
+      "nameEn": "Northrop Grumman Corporation",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-10-20",
+      "ticker": "RTX",
+      "nameEn": "RTX Corporation",
+      "session": "unknown",
+      "hasTickerPage": true
+    },
+    {
+      "date": "2026-10-20",
+      "ticker": "TXN",
+      "nameEn": "Texas Instruments Incorporated",
+      "session": "unknown",
+      "hasTickerPage": true
+    },
+    {
+      "date": "2026-10-20",
+      "ticker": "CB",
+      "nameEn": "Chubb Limited",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-10-20",
+      "ticker": "COF",
+      "nameEn": "Capital One Financial Corporation",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-10-20",
+      "ticker": "ISRG",
+      "nameEn": "Intuitive Surgical, Inc.",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-10-20",
+      "ticker": "NFLX",
+      "nameEn": "Netflix, Inc.",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-10-20",
+      "ticker": "PM",
+      "nameEn": "Philip Morris International Inc",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-10-21",
+      "ticker": "ABT",
+      "nameEn": "Abbott Laboratories",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-10-21",
+      "ticker": "ASML",
+      "nameEn": "ASML Holding N.V.",
+      "session": "unknown",
+      "hasTickerPage": true
+    },
+    {
+      "date": "2026-10-21",
+      "ticker": "BAC",
+      "nameEn": "Bank of America Corporation",
+      "session": "unknown",
+      "hasTickerPage": true
+    },
+    {
+      "date": "2026-10-21",
+      "ticker": "MS",
+      "nameEn": "Morgan Stanley",
+      "session": "unknown",
+      "hasTickerPage": true
+    },
+    {
+      "date": "2026-10-21",
+      "ticker": "PGR",
+      "nameEn": "Progressive Corporation (The)",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-10-21",
+      "ticker": "PLD",
+      "nameEn": "Prologis, Inc.",
+      "session": "unknown",
+      "hasTickerPage": true
+    },
+    {
+      "date": "2026-10-21",
+      "ticker": "PNC",
+      "nameEn": "PNC Financial Services Group, Inc. (The)",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-10-21",
+      "ticker": "T",
+      "nameEn": "AT&T Inc.",
+      "session": "beforeOpen",
+      "hasTickerPage": true
+    },
+    {
+      "date": "2026-10-22",
+      "ticker": "DLR",
+      "nameEn": "Digital Realty Trust, Inc.",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-10-22",
+      "ticker": "F",
+      "nameEn": "Ford Motor Company",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-10-22",
+      "ticker": "HON",
+      "nameEn": "Honeywell International Inc.",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-10-22",
+      "ticker": "INTC",
+      "nameEn": "Intel Corporation",
+      "session": "unknown",
+      "hasTickerPage": true
+    },
+    {
+      "date": "2026-10-22",
+      "ticker": "NSC",
+      "nameEn": "Norfolk Southern Corporation",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-10-22",
+      "ticker": "TMUS",
+      "nameEn": "T-Mobile US, Inc.",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-10-22",
+      "ticker": "TSCO",
+      "nameEn": "Tractor Supply Company",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-10-22",
+      "ticker": "UNP",
+      "nameEn": "Union Pacific Corporation",
+      "session": "unknown",
+      "hasTickerPage": true
+    },
+    {
+      "date": "2026-10-22",
+      "ticker": "VLO",
+      "nameEn": "Valero Energy Corporation",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-10-22",
+      "ticker": "BX",
+      "nameEn": "Blackstone Inc.",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-10-22",
+      "ticker": "FCX",
+      "nameEn": "Freeport-McMoran, Inc.",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-10-22",
+      "ticker": "NEM",
+      "nameEn": "Newmont Corporation",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-10-23",
+      "ticker": "GD",
+      "nameEn": "General Dynamics Corporation",
+      "session": "unknown",
+      "hasTickerPage": true
+    },
+    {
+      "date": "2026-10-23",
+      "ticker": "ITW",
+      "nameEn": "Illinois Tool Works Inc.",
+      "session": "unknown",
+      "hasTickerPage": true
+    },
+    {
+      "date": "2026-10-23",
+      "ticker": "PG",
+      "nameEn": "Procter & Gamble Company (The)",
+      "session": "unknown",
+      "hasTickerPage": true
+    },
+    {
+      "date": "2026-10-23",
+      "ticker": "SNY",
+      "nameEn": "Sanofi",
       "session": "unknown",
       "hasTickerPage": false
     }
