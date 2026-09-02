@@ -1,8 +1,8 @@
 {
-  "asOf": "2026-08-04",
+  "asOf": "2026-09-02",
   "sourceAsOf": {
-    "proShares": "2026-07-31",
-    "sdy": "2026-07-31"
+    "proShares": "2026-09-01",
+    "sdy": "2026-09-01"
   },
   "memberCountByEtf": {
     "NOBL": 69,
@@ -22,17 +22,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 245.1,
+        "price": 261.72,
         "currency": "USD",
         "latestDividend": 1.73,
         "latestDividendDate": "2026-07-15",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 6.92,
-        "forwardYieldPercent": 2.8233374133006937,
+        "forwardYieldPercent": 2.644047073208008,
         "fiveYearGrowthPercent": 6.8051927565147885,
         "recentCut": null,
         "firstDividendYear": 2013,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -46,17 +46,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 48.74,
+        "price": 46.46,
         "currency": "USD",
         "latestDividend": 0.29,
         "latestDividendDate": "2026-07-02",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.16,
-        "forwardYieldPercent": 2.3799753795650385,
+        "forwardYieldPercent": 2.4967714162720616,
         "fiveYearGrowthPercent": 7.4520805832128945,
         "recentCut": null,
         "firstDividendYear": 1985,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -70,17 +70,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 107.12,
+        "price": 110.47,
         "currency": "USD",
         "latestDividend": 0.63,
         "latestDividendDate": "2026-07-15",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.52,
-        "forwardYieldPercent": 2.3525018670649738,
+        "forwardYieldPercent": 2.2811623065085542,
         "fiveYearGrowthPercent": 10.384959381787073,
         "recentCut": null,
         "firstDividendYear": 1983,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -93,17 +93,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 165.76,
+        "price": 187.68,
         "currency": "USD",
         "latestDividend": 1.63,
         "latestDividendDate": "2026-07-09",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 6.52,
-        "forwardYieldPercent": 3.933397683397683,
+        "forwardYieldPercent": 3.473998294970162,
         "fiveYearGrowthPercent": 13.09264089979596,
         "recentCut": null,
         "firstDividendYear": 2005,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -116,17 +116,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 361.88,
+        "price": 355.71,
         "currency": "USD",
         "latestDividend": 1.1,
-        "latestDividendDate": "2026-06-02",
+        "latestDividendDate": "2026-09-01",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 4.4,
-        "forwardYieldPercent": 1.2158726649718141,
+        "forwardYieldPercent": 1.2369626943296508,
         "fiveYearGrowthPercent": 9.811721768013415,
         "recentCut": null,
         "firstDividendYear": 2003,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -140,17 +140,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 78.06,
+        "price": 85.38,
         "currency": "USD",
         "latestDividend": 0.52,
-        "latestDividendDate": "2026-05-20",
+        "latestDividendDate": "2026-08-19",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.08,
-        "forwardYieldPercent": 2.6646169613118116,
+        "forwardYieldPercent": 2.4361677207777,
         "fiveYearGrowthPercent": 7.214502590085092,
         "recentCut": null,
         "firstDividendYear": 1983,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -164,17 +164,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 269.78,
+        "price": 281.16,
         "currency": "USD",
         "latestDividend": 1.7,
         "latestDividendDate": "2026-06-12",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 6.8,
-        "forwardYieldPercent": 2.520572318185188,
+        "forwardYieldPercent": 2.418551714326362,
         "fiveYearGrowthPercent": 11.09534595426207,
         "recentCut": null,
         "firstDividendYear": 1983,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -188,17 +188,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 141.92,
+        "price": 142.6,
         "currency": "USD",
         "latestDividend": 0.88,
         "latestDividendDate": "2026-07-15",
         "paymentsPerYear": 6,
         "forwardAnnualDividend": 5.28,
-        "forwardYieldPercent": 3.720405862457723,
+        "forwardYieldPercent": 3.7026647966339414,
         "fiveYearGrowthPercent": 12.195514544619957,
         "recentCut": null,
         "firstDividendYear": 1986,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -212,17 +212,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 126.71,
+        "price": 117.24,
         "currency": "USD",
         "latestDividend": 0.61,
-        "latestDividendDate": "2026-05-20",
+        "latestDividendDate": "2026-08-19",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.44,
-        "forwardYieldPercent": 1.9256570120748167,
+        "forwardYieldPercent": 2.0812009553053565,
         "fiveYearGrowthPercent": 15.678857972406712,
         "recentCut": null,
         "firstDividendYear": 1984,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -235,17 +235,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 237.96,
+        "price": 222.63,
         "currency": "USD",
         "latestDividend": 1.6,
         "latestDividendDate": "2026-06-15",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 6.4,
-        "forwardYieldPercent": 2.689527651706169,
+        "forwardYieldPercent": 2.8747248798454836,
         "fiveYearGrowthPercent": 13.396657763302722,
         "recentCut": null,
         "firstDividendYear": 2004,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -258,17 +258,17 @@
       ],
       "minimumStreakYears": 15,
       "metrics": {
-        "price": 351.9,
+        "price": 319.45,
         "currency": "USD",
         "latestDividend": 0.51,
-        "latestDividendDate": "2026-05-15",
+        "latestDividendDate": "2026-08-14",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.04,
-        "forwardYieldPercent": 0.5797101449275363,
+        "forwardYieldPercent": 0.6385975896071373,
         "fiveYearGrowthPercent": 7.528000640556964,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -281,17 +281,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 282.39,
+        "price": 284.07,
         "currency": "USD",
         "latestDividend": 0.88,
-        "latestDividendDate": "2026-06-08",
+        "latestDividendDate": "2026-08-31",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 3.52,
-        "forwardYieldPercent": 1.2465030631396297,
+        "forwardYieldPercent": 1.2391312000563242,
         "fiveYearGrowthPercent": 4.893816562469966,
         "recentCut": null,
         "firstDividendYear": 2004,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -305,17 +305,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 118.71,
+        "price": 137.75,
         "currency": "USD",
         "latestDividend": 0.405,
         "latestDividendDate": "2026-06-12",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.62,
-        "forwardYieldPercent": 1.364670204700531,
+        "forwardYieldPercent": 1.1760435571687842,
         "fiveYearGrowthPercent": 1.0180215943888626,
         "recentCut": null,
         "firstDividendYear": 1994,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -328,17 +328,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 163.93,
+        "price": 171.31,
         "currency": "USD",
         "latestDividend": 0.34,
         "latestDividendDate": "2026-07-16",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.36,
-        "forwardYieldPercent": 0.8296223998047948,
+        "forwardYieldPercent": 0.7938824353511179,
         "fiveYearGrowthPercent": 18.204927370905,
         "recentCut": null,
         "firstDividendYear": 1993,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -351,17 +351,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 34.12,
+        "price": 33.31,
         "currency": "USD",
         "latestDividend": 0.22,
         "latestDividendDate": "2026-06-26",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 0.88,
-        "forwardYieldPercent": 2.5791324736225087,
+        "forwardYieldPercent": 2.6418492945061542,
         "fiveYearGrowthPercent": 6.9610375725068785,
         "recentCut": null,
         "firstDividendYear": 2003,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -375,17 +375,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 46.02,
+        "price": 46.68,
         "currency": "USD",
         "latestDividend": 0.65,
         "latestDividendDate": "2026-05-28",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.6,
-        "forwardYieldPercent": 5.649717514124294,
+        "forwardYieldPercent": 5.569837189374464,
         "fiveYearGrowthPercent": null,
         "recentCut": null,
         "firstDividendYear": 2014,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -398,17 +398,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 552.07,
+        "price": 551.85,
         "currency": "USD",
         "latestDividend": 1.7,
-        "latestDividendDate": "2026-05-04",
+        "latestDividendDate": "2026-08-03",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 6.8,
-        "forwardYieldPercent": 1.2317278605973878,
+        "forwardYieldPercent": 1.232218900063423,
         "fiveYearGrowthPercent": 8.997698704834534,
         "recentCut": null,
         "firstDividendYear": 2005,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -421,17 +421,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 30.18,
+        "price": 26.14,
         "currency": "USD",
         "latestDividend": 0.41,
         "latestDividendDate": "2026-06-12",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.64,
-        "forwardYieldPercent": 5.4340622929092115,
+        "forwardYieldPercent": 6.2739097169089515,
         "fiveYearGrowthPercent": 7.631692251481081,
         "recentCut": null,
         "firstDividendYear": 2013,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -444,17 +444,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 69.86,
+        "price": 70.92,
         "currency": "USD",
         "latestDividend": 0.2,
         "latestDividendDate": "2026-07-01",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 0.8,
-        "forwardYieldPercent": 1.145147437732608,
+        "forwardYieldPercent": 1.128031584884377,
         "fiveYearGrowthPercent": 2.1878619308387304,
         "recentCut": null,
         "firstDividendYear": 1996,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -468,17 +468,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 60.73,
+        "price": 59.26,
         "currency": "USD",
         "latestDividend": 0.36,
         "latestDividendDate": "2026-07-31",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.44,
-        "forwardYieldPercent": 2.371150996212745,
+        "forwardYieldPercent": 2.4299696253796825,
         "fiveYearGrowthPercent": 7.214502590085092,
         "recentCut": null,
         "firstDividendYear": 1986,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -492,17 +492,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 292.94,
+        "price": 309.45,
         "currency": "USD",
         "latestDividend": 1.81,
         "latestDividendDate": "2026-07-01",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 7.24,
-        "forwardYieldPercent": 2.4714958694613234,
+        "forwardYieldPercent": 2.339634835999354,
         "fiveYearGrowthPercent": 5.961877920522696,
         "recentCut": null,
         "firstDividendYear": 1983,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -515,17 +515,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 41.97,
+        "price": 38.06,
         "currency": "USD",
         "latestDividend": 0.27,
         "latestDividendDate": "2026-07-14",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.08,
-        "forwardYieldPercent": 2.5732666190135816,
+        "forwardYieldPercent": 2.837624802942722,
         "fiveYearGrowthPercent": 6.699675773069802,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -538,17 +538,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 31.4,
+        "price": 30.58,
         "currency": "USD",
         "latestDividend": 0.24,
-        "latestDividendDate": "2026-06-01",
+        "latestDividendDate": "2026-09-01",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 0.96,
-        "forwardYieldPercent": 3.0573248407643314,
+        "forwardYieldPercent": 3.1393067364290386,
         "fiveYearGrowthPercent": 5.024607263868264,
         "recentCut": null,
         "firstDividendYear": 1986,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -562,17 +562,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 172.89,
+        "price": 167.68,
         "currency": "USD",
         "latestDividend": 1,
-        "latestDividendDate": "2026-05-26",
+        "latestDividendDate": "2026-08-24",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 4,
-        "forwardYieldPercent": 2.3136098097055933,
+        "forwardYieldPercent": 2.3854961832061066,
         "fiveYearGrowthPercent": 8.635128294875848,
         "recentCut": null,
         "firstDividendYear": 1989,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -586,17 +586,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 136.77,
+        "price": 130.33,
         "currency": "USD",
         "latestDividend": 0.48,
         "latestDividendDate": "2026-07-30",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.92,
-        "forwardYieldPercent": 1.4038166264531695,
+        "forwardYieldPercent": 1.4731834573774263,
         "fiveYearGrowthPercent": 4.563955259127317,
         "recentCut": null,
         "firstDividendYear": 1993,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -609,17 +609,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 42.77,
+        "price": 40.6,
         "currency": "USD",
         "latestDividend": 0.37,
-        "latestDividendDate": "2026-05-22",
+        "latestDividendDate": "2026-08-07",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.48,
-        "forwardYieldPercent": 3.460369417816226,
+        "forwardYieldPercent": 3.645320197044335,
         "fiveYearGrowthPercent": 6.342724238285391,
         "recentCut": null,
         "firstDividendYear": 1994,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -633,17 +633,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 39.55,
+        "price": 37.25,
         "currency": "USD",
         "latestDividend": 0.493,
-        "latestDividendDate": "2026-05-19",
+        "latestDividendDate": "2026-08-18",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.972,
-        "forwardYieldPercent": 4.986093552465235,
+        "forwardYieldPercent": 5.293959731543624,
         "fiveYearGrowthPercent": 3.8838918325118765,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -657,17 +657,17 @@
       ],
       "minimumStreakYears": 15,
       "metrics": {
-        "price": 37.39,
+        "price": 43.59,
         "currency": "USD",
         "latestDividend": 0.275,
         "latestDividendDate": "2026-06-18",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.1,
-        "forwardYieldPercent": 2.9419630917357584,
+        "forwardYieldPercent": 2.5235145675613673,
         "fiveYearGrowthPercent": 5.870154107037795,
         "recentCut": null,
         "firstDividendYear": 2000,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -681,17 +681,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 84.75,
+        "price": 88.25,
         "currency": "USD",
-        "latestDividend": 0.504,
-        "latestDividendDate": "2026-05-18",
+        "latestDividend": 0.546,
+        "latestDividendDate": "2026-08-17",
         "paymentsPerYear": 4,
-        "forwardAnnualDividend": 2.016,
-        "forwardYieldPercent": 2.3787610619469026,
+        "forwardAnnualDividend": 2.184,
+        "forwardYieldPercent": 2.474787535410765,
         "fiveYearGrowthPercent": 8.847188420259112,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -704,17 +704,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 114,
+        "price": 111.13,
         "currency": "USD",
         "latestDividend": 0.49,
         "latestDividendDate": "2026-06-30",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.96,
-        "forwardYieldPercent": 1.719298245614035,
+        "forwardYieldPercent": 1.763700170970935,
         "fiveYearGrowthPercent": 7.528000640556964,
         "recentCut": null,
         "firstDividendYear": 1991,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -727,17 +727,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 85.25,
+        "price": 87,
         "currency": "USD",
         "latestDividend": 0.96,
         "latestDividendDate": "2026-06-18",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 3.84,
-        "forwardYieldPercent": 4.504398826979472,
+        "forwardYieldPercent": 4.413793103448276,
         "fiveYearGrowthPercent": 11.550670014054099,
         "recentCut": null,
         "firstDividendYear": 2003,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -750,17 +750,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 173.57,
+        "price": 175.47,
         "currency": "USD",
         "latestDividend": 0.96,
         "latestDividendDate": "2025-12-23",
         "paymentsPerYear": 1,
         "forwardAnnualDividend": 0.96,
-        "forwardYieldPercent": 0.553090971942156,
+        "forwardYieldPercent": 0.5471020687296974,
         "fiveYearGrowthPercent": 10.603443372707044,
         "recentCut": null,
         "firstDividendYear": 1988,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -774,17 +774,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 170.21,
+        "price": 187.52,
         "currency": "USD",
         "latestDividend": 1.05,
         "latestDividendDate": "2026-06-09",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 4.2,
-        "forwardYieldPercent": 2.4675400975265847,
+        "forwardYieldPercent": 2.2397610921501707,
         "fiveYearGrowthPercent": 6.175921278168928,
         "recentCut": null,
         "firstDividendYear": 1973,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -798,17 +798,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 35.24,
+        "price": 33.01,
         "currency": "USD",
         "latestDividend": 0.33,
         "latestDividendDate": "2026-06-29",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.32,
-        "forwardYieldPercent": 3.745743473325766,
+        "forwardYieldPercent": 3.998788245986065,
         "fiveYearGrowthPercent": 3.4563715943573214,
         "recentCut": null,
         "firstDividendYear": 1985,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -822,17 +822,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 27.81,
+        "price": 27.38,
         "currency": "USD",
         "latestDividend": 0.231,
         "latestDividendDate": "2026-06-10",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 0.924,
-        "forwardYieldPercent": 3.322545846817692,
+        "forwardYieldPercent": 3.37472607742878,
         "fiveYearGrowthPercent": 5.4618345495144105,
         "recentCut": null,
         "firstDividendYear": 1985,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -845,17 +845,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 40.29,
+        "price": 39.81,
         "currency": "USD",
         "latestDividend": 0.34,
-        "latestDividendDate": "2026-05-21",
+        "latestDividendDate": "2026-08-20",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.36,
-        "forwardYieldPercent": 3.375527426160338,
+        "forwardYieldPercent": 3.416227078623461,
         "fiveYearGrowthPercent": 7.781806771272581,
         "recentCut": null,
         "firstDividendYear": 1997,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -870,17 +870,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 71.23,
+        "price": 72.59,
         "currency": "USD",
         "latestDividend": 0.703,
-        "latestDividendDate": "2026-05-15",
+        "latestDividendDate": "2026-08-17",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.812,
-        "forwardYieldPercent": 3.9477748139828717,
+        "forwardYieldPercent": 3.8738118198098905,
         "fiveYearGrowthPercent": 4.789696563246326,
         "recentCut": null,
         "firstDividendYear": 1986,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -894,17 +894,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 136.95,
+        "price": 132.6,
         "currency": "USD",
-        "latestDividend": 0.4,
-        "latestDividendDate": "2026-05-22",
+        "latestDividend": 0.44,
+        "latestDividendDate": "2026-08-28",
         "paymentsPerYear": 4,
-        "forwardAnnualDividend": 1.6,
-        "forwardYieldPercent": 1.168309602044542,
+        "forwardAnnualDividend": 1.76,
+        "forwardYieldPercent": 1.3273001508295628,
         "fiveYearGrowthPercent": 14.869835499703509,
         "recentCut": null,
         "firstDividendYear": 1990,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -917,17 +917,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 96.03,
+        "price": 90.18,
         "currency": "USD",
         "latestDividend": 0.245,
         "latestDividendDate": "2026-07-10",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 0.98,
-        "forwardYieldPercent": 1.0205144225762783,
+        "forwardYieldPercent": 1.086715457972943,
         "fiveYearGrowthPercent": 1.9414835626552218,
         "recentCut": null,
         "firstDividendYear": 1992,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -941,17 +941,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 71.78,
+        "price": 72.04,
         "currency": "USD",
         "latestDividend": 0.165,
-        "latestDividendDate": "2026-05-11",
+        "latestDividendDate": "2026-08-12",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 0.66,
-        "forwardYieldPercent": 0.919476177208136,
+        "forwardYieldPercent": 0.9161576901721264,
         "fiveYearGrowthPercent": 12.030033714161736,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -964,17 +964,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 31.27,
+        "price": 30.46,
         "currency": "USD",
         "latestDividend": 0.26,
         "latestDividendDate": "2026-07-24",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.04,
-        "forwardYieldPercent": 3.3258714422769433,
+        "forwardYieldPercent": 3.4143138542350626,
         "fiveYearGrowthPercent": 2.589630491023409,
         "recentCut": null,
         "firstDividendYear": 1998,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -988,17 +988,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 235.6,
+        "price": 245.49,
         "currency": "USD",
         "latestDividend": 0.516,
         "latestDividendDate": "2026-07-01",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.064,
-        "forwardYieldPercent": 0.8760611205432938,
+        "forwardYieldPercent": 0.8407674447024319,
         "fiveYearGrowthPercent": 0.8098223728997489,
         "recentCut": null,
         "firstDividendYear": 1986,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1011,17 +1011,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 56.51,
+        "price": 56.26,
         "currency": "USD",
         "latestDividend": 0.32,
         "latestDividendDate": "2026-06-05",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.28,
-        "forwardYieldPercent": 2.2650858255176076,
+        "forwardYieldPercent": 2.275151084251689,
         "fiveYearGrowthPercent": 2.8015317995883304,
         "recentCut": null,
         "firstDividendYear": 1996,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1034,17 +1034,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 860.37,
+        "price": 753.59,
         "currency": "USD",
         "latestDividend": 0.65,
         "latestDividendDate": "2026-07-31",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.6,
-        "forwardYieldPercent": 0.30219556702348993,
+        "forwardYieldPercent": 0.34501519393834845,
         "fiveYearGrowthPercent": 9.336207394327811,
         "recentCut": null,
         "firstDividendYear": 1990,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1058,17 +1058,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 830.03,
+        "price": 792.28,
         "currency": "USD",
         "latestDividend": 1.63,
         "latestDividendDate": "2026-07-20",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 6.52,
-        "forwardYieldPercent": 0.7855137766104839,
+        "forwardYieldPercent": 0.822941384359065,
         "fiveYearGrowthPercent": 6.482043619009503,
         "recentCut": null,
         "firstDividendYear": 1962,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1082,17 +1082,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 348.23,
+        "price": 339.42,
         "currency": "USD",
         "latestDividend": 1.02,
         "latestDividendDate": "2026-06-12",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 4.08,
-        "forwardYieldPercent": 1.171639433707607,
+        "forwardYieldPercent": 1.2020505568322433,
         "fiveYearGrowthPercent": null,
         "recentCut": null,
         "firstDividendYear": 1993,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1106,17 +1106,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 59.67,
+        "price": 57.96,
         "currency": "USD",
         "latestDividend": 0.275,
         "latestDividendDate": "2026-06-05",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.1,
-        "forwardYieldPercent": 1.843472431707726,
+        "forwardYieldPercent": 1.8978605935127675,
         "fiveYearGrowthPercent": 4.362705881874529,
         "recentCut": null,
         "firstDividendYear": 1986,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1129,17 +1129,17 @@
       ],
       "minimumStreakYears": 15,
       "metrics": {
-        "price": 89.58,
+        "price": 82.84,
         "currency": "USD",
         "latestDividend": 0.473,
-        "latestDividendDate": "2026-05-29",
+        "latestDividendDate": "2026-08-28",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.892,
-        "forwardYieldPercent": 2.112078588970752,
+        "forwardYieldPercent": 2.2839208112023175,
         "fiveYearGrowthPercent": 5.154749679728043,
         "recentCut": null,
         "firstDividendYear": 1985,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1152,17 +1152,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 66.54,
+        "price": 62.99,
         "currency": "USD",
         "latestDividend": 0.47,
         "latestDividendDate": "2026-06-15",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.88,
-        "forwardYieldPercent": 2.8253681995792,
+        "forwardYieldPercent": 2.9846007302746465,
         "fiveYearGrowthPercent": 2.328072821538041,
         "recentCut": null,
         "firstDividendYear": 1991,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1176,17 +1176,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 168.94,
+        "price": 161.66,
         "currency": "USD",
         "latestDividend": 1.03,
-        "latestDividendDate": "2026-05-29",
+        "latestDividendDate": "2026-08-31",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 4.12,
-        "forwardYieldPercent": 2.438735645791405,
+        "forwardYieldPercent": 2.548558703451689,
         "fiveYearGrowthPercent": 7.0898549322000015,
         "recentCut": null,
         "firstDividendYear": 1994,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1198,19 +1198,7 @@
         "SMDV"
       ],
       "minimumStreakYears": 10,
-      "metrics": {
-        "price": 18.26,
-        "currency": "USD",
-        "latestDividend": 0.48,
-        "latestDividendDate": "2026-05-11",
-        "paymentsPerYear": 4,
-        "forwardAnnualDividend": 1.92,
-        "forwardYieldPercent": 10.514786418400874,
-        "fiveYearGrowthPercent": 2.285462741040356,
-        "recentCut": null,
-        "firstDividendYear": 2015,
-        "measuredAt": "2026-08-04"
-      }
+      "metrics": null
     },
     {
       "ticker": "CHD",
@@ -1223,17 +1211,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 100.01,
+        "price": 99.32,
         "currency": "USD",
         "latestDividend": 0.308,
-        "latestDividendDate": "2026-05-15",
+        "latestDividendDate": "2026-08-14",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.232,
-        "forwardYieldPercent": 1.231876812318768,
+        "forwardYieldPercent": 1.2404349577124447,
         "fiveYearGrowthPercent": 4.21306158714021,
         "recentCut": null,
         "firstDividendYear": 1990,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1246,17 +1234,17 @@
       ],
       "minimumStreakYears": 15,
       "metrics": {
-        "price": 83.47,
+        "price": 89.18,
         "currency": "USD",
         "latestDividend": 0.438,
         "latestDividendDate": "2025-12-05",
         "paymentsPerYear": 1,
         "forwardAnnualDividend": 0.438,
-        "forwardYieldPercent": 0.5247394273391638,
+        "forwardYieldPercent": 0.49114151154967484,
         "fiveYearGrowthPercent": 7.088477535289894,
         "recentCut": null,
         "firstDividendYear": 1993,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1269,17 +1257,17 @@
       ],
       "minimumStreakYears": 15,
       "metrics": {
-        "price": 540.57,
+        "price": 523.99,
         "currency": "USD",
-        "latestDividend": 0.6,
-        "latestDividendDate": "2026-05-28",
+        "latestDividend": 0.7,
+        "latestDividendDate": "2026-08-17",
         "paymentsPerYear": 4,
-        "forwardAnnualDividend": 2.4,
-        "forwardYieldPercent": 0.4439758033187191,
+        "forwardAnnualDividend": 2.8,
+        "forwardYieldPercent": 0.534361342773717,
         "fiveYearGrowthPercent": 9.336207394327811,
         "recentCut": null,
         "firstDividendYear": 1988,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1293,17 +1281,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 147,
+        "price": 145.2,
         "currency": "USD",
         "latestDividend": 0.63,
         "latestDividendDate": "2026-06-05",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.52,
-        "forwardYieldPercent": 1.7142857142857144,
+        "forwardYieldPercent": 1.7355371900826446,
         "fiveYearGrowthPercent": 3.9834691942561395,
         "recentCut": null,
         "firstDividendYear": 1997,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1317,17 +1305,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 178.03,
+        "price": 171.69,
         "currency": "USD",
         "latestDividend": 0.94,
         "latestDividendDate": "2026-06-23",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 3.76,
-        "forwardYieldPercent": 2.1120035948997358,
+        "forwardYieldPercent": 2.18999359310385,
         "fiveYearGrowthPercent": 7.714358779274311,
         "recentCut": null,
         "firstDividendYear": 1986,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1341,17 +1329,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 89.88,
+        "price": 90.1,
         "currency": "USD",
         "latestDividend": 0.53,
         "latestDividendDate": "2026-07-20",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.12,
-        "forwardYieldPercent": 2.3587004895416115,
+        "forwardYieldPercent": 2.3529411764705888,
         "fiveYearGrowthPercent": 3.3975226531950176,
         "recentCut": null,
         "firstDividendYear": 1973,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1365,17 +1353,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 98.26,
+        "price": 94.27,
         "currency": "USD",
-        "latestDividend": 1.24,
-        "latestDividendDate": "2026-04-22",
+        "latestDividend": 1.25,
+        "latestDividendDate": "2026-08-12",
         "paymentsPerYear": 4,
-        "forwardAnnualDividend": 4.96,
-        "forwardYieldPercent": 5.0478322817016075,
+        "forwardAnnualDividend": 5,
+        "forwardYieldPercent": 5.303914288745094,
         "fiveYearGrowthPercent": 2.851538648883478,
         "recentCut": null,
         "firstDividendYear": 1983,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1388,17 +1376,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 648.85,
+        "price": 550.9,
         "currency": "USD",
-        "latestDividend": 2,
-        "latestDividendDate": "2026-05-22",
+        "latestDividend": 2.2,
+        "latestDividendDate": "2026-08-21",
         "paymentsPerYear": 4,
-        "forwardAnnualDividend": 8,
-        "forwardYieldPercent": 1.2329506049163905,
+        "forwardAnnualDividend": 8.8,
+        "forwardYieldPercent": 1.5973860954801238,
         "fiveYearGrowthPercent": 6.780939900647831,
         "recentCut": null,
         "firstDividendYear": 1973,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1411,17 +1399,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 84.63,
+        "price": 77.23,
         "currency": "USD",
         "latestDividend": 0.67,
-        "latestDividendDate": "2026-05-11",
+        "latestDividendDate": "2026-08-10",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.68,
-        "forwardYieldPercent": 3.166725747370909,
+        "forwardYieldPercent": 3.4701540852000514,
         "fiveYearGrowthPercent": 9.714850709074053,
         "recentCut": null,
         "firstDividendYear": 2004,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1434,17 +1422,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 308.37,
+        "price": 336.36,
         "currency": "USD",
         "latestDividend": 0.6,
-        "latestDividendDate": "2026-05-15",
+        "latestDividendDate": "2026-08-14",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.4,
-        "forwardYieldPercent": 0.7782858254694036,
+        "forwardYieldPercent": 0.7135212272565109,
         "fiveYearGrowthPercent": null,
         "recentCut": null,
         "firstDividendYear": 2001,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1457,17 +1445,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 954.08,
+        "price": 928.48,
         "currency": "USD",
         "latestDividend": 1.47,
         "latestDividendDate": "2026-07-24",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 5.88,
-        "forwardYieldPercent": 0.6163005198725474,
+        "forwardYieldPercent": 0.6332931242460796,
         "fiveYearGrowthPercent": 13.179836563100178,
         "recentCut": null,
         "firstDividendYear": 2004,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1481,17 +1469,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 133.86,
+        "price": 130.86,
         "currency": "USD",
         "latestDividend": 0.735,
         "latestDividendDate": "2026-06-15",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.94,
-        "forwardYieldPercent": 2.196324518153294,
+        "forwardYieldPercent": 2.2466758367721225,
         "fiveYearGrowthPercent": 9.256574238147586,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1504,17 +1492,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 180.23,
+        "price": 170.98,
         "currency": "USD",
         "latestDividend": 0.57,
-        "latestDividendDate": "2026-05-26",
+        "latestDividendDate": "2026-08-25",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.28,
-        "forwardYieldPercent": 1.2650502136159352,
+        "forwardYieldPercent": 1.3334892969938004,
         "fiveYearGrowthPercent": 16.330514481696824,
         "recentCut": null,
         "firstDividendYear": 2016,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1528,17 +1516,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 371.86,
+        "price": 341.93,
         "currency": "USD",
-        "latestDividend": 1.1,
-        "latestDividendDate": "2026-05-18",
+        "latestDividend": 1.25,
+        "latestDividendDate": "2026-08-19",
         "paymentsPerYear": 4,
-        "forwardAnnualDividend": 4.4,
-        "forwardYieldPercent": 1.1832410046791804,
+        "forwardAnnualDividend": 5,
+        "forwardYieldPercent": 1.4622876027257041,
         "fiveYearGrowthPercent": 14.869835499703509,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1551,17 +1539,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 49.83,
+        "price": 48.65,
         "currency": "USD",
         "latestDividend": 0.14,
-        "latestDividendDate": "2026-05-29",
+        "latestDividendDate": "2026-08-31",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 0.56,
-        "forwardYieldPercent": 1.1238209913706605,
+        "forwardYieldPercent": 1.1510791366906477,
         "fiveYearGrowthPercent": 8.447093699056897,
         "recentCut": null,
         "firstDividendYear": 1981,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1575,17 +1563,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 204.01,
+        "price": 198.09,
         "currency": "USD",
-        "latestDividend": 0.45,
-        "latestDividendDate": "2026-05-15",
+        "latestDividend": 0.52,
+        "latestDividendDate": "2026-08-14",
         "paymentsPerYear": 4,
-        "forwardAnnualDividend": 1.8,
-        "forwardYieldPercent": 0.8823096907014362,
+        "forwardAnnualDividend": 2.08,
+        "forwardYieldPercent": 1.0500277651572516,
         "fiveYearGrowthPercent": null,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1598,17 +1586,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 78.93,
+        "price": 77.06,
         "currency": "USD",
         "latestDividend": 0.53,
         "latestDividendDate": "2026-06-15",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.12,
-        "forwardYieldPercent": 2.6859242366653997,
+        "forwardYieldPercent": 2.751103036594861,
         "fiveYearGrowthPercent": 4.342887836291864,
         "recentCut": null,
         "firstDividendYear": 1988,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1621,17 +1609,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 41.22,
+        "price": 39.57,
         "currency": "USD",
         "latestDividend": 0.39,
         "latestDividendDate": "2026-06-30",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.56,
-        "forwardYieldPercent": 3.7845705967976713,
+        "forwardYieldPercent": 3.9423805913570886,
         "fiveYearGrowthPercent": 6.0280952775362495,
         "recentCut": null,
         "firstDividendYear": 2014,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1644,17 +1632,17 @@
       ],
       "minimumStreakYears": 15,
       "metrics": {
-        "price": 41.84,
+        "price": 39.46,
         "currency": "USD",
         "latestDividend": 0.53,
         "latestDividendDate": "2026-07-01",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.12,
-        "forwardYieldPercent": 5.066921606118547,
+        "forwardYieldPercent": 5.372529143436392,
         "fiveYearGrowthPercent": 9.521121099648798,
         "recentCut": null,
         "firstDividendYear": 2005,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1668,17 +1656,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 193.18,
+        "price": 211.78,
         "currency": "USD",
         "latestDividend": 1.78,
-        "latestDividendDate": "2026-05-19",
+        "latestDividendDate": "2026-08-19",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 7.12,
-        "forwardYieldPercent": 3.6856817475929184,
+        "forwardYieldPercent": 3.361979412597979,
         "fiveYearGrowthPercent": 5.79893110716263,
         "recentCut": null,
         "firstDividendYear": 1962,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1692,17 +1680,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 49.38,
+        "price": 50.14,
         "currency": "USD",
         "latestDividend": 0.335,
-        "latestDividendDate": "2026-05-11",
+        "latestDividendDate": "2026-08-10",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.34,
-        "forwardYieldPercent": 2.713649250708789,
+        "forwardYieldPercent": 2.672516952532908,
         "fiveYearGrowthPercent": 7.0898549322000015,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1716,17 +1704,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 96.02,
+        "price": 89.91,
         "currency": "USD",
         "latestDividend": 0.32,
-        "latestDividendDate": "2026-06-15",
+        "latestDividendDate": "2026-08-17",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.28,
-        "forwardYieldPercent": 1.333055613413872,
+        "forwardYieldPercent": 1.4236458680903126,
         "fiveYearGrowthPercent": 7.394092378577932,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1740,17 +1728,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 205.72,
+        "price": 188.9,
         "currency": "USD",
-        "latestDividend": 0.52,
-        "latestDividendDate": "2026-05-29",
+        "latestDividend": 0.525,
+        "latestDividendDate": "2026-08-31",
         "paymentsPerYear": 4,
-        "forwardAnnualDividend": 2.08,
-        "forwardYieldPercent": 1.0110830254715149,
+        "forwardAnnualDividend": 2.1,
+        "forwardYieldPercent": 1.1116993118051879,
         "fiveYearGrowthPercent": 1.0001990771193014,
         "recentCut": null,
         "firstDividendYear": 1982,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1763,17 +1751,17 @@
       ],
       "minimumStreakYears": 15,
       "metrics": {
-        "price": 135.33,
+        "price": 128.89,
         "currency": "USD",
         "latestDividend": 0.88,
         "latestDividendDate": "2026-06-15",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 3.52,
-        "forwardYieldPercent": 2.6010492869282493,
+        "forwardYieldPercent": 2.7310109395608664,
         "fiveYearGrowthPercent": null,
         "recentCut": null,
         "firstDividendYear": 2021,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1787,17 +1775,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 279.43,
+        "price": 279.9,
         "currency": "USD",
         "latestDividend": 0.73,
         "latestDividendDate": "2026-06-16",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.92,
-        "forwardYieldPercent": 1.0449844325949253,
+        "forwardYieldPercent": 1.0432297249017506,
         "fiveYearGrowthPercent": 6.699675773069802,
         "recentCut": null,
         "firstDividendYear": 1986,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1811,17 +1799,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 107.95,
+        "price": 107.67,
         "currency": "USD",
         "latestDividend": 0.888,
-        "latestDividendDate": "2026-05-13",
+        "latestDividendDate": "2026-08-19",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 3.552,
-        "forwardYieldPercent": 3.2904122278832793,
+        "forwardYieldPercent": 3.2989690721649487,
         "fiveYearGrowthPercent": 2.1295687600135116,
         "recentCut": null,
         "firstDividendYear": 1962,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1834,17 +1822,17 @@
       ],
       "minimumStreakYears": 15,
       "metrics": {
-        "price": 208.48,
+        "price": 197.49,
         "currency": "USD",
         "latestDividend": 1.55,
         "latestDividendDate": "2026-06-30",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 6.2,
-        "forwardYieldPercent": 2.9739063699155794,
+        "forwardYieldPercent": 3.139399463263963,
         "fiveYearGrowthPercent": 13.29568106011707,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1857,17 +1845,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 50.65,
+        "price": 49.34,
         "currency": "USD",
         "latestDividend": 0.34,
-        "latestDividendDate": "2026-05-13",
+        "latestDividendDate": "2026-08-12",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.36,
-        "forwardYieldPercent": 2.685093780848964,
+        "forwardYieldPercent": 2.7563842723956222,
         "fiveYearGrowthPercent": 5.061112176150684,
         "recentCut": null,
         "firstDividendYear": 2007,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1880,17 +1868,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 71.46,
+        "price": 55.19,
         "currency": "USD",
         "latestDividend": 0.878,
         "latestDividendDate": "2026-07-07",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 3.512,
-        "forwardYieldPercent": 4.914637559473832,
+        "forwardYieldPercent": 6.3634716434136624,
         "fiveYearGrowthPercent": 5.351793066568655,
         "recentCut": null,
         "firstDividendYear": 1973,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1904,17 +1892,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 65.67,
+        "price": 63.12,
         "currency": "USD",
         "latestDividend": 0.543,
         "latestDividendDate": "2026-06-26",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.172,
-        "forwardYieldPercent": 3.3074463225216997,
+        "forwardYieldPercent": 3.4410646387832706,
         "fiveYearGrowthPercent": 8.468247099429128,
         "recentCut": null,
         "firstDividendYear": 1993,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1928,17 +1916,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 154.85,
+        "price": 148.98,
         "currency": "USD",
         "latestDividend": 0.555,
-        "latestDividendDate": "2026-05-15",
+        "latestDividendDate": "2026-08-14",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.22,
-        "forwardYieldPercent": 1.4336454633516307,
+        "forwardYieldPercent": 1.4901329037454694,
         "fiveYearGrowthPercent": 1.0957232590283805,
         "recentCut": null,
         "firstDividendYear": 1972,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1951,17 +1939,17 @@
       ],
       "minimumStreakYears": 15,
       "metrics": {
-        "price": 177.23,
+        "price": 172.7,
         "currency": "USD",
         "latestDividend": 0.065,
         "latestDividendDate": "2026-06-30",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 0.26,
-        "forwardYieldPercent": 0.14670202561643064,
+        "forwardYieldPercent": 0.15055008685581936,
         "fiveYearGrowthPercent": 4.730724775551032,
         "recentCut": null,
         "firstDividendYear": 2007,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1975,17 +1963,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 236.86,
+        "price": 258.41,
         "currency": "USD",
         "latestDividend": 1.463,
         "latestDividendDate": "2026-07-07",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 5.852,
-        "forwardYieldPercent": 2.4706577725238534,
+        "forwardYieldPercent": 2.264618242328083,
         "fiveYearGrowthPercent": 7.181805266957131,
         "recentCut": null,
         "firstDividendYear": 1996,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -1999,17 +1987,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 71.95,
+        "price": 70.44,
         "currency": "USD",
         "latestDividend": 0.788,
         "latestDividendDate": "2026-05-18",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 3.152,
-        "forwardYieldPercent": 4.380820013898541,
+        "forwardYieldPercent": 4.474730266893811,
         "fiveYearGrowthPercent": 5.800891726323898,
         "recentCut": null,
         "firstDividendYear": 1984,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2023,17 +2011,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 285.88,
+        "price": 277.29,
         "currency": "USD",
         "latestDividend": 2.59,
         "latestDividendDate": "2026-06-30",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 10.36,
-        "forwardYieldPercent": 3.623898139079334,
+        "forwardYieldPercent": 3.736160698186014,
         "fiveYearGrowthPercent": 4.341605767379386,
         "recentCut": null,
         "firstDividendYear": 1995,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2046,17 +2034,17 @@
       ],
       "minimumStreakYears": 15,
       "metrics": {
-        "price": 318.34,
+        "price": 288.69,
         "currency": "USD",
         "latestDividend": 0.89,
-        "latestDividendDate": "2026-05-29",
+        "latestDividendDate": "2026-08-28",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 3.56,
-        "forwardYieldPercent": 1.1183011874096878,
+        "forwardYieldPercent": 1.2331566732481207,
         "fiveYearGrowthPercent": 7.688730806165611,
         "recentCut": null,
         "firstDividendYear": 2007,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2069,17 +2057,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 83.23,
+        "price": 80.77,
         "currency": "USD",
         "latestDividend": 0.695,
-        "latestDividendDate": "2026-05-22",
+        "latestDividendDate": "2026-08-18",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.78,
-        "forwardYieldPercent": 3.3401417758019942,
+        "forwardYieldPercent": 3.441871982171598,
         "fiveYearGrowthPercent": 5.754052091282724,
         "recentCut": null,
         "firstDividendYear": 1973,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2093,17 +2081,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 170.59,
+        "price": 186.16,
         "currency": "USD",
         "latestDividend": 0.81,
         "latestDividendDate": "2026-06-01",
         "paymentsPerYear": 2,
         "forwardAnnualDividend": 1.62,
-        "forwardYieldPercent": 0.9496453484963949,
+        "forwardYieldPercent": 0.8702191663085519,
         "fiveYearGrowthPercent": 8.16767036783399,
         "recentCut": null,
         "firstDividendYear": 1993,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2116,17 +2104,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 68.27,
+        "price": 70.03,
         "currency": "USD",
         "latestDividend": 0.31,
         "latestDividendDate": "2026-06-05",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.24,
-        "forwardYieldPercent": 1.8163175626190127,
+        "forwardYieldPercent": 1.7706697129801514,
         "fiveYearGrowthPercent": 9.565425774785385,
         "recentCut": null,
         "firstDividendYear": 2013,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2139,17 +2127,17 @@
       ],
       "minimumStreakYears": 15,
       "metrics": {
-        "price": 75.4,
+        "price": 74.05,
         "currency": "USD",
         "latestDividend": 0.55,
         "latestDividendDate": "2026-06-08",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.2,
-        "forwardYieldPercent": 2.9177718832891246,
+        "forwardYieldPercent": 2.970965563808238,
         "fiveYearGrowthPercent": 4.180926810264429,
         "recentCut": null,
         "firstDividendYear": 2010,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2163,17 +2151,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 48.11,
+        "price": 47.93,
         "currency": "USD",
         "latestDividend": 0.26,
         "latestDividendDate": "2026-07-28",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.04,
-        "forwardYieldPercent": 2.1617127416337563,
+        "forwardYieldPercent": 2.169831003546839,
         "fiveYearGrowthPercent": 11.970220528043152,
         "recentCut": null,
         "firstDividendYear": 1991,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2198,17 +2186,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 269.68,
+        "price": 306.07,
         "currency": "USD",
         "latestDividend": 1.16,
-        "latestDividendDate": "2026-05-29",
+        "latestDividendDate": "2026-08-31",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 4.64,
-        "forwardYieldPercent": 1.7205576980124588,
+        "forwardYieldPercent": 1.515993073479923,
         "fiveYearGrowthPercent": 7.394092378577932,
         "recentCut": null,
         "firstDividendYear": 1999,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2222,17 +2210,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 106.96,
+        "price": 97.59,
         "currency": "USD",
         "latestDividend": 0.28,
-        "latestDividendDate": "2026-05-07",
+        "latestDividendDate": "2026-08-06",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.12,
-        "forwardYieldPercent": 1.0471204188481678,
+        "forwardYieldPercent": 1.1476585715749565,
         "fiveYearGrowthPercent": 11.322470345537216,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2245,17 +2233,17 @@
       ],
       "minimumStreakYears": 15,
       "metrics": {
-        "price": 35.42,
+        "price": 33.22,
         "currency": "USD",
         "latestDividend": 0.22,
         "latestDividendDate": "2026-06-12",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 0.88,
-        "forwardYieldPercent": 2.484472049689441,
+        "forwardYieldPercent": 2.6490066225165565,
         "fiveYearGrowthPercent": 7.8852443962371455,
         "recentCut": null,
         "firstDividendYear": 1993,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2268,17 +2256,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 43.63,
+        "price": 41.67,
         "currency": "USD",
         "latestDividend": 0.37,
         "latestDividendDate": "2026-06-05",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.48,
-        "forwardYieldPercent": 3.3921613568645426,
+        "forwardYieldPercent": 3.5517158627309815,
         "fiveYearGrowthPercent": 6.724918187953888,
         "recentCut": null,
         "firstDividendYear": 1989,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2292,17 +2280,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 123.65,
+        "price": 117.94,
         "currency": "USD",
         "latestDividend": 1.13,
         "latestDividendDate": "2026-07-01",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 4.52,
-        "forwardYieldPercent": 3.6554791750909823,
+        "forwardYieldPercent": 3.8324571816177717,
         "fiveYearGrowthPercent": 0.9347419909568888,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2316,17 +2304,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 57.01,
+        "price": 53.91,
         "currency": "USD",
         "latestDividend": 0.245,
         "latestDividendDate": "2026-07-30",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 0.98,
-        "forwardYieldPercent": 1.7189966672513595,
+        "forwardYieldPercent": 1.81784455574105,
         "fiveYearGrowthPercent": 7.591026634030995,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2339,17 +2327,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 24.63,
+        "price": 23.69,
         "currency": "USD",
         "latestDividend": 0.19,
         "latestDividendDate": "2026-07-01",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 0.76,
-        "forwardYieldPercent": 3.0856678846934638,
+        "forwardYieldPercent": 3.2081046855213167,
         "fiveYearGrowthPercent": 6.724918187953888,
         "recentCut": null,
         "firstDividendYear": 1986,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2363,17 +2351,17 @@
       ],
       "minimumStreakYears": 15,
       "metrics": {
-        "price": 180.39,
+        "price": 175.78,
         "currency": "USD",
         "latestDividend": 0.66,
         "latestDividendDate": "2026-06-15",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.64,
-        "forwardYieldPercent": 1.4634957591884252,
+        "forwardYieldPercent": 1.5018773466833544,
         "fiveYearGrowthPercent": 4.910201101938982,
         "recentCut": null,
         "firstDividendYear": 1982,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2387,17 +2375,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 382.43,
+        "price": 364.07,
         "currency": "USD",
         "latestDividend": 1.59,
         "latestDividendDate": "2026-07-02",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 6.36,
-        "forwardYieldPercent": 1.6630494469576131,
+        "forwardYieldPercent": 1.746916801713956,
         "fiveYearGrowthPercent": 6.399531281508364,
         "recentCut": null,
         "firstDividendYear": 1965,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2410,17 +2398,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 89.41,
+        "price": 95.83,
         "currency": "USD",
         "latestDividend": 0.22,
-        "latestDividendDate": "2026-05-29",
+        "latestDividendDate": "2026-08-31",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 0.88,
-        "forwardYieldPercent": 0.9842299519069456,
+        "forwardYieldPercent": 0.918292810184702,
         "fiveYearGrowthPercent": 19.13578981670916,
         "recentCut": null,
         "firstDividendYear": 2011,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2434,17 +2422,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 80.3,
+        "price": 77.66,
         "currency": "USD",
         "latestDividend": 0.295,
         "latestDividendDate": "2026-07-20",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.18,
-        "forwardYieldPercent": 1.469489414694894,
+        "forwardYieldPercent": 1.5194437290754572,
         "fiveYearGrowthPercent": 9.460878422315755,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2457,17 +2445,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 36.43,
+        "price": 39.01,
         "currency": "USD",
         "latestDividend": 0.28,
-        "latestDividendDate": "2026-05-18",
+        "latestDividendDate": "2026-08-17",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.12,
-        "forwardYieldPercent": 3.0743892396376618,
+        "forwardYieldPercent": 2.8710587028966934,
         "fiveYearGrowthPercent": 13.179836563100178,
         "recentCut": null,
         "firstDividendYear": 2007,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2480,17 +2468,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 184.09,
+        "price": 173.34,
         "currency": "USD",
         "latestDividend": 0.33,
         "latestDividendDate": "2026-07-06",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.32,
-        "forwardYieldPercent": 0.7170405779781629,
+        "forwardYieldPercent": 0.761509172724126,
         "fiveYearGrowthPercent": 7.508099102891208,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2503,17 +2491,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 102.19,
+        "price": 86.87,
         "currency": "USD",
         "latestDividend": 0.255,
         "latestDividendDate": "2026-06-05",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.02,
-        "forwardYieldPercent": 0.9981407182698896,
+        "forwardYieldPercent": 1.1741682974559686,
         "fiveYearGrowthPercent": 8.679400183142283,
         "recentCut": null,
         "firstDividendYear": 2017,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2527,17 +2515,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 128.52,
+        "price": 137.15,
         "currency": "USD",
         "latestDividend": 1.063,
         "latestDividendDate": "2026-06-05",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 4.252,
-        "forwardYieldPercent": 3.3084344849050726,
+        "forwardYieldPercent": 3.1002551950419246,
         "fiveYearGrowthPercent": 5.4488934362653785,
         "recentCut": null,
         "firstDividendYear": 1983,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2550,17 +2538,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 82.8,
+        "price": 73.94,
         "currency": "USD",
         "latestDividend": 0.19,
-        "latestDividendDate": "2026-05-15",
+        "latestDividendDate": "2026-08-14",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 0.76,
-        "forwardYieldPercent": 0.9178743961352657,
+        "forwardYieldPercent": 1.027860427373546,
         "fiveYearGrowthPercent": 4.99309672496191,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2573,17 +2561,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 33.95,
+        "price": 32.49,
         "currency": "USD",
         "latestDividend": 0.485,
         "latestDividendDate": "2026-06-25",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.94,
-        "forwardYieldPercent": 5.7142857142857135,
+        "forwardYieldPercent": 5.971068020929516,
         "fiveYearGrowthPercent": 4.900903024942593,
         "recentCut": null,
         "firstDividendYear": 1986,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2597,17 +2585,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 1371.25,
+        "price": 1284.85,
         "currency": "USD",
         "latestDividend": 2.49,
-        "latestDividendDate": "2026-05-11",
+        "latestDividendDate": "2026-08-10",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 9.96,
-        "forwardYieldPercent": 0.7263445761166819,
+        "forwardYieldPercent": 0.7751877651087676,
         "fiveYearGrowthPercent": 9.43322281534289,
         "recentCut": null,
         "firstDividendYear": 1985,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2620,17 +2608,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 38.58,
+        "price": 39.83,
         "currency": "USD",
         "latestDividend": 0.425,
         "latestDividendDate": "2026-07-02",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.7,
-        "forwardYieldPercent": 4.406428201140487,
+        "forwardYieldPercent": 4.268139593271403,
         "fiveYearGrowthPercent": 4.316756381013498,
         "recentCut": null,
         "firstDividendYear": 2013,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2643,17 +2631,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 30.01,
+        "price": 29.23,
         "currency": "USD",
-        "latestDividend": 0.24,
-        "latestDividendDate": "2026-05-06",
+        "latestDividend": 0.25,
+        "latestDividendDate": "2026-08-05",
         "paymentsPerYear": 4,
-        "forwardAnnualDividend": 0.96,
-        "forwardYieldPercent": 3.19893368877041,
+        "forwardAnnualDividend": 1,
+        "forwardYieldPercent": 3.4211426616489904,
         "fiveYearGrowthPercent": 3.713728933664817,
         "recentCut": null,
         "firstDividendYear": 1998,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2666,17 +2654,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 51.81,
+        "price": 51.5,
         "currency": "USD",
         "latestDividend": 0.36,
         "latestDividendDate": "2026-06-15",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.44,
-        "forwardYieldPercent": 2.7793862188766645,
+        "forwardYieldPercent": 2.796116504854369,
         "fiveYearGrowthPercent": 3.131030647754507,
         "recentCut": null,
         "firstDividendYear": 1992,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2689,17 +2677,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 47.65,
+        "price": 48.35,
         "currency": "USD",
         "latestDividend": 0.35,
-        "latestDividendDate": "2026-05-29",
+        "latestDividendDate": "2026-08-28",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.4,
-        "forwardYieldPercent": 2.9380902413431267,
+        "forwardYieldPercent": 2.8955532574974145,
         "fiveYearGrowthPercent": 2.196451311638481,
         "recentCut": null,
         "firstDividendYear": 1990,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2713,17 +2701,17 @@
       ],
       "minimumStreakYears": 15,
       "metrics": {
-        "price": 31.28,
+        "price": 29.69,
         "currency": "USD",
-        "latestDividend": 0.21,
-        "latestDividendDate": "2026-05-13",
+        "latestDividend": 0.23,
+        "latestDividendDate": "2026-08-12",
         "paymentsPerYear": 4,
-        "forwardAnnualDividend": 0.84,
-        "forwardYieldPercent": 2.6854219948849103,
+        "forwardAnnualDividend": 0.92,
+        "forwardYieldPercent": 3.0986864264061973,
         "fiveYearGrowthPercent": 8.997698704834534,
         "recentCut": null,
         "firstDividendYear": 2006,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2737,17 +2725,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 25.23,
+        "price": 22.05,
         "currency": "USD",
         "latestDividend": 0.293,
         "latestDividendDate": "2026-07-13",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.172,
-        "forwardYieldPercent": 4.645263575108997,
+        "forwardYieldPercent": 5.315192743764172,
         "fiveYearGrowthPercent": 4.474046308188906,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2760,17 +2748,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 61.08,
+        "price": 63.45,
         "currency": "USD",
         "latestDividend": 0.44,
-        "latestDividendDate": "2026-05-11",
+        "latestDividendDate": "2026-08-10",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.76,
-        "forwardYieldPercent": 2.881466928618206,
+        "forwardYieldPercent": 2.7738376674546887,
         "fiveYearGrowthPercent": 5.589288248337687,
         "recentCut": null,
         "firstDividendYear": 1980,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2783,17 +2771,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 132.08,
+        "price": 126.37,
         "currency": "USD",
-        "latestDividend": 0.19,
-        "latestDividendDate": "2026-05-29",
+        "latestDividend": 0.2,
+        "latestDividendDate": "2026-08-14",
         "paymentsPerYear": 4,
-        "forwardAnnualDividend": 0.76,
-        "forwardYieldPercent": 0.5754088431253785,
+        "forwardAnnualDividend": 0.8,
+        "forwardYieldPercent": 0.6330616443776212,
         "fiveYearGrowthPercent": 9.091098755138827,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2806,17 +2794,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 35.06,
+        "price": 33.44,
         "currency": "USD",
         "latestDividend": 0.365,
-        "latestDividendDate": "2026-06-01",
+        "latestDividendDate": "2026-09-01",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.46,
-        "forwardYieldPercent": 4.1642897889332575,
+        "forwardYieldPercent": 4.366028708133971,
         "fiveYearGrowthPercent": 2.512087219852699,
         "recentCut": null,
         "firstDividendYear": 2012,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2829,17 +2817,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 38.48,
+        "price": 36.75,
         "currency": "USD",
         "latestDividend": 0.28,
-        "latestDividendDate": "2026-05-04",
+        "latestDividendDate": "2026-08-04",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.12,
-        "forwardYieldPercent": 2.910602910602911,
+        "forwardYieldPercent": 3.047619047619048,
         "fiveYearGrowthPercent": 5.387395206178347,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2853,17 +2841,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 226.31,
+        "price": 231.7,
         "currency": "USD",
         "latestDividend": 1.69,
-        "latestDividendDate": "2026-05-08",
+        "latestDividendDate": "2026-08-10",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 6.76,
-        "forwardYieldPercent": 2.987053157173788,
+        "forwardYieldPercent": 2.9175658178679327,
         "fiveYearGrowthPercent": 1.5151111904639025,
         "recentCut": null,
         "firstDividendYear": 1962,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2876,17 +2864,17 @@
       ],
       "minimumStreakYears": 15,
       "metrics": {
-        "price": 76.22,
+        "price": 70.62,
         "currency": "USD",
         "latestDividend": 0.73,
-        "latestDividendDate": "2026-02-13",
+        "latestDividendDate": "2026-08-14",
         "paymentsPerYear": 2,
         "forwardAnnualDividend": 1.46,
-        "forwardYieldPercent": 1.9155077407504593,
+        "forwardYieldPercent": 2.067403001982441,
         "fiveYearGrowthPercent": 4.941452284458392,
         "recentCut": null,
         "firstDividendYear": 1996,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2899,17 +2887,17 @@
       ],
       "minimumStreakYears": 15,
       "metrics": {
-        "price": 143.79,
+        "price": 135.13,
         "currency": "USD",
         "latestDividend": 0.88,
-        "latestDividendDate": "2026-05-05",
+        "latestDividendDate": "2026-08-05",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 3.52,
-        "forwardYieldPercent": 2.4480144655400236,
+        "forwardYieldPercent": 2.604898986161474,
         "fiveYearGrowthPercent": 5.119849323654324,
         "recentCut": null,
         "firstDividendYear": 1973,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2922,17 +2910,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 85,
+        "price": 81.65,
         "currency": "USD",
         "latestDividend": 0.64,
         "latestDividendDate": "2026-06-29",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.56,
-        "forwardYieldPercent": 3.011764705882353,
+        "forwardYieldPercent": 3.135333741579914,
         "fiveYearGrowthPercent": 5.103901130952315,
         "recentCut": null,
         "firstDividendYear": 1986,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2945,17 +2933,17 @@
       ],
       "minimumStreakYears": 15,
       "metrics": {
-        "price": 100.42,
+        "price": 102.6,
         "currency": "USD",
         "latestDividend": 0.82,
         "latestDividendDate": "2026-07-01",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 3.28,
-        "forwardYieldPercent": 3.2662816172077274,
+        "forwardYieldPercent": 3.1968810916179335,
         "fiveYearGrowthPercent": 4.893816562469966,
         "recentCut": null,
         "firstDividendYear": 1998,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2968,17 +2956,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 85.48,
+        "price": 93.76,
         "currency": "USD",
         "latestDividend": 0.92,
         "latestDividendDate": "2026-05-19",
         "paymentsPerYear": 2,
         "forwardAnnualDividend": 1.84,
-        "forwardYieldPercent": 2.152550304164717,
+        "forwardYieldPercent": 1.9624573378839592,
         "fiveYearGrowthPercent": 10.066508085209659,
         "recentCut": null,
         "firstDividendYear": 2002,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -2992,17 +2980,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 288.49,
+        "price": 269.09,
         "currency": "USD",
         "latestDividend": 1.61,
         "latestDividendDate": "2026-06-30",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 6.44,
-        "forwardYieldPercent": 2.2323130784429273,
+        "forwardYieldPercent": 2.393251328551786,
         "fiveYearGrowthPercent": 6.989583356549334,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3015,17 +3003,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 266.91,
+        "price": 260.22,
         "currency": "USD",
         "latestDividend": 0.45,
-        "latestDividendDate": "2026-05-08",
+        "latestDividendDate": "2026-08-07",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.8,
-        "forwardYieldPercent": 0.674384624030572,
+        "forwardYieldPercent": 0.6917223887479824,
         "fiveYearGrowthPercent": 10.25994778190622,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3038,17 +3026,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 79.02,
+        "price": 86.37,
         "currency": "USD",
         "latestDividend": 0.8,
         "latestDividendDate": "2026-06-16",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 3.2,
-        "forwardYieldPercent": 4.049607694254619,
+        "forwardYieldPercent": 3.704990158619891,
         "fiveYearGrowthPercent": 6.288273250054988,
         "recentCut": null,
         "firstDividendYear": 2004,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3061,17 +3049,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 156.53,
+        "price": 167.03,
         "currency": "USD",
         "latestDividend": 0.61,
         "latestDividendDate": "2026-06-01",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.44,
-        "forwardYieldPercent": 1.558806618539577,
+        "forwardYieldPercent": 1.4608154223792131,
         "fiveYearGrowthPercent": 6.167577433485083,
         "recentCut": null,
         "firstDividendYear": 1991,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3085,17 +3073,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 254.41,
+        "price": 275.21,
         "currency": "USD",
         "latestDividend": 1.34,
-        "latestDividendDate": "2026-05-26",
+        "latestDividendDate": "2026-08-25",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 5.36,
-        "forwardYieldPercent": 2.106835423135883,
+        "forwardYieldPercent": 1.9476036481232515,
         "fiveYearGrowthPercent": 5.177875863992543,
         "recentCut": null,
         "firstDividendYear": 1962,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3108,17 +3096,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 324.56,
+        "price": 295.09,
         "currency": "USD",
         "latestDividend": 0.36,
         "latestDividendDate": "2026-07-16",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.44,
-        "forwardYieldPercent": 0.44367759428148873,
+        "forwardYieldPercent": 0.48798671591717785,
         "fiveYearGrowthPercent": 7.214502590085092,
         "recentCut": null,
         "firstDividendYear": 2013,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3132,17 +3120,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 107.56,
+        "price": 109.29,
         "currency": "USD",
         "latestDividend": 1.28,
         "latestDividendDate": "2026-06-05",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 5.12,
-        "forwardYieldPercent": 4.76013387876534,
+        "forwardYieldPercent": 4.684783603257388,
         "fiveYearGrowthPercent": 3.3230823149103417,
         "recentCut": null,
         "firstDividendYear": 1985,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3156,17 +3144,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 86.86,
+        "price": 88.24,
         "currency": "USD",
         "latestDividend": 0.53,
         "latestDividendDate": "2026-06-15",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.12,
-        "forwardYieldPercent": 2.4407091871977897,
+        "forwardYieldPercent": 2.402538531278332,
         "fiveYearGrowthPercent": 4.4617420086995985,
         "recentCut": null,
         "firstDividendYear": 1962,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3180,17 +3168,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 19.01,
+        "price": 19.13,
         "currency": "USD",
-        "latestDividend": 0.208,
-        "latestDividendDate": "2026-05-13",
+        "latestDividend": 0.21,
+        "latestDividendDate": "2026-08-12",
         "paymentsPerYear": 4,
-        "forwardAnnualDividend": 0.832,
-        "forwardYieldPercent": 4.376643871646501,
+        "forwardAnnualDividend": 0.84,
+        "forwardYieldPercent": 4.391008886565604,
         "fiveYearGrowthPercent": null,
         "recentCut": null,
         "firstDividendYear": 2023,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3203,17 +3191,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 167.81,
+        "price": 162.83,
         "currency": "USD",
         "latestDividend": 0.508,
         "latestDividendDate": "2026-07-17",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.032,
-        "forwardYieldPercent": 1.21089327215303,
+        "forwardYieldPercent": 1.247927286126635,
         "fiveYearGrowthPercent": 4.726406516979642,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3226,17 +3214,17 @@
       ],
       "minimumStreakYears": 15,
       "metrics": {
-        "price": 377.91,
+        "price": 372.22,
         "currency": "USD",
-        "latestDividend": 0.57,
-        "latestDividendDate": "2026-05-08",
+        "latestDividend": 0.7,
+        "latestDividendDate": "2026-08-07",
         "paymentsPerYear": 4,
-        "forwardAnnualDividend": 2.28,
-        "forwardYieldPercent": 0.6033182503770739,
+        "forwardAnnualDividend": 2.8,
+        "forwardYieldPercent": 0.7522432969749072,
         "fiveYearGrowthPercent": 12.888132073019754,
         "recentCut": null,
         "firstDividendYear": 2003,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3250,17 +3238,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 267.79,
+        "price": 272.59,
         "currency": "USD",
         "latestDividend": 0.79,
         "latestDividendDate": "2026-06-30",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 3.16,
-        "forwardYieldPercent": 1.1800291273012435,
+        "forwardYieldPercent": 1.159250155911809,
         "fiveYearGrowthPercent": 8.88624888199654,
         "recentCut": null,
         "firstDividendYear": 1995,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3273,17 +3261,17 @@
       ],
       "minimumStreakYears": 15,
       "metrics": {
-        "price": 445.2,
+        "price": 410.52,
         "currency": "USD",
-        "latestDividend": 0.75,
-        "latestDividendDate": "2026-05-21",
+        "latestDividend": 0.8,
+        "latestDividendDate": "2026-08-20",
         "paymentsPerYear": 4,
-        "forwardAnnualDividend": 3,
-        "forwardYieldPercent": 0.6738544474393532,
+        "forwardAnnualDividend": 3.2,
+        "forwardYieldPercent": 0.7794991717821301,
         "fiveYearGrowthPercent": 7.8378847447948985,
         "recentCut": null,
         "firstDividendYear": 2010,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3296,17 +3284,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 277.86,
+        "price": 261.31,
         "currency": "USD",
         "latestDividend": 1.25,
         "latestDividendDate": "2026-06-05",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 5,
-        "forwardYieldPercent": 1.7994673576621318,
+        "forwardYieldPercent": 1.91343614863572,
         "fiveYearGrowthPercent": 7.140202794100703,
         "recentCut": null,
         "firstDividendYear": 1982,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3320,17 +3308,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 480.46,
+        "price": 487.45,
         "currency": "USD",
         "latestDividend": 1.6,
         "latestDividendDate": "2026-06-04",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 6.4,
-        "forwardYieldPercent": 1.3320567789202016,
+        "forwardYieldPercent": 1.3129551748897323,
         "fiveYearGrowthPercent": 9.26800010017903,
         "recentCut": null,
         "firstDividendYear": 1992,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3343,17 +3331,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 62.91,
+        "price": 59.9,
         "currency": "USD",
         "latestDividend": 0.52,
         "latestDividendDate": "2026-07-24",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.08,
-        "forwardYieldPercent": 3.306310602447942,
+        "forwardYieldPercent": 3.4724540901502503,
         "fiveYearGrowthPercent": 10.756634324829006,
         "recentCut": null,
         "firstDividendYear": 1997,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3366,17 +3354,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 103.61,
+        "price": 81.72,
         "currency": "USD",
         "latestDividend": 0.25,
-        "latestDividendDate": "2026-05-21",
+        "latestDividendDate": "2026-08-20",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1,
-        "forwardYieldPercent": 0.9651578033008398,
+        "forwardYieldPercent": 1.2236906510034264,
         "fiveYearGrowthPercent": 16.054311135316702,
         "recentCut": null,
         "firstDividendYear": 2011,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3389,17 +3377,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 586.29,
+        "price": 531.55,
         "currency": "USD",
         "latestDividend": 3.45,
-        "latestDividendDate": "2026-06-01",
+        "latestDividendDate": "2026-09-01",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 13.8,
-        "forwardYieldPercent": 2.353783963567518,
+        "forwardYieldPercent": 2.596180980152385,
         "fiveYearGrowthPercent": 6.576275663547415,
         "recentCut": null,
         "firstDividendYear": 1962,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3412,17 +3400,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 113.19,
+        "price": 120.11,
         "currency": "USD",
-        "latestDividend": 0.37,
-        "latestDividendDate": "2026-05-15",
+        "latestDividend": 0.38,
+        "latestDividendDate": "2026-08-17",
         "paymentsPerYear": 4,
-        "forwardAnnualDividend": 1.48,
-        "forwardYieldPercent": 1.3075360014135524,
+        "forwardAnnualDividend": 1.52,
+        "forwardYieldPercent": 1.2655066189326452,
         "fiveYearGrowthPercent": 2.3836255539609663,
         "recentCut": null,
         "firstDividendYear": 1996,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3435,17 +3423,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 71.27,
+        "price": 67.74,
         "currency": "USD",
         "latestDividend": 0.535,
         "latestDividendDate": "2026-07-31",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.14,
-        "forwardYieldPercent": 3.002665918338712,
+        "forwardYieldPercent": 3.159137880129909,
         "fiveYearGrowthPercent": 5.9363175944590285,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3459,17 +3447,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 212.06,
+        "price": 199.84,
         "currency": "USD",
         "latestDividend": 1.25,
         "latestDividendDate": "2026-07-22",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 5,
-        "forwardYieldPercent": 2.3578232575686124,
+        "forwardYieldPercent": 2.502001601281025,
         "fiveYearGrowthPercent": 15.895621875417865,
         "recentCut": null,
         "firstDividendYear": 1985,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3482,17 +3470,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 28.07,
+        "price": 20.83,
         "currency": "USD",
         "latestDividend": 0.255,
-        "latestDividendDate": "2026-05-11",
+        "latestDividendDate": "2026-08-10",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.02,
-        "forwardYieldPercent": 3.633772711079444,
+        "forwardYieldPercent": 4.896783485357658,
         "fiveYearGrowthPercent": 3.548578845590522,
         "recentCut": null,
         "firstDividendYear": 1994,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3505,17 +3493,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 207.45,
+        "price": 218.21,
         "currency": "USD",
-        "latestDividend": 0.36,
-        "latestDividendDate": "2026-05-07",
+        "latestDividend": 0.38,
+        "latestDividendDate": "2026-08-06",
         "paymentsPerYear": 4,
-        "forwardAnnualDividend": 1.44,
-        "forwardYieldPercent": 0.6941431670281997,
+        "forwardAnnualDividend": 1.52,
+        "forwardYieldPercent": 0.6965766921772605,
         "fiveYearGrowthPercent": 9.096607850144967,
         "recentCut": null,
         "firstDividendYear": 1988,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3540,17 +3528,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 265.23,
+        "price": 260.95,
         "currency": "USD",
         "latestDividend": 1.86,
-        "latestDividendDate": "2026-06-02",
+        "latestDividendDate": "2026-09-01",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 7.44,
-        "forwardYieldPercent": 2.8051125438298836,
+        "forwardYieldPercent": 2.851120904387814,
         "fiveYearGrowthPercent": 7.2044099133939055,
         "recentCut": null,
         "firstDividendYear": 1976,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3563,17 +3551,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 75.22,
+        "price": 72.76,
         "currency": "USD",
         "latestDividend": 0.455,
-        "latestDividendDate": "2026-05-22",
+        "latestDividendDate": "2026-08-24",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.82,
-        "forwardYieldPercent": 2.419569263493752,
+        "forwardYieldPercent": 2.501374381528312,
         "fiveYearGrowthPercent": 19.850186651669844,
         "recentCut": null,
         "firstDividendYear": 2002,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3587,17 +3575,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 86.68,
+        "price": 92.18,
         "currency": "USD",
         "latestDividend": 0.72,
         "latestDividendDate": "2026-06-26",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.88,
-        "forwardYieldPercent": 3.3225657591139823,
+        "forwardYieldPercent": 3.1243219787372527,
         "fiveYearGrowthPercent": 4.127650931301274,
         "recentCut": null,
         "firstDividendYear": 1982,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3611,17 +3599,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 80,
+        "price": 77.01,
         "currency": "USD",
-        "latestDividend": 0.475,
-        "latestDividendDate": "2026-06-01",
+        "latestDividend": 0.508,
+        "latestDividendDate": "2026-09-01",
         "paymentsPerYear": 4,
-        "forwardAnnualDividend": 1.9,
-        "forwardYieldPercent": 2.375,
+        "forwardAnnualDividend": 2.032,
+        "forwardYieldPercent": 2.6386183612517855,
         "fiveYearGrowthPercent": 4.97540568549435,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3634,17 +3622,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 119.66,
+        "price": 109.48,
         "currency": "USD",
         "latestDividend": 0.495,
         "latestDividendDate": "2026-07-17",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.98,
-        "forwardYieldPercent": 1.6546882834698313,
+        "forwardYieldPercent": 1.8085495067592254,
         "fiveYearGrowthPercent": 2.9196947918678884,
         "recentCut": null,
         "firstDividendYear": 1990,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3658,17 +3646,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 51.52,
+        "price": 53.8,
         "currency": "USD",
         "latestDividend": 0.48,
         "latestDividendDate": "2026-07-06",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.92,
-        "forwardYieldPercent": 3.726708074534161,
+        "forwardYieldPercent": 3.5687732342007434,
         "fiveYearGrowthPercent": 7.738311274144394,
         "recentCut": null,
         "firstDividendYear": 1986,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3682,17 +3670,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 192.46,
+        "price": 188.53,
         "currency": "USD",
         "latestDividend": 0.54,
-        "latestDividendDate": "2026-05-15",
+        "latestDividendDate": "2026-08-14",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.16,
-        "forwardYieldPercent": 1.1223111295853685,
+        "forwardYieldPercent": 1.1457062536466345,
         "fiveYearGrowthPercent": 4.270506415417863,
         "recentCut": null,
         "firstDividendYear": 1990,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3705,17 +3693,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 34.24,
+        "price": 33.22,
         "currency": "USD",
-        "latestDividend": 0.32,
-        "latestDividendDate": "2026-05-15",
+        "latestDividend": 0.33,
+        "latestDividendDate": "2026-08-14",
         "paymentsPerYear": 4,
-        "forwardAnnualDividend": 1.28,
-        "forwardYieldPercent": 3.7383177570093453,
+        "forwardAnnualDividend": 1.32,
+        "forwardYieldPercent": 3.9735099337748347,
         "fiveYearGrowthPercent": 2.9545109465493713,
         "recentCut": null,
         "firstDividendYear": 2016,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3728,17 +3716,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 56.85,
+        "price": 57.91,
         "currency": "USD",
         "latestDividend": 0.36,
-        "latestDividendDate": "2026-05-15",
+        "latestDividendDate": "2026-08-17",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.44,
-        "forwardYieldPercent": 2.5329815303430077,
+        "forwardYieldPercent": 2.4866171645657054,
         "fiveYearGrowthPercent": 5.839502638636529,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3751,17 +3739,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 487.65,
+        "price": 496.82,
         "currency": "USD",
         "latestDividend": 0.91,
-        "latestDividendDate": "2026-05-21",
+        "latestDividendDate": "2026-08-20",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 3.64,
-        "forwardYieldPercent": 0.7464369937455142,
+        "forwardYieldPercent": 0.7326597157924399,
         "fiveYearGrowthPercent": 10.230450734403206,
         "recentCut": null,
         "firstDividendYear": 2003,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3774,17 +3762,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 213.73,
+        "price": 237.97,
         "currency": "USD",
         "latestDividend": 0.145,
-        "latestDividendDate": "2026-05-28",
+        "latestDividendDate": "2026-08-20",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 0.58,
-        "forwardYieldPercent": 0.27137042062415195,
+        "forwardYieldPercent": 0.24372820103374374,
         "fiveYearGrowthPercent": 4.012620718096094,
         "recentCut": null,
         "firstDividendYear": 1986,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3797,17 +3785,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 25.79,
+        "price": 23.82,
         "currency": "USD",
         "latestDividend": 0.07,
-        "latestDividendDate": "2026-05-11",
+        "latestDividendDate": "2026-08-10",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 0.28,
-        "forwardYieldPercent": 1.0856921287320667,
+        "forwardYieldPercent": 1.175482787573468,
         "fiveYearGrowthPercent": 4.799638992804445,
         "recentCut": null,
         "firstDividendYear": 2006,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3822,17 +3810,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 110.75,
+        "price": 111.37,
         "currency": "USD",
         "latestDividend": 1,
         "latestDividendDate": "2026-06-05",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 4,
-        "forwardYieldPercent": 3.611738148984198,
+        "forwardYieldPercent": 3.5916314986082427,
         "fiveYearGrowthPercent": 6.298004826234438,
         "recentCut": null,
         "firstDividendYear": 1986,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3845,17 +3833,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 52.91,
+        "price": 51.21,
         "currency": "USD",
-        "latestDividend": 0.37,
-        "latestDividendDate": "2026-06-01",
+        "latestDividend": 0.4,
+        "latestDividendDate": "2026-09-01",
         "paymentsPerYear": 4,
-        "forwardAnnualDividend": 1.48,
-        "forwardYieldPercent": 2.797202797202797,
+        "forwardAnnualDividend": 1.6,
+        "forwardYieldPercent": 3.1243897676235113,
         "fiveYearGrowthPercent": 4.718407860618323,
         "recentCut": null,
         "firstDividendYear": 1992,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3869,17 +3857,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 302.62,
+        "price": 316.63,
         "currency": "USD",
         "latestDividend": 0.82,
         "latestDividendDate": "2026-06-18",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 3.28,
-        "forwardYieldPercent": 1.0838675566717335,
+        "forwardYieldPercent": 1.0359094210908633,
         "fiveYearGrowthPercent": 15.468148270605052,
         "recentCut": null,
         "firstDividendYear": 1986,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3893,17 +3881,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 86.55,
+        "price": 83.1,
         "currency": "USD",
         "latestDividend": 0.623,
-        "latestDividendDate": "2026-06-05",
+        "latestDividendDate": "2026-08-28",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.492,
-        "forwardYieldPercent": 2.8792605430387064,
+        "forwardYieldPercent": 2.9987966305655838,
         "fiveYearGrowthPercent": 10.129331475495595,
         "recentCut": null,
         "firstDividendYear": 1983,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3917,17 +3905,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 82.76,
+        "price": 83.21,
         "currency": "USD",
         "latestDividend": 0.555,
         "latestDividendDate": "2026-06-30",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.22,
-        "forwardYieldPercent": 2.6824552924117935,
+        "forwardYieldPercent": 2.6679485638745346,
         "fiveYearGrowthPercent": 3.752543962849475,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3942,17 +3930,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 58.08,
+        "price": 53.64,
         "currency": "USD",
         "latestDividend": 0.475,
         "latestDividendDate": "2026-06-10",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.9,
-        "forwardYieldPercent": 3.271349862258953,
+        "forwardYieldPercent": 3.542132736763609,
         "fiveYearGrowthPercent": 7.530987778396425,
         "recentCut": null,
         "firstDividendYear": 1986,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3965,17 +3953,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 42.64,
+        "price": 38.24,
         "currency": "USD",
         "latestDividend": 0.41,
-        "latestDividendDate": "2026-06-01",
+        "latestDividendDate": "2026-09-01",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.64,
-        "forwardYieldPercent": 3.846153846153846,
+        "forwardYieldPercent": 4.2887029288702925,
         "fiveYearGrowthPercent": 10.300830235778413,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -3989,17 +3977,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 47.49,
+        "price": 45.07,
         "currency": "USD",
         "latestDividend": 0.62,
         "latestDividendDate": "2026-07-31",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.48,
-        "forwardYieldPercent": 5.222152032006738,
+        "forwardYieldPercent": 5.502551586421123,
         "fiveYearGrowthPercent": 2.4057052682322944,
         "recentCut": null,
         "firstDividendYear": 1990,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4012,17 +4000,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 548.47,
+        "price": 523.82,
         "currency": "USD",
         "latestDividend": 2.47,
-        "latestDividendDate": "2026-06-01",
+        "latestDividendDate": "2026-08-31",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 9.88,
-        "forwardYieldPercent": 1.801374733349135,
+        "forwardYieldPercent": 1.886144095299912,
         "fiveYearGrowthPercent": 9.761187130052008,
         "recentCut": null,
         "firstDividendYear": 1982,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4035,17 +4023,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 334.11,
+        "price": 290.59,
         "currency": "USD",
         "latestDividend": 0.32,
         "latestDividendDate": "2026-06-03",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.28,
-        "forwardYieldPercent": 0.38310735985154587,
+        "forwardYieldPercent": 0.4404831549605974,
         "fiveYearGrowthPercent": 3.580420358021419,
         "recentCut": null,
         "firstDividendYear": 2015,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4059,17 +4047,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 261.28,
+        "price": 263.97,
         "currency": "USD",
         "latestDividend": 0.56,
         "latestDividendDate": "2026-06-30",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.24,
-        "forwardYieldPercent": 0.8573178199632581,
+        "forwardYieldPercent": 0.8485812781755503,
         "fiveYearGrowthPercent": 6.417126706859877,
         "recentCut": null,
         "firstDividendYear": 1983,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4083,17 +4071,17 @@
       ],
       "minimumStreakYears": 15,
       "metrics": {
-        "price": 68.9,
+        "price": 70.19,
         "currency": "USD",
         "latestDividend": 0.67,
-        "latestDividendDate": "2026-06-15",
+        "latestDividendDate": "2026-08-17",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.68,
-        "forwardYieldPercent": 3.8896952104499274,
+        "forwardYieldPercent": 3.8182077218977066,
         "fiveYearGrowthPercent": 1.9244876491456564,
         "recentCut": null,
         "firstDividendYear": 2008,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4106,17 +4094,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 48.93,
+        "price": 49.24,
         "currency": "USD",
         "latestDividend": 0.493,
         "latestDividendDate": "2026-07-31",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.972,
-        "forwardYieldPercent": 4.030247292049867,
+        "forwardYieldPercent": 4.004874086108854,
         "fiveYearGrowthPercent": 0.4971247573964499,
         "recentCut": null,
         "firstDividendYear": 1990,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4129,17 +4117,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 25.91,
+        "price": 24.1,
         "currency": "USD",
         "latestDividend": 0.53,
         "latestDividendDate": "2026-06-15",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.12,
-        "forwardYieldPercent": 8.182169046700116,
+        "forwardYieldPercent": 8.79668049792531,
         "fiveYearGrowthPercent": 10.256745157647828,
         "recentCut": null,
         "firstDividendYear": 2015,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4153,17 +4141,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 63.48,
+        "price": 61.5,
         "currency": "USD",
         "latestDividend": 0.271,
-        "latestDividendDate": "2026-07-31",
+        "latestDividendDate": "2026-08-31",
         "paymentsPerYear": 12,
         "forwardAnnualDividend": 3.2520000000000002,
-        "forwardYieldPercent": 5.122873345935728,
+        "forwardYieldPercent": 5.287804878048781,
         "fiveYearGrowthPercent": 3.476872781650542,
         "recentCut": null,
         "firstDividendYear": 1994,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4176,17 +4164,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 97.65,
+        "price": 90.65,
         "currency": "USD",
-        "latestDividend": 0.205,
-        "latestDividendDate": "2026-05-08",
+        "latestDividend": 0.225,
+        "latestDividendDate": "2026-08-07",
         "paymentsPerYear": 4,
-        "forwardAnnualDividend": 0.82,
-        "forwardYieldPercent": 0.8397337429595493,
+        "forwardAnnualDividend": 0.9,
+        "forwardYieldPercent": 0.9928295642581356,
         "fiveYearGrowthPercent": 4.396114979019283,
         "recentCut": null,
         "firstDividendYear": 1986,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4199,17 +4187,17 @@
       ],
       "minimumStreakYears": 15,
       "metrics": {
-        "price": 47.37,
+        "price": 46.46,
         "currency": "USD",
         "latestDividend": 0.425,
         "latestDividendDate": "2026-07-06",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.7,
-        "forwardYieldPercent": 3.5887692632467805,
+        "forwardYieldPercent": 3.659061558329746,
         "fiveYearGrowthPercent": 1.6459487920844396,
         "recentCut": null,
         "firstDividendYear": 1973,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4224,17 +4212,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 78.4,
+        "price": 79.95,
         "currency": "USD",
         "latestDividend": 0.68,
-        "latestDividendDate": "2026-05-18",
+        "latestDividendDate": "2026-08-17",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.72,
-        "forwardYieldPercent": 3.4693877551020407,
+        "forwardYieldPercent": 3.4021263289555974,
         "fiveYearGrowthPercent": 4.408584653882852,
         "recentCut": null,
         "firstDividendYear": 2014,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4248,17 +4236,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 43.33,
+        "price": 42.09,
         "currency": "USD",
         "latestDividend": 0.315,
         "latestDividendDate": "2026-06-05",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.26,
-        "forwardYieldPercent": 2.9079159935379644,
+        "forwardYieldPercent": 2.9935851746258018,
         "fiveYearGrowthPercent": 6.668390127527379,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4271,17 +4259,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 43.7,
+        "price": 42.15,
         "currency": "USD",
         "latestDividend": 0.3,
-        "latestDividendDate": "2026-05-05",
+        "latestDividendDate": "2026-08-04",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.2,
-        "forwardYieldPercent": 2.745995423340961,
+        "forwardYieldPercent": 2.8469750889679712,
         "fiveYearGrowthPercent": 8.869163325077611,
         "recentCut": null,
         "firstDividendYear": 1999,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4294,17 +4282,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 90.16,
+        "price": 88.88,
         "currency": "USD",
         "latestDividend": 0.578,
-        "latestDividendDate": "2026-05-15",
+        "latestDividendDate": "2026-08-14",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.312,
-        "forwardYieldPercent": 2.56433007985803,
+        "forwardYieldPercent": 2.601260126012601,
         "fiveYearGrowthPercent": 7.2485713934655305,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4318,17 +4306,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 51.74,
+        "price": 49.32,
         "currency": "USD",
         "latestDividend": 0.48,
         "latestDividendDate": "2026-07-13",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.92,
-        "forwardYieldPercent": 3.710862002319289,
+        "forwardYieldPercent": 3.8929440389294405,
         "fiveYearGrowthPercent": 10.066508085209659,
         "recentCut": null,
         "firstDividendYear": 1998,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4342,17 +4330,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 75.25,
+        "price": 72.09,
         "currency": "USD",
         "latestDividend": 0.6,
         "latestDividendDate": "2026-06-15",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.4,
-        "forwardYieldPercent": 3.189368770764119,
+        "forwardYieldPercent": 3.3291718684977107,
         "fiveYearGrowthPercent": 4.745176373283,
         "recentCut": null,
         "firstDividendYear": 1999,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4365,17 +4353,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 41.74,
+        "price": 39.5,
         "currency": "USD",
         "latestDividend": 0.42,
-        "latestDividendDate": "2026-05-04",
+        "latestDividendDate": "2026-08-03",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.68,
-        "forwardYieldPercent": 4.024916147580258,
+        "forwardYieldPercent": 4.253164556962026,
         "fiveYearGrowthPercent": 3.8152102716594083,
         "recentCut": null,
         "firstDividendYear": 1993,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4389,17 +4377,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 139.63,
+        "price": 140.52,
         "currency": "USD",
         "latestDividend": 1.48,
         "latestDividendDate": "2026-06-05",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 5.92,
-        "forwardYieldPercent": 4.239776552316838,
+        "forwardYieldPercent": 4.212923427270139,
         "fiveYearGrowthPercent": 6.82326633892727,
         "recentCut": null,
         "firstDividendYear": 1972,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4412,17 +4400,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 106.1,
+        "price": 104.06,
         "currency": "USD",
         "latestDividend": 0.8,
         "latestDividendDate": "2026-07-07",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 3.2,
-        "forwardYieldPercent": 3.0160226201696516,
+        "forwardYieldPercent": 3.075148952527388,
         "fiveYearGrowthPercent": 20.11244339814313,
         "recentCut": null,
         "firstDividendYear": 2001,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4436,17 +4424,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 144.97,
+        "price": 147.64,
         "currency": "USD",
         "latestDividend": 1.089,
         "latestDividendDate": "2026-07-24",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 4.356,
-        "forwardYieldPercent": 3.0047596054356074,
+        "forwardYieldPercent": 2.9504199403955567,
         "fiveYearGrowthPercent": 5.969210995022167,
         "recentCut": null,
         "firstDividendYear": 1962,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4461,17 +4449,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 70.64,
+        "price": 61.72,
         "currency": "USD",
         "latestDividend": 0.68,
-        "latestDividendDate": "2026-06-01",
+        "latestDividendDate": "2026-09-01",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.72,
-        "forwardYieldPercent": 3.8505096262740657,
+        "forwardYieldPercent": 4.40699935191186,
         "fiveYearGrowthPercent": 1.5632576929179187,
         "recentCut": null,
         "firstDividendYear": 1989,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4485,17 +4473,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 67.07,
+        "price": 59.84,
         "currency": "USD",
         "latestDividend": 0.27,
         "latestDividendDate": "2026-07-24",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.08,
-        "forwardYieldPercent": 1.6102579394662295,
+        "forwardYieldPercent": 1.8048128342245988,
         "fiveYearGrowthPercent": 5.642162229904302,
         "recentCut": null,
         "firstDividendYear": 1990,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4509,17 +4497,17 @@
       ],
       "minimumStreakYears": 15,
       "metrics": {
-        "price": 50.15,
+        "price": 48.69,
         "currency": "USD",
         "latestDividend": 0.551,
         "latestDividendDate": "2026-06-25",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.204,
-        "forwardYieldPercent": 4.39481555333998,
+        "forwardYieldPercent": 4.526596837132882,
         "fiveYearGrowthPercent": 6.399531281508364,
         "recentCut": null,
         "firstDividendYear": 2006,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4532,17 +4520,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 60.4,
+        "price": 50.3,
         "currency": "USD",
         "latestDividend": 0.215,
-        "latestDividendDate": "2026-05-29",
+        "latestDividendDate": "2026-08-31",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 0.86,
-        "forwardYieldPercent": 1.423841059602649,
+        "forwardYieldPercent": 1.7097415506958251,
         "fiveYearGrowthPercent": 13.80604263098537,
         "recentCut": null,
         "firstDividendYear": 2008,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4556,17 +4544,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 114.01,
+        "price": 111.31,
         "currency": "USD",
-        "latestDividend": 0.71,
-        "latestDividendDate": "2026-05-11",
+        "latestDividend": 0.74,
+        "latestDividendDate": "2026-08-10",
         "paymentsPerYear": 4,
-        "forwardAnnualDividend": 2.84,
-        "forwardYieldPercent": 2.4910095605648626,
+        "forwardAnnualDividend": 2.96,
+        "forwardYieldPercent": 2.659239960470757,
         "fiveYearGrowthPercent": 5.922384104881218,
         "recentCut": null,
         "firstDividendYear": 1983,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4580,17 +4568,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 10.68,
+        "price": 14.49,
         "currency": "USD",
         "latestDividend": 0.29,
-        "latestDividendDate": "2026-05-29",
+        "latestDividendDate": "2026-08-28",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.16,
-        "forwardYieldPercent": 10.861423220973784,
+        "forwardYieldPercent": 8.00552104899931,
         "fiveYearGrowthPercent": 5.206626739843068,
         "recentCut": null,
         "firstDividendYear": 2003,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4603,17 +4591,17 @@
       ],
       "minimumStreakYears": 15,
       "metrics": {
-        "price": 317.25,
+        "price": 293.51,
         "currency": "USD",
         "latestDividend": 1.2,
-        "latestDividendDate": "2026-05-21",
+        "latestDividendDate": "2026-08-21",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 4.8,
-        "forwardYieldPercent": 1.5130023640661938,
+        "forwardYieldPercent": 1.6353786923784537,
         "fiveYearGrowthPercent": 21.05832751075947,
         "recentCut": null,
         "firstDividendYear": 2010,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4626,17 +4614,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 151.57,
+        "price": 169.96,
         "currency": "USD",
         "latestDividend": 0.92,
         "latestDividendDate": "2026-06-04",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 3.68,
-        "forwardYieldPercent": 2.4279210925644916,
+        "forwardYieldPercent": 2.165215344787009,
         "fiveYearGrowthPercent": 6.48669054754929,
         "recentCut": null,
         "firstDividendYear": 1998,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4650,17 +4638,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 262.36,
+        "price": 243.13,
         "currency": "USD",
-        "latestDividend": 0.91,
-        "latestDividendDate": "2026-05-18",
+        "latestDividend": 1.01,
+        "latestDividendDate": "2026-08-24",
         "paymentsPerYear": 4,
-        "forwardAnnualDividend": 3.64,
-        "forwardYieldPercent": 1.3874066168623265,
+        "forwardAnnualDividend": 4.04,
+        "forwardYieldPercent": 1.661662485090281,
         "fiveYearGrowthPercent": 7.661245164297736,
         "recentCut": null,
         "firstDividendYear": 1980,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4674,17 +4662,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 112.22,
+        "price": 82.9,
         "currency": "USD",
-        "latestDividend": 0.31,
-        "latestDividendDate": "2026-05-27",
+        "latestDividend": 0.33,
+        "latestDividendDate": "2026-08-25",
         "paymentsPerYear": 4,
-        "forwardAnnualDividend": 1.24,
-        "forwardYieldPercent": 1.1049723756906076,
+        "forwardAnnualDividend": 1.32,
+        "forwardYieldPercent": 1.5922798552472857,
         "fiveYearGrowthPercent": null,
         "recentCut": null,
         "firstDividendYear": 2003,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4697,17 +4685,17 @@
       ],
       "minimumStreakYears": 15,
       "metrics": {
-        "price": 236.37,
+        "price": 252.37,
         "currency": "USD",
-        "latestDividend": 0.93,
-        "latestDividendDate": "2026-05-19",
+        "latestDividend": 0.98,
+        "latestDividendDate": "2026-08-18",
         "paymentsPerYear": 4,
-        "forwardAnnualDividend": 3.72,
-        "forwardYieldPercent": 1.5738037822058637,
+        "forwardAnnualDividend": 3.92,
+        "forwardYieldPercent": 1.5532749534413757,
         "fiveYearGrowthPercent": 4.9200269147087194,
         "recentCut": null,
         "firstDividendYear": 2008,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4721,17 +4709,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 202.04,
+        "price": 258.38,
         "currency": "USD",
         "latestDividend": 0.475,
         "latestDividendDate": "2026-07-02",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.9,
-        "forwardYieldPercent": 0.9404078400316769,
+        "forwardYieldPercent": 0.7353510333617153,
         "fiveYearGrowthPercent": 9.953965407958165,
         "recentCut": null,
         "firstDividendYear": 2000,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4744,17 +4732,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 38.73,
+        "price": 42.9,
         "currency": "USD",
         "latestDividend": 0.59,
-        "latestDividendDate": "2026-05-22",
+        "latestDividendDate": "2026-08-25",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.36,
-        "forwardYieldPercent": 6.093467596178673,
+        "forwardYieldPercent": 5.501165501165501,
         "fiveYearGrowthPercent": 11.654085522403058,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4767,7 +4755,19 @@
         "REGL"
       ],
       "minimumStreakYears": 20,
-      "metrics": null
+      "metrics": {
+        "price": 63.35,
+        "currency": "USD",
+        "latestDividend": 0.18,
+        "latestDividendDate": "2026-08-31",
+        "paymentsPerYear": 4,
+        "forwardAnnualDividend": 0.72,
+        "forwardYieldPercent": 1.1365430149960536,
+        "fiveYearGrowthPercent": 5.922384104881218,
+        "recentCut": null,
+        "firstDividendYear": 1987,
+        "measuredAt": "2026-09-02"
+      }
     },
     {
       "ticker": "RNR",
@@ -4780,17 +4780,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 321.37,
+        "price": 331.21,
         "currency": "USD",
         "latestDividend": 0.41,
         "latestDividendDate": "2026-06-15",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.64,
-        "forwardYieldPercent": 0.5103152129943678,
+        "forwardYieldPercent": 0.4951541318196914,
         "fiveYearGrowthPercent": 2.7066087089351765,
         "recentCut": null,
         "firstDividendYear": 1996,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4804,17 +4804,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 392.57,
+        "price": 415.79,
         "currency": "USD",
         "latestDividend": 0.91,
         "latestDividendDate": "2026-07-08",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 3.64,
-        "forwardYieldPercent": 0.9272231703899942,
+        "forwardYieldPercent": 0.875441929820342,
         "fiveYearGrowthPercent": 9.96825070990952,
         "recentCut": null,
         "firstDividendYear": 1992,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4828,17 +4828,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 111.49,
+        "price": 103.23,
         "currency": "USD",
         "latestDividend": 0.54,
         "latestDividendDate": "2026-07-14",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.16,
-        "forwardYieldPercent": 1.9373934882052204,
+        "forwardYieldPercent": 2.092414995640802,
         "fiveYearGrowthPercent": 7.214502590085092,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4851,17 +4851,17 @@
       ],
       "minimumStreakYears": 15,
       "metrics": {
-        "price": 409.39,
+        "price": 400.21,
         "currency": "USD",
         "latestDividend": 1.25,
-        "latestDividendDate": "2026-05-22",
+        "latestDividendDate": "2026-08-14",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 5,
-        "forwardYieldPercent": 1.2213292948044652,
+        "forwardYieldPercent": 1.2493440943504661,
         "fiveYearGrowthPercent": 13.935810405670246,
         "recentCut": null,
         "firstDividendYear": 1994,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4874,17 +4874,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 209.62,
+        "price": 222.52,
         "currency": "USD",
         "latestDividend": 0.625,
         "latestDividendDate": "2026-07-02",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.5,
-        "forwardYieldPercent": 1.192634290621124,
+        "forwardYieldPercent": 1.1234945173467552,
         "fiveYearGrowthPercent": 7.447074196358794,
         "recentCut": null,
         "firstDividendYear": 2003,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4897,17 +4897,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 87.23,
+        "price": 77.88,
         "currency": "USD",
         "latestDividend": 0.41,
         "latestDividendDate": "2026-06-15",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.64,
-        "forwardYieldPercent": 1.880087125988765,
+        "forwardYieldPercent": 2.105803800719055,
         "fiveYearGrowthPercent": 28.473515712343932,
         "recentCut": null,
         "firstDividendYear": 2003,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4920,17 +4920,17 @@
       ],
       "minimumStreakYears": 15,
       "metrics": {
-        "price": 85.93,
+        "price": 81.09,
         "currency": "USD",
         "latestDividend": 0.36,
         "latestDividendDate": "2026-06-15",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.44,
-        "forwardYieldPercent": 1.6757826137553822,
+        "forwardYieldPercent": 1.775804661487236,
         "fiveYearGrowthPercent": 10.98883056567086,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4943,17 +4943,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 63.41,
+        "price": 62.16,
         "currency": "USD",
         "latestDividend": 0.395,
-        "latestDividendDate": "2026-06-01",
+        "latestDividendDate": "2026-09-01",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.58,
-        "forwardYieldPercent": 2.491720548809336,
+        "forwardYieldPercent": 2.541827541827542,
         "fiveYearGrowthPercent": 6.9610375725068785,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4967,17 +4967,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 104.19,
+        "price": 109.12,
         "currency": "USD",
         "latestDividend": 0.52,
         "latestDividendDate": "2026-06-08",
         "paymentsPerYear": 2,
         "forwardAnnualDividend": 1.04,
-        "forwardYieldPercent": 0.9981764084844994,
+        "forwardYieldPercent": 0.9530791788856305,
         "fiveYearGrowthPercent": 6.9610375725068785,
         "recentCut": null,
         "firstDividendYear": 1988,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -4990,17 +4990,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 23.86,
+        "price": 22.67,
         "currency": "USD",
         "latestDividend": 0.215,
         "latestDividendDate": "2026-06-15",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 0.86,
-        "forwardYieldPercent": 3.604358759430008,
+        "forwardYieldPercent": 3.793559770621967,
         "fiveYearGrowthPercent": 4.613115579519111,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5013,17 +5013,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 15.42,
+        "price": 13.49,
         "currency": "USD",
         "latestDividend": 0.17,
         "latestDividendDate": "2026-07-06",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 0.68,
-        "forwardYieldPercent": 4.409857328145266,
+        "forwardYieldPercent": 5.040770941438103,
         "fiveYearGrowthPercent": 28.688715437719956,
         "recentCut": null,
         "firstDividendYear": 2012,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5037,17 +5037,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 354.22,
+        "price": 331.25,
         "currency": "USD",
         "latestDividend": 0.8,
-        "latestDividendDate": "2026-05-22",
+        "latestDividendDate": "2026-08-21",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 3.2,
-        "forwardYieldPercent": 0.9033933713511377,
+        "forwardYieldPercent": 0.9660377358490566,
         "fiveYearGrowthPercent": 12.080134825877398,
         "recentCut": null,
         "firstDividendYear": 1985,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5061,17 +5061,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 117.5,
+        "price": 131.44,
         "currency": "USD",
-        "latestDividend": 1.1,
-        "latestDividendDate": "2026-05-15",
+        "latestDividend": 1.12,
+        "latestDividendDate": "2026-08-14",
         "paymentsPerYear": 4,
-        "forwardAnnualDividend": 4.4,
-        "forwardYieldPercent": 3.74468085106383,
+        "forwardAnnualDividend": 4.48,
+        "forwardYieldPercent": 3.4083992696287284,
         "fiveYearGrowthPercent": 4.180926810264429,
         "recentCut": null,
         "firstDividendYear": 2000,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5085,17 +5085,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 41.37,
+        "price": 41.33,
         "currency": "USD",
         "latestDividend": 0.21,
-        "latestDividendDate": "2026-06-01",
+        "latestDividendDate": "2026-09-01",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 0.84,
-        "forwardYieldPercent": 2.0304568527918785,
+        "forwardYieldPercent": 2.0324219695136705,
         "fiveYearGrowthPercent": 10.756634324829006,
         "recentCut": null,
         "firstDividendYear": 2004,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5108,17 +5108,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 92.94,
+        "price": 88.31,
         "currency": "USD",
         "latestDividend": 0.76,
-        "latestDividendDate": "2026-05-18",
+        "latestDividendDate": "2026-08-17",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 3.04,
-        "forwardYieldPercent": 3.270927480094685,
+        "forwardYieldPercent": 3.4424187521232024,
         "fiveYearGrowthPercent": 2.9462068239258565,
         "recentCut": null,
         "firstDividendYear": 1982,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5132,17 +5132,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 56.42,
+        "price": 54.74,
         "currency": "USD",
         "latestDividend": 0.54,
-        "latestDividendDate": "2026-05-08",
+        "latestDividendDate": "2026-08-10",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.16,
-        "forwardYieldPercent": 3.8284296348812483,
+        "forwardYieldPercent": 3.945926196565583,
         "fiveYearGrowthPercent": 4.270506415417863,
         "recentCut": null,
         "firstDividendYear": 1990,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5156,17 +5156,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 416.25,
+        "price": 431.71,
         "currency": "USD",
-        "latestDividend": 0.917692,
-        "latestDividendDate": "2026-05-29",
+        "latestDividend": 0.97,
+        "latestDividendDate": "2026-08-26",
         "paymentsPerYear": 4,
-        "forwardAnnualDividend": 3.670768,
-        "forwardYieldPercent": 0.8818661861861862,
+        "forwardAnnualDividend": 3.88,
+        "forwardYieldPercent": 0.8987514766857382,
         "fiveYearGrowthPercent": 7.458150553823173,
         "recentCut": null,
         "firstDividendYear": 1985,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5181,17 +5181,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 80.09,
+        "price": 82.77,
         "currency": "USD",
         "latestDividend": 0.825,
         "latestDividendDate": "2026-06-11",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 3.3,
-        "forwardYieldPercent": 4.120364589836434,
+        "forwardYieldPercent": 3.9869517941283075,
         "fiveYearGrowthPercent": 4.7312584434531235,
         "recentCut": null,
         "firstDividendYear": 1973,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5215,17 +5215,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 52.38,
+        "price": 49.88,
         "currency": "USD",
         "latestDividend": 0.37,
-        "latestDividendDate": "2026-05-14",
+        "latestDividendDate": "2026-08-18",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.48,
-        "forwardYieldPercent": 2.8255059182894233,
+        "forwardYieldPercent": 2.967121090617482,
         "fiveYearGrowthPercent": 3.9594988207552584,
         "recentCut": null,
         "firstDividendYear": 1992,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5238,17 +5238,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 232.64,
+        "price": 230.35,
         "currency": "USD",
         "latestDividend": 0.63,
         "latestDividendDate": "2026-06-08",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.52,
-        "forwardYieldPercent": 1.0832187070151307,
+        "forwardYieldPercent": 1.09398741046234,
         "fiveYearGrowthPercent": 9.027141631525293,
         "recentCut": null,
         "firstDividendYear": 2005,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5262,17 +5262,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 98.11,
+        "price": 96.89,
         "currency": "USD",
         "latestDividend": 0.83,
         "latestDividendDate": "2026-06-08",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 3.32,
-        "forwardYieldPercent": 3.3839567832025277,
+        "forwardYieldPercent": 3.4265662091031066,
         "fiveYearGrowthPercent": 3.5125368671915957,
         "recentCut": null,
         "firstDividendYear": 1985,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5285,17 +5285,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 311.96,
+        "price": 277.93,
         "currency": "USD",
         "latestDividend": 0.34,
-        "latestDividendDate": "2026-05-08",
+        "latestDividendDate": "2026-08-07",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.36,
-        "forwardYieldPercent": 0.43595332734966025,
+        "forwardYieldPercent": 0.48933184614831077,
         "fiveYearGrowthPercent": 7.781806771272581,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5309,17 +5309,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 84.98,
+        "price": 81.76,
         "currency": "USD",
         "latestDividend": 0.55,
         "latestDividendDate": "2026-07-02",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.2,
-        "forwardYieldPercent": 2.588844433984467,
+        "forwardYieldPercent": 2.6908023483365953,
         "fiveYearGrowthPercent": 2.534857565773274,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5333,17 +5333,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 149.35,
+        "price": 163.36,
         "currency": "USD",
-        "latestDividend": 1.14,
-        "latestDividendDate": "2026-05-13",
+        "latestDividend": 1.16,
+        "latestDividendDate": "2026-08-12",
         "paymentsPerYear": 4,
-        "forwardAnnualDividend": 4.56,
-        "forwardYieldPercent": 3.053230666220288,
+        "forwardAnnualDividend": 4.64,
+        "forwardYieldPercent": 2.840352595494613,
         "fiveYearGrowthPercent": 11.15648817398467,
         "recentCut": null,
         "firstDividendYear": 1983,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5357,17 +5357,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 232.33,
+        "price": 227.12,
         "currency": "USD",
         "latestDividend": 0.95,
         "latestDividendDate": "2026-06-12",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 3.8,
-        "forwardYieldPercent": 1.635604528042009,
+        "forwardYieldPercent": 1.6731243395561817,
         "fiveYearGrowthPercent": 6.724918187953888,
         "recentCut": null,
         "firstDividendYear": 1996,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5380,17 +5380,17 @@
       ],
       "minimumStreakYears": 15,
       "metrics": {
-        "price": 77.51,
+        "price": 75.71,
         "currency": "USD",
         "latestDividend": 0.52,
         "latestDividendDate": "2026-07-01",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.08,
-        "forwardYieldPercent": 2.6835247064894854,
+        "forwardYieldPercent": 2.7473253203011496,
         "fiveYearGrowthPercent": 4.563955259127317,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5403,17 +5403,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 100.92,
+        "price": 97.56,
         "currency": "USD",
-        "latestDividend": 0.67,
-        "latestDividendDate": "2026-05-08",
+        "latestDividend": 0.7,
+        "latestDividendDate": "2026-08-07",
         "paymentsPerYear": 4,
-        "forwardAnnualDividend": 2.68,
-        "forwardYieldPercent": 2.6555687673404678,
+        "forwardAnnualDividend": 2.8,
+        "forwardYieldPercent": 2.8700287002870026,
         "fiveYearGrowthPercent": 3.580420358021419,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5426,17 +5426,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 85.82,
+        "price": 70.23,
         "currency": "USD",
         "latestDividend": 0.31,
-        "latestDividendDate": "2026-05-29",
+        "latestDividendDate": "2026-08-31",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.24,
-        "forwardYieldPercent": 1.444884642274528,
+        "forwardYieldPercent": 1.7656272248326925,
         "fiveYearGrowthPercent": 6.042477819475911,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5449,17 +5449,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 406.15,
+        "price": 367.32,
         "currency": "USD",
         "latestDividend": 0.6,
-        "latestDividendDate": "2026-06-01",
+        "latestDividendDate": "2026-09-01",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.4,
-        "forwardYieldPercent": 0.5909146866921089,
+        "forwardYieldPercent": 0.6533812479581836,
         "fiveYearGrowthPercent": null,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5472,17 +5472,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 31.34,
+        "price": 28,
         "currency": "USD",
         "latestDividend": 0.31,
         "latestDividendDate": "2026-07-15",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.24,
-        "forwardYieldPercent": 3.956604977664327,
+        "forwardYieldPercent": 4.428571428571428,
         "fiveYearGrowthPercent": 9.565425774785385,
         "recentCut": null,
         "firstDividendYear": 1973,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5495,17 +5495,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 71.7,
+        "price": 65.74,
         "currency": "USD",
         "latestDividend": 0.52,
         "latestDividendDate": "2026-06-26",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.08,
-        "forwardYieldPercent": 2.900976290097629,
+        "forwardYieldPercent": 3.1639793124429576,
         "fiveYearGrowthPercent": 12.659148174514279,
         "recentCut": null,
         "firstDividendYear": 2011,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5519,17 +5519,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 113.51,
+        "price": 109.38,
         "currency": "USD",
         "latestDividend": 1.3,
         "latestDividendDate": "2026-06-15",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 5.2,
-        "forwardYieldPercent": 4.581094176724518,
+        "forwardYieldPercent": 4.754068385445237,
         "fiveYearGrowthPercent": 7.1302805673335135,
         "recentCut": null,
         "firstDividendYear": 1986,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5542,17 +5542,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 373.82,
+        "price": 366.18,
         "currency": "USD",
         "latestDividend": 1.25,
         "latestDividendDate": "2026-06-10",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 5,
-        "forwardYieldPercent": 1.3375421325771761,
+        "forwardYieldPercent": 1.3654486864383637,
         "fiveYearGrowthPercent": 5.291848906511043,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5566,17 +5566,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 95.18,
+        "price": 99.15,
         "currency": "USD",
         "latestDividend": 0.39,
         "latestDividendDate": "2026-06-16",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.56,
-        "forwardYieldPercent": 1.6389997898718218,
+        "forwardYieldPercent": 1.573373676248109,
         "fiveYearGrowthPercent": 8.73483945710749,
         "recentCut": null,
         "firstDividendYear": 1986,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5589,17 +5589,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 269.04,
+        "price": 254.8,
         "currency": "USD",
         "latestDividend": 1.42,
         "latestDividendDate": "2026-07-31",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 5.68,
-        "forwardYieldPercent": 2.1112102289622356,
+        "forwardYieldPercent": 2.229199372056515,
         "fiveYearGrowthPercent": 8.60736567221123,
         "recentCut": null,
         "firstDividendYear": 1972,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5612,17 +5612,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 57.6,
+        "price": 58.07,
         "currency": "USD",
         "latestDividend": 0.423,
-        "latestDividendDate": "2026-04-27",
+        "latestDividendDate": "2026-08-03",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.692,
-        "forwardYieldPercent": 2.9375,
+        "forwardYieldPercent": 2.9137248148785946,
         "fiveYearGrowthPercent": 5.784463865939604,
         "recentCut": null,
         "firstDividendYear": 1984,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5637,17 +5637,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 48.91,
+        "price": 47.3,
         "currency": "USD",
         "latestDividend": 0.38,
         "latestDividendDate": "2026-06-12",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.52,
-        "forwardYieldPercent": 3.1077489265998777,
+        "forwardYieldPercent": 3.2135306553911205,
         "fiveYearGrowthPercent": 1.11759598354646,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5660,17 +5660,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 35.83,
+        "price": 34.97,
         "currency": "USD",
         "latestDividend": 0.25,
         "latestDividendDate": "2026-06-15",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1,
-        "forwardYieldPercent": 2.790957298353335,
+        "forwardYieldPercent": 2.8595939376608523,
         "fiveYearGrowthPercent": 5.922384104881218,
         "recentCut": null,
         "firstDividendYear": 2002,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5684,17 +5684,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 147.04,
+        "price": 141.91,
         "currency": "USD",
         "latestDividend": 0.43,
         "latestDividendDate": "2026-06-10",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.72,
-        "forwardYieldPercent": 1.1697497279651796,
+        "forwardYieldPercent": 1.21203579733634,
         "fiveYearGrowthPercent": 5.2300215891077695,
         "recentCut": null,
         "firstDividendYear": 1986,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5707,17 +5707,17 @@
       ],
       "minimumStreakYears": 15,
       "metrics": {
-        "price": 90.11,
+        "price": 92.8,
         "currency": "USD",
         "latestDividend": 0.505,
         "latestDividendDate": "2026-07-24",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.02,
-        "forwardYieldPercent": 2.2417045832870937,
+        "forwardYieldPercent": 2.1767241379310347,
         "fiveYearGrowthPercent": 8.063961960040022,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5730,17 +5730,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 53.51,
+        "price": 53.53,
         "currency": "USD",
         "latestDividend": 0.475,
-        "latestDividendDate": "2026-05-14",
+        "latestDividendDate": "2026-08-17",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.9,
-        "forwardYieldPercent": 3.5507381797794806,
+        "forwardYieldPercent": 3.549411544928077,
         "fiveYearGrowthPercent": 3.713728933664817,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5753,17 +5753,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 52.03,
+        "price": 46.3,
         "currency": "USD",
         "latestDividend": 0.83,
         "latestDividendDate": "2026-07-13",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 3.32,
-        "forwardYieldPercent": 6.38093407649433,
+        "forwardYieldPercent": 7.170626349892009,
         "fiveYearGrowthPercent": 1.2824702968712964,
         "recentCut": null,
         "firstDividendYear": 1986,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5776,17 +5776,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 47.36,
+        "price": 50.22,
         "currency": "USD",
         "latestDividend": 0.708,
         "latestDividendDate": "2026-07-10",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.832,
-        "forwardYieldPercent": 5.97972972972973,
+        "forwardYieldPercent": 5.639187574671445,
         "fiveYearGrowthPercent": 1.9696469436327746,
         "recentCut": null,
         "firstDividendYear": 1984,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5799,17 +5799,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 37.36,
+        "price": 35.94,
         "currency": "USD",
         "latestDividend": 0.27,
-        "latestDividendDate": "2026-05-22",
+        "latestDividendDate": "2026-08-21",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.08,
-        "forwardYieldPercent": 2.8907922912205573,
+        "forwardYieldPercent": 3.0050083472454094,
         "fiveYearGrowthPercent": 4.180926810264429,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5822,17 +5822,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 227.29,
+        "price": 212.08,
         "currency": "USD",
         "latestDividend": 1.02,
         "latestDividendDate": "2026-07-17",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 4.08,
-        "forwardYieldPercent": 1.795063575168287,
+        "forwardYieldPercent": 1.923802338740098,
         "fiveYearGrowthPercent": 7.006611103141647,
         "recentCut": null,
         "firstDividendYear": 1990,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5845,17 +5845,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 109.28,
+        "price": 105.73,
         "currency": "USD",
         "latestDividend": 0.953,
-        "latestDividendDate": "2026-05-14",
+        "latestDividendDate": "2026-08-14",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 3.812,
-        "forwardYieldPercent": 3.4882869692532936,
+        "forwardYieldPercent": 3.6054100066206374,
         "fiveYearGrowthPercent": 7.124682997948595,
         "recentCut": null,
         "firstDividendYear": 1986,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5869,17 +5869,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 69.89,
+        "price": 76.27,
         "currency": "USD",
-        "latestDividend": 0.53,
-        "latestDividendDate": "2026-05-27",
+        "latestDividend": 0.533,
+        "latestDividendDate": "2026-08-25",
         "paymentsPerYear": 4,
-        "forwardAnnualDividend": 2.12,
-        "forwardYieldPercent": 3.033338102732866,
+        "forwardAnnualDividend": 2.132,
+        "forwardYieldPercent": 2.7953323718368956,
         "fiveYearGrowthPercent": 14.826125503976373,
         "recentCut": null,
         "firstDividendYear": 2004,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5892,17 +5892,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 53.1,
+        "price": 51.05,
         "currency": "USD",
         "latestDividend": 0.3575,
         "latestDividendDate": "2026-07-07",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.43,
-        "forwardYieldPercent": 2.693032015065913,
+        "forwardYieldPercent": 2.801175318315377,
         "fiveYearGrowthPercent": 0.7194986781870805,
         "recentCut": null,
         "firstDividendYear": 1984,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5915,17 +5915,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 226.43,
+        "price": 219.04,
         "currency": "USD",
         "latestDividend": 0.945,
         "latestDividendDate": "2026-06-05",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 3.78,
-        "forwardYieldPercent": 1.669390098485183,
+        "forwardYieldPercent": 1.7257121986851716,
         "fiveYearGrowthPercent": 8.645436537245299,
         "recentCut": null,
         "firstDividendYear": 1998,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5939,17 +5939,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 110.71,
+        "price": 106.09,
         "currency": "USD",
         "latestDividend": 0.248,
-        "latestDividendDate": "2026-05-08",
+        "latestDividendDate": "2026-08-21",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 0.992,
-        "forwardYieldPercent": 0.8960346852136212,
+        "forwardYieldPercent": 0.9350551418606843,
         "fiveYearGrowthPercent": 5.4773163227226584,
         "recentCut": null,
         "firstDividendYear": 1974,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5973,17 +5973,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 41.81,
+        "price": 40.46,
         "currency": "USD",
         "latestDividend": 0.38,
         "latestDividendDate": "2026-06-05",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 1.52,
-        "forwardYieldPercent": 3.6354939009806264,
+        "forwardYieldPercent": 3.7567968363816115,
         "fiveYearGrowthPercent": 2.9462068239258565,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -5997,17 +5997,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 347.94,
+        "price": 342.63,
         "currency": "USD",
         "latestDividend": 0.22,
         "latestDividendDate": "2026-07-29",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 0.88,
-        "forwardYieldPercent": 0.2529171696269472,
+        "forwardYieldPercent": 0.25683682106061934,
         "fiveYearGrowthPercent": 5.589288248337687,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -6021,17 +6021,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 38.78,
+        "price": 41.55,
         "currency": "USD",
-        "latestDividend": 0.343,
-        "latestDividendDate": "2026-05-12",
+        "latestDividend": 0.361,
+        "latestDividendDate": "2026-08-11",
         "paymentsPerYear": 4,
-        "forwardAnnualDividend": 1.372,
-        "forwardYieldPercent": 3.537906137184116,
+        "forwardAnnualDividend": 1.444,
+        "forwardYieldPercent": 3.4753309265944643,
         "fiveYearGrowthPercent": 6.8563532147040585,
         "recentCut": null,
         "firstDividendYear": 1987,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -6044,17 +6044,17 @@
       ],
       "minimumStreakYears": 20,
       "metrics": {
-        "price": 77.69,
+        "price": 75.51,
         "currency": "USD",
         "latestDividend": 0.593,
         "latestDividendDate": "2026-06-15",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 2.372,
-        "forwardYieldPercent": 3.0531599948513324,
+        "forwardYieldPercent": 3.1413057873129384,
         "fiveYearGrowthPercent": 5.79893110716263,
         "recentCut": null,
         "firstDividendYear": 1973,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -6068,17 +6068,17 @@
       ],
       "minimumStreakYears": 25,
       "metrics": {
-        "price": 155.06,
+        "price": 164.15,
         "currency": "USD",
         "latestDividend": 1.03,
-        "latestDividendDate": "2026-05-15",
+        "latestDividendDate": "2026-08-17",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 4.12,
-        "forwardYieldPercent": 2.6570359860699084,
+        "forwardYieldPercent": 2.509899482180932,
         "fiveYearGrowthPercent": 2.6179154775372693,
         "recentCut": null,
         "firstDividendYear": 1962,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     },
     {
@@ -6091,17 +6091,17 @@
       ],
       "minimumStreakYears": 10,
       "metrics": {
-        "price": 30.81,
+        "price": 34.08,
         "currency": "USD",
         "latestDividend": 0.228,
         "latestDividendDate": "2026-06-30",
         "paymentsPerYear": 4,
         "forwardAnnualDividend": 0.912,
-        "forwardYieldPercent": 2.960077896786758,
+        "forwardYieldPercent": 2.6760563380281694,
         "fiveYearGrowthPercent": 4.000235313991807,
         "recentCut": null,
         "firstDividendYear": 2000,
-        "measuredAt": "2026-08-04"
+        "measuredAt": "2026-09-02"
       }
     }
   ],
@@ -6155,6 +6155,12 @@
       "blocking": false
     },
     {
+      "ticker": "CHCT",
+      "kind": "streakContradiction",
+      "detail": "SMDV 편입(연속 증배 하한 10년)인데 1회 지급액이 줄었다(2025년 0.4680 → 2026년 0.3300). 편입 사실과 배당이력 중 하나가 틀렸다.",
+      "blocking": true
+    },
+    {
       "ticker": "COR",
       "kind": "growthUnavailable",
       "detail": "2020년과 2025년을 비교할 수 없어 5년 성장률을 낼 수 없다(완결 6개 연도가 없거나, 그 사이에 지급 빈도 체계가 바뀌었다)",
@@ -6187,7 +6193,7 @@
     {
       "ticker": "FCPT",
       "kind": "abnormalLatestPayment",
-      "detail": "최신 지급액 0.122(2026-07-31)가 최근 지급 대비 이상치다 (특별배당 또는 지급주기 변경) — 선행 배당률을 계산하지 않는다",
+      "detail": "최신 지급액 0.122(2026-08-31)가 최근 지급 대비 이상치다 (특별배당 또는 지급주기 변경) — 선행 배당률을 계산하지 않는다",
       "blocking": true
     },
     {
@@ -6229,7 +6235,7 @@
     {
       "ticker": "MBGL",
       "kind": "metricsUnavailable",
-      "detail": "배당 이벤트가 하나도 없다",
+      "detail": "최근 5년 안에 완결된 지급 연도가 없다",
       "blocking": true
     },
     {
@@ -6273,12 +6279,6 @@
       "kind": "growthUnavailable",
       "detail": "2020년과 2025년을 비교할 수 없어 5년 성장률을 낼 수 없다(완결 6개 연도가 없거나, 그 사이에 지급 빈도 체계가 바뀌었다)",
       "blocking": false
-    },
-    {
-      "ticker": "RLI",
-      "kind": "abnormalLatestPayment",
-      "detail": "최신 지급액 2.18(2026-05-29)가 최근 지급 대비 이상치다 (특별배당 또는 지급주기 변경) — 선행 배당률을 계산하지 않는다",
-      "blocking": true
     },
     {
       "ticker": "SHOE",
