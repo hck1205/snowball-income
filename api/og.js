@@ -1408,8 +1408,8 @@ var marketData_generated_default = {
         7,
         10
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 22,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "1": 24,
         "4": 23,
@@ -4280,12 +4280,19 @@ var marketData_generated_default = {
       frequency: "quarterly",
       observedDividendCagr: 2.89,
       payoutMonths: [
-        1,
-        5,
-        7,
-        11
+        3,
+        6,
+        9,
+        12
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 32,
+      estimatedPayDayByMonth: {
+        "3": 4,
+        "6": 23,
+        "9": 4,
+        "12": 20
+      }
     },
     VNQI: {
       initialPrice: 46.03,
