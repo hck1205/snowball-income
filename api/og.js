@@ -3793,7 +3793,14 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 5,
+      estimatedPayDayByMonth: {
+        "3": 30,
+        "6": 30,
+        "9": 29,
+        "12": 15
+      }
     },
     SCHH: {
       initialPrice: 24.28,
@@ -4285,8 +4292,8 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 32,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "3": 4,
         "6": 23,
