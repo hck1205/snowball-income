@@ -2656,12 +2656,19 @@ var marketData_generated_default = {
       frequency: "quarterly",
       observedDividendCagr: 17.12,
       payoutMonths: [
-        3,
-        6,
-        9,
-        12
+        1,
+        4,
+        7,
+        10
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 22,
+      estimatedPayDayByMonth: {
+        "1": 3,
+        "4": 1,
+        "7": 8,
+        "10": 1
+      }
     },
     FLJP: {
       initialPrice: 41.83,
@@ -3118,8 +3125,8 @@ var marketData_generated_default = {
         8,
         11
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 15,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "2": 17,
         "5": 15,
