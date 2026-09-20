@@ -1610,7 +1610,14 @@ var marketData_generated_default = {
         8,
         11
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 16,
+      estimatedPayDayByMonth: {
+        "2": 27,
+        "5": 19,
+        "8": 18,
+        "11": 17
+      }
     },
     ANET: {
       initialPrice: 180.35,
@@ -1881,8 +1888,8 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 13,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "3": 6,
         "6": 5,
