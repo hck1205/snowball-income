@@ -1443,12 +1443,19 @@ var marketData_generated_default = {
       frequency: "quarterly",
       observedDividendCagr: 10.38,
       payoutMonths: [
-        1,
-        4,
-        7,
-        10
+        2,
+        5,
+        8,
+        11
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 31,
+      estimatedPayDayByMonth: {
+        "2": 14,
+        "5": 15,
+        "8": 15,
+        "11": 16
+      }
     },
     ACN: {
       initialPrice: 176.56,
@@ -1610,8 +1617,8 @@ var marketData_generated_default = {
         8,
         11
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 16,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "2": 27,
         "5": 19,
