@@ -1448,8 +1448,8 @@ var marketData_generated_default = {
         8,
         11
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 31,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "2": 14,
         "5": 15,
@@ -4721,12 +4721,19 @@ var marketData_generated_default = {
       frequency: "quarterly",
       observedDividendCagr: 8.6,
       payoutMonths: [
-        2,
-        5,
-        8,
+        3,
+        6,
+        9,
         12
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 11,
+      estimatedPayDayByMonth: {
+        "3": 7,
+        "6": 7,
+        "9": 12,
+        "12": 12
+      }
     },
     ZTS: {
       initialPrice: 74.58,
