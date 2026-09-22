@@ -1,38 +1,17 @@
 {
-  "generatedAt": "2026-09-15",
-  "rangeStart": "2026-09-15",
-  "rangeEnd": "2026-12-11",
+  "generatedAt": "2026-09-22",
+  "rangeStart": "2026-09-22",
+  "rangeEnd": "2026-12-18",
   "economic": [
     {
-      "date": "2026-09-17",
-      "timeEt": "08:30",
-      "nameKo": "근원 소매판매",
-      "nameEn": "Core Retail Sales",
-      "major": false
-    },
-    {
-      "date": "2026-09-17",
-      "timeEt": "08:30",
-      "nameKo": "소매판매",
-      "nameEn": "Retail Sales",
-      "major": true
-    },
-    {
-      "date": "2026-09-18",
+      "date": "2026-09-25",
       "timeEt": "08:30",
       "nameKo": "연속 실업수당 청구",
       "nameEn": "Continuing Jobless Claims",
       "major": false
     },
     {
-      "date": "2026-09-18",
-      "timeEt": "08:30",
-      "nameKo": "주택착공",
-      "nameEn": "Housing Starts",
-      "major": false
-    },
-    {
-      "date": "2026-09-18",
+      "date": "2026-09-25",
       "timeEt": "08:30",
       "nameKo": "신규 실업수당 청구",
       "nameEn": "Initial Jobless Claims",
@@ -114,6 +93,13 @@
       "nameKo": "ISM 서비스업 PMI",
       "nameEn": "ISM Non-Manufacturing PMI",
       "major": true
+    },
+    {
+      "date": "2026-10-07",
+      "timeEt": "08:30",
+      "nameKo": "무역수지",
+      "nameEn": "Trade Balance",
+      "major": false
     }
   ],
   "earnings": [
@@ -210,9 +196,9 @@
     },
     {
       "date": "2026-10-13",
-      "ticker": "WFC",
-      "nameEn": "Wells Fargo & Company",
-      "session": "unknown",
+      "ticker": "UNH",
+      "nameEn": "UnitedHealth Group Incorporated",
+      "session": "beforeOpen",
       "hasTickerPage": true
     },
     {
@@ -251,6 +237,13 @@
       "hasTickerPage": true
     },
     {
+      "date": "2026-10-14",
+      "ticker": "WFC",
+      "nameEn": "Wells Fargo & Company",
+      "session": "beforeOpen",
+      "hasTickerPage": true
+    },
+    {
       "date": "2026-10-15",
       "ticker": "BNY",
       "nameEn": "The Bank Of New York Mellon Corporation",
@@ -280,13 +273,6 @@
     },
     {
       "date": "2026-10-15",
-      "ticker": "TRV",
-      "nameEn": "The Travelers Companies, Inc.",
-      "session": "unknown",
-      "hasTickerPage": false
-    },
-    {
-      "date": "2026-10-15",
       "ticker": "TSM",
       "nameEn": "Taiwan Semiconductor Manufacturing Company Ltd.",
       "session": "unknown",
@@ -310,7 +296,14 @@
       "date": "2026-10-16",
       "ticker": "TFC",
       "nameEn": "Truist Financial Corporation",
-      "session": "unknown",
+      "session": "beforeOpen",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-10-16",
+      "ticker": "TRV",
+      "nameEn": "The Travelers Companies, Inc.",
+      "session": "beforeOpen",
       "hasTickerPage": false
     },
     {
@@ -373,7 +366,7 @@
       "date": "2026-10-20",
       "ticker": "NOC",
       "nameEn": "Northrop Grumman Corporation",
-      "session": "unknown",
+      "session": "beforeOpen",
       "hasTickerPage": false
     },
     {
@@ -415,7 +408,7 @@
       "date": "2026-10-20",
       "ticker": "NFLX",
       "nameEn": "Netflix, Inc.",
-      "session": "unknown",
+      "session": "afterClose",
       "hasTickerPage": false
     },
     {
@@ -462,6 +455,13 @@
     },
     {
       "date": "2026-10-22",
+      "ticker": "CMCSA",
+      "nameEn": "Comcast Corporation",
+      "session": "beforeOpen",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-10-22",
       "ticker": "DLR",
       "nameEn": "Digital Realty Trust, Inc.",
       "session": "unknown",
@@ -492,13 +492,6 @@
       "date": "2026-10-22",
       "ticker": "NSC",
       "nameEn": "Norfolk Southern Corporation",
-      "session": "unknown",
-      "hasTickerPage": false
-    },
-    {
-      "date": "2026-10-22",
-      "ticker": "TMUS",
-      "nameEn": "T-Mobile US, Inc.",
       "session": "unknown",
       "hasTickerPage": false
     },
@@ -616,13 +609,6 @@
     },
     {
       "date": "2026-10-27",
-      "ticker": "UNH",
-      "nameEn": "UnitedHealth Group Incorporated",
-      "session": "unknown",
-      "hasTickerPage": true
-    },
-    {
-      "date": "2026-10-27",
       "ticker": "UPS",
       "nameEn": "United Parcel Service, Inc.",
       "session": "unknown",
@@ -660,7 +646,7 @@
       "date": "2026-10-27",
       "ticker": "NVS",
       "nameEn": "Novartis AG",
-      "session": "unknown",
+      "session": "beforeOpen",
       "hasTickerPage": false
     },
     {
@@ -700,9 +686,23 @@
     },
     {
       "date": "2026-10-28",
+      "ticker": "PSX",
+      "nameEn": "Phillips 66",
+      "session": "beforeOpen",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-10-28",
       "ticker": "TMO",
       "nameEn": "Thermo Fisher Scientific Inc",
       "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-10-28",
+      "ticker": "TMUS",
+      "nameEn": "T-Mobile US, Inc.",
+      "session": "afterClose",
       "hasTickerPage": false
     },
     {
@@ -723,7 +723,7 @@
       "date": "2026-10-28",
       "ticker": "APH",
       "nameEn": "Amphenol Corporation",
-      "session": "unknown",
+      "session": "beforeOpen",
       "hasTickerPage": false
     },
     {
@@ -765,20 +765,13 @@
       "date": "2026-10-29",
       "ticker": "BMY",
       "nameEn": "Bristol-Myers Squibb Company",
-      "session": "unknown",
+      "session": "beforeOpen",
       "hasTickerPage": false
     },
     {
       "date": "2026-10-29",
       "ticker": "CI",
       "nameEn": "The Cigna Group",
-      "session": "unknown",
-      "hasTickerPage": false
-    },
-    {
-      "date": "2026-10-29",
-      "ticker": "CMCSA",
-      "nameEn": "Comcast Corporation",
       "session": "unknown",
       "hasTickerPage": false
     },
@@ -1115,7 +1108,7 @@
       "date": "2026-11-03",
       "ticker": "MPC",
       "nameEn": "Marathon Petroleum Corporation",
-      "session": "unknown",
+      "session": "beforeOpen",
       "hasTickerPage": false
     },
     {
@@ -1344,13 +1337,6 @@
     },
     {
       "date": "2026-11-04",
-      "ticker": "PSX",
-      "nameEn": "Phillips 66",
-      "session": "unknown",
-      "hasTickerPage": false
-    },
-    {
-      "date": "2026-11-04",
       "ticker": "QCOM",
       "nameEn": "QUALCOMM Incorporated",
       "session": "unknown",
@@ -1430,6 +1416,13 @@
       "date": "2026-11-04",
       "ticker": "GOOG",
       "nameEn": "Alphabet Inc.",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-11-04",
+      "ticker": "GSK",
+      "nameEn": "GSK plc",
       "session": "unknown",
       "hasTickerPage": false
     },
@@ -1519,13 +1512,6 @@
     },
     {
       "date": "2026-11-05",
-      "ticker": "ABNB",
-      "nameEn": "Airbnb, Inc.",
-      "session": "unknown",
-      "hasTickerPage": false
-    },
-    {
-      "date": "2026-11-05",
       "ticker": "AZN",
       "nameEn": "AstraZeneca PLC",
       "session": "unknown",
@@ -1598,6 +1584,62 @@
       "date": "2026-11-06",
       "ticker": "BRK.B",
       "nameEn": "Berkshire Hathaway Inc.",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-11-09",
+      "ticker": "TSN",
+      "nameEn": "Tyson Foods, Inc.",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-11-10",
+      "ticker": "SONY",
+      "nameEn": "Sony Group Corporation",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-11-11",
+      "ticker": "CSCO",
+      "nameEn": "Cisco Systems, Inc.",
+      "session": "unknown",
+      "hasTickerPage": true
+    },
+    {
+      "date": "2026-11-12",
+      "ticker": "AMAT",
+      "nameEn": "Applied Materials, Inc.",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-11-12",
+      "ticker": "DIS",
+      "nameEn": "Walt Disney Company (The)",
+      "session": "unknown",
+      "hasTickerPage": true
+    },
+    {
+      "date": "2026-11-13",
+      "ticker": "MFG",
+      "nameEn": "Mizuho Financial Group, Inc.",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-11-13",
+      "ticker": "MUFG",
+      "nameEn": "Mitsubishi UFJ Financial Group Inc",
+      "session": "unknown",
+      "hasTickerPage": false
+    },
+    {
+      "date": "2026-11-13",
+      "ticker": "SMFG",
+      "nameEn": "Sumitomo Mitsui Financial Group Inc",
       "session": "unknown",
       "hasTickerPage": false
     }
