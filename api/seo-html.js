@@ -10776,11 +10776,18 @@ var marketData_generated_default = {
       observedDividendCagr: 3.6,
       payoutMonths: [
         3,
-        6,
+        7,
         9,
         12
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 4,
+      estimatedPayDayByMonth: {
+        "3": 31,
+        "7": 2,
+        "9": 28,
+        "12": 26
+      }
     },
     VXUS: {
       initialPrice: 84.59,
@@ -11023,8 +11030,8 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 11,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "3": 7,
         "6": 7,
