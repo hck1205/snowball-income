@@ -10572,7 +10572,14 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 2,
+      estimatedPayDayByMonth: {
+        "3": 27,
+        "6": 28,
+        "9": 26,
+        "12": 20
+      }
     },
     VICI: {
       initialPrice: 26.35,
@@ -10625,8 +10632,8 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 4,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "3": 24,
         "6": 24,
