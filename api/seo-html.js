@@ -10572,8 +10572,8 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 2,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "3": 27,
         "6": 28,
@@ -10678,11 +10678,18 @@ var marketData_generated_default = {
       observedDividendCagr: 5.91,
       payoutMonths: [
         3,
-        6,
-        9,
+        7,
+        10,
         12
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 3,
+      estimatedPayDayByMonth: {
+        "3": 31,
+        "7": 2,
+        "10": 1,
+        "12": 26
+      }
     },
     VPL: {
       initialPrice: 118.07,
