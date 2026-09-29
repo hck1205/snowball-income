@@ -16,6 +16,7 @@ import {
   radius,
   sectionTitleFontSize,
   space,
+  subtleScrollbar,
   surface
 } from '@/shared/styles';
 
@@ -567,6 +568,7 @@ export const Stat = styled.div`
 
 export const MatrixScroller = styled.div`
   overflow-x: auto;
+  ${subtleScrollbar}
   min-width: 0;
 `;
 
