@@ -9,6 +9,7 @@ import {
   Flame,
   Gem,
   Landmark,
+  Layers,
   LayoutGrid,
   LineChart,
   ListOrdered,
@@ -109,7 +110,8 @@ export const MARKET_GROUP_ITEMS = [
  */
 export const TICKER_GROUP_ITEMS = [
   { to: '/ticker/all', label: n.tickers, Icon: BookOpen },
-  { to: '/ticker/compare', label: n.tickerCompare, Icon: Scale }
+  { to: '/ticker/compare', label: n.tickerCompare, Icon: Scale },
+  { to: '/ticker/overlap', label: n.tickerOverlap, Icon: Layers }
 ] as const;
 
 /**

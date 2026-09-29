@@ -30,7 +30,7 @@ import { MARKET_CALENDAR_COPY } from '../../pages/MarketCalendar/copy';
 import { MARKET_PULSE_COPY } from '../../pages/MarketPulse/copy';
 import { NPS_COPY } from '../../pages/Nps/copy';
 import { PORTFOLIO_COPY } from '../../pages/Portfolio/copy';
-import { TICKER_COMPARE_COPY } from '../../pages/Ticker/copy';
+import { TICKER_COMPARE_COPY, TICKER_OVERLAP_COPY } from '../../pages/Ticker/copy';
 import { PRIVACY_DOCUMENT, TERMS_DOCUMENT } from '../../pages/Legal/copy';
 import { COMMUNITY_COPY } from '../../shared/constants/community';
 import { SIMULATOR_COPY } from '../../shared/constants/simulator';
@@ -88,6 +88,7 @@ export const ROUTE_SHELLS: readonly RouteShell[] = [
   },
   { path: '/dividend/portfolio', title: PORTFOLIO_COPY.meta.title, description: PORTFOLIO_COPY.meta.description },
   { path: '/ticker/compare', title: TICKER_COMPARE_COPY.meta.title, description: TICKER_COMPARE_COPY.meta.description },
+  { path: '/ticker/overlap', title: TICKER_OVERLAP_COPY.meta.title, description: TICKER_OVERLAP_COPY.meta.description },
   /*
    * 투자 성향 테스트(2026-08-17). JS 를 실행하지 않는 크롤러에게도 제목·설명·canonical 이 가야
    * "투자 성향 테스트" 검색어로 발견된다 — 셸이 없으면 이 주소는 빈 앱 셸로만 보인다.

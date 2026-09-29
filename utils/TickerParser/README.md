@@ -26,11 +26,12 @@ node utils/TickerParser/generate.mjs
 
 - `utils/TickerParser/output/nasdaq-listed.json`
 - `utils/TickerParser/output/other-listed.json`
+- `utils/TickerParser/output/etf-listed.json` — 원본의 `ETF` 열이 `Y` 인 종목만 `{ "SCHD": "Schwab US Dividend Equity ETF" }` 형태로 모은 목록(ETF 겹침 화면의 검색 원천). 두 원본을 모두 새로 받았을 때만 다시 쓰고, 한쪽이라도 실패하면 지난 파일을 그대로 둔다.
 
 ## API
 
 ```js
-import { generateTickerJsonFiles } from './utils/TickerParser/index.mjs';
+import { generateTickerJsonFiles, pickEtfTickers } from './utils/TickerParser/index.mjs';
 
 await generateTickerJsonFiles();
 ```

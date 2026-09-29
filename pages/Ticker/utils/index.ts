@@ -38,3 +38,15 @@ export {
   removeTicker
 } from './tickerSelection';
 export type { CompareEntryPoint } from './tickerSelection';
+
+/* ETF 겹침(`/ticker/overlap`) 화면 규칙 — 계산은 `shared/lib/etfOverlap` 이 한다. */
+export {
+  MAX_OVERLAP_ETFS,
+  OVERLAP_SEARCH_LIMIT,
+  formatDelta,
+  formatPercent,
+  normalizeOverlapSelection,
+  overlapLevel,
+  searchEtfUniverse
+} from './tickerOverlap';
+export type { OverlapLevel } from './tickerOverlap';

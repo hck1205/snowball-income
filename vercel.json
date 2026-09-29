@@ -22,6 +22,7 @@
     { "source": "/dividend/calendar", "destination": "/dividend/calendar.html" },
     { "source": "/dividend/portfolio", "destination": "/dividend/portfolio.html" },
     { "source": "/ticker/compare", "destination": "/ticker/compare.html" },
+    { "source": "/ticker/overlap", "destination": "/ticker/overlap.html" },
     {
       "source": "/ticker/category/:id",
       "destination": "/api/seo-html?surface=ticker-category&id=:id"
