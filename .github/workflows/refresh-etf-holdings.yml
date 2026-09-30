@@ -10,9 +10,10 @@ name: Refresh ETF holdings
 # 접수번호가 같으면 받지 않으므로 평소 요청은 ETF 당 1건이고, 실제 갱신은 공시가 몰리는 주간에 생긴다.
 # 발행사마다 제출일이 제각각이라 분기 날짜를 크론에 박으면 늦게 낸 ETF 를 한 분기 통째로 놓친다.
 #
-# ## PR 을 열고 멈춘다 (자동 머지하지 않는다)
-# 새 수집기라 처음 몇 회차는 사람이 결과를 보고 머지한다. 안정되면 다른 갱신 워크플로(refresh-13f 등)처럼
-# 자동 머지로 바꿀지 그때 정한다.
+# ## 자동 머지한다 (2026-09-30 사용자 결정 — "업데이트가 늦어도 좋으니 자동화")
+# 공시를 그대로 옮기는 기계적 갱신이라 사람이 판단할 여지가 없다(refresh-13f·paydates 와 같은 부류).
+# 수집기는 실패해도 기존 파일을 덮지 않고, 커밋 전에 타입체크·전체 테스트를 통과해야 PR 이 열린다.
+# ⚠ 수동 실행에서 `auto_merge=false` 를 주면 PR 만 열고 멈춘다(파서를 고친 뒤 결과를 눈으로 볼 때).
 on:
   schedule:
     # 매일 22:30 UTC == 다음 날 07:30 KST. 다른 갱신 워크플로와 시각이 겹치지 않게 두었다.
@@ -23,6 +24,11 @@ on:
         description: 'Re-collect every ETF even if the accession number is unchanged (parser fixes)'
         required: false
         default: false
+        type: boolean
+      auto_merge:
+        description: 'Merge the PR automatically'
+        required: false
+        default: true
         type: boolean
 
 permissions:
@@ -105,15 +111,13 @@ jobs:
           git push origin "$REFRESH_BRANCH"
           echo "committed=true" >> "$GITHUB_OUTPUT"
 
-      - name: Open the ETF holdings PR
+      - name: Open and auto-merge the ETF holdings PR
         if: steps.commit.outputs.committed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
+          AUTO_MERGE: ${{ github.event_name == 'schedule' || inputs.auto_merge }}
         run: |
-          if gh pr view "$REFRESH_BRANCH" --json state --jq .state 2>/dev/null | grep -q OPEN; then
-            echo "이미 열린 PR 이 있다 — 브랜치만 갱신했다."
-            exit 0
-          fi
+          if ! gh pr view "$REFRESH_BRANCH" --json state --jq .state 2>/dev/null | grep -q OPEN; then
           {
             echo 'SEC EDGAR 에서 새 N-PORT 공시를 발견해 ETF 보유 종목을 갱신했습니다.'
             echo
@@ -123,9 +127,15 @@ jobs:
             echo '### 이 자료의 성질'
             echo 'N-PORT 는 **분기말 기준 보유**이고 공개는 그로부터 약 60일 뒤입니다. 화면은 각 ETF 의 기준일을 함께 보여 줍니다. 현금·파생·공매도 포지션은 담지 않습니다.'
             echo
-            echo '### 검토할 것'
-            echo '수집기는 실패해도 기존 파일을 덮지 않습니다. 워크플로 로그의 "실패"·"건너뜀" 줄을 확인한 뒤 머지해 주세요.'
+            echo '### 왜 자동 머지인가'
+            echo '공시를 그대로 옮기는 기계적 갱신이라 사람이 판단할 여지가 없습니다. 수집기는 실패해도 기존 파일을 덮지 않고, 커밋 전에 타입체크·전체 테스트를 통과했습니다. 건너뛴·실패한 ETF 는 워크플로 로그에 남습니다.'
           } > pr-body.md
           gh pr create --base main --head "$REFRESH_BRANCH" \
             --title "chore(data): ETF 보유 종목 갱신 (SEC N-PORT)" \
             --body-file pr-body.md
+          fi
+          if [ "$AUTO_MERGE" = "true" ]; then
+            gh pr merge "$REFRESH_BRANCH" --merge --delete-branch
+          else
+            echo "auto_merge=false - PR 을 열어 두고 멈춘다."
+          fi
