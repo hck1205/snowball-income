@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { OverlapChange } from '../TickerOverlapPage.types';
+import type { OverlapChange } from '../EtfMixPage.types';
 
 type Pending = {
   readonly kind: OverlapChange['kind'];

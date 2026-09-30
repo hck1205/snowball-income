@@ -30,7 +30,7 @@ export type OverlapChange = {
   readonly id: number;
 };
 
-export type TickerOverlapViewModel = {
+export type EtfMixViewModel = {
   readonly listStatus: 'loading' | 'ready' | 'error';
   readonly query: string;
   /** 검색 중이면 검색 결과, 아니면 많이 찾는 ETF. */
@@ -51,8 +51,8 @@ export type TickerOverlapViewModel = {
   readonly simulation: { readonly canSimulate: boolean; readonly excluded: readonly string[] };
 };
 
-export type TickerOverlapViewProps = {
-  viewModel: TickerOverlapViewModel;
+export type EtfMixViewProps = {
+  viewModel: EtfMixViewModel;
   onQueryChange: (query: string) => void;
   /** 검색창에서 Enter — 맨 위의 담을 수 있는 결과를 담는다. */
   onSubmitQuery: () => void;

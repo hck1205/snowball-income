@@ -123,8 +123,8 @@ const TickerCategoryPage = lazy(() => import('@/pages/Ticker/TickerCategoryPage'
 const TickerDetailPage = lazy(() => import('@/pages/Ticker/TickerDetailPage'));
 /* 종목 비교. `:name` 보다 먼저 등록해야 `/ticker/compare` 가 티커 이름으로 먹히지 않는다. */
 const TickerComparePage = lazy(() => import('@/pages/Ticker/TickerComparePage'));
-/* ETF 겹침 — 비교와 같은 이유로 `:name` 보다 먼저 등록한다. 데이터는 정적 파일이라 이 청크에 실리지 않는다. */
-const TickerOverlapPage = lazy(() => import('@/pages/Ticker/TickerOverlapPage'));
+/* ETF 조합 짜기 — 비교와 같은 이유로 `:name` 보다 먼저 등록한다. 데이터는 정적 파일이라 이 청크에 실리지 않는다. */
+const EtfMixPage = lazy(() => import('@/pages/Ticker/EtfMixPage'));
 /* 대가들의 포트폴리오 — 커밋된 13F 스냅샷을 읽는 정적 화면이라 조회가 없다. */
 const InvestorsPage = lazy(() => import('@/pages/Investors/InvestorsPage'));
 
@@ -564,7 +564,7 @@ export const routes: RouteObject[] = [
         path: '/ticker/overlap',
         element: (
           <Suspense fallback={null}>
-            <TickerOverlapPage />
+            <EtfMixPage />
           </Suspense>
         )
       },

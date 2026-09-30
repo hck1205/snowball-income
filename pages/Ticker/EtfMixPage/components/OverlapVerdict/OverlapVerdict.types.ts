@@ -1,5 +1,5 @@
 import type { BasketAnalysis } from '@/shared/lib/etfOverlap';
-import type { OverlapChange } from '../../TickerOverlapPage.types';
+import type { OverlapChange } from '../../EtfMixPage.types';
 
 export type OverlapVerdictProps = {
   readonly analysis: BasketAnalysis;

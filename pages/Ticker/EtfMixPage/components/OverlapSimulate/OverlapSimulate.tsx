@@ -2,12 +2,12 @@ import { useId } from 'react';
 import { Calculator } from 'lucide-react';
 import { Button } from '@/components/common';
 import { ICON } from '@/shared/styles';
-import { TICKER_OVERLAP_COPY } from '../../../copy';
+import { ETF_MIX_COPY } from '../../../copy';
 import { EmptyNote, SurfaceTitle } from '../../styled';
 import type { OverlapSimulateProps } from './OverlapSimulate.types';
 import { SimulateActions, SimulateLede, SimulateNote, SimulateSection } from './OverlapSimulate.styled';
 
-const copy = TICKER_OVERLAP_COPY.simulate;
+const copy = ETF_MIX_COPY.simulate;
 
 /**
  * "이 조합으로 배당 시뮬레이션" — 겹침을 확인한 **직후**가 실행 의도의 정점이다(비교 화면의 "이 종목으로 계산"과 같은 자리 논리).

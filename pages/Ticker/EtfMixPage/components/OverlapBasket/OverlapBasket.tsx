@@ -1,7 +1,7 @@
 import { useId } from 'react';
 import { X } from 'lucide-react';
 import { ICON } from '@/shared/styles';
-import { TICKER_OVERLAP_COPY } from '../../../copy';
+import { ETF_MIX_COPY } from '../../../copy';
 import { Button } from '@/components/common';
 import {
   MAX_OVERLAP_ETFS,
@@ -30,7 +30,7 @@ import {
   WeightValue
 } from './OverlapBasket.styled';
 
-const copy = TICKER_OVERLAP_COPY;
+const copy = ETF_MIX_COPY;
 
 /**
  * 바구니 — 비교 화면의 덱과 같은 모양. 빈 자리가 남은 개수를 도형으로 말한다.

@@ -1,7 +1,7 @@
 import type { EtfUniverseEntry } from '@/shared/lib/etfOverlap';
 
 /**
- * `/ticker/overlap`(ETF 겹침) 화면의 순수 규칙. 계산 자체는 `shared/lib/etfOverlap` 이 하고,
+ * `/ticker/overlap`(ETF 조합 짜기) 화면의 순수 규칙. 계산 자체는 `shared/lib/etfOverlap` 이 하고,
  * 여기는 **화면의 규칙**(바구니 정원·검색·결론 단계)만 둔다.
  */
 

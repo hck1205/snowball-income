@@ -9,7 +9,7 @@ import type { OverlapLevel } from '../utils';
  *  - 계산의 가정(정한 비중대로 산다고 본다 — 기본은 같은 금액씩)을 숨기지 않는다 — 결론 바로 아래와 각주에 둘 다 적는다.
  *  - "눈덩이/스노우볼" 비유 금지(확정 결정). 격식체.
  */
-export const TICKER_OVERLAP_COPY = {
+export const ETF_MIX_COPY = {
   meta: {
     title: 'ETF 조합 짜기 — 담은 ETF가 얼마나 같은 종목에 몰리나',
     description: `ETF를 최대 ${MAX_OVERLAP_ETFS}개까지 담고 비중을 정해, 같은 종목에 중복으로 투자되는 비중을 확인합니다. 담거나 비중을 바꿀 때마다 중복률·겹치는 종목이 다시 계산되고, 그 조합 그대로 배당 시뮬레이션으로 이어갈 수 있습니다.`

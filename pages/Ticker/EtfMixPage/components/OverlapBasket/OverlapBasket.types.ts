@@ -1,4 +1,4 @@
-import type { OverlapSlot } from '../../TickerOverlapPage.types';
+import type { OverlapSlot } from '../../EtfMixPage.types';
 
 export type OverlapBasketProps = {
   readonly slots: readonly OverlapSlot[];

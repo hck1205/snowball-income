@@ -1,2 +1,2 @@
 export { TICKER_COMPARE_COPY } from './tickerCompareCopy';
-export { TICKER_OVERLAP_COPY } from './tickerOverlapCopy';
+export { ETF_MIX_COPY } from './etfMixCopy';

@@ -1,6 +1,6 @@
 name: Refresh ETF holdings
 
-# ETF 겹침 화면(`/ticker/overlap`)의 데이터를 갱신한다.
+# ETF 조합 짜기 화면(`/ticker/overlap`)의 데이터를 갱신한다.
 #  - `public/data/etf-holdings/<TICKER>.json` — SEC N-PORT 공시의 보유 종목(명단 `scripts/etfHoldings/roster.ts`)
 #  - `public/data/etf-holdings/index.json`    — 검색 목록(미국 상장 ETF 전체)
 #  - `utils/TickerParser/output/etf-listed.json` — 검색 목록의 원천(거래소 원본의 ETF 열)

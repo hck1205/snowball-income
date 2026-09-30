@@ -2,7 +2,7 @@ import { useId } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/common';
 import { ICON } from '@/shared/styles';
-import { TICKER_OVERLAP_COPY } from '../../../copy';
+import { ETF_MIX_COPY } from '../../../copy';
 import { deltaTone, formatDelta } from '../../../utils';
 import { EmptyNote, PickSurface, SeriesDot, SurfaceHead, SurfaceTitle } from '../../styled';
 import type { OverlapPickerProps } from './OverlapPicker.types';
@@ -20,7 +20,7 @@ import {
   UnavailableTag
 } from './OverlapPicker.styled';
 
-const copy = TICKER_OVERLAP_COPY.picker;
+const copy = ETF_MIX_COPY.picker;
 
 /**
  * 고르기 — 검색 + 목록. 검색어가 없으면 많이 찾는 ETF, 있으면 검색 결과다.

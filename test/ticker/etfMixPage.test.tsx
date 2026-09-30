@@ -3,7 +3,7 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { SIMULATOR_PATH } from '@/shared/constants/routes';
-import TickerOverlapPage from '@/pages/Ticker/TickerOverlapPage';
+import EtfMixPage from '@/pages/Ticker/EtfMixPage';
 import { resetEtfHoldingsCache } from '@/pages/Ticker/hooks';
 import type { EtfHoldingsSnapshot, EtfUniverse } from '@/shared/lib/etfOverlap';
 
@@ -77,7 +77,7 @@ const renderPage = (search = '') =>
   render(
     <MemoryRouter initialEntries={[`/ticker/overlap${search}`]}>
       <Routes>
-        <Route path="/ticker/overlap" element={<TickerOverlapPage />} />
+        <Route path="/ticker/overlap" element={<EtfMixPage />} />
         <Route path={SIMULATOR_PATH} element={<SimulatorProbe />} />
       </Routes>
     </MemoryRouter>
@@ -85,7 +85,7 @@ const renderPage = (search = '') =>
 
 const overlapValue = () => screen.getByText(/^중복률 [\d.]+퍼센트$/);
 
-describe('ETF 겹침 — 담을 때마다 다시 계산된다', () => {
+describe('ETF 조합 짜기 — 담을 때마다 다시 계산된다', () => {
   it('처음에는 많이 찾는 ETF 가 목록에 서고, 바구니는 비어 있다', async () => {
     renderPage();
     expect(await screen.findByRole('button', { name: 'AAA 바구니에 담기' })).toBeInTheDocument();

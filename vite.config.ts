@@ -150,7 +150,7 @@ const ROUTES = [
   { path: '/dividend/portfolio', priority: '0.7', changefreq: 'weekly' },
   /* 종목 비교 — `/ticker/all` 허브와 한 축이라 같은 0.6. */
   { path: '/ticker/compare', priority: '0.6', changefreq: 'weekly' },
-  /* ETF 겹침 — 비교와 한 축. 보유 종목은 분기 공시라 갱신 리듬이 느리다. */
+  /* ETF 조합 짜기 — 비교와 한 축. 보유 종목은 분기 공시라 갱신 리듬이 느리다. */
   { path: '/ticker/overlap', priority: '0.6', changefreq: 'weekly' },
 ] as const;
 

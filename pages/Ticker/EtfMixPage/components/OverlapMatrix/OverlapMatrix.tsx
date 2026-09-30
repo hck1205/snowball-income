@@ -1,11 +1,11 @@
 import { Card } from '@/components/common';
-import { TICKER_OVERLAP_COPY } from '../../../copy';
+import { ETF_MIX_COPY } from '../../../copy';
 import { formatPercent } from '../../../utils';
 import { EmptyNote, SectionHint, VisuallyHidden } from '../../styled';
 import type { OverlapMatrixProps } from './OverlapMatrix.types';
 import { MatrixCell, MatrixHead, MatrixScroller, MatrixSelf, MatrixTable } from './OverlapMatrix.styled';
 
-const copy = TICKER_OVERLAP_COPY.matrix;
+const copy = ETF_MIX_COPY.matrix;
 
 /** 짝을 순서와 무관하게 찾는 열쇠. `pairs` 는 a 가 b 보다 앞인 쪽만 담는다. */
 const pairKey = (a: string, b: string): string => (a < b ? `${a}|${b}` : `${b}|${a}`);

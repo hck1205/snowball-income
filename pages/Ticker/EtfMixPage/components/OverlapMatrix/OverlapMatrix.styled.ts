@@ -8,7 +8,7 @@ import {
   subtleScrollbar
 } from '@/shared/styles';
 
-/* OverlapMatrix 의 스타일 — 원래 TickerOverlapPage.styled.ts 에서 값 변경 없이 옮겼다. 규율은 ../../styled/index.ts 머리말. */
+/* OverlapMatrix 의 스타일 — 원래 EtfMixPage.styled.ts 에서 값 변경 없이 옮겼다. 규율은 ../../styled/index.ts 머리말. */
 
 export const MatrixScroller = styled.div`
   overflow-x: auto;

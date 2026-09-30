@@ -1,12 +1,12 @@
 import { Layers } from 'lucide-react';
 import { PageFooter, PageHero } from '@/components/common';
 import { assignSeries } from '@/shared/lib/tickerSeries';
-import { TICKER_OVERLAP_COPY } from '../copy';
+import { ETF_MIX_COPY } from '../copy';
 import { OverlapBasket, OverlapMatrix, OverlapPicker, OverlapSimulate, OverlapStocks, OverlapVerdict } from './components';
 import { PickerColumn, ResultColumn, Stack, Workbench } from './styled';
-import type { TickerOverlapViewProps } from './TickerOverlapPage.types';
+import type { EtfMixViewProps } from './EtfMixPage.types';
 
-const copy = TICKER_OVERLAP_COPY;
+const copy = ETF_MIX_COPY;
 
 /**
  * `/ticker/overlap` 의 뷰 — 섹션을 **배치만** 한다. 각 섹션의 그림은 `components/` 에 있다.
@@ -14,7 +14,7 @@ const copy = TICKER_OVERLAP_COPY;
  * 🔴 종목 색은 여기서 **한 번** 정해 모든 섹션에 내려준다(`assignSeries`). 섹션마다 정하면 같은 ETF 가
  *    바구니·매트릭스·종목 행에서 서로 다른 색이 되어 색이 길찾기 단서 구실을 못 한다.
  */
-export default function TickerOverlapView({
+export default function EtfMixView({
   viewModel,
   onQueryChange,
   onSubmitQuery,
@@ -23,7 +23,7 @@ export default function TickerOverlapView({
   onWeightChange,
   onEqualize,
   onSimulate
-}: TickerOverlapViewProps) {
+}: EtfMixViewProps) {
   const {
     listStatus,
     query,

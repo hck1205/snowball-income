@@ -1,4 +1,4 @@
-import type { OverlapCandidate } from '../../TickerOverlapPage.types';
+import type { OverlapCandidate } from '../../EtfMixPage.types';
 
 export type OverlapPickerProps = {
   readonly listStatus: 'loading' | 'ready' | 'error';

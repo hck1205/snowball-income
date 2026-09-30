@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { EtfHoldingsSnapshot, EtfUniverse } from '@/shared/lib/etfOverlap';
 
 /**
- * ETF 겹침 화면의 데이터 — **정적 파일**을 받는다(`scripts/etfHoldings` 가 만든다).
+ * ETF 조합 짜기 화면의 데이터 — **정적 파일**을 받는다(`scripts/etfHoldings` 가 만든다).
  *
  * 🔴 번들에 싣지 않는 이유: 검색 목록은 4,000여 줄이고 보유 종목은 ETF 하나에 수십 KB 다. 전부 번들에 넣으면
  * 이 화면을 열지 않는 사람까지 그 값을 치른다. 목록은 화면이 열릴 때 한 번, 보유 종목은 **담거나 미리볼 때만** 받는다.

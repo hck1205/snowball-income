@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { Button, Card } from '@/components/common';
-import { TICKER_OVERLAP_COPY } from '../../../copy';
+import { ETF_MIX_COPY } from '../../../copy';
 import { formatPercent } from '../../../utils';
 import { EmptyNote, SectionHint, SeriesDot, VisuallyHidden } from '../../styled';
 import type { OverlapStocksProps } from './OverlapStocks.types';
@@ -14,7 +14,7 @@ import {
   StockRow
 } from './OverlapStocks.styled';
 
-const copy = TICKER_OVERLAP_COPY.stocks;
+const copy = ETF_MIX_COPY.stocks;
 
 /** 한 번에 그리는 종목 행 수. 대형 지수 ETF 둘이면 겹치는 종목만 수백 개다. */
 const STOCK_ROW_LIMIT = 60;

@@ -1,5 +1,5 @@
 /**
- * ETF 보유 종목 수집기 — `/ticker/overlap`(ETF 겹침) 화면의 데이터.
+ * ETF 보유 종목 수집기 — `/ticker/overlap`(ETF 조합 짜기) 화면의 데이터.
  *
  * ```sh
  * npm run etf:holdings                          # 명단 전체 — 새 공시가 있는 ETF 만 받는다

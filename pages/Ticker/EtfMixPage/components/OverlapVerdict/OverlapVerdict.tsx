@@ -1,5 +1,5 @@
 import { useId } from 'react';
-import { TICKER_OVERLAP_COPY } from '../../../copy';
+import { ETF_MIX_COPY } from '../../../copy';
 import { useTweenedNumber } from '../../../hooks';
 import { deltaTone, formatDelta, formatPercent, overlapLevel } from '../../../utils';
 import { VisuallyHidden } from '../../styled';
@@ -22,7 +22,7 @@ import {
   VerdictValue
 } from './OverlapVerdict.styled';
 
-const copy = TICKER_OVERLAP_COPY.verdict;
+const copy = ETF_MIX_COPY.verdict;
 
 /** 링 게이지 반지름(viewBox 120 기준). 둘레는 여기서 파생한다 — 손으로 적은 326.7 같은 숫자를 두지 않는다. */
 const GAUGE_RADIUS = 52;
