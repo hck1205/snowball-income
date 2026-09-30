@@ -8,7 +8,7 @@ import type { EtfHoldingsSnapshot, EtfUniverseEntry } from '@/shared/lib/etfOver
 import { TickerPageShell } from '../components';
 import { ETF_MIX_COPY } from '../copy';
 import { useDocumentMeta, useEtfSnapshots, useEtfUniverse } from '../hooks';
-import { OVERLAP_DEFAULT_WEIGHT, searchEtfUniverse } from '../utils';
+import { OVERLAP_DEFAULT_WEIGHT, browseEtfUniverse, searchEtfUniverse } from '../utils';
 import { useEtfMixBasket, useOverlapChange } from './hooks';
 import EtfMixView from './EtfMixPage.view';
 import { buildEtfMixViewModel } from './EtfMixPage.utils';
@@ -31,6 +31,8 @@ const PREVIEW_PREFETCH = 12;
 export default function EtfMixPage() {
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
+  /* 4,000여 개 중 대부분이 아직 담을 수 없어서 기본은 "담을 수 있는 것만"이다(검색에는 적용하지 않는다). */
+  const [onlyWithHoldings, setOnlyWithHoldings] = useState(true);
   const { basket, add, remove, setWeight, equalize } = useEtfMixBasket();
   const selected = basket.tickers;
 
@@ -39,11 +41,8 @@ export default function EtfMixPage() {
   const listed = useMemo<EtfUniverseEntry[]>(() => {
     if (universe.status !== 'ready') return [];
     if (isSearching) return searchEtfUniverse(universe.data.etfs, query);
-    const byTicker = new Map(universe.data.etfs.map((entry) => [entry.ticker, entry]));
-    return universe.data.popular
-      .map((ticker) => byTicker.get(ticker))
-      .filter((entry): entry is EtfUniverseEntry => entry !== undefined);
-  }, [universe, isSearching, query]);
+    return browseEtfUniverse(universe.data.etfs, universe.data.popular, { onlyWithHoldings });
+  }, [universe, isSearching, query, onlyWithHoldings]);
 
   /* 바구니 + 미리보기 후보. 바구니가 먼저라 그쪽 요청이 먼저 나간다. */
   const wanted = useMemo(() => {
@@ -128,6 +127,7 @@ export default function EtfMixPage() {
         listStatus: universe.status,
         query,
         isSearching,
+        onlyWithHoldings,
         listed,
         basket,
         snapshots,
@@ -137,7 +137,20 @@ export default function EtfMixPage() {
         change,
         simulation: { canSimulate: prefill.state !== null, excluded: prefill.excluded }
       }),
-    [analysis, basket, basketSnapshots, basketWeights, change, isSearching, listed, prefill, query, snapshots, universe.status]
+    [
+      analysis,
+      basket,
+      basketSnapshots,
+      basketWeights,
+      change,
+      isSearching,
+      listed,
+      onlyWithHoldings,
+      prefill,
+      query,
+      snapshots,
+      universe.status
+    ]
   );
 
   useDocumentMeta({
@@ -152,6 +165,7 @@ export default function EtfMixPage() {
         viewModel={viewModel}
         onQueryChange={setQuery}
         onSubmitQuery={handleSubmitQuery}
+        onToggleOnlyWithHoldings={() => setOnlyWithHoldings((value) => !value)}
         onAdd={handleAdd}
         onRemove={handleRemove}
         onWeightChange={setWeight}

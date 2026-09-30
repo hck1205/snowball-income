@@ -20,7 +20,7 @@ describe('pairOverlap — 종목마다 작은 쪽 비중의 합', () => {
     const a = snap('A', { X: 50, Y: 30, Z: 20 });
     const b = snap('B', { X: 10, Y: 40, W: 50 });
     // min(50,10) + min(30,40) = 10 + 30
-    expect(pairOverlap(a, b)).toEqual({ a: 'A', b: 'B', overlap: 40, sharedCount: 2 });
+    expect(pairOverlap(a, b)).toMatchObject({ a: 'A', b: 'B', overlap: 40, sharedCount: 2 });
   });
 
   it('순서와 무관하다', () => {
@@ -33,6 +33,22 @@ describe('pairOverlap — 종목마다 작은 쪽 비중의 합', () => {
     const a = snap('A', { X: 60, Y: 40 });
     expect(pairOverlap(a, snap('A2', { X: 60, Y: 40 })).overlap).toBe(100);
     expect(pairOverlap(a, snap('B', { Z: 100 })).overlap).toBe(0);
+  });
+});
+
+describe('pairOverlap — 포함률', () => {
+  it('작은 ETF 가 큰 ETF 에 거의 다 들어 있으면 겹침은 작아도 포함률은 크다', () => {
+    // 배당 ETF(X·Y 반반) vs 지수 ETF(X·Y 를 5% 씩만, 나머지 90% 는 다른 종목)
+    const dividend = snap('D', { X: 50, Y: 50 });
+    const index = snap('I', { X: 5, Y: 5, Z: 90 });
+    const pair = pairOverlap(dividend, index);
+    expect(pair.overlap).toBe(10);
+    expect(pair.aInB).toBe(100);
+    expect(pair.bInA).toBe(10);
+  });
+
+  it('분모는 실제로 담은 비중 합이다(잘린 꼬리가 몫을 깎지 않는다)', () => {
+    expect(pairOverlap(snap('A', { X: 20, Y: 20 }), snap('B', { X: 30 })).aInB).toBe(50);
   });
 });
 

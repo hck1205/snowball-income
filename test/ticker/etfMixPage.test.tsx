@@ -32,7 +32,9 @@ const SNAPSHOTS: Record<string, EtfHoldingsSnapshot> = {
   CCC: snapshot('CCC', { W: 100 }),
   // 시뮬레이터 프리셋에 있는 실제 티커 — "이 조합으로 배당 시뮬레이션" 경로를 보려고 쓴다(보유는 가짜다).
   SCHD: snapshot('SCHD', { X: 100 }),
-  VOO: snapshot('VOO', { X: 50, Z: 50 })
+  VOO: snapshot('VOO', { X: 50, Z: 50 }),
+  // 넓은 지수형 — AAA 의 X·Y 를 작은 비중(5%씩)으로만 갖는다. AAA 는 통째로 DDD 안에 있다(포함 관계).
+  DDD: snapshot('DDD', { X: 5, Y: 5, Q: 90 })
 };
 
 const UNIVERSE: EtfUniverse = {
@@ -105,7 +107,9 @@ describe('ETF 조합 짜기 — 담을 때마다 다시 계산된다', () => {
     await user.click(screen.getByRole('button', { name: 'BBB 바구니에 담기' }));
     await waitFor(() => expect(overlapValue()).toHaveTextContent('중복률 50.0퍼센트'));
     expect(await screen.findByText('BBB 담음 · +50.0%p')).toBeInTheDocument();
-    expect(screen.getByText('절반 이상이 같은 종목에 몰려 있습니다. 비슷한 ETF를 여러 개 담은 셈입니다.')).toBeInTheDocument();
+    // AAA·BBB 는 X 를 50%씩 함께 싣는다 — 짝 겹침 50% 라 "비슷한 ETF" 문장이다
+    expect(screen.getByText('AAA와 BBB는 50.0%가 같은 종목입니다. 비슷한 ETF를 함께 담은 셈입니다.')).toBeInTheDocument();
+    expect(screen.getByText('AAA·BBB 50.0%')).toBeInTheDocument();
     expect(screen.getByLabelText('AAA와 BBB는 50.0퍼센트 겹칩니다. 겹치는 종목 1개.')).toBeInTheDocument();
   });
 
@@ -142,6 +146,39 @@ describe('ETF 조합 짜기 — 담을 때마다 다시 계산된다', () => {
     await user.type(search, 'gold');
     expect(screen.getByText('보유 종목 준비 중')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'GLDX 바구니에 담기' })).not.toBeInTheDocument();
+  });
+
+  it('중복률이 높아도 짝 겹침이 작으면 "비슷한 ETF" 가 아니라 포함 관계로 말한다', async () => {
+    // 합친 비중: X = (50+5)/2, Y = (50+5)/2 → 겹치는 몫 55 / 전체 100 = 55% (높음)
+    // 그런데 짝 겹침은 min(50,5)+min(50,5) = 10% 뿐이고, AAA 가 담은 비중의 100% 를 DDD 도 갖고 있다.
+    renderPage('?t=AAA,DDD');
+    await waitFor(() => expect(overlapValue()).toHaveTextContent('중복률 55.0퍼센트'));
+    expect(
+      screen.getByText(
+        'AAA가 담은 종목의 100.0%를 DDD도 담고 있습니다. 두 ETF가 함께 싣는 비중은 10.0%로 작지만, AAA 쪽에서 보면 대부분이 중복입니다.'
+      )
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/비슷한 ETF를 함께 담은 셈/)).not.toBeInTheDocument();
+    expect(screen.getByText('AAA·DDD 10.0%')).toBeInTheDocument();
+  });
+
+  it('검색 없이도 전체 목록이 보이고, 담을 수 있는 것만 보기를 끄면 준비 중인 ETF 도 나온다', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    const list = await screen.findByRole('list', { name: '담을 수 있는 ETF 5개' });
+    // 많이 찾는 ETF 가 먼저, 그다음 보유 종목이 있는 나머지(SCHD·VOO)
+    expect(within(list).getAllByRole('listitem').map((item) => item.textContent?.slice(0, 4))).toEqual([
+      'AAAA',
+      'BBBB',
+      'CCCG',
+      'SCHD',
+      'VOOV'
+    ]);
+    expect(screen.queryByText('보유 종목 준비 중')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: '담을 수 있는 ETF만' }));
+    expect(await screen.findByRole('list', { name: '전체 ETF 6개' })).toBeInTheDocument();
+    expect(screen.getByText('보유 종목 준비 중')).toBeInTheDocument();
   });
 
   it('맞는 결과가 없으면 왜 비었는지 말한다', async () => {

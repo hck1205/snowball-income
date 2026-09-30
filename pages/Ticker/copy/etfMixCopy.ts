@@ -24,8 +24,11 @@ export const ETF_MIX_COPY = {
     title: 'ETF 고르기',
     searchLabel: 'ETF 검색',
     searchPlaceholder: '티커나 이름으로 검색 (예: SCHD, dividend)',
-    popularTitle: '많이 찾는 ETF',
-    popularEmpty: '아직 보유 종목을 모은 ETF가 없습니다. 검색으로 찾아보세요.',
+    browseTitle: (count: string) => `전체 ETF ${count}개`,
+    browseAvailableTitle: (count: string) => `담을 수 있는 ETF ${count}개`,
+    onlyAvailable: '담을 수 있는 ETF만',
+    browseEmpty: '아직 보유 종목을 모은 ETF가 없습니다. ‘담을 수 있는 ETF만’을 끄면 전체 목록을 볼 수 있습니다.',
+    listLabel: 'ETF 목록',
     resultsTitle: (count: number) => `검색 결과 ${count}개`,
     noResults: (query: string) => `‘${query}’에 맞는 ETF가 없습니다. 티커 철자를 확인해 주세요.`,
     enterHint: 'Enter를 누르면 맨 위 결과를 담습니다.',
@@ -71,14 +74,23 @@ export const ETF_MIX_COPY = {
       single: 'ETF를 하나 담았습니다. 하나 더 담으면 겹침을 비교할 수 있습니다.',
       low: '겹침이 적습니다. 서로 다른 종목에 고르게 나뉘어 있습니다.',
       medium: '겹치는 부분이 꽤 있습니다. 서로 목적이 다른 ETF인지 확인해 보세요.',
-      high: '절반 이상이 같은 종목에 몰려 있습니다. 비슷한 ETF를 여러 개 담은 셈입니다.'
+      high: '투자금의 절반 이상이 두 개 이상의 ETF가 함께 가진 종목에 들어갑니다.'
     } satisfies Record<OverlapLevel, string>,
-    assumption: '바구니의 ETF를 정한 비중대로 산다고 보고, 두 개 이상의 ETF가 함께 가진 종목이 합친 포트폴리오에서 차지하는 비중입니다.',
+    /** 짝끼리도 많이 겹친다 — 정말로 비슷한 ETF 다. */
+    similar: (a: string, b: string, overlap: string) =>
+      `${a}와 ${b}는 ${overlap}%가 같은 종목입니다. 비슷한 ETF를 함께 담은 셈입니다.`,
+    /** 짝 겹침은 작은데 한쪽이 다른 쪽에 거의 들어 있다 — 포함 관계. */
+    contained: (inner: string, outer: string, containment: string, overlap: string) =>
+      `${inner}가 담은 종목의 ${containment}%를 ${outer}도 담고 있습니다. 두 ETF가 함께 싣는 비중은 ${overlap}%로 작지만, ${inner} 쪽에서 보면 대부분이 중복입니다.`,
+    assumption:
+      '중복률은 정한 비중대로 샀을 때 투자금 중 두 개 이상의 ETF가 함께 가진 종목에 들어가는 몫입니다. 아래 ‘두 ETF끼리 겹치는 비중’은 두 ETF가 같은 종목에 함께 싣는 크기라, 한 ETF의 종목이 다른 ETF에 작은 비중으로 들어 있으면 짝의 겹침은 작아도 중복률은 높게 나올 수 있습니다.',
     stats: {
       unique: '전체 종목',
       shared: '겹치는 종목',
       top: '가장 많이 겹친 종목',
       topValue: (name: string, count: number) => `${name} (${count}곳)`,
+      topPair: '가장 많이 겹친 두 ETF',
+      topPairValue: (a: string, b: string, overlap: string) => `${a}·${b} ${overlap}%`,
       none: '없음'
     }
   },

@@ -77,6 +77,13 @@ export type PairOverlap = {
   /** 두 ETF 가 함께 싣는 비중(%) — 종목마다 두 비중 중 작은 쪽의 합. 0~100. */
   readonly overlap: number;
   readonly sharedCount: number;
+  /**
+   * 포함률(%) — a 가 담은 비중 중 **b 도 가진 종목**의 몫. `aInB` 가 크고 `overlap` 이 작으면
+   * "비슷한 ETF"가 아니라 **포함 관계**다(예: SCHD 의 종목 대부분을 VOO 가 작은 비중으로 들고 있다).
+   * 분모는 a 가 실제로 담은 비중 합이다(`overlapRate` 와 같은 이유 — 잘린 꼬리가 몫을 깎지 않게).
+   */
+  readonly aInB: number;
+  readonly bInA: number;
 };
 
 export type BasketAnalysis = {

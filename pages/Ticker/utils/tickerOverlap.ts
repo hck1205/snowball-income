@@ -8,8 +8,8 @@ import type { EtfUniverseEntry } from '@/shared/lib/etfOverlap';
 /** 바구니 정원. 다섯을 넘으면 짝이 10개를 넘어 매트릭스가 읽히지 않는다. */
 export const MAX_OVERLAP_ETFS = 5;
 
-/** 검색 결과를 한 번에 몇 줄까지 그리나. 4,000개를 전부 그리면 입력이 버벅인다. */
-export const OVERLAP_SEARCH_LIMIT = 20;
+/** 검색 결과 상한. 목록이 자기 안에서 스크롤되므로 넉넉히 두되, 4,000개 전부를 매 입력마다 정렬하지는 않는다. */
+export const OVERLAP_SEARCH_LIMIT = 100;
 
 /** 비중의 눈금. 슬라이더가 이 범위·간격으로 움직이고, URL 에도 이 정수로 실린다. */
 export const OVERLAP_WEIGHT_MIN = 5;
@@ -140,4 +140,90 @@ export const deltaTone = (delta: number): DeltaTone => {
   if (rounded > 0) return 'up';
   if (rounded < 0) return 'down';
   return 'flat';
+};
+
+/**
+ * 검색어 없이 보는 **전체 목록**. 순서: 많이 찾는 ETF(`popular` 순서 그대로) → 보유 종목이 있는 나머지(티커순)
+ * → 보유 종목이 없는 것(티커순). 담을 수 있는 것이 위로 온다.
+ * `onlyWithHoldings` 면 보유 종목이 없는 ETF 를 뺀다 — 4,000여 개 중 대부분이 아직 담을 수 없어서,
+ * 켜 두지 않으면 목록이 "준비 중" 줄로 채워진다.
+ */
+export const browseEtfUniverse = (
+  etfs: readonly EtfUniverseEntry[],
+  popular: readonly string[],
+  options: { readonly onlyWithHoldings: boolean }
+): EtfUniverseEntry[] => {
+  const byTicker = new Map(etfs.map((entry) => [entry.ticker, entry]));
+  const pinned = popular
+    .map((ticker) => byTicker.get(ticker))
+    .filter((entry): entry is EtfUniverseEntry => entry !== undefined);
+  const pinnedSet = new Set(pinned.map((entry) => entry.ticker));
+  const rest = etfs
+    .filter((entry) => !pinnedSet.has(entry.ticker))
+    .sort(
+      (left, right) =>
+        Number(right.hasHoldings) - Number(left.hasHoldings) || left.ticker.localeCompare(right.ticker)
+    );
+  const all = [...pinned, ...rest];
+  return options.onlyWithHoldings ? all.filter((entry) => entry.hasHoldings) : all;
+};
+
+/** "비슷한 ETF" 로 부르는 짝 겹침 하한(%). 같은 지수를 따르는 ETF 끼리는 90% 를 넘고, 성격이 다르면 30% 아래다. */
+export const SIMILAR_PAIR_MIN = 50;
+/** "포함 관계" 로 부르는 포함률 하한(%) — 한 ETF 가 담은 비중의 이만큼을 다른 ETF 도 갖고 있다. */
+export const CONTAINED_MIN = 70;
+
+/**
+ * 결론 문장의 종류.
+ *
+ * 🔴 중복률만 보고 "비슷한 ETF 를 담았다"고 말하지 않는다. SCHD+VOO 는 중복률이 50% 를 넘지만 두 ETF 가 함께
+ *    싣는 비중은 8% 안팎이다 — SCHD 의 종목 대부분을 VOO 가 **작은 비중으로** 들고 있는 포함 관계일 뿐이다.
+ *    그래서 짝 겹침(`overlap`)과 포함률(`aInB`·`bInA`)을 함께 보고 셋으로 가른다.
+ */
+export type OverlapVerdictDetail =
+  | { readonly kind: 'level'; readonly level: OverlapLevel }
+  | { readonly kind: 'similar'; readonly a: string; readonly b: string; readonly overlap: number }
+  | {
+      readonly kind: 'contained';
+      readonly inner: string;
+      readonly outer: string;
+      readonly containment: number;
+      readonly overlap: number;
+    };
+
+type PairLike = {
+  readonly a: string;
+  readonly b: string;
+  readonly overlap: number;
+  readonly aInB: number;
+  readonly bInA: number;
+};
+
+/** 가장 많이 겹친 짝. 짝이 없으면 `null`. */
+export const topOverlapPair = <T extends PairLike>(pairs: readonly T[]): T | null =>
+  pairs.reduce<T | null>((best, pair) => (best === null || pair.overlap > best.overlap ? pair : best), null);
+
+export const describeOverlap = (
+  rate: number,
+  basketSize: number,
+  pairs: readonly PairLike[]
+): OverlapVerdictDetail => {
+  const level = overlapLevel(rate, basketSize);
+  if (basketSize < 2 || pairs.length === 0) return { kind: 'level', level };
+
+  const top = topOverlapPair(pairs)!;
+  if (top.overlap >= SIMILAR_PAIR_MIN) return { kind: 'similar', a: top.a, b: top.b, overlap: top.overlap };
+
+  let contained: Extract<OverlapVerdictDetail, { kind: 'contained' }> | null = null;
+  for (const pair of pairs) {
+    const candidates = [
+      { inner: pair.a, outer: pair.b, containment: pair.aInB, overlap: pair.overlap },
+      { inner: pair.b, outer: pair.a, containment: pair.bInA, overlap: pair.overlap }
+    ];
+    for (const candidate of candidates) {
+      if (candidate.containment < CONTAINED_MIN) continue;
+      if (!contained || candidate.containment > contained.containment) contained = { kind: 'contained', ...candidate };
+    }
+  }
+  return contained ?? { kind: 'level', level };
 };

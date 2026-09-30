@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest';
 import {
   MAX_OVERLAP_ETFS,
   OVERLAP_DEFAULT_WEIGHT,
+  browseEtfUniverse,
   deltaTone,
+  describeOverlap,
+  topOverlapPair,
   nextOverlapWeight,
   normalizeOverlapBasket,
   overlapBasketParams,
@@ -71,6 +74,18 @@ describe('비중 보조', () => {
   });
 });
 
+describe('browseEtfUniverse — 검색어 없이 보는 전체 목록', () => {
+  it('많이 찾는 ETF(그 순서) → 담을 수 있는 나머지 → 담을 수 없는 것 순이다', () => {
+    const list = browseEtfUniverse(entries, ['VIG', 'SCHD'], { onlyWithHoldings: false });
+    expect(list.map((entry) => entry.ticker)).toEqual(['VIG', 'SCHD', 'SCHG', 'DIVO', 'SCH']);
+  });
+
+  it('담을 수 있는 것만 켜면 보유 종목이 없는 ETF 를 뺀다', () => {
+    const list = browseEtfUniverse(entries, ['VIG'], { onlyWithHoldings: true });
+    expect(list.map((entry) => entry.ticker)).toEqual(['VIG', 'SCHD', 'SCHG']);
+  });
+});
+
 describe('searchEtfUniverse', () => {
   it('정확한 티커 → 티커 앞부분 → 이름 순이고, 같은 단계에서는 담을 수 있는 것이 먼저다', () => {
     expect(searchEtfUniverse(entries, 'sch').map((entry) => entry.ticker)).toEqual(['SCH', 'SCHD', 'SCHG']);
@@ -108,5 +123,45 @@ describe('표기', () => {
     expect(deltaTone(0.04)).toBe('flat');
     expect(deltaTone(0.05)).toBe('up');
     expect(deltaTone(-2)).toBe('down');
+  });
+});
+
+describe('describeOverlap — 결론 문장의 종류', () => {
+  const pair = (a: string, b: string, overlap: number, aInB: number, bInA: number) => ({ a, b, overlap, aInB, bInA });
+
+  it('짝끼리도 절반 넘게 겹치면 "비슷한 ETF" 다', () => {
+    expect(describeOverlap(95, 2, [pair('VOO', 'IVV', 99.6, 99.9, 99.8)])).toEqual({
+      kind: 'similar',
+      a: 'VOO',
+      b: 'IVV',
+      overlap: 99.6
+    });
+  });
+
+  it('🔴 중복률이 높아도 짝 겹침이 작으면 "비슷한 ETF" 가 아니라 포함 관계로 말한다 (SCHD+VOO)', () => {
+    expect(describeOverlap(51.4, 2, [pair('SCHD', 'VOO', 7.6, 95.2, 7.6)])).toEqual({
+      kind: 'contained',
+      inner: 'SCHD',
+      outer: 'VOO',
+      containment: 95.2,
+      overlap: 7.6
+    });
+  });
+
+  it('포함률은 양쪽 방향 중 큰 쪽을 본다', () => {
+    const detail = describeOverlap(40, 2, [pair('VOO', 'SCHD', 7.6, 7.6, 95.2)]);
+    expect(detail).toMatchObject({ kind: 'contained', inner: 'SCHD', outer: 'VOO' });
+  });
+
+  it('둘 다 아니면 중복률 단계대로 말한다', () => {
+    expect(describeOverlap(10, 2, [pair('A', 'B', 5, 10, 10)])).toEqual({ kind: 'level', level: 'low' });
+    expect(describeOverlap(0, 1, [])).toEqual({ kind: 'level', level: 'single' });
+    expect(describeOverlap(0, 0, [])).toEqual({ kind: 'level', level: 'none' });
+  });
+
+  it('가장 많이 겹친 짝을 고른다', () => {
+    const pairs = [pair('A', 'B', 10, 0, 0), pair('A', 'C', 54.5, 0, 0), pair('B', 'C', 3, 0, 0)];
+    expect(topOverlapPair(pairs)).toMatchObject({ a: 'A', b: 'C' });
+    expect(topOverlapPair([])).toBeNull();
   });
 });
