@@ -1,0 +1,61 @@
+name: Seed ETF holdings (one-off)
+
+# 🔴 임시 워크플로 — PR #222 브랜치에 첫 보유 종목 데이터를 채우고 지운다.
+#
+# 정기 갱신(`refresh-etf-holdings.yml`)은 main 에 들어가기 전에는 돌릴 수 없다(예약·수동 실행은 기본 브랜치의
+# 워크플로만 쓴다). 그래서 이 브랜치에 푸시되면 한 번 수집해 **같은 브랜치에** 커밋한다 — main 에는 닿지 않는다.
+# GITHUB_TOKEN 이 만든 푸시는 워크플로를 다시 트리거하지 않으므로 반복되지 않는다.
+on:
+  push:
+    branches: [ccr-6a0bb8c5-qwvyfq]
+    paths: ['.github/workflows/seed-etf-holdings.yml']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: seed-etf-holdings
+  cancel-in-progress: false
+
+env:
+  TZ: Asia/Seoul
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Refresh the ETF list
+        run: npm run ticker:parse
+
+      - name: Collect ETF holdings (SEC N-PORT)
+        run: npm run etf:holdings
+
+      # 이 데이터는 api 번들에 들어가지 않지만 갱신 워크플로 공통 계약대로 돌린다(멱등 — 바뀐 게 없으면 그대로).
+      - name: Rebundle api outputs
+        run: npm run api:bundle
+
+      - name: Commit to this branch
+        run: |
+          git add public/data/etf-holdings utils/TickerParser/output/etf-listed.json api
+          if git diff --cached --quiet; then
+            echo "바뀐 파일이 없다."
+            exit 0
+          fi
+          git -c user.name="github-actions[bot]" -c user.email="github-actions[bot]@users.noreply.github.com" \
+            commit -m "chore(data): ETF 보유 종목 첫 수집 (SEC N-PORT)"
+          git push origin HEAD:${{ github.ref_name }}

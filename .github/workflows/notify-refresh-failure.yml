@@ -49,6 +49,7 @@ on:
       - Refresh US congress stock trades
       - Refresh Korean assembly stock holdings
       - Refresh ETF holdings
+      - Seed ETF holdings (one-off)
       - Check curated calendar horizon
       - Main health check
     types: [completed]
