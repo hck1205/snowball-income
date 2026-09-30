@@ -47,8 +47,12 @@ export {
   OVERLAP_WEIGHT_MAX,
   OVERLAP_WEIGHT_MIN,
   OVERLAP_WEIGHT_STEP,
+  CONTAINED_MIN,
+  SIMILAR_PAIR_MIN,
   browseEtfUniverse,
   deltaTone,
+  describeOverlap,
+  topOverlapPair,
   formatDelta,
   formatPercent,
   nextOverlapWeight,
@@ -59,4 +63,4 @@ export {
   overlapLevel,
   searchEtfUniverse
 } from './tickerOverlap';
-export type { DeltaTone, OverlapBasketState, OverlapLevel } from './tickerOverlap';
+export type { DeltaTone, OverlapBasketState, OverlapLevel, OverlapVerdictDetail } from './tickerOverlap';

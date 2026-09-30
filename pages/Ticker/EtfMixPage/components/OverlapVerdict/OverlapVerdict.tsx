@@ -1,7 +1,8 @@
 import { useId } from 'react';
 import { ETF_MIX_COPY } from '../../../copy';
 import { useTweenedNumber } from '../../../hooks';
-import { deltaTone, formatDelta, formatPercent, overlapLevel } from '../../../utils';
+import { deltaTone, describeOverlap, formatDelta, formatPercent, overlapLevel, topOverlapPair } from '../../../utils';
+import type { OverlapVerdictDetail } from '../../../utils';
 import { VisuallyHidden } from '../../styled';
 import type { OverlapVerdictProps } from './OverlapVerdict.types';
 import {
@@ -28,6 +29,18 @@ const copy = ETF_MIX_COPY.verdict;
 const GAUGE_RADIUS = 52;
 const GAUGE_CIRCUMFERENCE = 2 * Math.PI * GAUGE_RADIUS;
 
+/** 결론 문장 — 중복률만이 아니라 짝 겹침·포함률까지 보고 고른다(`describeOverlap`). */
+const sentenceOf = (detail: OverlapVerdictDetail): string => {
+  switch (detail.kind) {
+    case 'similar':
+      return copy.similar(detail.a, detail.b, formatPercent(detail.overlap));
+    case 'contained':
+      return copy.contained(detail.inner, detail.outer, formatPercent(detail.containment), formatPercent(detail.overlap));
+    default:
+      return copy.sentence[detail.level];
+  }
+};
+
 /**
  * 결론 — 이 화면의 초점. 담을 때마다 숫자가 새 값으로 흘러가고, 방금 바뀐 폭이 칩으로 붙는다.
  * 🔴 흐르는 중간값은 낭독하지 않는다 — 최종 값은 `VisuallyHidden`, 변화 칩은 `aria-live` 로 한 번 읽힌다.
@@ -38,6 +51,8 @@ export default function OverlapVerdict({ analysis, analyzedCount, change }: Over
   const shownRate = useTweenedNumber(rate);
   const level = overlapLevel(rate, analyzedCount);
   const topShared = analysis.stocks.find((stock) => stock.holders.length >= 2);
+  const topPair = topOverlapPair(analysis.pairs);
+  const detail = describeOverlap(rate, analyzedCount, analysis.pairs);
 
   return (
     <Verdict aria-labelledby={`${baseId}-title`}>
@@ -75,7 +90,7 @@ export default function OverlapVerdict({ analysis, analyzedCount, change }: Over
               </DeltaChip>
             ) : null}
           </div>
-          <VerdictSentence>{copy.sentence[level]}</VerdictSentence>
+          <VerdictSentence>{sentenceOf(detail)}</VerdictSentence>
           <VerdictNote>{copy.assumption}</VerdictNote>
         </VerdictText>
       </VerdictBody>
@@ -93,6 +108,15 @@ export default function OverlapVerdict({ analysis, analyzedCount, change }: Over
           <dt>{copy.stats.top}</dt>
           <dd title={topShared?.name}>
             {topShared ? copy.stats.topValue(topShared.symbol ?? topShared.name, topShared.holders.length) : copy.stats.none}
+          </dd>
+        </Stat>
+        {/* 중복률과 짝 겹침은 다른 숫자다 — 둘을 나란히 두어야 "왜 중복률이 높은데 짝은 작지?"가 한눈에 풀린다. */}
+        <Stat>
+          <dt>{copy.stats.topPair}</dt>
+          <dd>
+            {topPair
+              ? copy.stats.topPairValue(topPair.a, topPair.b, formatPercent(topPair.overlap))
+              : copy.stats.none}
           </dd>
         </Stat>
       </StatGrid>

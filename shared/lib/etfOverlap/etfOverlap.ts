@@ -33,13 +33,26 @@ export const pairOverlap = (a: EtfHoldingsSnapshot, b: EtfHoldingsSnapshot): Pai
   const right = weightMap(b);
   let overlap = 0;
   let sharedCount = 0;
+  let sharedInA = 0;
+  let sharedInB = 0;
   for (const [key, weight] of left) {
     const other = right.get(key);
     if (other === undefined) continue;
     overlap += Math.min(weight, other);
+    sharedInA += weight;
+    sharedInB += other;
     sharedCount += 1;
   }
-  return { a: a.ticker, b: b.ticker, overlap: round2(Math.min(100, overlap)), sharedCount };
+  const totalA = [...left.values()].reduce((sum, weight) => sum + weight, 0);
+  const totalB = [...right.values()].reduce((sum, weight) => sum + weight, 0);
+  return {
+    a: a.ticker,
+    b: b.ticker,
+    overlap: round2(Math.min(100, overlap)),
+    sharedCount,
+    aInB: totalA > 0 ? round2((sharedInA / totalA) * 100) : 0,
+    bInA: totalB > 0 ? round2((sharedInB / totalB) * 100) : 0
+  };
 };
 
 /**

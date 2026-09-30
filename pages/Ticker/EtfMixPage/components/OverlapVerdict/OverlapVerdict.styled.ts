@@ -172,15 +172,16 @@ export const VerdictNote = styled.p`
   min-width: 0;
 `;
 
+/** 요약 넷 — 넓으면 한 줄, 좁으면 두 칸씩(한 칸씩 세우면 결론 블록이 화면 하나를 넘는다). */
 export const StatGrid = styled.dl`
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: ${space[2]};
   margin: 0;
   min-width: 0;
 
-  ${media.down('mobile')} {
-    grid-template-columns: minmax(0, 1fr);
+  ${media.up('tablet')} {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 `;
 
@@ -204,9 +205,19 @@ export const Stat = styled.div`
     font-family: ${font.dataNumeric};
     font-size: ${font.size.lg};
     font-weight: ${font.weight.bold};
+    line-height: ${font.leading.tight};
+    /* 잘라서 말줄임하지 않는다 — "VOO·QQQ 54.…" 처럼 숫자가 잘리면 칸이 할 말을 못 한다(390px 실측).
+       두 줄까지 접고, 그래도 넘치는 긴 종목명만 말줄임한다. */
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
+    word-break: keep-all;
     ${font.numeric}
+
+    ${media.down('mobile')} {
+      font-size: ${font.size.md};
+    }
   }
 `;

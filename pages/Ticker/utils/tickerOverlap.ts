@@ -167,3 +167,63 @@ export const browseEtfUniverse = (
   const all = [...pinned, ...rest];
   return options.onlyWithHoldings ? all.filter((entry) => entry.hasHoldings) : all;
 };
+
+/** "비슷한 ETF" 로 부르는 짝 겹침 하한(%). 같은 지수를 따르는 ETF 끼리는 90% 를 넘고, 성격이 다르면 30% 아래다. */
+export const SIMILAR_PAIR_MIN = 50;
+/** "포함 관계" 로 부르는 포함률 하한(%) — 한 ETF 가 담은 비중의 이만큼을 다른 ETF 도 갖고 있다. */
+export const CONTAINED_MIN = 70;
+
+/**
+ * 결론 문장의 종류.
+ *
+ * 🔴 중복률만 보고 "비슷한 ETF 를 담았다"고 말하지 않는다. SCHD+VOO 는 중복률이 50% 를 넘지만 두 ETF 가 함께
+ *    싣는 비중은 8% 안팎이다 — SCHD 의 종목 대부분을 VOO 가 **작은 비중으로** 들고 있는 포함 관계일 뿐이다.
+ *    그래서 짝 겹침(`overlap`)과 포함률(`aInB`·`bInA`)을 함께 보고 셋으로 가른다.
+ */
+export type OverlapVerdictDetail =
+  | { readonly kind: 'level'; readonly level: OverlapLevel }
+  | { readonly kind: 'similar'; readonly a: string; readonly b: string; readonly overlap: number }
+  | {
+      readonly kind: 'contained';
+      readonly inner: string;
+      readonly outer: string;
+      readonly containment: number;
+      readonly overlap: number;
+    };
+
+type PairLike = {
+  readonly a: string;
+  readonly b: string;
+  readonly overlap: number;
+  readonly aInB: number;
+  readonly bInA: number;
+};
+
+/** 가장 많이 겹친 짝. 짝이 없으면 `null`. */
+export const topOverlapPair = <T extends PairLike>(pairs: readonly T[]): T | null =>
+  pairs.reduce<T | null>((best, pair) => (best === null || pair.overlap > best.overlap ? pair : best), null);
+
+export const describeOverlap = (
+  rate: number,
+  basketSize: number,
+  pairs: readonly PairLike[]
+): OverlapVerdictDetail => {
+  const level = overlapLevel(rate, basketSize);
+  if (basketSize < 2 || pairs.length === 0) return { kind: 'level', level };
+
+  const top = topOverlapPair(pairs)!;
+  if (top.overlap >= SIMILAR_PAIR_MIN) return { kind: 'similar', a: top.a, b: top.b, overlap: top.overlap };
+
+  let contained: Extract<OverlapVerdictDetail, { kind: 'contained' }> | null = null;
+  for (const pair of pairs) {
+    const candidates = [
+      { inner: pair.a, outer: pair.b, containment: pair.aInB, overlap: pair.overlap },
+      { inner: pair.b, outer: pair.a, containment: pair.bInA, overlap: pair.overlap }
+    ];
+    for (const candidate of candidates) {
+      if (candidate.containment < CONTAINED_MIN) continue;
+      if (!contained || candidate.containment > contained.containment) contained = { kind: 'contained', ...candidate };
+    }
+  }
+  return contained ?? { kind: 'level', level };
+};
