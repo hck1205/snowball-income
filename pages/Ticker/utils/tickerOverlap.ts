@@ -8,8 +8,8 @@ import type { EtfUniverseEntry } from '@/shared/lib/etfOverlap';
 /** 바구니 정원. 다섯을 넘으면 짝이 10개를 넘어 매트릭스가 읽히지 않는다. */
 export const MAX_OVERLAP_ETFS = 5;
 
-/** 검색 결과를 한 번에 몇 줄까지 그리나. 4,000개를 전부 그리면 입력이 버벅인다. */
-export const OVERLAP_SEARCH_LIMIT = 20;
+/** 검색 결과 상한. 목록이 자기 안에서 스크롤되므로 넉넉히 두되, 4,000개 전부를 매 입력마다 정렬하지는 않는다. */
+export const OVERLAP_SEARCH_LIMIT = 100;
 
 /** 비중의 눈금. 슬라이더가 이 범위·간격으로 움직이고, URL 에도 이 정수로 실린다. */
 export const OVERLAP_WEIGHT_MIN = 5;
@@ -140,4 +140,30 @@ export const deltaTone = (delta: number): DeltaTone => {
   if (rounded > 0) return 'up';
   if (rounded < 0) return 'down';
   return 'flat';
+};
+
+/**
+ * 검색어 없이 보는 **전체 목록**. 순서: 많이 찾는 ETF(`popular` 순서 그대로) → 보유 종목이 있는 나머지(티커순)
+ * → 보유 종목이 없는 것(티커순). 담을 수 있는 것이 위로 온다.
+ * `onlyWithHoldings` 면 보유 종목이 없는 ETF 를 뺀다 — 4,000여 개 중 대부분이 아직 담을 수 없어서,
+ * 켜 두지 않으면 목록이 "준비 중" 줄로 채워진다.
+ */
+export const browseEtfUniverse = (
+  etfs: readonly EtfUniverseEntry[],
+  popular: readonly string[],
+  options: { readonly onlyWithHoldings: boolean }
+): EtfUniverseEntry[] => {
+  const byTicker = new Map(etfs.map((entry) => [entry.ticker, entry]));
+  const pinned = popular
+    .map((ticker) => byTicker.get(ticker))
+    .filter((entry): entry is EtfUniverseEntry => entry !== undefined);
+  const pinnedSet = new Set(pinned.map((entry) => entry.ticker));
+  const rest = etfs
+    .filter((entry) => !pinnedSet.has(entry.ticker))
+    .sort(
+      (left, right) =>
+        Number(right.hasHoldings) - Number(left.hasHoldings) || left.ticker.localeCompare(right.ticker)
+    );
+  const all = [...pinned, ...rest];
+  return options.onlyWithHoldings ? all.filter((entry) => entry.hasHoldings) : all;
 };

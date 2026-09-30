@@ -13,8 +13,9 @@ export const Stack = styled.div`
 `;
 
 /**
- * 고르기(왼쪽) ↔ 바구니·결론(오른쪽). 좁은 폭에서는 위아래로 쌓인다 —
- * 그때는 바구니·결론이 **먼저** 온다: 담은 결과가 먼저 보여야 "담을 때마다 바뀐다"가 읽힌다.
+ * 고르기(왼쪽) ↔ 바구니·결론(오른쪽). 좁은 폭에서는 위아래로 쌓이고 **고르기(검색)가 먼저** 온다
+ * (2026-09-30 사용자 지시 — 처음에는 결과가 먼저였는데, 모바일에서 검색창이 스크롤 한참 아래에 있어
+ * 담기부터 막혔다). 목록은 자기 안에서 스크롤되므로 결과까지 내려가는 거리가 목록 길이만큼 늘지 않는다.
  */
 export const Workbench = styled.div`
   display: grid;
@@ -28,23 +29,16 @@ export const Workbench = styled.div`
 `;
 
 export const PickerColumn = styled.div`
-  order: 2;
   min-width: 0;
 
   ${media.up('layout')} {
-    order: 1;
     position: sticky;
     top: ${space[4]};
   }
 `;
 
 export const ResultColumn = styled.div`
-  order: 1;
   display: grid;
   gap: clamp(16px, 2.4vw, 24px);
   min-width: 0;
-
-  ${media.up('layout')} {
-    order: 2;
-  }
 `;

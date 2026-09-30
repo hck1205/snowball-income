@@ -24,6 +24,7 @@ const input = (overrides: Partial<BuildEtfMixViewModelInput> = {}): BuildEtfMixV
   listStatus: 'ready',
   query: '',
   isSearching: false,
+  onlyWithHoldings: true,
   listed: [
     { ticker: 'A', name: 'A', hasHoldings: true },
     { ticker: 'B', name: 'B', hasHoldings: true },

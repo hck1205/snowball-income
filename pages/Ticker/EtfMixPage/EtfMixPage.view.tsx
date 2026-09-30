@@ -18,6 +18,7 @@ export default function EtfMixView({
   viewModel,
   onQueryChange,
   onSubmitQuery,
+  onToggleOnlyWithHoldings,
   onAdd,
   onRemove,
   onWeightChange,
@@ -29,6 +30,7 @@ export default function EtfMixView({
     query,
     candidates,
     isSearching,
+    onlyWithHoldings,
     slots,
     isAtLimit,
     isEqualWeight,
@@ -60,10 +62,12 @@ export default function EtfMixView({
             query={query}
             candidates={candidates}
             isSearching={isSearching}
+            onlyWithHoldings={onlyWithHoldings}
             isAtLimit={isAtLimit}
             seriesOf={seriesOf}
             onQueryChange={onQueryChange}
             onSubmitQuery={onSubmitQuery}
+            onToggleOnlyWithHoldings={onToggleOnlyWithHoldings}
             onAdd={onAdd}
             onRemove={onRemove}
           />

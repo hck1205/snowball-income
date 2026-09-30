@@ -9,7 +9,8 @@ export type BuildEtfMixViewModelInput = {
   readonly listStatus: EtfMixViewModel['listStatus'];
   readonly query: string;
   readonly isSearching: boolean;
-  /** 목록에 보일 ETF(검색 결과 또는 인기 ETF). */
+  readonly onlyWithHoldings: boolean;
+  /** 목록에 보일 ETF(검색 결과 또는 전체 목록). */
   readonly listed: readonly EtfUniverseEntry[];
   readonly basket: OverlapBasketState;
   readonly snapshots: ReadonlyMap<string, LoadState<EtfHoldingsSnapshot>>;
@@ -64,6 +65,7 @@ export const buildEtfMixViewModel = (input: BuildEtfMixViewModelInput): EtfMixVi
     query: input.query,
     candidates,
     isSearching: input.isSearching,
+    onlyWithHoldings: input.onlyWithHoldings,
     slots,
     isAtLimit: basket.tickers.length >= MAX_OVERLAP_ETFS,
     isEqualWeight: basket.weights.every((weight) => weight === OVERLAP_DEFAULT_WEIGHT),

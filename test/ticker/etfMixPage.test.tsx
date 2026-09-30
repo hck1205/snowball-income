@@ -144,6 +144,25 @@ describe('ETF 조합 짜기 — 담을 때마다 다시 계산된다', () => {
     expect(screen.queryByRole('button', { name: 'GLDX 바구니에 담기' })).not.toBeInTheDocument();
   });
 
+  it('검색 없이도 전체 목록이 보이고, 담을 수 있는 것만 보기를 끄면 준비 중인 ETF 도 나온다', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    const list = await screen.findByRole('list', { name: '담을 수 있는 ETF 5개' });
+    // 많이 찾는 ETF 가 먼저, 그다음 보유 종목이 있는 나머지(SCHD·VOO)
+    expect(within(list).getAllByRole('listitem').map((item) => item.textContent?.slice(0, 4))).toEqual([
+      'AAAA',
+      'BBBB',
+      'CCCG',
+      'SCHD',
+      'VOOV'
+    ]);
+    expect(screen.queryByText('보유 종목 준비 중')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: '담을 수 있는 ETF만' }));
+    expect(await screen.findByRole('list', { name: '전체 ETF 6개' })).toBeInTheDocument();
+    expect(screen.getByText('보유 종목 준비 중')).toBeInTheDocument();
+  });
+
   it('맞는 결과가 없으면 왜 비었는지 말한다', async () => {
     const user = userEvent.setup();
     renderPage();

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   MAX_OVERLAP_ETFS,
   OVERLAP_DEFAULT_WEIGHT,
+  browseEtfUniverse,
   deltaTone,
   nextOverlapWeight,
   normalizeOverlapBasket,
@@ -68,6 +69,18 @@ describe('비중 보조', () => {
     expect(overlapShares([50, 50, 50])).toEqual([33.4, 33.3, 33.3]);
     expect(overlapShares([60, 40])).toEqual([60, 40]);
     expect(overlapShares([])).toEqual([]);
+  });
+});
+
+describe('browseEtfUniverse — 검색어 없이 보는 전체 목록', () => {
+  it('많이 찾는 ETF(그 순서) → 담을 수 있는 나머지 → 담을 수 없는 것 순이다', () => {
+    const list = browseEtfUniverse(entries, ['VIG', 'SCHD'], { onlyWithHoldings: false });
+    expect(list.map((entry) => entry.ticker)).toEqual(['VIG', 'SCHD', 'SCHG', 'DIVO', 'SCH']);
+  });
+
+  it('담을 수 있는 것만 켜면 보유 종목이 없는 ETF 를 뺀다', () => {
+    const list = browseEtfUniverse(entries, ['VIG'], { onlyWithHoldings: true });
+    expect(list.map((entry) => entry.ticker)).toEqual(['VIG', 'SCHD', 'SCHG']);
   });
 });
 

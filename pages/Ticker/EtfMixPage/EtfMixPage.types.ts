@@ -33,9 +33,11 @@ export type OverlapChange = {
 export type EtfMixViewModel = {
   readonly listStatus: 'loading' | 'ready' | 'error';
   readonly query: string;
-  /** 검색 중이면 검색 결과, 아니면 많이 찾는 ETF. */
+  /** 검색 중이면 검색 결과, 아니면 전체 목록(많이 찾는 ETF → 담을 수 있는 것 → 나머지). */
   readonly candidates: readonly OverlapCandidate[];
   readonly isSearching: boolean;
+  /** 전체 목록에서 보유 종목이 있는 ETF 만 보이는가(검색 결과에는 적용하지 않는다). */
+  readonly onlyWithHoldings: boolean;
   readonly slots: readonly OverlapSlot[];
   readonly isAtLimit: boolean;
   /** 모든 비중이 기본값(같은 금액씩)인가 — "균등하게" 버튼을 잠근다. */
@@ -56,6 +58,7 @@ export type EtfMixViewProps = {
   onQueryChange: (query: string) => void;
   /** 검색창에서 Enter — 맨 위의 담을 수 있는 결과를 담는다. */
   onSubmitQuery: () => void;
+  onToggleOnlyWithHoldings: () => void;
   onAdd: (ticker: string) => void;
   onRemove: (ticker: string) => void;
   onWeightChange: (ticker: string, weight: number) => void;

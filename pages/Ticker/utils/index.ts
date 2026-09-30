@@ -47,6 +47,7 @@ export {
   OVERLAP_WEIGHT_MAX,
   OVERLAP_WEIGHT_MIN,
   OVERLAP_WEIGHT_STEP,
+  browseEtfUniverse,
   deltaTone,
   formatDelta,
   formatPercent,
