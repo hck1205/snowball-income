@@ -2,22 +2,22 @@ import { MAX_OVERLAP_ETFS } from '../utils';
 import type { OverlapLevel } from '../utils';
 
 /**
- * `/ticker/overlap`(ETF 겹침)의 모든 문구. 🔴 컴포넌트에 문자열 리터럴을 박지 않는다(`.cursor/rules`).
+ * `/ticker/overlap`(ETF 조합 짜기)의 모든 문구. 🔴 컴포넌트에 문자열 리터럴을 박지 않는다(`.cursor/rules`).
  *
  * 🔴 **카피 규율** — 비교 화면과 같다.
  *  - "좋다·나쁘다·추천"을 쓰지 않는다. 겹침은 **사실**이다("몰려 있다"는 사실, "위험하다"는 판단).
- *  - 계산의 가정(같은 금액씩 산다고 본다)을 숨기지 않는다 — 결론 바로 아래와 각주에 둘 다 적는다.
+ *  - 계산의 가정(정한 비중대로 산다고 본다 — 기본은 같은 금액씩)을 숨기지 않는다 — 결론 바로 아래와 각주에 둘 다 적는다.
  *  - "눈덩이/스노우볼" 비유 금지(확정 결정). 격식체.
  */
 export const TICKER_OVERLAP_COPY = {
   meta: {
-    title: 'ETF 겹침 비교 — 담을수록 얼마나 같은 종목에 몰리나',
-    description: `ETF를 최대 ${MAX_OVERLAP_ETFS}개까지 담아, 같은 종목에 중복으로 투자되는 비중을 확인합니다. 담을 때마다 중복률·두 ETF끼리의 겹침·겹치는 종목이 다시 계산됩니다.`
+    title: 'ETF 조합 짜기 — 담은 ETF가 얼마나 같은 종목에 몰리나',
+    description: `ETF를 최대 ${MAX_OVERLAP_ETFS}개까지 담고 비중을 정해, 같은 종목에 중복으로 투자되는 비중을 확인합니다. 담거나 비중을 바꿀 때마다 중복률·겹치는 종목이 다시 계산되고, 그 조합 그대로 배당 시뮬레이션으로 이어갈 수 있습니다.`
   },
 
   hero: {
-    title: 'ETF 겹침 비교',
-    lede: 'ETF를 하나씩 담아 보세요. 담을 때마다 같은 종목에 중복으로 투자되는 비중이 다시 계산됩니다.'
+    title: 'ETF 조합 짜기',
+    lede: 'ETF를 담고 비중을 정해 보세요. 바꿀 때마다 같은 종목에 중복으로 투자되는 비중이 다시 계산되고, 마음에 드는 조합은 배당 시뮬레이션으로 이어갈 수 있습니다.'
   },
 
   picker: {
@@ -51,7 +51,12 @@ export const TICKER_OVERLAP_COPY = {
     slotsLabel: '담은 ETF',
     emptySlot: '빈 자리',
     loading: '불러오는 중',
-    loadError: '불러오지 못함'
+    loadError: '불러오지 못함',
+    weightTitle: '비중',
+    weightHint: '막대를 움직여 비중을 정하세요. 몫은 합이 100%가 되도록 자동으로 맞춥니다.',
+    weightAria: (ticker: string) => `${ticker} 비중`,
+    weightValue: (share: string) => `${share}%`,
+    equalize: '균등하게'
   },
 
   verdict: {
@@ -68,7 +73,7 @@ export const TICKER_OVERLAP_COPY = {
       medium: '겹치는 부분이 꽤 있습니다. 서로 목적이 다른 ETF인지 확인해 보세요.',
       high: '절반 이상이 같은 종목에 몰려 있습니다. 비슷한 ETF를 여러 개 담은 셈입니다.'
     } satisfies Record<OverlapLevel, string>,
-    assumption: '바구니의 ETF를 같은 금액씩 산다고 보고, 두 개 이상의 ETF가 함께 가진 종목이 합친 포트폴리오에서 차지하는 비중입니다.',
+    assumption: '바구니의 ETF를 정한 비중대로 산다고 보고, 두 개 이상의 ETF가 함께 가진 종목이 합친 포트폴리오에서 차지하는 비중입니다.',
     stats: {
       unique: '전체 종목',
       shared: '겹치는 종목',
@@ -97,6 +102,17 @@ export const TICKER_OVERLAP_COPY = {
     none: '겹치는 종목이 없습니다.',
     needOne: 'ETF를 담으면 종목이 여기에 나옵니다.',
     moreHidden: (count: number) => `외 ${count}종목은 비중이 작아 줄였습니다.`
+  },
+
+  simulate: {
+    title: '이 조합으로 배당 시뮬레이션',
+    lede: '담은 ETF를 정한 비중 그대로 시뮬레이터 새 탭에 싣습니다. 투자금·기간은 시뮬레이터에서 정하세요.',
+    button: '배당 시뮬레이션 해보기',
+    /** 시뮬레이터 새 탭 이름. */
+    scenarioName: 'ETF 조합',
+    excluded: (tickers: string) => `${tickers}는 시뮬레이터에 배당 정보가 없어 빼고 넘깁니다. 남은 ETF의 비중을 다시 100%로 맞춥니다.`,
+    noneKnown: '담은 ETF가 모두 시뮬레이터에 배당 정보가 없어 넘길 수 없습니다.',
+    needOne: 'ETF를 담으면 그 조합으로 배당 시뮬레이션을 해볼 수 있습니다.'
   },
 
   footnote: {

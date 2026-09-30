@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
+import { SIMULATOR_PATH } from '@/shared/constants/routes';
 import TickerOverlapPage from '@/pages/Ticker/TickerOverlapPage';
 import { resetEtfHoldingsCache } from '@/pages/Ticker/hooks';
 import type { EtfHoldingsSnapshot, EtfUniverse } from '@/shared/lib/etfOverlap';
@@ -28,7 +29,10 @@ const snapshot = (ticker: string, holdings: Record<string, number>): EtfHoldings
 const SNAPSHOTS: Record<string, EtfHoldingsSnapshot> = {
   AAA: snapshot('AAA', { X: 50, Y: 50 }),
   BBB: snapshot('BBB', { X: 50, Z: 50 }),
-  CCC: snapshot('CCC', { W: 100 })
+  CCC: snapshot('CCC', { W: 100 }),
+  // 시뮬레이터 프리셋에 있는 실제 티커 — "이 조합으로 배당 시뮬레이션" 경로를 보려고 쓴다(보유는 가짜다).
+  SCHD: snapshot('SCHD', { X: 100 }),
+  VOO: snapshot('VOO', { X: 50, Z: 50 })
 };
 
 const UNIVERSE: EtfUniverse = {
@@ -37,7 +41,9 @@ const UNIVERSE: EtfUniverse = {
     { ticker: 'AAA', name: 'Alpha Dividend ETF', hasHoldings: true },
     { ticker: 'BBB', name: 'Beta Growth ETF', hasHoldings: true },
     { ticker: 'CCC', name: 'Gamma Bond ETF', hasHoldings: true },
-    { ticker: 'GLDX', name: 'Physical Gold ETF', hasHoldings: false }
+    { ticker: 'GLDX', name: 'Physical Gold ETF', hasHoldings: false },
+    { ticker: 'SCHD', name: 'Schwab US Dividend Equity ETF', hasHoldings: true },
+    { ticker: 'VOO', name: 'Vanguard S&P 500 ETF', hasHoldings: true }
   ]
 };
 
@@ -61,10 +67,19 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+/** 시뮬레이터 자리 — 실려 온 프리필(state)을 글자로 보여 준다. */
+function SimulatorProbe() {
+  const location = useLocation();
+  return <pre data-testid="simulator-state">{JSON.stringify(location.state)}</pre>;
+}
+
 const renderPage = (search = '') =>
   render(
     <MemoryRouter initialEntries={[`/ticker/overlap${search}`]}>
-      <TickerOverlapPage />
+      <Routes>
+        <Route path="/ticker/overlap" element={<TickerOverlapPage />} />
+        <Route path={SIMULATOR_PATH} element={<SimulatorProbe />} />
+      </Routes>
     </MemoryRouter>
   );
 
@@ -136,5 +151,56 @@ describe('ETF 겹침 — 담을 때마다 다시 계산된다', () => {
     await waitFor(() => expect(search).toBeEnabled());
     await user.type(search, 'zzzz');
     expect(screen.getByText('‘zzzz’에 맞는 ETF가 없습니다. 티커 철자를 확인해 주세요.')).toBeInTheDocument();
+  });
+});
+
+describe('ETF 조합 짜기 — 비중과 시뮬레이터', () => {
+  it('URL 의 비중을 읽고 몫으로 보여 주며, 중복률에 반영한다', async () => {
+    // 60/40: X = 0.6×50 + 0.4×50 = 50, 전체 100 → 50%. 몫 표기는 60.0% / 40.0%
+    renderPage('?t=AAA,BBB&w=60,40');
+    await waitFor(() => expect(overlapValue()).toHaveTextContent('중복률 50.0퍼센트'));
+    expect(screen.getByRole('slider', { name: 'AAA 비중' })).toHaveAttribute('aria-valuetext', '60.0%');
+    expect(screen.getByRole('slider', { name: 'BBB 비중' })).toHaveAttribute('aria-valuetext', '40.0%');
+  });
+
+  it('겹치지 않는 쪽으로 비중을 옮기면 중복률이 바뀌고, 균등하게로 되돌린다', async () => {
+    const user = userEvent.setup();
+    // SCHD 는 X 만, VOO 는 X·Z 반반 → 균등이면 X = 75
+    renderPage('?t=SCHD,VOO');
+    await waitFor(() => expect(overlapValue()).toHaveTextContent('중복률 75.0퍼센트'));
+    const equalize = screen.getByRole('button', { name: '균등하게' });
+    expect(equalize).toBeDisabled();
+
+    const vooSlider = screen.getByRole('slider', { name: 'VOO 비중' });
+    fireEvent.change(vooSlider, { target: { value: '100' } });
+    // 50:100 → pSCHD = 1/3 → X = 1/3×100 + 2/3×50 = 66.7
+    await waitFor(() => expect(overlapValue()).toHaveTextContent('중복률 66.7퍼센트'));
+    expect(equalize).toBeEnabled();
+
+    await user.click(equalize);
+    await waitFor(() => expect(overlapValue()).toHaveTextContent('중복률 75.0퍼센트'));
+  });
+
+  it('이 조합을 비중 그대로 시뮬레이터로 보낸다 — 시뮬레이터가 모르는 ETF 는 먼저 알리고 뺀다', async () => {
+    const user = userEvent.setup();
+    renderPage('?t=SCHD,VOO,AAA&w=60,20,20');
+    expect(
+      await screen.findByText('AAA는 시뮬레이터에 배당 정보가 없어 빼고 넘깁니다. 남은 ETF의 비중을 다시 100%로 맞춥니다.')
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: '배당 시뮬레이션 해보기' }));
+    const state = JSON.parse((await screen.findByTestId('simulator-state')).textContent ?? 'null');
+    expect(state.scenarioName).toBe('ETF 조합');
+    expect(state.portfolioSimulationPrefill.initialInvestmentKrw).toBe(0);
+    expect(state.portfolioSimulationPrefill.holdings).toEqual([
+      { ticker: 'SCHD', weightPercent: 75 },
+      { ticker: 'VOO', weightPercent: 25 }
+    ]);
+  });
+
+  it('담은 ETF 가 모두 시뮬레이터에 없으면 버튼을 잠그고 이유를 말한다', async () => {
+    renderPage('?t=AAA,BBB');
+    expect(await screen.findByText('담은 ETF가 모두 시뮬레이터에 배당 정보가 없어 넘길 수 없습니다.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '배당 시뮬레이션 해보기' })).toBeDisabled();
   });
 });

@@ -11,7 +11,7 @@ import {
   space
 } from '@/shared/styles';
 
-/* OverlapBasket 의 스타일 — 원래 TickerOverlapPage.styled.ts 에서 값 변경 없이 옮겼다. 규율은 ../../styled/index.ts 머리말. */
+/* OverlapBasket 의 스타일 — 슬롯은 비교 화면의 덱과 같은 모양, 아래에 비중 편집. 규율은 ../../styled/index.ts 머리말. */
 
 export const SlotGrid = styled.ul`
   display: grid;
@@ -133,4 +133,86 @@ export const SlotGhost = styled.li`
   font-size: ${font.size.xs};
   min-height: 46px;
   min-width: 0;
+`;
+
+/* ── 비중 ─────────────────────────────────────────────────────────────────── */
+
+export const WeightHead = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: ${space[3]};
+  padding-top: ${space[1]};
+  border-top: 1px solid ${color.border};
+  min-width: 0;
+`;
+
+export const WeightTitle = styled.h3`
+  margin: 0;
+  color: ${color.textMuted};
+  font-size: ${font.size['2xs']};
+  font-weight: ${font.weight.semibold};
+  letter-spacing: 0.12em;
+`;
+
+export const WeightList = styled.ul`
+  display: grid;
+  gap: ${space[2]};
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-width: 0;
+`;
+
+/** 티커 · 슬라이더 · 몫. 몫 칸은 폭을 고정해 값이 바뀌어도 슬라이더 길이가 흔들리지 않게 한다. */
+export const WeightRow = styled.li`
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) 56px;
+  align-items: center;
+  gap: ${space[3]};
+  min-width: 0;
+`;
+
+export const WeightTicker = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: ${space[2]};
+  color: ${color.text};
+  font-family: ${font.dataNumeric};
+  font-size: ${font.size.sm};
+  font-weight: ${font.weight.bold};
+  ${font.numeric}
+`;
+
+/**
+ * 네이티브 range — 키보드(화살표·Home/End)와 낭독(aria-valuetext 로 몫을 읽는다)을 그대로 얻는다.
+ * 채움 색은 그 ETF 의 종목 색이다(accent-color). 색만으로 말하지 않는다 — 옆에 티커와 몫이 글자로 있다.
+ */
+export const WeightSlider = styled.input<{ $series: string }>`
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  accent-color: ${({ $series }) => $series};
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid ${color.focusRing};
+    outline-offset: 3px;
+  }
+`;
+
+export const WeightValue = styled.span`
+  color: ${color.text};
+  font-family: ${font.dataNumeric};
+  font-size: ${font.size.sm};
+  font-weight: ${font.weight.semibold};
+  text-align: right;
+  ${font.numeric}
+`;
+
+export const WeightHint = styled.p`
+  margin: 0;
+  color: ${color.textSecondary};
+  font-size: ${font.size.xs};
+  line-height: ${font.leading.normal};
 `;

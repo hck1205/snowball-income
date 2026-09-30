@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
   MAX_OVERLAP_ETFS,
+  OVERLAP_DEFAULT_WEIGHT,
   deltaTone,
+  nextOverlapWeight,
+  normalizeOverlapBasket,
+  overlapBasketParams,
+  overlapShares,
   formatDelta,
   formatPercent,
   normalizeOverlapSelection,
@@ -21,6 +26,48 @@ describe('normalizeOverlapSelection', () => {
   it('대문자로 맞추고, 중복·이상한 값을 버리고, 정원에서 자른다', () => {
     expect(normalizeOverlapSelection(['schd', ' VOO ', 'SCHD', '', '<x>'])).toEqual(['SCHD', 'VOO']);
     expect(normalizeOverlapSelection(['A', 'B', 'C', 'D', 'E', 'F', 'G'])).toHaveLength(MAX_OVERLAP_ETFS);
+  });
+});
+
+describe('normalizeOverlapBasket — 티커와 비중은 짝으로 걸러진다', () => {
+  it('버려진 티커의 비중도 함께 버린다(뒤의 짝이 밀리지 않는다)', () => {
+    expect(normalizeOverlapBasket(['SCHD', 'SCHD', '<x>', 'VOO'], ['60', '10', '20', '40'])).toEqual({
+      tickers: ['SCHD', 'VOO'],
+      weights: [60, 40]
+    });
+  });
+
+  it('비중이 없거나 이상하면 그 ETF 만 기본값이고, 눈금에 맞춰 자른다', () => {
+    expect(normalizeOverlapBasket(['A', 'B', 'C', 'D'], ['abc', '-3', '999', '42'])).toEqual({
+      tickers: ['A', 'B', 'C', 'D'],
+      weights: [OVERLAP_DEFAULT_WEIGHT, OVERLAP_DEFAULT_WEIGHT, 100, 40]
+    });
+    expect(normalizeOverlapBasket(['A']).weights).toEqual([OVERLAP_DEFAULT_WEIGHT]);
+  });
+
+  it('URL 로 썼다 다시 읽으면 같은 바구니다(왕복)', () => {
+    const basket = { tickers: ['SCHD', 'QQQ'], weights: [70, 30] };
+    const params = overlapBasketParams(basket);
+    expect(normalizeOverlapBasket(params.t!.split(','), params.w!.split(','))).toEqual(basket);
+  });
+
+  it('모두 기본값이면 w 를 싣지 않는다 — 예전(비중 없는) 링크와 같은 모양', () => {
+    expect(overlapBasketParams({ tickers: ['A', 'B'], weights: [50, 50] })).toEqual({ t: 'A,B' });
+    expect(overlapBasketParams({ tickers: [], weights: [] })).toEqual({});
+  });
+});
+
+describe('비중 보조', () => {
+  it('새로 담는 ETF 는 지금 비중들의 평균이다', () => {
+    expect(nextOverlapWeight([])).toBe(OVERLAP_DEFAULT_WEIGHT);
+    expect(nextOverlapWeight([80, 20])).toBe(50);
+    expect(nextOverlapWeight([100, 30])).toBe(65);
+  });
+
+  it('몫은 합이 정확히 100.0 이다(반올림 차이는 가장 큰 몫이 진다)', () => {
+    expect(overlapShares([50, 50, 50])).toEqual([33.4, 33.3, 33.3]);
+    expect(overlapShares([60, 40])).toEqual([60, 40]);
+    expect(overlapShares([])).toEqual([]);
   });
 });
 

@@ -298,3 +298,53 @@ export const buildSingleTickerPrefillState = (
 
   return sanitized === null ? null : { portfolioSimulationPrefill: sanitized, scenarioName: symbol };
 };
+
+export type WeightedTickersPrefill = {
+  /** 실어 보낼 state. 시뮬레이터가 아는 티커가 하나도 없으면 `null`(CTA 를 잠글 신호). */
+  state: PortfolioSimulationPrefillState | null;
+  /** 시뮬레이터가 몰라서 **뺀** 티커 — 화면이 반드시 함께 말한다(무음 왜곡 금지, AC5-2 와 같은 규율). */
+  excluded: string[];
+};
+
+/**
+ * **"이 조합으로 배당 시뮬레이션"(ETF 조합 짜기 → 시뮬레이터) 프리필 state.**
+ *
+ * 여러 티커를 **정한 비중 그대로** 싣는다. 시뮬레이터가 모르는 티커(프리셋에 없는 ETF)는 빼고,
+ * 남은 비중을 100 으로 다시 맞춘다 — `buildPortfolioSimulationPrefillState` 와 같은 규칙이고, 받는 쪽 계약
+ * (`sanitizePortfolioSimulationPrefill`)도 같다. 그래서 **받는 쪽은 한 줄도 바뀌지 않는다.**
+ *
+ * 초기 투자금은 0 이다 — 조합에는 금액이라는 개념이 없다(`buildSingleTickerPrefillState` 와 같은 이유).
+ */
+export const buildWeightedTickersPrefillState = (
+  items: readonly { readonly ticker: string; readonly weight: number }[],
+  scenarioName: string,
+  universe: Readonly<Record<string, unknown>> = DIVIDEND_UNIVERSE
+): WeightedTickersPrefill => {
+  const known: { ticker: string; weight: number }[] = [];
+  const excluded: string[] = [];
+  for (const item of items) {
+    const symbol = normalizePrefillTicker(item.ticker);
+    if (!symbol) continue;
+    if (isSimulationKnownTicker(symbol, universe) && Number.isFinite(item.weight) && item.weight > 0) {
+      known.push({ ticker: symbol, weight: item.weight });
+    } else {
+      excluded.push(symbol);
+    }
+  }
+
+  const total = known.reduce((sum, item) => sum + item.weight, 0);
+  if (known.length === 0 || total <= 0) return { state: null, excluded };
+
+  const sanitized = sanitizePortfolioSimulationPrefill({
+    initialInvestmentKrw: 0,
+    holdings: known.map((item) => ({
+      ticker: item.ticker,
+      weightPercent: (item.weight * PORTFOLIO_PREFILL_WEIGHT_TOTAL) / total
+    }))
+  });
+
+  return {
+    state: sanitized === null ? null : { portfolioSimulationPrefill: sanitized, scenarioName },
+    excluded
+  };
+};

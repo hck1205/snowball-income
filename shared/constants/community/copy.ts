@@ -63,7 +63,7 @@ export const COMMUNITY_COPY = {
     tickers: 'ETF 소개',
     /** 종목 비교(/ticker/compare). ETF 소개와 같은 '종목 정보' 축이라 그 바로 뒤에 선다. */
     tickerCompare: '종목 비교',
-    tickerOverlap: 'ETF 겹침 비교',
+    etfMix: 'ETF 조합 짜기',
     /**
      * 배당 히든스타(/dividend/hidden-stars) — 배당 목록 묶음의 마지막 자리(2026-08-08 신설).
      * ⚠ '숨은 보석'·'유망주' 같은 말을 쓰지 않는다 — 이 서비스는 종목을 추천하지 않는다.

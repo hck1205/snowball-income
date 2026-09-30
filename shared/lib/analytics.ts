@@ -197,6 +197,10 @@ export const ANALYTICS_EVENT = {
   // 🔴 클릭을 센다(도착이 아니라) — 시뮬레이터 도착은 프리필을 `location.state` 로 받아 URL 에 표식이
   //    남지 않으므로 도착측에서 셀 수 없다. 그래서 이 짝은 비대칭이다(비교=도착, 여기=클릭).
   COMPARE_TO_SIMULATOR: "compare_to_simulator",
+  // ETF 조합 짜기에서 담은 조합을 비중 그대로 시뮬레이터로 보냄("이 조합으로 배당 시뮬레이션").
+  // 용도: 조합 화면 → 코어 제품(시뮬레이터) 전환 측정. compare_to_simulator 와 같은 이유로 **클릭**을 센다.
+  // excluded_count 가 자주 0 이 아니면 시뮬레이터 프리셋에 없는 ETF 를 많이 담는다는 신호다(프리셋 확장 근거).
+  ETF_MIX_TO_SIMULATOR: "etf_mix_to_simulator",
   // 시장 온도 화면에서 시뮬레이터로 유입("진입 시점보다 기간" 넛지 클릭).
   // 용도: §3-2 리텐션층(일간 재방문) → 코어 제품(시뮬레이터) 전환 측정. community_to_simulator 와 같은 짝이다.
   // 🔴 클릭을 센다 — 도착은 URL 에 표식이 없어 셀 수 없다(compare_to_simulator 와 같은 이유).
@@ -476,6 +480,12 @@ export type AnalyticsEventParamMap = {
     from: string;
     /** 실제로 열린 열 수. 고른 수와 다를 수 있다 — 유니버스에서 빠진 티커는 걸러진다. */
     ticker_count: number;
+  };
+  [ANALYTICS_EVENT.ETF_MIX_TO_SIMULATOR]: {
+    /** 시뮬레이터로 실제로 넘어간 ETF 수. */
+    etf_count: number;
+    /** 시뮬레이터가 몰라서 뺀 ETF 수. */
+    excluded_count: number;
   };
   [ANALYTICS_EVENT.COMPARE_TO_SIMULATOR]: {
     /** 시뮬레이터로 보낸 종목(대문자 심볼). */

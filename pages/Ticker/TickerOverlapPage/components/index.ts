@@ -2,5 +2,6 @@
 export { default as OverlapBasket } from './OverlapBasket';
 export { default as OverlapMatrix } from './OverlapMatrix';
 export { default as OverlapPicker } from './OverlapPicker';
+export { default as OverlapSimulate } from './OverlapSimulate';
 export { default as OverlapStocks } from './OverlapStocks';
 export { default as OverlapVerdict } from './OverlapVerdict';

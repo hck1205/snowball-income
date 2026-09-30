@@ -2,7 +2,7 @@ import { Layers } from 'lucide-react';
 import { PageFooter, PageHero } from '@/components/common';
 import { assignSeries } from '@/shared/lib/tickerSeries';
 import { TICKER_OVERLAP_COPY } from '../copy';
-import { OverlapBasket, OverlapMatrix, OverlapPicker, OverlapStocks, OverlapVerdict } from './components';
+import { OverlapBasket, OverlapMatrix, OverlapPicker, OverlapSimulate, OverlapStocks, OverlapVerdict } from './components';
 import { PickerColumn, ResultColumn, Stack, Workbench } from './styled';
 import type { TickerOverlapViewProps } from './TickerOverlapPage.types';
 
@@ -19,10 +19,25 @@ export default function TickerOverlapView({
   onQueryChange,
   onSubmitQuery,
   onAdd,
-  onRemove
+  onRemove,
+  onWeightChange,
+  onEqualize,
+  onSimulate
 }: TickerOverlapViewProps) {
-  const { listStatus, query, candidates, isSearching, slots, isAtLimit, analysis, analyzedCount, change, asOfItems } =
-    viewModel;
+  const {
+    listStatus,
+    query,
+    candidates,
+    isSearching,
+    slots,
+    isAtLimit,
+    isEqualWeight,
+    analysis,
+    analyzedCount,
+    change,
+    asOfItems,
+    simulation
+  } = viewModel;
 
   const seriesByTicker = assignSeries(slots.map((slot) => slot.ticker));
   const seriesOf = (ticker: string): string => seriesByTicker.get(ticker) ?? 'transparent';
@@ -54,8 +69,21 @@ export default function TickerOverlapView({
           />
         </PickerColumn>
         <ResultColumn>
-          <OverlapBasket slots={slots} seriesOf={seriesOf} onRemove={onRemove} />
+          <OverlapBasket
+            slots={slots}
+            seriesOf={seriesOf}
+            isEqualWeight={isEqualWeight}
+            onRemove={onRemove}
+            onWeightChange={onWeightChange}
+            onEqualize={onEqualize}
+          />
           <OverlapVerdict analysis={analysis} analyzedCount={analyzedCount} change={change} />
+          <OverlapSimulate
+            basketSize={slots.length}
+            canSimulate={simulation.canSimulate}
+            excluded={simulation.excluded}
+            onSimulate={onSimulate}
+          />
         </ResultColumn>
       </Workbench>
 

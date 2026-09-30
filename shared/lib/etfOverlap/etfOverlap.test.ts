@@ -81,7 +81,50 @@ describe('analyzeBasket — 같은 금액씩 산 합친 포트폴리오', () => 
   });
 });
 
+describe('analyzeBasket — 비중', () => {
+  it('비중대로 합친다: 60/40 이면 X = 0.6×50 + 0.4×50, Y = 0.6×50, Z = 0.4×50', () => {
+    const result = analyzeBasket([snap('A', { X: 50, Y: 50 }), snap('B', { X: 50, Z: 50 })], [60, 40]);
+    expect(result.stocks.find((stock) => stock.key === 'X')!.exposure).toBe(50);
+    expect(result.stocks.find((stock) => stock.key === 'Y')!.exposure).toBe(30);
+    expect(result.stocks.find((stock) => stock.key === 'Z')!.exposure).toBe(20);
+    expect(result.overlapRate).toBe(50);
+  });
+
+  it('겹치지 않는 ETF 에 비중을 몰면 중복률이 줄어든다', () => {
+    const basket = [snap('A', { X: 100 }), snap('B', { X: 50, Z: 50 })];
+    // 겹치는 X 의 몫 = pA×100 + pB×50, 전체 = 100 → 비중이 B 로 갈수록 줄어든다
+    expect(analyzeBasket(basket, [50, 50]).overlapRate).toBe(75);
+    expect(analyzeBasket(basket, [10, 90]).overlapRate).toBe(55);
+  });
+
+  it('비중 합이 100 이 아니어도 몫으로 정규화한다', () => {
+    const basket = [snap('A', { X: 50, Y: 50 }), snap('B', { X: 50, Z: 50 })];
+    expect(analyzeBasket(basket, [3, 2])).toEqual(analyzeBasket(basket, [60, 40]));
+  });
+
+  it('비중이 이상하면(길이 불일치·0·음수) 같은 금액으로 본다', () => {
+    const basket = [snap('A', { X: 50, Y: 50 }), snap('B', { X: 50, Z: 50 })];
+    const equal = analyzeBasket(basket);
+    expect(analyzeBasket(basket, [1])).toEqual(equal);
+    expect(analyzeBasket(basket, [0, 10])).toEqual(equal);
+    expect(analyzeBasket(basket, [-1, 10])).toEqual(equal);
+  });
+
+  it('두 ETF 의 겹침(짝)은 바구니 비중과 무관하다', () => {
+    const basket = [snap('A', { X: 50, Y: 50 }), snap('B', { X: 50, Z: 50 })];
+    expect(analyzeBasket(basket, [90, 10]).pairs).toEqual(analyzeBasket(basket).pairs);
+  });
+});
+
 describe('previewAddDelta — 담기 전 미리보기', () => {
+  it('비중이 있으면 새 ETF 는 지금 비중들의 평균으로 들어간다고 본다', () => {
+    const basket = [snap('A', { X: 100 }), snap('B', { Z: 100 })];
+    const candidate = snap('C', { X: 100 });
+    const expected =
+      analyzeBasket([...basket, candidate], [80, 20, 50]).overlapRate - analyzeBasket(basket, [80, 20]).overlapRate;
+    expect(previewAddDelta(basket, candidate, { weights: [80, 20] })).toBeCloseTo(expected, 2);
+  });
+
   it('담은 뒤 중복률 − 지금 중복률(%p)', () => {
     const basket = [snap('A', { X: 50, Y: 50 }), snap('B', { Z: 100 })];
     const candidate = snap('C', { X: 50, Z: 50 });
@@ -93,7 +136,9 @@ describe('previewAddDelta — 담기 전 미리보기', () => {
   it('지금 중복률을 넘겨도 결과가 같다(후보마다 바구니를 다시 세지 않는 경로)', () => {
     const basket = [snap('A', { X: 50, Y: 50 }), snap('B', { Z: 100 })];
     const candidate = snap('C', { X: 50, Z: 50 });
-    expect(previewAddDelta(basket, candidate, analyzeBasket(basket).overlapRate)).toBe(previewAddDelta(basket, candidate));
+    expect(previewAddDelta(basket, candidate, { currentRate: analyzeBasket(basket).overlapRate })).toBe(
+      previewAddDelta(basket, candidate)
+    );
   });
 
   it('바구니가 비었거나 이미 담긴 ETF 면 null', () => {

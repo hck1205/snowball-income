@@ -15,6 +15,10 @@ export type OverlapSlot = {
   readonly status: 'loading' | 'ready' | 'error';
   /** 보유 종목 기준일. 받기 전이면 `null`. */
   readonly asOfDate: string | null;
+  /** 상대 비중(슬라이더 값). */
+  readonly weight: number;
+  /** 바구니 안에서의 몫(%, 소수 첫째 자리). 모든 몫의 합은 100.0. */
+  readonly share: number;
 };
 
 /** 방금 한 동작과 그 결과 — 중복률이 얼마나 움직였나. */
@@ -34,6 +38,8 @@ export type TickerOverlapViewModel = {
   readonly isSearching: boolean;
   readonly slots: readonly OverlapSlot[];
   readonly isAtLimit: boolean;
+  /** 모든 비중이 기본값(같은 금액씩)인가 — "균등하게" 버튼을 잠근다. */
+  readonly isEqualWeight: boolean;
   /** 보유 종목을 받은 ETF 로만 계산한 결과. */
   readonly analysis: BasketAnalysis;
   /** 계산에 들어간 ETF 수(받는 중·실패한 것은 빠진다). */
@@ -41,6 +47,8 @@ export type TickerOverlapViewModel = {
   readonly change: OverlapChange | null;
   /** 각주의 "기준일 — SCHD 2026-06-30 · …". */
   readonly asOfItems: readonly string[];
+  /** 배당 시뮬레이터로 넘길 수 있나, 넘길 때 빠지는 ETF(시뮬레이터 프리셋에 없는 것). */
+  readonly simulation: { readonly canSimulate: boolean; readonly excluded: readonly string[] };
 };
 
 export type TickerOverlapViewProps = {
@@ -50,4 +58,9 @@ export type TickerOverlapViewProps = {
   onSubmitQuery: () => void;
   onAdd: (ticker: string) => void;
   onRemove: (ticker: string) => void;
+  onWeightChange: (ticker: string, weight: number) => void;
+  /** 모든 비중을 기본값으로 — 같은 금액씩. */
+  onEqualize: () => void;
+  /** 이 조합을 비중 그대로 배당 시뮬레이터로 보낸다. */
+  onSimulate: () => void;
 };
