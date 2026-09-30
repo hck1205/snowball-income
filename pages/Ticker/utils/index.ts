@@ -38,3 +38,24 @@ export {
   removeTicker
 } from './tickerSelection';
 export type { CompareEntryPoint } from './tickerSelection';
+
+/* ETF 조합 짜기(`/ticker/overlap`) 화면 규칙 — 계산은 `shared/lib/etfOverlap` 이 한다. */
+export {
+  MAX_OVERLAP_ETFS,
+  OVERLAP_DEFAULT_WEIGHT,
+  OVERLAP_SEARCH_LIMIT,
+  OVERLAP_WEIGHT_MAX,
+  OVERLAP_WEIGHT_MIN,
+  OVERLAP_WEIGHT_STEP,
+  deltaTone,
+  formatDelta,
+  formatPercent,
+  nextOverlapWeight,
+  normalizeOverlapBasket,
+  normalizeOverlapSelection,
+  overlapBasketParams,
+  overlapShares,
+  overlapLevel,
+  searchEtfUniverse
+} from './tickerOverlap';
+export type { DeltaTone, OverlapBasketState, OverlapLevel } from './tickerOverlap';

@@ -48,6 +48,7 @@ on:
       - Refresh US market calendar
       - Refresh US congress stock trades
       - Refresh Korean assembly stock holdings
+      - Refresh ETF holdings
       - Check curated calendar horizon
       - Main health check
     types: [completed]

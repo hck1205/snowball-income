@@ -9,6 +9,7 @@ import {
   Flame,
   Gem,
   Landmark,
+  Layers,
   LayoutGrid,
   LineChart,
   ListOrdered,
@@ -113,7 +114,7 @@ export const TICKER_GROUP_ITEMS = [
 ] as const;
 
 /**
- * 내 자산계획 — 시뮬레이터 · 나의 배당 포트폴리오 · 투자 성향 테스트 · 가계부. 넷 다 주어가 '나'다.
+ * 내 자산계획 — 시뮬레이터 · 나의 배당 포트폴리오 · ETF 조합 짜기 · 가계부. 넷 다 주어가 '나'다.
  * 순서는 **계획 → 지금 → 나 → 흐름**이다: 앞으로 얼마가 될지, 지금 무엇을 갖고 있는지,
  * 나는 어떤 성향인지, 매달 얼마가 들고 나는지.
  *
@@ -123,6 +124,13 @@ export const TICKER_GROUP_ITEMS = [
 export const PERSONAL_GROUP_ITEMS = [
   { to: SIMULATOR_PATH, label: n.simulator, Icon: LineChart, sheetsOnly: false },
   { to: '/dividend/portfolio', label: n.myPortfolio, Icon: Wallet, sheetsOnly: false },
+  /*
+   * ETF 조합 짜기(2026-09-30 사용자 지시) — 처음에는 "종목 탐색"에 "ETF 겹침 비교"로 있었다.
+   * 이 화면의 주어는 ETF 가 아니라 **"내가 담을 조합"**이라 이 묶음으로 왔다(비중을 넣고 배당 시뮬레이터로 넘긴다).
+   * ⚠ 주소(`/ticker/overlap`)는 그대로다 — 사이트맵·정적 셸·공유 링크가 이미 그 주소를 쓴다.
+   *   `/portfolio/…` 는 "누구의 포트폴리오"(대가·국민연금·의원) 축이라 피했다.
+   */
+  { to: '/ticker/overlap', label: n.etfMix, Icon: Layers, sheetsOnly: false },
   /*
    * 🔴 **투자 성향 테스트(`/investor-type`)는 이 묶음에서 빠졌다**(2026-08-27 사용자 지시).
    *

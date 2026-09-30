@@ -1,0 +1,131 @@
+name: Refresh ETF holdings
+
+# ETF 조합 짜기 화면(`/ticker/overlap`)의 데이터를 갱신한다.
+#  - `public/data/etf-holdings/<TICKER>.json` — SEC N-PORT 공시의 보유 종목(명단 `scripts/etfHoldings/roster.ts`)
+#  - `public/data/etf-holdings/index.json`    — 검색 목록(미국 상장 ETF 전체)
+#  - `utils/TickerParser/output/etf-listed.json` — 검색 목록의 원천(거래소 원본의 ETF 열)
+#
+# ## 왜 매일 도는가 — 분기 공시인데
+# 13F 와 같은 설계다: **매일 확인하고, 바뀔 때만 갱신한다**(`scripts/etfHoldings/cli.ts` 머리주석).
+# 접수번호가 같으면 받지 않으므로 평소 요청은 ETF 당 1건이고, 실제 갱신은 공시가 몰리는 주간에 생긴다.
+# 발행사마다 제출일이 제각각이라 분기 날짜를 크론에 박으면 늦게 낸 ETF 를 한 분기 통째로 놓친다.
+#
+# ## PR 을 열고 멈춘다 (자동 머지하지 않는다)
+# 새 수집기라 처음 몇 회차는 사람이 결과를 보고 머지한다. 안정되면 다른 갱신 워크플로(refresh-13f 등)처럼
+# 자동 머지로 바꿀지 그때 정한다.
+on:
+  schedule:
+    # 매일 22:30 UTC == 다음 날 07:30 KST. 다른 갱신 워크플로와 시각이 겹치지 않게 두었다.
+    - cron: '30 22 * * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Re-collect every ETF even if the accession number is unchanged (parser fixes)'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: refresh-etf-holdings
+  cancel-in-progress: false
+
+env:
+  # 🔴 Node 시작 전에 심는다(refresh-13f.yml 과 같은 이유 — V8 이 타임존을 첫 Date 사용 때 캐시한다).
+  TZ: Asia/Seoul
+  REFRESH_BRANCH: chore/refresh-etf-holdings
+  HOLDINGS_DIR: public/data/etf-holdings
+  ETF_LISTED_JSON: utils/TickerParser/output/etf-listed.json
+
+jobs:
+  refresh-etf-holdings:
+    runs-on: ubuntu-latest
+    # 명단 전체를 처음 받는 날(또는 force)은 ETF 150여 개 × 2 요청이다. 평소에는 몇 분 안에 끝난다.
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # 거래소 원본을 새로 받아 ETF 목록(`etf-listed.json`)을 만든다. 실패하면 파서가 지난 파일을 둔다.
+      # ⚠ 이 단계는 nasdaq-listed·other-listed 도 다시 쓰지만 **그 둘은 커밋하지 않는다**(아래 git add 는
+      #   경로를 명시한다) — 시뮬레이터 티커 모달의 데이터라 이 워크플로의 관심사가 아니다.
+      - name: Refresh the ETF list
+        run: npm run ticker:parse
+
+      - name: Collect ETF holdings (SEC N-PORT)
+        env:
+          FORCE: ${{ inputs.force }}
+        run: |
+          args=""
+          if [ "$FORCE" = "true" ]; then args="--force"; fi
+          npm run etf:holdings -- $args
+
+      # 이 데이터는 지금 `api/*.js` 번들에 들어가지 않는다(화면이 정적 파일로 받는다). 그래도 돌린다 —
+      # 바뀐 것이 없으면 아무 파일도 변하지 않고(멱등), 나중에 서버 번들이 이 데이터를 품게 되면
+      # 데이터만 커밋돼 `api:check` 가 깨지는 사고(refresh-13f.yml 의 2026-08-12 기록)를 미리 막는다.
+      - name: Rebundle api outputs
+        run: npm run api:bundle
+
+      - name: Typecheck
+        # 전체(app + scripts + api). bare `tsc -b` 는 루트만 본다.
+        run: npx tsc -b tsconfig.build.json
+
+      - name: Test
+        run: npm run test:ci
+
+      # 바뀐 것이 없는 날(대부분)은 빈 커밋도 빈 PR 도 만들지 않는다.
+      - name: Commit the refreshed holdings
+        id: commit
+        run: |
+          git add "$HOLDINGS_DIR" "$ETF_LISTED_JSON" api
+          if git diff --cached --quiet; then
+            echo "새 N-PORT 공시가 없다."
+            echo "committed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git push origin --delete "$REFRESH_BRANCH" 2>/dev/null || true
+          git checkout -B "$REFRESH_BRANCH"
+          git -c user.name="github-actions[bot]" -c user.email="github-actions[bot]@users.noreply.github.com" \
+            commit -m "chore(data): ETF 보유 종목 갱신 (SEC N-PORT)"
+          git push origin "$REFRESH_BRANCH"
+          echo "committed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Open the ETF holdings PR
+        if: steps.commit.outputs.committed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh pr view "$REFRESH_BRANCH" --json state --jq .state 2>/dev/null | grep -q OPEN; then
+            echo "이미 열린 PR 이 있다 — 브랜치만 갱신했다."
+            exit 0
+          fi
+          {
+            echo 'SEC EDGAR 에서 새 N-PORT 공시를 발견해 ETF 보유 종목을 갱신했습니다.'
+            echo
+            echo '- `public/data/etf-holdings/` — ETF 별 보유 종목 + 검색 목록'
+            echo '- `utils/TickerParser/output/etf-listed.json` — 미국 상장 ETF 목록'
+            echo
+            echo '### 이 자료의 성질'
+            echo 'N-PORT 는 **분기말 기준 보유**이고 공개는 그로부터 약 60일 뒤입니다. 화면은 각 ETF 의 기준일을 함께 보여 줍니다. 현금·파생·공매도 포지션은 담지 않습니다.'
+            echo
+            echo '### 검토할 것'
+            echo '수집기는 실패해도 기존 파일을 덮지 않습니다. 워크플로 로그의 "실패"·"건너뜀" 줄을 확인한 뒤 머지해 주세요.'
+          } > pr-body.md
+          gh pr create --base main --head "$REFRESH_BRANCH" \
+            --title "chore(data): ETF 보유 종목 갱신 (SEC N-PORT)" \
+            --body-file pr-body.md
