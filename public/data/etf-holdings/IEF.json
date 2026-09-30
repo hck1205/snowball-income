@@ -1,0 +1,18 @@
+{"ticker":"IEF","name":"iShares 7-10 Year Treasury Bond ETF","seriesId":"S000004358","asOfDate":"2026-05-31","filingDate":"2026-07-24","accessionNumber":"0002071691-26-016715","sourceUrl":"https://www.sec.gov/Archives/edgar/data/1100663/000207169126016715/primary_doc.xml","totalHoldings":15,"coveredWeightPercent":98.21,
+"holdings":[
+{"key":"US91282CPZ85","symbol":null,"name":"United States of America","weight":9.5352},
+{"key":"US91282CJZ59","symbol":null,"name":"United States of America","weight":8.7786},
+{"key":"US91282CMM00","symbol":null,"name":"United States of America","weight":8.7513},
+{"key":"US91282CJJ18","symbol":null,"name":"United States of America","weight":8.7331},
+{"key":"US91282CNT44","symbol":null,"name":"United States of America","weight":8.7145},
+{"key":"US91282CLW90","symbol":null,"name":"United States of America","weight":8.6313},
+{"key":"US91282CPJ44","symbol":null,"name":"United States of America","weight":8.5322},
+{"key":"US91282CKQ32","symbol":null,"name":"United States of America","weight":8.3099},
+{"key":"US91282CNC19","symbol":null,"name":"United States of America","weight":8.2181},
+{"key":"US91282CLF67","symbol":null,"name":"United States of America","weight":6.7256},
+{"key":"US91282CHT18","symbol":null,"name":"United States of America","weight":5.8054},
+{"key":"US91282CHC82","symbol":null,"name":"United States of America","weight":5.3243},
+{"key":"US91282CQF13","symbol":null,"name":"United States of America","weight":1.4732},
+{"key":"US91282CQC81","symbol":null,"name":"United States of America","weight":0.3818},
+{"key":"US91282CGM73","symbol":null,"name":"United States of America","weight":0.2989}
+]}

@@ -1,0 +1,17 @@
+{"ticker":"SVOL","name":"Simplify Volatility Premium ETF","seriesId":"S000071794","asOfDate":"2026-06-30","filingDate":"2026-08-24","accessionNumber":"0000940400-26-033610","sourceUrl":"https://www.sec.gov/Archives/edgar/data/1810747/000094040026033610/primary_doc.xml","totalHoldings":14,"coveredWeightPercent":176.34,
+"holdings":[
+{"key":"US912797VM69","symbol":null,"name":"UNITED STATES OF AMERICA - BUREAU OF THE PUBLIC DEBT","weight":81.9861},
+{"key":"US912797TN70","symbol":null,"name":"UNITED STATES OF AMERICA - BUREAU OF THE PUBLIC DEBT","weight":15.6447},
+{"key":"US82889N3017","symbol":"SPUC","name":"Simplify Exchange Traded Funds","weight":14.823},
+{"key":"US912797UU94","symbol":null,"name":"UNITED STATES OF AMERICA - BUREAU OF THE PUBLIC DEBT","weight":14.6751},
+{"key":"US82889N7232","symbol":"AGGH","name":"Simplify Exchange Traded Funds","weight":7.8417},
+{"key":"US82889N6408","symbol":"BUCK","name":"Simplify Exchange Traded Funds","weight":7.339},
+{"key":"US82889N4429","symbol":"NMB","name":"Simplify Exchange Traded Funds","weight":7.13},
+{"key":"US82889N5335","symbol":"QIS","name":"Simplify Exchange Traded Funds","weight":6.9796},
+{"key":"US912797US49","symbol":null,"name":"UNITED STATES OF AMERICA - BUREAU OF THE PUBLIC DEBT","weight":6.7971},
+{"key":"US82889N4759","symbol":"NXTI","name":"Simplify Exchange Traded Funds","weight":5.2808},
+{"key":"US912797UR65","symbol":null,"name":"UNITED STATES OF AMERICA - BUREAU OF THE PUBLIC DEBT","weight":3.309},
+{"key":"US82889N3504","symbol":"XV","name":"Simplify Exchange Traded Funds","weight":2.8521},
+{"key":"US912797VD60","symbol":null,"name":"UNITED STATES OF AMERICA - BUREAU OF THE PUBLIC DEBT","weight":1.0967},
+{"key":"US82889N3272","symbol":"LITL","name":"Simplify Exchange Traded Funds","weight":0.5805}
+]}
