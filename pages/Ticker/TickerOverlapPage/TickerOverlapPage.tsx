@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { analyzeBasket, previewAddDelta } from '@/shared/lib/etfOverlap';
 import type { EtfHoldingsSnapshot, EtfUniverseEntry } from '@/shared/lib/etfOverlap';
@@ -6,8 +6,9 @@ import { TickerPageShell } from '../components';
 import { TICKER_OVERLAP_COPY } from '../copy';
 import { useDocumentMeta, useEtfSnapshots, useEtfUniverse } from '../hooks';
 import { MAX_OVERLAP_ETFS, normalizeOverlapSelection, searchEtfUniverse } from '../utils';
+import { useOverlapChange } from './hooks';
 import TickerOverlapView from './TickerOverlapPage.view';
-import type { OverlapCandidate, OverlapChange, OverlapSlot, TickerOverlapViewModel } from './TickerOverlapPage.types';
+import type { OverlapCandidate, OverlapSlot, TickerOverlapViewModel } from './TickerOverlapPage.types';
 
 const copy = TICKER_OVERLAP_COPY;
 
@@ -77,37 +78,15 @@ export default function TickerOverlapPage() {
   const analysis = useMemo(() => analyzeBasket(basketSnapshots), [basketSnapshots]);
   const isSettled = selected.every((ticker) => snapshots.get(ticker)?.status !== 'loading');
 
-  /*
-   * 방금 한 동작의 결과(%p). 담은 ETF 의 보유 종목이 **도착한 뒤에** 계산해야 맞는 값이 나온다 —
-   * 누른 순간에는 아직 옛 바구니로 계산된 값이라 0 으로 보인다. 그래서 "누른 순간의 중복률"을 쥐고 있다가
-   * 바구니가 다 받아졌을 때 차이를 낸다.
-   * 🔴 "기대하는 바구니"(`expected`)가 URL 의 바구니와 **같아진 뒤에만** 푼다. 바구니는 URL 이 소유해서
-   *    `setSearchParams` 가 이 상태 갱신보다 한 렌더 늦게 반영될 수 있다 — 그 사이에 풀면 옛 바구니끼리
-   *    비교해 "담음 · 0.0%p" 가 나온다(2026-09-29 화면 확인에서 실제로 났다).
-   */
-  const [pending, setPending] = useState<{
-    kind: OverlapChange['kind'];
-    ticker: string;
-    before: number;
-    expected: string;
-  } | null>(null);
   const selectionKey = selected.join(',');
-  const [change, setChange] = useState<OverlapChange | null>(null);
-  useEffect(() => {
-    if (!pending || !isSettled || pending.expected !== selectionKey) return;
-    setChange({
-      kind: pending.kind,
-      ticker: pending.ticker,
-      delta: analysis.overlapRate - pending.before,
-      id: Date.now()
-    });
-    setPending(null);
-  }, [pending, isSettled, selectionKey, analysis.overlapRate]);
+  const { change, markChange } = useOverlapChange({ selectionKey, isSettled, overlapRate: analysis.overlapRate });
 
+  /** 바구니를 바꾼다(URL 에 쓴다). 정규화한 새 바구니를 돌려준다 — 변화 추적이 그 값을 기다린다. */
   const commit = useCallback(
-    (tickers: readonly string[]) => {
+    (tickers: readonly string[]): string[] => {
       const next = normalizeOverlapSelection(tickers);
       setSearchParams(next.length === 0 ? {} : { [SELECTION_PARAM]: next.join(',') }, { replace: true });
+      return next;
     },
     [setSearchParams]
   );
@@ -115,21 +94,21 @@ export default function TickerOverlapPage() {
   const handleAdd = useCallback(
     (ticker: string) => {
       if (selected.includes(ticker) || selected.length >= MAX_OVERLAP_ETFS) return;
-      const next = [...selected, ticker];
-      setPending({ kind: 'added', ticker, before: analysis.overlapRate, expected: normalizeOverlapSelection(next).join(',') });
-      commit(next);
+      markChange('added', ticker, commit([...selected, ticker]));
     },
-    [analysis.overlapRate, commit, selected]
+    [commit, markChange, selected]
   );
 
   const handleRemove = useCallback(
     (ticker: string) => {
       if (!selected.includes(ticker)) return;
-      const next = selected.filter((item) => item !== ticker);
-      setPending({ kind: 'removed', ticker, before: analysis.overlapRate, expected: normalizeOverlapSelection(next).join(',') });
-      commit(next);
+      markChange(
+        'removed',
+        ticker,
+        commit(selected.filter((item) => item !== ticker))
+      );
     },
-    [analysis.overlapRate, commit, selected]
+    [commit, markChange, selected]
   );
 
   /* Enter — 맨 위의 **담을 수 있는** 결과를 담고 검색창을 비운다(다음 검색을 바로 칠 수 있게). */
@@ -149,7 +128,7 @@ export default function TickerOverlapPage() {
         name: entry.name,
         hasHoldings: entry.hasHoldings,
         inBasket,
-        preview: snapshot && !inBasket ? previewAddDelta(basketSnapshots, snapshot) : null
+        preview: snapshot && !inBasket ? previewAddDelta(basketSnapshots, snapshot, analysis.overlapRate) : null
       };
     });
 

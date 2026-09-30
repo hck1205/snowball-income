@@ -90,6 +90,12 @@ describe('previewAddDelta — 담기 전 미리보기', () => {
     expect(previewAddDelta(basket, candidate)).toBeGreaterThan(0);
   });
 
+  it('지금 중복률을 넘겨도 결과가 같다(후보마다 바구니를 다시 세지 않는 경로)', () => {
+    const basket = [snap('A', { X: 50, Y: 50 }), snap('B', { Z: 100 })];
+    const candidate = snap('C', { X: 50, Z: 50 });
+    expect(previewAddDelta(basket, candidate, analyzeBasket(basket).overlapRate)).toBe(previewAddDelta(basket, candidate));
+  });
+
   it('바구니가 비었거나 이미 담긴 ETF 면 null', () => {
     const a = snap('A', { X: 100 });
     expect(previewAddDelta([], a)).toBeNull();

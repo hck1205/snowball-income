@@ -113,14 +113,18 @@ export const analyzeBasket = (basket: readonly EtfHoldingsSnapshot[]): BasketAna
 /**
  * "이걸 담으면 중복률이 얼마나 바뀌나"(%p). 바구니가 비어 있으면 비교할 것이 없어 `null`.
  * 🔴 이미 담긴 ETF 를 다시 넣어 계산하지 않는다 — 호출부가 걸러야 하지만 여기서도 `null`.
+ *
+ * `currentRate` — 지금 바구니의 중복률을 이미 알면 넘긴다. 후보 여럿을 미리볼 때 같은 바구니를
+ * 후보 수만큼 다시 계산하지 않게 한다(넘기지 않으면 여기서 센다 — 결과는 같다).
  */
 export const previewAddDelta = (
   basket: readonly EtfHoldingsSnapshot[],
-  candidate: EtfHoldingsSnapshot
+  candidate: EtfHoldingsSnapshot,
+  currentRate?: number
 ): number | null => {
   if (basket.length === 0) return null;
   if (basket.some((snapshot) => snapshot.ticker === candidate.ticker)) return null;
-  const before = analyzeBasket(basket).overlapRate;
+  const before = currentRate ?? analyzeBasket(basket).overlapRate;
   const after = analyzeBasket([...basket, candidate]).overlapRate;
   return round2(after - before);
 };

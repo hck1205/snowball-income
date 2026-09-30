@@ -76,3 +76,16 @@ export const formatDelta = (value: number): string => {
   if (rounded === 0) return '0.0';
   return `${rounded > 0 ? '+' : '−'}${Math.abs(rounded).toFixed(1)}`;
 };
+
+/**
+ * 증감의 방향 — 칩 색이 이 값을 따른다. 소수 첫째 자리에서 반올림한 값으로 판단한다
+ * (`formatDelta` 가 `0.0` 이라고 쓰는데 색만 "늘었다"로 칠해지면 글자와 색이 서로 다른 말을 한다).
+ */
+export type DeltaTone = 'up' | 'down' | 'flat';
+
+export const deltaTone = (delta: number): DeltaTone => {
+  const rounded = Math.round(delta * 10) / 10;
+  if (rounded > 0) return 'up';
+  if (rounded < 0) return 'down';
+  return 'flat';
+};

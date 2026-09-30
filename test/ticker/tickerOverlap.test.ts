@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   MAX_OVERLAP_ETFS,
+  deltaTone,
   formatDelta,
   formatPercent,
   normalizeOverlapSelection,
@@ -54,5 +55,11 @@ describe('표기', () => {
     expect(formatDelta(-1)).toBe('−1.0');
     expect(formatDelta(0.04)).toBe('0.0');
     expect(formatPercent(33.333)).toBe('33.3');
+  });
+
+  it('방향은 글자와 같은 반올림으로 정한다 — 0.0 이라 쓰면서 늘었다고 칠하지 않는다', () => {
+    expect(deltaTone(0.04)).toBe('flat');
+    expect(deltaTone(0.05)).toBe('up');
+    expect(deltaTone(-2)).toBe('down');
   });
 });

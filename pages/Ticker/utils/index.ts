@@ -43,10 +43,11 @@ export type { CompareEntryPoint } from './tickerSelection';
 export {
   MAX_OVERLAP_ETFS,
   OVERLAP_SEARCH_LIMIT,
+  deltaTone,
   formatDelta,
   formatPercent,
   normalizeOverlapSelection,
   overlapLevel,
   searchEtfUniverse
 } from './tickerOverlap';
-export type { OverlapLevel } from './tickerOverlap';
+export type { DeltaTone, OverlapLevel } from './tickerOverlap';
