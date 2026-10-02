@@ -11306,12 +11306,19 @@ var marketData_generated_default = {
       frequency: "quarterly",
       observedDividendCagr: 6.49,
       payoutMonths: [
-        3,
-        6,
-        9,
-        12
+        2,
+        5,
+        8,
+        11
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 42,
+      estimatedPayDayByMonth: {
+        "2": 11,
+        "5": 11,
+        "8": 11,
+        "11": 10
+      }
     },
     NVDA: {
       initialPrice: 230.86,
