@@ -11311,8 +11311,8 @@ var marketData_generated_default = {
         8,
         11
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 42,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "2": 11,
         "5": 11,
@@ -12487,12 +12487,19 @@ var marketData_generated_default = {
       frequency: "quarterly",
       observedDividendCagr: 2.93,
       payoutMonths: [
-        2,
-        5,
-        8,
-        11
+        3,
+        6,
+        9,
+        12
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 21,
+      estimatedPayDayByMonth: {
+        "3": 2,
+        "6": 2,
+        "9": 2,
+        "12": 1
+      }
     },
     TGT: {
       initialPrice: 156.7,
