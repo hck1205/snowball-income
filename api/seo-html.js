@@ -8089,10 +8089,15 @@ var marketData_generated_default = {
       frequency: "semiannual",
       observedDividendCagr: -7.26,
       payoutMonths: [
-        6,
-        12
+        1,
+        7
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 9,
+      estimatedPayDayByMonth: {
+        "1": 7,
+        "7": 7
+      }
     },
     ALB: {
       initialPrice: 105.03,
@@ -12492,8 +12497,8 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 21,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "3": 2,
         "6": 2,
