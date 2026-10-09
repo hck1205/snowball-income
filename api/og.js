@@ -4535,8 +4535,8 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 16,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "3": 21,
         "6": 18,
@@ -5604,7 +5604,14 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 5,
+      estimatedPayDayByMonth: {
+        "3": 31,
+        "6": 30,
+        "9": 30,
+        "12": 31
+      }
     },
     ROK: {
       initialPrice: 442.45,
@@ -5612,12 +5619,19 @@ var marketData_generated_default = {
       frequency: "quarterly",
       observedDividendCagr: 5.15,
       payoutMonths: [
-        2,
-        5,
-        8,
-        11
+        3,
+        6,
+        9,
+        12
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 23,
+      estimatedPayDayByMonth: {
+        "3": 10,
+        "6": 10,
+        "9": 10,
+        "12": 10
+      }
     },
     ROP: {
       initialPrice: 362.59,
@@ -5630,7 +5644,14 @@ var marketData_generated_default = {
         7,
         10
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 14,
+      estimatedPayDayByMonth: {
+        "1": 17,
+        "4": 22,
+        "7": 22,
+        "10": 21
+      }
     },
     ROST: {
       initialPrice: 234.1,
@@ -5642,7 +5663,14 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 21,
+      estimatedPayDayByMonth: {
+        "3": 31,
+        "6": 30,
+        "9": 30,
+        "12": 31
+      }
     },
     RSG: {
       initialPrice: 206.98,
