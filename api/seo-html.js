@@ -11359,7 +11359,11 @@ var marketData_generated_default = {
       payoutMonths: [
         3
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 11,
+      estimatedPayDayByMonth: {
+        "3": 18
+      }
     },
     NYT: {
       initialPrice: 63.71,
@@ -11901,8 +11905,8 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 5,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "3": 31,
         "6": 30,
@@ -11921,8 +11925,8 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 23,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "3": 10,
         "6": 10,
@@ -11941,8 +11945,8 @@ var marketData_generated_default = {
         7,
         10
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 14,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "1": 17,
         "4": 22,
@@ -11960,8 +11964,8 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 21,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "3": 31,
         "6": 30,
