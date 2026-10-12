@@ -8264,7 +8264,8 @@ var marketData_generated_default = {
       initialPrice: 88.58,
       dividendYield: 0,
       frequency: "annual",
-      observedDividendCagr: -20.8
+      observedDividendCagr: -20.8,
+      payoutMonthsSource: "none"
     },
     ASEA: {
       initialPrice: 20.9,
@@ -12638,8 +12639,8 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 21,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "3": 31,
         "6": 30,
