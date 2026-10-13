@@ -3444,7 +3444,12 @@ var marketData_generated_default = {
         6,
         12
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 5,
+      estimatedPayDayByMonth: {
+        "6": 18,
+        "12": 20
+      }
     },
     EWJV: {
       initialPrice: 48.02,
