@@ -11090,8 +11090,8 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 3,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "3": 31,
         "7": 2,
@@ -12312,11 +12312,18 @@ var marketData_generated_default = {
       frequency: "quarterly",
       payoutMonths: [
         3,
-        6,
+        4,
         9,
         12
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 7,
+      estimatedPayDayByMonth: {
+        "3": 29,
+        "4": 1,
+        "9": 30,
+        "12": 31
+      }
     },
     SPY: {
       initialPrice: 763.99,
