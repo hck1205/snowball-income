@@ -7990,7 +7990,22 @@ var marketData_generated_default = {
         11,
         12
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 14,
+      estimatedPayDayByMonth: {
+        "1": 15,
+        "2": 14,
+        "3": 14,
+        "4": 14,
+        "5": 14,
+        "6": 13,
+        "7": 15,
+        "8": 14,
+        "9": 15,
+        "10": 14,
+        "11": 14,
+        "12": 13
+      }
     },
     ADI: {
       initialPrice: 404.6,
@@ -12316,8 +12331,8 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 7,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "3": 29,
         "4": 1,
