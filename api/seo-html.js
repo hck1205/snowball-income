@@ -7990,8 +7990,8 @@ var marketData_generated_default = {
         11,
         12
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 14,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "1": 15,
         "2": 14,
@@ -9525,7 +9525,14 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 4,
+      estimatedPayDayByMonth: {
+        "3": 27,
+        "6": 27,
+        "9": 29,
+        "12": 30
+      }
     },
     ECL: {
       initialPrice: 271.26,
