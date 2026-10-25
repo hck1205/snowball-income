@@ -1620,7 +1620,14 @@ var marketData_generated_default = {
         8,
         11
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 3,
+      estimatedPayDayByMonth: {
+        "2": 13,
+        "5": 15,
+        "8": 14,
+        "11": 14
+      }
     },
     ABBV: {
       initialPrice: 259.93,
@@ -5916,8 +5923,8 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 38,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "3": 25,
         "6": 24,
