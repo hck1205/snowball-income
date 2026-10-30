@@ -1728,7 +1728,14 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 14,
+      estimatedPayDayByMonth: {
+        "3": 17,
+        "6": 17,
+        "9": 16,
+        "12": 20
+      }
     },
     ADM: {
       initialPrice: 79.52,
@@ -6018,8 +6025,8 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 21,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "3": 6,
         "6": 6,
