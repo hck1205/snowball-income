@@ -57,12 +57,12 @@ jobs:
       # 🔴 `ref` 를 명시한다. 스케줄 실행은 기본 브랜치를 쓰지만, 이 워크플로의 존재 이유가
       #    "main 이 초록인가"라 그 대상을 주석이 아니라 **코드로** 못 박는다.
       - name: Checkout main
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: main
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm

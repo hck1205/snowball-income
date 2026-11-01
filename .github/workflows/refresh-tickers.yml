@@ -68,12 +68,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm
@@ -132,7 +132,13 @@ jobs:
           git checkout -B "$REFRESH_BRANCH"
           git -c user.name="github-actions[bot]" -c user.email="github-actions[bot]@users.noreply.github.com" \
             commit -m "chore(data): monthly ticker market data refresh"
-          git push origin "$REFRESH_BRANCH"
+          # GitHub 쪽 일시 오류(2026-10-06 `index-pack failed`)로 push 한 번이 거부되면
+          # 월간 갱신은 한 달치를 통째로 잃는다 — 간격을 두고 3회까지 다시 민다.
+          for i in 1 2 3; do
+            git push origin "$REFRESH_BRANCH" && break
+            [ "$i" -eq 3 ] && exit 1
+            echo "push 실패(${i}/3) — $((i * 30))초 뒤 재시도"; sleep $((i * 30))
+          done
           echo "committed=true" >> "$GITHUB_OUTPUT"
 
       # Open the PR, then merge it unless a manual dispatch turned auto-merge off. A scheduled run
