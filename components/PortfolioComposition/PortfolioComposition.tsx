@@ -1,5 +1,5 @@
 import { memo, useCallback, useState, type CSSProperties } from 'react';
-import { Info, Lock, Pin, PinOff } from 'lucide-react';
+import { Info, Lock, Pin, PinOff, TriangleAlert } from 'lucide-react';
 import { Card, Chip, ToggleField } from '@/components';
 import { ALLOCATION_COPY, SIMULATOR_COPY, TOUR_TARGET } from '@/shared/constants';
 import { useDividendCenterModeAtomValue, useSetDividendCenterModeWrite } from '@/jotai';
@@ -14,6 +14,7 @@ import {
   AllocationColorDot,
   AllocationFixButton,
   AllocationHint,
+  AllocationZeroAmountWarning,
   AllocationHoldingBasis,
   AllocationHoldingDivider,
   AllocationHoldingDividend,
@@ -127,6 +128,33 @@ function PortfolioCompositionComponent({
     });
   }, []);
 
+  /**
+   * 🔴 **투자금 0 + 비중 조절** 경고의 방아쇠 (2026-11-01 사용자 지시).
+   *
+   * 주식 수는 `초기 투자금 × 비중 ÷ 주가` 라, 투자금이 0이면 비중을 아무리 움직여도 전부 0주다.
+   * 비중 %만 바뀌고 그 아래 숫자가 미동도 않으니 슬라이더가 고장 난 것으로 보인다(사용자 신고).
+   *
+   * ⚠ **움직였을 때만** 말한다 — 첫 화면부터 띄우면 아직 아무것도 안 한 사람에게 잔소리가 되고,
+   *   경고가 늘 떠 있으면 정작 필요한 순간에 안 읽힌다. 사용자가 **직접 해 본 뒤** 결과가 없을 때
+   *   그 자리에서 답하는 것이 이 경고의 값어치다.
+   * ⚠ 한 번 뜨면 투자금이 들어올 때까지 남는다(아래 조건). 움직일 때마다 깜빡이면 더 성가시다.
+   */
+  const [hasAdjustedWeight, setHasAdjustedWeight] = useState(false);
+
+  const handleWeightChange = useCallback(
+    (profileId: string, value: number) => {
+      setHasAdjustedWeight(true);
+      onSetTickerWeight(profileId, value);
+    },
+    [onSetTickerWeight]
+  );
+
+  /*
+   * `totalAmount` 가 곧 초기 투자금이다(비중 합이 1이라 `Σ 투자금 × 비중 = 투자금`).
+   * 그래서 이 조건에 새 prop 이 필요 없다 — 이미 내려오는 값으로 판정한다.
+   */
+  const showZeroAmountWarning = hasAdjustedWeight && holdings.totalAmount <= 0;
+
   const fixedCount = Object.values(fixedByTickerId).filter(Boolean).length;
   const showClearAllFixed = fixedCount >= 1 && !isLocked;
   const hintVisible = hintCause !== null || showClearAllFixed;
@@ -219,7 +247,7 @@ function PortfolioCompositionComponent({
                           value={allocationPercentByTickerId[profile.id] ?? 0}
                           style={{ '--slider-progress': `${allocationPercentByTickerId[profile.id] ?? 0}%` } as CSSProperties}
                           disabled={isDisabled}
-                          onChange={(event) => onSetTickerWeight(profile.id, Number(event.target.value))}
+                          onChange={(event) => handleWeightChange(profile.id, Number(event.target.value))}
                         />
                         <AllocationLegendValue>{`${(weight * 100).toFixed(1)}%`}</AllocationLegendValue>
                         {/* 시각 순서(슬라이더 → % → 고정)와 DOM 순서를 일치시켜 탭 이동·낭독 순서가 어긋나지 않게 한다. */}
@@ -311,6 +339,20 @@ function PortfolioCompositionComponent({
                 </AllocationClearFixedButton>
               ) : null}
             </AllocationHint>
+          ) : null}
+          {/* 🔴 자리는 **목록·합계 바로 뒤**다. 읽는 순서가 그대로 사연이 된다 —
+              슬라이더를 움직였다 → 줄마다 0주 → 합계도 0원 → **왜 그런지** 여기서 답한다.
+              위로 올리면 아직 0을 보지도 않은 사람에게 설명부터 들이미는 꼴이 된다.
+              ⚠ 중립 힌트(AllocationHint) 바로 아래 형제다. 둘은 다른 것을 말한다 —
+                저쪽은 "왜 못 움직이나", 이쪽은 "움직였는데 왜 그대로인가". */}
+          {showZeroAmountWarning ? (
+            <AllocationZeroAmountWarning role="status">
+              <TriangleAlert size={16} {...GLYPH_PROPS} />
+              <span>
+                {ALLOCATION_COPY.zeroAmountWarningFact}{' '}
+                <strong>{ALLOCATION_COPY.zeroAmountWarningAction}</strong>
+              </span>
+            </AllocationZeroAmountWarning>
           ) : null}
           <SelectedChipWrap>
             {includedProfiles.map((profile) => {

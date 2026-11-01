@@ -283,6 +283,20 @@ export const ANALYTICS_EVENT = {
    *   둘의 차이가 곧 새 탭을 못 만들어 막힌 사람(비로그인 1탭 게이트)의 수다.
    */
   GOAL_PLAN_APPLIED: "goal_plan_applied",
+
+  /**
+   * ── 월 배당 필요 원금 (`/dividend/how-much`, 2026-11-01) ───────────────────
+   *
+   * 검색 유입용 훅 화면이다("SCHD 로 월 250 받으려면"). 이 화면의 성적은 **무엇을 만져 봤는가**로 잰다 —
+   * 금액을 바꿨는지, 다른 종목을 눌러 봤는지, 물가 가정을 건드렸는지(파라미터: action, value).
+   * ⚠ 값공간: action = amount | ticker | inflation.
+   *   value 는 amount 면 만원 단위 정수 문자열, ticker 면 대문자 심볼, inflation 이면 "2"·"2.5"·"3".
+   *   amount 에 `input_method`(chip | custom)를 따로 싣는다 — 직접 입력이 많으면 칩 선택지가 틀렸다는 신호다.
+   *   🔴 이름을 `source` 로 쓰지 마라 — GA4 예약어라 유입 출처를 덮어쓴다(test/analytics/reservedParams).
+   * 🔴 계산기로 넘어가는 클릭은 여기서 세지 않는다 — `content_to_simulator`(surface='how_much')가 센다.
+   *   지면마다 새 이름을 만들지 않는다는 그 이벤트의 원칙을 따른다.
+   */
+  DIVIDEND_TARGET_INTERACTION: "dividend_target_interaction",
 } as const;
 
 export type AnalyticsEventName = (typeof ANALYTICS_EVENT)[keyof typeof ANALYTICS_EVENT];

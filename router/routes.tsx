@@ -25,6 +25,7 @@ import { ABOUT_PATH,
   INVESTOR_TYPE_PATH,
   DIVIDEND_LIST_HUB_PATH,
   DIVIDEND_LIST_IDS,
+  DIVIDEND_TARGET_PATH,
   SIMULATOR_PATH,
   dividendListPath
 } from '@/shared/constants/routes';
@@ -199,6 +200,12 @@ const PortfolioPage = lazy(() => import('@/pages/Portfolio/PortfolioPage'));
  */
 const DividendListHubPage = lazy(() => import('@/pages/DividendList/DividendListHubPage'));
 const DividendListPage = lazy(() => import('@/pages/DividendList/DividendListPage'));
+
+/**
+ * "월 N 원을 받으려면 얼마가 필요한가"(`/dividend/how-much`, 2026-11-01) — 같은 `lazy` 격리.
+ * 12 종 시장 데이터를 읽지만 그것은 이미 엔트리에 있는 유니버스다 — 청크가 무거운 것은 화면 부품뿐이다.
+ */
+const DividendTargetPage = lazy(() => import('@/pages/DividendTarget/DividendTargetPage'));
 
 /**
  * 404 — 어떤 라우트에도 맞지 않는 주소(`*`).
@@ -602,6 +609,15 @@ export const routes: RouteObject[] = [
         element: (
           <Suspense fallback={null}>
             <DividendListHubPage />
+          </Suspense>
+        )
+      },
+      {
+        /* 정적 세그먼트 `how-much` — 배당 목록 경로들과 형제이고 파라미터 라우트가 없어 순서 의존이 없다. */
+        path: DIVIDEND_TARGET_PATH,
+        element: (
+          <Suspense fallback={null}>
+            <DividendTargetPage />
           </Suspense>
         )
       },

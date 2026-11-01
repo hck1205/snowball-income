@@ -21,6 +21,7 @@
     { "source": "/about", "destination": "/about.html" },
     { "source": "/dividend/calendar", "destination": "/dividend/calendar.html" },
     { "source": "/dividend/portfolio", "destination": "/dividend/portfolio.html" },
+    { "source": "/dividend/how-much", "destination": "/dividend/how-much.html" },
     { "source": "/ticker/compare", "destination": "/ticker/compare.html" },
     { "source": "/ticker/overlap", "destination": "/ticker/overlap.html" },
     {
