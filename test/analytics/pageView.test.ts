@@ -52,6 +52,10 @@ describe('GA4 페이지뷰 전달 방식', () => {
     expect(sendPageViewBody).toContain('page_location');
     expect(sendPageViewBody).toContain('page_title');
   });
+
+  it('🔴 page_path 를 싣지 않는다 — GA4 가 쿼리를 두 번 붙여 `?goal=x?goal=x` 가짜 페이지를 만든다', () => {
+    expect(sendPageViewBody).not.toMatch(/\bpage_path\s*:/);
+  });
 });
 
 describe('첫 화면 중복 방지', () => {
