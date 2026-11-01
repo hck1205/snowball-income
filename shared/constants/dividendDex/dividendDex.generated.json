@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-08-08",
+  "asOf": "2026-11-01",
   "note": "수집기(npm run dividend:dex)가 배당 목록 넷을 모아 만든다. 손으로 고치지 마라. 🔴 number 는 append-only — 기존 값을 바꾸면 사용자가 기억한 도감 번호가 다른 회사가 된다.",
   "entries": [
     {
@@ -1235,19 +1235,6 @@
       ],
       "forwardYieldPercent": 2.4407,
       "fiveYearGrowthPercent": 4.4617,
-      "artKey": "sector:consumerStaples"
-    },
-    {
-      "number": 93,
-      "ticker": "KVUE",
-      "name": "Kenvue, Inc.",
-      "sector": "consumerStaples",
-      "rarity": 4,
-      "listIds": [
-        "aristocrats"
-      ],
-      "forwardYieldPercent": 4.3766,
-      "fiveYearGrowthPercent": null,
       "artKey": "sector:consumerStaples"
     },
     {
