@@ -105,3 +105,13 @@ export const DIVIDEND_LIST_HUB_PATH = '/dividend/lists';
 
 /** 목록 상세 경로. 문자열을 조립하는 곳(라우터·nav·사이트맵·크롤러 HTML)을 한 군데로 모은다. */
 export const dividendListPath = (id: DividendListId): string => `/dividend/${DIVIDEND_LIST_SEGMENTS[id]}`;
+
+/**
+ * "월 N 원을 받으려면 얼마가 필요한가"(2026-11-01) — 목표 월 배당 하나로 종목별 필요 원금을 보여 주는 화면.
+ *
+ * 🔴 상태는 **쿼리**다(`?m=250&t=SCHD&i=2.5`) — 해시가 아니다(이 앱은 해시 라우팅을 쓰지 않는다).
+ *   검색어("SCHD 월 250만원")로 온 사람이 그 조합 그대로 링크를 공유할 수 있어야 하고,
+ *   새로고침·뒤로 가기에서 고른 값이 살아남아야 한다. 파라미터 이름은 `pages/DividendTarget` 이 소유한다.
+ * ⚠ 색인 대상은 **클린 URL 하나**다(사이트맵·정적 셸). 쿼리 조합마다 색인되면 같은 화면이 수십 장이 된다.
+ */
+export const DIVIDEND_TARGET_PATH = '/dividend/how-much';

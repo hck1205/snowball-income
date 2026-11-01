@@ -2,6 +2,7 @@
 import {
   Activity,
   BookOpen,
+  Calculator,
   CalendarDays,
   CalendarRange,
   ChartPie,
@@ -26,7 +27,7 @@ import {
   Wallet
 } from 'lucide-react';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
-import { DIVIDEND_LIST_HUB_PATH, SIMULATOR_PATH, dividendListPath } from '@/shared/constants/routes';
+import { DIVIDEND_LIST_HUB_PATH, DIVIDEND_TARGET_PATH, SIMULATOR_PATH, dividendListPath } from '@/shared/constants/routes';
 /* 경로 문자열만 가져온다 — 페이지 모듈이 아니라 상수 파일이라 엔트리 번들이 커지지 않는다. */
 import { MARKET_PULSE_PATH } from '@/pages/MarketPulse/marketPulseRoute';
 import { HIPPO_STATS_PATH } from '@/pages/HippoStats/hippoStatsRoute';
@@ -114,15 +115,22 @@ export const TICKER_GROUP_ITEMS = [
 ] as const;
 
 /**
- * 내 자산계획 — 시뮬레이터 · 나의 배당 포트폴리오 · ETF 조합 짜기 · 가계부. 넷 다 주어가 '나'다.
- * 순서는 **계획 → 지금 → 나 → 흐름**이다: 앞으로 얼마가 될지, 지금 무엇을 갖고 있는지,
- * 나는 어떤 성향인지, 매달 얼마가 들고 나는지.
+ * 내 자산계획 — 시뮬레이터 · 월 배당 필요 금액 · 나의 배당 포트폴리오 · ETF 조합 짜기 · 가계부.
+ * 다섯 다 주어가 '나'다.
+ * 순서는 **계획 → 지금 → 담을 것 → 흐름**이다: 앞으로 얼마가 될지(시뮬레이터·필요 금액),
+ * 지금 무엇을 갖고 있는지, 무엇을 더 담을지, 매달 얼마가 들고 나는지.
  *
  * 🔴 `sheetsOnly` 는 가계부 전용 플래그다. `isGoogleSheetsEnabled` 가 false 면 `/ledger` 라우트가
  *    **존재하지 않으므로**(routes.tsx) 이 항목도 지워야 한다 — 남기면 404 로 가는 죽은 링크다.
  */
 export const PERSONAL_GROUP_ITEMS = [
   { to: SIMULATOR_PATH, label: n.simulator, Icon: LineChart, sheetsOnly: false },
+  /*
+   * 월 배당 필요 금액(2026-11-01). 시뮬레이터 **바로 밑**이다 — 둘 다 "계획"이고, 이쪽이 더 가벼운
+   * 질문("지금 얼마면 되나")이라 시뮬레이터("언제 닿나")로 넘어가는 사다리의 아래 칸이다.
+   * 계산기(Calculator): 시뮬레이터의 꺾은선과 겹치지 않는 그림이다.
+   */
+  { to: DIVIDEND_TARGET_PATH, label: n.dividendTarget, Icon: Calculator, sheetsOnly: false },
   { to: '/dividend/portfolio', label: n.myPortfolio, Icon: Wallet, sheetsOnly: false },
   /*
    * ETF 조합 짜기(2026-09-30 사용자 지시) — 처음에는 "종목 탐색"에 "ETF 겹침 비교"로 있었다.
@@ -183,8 +191,20 @@ export function buildNavTree(): readonly NavColumn[] {
   const portfolioItems = PORTFOLIO_GROUP_ITEMS.filter((item) => !item.communityOnly || isCommunityEnabled);
 
   return [
-    /* ── ① 유입: 남의 것을 구경하는 자리 셋. 처음 온 사람이 가장 먼저 닿는 칸들이다. ── */
-    /* 사람들(Users): 이 묶음의 공통점은 "누구의 것인가"다(지갑은 아래 개인 묶음이 가져갔다). */
+    /* ── ① 본령: 이 앱이 하는 일. **맨 앞이다**(2026-11-01 사용자 지시). ──
+     *
+     * 🔴 종전에는 넷째 칸이었고 순서가 **사용자 여정**(구경 → 비교 → 계산 → 상설)이었다
+     *    (2026-08-14). 그 배치는 "처음 온 사람이 밟는 길"을 따랐는데, 그 대가로 **이 앱의 본령인
+     *    계산기가 내비 한가운데 묻혔다.** 여정은 한 번뿐이고 내비는 매번 쓰므로, 재방문자가 매일
+     *    찾는 것을 앞에 둔다. 첫 방문자의 길은 내비가 아니라 첫 화면(`/` 목표 여섯)이 안내한다.
+     * ⚠ 여정 순서로 되돌리려면 사용자에게 물어라 — 두 번 뒤집힌 자리다.
+     *
+     * 지갑(Wallet): 셋 다 "내 돈"이 주어라 가장 곧은 그림이다.
+     */
+    { label: n.personalGroup, Icon: Wallet, items: personalItems },
+
+    /* ── ② 유입: 남의 것을 구경하는 자리 셋. ── */
+    /* 사람들(Users): 이 묶음의 공통점은 "누구의 것인가"다(지갑은 위 개인 묶음이 가져갔다). */
     { label: n.portfolioGroup, Icon: Users, items: portfolioItems },
     /* 트로피: "몇 년 연속 배당을 늘렸는가"라는 축을 그림 하나가 말한다. */
     { label: n.dividendListGroup, Icon: Trophy, items: DIVIDEND_LIST_GROUP_ITEMS },
@@ -192,13 +212,9 @@ export function buildNavTree(): readonly NavColumn[] {
        ⚠ 온도계는 **묶음이 아니라 그 안의 '시장 온도' 항목**이 쓴다(2026-08-09 사용자 정정). */
     { label: n.marketGroup, Icon: Activity, items: MARKET_GROUP_ITEMS },
 
-    /* ── ② 허브: 구경하다 눈에 든 종목을 여기서 재고 고른다. ── */
+    /* ── ③ 허브: 구경하다 눈에 든 종목을 여기서 재고 고른다. ── */
     /* 책(BookOpen): 종전 'ETF 소개'의 아이콘을 묶음이 물려받았다 — 사용자가 익힌 그림을 그대로 둔다. */
     { label: n.tickerGroup, Icon: BookOpen, items: TICKER_GROUP_ITEMS },
-
-    /* ── ③ 전환: 자기 숫자를 넣어 보는 자리. ── */
-    /* 지갑(Wallet): 셋 다 "내 돈"이 주어라 가장 곧은 그림이다. */
-    { label: n.personalGroup, Icon: Wallet, items: personalItems },
 
     /* ── ④ 상설: 여정 단계가 아니라 언제든 가는 구역이라 뒤에 선다. ── */
     { label: n.calendarGroup, Icon: CalendarDays, items: CALENDAR_GROUP_ITEMS },
