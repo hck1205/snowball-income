@@ -35,7 +35,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # 상수를 그대로 읽는다. 이 파일은 TS 라 `require` 할 수 없고, 이 한 값 때문에 빌드를 돌릴
       # 이유도 없다 — 값의 형태(`CURATED_THROUGH_YEAR = 2028`)가 계약이다.
