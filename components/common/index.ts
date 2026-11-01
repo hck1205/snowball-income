@@ -89,6 +89,7 @@ export {
   AllocationColorDot,
   AllocationFixButton,
   AllocationHint,
+  AllocationZeroAmountWarning,
   AllocationHoldingAmount,
   AllocationHoldingBasis,
   AllocationHoldingDivider,

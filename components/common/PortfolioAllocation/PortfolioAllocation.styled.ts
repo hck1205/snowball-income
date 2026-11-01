@@ -227,6 +227,43 @@ export const AllocationLegendValue = styled.span`
  * 범례 하단 단일 힌트 줄 — 슬라이더가 왜 비활성인지(무음 비활성 금지) 우선순위로 하나만 안내한다.
  * 아이콘+문장을 함께 두어(색각 대비) inline-flex로 정렬하고, 필요 시 '고정 전체 해제' 버튼을 옆에 인라인으로 편다.
  */
+/**
+ * 🔴 **투자금이 0인데 슬라이더를 움직였을 때의 경고** (2026-11-01 사용자 지시).
+ *
+ * 주식 수는 `초기 투자금 × 비중 ÷ 주가` 라, 투자금이 0이면 비중을 아무리 움직여도 **모든 줄이
+ * 0주**다. 비중 %만 바뀌고 그 아래 숫자가 미동도 않으니 사용자 눈에는 슬라이더가 고장 난 것으로
+ * 보인다(사용자 신고). 아무 말도 하지 않는 것이 이 화면의 가장 큰 결함이었다.
+ *
+ * ⚠ 중립 힌트(`AllocationHint`)와 **다른 무게**여야 한다. 저쪽은 "왜 못 움직이나"를 설명하는 상태
+ *   안내이고, 이쪽은 **방금 한 동작이 아무 결과도 내지 못했다**는 사실이다. 같은 회색으로 두면
+ *   그 차이가 지워진다 — 그래서 경고 면 + 경고 테두리를 쓴다.
+ * ⚠ 면은 `warningSurface` 다(`warning` 채움 아님). 채움 위 글자는 대비가 보증되지 않는다.
+ */
+export const AllocationZeroAmountWarning = styled.p`
+  margin: ${space[2]} 0 0;
+  display: flex;
+  align-items: flex-start;
+  gap: ${space[2]};
+  padding: ${space[2]} ${space[3]};
+  border: 1px solid ${color.warning};
+  border-radius: ${radius.md};
+  background: ${color.warningSurface};
+  font-size: ${font.size.sm};
+  line-height: ${font.leading.normal};
+  color: ${color.text};
+
+  svg {
+    flex: 0 0 auto;
+    margin-top: 2px;
+    color: ${color.warning};
+  }
+
+  /* 무엇을 하면 되는지 — 사실보다 한 단 진하게. 경고는 막다른 길이 아니라 다음 행동이어야 한다. */
+  & > span > strong {
+    font-weight: ${font.weight.bold};
+  }
+`;
+
 export const AllocationHint = styled.p`
   margin: ${space[2]} 0 0;
   display: inline-flex;

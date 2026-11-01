@@ -469,3 +469,55 @@ describe('PortfolioComposition — 환율이 없을 때', () => {
     expect(screen.queryByText(/환율 .*원 적용/)).not.toBeInTheDocument();
   });
 });
+
+/**
+ * 🔴 **투자금 0 + 비중 조절 → 경고** (2026-11-01 사용자 신고·지시).
+ *
+ * 주식 수는 `초기 투자금 × 비중 ÷ 주가` 라, 투자금이 0이면 비중을 아무리 움직여도 모든 줄이 0주다.
+ * 비중 %만 바뀌고 그 아래 숫자가 미동도 않으니 **슬라이더가 고장 난 것으로 보인다** — 실제 신고가
+ * 그것이었다("bar 움직일 때 주 수가 최초에는 변하지 않아").
+ *
+ * 잠그는 것 셋:
+ *  ① 움직이기 **전에는** 뜨지 않는다 — 아직 아무것도 안 한 사람에게 잔소리가 되면 안 된다.
+ *  ② 움직이면 뜬다 — 사용자가 직접 해 본 뒤 결과가 없을 때 그 자리에서 답한다.
+ *  ③ 투자금이 있으면 움직여도 뜨지 않는다 — 그때는 주수가 실제로 변하므로 설명할 것이 없다.
+ */
+describe('PortfolioComposition — 투자금 0 경고', () => {
+  const withAmount = (totalAmount: number) => ({
+    holdings: { byTickerId: {}, totalAmount, totalMonthlyDividend: 0, hasUnpricedShares: false, usesFxRate: false }
+  });
+
+  it('비중을 움직이기 전에는 경고가 없다', () => {
+    renderComposition([makeProfile('a', 'AAA'), makeProfile('b', 'BBB')], withAmount(0));
+
+    expect(screen.queryByText(new RegExp(ALLOCATION_COPY.zeroAmountWarningFact))).not.toBeInTheDocument();
+  });
+
+  it('🔴 투자금이 0인데 비중을 움직이면 그 자리에서 사유와 다음 행동을 말한다', () => {
+    renderComposition([makeProfile('a', 'AAA'), makeProfile('b', 'BBB')], withAmount(0));
+
+    fireEvent.change(sliderFor('AAA'), { target: { value: '60' } });
+
+    // 무슨 일이 일어났는가 — 비중만 바뀌고 주수는 0 그대로다.
+    expect(screen.getByText(new RegExp(ALLOCATION_COPY.zeroAmountWarningFact))).toBeInTheDocument();
+    // 🔴 무엇을 하면 되는가 — 사실만 말하면 사용자는 여전히 갇힌다.
+    expect(screen.getByText(new RegExp(ALLOCATION_COPY.zeroAmountWarningAction))).toBeInTheDocument();
+  });
+
+  it('투자금이 있으면 비중을 움직여도 경고하지 않는다 — 그때는 주수가 실제로 변한다', () => {
+    renderComposition([makeProfile('a', 'AAA'), makeProfile('b', 'BBB')], withAmount(100_000_000));
+
+    fireEvent.change(sliderFor('AAA'), { target: { value: '60' } });
+
+    expect(screen.queryByText(new RegExp(ALLOCATION_COPY.zeroAmountWarningFact))).not.toBeInTheDocument();
+  });
+
+  it('경고가 떠도 비중 변경 자체는 그대로 부모에게 전달된다', () => {
+    const { props } = renderComposition([makeProfile('a', 'AAA'), makeProfile('b', 'BBB')], withAmount(0));
+
+    fireEvent.change(sliderFor('AAA'), { target: { value: '60' } });
+
+    // 🔴 경고는 **막는 것이 아니다.** 비중 조절은 투자금이 0이어도 유효한 조작이다.
+    expect(props.onSetTickerWeight).toHaveBeenCalledWith('a', 60);
+  });
+});
