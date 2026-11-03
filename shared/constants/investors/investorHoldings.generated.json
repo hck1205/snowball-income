@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-14",
+  "generatedAt": "2026-11-03",
   "source": "SEC EDGAR 13F-HR",
   "investors": [
     {
@@ -1931,39 +1931,39 @@
       "firm": "Daily Journal",
       "note": "찰리 멍거가 이끌던 회사로, 보유 종목이 매우 적습니다.",
       "registrantName": "DAILY JOURNAL CORP",
-      "accessionNumber": "0001437749-26-023711",
-      "reportDate": "2026-06-30",
-      "filingDate": "2026-07-16",
+      "accessionNumber": "0001437749-26-034429",
+      "reportDate": "2026-09-30",
+      "filingDate": "2026-11-02",
       "valueUnit": "dollars",
-      "totalValueUsd": 256664220,
+      "totalValueUsd": 249843270,
       "totalHoldingCount": 4,
       "topHoldings": [
         {
           "cusip": "949746101",
           "issuer": "Wells Fargo & Co",
-          "valueUsd": 116770320,
-          "weightPercent": 45.49536355320582,
+          "valueUsd": 113110650,
+          "weightPercent": 45.272642324926345,
           "kind": "share"
         },
         {
           "cusip": "060505104",
           "issuer": "Bank of America Corp",
-          "valueUsd": 113960000,
-          "weightPercent": 44.40042324559302,
+          "valueUsd": 108860000,
+          "weightPercent": 43.57131572925699,
           "kind": "share"
         },
         {
           "cusip": "01609W102",
           "issuer": "Alibaba Group Holding Ltd",
-          "valueUsd": 18716100,
-          "weightPercent": 7.292056524279075,
+          "valueUsd": 20970300,
+          "weightPercent": 8.393381979030295,
           "kind": "share"
         },
         {
           "cusip": "902973304",
           "issuer": "US Bancorp",
-          "valueUsd": 7217800,
-          "weightPercent": 2.8121566769220894,
+          "valueUsd": 6902320,
+          "weightPercent": 2.762659966786378,
           "kind": "share"
         }
       ]
