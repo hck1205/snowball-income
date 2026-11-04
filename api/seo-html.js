@@ -8195,8 +8195,8 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 21,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "3": 7,
         "6": 6,
@@ -9831,10 +9831,14 @@ var marketData_generated_default = {
       frequency: "quarterly",
       payoutMonths: [
         6,
-        11,
         12
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 14,
+      estimatedPayDayByMonth: {
+        "6": 16,
+        "12": 15
+      }
     },
     EXR: {
       initialPrice: 133.08,
