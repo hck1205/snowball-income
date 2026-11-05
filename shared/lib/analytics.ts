@@ -409,7 +409,12 @@ export const sendPageView = (location?: PageLocation) => {
   window.gtag("event", "page_view", {
     page_title: document.title,
     page_location: resolveAbsoluteUrl({ pathname, search, hash }),
-    page_path: `${pathname}${search}${hash}`,
+    // 🔴 `page_path` 를 싣지 마라(2026-11-01 GA4 실측). GA4 는 경로·쿼리를 `page_location` 에서 읽는데,
+    //    쿼리까지 담은 `page_path` 를 함께 보내면 쿼리를 한 번 더 붙여 `/simulator?goal=x?goal=x` 같은
+    //    가짜 페이지가 생긴다(8/23~ 쿼리 있는 전 페이지가 정상/중복 두 행으로 쪼개졌다).
+    // ⚠ 같은 실측에서 page_view 가 **두 건씩** 들어오는 것도 드러났다 — 이 함수 말고 GA 향상된 측정의
+    //    "브라우저 기록 이벤트 기반 페이지 변경"이 SPA 이동마다 자동 page_view 를 또 보낸다. 그건 코드가 아니라
+    //    GA 관리 > 데이터 스트림 > 향상된 측정에서 꺼야 한다(이 함수가 이미 전 라우트를 보낸다).
     page_type: pathname
   });
 };
