@@ -6,5 +6,6 @@
  */
 export * from './collect';
 export * from './membershipDiff';
+export * from './metrics';
 export * from './sources';
 export * from './universe';
