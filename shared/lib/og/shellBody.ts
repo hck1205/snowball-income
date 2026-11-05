@@ -26,6 +26,8 @@
  * 방문자에게 빈 화면이 된다.
  */
 
+import { buildCrawlerSiteNavHtml } from './crawlerSiteNav';
+
 /** `index.html` 의 랜딩 본문 래퍼 class. 한쪽만 바꾸면 이 모듈은 조용히 아무것도 하지 않는다. */
 export const SHELL_FALLBACK_CLASS_NAME = 'app-shell-fallback';
 
@@ -119,5 +121,6 @@ export const injectIntoRoot = (shell: string, body: string): string => {
   if (!rootOpenTag || rootOpenTag.index === undefined) return stripped;
 
   const insertAt = rootOpenTag.index + rootOpenTag[0].length;
-  return stripped.slice(0, insertAt) + body + stripped.slice(insertAt);
+  // 본문 **뒤에** 사이트 공통 내비를 붙인다 — 이유는 crawlerSiteNav.ts 머리말.
+  return stripped.slice(0, insertAt) + body + buildCrawlerSiteNavHtml() + stripped.slice(insertAt);
 };

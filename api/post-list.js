@@ -16,6 +16,72 @@ var replaceLinkHref = (html, rel, value) => {
   return html.replace(pattern, `$1${escapeHtmlAttribute(value)}$2`);
 };
 
+// shared/lib/og/crawlerSiteNav.ts
+var CRAWLER_SITE_NAV = [
+  {
+    label: "\uB0B4 \uC790\uC0B0\uACC4\uD68D",
+    items: [
+      { to: "/simulator", label: "\uC2DC\uBBAC\uB808\uC774\uD130" },
+      { to: "/dividend/how-much", label: "\uC6D4 \uBC30\uB2F9 \uD544\uC694 \uAE08\uC561" },
+      { to: "/dividend/portfolio", label: "\uB098\uC758 \uBC30\uB2F9 \uD3EC\uD2B8\uD3F4\uB9AC\uC624" },
+      { to: "/ticker/overlap", label: "ETF \uC870\uD569 \uC9DC\uAE30" }
+    ]
+  },
+  {
+    label: "\uC678\uBD80 \uD3EC\uD2B8\uD3F4\uB9AC\uC624",
+    items: [
+      { to: "/portfolio/investors", label: "\uB300\uAC00\uB4E4\uC758 \uD3EC\uD2B8\uD3F4\uB9AC\uC624" },
+      { to: "/portfolio/nps", label: "\uAD6D\uBBFC\uC5F0\uAE08 (\uBBF8\uAD6D \uC8FC\uC2DD)" },
+      { to: "/portfolio/congress", label: "\uBBF8\uAD6D \uC758\uC6D0 \uC8FC\uC2DD \uAC70\uB798" },
+      { to: "/portfolio/korea-assembly", label: "\uD55C\uAD6D \uC758\uC6D0 \uC8FC\uC2DD \uBCF4\uC720" }
+    ]
+  },
+  {
+    label: "\uBC30\uB2F9 \uC885\uBAA9",
+    items: [
+      { to: "/dividend/lists", label: "\uBAA9\uB85D \uBE44\uAD50" },
+      { to: "/dividend/kings", label: "\uBC30\uB2F9\uD0B9" },
+      { to: "/dividend/aristocrats", label: "\uBC30\uB2F9\uADC0\uC871" },
+      { to: "/dividend/champions", label: "\uBC30\uB2F9\uCC54\uD53C\uC5B8" },
+      { to: "/dividend/hidden-stars", label: "\uBC30\uB2F9 \uD788\uB4E0\uC2A4\uD0C0" }
+    ]
+  },
+  {
+    label: "\uC2DC\uC7A5 \uC77D\uAE30",
+    items: [
+      { to: "/market/pulse", label: "\uC2DC\uC7A5 \uC628\uB3C4" },
+      { to: "/market/stats", label: "\uD788\uD3EC \uD1B5\uACC4" }
+    ]
+  },
+  {
+    label: "\uC885\uBAA9 \uD0D0\uC0C9",
+    items: [
+      { to: "/ticker/all", label: "ETF \uC18C\uAC1C" },
+      { to: "/ticker/compare", label: "\uC885\uBAA9 \uBE44\uAD50" }
+    ]
+  },
+  {
+    label: "\uCE98\uB9B0\uB354",
+    items: [
+      { to: "/dividend/calendar", label: "\uBC30\uB2F9 \uCE98\uB9B0\uB354" },
+      { to: "/market/us-calendar", label: "\uBBF8\uAD6D \uC99D\uC2DC \uCE98\uB9B0\uB354" }
+    ]
+  },
+  {
+    label: "\uCEE4\uBBA4\uB2C8\uD2F0",
+    items: [
+      { to: "/community/portfolio", label: "\uBC30\uB2F9\uACC4\uC0B0 \uAC24\uB7EC\uB9AC" },
+      { to: "/community/board", label: "\uAC8C\uC2DC\uD310" },
+      { to: "/community/firenow", label: "\uD30C\uC774\uC5B4\uC871\uB4E4" }
+    ]
+  }
+];
+var CRAWLER_SITE_NAV_LABEL = "\uC0AC\uC774\uD2B8 \uC804\uCCB4 \uBA54\uB274";
+var escapeText = (value) => value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+var buildCrawlerSiteNavHtml = () => `<nav aria-label="${CRAWLER_SITE_NAV_LABEL}" class="crawler-site-nav">` + CRAWLER_SITE_NAV.map(
+  (group) => `<p>${escapeText(group.label)}</p><ul>` + group.items.map((item) => `<li><a href="${escapeText(item.to)}">${escapeText(item.label)}</a></li>`).join("") + "</ul>"
+).join("") + "</nav>";
+
 // shared/lib/og/shellBody.ts
 var SHELL_FALLBACK_CLASS_NAME = "app-shell-fallback";
 var LANDING_FAQ_SCRIPT_ID = "faq-structured-data";
@@ -296,7 +362,7 @@ var injectPostList = (shell, kind, items) => {
   const heading = `<h1>${escapeHtmlText(label)}</h1>`;
   const nav = `<nav aria-label="${escapeHtmlAttribute(label)}"><ul>${listItems}</ul></nav>`;
   const insertAt = rootOpenTag.index + rootOpenTag[0].length;
-  return stripped.slice(0, insertAt) + heading + nav + stripped.slice(insertAt);
+  return stripped.slice(0, insertAt) + heading + nav + buildCrawlerSiteNavHtml() + stripped.slice(insertAt);
 };
 async function handler(request) {
   const { origin, searchParams } = new URL(request.url);

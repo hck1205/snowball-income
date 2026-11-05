@@ -6,6 +6,7 @@
   supabase-js 도 끌어오지 않는다 — anon 키 plain REST 직접 호출(postsRest.ts).
 */
 import {
+  buildCrawlerSiteNavHtml,
   escapeHtmlText,
   fetchPublicPostMeta,
   isPublicPostKind,
@@ -160,7 +161,7 @@ const injectPostBody = (shell: string, post: PublicPostMeta): string => {
   const article = `<article><h1>${escapeHtmlText(post.title)}</h1>${safeBody}</article>`;
 
   const insertAt = rootOpenTag.index + rootOpenTag[0].length;
-  return stripped.slice(0, insertAt) + article + stripped.slice(insertAt);
+  return stripped.slice(0, insertAt) + article + buildCrawlerSiteNavHtml() + stripped.slice(insertAt);
 };
 
 /** 웹 표준 핸들러 — `test/api/postHtml.test.ts` 가 `handler(new Request(...))` 로 직접 호출한다. */

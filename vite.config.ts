@@ -10,6 +10,7 @@ import type { SimulationOutput } from './shared/types';
 import { API_BUNDLES } from './tools/apiBundle/manifest.mjs';
 import { escapeHtmlText, replaceLinkHref, replaceMetaContent, replaceTitleTag } from './shared/lib/og/metaHtml';
 import { stripLandingShellBody } from './shared/lib/og/shellBody';
+import { buildCrawlerSiteNavHtml } from './shared/lib/og/crawlerSiteNav';
 import { withSiteTitleSuffix } from './shared/constants/site';
 
 /**
@@ -400,6 +401,13 @@ Sitemap: ${siteUrl}/sitemap-posts.xml
 const STATIC_EXAMPLE_MARKER = '<!--SNOWBALL_STATIC_EXAMPLE-->';
 
 /**
+ * index.html 랜딩 본문 끝의 이 주석을 사이트 공통 내비로 치환한다(이유: shared/lib/og/crawlerSiteNav.ts).
+ * 랜딩 본문(`.app-shell-fallback`) **안**에 있어서, 다른 라우트 셸·서버 렌더 핸들러가 그 본문을 걷어낼 때
+ * 함께 사라진다 — 그쪽은 자기 본문 뒤에 같은 블록을 다시 붙이므로 한 페이지에 두 벌이 생기지 않는다.
+ */
+const SITE_NAV_MARKER = '<!--SNOWBALL_SITE_NAV-->';
+
+/**
  * 정적 셸에 넣을 **실제 계산 예시**.
  *
  * 숫자를 손으로 적으면 그건 지어낸 값이다. 그래서 앱과 **같은 엔진**(`runSimulation`)을 빌드 타임에 그대로 돌려
@@ -685,7 +693,8 @@ const buildRouteShell = (
   const rootOpenTag = html.match(/<div\s+id="root"[^>]*>/i);
   if (rootOpenTag && rootOpenTag.index !== undefined) {
     const insertAt = rootOpenTag.index + rootOpenTag[0].length;
-    html = html.slice(0, insertAt) + fallback + html.slice(insertAt);
+    // 본문 뒤에 사이트 공통 내비. 랜딩 본문의 것은 위 `stripLandingShellBody` 가 이미 걷어냈다.
+    html = html.slice(0, insertAt) + fallback + buildCrawlerSiteNavHtml() + html.slice(insertAt);
   }
 
   return html;
@@ -772,7 +781,10 @@ const seoAssetsPlugin = (siteUrl: string): Plugin => {
       order: 'pre',
       handler: async (html) => {
         staticExampleHtml ??= buildStaticExampleHtml();
-        return html.replace(/%VITE_SITE_URL%/g, siteUrl).replace(STATIC_EXAMPLE_MARKER, await staticExampleHtml);
+        return html
+          .replace(/%VITE_SITE_URL%/g, siteUrl)
+          .replace(STATIC_EXAMPLE_MARKER, await staticExampleHtml)
+          .replace(SITE_NAV_MARKER, buildCrawlerSiteNavHtml());
       }
     },
     // dev 서버에서도 동일하게 서빙해 빌드와 어긋나지 않게 한다.
