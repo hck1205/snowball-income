@@ -19,8 +19,72 @@ const isLocalHost = (): boolean => {
   );
 };
 
+/**
+ * **운영자 기기 제외 스위치**(2026-11-05).
+ *
+ * 위 DEV·localhost 배제는 개발 서버만 막는다. 실제 도메인에서 운영자가 직접 눌러 보는 기록은 그대로
+ * 실측에 섞였다 — 2026-09~10 의 `allocation_changed` 2,021건이 **사용자 4명**에게서 나왔다.
+ * GA 의 IP 기반 내부 트래픽 필터도 있지만 가정용 회선은 IP 가 바뀌고 휴대폰(모바일 데이터)은 잡지 못한다.
+ * 그래서 **브라우저 단위**로 끈다: 한 번 `?analytics=off` 로 열면 그 브라우저는 계속 보내지 않는다.
+ * `?analytics=on` 이 되돌린다. 기기·브라우저마다 한 번씩 해야 한다(localStorage 라서).
+ */
+export const ANALYTICS_OPT_OUT_KEY = storageKey('analytics-opt-out');
+export const ANALYTICS_OPT_OUT_PARAM = 'analytics';
+
+/** 주소의 스위치 값 → 할 일. 순수 함수(테스트 대상). 값이 없거나 모르는 값이면 아무것도 바꾸지 않는다. */
+export const resolveAnalyticsOptOutChange = (search: string): 'optOut' | 'optIn' | null => {
+  const value = new URLSearchParams(search).get(ANALYTICS_OPT_OUT_PARAM);
+  if (value === 'off') return 'optOut';
+  if (value === 'on') return 'optIn';
+  return null;
+};
+
+/** 부팅 때 한 번 — 주소에 스위치가 있으면 저장한다. 저장소가 막힌 브라우저(사생활 모드 등)는 조용히 넘긴다. */
+const syncAnalyticsOptOutFromUrl = () => {
+  if (typeof window === "undefined") return;
+  const change = resolveAnalyticsOptOutChange(window.location.search);
+  if (change === null) return;
+  try {
+    if (change === 'optOut') window.localStorage.setItem(ANALYTICS_OPT_OUT_KEY, '1');
+    else window.localStorage.removeItem(ANALYTICS_OPT_OUT_KEY);
+  } catch {
+    /* 저장 불가 — 스위치를 못 쓸 뿐 앱 동작에는 영향이 없다. */
+  }
+};
+
+const isOptedOut = (): boolean => {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.localStorage.getItem(ANALYTICS_OPT_OUT_KEY) === '1';
+  } catch {
+    return false;
+  }
+};
+
 const isAnalyticsEnabled = (): boolean =>
-  Boolean(GA_MEASUREMENT_ID) && !import.meta.env.DEV && !isLocalHost();
+  Boolean(GA_MEASUREMENT_ID) && !import.meta.env.DEV && !isLocalHost() && !isOptedOut();
+
+/**
+ * **오래 열어 둔 탭의 세션 이어 붙이기**(2026-11-05).
+ *
+ * GA4 는 30분 동안 아무 이벤트가 없으면 세션을 끊고, 다음 이벤트가 **새 세션**을 연다. 이 앱은 페이지뷰를
+ * 라우트가 바뀔 때만 보내므로, 시뮬레이터를 열어 두고 30분 뒤 다시 만지면 새 세션이 페이지뷰 없이
+ * 시작돼 `landingPage=(not set)` 이 된다. 실측(28일): 그런 세션이 **39건 = 전체의 약 3분의 1**이었고
+ * 페이지뷰 0 · 이벤트는 `investment_setting_changed`·`chart_view` 같은 시뮬레이터 조작이었다.
+ * 그래서 마지막 전송에서 30분이 지난 뒤의 첫 이벤트 **앞에** 현재 화면의 페이지뷰를 하나 보낸다 —
+ * 새 세션의 첫 페이지가 실제로 그 사람이 보고 있던 화면이 된다.
+ *
+ * ⚠ 이 모듈은 gtag 가 스스로 보내는 이벤트(scroll·user_engagement)를 모른다. 그런 것만으로 세션이
+ *   살아 있었다면 같은 세션에 페이지뷰가 하나 더 붙는다 — 랜딩이 비는 것보다 덜 나쁜 쪽을 골랐다.
+ * ⚠ 30분은 GA4 속성 기본값이다. 관리 화면에서 세션 시간 제한을 바꾸면 이 값도 맞춰라.
+ */
+export const GA_SESSION_TIMEOUT_MS = 30 * 60 * 1000;
+
+/** 순수 함수(테스트 대상). 한 번도 보낸 적 없으면(부팅 직후) 이어 붙일 세션도 없다. */
+export const shouldResumeWithPageView = (lastHitAt: number | null, now: number): boolean =>
+  lastHitAt !== null && now - lastHitAt >= GA_SESSION_TIMEOUT_MS;
+
+let lastHitAt: number | null = null;
 
 declare global {
   interface Window {
@@ -352,6 +416,8 @@ export const applySeoRuntimeMetadata = (location?: PageLocation) => {
 
 export const initGoogleAnalytics = () => {
   if (typeof window === "undefined") return;
+  // 스위치를 **먼저** 읽는다 — `?analytics=off` 로 연 그 첫 화면부터 보내지 않아야 한다.
+  syncAnalyticsOptOutFromUrl();
   if (!isAnalyticsEnabled()) return;
 
   window.dataLayer = window.dataLayer || [];
@@ -417,6 +483,7 @@ export const sendPageView = (location?: PageLocation) => {
     //    GA 관리 > 데이터 스트림 > 향상된 측정에서 꺼야 한다(이 함수가 이미 전 라우트를 보낸다).
     page_type: pathname
   });
+  lastHitAt = Date.now();
 };
 
 export const trackEvent = (eventName: AnalyticsEventName, params?: AnalyticsEventParams) => {
@@ -424,7 +491,11 @@ export const trackEvent = (eventName: AnalyticsEventName, params?: AnalyticsEven
   if (!isAnalyticsEnabled()) return;
   if (!window.gtag) return;
 
+  // 30분 넘게 조용했던 탭이면 새 세션의 첫 페이지를 먼저 세운다(이유: `GA_SESSION_TIMEOUT_MS` 주석).
+  if (shouldResumeWithPageView(lastHitAt, Date.now())) sendPageView();
+
   window.gtag("event", eventName, params ?? {});
+  lastHitAt = Date.now();
 };
 
 /**
