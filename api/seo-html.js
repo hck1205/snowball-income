@@ -314,25 +314,25 @@ var dividendListPath = (id) => `/dividend/${DIVIDEND_LIST_SEGMENTS[id]}`;
 
 // shared/constants/dividendLists/dividendLists.generated.json
 var dividendLists_generated_default = {
-  asOf: "2026-11-01",
+  asOf: "2026-11-05",
   source: "proshares-nobl+wikipedia",
   lists: {
     aristocrats: {
       id: "aristocrats",
       minimumStreakYears: 25,
-      asOf: "2026-11-01",
+      asOf: "2026-11-05",
       sources: [
         {
           label: "ProShares NOBL \uBCF4\uC720\uB0B4\uC5ED",
           url: "https://accounts.profunds.com/etfdata/psdlyhld.csv",
           role: "primary",
-          retrievedAt: "2026-11-01"
+          retrievedAt: "2026-11-05"
         },
         {
           label: "Wikipedia",
           url: "https://en.wikipedia.org/wiki/S%26P_500_Dividend_Aristocrats",
           role: "crosscheck",
-          retrievedAt: "2026-11-01"
+          retrievedAt: "2026-11-05"
         }
       ],
       coverageNote: "S&P 500 \uBC30\uB2F9\uADC0\uC871 \uC9C0\uC218\uB97C \uCD94\uC885\uD558\uB294 ETF(NOBL)\uC758 \uBCF4\uC720\uB0B4\uC5ED\uC5D0\uC11C \uD3B8\uC785 \uC885\uBAA9\uC744 \uD655\uC778\uD558\uACE0, \uC704\uD0A4\uD53C\uB514\uC544 \uAD6C\uC131\uC885\uBAA9 \uD45C\uC640 \uB300\uC870\uD588\uC2B5\uB2C8\uB2E4. \uB450 \uC18C\uC2A4\uB294 68\uC885\uC5D0\uC11C \uC77C\uCE58\uD588\uC2B5\uB2C8\uB2E4.",
@@ -1500,51 +1500,18 @@ var dividendLists_metrics_generated_default = {
 
 // shared/constants/dividendLists/dividendLists.hiddenStars.generated.json
 var dividendLists_hiddenStars_generated_default = {
-  asOf: "2026-08-04",
+  asOf: "2026-11-03",
   note: "\uC218\uC9D1\uAE30(npm run dividend:hidden-stars)\uAC00 \uC720\uB2C8\uBC84\uC2A4\uC5D0 \uC120\uC815 \uADDC\uCE59\uC744 \uB3CC\uB824 \uB9CC\uB4E0\uB2E4. \uC190\uC73C\uB85C \uACE0\uCE58\uC9C0 \uB9C8\uB77C. \uADDC\uCE59\uC740 shared/constants/dividendLists/dividendLists.hiddenStars.ts \uAC00 \uC815\uBCF8\uC774\uB2E4.",
   members: [
-    {
-      ticker: "NXRT",
-      name: "NexPoint Residential Trust, Inc.",
-      sector: "realEstate",
-      sourceSectorLabel: "Real Estate",
-      minimumStreakYears: 10,
-      forwardYieldPercent: 8.182169046700116,
-      fiveYearGrowthPercent: 10.256745157647828,
-      score: 13.31054162552403,
-      isHighYieldOutlier: true
-    },
-    {
-      ticker: "PFBC",
-      name: "Preferred Bank",
-      sector: "financials",
-      sourceSectorLabel: "Financials",
-      minimumStreakYears: 10,
-      forwardYieldPercent: 3.0160226201696516,
-      fiveYearGrowthPercent: 20.11244339814313,
-      score: 13.072244319241218,
-      isHighYieldOutlier: false
-    },
     {
       ticker: "RHI",
       name: "Robert Half",
       sector: "industrials",
       sourceSectorLabel: "Industrials",
       minimumStreakYears: 20,
-      forwardYieldPercent: 6.093467596178673,
+      forwardYieldPercent: 5.271387089568908,
       fiveYearGrowthPercent: 11.654085522403058,
-      score: 11.920510357380202,
-      isHighYieldOutlier: true
-    },
-    {
-      ticker: "ACN",
-      name: "Accenture",
-      sector: "informationTechnology",
-      sourceSectorLabel: "Information Technology",
-      minimumStreakYears: 20,
-      forwardYieldPercent: 3.933397683397683,
-      fiveYearGrowthPercent: 13.09264089979596,
-      score: 10.479718133295663,
+      score: 11.098429850770437,
       isHighYieldOutlier: false
     },
     {
@@ -1553,42 +1520,9 @@ var dividendLists_hiddenStars_generated_default = {
       sector: "materials",
       sourceSectorLabel: "Materials",
       minimumStreakYears: 20,
-      forwardYieldPercent: 3.033338102732866,
+      forwardYieldPercent: 2.9956442321202754,
       fiveYearGrowthPercent: 14.826125503976373,
-      score: 10.446400854721052,
-      isHighYieldOutlier: false
-    },
-    {
-      ticker: "BBY",
-      name: "Best Buy",
-      sector: "consumerDiscretionary",
-      sourceSectorLabel: "Consumer Discretionary",
-      minimumStreakYears: 20,
-      forwardYieldPercent: 4.504398826979472,
-      fiveYearGrowthPercent: 11.550670014054099,
-      score: 10.279733834006521,
-      isHighYieldOutlier: false
-    },
-    {
-      ticker: "CUBE",
-      name: "CubeSmart",
-      sector: "realEstate",
-      sourceSectorLabel: "Real Estate",
-      minimumStreakYears: 15,
-      forwardYieldPercent: 5.066921606118547,
-      fiveYearGrowthPercent: 9.521121099648798,
-      score: 9.827482155942945,
-      isHighYieldOutlier: false
-    },
-    {
-      ticker: "AFG",
-      name: "American Financial Group",
-      sector: "financials",
-      sourceSectorLabel: "Financials",
-      minimumStreakYears: 20,
-      forwardYieldPercent: 3.720405862457723,
-      fiveYearGrowthPercent: 12.195514544619957,
-      score: 9.818163134767701,
+      score: 10.408706984108463,
       isHighYieldOutlier: false
     },
     {
@@ -1597,9 +1531,31 @@ var dividendLists_hiddenStars_generated_default = {
       sector: "realEstate",
       sourceSectorLabel: "Real Estate",
       minimumStreakYears: 15,
-      forwardYieldPercent: 2.9739063699155794,
+      forwardYieldPercent: 3.485187951207369,
       fiveYearGrowthPercent: 13.29568106011707,
-      score: 9.621746899974115,
+      score: 10.133028481265905,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "AFG",
+      name: "American Financial Group",
+      sector: "financials",
+      sourceSectorLabel: "Financials",
+      minimumStreakYears: 20,
+      forwardYieldPercent: 3.7507250112779533,
+      fiveYearGrowthPercent: 12.195514544619957,
+      score: 9.848482283587932,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "BBY",
+      name: "Best Buy",
+      sector: "consumerDiscretionary",
+      sourceSectorLabel: "Consumer Discretionary",
+      minimumStreakYears: 20,
+      forwardYieldPercent: 3.994175161223216,
+      fiveYearGrowthPercent: 11.550670014054099,
+      score: 9.769510168250266,
       isHighYieldOutlier: false
     },
     {
@@ -1608,9 +1564,20 @@ var dividendLists_hiddenStars_generated_default = {
       sector: "realEstate",
       sourceSectorLabel: "Real Estate",
       minimumStreakYears: 10,
-      forwardYieldPercent: 2.900976290097629,
+      forwardYieldPercent: 3.4152186938286393,
       fiveYearGrowthPercent: 12.659148174514279,
-      score: 9.230550377354769,
+      score: 9.744792781085778,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "CUBE",
+      name: "CubeSmart",
+      sector: "realEstate",
+      sourceSectorLabel: "Real Estate",
+      minimumStreakYears: 15,
+      forwardYieldPercent: 4.7887960243957535,
+      fiveYearGrowthPercent: 9.521121099648798,
+      score: 9.549356574220152,
       isHighYieldOutlier: false
     },
     {
@@ -1619,9 +1586,20 @@ var dividendLists_hiddenStars_generated_default = {
       sector: "consumerDiscretionary",
       sourceSectorLabel: "Consumer Discretionary",
       minimumStreakYears: 20,
-      forwardYieldPercent: 3.846153846153846,
+      forwardYieldPercent: 4.192229038854806,
       fiveYearGrowthPercent: 10.300830235778413,
-      score: 8.996568964043053,
+      score: 9.342644156744011,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "ACN",
+      name: "Accenture",
+      sector: "informationTechnology",
+      sourceSectorLabel: "Information Technology",
+      minimumStreakYears: 20,
+      forwardYieldPercent: 2.621292251092205,
+      fiveYearGrowthPercent: 13.09264089979596,
+      score: 9.167612700990185,
       isHighYieldOutlier: false
     },
     {
@@ -1630,9 +1608,9 @@ var dividendLists_hiddenStars_generated_default = {
       sector: "industrials",
       sourceSectorLabel: "Industrials",
       minimumStreakYears: 10,
-      forwardYieldPercent: 3.956604977664327,
+      forwardYieldPercent: 4.065573770491803,
       fiveYearGrowthPercent: 9.565425774785385,
-      score: 8.73931786505702,
+      score: 8.848286657884497,
       isHighYieldOutlier: false
     },
     {
@@ -1641,9 +1619,20 @@ var dividendLists_hiddenStars_generated_default = {
       sector: "financials",
       sourceSectorLabel: "Financials",
       minimumStreakYears: 10,
-      forwardYieldPercent: 3.306310602447942,
+      forwardYieldPercent: 3.363518758085381,
       fiveYearGrowthPercent: 10.756634324829006,
-      score: 8.684627764862444,
+      score: 8.741835920499884,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "NSP",
+      name: "Insperity",
+      sector: "industrials",
+      sourceSectorLabel: "Industrials",
+      minimumStreakYears: 10,
+      forwardYieldPercent: 4.512974802557352,
+      fiveYearGrowthPercent: 8.447177119769854,
+      score: 8.73656336244228,
       isHighYieldOutlier: false
     },
     {
@@ -1652,9 +1641,9 @@ var dividendLists_hiddenStars_generated_default = {
       sector: "financials",
       sourceSectorLabel: "Financials",
       minimumStreakYears: 10,
-      forwardYieldPercent: 3.166725747370909,
+      forwardYieldPercent: 3.603119118042485,
       fiveYearGrowthPercent: 9.714850709074053,
-      score: 8.024151101907936,
+      score: 8.460544472579512,
       isHighYieldOutlier: false
     },
     {
@@ -1663,20 +1652,9 @@ var dividendLists_hiddenStars_generated_default = {
       sector: "utilities",
       sourceSectorLabel: "Utilities",
       minimumStreakYears: 15,
-      forwardYieldPercent: 4.39481555333998,
+      forwardYieldPercent: 4.84182776801406,
       fiveYearGrowthPercent: 6.399531281508364,
-      score: 7.594581194094163,
-      isHighYieldOutlier: false
-    },
-    {
-      ticker: "EIX",
-      name: "Edison International",
-      sector: "utilities",
-      sourceSectorLabel: "Utilities",
-      minimumStreakYears: 20,
-      forwardYieldPercent: 4.914637559473832,
-      fiveYearGrowthPercent: 5.351793066568655,
-      score: 7.590534092758159,
+      score: 8.041593408768241,
       isHighYieldOutlier: false
     },
     {
@@ -1685,20 +1663,20 @@ var dividendLists_hiddenStars_generated_default = {
       sector: "realEstate",
       sourceSectorLabel: "Real Estate",
       minimumStreakYears: 20,
-      forwardYieldPercent: 3.3074463225216997,
+      forwardYieldPercent: 3.593052109181141,
       fiveYearGrowthPercent: 8.468247099429128,
-      score: 7.541569872236264,
+      score: 7.827175658895705,
       isHighYieldOutlier: false
     },
     {
-      ticker: "JJSF",
-      name: "J&J Snack Foods Corp.",
-      sector: "consumerStaples",
-      sourceSectorLabel: "Consumer Staples",
+      ticker: "NBHC",
+      name: "National Bank Holdings Corporation",
+      sector: "financials",
+      sourceSectorLabel: "Financials",
       minimumStreakYears: 10,
-      forwardYieldPercent: 4.049607694254619,
-      fiveYearGrowthPercent: 6.288273250054988,
-      score: 7.193744319282112,
+      forwardYieldPercent: 3.3631108775617444,
+      fiveYearGrowthPercent: 8.447177119769854,
+      score: 7.586699437446672,
       isHighYieldOutlier: false
     },
     {
@@ -1707,31 +1685,20 @@ var dividendLists_hiddenStars_generated_default = {
       sector: "financials",
       sourceSectorLabel: "Financials",
       minimumStreakYears: 15,
-      forwardYieldPercent: 2.6854219948849103,
+      forwardYieldPercent: 3.0243261012491782,
       fiveYearGrowthPercent: 8.997698704834534,
-      score: 7.184271347302177,
+      score: 7.523175453666445,
       isHighYieldOutlier: false
     },
     {
-      ticker: "WEC",
-      name: "WEC Energy Group",
-      sector: "utilities",
-      sourceSectorLabel: "Utilities",
-      minimumStreakYears: 20,
-      forwardYieldPercent: 3.4882869692532936,
-      fiveYearGrowthPercent: 7.124682997948595,
-      score: 7.0506284682275915,
-      isHighYieldOutlier: false
-    },
-    {
-      ticker: "CTRE",
-      name: "CareTrust REIT",
-      sector: "realEstate",
-      sourceSectorLabel: "Real Estate",
+      ticker: "EMN",
+      name: "Eastman Chemical Company",
+      sector: "materials",
+      sourceSectorLabel: "Materials",
       minimumStreakYears: 10,
-      forwardYieldPercent: 3.7845705967976713,
-      fiveYearGrowthPercent: 6.0280952775362495,
-      score: 6.798618235565796,
+      forwardYieldPercent: 5.031446540880503,
+      fiveYearGrowthPercent: 4.690393301267948,
+      score: 7.376643191514477,
       isHighYieldOutlier: false
     },
     {
@@ -1740,53 +1707,42 @@ var dividendLists_hiddenStars_generated_default = {
       sector: "financials",
       sourceSectorLabel: "Financials",
       minimumStreakYears: 10,
-      forwardYieldPercent: 3.460369417816226,
+      forwardYieldPercent: 3.663366336633663,
       fiveYearGrowthPercent: 6.342724238285391,
-      score: 6.631731536958922,
+      score: 6.834728455776359,
       isHighYieldOutlier: false
     },
     {
-      ticker: "HASI",
-      name: "Hannon Armstrong Sustainable Infrastructure Capital, Inc.",
-      sector: "financials",
-      sourceSectorLabel: "Financials",
-      minimumStreakYears: 10,
-      forwardYieldPercent: 4.406428201140487,
-      fiveYearGrowthPercent: 4.316756381013498,
-      score: 6.564806391647236,
-      isHighYieldOutlier: false
-    },
-    {
-      ticker: "SR",
-      name: "Spire",
+      ticker: "WEC",
+      name: "WEC Energy Group",
       sector: "utilities",
       sourceSectorLabel: "Utilities",
       minimumStreakYears: 20,
-      forwardYieldPercent: 4.120364589836434,
-      fiveYearGrowthPercent: 4.7312584434531235,
-      score: 6.485993811562996,
+      forwardYieldPercent: 3.260906757912746,
+      fiveYearGrowthPercent: 7.124682997948595,
+      score: 6.823248256887044,
       isHighYieldOutlier: false
     },
     {
-      ticker: "FULT",
-      name: "Fulton Financial Corporation",
+      ticker: "FFIN",
+      name: "First Financial Bankshares",
       sector: "financials",
       sourceSectorLabel: "Financials",
-      minimumStreakYears: 10,
-      forwardYieldPercent: 3.0856678846934638,
-      fiveYearGrowthPercent: 6.724918187953888,
-      score: 6.448126978670407,
+      minimumStreakYears: 15,
+      forwardYieldPercent: 2.7989821882951653,
+      fiveYearGrowthPercent: 7.8852443962371455,
+      score: 6.741604386413738,
       isHighYieldOutlier: false
     },
     {
-      ticker: "EVRG",
-      name: "Evergy",
-      sector: "utilities",
-      sourceSectorLabel: "Utilities",
-      minimumStreakYears: 20,
-      forwardYieldPercent: 3.3401417758019942,
-      fiveYearGrowthPercent: 5.754052091282724,
-      score: 6.217167821443356,
+      ticker: "JJSF",
+      name: "J&J Snack Foods Corp.",
+      sector: "consumerStaples",
+      sourceSectorLabel: "Consumer Staples",
+      minimumStreakYears: 10,
+      forwardYieldPercent: 3.5882484862076702,
+      fiveYearGrowthPercent: 6.288273250054988,
+      score: 6.732385111235164,
       isHighYieldOutlier: false
     },
     {
@@ -1795,42 +1751,42 @@ var dividendLists_hiddenStars_generated_default = {
       sector: "utilities",
       sourceSectorLabel: "Utilities",
       minimumStreakYears: 10,
-      forwardYieldPercent: 2.56433007985803,
+      forwardYieldPercent: 2.526499836083488,
       fiveYearGrowthPercent: 7.2485713934655305,
-      score: 6.188615776590796,
+      score: 6.150785532816253,
       isHighYieldOutlier: false
     },
     {
-      ticker: "LNT",
-      name: "Alliant Energy",
-      sector: "utilities",
-      sourceSectorLabel: "Utilities",
-      minimumStreakYears: 20,
-      forwardYieldPercent: 3.002665918338712,
-      fiveYearGrowthPercent: 5.9363175944590285,
-      score: 5.970824715568226,
-      isHighYieldOutlier: false
-    },
-    {
-      ticker: "XEL",
-      name: "Xcel Energy",
-      sector: "utilities",
-      sourceSectorLabel: "Utilities",
-      minimumStreakYears: 20,
-      forwardYieldPercent: 3.0531599948513324,
-      fiveYearGrowthPercent: 5.79893110716263,
-      score: 5.952625548432648,
-      isHighYieldOutlier: false
-    },
-    {
-      ticker: "APOG",
-      name: "Apogee Enterprises, Inc.",
-      sector: "industrials",
-      sourceSectorLabel: "Industrials",
+      ticker: "CHCO",
+      name: "City Holding Company",
+      sector: "financials",
+      sourceSectorLabel: "Financials",
       minimumStreakYears: 10,
-      forwardYieldPercent: 2.5732666190135816,
-      fiveYearGrowthPercent: 6.699675773069802,
-      score: 5.923104505548483,
+      forwardYieldPercent: 2.749707843541624,
+      fiveYearGrowthPercent: 6.745714159561755,
+      score: 6.122564923322502,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "EVRG",
+      name: "Evergy",
+      sector: "utilities",
+      sourceSectorLabel: "Utilities",
+      minimumStreakYears: 20,
+      forwardYieldPercent: 3.212016175621028,
+      fiveYearGrowthPercent: 5.754052091282724,
+      score: 6.089042221262391,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "SR",
+      name: "Spire",
+      sector: "utilities",
+      sourceSectorLabel: "Utilities",
+      minimumStreakYears: 20,
+      forwardYieldPercent: 3.7132890739282094,
+      fiveYearGrowthPercent: 4.7312584434531235,
+      score: 6.078918295654772,
       isHighYieldOutlier: false
     },
     {
@@ -1839,42 +1795,31 @@ var dividendLists_hiddenStars_generated_default = {
       sector: "financials",
       sourceSectorLabel: "Financials",
       minimumStreakYears: 10,
-      forwardYieldPercent: 3.604358759430008,
+      forwardYieldPercent: 3.6104114189756507,
       fiveYearGrowthPercent: 4.613115579519111,
-      score: 5.910916549189563,
+      score: 5.916969208735207,
       isHighYieldOutlier: false
     },
     {
-      ticker: "AVNT",
-      name: "Avient",
-      sector: "materials",
-      sourceSectorLabel: "Materials",
-      minimumStreakYears: 15,
-      forwardYieldPercent: 2.9419630917357584,
-      fiveYearGrowthPercent: 5.870154107037795,
-      score: 5.8770401452546555,
-      isHighYieldOutlier: false
-    },
-    {
-      ticker: "TXNM",
-      name: "TXNM Energy",
+      ticker: "LNT",
+      name: "Alliant Energy",
       sector: "utilities",
       sourceSectorLabel: "Utilities",
-      minimumStreakYears: 10,
-      forwardYieldPercent: 2.9375,
-      fiveYearGrowthPercent: 5.784463865939604,
-      score: 5.829731932969802,
+      minimumStreakYears: 20,
+      forwardYieldPercent: 2.9307039167351414,
+      fiveYearGrowthPercent: 5.9363175944590285,
+      score: 5.898862713964656,
       isHighYieldOutlier: false
     },
     {
-      ticker: "UCB",
-      name: "United Community Banks, Inc.",
-      sector: "financials",
-      sourceSectorLabel: "Financials",
-      minimumStreakYears: 10,
-      forwardYieldPercent: 2.790957298353335,
-      fiveYearGrowthPercent: 5.922384104881218,
-      score: 5.752149350793944,
+      ticker: "XEL",
+      name: "Xcel Energy",
+      sector: "utilities",
+      sourceSectorLabel: "Utilities",
+      minimumStreakYears: 20,
+      forwardYieldPercent: 2.9900415983864868,
+      fiveYearGrowthPercent: 5.79893110716263,
+      score: 5.889507151967802,
       isHighYieldOutlier: false
     },
     {
@@ -1883,75 +1828,9 @@ var dividendLists_hiddenStars_generated_default = {
       sector: "consumerStaples",
       sourceSectorLabel: "Consumer Staples",
       minimumStreakYears: 15,
-      forwardYieldPercent: 3.2662816172077274,
+      forwardYieldPercent: 3.355908217931871,
       fiveYearGrowthPercent: 4.893816562469966,
-      score: 5.71318989844271,
-      isHighYieldOutlier: false
-    },
-    {
-      ticker: "OGS",
-      name: "One Gas",
-      sector: "utilities",
-      sourceSectorLabel: "Utilities",
-      minimumStreakYears: 20,
-      forwardYieldPercent: 3.4693877551020407,
-      fiveYearGrowthPercent: 4.408584653882852,
-      score: 5.673680082043466,
-      isHighYieldOutlier: false
-    },
-    {
-      ticker: "ASB",
-      name: "Associated Bank",
-      sector: "financials",
-      sourceSectorLabel: "Financials",
-      minimumStreakYears: 10,
-      forwardYieldPercent: 3.0573248407643314,
-      fiveYearGrowthPercent: 5.024607263868264,
-      score: 5.569628472698463,
-      isHighYieldOutlier: false
-    },
-    {
-      ticker: "INDB",
-      name: "Independent Bank Corp.",
-      sector: "financials",
-      sourceSectorLabel: "Financials",
-      minimumStreakYears: 10,
-      forwardYieldPercent: 3.011764705882353,
-      fiveYearGrowthPercent: 5.103901130952315,
-      score: 5.563715271358511,
-      isHighYieldOutlier: false
-    },
-    {
-      ticker: "MSEX",
-      name: "Middlesex Water Company",
-      sector: "utilities",
-      sourceSectorLabel: "Utilities",
-      minimumStreakYears: 10,
-      forwardYieldPercent: 2.5329815303430077,
-      fiveYearGrowthPercent: 5.839502638636529,
-      score: 5.452732849661272,
-      isHighYieldOutlier: false
-    },
-    {
-      ticker: "EIG",
-      name: "Employers Holdings, Inc.",
-      sector: "financials",
-      sourceSectorLabel: "Financials",
-      minimumStreakYears: 10,
-      forwardYieldPercent: 2.685093780848964,
-      fiveYearGrowthPercent: 5.061112176150684,
-      score: 5.215649868924306,
-      isHighYieldOutlier: false
-    },
-    {
-      ticker: "NBTB",
-      name: "NBT Bancorp, Inc.",
-      sector: "financials",
-      sourceSectorLabel: "Financials",
-      minimumStreakYears: 10,
-      forwardYieldPercent: 2.797202797202797,
-      fiveYearGrowthPercent: 4.718407860618323,
-      score: 5.156406727511959,
+      score: 5.802816499166854,
       isHighYieldOutlier: false
     },
     {
@@ -1960,9 +1839,20 @@ var dividendLists_hiddenStars_generated_default = {
       sector: "financials",
       sourceSectorLabel: "Financials",
       minimumStreakYears: 15,
-      forwardYieldPercent: 2.9177718832891246,
+      forwardYieldPercent: 3.688029020556227,
       fiveYearGrowthPercent: 4.180926810264429,
-      score: 5.008235288421339,
+      score: 5.778492425688442,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "UCB",
+      name: "United Community Banks, Inc.",
+      sector: "financials",
+      sourceSectorLabel: "Financials",
+      minimumStreakYears: 10,
+      forwardYieldPercent: 2.763018065887354,
+      fiveYearGrowthPercent: 5.922384104881218,
+      score: 5.724210118327963,
       isHighYieldOutlier: false
     },
     {
@@ -1971,9 +1861,53 @@ var dividendLists_hiddenStars_generated_default = {
       sector: "financials",
       sourceSectorLabel: "Financials",
       minimumStreakYears: 10,
-      forwardYieldPercent: 2.8907922912205573,
+      forwardYieldPercent: 3.558484349258649,
       fiveYearGrowthPercent: 4.180926810264429,
-      score: 4.981255696352772,
+      score: 5.648947754390864,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "OGS",
+      name: "One Gas",
+      sector: "utilities",
+      sourceSectorLabel: "Utilities",
+      minimumStreakYears: 20,
+      forwardYieldPercent: 3.4025519139354516,
+      fiveYearGrowthPercent: 4.408584653882852,
+      score: 5.606844240876878,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "INDB",
+      name: "Independent Bank Corp.",
+      sector: "financials",
+      sourceSectorLabel: "Financials",
+      minimumStreakYears: 10,
+      forwardYieldPercent: 3.0149570133082086,
+      fiveYearGrowthPercent: 5.103901130952315,
+      score: 5.566907578784367,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "AVNT",
+      name: "Avient",
+      sector: "materials",
+      sourceSectorLabel: "Materials",
+      minimumStreakYears: 15,
+      forwardYieldPercent: 2.5316455696202533,
+      fiveYearGrowthPercent: 5.870154107037795,
+      score: 5.466722623139151,
+      isHighYieldOutlier: false
+    },
+    {
+      ticker: "NBTB",
+      name: "NBT Bancorp, Inc.",
+      sector: "financials",
+      sourceSectorLabel: "Financials",
+      minimumStreakYears: 10,
+      forwardYieldPercent: 2.992891881780771,
+      fiveYearGrowthPercent: 4.718407860618323,
+      score: 5.3520958120899325,
       isHighYieldOutlier: false
     },
     {
@@ -1982,9 +1916,9 @@ var dividendLists_hiddenStars_generated_default = {
       sector: "consumerDiscretionary",
       sourceSectorLabel: "Consumer Discretionary",
       minimumStreakYears: 15,
-      forwardYieldPercent: 2.6835247064894854,
+      forwardYieldPercent: 2.7173229337023526,
       fiveYearGrowthPercent: 4.563955259127317,
-      score: 4.965502336053143,
+      score: 4.9993005632660115,
       isHighYieldOutlier: false
     }
   ],
@@ -2002,6 +1936,21 @@ var dividendLists_hiddenStars_generated_default = {
         fiveYearGrowthPercent: 10.256745157647828,
         score: 13.31054162552403,
         isHighYieldOutlier: true
+      }
+    },
+    {
+      month: "2026-11",
+      asOf: "2026-11-03",
+      star: {
+        ticker: "RHI",
+        name: "Robert Half",
+        sector: "industrials",
+        sourceSectorLabel: "Industrials",
+        minimumStreakYears: 20,
+        forwardYieldPercent: 5.271387089568908,
+        fiveYearGrowthPercent: 11.654085522403058,
+        score: 11.098429850770437,
+        isHighYieldOutlier: false
       }
     }
   ]
