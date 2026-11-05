@@ -3,6 +3,7 @@ name: Refresh dividend lists
 # 배당 목록 3종(배당킹·배당귀족·배당챔피언)과 그 파생물을 갱신한다.
 #
 #   npm run dividend:lists         → dividendLists.generated.json          (멤버십·지표)
+#   npm run dividend:metrics       → dividendLists.metrics.generated.json  (목록 종목 배당률·5년 성장률)
 #   npm run dividend:hidden-stars  → dividendLists.hiddenStars.generated.json (유니버스에서 규칙 통과분)
 #   npm run dividend:dex           → dividendDex.generated.json            (도감 카드 — 번호 append-only)
 #
@@ -81,6 +82,21 @@ jobs:
           if [ -n "$ONLY" ]; then args="$args --only=$ONLY"; fi
           if [ -n "$DELAY" ]; then args="$args --delay=$DELAY"; fi
           npm run dividend:lists -- $args
+
+      # 🔴 목록 화면의 선행 배당률·5년 성장률(`$METRICS_JSON`). 2026-11-05 까지 **이 단계가 없었다** —
+      # 아래 `git add` 는 그 파일을 올렸지만 만드는 코드가 없어, 화면이 8월 4일 가격의 배당률에 석 달
+      # 멈춰 있었다(근거: scripts/dividendLists/metrics.ts 머리말). 목록 **뒤에** 돈다: 이번 달 귀족
+      # 구성으로 재야 한다.
+      # ⚠ `continue-on-error` — 야후가 막힌 날 지표만 못 고치고 목록 갱신은 살린다. CLI 는 실패가 10% 를
+      #   넘으면 파일을 쓰지 않으므로 지난 생성물이 한 벌로 남는다(반쯤 섞인 파일이 나가지 않는다).
+      - name: Re-measure list metrics
+        continue-on-error: true
+        env:
+          DELAY: ${{ inputs.delay }}
+        run: |
+          args="--write"
+          if [ -n "$DELAY" ]; then args="$args --delay=$DELAY"; fi
+          npm run dividend:metrics -- $args
 
       # 파생물 둘 — 위 목록을 입력으로 삼는다. 순서를 바꾸지 마라.
       - name: Rebuild hidden stars
