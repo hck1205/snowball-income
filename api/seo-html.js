@@ -9833,8 +9833,8 @@ var marketData_generated_default = {
         6,
         12
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 14,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "6": 16,
         "12": 15
@@ -11293,12 +11293,19 @@ var marketData_generated_default = {
       dividendYield: 0.05,
       frequency: "quarterly",
       payoutMonths: [
-        3,
+        1,
+        4,
         7,
-        10,
-        12
+        10
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 16,
+      estimatedPayDayByMonth: {
+        "1": 15,
+        "4": 15,
+        "7": 22,
+        "10": 23
+      }
     },
     NDSN: {
       initialPrice: 329.02,
