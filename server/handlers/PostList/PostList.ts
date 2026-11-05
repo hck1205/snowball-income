@@ -7,6 +7,7 @@
   이스케이프한다. serverSanitize 를 import 하지 않아 이 함수 번들에 jsdom 이 실리지 않는다.
 */
 import {
+  buildCrawlerSiteNavHtml,
   escapeHtmlAttribute,
   escapeHtmlText,
   fetchPublicPostList,
@@ -124,7 +125,7 @@ const injectPostList = (shell: string, kind: PublicPostKind, items: PublicPostLi
   const nav = `<nav aria-label="${escapeHtmlAttribute(label)}"><ul>${listItems}</ul></nav>`;
 
   const insertAt = rootOpenTag.index + rootOpenTag[0].length;
-  return stripped.slice(0, insertAt) + heading + nav + stripped.slice(insertAt);
+  return stripped.slice(0, insertAt) + heading + nav + buildCrawlerSiteNavHtml() + stripped.slice(insertAt);
 };
 
 /** 웹 표준 핸들러 — `test/api/postList.test.ts` 가 `handler(new Request(...))` 로 직접 호출한다. */

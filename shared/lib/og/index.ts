@@ -3,6 +3,7 @@
  *
  * - metaHtml       : OG 메타 content 치환(순수, Edge/Node 공용) — middleware + api/share-html 공유.
  * - shellBody      : 크롤러 HTML 에서 랜딩 셸 본문·FAQ JSON-LD 제거(순수) — 본문을 주입하는 핸들러 공용.
+ * - crawlerSiteNav : 크롤러 HTML 공통 사이트 내비 블록(순수) — 셸·핸들러가 본문 뒤에 붙인다.
  * - shareKey       : DB 공유 key 형식 판별(순수) — middleware rewrite 게이트 + api 조회 게이트.
  * - sharedSnapshotRest : 서버 전용 get_shared_snapshot REST 조회(process.env) — api/og + api/share-html 공유.
  * - postsRest      : 서버 전용 공개 게시글 REST 조회(anon 키 + RLS) — api/sitemap + api/post-html 공유.
@@ -10,6 +11,7 @@
  */
 export * from './metaHtml';
 export * from './shellBody';
+export * from './crawlerSiteNav';
 export * from './shareKey';
 export * from './sharedSnapshotRest';
 export * from './postsRest';
