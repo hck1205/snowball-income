@@ -1,6 +1,6 @@
 {
   "asOf": "2026-11-06",
-  "note": "수집기(npm run dividend:metrics)가 킹·귀족·챔피언 종목을 야후로 직접 재서 만든다. 손으로 고치지 마라. 재는 방법은 scripts/dividendLists/metrics.ts 머리말.",
+  "note": "수집기(npm run dividend:metrics)가 배당 목록 네 개(킹·귀족·챔피언·히든스타) 종목을 야후로 직접 재서 만든다. 손으로 고치지 마라. 재는 방법은 scripts/dividendLists/metrics.ts 머리말.",
   "metrics": {
     "ABBV": {
       "forwardYieldPercent": 2.4008,
@@ -14,6 +14,10 @@
       "forwardYieldPercent": 2.2183,
       "fiveYearGrowthPercent": 10.385
     },
+    "ACN": {
+      "forwardYieldPercent": 2.5796,
+      "fiveYearGrowthPercent": 13.0926
+    },
     "ADM": {
       "forwardYieldPercent": 2.9516,
       "fiveYearGrowthPercent": 7.2145
@@ -21,6 +25,10 @@
     "ADP": {
       "forwardYieldPercent": 2.214,
       "fiveYearGrowthPercent": 11.0953
+    },
+    "AFG": {
+      "forwardYieldPercent": 3.7224,
+      "fiveYearGrowthPercent": 12.1955
     },
     "AFL": {
       "forwardYieldPercent": 1.9328,
@@ -62,6 +70,14 @@
       "forwardYieldPercent": 1.333,
       "fiveYearGrowthPercent": 4.564
     },
+    "AUB": {
+      "forwardYieldPercent": 3.7745,
+      "fiveYearGrowthPercent": 6.3427
+    },
+    "AVNT": {
+      "forwardYieldPercent": 2.4272,
+      "fiveYearGrowthPercent": 5.8702
+    },
     "AWR": {
       "forwardYieldPercent": 2.4584,
       "fiveYearGrowthPercent": 8.8472
@@ -69,6 +85,10 @@
     "BANF": {
       "forwardYieldPercent": 1.8068,
       "fiveYearGrowthPercent": 7.528
+    },
+    "BBY": {
+      "forwardYieldPercent": 3.8632,
+      "fiveYearGrowthPercent": 11.5507
     },
     "BDX": {
       "forwardYieldPercent": 1.9668,
@@ -126,6 +146,10 @@
       "forwardYieldPercent": 2.6296,
       "fiveYearGrowthPercent": 7.0899
     },
+    "CHCO": {
+      "forwardYieldPercent": 2.8159,
+      "fiveYearGrowthPercent": 6.7457
+    },
     "CHD": {
       "forwardYieldPercent": 1.1066,
       "fiveYearGrowthPercent": 4.2131
@@ -150,6 +174,10 @@
       "forwardYieldPercent": 2.0966,
       "fiveYearGrowthPercent": 7.5891
     },
+    "CNS": {
+      "forwardYieldPercent": 3.6597,
+      "fiveYearGrowthPercent": 9.7149
+    },
     "CSL": {
       "forwardYieldPercent": 1.3194,
       "fiveYearGrowthPercent": 14.8698
@@ -161,6 +189,10 @@
     "CTBI": {
       "forwardYieldPercent": 4.0952,
       "fiveYearGrowthPercent": 4.3429
+    },
+    "CUBE": {
+      "forwardYieldPercent": 4.6727,
+      "fiveYearGrowthPercent": 9.5211
     },
     "CVX": {
       "forwardYieldPercent": 3.3438,
@@ -186,6 +218,18 @@
       "forwardYieldPercent": 2.9249,
       "fiveYearGrowthPercent": 2.1296
     },
+    "EGP": {
+      "forwardYieldPercent": 3.6109,
+      "fiveYearGrowthPercent": 13.2957
+    },
+    "ELS": {
+      "forwardYieldPercent": 3.4487,
+      "fiveYearGrowthPercent": 8.4682
+    },
+    "EMN": {
+      "forwardYieldPercent": 5.1134,
+      "fiveYearGrowthPercent": 4.6904
+    },
     "EMR": {
       "forwardYieldPercent": 1.3652,
       "fiveYearGrowthPercent": 1.0957
@@ -210,9 +254,17 @@
       "forwardYieldPercent": 3.8181,
       "fiveYearGrowthPercent": 4.3416
     },
+    "EVRG": {
+      "forwardYieldPercent": 3.1804,
+      "fiveYearGrowthPercent": 5.7541
+    },
     "EXPD": {
       "forwardYieldPercent": 0.8577,
       "fiveYearGrowthPercent": 8.1677
+    },
+    "FAF": {
+      "forwardYieldPercent": 3.5777,
+      "fiveYearGrowthPercent": 4.1809
     },
     "FAST": {
       "forwardYieldPercent": 1.966,
@@ -225,6 +277,10 @@
     "FELE": {
       "forwardYieldPercent": 1.1678,
       "fiveYearGrowthPercent": 11.3225
+    },
+    "FFIN": {
+      "forwardYieldPercent": 2.8683,
+      "fiveYearGrowthPercent": 7.8852
     },
     "FRT": {
       "forwardYieldPercent": 3.9915,
@@ -250,6 +306,10 @@
       "forwardYieldPercent": 0.6862,
       "fiveYearGrowthPercent": 9.4332
     },
+    "HOMB": {
+      "forwardYieldPercent": 3.0595,
+      "fiveYearGrowthPercent": 8.9977
+    },
     "HRL": {
       "forwardYieldPercent": 5.1858,
       "fiveYearGrowthPercent": 4.474
@@ -262,9 +322,21 @@
       "forwardYieldPercent": 2.7356,
       "fiveYearGrowthPercent": 1.5151
     },
+    "INDB": {
+      "forwardYieldPercent": 3.0332,
+      "fiveYearGrowthPercent": 5.1039
+    },
+    "INGR": {
+      "forwardYieldPercent": 3.3669,
+      "fiveYearGrowthPercent": 4.8938
+    },
     "ITW": {
       "forwardYieldPercent": 2.4106,
       "fiveYearGrowthPercent": 6.9896
+    },
+    "JJSF": {
+      "forwardYieldPercent": 3.5115,
+      "fiveYearGrowthPercent": 6.2883
     },
     "JKHY": {
       "forwardYieldPercent": 1.3536,
@@ -289,6 +361,14 @@
     "LIN": {
       "forwardYieldPercent": 1.2279,
       "fiveYearGrowthPercent": 9.268
+    },
+    "LKFN": {
+      "forwardYieldPercent": 3.3893,
+      "fiveYearGrowthPercent": 10.7566
+    },
+    "LNT": {
+      "forwardYieldPercent": 2.9139,
+      "fiveYearGrowthPercent": 5.9363
     },
     "LOW": {
       "forwardYieldPercent": 2.2003,
@@ -330,6 +410,14 @@
       "forwardYieldPercent": 3.6866,
       "fiveYearGrowthPercent": 6.298
     },
+    "NBHC": {
+      "forwardYieldPercent": 3.4381,
+      "fiveYearGrowthPercent": 8.4472
+    },
+    "NBTB": {
+      "forwardYieldPercent": 3.0206,
+      "fiveYearGrowthPercent": 4.7184
+    },
     "NDSN": {
       "forwardYieldPercent": 1.211,
       "fiveYearGrowthPercent": 15.4681
@@ -346,9 +434,17 @@
       "forwardYieldPercent": 3.657,
       "fiveYearGrowthPercent": 7.531
     },
+    "NKE": {
+      "forwardYieldPercent": 4.1456,
+      "fiveYearGrowthPercent": 10.3008
+    },
     "NNN": {
       "forwardYieldPercent": 5.9817,
       "fiveYearGrowthPercent": 2.4057
+    },
+    "NSP": {
+      "forwardYieldPercent": 4.7226,
+      "fiveYearGrowthPercent": 8.4472
     },
     "NUE": {
       "forwardYieldPercent": 0.9118,
@@ -366,9 +462,17 @@
       "forwardYieldPercent": 5.4857,
       "fiveYearGrowthPercent": 3.4769
     },
+    "OGS": {
+      "forwardYieldPercent": 3.3232,
+      "fiveYearGrowthPercent": 4.4086
+    },
     "ORI": {
       "forwardYieldPercent": 3.1196,
       "fiveYearGrowthPercent": 6.6684
+    },
+    "OTTR": {
+      "forwardYieldPercent": 2.89,
+      "fiveYearGrowthPercent": 7.2486
     },
     "OZK": {
       "forwardYieldPercent": 3.8364,
@@ -398,6 +502,10 @@
       "forwardYieldPercent": 1.5479,
       "fiveYearGrowthPercent": 5.6422
     },
+    "POR": {
+      "forwardYieldPercent": 4.7903,
+      "fiveYearGrowthPercent": 6.3995
+    },
     "PPG": {
       "forwardYieldPercent": 2.4012,
       "fiveYearGrowthPercent": 5.9224
@@ -405,6 +513,10 @@
     "RGCO": {
       "forwardYieldPercent": 3.7684,
       "fiveYearGrowthPercent": 3.5154
+    },
+    "RHI": {
+      "forwardYieldPercent": 5.4896,
+      "fiveYearGrowthPercent": 11.6541
     },
     "RLI": {
       "forwardYieldPercent": 1.0327,
@@ -438,6 +550,10 @@
       "forwardYieldPercent": 0.9888,
       "fiveYearGrowthPercent": 6.961
     },
+    "SFNC": {
+      "forwardYieldPercent": 3.7021,
+      "fiveYearGrowthPercent": 4.6131
+    },
     "SHW": {
       "forwardYieldPercent": 0.9169,
       "fiveYearGrowthPercent": 12.0801
@@ -453,6 +569,10 @@
     "SPGI": {
       "forwardYieldPercent": 0.8213,
       "fiveYearGrowthPercent": 7.4582
+    },
+    "SR": {
+      "forwardYieldPercent": 3.6979,
+      "fiveYearGrowthPercent": 4.7313
     },
     "SRCE": {
       "forwardYieldPercent": 2.0607,
@@ -478,6 +598,10 @@
       "forwardYieldPercent": null,
       "fiveYearGrowthPercent": null
     },
+    "THO": {
+      "forwardYieldPercent": 2.6236,
+      "fiveYearGrowthPercent": 4.564
+    },
     "TMP": {
       "forwardYieldPercent": 2.7994,
       "fiveYearGrowthPercent": 3.5804
@@ -490,9 +614,21 @@
       "forwardYieldPercent": 0.9212,
       "fiveYearGrowthPercent": 3
     },
+    "TRN": {
+      "forwardYieldPercent": 4.0656,
+      "fiveYearGrowthPercent": 9.5654
+    },
+    "TRNO": {
+      "forwardYieldPercent": 3.3984,
+      "fiveYearGrowthPercent": 12.6591
+    },
     "TROW": {
       "forwardYieldPercent": 4.7834,
       "fiveYearGrowthPercent": 7.1303
+    },
+    "UCB": {
+      "forwardYieldPercent": 2.8139,
+      "fiveYearGrowthPercent": 5.9224
     },
     "UGI": {
       "forwardYieldPercent": 4.0301,
@@ -514,6 +650,18 @@
       "forwardYieldPercent": 3.2123,
       "fiveYearGrowthPercent": 2.3281
     },
+    "WAFD": {
+      "forwardYieldPercent": 3.6623,
+      "fiveYearGrowthPercent": 4.1809
+    },
+    "WEC": {
+      "forwardYieldPercent": 3.2218,
+      "fiveYearGrowthPercent": 7.1247
+    },
+    "WLK": {
+      "forwardYieldPercent": 3.2167,
+      "fiveYearGrowthPercent": 14.8261
+    },
     "WLY": {
       "forwardYieldPercent": 2.8334,
       "fiveYearGrowthPercent": 0.7195
@@ -533,6 +681,10 @@
     "WTRG": {
       "forwardYieldPercent": 3.1357,
       "fiveYearGrowthPercent": 6.8564
+    },
+    "XEL": {
+      "forwardYieldPercent": 2.9514,
+      "fiveYearGrowthPercent": 5.7989
     },
     "XOM": {
       "forwardYieldPercent": 2.4924,

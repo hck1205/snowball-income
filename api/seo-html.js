@@ -211,9 +211,8 @@ var CRAWLER_SITE_NAV = [
   }
 ];
 var CRAWLER_SITE_NAV_LABEL = "\uC0AC\uC774\uD2B8 \uC804\uCCB4 \uBA54\uB274";
-var escapeText = (value) => value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 var buildCrawlerSiteNavHtml = () => `<nav aria-label="${CRAWLER_SITE_NAV_LABEL}" class="crawler-site-nav">` + CRAWLER_SITE_NAV.map(
-  (group) => `<p>${escapeText(group.label)}</p><ul>` + group.items.map((item) => `<li><a href="${escapeText(item.to)}">${escapeText(item.label)}</a></li>`).join("") + "</ul>"
+  (group) => `<p>${escapeHtmlText(group.label)}</p><ul>` + group.items.map((item) => `<li><a href="${escapeHtmlAttribute(item.to)}">${escapeHtmlText(item.label)}</a></li>`).join("") + "</ul>"
 ).join("") + "</nav>";
 
 // shared/lib/og/shellBody.ts
@@ -1025,7 +1024,7 @@ var dividendLists_generated_default = {
 // shared/constants/dividendLists/dividendLists.metrics.generated.json
 var dividendLists_metrics_generated_default = {
   asOf: "2026-11-06",
-  note: "\uC218\uC9D1\uAE30(npm run dividend:metrics)\uAC00 \uD0B9\xB7\uADC0\uC871\xB7\uCC54\uD53C\uC5B8 \uC885\uBAA9\uC744 \uC57C\uD6C4\uB85C \uC9C1\uC811 \uC7AC\uC11C \uB9CC\uB4E0\uB2E4. \uC190\uC73C\uB85C \uACE0\uCE58\uC9C0 \uB9C8\uB77C. \uC7AC\uB294 \uBC29\uBC95\uC740 scripts/dividendLists/metrics.ts \uBA38\uB9AC\uB9D0.",
+  note: "\uC218\uC9D1\uAE30(npm run dividend:metrics)\uAC00 \uBC30\uB2F9 \uBAA9\uB85D \uB124 \uAC1C(\uD0B9\xB7\uADC0\uC871\xB7\uCC54\uD53C\uC5B8\xB7\uD788\uB4E0\uC2A4\uD0C0) \uC885\uBAA9\uC744 \uC57C\uD6C4\uB85C \uC9C1\uC811 \uC7AC\uC11C \uB9CC\uB4E0\uB2E4. \uC190\uC73C\uB85C \uACE0\uCE58\uC9C0 \uB9C8\uB77C. \uC7AC\uB294 \uBC29\uBC95\uC740 scripts/dividendLists/metrics.ts \uBA38\uB9AC\uB9D0.",
   metrics: {
     ABBV: {
       forwardYieldPercent: 2.4008,
@@ -1039,6 +1038,10 @@ var dividendLists_metrics_generated_default = {
       forwardYieldPercent: 2.2183,
       fiveYearGrowthPercent: 10.385
     },
+    ACN: {
+      forwardYieldPercent: 2.5796,
+      fiveYearGrowthPercent: 13.0926
+    },
     ADM: {
       forwardYieldPercent: 2.9516,
       fiveYearGrowthPercent: 7.2145
@@ -1046,6 +1049,10 @@ var dividendLists_metrics_generated_default = {
     ADP: {
       forwardYieldPercent: 2.214,
       fiveYearGrowthPercent: 11.0953
+    },
+    AFG: {
+      forwardYieldPercent: 3.7224,
+      fiveYearGrowthPercent: 12.1955
     },
     AFL: {
       forwardYieldPercent: 1.9328,
@@ -1087,6 +1094,14 @@ var dividendLists_metrics_generated_default = {
       forwardYieldPercent: 1.333,
       fiveYearGrowthPercent: 4.564
     },
+    AUB: {
+      forwardYieldPercent: 3.7745,
+      fiveYearGrowthPercent: 6.3427
+    },
+    AVNT: {
+      forwardYieldPercent: 2.4272,
+      fiveYearGrowthPercent: 5.8702
+    },
     AWR: {
       forwardYieldPercent: 2.4584,
       fiveYearGrowthPercent: 8.8472
@@ -1094,6 +1109,10 @@ var dividendLists_metrics_generated_default = {
     BANF: {
       forwardYieldPercent: 1.8068,
       fiveYearGrowthPercent: 7.528
+    },
+    BBY: {
+      forwardYieldPercent: 3.8632,
+      fiveYearGrowthPercent: 11.5507
     },
     BDX: {
       forwardYieldPercent: 1.9668,
@@ -1151,6 +1170,10 @@ var dividendLists_metrics_generated_default = {
       forwardYieldPercent: 2.6296,
       fiveYearGrowthPercent: 7.0899
     },
+    CHCO: {
+      forwardYieldPercent: 2.8159,
+      fiveYearGrowthPercent: 6.7457
+    },
     CHD: {
       forwardYieldPercent: 1.1066,
       fiveYearGrowthPercent: 4.2131
@@ -1175,6 +1198,10 @@ var dividendLists_metrics_generated_default = {
       forwardYieldPercent: 2.0966,
       fiveYearGrowthPercent: 7.5891
     },
+    CNS: {
+      forwardYieldPercent: 3.6597,
+      fiveYearGrowthPercent: 9.7149
+    },
     CSL: {
       forwardYieldPercent: 1.3194,
       fiveYearGrowthPercent: 14.8698
@@ -1186,6 +1213,10 @@ var dividendLists_metrics_generated_default = {
     CTBI: {
       forwardYieldPercent: 4.0952,
       fiveYearGrowthPercent: 4.3429
+    },
+    CUBE: {
+      forwardYieldPercent: 4.6727,
+      fiveYearGrowthPercent: 9.5211
     },
     CVX: {
       forwardYieldPercent: 3.3438,
@@ -1211,6 +1242,18 @@ var dividendLists_metrics_generated_default = {
       forwardYieldPercent: 2.9249,
       fiveYearGrowthPercent: 2.1296
     },
+    EGP: {
+      forwardYieldPercent: 3.6109,
+      fiveYearGrowthPercent: 13.2957
+    },
+    ELS: {
+      forwardYieldPercent: 3.4487,
+      fiveYearGrowthPercent: 8.4682
+    },
+    EMN: {
+      forwardYieldPercent: 5.1134,
+      fiveYearGrowthPercent: 4.6904
+    },
     EMR: {
       forwardYieldPercent: 1.3652,
       fiveYearGrowthPercent: 1.0957
@@ -1235,9 +1278,17 @@ var dividendLists_metrics_generated_default = {
       forwardYieldPercent: 3.8181,
       fiveYearGrowthPercent: 4.3416
     },
+    EVRG: {
+      forwardYieldPercent: 3.1804,
+      fiveYearGrowthPercent: 5.7541
+    },
     EXPD: {
       forwardYieldPercent: 0.8577,
       fiveYearGrowthPercent: 8.1677
+    },
+    FAF: {
+      forwardYieldPercent: 3.5777,
+      fiveYearGrowthPercent: 4.1809
     },
     FAST: {
       forwardYieldPercent: 1.966,
@@ -1250,6 +1301,10 @@ var dividendLists_metrics_generated_default = {
     FELE: {
       forwardYieldPercent: 1.1678,
       fiveYearGrowthPercent: 11.3225
+    },
+    FFIN: {
+      forwardYieldPercent: 2.8683,
+      fiveYearGrowthPercent: 7.8852
     },
     FRT: {
       forwardYieldPercent: 3.9915,
@@ -1275,6 +1330,10 @@ var dividendLists_metrics_generated_default = {
       forwardYieldPercent: 0.6862,
       fiveYearGrowthPercent: 9.4332
     },
+    HOMB: {
+      forwardYieldPercent: 3.0595,
+      fiveYearGrowthPercent: 8.9977
+    },
     HRL: {
       forwardYieldPercent: 5.1858,
       fiveYearGrowthPercent: 4.474
@@ -1287,9 +1346,21 @@ var dividendLists_metrics_generated_default = {
       forwardYieldPercent: 2.7356,
       fiveYearGrowthPercent: 1.5151
     },
+    INDB: {
+      forwardYieldPercent: 3.0332,
+      fiveYearGrowthPercent: 5.1039
+    },
+    INGR: {
+      forwardYieldPercent: 3.3669,
+      fiveYearGrowthPercent: 4.8938
+    },
     ITW: {
       forwardYieldPercent: 2.4106,
       fiveYearGrowthPercent: 6.9896
+    },
+    JJSF: {
+      forwardYieldPercent: 3.5115,
+      fiveYearGrowthPercent: 6.2883
     },
     JKHY: {
       forwardYieldPercent: 1.3536,
@@ -1314,6 +1385,14 @@ var dividendLists_metrics_generated_default = {
     LIN: {
       forwardYieldPercent: 1.2279,
       fiveYearGrowthPercent: 9.268
+    },
+    LKFN: {
+      forwardYieldPercent: 3.3893,
+      fiveYearGrowthPercent: 10.7566
+    },
+    LNT: {
+      forwardYieldPercent: 2.9139,
+      fiveYearGrowthPercent: 5.9363
     },
     LOW: {
       forwardYieldPercent: 2.2003,
@@ -1355,6 +1434,14 @@ var dividendLists_metrics_generated_default = {
       forwardYieldPercent: 3.6866,
       fiveYearGrowthPercent: 6.298
     },
+    NBHC: {
+      forwardYieldPercent: 3.4381,
+      fiveYearGrowthPercent: 8.4472
+    },
+    NBTB: {
+      forwardYieldPercent: 3.0206,
+      fiveYearGrowthPercent: 4.7184
+    },
     NDSN: {
       forwardYieldPercent: 1.211,
       fiveYearGrowthPercent: 15.4681
@@ -1371,9 +1458,17 @@ var dividendLists_metrics_generated_default = {
       forwardYieldPercent: 3.657,
       fiveYearGrowthPercent: 7.531
     },
+    NKE: {
+      forwardYieldPercent: 4.1456,
+      fiveYearGrowthPercent: 10.3008
+    },
     NNN: {
       forwardYieldPercent: 5.9817,
       fiveYearGrowthPercent: 2.4057
+    },
+    NSP: {
+      forwardYieldPercent: 4.7226,
+      fiveYearGrowthPercent: 8.4472
     },
     NUE: {
       forwardYieldPercent: 0.9118,
@@ -1391,9 +1486,17 @@ var dividendLists_metrics_generated_default = {
       forwardYieldPercent: 5.4857,
       fiveYearGrowthPercent: 3.4769
     },
+    OGS: {
+      forwardYieldPercent: 3.3232,
+      fiveYearGrowthPercent: 4.4086
+    },
     ORI: {
       forwardYieldPercent: 3.1196,
       fiveYearGrowthPercent: 6.6684
+    },
+    OTTR: {
+      forwardYieldPercent: 2.89,
+      fiveYearGrowthPercent: 7.2486
     },
     OZK: {
       forwardYieldPercent: 3.8364,
@@ -1423,6 +1526,10 @@ var dividendLists_metrics_generated_default = {
       forwardYieldPercent: 1.5479,
       fiveYearGrowthPercent: 5.6422
     },
+    POR: {
+      forwardYieldPercent: 4.7903,
+      fiveYearGrowthPercent: 6.3995
+    },
     PPG: {
       forwardYieldPercent: 2.4012,
       fiveYearGrowthPercent: 5.9224
@@ -1430,6 +1537,10 @@ var dividendLists_metrics_generated_default = {
     RGCO: {
       forwardYieldPercent: 3.7684,
       fiveYearGrowthPercent: 3.5154
+    },
+    RHI: {
+      forwardYieldPercent: 5.4896,
+      fiveYearGrowthPercent: 11.6541
     },
     RLI: {
       forwardYieldPercent: 1.0327,
@@ -1463,6 +1574,10 @@ var dividendLists_metrics_generated_default = {
       forwardYieldPercent: 0.9888,
       fiveYearGrowthPercent: 6.961
     },
+    SFNC: {
+      forwardYieldPercent: 3.7021,
+      fiveYearGrowthPercent: 4.6131
+    },
     SHW: {
       forwardYieldPercent: 0.9169,
       fiveYearGrowthPercent: 12.0801
@@ -1478,6 +1593,10 @@ var dividendLists_metrics_generated_default = {
     SPGI: {
       forwardYieldPercent: 0.8213,
       fiveYearGrowthPercent: 7.4582
+    },
+    SR: {
+      forwardYieldPercent: 3.6979,
+      fiveYearGrowthPercent: 4.7313
     },
     SRCE: {
       forwardYieldPercent: 2.0607,
@@ -1503,6 +1622,10 @@ var dividendLists_metrics_generated_default = {
       forwardYieldPercent: null,
       fiveYearGrowthPercent: null
     },
+    THO: {
+      forwardYieldPercent: 2.6236,
+      fiveYearGrowthPercent: 4.564
+    },
     TMP: {
       forwardYieldPercent: 2.7994,
       fiveYearGrowthPercent: 3.5804
@@ -1515,9 +1638,21 @@ var dividendLists_metrics_generated_default = {
       forwardYieldPercent: 0.9212,
       fiveYearGrowthPercent: 3
     },
+    TRN: {
+      forwardYieldPercent: 4.0656,
+      fiveYearGrowthPercent: 9.5654
+    },
+    TRNO: {
+      forwardYieldPercent: 3.3984,
+      fiveYearGrowthPercent: 12.6591
+    },
     TROW: {
       forwardYieldPercent: 4.7834,
       fiveYearGrowthPercent: 7.1303
+    },
+    UCB: {
+      forwardYieldPercent: 2.8139,
+      fiveYearGrowthPercent: 5.9224
     },
     UGI: {
       forwardYieldPercent: 4.0301,
@@ -1539,6 +1674,18 @@ var dividendLists_metrics_generated_default = {
       forwardYieldPercent: 3.2123,
       fiveYearGrowthPercent: 2.3281
     },
+    WAFD: {
+      forwardYieldPercent: 3.6623,
+      fiveYearGrowthPercent: 4.1809
+    },
+    WEC: {
+      forwardYieldPercent: 3.2218,
+      fiveYearGrowthPercent: 7.1247
+    },
+    WLK: {
+      forwardYieldPercent: 3.2167,
+      fiveYearGrowthPercent: 14.8261
+    },
     WLY: {
       forwardYieldPercent: 2.8334,
       fiveYearGrowthPercent: 0.7195
@@ -1558,6 +1705,10 @@ var dividendLists_metrics_generated_default = {
     WTRG: {
       forwardYieldPercent: 3.1357,
       fiveYearGrowthPercent: 6.8564
+    },
+    XEL: {
+      forwardYieldPercent: 2.9514,
+      fiveYearGrowthPercent: 5.7989
     },
     XOM: {
       forwardYieldPercent: 2.4924,

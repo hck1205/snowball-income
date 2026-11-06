@@ -77,9 +77,8 @@ var CRAWLER_SITE_NAV = [
   }
 ];
 var CRAWLER_SITE_NAV_LABEL = "\uC0AC\uC774\uD2B8 \uC804\uCCB4 \uBA54\uB274";
-var escapeText = (value) => value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 var buildCrawlerSiteNavHtml = () => `<nav aria-label="${CRAWLER_SITE_NAV_LABEL}" class="crawler-site-nav">` + CRAWLER_SITE_NAV.map(
-  (group) => `<p>${escapeText(group.label)}</p><ul>` + group.items.map((item) => `<li><a href="${escapeText(item.to)}">${escapeText(item.label)}</a></li>`).join("") + "</ul>"
+  (group) => `<p>${escapeHtmlText(group.label)}</p><ul>` + group.items.map((item) => `<li><a href="${escapeHtmlAttribute(item.to)}">${escapeHtmlText(item.label)}</a></li>`).join("") + "</ul>"
 ).join("") + "</nav>";
 
 // shared/lib/og/shellBody.ts
@@ -119,6 +118,13 @@ var removeScriptById = (html, id) => {
   return html.slice(0, openTag.index) + html.slice(closeIndex + "</script>".length);
 };
 var stripLandingShellBody = (html) => removeScriptById(removeDivByClassName(html, SHELL_FALLBACK_CLASS_NAME), LANDING_FAQ_SCRIPT_ID);
+var injectIntoRoot = (shell, body) => {
+  const stripped = stripLandingShellBody(shell);
+  const rootOpenTag = stripped.match(/<div\s+id="root"[^>]*>/i);
+  if (!rootOpenTag || rootOpenTag.index === void 0) return stripped;
+  const insertAt = rootOpenTag.index + rootOpenTag[0].length;
+  return stripped.slice(0, insertAt) + body + buildCrawlerSiteNavHtml() + stripped.slice(insertAt);
+};
 
 // shared/lib/og/sharedSnapshotRest.ts
 var readServerEnv = (name) => {
@@ -354,15 +360,11 @@ var applyListMeta = (shell, kind, siteUrl) => {
   return html;
 };
 var injectPostList = (shell, kind, items) => {
-  const stripped = stripLandingShellBody(shell);
-  const rootOpenTag = stripped.match(/<div\s+id="root"[^>]*>/i);
-  if (!rootOpenTag || rootOpenTag.index === void 0) return stripped;
   const label = LIST_META[kind].title;
   const listItems = items.map((item) => `<li><a href="/community/${item.kind}/${item.id}">${escapeHtmlText(item.title)}</a></li>`).join("");
   const heading = `<h1>${escapeHtmlText(label)}</h1>`;
   const nav = `<nav aria-label="${escapeHtmlAttribute(label)}"><ul>${listItems}</ul></nav>`;
-  const insertAt = rootOpenTag.index + rootOpenTag[0].length;
-  return stripped.slice(0, insertAt) + heading + nav + buildCrawlerSiteNavHtml() + stripped.slice(insertAt);
+  return injectIntoRoot(shell, heading + nav);
 };
 async function handler(request) {
   const { origin, searchParams } = new URL(request.url);

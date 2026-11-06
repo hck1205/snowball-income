@@ -33,7 +33,7 @@ export type DividendMetricsFile = {
 };
 
 export const DIVIDEND_METRICS_NOTE =
-  '수집기(npm run dividend:metrics)가 킹·귀족·챔피언 종목을 야후로 직접 재서 만든다. 손으로 고치지 마라. 재는 방법은 scripts/dividendLists/metrics.ts 머리말.';
+  '수집기(npm run dividend:metrics)가 배당 목록 네 개(킹·귀족·챔피언·히든스타) 종목을 야후로 직접 재서 만든다. 손으로 고치지 마라. 재는 방법은 scripts/dividendLists/metrics.ts 머리말.';
 
 /**
  * 조회 실패 허용 비율. 넘으면 파일을 **쓰지 않는다** — 야후가 통째로 막힌 날 목록 절반의 배당률이

@@ -1,5 +1,5 @@
 /**
- * 배당 목록 지표 갱신기 — 킹·귀족·챔피언 종목의 선행 배당률·5년 성장률을 야후로 재서 쓴다.
+ * 배당 목록 지표 갱신기 — 배당 목록 네 개(킹·귀족·챔피언·히든스타) 종목의 선행 배당률·5년 성장률을 야후로 재서 쓴다.
  *
  * ```sh
  * npm run dividend:metrics                 # 재 보기만(파일 안 씀)
@@ -23,8 +23,15 @@ import { collectUniverseMetrics } from './universe';
 const LOG = '[dividend-metrics]';
 const OUT = resolve(process.cwd(), 'shared/constants/dividendLists/dividendLists.metrics.generated.json');
 
-/** 지표를 얹는 목록. 히든스타는 자기 생성물에 유니버스 지표를 이미 싣는다(hiddenStarsCli). */
-const MEASURED_LIST_IDS = ['kings', 'aristocrats', 'champions'] as const;
+/**
+ * 지표를 얹는 목록 — **넷 다**(배럴의 `withMetrics` 가 네 목록 전부에 이 파일을 얹는다).
+ *
+ * 🔴 히든스타도 잰다(2026-11-06). 처음에는 "히든스타는 자기 생성물에 유니버스 지표를 싣는다"며 뺐는데,
+ *   그 유니버스가 바로 사람 확인 전까지 머지가 멈추는 자료다 — 빼 두면 히든스타 배당률만 다시 그
+ *   적체에 묶인다. ⚠ 이 단계는 히든스타 재선정(`dividend:hidden-stars`)보다 **먼저** 돌아 지난달
+ *   선정분을 잰다. 이번 달 새로 뽑힌 종목은 다음 달까지 유니버스 값을 그대로 쓴다.
+ */
+const MEASURED_LIST_IDS = ['kings', 'aristocrats', 'champions', 'hiddenStars'] as const;
 
 const parseArgs = (argv: readonly string[]): { write: boolean; delayMs: number } | string => {
   let write = false;

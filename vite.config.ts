@@ -9,7 +9,7 @@ import react from '@vitejs/plugin-react';
 import type { SimulationOutput } from './shared/types';
 import { API_BUNDLES } from './tools/apiBundle/manifest.mjs';
 import { escapeHtmlText, replaceLinkHref, replaceMetaContent, replaceTitleTag } from './shared/lib/og/metaHtml';
-import { stripLandingShellBody } from './shared/lib/og/shellBody';
+import { injectIntoRoot, stripLandingShellBody } from './shared/lib/og/shellBody';
 import { buildCrawlerSiteNavHtml } from './shared/lib/og/crawlerSiteNav';
 import { withSiteTitleSuffix } from './shared/constants/site';
 
@@ -690,14 +690,10 @@ const buildRouteShell = (
       + `<p>${escapeHtmlText(description)}</p>`
       + '<noscript><p class="disclaimer">이 화면을 직접 사용하려면 브라우저에서 JavaScript를 활성화해 주세요.</p></noscript>'
       + '</div>');
-  const rootOpenTag = html.match(/<div\s+id="root"[^>]*>/i);
-  if (rootOpenTag && rootOpenTag.index !== undefined) {
-    const insertAt = rootOpenTag.index + rootOpenTag[0].length;
-    // 본문 뒤에 사이트 공통 내비. 랜딩 본문의 것은 위 `stripLandingShellBody` 가 이미 걷어냈다.
-    html = html.slice(0, insertAt) + fallback + buildCrawlerSiteNavHtml() + html.slice(insertAt);
-  }
-
-  return html;
+  // 삽입·사이트 공통 내비는 서버 렌더 핸들러와 같은 공용 함수가 맡는다(shellBody.ts).
+  // ⚠ 그 함수는 삽입 **전에** 랜딩 본문(`.app-shell-fallback`)을 걷어낸다. 위에서 이미 걷어냈고,
+  //   여기 넣는 `fallback` 은 걷어낸 **뒤에** 들어가므로 같은 class 를 써도 지워지지 않는다.
+  return injectIntoRoot(html, fallback);
 };
 
 /**

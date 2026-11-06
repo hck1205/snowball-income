@@ -140,6 +140,15 @@ npm run hooks:install  # pre-commit 훅 활성화 (커밋 시 자동 재인덱�
    재투자 타이밍, 수익률 이중 반영. 바꿨으면 **반드시 `npm run test`로 확인**한다.
 2. **하위 호환** — 저장 데이터와 공유 URL은 사용자 자산이다. 영속 페이로드/공유 링크 스키마 변경은
    기존 데이터가 계속 열리는지 왕복 테스트로 확인한다.
+3. **GA 수치를 그대로 믿지 않는다** — 운영 목적이 트래픽→광고라 페이지뷰가 판단 기준이다. 전송 게이트
+   (`shared/lib/analytics.ts` `isAnalyticsEnabled`)가 DEV·localhost·**운영자 기기**(`?analytics=off` 로 한 번
+   연 브라우저, `?analytics=on` 으로 해제)·**봇 UA/`navigator.webdriver`** 를 거른다. 숫자가 튀면 먼저
+   hostName·도시(데이터센터)·참여율로 봇인지 본다(2026-11-06: 하루 33명 중 대부분이 구글·AWS 데이터센터).
+4. **워크트리에 `node_modules` junction 을 걸었다면 지우기 전에 링크부터 끊는다** —
+   `cmd //c rmdir <워크트리>\node_modules` → `git worktree remove`. 그냥 지우면 링크를 따라가
+   **메인 트리의 `node_modules` 를 통째로 비운다**(2026-11-05 실제로 비웠다, 복구는 `npm ci`).
+   그런 워크트리에서는 `api:bundle` 결과에 모듈 경로가 `../snowball-income/node_modules/…` 로 박히므로
+   `node_modules/…` 로 되돌린 뒤 커밋한다(CI 의 `api:check` 가 최종 판정).
 
 ## 검증은 두 단계다 — 로컬은 얇게, 전체는 CI (2026-08-12 사용자 결정)
 
@@ -193,6 +202,12 @@ PR 을 열자마자 `gh pr merge --delete-branch` 를 부르기 때문에 **1초
 `api:bundle` · `tsc -b tsconfig.build.json` · `test:ci` 를 돌린다 — 통과하지 못하면 브랜치도 PR 도
 만들어지지 않는다. `ci.yml` 이 도는 것과 **같은 검사**다. 그래서 지금은 `ci.yml` 이 `chore/refresh-*`
 를 건너뛴다(그 파일의 `if:` 와 근거 주석).
+
+⚠ 잡 수준 `if:` 만으로는 부족했다(2026-11-06 실측 3건) — 브랜치가 1초 만에 지워지면 실행이 워크플로
+파일조차 못 읽어 **작업 0개 실패**로 남는다. 그래서 자동 머지하는 갱신 워크플로는 전부 머지 전에
+`sleep 30` 한다(`test/dividendLists/dividendListsAutoMerge.test.ts` 가 잠근다).
+배당 목록(`refresh-dividend-lists`)은 **멤버십(종목 구성)이 그대로인 달만** 자동 머지하고, 종목이
+들고 난 달에는 사람 확인 PR 을 연다(`scripts/dividendLists/listsChange.ts`).
 
 ⚠ 그러니 **"자동 갱신 PR 에 CI 가 없다 = 검증이 없다"로 읽지 마라.** 검증은 갱신 잡 안에 있다.
 [main-health.yml](.github/workflows/main-health.yml) 이 매일 main 을 직접 검사하는 것은 그와 별개로,

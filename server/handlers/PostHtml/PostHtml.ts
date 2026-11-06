@@ -6,16 +6,15 @@
   supabase-js 도 끌어오지 않는다 — anon 키 plain REST 직접 호출(postsRest.ts).
 */
 import {
-  buildCrawlerSiteNavHtml,
   escapeHtmlText,
   fetchPublicPostMeta,
+  injectIntoRoot,
   isPublicPostKind,
   POST_ID_PATTERN,
   replaceLinkHref,
   replaceMetaContent,
   replaceTitleTag,
-  resolveSiteUrl,
-  stripLandingShellBody
+  resolveSiteUrl
 } from '@/shared/lib/og';
 import type { PublicPostKind, PublicPostMeta } from '@/shared/lib/og';
 /**
@@ -137,13 +136,8 @@ const applyPostMeta = (shell: string, post: PublicPostMeta, siteUrl: string): st
 /**
  * `#root` 안에 글 제목(h1) + 정화된 본문을 서버 주입한다.
  *
- * ## 삽입 지점 — `<div id="root">` 여는 태그 **직후**
- * 기존 `app-shell-fallback` 을 감싼 `</div>` 를 매칭하는 방식은 `#root` 안에 중첩 div 가 있어 정규식이
- * 취약하다. **여는 태그 직후 삽입**은 빈 `<div id="root"></div>`(테스트 픽스처)와 실제 셸(fallback 포함)
- * **양쪽에서 결정적**이다. 여는 태그가 없으면(방어) 원문 그대로 반환한다.
- *
- * 삽입 **전에** `stripLandingShellBody` 로 랜딩 셸 본문(+랜딩 FAQ JSON-LD)을 걷어낸다 — 남겨 두면 글
- * 제목 h1 뒤에 랜딩 h1 이 하나 더 붙고 전 글이 같은 6.5KB 텍스트를 공유한다(shellBody.ts 참고).
+ * 삽입·랜딩 본문 걷어내기·사이트 공통 내비는 공용 `injectIntoRoot` 가 맡는다(shellBody.ts). 이 핸들러가
+ * 그 과정을 손으로 복사해 두었다가 2026-11-06 에 공용으로 돌렸다 — 복사본은 한쪽만 고쳐져 갈라진다.
  *
  * ## HTML 컨텍스트 안전 (XSS 경계)
  * 본문은 **엘리먼트 content 위치**(article 안)에 들어간다. `sanitizePostBody` 는 DOMPurify 가 파싱·정화한
@@ -153,15 +147,8 @@ const applyPostMeta = (shell: string, post: PublicPostMeta, siteUrl: string): st
  * 제목은 마크업이 아닌 텍스트라 `escapeHtmlText` 로만 이스케이프한다(h1 의 content 위치).
  */
 const injectPostBody = (shell: string, post: PublicPostMeta): string => {
-  const stripped = stripLandingShellBody(shell);
-  const rootOpenTag = stripped.match(/<div\s+id="root"[^>]*>/i);
-  if (!rootOpenTag || rootOpenTag.index === undefined) return stripped;
-
   const safeBody = sanitizePostBody(post.body ?? '');
-  const article = `<article><h1>${escapeHtmlText(post.title)}</h1>${safeBody}</article>`;
-
-  const insertAt = rootOpenTag.index + rootOpenTag[0].length;
-  return stripped.slice(0, insertAt) + article + buildCrawlerSiteNavHtml() + stripped.slice(insertAt);
+  return injectIntoRoot(shell, `<article><h1>${escapeHtmlText(post.title)}</h1>${safeBody}</article>`);
 };
 
 /** 웹 표준 핸들러 — `test/api/postHtml.test.ts` 가 `handler(new Request(...))` 로 직접 호출한다. */

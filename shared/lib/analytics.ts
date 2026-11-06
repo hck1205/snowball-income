@@ -55,9 +55,11 @@ export const resolveAnalyticsOptOutChange = (search: string): 'optOut' | 'optIn'
  * ⚠ 크롤링·색인에는 영향이 없다 — 막는 것은 GA 전송뿐이고 페이지는 그대로 그려진다.
  * ⚠ 완벽한 필터가 아니다(UA 를 사람처럼 꾸민 봇은 지나간다). 흔한 신호 둘만 본다:
  *   자동화 표식(`navigator.webdriver`)과 UA 의 봇 낱말.
+ * ⚠ `(?<!cu)` — 휴대폰 브랜드 CUBOT(`Android 10; CUBOT X30`)이 `bot` 낱말에 걸려 **사람을 봇으로** 잘랐다.
+ *   봇 낱말을 넓힐 때는 실제 브라우저 UA 목록 테스트(sessionHygiene.test.ts)에 그 기기를 먼저 넣어라.
  */
 const BOT_USER_AGENT_PATTERN =
-  /bot\b|bot\/|crawler|crawling|spider|slurp|headlesschrome|phantomjs|lighthouse|pagespeed|google-inspectiontool|chrome-lighthouse|facebookexternalhit|bingpreview|yeti|daumoa/i;
+  /(?<!cu)bot\b|(?<!cu)bot\/|crawler|crawling|spider|slurp|headlesschrome|phantomjs|lighthouse|pagespeed|google-inspectiontool|chrome-lighthouse|facebookexternalhit|bingpreview|yeti|daumoa/i;
 
 /** 순수 함수(테스트 대상). */
 export const isLikelyBotUserAgent = (userAgent: string): boolean => BOT_USER_AGENT_PATTERN.test(userAgent);
