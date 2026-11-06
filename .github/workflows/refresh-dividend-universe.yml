@@ -240,4 +240,8 @@ jobs:
             echo "::warning::종목 구성이 바뀌었다 — 자동 머지하지 않는다: $BLOCK_REASON"
             exit 0
           fi
+          # ⚠ 바로 머지·브랜치 삭제하면 이 PR 로 시작된 ci.yml 실행이 워크플로 파일을 읽기도 전에 브랜치가
+          #   사라져 "작업 0개 실패"로 남는다(2026-11-06 실측 3건). 잠깐 기다려 그 실행이 잡 조건
+          #   (chore/refresh-* 건너뜀)까지 가게 한 뒤 머지한다.
+          sleep 30
           gh pr merge "$BRANCH" --merge --delete-branch
