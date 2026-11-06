@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-11-05",
+  "asOf": "2026-11-06",
   "note": "수집기(npm run dividend:dex)가 배당 목록 넷을 모아 만든다. 손으로 고치지 마라. 🔴 number 는 append-only — 기존 값을 바꾸면 사용자가 기억한 도감 번호가 다른 회사가 된다.",
   "entries": [
     {
@@ -11,7 +11,7 @@
       "listIds": [
         "aristocrats"
       ],
-      "forwardYieldPercent": 2.8233,
+      "forwardYieldPercent": 2.4008,
       "fiveYearGrowthPercent": 6.8052,
       "artKey": "sector:healthCare"
     },
@@ -24,7 +24,7 @@
       "listIds": [
         "kings"
       ],
-      "forwardYieldPercent": 2.38,
+      "forwardYieldPercent": 2.1614,
       "fiveYearGrowthPercent": 7.4521,
       "artKey": "sector:industrials"
     },
@@ -37,7 +37,7 @@
       "listIds": [
         "aristocrats"
       ],
-      "forwardYieldPercent": 2.3525,
+      "forwardYieldPercent": 2.2183,
       "fiveYearGrowthPercent": 10.385,
       "artKey": "sector:healthCare"
     },
@@ -64,7 +64,7 @@
         "aristocrats",
         "kings"
       ],
-      "forwardYieldPercent": 2.6646,
+      "forwardYieldPercent": 2.9516,
       "fiveYearGrowthPercent": 7.2145,
       "artKey": "sector:consumerStaples"
     },
@@ -78,7 +78,7 @@
         "aristocrats",
         "kings"
       ],
-      "forwardYieldPercent": 2.5206,
+      "forwardYieldPercent": 2.214,
       "fiveYearGrowthPercent": 11.0953,
       "artKey": "sector:informationTechnology"
     },
@@ -105,7 +105,7 @@
         "aristocrats",
         "champions"
       ],
-      "forwardYieldPercent": 1.9257,
+      "forwardYieldPercent": 1.9328,
       "fiveYearGrowthPercent": 15.6789,
       "artKey": "sector:financials"
     },
@@ -119,7 +119,7 @@
         "aristocrats",
         "champions"
       ],
-      "forwardYieldPercent": 1.3647,
+      "forwardYieldPercent": 1.6672,
       "fiveYearGrowthPercent": 1.018,
       "artKey": "sector:materials"
     },
@@ -132,7 +132,7 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": 2.5791,
+      "forwardYieldPercent": 2.5997,
       "fiveYearGrowthPercent": 6.961,
       "artKey": "sector:financials"
     },
@@ -145,8 +145,8 @@
       "listIds": [
         "aristocrats"
       ],
-      "forwardYieldPercent": 5.6497,
-      "fiveYearGrowthPercent": null,
+      "forwardYieldPercent": 5.6719,
+      "fiveYearGrowthPercent": 2.1651,
       "artKey": "sector:materials"
     },
     {
@@ -158,7 +158,7 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": 1.1451,
+      "forwardYieldPercent": 1.4503,
       "fiveYearGrowthPercent": 2.1879,
       "artKey": "sector:consumerStaples"
     },
@@ -172,7 +172,7 @@
         "aristocrats",
         "champions"
       ],
-      "forwardYieldPercent": 2.3712,
+      "forwardYieldPercent": 2.2833,
       "fiveYearGrowthPercent": 7.2145,
       "artKey": "sector:industrials"
     },
@@ -186,7 +186,7 @@
         "aristocrats",
         "champions"
       ],
-      "forwardYieldPercent": 2.4715,
+      "forwardYieldPercent": 2.3393,
       "fiveYearGrowthPercent": 5.9619,
       "artKey": "sector:materials"
     },
@@ -199,8 +199,8 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": null,
-      "fiveYearGrowthPercent": null,
+      "forwardYieldPercent": 3.108,
+      "fiveYearGrowthPercent": 2.095,
       "artKey": "sector:financials"
     },
     {
@@ -213,7 +213,7 @@
         "aristocrats",
         "champions"
       ],
-      "forwardYieldPercent": 2.3136,
+      "forwardYieldPercent": 2.2857,
       "fiveYearGrowthPercent": 8.6351,
       "artKey": "sector:utilities"
     },
@@ -226,7 +226,7 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": 1.4038,
+      "forwardYieldPercent": 1.333,
       "fiveYearGrowthPercent": 4.564,
       "artKey": "sector:healthCare"
     },
@@ -265,7 +265,7 @@
       "listIds": [
         "kings"
       ],
-      "forwardYieldPercent": 2.3788,
+      "forwardYieldPercent": 2.4584,
       "fiveYearGrowthPercent": 8.8472,
       "artKey": "sector:utilities"
     },
@@ -278,7 +278,7 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": 1.7193,
+      "forwardYieldPercent": 1.8068,
       "fiveYearGrowthPercent": 7.528,
       "artKey": "sector:financials"
     },
@@ -305,7 +305,7 @@
         "aristocrats",
         "kings"
       ],
-      "forwardYieldPercent": 2.4675,
+      "forwardYieldPercent": 1.9668,
       "fiveYearGrowthPercent": 6.1759,
       "artKey": "sector:healthCare"
     },
@@ -319,7 +319,7 @@
         "aristocrats",
         "champions"
       ],
-      "forwardYieldPercent": 3.7457,
+      "forwardYieldPercent": 4.0981,
       "fiveYearGrowthPercent": 3.4564,
       "artKey": "sector:financials"
     },
@@ -332,7 +332,7 @@
       "listIds": [
         "aristocrats"
       ],
-      "forwardYieldPercent": 3.3225,
+      "forwardYieldPercent": 2.9845,
       "fiveYearGrowthPercent": 5.4618,
       "artKey": "sector:consumerStaples"
     },
@@ -345,7 +345,7 @@
       "listIds": [
         "kings"
       ],
-      "forwardYieldPercent": 3.9478,
+      "forwardYieldPercent": 3.3227,
       "fiveYearGrowthPercent": 4.7897,
       "artKey": "sector:utilities"
     },
@@ -358,7 +358,7 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": 1.1683,
+      "forwardYieldPercent": 1.1031,
       "fiveYearGrowthPercent": 14.8698,
       "artKey": "sector:informationTechnology"
     },
@@ -371,7 +371,7 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": 1.0205,
+      "forwardYieldPercent": 1.2533,
       "fiveYearGrowthPercent": 1.9415,
       "artKey": "sector:industrials"
     },
@@ -385,7 +385,7 @@
         "aristocrats",
         "champions"
       ],
-      "forwardYieldPercent": 0.9195,
+      "forwardYieldPercent": 0.968,
       "fiveYearGrowthPercent": 12.03,
       "artKey": "sector:financials"
     },
@@ -398,7 +398,7 @@
       "listIds": [
         "aristocrats"
       ],
-      "forwardYieldPercent": 0.8761,
+      "forwardYieldPercent": 0.7707,
       "fiveYearGrowthPercent": 0.8098,
       "artKey": "sector:healthCare"
     },
@@ -411,7 +411,7 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": 0.3022,
+      "forwardYieldPercent": 0.3771,
       "fiveYearGrowthPercent": 9.3362,
       "artKey": "sector:consumerDiscretionary"
     },
@@ -425,7 +425,7 @@
         "aristocrats",
         "champions"
       ],
-      "forwardYieldPercent": 0.7855,
+      "forwardYieldPercent": 1.1777,
       "fiveYearGrowthPercent": 6.482,
       "artKey": "sector:industrials"
     },
@@ -439,7 +439,7 @@
         "aristocrats",
         "champions"
       ],
-      "forwardYieldPercent": 1.1716,
+      "forwardYieldPercent": 1.0979,
       "fiveYearGrowthPercent": null,
       "artKey": "sector:financials"
     },
@@ -452,7 +452,7 @@
       "listIds": [
         "kings"
       ],
-      "forwardYieldPercent": 1.8435,
+      "forwardYieldPercent": 1.992,
       "fiveYearGrowthPercent": 4.3627,
       "artKey": "sector:financials"
     },
@@ -465,7 +465,7 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": 2.8254,
+      "forwardYieldPercent": 3.0322,
       "fiveYearGrowthPercent": 2.3281,
       "artKey": "sector:financials"
     },
@@ -478,7 +478,7 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": 2.4387,
+      "forwardYieldPercent": 2.6296,
       "fiveYearGrowthPercent": 7.0899,
       "artKey": "sector:financials"
     },
@@ -492,7 +492,7 @@
         "aristocrats",
         "champions"
       ],
-      "forwardYieldPercent": 1.2319,
+      "forwardYieldPercent": 1.1066,
       "fiveYearGrowthPercent": 4.2131,
       "artKey": "sector:consumerStaples"
     },
@@ -506,7 +506,7 @@
         "aristocrats",
         "champions"
       ],
-      "forwardYieldPercent": 1.7143,
+      "forwardYieldPercent": 1.964,
       "fiveYearGrowthPercent": 3.9835,
       "artKey": "sector:industrials"
     },
@@ -520,7 +520,7 @@
         "aristocrats",
         "kings"
       ],
-      "forwardYieldPercent": 2.112,
+      "forwardYieldPercent": 1.9967,
       "fiveYearGrowthPercent": 7.7144,
       "artKey": "sector:financials"
     },
@@ -534,7 +534,7 @@
         "aristocrats",
         "kings"
       ],
-      "forwardYieldPercent": 2.3587,
+      "forwardYieldPercent": 2.1481,
       "fiveYearGrowthPercent": 3.3975,
       "artKey": "sector:consumerStaples"
     },
@@ -548,7 +548,7 @@
         "aristocrats",
         "champions"
       ],
-      "forwardYieldPercent": 5.0478,
+      "forwardYieldPercent": 5.015,
       "fiveYearGrowthPercent": 2.8515,
       "artKey": "sector:consumerStaples"
     },
@@ -561,8 +561,8 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": null,
-      "fiveYearGrowthPercent": null,
+      "forwardYieldPercent": 2.0966,
+      "fiveYearGrowthPercent": 7.5891,
       "artKey": "sector:industrials"
     },
     {
@@ -587,7 +587,7 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": 1.1832,
+      "forwardYieldPercent": 1.3194,
       "fiveYearGrowthPercent": 14.8698,
       "artKey": "sector:industrials"
     },
@@ -601,7 +601,7 @@
         "aristocrats",
         "champions"
       ],
-      "forwardYieldPercent": 0.8823,
+      "forwardYieldPercent": 0.9187,
       "fiveYearGrowthPercent": null,
       "artKey": "sector:industrials"
     },
@@ -614,7 +614,7 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": 2.6859,
+      "forwardYieldPercent": 4.0952,
       "fiveYearGrowthPercent": 4.3429,
       "artKey": "sector:financials"
     },
@@ -641,7 +641,7 @@
         "aristocrats",
         "champions"
       ],
-      "forwardYieldPercent": 3.6857,
+      "forwardYieldPercent": 3.3438,
       "fiveYearGrowthPercent": 5.7989,
       "artKey": "sector:energy"
     },
@@ -654,7 +654,7 @@
       "listIds": [
         "kings"
       ],
-      "forwardYieldPercent": 2.7136,
+      "forwardYieldPercent": 2.6362,
       "fiveYearGrowthPercent": 7.0899,
       "artKey": "sector:utilities"
     },
@@ -667,7 +667,7 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": 1.3331,
+      "forwardYieldPercent": 1.5372,
       "fiveYearGrowthPercent": 7.3941,
       "artKey": "sector:industrials"
     },
@@ -681,7 +681,7 @@
         "aristocrats",
         "kings"
       ],
-      "forwardYieldPercent": 1.0111,
+      "forwardYieldPercent": 1.0367,
       "fiveYearGrowthPercent": 1.0002,
       "artKey": "sector:industrials"
     },
@@ -695,7 +695,7 @@
         "aristocrats",
         "champions"
       ],
-      "forwardYieldPercent": 1.045,
+      "forwardYieldPercent": 0.9548,
       "fiveYearGrowthPercent": 6.6997,
       "artKey": "sector:materials"
     },
@@ -709,7 +709,7 @@
         "aristocrats",
         "kings"
       ],
-      "forwardYieldPercent": 3.2904,
+      "forwardYieldPercent": 2.9249,
       "fiveYearGrowthPercent": 2.1296,
       "artKey": "sector:utilities"
     },
@@ -749,7 +749,7 @@
         "aristocrats",
         "kings"
       ],
-      "forwardYieldPercent": 1.4336,
+      "forwardYieldPercent": 1.3652,
       "fiveYearGrowthPercent": 1.0957,
       "artKey": "sector:industrials"
     },
@@ -762,8 +762,8 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": null,
-      "fiveYearGrowthPercent": null,
+      "forwardYieldPercent": 5.7867,
+      "fiveYearGrowthPercent": 1.8607,
       "artKey": "sector:energy"
     },
     {
@@ -775,8 +775,8 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": null,
-      "fiveYearGrowthPercent": null,
+      "forwardYieldPercent": 6.1169,
+      "fiveYearGrowthPercent": 3.7525,
       "artKey": "sector:energy"
     },
     {
@@ -789,7 +789,7 @@
         "aristocrats",
         "champions"
       ],
-      "forwardYieldPercent": 2.4707,
+      "forwardYieldPercent": 2.0488,
       "fiveYearGrowthPercent": 7.1818,
       "artKey": "sector:financials"
     },
@@ -803,7 +803,7 @@
         "aristocrats",
         "champions"
       ],
-      "forwardYieldPercent": 4.3808,
+      "forwardYieldPercent": 4.3826,
       "fiveYearGrowthPercent": 5.8009,
       "artKey": "sector:utilities"
     },
@@ -817,7 +817,7 @@
         "aristocrats",
         "champions"
       ],
-      "forwardYieldPercent": 3.6239,
+      "forwardYieldPercent": 3.8181,
       "fiveYearGrowthPercent": 4.3416,
       "artKey": "sector:realEstate"
     },
@@ -844,7 +844,7 @@
         "aristocrats",
         "champions"
       ],
-      "forwardYieldPercent": 0.9496,
+      "forwardYieldPercent": 0.8577,
       "fiveYearGrowthPercent": 8.1677,
       "artKey": "sector:industrials"
     },
@@ -871,7 +871,7 @@
         "aristocrats",
         "champions"
       ],
-      "forwardYieldPercent": 2.1617,
+      "forwardYieldPercent": 1.966,
       "fiveYearGrowthPercent": 11.9702,
       "artKey": "sector:industrials"
     },
@@ -885,7 +885,7 @@
         "aristocrats",
         "champions"
       ],
-      "forwardYieldPercent": 1.7206,
+      "forwardYieldPercent": 1.3628,
       "fiveYearGrowthPercent": 7.3941,
       "artKey": "sector:financials"
     },
@@ -898,7 +898,7 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": 1.0471,
+      "forwardYieldPercent": 1.1678,
       "fiveYearGrowthPercent": 11.3225,
       "artKey": "sector:industrials"
     },
@@ -912,7 +912,7 @@
         "aristocrats",
         "kings"
       ],
-      "forwardYieldPercent": 3.6555,
+      "forwardYieldPercent": 3.9915,
       "fiveYearGrowthPercent": 0.9347,
       "artKey": "sector:realEstate"
     },
@@ -925,7 +925,7 @@
       "listIds": [
         "kings"
       ],
-      "forwardYieldPercent": 1.719,
+      "forwardYieldPercent": 1.9514,
       "fiveYearGrowthPercent": 7.591,
       "artKey": "sector:materials"
     },
@@ -939,7 +939,7 @@
         "aristocrats",
         "champions"
       ],
-      "forwardYieldPercent": 1.663,
+      "forwardYieldPercent": 1.7848,
       "fiveYearGrowthPercent": 6.3995,
       "artKey": "sector:industrials"
     },
@@ -952,7 +952,7 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": 1.4695,
+      "forwardYieldPercent": 1.7361,
       "fiveYearGrowthPercent": 9.4609,
       "artKey": "sector:industrials"
     },
@@ -966,7 +966,7 @@
         "aristocrats",
         "kings"
       ],
-      "forwardYieldPercent": 3.3084,
+      "forwardYieldPercent": 3.4169,
       "fiveYearGrowthPercent": 5.4489,
       "artKey": "sector:consumerDiscretionary"
     },
@@ -980,7 +980,7 @@
         "aristocrats",
         "kings"
       ],
-      "forwardYieldPercent": 0.7263,
+      "forwardYieldPercent": 0.6862,
       "fiveYearGrowthPercent": 9.4332,
       "artKey": "sector:industrials"
     },
@@ -1007,7 +1007,7 @@
         "aristocrats",
         "kings"
       ],
-      "forwardYieldPercent": 4.6453,
+      "forwardYieldPercent": 5.1858,
       "fiveYearGrowthPercent": 4.474,
       "artKey": "sector:consumerStaples"
     },
@@ -1020,7 +1020,7 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": 2.8815,
+      "forwardYieldPercent": 2.8102,
       "fiveYearGrowthPercent": 5.5893,
       "artKey": "sector:utilities"
     },
@@ -1034,7 +1034,7 @@
         "aristocrats",
         "champions"
       ],
-      "forwardYieldPercent": 2.9871,
+      "forwardYieldPercent": 2.7356,
       "fiveYearGrowthPercent": 1.5151,
       "artKey": "sector:informationTechnology"
     },
@@ -1074,7 +1074,7 @@
         "aristocrats",
         "kings"
       ],
-      "forwardYieldPercent": 2.2323,
+      "forwardYieldPercent": 2.4106,
       "fiveYearGrowthPercent": 6.9896,
       "artKey": "sector:industrials"
     },
@@ -1100,7 +1100,7 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": 1.5588,
+      "forwardYieldPercent": 1.3536,
       "fiveYearGrowthPercent": 6.1676,
       "artKey": "sector:informationTechnology"
     },
@@ -1114,7 +1114,7 @@
         "aristocrats",
         "kings"
       ],
-      "forwardYieldPercent": 2.1068,
+      "forwardYieldPercent": 1.9683,
       "fiveYearGrowthPercent": 5.1779,
       "artKey": "sector:healthCare"
     },
@@ -1128,7 +1128,7 @@
         "aristocrats",
         "kings"
       ],
-      "forwardYieldPercent": 4.7601,
+      "forwardYieldPercent": 4.6352,
       "fiveYearGrowthPercent": 3.3231,
       "artKey": "sector:consumerStaples"
     },
@@ -1142,7 +1142,7 @@
         "aristocrats",
         "kings"
       ],
-      "forwardYieldPercent": 2.4407,
+      "forwardYieldPercent": 2.2146,
       "fiveYearGrowthPercent": 4.4617,
       "artKey": "sector:consumerStaples"
     },
@@ -1155,7 +1155,7 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": 1.18,
+      "forwardYieldPercent": 1.1612,
       "fiveYearGrowthPercent": 8.8862,
       "artKey": "sector:industrials"
     },
@@ -1169,7 +1169,7 @@
         "aristocrats",
         "champions"
       ],
-      "forwardYieldPercent": 1.3321,
+      "forwardYieldPercent": 1.2279,
       "fiveYearGrowthPercent": 9.268,
       "artKey": "sector:materials"
     },
@@ -1209,7 +1209,7 @@
         "aristocrats",
         "kings"
       ],
-      "forwardYieldPercent": 2.3578,
+      "forwardYieldPercent": 2.2003,
       "fiveYearGrowthPercent": 15.8956,
       "artKey": "sector:consumerDiscretionary"
     },
@@ -1222,7 +1222,7 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": 3.6338,
+      "forwardYieldPercent": 5.1515,
       "fiveYearGrowthPercent": 3.5486,
       "artKey": "sector:industrials"
     },
@@ -1236,7 +1236,7 @@
         "aristocrats",
         "kings"
       ],
-      "forwardYieldPercent": 2.8051,
+      "forwardYieldPercent": 2.6759,
       "fiveYearGrowthPercent": 7.2044,
       "artKey": "sector:consumerDiscretionary"
     },
@@ -1250,7 +1250,7 @@
         "aristocrats",
         "champions"
       ],
-      "forwardYieldPercent": 3.3226,
+      "forwardYieldPercent": 2.747,
       "fiveYearGrowthPercent": 4.1277,
       "artKey": "sector:healthCare"
     },
@@ -1263,7 +1263,7 @@
       "listIds": [
         "kings"
       ],
-      "forwardYieldPercent": 2.375,
+      "forwardYieldPercent": 2.5932,
       "fiveYearGrowthPercent": 4.9754,
       "artKey": "sector:utilities"
     },
@@ -1276,7 +1276,7 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": 1.6547,
+      "forwardYieldPercent": 1.5532,
       "fiveYearGrowthPercent": 2.9197,
       "artKey": "sector:industrials"
     },
@@ -1290,7 +1290,7 @@
         "aristocrats",
         "champions"
       ],
-      "forwardYieldPercent": 3.7267,
+      "forwardYieldPercent": 3.8354,
       "fiveYearGrowthPercent": 7.7383,
       "artKey": "sector:consumerStaples"
     },
@@ -1303,8 +1303,8 @@
       "listIds": [
         "kings"
       ],
-      "forwardYieldPercent": null,
-      "fiveYearGrowthPercent": null,
+      "forwardYieldPercent": 5.7231,
+      "fiveYearGrowthPercent": 3.9595,
       "artKey": "sector:consumerStaples"
     },
     {
@@ -1316,7 +1316,7 @@
       "listIds": [
         "kings"
       ],
-      "forwardYieldPercent": 1.1223,
+      "forwardYieldPercent": 1.2707,
       "fiveYearGrowthPercent": 4.2705,
       "artKey": "sector:industrials"
     },
@@ -1329,7 +1329,7 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": 3.6117,
+      "forwardYieldPercent": 3.6866,
       "fiveYearGrowthPercent": 6.298,
       "artKey": "sector:consumerStaples"
     },
@@ -1356,7 +1356,7 @@
         "aristocrats",
         "kings"
       ],
-      "forwardYieldPercent": 1.0839,
+      "forwardYieldPercent": 1.211,
       "fiveYearGrowthPercent": 15.4681,
       "artKey": "sector:industrials"
     },
@@ -1370,7 +1370,7 @@
         "aristocrats",
         "champions"
       ],
-      "forwardYieldPercent": 2.8793,
+      "forwardYieldPercent": 2.8238,
       "fiveYearGrowthPercent": 10.1293,
       "artKey": "sector:utilities"
     },
@@ -1383,7 +1383,7 @@
       "listIds": [
         "kings"
       ],
-      "forwardYieldPercent": 2.6825,
+      "forwardYieldPercent": 3.0012,
       "fiveYearGrowthPercent": 3.7525,
       "artKey": "sector:energy"
     },
@@ -1396,7 +1396,7 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": 3.2713,
+      "forwardYieldPercent": 3.657,
       "fiveYearGrowthPercent": 7.531,
       "artKey": "sector:utilities"
     },
@@ -1422,7 +1422,7 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": 5.2222,
+      "forwardYieldPercent": 5.9817,
       "fiveYearGrowthPercent": 2.4057,
       "artKey": "sector:realEstate"
     },
@@ -1436,7 +1436,7 @@
         "aristocrats",
         "kings"
       ],
-      "forwardYieldPercent": 0.8573,
+      "forwardYieldPercent": 0.9118,
       "fiveYearGrowthPercent": 6.4171,
       "artKey": "sector:materials"
     },
@@ -1449,8 +1449,8 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": null,
-      "fiveYearGrowthPercent": null,
+      "forwardYieldPercent": 3.5684,
+      "fiveYearGrowthPercent": 4.3961,
       "artKey": "sector:financials"
     },
     {
@@ -1462,7 +1462,7 @@
       "listIds": [
         "kings"
       ],
-      "forwardYieldPercent": 4.0302,
+      "forwardYieldPercent": 3.8603,
       "fiveYearGrowthPercent": 0.4971,
       "artKey": "sector:utilities"
     },
@@ -1476,7 +1476,7 @@
         "aristocrats",
         "champions"
       ],
-      "forwardYieldPercent": 5.1229,
+      "forwardYieldPercent": 5.4857,
       "fiveYearGrowthPercent": 3.4769,
       "artKey": "sector:realEstate"
     },
@@ -1502,7 +1502,7 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": 2.9079,
+      "forwardYieldPercent": 3.1196,
       "fiveYearGrowthPercent": 6.6684,
       "artKey": "sector:financials"
     },
@@ -1528,7 +1528,7 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": 3.7109,
+      "forwardYieldPercent": 3.8364,
       "fiveYearGrowthPercent": 10.0665,
       "artKey": "sector:financials"
     },
@@ -1541,7 +1541,7 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": 3.1894,
+      "forwardYieldPercent": 3.3347,
       "fiveYearGrowthPercent": 4.7452,
       "artKey": "sector:financials"
     },
@@ -1555,7 +1555,7 @@
         "aristocrats",
         "kings"
       ],
-      "forwardYieldPercent": 4.2398,
+      "forwardYieldPercent": 4.1483,
       "fiveYearGrowthPercent": 6.8233,
       "artKey": "sector:consumerStaples"
     },
@@ -1569,7 +1569,7 @@
         "aristocrats",
         "kings"
       ],
-      "forwardYieldPercent": 3.0048,
+      "forwardYieldPercent": 2.6068,
       "fiveYearGrowthPercent": 5.9692,
       "artKey": "sector:consumerStaples"
     },
@@ -1582,8 +1582,8 @@
       "listIds": [
         "kings"
       ],
-      "forwardYieldPercent": null,
-      "fiveYearGrowthPercent": null,
+      "forwardYieldPercent": 0.8966,
+      "fiveYearGrowthPercent": 15.3873,
       "artKey": "sector:industrials"
     },
     {
@@ -1595,7 +1595,7 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": 3.8505,
+      "forwardYieldPercent": 4.2302,
       "fiveYearGrowthPercent": 1.5633,
       "artKey": "sector:consumerDiscretionary"
     },
@@ -1608,7 +1608,7 @@
       "listIds": [
         "aristocrats"
       ],
-      "forwardYieldPercent": 1.6103,
+      "forwardYieldPercent": 1.5479,
       "fiveYearGrowthPercent": 5.6422,
       "artKey": "sector:industrials"
     },
@@ -1635,7 +1635,7 @@
         "aristocrats",
         "kings"
       ],
-      "forwardYieldPercent": 2.491,
+      "forwardYieldPercent": 2.4012,
       "fiveYearGrowthPercent": 5.9224,
       "artKey": "sector:materials"
     },
@@ -1648,8 +1648,8 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": null,
-      "fiveYearGrowthPercent": null,
+      "forwardYieldPercent": 3.7684,
+      "fiveYearGrowthPercent": 3.5154,
       "artKey": "sector:utilities"
     },
     {
@@ -1674,8 +1674,8 @@
       "listIds": [
         "kings"
       ],
-      "forwardYieldPercent": null,
-      "fiveYearGrowthPercent": null,
+      "forwardYieldPercent": 1.0327,
+      "fiveYearGrowthPercent": 5.9224,
       "artKey": "sector:financials"
     },
     {
@@ -1687,7 +1687,7 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": 0.5103,
+      "forwardYieldPercent": 0.463,
       "fiveYearGrowthPercent": 2.7066,
       "artKey": "sector:financials"
     },
@@ -1701,7 +1701,7 @@
         "aristocrats",
         "champions"
       ],
-      "forwardYieldPercent": 0.9272,
+      "forwardYieldPercent": 0.7414,
       "fiveYearGrowthPercent": 9.9683,
       "artKey": "sector:industrials"
     },
@@ -1714,7 +1714,7 @@
       "listIds": [
         "kings"
       ],
-      "forwardYieldPercent": 1.9374,
+      "forwardYieldPercent": 2.1622,
       "fiveYearGrowthPercent": 7.2145,
       "artKey": "sector:materials"
     },
@@ -1727,8 +1727,8 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": null,
-      "fiveYearGrowthPercent": null,
+      "forwardYieldPercent": 1.5218,
+      "fiveYearGrowthPercent": 7.4393,
       "artKey": "sector:industrials"
     },
     {
@@ -1740,8 +1740,8 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": null,
-      "fiveYearGrowthPercent": null,
+      "forwardYieldPercent": 4.3073,
+      "fiveYearGrowthPercent": 3.0358,
       "artKey": "sector:financials"
     },
     {
@@ -1753,7 +1753,7 @@
       "listIds": [
         "kings"
       ],
-      "forwardYieldPercent": 2.4917,
+      "forwardYieldPercent": 2.3287,
       "fiveYearGrowthPercent": 6.961,
       "artKey": "sector:materials"
     },
@@ -1766,7 +1766,7 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": 0.9982,
+      "forwardYieldPercent": 0.9888,
       "fiveYearGrowthPercent": 6.961,
       "artKey": "sector:financials"
     },
@@ -1793,7 +1793,7 @@
         "aristocrats",
         "champions"
       ],
-      "forwardYieldPercent": 0.9034,
+      "forwardYieldPercent": 0.9169,
       "fiveYearGrowthPercent": 12.0801,
       "artKey": "sector:materials"
     },
@@ -1807,7 +1807,7 @@
         "aristocrats",
         "champions"
       ],
-      "forwardYieldPercent": 3.7447,
+      "forwardYieldPercent": 3.3621,
       "fiveYearGrowthPercent": 4.1809,
       "artKey": "sector:consumerStaples"
     },
@@ -1820,7 +1820,7 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": 3.8284,
+      "forwardYieldPercent": 4.2048,
       "fiveYearGrowthPercent": 4.2705,
       "artKey": "sector:consumerDiscretionary"
     },
@@ -1834,7 +1834,7 @@
         "aristocrats",
         "kings"
       ],
-      "forwardYieldPercent": 0.8819,
+      "forwardYieldPercent": 0.8213,
       "fiveYearGrowthPercent": 7.4582,
       "artKey": "sector:financials"
     },
@@ -1860,8 +1860,8 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": null,
-      "fiveYearGrowthPercent": null,
+      "forwardYieldPercent": 2.0607,
+      "fiveYearGrowthPercent": 6.298,
       "artKey": "sector:financials"
     },
     {
@@ -1874,7 +1874,7 @@
         "aristocrats",
         "kings"
       ],
-      "forwardYieldPercent": 3.384,
+      "forwardYieldPercent": 2.9149,
       "fiveYearGrowthPercent": 3.5125,
       "artKey": "sector:industrials"
     },
@@ -1887,8 +1887,8 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": null,
-      "fiveYearGrowthPercent": null,
+      "forwardYieldPercent": 1.0505,
+      "fiveYearGrowthPercent": 7.8754,
       "artKey": "sector:healthCare"
     },
     {
@@ -1901,7 +1901,7 @@
         "aristocrats",
         "kings"
       ],
-      "forwardYieldPercent": 2.5888,
+      "forwardYieldPercent": 2.924,
       "fiveYearGrowthPercent": 2.5349,
       "artKey": "sector:consumerStaples"
     },
@@ -1915,7 +1915,7 @@
         "aristocrats",
         "kings"
       ],
-      "forwardYieldPercent": 3.0532,
+      "forwardYieldPercent": 2.9376,
       "fiveYearGrowthPercent": 11.1565,
       "artKey": "sector:consumerStaples"
     },
@@ -1954,7 +1954,7 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": 2.6556,
+      "forwardYieldPercent": 2.7994,
       "fiveYearGrowthPercent": 3.5804,
       "artKey": "sector:financials"
     },
@@ -1967,7 +1967,7 @@
       "listIds": [
         "kings"
       ],
-      "forwardYieldPercent": 1.4449,
+      "forwardYieldPercent": 1.7499,
       "fiveYearGrowthPercent": 6.0425,
       "artKey": "sector:industrials"
     },
@@ -1980,8 +1980,8 @@
       "listIds": [
         "kings"
       ],
-      "forwardYieldPercent": null,
-      "fiveYearGrowthPercent": null,
+      "forwardYieldPercent": 0.9212,
+      "fiveYearGrowthPercent": 3,
       "artKey": "sector:consumerStaples"
     },
     {
@@ -2020,7 +2020,7 @@
         "aristocrats",
         "champions"
       ],
-      "forwardYieldPercent": 4.5811,
+      "forwardYieldPercent": 4.7834,
       "fiveYearGrowthPercent": 7.1303,
       "artKey": "sector:financials"
     },
@@ -2046,8 +2046,8 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": null,
-      "fiveYearGrowthPercent": null,
+      "forwardYieldPercent": 4.0301,
+      "fiveYearGrowthPercent": 2.5896,
       "artKey": "sector:utilities"
     },
     {
@@ -2059,8 +2059,8 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": null,
-      "fiveYearGrowthPercent": null,
+      "forwardYieldPercent": 7.6825,
+      "fiveYearGrowthPercent": 1.409,
       "artKey": "sector:realEstate"
     },
     {
@@ -2072,7 +2072,7 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": 1.1697,
+      "forwardYieldPercent": 1.4848,
       "fiveYearGrowthPercent": 5.23,
       "artKey": "sector:financials"
     },
@@ -2085,7 +2085,7 @@
       "listIds": [
         "kings"
       ],
-      "forwardYieldPercent": 6.3809,
+      "forwardYieldPercent": 8.0916,
       "fiveYearGrowthPercent": 1.2825,
       "artKey": "sector:consumerStaples"
     },
@@ -2098,8 +2098,8 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": null,
-      "fiveYearGrowthPercent": null,
+      "forwardYieldPercent": 3.2123,
+      "fiveYearGrowthPercent": 2.3281,
       "artKey": "sector:financials"
     },
     {
@@ -2150,7 +2150,7 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": 2.693,
+      "forwardYieldPercent": 2.8334,
       "fiveYearGrowthPercent": 0.7195,
       "artKey": "sector:communicationServices"
     },
@@ -2163,8 +2163,8 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": null,
-      "fiveYearGrowthPercent": null,
+      "forwardYieldPercent": 2.8139,
+      "fiveYearGrowthPercent": 0.7195,
       "artKey": "sector:communicationServices"
     },
     {
@@ -2177,7 +2177,7 @@
         "aristocrats",
         "kings"
       ],
-      "forwardYieldPercent": 0.896,
+      "forwardYieldPercent": 0.7767,
       "fiveYearGrowthPercent": 5.4773,
       "artKey": "sector:consumerStaples"
     },
@@ -2191,7 +2191,7 @@
         "aristocrats",
         "champions"
       ],
-      "forwardYieldPercent": 0.2529,
+      "forwardYieldPercent": 0.2242,
       "fiveYearGrowthPercent": 5.5893,
       "artKey": "sector:healthCare"
     },
@@ -2204,7 +2204,7 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": 3.5379,
+      "forwardYieldPercent": 3.1357,
       "fiveYearGrowthPercent": 6.8564,
       "artKey": "sector:utilities"
     },
@@ -2231,7 +2231,7 @@
         "aristocrats",
         "champions"
       ],
-      "forwardYieldPercent": 2.657,
+      "forwardYieldPercent": 2.4924,
       "fiveYearGrowthPercent": 2.6179,
       "artKey": "sector:energy"
     },
@@ -2244,7 +2244,7 @@
       "listIds": [
         "champions"
       ],
-      "forwardYieldPercent": 2.9601,
+      "forwardYieldPercent": 2.8305,
       "fiveYearGrowthPercent": 4.0002,
       "artKey": "sector:utilities"
     },
