@@ -24,6 +24,8 @@
  * 갈아 끼운다(main.tsx). JS 가 도는 방문자는 헤더 내비를 보고, 이 블록은 JS 없는 방문자·크롤러만 본다.
  */
 
+import { escapeHtmlAttribute, escapeHtmlText } from './metaHtml';
+
 export type CrawlerNavItem = { readonly to: string; readonly label: string };
 export type CrawlerNavGroup = { readonly label: string; readonly items: readonly CrawlerNavItem[] };
 
@@ -90,12 +92,10 @@ export const CRAWLER_SITE_NAV: readonly CrawlerNavGroup[] = [
 /** 랜드마크 이름. 페이지 본문 안의 다른 `<nav>`(관련 티커·글 목록)와 스크린리더에서 구분된다. */
 export const CRAWLER_SITE_NAV_LABEL = '사이트 전체 메뉴';
 
-/** 라벨·경로는 위 정적 상수뿐이라 `<`·`&` 가 없지만, 목록이 바뀌어도 마크업이 깨지지 않게 막아 둔다. */
-const escapeText = (value: string): string =>
-  value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-
 /**
  * 크롤러 HTML 에 붙일 내비 블록.
+ * 라벨·경로는 위 정적 상수뿐이라 `<`·`&` 가 없지만, 목록이 바뀌어도 마크업이 깨지지 않게 이스케이프한다
+ * (텍스트 자리는 `escapeHtmlText`, href 속성은 `escapeHtmlAttribute` — metaHtml.ts 규약).
  * ⚠ 묶음 이름에 `<h2>` 를 쓰지 않는다 — 페이지마다 끝에 같은 h2 일곱 개가 붙으면 본문의 제목 구조가
  *   흐려진다. 묶음 이름은 문단, 링크는 목록이다.
  */
@@ -103,8 +103,10 @@ export const buildCrawlerSiteNavHtml = (): string =>
   `<nav aria-label="${CRAWLER_SITE_NAV_LABEL}" class="crawler-site-nav">` +
   CRAWLER_SITE_NAV.map(
     (group) =>
-      `<p>${escapeText(group.label)}</p><ul>` +
-      group.items.map((item) => `<li><a href="${escapeText(item.to)}">${escapeText(item.label)}</a></li>`).join('') +
+      `<p>${escapeHtmlText(group.label)}</p><ul>` +
+      group.items
+        .map((item) => `<li><a href="${escapeHtmlAttribute(item.to)}">${escapeHtmlText(item.label)}</a></li>`)
+        .join('') +
       '</ul>'
   ).join('') +
   '</nav>';

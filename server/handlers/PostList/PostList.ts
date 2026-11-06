@@ -7,16 +7,15 @@
   이스케이프한다. serverSanitize 를 import 하지 않아 이 함수 번들에 jsdom 이 실리지 않는다.
 */
 import {
-  buildCrawlerSiteNavHtml,
   escapeHtmlAttribute,
   escapeHtmlText,
   fetchPublicPostList,
+  injectIntoRoot,
   isPublicPostKind,
   replaceLinkHref,
   replaceMetaContent,
   replaceTitleTag,
-  resolveSiteUrl,
-  stripLandingShellBody
+  resolveSiteUrl
 } from '@/shared/lib/og';
 import type { PublicPostKind, PublicPostListItem } from '@/shared/lib/og';
 /**
@@ -100,18 +99,13 @@ const applyListMeta = (shell: string, kind: PublicPostKind, siteUrl: string): st
 };
 
 /**
- * `#root` 여는 태그 **직후**에 글 제목·링크 목록을 주입한다(post-html.ts injectPostBody 와 같은 삽입 패턴).
- * 여는 태그 직후 삽입은 빈 `<div id="root"></div>` 픽스처와 실제 셸(app-shell-fallback 중첩 div 포함)
- * 양쪽에서 결정적이다. 여는 태그가 없으면(방어) 원문 그대로 반환한다.
+ * `#root` 에 글 제목·링크 목록을 주입한다. 삽입·랜딩 본문 걷어내기·사이트 공통 내비는 공용
+ * `injectIntoRoot`(shellBody.ts)가 맡는다 — 손으로 복사해 두었던 것을 2026-11-06 에 공용으로 돌렸다.
  *
  * 제목은 텍스트 컨텍스트(a 의 content)라 `escapeHtmlText` 로 이스케이프한다 — `<script>` 제목이 마크업으로
  * 실행되지 않는다. href 의 id 는 uuid 형식만 통과(postsRest toListItem)라 속성값 주입 위험이 없다.
  */
 const injectPostList = (shell: string, kind: PublicPostKind, items: PublicPostListItem[]): string => {
-  const stripped = stripLandingShellBody(shell);
-  const rootOpenTag = stripped.match(/<div\s+id="root"[^>]*>/i);
-  if (!rootOpenTag || rootOpenTag.index === undefined) return stripped;
-
   const label = LIST_META[kind].title;
   const listItems = items
     .map((item) => `<li><a href="/community/${item.kind}/${item.id}">${escapeHtmlText(item.title)}</a></li>`)
@@ -124,8 +118,7 @@ const injectPostList = (shell: string, kind: PublicPostKind, items: PublicPostLi
   const heading = `<h1>${escapeHtmlText(label)}</h1>`;
   const nav = `<nav aria-label="${escapeHtmlAttribute(label)}"><ul>${listItems}</ul></nav>`;
 
-  const insertAt = rootOpenTag.index + rootOpenTag[0].length;
-  return stripped.slice(0, insertAt) + heading + nav + buildCrawlerSiteNavHtml() + stripped.slice(insertAt);
+  return injectIntoRoot(shell, heading + nav);
 };
 
 /** 웹 표준 핸들러 — `test/api/postList.test.ts` 가 `handler(new Request(...))` 로 직접 호출한다. */
