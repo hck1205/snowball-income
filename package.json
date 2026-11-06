@@ -25,6 +25,7 @@
     "dividend:lists": "vite-node scripts/dividendLists/cli.ts --",
     "dividend:universe": "vite-node scripts/dividendLists/universeCli.ts --",
     "dividend:metrics": "vite-node scripts/dividendLists/metricsCli.ts --",
+    "dividend:lists:membership": "vite-node scripts/dividendLists/listsChangeCli.ts",
     "nps:portfolio": "vite-node scripts/npsPortfolio/cli.ts --",
     "investors:holdings": "vite-node scripts/investorHoldings/cli.ts --",
     "etf:holdings": "vite-node scripts/etfHoldings/cli.ts --",
