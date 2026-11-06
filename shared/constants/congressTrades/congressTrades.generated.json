@@ -1,57 +1,57 @@
 {
-  "generatedAt": "2026-10-30",
+  "generatedAt": "2026-11-06",
   "source": "U.S. House of Representatives — Clerk, Periodic Transaction Reports (STOCK Act)",
   "sourceUrl": "https://disclosures-clerk.house.gov/PublicDisclosure",
   "window": {
-    "start": "2025-05-01",
+    "start": "2025-05-08",
     "end": "2026-10-28"
   },
   "coverage": {
-    "filingsRead": 839,
-    "filingsTotal": 961,
+    "filingsRead": 849,
+    "filingsTotal": 971,
     "filingsScanned": 122,
     "filingsFailed": 0,
-    "transactions": 7517,
-    "equityTransactions": 6517,
+    "transactions": 7449,
+    "equityTransactions": 6456,
     "members": 89,
-    "tickers": 1077
+    "tickers": 1073
   },
   "topTickers": [
     {
       "ticker": "MSFT",
       "name": "Microsoft Corporation - Common Stock",
-      "buys": 64,
+      "buys": 63,
       "sells": 47,
       "memberCount": 27,
-      "minUsd": 6394111,
-      "maxUsd": 14260000
+      "minUsd": 6393110,
+      "maxUsd": 14245000
     },
     {
       "ticker": "NVDA",
       "name": "NVIDIA Corporation - Common Stock",
-      "buys": 77,
-      "sells": 25,
-      "memberCount": 20,
-      "minUsd": 6251102,
-      "maxUsd": 20490000
+      "buys": 78,
+      "sells": 26,
+      "memberCount": 21,
+      "minUsd": 6253104,
+      "maxUsd": 20520000
     },
     {
       "ticker": "AAPL",
       "name": "Apple Inc. - Common Stock",
-      "buys": 46,
-      "sells": 36,
-      "memberCount": 27,
-      "minUsd": 12821082,
-      "maxUsd": 57015000
+      "buys": 45,
+      "sells": 35,
+      "memberCount": 26,
+      "minUsd": 12819080,
+      "maxUsd": 56985000
     },
     {
       "ticker": "AMZN",
       "name": "Amazon.com, Inc. - Common Stock",
-      "buys": 43,
+      "buys": 42,
       "sells": 23,
       "memberCount": 17,
-      "minUsd": 3218066,
-      "maxUsd": 10695000
+      "minUsd": 3217065,
+      "maxUsd": 10680000
     },
     {
       "ticker": "GOOGL",
@@ -65,56 +65,56 @@
     {
       "ticker": "HD",
       "name": "Home Depot, Inc",
-      "buys": 25,
+      "buys": 24,
       "sells": 29,
       "memberCount": 17,
-      "minUsd": 278054,
-      "maxUsd": 1295000
+      "minUsd": 277053,
+      "maxUsd": 1280000
     },
     {
       "ticker": "UNH",
       "name": "UnitedHealth Group Incorporated Common Stock",
       "buys": 22,
-      "sells": 31,
+      "sells": 30,
       "memberCount": 16,
-      "minUsd": 505053,
-      "maxUsd": 1750000
-    },
-    {
-      "ticker": "GOOG",
-      "name": "Alphabet Inc. - Class C Capital Stock",
-      "buys": 30,
-      "sells": 19,
-      "memberCount": 15,
-      "minUsd": 1405049,
-      "maxUsd": 3700000
-    },
-    {
-      "ticker": "META",
-      "name": "Meta Platforms, Inc. - Class A Common Stock",
-      "buys": 33,
-      "sells": 15,
-      "memberCount": 17,
-      "minUsd": 963048,
-      "maxUsd": 2645000
+      "minUsd": 504052,
+      "maxUsd": 1735000
     },
     {
       "ticker": "PG",
       "name": "Procter & Gamble Company",
-      "buys": 22,
+      "buys": 24,
       "sells": 24,
-      "memberCount": 20,
-      "minUsd": 214046,
-      "maxUsd": 1035000
+      "memberCount": 21,
+      "minUsd": 216048,
+      "maxUsd": 1065000
+    },
+    {
+      "ticker": "META",
+      "name": "Meta Platforms, Inc. - Class A Common Stock",
+      "buys": 32,
+      "sells": 15,
+      "memberCount": 17,
+      "minUsd": 962047,
+      "maxUsd": 2630000
+    },
+    {
+      "ticker": "GOOG",
+      "name": "Alphabet Inc. - Class C Capital Stock",
+      "buys": 29,
+      "sells": 18,
+      "memberCount": 15,
+      "minUsd": 1403047,
+      "maxUsd": 3670000
     },
     {
       "ticker": "AVGO",
       "name": "Broadcom Inc. - Common Stock",
       "buys": 28,
-      "sells": 17,
-      "memberCount": 15,
-      "minUsd": 1191045,
-      "maxUsd": 5990000
+      "sells": 18,
+      "memberCount": 16,
+      "minUsd": 1192046,
+      "maxUsd": 6005000
     },
     {
       "ticker": "IBM",
@@ -128,56 +128,47 @@
     {
       "ticker": "BRK.B",
       "name": "Berkshire Hathaway Inc. New Common Stock",
-      "buys": 14,
+      "buys": 13,
       "sells": 23,
       "memberCount": 17,
-      "minUsd": 283037,
-      "maxUsd": 1120000
-    },
-    {
-      "ticker": "TSM",
-      "name": "Taiwan Semiconductor Manufacturing Company Ltd",
-      "buys": 28,
-      "sells": 7,
-      "memberCount": 7,
-      "minUsd": 856035,
-      "maxUsd": 2340000
+      "minUsd": 282036,
+      "maxUsd": 1105000
     },
     {
       "ticker": "JNJ",
       "name": "Johnson & Johnson Common Stock",
-      "buys": 11,
-      "sells": 23,
-      "memberCount": 13,
+      "buys": 10,
+      "sells": 24,
+      "memberCount": 12,
       "minUsd": 167034,
       "maxUsd": 805000
     },
     {
-      "ticker": "LLY",
-      "name": "Eli Lilly and Company Common Stock",
-      "buys": 13,
-      "sells": 20,
-      "memberCount": 13,
-      "minUsd": 209033,
-      "maxUsd": 885000
-    },
-    {
-      "ticker": "AMD",
-      "name": "Advanced Micro Devices, Inc",
-      "buys": 24,
-      "sells": 8,
-      "memberCount": 11,
-      "minUsd": 242032,
-      "maxUsd": 930000
+      "ticker": "TSM",
+      "name": "Taiwan Semiconductor Manufacturing Company Ltd",
+      "buys": 27,
+      "sells": 7,
+      "memberCount": 7,
+      "minUsd": 855034,
+      "maxUsd": 2325000
     },
     {
       "ticker": "ABT",
       "name": "Abbott Laboratories Common Stock",
       "buys": 11,
-      "sells": 20,
+      "sells": 21,
       "memberCount": 14,
-      "minUsd": 158032,
-      "maxUsd": 720000
+      "minUsd": 159033,
+      "maxUsd": 735000
+    },
+    {
+      "ticker": "AMD",
+      "name": "Advanced Micro Devices, Inc",
+      "buys": 23,
+      "sells": 8,
+      "memberCount": 11,
+      "minUsd": 241031,
+      "maxUsd": 915000
     },
     {
       "ticker": "NFLX",
@@ -189,13 +180,13 @@
       "maxUsd": 2080000
     },
     {
-      "ticker": "TSLA",
-      "name": "Tesla, Inc. - Common Stock",
-      "buys": 21,
-      "sells": 10,
-      "memberCount": 9,
-      "minUsd": 158031,
-      "maxUsd": 770000
+      "ticker": "LLY",
+      "name": "Eli Lilly and Company Common Stock",
+      "buys": 11,
+      "sells": 19,
+      "memberCount": 13,
+      "minUsd": 206030,
+      "maxUsd": 840000
     },
     {
       "ticker": "ACN",
@@ -205,6 +196,15 @@
       "memberCount": 10,
       "minUsd": 448030,
       "maxUsd": 1345000
+    },
+    {
+      "ticker": "TSLA",
+      "name": "Tesla, Inc. - Common Stock",
+      "buys": 20,
+      "sells": 10,
+      "memberCount": 9,
+      "minUsd": 157030,
+      "maxUsd": 755000
     },
     {
       "ticker": "BRO",
@@ -218,9 +218,9 @@
     {
       "ticker": "V",
       "name": "Visa Inc",
-      "buys": 13,
-      "sells": 16,
-      "memberCount": 12,
+      "buys": 12,
+      "sells": 17,
+      "memberCount": 11,
       "minUsd": 205029,
       "maxUsd": 825000
     },
@@ -234,6 +234,15 @@
       "maxUsd": 1220000
     },
     {
+      "ticker": "T",
+      "name": "AT&T Inc",
+      "buys": 15,
+      "sells": 13,
+      "memberCount": 10,
+      "minUsd": 224028,
+      "maxUsd": 835000
+    },
+    {
       "ticker": "BSX",
       "name": "Boston Scientific Corporation Common Stock",
       "buys": 10,
@@ -241,42 +250,6 @@
       "memberCount": 5,
       "minUsd": 168028,
       "maxUsd": 695000
-    },
-    {
-      "ticker": "T",
-      "name": "AT&T Inc",
-      "buys": 14,
-      "sells": 13,
-      "memberCount": 10,
-      "minUsd": 223027,
-      "maxUsd": 820000
-    },
-    {
-      "ticker": "GS",
-      "name": "Goldman Sachs Group, Inc",
-      "buys": 12,
-      "sells": 14,
-      "memberCount": 13,
-      "minUsd": 138026,
-      "maxUsd": 670000
-    },
-    {
-      "ticker": "CVX",
-      "name": "Chevron Corporation Common Stock",
-      "buys": 10,
-      "sells": 16,
-      "memberCount": 11,
-      "minUsd": 125027,
-      "maxUsd": 650000
-    },
-    {
-      "ticker": "UPS",
-      "name": "United Parcel Service, Inc. Common Stock",
-      "buys": 9,
-      "sells": 17,
-      "memberCount": 11,
-      "minUsd": 103026,
-      "maxUsd": 545000
     },
     {
       "ticker": "PEP",
@@ -288,13 +261,31 @@
       "maxUsd": 550000
     },
     {
-      "ticker": "JPM",
-      "name": "JP Morgan Chase & Co. Common Stock",
-      "buys": 13,
-      "sells": 12,
+      "ticker": "GS",
+      "name": "Goldman Sachs Group, Inc",
+      "buys": 11,
+      "sells": 14,
       "memberCount": 13,
-      "minUsd": 152025,
-      "maxUsd": 680000
+      "minUsd": 137025,
+      "maxUsd": 655000
+    },
+    {
+      "ticker": "CVX",
+      "name": "Chevron Corporation Common Stock",
+      "buys": 9,
+      "sells": 16,
+      "memberCount": 11,
+      "minUsd": 124026,
+      "maxUsd": 635000
+    },
+    {
+      "ticker": "UPS",
+      "name": "United Parcel Service, Inc. Common Stock",
+      "buys": 8,
+      "sells": 17,
+      "memberCount": 11,
+      "minUsd": 102025,
+      "maxUsd": 530000
     },
     {
       "ticker": "CRM",
@@ -306,22 +297,40 @@
       "maxUsd": 550000
     },
     {
+      "ticker": "JPM",
+      "name": "JP Morgan Chase & Co. Common Stock",
+      "buys": 12,
+      "sells": 12,
+      "memberCount": 12,
+      "minUsd": 151024,
+      "maxUsd": 665000
+    },
+    {
       "ticker": "TSCO",
       "name": "Tractor Supply Company - Common Stock",
-      "buys": 12,
+      "buys": 11,
       "sells": 13,
       "memberCount": 4,
-      "minUsd": 81025,
-      "maxUsd": 515000
+      "minUsd": 80024,
+      "maxUsd": 500000
     },
     {
       "ticker": "WMT",
       "name": "Walmart Inc. Common Stock",
-      "buys": 9,
+      "buys": 8,
       "sells": 15,
-      "memberCount": 15,
-      "minUsd": 298024,
-      "maxUsd": 920000
+      "memberCount": 14,
+      "minUsd": 297023,
+      "maxUsd": 905000
+    },
+    {
+      "ticker": "CSCO",
+      "name": "Cisco Systems, Inc. - Common Stock",
+      "buys": 11,
+      "sells": 12,
+      "memberCount": 11,
+      "minUsd": 163023,
+      "maxUsd": 620000
     },
     {
       "ticker": "MCD",
@@ -360,22 +369,13 @@
       "maxUsd": 380000
     },
     {
-      "ticker": "MKL",
-      "name": "Markel Group Inc. Common Stock",
-      "buys": 14,
-      "sells": 9,
-      "memberCount": 3,
-      "minUsd": 241023,
-      "maxUsd": 840000
-    },
-    {
-      "ticker": "CSCO",
-      "name": "Cisco Systems, Inc. - Common Stock",
-      "buys": 11,
-      "sells": 11,
-      "memberCount": 11,
-      "minUsd": 162022,
-      "maxUsd": 605000
+      "ticker": "ORCL",
+      "name": "Oracle Corporation Common Stock",
+      "buys": 9,
+      "sells": 13,
+      "memberCount": 8,
+      "minUsd": 155022,
+      "maxUsd": 625000
     },
     {
       "ticker": "UBER",
@@ -398,20 +398,20 @@
     {
       "ticker": "INTC",
       "name": "Intel Corporation - Common Stock",
-      "buys": 11,
+      "buys": 10,
       "sells": 9,
-      "memberCount": 11,
-      "minUsd": 1936020,
-      "maxUsd": 7165000
+      "memberCount": 10,
+      "minUsd": 1935019,
+      "maxUsd": 7150000
     },
     {
       "ticker": "TXN",
       "name": "Texas Instruments Incorporated - Common Stock",
-      "buys": 5,
+      "buys": 6,
       "sells": 11,
       "memberCount": 7,
-      "minUsd": 670016,
-      "maxUsd": 1600000
+      "minUsd": 671017,
+      "maxUsd": 1615000
     },
     {
       "ticker": "KR",
@@ -470,20 +470,11 @@
     {
       "ticker": "QCOM",
       "name": "QUALCOMM Incorporated - Common Stock",
-      "buys": 4,
-      "sells": 7,
-      "memberCount": 7,
-      "minUsd": 1051011,
-      "maxUsd": 2240000
-    },
-    {
-      "ticker": "DVN",
-      "name": "Devon Energy Corporation Common Stock",
       "buys": 3,
       "sells": 7,
-      "memberCount": 4,
-      "minUsd": 357012,
-      "maxUsd": 980000
+      "memberCount": 6,
+      "minUsd": 1050010,
+      "maxUsd": 2225000
     },
     {
       "ticker": "ITT",
@@ -493,6 +484,15 @@
       "memberCount": 3,
       "minUsd": 287010,
       "maxUsd": 705000
+    },
+    {
+      "ticker": "DVN",
+      "name": "Devon Energy Corporation Common Stock",
+      "buys": 2,
+      "sells": 7,
+      "memberCount": 3,
+      "minUsd": 356011,
+      "maxUsd": 965000
     },
     {
       "ticker": "IBIT",
@@ -529,15 +529,6 @@
       "memberCount": 4,
       "minUsd": 670009,
       "maxUsd": 1475000
-    },
-    {
-      "ticker": "AAL",
-      "name": "American Airlines Group, Inc. - Common Stock",
-      "buys": 2,
-      "sells": 4,
-      "memberCount": 2,
-      "minUsd": 452006,
-      "maxUsd": 980000
     },
     {
       "ticker": "FLL",
@@ -580,10 +571,10 @@
     {
       "name": "Gilbert Cisneros",
       "stateDistrict": "CA31",
-      "buys": 847,
-      "sells": 535,
-      "minUsd": 3744388,
-      "maxUsd": 26145000,
+      "buys": 841,
+      "sells": 532,
+      "minUsd": 3735379,
+      "maxUsd": 26010000,
       "topTickers": [
         "DASH",
         "BSX",
@@ -610,25 +601,25 @@
     {
       "name": "April McClain Delaney",
       "stateDistrict": "MD06",
-      "buys": 178,
-      "sells": 219,
-      "minUsd": 3857398,
-      "maxUsd": 13930000,
+      "buys": 176,
+      "sells": 218,
+      "minUsd": 3854395,
+      "maxUsd": 13885000,
       "topTickers": [
         "TSCO",
         "CHRW",
-        "MKL",
         "VIK",
-        "MIDD"
+        "MIDD",
+        "MKL"
       ]
     },
     {
       "name": "Julie Johnson",
       "stateDistrict": "TX32",
-      "buys": 53,
-      "sells": 261,
-      "minUsd": 318318,
-      "maxUsd": 4770000,
+      "buys": 52,
+      "sells": 260,
+      "minUsd": 316316,
+      "maxUsd": 4740000,
       "topTickers": [
         "CARR",
         "MDLZ",
@@ -670,13 +661,13 @@
     {
       "name": "David J. Taylor",
       "stateDistrict": "OH02",
-      "buys": 128,
-      "sells": 93,
-      "minUsd": 347221,
-      "maxUsd": 3630000,
+      "buys": 133,
+      "sells": 96,
+      "minUsd": 355229,
+      "maxUsd": 3750000,
       "topTickers": [
-        "IBP",
         "LRCX",
+        "IBP",
         "PG",
         "MSFT",
         "GOOGL"
@@ -685,10 +676,10 @@
     {
       "name": "Valerie Hoyle",
       "stateDistrict": "OR04",
-      "buys": 40,
-      "sells": 176,
-      "minUsd": 349216,
-      "maxUsd": 3535000,
+      "buys": 39,
+      "sells": 174,
+      "minUsd": 346213,
+      "maxUsd": 3490000,
       "topTickers": [
         "AMZN",
         "GOOGL",
@@ -700,10 +691,10 @@
     {
       "name": "Josh Gottheimer",
       "stateDistrict": "NJ05",
-      "buys": 79,
+      "buys": 78,
       "sells": 119,
-      "minUsd": 3878198,
-      "maxUsd": 10270000,
+      "minUsd": 3877197,
+      "maxUsd": 10255000,
       "topTickers": [
         "MSFT",
         "V",
@@ -728,48 +719,33 @@
       ]
     },
     {
-      "name": "Marjorie Taylor Greene",
-      "stateDistrict": "GA14",
-      "buys": 143,
-      "sells": 1,
-      "minUsd": 270144,
-      "maxUsd": 2475000,
+      "name": "Maria Elvira Salazar",
+      "stateDistrict": "FL27",
+      "buys": 76,
+      "sells": 49,
+      "minUsd": 692125,
+      "maxUsd": 3255000,
       "topTickers": [
-        "IBIT",
-        "ADBE",
-        "GOOG",
-        "AMZN",
-        "AMGN"
+        "BEP",
+        "GLW",
+        "CSCO",
+        "IBM",
+        "BIIB"
       ]
     },
     {
       "name": "Rob Bresnahan",
       "stateDistrict": "PA08",
       "buys": 56,
-      "sells": 67,
-      "minUsd": 326123,
-      "maxUsd": 2315000,
+      "sells": 66,
+      "minUsd": 325122,
+      "maxUsd": 2300000,
       "topTickers": [
         "NVDA",
         "TSLA",
         "NFLX",
-        "GOOG",
-        "HOOD"
-      ]
-    },
-    {
-      "name": "Maria Elvira Salazar",
-      "stateDistrict": "FL27",
-      "buys": 72,
-      "sells": 48,
-      "minUsd": 687120,
-      "maxUsd": 3180000,
-      "topTickers": [
-        "BEP",
-        "GLW",
-        "IBM",
-        "CSCO",
-        "BIIB"
+        "HOOD",
+        "TXN"
       ]
     },
     {
@@ -791,28 +767,28 @@
       "name": "Julia Letlow",
       "stateDistrict": "LA05",
       "buys": 53,
-      "sells": 61,
-      "minUsd": 114114,
-      "maxUsd": 1710000,
+      "sells": 60,
+      "minUsd": 113113,
+      "maxUsd": 1695000,
       "topTickers": [
         "CRM",
         "AMD",
         "AMZN",
-        "AAPL",
-        "T"
+        "T",
+        "BA"
       ]
     },
     {
       "name": "Tim Moore",
       "stateDistrict": "NC14",
-      "buys": 71,
-      "sells": 34,
-      "minUsd": 2973105,
-      "maxUsd": 7720000,
+      "buys": 70,
+      "sells": 32,
+      "minUsd": 2693102,
+      "maxUsd": 7120000,
       "topTickers": [
         "HY",
-        "HOG",
         "CBRL",
+        "HOG",
         "CNC",
         "LGIH"
       ]
@@ -820,16 +796,31 @@
     {
       "name": "Thomas H. Kean Jr",
       "stateDistrict": "NJ07",
-      "buys": 34,
-      "sells": 54,
-      "minUsd": 357091,
-      "maxUsd": 2030000,
+      "buys": 35,
+      "sells": 58,
+      "minUsd": 362096,
+      "maxUsd": 2105000,
       "topTickers": [
         "SYK",
         "JNJ",
         "GOOGL",
         "MKL",
         "MSFT"
+      ]
+    },
+    {
+      "name": "Marjorie Taylor Greene",
+      "stateDistrict": "GA14",
+      "buys": 84,
+      "sells": 1,
+      "minUsd": 211085,
+      "maxUsd": 1590000,
+      "topTickers": [
+        "IBIT",
+        "UNH",
+        "GOOG",
+        "AMGN",
+        "MELI"
       ]
     },
     {
@@ -866,9 +857,9 @@
       "name": "Jonathan Jackson",
       "stateDistrict": "IL01",
       "buys": 36,
-      "sells": 40,
-      "minUsd": 1217076,
-      "maxUsd": 3355000,
+      "sells": 38,
+      "minUsd": 1166074,
+      "maxUsd": 3240000,
       "topTickers": [
         "HOOD",
         "SHOP",
@@ -956,9 +947,9 @@
       "name": "Michael Rulli",
       "stateDistrict": "OH06",
       "buys": 15,
-      "sells": 21,
-      "minUsd": 134036,
-      "maxUsd": 710000,
+      "sells": 20,
+      "minUsd": 133035,
+      "maxUsd": 695000,
       "topTickers": [
         "GOOGL",
         "MSFT",
@@ -1240,6 +1231,66 @@
       "owner": null
     },
     {
+      "date": "2026-10-23",
+      "member": "Maria Elvira Salazar",
+      "stateDistrict": "FL27",
+      "ticker": "CSCO",
+      "name": "Cisco Systems, Inc. - Common Stock",
+      "action": "sell",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-10-23",
+      "member": "Maria Elvira Salazar",
+      "stateDistrict": "FL27",
+      "ticker": "NVDA",
+      "name": "NVIDIA Corporation - Common Stock",
+      "action": "buy",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-10-23",
+      "member": "Maria Elvira Salazar",
+      "stateDistrict": "FL27",
+      "ticker": "NVDA",
+      "name": "NVIDIA Corporation - Common Stock",
+      "action": "buy",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-10-23",
+      "member": "Maria Elvira Salazar",
+      "stateDistrict": "FL27",
+      "ticker": "PG",
+      "name": "Procter & Gamble Company",
+      "action": "buy",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-10-23",
+      "member": "Maria Elvira Salazar",
+      "stateDistrict": "FL27",
+      "ticker": "PG",
+      "name": "Procter & Gamble Company",
+      "action": "buy",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
       "date": "2026-10-22",
       "member": "Pete Sessions",
       "stateDistrict": "TX17",
@@ -1289,6 +1340,18 @@
     },
     {
       "date": "2026-10-20",
+      "member": "Robert E. Latta",
+      "stateDistrict": "OH05",
+      "ticker": "FMAO",
+      "name": "Farmers & Merchants Bancorp, Inc",
+      "action": "buy",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": "SP"
+    },
+    {
+      "date": "2026-10-20",
       "member": "Pete Sessions",
       "stateDistrict": "TX17",
       "ticker": "IBM",
@@ -1333,6 +1396,102 @@
       "amount": "$15,001 - $50,000",
       "minUsd": 15001,
       "maxUsd": 50000,
+      "owner": null
+    },
+    {
+      "date": "2026-10-15",
+      "member": "David J. Taylor",
+      "stateDistrict": "OH02",
+      "ticker": "T",
+      "name": "AT&T Inc",
+      "action": "buy",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-10-15",
+      "member": "David J. Taylor",
+      "stateDistrict": "OH02",
+      "ticker": "LRCX",
+      "name": "Lam Research Corporation - Common Stock",
+      "action": "buy",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-10-15",
+      "member": "David J. Taylor",
+      "stateDistrict": "OH02",
+      "ticker": "MPC",
+      "name": "Marathon Petroleum Corporation Common Stock",
+      "action": "sell",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-10-15",
+      "member": "David J. Taylor",
+      "stateDistrict": "OH02",
+      "ticker": "MPC",
+      "name": "Marathon Petroleum Corporation Common Stock",
+      "action": "sell",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-10-15",
+      "member": "David J. Taylor",
+      "stateDistrict": "OH02",
+      "ticker": "PLD",
+      "name": "Prologis, Inc. Common Stock",
+      "action": "buy",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-10-15",
+      "member": "David J. Taylor",
+      "stateDistrict": "OH02",
+      "ticker": "PLD",
+      "name": "Prologis, Inc. Common Stock",
+      "action": "buy",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-10-15",
+      "member": "David J. Taylor",
+      "stateDistrict": "OH02",
+      "ticker": "RPM",
+      "name": "RPM International Inc. Common Stock",
+      "action": "buy",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-10-15",
+      "member": "David J. Taylor",
+      "stateDistrict": "OH02",
+      "ticker": "V",
+      "name": "Visa Inc",
+      "action": "sell",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
       "owner": null
     },
     {
@@ -1781,10 +1940,46 @@
     },
     {
       "date": "2026-10-01",
+      "member": "John J Mr McGuire III",
+      "stateDistrict": "VA05",
+      "ticker": "MU",
+      "name": "Micron Technology, Inc. - Common Stock",
+      "action": "buy",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": "SP"
+    },
+    {
+      "date": "2026-10-01",
       "member": "Pete Sessions",
       "stateDistrict": "TX17",
       "ticker": "HON",
       "name": "Honeywell International Inc",
+      "action": "sell",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-09-30",
+      "member": "Thomas H. Kean Jr",
+      "stateDistrict": "NJ07",
+      "ticker": "JNJ",
+      "name": "Johnson & Johnson Common Stock",
+      "action": "sell",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
+      "date": "2026-09-30",
+      "member": "Thomas H. Kean Jr",
+      "stateDistrict": "NJ07",
+      "ticker": "SYK",
+      "name": "Stryker Corporation Common Stock",
       "action": "sell",
       "amount": "$1,001 - $15,000",
       "minUsd": 1001,
@@ -2020,6 +2215,18 @@
       "owner": null
     },
     {
+      "date": "2026-09-29",
+      "member": "Thomas H. Kean Jr",
+      "stateDistrict": "NJ07",
+      "ticker": "ESAB",
+      "name": "ESAB Corporation Common Stock",
+      "action": "buy",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": null
+    },
+    {
       "date": "2026-09-28",
       "member": "Gilbert Cisneros",
       "stateDistrict": "CA31",
@@ -2138,6 +2345,54 @@
       "minUsd": 1001,
       "maxUsd": 15000,
       "owner": "JT"
+    },
+    {
+      "date": "2026-09-25",
+      "member": "John J Mr McGuire III",
+      "stateDistrict": "VA05",
+      "ticker": "MU",
+      "name": "Micron Technology, Inc. - Common Stock",
+      "action": "buy",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": "SP"
+    },
+    {
+      "date": "2026-09-25",
+      "member": "Daniel Meuser",
+      "stateDistrict": "PA09",
+      "ticker": "NVDA",
+      "name": "NVIDIA Corporation - Common Stock",
+      "action": "sell",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": "SP"
+    },
+    {
+      "date": "2026-09-24",
+      "member": "John J Mr McGuire III",
+      "stateDistrict": "VA05",
+      "ticker": "AVGO",
+      "name": "Broadcom Inc. - Common Stock",
+      "action": "sell",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": "SP"
+    },
+    {
+      "date": "2026-09-24",
+      "member": "John J Mr McGuire III",
+      "stateDistrict": "VA05",
+      "ticker": "MU",
+      "name": "Micron Technology, Inc. - Common Stock",
+      "action": "buy",
+      "amount": "$1,001 - $15,000",
+      "minUsd": 1001,
+      "maxUsd": 15000,
+      "owner": "SP"
     },
     {
       "date": "2026-09-24",
@@ -2350,270 +2605,6 @@
       "ticker": "META",
       "name": "Meta Platforms, Inc. - Class A Common Stock",
       "action": "sell",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": null
-    },
-    {
-      "date": "2026-09-24",
-      "member": "Maria Elvira Salazar",
-      "stateDistrict": "FL27",
-      "ticker": "MSFT",
-      "name": "Microsoft Corporation - Common Stock",
-      "action": "sell",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": null
-    },
-    {
-      "date": "2026-09-24",
-      "member": "Maria Elvira Salazar",
-      "stateDistrict": "FL27",
-      "ticker": "MRNA",
-      "name": "Moderna, Inc. - Common Stock",
-      "action": "sell",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": null
-    },
-    {
-      "date": "2026-09-24",
-      "member": "Maria Elvira Salazar",
-      "stateDistrict": "FL27",
-      "ticker": "OKTA",
-      "name": "Okta, Inc. - Class A Common Stock",
-      "action": "sell",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": null
-    },
-    {
-      "date": "2026-09-24",
-      "member": "Maria Elvira Salazar",
-      "stateDistrict": "FL27",
-      "ticker": "PTON",
-      "name": "Peloton Interactive, Inc. - Common Stock",
-      "action": "sell",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": null
-    },
-    {
-      "date": "2026-09-24",
-      "member": "Maria Elvira Salazar",
-      "stateDistrict": "FL27",
-      "ticker": "RH",
-      "name": "RH Common Stock",
-      "action": "sell",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": null
-    },
-    {
-      "date": "2026-09-24",
-      "member": "Maria Elvira Salazar",
-      "stateDistrict": "FL27",
-      "ticker": "CRM",
-      "name": "Salesforce, Inc. Common Stock",
-      "action": "sell",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": null
-    },
-    {
-      "date": "2026-09-24",
-      "member": "Maria Elvira Salazar",
-      "stateDistrict": "FL27",
-      "ticker": "SNOW",
-      "name": "Snowflake Inc. Common Stock",
-      "action": "sell",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": null
-    },
-    {
-      "date": "2026-09-24",
-      "member": "Maria Elvira Salazar",
-      "stateDistrict": "FL27",
-      "ticker": "SPCX",
-      "name": "Space Exploration Technologies Corp. - Class A Common Stock",
-      "action": "sell",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": null
-    },
-    {
-      "date": "2026-09-24",
-      "member": "Maria Elvira Salazar",
-      "stateDistrict": "FL27",
-      "ticker": "URI",
-      "name": "United Rentals, Inc. Common Stock",
-      "action": "sell",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": null
-    },
-    {
-      "date": "2026-09-24",
-      "member": "Maria Elvira Salazar",
-      "stateDistrict": "FL27",
-      "ticker": "UNH",
-      "name": "UnitedHealth Group Incorporated Common Stock",
-      "action": "sell",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": null
-    },
-    {
-      "date": "2026-09-23",
-      "member": "Kevin Hern",
-      "stateDistrict": "OK01",
-      "ticker": "CVX",
-      "name": "Chevron Corporation Common Stock",
-      "action": "sell",
-      "amount": "$15,001 - $50,000",
-      "minUsd": 15001,
-      "maxUsd": 50000,
-      "owner": "JT"
-    },
-    {
-      "date": "2026-09-23",
-      "member": "Kevin Hern",
-      "stateDistrict": "OK01",
-      "ticker": "CB",
-      "name": "Chubb Limited Common Stock",
-      "action": "sell",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": "JT"
-    },
-    {
-      "date": "2026-09-23",
-      "member": "Kevin Hern",
-      "stateDistrict": "OK01",
-      "ticker": "DVN",
-      "name": "Devon Energy Corporation Common Stock",
-      "action": "sell",
-      "amount": "$50,001 - $100,000",
-      "minUsd": 50001,
-      "maxUsd": 100000,
-      "owner": "JT"
-    },
-    {
-      "date": "2026-09-23",
-      "member": "Kevin Hern",
-      "stateDistrict": "OK01",
-      "ticker": "DVN",
-      "name": "Devon Energy Corporation Common Stock",
-      "action": "sell",
-      "amount": "$15,001 - $50,000",
-      "minUsd": 15001,
-      "maxUsd": 50000,
-      "owner": "JT"
-    },
-    {
-      "date": "2026-09-23",
-      "member": "Kevin Hern",
-      "stateDistrict": "OK01",
-      "ticker": "HD",
-      "name": "Home Depot, Inc",
-      "action": "sell",
-      "amount": "$1,001 - $15,000",
-      "minUsd": 1001,
-      "maxUsd": 15000,
-      "owner": "JT"
-    },
-    {
-      "date": "2026-09-23",
-      "member": "Kevin Hern",
-      "stateDistrict": "OK01",
-      "ticker": "LMT",
-      "name": "Lockheed Martin Corporation Common Stock",
-      "action": "sell",
-      "amount": "$15,001 - $50,000",
-      "minUsd": 15001,
-      "maxUsd": 50000,
-      "owner": "JT"
-    },
-    {
-      "date": "2026-09-23",
-      "member": "Kevin Hern",
-      "stateDistrict": "OK01",
-      "ticker": "LMT",
-      "name": "Lockheed Martin Corporation Common Stock",
-      "action": "sell",
-      "amount": "$15,001 - $50,000",
-      "minUsd": 15001,
-      "maxUsd": 50000,
-      "owner": "JT"
-    },
-    {
-      "date": "2026-09-23",
-      "member": "Kevin Hern",
-      "stateDistrict": "OK01",
-      "ticker": "MRSH",
-      "name": "Marsh Common Stock",
-      "action": "sell",
-      "amount": "$50,001 - $100,000",
-      "minUsd": 50001,
-      "maxUsd": 100000,
-      "owner": "JT"
-    },
-    {
-      "date": "2026-09-23",
-      "member": "Kevin Hern",
-      "stateDistrict": "OK01",
-      "ticker": "SBUX",
-      "name": "Starbucks Corporation - Common Stock",
-      "action": "sell",
-      "amount": "$15,001 - $50,000",
-      "minUsd": 15001,
-      "maxUsd": 50000,
-      "owner": "JT"
-    },
-    {
-      "date": "2026-09-23",
-      "member": "Kevin Hern",
-      "stateDistrict": "OK01",
-      "ticker": "UNH",
-      "name": "UnitedHealth Group Incorporated Common Stock",
-      "action": "sell",
-      "amount": "$15,001 - $50,000",
-      "minUsd": 15001,
-      "maxUsd": 50000,
-      "owner": "JT"
-    },
-    {
-      "date": "2026-09-22",
-      "member": "Richard W. Allen",
-      "stateDistrict": "GA12",
-      "ticker": "AZO",
-      "name": "AutoZone, Inc. Common Stock",
-      "action": "sell",
-      "amount": "$15,001 - $50,000",
-      "minUsd": 15001,
-      "maxUsd": 50000,
-      "owner": "SP"
-    },
-    {
-      "date": "2026-09-22",
-      "member": "Gilbert Cisneros",
-      "stateDistrict": "CA31",
-      "ticker": "TSM",
-      "name": "Taiwan Semiconductor Manufacturing Company Ltd",
-      "action": "buy",
       "amount": "$1,001 - $15,000",
       "minUsd": 1001,
       "maxUsd": 15000,
