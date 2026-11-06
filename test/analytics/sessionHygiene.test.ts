@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 import {
   ANALYTICS_OPT_OUT_KEY,
   GA_SESSION_TIMEOUT_MS,
+  isLikelyBotUserAgent,
   resolveAnalyticsOptOutChange,
   shouldResumeWithPageView
 } from '@/shared/lib/analytics';
@@ -41,6 +42,13 @@ describe('운영자 기기 제외 스위치', () => {
     expect(resolveAnalyticsOptOutChange('')).toBeNull();
     expect(resolveAnalyticsOptOutChange('?goal=dividend-100')).toBeNull();
     expect(resolveAnalyticsOptOutChange('?analytics=maybe')).toBeNull();
+  });
+
+  it('🔴 값에 딸려 온 기호·대소문자는 무시한다 — 실측에서 `off`+백틱으로 열려 스위치가 안 켜졌다', () => {
+    expect(resolveAnalyticsOptOutChange('?analytics=off`')).toBe('optOut');
+    expect(resolveAnalyticsOptOutChange('?analytics=off%60')).toBe('optOut');
+    expect(resolveAnalyticsOptOutChange('?analytics=OFF')).toBe('optOut');
+    expect(resolveAnalyticsOptOutChange('?analytics=%22on%22')).toBe('optIn');
   });
 
   it('저장 키는 브랜드 접두사를 쓴다(storageKey)', () => {
@@ -85,5 +93,38 @@ describe('오래 열어 둔 탭의 세션 이어 붙이기', () => {
 
   it('🔴 페이지뷰도 마지막 전송 시각을 갱신한다 — 안 그러면 라우트 이동 뒤에도 30분을 오판한다', () => {
     expect(bodyOf('sendPageView')).toContain('lastHitAt = Date.now()');
+  });
+});
+
+describe('봇 제외', () => {
+  it('🔴 흔한 크롤러·자동화 UA 는 집계하지 않는다', () => {
+    const bots = [
+      'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+      'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm) Chrome/116.0 Safari/537.36',
+      'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/130.0.0.0 Safari/537.36',
+      'Mozilla/5.0 (compatible; Yeti/1.1; +https://naver.me/spd)',
+      'Mozilla/5.0 (compatible; Daum/4.1; +http://cs.daum.net/faq/15/4118.html?faqId=28966) Daumoa',
+      'Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130 Mobile Safari/537.36 Chrome-Lighthouse',
+      'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)'
+    ];
+    for (const ua of bots) expect(isLikelyBotUserAgent(ua), ua).toBe(true);
+  });
+
+  it('🔴 실제 브라우저는 집계한다 — 사람을 봇으로 잘못 걸러 지표를 깎지 않는다', () => {
+    const people = [
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+      'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1',
+      'Mozilla/5.0 (Linux; Android 14; SM-S918N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Whale/3.28.266.14 Mobile Safari/537.36',
+      'Mozilla/5.0 (Linux; Android 14; SM-S918N) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/26.0 Chrome/122.0 Mobile Safari/537.36',
+      'Mozilla/5.0 (Linux; Android 14; SM-S918N; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/130 Mobile Safari/537.36 NAVER(inapp; search; 2000; 12.10.3)',
+      'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 KAKAOTALK 10.9.5',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:132.0) Gecko/20100101 Firefox/132.0'
+    ];
+    for (const ua of people) expect(isLikelyBotUserAgent(ua), ua).toBe(false);
+  });
+
+  it('🔴 판정이 공용 게이트 안에 있다 — 페이지뷰·이벤트·사용자 속성이 함께 막힌다', () => {
+    expect(source).toMatch(/const isAnalyticsEnabled = \(\): boolean =>[^;]*!isLikelyBot\(\)/);
+    expect(source).toContain('navigator.webdriver === true');
   });
 });

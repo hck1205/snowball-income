@@ -31,12 +31,40 @@ const isLocalHost = (): boolean => {
 export const ANALYTICS_OPT_OUT_KEY = storageKey('analytics-opt-out');
 export const ANALYTICS_OPT_OUT_PARAM = 'analytics';
 
-/** 주소의 스위치 값 → 할 일. 순수 함수(테스트 대상). 값이 없거나 모르는 값이면 아무것도 바꾸지 않는다. */
+/**
+ * 주소의 스위치 값 → 할 일. 순수 함수(테스트 대상). 값이 없거나 모르는 값이면 아무것도 바꾸지 않는다.
+ *
+ * 🔴 값의 **글자만** 본다(대소문자·기호 무시). 2026-11-06 실측에서 `?analytics=off` 뒤에 백틱이 붙은
+ *   `` off` `` 로 4번 열렸다 — 안내문의 코드 표기가 복사에 딸려 왔고, 정확히 `off` 만 받던 판정이 그걸
+ *   무시해 스위치가 한 번도 켜지지 않았다. 사람이 손으로 치는 값이라 관대하게 받는다.
+ */
 export const resolveAnalyticsOptOutChange = (search: string): 'optOut' | 'optIn' | null => {
-  const value = new URLSearchParams(search).get(ANALYTICS_OPT_OUT_PARAM);
+  const raw = new URLSearchParams(search).get(ANALYTICS_OPT_OUT_PARAM);
+  const value = raw?.toLowerCase().replace(/[^a-z]/g, '');
   if (value === 'off') return 'optOut';
   if (value === 'on') return 'optIn';
   return null;
+};
+
+/**
+ * **봇 제외**(2026-11-06).
+ *
+ * JS 를 실행하는 크롤러·자동화 브라우저도 gtag 를 돌려 사용자로 집계된다. 2026-11-06 하루 "사용자 33명"
+ * (평소 2~6명) 중 대부분이 Council Bluffs(구글 데이터센터)·Boardman(AWS) 같은 데이터센터 도시였고
+ * 참여율 3%였다. 광고 수익 판단의 기준이 페이지뷰라 이 오염은 그대로 판단을 틀리게 한다.
+ * ⚠ 크롤링·색인에는 영향이 없다 — 막는 것은 GA 전송뿐이고 페이지는 그대로 그려진다.
+ * ⚠ 완벽한 필터가 아니다(UA 를 사람처럼 꾸민 봇은 지나간다). 흔한 신호 둘만 본다:
+ *   자동화 표식(`navigator.webdriver`)과 UA 의 봇 낱말.
+ */
+const BOT_USER_AGENT_PATTERN =
+  /bot\b|bot\/|crawler|crawling|spider|slurp|headlesschrome|phantomjs|lighthouse|pagespeed|google-inspectiontool|chrome-lighthouse|facebookexternalhit|bingpreview|yeti|daumoa/i;
+
+/** 순수 함수(테스트 대상). */
+export const isLikelyBotUserAgent = (userAgent: string): boolean => BOT_USER_AGENT_PATTERN.test(userAgent);
+
+const isLikelyBot = (): boolean => {
+  if (typeof navigator === "undefined") return false;
+  return navigator.webdriver === true || isLikelyBotUserAgent(navigator.userAgent ?? '');
 };
 
 /** 부팅 때 한 번 — 주소에 스위치가 있으면 저장한다. 저장소가 막힌 브라우저(사생활 모드 등)는 조용히 넘긴다. */
@@ -62,7 +90,7 @@ const isOptedOut = (): boolean => {
 };
 
 const isAnalyticsEnabled = (): boolean =>
-  Boolean(GA_MEASUREMENT_ID) && !import.meta.env.DEV && !isLocalHost() && !isOptedOut();
+  Boolean(GA_MEASUREMENT_ID) && !import.meta.env.DEV && !isLocalHost() && !isOptedOut() && !isLikelyBot();
 
 /**
  * **오래 열어 둔 탭의 세션 이어 붙이기**(2026-11-05).
