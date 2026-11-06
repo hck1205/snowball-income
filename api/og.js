@@ -5011,8 +5011,8 @@ var marketData_generated_default = {
         7,
         10
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 16,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "1": 15,
         "4": 15,
@@ -6486,12 +6486,19 @@ var marketData_generated_default = {
       frequency: "quarterly",
       observedDividendCagr: 25.12,
       payoutMonths: [
-        2,
-        5,
-        8,
-        11
+        3,
+        6,
+        9,
+        12
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 15,
+      estimatedPayDayByMonth: {
+        "3": 11,
+        "6": 10,
+        "9": 10,
+        "12": 10
+      }
     },
     TSLA: {
       initialPrice: 354.11,
