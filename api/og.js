@@ -2188,7 +2188,14 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 21,
+      estimatedPayDayByMonth: {
+        "3": 31,
+        "6": 30,
+        "9": 30,
+        "12": 31
+      }
     },
     BEN: {
       initialPrice: 32.5,
@@ -6491,8 +6498,8 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 15,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "3": 11,
         "6": 10,
