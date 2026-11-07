@@ -203,9 +203,12 @@ PR 을 열자마자 `gh pr merge --delete-branch` 를 부르기 때문에 **1초
 만들어지지 않는다. `ci.yml` 이 도는 것과 **같은 검사**다. 그래서 지금은 `ci.yml` 이 `chore/refresh-*`
 를 건너뛴다(그 파일의 `if:` 와 근거 주석).
 
-⚠ 잡 수준 `if:` 만으로는 부족했다(2026-11-06 실측 3건) — 브랜치가 1초 만에 지워지면 실행이 워크플로
-파일조차 못 읽어 **작업 0개 실패**로 남는다. 그래서 자동 머지하는 갱신 워크플로는 전부 머지 전에
-`sleep 30` 한다(`test/dividendLists/dividendListsAutoMerge.test.ts` 가 잠근다).
+⚠ **그래도 자동 갱신 PR 에는 "작업 0개 실패" CI 가 남는다 — 고장이 아니다.** 봇(`github-actions[bot]`)이
+만든 PR 의 `ci.yml` 실행은 **승인 대기**에서 시작하지 못해 잡 0개로 멈춰 있고(잡 수준 `if:` 까지 가지도
+못한다), 갱신 잡이 `--delete-branch` 로 브랜치를 지우는 순간 실패로 닫힌다. 2026-11-06 에 이것을 "브랜치가
+너무 빨리 지워져서"로 오진해 머지 전 `sleep 30` 을 넣었으나, 다음 날 3건 모두 **30초 동안 잡 0개로 기다리다
+똑같이 실패**했다(#308 → 되돌림). 대기·재시도로는 안 고쳐진다 — 다시 넣지 마라
+(`test/dividendLists/dividendListsAutoMerge.test.ts` 가 잠근다).
 배당 목록(`refresh-dividend-lists`)은 **멤버십(종목 구성)이 그대로인 달만** 자동 머지하고, 종목이
 들고 난 달에는 사람 확인 PR 을 연다(`scripts/dividendLists/listsChange.ts`).
 
