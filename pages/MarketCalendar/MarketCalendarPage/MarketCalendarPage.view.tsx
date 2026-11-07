@@ -1,5 +1,5 @@
 import { useId, useMemo, useState } from 'react';
-import { CalendarRange } from 'lucide-react';
+import { CalendarDays, CalendarRange, Crown, LineChart, Thermometer } from 'lucide-react';
 import {
   DataSection,
   DataTable,
@@ -13,8 +13,12 @@ import {
 } from '@/components/common';
 import { ICON } from '@/shared/styles';
 import type { MarketEarlyClose, MarketHoliday } from '@/shared/constants/marketCalendar';
+import { COMMUNITY_COPY } from '@/shared/constants/community';
+import { SIMULATOR_PATH, dividendListPath } from '@/shared/constants/routes';
+import { MARKET_PULSE_PATH } from '@/pages/MarketPulse/marketPulseRoute';
 import { MARKET_CALENDAR_COPY } from '../copy';
-import { DayDrawer, MonthGrid } from '../components';
+import { DayDrawer, MonthGrid, RelatedLinks } from '../components';
+import type { RelatedLinkItem } from '../components';
 import {
   buildMarketMonth,
   buildTodayStatus,
@@ -35,6 +39,38 @@ const copy = MARKET_CALENDAR_COPY;
 
 /** 다가오는 일정에 몇 줄까지 보일지. 더 필요하면 달력에서 그 달로 옮긴다. */
 const UPCOMING_ROWS = 18;
+
+/**
+ * "함께 보면 좋은 화면" — 제목은 내비 이름 그대로, 아이콘도 내비와 같은 그림이다(PrimaryNav.utils).
+ * 순서와 근거는 copy 의 `related` 주석.
+ */
+const RELATED_GLYPH = { size: ICON.lg, strokeWidth: 1.8, 'aria-hidden': true, focusable: false } as const;
+const RELATED_LINKS: readonly RelatedLinkItem[] = [
+  {
+    to: '/dividend/calendar',
+    title: COMMUNITY_COPY.nav.dividendCalendar,
+    description: copy.related.dividendCalendar,
+    glyph: <CalendarDays {...RELATED_GLYPH} />
+  },
+  {
+    to: dividendListPath('kings'),
+    title: COMMUNITY_COPY.nav.dividendKings,
+    description: copy.related.dividendKings,
+    glyph: <Crown {...RELATED_GLYPH} />
+  },
+  {
+    to: MARKET_PULSE_PATH,
+    title: COMMUNITY_COPY.nav.marketPulse,
+    description: copy.related.marketPulse,
+    glyph: <Thermometer {...RELATED_GLYPH} />
+  },
+  {
+    to: SIMULATOR_PATH,
+    title: COMMUNITY_COPY.nav.simulator,
+    description: copy.related.simulator,
+    glyph: <LineChart {...RELATED_GLYPH} />
+  }
+];
 
 const UPCOMING_COLUMNS = [
   {
@@ -68,7 +104,7 @@ const UPCOMING_COLUMNS = [
  * 🔴 상태는 **보고 있는 달** 하나뿐이다. 그 외 모든 것은 커밋된 자료에서 파생한다.
  * ⚠ `today` 는 컨테이너가 만들어 넘긴다 — 뷰가 `new Date()` 를 부르면 테스트가 실제 날짜에 매인다.
  */
-export default function MarketCalendarView({ viewModel }: MarketCalendarViewProps) {
+export default function MarketCalendarView({ viewModel, onRelatedNavigate }: MarketCalendarViewProps) {
   const { today, snapshot, closures, earnings, year: thisYear } = viewModel;
 
   const [cursor, setCursor] = useState(() => ({ year: today.getFullYear(), month: today.getMonth() + 1 }));
@@ -190,6 +226,12 @@ export default function MarketCalendarView({ viewModel }: MarketCalendarViewProp
           ) : (
             <MonthNote>{copy.upcoming.empty}</MonthNote>
           )}
+        </DataSection>
+
+        {/* 다가오는 일정 **바로 뒤** — 휴장일을 확인하고 떠나는 사람(세션당 1.9페이지)이 내려오는 곳이다.
+            맨 끝(출처 뒤)에 두면 모바일에서 거의 아무도 닿지 않는다. */}
+        <DataSection title={copy.related.heading} subtitle={copy.related.subtitle}>
+          <RelatedLinks label={copy.related.heading} items={RELATED_LINKS} onNavigate={onRelatedNavigate} />
         </DataSection>
 
         <DataSection

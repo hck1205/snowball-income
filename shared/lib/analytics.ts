@@ -299,6 +299,10 @@ export const ANALYTICS_EVENT = {
   // 용도: §3-2 리텐션층(일간 재방문) → 코어 제품(시뮬레이터) 전환 측정. community_to_simulator 와 같은 짝이다.
   // 🔴 클릭을 센다 — 도착은 URL 에 표식이 없어 셀 수 없다(compare_to_simulator 와 같은 이유).
   MARKET_PULSE_TO_SIMULATOR: "market_pulse_to_simulator",
+  // 미국 증시 캘린더 하단 "함께 보면 좋은 화면" 카드 클릭(2026-11-07).
+  // 용도: 검색 유입 1위 랜딩(28일 37세션, 전부 신규, 세션당 1.9페이지)이 다른 화면으로 이어지는지 측정.
+  //   운영 목적이 트래픽→광고라 세션당 페이지뷰가 판단 기준이다. destination 으로 어느 카드가 끄는지 본다.
+  MARKET_CALENDAR_RELATED_CLICK: "market_calendar_related_click",
   /*
    * ── 수준 분기 · 성향 테스트 (2026-08-17) ──────────────────────────────────
    *
@@ -600,6 +604,10 @@ export type AnalyticsEventParamMap = {
     from: string;
     /** 실제로 열린 열 수. 고른 수와 다를 수 있다 — 유니버스에서 빠진 티커는 걸러진다. */
     ticker_count: number;
+  };
+  [ANALYTICS_EVENT.MARKET_CALENDAR_RELATED_CLICK]: {
+    /** 누른 카드의 목적지 경로(`/dividend/calendar` 등). 🔴 `source`·`page` 같은 GA 예약 이름을 쓰지 않는다. */
+    destination: string;
   };
   [ANALYTICS_EVENT.ETF_MIX_TO_SIMULATOR]: {
     /** 시뮬레이터로 실제로 넘어간 ETF 수. */

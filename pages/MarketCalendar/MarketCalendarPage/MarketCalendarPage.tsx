@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { TickerPageShell } from '@/pages/Ticker/components';
 import { useDocumentMeta } from '@/pages/Ticker/hooks';
+import { ANALYTICS_EVENT, track } from '@/shared/lib/analytics';
 import {
   MARKET_CALENDAR,
   earlyClosesOfYear,
@@ -49,7 +50,10 @@ export default function MarketCalendarPage() {
 
   return (
     <TickerPageShell>
-      <MarketCalendarView viewModel={viewModel} />
+      <MarketCalendarView
+        viewModel={viewModel}
+        onRelatedNavigate={(destination) => track(ANALYTICS_EVENT.MARKET_CALENDAR_RELATED_CLICK, { destination })}
+      />
     </TickerPageShell>
   );
 }
