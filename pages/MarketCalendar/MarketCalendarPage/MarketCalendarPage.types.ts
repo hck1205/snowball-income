@@ -24,4 +24,6 @@ export type MarketCalendarViewModel = {
 
 export type MarketCalendarViewProps = {
   readonly viewModel: MarketCalendarViewModel;
+  /** "함께 보면 좋은 화면" 카드를 눌렀을 때(목적지 경로). 계측은 컨테이너가 맡는다. */
+  readonly onRelatedNavigate?: (to: string) => void;
 };
