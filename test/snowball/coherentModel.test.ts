@@ -56,10 +56,20 @@ const GRID: Array<{ dividendYield: number; dividendGrowth: number }> = [
   { dividendYield: 12, dividendGrowth: -5 }
 ];
 
+/**
+ * 60년 안에 주가가 `MIN_PRICE_FACTOR` 바닥에 닿는 점(0.85^60 ≈ 5.8e-5).
+ * 실재하는 커버드콜(QQQT·SPYT, 2026-11 실측 배당률 21%대)이 이 영역이라 티커 갱신이 막혔다(#286).
+ * CAGR 표(30년)에는 넣지 않는다 — 거기서는 바닥에 닿지 않아 의미가 없다.
+ */
+const FLOOR_GRID: Array<{ dividendYield: number; dividendGrowth: number }> = [
+  { dividendYield: 21.4, dividendGrowth: -15 },
+  { dividendYield: 30, dividendGrowth: -40 }
+];
+
 const FREQUENCIES: Frequency[] = ['monthly', 'quarterly', 'semiannual', 'annual'];
 
 describe('정합 모델: 배당수익률 불변 (yield-on-price)', () => {
-  it.each(GRID)('dy=$dividendYield / dg=$dividendGrowth — 60년 후 YoP가 초기 배당률과 같다', ({ dividendYield, dividendGrowth }) => {
+  it.each([...GRID, ...FLOOR_GRID])('dy=$dividendYield / dg=$dividendGrowth — 60년 후 YoP가 초기 배당률과 같다', ({ dividendYield, dividendGrowth }) => {
     const result = runSimulation(
       toSimulationInput(buildValues({ dividendYield, dividendGrowth, durationYears: 60, frequency: 'monthly' }))
     );

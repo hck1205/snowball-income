@@ -3,7 +3,11 @@ import type { DpsGrowthMode } from '@/shared/types';
 /** 성장률 하한. 자산이 완전히 소멸(-100%)하지 않도록 막는다. */
 export const MIN_GROWTH_RATE = -0.99;
 
-/** 주가 하한 계수. 정합 모델에서는 도달 불가능하지만 0/NaN 전파를 구조적으로 막는다. */
+/**
+ * 주가·배당 하한 계수. 0/NaN 전파를 구조적으로 막는다.
+ * ⚠ "정합 모델에서는 도달 불가능"이 아니다 — 성장 -15% 면 57년째에 닿는다. 그래서 `dpsAtMonth` 도
+ *   같은 계수를 써야 배당수익률 불변이 바닥에서도 깨지지 않는다.
+ */
 export const MIN_PRICE_FACTOR = 1e-4;
 
 export const toMonthlyGrowthRate = (annualRate: number): number => Math.pow(1 + annualRate, 1 / 12) - 1;
@@ -88,6 +92,14 @@ export const dpsAtMonth = ({
 }: DpsAtMonthParams): number => {
   const growthExponent = mode === 'monthlySmooth' ? elapsedYearFraction : completedYears;
   const dps = dps0 * Math.pow(1 + Math.max(MIN_GROWTH_RATE, dividendGrowth), growthExponent);
+  /*
+   * 🔴 주가와 **같은 계수**로 바닥을 둔다(2026-11-07).
+   * 예전엔 0 으로만 막아서, 주가가 `MIN_PRICE_FACTOR` 바닥에 닿은 뒤에도 배당은 계속 줄었고
+   * 배당수익률이 어긋났다 — 배당률 21%·성장 -15% 인 커버드콜(QQQT·SPYT)이 60년 계산에서
+   * 21.4% → 18.8% 로 틀어져 정합 모델 불변식 테스트가 티커 월간 갱신을 막았다(#286).
+   * 둘이 같은 바닥에 함께 서면 `dps / price === dps0 / initialPrice` 가 바닥에서도 유지된다.
+   */
+  const floor = Math.max(0, dps0) * MIN_PRICE_FACTOR;
 
-  return Number.isFinite(dps) ? Math.max(0, dps) : 0;
+  return Number.isFinite(dps) ? Math.max(floor, dps) : floor;
 };
