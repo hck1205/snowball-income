@@ -15,6 +15,7 @@ import {
   getDaysInMonth,
   isCalendarDateInput,
   isPayoutMonth,
+  MIN_PRICE_FACTOR,
   parseStartDate,
   paymentsPerYearMap,
   planReinvestment,
@@ -224,6 +225,33 @@ describe('dpsAtMonth', () => {
     const smooth = dpsAtMonth({ dps0, dividendGrowth, mode: 'monthlySmooth', elapsedYearFraction: 1, completedYears: 1 });
 
     expect(step).toBe(smooth);
+  });
+
+  /**
+   * #286 회귀: 주가가 `MIN_PRICE_FACTOR` 바닥에 닿은 뒤에도 배당만 계속 줄어 배당수익률이 어긋났다.
+   * 둘은 **같은 계수**의 바닥에 함께 서야 한다.
+   */
+  it('주가와 같은 계수로 바닥에 선다 — 바닥에서도 배당수익률이 유지된다', () => {
+    const initialPrice = 50;
+    const yieldRate = 0.214;
+    const growth = -0.15;
+    const years = 60; // 0.85^60 ≈ 5.8e-5 < 1e-4 → 바닥 아래
+
+    const price = priceAtMonth(initialPrice, growth, years);
+    const dps = dpsAtMonth({
+      dps0: initialPrice * yieldRate,
+      dividendGrowth: growth,
+      mode: 'monthlySmooth',
+      elapsedYearFraction: years,
+      completedYears: years
+    });
+
+    expect(price).toBe(initialPrice * MIN_PRICE_FACTOR);
+    expect(dps / price).toBeCloseTo(yieldRate, 12);
+  });
+
+  it('배당이 0 인 자산은 바닥이 있어도 0 이다', () => {
+    expect(dpsAtMonth({ dps0: 0, dividendGrowth: -0.5, mode: 'monthlySmooth', elapsedYearFraction: 60, completedYears: 60 })).toBe(0);
   });
 });
 

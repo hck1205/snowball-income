@@ -11574,7 +11574,8 @@ var dpsAtMonth = ({
 }) => {
   const growthExponent = mode === "monthlySmooth" ? elapsedYearFraction : completedYears;
   const dps = dps0 * Math.pow(1 + Math.max(MIN_GROWTH_RATE, dividendGrowth), growthExponent);
-  return Number.isFinite(dps) ? Math.max(0, dps) : 0;
+  const floor = Math.max(0, dps0) * MIN_PRICE_FACTOR;
+  return Number.isFinite(dps) ? Math.max(floor, dps) : floor;
 };
 
 // shared/lib/snowball/SnowballForm.ts
