@@ -164,10 +164,9 @@ jobs:
               --body-file pr-body.md
           fi
           if [ "$AUTO_MERGE" = "true" ]; then
-            # ⚠ 바로 머지·브랜치 삭제하면 이 PR 로 시작된 ci.yml 실행이 워크플로 파일을 읽기도 전에 브랜치가
-            #   사라져 "작업 0개 실패"로 남는다(2026-11-06 실측 3건). 잠깐 기다려 그 실행이 잡 조건
-            #   (chore/refresh-* 건너뜀)까지 가게 한 뒤 머지한다.
-            sleep 30
+            # ⚠ 이 PR 로 시작되는 ci.yml 실행은 "작업 0개 실패"로 남는다 — 봇이 만든 PR 의 실행은 승인 대기에서
+            #   시작하지 못하고, 아래 --delete-branch 로 브랜치가 사라지면 실패로 닫힌다. 대기를 넣어도 안 고쳐진다
+            #   (2026-11-07 실측, `sleep 30` 을 넣었다 뺐다). 검증은 이 잡 안에서 이미 끝났다 — CLAUDE.md "CI 빨간 PR".
             gh pr merge "$REFRESH_BRANCH" --merge --delete-branch
           else
             echo "auto_merge=false - PR left open for manual review."

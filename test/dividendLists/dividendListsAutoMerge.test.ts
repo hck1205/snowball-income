@@ -92,11 +92,16 @@ describe('워크플로 배선', () => {
     expect(lists).not.toMatch(/name: Open the PR for review\n\s+if:[^\n]*changed == 'true'/);
   });
 
-  it('🔴 자동 머지하는 갱신 워크플로는 전부 머지 전에 잠깐 기다린다 — "작업 0개 실패" CI 를 남기지 않는다', () => {
+  /**
+   * 2026-11-06 에 "머지 전 `sleep 30`"을 넣었으나 다음 날 같은 실패가 그대로 났다 — 봇이 만든 PR 의 CI 실행은
+   * 승인 대기에서 시작하지 못하므로 기다려도 소용이 없다(CLAUDE.md "CI 빨간 PR"). 효과 없는 대기가
+   * 다시 들어와 갱신 잡마다 시간을 버리지 않게 잠근다.
+   */
+  it('🔴 자동 머지 직전에 대기를 넣지 않는다 — 기다려도 "작업 0개 실패"는 안 고쳐진다', () => {
     const autoMerging = readdirSync(dir).filter((name) => name.startsWith('refresh-') && read(name).includes('gh pr merge'));
     expect(autoMerging.length).toBeGreaterThan(5);
     for (const name of autoMerging) {
-      expect(read(name), name).toMatch(/sleep 30\n\s+gh pr merge /);
+      expect(read(name), name).not.toMatch(/^\s*sleep \d+\s*\n\s*gh pr merge /m);
     }
   });
 });
