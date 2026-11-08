@@ -31,7 +31,7 @@ afterEach(() => {
 
 describe('결과 공유 버튼', () => {
   it('🔴 누르면 `?share=` 링크를 복사하고, 복사했다고 알린다', async () => {
-    const writeText = vi.fn(() => Promise.resolve());
+    const writeText = vi.fn((_text: string) => Promise.resolve());
     stubClipboard(writeText);
     const track = vi.spyOn(analytics, 'track');
     renderWithScenario(<ResultShareButton />);
