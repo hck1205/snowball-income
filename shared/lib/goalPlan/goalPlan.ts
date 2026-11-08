@@ -78,6 +78,31 @@ export const principalForMonthlyDividend = (input: {
   return annualPreTax / dividendYield;
 };
 
+/**
+ * 원금을 넣으면 받는 **세후 월 배당**(원) — `principalForMonthlyDividend` 의 정확한 역함수(2026-11-09).
+ *
+ * 티커 페이지의 "1억을 넣으면 매달 얼마?"가 쓴다. 식을 화면마다 따로 적으면 `/dividend/how-much` 와
+ * 같은 질문에 다른 답이 나온다 — 그래서 정본 옆에 두고, 왕복 테스트로 둘을 묶는다.
+ *
+ *     세후 월 배당 = 원금 × 배당률 × (1 − 세율) ÷ 12
+ */
+export const monthlyDividendForPrincipal = (input: {
+  /** 투자 원금(원). */
+  principal: number;
+  /** 배당률(0.04 = 4%). */
+  dividendYield: number;
+  /** 실효세율(0.15 = 15%). */
+  taxRate: number;
+}): number | null => {
+  const { principal, dividendYield, taxRate } = input;
+
+  if (!Number.isFinite(principal) || principal <= 0) return null;
+  if (!Number.isFinite(dividendYield) || dividendYield <= 0) return null;
+  if (!Number.isFinite(taxRate) || taxRate < 0 || taxRate >= 1) return null;
+
+  return (principal * dividendYield * (1 - taxRate)) / 12;
+};
+
 /** 개월 수를 "N년 M개월"로. 화면이 그대로 쓴다. */
 export const formatMonths = (months: number): string => {
   const rounded = Math.max(0, Math.round(months));

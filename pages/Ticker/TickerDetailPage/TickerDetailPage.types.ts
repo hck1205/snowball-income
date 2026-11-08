@@ -1,3 +1,4 @@
+import type { TickerIncomeAnswer } from '@/shared/lib/tickerIncome';
 import type { TickerAccentTheme, TickerCategoryId, TickerContent } from '@/shared/constants/tickers';
 
 /** 토큰이 치환된 숫자 하이라이트. */
@@ -99,6 +100,11 @@ export type TocEntry = {
  */
 export type TickerDetailViewModel = {
   ticker: string;
+  /**
+   * "이 종목에 1억을 넣으면 매달 얼마?"의 답(`buildTickerIncomeAnswer`). 배당이 없으면 `null` — 섹션을 그리지 않는다.
+   * ⚠ 목차(`toc`)에는 넣지 않는다 — 장(chapter)이 아니라 본문 머리의 답 상자다.
+   */
+  incomeAnswer: TickerIncomeAnswer | null;
   slug: string;
   koreanName: string;
   englishName: string;
