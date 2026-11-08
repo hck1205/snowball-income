@@ -37261,6 +37261,34 @@ var monthlyDividendForPrincipal = (input) => {
   return principal * dividendYield * (1 - taxRate) / 12;
 };
 
+// shared/utils/format.ts
+var krw = new Intl.NumberFormat("ko-KR", {
+  style: "currency",
+  currency: "KRW",
+  maximumFractionDigits: 0
+});
+var usd = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  maximumFractionDigits: 0
+});
+var usdCents = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2
+});
+var formatKoreanWon = (value) => {
+  if (!Number.isFinite(value)) return "-";
+  const sign = value < 0 ? "-" : "";
+  const totalMan = Math.round(Math.abs(value) / 1e4);
+  const eok = Math.floor(totalMan / 1e4);
+  const man = totalMan % 1e4;
+  if (eok === 0) return `${sign}${man.toLocaleString("ko-KR")}\uB9CC\uC6D0`;
+  if (man === 0) return `${sign}${eok.toLocaleString("ko-KR")}\uC5B5\uC6D0`;
+  return `${sign}${eok.toLocaleString("ko-KR")}\uC5B5 ${man.toLocaleString("ko-KR")}\uB9CC\uC6D0`;
+};
+
 // shared/lib/tickerIncome/tickerIncome.ts
 var TICKER_INCOME_PRINCIPALS = [1e7, 5e7, 1e8, 3e8];
 var TICKER_INCOME_HEADLINE_PRINCIPAL = 1e8;
@@ -37316,12 +37344,7 @@ var buildTickerIncomeAnswer = (ticker) => {
 var formatIncomeWon = (value) => {
   if (!Number.isFinite(value) || value <= 0) return "-";
   if (value < 1e4) return `${Math.round(value).toLocaleString("ko-KR")}\uC6D0`;
-  const totalMan = Math.round(value / 1e4);
-  const eok = Math.floor(totalMan / 1e4);
-  const man = totalMan % 1e4;
-  if (eok === 0) return `${man.toLocaleString("ko-KR")}\uB9CC\uC6D0`;
-  if (man === 0) return `${eok.toLocaleString("ko-KR")}\uC5B5\uC6D0`;
-  return `${eok.toLocaleString("ko-KR")}\uC5B5 ${man.toLocaleString("ko-KR")}\uB9CC\uC6D0`;
+  return formatKoreanWon(value);
 };
 var formatPrincipalLabel = (principal) => formatIncomeWon(principal);
 var percentLabel = (value) => `${Number(value.toFixed(2))}%`;

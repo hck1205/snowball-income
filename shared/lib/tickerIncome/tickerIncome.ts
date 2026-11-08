@@ -2,6 +2,7 @@ import { DIVIDEND_UNIVERSE, type PresetTickerKey } from '@/shared/constants/pres
 import { resolveDefaultDividendTaxRatePercent } from '@/shared/constants/tax';
 import { monthlyDividendForPrincipal } from '@/shared/lib/goalPlan';
 import { defaultYieldFormValues, runSimulation, toSimulationInput } from '@/shared/lib/snowball';
+import { formatKoreanWon } from '@/shared/utils';
 
 /**
  * 티커 페이지의 **"이 종목에 N 원을 넣으면 매달 얼마?"** — 검색 질문에 숫자로 답하는 계산 계층(순수).
@@ -125,13 +126,7 @@ export const buildTickerIncomeAnswer = (ticker: string): TickerIncomeAnswer | nu
 export const formatIncomeWon = (value: number): string => {
   if (!Number.isFinite(value) || value <= 0) return '-';
   if (value < 10_000) return `${Math.round(value).toLocaleString('ko-KR')}원`;
-
-  const totalMan = Math.round(value / 10_000);
-  const eok = Math.floor(totalMan / 10_000);
-  const man = totalMan % 10_000;
-  if (eok === 0) return `${man.toLocaleString('ko-KR')}만원`;
-  if (man === 0) return `${eok.toLocaleString('ko-KR')}억원`;
-  return `${eok.toLocaleString('ko-KR')}억 ${man.toLocaleString('ko-KR')}만원`;
+  return formatKoreanWon(value);
 };
 
 /** 원금 라벨 — "1,000만원" · "1억원" · "3억원". */
