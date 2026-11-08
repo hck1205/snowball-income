@@ -30,7 +30,7 @@ import {
   useWeightByTickerIdAtomValue,
   useYieldFormAtomValue
 } from '@/jotai';
-import { useLongPress } from '@/pages/Main/hooks/interaction';
+import { useLongPress, useTrailingCall } from '@/pages/Main/hooks/interaction';
 import {
   NEW_TICKER_WEIGHT,
   applyTickerAmount,
@@ -417,6 +417,15 @@ export const useTickerActions = () => {
     removeTicker(profileId, 'exclude');
   }, [removeTicker, tickerProfiles]);
 
+  const trackWeightSettled = useTrailingCall((profileId: string, ticker: string, weightPercent: number) => {
+    trackEvent(ANALYTICS_EVENT.ALLOCATION_CHANGED, {
+      action: 'set_weight',
+      ticker,
+      ticker_id: profileId,
+      weight_percent: weightPercent
+    });
+  });
+
   const setTickerWeight = useCallback((profileId: string, value: number) => {
     if (fixedByTickerId[profileId]) return;
 
@@ -430,13 +439,9 @@ export const useTickerActions = () => {
 
     setWeightByTickerId((prev: Record<string, number>) => ({ ...prev, ...nextMap }));
     const targetProfile = includedProfiles.find((item) => item.id === profileId);
-    trackEvent(ANALYTICS_EVENT.ALLOCATION_CHANGED, {
-      action: 'set_weight',
-      ticker: targetProfile?.ticker ?? '',
-      ticker_id: profileId,
-      weight_percent: Math.round((nextMap[profileId] ?? 0) * 10) / 10
-    });
-  }, [allocationPercentExactByTickerId, fixedByTickerId, includedProfiles, setWeightByTickerId]);
+    /* 화면은 매 칸 갱신하되 기록은 손을 멈춘 값 하나만 — 끄는 동안 픽셀마다 보내던 것(useTrailingCall). */
+    trackWeightSettled(profileId, targetProfile?.ticker ?? '', Math.round((nextMap[profileId] ?? 0) * 10) / 10);
+  }, [allocationPercentExactByTickerId, fixedByTickerId, includedProfiles, setWeightByTickerId, trackWeightSettled]);
 
   /**
    * 종목의 **보유 주식 수**를 직접 정한다 — 슬라이더와 같은 배분을 반대 방향에서 만지는 입력이다.
