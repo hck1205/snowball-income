@@ -8,6 +8,7 @@ import {
   type TickerContentStat,
   type TickerReferenceFacts
 } from '@/shared/constants/tickers';
+import { buildTickerIncomeAnswer } from '@/shared/lib/tickerIncome';
 import { assignSeries } from '@/shared/lib/tickerSeries';
 import type {
   ReferenceFactLine,
@@ -168,6 +169,7 @@ export const buildTickerDetailViewModel = (content: TickerContent): TickerDetail
     heroTagline: render(content.heroTagline),
     categories,
     heroStats,
+    incomeAnswer: buildTickerIncomeAnswer(content.ticker),
     sections,
     toc,
     faqs: content.faqs.map((faq) => ({ question: render(faq.question), answer: render(faq.answer) })),

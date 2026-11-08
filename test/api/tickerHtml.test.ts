@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { handler } from '@/server/handlers/TickerHtml';
-import { renderRelatedTickers } from '@/server/handlers/TickerHtml/TickerHtml';
+import { renderIncomeAnswer, renderRelatedTickers } from '@/server/handlers/TickerHtml/TickerHtml';
+import { TICKER_INCOME_COPY, buildTickerIncomeAnswer, formatIncomeWon } from '@/shared/lib/tickerIncome';
 import { DIVIDEND_UNIVERSE } from '@/shared/constants/presets';
 import type { PresetTickerKey } from '@/shared/constants/presets';
 import { TICKER_CONTENT_LIST } from '@/shared/constants/tickers';
@@ -126,6 +127,31 @@ describe('api/ticker-html — 개별 티커(SCHD)', () => {
     const html = await (await handler(apiRequest('/api/ticker-html', { name: 'schd' }))).text();
 
     expect(html).toContain('<p class="hero-cta"><a href="/simulator">SCHD로 계산해 보기</a></p>');
+  });
+
+  /**
+   * "1억을 넣으면 매달 얼마?"(2026-11-09). 🔴 크롤러가 읽는 HTML 에 **답 숫자가 텍스트로** 있어야
+   * 검색 질문("SCHD 1억 투자하면 월 배당금")과 맞물린다. 앱과 같은 모델에서 나온 숫자인지 정확일치로 본다.
+   */
+  it('투자금별 월 배당 답을 텍스트로 싣고, 히어로 다음 · 첫 장 앞에 둔다', async () => {
+    stubFetchRoutes([indexHtmlRoute()]);
+    const html = await (await handler(apiRequest('/api/ticker-html', { name: 'schd' }))).text();
+    const answer = buildTickerIncomeAnswer('SCHD')!;
+
+    expect(html).toContain(`<h2>${TICKER_INCOME_COPY.heading('SCHD', answer.headline.principal)}</h2>`);
+    expect(html).toContain(`<strong>월 ${formatIncomeWon(answer.headline.monthlyAfterTax)}</strong>`);
+    expect(html).toContain(`<caption>${TICKER_INCOME_COPY.tableCaption}</caption>`);
+    expect(html).toContain('<a href="/dividend/how-much">');
+
+    const answerAt = html.indexOf('id="income-answer"');
+    expect(answerAt).toBeGreaterThan(html.indexOf('class="hero-cta"'));
+    expect(answerAt).toBeLessThan(html.indexOf('<section', answerAt + 1));
+  });
+
+  it('배당이 없는 종목이면 답 상자를 싣지 않는다', () => {
+    const noDividend = TICKER_CONTENT_LIST.find((content) => buildTickerIncomeAnswer(content.ticker) === null);
+    if (noDividend) expect(renderIncomeAnswer(noDividend.ticker)).toBe('');
+    expect(renderIncomeAnswer('ZZZZ')).toBe('');
   });
 
   it('FinancialProduct + FAQPage JSON-LD 를 주입한다(파싱 가능한 유효 JSON)', async () => {

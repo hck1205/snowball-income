@@ -8,6 +8,7 @@ import type { PresetTickerKey } from '@/shared/constants/presets';
 import { resolveTickerEngineFacts, TICKER_CONTENT_LIST } from '@/shared/constants/tickers';
 import TickerDetailPage from './TickerDetailPage';
 import { buildTickerDetailViewModel } from './TickerDetailPage.utils';
+import { buildTickerIncomeAnswer, formatIncomeWon } from '@/shared/lib/tickerIncome';
 
 /**
  * 🔴 **앵커를 런타임에 고른다.** 종전에는 "콘텐츠 페이지가 없는 티커"를 소스에 상수로 적었는데
@@ -219,7 +220,8 @@ describe('TickerDetailPage', () => {
     renderAt(`/ticker/${entry!.slug}`);
 
     expect(screen.getByRole('heading', { name: '상위 보유 종목' })).toBeInTheDocument();
-    const table = screen.getByRole('table');
+    // 이름(캡션)으로 고른다 — 본문 머리의 "1억을 넣으면" 답 상자도 표를 가진다(2026-11-09).
+    const table = screen.getByRole('table', { name: /상위 보유 종목/ });
     // 첫 행의 심볼과 출처 링크가 실제로 나온다(표만 있고 출처가 없으면 값의 근거가 사라진다).
     expect(within(table).getByText(topHoldings.holdings[0]!.symbol)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: topHoldings.sourceLabel })).toHaveAttribute(
@@ -235,7 +237,7 @@ describe('TickerDetailPage', () => {
 
     renderAt('/ticker/schd');
     expect(screen.queryByRole('heading', { name: '상위 보유 종목' })).toBeNull();
-    expect(screen.queryByRole('table')).toBeNull();
+    expect(screen.queryByRole('table', { name: /상위 보유 종목/ })).toBeNull();
   });
 
   /**
@@ -262,5 +264,39 @@ describe('TickerDetailPage', () => {
     renderAt('/ticker/schd');
     expect(screen.getByRole('link', { name: '개인정보처리방침' })).toHaveAttribute('href', '/privacy');
     expect(screen.getByRole('link', { name: '이용약관' })).toHaveAttribute('href', '/terms');
+  });
+});
+
+/**
+ * "1억을 넣으면 매달 얼마?" 답 상자(2026-11-09).
+ * 검색 질문("SCHD 1억 투자하면 월 배당금")에 페이지 머리에서 숫자로 답한다. 잠그는 것: ① 배당 종목에 답이
+ * 있고 ② 그 숫자가 계산 모델과 같으며 ③ 배당 없는 종목에는 답 상자가 없다 ④ 거꾸로 계산 화면으로 이어진다.
+ */
+describe('TickerDetailPage — 투자금별 월 배당 답', () => {
+  it('🔴 배당 종목이면 본문 첫 블록에 "1억을 넣으면" 답과 투자금별 표가 있다', () => {
+    const answer = buildTickerIncomeAnswer('SCHD')!;
+    renderAt('/ticker/schd');
+
+    const heading = screen.getByRole('heading', { name: 'SCHD에 1억원을 넣으면 매달 얼마?' });
+    expect(heading).toBeInTheDocument();
+    expect(screen.getByText(`월 ${formatIncomeWon(answer.headline.monthlyAfterTax)}`)).toBeInTheDocument();
+
+    const table = screen.getByRole('table', { name: '투자금별 세후 월 배당' });
+    expect(within(table).getAllByRole('row')).toHaveLength(answer.rows.length + 1);
+    expect(screen.getByRole('link', { name: /필요한 원금 계산하기/ })).toHaveAttribute('href', '/dividend/how-much');
+  });
+
+  it('답 상자는 첫 장보다 앞에 있다 — 휴대폰에서 스크롤 없이 닿는 자리', () => {
+    renderAt('/ticker/schd');
+    const answer = screen.getByRole('heading', { name: /매달 얼마\?$/ });
+    const firstChapter = screen.getAllByRole('heading', { level: 2 }).find((node) => node !== answer)!;
+    expect(answer.compareDocumentPosition(firstChapter) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('배당이 없는 종목에는 답 상자를 그리지 않는다', () => {
+    const noDividend = TICKER_CONTENT_LIST.find((content) => buildTickerIncomeAnswer(content.ticker) === null);
+    if (!noDividend) return; // 콘텐츠가 모두 배당 종목이면 검사할 대상이 없다.
+    renderAt(`/ticker/${noDividend.slug}`);
+    expect(screen.queryByRole('heading', { name: /매달 얼마\?$/ })).toBeNull();
   });
 });
