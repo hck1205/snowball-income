@@ -51,8 +51,15 @@ export const sanitizeMonthlyMan = (raw: unknown): number | null => {
 
 const TICKER_SET = new Set(DIVIDEND_TARGET_TICKERS);
 
-export const parseDividendTargetQuery = (params: URLSearchParams): DividendTargetQueryState => {
-  const monthlyMan = sanitizeMonthlyMan(params.get(DIVIDEND_TARGET_QUERY.monthly)) ?? DEFAULT_MONTHLY_TARGET_MAN;
+export const parseDividendTargetQuery = (
+  params: URLSearchParams,
+  /**
+   * 쿼리에 금액이 없을 때 쓸 값. 금액별 주소(`/dividend/how-much/100`)는 주소의 금액을 넘긴다(2026-11-09).
+   * 🔴 쿼리(`?m=`)가 있으면 **쿼리가 이긴다** — 기존 공유 링크의 의미를 바꾸지 않는다.
+   */
+  fallbackMonthlyMan: number = DEFAULT_MONTHLY_TARGET_MAN
+): DividendTargetQueryState => {
+  const monthlyMan = sanitizeMonthlyMan(params.get(DIVIDEND_TARGET_QUERY.monthly)) ?? fallbackMonthlyMan;
 
   const rawTicker = (params.get(DIVIDEND_TARGET_QUERY.ticker) ?? '').trim().toUpperCase();
   const ticker = TICKER_SET.has(rawTicker) ? rawTicker : DEFAULT_DIVIDEND_TARGET_TICKER;

@@ -22,6 +22,12 @@
     { "source": "/dividend/calendar", "destination": "/dividend/calendar.html" },
     { "source": "/dividend/portfolio", "destination": "/dividend/portfolio.html" },
     { "source": "/dividend/how-much", "destination": "/dividend/how-much.html" },
+    { "source": "/dividend/how-much/50", "destination": "/dividend/how-much/50.html" },
+    { "source": "/dividend/how-much/100", "destination": "/dividend/how-much/100.html" },
+    { "source": "/dividend/how-much/150", "destination": "/dividend/how-much/150.html" },
+    { "source": "/dividend/how-much/200", "destination": "/dividend/how-much/200.html" },
+    { "source": "/dividend/how-much/300", "destination": "/dividend/how-much/300.html" },
+    { "source": "/dividend/how-much/500", "destination": "/dividend/how-much/500.html" },
     { "source": "/ticker/compare", "destination": "/ticker/compare.html" },
     { "source": "/ticker/overlap", "destination": "/ticker/overlap.html" },
     {

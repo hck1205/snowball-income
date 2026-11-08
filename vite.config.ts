@@ -113,6 +113,16 @@ const ROUTES = [
    */
   { path: '/dividend/how-much', priority: '0.7', changefreq: 'weekly' },
   /*
+   * 금액별 고정 주소(2026-11-09). 🔴 정본은 `DIVIDEND_TARGET_AMOUNT_PAGES_MAN`(shared/constants/routes) —
+   * 이 설정 파일은 `@/` 별칭을 못 읽어 숫자를 옮겨 적었다. 어긋나면 test/seo/dividendTargetAmountPages 가 잡는다.
+   */
+  { path: '/dividend/how-much/50', priority: '0.6', changefreq: 'weekly' },
+  { path: '/dividend/how-much/100', priority: '0.6', changefreq: 'weekly' },
+  { path: '/dividend/how-much/150', priority: '0.6', changefreq: 'weekly' },
+  { path: '/dividend/how-much/200', priority: '0.6', changefreq: 'weekly' },
+  { path: '/dividend/how-much/300', priority: '0.6', changefreq: 'weekly' },
+  { path: '/dividend/how-much/500', priority: '0.6', changefreq: 'weekly' },
+  /*
    * 자료형 화면 셋(2026-08-04 신설).
    *
    * ⚠ **크롤러가 읽는 본문은 아직 없다.** 배당 목록과 달리 서버 렌더 핸들러를 두지 않아서,
@@ -615,6 +625,8 @@ type RouteShell = {
   bodyFile?: string;
   /** 이 라우트에만 붙는 `<head>` 조각(루트 기준). `/about` 의 FAQPage JSON-LD 가 유일한 사용처다. */
   headFile?: string;
+  /** 빌드 때 계산해 굽는 본문(`/dividend/how-much` 의 필요 원금 표). `bodyFile` 이 있으면 그쪽이 이긴다. */
+  bodyHtml?: string;
 };
 
 let routeShellsPromise: Promise<RouteShell[]> | null = null;
@@ -738,7 +750,7 @@ const routeShellsPlugin = (siteUrl: string): Plugin => {
         // `/portfolio/nps` → `dist/portfolio/nps.html`. 중첩 경로라 디렉터리를 먼저 만든다.
         const target = resolvePath(root, outDir, `${route.path.replace(/^\//, '')}.html`);
         mkdirSync(dirname(target), { recursive: true });
-        const partials = { body: readPartial(route.bodyFile), head: readPartial(route.headFile) };
+        const partials = { body: readPartial(route.bodyFile) ?? route.bodyHtml, head: readPartial(route.headFile) };
         writeFileSync(target, buildRouteShell(indexHtml, siteUrl, route, partials), 'utf8');
       }
     }

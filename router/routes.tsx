@@ -621,6 +621,18 @@ export const routes: RouteObject[] = [
           </Suspense>
         )
       },
+      {
+        /*
+         * 금액별 고정 주소(`/dividend/how-much/100`, 2026-11-09) — 같은 화면이 주소의 금액으로 시작한다.
+         * 목록(`DIVIDEND_TARGET_AMOUNT_PAGES_MAN`)에 없는 금액은 화면이 기본 주소로 돌려보낸다.
+         */
+        path: `${DIVIDEND_TARGET_PATH}/:monthly`,
+        element: (
+          <Suspense fallback={null}>
+            <DividendTargetPage />
+          </Suspense>
+        )
+      },
       ...DIVIDEND_LIST_IDS.map((listId) => ({
         path: dividendListPath(listId),
         element: (
