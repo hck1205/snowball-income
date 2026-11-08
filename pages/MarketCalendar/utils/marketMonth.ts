@@ -15,6 +15,8 @@ import type {
   EconomicEvent,
   FomcMeeting,
   KstMoment,
+  MarketEarlyClose,
+  MarketHoliday,
   TradingDay
 } from '@/shared/constants/marketCalendar';
 
@@ -268,4 +270,22 @@ export const buildTodayStatus = (today: Date): TodayStatus => {
     today: current,
     next: current?.status === 'open' || current?.status === 'early' ? current : nextTradingDay(date)
   };
+};
+
+/**
+ * 오늘 **이후**(오늘 포함) 첫 휴장일 또는 조기폐장일(2026-11-09).
+ *
+ * 이 페이지로 들어오는 대표 검색어가 "미국 증시 휴장일"이다. 그 답이 표(맨 아래)에만 있으면 휴대폰
+ * 방문자는 닿지 못한다 — 첫 화면의 "오늘과 다음 거래일" 묶음이 이 값을 함께 보여 준다.
+ * 올해에 남은 것이 없으면 내년 것을 본다(12월 말 방문자). 큐레이션이 없는 해면 `null`.
+ */
+export const findNextClosure = (today: Date): MarketHoliday | MarketEarlyClose | null => {
+  const date = toCalendarDate(today);
+  const year = today.getFullYear();
+  const candidates = [year, year + 1].flatMap((target) => [...holidaysOfYear(target), ...earlyClosesOfYear(target)]);
+  return (
+    candidates
+      .filter((closure) => closure.date >= date)
+      .sort((left, right) => left.date.localeCompare(right.date))[0] ?? null
+  );
 };

@@ -44,7 +44,13 @@ import {
   type TickerRelatedLink,
   type TickerTopHoldings
 } from '@/shared/constants/tickers';
-import { SIMULATOR_PATH } from '@/shared/constants/routes';
+import { DIVIDEND_TARGET_PATH, SIMULATOR_PATH } from '@/shared/constants/routes';
+import {
+  TICKER_INCOME_COPY,
+  buildTickerIncomeAnswer,
+  formatIncomeWon,
+  formatPrincipalLabel
+} from '@/shared/lib/tickerIncome';
 
 /**
  * `/api/ticker-html?name=<slug|all>` — 티커 SEO 랜딩(`/ticker/:name`)의 **진입 HTML**.
@@ -191,6 +197,47 @@ const renderTopHoldings = (topHoldings: TickerTopHoldings | undefined): string =
   );
 };
 
+/**
+ * "{티커}에 1억을 넣으면 매달 얼마?" 답 상자(2026-11-09) — 앱의 `TickerIncomeAnswer` 와 **같은 모델·같은 문장**.
+ *
+ * 검색어가 바로 이 질문이다("SCHD 1억 투자하면 월 배당금"). 🔴 네이버 수집기는 JS 를 돌리지 않을 수 있어
+ * 앱에만 넣으면 그 질문의 답이 검색엔진에 **보이지 않는다** — `renderTopHoldings` 와 같은 논리다.
+ * 배당이 없는 종목이면 빈 문자열(답이 아닌 "월 0원"을 내지 않는다).
+ */
+export const renderIncomeAnswer = (ticker: string): string => {
+  const answer = buildTickerIncomeAnswer(ticker);
+  if (!answer) return '';
+  const copy = TICKER_INCOME_COPY;
+  const { headline, rows, years } = answer;
+  const [principalHead, nowHead, reinvestHead] = copy.tableHead(years);
+
+  const body = rows
+    .map(
+      (row) =>
+        `<tr><th scope="row">${escapeHtmlText(formatPrincipalLabel(row.principal))}</th>` +
+        `<td>${escapeHtmlText(formatIncomeWon(row.monthlyAfterTax))}</td>` +
+        `<td>${escapeHtmlText(formatIncomeWon(row.monthlyAfterReinvest))}</td></tr>`
+    )
+    .join('');
+
+  return (
+    '<section id="income-answer">' +
+    `<h2>${escapeHtmlText(copy.heading(answer.ticker, headline.principal))}</h2>` +
+    `<p>${escapeHtmlText(copy.nowLabel)}: <strong>월 ${escapeHtmlText(formatIncomeWon(headline.monthlyAfterTax))}</strong>` +
+    ` (연 ${escapeHtmlText(formatIncomeWon(headline.annualAfterTax))})</p>` +
+    `<p>${escapeHtmlText(copy.reinvestLabel(years))}: <strong>월 ${escapeHtmlText(formatIncomeWon(headline.monthlyAfterReinvest))}</strong>` +
+    ` (${escapeHtmlText(copy.reinvestCaption(years))})</p>` +
+    '<table>' +
+    `<caption>${escapeHtmlText(copy.tableCaption)}</caption>` +
+    `<thead><tr><th>${escapeHtmlText(principalHead)}</th><th>${escapeHtmlText(nowHead)}</th><th>${escapeHtmlText(reinvestHead)}</th></tr></thead>` +
+    `<tbody>${body}</tbody>` +
+    '</table>' +
+    `<p>${escapeHtmlText(copy.assumption(answer))}</p>` +
+    `<p><a href="${DIVIDEND_TARGET_PATH}">${escapeHtmlText(copy.toTarget)}</a></p>` +
+    '</section>'
+  );
+};
+
 const renderFaqs = (faqs: TickerContentFaq[], facts: TickerEngineFacts): string => {
   if (faqs.length === 0) return '';
   const items = faqs
@@ -330,6 +377,7 @@ const injectTickerBody = (shell: string, content: TickerContent, siteUrl: string
   const article =
     '<article>' +
     renderHero(content, facts) +
+    renderIncomeAnswer(content.ticker) +
     content.sections.map((section) => renderSection(section, facts)).join('') +
     renderTopHoldings(content.reference.topHoldings) +
     renderFaqs(content.faqs, facts) +

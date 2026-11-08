@@ -1,22 +1,10 @@
-/**
- * 이 화면의 금액 표기 — **"11억 2,781만원"** 꼴.
- *
- * 공용 `formatSummaryKRW`("11.3억")를 쓰지 않는 이유: 이 화면의 주인공 숫자가 필요 원금이고, 사람은
- * 그 숫자를 **통장 잔고처럼** 읽는다. 소수 억("11.3억")은 대시보드 요약엔 맞지만 "그래서 정확히
- * 얼마냐"는 이 화면의 질문에 한 번 더 환산을 시킨다. 만원 아래는 버린다(원 단위 정밀도는 거짓 정밀이다 —
- * 배당률 자체가 소수 둘째 자리 추정치다).
+/*
+ * "11억 2,781만원" 포맷터의 정본은 `@/shared/utils`(format.ts)로 옮겼다(2026-11-09) — 티커 페이지와
+ * 크롤러 HTML 도 같은 표기를 써야 해서다. 이 화면의 import 경로는 그대로 두려고 다시 내보낸다.
  */
-export const formatKoreanWon = (value: number): string => {
-  if (!Number.isFinite(value)) return '-';
-  const sign = value < 0 ? '-' : '';
-  const totalMan = Math.round(Math.abs(value) / 10_000);
-  const eok = Math.floor(totalMan / 10_000);
-  const man = totalMan % 10_000;
+import { formatKoreanWon } from '@/shared/utils';
 
-  if (eok === 0) return `${sign}${man.toLocaleString('ko-KR')}만원`;
-  if (man === 0) return `${sign}${eok.toLocaleString('ko-KR')}억원`;
-  return `${sign}${eok.toLocaleString('ko-KR')}억 ${man.toLocaleString('ko-KR')}만원`;
-};
+export { formatKoreanWon };
 
 /** 만원 단위 정수 → "250만원" / "1억원". 칩·제목용. */
 export const formatManWon = (man: number): string => formatKoreanWon(man * 10_000);

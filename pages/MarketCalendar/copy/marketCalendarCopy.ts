@@ -26,6 +26,8 @@ export const MARKET_CALENDAR_COPY = {
     sessionLabel: '정규장 (한국시간)',
     etLabel: '미 동부시각',
     dstLabel: '서머타임',
+    /** 오늘 이후 첫 휴장·조기폐장(2026-11-09) — 대표 검색어("미국 증시 휴장일")의 답을 첫 화면에. */
+    nextClosureLabel: '다음 휴장일',
     closedToday: '오늘은 장이 서지 않습니다.'
   },
 

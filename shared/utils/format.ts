@@ -106,3 +106,23 @@ export const formatApproxUSD = (value: number): string => {
   const sign = value < 0 ? '-' : '';
   return `${sign}약 ${approxUSDLabel(Math.abs(value))}`;
 };
+
+/**
+ * 금액 표기(통장 잔고처럼 읽히는 꼴) — **"11억 2,781만원"** 꼴.
+ *
+ * 공용 `formatSummaryKRW`("11.3억")를 쓰지 않는 이유: `/dividend/how-much` 의 주인공 숫자가 필요 원금이고, 사람은
+ * 그 숫자를 **통장 잔고처럼** 읽는다. 소수 억("11.3억")은 대시보드 요약엔 맞지만 "그래서 정확히
+ * 얼마냐"는 이 화면의 질문에 한 번 더 환산을 시킨다. 만원 아래는 버린다(원 단위 정밀도는 거짓 정밀이다 —
+ * 배당률 자체가 소수 둘째 자리 추정치다).
+ */
+export const formatKoreanWon = (value: number): string => {
+  if (!Number.isFinite(value)) return '-';
+  const sign = value < 0 ? '-' : '';
+  const totalMan = Math.round(Math.abs(value) / 10_000);
+  const eok = Math.floor(totalMan / 10_000);
+  const man = totalMan % 10_000;
+
+  if (eok === 0) return `${sign}${man.toLocaleString('ko-KR')}만원`;
+  if (man === 0) return `${sign}${eok.toLocaleString('ko-KR')}억원`;
+  return `${sign}${eok.toLocaleString('ko-KR')}억 ${man.toLocaleString('ko-KR')}만원`;
+};

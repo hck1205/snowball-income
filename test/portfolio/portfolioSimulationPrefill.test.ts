@@ -268,6 +268,38 @@ describe('buildPortfolioSimulationPrefillState — 보내는 쪽', () => {
     ).toBeNull();
   });
 
+  /**
+   * 🔴 회귀(2026-11-09): 종목이 하나면 비중이 `v × 100 ÷ v` 인데, 부동소수로 100.00000000000001 이 나와
+   * "100 초과" 검사에 걸려 유일한 종목이 버려졌다 → 프리필 null → 포트폴리오 "시뮬레이션" 버튼이 꺼졌다.
+   * 값은 실측(SCHD 10주, 11월 시세 $35.17)이다. 주가에 따라 켜졌다 꺼지던 버그.
+   */
+  it('종목 하나의 평가액에 부동소수 잡음이 있어도 100% 로 프리필을 만든다', () => {
+    const valueUsd = 351.70000000000005;
+    expect((valueUsd * PORTFOLIO_PREFILL_WEIGHT_TOTAL) / valueUsd).toBeGreaterThan(PORTFOLIO_PREFILL_WEIGHT_TOTAL);
+
+    const state = buildPortfolioSimulationPrefillState({
+      summary: source([held('SCHD', valueUsd)]),
+      fxRateKrwPerUsd: 1_381
+    });
+
+    expect(state?.portfolioSimulationPrefill.holdings).toEqual([{ ticker: 'SCHD', weightPercent: 100 }]);
+  });
+
+  it('오차 범위 안의 초과는 100 으로 받되, 실제 초과는 여전히 거부한다', () => {
+    const accept = sanitizePortfolioSimulationPrefill({
+      initialInvestmentKrw: 1_000,
+      holdings: [{ ticker: 'SCHD', weightPercent: 100.00000000000001 }]
+    });
+    expect(accept?.holdings).toEqual([{ ticker: 'SCHD', weightPercent: 100 }]);
+
+    expect(
+      sanitizePortfolioSimulationPrefill({
+        initialInvestmentKrw: 1_000,
+        holdings: [{ ticker: 'SCHD', weightPercent: 100.001 }]
+      })
+    ).toBeNull();
+  });
+
   it('시뮬레이터가 아는 종목이 하나도 없으면 null', () => {
     expect(
       buildPortfolioSimulationPrefillState({

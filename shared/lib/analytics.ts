@@ -303,6 +303,9 @@ export const ANALYTICS_EVENT = {
   // 용도: 검색 유입 1위 랜딩(28일 37세션, 전부 신규, 세션당 1.9페이지)이 다른 화면으로 이어지는지 측정.
   //   운영 목적이 트래픽→광고라 세션당 페이지뷰가 판단 기준이다. destination 으로 어느 카드가 끄는지 본다.
   MARKET_CALENDAR_RELATED_CLICK: "market_calendar_related_click",
+  // 티커 페이지 "1억을 넣으면 매달 얼마?" 답 상자의 "거꾸로 계산" 링크 클릭(2026-11-09).
+  // 용도: 검색으로 들어온 티커 페이지가 `/dividend/how-much`(대표 입구)로 이어지는지 측정. ticker 로 어느 종목에서 왔는지 본다.
+  TICKER_INCOME_TO_TARGET: "ticker_income_to_target",
   /*
    * ── 수준 분기 · 성향 테스트 (2026-08-17) ──────────────────────────────────
    *
@@ -604,6 +607,9 @@ export type AnalyticsEventParamMap = {
     from: string;
     /** 실제로 열린 열 수. 고른 수와 다를 수 있다 — 유니버스에서 빠진 티커는 걸러진다. */
     ticker_count: number;
+  };
+  [ANALYTICS_EVENT.TICKER_INCOME_TO_TARGET]: {
+    ticker: string;
   };
   [ANALYTICS_EVENT.MARKET_CALENDAR_RELATED_CLICK]: {
     /** 누른 카드의 목적지 경로(`/dividend/calendar` 등). 🔴 `source`·`page` 같은 GA 예약 이름을 쓰지 않는다. */

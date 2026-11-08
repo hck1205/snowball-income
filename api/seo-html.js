@@ -310,6 +310,7 @@ var DIVIDEND_LIST_SEGMENTS = {
 };
 var DIVIDEND_LIST_HUB_PATH = "/dividend/lists";
 var dividendListPath = (id) => `/dividend/${DIVIDEND_LIST_SEGMENTS[id]}`;
+var DIVIDEND_TARGET_PATH = "/dividend/how-much";
 
 // shared/constants/dividendLists/dividendLists.generated.json
 var dividendLists_generated_default = {
@@ -13949,6 +13950,14 @@ var MARKET_DATA = parseMarketDataSnapshot(marketData_generated_default);
 var MARKET_DATA_AS_OF = MARKET_DATA.asOf;
 
 // shared/lib/snowball/SnowballCalendar.ts
+var getDaysInMonth = (year, monthIndex) => new Date(year, monthIndex + 1, 0).getDate();
+var addMonths = (baseDate, monthsToAdd) => {
+  const targetYear = baseDate.getFullYear();
+  const targetMonthIndex = baseDate.getMonth() + monthsToAdd;
+  const anchor = new Date(targetYear, targetMonthIndex, 1);
+  const nextDay = Math.min(baseDate.getDate(), getDaysInMonth(anchor.getFullYear(), anchor.getMonth()));
+  return new Date(anchor.getFullYear(), anchor.getMonth(), nextDay);
+};
 var DATE_INPUT_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 var parseStartDate = (value) => {
   if (!DATE_INPUT_PATTERN.test(value)) return null;
@@ -13963,10 +13972,111 @@ var parseStartDate = (value) => {
   return date;
 };
 var isCalendarDateInput = (value) => parseStartDate(value) !== null;
+var toStartDate = (value) => {
+  const parsed = parseStartDate(value);
+  if (!parsed) {
+    throw new Error(`\uC720\uD6A8\uD558\uC9C0 \uC54A\uC740 \uD22C\uC790 \uC2DC\uC791 \uB0A0\uC9DC\uC785\uB2C8\uB2E4: ${value}`);
+  }
+  return parsed;
+};
+var buildMonthContext = (startDate, monthIndex) => {
+  const elapsedMonths = monthIndex - 1;
+  const elapsedYears = Math.floor(elapsedMonths / 12);
+  const simulationMonth = elapsedMonths % 12 + 1;
+  const simulationYearLabel = startDate.getFullYear() + elapsedYears;
+  const calendarDate = addMonths(startDate, elapsedMonths);
+  return {
+    monthIndex,
+    elapsedMonths,
+    elapsedYears,
+    simulationMonth,
+    simulationYearLabel,
+    calendarYear: calendarDate.getFullYear(),
+    calendarMonth: calendarDate.getMonth() + 1,
+    // monthIndex 는 1-based 다. floor(monthIndex / 12) 를 쓰면 12개월째(= 아직 1년차)에 이미 1이 되어
+    // DPS 가 한 해 일찍 계단 상승했다. 완료된 연 수는 elapsedYears 와 같은 정의여야 한다.
+    completedYears: elapsedYears,
+    elapsedYearFraction: monthIndex / 12
+  };
+};
+
+// shared/constants/tax/koreanTaxCategory.ts
+var KOREAN_DIVIDEND_TAX_RATE = 15.4;
+var isKoreanListedTicker = (ticker) => ticker.endsWith(".KS") || ticker.endsWith(".KQ");
+
+// shared/constants/tax/dividendTaxRate.ts
+var US_LISTED_DIVIDEND_TAX_RATE = 15;
+var resolveDefaultDividendTaxRatePercent = (ticker) => isKoreanListedTicker(ticker) ? KOREAN_DIVIDEND_TAX_RATE : US_LISTED_DIVIDEND_TAX_RATE;
+
+// shared/constants/tax/accountType.ts
+var DEFAULT_ACCOUNT_TYPE = "taxable";
+var ISA_SEPARATE_TAX_RATE = 9.9;
+var ISA_TAX_FREE_ALLOWANCE = 2e6;
+var payoutTaxRateFor = (accountType, taxableRatePercent) => accountType === "isa" ? 0 : taxableRatePercent;
+var estimateIsaSettlementTax = (cumulativeDividend) => {
+  const taxable = Math.max(0, cumulativeDividend - ISA_TAX_FREE_ALLOWANCE);
+  return taxable * ISA_SEPARATE_TAX_RATE / 100;
+};
+
+// shared/constants/tax/index.ts
+var OVERSEAS_CAPITAL_GAINS_TAX_RATE = 22;
+var CAPITAL_GAINS_ANNUAL_DEDUCTION = 25e5;
+var FINANCIAL_INCOME_TAX_THRESHOLD = 2e7;
+
+// shared/lib/snowball/SnowballCapitalGains.ts
+var computeCapitalGains = ({
+  finalAssetValue,
+  totalCostBasis,
+  taxRatePercent = OVERSEAS_CAPITAL_GAINS_TAX_RATE,
+  annualDeduction = CAPITAL_GAINS_ANNUAL_DEDUCTION
+}) => {
+  const unrealizedGain = finalAssetValue - totalCostBasis;
+  const taxableGain = Math.max(0, unrealizedGain - annualDeduction);
+  const estimatedCapitalGainsTax = taxableGain * (taxRatePercent / 100);
+  return {
+    unrealizedGain,
+    estimatedCapitalGainsTax,
+    afterCapitalGainsTaxValue: finalAssetValue - estimatedCapitalGainsTax
+  };
+};
+var sumGrossDividendByYearIndex = (monthly) => monthly.reduce((byYear, row) => {
+  const yearIndex = Math.ceil(row.monthIndex / 12);
+  const gross = row.dividendPaid + row.taxPaid;
+  return byYear.set(yearIndex, (byYear.get(yearIndex) ?? 0) + gross);
+}, /* @__PURE__ */ new Map());
+var findFinancialIncomeThresholdYear = (monthly, threshold = FINANCIAL_INCOME_TAX_THRESHOLD) => {
+  const grossByYear = sumGrossDividendByYearIndex(monthly);
+  return [...grossByYear.entries()].sort(([left], [right]) => left - right).find(([, gross]) => gross > threshold)?.[0];
+};
 
 // shared/lib/snowball/SnowballRates.ts
+var MIN_GROWTH_RATE = -0.99;
+var MIN_PRICE_FACTOR = 1e-4;
+var toMonthlyGrowthRate = (annualRate) => Math.pow(1 + annualRate, 1 / 12) - 1;
+var toTaxRate = (taxRatePercent) => (taxRatePercent ?? 0) / 100;
+var clamp01 = (value) => Math.max(0, Math.min(1, value));
+var toReinvestRatio = (reinvestDividendPercent) => clamp01(reinvestDividendPercent / 100);
 var roundToTwoDecimals = (value) => Math.round(value * 100) / 100;
+var toPriceGrowth = (dividendGrowthPercent) => Math.max(MIN_GROWTH_RATE, dividendGrowthPercent / 100);
+var toExpectedTotalReturnPercent = (dividendYieldPercent, dividendGrowthPercent) => roundToTwoDecimals(dividendYieldPercent + dividendGrowthPercent);
 var toDerivedDividendGrowthPercent = (expectedTotalReturnPercent, dividendYieldPercent) => roundToTwoDecimals(expectedTotalReturnPercent - dividendYieldPercent);
+var priceAtMonth = (initialPrice, priceGrowth, elapsedYearFraction) => {
+  const floor = initialPrice * MIN_PRICE_FACTOR;
+  const price = initialPrice * Math.pow(1 + priceGrowth, elapsedYearFraction);
+  return Number.isFinite(price) ? Math.max(floor, price) : floor;
+};
+var dpsAtMonth = ({
+  dps0,
+  dividendGrowth,
+  mode,
+  elapsedYearFraction,
+  completedYears
+}) => {
+  const growthExponent = mode === "monthlySmooth" ? elapsedYearFraction : completedYears;
+  const dps = dps0 * Math.pow(1 + Math.max(MIN_GROWTH_RATE, dividendGrowth), growthExponent);
+  const floor = Math.max(0, dps0) * MIN_PRICE_FACTOR;
+  return Number.isFinite(dps) ? Math.max(floor, dps) : floor;
+};
 
 // shared/lib/snowball/SnowballForm.ts
 var frequencySchema = external_exports.enum(["monthly", "quarterly", "semiannual", "annual", "none"]);
@@ -14056,6 +14166,164 @@ var createDefaultYieldFormValues = (today = /* @__PURE__ */ new Date()) => ({
   dpsGrowthMode: "monthlySmooth"
 });
 var defaultYieldFormValues = createDefaultYieldFormValues();
+var toSimulationInput = (values) => ({
+  ticker: {
+    ticker: values.ticker,
+    initialPrice: values.initialPrice,
+    dividendYield: values.dividendYield,
+    dividendGrowth: values.dividendGrowth,
+    // 파생 표시값이므로 폼에 남아 있는 값을 믿지 않고 항상 다시 계산한다 (엔진은 쓰지 않는다).
+    expectedTotalReturn: toExpectedTotalReturnPercent(values.dividendYield, values.dividendGrowth),
+    frequency: values.frequency,
+    accountType: values.accountType
+  },
+  settings: {
+    initialInvestment: values.initialInvestment,
+    monthlyContribution: values.monthlyContribution,
+    targetMonthlyDividend: values.targetMonthlyDividend,
+    investmentStartDate: values.investmentStartDate,
+    durationYears: values.durationYears,
+    reinvestDividends: values.reinvestDividends,
+    reinvestDividendPercent: values.reinvestDividendPercent,
+    taxRate: values.taxRate,
+    reinvestTiming: values.reinvestTiming,
+    dpsGrowthMode: values.dpsGrowthMode
+  }
+});
+
+// shared/lib/snowball/SnowballPayout.ts
+var paymentsPerYearMap = {
+  monthly: 12,
+  quarterly: 4,
+  semiannual: 2,
+  annual: 1,
+  none: 0
+};
+var isPayoutMonth = (frequency, simulationMonth) => {
+  switch (frequency) {
+    case "monthly":
+      return true;
+    case "quarterly":
+      return simulationMonth % 3 === 0;
+    case "semiannual":
+      return simulationMonth === 6 || simulationMonth === 12;
+    case "annual":
+      return simulationMonth === 12;
+    case "none":
+      return false;
+  }
+};
+var computeMonthlyPayout = ({
+  shares,
+  annualDps,
+  paymentsPerYear,
+  taxRate
+}) => {
+  const gross = shares * (annualDps / paymentsPerYear);
+  const tax = gross * taxRate;
+  return { gross, tax, net: gross - tax };
+};
+var planReinvestment = ({
+  netDividend,
+  price,
+  enabled,
+  ratio,
+  timing
+}) => {
+  if (!enabled) return { sharesToBuyNow: 0, cashToCarry: 0, amountInvestedNow: 0 };
+  const reinvestAmount = netDividend * clamp01(ratio);
+  return timing === "sameMonth" ? { sharesToBuyNow: reinvestAmount / price, cashToCarry: 0, amountInvestedNow: reinvestAmount } : { sharesToBuyNow: 0, cashToCarry: reinvestAmount, amountInvestedNow: 0 };
+};
+
+// shared/lib/snowball/SnowballQuickEstimate.ts
+var runQuickEstimate = (input) => {
+  const { ticker, settings } = input;
+  const taxRate = toTaxRate(settings.taxRate);
+  const dividendYield = ticker.dividendYield / 100;
+  const growth = toPriceGrowth(ticker.dividendGrowth);
+  const paymentsPerYear = paymentsPerYearMap[ticker.frequency];
+  const reinvestRatio = settings.reinvestDividends ? toReinvestRatio(settings.reinvestDividendPercent) : 0;
+  const pays = paymentsPerYear > 0;
+  const effectiveYield = pays ? dividendYield : 0;
+  const shareGrowthPerPayment = pays ? dividendYield / paymentsPerYear * (1 - taxRate) * reinvestRatio : 0;
+  const annualShareGrowth = pays ? Math.pow(1 + shareGrowthPerPayment, paymentsPerYear) : 1;
+  const annualReturn = Math.max(MIN_GROWTH_RATE, (1 + growth) * annualShareGrowth - 1);
+  const monthlyReturn = toMonthlyGrowthRate(annualReturn);
+  const totalMonths = settings.durationYears * 12;
+  const monthlyContributionGrowth = Math.abs(monthlyReturn) < 1e-12 ? settings.monthlyContribution * totalMonths : settings.monthlyContribution * ((Math.pow(1 + monthlyReturn, totalMonths) - 1) / monthlyReturn);
+  const initialInvestmentGrowth = settings.initialInvestment * Math.pow(1 + monthlyReturn, totalMonths);
+  const rawEndValue = monthlyContributionGrowth + initialInvestmentGrowth;
+  const endValue = Number.isFinite(rawEndValue) ? Math.max(0, rawEndValue) : 0;
+  const yieldOnPriceAtEnd = Math.max(0, effectiveYield);
+  const annualDividendApprox = endValue * yieldOnPriceAtEnd * (1 - taxRate);
+  return {
+    endValue,
+    annualDividendApprox,
+    monthlyDividendApprox: annualDividendApprox / 12,
+    yieldOnPriceAtEnd
+  };
+};
+
+// shared/lib/numeric.ts
+var sumBy = (items, getValue) => items.reduce((sum, item) => sum + getValue(item), 0);
+
+// shared/lib/snowball/SnowballSummary.ts
+var findTargetYear = (rows, monthlyTarget) => {
+  return rows.find((row) => row.monthlyDividend >= monthlyTarget)?.year;
+};
+var sumDividendPaid = (rows) => sumBy(rows, (row) => row.dividendPaid);
+var findLastPayoutMonth = (monthly) => [...monthly].reverse().find((row) => row.dividendPaid > 0);
+var buildYearlyRow = ({
+  year,
+  monthIndex,
+  initialInvestment,
+  monthlyContribution,
+  assetValue,
+  cumulativeDividend,
+  recentMonths
+}) => {
+  const annualDividend = sumDividendPaid(recentMonths);
+  return {
+    year,
+    totalContribution: initialInvestment + monthlyContribution * monthIndex,
+    assetValue,
+    annualDividend,
+    cumulativeDividend,
+    monthlyDividend: annualDividend / 12
+  };
+};
+var buildSummary = ({
+  monthly,
+  yearly,
+  totalTaxPaid,
+  targetMonthlyDividend,
+  totalReinvestedAmount,
+  finalRunRateMonthlyDividend,
+  isaSettlementTax
+}) => {
+  const finalYear = yearly[yearly.length - 1];
+  const lastPayoutRow = findLastPayoutMonth(monthly);
+  const finalAssetValue = finalYear?.assetValue ?? 0;
+  const totalContribution = finalYear?.totalContribution ?? 0;
+  const totalCostBasis = totalContribution + totalReinvestedAmount;
+  return {
+    finalAssetValue,
+    finalAnnualDividend: finalYear?.annualDividend ?? 0,
+    // finalMonthlyAverageDividend = 마지막 해 연 배당 / 12. (예전에는 같은 값이 finalMonthlyDividend
+    // 라는 이름으로 한 번 더 들어 있었으나, 어떤 화면도 읽지 않는 중복 필드라 제거했다.)
+    finalMonthlyAverageDividend: finalYear?.monthlyDividend ?? 0,
+    finalPayoutMonthDividend: lastPayoutRow?.dividendPaid ?? 0,
+    finalRunRateMonthlyDividend,
+    isaSettlementTax,
+    totalContribution,
+    totalNetDividend: finalYear?.cumulativeDividend ?? 0,
+    totalTaxPaid,
+    targetMonthDividendReachedYear: findTargetYear(yearly, targetMonthlyDividend),
+    totalCostBasis,
+    ...computeCapitalGains({ finalAssetValue, totalCostBasis }),
+    financialIncomeThresholdYear: findFinancialIncomeThresholdYear(monthly)
+  };
+};
 
 // shared/lib/snowball/SnowballScenarioRun.ts
 var scenarioTickerProfileSchema = tickerInputSchema.extend({ id: external_exports.string() });
@@ -14108,6 +14376,111 @@ var scenarioSimSummarySchema = external_exports.object({
   /** 목표 월배당을 처음 달성한 n년차(1-based). 기간 내 미달성이면 null. */
   targetReachedInYears: external_exports.number().int().min(1).nullable()
 });
+
+// shared/lib/snowball/SnowballSimulation.ts
+var runSimulation = (input) => {
+  const { ticker, settings } = input;
+  const accountType = ticker.accountType ?? DEFAULT_ACCOUNT_TYPE;
+  const taxableRatePercent = settings.taxRate ?? resolveDefaultDividendTaxRatePercent(ticker.ticker);
+  const taxRate = toTaxRate(payoutTaxRateFor(accountType, taxableRatePercent));
+  const dividendYield = ticker.dividendYield / 100;
+  const growth = toPriceGrowth(ticker.dividendGrowth);
+  const priceGrowth = growth;
+  const dividendGrowth = growth;
+  const totalMonths = settings.durationYears * 12;
+  const paymentsPerYear = paymentsPerYearMap[ticker.frequency];
+  const startDate = toStartDate(settings.investmentStartDate);
+  const reinvestRatio = toReinvestRatio(settings.reinvestDividendPercent);
+  const dps0 = ticker.initialPrice * dividendYield;
+  let shares = settings.initialInvestment / ticker.initialPrice;
+  let cumulativeDividend = 0;
+  let totalTaxPaid = 0;
+  let pendingReinvestCash = 0;
+  let totalReinvestedAmount = 0;
+  const monthly = [];
+  const yearly = [];
+  for (let m = 1; m <= totalMonths; m += 1) {
+    const context = buildMonthContext(startDate, m);
+    const price = priceAtMonth(ticker.initialPrice, priceGrowth, context.elapsedYearFraction);
+    const dps = dpsAtMonth({
+      dps0,
+      dividendGrowth,
+      mode: settings.dpsGrowthMode,
+      elapsedYearFraction: context.elapsedYearFraction,
+      completedYears: context.completedYears
+    });
+    if (pendingReinvestCash > 0) {
+      shares += pendingReinvestCash / price;
+      totalReinvestedAmount += pendingReinvestCash;
+      pendingReinvestCash = 0;
+    }
+    let dividendPaid = 0;
+    let taxPaid = 0;
+    if (isPayoutMonth(ticker.frequency, context.simulationMonth)) {
+      const payout = computeMonthlyPayout({ shares, annualDps: dps, paymentsPerYear, taxRate });
+      const reinvestment = planReinvestment({
+        netDividend: payout.net,
+        price,
+        enabled: settings.reinvestDividends,
+        ratio: reinvestRatio,
+        timing: settings.reinvestTiming
+      });
+      taxPaid = payout.tax;
+      dividendPaid = payout.net;
+      shares += reinvestment.sharesToBuyNow;
+      totalReinvestedAmount += reinvestment.amountInvestedNow;
+      pendingReinvestCash += reinvestment.cashToCarry;
+      cumulativeDividend += dividendPaid;
+      totalTaxPaid += taxPaid;
+    }
+    shares += settings.monthlyContribution / price;
+    const rawPortfolioValue = shares * price;
+    const portfolioValue = Number.isFinite(rawPortfolioValue) ? rawPortfolioValue : 0;
+    monthly.push({
+      monthIndex: m,
+      year: context.calendarYear,
+      month: context.calendarMonth,
+      shares,
+      price,
+      dividendPerShare: dps,
+      dividendPaid,
+      contributionPaid: settings.monthlyContribution,
+      taxPaid,
+      portfolioValue,
+      cumulativeDividend
+    });
+    if (context.simulationMonth === 12) {
+      yearly.push(
+        buildYearlyRow({
+          year: context.simulationYearLabel,
+          monthIndex: m,
+          initialInvestment: settings.initialInvestment,
+          monthlyContribution: settings.monthlyContribution,
+          assetValue: portfolioValue,
+          cumulativeDividend,
+          recentMonths: monthly.slice(-12)
+        })
+      );
+    }
+  }
+  const isaSettlementTax = accountType === "isa" ? estimateIsaSettlementTax(cumulativeDividend) : 0;
+  const lastRow = monthly[monthly.length - 1];
+  const finalRunRateMonthlyDividend = lastRow === void 0 ? 0 : lastRow.shares * lastRow.dividendPerShare * (1 - taxRate) / 12;
+  return {
+    monthly,
+    yearly,
+    summary: buildSummary({
+      monthly,
+      yearly,
+      totalTaxPaid,
+      targetMonthlyDividend: settings.targetMonthlyDividend,
+      totalReinvestedAmount,
+      finalRunRateMonthlyDividend,
+      isaSettlementTax
+    }),
+    quickEstimate: runQuickEstimate(input)
+  };
+};
 
 // shared/constants/presets/usDividendGrowthEtfs.ts
 var US_DIVIDEND_GROWTH_ETFS = {
@@ -36879,6 +37252,113 @@ var findTickerContentBySlug = (slug) => {
 };
 var listTickerContentByCategory = (categoryId) => TICKER_CONTENT_LIST.filter((entry) => entry.categoryIds.includes(categoryId));
 
+// shared/lib/goalPlan/goalPlan.ts
+var monthlyDividendForPrincipal = (input) => {
+  const { principal, dividendYield, taxRate } = input;
+  if (!Number.isFinite(principal) || principal <= 0) return null;
+  if (!Number.isFinite(dividendYield) || dividendYield <= 0) return null;
+  if (!Number.isFinite(taxRate) || taxRate < 0 || taxRate >= 1) return null;
+  return principal * dividendYield * (1 - taxRate) / 12;
+};
+
+// shared/utils/format.ts
+var krw = new Intl.NumberFormat("ko-KR", {
+  style: "currency",
+  currency: "KRW",
+  maximumFractionDigits: 0
+});
+var usd = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  maximumFractionDigits: 0
+});
+var usdCents = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2
+});
+var formatKoreanWon = (value) => {
+  if (!Number.isFinite(value)) return "-";
+  const sign = value < 0 ? "-" : "";
+  const totalMan = Math.round(Math.abs(value) / 1e4);
+  const eok = Math.floor(totalMan / 1e4);
+  const man = totalMan % 1e4;
+  if (eok === 0) return `${sign}${man.toLocaleString("ko-KR")}\uB9CC\uC6D0`;
+  if (man === 0) return `${sign}${eok.toLocaleString("ko-KR")}\uC5B5\uC6D0`;
+  return `${sign}${eok.toLocaleString("ko-KR")}\uC5B5 ${man.toLocaleString("ko-KR")}\uB9CC\uC6D0`;
+};
+
+// shared/lib/tickerIncome/tickerIncome.ts
+var TICKER_INCOME_PRINCIPALS = [1e7, 5e7, 1e8, 3e8];
+var TICKER_INCOME_HEADLINE_PRINCIPAL = 1e8;
+var TICKER_INCOME_REINVEST_YEARS = 10;
+var SIMULATION_START_DATE = "2026-01-15";
+var isPresetTicker = (ticker) => Object.prototype.hasOwnProperty.call(DIVIDEND_UNIVERSE, ticker);
+var buildTickerIncomeAnswer = (ticker) => {
+  if (!isPresetTicker(ticker)) return null;
+  const preset = DIVIDEND_UNIVERSE[ticker];
+  if (preset.frequency === "none" || !(preset.dividendYield > 0)) return null;
+  const taxRatePercent = resolveDefaultDividendTaxRatePercent(ticker);
+  const rows = [];
+  for (const principal of TICKER_INCOME_PRINCIPALS) {
+    const monthlyAfterTax = monthlyDividendForPrincipal({
+      principal,
+      dividendYield: preset.dividendYield / 100,
+      taxRate: taxRatePercent / 100
+    });
+    if (monthlyAfterTax === null) return null;
+    const { summary } = runSimulation(
+      toSimulationInput({
+        ...defaultYieldFormValues,
+        ticker,
+        initialPrice: preset.initialPrice,
+        dividendYield: preset.dividendYield,
+        dividendGrowth: preset.dividendGrowth,
+        expectedTotalReturn: preset.expectedTotalReturn,
+        frequency: preset.frequency,
+        investmentStartDate: SIMULATION_START_DATE,
+        initialInvestment: principal,
+        monthlyContribution: 0,
+        durationYears: TICKER_INCOME_REINVEST_YEARS,
+        reinvestDividends: true,
+        reinvestDividendPercent: 100
+      })
+    );
+    const monthlyAfterReinvest = summary.finalRunRateMonthlyDividend;
+    if (!Number.isFinite(monthlyAfterReinvest) || monthlyAfterReinvest <= 0) return null;
+    rows.push({ principal, monthlyAfterTax, annualAfterTax: monthlyAfterTax * 12, monthlyAfterReinvest });
+  }
+  const headline = rows.find((row) => row.principal === TICKER_INCOME_HEADLINE_PRINCIPAL);
+  if (!headline) return null;
+  return {
+    ticker,
+    dividendYieldPercent: preset.dividendYield,
+    dividendGrowthPercent: preset.dividendGrowth,
+    taxRatePercent,
+    years: TICKER_INCOME_REINVEST_YEARS,
+    rows,
+    headline
+  };
+};
+var formatIncomeWon = (value) => {
+  if (!Number.isFinite(value) || value <= 0) return "-";
+  if (value < 1e4) return `${Math.round(value).toLocaleString("ko-KR")}\uC6D0`;
+  return formatKoreanWon(value);
+};
+var formatPrincipalLabel = (principal) => formatIncomeWon(principal);
+var percentLabel = (value) => `${Number(value.toFixed(2))}%`;
+var TICKER_INCOME_COPY = {
+  heading: (ticker, principal) => `${ticker}\uC5D0 ${formatPrincipalLabel(principal)}\uC744 \uB123\uC73C\uBA74 \uB9E4\uB2EC \uC5BC\uB9C8?`,
+  nowLabel: "\uC9C0\uAE08 \uBC30\uB2F9\uB960\uB85C \uBC1B\uB294 \uB3C8(\uC138\uD6C4)",
+  reinvestLabel: (years) => `\uBC30\uB2F9\uC744 ${years}\uB144 \uC7AC\uD22C\uC790\uD558\uBA74(\uC138\uD6C4)`,
+  reinvestCaption: (years) => `\uCD94\uAC00 \uB0A9\uC785 \uC5C6\uC774 ${years}\uB144 \uB4A4 \uBCF4\uC720\uBD84 \uAE30\uC900`,
+  tableCaption: "\uD22C\uC790\uAE08\uBCC4 \uC138\uD6C4 \uC6D4 \uBC30\uB2F9",
+  tableHead: (years) => ["\uD22C\uC790\uAE08", "\uC9C0\uAE08 \uC6D4 \uBC30\uB2F9", `${years}\uB144 \uC7AC\uD22C\uC790 \uB4A4`],
+  assumption: (answer) => `\uAC00\uC815: \uBC30\uB2F9\uB960 ${percentLabel(answer.dividendYieldPercent)} \xB7 \uBC30\uB2F9\uC18C\uB4DD\uC138 ${percentLabel(answer.taxRatePercent)} \xB7 \uC5F0 \uBC30\uB2F9\uC131\uC7A5 ${percentLabel(answer.dividendGrowthPercent)}. \uC8FC\uAC00\uC640 \uBC30\uB2F9\uC740 \uBC14\uB00C\uACE0 \uD658\uC728\xB7\uC218\uC218\uB8CC\uB294 \uB123\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4. \uD22C\uC790 \uAD8C\uC720\uAC00 \uC544\uB2CC \uACC4\uC0B0 \uC608\uC2DC\uC785\uB2C8\uB2E4.`,
+  toTarget: "\uC6D0\uD558\uB294 \uC6D4 \uBC30\uB2F9\uC5D0 \uD544\uC694\uD55C \uC6D0\uAE08 \uACC4\uC0B0\uD558\uAE30"
+};
+
 // server/handlers/TickerHtml/TickerHtml.ts
 var HUB_SLUG = "all";
 var HUB_PATH = `/ticker/${HUB_SLUG}`;
@@ -36910,6 +37390,17 @@ var renderTopHoldings = (topHoldings) => {
     (holding, index) => `<tr><td>${index + 1}</td><td>${escapeHtmlText(holding.symbol)}</td><td>${escapeHtmlText(holding.name)}</td><td>${escapeHtmlText(formatWeight(holding.weightPercent))}</td></tr>`
   ).join("");
   return `<section id="top-holdings"><h2>\uC0C1\uC704 \uBCF4\uC720 \uC885\uBAA9</h2><p>\uBE44\uC911\uC774 \uD070 \uC0C1\uC704 ${count}\uC885\uC785\uB2C8\uB2E4. \uC774 ${count}\uC885\uC744 \uBAA8\uB450 \uB354\uD55C \uBE44\uC911\uC740 ${escapeHtmlText(formatWeight(coveredWeightPercent))}\uC774\uBA70, \uB098\uBA38\uC9C0 \uBCF4\uC720 \uC885\uBAA9\uC740 \uC774 \uD45C\uC5D0 \uB4E4\uC5B4 \uC788\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.</p>` + (excludedNote ? `<p>${escapeHtmlText(excludedNote)}</p>` : "") + `<table><caption>\uC0C1\uC704 \uBCF4\uC720 \uC885\uBAA9 ${count}\uC885 (\uAE30\uC900\uC77C ${escapeHtmlText(asOfDate)})</caption><thead><tr><th>\uC21C\uC704</th><th>\uD2F0\uCEE4</th><th>\uC885\uBAA9\uBA85</th><th>\uBE44\uC911</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><td colspan="3">\uC0C1\uC704 ${count}\uC885 \uD569\uACC4</td><td>${escapeHtmlText(formatWeight(coveredWeightPercent))}</td></tr></tfoot></table><p>\uCD9C\uCC98: <a href="${escapeHtmlAttribute(sourceUrl)}" rel="nofollow noopener">${escapeHtmlText(sourceLabel)}</a> \xB7 \uAE30\uC900\uC77C ${escapeHtmlText(asOfDate)}. \uAD6C\uC131\uACFC \uBE44\uC911\uC740 \uB9AC\uBC38\uB7F0\uC2F1\uACFC \uC2DC\uC138\uC5D0 \uB530\uB77C \uACC4\uC18D \uB2EC\uB77C\uC9D1\uB2C8\uB2E4.</p></section>`;
+};
+var renderIncomeAnswer = (ticker) => {
+  const answer = buildTickerIncomeAnswer(ticker);
+  if (!answer) return "";
+  const copy2 = TICKER_INCOME_COPY;
+  const { headline, rows, years } = answer;
+  const [principalHead, nowHead, reinvestHead] = copy2.tableHead(years);
+  const body = rows.map(
+    (row) => `<tr><th scope="row">${escapeHtmlText(formatPrincipalLabel(row.principal))}</th><td>${escapeHtmlText(formatIncomeWon(row.monthlyAfterTax))}</td><td>${escapeHtmlText(formatIncomeWon(row.monthlyAfterReinvest))}</td></tr>`
+  ).join("");
+  return `<section id="income-answer"><h2>${escapeHtmlText(copy2.heading(answer.ticker, headline.principal))}</h2><p>${escapeHtmlText(copy2.nowLabel)}: <strong>\uC6D4 ${escapeHtmlText(formatIncomeWon(headline.monthlyAfterTax))}</strong> (\uC5F0 ${escapeHtmlText(formatIncomeWon(headline.annualAfterTax))})</p><p>${escapeHtmlText(copy2.reinvestLabel(years))}: <strong>\uC6D4 ${escapeHtmlText(formatIncomeWon(headline.monthlyAfterReinvest))}</strong> (${escapeHtmlText(copy2.reinvestCaption(years))})</p><table><caption>${escapeHtmlText(copy2.tableCaption)}</caption><thead><tr><th>${escapeHtmlText(principalHead)}</th><th>${escapeHtmlText(nowHead)}</th><th>${escapeHtmlText(reinvestHead)}</th></tr></thead><tbody>${body}</tbody></table><p>${escapeHtmlText(copy2.assumption(answer))}</p><p><a href="${DIVIDEND_TARGET_PATH}">${escapeHtmlText(copy2.toTarget)}</a></p></section>`;
 };
 var renderFaqs2 = (faqs, facts) => {
   if (faqs.length === 0) return "";
@@ -36986,7 +37477,7 @@ var renderCategoryBacklinks = (content) => {
 var injectTickerBody = (shell, content, siteUrl) => {
   const facts = resolveTickerEngineFacts(content.ticker);
   const canonical = tickerCanonical(siteUrl, content);
-  const article = "<article>" + renderHero2(content, facts) + content.sections.map((section) => renderSection3(section, facts)).join("") + renderTopHoldings(content.reference.topHoldings) + renderFaqs2(content.faqs, facts) + renderRelatedTickers(content.relatedTickers) + renderCategoryBacklinks(content) + `<p class="disclaimer">${escapeHtmlText(content.disclaimer)}</p></article>` + buildTickerJsonLd(content, facts, canonical);
+  const article = "<article>" + renderHero2(content, facts) + renderIncomeAnswer(content.ticker) + content.sections.map((section) => renderSection3(section, facts)).join("") + renderTopHoldings(content.reference.topHoldings) + renderFaqs2(content.faqs, facts) + renderRelatedTickers(content.relatedTickers) + renderCategoryBacklinks(content) + `<p class="disclaimer">${escapeHtmlText(content.disclaimer)}</p></article>` + buildTickerJsonLd(content, facts, canonical);
   return injectIntoRoot(shell, article);
 };
 var buildHubDescription = () => `${TICKER_CONTENT_LIST.length}\uAC1C \uBC30\uB2F9 ETF\xB7\uC885\uBAA9\uC758 \uBC30\uB2F9\uB960\xB7\uBC30\uB2F9\uC131\uC7A5\uB960\xB7\uC6B4\uC6A9\uBCF4\uC218\xB7\uAD6C\uC131 \uAE30\uC900\uC744 \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4. \uAD00\uC2EC \uC788\uB294 \uD2F0\uCEE4\uB97C \uC120\uD0DD\uD574 \uC790\uC138\uD788 \uD655\uC778\uD574 \uBCF4\uC138\uC694.`;

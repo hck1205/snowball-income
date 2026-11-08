@@ -17,6 +17,7 @@ import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import { useScrollSpy } from '@/shared/hooks';
 import { ICON } from '@/shared/styles';
 import type { ResolvedRelatedTicker, ResolvedSection, TickerDetailViewProps } from './TickerDetailPage.types';
+import { TickerIncomeAnswer } from './components';
 import { useInView } from './hooks';
 import { prefersReducedMotion } from './TickerDetailPage.utils';
 import {
@@ -352,6 +353,17 @@ export default function TickerDetailView({ viewModel }: TickerDetailViewProps) {
         </TocAside>
 
         <Content>
+          {/*
+            "1억을 넣으면 매달 얼마?" — 검색 질문의 답을 본문 **첫 블록**에 둔다(2026-11-09). 모바일에서는
+            목차가 상단 가로바가 되므로 히어로 바로 아래에 보인다. 배당이 없는 종목이면 모델이 null 이라 그리지 않는다.
+          */}
+          {viewModel.incomeAnswer ? (
+            <TickerIncomeAnswer
+              answer={viewModel.incomeAnswer}
+              onToTarget={() => trackEvent(ANALYTICS_EVENT.TICKER_INCOME_TO_TARGET, { ticker: viewModel.ticker })}
+            />
+          ) : null}
+
           {viewModel.sections.map((section, order) => (
             <DetailSection key={section.id} section={section} index={String(order + 1).padStart(2, '0')} />
           ))}
