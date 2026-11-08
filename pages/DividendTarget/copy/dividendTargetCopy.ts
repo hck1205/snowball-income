@@ -16,6 +16,17 @@ export const DIVIDEND_TARGET_COPY = {
     description:
       '원하는 월 배당(세후)을 고르면 SCHD·JEPI·리얼티 인컴 등 배당 ETF·종목마다 필요한 투자 원금을 세전 배당·배당소득세까지 나눠 보여 드립니다. 과거 배당 인상률이 물가를 이겨 왔는지도 함께 비교합니다. 투자 권유가 아닙니다.'
   },
+  /**
+   * 금액별 고정 주소(`/dividend/how-much/100`)의 제목·설명(2026-11-09). 검색어 꼴 그대로다 —
+   * "월 100만원 배당 받으려면 얼마"가 실제로 들어오는 질문이라 제목이 곧 그 질문이어야 한다.
+   * ⚠ 금액 표기는 "100만원"(붙여 쓰기) — 화면의 `formatManWon` 과 같은 꼴.
+   */
+  amountMeta: {
+    title: (amountLabel: string): string => `월 ${amountLabel} 배당 받으려면 얼마가 필요할까 — 종목별 필요 투자금`,
+    description: (amountLabel: string): string =>
+      `세후 월 ${amountLabel}의 배당을 받으려면 SCHD·JEPI·리얼티 인컴 등 배당 ETF·종목마다 원금이 얼마나 필요한지 ` +
+      '세전 배당·배당소득세까지 나눠 보여 드립니다. 다른 금액과 종목도 바로 바꿔 볼 수 있습니다. 투자 권유가 아닙니다.'
+  },
   hero: {
     eyebrow: '월 배당 계산',
     titleLead: '매달',

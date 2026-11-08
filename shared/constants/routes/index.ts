@@ -115,3 +115,25 @@ export const dividendListPath = (id: DividendListId): string => `/dividend/${DIV
  * ⚠ 색인 대상은 **클린 URL 하나**다(사이트맵·정적 셸). 쿼리 조합마다 색인되면 같은 화면이 수십 장이 된다.
  */
 export const DIVIDEND_TARGET_PATH = '/dividend/how-much';
+
+/**
+ * **금액별 고정 주소**(만원) — `/dividend/how-much/100` 꼴(2026-11-09).
+ *
+ * 검색어가 금액 단위로 들어온다("월 100만원 배당 받으려면", "월 300만원 배당"). 쿼리(`?m=100`)는 색인
+ * 대상이 아니라(위 주석) 그 검색어와 맞물리는 주소가 없었다. 금액마다 **자기 제목·본문·canonical** 을 갖는
+ * 주소를 둔다 — 정적 셸(`tools/seo/routeShells`)·사이트맵·`vercel.json` 이 이 목록 하나에서 파생된다.
+ *
+ * 🔴 기본 금액(250만원)은 **넣지 않는다.** 기본 주소(`/dividend/how-much`)가 이미 그 화면이라, 넣으면 같은
+ *   내용이 두 주소로 색인된다. 목록에 없는 금액 주소는 화면이 기본 주소로 돌려보낸다.
+ * ⚠ 화면의 금액 칩(`MONTHLY_TARGET_CHOICES_MAN`)과 별개다 — 칩은 고르는 UI, 이것은 색인 지면이다.
+ */
+export const DIVIDEND_TARGET_AMOUNT_PAGES_MAN = [50, 100, 150, 200, 300, 500] as const;
+
+export const dividendTargetAmountPath = (monthlyMan: number): string => `${DIVIDEND_TARGET_PATH}/${monthlyMan}`;
+
+/** 주소의 금액 조각이 금액별 지면인가. 숫자 모양만 보지 않고 **목록에 있는지**를 본다. */
+export const parseDividendTargetAmountSegment = (segment: string | undefined): number | null => {
+  if (!segment || !/^\d+$/.test(segment)) return null;
+  const value = Number(segment);
+  return (DIVIDEND_TARGET_AMOUNT_PAGES_MAN as readonly number[]).includes(value) ? value : null;
+};

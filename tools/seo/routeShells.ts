@@ -35,7 +35,15 @@ import { ETF_MIX_COPY, TICKER_COMPARE_COPY } from '../../pages/Ticker/copy';
 import { PRIVACY_DOCUMENT, TERMS_DOCUMENT } from '../../pages/Legal/copy';
 import { COMMUNITY_COPY } from '../../shared/constants/community';
 import { SIMULATOR_COPY } from '../../shared/constants/simulator';
-import { ABOUT_PATH, DIVIDEND_TARGET_PATH, SIMULATOR_PATH } from '../../shared/constants/routes';
+import {
+  ABOUT_PATH,
+  DIVIDEND_TARGET_AMOUNT_PAGES_MAN,
+  DIVIDEND_TARGET_PATH,
+  SIMULATOR_PATH,
+  dividendTargetAmountPath
+} from '../../shared/constants/routes';
+import { DEFAULT_MONTHLY_TARGET_MAN, formatManWon } from '../../pages/DividendTarget/utils';
+import { renderDividendTargetShellBody } from './dividendTargetShell';
 import { LANDING_COPY } from '../../pages/Landing/copy';
 
 export type RouteShell = {
@@ -62,6 +70,11 @@ export type RouteShell = {
    *   보이는 주소에만 있어야 한다** — 이유는 `shared/lib/seo/faqStructuredData.ts`.
    */
   headFile?: string;
+  /**
+   * 빌드 때 **계산해서 굽는** 본문 HTML(2026-11-09). `bodyFile` 이 손으로 쓴 정적 문서라면 이것은 데이터에서
+   * 파생된 본문이다(`/dividend/how-much` 의 종목별 필요 원금 표). 둘 다 있으면 `bodyFile` 이 이긴다.
+   */
+  bodyHtml?: string;
 };
 
 export const ROUTE_SHELLS: readonly RouteShell[] = [
@@ -91,13 +104,25 @@ export const ROUTE_SHELLS: readonly RouteShell[] = [
   /*
    * 월 배당 필요 원금(2026-11-01). 검색 유입을 받으려고 만든 지면이라 셸이 없으면 존재 이유가 없다 —
    * JS 를 안 돌리는 크롤러(Yeti·Daumoa)에게 이 주소는 빈 앱 셸로만 보인다.
-   * ⚠ 지금은 제목·설명 두 줄뿐이다. 실제 숫자(종목별 필요 원금)를 굽는 본문 셸은 아직 없다.
+   * 2026-11-09: 종목별 필요 원금 표를 빌드 때 굽는다(`bodyHtml` ← `dividendTargetShell.ts`).
    */
   {
     path: DIVIDEND_TARGET_PATH,
     title: DIVIDEND_TARGET_COPY.meta.title,
-    description: DIVIDEND_TARGET_COPY.meta.description
+    description: DIVIDEND_TARGET_COPY.meta.description,
+    // 화면의 기본 금액(250만원) 그대로의 표 — 크롤러가 읽는 숫자와 JS 가 그리는 첫 화면이 같다.
+    bodyHtml: renderDividendTargetShellBody(DEFAULT_MONTHLY_TARGET_MAN)
   },
+  /*
+   * 금액별 고정 주소(2026-11-09) — "월 100만원 배당 받으려면" 같은 검색어 하나에 지면 하나.
+   * 제목·설명은 화면(`DividendTargetPage` 의 금액 분기)과 같은 카피(`amountMeta`)다.
+   */
+  ...DIVIDEND_TARGET_AMOUNT_PAGES_MAN.map((monthlyMan) => ({
+    path: dividendTargetAmountPath(monthlyMan),
+    title: DIVIDEND_TARGET_COPY.amountMeta.title(formatManWon(monthlyMan)),
+    description: DIVIDEND_TARGET_COPY.amountMeta.description(formatManWon(monthlyMan)),
+    bodyHtml: renderDividendTargetShellBody(monthlyMan)
+  })),
   { path: '/ticker/compare', title: TICKER_COMPARE_COPY.meta.title, description: TICKER_COMPARE_COPY.meta.description },
   { path: '/ticker/overlap', title: ETF_MIX_COPY.meta.title, description: ETF_MIX_COPY.meta.description },
   /*

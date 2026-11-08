@@ -1,8 +1,8 @@
 import { useCallback, useMemo } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import type { InflationRateChoice } from '@/shared/constants/inflation';
 import { buildSingleTickerPrefillState } from '@/shared/constants/portfolioPrefill';
-import { SIMULATOR_PATH } from '@/shared/constants/routes';
+import { DIVIDEND_TARGET_PATH, SIMULATOR_PATH, parseDividendTargetAmountSegment } from '@/shared/constants/routes';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import {
   buildDividendTargetModel,
@@ -18,6 +18,8 @@ import {
 } from '../utils';
 
 export type DividendTargetState = {
+  /** 금액별 주소(`/dividend/how-much/100`)로 들어왔으면 그 금액(만원), 아니면 `null`. */
+  readonly amountPageMan: number | null;
   readonly query: DividendTargetQueryState;
   readonly model: DividendTargetModel;
   /** 자세히 보는 종목. 큐레이션↔유니버스가 어긋나 하나도 못 찾으면 `null`(테스트가 막는 상태다). */
@@ -61,8 +63,13 @@ const scrollToDetail = (): void => {
 export const useDividendTargetState = (): DividendTargetState => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { monthly: amountSegment } = useParams<{ monthly?: string }>();
+  const amountPageMan = parseDividendTargetAmountSegment(amountSegment);
 
-  const query = useMemo(() => parseDividendTargetQuery(searchParams), [searchParams]);
+  const query = useMemo(
+    () => parseDividendTargetQuery(searchParams, amountPageMan ?? undefined),
+    [searchParams, amountPageMan]
+  );
   const model = useMemo(
     () => buildDividendTargetModel(query.monthlyMan * 10_000, query.inflationRate),
     [query.monthlyMan, query.inflationRate]
@@ -70,9 +77,20 @@ export const useDividendTargetState = (): DividendTargetState => {
 
   const update = useCallback(
     (patch: Partial<DividendTargetQueryState>) => {
-      setSearchParams(toDividendTargetQuery({ ...query, ...patch }), { replace: true });
+      const next = toDividendTargetQuery({ ...query, ...patch });
+      /*
+       * 금액별 주소에서 무엇이든 바꾸면 **기본 주소 + 쿼리**로 옮긴다(2026-11-09). `/dividend/how-much/100?m=300`
+       * 처럼 주소와 쿼리가 다른 금액을 말하는 상태를 만들지 않는다. 기본 금액이 아니면 `m` 이 쿼리에 실리므로
+       * 금액은 그대로 이어진다(`toDividendTargetQuery` 는 기본값만 생략한다).
+       */
+      if (amountPageMan !== null) {
+        const search = next.toString();
+        navigate(search ? `${DIVIDEND_TARGET_PATH}?${search}` : DIVIDEND_TARGET_PATH, { replace: true });
+        return;
+      }
+      setSearchParams(next, { replace: true });
     },
-    [setSearchParams, query]
+    [amountPageMan, navigate, setSearchParams, query]
   );
 
   const changeMonthly = useCallback(
@@ -117,5 +135,5 @@ export const useDividendTargetState = (): DividendTargetState => {
   /* 파서가 티커를 큐레이션 안으로 강제하므로 못 찾는 것은 큐레이션↔유니버스 불일치뿐이다(테스트가 막는다). */
   const selected = findTickerRequirement(model, query.ticker) ?? model.all[0] ?? null;
 
-  return { query, model, selected, changeMonthly, selectTicker, changeInflation, simulate };
+  return { amountPageMan, query, model, selected, changeMonthly, selectTicker, changeInflation, simulate };
 };
