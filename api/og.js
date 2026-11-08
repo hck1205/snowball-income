@@ -1263,12 +1263,12 @@ var TARGET_MONTHLY_DIVIDEND_MAX_MAN_WON = TARGET_MONTHLY_DIVIDEND_MAX / 1e4;
 
 // shared/constants/marketData/marketData.generated.json
 var marketData_generated_default = {
-  asOf: "2026-10-02",
+  asOf: "2026-11-08",
   source: "yahoo",
   entries: {
     "033780.KS": {
-      initialPrice: 175200,
-      dividendYield: 3.77,
+      initialPrice: 189900,
+      dividendYield: 3.48,
       frequency: "quarterly",
       payoutMonths: [
         2,
@@ -1279,8 +1279,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     "088980.KS": {
-      initialPrice: 9790,
-      dividendYield: 7.46,
+      initialPrice: 9680,
+      dividendYield: 7.54,
       frequency: "semiannual",
       observedDividendCagr: 1.09,
       payoutMonths: [
@@ -1290,8 +1290,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     "104530.KS": {
-      initialPrice: 17090,
-      dividendYield: 4.77,
+      initialPrice: 15990,
+      dividendYield: 5.35,
       frequency: "monthly",
       payoutMonths: [
         1,
@@ -1310,8 +1310,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     "105560.KS": {
-      initialPrice: 168500,
-      dividendYield: 2.87,
+      initialPrice: 151e3,
+      dividendYield: 3.2,
       frequency: "quarterly",
       payoutMonths: [
         2,
@@ -1322,8 +1322,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     "161510.KS": {
-      initialPrice: 24355,
-      dividendYield: 4.35,
+      initialPrice: 22015,
+      dividendYield: 4.92,
       frequency: "monthly",
       payoutMonths: [
         1,
@@ -1342,8 +1342,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     "210780.KS": {
-      initialPrice: 23085,
-      dividendYield: 4.76,
+      initialPrice: 21545,
+      dividendYield: 5.06,
       frequency: "quarterly",
       observedDividendCagr: 8.73,
       payoutMonths: [
@@ -1355,8 +1355,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     "211560.KS": {
-      initialPrice: 34270,
-      dividendYield: 2.64,
+      initialPrice: 31135,
+      dividendYield: 2.94,
       frequency: "quarterly",
       observedDividendCagr: 19.29,
       payoutMonths: [
@@ -1367,9 +1367,10 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     "266160.KS": {
-      initialPrice: 33310,
-      dividendYield: 1.88,
+      initialPrice: 25645,
+      dividendYield: 2.81,
       frequency: "quarterly",
+      observedDividendCagr: 10.35,
       payoutMonths: [
         1,
         4,
@@ -1379,8 +1380,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     "279530.KS": {
-      initialPrice: 17200,
-      dividendYield: 4.38,
+      initialPrice: 16160,
+      dividendYield: 4.81,
       frequency: "monthly",
       payoutMonths: [
         1,
@@ -1399,8 +1400,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     "316140.KS": {
-      initialPrice: 33250,
-      dividendYield: 4.21,
+      initialPrice: 31400,
+      dividendYield: 3.82,
       frequency: "quarterly",
       payoutMonths: [
         2,
@@ -1411,8 +1412,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     "322410.KS": {
-      initialPrice: 22080,
-      dividendYield: 3.14,
+      initialPrice: 21080,
+      dividendYield: 3.38,
       frequency: "monthly",
       payoutMonths: [
         1,
@@ -1431,8 +1432,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     "402970.KS": {
-      initialPrice: 14390,
-      dividendYield: 3.06,
+      initialPrice: 15510,
+      dividendYield: 2.85,
       frequency: "monthly",
       payoutMonths: [
         1,
@@ -1451,8 +1452,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     "441640.KS": {
-      initialPrice: 12170,
-      dividendYield: 9.73,
+      initialPrice: 11930,
+      dividendYield: 9.93,
       frequency: "monthly",
       payoutMonths: [
         1,
@@ -1471,8 +1472,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     "446720.KS": {
-      initialPrice: 12950,
-      dividendYield: 3.15,
+      initialPrice: 13955,
+      dividendYield: 2.91,
       frequency: "monthly",
       payoutMonths: [
         1,
@@ -1491,8 +1492,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     "458730.KS": {
-      initialPrice: 14135,
-      dividendYield: 3.07,
+      initialPrice: 15250,
+      dividendYield: 2.88,
       frequency: "monthly",
       payoutMonths: [
         1,
@@ -1511,8 +1512,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     "458760.KS": {
-      initialPrice: 10282,
-      dividendYield: 10.63,
+      initialPrice: 11e3,
+      dividendYield: 9.96,
       frequency: "monthly",
       payoutMonths: [
         1,
@@ -1531,8 +1532,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     "476850.KS": {
-      initialPrice: 21925,
-      dividendYield: 7.23,
+      initialPrice: 15890,
+      dividendYield: 9.29,
       frequency: "monthly",
       payoutMonths: [
         1,
@@ -1551,8 +1552,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     "483290.KS": {
-      initialPrice: 9645,
-      dividendYield: 13.01,
+      initialPrice: 10300,
+      dividendYield: 12.22,
       frequency: "monthly",
       payoutMonths: [
         1,
@@ -1571,8 +1572,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     "489250.KS": {
-      initialPrice: 12190,
-      dividendYield: 3.02,
+      initialPrice: 13120,
+      dividendYield: 2.85,
       frequency: "monthly",
       payoutMonths: [
         1,
@@ -1591,9 +1592,10 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     A: {
-      initialPrice: 166.68,
-      dividendYield: 0.46,
+      initialPrice: 174.76,
+      dividendYield: 0.58,
       frequency: "quarterly",
+      observedDividendCagr: 5.62,
       payoutMonths: [
         1,
         4,
@@ -1610,8 +1612,8 @@ var marketData_generated_default = {
       }
     },
     AAPL: {
-      initialPrice: 330.32,
-      dividendYield: 0.32,
+      initialPrice: 342.37,
+      dividendYield: 0.31,
       frequency: "quarterly",
       observedDividendCagr: 4.99,
       payoutMonths: [
@@ -1630,10 +1632,10 @@ var marketData_generated_default = {
       }
     },
     ABBV: {
-      initialPrice: 259.93,
-      dividendYield: 2.63,
+      initialPrice: 291.31,
+      dividendYield: 2.38,
       frequency: "quarterly",
-      observedDividendCagr: 6.81,
+      observedDividendCagr: 5.88,
       payoutMonths: [
         2,
         5,
@@ -1650,10 +1652,10 @@ var marketData_generated_default = {
       }
     },
     ABT: {
-      initialPrice: 96.69,
-      dividendYield: 2.56,
+      initialPrice: 109.93,
+      dividendYield: 2.29,
       frequency: "quarterly",
-      observedDividendCagr: 10.38,
+      observedDividendCagr: 6.96,
       payoutMonths: [
         2,
         5,
@@ -1670,8 +1672,8 @@ var marketData_generated_default = {
       }
     },
     ACN: {
-      initialPrice: 212.3,
-      dividendYield: 1.54,
+      initialPrice: 260.5,
+      dividendYield: 1.91,
       frequency: "quarterly",
       observedDividendCagr: 6.24,
       payoutMonths: [
@@ -1683,8 +1685,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     ADC: {
-      initialPrice: 65.03,
-      dividendYield: 4.88,
+      initialPrice: 69.87,
+      dividendYield: 4.56,
       frequency: "monthly",
       payoutMonths: [
         1,
@@ -1718,8 +1720,8 @@ var marketData_generated_default = {
       }
     },
     ADI: {
-      initialPrice: 404.6,
-      dividendYield: 1.06,
+      initialPrice: 363.56,
+      dividendYield: 1.18,
       frequency: "quarterly",
       observedDividendCagr: 9.81,
       payoutMonths: [
@@ -1738,8 +1740,8 @@ var marketData_generated_default = {
       }
     },
     ADM: {
-      initialPrice: 79.52,
-      dividendYield: 2.6,
+      initialPrice: 69.97,
+      dividendYield: 2.96,
       frequency: "quarterly",
       observedDividendCagr: 7.21,
       payoutMonths: [
@@ -1751,8 +1753,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     ADP: {
-      initialPrice: 263.96,
-      dividendYield: 2.58,
+      initialPrice: 303.35,
+      dividendYield: 2.24,
       frequency: "quarterly",
       observedDividendCagr: 11.54,
       payoutMonths: [
@@ -1764,8 +1766,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     AEE: {
-      initialPrice: 99.64,
-      dividendYield: 2.97,
+      initialPrice: 112.85,
+      dividendYield: 2.62,
       frequency: "quarterly",
       observedDividendCagr: 7.26,
       payoutMonths: [
@@ -1777,8 +1779,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     AEP: {
-      initialPrice: 119.75,
-      dividendYield: 3.17,
+      initialPrice: 126.53,
+      dividendYield: 3,
       frequency: "quarterly",
       observedDividendCagr: 5.66,
       payoutMonths: [
@@ -1790,8 +1792,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     AFL: {
-      initialPrice: 111.18,
-      dividendYield: 2.17,
+      initialPrice: 124.06,
+      dividendYield: 1.94,
       frequency: "quarterly",
       observedDividendCagr: 15.68,
       payoutMonths: [
@@ -1803,8 +1805,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     AIG: {
-      initialPrice: 75.43,
-      dividendYield: 2.52,
+      initialPrice: 77.75,
+      dividendYield: 2.44,
       frequency: "quarterly",
       observedDividendCagr: 6.45,
       payoutMonths: [
@@ -1816,8 +1818,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     AIQ: {
-      initialPrice: 65.67,
-      dividendYield: 0.07,
+      initialPrice: 56.89,
+      dividendYield: 0.08,
       frequency: "semiannual",
       observedDividendCagr: -7.26,
       payoutMonths: [
@@ -1832,8 +1834,8 @@ var marketData_generated_default = {
       }
     },
     ALB: {
-      initialPrice: 105.03,
-      dividendYield: 1.55,
+      initialPrice: 99.25,
+      dividendYield: 1.64,
       frequency: "quarterly",
       observedDividendCagr: 1.02,
       payoutMonths: [
@@ -1852,8 +1854,8 @@ var marketData_generated_default = {
       }
     },
     ALL: {
-      initialPrice: 224.41,
-      dividendYield: 1.89,
+      initialPrice: 254.81,
+      dividendYield: 1.66,
       frequency: "quarterly",
       observedDividendCagr: 13.12,
       payoutMonths: [
@@ -1865,21 +1867,21 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     ALLY: {
-      initialPrice: 37.65,
-      dividendYield: 3.19,
+      initialPrice: 38.17,
+      dividendYield: 3.27,
       frequency: "quarterly",
-      observedDividendCagr: 9.57,
+      observedDividendCagr: 7.27,
       payoutMonths: [
         1,
         5,
-        7,
-        8
+        8,
+        11
       ],
       payoutMonthsSource: "ex"
     },
     AMAT: {
-      initialPrice: 529.3,
-      dividendYield: 0.37,
+      initialPrice: 332.72,
+      dividendYield: 0.6,
       frequency: "quarterly",
       observedDividendCagr: 15.39,
       payoutMonths: [
@@ -1898,8 +1900,8 @@ var marketData_generated_default = {
       }
     },
     AMGN: {
-      initialPrice: 407.27,
-      dividendYield: 2.44,
+      initialPrice: 460.42,
+      dividendYield: 2.16,
       frequency: "quarterly",
       observedDividendCagr: 8.27,
       payoutMonths: [
@@ -1918,8 +1920,8 @@ var marketData_generated_default = {
       }
     },
     AMP: {
-      initialPrice: 494.82,
-      dividendYield: 1.33,
+      initialPrice: 501.49,
+      dividendYield: 1.32,
       frequency: "quarterly",
       observedDividendCagr: 8.96,
       payoutMonths: [
@@ -1938,8 +1940,8 @@ var marketData_generated_default = {
       }
     },
     AMT: {
-      initialPrice: 161.06,
-      dividendYield: 4.39,
+      initialPrice: 188.79,
+      dividendYield: 3.74,
       frequency: "quarterly",
       observedDividendCagr: 8.46,
       payoutMonths: [
@@ -1951,20 +1953,20 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     AMZN: {
-      initialPrice: 248.23,
+      initialPrice: 259.3,
       dividendYield: 0,
       frequency: "none"
     },
     ANET: {
-      initialPrice: 204.49,
+      initialPrice: 170.8,
       dividendYield: 0,
       frequency: "quarterly"
     },
     AOS: {
-      initialPrice: 56.67,
-      dividendYield: 2.54,
+      initialPrice: 64.55,
+      dividendYield: 2.26,
       frequency: "quarterly",
-      observedDividendCagr: 7.09,
+      observedDividendCagr: 6.61,
       payoutMonths: [
         1,
         4,
@@ -1974,10 +1976,10 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     APD: {
-      initialPrice: 273.33,
-      dividendYield: 1.98,
+      initialPrice: 304.84,
+      dividendYield: 2.37,
       frequency: "quarterly",
-      observedDividendCagr: 5.9,
+      observedDividendCagr: 3.77,
       payoutMonths: [
         1,
         4,
@@ -1987,8 +1989,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     APH: {
-      initialPrice: 85.67,
-      dividendYield: 0.58,
+      initialPrice: 74.59,
+      dividendYield: 0.67,
       frequency: "quarterly",
       observedDividendCagr: 23.43,
       payoutMonths: [
@@ -2000,15 +2002,15 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     ARKK: {
-      initialPrice: 88.58,
+      initialPrice: 75.46,
       dividendYield: 0,
       frequency: "annual",
       observedDividendCagr: -20.8,
       payoutMonthsSource: "none"
     },
     ASEA: {
-      initialPrice: 20.9,
-      dividendYield: 3.71,
+      initialPrice: 19.24,
+      dividendYield: 4.03,
       frequency: "semiannual",
       observedDividendCagr: 17.16,
       payoutMonths: [
@@ -2018,8 +2020,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     ASML: {
-      initialPrice: 1808.49,
-      dividendYield: 0.5,
+      initialPrice: 1424.75,
+      dividendYield: 0.65,
       frequency: "quarterly",
       payoutMonths: [
         2,
@@ -2037,8 +2039,8 @@ var marketData_generated_default = {
       }
     },
     ATO: {
-      initialPrice: 156.38,
-      dividendYield: 2.56,
+      initialPrice: 173.22,
+      dividendYield: 2.31,
       frequency: "quarterly",
       observedDividendCagr: 8.97,
       payoutMonths: [
@@ -2051,20 +2053,17 @@ var marketData_generated_default = {
     },
     AVB: {
       initialPrice: 184.06,
-      dividendYield: 3.84,
-      frequency: "quarterly",
+      dividendYield: 0.38,
+      frequency: "annual",
       observedDividendCagr: 1.94,
       payoutMonths: [
-        3,
-        6,
-        9,
-        12
+        10
       ],
       payoutMonthsSource: "ex"
     },
     AVGO: {
-      initialPrice: 343.64,
-      dividendYield: 0.76,
+      initialPrice: 293.69,
+      dividendYield: 0.89,
       frequency: "quarterly",
       observedDividendCagr: 12.63,
       payoutMonths: [
@@ -2083,10 +2082,10 @@ var marketData_generated_default = {
       }
     },
     AXP: {
-      initialPrice: 302.09,
-      dividendYield: 1.17,
+      initialPrice: 320.99,
+      dividendYield: 1.14,
       frequency: "quarterly",
-      observedDividendCagr: 12.94,
+      observedDividendCagr: 16.37,
       payoutMonths: [
         1,
         4,
@@ -2096,8 +2095,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     AZN: {
-      initialPrice: 157.7,
-      dividendYield: 1.37,
+      initialPrice: 186.43,
+      dividendYield: 1.15,
       frequency: "quarterly",
       payoutMonths: [
         2,
@@ -2106,8 +2105,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     B: {
-      initialPrice: 40.1,
-      dividendYield: 2.36,
+      initialPrice: 40.56,
+      dividendYield: 2.33,
       frequency: "quarterly",
       observedDividendCagr: 11.11,
       payoutMonths: [
@@ -2119,8 +2118,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     BAC: {
-      initialPrice: 53.73,
-      dividendYield: 2.16,
+      initialPrice: 49.42,
+      dividendYield: 2.35,
       frequency: "quarterly",
       observedDividendCagr: 8.45,
       payoutMonths: [
@@ -2132,8 +2131,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     BALI: {
-      initialPrice: 34.33,
-      dividendYield: 7.26,
+      initialPrice: 32.86,
+      dividendYield: 7.53,
       frequency: "monthly",
       payoutMonths: [
         1,
@@ -2152,8 +2151,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     BALL: {
-      initialPrice: 56.5,
-      dividendYield: 1.42,
+      initialPrice: 65.92,
+      dividendYield: 1.21,
       frequency: "quarterly",
       observedDividendCagr: 5.92,
       payoutMonths: [
@@ -2165,8 +2164,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     BBAX: {
-      initialPrice: 61.24,
-      dividendYield: 3.85,
+      initialPrice: 62.35,
+      dividendYield: 3.78,
       frequency: "quarterly",
       observedDividendCagr: 9.37,
       payoutMonths: [
@@ -2178,8 +2177,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     BDX: {
-      initialPrice: 178.07,
-      dividendYield: 2.23,
+      initialPrice: 211.88,
+      dividendYield: 1.88,
       frequency: "quarterly",
       observedDividendCagr: 5.96,
       payoutMonths: [
@@ -2198,8 +2197,8 @@ var marketData_generated_default = {
       }
     },
     BEN: {
-      initialPrice: 32.5,
-      dividendYield: 4.06,
+      initialPrice: 33.73,
+      dividendYield: 3.91,
       frequency: "quarterly",
       observedDividendCagr: 3.43,
       payoutMonths: [
@@ -2211,8 +2210,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     BLK: {
-      initialPrice: 1064.36,
-      dividendYield: 2.1,
+      initialPrice: 1178.87,
+      dividendYield: 1.9,
       frequency: "quarterly",
       observedDividendCagr: 7.49,
       payoutMonths: [
@@ -2224,8 +2223,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     BMY: {
-      initialPrice: 61.46,
-      dividendYield: 4.08,
+      initialPrice: 62.14,
+      dividendYield: 4.06,
       frequency: "quarterly",
       observedDividendCagr: 1.61,
       payoutMonths: [
@@ -2237,10 +2236,10 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     BNY: {
-      initialPrice: 143.92,
-      dividendYield: 1.61,
+      initialPrice: 147.72,
+      dividendYield: 1.64,
       frequency: "quarterly",
-      observedDividendCagr: 6.63,
+      observedDividendCagr: 13.25,
       payoutMonths: [
         1,
         4,
@@ -2250,7 +2249,7 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     BP: {
-      initialPrice: 44.5,
+      initialPrice: 44.53,
       dividendYield: 4.53,
       frequency: "quarterly",
       observedDividendCagr: 0.71,
@@ -2263,8 +2262,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     BRO: {
-      initialPrice: 61.77,
-      dividendYield: 1.07,
+      initialPrice: 72.12,
+      dividendYield: 0.94,
       frequency: "quarterly",
       observedDividendCagr: 12.06,
       payoutMonths: [
@@ -2276,10 +2275,10 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     C: {
-      initialPrice: 127,
-      dividendYield: 1.94,
+      initialPrice: 119.05,
+      dividendYield: 2.13,
       frequency: "quarterly",
-      observedDividendCagr: 2.61,
+      observedDividendCagr: 4.48,
       payoutMonths: [
         2,
         5,
@@ -2289,10 +2288,10 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     CAG: {
-      initialPrice: 13.2,
-      dividendYield: 9.28,
+      initialPrice: 15.24,
+      dividendYield: 6.89,
       frequency: "quarterly",
-      observedDividendCagr: 8.9,
+      observedDividendCagr: -2.24,
       payoutMonths: [
         2,
         5,
@@ -2309,10 +2308,10 @@ var marketData_generated_default = {
       }
     },
     CAH: {
-      initialPrice: 230.09,
-      dividendYield: 0.67,
+      initialPrice: 271.72,
+      dividendYield: 0.76,
       frequency: "quarterly",
-      observedDividendCagr: 0.96,
+      observedDividendCagr: 0.95,
       payoutMonths: [
         1,
         4,
@@ -2322,8 +2321,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     CARZ: {
-      initialPrice: 107.91,
-      dividendYield: 1,
+      initialPrice: 90.25,
+      dividendYield: 1.19,
       frequency: "quarterly",
       observedDividendCagr: -10.9,
       payoutMonths: [
@@ -2335,10 +2334,10 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     CAT: {
-      initialPrice: 826.35,
-      dividendYield: 0.75,
+      initialPrice: 558.63,
+      dividendYield: 1.12,
       frequency: "quarterly",
-      observedDividendCagr: 7.23,
+      observedDividendCagr: 7.97,
       payoutMonths: [
         1,
         4,
@@ -2348,8 +2347,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     CB: {
-      initialPrice: 331.3,
-      dividendYield: 0.91,
+      initialPrice: 365.02,
+      dividendYield: 0.82,
       frequency: "quarterly",
       observedDividendCagr: -9.46,
       payoutMonths: [
@@ -2361,8 +2360,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     CDW: {
-      initialPrice: 135.83,
-      dividendYield: 1.86,
+      initialPrice: 157,
+      dividendYield: 1.61,
       frequency: "quarterly",
       observedDividendCagr: 10.22,
       payoutMonths: [
@@ -2381,8 +2380,8 @@ var marketData_generated_default = {
       }
     },
     CEG: {
-      initialPrice: 258.92,
-      dividendYield: 0.64,
+      initialPrice: 249.95,
+      dividendYield: 0.67,
       frequency: "quarterly",
       payoutMonths: [
         3,
@@ -2400,8 +2399,8 @@ var marketData_generated_default = {
       }
     },
     CGDV: {
-      initialPrice: 48.84,
-      dividendYield: 0.92,
+      initialPrice: 47.42,
+      dividendYield: 1.27,
       frequency: "quarterly",
       payoutMonths: [
         4,
@@ -2419,8 +2418,8 @@ var marketData_generated_default = {
       }
     },
     CHAT: {
-      initialPrice: 93.39,
-      dividendYield: 1.8,
+      initialPrice: 67.56,
+      dividendYield: 2.49,
       frequency: "annual",
       payoutMonths: [
         12
@@ -2428,8 +2427,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     CHD: {
-      initialPrice: 94.11,
-      dividendYield: 1.3,
+      initialPrice: 109.33,
+      dividendYield: 1.11,
       frequency: "quarterly",
       observedDividendCagr: 4.21,
       payoutMonths: [
@@ -2441,8 +2440,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     CHRW: {
-      initialPrice: 153.14,
-      dividendYield: 1.65,
+      initialPrice: 125.33,
+      dividendYield: 2.01,
       frequency: "quarterly",
       observedDividendCagr: 4.07,
       payoutMonths: [
@@ -2454,8 +2453,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     CI: {
-      initialPrice: 267.96,
-      dividendYield: 2.31,
+      initialPrice: 293.59,
+      dividendYield: 2.11,
       frequency: "quarterly",
       payoutMonths: [
         3,
@@ -2466,8 +2465,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     CINF: {
-      initialPrice: 162.15,
-      dividendYield: 2.28,
+      initialPrice: 185.48,
+      dividendYield: 1.99,
       frequency: "quarterly",
       observedDividendCagr: 7.71,
       payoutMonths: [
@@ -2479,10 +2478,10 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     CL: {
-      initialPrice: 84.53,
-      dividendYield: 2.48,
+      initialPrice: 96.56,
+      dividendYield: 2.19,
       frequency: "quarterly",
-      observedDividendCagr: 3.32,
+      observedDividendCagr: 3.34,
       payoutMonths: [
         1,
         4,
@@ -2492,10 +2491,10 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     CLX: {
-      initialPrice: 80.65,
-      dividendYield: 6.16,
+      initialPrice: 99.96,
+      dividendYield: 4.98,
       frequency: "quarterly",
-      observedDividendCagr: 2.54,
+      observedDividendCagr: 1.87,
       payoutMonths: [
         1,
         4,
@@ -2505,10 +2504,10 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     CMCSA: {
-      initialPrice: 21.7,
-      dividendYield: 4.56,
+      initialPrice: 24.39,
+      dividendYield: 5.41,
       frequency: "quarterly",
-      observedDividendCagr: 7.63,
+      observedDividendCagr: 7.52,
       payoutMonths: [
         1,
         4,
@@ -2525,8 +2524,8 @@ var marketData_generated_default = {
       }
     },
     CMI: {
-      initialPrice: 517,
-      dividendYield: 1.59,
+      initialPrice: 450.07,
+      dividendYield: 1.82,
       frequency: "quarterly",
       observedDividendCagr: 7.66,
       payoutMonths: [
@@ -2545,8 +2544,8 @@ var marketData_generated_default = {
       }
     },
     CNI: {
-      initialPrice: 117.16,
-      dividendYield: 1.7,
+      initialPrice: 124.06,
+      dividendYield: 1.61,
       frequency: "quarterly",
       observedDividendCagr: 1.79,
       payoutMonths: [
@@ -2558,8 +2557,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     COF: {
-      initialPrice: 194.48,
-      dividendYield: 1.65,
+      initialPrice: 201.87,
+      dividendYield: 1.59,
       frequency: "quarterly",
       observedDividendCagr: 21.06,
       payoutMonths: [
@@ -2571,8 +2570,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     COP: {
-      initialPrice: 127.06,
-      dividendYield: 2.64,
+      initialPrice: 136.27,
+      dividendYield: 2.47,
       frequency: "quarterly",
       observedDividendCagr: 13.48,
       payoutMonths: [
@@ -2584,21 +2583,21 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     COST: {
-      initialPrice: 914.94,
-      dividendYield: 0.61,
+      initialPrice: 1053.56,
+      dividendYield: 0.54,
       frequency: "quarterly",
-      observedDividendCagr: -16.88,
+      observedDividendCagr: 13.21,
       payoutMonths: [
         2,
         5,
         7,
-        8
+        10
       ],
       payoutMonthsSource: "ex"
     },
     COWZ: {
-      initialPrice: 67.63,
-      dividendYield: 2.01,
+      initialPrice: 69.45,
+      dividendYield: 1.96,
       frequency: "quarterly",
       observedDividendCagr: 9.13,
       payoutMonths: [
@@ -2610,10 +2609,10 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     CPB: {
-      initialPrice: 19.49,
-      dividendYield: 6,
+      initialPrice: 23.13,
+      dividendYield: 6.14,
       frequency: "quarterly",
-      observedDividendCagr: 2.19,
+      observedDividendCagr: -0.82,
       payoutMonths: [
         1,
         4,
@@ -2623,10 +2622,10 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     CSCO: {
-      initialPrice: 108.76,
-      dividendYield: 1.53,
+      initialPrice: 93.85,
+      dividendYield: 1.78,
       frequency: "quarterly",
-      observedDividendCagr: 2.65,
+      observedDividendCagr: 2.58,
       payoutMonths: [
         1,
         4,
@@ -2636,8 +2635,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     CSX: {
-      initialPrice: 46.54,
-      dividendYield: 1.18,
+      initialPrice: 49.12,
+      dividendYield: 1.12,
       frequency: "quarterly",
       observedDividendCagr: 8.45,
       payoutMonths: [
@@ -2649,8 +2648,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     CTAS: {
-      initialPrice: 195.6,
-      dividendYield: 0.96,
+      initialPrice: 222.36,
+      dividendYield: 0.84,
       frequency: "quarterly",
       payoutMonths: [
         2,
@@ -2661,8 +2660,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     CVS: {
-      initialPrice: 85.2,
-      dividendYield: 3.12,
+      initialPrice: 83.85,
+      dividendYield: 3.17,
       frequency: "quarterly",
       observedDividendCagr: 5.87,
       payoutMonths: [
@@ -2674,8 +2673,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     CVX: {
-      initialPrice: 207.1,
-      dividendYield: 3.4,
+      initialPrice: 212.61,
+      dividendYield: 3.32,
       frequency: "quarterly",
       observedDividendCagr: 5.8,
       payoutMonths: [
@@ -2687,8 +2686,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     D: {
-      initialPrice: 60.76,
-      dividendYield: 4.4,
+      initialPrice: 68.6,
+      dividendYield: 3.9,
       frequency: "quarterly",
       observedDividendCagr: -4.98,
       payoutMonths: [
@@ -2700,8 +2699,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     DAL: {
-      initialPrice: 84.13,
-      dividendYield: 0.93,
+      initialPrice: 87.2,
+      dividendYield: 0.92,
       frequency: "quarterly",
       payoutMonths: [
         2,
@@ -2712,8 +2711,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     DE: {
-      initialPrice: 667.26,
-      dividendYield: 0.97,
+      initialPrice: 671.65,
+      dividendYield: 0.96,
       frequency: "quarterly",
       observedDividendCagr: 16.34,
       payoutMonths: [
@@ -2725,8 +2724,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     DELL: {
-      initialPrice: 541.74,
-      dividendYield: 0.43,
+      initialPrice: 328.53,
+      dividendYield: 0.74,
       frequency: "quarterly",
       payoutMonths: [
         1,
@@ -2737,8 +2736,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     DES: {
-      initialPrice: 38.24,
-      dividendYield: 2.37,
+      initialPrice: 38.55,
+      dividendYield: 2.34,
       frequency: "monthly",
       observedDividendCagr: 5.47,
       payoutMonths: [
@@ -2773,10 +2772,10 @@ var marketData_generated_default = {
       }
     },
     DG: {
-      initialPrice: 118.93,
-      dividendYield: 1.98,
+      initialPrice: 133.75,
+      dividendYield: 1.76,
       frequency: "quarterly",
-      observedDividendCagr: 11.01,
+      observedDividendCagr: 7.82,
       payoutMonths: [
         1,
         4,
@@ -2786,8 +2785,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     DGRO: {
-      initialPrice: 75.44,
-      dividendYield: 1.98,
+      initialPrice: 79.8,
+      dividendYield: 1.87,
       frequency: "quarterly",
       observedDividendCagr: 7.09,
       payoutMonths: [
@@ -2806,8 +2805,8 @@ var marketData_generated_default = {
       }
     },
     DGRW: {
-      initialPrice: 97.42,
-      dividendYield: 1.22,
+      initialPrice: 96.4,
+      dividendYield: 1.27,
       frequency: "monthly",
       observedDividendCagr: 4.4,
       payoutMonths: [
@@ -2842,8 +2841,8 @@ var marketData_generated_default = {
       }
     },
     DHR: {
-      initialPrice: 211.76,
-      dividendYield: 0.72,
+      initialPrice: 230.25,
+      dividendYield: 0.66,
       frequency: "quarterly",
       observedDividendCagr: 14.93,
       payoutMonths: [
@@ -2855,8 +2854,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     DHS: {
-      initialPrice: 112.03,
-      dividendYield: 3.03,
+      initialPrice: 117.49,
+      dividendYield: 3.23,
       frequency: "monthly",
       observedDividendCagr: 3.32,
       payoutMonths: [
@@ -2891,8 +2890,8 @@ var marketData_generated_default = {
       }
     },
     DIA: {
-      initialPrice: 508.62,
-      dividendYield: 1.42,
+      initialPrice: 512.22,
+      dividendYield: 1.4,
       frequency: "monthly",
       observedDividendCagr: 3.73,
       payoutMonths: [
@@ -2927,8 +2926,8 @@ var marketData_generated_default = {
       }
     },
     DIS: {
-      initialPrice: 101.33,
-      dividendYield: 1.48,
+      initialPrice: 116.75,
+      dividendYield: 1.28,
       frequency: "semiannual",
       payoutMonths: [
         6,
@@ -2937,8 +2936,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     DIVB: {
-      initialPrice: 65.37,
-      dividendYield: 2.27,
+      initialPrice: 70.4,
+      dividendYield: 2.11,
       frequency: "quarterly",
       observedDividendCagr: 13.96,
       payoutMonths: [
@@ -2950,8 +2949,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     DIVG: {
-      initialPrice: 35.88,
-      dividendYield: 3.18,
+      initialPrice: 38.27,
+      dividendYield: 2.96,
       frequency: "monthly",
       payoutMonths: [
         1,
@@ -2984,7 +2983,7 @@ var marketData_generated_default = {
       }
     },
     DIVO: {
-      initialPrice: 46.47,
+      initialPrice: 46.61,
       dividendYield: 6.49,
       frequency: "monthly",
       observedDividendCagr: 12.25,
@@ -3020,8 +3019,8 @@ var marketData_generated_default = {
       }
     },
     DJD: {
-      initialPrice: 62.69,
-      dividendYield: 2.42,
+      initialPrice: 67.43,
+      dividendYield: 2.25,
       frequency: "quarterly",
       observedDividendCagr: 2.46,
       payoutMonths: [
@@ -3033,8 +3032,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     DJIA: {
-      initialPrice: 22.13,
-      dividendYield: 10.38,
+      initialPrice: 22.21,
+      dividendYield: 10.05,
       frequency: "monthly",
       payoutMonths: [
         1,
@@ -3053,8 +3052,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     DLN: {
-      initialPrice: 97.26,
-      dividendYield: 1.78,
+      initialPrice: 98.26,
+      dividendYield: 1.77,
       frequency: "monthly",
       observedDividendCagr: 3.21,
       payoutMonths: [
@@ -3089,8 +3088,8 @@ var marketData_generated_default = {
       }
     },
     DLR: {
-      initialPrice: 176.49,
-      dividendYield: 2.77,
+      initialPrice: 174.2,
+      dividendYield: 2.8,
       frequency: "quarterly",
       observedDividendCagr: 1.73,
       payoutMonths: [
@@ -3102,8 +3101,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     DON: {
-      initialPrice: 54.29,
-      dividendYield: 2.41,
+      initialPrice: 56.95,
+      dividendYield: 2.33,
       frequency: "monthly",
       observedDividendCagr: 6.24,
       payoutMonths: [
@@ -3138,8 +3137,8 @@ var marketData_generated_default = {
       }
     },
     DOV: {
-      initialPrice: 188.06,
-      dividendYield: 1.11,
+      initialPrice: 203.85,
+      dividendYield: 1.02,
       frequency: "quarterly",
       observedDividendCagr: 1,
       payoutMonths: [
@@ -3151,8 +3150,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     DPZ: {
-      initialPrice: 295,
-      dividendYield: 2.61,
+      initialPrice: 334.28,
+      dividendYield: 2.31,
       frequency: "quarterly",
       observedDividendCagr: 17.41,
       payoutMonths: [
@@ -3164,8 +3163,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     DTCR: {
-      initialPrice: 27.07,
-      dividendYield: 0.91,
+      initialPrice: 24.87,
+      dividendYield: 0.99,
       frequency: "semiannual",
       payoutMonths: [
         6,
@@ -3174,8 +3173,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     DTE: {
-      initialPrice: 123.27,
-      dividendYield: 3.78,
+      initialPrice: 135.08,
+      dividendYield: 3.45,
       frequency: "quarterly",
       observedDividendCagr: 4.79,
       payoutMonths: [
@@ -3194,8 +3193,8 @@ var marketData_generated_default = {
       }
     },
     DUK: {
-      initialPrice: 113.74,
-      dividendYield: 3.76,
+      initialPrice: 127.78,
+      dividendYield: 3.35,
       frequency: "quarterly",
       observedDividendCagr: 2.01,
       payoutMonths: [
@@ -3207,8 +3206,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     DVY: {
-      initialPrice: 152.71,
-      dividendYield: 3.5,
+      initialPrice: 160.06,
+      dividendYield: 3.34,
       frequency: "quarterly",
       observedDividendCagr: 7.86,
       payoutMonths: [
@@ -3227,8 +3226,8 @@ var marketData_generated_default = {
       }
     },
     DWX: {
-      initialPrice: 45.45,
-      dividendYield: 4.23,
+      initialPrice: 47.19,
+      dividendYield: 4.08,
       frequency: "quarterly",
       observedDividendCagr: 6.78,
       payoutMonths: [
@@ -3266,8 +3265,8 @@ var marketData_generated_default = {
       }
     },
     ECL: {
-      initialPrice: 271.26,
-      dividendYield: 1.08,
+      initialPrice: 300.68,
+      dividendYield: 0.97,
       frequency: "quarterly",
       observedDividendCagr: 7.23,
       payoutMonths: [
@@ -3279,8 +3278,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     ED: {
-      initialPrice: 103.5,
-      dividendYield: 3.4,
+      initialPrice: 118.56,
+      dividendYield: 2.96,
       frequency: "quarterly",
       observedDividendCagr: 2.13,
       payoutMonths: [
@@ -3299,8 +3298,8 @@ var marketData_generated_default = {
       }
     },
     EL: {
-      initialPrice: 90.19,
-      dividendYield: 1.55,
+      initialPrice: 110.06,
+      dividendYield: 1.27,
       frequency: "quarterly",
       payoutMonths: [
         3,
@@ -3318,8 +3317,8 @@ var marketData_generated_default = {
       }
     },
     ELV: {
-      initialPrice: 381.67,
-      dividendYield: 1.8,
+      initialPrice: 425.62,
+      dividendYield: 1.61,
       frequency: "quarterly",
       observedDividendCagr: 12.47,
       payoutMonths: [
@@ -3331,8 +3330,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     EMR: {
-      initialPrice: 158.57,
-      dividendYield: 1.4,
+      initialPrice: 162.35,
+      dividendYield: 1.37,
       frequency: "quarterly",
       observedDividendCagr: 1.3,
       payoutMonths: [
@@ -3344,8 +3343,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     ENB: {
-      initialPrice: 46.27,
-      dividendYield: 4.57,
+      initialPrice: 46.89,
+      dividendYield: 4.51,
       frequency: "quarterly",
       observedDividendCagr: -3.39,
       payoutMonths: [
@@ -3364,10 +3363,10 @@ var marketData_generated_default = {
       }
     },
     EOG: {
-      initialPrice: 141.31,
-      dividendYield: 2.89,
+      initialPrice: 147.13,
+      dividendYield: 2.77,
       frequency: "quarterly",
-      observedDividendCagr: 22.8,
+      observedDividendCagr: -2.43,
       payoutMonths: [
         1,
         4,
@@ -3377,10 +3376,10 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     EPD: {
-      initialPrice: 35.67,
-      dividendYield: 6.18,
+      initialPrice: 37.03,
+      dividendYield: 6,
       frequency: "quarterly",
-      observedDividendCagr: 3.95,
+      observedDividendCagr: 4.28,
       payoutMonths: [
         1,
         4,
@@ -3390,7 +3389,7 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     EQIX: {
-      initialPrice: 1012.33,
+      initialPrice: 1012.71,
       dividendYield: 1.99,
       frequency: "quarterly",
       observedDividendCagr: 12.01,
@@ -3416,8 +3415,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     ES: {
-      initialPrice: 64.31,
-      dividendYield: 4.85,
+      initialPrice: 69.84,
+      dividendYield: 4.46,
       frequency: "quarterly",
       observedDividendCagr: 5.8,
       payoutMonths: [
@@ -3429,8 +3428,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     ESGU: {
-      initialPrice: 167.3,
-      dividendYield: 0.93,
+      initialPrice: 160.66,
+      dividendYield: 0.96,
       frequency: "quarterly",
       observedDividendCagr: 6.18,
       payoutMonths: [
@@ -3442,8 +3441,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     ESS: {
-      initialPrice: 269.51,
-      dividendYield: 3.84,
+      initialPrice: 272.18,
+      dividendYield: 3.8,
       frequency: "quarterly",
       observedDividendCagr: 4.34,
       payoutMonths: [
@@ -3455,10 +3454,10 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     ET: {
-      initialPrice: 20.1,
-      dividendYield: 6.7,
+      initialPrice: 18.92,
+      dividendYield: 7.17,
       frequency: "quarterly",
-      observedDividendCagr: 4.26,
+      observedDividendCagr: 17.25,
       payoutMonths: [
         2,
         5,
@@ -3468,8 +3467,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     ETN: {
-      initialPrice: 437.28,
-      dividendYield: 0.99,
+      initialPrice: 341.72,
+      dividendYield: 0.97,
       frequency: "quarterly",
       observedDividendCagr: 12.95,
       payoutMonths: [
@@ -3488,10 +3487,10 @@ var marketData_generated_default = {
       }
     },
     EWBC: {
-      initialPrice: 125.02,
-      dividendYield: 2.4,
+      initialPrice: 128.84,
+      dividendYield: 2.48,
       frequency: "quarterly",
-      observedDividendCagr: 16.89,
+      observedDividendCagr: 19.38,
       payoutMonths: [
         2,
         5,
@@ -3501,8 +3500,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     EWJ: {
-      initialPrice: 97.38,
-      dividendYield: 3.66,
+      initialPrice: 88.26,
+      dividendYield: 4.04,
       frequency: "quarterly",
       payoutMonths: [
         6,
@@ -3516,8 +3515,8 @@ var marketData_generated_default = {
       }
     },
     EWJV: {
-      initialPrice: 48.02,
-      dividendYield: 4.65,
+      initialPrice: 45.5,
+      dividendYield: 4.91,
       frequency: "quarterly",
       payoutMonths: [
         6,
@@ -3526,8 +3525,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     EXC: {
-      initialPrice: 40.47,
-      dividendYield: 4.1,
+      initialPrice: 45.62,
+      dividendYield: 3.64,
       frequency: "quarterly",
       observedDividendCagr: 7.92,
       payoutMonths: [
@@ -3546,8 +3545,8 @@ var marketData_generated_default = {
       }
     },
     EXPD: {
-      initialPrice: 187.74,
-      dividendYield: 0.84,
+      initialPrice: 184.61,
+      dividendYield: 0.86,
       frequency: "quarterly",
       payoutMonths: [
         6,
@@ -3561,8 +3560,8 @@ var marketData_generated_default = {
       }
     },
     EXR: {
-      initialPrice: 133.08,
-      dividendYield: 4.87,
+      initialPrice: 159.19,
+      dividendYield: 4.07,
       frequency: "quarterly",
       observedDividendCagr: 12.47,
       payoutMonths: [
@@ -3574,8 +3573,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     F: {
-      initialPrice: 12.27,
-      dividendYield: 4.89,
+      initialPrice: 12.44,
+      dividendYield: 3.62,
       frequency: "quarterly",
       payoutMonths: [
         2,
@@ -3586,10 +3585,10 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     FAST: {
-      initialPrice: 50.23,
-      dividendYield: 1.91,
+      initialPrice: 52.99,
+      dividendYield: 1.89,
       frequency: "quarterly",
-      observedDividendCagr: 4.56,
+      observedDividendCagr: 12.3,
       payoutMonths: [
         1,
         4,
@@ -3599,8 +3598,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     FCX: {
-      initialPrice: 69.28,
-      dividendYield: 0.87,
+      initialPrice: 59.42,
+      dividendYield: 1.01,
       frequency: "quarterly",
       payoutMonths: [
         1,
@@ -3611,8 +3610,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     FDL: {
-      initialPrice: 49.25,
-      dividendYield: 3.94,
+      initialPrice: 53.28,
+      dividendYield: 3.64,
       frequency: "quarterly",
       observedDividendCagr: 6.17,
       payoutMonths: [
@@ -3624,8 +3623,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     FDVV: {
-      initialPrice: 60.57,
-      dividendYield: 2.83,
+      initialPrice: 61.51,
+      dividendYield: 2.79,
       frequency: "quarterly",
       observedDividendCagr: 9.8,
       payoutMonths: [
@@ -3644,8 +3643,8 @@ var marketData_generated_default = {
       }
     },
     FDX: {
-      initialPrice: 287.07,
-      dividendYield: 1.66,
+      initialPrice: 308.14,
+      dividendYield: 1.55,
       frequency: "quarterly",
       observedDividendCagr: 17.12,
       payoutMonths: [
@@ -3664,8 +3663,8 @@ var marketData_generated_default = {
       }
     },
     FERG: {
-      initialPrice: 221.49,
-      dividendYield: 1.61,
+      initialPrice: 233.7,
+      dividendYield: 1.52,
       frequency: "quarterly",
       payoutMonths: [
         3,
@@ -3676,8 +3675,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     FLJP: {
-      initialPrice: 41.33,
-      dividendYield: 4.09,
+      initialPrice: 37.71,
+      dividendYield: 4.48,
       frequency: "semiannual",
       observedDividendCagr: 31.51,
       payoutMonths: [
@@ -3687,10 +3686,10 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     FRT: {
-      initialPrice: 108.03,
-      dividendYield: 3.14,
+      initialPrice: 112.58,
+      dividendYield: 4.04,
       frequency: "quarterly",
-      observedDividendCagr: 0.98,
+      observedDividendCagr: 1.33,
       payoutMonths: [
         1,
         4,
@@ -3700,8 +3699,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     FTHI: {
-      initialPrice: 23.6,
-      dividendYield: 8.96,
+      initialPrice: 22.62,
+      dividendYield: 9.35,
       frequency: "monthly",
       observedDividendCagr: 16.44,
       payoutMonths: [
@@ -3721,8 +3720,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     FTQI: {
-      initialPrice: 22.2,
-      dividendYield: 11.26,
+      initialPrice: 20.59,
+      dividendYield: 12.21,
       frequency: "monthly",
       observedDividendCagr: 29.3,
       payoutMonths: [
@@ -3742,8 +3741,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     FVD: {
-      initialPrice: 46.98,
-      dividendYield: 2.39,
+      initialPrice: 50.98,
+      dividendYield: 2.2,
       frequency: "quarterly",
       observedDividendCagr: 6.05,
       payoutMonths: [
@@ -3762,10 +3761,10 @@ var marketData_generated_default = {
       }
     },
     GD: {
-      initialPrice: 332.72,
-      dividendYield: 1.86,
+      initialPrice: 354.06,
+      dividendYield: 1.77,
       frequency: "quarterly",
-      observedDividendCagr: 6.5,
+      observedDividendCagr: 6.07,
       payoutMonths: [
         1,
         4,
@@ -3775,8 +3774,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     GE: {
-      initialPrice: 312.39,
-      dividendYield: 0.42,
+      initialPrice: 323.24,
+      dividendYield: 0.55,
       frequency: "quarterly",
       observedDividendCagr: 48.51,
       payoutMonths: [
@@ -3788,8 +3787,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     GILD: {
-      initialPrice: 147.5,
-      dividendYield: 2.2,
+      initialPrice: 166.89,
+      dividendYield: 1.95,
       frequency: "quarterly",
       observedDividendCagr: 3.04,
       payoutMonths: [
@@ -3808,10 +3807,10 @@ var marketData_generated_default = {
       }
     },
     GIS: {
-      initialPrice: 31.67,
-      dividendYield: 7.7,
+      initialPrice: 35.51,
+      dividendYield: 6.87,
       frequency: "quarterly",
-      observedDividendCagr: 4.1,
+      observedDividendCagr: 3.65,
       payoutMonths: [
         1,
         4,
@@ -3821,8 +3820,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     GLW: {
-      initialPrice: 160.42,
-      dividendYield: 0.7,
+      initialPrice: 106.13,
+      dividendYield: 1.06,
       frequency: "quarterly",
       observedDividendCagr: 4.94,
       payoutMonths: [
@@ -3834,8 +3833,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     GM: {
-      initialPrice: 79.31,
-      dividendYield: 0.87,
+      initialPrice: 86.16,
+      dividendYield: 0.8,
       frequency: "quarterly",
       payoutMonths: [
         3,
@@ -3846,8 +3845,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     GOOGL: {
-      initialPrice: 338.24,
-      dividendYield: 0.25,
+      initialPrice: 284.78,
+      dividendYield: 0.3,
       frequency: "quarterly",
       payoutMonths: [
         3,
@@ -3858,8 +3857,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     GPC: {
-      initialPrice: 125.12,
-      dividendYield: 3.37,
+      initialPrice: 122.8,
+      dividendYield: 3.44,
       frequency: "quarterly",
       observedDividendCagr: 5.45,
       payoutMonths: [
@@ -3871,8 +3870,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     GPIQ: {
-      initialPrice: 57.61,
-      dividendYield: 9.13,
+      initialPrice: 51.26,
+      dividendYield: 10.32,
       frequency: "monthly",
       payoutMonths: [
         1,
@@ -3891,8 +3890,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     GPIX: {
-      initialPrice: 55.52,
-      dividendYield: 7.55,
+      initialPrice: 53.36,
+      dividendYield: 7.89,
       frequency: "monthly",
       payoutMonths: [
         1,
@@ -3908,8 +3907,8 @@ var marketData_generated_default = {
         11,
         12
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 6,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "1": 8,
         "2": 7,
@@ -3926,8 +3925,8 @@ var marketData_generated_default = {
       }
     },
     GS: {
-      initialPrice: 896.67,
-      dividendYield: 2.01,
+      initialPrice: 865.82,
+      dividendYield: 2.08,
       frequency: "quarterly",
       observedDividendCagr: 22.87,
       payoutMonths: [
@@ -3939,8 +3938,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     GWW: {
-      initialPrice: 1281.68,
-      dividendYield: 0.74,
+      initialPrice: 1440.7,
+      dividendYield: 0.66,
       frequency: "quarterly",
       observedDividendCagr: 8.25,
       payoutMonths: [
@@ -3952,8 +3951,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     HD: {
-      initialPrice: 282.46,
-      dividendYield: 3.29,
+      initialPrice: 343.47,
+      dividendYield: 2.7,
       frequency: "quarterly",
       observedDividendCagr: 8.92,
       payoutMonths: [
@@ -3965,8 +3964,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     HDV: {
-      initialPrice: 27.98,
-      dividendYield: 3.05,
+      initialPrice: 30.35,
+      dividendYield: 3.16,
       frequency: "monthly",
       observedDividendCagr: 1.86,
       payoutMonths: [
@@ -3985,8 +3984,8 @@ var marketData_generated_default = {
       }
     },
     HIG: {
-      initialPrice: 125.74,
-      dividendYield: 1.91,
+      initialPrice: 133.99,
+      dividendYield: 1.79,
       frequency: "quarterly",
       observedDividendCagr: 10.69,
       payoutMonths: [
@@ -3998,8 +3997,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     HON: {
-      initialPrice: 213.8,
-      dividendYield: 2.08,
+      initialPrice: 220.05,
+      dividendYield: 2.02,
       frequency: "quarterly",
       observedDividendCagr: 5.09,
       payoutMonths: [
@@ -4011,8 +4010,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     HPQ: {
-      initialPrice: 32.15,
-      dividendYield: 3.73,
+      initialPrice: 28.46,
+      dividendYield: 4.22,
       frequency: "quarterly",
       observedDividendCagr: 10.08,
       payoutMonths: [
@@ -4024,8 +4023,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     HRB: {
-      initialPrice: 42.32,
-      dividendYield: 4.06,
+      initialPrice: 52.69,
+      dividendYield: 3.26,
       frequency: "quarterly",
       observedDividendCagr: 8.86,
       payoutMonths: [
@@ -4037,10 +4036,10 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     HRL: {
-      initialPrice: 19.96,
-      dividendYield: 5.86,
+      initialPrice: 21.95,
+      dividendYield: 5.34,
       frequency: "quarterly",
-      observedDividendCagr: 4.47,
+      observedDividendCagr: 3.64,
       payoutMonths: [
         1,
         4,
@@ -4050,8 +4049,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     HSY: {
-      initialPrice: 159.3,
-      dividendYield: 3.59,
+      initialPrice: 178.08,
+      dividendYield: 3.22,
       frequency: "quarterly",
       observedDividendCagr: 11.68,
       payoutMonths: [
@@ -4063,8 +4062,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     HUM: {
-      initialPrice: 379.68,
-      dividendYield: 0.7,
+      initialPrice: 433.74,
+      dividendYield: 0.82,
       frequency: "quarterly",
       observedDividendCagr: 7.2,
       payoutMonths: [
@@ -4076,8 +4075,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     HYEM: {
-      initialPrice: 19.26,
-      dividendYield: 6.51,
+      initialPrice: 19.18,
+      dividendYield: 6.52,
       frequency: "monthly",
       observedDividendCagr: -0.03,
       payoutMonths: [
@@ -4097,8 +4096,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     IBM: {
-      initialPrice: 225.62,
-      dividendYield: 2.99,
+      initialPrice: 245,
+      dividendYield: 2.75,
       frequency: "quarterly",
       observedDividendCagr: 1.52,
       payoutMonths: [
@@ -4110,8 +4109,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     IDV: {
-      initialPrice: 41.49,
-      dividendYield: 5.84,
+      initialPrice: 42.22,
+      dividendYield: 5.74,
       frequency: "quarterly",
       observedDividendCagr: 3.87,
       payoutMonths: [
@@ -4130,8 +4129,8 @@ var marketData_generated_default = {
       }
     },
     IDVO: {
-      initialPrice: 41.12,
-      dividendYield: 6.04,
+      initialPrice: 38.83,
+      dividendYield: 6.42,
       frequency: "monthly",
       payoutMonths: [
         1,
@@ -4165,8 +4164,8 @@ var marketData_generated_default = {
       }
     },
     IGRO: {
-      initialPrice: 87.91,
-      dividendYield: 2.74,
+      initialPrice: 92,
+      dividendYield: 2.62,
       frequency: "quarterly",
       observedDividendCagr: 6.41,
       payoutMonths: [
@@ -4178,7 +4177,7 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     IGV: {
-      initialPrice: 108.23,
+      initialPrice: 98.88,
       dividendYield: 0.02,
       frequency: "annual",
       payoutMonths: [
@@ -4193,8 +4192,8 @@ var marketData_generated_default = {
       observedDividendCagr: -9.22
     },
     IQDG: {
-      initialPrice: 42.02,
-      dividendYield: 2.41,
+      initialPrice: 41.78,
+      dividendYield: 2.42,
       frequency: "quarterly",
       observedDividendCagr: 9.45,
       payoutMonths: [
@@ -4206,8 +4205,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     IRM: {
-      initialPrice: 111.13,
-      dividendYield: 3.11,
+      initialPrice: 106.52,
+      dividendYield: 3.24,
       frequency: "quarterly",
       observedDividendCagr: 5.39,
       payoutMonths: [
@@ -4219,8 +4218,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     ISPY: {
-      initialPrice: 47.62,
-      dividendYield: 5.04,
+      initialPrice: 46,
+      dividendYield: 5.61,
       frequency: "monthly",
       payoutMonths: [
         1,
@@ -4239,8 +4238,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     ITW: {
-      initialPrice: 260.84,
-      dividendYield: 2.51,
+      initialPrice: 280.95,
+      dividendYield: 2.33,
       frequency: "quarterly",
       observedDividendCagr: 7.07,
       payoutMonths: [
@@ -4252,8 +4251,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     IVV: {
-      initialPrice: 767.38,
-      dividendYield: 1.09,
+      initialPrice: 738.68,
+      dividendYield: 1.14,
       frequency: "quarterly",
       observedDividendCagr: 6.36,
       payoutMonths: [
@@ -4272,8 +4271,8 @@ var marketData_generated_default = {
       }
     },
     IWMI: {
-      initialPrice: 49.08,
-      dividendYield: 14.79,
+      initialPrice: 48.04,
+      dividendYield: 15.07,
       frequency: "monthly",
       payoutMonths: [
         1,
@@ -4292,8 +4291,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     IXN: {
-      initialPrice: 149.81,
-      dividendYield: 0.73,
+      initialPrice: 123.58,
+      dividendYield: 0.89,
       frequency: "quarterly",
       payoutMonths: [
         6,
@@ -4302,8 +4301,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     IYK: {
-      initialPrice: 70.68,
-      dividendYield: 2.67,
+      initialPrice: 78.41,
+      dividendYield: 2.41,
       frequency: "quarterly",
       observedDividendCagr: 17.51,
       payoutMonths: [
@@ -4315,8 +4314,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     IYRI: {
-      initialPrice: 44.88,
-      dividendYield: 11.96,
+      initialPrice: 47.09,
+      dividendYield: 11.29,
       frequency: "monthly",
       payoutMonths: [
         1,
@@ -4335,8 +4334,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     JCI: {
-      initialPrice: 151.77,
-      dividendYield: 0.79,
+      initialPrice: 135.03,
+      dividendYield: 0.89,
       frequency: "quarterly",
       observedDividendCagr: -6.58,
       payoutMonths: [
@@ -4348,8 +4347,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     JEF: {
-      initialPrice: 45.25,
-      dividendYield: 3.54,
+      initialPrice: 47.38,
+      dividendYield: 3.38,
       frequency: "quarterly",
       observedDividendCagr: 22.77,
       payoutMonths: [
@@ -4361,8 +4360,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     JEPI: {
-      initialPrice: 55.93,
-      dividendYield: 7.55,
+      initialPrice: 56.43,
+      dividendYield: 7.47,
       frequency: "monthly",
       payoutMonths: [
         1,
@@ -4396,8 +4395,8 @@ var marketData_generated_default = {
       }
     },
     JEPQ: {
-      initialPrice: 60.81,
-      dividendYield: 10.39,
+      initialPrice: 54.34,
+      dividendYield: 11.8,
       frequency: "monthly",
       payoutMonths: [
         1,
@@ -4431,8 +4430,8 @@ var marketData_generated_default = {
       }
     },
     JNJ: {
-      initialPrice: 258.66,
-      dividendYield: 2.04,
+      initialPrice: 276.22,
+      dividendYield: 1.91,
       frequency: "quarterly",
       observedDividendCagr: 5.25,
       payoutMonths: [
@@ -4444,10 +4443,10 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     JPM: {
-      initialPrice: 333.18,
-      dividendYield: 1.8,
+      initialPrice: 334.49,
+      dividendYield: 1.84,
       frequency: "quarterly",
-      observedDividendCagr: 9.04,
+      observedDividendCagr: 10.7,
       payoutMonths: [
         1,
         4,
@@ -4457,8 +4456,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     KDP: {
-      initialPrice: 30.69,
-      dividendYield: 3,
+      initialPrice: 36.63,
+      dividendYield: 2.51,
       frequency: "quarterly",
       observedDividendCagr: 6.36,
       payoutMonths: [
@@ -4470,8 +4469,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     KHC: {
-      initialPrice: 22.46,
-      dividendYield: 7.12,
+      initialPrice: 24.61,
+      dividendYield: 6.5,
       frequency: "quarterly",
       observedDividendCagr: 0,
       payoutMonths: [
@@ -4483,8 +4482,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     KIM: {
-      initialPrice: 22.21,
-      dividendYield: 4.77,
+      initialPrice: 25.52,
+      dividendYield: 4.15,
       frequency: "quarterly",
       payoutMonths: [
         3,
@@ -4495,8 +4494,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     KLAC: {
-      initialPrice: 200.33,
-      dividendYield: 0.42,
+      initialPrice: 138.49,
+      dividendYield: 0.61,
       frequency: "quarterly",
       observedDividendCagr: 16.15,
       payoutMonths: [
@@ -4515,8 +4514,8 @@ var marketData_generated_default = {
       }
     },
     KMB: {
-      initialPrice: 94.34,
-      dividendYield: 5.41,
+      initialPrice: 108.43,
+      dividendYield: 4.7,
       frequency: "quarterly",
       observedDividendCagr: 3.32,
       payoutMonths: [
@@ -4528,10 +4527,10 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     KMI: {
-      initialPrice: 30.53,
-      dividendYield: 3.87,
+      initialPrice: 29.96,
+      dividendYield: 3.96,
       frequency: "quarterly",
-      observedDividendCagr: 2.35,
+      observedDividendCagr: 2.04,
       payoutMonths: [
         2,
         5,
@@ -4548,8 +4547,8 @@ var marketData_generated_default = {
       }
     },
     KNG: {
-      initialPrice: 48.13,
-      dividendYield: 8.75,
+      initialPrice: 52.14,
+      dividendYield: 8.1,
       frequency: "monthly",
       payoutMonths: [
         1,
@@ -4568,8 +4567,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     KO: {
-      initialPrice: 86.1,
-      dividendYield: 2.44,
+      initialPrice: 95.67,
+      dividendYield: 2.2,
       frequency: "quarterly",
       observedDividendCagr: 4.46,
       payoutMonths: [
@@ -4588,8 +4587,8 @@ var marketData_generated_default = {
       }
     },
     KR: {
-      initialPrice: 59.48,
-      dividendYield: 2.42,
+      initialPrice: 67.7,
+      dividendYield: 2.13,
       frequency: "quarterly",
       observedDividendCagr: 14.53,
       payoutMonths: [
@@ -4601,10 +4600,10 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     LEN: {
-      initialPrice: 82.11,
-      dividendYield: 2.44,
+      initialPrice: 88.74,
+      dividendYield: 2.25,
       frequency: "quarterly",
-      observedDividendCagr: 27.01,
+      observedDividendCagr: 15.62,
       payoutMonths: [
         1,
         4,
@@ -4614,8 +4613,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     LHX: {
-      initialPrice: 238.4,
-      dividendYield: 2.08,
+      initialPrice: 259.89,
+      dividendYield: 1.9,
       frequency: "quarterly",
       observedDividendCagr: 7.14,
       payoutMonths: [
@@ -4634,8 +4633,8 @@ var marketData_generated_default = {
       }
     },
     LIN: {
-      initialPrice: 469.45,
-      dividendYield: 1.34,
+      initialPrice: 515.25,
+      dividendYield: 1.22,
       frequency: "quarterly",
       observedDividendCagr: 9.27,
       payoutMonths: [
@@ -4647,8 +4646,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     LLY: {
-      initialPrice: 1149.85,
-      dividendYield: 0.58,
+      initialPrice: 1354,
+      dividendYield: 0.49,
       frequency: "quarterly",
       observedDividendCagr: 15.18,
       payoutMonths: [
@@ -4660,8 +4659,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     LMT: {
-      initialPrice: 505.5,
-      dividendYield: 2.73,
+      initialPrice: 567.08,
+      dividendYield: 2.43,
       frequency: "quarterly",
       observedDividendCagr: 6.38,
       payoutMonths: [
@@ -4680,10 +4679,10 @@ var marketData_generated_default = {
       }
     },
     LOW: {
-      initialPrice: 182.38,
-      dividendYield: 2.66,
+      initialPrice: 224.55,
+      dividendYield: 2.18,
       frequency: "quarterly",
-      observedDividendCagr: 15.87,
+      observedDividendCagr: 11.84,
       payoutMonths: [
         2,
         5,
@@ -4700,8 +4699,8 @@ var marketData_generated_default = {
       }
     },
     LRCX: {
-      initialPrice: 340.1,
-      dividendYield: 0.33,
+      initialPrice: 200.44,
+      dividendYield: 0.55,
       frequency: "quarterly",
       observedDividendCagr: 14.87,
       payoutMonths: [
@@ -4713,8 +4712,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     LUV: {
-      initialPrice: 41.84,
-      dividendYield: 1.72,
+      initialPrice: 44.45,
+      dividendYield: 1.62,
       frequency: "quarterly",
       payoutMonths: [
         3,
@@ -4725,8 +4724,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     M: {
-      initialPrice: 22.76,
-      dividendYield: 3.33,
+      initialPrice: 23.08,
+      dividendYield: 3.28,
       frequency: "quarterly",
       payoutMonths: [
         3,
@@ -4737,10 +4736,10 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     MA: {
-      initialPrice: 550,
-      dividendYield: 0.61,
+      initialPrice: 652.7,
+      dividendYield: 0.53,
       frequency: "quarterly",
-      observedDividendCagr: 13.7,
+      observedDividendCagr: 14.61,
       payoutMonths: [
         2,
         5,
@@ -4757,10 +4756,10 @@ var marketData_generated_default = {
       }
     },
     MAA: {
-      initialPrice: 116.38,
-      dividendYield: 5.25,
+      initialPrice: 118.93,
+      dividendYield: 5.15,
       frequency: "quarterly",
-      observedDividendCagr: 8.66,
+      observedDividendCagr: 8.34,
       payoutMonths: [
         1,
         4,
@@ -4770,10 +4769,10 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     MAS: {
-      initialPrice: 68.28,
-      dividendYield: 1.86,
+      initialPrice: 82.22,
+      dividendYield: 1.56,
       frequency: "quarterly",
-      observedDividendCagr: 17.87,
+      observedDividendCagr: 8.66,
       payoutMonths: [
         2,
         5,
@@ -4783,8 +4782,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     MCD: {
-      initialPrice: 231.83,
-      dividendYield: 3.21,
+      initialPrice: 276.52,
+      dividendYield: 2.69,
       frequency: "quarterly",
       observedDividendCagr: 7.3,
       payoutMonths: [
@@ -4796,8 +4795,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     MCK: {
-      initialPrice: 898.82,
-      dividendYield: 0.38,
+      initialPrice: 1060.84,
+      dividendYield: 0.32,
       frequency: "quarterly",
       observedDividendCagr: 13.01,
       payoutMonths: [
@@ -4809,8 +4808,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     MCO: {
-      initialPrice: 447.36,
-      dividendYield: 0.9,
+      initialPrice: 505.67,
+      dividendYield: 0.8,
       frequency: "quarterly",
       observedDividendCagr: 10.91,
       payoutMonths: [
@@ -4829,8 +4828,8 @@ var marketData_generated_default = {
       }
     },
     MDLZ: {
-      initialPrice: 57.76,
-      dividendYield: 3.5,
+      initialPrice: 66.02,
+      dividendYield: 3.06,
       frequency: "quarterly",
       observedDividendCagr: 10.08,
       payoutMonths: [
@@ -4849,8 +4848,8 @@ var marketData_generated_default = {
       }
     },
     MDT: {
-      initialPrice: 86.44,
-      dividendYield: 3.31,
+      initialPrice: 101.8,
+      dividendYield: 2.81,
       frequency: "quarterly",
       observedDividendCagr: 4.42,
       payoutMonths: [
@@ -4862,8 +4861,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     MET: {
-      initialPrice: 94.35,
-      dividendYield: 2.46,
+      initialPrice: 98.27,
+      dividendYield: 2.39,
       frequency: "quarterly",
       observedDividendCagr: 4.32,
       payoutMonths: [
@@ -4875,8 +4874,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     META: {
-      initialPrice: 725.93,
-      dividendYield: 0.29,
+      initialPrice: 610.15,
+      dividendYield: 0.34,
       frequency: "quarterly",
       payoutMonths: [
         3,
@@ -4887,8 +4886,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     MGK: {
-      initialPrice: 92.76,
-      dividendYield: 0.24,
+      initialPrice: 83.64,
+      dividendYield: 0.36,
       frequency: "quarterly",
       observedDividendCagr: 1.93,
       payoutMonths: [
@@ -4907,8 +4906,8 @@ var marketData_generated_default = {
       }
     },
     MKC: {
-      initialPrice: 44.14,
-      dividendYield: 4.28,
+      initialPrice: 48.4,
+      dividendYield: 3.97,
       frequency: "quarterly",
       observedDividendCagr: 7.58,
       payoutMonths: [
@@ -4920,8 +4919,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     MMM: {
-      initialPrice: 163.02,
-      dividendYield: 1.88,
+      initialPrice: 185.15,
+      dividendYield: 1.66,
       frequency: "quarterly",
       observedDividendCagr: -9.9,
       payoutMonths: [
@@ -4933,8 +4932,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     MO: {
-      initialPrice: 66.95,
-      dividendYield: 6.41,
+      initialPrice: 76.12,
+      dividendYield: 5.64,
       frequency: "quarterly",
       observedDividendCagr: 4.12,
       payoutMonths: [
@@ -4946,8 +4945,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     MPC: {
-      initialPrice: 420.15,
-      dividendYield: 0.95,
+      initialPrice: 372.74,
+      dividendYield: 1.07,
       frequency: "quarterly",
       observedDividendCagr: 9.96,
       payoutMonths: [
@@ -4959,10 +4958,10 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     MPLX: {
-      initialPrice: 56.35,
-      dividendYield: 7.65,
+      initialPrice: 55.91,
+      dividendYield: 7.94,
       frequency: "quarterly",
-      observedDividendCagr: 7.48,
+      observedDividendCagr: 5.84,
       payoutMonths: [
         2,
         5,
@@ -4972,8 +4971,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     MRK: {
-      initialPrice: 143.81,
-      dividendYield: 2.36,
+      initialPrice: 146.73,
+      dividendYield: 2.32,
       frequency: "quarterly",
       observedDividendCagr: 6.75,
       payoutMonths: [
@@ -4985,10 +4984,10 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     MS: {
-      initialPrice: 188.01,
-      dividendYield: 2.21,
+      initialPrice: 181.44,
+      dividendYield: 2.37,
       frequency: "quarterly",
-      observedDividendCagr: 22.42,
+      observedDividendCagr: 15.41,
       payoutMonths: [
         1,
         4,
@@ -4998,8 +4997,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     MSCI: {
-      initialPrice: 545.39,
-      dividendYield: 1.46,
+      initialPrice: 641.01,
+      dividendYield: 1.24,
       frequency: "quarterly",
       observedDividendCagr: 19.78,
       payoutMonths: [
@@ -5011,8 +5010,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     MSFT: {
-      initialPrice: 512.8,
-      dividendYield: 0.71,
+      initialPrice: 530.61,
+      dividendYield: 0.69,
       frequency: "quarterly",
       observedDividendCagr: 10.22,
       payoutMonths: [
@@ -5024,8 +5023,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     MU: {
-      initialPrice: 1097.39,
-      dividendYield: 0.05,
+      initialPrice: 690,
+      dividendYield: 0.08,
       frequency: "quarterly",
       payoutMonths: [
         1,
@@ -5043,8 +5042,8 @@ var marketData_generated_default = {
       }
     },
     NDSN: {
-      initialPrice: 329.02,
-      dividendYield: 1.03,
+      initialPrice: 309.86,
+      dividendYield: 1.1,
       frequency: "quarterly",
       observedDividendCagr: 20.91,
       payoutMonths: [
@@ -5056,8 +5055,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     NEE: {
-      initialPrice: 76.35,
-      dividendYield: 3.19,
+      initialPrice: 86.95,
+      dividendYield: 2.8,
       frequency: "quarterly",
       observedDividendCagr: 10.13,
       payoutMonths: [
@@ -5069,8 +5068,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     NEM: {
-      initialPrice: 114.67,
-      dividendYield: 0.9,
+      initialPrice: 120.91,
+      dividendYield: 0.85,
       frequency: "quarterly",
       observedDividendCagr: -0.78,
       payoutMonths: [
@@ -5082,8 +5081,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     NKE: {
-      initialPrice: 35.15,
-      dividendYield: 4.67,
+      initialPrice: 38.59,
+      dividendYield: 4.25,
       frequency: "quarterly",
       observedDividendCagr: 9.77,
       payoutMonths: [
@@ -5095,10 +5094,10 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     NNN: {
-      initialPrice: 40.2,
-      dividendYield: 6.02,
+      initialPrice: 41.12,
+      dividendYield: 5.93,
       frequency: "quarterly",
-      observedDividendCagr: 2.66,
+      observedDividendCagr: 3.05,
       payoutMonths: [
         1,
         4,
@@ -5108,8 +5107,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     NOBL: {
-      initialPrice: 54.23,
-      dividendYield: 2.16,
+      initialPrice: 59.77,
+      dividendYield: 1.96,
       frequency: "quarterly",
       observedDividendCagr: 5.44,
       payoutMonths: [
@@ -5121,8 +5120,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     NOC: {
-      initialPrice: 482,
-      dividendYield: 1.98,
+      initialPrice: 525.01,
+      dividendYield: 1.82,
       frequency: "quarterly",
       observedDividendCagr: 9.66,
       payoutMonths: [
@@ -5134,10 +5133,10 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     NSC: {
-      initialPrice: 310.26,
-      dividendYield: 1.74,
+      initialPrice: 319.94,
+      dividendYield: 1.69,
       frequency: "quarterly",
-      observedDividendCagr: 7.51,
+      observedDividendCagr: 5.36,
       payoutMonths: [
         2,
         5,
@@ -5147,8 +5146,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     NUE: {
-      initialPrice: 235.98,
-      dividendYield: 0.95,
+      initialPrice: 244.97,
+      dividendYield: 0.91,
       frequency: "quarterly",
       observedDividendCagr: 6.49,
       payoutMonths: [
@@ -5167,8 +5166,8 @@ var marketData_generated_default = {
       }
     },
     NVDA: {
-      initialPrice: 230.86,
-      dividendYield: 0.23,
+      initialPrice: 186.64,
+      dividendYield: 0.28,
       frequency: "quarterly",
       observedDividendCagr: 20.11,
       payoutMonths: [
@@ -5180,8 +5179,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     NVS: {
-      initialPrice: 141.05,
-      dividendYield: 3.38,
+      initialPrice: 162.55,
+      dividendYield: 2.94,
       frequency: "semiannual",
       payoutMonths: [
         3
@@ -5193,10 +5192,10 @@ var marketData_generated_default = {
       }
     },
     NYT: {
-      initialPrice: 63.71,
-      dividendYield: 1.29,
+      initialPrice: 68.36,
+      dividendYield: 1.27,
       frequency: "quarterly",
-      observedDividendCagr: 23.84,
+      observedDividendCagr: 26.37,
       payoutMonths: [
         1,
         4,
@@ -5206,8 +5205,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     O: {
-      initialPrice: 53.53,
-      dividendYield: 6.07,
+      initialPrice: 59.04,
+      dividendYield: 5.5,
       frequency: "monthly",
       observedDividendCagr: 5.13,
       payoutMonths: [
@@ -5227,8 +5226,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     ODFL: {
-      initialPrice: 178.1,
-      dividendYield: 0.65,
+      initialPrice: 164.92,
+      dividendYield: 0.7,
       frequency: "quarterly",
       observedDividendCagr: 30,
       payoutMonths: [
@@ -5247,10 +5246,10 @@ var marketData_generated_default = {
       }
     },
     OKE: {
-      initialPrice: 87.16,
-      dividendYield: 4.86,
+      initialPrice: 85.19,
+      dividendYield: 5.02,
       frequency: "quarterly",
-      observedDividendCagr: 1.95,
+      observedDividendCagr: 2.73,
       payoutMonths: [
         2,
         5,
@@ -5260,10 +5259,10 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     ORCL: {
-      initialPrice: 138.07,
-      dividendYield: 1.45,
+      initialPrice: 116.1,
+      dividendYield: 1.72,
       frequency: "quarterly",
-      observedDividendCagr: 14.63,
+      observedDividendCagr: 10.76,
       payoutMonths: [
         1,
         4,
@@ -5273,8 +5272,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     OXY: {
-      initialPrice: 57.84,
-      dividendYield: 1.8,
+      initialPrice: 56.38,
+      dividendYield: 1.84,
       frequency: "quarterly",
       observedDividendCagr: 3.2,
       payoutMonths: [
@@ -5286,8 +5285,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     PAVE: {
-      initialPrice: 53.04,
-      dividendYield: 0.81,
+      initialPrice: 51.14,
+      dividendYield: 0.84,
       frequency: "semiannual",
       observedDividendCagr: 36.33,
       payoutMonths: [
@@ -5302,10 +5301,10 @@ var marketData_generated_default = {
       }
     },
     PAYX: {
-      initialPrice: 100.84,
-      dividendYield: 4.5,
+      initialPrice: 117.06,
+      dividendYield: 3.97,
       frequency: "quarterly",
-      observedDividendCagr: 11.22,
+      observedDividendCagr: 12.33,
       payoutMonths: [
         2,
         5,
@@ -5315,8 +5314,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     PBP: {
-      initialPrice: 23.32,
-      dividendYield: 12.11,
+      initialPrice: 22.56,
+      dividendYield: 12.48,
       frequency: "monthly",
       payoutMonths: [
         1,
@@ -5335,8 +5334,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     PCAR: {
-      initialPrice: 109.94,
-      dividendYield: 2.51,
+      initialPrice: 101.98,
+      dividendYield: 2.71,
       frequency: "quarterly",
       observedDividendCagr: 15.56,
       payoutMonths: [
@@ -5348,8 +5347,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     PEG: {
-      initialPrice: 67.89,
-      dividendYield: 3.89,
+      initialPrice: 72.61,
+      dividendYield: 3.64,
       frequency: "quarterly",
       observedDividendCagr: 5.15,
       payoutMonths: [
@@ -5361,8 +5360,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     PEP: {
-      initialPrice: 125.6,
-      dividendYield: 4.62,
+      initialPrice: 141.34,
+      dividendYield: 4.11,
       frequency: "quarterly",
       observedDividendCagr: 6.92,
       payoutMonths: [
@@ -5374,8 +5373,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     PEY: {
-      initialPrice: 22.85,
-      dividendYield: 4.58,
+      initialPrice: 24.68,
+      dividendYield: 4.25,
       frequency: "monthly",
       observedDividendCagr: 5.72,
       payoutMonths: [
@@ -5395,10 +5394,10 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     PFE: {
-      initialPrice: 28.12,
-      dividendYield: 6.12,
+      initialPrice: 29.39,
+      dividendYield: 5.85,
       frequency: "quarterly",
-      observedDividendCagr: 3.59,
+      observedDividendCagr: 1.97,
       payoutMonths: [
         1,
         5,
@@ -5408,10 +5407,10 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     PG: {
-      initialPrice: 143.95,
-      dividendYield: 2.98,
+      initialPrice: 165.4,
+      dividendYield: 2.61,
       frequency: "quarterly",
-      observedDividendCagr: 6.02,
+      observedDividendCagr: 4.92,
       payoutMonths: [
         1,
         4,
@@ -5421,10 +5420,10 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     PGR: {
-      initialPrice: 210.96,
-      dividendYield: 6.54,
+      initialPrice: 227.77,
+      dividendYield: 6.1,
       frequency: "quarterly",
-      observedDividendCagr: 13.08,
+      observedDividendCagr: 16.78,
       payoutMonths: [
         1,
         4,
@@ -5434,8 +5433,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     PH: {
-      initialPrice: 965.88,
-      dividendYield: 0.79,
+      initialPrice: 917.79,
+      dividendYield: 0.63,
       frequency: "quarterly",
       observedDividendCagr: 14.84,
       payoutMonths: [
@@ -5447,8 +5446,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     PLD: {
-      initialPrice: 128.18,
-      dividendYield: 3.29,
+      initialPrice: 126.96,
+      dividendYield: 3.32,
       frequency: "quarterly",
       observedDividendCagr: 11.73,
       payoutMonths: [
@@ -5460,10 +5459,10 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     PNC: {
-      initialPrice: 220.75,
-      dividendYield: 3.22,
+      initialPrice: 225.38,
+      dividendYield: 3.28,
       frequency: "quarterly",
-      observedDividendCagr: 7.49,
+      observedDividendCagr: 9.04,
       payoutMonths: [
         1,
         4,
@@ -5473,10 +5472,10 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     PNR: {
-      initialPrice: 52.88,
-      dividendYield: 2,
+      initialPrice: 68.12,
+      dividendYield: 1.59,
       frequency: "quarterly",
-      observedDividendCagr: 5.64,
+      observedDividendCagr: 6.19,
       payoutMonths: [
         1,
         4,
@@ -5486,8 +5485,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     PPG: {
-      initialPrice: 104.67,
-      dividendYield: 2.74,
+      initialPrice: 122.38,
+      dividendYield: 2.35,
       frequency: "quarterly",
       observedDividendCagr: 5.77,
       payoutMonths: [
@@ -5499,8 +5498,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     PPL: {
-      initialPrice: 32.76,
-      dividendYield: 3.44,
+      initialPrice: 35.8,
+      dividendYield: 3.15,
       frequency: "quarterly",
       observedDividendCagr: -8.03,
       payoutMonths: [
@@ -5512,8 +5511,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     PRU: {
-      initialPrice: 113.13,
-      dividendYield: 4.91,
+      initialPrice: 119.24,
+      dividendYield: 4.65,
       frequency: "quarterly",
       observedDividendCagr: 4.18,
       payoutMonths: [
@@ -5525,8 +5524,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     PSA: {
-      initialPrice: 284,
-      dividendYield: 4.23,
+      initialPrice: 337.46,
+      dividendYield: 3.56,
       frequency: "quarterly",
       observedDividendCagr: 8.45,
       payoutMonths: [
@@ -5545,8 +5544,8 @@ var marketData_generated_default = {
       }
     },
     PSX: {
-      initialPrice: 264.23,
-      dividendYield: 1.9,
+      initialPrice: 245.72,
+      dividendYield: 2.04,
       frequency: "quarterly",
       observedDividendCagr: 5.7,
       payoutMonths: [
@@ -5558,8 +5557,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     QCOM: {
-      initialPrice: 182.09,
-      dividendYield: 1.99,
+      initialPrice: 165.41,
+      dividendYield: 2.19,
       frequency: "quarterly",
       observedDividendCagr: 6.49,
       payoutMonths: [
@@ -5571,8 +5570,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     QDIV: {
-      initialPrice: 38.46,
-      dividendYield: 2.88,
+      initialPrice: 42.07,
+      dividendYield: 2.61,
       frequency: "monthly",
       observedDividendCagr: 6.3,
       payoutMonths: [
@@ -5592,8 +5591,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     QDVO: {
-      initialPrice: 29.99,
-      dividendYield: 10.5,
+      initialPrice: 27.38,
+      dividendYield: 11.58,
       frequency: "monthly",
       payoutMonths: [
         1,
@@ -5612,8 +5611,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     QLD: {
-      initialPrice: 96.24,
-      dividendYield: 0.13,
+      initialPrice: 74.11,
+      dividendYield: 0.17,
       frequency: "quarterly",
       payoutMonths: [
         3,
@@ -5624,8 +5623,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     QQQ: {
-      initialPrice: 742.03,
-      dividendYield: 0.42,
+      initialPrice: 656.1,
+      dividendYield: 0.47,
       frequency: "quarterly",
       payoutMonths: [
         3,
@@ -5636,8 +5635,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     QQQI: {
-      initialPrice: 55.67,
-      dividendYield: 13.73,
+      initialPrice: 49.48,
+      dividendYield: 15.42,
       frequency: "monthly",
       payoutMonths: [
         1,
@@ -5656,8 +5655,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     QQQM: {
-      initialPrice: 305.57,
-      dividendYield: 0.43,
+      initialPrice: 270.22,
+      dividendYield: 0.49,
       frequency: "quarterly",
       payoutMonths: [
         3,
@@ -5668,8 +5667,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     QQQT: {
-      initialPrice: 18.01,
-      dividendYield: 18.36,
+      initialPrice: 15.67,
+      dividendYield: 20.96,
       frequency: "monthly",
       payoutMonths: [
         1,
@@ -5688,8 +5687,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     QTUM: {
-      initialPrice: 153.25,
-      dividendYield: 0.92,
+      initialPrice: 123.37,
+      dividendYield: 1.14,
       frequency: "quarterly",
       observedDividendCagr: 42.89,
       payoutMonths: [
@@ -5701,8 +5700,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     QYLD: {
-      initialPrice: 18.57,
-      dividendYield: 11.49,
+      initialPrice: 17.11,
+      dividendYield: 12.52,
       frequency: "monthly",
       observedDividendCagr: -4.33,
       payoutMonths: [
@@ -5722,8 +5721,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     RDVY: {
-      initialPrice: 79.19,
-      dividendYield: 0.86,
+      initialPrice: 77.72,
+      dividendYield: 0.87,
       frequency: "quarterly",
       observedDividendCagr: 4.81,
       payoutMonths: [
@@ -5742,8 +5741,8 @@ var marketData_generated_default = {
       }
     },
     ROK: {
-      initialPrice: 442.45,
-      dividendYield: 1.25,
+      initialPrice: 375.86,
+      dividendYield: 1.47,
       frequency: "quarterly",
       observedDividendCagr: 5.15,
       payoutMonths: [
@@ -5762,10 +5761,10 @@ var marketData_generated_default = {
       }
     },
     ROP: {
-      initialPrice: 362.59,
-      dividendYield: 0.98,
+      initialPrice: 476.6,
+      dividendYield: 0.76,
       frequency: "quarterly",
-      observedDividendCagr: 9.97,
+      observedDividendCagr: 10.08,
       payoutMonths: [
         1,
         4,
@@ -5782,8 +5781,8 @@ var marketData_generated_default = {
       }
     },
     ROST: {
-      initialPrice: 234.1,
-      dividendYield: 0.74,
+      initialPrice: 231.09,
+      dividendYield: 0.75,
       frequency: "quarterly",
       payoutMonths: [
         3,
@@ -5801,10 +5800,10 @@ var marketData_generated_default = {
       }
     },
     RSG: {
-      initialPrice: 206.98,
-      dividendYield: 0.91,
+      initialPrice: 246.85,
+      dividendYield: 1.03,
       frequency: "quarterly",
-      observedDividendCagr: 7.34,
+      observedDividendCagr: 7.53,
       payoutMonths: [
         1,
         4,
@@ -5814,8 +5813,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     RTX: {
-      initialPrice: 185.01,
-      dividendYield: 1.52,
+      initialPrice: 189.53,
+      dividendYield: 1.49,
       frequency: "quarterly",
       observedDividendCagr: 7.18,
       payoutMonths: [
@@ -5827,8 +5826,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     RYLD: {
-      initialPrice: 15.48,
-      dividendYield: 12.1,
+      initialPrice: 15.22,
+      dividendYield: 12.27,
       frequency: "monthly",
       observedDividendCagr: -5.45,
       payoutMonths: [
@@ -5848,8 +5847,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     SAP: {
-      initialPrice: 210.79,
-      dividendYield: 1.39,
+      initialPrice: 233.45,
+      dividendYield: 1.25,
       frequency: "semiannual",
       payoutMonths: [
         5
@@ -5857,8 +5856,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     SBUX: {
-      initialPrice: 94.88,
-      dividendYield: 2.61,
+      initialPrice: 105.41,
+      dividendYield: 2.35,
       frequency: "quarterly",
       observedDividendCagr: 7.84,
       payoutMonths: [
@@ -5877,8 +5876,8 @@ var marketData_generated_default = {
       }
     },
     SCHD: {
-      initialPrice: 32.66,
-      dividendYield: 3.23,
+      initialPrice: 35.17,
+      dividendYield: 3,
       frequency: "quarterly",
       observedDividendCagr: 9.13,
       payoutMonths: [
@@ -5890,8 +5889,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     SCHG: {
-      initialPrice: 36,
-      dividendYield: 0.39,
+      initialPrice: 33.14,
+      dividendYield: 0.42,
       frequency: "quarterly",
       observedDividendCagr: 6.85,
       payoutMonths: [
@@ -5910,8 +5909,8 @@ var marketData_generated_default = {
       }
     },
     SCHH: {
-      initialPrice: 21.86,
-      dividendYield: 3.1,
+      initialPrice: 23.49,
+      dividendYield: 2.89,
       frequency: "quarterly",
       observedDividendCagr: 3.19,
       payoutMonths: [
@@ -5923,8 +5922,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     SCHW: {
-      initialPrice: 98.37,
-      dividendYield: 1.25,
+      initialPrice: 91.49,
+      dividendYield: 1.34,
       frequency: "quarterly",
       observedDividendCagr: 8.45,
       payoutMonths: [
@@ -5936,8 +5935,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     SCHY: {
-      initialPrice: 31.12,
-      dividendYield: 3.78,
+      initialPrice: 32.92,
+      dividendYield: 3.57,
       frequency: "quarterly",
       payoutMonths: [
         3,
@@ -5955,8 +5954,8 @@ var marketData_generated_default = {
       }
     },
     SDVY: {
-      initialPrice: 40.97,
-      dividendYield: 1.02,
+      initialPrice: 41.93,
+      dividendYield: 1,
       frequency: "quarterly",
       observedDividendCagr: 7.42,
       payoutMonths: [
@@ -5968,8 +5967,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     SDY: {
-      initialPrice: 147.49,
-      dividendYield: 2.56,
+      initialPrice: 160.87,
+      dividendYield: 2.35,
       frequency: "quarterly",
       observedDividendCagr: 3.75,
       payoutMonths: [
@@ -5988,8 +5987,8 @@ var marketData_generated_default = {
       }
     },
     SHEL: {
-      initialPrice: 95.61,
-      dividendYield: 3.16,
+      initialPrice: 99.09,
+      dividendYield: 3.05,
       frequency: "quarterly",
       observedDividendCagr: 8.41,
       payoutMonths: [
@@ -6008,8 +6007,8 @@ var marketData_generated_default = {
       }
     },
     SHW: {
-      initialPrice: 320.78,
-      dividendYield: 0.99,
+      initialPrice: 344.1,
+      dividendYield: 0.93,
       frequency: "quarterly",
       observedDividendCagr: 12.08,
       payoutMonths: [
@@ -6021,10 +6020,10 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     SIRI: {
-      initialPrice: 25.64,
-      dividendYield: 4.21,
+      initialPrice: 32.4,
+      dividendYield: 3.33,
       frequency: "quarterly",
-      observedDividendCagr: 14.87,
+      observedDividendCagr: 10.02,
       payoutMonths: [
         2,
         5,
@@ -6034,8 +6033,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     SJM: {
-      initialPrice: 115.95,
-      dividendYield: 3.81,
+      initialPrice: 130.55,
+      dividendYield: 3.39,
       frequency: "quarterly",
       observedDividendCagr: 4.14,
       payoutMonths: [
@@ -6047,8 +6046,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     SLB: {
-      initialPrice: 48.66,
-      dividendYield: 2.4,
+      initialPrice: 49.92,
+      dividendYield: 2.34,
       frequency: "quarterly",
       observedDividendCagr: 5.43,
       payoutMonths: [
@@ -6060,8 +6059,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     SMH: {
-      initialPrice: 617.81,
-      dividendYield: 0.18,
+      initialPrice: 463.96,
+      dividendYield: 0.24,
       frequency: "semiannual",
       payoutMonths: [
         12
@@ -6069,8 +6068,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     SO: {
-      initialPrice: 83.47,
-      dividendYield: 3.59,
+      initialPrice: 92.34,
+      dividendYield: 3.25,
       frequency: "quarterly",
       observedDividendCagr: 2.97,
       payoutMonths: [
@@ -6089,8 +6088,8 @@ var marketData_generated_default = {
       }
     },
     SPG: {
-      initialPrice: 200.81,
-      dividendYield: 4.43,
+      initialPrice: 228.42,
+      dividendYield: 3.9,
       frequency: "quarterly",
       observedDividendCagr: 7.34,
       payoutMonths: [
@@ -6102,8 +6101,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     SPGI: {
-      initialPrice: 388.16,
-      dividendYield: 0.96,
+      initialPrice: 467.8,
+      dividendYield: 0.79,
       frequency: "quarterly",
       observedDividendCagr: 7.46,
       payoutMonths: [
@@ -6115,8 +6114,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     SPHD: {
-      initialPrice: 48.08,
-      dividendYield: 5.13,
+      initialPrice: 52.22,
+      dividendYield: 4.76,
       frequency: "monthly",
       payoutMonths: [
         1,
@@ -6135,8 +6134,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     SPXL: {
-      initialPrice: 282.7,
-      dividendYield: 0.51,
+      initialPrice: 246.75,
+      dividendYield: 0.59,
       frequency: "quarterly",
       payoutMonths: [
         3,
@@ -6154,8 +6153,8 @@ var marketData_generated_default = {
       }
     },
     SPY: {
-      initialPrice: 763.99,
-      dividendYield: 0.99,
+      initialPrice: 735.29,
+      dividendYield: 1.03,
       frequency: "quarterly",
       observedDividendCagr: 5.05,
       payoutMonths: [
@@ -6174,8 +6173,8 @@ var marketData_generated_default = {
       }
     },
     SPYD: {
-      initialPrice: 45.48,
-      dividendYield: 4.53,
+      initialPrice: 49.41,
+      dividendYield: 4.17,
       frequency: "quarterly",
       observedDividendCagr: 3.69,
       payoutMonths: [
@@ -6187,8 +6186,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     SPYI: {
-      initialPrice: 53.28,
-      dividendYield: 11.9,
+      initialPrice: 51.29,
+      dividendYield: 12.33,
       frequency: "monthly",
       payoutMonths: [
         1,
@@ -6207,8 +6206,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     SPYT: {
-      initialPrice: 16.96,
-      dividendYield: 19.19,
+      initialPrice: 15.91,
+      dividendYield: 20.25,
       frequency: "monthly",
       payoutMonths: [
         1,
@@ -6227,8 +6226,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     SRE: {
-      initialPrice: 78.05,
-      dividendYield: 3.36,
+      initialPrice: 78.17,
+      dividendYield: 3.35,
       frequency: "quarterly",
       observedDividendCagr: 4.3,
       payoutMonths: [
@@ -6247,8 +6246,8 @@ var marketData_generated_default = {
       }
     },
     SRVR: {
-      initialPrice: 28.17,
-      dividendYield: 4.9,
+      initialPrice: 27.92,
+      dividendYield: 4.94,
       frequency: "quarterly",
       observedDividendCagr: 6.16,
       payoutMonths: [
@@ -6267,8 +6266,8 @@ var marketData_generated_default = {
       }
     },
     SSO: {
-      initialPrice: 69.59,
-      dividendYield: 0.68,
+      initialPrice: 63.85,
+      dividendYield: 0.75,
       frequency: "quarterly",
       payoutMonths: [
         3,
@@ -6279,10 +6278,10 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     STT: {
-      initialPrice: 174.62,
-      dividendYield: 1.44,
+      initialPrice: 165.56,
+      dividendYield: 2.08,
       frequency: "quarterly",
-      observedDividendCagr: 8.45,
+      observedDividendCagr: 9.55,
       payoutMonths: [
         1,
         4,
@@ -6292,21 +6291,21 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     STZ: {
-      initialPrice: 112.99,
-      dividendYield: 3.63,
+      initialPrice: 141.97,
+      dividendYield: 2.89,
       frequency: "quarterly",
       observedDividendCagr: 6.29,
       payoutMonths: [
         2,
         4,
         7,
-        8
+        10
       ],
       payoutMonthsSource: "ex"
     },
     SWK: {
-      initialPrice: 89.59,
-      dividendYield: 3.72,
+      initialPrice: 114.85,
+      dividendYield: 2.9,
       frequency: "quarterly",
       observedDividendCagr: 3.49,
       payoutMonths: [
@@ -6318,8 +6317,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     SYK: {
-      initialPrice: 272.96,
-      dividendYield: 1.29,
+      initialPrice: 325.87,
+      dividendYield: 1.08,
       frequency: "quarterly",
       observedDividendCagr: 7.62,
       payoutMonths: [
@@ -6331,10 +6330,10 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     SYY: {
-      initialPrice: 77.77,
-      dividendYield: 2.79,
+      initialPrice: 76.86,
+      dividendYield: 2.84,
       frequency: "quarterly",
-      observedDividendCagr: 3.13,
+      observedDividendCagr: 3.45,
       payoutMonths: [
         1,
         4,
@@ -6344,8 +6343,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     T: {
-      initialPrice: 24.3,
-      dividendYield: 4.58,
+      initialPrice: 21.63,
+      dividendYield: 5.14,
       frequency: "quarterly",
       observedDividendCagr: -11.77,
       payoutMonths: [
@@ -6357,8 +6356,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     TAP: {
-      initialPrice: 37.11,
-      dividendYield: 5.15,
+      initialPrice: 40.33,
+      dividendYield: 4.74,
       frequency: "quarterly",
       payoutMonths: [
         2,
@@ -6369,8 +6368,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     TDVG: {
-      initialPrice: 48.28,
-      dividendYield: 0.78,
+      initialPrice: 49.92,
+      dividendYield: 0.98,
       frequency: "quarterly",
       payoutMonths: [
         3,
@@ -6388,8 +6387,8 @@ var marketData_generated_default = {
       }
     },
     TFC: {
-      initialPrice: 46.28,
-      dividendYield: 4.49,
+      initialPrice: 49.38,
+      dividendYield: 4.21,
       frequency: "quarterly",
       observedDividendCagr: 2.93,
       payoutMonths: [
@@ -6408,8 +6407,8 @@ var marketData_generated_default = {
       }
     },
     TGT: {
-      initialPrice: 156.7,
-      dividendYield: 2.92,
+      initialPrice: 158.41,
+      dividendYield: 2.89,
       frequency: "quarterly",
       observedDividendCagr: 11.02,
       payoutMonths: [
@@ -6421,8 +6420,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     TMO: {
-      initialPrice: 652.51,
-      dividendYield: 0.28,
+      initialPrice: 694.76,
+      dividendYield: 0.26,
       frequency: "quarterly",
       observedDividendCagr: 14.34,
       payoutMonths: [
@@ -6434,7 +6433,7 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     TMUS: {
-      initialPrice: 161.73,
+      initialPrice: 162.01,
       dividendYield: 2.52,
       frequency: "quarterly",
       payoutMonths: [
@@ -6446,8 +6445,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     TNA: {
-      initialPrice: 58.37,
-      dividendYield: 0.31,
+      initialPrice: 53.73,
+      dividendYield: 0.34,
       frequency: "quarterly",
       payoutMonths: [
         3,
@@ -6458,8 +6457,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     TQQQ: {
-      initialPrice: 78.73,
-      dividendYield: 0.62,
+      initialPrice: 52.25,
+      dividendYield: 0.93,
       frequency: "quarterly",
       payoutMonths: [
         3,
@@ -6470,8 +6469,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     TROW: {
-      initialPrice: 105.83,
-      dividendYield: 4.89,
+      initialPrice: 108.41,
+      dividendYield: 4.77,
       frequency: "quarterly",
       observedDividendCagr: 7.13,
       payoutMonths: [
@@ -6483,8 +6482,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     TRV: {
-      initialPrice: 361.64,
-      dividendYield: 1.3,
+      initialPrice: 395.2,
+      dividendYield: 1.19,
       frequency: "quarterly",
       observedDividendCagr: 5.24,
       payoutMonths: [
@@ -6503,8 +6502,8 @@ var marketData_generated_default = {
       }
     },
     TSCO: {
-      initialPrice: 31.73,
-      dividendYield: 2.99,
+      initialPrice: 36.35,
+      dividendYield: 2.61,
       frequency: "quarterly",
       observedDividendCagr: 25.12,
       payoutMonths: [
@@ -6523,13 +6522,13 @@ var marketData_generated_default = {
       }
     },
     TSLA: {
-      initialPrice: 354.11,
+      initialPrice: 358.22,
       dividendYield: 0,
       frequency: "none"
     },
     TSM: {
-      initialPrice: 459.2,
-      dividendYield: 0.84,
+      initialPrice: 375.44,
+      dividendYield: 1.03,
       frequency: "quarterly",
       observedDividendCagr: 12.84,
       payoutMonths: [
@@ -6548,8 +6547,8 @@ var marketData_generated_default = {
       }
     },
     TSN: {
-      initialPrice: 50.47,
-      dividendYield: 4.04,
+      initialPrice: 59.68,
+      dividendYield: 3.42,
       frequency: "quarterly",
       observedDividendCagr: 3.35,
       payoutMonths: [
@@ -6561,8 +6560,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     TT: {
-      initialPrice: 458.94,
-      dividendYield: 0.69,
+      initialPrice: 401.76,
+      dividendYield: 0.78,
       frequency: "quarterly",
       observedDividendCagr: 5.87,
       payoutMonths: [
@@ -6574,10 +6573,10 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     TXN: {
-      initialPrice: 281.31,
-      dividendYield: 2.02,
+      initialPrice: 277.36,
+      dividendYield: 2.08,
       frequency: "quarterly",
-      observedDividendCagr: 8.13,
+      observedDividendCagr: 6.54,
       payoutMonths: [
         1,
         5,
@@ -6587,8 +6586,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     UNH: {
-      initialPrice: 365.2,
-      dividendYield: 2.48,
+      initialPrice: 394.15,
+      dividendYield: 2.3,
       frequency: "quarterly",
       observedDividendCagr: 12.57,
       payoutMonths: [
@@ -6600,8 +6599,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     UNP: {
-      initialPrice: 272.42,
-      dividendYield: 2.04,
+      initialPrice: 290.16,
+      dividendYield: 1.92,
       frequency: "quarterly",
       observedDividendCagr: 6.99,
       payoutMonths: [
@@ -6613,8 +6612,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     UPRO: {
-      initialPrice: 147.75,
-      dividendYield: 0.77,
+      initialPrice: 128.94,
+      dividendYield: 0.88,
       frequency: "quarterly",
       payoutMonths: [
         3,
@@ -6625,8 +6624,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     UPS: {
-      initialPrice: 93.89,
-      dividendYield: 6.99,
+      initialPrice: 108.3,
+      dividendYield: 6.06,
       frequency: "quarterly",
       observedDividendCagr: 10.18,
       payoutMonths: [
@@ -6645,8 +6644,8 @@ var marketData_generated_default = {
       }
     },
     USB: {
-      initialPrice: 57.36,
-      dividendYield: 3.66,
+      initialPrice: 59.45,
+      dividendYield: 3.53,
       frequency: "quarterly",
       observedDividendCagr: 3.96,
       payoutMonths: [
@@ -6658,8 +6657,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     V: {
-      initialPrice: 359.85,
-      dividendYield: 0.74,
+      initialPrice: 422.65,
+      dividendYield: 0.63,
       frequency: "quarterly",
       observedDividendCagr: 14.87,
       payoutMonths: [
@@ -6671,8 +6670,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     VDC: {
-      initialPrice: 217.71,
-      dividendYield: 2.24,
+      initialPrice: 245.47,
+      dividendYield: 1.99,
       frequency: "quarterly",
       observedDividendCagr: 1.86,
       payoutMonths: [
@@ -6691,8 +6690,8 @@ var marketData_generated_default = {
       }
     },
     VGT: {
-      initialPrice: 127.01,
-      dividendYield: 0.37,
+      initialPrice: 108.51,
+      dividendYield: 0.44,
       frequency: "quarterly",
       observedDividendCagr: 0.91,
       payoutMonths: [
@@ -6711,8 +6710,8 @@ var marketData_generated_default = {
       }
     },
     VICI: {
-      initialPrice: 22.73,
-      dividendYield: 7.96,
+      initialPrice: 24.79,
+      dividendYield: 7.3,
       frequency: "quarterly",
       observedDividendCagr: 7.05,
       payoutMonths: [
@@ -6731,8 +6730,8 @@ var marketData_generated_default = {
       }
     },
     VIG: {
-      initialPrice: 233.53,
-      dividendYield: 1.56,
+      initialPrice: 243.34,
+      dividendYield: 1.5,
       frequency: "quarterly",
       observedDividendCagr: 9.15,
       payoutMonths: [
@@ -6751,8 +6750,8 @@ var marketData_generated_default = {
       }
     },
     VIGI: {
-      initialPrice: 93.85,
-      dividendYield: 2.23,
+      initialPrice: 97.58,
+      dividendYield: 2.14,
       frequency: "quarterly",
       observedDividendCagr: 13.32,
       payoutMonths: [
@@ -6771,8 +6770,8 @@ var marketData_generated_default = {
       }
     },
     VLO: {
-      initialPrice: 408.46,
-      dividendYield: 1.16,
+      initialPrice: 346.45,
+      dividendYield: 1.37,
       frequency: "quarterly",
       observedDividendCagr: 2.89,
       payoutMonths: [
@@ -6791,8 +6790,8 @@ var marketData_generated_default = {
       }
     },
     VNQ: {
-      initialPrice: 89.17,
-      dividendYield: 3.82,
+      initialPrice: 95.73,
+      dividendYield: 3.56,
       frequency: "quarterly",
       observedDividendCagr: 0.81,
       payoutMonths: [
@@ -6804,8 +6803,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     VNQI: {
-      initialPrice: 42.06,
-      dividendYield: 5.13,
+      initialPrice: 43.53,
+      dividendYield: 4.95,
       frequency: "semiannual",
       observedDividendCagr: -14.54,
       payoutMonths: [
@@ -6814,8 +6813,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     VOO: {
-      initialPrice: 702.35,
-      dividendYield: 1.06,
+      initialPrice: 675.99,
+      dividendYield: 1.1,
       frequency: "quarterly",
       observedDividendCagr: 5.91,
       payoutMonths: [
@@ -6834,8 +6833,8 @@ var marketData_generated_default = {
       }
     },
     VPL: {
-      initialPrice: 116.27,
-      dividendYield: 2.08,
+      initialPrice: 103.14,
+      dividendYield: 2.35,
       frequency: "quarterly",
       observedDividendCagr: 20.31,
       payoutMonths: [
@@ -6854,8 +6853,8 @@ var marketData_generated_default = {
       }
     },
     VRT: {
-      initialPrice: 246.12,
-      dividendYield: 0.1,
+      initialPrice: 182.86,
+      dividendYield: 0.14,
       frequency: "quarterly",
       payoutMonths: [
         3,
@@ -6866,8 +6865,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     VSDA: {
-      initialPrice: 56.1,
-      dividendYield: 2.67,
+      initialPrice: 61.39,
+      dividendYield: 2.43,
       frequency: "monthly",
       payoutMonths: [
         1,
@@ -6901,8 +6900,8 @@ var marketData_generated_default = {
       }
     },
     VT: {
-      initialPrice: 157.8,
-      dividendYield: 1.53,
+      initialPrice: 151.73,
+      dividendYield: 1.59,
       frequency: "quarterly",
       observedDividendCagr: 10.87,
       payoutMonths: [
@@ -6914,8 +6913,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     VTI: {
-      initialPrice: 375.18,
-      dividendYield: 1.05,
+      initialPrice: 361.93,
+      dividendYield: 1.09,
       frequency: "quarterly",
       observedDividendCagr: 6.28,
       payoutMonths: [
@@ -6927,8 +6926,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     VTR: {
-      initialPrice: 83.73,
-      dividendYield: 2.44,
+      initialPrice: 88.75,
+      dividendYield: 2.3,
       frequency: "quarterly",
       observedDividendCagr: -2.17,
       payoutMonths: [
@@ -6940,8 +6939,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     VUG: {
-      initialPrice: 90.23,
-      dividendYield: 0.38,
+      initialPrice: 82.17,
+      dividendYield: 0.42,
       frequency: "quarterly",
       observedDividendCagr: 3.6,
       payoutMonths: [
@@ -6960,8 +6959,8 @@ var marketData_generated_default = {
       }
     },
     VXUS: {
-      initialPrice: 84.46,
-      dividendYield: 2.35,
+      initialPrice: 80.92,
+      dividendYield: 2.45,
       frequency: "quarterly",
       observedDividendCagr: 13.26,
       payoutMonths: [
@@ -6980,8 +6979,8 @@ var marketData_generated_default = {
       }
     },
     VYM: {
-      initialPrice: 155.35,
-      dividendYield: 2.37,
+      initialPrice: 159.08,
+      dividendYield: 2.31,
       frequency: "quarterly",
       observedDividendCagr: 3.8,
       payoutMonths: [
@@ -7000,8 +6999,8 @@ var marketData_generated_default = {
       }
     },
     VYMI: {
-      initialPrice: 99.82,
-      dividendYield: 3.73,
+      initialPrice: 100.46,
+      dividendYield: 3.7,
       frequency: "quarterly",
       observedDividendCagr: 11.09,
       payoutMonths: [
@@ -7020,10 +7019,10 @@ var marketData_generated_default = {
       }
     },
     VZ: {
-      initialPrice: 45.98,
-      dividendYield: 6.08,
+      initialPrice: 45.69,
+      dividendYield: 6.16,
       frequency: "quarterly",
-      observedDividendCagr: 1.95,
+      observedDividendCagr: 2.2,
       payoutMonths: [
         1,
         4,
@@ -7033,8 +7032,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     WEC: {
-      initialPrice: 101.73,
-      dividendYield: 3.69,
+      initialPrice: 115.87,
+      dividendYield: 3.24,
       frequency: "quarterly",
       observedDividendCagr: 7.12,
       payoutMonths: [
@@ -7053,8 +7052,8 @@ var marketData_generated_default = {
       }
     },
     WELD: {
-      initialPrice: 54.01,
-      dividendYield: 0.24,
+      initialPrice: 47.24,
+      dividendYield: 0.28,
       frequency: "semiannual",
       payoutMonths: [
         12
@@ -7062,8 +7061,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     WELL: {
-      initialPrice: 226.94,
-      dividendYield: 1.35,
+      initialPrice: 245.01,
+      dividendYield: 1.25,
       frequency: "quarterly",
       observedDividendCagr: 0.87,
       payoutMonths: [
@@ -7082,8 +7081,8 @@ var marketData_generated_default = {
       }
     },
     WEN: {
-      initialPrice: 6.25,
-      dividendYield: 7.84,
+      initialPrice: 8.15,
+      dividendYield: 6.01,
       frequency: "quarterly",
       observedDividendCagr: 18.23,
       payoutMonths: [
@@ -7095,10 +7094,10 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     WFC: {
-      initialPrice: 80.25,
-      dividendYield: 2.31,
+      initialPrice: 83.94,
+      dividendYield: 2.26,
       frequency: "quarterly",
-      observedDividendCagr: 6.86,
+      observedDividendCagr: 25.93,
       payoutMonths: [
         2,
         5,
@@ -7108,8 +7107,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     WHR: {
-      initialPrice: 30.48,
-      dividendYield: 5.91,
+      initialPrice: 30.54,
+      dividendYield: 5.89,
       frequency: "quarterly",
       observedDividendCagr: 1.79,
       payoutMonths: [
@@ -7121,8 +7120,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     WM: {
-      initialPrice: 201.9,
-      dividendYield: 1.81,
+      initialPrice: 236.26,
+      dividendYield: 1.55,
       frequency: "quarterly",
       observedDividendCagr: 8.65,
       payoutMonths: [
@@ -7134,8 +7133,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     WMB: {
-      initialPrice: 69.22,
-      dividendYield: 3,
+      initialPrice: 64.08,
+      dividendYield: 3.24,
       frequency: "quarterly",
       observedDividendCagr: 4.56,
       payoutMonths: [
@@ -7154,8 +7153,8 @@ var marketData_generated_default = {
       }
     },
     WMT: {
-      initialPrice: 104.26,
-      dividendYield: 0.94,
+      initialPrice: 125.52,
+      dividendYield: 0.78,
       frequency: "quarterly",
       observedDividendCagr: 5.48,
       payoutMonths: [
@@ -7167,8 +7166,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     WST: {
-      initialPrice: 365.01,
-      dividendYield: 0.24,
+      initialPrice: 399.81,
+      dividendYield: 0.22,
       frequency: "quarterly",
       observedDividendCagr: 5.51,
       payoutMonths: [
@@ -7180,8 +7179,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     WTW: {
-      initialPrice: 291.6,
-      dividendYield: 1.3,
+      initialPrice: 328.86,
+      dividendYield: 1.16,
       frequency: "quarterly",
       observedDividendCagr: 6,
       payoutMonths: [
@@ -7193,8 +7192,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     XEL: {
-      initialPrice: 70.55,
-      dividendYield: 3.33,
+      initialPrice: 79.67,
+      dividendYield: 2.95,
       frequency: "quarterly",
       observedDividendCagr: 10.46,
       payoutMonths: [
@@ -7213,8 +7212,8 @@ var marketData_generated_default = {
       }
     },
     XLI: {
-      initialPrice: 168.64,
-      dividendYield: 1.12,
+      initialPrice: 162.67,
+      dividendYield: 1.16,
       frequency: "quarterly",
       observedDividendCagr: 7.8,
       payoutMonths: [
@@ -7226,8 +7225,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     XLK: {
-      initialPrice: 197.81,
-      dividendYield: 0.42,
+      initialPrice: 164.74,
+      dividendYield: 0.51,
       frequency: "quarterly",
       observedDividendCagr: 5.56,
       payoutMonths: [
@@ -7239,8 +7238,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     XLP: {
-      initialPrice: 80.33,
-      dividendYield: 2.73,
+      initialPrice: 90.08,
+      dividendYield: 2.44,
       frequency: "quarterly",
       observedDividendCagr: 4.83,
       payoutMonths: [
@@ -7252,8 +7251,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     XLV: {
-      initialPrice: 166.2,
-      dividendYield: 1.53,
+      initialPrice: 184.8,
+      dividendYield: 1.38,
       frequency: "quarterly",
       observedDividendCagr: 7.96,
       payoutMonths: [
@@ -7265,8 +7264,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     XOM: {
-      initialPrice: 163.82,
-      dividendYield: 2.51,
+      initialPrice: 165.87,
+      dividendYield: 2.48,
       frequency: "quarterly",
       observedDividendCagr: 2.82,
       payoutMonths: [
@@ -7278,8 +7277,8 @@ var marketData_generated_default = {
       payoutMonthsSource: "ex"
     },
     XYLD: {
-      initialPrice: 41.57,
-      dividendYield: 10.4,
+      initialPrice: 40.19,
+      dividendYield: 10.55,
       frequency: "monthly",
       observedDividendCagr: 3.02,
       payoutMonths: [
@@ -7314,8 +7313,8 @@ var marketData_generated_default = {
       }
     },
     YUM: {
-      initialPrice: 136.69,
-      dividendYield: 2.17,
+      initialPrice: 161.14,
+      dividendYield: 1.84,
       frequency: "quarterly",
       observedDividendCagr: 8.6,
       payoutMonths: [
@@ -7334,10 +7333,10 @@ var marketData_generated_default = {
       }
     },
     ZTS: {
-      initialPrice: 69.1,
-      dividendYield: 3.02,
+      initialPrice: 79.4,
+      dividendYield: 2.67,
       frequency: "quarterly",
-      observedDividendCagr: 20.11,
+      observedDividendCagr: 16.22,
       payoutMonths: [
         1,
         4,
