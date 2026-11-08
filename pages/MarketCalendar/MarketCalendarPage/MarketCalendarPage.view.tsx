@@ -22,6 +22,7 @@ import type { RelatedLinkItem } from '../components';
 import {
   buildMarketMonth,
   buildTodayStatus,
+  findNextClosure,
   buildUpcoming,
   formatDaylightSaving,
   formatKst,
@@ -120,6 +121,7 @@ export default function MarketCalendarView({ viewModel, onRelatedNavigate }: Mar
   const month = useMemo(() => buildMarketMonth({ ...cursor, today }), [cursor, today]);
   const upcoming = useMemo(() => buildUpcoming(today, UPCOMING_ROWS), [today]);
   const status = useMemo(() => buildTodayStatus(today), [today]);
+  const nextClosure = useMemo(() => findNextClosure(today), [today]);
 
   const isThisMonth = cursor.year === today.getFullYear() && cursor.month === today.getMonth() + 1;
 
@@ -177,6 +179,18 @@ export default function MarketCalendarView({ viewModel, onRelatedNavigate }: Mar
               label={copy.today.nextLabel}
               value={status.next ? formatMonthDay(status.next.date) : '자료 없음'}
               hint={formatSessionKst(status.next)}
+            />
+            {/* 대표 검색어("미국 증시 휴장일")의 답 — 표는 페이지 맨 아래라 휴대폰 첫 화면에 이 칸을 둔다. */}
+            <StatTile
+              label={copy.today.nextClosureLabel}
+              value={nextClosure ? `${formatMonthDay(nextClosure.date)} (${formatWeekday(nextClosure.date)})` : '자료 없음'}
+              hint={
+                nextClosure
+                  ? 'closeEt' in nextClosure
+                    ? `${nextClosure.nameKo} · ${copy.holidays.kindEarly}`
+                    : nextClosure.nameKo
+                  : undefined
+              }
             />
             <StatTile
               label={copy.today.etLabel}
