@@ -125,9 +125,19 @@ const sanitizePrefillHoldings = (value: unknown): PortfolioSimulationPrefillHold
     if (!TICKER_PATTERN.test(symbol)) continue;
     // 0·음수·NaN·Infinity는 비중이 될 수 없다. 100 초과 단일 항목도 받지 않는다(재정규화 전 기준).
     if (typeof weightPercent !== 'number' || !Number.isFinite(weightPercent) || weightPercent <= 0) continue;
-    if (weightPercent > PORTFOLIO_PREFILL_WEIGHT_TOTAL) continue;
+    /*
+     * 🔴 "100 초과"는 **오차를 넘겨서** 초과할 때만이다(2026-11-09).
+     * 보내는 쪽은 `value × 100 ÷ 합계` 로 비중을 내는데, 종목이 하나면 이것이 정확히 100 이어야 함에도
+     * 부동소수로 100.00000000000001 이 나올 수 있다(SCHD 10주 = $351.70000000000005 실측). 엄격 비교로
+     * 버리면 유일한 종목이 사라져 프리필이 통째로 `null` 이 되고, 포트폴리오의 "시뮬레이션" 버튼이 꺼진다
+     * — 주가가 어느 값이냐에 따라 켜졌다 꺼지는 버그였다(11월 시세 갱신 테스트가 잡았다).
+     */
+    if (weightPercent > PORTFOLIO_PREFILL_WEIGHT_TOTAL + WEIGHT_TOTAL_EPSILON) continue;
 
-    weightByTicker.set(symbol, (weightByTicker.get(symbol) ?? 0) + weightPercent);
+    weightByTicker.set(
+      symbol,
+      (weightByTicker.get(symbol) ?? 0) + Math.min(weightPercent, PORTFOLIO_PREFILL_WEIGHT_TOTAL)
+    );
   }
 
   if (weightByTicker.size === 0) return null;
