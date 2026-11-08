@@ -2,6 +2,7 @@
 export * from './htmlCapture';
 export * from './useLongPress';
 export * from './useTrailingCall';
+export * from './useShareFlow';
 /**
  * `pdfReportPipeline`·`resultCapturePipeline`은 **일부러 re-export하지 않는다** — jspdf·html2canvas·echarts를
  * 끌고 오므로 배럴이 정적으로 참조하면 초기 번들에 딸려 들어간다.
