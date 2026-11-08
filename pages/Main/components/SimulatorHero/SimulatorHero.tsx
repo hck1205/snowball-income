@@ -3,6 +3,7 @@ import { LineChart } from 'lucide-react';
 import { PageHero } from '@/components/common';
 import SettingsEntryButton from '@/pages/Main/components/SettingsEntryButton';
 import ResultCaptureButton from '@/pages/Main/components/ResultCaptureButton';
+import ResultShareButton from '@/pages/Main/components/ResultShareButton';
 import { useResultCapture, useStickyHeroAction } from '@/pages/Main/hooks';
 import { useDisplayCurrencyViewAtomValue } from '@/jotai';
 import { SIMULATOR_COPY, TOUR_TARGET } from '@/shared/constants';
@@ -67,6 +68,10 @@ function SimulatorHeroComponent({ drawerId, isSettingsOpen, onOpenSettings }: Si
        */
       actions={
         <>
+          {/* 결과 공유(2026-11-09) — 드로어 맨 아래에만 있던 공유를 결과 바로 위에도 둔다. */}
+          <CaptureAction>
+            <ResultShareButton />
+          </CaptureAction>
           <CaptureAction>
             <ResultCaptureButton
               isCapturing={capture.isCapturing}

@@ -90,7 +90,9 @@ describe('🔴 공유 스냅샷 — 쓰기는 닫혀 있다', () => {
   });
 
   it('⭐ 공유 버튼이 만드는 URL 은 lz-string `?share=` 뿐이다', () => {
-    const source = read('pages/Main/hooks/persistence/usePortfolioPersistence.ts');
+    // 2026-11-09: createShareLink 를 저장 훅에서 useShareLinkCreator 로 옮겼다(저장 훅은 그것을 불러 내보낸다).
+    const source = read('pages/Main/hooks/persistence/useShareLinkCreator.ts');
+    expect(read('pages/Main/hooks/persistence/usePortfolioPersistence.ts')).toContain('useShareLinkCreator()');
     const createShareLink = codeOnly(source).slice(codeOnly(source).indexOf('const createShareLink'));
     const body = createShareLink.slice(0, createShareLink.indexOf('\n  };'));
 
