@@ -129,16 +129,36 @@ describe('buildScenarioCompareColumn — 화면과 같은 계산', () => {
 });
 
 describe('findBestColumnIds', () => {
-  const col = (id: string, result: Partial<ScenarioCompareColumn['result']> | null): ScenarioCompareColumn => ({
+  const col = (id: string, result: Partial<NonNullable<ScenarioCompareColumn['result']>> | null): ScenarioCompareColumn => ({
     id,
     name: id,
     isActive: false,
     holdingsLine: '',
+    tickerCount: 1,
     initialInvestment: 0,
     monthlyContribution: 0,
     durationYears: 10,
     targetMonthlyDividend: 1,
-    result: result === null ? null : { finalAssetValue: 0, finalMonthlyDividend: 0, totalNetDividend: 0, totalContribution: 0, targetReachedYear: null, ...result }
+    investmentStartDate: '2024-01-01',
+    reinvestPercent: 100,
+    taxRatePercent: null,
+    result:
+      result === null
+        ? null
+        : {
+            finalAssetValue: 0,
+            finalMonthlyDividend: 0,
+            finalPayoutDividend: 0,
+            totalNetDividend: 0,
+            totalTaxPaid: 0,
+            totalContribution: 0,
+            gain: 0,
+            gainRate: null,
+            targetReachedYear: null,
+            requiredMonthlyContribution: null,
+            yearly: [],
+            ...result
+          }
   });
 
   it('큰 값이 최고, 동점은 함께, 계산 불가 탭은 후보가 아니다', () => {
@@ -153,6 +173,11 @@ describe('findBestColumnIds', () => {
 
   it('후보가 하나뿐이면 최고를 붙이지 않는다 (혼자 1등은 비교가 아니다)', () => {
     expect(findBestColumnIds([col('a', { finalAssetValue: 1 }), col('b', null)], 'finalAssetValue').size).toBe(0);
+  });
+
+  it('세금·필요 적립은 적을수록, 총 납입은 우열이 없다', () => {
+    expect([...findBestColumnIds([col('a', { totalTaxPaid: 5 }), col('b', { totalTaxPaid: 3 })], 'totalTaxPaid')]).toEqual(['b']);
+    expect(findBestColumnIds([col('a', { totalContribution: 5 }), col('b', { totalContribution: 3 })], 'totalContribution').size).toBe(0);
   });
 });
 
@@ -186,56 +211,106 @@ describe('탭 비교 화면', () => {
     expect(screen.queryByRole('button', { name: /탭 비교/ })).toBeNull();
   });
 
-  const openPanel = async () => {
+  const openDialog = async () => {
     await userEvent.click(screen.getByRole('button', { name: '탭 비교 (2개)' }));
-    return screen.getByRole('region', { name: '탭 비교' });
+    return screen.getByRole('dialog', { name: '탭 비교' });
   };
 
-  it('🔴 펼치면 탭마다 범례 한 칸이고, 지금 탭은 아직 저장 안 된 편집까지 반영된다', async () => {
-    renderCompare();
-    const panel = await openPanel();
+  /* 행 머리 칸의 이름으로 **정확히** 고른다("목표 월 배당" ≠ "목표 월 배당 달성"). */
+  const rowCells = (dialog: HTMLElement, label: string) =>
+    within(within(dialog).getByRole('rowheader', { name: label }).closest('tr')!).getAllByRole('cell');
 
-    const legend = within(within(panel).getByRole('list', { name: '비교하는 탭' })).getAllByRole('listitem');
-    expect(legend).toHaveLength(2);
-    expect(legend[0]!.textContent).toContain('성장형');
-    expect(legend[0]!.textContent).toContain('보는 중');
+  it('🔴 열면 탭마다 한 열이고, 지금 탭은 아직 저장 안 된 편집까지 반영된다', async () => {
+    renderCompare();
+    const dialog = await openDialog();
+
+    const headers = within(dialog).getAllByRole('columnheader').map((cell) => cell.textContent ?? '');
+    expect(headers[1]).toContain('성장형');
+    expect(headers[1]).toContain('보는 중');
+    expect(headers[2]).toContain('고배당');
+
     // 탭 스냅샷은 초기 1천만이지만, 화면 상태(3천만)가 반영돼야 한다.
-    expect(legend[0]!.textContent).toMatch(/초기 약 3,000만|초기 3,000만|초기 약 3천만/);
-    expect(legend[1]!.textContent).toContain('고배당');
+    expect(rowCells(dialog, '초기 투자금')[0]!.textContent).toMatch(/3,000만|3천만|3000만/);
   });
 
-  it('🔴 지표마다 탭별 막대 한 줄 — 값은 글자로도 있다(막대만으로 말하지 않는다)', async () => {
+  it('🔴 조건 9행과 결과 10행을 모두 비교한다', async () => {
     renderCompare();
-    const panel = await openPanel();
+    const dialog = await openDialog();
 
-    for (const title of ['최종 자산', '마지막 해 월 배당(세후)', '누적 배당(세후)', '목표 월 배당 달성']) {
-      const rows = within(within(panel).getByRole('list', { name: title })).getAllByRole('listitem');
-      expect(rows, title).toHaveLength(2);
-      expect(rows[0]!.textContent).toContain('성장형');
+    for (const label of ['종목 구성', '종목 수', '시작일', '초기 투자금', '월 적립금', '투자 기간', '목표 월 배당', '배당 재투자', '배당소득세']) {
+      expect(rowCells(dialog, label), label).toHaveLength(2);
     }
-    expect(within(panel).getAllByText(/최고|가장 빠름/).length).toBeGreaterThan(0);
+    for (const label of [
+      '최종 자산',
+      '총 납입',
+      '수익(자산 − 납입)',
+      '수익률',
+      '마지막 해 월 배당(세후)',
+      '최근 실지급 배당(세후)',
+      '누적 배당(세후)',
+      '누적 세금',
+      '목표 월 배당 달성',
+      '목표까지 필요한 월 적립'
+    ]) {
+      expect(rowCells(dialog, label), label).toHaveLength(2);
+    }
+    expect(within(dialog).getAllByText(/최고|가장 적음|가장 빠름/).length).toBeGreaterThan(0);
   });
 
-  it('범례의 "보기"를 누르면 그 탭으로 가고, 패널은 열린 채로 남는다', async () => {
-    const { onSelectScenario } = renderCompare();
-    await openPanel();
+  it('연도별 자산·월 배당 추이 차트 자리가 있다', async () => {
+    renderCompare();
+    const dialog = await openDialog();
+    expect(within(dialog).getByText('자산 추이')).toBeInTheDocument();
+    expect(within(dialog).getByText('월 배당 추이(세후)')).toBeInTheDocument();
+  });
 
-    await userEvent.click(screen.getByRole('button', { name: /보기 \(고배당\)/ }));
+  it('"이 탭 보기"를 누르면 그 탭으로 가고 창이 닫힌다', async () => {
+    const { onSelectScenario } = renderCompare();
+    await openDialog();
+
+    await userEvent.click(screen.getByRole('button', { name: /이 탭 보기 \(고배당\)/ }));
 
     expect(onSelectScenario).toHaveBeenCalledWith('b');
-    expect(screen.getByRole('region', { name: '탭 비교' })).toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).toBeNull();
   });
 
-  it('버튼으로 접고 펼친다 (aria-expanded 가 상태를 말한다)', async () => {
+  it('Esc · 닫기 버튼으로 닫힌다', async () => {
     renderCompare();
-    const toggle = screen.getByRole('button', { name: '탭 비교 (2개)' });
-    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await openDialog();
+    await userEvent.keyboard('{Escape}');
+    expect(screen.queryByRole('dialog')).toBeNull();
 
-    await userEvent.click(toggle);
-    expect(screen.getByRole('button', { name: '탭 비교 접기' })).toHaveAttribute('aria-expanded', 'true');
+    await openDialog();
+    await userEvent.click(screen.getByRole('button', { name: '탭 비교 닫기' }));
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+});
 
-    await userEvent.click(screen.getByRole('button', { name: '탭 비교 접기' }));
-    expect(screen.queryByRole('region', { name: '탭 비교' })).toBeNull();
+describe('buildScenarioCompareColumn — 확장 지표', () => {
+  it('🔴 수익·수익률은 리포트와 같은 정의(최종 자산 ÷ 총 납입 − 1)이고, 연도별 추이가 기간만큼 있다', () => {
+    const column = buildScenarioCompareColumn(scenario('a', 'A', [schd], { durationYears: 15 }), true);
+    const result = column.result!;
+    expect(result.gain).toBeCloseTo(result.finalAssetValue - result.totalContribution, 6);
+    expect(result.gainRate).toBeCloseTo(result.finalAssetValue / result.totalContribution - 1, 9);
+    expect(result.yearly).toHaveLength(15);
+    expect(result.yearly[0]!.yearIndex).toBe(1);
+    expect(result.yearly.at(-1)!.assetValue).toBeCloseTo(result.finalAssetValue, 0);
+  });
+
+  it('목표에 못 닿으면 필요한 월 적립을 역산하고, 닿으면 하지 않는다', () => {
+    const short = buildScenarioCompareColumn(scenario('a', 'A', [schd], { targetMonthlyDividend: 50_000_000, durationYears: 5 }), true);
+    expect(short.result!.targetReachedYear).toBeNull();
+    expect(short.result!.requiredMonthlyContribution).toBeGreaterThan(1_000_000);
+
+    const easy = buildScenarioCompareColumn(scenario('b', 'B', [schd], { targetMonthlyDividend: 1_000 }), true);
+    expect(easy.result!.targetReachedYear).not.toBeNull();
+    expect(easy.result!.requiredMonthlyContribution).toBeNull();
+  });
+
+  it('조건 칸: 재투자를 끄면 0, 세율을 비워 두면 null(종목별 기본)', () => {
+    const column = buildScenarioCompareColumn(scenario('a', 'A', [schd], { reinvestDividends: false, taxRate: undefined }), true);
+    expect(column.reinvestPercent).toBe(0);
+    expect(column.taxRatePercent).toBeNull();
   });
 });
 
