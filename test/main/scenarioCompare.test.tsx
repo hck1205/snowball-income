@@ -323,3 +323,29 @@ describe('buildScenarioComparison', () => {
     ]);
   });
 });
+
+describe('ScenarioCompare.utils — 표·차트가 같이 쓰는 순수 함수', () => {
+  it('막대 길이는 행의 절댓값 최댓값 대비, 값이 없으면 0, 너무 짧으면 최소 길이', async () => {
+    const { barPercents } = await import('@/pages/Main/components/ScenarioCompare/ScenarioCompare.utils');
+    expect(barPercents([100, 50, null])).toEqual([100, 50, 0]);
+    expect(barPercents([-200, 100])).toEqual([100, 50]);
+    expect(barPercents([1000, 1])[1]).toBe(3);
+    expect(barPercents([null, null])).toEqual([0, 0]);
+  });
+
+  it('"최고" 문구는 지표의 방향을 말한다 — 총 납입은 우열이 없어 붙이지 않는다', async () => {
+    const { bestLabelOf } = await import('@/pages/Main/components/ScenarioCompare/ScenarioCompare.utils');
+    expect(bestLabelOf('finalAssetValue')).toBe('최고');
+    expect(bestLabelOf('totalTaxPaid')).toBe('가장 적음');
+    expect(bestLabelOf('targetReachedYear')).toBe('가장 빠름');
+    expect(bestLabelOf('totalContribution')).toBeNull();
+  });
+
+  it('탭 색은 차트 시리즈 토큰을 8개 주기로 돈다 (차트 선과 같은 규칙)', async () => {
+    const { swatchOf, formatSignedRate } = await import('@/pages/Main/components/ScenarioCompare/ScenarioCompare.utils');
+    expect(swatchOf(0)).toBe('var(--sb-chart-series-0)');
+    expect(swatchOf(9)).toBe('var(--sb-chart-series-1)');
+    expect(formatSignedRate(0.595)).toBe('+59.5%');
+    expect(formatSignedRate(-0.03)).toBe('-3.0%');
+  });
+});
