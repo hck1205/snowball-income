@@ -135,8 +135,11 @@ export const formatOgAmount = (value: number): string => {
   return `${sign}${Math.round(absValue).toLocaleString('ko-KR')}원`;
 };
 
-/** 영속 설정 → 시뮬레이션 폼 값. 앱의 `applyScenario` 와 같은 필드만 덮어쓴다(티커 필드는 엔진이 쓰지 않는다). */
-const toYieldFormValues = (investmentSettings: PersistedInvestmentSettings): YieldFormValues => ({
+/**
+ * 영속 설정 → 시뮬레이션 폼 값. 앱의 `applyScenario` 와 같은 필드만 덮어쓴다(티커 필드는 엔진이 쓰지 않는다).
+ * 탭 비교(`scenarioCompare`)도 같은 변환을 쓴다 — 저장된 탭을 계산하는 길이 둘로 갈리지 않게.
+ */
+export const toYieldFormValues = (investmentSettings: PersistedInvestmentSettings): YieldFormValues => ({
   ...defaultYieldFormValues,
   initialInvestment: investmentSettings.initialInvestment,
   monthlyContribution: investmentSettings.monthlyContribution,

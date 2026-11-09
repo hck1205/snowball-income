@@ -63,6 +63,7 @@ import { GoalBanner, useActiveGoalOutcome } from '../GoalBanner';
 import MainResultGrid from '../MainResultGrid';
 import ResultBoard from '../ResultBoard';
 import ScenarioTabsRow from '../ScenarioTabsRow';
+import ScenarioCompare from '../ScenarioCompare';
 import SettingsEntryButton from '../SettingsEntryButton';
 import { buildAllocationHoldings, createResultAmountFormatter, formatPercent, targetYearLabel } from '@/pages/Main/utils';
 import {
@@ -436,6 +437,9 @@ function MainRightPanelComponent({ configDrawerId }: MainRightPanelProps) {
             {/* 첫 방문 프리필 안내. 결과 격자 **밖**이라 결과 이미지 캡처에 들어가지 않고,
                 시나리오 탭 줄과 결과 사이에 서서 "이 숫자가 어디서 왔는지"를 결과보다 먼저 말한다. */}
             <ScenarioPrefillNotice />
+
+            {/* 탭 비교(2026-11-09) — 탭이 2개 이상일 때만 선다. 탭 줄 옆이 아니라 이 자리인 이유는 그 컴포넌트 주석. */}
+            <ScenarioCompare tabCount={tabsProps.tabs.length} onSelectScenario={tabsProps.selectScenarioTab} />
           </>
         }
       >

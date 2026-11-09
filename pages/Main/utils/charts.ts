@@ -361,3 +361,66 @@ export const buildYearlyResultBarOption = ({
     }))
   };
 };
+
+/**
+ * 탭 비교의 **연도별 추이** 선 그래프(2026-11-09) — 탭마다 선 하나, 색은 차트 시리즈(범례 점·표 머리와 같은 인덱스).
+ *
+ * x 축은 달력 연도가 아니라 **N년차**다 — 탭마다 시작일이 달라 달력 연도로 겹치면 같은 시점끼리 비교되지 않는다.
+ * 기간이 짧은 탭의 선은 자기 기간에서 끝난다(빈 연차는 null — 0 으로 떨어지는 선을 그리지 않는다).
+ * 계산 불가 탭은 선이 없다(범례에도 없다).
+ */
+export const buildScenarioCompareLineOption = ({
+  series,
+  formatValue,
+  formatCompact
+}: {
+  series: readonly { name: string; colorIndex: number; values: readonly number[] }[];
+  formatValue: (value: number) => string;
+  formatCompact: (value: number) => string;
+}): EChartsOption => {
+  const theme = getChartTheme();
+  const axis = buildAxisStyle(theme);
+  const maxYears = series.reduce((max, item) => Math.max(max, item.values.length), 0);
+
+  return {
+    animation: false,
+    grid: { left: 64, right: 20, top: 40, bottom: 32 },
+    legend: { top: 0, left: 0, type: 'scroll', ...buildLegendStyle(theme) },
+    tooltip: {
+      trigger: 'axis',
+      ...buildTooltipStyle(theme),
+      valueFormatter: (value: unknown) => (value === null || value === undefined ? '-' : formatValue(Number(value)))
+    },
+    xAxis: {
+      type: 'category',
+      boundaryGap: false,
+      data: Array.from({ length: maxYears }, (_unused, index) => `${index + 1}년`),
+      ...axis,
+      splitLine: { show: false }
+    },
+    yAxis: {
+      type: 'value',
+      ...axis,
+      axisLine: { show: false },
+      axisLabel: {
+        color: theme.label,
+        fontSize: theme.labelFontSize,
+        fontFamily: theme.fontFamily,
+        formatter: (value: number) => formatCompact(value)
+      }
+    },
+    series: series.map((item) => {
+      const color = theme.series[item.colorIndex % theme.series.length];
+      return {
+        type: 'line' as const,
+        name: item.name,
+        smooth: true,
+        showSymbol: false,
+        connectNulls: false,
+        lineStyle: { width: 2, color },
+        itemStyle: { color },
+        data: Array.from({ length: maxYears }, (_unused, index) => item.values[index] ?? null)
+      };
+    })
+  };
+};
