@@ -186,41 +186,56 @@ describe('탭 비교 화면', () => {
     expect(screen.queryByRole('button', { name: /탭 비교/ })).toBeNull();
   });
 
-  it('🔴 열면 탭마다 한 열이고, 지금 탭은 아직 저장 안 된 편집까지 반영된다', async () => {
-    renderCompare();
+  const openPanel = async () => {
     await userEvent.click(screen.getByRole('button', { name: '탭 비교 (2개)' }));
+    return screen.getByRole('region', { name: '탭 비교' });
+  };
 
-    const table = within(screen.getByRole('dialog', { name: '탭 비교' })).getByRole('table');
-    const headers = within(table).getAllByRole('columnheader').map((cell) => cell.textContent);
-    expect(headers[1]).toContain('성장형');
-    expect(headers[1]).toContain('보는 중');
-    expect(headers[2]).toBe('고배당');
+  it('🔴 펼치면 탭마다 범례 한 칸이고, 지금 탭은 아직 저장 안 된 편집까지 반영된다', async () => {
+    renderCompare();
+    const panel = await openPanel();
 
-    const initialRow = within(table).getByRole('row', { name: /초기 투자금/ });
-    expect(within(initialRow).getAllByRole('cell')[0]!.textContent).toMatch(/3,000만|3천만|3000만/);
+    const legend = within(within(panel).getByRole('list', { name: '비교하는 탭' })).getAllByRole('listitem');
+    expect(legend).toHaveLength(2);
+    expect(legend[0]!.textContent).toContain('성장형');
+    expect(legend[0]!.textContent).toContain('보는 중');
+    // 탭 스냅샷은 초기 1천만이지만, 화면 상태(3천만)가 반영돼야 한다.
+    expect(legend[0]!.textContent).toMatch(/초기 약 3,000만|초기 3,000만|초기 약 3천만/);
+    expect(legend[1]!.textContent).toContain('고배당');
   });
 
-  it('표에서 "이 탭 보기"를 누르면 그 탭으로 간다', async () => {
-    const { onSelectScenario } = renderCompare();
-    await userEvent.click(screen.getByRole('button', { name: '탭 비교 (2개)' }));
+  it('🔴 지표마다 탭별 막대 한 줄 — 값은 글자로도 있다(막대만으로 말하지 않는다)', async () => {
+    renderCompare();
+    const panel = await openPanel();
 
-    await userEvent.click(screen.getByRole('button', { name: /이 탭 보기 \(고배당\)/ }));
+    for (const title of ['최종 자산', '마지막 해 월 배당(세후)', '누적 배당(세후)', '목표 월 배당 달성']) {
+      const rows = within(within(panel).getByRole('list', { name: title })).getAllByRole('listitem');
+      expect(rows, title).toHaveLength(2);
+      expect(rows[0]!.textContent).toContain('성장형');
+    }
+    expect(within(panel).getAllByText(/최고|가장 빠름/).length).toBeGreaterThan(0);
+  });
+
+  it('범례의 "보기"를 누르면 그 탭으로 가고, 패널은 열린 채로 남는다', async () => {
+    const { onSelectScenario } = renderCompare();
+    await openPanel();
+
+    await userEvent.click(screen.getByRole('button', { name: /보기 \(고배당\)/ }));
 
     expect(onSelectScenario).toHaveBeenCalledWith('b');
-    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.getByRole('region', { name: '탭 비교' })).toBeInTheDocument();
   });
 
-  it('최고 값에 "최고" 글자가 붙는다 (색만으로 말하지 않는다)', async () => {
+  it('버튼으로 접고 펼친다 (aria-expanded 가 상태를 말한다)', async () => {
     renderCompare();
-    await userEvent.click(screen.getByRole('button', { name: '탭 비교 (2개)' }));
-    expect(screen.getAllByText('최고').length).toBeGreaterThan(0);
-  });
+    const toggle = screen.getByRole('button', { name: '탭 비교 (2개)' });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
 
-  it('Esc 로 닫힌다', async () => {
-    renderCompare();
-    await userEvent.click(screen.getByRole('button', { name: '탭 비교 (2개)' }));
-    await userEvent.keyboard('{Escape}');
-    expect(screen.queryByRole('dialog')).toBeNull();
+    await userEvent.click(toggle);
+    expect(screen.getByRole('button', { name: '탭 비교 접기' })).toHaveAttribute('aria-expanded', 'true');
+
+    await userEvent.click(screen.getByRole('button', { name: '탭 비교 접기' }));
+    expect(screen.queryByRole('region', { name: '탭 비교' })).toBeNull();
   });
 });
 
