@@ -8,5 +8,6 @@ export * from './portfolioPrefill';
 export * from './goalPlanSolver';
 export * from './preset';
 export * from './scenario';
+export * from './scenarioCompare';
 export * from './simulation';
 export * from './ticker';

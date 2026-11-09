@@ -25,6 +25,8 @@ export { default as ResultCaptureButton } from './ResultCaptureButton';
 export type { ResultCaptureButtonProps } from './ResultCaptureButton';
 export { default as ResultShareButton } from './ResultShareButton';
 export type { ResultShareButtonProps } from './ResultShareButton';
+export { default as ScenarioCompare } from './ScenarioCompare';
+export type { ScenarioCompareProps } from './ScenarioCompare';
 export { default as ScenarioTabsRow } from './ScenarioTabsRow';
 export { default as SettingsDrawer } from './SettingsDrawer';
 export { default as SettingsEntryButton } from './SettingsEntryButton';
