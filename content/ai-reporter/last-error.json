@@ -1,5 +1,0 @@
-{
-  "draft": "week-ahead_2026-11-10.json",
-  "at": "2026-11-10T14:16:48.396Z",
-  "output": "✓ 검사 통과\n✗ 환경변수 없음: SUPABASE_ANON_KEY\n"
-}
