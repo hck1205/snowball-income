@@ -78,7 +78,20 @@ export const ALLOWED_TAGS = [
   'td'
 ];
 
-export const ALLOWED_ATTR = ['href', 'target', 'rel', 'colspan', 'rowspan'];
+/*
+ * `data-chart` — **표를 차트로도 보여 주는 표시**(2026-11-09). 값은 `bar`·`line` 둘뿐이고 `table` 에만
+ * 붙을 수 있다(아래 훅이 값·위치를 검증한다). 데이터는 여전히 표 안에 있어 크롤러·화면낭독기가 읽고,
+ * 차트는 렌더러(`RichTextContent`)가 그 표를 읽어 덧그릴 뿐이다. ⚠ `ALLOW_DATA_ATTR` 은 계속 false —
+ * 이 이름 하나만 연다.
+ */
+export const ALLOWED_ATTR = ['href', 'target', 'rel', 'colspan', 'rowspan', 'data-chart'];
+
+/** 표 차트 종류. 정화 훅과 렌더러가 같은 목록을 쓴다. */
+export const RICH_TABLE_CHART_KINDS = ['bar', 'line'] as const;
+export type RichTableChartKind = (typeof RICH_TABLE_CHART_KINDS)[number];
+
+export const isRichTableChartKind = (value: string | null | undefined): value is RichTableChartKind =>
+  value !== null && value !== undefined && (RICH_TABLE_CHART_KINDS as readonly string[]).includes(value);
 
 /** `colspan`/`rowspan`을 다는 표 셀 태그. */
 const TABLE_CELL_TAGS = new Set(['th', 'td']);
@@ -114,6 +127,11 @@ export const configureRichHtmlSanitizer = (purify: typeof DOMPurify): void => {
     if (node.nodeType !== 1) return;
 
     const tag = node.tagName.toLowerCase();
+
+    /* `data-chart` 는 표에만, 정해진 값으로만. 그 밖은 흔적 없이 지운다. */
+    if (node.hasAttribute('data-chart') && !(tag === 'table' && isRichTableChartKind(node.getAttribute('data-chart')))) {
+      node.removeAttribute('data-chart');
+    }
 
     if (tag === 'a') {
       const href = node.getAttribute('href') ?? '';

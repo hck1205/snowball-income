@@ -316,6 +316,18 @@ export const Prose = styled.article`
     margin-top: ${space[8]};
   }
 
+  /*
+   * 표 차트 자리(RichTextContent 가 차트 표 바로 앞에 끼워 넣는 div). 차트와 그 표는 한 덩어리라
+   * 둘 사이는 좁게, 덩어리 앞은 표와 같은 숨(32px)으로 둔다.
+   */
+  * + [data-rich-chart] {
+    margin-top: ${space[8]};
+  }
+
+  [data-rich-chart] + table {
+    margin-top: ${space[2]};
+  }
+
   & > *:last-child {
     margin-bottom: 0;
   }

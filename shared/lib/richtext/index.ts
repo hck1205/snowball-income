@@ -7,3 +7,4 @@
  */
 export * from './sanitize';
 export * from './excerpt';
+export * from './chartTable';
