@@ -18,7 +18,8 @@ export const AI_REPORTER = {
   displayName: 'AI 리포터',
   badgeLabel: 'AI 리포터',
   badgeTitle: 'AI가 사이트 데이터로 자동 작성한 글입니다',
-  userIds: [] as readonly string[],
+  /** 2026-11-10 생성(ai-reporter@hungry-hippo.xyz). profiles.is_bot=true 는 운영자가 SQL 로 켠다. */
+  userIds: ['44792963-f012-4df0-881c-769b971605cc'] as readonly string[],
   indexable: false
 } as const;
 

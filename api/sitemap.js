@@ -71,7 +71,8 @@ var AI_REPORTER = {
   displayName: "AI \uB9AC\uD3EC\uD130",
   badgeLabel: "AI \uB9AC\uD3EC\uD130",
   badgeTitle: "AI\uAC00 \uC0AC\uC774\uD2B8 \uB370\uC774\uD130\uB85C \uC790\uB3D9 \uC791\uC131\uD55C \uAE00\uC785\uB2C8\uB2E4",
-  userIds: [],
+  /** 2026-11-10 생성(ai-reporter@hungry-hippo.xyz). profiles.is_bot=true 는 운영자가 SQL 로 켠다. */
+  userIds: ["44792963-f012-4df0-881c-769b971605cc"],
   indexable: false
 };
 var isAiReporterUserId = (userId, config = AI_REPORTER) => typeof userId === "string" && config.userIds.includes(userId);
