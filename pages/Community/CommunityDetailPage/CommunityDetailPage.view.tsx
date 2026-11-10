@@ -31,6 +31,7 @@ import {
   AttachStat,
   AttachStats,
   AttachTitle,
+  AuthorLine,
   AuthorName,
   BannerAction,
   BodyColumn,
@@ -197,8 +198,10 @@ export default function CommunityDetailView({ viewModel }: CommunityDetailViewPr
             <BylineAvatar>
               <Avatar displayName={authorName} avatarUrl={post.author?.avatar_url} size="md" />
             </BylineAvatar>
-            <AuthorName>{authorName}</AuthorName>
-            <AiReporterBadge authorId={post.author?.id ?? post.user_id} />
+            <AuthorLine>
+              <AuthorName>{authorName}</AuthorName>
+              <AiReporterBadge authorId={post.author?.id ?? post.user_id} />
+            </AuthorLine>
             <BylineMeta>
               <RelativeTime iso={post.created_at} />
               <Dot aria-hidden="true">·</Dot>
