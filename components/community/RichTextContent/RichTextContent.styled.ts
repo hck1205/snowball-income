@@ -325,7 +325,15 @@ export const Prose = styled.article`
   }
 
   [data-rich-chart] + table {
-    margin-top: ${space[2]};
+    margin-top: ${space[3]};
+  }
+
+  /*
+   * 🔴 접힌 차트 표. 위 table 의 display:block 이 브라우저 기본 [hidden] display:none 을 이겨서
+   * hidden 속성만으로는 표가 사라지지 않는다 — 여기서 명시적으로 되돌린다.
+   */
+  table[hidden] {
+    display: none;
   }
 
   & > *:last-child {

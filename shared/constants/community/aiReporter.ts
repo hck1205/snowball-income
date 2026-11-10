@@ -18,6 +18,9 @@ export const AI_REPORTER = {
   displayName: 'AI 리포터',
   badgeLabel: 'AI 리포터',
   badgeTitle: 'AI가 사이트 데이터로 자동 작성한 글입니다',
+  /** 글 상세 본문 아래 고지 상자(`AiReporterNote`) 문구. AI 가 썼다는 사실과 권유가 아니라는 사실을 함께 말한다. */
+  disclaimer:
+    'AI 리포터가 Hungry Hippo의 데이터와 계산으로 작성한 글입니다. 투자 권유가 아닌 계산 예시이며, 배당·주가는 바뀝니다.',
   /** 2026-11-10 생성(ai-reporter@hungry-hippo.xyz). profiles.is_bot=true 는 운영자가 SQL 로 켠다. */
   userIds: ['44792963-f012-4df0-881c-769b971605cc'] as readonly string[],
   indexable: false

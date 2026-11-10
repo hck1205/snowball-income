@@ -6,13 +6,6 @@
 export const escapeHtml = (value: string): string =>
   value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-/** 표 셀 안의 작은 막대(크기 비교를 글자만으로도). 최댓값 대비 0~10칸. */
-export const barGlyph = (value: number, max: number): string => {
-  if (!(max > 0) || !(value > 0)) return '';
-  const cells = Math.max(1, Math.round((value / max) * 10));
-  return '▇'.repeat(cells);
-};
-
 export type ReporterTable = {
   /** 표 위 소제목(h3). */
   readonly caption: string;

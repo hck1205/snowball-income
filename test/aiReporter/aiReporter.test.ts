@@ -7,7 +7,6 @@ import {
   composeBody,
   nextFacts,
   pickNextSpotlightTicker,
-  REPORTER_DISCLAIMER,
   titleSimilarity,
   type ReporterDraft,
   type ReporterLedger
@@ -119,9 +118,11 @@ describe('다음 회차 고르기 — 중복 없이', () => {
 });
 
 describe('조립', () => {
-  it('🔴 본문 → 표 → 링크 → 출처 → 고지 순서이고, 표·고지는 사실에서 온다', () => {
+  it('🔴 본문 → 표 → 링크 → 출처 순서이고, 표는 사실에서 온다. AI 고지는 본문에 없다(화면이 그린다)', () => {
     const body = composeBody(goodDraft(), spotlight);
-    const order = [goodDraft().introHtml.slice(0, 20), '<h3>', '<a href="/ticker/', '출처:', REPORTER_DISCLAIMER.slice(0, 10)].map((part) =>
+    expect(body).not.toContain('AI 리포터가');
+    expect(body).not.toContain('▇');
+    const order = [goodDraft().introHtml.slice(0, 20), '<h3>', '<a href="/ticker/', '출처:'].map((part) =>
       body.indexOf(part)
     );
     expect(order.every((index) => index >= 0)).toBe(true);

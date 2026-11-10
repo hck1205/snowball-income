@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { buildRichChartOption, isHorizontalBar, richChartHeight } from '@/components/community/RichTextChart';
 import { RichTextContent } from '@/components/community/RichTextContent';
 import { sanitizePostBody } from '@/server/handlers/PostHtml/serverSanitize';
-import { parseCellNumber, parseRichChartTable, sanitizeRichHtml } from '@/shared/lib/richtext';
+import { parseCellNumber, parseRichChartTable, sanitizeRichHtml, type RichChartData } from '@/shared/lib/richtext';
 
 /**
  * 본문 표 차트(`<table data-chart="bar|line">`, 2026-11-09).
@@ -93,11 +95,44 @@ describe('RichTextContent — 차트 덧그리기', () => {
     expect(table.textContent).toContain('7.55%');
   });
 
+  it('🔴 차트가 있는 표는 접혀 있고, "표로 보기" 로 펼치고 접는다', async () => {
+    const user = userEvent.setup();
+    const { container } = render(<RichTextContent html={`<p>본문</p>${SAMPLE}`} />);
+    const table = container.querySelector('table[data-chart]') as HTMLTableElement;
+    const toggle = screen.getByRole('button', { name: /표로 보기/ });
+
+    expect(table.hidden).toBe(true);
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await user.click(toggle);
+    expect(table.hidden).toBe(false);
+    expect(screen.getByRole('button', { name: /표 접기/ })).toHaveAttribute('aria-expanded', 'true');
+  });
+
   it('🔴 차트 표가 없는 글은 DOM 이 이전과 같다 (차트 자리 0)', () => {
     const html = '<p>첫 문단</p><table><tbody><tr><th>a</th><th>b</th></tr><tr><td>x</td><td>1</td></tr></tbody></table>';
     const { container } = render(<RichTextContent html={html} />);
 
     expect(container.querySelector('[data-rich-chart]')).toBeNull();
     expect(container.firstElementChild!.innerHTML).toBe(sanitizeRichHtml(html));
+  });
+});
+
+describe('buildRichChartOption — 막대 방향', () => {
+  const data = (count: number, label = 'A'): RichChartData => ({
+    kind: 'bar',
+    categories: Array.from({ length: count }, (_, i) => `${label}${i}`),
+    series: [{ name: '값', values: Array.from({ length: count }, (_, i) => i + 1) }]
+  });
+
+  it('🔴 항목이 많으면 가로 막대(이름이 다 보이게), 적으면 세로 막대', () => {
+    expect(isHorizontalBar(data(12))).toBe(true);
+    expect(isHorizontalBar(data(4))).toBe(false);
+    expect(isHorizontalBar(data(4, 'QYLD (12.5%) '))).toBe(true);
+  });
+
+  it('🔴 가로 막대는 항목 수만큼 키가 자라고, 개수 같은 정수 값은 눈금이 정수다', () => {
+    expect(richChartHeight(data(12))).toBeGreaterThan(richChartHeight(data(7)));
+    const option = buildRichChartOption(data(4)) as { yAxis: { minInterval?: number } };
+    expect(option.yAxis.minInterval).toBe(1);
   });
 });
