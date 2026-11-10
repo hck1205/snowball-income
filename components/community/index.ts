@@ -13,6 +13,7 @@ export type { AvatarProps, AvatarSize } from './Avatar';
 export { RelativeTime } from './RelativeTime';
 export { PostMeta, VisuallyHidden } from './PostMeta';
 export { SimBadge } from './SimBadge';
+export { AiReporterBadge } from './AiReporterBadge';
 export { SimSummaryStats } from './SimSummaryStats';
 export type { SimSummaryStatsProps, SimSummaryStatsVariant } from './SimSummaryStats';
 export { LikeButton } from './LikeButton';

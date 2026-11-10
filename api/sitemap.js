@@ -29,14 +29,14 @@ var toRef = (row) => {
   if (typeof id !== "string" || !POST_ID_PATTERN.test(id)) return null;
   if (typeof kind !== "string" || !isPublicPostKind(kind)) return null;
   if (typeof updatedAt !== "string" || updatedAt.length === 0) return null;
-  return { id, kind, updatedAt };
+  return { id, kind, updatedAt, userId: typeof row.user_id === "string" ? row.user_id : null };
 };
 var SITEMAP_POST_LIMIT = 45e3;
 var fetchPublicPostRefs = async (limit = SITEMAP_POST_LIMIT) => {
   const config = readSupabaseRestConfig();
   if (!config) return null;
   const query = new URLSearchParams({
-    select: "id,kind,updated_at",
+    select: "id,kind,updated_at,user_id",
     is_public: "eq.true",
     order: "updated_at.desc",
     limit: String(limit)
@@ -65,6 +65,18 @@ var resolveSiteUrl = (requestUrl) => {
   if (configured) return stripTrailingSlash(configured);
   return stripTrailingSlash(new URL(requestUrl).origin);
 };
+
+// shared/constants/community/aiReporter.ts
+var AI_REPORTER = {
+  displayName: "AI \uB9AC\uD3EC\uD130",
+  badgeLabel: "AI \uB9AC\uD3EC\uD130",
+  badgeTitle: "AI\uAC00 \uC0AC\uC774\uD2B8 \uB370\uC774\uD130\uB85C \uC790\uB3D9 \uC791\uC131\uD55C \uAE00\uC785\uB2C8\uB2E4",
+  /** 2026-11-10 생성(ai-reporter@hungry-hippo.xyz). profiles.is_bot=true 는 운영자가 SQL 로 켠다. */
+  userIds: ["44792963-f012-4df0-881c-769b971605cc"],
+  indexable: false
+};
+var isAiReporterUserId = (userId, config = AI_REPORTER) => typeof userId === "string" && config.userIds.includes(userId);
+var isPostIndexable = (authorUserId, config = AI_REPORTER) => config.indexable || !isAiReporterUserId(authorUserId, config);
 
 // shared/lib/server/nodeHandler.ts
 var firstHeaderValue = (headers, name) => {
@@ -211,7 +223,7 @@ ${refs.map((ref) => buildUrlEntry(siteUrl, ref)).join("\n")}
 `;
 async function handler(request) {
   const siteUrl = resolveSiteUrl(request.url);
-  const refs = await fetchPublicPostRefs(SITEMAP_POST_LIMIT);
+  const refs = (await fetchPublicPostRefs(SITEMAP_POST_LIMIT))?.filter((ref) => isPostIndexable(ref.userId)) ?? null;
   return new Response(buildUrlset(siteUrl, refs ?? []), {
     status: 200,
     headers: {

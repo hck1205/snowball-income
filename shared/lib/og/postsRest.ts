@@ -40,6 +40,11 @@ export type PublicPostRef = {
   kind: PublicPostKind;
   /** ISO timestamptz. `<lastmod>` 로 나간다. */
   updatedAt: string;
+  /**
+   * 작성자 user id. AI 리포터 글을 사이트맵에서 빼고(색인 허용 전) 크롤러 HTML 에 noindex 를 다는 데 쓴다
+   * (`isPostIndexable`, 2026-11-10). 없으면 null — 그 경우 사람 글로 본다.
+   */
+  userId: string | null;
 };
 
 /** 목록 페이지 ISR 한 줄(제목·링크). 본문·요약은 필요 없다 — 크롤러가 상세 URL 을 발견하게만 한다. */
@@ -95,6 +100,7 @@ type PostRestRow = {
   body?: unknown;
   sim_summary?: unknown;
   updated_at?: unknown;
+  user_id?: unknown;
 };
 
 const toRef = (row: PostRestRow): PublicPostRef | null => {
@@ -102,7 +108,7 @@ const toRef = (row: PostRestRow): PublicPostRef | null => {
   if (typeof id !== 'string' || !POST_ID_PATTERN.test(id)) return null;
   if (typeof kind !== 'string' || !isPublicPostKind(kind)) return null;
   if (typeof updatedAt !== 'string' || updatedAt.length === 0) return null;
-  return { id, kind, updatedAt };
+  return { id, kind, updatedAt, userId: typeof row.user_id === 'string' ? row.user_id : null };
 };
 
 /** 목록 한 줄: id/kind 형식 + 비어 있지 않은 제목만 통과(updatedAt 은 목록에 불필요해 검증 안 함). */
@@ -130,7 +136,7 @@ export const fetchPublicPostRefs = async (limit: number = SITEMAP_POST_LIMIT): P
   if (!config) return null;
 
   const query = new URLSearchParams({
-    select: 'id,kind,updated_at',
+    select: 'id,kind,updated_at,user_id',
     is_public: 'eq.true',
     order: 'updated_at.desc',
     limit: String(limit)
@@ -162,7 +168,7 @@ export const fetchPublicPostMeta = async (kind: PublicPostKind, id: string): Pro
   if (!config) return { status: 'unavailable' };
 
   const query = new URLSearchParams({
-    select: 'id,kind,title,description,body,sim_summary,updated_at',
+    select: 'id,kind,title,description,body,sim_summary,updated_at,user_id',
     id: `eq.${id}`,
     kind: `eq.${kind}`,
     is_public: 'eq.true',

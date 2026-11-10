@@ -152,14 +152,14 @@ var toRef = (row) => {
   if (typeof id !== "string" || !POST_ID_PATTERN.test(id)) return null;
   if (typeof kind !== "string" || !isPublicPostKind(kind)) return null;
   if (typeof updatedAt !== "string" || updatedAt.length === 0) return null;
-  return { id, kind, updatedAt };
+  return { id, kind, updatedAt, userId: typeof row.user_id === "string" ? row.user_id : null };
 };
 var fetchPublicPostMeta = async (kind, id) => {
   if (!POST_ID_PATTERN.test(id)) return { status: "not-found" };
   const config = readSupabaseRestConfig();
   if (!config) return { status: "unavailable" };
   const query = new URLSearchParams({
-    select: "id,kind,title,description,body,sim_summary,updated_at",
+    select: "id,kind,title,description,body,sim_summary,updated_at,user_id",
     id: `eq.${id}`,
     kind: `eq.${kind}`,
     is_public: "eq.true",
@@ -204,6 +204,18 @@ var resolveSiteUrl = (requestUrl) => {
   if (configured) return stripTrailingSlash(configured);
   return stripTrailingSlash(new URL(requestUrl).origin);
 };
+
+// shared/constants/community/aiReporter.ts
+var AI_REPORTER = {
+  displayName: "AI \uB9AC\uD3EC\uD130",
+  badgeLabel: "AI \uB9AC\uD3EC\uD130",
+  badgeTitle: "AI\uAC00 \uC0AC\uC774\uD2B8 \uB370\uC774\uD130\uB85C \uC790\uB3D9 \uC791\uC131\uD55C \uAE00\uC785\uB2C8\uB2E4",
+  /** 2026-11-10 생성(ai-reporter@hungry-hippo.xyz). profiles.is_bot=true 는 운영자가 SQL 로 켠다. */
+  userIds: ["44792963-f012-4df0-881c-769b971605cc"],
+  indexable: false
+};
+var isAiReporterUserId = (userId, config = AI_REPORTER) => typeof userId === "string" && config.userIds.includes(userId);
+var isPostIndexable = (authorUserId, config = AI_REPORTER) => config.indexable || !isAiReporterUserId(authorUserId, config);
 
 // shared/constants/site/index.ts
 var SITE_NAME = "Hungry Hippo";
@@ -1973,6 +1985,9 @@ var applyPostMeta = (shell, post, siteUrl) => {
   html2 = replaceMetaContent(html2, "property", "og:url", canonical);
   html2 = replaceMetaContent(html2, "name", "twitter:title", title);
   html2 = replaceMetaContent(html2, "name", "twitter:description", description);
+  if (!isPostIndexable(post.userId)) {
+    html2 = replaceMetaContent(html2, "name", "robots", "noindex, follow");
+  }
   if (post.kind === "portfolio" && post.simSummary != null && typeof post.simSummary === "object") {
     const ogImage = `${siteUrl}/api/og?post=${post.id}`;
     html2 = replaceMetaContent(html2, "property", "og:image", ogImage);

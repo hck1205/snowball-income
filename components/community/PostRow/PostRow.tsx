@@ -22,6 +22,7 @@ import {
   RowTitle,
   RowTitleRow
 } from './PostRow.styled';
+import { AiReporterBadge } from '@/components/community/AiReporterBadge';
 
 export type PostRowProps = {
   item: PostListItem;
@@ -68,6 +69,7 @@ export default function PostRow({ item, simSummary }: PostRowProps) {
         <RowSubInfo>
           <RowSubText>
             <b>{authorName}</b>
+            <AiReporterBadge authorId={item.author?.id ?? item.user_id} />
             {' · '}
             <RelativeTime iso={item.created_at} />
             {` · ${metaComments} ${formatCompactCount(item.comment_count)} · ${metaViews} ${formatCompactCount(item.view_count)} · `}

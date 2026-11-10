@@ -23,6 +23,7 @@ import type { PublicPostKind, PublicPostMeta } from '@/shared/lib/og';
  */
 const CACHE_POST = 'public, max-age=0, s-maxage=300, stale-while-revalidate=604800';
 
+import { isPostIndexable } from '@/shared/constants/community';
 import { withSiteTitleSuffix } from '@/shared/constants/site';
 import {
   CACHE_NO_STORE,
@@ -118,6 +119,11 @@ const applyPostMeta = (shell: string, post: PublicPostMeta, siteUrl: string): st
   html = replaceMetaContent(html, 'property', 'og:url', canonical);
   html = replaceMetaContent(html, 'name', 'twitter:title', title);
   html = replaceMetaContent(html, 'name', 'twitter:description', description);
+
+  // AI 리포터 글은 색인 허용 전까지 noindex(링크는 따라가게 follow). 셸의 robots 메타를 바꾼다(2026-11-10).
+  if (!isPostIndexable(post.userId)) {
+    html = replaceMetaContent(html, 'name', 'robots', 'noindex, follow');
+  }
 
   // 포트폴리오 글 + sim_summary 존재 시 og:image 를 `/api/og?post=<id>`(그 글의 시뮬 숫자 카드)로 돌린다.
   // board 글·sim_summary 없는 포폴 글은 이 분기를 건너뛰어 **기본 이미지 유지**. presence(비-null object)만

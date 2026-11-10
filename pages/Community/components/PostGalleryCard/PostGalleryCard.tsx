@@ -21,6 +21,7 @@ import {
   SubtitleAuthor,
   SubtitleDot
 } from './PostGalleryCard.styled';
+import { AiReporterBadge } from '@/components/community';
 
 const { metaViews, metaLikes, metaComments } = COMMUNITY_COPY.gallery;
 
@@ -51,6 +52,7 @@ export default function PostGalleryCard({ item, simSummary }: PostGalleryCardPro
       subtitle={
         <>
           <SubtitleAuthor>{authorName}</SubtitleAuthor>
+          <AiReporterBadge authorId={item.author?.id ?? item.user_id} />
           <SubtitleDot aria-hidden="true">·</SubtitleDot>
           <RelativeTime iso={item.created_at} />
         </>

@@ -25,6 +25,7 @@ import {
   RowSummary,
   RowTitle
 } from './PostFeedRow.styled';
+import { AiReporterBadge } from '@/components/community';
 
 const { metaViews, metaLikes, metaComments } = COMMUNITY_COPY.gallery;
 
@@ -64,6 +65,7 @@ export default function PostFeedRow({ item, simSummary }: PostFeedRowProps) {
           {!simSummary && item.has_payload ? <SimBadge /> : null}
           <RowKickerMeta>
             <b>{authorName}</b>
+            <AiReporterBadge authorId={item.author?.id ?? item.user_id} />
             <RowKickerDot aria-hidden="true">·</RowKickerDot>
             <RelativeTime iso={item.created_at} />
           </RowKickerMeta>
