@@ -71,7 +71,7 @@ jobs:
           failed=0
           for draft in "${drafts[@]}"; do
             echo "── $draft"
-            if npm run -s reporter -- publish --ledger "$dir/ledger.json" --draft "$draft" $flag > out.txt 2>&1; then
+            if npm run reporter --silent -- publish --ledger "$dir/ledger.json" --draft "$draft" $flag > out.txt 2>&1; then
               cat out.txt
               git -C reporter mv -f "content/ai-reporter/inbox/$(basename "$draft")" "content/ai-reporter/published/$(basename "$draft")"
               rm -f "$dir/next-facts.json" "$dir/last-error.json"
