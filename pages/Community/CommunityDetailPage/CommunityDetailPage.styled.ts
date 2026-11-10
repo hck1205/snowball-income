@@ -110,6 +110,17 @@ export const BylineAvatar = styled.div`
   display: flex;
 `;
 
+/**
+ * 이름 + 배지 한 줄(2026-11-11). 배지를 Byline 그리드의 직계 자식으로 두면 **셋째 그리드 칸**이 돼
+ * 둘째 줄을 전폭으로 차지하고(배지가 길게 늘어났다) 시간·조회수가 아바타 아래로 밀렸다.
+ * 이름과 같은 칸 안에서 가로로 붙인다.
+ */
+export const AuthorLine = styled.div`
+  display: flex;
+  align-items: center;
+  min-width: 0;
+`;
+
 export const AuthorName = styled.b`
   min-width: 0;
   color: ${color.text};
