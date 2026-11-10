@@ -4,8 +4,9 @@
 # 루틴(LLM)은 이 파일이 남긴 `next-facts.json` 하나만 읽고 제목·짧은 본문만 쓴다 — 저장소를 뒤지거나
 # npm install 을 하지 않아 실행이 짧다.
 #
-# 흐름: 월·목 07:00 KST(이 파일) → 08:00 루틴이 초안을 `ai-reporter` 브랜치 inbox 에 push →
+# 흐름: 월·목·토 07:00 KST(이 파일) → 08:00 루틴이 초안을 `ai-reporter` 브랜치 inbox 에 push →
 #       09:30 `ai-reporter-publish.yml` 이 검사·발행.
+# 월·목은 게시판 글(주제 순환), **토요일은 배당 계산 갤러리 글**(gallery-portfolio, 2026-11-10).
 #
 # 🔴 코드는 main 에서, 데이터(대장·초안)는 `ai-reporter` 브랜치에서. 그 브랜치에는 글 파일만 있다.
 # 새로 쓸 사실이 없으면(같은 회차를 이미 다뤘으면) 아무것도 올리지 않는다 — 루틴도 할 일 없이 끝난다.
@@ -13,11 +14,12 @@ name: AI reporter - prepare facts
 
 on:
   schedule:
-    - cron: '0 22 * * 0,3' # 일·수 22:00 UTC = 월·목 07:00 KST
+    - cron: '0 22 * * 0,3' # 일·수 22:00 UTC = 월·목 07:00 KST — 게시판
+    - cron: '0 22 * * 5' # 금 22:00 UTC = 토 07:00 KST — 갤러리
   workflow_dispatch:
     inputs:
       topic:
-        description: 'week-ahead | income-target | ticker-spotlight (비우면 순환)'
+        description: 'week-ahead | income-target | ticker-spotlight | gallery-portfolio (비우면 순환)'
         required: false
         default: ''
 
@@ -59,6 +61,8 @@ jobs:
           TOPIC: ${{ inputs.topic }}
         run: |
           args="--ledger reporter/content/ai-reporter/ledger.json"
+          # 토요일(KST, 최상위 TZ) 정기 실행은 갤러리 글이다. 수동 실행은 입력한 주제를 따른다.
+          if [ -z "$TOPIC" ] && [ "${{ github.event_name }}" = "schedule" ] && [ "$(date +%u)" = "6" ]; then TOPIC=gallery-portfolio; fi
           if [ -n "$TOPIC" ]; then args="$args --topic $TOPIC"; fi
           npm run reporter --silent -- facts $args > facts.json
           if grep -q '"skip": true' facts.json; then

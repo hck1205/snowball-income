@@ -7,7 +7,6 @@ import {
   composeBody,
   nextFacts,
   pickNextSpotlightTicker,
-  REPORTER_DISCLAIMER,
   titleSimilarity,
   type ReporterDraft,
   type ReporterLedger
@@ -119,9 +118,11 @@ describe('다음 회차 고르기 — 중복 없이', () => {
 });
 
 describe('조립', () => {
-  it('🔴 본문 → 표 → 링크 → 출처 → 고지 순서이고, 표·고지는 사실에서 온다', () => {
+  it('🔴 본문 → 표 → 링크 → 출처 순서이고, 표는 사실에서 온다. AI 고지는 본문에 없다(화면이 그린다)', () => {
     const body = composeBody(goodDraft(), spotlight);
-    const order = [goodDraft().introHtml.slice(0, 20), '<h3>', '<a href="/ticker/', '출처:', REPORTER_DISCLAIMER.slice(0, 10)].map((part) =>
+    expect(body).not.toContain('AI 리포터가');
+    expect(body).not.toContain('▇');
+    const order = [goodDraft().introHtml.slice(0, 20), '<h3>', '<a href="/ticker/', '출처:'].map((part) =>
       body.indexOf(part)
     );
     expect(order.every((index) => index >= 0)).toBe(true);
@@ -137,5 +138,58 @@ describe('factsFromKey — 발행 시점에 바로 그 회차를 다시 만든�
     expect(factsFromKey(key)?.tablesHtml).toBe(buildTickerSpotlightFacts('SCHD', MARKET_DATA_AS_OF!)!.tablesHtml);
     expect(factsFromKey('ticker-spotlight:SCHD:1999-01-01')).toBeNull();
     expect(factsFromKey('week-ahead:2026-11-09')?.factKey).toBe('week-ahead:2026-11-09');
+  });
+});
+
+describe('갤러리 글 — 배당 계산 갤러리에 포트폴리오를 올린다', () => {
+  it('🔴 모든 전략은 시뮬레이터가 아는 종목만 쓰고, 비중 합이 100이며, 앱 엔진으로 결과 요약이 만들어진다', async () => {
+    const { GALLERY_STRATEGIES, buildGalleryPortfolioFacts } = await import('@/scripts/aiReporter');
+    const { runScenarioPayload } = await import('@/shared/lib/snowball');
+    for (const strategy of GALLERY_STRATEGIES) {
+      expect(strategy.holdings.reduce((sum, holding) => sum + holding.weight, 0)).toBe(100);
+      const facts = buildGalleryPortfolioFacts(strategy.id, AS_OF);
+      expect(facts, strategy.id).not.toBeNull();
+      expect(facts!.attachment?.kind).toBe('portfolio');
+      expect(facts!.attachment?.simSummary).not.toBeNull();
+      expect(runScenarioPayload(facts!.attachment!.payload), strategy.id).not.toBeNull();
+    }
+  });
+
+  it('🔴 본문에 쓸 수 있는 숫자에 결과(최종 월 배당·자산)가 없다 — 결과는 카드가 보여 준다', async () => {
+    const { buildGalleryPortfolioFacts } = await import('@/scripts/aiReporter');
+    const { formatKoreanWon } = await import('@/shared/utils');
+    const facts = buildGalleryPortfolioFacts('dividend-growth-trio', AS_OF)!;
+    const summary = facts.attachment!.simSummary as { finalMonthlyDividend: number; finalAssetValue: number };
+    expect(facts.numbers).not.toContain(formatKoreanWon(summary.finalMonthlyDividend));
+    expect(facts.numbers).not.toContain(formatKoreanWon(summary.finalAssetValue));
+    expect(facts.category).toBeNull();
+  });
+
+  it('🔴 갤러리 글은 kind=portfolio 로 payload·sim_summary 를 함께 올리고, 분류 키를 보내지 않는다', async () => {
+    const { publishBoardPost } = await import('@/scripts/aiReporter');
+    const bodies: Record<string, unknown>[] = [];
+    const fetchImpl = (async (url: string, init?: RequestInit) => {
+      if (url.includes('/auth/v1/token')) {
+        return new Response(JSON.stringify({ access_token: 't', user: { id: 'bot' } }), { status: 200 });
+      }
+      bodies.push(JSON.parse(String(init?.body)));
+      return new Response(JSON.stringify([{ id: 'p1' }]), { status: 201 });
+    }) as typeof fetch;
+    const env = { supabaseUrl: 'https://x', anonKey: 'a', email: 'e', password: 'p' };
+
+    await publishBoardPost(env, { title: 't', description: 'd', body: 'b', category: null, isPublic: true, attachment: { payload: { a: 1 }, simSummary: { b: 2 } } }, fetchImpl);
+    await publishBoardPost(env, { title: 't', description: 'd', body: 'b', category: 'insight', isPublic: true }, fetchImpl);
+
+    expect(bodies[0]).toMatchObject({ kind: 'portfolio', payload: { a: 1 }, sim_summary: { b: 2 } });
+    expect(bodies[0]).not.toHaveProperty('category');
+    expect(bodies[1]).toMatchObject({ kind: 'board', category: 'insight' });
+    expect(bodies[1]).not.toHaveProperty('payload');
+  });
+
+  it('🔴 다음 전략은 아직 안 쓴 것부터 고른다', async () => {
+    const { pickNextGalleryStrategy, GALLERY_STRATEGIES } = await import('@/scripts/aiReporter');
+    const first = GALLERY_STRATEGIES[0]!.id;
+    expect(pickNextGalleryStrategy([], AS_OF)).toBe(first);
+    expect(pickNextGalleryStrategy([`gallery-portfolio:${first}:${AS_OF}`], AS_OF)).toBe(GALLERY_STRATEGIES[1]!.id);
   });
 });

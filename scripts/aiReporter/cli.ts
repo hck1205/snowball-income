@@ -9,7 +9,7 @@ import type { ReporterDraft, ReporterLedger, ReporterTopic } from './types';
 /**
  * AI 리포터 CLI(2026-11-10).
  *
- *   npm run reporter -- facts --ledger <대장.json> [--topic week-ahead|income-target|ticker-spotlight]
+ *   npm run reporter -- facts --ledger <대장.json> [--topic week-ahead|income-target|ticker-spotlight|gallery-portfolio]
  *       → 다음 회차의 사실(JSON)을 출력한다. 주제를 주지 않으면 직전 주제와 다른 것을 고른다.
  *         루틴(LLM)은 이 출력의 highlights·numbers 만 보고 제목·짧은 본문을 쓴다.
  *   npm run reporter -- check --ledger <대장.json> --draft <초안.json>
@@ -48,7 +48,8 @@ const main = async (): Promise<number> => {
       console.log(JSON.stringify({ skip: true, reason: '이번 회차에 새로 쓸 사실이 없다 — 건너뛴다' }));
       return 0;
     }
-    const { tablesHtml: _tables, ...forWriter } = facts;
+    // 표·첨부는 프로그램 몫이라 루틴(LLM)에 넘기지 않는다 — 읽을 분량이 줄어 비용도 준다.
+    const { tablesHtml: _tables, attachment: _attachment, ...forWriter } = facts;
     console.log(JSON.stringify(forWriter, null, 2));
     return 0;
   }
@@ -76,7 +77,8 @@ const main = async (): Promise<number> => {
       description: draft.description.trim(),
       body: composeBody(draft, facts),
       category: facts.category,
-      isPublic
+      isPublic,
+      ...(facts.attachment ? { attachment: { payload: facts.attachment.payload, simSummary: facts.attachment.simSummary } } : {})
     });
     const next: ReporterLedger = {
       entries: [
@@ -85,7 +87,8 @@ const main = async (): Promise<number> => {
       ]
     };
     if (ledgerPath) writeFileSync(ledgerPath, `${JSON.stringify(next, null, 2)}\n`, 'utf8');
-    console.log(`✓ 게시 ${isPublic ? '(공개)' : '(비공개)'} — /community/board/${postId}`);
+    const section = facts.attachment ? 'portfolio' : 'board';
+    console.log(`✓ 게시 ${isPublic ? '(공개)' : '(비공개)'} — /community/${section}/${postId}`);
     return 0;
   }
 

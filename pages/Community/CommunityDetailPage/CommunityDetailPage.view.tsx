@@ -52,7 +52,7 @@ import {
   StateWrap,
   Title
 } from './CommunityDetailPage.styled';
-import { AiReporterBadge } from '@/components/community';
+import { AiReporterBadge, AiReporterNote } from '@/components/community';
 
 const d = COMMUNITY_COPY.detail;
 
@@ -224,6 +224,7 @@ export default function CommunityDetailView({ viewModel }: CommunityDetailViewPr
             <FireLinkBlock payload={post.payload} />
 
             {post.body ? <RichTextContent html={post.body} /> : null}
+            <AiReporterNote authorId={post.author?.id ?? post.user_id} />
 
             {/*
               🔴 `post.payload` 만 보면 안 된다 — 링크 글(파이어족들)의 payload 도 참이라

@@ -23,7 +23,7 @@ import type { PublicPostKind, PublicPostMeta } from '@/shared/lib/og';
  */
 const CACHE_POST = 'public, max-age=0, s-maxage=300, stale-while-revalidate=604800';
 
-import { isPostIndexable } from '@/shared/constants/community';
+import { AI_REPORTER, isAiReporterUserId, isPostIndexable } from '@/shared/constants/community';
 import { withSiteTitleSuffix } from '@/shared/constants/site';
 import {
   CACHE_NO_STORE,
@@ -154,7 +154,9 @@ const applyPostMeta = (shell: string, post: PublicPostMeta, siteUrl: string): st
  */
 const injectPostBody = (shell: string, post: PublicPostMeta): string => {
   const safeBody = sanitizePostBody(post.body ?? '');
-  return injectIntoRoot(shell, `<article><h1>${escapeHtmlText(post.title)}</h1>${safeBody}</article>`);
+  // AI 리포터 글은 고지를 본문 밖(화면의 AiReporterNote)에 둔다 — 크롤러 HTML 에도 같은 고지를 붙인다.
+  const note = isAiReporterUserId(post.userId) ? `<aside><p>${escapeHtmlText(AI_REPORTER.disclaimer)}</p></aside>` : '';
+  return injectIntoRoot(shell, `<article><h1>${escapeHtmlText(post.title)}</h1>${safeBody}${note}</article>`);
 };
 
 /** 웹 표준 핸들러 — `test/api/postHtml.test.ts` 가 `handler(new Request(...))` 로 직접 호출한다. */

@@ -6,7 +6,7 @@ import { TICKER_CONTENT_LIST } from '@/shared/constants/tickers';
 import { buildDividendTargetModel } from '@/shared/lib/dividendTarget';
 import { buildTickerIncomeAnswer, formatIncomeWon, formatPrincipalLabel } from '@/shared/lib/tickerIncome';
 import { formatKoreanWon } from '@/shared/utils';
-import { barGlyph, renderTable } from './html';
+import { renderTable } from './html';
 import type { ReporterFacts } from './types';
 
 /**
@@ -29,38 +29,45 @@ export const buildWeekAheadFacts = (today: Date): ReporterFacts | null => {
   const until = toCalendarDate(addDays(today, WEEK_DAYS - 1));
 
   const events = buildUpcoming(today, 200).filter((item) => item.date <= until && (item.major || item.kind !== 'economic'));
-  const earnings = MARKET_CALENDAR.earnings.filter((item) => item.date >= from && item.date <= until);
+  // 같은 회사의 상장 클래스(PBR · PBR.A, BRK.A · BRK.B)는 한 줄로 — 같은 실적 발표다.
+  const seenIssuers = new Set<string>();
+  const earnings = MARKET_CALENDAR.earnings
+    .filter((item) => item.date >= from && item.date <= until)
+    .filter((item) => {
+      const issuer = `${item.date}:${item.ticker.split(/[.-]/)[0]}`;
+      if (seenIssuers.has(issuer)) return false;
+      seenIssuers.add(issuer);
+      return true;
+    });
   if (events.length === 0 && earnings.length === 0) return null;
 
   const dayLabel = (date: string) => `${formatMonthDay(date)}(${formatWeekday(date)})`;
+  // 표 칸은 짧게 — 휴대폰 폭(390px)에서 4열은 "실/적"처럼 글자가 세로로 쪼개졌다. 3열 + 짧은 날짜.
+  const shortDay = (date: string) => `${Number(date.slice(5, 7))}/${Number(date.slice(8, 10))}(${formatWeekday(date)})`;
 
-  const scheduleRows = events.map((item) => [dayLabel(item.date), item.labelKo, item.timeEt ? formatKst(item.timeKst) : '종일']);
+  // 한 장의 주간 일정표 — 지표·휴장·FOMC·실적을 날짜순으로. 같은 날은 지표가 먼저(시각이 정해져 있다).
+  const scheduleRows: { date: string; order: number; cells: string[] }[] = [
+    ...events.map((item) => ({
+      date: item.date,
+      order: 0,
+      cells: [shortDay(item.date), item.labelKo, item.timeEt ? formatKst(item.timeKst) : '종일']
+    })),
+    ...earnings.slice(0, 12).map((item) => ({
+      date: item.date,
+      order: 1,
+      cells: [shortDay(item.date), `${item.ticker} 실적`, SESSION_KO[item.session]]
+    }))
+  ].sort((a, b) => a.date.localeCompare(b.date) || a.order - b.order);
 
   const earningsByDay = new Map<string, number>();
   for (const item of earnings) earningsByDay.set(item.date, (earningsByDay.get(item.date) ?? 0) + 1);
   const earningsDays = [...earningsByDay.entries()].sort(([a], [b]) => a.localeCompare(b));
-  const maxPerDay = Math.max(0, ...earningsDays.map(([, count]) => count));
 
-  const tables = [
-    scheduleRows.length > 0
-      ? renderTable({ caption: '이번 주 일정 (한국시간)', head: ['날짜', '일정', '한국시간'], rows: scheduleRows })
-      : '',
-    earningsDays.length >= 2
-      ? renderTable({
-          caption: '날짜별 실적 발표 기업 수',
-          chart: 'bar',
-          head: ['날짜', '발표 기업 수'],
-          rows: earningsDays.map(([date, count]) => [dayLabel(date), `${barGlyph(count, maxPerDay)} ${count}`])
-        })
-      : '',
-    earnings.length > 0
-      ? renderTable({
-          caption: '주요 실적 발표',
-          head: ['날짜', '종목', '시점'],
-          rows: earnings.slice(0, 12).map((item) => [dayLabel(item.date), item.ticker, SESSION_KO[item.session]])
-        })
-      : ''
-  ].join('');
+  const tables = renderTable({
+    caption: '이번 주 일정 (한국시간)',
+    head: ['날짜', '일정', '시간'],
+    rows: scheduleRows.map((row) => row.cells)
+  });
 
   const holidays = events.filter((item) => item.kind === 'holiday' || item.kind === 'earlyClose');
   const fomc = events.filter((item) => item.kind === 'fomc');
@@ -106,7 +113,6 @@ export const buildIncomeTargetFacts = (monthlyMan: number, asOf: string): Report
     .sort((a, b) => a.principal - b.principal);
   if (rows.length < 3) return null;
 
-  const max = Math.max(...rows.map((row) => row.principal));
   const amountLabel = formatKoreanWon(monthlyMan * 10_000);
   const smallest = rows[0]!;
   const largest = rows[rows.length - 1]!;
@@ -116,7 +122,7 @@ export const buildIncomeTargetFacts = (monthlyMan: number, asOf: string): Report
     caption: `세후 월 ${amountLabel}에 필요한 원금`,
     chart: 'bar',
     head: ['종목(배당률)', '필요 원금'],
-    rows: rows.map((row) => [`${row.ticker} (${yieldText(row.yieldPercent)})`, `${barGlyph(row.principal, max)} ${formatKoreanWon(row.principal)}`])
+    rows: rows.map((row) => [`${row.ticker} (${yieldText(row.yieldPercent)})`, formatKoreanWon(row.principal)])
   });
 
   const ratio = largest.principal / smallest.principal;
@@ -151,23 +157,17 @@ export const buildTickerSpotlightFacts = (ticker: string, asOf: string): Reporte
   const answer = buildTickerIncomeAnswer(ticker);
   if (!content || !answer) return null;
 
-  const max = Math.max(...answer.rows.map((row) => row.monthlyAfterReinvest));
-  const tablesHtml =
-    renderTable({
-      caption: `${ticker} 투자금별 세후 월 배당`,
-      chart: 'bar',
-      head: ['투자금', '지금 월 배당'],
-      rows: answer.rows.map((row) => [formatPrincipalLabel(row.principal), `${barGlyph(row.monthlyAfterTax, max)} ${formatIncomeWon(row.monthlyAfterTax)}`])
-    }) +
-    renderTable({
-      caption: `배당을 ${answer.years}년 재투자하면`,
-      chart: 'bar',
-      head: ['투자금', `${answer.years}년 뒤 월 배당`],
-      rows: answer.rows.map((row) => [
-        formatPrincipalLabel(row.principal),
-        `${barGlyph(row.monthlyAfterReinvest, max)} ${formatIncomeWon(row.monthlyAfterReinvest)}`
-      ])
-    });
+  // 지금과 N년 재투자 뒤를 **한 표 두 열**로 — 같은 투자금끼리 나란히 서야 차이가 한눈에 보인다.
+  const tablesHtml = renderTable({
+    caption: `${ticker} 투자금별 세후 월 배당`,
+    chart: 'bar',
+    head: ['투자금', '지금', `${answer.years}년 재투자 뒤`],
+    rows: answer.rows.map((row) => [
+      formatPrincipalLabel(row.principal),
+      formatIncomeWon(row.monthlyAfterTax),
+      formatIncomeWon(row.monthlyAfterReinvest)
+    ])
+  });
 
   const head = answer.headline;
   const multiple = head.monthlyAfterReinvest / head.monthlyAfterTax;

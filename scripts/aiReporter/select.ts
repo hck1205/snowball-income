@@ -6,6 +6,7 @@ import {
   pickNextIncomeTarget,
   pickNextSpotlightTicker
 } from './facts';
+import { buildGalleryPortfolioFacts, pickNextGalleryStrategy } from './gallery';
 import { REPORTER_TOPICS, type ReporterFacts, type ReporterLedger, type ReporterTopic } from './types';
 
 /** 시세 기준일. 없으면(데이터 미생성) 'unknown' — 사실 키가 매일 바뀌어 중복 판정이 무너지지 않게. */
@@ -15,6 +16,7 @@ const MARKET_DATA_AS_OF = RAW_AS_OF ?? 'unknown';
 export const buildFactsFor = (topic: ReporterTopic, ledger: ReporterLedger, today: Date): ReporterFacts | null => {
   const used = ledger.entries.map((entry) => entry.factKey);
   if (topic === 'week-ahead') return buildWeekAheadFacts(today);
+  if (topic === 'gallery-portfolio') return buildGalleryPortfolioFacts(pickNextGalleryStrategy(used, MARKET_DATA_AS_OF), MARKET_DATA_AS_OF);
   if (topic === 'income-target') return buildIncomeTargetFacts(pickNextIncomeTarget(used), MARKET_DATA_AS_OF);
   const ticker = pickNextSpotlightTicker(used);
   return ticker ? buildTickerSpotlightFacts(ticker, MARKET_DATA_AS_OF) : null;
@@ -35,7 +37,8 @@ export const nextFacts = (ledger: ReporterLedger, today: Date, requested?: Repor
 /**
  * 초안의 회차 키로 **바로 그 회차**의 사실을 다시 만든다(발행 시점 검증용).
  * - `week-ahead:<날짜>` → 그 날짜 기준 일정
- * - `income-target:<만원>:<기준일>` / `ticker-spotlight:<티커>:<기준일>` → 지금 시세 기준일이 키와 같을 때만
+ * - `income-target:<만원>:<기준일>` / `ticker-spotlight:<티커>:<기준일>` / `gallery-portfolio:<전략>:<기준일>`
+ *   → 지금 시세 기준일이 키와 같을 때만
  * 시세가 그 사이에 갱신됐으면 숫자가 달라졌으므로 null — 그 초안은 발행하지 않는다(다음 회차에 새로 쓴다).
  */
 export const factsFromKey = (factKey: string): ReporterFacts | null => {
@@ -48,5 +51,6 @@ export const factsFromKey = (factKey: string): ReporterFacts | null => {
   if (second !== MARKET_DATA_AS_OF) return null;
   if (topic === 'income-target' && first) return buildIncomeTargetFacts(Number(first), MARKET_DATA_AS_OF);
   if (topic === 'ticker-spotlight' && first) return buildTickerSpotlightFacts(first, MARKET_DATA_AS_OF);
+  if (topic === 'gallery-portfolio' && first) return buildGalleryPortfolioFacts(first, MARKET_DATA_AS_OF);
   return null;
 };

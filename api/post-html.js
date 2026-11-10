@@ -210,6 +210,8 @@ var AI_REPORTER = {
   displayName: "AI \uB9AC\uD3EC\uD130",
   badgeLabel: "AI \uB9AC\uD3EC\uD130",
   badgeTitle: "AI\uAC00 \uC0AC\uC774\uD2B8 \uB370\uC774\uD130\uB85C \uC790\uB3D9 \uC791\uC131\uD55C \uAE00\uC785\uB2C8\uB2E4",
+  /** 글 상세 본문 아래 고지 상자(`AiReporterNote`) 문구. AI 가 썼다는 사실과 권유가 아니라는 사실을 함께 말한다. */
+  disclaimer: "AI \uB9AC\uD3EC\uD130\uAC00 Hungry Hippo\uC758 \uB370\uC774\uD130\uC640 \uACC4\uC0B0\uC73C\uB85C \uC791\uC131\uD55C \uAE00\uC785\uB2C8\uB2E4. \uD22C\uC790 \uAD8C\uC720\uAC00 \uC544\uB2CC \uACC4\uC0B0 \uC608\uC2DC\uC774\uBA70, \uBC30\uB2F9\xB7\uC8FC\uAC00\uB294 \uBC14\uB01D\uB2C8\uB2E4.",
   /** 2026-11-10 생성(ai-reporter@hungry-hippo.xyz). profiles.is_bot=true 는 운영자가 SQL 로 켠다. */
   userIds: ["44792963-f012-4df0-881c-769b971605cc"],
   indexable: false
@@ -2002,7 +2004,8 @@ var applyPostMeta = (shell, post, siteUrl) => {
 };
 var injectPostBody = (shell, post) => {
   const safeBody = sanitizePostBody(post.body ?? "");
-  return injectIntoRoot(shell, `<article><h1>${escapeHtmlText(post.title)}</h1>${safeBody}</article>`);
+  const note = isAiReporterUserId(post.userId) ? `<aside><p>${escapeHtmlText(AI_REPORTER.disclaimer)}</p></aside>` : "";
+  return injectIntoRoot(shell, `<article><h1>${escapeHtmlText(post.title)}</h1>${safeBody}${note}</article>`);
 };
 async function handler(request) {
   const { origin, searchParams } = new URL(request.url);
