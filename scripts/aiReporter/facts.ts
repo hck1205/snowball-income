@@ -69,6 +69,9 @@ export const buildWeekAheadFacts = (today: Date): ReporterFacts | null => {
   const highlights = [
     ...holidays.map((item) => `${dayLabel(item.date)} ${item.labelKo}`),
     ...fomc.map((item) => `${dayLabel(item.date)} ${item.labelKo}, 한국시간 ${formatKst(item.timeKst)}`),
+    ...events
+      .filter((item) => item.kind === 'economic' && item.major)
+      .map((item) => `${dayLabel(item.date)} ${item.labelKo} 발표, 한국시간 ${formatKst(item.timeKst)}`),
     ...(busiest ? [`실적 발표가 가장 몰린 날은 ${dayLabel(busiest[0])}로 ${busiest[1]}곳`] : []),
     `이번 주 실적 발표 기업 ${earnings.length}곳`
   ];
