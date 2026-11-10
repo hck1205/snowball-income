@@ -1918,7 +1918,9 @@ var ALLOWED_TAGS = [
   "th",
   "td"
 ];
-var ALLOWED_ATTR = ["href", "target", "rel", "colspan", "rowspan"];
+var ALLOWED_ATTR = ["href", "target", "rel", "colspan", "rowspan", "data-chart"];
+var RICH_TABLE_CHART_KINDS = ["bar", "line"];
+var isRichTableChartKind = (value) => value !== null && value !== void 0 && RICH_TABLE_CHART_KINDS.includes(value);
 var TABLE_CELL_TAGS = /* @__PURE__ */ new Set(["th", "td"]);
 var MAX_CELL_SPAN = 1e3;
 var configuredInstances = /* @__PURE__ */ new WeakSet();
@@ -1928,6 +1930,9 @@ var configureRichHtmlSanitizer = (purify2) => {
   purify2.addHook("afterSanitizeAttributes", (node) => {
     if (node.nodeType !== 1) return;
     const tag = node.tagName.toLowerCase();
+    if (node.hasAttribute("data-chart") && !(tag === "table" && isRichTableChartKind(node.getAttribute("data-chart")))) {
+      node.removeAttribute("data-chart");
+    }
     if (tag === "a") {
       const href = node.getAttribute("href") ?? "";
       const isSafe = /^(https?:|mailto:)/i.test(href.trim());
