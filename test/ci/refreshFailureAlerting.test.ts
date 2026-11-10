@@ -147,6 +147,13 @@ describe('워크플로 공통 계약 — 앞서 조용히 깨졌던 것들', () 
      */
     const source = read(file);
     if (!source.includes('git add ')) return;
+    /*
+     * 예외: **main 이 아니라 글 전용 브랜치(`ai-reporter`)에만** 커밋하는 워크플로(2026-11-10, AI 리포터).
+     * 그 브랜치에는 대장·초안 JSON 만 있고 main 의 소스·api 산출물과 무관하다. main 으로 가는 push 가
+     * 하나라도 있으면 예외가 아니다.
+     */
+    const pushesOnlyToReporterBranch = /git push origin HEAD:ai-reporter\b/.test(source) && !/HEAD:main\b|push origin main\b/.test(source);
+    if (pushesOnlyToReporterBranch) return;
     expect(source).toContain('npm run api:bundle');
     expect(source).toMatch(/git add .*\bapi\b/);
   });

@@ -27,6 +27,7 @@
     "dividend:metrics": "vite-node scripts/dividendLists/metricsCli.ts --",
     "dividend:lists:membership": "vite-node scripts/dividendLists/listsChangeCli.ts",
     "nps:portfolio": "vite-node scripts/npsPortfolio/cli.ts --",
+    "reporter": "vite-node scripts/aiReporter/cli.ts --",
     "investors:holdings": "vite-node scripts/investorHoldings/cli.ts --",
     "etf:holdings": "vite-node scripts/etfHoldings/cli.ts --",
     "congress:trades": "python tools/congressTrades/harvest.py",

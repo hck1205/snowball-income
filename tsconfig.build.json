@@ -11,6 +11,7 @@
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.scripts.json" },
+    { "path": "./tsconfig.reporter.json" },
     { "path": "./tsconfig.api.json" }
   ]
 }

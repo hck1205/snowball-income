@@ -18,5 +18,7 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["scripts"]
+  "include": ["scripts"],
+  /* AI 리포터는 화면 계산 모듈(DOM 타입을 끼고 오는 배럴)을 재사용해 따로 체크한다 — tsconfig.reporter.json */
+  "exclude": ["scripts/aiReporter"]
 }

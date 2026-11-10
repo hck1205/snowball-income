@@ -1,0 +1,17 @@
+{
+  /*
+    AI 리포터(scripts/aiReporter, 2026-11-10) 전용 타입체크.
+
+    다른 스크립트(tsconfig.scripts.json)는 일부러 DOM 타입을 빼 둔다 — 노드에서 도는 코드가 실수로
+    window 를 쓰지 못하게 하는 장치다. 이 폴더는 화면과 **같은 계산**(티커 답·월 배당 필요 원금·증시 일정)을
+    재사용해야 해서 그 모듈들의 배럴(@/shared/utils 의 motion.ts 등)을 함께 끌어온다. 그 장치를 스크립트
+    전체에서 풀지 않고, 이 폴더에만 DOM 타입을 연다. 실행은 여전히 노드(vite-node)다.
+  */
+  "extends": "./tsconfig.scripts.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["node"]
+  },
+  "include": ["scripts/aiReporter"],
+  "exclude": []
+}
