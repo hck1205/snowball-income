@@ -52,6 +52,7 @@ import {
   StateWrap,
   Title
 } from './CommunityDetailPage.styled';
+import { AiReporterBadge } from '@/components/community';
 
 const d = COMMUNITY_COPY.detail;
 
@@ -197,6 +198,7 @@ export default function CommunityDetailView({ viewModel }: CommunityDetailViewPr
               <Avatar displayName={authorName} avatarUrl={post.author?.avatar_url} size="md" />
             </BylineAvatar>
             <AuthorName>{authorName}</AuthorName>
+            <AiReporterBadge authorId={post.author?.id ?? post.user_id} />
             <BylineMeta>
               <RelativeTime iso={post.created_at} />
               <Dot aria-hidden="true">·</Dot>

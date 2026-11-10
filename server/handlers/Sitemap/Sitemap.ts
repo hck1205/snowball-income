@@ -5,6 +5,7 @@
   로 옮겨져도 그대로 유효하다 — 근거가 Vercel 디렉터리 규약이 아니라 **런타임 제약**이기 때문이다.
 */
 import { fetchPublicPostRefs, resolveSiteUrl, SITEMAP_POST_LIMIT } from '@/shared/lib/og';
+import { isPostIndexable } from '@/shared/constants/community';
 import type { PublicPostRef } from '@/shared/lib/og';
 import { toNodeHandler } from '@/shared/lib/server';
 
@@ -96,7 +97,8 @@ export async function handler(request: Request): Promise<Response> {
 
   // 조회 실패(env 미설정/네트워크/스키마 드리프트)는 null → **빈 urlset 을 200 으로** 반환한다.
   // 5xx 를 내면 서치콘솔이 사이트맵을 "가져올 수 없음"으로 표시하고 재시도 간격을 늘린다.
-  const refs = await fetchPublicPostRefs(SITEMAP_POST_LIMIT);
+  // AI 리포터 글은 색인 허용 전까지 사이트맵에 올리지 않는다(`isPostIndexable`, 2026-11-10).
+  const refs = (await fetchPublicPostRefs(SITEMAP_POST_LIMIT))?.filter((ref) => isPostIndexable(ref.userId)) ?? null;
 
   return new Response(buildUrlset(siteUrl, refs ?? []), {
     status: 200,

@@ -21,6 +21,7 @@ import {
   SubInfoRow,
   SubInfoText
 } from './PostCard.styled';
+import { AiReporterBadge } from '@/components/community/AiReporterBadge';
 
 export type PostCardProps = {
   item: PostListItem;
@@ -66,6 +67,7 @@ export default function PostCard({ item, simSummary }: PostCardProps) {
       <FooterRow>
         <FooterAuthor>
           <b>{authorName}</b>
+          <AiReporterBadge authorId={item.author?.id ?? item.user_id} />
         </FooterAuthor>
         <FooterActions>
           {/* 아이콘만으로 의미 전달 금지 — 숨김 라벨을 병기해 "좋아요 12"로 읽히게 한다. */}
