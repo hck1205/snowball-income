@@ -1,0 +1,104 @@
+# AI 리포터 ③ — 초안 **검사 · 발행** (2026-11-10)
+#
+# 루틴(LLM)이 `ai-reporter` 브랜치 `content/ai-reporter/inbox/*.json` 에 올린 초안을 검사하고, 통과하면
+# AI 리포터 계정으로 게시한다. 숫자·표·출처·고지는 스크립트가 다시 만들어 붙인다(초안은 제목·짧은 본문뿐).
+#
+# 🔴 보안
+#   · 실행 코드는 **항상 main** 에서 체크아웃한다. 루틴이 쓴 브랜치에서는 inbox 의 JSON 만 읽는다 —
+#     루틴이 그 브랜치에 무엇을 올려도 여기서 실행되는 코드는 바뀌지 않는다.
+#   · 계정 자격증명은 이 저장소의 비밀값에만 있다(루틴·LLM 은 모른다). 권한은 일반 사용자(자기 글)뿐.
+# 🔴 공개 여부: 저장소 변수 `AI_REPORTER_PUBLIC` 이 'true' 일 때만 공개로 게시한다. 기본은 비공개 초안.
+# 검사에서 떨어지면 사유를 `last-error.json` 에 남긴다 — 다음 루틴 실행이 그 사유만 보고 고친다.
+#
+# ⚠ push 트리거가 아니라 예약 실행인 이유: push 로 도는 워크플로는 **push 된 브랜치의** 워크플로 파일을
+#   쓰는데, `ai-reporter` 는 글 파일만 담는 브랜치다. 예약 실행은 main 의 이 파일로 돈다.
+name: AI reporter - publish
+
+on:
+  schedule:
+    - cron: '30 0 * * 1,4' # 월·목 00:30 UTC = 월·목 09:30 KST (루틴 08:00 KST 뒤)
+  workflow_dispatch:
+
+# 최상위 env — Node 시작 전에 KST 로 고정한다(날짜 계산이 KST 기준이어야 한다. refreshFailureAlerting 계약).
+env:
+  TZ: Asia/Seoul
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ai-reporter
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout main (code)
+        uses: actions/checkout@v6
+        with:
+          ref: main
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Checkout reporter branch (data)
+        run: |
+          git fetch origin ai-reporter
+          git worktree add reporter origin/ai-reporter
+          git -C reporter checkout -B ai-reporter
+
+      - name: Check and publish drafts
+        id: publish
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          AI_REPORTER_EMAIL: ${{ secrets.AI_REPORTER_EMAIL }}
+          AI_REPORTER_PASSWORD: ${{ secrets.AI_REPORTER_PASSWORD }}
+          PUBLIC: ${{ vars.AI_REPORTER_PUBLIC }}
+        run: |
+          dir=reporter/content/ai-reporter
+          mkdir -p "$dir/inbox" "$dir/published"
+          shopt -s nullglob
+          drafts=("$dir"/inbox/*.json)
+          if [ ${#drafts[@]} -eq 0 ]; then echo "초안 없음 — 할 일이 없다."; exit 0; fi
+          flag=""; if [ "$PUBLIC" = "true" ]; then flag="--public"; fi
+          failed=0
+          for draft in "${drafts[@]}"; do
+            echo "── $draft"
+            if npm run reporter --silent -- publish --ledger "$dir/ledger.json" --draft "$draft" $flag > out.txt 2>&1; then
+              cat out.txt
+              git -C reporter mv -f "content/ai-reporter/inbox/$(basename "$draft")" "content/ai-reporter/published/$(basename "$draft")"
+              rm -f "$dir/next-facts.json" "$dir/last-error.json"
+            else
+              cat out.txt
+              node -e "const fs=require('fs');fs.writeFileSync(process.argv[1], JSON.stringify({draft: process.argv[2], at: new Date().toISOString(), output: fs.readFileSync('out.txt','utf8')}, null, 2))" "$dir/last-error.json" "$(basename "$draft")"
+              git -C reporter rm -q --cached "content/ai-reporter/inbox/$(basename "$draft")" 2>/dev/null || true
+              rm -f "$draft"
+              failed=1
+            fi
+          done
+          echo "failed=$failed" >> "$GITHUB_OUTPUT"
+
+      - name: Commit ledger and moves
+        if: always()
+        run: |
+          cd reporter
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A content/ai-reporter
+          git diff --cached --quiet && { echo "변화 없음"; exit 0; }
+          git commit -m "chore(ai-reporter): publish run"
+          git push origin HEAD:ai-reporter
+
+      # 실패를 녹색으로 덮지 않는다 — 알림 워크플로(notify-refresh-failure)가 이 실패로 이슈를 연다.
+      - name: Fail if any draft was rejected
+        if: steps.publish.outputs.failed == '1'
+        run: |
+          echo "::error::초안이 검사·발행에서 떨어졌다 — ai-reporter 브랜치의 content/ai-reporter/last-error.json 참고"
+          exit 1
