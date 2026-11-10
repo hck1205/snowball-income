@@ -45,11 +45,14 @@ export type PostToPublish = {
   readonly title: string;
   readonly description: string;
   readonly body: string;
-  readonly category: 'insight' | 'news';
+  /** 게시판 분류. 갤러리 글은 null — 키를 보내지 않아 DB 기본값을 쓴다. */
+  readonly category: 'insight' | 'news' | null;
   readonly isPublic: boolean;
+  /** 갤러리 글 첨부(시나리오 + 결과 요약). 있으면 `kind='portfolio'` 로 올린다. */
+  readonly attachment?: { readonly payload: unknown; readonly simSummary: unknown };
 };
 
-/** 게시판 글 한 편을 쓰고 새 글 id 를 돌려준다. */
+/** 커뮤니티 글 한 편(게시판 또는 갤러리)을 쓰고 새 글 id 를 돌려준다. */
 export const publishBoardPost = async (
   env: ReporterEnv,
   post: PostToPublish,
@@ -66,8 +69,9 @@ export const publishBoardPost = async (
     },
     body: JSON.stringify({
       user_id: session.userId,
-      kind: 'board',
-      category: post.category,
+      kind: post.attachment ? 'portfolio' : 'board',
+      ...(post.category ? { category: post.category } : {}),
+      ...(post.attachment ? { payload: post.attachment.payload, sim_summary: post.attachment.simSummary } : {}),
       title: post.title,
       description: post.description,
       body: post.body,
