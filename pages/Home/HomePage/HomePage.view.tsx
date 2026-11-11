@@ -3,7 +3,7 @@ import { ArrowRight, Compass, RotateCcw, Sparkles } from 'lucide-react';
 import { PageHero } from '@/components/common';
 import { ICON } from '@/shared/styles';
 import { HOME_COPY } from '../copy';
-import { GoalPicker } from '../components';
+import { CommunityHighlights, GoalPicker } from '../components';
 import type { HomePageViewProps } from './HomePage.types';
 import {
   BrowseCard,
@@ -43,7 +43,7 @@ const copy = HOME_COPY;
  * 스크롤 진입 애니메이션·패럴랙스·카운트업·`role="dialog"` 전부 금지다. `/about` 에서 이어받은
  * 규율이고 이유도 같다(초기 `opacity:0` 이 콘텐츠를 영영 숨긴 사고 이력).
  */
-export default function HomePageView({ viewModel, onSelectGoal, onQuiz, onBrowse, onResume }: HomePageViewProps) {
+export default function HomePageView({ viewModel, onSelectGoal, onQuiz, onBrowse, onResume, onSelectCommunity }: HomePageViewProps) {
   /**
    * 이 화면에는 "맨 위로"가 없다(문서가 한 화면이라 돌아올 길이 필요 없다). ref 는 히어로가
    * 문서의 시작임을 표시하는 용도로만 둔다 — `tabIndex={-1}` 이 있어야 훗날 포커스를 넘길 수 있다.
@@ -107,6 +107,10 @@ export default function HomePageView({ viewModel, onSelectGoal, onQuiz, onBrowse
           ) : null}
         </HeroExtras>
       </HeroBlock>
+
+      {/* 커뮤니티 대표 글 네 칸(2026-11-11). 🔴 히어로 **밖·아래**다 — 목표 여섯의 접힘 예산을 건드리지 않는다.
+          글을 못 받으면 스스로 사라진다. */}
+      <CommunityHighlights onSelect={onSelectCommunity} />
 
       <HomeDisclaimer>{copy.disclaimer}</HomeDisclaimer>
     </HomeStack>
