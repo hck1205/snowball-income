@@ -279,3 +279,37 @@ describe('파이어족들 영상 글 — 채널 RSS 에서 프로그램이 고�
     expect(bodies[0]).not.toHaveProperty('sim_summary');
   });
 });
+
+describe('파이어족들 — RSS 가 실패하면 채널 페이지로 읽는다', () => {
+  const channel = { id: 'UCtest00000000000000000', name: '테스트채널' };
+  const watchHtml = (id: string, title: string) =>
+    `<script>var ytInitialPlayerResponse = ${JSON.stringify({
+      videoDetails: { videoId: id, title, shortDescription: '파이어족 인터뷰\n[이벤트 유의사항]\n카드', author: '테스트채널' },
+      microformat: { playerMicroformatRenderer: { publishDate: '2026-11-10T01:00:18-08:00' } }
+    })};var meta = 1;</script>`;
+
+  it('🔴 동영상 탭에서 id 를, 영상 페이지에서 제목·게시일·설명란을 읽는다', async () => {
+    const { parseChannelVideoIds, parseWatchPage } = await import('@/scripts/aiReporter');
+    expect(parseChannelVideoIds('"videoId":"aaaaaaaaaaa" "videoId":"aaaaaaaaaaa" "videoId":"bbbbbbbbbbb"')).toEqual(['aaaaaaaaaaa', 'bbbbbbbbbbb']);
+    expect(parseWatchPage(watchHtml('aaaaaaaaaaa', '배당 은퇴'), channel)).toMatchObject({
+      videoId: 'aaaaaaaaaaa',
+      title: '배당 은퇴',
+      published: '2026-11-10',
+      channelId: channel.id
+    });
+    expect(parseWatchPage('<html>로그인이 필요합니다</html>', channel)).toBeNull();
+  });
+
+  it('🔴 RSS 가 계속 실패한 채널은 채널 페이지 경로로 영상을 가져오고, 스냅샷 설명란에는 광고 구간이 없다', async () => {
+    const { fetchFireChannelVideos, buildFireVideoFacts, FIRE_CHANNELS } = await import('@/scripts/aiReporter');
+    const fetchImpl = (async (url: string) => {
+      if (url.includes('/feeds/videos.xml')) return new Response('', { status: 404 });
+      if (url.endsWith('/videos')) return new Response('"videoId":"aaaaaaaaaaa"', { status: 200 });
+      return new Response(watchHtml('aaaaaaaaaaa', '배당으로 조기은퇴'), { status: 200 });
+    }) as typeof fetch;
+    const videos = await fetchFireChannelVideos(fetchImpl, 0);
+    expect(videos).toHaveLength(FIRE_CHANNELS.length);
+    const facts = buildFireVideoFacts(videos[0]!);
+    expect(facts.video?.description).toBe('파이어족 인터뷰');
+  });
+});
