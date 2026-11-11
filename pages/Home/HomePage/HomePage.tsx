@@ -5,6 +5,7 @@ import { hasStoredWorkspace } from '@/jotai';
 import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import { SIMULATOR_PATH } from '@/shared/constants/routes';
 import type { LandingGoal } from '@/shared/constants/landingGoals';
+import type { HighlightSlotId } from '../components';
 import HomePageView from './HomePage.view';
 import type { HomeViewModel } from './HomePage.types';
 
@@ -64,6 +65,11 @@ export default function HomePage() {
     trackEvent(ANALYTICS_EVENT.CTA_CLICK, { cta_name: 'home_browse_about' });
   }, []);
 
+  /** 커뮤니티 대표 글. 어느 칸(포트폴리오·리포트·질문·영상)이 첫 화면에서 눌리는지가 이 수치다. */
+  const handleSelectCommunity = useCallback((slot: HighlightSlotId) => {
+    trackEvent(ANALYTICS_EVENT.CTA_CLICK, { cta_name: `home_community_${slot}` });
+  }, []);
+
   const handleResume = useCallback(() => {
     trackEvent(ANALYTICS_EVENT.CTA_CLICK, { cta_name: 'home_resume' });
     navigate(SIMULATOR_PATH);
@@ -77,6 +83,7 @@ export default function HomePage() {
         onQuiz={handleQuiz}
         onBrowse={handleBrowse}
         onResume={handleResume}
+        onSelectCommunity={handleSelectCommunity}
       />
     </TickerPageShell>
   );
