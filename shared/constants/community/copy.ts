@@ -172,6 +172,10 @@ export const COMMUNITY_COPY = {
     communityGroup: '커뮤니티',
     /** 미국 증시 캘린더(/market/us-calendar). 휴장일·개장 시각·주요 발표 일정. */
     marketCalendar: '미국 증시 캘린더',
+    /** 미국 증시 안내 지면(2026-11-11) — 검색어 그대로의 이름. */
+    marketWeek: '이번 주 미국 증시 일정',
+    marketFomc: 'FOMC 회의 일정',
+    marketHolidays: '미국 증시 휴장일',
     /**
      * 가계부(/ledger). 🔴 아래 `ledger.menuItem`(프로필 드롭다운)과 **같은 낱말이어야 한다** —
      * 같은 목적지를 두 진입점이 다른 이름으로 부르면 사용자는 두 화면으로 읽는다.

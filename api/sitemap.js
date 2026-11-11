@@ -3,6 +3,78 @@
 // 재생성: npm run api:bundle
 
 
+// shared/constants/routes/index.ts
+var MARKET_HOLIDAY_GUIDE_YEARS = [2026, 2027, 2028];
+var marketHolidayGuidePath = (year) => `/market/us-holidays/${year}`;
+var MARKET_FOMC_GUIDE_PATH = "/market/fomc";
+var MARKET_WEEK_GUIDE_PATH = "/market/this-week";
+
+// shared/lib/og/crawlerSiteNav.ts
+var HOLIDAY_GUIDE_YEAR = MARKET_HOLIDAY_GUIDE_YEARS.find((year) => year === (/* @__PURE__ */ new Date()).getFullYear()) ?? MARKET_HOLIDAY_GUIDE_YEARS[0];
+var CRAWLER_SITE_NAV = [
+  {
+    label: "\uB0B4 \uC790\uC0B0\uACC4\uD68D",
+    items: [
+      { to: "/simulator", label: "\uC2DC\uBBAC\uB808\uC774\uD130" },
+      { to: "/dividend/how-much", label: "\uC6D4 \uBC30\uB2F9 \uD544\uC694 \uAE08\uC561" },
+      { to: "/dividend/portfolio", label: "\uB098\uC758 \uBC30\uB2F9 \uD3EC\uD2B8\uD3F4\uB9AC\uC624" },
+      { to: "/ticker/overlap", label: "ETF \uC870\uD569 \uC9DC\uAE30" }
+    ]
+  },
+  {
+    label: "\uC678\uBD80 \uD3EC\uD2B8\uD3F4\uB9AC\uC624",
+    items: [
+      { to: "/portfolio/investors", label: "\uB300\uAC00\uB4E4\uC758 \uD3EC\uD2B8\uD3F4\uB9AC\uC624" },
+      { to: "/portfolio/nps", label: "\uAD6D\uBBFC\uC5F0\uAE08 (\uBBF8\uAD6D \uC8FC\uC2DD)" },
+      { to: "/portfolio/congress", label: "\uBBF8\uAD6D \uC758\uC6D0 \uC8FC\uC2DD \uAC70\uB798" },
+      { to: "/portfolio/korea-assembly", label: "\uD55C\uAD6D \uC758\uC6D0 \uC8FC\uC2DD \uBCF4\uC720" }
+    ]
+  },
+  {
+    label: "\uBC30\uB2F9 \uC885\uBAA9",
+    items: [
+      { to: "/dividend/lists", label: "\uBAA9\uB85D \uBE44\uAD50" },
+      { to: "/dividend/kings", label: "\uBC30\uB2F9\uD0B9" },
+      { to: "/dividend/aristocrats", label: "\uBC30\uB2F9\uADC0\uC871" },
+      { to: "/dividend/champions", label: "\uBC30\uB2F9\uCC54\uD53C\uC5B8" },
+      { to: "/dividend/hidden-stars", label: "\uBC30\uB2F9 \uD788\uB4E0\uC2A4\uD0C0" }
+    ]
+  },
+  {
+    label: "\uC2DC\uC7A5 \uC77D\uAE30",
+    items: [
+      { to: "/market/pulse", label: "\uC2DC\uC7A5 \uC628\uB3C4" },
+      { to: "/market/stats", label: "\uD788\uD3EC \uD1B5\uACC4" }
+    ]
+  },
+  {
+    label: "\uC885\uBAA9 \uD0D0\uC0C9",
+    items: [
+      { to: "/ticker/all", label: "ETF \uC18C\uAC1C" },
+      { to: "/ticker/compare", label: "\uC885\uBAA9 \uBE44\uAD50" }
+    ]
+  },
+  {
+    label: "\uCE98\uB9B0\uB354",
+    items: [
+      { to: "/dividend/calendar", label: "\uBC30\uB2F9 \uCE98\uB9B0\uB354" },
+      { to: "/market/us-calendar", label: "\uBBF8\uAD6D \uC99D\uC2DC \uCE98\uB9B0\uB354" },
+      // 미국 증시 안내 지면(2026-11-11) — 헤더 내비(CALENDAR_GROUP_ITEMS)와 같은 순서·이름·경로.
+      { to: MARKET_WEEK_GUIDE_PATH, label: "\uC774\uBC88 \uC8FC \uBBF8\uAD6D \uC99D\uC2DC \uC77C\uC815" },
+      { to: MARKET_FOMC_GUIDE_PATH, label: "FOMC \uD68C\uC758 \uC77C\uC815" },
+      { to: marketHolidayGuidePath(HOLIDAY_GUIDE_YEAR), label: "\uBBF8\uAD6D \uC99D\uC2DC \uD734\uC7A5\uC77C" }
+    ]
+  },
+  {
+    label: "\uCEE4\uBBA4\uB2C8\uD2F0",
+    items: [
+      { to: "/community/portfolio", label: "\uBC30\uB2F9\uACC4\uC0B0 \uAC24\uB7EC\uB9AC" },
+      { to: "/community/board", label: "\uAC8C\uC2DC\uD310" },
+      { to: "/community/firenow", label: "\uD30C\uC774\uC5B4\uC871\uB4E4" }
+    ]
+  }
+];
+
 // shared/lib/og/sharedSnapshotRest.ts
 var readServerEnv = (name) => {
   const value = process.env[name];

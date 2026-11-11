@@ -150,7 +150,25 @@ var applyDocumentMeta = (html, meta) => {
   return next;
 };
 
+// shared/constants/routes/index.ts
+var SIMULATOR_PATH = "/simulator";
+var DIVIDEND_LIST_IDS = ["kings", "aristocrats", "champions", "hiddenStars"];
+var DIVIDEND_LIST_SEGMENTS = {
+  kings: "kings",
+  aristocrats: "aristocrats",
+  champions: "champions",
+  hiddenStars: "hidden-stars"
+};
+var DIVIDEND_LIST_HUB_PATH = "/dividend/lists";
+var dividendListPath = (id) => `/dividend/${DIVIDEND_LIST_SEGMENTS[id]}`;
+var DIVIDEND_TARGET_PATH = "/dividend/how-much";
+var MARKET_HOLIDAY_GUIDE_YEARS = [2026, 2027, 2028];
+var marketHolidayGuidePath = (year) => `/market/us-holidays/${year}`;
+var MARKET_FOMC_GUIDE_PATH = "/market/fomc";
+var MARKET_WEEK_GUIDE_PATH = "/market/this-week";
+
 // shared/lib/og/crawlerSiteNav.ts
+var HOLIDAY_GUIDE_YEAR = MARKET_HOLIDAY_GUIDE_YEARS.find((year) => year === (/* @__PURE__ */ new Date()).getFullYear()) ?? MARKET_HOLIDAY_GUIDE_YEARS[0];
 var CRAWLER_SITE_NAV = [
   {
     label: "\uB0B4 \uC790\uC0B0\uACC4\uD68D",
@@ -198,7 +216,11 @@ var CRAWLER_SITE_NAV = [
     label: "\uCE98\uB9B0\uB354",
     items: [
       { to: "/dividend/calendar", label: "\uBC30\uB2F9 \uCE98\uB9B0\uB354" },
-      { to: "/market/us-calendar", label: "\uBBF8\uAD6D \uC99D\uC2DC \uCE98\uB9B0\uB354" }
+      { to: "/market/us-calendar", label: "\uBBF8\uAD6D \uC99D\uC2DC \uCE98\uB9B0\uB354" },
+      // 미국 증시 안내 지면(2026-11-11) — 헤더 내비(CALENDAR_GROUP_ITEMS)와 같은 순서·이름·경로.
+      { to: MARKET_WEEK_GUIDE_PATH, label: "\uC774\uBC88 \uC8FC \uBBF8\uAD6D \uC99D\uC2DC \uC77C\uC815" },
+      { to: MARKET_FOMC_GUIDE_PATH, label: "FOMC \uD68C\uC758 \uC77C\uC815" },
+      { to: marketHolidayGuidePath(HOLIDAY_GUIDE_YEAR), label: "\uBBF8\uAD6D \uC99D\uC2DC \uD734\uC7A5\uC77C" }
     ]
   },
   {
@@ -298,19 +320,6 @@ var renderSection = (id, heading, paragraphs) => `<section id="${escapeHtmlAttri
 // shared/constants/site/index.ts
 var SITE_NAME = "Hungry Hippo";
 var withSiteTitleSuffix = (title) => `${title} - ${SITE_NAME}`;
-
-// shared/constants/routes/index.ts
-var SIMULATOR_PATH = "/simulator";
-var DIVIDEND_LIST_IDS = ["kings", "aristocrats", "champions", "hiddenStars"];
-var DIVIDEND_LIST_SEGMENTS = {
-  kings: "kings",
-  aristocrats: "aristocrats",
-  champions: "champions",
-  hiddenStars: "hidden-stars"
-};
-var DIVIDEND_LIST_HUB_PATH = "/dividend/lists";
-var dividendListPath = (id) => `/dividend/${DIVIDEND_LIST_SEGMENTS[id]}`;
-var DIVIDEND_TARGET_PATH = "/dividend/how-much";
 
 // shared/constants/dividendLists/dividendLists.generated.json
 var dividendLists_generated_default = {

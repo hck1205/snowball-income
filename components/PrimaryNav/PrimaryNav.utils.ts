@@ -3,6 +3,7 @@ import {
   Activity,
   BookOpen,
   Calculator,
+  CalendarClock,
   CalendarDays,
   CalendarRange,
   ChartPie,
@@ -21,13 +22,23 @@ import {
   ReceiptText,
   Scale,
   Sparkles,
+  Sun,
   Thermometer,
   Trophy,
   Users,
   Wallet
 } from 'lucide-react';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
-import { DIVIDEND_LIST_HUB_PATH, DIVIDEND_TARGET_PATH, SIMULATOR_PATH, dividendListPath } from '@/shared/constants/routes';
+import {
+  DIVIDEND_LIST_HUB_PATH,
+  DIVIDEND_TARGET_PATH,
+  MARKET_FOMC_GUIDE_PATH,
+  MARKET_HOLIDAY_GUIDE_YEARS,
+  MARKET_WEEK_GUIDE_PATH,
+  SIMULATOR_PATH,
+  dividendListPath,
+  marketHolidayGuidePath
+} from '@/shared/constants/routes';
 /* 경로 문자열만 가져온다 — 페이지 모듈이 아니라 상수 파일이라 엔트리 번들이 커지지 않는다. */
 import { MARKET_PULSE_PATH } from '@/pages/MarketPulse/marketPulseRoute';
 import { HIPPO_STATS_PATH } from '@/pages/HippoStats/hippoStatsRoute';
@@ -158,9 +169,20 @@ export const PERSONAL_GROUP_ITEMS = [
  * 캘린더 — 배당 캘린더 + 미국 증시 캘린더. 둘 다 "언제"를 묻는 한 축이다.
  * 순서는 **내 것 → 시장 것**: 내가 고른 종목의 지급일, 그다음 시장 전체의 개폐장·발표 일정.
  */
+/** 올해(목록 안이면) 휴장일 지면. 목록 밖 해에는 첫 해. */
+const HOLIDAY_GUIDE_YEAR =
+  (MARKET_HOLIDAY_GUIDE_YEARS as readonly number[]).find((year) => year === new Date().getFullYear()) ?? MARKET_HOLIDAY_GUIDE_YEARS[0];
+
+/*
+ * 2026-11-11: 미국 증시 안내 지면 셋(이번 주 일정 · FOMC · 휴장일)을 미국 증시 캘린더 **뒤**에 붙였다 —
+ * 같은 "언제" 축이고, 검색어 그대로의 이름이라 메뉴에서도 바로 읽힌다.
+ */
 export const CALENDAR_GROUP_ITEMS = [
   { to: '/dividend/calendar', label: n.dividendCalendar, Icon: CalendarDays },
-  { to: '/market/us-calendar', label: n.marketCalendar, Icon: CalendarRange }
+  { to: '/market/us-calendar', label: n.marketCalendar, Icon: CalendarRange },
+  { to: MARKET_WEEK_GUIDE_PATH, label: n.marketWeek, Icon: CalendarClock },
+  { to: MARKET_FOMC_GUIDE_PATH, label: n.marketFomc, Icon: Landmark },
+  { to: marketHolidayGuidePath(HOLIDAY_GUIDE_YEAR), label: n.marketHolidays, Icon: Sun }
 ] as const;
 
 /**
