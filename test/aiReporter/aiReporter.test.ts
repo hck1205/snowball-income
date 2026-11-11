@@ -31,6 +31,10 @@ const goodDraft = (overrides: Partial<ReporterDraft> = {}): ReporterDraft => ({
   title: 'SCHD 1억원, 매달 얼마가 들어올까',
   description: '투자금별 세후 월 배당과 10년 재투자 뒤의 차이',
   introHtml: `<p>SCHD에 1억원을 넣으면 세후로 매달 ${formatIncomeWon(head.monthlyAfterTax)}이 들어옵니다.</p><p>배당을 10년 동안 다시 사 모으면 같은 돈이 월 ${formatIncomeWon(head.monthlyAfterReinvest)}까지 늘어나죠. 배당률보다 배당이 자라는 속도가 이 차이를 만듭니다.</p>`,
+  analysisHtml:
+    '<h3>왜 10년 뒤가 더 큰가</h3><p>지금 받는 배당은 배당률에서 나오고, 10년 뒤의 배당은 배당이 자라는 속도와 재투자에서 나옵니다. 배당을 쓰지 않고 다시 사면 보유 주식 수가 늘고, 늘어난 주식마다 배당이 다시 자랍니다. 두 효과가 겹치기 때문에 시간이 지날수록 차이가 커지는 구조죠.</p>' +
+    '<h3>같이 봐야 할 것</h3><ul><li>배당 성장률은 과거 관측에서 온 가정값입니다. 앞으로도 같은 속도일지는 알 수 없습니다. 배당을 줄이거나 동결하는 해가 섞이면 평균이 내려갑니다.</li><li>세후 금액은 미국 배당소득세 원천징수를 반영한 값이고, 주가와 환율 변동은 넣지 않았습니다. 원화로 받는 금액은 환율에 따라 달라집니다.</li></ul>' +
+    '<h3>다르게 보이는 경우</h3><p>배당을 재투자하지 않고 생활비로 쓰면 10년 뒤 숫자는 표보다 작아집니다. 성장률이 낮아지는 경우에도 마찬가지입니다. 반대로 적립을 더하면 숫자는 커지고요. 표는 하나의 기준선으로 보는 편이 정확합니다.</p>',
   ...overrides
 });
 
@@ -75,9 +79,30 @@ describe('검사', () => {
     expect(result.errors.join()).toContain(label === '투자 권유' ? '투자 권유 표현' : label);
   });
 
-  it('본문이 길면 거부한다 — 표가 주인공', () => {
+  it('🔴 리드가 너무 길거나, 분석이 짧거나 소제목이 없으면 거부한다(빈약한 글 방지)', () => {
     const long = `<p>${'배당이 꾸준히 들어오는 종목입니다. '.repeat(30)}</p>`;
-    expect(checkDraft(goodDraft({ introHtml: long }), spotlight, EMPTY).errors.join()).toContain('표가 주인공');
+    expect(checkDraft(goodDraft({ introHtml: long }), spotlight, EMPTY).errors.join()).toContain('리드');
+    expect(checkDraft(goodDraft({ analysisHtml: '<h3>짧다</h3><p>짧은 분석.</p>' }), spotlight, EMPTY).errors.join()).toContain('분석');
+    const noHeading = goodDraft().analysisHtml.replace(/<\/?h3>/g, '');
+    expect(checkDraft(goodDraft({ analysisHtml: noHeading }), spotlight, EMPTY).errors.join()).toContain('소제목');
+  });
+
+  it('🔴 분석에 background 의 숫자는 쓸 수 있고, 어디에도 없는 숫자는 거부한다', () => {
+    const bg = spotlight.background.find((line) => /\d/.test(line))!;
+    const numberInBg = bg.match(/\d[\d,.]*/)![0];
+    const withBg = goodDraft({ analysisHtml: `${goodDraft().analysisHtml}<p>근거: ${numberInBg}</p>` });
+    expect(checkDraft(withBg, spotlight, EMPTY).errors.join()).not.toContain('사실 목록에 없는 숫자');
+    const invented = goodDraft({ analysisHtml: `${goodDraft().analysisHtml}<p>지어낸 숫자 987654</p>` });
+    expect(checkDraft(invented, spotlight, EMPTY).errors.join()).toContain('987654');
+  });
+
+  it('🔴 고쳐 쓰기(replacesPostId)는 같은 회차의 그 글과는 중복으로 보지 않는다', () => {
+    const ledger: ReporterLedger = {
+      entries: [{ factKey: spotlight.factKey, topic: 'ticker-spotlight', title: goodDraft().title, publishedAt: '', postId: 'p1' }]
+    };
+    expect(checkDraft(goodDraft(), spotlight, ledger).ok).toBe(false);
+    expect(checkDraft(goodDraft({ replacesPostId: 'p1' }), spotlight, ledger)).toEqual({ ok: true, errors: [] });
+    expect(checkDraft(goodDraft({ replacesPostId: 'nope' }), spotlight, ledger).errors.join()).toContain('대장에 없다');
   });
 
   it('본문에 표·링크 태그를 넣으면 거부한다 (표는 조립이 붙인다)', () => {

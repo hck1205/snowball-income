@@ -6,8 +6,13 @@ import { TICKER_CONTENT_LIST } from '@/shared/constants/tickers';
 import { buildDividendTargetModel } from '@/shared/lib/dividendTarget';
 import { buildTickerIncomeAnswer, formatIncomeWon, formatPrincipalLabel } from '@/shared/lib/tickerIncome';
 import { formatKoreanWon } from '@/shared/utils';
+import { DIVIDEND_UNIVERSE } from '@/shared/constants/presets';
+import { ECONOMIC_INDICATOR_NOTES, relatedTickersOf, tickerBackground } from './background';
 import { renderTable } from './html';
 import type { ReporterFacts } from './types';
+
+/** 시뮬레이터 종목 데이터(배당률·성장 가정) — 엔진과 같은 출처. */
+const universe = DIVIDEND_UNIVERSE as unknown as Readonly<Record<string, { dividendYield: number; dividendGrowth: number }>>;
 
 /**
  * 회차별 **사실** 만들기(순수) — 저장소 데이터와 계산 엔진에서만 숫자를 뽑는다(2026-11-10).
@@ -90,6 +95,23 @@ export const buildWeekAheadFacts = (today: Date): ReporterFacts | null => {
     String(WEEK_DAYS)
   ];
 
+  // 근거 — 이번 주 지표의 정의(사람이 쓴 사전), FOMC·휴장 설명, 실적 발표 회사 이름과 우리 데이터의 배당 정보.
+  const economicNames = new Set(
+    MARKET_CALENDAR.economic.filter((item) => item.date >= from && item.date <= until && item.major).map((item) => item.nameEn)
+  );
+  const background = [
+    ...[...economicNames].flatMap((name) => (ECONOMIC_INDICATOR_NOTES[name] ? [ECONOMIC_INDICATOR_NOTES[name]!] : [])),
+    ...(fomc.length > 0
+      ? ['FOMC는 미국 연방준비제도의 통화정책 회의다. 회의 마지막 날 미국 동부시간 오후 2시에 기준금리 결정 성명이 나온다.']
+      : []),
+    ...holidays.map((item) => `${dayLabel(item.date)}: ${item.labelKo}`),
+    ...earnings.slice(0, 12).map((item) => {
+      const entry = universe[item.ticker];
+      const dividend = entry ? `, 배당률 ${Number(entry.dividendYield.toFixed(2))}%(우리 데이터)` : '';
+      return `${item.ticker} = ${item.nameEn}${dividend}, ${SESSION_KO[item.session]} 발표`;
+    })
+  ];
+
   return {
     topic: 'week-ahead',
     factKey: `week-ahead:${from}`,
@@ -97,6 +119,7 @@ export const buildWeekAheadFacts = (today: Date): ReporterFacts | null => {
     sourceNote: `미국 증시 캘린더(휴장·FOMC는 거래소·연준 공시, 실적·지표는 주간 수집분) · ${formatMonthDay(from)} 기준`,
     numbers,
     highlights,
+    background,
     tablesHtml: tables,
     links: [{ href: '/market/us-calendar', label: '미국 증시 캘린더 전체 보기' }],
     category: 'news'
@@ -109,7 +132,14 @@ export const buildIncomeTargetFacts = (monthlyMan: number, asOf: string): Report
   const model = buildDividendTargetModel(monthlyMan * 10_000, DEFAULT_INFLATION_RATE);
   const rows = model.all
     .filter((item) => item.requirement !== null)
-    .map((item) => ({ ticker: item.ticker, yieldPercent: item.dividendYieldPercent, principal: item.requirement!.requiredPrincipal }))
+    .map((item) => ({
+      ticker: item.ticker,
+      category: item.categoryLabel,
+      yieldPercent: item.dividendYieldPercent,
+      principal: item.requirement!.requiredPrincipal,
+      // 배당 성장 가정 — 시뮬레이터 프리셋과 같은 값(엔진과 같은 출처).
+      growthPercent: universe[item.ticker]?.dividendGrowth ?? 0
+    }))
     .sort((a, b) => a.principal - b.principal);
   if (rows.length < 3) return null;
 
@@ -117,15 +147,33 @@ export const buildIncomeTargetFacts = (monthlyMan: number, asOf: string): Report
   const smallest = rows[0]!;
   const largest = rows[rows.length - 1]!;
   const yieldText = (value: number) => `${Number(value.toFixed(2))}%`;
+  const monthly = monthlyMan * 10_000;
+  /** 같은 원금을 그대로 두고(재투자 없이) 배당만 N년 자랐을 때의 세후 월 배당. 원 단위 만원 반올림. */
+  const GROWTH_YEARS = 10;
+  const grown = (growthPercent: number) => Math.round((monthly * (1 + growthPercent / 100) ** GROWTH_YEARS) / 10_000) * 10_000;
 
-  const tablesHtml = renderTable({
-    caption: `세후 월 ${amountLabel}에 필요한 원금`,
-    chart: 'bar',
-    head: ['종목(배당률)', '필요 원금'],
-    rows: rows.map((row) => [`${row.ticker} (${yieldText(row.yieldPercent)})`, formatKoreanWon(row.principal)])
-  });
+  const tablesHtml =
+    renderTable({
+      caption: `세후 월 ${amountLabel}에 필요한 원금`,
+      chart: 'bar',
+      head: ['종목(배당률)', '필요 원금'],
+      rows: rows.map((row) => [`${row.ticker} (${yieldText(row.yieldPercent)})`, formatKoreanWon(row.principal)])
+    }) +
+    renderTable({
+      caption: `${GROWTH_YEARS}년 뒤 같은 원금의 월 배당 (재투자 없이 배당 성장만)`,
+      chart: 'bar',
+      head: ['종목(배당 성장)', `${GROWTH_YEARS}년 뒤 월 배당`],
+      rows: rows.map((row) => [`${row.ticker} (${yieldText(row.growthPercent)})`, formatKoreanWon(grown(row.growthPercent))])
+    }) +
+    renderTable({
+      caption: '종목 유형',
+      head: ['종목', '유형', '배당률', '배당 성장'],
+      rows: rows.map((row) => [row.ticker, row.category, yieldText(row.yieldPercent), yieldText(row.growthPercent)])
+    });
 
   const ratio = largest.principal / smallest.principal;
+  const grownSmallest = grown(smallest.growthPercent);
+  const grownLargest = grown(largest.growthPercent);
   return {
     topic: 'income-target',
     factKey: `income-target:${monthlyMan}:${asOf}`,
@@ -133,14 +181,22 @@ export const buildIncomeTargetFacts = (monthlyMan: number, asOf: string): Report
     sourceNote: `종목별 배당률은 ${asOf} 시세 기준, 배당소득세 15% 반영. 배당률이 그대로라는 가정의 계산 예시`,
     numbers: [
       amountLabel,
-      ...rows.flatMap((row) => [yieldText(row.yieldPercent), formatKoreanWon(row.principal)]),
+      ...rows.flatMap((row) => [yieldText(row.yieldPercent), yieldText(row.growthPercent), formatKoreanWon(row.principal), formatKoreanWon(grown(row.growthPercent))]),
       `${Number(ratio.toFixed(1))}배`,
+      `${GROWTH_YEARS}년`,
       '15%'
     ],
     highlights: [
       `세후 월 ${amountLabel}에 필요한 원금은 ${smallest.ticker} ${formatKoreanWon(smallest.principal)}부터 ${largest.ticker} ${formatKoreanWon(largest.principal)}까지`,
       `가장 적게 드는 종목과 가장 많이 드는 종목의 차이는 ${Number(ratio.toFixed(1))}배`,
-      `배당률이 가장 높은 ${smallest.ticker}(${yieldText(smallest.yieldPercent)})가 원금은 가장 적다 — 대신 배당 성장은 따로 봐야 한다`
+      `원금을 그대로 두고 ${GROWTH_YEARS}년이 지나면 ${smallest.ticker}는 월 ${formatKoreanWon(grownSmallest)}(배당 성장 ${yieldText(smallest.growthPercent)}), ${largest.ticker}는 월 ${formatKoreanWon(grownLargest)}(배당 성장 ${yieldText(largest.growthPercent)})`,
+      `유형별로 보면 커버드콜·고배당은 원금이 적게 들고, 배당성장형은 원금이 많이 드는 대신 배당이 자란다(표의 유형·성장률 열)`
+    ],
+    background: [
+      ...tickerBackground(smallest.ticker).slice(0, 6),
+      ...tickerBackground(largest.ticker).slice(0, 6),
+      `배당 성장률은 시뮬레이터 프리셋의 가정값이다. 과거에 그랬다는 관측이지 앞으로의 약속이 아니다.`,
+      `세후 계산은 미국 배당소득세 15% 원천징수를 반영했다.`
     ],
     tablesHtml,
     links: [
@@ -158,16 +214,42 @@ export const buildTickerSpotlightFacts = (ticker: string, asOf: string): Reporte
   if (!content || !answer) return null;
 
   // 지금과 N년 재투자 뒤를 **한 표 두 열**로 — 같은 투자금끼리 나란히 서야 차이가 한눈에 보인다.
-  const tablesHtml = renderTable({
-    caption: `${ticker} 투자금별 세후 월 배당`,
-    chart: 'bar',
-    head: ['투자금', '지금', `${answer.years}년 재투자 뒤`],
-    rows: answer.rows.map((row) => [
-      formatPrincipalLabel(row.principal),
-      formatIncomeWon(row.monthlyAfterTax),
-      formatIncomeWon(row.monthlyAfterReinvest)
-    ])
-  });
+  // 둘째 표는 같은 1억원을 소개 페이지의 "같이 보는 종목"에 넣었을 때 — 비교가 있어야 숫자의 크기가 읽힌다.
+  const peers = [ticker, ...relatedTickersOf(ticker).map((item) => item.ticker)]
+    .map((symbol) => ({ symbol, peer: buildTickerIncomeAnswer(symbol) }))
+    .filter((item): item is { symbol: string; peer: NonNullable<ReturnType<typeof buildTickerIncomeAnswer>> } => item.peer !== null);
+  const tablesHtml =
+    renderTable({
+      caption: `${ticker} 투자금별 세후 월 배당`,
+      chart: 'bar',
+      head: ['투자금', '지금', `${answer.years}년 재투자 뒤`],
+      rows: answer.rows.map((row) => [
+        formatPrincipalLabel(row.principal),
+        formatIncomeWon(row.monthlyAfterTax),
+        formatIncomeWon(row.monthlyAfterReinvest)
+      ])
+    }) +
+    (peers.length >= 3
+      ? renderTable({
+          caption: `같은 1억원, 비슷한 종목과 비교`,
+          chart: 'bar',
+          head: ['종목', '지금', `${answer.years}년 재투자 뒤`],
+          rows: peers.map(({ symbol, peer }) => [
+            symbol,
+            formatIncomeWon(peer.headline.monthlyAfterTax),
+            formatIncomeWon(peer.headline.monthlyAfterReinvest)
+          ])
+        }) +
+        renderTable({
+          caption: '비교 종목의 가정',
+          head: ['종목', '배당률', '배당 성장'],
+          rows: peers.map(({ symbol, peer }) => [
+            symbol,
+            `${Number(peer.dividendYieldPercent.toFixed(2))}%`,
+            `${Number(peer.dividendGrowthPercent.toFixed(2))}%`
+          ])
+        })
+      : '');
 
   const head = answer.headline;
   const multiple = head.monthlyAfterReinvest / head.monthlyAfterTax;
@@ -184,12 +266,29 @@ export const buildTickerSpotlightFacts = (ticker: string, asOf: string): Reporte
       pct(answer.dividendGrowthPercent),
       pct(answer.taxRatePercent),
       `${answer.years}년`,
-      `${Number(multiple.toFixed(1))}배`
+      `${Number(multiple.toFixed(1))}배`,
+      ...peers.flatMap(({ peer }) => [
+        formatIncomeWon(peer.headline.monthlyAfterTax),
+        formatIncomeWon(peer.headline.monthlyAfterReinvest),
+        pct(peer.dividendYieldPercent),
+        pct(peer.dividendGrowthPercent),
+        `${Number((peer.headline.monthlyAfterReinvest / peer.headline.monthlyAfterTax).toFixed(1))}배`
+      ])
     ],
     highlights: [
       `${ticker}에 1억원을 넣으면 세후 월 ${formatIncomeWon(head.monthlyAfterTax)}(연 ${formatIncomeWon(head.annualAfterTax)})`,
       `배당을 ${answer.years}년 재투자하면 같은 1억원이 월 ${formatIncomeWon(head.monthlyAfterReinvest)}, 지금의 ${Number(multiple.toFixed(1))}배`,
-      `배당률 ${pct(answer.dividendYieldPercent)}, 연 배당성장 ${pct(answer.dividendGrowthPercent)} 가정`
+      `배당률 ${pct(answer.dividendYieldPercent)}, 연 배당성장 ${pct(answer.dividendGrowthPercent)} 가정`,
+      ...peers
+        .filter(({ symbol }) => symbol !== ticker)
+        .map(
+          ({ symbol, peer }) =>
+            `같은 1억원을 ${symbol}에 넣으면 지금 월 ${formatIncomeWon(peer.headline.monthlyAfterTax)}, ${answer.years}년 재투자 뒤 월 ${formatIncomeWon(peer.headline.monthlyAfterReinvest)}(${Number((peer.headline.monthlyAfterReinvest / peer.headline.monthlyAfterTax).toFixed(1))}배)`
+        )
+    ],
+    background: [
+      ...tickerBackground(ticker),
+      ...peers.filter(({ symbol }) => symbol !== ticker).flatMap(({ symbol }) => tickerBackground(symbol).slice(0, 1))
     ],
     tablesHtml,
     links: [{ href: `/ticker/${content.slug}`, label: `${ticker} 자세히 보기` }],

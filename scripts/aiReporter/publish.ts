@@ -52,6 +52,35 @@ export type PostToPublish = {
   readonly attachment?: { readonly payload: unknown; readonly simSummary: unknown };
 };
 
+/**
+ * 이미 올린 AI 리포터 글의 제목·요약·본문을 **고쳐 쓴다**(2026-11-11). 주소(id)·좋아요·댓글은 그대로다.
+ * RLS 가 "자기 글만 수정"을 강제하므로 봇은 봇 글만 고칠 수 있다. 바뀐 행이 0개면 실패로 본다.
+ */
+export const updateReporterPost = async (
+  env: ReporterEnv,
+  postId: string,
+  patch: { readonly title: string; readonly description: string; readonly body: string },
+  fetchImpl: typeof fetch = fetch
+): Promise<void> => {
+  const session = await signIn(env, fetchImpl);
+  const response = await fetchImpl(`${env.supabaseUrl}/rest/v1/posts?id=eq.${encodeURIComponent(postId)}`, {
+    method: 'PATCH',
+    headers: {
+      apikey: env.anonKey,
+      authorization: `Bearer ${session.accessToken}`,
+      'content-type': 'application/json',
+      prefer: 'return=representation'
+    },
+    body: JSON.stringify({ title: patch.title, description: patch.description, body: patch.body })
+  });
+  if (!response.ok) {
+    const detail = await response.text().catch(() => '');
+    throw new Error(`수정 실패: HTTP ${response.status} ${detail.slice(0, 300)}`);
+  }
+  const rows = (await response.json()) as { id?: string }[];
+  if (rows.length === 0) throw new Error(`수정 실패: 글 ${postId} 이 없거나 AI 리포터의 글이 아니다`);
+};
+
 /** 커뮤니티 글 한 편(게시판 또는 갤러리)을 쓰고 새 글 id 를 돌려준다. */
 export const publishBoardPost = async (
   env: ReporterEnv,

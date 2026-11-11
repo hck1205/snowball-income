@@ -1,6 +1,6 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { composeBody } from './compose';
-import { publishBoardPost, readReporterEnv } from './publish';
+import { publishBoardPost, readReporterEnv, updateReporterPost } from './publish';
 import { checkDraft } from './rules';
 import { factsFromKey, nextFacts } from './select';
 import type { ReporterDraft, ReporterLedger, ReporterTopic } from './types';
@@ -71,6 +71,23 @@ const main = async (): Promise<number> => {
     console.log('✓ 검사 통과');
     if (command === 'check') return 0;
 
+    const section = facts.attachment ? 'portfolio' : 'board';
+
+    // 고쳐 쓰기 — 같은 글(주소)을 그대로 두고 제목·요약·본문만 바꾼다. 대장은 그 줄의 제목만 갱신한다.
+    if (draft.replacesPostId) {
+      await updateReporterPost(readReporterEnv(), draft.replacesPostId, {
+        title: draft.title.trim(),
+        description: draft.description.trim(),
+        body: composeBody(draft, facts)
+      });
+      const next: ReporterLedger = {
+        entries: ledger.entries.map((entry) => (entry.postId === draft.replacesPostId ? { ...entry, title: draft.title.trim() } : entry))
+      };
+      if (ledgerPath) writeFileSync(ledgerPath, `${JSON.stringify(next, null, 2)}\n`, 'utf8');
+      console.log(`✓ 고쳐 씀 — /community/${section}/${draft.replacesPostId}`);
+      return 0;
+    }
+
     const isPublic = flag('public');
     const { postId } = await publishBoardPost(readReporterEnv(), {
       title: draft.title.trim(),
@@ -87,7 +104,6 @@ const main = async (): Promise<number> => {
       ]
     };
     if (ledgerPath) writeFileSync(ledgerPath, `${JSON.stringify(next, null, 2)}\n`, 'utf8');
-    const section = facts.attachment ? 'portfolio' : 'board';
     console.log(`✓ 게시 ${isPublic ? '(공개)' : '(비공개)'} — /community/${section}/${postId}`);
     return 0;
   }
