@@ -1,15 +1,17 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { composeBody } from './compose';
 import { publishBoardPost, readReporterEnv, updateReporterPost } from './publish';
 import { checkDraft } from './rules';
 import { factsFromKey, nextFacts } from './select';
-import type { ReporterDraft, ReporterLedger, ReporterTopic } from './types';
+import type { ReporterDraft, ReporterFacts, ReporterLedger, ReporterTopic } from './types';
+import { buildFireVideoFacts, fetchFireChannelVideos, pickFireVideo, type YoutubeVideo } from './youtube';
 
 
 /**
  * AI 리포터 CLI(2026-11-10).
  *
- *   npm run reporter -- facts --ledger <대장.json> [--topic week-ahead|income-target|ticker-spotlight|gallery-portfolio]
+ *   npm run reporter -- facts --ledger <대장.json> [--topic week-ahead|income-target|ticker-spotlight|gallery-portfolio|fire-video]
  *       → 다음 회차의 사실(JSON)을 출력한다. 주제를 주지 않으면 직전 주제와 다른 것을 고른다.
  *         루틴(LLM)은 이 출력의 highlights·numbers 만 보고 제목·짧은 본문을 쓴다.
  *   npm run reporter -- check --ledger <대장.json> --draft <초안.json>
@@ -35,6 +37,55 @@ const todayKst = (): Date => {
   return new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
 };
 
+/** 사람이 이미 파이어족들에 올린 영상 주소(공개 글). 환경변수가 없으면 빈 목록 — 대장만으로 중복을 막는다. */
+const fetchPostedFireUrls = async (): Promise<Set<string>> => {
+  const base = process.env.SUPABASE_URL?.replace(/\/+$/, '');
+  const key = process.env.SUPABASE_ANON_KEY;
+  if (!base || !key) return new Set();
+  try {
+    const response = await fetch(`${base}/rest/v1/posts?kind=eq.fire&select=payload&order=created_at.desc&limit=200`, {
+      headers: { apikey: key, authorization: `Bearer ${key}` }
+    });
+    if (!response.ok) return new Set();
+    const rows = (await response.json()) as { payload?: { url?: string } | null }[];
+    return new Set(rows.map((row) => row.payload?.url ?? '').filter(Boolean));
+  } catch {
+    return new Set();
+  }
+};
+
+const videoIdOf = (url: string): string | null => /[?&]v=([\w-]{11})/.exec(url)?.[1] ?? null;
+
+/** 파이어족들 영상 회차 — 채널 RSS 에서 고른다(네트워크). */
+const nextFireVideoFacts = async (ledger: ReporterLedger, today: Date): Promise<ReporterFacts | null> => {
+  const used = new Set(ledger.entries.filter((entry) => entry.topic === 'fire-video').map((entry) => entry.factKey.split(':')[1] ?? ''));
+  for (const url of await fetchPostedFireUrls()) {
+    const id = videoIdOf(url);
+    if (id) used.add(id);
+  }
+  // 직전 영상의 채널은 뒤로 미룬다(같은 채널 연속 방지) — 대장 제목엔 채널이 없어 스냅샷에서 읽는다.
+  const lastChannel = ledger.entries.filter((entry) => entry.topic === 'fire-video').at(-1)?.channelId;
+  const iso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  const video = pickFireVideo(await fetchFireChannelVideos(), {
+    usedVideoIds: used,
+    today: iso,
+    ...(lastChannel ? { lastChannelId: lastChannel } : {})
+  });
+  return video ? buildFireVideoFacts(video) : null;
+};
+
+/**
+ * 파이어족들 회차는 발행 때 네트워크 없이 **사실 준비 단계가 남긴 스냅샷**으로 다시 만든다
+ * (대장 옆 `next-facts.json` 의 `video`). 회차 키가 다르면 null.
+ */
+const fireFactsFromSnapshot = (factKey: string, ledgerPath: string | undefined): ReporterFacts | null => {
+  if (!factKey.startsWith('fire-video:') || !ledgerPath) return null;
+  const snapshotPath = join(dirname(ledgerPath), 'next-facts.json');
+  if (!existsSync(snapshotPath)) return null;
+  const snapshot = JSON.parse(readFileSync(snapshotPath, 'utf8')) as { factKey?: string; video?: YoutubeVideo };
+  return snapshot.factKey === factKey && snapshot.video ? buildFireVideoFacts(snapshot.video) : null;
+};
+
 const main = async (): Promise<number> => {
   const command = process.argv[2];
   const ledgerPath = arg('ledger');
@@ -43,7 +94,7 @@ const main = async (): Promise<number> => {
 
   if (command === 'facts') {
     const topic = arg('topic') as ReporterTopic | undefined;
-    const facts = nextFacts(ledger, today, topic);
+    const facts = topic === 'fire-video' ? await nextFireVideoFacts(ledger, today) : nextFacts(ledger, today, topic);
     if (!facts) {
       console.log(JSON.stringify({ skip: true, reason: '이번 회차에 새로 쓸 사실이 없다 — 건너뛴다' }));
       return 0;
@@ -59,7 +110,7 @@ const main = async (): Promise<number> => {
     if (!draftPath) throw new Error('--draft 가 필요하다');
     const draft = JSON.parse(readFileSync(draftPath, 'utf8')) as ReporterDraft;
     // 발행 시점에 사실을 **다시 만든다** — 루틴이 보고 쓴 것과 같은 회차·같은 데이터인지 확인하는 것이다.
-    const facts = factsFromKey(draft.factKey);
+    const facts = factsFromKey(draft.factKey) ?? fireFactsFromSnapshot(draft.factKey, ledgerPath);
     if (!facts) throw new Error(`초안의 factKey 로 사실을 다시 만들 수 없다: ${draft.factKey}`);
 
     const result = checkDraft(draft, facts, ledger);
@@ -71,7 +122,7 @@ const main = async (): Promise<number> => {
     console.log('✓ 검사 통과');
     if (command === 'check') return 0;
 
-    const section = facts.attachment ? 'portfolio' : 'board';
+    const section = facts.attachment?.kind === 'fire' ? 'firenow' : facts.attachment ? 'portfolio' : 'board';
 
     // 고쳐 쓰기 — 같은 글(주소)을 그대로 두고 제목·요약·본문만 바꾼다. 대장은 그 줄의 제목만 갱신한다.
     if (draft.replacesPostId) {
@@ -95,12 +146,19 @@ const main = async (): Promise<number> => {
       body: composeBody(draft, facts),
       category: facts.category,
       isPublic,
-      ...(facts.attachment ? { attachment: { payload: facts.attachment.payload, simSummary: facts.attachment.simSummary } } : {})
+      ...(facts.attachment ? { attachment: facts.attachment } : {})
     });
     const next: ReporterLedger = {
       entries: [
         ...ledger.entries,
-        { factKey: facts.factKey, topic: facts.topic, title: draft.title.trim(), publishedAt: new Date().toISOString(), postId }
+        {
+          factKey: facts.factKey,
+          topic: facts.topic,
+          title: draft.title.trim(),
+          publishedAt: new Date().toISOString(),
+          postId,
+          ...(facts.video ? { channelId: facts.video.channelId } : {})
+        }
       ]
     };
     if (ledgerPath) writeFileSync(ledgerPath, `${JSON.stringify(next, null, 2)}\n`, 'utf8');

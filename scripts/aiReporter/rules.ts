@@ -15,6 +15,11 @@ import type { ReporterDraft, ReporterFacts, ReporterLedger } from './types';
 export const INTRO_MAX_CHARS = 500;
 export const INTRO_MIN_CHARS = 80;
 export const ANALYSIS_MIN_CHARS = 450;
+/**
+ * 파이어족들 영상 글은 근거가 영상 설명란뿐이라 하한을 낮춘다 — 근거보다 긴 분석을 요구하면
+ * 지어내거나 늘려 쓰게 된다(2026-11-11).
+ */
+export const FIRE_ANALYSIS_MIN_CHARS = 250;
 export const ANALYSIS_MAX_CHARS = 1800;
 export const TITLE_MIN = 6;
 export const TITLE_MAX = 60;
@@ -94,8 +99,9 @@ export const checkDraft = (draft: ReporterDraft, facts: ReporterFacts, ledger: R
   if (intro.length < INTRO_MIN_CHARS || intro.length > INTRO_MAX_CHARS) {
     errors.push(`리드 ${intro.length}자 — ${INTRO_MIN_CHARS}~${INTRO_MAX_CHARS}자`);
   }
-  if (analysis.length < ANALYSIS_MIN_CHARS || analysis.length > ANALYSIS_MAX_CHARS) {
-    errors.push(`분석 ${analysis.length}자 — ${ANALYSIS_MIN_CHARS}~${ANALYSIS_MAX_CHARS}자(표가 말하지 않는 맥락을 채운다)`);
+  const analysisMin = facts.topic === 'fire-video' ? FIRE_ANALYSIS_MIN_CHARS : ANALYSIS_MIN_CHARS;
+  if (analysis.length < analysisMin || analysis.length > ANALYSIS_MAX_CHARS) {
+    errors.push(`분석 ${analysis.length}자 — ${analysisMin}~${ANALYSIS_MAX_CHARS}자(표가 말하지 않는 맥락을 채운다)`);
   }
   if (!tagsOf(analysisHtml).includes('h3')) errors.push('분석에 소제목(h3)이 없다 — 2~3개로 나눈다');
 

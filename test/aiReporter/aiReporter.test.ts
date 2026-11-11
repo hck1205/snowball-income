@@ -202,7 +202,7 @@ describe('갤러리 글 — 배당 계산 갤러리에 포트폴리오를 올린
     }) as typeof fetch;
     const env = { supabaseUrl: 'https://x', anonKey: 'a', email: 'e', password: 'p' };
 
-    await publishBoardPost(env, { title: 't', description: 'd', body: 'b', category: null, isPublic: true, attachment: { payload: { a: 1 }, simSummary: { b: 2 } } }, fetchImpl);
+    await publishBoardPost(env, { title: 't', description: 'd', body: 'b', category: null, isPublic: true, attachment: { kind: 'portfolio', payload: { a: 1 }, simSummary: { b: 2 } } }, fetchImpl);
     await publishBoardPost(env, { title: 't', description: 'd', body: 'b', category: 'insight', isPublic: true }, fetchImpl);
 
     expect(bodies[0]).toMatchObject({ kind: 'portfolio', payload: { a: 1 }, sim_summary: { b: 2 } });
@@ -216,5 +216,66 @@ describe('갤러리 글 — 배당 계산 갤러리에 포트폴리오를 올린
     const first = GALLERY_STRATEGIES[0]!.id;
     expect(pickNextGalleryStrategy([], AS_OF)).toBe(first);
     expect(pickNextGalleryStrategy([`gallery-portfolio:${first}:${AS_OF}`], AS_OF)).toBe(GALLERY_STRATEGIES[1]!.id);
+  });
+});
+
+describe('파이어족들 영상 글 — 채널 RSS 에서 프로그램이 고른다', () => {
+  const feed = (entries: string) =>
+    `<?xml version="1.0"?><feed><yt:channelId>x7tc</yt:channelId><title>돈워리</title>${entries}</feed>`;
+  const entry = (id: string, title: string, published: string, description: string) =>
+    `<entry><yt:videoId>${id}</yt:videoId><title>${title}</title><published>${published}T09:00:00+00:00</published><media:group><media:description>${description}</media:description></media:group></entry>`;
+
+  it('🔴 RSS 를 파싱하고, 주제·기간·중복·쇼츠·홍보 영상을 거른다', async () => {
+    const { parseYoutubeFeed, pickFireVideo } = await import('@/scripts/aiReporter');
+    const videos = parseYoutubeFeed(
+      feed(
+        entry('aaaaaaaaaaa', '배당으로 월 300만원, 조기은퇴한 40대', '2026-11-05', '파이어족 인터뷰') +
+          entry('bbbbbbbbbbb', '오늘의 코스피 시황', '2026-11-09', '반도체 주가') +
+          entry('ccccccccccc', '은퇴 생활비 #shorts', '2026-11-10', '') +
+          entry('ddddddddddd', '은퇴 현금흐름 원데이클래스', '2026-11-10', '수강 신청 방법') +
+          entry('eeeeeeeeeee', '노후 배당 포트폴리오', '2026-08-01', '오래된 영상')
+      )
+    );
+    expect(videos).toHaveLength(5);
+    expect(videos[0]).toMatchObject({ videoId: 'aaaaaaaaaaa', channelName: '돈워리', published: '2026-11-05' });
+    const options = { usedVideoIds: new Set<string>(), today: '2026-11-11' };
+    expect(pickFireVideo(videos, options)?.videoId).toBe('aaaaaaaaaaa');
+    expect(pickFireVideo(videos, { ...options, usedVideoIds: new Set(['aaaaaaaaaaa']) })).toBeNull();
+  });
+
+  it('🔴 설명란은 광고·이벤트 구간부터 버리고, 연락처·구독 유도 줄을 뺀다', async () => {
+    const { cleanDescription } = await import('@/scripts/aiReporter');
+    const lines = cleanDescription('빚 3억원으로 시작한 투자 이야기\n00:44 자산 공개\n구독과 좋아요 부탁\nme@example.com\n[이벤트 유의사항]\n카드 혜택 안내');
+    expect(lines).toEqual(['빚 3억원으로 시작한 투자 이야기', '00:44 자산 공개']);
+  });
+
+  it('🔴 글 재료: 영상 링크 카드(kind=fire)·썸네일·근거는 설명란만, 게시는 sim_summary 없이 kind=fire', async () => {
+    const { buildFireVideoFacts, publishBoardPost } = await import('@/scripts/aiReporter');
+    const facts = buildFireVideoFacts({
+      videoId: 'aaaaaaaaaaa',
+      title: '배당으로 월 300만원',
+      channelName: '돈워리',
+      channelId: 'UCx',
+      published: '2026-11-05',
+      description: '파이어족 인터뷰\n00:00 하이라이트\n01:00 자산\n02:00 포트폴리오'
+    });
+    expect(facts.factKey).toBe('fire-video:aaaaaaaaaaa');
+    expect(facts.attachment).toMatchObject({
+      kind: 'fire',
+      payload: { url: 'https://www.youtube.com/watch?v=aaaaaaaaaaa', source: '돈워리', image: 'https://i.ytimg.com/vi/aaaaaaaaaaa/hqdefault.jpg' }
+    });
+    expect(facts.tablesHtml).toContain('영상 순서');
+    expect(facts.background).toContain('파이어족 인터뷰');
+
+    const bodies: Record<string, unknown>[] = [];
+    const fetchImpl = (async (url: string, init?: RequestInit) => {
+      if (url.includes('/auth/v1/token')) return new Response(JSON.stringify({ access_token: 't', user: { id: 'bot' } }), { status: 200 });
+      bodies.push(JSON.parse(String(init?.body)));
+      return new Response(JSON.stringify([{ id: 'p1' }]), { status: 201 });
+    }) as typeof fetch;
+    const env = { supabaseUrl: 'https://x', anonKey: 'a', email: 'e', password: 'p' };
+    await publishBoardPost(env, { title: 't', description: 'd', body: 'b', category: null, isPublic: true, attachment: facts.attachment! }, fetchImpl);
+    expect(bodies[0]).toMatchObject({ kind: 'fire' });
+    expect(bodies[0]).not.toHaveProperty('sim_summary');
   });
 });

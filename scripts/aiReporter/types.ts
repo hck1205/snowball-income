@@ -9,7 +9,7 @@
  */
 
 /** 다루는 주제. 게시판 주제는 순환하며 쓴다(같은 주제 연속 금지). */
-export type ReporterTopic = 'week-ahead' | 'income-target' | 'ticker-spotlight' | 'gallery-portfolio';
+export type ReporterTopic = 'week-ahead' | 'income-target' | 'ticker-spotlight' | 'gallery-portfolio' | 'fire-video';
 
 /** 게시판(`/community/board`) 순환 주제. 갤러리 주제는 따로 정한 요일에만 명시적으로 쓴다(`--topic`). */
 export const REPORTER_TOPICS: readonly ReporterTopic[] = ['week-ahead', 'income-target', 'ticker-spotlight'];
@@ -19,9 +19,11 @@ export const REPORTER_TOPICS: readonly ReporterTopic[] = ['week-ahead', 'income-
  * 이것이 있으면 게시판 글이 아니라 **배당 계산 갤러리 글**(`kind='portfolio'`)로 올라간다.
  */
 export type ReporterAttachment = {
-  readonly kind: 'portfolio';
+  /** portfolio = 배당 계산 갤러리(시나리오 첨부) · fire = 파이어족들(영상 링크 카드, 2026-11-11). */
+  readonly kind: 'portfolio' | 'fire';
   readonly payload: unknown;
-  readonly simSummary: unknown;
+  /** 갤러리 글만. 파이어족들 글에는 없다. */
+  readonly simSummary?: unknown;
 };
 
 export type ReporterLink = { readonly href: string; readonly label: string };
@@ -50,8 +52,13 @@ export type ReporterFacts = {
   readonly links: readonly ReporterLink[];
   /** 게시판 분류. 갤러리 글은 null(분류가 없다 — DB 기본값). */
   readonly category: 'insight' | 'news' | null;
-  /** 갤러리 글 첨부. 없으면 게시판 글. */
+  /** 갤러리·파이어족들 글 첨부. 없으면 게시판 글. */
   readonly attachment?: ReporterAttachment;
+  /**
+   * 파이어족들 영상 스냅샷(RSS 에서 가져온 그대로). 발행 시점에 네트워크 없이 같은 글감을 다시 만드는 데 쓴다 —
+   * 사실 준비 단계가 `next-facts.json` 에 이 값을 남기고, 발행 단계가 그것을 읽는다.
+   */
+  readonly video?: import('./youtube').YoutubeVideo;
 };
 
 /** 루틴(LLM)이 쓰는 초안. 표·출처·고지는 들어 있지 않다(조립이 붙인다). */
@@ -81,6 +88,8 @@ export type ReporterLedgerEntry = {
   readonly title: string;
   readonly publishedAt: string;
   readonly postId: string | null;
+  /** 파이어족들 영상 글의 채널 id — 같은 채널이 연달아 나오지 않게 다음 회차가 본다. */
+  readonly channelId?: string;
 };
 
 export type ReporterLedger = { readonly entries: readonly ReporterLedgerEntry[] };
