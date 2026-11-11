@@ -39,11 +39,17 @@ import {
   ABOUT_PATH,
   DIVIDEND_TARGET_AMOUNT_PAGES_MAN,
   DIVIDEND_TARGET_PATH,
+  MARKET_FOMC_GUIDE_PATH,
+  MARKET_HOLIDAY_GUIDE_YEARS,
+  MARKET_WEEK_GUIDE_PATH,
   SIMULATOR_PATH,
-  dividendTargetAmountPath
+  dividendTargetAmountPath,
+  marketHolidayGuidePath
 } from '../../shared/constants/routes';
 import { DEFAULT_MONTHLY_TARGET_MAN, formatManWon } from '../../pages/DividendTarget/utils';
 import { renderDividendTargetShellBody } from './dividendTargetShell';
+import { renderFomcGuideShellBody, renderHolidayGuideShellBody, renderWeekGuideShellBody } from './marketGuideShell';
+import { MARKET_GUIDE_COPY } from '../../pages/MarketGuide/copy';
 import { LANDING_COPY } from '../../pages/Landing/copy';
 
 export type RouteShell = {
@@ -143,6 +149,28 @@ export const ROUTE_SHELLS: readonly RouteShell[] = [
     path: '/market/us-calendar',
     title: MARKET_CALENDAR_COPY.meta.title,
     description: MARKET_CALENDAR_COPY.meta.description
+  },
+  /*
+   * 미국 증시 안내 지면(2026-11-11) — 검색어 하나에 지면 하나("미국 증시 휴장일 2027", "FOMC 일정",
+   * "이번 주 미국 증시 일정"). 날짜 표를 빌드 때 굽는다(`marketGuideShell.ts`).
+   */
+  ...MARKET_HOLIDAY_GUIDE_YEARS.map((year) => ({
+    path: marketHolidayGuidePath(year),
+    title: MARKET_GUIDE_COPY.holidays.title(year),
+    description: MARKET_GUIDE_COPY.holidays.description(year),
+    bodyHtml: renderHolidayGuideShellBody(year)
+  })),
+  {
+    path: MARKET_FOMC_GUIDE_PATH,
+    title: MARKET_GUIDE_COPY.fomc.title,
+    description: MARKET_GUIDE_COPY.fomc.description,
+    bodyHtml: renderFomcGuideShellBody()
+  },
+  {
+    path: MARKET_WEEK_GUIDE_PATH,
+    title: MARKET_GUIDE_COPY.week.title,
+    description: MARKET_GUIDE_COPY.week.description,
+    bodyHtml: renderWeekGuideShellBody()
   },
   { path: '/portfolio/congress', title: CONGRESS_COPY.meta.title, description: CONGRESS_COPY.meta.description },
   {

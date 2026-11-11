@@ -1,5 +1,5 @@
 import { useId, useMemo, useState } from 'react';
-import { CalendarDays, CalendarRange, Crown, LineChart, Thermometer } from 'lucide-react';
+import { CalendarDays, CalendarRange, Crown, Landmark, LineChart, Sun, Thermometer } from 'lucide-react';
 import {
   DataSection,
   DataTable,
@@ -14,7 +14,15 @@ import {
 import { ICON } from '@/shared/styles';
 import type { MarketEarlyClose, MarketHoliday } from '@/shared/constants/marketCalendar';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
-import { SIMULATOR_PATH, dividendListPath } from '@/shared/constants/routes';
+import {
+  MARKET_FOMC_GUIDE_PATH,
+  MARKET_HOLIDAY_GUIDE_YEARS,
+  MARKET_WEEK_GUIDE_PATH,
+  SIMULATOR_PATH,
+  dividendListPath,
+  marketHolidayGuidePath
+} from '@/shared/constants/routes';
+import { MARKET_GUIDE_COPY } from '@/pages/MarketGuide/copy';
 import { MARKET_PULSE_PATH } from '@/pages/MarketPulse/marketPulseRoute';
 import { MARKET_CALENDAR_COPY } from '../copy';
 import { DayDrawer, MonthGrid, RelatedLinks } from '../components';
@@ -46,7 +54,33 @@ const UPCOMING_ROWS = 18;
  * 순서와 근거는 copy 의 `related` 주석.
  */
 const RELATED_GLYPH = { size: ICON.lg, strokeWidth: 1.8, 'aria-hidden': true, focusable: false } as const;
+/** 올해(목록 안이면) 휴장일 지면. 목록 밖 해에는 첫 해로. */
+const HOLIDAY_GUIDE_YEAR =
+  (MARKET_HOLIDAY_GUIDE_YEARS as readonly number[]).find((year) => year === new Date().getFullYear()) ?? MARKET_HOLIDAY_GUIDE_YEARS[0];
+
+/**
+ * 🔴 안내 지면 셋이 **앞**이다(2026-11-11) — 이 화면은 검색 유입 1위라, 여기서 건너가는 링크가 새 지면을
+ * 크롤러와 사람에게 처음 알리는 길이다. 날짜를 확인하러 온 사람에게 가장 가까운 다음 걸음이기도 하다.
+ */
 const RELATED_LINKS: readonly RelatedLinkItem[] = [
+  {
+    to: MARKET_WEEK_GUIDE_PATH,
+    title: MARKET_GUIDE_COPY.relatedLinks.week.title,
+    description: MARKET_GUIDE_COPY.relatedLinks.week.description,
+    glyph: <CalendarRange {...RELATED_GLYPH} />
+  },
+  {
+    to: MARKET_FOMC_GUIDE_PATH,
+    title: MARKET_GUIDE_COPY.relatedLinks.fomc.title,
+    description: MARKET_GUIDE_COPY.relatedLinks.fomc.description,
+    glyph: <Landmark {...RELATED_GLYPH} />
+  },
+  {
+    to: marketHolidayGuidePath(HOLIDAY_GUIDE_YEAR),
+    title: MARKET_GUIDE_COPY.relatedLinks.holidays(HOLIDAY_GUIDE_YEAR).title,
+    description: MARKET_GUIDE_COPY.relatedLinks.holidays(HOLIDAY_GUIDE_YEAR).description,
+    glyph: <Sun {...RELATED_GLYPH} />
+  },
   {
     to: '/dividend/calendar',
     title: COMMUNITY_COPY.nav.dividendCalendar,

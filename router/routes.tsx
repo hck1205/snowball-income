@@ -26,6 +26,8 @@ import { ABOUT_PATH,
   DIVIDEND_LIST_HUB_PATH,
   DIVIDEND_LIST_IDS,
   DIVIDEND_TARGET_PATH,
+  MARKET_FOMC_GUIDE_PATH,
+  MARKET_WEEK_GUIDE_PATH,
   SIMULATOR_PATH,
   dividendListPath
 } from '@/shared/constants/routes';
@@ -159,6 +161,12 @@ const InvestorTypePage = lazy(() => import('@/pages/InvestorType/InvestorTypePag
  * 이 화면은 **시장 전체의 개폐장·발표 일정**을 그린다. 축이 달라서 주소도 갈랐다.
  */
 const MarketCalendarPage = lazy(() => import('@/pages/MarketCalendar/MarketCalendarPage'));
+
+/**
+ * 미국 증시 안내 지면(2026-11-11) — 연도별 휴장일 · FOMC 일정 · 이번 주 일정. 같은 `lazy` 격리.
+ * 검색어 하나에 지면 하나다(`shared/lib/marketGuide` 머리말).
+ */
+const MarketGuidePage = lazy(() => import('@/pages/MarketGuide/MarketGuidePage'));
 
 /**
  * 시장 온도(`/market/pulse`) — 미국 증시 캘린더와 같은 `/market/` 축, 같은 `lazy` 격리.
@@ -556,6 +564,31 @@ export const routes: RouteObject[] = [
         element: (
           <Suspense fallback={null}>
             <MarketCalendarPage />
+          </Suspense>
+        )
+      },
+      {
+        /* 연도별 휴장일. 목록(`MARKET_HOLIDAY_GUIDE_YEARS`)에 없는 연도는 화면이 첫 연도로 돌려보낸다. */
+        path: '/market/us-holidays/:year',
+        element: (
+          <Suspense fallback={null}>
+            <MarketGuidePage guide="holidays" />
+          </Suspense>
+        )
+      },
+      {
+        path: MARKET_FOMC_GUIDE_PATH,
+        element: (
+          <Suspense fallback={null}>
+            <MarketGuidePage guide="fomc" />
+          </Suspense>
+        )
+      },
+      {
+        path: MARKET_WEEK_GUIDE_PATH,
+        element: (
+          <Suspense fallback={null}>
+            <MarketGuidePage guide="week" />
           </Suspense>
         )
       },

@@ -1,3 +1,9 @@
+import {
+  MARKET_FOMC_GUIDE_PATH,
+  MARKET_HOLIDAY_GUIDE_YEARS,
+  MARKET_WEEK_GUIDE_PATH,
+  marketHolidayGuidePath
+} from '../../constants/routes';
 /**
  * 크롤러 HTML 공통 **사이트 내비게이션** — 순수 문자열 함수, 의존성 0(shellBody.ts 와 같은 규약).
  *
@@ -28,6 +34,10 @@ import { escapeHtmlAttribute, escapeHtmlText } from './metaHtml';
 
 export type CrawlerNavItem = { readonly to: string; readonly label: string };
 export type CrawlerNavGroup = { readonly label: string; readonly items: readonly CrawlerNavItem[] };
+
+/** 올해(목록 안이면) 휴장일 지면 — 헤더 내비와 같은 규칙. */
+const HOLIDAY_GUIDE_YEAR =
+  (MARKET_HOLIDAY_GUIDE_YEARS as readonly number[]).find((year) => year === new Date().getFullYear()) ?? MARKET_HOLIDAY_GUIDE_YEARS[0];
 
 export const CRAWLER_SITE_NAV: readonly CrawlerNavGroup[] = [
   {
@@ -76,7 +86,11 @@ export const CRAWLER_SITE_NAV: readonly CrawlerNavGroup[] = [
     label: '캘린더',
     items: [
       { to: '/dividend/calendar', label: '배당 캘린더' },
-      { to: '/market/us-calendar', label: '미국 증시 캘린더' }
+      { to: '/market/us-calendar', label: '미국 증시 캘린더' },
+      // 미국 증시 안내 지면(2026-11-11) — 헤더 내비(CALENDAR_GROUP_ITEMS)와 같은 순서·이름·경로.
+      { to: MARKET_WEEK_GUIDE_PATH, label: '이번 주 미국 증시 일정' },
+      { to: MARKET_FOMC_GUIDE_PATH, label: 'FOMC 회의 일정' },
+      { to: marketHolidayGuidePath(HOLIDAY_GUIDE_YEAR), label: '미국 증시 휴장일' }
     ]
   },
   {

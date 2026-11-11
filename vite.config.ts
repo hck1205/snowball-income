@@ -134,6 +134,15 @@ const ROUTES = [
    */
   { path: '/market/us-calendar', priority: '0.7', changefreq: 'weekly' },
   /*
+   * 미국 증시 안내 지면(2026-11-11). 🔴 정본은 `MARKET_HOLIDAY_GUIDE_YEARS` 등(shared/constants/routes) —
+   * 이 설정 파일은 `@/` 별칭을 못 읽어 옮겨 적었다. 어긋나면 test/seo/marketGuidePages 가 잡는다.
+   */
+  { path: '/market/this-week', priority: '0.7', changefreq: 'weekly' },
+  { path: '/market/fomc', priority: '0.6', changefreq: 'monthly' },
+  { path: '/market/us-holidays/2026', priority: '0.6', changefreq: 'monthly' },
+  { path: '/market/us-holidays/2027', priority: '0.6', changefreq: 'monthly' },
+  { path: '/market/us-holidays/2028', priority: '0.6', changefreq: 'monthly' },
+  /*
    * 시장 온도·히포 통계(2026-08-09 신설). 둘 다 **매일 값이 바뀐다** — 지표는 하루 단위로
    * 갱신되고 그것을 재료로 쓰는 통계도 함께 움직인다. 그래서 `daily` 이고, 이 사이트에서
    * 그렇게 자주 바뀌는 화면은 이 둘뿐이다.
