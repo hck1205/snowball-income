@@ -48,7 +48,7 @@ export const HIGHLIGHT_SLOTS: readonly {
     href: (id) => `/community/board/${id}`,
     more: '/community/board',
     empty: {
-      title: '아직 올라온 질문이 없어요',
+      title: '아직 올라온 질문이 없습니다',
       excerpt: '배당·은퇴 준비에서 막히는 점을 첫 질문으로 남겨 보세요. 글쓰기에서 분류를 "질문"으로 고르면 됩니다.',
       href: '/community/board/write'
     }
