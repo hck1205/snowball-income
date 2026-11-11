@@ -1,6 +1,7 @@
 import { DIVIDEND_UNIVERSE } from '@/shared/constants/presets';
 import { buildScenarioSimSummary, defaultYieldFormValues } from '@/shared/lib/snowball';
 import { formatKoreanWon } from '@/shared/utils';
+import { tickerBackground } from './background';
 import { renderTable } from './html';
 import type { ReporterFacts } from './types';
 
@@ -313,6 +314,11 @@ export const buildGalleryPortfolioFacts = (strategyId: string, asOf: string): Re
       `이런 사람을 위한 구성: ${strategy.audience}`,
       `비중을 반영한 평균 배당률 ${pct(avgYield)}, 평균 배당 성장 ${pct(avgGrowth)}`,
       `초기 ${won(strategy.initialInvestment)}, 월 ${won(strategy.monthlyContribution)} 적립, ${strategy.durationYears}년, 배당 100% 재투자`
+    ],
+    // 종목마다 소개 페이지의 참고 정보 — "왜 이 종목인가"를 지어내지 않고 쓰게 한다.
+    background: [
+      ...rows.flatMap(({ entry }) => tickerBackground(entry.ticker).slice(0, 9)),
+      `결과는 시뮬레이터가 이 비중·조건으로 계산한 값이며 글 아래 "이 시나리오로 시뮬레이션 열기"에서 볼 수 있다.`
     ],
     tablesHtml,
     links: [],

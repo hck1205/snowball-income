@@ -8,7 +8,7 @@ import type { ReporterDraft, ReporterFacts } from './types';
  */
 
 /**
- * 게시글 본문 조립 — 순서: LLM 본문 → 표(사실이 구운 HTML) → 더 보기 링크 → 출처.
+ * 게시글 본문 조립 — 순서: LLM 리드 → 표(사실이 구운 HTML) → LLM 분석 → 더 보기 링크 → 출처.
  * 표·출처는 LLM 이 건드릴 수 없다(여기서 붙인다).
  */
 export const composeBody = (draft: ReporterDraft, facts: ReporterFacts): string => {
@@ -18,6 +18,7 @@ export const composeBody = (draft: ReporterDraft, facts: ReporterFacts): string 
   return [
     draft.introHtml.trim(),
     facts.tablesHtml,
+    (draft.analysisHtml ?? '').trim(),
     links,
     `<p><em>출처: ${escapeHtml(facts.sourceNote)}</em></p>`
   ]

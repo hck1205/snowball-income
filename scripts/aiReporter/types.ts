@@ -37,8 +37,13 @@ export type ReporterFacts = {
   readonly sourceNote: string;
   /** 본문(LLM 작성분)에 써도 되는 숫자 표기들. 이 밖의 숫자가 본문에 있으면 검사기가 거부한다. */
   readonly numbers: readonly string[];
-  /** LLM 이 글감으로 쓸 사실 문장(숫자 포함). 본문은 이 중 하나를 중심으로 짧게 쓴다. */
+  /** LLM 이 글감으로 쓸 사실 문장(숫자 포함). 리드는 이 중 하나를 중심으로 쓴다. */
   readonly highlights: readonly string[];
+  /**
+   * 분석 단락의 근거 문장(2026-11-11) — 종목 소개 페이지 참고 정보·지표 정의·회사 이름 등 저장소에서
+   * 검증된 것만. 이 문장의 숫자도 본문에 쓸 수 있다. 여기 없는 바깥 지식은 쓰지 않는다(`background.ts`).
+   */
+  readonly background: readonly string[];
   /** 본문에 그대로 붙는 표 HTML(`data-chart` 포함 가능). LLM 은 손대지 않는다. */
   readonly tablesHtml: string;
   /** 글 끝 "더 보기" 링크(사이트 안). */
@@ -55,8 +60,18 @@ export type ReporterDraft = {
   readonly title: string;
   /** 목록 카드 요약 한 줄. */
   readonly description: string;
-  /** 본문 앞부분. `<p>` 2~4개 정도. 허용 태그: p · strong · em · br. */
+  /** 리드 — 표 앞. `<p>` 2~3개. 허용 태그: p · strong · em · br. */
   readonly introHtml: string;
+  /**
+   * 분석 — 표 뒤(2026-11-11, 필수). 소제목(h3) 2~3개 아래 짧은 문단·목록으로 "왜 이런 숫자인가 · 같이 볼 것 ·
+   * 다르게 보이는 경우"를 쓴다. 허용 태그: h3 · p · strong · em · br · ul · li.
+   */
+  readonly analysisHtml: string;
+  /**
+   * 이미 올린 글을 **고쳐 쓸 때만** — 그 글 id. 있으면 새 글을 만들지 않고 그 글의 제목·요약·본문을 바꾼다.
+   * 대장에 같은 회차가 있어도 그 회차의 글이 바로 이 id 면 중복으로 보지 않는다.
+   */
+  readonly replacesPostId?: string;
 };
 
 /** 기록 대장 한 줄 — 발행된 회차. 중복 판정은 이 목록을 본다. */
