@@ -10,7 +10,7 @@ import {
   parseCalendarDate,
   toCalendarDate,
   type KstMoment
-} from '@/shared/constants/marketCalendar';
+} from '../../constants/marketCalendar';
 
 /**
  * 미국 증시 **안내 지면** 데이터(2026-11-11) — 검색어 하나에 지면 하나.

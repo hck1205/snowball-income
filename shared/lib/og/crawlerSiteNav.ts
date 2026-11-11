@@ -3,7 +3,7 @@ import {
   MARKET_HOLIDAY_GUIDE_YEARS,
   MARKET_WEEK_GUIDE_PATH,
   marketHolidayGuidePath
-} from '@/shared/constants/routes';
+} from '../../constants/routes';
 /**
  * 크롤러 HTML 공통 **사이트 내비게이션** — 순수 문자열 함수, 의존성 0(shellBody.ts 와 같은 규약).
  *
