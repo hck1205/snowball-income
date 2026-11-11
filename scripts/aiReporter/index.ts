@@ -2,6 +2,8 @@ export * from './types';
 export * from './html';
 export * from './facts';
 export * from './gallery';
+export * from './background';
+export * from './youtube';
 export * from './rules';
 export * from './compose';
 export * from './publish';

@@ -48,8 +48,8 @@ export type PostToPublish = {
   /** 게시판 분류. 갤러리 글은 null — 키를 보내지 않아 DB 기본값을 쓴다. */
   readonly category: 'insight' | 'news' | null;
   readonly isPublic: boolean;
-  /** 갤러리 글 첨부(시나리오 + 결과 요약). 있으면 `kind='portfolio'` 로 올린다. */
-  readonly attachment?: { readonly payload: unknown; readonly simSummary: unknown };
+  /** 첨부. portfolio = 갤러리(시나리오 + 결과 요약), fire = 파이어족들(영상 링크 카드). 없으면 게시판 글. */
+  readonly attachment?: { readonly kind: 'portfolio' | 'fire'; readonly payload: unknown; readonly simSummary?: unknown };
 };
 
 /**
@@ -98,9 +98,10 @@ export const publishBoardPost = async (
     },
     body: JSON.stringify({
       user_id: session.userId,
-      kind: post.attachment ? 'portfolio' : 'board',
+      kind: post.attachment ? post.attachment.kind : 'board',
       ...(post.category ? { category: post.category } : {}),
-      ...(post.attachment ? { payload: post.attachment.payload, sim_summary: post.attachment.simSummary } : {}),
+      ...(post.attachment ? { payload: post.attachment.payload } : {}),
+      ...(post.attachment?.kind === 'portfolio' ? { sim_summary: post.attachment.simSummary } : {}),
       title: post.title,
       description: post.description,
       body: post.body,

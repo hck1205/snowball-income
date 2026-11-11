@@ -6,7 +6,8 @@
 #
 # 흐름: 월·목·토 07:00 KST(이 파일) → 08:00 루틴이 초안을 `ai-reporter` 브랜치 inbox 에 push →
 #       09:30 `ai-reporter-publish.yml` 이 검사·발행.
-# 월·목은 게시판 글(주제 순환), **토요일은 배당 계산 갤러리 글**(gallery-portfolio, 2026-11-10).
+# 월·목은 게시판 글(주제 순환), **수요일은 파이어족들 영상 글**(fire-video, 2026-11-11),
+# **토요일은 배당 계산 갤러리 글**(gallery-portfolio, 2026-11-10).
 #
 # 🔴 코드는 main 에서, 데이터(대장·초안)는 `ai-reporter` 브랜치에서. 그 브랜치에는 글 파일만 있다.
 # 새로 쓸 사실이 없으면(같은 회차를 이미 다뤘으면) 아무것도 올리지 않는다 — 루틴도 할 일 없이 끝난다.
@@ -15,11 +16,12 @@ name: AI reporter - prepare facts
 on:
   schedule:
     - cron: '0 22 * * 0,3' # 일·수 22:00 UTC = 월·목 07:00 KST — 게시판
+    - cron: '0 22 * * 2' # 화 22:00 UTC = 수 07:00 KST — 파이어족들 영상
     - cron: '0 22 * * 5' # 금 22:00 UTC = 토 07:00 KST — 갤러리
   workflow_dispatch:
     inputs:
       topic:
-        description: 'week-ahead | income-target | ticker-spotlight | gallery-portfolio (비우면 순환)'
+        description: 'week-ahead | income-target | ticker-spotlight | gallery-portfolio | fire-video (비우면 순환)'
         required: false
         default: ''
 
@@ -59,10 +61,14 @@ jobs:
         id: facts
         env:
           TOPIC: ${{ inputs.topic }}
+          # 파이어족들 영상 중복 확인용(공개 글 읽기만). 공개 키라 비밀이 아니지만 저장소 값을 쓴다.
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
           args="--ledger reporter/content/ai-reporter/ledger.json"
           # 토요일(KST, 최상위 TZ) 정기 실행은 갤러리 글이다. 수동 실행은 입력한 주제를 따른다.
           if [ -z "$TOPIC" ] && [ "${{ github.event_name }}" = "schedule" ] && [ "$(date +%u)" = "6" ]; then TOPIC=gallery-portfolio; fi
+          if [ -z "$TOPIC" ] && [ "${{ github.event_name }}" = "schedule" ] && [ "$(date +%u)" = "3" ]; then TOPIC=fire-video; fi
           if [ -n "$TOPIC" ]; then args="$args --topic $TOPIC"; fi
           npm run reporter --silent -- facts $args > facts.json
           if grep -q '"skip": true' facts.json; then

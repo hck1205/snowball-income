@@ -1,4 +1,5 @@
 import { Heart, MessageSquare } from 'lucide-react';
+import { AiReporterBadge } from '@/components/community';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
 import { ICON } from '@/shared/styles';
 import { linkHostLabel, parseLinkPayload, type NewsListItem } from '@/shared/lib/supabase';
@@ -62,6 +63,7 @@ export default function FireCard({ item }: { item: NewsListItem }) {
             <FootAvatar src={item.author.avatar_url} alt="" loading="lazy" decoding="async" />
           ) : null}
           {author}
+          <AiReporterBadge authorId={item.author?.id ?? item.user_id} />
         </FootAuthor>
         <FootStat>
           <Heart size={12} strokeWidth={ICON.stroke} aria-hidden focusable={false} />
