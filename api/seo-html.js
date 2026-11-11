@@ -9158,7 +9158,14 @@ var marketData_generated_default = {
         7,
         10
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 19,
+      estimatedPayDayByMonth: {
+        "1": 22,
+        "4": 23,
+        "7": 23,
+        "10": 23
+      }
     },
     CSX: {
       initialPrice: 49.12,
@@ -13709,8 +13716,8 @@ var marketData_generated_default = {
         8,
         11
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 7,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "2": 7,
         "5": 6,
