@@ -64,6 +64,9 @@ jobs:
           # 파이어족들 영상 중복 확인용(공개 글 읽기만). 공개 키라 비밀이 아니지만 저장소 값을 쓴다.
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          # 파이어족들 영상 — 공식 API 키. GitHub(데이터센터 IP)에서는 RSS·영상 페이지가 막혀 API 만 확실히 된다.
+          # 없으면 RSS → 채널 페이지 순서로 시도한다(대부분 실패하므로 키 등록이 전제).
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
         run: |
           args="--ledger reporter/content/ai-reporter/ledger.json"
           # 토요일(KST, 최상위 TZ) 정기 실행은 갤러리 글이다. 수동 실행은 입력한 주제를 따른다.

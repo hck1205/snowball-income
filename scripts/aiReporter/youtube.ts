@@ -193,7 +193,14 @@ const FEED_RETRY_MS = 2000;
  * 🔴 2026-11-11 첫 실행에서 GitHub Actions 가 영상을 0개 가져왔는데 로그에 아무것도 없었다(실패를 조용히
  * 삼켰다). 원인을 보려면 채널별 상태가 남아야 한다. 호출부는 **전 채널 0개면 실패로 끝낸다**(조용한 건너뜀 금지).
  */
-export const fetchFireChannelVideos = async (fetchImpl: typeof fetch = fetch, wait = FEED_RETRY_MS): Promise<YoutubeVideo[]> => {
+export const fetchFireChannelVideos = async (
+  fetchImpl: typeof fetch = fetch,
+  wait = FEED_RETRY_MS,
+  apiKey: string | undefined = process.env.YOUTUBE_API_KEY
+): Promise<YoutubeVideo[]> => {
+  // 🔴 키가 있으면 공식 API 가 1순위다 — GitHub Actions(데이터센터 IP)에서는 RSS 가 전부 404, 영상 페이지도
+  // 대부분 막힌다(2026-11-11 실측). 아래 RSS·페이지 경로는 키가 없을 때(로컬 등)의 대체다.
+  if (apiKey) return fetchFireChannelVideosByApi(apiKey, fetchImpl);
   const fetchChannel = async (channel: (typeof FIRE_CHANNELS)[number]): Promise<YoutubeVideo[]> => {
     let last = '';
     for (let attempt = 1; attempt <= FEED_ATTEMPTS; attempt += 1) {
@@ -291,4 +298,94 @@ const fetchChannelFromPages = async (
     console.error(`  · 채널 페이지 ${channel.name}: 실패(${error instanceof Error ? error.message : String(error)})`);
     return [];
   }
+};
+
+// ── YouTube Data API v3 (2026-11-11) ─────────────────────────────────────────
+//
+// 채널 업로드 목록(playlistItems, 1단위) → 영상 상세(videos, 1단위·최대 50개 한 번에). 9개 채널이면
+// 실행당 약 10단위 — 무료 한도(하루 10,000)에 한참 못 미친다. 검색(search, 100단위)은 쓰지 않는다.
+
+const API = 'https://www.googleapis.com/youtube/v3';
+/** 채널당 최근 업로드 몇 개를 볼지. */
+const API_UPLOADS_PER_CHANNEL = 8;
+/** 이보다 짧으면 쇼츠로 보고 뺀다(쇼츠는 최대 3분). */
+export const SHORTS_MAX_SECONDS = 180;
+
+/** 채널 id(UC…) → 업로드 재생목록 id(UU…). 유튜브의 고정 규칙이다. */
+export const uploadsPlaylistId = (channelId: string): string => `UU${channelId.slice(2)}`;
+
+/** ISO-8601 길이(PT1H2M3S) → 초. 못 읽으면 0. 순수 함수. */
+export const parseIsoDuration = (value: string): number => {
+  const match = /^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/.exec(value);
+  if (!match) return 0;
+  return Number(match[1] ?? 0) * 3600 + Number(match[2] ?? 0) * 60 + Number(match[3] ?? 0);
+};
+
+type ApiVideo = {
+  id?: string;
+  snippet?: { title?: string; description?: string; publishedAt?: string; channelId?: string; channelTitle?: string };
+  contentDetails?: { duration?: string };
+};
+
+/** videos.list 응답 한 건 → 영상. 쇼츠·형식 불량은 null. 순수 함수. */
+export const fromApiVideo = (item: ApiVideo, channel: { readonly id: string; readonly name: string }): YoutubeVideo | null => {
+  const snippet = item.snippet;
+  if (!item.id || !snippet?.title || !snippet.publishedAt) return null;
+  const seconds = parseIsoDuration(item.contentDetails?.duration ?? '');
+  if (seconds > 0 && seconds <= SHORTS_MAX_SECONDS) return null;
+  return {
+    videoId: item.id,
+    title: snippet.title,
+    channelName: snippet.channelTitle || channel.name,
+    channelId: channel.id,
+    published: snippet.publishedAt.slice(0, 10),
+    description: snippet.description ?? ''
+  };
+};
+
+const fetchFireChannelVideosByApi = async (apiKey: string, fetchImpl: typeof fetch): Promise<YoutubeVideo[]> => {
+  const getJson = async (url: string): Promise<{ items?: unknown[] } | null> => {
+    try {
+      const response = await fetchImpl(url);
+      if (!response.ok) {
+        // 키는 로그에 남기지 않는다 — 상태와 본문 앞부분(오류 사유)만.
+        console.error(`  · YouTube API 실패(HTTP ${response.status}): ${(await response.text()).slice(0, 160)}`);
+        return null;
+      }
+      return (await response.json()) as { items?: unknown[] };
+    } catch (error) {
+      console.error(`  · YouTube API 실패(${error instanceof Error ? error.message : String(error)})`);
+      return null;
+    }
+  };
+
+  const perChannel = await Promise.all(
+    FIRE_CHANNELS.map(async (channel) => {
+      const list = await getJson(
+        `${API}/playlistItems?part=contentDetails&maxResults=${API_UPLOADS_PER_CHANNEL}&playlistId=${uploadsPlaylistId(channel.id)}&key=${encodeURIComponent(apiKey)}`
+      );
+      const ids = (list?.items ?? [])
+        .map((item) => (item as { contentDetails?: { videoId?: string } }).contentDetails?.videoId)
+        .filter((id): id is string => typeof id === 'string');
+      return { channel, ids };
+    })
+  );
+
+  const channelOf = new Map(perChannel.flatMap(({ channel, ids }) => ids.map((id) => [id, channel] as const)));
+  const allIds = [...channelOf.keys()];
+  const videos: YoutubeVideo[] = [];
+  for (let start = 0; start < allIds.length; start += 50) {
+    const batch = allIds.slice(start, start + 50);
+    const details = await getJson(`${API}/videos?part=snippet,contentDetails&id=${batch.join(',')}&key=${encodeURIComponent(apiKey)}`);
+    for (const item of details?.items ?? []) {
+      const id = (item as ApiVideo).id;
+      const channel = id ? channelOf.get(id) : undefined;
+      const video = channel ? fromApiVideo(item as ApiVideo, channel) : null;
+      if (video) videos.push(video);
+    }
+  }
+  for (const { channel, ids } of perChannel) {
+    console.error(`  · API ${channel.name}: 업로드 ${ids.length}개 중 영상 ${videos.filter((video) => video.channelId === channel.id).length}개(쇼츠 제외)`);
+  }
+  return videos;
 };

@@ -313,3 +313,39 @@ describe('파이어족들 — RSS 가 실패하면 채널 페이지로 읽는다
     expect(facts.video?.description).toBe('파이어족 인터뷰');
   });
 });
+
+describe('파이어족들 — YouTube Data API 경로(키가 있을 때)', () => {
+  it('🔴 업로드 목록 → 영상 상세로 읽고, 3분 이하(쇼츠)는 뺀다. 키는 로그에 남기지 않는다', async () => {
+    const { fetchFireChannelVideos, uploadsPlaylistId, parseIsoDuration, FIRE_CHANNELS } = await import('@/scripts/aiReporter');
+    expect(uploadsPlaylistId('UC5CyCSvCdoEP-VgQmFq3iww')).toBe('UU5CyCSvCdoEP-VgQmFq3iww');
+    expect(parseIsoDuration('PT1H2M3S')).toBe(3723);
+    expect(parseIsoDuration('PT59S')).toBe(59);
+
+    const first = FIRE_CHANNELS[0]!.id;
+    const urls: string[] = [];
+    const fetchImpl = (async (url: string) => {
+      urls.push(url);
+      if (url.includes('/playlistItems')) {
+        const items = url.includes(uploadsPlaylistId(first))
+          ? [{ contentDetails: { videoId: 'longvideo01' } }, { contentDetails: { videoId: 'shortvideo1' } }]
+          : [];
+        return new Response(JSON.stringify({ items }), { status: 200 });
+      }
+      return new Response(
+        JSON.stringify({
+          items: [
+            { id: 'longvideo01', snippet: { title: '배당으로 조기은퇴', description: '파이어족', publishedAt: '2026-11-09T10:00:00Z', channelTitle: '싱글파이어' }, contentDetails: { duration: 'PT15M' } },
+            { id: 'shortvideo1', snippet: { title: '은퇴 #shorts', description: '', publishedAt: '2026-11-10T10:00:00Z' }, contentDetails: { duration: 'PT45S' } }
+          ]
+        }),
+        { status: 200 }
+      );
+    }) as typeof fetch;
+
+    const videos = await fetchFireChannelVideos(fetchImpl, 0, 'test-key');
+    expect(videos).toEqual([
+      { videoId: 'longvideo01', title: '배당으로 조기은퇴', channelName: '싱글파이어', channelId: first, published: '2026-11-09', description: '파이어족' }
+    ]);
+    expect(urls.some((url) => url.includes('/feeds/videos.xml'))).toBe(false);
+  });
+});
