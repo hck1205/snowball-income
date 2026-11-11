@@ -137,3 +137,24 @@ export const parseDividendTargetAmountSegment = (segment: string | undefined): n
   const value = Number(segment);
   return (DIVIDEND_TARGET_AMOUNT_PAGES_MAN as readonly number[]).includes(value) ? value : null;
 };
+
+/**
+ * 미국 증시 **안내 지면**(2026-11-11) — 검색어 하나에 지면 하나.
+ *
+ * 검색 유입의 42% 가 `/market/us-calendar` 한 장에 몰린다. 그 검색은 "미국 증시 휴장일 2027", "FOMC 일정",
+ * "이번 주 미국 증시 일정"처럼 **날짜 확인**이다. 검색어마다 제목·주소가 맞는 지면을 둔다
+ * (데이터는 `shared/lib/marketGuide`, 정적 셸·사이트맵·`vercel.json` 이 이 목록에서 파생된다).
+ * 🔴 연도는 큐레이션 구간(`CURATED_FROM_YEAR`~`CURATED_THROUGH_YEAR`)과 같아야 한다 — 없는 해의 휴장일을
+ *   "없다"고 말하는 지면을 만들지 않는다(`test/seo/marketGuidePages` 가 잠근다).
+ */
+export const MARKET_HOLIDAY_GUIDE_YEARS = [2026, 2027, 2028] as const;
+export const marketHolidayGuidePath = (year: number): string => `/market/us-holidays/${year}`;
+export const MARKET_FOMC_GUIDE_PATH = '/market/fomc';
+export const MARKET_WEEK_GUIDE_PATH = '/market/this-week';
+
+/** 주소의 연도 조각이 휴장일 지면인가. 목록에 있는 연도만. */
+export const parseMarketHolidayGuideYear = (segment: string | undefined): number | null => {
+  if (!segment || !/^\d{4}$/.test(segment)) return null;
+  const value = Number(segment);
+  return (MARKET_HOLIDAY_GUIDE_YEARS as readonly number[]).includes(value) ? value : null;
+};

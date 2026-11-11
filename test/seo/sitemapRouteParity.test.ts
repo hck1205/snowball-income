@@ -35,6 +35,8 @@ const INTENTIONALLY_ABSENT: Record<string, string> = {
   '/ticker/:name': '티커 상세는 loadTickerRoutes() 가 TICKER_CONTENT_LIST 에서 파생한다.',
   '/ticker/category/:categoryId':
     '카테고리 허브는 loadTickerCategories() 가 TICKER_CATEGORY_IDS 에서 파생한다(7개 전부 등재된다). 라벨을 한 줄 더하면 사이트맵도 함께 늘어난다.',
+  '/market/us-holidays/:year':
+    '연도별 휴장일은 MARKET_HOLIDAY_GUIDE_YEARS 의 연도마다 /market/us-holidays/2026 꼴로 사이트맵에 리터럴로 들어 있다(test/seo/marketGuidePages 가 대조).',
   '/ticker/all':
     '사이트맵에 **있다**. 다만 리터럴이 아니라 vite.config 의 TICKER_HUB_PATH 상수로 들어가 아래 정규식에 안 잡힌다.'
 };
