@@ -178,27 +178,117 @@ export const buildFireVideoFacts = (video: YoutubeVideo): ReporterFacts => {
         ...(lines[0] ? { summary: lines[0].slice(0, 300) } : {})
       }
     },
-    video
+    // 스냅샷에는 **정리된 설명란**만 남긴다 — 루틴(LLM)이 광고·이벤트 문구를 읽지 않게. 정리는 멱등이라
+    // 발행 시점에 이 스냅샷으로 다시 만들어도 같은 근거 문장이 나온다.
+    video: { ...video, description: lines.join('\n') }
   };
 };
 
-/** 채널 RSS 를 모두 가져온다(실패한 채널은 건너뛴다). 네트워크 — CLI 에서만 부른다. */
-export const fetchFireChannelVideos = async (fetchImpl: typeof fetch = fetch): Promise<YoutubeVideo[]> => {
-  const results = await Promise.all(
-    FIRE_CHANNELS.map(async (channel) => {
+const FEED_ATTEMPTS = 3;
+const FEED_RETRY_MS = 2000;
+
+/**
+ * 채널 RSS 를 모두 가져온다. 채널마다 최대 3번 시도하고, 결과(영상 수 또는 HTTP 상태)를 stderr 에 남긴다.
+ *
+ * 🔴 2026-11-11 첫 실행에서 GitHub Actions 가 영상을 0개 가져왔는데 로그에 아무것도 없었다(실패를 조용히
+ * 삼켰다). 원인을 보려면 채널별 상태가 남아야 한다. 호출부는 **전 채널 0개면 실패로 끝낸다**(조용한 건너뜀 금지).
+ */
+export const fetchFireChannelVideos = async (fetchImpl: typeof fetch = fetch, wait = FEED_RETRY_MS): Promise<YoutubeVideo[]> => {
+  const fetchChannel = async (channel: (typeof FIRE_CHANNELS)[number]): Promise<YoutubeVideo[]> => {
+    let last = '';
+    for (let attempt = 1; attempt <= FEED_ATTEMPTS; attempt += 1) {
       try {
-        const response = await fetchImpl(youtubeFeedUrl(channel.id), { headers: { 'user-agent': 'Mozilla/5.0 (HungryHippo AI reporter)' } });
-        if (!response.ok) return [];
-        // 채널 id 는 우리 목록 값을 쓴다 — 피드 머리의 yt:channelId 는 "UC" 접두사가 빠져 나온다(2026-11-11 실측).
-        return parseYoutubeFeed(await response.text()).map((video) => ({
-          ...video,
-          channelId: channel.id,
-          channelName: video.channelName || channel.name
-        }));
-      } catch {
-        return [];
+        const response = await fetchImpl(youtubeFeedUrl(channel.id), {
+          headers: {
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/130 Safari/537.36',
+            accept: 'application/atom+xml, application/xml;q=0.9, */*;q=0.8'
+          }
+        });
+        if (response.ok) {
+          // 채널 id 는 우리 목록 값을 쓴다 — 피드 머리의 yt:channelId 는 "UC" 접두사가 빠져 나온다(2026-11-11 실측).
+          const videos = parseYoutubeFeed(await response.text()).map((video) => ({
+            ...video,
+            channelId: channel.id,
+            channelName: video.channelName || channel.name
+          }));
+          console.error(`  · RSS ${channel.name}: 영상 ${videos.length}개`);
+          return videos;
+        }
+        last = `HTTP ${response.status}`;
+      } catch (error) {
+        last = error instanceof Error ? error.message : String(error);
       }
-    })
-  );
-  return results.flat();
+      if (attempt < FEED_ATTEMPTS) await new Promise((resolve) => setTimeout(resolve, wait * attempt));
+    }
+    console.error(`  · RSS ${channel.name}: 실패(${last}) — 채널 페이지로 대신 읽는다`);
+    return fetchChannelFromPages(channel, fetchImpl);
+  };
+  return (await Promise.all(FIRE_CHANNELS.map(fetchChannel))).flat();
+};
+
+const BROWSER_HEADERS = {
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/130 Safari/537.36',
+  'accept-language': 'ko-KR,ko;q=0.9'
+};
+
+/** 채널 "동영상" 탭에서 최근 영상 id 들(등장 순, 중복 제거). 쇼츠는 이 탭에 없다. 순수 함수. */
+export const parseChannelVideoIds = (html: string, limit = 6): string[] =>
+  [...new Set([...html.matchAll(/"videoId":"([\w-]{11})"/g)].map((match) => match[1]!))].slice(0, limit);
+
+/** 영상 페이지의 플레이어 응답에서 제목·게시일·설명란. 못 읽으면 null. 순수 함수. */
+export const parseWatchPage = (
+  html: string,
+  channel: { readonly id: string; readonly name: string }
+): YoutubeVideo | null => {
+  const match = /var ytInitialPlayerResponse = (\{.*?\});(?:var |<\/script>)/s.exec(html);
+  if (!match) return null;
+  try {
+    const data = JSON.parse(match[1]!) as {
+      videoDetails?: { videoId?: string; title?: string; shortDescription?: string; author?: string };
+      microformat?: { playerMicroformatRenderer?: { publishDate?: string } };
+    };
+    const details = data.videoDetails;
+    const published = data.microformat?.playerMicroformatRenderer?.publishDate?.slice(0, 10) ?? '';
+    if (!details?.videoId || !details.title || !/^\d{4}-\d{2}-\d{2}$/.test(published)) return null;
+    return {
+      videoId: details.videoId,
+      title: details.title,
+      channelName: details.author || channel.name,
+      channelId: channel.id,
+      published,
+      description: details.shortDescription ?? ''
+    };
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * RSS 대체 경로(2026-11-11) — 유튜브 RSS 가 채널에 따라 404·500 을 자주 낸다(로컬에서도 9곳 중 5곳 실패 실측).
+ * 채널 동영상 탭에서 최근 영상 id 를 얻고, 영상 페이지에서 제목·게시일·설명란을 읽는다.
+ */
+const fetchChannelFromPages = async (
+  channel: (typeof FIRE_CHANNELS)[number],
+  fetchImpl: typeof fetch
+): Promise<YoutubeVideo[]> => {
+  try {
+    const list = await fetchImpl(`https://www.youtube.com/channel/${channel.id}/videos`, { headers: BROWSER_HEADERS });
+    if (!list.ok) {
+      console.error(`  · 채널 페이지 ${channel.name}: 실패(HTTP ${list.status})`);
+      return [];
+    }
+    const ids = parseChannelVideoIds(await list.text());
+    const videos: YoutubeVideo[] = [];
+    for (const id of ids) {
+      const watch = await fetchImpl(youtubeWatchUrl(id), { headers: BROWSER_HEADERS });
+      if (!watch.ok) continue;
+      const video = parseWatchPage(await watch.text(), channel);
+      if (video) videos.push(video);
+    }
+    console.error(`  · 채널 페이지 ${channel.name}: 영상 ${videos.length}개`);
+    return videos;
+  } catch (error) {
+    console.error(`  · 채널 페이지 ${channel.name}: 실패(${error instanceof Error ? error.message : String(error)})`);
+    return [];
+  }
 };

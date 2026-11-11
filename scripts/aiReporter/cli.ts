@@ -66,7 +66,10 @@ const nextFireVideoFacts = async (ledger: ReporterLedger, today: Date): Promise<
   // 직전 영상의 채널은 뒤로 미룬다(같은 채널 연속 방지) — 대장 제목엔 채널이 없어 스냅샷에서 읽는다.
   const lastChannel = ledger.entries.filter((entry) => entry.topic === 'fire-video').at(-1)?.channelId;
   const iso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-  const video = pickFireVideo(await fetchFireChannelVideos(), {
+  const videos = await fetchFireChannelVideos();
+  // 전 채널 0개는 "쓸 영상이 없다"가 아니라 **가져오기 실패**다 — 조용히 건너뛰지 않고 실패로 끝내 알림을 띄운다.
+  if (videos.length === 0) throw new Error('유튜브 RSS 를 한 채널도 가져오지 못했다(위 채널별 로그 참고)');
+  const video = pickFireVideo(videos, {
     usedVideoIds: used,
     today: iso,
     ...(lastChannel ? { lastChannelId: lastChannel } : {})

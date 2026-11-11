@@ -71,7 +71,9 @@ jobs:
           if [ -z "$TOPIC" ] && [ "${{ github.event_name }}" = "schedule" ] && [ "$(date +%u)" = "3" ]; then TOPIC=fire-video; fi
           if [ -n "$TOPIC" ]; then args="$args --topic $TOPIC"; fi
           npm run reporter --silent -- facts $args > facts.json
-          if grep -q '"skip": true' facts.json; then
+          # CLI 는 한 줄 JSON(`{"skip":true,…}`)을 낸다 — 공백 유무와 무관하게 잡는다(2026-11-11: 공백 있는
+          # 패턴만 찾다가 건너뜀 결과를 next-facts.json 으로 커밋한 적이 있다).
+          if grep -Eq '"skip": *true' facts.json; then
             echo "새로 쓸 사실이 없다 — 이번 회차는 건너뛴다."
             echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
