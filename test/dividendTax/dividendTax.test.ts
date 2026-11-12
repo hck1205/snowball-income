@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { calculateDividendTax, progressiveTax, type DividendTaxInput } from '@/shared/lib/dividendTax';
 
 /**
- * 미국 배당 세금·건보료(2026-11-12). 기대값은 docs/tax-health-rules-2026.md 의 규칙으로 **손으로 계산**했다.
+ * 미국 배당 세금·건보료(2026-11-12). 기대값은 shared/lib/dividendTax/RULES.md 의 규칙으로 **손으로 계산**했다.
  * 상수를 바꾸면 이 표도 손으로 다시 계산해 고친다(엔진 출력을 그대로 복사해 넣지 않는다).
  */
 const base: DividendTaxInput = {

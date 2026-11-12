@@ -39,7 +39,7 @@ const HEALTH: readonly HealthInsuranceStatus[] = ['employee', 'regional', 'depen
 /**
  * 미국 배당 세금·건강보험료 계산기(`/dividend/tax`, 2026-11-12) — "한국 사람이 미국 배당으로 은퇴할 때"의
  * 세금·건보료 질문에 답하는 검증 지면. 계산은 전부 `calculateDividendTax`(순수 함수, 규칙 정본은
- * `docs/tax-health-rules-2026.md`). 확인 못 한 규칙은 보수적으로 계산하고 "추정"을 밝힌다.
+ * `shared/lib/dividendTax/RULES.md`). 확인 못 한 규칙은 보수적으로 계산하고 "추정"을 밝힌다.
  */
 export default function DividendTaxPage() {
   useDocumentMeta({ title: copy.meta.title, description: copy.meta.description, pathname: DIVIDEND_TAX_PATH });
