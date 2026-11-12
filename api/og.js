@@ -2632,8 +2632,8 @@ var marketData_generated_default = {
         7,
         10
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 19,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "1": 22,
         "4": 23,
@@ -4460,7 +4460,14 @@ var marketData_generated_default = {
         7,
         10
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 25,
+      estimatedPayDayByMonth: {
+        "1": 31,
+        "4": 30,
+        "7": 31,
+        "10": 31
+      }
     },
     KDP: {
       initialPrice: 36.63,
