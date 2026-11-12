@@ -16,7 +16,10 @@ name: AI reporter - publish
 
 on:
   schedule:
-    - cron: '30 0 * * 1,3,4,6' # 월·수·목·토 00:30 UTC = 09:30 KST (루틴 08:00 KST 뒤). 수 파이어족들 · 토 갤러리
+    # 🔴 2시간마다 대기함을 본다(2026-11-12). 하루 한 번 정시 예약은 GitHub 이 몇 시간씩 늦게 돌렸다
+    # (09:30 예약이 16:33 에 실행). 루틴이 언제 초안을 올리든 2시간 안에 발행된다. 초안이 없으면
+    # npm ci 전에 끝나므로 빈 실행은 수 초다(공개 저장소라 Actions 무료).
+    - cron: '23 */2 * * *'
   workflow_dispatch:
 
 # 최상위 env — Node 시작 전에 KST 로 고정한다(날짜 계산이 KST 기준이어야 한다. refreshFailureAlerting 계약).
@@ -40,21 +43,32 @@ jobs:
         with:
           ref: main
 
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 22
-          cache: npm
-
-      - run: npm ci
-
       - name: Checkout reporter branch (data)
         run: |
           git fetch origin ai-reporter
           git worktree add reporter origin/ai-reporter
           git -C reporter checkout -B ai-reporter
 
+      # 초안이 없으면 여기서 끝낸다 — 2시간마다 도는 빈 실행이 npm ci 를 하지 않게.
+      - name: Any drafts?
+        id: drafts
+        run: |
+          shopt -s nullglob
+          drafts=(reporter/content/ai-reporter/inbox/*.json)
+          if [ ${#drafts[@]} -eq 0 ]; then echo "초안 없음 — 할 일이 없다."; echo "none=true" >> "$GITHUB_OUTPUT"; fi
+
+      - uses: actions/setup-node@v6
+        if: steps.drafts.outputs.none != 'true'
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+        if: steps.drafts.outputs.none != 'true'
+
       - name: Check and publish drafts
         id: publish
+        if: steps.drafts.outputs.none != 'true'
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
