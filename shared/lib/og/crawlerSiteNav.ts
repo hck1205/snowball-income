@@ -45,6 +45,7 @@ export const CRAWLER_SITE_NAV: readonly CrawlerNavGroup[] = [
     items: [
       { to: '/simulator', label: '시뮬레이터' },
       { to: '/dividend/how-much', label: '월 배당 필요 금액' },
+      { to: '/dividend/tax', label: '배당 세금·건보료 계산' },
       { to: '/dividend/portfolio', label: '나의 배당 포트폴리오' },
       { to: '/ticker/overlap', label: 'ETF 조합 짜기' }
     ]
