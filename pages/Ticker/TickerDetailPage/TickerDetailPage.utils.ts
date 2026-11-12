@@ -1,3 +1,4 @@
+import { buildTickerPaySchedule, withPayDateTitle } from '@/shared/lib/tickerPayDates';
 import { prefersReducedMotion as sharedPrefersReducedMotion } from '@/shared/utils';
 import {
   findTickerContentBySlug,
@@ -80,6 +81,7 @@ const chapterIndex = (order: number): string => String(order + 1).padStart(2, '0
 export const buildTickerDetailViewModel = (content: TickerContent): TickerDetailViewModel => {
   const facts = resolveTickerEngineFacts(content.ticker);
   const render = (text: string) => renderTickerContentTemplate(text, facts);
+  const paySchedule = buildTickerPaySchedule(content.ticker);
 
   const heroStats: ResolvedStat[] = [
     { label: '배당률(세전, 명목)', value: facts.dividendYieldDisplay, caption: '주가에 따라 매일 변동' },
@@ -170,6 +172,7 @@ export const buildTickerDetailViewModel = (content: TickerContent): TickerDetail
     categories,
     heroStats,
     incomeAnswer: buildTickerIncomeAnswer(content.ticker),
+    paySchedule,
     sections,
     toc,
     faqs: content.faqs.map((faq) => ({ question: render(faq.question), answer: render(faq.answer) })),
@@ -181,7 +184,8 @@ export const buildTickerDetailViewModel = (content: TickerContent): TickerDetail
     accent: content.accent,
     disclaimer: content.disclaimer,
     contentUpdatedAt: content.contentUpdatedAt,
-    metaTitle: content.metaTitle,
+    // 검색어 "{티커} 배당일" 을 제목에 — 서버 HTML(TickerHtml)과 같은 함수다.
+    metaTitle: withPayDateTitle(content.metaTitle, content.ticker, paySchedule !== null),
     metaDescription: content.metaDescription
   };
 };

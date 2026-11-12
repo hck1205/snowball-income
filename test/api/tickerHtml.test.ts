@@ -78,12 +78,21 @@ describe('api/ticker-html — 개별 티커(SCHD)', () => {
     const html = await res.text();
 
     expect(res.status).toBe(200);
-    expect(html).toContain('SCHD 배당률·배당성장·구성 총정리 — 슈왑 미국 배당주 ETF - Hungry Hippo');
+    expect(html).toContain('SCHD 배당일·배당률·배당성장·구성 총정리 — 슈왑 미국 배당주 ETF - Hungry Hippo');
     expect(html).toMatch(/name="description"\s+content="SCHD\(슈왑 미국 배당주 ETF\)/);
     expect(html).toContain('href="https://snowball.test/ticker/schd"');
-    expect(html).toMatch(/property="og:title"\s+content="SCHD 배당률·배당성장·구성 총정리 — 슈왑 미국 배당주 ETF - Hungry Hippo"/);
+    expect(html).toMatch(/property="og:title"\s+content="SCHD 배당일·배당률·배당성장·구성 총정리 — 슈왑 미국 배당주 ETF - Hungry Hippo"/);
     expect(html).toContain('property="og:url" content="https://snowball.test/ticker/schd"');
-    expect(html).toContain('name="twitter:title" content="SCHD 배당률·배당성장·구성 총정리 — 슈왑 미국 배당주 ETF - Hungry Hippo"');
+    expect(html).toContain('name="twitter:title" content="SCHD 배당일·배당률·배당성장·구성 총정리 — 슈왑 미국 배당주 ETF - Hungry Hippo"');
+  });
+
+  it('🔴 "{티커} 배당일" 답: 지급 주기와 근거 문장이 본문에 있다(배당일 검색어의 답, 2026-11-12)', async () => {
+    stubFetchRoutes([indexHtmlRoute({ html: SHELL_WITH_DESCRIPTION })]);
+    const res = await handler(apiRequest('/api/ticker-html', { name: 'schd' }));
+    const html = await res.text();
+    expect(html).toContain('<section id="pay-schedule">');
+    expect(html).toContain('SCHD 배당일 · 배당락일');
+    expect(html).toMatch(/지급 주기: 분기/);
   });
 
   it('불변식: og:type·site_name·twitter:card·이미지·script 는 건드리지 않는다', async () => {

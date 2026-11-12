@@ -1,3 +1,4 @@
+import { TICKER_PAY_COPY, buildTickerPaySchedule, withPayDateTitle } from '@/shared/lib/tickerPayDates';
 /*
   ⚠ post-html.js / og.js / sitemap.js 와 동일 규약: 모듈 스코프에서 `import.meta.env` 를 읽는 코드를
   끌고 오면 Vercel Node 런타임에서 함수가 즉사한다(try/catch 로도 못 잡는 모듈 평가 단계). `@/shared/lib/og`
@@ -128,7 +129,8 @@ const tickerCanonical = (siteUrl: string, content: TickerContent): string => `${
 
 const applyTickerMeta = (shell: string, content: TickerContent, siteUrl: string): string =>
   applyDocumentMeta(shell, {
-    title: withSiteTitleSuffix(content.metaTitle),
+    // 검색어 "{티커} 배당일" — 화면(TickerDetailPage.utils)과 같은 함수.
+    title: withSiteTitleSuffix(withPayDateTitle(content.metaTitle, content.ticker, buildTickerPaySchedule(content.ticker) !== null)),
     description: content.metaDescription,
     canonical: tickerCanonical(siteUrl, content)
   });
@@ -234,6 +236,36 @@ export const renderIncomeAnswer = (ticker: string): string => {
     '</table>' +
     `<p>${escapeHtmlText(copy.assumption(answer))}</p>` +
     `<p><a href="${DIVIDEND_TARGET_PATH}">${escapeHtmlText(copy.toTarget)}</a></p>` +
+    '</section>'
+  );
+};
+
+/**
+ * "{티커} 배당일" 답(2026-11-12) — 앱의 `TickerPaySchedule` 과 같은 모델·문장. 지급 월 근거가 없으면 빈 문자열.
+ */
+export const renderPaySchedule = (ticker: string): string => {
+  const schedule = buildTickerPaySchedule(ticker);
+  if (!schedule) return '';
+  const copy = TICKER_PAY_COPY;
+  const table =
+    schedule.source === 'pay'
+      ? '<table>' +
+        `<thead><tr>${copy.tableHead.map((head) => `<th>${escapeHtmlText(head)}</th>`).join('')}</tr></thead>` +
+        `<tbody>${schedule.rows
+          .map(
+            (row) =>
+              `<tr><th scope="row">${row.month}월</th><td>${escapeHtmlText(row.payLabel)}</td><td>${escapeHtmlText(row.exLabel ?? '—')}</td></tr>`
+          )
+          .join('')}</tbody></table>`
+      : '';
+  return (
+    '<section id="pay-schedule">' +
+    `<h2>${escapeHtmlText(copy.heading(schedule.ticker))}</h2>` +
+    (schedule.next ? `<p>${escapeHtmlText(copy.nextLabel)}: <strong>${escapeHtmlText(`${schedule.next.year}년 ${schedule.next.label}`)}</strong></p>` : '') +
+    `<p>${escapeHtmlText(copy.cadenceLabel)}: ${escapeHtmlText(schedule.cadenceLabel)}</p>` +
+    table +
+    `<p>${escapeHtmlText(copy.sourceNote(schedule))}</p>` +
+    `<p>${escapeHtmlText(copy.exNote)}</p>` +
     '</section>'
   );
 };
@@ -378,6 +410,7 @@ const injectTickerBody = (shell: string, content: TickerContent, siteUrl: string
     '<article>' +
     renderHero(content, facts) +
     renderIncomeAnswer(content.ticker) +
+    renderPaySchedule(content.ticker) +
     content.sections.map((section) => renderSection(section, facts)).join('') +
     renderTopHoldings(content.reference.topHoldings) +
     renderFaqs(content.faqs, facts) +

@@ -17,7 +17,7 @@ import { ANALYTICS_EVENT, trackEvent } from '@/shared/lib/analytics';
 import { useScrollSpy } from '@/shared/hooks';
 import { ICON } from '@/shared/styles';
 import type { ResolvedRelatedTicker, ResolvedSection, TickerDetailViewProps } from './TickerDetailPage.types';
-import { TickerIncomeAnswer } from './components';
+import { TickerIncomeAnswer, TickerPaySchedule } from './components';
 import { useInView } from './hooks';
 import { prefersReducedMotion } from './TickerDetailPage.utils';
 import {
@@ -363,6 +363,9 @@ export default function TickerDetailView({ viewModel }: TickerDetailViewProps) {
               onToTarget={() => trackEvent(ANALYTICS_EVENT.TICKER_INCOME_TO_TARGET, { ticker: viewModel.ticker })}
             />
           ) : null}
+
+          {/* "{티커} 배당일" 답(2026-11-12) — 지급 월 근거가 없는 종목이면 그리지 않는다. */}
+          {viewModel.paySchedule ? <TickerPaySchedule schedule={viewModel.paySchedule} /> : null}
 
           {viewModel.sections.map((section, order) => (
             <DetailSection key={section.id} section={section} index={String(order + 1).padStart(2, '0')} />
