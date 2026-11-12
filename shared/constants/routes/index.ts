@@ -158,3 +158,9 @@ export const parseMarketHolidayGuideYear = (segment: string | undefined): number
   const value = Number(segment);
   return (MARKET_HOLIDAY_GUIDE_YEARS as readonly number[]).includes(value) ? value : null;
 };
+
+/**
+ * 미국 배당 세금·건강보험료 계산기(2026-11-12) — 금융소득종합과세·피부양자·지역 보험료·ISA 비교.
+ * 규칙 정본은 `shared/lib/dividendTax/RULES.md`.
+ */
+export const DIVIDEND_TAX_PATH = '/dividend/tax';

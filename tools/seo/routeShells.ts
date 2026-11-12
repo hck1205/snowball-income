@@ -48,6 +48,8 @@ import {
 } from '../../shared/constants/routes';
 import { DEFAULT_MONTHLY_TARGET_MAN, formatManWon } from '../../pages/DividendTarget/utils';
 import { renderDividendTargetShellBody } from './dividendTargetShell';
+import { renderDividendTaxShellBody } from './dividendTaxShell';
+import { DIVIDEND_TAX_COPY } from '../../pages/DividendTax/copy';
 import { renderFomcGuideShellBody, renderHolidayGuideShellBody, renderWeekGuideShellBody } from './marketGuideShell';
 import { MARKET_GUIDE_COPY } from '../../pages/MarketGuide/copy';
 import { LANDING_COPY } from '../../pages/Landing/copy';
@@ -129,6 +131,13 @@ export const ROUTE_SHELLS: readonly RouteShell[] = [
     description: DIVIDEND_TARGET_COPY.amountMeta.description(formatManWon(monthlyMan)),
     bodyHtml: renderDividendTargetShellBody(monthlyMan)
   })),
+  /* 미국 배당 세금·건보료 계산기(2026-11-12) — 월 배당별 세금·보험료 표를 빌드 때 굽는다. */
+  {
+    path: '/dividend/tax',
+    title: DIVIDEND_TAX_COPY.meta.title,
+    description: DIVIDEND_TAX_COPY.meta.description,
+    bodyHtml: renderDividendTaxShellBody()
+  },
   { path: '/ticker/compare', title: TICKER_COMPARE_COPY.meta.title, description: TICKER_COMPARE_COPY.meta.description },
   { path: '/ticker/overlap', title: ETF_MIX_COPY.meta.title, description: ETF_MIX_COPY.meta.description },
   /*

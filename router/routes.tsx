@@ -26,6 +26,7 @@ import { ABOUT_PATH,
   DIVIDEND_LIST_HUB_PATH,
   DIVIDEND_LIST_IDS,
   DIVIDEND_TARGET_PATH,
+  DIVIDEND_TAX_PATH,
   MARKET_FOMC_GUIDE_PATH,
   MARKET_WEEK_GUIDE_PATH,
   SIMULATOR_PATH,
@@ -214,6 +215,9 @@ const DividendListPage = lazy(() => import('@/pages/DividendList/DividendListPag
  * 12 종 시장 데이터를 읽지만 그것은 이미 엔트리에 있는 유니버스다 — 청크가 무거운 것은 화면 부품뿐이다.
  */
 const DividendTargetPage = lazy(() => import('@/pages/DividendTarget/DividendTargetPage'));
+
+/** 미국 배당 세금·건강보험료 계산기(`/dividend/tax`, 2026-11-12) — 같은 `lazy` 격리. */
+const DividendTaxPage = lazy(() => import('@/pages/DividendTax/DividendTaxPage'));
 
 /**
  * 404 — 어떤 라우트에도 맞지 않는 주소(`*`).
@@ -651,6 +655,14 @@ export const routes: RouteObject[] = [
         element: (
           <Suspense fallback={null}>
             <DividendTargetPage />
+          </Suspense>
+        )
+      },
+      {
+        path: DIVIDEND_TAX_PATH,
+        element: (
+          <Suspense fallback={null}>
+            <DividendTaxPage />
           </Suspense>
         )
       },
