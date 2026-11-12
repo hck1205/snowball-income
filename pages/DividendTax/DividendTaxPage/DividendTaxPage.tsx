@@ -1,6 +1,6 @@
 import { useMemo, useState, type ChangeEvent } from 'react';
 import { Receipt } from 'lucide-react';
-import { Chip, InputField, PageHero } from '@/components/common';
+import { InputField, PageHero } from '@/components/common';
 import { TickerPageShell } from '@/pages/Ticker/components';
 import { useDocumentMeta } from '@/pages/Ticker/hooks';
 import { DIVIDEND_TAX_PATH } from '@/shared/constants/routes';
@@ -8,21 +8,28 @@ import { calculateDividendTax, type HealthInsuranceStatus } from '@/shared/lib/d
 import { formatKoreanWon } from '@/shared/utils';
 import { DIVIDEND_TAX_COPY } from '../copy';
 import {
-  ChipRow,
+  BigValue,
   Compare,
   CompareItem,
   CompareLabel,
   CompareValue,
+  Eyebrow,
   Field,
   FieldLabel,
-  Form,
+  Footnotes,
+  FormGrid,
+  Highlight,
   Note,
+  Panel,
+  PanelHead,
+  PanelTitle,
   ResultCard,
   ResultGrid,
-  ResultLabel,
-  ResultTone,
-  ResultValue,
-  Stack
+  SegmentButton,
+  Segmented,
+  Stack,
+  StatusBadge,
+  ToggleChip
 } from './DividendTaxPage.styled';
 
 const copy = DIVIDEND_TAX_COPY;
@@ -66,114 +73,142 @@ export default function DividendTaxPage() {
 
   const onText = (setter: (value: string) => void) => (event: ChangeEvent<HTMLInputElement>) => setter(event.target.value);
   const usAnnual = toWon(monthlyUs) * 12;
+  const isaSaving = result.isa.generalTax - result.isa.isaTax;
+
+  const healthCard =
+    health === 'dependent'
+      ? {
+          value: result.health.dependentLost ? '탈락 가능' : '유지',
+          tone: result.health.dependentLost ? ('warn' as const) : ('ok' as const),
+          badge: result.health.dependentLost ? '소득요건 초과' : '소득요건 이내',
+          note: copy.results.dependentNote
+        }
+      : {
+          value: result.health.monthlyIncrease > 0 ? `월 +${result.health.monthlyIncrease.toLocaleString('ko-KR')}원` : '변화 없음',
+          tone: result.health.monthlyIncrease > 0 ? ('warn' as const) : ('ok' as const),
+          badge: copy.inputs.healthOptions[health],
+          note:
+            result.health.monthlyIncrease > 0
+              ? `보험료에 반영되는 금융소득 연 ${formatKoreanWon(result.health.countedIncome)} · 장기요양 포함`
+              : health === 'regional'
+                ? copy.results.premiumZeroRegional
+                : copy.results.premiumZeroEmployee
+        };
 
   return (
     <TickerPageShell>
       <Stack>
         <PageHero title={copy.heroTitle} titleAs="h1" lede={copy.lede} icon={<Receipt aria-hidden />} />
 
-        <Form onSubmit={(event) => event.preventDefault()}>
-          <InputField label={copy.inputs.monthlyUs} type="number" min={0} value={monthlyUs} suffix="만원" onChange={onText(setMonthlyUs)} />
-          <InputField
-            label={copy.inputs.otherFinancial}
-            type="number"
-            min={0}
-            value={otherFinancial}
-            suffix="만원"
-            onChange={onText(setOtherFinancial)}
-          />
-          <InputField
-            label={copy.inputs.otherTaxBase}
-            type="number"
-            min={0}
-            value={otherTaxBase}
-            suffix="만원"
-            hint={copy.inputs.otherTaxBaseHint}
-            onChange={onText(setOtherTaxBase)}
-          />
-          <Field>
-            <FieldLabel>{copy.inputs.health}</FieldLabel>
-            <ChipRow>
-              {HEALTH.map((status) => (
-                <Chip key={status} selected={health === status} onClick={() => setHealth(status)}>
-                  {copy.inputs.healthOptions[status]}
-                </Chip>
-              ))}
-            </ChipRow>
-          </Field>
-          {health === 'dependent' ? (
+        <Panel as="form" onSubmit={(event) => event.preventDefault()} aria-label="계산 조건">
+          <FormGrid>
+            <InputField label={copy.inputs.monthlyUs} type="number" min={0} value={monthlyUs} suffix="만원" onChange={onText(setMonthlyUs)} />
+            <Field>
+              <FieldLabel id="health-label">{copy.inputs.health}</FieldLabel>
+              <Segmented role="radiogroup" aria-labelledby="health-label">
+                {HEALTH.map((status) => (
+                  <SegmentButton
+                    key={status}
+                    type="button"
+                    role="radio"
+                    aria-checked={health === status}
+                    active={health === status}
+                    onClick={() => setHealth(status)}
+                  >
+                    {copy.inputs.healthOptions[status]}
+                  </SegmentButton>
+                ))}
+              </Segmented>
+            </Field>
             <InputField
-              label={copy.inputs.otherIncomeForDependent}
+              label={copy.inputs.otherFinancial}
               type="number"
               min={0}
-              value={otherIncomeForDependent}
+              value={otherFinancial}
               suffix="만원"
-              onChange={onText(setOtherIncomeForDependent)}
+              onChange={onText(setOtherFinancial)}
             />
-          ) : null}
-        </Form>
+            <InputField
+              label={copy.inputs.otherTaxBase}
+              type="number"
+              min={0}
+              value={otherTaxBase}
+              suffix="만원"
+              hint={copy.inputs.otherTaxBaseHint}
+              onChange={onText(setOtherTaxBase)}
+            />
+            {health === 'dependent' ? (
+              <InputField
+                label={copy.inputs.otherIncomeForDependent}
+                type="number"
+                min={0}
+                value={otherIncomeForDependent}
+                suffix="만원"
+                onChange={onText(setOtherIncomeForDependent)}
+              />
+            ) : null}
+          </FormGrid>
+        </Panel>
 
         <ResultGrid aria-live="polite">
           <ResultCard>
-            <ResultLabel>{copy.results.withholding}</ResultLabel>
-            <ResultValue>월 {formatKoreanWon(result.usNetAfterWithholding / 12)}</ResultValue>
-            <Note>{copy.results.perYear(formatKoreanWon(result.usNetAfterWithholding))} · 미국 원천징수 연 {formatKoreanWon(result.usWithheld)}</Note>
+            <Eyebrow>{copy.results.withholding}</Eyebrow>
+            <BigValue>월 {formatKoreanWon(result.usNetAfterWithholding / 12)}</BigValue>
+            <StatusBadge tone="info">미국 원천징수 15%</StatusBadge>
+            <Note>
+              {copy.results.perYear(formatKoreanWon(result.usNetAfterWithholding))} · 원천징수 연 {formatKoreanWon(result.usWithheld)}
+            </Note>
           </ResultCard>
 
-          <ResultCard tone={result.comprehensive ? 'warn' : 'ok'}>
-            <ResultTone>{result.comprehensive ? copy.results.comprehensiveYes : copy.results.comprehensiveNo}</ResultTone>
-            <Note>{copy.results.comprehensiveDetail(formatKoreanWon(result.financialIncome))}</Note>
-            {result.comprehensive ? (
-              <>
-                <ResultLabel>{copy.results.extraTax}</ResultLabel>
-                <ResultValue>연 {formatKoreanWon(result.extraIncomeTax)}</ResultValue>
-                {result.extraIncomeTax === 0 ? <Note>{copy.results.extraTaxZero}</Note> : null}
-              </>
-            ) : null}
+          <ResultCard>
+            <Eyebrow>금융소득종합과세</Eyebrow>
+            <BigValue>
+              {result.comprehensive ? (result.extraIncomeTax > 0 ? `연 +${formatKoreanWon(result.extraIncomeTax)}` : '대상') : '대상 아님'}
+            </BigValue>
+            <StatusBadge tone={result.comprehensive ? 'warn' : 'ok'}>
+              {result.comprehensive ? '연 2,000만원 초과 · 추정' : '연 2,000만원 이하'}
+            </StatusBadge>
+            <Note>
+              {copy.results.comprehensiveDetail(formatKoreanWon(result.financialIncome))}
+              {result.comprehensive && result.extraIncomeTax === 0 ? ` ${copy.results.extraTaxZero}` : ''}
+            </Note>
           </ResultCard>
 
-          <ResultCard tone={result.health.dependentLost || result.health.monthlyIncrease > 0 ? 'warn' : 'ok'}>
-            {health === 'dependent' ? (
-              <>
-                <ResultTone>{result.health.dependentLost ? copy.results.dependentLost : copy.results.dependentKept}</ResultTone>
-                <Note>{copy.results.dependentNote}</Note>
-              </>
-            ) : (
-              <>
-                <ResultLabel>{copy.results.premiumIncrease}</ResultLabel>
-                <ResultValue>월 {result.health.monthlyIncrease.toLocaleString('ko-KR')}원</ResultValue>
-                {result.health.monthlyIncrease === 0 ? (
-                  <Note>{health === 'regional' ? copy.results.premiumZeroRegional : copy.results.premiumZeroEmployee}</Note>
-                ) : null}
-              </>
-            )}
+          <ResultCard>
+            <Eyebrow>{health === 'dependent' ? '건강보험 피부양자' : '늘어나는 월 건강보험료'}</Eyebrow>
+            <BigValue>{healthCard.value}</BigValue>
+            <StatusBadge tone={healthCard.tone}>{healthCard.badge}</StatusBadge>
+            <Note>{healthCard.note}</Note>
           </ResultCard>
         </ResultGrid>
 
-        <ResultCard>
-          <ResultLabel>{copy.results.isaHeading}</ResultLabel>
+        <Panel aria-labelledby="isa-title">
+          <PanelHead>
+            <PanelTitle id="isa-title">{copy.results.isaHeading}</PanelTitle>
+            <ToggleChip type="button" active={isaSeomin} aria-pressed={isaSeomin} onClick={() => setIsaSeomin((value) => !value)}>
+              {copy.inputs.isaSeomin}
+            </ToggleChip>
+          </PanelHead>
           <Compare>
             <CompareItem>
               <CompareLabel>{copy.results.isaGeneral}</CompareLabel>
               <CompareValue>연 {formatKoreanWon(result.isa.generalTax)}</CompareValue>
             </CompareItem>
-            <CompareItem>
+            <CompareItem best={isaSaving > 0}>
               <CompareLabel>{copy.results.isaAccount(formatKoreanWon(result.isa.taxFreeLimit))}</CompareLabel>
               <CompareValue>연 {formatKoreanWon(result.isa.isaTax)}</CompareValue>
             </CompareItem>
           </Compare>
-          <ChipRow>
-            <Chip selected={isaSeomin} onClick={() => setIsaSeomin((value) => !value)}>
-              {copy.inputs.isaSeomin}
-            </Chip>
-          </ChipRow>
+          {isaSaving > 0 ? <Highlight>ISA가 세금이 연 {formatKoreanWon(isaSaving)} 적습니다.</Highlight> : null}
           <Note>
             세전 배당 연 {formatKoreanWon(usAnnual)} 기준. {copy.results.isaNote}
           </Note>
-        </ResultCard>
+        </Panel>
 
-        <Note>{copy.basis}</Note>
-        <Note>{copy.disclaimer}</Note>
+        <Footnotes>
+          <Note>{copy.basis}</Note>
+          <Note>{copy.disclaimer}</Note>
+        </Footnotes>
       </Stack>
     </TickerPageShell>
   );

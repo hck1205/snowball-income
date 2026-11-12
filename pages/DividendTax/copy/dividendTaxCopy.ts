@@ -37,10 +37,10 @@ export const DIVIDEND_TAX_COPY = {
     premiumIncrease: '배당 때문에 늘어나는 월 건강보험료 (장기요양 포함)',
     premiumZeroRegional: '금융소득이 연 1,000만원 이하라 지역 보험료에 반영되지 않습니다.',
     premiumZeroEmployee: '보수 외 소득이 연 2,000만원 이하라 추가 보험료가 없습니다.',
-    isaHeading: '같은 배당, 일반계좌 vs ISA 세금 (국내 상장 미국 배당 ETF 기준)',
+    isaHeading: '일반계좌 vs ISA 세금',
     isaGeneral: '일반계좌 (15.4%)',
     isaAccount: (limit: string) => `ISA (비과세 ${limit} 초과분 9.9%)`,
-    isaNote: 'ISA는 의무가입 3년, 연 납입 2,000만원 한도가 있고, 해외 상장 주식은 직접 담을 수 없습니다. 일반계좌 분배금은 보수적으로 15.4%로 계산했습니다.'
+    isaNote: '국내 상장 미국 배당 ETF 기준입니다. ISA는 의무가입 3년, 연 납입 2,000만원 한도가 있고, 해외 상장 주식은 직접 담을 수 없습니다. 일반계좌 분배금은 보수적으로 15.4%로 계산했습니다.'
   },
   basis: `기준: ${DIVIDEND_TAX_RULES.basisDate} · 건강보험료율 7.19%, 장기요양 13.14%(2026) · 종합소득세율 8구간 · 근거: 국세청·국가법령정보센터·국민건강보험공단 공식 자료.`,
   disclaimer:
