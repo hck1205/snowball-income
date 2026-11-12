@@ -7707,95 +7707,6 @@ async function handler2(request) {
 }
 var GuideHtml_default = toNodeHandler(handler2);
 
-// shared/constants/tickers/TickerCategory.ts
-var TICKER_CATEGORY_LABEL = {
-  "dividend-growth": "\uBC30\uB2F9\uC131\uC7A5 ETF",
-  "high-dividend": "\uACE0\uBC30\uB2F9 ETF",
-  "covered-call": "\uCEE4\uBC84\uB4DC\uCF5C\xB7\uC635\uC158\uC778\uCEF4 ETF",
-  reit: "\uB9AC\uCE20(REITs)",
-  international: "\uD574\uC678 \uBC30\uB2F9 ETF",
-  "core-index": "\uCF54\uC5B4 \uC9C0\uC218 ETF",
-  /**
-   * 섹터 ETF(2026-08-26). 코어 지수와 가르는 기준은 **분산의 범위**다 — 코어는 시장 전체를 사는
-   * 도구이고, 섹터는 한 산업에만 건다. 둘을 같은 칸에 두면 코어 묶음의 `caution`("배당률이 낮다")이
-   * 이쪽에서는 절반만 맞는 말이 된다. 여기서 먼저 말해야 할 것은 배당률이 아니라 **업종 집중 위험**이다.
-   *
-   * ⚠ 테마 ETF 와 섞지 마라 — 섹터는 표준 산업 분류를 따르고 테마는 이야기를 따른다
-   * (`shared/constants/presets/sectorEquityEtfs.ts` 머리말이 그 경계를 이미 정해 두었다).
-   */
-  sector: "\uC139\uD130 ETF",
-  /**
-   * 레버리지 ETF(2026-08-17). 코어 지수와 같은 칸에 두지 않는 이유는 상품 성격이 다르기 때문이다 —
-   * 일간 목표 상품이라 보유 기간이 길어질수록 기초지수 배수와 멀어지고, 이 앱의 결정론적 계산
-   * 모델이 그 위험을 표현하지 못한다. 묶음을 갈라야 `caution` 한 줄로 그 사실을 먼저 말할 수 있다.
-   */
-  leveraged: "\uB808\uBC84\uB9AC\uC9C0 ETF",
-  "dividend-stock": "\uAC1C\uBCC4 \uBC30\uB2F9\uC8FC",
-  /**
-   * 성장주(2026-08-17). '개별 배당주' 와 가르는 기준은 **배당 이력의 길이**다 — AAPL(15년)·
-   * MSFT(24년)처럼 오래 늘려 온 종목은 배당주로 두고, 배당이 없거나(AMZN·TSLA) 도입한 지
-   * 2년 남짓인(GOOGL·META·NVDA) 종목을 여기 모은다. 배당 목적으로 검색해 들어온 사람이
-   * 두 묶음을 같은 것으로 읽지 않게 하는 것이 이 칸의 목적이다.
-   */
-  "growth-stock": "\uC131\uC7A5\uC8FC(\uBB34\uBC30\uB2F9\xB7\uC800\uBC30\uB2F9)"
-};
-var TICKER_CATEGORY_PATH_PREFIX = "/ticker/category";
-var tickerCategoryPath = (categoryId) => `${TICKER_CATEGORY_PATH_PREFIX}/${categoryId}`;
-var isTickerCategoryId = (value) => Object.prototype.hasOwnProperty.call(TICKER_CATEGORY_LABEL, value);
-var TICKER_CATEGORY_IDS = Object.keys(TICKER_CATEGORY_LABEL);
-var TICKER_CATEGORY_META = {
-  "dividend-growth": {
-    metaTitle: "\uBC30\uB2F9\uC131\uC7A5 ETF \uBAA8\uC74C \u2014 \uBC30\uB2F9\uC774 \uB298\uC5B4\uB098\uB294 \uC18D\uB3C4\uB85C \uACE0\uB974\uB294 \uC885\uBAA9",
-    description: "\uC9C0\uAE08\uC758 \uBC30\uB2F9\uB960\uBCF4\uB2E4 \uBC30\uB2F9\uC774 \uD574\uB9C8\uB2E4 \uB298\uC5B4\uB098\uB294 \uC18D\uB3C4\uB97C \uC6B0\uC120\uD558\uB294 ETF\uB97C \uBAA8\uC558\uC2B5\uB2C8\uB2E4. \uAC01 \uC885\uBAA9\uC758 \uC120\uBCC4 \uAE30\uC900\uACFC \uBC30\uB2F9\uC131\uC7A5\uB960, \uAD6C\uC131 \uBC29\uC2DD\uC744 \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4.",
-    caution: "\uBC30\uB2F9\uC131\uC7A5 ETF\uB294 \uB2F9\uC7A5\uC758 \uBC30\uB2F9\uB960\uC774 \uACE0\uBC30\uB2F9 \uC0C1\uD488\uBCF4\uB2E4 \uB0AE\uC2B5\uB2C8\uB2E4. \uC9C0\uAE08 \uBC1B\uC744 \uD604\uAE08\uC774 \uD544\uC694\uD55C \uACBD\uC6B0\uC640 \uC2DC\uAC04\uC744 \uB4E4\uC5EC \uB298\uB9B4 \uACBD\uC6B0\uB294 \uC120\uD0DD\uC774 \uAC08\uB9BD\uB2C8\uB2E4."
-  },
-  "high-dividend": {
-    metaTitle: "\uACE0\uBC30\uB2F9 ETF \uBAA8\uC74C \u2014 \uC9C0\uAE08 \uBC1B\uB294 \uBC30\uB2F9\uC774 \uD070 \uC885\uBAA9",
-    description: "\uD604\uC7AC \uBC30\uB2F9\uB960\uC774 \uB192\uC740 ETF\uB97C \uBAA8\uC558\uC2B5\uB2C8\uB2E4. \uC5B4\uB5A4 \uBC29\uC2DD\uC73C\uB85C \uB192\uC740 \uBD84\uBC30\uAE08\uC744 \uB9CC\uB4DC\uB294\uC9C0, \uADF8 \uC7AC\uC6D0\uC774 \uBB34\uC5C7\uC778\uC9C0 \uC885\uBAA9\uBCC4\uB85C \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4.",
-    caution: "\uB192\uC740 \uBC30\uB2F9\uB960\uC740 \uC8FC\uAC00\uAC00 \uB0B4\uB824\uC11C \uC0DD\uAE30\uAE30\uB3C4 \uD569\uB2C8\uB2E4. \uBC30\uB2F9\uB960\uB9CC \uBCF4\uACE0 \uACE0\uB974\uBA74 \uBC30\uB2F9\uC740 \uBC1B\uB418 \uC6D0\uAE08\uC774 \uC904\uC5B4\uB4DC\uB294 \uC870\uD569\uC744 \uACE0\uB97C \uC218 \uC788\uC2B5\uB2C8\uB2E4."
-  },
-  "covered-call": {
-    metaTitle: "\uCEE4\uBC84\uB4DC\uCF5C\xB7\uC635\uC158\uC778\uCEF4 ETF \uBAA8\uC74C \u2014 \uBD84\uBC30\uAE08\uC774 \uD070 \uB300\uC2E0 \uBB34\uC5C7\uC744 \uB0B4\uC8FC\uB098",
-    description: "\uCF5C\uC635\uC158 \uB9E4\uB3C4\uB85C \uBD84\uBC30\uAE08\uC744 \uB9CC\uB4DC\uB294 ETF\uB97C \uBAA8\uC558\uC2B5\uB2C8\uB2E4. \uD504\uB9AC\uBBF8\uC5C4\uC744 \uC5B4\uB5BB\uAC8C \uC218\uCDE8\uD558\uB294\uC9C0\uC640 \uADF8 \uB300\uAC00\uB85C \uBB34\uC5C7\uC744 \uD3EC\uAE30\uD558\uB294\uC9C0\uB97C \uC885\uBAA9\uBCC4\uB85C \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4.",
-    caution: "\uCEE4\uBC84\uB4DC\uCF5C\uC740 \uD504\uB9AC\uBBF8\uC5C4\uC744 \uBC1B\uB294 \uB300\uC2E0 **\uC8FC\uAC00 \uC0C1\uC2B9\uBD84\uC744 \uC77C\uBD80 \uB0B4\uC90D\uB2C8\uB2E4**. \uBD84\uBC30\uC728\uC774 \uB192\uB2E4\uACE0 \uCD1D\uC218\uC775\uC774 \uB192\uC740 \uAC83\uC740 \uC544\uB2D9\uB2C8\uB2E4."
-  },
-  reit: {
-    metaTitle: "\uB9AC\uCE20(REITs) \uBAA8\uC74C \u2014 \uBD80\uB3D9\uC0B0 \uC784\uB300\uC218\uC775\uC744 \uBC30\uB2F9\uC73C\uB85C \uBC1B\uB294 \uC885\uBAA9",
-    description: "\uBD80\uB3D9\uC0B0\uC5D0\uC11C \uB098\uC624\uB294 \uC784\uB300\uC218\uC775\uC744 \uBC30\uB2F9\uC73C\uB85C \uB3CC\uB824\uC8FC\uB294 \uB9AC\uCE20\uB97C \uBAA8\uC558\uC2B5\uB2C8\uB2E4. \uBCF4\uC720 \uC790\uC0B0\uC758 \uC131\uACA9\uACFC \uBC30\uB2F9 \uC7AC\uC6D0\uC744 \uC885\uBAA9\uBCC4\uB85C \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4.",
-    caution: "\uB9AC\uCE20\uB294 \uAE08\uB9AC\uC5D0 \uBBFC\uAC10\uD569\uB2C8\uB2E4. \uAE08\uB9AC\uAC00 \uC624\uB974\uBA74 \uC870\uB2EC \uBE44\uC6A9\uC774 \uB298\uACE0 \uBC30\uB2F9 \uC5EC\uB825\uC774 \uC904\uC5B4\uB4E4 \uC218 \uC788\uC2B5\uB2C8\uB2E4."
-  },
-  international: {
-    metaTitle: "\uD574\uC678 \uBC30\uB2F9 ETF \uBAA8\uC74C \u2014 \uBBF8\uAD6D \uBC16\uC73C\uB85C \uB113\uD788\uB294 \uBC30\uB2F9 \uD3EC\uD2B8\uD3F4\uB9AC\uC624",
-    description: "\uBBF8\uAD6D \uC678 \uC9C0\uC5ED\uC758 \uBC30\uB2F9\uC8FC\uC5D0 \uD22C\uC790\uD558\uB294 ETF\uB97C \uBAA8\uC558\uC2B5\uB2C8\uB2E4. \uC5B4\uB290 \uC9C0\uC5ED\uC744 \uB2F4\uB294\uC9C0\uC640 \uD1B5\uD654\xB7\uACFC\uC138\uAC00 \uC5B4\uB5BB\uAC8C \uB2EC\uB77C\uC9C0\uB294\uC9C0 \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4.",
-    caution: "\uC9C0\uC5ED\uC744 \uB113\uD788\uBA74 \uBD84\uC0B0\uC740 \uB298\uC9C0\uB9CC \uD658\uC728\uACFC \uD604\uC9C0 \uC6D0\uCC9C\uC9D5\uC218\uB77C\uB294 \uBCC0\uC218\uAC00 \uD568\uAED8 \uB298\uC5B4\uB0A9\uB2C8\uB2E4."
-  },
-  "core-index": {
-    metaTitle: "\uCF54\uC5B4 \uC9C0\uC218 ETF \uBAA8\uC74C \u2014 \uBC30\uB2F9 \uD3EC\uD2B8\uD3F4\uB9AC\uC624\uC758 \uAE30\uC900\uC120",
-    description: "\uC2DC\uC7A5 \uC804\uCCB4\uB97C \uB530\uB77C\uAC00\uB294 \uC9C0\uC218 ETF\uB97C \uBAA8\uC558\uC2B5\uB2C8\uB2E4. \uBC30\uB2F9\uC774 \uC8FC\uBAA9\uC801\uC740 \uC544\uB2C8\uC9C0\uB9CC \uBC30\uB2F9 \uD3EC\uD2B8\uD3F4\uB9AC\uC624\uC758 \uBE44\uAD50 \uAE30\uC900\uC73C\uB85C \uC790\uC8FC \uC4F0\uC785\uB2C8\uB2E4.",
-    caution: "\uCF54\uC5B4 \uC9C0\uC218 ETF\uB294 \uBC30\uB2F9\uB960\uC774 \uB0AE\uC2B5\uB2C8\uB2E4. \uC6D4 \uBC30\uB2F9 \uD604\uAE08\uD750\uB984\uC774 \uBAA9\uC801\uC774\uB77C\uBA74 \uC774 \uBB36\uC74C\uB9CC\uC73C\uB85C\uB294 \uBAA9\uD45C\uC5D0 \uB2FF\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4."
-  },
-  sector: {
-    metaTitle: "\uC139\uD130 ETF \uBAA8\uC74C \u2014 \uD55C \uC0B0\uC5C5\uC5D0 \uBB34\uAC8C\uB97C \uB354 \uC2E3\uB294 \uC790\uB9AC",
-    description: "\uD45C\uC900 \uC0B0\uC5C5 \uBD84\uB958\uB97C \uAE30\uC900\uC73C\uB85C \uD55C \uC5C5\uC885\uB9CC \uB2F4\uB294 ETF\uB97C \uBAA8\uC558\uC2B5\uB2C8\uB2E4. \uAC19\uC740 \uC139\uD130\uB97C \uAC74 \uC0C1\uD488\uC774\uB77C\uB3C4 \uC5B4\uB514\uAE4C\uC9C0\uB97C \uD6C4\uBCF4\uB85C \uC0BC\uB294\uC9C0\uC5D0 \uB530\uB77C \uAD6C\uC131\uC774 \uD06C\uAC8C \uB2EC\uB77C\uC9C0\uB294 \uC9C0\uC810\uC744 \uC885\uBAA9\uBCC4\uB85C \uC9DA\uC5C8\uC2B5\uB2C8\uB2E4.",
-    caution: "\uC139\uD130 ETF\uB294 \uBD84\uC0B0\uC774 \uD55C \uC0B0\uC5C5 \uC548\uC5D0\uC11C\uB9CC \uC774\uB904\uC9D1\uB2C8\uB2E4. \uADF8 \uC5C5\uC885\uC774 \uC870\uC815\uBC1B\uC73C\uBA74 \uC2DC\uC7A5 \uC804\uCCB4\uB97C \uB2F4\uB294 \uCF54\uC5B4 \uC9C0\uC218\uBCF4\uB2E4 \uAE4A\uAC8C \uBE60\uC9C0\uBA70, \uC774\uBBF8 \uCF54\uC5B4 \uC9C0\uC218\uB97C \uB4E4\uACE0 \uC788\uB2E4\uBA74 \uAC19\uC740 \uC885\uBAA9\uC744 \uB450 \uBC88 \uC0AC\uB294 \uAC83\uC774\uAE30\uB3C4 \uD569\uB2C8\uB2E4."
-  },
-  leveraged: {
-    metaTitle: "\uB808\uBC84\uB9AC\uC9C0 ETF \uBAA8\uC74C \u2014 \uBC30\uC218\uB294 \uD558\uB8E8\uCE58\uC5D0\uB9CC \uAC78\uB9B0\uB2E4",
-    description: "\uC9C0\uC218\uC758 \uD558\uB8E8\uCE58 \uC218\uC775\uB960\uC744 2\uBC30\xB73\uBC30\uB85C \uCD94\uC885\uD558\uB294 ETF\uB97C \uBAA8\uC558\uC2B5\uB2C8\uB2E4. \uC77C\uAC04 \uC7AC\uC870\uC815\uC774 \uBB34\uC5C7\uC744 \uB9CC\uB4DC\uB294\uC9C0, \uBC30\uC218\uB97C \uC62C\uB9B4\uC218\uB85D \uC7A5\uAE30 \uAE30\uB300\uAC12\uC774 \uC5B4\uB5BB\uAC8C \uB2EC\uB77C\uC9C0\uB294\uC9C0 \uC885\uBAA9\uBCC4\uB85C \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4.",
-    caution: "\uB808\uBC84\uB9AC\uC9C0 ETF\uC758 \uBC30\uC218\uB294 **\uD558\uB8E8\uCE58 \uC218\uC775\uB960\uC5D0\uB9CC** \uAC78\uB9BD\uB2C8\uB2E4. \uB9E4\uC77C \uC7AC\uC870\uC815\uD558\uAE30 \uB54C\uBB38\uC5D0 \uD6A1\uBCF4 \uAD6C\uAC04\uC5D0\uC11C\uB294 \uC9C0\uC218\uAC00 \uC81C\uC790\uB9AC\uC5EC\uB3C4 \uC6D0\uAE08\uC774 \uC904\uACE0, \uBC30\uC218\uAC00 \uD074\uC218\uB85D \uADF8 \uC190\uC2E4\uC774 \uC81C\uACF1\uC73C\uB85C \uCEE4\uC9D1\uB2C8\uB2E4."
-  },
-  "growth-stock": {
-    metaTitle: "\uC131\uC7A5\uC8FC \uBAA8\uC74C \u2014 \uBC30\uB2F9\uBCF4\uB2E4 \uC8FC\uAC00\uB85C \uB2F5\uD558\uB294 \uC885\uBAA9",
-    description: "\uBC30\uB2F9\uC774 \uC5C6\uAC70\uB098, \uBC30\uB2F9\uC744 \uC2DC\uC791\uD55C \uC9C0 \uC5BC\uB9C8 \uB418\uC9C0 \uC54A\uC558\uAC70\uB098, \uC9C0\uAE09\uD558\uB358 \uBC30\uB2F9\uC744 \uBA48\uCD98 \uB300\uD615 \uC885\uBAA9\uC744 \uBAA8\uC558\uC2B5\uB2C8\uB2E4. \uBC30\uB2F9 \uC774\uB825\uC774 \uC5B4\uB514\uAE4C\uC9C0 \uC313\uC600\uACE0 \uC5B4\uB514\uC11C \uB04A\uACBC\uB294\uC9C0\uC640, \uBC30\uB2F9\uC774 \uC5C6\uB294 \uC885\uBAA9\uC774 \uC774 \uC2DC\uBBAC\uB808\uC774\uD130\uC5D0\uC11C \uC5B4\uB5BB\uAC8C \uACC4\uC0B0\uB418\uB294\uC9C0 \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4.",
-    caution: "\uC774 \uBB36\uC74C\uC758 \uC885\uBAA9\uB4E4\uC740 \uBC30\uB2F9 \uD604\uAE08\uD750\uB984\uC744 \uB9CC\uB4E4\uC9C0 \uBABB\uD569\uB2C8\uB2E4. \uBC30\uB2F9\uC774 0\uC774\uBA74 \uC2DC\uBBAC\uB808\uC774\uD130\uC758 \uACB0\uACFC\uAC00 \uC804\uC561 \uC8FC\uAC00 \uC131\uC7A5 \uAC00\uC815\uC5D0 \uC758\uC874\uD558\uBA70, \uBCF4\uC720\uD558\uB294 \uB3D9\uC548 \uB4E4\uC5B4\uC624\uB294 \uB3C8\uC740 \uC5C6\uC2B5\uB2C8\uB2E4."
-  },
-  "dividend-stock": {
-    metaTitle: "\uAC1C\uBCC4 \uBC30\uB2F9\uC8FC \uBAA8\uC74C \u2014 \uC885\uBAA9 \uD558\uB098\uB97C \uC9C1\uC811 \uACE0\uB97C \uB54C",
-    description: "ETF\uAC00 \uC544\uB2C8\uB77C \uAC1C\uBCC4 \uAE30\uC5C5\uC758 \uBC30\uB2F9\uC8FC\uB97C \uBAA8\uC558\uC2B5\uB2C8\uB2E4. \uBC30\uB2F9\uC744 \uC5BC\uB9C8\uB098 \uC624\uB798 \uC774\uC5B4 \uC654\uB294\uC9C0\uC640 \uADF8 \uC7AC\uC6D0\uC744 \uC885\uBAA9\uBCC4\uB85C \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4.",
-    caution: "\uAC1C\uBCC4 \uC885\uBAA9\uC740 \uBD84\uC0B0\uC774 \uC5C6\uC2B5\uB2C8\uB2E4. \uBC30\uB2F9\uC740 \uC57D\uC18D\uC774 \uC544\uB2C8\uB77C \uD68C\uC0AC\uC758 \uACB0\uC815\uC774\uB77C \uD55C \uC885\uBAA9\uC758 \uBC30\uB2F9 \uC911\uB2E8\uC774 \uADF8\uB300\uB85C \uD3EC\uD2B8\uD3F4\uB9AC\uC624\uC5D0 \uC635\uB2C8\uB2E4."
-  }
-};
-
 // shared/constants/marketData/marketData.generated.json
 var marketData_generated_default = {
   asOf: "2026-11-08",
@@ -13984,6 +13895,161 @@ var parseMarketDataSnapshot = (raw2) => {
 };
 var MARKET_DATA = parseMarketDataSnapshot(marketData_generated_default);
 var MARKET_DATA_AS_OF = MARKET_DATA.asOf;
+
+// shared/lib/tickerPayDates/tickerPayDates.ts
+var DAYS_IN_MONTH_NON_LEAP = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+var exDateLabel = (month, payDay, lagDays) => {
+  let exDay = payDay - lagDays;
+  let exMonth = month;
+  while (exDay < 1) {
+    exMonth = exMonth === 1 ? 12 : exMonth - 1;
+    exDay += DAYS_IN_MONTH_NON_LEAP[exMonth - 1];
+  }
+  return `${exMonth}\uC6D4 ${exDay}\uC77C\uCBE4`;
+};
+var cadenceOf = (months) => {
+  if (months.length === 12) return "\uB9E4\uC6D4";
+  const list = months.map((month) => `${month}`).join("\xB7");
+  if (months.length === 4) return `\uBD84\uAE30 (${list}\uC6D4)`;
+  if (months.length === 2) return `\uBC18\uAE30 (${list}\uC6D4)`;
+  if (months.length === 1) return `\uC5F0 1\uD68C (${list}\uC6D4)`;
+  return `\uC5F0 ${months.length}\uD68C (${list}\uC6D4)`;
+};
+var buildTickerPaySchedule = (ticker, today = /* @__PURE__ */ new Date(), entries = MARKET_DATA.entries, asOf = MARKET_DATA.asOf) => {
+  const entry = entries[ticker];
+  const months = [...new Set((entry?.payoutMonths ?? []).filter((month) => Number.isInteger(month) && month >= 1 && month <= 12))].sort(
+    (a, b) => a - b
+  );
+  if (!entry || months.length === 0 || entry.payoutMonthsSource === "none") return null;
+  const source = entry.payoutMonthsSource === "pay" ? "pay" : "ex";
+  const lag = typeof entry.exToPayLagDays === "number" && entry.exToPayLagDays > 0 ? Math.round(entry.exToPayLagDays) : null;
+  const rows = months.map((month) => {
+    const raw2 = source === "pay" ? entry.estimatedPayDayByMonth?.[String(month)] : void 0;
+    const payDay = typeof raw2 === "number" && Number.isFinite(raw2) && raw2 >= 1 ? Math.min(Math.trunc(raw2), DAYS_IN_MONTH_NON_LEAP[month - 1]) : null;
+    return {
+      month,
+      payDay,
+      payLabel: payDay ? `${month}\uC6D4 ${payDay}\uC77C\uCBE4` : `${month}\uC6D4`,
+      exLabel: payDay && lag ? exDateLabel(month, payDay, lag) : null
+    };
+  });
+  const thisMonth = today.getMonth() + 1;
+  const thisDay = today.getDate();
+  const upcoming = rows.find((row) => row.month > thisMonth || row.month === thisMonth && (row.payDay === null || row.payDay >= thisDay)) ?? null;
+  const next = upcoming ? { year: today.getFullYear(), label: upcoming.payLabel } : rows[0] ? { year: today.getFullYear() + 1, label: rows[0].payLabel } : null;
+  return {
+    ticker,
+    source,
+    timesPerYear: months.length,
+    cadenceLabel: cadenceOf(months),
+    rows,
+    next,
+    exToPayLagDays: lag,
+    asOf
+  };
+};
+var TICKER_PAY_COPY = {
+  heading: (ticker) => `${ticker} \uBC30\uB2F9\uC77C \xB7 \uBC30\uB2F9\uB77D\uC77C`,
+  nextLabel: "\uB2E4\uC74C \uBC30\uB2F9 \uC9C0\uAE09 \uC608\uC0C1",
+  cadenceLabel: "\uC9C0\uAE09 \uC8FC\uAE30",
+  tableHead: ["\uC9C0\uAE09 \uC6D4", "\uC608\uC0C1 \uC9C0\uAE09\uC77C", "\uC608\uC0C1 \uBC30\uB2F9\uB77D\uC77C"],
+  sourceNote: (schedule) => schedule.source === "pay" ? `\uACFC\uAC70 \uC2E4\uC81C \uC9C0\uAE09\uC77C\uC5D0\uC11C \uCD94\uC815\uD55C \uB0A0\uC9DC\uC785\uB2C8\uB2E4. \uC8FC\uB9D0\xB7\uD734\uC77C\uC5D0 \uB530\uB77C \uBA70\uCE60\uC529 \uB2EC\uB77C\uC9C8 \uC218 \uC788\uC2B5\uB2C8\uB2E4.${schedule.asOf ? ` (${schedule.asOf} \uAE30\uC900)` : ""}` : `\uBC30\uB2F9\uB77D\uC77C \uC774\uB825\uC5D0\uC11C \uCD94\uC815\uD55C \uC9C0\uAE09 \uC6D4\uC785\uB2C8\uB2E4. \uC9C0\uAE09\uC740 \uBCF4\uD1B5 \uBC30\uB2F9\uB77D \uBA70\uCE60 \uB4A4\uC774\uACE0, \uC6D4 \uACBD\uACC4\uC5D0\uC11C\uB294 \uD55C \uB2EC \uC5B4\uAE0B\uB0A0 \uC218 \uC788\uC2B5\uB2C8\uB2E4.${schedule.asOf ? ` (${schedule.asOf} \uAE30\uC900)` : ""}`,
+  exNote: "\uBC30\uB2F9\uC744 \uBC1B\uC73C\uB824\uBA74 \uBC30\uB2F9\uB77D\uC77C \uC804 \uAC70\uB798\uC77C\uAE4C\uC9C0 \uBCF4\uC720\uD558\uACE0 \uC788\uC5B4\uC57C \uD569\uB2C8\uB2E4.",
+  calendarLink: "\uBC30\uB2F9 \uCE98\uB9B0\uB354\uC5D0\uC11C \uB0B4 \uC885\uBAA9 \uC9C0\uAE09\uC77C \uBAA8\uC544 \uBCF4\uAE30"
+};
+var withPayDateTitle = (metaTitle, ticker, hasSchedule) => {
+  if (!hasSchedule || metaTitle.includes("\uBC30\uB2F9\uC77C")) return metaTitle;
+  return metaTitle.startsWith(`${ticker} `) ? `${ticker} \uBC30\uB2F9\uC77C\xB7${metaTitle.slice(ticker.length + 1)}` : metaTitle;
+};
+
+// shared/constants/tickers/TickerCategory.ts
+var TICKER_CATEGORY_LABEL = {
+  "dividend-growth": "\uBC30\uB2F9\uC131\uC7A5 ETF",
+  "high-dividend": "\uACE0\uBC30\uB2F9 ETF",
+  "covered-call": "\uCEE4\uBC84\uB4DC\uCF5C\xB7\uC635\uC158\uC778\uCEF4 ETF",
+  reit: "\uB9AC\uCE20(REITs)",
+  international: "\uD574\uC678 \uBC30\uB2F9 ETF",
+  "core-index": "\uCF54\uC5B4 \uC9C0\uC218 ETF",
+  /**
+   * 섹터 ETF(2026-08-26). 코어 지수와 가르는 기준은 **분산의 범위**다 — 코어는 시장 전체를 사는
+   * 도구이고, 섹터는 한 산업에만 건다. 둘을 같은 칸에 두면 코어 묶음의 `caution`("배당률이 낮다")이
+   * 이쪽에서는 절반만 맞는 말이 된다. 여기서 먼저 말해야 할 것은 배당률이 아니라 **업종 집중 위험**이다.
+   *
+   * ⚠ 테마 ETF 와 섞지 마라 — 섹터는 표준 산업 분류를 따르고 테마는 이야기를 따른다
+   * (`shared/constants/presets/sectorEquityEtfs.ts` 머리말이 그 경계를 이미 정해 두었다).
+   */
+  sector: "\uC139\uD130 ETF",
+  /**
+   * 레버리지 ETF(2026-08-17). 코어 지수와 같은 칸에 두지 않는 이유는 상품 성격이 다르기 때문이다 —
+   * 일간 목표 상품이라 보유 기간이 길어질수록 기초지수 배수와 멀어지고, 이 앱의 결정론적 계산
+   * 모델이 그 위험을 표현하지 못한다. 묶음을 갈라야 `caution` 한 줄로 그 사실을 먼저 말할 수 있다.
+   */
+  leveraged: "\uB808\uBC84\uB9AC\uC9C0 ETF",
+  "dividend-stock": "\uAC1C\uBCC4 \uBC30\uB2F9\uC8FC",
+  /**
+   * 성장주(2026-08-17). '개별 배당주' 와 가르는 기준은 **배당 이력의 길이**다 — AAPL(15년)·
+   * MSFT(24년)처럼 오래 늘려 온 종목은 배당주로 두고, 배당이 없거나(AMZN·TSLA) 도입한 지
+   * 2년 남짓인(GOOGL·META·NVDA) 종목을 여기 모은다. 배당 목적으로 검색해 들어온 사람이
+   * 두 묶음을 같은 것으로 읽지 않게 하는 것이 이 칸의 목적이다.
+   */
+  "growth-stock": "\uC131\uC7A5\uC8FC(\uBB34\uBC30\uB2F9\xB7\uC800\uBC30\uB2F9)"
+};
+var TICKER_CATEGORY_PATH_PREFIX = "/ticker/category";
+var tickerCategoryPath = (categoryId) => `${TICKER_CATEGORY_PATH_PREFIX}/${categoryId}`;
+var isTickerCategoryId = (value) => Object.prototype.hasOwnProperty.call(TICKER_CATEGORY_LABEL, value);
+var TICKER_CATEGORY_IDS = Object.keys(TICKER_CATEGORY_LABEL);
+var TICKER_CATEGORY_META = {
+  "dividend-growth": {
+    metaTitle: "\uBC30\uB2F9\uC131\uC7A5 ETF \uBAA8\uC74C \u2014 \uBC30\uB2F9\uC774 \uB298\uC5B4\uB098\uB294 \uC18D\uB3C4\uB85C \uACE0\uB974\uB294 \uC885\uBAA9",
+    description: "\uC9C0\uAE08\uC758 \uBC30\uB2F9\uB960\uBCF4\uB2E4 \uBC30\uB2F9\uC774 \uD574\uB9C8\uB2E4 \uB298\uC5B4\uB098\uB294 \uC18D\uB3C4\uB97C \uC6B0\uC120\uD558\uB294 ETF\uB97C \uBAA8\uC558\uC2B5\uB2C8\uB2E4. \uAC01 \uC885\uBAA9\uC758 \uC120\uBCC4 \uAE30\uC900\uACFC \uBC30\uB2F9\uC131\uC7A5\uB960, \uAD6C\uC131 \uBC29\uC2DD\uC744 \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4.",
+    caution: "\uBC30\uB2F9\uC131\uC7A5 ETF\uB294 \uB2F9\uC7A5\uC758 \uBC30\uB2F9\uB960\uC774 \uACE0\uBC30\uB2F9 \uC0C1\uD488\uBCF4\uB2E4 \uB0AE\uC2B5\uB2C8\uB2E4. \uC9C0\uAE08 \uBC1B\uC744 \uD604\uAE08\uC774 \uD544\uC694\uD55C \uACBD\uC6B0\uC640 \uC2DC\uAC04\uC744 \uB4E4\uC5EC \uB298\uB9B4 \uACBD\uC6B0\uB294 \uC120\uD0DD\uC774 \uAC08\uB9BD\uB2C8\uB2E4."
+  },
+  "high-dividend": {
+    metaTitle: "\uACE0\uBC30\uB2F9 ETF \uBAA8\uC74C \u2014 \uC9C0\uAE08 \uBC1B\uB294 \uBC30\uB2F9\uC774 \uD070 \uC885\uBAA9",
+    description: "\uD604\uC7AC \uBC30\uB2F9\uB960\uC774 \uB192\uC740 ETF\uB97C \uBAA8\uC558\uC2B5\uB2C8\uB2E4. \uC5B4\uB5A4 \uBC29\uC2DD\uC73C\uB85C \uB192\uC740 \uBD84\uBC30\uAE08\uC744 \uB9CC\uB4DC\uB294\uC9C0, \uADF8 \uC7AC\uC6D0\uC774 \uBB34\uC5C7\uC778\uC9C0 \uC885\uBAA9\uBCC4\uB85C \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4.",
+    caution: "\uB192\uC740 \uBC30\uB2F9\uB960\uC740 \uC8FC\uAC00\uAC00 \uB0B4\uB824\uC11C \uC0DD\uAE30\uAE30\uB3C4 \uD569\uB2C8\uB2E4. \uBC30\uB2F9\uB960\uB9CC \uBCF4\uACE0 \uACE0\uB974\uBA74 \uBC30\uB2F9\uC740 \uBC1B\uB418 \uC6D0\uAE08\uC774 \uC904\uC5B4\uB4DC\uB294 \uC870\uD569\uC744 \uACE0\uB97C \uC218 \uC788\uC2B5\uB2C8\uB2E4."
+  },
+  "covered-call": {
+    metaTitle: "\uCEE4\uBC84\uB4DC\uCF5C\xB7\uC635\uC158\uC778\uCEF4 ETF \uBAA8\uC74C \u2014 \uBD84\uBC30\uAE08\uC774 \uD070 \uB300\uC2E0 \uBB34\uC5C7\uC744 \uB0B4\uC8FC\uB098",
+    description: "\uCF5C\uC635\uC158 \uB9E4\uB3C4\uB85C \uBD84\uBC30\uAE08\uC744 \uB9CC\uB4DC\uB294 ETF\uB97C \uBAA8\uC558\uC2B5\uB2C8\uB2E4. \uD504\uB9AC\uBBF8\uC5C4\uC744 \uC5B4\uB5BB\uAC8C \uC218\uCDE8\uD558\uB294\uC9C0\uC640 \uADF8 \uB300\uAC00\uB85C \uBB34\uC5C7\uC744 \uD3EC\uAE30\uD558\uB294\uC9C0\uB97C \uC885\uBAA9\uBCC4\uB85C \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4.",
+    caution: "\uCEE4\uBC84\uB4DC\uCF5C\uC740 \uD504\uB9AC\uBBF8\uC5C4\uC744 \uBC1B\uB294 \uB300\uC2E0 **\uC8FC\uAC00 \uC0C1\uC2B9\uBD84\uC744 \uC77C\uBD80 \uB0B4\uC90D\uB2C8\uB2E4**. \uBD84\uBC30\uC728\uC774 \uB192\uB2E4\uACE0 \uCD1D\uC218\uC775\uC774 \uB192\uC740 \uAC83\uC740 \uC544\uB2D9\uB2C8\uB2E4."
+  },
+  reit: {
+    metaTitle: "\uB9AC\uCE20(REITs) \uBAA8\uC74C \u2014 \uBD80\uB3D9\uC0B0 \uC784\uB300\uC218\uC775\uC744 \uBC30\uB2F9\uC73C\uB85C \uBC1B\uB294 \uC885\uBAA9",
+    description: "\uBD80\uB3D9\uC0B0\uC5D0\uC11C \uB098\uC624\uB294 \uC784\uB300\uC218\uC775\uC744 \uBC30\uB2F9\uC73C\uB85C \uB3CC\uB824\uC8FC\uB294 \uB9AC\uCE20\uB97C \uBAA8\uC558\uC2B5\uB2C8\uB2E4. \uBCF4\uC720 \uC790\uC0B0\uC758 \uC131\uACA9\uACFC \uBC30\uB2F9 \uC7AC\uC6D0\uC744 \uC885\uBAA9\uBCC4\uB85C \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4.",
+    caution: "\uB9AC\uCE20\uB294 \uAE08\uB9AC\uC5D0 \uBBFC\uAC10\uD569\uB2C8\uB2E4. \uAE08\uB9AC\uAC00 \uC624\uB974\uBA74 \uC870\uB2EC \uBE44\uC6A9\uC774 \uB298\uACE0 \uBC30\uB2F9 \uC5EC\uB825\uC774 \uC904\uC5B4\uB4E4 \uC218 \uC788\uC2B5\uB2C8\uB2E4."
+  },
+  international: {
+    metaTitle: "\uD574\uC678 \uBC30\uB2F9 ETF \uBAA8\uC74C \u2014 \uBBF8\uAD6D \uBC16\uC73C\uB85C \uB113\uD788\uB294 \uBC30\uB2F9 \uD3EC\uD2B8\uD3F4\uB9AC\uC624",
+    description: "\uBBF8\uAD6D \uC678 \uC9C0\uC5ED\uC758 \uBC30\uB2F9\uC8FC\uC5D0 \uD22C\uC790\uD558\uB294 ETF\uB97C \uBAA8\uC558\uC2B5\uB2C8\uB2E4. \uC5B4\uB290 \uC9C0\uC5ED\uC744 \uB2F4\uB294\uC9C0\uC640 \uD1B5\uD654\xB7\uACFC\uC138\uAC00 \uC5B4\uB5BB\uAC8C \uB2EC\uB77C\uC9C0\uB294\uC9C0 \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4.",
+    caution: "\uC9C0\uC5ED\uC744 \uB113\uD788\uBA74 \uBD84\uC0B0\uC740 \uB298\uC9C0\uB9CC \uD658\uC728\uACFC \uD604\uC9C0 \uC6D0\uCC9C\uC9D5\uC218\uB77C\uB294 \uBCC0\uC218\uAC00 \uD568\uAED8 \uB298\uC5B4\uB0A9\uB2C8\uB2E4."
+  },
+  "core-index": {
+    metaTitle: "\uCF54\uC5B4 \uC9C0\uC218 ETF \uBAA8\uC74C \u2014 \uBC30\uB2F9 \uD3EC\uD2B8\uD3F4\uB9AC\uC624\uC758 \uAE30\uC900\uC120",
+    description: "\uC2DC\uC7A5 \uC804\uCCB4\uB97C \uB530\uB77C\uAC00\uB294 \uC9C0\uC218 ETF\uB97C \uBAA8\uC558\uC2B5\uB2C8\uB2E4. \uBC30\uB2F9\uC774 \uC8FC\uBAA9\uC801\uC740 \uC544\uB2C8\uC9C0\uB9CC \uBC30\uB2F9 \uD3EC\uD2B8\uD3F4\uB9AC\uC624\uC758 \uBE44\uAD50 \uAE30\uC900\uC73C\uB85C \uC790\uC8FC \uC4F0\uC785\uB2C8\uB2E4.",
+    caution: "\uCF54\uC5B4 \uC9C0\uC218 ETF\uB294 \uBC30\uB2F9\uB960\uC774 \uB0AE\uC2B5\uB2C8\uB2E4. \uC6D4 \uBC30\uB2F9 \uD604\uAE08\uD750\uB984\uC774 \uBAA9\uC801\uC774\uB77C\uBA74 \uC774 \uBB36\uC74C\uB9CC\uC73C\uB85C\uB294 \uBAA9\uD45C\uC5D0 \uB2FF\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4."
+  },
+  sector: {
+    metaTitle: "\uC139\uD130 ETF \uBAA8\uC74C \u2014 \uD55C \uC0B0\uC5C5\uC5D0 \uBB34\uAC8C\uB97C \uB354 \uC2E3\uB294 \uC790\uB9AC",
+    description: "\uD45C\uC900 \uC0B0\uC5C5 \uBD84\uB958\uB97C \uAE30\uC900\uC73C\uB85C \uD55C \uC5C5\uC885\uB9CC \uB2F4\uB294 ETF\uB97C \uBAA8\uC558\uC2B5\uB2C8\uB2E4. \uAC19\uC740 \uC139\uD130\uB97C \uAC74 \uC0C1\uD488\uC774\uB77C\uB3C4 \uC5B4\uB514\uAE4C\uC9C0\uB97C \uD6C4\uBCF4\uB85C \uC0BC\uB294\uC9C0\uC5D0 \uB530\uB77C \uAD6C\uC131\uC774 \uD06C\uAC8C \uB2EC\uB77C\uC9C0\uB294 \uC9C0\uC810\uC744 \uC885\uBAA9\uBCC4\uB85C \uC9DA\uC5C8\uC2B5\uB2C8\uB2E4.",
+    caution: "\uC139\uD130 ETF\uB294 \uBD84\uC0B0\uC774 \uD55C \uC0B0\uC5C5 \uC548\uC5D0\uC11C\uB9CC \uC774\uB904\uC9D1\uB2C8\uB2E4. \uADF8 \uC5C5\uC885\uC774 \uC870\uC815\uBC1B\uC73C\uBA74 \uC2DC\uC7A5 \uC804\uCCB4\uB97C \uB2F4\uB294 \uCF54\uC5B4 \uC9C0\uC218\uBCF4\uB2E4 \uAE4A\uAC8C \uBE60\uC9C0\uBA70, \uC774\uBBF8 \uCF54\uC5B4 \uC9C0\uC218\uB97C \uB4E4\uACE0 \uC788\uB2E4\uBA74 \uAC19\uC740 \uC885\uBAA9\uC744 \uB450 \uBC88 \uC0AC\uB294 \uAC83\uC774\uAE30\uB3C4 \uD569\uB2C8\uB2E4."
+  },
+  leveraged: {
+    metaTitle: "\uB808\uBC84\uB9AC\uC9C0 ETF \uBAA8\uC74C \u2014 \uBC30\uC218\uB294 \uD558\uB8E8\uCE58\uC5D0\uB9CC \uAC78\uB9B0\uB2E4",
+    description: "\uC9C0\uC218\uC758 \uD558\uB8E8\uCE58 \uC218\uC775\uB960\uC744 2\uBC30\xB73\uBC30\uB85C \uCD94\uC885\uD558\uB294 ETF\uB97C \uBAA8\uC558\uC2B5\uB2C8\uB2E4. \uC77C\uAC04 \uC7AC\uC870\uC815\uC774 \uBB34\uC5C7\uC744 \uB9CC\uB4DC\uB294\uC9C0, \uBC30\uC218\uB97C \uC62C\uB9B4\uC218\uB85D \uC7A5\uAE30 \uAE30\uB300\uAC12\uC774 \uC5B4\uB5BB\uAC8C \uB2EC\uB77C\uC9C0\uB294\uC9C0 \uC885\uBAA9\uBCC4\uB85C \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4.",
+    caution: "\uB808\uBC84\uB9AC\uC9C0 ETF\uC758 \uBC30\uC218\uB294 **\uD558\uB8E8\uCE58 \uC218\uC775\uB960\uC5D0\uB9CC** \uAC78\uB9BD\uB2C8\uB2E4. \uB9E4\uC77C \uC7AC\uC870\uC815\uD558\uAE30 \uB54C\uBB38\uC5D0 \uD6A1\uBCF4 \uAD6C\uAC04\uC5D0\uC11C\uB294 \uC9C0\uC218\uAC00 \uC81C\uC790\uB9AC\uC5EC\uB3C4 \uC6D0\uAE08\uC774 \uC904\uACE0, \uBC30\uC218\uAC00 \uD074\uC218\uB85D \uADF8 \uC190\uC2E4\uC774 \uC81C\uACF1\uC73C\uB85C \uCEE4\uC9D1\uB2C8\uB2E4."
+  },
+  "growth-stock": {
+    metaTitle: "\uC131\uC7A5\uC8FC \uBAA8\uC74C \u2014 \uBC30\uB2F9\uBCF4\uB2E4 \uC8FC\uAC00\uB85C \uB2F5\uD558\uB294 \uC885\uBAA9",
+    description: "\uBC30\uB2F9\uC774 \uC5C6\uAC70\uB098, \uBC30\uB2F9\uC744 \uC2DC\uC791\uD55C \uC9C0 \uC5BC\uB9C8 \uB418\uC9C0 \uC54A\uC558\uAC70\uB098, \uC9C0\uAE09\uD558\uB358 \uBC30\uB2F9\uC744 \uBA48\uCD98 \uB300\uD615 \uC885\uBAA9\uC744 \uBAA8\uC558\uC2B5\uB2C8\uB2E4. \uBC30\uB2F9 \uC774\uB825\uC774 \uC5B4\uB514\uAE4C\uC9C0 \uC313\uC600\uACE0 \uC5B4\uB514\uC11C \uB04A\uACBC\uB294\uC9C0\uC640, \uBC30\uB2F9\uC774 \uC5C6\uB294 \uC885\uBAA9\uC774 \uC774 \uC2DC\uBBAC\uB808\uC774\uD130\uC5D0\uC11C \uC5B4\uB5BB\uAC8C \uACC4\uC0B0\uB418\uB294\uC9C0 \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4.",
+    caution: "\uC774 \uBB36\uC74C\uC758 \uC885\uBAA9\uB4E4\uC740 \uBC30\uB2F9 \uD604\uAE08\uD750\uB984\uC744 \uB9CC\uB4E4\uC9C0 \uBABB\uD569\uB2C8\uB2E4. \uBC30\uB2F9\uC774 0\uC774\uBA74 \uC2DC\uBBAC\uB808\uC774\uD130\uC758 \uACB0\uACFC\uAC00 \uC804\uC561 \uC8FC\uAC00 \uC131\uC7A5 \uAC00\uC815\uC5D0 \uC758\uC874\uD558\uBA70, \uBCF4\uC720\uD558\uB294 \uB3D9\uC548 \uB4E4\uC5B4\uC624\uB294 \uB3C8\uC740 \uC5C6\uC2B5\uB2C8\uB2E4."
+  },
+  "dividend-stock": {
+    metaTitle: "\uAC1C\uBCC4 \uBC30\uB2F9\uC8FC \uBAA8\uC74C \u2014 \uC885\uBAA9 \uD558\uB098\uB97C \uC9C1\uC811 \uACE0\uB97C \uB54C",
+    description: "ETF\uAC00 \uC544\uB2C8\uB77C \uAC1C\uBCC4 \uAE30\uC5C5\uC758 \uBC30\uB2F9\uC8FC\uB97C \uBAA8\uC558\uC2B5\uB2C8\uB2E4. \uBC30\uB2F9\uC744 \uC5BC\uB9C8\uB098 \uC624\uB798 \uC774\uC5B4 \uC654\uB294\uC9C0\uC640 \uADF8 \uC7AC\uC6D0\uC744 \uC885\uBAA9\uBCC4\uB85C \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4.",
+    caution: "\uAC1C\uBCC4 \uC885\uBAA9\uC740 \uBD84\uC0B0\uC774 \uC5C6\uC2B5\uB2C8\uB2E4. \uBC30\uB2F9\uC740 \uC57D\uC18D\uC774 \uC544\uB2C8\uB77C \uD68C\uC0AC\uC758 \uACB0\uC815\uC774\uB77C \uD55C \uC885\uBAA9\uC758 \uBC30\uB2F9 \uC911\uB2E8\uC774 \uADF8\uB300\uB85C \uD3EC\uD2B8\uD3F4\uB9AC\uC624\uC5D0 \uC635\uB2C8\uB2E4."
+  }
+};
 
 // shared/lib/snowball/SnowballCalendar.ts
 var getDaysInMonth = (year, monthIndex) => new Date(year, monthIndex + 1, 0).getDate();
@@ -37401,7 +37467,8 @@ var HUB_PATH = `/ticker/${HUB_SLUG}`;
 var HUB_META_TITLE = "\uBC30\uB2F9 ETF\xB7\uC885\uBAA9 SEO \uC18C\uAC1C \uBAA8\uC74C \u2014 \uBC30\uB2F9\uB960\xB7\uBC30\uB2F9\uC131\uC7A5\xB7\uAD6C\uC131 \uD55C\uB208\uC5D0";
 var tickerCanonical = (siteUrl, content) => `${siteUrl}/ticker/${content.slug}`;
 var applyTickerMeta = (shell, content, siteUrl) => applyDocumentMeta(shell, {
-  title: withSiteTitleSuffix(content.metaTitle),
+  // 검색어 "{티커} 배당일" — 화면(TickerDetailPage.utils)과 같은 함수.
+  title: withSiteTitleSuffix(withPayDateTitle(content.metaTitle, content.ticker, buildTickerPaySchedule(content.ticker) !== null)),
   description: content.metaDescription,
   canonical: tickerCanonical(siteUrl, content)
 });
@@ -37437,6 +37504,15 @@ var renderIncomeAnswer = (ticker) => {
     (row) => `<tr><th scope="row">${escapeHtmlText(formatPrincipalLabel(row.principal))}</th><td>${escapeHtmlText(formatIncomeWon(row.monthlyAfterTax))}</td><td>${escapeHtmlText(formatIncomeWon(row.monthlyAfterReinvest))}</td></tr>`
   ).join("");
   return `<section id="income-answer"><h2>${escapeHtmlText(copy2.heading(answer.ticker, headline.principal))}</h2><p>${escapeHtmlText(copy2.nowLabel)}: <strong>\uC6D4 ${escapeHtmlText(formatIncomeWon(headline.monthlyAfterTax))}</strong> (\uC5F0 ${escapeHtmlText(formatIncomeWon(headline.annualAfterTax))})</p><p>${escapeHtmlText(copy2.reinvestLabel(years))}: <strong>\uC6D4 ${escapeHtmlText(formatIncomeWon(headline.monthlyAfterReinvest))}</strong> (${escapeHtmlText(copy2.reinvestCaption(years))})</p><table><caption>${escapeHtmlText(copy2.tableCaption)}</caption><thead><tr><th>${escapeHtmlText(principalHead)}</th><th>${escapeHtmlText(nowHead)}</th><th>${escapeHtmlText(reinvestHead)}</th></tr></thead><tbody>${body}</tbody></table><p>${escapeHtmlText(copy2.assumption(answer))}</p><p><a href="${DIVIDEND_TARGET_PATH}">${escapeHtmlText(copy2.toTarget)}</a></p></section>`;
+};
+var renderPaySchedule = (ticker) => {
+  const schedule = buildTickerPaySchedule(ticker);
+  if (!schedule) return "";
+  const copy2 = TICKER_PAY_COPY;
+  const table = schedule.source === "pay" ? `<table><thead><tr>${copy2.tableHead.map((head) => `<th>${escapeHtmlText(head)}</th>`).join("")}</tr></thead><tbody>${schedule.rows.map(
+    (row) => `<tr><th scope="row">${row.month}\uC6D4</th><td>${escapeHtmlText(row.payLabel)}</td><td>${escapeHtmlText(row.exLabel ?? "\u2014")}</td></tr>`
+  ).join("")}</tbody></table>` : "";
+  return `<section id="pay-schedule"><h2>${escapeHtmlText(copy2.heading(schedule.ticker))}</h2>` + (schedule.next ? `<p>${escapeHtmlText(copy2.nextLabel)}: <strong>${escapeHtmlText(`${schedule.next.year}\uB144 ${schedule.next.label}`)}</strong></p>` : "") + `<p>${escapeHtmlText(copy2.cadenceLabel)}: ${escapeHtmlText(schedule.cadenceLabel)}</p>` + table + `<p>${escapeHtmlText(copy2.sourceNote(schedule))}</p><p>${escapeHtmlText(copy2.exNote)}</p></section>`;
 };
 var renderFaqs2 = (faqs, facts) => {
   if (faqs.length === 0) return "";
@@ -37513,7 +37589,7 @@ var renderCategoryBacklinks = (content) => {
 var injectTickerBody = (shell, content, siteUrl) => {
   const facts = resolveTickerEngineFacts(content.ticker);
   const canonical = tickerCanonical(siteUrl, content);
-  const article = "<article>" + renderHero2(content, facts) + renderIncomeAnswer(content.ticker) + content.sections.map((section) => renderSection3(section, facts)).join("") + renderTopHoldings(content.reference.topHoldings) + renderFaqs2(content.faqs, facts) + renderRelatedTickers(content.relatedTickers) + renderCategoryBacklinks(content) + `<p class="disclaimer">${escapeHtmlText(content.disclaimer)}</p></article>` + buildTickerJsonLd(content, facts, canonical);
+  const article = "<article>" + renderHero2(content, facts) + renderIncomeAnswer(content.ticker) + renderPaySchedule(content.ticker) + content.sections.map((section) => renderSection3(section, facts)).join("") + renderTopHoldings(content.reference.topHoldings) + renderFaqs2(content.faqs, facts) + renderRelatedTickers(content.relatedTickers) + renderCategoryBacklinks(content) + `<p class="disclaimer">${escapeHtmlText(content.disclaimer)}</p></article>` + buildTickerJsonLd(content, facts, canonical);
   return injectIntoRoot(shell, article);
 };
 var buildHubDescription = () => `${TICKER_CONTENT_LIST.length}\uAC1C \uBC30\uB2F9 ETF\xB7\uC885\uBAA9\uC758 \uBC30\uB2F9\uB960\xB7\uBC30\uB2F9\uC131\uC7A5\uB960\xB7\uC6B4\uC6A9\uBCF4\uC218\xB7\uAD6C\uC131 \uAE30\uC900\uC744 \uC815\uB9AC\uD588\uC2B5\uB2C8\uB2E4. \uAD00\uC2EC \uC788\uB294 \uD2F0\uCEE4\uB97C \uC120\uD0DD\uD574 \uC790\uC138\uD788 \uD655\uC778\uD574 \uBCF4\uC138\uC694.`;

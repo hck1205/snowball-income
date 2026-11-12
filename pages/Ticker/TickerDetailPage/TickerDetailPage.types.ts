@@ -1,3 +1,4 @@
+import type { TickerPaySchedule } from '@/shared/lib/tickerPayDates';
 import type { TickerIncomeAnswer } from '@/shared/lib/tickerIncome';
 import type { TickerAccentTheme, TickerCategoryId, TickerContent } from '@/shared/constants/tickers';
 
@@ -105,6 +106,8 @@ export type TickerDetailViewModel = {
    * ⚠ 목차(`toc`)에는 넣지 않는다 — 장(chapter)이 아니라 본문 머리의 답 상자다.
    */
   incomeAnswer: TickerIncomeAnswer | null;
+  /** 배당일·배당락일(2026-11-12). 지급 월 근거가 없는 종목은 null. */
+  paySchedule: TickerPaySchedule | null;
   slug: string;
   koreanName: string;
   englishName: string;
