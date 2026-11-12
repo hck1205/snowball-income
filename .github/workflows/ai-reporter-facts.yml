@@ -4,8 +4,8 @@
 # 루틴(LLM)은 이 파일이 남긴 `next-facts.json` 하나만 읽고 제목·짧은 본문만 쓴다 — 저장소를 뒤지거나
 # npm install 을 하지 않아 실행이 짧다.
 #
-# 흐름: 월·목·토 07:00 KST(이 파일) → 08:00 루틴이 초안을 `ai-reporter` 브랜치 inbox 에 push →
-#       09:30 `ai-reporter-publish.yml` 이 검사·발행.
+# 흐름: 월·수·목·토 04:17 KST(이 파일) → 10:00 루틴이 초안을 `ai-reporter` 브랜치 inbox 에 push →
+#       `ai-reporter-publish.yml`(2시간마다 대기함 확인)이 검사·발행.
 # 월·목은 게시판 글(주제 순환), **수요일은 파이어족들 영상 글**(fire-video, 2026-11-11),
 # **토요일은 배당 계산 갤러리 글**(gallery-portfolio, 2026-11-10).
 #
@@ -15,9 +15,11 @@ name: AI reporter - prepare facts
 
 on:
   schedule:
-    - cron: '0 22 * * 0,3' # 일·수 22:00 UTC = 월·목 07:00 KST — 게시판
-    - cron: '0 22 * * 2' # 화 22:00 UTC = 수 07:00 KST — 파이어족들 영상
-    - cron: '0 22 * * 5' # 금 22:00 UTC = 토 07:00 KST — 갤러리
+    # 🔴 04:17 KST(2026-11-12) — 루틴(10:00 KST)보다 6시간 앞선다. 07:00 예약이 11:45 에 돈 날이 있었다
+    # (GitHub 예약 지연). 정각을 피한 분(:17)은 정각 몰림을 덜 탄다.
+    - cron: '17 19 * * 0,3' # 일·수 19:17 UTC = 월·목 04:17 KST — 게시판
+    - cron: '17 19 * * 2' # 화 19:17 UTC = 수 04:17 KST — 파이어족들 영상
+    - cron: '17 19 * * 5' # 금 19:17 UTC = 토 04:17 KST — 갤러리
   workflow_dispatch:
     inputs:
       topic:
