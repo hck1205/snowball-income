@@ -8,7 +8,7 @@ name: GA traffic report
 # 🔴 저장소가 **공개**라 이 실행 로그도 공개다. 숫자는 텔레그램으로만 보내고 로그에는 "보냈다/안 보냈다"만
 #   남긴다. 리포트를 이슈로 열지 않는 이유도 같다(이슈도 공개).
 #
-# 비밀값 4개(Settings → Secrets and variables → Actions): GA_SERVICE_ACCOUNT_KEY · GA_PROPERTY_ID ·
+# 비밀값(Settings → Secrets and variables → Actions): HUNGRY_HIPPO_GA_SERVICE_ACCOUNT_KEY(→ GA_SERVICE_ACCOUNT_KEY) · GA_PROPERTY_ID(없으면 524806850 — 속성 ID 는 비밀이 아니다) ·
 # HUNGRY_HIPPO_BOT_TOKEN(→ 스크립트의 TELEGRAM_BOT_TOKEN) · HUNGRY_HIPPO_TELEGRAM_CHAT_ID(→ TELEGRAM_CHAT_ID). 없으면 스크립트가 건너뛰고 성공으로 끝난다.
 # 등록 후 Actions 탭에서 이 워크플로를 수동 실행(mode=test)하면 연결 확인 메시지가 온다.
 #
@@ -55,8 +55,8 @@ jobs:
       - name: Send report
         env:
           REPORT_MODE: ${{ inputs.mode || 'auto' }}
-          GA_SERVICE_ACCOUNT_KEY: ${{ secrets.GA_SERVICE_ACCOUNT_KEY }}
-          GA_PROPERTY_ID: ${{ secrets.GA_PROPERTY_ID }}
+          GA_SERVICE_ACCOUNT_KEY: ${{ secrets.HUNGRY_HIPPO_GA_SERVICE_ACCOUNT_KEY }}
+          GA_PROPERTY_ID: ${{ secrets.GA_PROPERTY_ID || secrets.HUNGRY_HIPPO_GA_PROPERTY_ID || '524806850' }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.HUNGRY_HIPPO_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.HUNGRY_HIPPO_TELEGRAM_CHAT_ID }}
         run: npm run ga:report
