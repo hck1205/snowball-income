@@ -1,94 +1,66 @@
-import { useMemo, useState, type ChangeEvent } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { Sunset } from 'lucide-react';
-import {
-  CalculatorFormGrid,
-  CalculatorNote,
-  CalculatorPanel,
-  CalculatorPanelTitle,
-  CalculatorStack,
-  InputField,
-  PageHero
-} from '@/components/common';
+import { CalculatorFormGrid, CalculatorPanel, CalculatorStack, InputField, PageHero } from '@/components/common';
 import { TickerPageShell } from '@/pages/Ticker/components';
 import { useDocumentMeta } from '@/pages/Ticker/hooks';
-import { DIVIDEND_TARGET_PATH, DIVIDEND_TAX_PATH, RETIREMENT_INCOME_PATH } from '@/shared/constants/routes';
-import { DEFAULT_DIVIDEND_TAX_FORM, formToSearch } from '@/shared/lib/dividendTax';
-import { calculateRetirementIncome, type RetirementStage } from '@/shared/lib/retirementIncome';
-import { formatKoreanWon, formatRatePercent, manInputToWon, parsePositiveInput } from '@/shared/utils';
+import { RETIREMENT_INCOME_PATH } from '@/shared/constants/routes';
+import { calculateRetirementIncome } from '@/shared/lib/retirementIncome';
+import { manInputToWon } from '@/shared/utils';
+import { IncomeStagesPanel, RetirementHealthPanel } from '../components';
 import { RETIREMENT_INCOME_COPY } from '../copy';
+import { Footnotes, GroupTitle } from './RetirementIncomePage.styled';
 import {
-  Bar,
-  BarSegment,
-  Breakdown,
-  Footnotes,
-  GapText,
-  GroupTitle,
-  Legend,
-  LegendItem,
-  LinkRow,
-  SecondaryLink,
-  SOURCE_COLOR,
-  StageAge,
-  StageBody,
-  StageList,
-  StageRow,
-  StageSide,
-  StageTotal,
-  StatusBadge,
-  Strong,
-  Swatch,
-  TargetLine
-} from './RetirementIncomePage.styled';
+  DEFAULT_RETIREMENT_FORM,
+  taxCalculatorHref,
+  toRetirementInput,
+  type RetirementFieldGroup,
+  type RetirementForm
+} from './RetirementIncomePage.utils';
 
 const copy = RETIREMENT_INCOME_COPY;
-const SOURCES = ['nps', 'account', 'dividend'] as const;
+const { inputs, units, sections } = copy;
+
+/** 입력 네 묶음 — 묶음 제목이 두 열을 가로지르고, 칸은 공용 InputField 다. 순서가 곧 화면 순서다. */
+const FIELD_GROUPS: readonly RetirementFieldGroup[] = [
+  {
+    title: sections.plan,
+    fields: [
+      { key: 'retireAge', label: inputs.retireAge, unit: units.age, min: 0 },
+      { key: 'target', label: inputs.targetMonthly, unit: units.man, min: 0 }
+    ]
+  },
+  {
+    title: sections.nps,
+    fields: [
+      { key: 'npsMonthly', label: inputs.npsMonthly, unit: units.man, hint: inputs.npsMonthlyHint, min: 0 },
+      { key: 'npsAge', label: inputs.npsStartAge, unit: units.age, hint: inputs.npsStartAgeHint, min: 60 }
+    ]
+  },
+  {
+    title: sections.account,
+    fields: [
+      { key: 'balance', label: inputs.accountBalance, unit: units.man, min: 0 },
+      { key: 'accountAge', label: inputs.accountStartAge, unit: units.age, hint: inputs.accountStartAgeHint, min: 55 },
+      { key: 'accountYears', label: inputs.accountYears, unit: units.years, min: 1 },
+      { key: 'accountReturn', label: inputs.accountReturn, unit: units.percent, min: 0 }
+    ]
+  },
+  {
+    title: sections.dividend,
+    fields: [{ key: 'dividend', label: inputs.dividendMonthly, unit: units.man, hint: inputs.dividendMonthlyHint, min: 0 }]
+  }
+];
 
 /**
  * 은퇴 후 월 소득 계산기(`/retirement/income`, 2026-11-13) — 40~50대의 질문 "은퇴하면 매달 얼마가 들어오나".
  * 계산은 전부 `calculateRetirementIncome`(순수 함수). 세율·건보 기준은 세금 계산기 정본과 같은 상수다.
+ * 이 파일은 조건(하나의 form 상태)과 조립만 갖는다 — 구간 차트·건강보험은 `../components`.
  */
 export default function RetirementIncomePage() {
   useDocumentMeta({ title: copy.meta.title, description: copy.meta.description, pathname: RETIREMENT_INCOME_PATH });
 
-  const [retireAge, setRetireAge] = useState('60');
-  const [target, setTarget] = useState('300');
-  const [npsMonthly, setNpsMonthly] = useState('100');
-  const [npsAge, setNpsAge] = useState('65');
-  const [balance, setBalance] = useState('10000');
-  const [accountAge, setAccountAge] = useState('60');
-  const [accountYears, setAccountYears] = useState('20');
-  const [accountReturn, setAccountReturn] = useState('3');
-  const [dividend, setDividend] = useState('100');
-
-  const result = useMemo(
-    () =>
-      calculateRetirementIncome({
-        retireAge: parsePositiveInput(retireAge),
-        targetMonthly: manInputToWon(target),
-        npsMonthly: manInputToWon(npsMonthly),
-        npsStartAge: parsePositiveInput(npsAge),
-        accountBalance: manInputToWon(balance),
-        accountStartAge: parsePositiveInput(accountAge),
-        accountYears: parsePositiveInput(accountYears),
-        accountReturn: parsePositiveInput(accountReturn) / 100,
-        dividendMonthly: manInputToWon(dividend)
-      }),
-    [retireAge, target, npsMonthly, npsAge, balance, accountAge, accountYears, accountReturn, dividend]
-  );
-
-  const on = (setter: (value: string) => void) => (event: ChangeEvent<HTMLInputElement>) => setter(event.target.value);
-  const targetWon = manInputToWon(target);
-  const scale = Math.max(targetWon, ...result.stages.map((stage) => stage.total), 1);
-  const hasIncome = result.stages.some((stage) => stage.total > 0);
-
-  // 세금 계산기로 같은 조건을 넘긴다 — 배당 월액 · 피부양자 · 국민연금(연)을 "피부양자 판정에 더할 다른 소득"으로.
-  // 주소 형식은 세금 계산기의 정본(`formToSearch`)이 만든다.
-  const taxHref = `${DIVIDEND_TAX_PATH}${formToSearch({
-    ...DEFAULT_DIVIDEND_TAX_FORM,
-    monthlyUs: String(parsePositiveInput(dividend)),
-    health: 'dependent',
-    otherIncomeForDependent: String(parsePositiveInput(npsMonthly) * 12)
-  })}`;
+  const [form, setForm] = useState<RetirementForm>(DEFAULT_RETIREMENT_FORM);
+  const result = useMemo(() => calculateRetirementIncome(toRetirementInput(form)), [form]);
 
   return (
     <TickerPageShell>
@@ -97,133 +69,32 @@ export default function RetirementIncomePage() {
 
         <CalculatorPanel as="form" onSubmit={(event) => event.preventDefault()} aria-label="은퇴 소득 조건">
           <CalculatorFormGrid>
-            <GroupTitle>{copy.sections.plan}</GroupTitle>
-            <InputField
-              label={copy.inputs.retireAge}
-              type="number"
-              min={0}
-              value={retireAge}
-              suffix={copy.units.age}
-              onChange={on(setRetireAge)}
-            />
-            <InputField
-              label={copy.inputs.targetMonthly}
-              type="number"
-              min={0}
-              value={target}
-              suffix={copy.units.man}
-              onChange={on(setTarget)}
-            />
-
-            <GroupTitle>{copy.sections.nps}</GroupTitle>
-            <InputField
-              label={copy.inputs.npsMonthly}
-              type="number"
-              min={0}
-              value={npsMonthly}
-              suffix={copy.units.man}
-              hint={copy.inputs.npsMonthlyHint}
-              onChange={on(setNpsMonthly)}
-            />
-            <InputField
-              label={copy.inputs.npsStartAge}
-              type="number"
-              min={60}
-              value={npsAge}
-              suffix={copy.units.age}
-              hint={copy.inputs.npsStartAgeHint}
-              onChange={on(setNpsAge)}
-            />
-
-            <GroupTitle>{copy.sections.account}</GroupTitle>
-            <InputField
-              label={copy.inputs.accountBalance}
-              type="number"
-              min={0}
-              value={balance}
-              suffix={copy.units.man}
-              onChange={on(setBalance)}
-            />
-            <InputField
-              label={copy.inputs.accountStartAge}
-              type="number"
-              min={55}
-              value={accountAge}
-              suffix={copy.units.age}
-              hint={copy.inputs.accountStartAgeHint}
-              onChange={on(setAccountAge)}
-            />
-            <InputField
-              label={copy.inputs.accountYears}
-              type="number"
-              min={1}
-              value={accountYears}
-              suffix={copy.units.years}
-              onChange={on(setAccountYears)}
-            />
-            <InputField
-              label={copy.inputs.accountReturn}
-              type="number"
-              min={0}
-              value={accountReturn}
-              suffix={copy.units.percent}
-              onChange={on(setAccountReturn)}
-            />
-
-            <GroupTitle>{copy.sections.dividend}</GroupTitle>
-            <InputField
-              label={copy.inputs.dividendMonthly}
-              type="number"
-              min={0}
-              value={dividend}
-              suffix={copy.units.man}
-              hint={copy.inputs.dividendMonthlyHint}
-              onChange={on(setDividend)}
-            />
+            {FIELD_GROUPS.map((group) => (
+              <Fragment key={group.title}>
+                <GroupTitle>{group.title}</GroupTitle>
+                {group.fields.map((field) => (
+                  <InputField
+                    key={field.key}
+                    label={field.label}
+                    type="number"
+                    min={field.min}
+                    value={form[field.key]}
+                    suffix={field.unit}
+                    hint={field.hint}
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      setForm((prev) => ({ ...prev, [field.key]: value }));
+                    }}
+                  />
+                ))}
+              </Fragment>
+            ))}
           </CalculatorFormGrid>
         </CalculatorPanel>
 
-        <CalculatorPanel aria-labelledby="stages-title" aria-live="polite">
-          <CalculatorPanelTitle id="stages-title">{copy.results.heading}</CalculatorPanelTitle>
-          <Legend>
-            {SOURCES.map((source) => (
-              <LegendItem key={source}>
-                <Swatch tone={SOURCE_COLOR[source]} aria-hidden />
-                {copy.results.legend[source]}
-              </LegendItem>
-            ))}
-            {targetWon > 0 ? <LegendItem>{copy.results.targetLegend(formatKoreanWon(targetWon))}</LegendItem> : null}
-          </Legend>
-          {hasIncome ? (
-            <StageList>
-              {result.stages.map((stage) => (
-                <StageItem key={stage.fromAge} stage={stage} scale={scale} target={targetWon} />
-              ))}
-            </StageList>
-          ) : (
-            <CalculatorNote>{copy.results.empty}</CalculatorNote>
-          )}
-          {result.dividendComprehensive ? <Strong>{copy.results.comprehensiveWarn}</Strong> : null}
-        </CalculatorPanel>
+        <IncomeStagesPanel result={result} target={manInputToWon(form.target)} />
 
-        {result.health ? (
-          <CalculatorPanel aria-labelledby="health-title">
-            <CalculatorPanelTitle id="health-title">{copy.results.healthHeading}</CalculatorPanelTitle>
-            <CalculatorNote>{copy.results.healthFrom(result.health.fromAge)}</CalculatorNote>
-            <StatusBadge tone={result.health.dependentLost ? 'warn' : 'ok'}>
-              {result.health.dependentLost ? copy.results.dependentLost : copy.results.dependentKept}
-            </StatusBadge>
-            <CalculatorNote>{copy.results.dependentDetail(formatKoreanWon(result.health.dependentIncome))}</CalculatorNote>
-            {result.health.regionalMonthly > 0 ? (
-              <Strong>{copy.results.regional(`${result.health.regionalMonthly.toLocaleString('ko-KR')}원`)}</Strong>
-            ) : null}
-            <CalculatorNote>{copy.results.healthNote}</CalculatorNote>
-            <LinkRow>
-              <SecondaryLink to={taxHref}>{copy.results.taxLink}</SecondaryLink>
-              <SecondaryLink to={DIVIDEND_TARGET_PATH}>{copy.results.targetLink}</SecondaryLink>
-            </LinkRow>
-          </CalculatorPanel>
-        ) : null}
+        {result.health ? <RetirementHealthPanel health={result.health} taxHref={taxCalculatorHref(form)} /> : null}
 
         <Footnotes>
           {copy.assumptions.map((line) => (
@@ -233,50 +104,5 @@ export default function RetirementIncomePage() {
         </Footnotes>
       </CalculatorStack>
     </TickerPageShell>
-  );
-}
-
-const PARTS = [
-  { key: 'nps', label: '국민연금' },
-  { key: 'account', label: '연금계좌' },
-  { key: 'dividend', label: '배당' }
-] as const;
-
-function StageItem({
-  stage,
-  scale,
-  target
-}: {
-  readonly stage: RetirementStage;
-  readonly scale: number;
-  readonly target: number;
-}) {
-  const shown = PARTS.filter((part) => stage[part.key] > 0);
-  const gapLabel =
-    stage.gap < 0
-      ? copy.results.short(formatKoreanWon(-stage.gap))
-      : stage.gap > 0
-        ? copy.results.surplus(formatKoreanWon(stage.gap))
-        : copy.results.exact;
-  return (
-    <StageRow>
-      <StageAge>{copy.results.stageRange(stage.fromAge, stage.toAge)}</StageAge>
-      <StageBody>
-        <Bar aria-hidden>
-          {shown.map((part) => (
-            <BarSegment key={part.key} tone={SOURCE_COLOR[part.key]} share={stage[part.key] / scale} />
-          ))}
-          {target > 0 ? <TargetLine at={Math.min(1, target / scale)} /> : null}
-        </Bar>
-        <Breakdown>
-          {shown.length > 0 ? shown.map((part) => `${part.label} ${formatKoreanWon(stage[part.key])}`).join(' + ') : '수입 없음'}
-          {stage.accountTaxRate !== null ? ` · ${copy.results.accountTax(formatRatePercent(stage.accountTaxRate))}` : ''}
-        </Breakdown>
-      </StageBody>
-      <StageSide>
-        <StageTotal>월 {formatKoreanWon(stage.total)}</StageTotal>
-        {target > 0 ? <GapText tone={stage.gap < 0 ? 'short' : 'ok'}>{gapLabel}</GapText> : null}
-      </StageSide>
-    </StageRow>
   );
 }
