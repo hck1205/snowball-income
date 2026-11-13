@@ -114,6 +114,8 @@ const ROUTES = [
   { path: '/dividend/how-much', priority: '0.7', changefreq: 'weekly' },
   /* 미국 배당 세금·건보료 계산기(2026-11-12). 세법·보험료율은 연 단위로 바뀌어 monthly. */
   { path: '/dividend/tax', priority: '0.7', changefreq: 'monthly' },
+  /* 은퇴 후 월 소득 계산기(2026-11-13). 세율·보험료율 연 단위 → monthly. */
+  { path: '/retirement/income', priority: '0.7', changefreq: 'monthly' },
   /*
    * 금액별 고정 주소(2026-11-09). 🔴 정본은 `DIVIDEND_TARGET_AMOUNT_PAGES_MAN`(shared/constants/routes) —
    * 이 설정 파일은 `@/` 별칭을 못 읽어 숫자를 옮겨 적었다. 어긋나면 test/seo/dividendTargetAmountPages 가 잡는다.

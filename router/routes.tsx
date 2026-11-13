@@ -27,6 +27,7 @@ import { ABOUT_PATH,
   DIVIDEND_LIST_IDS,
   DIVIDEND_TARGET_PATH,
   DIVIDEND_TAX_PATH,
+  RETIREMENT_INCOME_PATH,
   MARKET_FOMC_GUIDE_PATH,
   MARKET_WEEK_GUIDE_PATH,
   SIMULATOR_PATH,
@@ -218,6 +219,8 @@ const DividendTargetPage = lazy(() => import('@/pages/DividendTarget/DividendTar
 
 /** 미국 배당 세금·건강보험료 계산기(`/dividend/tax`, 2026-11-12) — 같은 `lazy` 격리. */
 const DividendTaxPage = lazy(() => import('@/pages/DividendTax/DividendTaxPage'));
+/** 은퇴 후 월 소득 계산기(`/retirement/income`, 2026-11-13) — 같은 `lazy` 격리. */
+const RetirementIncomePage = lazy(() => import('@/pages/RetirementIncome/RetirementIncomePage'));
 
 /**
  * 404 — 어떤 라우트에도 맞지 않는 주소(`*`).
@@ -663,6 +666,14 @@ export const routes: RouteObject[] = [
         element: (
           <Suspense fallback={null}>
             <DividendTaxPage />
+          </Suspense>
+        )
+      },
+      {
+        path: RETIREMENT_INCOME_PATH,
+        element: (
+          <Suspense fallback={null}>
+            <RetirementIncomePage />
           </Suspense>
         )
       },

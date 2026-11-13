@@ -50,6 +50,8 @@ import { DEFAULT_MONTHLY_TARGET_MAN, formatManWon } from '../../pages/DividendTa
 import { renderDividendTargetShellBody } from './dividendTargetShell';
 import { renderDividendTaxShellBody } from './dividendTaxShell';
 import { DIVIDEND_TAX_COPY } from '../../pages/DividendTax/copy';
+import { renderRetirementIncomeShellBody } from './retirementIncomeShell';
+import { RETIREMENT_INCOME_COPY } from '../../pages/RetirementIncome/copy';
 import { renderFomcGuideShellBody, renderHolidayGuideShellBody, renderWeekGuideShellBody } from './marketGuideShell';
 import { MARKET_GUIDE_COPY } from '../../pages/MarketGuide/copy';
 import { LANDING_COPY } from '../../pages/Landing/copy';
@@ -137,6 +139,13 @@ export const ROUTE_SHELLS: readonly RouteShell[] = [
     title: DIVIDEND_TAX_COPY.meta.title,
     description: DIVIDEND_TAX_COPY.meta.description,
     bodyHtml: renderDividendTaxShellBody()
+  },
+  /* 은퇴 후 월 소득 계산기(2026-11-13) — 기본 조건의 나이별 월 소득 표를 빌드 때 굽는다. */
+  {
+    path: '/retirement/income',
+    title: RETIREMENT_INCOME_COPY.meta.title,
+    description: RETIREMENT_INCOME_COPY.meta.description,
+    bodyHtml: renderRetirementIncomeShellBody()
   },
   { path: '/ticker/compare', title: TICKER_COMPARE_COPY.meta.title, description: TICKER_COMPARE_COPY.meta.description },
   { path: '/ticker/overlap', title: ETF_MIX_COPY.meta.title, description: ETF_MIX_COPY.meta.description },

@@ -38,6 +38,8 @@ export const DIVIDEND_TAX_RULES = {
   nhiRate: 0.0719,
   ltcRatioOfNhi: 0.1314,
   nhiLocalFinancialExclude: 10_000_000,
+  /** 지역 보험료에 반영하는 근로·공적연금 소득 비율(시행규칙 §44). */
+  nhiWagePensionRatio: 0.5,
   nhiDependentIncomeLimit: 20_000_000,
   nhiEmployeeExtraIncomeDeduct: 20_000_000
 } as const;
