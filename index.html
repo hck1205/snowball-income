@@ -376,7 +376,12 @@
       html[data-palette='ink'][data-theme='dark'] {
         background: #0d0d0d;
       }
-      .js .app-shell-fallback {
+      /* 크롤러용 본문과 사이트 공통 내비(crawler-site-nav)는 JS 환경에서 첫 페인트부터 감춘다.
+         🔴 내비는 본문(.app-shell-fallback) **바깥**, #root 바로 아래에 붙는다(shared/lib/og/crawlerSiteNav.ts).
+         2026-11-05 에 내비를 깔면서 이 규칙에 넣지 않아, 앱이 뜨기 전까지 모든 페이지에 스타일 없는 메뉴 목록이
+         맨 글자로 번쩍였다(2026-11-13 발견). #root 에 새 크롤러 블록을 더하면 여기에도 더한다. */
+      .js .app-shell-fallback,
+      .js .crawler-site-nav {
         display: none;
       }
     </style>

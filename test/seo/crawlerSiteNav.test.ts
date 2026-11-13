@@ -107,3 +107,26 @@ describe('index.html 랜딩 본문', () => {
     expect(indexHtml.indexOf('<!--SNOWBALL_SITE_NAV-->', marker + 1)).toBe(-1);
   });
 });
+
+describe('JS 환경에서는 크롤러 블록이 첫 페인트부터 숨는다 (2026-11-13)', () => {
+  /*
+   * 크롤러 블록은 사람에게 보이면 안 된다 — 앱이 뜨기 전 잠깐이라도 스타일 없는 글자 목록이 번쩍인다.
+   * 2026-11-05 에 내비를 깔면서 숨김 규칙에 넣지 않아 모든 페이지에서 실제로 번쩍였다(사용자 신고).
+   * #root 바로 아래에 붙는 크롤러 블록의 class 는 전부 `index.html` 의 `.js .<class>` 숨김 규칙에 있어야 한다.
+   */
+  const html = readFileSync(resolve(process.cwd(), 'index.html'), 'utf8');
+  const hideRule = /((?:\.js\s+\.[\w-]+\s*,\s*)*\.js\s+\.[\w-]+)\s*\{\s*display:\s*none;?\s*\}/g;
+  const hidden = new Set([...html.matchAll(hideRule)].flatMap((m) => [...m[1]!.matchAll(/\.js\s+\.([\w-]+)/g)].map((c) => c[1]!)));
+
+  it('본문(app-shell-fallback)과 사이트 내비(crawler-site-nav)가 숨김 규칙에 있다', () => {
+    const navClass = /class="([\w-]+)"/.exec(buildCrawlerSiteNavHtml())![1]!;
+    expect(hidden).toContain('app-shell-fallback');
+    expect(hidden).toContain(navClass);
+  });
+
+  it('숨김 표식(js 클래스)은 본문보다 먼저, 동기 스크립트로 붙는다', () => {
+    const marker = html.indexOf("document.documentElement.classList.add('js')");
+    expect(marker).toBeGreaterThan(-1);
+    expect(marker).toBeLessThan(html.indexOf('<body'));
+  });
+});
