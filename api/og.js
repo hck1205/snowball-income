@@ -4460,8 +4460,8 @@ var marketData_generated_default = {
         7,
         10
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 25,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "1": 31,
         "4": 30,
@@ -6034,11 +6034,18 @@ var marketData_generated_default = {
       observedDividendCagr: 12.08,
       payoutMonths: [
         3,
-        5,
-        8,
-        11
+        6,
+        9,
+        12
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 21,
+      estimatedPayDayByMonth: {
+        "3": 13,
+        "6": 6,
+        "9": 6,
+        "12": 6
+      }
     },
     SIRI: {
       initialPrice: 32.4,
