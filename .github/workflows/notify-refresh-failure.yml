@@ -53,6 +53,7 @@ on:
       - Main health check
       - AI reporter - prepare facts
       - AI reporter - publish
+      - GA traffic report
     types: [completed]
 
   # 실패를 기다리지 않고 알림 자체를 점검하기 위한 통로다. 진짜 파이프라인을 일부러 깨뜨리지 않고
