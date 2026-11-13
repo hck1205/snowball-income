@@ -8,6 +8,8 @@ import { color, font, media, radius, shadow, space, zIndex } from '@/shared/styl
  *     건강보험 자격도 같은 높이의 3칸 선택으로 — 같은 줄의 입력창과 윗선·아랫선이 맞는다.
  *   - 결과 카드는 **같은 해부**(작은 제목 → 큰 값 → 상태 배지 → 설명). 상태는 바탕색이 아니라 배지가 말한다.
  *   - 결과 3장은 데스크톱(≥ headerStack)에서만 3열, 그 아래는 세로로 쌓는다(태블릿에서 글이 꺾이지 않게).
+ *   - 2026-11-13: 설명 글은 md(15px), 작은 라벨은 sm(13px) — 이 지면의 독자는 40대 이상 은퇴 준비층이다
+ *     (사용자 판단). 사이트 기본 스케일(본문 14px)은 그대로 두고 이 지면만 한 단계 올린다.
  */
 export const Stack = styled.div`
   display: flex;
@@ -107,7 +109,7 @@ export const ResultCard = styled.section`
 `;
 
 export const Eyebrow = styled.span`
-  font-size: ${font.size.sm};
+  font-size: ${font.size.base};
   font-weight: ${font.weight.semibold};
   color: ${color.textSecondary};
 `;
@@ -127,7 +129,7 @@ export const StatusBadge = styled('span', { shouldForwardProp: (prop) => prop !=
   align-items: center;
   padding: 2px ${space[2]};
   border-radius: ${radius.pill};
-  font-size: ${font.size.xs};
+  font-size: ${font.size.sm};
   font-weight: ${font.weight.bold};
   /* 주의(warn)는 브랜드(초록)와 갈리는 액센트 계열 — 둘이 비슷한 초록이면 "괜찮다/주의"가 안 읽힌다. */
   border: 1px solid ${({ tone }) => (tone === 'warn' ? color.accentBorder : tone === 'ok' ? color.brandBorder : color.border)};
@@ -137,7 +139,7 @@ export const StatusBadge = styled('span', { shouldForwardProp: (prop) => prop !=
 
 export const Note = styled.p`
   margin: 0;
-  font-size: ${font.size.sm};
+  font-size: ${font.size.md};
   line-height: ${font.leading.normal};
   color: ${color.textSecondary};
 `;
@@ -183,7 +185,7 @@ export const CompareItem = styled('div', { shouldForwardProp: (prop) => prop !==
 `;
 
 export const CompareLabel = styled.span`
-  font-size: ${font.size.xs};
+  font-size: ${font.size.sm};
   color: ${color.textSecondary};
 `;
 
@@ -233,7 +235,7 @@ export const ShareRow = styled.div`
 export const ShareHint = styled.p`
   flex: 1 1 240px;
   margin: 0;
-  font-size: ${font.size.sm};
+  font-size: ${font.size.base};
   color: ${color.textSecondary};
 `;
 

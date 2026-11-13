@@ -7,6 +7,7 @@ import { CHART_SERIES_VARS, color, font, media, radius, space } from '@/shared/s
  *   - 입력은 네 묶음(은퇴 계획 · 국민연금 · 연금계좌 · 배당). 묶음 제목이 두 열을 가로지른다.
  *   - 결과는 **나이 구간 한 줄 = 고정 열**(나이 · 막대 · 합계). 좁은 폭에서는 나이가 위로 올라간다.
  *   - 막대는 세 수입원을 쌓고, 목표 생활비 위치를 세로선으로 긋는다 — "얼마나 모자라나"가 길이로 보인다.
+ *   - 설명 글은 md(15px) — 독자가 40대 이상 은퇴 준비층이라 사이트 기본(13~14px)보다 한 단계 크게.
  */
 export const SOURCE_COLOR = {
   nps: CHART_SERIES_VARS[0],
@@ -74,7 +75,7 @@ export const Legend = styled.ul`
   margin: 0;
   padding: 0;
   list-style: none;
-  font-size: ${font.size.sm};
+  font-size: ${font.size.md};
   color: ${color.textSecondary};
 `;
 
@@ -167,7 +168,7 @@ export const TargetLine = styled.span<{ at: number }>`
 
 export const Breakdown = styled.p`
   margin: 0;
-  font-size: ${font.size.sm};
+  font-size: ${font.size.md};
   line-height: ${font.leading.normal};
   color: ${color.textSecondary};
   ${font.numeric};
@@ -190,7 +191,7 @@ export const StageTotal = styled.strong`
 `;
 
 export const GapText = styled.span<{ tone: 'short' | 'ok' }>`
-  font-size: ${font.size.sm};
+  font-size: ${font.size.base};
   font-weight: ${font.weight.semibold};
   color: ${({ tone }) => (tone === 'short' ? color.accentText : color.brandText)};
   white-space: nowrap;
@@ -211,7 +212,7 @@ export const StatusBadge = styled('span', { shouldForwardProp: (prop) => prop !=
 
 export const Note = styled.p`
   margin: 0;
-  font-size: ${font.size.sm};
+  font-size: ${font.size.md};
   line-height: ${font.leading.normal};
   color: ${color.textSecondary};
 `;
@@ -253,7 +254,7 @@ export const Footnotes = styled.ul`
   padding: ${space[4]} ${space[4]} ${space[4]} ${space[6]};
   border-radius: ${radius.md};
   background: ${color.surfaceSunken};
-  font-size: ${font.size.sm};
+  font-size: ${font.size.base};
   line-height: ${font.leading.normal};
   color: ${color.textSecondary};
 `;
