@@ -76,3 +76,26 @@ describe('일반계좌 vs ISA', () => {
     expect(calculateDividendTax({ ...base, usDividendAnnual: 10_000_000, isaSeomin: true }).isa.isaTax).toBe(594_000);
   });
 });
+
+describe('연금계좌 (2026-11-13)', () => {
+  it('🔴 연 1,500만원 이하: 나이별 연금소득세 — 70세 미만 5.5% · 70대 4.4% · 80세 이상 3.3%', () => {
+    const at = (pensionAge?: 'under70' | 'from70' | 'from80') => calculateDividendTax({ ...base, usDividendAnnual: 10_000_000, pensionAge }).pension;
+    expect(at().tax).toBe(550_000); // 기본값 = 70세 미만
+    expect(at('under70')).toEqual({ tax: 550_000, rate: 0.055, overSeparateLimit: false });
+    expect(at('from70').tax).toBe(440_000);
+    expect(at('from80').tax).toBe(330_000);
+  });
+
+  it('🔴 1,500만원 기준 — 딱 1,500만원은 나이별 세율, 넘으면 전액 16.5%(분리과세 선택, 보수)', () => {
+    expect(calculateDividendTax({ ...base, usDividendAnnual: 15_000_000 }).pension).toEqual({ tax: 825_000, rate: 0.055, overSeparateLimit: false });
+    expect(calculateDividendTax({ ...base, usDividendAnnual: 18_000_000, pensionAge: 'from80' }).pension).toEqual({
+      tax: 2_970_000,
+      rate: 0.165,
+      overSeparateLimit: true
+    });
+  });
+
+  it('연금 비교는 확인 못 한 규칙(해외 ETF 외국세 처리)을 깔고 있어 늘 "추정"이다', () => {
+    expect(calculateDividendTax(base).estimated).toContain('pension');
+  });
+});

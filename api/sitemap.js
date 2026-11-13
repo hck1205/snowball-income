@@ -18,6 +18,7 @@ var CRAWLER_SITE_NAV = [
       { to: "/simulator", label: "\uC2DC\uBBAC\uB808\uC774\uD130" },
       { to: "/dividend/how-much", label: "\uC6D4 \uBC30\uB2F9 \uD544\uC694 \uAE08\uC561" },
       { to: "/dividend/tax", label: "\uBC30\uB2F9 \uC138\uAE08\xB7\uAC74\uBCF4\uB8CC \uACC4\uC0B0" },
+      { to: "/retirement/income", label: "\uC740\uD1F4 \uD6C4 \uC6D4 \uC18C\uB4DD" },
       { to: "/dividend/portfolio", label: "\uB098\uC758 \uBC30\uB2F9 \uD3EC\uD2B8\uD3F4\uB9AC\uC624" },
       { to: "/ticker/overlap", label: "ETF \uC870\uD569 \uC9DC\uAE30" }
     ]

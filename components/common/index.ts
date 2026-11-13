@@ -119,6 +119,7 @@ export { ResponsiveEChart } from './ResponsiveEChart';
 export type { ResponsiveEChartProps } from './ResponsiveEChart';
 
 export { ResultGrid, ResultGridCell } from './ResultGrid';
+export { CalculatorFormGrid, CalculatorNote, CalculatorPanel, CalculatorPanelTitle, CalculatorStack } from './CalculatorLayout';
 
 /**
  * 🔴 2026-08-04 승격 — 원래 `pages/Community/CommunityDetailPage/components/` 에 있었다.

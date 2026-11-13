@@ -16,6 +16,8 @@ export const COMMUNITY_COPY = {
     dividendTarget: '월 배당 필요 금액',
     /** 미국 배당 세금·건강보험료 계산기(/dividend/tax, 2026-11-12). */
     dividendTax: '배당 세금·건보료 계산',
+    /** 은퇴 후 월 소득 계산기(/retirement/income, 2026-11-13). */
+    retirementIncome: '은퇴 후 월 소득',
     /*
      * 투자 성향 테스트(2026-08-22). 이름에 "테스트"를 남긴 것은 의도다 — 사람이 검색창에 치는 말이고,
      * 12문항을 푼다는 것을 라벨이 미리 알려 줘야 눌러 보고 놀라지 않는다.

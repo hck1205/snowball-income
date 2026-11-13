@@ -19,6 +19,7 @@ import {
   MessageSquare,
   MessagesSquare,
   Percent,
+  Sunset,
   PiggyBank,
   ReceiptText,
   Scale,
@@ -34,6 +35,7 @@ import {
   DIVIDEND_LIST_HUB_PATH,
   DIVIDEND_TARGET_PATH,
   DIVIDEND_TAX_PATH,
+  RETIREMENT_INCOME_PATH,
   MARKET_FOMC_GUIDE_PATH,
   MARKET_HOLIDAY_GUIDE_YEARS,
   MARKET_WEEK_GUIDE_PATH,
@@ -146,6 +148,8 @@ export const PERSONAL_GROUP_ITEMS = [
   { to: DIVIDEND_TARGET_PATH, label: n.dividendTarget, Icon: Calculator, sheetsOnly: false },
   /* 배당 세금·건보료(2026-11-12) — "얼마가 필요한가" 다음 질문인 "그 배당에 세금·보험료는 얼마인가". */
   { to: DIVIDEND_TAX_PATH, label: n.dividendTax, Icon: Percent, sheetsOnly: false },
+  /* 은퇴 후 월 소득(2026-11-13) — 세금 다음 질문: "그래서 은퇴하면 매달 얼마가 들어오나"(국민연금·연금계좌·배당 합산). */
+  { to: RETIREMENT_INCOME_PATH, label: n.retirementIncome, Icon: Sunset, sheetsOnly: false },
   { to: '/dividend/portfolio', label: n.myPortfolio, Icon: Wallet, sheetsOnly: false },
   /*
    * ETF 조합 짜기(2026-09-30 사용자 지시) — 처음에는 "종목 탐색"에 "ETF 겹침 비교"로 있었다.

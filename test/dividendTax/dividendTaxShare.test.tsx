@@ -3,12 +3,7 @@ import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
-import {
-  DEFAULT_DIVIDEND_TAX_FORM,
-  formFromSearch,
-  formToSearch,
-  type DividendTaxForm
-} from '@/pages/DividendTax/DividendTaxPage/DividendTaxPage.utils';
+import { DEFAULT_DIVIDEND_TAX_FORM, formFromSearch, formToSearch, type DividendTaxForm } from '@/shared/lib/dividendTax';
 
 // 페이지 껍데기(헤더·로그인 Provider)는 이 테스트의 관심사가 아니다 — 본문만 그린다.
 vi.mock('@/pages/Ticker/components', () => ({ TickerPageShell: ({ children }: { children: ReactNode }) => <>{children}</> }));
@@ -29,7 +24,8 @@ describe('계산 조건 ↔ 주소', () => {
       otherTaxBase: '4000',
       health: 'dependent',
       otherIncomeForDependent: '800',
-      isaSeomin: true
+      isaSeomin: true,
+      pensionAge: 'from70'
     };
     expect(formFromSearch(formToSearch(form))).toEqual(form);
     expect(formFromSearch(formToSearch(DEFAULT_DIVIDEND_TAX_FORM))).toEqual(DEFAULT_DIVIDEND_TAX_FORM);
@@ -42,8 +38,10 @@ describe('계산 조건 ↔ 주소', () => {
       otherTaxBase: '4000',
       health: 'dependent',
       otherIncomeForDependent: '800',
-      isaSeomin: true
+      isaSeomin: true,
+      pensionAge: 'under70' // `pa` 가 없던 링크(2026-11-13 이전)는 기본값으로 연다
     });
+    expect(formFromSearch('?m=100&h=regional&pa=from80').pensionAge).toBe('from80');
     expect(formToSearch({ ...DEFAULT_DIVIDEND_TAX_FORM, monthlyUs: '200' })).toBe('?m=200&h=regional');
   });
 

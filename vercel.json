@@ -23,6 +23,7 @@
     { "source": "/dividend/portfolio", "destination": "/dividend/portfolio.html" },
     { "source": "/dividend/how-much", "destination": "/dividend/how-much.html" },
     { "source": "/dividend/tax", "destination": "/dividend/tax.html" },
+    { "source": "/retirement/income", "destination": "/retirement/income.html" },
     { "source": "/dividend/how-much/50", "destination": "/dividend/how-much/50.html" },
     { "source": "/dividend/how-much/100", "destination": "/dividend/how-much/100.html" },
     { "source": "/dividend/how-much/150", "destination": "/dividend/how-much/150.html" },

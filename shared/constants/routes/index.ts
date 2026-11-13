@@ -164,3 +164,9 @@ export const parseMarketHolidayGuideYear = (segment: string | undefined): number
  * 규칙 정본은 `shared/lib/dividendTax/RULES.md`.
  */
 export const DIVIDEND_TAX_PATH = '/dividend/tax';
+
+/**
+ * 은퇴 후 월 소득 계산기(2026-11-13) — 국민연금·연금저축(IRP)·배당을 나이 구간별로 합산.
+ * 40~50대의 질문 "은퇴하면 매달 얼마가 들어오나". 세율·건보 기준은 `shared/lib/dividendTax/RULES.md`.
+ */
+export const RETIREMENT_INCOME_PATH = '/retirement/income';

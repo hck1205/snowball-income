@@ -7,6 +7,7 @@ import { color, font, media, radius, space } from '@/shared/styles';
  *   - 읽는 폭 상한 880px, 가운데.
  *   - 한 줄 = 고정 열 그리드(날짜/시간 · 배지 · 내용 · 오른쪽 값). 모든 폭에서 같은 열에 같은 정보가 선다.
  *   - 지난 일정은 흐리게, 다음 일정은 테두리와 "다음" 배지로 — 색만이 아니라 글자가 함께 말한다.
+ *   - 2026-11-13: 보조 글(시간·설명·배지)을 한 단계씩 키웠다 — 네이버 검색으로 들어오는 독자가 40대 이상이다.
  */
 export const GuideStack = styled.div`
   display: flex;
@@ -16,6 +17,9 @@ export const GuideStack = styled.div`
   max-width: 880px;
   margin: 0 auto;
   padding-bottom: ${space[7]};
+  /* 한글은 단어 단위로 꺾는다("연금소/득세" 방지), 띄어쓰기 없는 긴 글은 그래도 넘치지 않게. */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 `;
 
 export const List = styled.ol`
@@ -86,7 +90,7 @@ export const RowTitle = styled.strong`
 `;
 
 export const RowSub = styled.span`
-  font-size: ${font.size.sm};
+  font-size: ${font.size.base};
   color: ${color.textSecondary};
 `;
 
@@ -97,8 +101,12 @@ export const RowSide = styled.div`
   text-align: right;
   ${font.numeric};
 
+  /* 좁은 폭: 배지 · 시각 · "한국시간"을 한 줄로 흘린다 — 세로로 쌓으면 일정 하나가 5줄이 됐다(2026-11-13, 320px). */
   ${media.down('mobileNarrow')} {
-    justify-items: start;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: ${space[1]} ${space[2]};
     text-align: left;
   }
 `;
@@ -115,7 +123,7 @@ export const Badge = styled('span', { shouldForwardProp: (prop) => prop !== 'ton
   align-items: center;
   padding: 1px ${space[2]};
   border-radius: ${radius.pill};
-  font-size: ${font.size.xs};
+  font-size: ${font.size.sm};
   font-weight: ${font.weight.bold};
   white-space: nowrap;
   border: 1px solid
@@ -145,7 +153,7 @@ export const DayHead = styled.h2`
 `;
 
 export const DayCount = styled.span`
-  font-size: ${font.size.sm};
+  font-size: ${font.size.base};
   font-weight: ${font.weight.medium};
   color: ${color.textSecondary};
 `;
@@ -153,7 +161,7 @@ export const DayCount = styled.span`
 /** 이번 주 항목 한 줄 — 시간(고정 폭, 오른쪽 정렬) · 배지 · 내용. */
 export const EventRow = styled.li`
   display: grid;
-  grid-template-columns: 84px 64px minmax(0, 1fr);
+  grid-template-columns: 104px 84px minmax(0, 1fr);
   align-items: center;
   gap: ${space[3]};
   padding: ${space[2]} ${space[3]};
@@ -163,14 +171,19 @@ export const EventRow = styled.li`
     background: ${color.surfaceSunken};
   }
 
+  /* 배지는 글자 폭만 — 칸 폭(stretch)으로 늘어나면 알약이 아니라 막대가 된다. */
+  > :nth-child(2) {
+    justify-self: start;
+  }
+
   ${media.down('mobileNarrow')} {
-    grid-template-columns: 72px 56px minmax(0, 1fr);
+    grid-template-columns: 88px 72px minmax(0, 1fr);
     gap: ${space[2]};
   }
 `;
 
 export const EventTime = styled.span`
-  font-size: ${font.size.sm};
+  font-size: ${font.size.base};
   font-weight: ${font.weight.semibold};
   color: ${color.text};
   text-align: right;
@@ -180,7 +193,7 @@ export const EventTime = styled.span`
 
 export const EventLabel = styled.span`
   min-width: 0;
-  font-size: ${font.size.sm};
+  font-size: ${font.size.md};
   color: ${color.text};
   overflow-wrap: anywhere;
 `;
@@ -192,7 +205,7 @@ export const Emphasis = styled.strong`
 
 export const Note = styled.p`
   margin: 0;
-  font-size: ${font.size.sm};
+  font-size: ${font.size.md};
   line-height: ${font.leading.normal};
   color: ${color.textSecondary};
 `;
