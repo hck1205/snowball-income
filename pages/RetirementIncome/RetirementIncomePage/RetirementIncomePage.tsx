@@ -1,29 +1,33 @@
 import { useMemo, useState, type ChangeEvent } from 'react';
 import { Sunset } from 'lucide-react';
-import { InputField, PageHero } from '@/components/common';
+import {
+  CalculatorFormGrid,
+  CalculatorNote,
+  CalculatorPanel,
+  CalculatorPanelTitle,
+  CalculatorStack,
+  InputField,
+  PageHero
+} from '@/components/common';
 import { TickerPageShell } from '@/pages/Ticker/components';
 import { useDocumentMeta } from '@/pages/Ticker/hooks';
 import { DIVIDEND_TARGET_PATH, DIVIDEND_TAX_PATH, RETIREMENT_INCOME_PATH } from '@/shared/constants/routes';
+import { DEFAULT_DIVIDEND_TAX_FORM, formToSearch } from '@/shared/lib/dividendTax';
 import { calculateRetirementIncome, type RetirementStage } from '@/shared/lib/retirementIncome';
-import { formatKoreanWon } from '@/shared/utils';
+import { formatKoreanWon, formatRatePercent, manInputToWon, parsePositiveInput } from '@/shared/utils';
 import { RETIREMENT_INCOME_COPY } from '../copy';
 import {
   Bar,
   BarSegment,
   Breakdown,
   Footnotes,
-  FormGrid,
   GapText,
   GroupTitle,
   Legend,
   LegendItem,
   LinkRow,
-  Note,
-  Panel,
-  PanelTitle,
   SecondaryLink,
   SOURCE_COLOR,
-  Stack,
   StageAge,
   StageBody,
   StageList,
@@ -37,14 +41,6 @@ import {
 } from './RetirementIncomePage.styled';
 
 const copy = RETIREMENT_INCOME_COPY;
-const MAN = 10_000;
-
-/** 입력창 문자열 → 숫자. 빈 칸·음수·숫자 아님은 0. */
-const num = (value: string): number => {
-  const parsed = Number(value.replace(/,/g, ''));
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
-};
-const percent = (rate: number) => `${Number((rate * 100).toFixed(1))}%`;
 const SOURCES = ['nps', 'account', 'dividend'] as const;
 
 /**
@@ -67,38 +63,57 @@ export default function RetirementIncomePage() {
   const result = useMemo(
     () =>
       calculateRetirementIncome({
-        retireAge: num(retireAge),
-        targetMonthly: num(target) * MAN,
-        npsMonthly: num(npsMonthly) * MAN,
-        npsStartAge: num(npsAge),
-        accountBalance: num(balance) * MAN,
-        accountStartAge: num(accountAge),
-        accountYears: num(accountYears),
-        accountReturn: num(accountReturn) / 100,
-        dividendMonthly: num(dividend) * MAN
+        retireAge: parsePositiveInput(retireAge),
+        targetMonthly: manInputToWon(target),
+        npsMonthly: manInputToWon(npsMonthly),
+        npsStartAge: parsePositiveInput(npsAge),
+        accountBalance: manInputToWon(balance),
+        accountStartAge: parsePositiveInput(accountAge),
+        accountYears: parsePositiveInput(accountYears),
+        accountReturn: parsePositiveInput(accountReturn) / 100,
+        dividendMonthly: manInputToWon(dividend)
       }),
     [retireAge, target, npsMonthly, npsAge, balance, accountAge, accountYears, accountReturn, dividend]
   );
 
   const on = (setter: (value: string) => void) => (event: ChangeEvent<HTMLInputElement>) => setter(event.target.value);
-  const targetWon = num(target) * MAN;
+  const targetWon = manInputToWon(target);
   const scale = Math.max(targetWon, ...result.stages.map((stage) => stage.total), 1);
   const hasIncome = result.stages.some((stage) => stage.total > 0);
 
   // 세금 계산기로 같은 조건을 넘긴다 — 배당 월액 · 피부양자 · 국민연금(연)을 "피부양자 판정에 더할 다른 소득"으로.
-  const npsAnnualMan = num(npsMonthly) * 12;
-  const taxHref = `${DIVIDEND_TAX_PATH}?m=${num(dividend)}&h=dependent${npsAnnualMan > 0 ? `&od=${npsAnnualMan}` : ''}`;
+  // 주소 형식은 세금 계산기의 정본(`formToSearch`)이 만든다.
+  const taxHref = `${DIVIDEND_TAX_PATH}${formToSearch({
+    ...DEFAULT_DIVIDEND_TAX_FORM,
+    monthlyUs: String(parsePositiveInput(dividend)),
+    health: 'dependent',
+    otherIncomeForDependent: String(parsePositiveInput(npsMonthly) * 12)
+  })}`;
 
   return (
     <TickerPageShell>
-      <Stack>
+      <CalculatorStack>
         <PageHero title={copy.heroTitle} titleAs="h1" lede={copy.lede} icon={<Sunset aria-hidden />} />
 
-        <Panel as="form" onSubmit={(event) => event.preventDefault()} aria-label="은퇴 소득 조건">
-          <FormGrid>
+        <CalculatorPanel as="form" onSubmit={(event) => event.preventDefault()} aria-label="은퇴 소득 조건">
+          <CalculatorFormGrid>
             <GroupTitle>{copy.sections.plan}</GroupTitle>
-            <InputField label={copy.inputs.retireAge} type="number" min={0} value={retireAge} suffix={copy.units.age} onChange={on(setRetireAge)} />
-            <InputField label={copy.inputs.targetMonthly} type="number" min={0} value={target} suffix={copy.units.man} onChange={on(setTarget)} />
+            <InputField
+              label={copy.inputs.retireAge}
+              type="number"
+              min={0}
+              value={retireAge}
+              suffix={copy.units.age}
+              onChange={on(setRetireAge)}
+            />
+            <InputField
+              label={copy.inputs.targetMonthly}
+              type="number"
+              min={0}
+              value={target}
+              suffix={copy.units.man}
+              onChange={on(setTarget)}
+            />
 
             <GroupTitle>{copy.sections.nps}</GroupTitle>
             <InputField
@@ -121,7 +136,14 @@ export default function RetirementIncomePage() {
             />
 
             <GroupTitle>{copy.sections.account}</GroupTitle>
-            <InputField label={copy.inputs.accountBalance} type="number" min={0} value={balance} suffix={copy.units.man} onChange={on(setBalance)} />
+            <InputField
+              label={copy.inputs.accountBalance}
+              type="number"
+              min={0}
+              value={balance}
+              suffix={copy.units.man}
+              onChange={on(setBalance)}
+            />
             <InputField
               label={copy.inputs.accountStartAge}
               type="number"
@@ -158,11 +180,11 @@ export default function RetirementIncomePage() {
               hint={copy.inputs.dividendMonthlyHint}
               onChange={on(setDividend)}
             />
-          </FormGrid>
-        </Panel>
+          </CalculatorFormGrid>
+        </CalculatorPanel>
 
-        <Panel aria-labelledby="stages-title" aria-live="polite">
-          <PanelTitle id="stages-title">{copy.results.heading}</PanelTitle>
+        <CalculatorPanel aria-labelledby="stages-title" aria-live="polite">
+          <CalculatorPanelTitle id="stages-title">{copy.results.heading}</CalculatorPanelTitle>
           <Legend>
             {SOURCES.map((source) => (
               <LegendItem key={source}>
@@ -179,28 +201,28 @@ export default function RetirementIncomePage() {
               ))}
             </StageList>
           ) : (
-            <Note>{copy.results.empty}</Note>
+            <CalculatorNote>{copy.results.empty}</CalculatorNote>
           )}
           {result.dividendComprehensive ? <Strong>{copy.results.comprehensiveWarn}</Strong> : null}
-        </Panel>
+        </CalculatorPanel>
 
         {result.health ? (
-          <Panel aria-labelledby="health-title">
-            <PanelTitle id="health-title">{copy.results.healthHeading}</PanelTitle>
-            <Note>{copy.results.healthFrom(result.health.fromAge)}</Note>
+          <CalculatorPanel aria-labelledby="health-title">
+            <CalculatorPanelTitle id="health-title">{copy.results.healthHeading}</CalculatorPanelTitle>
+            <CalculatorNote>{copy.results.healthFrom(result.health.fromAge)}</CalculatorNote>
             <StatusBadge tone={result.health.dependentLost ? 'warn' : 'ok'}>
               {result.health.dependentLost ? copy.results.dependentLost : copy.results.dependentKept}
             </StatusBadge>
-            <Note>{copy.results.dependentDetail(formatKoreanWon(result.health.dependentIncome))}</Note>
+            <CalculatorNote>{copy.results.dependentDetail(formatKoreanWon(result.health.dependentIncome))}</CalculatorNote>
             {result.health.regionalMonthly > 0 ? (
               <Strong>{copy.results.regional(`${result.health.regionalMonthly.toLocaleString('ko-KR')}원`)}</Strong>
             ) : null}
-            <Note>{copy.results.healthNote}</Note>
+            <CalculatorNote>{copy.results.healthNote}</CalculatorNote>
             <LinkRow>
               <SecondaryLink to={taxHref}>{copy.results.taxLink}</SecondaryLink>
               <SecondaryLink to={DIVIDEND_TARGET_PATH}>{copy.results.targetLink}</SecondaryLink>
             </LinkRow>
-          </Panel>
+          </CalculatorPanel>
         ) : null}
 
         <Footnotes>
@@ -209,7 +231,7 @@ export default function RetirementIncomePage() {
           ))}
           <li>{copy.disclaimer}</li>
         </Footnotes>
-      </Stack>
+      </CalculatorStack>
     </TickerPageShell>
   );
 }
@@ -220,7 +242,15 @@ const PARTS = [
   { key: 'dividend', label: '배당' }
 ] as const;
 
-function StageItem({ stage, scale, target }: { readonly stage: RetirementStage; readonly scale: number; readonly target: number }) {
+function StageItem({
+  stage,
+  scale,
+  target
+}: {
+  readonly stage: RetirementStage;
+  readonly scale: number;
+  readonly target: number;
+}) {
   const shown = PARTS.filter((part) => stage[part.key] > 0);
   const gapLabel =
     stage.gap < 0
@@ -240,7 +270,7 @@ function StageItem({ stage, scale, target }: { readonly stage: RetirementStage; 
         </Bar>
         <Breakdown>
           {shown.length > 0 ? shown.map((part) => `${part.label} ${formatKoreanWon(stage[part.key])}`).join(' + ') : '수입 없음'}
-          {stage.accountTaxRate !== null ? ` · ${copy.results.accountTax(percent(stage.accountTaxRate))}` : ''}
+          {stage.accountTaxRate !== null ? ` · ${copy.results.accountTax(formatRatePercent(stage.accountTaxRate))}` : ''}
         </Breakdown>
       </StageBody>
       <StageSide>

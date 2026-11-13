@@ -1,7 +1,9 @@
-import type { HealthInsuranceStatus, PensionAgeBand } from '@/shared/lib/dividendTax';
+import type { HealthInsuranceStatus, PensionAgeBand } from './dividendTax';
 
 /**
- * 계산 조건 ↔ 주소 쿼리(2026-11-13, 결과 공유). 링크를 받은 사람이 **보낸 사람이 본 결과 그대로** 연다.
+ * 세금 계산기 조건 ↔ 주소 쿼리(2026-11-13, 결과 공유). 링크를 받은 사람이 **보낸 사람이 본 결과 그대로** 연다.
+ * 다른 지면이 세금 계산기를 미리 채워 여는 링크(은퇴 후 월 소득 → "이 조건으로 세금 보기")도 이 함수로 만든다 —
+ * 주소 형식의 정본은 여기 한 곳이다(2026-11-13 페이지 폴더에서 옮겨 왔다).
  *
  * 🔴 이 쿼리는 공유 링크로 밖에 나간다 — 한 번 나간 링크는 계속 열려야 한다. 키 이름(`m`·`h`·`of`·`ot`·`od`·
  * `isa`·`pa`)을 바꾸지 마라. 새 칸은 새 키로 더하고, 모르는 키·잘못된 값은 기본값으로 둔다(열리지 않는 링크 0).
@@ -49,7 +51,9 @@ export const formFromSearch = (search: string): DividendTaxForm => {
     monthlyUs: parseMan(params.get('m')) ?? DEFAULT_DIVIDEND_TAX_FORM.monthlyUs,
     otherFinancial: parseMan(params.get('of')) ?? DEFAULT_DIVIDEND_TAX_FORM.otherFinancial,
     otherTaxBase: parseMan(params.get('ot')) ?? DEFAULT_DIVIDEND_TAX_FORM.otherTaxBase,
-    health: HEALTH_VALUES.includes(health as HealthInsuranceStatus) ? (health as HealthInsuranceStatus) : DEFAULT_DIVIDEND_TAX_FORM.health,
+    health: HEALTH_VALUES.includes(health as HealthInsuranceStatus)
+      ? (health as HealthInsuranceStatus)
+      : DEFAULT_DIVIDEND_TAX_FORM.health,
     otherIncomeForDependent: parseMan(params.get('od')) ?? DEFAULT_DIVIDEND_TAX_FORM.otherIncomeForDependent,
     isaSeomin: params.get('isa') === '1',
     pensionAge: PENSION_AGE_VALUES.includes(params.get('pa') as PensionAgeBand)

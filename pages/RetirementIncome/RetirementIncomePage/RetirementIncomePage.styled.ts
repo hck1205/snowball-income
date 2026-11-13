@@ -15,43 +15,6 @@ export const SOURCE_COLOR = {
   dividend: CHART_SERIES_VARS[2]
 } as const;
 
-export const Stack = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: ${space[5]};
-  width: 100%;
-  max-width: 960px;
-  margin: 0 auto;
-  padding-bottom: ${space[7]};
-`;
-
-export const Panel = styled.section`
-  display: grid;
-  gap: ${space[4]};
-  padding: clamp(${space[4]}, 3vw, ${space[6]});
-  border: 1px solid ${color.border};
-  border-radius: ${radius.lg};
-  background: ${color.surface};
-`;
-
-export const PanelTitle = styled.h2`
-  margin: 0;
-  font-size: ${font.size.lg};
-  font-weight: ${font.weight.bold};
-  color: ${color.text};
-`;
-
-export const FormGrid = styled.div`
-  display: grid;
-  gap: ${space[4]};
-  align-items: start;
-
-  ${media.up('mobileWide')} {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: ${space[5]};
-  }
-`;
-
 /** 입력 묶음 제목 — 두 열을 가로지르고, 첫 묶음이 아니면 위에 구분선. */
 export const GroupTitle = styled.h3`
   grid-column: 1 / -1;
@@ -208,13 +171,6 @@ export const StatusBadge = styled('span', { shouldForwardProp: (prop) => prop !=
   border: 1px solid ${({ tone }) => (tone === 'warn' ? color.accentBorder : color.brandBorder)};
   background: ${({ tone }) => (tone === 'warn' ? color.accentSubtle : color.brandSubtle)};
   color: ${({ tone }) => (tone === 'warn' ? color.accentText : color.brandText)};
-`;
-
-export const Note = styled.p`
-  margin: 0;
-  font-size: ${font.size.md};
-  line-height: ${font.leading.normal};
-  color: ${color.textSecondary};
 `;
 
 export const Strong = styled.p`
