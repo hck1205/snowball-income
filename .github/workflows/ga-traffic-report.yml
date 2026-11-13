@@ -1,0 +1,62 @@
+name: GA traffic report
+
+# GA 트래픽 → 텔레그램 (2026-11-13). 매일 아침 9시(한국시간) 어제 숫자를 보고:
+#   - 참여 세션이 급증했으면(평소의 2배 이상 · 10 이상) 바로 알림.
+#   - 한국시간 월요일이면 주간 요약도.
+# 판정 · 문구는 `scripts/gaReport/trafficReport.ts`(순수 함수, 테스트로 잠김), 호출은 `cli.ts`.
+#
+# 🔴 저장소가 **공개**라 이 실행 로그도 공개다. 숫자는 텔레그램으로만 보내고 로그에는 "보냈다/안 보냈다"만
+#   남긴다. 리포트를 이슈로 열지 않는 이유도 같다(이슈도 공개).
+#
+# 비밀값 4개(Settings → Secrets and variables → Actions): GA_SERVICE_ACCOUNT_KEY · GA_PROPERTY_ID ·
+# TELEGRAM_BOT_TOKEN · TELEGRAM_CHAT_ID. 없으면 스크립트가 건너뛰고 성공으로 끝난다.
+# 등록 후 Actions 탭에서 이 워크플로를 수동 실행(mode=test)하면 연결 확인 메시지가 온다.
+#
+# GA 는 어제 데이터를 다음 날까지 조금씩 보정한다 — 아침 9시 숫자는 최종보다 약간 적을 수 있다.
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'auto(급증·월요일 요약) · daily(어제 리포트 강제) · weekly(주간 요약) · test(연결 확인)'
+        required: true
+        default: test
+        type: choice
+        options: [test, daily, weekly, auto]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ga-traffic-report
+  cancel-in-progress: false
+
+env:
+  TZ: Asia/Seoul
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Send report
+        env:
+          REPORT_MODE: ${{ inputs.mode || 'auto' }}
+          GA_SERVICE_ACCOUNT_KEY: ${{ secrets.GA_SERVICE_ACCOUNT_KEY }}
+          GA_PROPERTY_ID: ${{ secrets.GA_PROPERTY_ID }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: npm run ga:report

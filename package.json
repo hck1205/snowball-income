@@ -26,6 +26,7 @@
     "dividend:universe": "vite-node scripts/dividendLists/universeCli.ts --",
     "dividend:metrics": "vite-node scripts/dividendLists/metricsCli.ts --",
     "dividend:lists:membership": "vite-node scripts/dividendLists/listsChangeCli.ts",
+    "ga:report": "vite-node scripts/gaReport/cli.ts",
     "nps:portfolio": "vite-node scripts/npsPortfolio/cli.ts --",
     "reporter": "vite-node scripts/aiReporter/cli.ts --",
     "investors:holdings": "vite-node scripts/investorHoldings/cli.ts --",
