@@ -1,0 +1,1 @@
+export { useResultShare } from './useResultShare';
