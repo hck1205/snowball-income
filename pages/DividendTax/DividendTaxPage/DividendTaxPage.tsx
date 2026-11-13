@@ -6,7 +6,7 @@ import { Button, InputField, PageHero, ShareDialog } from '@/components/common';
 import { TickerPageShell } from '@/pages/Ticker/components';
 import { useDocumentMeta } from '@/pages/Ticker/hooks';
 import { DIVIDEND_TAX_PATH } from '@/shared/constants/routes';
-import { calculateDividendTax, type HealthInsuranceStatus } from '@/shared/lib/dividendTax';
+import { calculateDividendTax, type HealthInsuranceStatus, type PensionAgeBand } from '@/shared/lib/dividendTax';
 import { formatKoreanWon } from '@/shared/utils';
 import { DIVIDEND_TAX_COPY } from '../copy';
 import { useResultShare } from '../hooks';
@@ -49,6 +49,8 @@ const toWon = (value: string): number => {
 };
 
 const HEALTH: readonly HealthInsuranceStatus[] = ['employee', 'regional', 'dependent'];
+const PENSION_AGES: readonly PensionAgeBand[] = ['under70', 'from70', 'from80'];
+const percent = (rate: number) => `${Number((rate * 100).toFixed(1))}%`;
 
 /**
  * 미국 배당 세금·건강보험료 계산기(`/dividend/tax`, 2026-11-12) — "한국 사람이 미국 배당으로 은퇴할 때"의
@@ -67,11 +69,12 @@ export default function DividendTaxPage() {
   const [health, setHealth] = useState<HealthInsuranceStatus>(initial.health);
   const [otherIncomeForDependent, setOtherIncomeForDependent] = useState(initial.otherIncomeForDependent);
   const [isaSeomin, setIsaSeomin] = useState(initial.isaSeomin);
+  const [pensionAge, setPensionAge] = useState<PensionAgeBand>(initial.pensionAge);
 
   const buildShareUrl = useCallback(
     () =>
-      `${window.location.origin}${DIVIDEND_TAX_PATH}${formToSearch({ monthlyUs, otherFinancial, otherTaxBase, health, otherIncomeForDependent, isaSeomin })}`,
-    [monthlyUs, otherFinancial, otherTaxBase, health, otherIncomeForDependent, isaSeomin]
+      `${window.location.origin}${DIVIDEND_TAX_PATH}${formToSearch({ monthlyUs, otherFinancial, otherTaxBase, health, otherIncomeForDependent, isaSeomin, pensionAge })}`,
+    [monthlyUs, otherFinancial, otherTaxBase, health, otherIncomeForDependent, isaSeomin, pensionAge]
   );
   const shareFlow = useResultShare(buildShareUrl, copy.share.title(String(toWon(monthlyUs) / MAN)));
 
@@ -83,14 +86,32 @@ export default function DividendTaxPage() {
         otherTaxBase: toWon(otherTaxBase),
         health,
         otherIncomeForDependent: toWon(otherIncomeForDependent),
-        isaSeomin
+        isaSeomin,
+        pensionAge
       }),
-    [monthlyUs, otherFinancial, otherTaxBase, health, otherIncomeForDependent, isaSeomin]
+    [monthlyUs, otherFinancial, otherTaxBase, health, otherIncomeForDependent, isaSeomin, pensionAge]
   );
 
   const onText = (setter: (value: string) => void) => (event: ChangeEvent<HTMLInputElement>) => setter(event.target.value);
   const usAnnual = toWon(monthlyUs) * 12;
-  const isaSaving = result.isa.generalTax - result.isa.isaTax;
+  const accounts = [
+    { id: 'general', label: copy.results.isaGeneral, short: '일반계좌', tax: result.isa.generalTax },
+    { id: 'isa', label: copy.results.isaAccount(formatKoreanWon(result.isa.taxFreeLimit)), short: 'ISA', tax: result.isa.isaTax },
+    {
+      id: 'pension',
+      label: result.pension.overSeparateLimit ? copy.results.pensionAccountOver : copy.results.pensionAccount(percent(result.pension.rate)),
+      short: '연금계좌',
+      tax: result.pension.tax
+    }
+  ] as const;
+  const best = accounts.reduce((acc, item) => (item.tax < acc.tax ? item : acc));
+  const bestSaving = result.isa.generalTax - best.tax;
+  // 연금계좌의 진짜 이점은 세율이 아니라 "받는 동안 금융소득이 아니다"이다 — 위 카드에서 생긴 부담을 이름으로 짚는다.
+  const avoided = [
+    ...(result.health.monthlyIncrease > 0 ? [`건강보험료 증가(월 ${result.health.monthlyIncrease.toLocaleString('ko-KR')}원)`] : []),
+    ...(result.health.dependentLost ? ['피부양자 탈락'] : []),
+    ...(result.comprehensive ? ['금융소득종합과세'] : [])
+  ];
 
   const healthCard =
     health === 'dependent'
@@ -206,20 +227,42 @@ export default function DividendTaxPage() {
               {copy.inputs.isaSeomin}
             </ToggleChip>
           </PanelHead>
+          <Field>
+            <FieldLabel id="pension-age-label">{copy.inputs.pensionAge}</FieldLabel>
+            <Segmented role="radiogroup" aria-labelledby="pension-age-label">
+              {PENSION_AGES.map((band) => (
+                <SegmentButton
+                  key={band}
+                  type="button"
+                  role="radio"
+                  aria-checked={pensionAge === band}
+                  active={pensionAge === band}
+                  onClick={() => setPensionAge(band)}
+                >
+                  {copy.inputs.pensionAgeOptions[band]}
+                </SegmentButton>
+              ))}
+            </Segmented>
+          </Field>
           <Compare>
-            <CompareItem>
-              <CompareLabel>{copy.results.isaGeneral}</CompareLabel>
-              <CompareValue>연 {formatKoreanWon(result.isa.generalTax)}</CompareValue>
-            </CompareItem>
-            <CompareItem best={isaSaving > 0}>
-              <CompareLabel>{copy.results.isaAccount(formatKoreanWon(result.isa.taxFreeLimit))}</CompareLabel>
-              <CompareValue>연 {formatKoreanWon(result.isa.isaTax)}</CompareValue>
-            </CompareItem>
+            {accounts.map((item) => (
+              <CompareItem key={item.id} best={bestSaving > 0 && item.id === best.id}>
+                <CompareLabel>{item.label}</CompareLabel>
+                <CompareValue>연 {formatKoreanWon(item.tax)}</CompareValue>
+              </CompareItem>
+            ))}
           </Compare>
-          {isaSaving > 0 ? <Highlight>ISA가 세금이 연 {formatKoreanWon(isaSaving)} 적습니다.</Highlight> : null}
+          {bestSaving > 0 ? (
+            <Highlight>
+              {best.short}가 일반계좌보다 세금이 연 {formatKoreanWon(bestSaving)} 적습니다.
+            </Highlight>
+          ) : null}
+          {avoided.length > 0 ? <Highlight>{copy.results.pensionAvoids(avoided.join(' · '))}</Highlight> : null}
           <Note>
             세전 배당 연 {formatKoreanWon(usAnnual)} 기준. {copy.results.isaNote}
           </Note>
+          <Note>{copy.results.pensionNote}</Note>
+          <Note>{copy.results.foreignTaxNote}</Note>
         </Panel>
 
         <ShareRow>

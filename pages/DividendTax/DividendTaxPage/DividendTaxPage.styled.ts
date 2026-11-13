@@ -150,12 +150,16 @@ export const PanelHead = styled.div`
   gap: ${space[2]} ${space[3]};
 `;
 
+/** 계좌 비교 — 좁은 폭은 세로 3줄(라벨 왼쪽·금액 오른쪽 한 줄씩), mobileWide 이상은 3열. */
 export const Compare = styled.div`
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   border: 1px solid ${color.border};
   border-radius: ${radius.md};
   overflow: hidden;
+
+  ${media.up('mobileWide')} {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 `;
 
 export const CompareItem = styled('div', { shouldForwardProp: (prop) => prop !== 'best' })<{ best?: boolean }>`
@@ -167,7 +171,14 @@ export const CompareItem = styled('div', { shouldForwardProp: (prop) => prop !==
   background: ${({ best }) => (best ? color.brandSubtle : color.surface)};
 
   & + & {
-    border-left: 1px solid ${color.border};
+    border-top: 1px solid ${color.border};
+  }
+
+  ${media.up('mobileWide')} {
+    & + & {
+      border-top: 0;
+      border-left: 1px solid ${color.border};
+    }
   }
 `;
 

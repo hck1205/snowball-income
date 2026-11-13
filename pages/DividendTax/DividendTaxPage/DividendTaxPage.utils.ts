@@ -1,10 +1,10 @@
-import type { HealthInsuranceStatus } from '@/shared/lib/dividendTax';
+import type { HealthInsuranceStatus, PensionAgeBand } from '@/shared/lib/dividendTax';
 
 /**
  * 계산 조건 ↔ 주소 쿼리(2026-11-13, 결과 공유). 링크를 받은 사람이 **보낸 사람이 본 결과 그대로** 연다.
  *
  * 🔴 이 쿼리는 공유 링크로 밖에 나간다 — 한 번 나간 링크는 계속 열려야 한다. 키 이름(`m`·`h`·`of`·`ot`·`od`·
- * `isa`)을 바꾸지 마라. 새 칸은 새 키로 더하고, 모르는 키·잘못된 값은 기본값으로 둔다(열리지 않는 링크 0).
+ * `isa`·`pa`)을 바꾸지 마라. 새 칸은 새 키로 더하고, 모르는 키·잘못된 값은 기본값으로 둔다(열리지 않는 링크 0).
  * 정규 주소(canonical)는 쿼리 없는 `/dividend/tax` 그대로다 — 검색엔진에 조건별 사본이 생기지 않는다.
  */
 export type DividendTaxForm = {
@@ -15,6 +15,8 @@ export type DividendTaxForm = {
   readonly health: HealthInsuranceStatus;
   readonly otherIncomeForDependent: string;
   readonly isaSeomin: boolean;
+  /** 연금계좌 비교의 연금 받는 나이(2026-11-13, 키 `pa`). */
+  readonly pensionAge: PensionAgeBand;
 };
 
 export const DEFAULT_DIVIDEND_TAX_FORM: DividendTaxForm = {
@@ -23,10 +25,12 @@ export const DEFAULT_DIVIDEND_TAX_FORM: DividendTaxForm = {
   otherTaxBase: '0',
   health: 'regional',
   otherIncomeForDependent: '0',
-  isaSeomin: false
+  isaSeomin: false,
+  pensionAge: 'under70'
 };
 
 const HEALTH_VALUES: readonly HealthInsuranceStatus[] = ['employee', 'regional', 'dependent'];
+const PENSION_AGE_VALUES: readonly PensionAgeBand[] = ['under70', 'from70', 'from80'];
 /** 만원 단위 상한(1조원) — 그 위는 오타로 보고 버린다. 주소 길이도 묶인다. */
 const MAX_MAN = 100_000_000;
 
@@ -47,7 +51,10 @@ export const formFromSearch = (search: string): DividendTaxForm => {
     otherTaxBase: parseMan(params.get('ot')) ?? DEFAULT_DIVIDEND_TAX_FORM.otherTaxBase,
     health: HEALTH_VALUES.includes(health as HealthInsuranceStatus) ? (health as HealthInsuranceStatus) : DEFAULT_DIVIDEND_TAX_FORM.health,
     otherIncomeForDependent: parseMan(params.get('od')) ?? DEFAULT_DIVIDEND_TAX_FORM.otherIncomeForDependent,
-    isaSeomin: params.get('isa') === '1'
+    isaSeomin: params.get('isa') === '1',
+    pensionAge: PENSION_AGE_VALUES.includes(params.get('pa') as PensionAgeBand)
+      ? (params.get('pa') as PensionAgeBand)
+      : DEFAULT_DIVIDEND_TAX_FORM.pensionAge
   };
 };
 
@@ -69,5 +76,6 @@ export const formToSearch = (form: DividendTaxForm): string => {
     if (value && value !== '0') params.set(key, value);
   }
   if (form.isaSeomin) params.set('isa', '1');
+  if (form.pensionAge !== DEFAULT_DIVIDEND_TAX_FORM.pensionAge) params.set('pa', form.pensionAge);
   return `?${params.toString()}`;
 };

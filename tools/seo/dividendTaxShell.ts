@@ -47,6 +47,7 @@ export const renderDividendTaxShellBody = (): string =>
   '</table>' +
   `<p>${escapeHtmlText(copy.results.extraTaxZero)}</p>` +
   `<p>${escapeHtmlText(copy.results.isaNote)}</p>` +
+  `<p>${escapeHtmlText(copy.results.pensionNote)}</p>` +
   `<p>${escapeHtmlText(copy.basis)}</p>` +
   `<p class="disclaimer">${escapeHtmlText(copy.disclaimer)}</p>` +
   '</div>';

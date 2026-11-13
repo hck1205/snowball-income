@@ -6,7 +6,7 @@
  * 붙여 말한다(2026-11-12 사용자 승인 방침).
  *
  * 다루는 범위(1차): 미국 원천징수 15% · 금융소득종합과세(비교과세) · 건강보험(피부양자 / 지역 / 직장) ·
- * 일반계좌 vs ISA 세금. 계산 예시이며 세무 자문이 아니다.
+ * 일반계좌 vs ISA vs 연금계좌 세금. 계산 예시이며 세무 자문이 아니다.
  */
 
 // ── 상수 (shared/lib/dividendTax/RULES.md) ─────────────────────────────────────
@@ -31,6 +31,10 @@ export const DIVIDEND_TAX_RULES = {
   isaTaxFreeGeneral: 2_000_000,
   isaTaxFreeSeomin: 4_000_000,
   isaExcessRate: 0.099,
+  /** 연금소득세(지방세 포함) — 연금 받는 나이별. 종신형 3%(국세)는 다루지 않는다. */
+  pensionRates: { under70: 0.055, from70: 0.044, from80: 0.033 },
+  pensionSeparateThreshold: 15_000_000,
+  pensionSeparateRate: 0.165,
   nhiRate: 0.0719,
   ltcRatioOfNhi: 0.1314,
   nhiLocalFinancialExclude: 10_000_000,
@@ -50,6 +54,8 @@ export const progressiveTax = (taxBase: number): number => {
 };
 
 export type HealthInsuranceStatus = 'employee' | 'regional' | 'dependent';
+/** 연금을 받는 나이 구간 — 연금소득세율이 갈린다. */
+export type PensionAgeBand = 'under70' | 'from70' | 'from80';
 
 export type DividendTaxInput = {
   /** 미국 주식·ETF 배당, 연간 세전(원). 국내 증권사 일반계좌. */
@@ -63,6 +69,8 @@ export type DividendTaxInput = {
   readonly otherIncomeForDependent: number;
   /** ISA 비교에서 서민형(비과세 400만원)인가. */
   readonly isaSeomin: boolean;
+  /** 연금계좌 비교에서 연금을 받는 나이. 생략하면 70세 미만. */
+  readonly pensionAge?: PensionAgeBand;
 };
 
 export type DividendTaxResult = {
@@ -89,8 +97,19 @@ export type DividendTaxResult = {
     readonly isaTax: number;
     readonly taxFreeLimit: number;
   };
+  /**
+   * 같은 분배금을 연금저축·IRP 안에서 받아 **연금으로 꺼낼 때** 세금(2026-11-13). 받는 동안은 과세이연이라
+   * 금융소득 2,000만원·건보료 계산에 잡히지 않는다(⚠ RULES.md §5).
+   */
+  readonly pension: {
+    readonly tax: number;
+    /** 적용 세율(지방세 포함). */
+    readonly rate: number;
+    /** 연 1,500만원을 넘어 16.5% 분리과세로 계산했는가. */
+    readonly overSeparateLimit: boolean;
+  };
   /** 확인 못 한 규칙을 보수적으로 쓴 항목들 — 화면이 "추정"을 붙인다. */
-  readonly estimated: readonly ('comprehensive' | 'dependent' | 'isa')[];
+  readonly estimated: readonly ('comprehensive' | 'dependent' | 'isa' | 'pension')[];
 };
 
 const won = (value: number): number => Math.max(0, Math.round(value));
@@ -137,6 +156,10 @@ export const calculateDividendTax = (input: DividendTaxInput): DividendTaxResult
 
   const taxFreeLimit = input.isaSeomin ? R.isaTaxFreeSeomin : R.isaTaxFreeGeneral;
 
+  // 연금계좌 — 연 1,500만원 초과면 분배금 전액에 16.5%(분리과세 선택, 보수적). 이하면 나이별 세율.
+  const overSeparateLimit = us > R.pensionSeparateThreshold;
+  const pensionRate = overSeparateLimit ? R.pensionSeparateRate : R.pensionRates[input.pensionAge ?? 'under70'];
+
   return {
     financialIncome: won(financialIncome),
     usWithheld: won(usWithheld),
@@ -154,6 +177,12 @@ export const calculateDividendTax = (input: DividendTaxInput): DividendTaxResult
       isaTax: won(Math.max(0, us - taxFreeLimit) * R.isaExcessRate),
       taxFreeLimit
     },
-    estimated: [...(comprehensive ? (['comprehensive'] as const) : []), ...(input.health === 'dependent' ? (['dependent'] as const) : []), 'isa']
+    pension: { tax: won(us * pensionRate), rate: pensionRate, overSeparateLimit },
+    estimated: [
+      ...(comprehensive ? (['comprehensive'] as const) : []),
+      ...(input.health === 'dependent' ? (['dependent'] as const) : []),
+      'isa',
+      'pension'
+    ]
   };
 };

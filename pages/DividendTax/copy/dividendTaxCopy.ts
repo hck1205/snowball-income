@@ -7,9 +7,9 @@ import { DIVIDEND_TAX_RULES } from '../../../shared/lib/dividendTax/dividendTax'
  */
 export const DIVIDEND_TAX_COPY = {
   meta: {
-    title: '미국 배당 세금·건강보험료 계산기 2026 — 금융소득종합과세·피부양자·ISA 비교',
+    title: '미국 배당 세금·건강보험료 계산기 2026 — 금융소득종합과세·피부양자·ISA·연금저축 비교',
     description:
-      '미국 주식·ETF 배당을 받으면 세금이 얼마인지, 금융소득종합과세 대상인지, 건강보험 피부양자에서 빠지는지, 지역가입자 보험료가 얼마나 오르는지 한 번에 계산합니다. 일반계좌와 ISA 세금도 비교합니다.'
+      '미국 주식·ETF 배당을 받으면 세금이 얼마인지, 금융소득종합과세 대상인지, 건강보험 피부양자에서 빠지는지, 지역가입자 보험료가 얼마나 오르는지 한 번에 계산합니다. 일반계좌·ISA·연금저축(IRP) 세금도 비교합니다.'
   },
   heroTitle: '미국 배당 세금·건강보험료 계산기',
   lede: '월 배당을 넣으면 세금, 금융소득종합과세, 건강보험료 변화를 한 번에 보여 드립니다.',
@@ -21,7 +21,9 @@ export const DIVIDEND_TAX_COPY = {
     health: '건강보험 자격',
     healthOptions: { employee: '직장가입자', regional: '지역가입자', dependent: '피부양자' },
     otherIncomeForDependent: '피부양자 판정에 더할 다른 소득 (공적연금·근로 등, 연간)',
-    isaSeomin: '서민형 ISA'
+    isaSeomin: '서민형 ISA',
+    pensionAge: '연금 받는 나이',
+    pensionAgeOptions: { under70: '70세 미만', from70: '70대', from80: '80세 이상' }
   },
   results: {
     withholding: '미국 원천징수 15% 뒤 손에 쥐는 배당',
@@ -37,10 +39,19 @@ export const DIVIDEND_TAX_COPY = {
     premiumIncrease: '배당 때문에 늘어나는 월 건강보험료 (장기요양 포함)',
     premiumZeroRegional: '금융소득이 연 1,000만원 이하라 지역 보험료에 반영되지 않습니다.',
     premiumZeroEmployee: '보수 외 소득이 연 2,000만원 이하라 추가 보험료가 없습니다.',
-    isaHeading: '일반계좌 vs ISA 세금',
+    isaHeading: '계좌별 세금 — 일반계좌 · ISA · 연금계좌',
     isaGeneral: '일반계좌 (15.4%)',
     isaAccount: (limit: string) => `ISA (비과세 ${limit} 초과분 9.9%)`,
-    isaNote: '국내 상장 미국 배당 ETF 기준입니다. ISA는 의무가입 3년, 연 납입 2,000만원 한도가 있고, 해외 상장 주식은 직접 담을 수 없습니다. 일반계좌 분배금은 보수적으로 15.4%로 계산했습니다.'
+    pensionAccount: (rate: string) => `연금저축·IRP (연금으로 받을 때 ${rate})`,
+    pensionAccountOver: '연금저축·IRP (연 1,500만원 초과 16.5%)',
+    bestLabel: '세금이 가장 적은 계좌',
+    isaNote: '국내 상장 미국 배당 ETF 기준입니다. ISA는 의무가입 3년, 연 납입 2,000만원 한도가 있고, 해외 상장 주식은 직접 담을 수 없습니다. 일반계좌 분배금은 보수적으로 15.4%로 계산했습니다.',
+    pensionNote:
+      '연금계좌 안의 분배금은 받을 때 세금이 없고(과세이연), 55세 이후 연금으로 꺼낼 때 연금소득세를 냅니다. 그래서 받는 동안은 금융소득 2,000만원 기준과 건강보험료 계산에 잡히지 않습니다. 연 1,500만원 기준은 모든 사적연금 수령액의 합계인데 여기서는 분배금만 봤고, 넘으면 보수적으로 16.5% 분리과세로 계산했습니다(다른 소득이 적으면 종합과세가 더 낮을 수 있습니다). 연금 외로 꺼내면 16.5%입니다.',
+    pensionAvoids: (items: string) =>
+      `연금계좌 안에서 받으면 금융소득으로 잡히지 않아, 위에서 계산한 부담(${items})이 받는 동안에는 생기지 않습니다(과세이연 구조상, 추정).`,
+    foreignTaxNote:
+      '국내 상장 해외 ETF가 미국에서 떼이는 15%가 ISA·연금계좌에서 어떻게 정산되는지는 2025년 제도 변경 뒤 논란이 있어 확인하지 못했습니다. 그래서 세 계좌 모두 국내 세금만 비교했습니다(추정).'
   },
   share: {
     button: '이 결과 공유하기',
