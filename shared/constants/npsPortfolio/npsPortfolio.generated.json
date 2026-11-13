@@ -1,541 +1,541 @@
 {
-  "generatedAt": "2026-08-13",
+  "generatedAt": "2026-11-13",
   "source": "SEC EDGAR 13F-HR — National Pension Service",
   "sourceUrl": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001608046&type=13F",
   "cik": "0001608046",
   "registrantName": "National Pension Service",
-  "accessionNumber": "0001193125-26-347818",
-  "reportDate": "2026-06-30",
-  "filingDate": "2026-08-13",
-  "previousReportDate": "2026-03-31",
-  "totalValueUsd": 155079663358,
-  "previousTotalValueUsd": 131679039771,
-  "totalHoldingCount": 552,
-  "previousHoldingCount": 562,
+  "accessionNumber": "0001193125-26-456954",
+  "reportDate": "2026-09-30",
+  "filingDate": "2026-11-12",
+  "previousReportDate": "2026-06-30",
+  "totalValueUsd": 158738850567,
+  "previousTotalValueUsd": 155079663358,
+  "totalHoldingCount": 553,
+  "previousHoldingCount": 552,
   "topHoldings": [
     {
       "cusip": "67066G104",
       "issuer": "NVIDIA CORPORATION",
-      "valueUsd": 10171499316,
-      "weightPercent": 6.558886636553489,
-      "changePercent": 13.746945865921493,
+      "valueUsd": 11654995331,
+      "weightPercent": 7.342245007677371,
+      "changePercent": 14.584831290962455,
       "isNew": false
     },
     {
       "cusip": "037833100",
       "issuer": "APPLE INC",
-      "valueUsd": 9120026489,
-      "weightPercent": 5.880865544534038,
-      "changePercent": 15.846781525311604,
+      "valueUsd": 10546150291,
+      "weightPercent": 6.643710883208591,
+      "changePercent": 15.637276971948497,
       "isNew": false
     },
     {
       "cusip": "594918104",
       "issuer": "MICROSOFT CORP",
-      "valueUsd": 5684729680,
-      "weightPercent": 3.6656835312292713,
-      "changePercent": 2.947357105121307,
+      "valueUsd": 7856216499,
+      "weightPercent": 4.949145386235535,
+      "changePercent": 38.198594150214724,
       "isNew": false
     },
     {
       "cusip": "023135106",
       "issuer": "AMAZON COM INC",
-      "valueUsd": 4998167363,
-      "weightPercent": 3.2229676379047687,
-      "changePercent": 17.396137977105695,
+      "valueUsd": 5253275179,
+      "weightPercent": 3.3093821457291663,
+      "changePercent": 5.10402708577728,
       "isNew": false
     },
     {
       "cusip": "02079K305",
       "issuer": "ALPHABET INC",
-      "valueUsd": 4680938399,
-      "weightPercent": 3.0184089245758137,
-      "changePercent": 27.238708686089357,
-      "isNew": false
-    },
-    {
-      "cusip": "02079K107",
-      "issuer": "ALPHABET INC",
-      "valueUsd": 3727875298,
-      "weightPercent": 2.4038453639109556,
-      "changePercent": 22.450598227149683,
-      "isNew": false
-    },
-    {
-      "cusip": "11135F101",
-      "issuer": "BROADCOM INC",
-      "valueUsd": 3631259754,
-      "weightPercent": 2.341544774711865,
-      "changePercent": 25.04160018267839,
+      "valueUsd": 4532127482,
+      "weightPercent": 2.8550839733383944,
+      "changePercent": -3.179083002497765,
       "isNew": false
     },
     {
       "cusip": "46138E461",
       "issuer": "INVESCO EXCH TRADED FD TR II",
-      "valueUsd": 3546096271,
-      "weightPercent": 2.2866288165804622,
-      "changePercent": 14.838115691339372,
+      "valueUsd": 3627120117,
+      "weightPercent": 2.2849605525328385,
+      "changePercent": 2.284874402948774,
       "isNew": false
     },
     {
-      "cusip": "595112103",
-      "issuer": "MICRON TECHNOLOGY INC",
-      "valueUsd": 3331465626,
-      "weightPercent": 2.1482285645083854,
-      "changePercent": 242.86845783148087,
-      "isNew": false
-    },
-    {
-      "cusip": "464287200",
-      "issuer": "ISHARES TR",
-      "valueUsd": 3084943766,
-      "weightPercent": 1.9892639042415476,
-      "changePercent": 14.647663061939692,
+      "cusip": "02079K107",
+      "issuer": "ALPHABET INC",
+      "valueUsd": 3612916309,
+      "weightPercent": 2.276012643467562,
+      "changePercent": -3.0837670203634584,
       "isNew": false
     },
     {
       "cusip": "30303M102",
       "issuer": "META PLATFORMS INC",
-      "valueUsd": 2732448252,
-      "weightPercent": 1.7619642658703534,
-      "changePercent": 1.7138075999771085,
+      "valueUsd": 3533591113,
+      "weightPercent": 2.2260405063904334,
+      "changePercent": 29.31959865712399,
       "isNew": false
     },
     {
-      "cusip": "88160R101",
-      "issuer": "TESLA INC",
-      "valueUsd": 2532853621,
-      "weightPercent": 1.6332596848323884,
-      "changePercent": 15.663187835513268,
+      "cusip": "11135F101",
+      "issuer": "BROADCOM INC",
+      "valueUsd": 3393326316,
+      "weightPercent": 2.1376785228564796,
+      "changePercent": -6.552366234277384,
+      "isNew": false
+    },
+    {
+      "cusip": "464287200",
+      "issuer": "ISHARES TR",
+      "valueUsd": 3154107736,
+      "weightPercent": 1.9869790695433591,
+      "changePercent": 2.241984789553535,
+      "isNew": false
+    },
+    {
+      "cusip": "595112103",
+      "issuer": "MICRON TECHNOLOGY INC",
+      "valueUsd": 3086006044,
+      "weightPercent": 1.9440773528201074,
+      "changePercent": -7.367915793107451,
       "isNew": false
     },
     {
       "cusip": "007903107",
       "issuer": "ADVANCED MICRO DEVICES INC",
-      "valueUsd": 2091720396,
-      "weightPercent": 1.3488038023214446,
-      "changePercent": 189.50154749849878,
+      "valueUsd": 2217758470,
+      "weightPercent": 1.3971113322783797,
+      "changePercent": 6.025569872580618,
+      "isNew": false
+    },
+    {
+      "cusip": "88160R101",
+      "issuer": "TESLA INC",
+      "valueUsd": 2152127730,
+      "weightPercent": 1.3557662300771396,
+      "changePercent": -15.031499958915312,
       "isNew": false
     },
     {
       "cusip": "532457108",
       "issuer": "ELI LILLY & CO",
-      "valueUsd": 2018379214,
-      "weightPercent": 1.3015112170707965,
-      "changePercent": 32.09756287185881,
+      "valueUsd": 1954046620,
+      "weightPercent": 1.2309819637853823,
+      "changePercent": -3.1873393044167564,
       "isNew": false
     },
     {
       "cusip": "46625H100",
       "issuer": "JPMORGAN CHASE & CO",
-      "valueUsd": 1816546640,
-      "weightPercent": 1.1713635435269927,
-      "changePercent": 12.008646024144833,
+      "valueUsd": 1840135017,
+      "weightPercent": 1.159221583391346,
+      "changePercent": 1.2985285640670365,
       "isNew": false
     },
     {
-      "cusip": "512807306",
-      "issuer": "LAM RESEARCH CORP",
-      "valueUsd": 1457235924,
-      "weightPercent": 0.9396692592993215,
-      "changePercent": 102.70847823153449,
-      "isNew": false
-    },
-    {
-      "cusip": "038222105",
-      "issuer": "APPLIED MATLS INC",
-      "valueUsd": 1418562873,
-      "weightPercent": 0.9147317206417068,
-      "changePercent": 112.59123356430882,
-      "isNew": false
+      "cusip": "30233Q108",
+      "issuer": "EXXONMOBIL HOLDINGS CORP",
+      "valueUsd": 1579304029,
+      "weightPercent": 0.9949070585800999,
+      "changePercent": null,
+      "isNew": true
     },
     {
       "cusip": "084670702",
       "issuer": "BERKSHIRE HATHAWAY INC DEL",
-      "valueUsd": 1403556421,
-      "weightPercent": 0.9050551120683713,
-      "changePercent": 7.185424033624632,
-      "isNew": false
-    },
-    {
-      "cusip": "458140100",
-      "issuer": "INTEL CORP",
-      "valueUsd": 1396229068,
-      "weightPercent": 0.9003302159463796,
-      "changePercent": 210.0749208203908,
+      "valueUsd": 1412531777,
+      "weightPercent": 0.889846292797618,
+      "changePercent": 0.6394724049358327,
       "isNew": false
     },
     {
       "cusip": "478160104",
       "issuer": "JOHNSON & JOHNSON",
-      "valueUsd": 1327493063,
-      "weightPercent": 0.8560071864068304,
-      "changePercent": 5.2576610436614954,
-      "isNew": false
-    },
-    {
-      "cusip": "30231G102",
-      "issuer": "EXXON MOBIL CORP",
-      "valueUsd": 1321264951,
-      "weightPercent": 0.8519911137219017,
-      "changePercent": -18.00458261104902,
+      "valueUsd": 1391364897,
+      "weightPercent": 0.8765118885705532,
+      "changePercent": 4.811462732291505,
       "isNew": false
     },
     {
       "cusip": "92826C839",
       "issuer": "VISA INC",
-      "valueUsd": 1185762956,
-      "weightPercent": 0.7646153791697864,
-      "changePercent": 15.429449071349296,
+      "valueUsd": 1245662361,
+      "weightPercent": 0.7847243170469065,
+      "changePercent": 5.051549696076017,
+      "isNew": false
+    },
+    {
+      "cusip": "458140100",
+      "issuer": "INTEL CORP",
+      "valueUsd": 1211110815,
+      "weightPercent": 0.7629580349574335,
+      "changePercent": -13.258444279860818,
+      "isNew": false
+    },
+    {
+      "cusip": "512807306",
+      "issuer": "LAM RESEARCH CORP",
+      "valueUsd": 1106190080,
+      "weightPercent": 0.6968615912543116,
+      "changePercent": -24.089842846888256,
       "isNew": false
     },
     {
       "cusip": "931142103",
       "issuer": "WALMART INC",
-      "valueUsd": 1168182441,
-      "weightPercent": 0.7532789378728927,
-      "changePercent": -5.712100635993305,
-      "isNew": false
-    },
-    {
-      "cusip": "17275R102",
-      "issuer": "CISCO SYS INC",
-      "valueUsd": 1140935494,
-      "weightPercent": 0.7357092924338898,
-      "changePercent": 52.80880294041867,
-      "isNew": false
-    },
-    {
-      "cusip": "482480100",
-      "issuer": "KLA CORP",
-      "valueUsd": 1096673309,
-      "weightPercent": 0.7071677131954689,
-      "changePercent": 104.78777172837741,
-      "isNew": false
-    },
-    {
-      "cusip": "149123101",
-      "issuer": "CATERPILLAR INC",
-      "valueUsd": 1075678918,
-      "weightPercent": 0.6936299026628688,
-      "changePercent": 53.56624331219787,
+      "valueUsd": 1073773165,
+      "weightPercent": 0.6764400530585832,
+      "changePercent": -8.081723597829699,
       "isNew": false
     },
     {
       "cusip": "00287Y109",
       "issuer": "ABBVIE INC",
-      "valueUsd": 1008968950,
-      "weightPercent": 0.6506133223095825,
-      "changePercent": 17.455870486010017,
+      "valueUsd": 1057756168,
+      "weightPercent": 0.6663498974710955,
+      "changePercent": 4.835353753948524,
       "isNew": false
     },
     {
-      "cusip": "369604301",
-      "issuer": "GE AEROSPACE",
-      "valueUsd": 910452623,
-      "weightPercent": 0.5870870514454422,
-      "changePercent": 34.20365272885696,
+      "cusip": "17275R102",
+      "issuer": "CISCO SYS INC",
+      "valueUsd": 1049780721,
+      "weightPercent": 0.6613256409822067,
+      "changePercent": -7.989476484811682,
       "isNew": false
     },
     {
-      "cusip": "22160K105",
-      "issuer": "COSTCO WHOLESALE CORPORATION",
-      "valueUsd": 904344107,
-      "weightPercent": 0.5831480978342917,
-      "changePercent": -2.7841137497715733,
+      "cusip": "038222105",
+      "issuer": "APPLIED MATLS INC",
+      "valueUsd": 1005748944,
+      "weightPercent": 0.6335871403928912,
+      "changePercent": -29.100855299206746,
+      "isNew": false
+    },
+    {
+      "cusip": "69608A108",
+      "issuer": "PALANTIR TECHNOLOGIES INC",
+      "valueUsd": 984655329,
+      "weightPercent": 0.6202988905884762,
+      "changePercent": 61.24906724474021,
       "isNew": false
     },
     {
       "cusip": "57636Q104",
       "issuer": "MASTERCARD INCORPORATED",
-      "valueUsd": 886994390,
-      "weightPercent": 0.5719604819829802,
-      "changePercent": 3.1213515686472197,
-      "isNew": false
-    },
-    {
-      "cusip": "060505104",
-      "issuer": "BANK OF AMER CORP",
-      "valueUsd": 885265895,
-      "weightPercent": 0.5708458967675031,
-      "changePercent": 17.231979225412235,
-      "isNew": false
-    },
-    {
-      "cusip": "958102105",
-      "issuer": "WESTERN DIGITAL CORP",
-      "valueUsd": 882009725,
-      "weightPercent": 0.5687462210721264,
-      "changePercent": 126.76433504569114,
-      "isNew": false
-    },
-    {
-      "cusip": "573874104",
-      "issuer": "MARVELL TECHNOLOGY INC",
-      "valueUsd": 833056534,
-      "weightPercent": 0.5371797410192312,
-      "changePercent": 193.16359231715626,
-      "isNew": false
-    },
-    {
-      "cusip": "742718109",
-      "issuer": "PROCTER & GAMBLE CO",
-      "valueUsd": 826948565,
-      "weightPercent": 0.5332411401300226,
-      "changePercent": 4.633206270268789,
-      "isNew": false
-    },
-    {
-      "cusip": "91324P102",
-      "issuer": "UNITEDHEALTH GROUP INC",
-      "valueUsd": 818929089,
-      "weightPercent": 0.5280699424201802,
-      "changePercent": 55.417735279840485,
-      "isNew": false
-    },
-    {
-      "cusip": "G7997R103",
-      "issuer": "SEAGATE TECHNOLOGY HLDNGS PL",
-      "valueUsd": 805490325,
-      "weightPercent": 0.5194042259045487,
-      "changePercent": 148.39066893563913,
-      "isNew": false
-    },
-    {
-      "cusip": "437076102",
-      "issuer": "HOME DEPOT INC",
-      "valueUsd": 791159990,
-      "weightPercent": 0.5101635977720781,
-      "changePercent": 9.86520464344996,
-      "isNew": false
-    },
-    {
-      "cusip": "191216100",
-      "issuer": "COCA COLA CO",
-      "valueUsd": 759894655,
-      "weightPercent": 0.49000277569973183,
-      "changePercent": 7.582676604948353,
-      "isNew": false
-    },
-    {
-      "cusip": "87283Q305",
-      "issuer": "T ROWE PRICE EXCHANGE-TRADED",
-      "valueUsd": 754666842,
-      "weightPercent": 0.48663172569433455,
-      "changePercent": 17.833270316489745,
+      "valueUsd": 953739792,
+      "weightPercent": 0.6008231687411951,
+      "changePercent": 7.52489561968932,
       "isNew": false
     },
     {
       "cusip": "166764100",
       "issuer": "CHEVRON CORPORATION",
-      "valueUsd": 750205228,
-      "weightPercent": 0.4837547436946378,
-      "changePercent": -19.051977114273765,
+      "valueUsd": 927040089,
+      "weightPercent": 0.5840032768844561,
+      "changePercent": 23.5715314156675,
+      "isNew": false
+    },
+    {
+      "cusip": "22160K105",
+      "issuer": "COSTCO WHOLESALE CORPORATION",
+      "valueUsd": 883640638,
+      "weightPercent": 0.5566631198624156,
+      "changePercent": -2.2893353138198753,
+      "isNew": false
+    },
+    {
+      "cusip": "060505104",
+      "issuer": "BANK OF AMER CORP",
+      "valueUsd": 846216515,
+      "weightPercent": 0.5330872133553919,
+      "changePercent": -4.411034043054375,
       "isNew": false
     },
     {
       "cusip": "58933Y105",
       "issuer": "MERCK & CO INC",
-      "valueUsd": 744243987,
-      "weightPercent": 0.4799107574033866,
-      "changePercent": 7.375716221110353,
+      "valueUsd": 845862443,
+      "weightPercent": 0.5328641602094637,
+      "changePercent": 13.653916964733234,
       "isNew": false
     },
     {
-      "cusip": "64110L106",
-      "issuer": "NETFLIX INC.",
-      "valueUsd": 693865700,
-      "weightPercent": 0.4474253328743804,
-      "changePercent": -23.6828071551058,
+      "cusip": "742718109",
+      "issuer": "PROCTER & GAMBLE CO",
+      "valueUsd": 823456774,
+      "weightPercent": 0.5187493616456784,
+      "changePercent": -0.42225008274849596,
       "isNew": false
     },
     {
-      "cusip": "38141G104",
-      "issuer": "GOLDMAN SACHS GROUP INC",
-      "valueUsd": 678086164,
-      "weightPercent": 0.43725021664165226,
-      "changePercent": 18.773831642854063,
+      "cusip": "149123101",
+      "issuer": "CATERPILLAR INC",
+      "valueUsd": 820600559,
+      "weightPercent": 0.5169500447237039,
+      "changePercent": -23.713243304448586,
       "isNew": false
     },
     {
-      "cusip": "718172109",
-      "issuer": "PHILIP MORRIS INTL INC",
-      "valueUsd": 675325633,
-      "weightPercent": 0.4354701437808882,
-      "changePercent": 13.051788404460899,
-      "isNew": false
-    },
-    {
-      "cusip": "41151J745",
-      "issuer": "HARBOR ETF TRUST",
-      "valueUsd": 668030237,
-      "weightPercent": 0.4307658544872246,
-      "changePercent": 15.767135077015132,
+      "cusip": "191216100",
+      "issuer": "COCA COLA CO",
+      "valueUsd": 810768066,
+      "weightPercent": 0.5107559133154952,
+      "changePercent": 6.6947978466831035,
       "isNew": false
     },
     {
       "cusip": "697435105",
       "issuer": "PALO ALTO NETWORKS INC",
-      "valueUsd": 667001700,
-      "weightPercent": 0.43010262310167163,
-      "changePercent": 93.38892399277108,
+      "valueUsd": 784512831,
+      "weightPercent": 0.4942160209663829,
+      "changePercent": 17.617815816661338,
       "isNew": false
     },
     {
-      "cusip": "36828A101",
-      "issuer": "GE VERNOVA INC",
-      "valueUsd": 663308333,
-      "weightPercent": 0.4277210297192603,
-      "changePercent": 38.573328396817146,
+      "cusip": "G7997R103",
+      "issuer": "SEAGATE TECHNOLOGY HLDNGS PL",
+      "valueUsd": 771152794,
+      "weightPercent": 0.48579965852437257,
+      "changePercent": -4.262935250029229,
       "isNew": false
     },
     {
-      "cusip": "459200101",
-      "issuer": "INTERNATIONAL BUSINESS MACHS",
-      "valueUsd": 660836470,
-      "weightPercent": 0.4261270986089678,
-      "changePercent": 19.30835628210399,
+      "cusip": "87283Q305",
+      "issuer": "T ROWE PRICE EXCHANGE-TRADED",
+      "valueUsd": 766299972,
+      "weightPercent": 0.48274254806737593,
+      "changePercent": 1.541492133027888,
       "isNew": false
     },
     {
-      "cusip": "882508104",
-      "issuer": "TEXAS INSTRS INC",
-      "valueUsd": 632111088,
-      "weightPercent": 0.4076041141131299,
-      "changePercent": 54.93318270134518,
+      "cusip": "369604301",
+      "issuer": "GE AEROSPACE",
+      "valueUsd": 764497787,
+      "weightPercent": 0.48160723368557035,
+      "changePercent": -16.03101933179888,
+      "isNew": false
+    },
+    {
+      "cusip": "573874104",
+      "issuer": "MARVELL TECHNOLOGY INC",
+      "valueUsd": 738368400,
+      "weightPercent": 0.46514662123520406,
+      "changePercent": -11.366351518227214,
+      "isNew": false
+    },
+    {
+      "cusip": "91324P102",
+      "issuer": "UNITEDHEALTH GROUP INC",
+      "valueUsd": 729596094,
+      "weightPercent": 0.4596203710647724,
+      "changePercent": -10.9085140825911,
+      "isNew": false
+    },
+    {
+      "cusip": "718172109",
+      "issuer": "PHILIP MORRIS INTL INC",
+      "valueUsd": 715372922,
+      "weightPercent": 0.45066026334747683,
+      "changePercent": 5.930070923281539,
+      "isNew": false
+    },
+    {
+      "cusip": "482480100",
+      "issuer": "KLA CORP",
+      "valueUsd": 707904474,
+      "weightPercent": 0.4459553987391448,
+      "changePercent": -35.44983103076506,
+      "isNew": false
+    },
+    {
+      "cusip": "41151J745",
+      "issuer": "HARBOR ETF TRUST",
+      "valueUsd": 689286872,
+      "weightPercent": 0.43422695171215686,
+      "changePercent": 3.1819869554796814,
+      "isNew": false
+    },
+    {
+      "cusip": "64110L106",
+      "issuer": "NETFLIX INC.",
+      "valueUsd": 681231061,
+      "weightPercent": 0.4291520686755056,
+      "changePercent": -1.8209055441132196,
       "isNew": false
     },
     {
       "cusip": "0075W0155",
       "issuer": "ADVISORS INNER CIRCLE FD",
-      "valueUsd": 627384496,
-      "weightPercent": 0.40455626638270975,
-      "changePercent": 17.917855715190992,
+      "valueUsd": 654558480,
+      "weightPercent": 0.41234926274316575,
+      "changePercent": 4.331312643722073,
+      "isNew": false
+    },
+    {
+      "cusip": "437076102",
+      "issuer": "HOME DEPOT INC",
+      "valueUsd": 641404042,
+      "weightPercent": 0.4040624205788098,
+      "changePercent": -18.92865537854107,
+      "isNew": false
+    },
+    {
+      "cusip": "040413205",
+      "issuer": "ARISTA NETWORKS INC",
+      "valueUsd": 627069212,
+      "weightPercent": 0.39503197217326996,
+      "changePercent": 20.280207372798323,
+      "isNew": false
+    },
+    {
+      "cusip": "958102105",
+      "issuer": "WESTERN DIGITAL CORP",
+      "valueUsd": 627021643,
+      "weightPercent": 0.3950020053442107,
+      "changePercent": -28.909894615957892,
+      "isNew": false
+    },
+    {
+      "cusip": "38141G104",
+      "issuer": "GOLDMAN SACHS GROUP INC",
+      "valueUsd": 608711787,
+      "weightPercent": 0.38346742768121334,
+      "changePercent": -10.230908796422515,
+      "isNew": false
+    },
+    {
+      "cusip": "882508104",
+      "issuer": "TEXAS INSTRS INC",
+      "valueUsd": 599431533,
+      "weightPercent": 0.3776211877929618,
+      "changePercent": -5.169906938889198,
       "isNew": false
     }
   ],
   "opened": [
     {
-      "cusip": "84615Q103",
-      "issuer": "SPACE EXPLORATION TECHN CORP",
-      "valueUsd": 598010000
+      "cusip": "30233Q108",
+      "issuer": "EXXONMOBIL HOLDINGS CORP",
+      "valueUsd": 1579304029
     },
     {
-      "cusip": "571748102",
-      "issuer": "MARSH & MCLENNAN COS INC",
-      "valueUsd": 188097762
+      "cusip": "80004C200",
+      "issuer": "SANDISK CORP",
+      "valueUsd": 294382428
     },
     {
-      "cusip": "438516205",
-      "issuer": "HONEYWELL INTL INC",
-      "valueUsd": 168056205
+      "cusip": "M8769Q102",
+      "issuer": "TEVA PHARMACEUTICAL INDS LTD",
+      "valueUsd": 96157789
     },
     {
-      "cusip": "43849R105",
-      "issuer": "HONEYWELL AEROSPACE INC",
-      "valueUsd": 165939553
+      "cusip": "30609A109",
+      "issuer": "ONEOK INC NEW",
+      "valueUsd": 89264558
     },
     {
-      "cusip": "G2004J103",
-      "issuer": "CARNIVAL CORP LTD",
-      "valueUsd": 92245987
+      "cusip": "G06973112",
+      "issuer": "AURA MINERALS INC",
+      "valueUsd": 2446948
     },
     {
-      "cusip": "76155X100",
-      "issuer": "REVOLUTION MEDICINES INC",
-      "valueUsd": 51240557
+      "cusip": "G3323L100",
+      "issuer": "FABRINET",
+      "valueUsd": 1740356
     },
     {
-      "cusip": "G87110105",
-      "issuer": "TECHNIPFMC PLC",
-      "valueUsd": 40511024
+      "cusip": "G8068L108",
+      "issuer": "SHARKNINJA INC",
+      "valueUsd": 1530660
     },
     {
-      "cusip": "983793100",
-      "issuer": "XPO INC",
-      "valueUsd": 37695145
+      "cusip": "L6388F110",
+      "issuer": "MILLICOM INTL CELLULAR S A",
+      "valueUsd": 1322785
     },
     {
-      "cusip": "314352105",
-      "issuer": "FEDEX FGHT HLDG CO INC",
-      "valueUsd": 26648178
+      "cusip": "576323109",
+      "issuer": "MASTEC INC",
+      "valueUsd": 1313763
     },
     {
-      "cusip": "674599162",
-      "issuer": "OCCIDENTAL PETE CORP",
-      "valueUsd": 3998734
+      "cusip": "448579102",
+      "issuer": "HYATT HOTELS CORP",
+      "valueUsd": 859237
     },
     {
-      "cusip": "26614N201",
-      "issuer": "DUPONT DE NEMOURS INC",
-      "valueUsd": 3951600
+      "cusip": "G6700G107",
+      "issuer": "NVENT ELEC PLC",
+      "valueUsd": 700817
+    },
+    {
+      "cusip": "01741R102",
+      "issuer": "ATI INC",
+      "valueUsd": 648884
+    }
+  ],
+  "closed": [
+    {
+      "cusip": "30231G102",
+      "issuer": "EXXON MOBIL CORP",
+      "valueUsd": 1321264951
+    },
+    {
+      "cusip": "285512109",
+      "issuer": "ELECTRONIC ARTS INC",
+      "valueUsd": 99731661
+    },
+    {
+      "cusip": "682680103",
+      "issuer": "ONEOK INC NEW",
+      "valueUsd": 90100617
+    },
+    {
+      "cusip": "881624209",
+      "issuer": "TEVA PHARMACEUTICAL INDS LTD",
+      "valueUsd": 81515720
+    },
+    {
+      "cusip": "053484101",
+      "issuer": "AVALONBAY CMNTYS INC",
+      "valueUsd": 46128856
     },
     {
       "cusip": "46222L108",
       "issuer": "IONQ INC",
       "valueUsd": 3908006
-    }
-  ],
-  "closed": [
-    {
-      "cusip": "438516106",
-      "issuer": "HONEYWELL INTL INC",
-      "valueUsd": 329808962
     },
     {
-      "cusip": "143658300",
-      "issuer": "CARNIVAL CORP",
-      "valueUsd": 76871649
+      "cusip": "G3265R107",
+      "issuer": "APTIV PLC",
+      "valueUsd": 3898673
     },
     {
-      "cusip": "127097103",
-      "issuer": "COTERRA ENERGY INC",
-      "valueUsd": 16085124
+      "cusip": "902252105",
+      "issuer": "TYLER TECHNOLOGIES INC",
+      "valueUsd": 1697145
     },
     {
-      "cusip": "72352L106",
-      "issuer": "PINTEREST INC",
-      "valueUsd": 3755702
+      "cusip": "550021109",
+      "issuer": "LULULEMON ATHLETICA INC",
+      "valueUsd": 1581621
     },
     {
-      "cusip": "366651107",
-      "issuer": "GARTNER INC",
-      "valueUsd": 3314215
+      "cusip": "749685103",
+      "issuer": "RPM INTL INC",
+      "valueUsd": 1483074
     },
     {
-      "cusip": "380237107",
-      "issuer": "GODADDY INC",
-      "valueUsd": 3065238
+      "cusip": "278768106",
+      "issuer": "ECHOSTAR CORP",
+      "valueUsd": 1245811
     },
     {
-      "cusip": "913903100",
-      "issuer": "UNIVERSAL HLTH SVCS INC",
-      "valueUsd": 2963743
-    },
-    {
-      "cusip": "443573100",
-      "issuer": "HUBSPOT INC",
-      "valueUsd": 2895758
-    },
-    {
-      "cusip": "83444M101",
-      "issuer": "SOLVENTUM CORP",
-      "valueUsd": 2416818
-    },
-    {
-      "cusip": "88339J105",
-      "issuer": "THE TRADE DESK INC",
-      "valueUsd": 2152441
-    },
-    {
-      "cusip": "874080104",
-      "issuer": "TAL ED GROUP",
-      "valueUsd": 1329756
-    },
-    {
-      "cusip": "989207105",
-      "issuer": "ZEBRA TECHNOLOGIES CORPORATI",
-      "valueUsd": 1199910
+      "cusip": "053611109",
+      "issuer": "AVERY DENNISON CORP",
+      "valueUsd": 730088
     }
   ]
 }
