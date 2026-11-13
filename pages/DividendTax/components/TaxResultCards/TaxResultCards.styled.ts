@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font, media, radius, space } from '@/shared/styles';
+import { BREAKPOINT, color, font, media, radius, space } from '@/shared/styles';
 
 export const ResultGrid = styled.div`
   display: grid;
@@ -20,6 +20,20 @@ export const ResultCard = styled.section`
   border-radius: ${radius.lg};
   background: ${color.surface};
   min-width: 0;
+
+  /* 태블릿(mobileWide 초과 ~ headerStack): 한 줄에 한 장이라 폭이 남는다 — 왼쪽(제목·값·배지) | 오른쪽(설명) 가로 배치. */
+  @media (min-width: ${BREAKPOINT.mobileWide + 1}px) and (max-width: ${BREAKPOINT.headerStack}px) {
+    grid-template-columns: minmax(200px, 2fr) 3fr;
+    grid-template-rows: auto auto 1fr;
+    column-gap: ${space[5]};
+    align-items: start;
+
+    > :last-child {
+      grid-column: 2;
+      grid-row: 1 / span 3;
+      align-self: center;
+    }
+  }
 `;
 
 export const Eyebrow = styled.span`

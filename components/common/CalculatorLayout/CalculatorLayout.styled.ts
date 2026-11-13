@@ -17,6 +17,9 @@ export const CalculatorStack = styled.div`
   max-width: 960px;
   margin: 0 auto;
   padding-bottom: ${space[7]};
+  /* 한글은 단어 단위로 꺾는다("연금소/득세" 방지), 띄어쓰기 없는 긴 글은 그래도 넘치지 않게. */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 `;
 
 export const CalculatorPanel = styled.section`

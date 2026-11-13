@@ -17,6 +17,9 @@ export const GuideStack = styled.div`
   max-width: 880px;
   margin: 0 auto;
   padding-bottom: ${space[7]};
+  /* 한글은 단어 단위로 꺾는다("연금소/득세" 방지), 띄어쓰기 없는 긴 글은 그래도 넘치지 않게. */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 `;
 
 export const List = styled.ol`
@@ -98,8 +101,12 @@ export const RowSide = styled.div`
   text-align: right;
   ${font.numeric};
 
+  /* 좁은 폭: 배지 · 시각 · "한국시간"을 한 줄로 흘린다 — 세로로 쌓으면 일정 하나가 5줄이 됐다(2026-11-13, 320px). */
   ${media.down('mobileNarrow')} {
-    justify-items: start;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: ${space[1]} ${space[2]};
     text-align: left;
   }
 `;
