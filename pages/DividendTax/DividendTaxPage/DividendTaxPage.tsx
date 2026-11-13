@@ -1,12 +1,15 @@
-import { useMemo, useState, type ChangeEvent } from 'react';
-import { Receipt } from 'lucide-react';
-import { InputField, PageHero } from '@/components/common';
+import { useCallback, useMemo, useState, type ChangeEvent } from 'react';
+import { createPortal } from 'react-dom';
+import { useLocation } from 'react-router-dom';
+import { Receipt, Share2 } from 'lucide-react';
+import { Button, InputField, PageHero, ShareDialog } from '@/components/common';
 import { TickerPageShell } from '@/pages/Ticker/components';
 import { useDocumentMeta } from '@/pages/Ticker/hooks';
 import { DIVIDEND_TAX_PATH } from '@/shared/constants/routes';
 import { calculateDividendTax, type HealthInsuranceStatus } from '@/shared/lib/dividendTax';
 import { formatKoreanWon } from '@/shared/utils';
 import { DIVIDEND_TAX_COPY } from '../copy';
+import { useResultShare } from '../hooks';
 import {
   BigValue,
   Compare,
@@ -27,10 +30,14 @@ import {
   ResultGrid,
   SegmentButton,
   Segmented,
+  ShareHint,
+  ShareRow,
+  ShareToast,
   Stack,
   StatusBadge,
   ToggleChip
 } from './DividendTaxPage.styled';
+import { formFromSearch, formToSearch } from './DividendTaxPage.utils';
 
 const copy = DIVIDEND_TAX_COPY;
 const MAN = 10_000;
@@ -51,12 +58,22 @@ const HEALTH: readonly HealthInsuranceStatus[] = ['employee', 'regional', 'depen
 export default function DividendTaxPage() {
   useDocumentMeta({ title: copy.meta.title, description: copy.meta.description, pathname: DIVIDEND_TAX_PATH });
 
-  const [monthlyUs, setMonthlyUs] = useState('150');
-  const [otherFinancial, setOtherFinancial] = useState('0');
-  const [otherTaxBase, setOtherTaxBase] = useState('0');
-  const [health, setHealth] = useState<HealthInsuranceStatus>('regional');
-  const [otherIncomeForDependent, setOtherIncomeForDependent] = useState('0');
-  const [isaSeomin, setIsaSeomin] = useState(false);
+  // 공유 링크(`?m=300&h=dependent…`)로 들어오면 그 조건으로 시작한다. 이후 입력은 주소창을 건드리지 않는다.
+  const { search } = useLocation();
+  const [initial] = useState(() => formFromSearch(search));
+  const [monthlyUs, setMonthlyUs] = useState(initial.monthlyUs);
+  const [otherFinancial, setOtherFinancial] = useState(initial.otherFinancial);
+  const [otherTaxBase, setOtherTaxBase] = useState(initial.otherTaxBase);
+  const [health, setHealth] = useState<HealthInsuranceStatus>(initial.health);
+  const [otherIncomeForDependent, setOtherIncomeForDependent] = useState(initial.otherIncomeForDependent);
+  const [isaSeomin, setIsaSeomin] = useState(initial.isaSeomin);
+
+  const buildShareUrl = useCallback(
+    () =>
+      `${window.location.origin}${DIVIDEND_TAX_PATH}${formToSearch({ monthlyUs, otherFinancial, otherTaxBase, health, otherIncomeForDependent, isaSeomin })}`,
+    [monthlyUs, otherFinancial, otherTaxBase, health, otherIncomeForDependent, isaSeomin]
+  );
+  const shareFlow = useResultShare(buildShareUrl, copy.share.title(String(toWon(monthlyUs) / MAN)));
 
   const result = useMemo(
     () =>
@@ -205,11 +222,35 @@ export default function DividendTaxPage() {
           </Note>
         </Panel>
 
+        <ShareRow>
+          <Button variant="secondary" startIcon={<Share2 aria-hidden size={16} />} onClick={() => void shareFlow.share()}>
+            {copy.share.button}
+          </Button>
+          <ShareHint>{copy.share.hint}</ShareHint>
+        </ShareRow>
+
         <Footnotes>
           <Note>{copy.basis}</Note>
           <Note>{copy.disclaimer}</Note>
         </Footnotes>
       </Stack>
+      {shareFlow.dialogUrl ? (
+        <ShareDialog
+          url={shareFlow.dialogUrl}
+          isCopied={shareFlow.isCopied}
+          onCopy={shareFlow.copyLink}
+          onSelectChannel={shareFlow.toChannel}
+          onClose={shareFlow.close}
+        />
+      ) : null}
+      {shareFlow.toast && typeof document !== 'undefined'
+        ? createPortal(
+            <ShareToast role="status" aria-live="polite">
+              {shareFlow.toast}
+            </ShareToast>,
+            document.body
+          )
+        : null}
     </TickerPageShell>
   );
 }

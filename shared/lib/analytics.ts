@@ -260,6 +260,10 @@ export const ANALYTICS_EVENT = {
   // ── 시나리오 공유 (Phase 1 신규) ────────────────────────────────────────────
   // 공유 링크 생성/복사(파라미터: share_method). 용도: 바이럴 계수, 공유 채널 분포.
   SCENARIO_SHARED: "scenario_shared",
+  // 계산기 결과 공유(2026-11-13, 파라미터: method='web_share'|'copy_link'|채널id, calculator='dividend_tax').
+  // 링크에 입력 조건이 실려 받은 사람이 같은 결과를 연다. 용도: 계산 결과가 밖으로 퍼지는가(가족 공유 가설).
+  // 시뮬 상태 공유(scenario_shared)·글 공유(community_post_shared)와 따로 센다.
+  CALCULATOR_SHARED: "calculator_shared",
 
   // ── 커뮤니티 참여 (Phase 1 신규 — 계측 최대 갭) ──────────────────────────────
   // 갤러리 진입. 용도: 커뮤니티 유입 모수, 갤러리→상세→시뮬 퍼널 시작.
@@ -555,6 +559,10 @@ export type AnalyticsEventParamMap = {
     error_code?: string;
   };
   [ANALYTICS_EVENT.SCENARIO_SHARED]: { share_method: string };
+  [ANALYTICS_EVENT.CALCULATOR_SHARED]: {
+    method: "web_share" | "copy_link" | "x" | "facebook" | "naver";
+    calculator: "dividend_tax";
+  };
   [ANALYTICS_EVENT.GOAL_WIDGET_VIEW]: {
     has_target: boolean;
     /**
