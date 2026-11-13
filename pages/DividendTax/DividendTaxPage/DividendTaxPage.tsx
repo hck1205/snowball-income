@@ -223,7 +223,7 @@ export default function DividendTaxPage() {
         </Panel>
 
         <ShareRow>
-          <Button variant="secondary" startIcon={<Share2 aria-hidden size={16} />} onClick={() => void shareFlow.share()}>
+          <Button variant="secondary" startIcon={<Share2 aria-hidden size={16} strokeWidth={1.8} />} onClick={() => void shareFlow.share()}>
             {copy.share.button}
           </Button>
           <ShareHint>{copy.share.hint}</ShareHint>
