@@ -9,7 +9,7 @@ name: GA traffic report
 #   남긴다. 리포트를 이슈로 열지 않는 이유도 같다(이슈도 공개).
 #
 # 비밀값 4개(Settings → Secrets and variables → Actions): GA_SERVICE_ACCOUNT_KEY · GA_PROPERTY_ID ·
-# HUNGRY_HIPPO_BOT_TOKEN(→ 스크립트의 TELEGRAM_BOT_TOKEN) · TELEGRAM_CHAT_ID. 없으면 스크립트가 건너뛰고 성공으로 끝난다.
+# HUNGRY_HIPPO_BOT_TOKEN(→ 스크립트의 TELEGRAM_BOT_TOKEN) · HUNGRY_HIPPO_TELEGRAM_CHAT_ID(→ TELEGRAM_CHAT_ID). 없으면 스크립트가 건너뛰고 성공으로 끝난다.
 # 등록 후 Actions 탭에서 이 워크플로를 수동 실행(mode=test)하면 연결 확인 메시지가 온다.
 #
 # GA 는 어제 데이터를 다음 날까지 조금씩 보정한다 — 아침 9시 숫자는 최종보다 약간 적을 수 있다.
@@ -58,5 +58,5 @@ jobs:
           GA_SERVICE_ACCOUNT_KEY: ${{ secrets.GA_SERVICE_ACCOUNT_KEY }}
           GA_PROPERTY_ID: ${{ secrets.GA_PROPERTY_ID }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.HUNGRY_HIPPO_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_CHAT_ID: ${{ secrets.HUNGRY_HIPPO_TELEGRAM_CHAT_ID }}
         run: npm run ga:report
