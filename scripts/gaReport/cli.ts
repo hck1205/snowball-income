@@ -5,10 +5,10 @@
  * REPORT_MODE=test npm run ga:report     # 연결 확인 — 어제 리포트를 한 번 보낸다
  * ```
  *
- * REPORT_MODE
- *   - `auto`(기본): 어제가 급증이면 급증 알림. 한국시간 월요일이면 주간 요약도.
- *   - `daily`: 급증이 아니어도 어제 리포트를 보낸다.  - `weekly`: 주간 요약만.
- *   - `test`: 연결 확인 줄 + 어제 리포트.
+ * REPORT_MODE (2026-11-14 사용자 요청으로 "매일 보낸다"로 바꿨다 — 전에는 급증한 날만 보냈다)
+ *   - `auto`(기본) · `daily`: 매일 어제 일일 리포트. 급증이면 그 **앞에** 짧은 급증 알림을 따로 한 통 더.
+ *     `auto` 는 한국시간 월요일이면 주간 요약도 보낸다.
+ *   - `weekly`: 주간 요약만.  - `test`: 연결 확인 줄 + 어제 일일 리포트.
  *
  * 환경 변수: GA_SERVICE_ACCOUNT_KEY(서비스 계정 키 JSON 전체) · GA_PROPERTY_ID ·
  * TELEGRAM_BOT_TOKEN · TELEGRAM_CHAT_ID. **하나라도 없으면 아무것도 하지 않고 성공으로 끝난다** —
@@ -24,7 +24,8 @@ import process from 'node:process';
 
 import {
   detectSpike,
-  formatSpikeMessage,
+  formatDailyMessage,
+  formatSpikeAlert,
   formatWeeklyMessage,
   isKstMonday,
   type BreakdownRow,
@@ -156,16 +157,19 @@ const main = async (): Promise<void> => {
 
   if (mode !== 'weekly') {
     const verdict = detectSpike(await fetchDays(token, propertyId, BASELINE_RANGE));
-    const forced = mode === 'daily' || mode === 'test';
-    if (verdict.day && (verdict.spike || forced)) {
-      const report = formatSpikeMessage(verdict, await fetchBreakdowns(token, propertyId, YESTERDAY));
-      await send(mode === 'test' ? `✅ 연결 확인 — 아래처럼 받습니다.\n\n${report}` : report);
-      console.log(`${LOG} 일일 리포트를 보냈다(${verdict.spike ? '급증' : `수동: ${mode}`}).`);
-    } else if (mode === 'test') {
-      await send('✅ Hungry Hippo 리포트 연결 확인 — GA 는 읽혔지만 어제 데이터가 아직 없습니다.');
-      console.log(`${LOG} 연결 확인 메시지를 보냈다(어제 자료 없음).`);
+    if (verdict.day) {
+      const breakdowns = await fetchBreakdowns(token, propertyId, YESTERDAY);
+      // 급증 알림이 먼저, 별도 메시지로 — 일일 리포트에 묻히지 않게.
+      if (verdict.spike) {
+        await send(formatSpikeAlert(verdict, breakdowns));
+        console.log(`${LOG} 급증 알림을 보냈다.`);
+      }
+      const report = formatDailyMessage(verdict, breakdowns);
+      await send(mode === 'test' ? `✅ 연결 확인 — 매일 아침 이렇게 받습니다.\n\n${report}` : report);
+      console.log(`${LOG} 일일 리포트를 보냈다.`);
     } else {
-      console.log(`${LOG} 급증 아님 — 일일 알림 없음.`);
+      await send('📋 Hungry Hippo 일일 리포트 — GA 에 어제 데이터가 아직 없습니다.');
+      console.log(`${LOG} 어제 자료가 없어 안내만 보냈다.`);
     }
   }
 

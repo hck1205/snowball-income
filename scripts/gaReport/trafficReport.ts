@@ -190,19 +190,43 @@ const detailSections = (breakdowns: Breakdowns): string[] => [
 
 // ── 메시지 ─────────────────────────────────────────────────────────
 
-/** 급증 알림(또는 수동 일일 리포트) — 어제 하루. */
-export const formatSpikeMessage = (verdict: SpikeVerdict, breakdowns: Breakdowns): string => {
+const ratioLabel = (verdict: SpikeVerdict): string =>
+  verdict.baseline > 0 ? `평소의 ${(verdict.day!.engagedSessions / verdict.baseline).toFixed(1)}배` : '평소 기록 없음';
+
+/** 일일 리포트 — 매일 아침, 어제 하루 전체. 급증 여부와 상관없이 같은 모양이다(급증은 따로 알린다). */
+export const formatDailyMessage = (verdict: SpikeVerdict, breakdowns: Breakdowns): string => {
   const day = verdict.day!;
-  const ratio = verdict.baseline > 0 ? `평소의 ${(day.engagedSessions / verdict.baseline).toFixed(1)}배` : '평소 기록 없음';
   return [
-    `${verdict.spike ? '🚀' : '📋'} <b>Hungry Hippo ${verdict.spike ? '트래픽 급증' : '일일 리포트'}</b>`,
-    `${dayLabel(day.date)} · ${ratio}`,
+    '📋 <b>Hungry Hippo 일일 리포트</b>',
+    `${dayLabel(day.date)} · ${ratioLabel(verdict)}`,
     '',
     '<b>📌 요약</b>',
     `참여 세션 <b>${day.engagedSessions}</b> (직전 ${BASELINE_DAYS}일 평균 ${verdict.baseline.toFixed(1)})`,
     `방문자 ${day.activeUsers} · 페이지뷰 ${day.pageViews}`,
     ...qualityLines(day),
     ...detailSections(breakdowns)
+  ].join('\n');
+};
+
+const SPIKE_TOP = 3;
+
+/**
+ * 급증 알림 — 일일 리포트와 **별개로** 먼저 가는 짧은 메시지(2026-11-14 사용자 요청). 알림 미리보기만 봐도
+ * "얼마나 · 어디서 · 무엇을" 이 보이게 세 줄씩만. 자세한 내역은 바로 뒤의 일일 리포트에 있다.
+ */
+export const formatSpikeAlert = (verdict: SpikeVerdict, breakdowns: Breakdowns): string => {
+  const day = verdict.day!;
+  const top = (rows: readonly BreakdownRow[], name: (raw: string) => string): string =>
+    groupBy(rows, name)
+      .filter((row) => row.engagedSessions > 0)
+      .slice(0, SPIKE_TOP)
+      .map((row) => `${escapeHtml(row.label)} ${row.engagedSessions}`)
+      .join(' · ') || '-';
+  return [
+    `🚀 <b>트래픽 급증 — ${dayLabel(day.date)}</b>`,
+    `참여 세션 <b>${day.engagedSessions}</b> · ${ratioLabel(verdict)} (평소 ${verdict.baseline.toFixed(1)})`,
+    `유입: ${top(breakdowns.sources, sourceLabel)}`,
+    `페이지: ${top(breakdowns.landingPages, pageLabel)}`
   ].join('\n');
 };
 
