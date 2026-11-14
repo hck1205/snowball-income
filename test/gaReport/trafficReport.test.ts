@@ -6,7 +6,8 @@ import {
   detectSpike,
   durationLabel,
   escapeHtml,
-  formatSpikeMessage,
+  formatDailyMessage,
+  formatSpikeAlert,
   formatWeeklyMessage,
   groupBy,
   isKstMonday,
@@ -132,11 +133,11 @@ const breakdowns: Breakdowns = {
   ]
 };
 
-describe('급증 알림 문구', () => {
-  const text = formatSpikeMessage(detectSpike([...quietWeeks, day('20261115', 12, 20)]), breakdowns);
+describe('일일 리포트 문구', () => {
+  const text = formatDailyMessage(detectSpike([...quietWeeks, day('20261115', 12, 20)]), breakdowns);
 
   it('머리: 날짜·요일과 평소의 몇 배', () => {
-    expect(text).toContain('<b>Hungry Hippo 트래픽 급증</b>');
+    expect(text).toContain('<b>Hungry Hippo 일일 리포트</b>');
     expect(text).toContain('11/15(일) · 평소의 4.0배');
     expect(text).toContain('참여 세션 <b>12</b> (직전 14일 평균 3.0)');
   });
@@ -163,8 +164,22 @@ describe('급증 알림 문구', () => {
     expect(text).not.toContain('/x<b>');
   });
 
-  it('급증이 아닌 수동 리포트는 제목이 다르다', () => {
-    expect(formatSpikeMessage(detectSpike([...quietWeeks, day('20261115', 3)]), breakdowns)).toContain('<b>Hungry Hippo 일일 리포트</b>');
+  it('급증한 날이든 아니든 일일 리포트는 같은 제목이다(급증은 따로 알린다)', () => {
+    expect(formatDailyMessage(detectSpike([...quietWeeks, day('20261115', 3)]), breakdowns)).toContain('<b>Hungry Hippo 일일 리포트</b>');
+    expect(text).not.toContain('급증');
+  });
+});
+
+describe('급증 알림 — 일일 리포트와 별개의 짧은 메시지', () => {
+  const alert = formatSpikeAlert(detectSpike([...quietWeeks, day('20261115', 12, 20)]), breakdowns);
+
+  it('네 줄: 날짜 · 몇 배 · 유입 상위 3 · 페이지 상위 3', () => {
+    expect(alert.split('\n')).toEqual([
+      '🚀 <b>트래픽 급증 — 11/15(일)</b>',
+      '참여 세션 <b>12</b> · 평소의 4.0배 (평소 3.0)',
+      '유입: 네이버 검색 8 · 구글 검색 4',
+      '페이지: 미국 증시 캘린더 6 · /x&lt;b&gt; 2'
+    ]);
   });
 });
 

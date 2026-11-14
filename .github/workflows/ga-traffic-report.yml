@@ -1,7 +1,8 @@
 name: GA traffic report
 
 # GA 트래픽 → 텔레그램 (2026-11-13). 매일 아침 9시(한국시간) 어제 숫자를 보고:
-#   - 참여 세션이 급증했으면(평소의 2배 이상 · 10 이상) 바로 알림.
+#   - 매일 어제 일일 리포트(2026-11-14 사용자 요청 — 전에는 급증한 날만).
+#   - 참여 세션이 급증했으면(평소의 2배 이상 · 10 이상) 그 앞에 짧은 급증 알림을 따로 한 통 더.
 #   - 한국시간 월요일이면 주간 요약도.
 # 판정 · 문구는 `scripts/gaReport/trafficReport.ts`(순수 함수, 테스트로 잠김), 호출은 `cli.ts`.
 #
@@ -19,7 +20,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'auto(급증·월요일 요약) · daily(어제 리포트 강제) · weekly(주간 요약) · test(연결 확인)'
+        description: 'auto(일일 리포트·급증 알림·월요일 주간) · daily(일일 리포트만) · weekly(주간 요약) · test(연결 확인)'
         required: true
         default: test
         type: choice
