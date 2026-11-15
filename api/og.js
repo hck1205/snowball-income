@@ -1789,8 +1789,8 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 31,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "3": 10,
         "6": 10,
@@ -3591,12 +3591,19 @@ var marketData_generated_default = {
       dividendYield: 3.62,
       frequency: "quarterly",
       payoutMonths: [
-        2,
-        5,
-        8,
-        11
+        3,
+        6,
+        9,
+        12
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 21,
+      estimatedPayDayByMonth: {
+        "3": 2,
+        "6": 2,
+        "9": 2,
+        "12": 1
+      }
     },
     FAST: {
       initialPrice: 52.99,
