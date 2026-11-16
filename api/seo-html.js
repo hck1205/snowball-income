@@ -10044,8 +10044,8 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 21,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "3": 2,
         "6": 2,
@@ -11619,7 +11619,14 @@ var marketData_generated_default = {
         8,
         11
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 14,
+      estimatedPayDayByMonth: {
+        "2": 20,
+        "5": 20,
+        "8": 20,
+        "11": 20
+      }
     },
     NUE: {
       initialPrice: 244.97,
