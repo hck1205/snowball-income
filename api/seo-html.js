@@ -11619,8 +11619,8 @@ var marketData_generated_default = {
         8,
         11
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 14,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "2": 20,
         "5": 20,
@@ -13416,11 +13416,18 @@ var marketData_generated_default = {
       observedDividendCagr: 6.28,
       payoutMonths: [
         3,
-        6,
-        9,
+        7,
+        10,
         12
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 3,
+      estimatedPayDayByMonth: {
+        "3": 31,
+        "7": 2,
+        "10": 1,
+        "12": 26
+      }
     },
     VTR: {
       initialPrice: 88.75,
