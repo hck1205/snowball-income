@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-14",
+  "generatedAt": "2026-11-17",
   "source": "SEC EDGAR 13F-HR",
   "investors": [
     {
@@ -8,186 +8,186 @@
       "firm": "Berkshire Hathaway",
       "note": "보험·제조업을 함께 소유하며 소수의 종목에 크게 집중하는 것으로 알려져 있습니다.",
       "registrantName": "BERKSHIRE HATHAWAY INC",
-      "accessionNumber": "0001193125-26-352200",
-      "reportDate": "2026-06-30",
-      "filingDate": "2026-08-14",
+      "accessionNumber": "0001193125-26-463399",
+      "reportDate": "2026-09-30",
+      "filingDate": "2026-11-16",
       "valueUnit": "dollars",
-      "totalValueUsd": 299253556246,
-      "totalHoldingCount": 29,
+      "totalValueUsd": 304196581325,
+      "totalHoldingCount": 30,
       "topHoldings": [
         {
           "cusip": "037833100",
           "issuer": "APPLE INC",
-          "valueUsd": 65950296923,
-          "weightPercent": 22.038266729497398,
+          "valueUsd": 75901188420,
+          "weightPercent": 24.95136141550127,
           "kind": "share"
         },
         {
           "cusip": "025816109",
           "issuer": "AMERICAN EXPRESS CO",
-          "valueUsd": 51282319275,
-          "weightPercent": 17.136745146261052,
+          "valueUsd": 46104813870,
+          "weightPercent": 15.15625641457889,
           "kind": "share"
         },
         {
           "cusip": "191216100",
           "issuer": "COCA COLA CO",
-          "valueUsd": 32508000000,
-          "weightPercent": 10.863028799990918,
+          "valueUsd": 34432000000,
+          "weightPercent": 11.318996370709788,
           "kind": "share"
         },
         {
           "cusip": "02079K305",
           "issuer": "ALPHABET INC",
-          "valueUsd": 28157599351,
-          "weightPercent": 9.40927810657434,
+          "valueUsd": 27110464741,
+          "weightPercent": 8.9121529975498,
           "kind": "share"
         },
         {
           "cusip": "060505104",
           "issuer": "BANK OF AMER CORP",
-          "valueUsd": 27543790975,
-          "weightPercent": 9.204164963158451,
+          "valueUsd": 24812509222,
+          "weightPercent": 8.156735067147453,
           "kind": "share"
         },
         {
           "cusip": "166764100",
           "issuer": "CHEVRON CORPORATION",
-          "valueUsd": 13986141890,
-          "weightPercent": 4.673676084404744,
+          "valueUsd": 17230393553,
+          "weightPercent": 5.664229847011743,
           "kind": "share"
         },
         {
           "cusip": "674599105",
           "issuer": "OCCIDENTAL PETE CORP",
-          "valueUsd": 12868205304,
-          "weightPercent": 4.300101046559243,
-          "kind": "share"
-        },
-        {
-          "cusip": "H1467J104",
-          "issuer": "CHUBB LIMITED",
-          "valueUsd": 11670066615,
-          "weightPercent": 3.8997252902841617,
+          "valueUsd": 14656559963,
+          "weightPercent": 4.818121196221172,
           "kind": "share"
         },
         {
           "cusip": "615369105",
           "issuer": "MOODYS CORP",
-          "valueUsd": 11173435852,
-          "weightPercent": 3.7337687786122506,
+          "valueUsd": 11203286284,
+          "weightPercent": 3.6829099903757765,
+          "kind": "share"
+        },
+        {
+          "cusip": "H1467J104",
+          "issuer": "CHUBB LIMITED",
+          "valueUsd": 11139546771,
+          "weightPercent": 3.661956594804279,
           "kind": "share"
         },
         {
           "cusip": "02079K107",
           "issuer": "ALPHABET INC",
-          "valueUsd": 9606489032,
-          "weightPercent": 3.2101503328846093,
+          "valueUsd": 9264186660,
+          "weightPercent": 3.045460478105194,
           "kind": "share"
         },
         {
           "cusip": "500754106",
           "issuer": "KRAFT HEINZ CO",
-          "valueUsd": 7691494401,
-          "weightPercent": 2.5702265655540755,
-          "kind": "share"
-        },
-        {
-          "cusip": "23918K108",
-          "issuer": "DAVITA INC",
-          "valueUsd": 6425268898,
-          "weightPercent": 2.1470985937818354,
+          "valueUsd": 7398423065,
+          "weightPercent": 2.4321190701007955,
           "kind": "share"
         },
         {
           "cusip": "247361702",
           "issuer": "DELTA AIR LINES INC",
-          "valueUsd": 5368591200,
-          "weightPercent": 1.7939941190161746,
+          "valueUsd": 5378997000,
+          "weightPercent": 1.7682634619266624,
+          "kind": "share"
+        },
+        {
+          "cusip": "23918K108",
+          "issuer": "DAVITA INC",
+          "valueUsd": 5019719296,
+          "weightPercent": 1.650156380500868,
           "kind": "share"
         },
         {
           "cusip": "829933100",
           "issuer": "SIRIUSXM HOLDINGS INC",
-          "valueUsd": 3686802237,
-          "weightPercent": 1.231999473372768,
-          "kind": "share"
-        },
-        {
-          "cusip": "92343E102",
-          "issuer": "VERISIGN INC",
-          "valueUsd": 2261494212,
-          "weightPercent": 0.7557117249898107,
-          "kind": "share"
-        },
-        {
-          "cusip": "501044101",
-          "issuer": "KROGER CO",
-          "valueUsd": 2165670000,
-          "weightPercent": 0.7236906478797936,
-          "kind": "share"
-        },
-        {
-          "cusip": "02005N100",
-          "issuer": "ALLY FINL INC",
-          "valueUsd": 1240650000,
-          "weightPercent": 0.4145815393352016,
+          "valueUsd": 3230008188,
+          "weightPercent": 1.0618160710192523,
           "kind": "share"
         },
         {
           "cusip": "526057104",
           "issuer": "LENNAR CORP",
-          "valueUsd": 1186481443,
-          "weightPercent": 0.3964803151828406,
+          "valueUsd": 2124149633,
+          "weightPercent": 0.6982818885563293,
+          "kind": "share"
+        },
+        {
+          "cusip": "501044101",
+          "issuer": "KROGER CO",
+          "valueUsd": 2051700000,
+          "weightPercent": 0.6744651734951578,
+          "kind": "share"
+        },
+        {
+          "cusip": "92343E102",
+          "issuer": "VERISIGN INC",
+          "valueUsd": 1670101573,
+          "weightPercent": 0.5490204938285231,
           "kind": "share"
         },
         {
           "cusip": "530909308",
           "issuer": "LIBERTY LIVE HOLDINGS INC",
-          "valueUsd": 1118425787,
-          "weightPercent": 0.37373851159202376,
+          "valueUsd": 1029599657,
+          "weightPercent": 0.3384652294629137,
+          "kind": "share"
+        },
+        {
+          "cusip": "02005N100",
+          "issuer": "ALLY FINL INC",
+          "valueUsd": 1015740001,
+          "weightPercent": 0.3339090783255041,
           "kind": "share"
         },
         {
           "cusip": "650111107",
           "issuer": "NEW YORK TIMES CO MTN BE",
-          "valueUsd": 1098686000,
-          "weightPercent": 0.36714216993191895,
+          "valueUsd": 1000090000,
+          "weightPercent": 0.3287643784962579,
           "kind": "share"
         },
         {
-          "cusip": "14040H105",
-          "issuer": "CAPITAL ONE FINL CORP",
-          "valueUsd": 601860000,
-          "weightPercent": 0.2011204169300644,
+          "cusip": "T19377109",
+          "issuer": "BENDING SPOONS SPA",
+          "valueUsd": 689379305,
+          "weightPercent": 0.22662296268986512,
           "kind": "share"
         },
         {
           "cusip": "530909100",
           "issuer": "LIBERTY LIVE HOLDINGS INC",
-          "valueUsd": 504941901,
-          "weightPercent": 0.1687338013069141,
-          "kind": "share"
-        },
-        {
-          "cusip": "546347105",
-          "issuer": "LOUISIANA PAC CORP",
-          "valueUsd": 445592617,
-          "weightPercent": 0.14890136063536122,
+          "valueUsd": 471930689,
+          "weightPercent": 0.1551400370590605,
           "kind": "share"
         },
         {
           "cusip": "670346105",
           "issuer": "NUCOR CORP",
-          "valueUsd": 413814258,
-          "weightPercent": 0.13828215216257142,
+          "valueUsd": 369506390,
+          "weightPercent": 0.12146960639417041,
           "kind": "share"
         },
         {
-          "cusip": "55616P104",
-          "issuer": "MACYS INC",
-          "valueUsd": 173031882,
-          "weightPercent": 0.05782116148279285,
+          "cusip": "546347105",
+          "issuer": "LOUISIANA PAC CORP",
+          "valueUsd": 365662388,
+          "weightPercent": 0.12020594919484999,
+          "kind": "share"
+        },
+        {
+          "cusip": "14040H105",
+          "issuer": "CAPITAL ONE FINL CORP",
+          "valueUsd": 222030500,
+          "weightPercent": 0.07298915031618493,
           "kind": "share"
         }
       ]
@@ -388,179 +388,186 @@
       "firm": "Gates Foundation Trust",
       "note": "재단 기금을 운용하며 보유 기간이 길고 회전이 적은 편입니다.",
       "registrantName": "GATES FOUNDATION TRUST",
-      "accessionNumber": "0001104659-26-097175",
-      "reportDate": "2026-06-30",
-      "filingDate": "2026-08-14",
+      "accessionNumber": "0001104659-26-128337",
+      "reportDate": "2026-09-30",
+      "filingDate": "2026-11-16",
       "valueUnit": "dollars",
-      "totalValueUsd": 34424791932,
-      "totalHoldingCount": 24,
+      "totalValueUsd": 29893737492,
+      "totalHoldingCount": 25,
       "topHoldings": [
         {
           "cusip": "084670702",
           "issuer": "BERKSHIRE HATHAWAY INC DEL",
-          "valueUsd": 7350651039,
-          "weightPercent": 21.352782766326932,
-          "kind": "share"
-        },
-        {
-          "cusip": "149123101",
-          "issuer": "CATERPILLAR INC",
-          "valueUsd": 6765963549,
-          "weightPercent": 19.654333895074654,
+          "valueUsd": 6199132421,
+          "weightPercent": 20.73722773092183,
           "kind": "share"
         },
         {
           "cusip": "136375102",
           "issuer": "CANADIAN NATL RY CO",
-          "valueUsd": 6179825963,
-          "weightPercent": 17.95167266430292,
+          "valueUsd": 6162204855,
+          "weightPercent": 20.61369829265777,
+          "kind": "share"
+        },
+        {
+          "cusip": "149123101",
+          "issuer": "CATERPILLAR INC",
+          "valueUsd": 5151446695,
+          "weightPercent": 17.232528038284283,
           "kind": "share"
         },
         {
           "cusip": "94106L109",
           "issuer": "WASTE MGMT INC DEL",
-          "valueUsd": 5955519423,
-          "weightPercent": 17.300088362956732,
+          "valueUsd": 4183024419,
+          "weightPercent": 13.99297903154277,
           "kind": "share"
         },
         {
           "cusip": "244199105",
           "issuer": "DEERE & CO",
-          "valueUsd": 2256551587,
-          "weightPercent": 6.555018811609415,
+          "valueUsd": 2388957196,
+          "weightPercent": 7.991497204520913,
           "kind": "share"
         },
         {
           "cusip": "278865100",
           "issuer": "ECOLAB INC",
-          "valueUsd": 1453799239,
-          "weightPercent": 4.223116996238407,
+          "valueUsd": 1432770522,
+          "weightPercent": 4.792878516389696,
           "kind": "share"
         },
         {
           "cusip": "931142103",
           "issuer": "WALMART INC",
-          "valueUsd": 950305425,
-          "weightPercent": 2.760526270942052,
+          "valueUsd": 871938370,
+          "weightPercent": 2.9167927571229373,
           "kind": "share"
         },
         {
           "cusip": "31428X106",
           "issuer": "FEDEX CORP",
-          "valueUsd": 746615273,
-          "weightPercent": 2.1688301688934084,
+          "valueUsd": 679757763,
+          "weightPercent": 2.2739136020777364,
           "kind": "share"
         },
         {
           "cusip": "191241108",
           "issuer": "COCA-COLA FEMSA SAB DE CV",
-          "valueUsd": 660313894,
-          "weightPercent": 1.9181347422646204,
-          "kind": "share"
-        },
-        {
-          "cusip": "437076102",
-          "issuer": "HOME DEPOT INC",
-          "valueUsd": 352680000,
-          "weightPercent": 1.024494209570405,
+          "valueUsd": 671438241,
+          "weightPercent": 2.246083284767208,
           "kind": "share"
         },
         {
           "cusip": "94106B101",
           "issuer": "WASTE CONNECTIONS INC",
-          "valueUsd": 339910081,
-          "weightPercent": 0.9873990863080054,
+          "valueUsd": 313890208,
+          "weightPercent": 1.050019951784221,
+          "kind": "share"
+        },
+        {
+          "cusip": "437076102",
+          "issuer": "HOME DEPOT INC",
+          "valueUsd": 284490000,
+          "weightPercent": 0.9516708978799779,
           "kind": "share"
         },
         {
           "cusip": "55825T103",
           "issuer": "MADISON SQUARE GRDN SPRT COR",
-          "valueUsd": 238052427,
-          "weightPercent": 0.6915144976627016,
-          "kind": "share"
-        },
-        {
-          "cusip": "314352105",
-          "issuer": "FEDEX FGHT HLDG CO INC",
-          "valueUsd": 180019331,
-          "weightPercent": 0.5229351316214078,
-          "kind": "share"
-        },
-        {
-          "cusip": "22266T109",
-          "issuer": "COUPANG INC",
-          "valueUsd": 160638542,
-          "weightPercent": 0.46663620310999304,
-          "kind": "share"
-        },
-        {
-          "cusip": "955306105",
-          "issuer": "WEST PHARMACEUTICAL SVSC INC",
-          "valueUsd": 159575500,
-          "weightPercent": 0.46354819025547855,
-          "kind": "share"
-        },
-        {
-          "cusip": "03524A108",
-          "issuer": "ANHEUSER BUSCH INBEV SA NV",
-          "valueUsd": 140327200,
-          "weightPercent": 0.40763412681532313,
-          "kind": "share"
-        },
-        {
-          "cusip": "693718108",
-          "issuer": "PACCAR INC",
-          "valueUsd": 120120000,
-          "weightPercent": 0.34893457086763374,
+          "valueUsd": 240048835,
+          "weightPercent": 0.8030071016186604,
           "kind": "share"
         },
         {
           "cusip": "80810D103",
           "issuer": "SCHRODINGER INC",
-          "valueUsd": 113452040,
-          "weightPercent": 0.32956492583631053,
+          "valueUsd": 216780667,
+          "weightPercent": 0.7251708390696,
           "kind": "share"
         },
         {
-          "cusip": "580135101",
-          "issuer": "MCDONALDS CORP",
-          "valueUsd": 90526819,
-          "weightPercent": 0.2629698363284794,
+          "cusip": "955306105",
+          "issuer": "WEST PHARMACEUTICAL SVSC INC",
+          "valueUsd": 164802820,
+          "weightPercent": 0.5512954679691813,
+          "kind": "share"
+        },
+        {
+          "cusip": "256746108",
+          "issuer": "DOLLAR TREE INC",
+          "valueUsd": 155183728,
+          "weightPercent": 0.5191178521639505,
+          "kind": "share"
+        },
+        {
+          "cusip": "314352105",
+          "issuer": "FEDEX FGHT HLDG CO INC",
+          "valueUsd": 130400758,
+          "weightPercent": 0.43621430085447543,
+          "kind": "share"
+        },
+        {
+          "cusip": "22266T109",
+          "issuer": "COUPANG INC",
+          "valueUsd": 128270384,
+          "weightPercent": 0.429087811566978,
+          "kind": "share"
+        },
+        {
+          "cusip": "03524A108",
+          "issuer": "ANHEUSER BUSCH INBEV SA NV",
+          "valueUsd": 125119410,
+          "weightPercent": 0.4185472292766462,
+          "kind": "share"
+        },
+        {
+          "cusip": "693718108",
+          "issuer": "PACCAR INC",
+          "valueUsd": 109810000,
+          "weightPercent": 0.36733446270941117,
           "kind": "share"
         },
         {
           "cusip": "235851102",
           "issuer": "DANAHER CORP DEL",
-          "valueUsd": 71049040,
-          "weightPercent": 0.2063891631947831,
+          "valueUsd": 82638150,
+          "weightPercent": 0.27643967243010403,
+          "kind": "share"
+        },
+        {
+          "cusip": "580135101",
+          "issuer": "MCDONALDS CORP",
+          "valueUsd": 77341806,
+          "weightPercent": 0.2587224364992761,
           "kind": "share"
         },
         {
           "cusip": "500754106",
           "issuer": "KRAFT HEINZ CO",
-          "valueUsd": 58402812,
-          "weightPercent": 0.16965334784118455,
+          "valueUsd": 56177472,
+          "weightPercent": 0.1879238821008377,
           "kind": "share"
         },
         {
           "cusip": "440452100",
           "issuer": "HORMEL FOODS CORP",
-          "valueUsd": 51756898,
-          "weightPercent": 0.1503477438650507,
+          "valueUsd": 41580683,
+          "weightPercent": 0.1390949626527215,
           "kind": "share"
         },
         {
           "cusip": "H5919C104",
           "issuer": "ON HLDG AG",
-          "valueUsd": 17710000,
-          "weightPercent": 0.05144548160227933,
+          "valueUsd": 14805000,
+          "weightPercent": 0.04952542318926174,
           "kind": "share"
         },
         {
           "cusip": "92338C103",
           "issuer": "VERALTO CORP",
-          "valueUsd": 11025850,
-          "weightPercent": 0.032028806511829,
+          "valueUsd": 11727089,
+          "weightPercent": 0.03922924994955328,
           "kind": "share"
         }
       ]
@@ -571,186 +578,186 @@
       "firm": "Bridgewater Associates",
       "note": "거시경제 기반으로 자산군을 넓게 배분하는 헤지펀드입니다.",
       "registrantName": "Bridgewater Associates, LP",
-      "accessionNumber": "0001350694-26-000003",
-      "reportDate": "2026-06-30",
-      "filingDate": "2026-08-14",
+      "accessionNumber": "0001350694-26-000004",
+      "reportDate": "2026-09-30",
+      "filingDate": "2026-11-16",
       "valueUnit": "dollars",
-      "totalValueUsd": 24376086530,
-      "totalHoldingCount": 997,
+      "totalValueUsd": 22985792515,
+      "totalHoldingCount": 974,
       "topHoldings": [
         {
           "cusip": "78462F103",
           "issuer": "STATE STR SPDR S&P 500 ETF T",
-          "valueUsd": 3973046405,
-          "weightPercent": 16.29895102362028,
+          "valueUsd": 2595471644,
+          "weightPercent": 11.291634353291299,
           "kind": "share"
         },
         {
           "cusip": "464287200",
           "issuer": "ISHARES TR",
-          "valueUsd": 2248381963,
-          "weightPercent": 9.223719977498783,
+          "valueUsd": 1154942390,
+          "weightPercent": 5.024592427023394,
           "kind": "share"
         },
         {
           "cusip": "67066G104",
           "issuer": "NVIDIA CORPORATION",
-          "valueUsd": 773586958,
-          "weightPercent": 3.1735486213011894,
+          "valueUsd": 613935912,
+          "weightPercent": 2.670936456071112,
           "kind": "share"
         },
         {
           "cusip": "11135F101",
           "issuer": "BROADCOM INC",
-          "valueUsd": 497845413,
-          "weightPercent": 2.042351680969357,
-          "kind": "share"
-        },
-        {
-          "cusip": "023135106",
-          "issuer": "AMAZON COM INC",
-          "valueUsd": 482753142,
-          "weightPercent": 1.9804374316027669,
-          "kind": "share"
-        },
-        {
-          "cusip": "02079K305",
-          "issuer": "ALPHABET INC",
-          "valueUsd": 472506037,
-          "weightPercent": 1.9383999003223098,
+          "valueUsd": 461725648,
+          "weightPercent": 2.008743651969748,
           "kind": "share"
         },
         {
           "cusip": "512807306",
           "issuer": "LAM RESEARCH CORP",
-          "valueUsd": 406560606,
-          "weightPercent": 1.6678666015549297,
-          "kind": "share"
-        },
-        {
-          "cusip": "922908363",
-          "issuer": "VANGUARD INDEX FDS",
-          "valueUsd": 314820655,
-          "weightPercent": 1.2915143479349964,
+          "valueUsd": 348182821,
+          "weightPercent": 1.5147740534627374,
           "kind": "share"
         },
         {
           "cusip": "007903107",
           "issuer": "ADVANCED MICRO DEVICES INC",
-          "valueUsd": 312896715,
-          "weightPercent": 1.2836216125788424,
-          "kind": "share"
-        },
-        {
-          "cusip": "464286772",
-          "issuer": "ISHARES INC",
-          "valueUsd": 279585467,
-          "weightPercent": 1.1469661738192065,
-          "kind": "share"
-        },
-        {
-          "cusip": "594918104",
-          "issuer": "MICROSOFT CORP",
-          "valueUsd": 265551446,
-          "weightPercent": 1.0893932693961437,
-          "kind": "share"
-        },
-        {
-          "cusip": "651639106",
-          "issuer": "NEWMONT CORP",
-          "valueUsd": 251728878,
-          "weightPercent": 1.0326878257926826,
+          "valueUsd": 300580323,
+          "weightPercent": 1.3076787446151712,
           "kind": "share"
         },
         {
           "cusip": "038222105",
           "issuer": "APPLIED MATLS INC",
-          "valueUsd": 210700998,
-          "weightPercent": 0.8643758207072626,
-          "kind": "share"
-        },
-        {
-          "cusip": "68389X105",
-          "issuer": "ORACLE CORP",
-          "valueUsd": 210001314,
-          "weightPercent": 0.8615054501941826,
-          "kind": "share"
-        },
-        {
-          "cusip": "G7997R103",
-          "issuer": "SEAGATE TECHNOLOGY HLDNGS PL",
-          "valueUsd": 192828230,
-          "weightPercent": 0.7910549126197248,
-          "kind": "share"
-        },
-        {
-          "cusip": "478160104",
-          "issuer": "JOHNSON & JOHNSON",
-          "valueUsd": 169940216,
-          "weightPercent": 0.6971595534453495,
-          "kind": "share"
-        },
-        {
-          "cusip": "922042858",
-          "issuer": "VANGUARD INTL EQUITY INDEX F",
-          "valueUsd": 163957626,
-          "weightPercent": 0.6726166884836703,
-          "kind": "share"
-        },
-        {
-          "cusip": "36828A101",
-          "issuer": "GE VERNOVA INC",
-          "valueUsd": 144235212,
-          "weightPercent": 0.5917078273515629,
-          "kind": "share"
-        },
-        {
-          "cusip": "907818108",
-          "issuer": "UNION PAC CORP",
-          "valueUsd": 139880352,
-          "weightPercent": 0.5738425313999737,
+          "valueUsd": 288100753,
+          "weightPercent": 1.2533862072060038,
           "kind": "share"
         },
         {
           "cusip": "595112103",
           "issuer": "MICRON TECHNOLOGY INC",
-          "valueUsd": 134666397,
-          "weightPercent": 0.5524529002400124,
+          "valueUsd": 252557818,
+          "weightPercent": 1.098756189655791,
           "kind": "share"
         },
         {
-          "cusip": "464288588",
-          "issuer": "ISHARES TR",
-          "valueUsd": 131080336,
-          "weightPercent": 0.5377415108806639,
+          "cusip": "651639106",
+          "issuer": "NEWMONT CORP",
+          "valueUsd": 242638682,
+          "weightPercent": 1.0556028548576672,
+          "kind": "share"
+        },
+        {
+          "cusip": "023135106",
+          "issuer": "AMAZON COM INC",
+          "valueUsd": 241863857,
+          "weightPercent": 1.052231968256762,
+          "kind": "share"
+        },
+        {
+          "cusip": "464286772",
+          "issuer": "ISHARES INC",
+          "valueUsd": 229577895,
+          "weightPercent": 0.9987817250598722,
+          "kind": "share"
+        },
+        {
+          "cusip": "03831W108",
+          "issuer": "APPLOVIN CORP",
+          "valueUsd": 198375307,
+          "weightPercent": 0.8630344456061056,
+          "kind": "share"
+        },
+        {
+          "cusip": "780259305",
+          "issuer": "SHELL PLC",
+          "valueUsd": 195929321,
+          "weightPercent": 0.8523931505608999,
+          "kind": "share"
+        },
+        {
+          "cusip": "922042858",
+          "issuer": "VANGUARD INTL EQUITY INDEX F",
+          "valueUsd": 188419448,
+          "weightPercent": 0.8197213469017516,
+          "kind": "share"
+        },
+        {
+          "cusip": "G7997R103",
+          "issuer": "SEAGATE TECHNOLOGY HLDNGS PL",
+          "valueUsd": 182523707,
+          "weightPercent": 0.7940718462541121,
+          "kind": "share"
+        },
+        {
+          "cusip": "68389X105",
+          "issuer": "ORACLE CORP",
+          "valueUsd": 162205259,
+          "weightPercent": 0.7056761645009567,
+          "kind": "share"
+        },
+        {
+          "cusip": "747525103",
+          "issuer": "QUALCOMM INC",
+          "valueUsd": 161608285,
+          "weightPercent": 0.7030790210715516,
+          "kind": "share"
+        },
+        {
+          "cusip": "30303M102",
+          "issuer": "META PLATFORMS INC",
+          "valueUsd": 159542501,
+          "weightPercent": 0.6940917999494088,
+          "kind": "share"
+        },
+        {
+          "cusip": "71654V408",
+          "issuer": "PETROLEO BRASILEIRO S A",
+          "valueUsd": 158731418,
+          "weightPercent": 0.6905631724310377,
+          "kind": "share"
+        },
+        {
+          "cusip": "02079K305",
+          "issuer": "ALPHABET INC",
+          "valueUsd": 158356971,
+          "weightPercent": 0.6889341357130057,
+          "kind": "share"
+        },
+        {
+          "cusip": "478160104",
+          "issuer": "JOHNSON & JOHNSON",
+          "valueUsd": 144953357,
+          "weightPercent": 0.6306215324331618,
           "kind": "share"
         },
         {
           "cusip": "02209S103",
           "issuer": "ALTRIA GROUP INC",
-          "valueUsd": 124273191,
-          "weightPercent": 0.5098160069585215,
+          "valueUsd": 141460936,
+          "weightPercent": 0.6154277078229339,
           "kind": "share"
         },
         {
-          "cusip": "032095101",
-          "issuer": "AMPHENOL CORP",
-          "valueUsd": 123002948,
-          "weightPercent": 0.5046049859095245,
+          "cusip": "46434G103",
+          "issuer": "ISHARES INC",
+          "valueUsd": 133886324,
+          "weightPercent": 0.5824742562721249,
           "kind": "share"
         },
         {
-          "cusip": "N07059210",
-          "issuer": "ASML HLDG NV",
-          "valueUsd": 122698712,
-          "weightPercent": 0.5033568938516564,
+          "cusip": "26875P101",
+          "issuer": "EOG RES INC",
+          "valueUsd": 130643181,
+          "weightPercent": 0.5683649189591582,
           "kind": "share"
         },
         {
-          "cusip": "06849F108",
-          "issuer": "BARRICK MNG CORP",
-          "valueUsd": 121387233,
-          "weightPercent": 0.4979767070099911,
+          "cusip": "92826C839",
+          "issuer": "VISA INC",
+          "valueUsd": 128554260,
+          "weightPercent": 0.5592770400068148,
           "kind": "share"
         }
       ]
@@ -1043,186 +1050,179 @@
       "firm": "Appaloosa",
       "note": "경기 국면에 따라 보유를 크게 바꾸는 것으로 알려져 있습니다.",
       "registrantName": "Appaloosa LP",
-      "accessionNumber": "0001656456-26-000003",
-      "reportDate": "2026-06-30",
-      "filingDate": "2026-08-14",
+      "accessionNumber": "0001656456-26-000004",
+      "reportDate": "2026-09-30",
+      "filingDate": "2026-11-16",
       "valueUnit": "dollars",
-      "totalValueUsd": 7725383349,
-      "totalHoldingCount": 27,
+      "totalValueUsd": 7559628593,
+      "totalHoldingCount": 24,
       "topHoldings": [
-        {
-          "cusip": "023135106",
-          "issuer": "AMAZON COM INC",
-          "valueUsd": 1191700000,
-          "weightPercent": 15.42577172114388,
-          "kind": "share"
-        },
         {
           "cusip": "595112103",
           "issuer": "MICRON TECHNOLOGY INC",
-          "valueUsd": 1125432750,
-          "weightPercent": 14.567985809347311,
+          "valueUsd": 1331387500,
+          "weightPercent": 17.611810998662378,
+          "kind": "share"
+        },
+        {
+          "cusip": "023135106",
+          "issuer": "AMAZON COM INC",
+          "valueUsd": 1114946250,
+          "weightPercent": 14.748690842198364,
           "kind": "share"
         },
         {
           "cusip": "874039100",
           "issuer": "TAIWAN SEMICONDUCTOR MANUFAC",
-          "valueUsd": 787990500,
-          "weightPercent": 10.20001810139299,
-          "kind": "share"
-        },
-        {
-          "cusip": "02079K107",
-          "issuer": "ALPHABET INC",
-          "valueUsd": 653660500,
-          "weightPercent": 8.461204712703507,
-          "kind": "share"
-        },
-        {
-          "cusip": "90353T100",
-          "issuer": "UBER TECHNOLOGIES INC",
-          "valueUsd": 555204163,
-          "weightPercent": 7.186752267405183,
-          "kind": "share"
-        },
-        {
-          "cusip": "464286772",
-          "issuer": "ISHARES INC",
-          "valueUsd": 489607500,
-          "weightPercent": 6.337646662717086,
-          "kind": "share"
-        },
-        {
-          "cusip": "30303M102",
-          "issuer": "META PLATFORMS INC",
-          "valueUsd": 380220750,
-          "weightPercent": 4.921707219218022,
-          "kind": "share"
-        },
-        {
-          "cusip": "92840M102",
-          "issuer": "VISTRA CORP",
-          "valueUsd": 351408597,
-          "weightPercent": 4.548752872509395,
-          "kind": "share"
-        },
-        {
-          "cusip": "67066G104",
-          "issuer": "NVIDIA CORPORATION",
-          "valueUsd": 305137250,
-          "weightPercent": 3.949800757000596,
-          "kind": "share"
-        },
-        {
-          "cusip": "629377508",
-          "issuer": "NRG ENERGY INC",
-          "valueUsd": 257065600,
-          "weightPercent": 3.327544904723407,
-          "kind": "share"
-        },
-        {
-          "cusip": "037833100",
-          "issuer": "APPLE INC",
-          "valueUsd": 241615600,
-          "weightPercent": 3.1275548291241178,
-          "kind": "put"
-        },
-        {
-          "cusip": "01609W102",
-          "issuer": "ALIBABA GROUP HLDG LTD",
-          "valueUsd": 191960000,
-          "weightPercent": 2.4847957871870263,
-          "kind": "share"
-        },
-        {
-          "cusip": "097023105",
-          "issuer": "BOEING CO",
-          "valueUsd": 173176000,
-          "weightPercent": 2.2416492771509713,
-          "kind": "share"
-        },
-        {
-          "cusip": "512807306",
-          "issuer": "LAM RESEARCH CORP",
-          "valueUsd": 165748725,
-          "weightPercent": 2.14550809341332,
-          "kind": "share"
-        },
-        {
-          "cusip": "056752108",
-          "issuer": "BAIDU INC",
-          "valueUsd": 148005550,
-          "weightPercent": 1.9158343775802187,
-          "kind": "share"
-        },
-        {
-          "cusip": "02376R102",
-          "issuer": "AMERICAN AIRLINES GROUP INC",
-          "valueUsd": 135525000,
-          "weightPercent": 1.7542818767374544,
-          "kind": "share"
-        },
-        {
-          "cusip": "007903107",
-          "issuer": "ADVANCED MICRO DEVICES INC",
-          "valueUsd": 114729725,
-          "weightPercent": 1.4851007363259328,
-          "kind": "share"
-        },
-        {
-          "cusip": "21873S108",
-          "issuer": "COREWEAVE INC",
-          "valueUsd": 107328806,
-          "weightPercent": 1.3893007136518734,
-          "kind": "share"
-        },
-        {
-          "cusip": "N07059210",
-          "issuer": "ASML HLDG NV",
-          "valueUsd": 99472000,
-          "weightPercent": 1.2875995339813913,
-          "kind": "share"
-        },
-        {
-          "cusip": "11135F101",
-          "issuer": "BROADCOM INC",
-          "valueUsd": 56662500,
-          "weightPercent": 0.7334587481323447,
-          "kind": "share"
-        },
-        {
-          "cusip": "747525103",
-          "issuer": "QUALCOMM INC",
-          "valueUsd": 46197500,
-          "weightPercent": 0.5979962147248002,
+          "valueUsd": 718499250,
+          "weightPercent": 9.504425265882901,
           "kind": "share"
         },
         {
           "cusip": "84615Q103",
           "issuer": "SPACE EXPLORATION TECHN CORP",
-          "valueUsd": 38443500,
-          "weightPercent": 0.4976257910227362,
+          "valueUsd": 556547062,
+          "weightPercent": 7.362095308694751,
+          "kind": "share"
+        },
+        {
+          "cusip": "90353T100",
+          "issuer": "UBER TECHNOLOGIES INC",
+          "valueUsd": 501150650,
+          "weightPercent": 6.6293025356305355,
+          "kind": "share"
+        },
+        {
+          "cusip": "67066G104",
+          "issuer": "NVIDIA CORPORATION",
+          "valueUsd": 456760000,
+          "weightPercent": 6.042095777336822,
+          "kind": "share"
+        },
+        {
+          "cusip": "464286772",
+          "issuer": "ISHARES INC",
+          "valueUsd": 384961914,
+          "weightPercent": 5.092338985495449,
+          "kind": "share"
+        },
+        {
+          "cusip": "30303M102",
+          "issuer": "META PLATFORMS INC",
+          "valueUsd": 380719500,
+          "weightPercent": 5.03621964116776,
+          "kind": "share"
+        },
+        {
+          "cusip": "02079K107",
+          "issuer": "ALPHABET INC",
+          "valueUsd": 340740000,
+          "weightPercent": 4.507364294530494,
+          "kind": "share"
+        },
+        {
+          "cusip": "92840M102",
+          "issuer": "VISTRA CORP",
+          "valueUsd": 292647881,
+          "weightPercent": 3.8711939005969627,
+          "kind": "share"
+        },
+        {
+          "cusip": "512807306",
+          "issuer": "LAM RESEARCH CORP",
+          "valueUsd": 205318750,
+          "weightPercent": 2.715989912389602,
+          "kind": "share"
+        },
+        {
+          "cusip": "01609W102",
+          "issuer": "ALIBABA GROUP HLDG LTD",
+          "valueUsd": 198949000,
+          "weightPercent": 2.6317298204864334,
+          "kind": "share"
+        },
+        {
+          "cusip": "68389X105",
+          "issuer": "ORACLE CORP",
+          "valueUsd": 172164864,
+          "weightPercent": 2.2774249009987044,
+          "kind": "share"
+        },
+        {
+          "cusip": "097023105",
+          "issuer": "BOEING CO",
+          "valueUsd": 141398000,
+          "weightPercent": 1.8704358059459496,
+          "kind": "share"
+        },
+        {
+          "cusip": "629377508",
+          "issuer": "NRG ENERGY INC",
+          "valueUsd": 136301250,
+          "weightPercent": 1.8030151656684705,
+          "kind": "share"
+        },
+        {
+          "cusip": "N07059210",
+          "issuer": "ASML HLDG NV",
+          "valueUsd": 117758550,
+          "weightPercent": 1.5577293057629982,
+          "kind": "share"
+        },
+        {
+          "cusip": "038222105",
+          "issuer": "APPLIED MATLS INC",
+          "valueUsd": 115060500,
+          "weightPercent": 1.5220390603123377,
+          "kind": "share"
+        },
+        {
+          "cusip": "21873S108",
+          "issuer": "COREWEAVE INC",
+          "valueUsd": 105850800,
+          "weightPercent": 1.4002116466146872,
+          "kind": "share"
+        },
+        {
+          "cusip": "056752108",
+          "issuer": "BAIDU INC",
+          "valueUsd": 95557000,
+          "weightPercent": 1.2640435813008466,
+          "kind": "share"
+        },
+        {
+          "cusip": "607828100",
+          "issuer": "MODINE MFG CO",
+          "valueUsd": 52969925,
+          "weightPercent": 0.7006948072693497,
+          "kind": "share"
+        },
+        {
+          "cusip": "02376R102",
+          "issuer": "AMERICAN AIRLINES GROUP INC",
+          "valueUsd": 52523176,
+          "weightPercent": 0.6947851386328021,
+          "kind": "share"
+        },
+        {
+          "cusip": "69331C108",
+          "issuer": "PG&E CORP",
+          "valueUsd": 30931250,
+          "weightPercent": 0.4091636198720325,
           "kind": "share"
         },
         {
           "cusip": "29273V100",
           "issuer": "ENERGY TRANSFER L P",
-          "valueUsd": 30135510,
-          "weightPercent": 0.39008433159373046,
+          "valueUsd": 29601957,
+          "weightPercent": 0.3915795152609821,
           "kind": "share"
         },
         {
           "cusip": "55336V100",
           "issuer": "MPLX LP",
-          "valueUsd": 28303572,
-          "weightPercent": 0.3663711005831667,
-          "kind": "share"
-        },
-        {
-          "cusip": "963320106",
-          "issuer": "WHIRLPOOL CORP",
-          "valueUsd": 28185300,
-          "weightPercent": 0.36484014742968585,
+          "valueUsd": 26883564,
+          "weightPercent": 0.3556201692883882,
           "kind": "share"
         }
       ]
@@ -1395,186 +1395,186 @@
       "firm": "Duquesne Family Office",
       "note": "거시 판단에 따라 포지션을 빠르게 바꾸는 것으로 알려져 있습니다.",
       "registrantName": "Duquesne Family Office LLC",
-      "accessionNumber": "0001536411-26-000006",
-      "reportDate": "2026-06-30",
-      "filingDate": "2026-08-14",
+      "accessionNumber": "0001536411-26-000011",
+      "reportDate": "2026-09-30",
+      "filingDate": "2026-11-16",
       "valueUnit": "thousands",
-      "totalValueUsd": 5210856000,
-      "totalHoldingCount": 95,
+      "totalValueUsd": 4470867000,
+      "totalHoldingCount": 65,
       "topHoldings": [
         {
           "cusip": "632307104",
           "issuer": "Natera Inc",
-          "valueUsd": 864923000,
-          "weightPercent": 16.598482092001774,
-          "kind": "share"
-        },
-        {
-          "cusip": "874039100",
-          "issuer": "Taiwan Semiconductor Manufac",
-          "valueUsd": 281613000,
-          "weightPercent": 5.404351991304308,
-          "kind": "share"
-        },
-        {
-          "cusip": "861012102",
-          "issuer": "Stmicroelectronics N V",
-          "valueUsd": 232375000,
-          "weightPercent": 4.459440061287435,
-          "kind": "share"
-        },
-        {
-          "cusip": "46137V357",
-          "issuer": "Invesco Exchange Traded Fd T",
-          "valueUsd": 174684000,
-          "weightPercent": 3.352309102381643,
-          "kind": "call"
-        },
-        {
-          "cusip": "457669307",
-          "issuer": "Insmed Inc",
-          "valueUsd": 151900000,
-          "weightPercent": 2.915068080944858,
-          "kind": "share"
-        },
-        {
-          "cusip": "464286400",
-          "issuer": "Ishares Inc",
-          "valueUsd": 145866000,
-          "weightPercent": 2.7992713673146987,
-          "kind": "call"
-        },
-        {
-          "cusip": "457669307",
-          "issuer": "Insmed Inc",
-          "valueUsd": 143937000,
-          "weightPercent": 2.7622524974783413,
-          "kind": "call"
-        },
-        {
-          "cusip": "984245100",
-          "issuer": "Ypf Sociedad Anonima",
-          "valueUsd": 142726000,
-          "weightPercent": 2.739012553791546,
-          "kind": "share"
-        },
-        {
-          "cusip": "023135106",
-          "issuer": "Amazon Com Inc",
-          "valueUsd": 129085000,
-          "weightPercent": 2.477232147654819,
-          "kind": "share"
-        },
-        {
-          "cusip": "G0896C103",
-          "issuer": "Bbb Foods Inc",
-          "valueUsd": 120915000,
-          "weightPercent": 2.3204440882649604,
-          "kind": "share"
-        },
-        {
-          "cusip": "02079K305",
-          "issuer": "Alphabet Inc",
-          "valueUsd": 120184000,
-          "weightPercent": 2.306415682951131,
-          "kind": "share"
-        },
-        {
-          "cusip": "464286400",
-          "issuer": "Ishares Inc",
-          "valueUsd": 118548000,
-          "weightPercent": 2.275019689663272,
+          "valueUsd": 1306335000,
+          "weightPercent": 29.21882936799507,
           "kind": "share"
         },
         {
           "cusip": "G7997R103",
           "issuer": "Seagate Technology Hldngs Pl",
-          "valueUsd": 117730000,
-          "weightPercent": 2.2593216930193427,
-          "kind": "share"
-        },
-        {
-          "cusip": "35137L105",
-          "issuer": "Fox Corp",
-          "valueUsd": 114992000,
-          "weightPercent": 2.2067775428835494,
+          "valueUsd": 315247000,
+          "weightPercent": 7.051137956016137,
           "kind": "share"
         },
         {
           "cusip": "023135106",
           "issuer": "Amazon Com Inc",
-          "valueUsd": 109470000,
-          "weightPercent": 2.1008064701845535,
-          "kind": "call"
+          "valueUsd": 192493000,
+          "weightPercent": 4.305496003347897,
+          "kind": "share"
         },
         {
-          "cusip": "910047109",
-          "issuer": "United Airls Hldgs Inc",
-          "valueUsd": 108084000,
-          "weightPercent": 2.0742081531326138,
+          "cusip": "35137L105",
+          "issuer": "Fox Corp",
+          "valueUsd": 190835000,
+          "weightPercent": 4.268411473658242,
+          "kind": "share"
+        },
+        {
+          "cusip": "984245100",
+          "issuer": "Ypf Sociedad Anonima",
+          "valueUsd": 177555000,
+          "weightPercent": 3.971377363719386,
+          "kind": "share"
+        },
+        {
+          "cusip": "91332U101",
+          "issuer": "Unity Software Inc",
+          "valueUsd": 161935000,
+          "weightPercent": 3.622004412119618,
           "kind": "share"
         },
         {
           "cusip": "81141R100",
           "issuer": "Sea Ltd",
-          "valueUsd": 105404000,
-          "weightPercent": 2.022777063883554,
+          "valueUsd": 155072000,
+          "weightPercent": 3.468499510273958,
           "kind": "share"
         },
         {
-          "cusip": "12514G108",
-          "issuer": "Cdw Corp",
-          "valueUsd": 104629000,
-          "weightPercent": 2.0079042675522025,
+          "cusip": "464286400",
+          "issuer": "Ishares Inc",
+          "valueUsd": 125814000,
+          "weightPercent": 2.814085053301742,
+          "kind": "share"
+        },
+        {
+          "cusip": "457669307",
+          "issuer": "Insmed Inc",
+          "valueUsd": 124715000,
+          "weightPercent": 2.7895036913421936,
+          "kind": "share"
+        },
+        {
+          "cusip": "023135106",
+          "issuer": "Amazon Com Inc",
+          "valueUsd": 114435000,
+          "weightPercent": 2.559570660455791,
+          "kind": "call"
+        },
+        {
+          "cusip": "G7997R103",
+          "issuer": "Seagate Technology Hldngs Pl",
+          "valueUsd": 90389000,
+          "weightPercent": 2.021733144824035,
+          "kind": "call"
+        },
+        {
+          "cusip": "76155X100",
+          "issuer": "Revolution Medicines Inc",
+          "valueUsd": 89552000,
+          "weightPercent": 2.003011943768401,
+          "kind": "share"
+        },
+        {
+          "cusip": "G0896C103",
+          "issuer": "Bbb Foods Inc",
+          "valueUsd": 86720000,
+          "weightPercent": 1.939668525142886,
+          "kind": "share"
+        },
+        {
+          "cusip": "861012102",
+          "issuer": "Stmicroelectronics N V",
+          "valueUsd": 86197000,
+          "weightPercent": 1.9279705703614085,
           "kind": "share"
         },
         {
           "cusip": "N62509109",
           "issuer": "Newamsterdam Pharma Company",
-          "valueUsd": 104047000,
-          "weightPercent": 1.9967352772749813,
+          "valueUsd": 81646000,
+          "weightPercent": 1.8261782334388386,
           "kind": "share"
         },
         {
-          "cusip": "464287655",
-          "issuer": "Ishares Tr",
-          "valueUsd": 99149000,
-          "weightPercent": 1.902739204460841,
+          "cusip": "12514G108",
+          "issuer": "Cdw Corp",
+          "valueUsd": 73788000,
+          "weightPercent": 1.6504181403741154,
+          "kind": "share"
+        },
+        {
+          "cusip": "457669307",
+          "issuer": "Insmed Inc",
+          "valueUsd": 62777000,
+          "weightPercent": 1.404134813225265,
           "kind": "call"
         },
         {
-          "cusip": "80004C200",
-          "issuer": "Sandisk Corp",
-          "valueUsd": 79353000,
-          "weightPercent": 1.5228400093957692,
+          "cusip": "88023U101",
+          "issuer": "Somnigroup International Inc",
+          "valueUsd": 61712000,
+          "weightPercent": 1.3803139301616443,
           "kind": "share"
         },
         {
-          "cusip": "76155X100",
-          "issuer": "Revolution Medicines Inc",
-          "valueUsd": 74835000,
-          "weightPercent": 1.436136404460227,
+          "cusip": "651639106",
+          "issuer": "Newmont Corp",
+          "valueUsd": 43875000,
+          "weightPercent": 0.9813532811421141,
           "kind": "share"
         },
         {
-          "cusip": "78462F103",
-          "issuer": "State Str Spdr S&P 500 Etf T",
-          "valueUsd": 67209000,
-          "weightPercent": 1.28978808855973,
-          "kind": "call"
+          "cusip": "06849F108",
+          "issuer": "Barrick Mng Corp",
+          "valueUsd": 42891000,
+          "weightPercent": 0.9593441272129096,
+          "kind": "share"
+        },
+        {
+          "cusip": "008474108",
+          "issuer": "Agnico Eagle Mines Ltd",
+          "valueUsd": 42345000,
+          "weightPercent": 0.9471317308253634,
+          "kind": "share"
         },
         {
           "cusip": "G11448100",
           "issuer": "Bitdeer Technologies Group",
-          "valueUsd": 64670000,
-          "weightPercent": 1.2410628887077286,
+          "valueUsd": 39668000,
+          "weightPercent": 0.8872552012842252,
           "kind": "share"
         },
         {
-          "cusip": "G25508105",
-          "issuer": "Crh Plc",
-          "valueUsd": 59230000,
-          "weightPercent": 1.1366654538141143,
+          "cusip": "22266T109",
+          "issuer": "Coupang Inc",
+          "valueUsd": 36998000,
+          "weightPercent": 0.8275352409275427,
+          "kind": "share"
+        },
+        {
+          "cusip": "958102105",
+          "issuer": "Western Digital Corp",
+          "valueUsd": 36793000,
+          "weightPercent": 0.8229500005256251,
+          "kind": "share"
+        },
+        {
+          "cusip": "44916Y106",
+          "issuer": "Hyperliquid Strategies Inc",
+          "valueUsd": 36092000,
+          "weightPercent": 0.8072707150537021,
           "kind": "share"
         }
       ]
@@ -1656,67 +1656,67 @@
       "firm": "Himalaya Capital",
       "note": "소수 종목을 오래 보유하는 가치투자자입니다.",
       "registrantName": "Himalaya Capital Management LLC",
-      "accessionNumber": "0002043585-26-000022",
-      "reportDate": "2026-06-30",
-      "filingDate": "2026-08-14",
+      "accessionNumber": "0002043585-26-000030",
+      "reportDate": "2026-09-30",
+      "filingDate": "2026-11-16",
       "valueUnit": "dollars",
-      "totalValueUsd": 3702921099,
+      "totalValueUsd": 3781431260,
       "totalHoldingCount": 8,
       "topHoldings": [
         {
+          "cusip": "722304102",
+          "issuer": "PDD HOLDINGS INC",
+          "valueUsd": 916661615,
+          "weightPercent": 24.241128609065342,
+          "kind": "share"
+        },
+        {
           "cusip": "02079K305",
           "issuer": "ALPHABET INC",
-          "valueUsd": 908899121,
-          "weightPercent": 24.545462803554056,
+          "valueUsd": 875098664,
+          "weightPercent": 23.141995816684503,
           "kind": "share"
         },
         {
           "cusip": "02079K107",
           "issuer": "ALPHABET INC",
-          "valueUsd": 866117829,
-          "weightPercent": 23.39012379264309,
-          "kind": "share"
-        },
-        {
-          "cusip": "722304102",
-          "issuer": "PDD HOLDINGS INC",
-          "valueUsd": 820858157,
-          "weightPercent": 22.16785437911919,
+          "valueUsd": 835255962,
+          "weightPercent": 22.08835503200447,
           "kind": "share"
         },
         {
           "cusip": "084670702",
           "issuer": "BERKSHIRE HATHAWAY INC DEL",
-          "valueUsd": 554591244,
-          "weightPercent": 14.977128304185882,
+          "valueUsd": 551886948,
+          "weightPercent": 14.594657685249052,
           "kind": "share"
         },
         {
           "cusip": "27579R104",
           "issuer": "EAST WEST BANCORP INC",
-          "valueUsd": 358399151,
-          "weightPercent": 9.678822243789861,
-          "kind": "share"
-        },
-        {
-          "cusip": "227046109",
-          "issuer": "CROCS INC",
-          "valueUsd": 107018900,
-          "weightPercent": 2.8901209920163087,
+          "valueUsd": 344073179,
+          "weightPercent": 9.099019798127973,
           "kind": "share"
         },
         {
           "cusip": "88034P109",
           "issuer": "TENCENT MUSIC ENTERTAINM",
-          "valueUsd": 55033481,
-          "weightPercent": 1.4862180297296148,
+          "valueUsd": 117558000,
+          "weightPercent": 3.108822874648791,
+          "kind": "share"
+        },
+        {
+          "cusip": "227046109",
+          "issuer": "CROCS INC",
+          "valueUsd": 104064880,
+          "weightPercent": 2.751997136660895,
           "kind": "share"
         },
         {
           "cusip": "037833100",
           "issuer": "APPLE INC",
-          "valueUsd": 32003216,
-          "weightPercent": 0.8642694549619946,
+          "valueUsd": 36832012,
+          "weightPercent": 0.9740230475589816,
           "kind": "share"
         }
       ]
@@ -1727,186 +1727,186 @@
       "firm": "Fairfax Financial",
       "note": "보험사를 통해 투자하는 구조로, 버크셔와 자주 비교됩니다.",
       "registrantName": "FAIRFAX FINANCIAL HOLDINGS LTD/ CAN",
-      "accessionNumber": "0001104659-26-096276",
-      "reportDate": "2026-06-30",
-      "filingDate": "2026-08-14",
+      "accessionNumber": "0001104659-26-127473",
+      "reportDate": "2026-09-30",
+      "filingDate": "2026-11-16",
       "valueUnit": "dollars",
-      "totalValueUsd": 2638451995,
-      "totalHoldingCount": 32,
+      "totalValueUsd": 2648176662,
+      "totalHoldingCount": 34,
       "topHoldings": [
         {
-          "cusip": "68634K106",
-          "issuer": "ORLA MINING LTD",
-          "valueUsd": 568456141,
-          "weightPercent": 21.5450628655459,
+          "cusip": "29446Y502",
+          "issuer": "EQUINOX GOLD CORP",
+          "valueUsd": 649089046,
+          "weightPercent": 24.51079096474569,
           "kind": "share"
         },
         {
           "cusip": "284902509",
           "issuer": "ELDORADO GOLD CORP",
-          "valueUsd": 427001600,
-          "weightPercent": 16.183792648461658,
+          "valueUsd": 526719441,
+          "weightPercent": 19.889890601263822,
           "kind": "share"
         },
         {
           "cusip": "500754106",
           "issuer": "KRAFT HEINZ CO",
-          "valueUsd": 337633400,
-          "weightPercent": 12.796647452363446,
-          "kind": "share"
-        },
-        {
-          "cusip": "904311107",
-          "issuer": "UNDER ARMOUR INC",
-          "valueUsd": 289831006,
-          "weightPercent": 10.984888356856384,
+          "valueUsd": 325043680,
+          "weightPercent": 12.274244564730628,
           "kind": "share"
         },
         {
           "cusip": "126650100",
           "issuer": "CVS HEALTH CORP",
-          "valueUsd": 280502160,
-          "weightPercent": 10.631315655223812,
+          "valueUsd": 232418400,
+          "weightPercent": 8.776544379953455,
+          "kind": "share"
+        },
+        {
+          "cusip": "904311107",
+          "issuer": "UNDER ARMOUR INC",
+          "valueUsd": 202292064,
+          "weightPercent": 7.638918766364387,
           "kind": "share"
         },
         {
           "cusip": "185899101",
           "issuer": "CLEVELAND-CLIFFS INC",
-          "valueUsd": 139904173,
-          "weightPercent": 5.302509701337204,
+          "valueUsd": 164189988,
+          "weightPercent": 6.200114605496059,
           "kind": "share"
         },
         {
           "cusip": "904311206",
           "issuer": "UNDER ARMOUR INC",
-          "valueUsd": 136614585,
-          "weightPercent": 5.17783098797672,
+          "valueUsd": 95696207,
+          "weightPercent": 3.6136640116647927,
           "kind": "share"
         },
         {
           "cusip": "60871R209",
           "issuer": "MOLSON COORS BEVERAGE CO",
-          "valueUsd": 77665830,
-          "weightPercent": 2.943613533510584,
-          "kind": "share"
-        },
-        {
-          "cusip": "00217Y104",
-          "issuer": "ATS CORP",
-          "valueUsd": 70487018,
-          "weightPercent": 2.6715292957225096,
+          "valueUsd": 83657470,
+          "weightPercent": 3.159059257656127,
           "kind": "share"
         },
         {
           "cusip": "95058W100",
           "issuer": "WENDYS CO",
-          "valueUsd": 66286592,
-          "weightPercent": 2.5123289006438796,
+          "valueUsd": 51075900,
+          "weightPercent": 1.9287195122936251,
           "kind": "share"
         },
         {
-          "cusip": "874039100",
-          "issuer": "TAIWAN SEMICONDUCTOR MFG LTD",
-          "valueUsd": 44684593,
-          "weightPercent": 1.6935912832478879,
+          "cusip": "00217Y104",
+          "issuer": "ATS CORP",
+          "valueUsd": 44874798,
+          "weightPercent": 1.6945545455456477,
           "kind": "share"
         },
         {
           "cusip": "423452101",
           "issuer": "HELMERICH & PAYNE INC",
-          "valueUsd": 38451939,
-          "weightPercent": 1.4573673909121094,
+          "valueUsd": 43233040,
+          "weightPercent": 1.6325587571392925,
           "kind": "share"
         },
         {
-          "cusip": "064149107",
-          "issuer": "BANK NOVA SCOTIA",
-          "valueUsd": 31165804,
-          "weightPercent": 1.1812155028426052,
-          "kind": "share"
-        },
-        {
-          "cusip": "37045V100",
-          "issuer": "GENERAL MOTORS CO",
-          "valueUsd": 28971863,
-          "weightPercent": 1.0980629192762705,
+          "cusip": "874039100",
+          "issuer": "TAIWAN SEMICONDUCTOR MFG LTD",
+          "valueUsd": 42759058,
+          "weightPercent": 1.6146603288810346,
           "kind": "share"
         },
         {
           "cusip": "717081103",
           "issuer": "PFIZER INC",
-          "valueUsd": 25116234,
-          "weightPercent": 0.9519306793376016,
+          "valueUsd": 40395627,
+          "weightPercent": 1.5254128464938492,
+          "kind": "share"
+        },
+        {
+          "cusip": "064149107",
+          "issuer": "BANK NOVA SCOTIA",
+          "valueUsd": 32674016,
+          "weightPercent": 1.233830675606188,
+          "kind": "share"
+        },
+        {
+          "cusip": "37045V100",
+          "issuer": "GENERAL MOTORS CO",
+          "valueUsd": 28945545,
+          "weightPercent": 1.0930367832083854,
           "kind": "share"
         },
         {
           "cusip": "58933Y105",
           "issuer": "MERCK & CO INC",
-          "valueUsd": 22198631,
-          "weightPercent": 0.8413505738238758,
+          "valueUsd": 25137931,
+          "weightPercent": 0.9492543062068568,
           "kind": "share"
         },
         {
-          "cusip": "478160104",
-          "issuer": "JOHNSON & JOHNSON",
-          "valueUsd": 18640664,
-          "weightPercent": 0.7065000248374805,
+          "cusip": "222070203",
+          "issuer": "COTY INC",
+          "valueUsd": 19951017,
+          "weightPercent": 0.7533869354823277,
           "kind": "share"
         },
         {
           "cusip": "48581R205",
           "issuer": "KASPI KZ JSC",
-          "valueUsd": 9175360,
-          "weightPercent": 0.3477554269468526,
+          "valueUsd": 9956580,
+          "weightPercent": 0.37597869291999675,
           "kind": "share"
         },
         {
           "cusip": "775109200",
           "issuer": "ROGERS COMMUNICATIONS INC",
-          "valueUsd": 4870979,
-          "weightPercent": 0.18461503219428482,
+          "valueUsd": 4635861,
+          "weightPercent": 0.1750586003767146,
           "kind": "share"
         },
         {
           "cusip": "366505105",
           "issuer": "GARRETT MOTION INC",
-          "valueUsd": 3722800,
-          "weightPercent": 0.14109788645216567,
-          "kind": "share"
-        },
-        {
-          "cusip": "136375102",
-          "issuer": "CANADIAN NATIONAL RAILWAY CO",
-          "valueUsd": 2952402,
-          "weightPercent": 0.11189902282076579,
-          "kind": "share"
-        },
-        {
-          "cusip": "194693107",
-          "issuer": "COLLIERS INTL GROUP INC",
-          "valueUsd": 2325991,
-          "weightPercent": 0.0881574121647038,
+          "valueUsd": 2675441,
+          "weightPercent": 0.10102955132832449,
           "kind": "share"
         },
         {
           "cusip": "934423104",
           "issuer": "WARNER BROS DISCOVERY INC",
-          "valueUsd": 2179359,
-          "weightPercent": 0.0825999110133516,
+          "valueUsd": 2533167,
+          "weightPercent": 0.09565702456145277,
           "kind": "share"
         },
         {
-          "cusip": "25754A201",
-          "issuer": "DOMINO'S PIZZA INC",
-          "valueUsd": 2139502,
-          "weightPercent": 0.08108929038900327,
+          "cusip": "90353T100",
+          "issuer": "UBER TECHNOLOGIES INC",
+          "valueUsd": 2473211,
+          "weightPercent": 0.09339297621224939,
           "kind": "share"
         },
         {
-          "cusip": "G1890L107",
-          "issuer": "CAPRI HOLDINGS LTD",
-          "valueUsd": 1450317,
-          "weightPercent": 0.05496848162287674,
+          "cusip": "136375102",
+          "issuer": "CANADIAN NATIONAL RAILWAY CO",
+          "valueUsd": 2358288,
+          "weightPercent": 0.0890532732895144,
+          "kind": "share"
+        },
+        {
+          "cusip": "46005L101",
+          "issuer": "INTERNATIONAL MONEY EXPRESS",
+          "valueUsd": 2350740,
+          "weightPercent": 0.08876824698789676,
+          "kind": "share"
+        },
+        {
+          "cusip": "866966104",
+          "issuer": "SUNBELT RENTALS HOLDINGS INC",
+          "valueUsd": 2275001,
+          "weightPercent": 0.0859082036574492,
           "kind": "share"
         }
       ]
