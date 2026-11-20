@@ -9022,8 +9022,8 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 14,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "3": 3,
         "6": 3,
@@ -10945,11 +10945,18 @@ var marketData_generated_default = {
       observedDividendCagr: 6.36,
       payoutMonths: [
         1,
-        3,
-        6,
-        9
+        4,
+        7,
+        10
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 14,
+      estimatedPayDayByMonth: {
+        "1": 17,
+        "4": 11,
+        "7": 11,
+        "10": 11
+      }
     },
     KHC: {
       initialPrice: 24.61,
