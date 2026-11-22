@@ -8436,12 +8436,19 @@ var marketData_generated_default = {
       frequency: "quarterly",
       observedDividendCagr: 3.77,
       payoutMonths: [
-        1,
-        4,
-        7,
-        10
+        2,
+        5,
+        8,
+        11
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 40,
+      estimatedPayDayByMonth: {
+        "2": 10,
+        "5": 12,
+        "8": 11,
+        "11": 10
+      }
     },
     APH: {
       initialPrice: 74.59,
@@ -12609,8 +12616,8 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 21,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "3": 31,
         "6": 30,
