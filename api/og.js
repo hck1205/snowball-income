@@ -1993,8 +1993,8 @@ var marketData_generated_default = {
         8,
         11
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 40,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "2": 10,
         "5": 12,
@@ -3877,7 +3877,14 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 13,
+      estimatedPayDayByMonth: {
+        "3": 19,
+        "6": 19,
+        "9": 18,
+        "12": 18
+      }
     },
     GOOGL: {
       initialPrice: 284.78,
