@@ -7,13 +7,15 @@
  * ⚠ 배럴(`index.ts`)에 넣지 않는다 — `node:fs` 를 쓰므로 앱 tsconfig 로 타입체크되는 테스트가 깨진다(`cli.ts` 와 같은 규율).
  */
 import { writeFileSync } from 'node:fs';
+import process from 'node:process';
+import { kstIsoDate, sendTelegram, telegramTargetFromEnv } from '../common';
 import { TICKER_CONTENT_LIST } from '@/shared/constants/tickers';
 import { checkMarketNewsDraft, composeMarketNews, MARKET_NEWS_TOPIC, recentlyCoveredTickers, type MarketNewsDraft } from './marketNews';
 import { changeOn, fetchDailyCloses, pickMoveCandidates, verifyPriceMoves, type DailyClose } from './marketPrices';
 import { publishBoardPost, readReporterEnv } from './publish';
 import type { ReporterLedger } from './types';
 
-const isoKst = (): string => new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+const isoKst = (): string => kstIsoDate();
 
 /**
  * 시장 기사(2026-11-24) — 사실 준비 단계 없이 루틴이 취재해 쓴 초안을 검사 → 주가 대조 → 게시한다.
@@ -62,7 +64,25 @@ export const runMarketNews = async (
   };
   if (ledgerPath) writeFileSync(ledgerPath, `${JSON.stringify(next, null, 2)}\n`, 'utf8');
   console.log(`✓ 게시 ${isPublic ? '(공개)' : '(비공개)'} — /community/board/${postId}`);
+  await notifyPublished(draft.title.trim(), postId);
   return 0;
+};
+
+/**
+ * 시장 기사가 올라가면 텔레그램으로 링크를 보낸다(사람 검토 없이 공개되므로 운영자가 바로 볼 수 있게).
+ * 🔴 **절대 발행을 실패로 만들지 않는다** — 이미 게시 · 대장 기록이 끝난 뒤다. 예전엔 이 일을 워크플로 bash 가 했고,
+ *    거기서 죽어 inbox → published 이동이 빠진 적이 있다(#392). 실패는 로그 한 줄로 끝낸다.
+ */
+const notifyPublished = async (title: string, postId: string): Promise<void> => {
+  const target = telegramTargetFromEnv(process.env);
+  if (!target) return;
+  try {
+    await sendTelegram(target, `📰 AI 시장 기사가 올라갔습니다
+${title}
+https://hungry-hippo.xyz/community/board/${postId}`);
+  } catch (error) {
+    console.warn(`텔레그램 알림 실패(발행은 됐다): ${error instanceof Error ? error.message : String(error)}`);
+  }
 };
 
 /** 시장 전체 흐름을 보는 지수 ETF — 후보와 따로, 기사 배경("그날 시장 전체는")으로 넘긴다. */

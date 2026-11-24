@@ -10,8 +10,10 @@ export const tagsOf = (html: string): string[] =>
 /** 태그를 지운 글 — 글자 수·문장 검사에 쓴다. */
 export const stripTags = (html: string): string => html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 
-export const escapeHtml = (value: string): string =>
-  value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+import { escapeHtmlAttribute } from '../common';
+
+/** 게시판 HTML 이스케이프 — 속성값(href)에도 넣으므로 따옴표까지. 정본은 `scripts/common/html.ts`. */
+export const escapeHtml = escapeHtmlAttribute;
 
 export type ReporterTable = {
   /** 표 위 소제목(h3). */

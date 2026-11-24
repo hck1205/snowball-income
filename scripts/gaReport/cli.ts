@@ -22,12 +22,13 @@
 import { createSign } from 'node:crypto';
 import process from 'node:process';
 
+import { isKstMonday, sendTelegram } from '../common';
+
 import {
   detectSpike,
   formatDailyMessage,
   formatSpikeAlert,
   formatWeeklyMessage,
-  isKstMonday,
   type BreakdownRow,
   type Breakdowns,
   type DayTotals,
@@ -129,14 +130,6 @@ const fetchBreakdowns = async (token: string, propertyId: string, range: DateRan
   return { sources, landingPages, devices, visitors, events };
 };
 
-const sendTelegram = async (botToken: string, chatId: string, text: string): Promise<void> => {
-  const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML', disable_web_page_preview: true })
-  });
-  if (!response.ok) throw new Error(`텔레그램 전송 실패 (HTTP ${response.status}) — 봇 토큰 · 채팅 ID, 봇에게 먼저 말을 걸었는지 확인`);
-};
 
 const YESTERDAY: DateRange = { startDate: 'yesterday', endDate: 'yesterday' };
 const BASELINE_RANGE: DateRange = { startDate: '15daysAgo', endDate: 'yesterday' };
@@ -153,7 +146,7 @@ const main = async (): Promise<void> => {
   }
 
   const token = await accessToken(JSON.parse(key) as ServiceAccount);
-  const send = (text: string) => sendTelegram(botToken, chatId, text);
+  const send = (text: string) => sendTelegram({ botToken, chatId }, text, { parseMode: 'HTML' });
 
   if (mode !== 'weekly') {
     const verdict = detectSpike(await fetchDays(token, propertyId, BASELINE_RANGE));

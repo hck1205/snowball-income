@@ -1,5 +1,6 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
+import { kstToday } from '../common';
 import { composeBody } from './compose';
 import { isMarketNewsKey, type MarketNewsDraft } from './marketNews';
 import { runMarketCandidates, runMarketNews } from './marketNewsCli';
@@ -34,10 +35,7 @@ const readLedger = (path: string | undefined): ReporterLedger => {
   return JSON.parse(readFileSync(path, 'utf8')) as ReporterLedger;
 };
 
-const todayKst = (): Date => {
-  const now = new Date(Date.now() + 9 * 60 * 60 * 1000);
-  return new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
-};
+const todayKst = (): Date => kstToday();
 
 /** 사람이 이미 파이어족들에 올린 영상 주소(공개 글). 환경변수가 없으면 빈 목록 — 대장만으로 중복을 막는다. */
 const fetchPostedFireUrls = async (): Promise<Set<string>> => {
