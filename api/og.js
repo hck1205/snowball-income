@@ -3877,8 +3877,8 @@ var marketData_generated_default = {
         9,
         12
       ],
-      payoutMonthsSource: "pay",
       exToPayLagDays: 13,
+      payoutMonthsSource: "pay",
       estimatedPayDayByMonth: {
         "3": 19,
         "6": 19,
@@ -5534,12 +5534,19 @@ var marketData_generated_default = {
       frequency: "quarterly",
       observedDividendCagr: 9.04,
       payoutMonths: [
-        1,
-        4,
-        7,
-        10
+        2,
+        5,
+        8,
+        11
       ],
-      payoutMonthsSource: "ex"
+      payoutMonthsSource: "pay",
+      exToPayLagDays: 21,
+      estimatedPayDayByMonth: {
+        "2": 5,
+        "5": 5,
+        "8": 5,
+        "11": 5
+      }
     },
     PNR: {
       initialPrice: 68.12,
