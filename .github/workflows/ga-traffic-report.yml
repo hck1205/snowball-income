@@ -14,9 +14,14 @@ name: GA traffic report
 # 등록 후 Actions 탭에서 이 워크플로를 수동 실행(mode=test)하면 연결 확인 메시지가 온다.
 #
 # GA 는 어제 데이터를 다음 날까지 조금씩 보정한다 — 아침 9시 숫자는 최종보다 약간 적을 수 있다.
+#
+# ⏰ 09:00 에 맞추는 방법(2026-11-24): 처음엔 `0 0 * * *`(= 09:00 KST)로 예약했는데 실제 실행은 매일
+#   12:15~16:09 KST 였다(3~7시간 지연, 11/15~11/24 실측). GitHub 예약은 시각을 보장하지 않고, UTC 정각은
+#   전 세계 예약이 몰려 특히 많이 밀린다. 그래서 **붐비지 않는 새벽(06:13 KST)에 일찍 깨워 두고 09:00 까지
+#   기다렸다 보낸다.** 9시를 넘겨 깨어나면 기다리지 않고 바로 보낸다. 공개 저장소라 기다리는 시간은 무료다.
 on:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: '13 21 * * *'
   workflow_dispatch:
     inputs:
       mode:
@@ -39,7 +44,8 @@ env:
 jobs:
   report:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # 일찍 깨어나 09:00 까지 기다리는 시간(최대 약 3시간) + 발송.
+    timeout-minutes: 240
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -52,6 +58,19 @@ jobs:
 
       - name: Install
         run: npm ci
+
+      # 예약 실행만 기다린다(수동 실행은 바로 보낸다). TZ=Asia/Seoul 이라 '09:00' 은 오늘 09:00 KST 다.
+      - name: Wait until 09:00 KST
+        if: github.event_name == 'schedule'
+        run: |
+          now=$(date +%s)
+          target=$(date -d '09:00' +%s)
+          if [ "$now" -lt "$target" ]; then
+            echo "09:00 KST 까지 $(( (target - now) / 60 ))분 기다린다."
+            sleep $(( target - now ))
+          else
+            echo "이미 09:00 KST 가 지났다 — 바로 보낸다."
+          fi
 
       - name: Send report
         env:
