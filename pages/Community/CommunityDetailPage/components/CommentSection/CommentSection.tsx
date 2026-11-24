@@ -79,7 +79,7 @@ const SingleComment = ({
   return (
     <CommentRoot pending={pending}>
       <CommentAvatar>
-        <Avatar displayName={name} avatarUrl={comment.author?.avatar_url} size="md" />
+        <Avatar displayName={name} avatarUrl={comment.author?.avatar_url} authorId={comment.author?.id ?? comment.user_id} size="md" />
       </CommentAvatar>
       <CommentHead>
         <b>{name}</b>

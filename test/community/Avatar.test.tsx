@@ -24,3 +24,18 @@ describe('Avatar — 이니셜 통일(v2)', () => {
     expect(screen.getByText('?')).toBeInTheDocument();
   });
 });
+
+describe('Avatar — AI 리포터는 윙크 하마(2026-11-25)', () => {
+  it('작성자가 AI 리포터면 이니셜 대신 하마 그림을 그린다', async () => {
+    const { AI_REPORTER } = await import('@/shared/constants/community');
+    const { container } = render(<Avatar displayName="AI 리포터" authorId={AI_REPORTER.userIds[0]} />);
+    expect(container.querySelector('svg')).not.toBeNull();
+    expect(screen.queryByText(getAvatarInitial('AI 리포터'))).toBeNull();
+  });
+
+  it('사람이면(또는 작성자 id 가 없으면) 그대로 이니셜', () => {
+    const { container } = render(<Avatar displayName="Grace" authorId="00000000-0000-0000-0000-000000000000" />);
+    expect(container.querySelector('svg')).toBeNull();
+    expect(screen.getByText(getAvatarInitial('Grace'))).toBeInTheDocument();
+  });
+});
