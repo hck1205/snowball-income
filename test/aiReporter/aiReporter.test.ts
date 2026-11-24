@@ -162,7 +162,12 @@ describe('factsFromKey — 발행 시점에 바로 그 회차를 다시 만든�
     const key = `ticker-spotlight:SCHD:${MARKET_DATA_AS_OF}`;
     expect(factsFromKey(key)?.tablesHtml).toBe(buildTickerSpotlightFacts('SCHD', MARKET_DATA_AS_OF!)!.tablesHtml);
     expect(factsFromKey('ticker-spotlight:SCHD:1999-01-01')).toBeNull();
-    expect(factsFromKey('week-ahead:2026-11-09')?.factKey).toBe('week-ahead:2026-11-09');
+    // ⚠ 주간 키는 **지금 캘린더 데이터의 수집일**로 만든다. 예전엔 'week-ahead:2026-11-09' 를 박아 뒀는데,
+    //   주간 캘린더 갱신이 지난주 일정을 밀어내자 그 날짜가 데이터 밖으로 나가 null 이 됐고, 이 테스트가
+    //   갱신 잡의 커밋 전 검사를 막아 캘린더가 2주(11/17 · 11/24) 갱신되지 못했다. 시간이 지나면 깨지는 날짜를 박지 않는다.
+    const { MARKET_CALENDAR } = await import('@/shared/constants/marketCalendar');
+    const weekKey = `week-ahead:${MARKET_CALENDAR.generatedAt}`;
+    expect(factsFromKey(weekKey)?.factKey).toBe(weekKey);
   });
 });
 

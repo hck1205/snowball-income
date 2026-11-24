@@ -202,3 +202,47 @@ jobs:
           } > comment.md
           gh issue close "$ISSUE" --comment "$(cat comment.md)"
           echo "::notice::$WF_NAME 복구 — #$ISSUE 을 닫았다."
+
+      # 📱 텔레그램으로도 알린다(2026-11-24 사용자 요청). 이슈는 기록이고, 텔레그램은 **바로 눈에 띄는 신호**다
+      #    — 미국 증시 캘린더 갱신이 11/17 · 11/24 두 번 실패해 이슈(#368)가 열려 있었는데 아무도 못 봤다.
+      #    - 실패: 처음이든 반복이든 매번 보낸다(반복은 하루 한 번꼴이라 소음이 아니다 — 깨져 있다는 뜻이다).
+      #    - 복구: 열려 있던 알림이 닫힐 때만 보낸다(평소 성공마다 보내면 알림이 곧 무시당한다).
+      #    🔴 `continue-on-error` + `if: always()` — 텔레그램이 막혀도 이슈 기록은 그대로 남고, 이슈 단계가
+      #       실패해도 텔레그램은 간다. 둘 중 하나는 반드시 닿게.
+      #    비밀값은 GA 리포트와 같은 봇(HUNGRY_HIPPO_BOT_TOKEN · HUNGRY_HIPPO_TELEGRAM_CHAT_ID). 없으면 건너뛴다.
+      #    메시지에는 워크플로 이름 · 시각 · 실행 링크만 담는다(전부 공개 정보다).
+      - name: Telegram alert
+        if: always() && (steps.classify.outputs.action == 'open' || (steps.classify.outputs.action == 'close' && steps.existing.outputs.number != ''))
+        continue-on-error: true
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.HUNGRY_HIPPO_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.HUNGRY_HIPPO_TELEGRAM_CHAT_ID }}
+          ACTION: ${{ steps.classify.outputs.action }}
+          REPEAT: ${{ steps.existing.outputs.number }}
+        run: |
+          if [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$TELEGRAM_CHAT_ID" ]; then
+            echo "텔레그램 비밀값이 없다 — 건너뛴다."
+            exit 0
+          fi
+          now="$(date '+%m/%d %H:%M')"
+          if [ "$ACTION" = "open" ]; then
+            if [ -n "$REPEAT" ]; then status="또 실패 (알림 #$REPEAT 열려 있음)"; else status="실패"; fi
+            text="⚠️ 자동화 ${status}
+          ${WF_NAME}
+          ${now} KST · 계기: ${RUN_EVENT}
+
+          이 파이프라인이 갱신하던 데이터가 지금부터 낡습니다.
+          ${RUN_URL}"
+          else
+            text="✅ 자동화 복구
+          ${WF_NAME}
+          ${now} KST — 다시 성공해 알림 #${REPEAT} 을 닫았습니다.
+          ${RUN_URL}"
+          fi
+          # 들여쓰기(YAML 블록)로 붙은 줄머리 공백을 걷어 낸다.
+          text="$(printf '%s\n' "$text" | sed 's/^          //')"
+          curl -fsS -o /dev/null -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "text=${text}" \
+            --data-urlencode "disable_web_page_preview=true"
+          echo "텔레그램으로 알렸다 ($ACTION)."
