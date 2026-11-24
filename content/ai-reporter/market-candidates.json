@@ -1,0 +1,109 @@
+{
+  "generatedAt": "2026-11-25",
+  "note": "등락률은 Yahoo 일봉 종가로 계산한 값 — 기사에 쓸 때 priceMoves 에 그대로 옮긴다(직접 계산하지 않는다).",
+  "candidates": [
+    {
+      "ticker": "NVDA",
+      "date": "2026-11-23",
+      "changePercent": 31.48,
+      "close": 165.05,
+      "name": "엔비디아"
+    },
+    {
+      "ticker": "INTC",
+      "date": "2026-11-23",
+      "changePercent": 16.34,
+      "close": 59.66,
+      "name": "인텔"
+    },
+    {
+      "ticker": "SMH",
+      "date": "2026-11-23",
+      "changePercent": 15.03,
+      "close": 460.18,
+      "name": "반에크 반도체 ETF"
+    },
+    {
+      "ticker": "TSM",
+      "date": "2026-11-23",
+      "changePercent": 14.08,
+      "close": 363.6,
+      "name": "TSMC(대만 반도체)"
+    },
+    {
+      "ticker": "ORCL",
+      "date": "2026-11-23",
+      "changePercent": 12.34,
+      "close": 113.68,
+      "name": "오라클"
+    },
+    {
+      "ticker": "AVGO",
+      "date": "2026-11-20",
+      "changePercent": -12.19,
+      "close": 304.41,
+      "name": "브로드컴"
+    },
+    {
+      "ticker": "TSLA",
+      "date": "2026-11-23",
+      "changePercent": 11.46,
+      "close": 385.46,
+      "name": "테슬라"
+    },
+    {
+      "ticker": "TXN",
+      "date": "2026-11-23",
+      "changePercent": 10.4,
+      "close": 291.19,
+      "name": "텍사스 인스트루먼트"
+    }
+  ],
+  "indexMoves": [
+    {
+      "ticker": "SPY",
+      "date": "2026-11-20",
+      "changePercent": -3.64
+    },
+    {
+      "ticker": "SPY",
+      "date": "2026-11-23",
+      "changePercent": 4.71
+    },
+    {
+      "ticker": "SPY",
+      "date": "2026-11-24",
+      "changePercent": -0.71
+    },
+    {
+      "ticker": "QQQ",
+      "date": "2026-11-20",
+      "changePercent": -5.67
+    },
+    {
+      "ticker": "QQQ",
+      "date": "2026-11-23",
+      "changePercent": 7
+    },
+    {
+      "ticker": "QQQ",
+      "date": "2026-11-24",
+      "changePercent": -2.04
+    },
+    {
+      "ticker": "DIA",
+      "date": "2026-11-20",
+      "changePercent": -1.98
+    },
+    {
+      "ticker": "DIA",
+      "date": "2026-11-23",
+      "changePercent": 3.06
+    },
+    {
+      "ticker": "DIA",
+      "date": "2026-11-24",
+      "changePercent": 0.24
+    }
+  ]
+}
