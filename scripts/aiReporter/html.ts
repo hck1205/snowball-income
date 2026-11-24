@@ -3,6 +3,13 @@
  * 태그만 만든다: table · tbody · tr · th · td · p · strong · a. `data-chart` 는 표에만 붙는다.
  */
 
+/** 여는·닫는 태그 이름들(소문자). 허용 태그 검사에 쓴다(`rules.ts` · `marketNews.ts`). */
+export const tagsOf = (html: string): string[] =>
+  [...html.matchAll(/<\s*\/?\s*([a-zA-Z][a-zA-Z0-9]*)/g)].map((match) => match[1]!.toLowerCase());
+
+/** 태그를 지운 글 — 글자 수·문장 검사에 쓴다. */
+export const stripTags = (html: string): string => html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+
 export const escapeHtml = (value: string): string =>
   value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 

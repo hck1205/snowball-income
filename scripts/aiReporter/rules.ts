@@ -1,3 +1,4 @@
+import { stripTags, tagsOf } from './html';
 import type { ReporterDraft, ReporterFacts, ReporterLedger } from './types';
 
 /**
@@ -30,8 +31,6 @@ const INTRO_TAGS = new Set(['p', 'strong', 'em', 'br']);
 /** 분석 단락 태그 — 소제목과 목록까지. 번호 목록(ol)은 보고서 말투라 뺀다. */
 const ANALYSIS_TAGS = new Set(['h3', 'p', 'strong', 'em', 'br', 'ul', 'li']);
 
-const tagsOf = (html: string): string[] =>
-  [...html.matchAll(/<\s*\/?\s*([a-zA-Z][a-zA-Z0-9]*)/g)].map((match) => match[1]!.toLowerCase());
 
 /** 투자 권유·약속형 표현. 계산 예시만 말한다. */
 export const ADVICE_PATTERNS: readonly RegExp[] = [
@@ -57,7 +56,6 @@ export const BRAND_BANNED: readonly RegExp[] = [/눈덩이|스노우볼|snowball
 /** 겪은 척(지어낸 경험) — AI 리포터는 경험이 없다. */
 export const FAKE_EXPERIENCE: readonly RegExp[] = [/제가\s*(직접|해\s*보|투자|샀|팔)|저는\s*(투자|보유|매수)|제\s*경험/];
 
-const stripTags = (html: string): string => html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 
 const numericTokens = (text: string): string[] =>
   (text.match(/\d[\d,]*(?:\.\d+)?/g) ?? []).map((token) => token.replace(/,/g, '').replace(/\.0+$/, ''));
