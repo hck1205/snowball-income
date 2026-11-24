@@ -8,3 +8,4 @@ export * from './rules';
 export * from './compose';
 export * from './publish';
 export * from './select';
+export * from './marketNews';

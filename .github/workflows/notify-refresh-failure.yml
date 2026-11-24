@@ -53,6 +53,7 @@ on:
       - Main health check
       - AI reporter - prepare facts
       - AI reporter - publish
+      - AI reporter - market candidates
       - GA traffic report
     types: [completed]
 

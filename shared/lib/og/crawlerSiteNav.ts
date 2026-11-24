@@ -74,7 +74,8 @@ export const CRAWLER_SITE_NAV: readonly CrawlerNavGroup[] = [
     label: '시장 읽기',
     items: [
       { to: '/market/pulse', label: '시장 온도' },
-      { to: '/market/stats', label: '히포 통계' }
+      { to: '/market/stats', label: '히포 통계' },
+      { to: '/community/board?cat=news', label: '시장 기사' }
     ]
   },
   {

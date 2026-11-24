@@ -1,4 +1,4 @@
-import { COMMUNITY_COPY, POST_CATEGORY_IDS } from '@/shared/constants/community';
+import { BOARD_FILTER_CATEGORY_IDS, COMMUNITY_COPY } from '@/shared/constants/community';
 import type { BoardCategoryFilterProps } from './BoardCategoryFilter.types';
 import { FilterChip, FilterRow } from './BoardCategoryFilter.styled';
 
@@ -28,7 +28,7 @@ export function BoardCategoryFilter({ categories, onToggle, onSelectAll }: Board
       <FilterChip type="button" $selected={isAll} aria-pressed={isAll} onClick={onSelectAll}>
         {b.categoryAll}
       </FilterChip>
-      {POST_CATEGORY_IDS.map((id) => {
+      {BOARD_FILTER_CATEGORY_IDS.map((id) => {
         const selected = categories.includes(id);
         return (
           <FilterChip
