@@ -11,6 +11,7 @@ import {
   shiftCalendarMonth
 } from '@/pages/DividendCalendar/utils';
 import type { CalendarTickerEntry } from '@/pages/DividendCalendar/utils';
+import { MARKET_DATA } from '@/shared/constants/marketData';
 
 /**
  * v2 월간 그리드의 순수 계산. v1 파일(calendarSchedule/ShareUrl/Storage)의 계약은 건드리지 않는다.
@@ -86,11 +87,17 @@ describe('월 이동 · 날짜 포맷', () => {
 
 describe('예상 지급일 해석', () => {
   it('스냅샷에 일자가 있는 종목만 날짜를 준다', () => {
-    // KO = {4:1, 7:2, 10:2, 12:17} (실데이터, 2026-07-25 스냅샷)
-    expect(getExpectedPayoutDay('KO', 2026, 7)).toBe(2);
-    expect(getExpectedPayoutDay('KO', 2026, 12)).toBe(17);
-    // KO 는 8월에 지급하지 않는다 → 키 없음 → null
-    expect(getExpectedPayoutDay('KO', 2026, 8)).toBeNull();
+    // ⚠ 기대값은 **스냅샷에서 읽는다**(2026-11-24). 예전엔 KO 7월 = 2일, 12월 = 17일을 박아 뒀는데, 지급일은
+    //   매일 갱신(refresh-paydates)되며 하루 이틀씩 움직인다 — 그러면 이 테스트가 갱신 잡의 커밋 전 검사를 막는다
+    //   (지급일 ±2일 변동 시뮬레이션에서 실제로 깨졌다). 잠그는 것은 "스냅샷의 일자를 그대로 준다"는 동작이다.
+    const days = MARKET_DATA.entries.KO?.estimatedPayDayByMonth ?? {};
+    const [paidMonth, paidDay] = Object.entries(days)[0] ?? [];
+    if (!paidMonth || paidDay === undefined) throw new Error(`시나리오 전제 불성립: 스냅샷(${MARKET_DATA.asOf})에 KO 예상 지급일이 없다`);
+    expect(getExpectedPayoutDay('KO', 2026, Number(paidMonth))).toBe(paidDay);
+    // 스냅샷에 키가 없는 달(지급하지 않는 달) → null
+    const unpaidMonth = Array.from({ length: 12 }, (_unused, index) => index + 1).find((month) => !(String(month) in days));
+    expect(unpaidMonth).toBeDefined();
+    expect(getExpectedPayoutDay('KO', 2026, unpaidMonth!)).toBeNull();
     // SCHD 는 payoutMonthsSource='ex' 라 일자 자체가 없다
     expect(getExpectedPayoutDay('SCHD', 2026, 9)).toBeNull();
     expect(getExpectedPayoutDay('NOT_A_TICKER', 2026, 7)).toBeNull();
