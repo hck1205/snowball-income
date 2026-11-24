@@ -1,5 +1,5 @@
 import type { PostCategory } from '@/shared/lib/supabase';
-import { COMMUNITY_QUERY_PARAM, POST_CATEGORY_IDS } from './config';
+import { BOARD_FILTER_CATEGORY_IDS, COMMUNITY_QUERY_PARAM } from './config';
 
 /**
  * 게시판 "글 분류" 필터 — **UI/URL 계약**(순수 값·함수만, IO·컴포넌트 없음).
@@ -20,11 +20,11 @@ import { COMMUNITY_QUERY_PARAM, POST_CATEGORY_IDS } from './config';
  * - **마지막 하나를 다시 누르면**(집합이 비면) 자연히 All 로 돌아간다 — 빈 목록에 갇히지 않는다.
  */
 
-/** URL·집합 표현을 하나로 정규화한다: 미지값 제거 → 중복 제거 → `POST_CATEGORY_IDS` 순서 → 전체면 빈 집합. */
+/** URL·집합 표현을 하나로 정규화한다: 미지값 제거 → 중복 제거 → `BOARD_FILTER_CATEGORY_IDS` 순서 → 전체면 빈 집합. */
 const normalize = (values: readonly string[]): readonly PostCategory[] => {
-  const picked = POST_CATEGORY_IDS.filter((id) => values.includes(id));
+  const picked = BOARD_FILTER_CATEGORY_IDS.filter((id) => values.includes(id));
   // 전부 고른 것은 "필터 없음"과 결과가 같다 — All 로 접어 URL·화면 상태를 하나로 유지한다.
-  return picked.length === POST_CATEGORY_IDS.length ? [] : picked;
+  return picked.length === BOARD_FILTER_CATEGORY_IDS.length ? [] : picked;
 };
 
 /**

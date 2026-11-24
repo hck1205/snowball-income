@@ -18,6 +18,7 @@ import {
   Medal,
   MessageSquare,
   MessagesSquare,
+  Newspaper,
   Percent,
   Sunset,
   PiggyBank,
@@ -48,6 +49,9 @@ import { MARKET_PULSE_PATH } from '@/pages/MarketPulse/marketPulseRoute';
 import { HIPPO_STATS_PATH } from '@/pages/HippoStats/hippoStatsRoute';
 import { isGoogleSheetsEnabled } from '@/shared/lib/googleSheets';
 import { isCommunityEnabled } from '@/shared/lib/supabase';
+
+/** 시장 기사 = 게시판의 뉴스 분류(`BOARD_FILTER_CATEGORY_IDS`). 크롤러 내비(`shared/lib/og/crawlerSiteNav.ts`)와 같은 값. */
+const MARKET_NEWS_PATH = '/community/board?cat=news';
 import type { NavColumn } from './PrimaryNav.types';
 
 /**
@@ -111,13 +115,15 @@ export const DIVIDEND_LIST_GROUP_ITEMS = [
 ] as const;
 
 /**
- * 시장 읽기 — 시장 온도 · 히포 통계.
+ * 시장 읽기 — 시장 온도 · 히포 통계 · 시장 기사.
  * 히포 통계가 **바로 밑**인 이유: 시장 온도의 지표를 재료로 쓰는 화면이라 순서가 곧 흐름이다.
+ * 시장 기사(2026-11-24)는 AI 리포터가 화·금에 쓰는 시장 뉴스 — 게시판의 뉴스 분류를 연다(`?cat=news`).
  */
 export const MARKET_GROUP_ITEMS = [
   /* 온도계 — 이름이 '시장 온도'라 그림이 이름을 그대로 말한다(2026-08-09 사용자 지시). */
   { to: MARKET_PULSE_PATH, label: n.marketPulse, Icon: Thermometer },
-  { to: HIPPO_STATS_PATH, label: n.hippoStats, Icon: ChartPie }
+  { to: HIPPO_STATS_PATH, label: n.hippoStats, Icon: ChartPie },
+  { to: MARKET_NEWS_PATH, label: n.marketNews, Icon: Newspaper }
 ] as const;
 
 /**

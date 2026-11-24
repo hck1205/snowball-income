@@ -59,7 +59,8 @@ var CRAWLER_SITE_NAV = [
     label: "\uC2DC\uC7A5 \uC77D\uAE30",
     items: [
       { to: "/market/pulse", label: "\uC2DC\uC7A5 \uC628\uB3C4" },
-      { to: "/market/stats", label: "\uD788\uD3EC \uD1B5\uACC4" }
+      { to: "/market/stats", label: "\uD788\uD3EC \uD1B5\uACC4" },
+      { to: "/community/board?cat=news", label: "\uC2DC\uC7A5 \uAE30\uC0AC" }
     ]
   },
   {
@@ -217,6 +218,16 @@ var resolveSiteUrl = (requestUrl) => {
   if (configured) return stripTrailingSlash(configured);
   return stripTrailingSlash(new URL(requestUrl).origin);
 };
+
+// shared/constants/community/config.ts
+var POST_CATEGORY_IDS = [
+  "free",
+  "question",
+  "insight",
+  "suggestion",
+  "notice"
+];
+var BOARD_FILTER_CATEGORY_IDS = [...POST_CATEGORY_IDS, "news"];
 
 // shared/constants/community/aiReporter.ts
 var AI_REPORTER = {

@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { BoardCategoryFilter } from './BoardCategoryFilter';
 import {
   COMMUNITY_COPY,
-  POST_CATEGORY_IDS,
+  BOARD_FILTER_CATEGORY_IDS,
   toggleBoardCategory
 } from '@/shared/constants/community';
 
@@ -23,14 +23,14 @@ const setup = (categories: readonly ('free' | 'question' | 'insight' | 'suggesti
   return { onToggle, onSelectAll };
 };
 
-describe('BoardCategoryFilter — 전체 + 5개 분류', () => {
-  it('전체를 맨 앞에 두고 분류 5개를 순서대로 세운다', () => {
+describe('BoardCategoryFilter — 전체 + 분류(글쓰기 5개 + 뉴스)', () => {
+  it('전체를 맨 앞에 두고 분류를 순서대로 세운다(뉴스는 AI 리포터 분류라 맨 끝)', () => {
     setup();
 
     const buttons = screen.getAllByRole('button');
     expect(buttons.map((button) => button.textContent)).toEqual([
       b.categoryAll,
-      ...POST_CATEGORY_IDS.map((id) => labels[id])
+      ...BOARD_FILTER_CATEGORY_IDS.map((id) => labels[id])
     ]);
   });
 
@@ -81,11 +81,11 @@ describe('toggleBoardCategory — All 과 개별의 관계', () => {
   });
 
   it('5개를 전부 켜면 전체로 접는다(조건 없음과 결과가 같다)', () => {
-    const all = POST_CATEGORY_IDS.slice(0, POST_CATEGORY_IDS.length - 1);
-    expect(toggleBoardCategory(all, POST_CATEGORY_IDS[POST_CATEGORY_IDS.length - 1])).toEqual([]);
+    const all = BOARD_FILTER_CATEGORY_IDS.slice(0, BOARD_FILTER_CATEGORY_IDS.length - 1);
+    expect(toggleBoardCategory(all, BOARD_FILTER_CATEGORY_IDS[BOARD_FILTER_CATEGORY_IDS.length - 1])).toEqual([]);
   });
 
-  it('선택 순서와 무관하게 POST_CATEGORY_IDS 순서로 정규화한다', () => {
+  it('선택 순서와 무관하게 BOARD_FILTER_CATEGORY_IDS 순서로 정규화한다', () => {
     expect(toggleBoardCategory(['notice'], 'question')).toEqual(['question', 'notice']);
   });
 });

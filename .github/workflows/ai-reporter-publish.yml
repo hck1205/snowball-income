@@ -75,6 +75,9 @@ jobs:
           AI_REPORTER_EMAIL: ${{ secrets.AI_REPORTER_EMAIL }}
           AI_REPORTER_PASSWORD: ${{ secrets.AI_REPORTER_PASSWORD }}
           PUBLIC: ${{ vars.AI_REPORTER_PUBLIC }}
+          # 시장 기사(2026-11-24)는 사람 검토 없이 공개되므로, 올라가면 텔레그램으로 링크를 보낸다(없으면 건너뜀).
+          TELEGRAM_BOT_TOKEN: ${{ secrets.HUNGRY_HIPPO_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.HUNGRY_HIPPO_TELEGRAM_CHAT_ID }}
         run: |
           dir=reporter/content/ai-reporter
           mkdir -p "$dir/inbox" "$dir/published"
@@ -87,6 +90,19 @@ jobs:
             echo "── $draft"
             if npm run reporter --silent -- publish --ledger "$dir/ledger.json" --draft "$draft" $flag > out.txt 2>&1; then
               cat out.txt
+              case "$(basename "$draft")" in
+                market-news_*)
+                  path="$(grep -oE '/community/board/[0-9a-f-]+' out.txt | head -1)"
+                  title="$(node -e "console.log(require(process.argv[1]).title)" "$draft")"
+                  if [ -n "$path" ] && [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; then
+                    message="$(printf '📰 AI 시장 기사가 올라갔습니다\n%s\nhttps://hungry-hippo.xyz%s' "$title" "$path")"
+                    curl -fsS -o /dev/null -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+                      --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+                      --data-urlencode "text=${message}" \
+                      || echo "텔레그램 알림 실패(발행은 됐다)"
+                  fi
+                  ;;
+              esac
               git -C reporter mv -f "content/ai-reporter/inbox/$(basename "$draft")" "content/ai-reporter/published/$(basename "$draft")"
               rm -f "$dir/next-facts.json" "$dir/last-error.json"
             else
