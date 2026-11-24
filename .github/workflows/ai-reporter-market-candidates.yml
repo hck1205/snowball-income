@@ -7,6 +7,7 @@ name: AI reporter - market candidates
 # 판정 로직은 scripts/aiReporter/marketNews.ts(pickMoveCandidates, 테스트로 잠김).
 #
 # 시각: 화·금 04:47 KST(월·목 19:47 UTC). 루틴은 그 뒤(화·금 07:07 KST)에 돈다.
+# (2026-11-25: 첫 머지 때 GitHub 504 로 워크플로 등록이 빠져, 이 줄을 더한 푸시로 다시 등록했다.)
 on:
   schedule:
     - cron: '47 19 * * 1,4'
