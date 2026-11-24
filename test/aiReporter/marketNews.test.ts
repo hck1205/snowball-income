@@ -210,3 +210,29 @@ describe('주제 후보 — 무엇이 얼마나 움직였는지는 코드가 정
     expect(pickMoveCandidates({ NVDA: series(100, 100, 100, 100, 130) }, covered)).toEqual([]);
   });
 });
+
+describe('끝난 거래일만 — 장중 마지막 줄을 빼야 한다', () => {
+  // 실측(2026-11-24 15:23 UTC, 미국 장중): 마지막 줄 11/24 가 "지금까지" 값이라 그대로 쓰면 미완성 하루가 후보가 된다.
+  const start = 1795530600; // 11/24 정규장 시작
+  const end = 1795554000; // 11/24 정규장 마감
+  const result = (lastQuote: number) => ({
+    timestamp: [start - 86_400, start],
+    meta: { regularMarketTime: lastQuote, currentTradingPeriod: { regular: { start, end } } },
+    indicators: { quote: [{ close: [165.05, 153.03] }] }
+  });
+
+  it('장중이면 오늘 줄을 뺀다', async () => {
+    const { completedSessions } = await import('@/scripts/aiReporter');
+    expect(completedSessions(result(start + 3000))).toEqual({ stamps: [start - 86_400], closes: [165.05] });
+  });
+
+  it('장이 끝났으면 오늘 줄을 남긴다', async () => {
+    const { completedSessions } = await import('@/scripts/aiReporter');
+    expect(completedSessions(result(end)).closes).toEqual([165.05, 153.03]);
+  });
+
+  it('메타가 없으면 손대지 않는다', async () => {
+    const { completedSessions } = await import('@/scripts/aiReporter');
+    expect(completedSessions({ timestamp: [1, 2], indicators: { quote: [{ close: [1, 2] }] } }).closes).toEqual([1, 2]);
+  });
+});
