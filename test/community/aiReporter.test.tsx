@@ -57,8 +57,11 @@ describe('배지 · 사이트맵 · noindex — 봇 계정이 등록된 상태',
 
   it('🔴 봇 작성자 옆에만 "AI 리포터" 배지가 붙는다', async () => {
     const { AiReporterBadge } = await import('@/components/community/AiReporterBadge');
-    const { rerender } = render(<AiReporterBadge authorId={BOT_ID} />);
+    const { rerender, container } = render(<AiReporterBadge authorId={BOT_ID} />);
     expect(screen.getByText('AI 리포터')).toBeInTheDocument();
+    // 그림은 윙크 하마(2026-11-25) — 기기마다 다르게 그려지는 🤖 이모지를 쓰지 않는다.
+    expect(container.querySelector('svg')).not.toBeNull();
+    expect(container.textContent).not.toContain('🤖');
 
     rerender(<AiReporterBadge authorId={HUMAN_ID} />);
     expect(screen.queryByText('AI 리포터')).toBeNull();

@@ -196,7 +196,7 @@ export default function CommunityDetailView({ viewModel }: CommunityDetailViewPr
           </Title>
           <Byline>
             <BylineAvatar>
-              <Avatar displayName={authorName} avatarUrl={post.author?.avatar_url} size="md" />
+              <Avatar displayName={authorName} avatarUrl={post.author?.avatar_url} authorId={post.author?.id ?? post.user_id} size="md" />
             </BylineAvatar>
             <AuthorLine>
               <AuthorName>{authorName}</AuthorName>

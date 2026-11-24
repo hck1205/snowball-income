@@ -14,6 +14,8 @@ export { RelativeTime } from './RelativeTime';
 export { PostMeta, VisuallyHidden } from './PostMeta';
 export { SimBadge } from './SimBadge';
 export { AiReporterBadge } from './AiReporterBadge';
+export { AiReporterMark } from './AiReporterMark';
+export type { AiReporterMarkProps } from './AiReporterMark';
 export { AiReporterNote } from './AiReporterNote';
 export { SimSummaryStats } from './SimSummaryStats';
 export type { SimSummaryStatsProps, SimSummaryStatsVariant } from './SimSummaryStats';
