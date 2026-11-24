@@ -204,7 +204,8 @@ var CRAWLER_SITE_NAV = [
     label: "\uC2DC\uC7A5 \uC77D\uAE30",
     items: [
       { to: "/market/pulse", label: "\uC2DC\uC7A5 \uC628\uB3C4" },
-      { to: "/market/stats", label: "\uD788\uD3EC \uD1B5\uACC4" }
+      { to: "/market/stats", label: "\uD788\uD3EC \uD1B5\uACC4" },
+      { to: "/community/board?cat=news", label: "\uC2DC\uC7A5 \uAE30\uC0AC" }
     ]
   },
   {

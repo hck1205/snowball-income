@@ -9,7 +9,7 @@
  */
 
 /** 다루는 주제. 게시판 주제는 순환하며 쓴다(같은 주제 연속 금지). */
-export type ReporterTopic = 'week-ahead' | 'income-target' | 'ticker-spotlight' | 'gallery-portfolio' | 'fire-video';
+export type ReporterTopic = 'week-ahead' | 'income-target' | 'ticker-spotlight' | 'gallery-portfolio' | 'fire-video' | 'market-news';
 
 /** 게시판(`/community/board`) 순환 주제. 갤러리 주제는 따로 정한 요일에만 명시적으로 쓴다(`--topic`). */
 export const REPORTER_TOPICS: readonly ReporterTopic[] = ['week-ahead', 'income-target', 'ticker-spotlight'];
@@ -90,6 +90,8 @@ export type ReporterLedgerEntry = {
   readonly postId: string | null;
   /** 파이어족들 영상 글의 채널 id — 같은 채널이 연달아 나오지 않게 다음 회차가 본다. */
   readonly channelId?: string;
+  /** 시장 기사가 다룬 종목(2026-11-24) — 같은 종목을 30일 안에 다시 후보로 올리지 않는다. */
+  readonly tickers?: readonly string[];
 };
 
 export type ReporterLedger = { readonly entries: readonly ReporterLedgerEntry[] };

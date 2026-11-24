@@ -34,7 +34,7 @@ const tagsOf = (html: string): string[] =>
   [...html.matchAll(/<\s*\/?\s*([a-zA-Z][a-zA-Z0-9]*)/g)].map((match) => match[1]!.toLowerCase());
 
 /** 투자 권유·약속형 표현. 계산 예시만 말한다. */
-const ADVICE_PATTERNS: readonly RegExp[] = [
+export const ADVICE_PATTERNS: readonly RegExp[] = [
   /추천/,
   /매수\s*하(세요|십시오)|사(세요|십시오)|담(으세요|으십시오)/,
   /팔(으세요|으십시오)|매도\s*하(세요|십시오)/,
@@ -44,7 +44,7 @@ const ADVICE_PATTERNS: readonly RegExp[] = [
 ];
 
 /** AI 지문 — 메타 선언·총론 오프닝·보고서 말투. */
-const AI_FINGERPRINTS: readonly RegExp[] = [
+export const AI_FINGERPRINTS: readonly RegExp[] = [
   /정리해\s*봤습니다|정리해\s*보았습니다|살펴보겠습니다|알아보겠습니다|소개해\s*드리겠습니다/,
   /라는\s*점입니다/,
   /요즘\s*시장|우리가\s*흔히|결론적으로|요약하자면|마무리하며|도움이\s*되(었|셨)으면/,
@@ -52,10 +52,10 @@ const AI_FINGERPRINTS: readonly RegExp[] = [
 ];
 
 /** 사이트 공통 금지 — 제품 비유. */
-const BRAND_BANNED: readonly RegExp[] = [/눈덩이|스노우볼|snowball/i];
+export const BRAND_BANNED: readonly RegExp[] = [/눈덩이|스노우볼|snowball/i];
 
 /** 겪은 척(지어낸 경험) — AI 리포터는 경험이 없다. */
-const FAKE_EXPERIENCE: readonly RegExp[] = [/제가\s*(직접|해\s*보|투자|샀|팔)|저는\s*(투자|보유|매수)|제\s*경험/];
+export const FAKE_EXPERIENCE: readonly RegExp[] = [/제가\s*(직접|해\s*보|투자|샀|팔)|저는\s*(투자|보유|매수)|제\s*경험/];
 
 const stripTags = (html: string): string => html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 

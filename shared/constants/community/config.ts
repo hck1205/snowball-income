@@ -95,6 +95,13 @@ export const POST_CATEGORY_IDS: readonly PostCategory[] = [
   'notice'
 ];
 
+/**
+ * 게시판 **필터**에 보이는 분류(2026-11-24) — 글쓰기 선택지(`POST_CATEGORY_IDS`) + 뉴스.
+ * 뉴스(`news`)는 AI 리포터가 쓰는 분류라 사람이 고를 수는 없지만, 읽는 쪽에서는 골라 볼 수 있어야 한다 —
+ * 상단 메뉴 "시장 읽기 → 시장 기사"가 `?cat=news` 로 이 필터를 연다. 여기 없으면 URL 의 news 가 조용히 버려진다.
+ */
+export const BOARD_FILTER_CATEGORY_IDS: readonly PostCategory[] = [...POST_CATEGORY_IDS, 'news'];
+
 /** 운영자에게만 **선택지로** 노출되는 분류. ⚠ UI 제한일 뿐 서버가 막지 않는다(RLS 없음). */
 export const ADMIN_ONLY_POST_CATEGORIES: readonly PostCategory[] = ['notice'];
 
