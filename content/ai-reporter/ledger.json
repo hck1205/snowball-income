@@ -70,6 +70,16 @@
       "title": "목요일은 휴장, 금요일은 조기 폐장",
       "publishedAt": "2026-11-23T07:53:14.910Z",
       "postId": "337f902f-0244-4a4e-a891-ab92a91d0cf8"
+    },
+    {
+      "factKey": "market-news:2026-11-25:broadcom-google-tpu-cut",
+      "topic": "market-news",
+      "title": "브로드컴 12% 급락, 구글 TPU 물량 축소 보도 여파",
+      "publishedAt": "2026-11-24T15:34:07.106Z",
+      "postId": "3e0f60d6-9416-41f0-b1a3-2ac79df1f505",
+      "tickers": [
+        "AVGO"
+      ]
     }
   ]
 }
