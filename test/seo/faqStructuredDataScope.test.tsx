@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { RouterProvider, createMemoryRouter } from 'react-router-dom';
 import { Provider } from 'jotai/react';
@@ -10,6 +10,7 @@ import { FAQ_STRUCTURED_DATA_ID } from '@/shared/lib/seo';
 import { LANDING_COPY } from '@/pages/Landing/copy';
 import { ABOUT_PATH } from '@/shared/constants/routes';
 import { storageKey } from '@/shared/lib/storage';
+import { warmRoutes } from '@/test/helpers';
 
 /**
  * 🔴 **`FAQPage` JSON-LD 는 `/about` 에서만 DOM 에 있다.**
@@ -70,6 +71,9 @@ const enterAt = (url: string) => {
 };
 
 let restoreFetch: () => void;
+
+/* 🔴 들르는 화면을 미리 데운다 — 전체 스위트 경합에서만 나던 대기 초과 플레이크(근거: test/helpers/warmRoutes). */
+beforeAll(() => warmRoutes([ABOUT_PATH, '/', '/simulator', '/privacy', '/이런-주소는-없다']), 60_000);
 
 beforeEach(() => {
   restoreFetch = stubNeverResolvingFetch();
