@@ -17,7 +17,8 @@ import { timingSafeEqual } from 'node:crypto';
  * - 🔴 Vercel 이 보내는 `Authorization: Bearer <CRON_SECRET>` 이 맞을 때만 동작한다. 이 주소는 공개라
  *   누구나 부를 수 있다 — 비밀값이 없거나 틀리면 401, 아무것도 시작하지 않는다.
  * - 🔴 시작할 수 있는 워크플로는 아래 `JOBS` 목록뿐이다. 요청이 파일 이름을 고를 수 없다.
- * - 비밀값(Vercel 프로젝트 환경 변수): `CRON_SECRET` · `GITHUB_DISPATCH_TOKEN`(이 저장소의 Actions: write 권한만
+ * - 비밀값(Vercel 프로젝트 환경 변수): `CRON_SECRET`(⚠ 이름 고정 — Vercel 이 이 이름의 값을 헤더로 실어 보낸다) ·
+ *   `HUNGRY_HIPPO_GITHUB_DISPATCH_TOKEN`(이 저장소의 Actions: write 권한만
  *   가진 fine-grained 토큰). 토큰이 없으면 503 — 등록 전에 배포돼도 아무 일도 일어나지 않는다.
  * - GitHub 예약은 **지우지 않고 백업으로 남긴다**(Vercel 이 실패한 날을 위해). 같은 날 두 번 보내지 않는
  *   중복 방지는 각 워크플로 쪽에 있다(GA 리포트: "Skip if already sent today" 단계).
@@ -55,8 +56,9 @@ export async function handler(request: Request, env: NodeJS.ProcessEnv = process
   const job = new URL(request.url).searchParams.get('job');
   if (!isJob(job)) return json(404, { error: 'unknown job' });
 
-  const token = env.GITHUB_DISPATCH_TOKEN;
-  if (!token) return json(503, { error: 'GITHUB_DISPATCH_TOKEN not set' });
+  // 사용자가 등록한 이름은 HUNGRY_HIPPO_ 접두사가 붙은 쪽이다(2026-11-25). 짧은 이름도 받는다.
+  const token = env.HUNGRY_HIPPO_GITHUB_DISPATCH_TOKEN || env.GITHUB_DISPATCH_TOKEN;
+  if (!token) return json(503, { error: 'HUNGRY_HIPPO_GITHUB_DISPATCH_TOKEN not set' });
 
   const { workflow, ...rest } = JOBS[job];
   const response = await fetch(`https://api.github.com/repos/${REPOSITORY}/actions/workflows/${workflow}/dispatches`, {

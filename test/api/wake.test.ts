@@ -11,7 +11,7 @@ import { handler as proxyHandler } from '@/server/handlers/Proxy/Proxy';
  * 잠그는 것: ① 비밀값이 없거나 틀리면 아무것도 시작하지 않는다(공개 주소다) ② 목록에 없는 작업은 404
  * ③ 맞으면 정해진 워크플로 파일 하나에 main 으로 dispatch ④ vercel.json 의 예약·rewrite 가 목록과 어긋나지 않는다.
  */
-const ENV = { CRON_SECRET: 'cron-secret', GITHUB_DISPATCH_TOKEN: 'gh-token' } as NodeJS.ProcessEnv;
+const ENV = { CRON_SECRET: 'cron-secret', HUNGRY_HIPPO_GITHUB_DISPATCH_TOKEN: 'gh-token' } as NodeJS.ProcessEnv;
 const request = (job: string, auth?: string) =>
   new Request(`https://hungry-hippo.xyz/api/proxy?surface=wake&job=${job}`, {
     method: 'POST',
@@ -32,7 +32,7 @@ describe('깨우기 — 인증', () => {
   it.each([
     ['헤더 없음', undefined, ENV],
     ['틀린 비밀값', 'Bearer wrong', ENV],
-    ['서버에 비밀값이 없음', 'Bearer ', { GITHUB_DISPATCH_TOKEN: 'gh-token' } as NodeJS.ProcessEnv]
+    ['서버에 비밀값이 없음', 'Bearer ', { HUNGRY_HIPPO_GITHUB_DISPATCH_TOKEN: 'gh-token' } as NodeJS.ProcessEnv]
   ])('🔴 %s → 401, GitHub 을 부르지 않는다', async (_label, auth, env) => {
     const fetchStub = stubGitHub();
     const response = await handler(request('ga-report', auth), env);

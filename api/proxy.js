@@ -1047,8 +1047,8 @@ async function handler5(request, env = process.env) {
   if (!secret || !sameSecret(auth, `Bearer ${secret}`)) return json(401, { error: "unauthorized" });
   const job = new URL(request.url).searchParams.get("job");
   if (!isJob(job)) return json(404, { error: "unknown job" });
-  const token = env.GITHUB_DISPATCH_TOKEN;
-  if (!token) return json(503, { error: "GITHUB_DISPATCH_TOKEN not set" });
+  const token = env.HUNGRY_HIPPO_GITHUB_DISPATCH_TOKEN || env.GITHUB_DISPATCH_TOKEN;
+  if (!token) return json(503, { error: "HUNGRY_HIPPO_GITHUB_DISPATCH_TOKEN not set" });
   const { workflow, ...rest } = JOBS[job];
   const response = await fetch(`https://api.github.com/repos/${REPOSITORY}/actions/workflows/${workflow}/dispatches`, {
     method: "POST",
