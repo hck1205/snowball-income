@@ -160,7 +160,7 @@ var AI_REPORTER = {
   disclaimer: "AI \uB9AC\uD3EC\uD130\uAC00 Hungry Hippo\uC758 \uB370\uC774\uD130\uC640 \uACC4\uC0B0\uC73C\uB85C \uC791\uC131\uD55C \uAE00\uC785\uB2C8\uB2E4. \uD22C\uC790 \uAD8C\uC720\uAC00 \uC544\uB2CC \uACC4\uC0B0 \uC608\uC2DC\uC774\uBA70, \uBC30\uB2F9\xB7\uC8FC\uAC00\uB294 \uBC14\uB01D\uB2C8\uB2E4.",
   /** 2026-11-10 생성(ai-reporter@hungry-hippo.xyz). profiles.is_bot=true 는 운영자가 SQL 로 켠다. */
   userIds: ["44792963-f012-4df0-881c-769b971605cc"],
-  indexable: false
+  indexable: true
 };
 var isAiReporterUserId = (userId, config = AI_REPORTER) => typeof userId === "string" && config.userIds.includes(userId);
 var isPostIndexable = (authorUserId, config = AI_REPORTER) => config.indexable || !isAiReporterUserId(authorUserId, config);

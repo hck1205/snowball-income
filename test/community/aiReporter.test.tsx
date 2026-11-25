@@ -12,9 +12,10 @@ const BOT_ID = '0000000b-1111-2222-3333-444444444444';
 const HUMAN_ID = '0000000a-1111-2222-3333-444444444444';
 
 describe('판별 함수 — 기본 설정(계정 생성 전)', () => {
-  it('🔴 userIds 가 비어 있으면 누구도 봇이 아니고, 모든 글이 색인 대상이다', async () => {
+  it('🔴 현재 설정: 색인 허용(2026-11-25 사용자 결정) — 봇 글을 포함해 모든 글이 색인 대상이다', async () => {
     const { AI_REPORTER, isAiReporterUserId, isPostIndexable } = await import('@/shared/constants/community');
-    expect(AI_REPORTER.indexable).toBe(false);
+    expect(AI_REPORTER.indexable).toBe(true);
+    expect(isPostIndexable(AI_REPORTER.userIds[0])).toBe(true);
     expect(isAiReporterUserId(BOT_ID)).toBe(AI_REPORTER.userIds.includes(BOT_ID));
     expect(isPostIndexable(HUMAN_ID)).toBe(true);
     expect(isPostIndexable(null)).toBe(true);
