@@ -13,6 +13,8 @@
  * ## 색인(`indexable`)
  * 처음 4주는 false — 봇 글을 사이트맵에서 빼고 크롤러 HTML 에 noindex 를 단다. 구글의 대량 자동 생성
  * 콘텐츠 정책과 애드센스 심사 리스크를 피하려는 것이다. 품질을 확인한 뒤 사용자 결정으로 true 로 바꾼다.
+ * → **2026-11-25 사용자 결정으로 true.** 봇 글도 사이트맵에 들어가고 noindex 가 빠진다. AI 고지(배지·고지 상자)는 그대로다.
+ *   다시 막으려면 false 로 되돌리면 된다(사이트맵·크롤러 HTML 이 이 값 하나만 본다).
  */
 export const AI_REPORTER = {
   displayName: 'AI 리포터',
@@ -23,7 +25,7 @@ export const AI_REPORTER = {
     'AI 리포터가 Hungry Hippo의 데이터와 계산으로 작성한 글입니다. 투자 권유가 아닌 계산 예시이며, 배당·주가는 바뀝니다.',
   /** 2026-11-10 생성(ai-reporter@hungry-hippo.xyz). profiles.is_bot=true 는 운영자가 SQL 로 켠다. */
   userIds: ['44792963-f012-4df0-881c-769b971605cc'] as readonly string[],
-  indexable: false
+  indexable: true
 } as const;
 
 /** 판별에 쓰는 설정 — 기본은 `AI_REPORTER`. 테스트가 계정 id·색인 여부를 바꿔 넣을 수 있게 인자로 연다. */

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, RouterProvider, createMemoryRouter } from 'react-router-dom';
@@ -6,6 +6,7 @@ import { routes } from '@/router/routes';
 import { MARKET_CALENDAR_COPY } from '@/pages/MarketCalendar/copy';
 import { RelatedLinks } from '@/pages/MarketCalendar/components';
 import { COMMUNITY_COPY } from '@/shared/constants/community';
+import { warmRoutes } from '@/test/helpers';
 
 /**
  * 미국 증시 캘린더의 "함께 보면 좋은 화면"(2026-11-07).
@@ -16,6 +17,9 @@ import { COMMUNITY_COPY } from '@/shared/constants/community';
  */
 const copy = MARKET_CALENDAR_COPY;
 const nav = COMMUNITY_COPY.nav;
+
+/* 🔴 지나가는 두 화면을 미리 데운다 — 전체 스위트 경합에서만 나던 대기 초과 플레이크(근거: test/helpers/warmRoutes). */
+beforeAll(() => warmRoutes(['/market/us-calendar', '/dividend/kings']), 60_000);
 
 const renderPage = () =>
   render(<RouterProvider router={createMemoryRouter(routes, { initialEntries: ['/market/us-calendar'] })} />);

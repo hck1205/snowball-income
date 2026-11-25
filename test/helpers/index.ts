@@ -6,3 +6,4 @@ export {
   stubTouchPrimary,
   stubViewportWidth
 } from './viewport';
+export { warmRoutes } from './warmRoutes';
