@@ -5,12 +5,10 @@ import {
   dayLabel,
   detectSpike,
   durationLabel,
-  escapeHtml,
   formatDailyMessage,
   formatSpikeAlert,
   formatWeeklyMessage,
   groupBy,
-  isKstMonday,
   newLandingPages,
   pageLabel,
   shortDate,
@@ -19,6 +17,7 @@ import {
   type Breakdowns,
   type DayTotals
 } from '@/scripts/gaReport';
+import { escapeHtmlText as escapeHtml, isKstMonday } from '@/scripts/common';
 
 /**
  * GA 트래픽 리포트(2026-11-13) — 잠그는 것:

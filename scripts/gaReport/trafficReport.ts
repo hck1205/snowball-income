@@ -10,6 +10,7 @@
  * 문구는 텔레그램 **HTML** 모드다(굵게만 쓴다). GA 원값(경로·소스)은 반드시 `escapeHtml` 을 거친다 —
  * `<` 하나로 전송이 통째로 실패한다.
  */
+import { escapeHtmlText as escapeHtml } from '../common';
 import { deviceLabel, eventLabel, AUTO_EVENTS, pageLabel, sourceLabel, visitorLabel } from './labels';
 
 export type PeriodTotals = {
@@ -84,8 +85,6 @@ export const sumTotals = (rows: readonly PeriodTotals[]): PeriodTotals =>
   );
 
 // ── 작은 서식 도우미 ───────────────────────────────────────────────
-
-export const escapeHtml = (text: string): string => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 const WEEKDAY_KO = ['일', '월', '화', '수', '목', '금', '토'] as const;
 
@@ -277,6 +276,3 @@ export const formatWeeklyMessage = (input: WeeklyInput): string => {
     ...(fresh.length ? fresh.slice(0, TOP_N).map((row) => `• ${escapeHtml(row.label)} ${row.engagedSessions}`) : ['(없음)'])
   ].join('\n');
 };
-
-/** 실행 날짜(한국시간)가 월요일인가 — 주간 요약을 붙일지. */
-export const isKstMonday = (now: Date): boolean => new Date(now.getTime() + 9 * 60 * 60 * 1000).getUTCDay() === 1;

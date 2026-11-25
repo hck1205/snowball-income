@@ -76,6 +76,7 @@ jobs:
           AI_REPORTER_PASSWORD: ${{ secrets.AI_REPORTER_PASSWORD }}
           PUBLIC: ${{ vars.AI_REPORTER_PUBLIC }}
           # 시장 기사(2026-11-24)는 사람 검토 없이 공개되므로, 올라가면 텔레그램으로 링크를 보낸다(없으면 건너뜀).
+          # 보내는 일은 발행 코드(scripts/aiReporter/marketNewsCli.ts)가 한다 — 예전 bash 블록이 죽어 발행 흐름을 끊었다(#392).
           TELEGRAM_BOT_TOKEN: ${{ secrets.HUNGRY_HIPPO_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.HUNGRY_HIPPO_TELEGRAM_CHAT_ID }}
         run: |
@@ -90,24 +91,6 @@ jobs:
             echo "── $draft"
             if npm run reporter --silent -- publish --ledger "$dir/ledger.json" --draft "$draft" $flag > out.txt 2>&1; then
               cat out.txt
-              # 시장 기사가 올라가면 텔레그램으로 링크를 보낸다.
-              # 🔴 이 블록은 **절대 발행 흐름을 끊으면 안 된다** — 이미 게시·대장 기록이 끝난 뒤라, 여기서 죽으면
-              #    아래 inbox → published 이동이 빠져 다음 실행이 "이미 발행한 회차"로 실패한다(2026-11-25 실측:
-              #    `require("reporter/…")` 가 상대 경로를 모듈 이름으로 읽어 죽었다). 그래서 파일은 fs 로 읽고,
-              #    모든 명령 끝에 `|| true` 를 둔다.
-              case "$(basename "$draft")" in
-                market-news_*)
-                  post_path="$(grep -oE '/community/board/[0-9a-f-]+' out.txt | head -1 || true)"
-                  title="$(node -e "console.log(JSON.parse(require('fs').readFileSync(process.argv[1], 'utf8')).title)" "$draft" || true)"
-                  if [ -n "$post_path" ] && [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; then
-                    message="$(printf '📰 AI 시장 기사가 올라갔습니다\n%s\nhttps://hungry-hippo.xyz%s' "$title" "$post_path")"
-                    curl -fsS -o /dev/null -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-                      --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
-                      --data-urlencode "text=${message}" \
-                      || echo "텔레그램 알림 실패(발행은 됐다)"
-                  fi
-                  ;;
-              esac
               git -C reporter mv -f "content/ai-reporter/inbox/$(basename "$draft")" "content/ai-reporter/published/$(basename "$draft")"
               rm -f "$dir/next-facts.json" "$dir/last-error.json"
             else
