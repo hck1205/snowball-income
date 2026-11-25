@@ -59,6 +59,7 @@
     { "source": "/api/unfurl", "destination": "/api/proxy?surface=unfurl" },
     { "source": "/api/kakao-auth", "destination": "/api/oauth-session?surface=kakao" },
     { "source": "/api/naver-auth", "destination": "/api/oauth-session?surface=naver" },
+    { "source": "/api/wake/:job", "destination": "/api/proxy?surface=wake&job=:job" },
 
     { "source": "/community/portfolio", "destination": "/api/post-list?kind=portfolio" },
     { "source": "/community/board", "destination": "/api/post-list?kind=board" },
@@ -92,6 +93,12 @@
       "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
     }
   ],
+
+  "schedules": {
+    "wake-ga-report": { "schedule": "0 0 * * *", "path": "/api/wake/ga-report" },
+    "wake-reporter-publish": { "schedule": "45 */2 * * *", "path": "/api/wake/reporter-publish" },
+    "wake-market-candidates": { "schedule": "47 19 * * 1,4", "path": "/api/wake/market-candidates" }
+  },
 
   "functions": {
     "api/og.js": {
