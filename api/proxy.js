@@ -648,18 +648,18 @@ async function buildMarketPulse() {
 }
 function parseFearGreed(raw) {
   try {
-    const json = JSON.parse(raw);
-    const score = Number(json.fear_and_greed?.score);
-    const stamp = json.fear_and_greed?.timestamp;
+    const json2 = JSON.parse(raw);
+    const score = Number(json2.fear_and_greed?.score);
+    const stamp = json2.fear_and_greed?.timestamp;
     if (!Number.isFinite(score) || typeof stamp !== "string") return null;
     const series = [];
-    for (const point of json.fear_and_greed_historical?.data ?? []) {
+    for (const point of json2.fear_and_greed_historical?.data ?? []) {
       const time = Number(point.x);
       const value = Number(point.y);
       if (!Number.isFinite(time) || !Number.isFinite(value)) continue;
       series.push({ date: new Date(time).toISOString().slice(0, 10), value });
     }
-    const head = json.fear_and_greed ?? {};
+    const head = json2.fear_and_greed ?? {};
     const comparisons = [
       ["\uC804\uC77C", head.previous_close],
       ["1\uC8FC \uC804", head.previous_1_week],
@@ -1023,14 +1023,63 @@ async function handler4(request) {
 }
 var Unfurl_default = toNodeHandler(handler4);
 
+// server/handlers/Wake/Wake.ts
+import { timingSafeEqual } from "node:crypto";
+var JOBS = {
+  "ga-report": { workflow: "ga-traffic-report.yml", inputs: { mode: "auto" } },
+  "reporter-publish": { workflow: "ai-reporter-publish.yml" },
+  "market-candidates": { workflow: "ai-reporter-market-candidates.yml" }
+};
+var REPOSITORY = "hck1205/snowball-income";
+var json = (status, body) => new Response(JSON.stringify(body), {
+  status,
+  headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" }
+});
+var isJob = (value) => value !== null && Object.prototype.hasOwnProperty.call(JOBS, value);
+var sameSecret = (given, expected) => {
+  const a = Buffer.from(given);
+  const b = Buffer.from(expected);
+  return a.length === b.length && timingSafeEqual(a, b);
+};
+async function handler5(request, env = process.env) {
+  const secret = env.CRON_SECRET;
+  const auth = request.headers.get("authorization") ?? "";
+  if (!secret || !sameSecret(auth, `Bearer ${secret}`)) return json(401, { error: "unauthorized" });
+  const job = new URL(request.url).searchParams.get("job");
+  if (!isJob(job)) return json(404, { error: "unknown job" });
+  const token = env.HUNGRY_HIPPO_GITHUB_DISPATCH_TOKEN || env.GITHUB_DISPATCH_TOKEN;
+  if (!token) return json(503, { error: "HUNGRY_HIPPO_GITHUB_DISPATCH_TOKEN not set" });
+  const { workflow, ...rest } = JOBS[job];
+  const response = await fetch(`https://api.github.com/repos/${REPOSITORY}/actions/workflows/${workflow}/dispatches`, {
+    method: "POST",
+    headers: {
+      accept: "application/vnd.github+json",
+      authorization: `Bearer ${token}`,
+      "content-type": "application/json",
+      "user-agent": "hungry-hippo-wake",
+      "x-github-api-version": "2022-11-28"
+    },
+    body: JSON.stringify({ ref: "main", ..."inputs" in rest ? { inputs: rest.inputs } : {} })
+  });
+  if (!response.ok) {
+    console.error(`[wake] ${job} \uC2DC\uC791 \uC2E4\uD328: GitHub HTTP ${response.status}`);
+    return json(502, { error: "dispatch failed", job, status: response.status });
+  }
+  console.log(`[wake] ${job} \uC2DC\uC791`);
+  return json(202, { ok: true, job });
+}
+
 // server/handlers/Proxy/Proxy.ts
 var ROUTES = {
   fx: handler,
   "market-indices": handler3,
-  unfurl: handler4
+  unfurl: handler4,
+  /* 예약 깨우기(2026-11-25) — Vercel 예약 실행이 GitHub 워크플로를 시작시킨다. 근거는 Wake.ts 머리말.
+     함수 칸을 새로 쓰지 않으려고 여기 얹었다(작고, 하루 몇십 번만 불린다). */
+  wake: handler5
 };
 var isSurface = (value) => value !== null && value in ROUTES;
-async function handler5(request) {
+async function handler6(request) {
   const surface = new URL(request.url).searchParams.get("surface");
   if (isSurface(surface)) return ROUTES[surface](request);
   return new Response(JSON.stringify({ error: "unknown surface" }), {
@@ -1038,8 +1087,8 @@ async function handler5(request) {
     headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" }
   });
 }
-var Proxy_default = toNodeHandler(handler5);
+var Proxy_default = toNodeHandler(handler6);
 export {
   Proxy_default as default,
-  handler5 as handler
+  handler6 as handler
 };

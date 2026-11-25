@@ -6,6 +6,7 @@ import { toNodeHandler } from '@/shared/lib/server';
 import { handler as fxHandler } from '@/server/handlers/Fx/Fx';
 import { handler as marketIndicesHandler } from '@/server/handlers/MarketIndices/MarketIndices';
 import { handler as unfurlHandler } from '@/server/handlers/Unfurl/Unfurl';
+import { handler as wakeHandler } from '@/server/handlers/Wake/Wake';
 
 /**
  * **외부 조회 프록시 묶음** — `/api/fx` · `/api/market-indices` · `/api/unfurl` 을 한 함수로 모은다
@@ -37,12 +38,15 @@ import { handler as unfurlHandler } from '@/server/handlers/Unfurl/Unfurl';
  * ⚠ `vercel.json` 과 **한 벌**이다. 한쪽만 바꾸면 그 지면이 404 로 떨어진다.
  * ⚠ 각 핸들러는 자기 파일에 그대로 남는다(테스트도 그 모듈을 직접 부른다). 이 파일은 **배선만** 한다.
  */
-type Surface = 'fx' | 'market-indices' | 'unfurl';
+type Surface = 'fx' | 'market-indices' | 'unfurl' | 'wake';
 
 const ROUTES: Record<Surface, (request: Request) => Promise<Response>> = {
   fx: fxHandler,
   'market-indices': marketIndicesHandler,
-  unfurl: unfurlHandler
+  unfurl: unfurlHandler,
+  /* 예약 깨우기(2026-11-25) — Vercel 예약 실행이 GitHub 워크플로를 시작시킨다. 근거는 Wake.ts 머리말.
+     함수 칸을 새로 쓰지 않으려고 여기 얹었다(작고, 하루 몇십 번만 불린다). */
+  wake: wakeHandler
 };
 
 const isSurface = (value: string | null): value is Surface => value !== null && value in ROUTES;
