@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-25",
+  "generatedAt": "2026-11-27",
   "note": "등락률은 Yahoo 일봉 종가로 계산한 값 — 기사에 쓸 때 priceMoves 에 그대로 옮긴다(직접 계산하지 않는다).",
   "candidates": [
     {
@@ -38,13 +38,6 @@
       "name": "오라클"
     },
     {
-      "ticker": "AVGO",
-      "date": "2026-11-20",
-      "changePercent": -12.19,
-      "close": 304.41,
-      "name": "브로드컴"
-    },
-    {
       "ticker": "TSLA",
       "date": "2026-11-23",
       "changePercent": 11.46,
@@ -53,18 +46,20 @@
     },
     {
       "ticker": "TXN",
-      "date": "2026-11-23",
-      "changePercent": 10.4,
-      "close": 291.19,
+      "date": "2026-11-24",
+      "changePercent": -11.25,
+      "close": 258.44,
       "name": "텍사스 인스트루먼트"
+    },
+    {
+      "ticker": "QCOM",
+      "date": "2026-11-23",
+      "changePercent": 10.3,
+      "close": 165.38,
+      "name": "퀄컴"
     }
   ],
   "indexMoves": [
-    {
-      "ticker": "SPY",
-      "date": "2026-11-20",
-      "changePercent": -3.64
-    },
     {
       "ticker": "SPY",
       "date": "2026-11-23",
@@ -73,12 +68,12 @@
     {
       "ticker": "SPY",
       "date": "2026-11-24",
-      "changePercent": -0.71
+      "changePercent": -0.49
     },
     {
-      "ticker": "QQQ",
-      "date": "2026-11-20",
-      "changePercent": -5.67
+      "ticker": "SPY",
+      "date": "2026-11-25",
+      "changePercent": -0.29
     },
     {
       "ticker": "QQQ",
@@ -88,12 +83,12 @@
     {
       "ticker": "QQQ",
       "date": "2026-11-24",
-      "changePercent": -2.04
+      "changePercent": -1.99
     },
     {
-      "ticker": "DIA",
-      "date": "2026-11-20",
-      "changePercent": -1.98
+      "ticker": "QQQ",
+      "date": "2026-11-25",
+      "changePercent": -0.65
     },
     {
       "ticker": "DIA",
@@ -103,7 +98,12 @@
     {
       "ticker": "DIA",
       "date": "2026-11-24",
-      "changePercent": 0.24
+      "changePercent": 0.79
+    },
+    {
+      "ticker": "DIA",
+      "date": "2026-11-25",
+      "changePercent": 0.31
     }
   ]
 }
