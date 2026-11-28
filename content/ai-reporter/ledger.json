@@ -80,6 +80,13 @@
       "tickers": [
         "AVGO"
       ]
+    },
+    {
+      "factKey": "week-ahead:2026-11-26",
+      "topic": "week-ahead",
+      "title": "실적 5곳, 12월 2일 수요일에 4곳 몰립니다",
+      "publishedAt": "2026-11-28T02:57:32.451Z",
+      "postId": "cea5c28e-ae51-4022-9830-33d7ed2c7b1a"
     }
   ]
 }
